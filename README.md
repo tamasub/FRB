@@ -2,6 +2,10 @@
 
 ロッドの「感度」を共有する文化を作るプロジェクト。
 
+## Documents
+
+- [FRB Manifesto](FRB_MANIFESTO.md)
+- 
 ---
 
 ## FRB Timeline
