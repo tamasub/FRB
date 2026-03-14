@@ -1,0 +1,434 @@
+﻿
+    body{font-family:sans-serif;margin:12px;}
+    canvas{width:100%;height:30vh;border:1px solid #eee;border-radius:10px;}
+    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:10px;}
+    .box{padding:8px 10px;border:1px solid #ddd;border-radius:10px;}
+    input{padding:4px 6px;}
+    button{padding:4px 10px;}
+    .warn{padding:8px 10px;border:1px solid #f99;background:#fff3f3;border-radius:10px;margin-bottom:10px;display:none;}
+    .mini{font-size:12px;color:#666;}
+    .slider{vertical-align:middle;}
+    .bandRow{display:flex;align-items:center;gap:8px;margin:4px 0;}
+    .bandLabel{width:60px;font-size:12px;opacity:0.85;}
+    .bandBar{flex:1;height:10px;background:#eee;border-radius:999px;overflow:hidden;}
+    .bandFill{height:100%;width:0%;background:#666;} /* color can be changed per type later */
+    .bandVal{width:52px;font-size:12px;text-align:right;opacity:0.85;}
+    /* added: change color for A/M */
+    .bandFillA{height:100%;width:0%;background:#1e88e5;} /* Accel (blue) */
+    .bandFillM{height:100%;width:0%;background:#ff6f00;} /* Mic (orange) */
+
+    .scoreRow{display:flex; gap:12px; flex-wrap:wrap; margin:10px 0 16px;}
+    .scoreBox{border:1px solid #ddd; border-radius:10px; padding:10px 12px; min-width:180px; background:#fff;}
+    .scoreTitle{font-weight:700; margin-bottom:6px;}
+
+    .barBg{height:10px; background:#eee; border-radius:999px; overflow:hidden; margin-top:8px;}
+    .barFill{height:100%; width:0%; background:#ff6f00;} /* color is arbitrary */
+
+    .panel{
+    border:1px solid #ddd;
+    border-radius:10px;
+    padding:10px 12px;
+    margin-top:10px;
+    background:#fff;
+    }
+
+    .section-head{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    margin-bottom:8px;
+    }
+
+    .section-title{
+    font-size:18px;
+    font-weight:700;
+    color:#111;
+    }
+
+    .section-sub{
+    font-size:12px;
+    color:#777;
+    }
+
+    .timelog-legend{
+    display:flex;
+    flex-wrap:wrap;
+    gap:18px;
+    align-items:center;
+    padding:4px 0 10px 2px;
+    font-size:12px;
+    line-height:1;
+    user-select:none;
+    }
+
+    .timelog-legend .lg-item{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    color:#444;
+    white-space:nowrap;
+    font-weight:600;
+    }
+
+    .timelog-legend .lg-item i{
+    display:inline-block;
+    width:18px;
+    height:0;
+    border-top:3px solid #999;
+    border-radius:2px;
+    }
+
+    .timelog-legend .scrape i{ border-color:#4db6ac; }
+    .timelog-legend .peakA  i{ border-color:#1e88e5; }
+    .timelog-legend .peakM  i{ border-color:#ff6f00; }
+
+    .timelog-legend .t1 i{
+    border-color:#ff4da6;
+    border-top-style:solid;
+    }
+    .timelog-legend .t2 i{
+    border-color:#a050ff;
+    border-top-style:dashed;
+    }
+    .timelog-legend .t3 i{
+    border-color:#ff3333;
+    border-top-style:dotted;
+    }
+    .timelog-legend .long i{
+    border-color:#333;
+    border-top-width:4px;
+    }
+    .timelog-legend .attack i{
+    border-color:#e53935;
+    border-top-style:dashed;
+    }
+    .timelog-legend .fluxA i{ border-color:#8e24aa; }
+    .timelog-legend .fluxM i{ border-color:#fb8c00; }
+
+    #ts{
+    display:block;
+    width:100%;
+    height:260px;
+    margin-bottom:8px;
+    }
+
+    #tsFlux{
+    display:block;
+    width:100%;
+    height:120px;
+    }
+    .timelog-wrap{
+    border:1px solid #e3e3e3;
+    border-radius:10px;
+    background:#fcfcfc;
+    padding:8px;
+    }
+
+
+    .peakTable{
+    margin-top:6px;
+    font-size:13px;
+    display:inline-block;
+    }
+
+    .peakTable .row{
+    display:flex;
+    gap:12px;
+    }
+
+    .peakTable .lbl{
+    width:50px;
+    font-weight:bold;
+    }
+
+    .peakTable .row{
+    display:flex;
+    gap:12px;
+    margin-bottom:0;
+    flex-wrap:nowrap;
+    align-items:center;
+    }
+
+    #touchTable{
+    margin-top:8px;
+    }
+
+
+    /* ===== TOUCH TABLE ===== */
+    .touch-table-wrap{
+        max-height:210px;
+        overflow-y:auto;
+        overflow-x:auto;
+        border:1px solid #ddd;
+        border-radius:8px;
+        background:whitesmoke;
+    }
+
+    .touch-table{
+        width:100%;
+        min-width:1180px;
+        table-layout:fixed;
+        border-collapse:collapse;
+        font-size:12px;
+    }
+
+    .touch-table col.c-id     { width:48px; }
+    .touch-table col.c-time   { width:84px; }
+    .touch-table col.c-kind   { width:70px; }
+    .touch-table col.c-num    { width:58px; }
+    .touch-table col.c-attack { width:86px; }
+    .touch-table col.c-state  { width:96px; }
+    .touch-table col.c-class  { width:90px; }
+
+    .touch-table thead th{
+        position:sticky;
+        top:0;
+        background:#f7f7f7;
+        z-index:2;
+        border-bottom:2px solid #cfcfcf;
+    }
+
+    .touch-table th,
+    .touch-table td{
+        padding:6px 8px;
+        text-align:center;
+        white-space:nowrap;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        border-bottom:1px solid #eeeeee;
+        border-right:1px solid #d9d9d9;
+    }
+
+    .touch-table th:last-child,
+    .touch-table td:last-child{
+        border-right:none;
+    }
+
+    /* ensure vertical lines with box-shadow */
+    .touch-table-wrap .touch-table th,
+    .touch-table-wrap .touch-table td{
+        border-right:1px solid #d9d9d9 !important;
+        box-shadow: inset -1px 0 0 #d9d9d9;
+    }
+
+    .touch-table-wrap .touch-table th:last-child,
+    .touch-table-wrap .touch-table td:last-child{
+        border-right:none !important;
+        box-shadow:none;
+    }
+
+
+    /* ===== TOUCH TABLE row state ===== */
+    .touch-table tbody tr{
+    transition: background-color 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    .touch-table tbody tr:hover{
+    background:#f7fbff;
+    }
+
+    /* 選択行 */
+    .touch-table tbody tr.selected{
+    background:#e8f2ff !important;
+    box-shadow: inset 0 0 0 2px #4a90e2;
+    font-weight:600;
+    }
+
+    /* 選択行のセルも少し強調 */
+    .touch-table tbody tr.selected td{
+    background:#e8f2ff !important;
+    }
+
+    /* ===== Attack State color ===== */
+    .touch-table td.state-IDLE{
+    color:#666;
+    }
+
+    .touch-table td.state-CANDIDATE{
+    color:#a66a00;
+    font-weight:700;
+    background:#fff6dd;
+    }
+
+    .touch-table td.state-HIT{
+    color:#b00020;
+    font-weight:700;
+    background:#ffe3e8;
+    }
+
+    .touch-table td.state-COOLDOWN{
+    color:#3f51b5;
+    font-weight:700;
+    background:#eaf0ff;
+    }
+
+    /* ===== Contact Class color ===== */
+    .touch-table td.cls-NONE{
+    color:#666;
+    background:#f3f3f3;
+    font-weight:600;
+    }
+
+    .touch-table td.cls-WEED{
+    color:#176b2c;
+    background:#e7f6ea;
+    font-weight:700;
+    }
+
+    .touch-table td.cls-FISH{
+    color:#b71c1c;
+    background:#ffe4e4;
+    font-weight:700;
+    }
+
+    .touch-table td.cls-ROCK{
+    color:#5d4037;
+    background:#efe7e3;
+    font-weight:700;
+    }
+
+    .touch-table td.cls-METAL{
+    color:#1565c0;
+    background:#e3f0ff;
+    font-weight:700;
+    }
+
+    .touch-table td.reason{
+    font-size:11px;
+    color:#666;
+    min-width:260px;
+    white-space:nowrap;
+    }
+
+    .bandGrid{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    }
+
+    .bandBox{
+    flex:1;
+    min-width:260px;
+    }
+
+    .bandRow{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    margin:2px 0;
+    }
+
+    .bandLabel{
+    width:60px;
+    font-size:12px;
+    }
+
+    .bandBar{
+    flex:1;
+    height:6px;
+    background:#eee;
+    border-radius:3px;
+    }
+
+    .bandVal{
+    width:42px;
+    font-size:11px;
+    text-align:right;
+    }
+
+    .diffGrid{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    flex-wrap:wrap;
+    }
+
+    .diffBox{
+    flex:1;
+    min-width:320px;
+    }
+
+    .diffTitle{
+    font-weight:600;
+    margin-bottom:8px;
+    }
+
+    .diffRow{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    margin:2px 0;
+    }
+
+    .diffLabel{
+    width:60px;
+    font-size:12px;
+    color:#444;
+    flex:0 0 60px;
+    }
+
+    .diffBar{
+    position:relative;
+    flex:1;
+    height:6px;              /* Band Sensitivity と同じ高さ */
+    background:#eee;
+    border-radius:3px;
+    overflow:hidden;
+    }
+
+    .diffZero{
+    position:absolute;
+    left:50%;
+    top:0;
+    bottom:0;
+    width:1px;
+    background:#999;
+    z-index:1;
+    }
+
+    .diffFill{
+    position:absolute;
+    top:0;
+    bottom:0;
+    z-index:2;
+    }
+
+    .diffFill.plus{
+    background:khaki;
+    }
+
+    .diffFill.minus{
+    background:lightgreen;
+    }
+
+    .diffVal{
+    width:52px;
+    font-size:11px;
+    text-align:right;
+    color:#444;
+    flex:0 0 52px;
+    }
+
+    .diffLegend{
+    font-size:11px;
+    margin-bottom:6px;
+    color:#666;
+    }
+
+    .legendBox{
+    display:inline-block;
+    width:10px;
+    height:10px;
+    margin-right:4px;
+    border-radius:2px;
+    }
+
+    .c-attackReason{
+    min-width: 120px;
+    max-width: 260px;
+    font-size: 12px;
+    color: #444;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.3;
+    }
