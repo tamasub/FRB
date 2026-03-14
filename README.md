@@ -1,12 +1,28 @@
-## FRB Story Timeline
+# FRB — Fishing Rod Benchmark
+
+ロッドの「感度」を共有する文化を作るプロジェクト。
+
+Fishing rod sensitivity has always been subjective.  
+FRB aims to make it observable, measurable, and shareable.
+
+---
+
+
+
 
 ## Documents
 
 - [FRB Manifesto](FRB_MANIFESTO.md)
+- [FRB Method](FRB_METHOD.md)
+- [FRB Spec](FRB_SPEC.md)
+- [FRB Terms](FRB_TERMS.md)
+- [FRB Story](FRB_STORY.md)
+- [FRB Experiments](FRB_EXPERIMENTS.md)
 
 
+## FRB Story Timeline
 
-
+FRBが生まれるまでの経緯。
 
 ### Prologue — 2013
 
