@@ -9,6 +9,10 @@ Fishing Rod Benchmark (FRB) は
 
 ロッド感度は長い間
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 889a3cb (FRB Manifesto New)
 - 主観
 - 感覚
 - 言葉
