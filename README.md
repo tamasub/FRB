@@ -1,5 +1,9 @@
 ## FRB Story Timeline
 
+## Documents
+
+- [FRB Manifesto](FRB_MANIFESTO.md)
+
 ### Prologue — 2013
 
 メンタル不良（2年半休職・離婚）
