@@ -3,7 +3,10 @@
 Fishing Rod Benchmark (FRB) は  
 ロッドの「感度」を共有する文化を作るプロジェクトである。
 
-
+Fishing Rod Benchmark は、
+釣り人が知覚する振動を基準として
+ロッド感度を数値化する
+人間中心の測定規格である。
 
 ---
 
