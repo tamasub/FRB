@@ -17,7 +17,6 @@ const m3 = document.getElementById('m3');
 
 const warnEl = document.getElementById('warn');
 
-
 const canvas = document.getElementById('c');
 const g = canvas.getContext('2d');
 

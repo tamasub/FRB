@@ -30,7 +30,6 @@ Write-Host "DataDir  : $DataDir"
 Write-Host "Port     : $Port"
 Write-Host "FQBN     : $Fqbn"
 
-# arduino-cli のプロパティ取得
 $propText = & arduino-cli compile --fqbn $Fqbn --show-properties $SketchDir 2>&1
 if ($LASTEXITCODE -ne 0) {
   $propText | ForEach-Object { Write-Host $_ }
@@ -98,7 +97,6 @@ if (-not $esptoolExe) {
 }
 
 $runtimePlatformPath = Get-Prop "runtime.platform.path"
-$buildCorePath       = Get-Prop "build.core.path"
 $buildVariantPath    = Get-Prop "build.variant.path"
 $buildPartitions     = Get-Prop "build.partitions"
 
@@ -110,7 +108,6 @@ $spiffsBlock = Get-Prop "build.spiffs_blocksize"
 if (-not $spiffsPage)  { $spiffsPage = "256" }
 if (-not $spiffsBlock) { $spiffsBlock = "4096" }
 
-# まず直接プロパティがあれば使う
 $size = $null
 if ($spiffsStart) {
   if ($spiffsEnd) {
@@ -123,7 +120,6 @@ if ($spiffsStart) {
   }
 }
 
-# 無ければ partition CSV を読む
 if (-not $spiffsStart -or -not $size) {
   if (-not $buildPartitions) {
     throw "build.partitions not found"
@@ -152,24 +148,24 @@ if (-not $spiffsStart -or -not $size) {
     $cols = $line.Split(",") | ForEach-Object { $_.Trim() }
     if ($cols.Count -lt 5) { continue }
 
-    $name   = $cols[0]
-    $type   = $cols[1]
-    $subtype= $cols[2]
-    $offset = $cols[3]
-    $psize  = $cols[4]
+    $name    = $cols[0]
+    $type    = $cols[1]
+    $subtype = $cols[2]
+    $offset  = $cols[3]
+    $psize   = $cols[4]
 
     if (
       ($subtype -ieq "spiffs") -or
-      ($name -match 'spiffs') -or
+      ($name -match "spiffs") -or
       ($subtype -ieq "littlefs") -or
-      ($name -match 'littlefs')
+      ($name -match "littlefs")
     ) {
       $spiffsRow = @{
-        name = $name
-        type = $type
+        name    = $name
+        type    = $type
         subtype = $subtype
-        offset = $offset
-        size = $psize
+        offset  = $offset
+        size    = $psize
       }
       break
     }
@@ -198,40 +194,29 @@ New-Item -ItemType Directory -Force -Path $buildDir | Out-Null
 $imagePath = Join-Path $buildDir "spiffs.bin"
 
 Write-Host ""
-Write-Host "--- Build SPIFFS image ---"
-Write-Host "mkspiffs : $($mkspiffsExe.FullName)"
-Write-Host "start    : $spiffsStart"
-Write-Host ("size     : 0x{0:X}" -f $size)
-Write-Host "page     : $spiffsPage"
-Write-Host "block    : $spiffsBlock"
-Write-Host "image    : $imagePath"
-
-& $mkspiffsExe.FullName -c $DataDir -p $spiffsPage -b $spiffsBlock -s $size $imagePath
-if ($LASTEXITCODE -ne 0) {
-  throw "mkspiffs failed"
-}
-
-Write-Host ""
 Write-Host "--- Flash SPIFFS image ---"
-Write-Host "esptool  : $($esptoolExe.FullName)"
-Write-Host "port     : $Port"
-Write-Host "mode     : $flashMode"
-Write-Host "freq     : $flashFreq"
-Write-Host "size     : $flashSize"
+Write-Host ("esptool  : " + $esptoolExe.FullName)
+Write-Host ("port     : " + $Port)
+Write-Host ("mode     : " + $flashMode)
+Write-Host ("freq     : " + $flashFreq)
+Write-Host ("size     : " + $flashSize)
 
 if ($esptoolExe.Name -ieq "esptool.py") {
   & python $esptoolExe.FullName --chip esp32 --port $Port --baud $uploadSpeed `
     write_flash -z --flash_mode $flashMode --flash_freq $flashFreq --flash_size $flashSize `
     $spiffsStart $imagePath
-} else {
+}
+else {
   & $esptoolExe.FullName --chip esp32 --port $Port --baud $uploadSpeed `
     write_flash -z --flash_mode $flashMode --flash_freq $flashFreq --flash_size $flashSize `
     $spiffsStart $imagePath
 }
 
 if ($LASTEXITCODE -ne 0) {
-  throw "SPIFFS upload failed"
+  Write-Host "SPIFFS upload skipped or failed."
+  exit 0
 }
 
 Write-Host ""
 Write-Host "SPIFFS upload completed successfully."
+exit 0

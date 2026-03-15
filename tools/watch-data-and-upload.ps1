@@ -37,7 +37,7 @@ if (-not (Test-Path $UploadScript)) {
 
 function Get-WatchedState([string]$dir) {
   $files = Get-ChildItem -Path $dir -Recurse -File |
-    Where-Object { $_.Extension -match '^\.(html|js|css)$' } |
+    Where-Object { $_.Extension -match '^\.(js)$' } |
     Sort-Object FullName
 
   $state = @()
