@@ -1,4 +1,4 @@
-param(
+﻿param(
   [string]$Port = "COM3",
   [string]$Fqbn = "esp32:esp32:esp32",
   [string]$SketchDir = "",
@@ -23,6 +23,8 @@ if (-not (Test-Path $SketchDir)) {
 if (-not (Test-Path $DataDir)) {
   throw "DataDir not found: $DataDir"
 }
+
+
 
 Write-Host "=== FRB SPIFFS Upload ==="
 Write-Host "SketchDir: $SketchDir"
@@ -83,6 +85,16 @@ if (-not $esptoolPath)  { throw "runtime.tools.esptool_py.path not found" }
 $mkspiffsExe = Get-ChildItem -Path $mkspiffsPath -Recurse -File |
   Where-Object { $_.Name -ieq "mkspiffs.exe" } |
   Select-Object -First 1
+
+Write-Host "=== DataDir resolved ==="
+Write-Host $DataDir
+
+Write-Host "=== files to package ==="
+Get-ChildItem -File -Recurse $DataDir |
+  Select-Object FullName, Length, LastWriteTime |
+  Format-Table -AutoSize
+
+
 
 if (-not $mkspiffsExe) {
   throw "mkspiffs.exe not found under: $mkspiffsPath"
@@ -200,6 +212,32 @@ Write-Host ("port     : " + $Port)
 Write-Host ("mode     : " + $flashMode)
 Write-Host ("freq     : " + $flashFreq)
 Write-Host ("size     : " + $flashSize)
+
+$mkspiffs = Join-Path $env:LOCALAPPDATA "Arduino15\packages\esp32\tools\mkspiffs\0.2.3\mkspiffs.exe"
+
+Write-Host "mkspiffs : $mkspiffs"
+if (!(Test-Path $mkspiffs)) {
+  Write-Error "mkspiffs.exe not found: $mkspiffs"
+  exit 1
+}
+
+& $mkspiffs `
+  -c $DataDir `
+  -b 4096 `
+  -p 256 `
+  -s 0x160000 `
+  $imagePath
+
+if (!(Test-Path $imagePath)) {
+  Write-Error "SPIFFS image was not created: $imagePath"
+  exit 1
+}
+
+
+if (!(Test-Path $imagePath)) {
+  Write-Error "SPIFFS image was not created: $imagePath"
+  exit 1
+}
 
 if ($esptoolExe.Name -ieq "esptool.py") {
   & python $esptoolExe.FullName --chip esp32 --port $Port --baud $uploadSpeed `

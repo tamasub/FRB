@@ -252,9 +252,10 @@ void setup() {
   //index.html分離
   if(!SPIFFS.begin(true)){
     Serial.println("SPIFFS mount failed");
+
     return;
   }
-
+  listSpiffsFiles();
   // data/ の中身をそのまま配信
   server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.html");
 
@@ -509,3 +510,19 @@ void updateTouch(int v, unsigned long now){
     }
   }
 }
+
+void listSpiffsFiles() {
+  File root = SPIFFS.open("/");
+  File file = root.openNextFile();
+
+  Serial.println("=== SPIFFS files ===");
+  while (file) {
+    Serial.print("name: ");
+    Serial.print(file.name());
+    Serial.print("  size: ");
+    Serial.println(file.size());
+    file = root.openNextFile();
+  }
+  Serial.println("====================");
+}
+
