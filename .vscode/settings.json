@@ -1,0 +1,10 @@
+{
+  "emeraldwalk.runonsave": {
+    "commands": [
+      {
+        "match": ".*",
+        "cmd": "echo RUN_ON_SAVE_WORKING"
+      }
+    ]
+  }
+}

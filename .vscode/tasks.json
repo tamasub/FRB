@@ -82,7 +82,7 @@
         "FRB: Upload SPIFFS"
       ],
       "problemMatcher": []
-    }
+    },
     {
       "label": "FRB: Open Web UI",
       "type": "shell",

@@ -9,7 +9,6 @@ FRB aims to make it observable, measurable, and shareable.
 
 
 
-
 ## Documents
 
 - [FRB Manifesto](FRB_MANIFESTO.md)
