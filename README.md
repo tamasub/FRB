@@ -20,46 +20,24 @@ The goal is making **human perception shareable**.
 FRB converts rod vibration into measurable data while keeping **human perception at the center**.
 
 ```mermaid
-flowchart TD
+flowchart LR
 
-A[Fishing Rod Vibration]
-B[Sensor INMP441]
-C[ESP32 FFT Analysis]
-D[FRB Metrics\nPeak / Flux / Band]
-E[Human Perception]
-F[Shared Sensitivity Culture]
+A[Fishing Rod] --> B[Vibration]
+B --> C[Sensor]
+C --> D[ESP32 FFT Analysis]
+D --> E[FRB Metrics]
 
-A --> B
-B --> C
-C --> D
-D --> E
-E --> F
-
+E --> F[Human Perception]
+F --> G[Shared Sensitivity Culture]
 ```
+
 
 FRB is a **human-centered measurement system**.
 
 ---
+
 ```mermaid
 flowchart LR
-
-subgraph Traditional Fishing
-A[Fishing Rod] --> B[Human Feeling]
-B --> C[Personal Experience]
-C --> D["'This rod feels sensitive'"]
-end
-
-subgraph FRB Approach
-E[Fishing Rod] --> F[Vibration Measurement]
-F --> G[FFT Analysis]
-G --> H[FRB Metrics]
-H --> I[Human Perception]
-I --> J[Shared Sensitivity Language]
-end
-```
----
-```mermaid
-flowchart TD
 
 A[Fishing Rod Vibration]
 B[Sensor INMP441]
@@ -71,6 +49,8 @@ F[AI Analysis]
 
 G[Shared Sensitivity Culture]
 
+
+direction LR
 A --> B
 B --> C
 C --> D
@@ -81,7 +61,29 @@ D --> F
 E --> G
 F --> G
 ```
+---
 
+```mermaid
+flowchart LR
+
+subgraph FRB Approach
+direction LR
+E[Fishing Rod] --> F[Vibration Measurement]
+F --> G[FFT Analysis]
+G --> H[FRB Metrics]
+H --> I[Human Perception]
+I --> J[Shared Sensitivity Language]
+end
+
+subgraph Traditional Fishing
+direction LR
+A[Fishing Rod] --> B[Human Feeling]
+B --> C[Personal Experience]
+C --> D["'This rod feels sensitive'"]
+end
+
+
+```
 ---
 
 # Why FRB Exists
