@@ -1,0 +1,99 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "FRB: Compile",
+      "type": "shell",
+      "command": "arduino-cli",
+      "args": [
+        "compile",
+        "--fqbn",
+        "esp32:esp32:esp32",
+        "${workspaceFolder}/firmware/FRB"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "FRB: Upload",
+      "type": "shell",
+      "command": "arduino-cli",
+      "args": [
+        "upload",
+        "-p",
+        "COM3",
+        "--fqbn",
+        "esp32:esp32:esp32",
+        "${workspaceFolder}/firmware/FRB"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "FRB: Monitor",
+      "type": "shell",
+      "command": "arduino-cli",
+      "args": [
+        "monitor",
+        "-p",
+        "COM3",
+        "--config",
+        "baudrate=115200"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "FRB: Upload SPIFFS",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/tools/upload-spiffs.ps1",
+        "-Port",
+        "COM3",
+        "-Fqbn",
+        "esp32:esp32:esp32",
+        "-SketchDir",
+        "${workspaceFolder}/firmware/FRB",
+        "-DataDir",
+        "${workspaceFolder}/data"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "FRB: Compile and Upload",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "FRB: Compile",
+        "FRB: Upload"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "FRB: Full Deploy",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "FRB: Compile",
+        "FRB: Upload",
+        "FRB: Upload SPIFFS"
+      ],
+      "problemMatcher": []
+    }
+    {
+      "label": "FRB: Open Web UI",
+      "type": "shell",
+      "command": "cmd",
+      "args": [
+        "/c",
+        "start",
+        "http://192.168.43.20/"
+      ],
+      "problemMatcher": []
+  }
+
+  ]
+}
