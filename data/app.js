@@ -5,6 +5,8 @@ const fpsEl = document.getElementById('fps');
 //peakAEl = document.getElementById('peakA');
 //peakMEl = document.getElementById('peakM');
 
+
+
 const a1 = document.getElementById('a1');
 const a2 = document.getElementById('a2');
 const a3 = document.getElementById('a3');
@@ -13,8 +15,8 @@ const m1 = document.getElementById('m1');
 const m2 = document.getElementById('m2');
 const m3 = document.getElementById('m3');
 
-
 const warnEl = document.getElementById('warn');
+
 
 const canvas = document.getElementById('c');
 const g = canvas.getContext('2d');
