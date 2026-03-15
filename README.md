@@ -17,97 +17,132 @@ The goal is making **human perception shareable**.
 
 # FRB Concept
 
-FRB converts rod vibration into measurable data while keeping **human perception at the center**.
+### What FRB Means
+
+```mermaid
+flowchart LR
+
+A[Fishing Rod]
+
+A --> B[Vibration Signals]
+
+B --> C[Sensor System<br/>INMP441 + MPU6050]
+
+C --> D[Signal Processing<br/>ESP32 FFT]
+
+D --> E[FRB Metrics]
+
+E --> F[Rod Benchmark]
+
+F --> G[Shared Sensitivity Language]
+```
+
+### System Overview
 
 ```mermaid
 flowchart LR
 
 A[Fishing Rod] --> B[Vibration]
-B --> C[Sensor]
-C --> D[ESP32 FFT Analysis]
-D --> E[FRB Metrics]
+A --> C[Rod Motion]
 
-E --> F[Human Perception]
-F --> G[Shared Sensitivity Culture]
+B --> D[INMP441 Microphone]
+C --> E[MPU-6050 IMU]
+
+D --> F[ESP32]
+E --> F
+
+F --> G[FFT / Motion Analysis]
+
+G --> H[FRB Metrics]
+
+H --> I[Human Perception]
+
+I --> J[Shared Sensitivity Culture]
 ```
 
 
-FRB is a **human-centered measurement system**.
+FRB converts rod vibration into measurable data while keeping **human perception at the center**.
 
 ---
+
+### Human + AI Analysis
 
 ```mermaid
 flowchart LR
 
-A[Fishing Rod Vibration]
-B[Sensor INMP441]
-C[ESP32 FFT Analysis]
-D[FRB Metrics]
+A[Fishing Rod Vibration] --> B[Sensor INMP441/MPU6050]
+B --> C[ESP32 FFT Analysis]
+C --> D[FRB Metrics]
 
-E[Human Perception]
-F[AI Analysis]
+D --> E[Human Perception]
+D --> F[AI Analysis]
 
-G[Shared Sensitivity Culture]
-
-
-direction LR
-A --> B
-B --> C
-C --> D
-
-D --> E
-D --> F
-
-E --> G
+E --> G[Shared Sensitivity Culture]
 F --> G
 ```
+
+FRB uses both **human perception** and **AI-assisted analysis** to interpret rod vibration data.
+
 ---
+
+### Traditional vs FRB
 
 ```mermaid
 flowchart LR
-
-T[Traditional] --> F[FRB]
 
 subgraph Traditional Fishing
 direction LR
-A[Fishing Rod] --> B[Human Feeling] --> C[Experience] --> D[Opinion]
+A[Fishing Rod] --> B[Human Feeling] --> C[Personal Experience] --> D["'This rod feels sensitive'"]
 end
 
 subgraph FRB Approach
 direction LR
-E[Fishing Rod] --> F1[Vibration Measurement] --> G[FFT] --> H[Metrics] --> I[Shared Language]
+E[Fishing Rod] --> F[Vibration Measurement] --> G[FFT Analysis] --> H[FRB Metrics] --> I[Human Perception] --> J[Shared Sensitivity Language]
 end
+
+D -.-> E
 ```
 
+Traditional fishing relies on **individual feeling**.
 
----
-
-# Why FRB Exists
-
-Many anglers say:
-
-- "This rod has great sensitivity"
-- "This rod feels dull"
-
-But these descriptions are difficult to compare.
-
-FRB explores whether rod sensitivity can be expressed through **observable vibration characteristics**.
-
-The aim is to build a **shared vocabulary for rod feel**.
+FRB explores whether rod sensitivity can become **observable and comparable**.
 
 ---
 
 # Current System
 
+### FRB Architecture
+
+```mermaid
+flowchart TD
+A[Fishing Rod] --> B[Vibration]
+B --> C[INMP441 Microphone / MPU-6050 Rod Motion]
+
+C --> D[ESP32]
+D --> E[FFT Analysis]
+
+E --> F[Feature Extraction]
+F --> G[FRB Metrics]
+
+G --> H[WebSocket Stream]
+H --> I[Web UI Visualization]
+
+I --> J[Human Perception]
+```
+
 The experimental setup currently includes:
 
-- ESP32
+- ESP32 microcontroller
 - INMP441 digital microphone
-- FFT vibration analysis
+- FFT-based vibration analysis
 - Web-based visualization UI
-- rod comparison experiments
+- Rod comparison experiments
 
-This system allows vibration generated in a fishing rod to be analyzed and visualized.
+
+The current experimental setup captures rod vibration,
+analyzes the signal using FFT, and visualizes the resulting metrics
+through a web-based interface.
+
 
 ---
 
@@ -129,7 +164,7 @@ The origin story of the project can be found here:
 
 - [FRB Story](FRB_STORY.md)
 
-Personal research notes and development logs are stored in:
+Personal development notes and research logs:
 
 - [mymemo.md](mymemo.md)
 
@@ -139,20 +174,19 @@ Personal research notes and development logs are stored in:
 
 FRB is currently in an **experimental research phase**.
 
-The focus is currently on:
+Current focus:
 
 - vibration measurement
-- signal analysis
-- human perception correlation
+- signal processing
+- perception correlation
 
 ---
 
 # Philosophy
-
-FRB is built on one simple idea:
 
 > Sensitivity becomes real when it can be shared.
 
 ---
 
 FRB — Fishing Rod Benchmark
+
