@@ -66,24 +66,20 @@ F --> G
 ```mermaid
 flowchart LR
 
-subgraph FRB Approach
-direction LR
-E[Fishing Rod] --> F[Vibration Measurement]
-F --> G[FFT Analysis]
-G --> H[FRB Metrics]
-H --> I[Human Perception]
-I --> J[Shared Sensitivity Language]
-end
+T[Traditional] --> F[FRB]
 
 subgraph Traditional Fishing
 direction LR
-A[Fishing Rod] --> B[Human Feeling]
-B --> C[Personal Experience]
-C --> D["'This rod feels sensitive'"]
+A[Fishing Rod] --> B[Human Feeling] --> C[Experience] --> D[Opinion]
 end
 
-
+subgraph FRB Approach
+direction LR
+E[Fishing Rod] --> F1[Vibration Measurement] --> G[FFT] --> H[Metrics] --> I[Shared Language]
+end
 ```
+
+
 ---
 
 # Why FRB Exists
