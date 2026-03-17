@@ -1,3 +1,4 @@
+
 # FRB Method
 
 Fishing Rod Benchmark (FRB) は  

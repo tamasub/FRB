@@ -1,3 +1,4 @@
+
 ※このシリーズは順番に読むと理解しやすくなっています
  [釣り竿の「感度」を数値化する話 - FRB（Fishing Rod Benchmark）宣言](https://qiita.com/tamasub364/items/2b6649748e1772b7eec1)
 

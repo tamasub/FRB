@@ -1,3 +1,4 @@
+
 # FRB — Fishing Rod Benchmark
 
 *Sensitivity becomes real when it can be shared.*
@@ -157,11 +158,11 @@ through a web-based interface.
 
 Project documentation:
 
-- [FRB Manifesto](FRB_MANIFESTO.md)
-- [FRB Method](FRB_METHOD.md)
-- [FRB Spec](FRB_SPEC.md)
-- [FRB Terms](FRB_TERMS.md)
-- [FRB Experiments](FRB_EXPERIMENTS.md)
+- [FRB Manifesto](./docs/FRB_MANIFESTO.md)
+- [FRB Method](./FRB_METHOD.md)
+- [FRB Spec](./docs/FRB_SPEC.md)
+- [FRB Terms](./docs/FRB_TERMS.md)
+- [FRB Experiments](./docs/FRB_EXPERIMENTS.md)
 
 ---
 
