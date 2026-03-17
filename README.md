@@ -1,9 +1,16 @@
 # FRB — Fishing Rod Benchmark
 
+*Sensitivity becomes real when it can be shared.*
+
+～　感覚は分かち合って初めて本物になる　～
+
+*Turning fishing rod vibration into shareable sensitivity metrics.*
+
 ![status](https://img.shields.io/badge/status-research-blue)
 ![platform](https://img.shields.io/badge/platform-ESP32-green)
 ![analysis](https://img.shields.io/badge/analysis-FFT-orange)
 
+---
 **FRB (Fishing Rod Benchmark)** is a project to create a shared language for **fishing rod sensitivity**.
 
 Fishing rod sensitivity has traditionally been subjective and difficult to describe.  
@@ -170,21 +177,32 @@ Personal development notes and research logs:
 
 ---
 
+---
+
 # Project Status
 
 FRB is currently in an **experimental research phase**.
 
+The project explores whether fishing rod sensitivity can become  
+**observable, measurable, and shareable**.
+
 Current focus:
 
-- vibration measurement
-- signal processing
-- perception correlation
+- rod vibration measurement
+- signal analysis using FFT
+- motion sensing with IMU
+- exploring meaningful vibration metrics
+- comparing different fishing rods
+
+The system and methodology are still evolving.
 
 ---
 
-# Philosophy
+# Support the Project
 
-> Sensitivity becomes real when it can be shared.
+If you find this project interesting, your interest and support are greatly appreciated.
+
+Simply following the progress or sharing ideas is already encouraging.
 
 ---
 
