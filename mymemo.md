@@ -486,7 +486,7 @@ FRBに繋がる
 #10 スイベル
 #11 FRB
 
-
+「AIに激おこりした日」 chatgpt projectの使い方　今頃言う？
 
 ### The Question
 
