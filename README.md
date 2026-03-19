@@ -3,7 +3,7 @@
 
 *Sensitivity becomes real when it can be shared.*
 
-～　感覚は分かち合って初めて本物になる　～
+～　[感覚は分かち合って初めて本物になる](https://qiita.com/tamasub364/items/2b6649748e1772b7eec1)　～
 
 *Turning fishing rod vibration into shareable sensitivity metrics.*
 
