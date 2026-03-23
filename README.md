@@ -1,4 +1,3 @@
-
 # FRB — Fishing Rod Benchmark
 
 *Sensitivity becomes real when it can be shared.*
@@ -12,200 +11,206 @@
 ![analysis](https://img.shields.io/badge/analysis-FFT-orange)
 
 ---
+
+## 🎯 Overview
+
 **FRB (Fishing Rod Benchmark)** is a project to create a shared language for **fishing rod sensitivity**.
 
 Fishing rod sensitivity has traditionally been subjective and difficult to describe.  
 FRB aims to make it **observable, measurable, and shareable**.
 
-The goal is **not replacing human feeling**.
-
+The goal is **not replacing human feeling**.  
 The goal is making **human perception shareable**.
 
 ---
 
-# FRB Concept
+## 🔍 Concept
 
-### What FRB Means
+FRB transforms:
 
-```mermaid
-flowchart LR
+- human experience  
+→ into  
+- measurable and comparable data  
 
-A[Fishing Rod]
+This allows rod performance to be discussed in a structured way.
 
-A --> B[Vibration Signals]
-
-B --> C[Sensor System<br/>INMP441 + MPU6050]
-
-C --> D[Signal Processing<br/>ESP32 FFT]
-
-D --> E[FRB Metrics]
-
-E --> F[Rod Benchmark]
-
-F --> G[Shared Sensitivity Language]
-```
-
-### System Overview
-
-```mermaid
-flowchart LR
-
-A[Fishing Rod] --> B[Vibration]
-A --> C[Rod Motion]
-
-B --> D[INMP441 Microphone]
-C --> E[MPU-6050 IMU]
-
-D --> F[ESP32]
-E --> F
-
-F --> G[FFT / Motion Analysis]
-
-G --> H[FRB Metrics]
-
-H --> I[Human Perception]
-
-I --> J[Shared Sensitivity Culture]
-```
-
-
-FRB converts rod vibration into measurable data while keeping **human perception at the center**.
+> **Sensitivity = characteristics of vibration**
 
 ---
 
-### Human + AI Analysis
+## 🧱 Architecture
 
-```mermaid
-flowchart LR
+FRB is composed of two main phases:
 
-A[Fishing Rod Vibration] --> B[Sensor INMP441/MPU6050]
-B --> C[ESP32 FFT Analysis]
-C --> D[FRB Metrics]
+### Phase 1 — Surface Response
 
-D --> E[Human Perception]
-D --> F[AI Analysis]
+- Measures vibration characteristics (magnitude + frequency)  
+- Input: continuous contact (rubbing test)  
+- Purpose: understand frequency response  
 
-E --> G[Shared Sensitivity Culture]
-F --> G
-```
-
-FRB uses both **human perception** and **AI-assisted analysis** to interpret rod vibration data.
+👉 Comparable to **Sequential Read/Write** in SSD benchmarks
 
 ---
 
-### Traditional vs FRB
+### Phase 2 — Simulated Bite Response
 
-```mermaid
-flowchart LR
+- Measures response to load changes (tension variation)  
+- Input: simulated bite (controlled impulse / pull)  
+- Purpose: evaluate transmission characteristics  
 
-subgraph Traditional Fishing
-direction LR
-A[Fishing Rod] --> B[Human Feeling] --> C[Personal Experience] --> D["'This rod feels sensitive'"]
-end
-
-subgraph FRB Approach
-direction LR
-E[Fishing Rod] --> F[Vibration Measurement] --> G[FFT Analysis] --> H[FRB Metrics] --> I[Human Perception] --> J[Shared Sensitivity Language]
-end
-
-D -.-> E
-```
-
-Traditional fishing relies on **individual feeling**.
-
-FRB explores whether rod sensitivity can become **observable and comparable**.
+👉 Comparable to **IOPS (random access)** in SSD benchmarks
 
 ---
 
-# Current System
+## 📊 Structure
 
-### FRB Architecture
-
-```mermaid
-flowchart TD
-A[Fishing Rod] --> B[Vibration]
-B --> C[INMP441 Microphone / MPU-6050 Rod Motion]
-
-C --> D[ESP32]
-D --> E[FFT Analysis]
-
-E --> F[Feature Extraction]
-F --> G[FRB Metrics]
-
-G --> H[WebSocket Stream]
-H --> I[Web UI Visualization]
-
-I --> J[Human Perception]
-```
-
-The experimental setup currently includes:
-
-- ESP32 microcontroller
-- INMP441 digital microphone
-- FFT-based vibration analysis
-- Web-based visualization UI
-- Rod comparison experiments
-
-
-The current experimental setup captures rod vibration,
-analyzes the signal using FFT, and visualizes the resulting metrics
-through a web-based interface.
-
+| Category | FRB | SSD Benchmark |
+|--------|-----|--------------|
+| Phase 1 | Surface Response | Sequential |
+| Phase 2 | Bite Response | IOPS |
 
 ---
 
-# Documents
+## 🧪 Example Scores
 
-Project documentation:
+### Phase 1
 
-- [FRB Manifesto](./docs/FRB_MANIFESTO.md)
-- [FRB Method](./FRB_METHOD.md)
-- [FRB Spec](./docs/FRB_SPEC.md)
-- [FRB Terms](./docs/FRB_TERMS.md)
-- [FRB Experiments](./docs/FRB_EXPERIMENTS.md)
+:::note info
+Phase1 Score (Surface Response)
 
----
-
-# Story Behind FRB
-
-The origin story of the project can be found here:
-
-- [FRB Story](FRB_STORY.md)
-
-Personal development notes and research logs:
-
-- [mymemo.md](mymemo.md)
+J: 99 (Carpet / Low frequency)  
+F: 85 (Flooring / Mid frequency)  
+S: 72 (Stainless / High frequency)
+:::
 
 ---
 
----
+### Phase 2
 
-# Project Status
+:::note info
+FRB Phase2 Score (Simulated Bite Response)
 
-FRB is currently in an **experimental research phase**.
-
-The project explores whether fishing rod sensitivity can become  
-**observable, measurable, and shareable**.
-
-Current focus:
-
-- rod vibration measurement
-- signal analysis using FFT
-- motion sensing with IMU
-- exploring meaningful vibration metrics
-- comparing different fishing rods
-
-The system and methodology are still evolving.
+Impulse: 92   (impact response)  
+Suction: 78   (pull response)  
+Weed: 65      (interference response)
+:::
 
 ---
 
-# Support the Project
+## 🧠 Key Idea
 
-If you find this project interesting, your interest and support are greatly appreciated.
+Fish bites are not “mysterious signals.”
 
-Simply following the progress or sharing ideas is already encouraging.
+They are:
+
+> **changes in force (tension variation)**
+
+FRB treats all bite sensations as:
+
+- Impulse (impact)  
+- Suction (pull)  
+- Weed (interference)  
+
+→ All observable as **load changes on the line**
 
 ---
 
-FRB — Fishing Rod Benchmark
+## 🎯 Design Philosophy
 
+### 1. Reproducibility
+
+- Indoor testing possible  
+- No special equipment required  
+- Comparable under consistent conditions  
+
+---
+
+### 2. Simplicity
+
+- Max 3 metrics per phase  
+- Expandable via additional phases  
+
+---
+
+### 3. Purpose
+
+FRB is not designed for evaluation.
+
+> **FRB is a metric for selection.**
+
+---
+
+## 🌍 Vision
+
+Instead of:
+
+> “This rod is sensitive”
+
+We aim for:
+
+> “This rod has these vibration characteristics”
+
+---
+
+## 📚 Repository Structure
+
+This repository contains:
+
+- **FRB Method** — measurement framework  
+- **FRB Spec** — formal definitions  
+- **FRB Terms** — terminology  
+- **FRB Experiments** — experimental logs  
+- **FRB Story** — origin and background  
+
+---
+
+## 🧭 Where to Start
+
+👉 If you're new:
+
+- Read: `FRB_METHOD.md`
+
+👉 If you're technical:
+
+- Check: `FRB_EXPERIMENTS.md`
+
+👉 If you're curious about the origin:
+
+- Read: `FRB_STORY.md`
+
+---
+
+## ⚠️ Status
+
+FRB is currently in:
+
+> **Draft / Experimental phase**
+
+The methodology is under continuous validation.
+
+---
+
+## ✨ Final Note
+
+FRB does not measure:
+
+- catch rate  
+- fishing skill  
+
+FRB measures:
+
+> **the structure of what you feel**
+
+---
+
+## 🚀 Future
+
+- Standardization of input methods  
+- Sensor-based validation (ESP32 / FFT)  
+- Open benchmark dataset  
+
+---
+
+## 🧩 Philosophy
+
+> Sensitivity becomes real only when it can be shared.
