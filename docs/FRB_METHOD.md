@@ -317,3 +317,9 @@ as vibration.
 
 **FRB is not a metric for evaluation,  
 but a metric designed for selection.**
+
+
+## Revision History
+
+- 2026-03-14 : 初版
+

@@ -69,3 +69,9 @@ AIは謝らない。
 
 
 
+
+## Revision History
+
+- 2026-03-14 : v0.1-draft 初版
+
+

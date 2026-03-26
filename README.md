@@ -157,7 +157,7 @@ We aim for:
 This repository contains the following core documents:
 
 * **FRB Method** — measurement framework
-  → [FRB Method](./FRB_METHOD.md)
+  → [FRB Method](./docs/FRB_METHOD.md)
 
 * **FRB Spec** — formal definitions
   → [FRB Spec](./docs/FRB_SPEC.md)
@@ -175,7 +175,7 @@ This repository contains the following core documents:
   → [FRB Experiments](./docs/FRB_EXPERIMENTS.md)
 
 * **FRB Story** — origin and background
-  → [FRB Story](./FRB_STORY.md)
+  → [FRB Story](./docs/FRB_STORY.md)
 
 ---
 
@@ -236,4 +236,4 @@ FRB measures:
 ## Revision History
 
 - 2026-03-14 : 初版
-
+- 2026-03-26 : ファイル構造見直し

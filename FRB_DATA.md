@@ -1,195 +1,74 @@
-# FRB — Fishing Rod Benchmark
+# FRB Data
 
-ロッドの「感度」を共有する文化を作るプロジェクト。
-
-Fishing rod sensitivity has always been subjective.  
-FRB aims to make rod sensitivity observable, measurable, and shareable.
-
----
-
-# Philosophy
-
-感度は分かち合って初めて本物になる。
+FRBは、
+人が感じている振動を
+データとして扱うための試みである。
 
 ---
 
-# What is FRB
+## なぜデータ化するのか
 
-FRB (Fishing Rod Benchmark) は  
-ロッドの振動特性を比較するためのベンチマーク手法である。
-
-従来、ロッド感度は
+感度はこれまで、
 
 - 主観
 - 感覚
 - 経験
 
-によって語られてきた。
+で語られてきた。
 
-FRBでは
+しかしそれは、
 
-- 再現可能な入力
-- 振動観測
-- FFT解析
-
-を用いて  
-ロッドの振動特性を記録する。
+比較できない  
+共有できない  
 
 ---
 
-# FRB Story Timeline
+## FRBの考え方
 
-FRBが生まれるまでの経緯。
+FRBでは、
 
-### 2013 — Prologue
+感度 = 振動の特徴
 
-メンタル不良（2年半休職・離婚）
+と定義する。
 
-それでも  
-「鼻歌ToMIDI」が
+つまり、
 
-窓の杜  
-Yahoo  
-紙雑誌
-
-に掲載される。
+感覚はデータに変換できる。
 
 ---
 
-### 2023 — Prelude
+## データとして扱う対象
 
-ルアーニスト購入。
-
-しかし  
-ほとんど使われない。
-
----
-
-### 2025 — Collapse
-
-メンタル不良。
-
-2025年11月  
-休職。
+- 振動量
+- 周波数特性
+- 伝達特性
 
 ---
 
-### 2025/10 — The Incident
+## データ構造
 
-歯型事件
+FRBでは、
 
----
+入力条件と結果をセットで扱う。
 
-### 2025/11 — Gear Awakening
-
-ルアーニスト  
-→  
-オーバーゼアグランデ
-
-「飛ばねぇ…」
+→ 詳細は FRB_DATA_SPEC.md を参照
 
 ---
 
-### 2025/12 — Reel Awakening
+## 目的
 
-アルテグラ5000
+データ化の目的は評価ではない。
 
----
-
-### 2025/12 — Weight Awakening
-
-メジャークラフト5G
-
-共振棒鳥肌。
+選択である。
 
 ---
 
-### 2025/12 — The Discovery
+感度は分かち合って初めて本物になる。
 
-床擦りという発見。
 
-「これ、みんな知ってるの？」
 
-ロッド感度の世界が開けた。
 
----
+## Revision History
 
-### 2026/2/10 — Mini Ring Revolution
-
-miniリングで世界が変わる。
-
----
-
-### 2026/2/11 — Swivel Revolution
-
-ダイソースイベル革命。
-
-ロッドがブルンブルン震える。
-
----
-
-### 2026/2/15–17 — Guide Revolution
-
-トップガイド交換。
-
-TORZITEリング。
-
-「これは革命だ」
-
----
-
-### 2026/2/20–22 — Grip Revolution
-
-EVAグリップ除去。
-
-リールシートが震える。
-
-割りばしグリップ誕生。
-
----
-
-### 2026/2/23–25 — AI Awakening
-
-AIとESP32で  
-振動測定装置完成。
-
-FFT解析開始。
-
----
-
-### 2026/2/27 — Reality
-
-人事部長
-
-「趣味 “は” できるんですね」
-
----
-
-### 2026/3/11 — FRB Declaration
-
-FRBプロジェクト開始。
-
-ルアー200個以上  
-海にお供え。
-
----
-
-# Documents
-
-- [FRB Manifesto](FRB_MANIFESTO.md)
-- [FRB Specification](FRB_SPEC.md)
-- [FRB Method](FRB_METHOD.md)
-- [FRB Terms](FRB_TERMS.md)
-- [FRB Data](FRB_DATA.md)
-- [FRB Experiments](FRB_EXPERIMENTS.md)
-- [FRB Story](FRB_STORY.md)
-
----
-
-# Current Status
-
-研究中。
-
-釣果  
-ボラ１匹
+- 2026-03-14 : v0.1-draft 初版
 
