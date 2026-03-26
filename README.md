@@ -154,15 +154,32 @@ We aim for:
 
 ## 📚 Repository Structure
 
-This repository contains:
+This repository contains the following core documents:
 
-- **FRB Method** — measurement framework  
-- **FRB Spec** — formal definitions  
-- **FRB Terms** — terminology  
-- **FRB Experiments** — experimental logs  
-- **FRB Story** — origin and background  
+* **FRB Method** — measurement framework
+  → [FRB Method](./FRB_METHOD.md)
+
+* **FRB Spec** — formal definitions
+  → [FRB Spec](./docs/FRB_SPEC.md)
+
+* **FRB Data Spec** — data structure (Draft)
+  → [FRB Data Spec](./docs/FRB_DATA_SPEC.md)
+
+* **FRB Versioning** — versioning rules
+  → [FRB Versioning](./docs/FRB_VERSIONING.md)
+
+* **FRB Terms** — terminology
+  → [FRB Terms](./docs/FRB_TERMS.md)
+
+* **FRB Experiments** — experimental logs
+  → [FRB Experiments](./docs/FRB_EXPERIMENTS.md)
+
+* **FRB Story** — origin and background
+  → [FRB Story](./docs/FRB_STORY.md)
 
 ---
+
+
 
 ## 🧭 Where to Start
 
@@ -214,3 +231,9 @@ FRB measures:
 ## 🧩 Philosophy
 
 > Sensitivity becomes real only when it can be shared.
+
+
+## Revision History
+
+- 2026-03-14 : 初版
+
