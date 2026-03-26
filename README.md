@@ -175,7 +175,7 @@ This repository contains the following core documents:
   → [FRB Experiments](./docs/FRB_EXPERIMENTS.md)
 
 * **FRB Story** — origin and background
-  → [FRB Story](./docs/FRB_STORY.md)
+  → [FRB Story](./FRB_STORY.md)
 
 ---
 
