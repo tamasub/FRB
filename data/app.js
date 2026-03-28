@@ -27,6 +27,9 @@ const gT = tsCanvas.getContext('2d');
 const tsFluxCanvas = document.getElementById('tsFlux');
 const gTF = tsFluxCanvas.getContext('2d');
 
+const tsStateCanvas = document.getElementById('tsState');
+const gTS = tsStateCanvas.getContext('2d');
+
 const scrEl = document.getElementById('scr');
 const scrTxt = document.getElementById('scrTxt');
 const scrState = document.getElementById('scrState');
@@ -55,6 +58,23 @@ const touchShots = [];
 //  fluxA, fluxM, peakMoveA, peakMoveM,
 //  decayA, decayM, energyA, energyM,
 //  attackScore, attackState, attackReason}
+
+const stateTransitions = []; // {t, from, to, state}
+let lastPhase2State = 'IDLE';
+
+const STATE_COLORS = {
+  IDLE:    '#cfd8dc',
+  IMPULSE: '#ef5350',
+  SUCTION: '#42a5f5',
+  WEED:    '#9ccc65',
+};
+
+const STATE_LABELS = {
+  IDLE: 'Idle',
+  IMPULSE: 'Impulse',
+  SUCTION: 'Suction',
+  WEED: 'Weed',
+};
 
 
 // TIME LOG view control
@@ -567,6 +587,7 @@ ws.onmessage = (e) => {
       renderTouchTable();
       drawTimeSeries();
       drawFluxTimeSeries()
+      drawStateTimeline();
       drawTimeLog();
     }
 
@@ -709,6 +730,13 @@ ws.onmessage = (e) => {
     feat.contactClass = clsInfo.cls;
     feat.classReason = clsInfo.reason;
 
+    feat.phase2State = classifyPhase2State(feat);
+
+    if (feat.phase2State !== lastPhase2State) {
+      pushStateTransition(nowT, lastPhase2State, feat.phase2State);
+      lastPhase2State = feat.phase2State;
+    }
+
     tsBuf.push(feat);
     updateNoiseFloor(feat);
 
@@ -718,6 +746,7 @@ ws.onmessage = (e) => {
     pruneTimeSeries(nowT);
     drawTimeSeries();
     drawFluxTimeSeries();
+    drawStateTimeline();
     drawTimeLog();
     updateBandBars();
     updateRecIfNeeded();
@@ -774,11 +803,13 @@ function fitAll(){
   fitCanvasEl(specM);
   fitCanvasEl(tsCanvas);
   fitCanvasEl(tsFluxCanvas);
-
+  fitCanvasEl(tsStateCanvas);
+  
   gA.clearRect(0,0,specA.width,specA.height);
   gM.clearRect(0,0,specM.width,specM.height);
   gT.clearRect(0,0,tsCanvas.width,tsCanvas.height);
   gTF.clearRect(0,0,tsFluxCanvas.width,tsFluxCanvas.height);
+  gTS.clearRect(0,0,tsStateCanvas.width,tsStateCanvas.height);
 }
 
 window.addEventListener('resize', fitAll);
@@ -2008,6 +2039,160 @@ function drawFluxTimeSeries(){
 }
 
 
+function drawStateTimeline(){
+  if (!tsStateCanvas || !gTS) return;
+
+  const W = tsStateCanvas.width;
+  const H = tsStateCanvas.height;
+  gTS.clearRect(0, 0, W, H);
+
+  const selectedFrozen = getSelectedFrozenSeries();
+  const seriesSrc = (!timeLogFollowLatest && selectedFrozen)
+    ? selectedFrozen
+    : tsBuf;
+
+  const ml = 58, mr = 58, mt = 10, mb = 18;
+  const pw = W - ml - mr;
+  const ph = H - mt - mb;
+
+  const chartLeft   = ml;
+  const chartRight  = ml + pw;
+  const chartTop    = mt;
+  const chartBottom = mt + ph;
+
+  gTS.fillStyle = '#fcfcfc';
+  gTS.fillRect(0, 0, W, H);
+
+  gTS.strokeStyle = '#d4d4d4';
+  gTS.lineWidth = 1;
+  gTS.beginPath();
+  gTS.moveTo(chartLeft, chartTop);
+  gTS.lineTo(chartLeft, chartBottom);
+  gTS.lineTo(chartRight, chartBottom);
+  gTS.stroke();
+
+  if (!seriesSrc || seriesSrc.length < 2) {
+    gTS.fillStyle = '#999';
+    gTS.font = '12px sans-serif';
+    gTS.fillText('no state yet', chartLeft + 10, chartTop + 18);
+    return;
+  }
+
+  const nowSec = seriesSrc[seriesSrc.length - 1].t;
+  const winSec = getTimeWindowSec();
+
+  let viewStart = 0;
+  let viewEnd = winSec;
+
+  if (!timeLogFollowLatest && isFinite(timeLogCenterSec)) {
+    viewStart = Math.max(0, timeLogCenterSec - winSec / 2);
+    viewEnd = viewStart + winSec;
+
+    if (viewEnd > nowSec && nowSec > winSec) {
+      viewEnd = nowSec;
+      viewStart = Math.max(0, viewEnd - winSec);
+    }
+  } else {
+    viewStart = Math.max(0, nowSec - winSec);
+    viewEnd = Math.max(winSec, nowSec);
+  }
+
+  function xMap(t){
+    return chartLeft + ((t - viewStart) / Math.max(1e-9, (viewEnd - viewStart))) * pw;
+  }
+
+  const visible = seriesSrc.filter(p => p.t >= viewStart && p.t <= viewEnd);
+  if (!visible.length) return;
+
+  // レーン背景
+  gTS.fillStyle = '#f2f4f5';
+  gTS.fillRect(chartLeft, chartTop + 12, pw, ph - 24);
+
+  // 連続区間で state を塗る
+  let segStart = visible[0].t;
+  let segState = visible[0].phase2State || 'IDLE';
+
+  for (let i = 1; i <= visible.length; i++) {
+    const cur = visible[i];
+    const curState = cur ? (cur.phase2State || 'IDLE') : null;
+
+    if (!cur || curState !== segState) {
+      const t0 = segStart;
+      const t1 = cur ? cur.t : visible[visible.length - 1].t;
+
+      const x0 = xMap(t0);
+      const x1 = xMap(t1);
+
+      gTS.fillStyle = STATE_COLORS[segState] || '#cfd8dc';
+      gTS.globalAlpha = 0.55;
+      gTS.fillRect(x0, chartTop + 12, Math.max(2, x1 - x0), ph - 24);
+      gTS.globalAlpha = 1.0;
+
+      if (x1 - x0 > 40) {
+        gTS.fillStyle = '#222';
+        gTS.font = '12px sans-serif';
+        gTS.textAlign = 'center';
+        gTS.textBaseline = 'middle';
+        gTS.fillText(
+          STATE_LABELS[segState] || segState,
+          (x0 + x1) / 2,
+          chartTop + ph / 2
+        );
+      }
+
+      if (cur) {
+        segStart = cur.t;
+        segState = curState;
+      }
+    }
+  }
+
+  // 遷移線
+  for (const tr of stateTransitions) {
+    if (tr.t < viewStart || tr.t > viewEnd) continue;
+    const x = xMap(tr.t);
+
+    gTS.save();
+    gTS.strokeStyle = '#263238';
+    gTS.lineWidth = 1.5;
+    gTS.setLineDash([4, 3]);
+    gTS.beginPath();
+    gTS.moveTo(x, chartTop + 8);
+    gTS.lineTo(x, chartBottom - 8);
+    gTS.stroke();
+    gTS.restore();
+
+    gTS.fillStyle = '#263238';
+    gTS.font = '10px sans-serif';
+    gTS.textAlign = 'left';
+    gTS.textBaseline = 'top';
+    gTS.fillText(`${tr.from}→${tr.to}`, x + 4, chartTop + 2);
+  }
+
+  // touch marker
+  for (const s of touchShots) {
+    if (s.t < viewStart || s.t > viewEnd) continue;
+    const x = xMap(s.t);
+    drawTouchMarker(gTS, x, chartTop, chartBottom, s);
+  }
+
+  // 左ラベル
+  gTS.fillStyle = '#666';
+  gTS.font = '11px sans-serif';
+  gTS.textAlign = 'right';
+  gTS.textBaseline = 'middle';
+  gTS.fillText('STATE', chartLeft - 8, chartTop + ph / 2);
+
+  // 下部
+  gTS.fillStyle = '#777';
+  gTS.font = '11px sans-serif';
+  gTS.textAlign = 'left';
+  gTS.textBaseline = 'alphabetic';
+  gTS.fillText('Phase2 State Timeline', chartLeft, H - 4);
+}
+
+
+
 function drawTouchCircles({ xMap, yScrapeMap, ml, pw, mt, ph, viewStart, viewEnd }){
   gT.fillStyle = '#d81b60';
   gT.font = '12px sans-serif';
@@ -2811,7 +2996,8 @@ function clearSelectedShot(){
   followLatestTimeLog();
   renderTouchTable();
   drawTimeSeries();
-  drawFluxTimeSeries()
+  drawFluxTimeSeries();
+  drawStateTimeline();
   drawTimeLog();
 }
 
@@ -2980,6 +3166,7 @@ function loadSessionFromObject(data){
   if (typeof drawTimeSeries === 'function') drawTimeSeries();
   if (typeof drawTimeLog === 'function') drawTimeLog();
   if (typeof drawFluxTimeSeries === 'function') drawFluxTimeSeries();
+  if (typeof drawStateTimeline === 'function') drawStateTimeline();
   if (typeof updateBandBars === 'function') updateBandBars();
 }
 
@@ -3164,6 +3351,7 @@ function resumeLiveMode(){
   followLatestTimeLog();
   drawTimeSeries();
   drawFluxTimeSeries();
+  drawStateTimeline();
   drawTimeLog();
   requestTouchTableRender();
 }
@@ -3176,6 +3364,51 @@ function normalizeBandMap(map){
     out[k] = (Number(map[k]) || 0) / total;
   }
   return out;
+}
+
+function classifyPhase2State(feat){
+  const fluxA = Number(feat.fluxA) || 0;
+  const fluxM = Number(feat.fluxM) || 0;
+  const moveA = Number(feat.peakMoveA) || 0;
+  const moveM = Number(feat.peakMoveM) || 0;
+  const atk   = Number(feat.attackScore) || 0;
+  const scrape = Number(feat.scrape) || 0;
+
+  const fluxMax = Math.max(fluxA, fluxM);
+  const fluxSum = fluxA + fluxM;
+  const moveSum = moveA + moveM;
+
+  // 1) 強い立ち上がり＋短いイベント寄り
+  if (atk >= 0.62 || fluxMax >= 0.18) {
+    return 'IMPULSE';
+  }
+
+  // 2) 中程度の変化があり、ピーク移動が小さめ → 吸い込み
+  if (fluxSum >= 0.05 && scrape < 6 && moveSum < 28) {
+    return 'SUCTION';
+  }
+
+  // 3) やや長引く / ピーク移動あり / scrape高め → weed
+  if ((scrape >= 4 && fluxSum >= 0.02) || moveSum >= 28) {
+    return 'WEED';
+  }
+
+  return 'IDLE';
+}
+
+function pushStateTransition(t, from, to){
+  const state = to || 'IDLE';
+  const last = stateTransitions[stateTransitions.length - 1];
+
+  if (last && Math.abs((last.t || 0) - t) < 0.08 && last.to === to) {
+    return;
+  }
+
+  stateTransitions.push({ t, from, to, state });
+
+  if (stateTransitions.length > 400) {
+    stateTransitions.shift();
+  }
 }
 
 //ラベル分類 FISH/BOTTOM/WEED/NONE
