@@ -8,7 +8,7 @@
    
 </head>
 <body>
-  <h2>ESP32 FFT Monitor Ver0.06</h2>
+  <h2>ESP32 FFT Monitor Ver0.07</h2>
 
   <div id="warn" class="warn"></div>
 
@@ -189,6 +189,66 @@
   </div>
 
   <h3>Sensitivity Score</h3>
+  <h3>Stability (MDI)</h3>
+
+  <div class="scoreRow">
+    <div class="scoreBox">
+      <div class="scoreTitle">A</div>
+      <div>MDI: <b id="mdiA">-</b></div>
+    </div>
+
+    <div class="scoreBox">
+      <div class="scoreTitle">B</div>
+      <div>MDI: <b id="mdiB">-</b></div>
+    </div>
+
+    <div class="scoreBox">
+      <div class="scoreTitle">Winner</div>
+      <div><b id="mdiWinner">-</b></div>
+      <div>ΔMDI: <b id="mdiDelta">-</b></div>
+    </div>
+  </div>
+
+  <h3>Structure (MDI2)</h3>
+
+  <h3>Immersion Score (beta)</h3>
+
+  <div class="scoreRow">
+    <div class="scoreBox">
+      <div class="scoreTitle">A</div>
+      <div>Score: <b id="immA">-</b></div>
+    </div>
+
+    <div class="scoreBox">
+      <div class="scoreTitle">B</div>
+      <div>Score: <b id="immB">-</b></div>
+    </div>
+
+    <div class="scoreBox">
+      <div class="scoreTitle">Winner</div>
+      <div><b id="immWinner">-</b></div>
+      <div>ΔScore: <b id="immDelta">-</b></div>
+    </div>
+  </div>
+
+  <div class="scoreRow">
+    <div class="scoreBox">
+      <div class="scoreTitle">A</div>
+      <div>MDI2: <b id="mdi2A">-</b></div>
+    </div>
+
+    <div class="scoreBox">
+      <div class="scoreTitle">B</div>
+      <div>MDI2: <b id="mdi2B">-</b></div>
+    </div>
+
+    <div class="scoreBox">
+      <div class="scoreTitle">Winner</div>
+      <div><b id="mdi2Winner">-</b></div>
+      <div>ΔMDI2: <b id="mdi2Delta">-</b></div>
+    </div>
+  </div>
+
   <div class="scoreRow">
     <div class="scoreBox">
       <div class="scoreTitle">A</div>

@@ -272,12 +272,22 @@ let recSum = {
 };
 let recCount = 0;
 
+let recFluxHist = {
+  A: [],
+  M: [],
+};
+
 function resetRec(){
   recSum = {
     A: makeZeroBandMap(),
     M: makeZeroBandMap(),
   };
   recCount = 0;
+
+  recFluxHist = {
+    A: [],
+    M: [],
+  };
 }
 
 
@@ -539,7 +549,7 @@ ws.onmessage = (e) => {
 
         fluxA: Number(lastFluxA) || 0,
         fluxM: Number(lastFluxM) || 0,
-
+        
         peakMoveA: Number(lastPeakMoveA) || 0,
         peakMoveM: Number(lastPeakMoveM) || 0,
 
@@ -738,6 +748,9 @@ ws.onmessage = (e) => {
     }
 
     tsBuf.push(feat);
+
+
+
     updateNoiseFloor(feat);
 
 
@@ -2276,12 +2289,19 @@ function stopRec(){
 
   // create object for comparison and save into slot
   const slot = getRecSlot();
+
+  const mdiInfo = calcCombinedMDI(recFluxHist.A, recFluxHist.M);
+
   saveCurrentAvg(slot, {
     accel: structuredClone(bandAccel),
     mic:   structuredClone(bandMic),
     count: recCount,
     stamp: Date.now(),
+    mdi: mdiInfo.mdi,
+    mdiA: mdiInfo.mdiA,
+    mdiM: mdiInfo.mdiM,
   });
+
 
   // show panel + render bars
     const panel = document.getElementById(slot === 'A' ? 'recPanelA' : 'recPanelB');
@@ -2368,6 +2388,76 @@ function stopRec(){
       const d = sB_total - sA_total;
       scoreDeltaEl.textContent = (d>=0?'+':'') + fmtScore(d);
       scoreWinnerEl.textContent = (d>0) ? 'B' : (d<0 ? 'A' : 'Draw');
+      
+      // ▼▼▼ ここに追加 ▼▼▼
+      const mdiA = Number(recAvgA.mdi) || 0;
+      const mdiB = Number(recAvgB.mdi) || 0;
+
+      document.getElementById("mdiA").textContent = mdiA.toFixed(3);
+      document.getElementById("mdiB").textContent = mdiB.toFixed(3);
+
+      const deltaMdi = mdiB - mdiA;
+      document.getElementById("mdiDelta").textContent = (deltaMdi >= 0 ? '+' : '') + deltaMdi.toFixed(3);
+
+      // 小さい方が安定
+      let mdiWinner = 'Draw';
+      if (Math.abs(deltaMdi) > 0.001) {
+        mdiWinner = deltaMdi > 0 ? 'A' : 'B';
+      }
+      document.getElementById("mdiWinner").textContent = mdiWinner;
+
+      // ▲▲▲ ここまで ▲▲▲
+
+      // ▼▼▼ MDI2（構造分散） ▼▼▼
+      // Accel + Mic を平均で使う
+      function calcCombinedMDI2(rec){
+        const a = calcMDI2FromBandMap(rec.accel);
+        const m = calcMDI2FromBandMap(rec.mic);
+        return (a + m) / 2;
+      }
+
+      const mdi2A = calcCombinedMDI2(recAvgA);
+      const mdi2B = calcCombinedMDI2(recAvgB);
+
+      document.getElementById("mdi2A").textContent = mdi2A.toFixed(3);
+      document.getElementById("mdi2B").textContent = mdi2B.toFixed(3);
+
+      const delta2 = mdi2B - mdi2A;
+      document.getElementById("mdi2Delta").textContent =
+        (delta2 >= 0 ? '+' : '') + delta2.toFixed(3);
+
+      let winner2 = 'Draw';
+      if (Math.abs(delta2) > 0.001){
+        winner2 = delta2 > 0 ? 'B' : 'A';
+      }
+
+      document.getElementById("mdi2Winner").textContent = winner2;
+
+      // ▲▲▲ ここまで ▲▲▲
+
+      // ▼▼▼ Immersion Score ▼▼▼
+
+      const immA = Math.pow(1 - mdiA, 2) * (1 - mdi2A);
+      const immB = Math.pow(1 - mdiB, 2) * (1 - mdi2B);
+
+
+      document.getElementById("immA").textContent = immA.toFixed(3);
+      document.getElementById("immB").textContent = immB.toFixed(3);
+
+      const deltaImm = immB - immA;
+      document.getElementById("immDelta").textContent =
+        (deltaImm >= 0 ? '+' : '') + deltaImm.toFixed(3);
+
+      let immWinner = 'Draw';
+      if (Math.abs(deltaImm) > 0.001){
+        immWinner = deltaImm > 0 ? 'B' : 'A';
+      }
+
+      document.getElementById("immWinner").textContent = immWinner;
+
+      // ▲▲▲ ここまで ▲▲▲
+
+
     }
     // === end of scoring section ===
 
@@ -2396,6 +2486,16 @@ function stopRec(){
 
 // save array for comparison
 function saveCurrentAvg(slot, avg) {
+  if (slot === 'A') {
+    const v = Number(recAvgA?.mdi) || 0;
+    document.getElementById("mdiA").textContent = v.toFixed(3);
+  }
+
+  if (slot === 'B') {
+    const v = Number(recAvgB?.mdi) || 0;
+    document.getElementById("mdiB").textContent = v.toFixed(3);
+  }
+
   if (slot === 'A') recAvgA = avg;
   if (slot === 'B') recAvgB = avg;
 }
@@ -2413,6 +2513,9 @@ function updateRecIfNeeded(){
     recSum.M[k] += Number(mNorm[k]) || 0;
   }
   recCount++;
+
+  recFluxHist.A.push(Number(lastFluxA) || 0);
+  recFluxHist.M.push(Number(lastFluxM) || 0);
 
   const elapsed = (performance.now() - recStartMs) * 0.001;
   const st = document.getElementById('recStatus');
@@ -2507,6 +2610,53 @@ function calcDiff(aMap, bMap){
     out[k] = bb - a; // B - A（必要なら A-B に変えてOK）
   }
   return out;
+}
+
+function calcMDIFromSeries(arr){
+  if (!Array.isArray(arr) || arr.length < 2) return 0;
+
+  let sum = 0;
+  for (let i = 1; i < arr.length; i++) {
+    sum += Math.abs((Number(arr[i]) || 0) - (Number(arr[i - 1]) || 0));
+  }
+  return sum / (arr.length - 1);
+}
+
+function calcMDI2FromBandMap(map){
+  if (!map) return 0;
+
+  let max = 0;
+  let high = 0;
+
+  for (const b of BANDS){
+    const k = b.key;
+    const v = Number(map[k]) || 0;
+
+    if (v > max) max = v;
+
+    if (b.f0 >= 200){
+      high += v;
+    }
+  }
+
+  const dispersion = 1 - max;
+
+  // ▼ここが重要（加算じゃなく平均）
+  return (dispersion * 0.7) + (high * 0.3);
+}
+
+
+
+function calcCombinedMDI(fluxAList, fluxMList){
+  const mdiA = calcMDIFromSeries(fluxAList);
+  const mdiM = calcMDIFromSeries(fluxMList);
+
+  // まずは単純平均
+  return {
+    mdiA,
+    mdiM,
+    mdi: (mdiA + mdiM) / 2
+  };
 }
 
 function drawDiff(el, diff){
@@ -3786,4 +3936,15 @@ function enrichShotScores(shot, series){
   shot.weedScore = s.weedScore;
   shot.eventClass = s.eventClass;
 }
+function calcMDI(buf) {
+  if (buf.length < 5) return 0;
+
+  let sum = 0;
+  for (let i = 1; i < buf.length; i++) {
+    sum += Math.abs(buf[i] - buf[i-1]);
+  }
+
+  return sum / (buf.length - 1);
+}
+
 

@@ -1103,4 +1103,9 @@ AIのその凄まじい力を前提に、
 
 
 
+[FRB Home](https://qiita.com/tamasub/items/2b6649748e1772b7eec1)
+
+
+
+
 
