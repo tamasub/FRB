@@ -22,9 +22,12 @@ static const uint16_t MIN_HZ = 10;
 
 // ===== ACC FFT =====
 static const uint16_t N_A = 128;
-static const double   FS_A = 500;
+//static const double   FS_A = 500;
+static const double   FS_A = 1000;
 static const double   DF_A = FS_A / N_A;
-static const uint16_t MAX_HZ_A = 400;
+//static const uint16_t MAX_HZ_A = 400;
+static const uint16_t MAX_HZ_A = 500;
+
 static const uint16_t MAX_BIN_A = (uint16_t)(MAX_HZ_A / DF_A);
 
 double vRealA[N_A];

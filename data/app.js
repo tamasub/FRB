@@ -115,6 +115,13 @@ const BANDS = [
   { key:'b9', label:'300+',    f0:300, f1:Infinity },
 ];
 
+// const BANDS = [
+//   { key:'b0', label:'0-80',    f0:0,   f1:80 },
+//   { key:'b1', label:'80-160',  f0:80,  f1:160 },
+//   { key:'b2', label:'160-250', f0:160, f1:250 },
+//   { key:'b3', label:'250-500', f0:250, f1:500 },
+// ];
+
 const BAND_W = [
   1.6, //0-40
   1.4, //40-80
@@ -127,6 +134,13 @@ const BAND_W = [
   0.6, //200-300
   0.4  //300+
 ];
+
+// const BAND_W = [
+//   1.2, // 0-80
+//   1.1, // 80-160
+//   1.0, // 160-250
+//   0.9  // 250-500
+// ];
 
 function makeZeroBandMap(){
   const out = {};
@@ -176,6 +190,28 @@ window.addEventListener('DOMContentLoaded', () => {
   buildBandRows('bandRecB_A','rbarA2', 'rtxtA2', 'bandFillA');
   buildBandRows('bandRecB_M','rbarM2', 'rtxtM2', 'bandFillM');
 });
+
+function calcBandFlux(spec, prevSpec, df, maxHz){
+  const out = makeZeroBandMap();
+
+  if (!spec || !prevSpec || spec.length !== prevSpec.length) {
+    return out;
+  }
+
+  const maxBin = Math.min(spec.length - 1, Math.floor(maxHz / df));
+
+  for (const b of BANDS) {
+    const bandF1 = Number.isFinite(b.f1) ? b.f1 : maxHz;
+    const f1 = Math.min(bandF1, maxHz);
+
+    const i0 = Math.max(0, Math.floor(b.f0 / df));
+    const i1 = Math.min(maxBin, Math.floor(f1 / df));
+
+    out[b.key] = calcSpectralFlux(spec, prevSpec, i0, i1);
+  }
+
+  return out;
+}
 
 function calcBandSums(specLin, df, maxHz){
   const out = makeZeroBandMap();
@@ -235,6 +271,18 @@ function normalizeBandMap(map){
   return out;
 }
 
+const fluxBandEmaA = makeZeroBandMap();
+const fluxBandEmaM = makeZeroBandMap();
+
+function emaFluxBand(target, src, alpha = 0.25){
+  for (const b of BANDS) {
+    const k = b.key;
+    target[k] = (Number(target[k]) || 0) + alpha * ((Number(src[k]) || 0) - (Number(target[k]) || 0));
+  }
+  return target;
+}
+
+
 function updateBandBars(){
   if (!latestBandA || !latestBandM) return;
 
@@ -256,6 +304,70 @@ function updateBandBars(){
     if (mEl) mEl.style.width = `${(mRatio * 100).toFixed(1)}%`;
     if (aTx) aTx.textContent = `${(aRatio * 100).toFixed(1)}%`;
     if (mTx) mTx.textContent = `${(mRatio * 100).toFixed(1)}%`;
+  }
+}
+
+
+function updateNowBandFluxBars(){
+  if (!lastFluxBandsA || !lastFluxBandsM) return;
+
+  let vmax = 1e-9;
+  for (const b of BANDS) {
+    vmax = Math.max(vmax, Number(lastFluxBandsA[b.key]) || 0);
+    vmax = Math.max(vmax, Number(lastFluxBandsM[b.key]) || 0);
+  }
+
+  for (const b of BANDS) {
+    const k = b.key;
+
+    const aVal = Number(lastFluxBandsA[k]) || 0;
+    const mVal = Number(lastFluxBandsM[k]) || 0;
+
+    const aRatio = Math.max(0, Math.min(1, aVal / vmax));
+    const mRatio = Math.max(0, Math.min(1, mVal / vmax));
+
+    const aEl = document.getElementById(`barA_${k}`);
+    const mEl = document.getElementById(`barM_${k}`);
+    const aTx = document.getElementById(`txtA_${k}`);
+    const mTx = document.getElementById(`txtM_${k}`);
+
+    if (aEl) aEl.style.width = `${(aRatio * 100).toFixed(1)}%`;
+    if (mEl) mEl.style.width = `${(mRatio * 100).toFixed(1)}%`;
+
+    if (aTx) aTx.textContent = aVal.toFixed(3);
+    if (mTx) aTx ? null : null;
+    if (mTx) mTx.textContent = mVal.toFixed(3);
+  }
+}
+
+
+function updateBandFluxBars(){
+  if (!lastFluxBandsA || !lastFluxBandsM) return;
+
+  // A/Bの両方の最大値を基準にして比較しやすくする
+  let vmax = 1e-9;
+  for (const b of BANDS) {
+    vmax = Math.max(vmax, Number(lastFluxBandsA[b.key]) || 0);
+    vmax = Math.max(vmax, Number(lastFluxBandsM[b.key]) || 0);
+  }
+
+  for (const b of BANDS) {
+    const k = b.key;
+
+    const aRatio = Math.max(0, Math.min(1, (Number(lastFluxBandsA[k]) || 0) / vmax));
+    const mRatio = Math.max(0, Math.min(1, (Number(lastFluxBandsM[k]) || 0) / vmax));
+
+    const aEl = document.getElementById(`barA_${k}`);
+    const mEl = document.getElementById(`barM_${k}`);
+    const aTx = document.getElementById(`txtA_${k}`);
+    const mTx = document.getElementById(`txtM_${k}`);
+
+    if (aEl) aEl.style.width = `${(aRatio * 100).toFixed(1)}%`;
+    if (mEl) mEl.style.width = `${(mRatio * 100).toFixed(1)}%`;
+
+    // 数値そのものを見たいので % ではなく生値表示
+    if (aTx) aTx.textContent = (Number(lastFluxBandsA[k]) || 0).toFixed(3);
+    if (mTx) mTx.textContent = (Number(lastFluxBandsM[k]) || 0).toFixed(3);
   }
 }
 
@@ -334,6 +446,9 @@ let prevSpecM = null;
 
 let lastFluxA = 0;
 let lastFluxM = 0;
+let lastFluxBandsA = null;
+let lastFluxBandsM = null;
+
 let lastAttackScore = 0;
 let lastAttackState = 'IDLE'; // IDLE / CANDIDATE / HIT / COOLDOWN
 let lastAttackReason = '';
@@ -369,14 +484,14 @@ window.addEventListener('error', (e)=>{
 });
 
 let viewMinHz = 10;
-let viewMaxHz = 400;
+let viewMaxHz = 600;
 
 document.getElementById('apply').onclick = () => {
   viewMinHz = Number(document.getElementById('fmin').value);
   viewMaxHz = Number(document.getElementById('fmax').value);
 
   if (!isFinite(viewMinHz)) viewMinHz = 10;
-  if (!isFinite(viewMaxHz)) viewMaxHz = 400;
+  if (!isFinite(viewMaxHz)) viewMaxHz = 600;
   if (viewMaxHz <= viewMinHz) viewMaxHz = viewMinHz + 1;
 
   // 帯域変更時はピークトラックを捨てる
@@ -620,14 +735,19 @@ ws.onmessage = (e) => {
   const fluxMinBin = Math.max(0, Math.floor(10 / df));
   const fluxMaxBin = Math.min(maxBin, Math.floor(Math.min(viewMaxHz, maxHz) / df));
 
-  if(type === 'A'){
-    lastFluxA = calcSpectralFlux(spec, prevSpecA, fluxMinBin, fluxMaxBin);
-    prevSpecA = spec.slice();
-  }
-  if(type === 'M'){
-    lastFluxM = calcSpectralFlux(spec, prevSpecM, fluxMinBin, fluxMaxBin);
-    prevSpecM = spec.slice();
-  }
+if(type === 'A'){
+  lastFluxA = calcSpectralFlux(spec, prevSpecA, fluxMinBin, fluxMaxBin);
+  lastFluxBandsA = calcBandFlux(spec, prevSpecA, df, Math.min(viewMaxHz, maxHz));
+  emaFluxBand(fluxBandEmaA, lastFluxBandsA, 0.25);
+  prevSpecA = spec.slice();
+}
+if(type === 'M'){
+  lastFluxM = calcSpectralFlux(spec, prevSpecM, fluxMinBin, fluxMaxBin);
+  lastFluxBandsM = calcBandFlux(spec, prevSpecM, df, Math.min(viewMaxHz, maxHz));
+  emaFluxBand(fluxBandEmaM, lastFluxBandsM, 0.25);
+  prevSpecM = spec.slice();
+}
+
 
   // --- band sums (use linear spec) ---
   const bandSums = calcBandSums(spec, df, maxHz);
@@ -761,7 +881,9 @@ ws.onmessage = (e) => {
     drawFluxTimeSeries();
     drawStateTimeline();
     drawTimeLog();
+    //updateNowBandFluxBars();
     updateBandBars();
+    updateBandFluxBars();
     updateRecIfNeeded();
     finalizeFrozenSeries(nowT);
 
@@ -2911,7 +3033,7 @@ function drawTimeLog(){
   const chartTop    = mt;
   const chartBottom = mt + ph;
 
-  const hzMax  = 400;
+  const hzMax  = 600;
   const scrMax = 20;   // 今のUIに合わせるなら20。必要に応じて100へ戻してOK
 
   if (selectedShotId != null) {
