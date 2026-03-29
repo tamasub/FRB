@@ -8,7 +8,7 @@
    
 </head>
 <body>
-  <h2>ESP32 FFT Monitor Ver0.08</h2>
+  <h2>ESP32 FFT Monitor Ver0.09</h2>
 
   <div id="warn" class="warn"></div>
 
@@ -56,6 +56,12 @@
       <div class="section-sub">(SCRAPE &amp; Peak Hz / Flux)</div>
     </div>
 
+    <div class="subPanel">
+      <div class="subTitle">Peak Timeline</div>
+      <canvas id="tsPeak"></canvas>
+    </div>
+
+
     <div class="timelog-legend" id="timelogLegend">
       <span class="lg-item scrape"><i></i>SCRAPE</span>
       <span class="lg-item peakA"><i></i>PeakAHz</span>
@@ -72,6 +78,7 @@
     <div class="timelog-wrap">
       <canvas id="ts"></canvas>
       <canvas id="tsFlux"></canvas>
+      <canvas id="tsPeak"></canvas>
       <canvas id="tsState"></canvas>
       
     </div>

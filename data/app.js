@@ -26,7 +26,8 @@ const tsCanvas = document.getElementById('ts');
 const gT = tsCanvas.getContext('2d');
 const tsFluxCanvas = document.getElementById('tsFlux');
 const gTF = tsFluxCanvas.getContext('2d');
-
+const tsPeakCanvas = document.getElementById('tsPeak');
+const gTP = tsPeakCanvas.getContext('2d');
 const tsStateCanvas = document.getElementById('tsState');
 const gTS = tsStateCanvas.getContext('2d');
 
@@ -711,9 +712,11 @@ ws.onmessage = (e) => {
       pruneTouch(nowT);
       renderTouchTable();
       drawTimeSeries();
-      drawFluxTimeSeries()
+      drawFluxTimeSeries();
+      drawPeakTimeline();
       drawStateTimeline();
       drawTimeLog();
+
     }
 
     return;
@@ -850,6 +853,15 @@ if(type === 'M'){
       attackState: 'IDLE',
       contactClass: 'NONE',
       classReason: '',
+
+      topPeaksA: (latestA?.topPeaks || []).map(p => ({
+        hz: Number(p.hz) || 0,
+        mag: Number(p.mag) || 0
+      })),
+      topPeaksM: (latestM?.topPeaks || []).map(p => ({
+        hz: Number(p.hz) || 0,
+        mag: Number(p.mag) || 0
+      })),
     };
 
     const hit = updateAttackDetector(feat);
@@ -879,6 +891,7 @@ if(type === 'M'){
     pruneTimeSeries(nowT);
     drawTimeSeries();
     drawFluxTimeSeries();
+    drawPeakTimeline();
     drawStateTimeline();
     drawTimeLog();
     //updateNowBandFluxBars();
@@ -886,6 +899,159 @@ if(type === 'M'){
     updateBandFluxBars();
     updateRecIfNeeded();
     finalizeFrozenSeries(nowT);
+
+function drawPeakTimeline(){
+  if (!tsPeakCanvas || !gTP) return;
+
+  const W = tsPeakCanvas.width;
+  const H = tsPeakCanvas.height;
+  gTP.clearRect(0, 0, W, H);
+
+  const selectedFrozen = getSelectedFrozenSeries();
+  const seriesSrc = (!timeLogFollowLatest && selectedFrozen)
+    ? selectedFrozen
+    : tsBuf;
+
+  const ml = 58, mr = 58, mt = 18, mb = 24;
+  const pw = W - ml - mr;
+  const ph = H - mt - mb;
+
+  const chartLeft   = ml;
+  const chartRight  = ml + pw;
+  const chartTop    = mt;
+  const chartBottom = mt + ph;
+
+  gTP.fillStyle = '#fcfcfc';
+  gTP.fillRect(0, 0, W, H);
+
+  gTP.strokeStyle = '#d4d4d4';
+  gTP.lineWidth = 1;
+  gTP.beginPath();
+  gTP.moveTo(chartLeft, chartTop);
+  gTP.lineTo(chartLeft, chartBottom);
+  gTP.lineTo(chartRight, chartBottom);
+  gTP.stroke();
+
+  if (!seriesSrc || seriesSrc.length < 2) {
+    gTP.fillStyle = '#999';
+    gTP.font = '12px sans-serif';
+    gTP.fillText('no peak timeline yet', chartLeft + 10, chartTop + 18);
+    return;
+  }
+
+  const nowSec = seriesSrc[seriesSrc.length - 1].t;
+  const winSec = getTimeWindowSec();
+
+  let viewStart = 0;
+  let viewEnd = winSec;
+
+  if (!timeLogFollowLatest && isFinite(timeLogCenterSec)) {
+    viewStart = Math.max(0, timeLogCenterSec - winSec / 2);
+    viewEnd = viewStart + winSec;
+
+    if (viewEnd > nowSec && nowSec > winSec) {
+      viewEnd = nowSec;
+      viewStart = Math.max(0, viewEnd - winSec);
+    }
+  } else {
+    viewStart = Math.max(0, nowSec - winSec);
+    viewEnd = Math.max(winSec, nowSec);
+  }
+
+  const hzMin = Math.max(0, viewMinHz || 0);
+  const hzMax = Math.max(hzMin + 1, viewMaxHz || 600);
+
+  function xMap(t){
+    return chartLeft + ((t - viewStart) / Math.max(1e-9, (viewEnd - viewStart))) * pw;
+  }
+
+  function yMapHz(hz){
+    const v = Math.max(hzMin, Math.min(hzMax, Number(hz) || 0));
+    return chartBottom - ((v - hzMin) / Math.max(1e-9, (hzMax - hzMin))) * ph;
+  }
+
+  // horizontal grid
+  gTP.strokeStyle = '#ececec';
+  gTP.lineWidth = 1;
+  for(let i = 0; i <= 4; i++){
+    const y = chartTop + ph * i / 4;
+    gTP.beginPath();
+    gTP.moveTo(chartLeft, y);
+    gTP.lineTo(chartRight, y);
+    gTP.stroke();
+
+    const hzVal = hzMax - ((hzMax - hzMin) * i / 4);
+    gTP.fillStyle = '#666';
+    gTP.font = '11px sans-serif';
+    gTP.textAlign = 'right';
+    gTP.textBaseline = 'middle';
+    gTP.fillText(`${Math.round(hzVal)}`, chartLeft - 8, y);
+  }
+
+  // dots only
+  const visible = seriesSrc.filter(p => p.t >= viewStart && p.t <= viewEnd);
+
+  const rankRadius = [4.0, 3.0, 2.2, 1.8, 1.4];
+  const rankAlphaA = [0.90, 0.72, 0.56, 0.42, 0.32];
+  const rankAlphaM = [0.90, 0.72, 0.56, 0.42, 0.32];
+
+  for (const p of visible) {
+    const x = xMap(p.t);
+
+    const peaksA = Array.isArray(p.topPeaksA) ? p.topPeaksA : [];
+    const peaksM = Array.isArray(p.topPeaksM) ? p.topPeaksM : [];
+
+    peaksA.slice(0, 5).forEach((pk, i) => {
+      const hz = Number(pk?.hz) || 0;
+      if (hz < hzMin || hz > hzMax) return;
+
+      const y = yMapHz(hz);
+      gTP.save();
+      gTP.fillStyle = `rgba(30,136,229,${rankAlphaA[i] ?? 0.28})`;
+      gTP.beginPath();
+      gTP.arc(x, y, rankRadius[i] ?? 1.4, 0, Math.PI * 2);
+      gTP.fill();
+      gTP.restore();
+    });
+
+    peaksM.slice(0, 5).forEach((pk, i) => {
+      const hz = Number(pk?.hz) || 0;
+      if (hz < hzMin || hz > hzMax) return;
+
+      const y = yMapHz(hz);
+      gTP.save();
+      gTP.fillStyle = `rgba(255,111,0,${rankAlphaM[i] ?? 0.28})`;
+      gTP.beginPath();
+      gTP.arc(x, y, rankRadius[i] ?? 1.4, 0, Math.PI * 2);
+      gTP.fill();
+      gTP.restore();
+    });
+  }
+
+  // touch marker
+  for (const s of touchShots) {
+    if (s.t < viewStart || s.t > viewEnd) continue;
+    const x = xMap(s.t);
+    drawTouchMarker(gTP, x, chartTop, chartBottom, s);
+  }
+
+  // legend
+  gTP.font = '11px sans-serif';
+  gTP.textBaseline = 'alphabetic';
+  gTP.textAlign = 'left';
+
+  gTP.fillStyle = '#1e88e5';
+  gTP.fillText('A peak dots', chartLeft + 8, chartTop - 4);
+
+  gTP.fillStyle = '#ff6f00';
+  gTP.fillText('M peak dots', chartLeft + 92, chartTop - 4);
+
+  gTP.fillStyle = '#777';
+  gTP.fillText('size = peak rank', chartLeft + 182, chartTop - 4);
+
+  gTP.fillStyle = '#777';
+  gTP.fillText('Peak Timeline', chartLeft, H - 6);
+}
 
     if(hit){
       //console.log('ATTACK HIT', hit);
@@ -938,12 +1104,14 @@ function fitAll(){
   fitCanvasEl(specM);
   fitCanvasEl(tsCanvas);
   fitCanvasEl(tsFluxCanvas);
+  fitCanvasEl(tsPeakCanvas);
   fitCanvasEl(tsStateCanvas);
   
   gA.clearRect(0,0,specA.width,specA.height);
   gM.clearRect(0,0,specM.width,specM.height);
   gT.clearRect(0,0,tsCanvas.width,tsCanvas.height);
   gTF.clearRect(0,0,tsFluxCanvas.width,tsFluxCanvas.height);
+  gTP.clearRect(0,0,tsPeakCanvas.width,tsPeakCanvas.height);
   gTS.clearRect(0,0,tsStateCanvas.width,tsStateCanvas.height);
 }
 
@@ -2326,6 +2494,159 @@ function drawStateTimeline(){
   gTS.fillText('Phase2 State Timeline', chartLeft, H - 4);
 }
 
+function drawPeakTimeline(){
+  if (!tsPeakCanvas || !gTP) return;
+
+  const W = tsPeakCanvas.width;
+  const H = tsPeakCanvas.height;
+  gTP.clearRect(0, 0, W, H);
+
+  const selectedFrozen = getSelectedFrozenSeries();
+  const seriesSrc = (!timeLogFollowLatest && selectedFrozen)
+    ? selectedFrozen
+    : tsBuf;
+
+  const ml = 58, mr = 58, mt = 18, mb = 24;
+  const pw = W - ml - mr;
+  const ph = H - mt - mb;
+
+  const chartLeft   = ml;
+  const chartRight  = ml + pw;
+  const chartTop    = mt;
+  const chartBottom = mt + ph;
+
+  gTP.fillStyle = '#fcfcfc';
+  gTP.fillRect(0, 0, W, H);
+
+  gTP.strokeStyle = '#d4d4d4';
+  gTP.lineWidth = 1;
+  gTP.beginPath();
+  gTP.moveTo(chartLeft, chartTop);
+  gTP.lineTo(chartLeft, chartBottom);
+  gTP.lineTo(chartRight, chartBottom);
+  gTP.stroke();
+
+  if (!seriesSrc || seriesSrc.length < 2) {
+    gTP.fillStyle = '#999';
+    gTP.font = '12px sans-serif';
+    gTP.fillText('no peak timeline yet', chartLeft + 10, chartTop + 18);
+    return;
+  }
+
+  const nowSec = seriesSrc[seriesSrc.length - 1].t;
+  const winSec = getTimeWindowSec();
+
+  let viewStart = 0;
+  let viewEnd = winSec;
+
+  if (!timeLogFollowLatest && isFinite(timeLogCenterSec)) {
+    viewStart = Math.max(0, timeLogCenterSec - winSec / 2);
+    viewEnd = viewStart + winSec;
+
+    if (viewEnd > nowSec && nowSec > winSec) {
+      viewEnd = nowSec;
+      viewStart = Math.max(0, viewEnd - winSec);
+    }
+  } else {
+    viewStart = Math.max(0, nowSec - winSec);
+    viewEnd = Math.max(winSec, nowSec);
+  }
+
+  const hzMin = Math.max(0, viewMinHz || 0);
+  const hzMax = Math.max(hzMin + 1, viewMaxHz || 600);
+
+  function xMap(t){
+    return chartLeft + ((t - viewStart) / Math.max(1e-9, (viewEnd - viewStart))) * pw;
+  }
+
+  function yMapHz(hz){
+    const v = Math.max(hzMin, Math.min(hzMax, Number(hz) || 0));
+    return chartBottom - ((v - hzMin) / Math.max(1e-9, (hzMax - hzMin))) * ph;
+  }
+
+  // horizontal grid
+  gTP.strokeStyle = '#ececec';
+  gTP.lineWidth = 1;
+  for(let i = 0; i <= 4; i++){
+    const y = chartTop + ph * i / 4;
+    gTP.beginPath();
+    gTP.moveTo(chartLeft, y);
+    gTP.lineTo(chartRight, y);
+    gTP.stroke();
+
+    const hzVal = hzMax - ((hzMax - hzMin) * i / 4);
+    gTP.fillStyle = '#666';
+    gTP.font = '11px sans-serif';
+    gTP.textAlign = 'right';
+    gTP.textBaseline = 'middle';
+    gTP.fillText(`${Math.round(hzVal)}`, chartLeft - 8, y);
+  }
+
+  // dots only
+  const visible = seriesSrc.filter(p => p.t >= viewStart && p.t <= viewEnd);
+
+  const rankRadius = [4.0, 3.0, 2.2, 1.8, 1.4];
+  const rankAlphaA = [0.90, 0.72, 0.56, 0.42, 0.32];
+  const rankAlphaM = [0.90, 0.72, 0.56, 0.42, 0.32];
+
+  for (const p of visible) {
+    const x = xMap(p.t);
+
+    const peaksA = Array.isArray(p.topPeaksA) ? p.topPeaksA : [];
+    const peaksM = Array.isArray(p.topPeaksM) ? p.topPeaksM : [];
+
+    peaksA.slice(0, 5).forEach((pk, i) => {
+      const hz = Number(pk?.hz) || 0;
+      if (hz < hzMin || hz > hzMax) return;
+
+      const y = yMapHz(hz);
+      gTP.save();
+      gTP.fillStyle = `rgba(30,136,229,${rankAlphaA[i] ?? 0.28})`;
+      gTP.beginPath();
+      gTP.arc(x, y, rankRadius[i] ?? 1.4, 0, Math.PI * 2);
+      gTP.fill();
+      gTP.restore();
+    });
+
+    peaksM.slice(0, 5).forEach((pk, i) => {
+      const hz = Number(pk?.hz) || 0;
+      if (hz < hzMin || hz > hzMax) return;
+
+      const y = yMapHz(hz);
+      gTP.save();
+      gTP.fillStyle = `rgba(255,111,0,${rankAlphaM[i] ?? 0.28})`;
+      gTP.beginPath();
+      gTP.arc(x, y, rankRadius[i] ?? 1.4, 0, Math.PI * 2);
+      gTP.fill();
+      gTP.restore();
+    });
+  }
+
+  // touch marker
+  for (const s of touchShots) {
+    if (s.t < viewStart || s.t > viewEnd) continue;
+    const x = xMap(s.t);
+    drawTouchMarker(gTP, x, chartTop, chartBottom, s);
+  }
+
+  // legend
+  gTP.font = '11px sans-serif';
+  gTP.textBaseline = 'alphabetic';
+  gTP.textAlign = 'left';
+
+  gTP.fillStyle = '#1e88e5';
+  gTP.fillText('A peak dots', chartLeft + 8, chartTop - 4);
+
+  gTP.fillStyle = '#ff6f00';
+  gTP.fillText('M peak dots', chartLeft + 92, chartTop - 4);
+
+  gTP.fillStyle = '#777';
+  gTP.fillText('size = peak rank', chartLeft + 182, chartTop - 4);
+
+  gTP.fillStyle = '#777';
+  gTP.fillText('Peak Timeline', chartLeft, H - 6);
+}
+
 
 
 function drawTouchCircles({ xMap, yScrapeMap, ml, pw, mt, ph, viewStart, viewEnd }){
@@ -3015,7 +3336,9 @@ function touchLabel(shot){
 
 
 function drawTimeLog(){
-  const W = ts.width, H = ts.height;
+  //const W = ts.width, H = ts.height;
+  const W = tsCanvas.width, H = tsCanvas.height;
+
   gT.clearRect(0, 0, W, H);
 
   const selectedFrozen = getSelectedFrozenSeries();
@@ -3269,6 +3592,7 @@ function clearSelectedShot(){
   renderTouchTable();
   drawTimeSeries();
   drawFluxTimeSeries();
+  drawPeakTimeline();
   drawStateTimeline();
   drawTimeLog();
 }
@@ -3438,6 +3762,7 @@ function loadSessionFromObject(data){
   if (typeof drawTimeSeries === 'function') drawTimeSeries();
   if (typeof drawTimeLog === 'function') drawTimeLog();
   if (typeof drawFluxTimeSeries === 'function') drawFluxTimeSeries();
+  if (typeof drawPeakTimeline === 'function') drawPeakTimeline();
   if (typeof drawStateTimeline === 'function') drawStateTimeline();
   if (typeof updateBandBars === 'function') updateBandBars();
 }
@@ -3623,6 +3948,7 @@ function resumeLiveMode(){
   followLatestTimeLog();
   drawTimeSeries();
   drawFluxTimeSeries();
+  drawPeakTimeline();
   drawStateTimeline();
   drawTimeLog();
   requestTouchTableRender();
