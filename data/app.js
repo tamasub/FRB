@@ -862,6 +862,11 @@ if(type === 'M'){
         hz: Number(p.hz) || 0,
         mag: Number(p.mag) || 0
       })),
+      density: calcPeakDensity(
+        latestA?.topPeaks,
+        latestM?.topPeaks
+       ),
+
     };
 
     const hit = updateAttackDetector(feat);
@@ -2151,6 +2156,11 @@ function drawTimeSeries(){
     ml, pw, mt, ph,
     viewStart, viewEnd
   });
+
+
+
+
+
 }
 
 function drawFluxTimeSeries(){
@@ -3527,6 +3537,8 @@ function drawTimeLog(){
     }
     if (started) gT.stroke();
     gT.restore();
+
+
   }
 
   // TOUCHマーカー
@@ -3561,6 +3573,21 @@ function drawTimeLog(){
     if (started) gT.stroke();
     gT.restore();
   }
+
+  if (seriesSrc && seriesSrc.length > 0) {
+  const d = Number(seriesSrc[seriesSrc.length - 1]?.density) || 0;
+
+  gT.fillStyle = '#111';
+  gT.font = '12px monospace';
+  gT.textAlign = 'left';
+  gT.textBaseline = 'top';
+  const dNow = Number(seriesSrc[seriesSrc.length - 1]?.density) || 0;
+  const dMean = calcRecentMeanDensity(seriesSrc, 2.0);
+
+  gT.fillText(`DensityNow: ${dNow.toFixed(2)}`, chartLeft + 8, chartTop + 6);
+  gT.fillText(`Density2s : ${dMean.toFixed(2)}`, chartLeft + 8, chartTop + 22);
+
+}
 
   // 下部表示
   gT.font = '11px sans-serif';
@@ -4396,3 +4423,52 @@ function calcMDI(buf) {
 }
 
 
+function calcPeakDensity(topPeaksA, topPeaksM) {
+  const all = [];
+
+  (topPeaksA || []).forEach(p => {
+    if (p && p.hz > 0) all.push(p.hz);
+  });
+  (topPeaksM || []).forEach(p => {
+    if (p && p.hz > 0) all.push(p.hz);
+  });
+
+  if (all.length === 0) return 0;
+
+  const binSize = 20; // ←ここ変えると解像度変わる
+  const bins = {};
+
+  all.forEach(hz => {
+    const b = Math.floor(hz / binSize);
+    bins[b] = (bins[b] || 0) + 1;
+  });
+
+  let maxCount = 0;
+  Object.values(bins).forEach(c => {
+    if (c > maxCount) maxCount = c;
+  });
+
+  return maxCount / all.length; // 0〜1
+}
+
+
+
+function calcRecentMeanDensity(series, sec = 2.0){
+  if (!Array.isArray(series) || !series.length) return 0;
+
+  const t1 = series[series.length - 1].t;
+  const recent = series.filter(p => (t1 - p.t) <= sec);
+
+  if (!recent.length) return 0;
+
+  let sum = 0;
+  let n = 0;
+  for (const p of recent) {
+    const d = Number(p.density);
+    if (isFinite(d)) {
+      sum += d;
+      n++;
+    }
+  }
+  return n ? (sum / n) : 0;
+}
