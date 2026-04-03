@@ -39,3 +39,7 @@ data/exports/tmp/
 *.mp4
 *.zip
 
+# ======
+mymemo.md
+README_V0_mermaid.md
+
