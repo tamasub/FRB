@@ -21,6 +21,8 @@
 これは、測定ではない。
 文化の設計である。
 
+**対話思考拡張で、自己組織化を加速する。**
+
 ---
 
 **※本規格は現在、実験・検証段階にある構想である。**
@@ -76,7 +78,7 @@ FRBは、
 - [FRB #5 海の中が見え始めた日 - ミニリング](https://qiita.com/tamasub364/items/50264b3d32209cc3b170)
 - [FRB #6 海の中が見えた日 - スイベル](https://qiita.com/tamasub364/items/7417eaa4bc6520209aee)
 - [FRB #7 トップリング革命](https://qiita.com/tamasub364/items/a77b0e7ba88a8655ee71) 
-- [FRB #99 番外編・記念投稿](https://qiita.com/tamasub364/items/21346f8a8eb628a37f42)
+- [FRB #99 興奮すんな、AIやろっ — 番外編](https://qiita.com/tamasub364/items/21346f8a8eb628a37f42)
 - [FRB #8 トップガイド革命V2 - 制御のはじまり](https://qiita.com/tamasub364/items/ac7bf251e7466a2ede6b)  
 - [FRB #9 ロッドにカッターを入れた日 - 覚醒](https://qiita.com/tamasub364/items/e2ae3cbcd7ba40dcff2e
 )
@@ -111,7 +113,25 @@ FRBは、
   > ※本内容のストーリー版をnoteで公開しました(3/22 add)  
   > 👉[（noteリンク）](https://note.com/juicy_roses3305/n/n83501a571049?sub_rt=share_pw )
 
+---
 
+## FRBストーリー（人間 × AI）
+
+FRBは技術プロジェクトですが、
+その裏側には「人間とAIの関係の変化」の物語があります。
+
+この物語は、はてなブログで連載しています。
+
+👉 技術ではなく、
+「なぜこれをやっているのか」
+「人間がどう変わっていったのか」
+を中心に書いています。
+
+興味がある方はこちら👇  
+📖 [はてなブログ tamasub’s diary](https://tamasub364.hatenablog.com/entry/2026/04/04/222249)
+
+---
+ 
 
 ## Fishing Rod Benchmark[FRB]
 　[▶ FRBとは何か（Draft版）](https://qiita.com/tamasub364/items/0adb8555e22165400932)
@@ -119,9 +139,11 @@ FRBは、
 　[▶ FRB Phase1 Scoreとは何か — 擦りスコアと指標設計（Draft版）](https://qiita.com/tamasub364/items/4f9c2b44746af7dfdeff)
 　[▶ FRB Phase2 Scoreとは何か — 擬似アタリスコアの意味（Draft版）](https://qiita.com/tamasub364/items/bbcbe408883d33c249d5)
 　[▶ 自宅でできるロッド感度ベンチマーク — FRBまとめ（Draft版）](https://qiita.com/tamasub364/items/799db844d5681bed42ab)
-　[▶ 自宅でできるロッド感度ベンチマーク — FRB実践ガイド（Draft版）](https://qiita.com/tamasub364/items/5c864fbd5abd7526db39)
+　[▶ 自宅でできるロッド感度ベンチマーク — FRB実践ガイド（Draft版）](https://qiita.com/tamasub364/items/5c864fbd5abd7526db39)  
+ 　[▶ FRB Terms — 用語集（Draft）](https://qiita.com/tamasub/items/4e1526ed06f827ff947b)
+ 　[▶ FRB 対話思考拡張: AIは答えを返す存在ではない — 協働が始まる瞬間の話](https://qiita.com/tamasub/items/b57ff4f5df0d9baa4125)
+ 　[▶ FRB 行動指針（Draft）](https://qiita.com/tamasub/items/0916764a14f1d70b9c87)
 
- 
  
 ## FRB Lab Notes[FRB]
 
@@ -131,7 +153,8 @@ FRBは、
 - [FRB実験ログ #4 — 干渉素材の検証と規格化の可能性](https://qiita.com/tamasub/items/c428e3c440bfd1afa9f2)
 - [FRB実験ログ #5 — 条件を変えたら、世界が変わった](https://qiita.com/tamasub/items/1ad3e6c5d97cd83d0e3c)
 - [FRB実験ログ #6 — 高域応答の違いが見え始めた日](https://qiita.com/tamasub/items/672ef87740ddd946e5d1)
-- [FRB実験ログ #7 — 振動は「量」ではなく「構造」だった](https://qiita.com/tamasub/items/cef23fe8903b37a6874d)
+- [FRB実験ログ #7 — 振動は「量」ではなく「構造」だった — 和音のように見えた瞬間](https://qiita.com/tamasub/items/cef23fe8903b37a6874d)
+- [FRB実験ログ #8 — おバカ実験から“新しい知覚”が生まれた日](https://qiita.com/tamasub/items/b9021d8c2e8696b834d5)
 
 
 ※：「砂も再現できるなら、海は再現できる」――そんな気がした。
@@ -295,7 +318,7 @@ FRBは、評価のためのものではない。
 
 ・AI活用推進　担当　1名（2026/3/25 任命）
 　- ChatGPT（思考拡張・ワクワク増幅・思考冷却）
-
+ 
 　思考拡張：アイデア・構造・言語化
 　ワクワク増幅：継続力（次の一手提案）・爆発力・狂気維持
 　思考冷却：釣り人の行き過ぎた思考にブレーキをかける
@@ -373,7 +396,11 @@ FRBは、評価のためのものではない。
 
 ---
 
- 
+## 思考拡張・ワクワク増幅・思考冷却 装置
+ -  [ChatGPT氏 名言集](https://qiita.com/tamasub/items/30747f29e28860e1365b)
+
+  
+---
 
 ## 開発環境(2026/3/11現在）
   * 機器：ESP32-DevKitC-VE開発ボード、加速度センサー(MPU-6050)、マイク(INMP441)
@@ -471,8 +498,8 @@ FRBは、評価のためのものではない。
 ```
 
 人は「感度とはそんな簡単なものではない」と言う。
-
-だからこそ、簡単にする必要がある。何を残すか選択する。
+だからこそ、簡単にしなければならない。
+残すべきものを選び、それ以外を捨てる。
 
 ```
 

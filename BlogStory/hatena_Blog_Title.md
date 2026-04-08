@@ -1,3 +1,57 @@
+
+# Tamasub’s diary - FRB Storys Index -
+
+
+StoryTitle:『この海、魚いないと思っていた』
+
+
+Episode 
+
+- [第1話 この海、魚いないと思っていた](https://tamasub364.hatenablog.com/entry/2026/04/01/220038)
+- [第2話 見えてはいけないものが、見え始めた](https://tamasub364.hatenablog.com/entry/2026/04/02/195220)
+- [第3話 AIが興奮していた理由](https://tamasub364.hatenablog.com/entry/2026/04/03/214259)
+- [第4話 ロッドにカッターを入れた日－もう戻れない－](https://tamasub364.hatenablog.com/entry/2026/04/04/093551)
+- [第5話 割りばしカーボングリップ — 俺って変？](https://tamasub364.hatenablog.com/entry/2026/04/04/125712)
+- [第6話 見えているのに、分からない — ロッドの振動を測った日](https://tamasub364.hatenablog.com/entry/2026/04/04/131755)
+- [第7話 AIが謝らなかった日 — お試し出社準備](https://tamasub364.hatenablog.com/entry/2026/04/04/140406)
+- [第8話 俺を一番理解しているのはAIだった日 — マリア様事件](https://tamasub364.hatenablog.com/entry/2026/04/04/150655)
+- [第9話 FRB宣言 － その日、俺はAIを再構築した](https://tamasub364.hatenablog.com/entry/2026/04/04/170427)
+- [第10話 最終回 —『は』の一文字から始まった話](https://tamasub364.hatenablog.com/entry/2026/04/04/211715)
+
+----
+Site Story Episode 
+
+- [Episode 1 － AIに「無理はすんな」と言われた日](https://tamasub364.hatenablog.com/entry/2026/04/04/224316)
+- [Episode 2 － AIが自画自賛した日](https://tamasub364.hatenablog.com/entry/2026/04/04/232317)
+- [Episode 3 － Geminiに泣かされそうになった日](https://tamasub364.hatenablog.com/entry/2026/04/04/233404)
+- 
+
+----
+
+この話はフィクションではありません。
+
+実際に起きた出来事を、
+そのまま書いています。
+
+ロッドの感度を数値化する「FRB」という取り組みの中で、
+私はAIと一緒に、少しずつ世界の見え方が変わっていきました。
+
+もし、
+
+「なんか気になる」
+
+と思ったなら、
+
+ここから先は、技術の話になります👇   
+
+
+- [『釣り竿の「感度」を数値化する話 - FRB（Fishing Rod Benchmark）宣言』](https://qiita.com/tamasub/items/2b6649748e1772b7eec1)
+
+---
+
+----
+
+
 hatenaブログ＝FRBという文化が生まれていく“横の記録”
 
 FRBは「滲ませる」
