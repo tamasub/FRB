@@ -101,47 +101,47 @@ let noiseFluxM = 0.03;
 
 
 // === Band scoring ===
-const BANDS = [
-  { key:'b0', label:'0-40',    f0:0,   f1:40 },
-  { key:'b1', label:'40-80',   f0:40,  f1:80 },
-  { key:'b2', label:'80-100',  f0:80,  f1:100 },
-
-  { key:'b3', label:'100-120', f0:100, f1:120 },
-  { key:'b4', label:'120-140', f0:120, f1:140 },
-  { key:'b5', label:'140-160', f0:140, f1:160 },
-  { key:'b6', label:'160-180', f0:160, f1:180 },
-  { key:'b7', label:'180-200', f0:180, f1:200 },
-
-  { key:'b8', label:'200-300', f0:200, f1:300 },
-  { key:'b9', label:'300+',    f0:300, f1:Infinity },
-];
-
 // const BANDS = [
-//   { key:'b0', label:'0-80',    f0:0,   f1:80 },
-//   { key:'b1', label:'80-160',  f0:80,  f1:160 },
-//   { key:'b2', label:'160-250', f0:160, f1:250 },
-//   { key:'b3', label:'250-500', f0:250, f1:500 },
+//   { key:'b0', label:'0-40',    f0:0,   f1:40 },
+//   { key:'b1', label:'40-80',   f0:40,  f1:80 },
+//   { key:'b2', label:'80-100',  f0:80,  f1:100 },
+
+//   { key:'b3', label:'100-120', f0:100, f1:120 },
+//   { key:'b4', label:'120-140', f0:120, f1:140 },
+//   { key:'b5', label:'140-160', f0:140, f1:160 },
+//   { key:'b6', label:'160-180', f0:160, f1:180 },
+//   { key:'b7', label:'180-200', f0:180, f1:200 },
+
+//   { key:'b8', label:'200-300', f0:200, f1:300 },
+//   { key:'b9', label:'300+',    f0:300, f1:Infinity },
 // ];
 
-const BAND_W = [
-  1.6, //0-40
-  1.4, //40-80
-  1.2, //80-100
-  1.1, //100-120
-  1.0, //120-140
-  0.9, //140-160
-  0.8, //160-180
-  0.7, //180-200
-  0.6, //200-300
-  0.4  //300+
+const BANDS = [
+  { key:'b0', label:'0-80',    f0:0,   f1:80 },
+  { key:'b1', label:'80-160',  f0:80,  f1:160 },
+  { key:'b2', label:'160-250', f0:160, f1:250 },
+  { key:'b3', label:'250-500', f0:250, f1:500 },
 ];
 
 // const BAND_W = [
-//   1.2, // 0-80
-//   1.1, // 80-160
-//   1.0, // 160-250
-//   0.9  // 250-500
+//   1.6, //0-40
+//   1.4, //40-80
+//   1.2, //80-100
+//   1.1, //100-120
+//   1.0, //120-140
+//   0.9, //140-160
+//   0.8, //160-180
+//   0.7, //180-200
+//   0.6, //200-300
+//   0.4  //300+
 // ];
+
+const BAND_W = [
+  1.2, // 0-80
+  1.1, // 80-160
+  1.0, // 160-250
+  0.9  // 250-500
+];
 
 function makeZeroBandMap(){
   const out = {};
@@ -183,7 +183,7 @@ function buildBandRows(containerId, prefixBar, prefixTxt, fillClass){
 
 window.addEventListener('DOMContentLoaded', () => {
   buildBandRows('bandNowA',  'barA',   'txtA',   'bandFillA');
-  buildBandRows('bandNowM',  'barM',   'txtM',   'bandFillM');
+//  buildBandRows('bandNowM',  'barM',   'txtM',   'bandFillM');
 
   buildBandRows('bandRecA_A','rbarA',  'rtxtA',  'bandFillA');
   buildBandRows('bandRecA_M','rbarM',  'rtxtM',  'bandFillM');
@@ -283,30 +283,47 @@ function emaFluxBand(target, src, alpha = 0.25){
   return target;
 }
 
-
 function updateBandBars(){
-  if (!latestBandA || !latestBandM) return;
+  if (!latestBandA) return;
 
   const aNorm = normalizeBandMap(latestBandA.smooth);
-  const mNorm = normalizeBandMap(latestBandM.smooth);
 
   for (const b of BANDS) {
     const k = b.key;
-
     const aRatio = Math.max(0, Math.min(1, Number(aNorm[k]) || 0));
-    const mRatio = Math.max(0, Math.min(1, Number(mNorm[k]) || 0));
 
     const aEl = document.getElementById(`barA_${k}`);
-    const mEl = document.getElementById(`barM_${k}`);
     const aTx = document.getElementById(`txtA_${k}`);
-    const mTx = document.getElementById(`txtM_${k}`);
 
     if (aEl) aEl.style.width = `${(aRatio * 100).toFixed(1)}%`;
-    if (mEl) mEl.style.width = `${(mRatio * 100).toFixed(1)}%`;
     if (aTx) aTx.textContent = `${(aRatio * 100).toFixed(1)}%`;
-    if (mTx) mTx.textContent = `${(mRatio * 100).toFixed(1)}%`;
   }
 }
+
+// function updateBandBars(){
+
+//   if (!latestBandA || !latestBandM) return;
+
+//   const aNorm = normalizeBandMap(latestBandA.smooth);
+//   const mNorm = normalizeBandMap(latestBandM.smooth);
+
+//   for (const b of BANDS) {
+//     const k = b.key;
+
+//     const aRatio = Math.max(0, Math.min(1, Number(aNorm[k]) || 0));
+//     const mRatio = Math.max(0, Math.min(1, Number(mNorm[k]) || 0));
+
+//     const aEl = document.getElementById(`barA_${k}`);
+//     const mEl = document.getElementById(`barM_${k}`);
+//     const aTx = document.getElementById(`txtA_${k}`);
+//     const mTx = document.getElementById(`txtM_${k}`);
+
+//     if (aEl) aEl.style.width = `${(aRatio * 100).toFixed(1)}%`;
+//     if (mEl) mEl.style.width = `${(mRatio * 100).toFixed(1)}%`;
+//     if (aTx) aTx.textContent = `${(aRatio * 100).toFixed(1)}%`;
+//     if (mTx) mTx.textContent = `${(mRatio * 100).toFixed(1)}%`;
+//   }
+// }
 
 
 function updateNowBandFluxBars(){
