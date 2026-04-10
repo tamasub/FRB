@@ -38,6 +38,9 @@ data/exports/tmp/
 *.wav
 *.mp4
 *.zip
+*ネタ*.md
+*Title*.md
+
 
 # ======
 mymemo.md
