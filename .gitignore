@@ -38,11 +38,13 @@ data/exports/tmp/
 *.wav
 *.mp4
 *.zip
-*ネタ*.md
-*Title*.md
+
 
 
 # ======
+
 mymemo.md
 README_V0_mermaid.md
-
+./BlogStory
+*ネタ*.md
+*Title*.md
