@@ -928,7 +928,7 @@ if(type === 'M'){
 
 
     drawBandTimeline();
-    drawBandFluxTimeline();
+    //drawBandFluxTimeline();
     drawFluxTimeSeries();
     drawPeakTimeline();
     drawStateTimeline();
@@ -4164,6 +4164,7 @@ function calcRecentMeanDensity(series, sec = 2.0){
   return n ? (sum / n) : 0;
 }
 
+
 function drawBandTimeline(){
   if (!tsBandCanvas || !gTB) return;
 
@@ -4176,7 +4177,7 @@ function drawBandTimeline(){
     ? selectedFrozen
     : tsBuf;
 
-  const ml = 58, mr = 58, mt = 12, mb = 20;
+  const ml = 58, mr = 58, mt = 18, mb = 28;
   const pw = W - ml - mr;
   const ph = H - mt - mb;
 
@@ -4206,10 +4207,13 @@ function drawBandTimeline(){
   const nowSec = seriesSrc[seriesSrc.length - 1].t;
   const winSec = getTimeWindowSec();
 
-  let viewStart, viewEnd;
+  let viewStart = 0;
+  let viewEnd = winSec;
+
   if (!timeLogFollowLatest && isFinite(timeLogCenterSec)) {
     viewStart = Math.max(0, timeLogCenterSec - winSec / 2);
     viewEnd = viewStart + winSec;
+
     if (viewEnd > nowSec && nowSec > winSec) {
       viewEnd = nowSec;
       viewStart = Math.max(0, viewEnd - winSec);
@@ -4226,85 +4230,64 @@ function drawBandTimeline(){
     return chartLeft + ((t - viewStart) / Math.max(1e-9, (viewEnd - viewStart))) * pw;
   }
 
-  // 各帯域の view 内最大
-  const bandMax = {};
-  for (const b of BANDS) bandMax[b.key] = 1e-9;
-
+  // 描画用にだけ全band共通で 0-100 正規化
+  let globalMax = 1e-9;
   for (const p of visible) {
     const bandA = p.bandA || {};
     for (const b of BANDS) {
       const v = Number(bandA[b.key]) || 0;
-      if (v > bandMax[b.key]) bandMax[b.key] = v;
+      if (v > globalMax) globalMax = v;
     }
   }
 
-  const colors = ['#1565c0', '#1e88e5', '#43a047', '#fb8c00'];
-  const laneGap = 6;
-  const laneH = (ph - laneGap * (BANDS.length - 1)) / BANDS.length;
-
-  function laneTop(i){
-    return chartTop + i * (laneH + laneGap);
+  function toPlot100(raw){
+    return (Math.max(0, Number(raw) || 0) / globalMax) * 100.0;
   }
 
-  function laneBottom(i){
-    return laneTop(i) + laneH;
+  function yMap(v){
+    const vv = Math.max(0, Math.min(100, Number(v) || 0));
+    return chartBottom - (vv / 100.0) * ph;
   }
 
-  function yMapLane(v, laneIdx){
-    const vv = Math.max(0, Math.min(1, v || 0));
-    return laneBottom(laneIdx) - vv * laneH;
-  }
-
-  // レーン背景とラベル
-  gTB.font = '10px sans-serif';
-  gTB.textAlign = 'right';
-  gTB.textBaseline = 'middle';
-
-  BANDS.forEach((band, idx) => {
-    const y0 = laneTop(idx);
-    const y1 = laneBottom(idx);
-
-    gTB.strokeStyle = '#ececec';
-    gTB.lineWidth = 1;
+  // 横グリッド
+  gTB.strokeStyle = '#ececec';
+  gTB.lineWidth = 1;
+  for (let i = 0; i <= 5; i++) {
+    const y = chartTop + ph * i / 5;
     gTB.beginPath();
-    gTB.moveTo(chartLeft, y0);
-    gTB.lineTo(chartRight, y0);
+    gTB.moveTo(chartLeft, y);
+    gTB.lineTo(chartRight, y);
     gTB.stroke();
 
-    gTB.beginPath();
-    gTB.moveTo(chartLeft, y1);
-    gTB.lineTo(chartRight, y1);
-    gTB.stroke();
-
+    const v = 100 - (100 * i / 5);
     gTB.fillStyle = '#666';
-    gTB.fillText(band.label, chartLeft - 8, (y0 + y1) / 2);
-  });
+    gTB.font = '11px sans-serif';
+    gTB.textAlign = 'right';
+    gTB.textBaseline = 'middle';
+    gTB.fillText(String(Math.round(v)), chartLeft - 8, y);
+  }
 
-  // 各帯域を別レーンで描画
-  BANDS.forEach((band, idx) => {
-    gTB.strokeStyle = colors[idx % colors.length];
+  const bandColors = {
+    b0: '#1565c0',
+    b1: '#4fc3f7',
+    b2: '#43a047',
+    b3: '#fb8c00',
+    b4: '#8e24aa',
+    b5: '#e53935',
+  };
+
+  for (const band of BANDS) {
+    gTB.save();
+    gTB.strokeStyle = bandColors[band.key] || '#333';
     gTB.lineWidth = 2;
     gTB.beginPath();
 
     let started = false;
     for (const p of visible) {
       const raw = Number(p.bandA?.[band.key]) || 0;
-
-      let globalMax = 1e-9;
-
-      for (const p of visible) {
-        const bandA = p.bandA || {};
-        for (const b of BANDS) {
-          const v = Number(bandA[b.key]) || 0;
-          if (v > globalMax) globalMax = v;
-        }
-      }
-
-      const scaleMax = globalMax * 1.02;
-      const ratio = Math.pow(raw / scaleMax, 0.7);
-
+      const plotVal = toPlot100(raw);
       const x = xMap(p.t);
-      const y = yMapLane(ratio, idx);
+      const y = yMap(plotVal);
 
       if (!started) {
         gTB.moveTo(x, y);
@@ -4313,16 +4296,49 @@ function drawBandTimeline(){
         gTB.lineTo(x, y);
       }
     }
-    if (started) gTB.stroke();
-  });
 
+    if (started) gTB.stroke();
+    gTB.restore();
+  }
+
+  // TOUCH
+  for (const s of touchShots) {
+    if (s.t < viewStart || s.t > viewEnd) continue;
+    const x = xMap(s.t);
+    drawTouchMarker(gTB, x, chartTop, chartBottom, s);
+  }
+
+  // 凡例
+  const legend = [
+    ['b0', '0-80'],
+    ['b1', '80-160'],
+    ['b2', '160-250'],
+    ['b3', '250-350'],
+    ['b4', '350-450'],
+    ['b5', '450-500'],
+  ];
+
+  let lx = chartLeft + 8;
+  const ly = chartTop + 8;
+
+  gTB.font = '12px sans-serif';
+  gTB.textAlign = 'left';
+  gTB.textBaseline = 'top';
+
+  for (const [key, label] of legend) {
+    gTB.fillStyle = bandColors[key];
+    gTB.fillRect(lx, ly + 4, 12, 3);
+    gTB.fillStyle = '#333';
+    gTB.fillText(label, lx + 16, ly);
+    lx += 78;
+  }
+
+  gTB.fillStyle = '#777';
   gTB.font = '11px sans-serif';
   gTB.textAlign = 'left';
   gTB.textBaseline = 'alphabetic';
-  gTB.fillStyle = '#777';
-  gTB.fillText('Band Timeline (A)', chartLeft, H - 4);
+  gTB.fillText('Band Timeline (A / overlay, normalized in view)', chartLeft, H - 6);
 }
-
 
 
 
