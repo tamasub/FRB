@@ -24,9 +24,10 @@ const gM = specM.getContext('2d');
 
 const tsCanvas = document.getElementById('ts');
 const gT = tsCanvas.getContext('2d');
-
 const tsBandCanvas = document.getElementById('tsBand');
 const gTB = tsBandCanvas.getContext('2d');
+const tsFlowCanvas = document.getElementById('tsFlow');
+const gTFlow = tsFlowCanvas.getContext('2d');
 const tsExpCanvas = document.getElementById('tsExp');
 const gTE = tsExpCanvas.getContext('2d');
 const tsFluxCanvas = document.getElementById('tsFlux');
@@ -171,6 +172,9 @@ const BAND_W = [
 //   1.0, // 160-250
 //   0.9  // 250-500
 // ];
+
+const flowHistoryA = [];
+const flowHistoryM = [];
 
 let BAND_TIMELINE_FIXED_MAX = 80000.0;
 
@@ -946,6 +950,7 @@ if(type === 'M'){
     //drawBandFluxTimeline();
     drawFluxTimeSeries();
     drawPeakTimeline();
+    drawFrequencyFlow();
     drawStateTimeline();
     drawTimeLog();
     //updateNowBandFluxBars();
@@ -1008,6 +1013,7 @@ function fitAll(){
   fitCanvasEl(tsBandFluxCanvas, 300, 200);
   fitCanvasEl(tsFluxCanvas);
   fitCanvasEl(tsPeakCanvas);
+  fitCanvasEl(tsFlowCanvas, 300, 140);
   fitCanvasEl(tsStateCanvas);
   
   gA.clearRect(0,0,specA.width,specA.height);
@@ -1018,6 +1024,7 @@ function fitAll(){
   gTBF.clearRect(0,0,tsBandFluxCanvas.width,tsBandFluxCanvas.height);
   gTF.clearRect(0,0,tsFluxCanvas.width,tsFluxCanvas.height);
   gTP.clearRect(0,0,tsPeakCanvas.width,tsPeakCanvas.height);
+  gTFlow.clearRect(0,0,tsFlowCanvas.width,tsFlowCanvas.height);
   gTS.clearRect(0,0,tsStateCanvas.width,tsStateCanvas.height);
 }
 
@@ -3334,6 +3341,7 @@ function clearSelectedShot(){
   drawExperienceWave();
   drawFluxTimeSeries();
   drawPeakTimeline();
+  drawFrequencyFlow();
   drawStateTimeline();
   drawTimeLog();
 }
@@ -3505,6 +3513,7 @@ function loadSessionFromObject(data){
   if (typeof drawTimeLog === 'function') drawTimeLog();
   if (typeof drawFluxTimeSeries === 'function') drawFluxTimeSeries();
   if (typeof drawPeakTimeline === 'function') drawPeakTimeline();
+  if (typeof drawFrequencyFlow === 'function') drawFrequencyFlow();
   if (typeof drawStateTimeline === 'function') drawStateTimeline();
   if (typeof updateBandBars === 'function') updateBandBars();
 }
@@ -3692,6 +3701,7 @@ function resumeLiveMode(){
   drawExperienceWave();
   drawFluxTimeSeries();
   drawPeakTimeline();
+  drawFrequencyFlow();
   drawStateTimeline();
   drawTimeLog();
   requestTouchTableRender();
@@ -4675,6 +4685,206 @@ function drawPeakTimeline(){
       gTP.restore();
     });
   }
+}
+
+
+function drawFrequencyFlow(){
+  if (!tsFlowCanvas || !gTFlow) return;
+
+  const W = tsFlowCanvas.width;
+  const H = tsFlowCanvas.height;
+  gTFlow.clearRect(0, 0, W, H);
+
+  const selectedFrozen = getSelectedFrozenSeries();
+  const seriesSrc = (!timeLogFollowLatest && selectedFrozen)
+    ? selectedFrozen
+    : tsBuf;
+
+  const ml = 58, mr = 58, mt = 18, mb = 24;
+  const pw = W - ml - mr;
+  const ph = H - mt - mb;
+
+  const chartLeft   = ml;
+  const chartRight  = ml + pw;
+  const chartTop    = mt;
+  const chartBottom = mt + ph;
+
+  gTFlow.fillStyle = '#fcfcfc';
+  gTFlow.fillRect(0, 0, W, H);
+
+  gTFlow.strokeStyle = '#d4d4d4';
+  gTFlow.lineWidth = 1;
+  gTFlow.beginPath();
+  gTFlow.moveTo(chartLeft, chartTop);
+  gTFlow.lineTo(chartLeft, chartBottom);
+  gTFlow.lineTo(chartRight, chartBottom);
+  gTFlow.stroke();
+
+  if (!seriesSrc || seriesSrc.length < 2) {
+    gTFlow.fillStyle = '#999';
+    gTFlow.font = '12px sans-serif';
+    gTFlow.fillText('no frequency flow yet', chartLeft + 10, chartTop + 18);
+    return;
+  }
+
+  const nowSec = seriesSrc[seriesSrc.length - 1].t;
+  const winSec = getTimeWindowSec();
+
+  let viewStart = 0;
+  let viewEnd = winSec;
+
+  if (!timeLogFollowLatest && isFinite(timeLogCenterSec)) {
+    viewStart = Math.max(0, timeLogCenterSec - winSec / 2);
+    viewEnd = viewStart + winSec;
+
+    if (viewEnd > nowSec && nowSec > winSec) {
+      viewEnd = nowSec;
+      viewStart = Math.max(0, viewEnd - winSec);
+    }
+  } else {
+    viewStart = Math.max(0, nowSec - winSec);
+    viewEnd = Math.max(winSec, nowSec);
+  }
+
+  const hzMin = Math.max(0, viewMinHz || 0);
+  const hzMax = Math.max(hzMin + 1, viewMaxHz || 600);
+
+  function xMap(t){
+    return chartLeft + ((t - viewStart) / Math.max(1e-9, (viewEnd - viewStart))) * pw;
+  }
+
+  function yMapHz(hz){
+    const v = Math.max(hzMin, Math.min(hzMax, Number(hz) || 0));
+    return chartBottom - ((v - hzMin) / Math.max(1e-9, (hzMax - hzMin))) * ph;
+  }
+
+  const visible = seriesSrc.filter(p => p.t >= viewStart && p.t <= viewEnd);
+  if (visible.length < 2) return;
+
+  // 横グリッド
+  gTFlow.strokeStyle = '#ececec';
+  gTFlow.lineWidth = 1;
+  for(let i = 0; i <= 4; i++){
+    const y = chartTop + ph * i / 4;
+    gTFlow.beginPath();
+    gTFlow.moveTo(chartLeft, y);
+    gTFlow.lineTo(chartRight, y);
+    gTFlow.stroke();
+
+    const hzVal = hzMax - ((hzMax - hzMin) * i / 4);
+    gTFlow.fillStyle = '#666';
+    gTFlow.font = '11px sans-serif';
+    gTFlow.textAlign = 'right';
+    gTFlow.textBaseline = 'middle';
+    gTFlow.fillText(`${Math.round(hzVal)}`, chartLeft - 8, y);
+  }
+
+  // 薄い点を打つ
+  function drawDots(peaksKey, color){
+    for (const p of visible) {
+      const x = xMap(p.t);
+      const peaks = Array.isArray(p[peaksKey]) ? p[peaksKey] : [];
+
+      peaks.slice(0, 3).forEach((pk, i) => {
+        const hz = Number(pk?.hz) || 0;
+        if (hz < hzMin || hz > hzMax) return;
+
+        const y = yMapHz(hz);
+
+        gTFlow.save();
+        gTFlow.fillStyle = color;
+        gTFlow.globalAlpha = (i === 0) ? 0.30 : (i === 1 ? 0.22 : 0.16);
+        gTFlow.beginPath();
+        gTFlow.arc(x, y, (i === 0) ? 2.4 : 1.8, 0, Math.PI * 2);
+        gTFlow.fill();
+        gTFlow.restore();
+      });
+    }
+  }
+
+  drawDots('topPeaksA', '#1e88e5');
+  drawDots('topPeaksM', '#ff6f00');
+
+  // 近いピークを線でつなぐ
+  function drawFlowLines(peaksKey, color){
+    const FLOW_LINK_HZ = 25;
+    const DRIFT_HZ_MIN = 8;
+
+    gTFlow.save();
+    gTFlow.strokeStyle = color;
+    gTFlow.lineWidth = 2.5;
+    gTFlow.globalAlpha = 0.9;
+
+
+
+    for (let i = 1; i < visible.length; i++) {
+      const prev = visible[i - 1];
+      const cur  = visible[i];
+
+      const prevPeaks = (Array.isArray(prev[peaksKey]) ? prev[peaksKey] : []).slice(0, 3);
+      const curPeaks  = (Array.isArray(cur[peaksKey]) ? cur[peaksKey] : []).slice(0, 3);
+
+      for (const pp of prevPeaks) {
+        const prevHz = Number(pp?.hz) || 0;
+        if (prevHz < hzMin || prevHz > hzMax) continue;
+
+        let best = null;
+        let bestDiff = Infinity;
+
+        for (const cp of curPeaks) {
+          const curHz = Number(cp?.hz) || 0;
+          if (curHz < hzMin || curHz > hzMax) continue;
+
+          const d = Math.abs(curHz - prevHz);
+          if (d <= FLOW_LINK_HZ && d < bestDiff) {
+            best = cp;
+            bestDiff = d;
+          }
+        }
+
+        if (best) {
+          const x1 = xMap(prev.t);
+          const y1 = yMapHz(prevHz);
+          const x2 = xMap(cur.t);
+          const y2 = yMapHz(Number(best.hz) || 0);
+
+          gTFlow.beginPath();
+          gTFlow.moveTo(x1, y1);
+          gTFlow.lineTo(x2, y2);
+
+          const driftHz = Math.abs((Number(best.hz) || 0) - prevHz);
+
+          if (driftHz < DRIFT_HZ_MIN) {
+            gTFlow.strokeStyle = 'rgba(160,160,160,0.45)';
+            gTFlow.lineWidth = 1.4;
+          } else {
+            gTFlow.strokeStyle = color;
+            gTFlow.lineWidth = 2.5;
+          }
+
+          gTFlow.stroke();
+        }
+      }
+    }
+
+    gTFlow.restore();
+  }
+
+  drawFlowLines('topPeaksA', '#1e88e5');
+  drawFlowLines('topPeaksM', '#ff6f00');
+
+  // TOUCH
+  for (const s of touchShots) {
+    if (s.t < viewStart || s.t > viewEnd) continue;
+    const x = xMap(s.t);
+    drawTouchMarker(gTFlow, x, chartTop, chartBottom, s);
+  }
+
+  gTFlow.fillStyle = '#777';
+  gTFlow.font = '11px sans-serif';
+  gTFlow.textAlign = 'left';
+  gTFlow.textBaseline = 'alphabetic';
+  gTFlow.fillText('Frequency Flow (Peak1-3 linked by proximity)', chartLeft, H - 4);
 }
 
 function drawBandFluxTimeline(){
