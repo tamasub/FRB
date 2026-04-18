@@ -169,7 +169,9 @@ const BAND_W = [
 //   0.9  // 250-500
 // ];
 
-
+//const BAND_TIMELINE_FIXED_MAX = 80000.0;
+const BAND_TIMELINE_FIXED_MAX = 200000.0;
+const bandScaleModeEl = document.getElementById('bandScaleMode');
 
 function makeZeroBandMap(){
   const out = {};
@@ -504,6 +506,13 @@ let lastPeakMoveM = 0;
 let fishA_valEl, fishB_valEl, fishA_barEl, fishB_barEl, fishWinnerEl, fishDeltaEl;
 
 
+if (bandScaleModeEl) {
+  bandScaleModeEl.addEventListener('change', () => {
+    BAND_TIMELINE_FIXED_MAX = Number(bandScaleModeEl.value) || 80000;
+    drawBandTimeline();
+  });
+}
+
 window.addEventListener('error', (e)=>{
   //showWarn('JS Error: ' + (e.message || e.type));
 });
@@ -533,6 +542,7 @@ document.getElementById('apply').onclick = () => {
   if (latestM) list.push(latestM);
   drawSpectra(list);
 };
+
 
 
 const recBtn = document.getElementById('recBtn');
@@ -1988,6 +1998,7 @@ function drawTimeSeries(){
   const nowSec = (tsBuf && tsBuf.length) ? tsBuf[tsBuf.length - 1].t : 0;
   const timeWindowEl = document.getElementById('timeWindow');
   const winSec = Number(timeWindowEl?.value || 30);
+
 
   const viewStart = Math.max(0, nowSec - winSec);
   const viewEnd   = Math.max(winSec, nowSec);
@@ -4230,15 +4241,13 @@ function drawBandTimeline(){
     return chartLeft + ((t - viewStart) / Math.max(1e-9, (viewEnd - viewStart))) * pw;
   }
 
-  // 描画用にだけ全band共通で 0-100 正規化
-  let globalMax = 1e-9;
-  for (const p of visible) {
-    const bandA = p.bandA || {};
-    for (const b of BANDS) {
-      const v = Number(bandA[b.key]) || 0;
-      if (v > globalMax) globalMax = v;
-    }
-  }
+  // 固定スケール
+  const globalMax = Math.max(1e-9, BAND_TIMELINE_FIXED_MAX);
+
+  // for (const p of visible) {
+  //   console.log('bandA raw =', p.bandA);
+  //   break;
+  //  }
 
   function toPlot100(raw){
     return (Math.max(0, Number(raw) || 0) / globalMax) * 100.0;

@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "FRB_Blog/やることメモ.md",
+                "file": "mymemo.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "やることメモ"
+              "title": "mymemo"
             }
           }
         ]
@@ -180,7 +180,7 @@
       "bases:新規ベースを作成": false
     }
   },
-  "active": "d3aa2555b2f89d29",
+  "active": "69f6ac229016834c",
   "lastOpenFiles": [
     "FRB_Blog/やることメモ.md",
     "FRB_Blog/FRB_Lab_Notes_Qiita.md",
