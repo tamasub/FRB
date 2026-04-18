@@ -27,7 +27,8 @@ const gT = tsCanvas.getContext('2d');
 
 const tsBandCanvas = document.getElementById('tsBand');
 const gTB = tsBandCanvas.getContext('2d');
-
+const tsExpCanvas = document.getElementById('tsExp');
+const gTE = tsExpCanvas.getContext('2d');
 const tsFluxCanvas = document.getElementById('tsFlux');
 const gTF = tsFluxCanvas.getContext('2d');
 const tsPeakCanvas = document.getElementById('tsPeak');
@@ -36,6 +37,8 @@ const tsStateCanvas = document.getElementById('tsState');
 const gTS = tsStateCanvas.getContext('2d');
 const tsBandFluxCanvas = document.getElementById('tsBandFlux');
 const gTBF = tsBandFluxCanvas.getContext('2d');
+
+
 
 
 const scrEl = document.getElementById('scr');
@@ -169,9 +172,10 @@ const BAND_W = [
 //   0.9  // 250-500
 // ];
 
-//const BAND_TIMELINE_FIXED_MAX = 80000.0;
-const BAND_TIMELINE_FIXED_MAX = 200000.0;
+let BAND_TIMELINE_FIXED_MAX = 80000.0;
+
 const bandScaleModeEl = document.getElementById('bandScaleMode');
+
 
 function makeZeroBandMap(){
   const out = {};
@@ -938,6 +942,7 @@ if(type === 'M'){
 
 
     drawBandTimeline();
+    drawExperienceWave();
     //drawBandFluxTimeline();
     drawFluxTimeSeries();
     drawPeakTimeline();
@@ -999,6 +1004,7 @@ function fitAll(){
   fitCanvasEl(specM);
   fitCanvasEl(tsCanvas);
   fitCanvasEl(tsBandCanvas, 300, 200);
+  fitCanvasEl(tsExpCanvas, 300, 160);
   fitCanvasEl(tsBandFluxCanvas, 300, 200);
   fitCanvasEl(tsFluxCanvas);
   fitCanvasEl(tsPeakCanvas);
@@ -1008,6 +1014,7 @@ function fitAll(){
   gM.clearRect(0,0,specM.width,specM.height);
   gT.clearRect(0,0,tsCanvas.width,tsCanvas.height);
   gTB.clearRect(0,0,tsBandCanvas.width,tsBandCanvas.height);  // 追加
+  gTE.clearRect(0,0,tsExpCanvas.width,tsExpCanvas.height);
   gTBF.clearRect(0,0,tsBandFluxCanvas.width,tsBandFluxCanvas.height);
   gTF.clearRect(0,0,tsFluxCanvas.width,tsFluxCanvas.height);
   gTP.clearRect(0,0,tsPeakCanvas.width,tsPeakCanvas.height);
@@ -3324,6 +3331,7 @@ function clearSelectedShot(){
   followLatestTimeLog();
   renderTouchTable();
   drawTimeSeries();
+  drawExperienceWave();
   drawFluxTimeSeries();
   drawPeakTimeline();
   drawStateTimeline();
@@ -3493,6 +3501,7 @@ function loadSessionFromObject(data){
 
   if (typeof renderTouchTable === 'function') renderTouchTable();
   if (typeof drawTimeSeries === 'function') drawTimeSeries();
+  if (typeof drawExperienceWave === 'function') drawExperienceWave();
   if (typeof drawTimeLog === 'function') drawTimeLog();
   if (typeof drawFluxTimeSeries === 'function') drawFluxTimeSeries();
   if (typeof drawPeakTimeline === 'function') drawPeakTimeline();
@@ -3680,6 +3689,7 @@ function resumeLiveMode(){
   focusedTimeSeries = null;
   followLatestTimeLog();
   drawTimeSeries();
+  drawExperienceWave();
   drawFluxTimeSeries();
   drawPeakTimeline();
   drawStateTimeline();
@@ -4175,6 +4185,39 @@ function calcRecentMeanDensity(series, sec = 2.0){
   return n ? (sum / n) : 0;
 }
 
+function calcExperienceComponents(bandA){
+  const b0 = Number(bandA?.b0) || 0;
+  const b1 = Number(bandA?.b1) || 0;
+  const b2 = Number(bandA?.b2) || 0;
+  const b3 = Number(bandA?.b3) || 0;
+  const b4 = Number(bandA?.b4) || 0;
+  const b5 = Number(bandA?.b5) || 0;
+
+  const low  = 1.00 * b0 + 0.70 * b1;
+  const mid  = 0.50 * b2 + 0.35 * b3;
+  const high = 0.25 * b4 + 0.20 * b5;
+
+  return {
+    low,
+    mid,
+    high,
+    env: low + mid,
+    micro: high
+  };
+}
+
+function calcExperienceNormMax(series){
+  let envMax = 1e-9;
+  let microMax = 1e-9;
+
+  for (const p of series) {
+    const c = calcExperienceComponents(p.bandA || {});
+    if (c.env > envMax) envMax = c.env;
+    if (c.micro > microMax) microMax = c.micro;
+  }
+
+  return { envMax, microMax };
+}
 
 function drawBandTimeline(){
   if (!tsBandCanvas || !gTB) return;
@@ -4350,6 +4393,160 @@ function drawBandTimeline(){
 }
 
 
+function drawExperienceWave(){
+  if (!tsExpCanvas || !gTE) return;
+
+  const W = tsExpCanvas.width;
+  const H = tsExpCanvas.height;
+  gTE.clearRect(0, 0, W, H);
+
+  const selectedFrozen = getSelectedFrozenSeries();
+  const seriesSrc = (!timeLogFollowLatest && selectedFrozen)
+    ? selectedFrozen
+    : tsBuf;
+
+  const ml = 58, mr = 24, mt = 16, mb = 24;
+  const pw = W - ml - mr;
+  const ph = H - mt - mb;
+
+  const chartLeft   = ml;
+  const chartRight  = ml + pw;
+  const chartTop    = mt;
+  const chartBottom = mt + ph;
+  const centerY     = chartTop + ph * 0.55;
+
+  gTE.fillStyle = '#fcfcfc';
+  gTE.fillRect(0, 0, W, H);
+
+  gTE.strokeStyle = '#d4d4d4';
+  gTE.lineWidth = 1;
+  gTE.beginPath();
+  gTE.moveTo(chartLeft, chartTop);
+  gTE.lineTo(chartLeft, chartBottom);
+  gTE.lineTo(chartRight, chartBottom);
+  gTE.stroke();
+
+  if (!seriesSrc || seriesSrc.length < 2) {
+    gTE.fillStyle = '#999';
+    gTE.font = '12px sans-serif';
+    gTE.fillText('no experience wave yet', chartLeft + 10, chartTop + 18);
+    return;
+  }
+
+  const nowSec = seriesSrc[seriesSrc.length - 1].t;
+  const winSec = getTimeWindowSec();
+
+  let viewStart = 0;
+  let viewEnd = winSec;
+
+  if (!timeLogFollowLatest && isFinite(timeLogCenterSec)) {
+    viewStart = Math.max(0, timeLogCenterSec - winSec / 2);
+    viewEnd = viewStart + winSec;
+
+    if (viewEnd > nowSec && nowSec > winSec) {
+      viewEnd = nowSec;
+      viewStart = Math.max(0, viewEnd - winSec);
+    }
+  } else {
+    viewStart = Math.max(0, nowSec - winSec);
+    viewEnd = Math.max(winSec, nowSec);
+  }
+
+  const visible = seriesSrc.filter(p => p.t >= viewStart && p.t <= viewEnd);
+  if (visible.length < 2) return;
+
+  function xMap(t){
+    return chartLeft + ((t - viewStart) / Math.max(1e-9, (viewEnd - viewStart))) * pw;
+  }
+
+  const { envMax, microMax } = calcExperienceNormMax(visible);
+
+  // 中央線
+  gTE.strokeStyle = '#ececec';
+  gTE.lineWidth = 1;
+  gTE.beginPath();
+  gTE.moveTo(chartLeft, centerY);
+  gTE.lineTo(chartRight, centerY);
+  gTE.stroke();
+
+  // 包絡線（上側）
+  gTE.save();
+  gTE.strokeStyle = '#90caf9';
+  gTE.lineWidth = 2;
+  gTE.beginPath();
+
+  let startedEnv = false;
+  for (const p of visible) {
+    const c = calcExperienceComponents(p.bandA || {});
+    const env = c.env / Math.max(1e-9, envMax);
+    const x = xMap(p.t);
+    const y = centerY - env * (ph * 0.42);
+
+    if (!startedEnv) {
+      gTE.moveTo(x, y);
+      startedEnv = true;
+    } else {
+      gTE.lineTo(x, y);
+    }
+  }
+  if (startedEnv) gTE.stroke();
+  gTE.restore();
+
+  // 合成波
+  gTE.save();
+  gTE.strokeStyle = '#1e88e5';
+  gTE.lineWidth = 2;
+  gTE.beginPath();
+
+  let startedWave = false;
+  let idx = 0;
+  const phaseStep = 0.9;
+
+  for (const p of visible) {
+    const c = calcExperienceComponents(p.bandA || {});
+
+    const envN = c.env / Math.max(1e-9, envMax);
+    const microN = c.micro / Math.max(1e-9, microMax);
+
+    const slow = envN * (ph * 0.30);
+    const fast = microN * (ph * 0.12);
+
+    const phase = idx * phaseStep;
+
+    const y =
+      centerY
+      - slow
+      + fast * Math.sin(phase * 2.8);
+
+    const x = xMap(p.t);
+
+    if (!startedWave) {
+      gTE.moveTo(x, y);
+      startedWave = true;
+    } else {
+      gTE.lineTo(x, y);
+    }
+
+    idx++;
+  }
+
+  if (startedWave) gTE.stroke();
+  gTE.restore();
+
+  // TOUCH
+  for (const s of touchShots) {
+    if (s.t < viewStart || s.t > viewEnd) continue;
+    const x = xMap(s.t);
+    drawTouchMarker(gTE, x, chartTop, chartBottom, s);
+  }
+
+  // ラベル
+  gTE.fillStyle = '#666';
+  gTE.font = '11px sans-serif';
+  gTE.textAlign = 'left';
+  gTE.textBaseline = 'alphabetic';
+  gTE.fillText('Experience Wave (beta / weighted from BandA)', chartLeft, H - 6);
+}
 
 function drawPeakTimeline(){
   if (!tsPeakCanvas || !gTP) return;
