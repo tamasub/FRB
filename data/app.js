@@ -30,6 +30,9 @@ const gTB = tsBandCanvas.getContext('2d');
 const tsBridgeCanvas = document.getElementById('tsBridge');
 const gTSter = tsBridgeCanvas ? tsBridgeCanvas.getContext('2d') : null;
 
+const tsBridgeZoomCanvas = document.getElementById('tsBridgeZoom');
+const gTSterZoom = tsBridgeZoomCanvas ? tsBridgeZoomCanvas.getContext('2d') : null;
+
 const tsBandHeatCanvas = document.getElementById('tsBandHeatCanvas');
 const gTBH = tsBandHeatCanvas?.getContext('2d');
 
@@ -1000,6 +1003,7 @@ if(type === 'M'){
 
     drawBandTimeline();
     drawStairTimeline();
+    drawStairTimelineZoom();
     drawBandHeatmap();
     drawTingleMotion();
     drawExperienceWave();
@@ -1066,6 +1070,7 @@ function fitAll(){
   fitCanvasEl(tsCanvas);
   fitCanvasEl(tsBandCanvas, 300, 200);
   fitCanvasEl(tsBridgeCanvas, 300, 140);
+  fitCanvasEl(tsBridgeZoomCanvas, 300, 140);
   fitCanvasEl(tsBandHeatCanvas, 900, 140);
   fitCanvasEl(tsExpCanvas, 300, 160);
   fitCanvasEl(tsBandFluxCanvas, 300, 200);
@@ -1091,6 +1096,9 @@ function fitAll(){
   if (tsTingleCanvas) fitCanvasEl(tsTingleCanvas, 300, 120);
   if (gTTingle && tsTingleCanvas) {
     gTTingle.clearRect(0, 0, tsTingleCanvas.width, tsTingleCanvas.height);
+  }
+  if (gTSterZoom && tsBridgeZoomCanvas) {
+    gTSterZoom.clearRect(0, 0, tsBridgeZoomCanvas.width, tsBridgeZoomCanvas.height);
   }
 
 }
@@ -3612,6 +3620,9 @@ function loadSessionFromObject(data){
 
   if (typeof renderTouchTable === 'function') renderTouchTable();
   if (typeof drawTimeSeries === 'function') drawTimeSeries();
+  if (typeof drawStairTimeline === 'function') drawStairTimeline();
+  if (typeof drawStairTimelineZoom === 'function') drawStairTimelineZoom();
+
   if (typeof drawExperienceWave === 'function') drawExperienceWave();
   if (typeof drawTimeLog === 'function') drawTimeLog();
   if (typeof drawFluxTimeSeries === 'function') drawFluxTimeSeries();
@@ -3786,8 +3797,15 @@ function renderTouchTable(){
         const sel = getSelectedShot();
         if (sel) timeLogCenterSec = sel.t;
 
-        renderTouchTable();
-        drawTimeLog();
+          renderTouchTable();
+          drawTimeLog();
+          drawStairTimeline();
+          drawStairTimelineZoom();
+          drawFluxTimeSeries();
+          drawPeakTimeline();
+          drawFrequencyFlow();
+          drawStateTimeline();
+          drawExperienceWave();
       });
     });
   } catch (err) {
@@ -3801,6 +3819,9 @@ function resumeLiveMode(){
   focusedTimeSeries = null;
   followLatestTimeLog();
   drawTimeSeries();
+  drawStairTimeline();
+  drawStairTimelineZoom();
+
   drawExperienceWave();
   drawFluxTimeSeries();
   drawPeakTimeline();
@@ -5561,4 +5582,130 @@ function calcBridgeScore(bandA){
 
   // 0〜1 に圧縮（高いほど良い）
   return 1 / (1 + bridgeScore);
+}
+
+function drawStairTimelineZoom(){
+  if (!tsBridgeZoomCanvas || !gTSterZoom) return;
+
+  const W = tsBridgeZoomCanvas.width;
+  const H = tsBridgeZoomCanvas.height;
+  gTSterZoom.clearRect(0, 0, W, H);
+
+  const selectedFrozen = getSelectedFrozenSeries();
+  const seriesSrc = (!timeLogFollowLatest && selectedFrozen)
+    ? selectedFrozen
+    : tsBuf;
+
+  const ml = 58, mr = 24, mt = 18, mb = 24;
+  const pw = W - ml - mr;
+  const ph = H - mt - mb;
+
+  const chartLeft   = ml;
+  const chartRight  = ml + pw;
+  const chartTop    = mt;
+  const chartBottom = mt + ph;
+
+  gTSterZoom.fillStyle = '#fcfcfc';
+  gTSterZoom.fillRect(0, 0, W, H);
+
+  gTSterZoom.strokeStyle = '#d4d4d4';
+  gTSterZoom.lineWidth = 1;
+  gTSterZoom.beginPath();
+  gTSterZoom.moveTo(chartLeft, chartTop);
+  gTSterZoom.lineTo(chartLeft, chartBottom);
+  gTSterZoom.lineTo(chartRight, chartBottom);
+  gTSterZoom.stroke();
+
+  if (!seriesSrc || seriesSrc.length < 2) {
+    gTSterZoom.fillStyle = '#999';
+    gTSterZoom.font = '12px sans-serif';
+    gTSterZoom.fillText('no bridge score zoom yet', chartLeft + 10, chartTop + 18);
+    return;
+  }
+
+  const nowSec = seriesSrc[seriesSrc.length - 1].t;
+  const winSec = getTimeWindowSec();
+
+  let viewStart = 0;
+  let viewEnd = winSec;
+
+  if (!timeLogFollowLatest && isFinite(timeLogCenterSec)) {
+    viewStart = Math.max(0, timeLogCenterSec - winSec / 2);
+    viewEnd = viewStart + winSec;
+
+    if (viewEnd > nowSec && nowSec > winSec) {
+      viewEnd = nowSec;
+      viewStart = Math.max(0, viewEnd - winSec);
+    }
+  } else {
+    viewStart = Math.max(0, nowSec - winSec);
+    viewEnd = Math.max(winSec, nowSec);
+  }
+
+  const visible = seriesSrc.filter(p => p.t >= viewStart && p.t <= viewEnd);
+  if (visible.length < 2) return;
+
+  function xMap(t){
+    return chartLeft + ((t - viewStart) / Math.max(1e-9, (viewEnd - viewStart))) * pw;
+  }
+
+  const BRIDGE_MIN = 0.5;
+  const BRIDGE_MAX = 1.00;
+
+  function yMap(v){
+    const vv = Math.max(BRIDGE_MIN, Math.min(BRIDGE_MAX, Number(v) || 0));
+    return chartBottom - ((vv - BRIDGE_MIN) / (BRIDGE_MAX - BRIDGE_MIN)) * ph;
+  }
+
+  const ticks = [0.50, 0.60, 0.70, 0.80, 0.90, 1.00];
+
+  gTSterZoom.strokeStyle = '#ececec';
+  gTSterZoom.lineWidth = 1;
+  gTSterZoom.font = '11px sans-serif';
+  gTSterZoom.textAlign = 'right';
+  gTSterZoom.textBaseline = 'middle';
+
+  for (const t of ticks) {
+    const y = yMap(t);
+
+    gTSterZoom.beginPath();
+    gTSterZoom.moveTo(chartLeft, y);
+    gTSterZoom.lineTo(chartRight, y);
+    gTSterZoom.stroke();
+
+    gTSterZoom.fillStyle = '#666';
+    gTSterZoom.fillText(t.toFixed(2), chartLeft - 8, y);
+  }
+
+  gTSterZoom.save();
+  gTSterZoom.strokeStyle = '#ad1457';
+  gTSterZoom.lineWidth = 2;
+  gTSterZoom.beginPath();
+
+  let started = false;
+  for (const p of visible) {
+    const x = xMap(p.t);
+    const y = yMap(p.stairError);
+
+    if (!started) {
+      gTSterZoom.moveTo(x, y);
+      started = true;
+    } else {
+      gTSterZoom.lineTo(x, y);
+    }
+  }
+  if (started) gTSterZoom.stroke();
+  gTSterZoom.restore();
+
+  for (const s of touchShots) {
+    if (s.t < viewStart || s.t > viewEnd) continue;
+    const x = xMap(s.t);
+    drawTouchMarker(gTSterZoom, x, chartTop, chartBottom, s);
+  }
+
+  gTSterZoom.fillStyle = '#777';
+  gTSterZoom.font = '11px sans-serif';
+  gTSterZoom.textAlign = 'left';
+  gTSterZoom.textBaseline = 'alphabetic';
+  gTSterZoom.fillText('BridgeScore Zoom (0.75-1.00 / 2nd-wave view)', chartLeft, H - 6);
 }
