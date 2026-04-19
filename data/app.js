@@ -940,7 +940,7 @@ if(type === 'M'){
       peakMoveM: lastPeakMoveM,
       bandA: latestBandA ? { ...latestBandA.smooth } : null,
       bandM: latestBandM ? { ...latestBandM.smooth } : null,
-      stairError: latestBandA ? calcStairError(latestBandA.smooth) : 0,
+      stairError: latestBandA ? calcBridgeScore(latestBandA.smooth) : 0,
       fluxBandA: { ...fluxBandEmaA },
       fluxBandM: { ...fluxBandEmaM },
       tingleMotion: calcTingleMotionFromFluxBand(fluxBandEmaA),
@@ -4319,18 +4319,6 @@ function calcExperienceComponents(bandA){
   };
 }
 
-function calcStairError(bandA){
-  const low  = Number(bandA?.b0) || 0;
-  const mid  = Number(bandA?.b1) || 0;
-  const high = Number(bandA?.b2) || 0;
-
-  const eps = 1e-9;
-
-  const r1 = mid / (low + eps);
-  const r2 = high / (mid + eps);
-
-  return Math.abs(r1 - r2);
-}
 
 function calcExperienceNormMax(series){
   let envMax = 1e-9;
@@ -4554,7 +4542,7 @@ function drawStairTimeline(){
   if (!seriesSrc || seriesSrc.length < 2) {
     gTSter.fillStyle = '#999';
     gTSter.font = '12px sans-serif';
-    gTSter.fillText('no stair error yet', chartLeft + 10, chartTop + 18);
+    gTSter.fillText('no bridge score yet', chartLeft + 10, chartTop + 18);
     return;
   }
 
@@ -4584,34 +4572,33 @@ function drawStairTimeline(){
     return chartLeft + ((t - viewStart) / Math.max(1e-9, (viewEnd - viewStart))) * pw;
   }
 
-  let vmax = 1e-9;
-  for (const p of visible) {
-    const v = Number(p.stairError) || 0;
-    if (v > vmax) vmax = v;
-  }
-  vmax *= 1.10;
+  const BRIDGE_MIN = 0;
+  const BRIDGE_MAX = 1;
 
   function yMap(v){
-    const vv = Math.max(0, Math.min(vmax, Number(v) || 0));
-    return chartBottom - (vv / Math.max(1e-9, vmax)) * ph;
+    const vv = Math.max(BRIDGE_MIN, Math.min(BRIDGE_MAX, Number(v) || 0));
+    return chartBottom - ((vv - BRIDGE_MIN) / (BRIDGE_MAX - BRIDGE_MIN)) * ph;
   }
 
-  // grid
+  // grid + labels
+  const ticks = [0, 0.25, 0.50, 0.75, 1.00];
+
   gTSter.strokeStyle = '#ececec';
   gTSter.lineWidth = 1;
-  for (let i = 0; i <= 4; i++) {
-    const y = chartTop + ph * i / 4;
+  gTSter.font = '11px sans-serif';
+  gTSter.textAlign = 'right';
+  gTSter.textBaseline = 'middle';
+
+  for (const t of ticks) {
+    const y = yMap(t);
+
     gTSter.beginPath();
     gTSter.moveTo(chartLeft, y);
     gTSter.lineTo(chartRight, y);
     gTSter.stroke();
 
-    const val = vmax - (vmax * i / 4);
     gTSter.fillStyle = '#666';
-    gTSter.font = '11px sans-serif';
-    gTSter.textAlign = 'right';
-    gTSter.textBaseline = 'middle';
-    gTSter.fillText(val.toFixed(0), chartLeft - 8, y);
+    gTSter.fillText(t.toFixed(2), chartLeft - 8, y);
   }
 
   // line
@@ -4646,8 +4633,9 @@ function drawStairTimeline(){
   gTSter.font = '11px sans-serif';
   gTSter.textAlign = 'left';
   gTSter.textBaseline = 'alphabetic';
-  gTSter.fillText('BridgeError (smaller = more connected)', chartLeft, H - 6);
+  gTSter.fillText('BridgeScore (0.00-1.00, higher = more connected)', chartLeft, H - 6);
 }
+
 
 
 
@@ -5557,4 +5545,20 @@ function drawTingleMotion(){
   gTTingle.textAlign = 'left';
   gTTingle.textBaseline = 'alphabetic';
   gTTingle.fillText('Tingle Motion (high-band fluctuation)', chartLeft, H - 6);
+}
+
+function calcBridgeScore(bandA){
+  const low  = Number(bandA?.b0) || 0;
+  const mid  = Number(bandA?.b1) || 0;
+  const high = Number(bandA?.b2) || 0;
+
+  const eps = 1e-9;
+
+  const r1 = mid / (low + eps);
+  const r2 = high / (mid + eps);
+
+  const bridgeScore = Math.abs(r1 - r2);
+
+  // 0〜1 に圧縮（高いほど良い）
+  return 1 / (1 + bridgeScore);
 }
