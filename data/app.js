@@ -103,6 +103,15 @@ const MAX_SHOTS = 200;
 let trackA = [];
 let trackM = [];
 
+let mixPeakTrackedA = NaN;
+let mixPeakTrackedM = NaN;
+
+const MIX_TRACK = {
+  jumpPenaltyHz: 0.8,   // score = mag - k * |hz - prev|
+  smoothAlpha: 0.30,    // 表示上の慣性
+  reacquireGapHz: 80,   // これ以上離れたら再捕捉気味にする
+};
+
 let touchTableEl;
 
 let lastTouchAcceptT = -Infinity;
@@ -177,6 +186,13 @@ const flowHistoryA = [];
 const flowHistoryM = [];
 
 let BAND_TIMELINE_FIXED_MAX = 80000.0;
+
+// const EXP_ENV_FIXED_MAX   = 150000;
+// const EXP_MICRO_FIXED_MAX = 30000;
+
+const EXP_ENV_FIXED_MAX   = 80000;
+const EXP_MICRO_FIXED_MAX = 15000;
+
 
 const bandScaleModeEl = document.getElementById('bandScaleMode');
 
@@ -539,6 +555,8 @@ document.getElementById('apply').onclick = () => {
   // 帯域変更時はピークトラックを捨てる
   trackA = [];
   trackM = [];
+  mixPeakTrackedA = NaN;
+  mixPeakTrackedM = NaN;
 
   // ついでに直近ピーク移動の基準もリセットしておくと自然
   prevPeakAForClass = null;
@@ -833,36 +851,53 @@ if(type === 'M'){
   }
 
   const peakHz = (pBin * df);
-  const topPeaks = findTopPeaks(spec, df, startBin, maxBinView, 3);
+  //
+  const rawTopPeaks = findTopPeaks(spec, df, startBin, maxBinView, 3);
+
+  updatePeakTable(type, rawTopPeaks);
+
+  let trackedTopPeaks = rawTopPeaks;
+  let trackedMixHz = NaN;
 
   if (type === 'A') {
+    trackA = trackPeaks(rawTopPeaks, trackA);
+    trackedTopPeaks = trackA;
+
+    const picked = pickTrackedMixPeak(rawTopPeaks, mixPeakTrackedA);
+    mixPeakTrackedA = smoothTrackedHz(mixPeakTrackedA, picked);
+    trackedMixHz = mixPeakTrackedA;
+
     lastPeakAHz = peakHz;
     lastPeakMoveA = (prevPeakAForClass == null) ? 0 : Math.abs(peakHz - prevPeakAForClass);
     prevPeakAForClass = peakHz;
   }
 
   if (type === 'M') {
+    trackM = trackPeaks(rawTopPeaks, trackM);
+    trackedTopPeaks = trackM;
+
+    const picked = pickTrackedMixPeak(rawTopPeaks, mixPeakTrackedM);
+    mixPeakTrackedM = smoothTrackedHz(mixPeakTrackedM, picked);
+    trackedMixHz = mixPeakTrackedM;
+
     lastPeakMHz = peakHz;
     lastPeakMoveM = (prevPeakMForClass == null) ? 0 : Math.abs(peakHz - prevPeakMForClass);
     prevPeakMForClass = peakHz;
   }
 
-  updatePeakTable(type, topPeaks);
+  const item = {
+    freqs,
+    mags,
+    color,
+    type,
+    maxV,
+    topPeaks: trackedTopPeaks,   // 既存描画互換
+    rawTopPeaks,                 // 追加
+    mixPeakTrackedHz: trackedMixHz
+  };
 
-  const item = { freqs, mags, color, type, maxV, topPeaks };
   if (type === 'A') latestA = item;
   if (type === 'M') latestM = item;
-
-  if(type==='A'){
-    trackA = trackPeaks(topPeaks,trackA);
-    item.topPeaks = trackA;
-  }
-
-  if(type==='M'){
-    trackM = trackPeaks(topPeaks,trackM);
-    item.topPeaks = trackM;
-  }
-
 
   // draw main FFT
   const list = [];
@@ -908,6 +943,16 @@ if(type === 'M'){
         hz: Number(p.hz) || 0,
         mag: Number(p.mag) || 0
       })),
+      rawTopPeaksA: (latestA?.rawTopPeaks || []).map(p => ({
+        hz: Number(p.hz) || 0,
+        mag: Number(p.mag) || 0
+      })),
+      rawTopPeaksM: (latestM?.rawTopPeaks || []).map(p => ({
+        hz: Number(p.hz) || 0,
+        mag: Number(p.mag) || 0
+      })),
+      mixPeakTrackedA: Number(latestA?.mixPeakTrackedHz) || NaN,
+      mixPeakTrackedM: Number(latestM?.mixPeakTrackedHz) || NaN,
       density: calcPeakDensity(
         latestA?.topPeaks,
         latestM?.topPeaks
@@ -1220,7 +1265,43 @@ function trackPeaks(peaks, tracks){
 }
 
 
+function pickTrackedMixPeak(peaks, prevHz, opt = MIX_TRACK){
+  if (!Array.isArray(peaks) || peaks.length === 0) return prevHz;
 
+  // 初回は一番強いピーク
+  if (!isFinite(prevHz)) {
+    return Number(peaks[0]?.hz) || NaN;
+  }
+
+  let bestHz = prevHz;
+  let bestScore = -Infinity;
+
+  for (const p of peaks) {
+    const hz = Number(p?.hz) || 0;
+    const mag = Number(p?.mag) || 0;
+    const dist = Math.abs(hz - prevHz);
+
+    const score = mag - opt.jumpPenaltyHz * dist;
+    if (score > bestScore) {
+      bestScore = score;
+      bestHz = hz;
+    }
+  }
+
+  // 近い候補が全然ない時は再捕捉を許す
+  const nearestDist = Math.min(...peaks.map(p => Math.abs((Number(p?.hz) || 0) - prevHz)));
+  if (nearestDist > opt.reacquireGapHz) {
+    bestHz = Number(peaks[0]?.hz) || bestHz;
+  }
+
+  return bestHz;
+}
+
+function smoothTrackedHz(prevHz, nextHz, alpha = MIX_TRACK.smoothAlpha){
+  if (!isFinite(nextHz)) return prevHz;
+  if (!isFinite(prevHz)) return nextHz;
+  return prevHz * (1 - alpha) + nextHz * alpha;
+}
 
 function updatePeakTable(type, peaks){
 
@@ -4469,7 +4550,10 @@ function drawExperienceWave(){
     return chartLeft + ((t - viewStart) / Math.max(1e-9, (viewEnd - viewStart))) * pw;
   }
 
-  const { envMax, microMax } = calcExperienceNormMax(visible);
+  //const { envMax, microMax } = calcExperienceNormMax(visible);
+  const envMax = EXP_ENV_FIXED_MAX;
+  const microMax = EXP_MICRO_FIXED_MAX;
+
 
   // 中央線
   gTE.strokeStyle = '#ececec';
@@ -4518,15 +4602,14 @@ function drawExperienceWave(){
     const envN = c.env / Math.max(1e-9, envMax);
     const microN = c.micro / Math.max(1e-9, microMax);
 
-    const slow = envN * (ph * 0.30);
-    const fast = microN * (ph * 0.12);
+    const slow = envN * (ph * 0.20);
+
+    const microBoost = Math.pow(microN, 0.75);
+    const fast = microBoost * (ph * 0.24);
 
     const phase = idx * phaseStep;
 
-    const y =
-      centerY
-      - slow
-      + fast * Math.sin(phase * 2.8);
+    const y = centerY - slow + fast * Math.sin(phase * 2.8);
 
     const x = xMap(p.t);
 
@@ -4801,77 +4884,43 @@ function drawFrequencyFlow(){
       });
     }
   }
-
-  drawDots('topPeaksA', '#1e88e5');
-  drawDots('topPeaksM', '#ff6f00');
-
-  // 近いピークを線でつなぐ
-  function drawFlowLines(peaksKey, color){
-    const FLOW_LINK_HZ = 25;
-    const DRIFT_HZ_MIN = 8;
-
+  function drawTrackedMixLine(key, color, width = 3){
     gTFlow.save();
     gTFlow.strokeStyle = color;
-    gTFlow.lineWidth = 2.5;
-    gTFlow.globalAlpha = 0.9;
+    gTFlow.lineWidth = width;
+    gTFlow.setLineDash([]);
+    gTFlow.beginPath();
 
+    let started = false;
+    for (const p of visible) {
+      const hz = Number(p[key]);
+      if (!isFinite(hz)) continue;
+      if (hz < hzMin || hz > hzMax) continue;
 
+      const x = xMap(p.t);
+      const y = yMapHz(hz);
 
-    for (let i = 1; i < visible.length; i++) {
-      const prev = visible[i - 1];
-      const cur  = visible[i];
-
-      const prevPeaks = (Array.isArray(prev[peaksKey]) ? prev[peaksKey] : []).slice(0, 3);
-      const curPeaks  = (Array.isArray(cur[peaksKey]) ? cur[peaksKey] : []).slice(0, 3);
-
-      for (const pp of prevPeaks) {
-        const prevHz = Number(pp?.hz) || 0;
-        if (prevHz < hzMin || prevHz > hzMax) continue;
-
-        let best = null;
-        let bestDiff = Infinity;
-
-        for (const cp of curPeaks) {
-          const curHz = Number(cp?.hz) || 0;
-          if (curHz < hzMin || curHz > hzMax) continue;
-
-          const d = Math.abs(curHz - prevHz);
-          if (d <= FLOW_LINK_HZ && d < bestDiff) {
-            best = cp;
-            bestDiff = d;
-          }
-        }
-
-        if (best) {
-          const x1 = xMap(prev.t);
-          const y1 = yMapHz(prevHz);
-          const x2 = xMap(cur.t);
-          const y2 = yMapHz(Number(best.hz) || 0);
-
-          gTFlow.beginPath();
-          gTFlow.moveTo(x1, y1);
-          gTFlow.lineTo(x2, y2);
-
-          const driftHz = Math.abs((Number(best.hz) || 0) - prevHz);
-
-          if (driftHz < DRIFT_HZ_MIN) {
-            gTFlow.strokeStyle = 'rgba(160,160,160,0.45)';
-            gTFlow.lineWidth = 1.4;
-          } else {
-            gTFlow.strokeStyle = color;
-            gTFlow.lineWidth = 2.5;
-          }
-
-          gTFlow.stroke();
-        }
+      if (!started) {
+        gTFlow.moveTo(x, y);
+        started = true;
+      } else {
+        gTFlow.lineTo(x, y);
       }
     }
 
+    if (started) gTFlow.stroke();
     gTFlow.restore();
   }
 
-  drawFlowLines('topPeaksA', '#1e88e5');
-  drawFlowLines('topPeaksM', '#ff6f00');
+
+  // drawDots('topPeaksA', '#1e88e5');
+  // drawDots('topPeaksM', '#ff6f00');
+  drawDots('rawTopPeaksA', '#1e88e5');
+  drawDots('rawTopPeaksM', '#ff6f00');
+
+  drawTrackedMixLine('mixPeakTrackedA', '#1565c0', 3);
+  drawTrackedMixLine('mixPeakTrackedM', '#ef6c00', 3);
+
 
   // TOUCH
   for (const s of touchShots) {
