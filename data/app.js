@@ -149,6 +149,7 @@ let noiseFluxM = 0.03;
 //   { key:'b3', label:'250-500', f0:250, f1:500 },
 // ];
 
+
 const BANDS = [
   { key:'b0', label:'0-80',    f0:0,   f1:80  },
   { key:'b1', label:'80-160',  f0:80,  f1:160 },
