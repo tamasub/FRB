@@ -26,6 +26,10 @@ const tsCanvas = document.getElementById('ts');
 const gT = tsCanvas.getContext('2d');
 const tsBandCanvas = document.getElementById('tsBand');
 const gTB = tsBandCanvas.getContext('2d');
+
+const tsStairCanvas = document.getElementById('tsStair');
+const gTSter = tsStairCanvas ? tsStairCanvas.getContext('2d') : null;
+
 const tsBandHeatCanvas = document.getElementById('tsBandHeatCanvas');
 const gTBH = tsBandHeatCanvas?.getContext('2d');
 
@@ -198,6 +202,8 @@ let BAND_TIMELINE_FIXED_MAX = 80000.0;
 
 const EXP_ENV_FIXED_MAX   = 80000;
 const EXP_MICRO_FIXED_MAX = 15000;
+
+
 
 
 const bandScaleModeEl = document.getElementById('bandScaleMode');
@@ -934,6 +940,7 @@ if(type === 'M'){
       peakMoveM: lastPeakMoveM,
       bandA: latestBandA ? { ...latestBandA.smooth } : null,
       bandM: latestBandM ? { ...latestBandM.smooth } : null,
+      stairError: latestBandA ? calcStairError(latestBandA.smooth) : 0,
       fluxBandA: { ...fluxBandEmaA },
       fluxBandM: { ...fluxBandEmaM },
       tingleMotion: calcTingleMotionFromFluxBand(fluxBandEmaA),
@@ -987,17 +994,12 @@ if(type === 'M'){
 
 
     updateNoiseFloor(feat);
-
-
-
     fillPendingPost(nowT);
-
-
     pruneTimeSeries(nowT);
     drawTimeSeries();
 
-
     drawBandTimeline();
+    drawStairTimeline();
     drawBandHeatmap();
     drawTingleMotion();
     drawExperienceWave();
@@ -1063,18 +1065,20 @@ function fitAll(){
   fitCanvasEl(specM);
   fitCanvasEl(tsCanvas);
   fitCanvasEl(tsBandCanvas, 300, 200);
+  fitCanvasEl(tsStairCanvas, 300, 140);
   fitCanvasEl(tsBandHeatCanvas, 900, 140);
   fitCanvasEl(tsExpCanvas, 300, 160);
   fitCanvasEl(tsBandFluxCanvas, 300, 200);
   fitCanvasEl(tsFluxCanvas);
   fitCanvasEl(tsPeakCanvas);
   fitCanvasEl(tsFlowCanvas, 300, 140);
-  fitCanvasEl(tsStateCanvas);
+
   
   gA.clearRect(0,0,specA.width,specA.height);
   gM.clearRect(0,0,specM.width,specM.height);
   gT.clearRect(0,0,tsCanvas.width,tsCanvas.height);
   gTB.clearRect(0,0,tsBandCanvas.width,tsBandCanvas.height);  // 追加
+  gTSter.clearRect(0,0,tsStairCanvas.width,tsStairCanvas.height);
   gTBH.clearRect(0,0,tsBandHeatCanvas.width,tsBandHeatCanvas.height);
 
   gTE.clearRect(0,0,tsExpCanvas.width,tsExpCanvas.height);
@@ -4315,6 +4319,19 @@ function calcExperienceComponents(bandA){
   };
 }
 
+function calcStairError(bandA){
+  const low  = Number(bandA?.b0) || 0;
+  const mid  = Number(bandA?.b1) || 0;
+  const high = Number(bandA?.b2) || 0;
+
+  const eps = 1e-9;
+
+  const r1 = mid / (low + eps);
+  const r2 = high / (mid + eps);
+
+  return Math.abs(r1 - r2);
+}
+
 function calcExperienceNormMax(series){
   let envMax = 1e-9;
   let microMax = 1e-9;
@@ -4500,6 +4517,138 @@ function drawBandTimeline(){
   gTB.textBaseline = 'alphabetic';
   gTB.fillText('Band Timeline (A / overlay, normalized in view)', chartLeft, H - 6);
 }
+
+
+function drawStairTimeline(){
+  if (!tsStairCanvas || !gTSter) return;
+
+  const W = tsStairCanvas.width;
+  const H = tsStairCanvas.height;
+  gTSter.clearRect(0, 0, W, H);
+
+  const selectedFrozen = getSelectedFrozenSeries();
+  const seriesSrc = (!timeLogFollowLatest && selectedFrozen)
+    ? selectedFrozen
+    : tsBuf;
+
+  const ml = 58, mr = 24, mt = 18, mb = 24;
+  const pw = W - ml - mr;
+  const ph = H - mt - mb;
+
+  const chartLeft   = ml;
+  const chartRight  = ml + pw;
+  const chartTop    = mt;
+  const chartBottom = mt + ph;
+
+  gTSter.fillStyle = '#fcfcfc';
+  gTSter.fillRect(0, 0, W, H);
+
+  gTSter.strokeStyle = '#d4d4d4';
+  gTSter.lineWidth = 1;
+  gTSter.beginPath();
+  gTSter.moveTo(chartLeft, chartTop);
+  gTSter.lineTo(chartLeft, chartBottom);
+  gTSter.lineTo(chartRight, chartBottom);
+  gTSter.stroke();
+
+  if (!seriesSrc || seriesSrc.length < 2) {
+    gTSter.fillStyle = '#999';
+    gTSter.font = '12px sans-serif';
+    gTSter.fillText('no stair error yet', chartLeft + 10, chartTop + 18);
+    return;
+  }
+
+  const nowSec = seriesSrc[seriesSrc.length - 1].t;
+  const winSec = getTimeWindowSec();
+
+  let viewStart = 0;
+  let viewEnd = winSec;
+
+  if (!timeLogFollowLatest && isFinite(timeLogCenterSec)) {
+    viewStart = Math.max(0, timeLogCenterSec - winSec / 2);
+    viewEnd = viewStart + winSec;
+
+    if (viewEnd > nowSec && nowSec > winSec) {
+      viewEnd = nowSec;
+      viewStart = Math.max(0, viewEnd - winSec);
+    }
+  } else {
+    viewStart = Math.max(0, nowSec - winSec);
+    viewEnd = Math.max(winSec, nowSec);
+  }
+
+  const visible = seriesSrc.filter(p => p.t >= viewStart && p.t <= viewEnd);
+  if (visible.length < 2) return;
+
+  function xMap(t){
+    return chartLeft + ((t - viewStart) / Math.max(1e-9, (viewEnd - viewStart))) * pw;
+  }
+
+  let vmax = 1e-9;
+  for (const p of visible) {
+    const v = Number(p.stairError) || 0;
+    if (v > vmax) vmax = v;
+  }
+  vmax *= 1.10;
+
+  function yMap(v){
+    const vv = Math.max(0, Math.min(vmax, Number(v) || 0));
+    return chartBottom - (vv / Math.max(1e-9, vmax)) * ph;
+  }
+
+  // grid
+  gTSter.strokeStyle = '#ececec';
+  gTSter.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = chartTop + ph * i / 4;
+    gTSter.beginPath();
+    gTSter.moveTo(chartLeft, y);
+    gTSter.lineTo(chartRight, y);
+    gTSter.stroke();
+
+    const val = vmax - (vmax * i / 4);
+    gTSter.fillStyle = '#666';
+    gTSter.font = '11px sans-serif';
+    gTSter.textAlign = 'right';
+    gTSter.textBaseline = 'middle';
+    gTSter.fillText(val.toFixed(0), chartLeft - 8, y);
+  }
+
+  // line
+  gTSter.save();
+  gTSter.strokeStyle = '#d81b60';
+  gTSter.lineWidth = 2;
+  gTSter.beginPath();
+
+  let started = false;
+  for (const p of visible) {
+    const x = xMap(p.t);
+    const y = yMap(p.stairError);
+
+    if (!started) {
+      gTSter.moveTo(x, y);
+      started = true;
+    } else {
+      gTSter.lineTo(x, y);
+    }
+  }
+  if (started) gTSter.stroke();
+  gTSter.restore();
+
+  // touch markers
+  for (const s of touchShots) {
+    if (s.t < viewStart || s.t > viewEnd) continue;
+    const x = xMap(s.t);
+    drawTouchMarker(gTSter, x, chartTop, chartBottom, s);
+  }
+
+  gTSter.fillStyle = '#777';
+  gTSter.font = '11px sans-serif';
+  gTSter.textAlign = 'left';
+  gTSter.textBaseline = 'alphabetic';
+  gTSter.fillText('BridgeError (smaller = more connected)', chartLeft, H - 6);
+}
+
 
 
 function drawExperienceWave(){
