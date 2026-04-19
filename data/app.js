@@ -26,6 +26,9 @@ const tsCanvas = document.getElementById('ts');
 const gT = tsCanvas.getContext('2d');
 const tsBandCanvas = document.getElementById('tsBand');
 const gTB = tsBandCanvas.getContext('2d');
+const tsBandHeatCanvas = document.getElementById('tsBandHeatCanvas');
+const gTBH = tsBandHeatCanvas?.getContext('2d');
+
 const tsFlowCanvas = document.getElementById('tsFlow');
 const gTFlow = tsFlowCanvas.getContext('2d');
 const tsExpCanvas = document.getElementById('tsExp');
@@ -991,6 +994,7 @@ if(type === 'M'){
 
 
     drawBandTimeline();
+    drawBandHeatmap();
     drawExperienceWave();
     //drawBandFluxTimeline();
     drawFluxTimeSeries();
@@ -1054,6 +1058,7 @@ function fitAll(){
   fitCanvasEl(specM);
   fitCanvasEl(tsCanvas);
   fitCanvasEl(tsBandCanvas, 300, 200);
+  fitCanvasEl(tsBandHeatCanvas, 900, 140);
   fitCanvasEl(tsExpCanvas, 300, 160);
   fitCanvasEl(tsBandFluxCanvas, 300, 200);
   fitCanvasEl(tsFluxCanvas);
@@ -1065,6 +1070,8 @@ function fitAll(){
   gM.clearRect(0,0,specM.width,specM.height);
   gT.clearRect(0,0,tsCanvas.width,tsCanvas.height);
   gTB.clearRect(0,0,tsBandCanvas.width,tsBandCanvas.height);  // 追加
+  gTBH.clearRect(0,0,tsBandHeatCanvas.width,tsBandHeatCanvas.height);
+
   gTE.clearRect(0,0,tsExpCanvas.width,tsExpCanvas.height);
   gTBF.clearRect(0,0,tsBandFluxCanvas.width,tsBandFluxCanvas.height);
   gTF.clearRect(0,0,tsFluxCanvas.width,tsFluxCanvas.height);
@@ -5071,4 +5078,179 @@ function drawBandFluxTimeline(){
   gTBF.textBaseline = 'alphabetic';
   gTBF.fillStyle = '#777';
   gTBF.fillText('Band Flux Timeline (A)', chartLeft, H - 4);
+}
+
+function drawBandHeatmap(){
+  if (!tsBandHeatCanvas || !gTBH) return;
+
+  const W = tsBandHeatCanvas.width;
+  const H = tsBandHeatCanvas.height;
+  gTBH.clearRect(0, 0, W, H);
+
+  const selectedFrozen = getSelectedFrozenSeries();
+  const seriesSrc = (!timeLogFollowLatest && selectedFrozen)
+    ? selectedFrozen
+    : tsBuf;
+
+  const ml = 58, mr = 24, mt = 18, mb = 24;
+  const pw = W - ml - mr;
+  const ph = H - mt - mb;
+
+  const chartLeft   = ml;
+  const chartRight  = ml + pw;
+  const chartTop    = mt;
+  const chartBottom = mt + ph;
+
+  gTBH.fillStyle = '#fcfcfc';
+  gTBH.fillRect(0, 0, W, H);
+
+  gTBH.strokeStyle = '#d4d4d4';
+  gTBH.lineWidth = 1;
+  gTBH.beginPath();
+  gTBH.moveTo(chartLeft, chartTop);
+  gTBH.lineTo(chartLeft, chartBottom);
+  gTBH.lineTo(chartRight, chartBottom);
+  gTBH.stroke();
+
+  if (!seriesSrc || seriesSrc.length < 2) {
+    gTBH.fillStyle = '#999';
+    gTBH.font = '12px sans-serif';
+    gTBH.fillText('no band heatmap yet', chartLeft + 10, chartTop + 18);
+    return;
+  }
+
+  const nowSec = seriesSrc[seriesSrc.length - 1].t;
+  const winSec = getTimeWindowSec();
+
+  let viewStart = 0;
+  let viewEnd = winSec;
+
+  if (!timeLogFollowLatest && isFinite(timeLogCenterSec)) {
+    viewStart = Math.max(0, timeLogCenterSec - winSec / 2);
+    viewEnd = viewStart + winSec;
+
+    if (viewEnd > nowSec && nowSec > winSec) {
+      viewEnd = nowSec;
+      viewStart = Math.max(0, viewEnd - winSec);
+    }
+  } else {
+    viewStart = Math.max(0, nowSec - winSec);
+    viewEnd = Math.max(winSec, nowSec);
+  }
+
+  const visible = seriesSrc.filter(p => p.t >= viewStart && p.t <= viewEnd);
+  if (visible.length < 2) return;
+
+  function xMap(t){
+    return chartLeft + ((t - viewStart) / Math.max(1e-9, (viewEnd - viewStart))) * pw;
+  }
+
+  const HEAT_BANDS = [
+    { key:'low',  label:'Weight 40-80',   f0:40,  f1:80  },
+    { key:'mid',  label:'Feel 90-140',    f0:90,  f1:140 },
+    { key:'high', label:'Tingle 180-250', f0:180, f1:250 },
+  ];
+
+  const gain = {
+    low: 0.70,
+    mid: 1.20,
+    high: 1.80,
+  };
+
+  function sumBandRange(bandMap, f0, f1){
+    if (!bandMap) return 0;
+
+    let s = 0;
+    for (const b of BANDS) {
+      const overlap = Math.max(0, Math.min(b.f1, f1) - Math.max(b.f0, f0));
+      if (overlap > 0) {
+        s += Number(bandMap[b.key]) || 0;
+      }
+    }
+    return s;
+  }
+
+  const heatRows = visible.map(p => ({
+    t: p.t,
+    low:  sumBandRange(p.bandA, 40, 80),
+    mid:  sumBandRange(p.bandA, 90, 140),
+    high: sumBandRange(p.bandA, 180, 250),
+  }));
+
+  for (let i = 1; i < heatRows.length; i++) {
+    heatRows[i].low  = heatRows[i].low  * 0.7 + heatRows[i - 1].low  * 0.3;
+    heatRows[i].mid  = heatRows[i].mid  * 0.6 + heatRows[i - 1].mid  * 0.4;
+    heatRows[i].high = heatRows[i].high * 0.4 + heatRows[i - 1].high * 0.6;
+  }
+
+  let vmaxLow  = 1e-9;
+  let vmaxMid  = 1e-9;
+  let vmaxHigh = 1e-9;
+
+  for (const row of heatRows) {
+    vmaxLow  = Math.max(vmaxLow,  row.low  * gain.low);
+    vmaxMid  = Math.max(vmaxMid,  row.mid  * gain.mid);
+    vmaxHigh = Math.max(vmaxHigh, row.high * gain.high);
+  }
+  const vmaxList = [vmaxLow, vmaxMid, vmaxHigh];
+
+  const laneGap = 8;
+  const laneH = (ph - laneGap * (HEAT_BANDS.length - 1)) / HEAT_BANDS.length;
+
+  function laneTop(i){
+    return chartTop + i * (laneH + laneGap);
+  }
+
+  gTBH.font = '12px sans-serif';
+  gTBH.textAlign = 'right';
+  gTBH.textBaseline = 'middle';
+
+  HEAT_BANDS.forEach((band, i) => {
+    const y = laneTop(i);
+
+    gTBH.fillStyle = '#f3f3f3';
+    gTBH.fillRect(chartLeft, y, pw, laneH);
+
+    gTBH.fillStyle = '#666';
+    gTBH.fillText(band.label, chartLeft - 8, y + laneH / 2);
+  });
+
+  for (let i = 0; i < heatRows.length - 1; i++) {
+    const r0 = heatRows[i];
+    const r1 = heatRows[i + 1];
+
+    const x0 = xMap(r0.t);
+    const x1 = xMap(r1.t);
+    const w = Math.max(1, x1 - x0);
+
+    const vals = [
+      r0.low  * gain.low,
+      r0.mid  * gain.mid,
+      r0.high * gain.high,
+    ];
+
+    vals.forEach((raw, bandIdx) => {
+
+      const ratio = Math.max(0, Math.min(1, raw / vmaxList[bandIdx]));
+
+      const alpha = 0.02 + Math.pow(ratio, 0.75) * 0.98;
+
+      gTBH.save();
+      gTBH.fillStyle = `rgba(30,136,229,${alpha})`;
+      gTBH.fillRect(x0, laneTop(bandIdx), w, laneH);
+      gTBH.restore();
+    });
+  }
+
+  for (const s of touchShots) {
+    if (s.t < viewStart || s.t > viewEnd) continue;
+    const x = xMap(s.t);
+    drawTouchMarker(gTBH, x, chartTop, chartBottom, s);
+  }
+
+  gTBH.fillStyle = '#777';
+  gTBH.font = '11px sans-serif';
+  gTBH.textAlign = 'left';
+  gTBH.textBaseline = 'alphabetic';
+  gTBH.fillText('Band Heatmap (A / brightness = band volume)', chartLeft, H - 6);
 }
