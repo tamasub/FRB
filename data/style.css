@@ -462,13 +462,7 @@
     #tsBand{
     display:block;
     width:100%;
-    height:220px;
-    margin-bottom:8px;
-    }
-    #tsBand{
-    display:block;
-    width:100%;
-    height: 150px;
+    height:400px;
     margin-bottom:8px;
     }
 
@@ -489,6 +483,13 @@
     margin-bottom:8px;
     }
     #tsBandHeatCanvas{
+    display:block;
+    width:100%;
+    height:120px;
+    margin-bottom:8px;
+    }
+
+    #tsTingle{
     display:block;
     width:100%;
     height:120px;

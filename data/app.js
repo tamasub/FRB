@@ -42,6 +42,8 @@ const gTS = tsStateCanvas.getContext('2d');
 const tsBandFluxCanvas = document.getElementById('tsBandFlux');
 const gTBF = tsBandFluxCanvas.getContext('2d');
 
+const tsTingleCanvas = document.getElementById('tsTingle');
+const gTTingle = tsTingleCanvas ? tsTingleCanvas.getContext('2d') : null;
 
 
 
@@ -933,6 +935,7 @@ if(type === 'M'){
       bandM: latestBandM ? { ...latestBandM.smooth } : null,
       fluxBandA: { ...fluxBandEmaA },
       fluxBandM: { ...fluxBandEmaM },
+      tingleMotion: calcTingleMotionFromFluxBand(fluxBandEmaA),
       attackScore: 0,
       attackState: 'IDLE',
       contactClass: 'NONE',
@@ -995,6 +998,7 @@ if(type === 'M'){
 
     drawBandTimeline();
     drawBandHeatmap();
+    drawTingleMotion();
     drawExperienceWave();
     //drawBandFluxTimeline();
     drawFluxTimeSeries();
@@ -1078,6 +1082,12 @@ function fitAll(){
   gTP.clearRect(0,0,tsPeakCanvas.width,tsPeakCanvas.height);
   gTFlow.clearRect(0,0,tsFlowCanvas.width,tsFlowCanvas.height);
   gTS.clearRect(0,0,tsStateCanvas.width,tsStateCanvas.height);
+
+  if (tsTingleCanvas) fitCanvasEl(tsTingleCanvas, 300, 120);
+  if (gTTingle && tsTingleCanvas) {
+    gTTingle.clearRect(0, 0, tsTingleCanvas.width, tsTingleCanvas.height);
+  }
+
 }
 
 window.addEventListener('resize', fitAll);
@@ -5253,4 +5263,148 @@ function drawBandHeatmap(){
   gTBH.textAlign = 'left';
   gTBH.textBaseline = 'alphabetic';
   gTBH.fillText('Band Heatmap (A / brightness = band volume)', chartLeft, H - 6);
+}
+
+function calcTingleMotionFromFluxBand(fluxBandA){
+  if (!fluxBandA) return 0;
+
+  // 今の6帯域定義から 160-250 を土台に、
+  // 250-350 を少しだけ混ぜてもよいが、まずは b2 中心
+  const b2 = Number(fluxBandA?.b2) || 0; // 160-250
+  const b3 = Number(fluxBandA?.b3) || 0; // 250-350
+
+  // 高域の細かい揺れを強調
+  const tingle = b2 * 1.0 + b3 * 0.35;
+
+  return tingle;
+}
+
+function drawTingleMotion(){
+  if (!tsTingleCanvas || !gTTingle) return;
+
+  const W = tsTingleCanvas.width;
+  const H = tsTingleCanvas.height;
+  gTTingle.clearRect(0, 0, W, H);
+
+  const selectedFrozen = getSelectedFrozenSeries();
+  const seriesSrc = (!timeLogFollowLatest && selectedFrozen)
+    ? selectedFrozen
+    : tsBuf;
+
+  const ml = 58, mr = 24, mt = 14, mb = 22;
+  const pw = W - ml - mr;
+  const ph = H - mt - mb;
+
+  const chartLeft   = ml;
+  const chartRight  = ml + pw;
+  const chartTop    = mt;
+  const chartBottom = mt + ph;
+
+  gTTingle.fillStyle = '#fcfcfc';
+  gTTingle.fillRect(0, 0, W, H);
+
+  gTTingle.strokeStyle = '#d4d4d4';
+  gTTingle.lineWidth = 1;
+  gTTingle.beginPath();
+  gTTingle.moveTo(chartLeft, chartTop);
+  gTTingle.lineTo(chartLeft, chartBottom);
+  gTTingle.lineTo(chartRight, chartBottom);
+  gTTingle.stroke();
+
+  if (!seriesSrc || seriesSrc.length < 2) {
+    gTTingle.fillStyle = '#999';
+    gTTingle.font = '12px sans-serif';
+    gTTingle.fillText('no tingle motion yet', chartLeft + 10, chartTop + 18);
+    return;
+  }
+
+  const nowSec = seriesSrc[seriesSrc.length - 1].t;
+  const winSec = getTimeWindowSec();
+
+  let viewStart = 0;
+  let viewEnd = winSec;
+
+  if (!timeLogFollowLatest && isFinite(timeLogCenterSec)) {
+    viewStart = Math.max(0, timeLogCenterSec - winSec / 2);
+    viewEnd = viewStart + winSec;
+
+    if (viewEnd > nowSec && nowSec > winSec) {
+      viewEnd = nowSec;
+      viewStart = Math.max(0, viewEnd - winSec);
+    }
+  } else {
+    viewStart = Math.max(0, nowSec - winSec);
+    viewEnd = Math.max(winSec, nowSec);
+  }
+
+  const visible = seriesSrc.filter(p => p.t >= viewStart && p.t <= viewEnd);
+  if (visible.length < 2) return;
+
+  function xMap(t){
+    return chartLeft + ((t - viewStart) / Math.max(1e-9, (viewEnd - viewStart))) * pw;
+  }
+
+  let vmax = 1e-9;
+  for (const p of visible) {
+    const v = Number(p.tingleMotion) || 0;
+    if (v > vmax) vmax = v;
+  }
+  vmax *= 1.10;
+
+  function yMap(v){
+    const vv = Math.max(0, Math.min(vmax, Number(v) || 0));
+    return chartBottom - (vv / Math.max(1e-9, vmax)) * ph;
+  }
+
+  // grid
+  gTTingle.strokeStyle = '#ececec';
+  gTTingle.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = chartTop + ph * i / 4;
+    gTTingle.beginPath();
+    gTTingle.moveTo(chartLeft, y);
+    gTTingle.lineTo(chartRight, y);
+    gTTingle.stroke();
+
+    const val = vmax - (vmax * i / 4);
+    gTTingle.fillStyle = '#666';
+    gTTingle.font = '11px sans-serif';
+    gTTingle.textAlign = 'right';
+    gTTingle.textBaseline = 'middle';
+    gTTingle.fillText(val.toFixed(3), chartLeft - 8, y);
+  }
+
+  // line
+  gTTingle.save();
+  gTTingle.strokeStyle = '#8e24aa';
+  gTTingle.lineWidth = 2;
+  gTTingle.beginPath();
+
+  let started = false;
+  for (const p of visible) {
+    const x = xMap(p.t);
+    const y = yMap(p.tingleMotion);
+
+    if (!started) {
+      gTTingle.moveTo(x, y);
+      started = true;
+    } else {
+      gTTingle.lineTo(x, y);
+    }
+  }
+  if (started) gTTingle.stroke();
+  gTTingle.restore();
+
+  // touch markers
+  for (const s of touchShots) {
+    if (s.t < viewStart || s.t > viewEnd) continue;
+    const x = xMap(s.t);
+    drawTouchMarker(gTTingle, x, chartTop, chartBottom, s);
+  }
+
+  gTTingle.fillStyle = '#777';
+  gTTingle.font = '11px sans-serif';
+  gTTingle.textAlign = 'left';
+  gTTingle.textBaseline = 'alphabetic';
+  gTTingle.fillText('Tingle Motion (high-band fluctuation)', chartLeft, H - 6);
 }
