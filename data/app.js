@@ -27,8 +27,8 @@ const gT = tsCanvas.getContext('2d');
 const tsBandCanvas = document.getElementById('tsBand');
 const gTB = tsBandCanvas.getContext('2d');
 
-const tsStairCanvas = document.getElementById('tsStair');
-const gTSter = tsStairCanvas ? tsStairCanvas.getContext('2d') : null;
+const tsBridgeCanvas = document.getElementById('tsBridge');
+const gTSter = tsBridgeCanvas ? tsBridgeCanvas.getContext('2d') : null;
 
 const tsBandHeatCanvas = document.getElementById('tsBandHeatCanvas');
 const gTBH = tsBandHeatCanvas?.getContext('2d');
@@ -1065,7 +1065,7 @@ function fitAll(){
   fitCanvasEl(specM);
   fitCanvasEl(tsCanvas);
   fitCanvasEl(tsBandCanvas, 300, 200);
-  fitCanvasEl(tsStairCanvas, 300, 140);
+  fitCanvasEl(tsBridgeCanvas, 300, 140);
   fitCanvasEl(tsBandHeatCanvas, 900, 140);
   fitCanvasEl(tsExpCanvas, 300, 160);
   fitCanvasEl(tsBandFluxCanvas, 300, 200);
@@ -1078,7 +1078,7 @@ function fitAll(){
   gM.clearRect(0,0,specM.width,specM.height);
   gT.clearRect(0,0,tsCanvas.width,tsCanvas.height);
   gTB.clearRect(0,0,tsBandCanvas.width,tsBandCanvas.height);  // 追加
-  gTSter.clearRect(0,0,tsStairCanvas.width,tsStairCanvas.height);
+  gTSter.clearRect(0,0,tsBridgeCanvas.width,tsBridgeCanvas.height);
   gTBH.clearRect(0,0,tsBandHeatCanvas.width,tsBandHeatCanvas.height);
 
   gTE.clearRect(0,0,tsExpCanvas.width,tsExpCanvas.height);
@@ -4508,10 +4508,10 @@ function drawBandTimeline(){
 
 
 function drawStairTimeline(){
-  if (!tsStairCanvas || !gTSter) return;
+  if (!tsBridgeCanvas || !gTSter) return;
 
-  const W = tsStairCanvas.width;
-  const H = tsStairCanvas.height;
+  const W = tsBridgeCanvas.width;
+  const H = tsBridgeCanvas.height;
   gTSter.clearRect(0, 0, W, H);
 
   const selectedFrozen = getSelectedFrozenSeries();

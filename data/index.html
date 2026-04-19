@@ -61,22 +61,8 @@
       <canvas id="tsPeak"></canvas>
     </div>
 
-
-    <div class="timelog-legend" id="timelogLegend">
-      <span class="lg-item scrape"><i></i>SCRAPE</span>
-      <span class="lg-item peakA"><i></i>PeakAHz</span>
-      <span class="lg-item peakM"><i></i>PeakMHz</span>
-      <span class="lg-item fluxA"><i></i>FluxA</span>
-      <span class="lg-item fluxM"><i></i>FluxM</span>
-      <span class="lg-item t1"><i></i>T1</span>
-      <span class="lg-item t2"><i></i>T2</span>
-      <span class="lg-item t3"><i></i>T3</span>
-      <span class="lg-item long"><i></i>LONG</span>
-      <span class="lg-item attack"><i></i>ATTACK</span>
-    </div>
-
     <div class="timelog-wrap">
-      <canvas id="ts"></canvas>
+
       <div class="box">
         BandTimeline Scale:
         <select id="bandScaleMode">
@@ -87,7 +73,14 @@
       </div>
 
       <canvas id="tsBand"></canvas>
-      <canvas id="tsStair"></canvas>
+      <canvas id="tsBridge"></canvas>
+      <canvas id="tsFlux"></canvas>
+      <div class="subPanel">
+        <div class="subTitle">Tingle Motion</div>
+        <canvas id="tsTingle"></canvas>
+      </div>
+
+      
       <div class="subPanel">
         <div class="subTitle">Experience Wave (beta)</div>
         <canvas id="tsExp"></canvas>
@@ -96,13 +89,9 @@
         <div class="title">Band Heatmap</div>
         <canvas id="tsBandHeatCanvas"></canvas>
       </div>
-      <div class="subPanel">
-        <div class="subTitle">Tingle Motion</div>
-        <canvas id="tsTingle"></canvas>
-      </div>
-
+      
       <canvas id="tsBandFlux"></canvas>
-      <canvas id="tsFlux"></canvas>
+
       <canvas id="tsState"></canvas>
     </div>
 
@@ -110,6 +99,21 @@
       <div class="subTitle">Frequency Flow</div>
       <canvas id="tsFlow"></canvas>
     </div>
+
+    <div class="timelog-legend" id="timelogLegend">
+        <span class="lg-item scrape"><i></i>SCRAPE</span>
+        <span class="lg-item peakA"><i></i>PeakAHz</span>
+        <span class="lg-item peakM"><i></i>PeakMHz</span>
+        <span class="lg-item fluxA"><i></i>FluxA</span>
+        <span class="lg-item fluxM"><i></i>FluxM</span>
+        <span class="lg-item t1"><i></i>T1</span>
+        <span class="lg-item t2"><i></i>T2</span>
+        <span class="lg-item t3"><i></i>T3</span>
+        <span class="lg-item long"><i></i>LONG</span>
+        <span class="lg-item attack"><i></i>ATTACK</span>
+    </div>
+
+    <canvas id="ts"></canvas>
 
 
 </div>
