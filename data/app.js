@@ -27,6 +27,9 @@ const gT = tsCanvas.getContext('2d');
 const tsBandCanvas = document.getElementById('tsBand');
 const gTB = tsBandCanvas.getContext('2d');
 
+const tsBandInvestigateCanvas = document.getElementById('tsBandInvestigate');
+const gTBI = tsBandInvestigateCanvas ? tsBandInvestigateCanvas.getContext('2d') : null;
+
 const tsBridgeCanvas = document.getElementById('tsBridge');
 const gTSter = tsBridgeCanvas ? tsBridgeCanvas.getContext('2d') : null;
 
@@ -51,8 +54,6 @@ const gTBF = tsBandFluxCanvas.getContext('2d');
 
 const tsTingleCanvas = document.getElementById('tsTingle');
 const gTTingle = tsTingleCanvas ? tsTingleCanvas.getContext('2d') : null;
-
-
 
 const scrEl = document.getElementById('scr');
 const scrTxt = document.getElementById('scrTxt');
@@ -166,27 +167,62 @@ const BANDS = [
   { key:'b5', label:'450-500', f0:450, f1:500 },
 ];
 
-// const BAND_W = [
-//   1.6, //0-40
-//   1.4, //40-80
-//   1.2, //80-100
-//   1.1, //100-120
-//   1.0, //120-140
-//   0.9, //140-160
-//   0.8, //160-180
-//   0.7, //180-200
-//   0.6, //200-300
-//   0.4  //300+
+// const BANDS_INVESTIGATE = [
+//   { key:'b0', label:'0-20',    f0:0,   f1:20  },
+//   { key:'b1', label:'20-40',   f0:20,  f1:40  },
+//   { key:'b2', label:'40-80',   f0:40,  f1:80  },
+//   { key:'b3', label:'80-160',  f0:80,  f1:160 },
+//   { key:'b4', label:'160-300', f0:160, f1:300 },
 // ];
 
-const BAND_W = [
-  1.0, // 0-80
-  1.0, // 80-160
-  1.0, // 160-250
-  1.0, // 250-350
-  1.0, // 350-450
-  1.0  // 450-500
+// const BANDS_INVESTIGATE = [
+//   { key:'b0', label:'0-80',    f0:0,   f1:80  },   // 青
+//   { key:'b1', label:'80-120',  f0:80,  f1:120 },   // 水色
+//   { key:'b2', label:'120-160', f0:120, f1:160 },   // 緑
+//   { key:'b3', label:'160-220', f0:160, f1:220 },   // オレンジ
+//   { key:'b4', label:'220-300', f0:220, f1:300 },   // 紫
+// ];
+
+const BANDS_INVESTIGATE = [
+  { key:'b0', label:'0-160',   f0:0,   f1:160 },
+  { key:'b1', label:'160-220', f0:160, f1:220 },
+  { key:'b2', label:'220-300', f0:220, f1:300 },
+  { key:'b3', label:'300-400', f0:300, f1:400 },
+  { key:'b4', label:'400-500', f0:400, f1:500 },
 ];
+
+// 調査用 凡例（key, 表示名, 日本語説明）
+const BANDS_INVESTIGATE_LEGEND = [
+  ['b0', '0-160Hz',   '低域〜中域 / 土台・重さ・全体の支配感'],
+  ['b1', '160-220Hz', '中域上 / 情報感・細かさ候補'],
+  ['b2', '220-300Hz', '高め中域 / 後半に伸びる候補・微細振動の観察帯域'],
+  ['b3', '300-400Hz', '高域 / 立ち上がり側の反応・高域成分の観察帯域'],
+  ['b4', '400-500Hz', '超高域 / 450Hz帯を含む観察帯域'],
+];
+
+const BAND_COLORS_INVESTIGATE = [
+  '#1e88e5', // b0
+  '#4fc3f7', // b1
+  '#43a047', // b2
+  '#fb8c00', // b3
+  '#8e24aa', // b4
+];
+
+
+let BAND_TIMELINE_INVESTIGATE_FIXED_MAX = 80000;
+
+window.addEventListener('DOMContentLoaded', () => {
+  buildBandRows('bandNowA',  'barA',   'txtA',   'bandFillA');
+//  buildBandRows('bandNowM',  'barM',   'txtM',   'bandFillM');
+
+  buildBandRows('bandRecA_A','rbarA',  'rtxtA',  'bandFillA');
+  buildBandRows('bandRecA_M','rbarM',  'rtxtM',  'bandFillM');
+
+  buildBandRows('bandRecB_A','rbarA2', 'rtxtA2', 'bandFillA');
+  buildBandRows('bandRecB_M','rbarM2', 'rtxtM2', 'bandFillM');
+
+  renderInvestigateLegend();
+});
 
 // const BAND_W = [
 //   1.2, // 0-80
@@ -210,6 +246,7 @@ const EXP_MICRO_FIXED_MAX = 15000;
 
 
 const bandScaleModeEl = document.getElementById('bandScaleMode');
+const bandScaleModeInvestigateEl = document.getElementById('bandScaleModeInvestigate');
 
 
 function makeZeroBandMap(){
@@ -218,14 +255,28 @@ function makeZeroBandMap(){
   return out;
 }
 
+function makeZeroBandMapBy(bands){
+  const out = {};
+  for (const b of bands) out[b.key] = 0;
+  return out;
+}
+
 // latest band scores (per type)
 let latestBandA = null;
 let latestBandM = null;
+
+let latestBandAInvestigate = null;
+let latestBandMInvestigate = null;
 
 // EMA for smooth display
 const bandEma = {
   A: makeZeroBandMap(),
   M: makeZeroBandMap(),
+};
+
+const bandEmaInvestigate = {
+  A: makeZeroBandMapBy(BANDS_INVESTIGATE),
+  M: makeZeroBandMapBy(BANDS_INVESTIGATE),
 };
 
 
@@ -297,6 +348,44 @@ function emaBands(type, bands, alpha = 0.15){
     st[k] = (Number(st[k]) || 0) + alpha * ((Number(bands[k]) || 0) - (Number(st[k]) || 0));
   }
   return st;
+}
+
+function calcBandSumsBy(specLin, df, maxHz, bands){
+  const out = makeZeroBandMapBy(bands);
+  out.total = 0;
+
+  const maxBin = Math.min(specLin.length - 1, Math.floor(maxHz / df));
+
+  for (let i = 0; i <= maxBin; i++) {
+    const v = specLin[i] || 0;
+    out.total += v;
+  }
+
+  for (const b of bands) {
+    const bandF1 = Number.isFinite(b.f1) ? b.f1 : maxHz;
+    const f1 = Math.min(bandF1, maxHz);
+
+    const i0 = Math.max(0, Math.floor(b.f0 / df));
+    const i1 = Math.min(maxBin, Math.floor(f1 / df));
+
+    let s = 0;
+    for (let i = i0; i <= i1; i++) {
+      s += (specLin[i] || 0);
+    }
+    out[b.key] = s;
+  }
+
+  return out;
+}
+
+function emaBandsBy(target, bandsMap, bands, alpha = 0.15){
+  for (const b of bands) {
+    const k = b.key;
+    target[k] =
+      (Number(target[k]) || 0) +
+      alpha * ((Number(bandsMap[k]) || 0) - (Number(target[k]) || 0));
+  }
+  return target;
 }
 
 function sumBands(obj){
@@ -551,6 +640,15 @@ if (bandScaleModeEl) {
     drawBandTimeline();
   });
 }
+
+if (bandScaleModeInvestigateEl) {
+  bandScaleModeInvestigateEl.addEventListener('change', () => {
+    BAND_TIMELINE_INVESTIGATE_FIXED_MAX =
+      Number(bandScaleModeInvestigateEl.value) || 80000;
+    drawBandTimelineInvestigate();
+  });
+}
+
 
 window.addEventListener('error', (e)=>{
   //showWarn('JS Error: ' + (e.message || e.type));
@@ -839,6 +937,22 @@ if(type === 'M'){
   if (type === 'A') latestBandA = bandItem;
   if (type === 'M') latestBandM = bandItem;
 
+  const bandSumsInvestigate = calcBandSumsBy(spec, df, maxHz, BANDS_INVESTIGATE);
+  const bandsSmoothInvestigate = emaBandsBy(
+    bandEmaInvestigate[type],
+    bandSumsInvestigate,
+    BANDS_INVESTIGATE,
+    0.15
+  );
+
+  const bandItemInvestigate = {
+    raw: bandSumsInvestigate,
+    smooth: { ...bandsSmoothInvestigate },
+  };
+
+  if (type === 'A') latestBandAInvestigate = bandItemInvestigate;
+  if (type === 'M') latestBandMInvestigate = bandItemInvestigate;
+
   const minBin = Math.max(0, Math.floor(viewMinHz / df));
   const maxBinView = Math.min(maxBin, Math.floor(viewMaxHz / df));
   if (maxBinView <= minBin) return;
@@ -943,6 +1057,8 @@ if(type === 'M'){
       peakMoveM: lastPeakMoveM,
       bandA: latestBandA ? { ...latestBandA.smooth } : null,
       bandM: latestBandM ? { ...latestBandM.smooth } : null,
+      bandAInvestigate: latestBandAInvestigate ? { ...latestBandAInvestigate.smooth } : null,
+      bandMInvestigate: latestBandMInvestigate ? { ...latestBandMInvestigate.smooth } : null,
       stairError: latestBandA ? calcBridgeScore(latestBandA.smooth) : 0,
       fluxBandA: { ...fluxBandEmaA },
       fluxBandM: { ...fluxBandEmaM },
@@ -1002,6 +1118,7 @@ if(type === 'M'){
     drawTimeSeries();
 
     drawBandTimeline();
+    drawBandTimelineInvestigate();
     drawStairTimeline();
     drawStairTimelineZoom();
     drawBandHeatmap();
@@ -1083,6 +1200,7 @@ function fitAll(){
   gM.clearRect(0,0,specM.width,specM.height);
   gT.clearRect(0,0,tsCanvas.width,tsCanvas.height);
   gTB.clearRect(0,0,tsBandCanvas.width,tsBandCanvas.height);  // 追加
+
   gTSter.clearRect(0,0,tsBridgeCanvas.width,tsBridgeCanvas.height);
   gTBH.clearRect(0,0,tsBandHeatCanvas.width,tsBandHeatCanvas.height);
 
@@ -1100,11 +1218,18 @@ function fitAll(){
   if (gTSterZoom && tsBridgeZoomCanvas) {
     gTSterZoom.clearRect(0, 0, tsBridgeZoomCanvas.width, tsBridgeZoomCanvas.height);
   }
+  if (tsBandInvestigateCanvas) fitCanvasEl(tsBandInvestigateCanvas, 300, 200);
+  if (gTBI && tsBandInvestigateCanvas) {
+    gTBI.clearRect(0, 0, tsBandInvestigateCanvas.width, tsBandInvestigateCanvas.height);
+  }
+
 
 }
 
 window.addEventListener('resize', fitAll);
 fitAll();
+
+
 
 // ===== Spectrogram =====
 // map dB values to grayscale color: 0dB = white, -80dB = black (contrast)
@@ -1928,6 +2053,8 @@ function updateScrapeMeter(lvl){
 const tsBuf = []; // {t, scrape, peakA, peakM}
 let lastPeakAHz = NaN;
 let lastPeakMHz = NaN;
+
+drawBandTimelineInvestigate();
 
 const touchBuf = []; // {t, v}  v=1 touched
 
@@ -4527,6 +4654,342 @@ function drawBandTimeline(){
   gTB.fillText('Band Timeline (A / overlay, normalized in view)', chartLeft, H - 6);
 }
 
+// function drawBandTimelineInvestigate(){
+//   if (!tsBandInvestigateCanvas || !gTBI) return;
+
+//   const W = tsBandInvestigateCanvas.width;
+//   const H = tsBandInvestigateCanvas.height;
+//   gTBI.clearRect(0, 0, W, H);
+
+//   const selectedFrozen = getSelectedFrozenSeries();
+//   const seriesSrc = (!timeLogFollowLatest && selectedFrozen)
+//     ? selectedFrozen
+//     : tsBuf;
+
+//   const ml = 58, mr = 58, mt = 18, mb = 28;
+//   const pw = W - ml - mr;
+//   const ph = H - mt - mb;
+
+//   const chartLeft   = ml;
+//   const chartRight  = ml + pw;
+//   const chartTop    = mt;
+//   const chartBottom = mt + ph;
+
+//   gTBI.fillStyle = '#fcfcfc';
+//   gTBI.fillRect(0, 0, W, H);
+
+//   gTBI.strokeStyle = '#d4d4d4';
+//   gTBI.lineWidth = 1;
+//   gTBI.beginPath();
+//   gTBI.moveTo(chartLeft, chartTop);
+//   gTBI.lineTo(chartLeft, chartBottom);
+//   gTBI.lineTo(chartRight, chartBottom);
+//   gTBI.stroke();
+
+//   if (!seriesSrc || seriesSrc.length < 2) {
+//     gTBI.fillStyle = '#999';
+//     gTBI.font = '12px sans-serif';
+//     gTBI.fillText('no band timeline yet', chartLeft + 10, chartTop + 18);
+//     return;
+//   }
+
+//   const nowSec = seriesSrc[seriesSrc.length - 1].t;
+//   const winSec = getTimeWindowSec();
+
+//   let viewStart = 0;
+//   let viewEnd = winSec;
+
+//   if (!timeLogFollowLatest && isFinite(timeLogCenterSec)) {
+//     viewStart = Math.max(0, timeLogCenterSec - winSec / 2);
+//     viewEnd = viewStart + winSec;
+
+//     if (viewEnd > nowSec && nowSec > winSec) {
+//       viewEnd = nowSec;
+//       viewStart = Math.max(0, viewEnd - winSec);
+//     }
+//   } else {
+//     viewStart = Math.max(0, nowSec - winSec);
+//     viewEnd = Math.max(winSec, nowSec);
+//   }
+
+//   const visible = seriesSrc.filter(p => p.t >= viewStart && p.t <= viewEnd);
+//   if (visible.length < 2) return;
+
+//   function xMap(t){
+//     return chartLeft + ((t - viewStart) / Math.max(1e-9, (viewEnd - viewStart))) * pw;
+//   }
+
+//   // 固定スケール
+//   const globalMax = Math.max(1e-9, BAND_TIMELINE_INVESTIGATE_FIXED_MAX);
+
+//   // for (const p of visible) {
+//   //   console.log('bandA raw =', p.bandAInvestigate);
+//   //   break;
+//   //  }
+
+//   function toPlot100(raw){
+//     return (Math.max(0, Number(raw) || 0) / globalMax) * 100.0;
+//   }
+
+//   function yMap(v){
+//     const vv = Math.max(0, Math.min(100, Number(v) || 0));
+//     return chartBottom - (vv / 100.0) * ph;
+//   }
+
+//   // 横グリッド
+//   gTBI.strokeStyle = '#ececec';
+//   gTBI.lineWidth = 1;
+//   for (let i = 0; i <= 5; i++) {
+//     const y = chartTop + ph * i / 5;
+//     gTBI.beginPath();
+//     gTBI.moveTo(chartLeft, y);
+//     gTBI.lineTo(chartRight, y);
+//     gTBI.stroke();
+
+//     const v = 100 - (100 * i / 5);
+//     gTBI.fillStyle = '#666';
+//     gTBI.font = '11px sans-serif';
+//     gTBI.textAlign = 'right';
+//     gTBI.textBaseline = 'middle';
+//     gTBI.fillText(String(Math.round(v)), chartLeft - 8, y);
+//   }
+
+
+//   for (const band of BANDS_INVESTIGATE) {
+//     gTBI.save();
+//     gTBI.strokeStyle = bandColors[band.key] || '#333';
+//     gTBI.lineWidth = 2;
+//     gTBI.beginPath();
+
+//     let started = false;
+//     for (const p of visible) {
+//       const raw = Number(p.bandAInvestigate?.[band.key]) || 0;
+//       const plotVal = toPlot100(raw);
+//       const x = xMap(p.t);
+//       const y = yMap(plotVal);
+
+//       if (!started) {
+//         gTBI.moveTo(x, y);
+//         started = true;
+//       } else {
+//         gTBI.lineTo(x, y);
+//       }
+//     }
+
+//     if (started) gTBI.stroke();
+//     gTBI.restore();
+//   }
+
+//   // TOUCH
+//   for (const s of touchShots) {
+//     if (s.t < viewStart || s.t > viewEnd) continue;
+//     const x = xMap(s.t);
+//     drawTouchMarker(gTBI, x, chartTop, chartBottom, s);
+//   }
+
+//   // // 凡例
+//   // const legend = [
+//   //   ['b0', '0-80'],
+//   //   ['b1', '80-160'],
+//   //   ['b2', '160-250'],
+//   //   ['b3', '250-350'],
+//   //   ['b4', '350-450'],
+//   //   ['b5', '450-500'],
+//   // ];
+
+//   let lx = chartLeft + 8;
+//   const ly = chartTop + 8;
+
+//   gTBI.font = '12px sans-serif';
+//   gTBI.textAlign = 'left';
+//   gTBI.textBaseline = 'top';
+
+//   for (const [key, label] of BANDS_INVESTIGATE_LEGEND ) {
+//     gTBI.fillStyle = bandColors[key];
+//     gTBI.fillRect(lx, ly + 4, 12, 3);
+//     gTBI.fillStyle = '#333';
+//     gTBI.fillText(label, lx + 16, ly);
+//     lx += 78;
+//   }
+
+//   gTBI.fillStyle = '#777';
+//   gTBI.font = '11px sans-serif';
+//   gTBI.textAlign = 'left';
+//   gTBI.textBaseline = 'alphabetic';
+//   gTBI.fillText('Band Timeline (A / overlay, normalized in view)', chartLeft, H - 6);
+// }
+
+function drawBandTimelineInvestigate(){
+  if (!tsBandInvestigateCanvas || !gTBI) return;
+
+  const W = tsBandInvestigateCanvas.width;
+  const H = tsBandInvestigateCanvas.height;
+  gTBI.clearRect(0, 0, W, H);
+
+  const selectedFrozen = getSelectedFrozenSeries();
+  const seriesSrc = (!timeLogFollowLatest && selectedFrozen)
+    ? selectedFrozen
+    : tsBuf;
+
+  const ml = 58, mr = 58, mt = 18, mb = 28;
+  const pw = W - ml - mr;
+  const ph = H - mt - mb;
+
+  const chartLeft   = ml;
+  const chartRight  = ml + pw;
+  const chartTop    = mt;
+  const chartBottom = mt + ph;
+
+  gTBI.fillStyle = '#fcfcfc';
+  gTBI.fillRect(0, 0, W, H);
+
+  gTBI.strokeStyle = '#d4d4d4';
+  gTBI.lineWidth = 1;
+  gTBI.beginPath();
+  gTBI.moveTo(chartLeft, chartTop);
+  gTBI.lineTo(chartLeft, chartBottom);
+  gTBI.lineTo(chartRight, chartBottom);
+  gTBI.stroke();
+
+  if (!seriesSrc || seriesSrc.length < 2) {
+    gTBI.fillStyle = '#999';
+    gTBI.font = '12px sans-serif';
+    gTBI.fillText('no band timeline investigate yet', chartLeft + 10, chartTop + 18);
+    return;
+  }
+
+  const nowSec = seriesSrc[seriesSrc.length - 1].t;
+  const winSec = getTimeWindowSec();
+
+  let viewStart = 0;
+  let viewEnd = winSec;
+
+  if (!timeLogFollowLatest && isFinite(timeLogCenterSec)) {
+    viewStart = Math.max(0, timeLogCenterSec - winSec / 2);
+    viewEnd = viewStart + winSec;
+
+    if (viewEnd > nowSec && nowSec > winSec) {
+      viewEnd = nowSec;
+      viewStart = Math.max(0, viewEnd - winSec);
+    }
+  } else {
+    viewStart = Math.max(0, nowSec - winSec);
+    viewEnd = Math.max(winSec, nowSec);
+  }
+
+  const visible = seriesSrc.filter(p => p.t >= viewStart && p.t <= viewEnd);
+  if (visible.length < 2) return;
+
+  function xMap(t){
+    return chartLeft + ((t - viewStart) / Math.max(1e-9, (viewEnd - viewStart))) * pw;
+  }
+
+  const globalMax = Math.max(1e-9, BAND_TIMELINE_INVESTIGATE_FIXED_MAX);
+
+  function toPlot100(raw){
+    return (Math.max(0, Number(raw) || 0) / globalMax) * 100.0;
+  }
+
+  function yMap(v){
+    const vv = Math.max(0, Math.min(100, Number(v) || 0));
+    return chartBottom - (vv / 100.0) * ph;
+  }
+
+  // 横グリッド
+  gTBI.strokeStyle = '#ececec';
+  gTBI.lineWidth = 1;
+  for (let i = 0; i <= 5; i++) {
+    const y = chartTop + ph * i / 5;
+    gTBI.beginPath();
+    gTBI.moveTo(chartLeft, y);
+    gTBI.lineTo(chartRight, y);
+    gTBI.stroke();
+
+    const v = 100 - (100 * i / 5);
+    gTBI.fillStyle = '#666';
+    gTBI.font = '11px sans-serif';
+    gTBI.textAlign = 'right';
+    gTBI.textBaseline = 'middle';
+    gTBI.fillText(String(Math.round(v)), chartLeft - 8, y);
+  }
+
+  const bandColors = {};
+  BANDS_INVESTIGATE.forEach((band, idx) => {
+    bandColors[band.key] = BAND_COLORS_INVESTIGATE[idx % BAND_COLORS_INVESTIGATE.length] || '#333';
+  });
+
+  // 線描画
+  for (const band of BANDS_INVESTIGATE) {
+    gTBI.save();
+    gTBI.strokeStyle = bandColors[band.key] || '#333';
+    gTBI.lineWidth = 2;
+    gTBI.beginPath();
+
+    let started = false;
+    for (const p of visible) {
+      const raw = Number(p.bandAInvestigate?.[band.key]) || 0;
+      const plotVal = toPlot100(raw);
+      const x = xMap(p.t);
+      const y = yMap(plotVal);
+
+      if (!started) {
+        gTBI.moveTo(x, y);
+        started = true;
+      } else {
+        gTBI.lineTo(x, y);
+      }
+    }
+
+    if (started) gTBI.stroke();
+    gTBI.restore();
+  }
+
+  // TOUCH
+  for (const s of touchShots) {
+    if (s.t < viewStart || s.t > viewEnd) continue;
+    const x = xMap(s.t);
+    drawTouchMarker(gTBI, x, chartTop, chartBottom, s);
+  }
+
+  // 凡例
+  let lx = chartLeft + 8;
+  let ly = chartTop + 8;
+  const rowGap = 18;
+  const itemGap = 16;
+
+  gTBI.font = '12px sans-serif';
+  gTBI.textAlign = 'left';
+  gTBI.textBaseline = 'top';
+
+  for (let i = 0; i < BANDS_INVESTIGATE_LEGEND.length; i++) {
+    const [key, label] = BANDS_INVESTIGATE_LEGEND[i];
+    const color = bandColors[key] || '#333';
+
+    const textW = gTBI.measureText(label).width;
+    const itemW = 16 + textW + itemGap;
+
+    if (lx + itemW > chartRight - 8) {
+      lx = chartLeft + 8;
+      ly += rowGap;
+    }
+
+    gTBI.fillStyle = color;
+    gTBI.fillRect(lx, ly + 4, 12, 3);
+
+    gTBI.fillStyle = '#333';
+    gTBI.fillText(label, lx + 16, ly);
+
+    lx += itemW;
+  }
+
+  gTBI.fillStyle = '#777';
+  gTBI.font = '11px sans-serif';
+  gTBI.textAlign = 'left';
+  gTBI.textBaseline = 'alphabetic';
+  gTBI.fillText('Band Timeline Investigate (A / overlay, normalized in view)', chartLeft, H - 6);
+}
+
+
 
 function drawStairTimeline(){
   if (!tsBridgeCanvas || !gTSter) return;
@@ -5708,4 +6171,29 @@ function drawStairTimelineZoom(){
   gTSterZoom.textAlign = 'left';
   gTSterZoom.textBaseline = 'alphabetic';
   gTSterZoom.fillText('BridgeScore Zoom (0.75-1.00 / 2nd-wave view)', chartLeft, H - 6);
+}
+
+function renderInvestigateLegend(){
+  const el = document.getElementById('bandInvestigateLegend');
+  if (!el) return;
+
+  el.innerHTML = '';
+
+  BANDS_INVESTIGATE_LEGEND.forEach(([key, label, desc], idx) => {
+    const item = document.createElement('div');
+    item.className = 'bandLegendItem';
+
+    const swatch = document.createElement('span');
+    swatch.className = 'bandLegendSwatch';
+    swatch.textContent = '■';
+    swatch.style.color = BAND_COLORS_INVESTIGATE[idx % BAND_COLORS_INVESTIGATE.length];
+
+    const text = document.createElement('span');
+    text.className = 'bandLegendText';
+    text.textContent = `${label}（${desc}）`;
+
+    item.appendChild(swatch);
+    item.appendChild(text);
+    el.appendChild(item);
+  });
 }
