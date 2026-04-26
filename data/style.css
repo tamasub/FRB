@@ -549,3 +549,22 @@
     display:inline-block;
     word-break:break-word;
     }
+
+
+    .soundBox{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    flex-wrap:wrap;
+    }
+
+    .soundBox label{
+    display:inline-flex;
+    gap:4px;
+    align-items:center;
+    font-size:12px;
+    }
+
+    #soundVol{
+    width:120px;
+    }

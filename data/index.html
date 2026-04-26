@@ -49,6 +49,47 @@
   </div>
 
   <canvas id="c"></canvas>
+  <div class="box soundBox">
+    <b>Sound Output</b>
+    <label>
+      Hz:
+      <input id="soundFreq" type="number" value="120" min="1" max="1000" step="1" style="width:72px">
+    </label>
+    <label>
+      Vol:
+      <input id="soundVol" type="range" min="0" max="1" step="0.01" value="0.15">
+      <span id="soundVolTxt">0.15</span>
+    </label>
+    <label>
+      Start:
+      <input id="sweepStartHz" type="number" value="20" min="1" max="1000" step="1" style="width:72px">
+    </label>
+    <label>
+      End:
+      <input id="sweepEndHz" type="number" value="300" min="1" max="1000" step="1" style="width:72px">
+    </label>
+    <label>
+      Sec:
+      <input id="sweepDurationSec" type="number" value="60" min="1" max="600" step="1" style="width:72px">
+    </label>
+    <button id="sweepStartBtn" type="button">Start Sweep</button>
+    <button id="sweepStopBtn" type="button">Stop Sweep</button>
+    <span id="sweepStatus" class="mini">sweep idle</span>
+
+    <label>
+      Mod:
+      <select id="modType">
+        <option value="none" selected>none</option>
+        <option value="am_slow">AM slow</option>
+        <option value="am_fast">AM fast</option>
+        <option value="pulse">Pulse</option>
+      </select>
+    </label>
+
+    <button id="soundStartBtn" type="button">Start Tone</button>
+    <button id="soundStopBtn" type="button">Stop</button>
+    <span id="soundStatus" class="mini">idle</span>
+  </div>
 
   <div class="panel">
     <div class="section-head">

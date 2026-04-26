@@ -6294,3 +6294,281 @@ function renderInvestigateLegend(){
     el.appendChild(item);
   });
 }
+
+
+
+// ===== Sound Output: single sine tone =====
+let audioCtx = null;
+let oscNode = null;
+let gainNode = null;
+
+function getSoundFreq(){
+  const el = document.getElementById('soundFreq');
+  const v = Number(el?.value);
+  if (!Number.isFinite(v)) return 120;
+  return Math.max(1, Math.min(1000, v));
+}
+
+function getSoundVol(){
+  const el = document.getElementById('soundVol');
+  const v = Number(el?.value);
+  if (!Number.isFinite(v)) return 0.15;
+  return Math.max(0, Math.min(1, v));
+}
+
+async function ensureAudioContext(){
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+
+  if (audioCtx.state === 'suspended') {
+    await audioCtx.resume();
+  }
+
+  return audioCtx;
+}
+
+
+
+
+async function startTone(){
+  const ctx = await ensureAudioContext();
+
+  stopTone();
+
+  oscNode = ctx.createOscillator();
+  gainNode = ctx.createGain();
+
+  oscNode.type = 'sine';
+  oscNode.frequency.setValueAtTime(getSoundFreq(), ctx.currentTime);
+
+  gainNode.gain.setValueAtTime(getSoundVol(), ctx.currentTime);
+
+  oscNode.connect(gainNode);
+  gainNode.connect(ctx.destination);
+
+  oscNode.start();
+  
+  startModulation();
+
+  const st = document.getElementById('soundStatus');
+  if (st) st.textContent = `playing ${getSoundFreq().toFixed(1)} Hz`;
+}
+
+function stopTone(){
+  stopModulation();
+
+  if (oscNode) {
+    try {
+      oscNode.stop();
+    } catch (_) {}
+    try {
+      oscNode.disconnect();
+    } catch (_) {}
+    oscNode = null;
+  }
+
+  if (gainNode) {
+    try {
+      gainNode.disconnect();
+    } catch (_) {}
+    gainNode = null;
+  }
+
+  const st = document.getElementById('soundStatus');
+  if (st) st.textContent = 'idle';
+}
+
+function updateToneFrequency(){
+  if (!audioCtx || !oscNode) return;
+
+  const hz = getSoundFreq();
+  oscNode.frequency.setTargetAtTime(hz, audioCtx.currentTime, 0.01);
+
+  const st = document.getElementById('soundStatus');
+  if (st) st.textContent = `playing ${hz.toFixed(1)} Hz`;
+}
+
+function updateToneVolume(){
+  const v = getSoundVol();
+
+  const txt = document.getElementById('soundVolTxt');
+  if (txt) txt.textContent = v.toFixed(2);
+
+  if (!audioCtx || !gainNode) return;
+  gainNode.gain.setTargetAtTime(v, audioCtx.currentTime, 0.01);
+}
+
+document.getElementById('soundStartBtn')
+  ?.addEventListener('click', startTone);
+
+document.getElementById('soundStopBtn')
+  ?.addEventListener('click', stopTone);
+
+document.getElementById('soundFreq')
+  ?.addEventListener('input', updateToneFrequency);
+
+document.getElementById('soundVol')
+  ?.addEventListener('input', updateToneVolume);
+
+updateToneVolume();
+
+
+
+// ===== Sound Output: auto sweep =====
+let modTimer = null;
+
+let sweepTimer = null;
+let sweepStartTime = 0;
+let sweepActive = false;
+
+function getNumInput(id, fallback, min, max){
+  const el = document.getElementById(id);
+  const v = Number(el?.value);
+  if (!Number.isFinite(v)) return fallback;
+  return Math.max(min, Math.min(max, v));
+}
+
+function getSweepStartHz(){
+  return getNumInput('sweepStartHz', 20, 1, 1000);
+}
+
+function getSweepEndHz(){
+  return getNumInput('sweepEndHz', 300, 1, 1000);
+}
+
+function getSweepDurationSec(){
+  return getNumInput('sweepDurationSec', 60, 1, 600);
+}
+
+async function startSweep(){
+  const ctx = await ensureAudioContext();
+
+  stopSweep();
+  stopTone();
+
+  const startHz = getSweepStartHz();
+  const endHz = getSweepEndHz();
+  const dur = getSweepDurationSec();
+
+  oscNode = ctx.createOscillator();
+  gainNode = ctx.createGain();
+
+  oscNode.type = 'sine';
+  gainNode.gain.setValueAtTime(getSoundVol(), ctx.currentTime);
+
+  oscNode.frequency.setValueAtTime(startHz, ctx.currentTime);
+  oscNode.connect(gainNode);
+  gainNode.connect(ctx.destination);
+  oscNode.start();
+
+  sweepStartTime = ctx.currentTime;
+  sweepActive = true;
+
+  const st = document.getElementById('sweepStatus');
+  if (st) st.textContent = `sweeping ${startHz.toFixed(1)}→${endHz.toFixed(1)} Hz`;
+
+  sweepTimer = setInterval(() => {
+    if (!audioCtx || !oscNode || !sweepActive) return;
+
+    const t = audioCtx.currentTime - sweepStartTime;
+    const r = Math.max(0, Math.min(1, t / dur));
+    const hz = startHz + (endHz - startHz) * r;
+
+    oscNode.frequency.setTargetAtTime(hz, audioCtx.currentTime, 0.02);
+
+    const freqEl = document.getElementById('soundFreq');
+    if (freqEl) freqEl.value = hz.toFixed(1);
+
+    const soundSt = document.getElementById('soundStatus');
+    if (soundSt) soundSt.textContent = `playing ${hz.toFixed(1)} Hz`;
+
+    const sweepSt = document.getElementById('sweepStatus');
+    if (sweepSt) sweepSt.textContent = `sweep ${hz.toFixed(1)} Hz / ${(r * 100).toFixed(0)}%`;
+
+    if (r >= 1) {
+      stopSweep();
+    }
+  }, 50);
+}
+
+function stopSweep(){
+  sweepActive = false;
+
+  if (sweepTimer) {
+    clearInterval(sweepTimer);
+    sweepTimer = null;
+  }
+
+  stopTone();
+
+  const st = document.getElementById('sweepStatus');
+  if (st) st.textContent = 'sweep idle';
+}
+
+document.getElementById('sweepStartBtn')
+  ?.addEventListener('click', startSweep);
+
+document.getElementById('sweepStopBtn')
+  ?.addEventListener('click', stopSweep);
+
+
+  // ===== Sound Output: modulation =====
+function getModType(){
+  return document.getElementById('modType')?.value || 'none';
+}
+
+function startModulation(){
+  stopModulation();
+
+  if (!audioCtx || !gainNode) return;
+
+  const baseVol = getSoundVol();
+  const modType = getModType();
+
+  if (modType === 'none') {
+    gainNode.gain.setValueAtTime(baseVol, audioCtx.currentTime);
+    return;
+  }
+
+  modTimer = setInterval(() => {
+    if (!audioCtx || !gainNode) return;
+
+    const t = audioCtx.currentTime;
+    let amp = baseVol;
+
+    if (modType === 'am_slow') {
+      // ゆっくり呼吸するようなAM
+      amp = baseVol * (0.55 + 0.45 * Math.sin(t * Math.PI * 2 * 1.2));
+    }
+
+    if (modType === 'am_fast') {
+      // 細かいぷるぷる寄り
+      amp = baseVol * (0.55 + 0.45 * Math.sin(t * Math.PI * 2 * 6.0));
+    }
+
+    if (modType === 'pulse') {
+      // 断続的なON/OFF
+      const on = (Math.sin(t * Math.PI * 2 * 3.0) > 0);
+      amp = on ? baseVol : baseVol * 0.12;
+    }
+
+    amp = Math.max(0, Math.min(1, amp));
+    gainNode.gain.setTargetAtTime(amp, audioCtx.currentTime, 0.015);
+  }, 20);
+}
+
+function stopModulation(){
+  if (modTimer) {
+    clearInterval(modTimer);
+    modTimer = null;
+  }
+}
+
+document.getElementById('modType')
+  ?.addEventListener('change', () => {
+    if (oscNode && gainNode) {
+      startModulation();
+    }
+  });
+  
