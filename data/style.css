@@ -568,3 +568,10 @@
     #soundVol{
     width:120px;
     }
+
+    #tsSweep{
+    display:block;
+    width:100%;
+    height:360px;
+    margin-bottom:8px;
+    }

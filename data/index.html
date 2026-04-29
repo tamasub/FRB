@@ -49,47 +49,6 @@
   </div>
 
   <canvas id="c"></canvas>
-  <div class="box soundBox">
-    <b>Sound Output</b>
-    <label>
-      Hz:
-      <input id="soundFreq" type="number" value="120" min="1" max="1000" step="1" style="width:72px">
-    </label>
-    <label>
-      Vol:
-      <input id="soundVol" type="range" min="0" max="1" step="0.01" value="0.15">
-      <span id="soundVolTxt">0.15</span>
-    </label>
-    <label>
-      Start:
-      <input id="sweepStartHz" type="number" value="20" min="1" max="1000" step="1" style="width:72px">
-    </label>
-    <label>
-      End:
-      <input id="sweepEndHz" type="number" value="300" min="1" max="1000" step="1" style="width:72px">
-    </label>
-    <label>
-      Sec:
-      <input id="sweepDurationSec" type="number" value="60" min="1" max="600" step="1" style="width:72px">
-    </label>
-    <button id="sweepStartBtn" type="button">Start Sweep</button>
-    <button id="sweepStopBtn" type="button">Stop Sweep</button>
-    <span id="sweepStatus" class="mini">sweep idle</span>
-
-    <label>
-      Mod:
-      <select id="modType">
-        <option value="none" selected>none</option>
-        <option value="am_slow">AM slow</option>
-        <option value="am_fast">AM fast</option>
-        <option value="pulse">Pulse</option>
-      </select>
-    </label>
-
-    <button id="soundStartBtn" type="button">Start Tone</button>
-    <button id="soundStopBtn" type="button">Stop</button>
-    <span id="soundStatus" class="mini">idle</span>
-  </div>
 
   <div class="panel">
     <div class="section-head">
@@ -103,6 +62,66 @@
     </div>
 
     <div class="timelog-wrap">
+      <div class="box soundBox">
+        <b>Sound Output</b>
+        <label>
+          Hz:
+          <input id="soundFreq" type="number" value="120" min="1" max="1000" step="1" style="width:72px">
+        </label>
+        <label>
+          Vol:
+          <input id="soundVol" type="range" min="0" max="1" step="0.01" value="0.35">
+          <span id="soundVolTxt">0.35</span>
+        </label>
+        <label>
+          Start:
+          <input id="sweepStartHz" type="number" value="20" min="1" max="1000" step="1" style="width:72px">
+        </label>
+        <label>
+          End:
+          <input id="sweepEndHz" type="number" value="300" min="1" max="1000" step="1" style="width:72px">
+        </label>
+        <label>
+          Sec:
+          <input id="sweepDurationSec" type="number" value="30" min="1" max="600" step="1" style="width:72px">
+        </label>
+        <button id="sweepStartBtn" type="button">Start Sweep</button>
+        <button id="sweepStopBtn" type="button">Stop Sweep</button>
+        <span id="sweepStatus" class="mini">sweep idle</span>
+
+        <label>
+          Mod:
+          <select id="modType">
+            <option value="none">none</option>
+            <option value="am_slow"  selected>AM slow</option>
+            <option value="am_fast">AM fast</option>
+            <option value="pulse">Pulse</option>
+          </select>
+        </label>
+
+        
+        <label>
+          <button id="soundStartBtn" type="button">Start Tone</button>
+          <button id="soundStopBtn" type="button">Stop</button>
+          <span id="soundStatus" class="mini">idle</span>
+        
+           <b>Log:</b>
+
+
+           <button id="saveLogBtn">Save Log</button>
+          <input id="loadLogFile" type="file" accept=".json,application/json" style="display:none;">
+          <button id="loadLogBtn">Load Log</button>
+          <button id="resumeLiveBtn">Resume Live</button>
+          </label>
+        
+      </div>
+      <div class="subPanel">
+        <div class="subTitle">Sweep Trace</div>
+        <canvas id="tsSweep"></canvas>
+      </div>
+
+
+
 
       <div class="box">
         BandTimeline Scale:
@@ -120,8 +139,8 @@
         <select id="bandScaleModeInvestigate">
           <option value="3000">Scale1-0(3000)</option>
           <option value="5000">Scale1-1(5000)</option>
-          <option value="10000" selected >Scale1 (10000)</option>
-          <option value="40000">Scale2 (40000)</option>
+          <option value="10000">Scale1 (10000)</option>
+          <option value="40000" selected >Scale2 (40000)</option>
           <option value="60000">Scale3 (60000)</option>
           <option value="80000">Scale4 (80000)</option>
         </select>
@@ -211,10 +230,9 @@
 
   <div class="scoreBox" style="margin:10px 0;">
     <div class="scoreTitle">TOUCH Shots</div>
-    <button id="saveLogBtn">Save Log</button>
-    <input id="loadLogFile" type="file" accept=".json,application/json" style="display:none;">
+
     <button id="loadLogBtn">Load Log</button>
-    <button id="resumeLiveBtn">Resume Live</button>
+
     <button onclick="clearSelectedShot()">Clear Select</button>
 
     <div id="touchTable"></div>

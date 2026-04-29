@@ -46,6 +46,9 @@ const gTE = tsExpCanvas.getContext('2d');
 const tsFluxCanvas = document.getElementById('tsFlux');
 const gTF = tsFluxCanvas.getContext('2d');
 const tsPeakCanvas = document.getElementById('tsPeak');
+const tsSweepCanvas = document.getElementById('tsSweep');
+const gTSweep = tsSweepCanvas ? tsSweepCanvas.getContext('2d') : null;
+
 const gTP = tsPeakCanvas.getContext('2d');
 const tsStateCanvas = document.getElementById('tsState');
 const gTS = tsStateCanvas.getContext('2d');
@@ -71,6 +74,9 @@ let viewNowT = null;       // reference time for the time‑log display (null me
 
 let shotSeq = 1;
 const SNAP_DT = 0.3; // seconds
+
+let currentSoundHz = 0;
+let lastPeakAEnergy = 0;
 
 
 //Decay = 振動の形　、　Energy = 振動の量
@@ -1070,6 +1076,11 @@ if(type === 'M'){
   }
 
   const peakHz = (pBin * df);
+
+  if (type === 'A') {
+    lastPeakAEnergy = Number(pVal) || 0;
+  }
+
   //
   const rawTopPeaks = findTopPeaks(spec, df, startBin, maxBinView, 3);
 
@@ -1180,6 +1191,11 @@ if(type === 'M'){
         latestA?.topPeaks,
         latestM?.topPeaks
        ),
+       inputHz: currentSoundHz,
+       modType: getModType ? getModType() : 'none',
+       soundVol: getSoundVol ? getSoundVol() : 0,
+       peakAEnergy: lastPeakAEnergy,
+
 
     };
 
@@ -1220,6 +1236,8 @@ if(type === 'M'){
     drawFrequencyFlow();
     drawStateTimeline();
     drawTimeLog();
+    drawSweepTrace();
+
     //updateNowBandFluxBars();
     updateBandBars();
     updateBandFluxBars();
@@ -1311,6 +1329,11 @@ function fitAll(){
   if (tsBandInvestigateCanvas) fitCanvasEl(tsBandInvestigateCanvas, 300, 200);
   if (gTBI && tsBandInvestigateCanvas) {
     gTBI.clearRect(0, 0, tsBandInvestigateCanvas.width, tsBandInvestigateCanvas.height);
+  }
+
+  if (tsSweepCanvas) fitCanvasEl(tsSweepCanvas, 300, 180);
+  if (gTSweep && tsSweepCanvas) {
+    gTSweep.clearRect(0, 0, tsSweepCanvas.width, tsSweepCanvas.height);
   }
 
 
@@ -3853,6 +3876,7 @@ function loadSessionFromObject(data){
   drawBandTimelineInvestigate();
   drawBandHeatmap();
   drawTingleMotion();
+  drawSweepTrace();
 
 }
 
@@ -4045,7 +4069,7 @@ function resumeLiveMode(){
   drawTimeSeries();
   drawStairTimeline();
   drawStairTimelineZoom();
-
+  drawSweepTrace();
   drawExperienceWave();
   drawFluxTimeSeries();
   drawPeakTimeline();
@@ -6341,6 +6365,7 @@ async function startTone(){
 
   oscNode.type = 'sine';
   oscNode.frequency.setValueAtTime(getSoundFreq(), ctx.currentTime);
+  currentSoundHz = getSoundFreq();
 
   gainNode.gain.setValueAtTime(getSoundVol(), ctx.currentTime);
 
@@ -6377,12 +6402,17 @@ function stopTone(){
 
   const st = document.getElementById('soundStatus');
   if (st) st.textContent = 'idle';
+
+  currentSoundHz = 0;
+
 }
 
 function updateToneFrequency(){
   if (!audioCtx || !oscNode) return;
 
   const hz = getSoundFreq();
+  currentSoundHz = hz;
+
   oscNode.frequency.setTargetAtTime(hz, audioCtx.currentTime, 0.01);
 
   const st = document.getElementById('soundStatus');
@@ -6474,6 +6504,7 @@ async function startSweep(){
     const t = audioCtx.currentTime - sweepStartTime;
     const r = Math.max(0, Math.min(1, t / dur));
     const hz = startHz + (endHz - startHz) * r;
+    currentSoundHz = hz;
 
     oscNode.frequency.setTargetAtTime(hz, audioCtx.currentTime, 0.02);
 
@@ -6571,4 +6602,174 @@ document.getElementById('modType')
       startModulation();
     }
   });
-  
+
+
+function drawSweepTrace(){
+  if (!tsSweepCanvas || !gTSweep) return;
+
+  const W = tsSweepCanvas.width;
+  const H = tsSweepCanvas.height;
+  gTSweep.clearRect(0, 0, W, H);
+
+  const selectedFrozen = getSelectedFrozenSeries();
+  const seriesSrc = (!timeLogFollowLatest && selectedFrozen)
+    ? selectedFrozen
+    : tsBuf;
+
+  const ml = 58, mr = 58, mt = 18, mb = 24;
+  const pw = W - ml - mr;
+  const ph = H - mt - mb;
+
+  const chartLeft = ml;
+  const chartRight = ml + pw;
+  const chartTop = mt;
+  const chartBottom = mt + ph;
+
+  gTSweep.fillStyle = '#fcfcfc';
+  gTSweep.fillRect(0, 0, W, H);
+
+  gTSweep.strokeStyle = '#d4d4d4';
+  gTSweep.lineWidth = 1;
+  gTSweep.beginPath();
+  gTSweep.moveTo(chartLeft, chartTop);
+  gTSweep.lineTo(chartLeft, chartBottom);
+  gTSweep.lineTo(chartRight, chartBottom);
+  gTSweep.stroke();
+
+  if (!seriesSrc || seriesSrc.length < 2) {
+    gTSweep.fillStyle = '#999';
+    gTSweep.font = '12px sans-serif';
+    gTSweep.fillText('no sweep trace yet', chartLeft + 10, chartTop + 18);
+    return;
+  }
+
+  const nowSec = seriesSrc[seriesSrc.length - 1].t;
+  const winSec = getTimeWindowSec();
+
+  let viewStart = 0;
+  let viewEnd = winSec;
+
+  if (!timeLogFollowLatest && isFinite(timeLogCenterSec)) {
+    viewStart = Math.max(0, timeLogCenterSec - winSec / 2);
+    viewEnd = viewStart + winSec;
+
+    if (viewEnd > nowSec && nowSec > winSec) {
+      viewEnd = nowSec;
+      viewStart = Math.max(0, viewEnd - winSec);
+    }
+  } else {
+    viewStart = Math.max(0, nowSec - winSec);
+    viewEnd = Math.max(winSec, nowSec);
+  }
+
+  const visible = seriesSrc.filter(p => p.t >= viewStart && p.t <= viewEnd);
+  if (visible.length < 2) return;
+
+  const hzMax = Math.max(300, viewMaxHz || 600);
+
+  let energyMax = 1e-9;
+  for (const p of visible) {
+    const e = Number(p.peakAEnergy) || 0;
+    if (e > energyMax) energyMax = e;
+  }
+
+  function xMap(t){
+    return chartLeft + ((t - viewStart) / Math.max(1e-9, (viewEnd - viewStart))) * pw;
+  }
+
+  function yMapHz(hz){
+    const v = Math.max(0, Math.min(hzMax, Number(hz) || 0));
+    return chartBottom - (v / hzMax) * ph;
+  }
+
+  function yMapEnergy(e){
+    const v = Math.max(0, Number(e) || 0);
+    const norm = Math.log1p(v) / Math.log1p(Math.max(1e-9, energyMax));
+
+    // 0〜100正規化
+    return chartBottom - norm * ph;
+  }
+
+  // grid
+  gTSweep.strokeStyle = '#ececec';
+  gTSweep.lineWidth = 1;
+  gTSweep.font = '11px sans-serif';
+
+  for (let i = 0; i <= 4; i++) {
+    const y = chartTop + ph * i / 4;
+    gTSweep.beginPath();
+    gTSweep.moveTo(chartLeft, y);
+    gTSweep.lineTo(chartRight, y);
+    gTSweep.stroke();
+
+    const hzVal = hzMax - hzMax * i / 4;
+    gTSweep.fillStyle = '#666';
+    gTSweep.textAlign = 'right';
+    gTSweep.textBaseline = 'middle';
+    gTSweep.fillText(`${Math.round(hzVal)}`, chartLeft - 8, y);
+  }
+
+  function drawLine(key, color, yMap, width = 2, dashed = false){
+    gTSweep.save();
+    gTSweep.strokeStyle = color;
+    gTSweep.lineWidth = width;
+    gTSweep.setLineDash(dashed ? [6, 4] : []);
+    gTSweep.beginPath();
+
+    let started = false;
+
+    for (const p of visible) {
+      const v = Number(p[key]) || 0;
+      if (key === 'inputHz' && v <= 0) continue;
+
+      const x = xMap(p.t);
+      const y = yMap(v);
+
+      if (!started) {
+        gTSweep.moveTo(x, y);
+        started = true;
+      } else {
+        gTSweep.lineTo(x, y);
+      }
+    }
+
+    if (started) gTSweep.stroke();
+    gTSweep.restore();
+  }
+
+  drawLine('inputHz', '#777777', yMapHz, 2, true);
+  drawLine('peakAHz', '#1e88e5', yMapHz, 2, false);
+  drawLine('peakAEnergy', '#8e24aa', yMapEnergy, 1.5, false);
+
+  // TOUCH markers
+  for (const s of touchShots) {
+    if (s.t < viewStart || s.t > viewEnd) continue;
+    const x = xMap(s.t);
+    drawTouchMarker(gTSweep, x, chartTop, chartBottom, s);
+  }
+
+  // legend
+  gTSweep.font = '12px sans-serif';
+  gTSweep.textAlign = 'left';
+  gTSweep.textBaseline = 'top';
+
+  gTSweep.fillStyle = '#777';
+  gTSweep.fillText('Input Hz', chartLeft + 8, chartTop + 6);
+
+  gTSweep.fillStyle = '#1e88e5';
+  gTSweep.fillText('PeakA Hz', chartLeft + 90, chartTop + 6);
+
+  gTSweep.fillStyle = '#8e24aa';
+  gTSweep.fillText('PeakA Energy', chartLeft + 175, chartTop + 6);
+
+  const last = visible[visible.length - 1];
+  gTSweep.fillStyle = '#333';
+  gTSweep.font = '11px sans-serif';
+  gTSweep.textAlign = 'right';
+  gTSweep.textBaseline = 'alphabetic';
+  gTSweep.fillText(
+    `in:${(Number(last.inputHz)||0).toFixed(1)}Hz / peak:${(Number(last.peakAHz)||0).toFixed(1)}Hz / E:${(Number(last.peakAEnergy)||0).toFixed(0)}`,
+    chartRight,
+    H - 6
+  );
+}
