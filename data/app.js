@@ -66,6 +66,9 @@ const timeWindowSel = document.getElementById('timeWindow');
 const thrEl = document.getElementById('thr');
 const thrTxt = document.getElementById('thrTxt');
 
+const experimentMemoEl = document.getElementById('experimentMemo');
+const logInfoStatusEl = document.getElementById('logInfoStatus');
+
 // latest value (used as reference for the time log at the moment of touch)
 let lastScrape = 0;
 
@@ -3780,9 +3783,30 @@ function downsampleTimeSeries(src, stepSec = 0.1){
   return out;
 }
 
+function getExperimentMemo(){
+  return String(experimentMemoEl?.value || '').trim();
+}
+
+function setExperimentMemo(v){
+  if (experimentMemoEl) experimentMemoEl.value = String(v || '');
+}
+
+function safeFilePart(s){
+  return String(s || '')
+    .trim()
+    .replace(/[\\/:*?"<>|]/g, '_')
+    .replace(/\s+/g, '_')
+    .slice(0, 40);
+}
+
 function buildSessionData(){
+  const experimentMemo = getExperimentMemo();
+
   return {
-    version: 1,
+    version: 2,
+    experiment: {
+      memo: experimentMemo
+    },
     savedAt: new Date().toISOString(),
     touchShots: touchShots.map(s => ({ ...s })),
     // tsBufは軽量化して保存
@@ -3801,9 +3825,17 @@ function saveSessionToFile(){
 
   const a = document.createElement('a');
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const memoPart = safeFilePart(data.experiment?.memo);
   a.href = URL.createObjectURL(blob);
-  a.download = `fft_log_${stamp}.json`;
+  a.download = memoPart
+    ? `fft_log_${memoPart}_${stamp}.json`
+    : `fft_log_${stamp}.json`;
   a.click();
+  if (logInfoStatusEl) {
+    logInfoStatusEl.textContent = data.experiment?.memo
+      ? `saved: ${data.experiment.memo}`
+      : 'saved: no exp memo';
+  }
   console.log('session data saved', a.href.toString);
   URL.revokeObjectURL(a.href);
 }
@@ -3811,6 +3843,12 @@ function saveSessionToFile(){
 function loadSessionFromObject(data){
   if (!data || typeof data !== 'object') {
     throw new Error('loadSessionFromObject: invalid data');
+  }
+
+  const memo = data.experiment?.memo ?? data.experimentMemo ?? '';
+  setExperimentMemo(memo);
+  if (logInfoStatusEl) {
+    logInfoStatusEl.textContent = memo ? `loaded: ${memo}` : 'loaded: no exp memo';
   }
 
   // 本体クリア

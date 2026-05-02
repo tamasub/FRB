@@ -12,43 +12,6 @@
 
   <div id="warn" class="warn"></div>
 
-  <div class="row">
-    <div class="box">Status: <span id="st">connecting...</span></div>
-    <div class="box">Update: <span id="fps">-</span> Hz</div>
-    <div class="box">
-      <div id="peakTable" class="peakTable">
-        <div class="row">
-          <div class="lbl">Peak:A</div>
-          <div id="a1"></div>
-          <div id="a2"></div>
-          <div id="a3"></div>
-        </div>
-        <div class="row">
-          <div class="lbl">Peak:M</div>
-          <div id="m1"></div>
-          <div id="m2"></div>
-          <div id="m3"></div>
-        </div>
-      </div>
-      </div>
-
-    <div class="box">
-      Band:
-      <input id="fmin" type="number" value="10" min="0" step="1" style="width:72px"> -
-      <input id="fmax" type="number" value="400" min="1" step="1" style="width:72px"> Hz
-      <button id="apply">Apply</button>
-    </div>
-    <div class="box">
-      Smooth:
-      <input id="alpha" type="number" value="0.25" min="0.01" max="1" step="0.01" style="width:72px">
-      <small>(0.10〜0.30おすすめ)</small>
-      <label style="margin-left:12px; user-select:none;">
-      <input type="checkbox" id="db" checked> dB表示</label>
-    </div>
-
-  </div>
-
-  <canvas id="c"></canvas>
 
   <div class="panel">
     <div class="section-head">
@@ -112,6 +75,11 @@
           <input id="loadLogFile" type="file" accept=".json,application/json" style="display:none;">
           <button id="loadLogBtn">Load Log</button>
           <button id="resumeLiveBtn">Resume Live</button>
+          <label style="display:inline-flex;align-items:center;gap:4px;margin-left:8px;">
+            Exp:
+            <textarea id="experimentMemo" rows="1" placeholder="例: #34 ステンレス棒+シリコン / 300Hz AM slow" style="width:360px;height:22px;resize:horizontal;font-size:12px;"></textarea>
+          </label>
+          <span id="logInfoStatus" class="mini"></span>
           </label>
         
       </div>
@@ -197,10 +165,49 @@
 
     <canvas id="ts"></canvas>
 
+    
+
 
 </div>
 
+  <div class="row">
+    <div class="box">Status: <span id="st">connecting...</span></div>
+    <div class="box">Update: <span id="fps">-</span> Hz</div>
+    <div class="box">
+      <div id="peakTable" class="peakTable">
+        <div class="row">
+          <div class="lbl">Peak:A</div>
+          <div id="a1"></div>
+          <div id="a2"></div>
+          <div id="a3"></div>
+        </div>
+        <div class="row">
+          <div class="lbl">Peak:M</div>
+          <div id="m1"></div>
+          <div id="m2"></div>
+          <div id="m3"></div>
+        </div>
+      </div>
+      </div>
 
+    <div class="box">
+      Band:
+      <input id="fmin" type="number" value="10" min="0" step="1" style="width:72px"> -
+      <input id="fmax" type="number" value="400" min="1" step="1" style="width:72px"> Hz
+      <button id="apply">Apply</button>
+    </div>
+    <div class="box">
+      Smooth:
+      <input id="alpha" type="number" value="0.25" min="0.01" max="1" step="0.01" style="width:72px">
+      <small>(0.10〜0.30おすすめ)</small>
+      <label style="margin-left:12px; user-select:none;">
+      <input type="checkbox" id="db" checked> dB表示</label>
+    </div>
+
+  </div>
+
+  <canvas id="c"></canvas>
+  
   <div class="row"> </div>
   <div class="row">
     <div class="box">
