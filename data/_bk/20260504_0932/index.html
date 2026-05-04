@@ -8,16 +8,11 @@
    
 </head>
 <body>
-  <h2>ESP32 FFT Monitor Ver0.12</h2>
+  <h2>ESP32 FFT Monitor Ver0.11</h2>
 
   <div id="warn" class="warn"></div>
 
-  <div class="box">
-    Band:
-    <input id="fmin" type="number" value="10" min="0" step="1" style="width:72px"> -
-    <input id="fmax" type="number" value="400" min="1" step="1" style="width:72px"> Hz
-    <button id="apply">Apply</button>
-  </div>
+
   <div class="panel">
     <div class="section-head">
       <div class="section-title">TIME LOG</div>
@@ -93,64 +88,63 @@
         <canvas id="tsSweep"></canvas>
       </div>
 
-      <div class="subPanel">
-          BandTimeline Investigate Scale:
-          <select id="bandScaleModeInvestigate">
-            <option value="3000">Scale1-0(3000)</option>
-            <option value="5000">Scale1-1(5000)</option>
-            <option value="10000">Scale1 (10000)</option>
-            <option value="40000" selected >Scale2 (40000)</option>
-            <option value="60000">Scale3 (60000)</option>
-            <option value="80000">Scale4 (80000)</option>
-            <option value="400000">Scale5 (400000)</option>
-            <option value="800000">Scale6 (800000)</option>
-            <option value="1600000">Scale7 (1600000)</option>
-            
-          </select>
 
-          <button id="playInvestigateBtn">Play Investigate</button>
-          <button id="stopInvestigateBtn">Stop</button>
-          <span id="investigateReplayStatus" class="mini">investigate idle</span>
 
-        <div class="box">
-          <div id="bandInvestigateLegend" class="bandLegend"></div>
-        </div>
-        <canvas id="tsBandInvestigate"></canvas>
+
+      <div class="box">
+        BandTimeline Scale:
+        <select id="bandScaleMode">
+          <option value="50000">Scale1 (50000)</option>
+          <option value="80000" selected>Scale2 (80000)</option>
+          <option value="200000">Scale3 (200000)</option>
+          <option value="400000">Scale4 (400000)</option>
+          <option value="800000">Scale5 (800000)</option>
+          
+          
+        </select>
+      </div>
+
+      <canvas id="tsBand"></canvas>
+
+      <div class="box">
+        BandTimeline Investigate Scale:
+        <select id="bandScaleModeInvestigate">
+          <option value="3000">Scale1-0(3000)</option>
+          <option value="5000">Scale1-1(5000)</option>
+          <option value="10000">Scale1 (10000)</option>
+          <option value="40000" selected >Scale2 (40000)</option>
+          <option value="60000">Scale3 (60000)</option>
+          <option value="80000">Scale4 (80000)</option>
+          <option value="400000">Scale5 (400000)</option>
+          <option value="800000">Scale6 (800000)</option>
+          
+        </select>
+
+        <button id="playInvestigateBtn">Play Investigate</button>
+        <button id="stopInvestigateBtn">Stop</button>
+        <span id="investigateReplayStatus" class="mini">investigate idle</span>
+      </div>
+      
+      <div id="bandInvestigateLegend" class="bandLegend"></div>
+
+      <canvas id="tsBandInvestigate"></canvas>
+
+
+
+      <div class="panel">
+        <div class="panelTitle">BridgeScore</div>
+        <canvas id="tsBridge"></canvas>
+      </div>
+
+      <div class="panel">
+        <div class="panelTitle">BridgeScore Zoom (0.75-1.00)</div>
+        <canvas id="tsBridgeZoom"></canvas>
       </div>
 
       <div class="subPanel">
         <div class="subTitle">Flux</div>
         <canvas id="tsFlux"></canvas>
       </div>
-
-      <div class="subPanel">
-        <div class="panelTitle">BridgeScore</div>
-        <canvas id="tsBridge"></canvas>
-      </div>
-
-      <div class="subPanel">
-        <div class="panelTitle">BridgeScore Zoom (0.75-1.00)</div>
-        <canvas id="tsBridgeZoom"></canvas>
-      </div>
-      <div class="subPanel">
-
-          BandTimeline Scale:
-
-            <select id="bandScaleMode">
-              <option value="50000">Scale1 (50000)</option>
-              <option value="80000" selected>Scale2 (80000)</option>
-              <option value="200000">Scale3 (200000)</option>
-              <option value="400000">Scale4 (400000)</option>
-              <option value="800000">Scale5 (800000)</option>
-              <option value="1600000">Scale6 (1600000)</option>
-            </select>
-
-
-        <canvas id="tsBand"></canvas>
-      </div>
-
-
-
 
 
       
@@ -164,7 +158,7 @@
         <div class="subTitle">Experience Wave (beta)</div>
         <canvas id="tsExp"></canvas>
       </div>
-      <div class="subPanel">
+      <div class="panel">
         <div class="title">Band Heatmap</div>
         <canvas id="tsBandHeatCanvas"></canvas>
       </div>
@@ -219,7 +213,12 @@
       </div>
       </div>
 
-
+    <div class="box">
+      Band:
+      <input id="fmin" type="number" value="10" min="0" step="1" style="width:72px"> -
+      <input id="fmax" type="number" value="400" min="1" step="1" style="width:72px"> Hz
+      <button id="apply">Apply</button>
+    </div>
     <div class="box">
       Smooth:
       <input id="alpha" type="number" value="0.25" min="0.01" max="1" step="0.01" style="width:72px">

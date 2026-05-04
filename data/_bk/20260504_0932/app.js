@@ -1,5 +1,4 @@
 //v0.0.0
-// INVESTIGATE_FILTER_HARDCUT_2026-05-04
 
 const st = document.getElementById('st');
 const fpsEl = document.getElementById('fps');
@@ -221,55 +220,6 @@ const BAND_COLORS_INVESTIGATE = [
   // '#5c6bc0', // 450-500（余韻＝青戻り）
 ];
 
-// ===== BandTimeline Investigate 表示フィルタ =====
-// HARD CUT版：BAND_COLORS_INVESTIGATE の「実際に有効な色数」を正として、
-// BANDS_INVESTIGATE / LEGEND / LOADログ / Replay / Canvas凡例をすべて同じ本数に揃える。
-//
-// 重要：過去ログに 280-320 / 320-380 / 380-450 / 450-500 などが保存されていても、
-// ここで定義された「表示対象」以外は Viewer へ出さない。
-const INVESTIGATE_VISIBLE_BAND_COUNT = BAND_COLORS_INVESTIGATE.length;
-
-// const 配列でも中身は変更できる。ここで物理的に表示対象以外を切る。
-// ユーザーが上帯域を復活させたい時は、BAND_COLORS_INVESTIGATE 側のコメントを戻すだけでOK。
-BANDS_INVESTIGATE.length = Math.min(BANDS_INVESTIGATE.length, INVESTIGATE_VISIBLE_BAND_COUNT);
-BANDS_INVESTIGATE_LEGEND.length = Math.min(BANDS_INVESTIGATE_LEGEND.length, INVESTIGATE_VISIBLE_BAND_COUNT);
-
-function getActiveInvestigateBands(){
-  return BANDS_INVESTIGATE.slice(0, INVESTIGATE_VISIBLE_BAND_COUNT);
-}
-
-function getActiveInvestigateBandKeys(){
-  return new Set(getActiveInvestigateBands().map(b => b.key));
-}
-
-function filterInvestigateBandMap(map){
-  if (!map || typeof map !== 'object') return null;
-
-  const out = {};
-  for (const b of getActiveInvestigateBands()) {
-    const v = Number(map[b.key]);
-    out[b.key] = Number.isFinite(v) ? v : 0;
-  }
-  return out;
-}
-
-function filterInvestigateFrame(frame){
-  if (!frame || typeof frame !== 'object') return frame;
-
-  return {
-    ...frame,
-    bandAInvestigate: filterInvestigateBandMap(frame.bandAInvestigate),
-    bandMInvestigate: filterInvestigateBandMap(frame.bandMInvestigate),
-  };
-}
-
-function getActiveInvestigateLegendRows(){
-  const activeKeys = getActiveInvestigateBandKeys();
-  return BANDS_INVESTIGATE_LEGEND
-    .slice(0, INVESTIGATE_VISIBLE_BAND_COUNT)
-    .filter(([key]) => activeKeys.has(key));
-}
-
 
 let BAND_TIMELINE_INVESTIGATE_FIXED_MAX = 80000;
 
@@ -337,8 +287,8 @@ const bandEma = {
 };
 
 const bandEmaInvestigate = {
-  A: makeZeroBandMapBy(getActiveInvestigateBands()),
-  M: makeZeroBandMapBy(getActiveInvestigateBands()),
+  A: makeZeroBandMapBy(BANDS_INVESTIGATE),
+  M: makeZeroBandMapBy(BANDS_INVESTIGATE),
 };
 
 
@@ -999,11 +949,11 @@ if(type === 'M'){
   if (type === 'A') latestBandA = bandItem;
   if (type === 'M') latestBandM = bandItem;
 
-  const bandSumsInvestigate = calcBandSumsBy(spec, df, maxHz, getActiveInvestigateBands());
+  const bandSumsInvestigate = calcBandSumsBy(spec, df, maxHz, BANDS_INVESTIGATE);
   const bandsSmoothInvestigate = emaBandsBy(
     bandEmaInvestigate[type],
     bandSumsInvestigate,
-    getActiveInvestigateBands(),
+    BANDS_INVESTIGATE,
     0.15
   );
 
@@ -3828,20 +3778,15 @@ function loadSessionFromObject(data){
       touchShots.push({
         ...s,
         // 古い/未完成データ対策
-        // frozenSeries 内の BandTimeline Investigate も現在の Viewer 定義に合わせて絞る。
-        frozenSeries: Array.isArray(s.frozenSeries)
-          ? s.frozenSeries.map(filterInvestigateFrame)
-          : null
+        frozenSeries: Array.isArray(s.frozenSeries) ? s.frozenSeries : null
       });
     }
   }
 
   // tsBuf
-  // LOAD時点で、BandTimeline Investigate は現在の Viewer 定義に存在する帯域だけ残す。
-  // これにより、過去ログに b7/b8/b9/b10 などが入っていても表示されない。
   if (Array.isArray(data.tsBuf)) {
     for (const p of data.tsBuf) {
-      tsBuf.push(filterInvestigateFrame(p));
+      tsBuf.push({ ...p });
     }
   }
 
@@ -5041,12 +4986,12 @@ function drawBandTimelineInvestigate(){
   }
 
   const bandColors = {};
-  getActiveInvestigateBands().forEach((band, idx) => {
-    bandColors[band.key] = BAND_COLORS_INVESTIGATE[idx] || '#333';
+  BANDS_INVESTIGATE.forEach((band, idx) => {
+    bandColors[band.key] = BAND_COLORS_INVESTIGATE[idx % BAND_COLORS_INVESTIGATE.length] || '#333';
   });
 
   // 線描画
-  for (const band of getActiveInvestigateBands()) {
+  for (const band of BANDS_INVESTIGATE) {
     gTBI.save();
     gTBI.strokeStyle = bandColors[band.key] || '#333';
     gTBI.lineWidth = 2;
@@ -5088,9 +5033,8 @@ function drawBandTimelineInvestigate(){
   gTBI.textAlign = 'left';
   gTBI.textBaseline = 'top';
 
-  const legendRows = getActiveInvestigateLegendRows();
-  for (let i = 0; i < legendRows.length; i++) {
-    const [key, label] = legendRows[i];
+  for (let i = 0; i < BANDS_INVESTIGATE_LEGEND.length; i++) {
+    const [key, label] = BANDS_INVESTIGATE_LEGEND[i];
     const color = bandColors[key] || '#333';
 
     const textW = gTBI.measureText(label).width;
@@ -6307,14 +6251,14 @@ function renderInvestigateLegend(){
 
   el.innerHTML = '';
 
-  getActiveInvestigateLegendRows().forEach(([key, label, desc], idx) => {
+  BANDS_INVESTIGATE_LEGEND.forEach(([key, label, desc], idx) => {
     const item = document.createElement('div');
     item.className = 'bandLegendItem';
 
     const swatch = document.createElement('span');
     swatch.className = 'bandLegendSwatch';
     swatch.textContent = '■';
-    swatch.style.color = BAND_COLORS_INVESTIGATE[idx] || '#333';
+    swatch.style.color = BAND_COLORS_INVESTIGATE[idx % BAND_COLORS_INVESTIGATE.length];
 
     const text = document.createElement('span');
     text.className = 'bandLegendText';
@@ -6824,11 +6768,7 @@ function getInvestigateBandValue(frame, band){
 
 function collectInvestigateReplayFrames(){
   if (!Array.isArray(tsBuf)) return [];
-  const activeKeys = getActiveInvestigateBandKeys();
-  return tsBuf.filter(p => {
-    if (!p || !p.bandAInvestigate) return false;
-    return Object.keys(p.bandAInvestigate).some(k => activeKeys.has(k));
-  });
+  return tsBuf.filter(p => p && p.bandAInvestigate);
 }
 
 function startInvestigateReplay(){
@@ -6849,10 +6789,9 @@ function startInvestigateReplay(){
   investigateReplayGains = [];
 
   const baseVol = Math.max(0, Math.min(1, Number(document.getElementById('soundVol')?.value) || 0.35));
-  const activeInvestigateBands = getActiveInvestigateBands();
-  const bandCount = Math.max(1, activeInvestigateBands.length);
+  const bandCount = Math.max(1, BANDS_INVESTIGATE.length);
 
-  for (const band of activeInvestigateBands) {
+  for (const band of BANDS_INVESTIGATE) {
     const osc = investigateReplayCtx.createOscillator();
     const gain = investigateReplayCtx.createGain();
 
@@ -6882,8 +6821,8 @@ function startInvestigateReplay(){
     const maxRef = Math.max(1e-9, Number(BAND_TIMELINE_INVESTIGATE_FIXED_MAX) || 80000);
     const now = investigateReplayCtx.currentTime;
 
-    for (let i = 0; i < activeInvestigateBands.length; i++) {
-      const band = activeInvestigateBands[i];
+    for (let i = 0; i < BANDS_INVESTIGATE.length; i++) {
+      const band = BANDS_INVESTIGATE[i];
       const raw = getInvestigateBandValue(frame, band);
 
       // BandTimeline Investigate の高さをそのまま音量へ変換する。
@@ -6896,7 +6835,7 @@ function startInvestigateReplay(){
       investigateReplayGains[i]?.gain.setTargetAtTime(gainValue, now, 0.02);
     }
 
-    const strongest = activeInvestigateBands
+    const strongest = BANDS_INVESTIGATE
       .map(b => ({ hz: getInvestigateReplayFreq(b), key: b.key, v: getInvestigateBandValue(frame, b) }))
       .sort((a, b) => b.v - a.v)[0];
 
