@@ -575,3 +575,17 @@
     height:360px;
     margin-bottom:8px;
     }
+
+
+/* ===== FRB Piano Roll ===== */
+.pianoRollPanel{
+  margin-top:10px;
+}
+#pianoRollCanvas{
+  display:block;
+  width:100%;
+  height:260px;
+  border:1px solid #ddd;
+  border-radius:10px;
+  background:#101418;
+}

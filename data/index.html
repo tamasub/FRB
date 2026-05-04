@@ -140,6 +140,24 @@
                 <option value="sawtooth">Saw（派手）</option>
               </select>
             </span>
+
+            <span>
+              Pitch Snap:
+              <label style="margin-left:4px;">
+                <input type="checkbox" id="pitchSnap">
+                <span id="pitchSnapLabel">OFF 連続Hz</span>
+              </label>
+            </span>
+
+            <span>
+              <button id="exportWavBtn" type="button">Export WAV</button>
+              <span id="exportWavStatus" class="mini">wav idle</span>
+              
+            </span>
+
+            
+
+
           </div>
 
 
@@ -152,6 +170,12 @@
           <div id="bandInvestigateLegend" class="bandLegend"></div>
         </div>
         <canvas id="tsBandInvestigate"></canvas>
+
+        <div class="subPanel pianoRollPanel">
+          <div class="subTitle">FRB Piano Roll <span id="pianoRollStatus" class="mini">idle</span></div>
+          <div class="mini">縦：半音階 / ラベル：A4 440Hz・C4 261Hz・A3 220Hz・A2 110Hz・A1 55Hz</div>
+          <canvas id="pianoRollCanvas"></canvas>
+        </div>
       </div>
 
       <div class="subPanel">

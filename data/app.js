@@ -82,6 +82,17 @@ const SNAP_DT = 0.3; // seconds
 let currentSoundHz = 0;
 let lastPeakAEnergy = 0;
 
+// ===== FRB Piano Roll WAV Export =====
+
+const exportWavBtn = document.getElementById('exportWavBtn');
+const exportWavStatus = document.getElementById('exportWavStatus');
+
+if (exportWavBtn) {
+  exportWavBtn.addEventListener('click', () => {
+    exportWavFromNotes();
+  });
+}
+
 
 
 //Decay = 振動の形　、　Energy = 振動の量
@@ -224,10 +235,14 @@ const BAND_COLORS_INVESTIGATE = [
 
 
 let MERGE_HZ = 5;
-let INSTR = 'sine';   // ←ここ追加
+let INSTR = 'sine';   // oscillator波形
+let PITCH_SNAP_ENABLED = false; // Hz → MIDI → 半音スナップ ON/OFF
+let investigateReplayPianoRoll = []; // 再生中に生成される簡易ピアノロール用ノート列
 
 const mergeEl = document.getElementById('mergeHz');
 const mergeLabel = document.getElementById('mergeHzLabel');
+const pitchSnapEl = document.getElementById('pitchSnap');
+const pitchSnapLabel = document.getElementById('pitchSnapLabel');
 
 
 
@@ -304,7 +319,26 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  let INSTR = 'sine';
+  if (pitchSnapEl) {
+    PITCH_SNAP_ENABLED = !!pitchSnapEl.checked;
+    if (pitchSnapLabel) {
+      pitchSnapLabel.textContent = PITCH_SNAP_ENABLED ? 'ON 半音階' : 'OFF 連続Hz';
+    }
+
+    pitchSnapEl.addEventListener('change', () => {
+      PITCH_SNAP_ENABLED = !!pitchSnapEl.checked;
+      if (pitchSnapLabel) {
+        pitchSnapLabel.textContent = PITCH_SNAP_ENABLED ? 'ON 半音階' : 'OFF 連続Hz';
+      }
+
+      // 再生中なら即反映（簡単版は再起動）
+      if (investigateReplayPlaying) {
+        stopInvestigateReplay(false);
+        startInvestigateReplay();
+      }
+    });
+  }
+
   const instSel = document.getElementById('instrumentSel');
   if (instSel) {
     INSTR = instSel.value;
@@ -6409,7 +6443,7 @@ async function startTone(){
   oscNode = ctx.createOscillator();
   gainNode = ctx.createGain();
 
-  osc.type = INSTR;
+  oscNode.type = INSTR || 'sine';
 
   oscNode.frequency.setValueAtTime(getSoundFreq(), ctx.currentTime);
   currentSoundHz = getSoundFreq();
@@ -6823,6 +6857,269 @@ function drawSweepTrace(){
   );
 }
 
+
+// ===== Musical Pitch Quantize (Hz -> MIDI -> Semitone -> Hz) =====
+// FRB再生を「自然な連続周波数」から「12半音階」に変換するための層。
+// oscillatorへ渡す直前だけ変換するので、元ログ/FFT値は壊さない。
+const MIDI_A4_HZ = 440;
+const MIDI_A4_NO = 69;
+const NOTE_NAMES_SHARP = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+function hzToMidi(hz){
+  const f = Number(hz);
+  if (!Number.isFinite(f) || f <= 0) return null;
+  return MIDI_A4_NO + 12 * Math.log2(f / MIDI_A4_HZ);
+}
+
+function midiToHz(midi){
+  const m = Number(midi);
+  if (!Number.isFinite(m)) return null;
+  return MIDI_A4_HZ * Math.pow(2, (m - MIDI_A4_NO) / 12);
+}
+
+function midiToNoteName(midi){
+  const m = Math.round(Number(midi));
+  if (!Number.isFinite(m)) return '';
+  const name = NOTE_NAMES_SHARP[((m % 12) + 12) % 12];
+  const octave = Math.floor(m / 12) - 1;
+  return `${name}${octave}`;
+}
+
+function snapHzToSemitone(hz){
+  const rawHz = Number(hz);
+  const midiFloat = hzToMidi(rawHz);
+  if (midiFloat === null) {
+    return {
+      rawHz: 0,
+      playHz: 0,
+      midiFloat: null,
+      midi: null,
+      note: '',
+      snapped: false,
+      cents: 0,
+    };
+  }
+
+  const midi = Math.round(midiFloat);
+  const snappedHz = midiToHz(midi) || rawHz;
+
+  return {
+    rawHz,
+    playHz: snappedHz,
+    midiFloat,
+    midi,
+    note: midiToNoteName(midi),
+    snapped: true,
+    cents: (midiFloat - midi) * 100,
+  };
+}
+
+function makeReplayPitchInfo(hz){
+  const rawHz = Math.max(1, Number(hz) || 1);
+  if (!PITCH_SNAP_ENABLED) {
+    const midiFloat = hzToMidi(rawHz);
+    return {
+      rawHz,
+      playHz: rawHz,
+      midiFloat,
+      midi: midiFloat === null ? null : Math.round(midiFloat),
+      note: midiFloat === null ? '' : midiToNoteName(Math.round(midiFloat)),
+      snapped: false,
+      cents: 0,
+    };
+  }
+  return snapHzToSemitone(rawHz);
+}
+
+function makePianoRollFrame(frame, peaks){
+  const t = Number(frame?.t) || 0;
+  return {
+    t,
+    notes: peaks.map((p, idx) => {
+      const pitch = makeReplayPitchInfo(p?.hz);
+      return {
+        voice: idx,
+        rawHz: pitch.rawHz,
+        playHz: pitch.playHz,
+        midi: pitch.midi,
+        note: pitch.note,
+        mag: Math.max(0, Number(p?.mag) || 0),
+        snapped: pitch.snapped,
+      };
+    }),
+  };
+}
+
+
+// ===== FRB Piano Roll Canvas =====
+// 横：時間 / 縦：半音階。全ノート行は薄く出し、文字ラベルは代表音だけ出す。
+const PIANO_ROLL_MIDI_MIN = 15; // 約19.4Hz。FRB低域の下限を少し含める
+const PIANO_ROLL_MIDI_MAX = 72; // C5 約523Hz。FRB 500Hz近辺まで含める
+const PIANO_ROLL_GUIDE_NOTES = [69, 60, 57, 45, 33]; // A4, C4, A3, A2, A1
+let pianoRollRenderPending = false;
+
+function getPianoRollCanvas(){
+  return document.getElementById('pianoRollCanvas');
+}
+
+function setPianoRollStatus(text){
+  const el = document.getElementById('pianoRollStatus');
+  if (el) el.textContent = text;
+}
+
+function resizeCanvasToDisplaySize(canvas){
+  if (!canvas) return false;
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  const w = Math.max(1, Math.round(rect.width * dpr));
+  const h = Math.max(1, Math.round(rect.height * dpr));
+  if (canvas.width !== w || canvas.height !== h) {
+    canvas.width = w;
+    canvas.height = h;
+    return true;
+  }
+  return false;
+}
+
+function pianoRollY(midi, top, bottom){
+  const m = Number(midi);
+  const span = PIANO_ROLL_MIDI_MAX - PIANO_ROLL_MIDI_MIN;
+  return top + (PIANO_ROLL_MIDI_MAX - m) / span * (bottom - top);
+}
+
+function drawFRBPianoRoll(data = window.FRB_PIANO_ROLL_LAST){
+  const canvas = getPianoRollCanvas();
+  if (!canvas) return;
+
+  resizeCanvasToDisplaySize(canvas);
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width;
+  const H = canvas.height;
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#101418';
+  ctx.fillRect(0, 0, W, H);
+
+  const frames = Array.isArray(data) ? data : [];
+  const left = 78;
+  const right = W - 12;
+  const top = 12;
+  const bottom = H - 24;
+  const plotW = Math.max(1, right - left);
+
+  // 全半音行：薄い横線。ラベルは付けない。
+  ctx.save();
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(255,255,255,0.055)';
+  for (let midi = PIANO_ROLL_MIDI_MIN; midi <= PIANO_ROLL_MIDI_MAX; midi++) {
+    const y = pianoRollY(midi, top, bottom);
+    ctx.beginPath();
+    ctx.moveTo(left, y);
+    ctx.lineTo(right, y);
+    ctx.stroke();
+  }
+
+  // 代表音ラベル＋強めガイドライン
+  ctx.font = `${Math.max(10, Math.round(11 * (window.devicePixelRatio || 1)))}px monospace`;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  for (const midi of PIANO_ROLL_GUIDE_NOTES) {
+    if (midi < PIANO_ROLL_MIDI_MIN || midi > PIANO_ROLL_MIDI_MAX) continue;
+    const y = pianoRollY(midi, top, bottom);
+    const label = `${midiToNoteName(midi)} ${Math.round(midiToHz(midi))}Hz`;
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+    ctx.beginPath();
+    ctx.moveTo(left, y);
+    ctx.lineTo(right, y);
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(235,245,255,0.88)';
+    ctx.fillText(label, 8, y);
+  }
+
+  // 外枠
+  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+  ctx.strokeRect(left, top, plotW, bottom - top);
+
+  if (!frames.length) {
+    ctx.fillStyle = 'rgba(235,245,255,0.72)';
+    ctx.font = `${Math.max(11, Math.round(12 * (window.devicePixelRatio || 1)))}px sans-serif`;
+    ctx.fillText('Play Investigate を押すと、半音スナップ後のノートがここに出ます', left + 10, top + 22);
+    setPianoRollStatus('idle');
+    ctx.restore();
+    return;
+  }
+
+  const t0 = Number(frames[0]?.t) || 0;
+  const t1 = Number(frames[frames.length - 1]?.t) || (t0 + frames.length);
+  const spanT = Math.max(1e-6, t1 - t0);
+
+  let noteCount = 0;
+  let maxMag = 1e-9;
+  for (const fr of frames) {
+    for (const n of (fr.notes || [])) {
+      maxMag = Math.max(maxMag, Number(n?.mag) || 0);
+    }
+  }
+
+  // ノート本体：同時6音を点〜短線で表示。強いほど少し大きく・濃くする。
+  for (let i = 0; i < frames.length; i++) {
+    const fr = frames[i];
+    const t = Number(fr?.t);
+    const x = Number.isFinite(t)
+      ? left + ((t - t0) / spanT) * plotW
+      : left + (i / Math.max(1, frames.length - 1)) * plotW;
+
+    const next = frames[i + 1];
+    const nt = Number(next?.t);
+    const nx = Number.isFinite(t) && Number.isFinite(nt)
+      ? left + ((nt - t0) / spanT) * plotW
+      : x + Math.max(2, plotW / Math.max(1, frames.length));
+    const w = Math.max(2, Math.min(10, nx - x));
+
+    for (const n of (fr.notes || [])) {
+      const midi = Number(n?.midi);
+      if (!Number.isFinite(midi)) continue;
+      if (midi < PIANO_ROLL_MIDI_MIN || midi > PIANO_ROLL_MIDI_MAX) continue;
+
+      const y = pianoRollY(midi, top, bottom);
+      const v = Math.max(0, Math.min(1, (Number(n?.mag) || 0) / maxMag));
+      const h = Math.max(2, 2 + v * 5);
+      const alpha = 0.35 + v * 0.55;
+
+      ctx.fillStyle = `rgba(0, 255, 204, ${alpha.toFixed(3)})`;
+      ctx.fillRect(x, y - h / 2, w, h);
+      noteCount++;
+    }
+  }
+
+  // 下部ステータス
+  ctx.fillStyle = 'rgba(235,245,255,0.72)';
+  ctx.font = `${Math.max(10, Math.round(11 * (window.devicePixelRatio || 1)))}px sans-serif`;
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(
+    `${frames.length} frames / ${noteCount} notes / ${PITCH_SNAP_ENABLED ? 'snap ON' : 'snap OFF'} / MIDI ${PIANO_ROLL_MIDI_MIN}-${PIANO_ROLL_MIDI_MAX}`,
+    right,
+    H - 6
+  );
+  ctx.restore();
+
+  setPianoRollStatus(`${frames.length} frames / ${noteCount} notes`);
+}
+
+function requestDrawFRBPianoRoll(){
+  if (pianoRollRenderPending) return;
+  pianoRollRenderPending = true;
+  requestAnimationFrame(() => {
+    pianoRollRenderPending = false;
+    drawFRBPianoRoll();
+  });
+}
+
+window.addEventListener('resize', () => requestDrawFRBPianoRoll());
+
 // ===== Investigate Replay (BandTimeline Investigate / A only) =====
 // Load済みログの tsBuf[].bandAInvestigate を、帯域ごとのサイン波として再生する。
 // これは「実振動の完全再現」ではなく、BandTimeline Investigate の和音構造を聴くための簡易再生。
@@ -6913,6 +7210,9 @@ function startInvestigateReplay(){
 
   investigateReplayIndex = 0;
   investigateReplayPlaying = true;
+  investigateReplayPianoRoll = [];
+  window.FRB_PIANO_ROLL_LAST = investigateReplayPianoRoll;
+  requestDrawFRBPianoRoll();
   investigateReplayOscs = [];
   investigateReplayGains = [];
 
@@ -6923,7 +7223,7 @@ function startInvestigateReplay(){
     const osc = investigateReplayCtx.createOscillator();
     const gain = investigateReplayCtx.createGain();
 
-    osc.type = 'sine';
+    osc.type = INSTR || 'sine';
     osc.frequency.value = 100;
     gain.gain.value = 0;
 
@@ -6947,6 +7247,9 @@ function startInvestigateReplay(){
 
     const frame = investigateReplayFrames[investigateReplayIndex];
     const peaks = pickFrb123Peaks(frame);
+    investigateReplayPianoRoll.push(makePianoRollFrame(frame, peaks));
+    window.FRB_PIANO_ROLL_LAST = investigateReplayPianoRoll;
+    requestDrawFRBPianoRoll();
     const now = investigateReplayCtx.currentTime;
 
     const frameMax = Math.max(
@@ -6962,7 +7265,8 @@ function startInvestigateReplay(){
         continue;
       }
 
-      const hz = Math.max(1, Number(p.hz) || 1);
+      const pitch = makeReplayPitchInfo(p.hz);
+      const hz = pitch.playHz;
       const mag = Math.max(0, Number(p.mag) || 0);
 
       // 低域補正なし。強いやつは強く鳴らす。
@@ -6983,12 +7287,13 @@ function startInvestigateReplay(){
       .slice()
       .sort((a,b) => (Number(b.mag)||0) - (Number(a.mag)||0))[0];
 
-    if (strongest) currentSoundHz = Number(strongest.hz) || 0;
+    const strongestPitch = strongest ? makeReplayPitchInfo(strongest.hz) : null;
+    if (strongestPitch) currentSoundHz = Number(strongestPitch.playHz) || 0;
 
     investigateReplayIndex++;
     setInvestigateReplayStatus(
       strongest
-        ? `playing FRB 1-2-3 ${investigateReplayIndex}/${investigateReplayFrames.length} / strongest ${currentSoundHz.toFixed(1)}Hz / voices ${peaks.length}`
+        ? `playing FRB 1-2-3 ${investigateReplayIndex}/${investigateReplayFrames.length} / strongest ${currentSoundHz.toFixed(1)}Hz${PITCH_SNAP_ENABLED && strongestPitch?.note ? ' (' + strongestPitch.note + ')' : ''} / ${PITCH_SNAP_ENABLED ? 'snap ON' : 'snap OFF'} / voices ${peaks.length}`
         : `playing FRB 1-2-3 ${investigateReplayIndex}/${investigateReplayFrames.length}`
     );
 
@@ -7035,7 +7340,9 @@ function stopInvestigateReplay(finished = false){
   investigateReplayGains = [];
 
   setInvestigateReplayStatus(finished ? 'finished' : 'stopped');
+  requestDrawFRBPianoRoll();
 }
+
 
 // app.js は body末尾で読み込まれるので、この時点でボタンは存在する想定。
 document.getElementById('playInvestigateBtn')
@@ -7044,6 +7351,9 @@ document.getElementById('playInvestigateBtn')
 document.getElementById('stopInvestigateBtn')
   ?.addEventListener('click', () => stopInvestigateReplay(false));
 
+window.addEventListener('DOMContentLoaded', () => {
+  drawFRBPianoRoll();
+});
 
   let VIEW_MODE = "raw";
 
@@ -7110,3 +7420,211 @@ function mergePeaks(peaks, tolHz){
 
   return out;
 }
+
+
+
+
+
+// ===== Touch Shot Markers on Sweep Trace =====
+function exportWavFromNotes() {
+  const data = window.FRB_PIANO_ROLL_LAST;
+
+  if (!data || !data.length) {
+    alert('先に Play Investigate してください');
+    return;
+  }
+
+  const sampleRate = 44100;
+  const frameSec = 0.05;
+  const masterGain = 0.45;
+  const maxVoices = 6;
+
+  const totalSamples = Math.floor(sampleRate * frameSec * data.length);
+  const samples = new Float32Array(totalSamples);
+
+  // MIDIごとの位相を保持する。これでフレームをまたいでも音が切れにくい。
+  const phaseMap = new Map();
+
+  let pos = 0;
+  let validNoteCount = 0;
+
+  for (let f = 0; f < data.length; f++) {
+    const frame = data[f];
+
+    const notes = (Array.isArray(frame.notes) ? frame.notes : [])
+      .map(n => {
+        if (typeof n === 'number') return n;
+
+        if (typeof n === 'string') {
+          const num = Number(n);
+          if (Number.isFinite(num)) return num;
+        }
+
+        if (n && typeof n === 'object') {
+          if (Number.isFinite(Number(n.midi))) return Number(n.midi);
+          if (Number.isFinite(Number(n.note))) return Number(n.note);
+
+          if (Number.isFinite(Number(n.hz))) {
+            return Math.round(69 + 12 * Math.log2(Number(n.hz) / 440));
+          }
+
+          if (Number.isFinite(Number(n.freq))) {
+            return Math.round(69 + 12 * Math.log2(Number(n.freq) / 440));
+          }
+        }
+
+        return null;
+      })
+      .filter(v => Number.isFinite(v))
+      .slice(0, maxVoices);
+
+    validNoteCount += notes.length;
+
+    const frameSamples = Math.floor(sampleRate * frameSec);
+
+    for (let i = 0; i < frameSamples && pos < samples.length; i++, pos++) {
+      let v = 0;
+
+      for (const midi of notes) {
+        const hz = 440 * Math.pow(2, (midi - 69) / 12);
+        let phase = phaseMap.get(midi) || 0;
+
+        v += Math.sin(phase);
+
+        phase += 2 * Math.PI * hz / sampleRate;
+        if (phase > Math.PI * 2) phase -= Math.PI * 2;
+
+        phaseMap.set(midi, phase);
+      }
+
+      if (notes.length > 0) {
+        v = v / Math.sqrt(notes.length);
+      }
+
+      samples[pos] = v * masterGain;
+    }
+  }
+
+  console.log('valid notes:', validNoteCount);
+
+  if (validNoteCount === 0) {
+    alert('ノートが0件 → 無音原因。console確認して');
+    console.log('sample frame:', data[0]);
+    return;
+  }
+
+  // 全体を軽く正規化
+  let peak = 0;
+  for (let i = 0; i < samples.length; i++) {
+    peak = Math.max(peak, Math.abs(samples[i]));
+  }
+
+  if (peak > 0) {
+    const gain = 0.95 / peak;
+    for (let i = 0; i < samples.length; i++) {
+      samples[i] *= gain;
+    }
+  }
+
+  const buffer = new ArrayBuffer(44 + samples.length * 2);
+  const view = new DataView(buffer);
+
+  function writeStr(o, s) {
+    for (let i = 0; i < s.length; i++) {
+      view.setUint8(o + i, s.charCodeAt(i));
+    }
+  }
+
+  writeStr(0, 'RIFF');
+  view.setUint32(4, 36 + samples.length * 2, true);
+  writeStr(8, 'WAVE');
+
+  writeStr(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+
+  writeStr(36, 'data');
+  view.setUint32(40, samples.length * 2, true);
+
+  let offset = 44;
+  for (let i = 0; i < samples.length; i++, offset += 2) {
+    const s = Math.max(-1, Math.min(1, samples[i]));
+    view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+  }
+
+  const blob = new Blob([buffer], { type: 'audio/wav' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'frb_sound_smooth.wav';
+  a.click();
+
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+
+
+
+function encodeWAV(samples, sampleRate) {
+  const buffer = new ArrayBuffer(44 + samples.length * 2);
+  const view = new DataView(buffer);
+
+  function writeString(view, offset, string) {
+    for (let i = 0; i < string.length; i++) {
+      view.setUint8(offset + i, string.charCodeAt(i));
+    }
+  }
+
+  writeString(view, 0, 'RIFF');
+  view.setUint32(4, 36 + samples.length * 2, true);
+  writeString(view, 8, 'WAVE');
+  writeString(view, 12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeString(view, 36, 'data');
+  view.setUint32(40, samples.length * 2, true);
+
+  let offset = 44;
+  for (let i = 0; i < samples.length; i++, offset += 2) {
+    const s = Math.max(-1, Math.min(1, samples[i]));
+    view.setInt16(offset, s * 0x7fff, true);
+  }
+
+  return buffer;
+}
+
+function noteToMidiValue(note) {
+  if (typeof note === 'number') return note;
+
+  if (typeof note === 'string') {
+    const n = Number(note);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  if (note && typeof note === 'object') {
+    if (Number.isFinite(Number(note.midi))) return Number(note.midi);
+    if (Number.isFinite(Number(note.note))) return Number(note.note);
+
+    if (Number.isFinite(Number(note.hz))) {
+      return Math.round(69 + 12 * Math.log2(Number(note.hz) / 440));
+    }
+
+    if (Number.isFinite(Number(note.freq))) {
+      return Math.round(69 + 12 * Math.log2(Number(note.freq) / 440));
+    }
+  }
+
+  return null;
+}
+
