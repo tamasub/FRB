@@ -72,7 +72,7 @@
           <button id="soundStartBtn" type="button">Start Tone</button>
           <button id="soundStopBtn" type="button">Stop</button>
           <span id="soundStatus" class="mini">idle</span>
-        
+
            <b>Log:</b>
 
 
@@ -85,8 +85,10 @@
             <textarea id="experimentMemo" rows="1" placeholder="例: #34 ステンレス棒+シリコン / 300Hz AM slow" style="width:360px;height:22px;resize:horizontal;font-size:12px;"></textarea>
           </label>
           <span id="logInfoStatus" class="mini"></span>
-          </label>
+        </label>
         
+
+
       </div>
       <div class="subPanel">
         <div class="subTitle">Sweep Trace</div>
@@ -111,6 +113,16 @@
           <button id="playInvestigateBtn">Play Investigate</button>
           <button id="stopInvestigateBtn">Stop</button>
           <span id="investigateReplayStatus" class="mini">investigate idle</span>
+
+          <div class="box">
+            View Mode:
+            <label style="margin-left:8px;">
+              <input type="radio" name="viewMode" value="raw" checked> Raw
+            </label>
+            <label style="margin-left:8px;">
+              <input type="radio" name="viewMode" value="balanced"> Balanced
+            </label>
+          </div>
 
         <div class="box">
           <div id="bandInvestigateLegend" class="bandLegend"></div>

@@ -968,6 +968,7 @@ ws.onmessage = (e) => {
   if (arr.length < (maxBin + 1)) return;
 
   const spec = emaUpdate(arr, type);
+  
 
   // --- spectral flux ---
   const fluxMinBin = Math.max(0, Math.floor(10 / df));
@@ -1048,7 +1049,9 @@ if(type === 'M'){
   }
 
   //
-  const rawTopPeaks = findTopPeaks(spec, df, startBin, maxBinView, 3);
+  //const rawTopPeaks = findTopPeaks(spec, df, startBin, maxBinView, 3);
+  const rawTopPeaks = findTopPeaks(spec, df, startBin, maxBinView, 12);
+
 
   updatePeakTable(type, rawTopPeaks);
 
@@ -6831,13 +6834,41 @@ function collectInvestigateReplayFrames(){
   });
 }
 
+function pickFrb122Peaks(frame){
+  const src =
+    Array.isArray(frame?.rawTopPeaksA) && frame.rawTopPeaksA.length
+      ? frame.rawTopPeaksA
+      : (Array.isArray(frame?.topPeaksA) ? frame.topPeaksA : []);
+
+  const bands = [
+    { name:'low',  f0:20,  f1:80,  n:1 },
+    { name:'mid',  f0:80,  f1:220, n:2 },
+    { name:'high', f0:220, f1:500, n:3 },
+  ];
+
+  const out = [];
+
+  for (const b of bands) {
+    const picked = src
+      .filter(p => {
+        const hz = Number(p?.hz) || 0;
+        return hz >= b.f0 && hz < b.f1;
+      })
+      .sort((a, b) => (Number(b.mag)||0) - (Number(a.mag)||0))
+      .slice(0, b.n);
+
+    out.push(...picked);
+  }
+
+  return out.slice(0, 6);
+}
+
 function startInvestigateReplay(){
   stopInvestigateReplay(false);
 
   investigateReplayFrames = collectInvestigateReplayFrames();
   if (investigateReplayFrames.length < 2) {
     setInvestigateReplayStatus('no investigate data');
-    console.warn('Investigate Replay: no bandAInvestigate data', { tsLen: tsBuf?.length });
     return;
   }
 
@@ -6849,15 +6880,14 @@ function startInvestigateReplay(){
   investigateReplayGains = [];
 
   const baseVol = Math.max(0, Math.min(1, Number(document.getElementById('soundVol')?.value) || 0.35));
-  const activeInvestigateBands = getActiveInvestigateBands();
-  const bandCount = Math.max(1, activeInvestigateBands.length);
 
-  for (const band of activeInvestigateBands) {
+  // FRB 1-2-2 = 6音
+  for (let i = 0; i < 6; i++) {
     const osc = investigateReplayCtx.createOscillator();
     const gain = investigateReplayCtx.createGain();
 
     osc.type = 'sine';
-    osc.frequency.value = getInvestigateReplayFreq(band);
+    osc.frequency.value = 100;
     gain.gain.value = 0;
 
     osc.connect(gain);
@@ -6868,7 +6898,7 @@ function startInvestigateReplay(){
     investigateReplayGains.push(gain);
   }
 
-  setInvestigateReplayStatus(`playing 0/${investigateReplayFrames.length}`);
+  setInvestigateReplayStatus(`playing FRB 1-2-2 0/${investigateReplayFrames.length}`);
 
   function step(){
     if (!investigateReplayPlaying) return;
@@ -6879,34 +6909,44 @@ function startInvestigateReplay(){
     }
 
     const frame = investigateReplayFrames[investigateReplayIndex];
-    const maxRef = Math.max(1e-9, Number(BAND_TIMELINE_INVESTIGATE_FIXED_MAX) || 80000);
+    const peaks = pickFrb122Peaks(frame);
     const now = investigateReplayCtx.currentTime;
 
-    for (let i = 0; i < activeInvestigateBands.length; i++) {
-      const band = activeInvestigateBands[i];
-      const raw = getInvestigateBandValue(frame, band);
+    const frameMax = Math.max(
+      1e-9,
+      ...peaks.map(p => Number(p?.mag) || 0)
+    );
 
-      // BandTimeline Investigate の高さをそのまま音量へ変換する。
-      // raw / scaleMax = 0〜1。sqrt等の強調はしない。
-      const norm = Math.max(0, Math.min(1, raw / maxRef));
+    for (let i = 0; i < 6; i++) {
+      const p = peaks[i];
 
-      // 9音同時なので全体が割れないように、1本あたりは控えめ。
-      // 音量スライダーを上げると全体が大きくなる。
-      const gainValue = norm * baseVol * (0.55 / bandCount);
+      if (!p) {
+        investigateReplayGains[i]?.gain.setTargetAtTime(0, now, 0.02);
+        continue;
+      }
+
+      const hz = Math.max(1, Number(p.hz) || 1);
+      const mag = Math.max(0, Number(p.mag) || 0);
+
+      // 低域補正なし。強いやつは強く鳴らす。
+      const norm = Math.sqrt(mag / frameMax);
+      const gainValue = norm * baseVol * 0.18;
+
+      investigateReplayOscs[i]?.frequency.setTargetAtTime(hz, now, 0.02);
       investigateReplayGains[i]?.gain.setTargetAtTime(gainValue, now, 0.02);
     }
 
-    const strongest = activeInvestigateBands
-      .map(b => ({ hz: getInvestigateReplayFreq(b), key: b.key, v: getInvestigateBandValue(frame, b) }))
-      .sort((a, b) => b.v - a.v)[0];
+    const strongest = peaks
+      .slice()
+      .sort((a,b) => (Number(b.mag)||0) - (Number(a.mag)||0))[0];
 
-    if (strongest) currentSoundHz = strongest.hz;
+    if (strongest) currentSoundHz = Number(strongest.hz) || 0;
 
     investigateReplayIndex++;
     setInvestigateReplayStatus(
       strongest
-        ? `playing ${investigateReplayIndex}/${investigateReplayFrames.length} / strongest ${strongest.hz.toFixed(1)}Hz`
-        : `playing ${investigateReplayIndex}/${investigateReplayFrames.length}`
+        ? `playing FRB 1-2-2 ${investigateReplayIndex}/${investigateReplayFrames.length} / strongest ${currentSoundHz.toFixed(1)}Hz / voices ${peaks.length}`
+        : `playing FRB 1-2-2 ${investigateReplayIndex}/${investigateReplayFrames.length}`
     );
 
     const cur = investigateReplayFrames[investigateReplayIndex - 1];
@@ -6922,6 +6962,7 @@ function startInvestigateReplay(){
 
   step();
 }
+
 
 function stopInvestigateReplay(finished = false){
   investigateReplayPlaying = false;
@@ -6959,3 +7000,29 @@ document.getElementById('playInvestigateBtn')
 
 document.getElementById('stopInvestigateBtn')
   ?.addEventListener('click', () => stopInvestigateReplay(false));
+
+
+  let VIEW_MODE = "raw";
+
+document.querySelectorAll('input[name="viewMode"]').forEach(el => {
+  el.addEventListener("change", () => {
+    VIEW_MODE = document.querySelector('input[name="viewMode"]:checked').value;
+  });
+});
+
+function applyViewWeight(freq, value){
+  if(VIEW_MODE === "raw"){
+    return value;
+  }
+
+  // Balancedモード
+  // 低域だけ少し抑える（完全に消さないのがポイント）
+  if(freq < 80){
+    return value * 0.4;
+  }
+  if(freq < 160){
+    return value * 0.7;
+  }
+  return value;
+}
+
