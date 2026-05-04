@@ -83,6 +83,7 @@ let currentSoundHz = 0;
 let lastPeakAEnergy = 0;
 
 
+
 //Decay = 振動の形　、　Energy = 振動の量
 
 const touchShots = [];
@@ -221,6 +222,15 @@ const BAND_COLORS_INVESTIGATE = [
   // '#5c6bc0', // 450-500（余韻＝青戻り）
 ];
 
+
+let MERGE_HZ = 5;
+let INSTR = 'sine';   // ←ここ追加
+
+const mergeEl = document.getElementById('mergeHz');
+const mergeLabel = document.getElementById('mergeHzLabel');
+
+
+
 // ===== BandTimeline Investigate 表示フィルタ =====
 // HARD CUT版：BAND_COLORS_INVESTIGATE の「実際に有効な色数」を正として、
 // BANDS_INVESTIGATE / LEGEND / LOADログ / Replay / Canvas凡例をすべて同じ本数に揃える。
@@ -282,6 +292,32 @@ window.addEventListener('DOMContentLoaded', () => {
 
   buildBandRows('bandRecB_A','rbarA2', 'rtxtA2', 'bandFillA');
   buildBandRows('bandRecB_M','rbarM2', 'rtxtM2', 'bandFillM');
+
+
+  if (mergeEl) {
+    MERGE_HZ = Number(mergeEl.value) || 5;
+    mergeLabel.textContent = MERGE_HZ + ' Hz';
+
+    mergeEl.addEventListener('input', () => {
+      MERGE_HZ = Number(mergeEl.value) || 0;
+      mergeLabel.textContent = MERGE_HZ + ' Hz';
+    });
+  }
+
+  let INSTR = 'sine';
+  const instSel = document.getElementById('instrumentSel');
+  if (instSel) {
+    INSTR = instSel.value;
+    instSel.addEventListener('change', () => {
+      INSTR = instSel.value;
+
+      // 再生中なら即反映（簡単版は再起動）
+      if (investigateReplayPlaying) {
+        stopInvestigateReplay(false);
+        startInvestigateReplay();
+      }
+    });
+  }
 
   renderInvestigateLegend();
 });
@@ -6373,7 +6409,8 @@ async function startTone(){
   oscNode = ctx.createOscillator();
   gainNode = ctx.createGain();
 
-  oscNode.type = 'sine';
+  osc.type = INSTR;
+
   oscNode.frequency.setValueAtTime(getSoundFreq(), ctx.currentTime);
   currentSoundHz = getSoundFreq();
 
@@ -6834,34 +6871,34 @@ function collectInvestigateReplayFrames(){
   });
 }
 
-function pickFrb122Peaks(frame){
+function pickFrb123Peaks(frame){
   const src =
     Array.isArray(frame?.rawTopPeaksA) && frame.rawTopPeaksA.length
       ? frame.rawTopPeaksA
       : (Array.isArray(frame?.topPeaksA) ? frame.topPeaksA : []);
 
+  // ★ここでマージ（スライダー効く）
+  const merged = MERGE_HZ > 0 ? mergePeaks(src, MERGE_HZ) : src.slice();
+
   const bands = [
-    { name:'low',  f0:20,  f1:80,  n:1 },
-    { name:'mid',  f0:80,  f1:220, n:2 },
-    { name:'high', f0:220, f1:500, n:3 },
+    { f0:20,  f1:80,  n:1 },
+    { f0:80,  f1:220, n:2 },
+    { f0:220, f1:500, n:3 },
   ];
 
   const out = [];
-
-  for (const b of bands) {
-    const picked = src
-      .filter(p => {
-        const hz = Number(p?.hz) || 0;
-        return hz >= b.f0 && hz < b.f1;
-      })
-      .sort((a, b) => (Number(b.mag)||0) - (Number(a.mag)||0))
+  for (const b of bands){
+    const picked = merged
+      .filter(p => (p.hz||0) >= b.f0 && (p.hz||0) < b.f1)
+      .sort((a,b)=> (b.mag||0) - (a.mag||0))
       .slice(0, b.n);
 
     out.push(...picked);
   }
 
-  return out.slice(0, 6);
+  return out.slice(0, 6); // 1-2-3 = 6音
 }
+
 
 function startInvestigateReplay(){
   stopInvestigateReplay(false);
@@ -6898,7 +6935,7 @@ function startInvestigateReplay(){
     investigateReplayGains.push(gain);
   }
 
-  setInvestigateReplayStatus(`playing FRB 1-2-2 0/${investigateReplayFrames.length}`);
+  setInvestigateReplayStatus(`playing FRB 1-2-3 0/${investigateReplayFrames.length}`);
 
   function step(){
     if (!investigateReplayPlaying) return;
@@ -6909,7 +6946,7 @@ function startInvestigateReplay(){
     }
 
     const frame = investigateReplayFrames[investigateReplayIndex];
-    const peaks = pickFrb122Peaks(frame);
+    const peaks = pickFrb123Peaks(frame);
     const now = investigateReplayCtx.currentTime;
 
     const frameMax = Math.max(
@@ -6930,7 +6967,13 @@ function startInvestigateReplay(){
 
       // 低域補正なし。強いやつは強く鳴らす。
       const norm = Math.sqrt(mag / frameMax);
-      const gainValue = norm * baseVol * 0.18;
+      const REPLAY_GAIN = 0.6; // 全体の音量調整。大きいほど全体が大きくなる。  ;
+      const gainValue = Math.min(0.9, norm * baseVol * REPLAY_GAIN);
+      //let gainValue = norm * baseVol * REPLAY_GAIN;
+
+
+
+
 
       investigateReplayOscs[i]?.frequency.setTargetAtTime(hz, now, 0.02);
       investigateReplayGains[i]?.gain.setTargetAtTime(gainValue, now, 0.02);
@@ -6945,8 +6988,8 @@ function startInvestigateReplay(){
     investigateReplayIndex++;
     setInvestigateReplayStatus(
       strongest
-        ? `playing FRB 1-2-2 ${investigateReplayIndex}/${investigateReplayFrames.length} / strongest ${currentSoundHz.toFixed(1)}Hz / voices ${peaks.length}`
-        : `playing FRB 1-2-2 ${investigateReplayIndex}/${investigateReplayFrames.length}`
+        ? `playing FRB 1-2-3 ${investigateReplayIndex}/${investigateReplayFrames.length} / strongest ${currentSoundHz.toFixed(1)}Hz / voices ${peaks.length}`
+        : `playing FRB 1-2-3 ${investigateReplayIndex}/${investigateReplayFrames.length}`
     );
 
     const cur = investigateReplayFrames[investigateReplayIndex - 1];
@@ -7026,3 +7069,44 @@ function applyViewWeight(freq, value){
   return value;
 }
 
+
+function mergePeaks(peaks, tolHz){
+  if (!Array.isArray(peaks) || peaks.length === 0) return [];
+
+  // 周波数でソート
+  const sorted = peaks.slice().sort((a,b)=> (a.hz||0) - (b.hz||0));
+
+  const out = [];
+  let group = [sorted[0]];
+
+  function flush(g){
+  let sumW = 0, sumF = 0, maxMag = 0;
+
+  for (const p of g){
+    const w = Math.max(0, Number(p.mag)||0);
+    sumW += w;
+    sumF += (Number(p.hz)||0) * w;
+    if (w > maxMag) maxMag = w;
+  }
+
+  const hz = sumW > 0 ? (sumF / sumW) : (Number(g[0].hz)||0);
+
+  // ★重要：maxMagではなく sumW を使う
+  out.push({ hz, mag: sumW });
+}
+
+  for (let i=1; i<sorted.length; i++){
+    const prev = group[group.length-1];
+    const cur  = sorted[i];
+
+    if (Math.abs((cur.hz||0) - (prev.hz||0)) <= tolHz){
+      group.push(cur);
+    } else {
+      flush(group);
+      group = [cur];
+    }
+  }
+  flush(group);
+
+  return out;
+}

@@ -115,6 +115,7 @@
           <span id="investigateReplayStatus" class="mini">investigate idle</span>
 
           <div class="box">
+            <span> 
             View Mode:
             <label style="margin-left:8px;">
               <input type="radio" name="viewMode" value="raw" checked> Raw
@@ -122,7 +123,30 @@
             <label style="margin-left:8px;">
               <input type="radio" name="viewMode" value="balanced"> Balanced
             </label>
+            <span class="mini" style="margin-left:8px;">（Balancedは高域を持ち上げて聴きやすくする）</span>
+            </span>
+            <span> 
+              Merge (Hz):
+              <input type="range" id="mergeHz" min="0" max="20" step="1" value="5">
+              <span id="mergeHzLabel">5 Hz</span>
+            </span>
+
+            <span>
+              Instrument:
+              <select id="instrumentSel">
+                <option value="sine">Sine（柔らかい）</option>
+                <option value="triangle">Triangle（少し芯）</option>
+                <option value="square">Square（強め）</option>
+                <option value="sawtooth">Saw（派手）</option>
+              </select>
+            </span>
           </div>
+
+
+            
+
+
+
 
         <div class="box">
           <div id="bandInvestigateLegend" class="bandLegend"></div>
