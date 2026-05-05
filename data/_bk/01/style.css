@@ -569,10 +569,11 @@
     width:120px;
     }
 
-    #tsSweep{
+    #tsSweep,
+    #tsSweepEnergy{
     display:block;
     width:100%;
-    height:360px;
+    height:260px;
     margin-bottom:8px;
     }
 

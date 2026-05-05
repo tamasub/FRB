@@ -85,8 +85,10 @@
     <b>Piano Roll </b>
 
     <button id="playInvestigateBtn">Play Investigate</button>
+    <button id="fastPianoRollBtn" type="button">時短Play</button>
     <button id="stopInvestigateBtn">Stop</button>
     <span id="investigateReplayStatus" class="mini">investigate idle</span>
+    <span id="fastPianoRollStatus" class="mini">fast idle</span>
     <!-- View Mode -->
       <span>
         View Mode:
@@ -192,8 +194,31 @@
     <div class="timelog-wrap">
 
       <div class="subPanel">
-        <div class="subTitle">Sweep Trace</div>
+        <div class="subTitle">Sweep Trace Hz <span class="mini">Input / PeakA / Melody / Energy Candidate</span></div>
         <canvas id="tsSweep"></canvas>
+      </div>
+
+      <div class="subPanel">
+        <div class="subTitle">
+          Sweep Trace Energy
+          <span class="mini">PeakA Energy / Melody Amp / Melody Candidate Amp</span>
+          <label class="mini" style="margin-left:12px;">
+            Scale:
+            <select id="sweepEnergyScaleMode">
+              <option value="auto" selected>Auto Normalize</option>
+              <option value="8000">Fixed 8k</option>
+              <option value="10000">Fixed 10k</option>
+              <option value="15000">Fixed 15k</option>
+              <option value="30000">Fixed 30k</option>
+              <option value="100000">Fixed 100k</option>
+              <option value="200000">Fixed 200k</option>
+              <option value="500000">Fixed 500k</option>
+              <option value="1000000">Fixed 1M</option>
+            </select>
+          </label>
+          <span id="sweepEnergyScaleStatus" class="mini">Scale: Auto</span>
+        </div>
+        <canvas id="tsSweepEnergy"></canvas>
       </div>
 
       <div class="box">
@@ -201,11 +226,6 @@
           <div class="subTitle">FRB Piano Roll <span id="pianoRollStatus" class="mini">idle</span></div>
           <div class="mini">縦：半音階 / ラベル：A4 440Hz・C4 261Hz・A3 220Hz・A2 110Hz・A1 55Hz</div>
           <canvas id="pianoRollCanvas"></canvas>
-        </div>
-        <div class="subPanel melodyAmpPanel">
-          <div class="subTitle">Live Melody Candidate Amp <span id="melodyAmpStatus" class="mini">idle</span></div>
-          <div class="mini">計測中の主旋律候補ピークの元振幅（無加工）。手の体感とMIDI音量検証用。</div>
-          <canvas id="melodyAmpCanvas"></canvas>
         </div>
         <div class="subPanel">
           BandTimeline Investigate Scale:

@@ -49,6 +49,11 @@ const gTF = tsFluxCanvas.getContext('2d');
 const tsPeakCanvas = document.getElementById('tsPeak');
 const tsSweepCanvas = document.getElementById('tsSweep');
 const gTSweep = tsSweepCanvas ? tsSweepCanvas.getContext('2d') : null;
+const tsSweepEnergyCanvas = document.getElementById('tsSweepEnergy');
+const gTSweepEnergy = tsSweepEnergyCanvas ? tsSweepEnergyCanvas.getContext('2d') : null;
+const sweepEnergyScaleModeEl = document.getElementById('sweepEnergyScaleMode');
+const sweepEnergyScaleStatusEl = document.getElementById('sweepEnergyScaleStatus');
+let SWEEP_TRACE_ENERGY_SCALE_MODE = 'auto';
 const melodyAmpCanvas = document.getElementById('melodyAmpCanvas');
 const gMelodyAmp = melodyAmpCanvas ? melodyAmpCanvas.getContext('2d') : null;
 
@@ -88,10 +93,18 @@ let lastPeakAEnergy = 0;
 
 const exportWavBtn = document.getElementById('exportWavBtn');
 const exportWavStatus = document.getElementById('exportWavStatus');
+const exportMidiBtn = document.getElementById('exportMidiBtn');
+const exportMidiStatus = document.getElementById('exportMidiStatus');
 
 if (exportWavBtn) {
   exportWavBtn.addEventListener('click', () => {
     exportWavFromNotes();
+  });
+}
+
+if (exportMidiBtn) {
+  exportMidiBtn.addEventListener('click', () => {
+    exportMidiFromPianoRoll();
   });
 }
 
@@ -783,6 +796,14 @@ if (bandScaleModeInvestigateEl) {
   });
 }
 
+if (sweepEnergyScaleModeEl) {
+  SWEEP_TRACE_ENERGY_SCALE_MODE = sweepEnergyScaleModeEl.value || 'auto';
+  sweepEnergyScaleModeEl.addEventListener('change', () => {
+    SWEEP_TRACE_ENERGY_SCALE_MODE = sweepEnergyScaleModeEl.value || 'auto';
+    drawSweepTraceEnergy();
+  });
+}
+
 
 window.addEventListener('error', (e)=>{
   //showWarn('JS Error: ' + (e.message || e.type));
@@ -1377,6 +1398,11 @@ function fitAll(){
   if (tsSweepCanvas) fitCanvasEl(tsSweepCanvas, 300, 180);
   if (gTSweep && tsSweepCanvas) {
     gTSweep.clearRect(0, 0, tsSweepCanvas.width, tsSweepCanvas.height);
+  }
+
+  if (tsSweepEnergyCanvas) fitCanvasEl(tsSweepEnergyCanvas, 300, 180);
+  if (gTSweepEnergy && tsSweepEnergyCanvas) {
+    gTSweepEnergy.clearRect(0, 0, tsSweepEnergyCanvas.width, tsSweepEnergyCanvas.height);
   }
 
   if (melodyAmpCanvas) fitCanvasEl(melodyAmpCanvas, 300, 180);
@@ -6703,43 +6729,19 @@ document.getElementById('modType')
 
 
 function drawSweepTrace(){
-  if (!tsSweepCanvas || !gTSweep) return;
+  drawSweepTraceHz();
+  drawSweepTraceEnergy();
+}
 
-  const W = tsSweepCanvas.width;
-  const H = tsSweepCanvas.height;
-  gTSweep.clearRect(0, 0, W, H);
-
+function getSweepTraceSeries(){
   const selectedFrozen = getSelectedFrozenSeries();
-  const seriesSrc = (!timeLogFollowLatest && selectedFrozen)
+  return (!timeLogFollowLatest && selectedFrozen)
     ? selectedFrozen
     : tsBuf;
+}
 
-  const ml = 58, mr = 58, mt = 18, mb = 24;
-  const pw = W - ml - mr;
-  const ph = H - mt - mb;
-
-  const chartLeft = ml;
-  const chartRight = ml + pw;
-  const chartTop = mt;
-  const chartBottom = mt + ph;
-
-  gTSweep.fillStyle = '#fcfcfc';
-  gTSweep.fillRect(0, 0, W, H);
-
-  gTSweep.strokeStyle = '#d4d4d4';
-  gTSweep.lineWidth = 1;
-  gTSweep.beginPath();
-  gTSweep.moveTo(chartLeft, chartTop);
-  gTSweep.lineTo(chartLeft, chartBottom);
-  gTSweep.lineTo(chartRight, chartBottom);
-  gTSweep.stroke();
-
-  if (!seriesSrc || seriesSrc.length < 2) {
-    gTSweep.fillStyle = '#999';
-    gTSweep.font = '12px sans-serif';
-    gTSweep.fillText('no sweep trace yet', chartLeft + 10, chartTop + 18);
-    return;
-  }
+function getSweepTraceWindow(seriesSrc){
+  if (!seriesSrc || seriesSrc.length < 2) return null;
 
   const nowSec = seriesSrc[seriesSrc.length - 1].t;
   const winSec = getTimeWindowSec();
@@ -6761,104 +6763,264 @@ function drawSweepTrace(){
   }
 
   const visible = seriesSrc.filter(p => p.t >= viewStart && p.t <= viewEnd);
-  if (visible.length < 2) return;
+  if (visible.length < 2) return null;
 
-  const hzMax = Math.max(300, viewMaxHz || 600);
+  return { visible, viewStart, viewEnd };
+}
 
-  let energyMax = 1e-9;
-  for (const p of visible) {
-    const e = Number(p.peakAEnergy) || 0;
-    if (e > energyMax) energyMax = e;
+function setupSweepTraceCanvas(canvas, ctx, emptyText){
+  if (!canvas || !ctx) return null;
+
+  const W = canvas.width;
+  const H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const ml = 62, mr = 58, mt = 18, mb = 26;
+  const pw = W - ml - mr;
+  const ph = H - mt - mb;
+
+  const chart = {
+    W, H,
+    left: ml,
+    right: ml + pw,
+    top: mt,
+    bottom: mt + ph,
+    width: pw,
+    height: ph,
+  };
+
+  ctx.fillStyle = '#fcfcfc';
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.strokeStyle = '#d4d4d4';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(chart.left, chart.top);
+  ctx.lineTo(chart.left, chart.bottom);
+  ctx.lineTo(chart.right, chart.bottom);
+  ctx.stroke();
+
+  if (emptyText) {
+    ctx.fillStyle = '#999';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(emptyText, chart.left + 10, chart.top + 18);
   }
 
-  function xMap(t){
-    return chartLeft + ((t - viewStart) / Math.max(1e-9, (viewEnd - viewStart))) * pw;
+  return chart;
+}
+
+function drawSweepGridHz(ctx, chart, hzMax){
+  ctx.save();
+
+  // 10Hz薄線 + 50Hz濃線。知覚マップとの手動マッチング用。
+  const hzStepMinor = 10;
+  const hzStepMajor = 50;
+  const startHz = Math.ceil(0 / hzStepMinor) * hzStepMinor;
+
+  ctx.font = '10px sans-serif';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+
+  for (let hz = startHz; hz <= hzMax; hz += hzStepMinor) {
+    const y = chart.bottom - (hz / hzMax) * chart.height;
+    const major = (hz % hzStepMajor) === 0;
+
+    ctx.strokeStyle = major ? '#d8d8d8' : '#eeeeee';
+    ctx.lineWidth = major ? 1 : 0.7;
+    ctx.beginPath();
+    ctx.moveTo(chart.left, y);
+    ctx.lineTo(chart.right, y);
+    ctx.stroke();
+
+    if (major || hz === 0) {
+      ctx.fillStyle = '#666';
+      ctx.fillText(`${hz}`, chart.left - 8, y);
+    }
   }
 
-  function yMapHz(hz){
-    const v = Math.max(0, Math.min(hzMax, Number(hz) || 0));
-    return chartBottom - (v / hzMax) * ph;
+  ctx.fillStyle = '#777';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText('Hz', 8, chart.top + 2);
+
+  ctx.restore();
+}
+
+function formatSweepEnergyValue(v){
+  const n = Number(v) || 0;
+  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
+  if (n >= 1000) return `${Math.round(n / 1000)}k`;
+  return `${Math.round(n)}`;
+}
+
+function getSweepEnergyScaleMax(visible){
+  let dataMax = 1e-9;
+  for (const p of visible || []) {
+    dataMax = Math.max(
+      dataMax,
+      Number(p.peakAEnergy) || 0,
+      Number(p.melodyAmp) || 0,
+      Number(p.melodyHasCandidate ? p.melodyAmp : 0) || 0
+    );
   }
 
-  function yMapEnergy(e){
-    const v = Math.max(0, Number(e) || 0);
-    const norm = Math.log1p(v) / Math.log1p(Math.max(1e-9, energyMax));
+  const rawMode = SWEEP_TRACE_ENERGY_SCALE_MODE || 'auto';
+  const fixed = Number(rawMode);
+  const auto = rawMode === 'auto' || !Number.isFinite(fixed) || fixed <= 0;
+  const scaleMax = auto ? dataMax : fixed;
 
-    // 0〜100正規化
-    return chartBottom - norm * ph;
-  }
+  return { auto, scaleMax: Math.max(1e-9, scaleMax), dataMax };
+}
 
-  // grid
-  gTSweep.strokeStyle = '#ececec';
-  gTSweep.lineWidth = 1;
-  gTSweep.font = '11px sans-serif';
+function updateSweepEnergyScaleStatus(auto, scaleMax, dataMax){
+  if (!sweepEnergyScaleStatusEl) return;
+  sweepEnergyScaleStatusEl.textContent = auto
+    ? `Scale: Auto / Max: ${formatSweepEnergyValue(dataMax)}`
+    : `Scale: Fixed ${formatSweepEnergyValue(scaleMax)} / Max: ${formatSweepEnergyValue(dataMax)}`;
+}
+
+function drawSweepGridEnergy(ctx, chart, scaleInfo){
+  ctx.save();
+
+  const auto = !!scaleInfo?.auto;
+  const scaleMax = Math.max(1e-9, Number(scaleInfo?.scaleMax) || 1);
+  const dataMax = Math.max(0, Number(scaleInfo?.dataMax) || 0);
+
+  ctx.font = '10px sans-serif';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
 
   for (let i = 0; i <= 4; i++) {
-    const y = chartTop + ph * i / 4;
-    gTSweep.beginPath();
-    gTSweep.moveTo(chartLeft, y);
-    gTSweep.lineTo(chartRight, y);
-    gTSweep.stroke();
+    const ratio = i / 4;
+    const y = chart.bottom - ratio * chart.height;
+    ctx.strokeStyle = i === 0 ? '#d8d8d8' : '#eeeeee';
+    ctx.lineWidth = i === 0 ? 1 : 0.8;
+    ctx.beginPath();
+    ctx.moveTo(chart.left, y);
+    ctx.lineTo(chart.right, y);
+    ctx.stroke();
 
-    const hzVal = hzMax - hzMax * i / 4;
-    gTSweep.fillStyle = '#666';
-    gTSweep.textAlign = 'right';
-    gTSweep.textBaseline = 'middle';
-    gTSweep.fillText(`${Math.round(hzVal)}`, chartLeft - 8, y);
+    ctx.fillStyle = '#666';
+    const label = auto
+      ? `${Math.round(ratio * 100)}%`
+      : formatSweepEnergyValue(scaleMax * ratio);
+    ctx.fillText(label, chart.left - 8, y);
   }
 
-  function drawLine(key, color, yMap, width = 2, dashed = false){
-    gTSweep.save();
-    gTSweep.strokeStyle = color;
-    gTSweep.lineWidth = width;
-    gTSweep.setLineDash(dashed ? [6, 4] : []);
-    gTSweep.beginPath();
+  ctx.fillStyle = '#777';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText(
+    auto
+      ? `Relative Amp / Auto max ${formatSweepEnergyValue(dataMax)}`
+      : `Amp / Fixed max ${formatSweepEnergyValue(scaleMax)}`,
+    8,
+    chart.top + 2
+  );
 
-    let started = false;
+  ctx.restore();
+}
 
-    for (const p of visible) {
-      const v = Number(p[key]) || 0;
-      if (key === 'inputHz' && v <= 0) continue;
+function getPeakAEnergyCandidateHz(frame){
+  // PeakA Energy由来の候補Hz：保存済みのA側ピークリストから最大magのHzを採用。
+  // mixPeakTrackedA がある場合は、慣性追跡済みの候補として優先する。
+  const tracked = Number(frame?.mixPeakTrackedA);
+  if (Number.isFinite(tracked) && tracked > 0) return tracked;
 
-      const x = xMap(p.t);
-      const y = yMap(v);
+  const peaks = Array.isArray(frame?.topPeaksA) && frame.topPeaksA.length
+    ? frame.topPeaksA
+    : (Array.isArray(frame?.rawTopPeaksA) ? frame.rawTopPeaksA : []);
 
-      if (!started) {
-        gTSweep.moveTo(x, y);
-        started = true;
-      } else {
-        gTSweep.lineTo(x, y);
-      }
+  let bestHz = 0;
+  let bestMag = -Infinity;
+  for (const p of peaks) {
+    const hz = Number(p?.hz) || 0;
+    const mag = Number(p?.mag) || 0;
+    if (hz > 0 && mag > bestMag) {
+      bestMag = mag;
+      bestHz = hz;
     }
-
-    if (started) gTSweep.stroke();
-    gTSweep.restore();
   }
 
-  drawLine('inputHz', '#777777', yMapHz, 2, true);
-  drawLine('peakAHz', '#1e88e5', yMapHz, 2, false);
-  drawLine('peakAEnergy', '#8e24aa', yMapEnergy, 1.5, false);
+  return bestHz || 0;
+}
 
-  // TOUCH markers
+function drawSweepLine(ctx, visible, chart, viewStart, viewEnd, getValue, yMap, color, width = 2, dashed = false){
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
+  ctx.setLineDash(dashed ? [6, 4] : []);
+  ctx.beginPath();
+
+  let started = false;
+  for (const p of visible) {
+    const v = Number(getValue(p));
+    if (!Number.isFinite(v) || v <= 0) continue;
+
+    const x = chart.left + ((p.t - viewStart) / Math.max(1e-9, (viewEnd - viewStart))) * chart.width;
+    const y = yMap(v);
+
+    if (!started) {
+      ctx.moveTo(x, y);
+      started = true;
+    } else {
+      ctx.lineTo(x, y);
+    }
+  }
+
+  if (started) ctx.stroke();
+  ctx.restore();
+}
+
+function drawSweepTouchMarkers(ctx, chart, viewStart, viewEnd){
   for (const s of touchShots) {
     if (s.t < viewStart || s.t > viewEnd) continue;
-    const x = xMap(s.t);
-    drawTouchMarker(gTSweep, x, chartTop, chartBottom, s);
+    const x = chart.left + ((s.t - viewStart) / Math.max(1e-9, (viewEnd - viewStart))) * chart.width;
+    drawTouchMarker(ctx, x, chart.top, chart.bottom, s);
   }
+}
 
-  // legend
+function drawSweepTraceHz(){
+  if (!tsSweepCanvas || !gTSweep) return;
+
+  const seriesSrc = getSweepTraceSeries();
+  const empty = (!seriesSrc || seriesSrc.length < 2) ? 'no sweep trace yet' : '';
+  const chart = setupSweepTraceCanvas(tsSweepCanvas, gTSweep, empty);
+  if (!chart || empty) return;
+
+  const win = getSweepTraceWindow(seriesSrc);
+  if (!win) return;
+  const { visible, viewStart, viewEnd } = win;
+
+  const hzMax = 300;
+  const yMapHz = (hz) => {
+    const v = Math.max(0, Math.min(hzMax, Number(hz) || 0));
+    return chart.bottom - (v / hzMax) * chart.height;
+  };
+
+  drawSweepGridHz(gTSweep, chart, hzMax);
+
+  // Hz窓：理想スイープ / 実ピーク / 主旋律 / PeakA Energy由来候補Hz
+  drawSweepLine(gTSweep, visible, chart, viewStart, viewEnd, p => p.inputHz, yMapHz, '#777777', 2, true);
+  drawSweepLine(gTSweep, visible, chart, viewStart, viewEnd, p => p.peakAHz, yMapHz, '#1e88e5', 2, false);
+  drawSweepLine(gTSweep, visible, chart, viewStart, viewEnd, p => p.melodyHz, yMapHz, '#fbc02d', 2.5, false);
+  drawSweepLine(gTSweep, visible, chart, viewStart, viewEnd, p => getPeakAEnergyCandidateHz(p), yMapHz, '#00acc1', 1.6, true);
+
+  drawSweepTouchMarkers(gTSweep, chart, viewStart, viewEnd);
+
   gTSweep.font = '12px sans-serif';
   gTSweep.textAlign = 'left';
   gTSweep.textBaseline = 'top';
-
   gTSweep.fillStyle = '#777';
-  gTSweep.fillText('Input Hz', chartLeft + 8, chartTop + 6);
-
+  gTSweep.fillText('Input Hz', chart.left + 8, chart.top + 6);
   gTSweep.fillStyle = '#1e88e5';
-  gTSweep.fillText('PeakA Hz', chartLeft + 90, chartTop + 6);
-
-  gTSweep.fillStyle = '#8e24aa';
-  gTSweep.fillText('PeakA Energy', chartLeft + 175, chartTop + 6);
+  gTSweep.fillText('PeakA Hz', chart.left + 90, chart.top + 6);
+  gTSweep.fillStyle = '#fbc02d';
+  gTSweep.fillText('Melody Hz', chart.left + 175, chart.top + 6);
+  gTSweep.fillStyle = '#00acc1';
+  gTSweep.fillText('Energy Candidate Hz', chart.left + 265, chart.top + 6);
 
   const last = visible[visible.length - 1];
   gTSweep.fillStyle = '#333';
@@ -6866,9 +7028,61 @@ function drawSweepTrace(){
   gTSweep.textAlign = 'right';
   gTSweep.textBaseline = 'alphabetic';
   gTSweep.fillText(
-    `in:${(Number(last.inputHz)||0).toFixed(1)}Hz / peak:${(Number(last.peakAHz)||0).toFixed(1)}Hz / E:${(Number(last.peakAEnergy)||0).toFixed(0)}`,
-    chartRight,
-    H - 6
+    `in:${(Number(last.inputHz)||0).toFixed(1)}Hz / peak:${(Number(last.peakAHz)||0).toFixed(1)}Hz / melody:${(Number(last.melodyHz)||0).toFixed(1)}Hz / cand:${getPeakAEnergyCandidateHz(last).toFixed(1)}Hz`,
+    chart.right,
+    chart.H - 6
+  );
+}
+
+function drawSweepTraceEnergy(){
+  if (!tsSweepEnergyCanvas || !gTSweepEnergy) return;
+
+  const seriesSrc = getSweepTraceSeries();
+  const empty = (!seriesSrc || seriesSrc.length < 2) ? 'no sweep energy yet' : '';
+  const chart = setupSweepTraceCanvas(tsSweepEnergyCanvas, gTSweepEnergy, empty);
+  if (!chart || empty) return;
+
+  const win = getSweepTraceWindow(seriesSrc);
+  if (!win) return;
+  const { visible, viewStart, viewEnd } = win;
+
+  const scaleInfo = getSweepEnergyScaleMax(visible);
+  updateSweepEnergyScaleStatus(scaleInfo.auto, scaleInfo.scaleMax, scaleInfo.dataMax);
+
+  const yMapEnergy = (e) => {
+    const v = Math.max(0, Number(e) || 0);
+    const norm = Math.max(0, Math.min(1, v / scaleInfo.scaleMax));
+    return chart.bottom - norm * chart.height;
+  };
+
+  drawSweepGridEnergy(gTSweepEnergy, chart, scaleInfo);
+
+  // Energy窓：PeakA Energy / Melody Amp / Melody Candidate Amp
+  drawSweepLine(gTSweepEnergy, visible, chart, viewStart, viewEnd, p => p.peakAEnergy, yMapEnergy, '#8e24aa', 1.8, false);
+  drawSweepLine(gTSweepEnergy, visible, chart, viewStart, viewEnd, p => p.melodyAmp, yMapEnergy, '#43a047', 2, false);
+  drawSweepLine(gTSweepEnergy, visible, chart, viewStart, viewEnd, p => p.melodyHasCandidate ? p.melodyAmp : 0, yMapEnergy, '#fb8c00', 1.5, true);
+
+  drawSweepTouchMarkers(gTSweepEnergy, chart, viewStart, viewEnd);
+
+  gTSweepEnergy.font = '12px sans-serif';
+  gTSweepEnergy.textAlign = 'left';
+  gTSweepEnergy.textBaseline = 'top';
+  gTSweepEnergy.fillStyle = '#8e24aa';
+  gTSweepEnergy.fillText('PeakA Energy', chart.left + 8, chart.top + 6);
+  gTSweepEnergy.fillStyle = '#43a047';
+  gTSweepEnergy.fillText('Melody Amp', chart.left + 125, chart.top + 6);
+  gTSweepEnergy.fillStyle = '#fb8c00';
+  gTSweepEnergy.fillText('Melody Candidate Amp', chart.left + 230, chart.top + 6);
+
+  const last = visible[visible.length - 1];
+  gTSweepEnergy.fillStyle = '#333';
+  gTSweepEnergy.font = '11px sans-serif';
+  gTSweepEnergy.textAlign = 'right';
+  gTSweepEnergy.textBaseline = 'alphabetic';
+  gTSweepEnergy.fillText(
+    `E:${(Number(last.peakAEnergy)||0).toFixed(0)} / Mamp:${(Number(last.melodyAmp)||0).toFixed(0)} / Cand:${last.melodyHasCandidate ? 'yes' : 'no'} / ${scaleInfo.auto ? 'Auto' : 'Fixed ' + formatSweepEnergyValue(scaleInfo.scaleMax)}`,
+    chart.right,
+    chart.H - 6
   );
 }
 
@@ -7033,8 +7247,8 @@ function drawFRBPianoRoll(data = window.FRB_PIANO_ROLL_LAST){
   ctx.fillRect(0, 0, W, H);
 
   const frames = Array.isArray(data) ? data : [];
-  const left = 78;
-  const right = W - 12;
+  const left = 62;
+  const right = W - 58;
   const top = 12;
   const bottom = H - 24;
   const plotW = Math.max(1, right - left);
@@ -7067,7 +7281,7 @@ function drawFRBPianoRoll(data = window.FRB_PIANO_ROLL_LAST){
     ctx.stroke();
 
     ctx.fillStyle = 'rgba(235,245,255,0.88)';
-    ctx.fillText(label, 8, y);
+    ctx.fillText(label, 6, y);
   }
 
   // 外枠
@@ -7204,13 +7418,21 @@ function makeMelodyAmpPoint(frame, melodyPeak){
 }
 
 function pushLiveMelodyAmpFrame(frame){
-  if (!frame || !Array.isArray(frame.rawTopPeaksA)) return;
+  if (!frame || !Array.isArray(frame.rawTopPeaksA)) return null;
 
   const melodyPick = pickMainMelodyPeak(frame, liveMelodyAmpHz);
   liveMelodyAmpHz = melodyPick.hz;
 
   const point = makeMelodyAmpPoint(frame, melodyPick.peak);
   point.mode = 'live';
+
+  // Sweep Trace / MIDI検証用に、フレーム本体にも同じ根拠値を残す。
+  // 値は元ピーク由来の無加工値。表示側だけでスケール変換する。
+  frame.melodyHz = Number(point.hz) || 0;
+  frame.melodyAmp = Number(point.mag) || 0;
+  frame.melodyNote = point.note || '';
+  frame.melodyMidi = point.midi;
+  frame.melodyHasCandidate = !!point.hasMelody;
 
   liveMelodyAmpHistory.push(point);
 
@@ -7223,6 +7445,7 @@ function pushLiveMelodyAmpFrame(frame){
   window.FRB_MELODY_AMP_LAST = liveMelodyAmpHistory;
   window.FRB_MELODY_AMP_MODE = 'live';
   requestDrawMainMelodyAmp();
+  return point;
 }
 
 function rebuildMelodyAmpFromLoadedSeries(){
@@ -7236,6 +7459,14 @@ function rebuildMelodyAmpFromLoadedSeries(){
     liveMelodyAmpHz = melodyPick.hz;
     const point = makeMelodyAmpPoint(frame, melodyPick.peak);
     point.mode = 'loaded';
+
+    // Load済みログでもSweep Traceへ重ねられるように復元する。
+    frame.melodyHz = Number(point.hz) || 0;
+    frame.melodyAmp = Number(point.mag) || 0;
+    frame.melodyNote = point.note || '';
+    frame.melodyMidi = point.midi;
+    frame.melodyHasCandidate = !!point.hasMelody;
+
     liveMelodyAmpHistory.push(point);
   }
 
@@ -7386,6 +7617,11 @@ function setInvestigateReplayStatus(text){
   if (el) el.textContent = text;
 }
 
+function setFastPianoRollStatus(text){
+  const el = document.getElementById('fastPianoRollStatus');
+  if (el) el.textContent = text;
+}
+
 function ensureInvestigateReplayAudio(){
   if (!investigateReplayCtx) {
     investigateReplayCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -7512,10 +7748,9 @@ function startInvestigateReplay(){
   investigateReplayMelodyAmp = [];
   investigateReplayMelodyHz = NaN;
   window.FRB_PIANO_ROLL_LAST = investigateReplayPianoRoll;
-  window.FRB_MELODY_AMP_LAST = investigateReplayMelodyAmp;
-  window.FRB_MELODY_AMP_MODE = 'replay';
+  // Live Melody Candidate Amp は検証用のログ表示として保持する。
+  // Load後のログ情報を、Play Investigate でクリア・再構築しない。
   requestDrawFRBPianoRoll();
-  requestDrawMainMelodyAmp();
   investigateReplayOscs = [];
   investigateReplayGains = [];
 
@@ -7556,10 +7791,9 @@ function startInvestigateReplay(){
     investigateReplayPianoRoll.push(makePianoRollFrame(frame, peaks, melodyPick.peak));
     investigateReplayMelodyAmp.push(makeMelodyAmpPoint(frame, melodyPick.peak));
     window.FRB_PIANO_ROLL_LAST = investigateReplayPianoRoll;
-    window.FRB_MELODY_AMP_LAST = investigateReplayMelodyAmp;
-    window.FRB_MELODY_AMP_MODE = 'replay';
+    // 再生中も Live Melody Candidate Amp は触らない。
+    // MIDI音量検証のため、Load時に復元した主旋律候補Ampを表示したままにする。
     requestDrawFRBPianoRoll();
-    requestDrawMainMelodyAmp();
 
     const now = investigateReplayCtx.currentTime;
 
@@ -7619,6 +7853,53 @@ function startInvestigateReplay(){
 }
 
 
+function buildFastPianoRoll(){
+  // 時短Play：音声再生を行わず、現在の設定（Merge / Pitch Snap / View Mode）で
+  // ログ全体からFRB Piano Rollだけを一括生成する。
+  stopInvestigateReplay(false);
+
+  const frames = collectInvestigateReplayFrames();
+  if (frames.length < 2) {
+    setFastPianoRollStatus('no investigate data');
+    setInvestigateReplayStatus('no investigate data');
+    return;
+  }
+
+  const startedAt = performance.now();
+  setFastPianoRollStatus(`building 0/${frames.length}`);
+
+  investigateReplayFrames = frames;
+  investigateReplayIndex = 0;
+  investigateReplayPlaying = false;
+  investigateReplayPianoRoll = [];
+  investigateReplayMelodyAmp = [];
+  investigateReplayMelodyHz = NaN;
+
+  let melodyHz = NaN;
+  let noteFrameCount = 0;
+
+  for (const frame of frames) {
+    const peaks = pickFrb123Peaks(frame);
+    const melodyPick = pickMainMelodyPeak(frame, melodyHz);
+    melodyHz = melodyPick.hz;
+
+    investigateReplayPianoRoll.push(makePianoRollFrame(frame, peaks, melodyPick.peak));
+    investigateReplayMelodyAmp.push(makeMelodyAmpPoint(frame, melodyPick.peak));
+    noteFrameCount++;
+  }
+
+  investigateReplayMelodyHz = melodyHz;
+  window.FRB_PIANO_ROLL_LAST = investigateReplayPianoRoll;
+
+  // 音は鳴らさず、描画だけ更新する。
+  drawFRBPianoRoll();
+
+  const elapsedMs = Math.max(0, performance.now() - startedAt);
+  setFastPianoRollStatus(`done ${noteFrameCount}/${frames.length} / ${elapsedMs.toFixed(0)}ms`);
+  setInvestigateReplayStatus(`fast piano roll generated ${frames.length} frames`);
+}
+
+
 function stopInvestigateReplay(finished = false){
   investigateReplayPlaying = false;
 
@@ -7648,13 +7929,16 @@ function stopInvestigateReplay(finished = false){
 
   setInvestigateReplayStatus(finished ? 'finished' : 'stopped');
   requestDrawFRBPianoRoll();
-  requestDrawMainMelodyAmp();
+  // 停止時も Live Melody Candidate Amp は触らない。
 }
 
 
 // app.js は body末尾で読み込まれるので、この時点でボタンは存在する想定。
 document.getElementById('playInvestigateBtn')
   ?.addEventListener('click', startInvestigateReplay);
+
+document.getElementById('fastPianoRollBtn')
+  ?.addEventListener('click', buildFastPianoRoll);
 
 document.getElementById('stopInvestigateBtn')
   ?.addEventListener('click', () => stopInvestigateReplay(false));
@@ -8022,12 +8306,21 @@ function collectMidiExportEvents(frames){
   return out;
 }
 
-function velocityFromMag(mag, maxMag){
+// function velocityFromMag(mag, maxMag){
+//   const m = Math.max(0, Number(mag) || 0);
+//   const mx = Math.max(1e-9, Number(maxMag) || 1);
+//   const v = Math.round(1 + 126 * Math.min(1, m / mx));
+//   return Math.max(1, Math.min(127, v));
+// }
+
+const MIDI_VELOCITY_FIXED_MAX = 15000;
+
+function velocityFromMag(mag){
   const m = Math.max(0, Number(mag) || 0);
-  const mx = Math.max(1e-9, Number(maxMag) || 1);
-  const v = Math.round(1 + 126 * Math.min(1, m / mx));
+  const v = Math.round((m / MIDI_VELOCITY_FIXED_MAX) * 127);
   return Math.max(1, Math.min(127, v));
 }
+
 
 function makeMidiTrack(trackName, channel, program, noteEvents, maxMag, includeTempo = false){
   const events = [];
@@ -8045,7 +8338,9 @@ function makeMidiTrack(trackName, channel, program, noteEvents, maxMag, includeT
 
   const abs = [];
   for (const n of noteEvents || []) {
-    const vel = velocityFromMag(n.mag, maxMag);
+
+    const vel = velocityFromMag(n.mag);
+    
     abs.push({ tick:n.startTick, bytes:[0x90 | (channel & 0x0f), n.midi & 0x7f, vel] });
     abs.push({ tick:n.endTick,   bytes:[0x80 | (channel & 0x0f), n.midi & 0x7f, 0] });
   }
