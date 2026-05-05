@@ -18,18 +18,17 @@
     <input id="fmax" type="number" value="400" min="1" step="1" style="width:72px"> Hz
     <button id="apply">Apply</button>
   </div>
+  <div class="subPanel pianoRollPanel">
+    <div class="subTitle">FRB Piano Roll <span id="pianoRollStatus" class="mini">idle</span></div>
+    <div class="mini">縦：半音階 / ラベル：A4 440Hz・C4 261Hz・A3 220Hz・A2 110Hz・A1 55Hz</div>
+    <canvas id="pianoRollCanvas"></canvas>
+  </div>
+  
   <div class="panel">
     <div class="section-head">
       <div class="section-title">TIME LOG</div>
       <div class="section-sub">(SCRAPE &amp; Peak Hz / Flux)</div>
     </div>
-
-    <div class="subPanel">
-      <div class="subTitle">Peak Timeline</div>
-      <canvas id="tsPeak"></canvas>
-    </div>
-
-    <div class="timelog-wrap">
       <div class="box soundBox">
         <b>Sound Output</b>
         <label>
@@ -90,93 +89,144 @@
 
 
       </div>
+
+    <div class="subPanel">
+      <div class="subTitle">Peak Timeline</div>
+      <canvas id="tsPeak"></canvas>
+    </div>
+    <div class="subPanel">
+        BandTimeline Investigate Scale:
+        <select id="bandScaleModeInvestigate">
+          <option value="3000">Scale1-0(3000)</option>
+          <option value="5000">Scale1-1(5000)</option>
+          <option value="10000">Scale1 (10000)</option>
+          <option value="40000" selected >Scale2 (40000)</option>
+          <option value="60000">Scale3 (60000)</option>
+          <option value="80000">Scale4 (80000)</option>
+          <option value="400000">Scale5 (400000)</option>
+          <option value="800000">Scale6 (800000)</option>
+          <option value="1600000">Scale7 (1600000)</option>
+          
+        </select>
+
+        <button id="playInvestigateBtn">Play Investigate</button>
+        <button id="stopInvestigateBtn">Stop</button>
+        <span id="investigateReplayStatus" class="mini">investigate idle</span>
+
+        <div class="box">
+          <span> 
+          View Mode:
+          <label style="margin-left:8px;">
+            <input type="radio" name="viewMode" value="raw" checked> Raw
+          </label>
+          <label style="margin-left:8px;">
+            <input type="radio" name="viewMode" value="balanced"> Balanced
+          </label>
+          <span class="mini" style="margin-left:8px;">（Balancedは高域を持ち上げて聴きやすくする）</span>
+          </span>
+          <span> 
+            Merge (Hz):
+            <input type="range" id="mergeHz" min="0" max="20" step="1" value="5">
+            <span id="mergeHzLabel">5 Hz</span>
+          </span>
+
+          <span>
+            Instrument:
+            <select id="instrumentSel">
+              <option value="sine">Sine（柔らかい）</option>
+              <option value="triangle">Triangle（少し芯）</option>
+              <option value="square">Square（強め）</option>
+              <option value="sawtooth">Saw（派手）</option>
+            </select>
+          </span>
+
+          <span>
+            Pitch Snap:
+            <label style="margin-left:4px;">
+              <input type="checkbox" id="pitchSnap">
+              <span id="pitchSnapLabel">OFF 連続Hz</span>
+            </label>
+          </span>
+
+          <span>
+            <button id="exportWavBtn" type="button">Export WAV</button>
+            <span id="exportWavStatus" class="mini">wav idle</span>
+          </span>
+
+          <span>
+            <button id="exportMidiBtn" type="button">Export MIDI</button>
+            <span id="exportMidiStatus" class="mini">midi idle</span>
+          </span>
+
+<span class="midiInstBox">
+MIDI Inst:
+<label>Melody
+  <select id="midiInstMelody">
+    <option value="0">Piano 1</option>
+    <option value="1">Piano 2</option>
+    <option value="2" selected>Piano 3</option>
+    <option value="3">Honky-tonk Piano</option>
+    <option value="4">Electric Piano</option>
+  </select>
+</label>
+
+<label>Low
+  <select id="midiInstLow">
+    <option value="32">Acoustic Bass</option>
+    <option value="33">Finger Bass</option>
+    <option value="34">Pick Bass</option>
+    <option value="35">Fretless Bass</option>
+    <option value="36" selected>Slap Bass 1</option>
+    <option value="37">Slap Bass 2</option>
+  </select>
+</label>
+
+<label>Mid
+  <select id="midiInstMid">
+    <option value="16">Drawbar Organ</option>
+    <option value="17">Percussive Organ</option>
+    <option value="18" selected>Organ 3</option>
+    <option value="19">Church Organ</option>
+    <option value="4">Electric Piano</option>
+  </select>
+</label>
+
+<label>High
+  <select id="midiInstHigh">
+    <option value="8">Celesta</option>
+    <option value="9">Glockenspiel</option>
+    <option value="10">Music Box</option>
+    <option value="11">Vibraphone</option>
+    <option value="12">Marimba</option>
+    <option value="25" selected>Steel Guitar</option>
+    <option value="26">Jazz Guitar</option>
+  </select>
+</label>
+</span>
+
+        </div>
+
+
+          
+
+
+
+
+    </div>
+
+
+    <div class="timelog-wrap">
+
       <div class="subPanel">
         <div class="subTitle">Sweep Trace</div>
         <canvas id="tsSweep"></canvas>
       </div>
 
-      <div class="subPanel">
-          BandTimeline Investigate Scale:
-          <select id="bandScaleModeInvestigate">
-            <option value="3000">Scale1-0(3000)</option>
-            <option value="5000">Scale1-1(5000)</option>
-            <option value="10000">Scale1 (10000)</option>
-            <option value="40000" selected >Scale2 (40000)</option>
-            <option value="60000">Scale3 (60000)</option>
-            <option value="80000">Scale4 (80000)</option>
-            <option value="400000">Scale5 (400000)</option>
-            <option value="800000">Scale6 (800000)</option>
-            <option value="1600000">Scale7 (1600000)</option>
-            
-          </select>
-
-          <button id="playInvestigateBtn">Play Investigate</button>
-          <button id="stopInvestigateBtn">Stop</button>
-          <span id="investigateReplayStatus" class="mini">investigate idle</span>
-
-          <div class="box">
-            <span> 
-            View Mode:
-            <label style="margin-left:8px;">
-              <input type="radio" name="viewMode" value="raw" checked> Raw
-            </label>
-            <label style="margin-left:8px;">
-              <input type="radio" name="viewMode" value="balanced"> Balanced
-            </label>
-            <span class="mini" style="margin-left:8px;">（Balancedは高域を持ち上げて聴きやすくする）</span>
-            </span>
-            <span> 
-              Merge (Hz):
-              <input type="range" id="mergeHz" min="0" max="20" step="1" value="5">
-              <span id="mergeHzLabel">5 Hz</span>
-            </span>
-
-            <span>
-              Instrument:
-              <select id="instrumentSel">
-                <option value="sine">Sine（柔らかい）</option>
-                <option value="triangle">Triangle（少し芯）</option>
-                <option value="square">Square（強め）</option>
-                <option value="sawtooth">Saw（派手）</option>
-              </select>
-            </span>
-
-            <span>
-              Pitch Snap:
-              <label style="margin-left:4px;">
-                <input type="checkbox" id="pitchSnap">
-                <span id="pitchSnapLabel">OFF 連続Hz</span>
-              </label>
-            </span>
-
-            <span>
-              <button id="exportWavBtn" type="button">Export WAV</button>
-              <span id="exportWavStatus" class="mini">wav idle</span>
-              
-            </span>
-
-            
-
-
-          </div>
-
-
-            
-
-
-
-
-        <div class="box">
-          <div id="bandInvestigateLegend" class="bandLegend"></div>
-        </div>
-        <canvas id="tsBandInvestigate"></canvas>
-
-        <div class="subPanel pianoRollPanel">
-          <div class="subTitle">FRB Piano Roll <span id="pianoRollStatus" class="mini">idle</span></div>
-          <div class="mini">縦：半音階 / ラベル：A4 440Hz・C4 261Hz・A3 220Hz・A2 110Hz・A1 55Hz</div>
-          <canvas id="pianoRollCanvas"></canvas>
-        </div>
+      <div class="box">
+        <div id="bandInvestigateLegend" class="bandLegend"></div>
       </div>
+      <canvas id="tsBandInvestigate"></canvas>
+
 
       <div class="subPanel">
         <div class="subTitle">Flux</div>
@@ -209,17 +259,11 @@
         <canvas id="tsBand"></canvas>
       </div>
 
-
-
-
-
-      
       <div class="subPanel">
         <div class="subTitle">Tingle Motion</div>
         <canvas id="tsTingle"></canvas>
       </div>
 
-      
       <div class="subPanel">
         <div class="subTitle">Experience Wave (beta)</div>
         <canvas id="tsExp"></canvas>

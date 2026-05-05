@@ -86,10 +86,18 @@ let lastPeakAEnergy = 0;
 
 const exportWavBtn = document.getElementById('exportWavBtn');
 const exportWavStatus = document.getElementById('exportWavStatus');
+const exportMidiBtn = document.getElementById('exportMidiBtn');
+const exportMidiStatus = document.getElementById('exportMidiStatus');
 
 if (exportWavBtn) {
   exportWavBtn.addEventListener('click', () => {
     exportWavFromNotes();
+  });
+}
+
+if (exportMidiBtn) {
+  exportMidiBtn.addEventListener('click', () => {
+    exportMidiFromPianoRoll();
   });
 }
 
@@ -6931,23 +6939,40 @@ function makeReplayPitchInfo(hz){
   return snapHzToSemitone(rawHz);
 }
 
-function makePianoRollFrame(frame, peaks){
+function makePianoRollFrame(frame, peaks, melodyPeak = null){
   const t = Number(frame?.t) || 0;
-  return {
-    t,
-    notes: peaks.map((p, idx) => {
-      const pitch = makeReplayPitchInfo(p?.hz);
-      return {
-        voice: idx,
-        rawHz: pitch.rawHz,
-        playHz: pitch.playHz,
-        midi: pitch.midi,
-        note: pitch.note,
-        mag: Math.max(0, Number(p?.mag) || 0),
-        snapped: pitch.snapped,
-      };
-    }),
-  };
+  const notes = (Array.isArray(peaks) ? peaks : []).map((p, idx) => {
+    const pitch = makeReplayPitchInfo(p?.hz);
+    return {
+      voice: idx,
+      role: p?.role || 'band',
+      trackRole: p?.trackRole || p?.role || 'band',
+      rawHz: pitch.rawHz,
+      playHz: pitch.playHz,
+      midi: pitch.midi,
+      note: pitch.note,
+      mag: Math.max(0, Number(p?.mag) || 0),
+      snapped: pitch.snapped,
+    };
+  });
+
+  let melody = null;
+  if (melodyPeak && Number.isFinite(Number(melodyPeak.hz))) {
+    const pitch = makeReplayPitchInfo(melodyPeak.hz);
+    melody = {
+      voice: 0,
+      role: 'melody',
+      trackRole: 'melody',
+      rawHz: pitch.rawHz,
+      playHz: pitch.playHz,
+      midi: pitch.midi,
+      note: pitch.note,
+      mag: Math.max(0, Number(melodyPeak.mag) || 0),
+      snapped: pitch.snapped,
+    };
+  }
+
+  return { t, melody, notes };
 }
 
 
@@ -7058,6 +7083,7 @@ function drawFRBPianoRoll(data = window.FRB_PIANO_ROLL_LAST){
   let noteCount = 0;
   let maxMag = 1e-9;
   for (const fr of frames) {
+    if (fr?.melody) maxMag = Math.max(maxMag, Number(fr.melody?.mag) || 0);
     for (const n of (fr.notes || [])) {
       maxMag = Math.max(maxMag, Number(n?.mag) || 0);
     }
@@ -7092,6 +7118,20 @@ function drawFRBPianoRoll(data = window.FRB_PIANO_ROLL_LAST){
       ctx.fillRect(x, y - h / 2, w, h);
       noteCount++;
     }
+
+    // 主旋律オーバーレイ。元の低/中/高ノートは残し、黄色で重ねる。
+    if (fr.melody) {
+      const midi = Number(fr.melody?.midi);
+      if (Number.isFinite(midi) && midi >= PIANO_ROLL_MIDI_MIN && midi <= PIANO_ROLL_MIDI_MAX) {
+        const y = pianoRollY(midi, top, bottom);
+        const v = Math.max(0, Math.min(1, (Number(fr.melody?.mag) || 0) / maxMag));
+        const h = Math.max(3, 3 + v * 6);
+        const alpha = 0.45 + v * 0.50;
+        ctx.fillStyle = `rgba(255, 224, 102, ${alpha.toFixed(3)})`;
+        ctx.fillRect(x, y - h / 2, w, h);
+        noteCount++;
+      }
+    }
   }
 
   // 下部ステータス
@@ -7100,7 +7140,7 @@ function drawFRBPianoRoll(data = window.FRB_PIANO_ROLL_LAST){
   ctx.textAlign = 'right';
   ctx.textBaseline = 'alphabetic';
   ctx.fillText(
-    `${frames.length} frames / ${noteCount} notes / ${PITCH_SNAP_ENABLED ? 'snap ON' : 'snap OFF'} / MIDI ${PIANO_ROLL_MIDI_MIN}-${PIANO_ROLL_MIDI_MAX}`,
+    `${frames.length} frames / ${noteCount} notes / melody + backing 2-2-3 / ${PITCH_SNAP_ENABLED ? 'snap ON' : 'snap OFF'} / MIDI ${PIANO_ROLL_MIDI_MIN}-${PIANO_ROLL_MIDI_MAX}`,
     right,
     H - 6
   );
@@ -7130,6 +7170,7 @@ let investigateReplayTimer = null;
 let investigateReplayIndex = 0;
 let investigateReplayFrames = [];
 let investigateReplayPlaying = false;
+let investigateReplayMelodyHz = NaN;
 
 function setInvestigateReplayStatus(text){
   const el = document.getElementById('investigateReplayStatus');
@@ -7174,26 +7215,74 @@ function pickFrb123Peaks(frame){
       ? frame.rawTopPeaksA
       : (Array.isArray(frame?.topPeaksA) ? frame.topPeaksA : []);
 
-  // ★ここでマージ（スライダー効く）
+  // 近接ピークの統合だけ行う。閾値除去はしない。
   const merged = MERGE_HZ > 0 ? mergePeaks(src, MERGE_HZ) : src.slice();
 
+  // FRB RAW-MIDI backing: low2 + mid2 + high3 = source 7 notes.
+  // 主旋律はこの7音から削らず、別トラックに複製して扱う。
   const bands = [
-    { f0:20,  f1:80,  n:1 },
-    { f0:80,  f1:220, n:2 },
-    { f0:220, f1:500, n:3 },
+    { role:'low',  trackRole:'low',  f0:20,  f1:80,  n:2 },
+    { role:'mid',  trackRole:'mid',  f0:80,  f1:220, n:2 },
+    { role:'high', trackRole:'high', f0:220, f1:500, n:3 },
   ];
 
   const out = [];
-  for (const b of bands){
+  for (const band of bands){
     const picked = merged
-      .filter(p => (p.hz||0) >= b.f0 && (p.hz||0) < b.f1)
+      .filter(p => (p.hz||0) >= band.f0 && (p.hz||0) < band.f1)
       .sort((a,b)=> (b.mag||0) - (a.mag||0))
-      .slice(0, b.n);
+      .slice(0, band.n)
+      .map((p, localIdx) => ({
+        ...p,
+        role: band.role,
+        trackRole: band.trackRole,
+        bandVoice: localIdx,
+      }));
 
     out.push(...picked);
   }
 
-  return out.slice(0, 6); // 1-2-3 = 6音
+  return out.slice(0, 7);
+}
+
+function pickMainMelodyPeak(frame, prevHz){
+  const src =
+    Array.isArray(frame?.rawTopPeaksA) && frame.rawTopPeaksA.length
+      ? frame.rawTopPeaksA
+      : (Array.isArray(frame?.topPeaksA) ? frame.topPeaksA : []);
+
+  const merged = MERGE_HZ > 0 ? mergePeaks(src, MERGE_HZ) : src.slice();
+  const candidates = merged
+    .filter(p => Number.isFinite(Number(p?.hz)) && Number(p.hz) > 0)
+    .sort((a,b)=> (Number(b.mag)||0) - (Number(a.mag)||0));
+
+  if (!candidates.length) return { peak: null, hz: prevHz };
+
+  if (!Number.isFinite(Number(prevHz))) {
+    const p = candidates[0];
+    return { peak: { ...p, role:'melody', trackRole:'melody' }, hz: Number(p.hz) || NaN };
+  }
+
+  let best = candidates[0];
+  let bestScore = -Infinity;
+  const k = MIX_TRACK.jumpPenaltyHz;
+
+  for (const p of candidates) {
+    const hz = Number(p.hz) || 0;
+    const mag = Number(p.mag) || 0;
+    const score = mag - k * Math.abs(hz - prevHz);
+    if (score > bestScore) {
+      bestScore = score;
+      best = p;
+    }
+  }
+
+  const nearestDist = Math.min(...candidates.map(p => Math.abs((Number(p.hz) || 0) - prevHz)));
+  if (nearestDist > MIX_TRACK.reacquireGapHz) {
+    best = candidates[0];
+  }
+
+  return { peak: { ...best, role:'melody', trackRole:'melody' }, hz: Number(best.hz) || prevHz };
 }
 
 
@@ -7211,6 +7300,7 @@ function startInvestigateReplay(){
   investigateReplayIndex = 0;
   investigateReplayPlaying = true;
   investigateReplayPianoRoll = [];
+  investigateReplayMelodyHz = NaN;
   window.FRB_PIANO_ROLL_LAST = investigateReplayPianoRoll;
   requestDrawFRBPianoRoll();
   investigateReplayOscs = [];
@@ -7218,8 +7308,8 @@ function startInvestigateReplay(){
 
   const baseVol = Math.max(0, Math.min(1, Number(document.getElementById('soundVol')?.value) || 0.35));
 
-  // FRB 1-2-2 = 6音
-  for (let i = 0; i < 6; i++) {
+  // FRB backing 2-2-3 = 7音（主旋律トラックはMIDI出力時に別扱い）
+  for (let i = 0; i < 7; i++) {
     const osc = investigateReplayCtx.createOscillator();
     const gain = investigateReplayCtx.createGain();
 
@@ -7235,7 +7325,7 @@ function startInvestigateReplay(){
     investigateReplayGains.push(gain);
   }
 
-  setInvestigateReplayStatus(`playing FRB 1-2-3 0/${investigateReplayFrames.length}`);
+  setInvestigateReplayStatus(`playing FRB 2-2-3 0/${investigateReplayFrames.length}`);
 
   function step(){
     if (!investigateReplayPlaying) return;
@@ -7247,7 +7337,9 @@ function startInvestigateReplay(){
 
     const frame = investigateReplayFrames[investigateReplayIndex];
     const peaks = pickFrb123Peaks(frame);
-    investigateReplayPianoRoll.push(makePianoRollFrame(frame, peaks));
+    const melodyPick = pickMainMelodyPeak(frame, investigateReplayMelodyHz);
+    investigateReplayMelodyHz = melodyPick.hz;
+    investigateReplayPianoRoll.push(makePianoRollFrame(frame, peaks, melodyPick.peak));
     window.FRB_PIANO_ROLL_LAST = investigateReplayPianoRoll;
     requestDrawFRBPianoRoll();
     const now = investigateReplayCtx.currentTime;
@@ -7257,7 +7349,7 @@ function startInvestigateReplay(){
       ...peaks.map(p => Number(p?.mag) || 0)
     );
 
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 7; i++) {
       const p = peaks[i];
 
       if (!p) {
@@ -7293,8 +7385,8 @@ function startInvestigateReplay(){
     investigateReplayIndex++;
     setInvestigateReplayStatus(
       strongest
-        ? `playing FRB 1-2-3 ${investigateReplayIndex}/${investigateReplayFrames.length} / strongest ${currentSoundHz.toFixed(1)}Hz${PITCH_SNAP_ENABLED && strongestPitch?.note ? ' (' + strongestPitch.note + ')' : ''} / ${PITCH_SNAP_ENABLED ? 'snap ON' : 'snap OFF'} / voices ${peaks.length}`
-        : `playing FRB 1-2-3 ${investigateReplayIndex}/${investigateReplayFrames.length}`
+        ? `playing FRB 2-2-3 ${investigateReplayIndex}/${investigateReplayFrames.length} / strongest ${currentSoundHz.toFixed(1)}Hz${PITCH_SNAP_ENABLED && strongestPitch?.note ? ' (' + strongestPitch.note + ')' : ''} / ${PITCH_SNAP_ENABLED ? 'snap ON' : 'snap OFF'} / voices ${peaks.length}`
+        : `playing FRB 2-2-3 ${investigateReplayIndex}/${investigateReplayFrames.length}`
     );
 
     const cur = investigateReplayFrames[investigateReplayIndex - 1];
@@ -7437,7 +7529,7 @@ function exportWavFromNotes() {
   const sampleRate = 44100;
   const frameSec = 0.05;
   const masterGain = 0.45;
-  const maxVoices = 6;
+  const maxVoices = 8;
 
   const totalSamples = Math.floor(sampleRate * frameSec * data.length);
   const samples = new Float32Array(totalSamples);
@@ -7451,7 +7543,7 @@ function exportWavFromNotes() {
   for (let f = 0; f < data.length; f++) {
     const frame = data[f];
 
-    const notes = (Array.isArray(frame.notes) ? frame.notes : [])
+    const notes = ([...(Array.isArray(frame.notes) ? frame.notes : []), frame.melody].filter(Boolean))
       .map(n => {
         if (typeof n === 'number') return n;
 
@@ -7628,3 +7720,223 @@ function noteToMidiValue(note) {
   return null;
 }
 
+
+
+// ===== FRB RAW MIDI Export (self-contained SMF writer) =====
+// 目的：ログ再生時に生成された FRB_PIANO_ROLL_LAST を、
+//       主旋律 + 低域 + 中域 + 高域 の4トラックMIDIとして保存する。
+// 方針：閾値除去なし。半音スナップ固定。速度は元magの相対値をそのまま0..127へ写像する。
+const FRB_MIDI_PPQ = 480;
+const FRB_MIDI_TEMPO_US_PER_QN = 500000; // 120 BPM = 960 ticks/sec
+const FRB_MIDI_TICKS_PER_SEC = FRB_MIDI_PPQ * (1000000 / FRB_MIDI_TEMPO_US_PER_QN);
+
+function getMidiProgramValue(id, fallback = 0){
+  const el = document.getElementById(id);
+  const n = Number(el?.value);
+  return Number.isFinite(n) ? Math.max(0, Math.min(127, Math.round(n))) : fallback;
+}
+
+function setExportMidiStatus(text){
+  if (exportMidiStatus) exportMidiStatus.textContent = text;
+}
+
+function u8(...xs){ return xs.map(x => x & 0xff); }
+
+function strBytes(s){
+  return Array.from(String(s || ''), ch => ch.charCodeAt(0) & 0xff);
+}
+
+function u16be(n){
+  n = Number(n) || 0;
+  return [(n >> 8) & 0xff, n & 0xff];
+}
+
+function u32be(n){
+  n = Number(n) || 0;
+  return [(n >> 24) & 0xff, (n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff];
+}
+
+function varLenBytes(value){
+  let v = Math.max(0, Math.round(Number(value) || 0));
+  let buffer = v & 0x7f;
+  while ((v >>= 7)) {
+    buffer <<= 8;
+    buffer |= ((v & 0x7f) | 0x80);
+  }
+  const out = [];
+  while (true) {
+    out.push(buffer & 0xff);
+    if (buffer & 0x80) buffer >>= 8;
+    else break;
+  }
+  return out;
+}
+
+function metaEvent(delta, type, dataBytes){
+  const data = dataBytes || [];
+  return [...varLenBytes(delta), 0xff, type & 0xff, ...varLenBytes(data.length), ...data];
+}
+
+function midiEvent(delta, status, d1, d2 = null){
+  const out = [...varLenBytes(delta), status & 0xff, d1 & 0x7f];
+  if (d2 !== null) out.push(d2 & 0x7f);
+  return out;
+}
+
+function makeTrackChunk(events){
+  const body = events.flat();
+  return [...strBytes('MTrk'), ...u32be(body.length), ...body];
+}
+
+function secondsToMidiTick(sec){
+  return Math.max(0, Math.round((Number(sec) || 0) * FRB_MIDI_TICKS_PER_SEC));
+}
+
+function velocityFromMag(mag, maxMag){
+  const m = Math.max(0, Number(mag) || 0);
+  const mx = Math.max(1e-9, Number(maxMag) || 1e-9);
+  // 閾値除去しない。存在する音は最小velocity=1で残す。
+  return Math.max(1, Math.min(127, Math.round(1 + 126 * (m / mx))));
+}
+
+function noteObjToSemitoneMidi(note){
+  if (!note) return null;
+  if (Number.isFinite(Number(note.rawHz)) && Number(note.rawHz) > 0) {
+    const mf = hzToMidi(Number(note.rawHz));
+    return mf === null ? null : Math.round(mf);
+  }
+  const n = noteToMidiValue(note);
+  return Number.isFinite(Number(n)) ? Math.round(Number(n)) : null;
+}
+
+function collectMidiExportEvents(frames){
+  const out = { melody: [], low: [], mid: [], high: [] };
+  if (!Array.isArray(frames) || frames.length === 0) return out;
+
+  const t0 = Number(frames[0]?.t) || 0;
+
+  for (let i = 0; i < frames.length; i++) {
+    const fr = frames[i];
+    const t = Math.max(0, (Number(fr?.t) || 0) - t0);
+    const nextT = i + 1 < frames.length
+      ? Math.max(t + 0.001, (Number(frames[i + 1]?.t) || (t + 0.08 + t0)) - t0)
+      : t + 0.08;
+
+    const startTick = secondsToMidiTick(t);
+    const endTick = Math.max(startTick + 1, secondsToMidiTick(nextT));
+
+    function pushNote(trackRole, note){
+      const midi = noteObjToSemitoneMidi(note);
+      if (!Number.isFinite(Number(midi))) return;
+      if (midi < 0 || midi > 127) return;
+      out[trackRole]?.push({
+        startTick,
+        endTick,
+        midi,
+        mag: Math.max(0, Number(note?.mag) || 0),
+      });
+    }
+
+    if (fr?.melody) pushNote('melody', fr.melody);
+
+    for (const note of (Array.isArray(fr?.notes) ? fr.notes : [])) {
+      const role = note?.trackRole || note?.role;
+      if (role === 'low' || role === 'mid' || role === 'high') {
+        pushNote(role, note);
+      }
+    }
+  }
+
+  return out;
+}
+
+function makeMidiTrack(trackName, channel, program, noteEvents, maxMag, includeTempo = false){
+  const events = [];
+  events.push(metaEvent(0, 0x03, strBytes(trackName)));
+
+  if (includeTempo) {
+    events.push(metaEvent(0, 0x51, u8(
+      (FRB_MIDI_TEMPO_US_PER_QN >> 16) & 0xff,
+      (FRB_MIDI_TEMPO_US_PER_QN >> 8) & 0xff,
+      FRB_MIDI_TEMPO_US_PER_QN & 0xff
+    )));
+  }
+
+  events.push(midiEvent(0, 0xc0 | (channel & 0x0f), program & 0x7f));
+
+  const abs = [];
+  for (const n of noteEvents || []) {
+    const vel = velocityFromMag(n.mag, maxMag);
+    abs.push({ tick:n.startTick, bytes:[0x90 | (channel & 0x0f), n.midi & 0x7f, vel] });
+    abs.push({ tick:n.endTick,   bytes:[0x80 | (channel & 0x0f), n.midi & 0x7f, 0] });
+  }
+
+  abs.sort((a,b) => (a.tick - b.tick) || ((a.bytes[0] & 0xf0) === 0x80 ? -1 : 1));
+
+  let lastTick = 0;
+  for (const e of abs) {
+    const delta = Math.max(0, e.tick - lastTick);
+    events.push([...varLenBytes(delta), ...e.bytes]);
+    lastTick = e.tick;
+  }
+
+  events.push(metaEvent(0, 0x2f, []));
+  return makeTrackChunk(events);
+}
+
+function exportMidiFromPianoRoll(){
+  const frames = window.FRB_PIANO_ROLL_LAST;
+
+  if (!Array.isArray(frames) || frames.length === 0) {
+    alert('先に Play Investigate してください');
+    setExportMidiStatus('midi no data');
+    return;
+  }
+
+  const groups = collectMidiExportEvents(frames);
+  const allNotes = [...groups.melody, ...groups.low, ...groups.mid, ...groups.high];
+  if (!allNotes.length) {
+    alert('MIDI化できるノートがありません');
+    setExportMidiStatus('midi no notes');
+    return;
+  }
+
+  let maxMag = 1e-9;
+  for (const n of allNotes) maxMag = Math.max(maxMag, Number(n.mag) || 0);
+
+  const programs = {
+    melody: getMidiProgramValue('midiInstMelody', 0),
+    low:     getMidiProgramValue('midiInstLow', 88),
+    mid:     getMidiProgramValue('midiInstMid', 4),
+    high:    getMidiProgramValue('midiInstHigh', 14),
+  };
+
+  const header = [
+    ...strBytes('MThd'),
+    ...u32be(6),
+    ...u16be(1),       // format 1
+    ...u16be(4),       // 4 tracks: melody, low, mid, high
+    ...u16be(FRB_MIDI_PPQ),
+  ];
+
+  const tracks = [
+    makeMidiTrack('FRB Melody / MaxPeak+Inertia', 0, programs.melody, groups.melody, maxMag, true),
+    makeMidiTrack('FRB Low / 2 voices',           1, programs.low,     groups.low,     maxMag, false),
+    makeMidiTrack('FRB Mid / 2 voices',           2, programs.mid,     groups.mid,     maxMag, false),
+    makeMidiTrack('FRB High / 3 voices',          3, programs.high,    groups.high,    maxMag, false),
+  ];
+
+  const bytes = new Uint8Array([...header, ...tracks.flat()]);
+  const blob = new Blob([bytes], { type: 'audio/midi' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const memoPart = safeFilePart(getExperimentMemo());
+  a.href = url;
+  a.download = memoPart ? `frb_raw_midi_${memoPart}_${stamp}.mid` : `frb_raw_midi_${stamp}.mid`;
+  a.click();
+
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  setExportMidiStatus(`midi saved: melody ${groups.melody.length}, low ${groups.low.length}, mid ${groups.mid.length}, high ${groups.high.length}`);
+}
