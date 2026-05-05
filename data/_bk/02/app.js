@@ -88,18 +88,10 @@ let lastPeakAEnergy = 0;
 
 const exportWavBtn = document.getElementById('exportWavBtn');
 const exportWavStatus = document.getElementById('exportWavStatus');
-const exportMidiBtn = document.getElementById('exportMidiBtn');
-const exportMidiStatus = document.getElementById('exportMidiStatus');
 
 if (exportWavBtn) {
   exportWavBtn.addEventListener('click', () => {
     exportWavFromNotes();
-  });
-}
-
-if (exportMidiBtn) {
-  exportMidiBtn.addEventListener('click', () => {
-    exportMidiFromPianoRoll();
   });
 }
 
@@ -6776,9 +6768,7 @@ function drawSweepTrace(){
   let energyMax = 1e-9;
   for (const p of visible) {
     const e = Number(p.peakAEnergy) || 0;
-    const ma = Number(p.melodyAmp) || 0;
     if (e > energyMax) energyMax = e;
-    if (ma > energyMax) energyMax = ma;
   }
 
   function xMap(t){
@@ -6845,12 +6835,9 @@ function drawSweepTrace(){
     gTSweep.restore();
   }
 
-  // 理想スイープ / 実際ピーク / 主旋律 / 主旋律Amp を1つの窓で比較する。
   drawLine('inputHz', '#777777', yMapHz, 2, true);
   drawLine('peakAHz', '#1e88e5', yMapHz, 2, false);
-  drawLine('melodyHz', '#fbc02d', yMapHz, 2.5, false);
   drawLine('peakAEnergy', '#8e24aa', yMapEnergy, 1.5, false);
-  drawLine('melodyAmp', '#43a047', yMapEnergy, 2, false);
 
   // TOUCH markers
   for (const s of touchShots) {
@@ -6870,14 +6857,8 @@ function drawSweepTrace(){
   gTSweep.fillStyle = '#1e88e5';
   gTSweep.fillText('PeakA Hz', chartLeft + 90, chartTop + 6);
 
-  gTSweep.fillStyle = '#fbc02d';
-  gTSweep.fillText('Melody Hz', chartLeft + 175, chartTop + 6);
-
   gTSweep.fillStyle = '#8e24aa';
-  gTSweep.fillText('PeakA Energy', chartLeft + 265, chartTop + 6);
-
-  gTSweep.fillStyle = '#43a047';
-  gTSweep.fillText('Melody Amp', chartLeft + 380, chartTop + 6);
+  gTSweep.fillText('PeakA Energy', chartLeft + 175, chartTop + 6);
 
   const last = visible[visible.length - 1];
   gTSweep.fillStyle = '#333';
@@ -6885,7 +6866,7 @@ function drawSweepTrace(){
   gTSweep.textAlign = 'right';
   gTSweep.textBaseline = 'alphabetic';
   gTSweep.fillText(
-    `in:${(Number(last.inputHz)||0).toFixed(1)}Hz / peak:${(Number(last.peakAHz)||0).toFixed(1)}Hz / melody:${(Number(last.melodyHz)||0).toFixed(1)}Hz / E:${(Number(last.peakAEnergy)||0).toFixed(0)} / Mamp:${(Number(last.melodyAmp)||0).toFixed(0)}`,
+    `in:${(Number(last.inputHz)||0).toFixed(1)}Hz / peak:${(Number(last.peakAHz)||0).toFixed(1)}Hz / E:${(Number(last.peakAEnergy)||0).toFixed(0)}`,
     chartRight,
     H - 6
   );
@@ -7223,21 +7204,13 @@ function makeMelodyAmpPoint(frame, melodyPeak){
 }
 
 function pushLiveMelodyAmpFrame(frame){
-  if (!frame || !Array.isArray(frame.rawTopPeaksA)) return null;
+  if (!frame || !Array.isArray(frame.rawTopPeaksA)) return;
 
   const melodyPick = pickMainMelodyPeak(frame, liveMelodyAmpHz);
   liveMelodyAmpHz = melodyPick.hz;
 
   const point = makeMelodyAmpPoint(frame, melodyPick.peak);
   point.mode = 'live';
-
-  // Sweep Trace / MIDI検証用に、フレーム本体にも同じ根拠値を残す。
-  // 値は元ピーク由来の無加工値。表示側だけでスケール変換する。
-  frame.melodyHz = Number(point.hz) || 0;
-  frame.melodyAmp = Number(point.mag) || 0;
-  frame.melodyNote = point.note || '';
-  frame.melodyMidi = point.midi;
-  frame.melodyHasCandidate = !!point.hasMelody;
 
   liveMelodyAmpHistory.push(point);
 
@@ -7250,7 +7223,6 @@ function pushLiveMelodyAmpFrame(frame){
   window.FRB_MELODY_AMP_LAST = liveMelodyAmpHistory;
   window.FRB_MELODY_AMP_MODE = 'live';
   requestDrawMainMelodyAmp();
-  return point;
 }
 
 function rebuildMelodyAmpFromLoadedSeries(){
@@ -7264,14 +7236,6 @@ function rebuildMelodyAmpFromLoadedSeries(){
     liveMelodyAmpHz = melodyPick.hz;
     const point = makeMelodyAmpPoint(frame, melodyPick.peak);
     point.mode = 'loaded';
-
-    // Load済みログでもSweep Traceへ重ねられるように復元する。
-    frame.melodyHz = Number(point.hz) || 0;
-    frame.melodyAmp = Number(point.mag) || 0;
-    frame.melodyNote = point.note || '';
-    frame.melodyMidi = point.midi;
-    frame.melodyHasCandidate = !!point.hasMelody;
-
     liveMelodyAmpHistory.push(point);
   }
 
@@ -8056,21 +8020,12 @@ function collectMidiExportEvents(frames){
   return out;
 }
 
-// function velocityFromMag(mag, maxMag){
-//   const m = Math.max(0, Number(mag) || 0);
-//   const mx = Math.max(1e-9, Number(maxMag) || 1);
-//   const v = Math.round(1 + 126 * Math.min(1, m / mx));
-//   return Math.max(1, Math.min(127, v));
-// }
-
-const MIDI_VELOCITY_FIXED_MAX = 15000;
-
-function velocityFromMag(mag){
+function velocityFromMag(mag, maxMag){
   const m = Math.max(0, Number(mag) || 0);
-  const v = Math.round((m / MIDI_VELOCITY_FIXED_MAX) * 127);
+  const mx = Math.max(1e-9, Number(maxMag) || 1);
+  const v = Math.round(1 + 126 * Math.min(1, m / mx));
   return Math.max(1, Math.min(127, v));
 }
-
 
 function makeMidiTrack(trackName, channel, program, noteEvents, maxMag, includeTempo = false){
   const events = [];
@@ -8088,9 +8043,7 @@ function makeMidiTrack(trackName, channel, program, noteEvents, maxMag, includeT
 
   const abs = [];
   for (const n of noteEvents || []) {
-
-    const vel = velocityFromMag(n.mag);
-    
+    const vel = velocityFromMag(n.mag, maxMag);
     abs.push({ tick:n.startTick, bytes:[0x90 | (channel & 0x0f), n.midi & 0x7f, vel] });
     abs.push({ tick:n.endTick,   bytes:[0x80 | (channel & 0x0f), n.midi & 0x7f, 0] });
   }

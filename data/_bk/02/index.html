@@ -202,6 +202,11 @@
           <div class="mini">縦：半音階 / ラベル：A4 440Hz・C4 261Hz・A3 220Hz・A2 110Hz・A1 55Hz</div>
           <canvas id="pianoRollCanvas"></canvas>
         </div>
+        <div class="subPanel melodyAmpPanel">
+          <div class="subTitle">Live Melody Candidate Amp <span id="melodyAmpStatus" class="mini">idle</span></div>
+          <div class="mini">計測中の主旋律候補ピークの元振幅（無加工）。手の体感とMIDI音量検証用。</div>
+          <canvas id="melodyAmpCanvas"></canvas>
+        </div>
         <div class="subPanel">
           BandTimeline Investigate Scale:
           <select id="bandScaleModeInvestigate">
