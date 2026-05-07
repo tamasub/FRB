@@ -53,7 +53,7 @@ const tsSweepEnergyCanvas = document.getElementById('tsSweepEnergy');
 const gTSweepEnergy = tsSweepEnergyCanvas ? tsSweepEnergyCanvas.getContext('2d') : null;
 const sweepEnergyScaleModeEl = document.getElementById('sweepEnergyScaleMode');
 const sweepEnergyScaleStatusEl = document.getElementById('sweepEnergyScaleStatus');
-let SWEEP_TRACE_ENERGY_SCALE_MODE = 'auto';
+let SWEEP_TRACE_ENERGY_SCALE_MODE = sweepEnergyScaleModeEl?.value || 'auto';
 const melodyAmpCanvas = document.getElementById('melodyAmpCanvas');
 const gMelodyAmp = melodyAmpCanvas ? melodyAmpCanvas.getContext('2d') : null;
 
@@ -254,10 +254,29 @@ let INSTR = 'sine';   // oscillator波形
 let PITCH_SNAP_ENABLED = false; // Hz → MIDI → 半音スナップ ON/OFF
 let investigateReplayPianoRoll = []; // 再生中に生成される簡易ピアノロール用ノート列
 
+// ===== FRB Piano Roll Master Volume Multiplier =====
+// Piano Roll の Play / WAV / MIDI 全トラックへ同じ倍率を掛ける。
+// デフォルトは比較実験で使いやすいように 10 倍。
+let PIANO_ROLL_VOLUME_MULTIPLIER = 10;
+
 const mergeEl = document.getElementById('mergeHz');
 const mergeLabel = document.getElementById('mergeHzLabel');
 const pitchSnapEl = document.getElementById('pitchSnap');
 const pitchSnapLabel = document.getElementById('pitchSnapLabel');
+const pianoRollVolumeMultiplierEl = document.getElementById('pianoRollVolumeMultiplier');
+const pianoRollVolumeMultiplierLabel = document.getElementById('pianoRollVolumeMultiplierLabel');
+
+function getPianoRollVolumeMultiplier(){
+  const v = Number(pianoRollVolumeMultiplierEl?.value);
+  return Number.isFinite(v) && v > 0 ? v : PIANO_ROLL_VOLUME_MULTIPLIER;
+}
+
+function updatePianoRollVolumeMultiplierLabel(){
+  PIANO_ROLL_VOLUME_MULTIPLIER = getPianoRollVolumeMultiplier();
+  if (pianoRollVolumeMultiplierLabel) {
+    pianoRollVolumeMultiplierLabel.textContent = `${PIANO_ROLL_VOLUME_MULTIPLIER.toFixed(1).replace(/\.0$/, '')}x`;
+  }
+}
 
 
 
@@ -351,6 +370,16 @@ window.addEventListener('DOMContentLoaded', () => {
         stopInvestigateReplay(false);
         startInvestigateReplay();
       }
+    });
+  }
+
+  if (pianoRollVolumeMultiplierEl) {
+    updatePianoRollVolumeMultiplierLabel();
+    pianoRollVolumeMultiplierEl.addEventListener('input', () => {
+      updatePianoRollVolumeMultiplierLabel();
+    });
+    pianoRollVolumeMultiplierEl.addEventListener('change', () => {
+      updatePianoRollVolumeMultiplierLabel();
     });
   }
 
@@ -1281,6 +1310,10 @@ if(type === 'M'){
     // Live measurement: show the current main-melody candidate amplitude in real time.
     // This uses the same peak-selection idea as MIDI export: strongest peak + continuity inertia.
     pushLiveMelodyAmpFrame(feat);
+
+    // 自動スイープ中だけPiano Rollもリアルタイム更新する。
+    // 目的は手感度と黄色濃度の照合。音量補正やMIDI Velocity補正はしない。
+    pushLivePianoRollFrame(feat);
 
     updateNoiseFloor(feat);
     fillPendingPost(nowT);
@@ -3874,14 +3907,25 @@ function buildSessionData(){
   const experimentMemo = getExperimentMemo();
 
   return {
-    version: 2,
+    version: 3,
     experiment: {
       memo: experimentMemo
     },
     savedAt: new Date().toISOString(),
     touchShots: touchShots.map(s => ({ ...s })),
-    // tsBufは軽量化して保存
-    tsBuf: downsampleTimeSeries(tsBuf, 0.1),
+
+    // Piano Roll / Sweep Trace のロード後ズレ対策。
+    // tsBufは従来より細かめに保存しつつ、Piano Rollはリアルタイム描画済みの
+    // フレーム列をそのまま保存する。これにより保存→ロード後も黄色濃度と位置を保持する。
+    tsBuf: downsampleTimeSeries(tsBuf, 0.03),
+    pianoRoll: Array.isArray(livePianoRollHistory)
+      ? livePianoRollHistory.map(fr => ({
+          ...fr,
+          melody: fr?.melody ? { ...fr.melody } : null,
+          notes: Array.isArray(fr?.notes) ? fr.notes.map(n => ({ ...n })) : []
+        }))
+      : [],
+
     recAvgA: Array.isArray(recAvgA) ? recAvgA.map(x => ({ ...x })) : [],
     recAvgB: Array.isArray(recAvgB) ? recAvgB.map(x => ({ ...x })) : []  };
 }
@@ -3992,6 +4036,7 @@ function loadSessionFromObject(data){
   drawTingleMotion();
   drawSweepTrace();
   rebuildMelodyAmpFromLoadedSeries();
+  restoreLivePianoRollFromSavedFrames(data.pianoRoll);
 
 }
 
@@ -4185,6 +4230,7 @@ function resumeLiveMode(){
   liveMelodyAmpHz = NaN;
   window.FRB_MELODY_AMP_LAST = liveMelodyAmpHistory;
   window.FRB_MELODY_AMP_MODE = 'live';
+  resetLivePianoRoll();
   requestDrawMainMelodyAmp();
   drawTimeSeries();
   drawStairTimeline();
@@ -6617,6 +6663,8 @@ async function startSweep(){
   sweepStartTime = ctx.currentTime;
   sweepActive = true;
 
+  // Piano Rollは常時描画。Sweep開始ではリセットしない。
+
   const st = document.getElementById('sweepStatus');
   if (st) st.textContent = `sweeping ${startHz.toFixed(1)}→${endHz.toFixed(1)} Hz`;
 
@@ -6728,19 +6776,13 @@ document.getElementById('modType')
   });
 
 
-function drawSweepTrace(){
-  drawSweepTraceHz();
-  drawSweepTraceEnergy();
-}
 
-function getSweepTraceSeries(){
+function getSweepTraceSeriesContext(){
   const selectedFrozen = getSelectedFrozenSeries();
-  return (!timeLogFollowLatest && selectedFrozen)
+  const seriesSrc = (!timeLogFollowLatest && selectedFrozen)
     ? selectedFrozen
     : tsBuf;
-}
 
-function getSweepTraceWindow(seriesSrc){
   if (!seriesSrc || seriesSrc.length < 2) return null;
 
   const nowSec = seriesSrc[seriesSrc.length - 1].t;
@@ -6765,367 +6807,183 @@ function getSweepTraceWindow(seriesSrc){
   const visible = seriesSrc.filter(p => p.t >= viewStart && p.t <= viewEnd);
   if (visible.length < 2) return null;
 
-  return { visible, viewStart, viewEnd };
+  return { seriesSrc, visible, viewStart, viewEnd, winSec };
 }
 
-function setupSweepTraceCanvas(canvas, ctx, emptyText){
-  if (!canvas || !ctx) return null;
+function drawSweepVerticalGuides(ctx, visible, xMap, chartTop, chartBottom, options = {}){
+  if (!ctx || !visible || visible.length < 2) return;
 
-  const W = canvas.width;
-  const H = canvas.height;
-  ctx.clearRect(0, 0, W, H);
+  const inputPoints = visible
+    .map(p => ({ t: Number(p.t), hz: Number(p.inputHz) || 0 }))
+    .filter(p => Number.isFinite(p.t) && p.hz > 0);
 
-  const ml = 62, mr = 58, mt = 18, mb = 26;
-  const pw = W - ml - mr;
-  const ph = H - mt - mb;
-
-  const chart = {
-    W, H,
-    left: ml,
-    right: ml + pw,
-    top: mt,
-    bottom: mt + ph,
-    width: pw,
-    height: ph,
-  };
-
-  ctx.fillStyle = '#fcfcfc';
-  ctx.fillRect(0, 0, W, H);
-
-  ctx.strokeStyle = '#d4d4d4';
+  ctx.save();
   ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(chart.left, chart.top);
-  ctx.lineTo(chart.left, chart.bottom);
-  ctx.lineTo(chart.right, chart.bottom);
-  ctx.stroke();
-
-  if (emptyText) {
-    ctx.fillStyle = '#999';
-    ctx.font = '12px sans-serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
-    ctx.fillText(emptyText, chart.left + 10, chart.top + 18);
-  }
-
-  return chart;
-}
-
-function drawSweepGridHz(ctx, chart, hzMax){
-  ctx.save();
-
-  // 10Hz薄線 + 50Hz濃線。知覚マップとの手動マッチング用。
-  const hzStepMinor = 10;
-  const hzStepMajor = 50;
-  const startHz = Math.ceil(0 / hzStepMinor) * hzStepMinor;
-
-  ctx.font = '10px sans-serif';
-  ctx.textAlign = 'right';
-  ctx.textBaseline = 'middle';
-
-  for (let hz = startHz; hz <= hzMax; hz += hzStepMinor) {
-    const y = chart.bottom - (hz / hzMax) * chart.height;
-    const major = (hz % hzStepMajor) === 0;
-
-    ctx.strokeStyle = major ? '#d8d8d8' : '#eeeeee';
-    ctx.lineWidth = major ? 1 : 0.7;
-    ctx.beginPath();
-    ctx.moveTo(chart.left, y);
-    ctx.lineTo(chart.right, y);
-    ctx.stroke();
-
-    if (major || hz === 0) {
-      ctx.fillStyle = '#666';
-      ctx.fillText(`${hz}`, chart.left - 8, y);
-    }
-  }
-
-  ctx.fillStyle = '#777';
-  ctx.textAlign = 'left';
+  ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
-  ctx.fillText('Hz', 8, chart.top + 2);
-
-  ctx.restore();
-}
-
-function formatSweepEnergyValue(v){
-  const n = Number(v) || 0;
-  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
-  if (n >= 1000) return `${Math.round(n / 1000)}k`;
-  return `${Math.round(n)}`;
-}
-
-function getSweepEnergyScaleMax(visible){
-  let dataMax = 1e-9;
-  for (const p of visible || []) {
-    dataMax = Math.max(
-      dataMax,
-      Number(p.peakAEnergy) || 0,
-      Number(p.melodyAmp) || 0,
-      Number(p.melodyHasCandidate ? p.melodyAmp : 0) || 0
-    );
-  }
-
-  const rawMode = SWEEP_TRACE_ENERGY_SCALE_MODE || 'auto';
-  const fixed = Number(rawMode);
-  const auto = rawMode === 'auto' || !Number.isFinite(fixed) || fixed <= 0;
-  const scaleMax = auto ? dataMax : fixed;
-
-  return { auto, scaleMax: Math.max(1e-9, scaleMax), dataMax };
-}
-
-function updateSweepEnergyScaleStatus(auto, scaleMax, dataMax){
-  if (!sweepEnergyScaleStatusEl) return;
-  sweepEnergyScaleStatusEl.textContent = auto
-    ? `Scale: Auto / Max: ${formatSweepEnergyValue(dataMax)}`
-    : `Scale: Fixed ${formatSweepEnergyValue(scaleMax)} / Max: ${formatSweepEnergyValue(dataMax)}`;
-}
-
-function drawSweepGridEnergy(ctx, chart, scaleInfo){
-  ctx.save();
-
-  const auto = !!scaleInfo?.auto;
-  const scaleMax = Math.max(1e-9, Number(scaleInfo?.scaleMax) || 1);
-  const dataMax = Math.max(0, Number(scaleInfo?.dataMax) || 0);
-
   ctx.font = '10px sans-serif';
-  ctx.textAlign = 'right';
-  ctx.textBaseline = 'middle';
 
-  for (let i = 0; i <= 4; i++) {
-    const ratio = i / 4;
-    const y = chart.bottom - ratio * chart.height;
-    ctx.strokeStyle = i === 0 ? '#d8d8d8' : '#eeeeee';
-    ctx.lineWidth = i === 0 ? 1 : 0.8;
-    ctx.beginPath();
-    ctx.moveTo(chart.left, y);
-    ctx.lineTo(chart.right, y);
-    ctx.stroke();
+  if (inputPoints.length >= 2) {
+    const minHz = Math.min(...inputPoints.map(p => p.hz));
+    const maxHz = Math.max(...inputPoints.map(p => p.hz));
+    const lo = Math.ceil(Math.min(minHz, maxHz) / 10) * 10;
+    const hi = Math.floor(Math.max(minHz, maxHz) / 10) * 10;
 
-    ctx.fillStyle = '#666';
-    const label = auto
-      ? `${Math.round(ratio * 100)}%`
-      : formatSweepEnergyValue(scaleMax * ratio);
-    ctx.fillText(label, chart.left - 8, y);
-  }
-
-  ctx.fillStyle = '#777';
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
-  ctx.fillText(
-    auto
-      ? `Relative Amp / Auto max ${formatSweepEnergyValue(dataMax)}`
-      : `Amp / Fixed max ${formatSweepEnergyValue(scaleMax)}`,
-    8,
-    chart.top + 2
-  );
-
-  ctx.restore();
-}
-
-function getPeakAEnergyCandidateHz(frame){
-  // PeakA Energy由来の候補Hz：保存済みのA側ピークリストから最大magのHzを採用。
-  // mixPeakTrackedA がある場合は、慣性追跡済みの候補として優先する。
-  const tracked = Number(frame?.mixPeakTrackedA);
-  if (Number.isFinite(tracked) && tracked > 0) return tracked;
-
-  const peaks = Array.isArray(frame?.topPeaksA) && frame.topPeaksA.length
-    ? frame.topPeaksA
-    : (Array.isArray(frame?.rawTopPeaksA) ? frame.rawTopPeaksA : []);
-
-  let bestHz = 0;
-  let bestMag = -Infinity;
-  for (const p of peaks) {
-    const hz = Number(p?.hz) || 0;
-    const mag = Number(p?.mag) || 0;
-    if (hz > 0 && mag > bestMag) {
-      bestMag = mag;
-      bestHz = hz;
-    }
-  }
-
-  return bestHz || 0;
-}
-
-function drawSweepLine(ctx, visible, chart, viewStart, viewEnd, getValue, yMap, color, width = 2, dashed = false){
-  ctx.save();
-  ctx.strokeStyle = color;
-  ctx.lineWidth = width;
-  ctx.setLineDash(dashed ? [6, 4] : []);
-  ctx.beginPath();
-
-  let started = false;
-  for (const p of visible) {
-    const v = Number(getValue(p));
-    if (!Number.isFinite(v) || v <= 0) continue;
-
-    const x = chart.left + ((p.t - viewStart) / Math.max(1e-9, (viewEnd - viewStart))) * chart.width;
-    const y = yMap(v);
-
-    if (!started) {
-      ctx.moveTo(x, y);
-      started = true;
-    } else {
-      ctx.lineTo(x, y);
-    }
-  }
-
-  if (started) ctx.stroke();
-  ctx.restore();
-}
-
-
-function getFrameInputHz(frame){
-  const v = Number(frame?.inputHz);
-  if (Number.isFinite(v) && v > 0) return v;
-
-  const s = Number(frame?.soundHz ?? frame?.currentSoundHz);
-  if (Number.isFinite(s) && s > 0) return s;
-
-  return 0;
-}
-
-function drawSweepInputHzVerticalGuides(ctx, chart, visible, viewStart, viewEnd, hzMax = 300){
-  // 知覚マップ突き合わせ用：Input Hz が 10Hz / 50Hz に到達した時刻へ縦点線を入れる。
-  // Hz窓とEnergy窓で同じx位置になるので、上下の時間軸が目で揃いやすくなる。
-  if (!ctx || !chart || !Array.isArray(visible) || visible.length < 2) return;
-
-  const xFromT = (t) => {
-    return chart.left + ((t - viewStart) / Math.max(1e-9, (viewEnd - viewStart))) * chart.width;
-  };
-
-  const drawLine = (x, major, labelHz = null) => {
-    if (!Number.isFinite(x) || x < chart.left || x > chart.right) return;
-
-    ctx.save();
-    ctx.strokeStyle = major ? 'rgba(80,80,80,0.32)' : 'rgba(80,80,80,0.13)';
-    ctx.lineWidth = major ? 1 : 0.7;
-    ctx.setLineDash(major ? [4, 4] : [2, 5]);
-    ctx.beginPath();
-    ctx.moveTo(x, chart.top);
-    ctx.lineTo(x, chart.bottom);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    if (major && labelHz !== null) {
-      ctx.fillStyle = 'rgba(80,80,80,0.55)';
-      ctx.font = '9px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
-      ctx.fillText(String(labelHz), x, chart.top + 2);
-    }
-    ctx.restore();
-  };
-
-  // target Hzごとに、visible系列内でInput Hzがその値を横切る時刻を補間する。
-  // スイープ停止後などで同じHzに戻るケースがあるため、最初の横切りだけ採用する。
-  const drawnTargets = new Set();
-  for (let targetHz = 10; targetHz <= hzMax; targetHz += 10) {
-    let found = false;
-
-    for (let i = 1; i < visible.length; i++) {
-      const p0 = visible[i - 1];
-      const p1 = visible[i];
-      const h0 = getFrameInputHz(p0);
-      const h1 = getFrameInputHz(p1);
-      const t0 = Number(p0?.t);
-      const t1 = Number(p1?.t);
-
-      if (!Number.isFinite(h0) || !Number.isFinite(h1) || !Number.isFinite(t0) || !Number.isFinite(t1)) continue;
-      if (h0 <= 0 || h1 <= 0 || t1 <= t0) continue;
-
-      const d0 = h0 - targetHz;
-      const d1 = h1 - targetHz;
-      if (d0 === 0) {
-        const x = xFromT(t0);
-        const major = (targetHz % 50) === 0;
-        drawLine(x, major, major ? targetHz : null);
-        found = true;
+    for (let hz = lo; hz <= hi; hz += 10) {
+      let hit = null;
+      for (let i = 1; i < inputPoints.length; i++) {
+        const a = inputPoints[i - 1];
+        const b = inputPoints[i];
+        const crosses = (a.hz <= hz && hz <= b.hz) || (b.hz <= hz && hz <= a.hz);
+        if (!crosses || a.hz === b.hz) continue;
+        const r = (hz - a.hz) / (b.hz - a.hz);
+        hit = { t: a.t + (b.t - a.t) * r, hz };
         break;
       }
+      if (!hit) continue;
 
-      // 上昇スイープ・下降スイープの両方に対応。
-      if ((d0 < 0 && d1 >= 0) || (d0 > 0 && d1 <= 0)) {
-        const r = Math.max(0, Math.min(1, (targetHz - h0) / (h1 - h0)));
-        const t = t0 + (t1 - t0) * r;
-        const x = xFromT(t);
-        const major = (targetHz % 50) === 0;
-        drawLine(x, major, major ? targetHz : null);
-        found = true;
-        break;
+      const x = xMap(hit.t);
+      const major = hz % 50 === 0;
+      ctx.strokeStyle = major ? 'rgba(90,90,90,0.28)' : 'rgba(120,120,120,0.12)';
+      ctx.setLineDash(major ? [4, 4] : [2, 6]);
+      ctx.beginPath();
+      ctx.moveTo(x, chartTop);
+      ctx.lineTo(x, chartBottom);
+      ctx.stroke();
+
+      if (major && options.labels !== false) {
+        ctx.fillStyle = 'rgba(90,90,90,0.55)';
+        ctx.fillText(String(hz), x, chartTop + 2);
       }
     }
-
-    if (found) drawnTargets.add(targetHz);
   }
 
-  // 現在のInput Hz位置は少し濃い縦線で表示する。
   const last = visible[visible.length - 1];
-  const lastHz = getFrameInputHz(last);
-  const lastT = Number(last?.t);
-  if (Number.isFinite(lastT) && lastHz > 0 && lastHz <= hzMax) {
-    const x = xFromT(lastT);
-    ctx.save();
-    ctx.strokeStyle = 'rgba(0,0,0,0.38)';
-    ctx.lineWidth = 1.2;
+  if (last && Number.isFinite(Number(last.t))) {
+    const x = xMap(Number(last.t));
+    ctx.strokeStyle = 'rgba(40,40,40,0.38)';
     ctx.setLineDash([6, 4]);
     ctx.beginPath();
-    ctx.moveTo(x, chart.top);
-    ctx.lineTo(x, chart.bottom);
+    ctx.moveTo(x, chartTop);
+    ctx.lineTo(x, chartBottom);
     ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.restore();
   }
+
+  ctx.restore();
 }
 
-function drawSweepTouchMarkers(ctx, chart, viewStart, viewEnd){
-  for (const s of touchShots) {
-    if (s.t < viewStart || s.t > viewEnd) continue;
-    const x = chart.left + ((s.t - viewStart) / Math.max(1e-9, (viewEnd - viewStart))) * chart.width;
-    drawTouchMarker(ctx, x, chart.top, chart.bottom, s);
-  }
-}
-
-function drawSweepTraceHz(){
+function drawSweepTrace(){
   if (!tsSweepCanvas || !gTSweep) return;
 
-  const seriesSrc = getSweepTraceSeries();
-  const empty = (!seriesSrc || seriesSrc.length < 2) ? 'no sweep trace yet' : '';
-  const chart = setupSweepTraceCanvas(tsSweepCanvas, gTSweep, empty);
-  if (!chart || empty) return;
+  const W = tsSweepCanvas.width;
+  const H = tsSweepCanvas.height;
+  gTSweep.clearRect(0, 0, W, H);
 
-  const win = getSweepTraceWindow(seriesSrc);
-  if (!win) return;
-  const { visible, viewStart, viewEnd } = win;
+  const ctx = getSweepTraceSeriesContext();
+  const ml = 58, mr = 58, mt = 18, mb = 24;
+  const pw = W - ml - mr;
+  const ph = H - mt - mb;
+  const chartLeft = ml;
+  const chartRight = ml + pw;
+  const chartTop = mt;
+  const chartBottom = mt + ph;
 
+  gTSweep.fillStyle = '#fcfcfc';
+  gTSweep.fillRect(0, 0, W, H);
+
+  gTSweep.strokeStyle = '#d4d4d4';
+  gTSweep.lineWidth = 1;
+  gTSweep.beginPath();
+  gTSweep.moveTo(chartLeft, chartTop);
+  gTSweep.lineTo(chartLeft, chartBottom);
+  gTSweep.lineTo(chartRight, chartBottom);
+  gTSweep.stroke();
+
+  if (!ctx) {
+    gTSweep.fillStyle = '#999';
+    gTSweep.font = '12px sans-serif';
+    gTSweep.fillText('no sweep trace yet', chartLeft + 10, chartTop + 18);
+    drawSweepTraceEnergy();
+    return;
+  }
+
+  const { visible, viewStart, viewEnd } = ctx;
   const hzMax = 300;
-  const yMapHz = (hz) => {
+
+  function xMap(t){
+    return chartLeft + ((t - viewStart) / Math.max(1e-9, (viewEnd - viewStart))) * pw;
+  }
+
+  function yMapHz(hz){
     const v = Math.max(0, Math.min(hzMax, Number(hz) || 0));
-    return chart.bottom - (v / hzMax) * chart.height;
-  };
+    return chartBottom - (v / hzMax) * ph;
+  }
 
-  drawSweepGridHz(gTSweep, chart, hzMax);
-  drawSweepInputHzVerticalGuides(gTSweep, chart, visible, viewStart, viewEnd, hzMax);
+  // horizontal grid: 25Hz small, 50Hz stronger
+  gTSweep.font = '11px sans-serif';
+  gTSweep.textBaseline = 'middle';
+  for (let hz = 0; hz <= hzMax; hz += 25) {
+    const y = yMapHz(hz);
+    const major = hz % 50 === 0;
+    gTSweep.strokeStyle = major ? '#e0e0e0' : '#f0f0f0';
+    gTSweep.lineWidth = major ? 1.2 : 1;
+    gTSweep.setLineDash([]);
+    gTSweep.beginPath();
+    gTSweep.moveTo(chartLeft, y);
+    gTSweep.lineTo(chartRight, y);
+    gTSweep.stroke();
 
-  // Hz窓：理想スイープ / 実ピーク / 主旋律 / PeakA Energy由来候補Hz
-  drawSweepLine(gTSweep, visible, chart, viewStart, viewEnd, p => p.inputHz, yMapHz, '#777777', 2, true);
-  drawSweepLine(gTSweep, visible, chart, viewStart, viewEnd, p => p.peakAHz, yMapHz, '#1e88e5', 2, false);
-  drawSweepLine(gTSweep, visible, chart, viewStart, viewEnd, p => p.melodyHz, yMapHz, '#fbc02d', 2.5, false);
-  drawSweepLine(gTSweep, visible, chart, viewStart, viewEnd, p => getPeakAEnergyCandidateHz(p), yMapHz, '#00acc1', 1.6, true);
+    if (major) {
+      gTSweep.fillStyle = '#666';
+      gTSweep.textAlign = 'right';
+      gTSweep.fillText(`${hz}`, chartLeft - 8, y);
+    }
+  }
 
-  drawSweepTouchMarkers(gTSweep, chart, viewStart, viewEnd);
+  drawSweepVerticalGuides(gTSweep, visible, xMap, chartTop, chartBottom, { labels: true });
+
+  function drawLine(key, color, width = 2, dashed = false){
+    gTSweep.save();
+    gTSweep.strokeStyle = color;
+    gTSweep.lineWidth = width;
+    gTSweep.setLineDash(dashed ? [6, 4] : []);
+    gTSweep.beginPath();
+
+    let started = false;
+    for (const p of visible) {
+      const v = Number(p[key]) || 0;
+      if (v <= 0) continue;
+      const x = xMap(p.t);
+      const y = yMapHz(v);
+      if (!started) { gTSweep.moveTo(x, y); started = true; }
+      else gTSweep.lineTo(x, y);
+    }
+    if (started) gTSweep.stroke();
+    gTSweep.restore();
+  }
+
+  drawLine('inputHz', '#777777', 2, true);
+  drawLine('peakAHz', '#1e88e5', 2, false);
+  drawLine('melodyHz', '#fbc02d', 2.5, false);
+  drawLine('melodyCandidateHz', '#26c6da', 1.8, true);
+
+  for (const s of touchShots) {
+    if (s.t < viewStart || s.t > viewEnd) continue;
+    const x = xMap(s.t);
+    drawTouchMarker(gTSweep, x, chartTop, chartBottom, s);
+  }
 
   gTSweep.font = '12px sans-serif';
   gTSweep.textAlign = 'left';
   gTSweep.textBaseline = 'top';
   gTSweep.fillStyle = '#777';
-  gTSweep.fillText('Input Hz', chart.left + 8, chart.top + 6);
+  gTSweep.fillText('Input Hz', chartLeft + 8, chartTop + 6);
   gTSweep.fillStyle = '#1e88e5';
-  gTSweep.fillText('PeakA Hz', chart.left + 90, chart.top + 6);
+  gTSweep.fillText('PeakA Hz', chartLeft + 90, chartTop + 6);
   gTSweep.fillStyle = '#fbc02d';
-  gTSweep.fillText('Melody Hz', chart.left + 175, chart.top + 6);
-  gTSweep.fillStyle = '#00acc1';
-  gTSweep.fillText('Energy Candidate Hz', chart.left + 265, chart.top + 6);
+  gTSweep.fillText('Melody Hz', chartLeft + 175, chartTop + 6);
+  gTSweep.fillStyle = '#26c6da';
+  gTSweep.fillText('Energy Candidate Hz', chartLeft + 265, chartTop + 6);
 
   const last = visible[visible.length - 1];
   gTSweep.fillStyle = '#333';
@@ -7133,52 +6991,138 @@ function drawSweepTraceHz(){
   gTSweep.textAlign = 'right';
   gTSweep.textBaseline = 'alphabetic';
   gTSweep.fillText(
-    `in:${(Number(last.inputHz)||0).toFixed(1)}Hz / peak:${(Number(last.peakAHz)||0).toFixed(1)}Hz / melody:${(Number(last.melodyHz)||0).toFixed(1)}Hz / cand:${getPeakAEnergyCandidateHz(last).toFixed(1)}Hz`,
-    chart.right,
-    chart.H - 6
+    `in:${(Number(last.inputHz)||0).toFixed(1)}Hz / peak:${(Number(last.peakAHz)||0).toFixed(1)}Hz / melody:${(Number(last.melodyHz)||0).toFixed(1)}Hz / cand:${(Number(last.melodyCandidateHz)||0).toFixed(1)}Hz`,
+    chartRight,
+    H - 6
   );
+
+  drawSweepTraceEnergy();
+}
+
+function getSweepEnergyScaleMax(visible){
+  const mode = String(SWEEP_TRACE_ENERGY_SCALE_MODE || 'auto');
+  let measuredMax = 1e-9;
+  for (const p of visible || []) {
+    measuredMax = Math.max(
+      measuredMax,
+      Number(p.peakAEnergy) || 0,
+      Number(p.melodyAmp) || 0,
+      Number(p.melodyCandidateAmp) || 0
+    );
+  }
+  if (mode === 'auto') return { scaleMax: measuredMax, measuredMax, mode };
+  const fixed = Math.max(1, Number(mode) || 10000);
+  return { scaleMax: fixed, measuredMax, mode };
 }
 
 function drawSweepTraceEnergy(){
   if (!tsSweepEnergyCanvas || !gTSweepEnergy) return;
 
-  const seriesSrc = getSweepTraceSeries();
-  const empty = (!seriesSrc || seriesSrc.length < 2) ? 'no sweep energy yet' : '';
-  const chart = setupSweepTraceCanvas(tsSweepEnergyCanvas, gTSweepEnergy, empty);
-  if (!chart || empty) return;
+  const W = tsSweepEnergyCanvas.width;
+  const H = tsSweepEnergyCanvas.height;
+  gTSweepEnergy.clearRect(0, 0, W, H);
 
-  const win = getSweepTraceWindow(seriesSrc);
-  if (!win) return;
-  const { visible, viewStart, viewEnd } = win;
+  const ctx = getSweepTraceSeriesContext();
+  const ml = 58, mr = 58, mt = 18, mb = 24;
+  const pw = W - ml - mr;
+  const ph = H - mt - mb;
+  const chartLeft = ml;
+  const chartRight = ml + pw;
+  const chartTop = mt;
+  const chartBottom = mt + ph;
 
-  const scaleInfo = getSweepEnergyScaleMax(visible);
-  updateSweepEnergyScaleStatus(scaleInfo.auto, scaleInfo.scaleMax, scaleInfo.dataMax);
+  gTSweepEnergy.fillStyle = '#fcfcfc';
+  gTSweepEnergy.fillRect(0, 0, W, H);
 
-  const yMapEnergy = (e) => {
-    const v = Math.max(0, Number(e) || 0);
-    const norm = Math.max(0, Math.min(1, v / scaleInfo.scaleMax));
-    return chart.bottom - norm * chart.height;
-  };
+  gTSweepEnergy.strokeStyle = '#d4d4d4';
+  gTSweepEnergy.lineWidth = 1;
+  gTSweepEnergy.beginPath();
+  gTSweepEnergy.moveTo(chartLeft, chartTop);
+  gTSweepEnergy.lineTo(chartLeft, chartBottom);
+  gTSweepEnergy.lineTo(chartRight, chartBottom);
+  gTSweepEnergy.stroke();
 
-  drawSweepGridEnergy(gTSweepEnergy, chart, scaleInfo);
-  drawSweepInputHzVerticalGuides(gTSweepEnergy, chart, visible, viewStart, viewEnd, 300);
+  if (!ctx) {
+    gTSweepEnergy.fillStyle = '#999';
+    gTSweepEnergy.font = '12px sans-serif';
+    gTSweepEnergy.fillText('no energy trace yet', chartLeft + 10, chartTop + 18);
+    return;
+  }
 
-  // Energy窓：PeakA Energy / Melody Amp / Melody Candidate Amp
-  drawSweepLine(gTSweepEnergy, visible, chart, viewStart, viewEnd, p => p.peakAEnergy, yMapEnergy, '#8e24aa', 1.8, false);
-  drawSweepLine(gTSweepEnergy, visible, chart, viewStart, viewEnd, p => p.melodyAmp, yMapEnergy, '#43a047', 2, false);
-  drawSweepLine(gTSweepEnergy, visible, chart, viewStart, viewEnd, p => p.melodyHasCandidate ? p.melodyAmp : 0, yMapEnergy, '#fb8c00', 1.5, true);
+  const { visible, viewStart, viewEnd } = ctx;
+  const { scaleMax, measuredMax, mode } = getSweepEnergyScaleMax(visible);
 
-  drawSweepTouchMarkers(gTSweepEnergy, chart, viewStart, viewEnd);
+  function xMap(t){
+    return chartLeft + ((t - viewStart) / Math.max(1e-9, (viewEnd - viewStart))) * pw;
+  }
+
+  function yMapEnergy(v){
+    const vv = Math.max(0, Math.min(scaleMax, Number(v) || 0));
+    return chartBottom - (vv / Math.max(1e-9, scaleMax)) * ph;
+  }
+
+  // horizontal grid
+  gTSweepEnergy.font = '11px sans-serif';
+  gTSweepEnergy.textBaseline = 'middle';
+  for (let i = 0; i <= 4; i++) {
+    const ratio = i / 4;
+    const y = chartBottom - ratio * ph;
+    gTSweepEnergy.strokeStyle = '#ececec';
+    gTSweepEnergy.lineWidth = 1;
+    gTSweepEnergy.setLineDash([]);
+    gTSweepEnergy.beginPath();
+    gTSweepEnergy.moveTo(chartLeft, y);
+    gTSweepEnergy.lineTo(chartRight, y);
+    gTSweepEnergy.stroke();
+
+    gTSweepEnergy.fillStyle = '#666';
+    gTSweepEnergy.textAlign = 'right';
+    if (mode === 'auto') {
+      gTSweepEnergy.fillText(`${Math.round(ratio * 100)}%`, chartLeft - 8, y);
+    } else {
+      gTSweepEnergy.fillText(formatCompactNumber(scaleMax * ratio), chartLeft - 8, y);
+    }
+  }
+
+  drawSweepVerticalGuides(gTSweepEnergy, visible, xMap, chartTop, chartBottom, { labels: true });
+
+  function drawLine(key, color, width = 2){
+    gTSweepEnergy.save();
+    gTSweepEnergy.strokeStyle = color;
+    gTSweepEnergy.lineWidth = width;
+    gTSweepEnergy.setLineDash([]);
+    gTSweepEnergy.beginPath();
+    let started = false;
+    for (const p of visible) {
+      const v = Number(p[key]) || 0;
+      const x = xMap(p.t);
+      const y = yMapEnergy(v);
+      if (!started) { gTSweepEnergy.moveTo(x, y); started = true; }
+      else gTSweepEnergy.lineTo(x, y);
+    }
+    if (started) gTSweepEnergy.stroke();
+    gTSweepEnergy.restore();
+  }
+
+  drawLine('peakAEnergy', '#8e24aa', 1.8);
+  drawLine('melodyAmp', '#43a047', 2.2);
+  drawLine('melodyCandidateAmp', '#ff9800', 1.8);
+
+  for (const s of touchShots) {
+    if (s.t < viewStart || s.t > viewEnd) continue;
+    const x = xMap(s.t);
+    drawTouchMarker(gTSweepEnergy, x, chartTop, chartBottom, s);
+  }
 
   gTSweepEnergy.font = '12px sans-serif';
   gTSweepEnergy.textAlign = 'left';
   gTSweepEnergy.textBaseline = 'top';
   gTSweepEnergy.fillStyle = '#8e24aa';
-  gTSweepEnergy.fillText('PeakA Energy', chart.left + 8, chart.top + 6);
+  gTSweepEnergy.fillText('PeakA Energy', chartLeft + 8, chartTop + 6);
   gTSweepEnergy.fillStyle = '#43a047';
-  gTSweepEnergy.fillText('Melody Amp', chart.left + 125, chart.top + 6);
-  gTSweepEnergy.fillStyle = '#fb8c00';
-  gTSweepEnergy.fillText('Melody Candidate Amp', chart.left + 230, chart.top + 6);
+  gTSweepEnergy.fillText('Melody Amp', chartLeft + 125, chartTop + 6);
+  gTSweepEnergy.fillStyle = '#ff9800';
+  gTSweepEnergy.fillText('Melody Candidate Amp', chartLeft + 235, chartTop + 6);
 
   const last = visible[visible.length - 1];
   gTSweepEnergy.fillStyle = '#333';
@@ -7186,11 +7130,25 @@ function drawSweepTraceEnergy(){
   gTSweepEnergy.textAlign = 'right';
   gTSweepEnergy.textBaseline = 'alphabetic';
   gTSweepEnergy.fillText(
-    `E:${(Number(last.peakAEnergy)||0).toFixed(0)} / Mamp:${(Number(last.melodyAmp)||0).toFixed(0)} / Cand:${last.melodyHasCandidate ? 'yes' : 'no'} / ${scaleInfo.auto ? 'Auto' : 'Fixed ' + formatSweepEnergyValue(scaleInfo.scaleMax)}`,
-    chart.right,
-    chart.H - 6
+    `E:${Math.round(Number(last.peakAEnergy)||0)} / Mamp:${Math.round(Number(last.melodyAmp)||0)} / Cand:${Math.round(Number(last.melodyCandidateAmp)||0)} / ${mode === 'auto' ? 'Auto' : 'Fixed ' + formatCompactNumber(scaleMax)}`,
+    chartRight,
+    H - 6
   );
+
+  if (sweepEnergyScaleStatusEl) {
+    sweepEnergyScaleStatusEl.textContent = mode === 'auto'
+      ? `Scale: Auto / Max ${formatCompactNumber(measuredMax)}`
+      : `Scale: Fixed ${formatCompactNumber(scaleMax)} / Max ${formatCompactNumber(measuredMax)}`;
+  }
 }
+
+function formatCompactNumber(v){
+  const n = Number(v) || 0;
+  if (Math.abs(n) >= 1000000) return `${Math.round(n / 1000000)}M`;
+  if (Math.abs(n) >= 1000) return `${Math.round(n / 1000)}k`;
+  return `${Math.round(n)}`;
+}
+
 
 
 // ===== Musical Pitch Quantize (Hz -> MIDI -> Semitone -> Hz) =====
@@ -7308,6 +7266,19 @@ function makePianoRollFrame(frame, peaks, melodyPeak = null){
 const PIANO_ROLL_MIDI_MIN = 15; // 約19.4Hz。FRB低域の下限を少し含める
 const PIANO_ROLL_MIDI_MAX = 72; // C5 約523Hz。FRB 500Hz近辺まで含める
 const PIANO_ROLL_GUIDE_NOTES = [69, 60, 57, 45, 33]; // A4, C4, A3, A2, A1
+
+// ===== FRB Piano Roll Color Scale =====
+// Auto はログ内最大で見やすくする表示用。Fixed はロッド間比較・手感度照合用。
+// MIDI Velocity とは独立。ここでは音量を補正しない。
+let PIANO_ROLL_COLOR_SCALE_MODE = '8000';
+let pianoRollColorScaleModeEl = null;
+let pianoRollColorScaleStatusEl = null;
+
+// 自動スイープ中だけリアルタイムに流すPiano Roll。音は鳴らさない。
+let livePianoRollHistory = [];
+let livePianoRollMelodyHz = NaN;
+const LIVE_PIANO_ROLL_KEEP_SEC = 120;
+
 let pianoRollRenderPending = false;
 
 function getPianoRollCanvas(){
@@ -7318,6 +7289,86 @@ function setPianoRollStatus(text){
   const el = document.getElementById('pianoRollStatus');
   if (el) el.textContent = text;
 }
+
+function getPianoRollColorScaleMax(frames){
+  const mode = String(PIANO_ROLL_COLOR_SCALE_MODE || '8000');
+
+  if (mode !== 'auto') {
+    const fixed = Number(mode);
+    return Number.isFinite(fixed) && fixed > 0 ? fixed : 8000;
+  }
+
+  let maxMag = 1e-9;
+  for (const fr of (Array.isArray(frames) ? frames : [])) {
+    if (fr?.melody) maxMag = Math.max(maxMag, Number(fr.melody?.mag) || 0);
+    for (const n of (fr?.notes || [])) {
+      maxMag = Math.max(maxMag, Number(n?.mag) || 0);
+    }
+  }
+  return Math.max(1e-9, maxMag);
+}
+
+function updatePianoRollColorScaleStatus(scaleMax, measuredMax){
+  if (!pianoRollColorScaleStatusEl) {
+    pianoRollColorScaleStatusEl = document.getElementById('pianoRollColorScaleStatus');
+  }
+  if (!pianoRollColorScaleStatusEl) return;
+
+  const mode = String(PIANO_ROLL_COLOR_SCALE_MODE || '8000');
+  if (mode === 'auto') {
+    pianoRollColorScaleStatusEl.textContent = `Color: Auto / Max ${Math.round(measuredMax || scaleMax || 0)}`;
+  } else {
+    pianoRollColorScaleStatusEl.textContent = `Color: Fixed ${Math.round(Number(scaleMax) || 0)} / Max ${Math.round(measuredMax || 0)}`;
+  }
+}
+
+function setupPianoRollColorScaleControl(){
+  const title = document.querySelector('.pianoRollPanel .subTitle');
+  if (!title) return;
+
+  pianoRollColorScaleModeEl = document.getElementById('pianoRollColorScaleMode');
+  pianoRollColorScaleStatusEl = document.getElementById('pianoRollColorScaleStatus');
+
+  if (!pianoRollColorScaleModeEl) {
+    const label = document.createElement('label');
+    label.className = 'mini';
+    label.style.marginLeft = '12px';
+    label.innerHTML = `
+      Color Scale:
+      <select id="pianoRollColorScaleMode">
+        <option value="auto">Auto Normalize</option>
+        <option value="8000" selected>Fixed 8k</option>
+        <option value="10000">Fixed 10k</option>
+        <option value="30000">Fixed 30k</option>
+        <option value="50000">Fixed 50k</option>
+        <option value="100000">Fixed 100k</option>
+        <option value="200000">Fixed 200k</option>
+      </select>
+    `;
+    title.appendChild(label);
+    pianoRollColorScaleModeEl = document.getElementById('pianoRollColorScaleMode');
+  }
+
+  if (!pianoRollColorScaleStatusEl) {
+    const status = document.createElement('span');
+    status.id = 'pianoRollColorScaleStatus';
+    status.className = 'mini';
+    status.style.marginLeft = '8px';
+    status.textContent = 'Color: Fixed 8000';
+    title.appendChild(status);
+    pianoRollColorScaleStatusEl = status;
+  }
+
+  if (pianoRollColorScaleModeEl) {
+    PIANO_ROLL_COLOR_SCALE_MODE = pianoRollColorScaleModeEl.value || '8000';
+    pianoRollColorScaleModeEl.addEventListener('change', () => {
+      PIANO_ROLL_COLOR_SCALE_MODE = pianoRollColorScaleModeEl.value || '8000';
+      requestDrawFRBPianoRoll();
+    });
+  }
+}
+
+window.addEventListener('DOMContentLoaded', setupPianoRollColorScaleControl);
 
 function resizeCanvasToDisplaySize(canvas){
   if (!canvas) return false;
@@ -7353,6 +7404,7 @@ function drawFRBPianoRoll(data = window.FRB_PIANO_ROLL_LAST){
   ctx.fillRect(0, 0, W, H);
 
   const frames = Array.isArray(data) ? data : [];
+  // Sweep Traceと横位置を合わせる。時間軸を目で重ねやすくする。
   const left = 62;
   const right = W - 58;
   const top = 12;
@@ -7387,7 +7439,7 @@ function drawFRBPianoRoll(data = window.FRB_PIANO_ROLL_LAST){
     ctx.stroke();
 
     ctx.fillStyle = 'rgba(235,245,255,0.88)';
-    ctx.fillText(label, 6, y);
+    ctx.fillText(label, 8, y);
   }
 
   // 外枠
@@ -7403,18 +7455,32 @@ function drawFRBPianoRoll(data = window.FRB_PIANO_ROLL_LAST){
     return;
   }
 
-  const t0 = Number(frames[0]?.t) || 0;
-  const t1 = Number(frames[frames.length - 1]?.t) || (t0 + frames.length);
+  let drawFrames = frames;
+  let t0 = Number(frames[0]?.t) || 0;
+  let t1 = Number(frames[frames.length - 1]?.t) || (t0 + frames.length);
+
+  const sweepCtx = getSweepTraceSeriesContext ? getSweepTraceSeriesContext() : null;
+  if (sweepCtx && frames === window.FRB_PIANO_ROLL_LAST) {
+    t0 = sweepCtx.viewStart;
+    t1 = sweepCtx.viewEnd;
+    drawFrames = frames.filter(fr => (Number(fr?.t) || 0) >= t0 && (Number(fr?.t) || 0) <= t1);
+  }
+
   const spanT = Math.max(1e-6, t1 - t0);
 
   let noteCount = 0;
-  let maxMag = 1e-9;
-  for (const fr of frames) {
-    if (fr?.melody) maxMag = Math.max(maxMag, Number(fr.melody?.mag) || 0);
+  let measuredMaxMag = 1e-9;
+  for (const fr of drawFrames) {
+    if (fr?.melody) measuredMaxMag = Math.max(measuredMaxMag, Number(fr.melody?.mag) || 0);
     for (const n of (fr.notes || [])) {
-      maxMag = Math.max(maxMag, Number(n?.mag) || 0);
+      measuredMaxMag = Math.max(measuredMaxMag, Number(n?.mag) || 0);
     }
   }
+
+  // 色の濃さは、Autoならログ内最大、Fixedなら固定値を基準にする。
+  // MIDI Velocityには一切影響させない。
+  const colorScaleMax = getPianoRollColorScaleMax(drawFrames);
+  updatePianoRollColorScaleStatus(colorScaleMax, measuredMaxMag);
 
   // ノート本体：同時6音を点〜短線で表示。強いほど少し大きく・濃くする。
   for (let i = 0; i < frames.length; i++) {
@@ -7424,11 +7490,11 @@ function drawFRBPianoRoll(data = window.FRB_PIANO_ROLL_LAST){
       ? left + ((t - t0) / spanT) * plotW
       : left + (i / Math.max(1, frames.length - 1)) * plotW;
 
-    const next = frames[i + 1];
+    const next = drawFrames[i + 1];
     const nt = Number(next?.t);
     const nx = Number.isFinite(t) && Number.isFinite(nt)
       ? left + ((nt - t0) / spanT) * plotW
-      : x + Math.max(2, plotW / Math.max(1, frames.length));
+      : x + Math.max(2, plotW / Math.max(1, drawFrames.length));
     const w = Math.max(2, Math.min(10, nx - x));
 
     for (const n of (fr.notes || [])) {
@@ -7437,7 +7503,7 @@ function drawFRBPianoRoll(data = window.FRB_PIANO_ROLL_LAST){
       if (midi < PIANO_ROLL_MIDI_MIN || midi > PIANO_ROLL_MIDI_MAX) continue;
 
       const y = pianoRollY(midi, top, bottom);
-      const v = Math.max(0, Math.min(1, (Number(n?.mag) || 0) / maxMag));
+      const v = Math.max(0, Math.min(1, (Number(n?.mag) || 0) / colorScaleMax));
       const h = Math.max(2, 2 + v * 5);
       const alpha = 0.35 + v * 0.55;
 
@@ -7451,7 +7517,7 @@ function drawFRBPianoRoll(data = window.FRB_PIANO_ROLL_LAST){
       const midi = Number(fr.melody?.midi);
       if (Number.isFinite(midi) && midi >= PIANO_ROLL_MIDI_MIN && midi <= PIANO_ROLL_MIDI_MAX) {
         const y = pianoRollY(midi, top, bottom);
-        const v = Math.max(0, Math.min(1, (Number(fr.melody?.mag) || 0) / maxMag));
+        const v = Math.max(0, Math.min(1, (Number(fr.melody?.mag) || 0) / colorScaleMax));
         const h = Math.max(3, 3 + v * 6);
         const alpha = 0.45 + v * 0.50;
         ctx.fillStyle = `rgba(255, 224, 102, ${alpha.toFixed(3)})`;
@@ -7467,7 +7533,7 @@ function drawFRBPianoRoll(data = window.FRB_PIANO_ROLL_LAST){
   ctx.textAlign = 'right';
   ctx.textBaseline = 'alphabetic';
   ctx.fillText(
-    `${frames.length} frames / ${noteCount} notes / melody + backing 2-2-3 / ${PITCH_SNAP_ENABLED ? 'snap ON' : 'snap OFF'} / MIDI ${PIANO_ROLL_MIDI_MIN}-${PIANO_ROLL_MIDI_MAX}`,
+    `${frames.length} frames / ${noteCount} notes / melody + backing 2-2-3 / ${PITCH_SNAP_ENABLED ? 'snap ON' : 'snap OFF'} / Color ${PIANO_ROLL_COLOR_SCALE_MODE === 'auto' ? 'Auto' : 'Fixed ' + Math.round(colorScaleMax)} / MIDI ${PIANO_ROLL_MIDI_MIN}-${PIANO_ROLL_MIDI_MAX}`,
     right,
     H - 6
   );
@@ -7486,6 +7552,86 @@ function requestDrawFRBPianoRoll(){
 }
 
 window.addEventListener('resize', () => requestDrawFRBPianoRoll());
+
+function resetLivePianoRoll(){
+  livePianoRollHistory = [];
+  livePianoRollMelodyHz = NaN;
+  window.FRB_PIANO_ROLL_LAST = livePianoRollHistory;
+  requestDrawFRBPianoRoll();
+}
+
+function pushLivePianoRollFrame(frame){
+  // 常時リアルタイムPiano Rollを更新する。
+  // 音は鳴らさない。MIDI Velocityにも影響しない。
+  // Sweep Trace Energyと同じ時間窓で見えるようにする。
+  if (!frame || !Array.isArray(frame.rawTopPeaksA)) return null;
+
+  const peaks = pickFrb123Peaks(frame);
+  const melodyPick = pickMainMelodyPeak(frame, livePianoRollMelodyHz);
+  livePianoRollMelodyHz = melodyPick.hz;
+
+  const rollFrame = makePianoRollFrame(frame, peaks, melodyPick.peak);
+  livePianoRollHistory.push(rollFrame);
+
+  const lastT = Number(rollFrame.t) || 0;
+  const keepSec = Math.max(
+    Number((typeof getTimeWindowSec === 'function') ? getTimeWindowSec() : 30) + 5,
+    LIVE_PIANO_ROLL_KEEP_SEC
+  );
+
+  while (livePianoRollHistory.length &&
+         (lastT - (Number(livePianoRollHistory[0]?.t) || 0)) > keepSec) {
+    livePianoRollHistory.shift();
+  }
+
+  window.FRB_PIANO_ROLL_LAST = livePianoRollHistory;
+  requestDrawFRBPianoRoll();
+  return rollFrame;
+}
+
+function restoreLivePianoRollFromSavedFrames(savedFrames){
+  livePianoRollHistory = [];
+  livePianoRollMelodyHz = NaN;
+
+  if (Array.isArray(savedFrames) && savedFrames.length) {
+    livePianoRollHistory = savedFrames
+      .filter(fr => fr && Number.isFinite(Number(fr.t)))
+      .map(fr => ({
+        ...fr,
+        t: Number(fr.t) || 0,
+        melody: fr?.melody ? { ...fr.melody } : null,
+        notes: Array.isArray(fr?.notes) ? fr.notes.map(n => ({ ...n })) : []
+      }));
+
+    const lastMelody = [...livePianoRollHistory].reverse().find(fr => fr?.melody);
+    livePianoRollMelodyHz = Number(lastMelody?.melody?.rawHz) || Number(lastMelody?.melody?.playHz) || NaN;
+    window.FRB_PIANO_ROLL_LAST = livePianoRollHistory;
+    requestDrawFRBPianoRoll();
+    return livePianoRollHistory;
+  }
+
+  return rebuildLivePianoRollFromLoadedSeries();
+}
+
+function rebuildLivePianoRollFromLoadedSeries(){
+  livePianoRollHistory = [];
+  livePianoRollMelodyHz = NaN;
+
+  const src = Array.isArray(tsBuf) ? tsBuf : [];
+  for (const frame of src) {
+    if (!Array.isArray(frame?.rawTopPeaksA) && !Array.isArray(frame?.topPeaksA)) continue;
+
+    const peaks = pickFrb123Peaks(frame);
+    const melodyPick = pickMainMelodyPeak(frame, livePianoRollMelodyHz);
+    livePianoRollMelodyHz = melodyPick.hz;
+
+    livePianoRollHistory.push(makePianoRollFrame(frame, peaks, melodyPick.peak));
+  }
+
+  window.FRB_PIANO_ROLL_LAST = livePianoRollHistory;
+  requestDrawFRBPianoRoll();
+  return livePianoRollHistory;
+}
 
 
 // ===== Main Melody Amplitude Canvas =====
@@ -7723,11 +7869,6 @@ function setInvestigateReplayStatus(text){
   if (el) el.textContent = text;
 }
 
-function setFastPianoRollStatus(text){
-  const el = document.getElementById('fastPianoRollStatus');
-  if (el) el.textContent = text;
-}
-
 function ensureInvestigateReplayAudio(){
   if (!investigateReplayCtx) {
     investigateReplayCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -7862,7 +8003,7 @@ function startInvestigateReplay(){
 
   const baseVol = Math.max(0, Math.min(1, Number(document.getElementById('soundVol')?.value) || 0.35));
 
-  // backing 2-2-3 = 7音。主旋律は音声再生では複製しない（MIDI/表示だけ特別扱い）。
+  // backing 3-3-5 = 7音。主旋律は音声再生では複製しない（MIDI/表示だけ特別扱い）。
   for (let i = 0; i < 7; i++) {
     const osc = investigateReplayCtx.createOscillator();
     const gain = investigateReplayCtx.createGain();
@@ -7879,7 +8020,7 @@ function startInvestigateReplay(){
     investigateReplayGains.push(gain);
   }
 
-  setInvestigateReplayStatus(`playing FRB backing 2-2-3 0/${investigateReplayFrames.length}`);
+  setInvestigateReplayStatus(`playing FRB backing 3-3-5 0/${investigateReplayFrames.length}`);
 
   function step(){
     if (!investigateReplayPlaying) return;
@@ -7923,7 +8064,7 @@ function startInvestigateReplay(){
       // 再生用ゲイン。可聴化用の正規化で、MIDI Velocity/主旋律Amp表示には使わない。
       const norm = Math.sqrt(mag / frameMax);
       const REPLAY_GAIN = 0.6;
-      const gainValue = Math.min(0.9, norm * baseVol * REPLAY_GAIN);
+      const gainValue = Math.min(0.9, norm * baseVol * REPLAY_GAIN * getPianoRollVolumeMultiplier());
 
       investigateReplayOscs[i]?.frequency.setTargetAtTime(hz, now, 0.02);
       investigateReplayGains[i]?.gain.setTargetAtTime(gainValue, now, 0.02);
@@ -7956,53 +8097,6 @@ function startInvestigateReplay(){
   }
 
   step();
-}
-
-
-function buildFastPianoRoll(){
-  // 時短Play：音声再生を行わず、現在の設定（Merge / Pitch Snap / View Mode）で
-  // ログ全体からFRB Piano Rollだけを一括生成する。
-  stopInvestigateReplay(false);
-
-  const frames = collectInvestigateReplayFrames();
-  if (frames.length < 2) {
-    setFastPianoRollStatus('no investigate data');
-    setInvestigateReplayStatus('no investigate data');
-    return;
-  }
-
-  const startedAt = performance.now();
-  setFastPianoRollStatus(`building 0/${frames.length}`);
-
-  investigateReplayFrames = frames;
-  investigateReplayIndex = 0;
-  investigateReplayPlaying = false;
-  investigateReplayPianoRoll = [];
-  investigateReplayMelodyAmp = [];
-  investigateReplayMelodyHz = NaN;
-
-  let melodyHz = NaN;
-  let noteFrameCount = 0;
-
-  for (const frame of frames) {
-    const peaks = pickFrb123Peaks(frame);
-    const melodyPick = pickMainMelodyPeak(frame, melodyHz);
-    melodyHz = melodyPick.hz;
-
-    investigateReplayPianoRoll.push(makePianoRollFrame(frame, peaks, melodyPick.peak));
-    investigateReplayMelodyAmp.push(makeMelodyAmpPoint(frame, melodyPick.peak));
-    noteFrameCount++;
-  }
-
-  investigateReplayMelodyHz = melodyHz;
-  window.FRB_PIANO_ROLL_LAST = investigateReplayPianoRoll;
-
-  // 音は鳴らさず、描画だけ更新する。
-  drawFRBPianoRoll();
-
-  const elapsedMs = Math.max(0, performance.now() - startedAt);
-  setFastPianoRollStatus(`done ${noteFrameCount}/${frames.length} / ${elapsedMs.toFixed(0)}ms`);
-  setInvestigateReplayStatus(`fast piano roll generated ${frames.length} frames`);
 }
 
 
@@ -8042,9 +8136,6 @@ function stopInvestigateReplay(finished = false){
 // app.js は body末尾で読み込まれるので、この時点でボタンは存在する想定。
 document.getElementById('playInvestigateBtn')
   ?.addEventListener('click', startInvestigateReplay);
-
-document.getElementById('fastPianoRollBtn')
-  ?.addEventListener('click', buildFastPianoRoll);
 
 document.getElementById('stopInvestigateBtn')
   ?.addEventListener('click', () => stopInvestigateReplay(false));
@@ -8200,7 +8291,7 @@ function exportWavFromNotes() {
         v = v / Math.sqrt(notes.length);
       }
 
-      samples[pos] = v * masterGain;
+      samples[pos] = v * masterGain * getPianoRollVolumeMultiplier();
     }
   }
 
@@ -8212,13 +8303,14 @@ function exportWavFromNotes() {
     return;
   }
 
-  // 全体を軽く正規化
+  // 倍率アップ後、クリップしそうな時だけ軽く抑える。
+  // 常時正規化すると倍率指定の意味が消えるため、peak <= 0.95 の時はそのまま出す。
   let peak = 0;
   for (let i = 0; i < samples.length; i++) {
     peak = Math.max(peak, Math.abs(samples[i]));
   }
 
-  if (peak > 0) {
+  if (peak > 0.95) {
     const gain = 0.95 / peak;
     for (let i = 0; i < samples.length; i++) {
       samples[i] *= gain;
@@ -8393,10 +8485,15 @@ function collectMidiExportEvents(frames){
       const midi = noteObjToSemitoneMidi(note);
       if (!Number.isFinite(Number(midi))) return;
       if (midi < 0 || midi > 127) return;
+      const hz = Number.isFinite(Number(note?.rawHz))
+        ? Number(note.rawHz)
+        : (Number.isFinite(Number(note?.hz)) ? Number(note.hz) : midiToHz(midi));
+
       out[trackRole]?.push({
         startTick,
         endTick,
         midi,
+        hz,
         mag: Math.max(0, Number(note?.mag) || 0),
       });
     }
@@ -8419,10 +8516,15 @@ function collectMidiExportEvents(frames){
 //   return Math.max(1, Math.min(127, v));
 // }
 
-const MIDI_VELOCITY_FIXED_MAX = 10000;
+// ===== FRB MIDI Velocity =====
+// MIDI Velocity は、FRB Piano Roll の Fixed 8k 色強度と同じ考え方で作る。
+// 重要：やる気マンモスマップ等の周波数帯別の人間感度重みは使わない。
+// 重要：画面の Color Scale ドロップダウンには連動させない。
+//       Color Scale は表示専用。MIDI比較の再現性を守るため Velocity は常に Fixed 8k。
+const MIDI_VELOCITY_FIXED_MAX = 8000;
 
-function velocityFromMag(mag){
-  const m = Math.max(0, Number(mag) || 0);
+function velocityFromMag(mag, hz){
+  const m = Math.max(0, Number(mag) || 0) * getPianoRollVolumeMultiplier();
   const v = Math.round((m / MIDI_VELOCITY_FIXED_MAX) * 127);
   return Math.max(1, Math.min(127, v));
 }
@@ -8445,7 +8547,7 @@ function makeMidiTrack(trackName, channel, program, noteEvents, maxMag, includeT
   const abs = [];
   for (const n of noteEvents || []) {
 
-    const vel = velocityFromMag(n.mag);
+    const vel = velocityFromMag(n.mag, n.hz);
     
     abs.push({ tick:n.startTick, bytes:[0x90 | (channel & 0x0f), n.midi & 0x7f, vel] });
     abs.push({ tick:n.endTick,   bytes:[0x80 | (channel & 0x0f), n.midi & 0x7f, 0] });
@@ -8465,11 +8567,33 @@ function makeMidiTrack(trackName, channel, program, noteEvents, maxMag, includeT
   return [...strBytes('MTrk'), ...writeU32BE(body.length), ...body];
 }
 
+function getMidiExportFramesDirect(){
+  // Export MIDI は Play/時短Playを押さなくても、いま画面にあるPiano Roll / live履歴 / ロード済みtsBufから直接作れるようにする。
+  // 注意：構造スコアは混ぜない。今回はmagにHuman Mapの周波数重みだけを掛ける。
+  let frames = Array.isArray(window.FRB_PIANO_ROLL_LAST) ? window.FRB_PIANO_ROLL_LAST : [];
+
+  if (frames.length) return frames;
+
+  if (Array.isArray(livePianoRollHistory) && livePianoRollHistory.length) {
+    window.FRB_PIANO_ROLL_LAST = livePianoRollHistory;
+    requestDrawFRBPianoRoll();
+    return livePianoRollHistory;
+  }
+
+  if (Array.isArray(tsBuf) && tsBuf.length) {
+    const rebuilt = rebuildLivePianoRollFromLoadedSeries();
+    requestDrawFRBPianoRoll();
+    return Array.isArray(rebuilt) ? rebuilt : [];
+  }
+
+  return [];
+}
+
 function exportMidiFromPianoRoll(){
-  const frames = window.FRB_PIANO_ROLL_LAST;
+  const frames = getMidiExportFramesDirect();
   if (!Array.isArray(frames) || !frames.length) {
     setExportMidiStatus('midi no data');
-    alert('先に Play Investigate してください');
+    alert('MIDI出力できるPiano Rollデータがまだありません');
     return;
   }
 
@@ -8477,6 +8601,7 @@ function exportMidiFromPianoRoll(){
   const allEvents = [...groups.melody, ...groups.low, ...groups.mid, ...groups.high];
   if (!allEvents.length) {
     setExportMidiStatus('midi no notes');
+    alert('MIDI化できるノートがありません');
     return;
   }
 
@@ -8509,10 +8634,22 @@ function exportMidiFromPianoRoll(){
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const memoPart = safeFilePart(getExperimentMemo());
   a.href = url;
-  a.download = `frb_raw_melody_2-2-3_${stamp}.mid`;
+  a.download = memoPart
+    ? `frb_raw_melody_2-2-3_${memoPart}_${stamp}.mid`
+    : `frb_raw_melody_2-2-3_${stamp}.mid`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 
-  setExportMidiStatus(`midi saved: melody ${groups.melody.length}, low ${groups.low.length}, mid ${groups.mid.length}, high ${groups.high.length}`);
+  setExportMidiStatus(`midi saved: Fixed8k velocity x${getPianoRollVolumeMultiplier()} / melody ${groups.melody.length}, low ${groups.low.length}, mid ${groups.mid.length}, high ${groups.high.length}`);
+}
+
+
+// ===== FRB melody+backing 2-2-3 / PianoRollIntensityVelocity =====
+// 現在のMIDI構成は melody + backing low2/mid2/high3。
+// frbIntensityToVelocity は互換用に残すが、MIDI出力本体は velocityFromMag() を使う。
+function frbIntensityToVelocity(intensity, fixedMax=8000){
+  const n = Math.max(0, Math.min(1, intensity / fixedMax));
+  return Math.max(1, Math.min(127, Math.round(n * 127)));
 }
