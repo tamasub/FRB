@@ -7685,6 +7685,8 @@ function pushLiveMelodyAmpFrame(frame){
   frame.melodyNote = point.note || '';
   frame.melodyMidi = point.midi;
   frame.melodyHasCandidate = !!point.hasMelody;
+  frame.melodyCandidateHz = Number(point.hz) || 0;
+  frame.melodyCandidateAmp = Number(point.mag) || 0;
 
   liveMelodyAmpHistory.push(point);
 
@@ -7718,6 +7720,8 @@ function rebuildMelodyAmpFromLoadedSeries(){
     frame.melodyNote = point.note || '';
     frame.melodyMidi = point.midi;
     frame.melodyHasCandidate = !!point.hasMelody;
+    frame.melodyCandidateHz = Number(point.hz) || 0;
+    frame.melodyCandidateAmp = Number(point.mag) || 0;
 
     liveMelodyAmpHistory.push(point);
   }
