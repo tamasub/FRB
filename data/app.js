@@ -1,4 +1,5 @@
 //v0.0.0
+// MIDI_EXPORT_FILENAME_SHORT_META_AND_DOMINO_PROGRAM_2026-05-10
 // INVESTIGATE_FILTER_HARDCUT_2026-05-04
 
 const st = document.getElementById('st');
@@ -8445,14 +8446,60 @@ function vlq(n){
 function metaEvent(delta, type, data){ return [...vlq(delta), 0xff, type & 0xff, ...vlq(data.length), ...data]; }
 function midiEvent(delta, status, ...data){ return [...vlq(delta), status & 0xff, ...data.map(x => x & 0x7f)]; }
 
-function getMidiProgramValue(id, fallback = 0){
+// Dominoなど多くのGM音源UIは楽器番号を 1-128 で表示する。
+// MIDI Program Change の実データは 0-127 なので、出力時だけ -1 して合わせる。
+function getMidiProgramInfo(id, fallbackDomino = 1){
   const el = document.getElementById(id);
-  const v = Number(el?.value);
-  return Number.isFinite(v) ? Math.max(0, Math.min(127, Math.round(v))) : fallback;
+  const raw = Number(el?.value);
+  const dominoNo = Number.isFinite(raw)
+    ? Math.max(1, Math.min(128, Math.round(raw)))
+    : Math.max(1, Math.min(128, Math.round(fallbackDomino)));
+
+  return {
+    dominoNo,
+    program: dominoNo - 1,
+  };
+}
+
+function getMidiProgramValue(id, fallbackDomino = 1){
+  return getMidiProgramInfo(id, fallbackDomino).program;
 }
 
 function setExportMidiStatus(text){
   if (exportMidiStatus) exportMidiStatus.textContent = text;
+}
+
+function formatPianoRollVolumeMultiplierForFile(){
+  const v = getPianoRollVolumeMultiplier();
+  if (!Number.isFinite(v) || v <= 0) return 'X1';
+  const text = Number.isInteger(v)
+    ? String(v)
+    : String(Number(v.toFixed(2))).replace('.', 'p');
+  return `X${text}`;
+}
+
+function makeMidiExportMemoText(programInfos = null){
+  const x = getPianoRollVolumeMultiplier();
+  const memo = getExperimentMemo ? safeFilePart(getExperimentMemo()) : '';
+
+  const instText = programInfos
+    ? `domino_instruments=melody:${programInfos.melody.dominoNo},low:${programInfos.low.dominoNo},mid:${programInfos.mid.dominoNo},high:${programInfos.high.dominoNo}`
+    : '';
+
+  const midiProgramText = programInfos
+    ? `midi_program_change=melody:${programInfos.melody.program},low:${programInfos.low.program},mid:${programInfos.mid.program},high:${programInfos.high.program}`
+    : '';
+
+  return [
+    'FRB MIDI Export',
+    `volume_multiplier=x${Number.isFinite(x) ? x : 1}`,
+    instText,
+    midiProgramText,
+    `velocity_mode=fixed_${MIDI_VELOCITY_FIXED_MAX}`,
+    'structure=melody_plus_backing_2-2-3',
+    `pitch_snap=${PITCH_SNAP_ENABLED ? 'on' : 'off'}`,
+    memo ? `experiment_memo=${memo}` : ''
+  ].filter(Boolean).join(' | ');
 }
 
 function secondsToMidiTick(sec){
@@ -8534,9 +8581,12 @@ function velocityFromMag(mag, hz){
 }
 
 
-function makeMidiTrack(trackName, channel, program, noteEvents, maxMag, includeTempo = false){
+function makeMidiTrack(trackName, channel, program, noteEvents, maxMag, includeTempo = false, trackMemoText = ''){
   const events = [];
   events.push(metaEvent(0, 0x03, strBytes(trackName)));
+  if (trackMemoText) {
+    events.push(metaEvent(0, 0x01, strBytes(trackMemoText)));
+  }
 
   if (includeTempo) {
     events.push(metaEvent(0, 0x51, u8(
@@ -8610,18 +8660,29 @@ function exportMidiFromPianoRoll(){
   }
 
   const maxMag = Math.max(1e-9, ...allEvents.map(e => Number(e.mag) || 0));
-  const programs = {
-    melody: getMidiProgramValue('midiInstMelody', 0),
-    low:     getMidiProgramValue('midiInstLow', 36),
-    mid:     getMidiProgramValue('midiInstMid', 18),
-    high:    getMidiProgramValue('midiInstHigh', 25),
+  // 画面入力はDomino/GM表記の 1-128 として扱い、MIDI出力時だけ 0-127 に変換する。
+  // fallbackはDomino番号。括弧内はMIDI Program Change番号。
+  const programInfos = {
+    melody: getMidiProgramInfo('midiInstMelody', 1),   // 1  -> 0
+    low:     getMidiProgramInfo('midiInstLow', 37),    // 37 -> 36
+    mid:     getMidiProgramInfo('midiInstMid', 19),    // 19 -> 18
+    high:    getMidiProgramInfo('midiInstHigh', 26),   // 26 -> 25
   };
 
+  const programs = {
+    melody: programInfos.melody.program,
+    low:     programInfos.low.program,
+    mid:     programInfos.mid.program,
+    high:    programInfos.high.program,
+  };
+
+  const midiExportMemoText = makeMidiExportMemoText(programInfos);
+
   const tracks = [
-    makeMidiTrack('FRB Melody / MaxPeak+Inertia', 0, programs.melody, groups.melody, maxMag, true),
-    makeMidiTrack('FRB Low / 2 voices',           1, programs.low,     groups.low,     maxMag, false),
-    makeMidiTrack('FRB Mid / 2 voices',           2, programs.mid,     groups.mid,     maxMag, false),
-    makeMidiTrack('FRB High / 3 voices',          3, programs.high,    groups.high,    maxMag, false),
+    makeMidiTrack(`FRB Melody / MaxPeak+Inertia / Inst${programInfos.melody.dominoNo}`, 0, programs.melody, groups.melody, maxMag, true, midiExportMemoText),
+    makeMidiTrack(`FRB Low / 2 voices / Inst${programInfos.low.dominoNo}`,             1, programs.low,     groups.low,     maxMag, false),
+    makeMidiTrack(`FRB Mid / 2 voices / Inst${programInfos.mid.dominoNo}`,             2, programs.mid,     groups.mid,     maxMag, false),
+    makeMidiTrack(`FRB High / 3 voices / Inst${programInfos.high.dominoNo}`,           3, programs.high,    groups.high,    maxMag, false),
   ];
 
   const headerBody = [
@@ -8639,14 +8700,19 @@ function exportMidiFromPianoRoll(){
   const a = document.createElement('a');
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   const memoPart = safeFilePart(getExperimentMemo());
+  const volumePart = formatPianoRollVolumeMultiplierForFile();
   a.href = url;
   a.download = memoPart
-    ? `frb_raw_melody_2-2-3_${memoPart}_${stamp}.mid`
-    : `frb_raw_melody_2-2-3_${stamp}.mid`;
+    ? `frb_${volumePart}_${memoPart}_${stamp}.mid`
+    : `frb_${volumePart}_${stamp}.mid`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 
-  setExportMidiStatus(`midi saved: Fixed8k velocity x${getPianoRollVolumeMultiplier()} / melody ${groups.melody.length}, low ${groups.low.length}, mid ${groups.mid.length}, high ${groups.high.length}`);
+  setExportMidiStatus(
+    `midi saved: Fixed8k velocity x${getPianoRollVolumeMultiplier()} / ` +
+    `Inst M:${programInfos.melody.dominoNo} L:${programInfos.low.dominoNo} Mid:${programInfos.mid.dominoNo} H:${programInfos.high.dominoNo} / ` +
+    `melody ${groups.melody.length}, low ${groups.low.length}, mid ${groups.mid.length}, high ${groups.high.length}`
+  );
 }
 
 
