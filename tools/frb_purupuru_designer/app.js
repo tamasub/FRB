@@ -17,6 +17,11 @@ const params = {
   speedBoost: document.getElementById('speedBoost'),
   accel: document.getElementById('accel'),
   tailSpeed: document.getElementById('tailSpeed'),
+  modFreq: document.getElementById('modFreq'),
+  modDepth: document.getElementById('modDepth'),
+  detuneHz: document.getElementById('detuneHz'),
+  detuneMix: document.getElementById('detuneMix'),
+  detunePhase: document.getElementById('detunePhase'),
   secondAmp: document.getElementById('secondAmp'),
   secondPos: document.getElementById('secondPos'),
   jitter: document.getElementById('jitter'),
@@ -44,7 +49,9 @@ function fmt(key, v) {
   if (key === 'f0' || key === 'f1') return `${v.toFixed(1)}Hz`;
   if (key === 'secondPos') return `${Math.round(v * 100)}%`;
   if (key === 'speedBoost') return `${v.toFixed(2)}x`;
-  if (key === 'accel' || key === 'tailSpeed') return `${Math.round(v * 100)}%`;
+  if (key === 'accel' || key === 'tailSpeed' || key === 'modDepth' || key === 'detuneMix') return `${Math.round(v * 100)}%`;
+  if (key === 'modFreq' || key === 'detuneHz') return `${v.toFixed(1)}Hz`;
+  if (key === 'detunePhase') return `${Math.round(v)}°`;
   return v.toFixed(2);
 }
 
@@ -56,7 +63,7 @@ function updateOutputs() {
   els.timeReadout.textContent = `${p.duration.toFixed(1)}s`;
   els.freqReadout.textContent = `${p.f0.toFixed(1)}Hz → ${p.f1.toFixed(1)}Hz`;
   els.formulaText.textContent =
-    `y(t)=A·e^(-λt)·sin(2π∫f(t)dt) + Speed + Tail + 第2波`;
+    `y(t)=A·e^(-λt)·AM(t)·{主ぷる + ズレ和音} + Speed + Tail + 第2波`;
 }
 
 function fitCanvas() {
@@ -96,9 +103,17 @@ function secondEnvelope(t, p) {
   return p.secondAmp * Math.exp(-x * x);
 }
 
+function amAt(t, p) {
+  const depth = Math.max(0, Math.min(1, p.modDepth || 0));
+  const hz = Math.max(0.01, p.modFreq || 5);
+  // depth=0 -> 1.0固定 / depth=1 -> 0.0〜1.0のうねり
+  return (1 - depth * 0.5) + depth * 0.5 * (1 + Math.sin(2 * Math.PI * hz * t));
+}
+
 function sampleWave(p, samples = 4200) {
   const data = [];
   let phase = 0;
+  let detunePhase = (p.detunePhase || 0) * Math.PI / 180;
   let phase2 = 0;
   const dt = p.duration / samples;
 
@@ -106,8 +121,10 @@ function sampleWave(p, samples = 4200) {
     const t = i * dt;
     const f = freqAt(t, p);
     phase += 2 * Math.PI * f * dt;
+    detunePhase += 2 * Math.PI * Math.max(1, f + (p.detuneHz || 0)) * dt;
 
     const env = p.amp * Math.exp(-p.decay * t);
+    const am = amAt(t, p);
     const second = secondEnvelope(t, p);
 
     phase2 += 2 * Math.PI * (f * 1.7 + 18) * dt;
@@ -126,7 +143,7 @@ function sampleWave(p, samples = 4200) {
        0.15 * Math.sin(2 * Math.PI * 23.1 * t + 0.4));
 
     const y =
-      env * Math.sin(phase) +
+      env * am * (Math.sin(phase) + (p.detuneMix || 0) * Math.sin(detunePhase)) / (1 + (p.detuneMix || 0)) +
       second * Math.sin(phase2) +
       env * deterministicJitter +
       env * tailPuru;
@@ -253,9 +270,10 @@ async function play() {
     const at = now + t;
     const f = freqAt(t, p);
     const env = p.amp * Math.exp(-p.decay * t);
+    const am = amAt(t, p);
 
     osc.frequency.linearRampToValueAtTime(f, at);
-    gain.gain.linearRampToValueAtTime(Math.max(0, env), at);
+    gain.gain.linearRampToValueAtTime(Math.max(0, env * am), at);
   }
 
   const second = audioCtx.createOscillator();
@@ -268,6 +286,22 @@ async function play() {
   secondGain.gain.linearRampToValueAtTime(0, Math.max(now, secondCenter - p.duration * 0.10));
   secondGain.gain.linearRampToValueAtTime(p.secondAmp, secondCenter);
   secondGain.gain.linearRampToValueAtTime(0, Math.min(now + p.duration, secondCenter + p.duration * 0.14));
+
+  const detuneOsc = audioCtx.createOscillator();
+  detuneOsc.type = 'sine';
+  const detuneGain = audioCtx.createGain();
+  detuneGain.gain.setValueAtTime(0, now);
+
+  const detuneMix = Math.max(0, Math.min(1, p.detuneMix || 0));
+  for (let i = 0; i <= steps; i++) {
+    const t = p.duration * i / steps;
+    const at = now + t;
+    const f = freqAt(t, p) + (p.detuneHz || 0);
+    const env = p.amp * Math.exp(-p.decay * t);
+    const am = amAt(t, p);
+    detuneOsc.frequency.linearRampToValueAtTime(Math.max(1, f), at);
+    detuneGain.gain.linearRampToValueAtTime(Math.max(0, env * am * detuneMix), at);
+  }
 
   const lfo = audioCtx.createOscillator();
   lfo.type = 'sine';
@@ -290,21 +324,24 @@ async function play() {
   tailGain.gain.linearRampToValueAtTime(0, tailEnd);
 
   osc.connect(gain).connect(master);
+  detuneOsc.connect(detuneGain).connect(master);
   second.connect(secondGain).connect(master);
   tailOsc.connect(tailGain).connect(master);
   master.connect(audioCtx.destination);
 
   osc.start(now);
+  detuneOsc.start(now);
   second.start(now);
   lfo.start(now);
   tailOsc.start(now);
 
   osc.stop(now + p.duration + 0.02);
+  detuneOsc.stop(now + p.duration + 0.02);
   second.stop(now + p.duration + 0.02);
   lfo.stop(now + p.duration + 0.02);
   tailOsc.stop(now + p.duration + 0.02);
 
-  playingNodes = [osc, second, lfo, tailOsc, gain, secondGain, tailGain, master];
+  playingNodes = [osc, detuneOsc, second, lfo, tailOsc, gain, detuneGain, secondGain, tailGain, master];
 }
 
 function setPreset(name) {
@@ -312,22 +349,26 @@ function setPreset(name) {
     soft: {
       duration: 12, amp: 0.70, decay: 0.18, f0: 18, f1: 95, curve: 1.2,
       speedBoost: 0.85, accel: 0.20, tailSpeed: 0.25,
-      secondAmp: 0.12, secondPos: 0.55, jitter: 0.04, volume: 0.34
+      secondAmp: 0.12, secondPos: 0.55, jitter: 0.04, volume: 0.34,
+      modFreq: 3.5, modDepth: 0.22, detuneHz: 2.0, detuneMix: 0.22, detunePhase: 0
     },
     tokujou: {
       duration: 10, amp: 0.92, decay: 0.24, f0: 20, f1: 170, curve: 1.8,
       speedBoost: 1.15, accel: 0.45, tailSpeed: 0.45,
-      secondAmp: 0.26, secondPos: 0.42, jitter: 0.10, volume: 0.35
+      secondAmp: 0.26, secondPos: 0.42, jitter: 0.10, volume: 0.35,
+      modFreq: 5.0, modDepth: 0.50, detuneHz: 3.0, detuneMix: 0.35, detunePhase: 0
     },
     sharp: {
       duration: 5, amp: 1.0, decay: 0.55, f0: 35, f1: 230, curve: 2.4,
       speedBoost: 1.80, accel: 0.65, tailSpeed: 0.35,
-      secondAmp: 0.10, secondPos: 0.25, jitter: 0.05, volume: 0.30
+      secondAmp: 0.10, secondPos: 0.25, jitter: 0.05, volume: 0.30,
+      modFreq: 12.0, modDepth: 0.28, detuneHz: 7.0, detuneMix: 0.25, detunePhase: 90
     },
     spring: {
       duration: 2.4, amp: 1.0, decay: 0.95, f0: 24, f1: 320, curve: 2.8,
       speedBoost: 2.65, accel: 0.82, tailSpeed: 0.78,
-      secondAmp: 0.34, secondPos: 0.36, jitter: 0.18, volume: 0.30
+      secondAmp: 0.34, secondPos: 0.36, jitter: 0.18, volume: 0.30,
+      modFreq: 6.5, modDepth: 0.72, detuneHz: 4.5, detuneMix: 0.42, detunePhase: 30
     }
   };
 
