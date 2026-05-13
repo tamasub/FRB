@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FRB Artificial PuruPuru Designer v2.6</title>
+  <title>FRB Artificial PuruPuru Designer v2</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -11,7 +11,7 @@
     <header class="hero">
       <div>
         <p class="eyebrow">FRB Phase 2.5</p>
-        <h1>Artificial PuruPuru Designer v2.6</h1>
+        <h1>Artificial PuruPuru Designer v2</h1>
         <p class="lead">バネの超絶特上ぷるぷる感を狙って、短時間・急加速・尾っぽ高速振動を設計する実験UI。</p>
       </div>
       <div class="transport">
@@ -149,153 +149,6 @@
           <output id="jitterOut"></output>
         </label>
 
-
-        <label>
-          <span>低域 強度</span>
-          <input id="lowAmp" type="range" min="0" max="0.8" step="0.01" value="0.00">
-          <output id="lowAmpOut"></output>
-        </label>
-
-        <label>
-          <span>低域Hz</span>
-          <input id="lowHz" type="range" min="10" max="80" step="1" value="32">
-          <output id="lowHzOut"></output>
-        </label>
-
-        <label>
-          <span>低域 Attack Delay</span>
-          <input id="lowDelay" type="range" min="0" max="5" step="0.05" value="0.00">
-          <output id="lowDelayOut"></output>
-        </label>
-
-        <label>
-          <span>低域 立上り</span>
-          <input id="lowRise" type="range" min="0.05" max="3" step="0.05" value="0.55">
-          <output id="lowRiseOut"></output>
-        </label>
-
-        <label>
-          <span>低域 尾っぽ</span>
-          <input id="lowTail" type="range" min="0.1" max="8" step="0.1" value="3.0">
-          <output id="lowTailOut"></output>
-        </label>
-
-
-        <hr class="controlSep">
-        <h2>低域Layer（別トラック）</h2>
-
-        <label>
-          <span>Layer 強度</span>
-          <input id="lowLayerAmp" type="range" min="0" max="1.5" step="0.01" value="0.35">
-          <output id="lowLayerAmpOut"></output>
-        </label>
-
-        <label>
-          <span>Layer Hz</span>
-          <input id="lowLayerHz" type="range" min="15" max="90" step="1" value="46">
-          <output id="lowLayerHzOut"></output>
-        </label>
-
-        <label>
-          <span>Layer 遅れ</span>
-          <input id="lowLayerDelay" type="range" min="0" max="5" step="0.05" value="0.25">
-          <output id="lowLayerDelayOut"></output>
-        </label>
-
-        <label>
-          <span>Layer 立上り</span>
-          <input id="lowLayerAttack" type="range" min="0.02" max="3" step="0.02" value="0.35">
-          <output id="lowLayerAttackOut"></output>
-        </label>
-
-        <label>
-          <span>Layer 維持</span>
-          <input id="lowLayerHold" type="range" min="0" max="6" step="0.05" value="2.20">
-          <output id="lowLayerHoldOut"></output>
-        </label>
-
-        <label>
-          <span>Layer 尾っぽ</span>
-          <input id="lowLayerRelease" type="range" min="0.1" max="10" step="0.1" value="4.0">
-          <output id="lowLayerReleaseOut"></output>
-        </label>
-
-        <label>
-          <span>Layer ヨレHz</span>
-          <input id="lowLayerWobbleHz" type="range" min="0" max="4" step="0.01" value="0.18">
-          <output id="lowLayerWobbleHzOut"></output>
-        </label>
-
-        <label>
-          <span>Layer ヨレ深さ</span>
-          <input id="lowLayerWobbleDepth" type="range" min="0" max="0.35" step="0.01" value="0.08">
-          <output id="lowLayerWobbleDepthOut"></output>
-        </label>
-
-        <label>
-          <span>Layer 倍音</span>
-          <input id="lowLayerHarmonic" type="range" min="0" max="1" step="0.01" value="0.20">
-          <output id="lowLayerHarmonicOut"></output>
-        </label>
-
-
-        <hr class="controlSep">
-        <h2>高域Layer（別トラック）</h2>
-
-        <label>
-          <span>High 強度</span>
-          <input id="highLayerAmp" type="range" min="0" max="1.2" step="0.01" value="0.18">
-          <output id="highLayerAmpOut"></output>
-        </label>
-
-        <label>
-          <span>High Hz</span>
-          <input id="highLayerHz" type="range" min="120" max="500" step="1" value="260">
-          <output id="highLayerHzOut"></output>
-        </label>
-
-        <label>
-          <span>High 遅れ</span>
-          <input id="highLayerDelay" type="range" min="0" max="5" step="0.05" value="0.10">
-          <output id="highLayerDelayOut"></output>
-        </label>
-
-        <label>
-          <span>High 立上り</span>
-          <input id="highLayerAttack" type="range" min="0.01" max="2" step="0.01" value="0.08">
-          <output id="highLayerAttackOut"></output>
-        </label>
-
-        <label>
-          <span>High 維持</span>
-          <input id="highLayerHold" type="range" min="0" max="6" step="0.05" value="0.85">
-          <output id="highLayerHoldOut"></output>
-        </label>
-
-        <label>
-          <span>High 尾っぽ</span>
-          <input id="highLayerRelease" type="range" min="0.05" max="8" step="0.05" value="1.80">
-          <output id="highLayerReleaseOut"></output>
-        </label>
-
-        <label>
-          <span>High きらめきHz</span>
-          <input id="highLayerShimmerHz" type="range" min="0" max="22" step="0.1" value="6.0">
-          <output id="highLayerShimmerHzOut"></output>
-        </label>
-
-        <label>
-          <span>High きらめき深さ</span>
-          <input id="highLayerShimmerDepth" type="range" min="0" max="0.8" step="0.01" value="0.18">
-          <output id="highLayerShimmerDepthOut"></output>
-        </label>
-
-        <label>
-          <span>High 倍音</span>
-          <input id="highLayerHarmonic" type="range" min="0" max="1" step="0.01" value="0.28">
-          <output id="highLayerHarmonicOut"></output>
-        </label>
-
         <label>
           <span>音量</span>
           <input id="volume" type="range" min="0" max="1" step="0.01" value="0.35">
@@ -312,7 +165,7 @@
     </section>
 
     <footer>
-      <p>v2.6: 高域Layer（別トラック）追加。低域Layerに加えて、独立した遅延・立上り・尾っぽ・きらめきを持つ高域トラック。</p>
+      <p>v2.2: 設定保存/ロード(JSON)を追加。ぷるぷるレシピ交換対応。</p>
     </footer>
   </main>
 
