@@ -1,4 +1,5 @@
 //v0.0.0
+// MIDI_EXPORT_FILENAME_SHORT_META_AND_DOMINO_PROGRAM_2026-05-10
 // INVESTIGATE_FILTER_HARDCUT_2026-05-04
 
 const st = document.getElementById('st');
@@ -8429,7 +8430,6 @@ function noteToMidiValue(note) {
 const FRB_MIDI_TICKS_PER_QN = 480;
 const FRB_MIDI_TEMPO_US_PER_QN = 500000; // 120 BPM
 const FRB_MIDI_FRAME_SEC_FALLBACK = 0.08;
-const FRB_MIDI_32ND_TICKS = FRB_MIDI_TICKS_PER_QN / 8; // 32分音符 = 60 ticks at TPQN=480
 
 function u8(...xs){ return xs.map(x => x & 0xff); }
 function strBytes(s){ return Array.from(String(s), ch => ch.charCodeAt(0) & 0xff); }
@@ -8446,14 +8446,60 @@ function vlq(n){
 function metaEvent(delta, type, data){ return [...vlq(delta), 0xff, type & 0xff, ...vlq(data.length), ...data]; }
 function midiEvent(delta, status, ...data){ return [...vlq(delta), status & 0xff, ...data.map(x => x & 0x7f)]; }
 
-function getMidiProgramValue(id, fallback = 0){
+// Dominoなど多くのGM音源UIは楽器番号を 1-128 で表示する。
+// MIDI Program Change の実データは 0-127 なので、出力時だけ -1 して合わせる。
+function getMidiProgramInfo(id, fallbackDomino = 1){
   const el = document.getElementById(id);
-  const v = Number(el?.value);
-  return Number.isFinite(v) ? Math.max(0, Math.min(127, Math.round(v))) : fallback;
+  const raw = Number(el?.value);
+  const dominoNo = Number.isFinite(raw)
+    ? Math.max(1, Math.min(128, Math.round(raw)))
+    : Math.max(1, Math.min(128, Math.round(fallbackDomino)));
+
+  return {
+    dominoNo,
+    program: dominoNo - 1,
+  };
+}
+
+function getMidiProgramValue(id, fallbackDomino = 1){
+  return getMidiProgramInfo(id, fallbackDomino).program;
 }
 
 function setExportMidiStatus(text){
   if (exportMidiStatus) exportMidiStatus.textContent = text;
+}
+
+function formatPianoRollVolumeMultiplierForFile(){
+  const v = getPianoRollVolumeMultiplier();
+  if (!Number.isFinite(v) || v <= 0) return 'X1';
+  const text = Number.isInteger(v)
+    ? String(v)
+    : String(Number(v.toFixed(2))).replace('.', 'p');
+  return `X${text}`;
+}
+
+function makeMidiExportMemoText(programInfos = null){
+  const x = getPianoRollVolumeMultiplier();
+  const memo = getExperimentMemo ? safeFilePart(getExperimentMemo()) : '';
+
+  const instText = programInfos
+    ? `domino_instruments=melody:${programInfos.melody.dominoNo},low:${programInfos.low.dominoNo},mid:${programInfos.mid.dominoNo},high:${programInfos.high.dominoNo}`
+    : '';
+
+  const midiProgramText = programInfos
+    ? `midi_program_change=melody:${programInfos.melody.program},low:${programInfos.low.program},mid:${programInfos.mid.program},high:${programInfos.high.program}`
+    : '';
+
+  return [
+    'FRB MIDI Export',
+    `volume_multiplier=x${Number.isFinite(x) ? x : 1}`,
+    instText,
+    midiProgramText,
+    `velocity_mode=fixed_${MIDI_VELOCITY_FIXED_MAX}`,
+    'structure=melody_plus_backing_2-2-3',
+    `pitch_snap=${PITCH_SNAP_ENABLED ? 'on' : 'off'}`,
+    memo ? `experiment_memo=${memo}` : ''
+  ].filter(Boolean).join(' | ');
 }
 
 function secondsToMidiTick(sec){
@@ -8470,125 +8516,45 @@ function noteObjToSemitoneMidi(note){
   return noteToMidiValue(note);
 }
 
-
-
-// ===== FRB Melody Pitch Bend Grain Export =====
-// 主旋律だけ「音符の粒」は維持しつつ、音高は C1/C2/C3/C4 の帯域人格に固定し、
-// 元Hzとの差分を Pitch Bend に逃がす。
-// 目的：従来の粒子感を残しながら、音階ジャンプを減らして周波数軌跡を観察する。
-const FRB_MELODY_PB_GRAIN_ENABLED = false;
-const FRB_MELODY_PB_RANGE_SEMITONES = 24;
-
-function frbMelodyPbRoleFromHz(hz){
-  const f = Math.max(0.0001, Number(hz) || 0.0001);
-  if (f < 90) {
-    return { role:'C1_ultra_low', midi:24, baseHz:midiToHz(24), note:'C1' };
-  }
-  if (f < 180) {
-    return { role:'C2_low', midi:36, baseHz:midiToHz(36), note:'C2' };
-  }
-  if (f < 360) {
-    return { role:'C3_mid', midi:48, baseHz:midiToHz(48), note:'C3' };
-  }
-  return { role:'C4_high', midi:60, baseHz:midiToHz(60), note:'C4' };
-}
-
-function frbPitchBendValueFromHz(hz, baseHz, rangeSemitones = FRB_MELODY_PB_RANGE_SEMITONES){
-  const f = Math.max(0.0001, Number(hz) || 0.0001);
-  const b = Math.max(0.0001, Number(baseHz) || 0.0001);
-  const range = Math.max(1, Number(rangeSemitones) || 24);
-  const semis = 12 * Math.log2(f / b);
-  const normalized = Math.max(-1, Math.min(1, semis / range));
-  return Math.max(0, Math.min(16383, Math.round(8192 + normalized * 8191)));
-}
-
-function frbPitchBendBytes(value){
-  const v = Math.max(0, Math.min(16383, Math.round(Number(value) || 8192)));
-  return [v & 0x7f, (v >> 7) & 0x7f];
-}
-
-function frbApplyMelodyPbGrain(note){
-  const hz = Number.isFinite(Number(note?.rawHz))
-    ? Number(note.rawHz)
-    : (Number.isFinite(Number(note?.hz)) ? Number(note.hz) : null);
-  if (!Number.isFinite(hz) || hz <= 0) return null;
-
-  const role = frbMelodyPbRoleFromHz(hz);
-  const pitchBend = frbPitchBendValueFromHz(hz, role.baseHz);
-  return { role, pitchBend, hz };
-}
-
 function collectMidiExportEvents(frames){
-  // ===== FRB 32nd Grid Density Export =====
-  // Pitch Bend は使わず、全トラックを32分音符の固定粒にする。
-  // 目的：主旋律/Low/Mid/High を同じ時間解像度に揃え、
-  // 「音程の滑らかさ」ではなく「時間密度構造」でぷるぷる感を確認する。
   const out = { melody: [], low: [], mid: [], high: [] };
   if (!Array.isArray(frames) || frames.length === 0) return out;
 
   const t0 = Number(frames[0]?.t) || 0;
-  const gridTicks = Math.max(1, Math.round(FRB_MIDI_32ND_TICKS));
-  const buckets = {
-    melody: new Map(),
-    low: new Map(),
-    mid: new Map(),
-    high: new Map(),
-  };
-
-  function quantizeTo32ndTick(sec){
-    const rawTick = secondsToMidiTick(sec);
-    return Math.max(0, Math.round(rawTick / gridTicks) * gridTicks);
-  }
-
-  function pushGridNote(trackRole, note, sec){
-    if (!(trackRole === 'melody' || trackRole === 'low' || trackRole === 'mid' || trackRole === 'high')) return;
-
-    const midi = noteObjToSemitoneMidi(note);
-    if (!Number.isFinite(Number(midi))) return;
-    if (midi < 0 || midi > 127) return;
-
-    const hz = Number.isFinite(Number(note?.rawHz))
-      ? Number(note.rawHz)
-      : (Number.isFinite(Number(note?.hz)) ? Number(note.hz) : midiToHz(midi));
-
-    const startTick = quantizeTo32ndTick(sec);
-    const endTick = startTick + gridTicks;
-    const mag = Math.max(0, Number(note?.mag) || 0);
-
-    // 同一トラック・同一32分グリッド・同一ノートは最大magだけ残す。
-    // これでノート詰まりを避けつつ、密度は「別ノート/別トラック」として残る。
-    const key = `${startTick}:${Math.round(midi)}`;
-    const map = buckets[trackRole];
-    const prev = map.get(key);
-    if (!prev || mag > prev.mag) {
-      map.set(key, {
-        startTick,
-        endTick,
-        midi: Math.round(midi),
-        hz,
-        mag,
-      });
-    }
-  }
 
   for (let i = 0; i < frames.length; i++) {
     const fr = frames[i];
-    const sec = Math.max(0, (Number(fr?.t) || 0) - t0);
+    const t = Math.max(0, (Number(fr?.t) || 0) - t0);
+    const nextT = i + 1 < frames.length
+      ? Math.max(t + 0.001, (Number(frames[i + 1]?.t) || (t + FRB_MIDI_FRAME_SEC_FALLBACK + t0)) - t0)
+      : t + FRB_MIDI_FRAME_SEC_FALLBACK;
 
-    if (fr?.melody) pushGridNote('melody', fr.melody, sec);
+    const startTick = secondsToMidiTick(t);
+    const endTick = Math.max(startTick + 1, secondsToMidiTick(nextT));
+
+    function pushNote(trackRole, note){
+      const midi = noteObjToSemitoneMidi(note);
+      if (!Number.isFinite(Number(midi))) return;
+      if (midi < 0 || midi > 127) return;
+      const hz = Number.isFinite(Number(note?.rawHz))
+        ? Number(note.rawHz)
+        : (Number.isFinite(Number(note?.hz)) ? Number(note.hz) : midiToHz(midi));
+
+      out[trackRole]?.push({
+        startTick,
+        endTick,
+        midi,
+        hz,
+        mag: Math.max(0, Number(note?.mag) || 0),
+      });
+    }
+
+    if (fr?.melody) pushNote('melody', fr.melody);
 
     for (const note of (Array.isArray(fr?.notes) ? fr.notes : [])) {
       const role = note?.trackRole || note?.role;
-      if (role === 'low' || role === 'mid' || role === 'high') {
-        pushGridNote(role, note, sec);
-      }
+      if (role === 'low' || role === 'mid' || role === 'high') pushNote(role, note);
     }
-  }
-
-  for (const role of ['melody', 'low', 'mid', 'high']) {
-    out[role] = [...buckets[role].values()].sort((a, b) =>
-      (a.startTick - b.startTick) || (a.midi - b.midi)
-    );
   }
 
   return out;
@@ -8615,9 +8581,12 @@ function velocityFromMag(mag, hz){
 }
 
 
-function makeMidiTrack(trackName, channel, program, noteEvents, maxMag, includeTempo = false){
+function makeMidiTrack(trackName, channel, program, noteEvents, maxMag, includeTempo = false, trackMemoText = ''){
   const events = [];
   events.push(metaEvent(0, 0x03, strBytes(trackName)));
+  if (trackMemoText) {
+    events.push(metaEvent(0, 0x01, strBytes(trackMemoText)));
+  }
 
   if (includeTempo) {
     events.push(metaEvent(0, 0x51, u8(
@@ -8629,32 +8598,16 @@ function makeMidiTrack(trackName, channel, program, noteEvents, maxMag, includeT
 
   events.push(midiEvent(0, 0xc0 | (channel & 0x0f), program & 0x7f));
 
-  const hasPitchBend = (noteEvents || []).some(n => Number.isFinite(Number(n.pitchBend)));
-  if (hasPitchBend) {
-    // Pitch Bend Sensitivity = ±24 semitones. Domino確認用に明示しておく。
-    events.push(midiEvent(0, 0xb0 | (channel & 0x0f), 101, 0));   // RPN MSB
-    events.push(midiEvent(0, 0xb0 | (channel & 0x0f), 100, 0));   // RPN LSB
-    events.push(midiEvent(0, 0xb0 | (channel & 0x0f), 6, FRB_MELODY_PB_RANGE_SEMITONES));
-    events.push(midiEvent(0, 0xb0 | (channel & 0x0f), 38, 0));
-    events.push(midiEvent(0, 0xb0 | (channel & 0x0f), 101, 127)); // RPN解除
-    events.push(midiEvent(0, 0xb0 | (channel & 0x0f), 100, 127));
-  }
-
   const abs = [];
   for (const n of noteEvents || []) {
 
     const vel = velocityFromMag(n.mag, n.hz);
-
-    if (Number.isFinite(Number(n.pitchBend))) {
-      const [lsb, msb] = frbPitchBendBytes(n.pitchBend);
-      abs.push({ tick:n.startTick, priority:0, bytes:[0xe0 | (channel & 0x0f), lsb, msb] });
-    }
-
-    abs.push({ tick:n.startTick, priority:1, bytes:[0x90 | (channel & 0x0f), n.midi & 0x7f, vel] });
-    abs.push({ tick:n.endTick,   priority:2, bytes:[0x80 | (channel & 0x0f), n.midi & 0x7f, 0] });
+    
+    abs.push({ tick:n.startTick, bytes:[0x90 | (channel & 0x0f), n.midi & 0x7f, vel] });
+    abs.push({ tick:n.endTick,   bytes:[0x80 | (channel & 0x0f), n.midi & 0x7f, 0] });
   }
 
-  abs.sort((a,b) => (a.tick - b.tick) || ((a.priority || 0) - (b.priority || 0)));
+  abs.sort((a,b) => (a.tick - b.tick) || (((a.bytes[0] & 0xf0) === 0x80) ? -1 : 1));
 
   let lastTick = 0;
   for (const ev of abs) {
@@ -8707,18 +8660,29 @@ function exportMidiFromPianoRoll(){
   }
 
   const maxMag = Math.max(1e-9, ...allEvents.map(e => Number(e.mag) || 0));
-  const programs = {
-    melody: getMidiProgramValue('midiInstMelody', 0),
-    low:     getMidiProgramValue('midiInstLow', 36),
-    mid:     getMidiProgramValue('midiInstMid', 18),
-    high:    getMidiProgramValue('midiInstHigh', 25),
+  // 画面入力はDomino/GM表記の 1-128 として扱い、MIDI出力時だけ 0-127 に変換する。
+  // fallbackはDomino番号。括弧内はMIDI Program Change番号。
+  const programInfos = {
+    melody: getMidiProgramInfo('midiInstMelody', 1),   // 1  -> 0
+    low:     getMidiProgramInfo('midiInstLow', 37),    // 37 -> 36
+    mid:     getMidiProgramInfo('midiInstMid', 19),    // 19 -> 18
+    high:    getMidiProgramInfo('midiInstHigh', 26),   // 26 -> 25
   };
 
+  const programs = {
+    melody: programInfos.melody.program,
+    low:     programInfos.low.program,
+    mid:     programInfos.mid.program,
+    high:    programInfos.high.program,
+  };
+
+  const midiExportMemoText = makeMidiExportMemoText(programInfos);
+
   const tracks = [
-    makeMidiTrack('FRB Melody / 32nd Grid Density', 0, programs.melody, groups.melody, maxMag, true),
-    makeMidiTrack('FRB Low / 2 voices / 32nd',    1, programs.low,     groups.low,     maxMag, false),
-    makeMidiTrack('FRB Mid / 2 voices / 32nd',    2, programs.mid,     groups.mid,     maxMag, false),
-    makeMidiTrack('FRB High / 3 voices / 32nd',   3, programs.high,    groups.high,    maxMag, false),
+    makeMidiTrack(`FRB Melody / MaxPeak+Inertia / Inst${programInfos.melody.dominoNo}`, 0, programs.melody, groups.melody, maxMag, true, midiExportMemoText),
+    makeMidiTrack(`FRB Low / 2 voices / Inst${programInfos.low.dominoNo}`,             1, programs.low,     groups.low,     maxMag, false),
+    makeMidiTrack(`FRB Mid / 2 voices / Inst${programInfos.mid.dominoNo}`,             2, programs.mid,     groups.mid,     maxMag, false),
+    makeMidiTrack(`FRB High / 3 voices / Inst${programInfos.high.dominoNo}`,           3, programs.high,    groups.high,    maxMag, false),
   ];
 
   const headerBody = [
@@ -8736,14 +8700,19 @@ function exportMidiFromPianoRoll(){
   const a = document.createElement('a');
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   const memoPart = safeFilePart(getExperimentMemo());
+  const volumePart = formatPianoRollVolumeMultiplierForFile();
   a.href = url;
   a.download = memoPart
-    ? `frb_raw_melody_32grid1_2-2-3_${memoPart}_${stamp}.mid`
-    : `frb_raw_melody_32grid1_2-2-3_${stamp}.mid`;
+    ? `frb_${volumePart}_${memoPart}_${stamp}.mid`
+    : `frb_${volumePart}_${stamp}.mid`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 
-  setExportMidiStatus(`midi saved: 32nd Grid Density / no PitchBend / Fixed8k velocity x${getPianoRollVolumeMultiplier()} / melody ${groups.melody.length}, low ${groups.low.length}, mid ${groups.mid.length}, high ${groups.high.length}`);
+  setExportMidiStatus(
+    `midi saved: Fixed8k velocity x${getPianoRollVolumeMultiplier()} / ` +
+    `Inst M:${programInfos.melody.dominoNo} L:${programInfos.low.dominoNo} Mid:${programInfos.mid.dominoNo} H:${programInfos.high.dominoNo} / ` +
+    `melody ${groups.melody.length}, low ${groups.low.length}, mid ${groups.mid.length}, high ${groups.high.length}`
+  );
 }
 
 
