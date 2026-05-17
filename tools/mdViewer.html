@@ -14,7 +14,7 @@
   <div class="app">
     <header class="topbar">
       <div class="brand"><div class="logo">🎣</div><h1>FRB Viewer</h1><span class="badge">Markdown Viewer</span></div>
-      <div class="controls"><div class="urlbox"><label for="mdUrl">Markdown URL</label><input id="mdUrl" type="text" value="https://raw.githubusercontent.com/tamasub/FRB/main/FRB_Blog/FRB_Lab_Notes_Qiita.md" /></div><button id="loadBtn">読み込む</button></div>
+      <div class="controls"><div class="urlbox"><label for="mdUrl">Markdown URL</label><input id="mdUrl" type="text" value="https://tamasub.github.io/FRB/" /></div><button id="loadBtn">読み込む</button></div>
       <button class="ghost-btn" id="copyLinkBtn">共有URL</button>
     </header>
     <main class="layout">
@@ -23,7 +23,7 @@
     </main>
   </div>
 <script>
-const DEFAULT_MD="https://raw.githubusercontent.com/tamasub/FRB/main/FRB_Blog/FRB_Lab_Notes_Qiita.md";
+const DEFAULT_MD="https://tamasub.github.io/FRB/";
 const mdUrlEl=document.getElementById("mdUrl"),previewEl=document.getElementById("preview"),tocEl=document.getElementById("toc"),sourceLinkEl=document.getElementById("sourceLink"),charCountEl=document.getElementById("charCount"),readTimeEl=document.getElementById("readTime");
 marked.setOptions({gfm:true,breaks:true,headerIds:false,mangle:false});
 function safeDecode(v){try{return decodeURIComponent(v)}catch(e){return v}}
