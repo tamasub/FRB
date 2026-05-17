@@ -206,8 +206,10 @@ FRBは技術プロジェクトですが、
 - [FRB実験ログ #27 — 特上ぷるぷるの正体は、低域だけではなかった](https://qiita.com/tamasub/items/35b0ffe02b29cc8cc539)
 - [FRB実験ログ #28 — 銅テープで見えた「振動の美しさ」と、新たな探索領域](https://qiita.com/tamasub/items/bdeb403f67061eebfb70)
 - [FRB実験ログ #29 —スライドパーツはノイズ発生器ではなく、振動を整える役割だった可能性](https://qiita.com/tamasub/items/fec4a41ec33d54dccb95)
-
 - [FRB実験ログ #30 — 低周波は存在していた。ただ、通っていなかった。](https://qiita.com/tamasub/items/8ae0183fbb42fa096191)
+
+
+
 
 </details>
 
@@ -236,6 +238,15 @@ FRBは技術プロジェクトですが、
 - [FRB実験ログ #52 — FRB的 低周波マインドフルネス瞑想 — 接触条件という新しい実験テーマが生まれた日](https://qiita.com/tamasub/items/a21c969573c96fa7bb0f)
 - [FRB実験ログ #53 — 特上ぷるぷる再現装置 「レイヤー構造」と“情報量密度感”の実感](https://qiita.com/tamasub/items/78c73679a0c07f538d34)
 - [FRB実験ログ #54 — ロッド感度の世界に「差分文化」を広めたい — 基準振動という音－](https://qiita.com/tamasub/items/2c6d7c91756b36d83215)
+- [FRB実験ログ #55 — ボールペンバネの「特上ぷるぷる」を直接測定 — 基準振動へ向けて！](https://qiita.com/tamasub/items/3561fed13e34879e3a7a)
+- [FRB実験ログ #56 — Artificial PuruPuru による「ステンレス擦り基準振動」生成と、ロッド比較実験](https://qiita.com/tamasub/items/85216ac2b32ef817d64a)
+- [FRB実験ログ #57 — FRB Version進化概念構想](https://qiita.com/tamasub/items/c48208be23e5d188c078)
+- [FRB実験ログ #58 — EVAを削ったあと、ちゃんと磨いたら振動が変わった話](https://qiita.com/tamasub/items/82ff49c4951bc943fb3b)
+- [FRB実験ログ #59 — スピーカーN4P2高速比較で見えてしまった「知覚リセット時間」](https://qiita.com/tamasub/items/f3dc0dffa0838b67c42c)
+- [FRB実験ログ #60 — ハイエンドロッドBヒーロー化計画 ～ ダメ男返上物語 ～ 第1話](https://qiita.com/tamasub/items/b31b4642d6327cd4b89a)
+- 
+
+
 
 
 
@@ -268,6 +279,11 @@ FRBは技術プロジェクトですが、
 
 * GitHub wiki公開 2026/3/14 (作成時間:2H)
  https://github.com/tamasub/FRB/wiki
+
+* [FRB_purupuru_designer～ぷるぷる生成器～](https://tamasub364.ikidane.com/FRB/frb_purupuru_designer/)
+* [FRB Vibration Music～振動ログから生成したMP3音源達～](https://tamasub364.ikidane.com/FRB/)
+ 
+
 
 
 
