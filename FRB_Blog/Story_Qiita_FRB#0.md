@@ -34,10 +34,6 @@
 :::
 
 
-
-
-
-
 :::note info
 FRBは、ロッドの「優劣」を決めるためではなく、
 ロッドごとの「違い」を比較し、選択するための共通言語を目指している。
@@ -52,6 +48,11 @@ FRBは単なる測定手法ではない。
 感度とは、人間が認識可能な構造として現れる振動の和音構造である。
 感度とは、単純な振動の強さではない。
 :::
+
+
+```
+FRBは、海の中の解像度を上げ、感覚を露出し、分かち合う文化である。
+```
 
 
 
@@ -244,7 +245,10 @@ FRBは技術プロジェクトですが、
 - [FRB実験ログ #58 — EVAを削ったあと、ちゃんと磨いたら振動が変わった話](https://qiita.com/tamasub/items/82ff49c4951bc943fb3b)
 - [FRB実験ログ #59 — スピーカーN4P2高速比較で見えてしまった「知覚リセット時間」](https://qiita.com/tamasub/items/f3dc0dffa0838b67c42c)
 - [FRB実験ログ #60 — ハイエンドロッドBヒーロー化計画 ～ ダメ男返上物語 ～ 第1話](https://qiita.com/tamasub/items/b31b4642d6327cd4b89a)
+- [FRB実験ログ #61 — 「海の中の解像度」を上げる文化へ](https://qiita.com/tamasub/items/9d073c09c085d72ec46c)
+- [FRB実験ログ #62 — 接触圧を変えたら、いろいろ見えてきた](https://qiita.com/tamasub/items/59d5fab20bda134c0f2b)
 - 
+
 
 
 
@@ -276,14 +280,23 @@ FRBは技術プロジェクトですが、
  ## 公開情報
 * GitHub公開 2026/3/14 (作成時間:3H)
  https://github.com/tamasub/FRB
+  https://tamasub.github.io/FRB/
 
 * GitHub wiki公開 2026/3/14 (作成時間:2H)
  https://github.com/tamasub/FRB/wiki
 
-* [FRB_purupuru_designer～ぷるぷる生成器～](https://tamasub364.ikidane.com/FRB/frb_purupuru_designer/)
-* [FRB Vibration Music～振動ログから生成したMP3音源達～](https://tamasub364.ikidane.com/FRB/)
- 
+* [FRB 宣言 - By MarkDown Viewer - ](https://tamasub.github.io/FRB/tools/mdViewer.html?md=https%3A%2F%2Fraw.githubusercontent.com%2Ftamasub%2FFRB%2Fmain%2FFRB_Blog%2FStory_Qiita_FRB%25230.md)
 
+* [FRB 実験ログALL - By MarkDown Viewer -](https://tamasub.github.io/FRB/tools/mdViewer.html?md=https%3A%2F%2Fraw.githubusercontent.com%2Ftamasub%2FFRB%2Fmain%2FFRB_Blog%2FFRB_Lab_Notes_Qiita.md) 
+
+* [FRB_purupuru_designer～ぷるぷる生成器～](https://tamasub.github.io/FRB/tools/frb_purupuru_designer/)
+
+
+* [FRB Vibration Music～振動ログから生成したMP3音源達～](https://tamasub364.ikidane.com/FRB/)
+
+
+
+* [FRB MarkDown Viewer ](https://tamasub.github.io/FRB/tools/mdViewer.html)
 
 
 
