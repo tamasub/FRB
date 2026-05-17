@@ -236,10 +236,10 @@
         <div class="subPanel">
           BandTimeline Investigate Scale:
           <select id="bandScaleModeInvestigate">
-            <option value="3000">Scale1-0(3000)</option>
-            <option value="5000">Scale1-1(5000)</option>
-            <option value="10000">Scale1 (10000)</option>
-            <option value="40000" selected>Scale2 (40000)</option>
+            <option value="3000">Scale0-0(3000)</option>
+            <option value="5000">Scale0-1(5000)</option>
+            <option value="10000" selected >Scale1 (10000)</option>
+            <option value="40000">Scale2 (40000)</option>
             <option value="60000">Scale3 (60000)</option>
             <option value="80000">Scale4 (80000)</option>
             <option value="400000">Scale5 (400000)</option>
@@ -251,15 +251,20 @@
           <canvas id="tsBandInvestigate"></canvas>
         </div>
       </div>
-      <!-- Peak Timeline -->
-      <div class="subPanel">
-        <div class="subTitle">Peak Timeline</div>
-        <canvas id="tsPeak"></canvas>
-      </div>
       
       <div class="subPanel">
         <div class="subTitle">Flux</div>
         <canvas id="tsFlux"></canvas>
+      </div>
+
+      <div class="subPanel">
+        <div class="subTitle">Triangle Motion</div>
+        <canvas id="tsTriangle"></canvas>
+      </div>
+
+      <div class="subPanel">
+        <div class="subTitle">Experience Wave (beta)</div>
+        <canvas id="tsExp"></canvas>
       </div>
 
       <div class="subPanel">
@@ -276,27 +281,20 @@
         BandTimeline Scale:
 
         <select id="bandScaleMode">
+          <option value="5000">Scale0.1 (5000)</option>
+          <option value="10000" selected>Scale0.2 (10000)</option>
           <option value="50000">Scale1 (50000)</option>
-          <option value="80000" selected>Scale2 (80000)</option>
+          <option value="80000">Scale2 (80000)</option>
           <option value="200000">Scale3 (200000)</option>
           <option value="400000">Scale4 (400000)</option>
           <option value="800000">Scale5 (800000)</option>
           <option value="1600000">Scale6 (1600000)</option>
         </select>
 
-
         <canvas id="tsBand"></canvas>
       </div>
 
-      <div class="subPanel">
-        <div class="subTitle">Tingle Motion</div>
-        <canvas id="tsTingle"></canvas>
-      </div>
 
-      <div class="subPanel">
-        <div class="subTitle">Experience Wave (beta)</div>
-        <canvas id="tsExp"></canvas>
-      </div>
       <div class="subPanel">
         <div class="title">Band Heatmap</div>
         <canvas id="tsBandHeatCanvas"></canvas>
@@ -327,7 +325,11 @@
 
     <canvas id="ts"></canvas>
 
-
+    <!-- Peak Timeline -->
+    <div class="subPanel">
+      <div class="subTitle">Peak Timeline</div>
+      <canvas id="tsPeak"></canvas>
+    </div>
 
 
   </div>

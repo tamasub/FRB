@@ -64,8 +64,8 @@ const gTS = tsStateCanvas.getContext('2d');
 const tsBandFluxCanvas = document.getElementById('tsBandFlux');
 const gTBF = tsBandFluxCanvas.getContext('2d');
 
-const tsTingleCanvas = document.getElementById('tsTingle');
-const gTTingle = tsTingleCanvas ? tsTingleCanvas.getContext('2d') : null;
+const tsTriangleCanvas = document.getElementById('tsTriangle');
+const gTTingle = tsTriangleCanvas ? tsTriangleCanvas.getContext('2d') : null;
 
 const scrEl = document.getElementById('scr');
 const scrTxt = document.getElementById('scrTxt');
@@ -1417,9 +1417,9 @@ function fitAll(){
   gTFlow.clearRect(0,0,tsFlowCanvas.width,tsFlowCanvas.height);
   gTS.clearRect(0,0,tsStateCanvas.width,tsStateCanvas.height);
 
-  if (tsTingleCanvas) fitCanvasEl(tsTingleCanvas, 300, 120);
-  if (gTTingle && tsTingleCanvas) {
-    gTTingle.clearRect(0, 0, tsTingleCanvas.width, tsTingleCanvas.height);
+  if (tsTriangleCanvas) fitCanvasEl(tsTriangleCanvas, 300, 120);
+  if (gTTingle && tsTriangleCanvas) {
+    gTTingle.clearRect(0, 0, tsTriangleCanvas.width, tsTriangleCanvas.height);
   }
   if (gTSterZoom && tsBridgeZoomCanvas) {
     gTSterZoom.clearRect(0, 0, tsBridgeZoomCanvas.width, tsBridgeZoomCanvas.height);
@@ -6191,10 +6191,10 @@ function calcTingleMotionFromFluxBand(fluxBandA){
 }
 
 function drawTingleMotion(){
-  if (!tsTingleCanvas || !gTTingle) return;
+  if (!tsTriangleCanvas || !gTTingle) return;
 
-  const W = tsTingleCanvas.width;
-  const H = tsTingleCanvas.height;
+  const W = tsTriangleCanvas.width;
+  const H = tsTriangleCanvas.height;
   gTTingle.clearRect(0, 0, W, H);
 
   const selectedFrozen = getSelectedFrozenSeries();
