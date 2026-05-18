@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FRB Compare v1</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="compare.css" />
+</head>
+<body class="compare-body">
+  <header class="compare-header">
+    <div>
+      <h1>FRB Compare v1</h1>
+      <p class="lead">FFTログを左右に並べて、構造差分を見つけるための独立View。</p>
+    </div>
+    <nav class="compare-nav">
+      <a href="index.html">Realtime Monitor</a>
+    </nav>
+  </header>
+
+  <section class="compare-controls panel">
+    <div class="load-box">
+      <label>Left Log</label>
+      <input id="leftFile" type="file" accept="application/json,.json" />
+      <div id="leftStatus" class="status">未読込</div>
+    </div>
+    <div class="load-box">
+      <label>Right Log</label>
+      <input id="rightFile" type="file" accept="application/json,.json" />
+      <div id="rightStatus" class="status">未読込</div>
+    </div>
+    <div class="scale-box">
+      <label for="bandScale">BandTimeline Investigate Scale</label>
+      <select id="bandScale">
+        <option value="3000">Fixed 3k</option>
+        <option value="5000">Fixed 5k</option>
+        <option value="10000">Fixed 10k</option>
+        <option value="20000">Fixed 20k</option>
+        <option value="50000">Fixed 50k</option>
+        <option value="80000" selected>Fixed 80k</option>
+        <option value="100000">Fixed 100k</option>
+        <option value="200000">Fixed 200k</option>
+        <option value="auto">Auto shared</option>
+      </select>
+      <span id="scaleStatus" class="status">Fixed 80k</span>
+    </div>
+    <div class="note-box">
+      v1: BandTimeline Investigate / FRB Piano Roll / Flux / Triangle Motion / BridgeScore<br />
+      MIDI生成・Diff・保存・左右同期は封印。offsetMs は内部だけ用意。
+    </div>
+  </section>
+
+  <main class="compare-grid">
+    <div class="global-side-labels" aria-hidden="true"><span>Left</span><span>Right</span></div>
+    <section class="compare-row panel">
+      <h2>① BandTimeline Investigate</h2>
+      <div class="pair">
+        <div class="side"><h3>Left</h3><canvas id="leftBand" height="150"></canvas></div>
+        <div class="side"><h3>Right</h3><canvas id="rightBand" height="150"></canvas></div>
+      </div>
+    </section>
+
+    <section class="compare-row panel">
+      <h2>② FRB Piano Roll</h2>
+      <div class="pair">
+        <div class="side"><h3>Left</h3><canvas id="leftPiano" height="120"></canvas></div>
+        <div class="side"><h3>Right</h3><canvas id="rightPiano" height="120"></canvas></div>
+      </div>
+    </section>
+
+    <section class="compare-row panel">
+      <h2>③ Flux</h2>
+      <div class="pair">
+        <div class="side"><h3>Left</h3><canvas id="leftFlux" height="95"></canvas></div>
+        <div class="side"><h3>Right</h3><canvas id="rightFlux" height="95"></canvas></div>
+      </div>
+    </section>
+
+    <section class="compare-row panel">
+      <h2>④ Triangle Motion</h2>
+      <div class="pair">
+        <div class="side"><h3>Left</h3><canvas id="leftTriangle" height="85"></canvas></div>
+        <div class="side"><h3>Right</h3><canvas id="rightTriangle" height="85"></canvas></div>
+      </div>
+    </section>
+
+    <section class="compare-row panel">
+      <h2>⑤ BridgeScore</h2>
+      <div class="pair">
+        <div class="side"><h3>Left</h3><canvas id="leftBridge" height="85"></canvas></div>
+        <div class="side"><h3>Right</h3><canvas id="rightBridge" height="85"></canvas></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="compare.js"></script>
+</body>
+</html>

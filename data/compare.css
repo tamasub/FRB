@@ -1,0 +1,90 @@
+.compare-body {
+  margin: 0;
+  background: #f4f6f8;
+  color: #1f2933;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+.compare-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 8px 14px 4px;
+}
+.compare-header h1 { margin: 0; font-size: 20px; line-height: 1.1; }
+.compare-header .lead { margin: 2px 0 0; color: #64748b; font-size: 12px; }
+.compare-nav a { color: #2563eb; text-decoration: none; font-weight: 700; }
+.panel {
+  background: #fff;
+  border: 1px solid #dbe3ea;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+}
+.compare-controls {
+  display: grid;
+  grid-template-columns: minmax(210px, 1fr) minmax(210px, 1fr) minmax(220px, 0.75fr) minmax(250px, 0.9fr);
+  gap: 8px;
+  align-items: end;
+  margin: 4px 14px 8px;
+  padding: 8px 10px;
+}
+.compare-controls label { display: block; font-size: 11px; font-weight: 800; color: #475569; margin-bottom: 3px; }
+.compare-controls input, .compare-controls select {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  padding: 5px 7px;
+  background: #fff;
+}
+.status { margin-top: 3px; font-size: 10px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.note-box { font-size: 10px; line-height: 1.35; color: #475569; }
+.compare-grid { padding: 0 14px 12px; }
+.compare-row { margin-bottom: 8px; padding: 8px 10px; }
+.compare-row h2 { margin: 0 0 5px; font-size: 14px; line-height: 1.15; }
+.pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+}
+.side {
+  min-width: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fbfdff;
+}
+.side h3 {
+  display: none;
+}
+.side canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #fff;
+}
+@media (max-width: 900px) {
+  .compare-controls { grid-template-columns: 1fr; }
+  .pair { grid-template-columns: 1fr; }
+}
+
+.global-side-labels {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+  margin: 0 0 4px;
+}
+.global-side-labels span {
+  display: block;
+  padding: 3px 10px;
+  border: 1px solid #dbe3ea;
+  border-radius: 8px;
+  background: #eef4fb;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 800;
+}
+@media (max-width: 900px) {
+  .global-side-labels { grid-template-columns: 1fr; }
+}
