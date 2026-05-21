@@ -177,6 +177,11 @@ This repository contains the following core documents:
 * **FRB Story** — origin and background
   → [FRB Story](./docs/FRB_STORY.md)
 
+* **FRB Blog** — origin and background
+  → [FRB Blog](./FRB_Blog/README.md)
+
+
+
 ---
 
 
