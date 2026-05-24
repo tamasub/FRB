@@ -180,6 +180,8 @@ This repository contains the following core documents:
 * **FRB Blog** — origin and background
   → [FRB Blog](./FRB_Blog/README.md)
 
+* **FRB Tools** — origin and background
+  → [FRB Tools](./Tools/README.md)
 
 
 ---
