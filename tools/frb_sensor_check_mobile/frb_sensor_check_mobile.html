@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>FRB Sensor Check Mobile #0.1</title>
+<title>FRB Sensor Check Mobile #0.2</title>
 <style>
   :root{
     --bg:#0f1115;--panel:#171a21;--panel2:#20242e;--text:#e8eef9;--muted:#9aa7b7;--accent:#62d2ff;--warn:#ffcc66;--bad:#ff6b6b;--good:#7CFF9B;
@@ -21,15 +21,16 @@
   .metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.metric{background:var(--panel2);border:1px solid #2d3440;border-radius:12px;padding:9px}.metric .label{font-size:12px;color:var(--muted)}.metric .value{font-size:20px;font-weight:700;margin-top:2px}.metric .mini{font-size:11px;color:var(--muted)}
   canvas{width:100%;height:220px;background:#0b0d12;border:1px solid #29303b;border-radius:12px;display:block}.short canvas{height:170px}.tall canvas{height:270px}
   .note{font-size:12px;color:var(--muted)}.warn{color:var(--warn)}.good{color:var(--good)}.bad{color:var(--bad)}
+  .diagnostics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.diag{background:#11151d;border:1px solid #2a303b;border-radius:10px;padding:8px}.diag .k{font-size:11px;color:var(--muted)}.diag .v{font-size:14px;font-weight:700;margin-top:2px}.explain{background:#101722;border-left:3px solid var(--accent);padding:9px 10px;border-radius:10px;color:#cbd7e6;font-size:12px}
   details{background:#11151d;border:1px solid #2a303b;border-radius:12px;padding:10px}summary{cursor:pointer;color:#cfe9ff}
   .pill{font-size:12px;color:#cfe9ff;background:#0b3040;border:1px solid #14526c;border-radius:999px;padding:4px 8px}
-  @media (min-width:760px){.metrics{grid-template-columns:repeat(4,minmax(0,1fr))}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}}
+  @media (min-width:760px){.metrics{grid-template-columns:repeat(4,minmax(0,1fr))}.diagnostics{grid-template-columns:repeat(4,minmax(0,1fr))}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}}
 </style>
 </head>
 <body>
 <header>
-  <h1>FRB Sensor Check Mobile #0.1</h1>
-  <div class="sub">スマホ内蔵加速度センサーで、実効サンプリングHz・dtばらつき・Band Timeline・Fluxを見る最小実験ページ</div>
+  <h1>FRB Sensor Check Mobile #0.2</h1>
+  <div class="sub">スマホ内蔵加速度センサーで、実効サンプリングHz・dtばらつき・主ピーク・Band Timelineを見るFRB Lite実験ページ</div>
 </header>
 <main>
   <section class="panel stack">
@@ -63,8 +64,23 @@
     <div class="metric"><div class="label">実効サンプリングHz</div><div class="value" id="mHz">--</div><div class="mini">直近サンプルから推定</div></div>
     <div class="metric"><div class="label">dt 平均 / ばらつき</div><div class="value" id="mDt">--</div><div class="mini">ms</div></div>
     <div class="metric"><div class="label">記録サンプル数</div><div class="value" id="mN">0</div><div class="mini" id="mRec">未記録</div></div>
-    <div class="metric"><div class="label">ピーク候補</div><div class="value" id="mPeak">--</div><div class="mini">簡易FFT</div></div>
-    <div class="metric"><div class="label">期待Hz付近</div><div class="value" id="mTarget">--</div><div class="mini">青●候補</div></div>
+    <div class="metric"><div class="label">ピーク候補</div><div class="value" id="mPeak">--</div><div class="mini">簡易FFT Peak1</div></div>
+    <div class="metric"><div class="label">推定ナイキスト</div><div class="value" id="mNyq">--</div><div class="mini">元の信号を正確に再現できる最大周波数の目安</div></div>
+    <div class="metric"><div class="label">実用観測目安</div><div class="value" id="mPractical">--</div><div class="mini">dtばらつき込みの控えめ目安</div></div>
+    <div class="metric"><div class="label">100/200/300Hz</div><div class="value" id="mJudge">--</div><div class="mini">この端末で見えるかの目安</div></div>
+  </section>
+
+  <section class="panel stack">
+    <h2>0. Sensor Diagnostics</h2>
+    <div class="diagnostics">
+      <div class="diag"><div class="k">DeviceMotionEvent</div><div class="v" id="dMotion">--</div></div>
+      <div class="diag"><div class="k">requestPermission</div><div class="v" id="dPerm">--</div></div>
+      <div class="diag"><div class="k">HTTPS / Secure Context</div><div class="v" id="dHttps">--</div></div>
+      <div class="diag"><div class="k">イベント受信数 / 最終受信</div><div class="v" id="dEvents">0 / --</div></div>
+    </div>
+    <div class="explain">
+      ナイキスト周波数とは、サンプリングしたデータから元の信号を正確に再現できる最大の周波数の目安です。基本的には「実効サンプリングHz ÷ 2」。ただし、スマホのdtばらつきやOS側の処理があるため、実用上はさらに低めに見ます。
+    </div>
   </section>
 
   <section class="panel short">
@@ -89,13 +105,13 @@
   <section class="panel short">
     <h2>4. Peak Timeline</h2>
     <canvas id="cvPeak" width="900" height="240"></canvas>
-    <div class="note">橙●＝その瞬間の強いピーク候補。青●＝期待Hz付近で検出された候補。主ピークが外れても「狙った周波数が届いているか」を見る窓。</div>
+    <div class="note">青●＝加速度センサーFFTから検出した主ピーク候補。点が大きく濃いほど、その瞬間に強く出たピーク。背景の帯は期待Hzの目安。狙った周波数帯に主ピークが乗るかを見る窓。</div>
   </section>
 
   <section class="panel short">
     <h2>5. Spectrum Snapshot</h2>
     <canvas id="cvSpec" width="900" height="240"></canvas>
-    <div class="note">簡易FFT。端末の実効サンプリングHzの半分より上は見えません。</div>
+    <div class="note">簡易FFT。端末の実効サンプリングHzの半分より上は、ナイキスト周波数を超えるため正しく見えません。</div>
   </section>
 
   <section class="panel">
@@ -106,7 +122,7 @@
         見えたものを喜び、見えなかったものも境界として記録します。
       </p>
       <p class="note">
-        推奨順：実効Hz → dtばらつき → Time Series → Band Timeline → Flux → Spectrum。FFTだけを先に信じないこと。
+        推奨順：実効Hz → dtばらつき → ナイキスト周波数 → Time Series → Peak Timeline → Band Timeline → Flux → Spectrum。FFTだけを先に信じないこと。
       </p>
     </details>
   </section>
@@ -116,10 +132,12 @@
   const $ = id => document.getElementById(id);
   const status = $('status');
   const btnStart=$('btnStart'), btnStop=$('btnStop'), btnRecord=$('btnRecord'), btnCsv=$('btnCsv'), btnJson=$('btnJson');
-  const mHz=$('mHz'), mDt=$('mDt'), mN=$('mN'), mRec=$('mRec'), mPeak=$('mPeak'), mTarget=$('mTarget');
+  const mHz=$('mHz'), mDt=$('mDt'), mN=$('mN'), mRec=$('mRec'), mPeak=$('mPeak'), mNyq=$('mNyq'), mPractical=$('mPractical'), mJudge=$('mJudge');
+  const dMotion=$('dMotion'), dPerm=$('dPerm'), dHttps=$('dHttps'), dEvents=$('dEvents');
   const cvTime=$('cvTime'), cvBand=$('cvBand'), cvFlux=$('cvFlux'), cvPeak=$('cvPeak'), cvSpec=$('cvSpec');
   const axisMode=$('axisMode'), fftWindow=$('fftWindow'), bandScale=$('bandScale'), targetHz=$('targetHz'), targetTol=$('targetTol');
   let running=false, recording=false, recStart=0, samples=[], live=[], lastT=null, gravity={x:0,y:0,z:0};
+  let eventCount=0, firstEventT=null, lastEventWall=null;
   let lastBands=null, fluxSeries=[], peakHistory=[];
   const MAX_LIVE=4096;
   const bands = [[0,10],[10,20],[20,40],[40,60],[60,80],[80,100],[100,140],[140,180],[180,240],[240,320]];
@@ -137,6 +155,7 @@
     gravity.z = alpha*gravity.z + (1-alpha)*z;
     const lx=x-gravity.x, ly=y-gravity.y, lz=z-gravity.z;
     const row={t,x,y,z,lx,ly,lz,mag:Math.hypot(x,y,z),linmag:Math.hypot(lx,ly,lz)};
+    eventCount++; if(firstEventT===null) firstEventT=nowMs(); lastEventWall=nowMs();
     live.push(row); if(live.length>MAX_LIVE) live.shift();
     if(recording){ samples.push(row); if(t-recStart>=10000){ stopRecord(); } }
     lastT=t;
@@ -197,7 +216,7 @@
   const bandHistory=[];
 
   function findPeaks(spec){
-    if(!spec) return {top:[], target:null};
+    if(!spec) return {top:[]};
     const {mag,fs,n}=spec;
     const nyq=fs/2;
     const maxF=Math.min(nyq, 600);
@@ -208,14 +227,8 @@
       if(mag[i] >= mag[i-1] && mag[i] >= mag[i+1]) peaks.push({f, a:mag[i]});
     }
     peaks.sort((a,b)=>b.a-a.a);
-    const top=peaks.slice(0,3);
-    const th=parseFloat(targetHz.value||0), tol=parseFloat(targetTol.value||3);
-    let target=null;
-    if(isFinite(th) && th>0 && isFinite(tol)){
-      const inRange=peaks.filter(p=>Math.abs(p.f-th)<=tol).sort((a,b)=>b.a-a.a);
-      target=inRange[0] || null;
-    }
-    return {top,target};
+    const top=peaks.slice(0,4);
+    return {top};
   }
   function drawPeakTimeline(c){
     const ctx=clear(c), w=c.width,h=c.height,p=36;
@@ -228,40 +241,59 @@
     const th=parseFloat(targetHz.value||0), tol=parseFloat(targetTol.value||3);
     if(isFinite(th) && th>0){
       const y=h-p-(Math.min(yMax,th)/yMax)*(h-2*p);
-      ctx.strokeStyle='rgba(98,210,255,.65)'; ctx.setLineDash([5,5]); ctx.beginPath(); ctx.moveTo(p,y); ctx.lineTo(w-p,y); ctx.stroke(); ctx.setLineDash([]);
+      ctx.strokeStyle='rgba(98,210,255,.60)'; ctx.setLineDash([5,5]); ctx.beginPath(); ctx.moveTo(p,y); ctx.lineTo(w-p,y); ctx.stroke(); ctx.setLineDash([]);
       if(isFinite(tol) && tol>0){
         const y1=h-p-(Math.min(yMax,th+tol)/yMax)*(h-2*p);
         const y2=h-p-(Math.max(0,th-tol)/yMax)*(h-2*p);
         ctx.fillStyle='rgba(98,210,255,.08)'; ctx.fillRect(p, y1, w-2*p, y2-y1);
       }
-      ctx.fillStyle='#62d2ff'; ctx.fillText('期待 '+th+'Hz',p+6,Math.max(14,y-6));
+      ctx.fillStyle='rgba(98,210,255,.92)'; ctx.fillText('期待 '+th+'Hz',p+6,Math.max(14,y-6));
     }
+    const styles=[
+      {r:5.2, color:'rgba(98,210,255,.98)'},
+      {r:4.3, color:'rgba(98,210,255,.78)'},
+      {r:3.4, color:'rgba(98,210,255,.56)'},
+      {r:2.6, color:'rgba(98,210,255,.36)'}
+    ];
     peakHistory.forEach((ph,i)=>{
       const x=p+(w-2*p)*i/(peakHistory.length-1);
-      (ph.top||[]).forEach(pk=>{
+      (ph.top||[]).forEach((pk,rank)=>{
         if(pk.f>yMax) return;
+        const st=styles[rank]||styles[styles.length-1];
         const y=h-p-(pk.f/yMax)*(h-2*p);
-        ctx.fillStyle='rgba(255,145,46,.82)'; ctx.beginPath(); ctx.arc(x,y,3.3,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle=st.color; ctx.beginPath(); ctx.arc(x,y,st.r,0,Math.PI*2); ctx.fill();
       });
-      if(ph.target && ph.target.f<=yMax){
-        const y=h-p-(ph.target.f/yMax)*(h-2*p);
-        ctx.fillStyle='#62d2ff'; ctx.beginPath(); ctx.arc(x,y,4.4,0,Math.PI*2); ctx.fill();
-      }
     });
   }
 
   function drawFlux(c){ const vals=fluxSeries.slice(-240); linePlot(c,vals,{color:'#ffcc66'}); }
+
+  function updateDiagnostics(){
+    dMotion.textContent = (typeof DeviceMotionEvent !== 'undefined') ? 'あり' : 'なし';
+    dPerm.textContent = (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') ? 'あり' : 'なし';
+    dHttps.textContent = (window.isSecureContext ? 'OK' : 'NG') + ' / ' + location.protocol;
+    const ago = lastEventWall ? ((nowMs()-lastEventWall)/1000).toFixed(1)+'秒前' : '--';
+    dEvents.textContent = eventCount + ' / ' + ago;
+  }
+
   function tick(){
-    const arr=live.slice(-1024); const st=statsDt(arr); if(st){ mHz.textContent=st.hz.toFixed(1); mDt.textContent=`${st.mean.toFixed(1)} / ${st.sd.toFixed(1)}`; }
+    const arr=live.slice(-1024); const st=statsDt(arr); if(st){
+      mHz.textContent=st.hz.toFixed(1); mDt.textContent=`${st.mean.toFixed(1)} / ${st.sd.toFixed(1)}`;
+      const nyq=st.hz/2; const practical=Math.max(0, nyq*0.70);
+      mNyq.textContent=nyq.toFixed(1)+'Hz'; mPractical.textContent='〜'+practical.toFixed(1)+'Hz';
+      const ok100=nyq>=100?'○':'×', ok200=nyq>=200?'○':'×', ok300=nyq>=300?'○':'×';
+      mJudge.textContent=`100:${ok100} 200:${ok200} 300:${ok300}`;
+    }
     mN.textContent=samples.length || live.length; if(recording) mRec.textContent=((lastT-recStart)/1000).toFixed(1)+' / 10.0秒';
     const ser=getSeries(live.slice(-400)).map(o=>o.v); linePlot(cvTime,ser,{sym:false});
     const spec=spectrum(live); drawSpectrum(cvSpec,spec);
-    if(spec){ let maxI=1; for(let i=2;i<spec.mag.length;i++) if(spec.mag[i]>spec.mag[maxI]) maxI=i; const peak=maxI*spec.fs/spec.n; mPeak.textContent=peak.toFixed(1)+'Hz'; const pk=findPeaks(spec); if(pk.target){ mTarget.textContent=pk.target.f.toFixed(1)+'Hz'; } else { mTarget.textContent='なし'; } peakHistory.push({t:nowMs(), top:pk.top, target:pk.target, nyq:spec.fs/2}); if(peakHistory.length>240) peakHistory.shift(); drawPeakTimeline(cvPeak); const e=bandEnergies(spec); if(e){ bandHistory.push({t:nowMs(),e}); if(bandHistory.length>180) bandHistory.shift(); if(lastBands){ let fl=0; for(let i=0;i<e.length;i++){ const d=e[i]-lastBands[i]; if(d>0) fl+=d; } fluxSeries.push(fl); if(fluxSeries.length>500) fluxSeries.shift(); } lastBands=e; drawBands(cvBand); drawFlux(cvFlux); } }
+    updateDiagnostics();
+    if(spec){ let maxI=1; for(let i=2;i<spec.mag.length;i++) if(spec.mag[i]>spec.mag[maxI]) maxI=i; const peak=maxI*spec.fs/spec.n; mPeak.textContent=peak.toFixed(1)+'Hz'; const pk=findPeaks(spec); peakHistory.push({t:nowMs(), top:pk.top, nyq:spec.fs/2}); if(peakHistory.length>240) peakHistory.shift(); drawPeakTimeline(cvPeak); const e=bandEnergies(spec); if(e){ bandHistory.push({t:nowMs(),e}); if(bandHistory.length>180) bandHistory.shift(); if(lastBands){ let fl=0; for(let i=0;i<e.length;i++){ const d=e[i]-lastBands[i]; if(d>0) fl+=d; } fluxSeries.push(fl); if(fluxSeries.length>500) fluxSeries.shift(); } lastBands=e; drawBands(cvBand); drawFlux(cvFlux); } }
     requestAnimationFrame(()=>setTimeout(tick,150));
   }
   btnStart.onclick=startSensor; btnStop.onclick=stopSensor; btnRecord.onclick=startRecord;
   btnCsv.onclick=()=>download('frb_sensor_check_mobile.csv', toCsv(samples));
-  btnJson.onclick=()=>download('frb_sensor_check_mobile.json', JSON.stringify({app:'FRB Sensor Check Mobile #0.1',created_at:new Date().toISOString(),axis:axisMode.value,samples},null,2));
+  btnJson.onclick=()=>download('frb_sensor_check_mobile.json', JSON.stringify({app:'FRB Sensor Check Mobile #0.2',created_at:new Date().toISOString(),axis:axisMode.value,samples},null,2));
   function toCsv(arr){ const head='t_ms,x,y,z,lx,ly,lz,mag,linmag\n'; return head+arr.map(s=>[s.t,s.x,s.y,s.z,s.lx,s.ly,s.lz,s.mag,s.linmag].map(v=>Number(v).toFixed(6)).join(',')).join('\n'); }
   function download(name, text){ const blob=new Blob([text],{type:'text/plain'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000); }
   tick();
