@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>FRB Sensor Check Mobile #0.2</title>
+<title>FRB Sensor Check Mobile #0.3</title>
 <style>
   :root{
     --bg:#0f1115;--panel:#171a21;--panel2:#20242e;--text:#e8eef9;--muted:#9aa7b7;--accent:#62d2ff;--warn:#ffcc66;--bad:#ff6b6b;--good:#7CFF9B;
@@ -13,6 +13,7 @@
   body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.45}
   header{padding:16px 14px 10px;border-bottom:1px solid #2b303b;background:linear-gradient(180deg,#151922,#0f1115)}
   h1{font-size:20px;margin:0 0 4px}.sub{color:var(--muted);font-size:13px}
+  h2{font-size:16px;margin:0 0 8px}
   main{padding:12px;display:grid;gap:12px;max-width:1000px;margin:0 auto}
   .panel{background:var(--panel);border:1px solid #2a303b;border-radius:14px;padding:12px;box-shadow:0 8px 24px rgba(0,0,0,.22)}
   .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.stack{display:grid;gap:8px}
@@ -21,7 +22,7 @@
   .metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.metric{background:var(--panel2);border:1px solid #2d3440;border-radius:12px;padding:9px}.metric .label{font-size:12px;color:var(--muted)}.metric .value{font-size:20px;font-weight:700;margin-top:2px}.metric .mini{font-size:11px;color:var(--muted)}
   canvas{width:100%;height:220px;background:#0b0d12;border:1px solid #29303b;border-radius:12px;display:block}.short canvas{height:170px}.tall canvas{height:270px}
   .note{font-size:12px;color:var(--muted)}.warn{color:var(--warn)}.good{color:var(--good)}.bad{color:var(--bad)}
-  .diagnostics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.diag{background:#11151d;border:1px solid #2a303b;border-radius:10px;padding:8px}.diag .k{font-size:11px;color:var(--muted)}.diag .v{font-size:14px;font-weight:700;margin-top:2px}.explain{background:#101722;border-left:3px solid var(--accent);padding:9px 10px;border-radius:10px;color:#cbd7e6;font-size:12px}
+  .diagnostics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.diag{background:#11151d;border:1px solid #2a303b;border-radius:10px;padding:8px}.diag .k{font-size:11px;color:var(--muted)}.diag .v{font-size:14px;font-weight:700;margin-top:2px}.explain{background:#101722;border-left:3px solid var(--accent);padding:9px 10px;border-radius:10px;color:#cbd7e6;font-size:12px}.explain.warnbox{border-left-color:var(--warn)}
   details{background:#11151d;border:1px solid #2a303b;border-radius:12px;padding:10px}summary{cursor:pointer;color:#cfe9ff}
   .pill{font-size:12px;color:#cfe9ff;background:#0b3040;border:1px solid #14526c;border-radius:999px;padding:4px 8px}
   @media (min-width:760px){.metrics{grid-template-columns:repeat(4,minmax(0,1fr))}.diagnostics{grid-template-columns:repeat(4,minmax(0,1fr))}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}}
@@ -29,8 +30,8 @@
 </head>
 <body>
 <header>
-  <h1>FRB Sensor Check Mobile #0.2</h1>
-  <div class="sub">スマホ内蔵加速度センサーで、実効サンプリングHz・dtばらつき・主ピーク・Band Timelineを見るFRB Lite実験ページ</div>
+  <h1>FRB Sensor Check Mobile #0.3</h1>
+  <div class="sub">スマホ内蔵加速度センサーで「揺れがデータに変わる瞬間」を体験するFRB Lite実験ページ</div>
 </header>
 <main>
   <section class="panel stack">
@@ -51,12 +52,20 @@
         </select>
       </label>
       <label>FFT窓 <input id="fftWindow" type="number" value="512" min="64" max="2048" step="64" style="width:86px"></label>
-      <label>Band scale <input id="bandScale" type="number" value="auto" placeholder="auto" style="width:88px"></label>
       <label>期待Hz <input id="targetHz" type="number" value="18" min="0" max="500" step="0.1" style="width:86px"></label>
       <label>許容±Hz <input id="targetTol" type="number" value="3" min="0.1" max="50" step="0.1" style="width:86px"></label>
     </div>
     <div class="note">
       iPhone系は「センサー開始」で許可確認が出ることがあります。GitHub PagesなどHTTPS上での利用を想定。PCローカルHTTPをスマホから開くとセンサー許可が通らない場合があります。
+    </div>
+  </section>
+
+  <section class="panel stack">
+    <div class="explain">
+      このページは、スマホを本格的な周波数測定器にするものではありません。スマホ内蔵加速度センサーで、揺れや衝撃がデータに変わる瞬間を体験するための実験ページです。
+    </div>
+    <div class="explain warnbox">
+      スマホは「音源の周波数」ではなく、「スマホ本体が実際に揺れた周波数」を見ています。期待HzにPeakが乗らない場合も、重要な境界データです。
     </div>
   </section>
 
@@ -79,6 +88,9 @@
       <div class="diag"><div class="k">イベント受信数 / 最終受信</div><div class="v" id="dEvents">0 / --</div></div>
     </div>
     <div class="explain">
+      dtとは、センサーデータが届いた間隔です。たとえば dt平均 17ms なら、だいたい1秒に約58回データが届いているという意味です。dtばらつきが大きいほど、FFTやPeak Timelineは不安定になりやすくなります。
+    </div>
+    <div class="explain">
       ナイキスト周波数とは、サンプリングしたデータから元の信号を正確に再現できる最大の周波数の目安です。基本的には「実効サンプリングHz ÷ 2」。ただし、スマホのdtばらつきやOS側の処理があるため、実用上はさらに低めに見ます。
     </div>
   </section>
@@ -86,43 +98,34 @@
   <section class="panel short">
     <h2>1. Time Series</h2>
     <canvas id="cvTime" width="900" height="240"></canvas>
-    <div class="note">まずは「取れているか」「周期が安定しているか」を見る窓。</div>
+    <div class="note">センサーが動いていること、大きな揺れやトントン・衝撃に反応することを確認する窓。</div>
   </section>
 
   <div class="grid2">
     <section class="panel tall">
-      <h2>2. Band Timeline Investigate Scale</h2>
-      <canvas id="cvBand" width="900" height="360"></canvas>
-      <div class="note">低周波スマホ向け。20Hz刻み中心で帯域エネルギーの時間変化を見る。スマホ版の主役候補。</div>
+      <h2>2. Flux</h2>
+      <canvas id="cvFlux" width="900" height="360"></canvas>
+      <div class="note">フレーム間のスペクトル変化量。トントンや衝撃を与えたときに、変化としてどう反応するかを見る窓。FRB本丸Fluxの入口体験。</div>
     </section>
     <section class="panel tall">
-      <h2>3. Flux</h2>
-      <canvas id="cvFlux" width="900" height="360"></canvas>
-      <div class="note">フレーム間のスペクトル変化量。dtが荒いと暴れるので、まずは補助窓扱い。</div>
+      <h2>3. Peak Timeline</h2>
+      <canvas id="cvPeak" width="900" height="360"></canvas>
+      <div class="note">青●＝加速度センサーFFTから検出した主ピーク候補上位4つ。点が大きく濃いほど、その瞬間に強く出たピーク。背景の帯は期待Hzの目安。狙った周波数帯に主ピークが乗るかを見る窓。</div>
     </section>
   </div>
 
-  <section class="panel short">
-    <h2>4. Peak Timeline</h2>
-    <canvas id="cvPeak" width="900" height="240"></canvas>
-    <div class="note">青●＝加速度センサーFFTから検出した主ピーク候補。点が大きく濃いほど、その瞬間に強く出たピーク。背景の帯は期待Hzの目安。狙った周波数帯に主ピークが乗るかを見る窓。</div>
-  </section>
-
-  <section class="panel short">
-    <h2>5. Spectrum Snapshot</h2>
-    <canvas id="cvSpec" width="900" height="240"></canvas>
-    <div class="note">簡易FFT。端末の実効サンプリングHzの半分より上は、ナイキスト周波数を超えるため正しく見えません。</div>
-  </section>
-
   <section class="panel">
-    <details>
-      <summary>FRB Lite #0 の見方</summary>
+    <details open>
+      <summary>FRB Lite #0.3 の見方</summary>
       <p class="note">
-        このページの目的は「スマホでFRB本測定をすること」ではなく、スマホ内蔵センサーがどこまで振動を見られるかの境界確認です。
+        このページの目的は「スマホでFRB本測定をすること」ではなく、スマホ内蔵センサーが何に反応し、何には反応しにくいかを確認することです。
         見えたものを喜び、見えなかったものも境界として記録します。
       </p>
       <p class="note">
-        推奨順：実効Hz → dtばらつき → ナイキスト周波数 → Time Series → Peak Timeline → Band Timeline → Flux → Spectrum。FFTだけを先に信じないこと。
+        推奨順：実効Hz → dtばらつき → ナイキスト周波数 → Time Series → Flux → Peak Timeline。FFTだけを先に信じないこと。
+      </p>
+      <p class="note">
+        期待Hzを入れてもPeak Timelineに乗らない場合があります。逆に、入力した期待Hzが安定してPeak Timelineに表示できた場合は、とても重要な実験結果です。
       </p>
     </details>
   </section>
@@ -134,13 +137,12 @@
   const btnStart=$('btnStart'), btnStop=$('btnStop'), btnRecord=$('btnRecord'), btnCsv=$('btnCsv'), btnJson=$('btnJson');
   const mHz=$('mHz'), mDt=$('mDt'), mN=$('mN'), mRec=$('mRec'), mPeak=$('mPeak'), mNyq=$('mNyq'), mPractical=$('mPractical'), mJudge=$('mJudge');
   const dMotion=$('dMotion'), dPerm=$('dPerm'), dHttps=$('dHttps'), dEvents=$('dEvents');
-  const cvTime=$('cvTime'), cvBand=$('cvBand'), cvFlux=$('cvFlux'), cvPeak=$('cvPeak'), cvSpec=$('cvSpec');
-  const axisMode=$('axisMode'), fftWindow=$('fftWindow'), bandScale=$('bandScale'), targetHz=$('targetHz'), targetTol=$('targetTol');
+  const cvTime=$('cvTime'), cvFlux=$('cvFlux'), cvPeak=$('cvPeak');
+  const axisMode=$('axisMode'), fftWindow=$('fftWindow'), targetHz=$('targetHz'), targetTol=$('targetTol');
   let running=false, recording=false, recStart=0, samples=[], live=[], lastT=null, gravity={x:0,y:0,z:0};
   let eventCount=0, firstEventT=null, lastEventWall=null;
-  let lastBands=null, fluxSeries=[], peakHistory=[];
+  let lastSpecMag=null, fluxSeries=[], peakHistory=[];
   const MAX_LIVE=4096;
-  const bands = [[0,10],[10,20],[20,40],[40,60],[60,80],[80,100],[100,140],[140,180],[180,240],[240,320]];
 
   function setStatus(txt, cls='') { status.textContent=txt; status.className='pill '+cls; }
   function nowMs(){ return performance.now(); }
@@ -148,7 +150,6 @@
     const t = e.timeStamp && isFinite(e.timeStamp) ? e.timeStamp : nowMs();
     const a = e.accelerationIncludingGravity || e.acceleration || {x:0,y:0,z:0};
     const x = Number(a.x||0), y=Number(a.y||0), z=Number(a.z||0);
-    // simple high-pass-ish estimate for gravity removed magnitude
     const alpha=0.96;
     gravity.x = alpha*gravity.x + (1-alpha)*x;
     gravity.y = alpha*gravity.y + (1-alpha)*y;
@@ -188,7 +189,6 @@
   function hann(n){ return Array.from({length:n},(_,i)=>0.5-0.5*Math.cos(2*Math.PI*i/(n-1))); }
   function fftMag(x){
     const n=x.length, re=x.slice(), im=new Array(n).fill(0);
-    // bit reverse
     let j=0; for(let i=1;i<n;i++){ let bit=n>>1; for(;j&bit;bit>>=1) j^=bit; j^=bit; if(i<j){ [re[i],re[j]]=[re[j],re[i]]; [im[i],im[j]]=[im[j],im[i]]; } }
     for(let len=2;len<=n;len<<=1){ const ang=-2*Math.PI/len; const wlr=Math.cos(ang), wli=Math.sin(ang); for(let i=0;i<n;i+=len){ let wr=1, wi=0; for(let k=0;k<len/2;k++){ const uR=re[i+k], uI=im[i+k]; const vR=re[i+k+len/2]*wr-im[i+k+len/2]*wi; const vI=re[i+k+len/2]*wi+im[i+k+len/2]*wr; re[i+k]=uR+vR; im[i+k]=uI+vI; re[i+k+len/2]=uR-vR; im[i+k+len/2]=uI-vI; const nwr=wr*wlr-wi*wli; wi=wr*wli+wi*wlr; wr=nwr; } } }
     return re.slice(0,n/2).map((r,i)=>Math.hypot(r,im[i])/n);
@@ -198,22 +198,12 @@
     const ser=getSeries(arr).slice(-Math.max(n*2, n+4)); if(ser.length<n/2) return null; const r=resampleUniform(ser,n); if(!r) return null;
     const mean=r.data.reduce((a,b)=>a+b,0)/r.data.length; const w=hann(n); const x=r.data.map((v,i)=>(v-mean)*w[i]); const mag=fftMag(x); return {mag,fs:r.fs,n};
   }
-  function bandEnergies(spec){
-    if(!spec) return null; const {mag,fs,n}=spec; return bands.map(([lo,hi])=>{ let sum=0,c=0; for(let i=1;i<mag.length;i++){ const f=i*fs/n; if(f>=lo && f<hi){ sum+=mag[i]*mag[i]; c++; } } return c?Math.sqrt(sum/c):0; });
-  }
 
   function clear(c){ const ctx=c.getContext('2d'); ctx.clearRect(0,0,c.width,c.height); return ctx; }
   function linePlot(c, vals, opts={}){ const ctx=clear(c), w=c.width,h=c.height,p=28; ctx.strokeStyle='#343946'; ctx.lineWidth=1; for(let i=0;i<5;i++){ const y=p+(h-2*p)*i/4; ctx.beginPath();ctx.moveTo(p,y);ctx.lineTo(w-p,y);ctx.stroke(); }
     if(vals.length<2) return; let min=Math.min(...vals), max=Math.max(...vals); if(opts.sym){ const m=Math.max(Math.abs(min),Math.abs(max)); min=-m;max=m; } if(max-min<1e-9){max+=1;min-=1}
     ctx.strokeStyle=opts.color||'#dfe8ff'; ctx.lineWidth=2; ctx.beginPath(); vals.forEach((v,i)=>{ const x=p+(w-2*p)*i/(vals.length-1); const y=h-p-(v-min)/(max-min)*(h-2*p); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); }); ctx.stroke();
     ctx.fillStyle='#9aa7b7'; ctx.font='12px system-ui'; ctx.fillText(max.toFixed(2),4,p+4); ctx.fillText(min.toFixed(2),4,h-p); }
-  function drawSpectrum(c, spec){ const ctx=clear(c), w=c.width,h=c.height,p=32; if(!spec) return; const maxF=Math.min(spec.fs/2, 500); const bins=[]; for(let i=1;i<spec.mag.length;i++){ const f=i*spec.fs/spec.n; if(f<=maxF) bins.push([f,spec.mag[i]]); } const max=Math.max(...bins.map(b=>b[1]),1e-9); ctx.strokeStyle='#343946'; for(let f=0;f<=maxF;f+=50){ const x=p+(w-2*p)*f/maxF; ctx.beginPath();ctx.moveTo(x,p);ctx.lineTo(x,h-p);ctx.stroke(); ctx.fillStyle='#9aa7b7';ctx.font='11px system-ui';ctx.fillText(f+'Hz',x+2,h-8); }
-    ctx.strokeStyle='#dfe8ff';ctx.lineWidth=2;ctx.beginPath(); bins.forEach(([f,v],i)=>{ const x=p+(w-2*p)*f/maxF; const y=h-p-v/max*(h-2*p); if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});ctx.stroke(); }
-  function drawBands(c){ const ctx=clear(c), w=c.width,h=c.height,p=52; const hist=bandHistory; if(hist.length<2) return; const scaleVal=parseFloat(bandScale.value); let max=isFinite(scaleVal)?scaleVal:Math.max(...hist.flatMap(x=>x.e),1e-9); const bh=(h-2*p)/bands.length;
-    ctx.font='11px system-ui'; bands.forEach((b,bi)=>{ const y=p+bi*bh; ctx.fillStyle='#9aa7b7'; ctx.fillText(`${b[0]}-${b[1]}Hz`,4,y+bh*0.65); ctx.strokeStyle='#252b35'; ctx.beginPath();ctx.moveTo(p,y);ctx.lineTo(w-p,y);ctx.stroke(); });
-    for(let i=0;i<hist.length;i++){ const x=p+(w-2*p)*i/(hist.length-1); hist[i].e.forEach((e,bi)=>{ const y=p+bi*bh; const v=Math.min(1,e/max); const hh=v*(bh-3); ctx.fillStyle=`rgba(98,210,255,${0.12+0.78*v})`; ctx.fillRect(x,y+bh-hh-1,Math.max(1,(w-2*p)/Math.max(1,hist.length)),hh); }); }
-  }
-  const bandHistory=[];
 
   function findPeaks(spec){
     if(!spec) return {top:[]};
@@ -227,8 +217,7 @@
       if(mag[i] >= mag[i-1] && mag[i] >= mag[i+1]) peaks.push({f, a:mag[i]});
     }
     peaks.sort((a,b)=>b.a-a.a);
-    const top=peaks.slice(0,4);
-    return {top};
+    return {top:peaks.slice(0,4)};
   }
   function drawPeakTimeline(c){
     const ctx=clear(c), w=c.width,h=c.height,p=36;
@@ -237,35 +226,53 @@
     const yMax=Math.max(30, Math.min(600, Math.ceil((last.nyq||30)/10)*10));
     ctx.strokeStyle='#343946'; ctx.lineWidth=1; ctx.fillStyle='#9aa7b7'; ctx.font='11px system-ui';
     const ticks=[0, Math.round(yMax/4), Math.round(yMax/2), Math.round(yMax*3/4), yMax];
-    ticks.forEach(v=>{ const y=h-p-(v/yMax)*(h-2*p); ctx.beginPath(); ctx.moveTo(p,y); ctx.lineTo(w-p,y); ctx.stroke(); ctx.fillText(v+'Hz',4,y+4); });
+    ticks.forEach(v=>{ const y=c.height-p-(v/yMax)*(c.height-2*p); ctx.beginPath(); ctx.moveTo(p,y); ctx.lineTo(w-p,y); ctx.stroke(); ctx.fillText(v+'Hz',4,y+4); });
     const th=parseFloat(targetHz.value||0), tol=parseFloat(targetTol.value||3);
     if(isFinite(th) && th>0){
-      const y=h-p-(Math.min(yMax,th)/yMax)*(h-2*p);
-      ctx.strokeStyle='rgba(98,210,255,.60)'; ctx.setLineDash([5,5]); ctx.beginPath(); ctx.moveTo(p,y); ctx.lineTo(w-p,y); ctx.stroke(); ctx.setLineDash([]);
+      const y=c.height-p-(Math.min(yMax,th)/yMax)*(c.height-2*p);
       if(isFinite(tol) && tol>0){
-        const y1=h-p-(Math.min(yMax,th+tol)/yMax)*(h-2*p);
-        const y2=h-p-(Math.max(0,th-tol)/yMax)*(h-2*p);
+        const y1=c.height-p-(Math.min(yMax,th+tol)/yMax)*(c.height-2*p);
+        const y2=c.height-p-(Math.max(0,th-tol)/yMax)*(c.height-2*p);
         ctx.fillStyle='rgba(98,210,255,.08)'; ctx.fillRect(p, y1, w-2*p, y2-y1);
       }
+      ctx.strokeStyle='rgba(98,210,255,.60)'; ctx.setLineDash([5,5]); ctx.beginPath(); ctx.moveTo(p,y); ctx.lineTo(w-p,y); ctx.stroke(); ctx.setLineDash([]);
       ctx.fillStyle='rgba(98,210,255,.92)'; ctx.fillText('期待 '+th+'Hz',p+6,Math.max(14,y-6));
     }
     const styles=[
-      {r:5.2, color:'rgba(98,210,255,.98)'},
-      {r:4.3, color:'rgba(98,210,255,.78)'},
-      {r:3.4, color:'rgba(98,210,255,.56)'},
-      {r:2.6, color:'rgba(98,210,255,.36)'}
+      {r:6.4, color:'rgba(98,210,255,.98)'},
+      {r:5.0, color:'rgba(98,210,255,.76)'},
+      {r:3.8, color:'rgba(98,210,255,.54)'},
+      {r:2.8, color:'rgba(98,210,255,.34)'}
     ];
     peakHistory.forEach((ph,i)=>{
       const x=p+(w-2*p)*i/(peakHistory.length-1);
       (ph.top||[]).forEach((pk,rank)=>{
         if(pk.f>yMax) return;
         const st=styles[rank]||styles[styles.length-1];
-        const y=h-p-(pk.f/yMax)*(h-2*p);
+        const y=c.height-p-(pk.f/yMax)*(c.height-2*p);
         ctx.fillStyle=st.color; ctx.beginPath(); ctx.arc(x,y,st.r,0,Math.PI*2); ctx.fill();
       });
     });
   }
 
+  function calcSpectralFlux(spec){
+    if(!spec || !spec.mag || spec.mag.length<3) return 0;
+    const nyq=spec.fs/2;
+    const maxF=Math.min(nyq, 80); // smartphone-lite focus
+    const cur=[];
+    for(let i=1;i<spec.mag.length;i++){
+      const f=i*spec.fs/spec.n;
+      if(f<=maxF) cur.push(spec.mag[i]);
+    }
+    if(!lastSpecMag || lastSpecMag.length!==cur.length){ lastSpecMag=cur; return 0; }
+    let fl=0;
+    for(let i=0;i<cur.length;i++){
+      const d=cur[i]-lastSpecMag[i];
+      if(d>0) fl+=d;
+    }
+    lastSpecMag=cur;
+    return fl;
+  }
   function drawFlux(c){ const vals=fluxSeries.slice(-240); linePlot(c,vals,{color:'#ffcc66'}); }
 
   function updateDiagnostics(){
@@ -286,14 +293,24 @@
     }
     mN.textContent=samples.length || live.length; if(recording) mRec.textContent=((lastT-recStart)/1000).toFixed(1)+' / 10.0秒';
     const ser=getSeries(live.slice(-400)).map(o=>o.v); linePlot(cvTime,ser,{sym:false});
-    const spec=spectrum(live); drawSpectrum(cvSpec,spec);
     updateDiagnostics();
-    if(spec){ let maxI=1; for(let i=2;i<spec.mag.length;i++) if(spec.mag[i]>spec.mag[maxI]) maxI=i; const peak=maxI*spec.fs/spec.n; mPeak.textContent=peak.toFixed(1)+'Hz'; const pk=findPeaks(spec); peakHistory.push({t:nowMs(), top:pk.top, nyq:spec.fs/2}); if(peakHistory.length>240) peakHistory.shift(); drawPeakTimeline(cvPeak); const e=bandEnergies(spec); if(e){ bandHistory.push({t:nowMs(),e}); if(bandHistory.length>180) bandHistory.shift(); if(lastBands){ let fl=0; for(let i=0;i<e.length;i++){ const d=e[i]-lastBands[i]; if(d>0) fl+=d; } fluxSeries.push(fl); if(fluxSeries.length>500) fluxSeries.shift(); } lastBands=e; drawBands(cvBand); drawFlux(cvFlux); } }
+    const spec=spectrum(live);
+    if(spec){
+      const pk=findPeaks(spec);
+      mPeak.textContent = pk.top[0] ? pk.top[0].f.toFixed(1)+'Hz' : '--';
+      peakHistory.push({t:nowMs(), top:pk.top, nyq:spec.fs/2});
+      if(peakHistory.length>240) peakHistory.shift();
+      drawPeakTimeline(cvPeak);
+      const fl=calcSpectralFlux(spec);
+      fluxSeries.push(fl);
+      if(fluxSeries.length>500) fluxSeries.shift();
+      drawFlux(cvFlux);
+    }
     requestAnimationFrame(()=>setTimeout(tick,150));
   }
   btnStart.onclick=startSensor; btnStop.onclick=stopSensor; btnRecord.onclick=startRecord;
   btnCsv.onclick=()=>download('frb_sensor_check_mobile.csv', toCsv(samples));
-  btnJson.onclick=()=>download('frb_sensor_check_mobile.json', JSON.stringify({app:'FRB Sensor Check Mobile #0.2',created_at:new Date().toISOString(),axis:axisMode.value,samples},null,2));
+  btnJson.onclick=()=>download('frb_sensor_check_mobile.json', JSON.stringify({app:'FRB Sensor Check Mobile #0.3',created_at:new Date().toISOString(),axis:axisMode.value,samples},null,2));
   function toCsv(arr){ const head='t_ms,x,y,z,lx,ly,lz,mag,linmag\n'; return head+arr.map(s=>[s.t,s.x,s.y,s.z,s.lx,s.ly,s.lz,s.mag,s.linmag].map(v=>Number(v).toFixed(6)).join(',')).join('\n'); }
   function download(name, text){ const blob=new Blob([text],{type:'text/plain'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000); }
   tick();
