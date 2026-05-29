@@ -54,7 +54,7 @@
         "-File",
         "${workspaceFolder}/tools/upload-spiffs.ps1",
         "-Port",
-        "COM3",
+        "COM9",
         "-Fqbn",
         "esp32:esp32:esp32",
         "-SketchDir",
