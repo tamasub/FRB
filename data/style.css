@@ -605,6 +605,7 @@
   background:#101418;
 }
 
-.frbHiddenWindows {
-  display: none !important;
-}
+
+/* Hidden / Internal Windows */
+.frbHiddenWindows { display: none !important; }
+body.devMode .frbHiddenWindows { display: block !important; }

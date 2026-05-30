@@ -1,6 +1,12 @@
 //v0.0.0
 // MIDI_EXPORT_FILENAME_SHORT_META_AND_DOMINO_PROGRAM_2026-05-10
 // INVESTIGATE_FILTER_HARDCUT_2026-05-04
+// ===== FRB device mode =====
+// 2号機配布版はマイクなし。A(Accel)だけでTimeLog/Flux/PianoRollを更新する。
+// 1号機などマイクあり版で使う場合は true に戻す。
+const FRB_MIC_ENABLED = false;
+
+
 
 const st = document.getElementById('st');
 const fpsEl = document.getElementById('fps');
@@ -674,20 +680,25 @@ function updateNowBandFluxBars(){
 
 
 function updateBandFluxBars(){
-  if (!lastFluxBandsA || !lastFluxBandsM) return;
+  if (!lastFluxBandsA) return;
 
-  // A/Bの両方の最大値を基準にして比較しやすくする
+  // A-only対応。Mがない時はAだけを基準にして表示する。
+  const mBands = (FRB_MIC_ENABLED && lastFluxBandsM) ? lastFluxBandsM : null;
+
   let vmax = 1e-9;
   for (const b of BANDS) {
     vmax = Math.max(vmax, Number(lastFluxBandsA[b.key]) || 0);
-    vmax = Math.max(vmax, Number(lastFluxBandsM[b.key]) || 0);
+    if (mBands) vmax = Math.max(vmax, Number(mBands[b.key]) || 0);
   }
 
   for (const b of BANDS) {
     const k = b.key;
 
-    const aRatio = Math.max(0, Math.min(1, (Number(lastFluxBandsA[k]) || 0) / vmax));
-    const mRatio = Math.max(0, Math.min(1, (Number(lastFluxBandsM[k]) || 0) / vmax));
+    const aVal = Number(lastFluxBandsA[k]) || 0;
+    const mVal = mBands ? (Number(mBands[k]) || 0) : 0;
+
+    const aRatio = Math.max(0, Math.min(1, aVal / vmax));
+    const mRatio = Math.max(0, Math.min(1, mVal / vmax));
 
     const aEl = document.getElementById(`barA_${k}`);
     const mEl = document.getElementById(`barM_${k}`);
@@ -697,9 +708,8 @@ function updateBandFluxBars(){
     if (aEl) aEl.style.width = `${(aRatio * 100).toFixed(1)}%`;
     if (mEl) mEl.style.width = `${(mRatio * 100).toFixed(1)}%`;
 
-    // 数値そのものを見たいので % ではなく生値表示
-    if (aTx) aTx.textContent = (Number(lastFluxBandsA[k]) || 0).toFixed(3);
-    if (mTx) mTx.textContent = (Number(lastFluxBandsM[k]) || 0).toFixed(3);
+    if (aTx) aTx.textContent = aVal.toFixed(3);
+    if (mTx) mTx.textContent = mBands ? mVal.toFixed(3) : '-';
   }
 }
 
@@ -1235,8 +1245,16 @@ if(type === 'M'){
   if (latestM) pushSpectrogramColumn(gM, ensureDb(latestM));
 
   // scrape + time series
-  if (latestA && latestM) {
-    const lvl = calcScrapeLevel(ensureDb(latestA), ensureDb(latestM));
+  // 2号機(A-only)ではMが来ないため、latestM待ちにするとTimeLog系が止まる。
+  // A-only時はAフレーム到着ごとにfeatを作り、M系は0/null扱いにする。
+  const canBuildFeatureFrame =
+    latestA && (FRB_MIC_ENABLED ? latestM : type === 'A');
+
+  if (canBuildFeatureFrame) {
+    const lvl = (FRB_MIC_ENABLED && latestM)
+      ? calcScrapeLevel(ensureDb(latestA), ensureDb(latestM))
+      : 0;
+
     updateScrapeMeter(lvl);
     lastScrape = lvl;
 
@@ -1246,18 +1264,18 @@ if(type === 'M'){
       t: nowT,
       scrape: scrSmooth,
       peakAHz: lastPeakAHz,
-      peakMHz: lastPeakMHz,
+      peakMHz: FRB_MIC_ENABLED ? lastPeakMHz : 0,
       fluxA: lastFluxA,
-      fluxM: lastFluxM,
+      fluxM: FRB_MIC_ENABLED ? lastFluxM : 0,
       peakMoveA: lastPeakMoveA,
-      peakMoveM: lastPeakMoveM,
+      peakMoveM: FRB_MIC_ENABLED ? lastPeakMoveM : 0,
       bandA: latestBandA ? { ...latestBandA.smooth } : null,
-      bandM: latestBandM ? { ...latestBandM.smooth } : null,
+      bandM: (FRB_MIC_ENABLED && latestBandM) ? { ...latestBandM.smooth } : makeZeroBandMap(),
       bandAInvestigate: latestBandAInvestigate ? { ...latestBandAInvestigate.smooth } : null,
-      bandMInvestigate: latestBandMInvestigate ? { ...latestBandMInvestigate.smooth } : null,
+      bandMInvestigate: (FRB_MIC_ENABLED && latestBandMInvestigate) ? { ...latestBandMInvestigate.smooth } : makeZeroBandMapBy(getActiveInvestigateBands()),
       stairError: latestBandA ? calcBridgeScore(latestBandA.smooth) : 0,
       fluxBandA: { ...fluxBandEmaA },
-      fluxBandM: { ...fluxBandEmaM },
+      fluxBandM: FRB_MIC_ENABLED ? { ...fluxBandEmaM } : makeZeroBandMap(),
       tingleMotion: calcTingleMotionFromFluxBand(fluxBandEmaA),
       attackScore: 0,
       attackState: 'IDLE',
@@ -1268,7 +1286,7 @@ if(type === 'M'){
         hz: Number(p.hz) || 0,
         mag: Number(p.mag) || 0
       })),
-      topPeaksM: (latestM?.topPeaks || []).map(p => ({
+      topPeaksM: (FRB_MIC_ENABLED ? (latestM?.topPeaks || []) : []).map(p => ({
         hz: Number(p.hz) || 0,
         mag: Number(p.mag) || 0
       })),
@@ -1276,15 +1294,15 @@ if(type === 'M'){
         hz: Number(p.hz) || 0,
         mag: Number(p.mag) || 0
       })),
-      rawTopPeaksM: (latestM?.rawTopPeaks || []).map(p => ({
+      rawTopPeaksM: (FRB_MIC_ENABLED ? (latestM?.rawTopPeaks || []) : []).map(p => ({
         hz: Number(p.hz) || 0,
         mag: Number(p.mag) || 0
       })),
       mixPeakTrackedA: Number(latestA?.mixPeakTrackedHz) || NaN,
-      mixPeakTrackedM: Number(latestM?.mixPeakTrackedHz) || NaN,
+      mixPeakTrackedM: FRB_MIC_ENABLED ? (Number(latestM?.mixPeakTrackedHz) || NaN) : NaN,
       density: calcPeakDensity(
         latestA?.topPeaks,
-        latestM?.topPeaks
+        FRB_MIC_ENABLED ? latestM?.topPeaks : []
        ),
        inputHz: currentSoundHz,
        modType: getModType ? getModType() : 'none',
@@ -1348,13 +1366,13 @@ if(type === 'M'){
     if(hit){
       //console.log('ATTACK HIT', hit);
       mark(gA);
-      mark(gM);
+      if (FRB_MIC_ENABLED) mark(gM);
     }
 
     const thr = Number(thrEl.value);
     if (scrSmooth >= thr) {
       mark(gA);
-      mark(gM);
+      if (FRB_MIC_ENABLED) mark(gM);
     }
   }
 
@@ -1457,7 +1475,6 @@ function redrawAllAfterResize(){
     if (latestM) list.push(latestM);
 
     if (typeof drawSpectra === 'function') drawSpectra(list);
-
     if (typeof drawTimeSeries === 'function') drawTimeSeries();
     if (typeof drawBandTimeline === 'function') drawBandTimeline();
     if (typeof drawBandTimelineInvestigate === 'function') drawBandTimelineInvestigate();
@@ -1473,10 +1490,14 @@ function redrawAllAfterResize(){
     if (typeof drawTimeLog === 'function') drawTimeLog();
     if (typeof drawSweepTrace === 'function') drawSweepTrace();
     if (typeof drawSweepTraceEnergy === 'function') drawSweepTraceEnergy();
-    if (typeof drawMainMelodyAmp === 'function') drawMainMelodyAmp();
+
     if (typeof requestDrawMainMelodyAmp === 'function') requestDrawMainMelodyAmp();
-    if (typeof drawLivePianoRollFromHistory === 'function') drawLivePianoRollFromHistory();
-    if (typeof requestPianoRollDraw === 'function') requestPianoRollDraw();
+    else if (typeof drawMainMelodyAmp === 'function') drawMainMelodyAmp();
+
+    if (typeof requestDrawFRBPianoRoll === 'function') requestDrawFRBPianoRoll();
+    else if (typeof drawLivePianoRollFromHistory === 'function') drawLivePianoRollFromHistory();
+    else if (typeof requestPianoRollDraw === 'function') requestPianoRollDraw();
+    else if (typeof drawLivePianoRoll === 'function') drawLivePianoRoll();
   } catch (e) {
     console.warn('redrawAllAfterResize failed', e);
   }
@@ -3182,10 +3203,12 @@ function saveCurrentAvg(slot, avg) {
 
 function updateRecIfNeeded(){
   if(!isRec) return;
-  if(!latestBandA || !latestBandM) return;
+  if(!latestBandA) return;
 
   const aNorm = normalizeBandMap(latestBandA.smooth);
-  const mNorm = normalizeBandMap(latestBandM.smooth);
+  const mNorm = (FRB_MIC_ENABLED && latestBandM)
+    ? normalizeBandMap(latestBandM.smooth)
+    : makeZeroBandMap();
 
   for(const b of BANDS){
     const k = b.key;
@@ -3195,7 +3218,7 @@ function updateRecIfNeeded(){
   recCount++;
 
   recFluxHist.A.push(Number(lastFluxA) || 0);
-  recFluxHist.M.push(Number(lastFluxM) || 0);
+  recFluxHist.M.push(FRB_MIC_ENABLED ? (Number(lastFluxM) || 0) : 0);
 
   const elapsed = (performance.now() - recStartMs) * 0.001;
   const st = document.getElementById('recStatus');
@@ -3329,13 +3352,12 @@ function calcMDI2FromBandMap(map){
 
 function calcCombinedMDI(fluxAList, fluxMList){
   const mdiA = calcMDIFromSeries(fluxAList);
-  const mdiM = calcMDIFromSeries(fluxMList);
+  const mdiM = FRB_MIC_ENABLED ? calcMDIFromSeries(fluxMList) : 0;
 
-  // まずは単純平均
   return {
     mdiA,
     mdiM,
-    mdi: (mdiA + mdiM) / 2
+    mdi: FRB_MIC_ENABLED ? ((mdiA + mdiM) / 2) : mdiA
   };
 }
 
@@ -5675,8 +5697,8 @@ function drawPeakTimeline(){
     viewEnd = Math.max(winSec, nowSec);
   }
 
-  const hzMin = Math.max(0, viewMinHz || 0);
-  const hzMax = Math.max(hzMin + 1, PEAK_TIMELINE_MAX_HZ);
+  const hzMin = 0;
+  const hzMax = Math.max(hzMin + 1, Number(PEAK_TIMELINE_MAX_HZ) || 400);
 
   function xMap(t){
     return chartLeft + ((t - viewStart) / Math.max(1e-9, (viewEnd - viewStart))) * pw;
@@ -5805,8 +5827,8 @@ function drawFrequencyFlow(){
     viewEnd = Math.max(winSec, nowSec);
   }
 
-  const hzMin = Math.max(0, viewMinHz || 0);
-  const hzMax = Math.max(hzMin + 1, viewMaxHz || 600);
+  const hzMin = 0;
+  const hzMax = Math.max(hzMin + 1, Number(PEAK_TIMELINE_MAX_HZ) || 400);
 
   function xMap(t){
     return chartLeft + ((t - viewStart) / Math.max(1e-9, (viewEnd - viewStart))) * pw;
@@ -7642,21 +7664,62 @@ function restoreLivePianoRollFromSavedFrames(savedFrames){
   livePianoRollHistory = [];
   livePianoRollMelodyHz = NaN;
 
-  if (Array.isArray(savedFrames) && savedFrames.length) {
-    livePianoRollHistory = savedFrames
-      .filter(fr => fr && Number.isFinite(Number(fr.t)))
-      .map(fr => ({
-        ...fr,
-        t: Number(fr.t) || 0,
-        melody: fr?.melody ? { ...fr.melody } : null,
-        notes: Array.isArray(fr?.notes) ? fr.notes.map(n => ({ ...n })) : []
-      }));
+  // ===== A-only / loaded-log safety =====
+  // Older/current logs may contain only the visible Piano Roll window,
+  // while tsBuf contains the full session. In that case, using savedFrames
+  // directly makes the roll appear only at the far right.
+  // If the saved pianoRoll coverage is clearly shorter than tsBuf, rebuild
+  // Piano Roll from tsBuf instead.
+  const src = Array.isArray(tsBuf) ? tsBuf : [];
+  const cleaned = Array.isArray(savedFrames)
+    ? savedFrames
+        .filter(fr => fr && Number.isFinite(Number(fr.t)))
+        .map(fr => ({
+          ...fr,
+          t: Number(fr.t) || 0,
+          melody: fr?.melody ? { ...fr.melody } : null,
+          notes: Array.isArray(fr?.notes) ? fr.notes.map(n => ({ ...n })) : []
+        }))
+    : [];
+
+  function spanOf(list){
+    if (!Array.isArray(list) || list.length < 2) return 0;
+    const first = Number(list[0]?.t);
+    const last  = Number(list[list.length - 1]?.t);
+    if (!Number.isFinite(first) || !Number.isFinite(last)) return 0;
+    return Math.max(0, last - first);
+  }
+
+  const srcSpan = spanOf(src);
+  const savedSpan = spanOf(cleaned);
+
+  const savedLooksSparse =
+    src.length >= 20 && (
+      cleaned.length < Math.max(20, src.length * 0.50) ||
+      savedSpan < srcSpan * 0.50
+    );
+
+  if (cleaned.length && !savedLooksSparse) {
+    livePianoRollHistory = cleaned;
 
     const lastMelody = [...livePianoRollHistory].reverse().find(fr => fr?.melody);
-    livePianoRollMelodyHz = Number(lastMelody?.melody?.rawHz) || Number(lastMelody?.melody?.playHz) || NaN;
+    livePianoRollMelodyHz =
+      Number(lastMelody?.melody?.rawHz) ||
+      Number(lastMelody?.melody?.playHz) ||
+      NaN;
+
     window.FRB_PIANO_ROLL_LAST = livePianoRollHistory;
     requestDrawFRBPianoRoll();
     return livePianoRollHistory;
+  }
+
+  if (cleaned.length && savedLooksSparse) {
+    console.warn('pianoRoll savedFrames looks sparse; rebuilding from tsBuf', {
+      savedFrames: cleaned.length,
+      tsBuf: src.length,
+      savedSpan,
+      srcSpan
+    });
   }
 
   return rebuildLivePianoRollFromLoadedSeries();
