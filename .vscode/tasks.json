@@ -24,7 +24,7 @@
       "args": [
         "upload",
         "-p",
-        "COM3",
+        "COM10",
         "--fqbn",
         "esp32:esp32:esp32",
         "${workspaceFolder}/firmware/FRB"
@@ -38,7 +38,7 @@
       "args": [
         "monitor",
         "-p",
-        "COM3",
+        "COM10",
         "--config",
         "baudrate=115200"
       ],
@@ -54,7 +54,7 @@
         "-File",
         "${workspaceFolder}/tools/upload-spiffs.ps1",
         "-Port",
-        "COM9",
+        "COM10",
         "-Fqbn",
         "esp32:esp32:esp32",
         "-SketchDir",
@@ -90,7 +90,7 @@
       "args": [
         "/c",
         "start",
-        "http://192.168.43.20/"
+        "http://192.168.4.1/"
       ],
       "problemMatcher": []
     },
@@ -108,7 +108,7 @@
       "-UploadScript",
       "${workspaceFolder}/tools/upload-spiffs.ps1",
       "-Port",
-      "COM3",
+      "COM10",
       "-Fqbn",
       "esp32:esp32:esp32",
       "-SketchDir",

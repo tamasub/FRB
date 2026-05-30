@@ -604,3 +604,7 @@
   border-radius:10px;
   background:#101418;
 }
+
+.frbHiddenWindows {
+  display: none !important;
+}

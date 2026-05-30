@@ -202,8 +202,24 @@ void setup() {
   const char* ap_ssid = "ESP32_FFT";
   const char* ap_pass = "12345678";
 
-  WiFi.mode(WIFI_AP_STA);
+  //WiFi.mode(WIFI_AP_STA);
   //WiFi.mode(WIFI_STA);
+
+  WiFi.mode(WIFI_AP);
+  WiFi.setSleep(false);
+
+  IPAddress local_ip(192, 168, 4, 1);
+  IPAddress gateway(192, 168, 4, 1);
+  IPAddress subnet(255, 255, 255, 0);
+  WiFi.softAPConfig(local_ip, gateway, subnet);
+
+  bool ok = WiFi.softAP(ap_ssid, ap_pass);
+
+  Serial.print("AP start: ");
+  Serial.println(ok ? "OK" : "NG");
+  Serial.print("AP IP: ");
+  Serial.println(WiFi.softAPIP());
+
 /*
   int n = WiFi.scanNetworks();
   for (int i = 0; i < n; ++i) {
@@ -211,8 +227,8 @@ void setup() {
   }
 */
   // STA開始
-  WiFi.begin(sta_ssid, sta_pass);
-  WiFi.setSleep(false);   // ←重要（安定する）
+  //WiFi.begin(sta_ssid, sta_pass);
+  //WiFi.setSleep(false);   // ←重要（安定する）
 
   // ===== WiFi送信出力 最大化 =====
   WiFi.setTxPower(WIFI_POWER_19_5dBm);
