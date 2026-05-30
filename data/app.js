@@ -841,6 +841,9 @@ window.addEventListener('error', (e)=>{
 
 let viewMinHz = 10;
 let viewMaxHz = 600;
+// Peak Timelineは読者向けに0-400Hz固定で表示する。
+// FFT本体の表示範囲(viewMaxHz)とは切り分ける。
+const PEAK_TIMELINE_MAX_HZ = 400;
 
 document.getElementById('apply').onclick = () => {
   viewMinHz = Number(document.getElementById('fmin').value);
@@ -1447,8 +1450,53 @@ function fitAll(){
 
 }
 
-window.addEventListener('resize', fitAll);
+function redrawAllAfterResize(){
+  try {
+    const list = [];
+    if (latestA) list.push(latestA);
+    if (latestM) list.push(latestM);
+
+    if (typeof drawSpectra === 'function') drawSpectra(list);
+
+    if (typeof drawTimeSeries === 'function') drawTimeSeries();
+    if (typeof drawBandTimeline === 'function') drawBandTimeline();
+    if (typeof drawBandTimelineInvestigate === 'function') drawBandTimelineInvestigate();
+    if (typeof drawStairTimeline === 'function') drawStairTimeline();
+    if (typeof drawStairTimelineZoom === 'function') drawStairTimelineZoom();
+    if (typeof drawBandHeatmap === 'function') drawBandHeatmap();
+    if (typeof drawTingleMotion === 'function') drawTingleMotion();
+    if (typeof drawExperienceWave === 'function') drawExperienceWave();
+    if (typeof drawFluxTimeSeries === 'function') drawFluxTimeSeries();
+    if (typeof drawPeakTimeline === 'function') drawPeakTimeline();
+    if (typeof drawFrequencyFlow === 'function') drawFrequencyFlow();
+    if (typeof drawStateTimeline === 'function') drawStateTimeline();
+    if (typeof drawTimeLog === 'function') drawTimeLog();
+    if (typeof drawSweepTrace === 'function') drawSweepTrace();
+    if (typeof drawSweepTraceEnergy === 'function') drawSweepTraceEnergy();
+    if (typeof drawMainMelodyAmp === 'function') drawMainMelodyAmp();
+    if (typeof requestDrawMainMelodyAmp === 'function') requestDrawMainMelodyAmp();
+    if (typeof drawLivePianoRollFromHistory === 'function') drawLivePianoRollFromHistory();
+    if (typeof requestPianoRollDraw === 'function') requestPianoRollDraw();
+  } catch (e) {
+    console.warn('redrawAllAfterResize failed', e);
+  }
+}
+
+let resizeRedrawTimer = null;
+window.addEventListener('resize', () => {
+  fitAll();
+
+  // resize中に連続再描画すると重くなるので、止まってから1回だけ描く。
+  clearTimeout(resizeRedrawTimer);
+  resizeRedrawTimer = setTimeout(() => {
+    redrawAllAfterResize();
+  }, 150);
+});
+
 fitAll();
+setTimeout(() => {
+  redrawAllAfterResize();
+}, 0);
 
 
 
@@ -5628,7 +5676,7 @@ function drawPeakTimeline(){
   }
 
   const hzMin = Math.max(0, viewMinHz || 0);
-  const hzMax = Math.max(hzMin + 1, viewMaxHz || 600);
+  const hzMax = Math.max(hzMin + 1, PEAK_TIMELINE_MAX_HZ);
 
   function xMap(t){
     return chartLeft + ((t - viewStart) / Math.max(1e-9, (viewEnd - viewStart))) * pw;

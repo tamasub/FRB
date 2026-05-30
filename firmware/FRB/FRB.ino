@@ -7,6 +7,17 @@
 #include <driver/i2s.h>
 #include <SPIFFS.h>
 
+// ==================================================
+// FRB build options
+// ==================================================
+// 2号機配布版: マイクなし（加速度Aのみ送信）
+// 1 にすると従来どおり A / M を交互送信します。
+#define FRB_USE_MIC 0
+
+// 2号機配布版: ESP32自身がAPを立てるだけにする
+// 自宅Wi-Fi(STA)へは接続しません。
+#define FRB_AP_ONLY 1
+
 // ===== Wi-Fi =====
 const char* ssid = "hutsub";
 const char* password = "bbbbbbbbz";
@@ -187,25 +198,26 @@ void setup() {
   Wire.setClock(400000); // I2C 400kHz（重要：取りこぼし減る）
 
   setupMPU();
-  setupI2S();   // ★追加
+
+#if FRB_USE_MIC
+  setupI2S();
+#endif
 
   //touchセンサー
   pinMode(TOUCH_PIN, INPUT_PULLUP);  // open collector想定。必要ならINPUTに変更
 
-  // ===== AP + STA 同時モード =====
+  // ===== Wi-Fi: AP only for distribution build =====
 
-  // ルータ接続用（STA）
-  const char* sta_ssid = ssid;
-  const char* sta_pass = password;
-
-  // ESP32アクセスポイント（AP）
   const char* ap_ssid = "ESP32_FFT";
   const char* ap_pass = "12345678";
 
-  //WiFi.mode(WIFI_AP_STA);
-  //WiFi.mode(WIFI_STA);
-
+#if FRB_AP_ONLY
   WiFi.mode(WIFI_AP);
+#else
+  // Developer option: AP + STA can be restored here if needed.
+  WiFi.mode(WIFI_AP_STA);
+#endif
+
   WiFi.setSleep(false);
 
   IPAddress local_ip(192, 168, 4, 1);
@@ -215,55 +227,17 @@ void setup() {
 
   bool ok = WiFi.softAP(ap_ssid, ap_pass);
 
+  // ===== WiFi send power =====
+  WiFi.setTxPower(WIFI_POWER_19_5dBm);
+
   Serial.print("AP start: ");
   Serial.println(ok ? "OK" : "NG");
+  Serial.print("AP SSID: ");
+  Serial.println(ap_ssid);
   Serial.print("AP IP: ");
   Serial.println(WiFi.softAPIP());
-
-/*
-  int n = WiFi.scanNetworks();
-  for (int i = 0; i < n; ++i) {
-    Serial.println(WiFi.SSID(i));
-  }
-*/
-  // STA開始
-  //WiFi.begin(sta_ssid, sta_pass);
-  //WiFi.setSleep(false);   // ←重要（安定する）
-
-  // ===== WiFi送信出力 最大化 =====
-  WiFi.setTxPower(WIFI_POWER_19_5dBm);
-  // 確認表示
   Serial.print("TX Power: ");
   Serial.println(WiFi.getTxPower());
-
-
-  // 確認表示
-  Serial.print("TX Power: ");
-  Serial.println(WiFi.getTxPower());
-  Serial.print("STA connecting");
-  Serial.println(WiFi.status());
-
-  unsigned long t0 = millis();
-
-  while (WiFi.status() != WL_CONNECTED && millis() - t0 < 8000) {
-    delay(300);
-    Serial.print(".");
-  }
-  Serial.println();
-
-  // STA結果
-  if (WiFi.status() == WL_CONNECTED) {
-    Serial.print("STA IP: ");
-    Serial.println(WiFi.localIP());
-  } else {
-    Serial.println("STA connect failed");
-  }
-
-  // AP開始（常時ON）
-  WiFi.softAP(ap_ssid, ap_pass);
-
-  Serial.print("AP IP: ");
-  Serial.println(WiFi.softAPIP());
 
   ws.onEvent(onWsEvent);
   server.addHandler(&ws);
@@ -400,18 +374,18 @@ void loop() {
   updateTouch(v,now);
   
   //-----------------------------------------------------------------------------
-  static bool sendAccelNext = true;
-
   if (millis() - lastSendMs < SEND_INTERVAL_MS) {
     ws.cleanupClients();
     delay(1);
-    //Serial.printf("loop return 010...");
-
     return;
   }
   lastSendMs = millis();
 
   uint32_t t0_us = 0;
+
+#if FRB_USE_MIC
+  // ===== ACCEL / MIC alternating mode =====
+  static bool sendAccelNext = true;
 
   if (sendAccelNext) {
     // ===== ACCEL =====
@@ -425,8 +399,6 @@ void loop() {
     sendFftCsv('A', t0_us, FS_A, N_A, MAX_HZ_A, vRealA, MAX_BIN_A);
 
   } else {
-    //Serial.print("Mic check: \n");
-
     // ===== MIC =====
     if (sampleMic(t0_us)) {
       FFT_M.DCRemoval();
@@ -440,8 +412,23 @@ void loop() {
 
   sendAccelNext = !sendAccelNext;
 
+#else
+  // ===== ACCEL only mode =====
+  // 2号機配布版ではマイクを使わない。
+  // M系のノイズ送信を止め、A系の更新頻度を落とさない。
+  sampleMPU(t0_us);
+
+  FFT_A.DCRemoval();
+  FFT_A.Windowing(FFT_WIN_TYP_HAMMING, FFT_FORWARD);
+  FFT_A.Compute(FFT_FORWARD);
+  FFT_A.ComplexToMagnitude();
+
+  sendFftCsv('A', t0_us, FS_A, N_A, MAX_HZ_A, vRealA, MAX_BIN_A);
+#endif
+
   ws.cleanupClients();
-  delay(1); // 200msは重すぎるのでまず1msへ（必要なら後で調整）
+  delay(1);
+
 }
 
 void sendTouch(int v, int count, bool isLong){

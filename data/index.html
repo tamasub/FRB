@@ -4,41 +4,40 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>FRB FFT Monitor</title>
+  <title>ESP32 FFT Monitor</title>
   <link rel="stylesheet" href="style.css">
 
 </head>
 
 <body>
-  <h2>ESP32 FFT Monitor Ver0.2(beta)</h2>
+  <h2>ESP32 FFT Monitor Ver0.13</h2>
   <div class="box" style="display:flex;gap:12px;align-items:center;">
     <b>FRB Tools</b>
     <a href="compare.html">FRB Compare v1</a>
-    <span class="mini">FFTログ左右比較専用View</span>
+    <a href="https://tamasub.github.io/FRB/tools/mdViewer.html?md=https%3A%2F%2Ftamasub.github.io%2FFRB%2Ftools%2FESP32_FFT_Monitor_Help.md" target="_blank" rel="noopener">Help</a>
+    <span class="mini">FFTログ左右比較専用View / 用語説明</span>
   </div>
 
+  <div id="warn" class="warn"></div>
 
+  <div class="box">
+    Band:
+    <input id="fmin" type="number" value="10" min="0" step="1" style="width:72px"> -
+    <input id="fmax" type="number" value="400" min="1" step="1" style="width:72px"> Hz
+    <button id="apply">Apply</button>
+  </div>
 
   <div class="box soundBox">
     <b>Sound Output</b>
-
+    <label>
+      Hz:
+      <input id="soundFreq" type="number" value="120" min="1" max="1000" step="1" style="width:72px">
+    </label>
     <label>
       Vol:
       <input id="soundVol" type="range" min="0" max="1" step="0.01" value="0.35">
       <span id="soundVolTxt">0.35</span>
     </label>
-    <label>
-      Mod:
-      <select id="modType">
-        <option value="none">none</option>
-        <option value="am_slow" selected>AM slow</option>
-        <option value="am_fast">AM fast</option>
-        <option value="pulse">Pulse</option>
-      </select>
-    </label>
-
-
-  <div class="panel"> 
     <label>
       Start:
       <input id="sweepStartHz" type="number" value="20" min="1" max="1000" step="1" style="width:72px">
@@ -54,43 +53,147 @@
     <button id="sweepStartBtn" type="button">Start Sweep</button>
     <button id="sweepStopBtn" type="button">Stop Sweep</button>
     <span id="sweepStatus" class="mini">sweep idle</span>
-  </div>
+
+    <label>
+      Mod:
+      <select id="modType">
+        <option value="none">none</option>
+        <option value="am_slow" selected>AM slow</option>
+        <option value="am_fast">AM fast</option>
+        <option value="pulse">Pulse</option>
+      </select>
+    </label>
 
 
-  <div class="panel"> 
-        <label>
-          Hz:
-          <input id="soundFreq" type="number" value="120" min="1" max="1000" step="1" style="width:72px">
-        </label>
+    <label>
+      <button id="soundStartBtn" type="button">Start Tone</button>
+      <button id="soundStopBtn" type="button">Stop</button>
+      <span id="soundStatus" class="mini">idle</span>
 
-        <label>
-          <button id="soundStartBtn" type="button">Start Tone</button>
-          <button id="soundStopBtn" type="button">Stop</button>
-          <span id="soundStatus" class="mini">idle</span>
-        </label>
-  </div>
-
-        <label>
-          <b>Log:</b>
-          <button id="saveLogBtn">Save Log</button>
-          <input id="loadLogFile" type="file" accept=".json,application/json" style="display:none;">
-          <button id="loadLogBtn">Load Log</button>
-          <button id="resumeLiveBtn">Resume Live</button>
-          <label style="display:inline-flex;align-items:center;gap:4px;margin-left:8px;">
-            Exp:
-            <textarea id="experimentMemo" rows="1" placeholder="例: #34 ステンレス棒+シリコン / 300Hz AM slow"
-              style="width:360px;height:22px;resize:horizontal;font-size:12px;"></textarea>
-          </label>
-          <span id="logInfoStatus" class="mini"></span>
-        </label>
+      <b>Log:</b>
 
 
-
-
+      <button id="saveLogBtn">Save Log</button>
+      <input id="loadLogFile" type="file" accept=".json,application/json" style="display:none;">
+      <button id="loadLogBtn">Load Log</button>
+      <button id="resumeLiveBtn">Resume Live</button>
+      <label style="display:inline-flex;align-items:center;gap:4px;margin-left:8px;">
+        Exp:
+        <textarea id="experimentMemo" rows="1" placeholder="例: #34 ステンレス棒+シリコン / 300Hz AM slow"
+          style="width:360px;height:22px;resize:horizontal;font-size:12px;"></textarea>
+      </label>
+      <span id="logInfoStatus" class="mini"></span>
+    </label>
   </div>
 
   <!-- playInvestigateBtn  -->
+  <div class="box">
+    <b>Piano Roll </b>
 
+    <button id="playInvestigateBtn">Play Investigate</button>
+    <button id="fastPianoRollBtn" type="button">時短Play</button>
+    <button id="stopInvestigateBtn">Stop</button>
+    <span id="investigateReplayStatus" class="mini">investigate idle</span>
+    <span id="fastPianoRollStatus" class="mini">fast idle</span>
+    <!-- View Mode -->
+      <span>
+        View Mode:
+        <label style="margin-left:8px;">
+          <input type="radio" name="viewMode" value="raw" checked> Raw
+        </label>
+        <label style="margin-left:8px;">
+          <input type="radio" name="viewMode" value="balanced"> Balanced
+        </label>
+        <span class="mini" style="margin-left:8px;">（Balancedは高域を持ち上げて聴きやすくする）</span>
+      </span>
+      <span>
+        Merge (Hz):
+        <input type="range" id="mergeHz" min="0" max="20" step="1" value="5">
+        <span id="mergeHzLabel">5 Hz</span>
+      </span>
+
+      <span>
+        Instrument:
+        <select id="instrumentSel">
+          <option value="sine">Sine（柔らかい）</option>
+          <option value="triangle">Triangle（少し芯）</option>
+          <option value="square">Square（強め）</option>
+          <option value="sawtooth">Saw（派手）</option>
+        </select>
+      </span>
+
+      <span>
+        Pitch Snap:
+        <label style="margin-left:4px;">
+          <input type="checkbox" id="pitchSnap">
+          <span id="pitchSnapLabel">OFF 連続Hz</span>
+        </label>
+      </span>
+
+      <span>
+        Vol x:
+        <input id="pianoRollVolumeMultiplier" type="number" value="10" min="0.1" max="100" step="0.1" style="width:72px">
+        <span id="pianoRollVolumeMultiplierLabel" class="mini">10x</span>
+      </span>
+
+      <span>
+        <button id="exportWavBtn" type="button">Export WAV</button>
+        <span id="exportWavStatus" class="mini">wav idle</span>
+      </span>
+
+      <span>
+        <button id="exportMidiBtn" type="button">Export MIDI</button>
+        <span id="exportMidiStatus" class="mini">midi idle</span>
+      </span>
+
+<span class="midiInstBox">
+        MIDI Inst:
+        <label>Melody
+          <select id="midiInstMelody">
+            <option value="0">001 Piano 1</option>
+            <option value="1">002 Piano 2</option>
+            <option value="2">003 Piano 3</option>
+            <option value="3">004 Honky-tonk Piano</option>
+            <option value="4">005 Electric Piano 1</option>
+            <option value="29" selected>030 Overdriven Guitar</option>
+          </select>
+        </label>
+
+        <label>Low
+          <select id="midiInstLow">
+            <option value="32">033 Acoustic Bass</option>
+            <option value="33">034 Finger Bass</option>
+            <option value="34">035 Pick Bass</option>
+            <option value="35">036 Fretless Bass</option>
+            <option value="36" selected>037 Slap Bass 1</option>
+            <option value="37">038 Slap Bass 2</option>
+          </select>
+        </label>
+
+        <label>Mid
+          <select id="midiInstMid">
+            <option value="16">017 Drawbar Organ</option>
+            <option value="17">018 Percussive Organ</option>
+            <option value="18" selected>019 Rock Organ</option>
+            <option value="19">020 Church Organ</option>
+            <option value="4">005 Electric Piano 1</option>
+          </select>
+        </label>
+
+        <label>High
+          <select id="midiInstHigh">
+            <option value="8">009 Celesta</option>
+            <option value="9">010 Glockenspiel</option>
+            <option value="10">011 Music Box</option>
+            <option value="11">012 Vibraphone</option>
+            <option value="12">013 Marimba</option>
+            <option value="25" selected>026 Steel Guitar</option>
+            <option value="26">027 Jazz Guitar</option>
+          </select>
+        </label>
+      </span>
+
+  </div>
 
 
 
@@ -130,30 +233,30 @@
         <canvas id="tsSweepEnergy"></canvas>
       </div>
 
+      <div class="box">
+        <div class="subPanel pianoRollPanel">
+          <div class="subTitle">FRB Piano Roll <span id="pianoRollStatus" class="mini">idle</span></div>
+          <div class="mini">縦：半音階 / ラベル：A4 440Hz・C4 261Hz・A3 220Hz・A2 110Hz・A1 55Hz</div>
+          <canvas id="pianoRollCanvas"></canvas>
+        </div>
+        <div class="subPanel">
+          BandTimeline Investigate Scale:
+          <select id="bandScaleModeInvestigate">
+            <option value="3000">Scale0-0(3000)</option>
+            <option value="5000">Scale0-1(5000)</option>
+            <option value="10000" selected >Scale1 (10000)</option>
+            <option value="40000">Scale2 (40000)</option>
+            <option value="60000">Scale3 (60000)</option>
+            <option value="80000">Scale4 (80000)</option>
+            <option value="400000">Scale5 (400000)</option>
+            <option value="800000">Scale6 (800000)</option>
+            <option value="1600000">Scale7 (1600000)</option>
 
-      <div class="subPanel pianoRollPanel">
-        <div class="subTitle">FRB Piano Roll <span id="pianoRollStatus" class="mini">idle</span></div>
-        <div class="mini">縦：半音階 / ラベル：A4 440Hz・C4 261Hz・A3 220Hz・A2 110Hz・A1 55Hz</div>
-        <canvas id="pianoRollCanvas"></canvas>
+          </select>
+          <div id="bandInvestigateLegend" class="bandLegend"></div>
+          <canvas id="tsBandInvestigate"></canvas>
+        </div>
       </div>
-      <div class="subPanel">
-        BandTimeline Investigate Scale:
-        <select id="bandScaleModeInvestigate">
-          <option value="3000">Scale0-0(3000)</option>
-          <option value="5000">Scale0-1(5000)</option>
-          <option value="10000" selected >Scale1 (10000)</option>
-          <option value="40000">Scale2 (40000)</option>
-          <option value="60000">Scale3 (60000)</option>
-          <option value="80000">Scale4 (80000)</option>
-          <option value="400000">Scale5 (400000)</option>
-          <option value="800000">Scale6 (800000)</option>
-          <option value="1600000">Scale7 (1600000)</option>
-
-        </select>
-        <div id="bandInvestigateLegend" class="bandLegend"></div>
-        <canvas id="tsBandInvestigate"></canvas>
-      </div>
-
       
       <div class="subPanel">
         <div class="subTitle">Flux</div>
@@ -179,154 +282,6 @@
         <div class="panelTitle">BridgeScore Zoom (0.75-1.00)</div>
         <canvas id="tsBridgeZoom"></canvas>
       </div>
-
-    <!-- timelog-wrap -->
-    </div>
-   
-
-    <!-- Peak Timeline -->
-    <div class="subPanel">
-      <div class="subTitle">Peak Timeline</div>
-      <canvas id="tsPeak"></canvas>
-    </div>
-
-    <div class="panel">
-      <div class="box">
-          Smooth:
-          <input id="alpha" type="number" value="0.25" min="0.01" max="1" step="0.01" style="width:72px">
-          <small>(0.10〜0.30おすすめ)</small>
-          <label style="margin-left:12px; user-select:none;">
-            <input type="checkbox" id="db" checked> dB表示</label>
-      </div>
-      <canvas id="c"></canvas>
-    </div>
-    
-    <!-- TIME LOG panel -->
-  </div>
-
-
-
-<div id="hiddenWindows" class="frbHiddenWindows">
-  <!-- ここに非表示にしたいWindowを移動 -->
-
-  <div class="box">
-    Band:
-    <input id="fmin" type="number" value="10" min="0" step="1" style="width:72px"> -
-    <input id="fmax" type="number" value="400" min="1" step="1" style="width:72px"> Hz
-    <button id="apply">Apply</button>
-  </div>
-
-
-    <div class="box">
-      <b>Piano Roll </b>
-
-      <button id="playInvestigateBtn">Play Investigate</button>
-      <button id="fastPianoRollBtn" type="button">時短Play</button>
-      <button id="stopInvestigateBtn">Stop</button>
-      <span id="investigateReplayStatus" class="mini">investigate idle</span>
-      <span id="fastPianoRollStatus" class="mini">fast idle</span>
-      <!-- View Mode -->
-        <span>
-          View Mode:
-          <label style="margin-left:8px;">
-            <input type="radio" name="viewMode" value="raw" checked> Raw
-          </label>
-          <label style="margin-left:8px;">
-            <input type="radio" name="viewMode" value="balanced"> Balanced
-          </label>
-          <span class="mini" style="margin-left:8px;">（Balancedは高域を持ち上げて聴きやすくする）</span>
-        </span>
-        <span>
-          Merge (Hz):
-          <input type="range" id="mergeHz" min="0" max="20" step="1" value="5">
-          <span id="mergeHzLabel">5 Hz</span>
-        </span>
-
-        <span>
-          Instrument:
-          <select id="instrumentSel">
-            <option value="sine">Sine（柔らかい）</option>
-            <option value="triangle">Triangle（少し芯）</option>
-            <option value="square">Square（強め）</option>
-            <option value="sawtooth">Saw（派手）</option>
-          </select>
-        </span>
-
-        <span>
-          Pitch Snap:
-          <label style="margin-left:4px;">
-            <input type="checkbox" id="pitchSnap">
-            <span id="pitchSnapLabel">OFF 連続Hz</span>
-          </label>
-        </span>
-
-        <span>
-          Vol x:
-          <input id="pianoRollVolumeMultiplier" type="number" value="10" min="0.1" max="100" step="0.1" style="width:72px">
-          <span id="pianoRollVolumeMultiplierLabel" class="mini">10x</span>
-        </span>
-
-        <span>
-          <button id="exportWavBtn" type="button">Export WAV</button>
-          <span id="exportWavStatus" class="mini">wav idle</span>
-        </span>
-
-        <span>
-          <button id="exportMidiBtn" type="button">Export MIDI</button>
-          <span id="exportMidiStatus" class="mini">midi idle</span>
-        </span>
-
-  <span class="midiInstBox">
-          MIDI Inst:
-          <label>Melody
-            <select id="midiInstMelody">
-              <option value="0">001 Piano 1</option>
-              <option value="1">002 Piano 2</option>
-              <option value="2">003 Piano 3</option>
-              <option value="3">004 Honky-tonk Piano</option>
-              <option value="4">005 Electric Piano 1</option>
-              <option value="29" selected>030 Overdriven Guitar</option>
-            </select>
-          </label>
-
-          <label>Low
-            <select id="midiInstLow">
-              <option value="32">033 Acoustic Bass</option>
-              <option value="33">034 Finger Bass</option>
-              <option value="34">035 Pick Bass</option>
-              <option value="35">036 Fretless Bass</option>
-              <option value="36" selected>037 Slap Bass 1</option>
-              <option value="37">038 Slap Bass 2</option>
-            </select>
-          </label>
-
-          <label>Mid
-            <select id="midiInstMid">
-              <option value="16">017 Drawbar Organ</option>
-              <option value="17">018 Percussive Organ</option>
-              <option value="18" selected>019 Rock Organ</option>
-              <option value="19">020 Church Organ</option>
-              <option value="4">005 Electric Piano 1</option>
-            </select>
-          </label>
-
-          <label>High
-            <select id="midiInstHigh">
-              <option value="8">009 Celesta</option>
-              <option value="9">010 Glockenspiel</option>
-              <option value="10">011 Music Box</option>
-              <option value="11">012 Vibraphone</option>
-              <option value="12">013 Marimba</option>
-              <option value="25" selected>026 Steel Guitar</option>
-              <option value="26">027 Jazz Guitar</option>
-            </select>
-          </label>
-        </span>
-
-    </div>
-
-
-
       <div class="subPanel">
 
         BandTimeline Scale:
@@ -354,7 +309,7 @@
       <canvas id="tsBandFlux"></canvas>
 
       <canvas id="tsState"></canvas>
-
+    </div>
 
     <div class="subPanel">
       <div class="subTitle">Frequency Flow</div>
@@ -376,10 +331,14 @@
 
     <canvas id="ts"></canvas>
 
+    <!-- Peak Timeline -->
+    <div class="subPanel">
+      <div class="subTitle">Peak Timeline</div>
+      <canvas id="tsPeak"></canvas>
+    </div>
 
 
-
-
+  </div>
 
   <div class="row">
     <div class="box">Status: <span id="st">connecting...</span></div>
@@ -400,11 +359,19 @@
         </div>
       </div>
     </div>
+
+
+    <div class="box">
+      Smooth:
+      <input id="alpha" type="number" value="0.25" min="0.01" max="1" step="0.01" style="width:72px">
+      <small>(0.10〜0.30おすすめ)</small>
+      <label style="margin-left:12px; user-select:none;">
+        <input type="checkbox" id="db" checked> dB表示</label>
+    </div>
+
   </div>
 
-
-  
-
+  <canvas id="c"></canvas>
 
   <div class="row">
     <div class="box">
@@ -435,7 +402,7 @@
   <div class="scoreBox" style="margin:10px 0;">
     <div class="scoreTitle">TOUCH Shots</div>
 
-    <button id="loadTouchLogBtn">Load Log</button>
+    <button id="loadLogBtn">Load Log</button>
 
     <button onclick="clearSelectedShot()">Clear Select</button>
 
@@ -622,13 +589,9 @@
       <div>ΔIndex: <b id="fishDelta">-</b></div>
     </div>
   </div>
-  
+
   <canvas id="specA"></canvas>
   <canvas id="specM"></canvas>
-
-<!-- ここに非表示にしたいWindowを移動 -->
-</div> 
-
 
   <script src="app.js"></script>
 
