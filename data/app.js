@@ -115,6 +115,17 @@ if (exportMidiBtn) {
   });
 }
 
+// ===== Sound Output: MIDI Export collapsible panel =====
+const midiExportToggleBtn = document.getElementById('midiExportToggleBtn');
+const midiExportControls = document.getElementById('midiExportControls');
+
+if (midiExportToggleBtn && midiExportControls) {
+  midiExportToggleBtn.addEventListener('click', () => {
+    const hidden = midiExportControls.classList.toggle('isHidden');
+    midiExportToggleBtn.textContent = hidden ? 'MIDI Export ▸' : 'MIDI Export ▾';
+  });
+}
+
 
 
 //Decay = 振動の形　、　Energy = 振動の量

@@ -609,3 +609,69 @@
 /* Hidden / Internal Windows */
 .frbHiddenWindows { display: none !important; }
 body.devMode .frbHiddenWindows { display: block !important; }
+
+/* ===== Sound Output: MIDI Export Professor ===== */
+.midiExportPanel{
+  flex:1 1 100%;
+  margin-top:8px;
+  background:#fbfbff;
+}
+
+.midiExportToggle{
+  font-weight:700;
+}
+
+.midiExportControls{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px 12px;
+  align-items:center;
+  margin-top:8px;
+}
+
+.midiMainAction{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding-right:8px;
+  border-right:1px solid #ddd;
+}
+
+.midiInstBox{
+  display:inline-flex;
+  flex-wrap:wrap;
+  gap:8px;
+  align-items:center;
+  padding:6px 8px;
+  border:1px solid #e3e3e3;
+  border-radius:10px;
+  background:#fff;
+}
+
+.midiInstBox label{
+  display:inline-flex;
+  gap:4px;
+  align-items:center;
+}
+
+.midiAdvancedBox{
+  padding:4px 8px;
+  border:1px dashed #ddd;
+  border-radius:10px;
+  background:#fff;
+}
+
+.isHidden{
+  display:none !important;
+}
+
+.frbLegacyPlayControls{
+  display:none !important;
+}
+
+.pianoRollControlBox{
+  display:flex;
+  gap:8px 12px;
+  flex-wrap:wrap;
+  align-items:center;
+}
