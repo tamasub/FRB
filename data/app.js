@@ -1,10 +1,96 @@
-//v0.0.0
+//v0.2.2-log-schema-v4-midi-professor
 // MIDI_EXPORT_FILENAME_SHORT_META_AND_DOMINO_PROGRAM_2026-05-10
 // INVESTIGATE_FILTER_HARDCUT_2026-05-04
 // ===== FRB device mode =====
 // 2号機配布版はマイクなし。A(Accel)だけでTimeLog/Flux/PianoRollを更新する。
 // 1号機などマイクあり版で使う場合は true に戻す。
 const FRB_MIC_ENABLED = false;
+
+// ===== FRB Log Schema / App Version =====
+// v4から、ログJSON自身に「保存仕様」「アプリ版」「MIDI出力ポリシー」を持たせる。
+// 旧ログ(version 1-3 / schemaVersionなし)は Legacy Log として表示互換を維持する。
+const FRB_LOG_VERSION = 4;
+const FRB_LOG_SCHEMA_VERSION = 'frb-log-0.4-draft';
+const FRB_APP_VERSION = 'fft-monitor-0.2.2-log-schema-v4-midi-professor';
+const FRB_MIDI_EXPORT_POLICY = 'rebuild-from-tsBuf';
+
+let currentLoadedLogMeta = null;
+
+function getFrameTimeSpan(list){
+  if (!Array.isArray(list) || list.length === 0) {
+    return { count: 0, start: null, end: null, span: 0 };
+  }
+
+  const times = list
+    .map(x => Number(x?.t))
+    .filter(Number.isFinite)
+    .sort((a, b) => a - b);
+
+  if (!times.length) {
+    return { count: list.length, start: null, end: null, span: 0 };
+  }
+
+  const start = times[0];
+  const end = times[times.length - 1];
+  return {
+    count: list.length,
+    start,
+    end,
+    span: Math.max(0, end - start)
+  };
+}
+
+function clonePianoRollFrame(fr){
+  return {
+    ...fr,
+    t: Number(fr?.t) || 0,
+    melody: fr?.melody ? { ...fr.melody } : null,
+    notes: Array.isArray(fr?.notes) ? fr.notes.map(n => ({ ...n })) : []
+  };
+}
+
+function cloneTsFrame(fr){
+  return filterInvestigateFrame({ ...fr });
+}
+
+function buildPianoRollSnapshotForSave(tsSnapshot){
+  const src = Array.isArray(livePianoRollHistory)
+    ? livePianoRollHistory.filter(fr => fr && Number.isFinite(Number(fr.t))).map(clonePianoRollFrame)
+    : [];
+
+  const tsSpan = getFrameTimeSpan(tsSnapshot);
+  if (!src.length || tsSpan.start == null || tsSpan.end == null) return [];
+
+  // tsBufとpianoRollの時間範囲を揃える。
+  // これで「見えているログ」と「保存済みPiano Roll」が別範囲になる事故を防ぐ。
+  const pad = 0.001;
+  return src.filter(fr => fr.t >= tsSpan.start - pad && fr.t <= tsSpan.end + pad);
+}
+
+function getLoadedLogInfo(data){
+  const rawVersion = Number(data?.version);
+  const version = Number.isFinite(rawVersion) ? rawVersion : 1;
+  const schemaVersion = String(data?.schemaVersion || (version >= 4 ? 'unknown-v4' : 'legacy'));
+  const isLegacy = version < 4 || !data?.schemaVersion;
+
+  return {
+    version,
+    schemaVersion,
+    appVersion: String(data?.appVersion || 'unknown'),
+    isLegacy,
+    midiExportPolicy: String(data?.exportMeta?.midiExportPolicy || data?.logMeta?.midiExportPolicy || (isLegacy ? 'legacy-rebuild-from-tsBuf' : FRB_MIDI_EXPORT_POLICY)),
+    pianoRollSource: String(data?.timeSeriesMeta?.pianoRollSource || data?.logMeta?.pianoRollSource || 'unknown'),
+    loadedAt: new Date().toISOString()
+  };
+}
+
+function shouldRebuildMidiFromTsBuf(){
+  if (!isLoadedSessionMode) return false;
+  if (!Array.isArray(tsBuf) || !tsBuf.length) return false;
+
+  const policy = String(currentLoadedLogMeta?.midiExportPolicy || FRB_MIDI_EXPORT_POLICY);
+  return policy.includes('rebuild-from-tsBuf') || policy.includes('legacy-rebuild');
+}
 
 
 
@@ -3987,29 +4073,66 @@ function safeFilePart(s){
 
 function buildSessionData(){
   const experimentMemo = getExperimentMemo();
+  const savedTsBuf = downsampleTimeSeries(tsBuf, 0.03).map(cloneTsFrame);
+  const savedPianoRoll = buildPianoRollSnapshotForSave(savedTsBuf);
+  const tsSpan = getFrameTimeSpan(savedTsBuf);
+  const pianoSpan = getFrameTimeSpan(savedPianoRoll);
+  const nowIso = new Date().toISOString();
 
   return {
-    version: 3,
+    version: FRB_LOG_VERSION,
+    schemaVersion: FRB_LOG_SCHEMA_VERSION,
+    appVersion: FRB_APP_VERSION,
+    savedAt: nowIso,
+
     experiment: {
       memo: experimentMemo
     },
-    savedAt: new Date().toISOString(),
+
+    captureMeta: {
+      deviceMode: FRB_MIC_ENABLED ? 'accel+mic' : 'accel-only',
+      micEnabled: !!FRB_MIC_ENABLED,
+      timeBase: 'performance.now-sec',
+      note: 'A-only配布版ではMic系は0/null扱い'
+    },
+
+    timeSeriesMeta: {
+      primaryBuffer: 'tsBuf',
+      timeUnit: 'sec',
+      tsBufFrameCount: savedTsBuf.length,
+      tsBufStartT: tsSpan.start,
+      tsBufEndT: tsSpan.end,
+      tsBufSpanSec: tsSpan.span,
+      pianoRollFrameCount: savedPianoRoll.length,
+      pianoRollStartT: pianoSpan.start,
+      pianoRollEndT: pianoSpan.end,
+      pianoRollSpanSec: pianoSpan.span,
+      pianoRollSource: 'clipped-live-buffer-to-tsBuf-range'
+    },
+
+    exportMeta: {
+      midiExportPolicy: FRB_MIDI_EXPORT_POLICY,
+      velocityPolicy: 'fixed-8k-volume-multiplier',
+      volumeMultiplier: getPianoRollVolumeMultiplier(),
+      pitchSnapEnabled: !!PITCH_SNAP_ENABLED,
+      previewWaveform: INSTR
+    },
+
+    legacyCompatibility: {
+      canDisplayLegacyLogs: true,
+      legacyMidiPolicy: 'rebuild-from-tsBuf-when-possible',
+      fullLegacyReproductionGuaranteed: false
+    },
+
     touchShots: touchShots.map(s => ({ ...s })),
 
-    // Piano Roll / Sweep Trace のロード後ズレ対策。
-    // tsBufは従来より細かめに保存しつつ、Piano Rollはリアルタイム描画済みの
-    // フレーム列をそのまま保存する。これにより保存→ロード後も黄色濃度と位置を保持する。
-    tsBuf: downsampleTimeSeries(tsBuf, 0.03),
-    pianoRoll: Array.isArray(livePianoRollHistory)
-      ? livePianoRollHistory.map(fr => ({
-          ...fr,
-          melody: fr?.melody ? { ...fr.melody } : null,
-          notes: Array.isArray(fr?.notes) ? fr.notes.map(n => ({ ...n })) : []
-        }))
-      : [],
+    // v4: tsBufを主データとする。pianoRollは表示復元用キャッシュだが、MIDI出力はtsBuf再構築を優先する。
+    tsBuf: savedTsBuf,
+    pianoRoll: savedPianoRoll,
 
     recAvgA: Array.isArray(recAvgA) ? recAvgA.map(x => ({ ...x })) : [],
-    recAvgB: Array.isArray(recAvgB) ? recAvgB.map(x => ({ ...x })) : []  };
+    recAvgB: Array.isArray(recAvgB) ? recAvgB.map(x => ({ ...x })) : []
+  };
 }
 
 
@@ -4042,10 +4165,14 @@ function loadSessionFromObject(data){
     throw new Error('loadSessionFromObject: invalid data');
   }
 
+  currentLoadedLogMeta = getLoadedLogInfo(data);
+
   const memo = data.experiment?.memo ?? data.experimentMemo ?? '';
   setExperimentMemo(memo);
   if (logInfoStatusEl) {
-    logInfoStatusEl.textContent = memo ? `loaded: ${memo}` : 'loaded: no exp memo';
+    const legacyMark = currentLoadedLogMeta.isLegacy ? 'Legacy log' : currentLoadedLogMeta.schemaVersion;
+    const memoText = memo ? ` / ${memo}` : ' / no exp memo';
+    logInfoStatusEl.textContent = `loaded: ${legacyMark}${memoText}`;
   }
 
   // 本体クリア
@@ -4118,7 +4245,7 @@ function loadSessionFromObject(data){
   drawTingleMotion();
   drawSweepTrace();
   rebuildMelodyAmpFromLoadedSeries();
-  restoreLivePianoRollFromSavedFrames(data.pianoRoll);
+  restoreLivePianoRollFromSavedFrames(data.pianoRoll, currentLoadedLogMeta);
 
 }
 
@@ -4305,6 +4432,7 @@ function renderTouchTable(){
 
 function resumeLiveMode(){
   isLoadedSessionMode = false;
+  currentLoadedLogMeta = null;
   selectedShotId = null;
   focusedTimeSeries = null;
   followLatestTimeLog();
@@ -7671,7 +7799,7 @@ function pushLivePianoRollFrame(frame){
   return rollFrame;
 }
 
-function restoreLivePianoRollFromSavedFrames(savedFrames){
+function restoreLivePianoRollFromSavedFrames(savedFrames, logMeta = null){
   livePianoRollHistory = [];
   livePianoRollMelodyHz = NaN;
 
@@ -7685,13 +7813,20 @@ function restoreLivePianoRollFromSavedFrames(savedFrames){
   const cleaned = Array.isArray(savedFrames)
     ? savedFrames
         .filter(fr => fr && Number.isFinite(Number(fr.t)))
-        .map(fr => ({
-          ...fr,
-          t: Number(fr.t) || 0,
-          melody: fr?.melody ? { ...fr.melody } : null,
-          notes: Array.isArray(fr?.notes) ? fr.notes.map(n => ({ ...n })) : []
-        }))
+        .map(clonePianoRollFrame)
     : [];
+
+  const policy = String(logMeta?.midiExportPolicy || currentLoadedLogMeta?.midiExportPolicy || '');
+  if (src.length && (policy.includes('rebuild-from-tsBuf') || policy.includes('legacy-rebuild'))) {
+    if (cleaned.length) {
+      console.info('pianoRoll display rebuilt from tsBuf by log policy', {
+        policy,
+        savedFrames: cleaned.length,
+        tsBuf: src.length
+      });
+    }
+    return rebuildLivePianoRollFromLoadedSeries();
+  }
 
   function spanOf(list){
     if (!Array.isArray(list) || list.length < 2) return 0;
@@ -8745,7 +8880,14 @@ function makeMidiTrack(trackName, channel, program, noteEvents, maxMag, includeT
 
 function getMidiExportFramesDirect(){
   // Export MIDI は Play/時短Playを押さなくても、いま画面にあるPiano Roll / live履歴 / ロード済みtsBufから直接作れるようにする。
-  // 注意：構造スコアは混ぜない。今回はmagにHuman Mapの周波数重みだけを掛ける。
+  // v4以降およびLegacyログは、保存済みpianoRollではなくtsBuf再構築を優先する。
+  // これにより「表示ログ」と「MIDI化対象」の時間範囲ズレを防ぐ。
+  if (shouldRebuildMidiFromTsBuf()) {
+    const rebuilt = rebuildLivePianoRollFromLoadedSeries();
+    requestDrawFRBPianoRoll();
+    return Array.isArray(rebuilt) ? rebuilt : [];
+  }
+
   let frames = Array.isArray(window.FRB_PIANO_ROLL_LAST) ? window.FRB_PIANO_ROLL_LAST : [];
 
   if (frames.length) return frames;
@@ -8830,8 +8972,9 @@ function exportMidiFromPianoRoll(){
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 
+  const sourceText = shouldRebuildMidiFromTsBuf() ? 'tsBuf rebuild' : 'pianoRoll cache';
   setExportMidiStatus(
-    `midi saved: Fixed8k velocity x${getPianoRollVolumeMultiplier()} / ` +
+    `midi saved: ${sourceText} / Fixed8k velocity x${getPianoRollVolumeMultiplier()} / ` +
     `Inst M:${programInfos.melody.dominoNo} L:${programInfos.low.dominoNo} Mid:${programInfos.mid.dominoNo} H:${programInfos.high.dominoNo} / ` +
     `melody ${groups.melody.length}, low ${groups.low.length}, mid ${groups.mid.length}, high ${groups.high.length}`
   );
