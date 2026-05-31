@@ -38,7 +38,8 @@ data/exports/tmp/
 *.wav
 *.mp4
 *.zip
-
+*.exe
+*.bin
 
 
 # ======
