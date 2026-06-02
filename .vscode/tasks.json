@@ -24,7 +24,7 @@
       "args": [
         "upload",
         "-p",
-        "COM10",
+        "${input:comPort}",
         "--fqbn",
         "esp32:esp32:esp32",
         "${workspaceFolder}/firmware/FRB"
@@ -38,7 +38,7 @@
       "args": [
         "monitor",
         "-p",
-        "COM10",
+        "${input:comPort}",
         "--config",
         "baudrate=115200"
       ],
@@ -54,7 +54,7 @@
         "-File",
         "${workspaceFolder}/tools/upload-spiffs.ps1",
         "-Port",
-        "COM10",
+        "${input:comPort}",
         "-Fqbn",
         "esp32:esp32:esp32",
         "-SketchDir",
@@ -95,31 +95,31 @@
       "problemMatcher": []
     },
     {
-    "label": "FRB: Watch data and auto-upload SPIFFS",
-    "type": "shell",
-    "command": "powershell",
-    "args": [
-      "-ExecutionPolicy",
-      "Bypass",
-      "-File",
-      "${workspaceFolder}/tools/watch-data-and-upload.ps1",
-      "-WatchDir",
-      "${workspaceFolder}/data",
-      "-UploadScript",
-      "${workspaceFolder}/tools/upload-spiffs.ps1",
-      "-Port",
-      "COM10",
-      "-Fqbn",
-      "esp32:esp32:esp32",
-      "-SketchDir",
-      "${workspaceFolder}/firmware/FRB",
-      "-DataDir",
-      "${workspaceFolder}/data"
+      "label": "FRB: Watch data and auto-upload SPIFFS",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/tools/watch-data-and-upload.ps1",
+        "-WatchDir",
+        "${workspaceFolder}/data",
+        "-UploadScript",
+        "${workspaceFolder}/tools/upload-spiffs.ps1",
+        "-Port",
+        "${input:comPort}",
+        "-Fqbn",
+        "esp32:esp32:esp32",
+        "-SketchDir",
+        "${workspaceFolder}/firmware/FRB",
+        "-DataDir",
+        "${workspaceFolder}/data"
       ],
-    "isBackground": true,
-    "problemMatcher": []
+      "isBackground": true,
+      "problemMatcher": []
     },
-  {
+    {
       "label": "MetaDiff: Export DiffToJson",
       "type": "shell",
       "command": "powershell.exe",
@@ -132,10 +132,15 @@
       "options": {
         "cwd": "${workspaceFolder}"
       },
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
       "problemMatcher": []
     }
-  ]}
+  ],
+  "inputs": [
+    {
+      "id": "comPort",
+      "type": "promptString",
+      "description": "ESP32 COM Port",
+      "default": "COM10"
+    }
+  ]
+}

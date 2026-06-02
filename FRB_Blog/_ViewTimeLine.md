@@ -1,5 +1,8 @@
 https://qiita.com/tamasub/items/2b6649748e1772b7eec1
 
+releases Download Count
+https://api.github.com/repos/tamasub/FRB/releases
+
 
 CTRL + SHIFT + I
 
@@ -26,3 +29,4 @@ CTRL + SHIFT + I
 2026-05-26 19:48:13 1948 views
 2026-05-30 22:49:08 2042 views
 2026-05-31 17:17:08 2058 views
+2026-06-01 20:42:26 2076 views

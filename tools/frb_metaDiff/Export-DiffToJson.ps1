@@ -17,6 +17,8 @@ Git差分を、AIに渡しやすい DiffToJson.json に変換するPowerShellス
   # コミット範囲を指定
   powershell -ExecutionPolicy Bypass -File .\Export-DiffToJson.ps1 -Range "main..HEAD"
 
+  powershell -ExecutionPolicy Bypass -File .\Export-DiffToJson.ps1 -Range "aa8e0169abda0fbcf09b2ab34ff9f6abf547f83a..HEAD"
+
   # パッチ本文を長めに入れる
   powershell -ExecutionPolicy Bypass -File .\Export-DiffToJson.ps1 -MaxPatchChars 200000
 
