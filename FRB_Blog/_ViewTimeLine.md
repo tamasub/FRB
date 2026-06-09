@@ -3,6 +3,10 @@ https://qiita.com/tamasub/items/2b6649748e1772b7eec1
 releases Download Count
 https://api.github.com/repos/tamasub/FRB/releases
 
+https://www.google.com/search?q=Fishing+Rod+Benchmark+FRB&sca_esv=d2b5db79e1641e91&gl=us&hl=en&biw=1231&bih=766&ei=wG4las-WLeSxvr0Ptsyk-AY&ved=0ahUKEwjP9tHpmvWUAxXkmK8BHTYmCW8Q4dUDCBA&uact=5&oq=Fishing+Rod+Benchmark+FRB&gs_lp=Egxnd3Mtd2l6LXNlcnAiGUZpc2hpbmcgUm9kIEJlbmNobWFyayBGUkIyBRAhGKABSMQiUKgLWP4gcAJ4AZABAJgBfKABkAOqAQM0LjG4AQPIAQD4AQGYAgegArsDwgIKEAAYRxjWBBiwA8ICCBAAGAgYHhgNwgILEAAYgAQYigUYhgPCAggQABiABBiiBMICCBAAGIkFGKIEwgIGEAAYFhgemAMAiAYBkAYIkgcDNi4xoAf4E7IHAzQuMbgHrAPCBwUwLjMuNMgHG4AIAQ&sclient=gws-wiz-serp
+
+https://zenn.dev/frb_tamasub/articles/c6660a4e81fef1?locale=en
+
 
 CTRL + SHIFT + I
 
@@ -30,3 +34,9 @@ CTRL + SHIFT + I
 2026-05-30 22:49:08 2042 views
 2026-05-31 17:17:08 2058 views
 2026-06-01 20:42:26 2076 views
+2026-06-03 18:46:43 2111 views
+2026-06-05 20:26:18 2146 views
+2026-06-05 23:21:53 2149 views
+2026-06-07 23:26:09 2200 views
+
+

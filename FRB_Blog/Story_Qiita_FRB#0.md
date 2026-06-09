@@ -152,6 +152,10 @@ FRBを一言でいえば、
  　そんな些細な思い付きから、こんな壮大な夢をおいかけるという、奇妙な物語をはじめてしまった。この物語は2025年10月からはじまったばかり。リアルタイムで続けていきます。
 
 
+## FRB物語：主人公紹介 
+■ 『ルアーニスト改』(2026/3/11現在)
+![image.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/3069714/6dde4bf0-973f-4508-a6d8-463f5a9e5fec.png)
+
  ## FRB物語：釣り竿の「感度」を数値化する話
 
 - [FRB #1 床擦りという発見](https://qiita.com/tamasub364/items/b4ba359a8d2408b91865)
@@ -229,9 +233,10 @@ FRBは技術プロジェクトですが、
 - [なぜロッドの感度は数値化されていないのか — FRB動機](https://qiita.com/tamasub364/items/662889a02a8db24ef742)
 - [FRB Phase1 Scoreとは何か — 擦りスコアと指標設計（Draft版）](https://qiita.com/tamasub364/items/4f9c2b44746af7dfdeff)
 - [FRB Phase2 Scoreとは何か — 擬似アタリスコアの意味（Draft版）](https://qiita.com/tamasub364/items/bbcbe408883d33c249d5)
+- [FRB Phase3 知覚トレーニングとは何か — 室内体験は海の感じ方を変えるのか（Draft版）](https://qiita.com/tamasub/items/4b8d7b3945982062f92b)
 - [自宅でできるロッド感度ベンチマーク — FRBまとめ（Draft版）](https://qiita.com/tamasub364/items/799db844d5681bed42ab)
 - [自宅でできるロッド感度ベンチマーク — FRB実践ガイド（Draft版）](https://qiita.com/tamasub364/items/5c864fbd5abd7526db39) 
-- [FRB知覚トレーニングとは何か — 室内体験は海の感じ方を変えるのか（Draft版）](URL未定)
+
   
 - [FRB Terms — 用語集（Draft）](https://qiita.com/tamasub/items/4e1526ed06f827ff947b)
 - [FRB 対話思考拡張: AIは答えを返す存在ではない — 協働が始まる瞬間の話](https://qiita.com/tamasub/items/b57ff4f5df0d9baa4125)
@@ -243,9 +248,9 @@ FRBは技術プロジェクトですが、
 ## FRB Lab Notes[FRB]
 
 <details>
-<summary>FRB実験ログ #1 - #30 はこちらです。</summary>
+<summary>FRB実験ログ #1 - #50 はこちらです。</summary>
 
-2026/3/19　～　2026/4/25　投稿記事
+2026/3/19　～　2026/5/10　投稿記事
 
 ---
 
@@ -281,13 +286,6 @@ FRBは技術プロジェクトですが、
 - [FRB実験ログ #29 —スライドパーツはノイズ発生器ではなく、振動を整える役割だった可能性](https://qiita.com/tamasub/items/fec4a41ec33d54dccb95)
 - [FRB実験ログ #30 — 低周波は存在していた。ただ、通っていなかった。](https://qiita.com/tamasub/items/8ae0183fbb42fa096191)
 
-
-
-
-
-</details>
-
-
 - [FRB実験ログ #31 — スイープで見えた「通る帯域」と、次の一手](https://qiita.com/tamasub/items/217a06274c0ce56378a1)
 - [FRB実験ログ #32 — 振動は“歪ませる”ことで見えてくるのか — 振動エフェクター構想](https://qiita.com/tamasub/items/5a3c4135f1a4b866fbdb)
 - [FRB実験ログ #33 — 振動を壊して、やっと分かった話  —  基準振動](https://qiita.com/tamasub/items/cd822b2b716a9fcaa1f5)
@@ -308,6 +306,33 @@ FRBは技術プロジェクトですが、
 - [FRB実験ログ #48 — 骨伝導体験Base再設計 — 没入型骨伝導マウスピース爆誕](https://qiita.com/tamasub/items/b27a1689ab1f00b1d1f4)
 - [FRB実験ログ #49 — EVAグリップは本当に悪なのか？ — 「振動量」と「手感度」のズレ](https://qiita.com/tamasub/items/02d5f58540a2d8e4b207)
 - [FRB実験ログ #50 — 人工特上ぷるぷる生成への方向転換 — 「情報量密度感」仮説](https://qiita.com/tamasub/items/a38ffe859fb743caf0d1)
+- [FRB実験ログ #31 — スイープで見えた「通る帯域」と、次の一手](https://qiita.com/tamasub/items/217a06274c0ce56378a1)
+- [FRB実験ログ #32 — 振動は“歪ませる”ことで見えてくるのか — 振動エフェクター構想](https://qiita.com/tamasub/items/5a3c4135f1a4b866fbdb)
+- [FRB実験ログ #33 — 振動を壊して、やっと分かった話  —  基準振動](https://qiita.com/tamasub/items/cd822b2b716a9fcaa1f5)
+- [FRB実験ログ #34 — ダイソー素材爆買いと、コスメスパチュラという本命](https://qiita.com/tamasub/items/9e8898101ca0786ce5ed)
+- [FRB実験ログ #35 — 同一ロッド内比較から見えた「三層構造」の必然](https://qiita.com/tamasub/items/6ac0dc50142f41d0e2fb)
+- [FRB実験ログ #36 — アドオン振動エフェクター「スパチュラリング爆誕！！」](https://qiita.com/tamasub/items/686190d5801428fb998e)
+- [FRB実験ログ #37 — 振動量が多い＝感度が高い、ではない！？－スパチュラリングV1.1へ](https://qiita.com/tamasub/items/048d84d8f3463e720924)
+- [FRB実験ログ #38 — 低周波は本当に感じれないのか？疑惑からのブレークスルー](https://qiita.com/tamasub/items/85d3fc0766b8a8e68945)
+- [FRB実験ログ #39 — 人間知覚帯域マップ拡張とWCG V2（暫定）完成](https://qiita.com/tamasub/items/0ff3d1f395abca5c34a8)
+- [FRB実験ログ #40 — 紙やすり#60が低周波問題を解決した日](https://qiita.com/tamasub/items/cfd6af92f3297cb6b3e5)
+- [FRB実験ログ #41 — 取得ログのバンドタイムライン再生から見えた「環境構造」という視点](https://qiita.com/tamasub/items/b6b4f55ddd6090f5f70e)
+- [FRB実験ログ #42 — 振動を「音」に変換した日（半音化への一歩）](https://qiita.com/tamasub/items/1a5abb79e46561262c34)
+- [FRB実験ログ #43 — 振動が“音楽”になった日。主旋律が感度を語り始めた。](https://qiita.com/tamasub/items/b12b94ed2d221d828900)
+- [FRB実験ログ #44 — フェーズ2 ：バネ系インパルス、「ぷるぷる」の生き物的可視化に成功した日](https://qiita.com/tamasub/items/52eb2d4d2edb36f48c47)
+- [FRB実験ログ #45 — Phase 2 Experience層（体験層） — 凄腕ギタリストの速弾き　これぞTheRock ～ 岩接触体験 ～](https://qiita.com/tamasub/items/099f0ccd490717195d1d)
+- [FRB実験ログ #46 — Phase 2 Experience層（体験層） — 糸擦ってホラー映画のBGM作ってみた件](https://qiita.com/tamasub/items/8f8657ae1ca9b9728d94)
+- [FRB実験ログ #47 — 環境振動だけで“ビート”は生まれるのか？](https://qiita.com/tamasub/items/cc7b7159fa7a57046b32)
+- [FRB実験ログ #48 — 骨伝導体験Base再設計 — 没入型骨伝導マウスピース爆誕](https://qiita.com/tamasub/items/b27a1689ab1f00b1d1f4)
+- [FRB実験ログ #49 — EVAグリップは本当に悪なのか？ — 「振動量」と「手感度」のズレ](https://qiita.com/tamasub/items/02d5f58540a2d8e4b207)
+- [FRB実験ログ #50 — 人工特上ぷるぷる生成への方向転換 — 「情報量密度感」仮説](https://qiita.com/tamasub/items/a38ffe859fb743caf0d1)
+
+
+
+
+</details>
+
+
 - [FRB実験ログ #51 — 特上ぷるぷる再現装置 と「情報量密度感」の入口](https://qiita.com/tamasub/items/bc1230e72085cb247371)
 - [FRB実験ログ #52 — FRB的 低周波マインドフルネス瞑想 — 接触条件という新しい実験テーマが生まれた日](https://qiita.com/tamasub/items/a21c969573c96fa7bb0f)
 - [FRB実験ログ #53 — 特上ぷるぷる再現装置 「レイヤー構造」と“情報量密度感”の実感](https://qiita.com/tamasub/items/78c73679a0c07f538d34)
@@ -324,7 +349,22 @@ FRBは技術プロジェクトですが、
 - [FRB実験ログ #64 — FRB Compare 完成！第一回記念実験 — 時系列振動人格比較](https://qiita.com/tamasub/items/373be30ca5f789ba9b9b)
 - [FRB実験ログ #65 — 板を歯でくわえたら、海が脳に来た](https://qiita.com/tamasub/items/381c69f67121b7358295)
 - [FRB実験ログ #66 — 梱包材に封印を解かれた男 -- ハイエンドロッドBヒーロー化計画 ～ ダメ男返上物語 ～ 第2話](https://qiita.com/tamasub/items/78012a336b7570f1bb80)
+- [FRB実験ログ #67 — ホワイトパイン③、床傷サーチャーから爆音楽器へ](https://qiita.com/tamasub/items/87f74c26ceb38e6c521f)
+- [FRB実験ログ #68 — スマホは18Hzに気づけなかった。でも、揺れた瞬間は見えていた](https://qiita.com/tamasub/items/56035fa809e3082bd6dd)
+- [FRB実験ログ #69 — 耳栓をすれば没入できると思っていた](https://qiita.com/tamasub/items/ce86221fc97ba2c5e213)
+- [FRB実験ログ #70 — 計測2号機くんの人格を変えにいったら、ジェルテープ教授が爆誕した](https://qiita.com/tamasub/items/435e6c5cb1aaa1690bff)
+- [FRB実験ログ #71 — 教授、板書の音がデカいです 〜魚ではないものの解像度が上がった日〜](https://qiita.com/tamasub/items/ce94f0e66c431d166167)
+- [FRB実験ログ #72 — 半田付け無しで、ESP32振動測定器は作れるのか？](https://qiita.com/tamasub/items/f6051a87c2811df13271)
+- [FRB実験ログ #73 — ハイエンドロッドBヒーロー化計画 ～ ダメ男返上物語 ～ 第3話 — 段ボールを貼った日](https://qiita.com/tamasub/items/1066f2fa4d9f5b34f62b)
+- [FRB実験ログ #74 — ハイエンドロッドBヒーロー化計画 ～ ダメ男返上物語 ～ 第4話 — 置いて逃げる違和感](https://qiita.com/tamasub/items/305f025f67ac5f344282)
+- [FRB実験ログ #75 — ハイエンドロッドBヒーロー化計画～ ダメ男返上物語 ～ 第5話：余韻減衰氏と、V2くんが守ろうとした世界](https://qiita.com/tamasub/items/c04e7067cbf233b691d2)
 - 
+
+
+
+
+
+
 
 
 
@@ -377,13 +417,146 @@ FRBは技術プロジェクトですが、
 * [FRB MarkDown Viewer ](https://tamasub.github.io/FRB/tools/mdViewer.html)
 
 
+## コンセプト（前提）
 
-  ## コンセプト（前提）
 
 FRBは、**体験をそのまま指標とすること**を目指すベンチマークである。
 
 :::note info
 人は数値を信じるのではない。体験を信じる。
+:::
+
+
+## FRBと差分文化
+
+FRBの目的は、ロッド改造コミュニティを作ることではない。
+
+FRBが目指しているのは、
+
+**海の中が見えるという感覚を、みんなで分かち合える文化**
+
+である。
+
+海や川の現場で、
+砂・岩・藻・糸擦れ・ぷるぷるのような微細な振動差分を感じ取り、
+それを言葉にし、体験として共有できるようにする。
+
+そのための手段として、FRBでは **差分文化** を重視する。
+
+---
+
+:::note info
+FRBは、差分をみんなで眺めて楽しむ文化を育てたい。
+:::
+
+---
+
+差分を見ることで、
+人は「何が違うのか」を考え始める。
+
+違和感が生まれる。
+仮説が生まれる。
+実験したくなる。
+そして、体験を誰かと共有したくなる。
+
+この流れこそが、FRBにおける差分文化である。
+
+---
+
+### ロッド改造差分文化
+
+FRBでは、ロッド改造によって生まれた差分も重要な観察対象とする。
+
+ただし、これは他のロッドとの優劣比較ではない。
+
+ロッド改造差分文化とは、
+
+**自分が行った改造によって、何が変わったのかを可視化し、共有する文化**
+
+である。
+
+たとえば、
+
+- 銅テープを貼った
+- ガイドを交換した
+- EVAを削った
+- カーボンを追加した
+- エンドグリップ側の構造を変えた
+
+その結果、
+振動のどこが変わったのか。
+どの帯域が伸びたのか。
+余計な振動が減ったのか。
+人間が感じやすい振動構造になったのか。
+
+それを、
+
+**改造前 = 基準**  
+**改造後 = 比較対象**
+
+として観察する。
+
+---
+
+:::note info
+「変わった気がする」を、
+「こう変わった」に近づける。
+
+それが、FRBにおける改造差分観察である。
+:::
+
+---
+
+ロッド改造差分文化には、敵がいない。
+
+他人のロッドと戦うのではなく、
+昨日の自分のロッドと、今日の自分のロッドを比べる。
+
+目的は勝敗ではない。
+
+**改造によって生まれた差分を分かち合うこと**である。
+
+誰かが銅テープを貼って差分を共有する。
+それを見た誰かが、自分のロッドでも試してみる。
+また別の差分が生まれる。
+
+そうやって、差分が連鎖していく。
+
+FRBは、その連鎖を通じて、
+ロッド感度を語り合うための共通言語を育てていきたい。
+
+---
+
+### 差分文化は、感度共有文化のための手段である
+
+差分文化も、知覚トレーニングも、測定器も、グラフも、
+それ自体が最終目的ではない。
+
+最終的に目指しているのは、
+
+**海の中の解像度を上げ、その体験を分かち合うこと**
+
+である。
+
+振動を感じにくいロッドでは、
+その世界に届きにくいかもしれない。
+
+また、どれだけロッドが振動していても、
+人間側の知覚が育っていなければ、
+砂・岩・藻・糸擦れ・ぷるぷるとして感じ分けることは難しい。
+
+だからFRBでは、
+
+- ロッド側の振動構造を見る
+- 改造や条件変更による差分を見る
+- 人間側の知覚を育てる
+- 室内体験と実釣体験をつなぐ
+
+これらを一つの文化として扱う。
+
+:::note info
+FRBは、感度を共有する文化を目指している。
+差分文化と知覚トレーニングは、そのための手段である。
 :::
 
 
@@ -687,10 +860,13 @@ FRBは、評価のためのものではない。
 ---
 
 
-
-## 開発中サンプル(2026/3/11現在）
-
+## 開発中サンプル
+■計測１号機くん(2026/3/11現在）
 ![image.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/3069714/e7094599-297e-46f8-93f2-0e983b6d1497.png)
+
+■計測２号機くん（2026/5/28現在）・・・ミニマム構成版（普及に向けて）
+![image.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/3069714/04e48cd1-3cef-453b-b6bc-f7bc62dfbe9e.png)
+
 
 <details>
 <summary>開発環境(2026/3/11現在）</summary>
@@ -714,9 +890,47 @@ FRBは、評価のためのものではない。
   ![image.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/3069714/272ea963-de06-48c6-a7f0-6627c4976ff8.png)
 
  ![image.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/3069714/5c814bde-c577-4033-ab24-3de8d99f05cb.png)
-    
 
 </details>
+
+
+▶ FFTモニターサンプル(2026/5/30現在）
+
+![image.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/3069714/b92f213c-5130-4da9-8f4c-957405c1f5f5.png)
+
+![image.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/3069714/8cc53f8d-ba15-49dd-8857-b9f62c6961b1.png)
+
+![image.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/3069714/f50d4a4b-e38e-4c4f-add1-9e6bfc8c8f6c.png)
+
+![image.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/3069714/18deab3f-82b5-4522-8455-49b49dd4e19d.png)
+
+![image.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/3069714/e077d14a-bb2c-446c-9422-face6a8fcac2.png)
+
+▶ FRB Tools サンプル
+□ Artificial PuruPuru Designer
+（特上ぷるぷる振動発生装置・スピーカー再生→トップガイド接触→グリップ計測）
+![image.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/3069714/5bb6bbce-e28a-44ec-806f-87931f7f1469.png)
+
+□ FRB Sensor Check Mobile
+![image.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/3069714/25f060c0-497f-4c39-9f87-6ef85b503fb4.png)
+
+
+□ AI差分物語
+![image.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/3069714/22a39181-d8ea-4b1e-9dab-816c76ba1578.png)
+
+□ DiffJson Viewer
+![image.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/3069714/383597a5-8bac-49b2-9159-19a55a64b82b.png)
+
+□ FRB Markdown Viewer
+![image.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/3069714/de4cc44b-1430-45da-8a03-9f170b4251fc.png)
+
+□ 振動エフェクター
+![image.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/3069714/05dde216-19a7-4dbb-9f26-8833497f124a.png)
+
+□ 木材骨伝導
+
+![image.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/3069714/76aa55ea-7d8e-4e24-a8d5-9ace387b5851.png)
+
 
 
 ## Story title : 「海の中が見えた日」
@@ -818,12 +1032,22 @@ FRBは、評価のためのものではない。
 ```
 
 ## 関連ブログ記事（Zennブログ）
+
+
 - [思考拡張の5つのレベル——AIと共に、発見し続ける人になるために](https://zenn.dev/frb_tamasub/articles/e45f0039aaa7b1)
 - [思考拡張の大前提——「AIとの対話は、人間との対話と同じである」](https://zenn.dev/frb_tamasub/articles/fab815f72f9968)
 - [思考拡張の設計理論（Draft）——違和感・体験・制約の三つの軸](https://zenn.dev/frb_tamasub/articles/196760f899a922)
 - [思考拡張は、設計できる。 ～AIと話していたら、脳の使い方が変わってきた話～](https://zenn.dev/frb_tamasub/articles/aa2c08d08bafa9)
 - [思考拡張の実践理論（Draft） ～AIと話していたら、脳の使い方が変わってきた話～](https://zenn.dev/frb_tamasub/articles/8893402839db17)
 - [私が考えるAI駆動開発とは——差分・再現性・制約の三つの文化(Draft版)](https://zenn.dev/frb_tamasub/articles/6c075a9d23b247)
+- [思考拡張・ＡＩ駆動開発の免罪符戦術～一度戦闘機に乗ったものは竹槍に戻れない！！～](https://zenn.dev/frb_tamasub/articles/35a14399295c8c)
+- [思考拡張派生理論：設計未提示駆動開発〜設計を渡すな、違和感を渡せ〜](https://zenn.dev/frb_tamasub/articles/8d12318725309e)
+- [思考拡張派生理論：AIにレビューさせるのではなく、AIの仮説で人間の思考を再起動する](https://zenn.dev/frb_tamasub/articles/744060659c21f0)
+- [思考拡張したければ、まず文脈を育てる —— 「AI差分物語」という小さな実験](https://zenn.dev/frb_tamasub/articles/17da326e608795)
+- [最大構成からミニマム構成へ——思考は、削ったときに立ち上がる](https://zenn.dev/frb_tamasub/articles/3654a9bbcca652)
+- [AI協働とは、優秀だけど忘れっぽいチームメンバーと働くことである](https://zenn.dev/frb_tamasub/articles/84d81cb2c735f2)
+- [ChatGPTに「次これ」と言われ続けた90日間 〜気が付いたらQiitaとZennで100本を超えていた〜](https://zenn.dev/frb_tamasub/articles/8023bd6f3ef039)
+　
 
 
 
@@ -983,7 +1207,8 @@ FRBは、その違いを共有するための試みである。
 * FRBは、ロッド側の振動構造と、人間側の知覚トレーニングの両方を扱います。
 * FRBは、海を感じる力を比較・言語化・共有するための文化でもあります。
 * FRBは、ロッドの感度を測るだけではない。室内で基準振動を体験し、海で振動差分を感じ分けるための、知覚トレーニングでもある。
-
+* AI差分物語とは、成果物のGit Diff等で見える変更差分に対して、AIが「なぜその差分が生まれたのか」を仮説として物語化したもの。
+* 
 
 Google AIさん　しっかり学習お願いしますよぉ～。毎回間違えないでくださいねぇ～・・・。GoogleAIさん頼みますよぉ～。😿
 
