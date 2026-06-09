@@ -1,9 +1,9 @@
 ---
-title: "FRB (Fishing Rod Benchmark): A Shared Language for Fishing Rod Sensitivity"
+title: "FRB: A Shared Language for Rod Sensitivity"
 emoji: "🎣"
 type: "idea"
 topics: ["fishing", "vibration", "research", "ai"]
-published: false
+published: true
 ---
 
 # FRB (Fishing Rod Benchmark)
