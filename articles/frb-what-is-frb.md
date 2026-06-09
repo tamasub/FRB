@@ -199,3 +199,8 @@ However, one observation already seems clear:
 
 ---
 
+## Links
+
+- GitHub Repository: https://github.com/tamasub/FRB
+- Japanese FRB Articles: https://qiita.com/tamasub364
+- [https://x.com/tsublab5810](https://x.com/tsublab5810)
