@@ -197,6 +197,9 @@ However, one observation already seems clear:
 
 **Sensitivity becomes real when it can be shared.**
 
+FRB is ultimately not about measurement.
+It is about creating a culture where perceived differences can be shared.
+
 ---
 
 ## Links
