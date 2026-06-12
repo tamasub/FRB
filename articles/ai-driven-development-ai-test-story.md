@@ -6,8 +6,7 @@ topics: ["ai", "development", "testing", "automation", "thought"]
 published: true
 ---
 
-# 私が考えるAI駆動開発とは——AIテスト物語があるなら設計書は必要ですか？
-
+# 私が考えるAI駆動開発とは——AIテスト物語があるなら設計書は必要ですか？～目に見えないものを観測・可視化していく～
 
 最近、自律型AIの記事を読んでいると、
 
