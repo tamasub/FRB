@@ -1,11 +1,12 @@
 ---
-
 title: "私が考えるAI協働とは — Viewをデータ化した先に見えた世界"
 emoji: "🧩"
 type: "idea"
 topics: ["ai", "json", "markdown", "git", "nocode"]
 published: true
----------------
+---
+
+
 
 
 # はじめに
