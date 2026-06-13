@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JSON Master Editor v0.1-draft</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="app-header" id="appHeader">
+    <div class="brand-block">
+      <div class="app-kicker">FRB Studio Lab</div>
+      <h1>No-Code JSON Studio<span>v0.1-draft</span></h1>
+      <p>1画面1グリッド / Header Form + Search Form + Grid + Detail Dialog</p>
+    </div>
+
+    <section class="loader-panel" aria-label="JSON読み込み">
+      <label class="drop-file-box" data-input="defFile">
+        <span class="drop-label">画面定義JSON</span>
+        <span class="drop-name" id="defFileName">Drop or Select</span>
+        <input id="defFile" type="file" accept=".json,application/json" />
+      </label>
+      <label class="drop-file-box" data-input="dataFile">
+        <span class="drop-label">対象JSON</span>
+        <span class="drop-name" id="dataFileName">Drop or Select</span>
+        <input id="dataFile" type="file" accept=".json,application/json" />
+      </label>
+      <button id="loadBtn" class="primary-button">読み込み</button>
+      <button id="saveBtn" class="ghost-button" disabled>別名保存</button>
+      <span id="status" class="status">未読み込み</span>
+    </section>
+  </header>
+
+  <main>
+    <section id="headerSection" class="card hidden">
+      <h2 id="headerCaption">Header</h2>
+      <div id="headerForm" class="form-grid"></div>
+    </section>
+
+    <section id="searchSection" class="card hidden">
+      <div class="section-title-row">
+        <h2>検索</h2>
+        <div class="button-row compact">
+          <button id="searchBtn" class="primary-button small">検索</button>
+          <button id="clearSearchBtn" class="ghost-button small">取消</button>
+        </div>
+      </div>
+      <div id="searchForm" class="form-grid search-grid"></div>
+    </section>
+
+    <section id="gridSection" class="card hidden grid-card">
+      <div class="grid-title-row">
+        <h2 id="gridCaption">Grid</h2>
+        <span id="gridCount" class="count"></span>
+      </div>
+      <div class="table-wrap">
+        <table id="dataGrid"></table>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="detailDialog">
+    <form method="dialog" class="dialog-body">
+      <div class="dialog-title-row">
+        <div>
+          <div class="app-kicker dark">Row Detail</div>
+          <h2>詳細</h2>
+        </div>
+        <button value="cancel" class="icon-button" aria-label="閉じる">×</button>
+      </div>
+      <div id="detailForm" class="form-grid detail-grid"></div>
+      <div id="childArea"></div>
+      <div class="button-row right">
+        <button id="applyDetailBtn" class="primary-button" value="default">反映</button>
+        <button class="ghost-button" value="cancel">閉じる</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
