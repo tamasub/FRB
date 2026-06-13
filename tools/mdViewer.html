@@ -362,7 +362,7 @@
 <body data-mode="viewer">
   <div class="app">
     <header class="topbar">
-      <div class="brand"><div class="logo">🎣</div><h1>FRB Studio</h1><span class="badge">v3.1</span></div>
+      <div class="brand"><div class="logo">🎣</div><h1>FRB Studio</h1><span class="badge">v3.2</span></div>
       
       <div class="controls">
 	<button id="btnViewerMode" class="ghost-btn mode-active">Viewer</button>
@@ -638,6 +638,44 @@ function insertAtCursor(text, selectStartOffset = null, selectEndOffset = null) 
   replaceRange(editorEl.selectionStart, editorEl.selectionEnd, text, selectStartOffset, selectEndOffset);
 }
 
+// Markdownショートカット（Ctrl+B / Cmd+B：選択文字を太字化）
+function wrapSelection(prefix, suffix = prefix, placeholder = "text") {
+  const start = editorEl.selectionStart;
+  const end = editorEl.selectionEnd;
+  const value = editorEl.value;
+  const selected = value.slice(start, end);
+
+  // 選択範囲が既に prefix/suffix で囲まれている場合は解除する
+  const before = value.slice(Math.max(0, start - prefix.length), start);
+  const after = value.slice(end, end + suffix.length);
+  if (selected && before === prefix && after === suffix) {
+    const newValue = value.slice(0, start - prefix.length) + selected + value.slice(end + suffix.length);
+    editorEl.value = newValue;
+    editorEl.setSelectionRange(start - prefix.length, end - prefix.length);
+    editorEl.focus();
+    renderMarkdown(editorEl.value, "#", "Live Editing");
+    return;
+  }
+
+  const body = selected || placeholder;
+  const wrapped = prefix + body + suffix;
+  editorEl.value = value.slice(0, start) + wrapped + value.slice(end);
+
+  if (selected) {
+    editorEl.setSelectionRange(start + prefix.length, start + prefix.length + selected.length);
+  } else {
+    editorEl.setSelectionRange(start + prefix.length, start + prefix.length + placeholder.length);
+  }
+
+  editorEl.focus();
+  renderMarkdown(editorEl.value, "#", "Live Editing");
+}
+
+function toggleBoldSelection() {
+  wrapSelection("**", "**", "太字");
+}
+
+
 function applySlashCommand(key) {
   const cmd = slashCommands.find(c => c.key === key);
   if (!cmd) return;
@@ -670,6 +708,12 @@ document.addEventListener("click", (e) => {
 });
 
 editorEl.addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") {
+    e.preventDefault();
+    hideSlashMenu();
+    toggleBoldSelection();
+    return;
+  }
   if (!slashState.open) return;
   const matches = getSlashMatches(slashState.query);
   if (e.key === "ArrowDown") {
