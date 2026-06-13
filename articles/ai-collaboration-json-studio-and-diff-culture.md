@@ -283,8 +283,16 @@ No-Code JSON Studioへ。
 
 だった。
 
+---
 
 ![alt text](../images/ai-collaboration-json-studio-and-diff-culture.png)
+
+この瞬間、自分でも少し笑ってしまった。
+
+FFTログを管理するための画面を作っていたはずが、
+気付けば「画面定義JSONを管理する画面」を作っていた。
+
+つまり、Viewそのものがデータになっていたのである。
 
 ----
 
