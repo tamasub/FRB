@@ -11,10 +11,14 @@
             "id": "79fba93e563a35ed",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "articles/invisible-visualization-structuring-culture.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "新規タブ"
+              "title": "invisible-visualization-structuring-culture"
             }
           }
         ]
@@ -176,8 +180,9 @@
       "bases:新規ベースを作成": false
     }
   },
-  "active": "79fba93e563a35ed",
+  "active": "69f6ac229016834c",
   "lastOpenFiles": [
+    "FRB_Blog/FRB_Lab_Notes_Qiita.md",
     "data/frb_No-Code_JSON_Studio/defs/view_def_maint_fields_v0_2.json",
     "data/frb_No-Code_JSON_Studio/defs/view_def_maint_fields_v0_1.json",
     "data/frb_No-Code_JSON_Studio/defs/fft_log_view_def_v0_2.json",
@@ -189,11 +194,9 @@
     "data/frb_No-Code_JSON_Studio/index.html",
     "data/frb_No-Code_JSON_Studio/app.js",
     "data/frb_No-Code_JSON_Studio",
-    "tools/frb_No-Code_JSON_Studio/defs/view_def_maint_fields_v0_2.json",
     "FRB_Blog/FRB_Lab_Notes_Qiita_Summary.md",
     "mymemo.md",
     "FRB_Blog/やることメモ.md",
-    "FRB_Blog/FRB_Lab_Notes_Qiita.md",
     "FRB_Blog/FRB_definition_Qiita.md",
     "FRB_Blog/FRB_cultural design structure.md"
   ]
