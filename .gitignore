@@ -34,13 +34,21 @@ data/logs/tmp/
 data/exports/tmp/
 *.tmp
 
+
+# FRBStudio
+/tools/FRBStudio/bin/
+/tools/FRBStudio/obj/
+/tools/FRBStudio_App/
+
+
+
 # ===== Large experiment artifacts =====
 *.wav
 *.mp4
 *.zip
 *.exe
 *.bin
-
+*.dll
 
 # ======
 
