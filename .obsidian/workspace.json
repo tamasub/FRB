@@ -4,21 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "4ec8291c65c58ca1",
+        "id": "f017f78b9bec3967",
         "type": "tabs",
         "children": [
           {
-            "id": "d3aa2555b2f89d29",
+            "id": "79fba93e563a35ed",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "mymemo.md",
-                "mode": "source",
-                "source": false
-              },
+              "type": "empty",
+              "state": {},
               "icon": "lucide-file",
-              "title": "mymemo"
+              "title": "新規タブ"
             }
           }
         ]
@@ -180,11 +176,12 @@
       "bases:新規ベースを作成": false
     }
   },
-  "active": "69f6ac229016834c",
+  "active": "79fba93e563a35ed",
   "lastOpenFiles": [
+    "FRB_Blog/FRB_Lab_Notes_Qiita_Summary.md",
+    "mymemo.md",
     "FRB_Blog/やることメモ.md",
     "FRB_Blog/FRB_Lab_Notes_Qiita.md",
-    "mymemo.md",
     "FRB_Blog/FRB_definition_Qiita.md",
     "FRB_Blog/FRB_cultural design structure.md"
   ]
