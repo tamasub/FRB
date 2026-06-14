@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "JSON Master Editor",
-    "version": "0.1-draft"
+    "name": "No-Code JSON Studio",
+    "version": "0.2-draft"
   },
   "views": [
     {
@@ -95,7 +95,8 @@
               },
               "validation": {
                 "required": true
-              }
+              },
+              "defaultValue": ""
             },
             {
               "field": "caption",
@@ -115,7 +116,8 @@
               },
               "validation": {
                 "required": true
-              }
+              },
+              "defaultValue": ""
             },
             {
               "field": "type",
@@ -145,7 +147,8 @@
               },
               "validation": {
                 "required": true
-              }
+              },
+              "defaultValue": "text"
             },
             {
               "field": "grid.visible",
@@ -162,7 +165,8 @@
               "search": {
                 "visible": true,
                 "operator": "equals"
-              }
+              },
+              "defaultValue": false
             },
             {
               "field": "grid.width",
@@ -174,12 +178,15 @@
               },
               "edit": {
                 "visible": true,
-                "readonly": false
+                "readonly": false,
+                "step": "0.001"
               },
               "search": {
                 "visible": true,
                 "operator": "gte"
-              }
+              },
+              "format": "#.000",
+              "defaultValue": 0
             },
             {
               "field": "edit.visible",
@@ -192,7 +199,8 @@
               "edit": {
                 "visible": true,
                 "readonly": false
-              }
+              },
+              "defaultValue": false
             },
             {
               "field": "edit.readonly",
@@ -209,7 +217,8 @@
               "search": {
                 "visible": true,
                 "operator": "equals"
-              }
+              },
+              "defaultValue": false
             },
             {
               "field": "search.visible",
@@ -226,7 +235,8 @@
               "search": {
                 "visible": true,
                 "operator": "equals"
-              }
+              },
+              "defaultValue": false
             },
             {
               "field": "search.operator",
@@ -245,7 +255,8 @@
               "edit": {
                 "visible": true,
                 "readonly": false
-              }
+              },
+              "defaultValue": "contains"
             },
             {
               "field": "options",
@@ -258,7 +269,8 @@
                 "visible": true,
                 "readonly": false,
                 "editor": "childGrid"
-              }
+              },
+              "defaultValue": []
             },
             {
               "field": "validation.required",
@@ -270,7 +282,8 @@
               "edit": {
                 "visible": true,
                 "readonly": false
-              }
+              },
+              "defaultValue": false
             },
             {
               "field": "edit.editor",
@@ -287,7 +300,8 @@
               "edit": {
                 "visible": true,
                 "readonly": false
-              }
+              },
+              "defaultValue": ""
             },
             {
               "field": "edit.height",
@@ -298,8 +312,112 @@
               },
               "edit": {
                 "visible": true,
+                "readonly": false,
+                "step": "0.001"
+              },
+              "format": "#.000",
+              "defaultValue": 0
+            },
+            {
+              "field": "format",
+              "caption": "表示Format",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 100
+              },
+              "edit": {
+                "visible": true,
                 "readonly": false
-              }
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "defaultValue": ""
+            },
+            {
+              "field": "grid.format",
+              "caption": "Grid Format",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 110
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "defaultValue": ""
+            },
+            {
+              "field": "defaultValue",
+              "caption": "初期値",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 90
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "defaultValue": ""
+            },
+            {
+              "field": "edit.step",
+              "caption": "数値step",
+              "type": "number",
+              "grid": {
+                "visible": false,
+                "width": 90,
+                "format": "#.000000"
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "step": "0.000001"
+              },
+              "format": "#.000000",
+              "defaultValue": 0
+            },
+            {
+              "field": "edit.min",
+              "caption": "数値min",
+              "type": "number",
+              "grid": {
+                "visible": false,
+                "width": 90,
+                "format": "#.000"
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "step": "0.001"
+              },
+              "format": "#.000",
+              "defaultValue": 0
+            },
+            {
+              "field": "edit.max",
+              "caption": "数値max",
+              "type": "number",
+              "grid": {
+                "visible": false,
+                "width": 90,
+                "format": "#.000"
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "step": "0.001"
+              },
+              "format": "#.000",
+              "defaultValue": 0
             }
           ]
         }
