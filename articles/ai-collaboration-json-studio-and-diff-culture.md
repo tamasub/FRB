@@ -285,7 +285,7 @@ No-Code JSON Studioへ。
 
 ---
 
-![alt text](../images/ai-collaboration-json-studio-and-diff-culture.png)
+![alt text](/images/ai-collaboration-json-studio-and-diff-culture.png)
 
 この瞬間、自分でも少し笑ってしまった。
 

@@ -319,7 +319,7 @@ AI協働・思考拡張・AI駆動開発の本質は、
 > **見えないものを可視化し、構造化する文化**
 
 
-![alt text](../images/invisible-visualization-structuring-culture.png)
+![alt text](/images/invisible-visualization-structuring-culture.png)
 
 なのかもしれない。
 
