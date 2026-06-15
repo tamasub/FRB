@@ -1,42 +1,38 @@
-うぃーー、まずこれで最小起動いける。
+# FRB Studio v0.3-draft Tray App
 
-## 1. プロジェクト作成
+## 変更内容
 
-```bat
-mkdir FRBStudio
-cd FRBStudio
-dotnet new web
-mkdir wwwroot defs data
-```
+- `FRBStudio.csproj` を Windows タスクトレイ常駐アプリ構成へ変更
+- `Program.cs` を Minimal API + NotifyIcon 常駐方式へ変更
+- 起動時に `http://localhost:5055` を開く
+- タスクトレイ右クリックメニューを追加
+  - FRB Studio を開く
+  - data フォルダーを開く
+  - defs フォルダーを開く
+  - 終了
 
-## 2. `Program.cs` 全貼り替え
-
-## 3. 起動確認
+## 起動方法
 
 ```bat
 dotnet run
 ```
 
-ブラウザでこれ。
+起動後、左の黒いコンソール画面は出ず、タスクトレイに常駐します。
 
-```txt
-http://localhost:5055
-```
+## 終了方法
 
-## 4. publish
+タスクトレイのアイコンを右クリックし、`終了` を選択してください。
 
-```bat
+## 注意
+
+この版は Windows 専用です。
+`TargetFramework` は `net9.0-windows` です。
+
+Markdown書き込み対応は次ステップ想定です。
+
+----
+
+dotnet run  
+dotnet build
 dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
-```
 
-出力先はだいたいここ。
-
-```txt
-bin\Release\net10.0\win-x64\publish\
-```
-
-`dotnet publish` はアプリを発行先フォルダへ出力し、self-contained は実行に必要な .NET ファイルも含める方式。Single File publish も公式に案内あり。([Microsoft Learn][1])
-
-次は `wwwroot/index.html` から `/api/data/fft_log_sample.json` を読んで、保存ボタンでPOSTする形に繋げれば完成やね。
-
-[1]: https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-publish?utm_source=chatgpt.com "dotnet publish command - .NET CLI"

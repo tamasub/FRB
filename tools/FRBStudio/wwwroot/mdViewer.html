@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="qiita">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FRB Studio Lab - Markdown Viewer & Editor</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.5/dist/purify.min.js"></script>
+  <style>
+    /* --- 極上の3大テーマ定義 --- */
+    :root, [data-theme="qiita"] {
+      --brand-color: #55c500; /* Qiitaグリーン */
+      --brand-gradient: linear-gradient(135deg, #55c500, #46a300);
+      --bg: #f4f9f4; /* Qiita緑を上品に溶かし込んだライトグリーン */
+      --bg2: #e8f5e8;
+      --panel: rgba(255, 255, 255, 0.94);
+      --text: #1f2937;
+      --muted: #4b5563;
+      --line: rgba(85, 197, 0, 0.22);
+      --shadow: 0 20px 60px rgba(44, 77, 44, 0.08);
+      --radius: 22px;
+      --code-bg: #0f172a;
+      --code-text: #dbeafe;
+    }
+
+    [data-theme="zenn"] {
+      --brand-color: #3ea8ff; /* Zennブルー */
+      --brand-gradient: linear-gradient(135deg, #3ea8ff, #2c8ee0);
+      --bg: #f3f7fa; /* Zennの爽やかな薄青ベース */
+      --bg2: #e9f2f7;
+      --panel: rgba(255, 255, 255, 0.94);
+      --text: #2d3748;
+      --muted: #718096;
+      --line: rgba(62, 168, 255, 0.22);
+      --shadow: 0 20px 60px rgba(33, 52, 77, 0.08);
+    }
+
+    [data-theme="dark"] {
+      --brand-color: #00f0ff; /* サイバーブルー */
+      --brand-gradient: linear-gradient(135deg, #00f0ff, #00b0ff);
+      --bg: #0b1020;
+      --bg2: #111a33;
+      --panel: rgba(17, 24, 39, 0.82);
+      --text: #eaf0ff;
+      --muted: #9aa7bd;
+      --line: rgba(226, 232, 240, 0.12);
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+      --code-bg: #020617;
+      --code-text: #dbeafe;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background: linear-gradient(135deg, var(--bg), var(--bg2));
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP", sans-serif;
+      line-height: 1.82;
+      min-height: 100vh;
+      transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .app { width: min(1400px, calc(100% - 28px)); margin: 16px auto 56px; }
+    
+    /* ヘッダー・トップバー */
+    .topbar {
+      position: sticky;
+      top: 12px;
+      z-index: 20;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 18px;
+      align-items: center;
+      padding: 14px 20px;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--panel);
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; white-space:nowrap; }
+    .logo { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 16px; background: linear-gradient(135deg, rgba(63,124,255,.18), rgba(140,111,247,.18)); font-size: 22px; }
+    .brand h1 { margin: 0; font-size: 21px; font-weight: 800; }
+    
+    .controls { display: flex; gap: 12px; align-items: center; justify-content: flex-end; }
+    .urlbox { display: flex; align-items: center; width: 240px; }
+    
+    input, select {
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,.76);
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    [data-theme="dark"] input, [data-theme="dark"] select { background: rgba(30,41,59,0.7); }
+    input:focus, select:focus { border-color: var(--brand-color); }
+    
+    button {
+      padding: 10px 18px;
+      border: 0;
+      border-radius: 14px;
+      background: var(--brand-gradient);
+      color: white;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(63,124,255,.12);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    button:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(63,124,255,.2); }
+    button:active { transform: translateY(1px); }
+    .ghost-btn { background: rgba(105,120,160,.12); color: var(--text); box-shadow: none; }
+    .ghost-btn:hover { background: rgba(105,120,160,.2); }
+    .mode-active { background: var(--text) !important; color: var(--bg) !important; box-shadow: none; }
+
+    /* レイアウト切り替え */
+    .layout {
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+      gap: 24px;
+      margin-top: 22px;
+      align-items: start;
+    }
+    
+    body[data-mode="editor"] .layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; }
+
+    body[data-mode="editor"] .sidebar { display: none; }
+    body[data-mode="viewer"] .edit-container { display: none; }
+
+    .sidebar { position: sticky; top: 108px; display: grid; gap: 16px; }
+    .side-card, .article-card, .edit-card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); backdrop-filter: blur(18px); box-shadow: var(--shadow); }
+    .side-card { padding: 20px; }
+    .side-card h2 { margin: 0 0 14px; font-size: 16px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+    
+    /* 目次 */
+    .toc { display: grid; gap: 2px; max-height: 40vh; overflow: auto; padding-right: 4px; }
+    .toc a { display: block; padding: 8px 12px; border-radius: 10px; color: var(--muted); text-decoration: none; font-size: 13.5px; line-height: 1.45; transition: all 0.2s; }
+    .toc a:hover { background: rgba(63,124,255,.08); color: var(--brand-color); padding-left: 16px; }
+    .toc .level-2 { padding-left: 20px; font-size: 13px; }
+    .toc .level-3 { padding-left: 32px; font-size: 12px; }
+    .toc-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 14px; }
+    .toc-depth-btn { padding: 6px 4px; border-radius: 10px; background: rgba(105,120,160,.1); color: var(--muted); font-size: 11px; font-weight: 800; border:0; cursor:pointer;}
+    .toc-depth-btn.active { background: var(--brand-gradient); color: #fff; }
+
+    .meta-list { display: grid; gap: 12px; color: var(--muted); font-size: 13px; }
+    .meta-list b { display: block; color: var(--text); margin-bottom: 2px; }
+
+    /* エディターコックピット */
+    .edit-card { height: calc(100vh - 130px); position: sticky; top: 108px; display: flex; flex-direction: column; padding: 20px; gap: 14px; }
+    #editor {
+      width: 100%;
+      flex: 1;
+      background: transparent;
+      color: var(--text);
+      border: none;
+      resize: none;
+      font-family: "Fira Code", Consolas, Monaco, "Noto Sans JP", monospace;
+      font-size: 15px;
+      line-height: 1.65;
+      outline: none;
+    }
+    .edit-tools { display: flex; gap: 10px; border-top: 1px solid var(--line); padding-top: 12px; align-items: center; }
+
+    /* Qiita風 / コマンドメニュー */
+    .editor-wrap { position: relative; flex: 1; min-height: 0; display: flex; }
+    .slash-menu {
+      position: fixed;
+      z-index: 80;
+      min-width: 260px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 18px 48px rgba(0,0,0,.18);
+      display: none;
+    }
+    .slash-menu.show { display: grid; gap: 6px; }
+    .slash-item {
+      width: 100%;
+      border: 0;
+      box-shadow: none;
+      background: transparent;
+      color: var(--text);
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 10px;
+      text-align: left;
+      padding: 10px;
+      border-radius: 12px;
+      cursor: pointer;
+      transform: none;
+    }
+    .slash-item:hover, .slash-item.active { background: rgba(105,120,160,.12); transform: none; box-shadow: none; }
+    .slash-icon { width: 34px; height: 34px; display:grid; place-items:center; border-radius: 10px; background: var(--brand-gradient); color:#fff; font-weight:900; }
+    .slash-title { font-size: 13.5px; font-weight: 900; line-height: 1.25; }
+    .slash-desc { font-size: 11.5px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+    .slash-hint { padding: 2px 10px 8px; color: var(--muted); font-size: 11px; font-weight: 700; }
+
+
+    /* プレビュー・記事エリア */
+    .article-card { padding: clamp(24px, 5vw, 48px); min-height: calc(100vh - 130px); transition: opacity 0.2s ease; }
+    
+    /* --- Zenn フロントマター管理 UI パネル (image_193b23.pngのハック再現) --- */
+    .fm-panel {
+      margin-bottom: 24px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(105,120,160,0.04);
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+    .fm-header {
+      padding: 12px 18px;
+      background: rgba(105,120,160,0.08);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13.5px;
+      font-weight: 800;
+      color: var(--muted);
+    }
+    .fm-header:hover { background: rgba(105,120,160,0.12); }
+    .fm-body {
+      padding: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      border-top: 1px solid var(--line);
+    }
+    .fm-body.collapsed { display: none; }
+    .fm-field { display: flex; flex-direction: column; gap: 5px; }
+    .fm-field label { font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; }
+    .fm-field .fm-val {
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.6);
+      border-radius: 10px;
+      font-size: 13.5px;
+      font-weight: 700;
+      border: 1px solid var(--line);
+    }
+    [data-theme="dark"] .fm-field .fm-val { background: rgba(15,23,42,0.5); }
+    .fm-topics { display: flex; flex-wrap: wrap; gap: 6px; }
+    .fm-tag { padding: 3px 8px; background: var(--brand-gradient); color: white; border-radius: 8px; font-size: 11px; font-weight: 800; }
+    
+    /* フロントマター提案エリア */
+    .fm-suggest-card {
+      padding: 16px 20px;
+      background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(239,68,68,0.06));
+      border: 1px dashed #f59e0b;
+      border-radius: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+    }
+    .fm-suggest-text { font-size: 13.5px; font-weight: 700; color: var(--text); }
+
+    /* スクロール遷移時のエレガント・ターゲット・エフェクト */
+.flash-target {
+  animation: elegantGlow 2.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes elegantGlow {
+  0% {
+    background: linear-gradient(90deg, rgba(85,197,0,0.22), rgba(85,197,0,0.06), transparent);
+    box-shadow:
+      inset 6px 0 0 var(--brand-color),
+      0 0 0 rgba(85,197,0,0);
+    transform: translateX(0);
+  }
+
+  18% {
+    background: linear-gradient(90deg, rgba(85,197,0,0.18), rgba(85,197,0,0.05), transparent);
+    box-shadow:
+      inset 6px 0 0 var(--brand-color),
+      0 8px 24px rgba(85,197,0,0.10);
+    transform: translateX(6px);
+  }
+
+  55% {
+    background: linear-gradient(90deg, rgba(85,197,0,0.10), rgba(85,197,0,0.03), transparent);
+    box-shadow:
+      inset 3px 0 0 var(--brand-color),
+      0 4px 18px rgba(85,197,0,0.06);
+    transform: translateX(2px);
+  }
+
+  80% {
+    background: transparent;
+    box-shadow:
+      inset 0 0 0 var(--brand-color),
+      0 0 0 rgba(85,197,0,0);
+    transform: translateX(0);
+  }
+}
+
+    .status-shimmer { padding: 40px; text-align: center; color: var(--muted); font-weight: bold; animation: pulse 1.5s infinite ease-in-out; }
+    @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+
+    /* Markdownスタイル */
+	/* --- Markdownスタイル 内に追加・統合 --- */
+	.markdown-body {
+	  font-size: 16px;
+	  overflow-wrap: break-word; /* 1. 長いURLや英単語が枠外に突き抜けるのを防ぐ */
+	}
+
+	/* 2. 画像の暴走を完全に抑え込む */
+	.markdown-body img {
+	  max-width: 100%;
+	  height: auto;
+	  border-radius: 14px; /* FRB Studioの極上デザインに合わせた角丸 */
+	  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); /* ほんのり上品な影 */
+	  margin: 16px 0;
+	}
+
+	/* 3. 横長テーブルも枠内でスクロール可能にする */
+	.markdown-body table {
+	  display: block;
+	  width: 100%;
+	  overflow-x: auto;
+	  border-collapse: collapse;
+	  margin: 24px 0;
+	}
+	.markdown-body table th, .markdown-body table td {
+	  padding: 10px 16px;
+	  border: 1px solid var(--line);
+	}
+	.markdown-body table th {
+	  background: rgba(105, 120, 160, 0.06);
+	}
+
+    .markdown-body h1, .markdown-body h2, .markdown-body h3 { color: var(--text); line-height: 1.35; padding-left: 8px; margin-left: -8px; }
+    .markdown-body h1 { margin: 0 0 24px; font-size: clamp(28px, 4vw, 36px); font-weight: 800; letter-spacing: -.03em; }
+    .markdown-body h2 { margin: 46px 0 20px; padding-bottom: 10px; border-bottom: 2px solid rgba(105,120,160,0.15); font-size: clamp(20px, 3vw, 26px); font-weight: 800; }
+    html[data-theme="qiita"] .markdown-body h2 { border-bottom-color: rgba(85,197,0,0.3); }
+    html[data-theme="zenn"] .markdown-body h2 { border-bottom-color: rgba(62,168,255,0.3); }
+    .markdown-body h3 { margin: 36px 0 16px; font-size: 19px; font-weight: 800; }
+    .markdown-body a { color: var(--brand-color); text-decoration: none; font-weight: 700; }
+    .markdown-body a:hover { text-decoration: underline; }
+    .markdown-body blockquote { margin: 24px 0; padding: 14px 22px; border-left: 5px solid var(--brand-color); border-radius: 12px; background: rgba(105,120,160,.05); color: var(--muted); }
+    .markdown-body code:not(pre code) { padding: 3px 8px; border-radius: 8px; background: rgba(105,120,160,.12); color: var(--brand-color); font-size: .9em; font-family: monospace; }
+    .markdown-body pre { margin: 24px 0; padding: 20px; border-radius: 18px; background: var(--code-bg); color: var(--code-text); overflow-x: auto; font-family: monospace; }
+    
+    .qiita-note { position: relative; margin: 18px 0; padding: 10px 20px 10px 52px; border-radius: 18px; border: 1px solid var(--line); font-size: 14.5px; }
+    .qiita-note:before { position: absolute; left: 22px; top: 14px; font-weight: 900; font-size: 18px; }
+    .qiita-note.info { background: rgba(140,111,247,0.06); border-left: 5px solid #8c6ff7; }
+    .qiita-note.info:before { content: "💡"; }
+    .qiita-note.warn { background: rgba(245,158,11,0.06); border-left: 5px solid #f59e0b; }
+    .qiita-note.warn:before { content: "⚠️"; }
+    .qiita-note p { margin: 6px 0;	}
+
+    body.drag-over .article-card { outline: 3px dashed var(--brand-color); outline-offset: 6px; background: rgba(105,120,160,0.05); }
+    .footer-note { margin-top: 40px; color: var(--muted); font-size: 11px; text-align: center; letter-spacing: 0.05em; }
+  </style>
+</head>
+<body data-mode="viewer">
+  <div class="app">
+    <header class="topbar">
+      <div class="brand"><div class="logo">🎣</div><h1>FRB Studio Lab</h1><span class="badge">v3.2</span></div>
+      
+      <div class="controls">
+	<button id="btnViewerMode" class="ghost-btn mode-active">Viewer</button>
+	<button id="btnEditorMode" class="ghost-btn">Editor</button>
+
+        
+        <select id="themeSelect">
+          <option value="qiita">🟢 Qiita モード</option>
+          <option value="zenn">🔵 Zenn モード</option>
+          <option value="dark">🌌 ダークコックピット</option>
+        </select>
+
+        <div class="urlbox">
+          <input id="mdUrl" type="text" value="https://tamasub.github.io/FRB/" style="width:100%;" />
+        </div>
+        <button id="loadBtn">読込</button>
+        <button class="ghost-btn" id="localFileBtn">ローカル</button>
+        <input id="localFileInput" style="display: none;" type="file" accept=".md,.markdown,.txt" />
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="sidebar">
+        <section class="side-card">
+          <h2>目次</h2>
+          <div class="toc-options">
+            <button type="button" class="toc-depth-btn" data-depth="all">全階層</button>
+            <button type="button" class="toc-depth-btn" data-depth="1">H1</button>
+            <button type="button" class="toc-depth-btn" data-depth="2">H2</button>
+          </div>
+          <nav id="toc" class="toc"></nav>
+        </section>
+        <section class="side-card">
+          <h2>ドキュメントメタ</h2>
+          <div class="meta-list">
+            <div><b>保存ファイル名</b><input id="metaFileName" type="text" value="" style="width:100%; margin-top:4px; font-size:12px; padding:6px 10px;" placeholder="ファイル名を入力"/></div>
+            <div><b>文字数</b><span id="charCount">-</span></div>
+            <div><b>読了目安</b><span id="readTime">-</span></div>
+          </div>
+        </section>
+      </aside>
+
+      <section class="edit-container side-card edit-card">
+        <div class="editor-wrap">
+          <textarea id="editor" placeholder="# ここにAIの回答や生のテキストを叩き込め！&#10;&#10;行頭で / を入力すると、Code / Table を挿入できます。"></textarea>
+          <div id="slashMenu" class="slash-menu" role="listbox" aria-label="Markdown insert menu"></div>
+        </div>
+        <div class="edit-tools">
+          <button id="btnPasteClip" class="ghost-btn" style="font-size:12px; padding:8px 14px;">📋 クリップボードから流し込み</button>
+          <button id="btnInsertCode" class="ghost-btn" style="font-size:12px; padding:8px 14px;">⌨️ Code</button>
+          <button id="btnInsertTable" class="ghost-btn" style="font-size:12px; padding:8px 14px;">▦ Table</button>
+          <div style="margin-left:auto; display:flex; align-items:center; gap:8px;">
+            <input id="editorFileName" type="text" value="" style="font-size:12px; padding:6px 10px; width:180px;" placeholder="ファイル名"/>
+            <button id="btnSaveFile" style="font-size:12px; padding:8px 14px;">💾 MD保存</button>
+          </div>
+        </div>
+      </section>
+
+      <article class="article-card" id="articleCard">
+        <div id="fmSuggestArea" style="display:none;"></div>
+
+        <div class="fm-panel" id="fmPanel" style="display:none;">
+          <div class="fm-header" id="fmHeader">
+            <span>⚙️ フロントマター（記事設定）</span>
+            <span id="fmToggleIcon">▲</span>
+          </div>
+          <div class="fm-body" id="fmBody">
+            <div class="fm-field">
+              <label>タイトル</label>
+              <div class="fm-val" id="fmTitle">-</div>
+            </div>
+            <div class="fm-field">
+              <label>Slug (ファイル名候補)</label>
+              <div class="fm-val" id="fmSlug" style="font-family:monospace;">-</div>
+            </div>
+            <div class="fm-field" style="max-width:100px;">
+              <label>Emoji</label>
+              <div class="fm-val" id="fmEmoji" style="text-align:center; font-size:18px;">-</div>
+            </div>
+            <div class="fm-field" style="max-width:120px;">
+              <label>Type</label>
+              <div class="fm-val" id="fmType">-</div>
+            </div>
+            <div class="fm-field">
+              <label>Topics</label>
+              <div class="fm-topics" id="fmTopics">-</div>
+            </div>
+            <div class="fm-field" style="max-width:100px;">
+              <label>Published</label>
+              <div class="fm-val" id="fmPublished">-</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="preview" class="markdown-body">
+          <div class="status-shimmer">ファイルをDropしてください...</div>
+        </div>
+        <div class="footer-note">Rendered by marked.js | Designed for FRB Innovators</div>
+      </article>
+    </main>
+  </div>
+
+<script>
+const mdUrlEl=document.getElementById("mdUrl"),previewEl=document.getElementById("preview"),tocEl=document.getElementById("toc"),charCountEl=document.getElementById("charCount"),readTimeEl=document.getElementById("readTime"),localFileBtn=document.getElementById("localFileBtn"),localFileInput=document.getElementById("localFileInput"),tocDepthBtns=[...document.querySelectorAll(".toc-depth-btn")],themeSelect=document.getElementById("themeSelect"),editorEl=document.getElementById("editor"),btnViewerMode=document.getElementById("btnViewerMode"),btnEditorMode=document.getElementById("btnEditorMode"),articleCard=document.getElementById("articleCard"),metaFileName=document.getElementById("metaFileName"),editorFileName=document.getElementById("editorFileName"),slashMenu=document.getElementById("slashMenu");
+
+const fmPanel=document.getElementById("fmPanel"),fmHeader=document.getElementById("fmHeader"),fmBody=document.getElementById("fmBody"),fmToggleIcon=document.getElementById("fmToggleIcon"),fmSuggestArea=document.getElementById("fmSuggestArea");
+const fmTitle=document.getElementById("fmTitle"),fmSlug=document.getElementById("fmSlug"),fmEmoji=document.getElementById("fmEmoji"),fmType=document.getElementById("fmType"),fmTopics=document.getElementById("fmTopics"),fmPublished=document.getElementById("fmPublished");
+
+let tocDepth="all";
+
+// 最新のmarked.js仕様に合わせてグローバル設定を適用
+marked.use({ gfm: true, breaks: true });
+
+function preprocessQiita(md){return md.replace(/:::note\s*(info|warn)?\s*\n([\s\S]*?)\n:::/g,(_,type,body)=>`<div class="qiita-note ${type||"info"}">\n\n${body.trim()}\n\n</div>`)}
+function slugify(text,index){return"sec-"+index+"-"+encodeURIComponent(text.trim().toLowerCase()).replace(/%/g,"")}
+
+// YAMLフロントマターの高度パース
+function parseFrontMatter(md) {
+  const match = md.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n/);
+  if (!match) return { data: null, content: md };
+  
+  const yamlText = match[1];
+  const content = md.substring(match[0].length);
+  const data = {};
+  
+  yamlText.split('\n').forEach(line => {
+    const idx = line.indexOf(':');
+    if (idx !== -1) {
+      const key = line.substring(0, idx).trim();
+      let val = line.substring(idx + 1).trim();
+      if (val.startsWith('"') && val.endsWith('"')) val = val.slice(1, -1);
+      if (val.startsWith("'") && val.endsWith("'")) val = val.slice(1, -1);
+      if (val.startsWith('[') && val.endsWith(']')) {
+        try { val = JSON.parse(val.replace(/'/g, '"')); } catch(e) { val = val.slice(1, -1).split(',').map(s=>s.trim().replace(/['"]/g,'')); }
+      }
+      data[key] = val;
+    }
+  });
+  return { data, content };
+}
+
+// 保存ファイル名の入力欄同期
+function syncFileNameUI(name) {
+  metaFileName.value = name;
+  editorFileName.value = name;
+}
+[metaFileName, editorFileName].forEach(input => {
+  input.addEventListener("input", (e) => syncFileNameUI(e.target.value));
+});
+
+// モード切り替え
+btnViewerMode.addEventListener("click", () => {
+  document.body.setAttribute("data-mode", "viewer");
+  btnViewerMode.classList.add("mode-active");
+  btnEditorMode.classList.remove("mode-active");
+  buildToc();
+});
+btnEditorMode.addEventListener("click", () => {
+  document.body.setAttribute("data-mode", "editor");
+  btnEditorMode.classList.add("mode-active");
+  btnViewerMode.classList.remove("mode-active");
+});
+
+// テーマ切り替え
+themeSelect.addEventListener("change", (e) => {
+  document.documentElement.setAttribute("data-theme", e.target.value);
+});
+
+// フロントマターパネルのトグル
+fmHeader.addEventListener("click", () => {
+  const isCollapsed = fmBody.classList.toggle("collapsed");
+  fmToggleIcon.textContent = isCollapsed ? "▼" : "▲";
+});
+
+// フロントマターの自動挿入
+window.insertSuggestedFrontMatter = function() {
+  const rawText = editorEl.value;
+  let detectedTitle = "frb_expanded_thought";
+  const h1Match = rawText.match(/^(?:#\s+|\s*#+\s*)(.*)$/m);
+  if (h1Match && h1Match[1]) {
+    detectedTitle = h1Match[1].trim().replace(/['"]/g, '');
+  }
+  const generatedFM = `---\ntitle: "${detectedTitle}"\nemoji: "📖"\ntype: "idea"\ntopics: ["ai", "development", "thought"]\npublished: false\n---\n\n`;
+  editorEl.value = generatedFM + rawText;
+  renderMarkdown(editorEl.value, "#", "Front Matter Generated");
+};
+
+
+
+// Qiita風 / コマンド入力（Code / Table）
+const slashCommands = [
+  {
+    key: "code",
+    aliases: ["code", "コード", "```"],
+    icon: "</>",
+    title: "Code block",
+    desc: "``` で囲んだコードブロックを挿入",
+    make: () => "```\n\n```"
+  },
+  {
+    key: "table",
+    aliases: ["table", "テーブル", "表"],
+    icon: "▦",
+    title: "Table",
+    desc: "Markdownテーブルを挿入",
+    make: () => "| 項目 | 内容 |\n|---|---|\n|  |  |"
+  }
+];
+let slashState = { open: false, start: -1, query: "", active: 0 };
+
+function getCurrentLineInfo() {
+  const pos = editorEl.selectionStart;
+  const value = editorEl.value;
+  const lineStart = value.lastIndexOf("\n", pos - 1) + 1;
+  const lineEndIdx = value.indexOf("\n", pos);
+  const lineEnd = lineEndIdx === -1 ? value.length : lineEndIdx;
+  return { pos, lineStart, lineEnd, line: value.slice(lineStart, lineEnd), beforeCaret: value.slice(lineStart, pos) };
+}
+
+function getSlashMatches(query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return slashCommands;
+  return slashCommands.filter(cmd => cmd.aliases.some(a => a.toLowerCase().startsWith(q)) || cmd.title.toLowerCase().includes(q));
+}
+
+function positionSlashMenu() {
+  const rect = editorEl.getBoundingClientRect();
+  slashMenu.style.left = Math.min(rect.left + 22, window.innerWidth - 300) + "px";
+  slashMenu.style.top = Math.min(rect.top + 58, window.innerHeight - 180) + "px";
+}
+
+function showSlashMenu(query = "") {
+  const matches = getSlashMatches(query);
+  if (!matches.length) { hideSlashMenu(); return; }
+  slashState.open = true;
+  slashState.query = query;
+  slashState.active = Math.min(slashState.active, matches.length - 1);
+  slashMenu.innerHTML = `<div class="slash-hint">/ でMarkdown部品を挿入　↑↓ Enter / Esc</div>` + matches.map((cmd, i) => `
+    <button type="button" class="slash-item ${i === slashState.active ? "active" : ""}" data-key="${cmd.key}" role="option" aria-selected="${i === slashState.active}">
+      <span class="slash-icon">${cmd.icon}</span>
+      <span><div class="slash-title">${cmd.title}</div><div class="slash-desc">${cmd.desc}</div></span>
+    </button>
+  `).join("");
+  slashMenu.querySelectorAll(".slash-item").forEach(btn => {
+    btn.addEventListener("mousedown", e => {
+      e.preventDefault();
+      applySlashCommand(btn.dataset.key);
+    });
+  });
+  positionSlashMenu();
+  slashMenu.classList.add("show");
+}
+
+function hideSlashMenu() {
+  slashState.open = false;
+  slashMenu.classList.remove("show");
+}
+
+function replaceRange(start, end, text, selectStartOffset = null, selectEndOffset = null) {
+  const value = editorEl.value;
+  editorEl.value = value.slice(0, start) + text + value.slice(end);
+  const nextPos = start + text.length;
+  if (selectStartOffset !== null && selectEndOffset !== null) {
+    editorEl.setSelectionRange(start + selectStartOffset, start + selectEndOffset);
+  } else {
+    editorEl.setSelectionRange(nextPos, nextPos);
+  }
+  editorEl.focus();
+  renderMarkdown(editorEl.value, "#", "Live Editing");
+}
+
+function insertAtCursor(text, selectStartOffset = null, selectEndOffset = null) {
+  replaceRange(editorEl.selectionStart, editorEl.selectionEnd, text, selectStartOffset, selectEndOffset);
+}
+
+// Markdownショートカット（Ctrl+B / Cmd+B：選択文字を太字化）
+function wrapSelection(prefix, suffix = prefix, placeholder = "text") {
+  const start = editorEl.selectionStart;
+  const end = editorEl.selectionEnd;
+  const value = editorEl.value;
+  const selected = value.slice(start, end);
+
+  // 選択範囲が既に prefix/suffix で囲まれている場合は解除する
+  const before = value.slice(Math.max(0, start - prefix.length), start);
+  const after = value.slice(end, end + suffix.length);
+  if (selected && before === prefix && after === suffix) {
+    const newValue = value.slice(0, start - prefix.length) + selected + value.slice(end + suffix.length);
+    editorEl.value = newValue;
+    editorEl.setSelectionRange(start - prefix.length, end - prefix.length);
+    editorEl.focus();
+    renderMarkdown(editorEl.value, "#", "Live Editing");
+    return;
+  }
+
+  const body = selected || placeholder;
+  const wrapped = prefix + body + suffix;
+  editorEl.value = value.slice(0, start) + wrapped + value.slice(end);
+
+  if (selected) {
+    editorEl.setSelectionRange(start + prefix.length, start + prefix.length + selected.length);
+  } else {
+    editorEl.setSelectionRange(start + prefix.length, start + prefix.length + placeholder.length);
+  }
+
+  editorEl.focus();
+  renderMarkdown(editorEl.value, "#", "Live Editing");
+}
+
+function toggleBoldSelection() {
+  wrapSelection("**", "**", "太字");
+}
+
+
+function applySlashCommand(key) {
+  const cmd = slashCommands.find(c => c.key === key);
+  if (!cmd) return;
+  const { lineStart, lineEnd } = getCurrentLineInfo();
+  const insertion = cmd.make();
+  const suffix = editorEl.value.slice(lineEnd, lineEnd + 1) === "\n" ? "" : "\n";
+  const prefix = lineStart > 0 && editorEl.value.slice(lineStart - 1, lineStart) !== "\n" ? "\n" : "";
+  hideSlashMenu();
+  replaceRange(lineStart, lineEnd, prefix + insertion + suffix);
+}
+
+function updateSlashFromInput() {
+  const info = getCurrentLineInfo();
+  const m = info.beforeCaret.match(/^\s*\/([\w\u3040-\u30ff\u3400-\u9fff`-]*)$/);
+  if (!m) { hideSlashMenu(); return; }
+  slashState.start = info.lineStart + info.beforeCaret.indexOf("/");
+  showSlashMenu(m[1] || "");
+}
+
+editorEl.addEventListener("keyup", (e) => {
+  if (["ArrowUp", "ArrowDown", "Enter", "Escape"].includes(e.key)) return;
+  updateSlashFromInput();
+});
+editorEl.addEventListener("click", updateSlashFromInput);
+editorEl.addEventListener("scroll", () => { if (slashState.open) positionSlashMenu(); });
+window.addEventListener("resize", () => { if (slashState.open) positionSlashMenu(); });
+
+document.addEventListener("click", (e) => {
+  if (!slashMenu.contains(e.target) && e.target !== editorEl) hideSlashMenu();
+});
+
+editorEl.addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") {
+    e.preventDefault();
+    hideSlashMenu();
+    toggleBoldSelection();
+    return;
+  }
+  if (!slashState.open) return;
+  const matches = getSlashMatches(slashState.query);
+  if (e.key === "ArrowDown") {
+    e.preventDefault();
+    slashState.active = (slashState.active + 1) % matches.length;
+    showSlashMenu(slashState.query);
+  } else if (e.key === "ArrowUp") {
+    e.preventDefault();
+    slashState.active = (slashState.active - 1 + matches.length) % matches.length;
+    showSlashMenu(slashState.query);
+  } else if (e.key === "Enter" || e.key === "Tab") {
+    e.preventDefault();
+    applySlashCommand(matches[slashState.active].key);
+  } else if (e.key === "Escape") {
+    e.preventDefault();
+    hideSlashMenu();
+  }
+});
+
+document.getElementById("btnInsertCode").addEventListener("click", () => insertAtCursor("```js\n// code here\n```\n", 6, 18));
+document.getElementById("btnInsertTable").addEventListener("click", () => insertAtCursor("| 項目 | 内容 |\n|---|---|\n|  |  |\n"));
+
+// エディター入力連動
+editorEl.addEventListener("input", () => {
+  renderMarkdown(editorEl.value, "#", "Live Editing");
+  updateSlashFromInput();
+});
+
+function setupSmoothScrollLinks() {
+  tocEl.querySelectorAll("a").forEach(link => {
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      const targetId = link.getAttribute("href").substring(1);
+      const targetEl = document.getElementById(targetId);
+      if(targetEl) {
+        targetEl.scrollIntoView({ behavior: "smooth", block: "center" });
+        targetEl.classList.remove("flash-target");
+        void targetEl.offsetWidth; 
+        targetEl.classList.add("flash-target");
+      }
+    });
+  });
+}
+
+function buildToc(){
+  const allHeadings=[...previewEl.querySelectorAll("h1,h2,h3")];
+  allHeadings.forEach((h,i)=>{if(!h.id)h.id=slugify(h.textContent,i)});
+  const headings=allHeadings.filter(h => {
+    const lvl=Number(h.tagName.substring(1));
+    return tocDepth==="all"||lvl<=Number(tocDepth);
+  });
+  tocEl.innerHTML="";
+  if(!headings.length){tocEl.innerHTML='<span style="color:var(--muted);font-size:13px;">見出しがありません</span>';return}
+  headings.forEach((h)=>{
+    const a=document.createElement("a");
+    a.href="#"+h.id;
+    a.textContent=h.textContent;
+    a.className="level-"+h.tagName.substring(1);
+    tocEl.appendChild(a);
+  });
+  setupSmoothScrollLinks();
+}
+
+function updateMeta(rawMd, parsedContent){
+  const chars = parsedContent.replace(/\s/g,"").length;
+  charCountEl.textContent = chars.toLocaleString("ja-JP")+" 文字";
+  readTimeEl.textContent = "約 "+Math.max(1,Math.ceil(chars/800))+" 分";
+}
+
+function renderMarkdown(rawMd, sourceUrl, sourceLabel){
+  articleCard.style.opacity = 0.85;
+  
+  setTimeout(() => {
+    const { data, content } = parseFrontMatter(rawMd);
+    
+    if (data) {
+      fmSuggestArea.style.display = "none";
+      fmPanel.style.display = "block";
+      
+      fmTitle.textContent = data.title || "-";
+      const baseName = data.title ? data.title.toLowerCase().replace(/[^a-z0-9ー-龠ぁ-んァ-ヶ]/g, "_").substring(0, 30) : "article";
+      fmSlug.textContent = baseName + ".md";
+      
+      if (!metaFileName.value || ["Front Matter Generated", "Clipboard Paste", "Local file"].includes(sourceLabel)) {
+        syncFileNameUI(baseName + ".md");
+      }
+      
+      fmEmoji.textContent = data.emoji || "💡";
+      fmType.textContent = data.type || "tech";
+      fmPublished.textContent = data.published !== undefined ? String(data.published) : "false";
+      
+      fmTopics.innerHTML = "";
+      if (Array.isArray(data.topics)) {
+        data.topics.forEach(t => {
+          const span = document.createElement("span");
+          span.className = "fm-tag";
+          span.textContent = t;
+          fmTopics.appendChild(span);
+        });
+      } else { fmTopics.textContent = "-"; }
+      
+    } else {
+      fmPanel.style.display = "none";
+      fmSuggestArea.style.display = "block";
+      fmSuggestArea.innerHTML = `
+        <div class="fm-suggest-card">
+          <span class="fm-suggest-text">⚡ Zenn/Qiita用のフロントマターが設定されていません。</span>
+          <button type="button" style="font-size:12px; padding:6px 12px; background:linear-gradient(135deg, #f59e0b, #d97706);" onclick="insertSuggestedFrontMatter()">設定ヘッダーを自動生成</button>
+        </div>
+      `;
+      
+      const h1Match = content.match(/^(?:#\s+|\s*#+\s*)(.*)$/m);
+      const fallbackName = h1Match ? h1Match[1].trim().replace(/[^a-z0-9ー-龠ぁ-んァ-ヶ]/g, "_").substring(0, 20) : "frb_thought";
+      if (!metaFileName.value) syncFileNameUI(fallbackName + ".md");
+    }
+    
+    const html = marked.parse(preprocessQiita(content));
+    previewEl.innerHTML = DOMPurify.sanitize(html, { ADD_ATTR: ["target"] });
+    previewEl.querySelectorAll('a[href^="http"]').forEach(a => { a.target = "_blank"; a.rel = "noreferrer"; });
+    
+    buildToc();
+    updateMeta(rawMd, content);
+    articleCard.style.opacity = 1;
+  }, 40);
+}
+
+async function loadMarkdown(rawUrl){
+  if(!rawUrl.startsWith("http")) return;
+  previewEl.innerHTML='<div class="status-shimmer">思考空間を同期中（Markdown読み込み中）...</div>';
+  try{
+    const res=await fetch(rawUrl,{cache:"no-store"});
+    if(!res.ok)throw new Error(`HTTP ${res.status}`);
+    const md=await res.text();
+    editorEl.value = md;
+    renderMarkdown(md, rawUrl, "GitHub Raw");
+  }catch(err){
+    previewEl.innerHTML=`<div class="qiita-note alert">読み込みエラー: ${err.message}</div>`;
+  }
+}
+
+function loadLocalFile(file){
+  if(!file)return;
+  previewEl.innerHTML='<div class="status-shimmer">ローカルの思考コアを展開中...</div>';
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const md=String(reader.result||"");
+    editorEl.value = md;
+    syncFileNameUI(file.name);
+    renderMarkdown(md, "#", "Local file");
+  };
+  reader.readAsText(file,"UTF-8");
+}
+
+// ファイルダイアログ連動保存
+document.getElementById("btnSaveFile").addEventListener("click", () => {
+  const blob = new Blob([editorEl.value], { type: "text/markdown;charset=utf-8;" });
+  const a = document.createElement("a");
+  const saveName = metaFileName.value || "frb_expanded_thought.md";
+  a.href = URL.createObjectURL(blob);
+  a.download = saveName;
+  a.click();
+});
+
+// 超速クリップボード流し込み
+document.getElementById("btnPasteClip").addEventListener("click", async () => {
+  try {
+    const text = await navigator.clipboard.readText();
+    editorEl.value = text;
+    renderMarkdown(text, "#", "Clipboard Paste");
+    const originalText = document.getElementById("btnPasteClip").textContent;
+    document.getElementById("btnPasteClip").textContent = "⚡ 思考同期完了！";
+    setTimeout(() => document.getElementById("btnPasteClip").textContent = originalText, 1500);
+  } catch (err) {
+    alert("クリップボードの読み込み権限を許可してください。");
+  }
+});
+
+document.getElementById("loadBtn").addEventListener("click",()=>loadMarkdown(mdUrlEl.value));
+localFileBtn.addEventListener("click",()=>localFileInput.click());
+localFileInput.addEventListener("change",e=>loadLocalFile(e.target.files&&e.target.files[0]));
+
+// 強固な全画面ドラッグ＆ドロップ検知
+window.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  document.body.classList.add("drag-over");
+});
+window.addEventListener("dragleave", (e) => {
+  e.preventDefault();
+  if (e.clientX === 0 && e.clientY === 0) {
+    document.body.classList.remove("drag-over");
+  }
+});
+window.addEventListener("drop", (e) => {
+  e.preventDefault();
+  document.body.classList.remove("drag-over");
+  if (e.dataTransfer && e.dataTransfer.files.length > 0) {
+    loadLocalFile(e.dataTransfer.files[0]);
+  }
+});
+
+tocDepthBtns.forEach(btn=>btn.addEventListener("click",()=>{
+  tocDepth=btn.dataset.depth;
+  tocDepthBtns.forEach(b=>b.classList.toggle("active",b.dataset.depth===tocDepth));
+  buildToc();
+}));
+
+// 初期ロード
+loadMarkdown(mdUrlEl.value);
+</script>
+</body>
+</html>
