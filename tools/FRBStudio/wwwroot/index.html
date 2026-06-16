@@ -5,6 +5,60 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>No-Code JSON Studio v0.3-draft</title>
   <link rel="stylesheet" href="styles.css" />
+
+  <style>
+    /* Markdown Viewer / Editor への導線ボタン */
+    .studio-nav-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 42px;
+      padding: 9px 15px;
+      border: 1px solid rgba(255, 255, 255, 0.36);
+      border-radius: 16px;
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: 900;
+      font-size: 13px;
+      letter-spacing: 0.02em;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,0.32), transparent 28%),
+        linear-gradient(135deg, #22c55e 0%, #14b8a6 45%, #2563eb 100%);
+      box-shadow:
+        0 10px 24px rgba(20, 184, 166, 0.26),
+        inset 0 1px 0 rgba(255, 255, 255, 0.32);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+      white-space: nowrap;
+    }
+    .studio-nav-link:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+      box-shadow:
+        0 14px 30px rgba(37, 99, 235, 0.30),
+        inset 0 1px 0 rgba(255, 255, 255, 0.40);
+    }
+    .studio-nav-link:active {
+      transform: translateY(1px);
+    }
+    .studio-nav-link .nav-icon {
+      width: 24px;
+      height: 24px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.20);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.28);
+      font-size: 14px;
+    }
+    .studio-nav-link .nav-sub {
+      display: block;
+      margin-top: -2px;
+      font-size: 10px;
+      font-weight: 800;
+      opacity: 0.78;
+      letter-spacing: 0.04em;
+    }
+  </style>
 </head>
 <body>
   <header class="app-header" id="appHeader">
@@ -37,6 +91,10 @@
       </label>
       <button id="loadBtn" class="primary-button">読み込み</button>
       <button id="saveBtn" class="ghost-button" disabled>保存</button>
+      <a class="studio-nav-link" href="mdViewer.html" title="Markdown Viewer / Editor を開く">
+        <span class="nav-icon">📝</span>
+        <span>Markdown<span class="nav-sub">Viewer / Editor</span></span>
+      </a>
       <span id="status" class="status">未読み込み</span>
     </section>
   </header>

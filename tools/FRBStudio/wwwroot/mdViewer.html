@@ -69,22 +69,66 @@
       top: 12px;
       z-index: 20;
       display: grid;
-      grid-template-columns: auto 1fr auto;
-      gap: 18px;
+      grid-template-columns: minmax(250px, auto) minmax(0, 1fr);
+      gap: 16px;
       align-items: center;
-      padding: 14px 20px;
+      padding: 12px 16px;
       border: 1px solid var(--line);
       border-radius: 24px;
       background: var(--panel);
       backdrop-filter: blur(18px);
       box-shadow: var(--shadow);
     }
-    .brand { display: flex; align-items: center; gap: 12px; white-space:nowrap; }
-    .logo { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 16px; background: linear-gradient(135deg, rgba(63,124,255,.18), rgba(140,111,247,.18)); font-size: 22px; }
-    .brand h1 { margin: 0; font-size: 21px; font-weight: 800; }
-    
-    .controls { display: flex; gap: 12px; align-items: center; justify-content: flex-end; }
-    .urlbox { display: flex; align-items: center; width: 240px; }
+    .brand { display: flex; align-items: center; gap: 12px; min-width:0; flex-wrap: wrap; }
+    .logo { width: 42px; height: 42px; display: grid; place-items: center; flex:0 0 42px; border-radius: 16px; background: linear-gradient(135deg, rgba(63,124,255,.18), rgba(140,111,247,.18)); font-size: 22px; }
+    .brand-text { min-width:0; display:grid; gap:2px; }
+    .brand-title { display:flex; align-items:baseline; gap:8px; min-width:0; white-space:nowrap; }
+    .brand-title strong { font-size: 18px; font-weight: 900; letter-spacing:-.02em; overflow:hidden; text-overflow:ellipsis; }
+    .brand-sub { color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing:.06em; text-transform: uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .badge { color: var(--muted); font-size: 11px; font-weight: 900; }
+    .studio-link {
+      display:inline-flex; align-items:center; gap:8px;
+      padding:9px 12px; border-radius:14px;
+      color:var(--text); text-decoration:none; font-size:12px; font-weight:900;
+      background:rgba(105,120,160,.10); border:1px solid var(--line);
+      box-shadow:none; white-space:nowrap; transition: transform .2s, background .2s, box-shadow .2s;
+    }
+    .studio-link:hover { transform:translateY(-1px); background:rgba(105,120,160,.18); box-shadow:0 8px 20px rgba(63,124,255,.10); }
+    .controls { display: flex; gap: 10px; align-items: center; justify-content: flex-end; flex-wrap: wrap; min-width:0; }
+    .control-group { display:flex; align-items:center; gap:8px; min-width:0; }
+    .control-group.primary-flow { flex: 1 1 450px; justify-content:flex-end; }
+    .control-group.view-flow { flex: 0 1 auto; }
+    .module-nav-frame {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255,255,255,.62);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.72),
+        0 8px 22px rgba(44,77,44,.06);
+      min-width: 0;
+      white-space: nowrap;
+    }
+    [data-theme="dark"] .module-nav-frame { background: rgba(15,23,42,.40); }
+    .module-nav-frame .control-group { gap: 8px; }
+
+
+
+    .control-group.import-flow { flex: 0 1 auto; }
+    .urlbox { display: flex; align-items: center; width: clamp(160px, 18vw, 260px); min-width:0; }
+    #managedMdSelect { width: clamp(220px, 28vw, 380px) !important; min-width: 180px; }
+    #themeSelect { width: 170px; }
+    .compact-icon-btn { min-width:42px; padding:10px 12px; }
+    .compact-text-btn { padding:10px 14px; }
+    @media (max-width: 980px) {
+      .topbar { grid-template-columns: 1fr; }
+      .controls { justify-content:flex-start; }
+      .control-group.primary-flow { justify-content:flex-start; flex-basis:100%; }
+      #managedMdSelect { width: min(100%, 420px) !important; }
+    }
     
     input, select {
       padding: 10px 14px;
@@ -123,7 +167,9 @@
       gap: 24px;
       margin-top: 22px;
       align-items: start;
+      min-width: 0;
     }
+    .layout > * { min-width: 0; }
     
     body[data-mode="editor"] .layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; }
 
@@ -131,7 +177,7 @@
     body[data-mode="viewer"] .edit-container { display: none; }
 
     .sidebar { position: sticky; top: 108px; display: grid; gap: 16px; }
-    .side-card, .article-card, .edit-card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); backdrop-filter: blur(18px); box-shadow: var(--shadow); }
+    .side-card, .article-card, .edit-card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); backdrop-filter: blur(18px); box-shadow: var(--shadow); min-width: 0; }
     .side-card { padding: 20px; }
     .side-card h2 { margin: 0 0 14px; font-size: 16px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
     
@@ -202,7 +248,7 @@
 
 
     /* プレビュー・記事エリア */
-    .article-card { padding: clamp(24px, 5vw, 48px); min-height: calc(100vh - 130px); transition: opacity 0.2s ease; }
+    .article-card { padding: clamp(24px, 5vw, 48px); min-height: calc(100vh - 130px); transition: opacity 0.2s ease; overflow: hidden; }
     
     /* --- Zenn フロントマター管理 UI パネル (image_193b23.pngのハック再現) --- */
     .fm-panel {
@@ -307,7 +353,10 @@
 	/* --- Markdownスタイル 内に追加・統合 --- */
 	.markdown-body {
 	  font-size: 16px;
-	  overflow-wrap: break-word; /* 1. 長いURLや英単語が枠外に突き抜けるのを防ぐ */
+	  min-width: 0;
+	  max-width: 100%;
+	  overflow-wrap: anywhere; /* 長いURLや英単語が枠外に突き抜けるのを防ぐ */
+	  word-break: normal;
 	}
 
 	/* 2. 画像の暴走を完全に抑え込む */
@@ -335,7 +384,7 @@
 	  background: rgba(105, 120, 160, 0.06);
 	}
 
-    .markdown-body h1, .markdown-body h2, .markdown-body h3 { color: var(--text); line-height: 1.35; padding-left: 8px; margin-left: -8px; }
+    .markdown-body h1, .markdown-body h2, .markdown-body h3 { color: var(--text); line-height: 1.35; padding-left: 8px; margin-left: -8px; overflow-wrap:anywhere; }
     .markdown-body h1 { margin: 0 0 24px; font-size: clamp(28px, 4vw, 36px); font-weight: 800; letter-spacing: -.03em; }
     .markdown-body h2 { margin: 46px 0 20px; padding-bottom: 10px; border-bottom: 2px solid rgba(105,120,160,0.15); font-size: clamp(20px, 3vw, 26px); font-weight: 800; }
     html[data-theme="qiita"] .markdown-body h2 { border-bottom-color: rgba(85,197,0,0.3); }
@@ -362,25 +411,52 @@
 <body data-mode="viewer">
   <div class="app">
     <header class="topbar">
-      <div class="brand"><div class="logo">🎣</div><h1>FRB Studio Lab</h1><span class="badge">v3.2</span></div>
+      <div class="brand">
+        <div class="logo">🎣</div>
+        <div class="brand-text">
+          <div class="brand-title"><strong>FRB Studio Lab</strong><span class="badge">v3.2</span></div>
+          <div class="brand-sub">Markdown Viewer & Editor</div>
+        </div>
+          <a class="studio-link" href="/" title="No-Code JSON Studioへ戻る">📊 JSON Studio</a>
+
+        <div class="module-nav-frame">
+
+          <div class="control-group view-flow">
+          <button id="btnViewerMode" class="ghost-btn mode-active compact-text-btn">Viewer</button>
+          <button id="btnEditorMode" class="ghost-btn compact-text-btn">Editor</button>
+
+          <div class="control-group view-flow">
+            <select id="themeSelect" title="表示テーマ">
+              <option value="qiita">🟢 Qiita</option>
+              <option value="zenn">🔵 Zenn</option>
+              <option value="dark">🌌 Dark</option>
+            </select>
+          </div>
+        </div>
+      </div>
       
       <div class="controls">
-	<button id="btnViewerMode" class="ghost-btn mode-active">Viewer</button>
-	<button id="btnEditorMode" class="ghost-btn">Editor</button>
-
-        
-        <select id="themeSelect">
-          <option value="qiita">🟢 Qiita モード</option>
-          <option value="zenn">🔵 Zenn モード</option>
-          <option value="dark">🌌 ダークコックピット</option>
-        </select>
-
-        <div class="urlbox">
-          <input id="mdUrl" type="text" value="https://tamasub.github.io/FRB/" style="width:100%;" />
+        <div class="control-group primary-flow">
+          <button class="ghost-btn compact-text-btn" id="localFileBtn">ローカル</button>
+          
+          <select id="managedMdSelect" title="data/markdown 管理Markdown。選択すると即読み込みます。">
+            <option value="">管理Markdownなし</option>
+          </select>
+          <button id="btnRefreshManagedMd" class="ghost-btn compact-icon-btn" title="管理Markdown一覧を再取得">↻</button>
+          <button id="btnOverwriteManagedMd" class="compact-text-btn" title="data/markdownへ上書き保存">上書き</button>
         </div>
-        <button id="loadBtn">読込</button>
-        <button class="ghost-btn" id="localFileBtn">ローカル</button>
-        <input id="localFileInput" style="display: none;" type="file" accept=".md,.markdown,.txt" />
+
+
+        <div class="control-group import-flow">
+
+          <input id="localFileInput" style="display: none;" type="file" accept=".md,.markdown,.txt" />
+
+          <div class="urlbox">
+            <input id="mdUrl" type="text" value="https://tamasub.github.io/FRB/" style="width:100%;" />
+          </div>
+          <button id="loadBtn" class="compact-text-btn">URL読込</button>
+
+        </div>
       </div>
     </header>
 
@@ -416,7 +492,7 @@
           <button id="btnInsertTable" class="ghost-btn" style="font-size:12px; padding:8px 14px;">▦ Table</button>
           <div style="margin-left:auto; display:flex; align-items:center; gap:8px;">
             <input id="editorFileName" type="text" value="" style="font-size:12px; padding:6px 10px; width:180px;" placeholder="ファイル名"/>
-            <button id="btnSaveFile" style="font-size:12px; padding:8px 14px;">💾 MD保存</button>
+            <button id="btnSaveFile" style="font-size:12px; padding:8px 14px;">💾 ダウンロード保存</button>
           </div>
         </div>
       </section>
@@ -458,7 +534,7 @@
         </div>
 
         <div id="preview" class="markdown-body">
-          <div class="status-shimmer">ファイルをDropしてください...</div>
+          <div class="status-shimmer">data/markdown のMarkdownを選択、またはファイルをDropしてください...</div>
         </div>
         <div class="footer-note">Rendered by marked.js | Designed for FRB Innovators</div>
       </article>
@@ -466,12 +542,14 @@
   </div>
 
 <script>
-const mdUrlEl=document.getElementById("mdUrl"),previewEl=document.getElementById("preview"),tocEl=document.getElementById("toc"),charCountEl=document.getElementById("charCount"),readTimeEl=document.getElementById("readTime"),localFileBtn=document.getElementById("localFileBtn"),localFileInput=document.getElementById("localFileInput"),tocDepthBtns=[...document.querySelectorAll(".toc-depth-btn")],themeSelect=document.getElementById("themeSelect"),editorEl=document.getElementById("editor"),btnViewerMode=document.getElementById("btnViewerMode"),btnEditorMode=document.getElementById("btnEditorMode"),articleCard=document.getElementById("articleCard"),metaFileName=document.getElementById("metaFileName"),editorFileName=document.getElementById("editorFileName"),slashMenu=document.getElementById("slashMenu");
+const mdUrlEl=document.getElementById("mdUrl"),previewEl=document.getElementById("preview"),tocEl=document.getElementById("toc"),charCountEl=document.getElementById("charCount"),readTimeEl=document.getElementById("readTime"),localFileBtn=document.getElementById("localFileBtn"),localFileInput=document.getElementById("localFileInput"),tocDepthBtns=[...document.querySelectorAll(".toc-depth-btn")],themeSelect=document.getElementById("themeSelect"),editorEl=document.getElementById("editor"),btnViewerMode=document.getElementById("btnViewerMode"),btnEditorMode=document.getElementById("btnEditorMode"),articleCard=document.getElementById("articleCard"),metaFileName=document.getElementById("metaFileName"),editorFileName=document.getElementById("editorFileName"),slashMenu=document.getElementById("slashMenu"),managedMdSelect=document.getElementById("managedMdSelect"),btnRefreshManagedMd=document.getElementById("btnRefreshManagedMd"),btnOverwriteManagedMd=document.getElementById("btnOverwriteManagedMd");
 
 const fmPanel=document.getElementById("fmPanel"),fmHeader=document.getElementById("fmHeader"),fmBody=document.getElementById("fmBody"),fmToggleIcon=document.getElementById("fmToggleIcon"),fmSuggestArea=document.getElementById("fmSuggestArea");
 const fmTitle=document.getElementById("fmTitle"),fmSlug=document.getElementById("fmSlug"),fmEmoji=document.getElementById("fmEmoji"),fmType=document.getElementById("fmType"),fmTopics=document.getElementById("fmTopics"),fmPublished=document.getElementById("fmPublished");
 
 let tocDepth="all";
+let currentManagedMarkdownName = "";
+let isManagedMarkdownDirty = false;
 
 // 最新のmarked.js仕様に合わせてグローバル設定を適用
 marked.use({ gfm: true, breaks: true });
@@ -738,6 +816,7 @@ document.getElementById("btnInsertTable").addEventListener("click", () => insert
 
 // エディター入力連動
 editorEl.addEventListener("input", () => {
+  isManagedMarkdownDirty = true;
   renderMarkdown(editorEl.value, "#", "Live Editing");
   updateSlashFromInput();
 });
@@ -840,6 +919,101 @@ function renderMarkdown(rawMd, sourceUrl, sourceLabel){
   }, 40);
 }
 
+function normalizeMarkdownFileName(name) {
+  let n = (name || "").trim();
+  if (!n) n = "frb_thought.md";
+  n = n.replace(/[\\/:*?"<>|]/g, "_");
+  if (!/\.(md|markdown)$/i.test(n)) n += ".md";
+  return n;
+}
+
+async function refreshManagedMarkdownList(selectName = "") {
+  try {
+    const res = await fetch("/api/markdown", { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const files = await res.json();
+    managedMdSelect.innerHTML = "";
+    if (!files.length) {
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "管理Markdownなし";
+      managedMdSelect.appendChild(opt);
+      return [];
+    }
+    files.forEach(name => {
+      const opt = document.createElement("option");
+      opt.value = name;
+      opt.textContent = name;
+      managedMdSelect.appendChild(opt);
+    });
+    const target = selectName || currentManagedMarkdownName || files[0];
+    if (files.includes(target)) managedMdSelect.value = target;
+    return files;
+  } catch (err) {
+    console.warn("管理Markdown一覧の取得に失敗", err);
+    managedMdSelect.innerHTML = `<option value="">一覧取得失敗</option>`;
+    return [];
+  }
+}
+
+async function loadManagedMarkdown(name) {
+  if (!name) return;
+  if (isManagedMarkdownDirty && currentManagedMarkdownName && currentManagedMarkdownName !== name) {
+    const ok = confirm("未保存の編集があります。保存せずに別のMarkdownを読み込みますか？");
+    if (!ok) {
+      managedMdSelect.value = currentManagedMarkdownName;
+      return;
+    }
+  }
+
+  previewEl.innerHTML = '<div class="status-shimmer">data/markdown から容赦なくMarkdown読み込み中...</div>';
+  try {
+    const res = await fetch(`/api/markdown/${encodeURIComponent(name)}`, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const md = await res.text();
+    currentManagedMarkdownName = name;
+    isManagedMarkdownDirty = false;
+    editorEl.value = md;
+    syncFileNameUI(name);
+    renderMarkdown(md, "#", "Managed Markdown");
+  } catch (err) {
+    previewEl.innerHTML = `<div class="qiita-note warn">管理Markdown読み込みエラー: ${err.message}</div>`;
+  }
+}
+
+async function saveManagedMarkdown(name, content, quiet = false) {
+  const fileName = normalizeMarkdownFileName(name);
+  const res = await fetch(`/api/markdown/${encodeURIComponent(fileName)}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: fileName, content })
+  });
+  if (!res.ok) throw new Error(await res.text());
+  currentManagedMarkdownName = fileName;
+  isManagedMarkdownDirty = false;
+  syncFileNameUI(fileName);
+  await refreshManagedMarkdownList(fileName);
+  if (!quiet) alert(`保存しました: data/markdown/${fileName}`);
+  return fileName;
+}
+
+async function askRegisterAsManagedMarkdown(fileName, content) {
+  const safeName = normalizeMarkdownFileName(fileName || metaFileName.value || editorFileName.value);
+  syncFileNameUI(safeName);
+  const ok = confirm(`${safeName} を data/markdown の管理対象にしますか？\n\nOK: data/markdown に保存して管理対象にする\nキャンセル: 画面上で開くだけ`);
+  if (!ok) {
+    currentManagedMarkdownName = "";
+    isManagedMarkdownDirty = true;
+    return;
+  }
+  try {
+    await saveManagedMarkdown(safeName, content, true);
+    alert(`管理対象にしました: data/markdown/${safeName}`);
+  } catch (err) {
+    alert("管理対象への保存に失敗しました。\n" + err.message);
+  }
+}
+
 async function loadMarkdown(rawUrl){
   if(!rawUrl.startsWith("http")) return;
   previewEl.innerHTML='<div class="status-shimmer">思考空間を同期中（Markdown読み込み中）...</div>';
@@ -858,11 +1032,14 @@ function loadLocalFile(file){
   if(!file)return;
   previewEl.innerHTML='<div class="status-shimmer">ローカルの思考コアを展開中...</div>';
   const reader=new FileReader();
-  reader.onload=()=>{
+  reader.onload=async ()=>{
     const md=String(reader.result||"");
+    currentManagedMarkdownName = "";
+    isManagedMarkdownDirty = true;
     editorEl.value = md;
-    syncFileNameUI(file.name);
+    syncFileNameUI(normalizeMarkdownFileName(file.name));
     renderMarkdown(md, "#", "Local file");
+    await askRegisterAsManagedMarkdown(file.name, md);
   };
   reader.readAsText(file,"UTF-8");
 }
@@ -888,6 +1065,26 @@ document.getElementById("btnPasteClip").addEventListener("click", async () => {
     setTimeout(() => document.getElementById("btnPasteClip").textContent = originalText, 1500);
   } catch (err) {
     alert("クリップボードの読み込み権限を許可してください。");
+  }
+});
+
+btnRefreshManagedMd.addEventListener("click", async () => {
+  const files = await refreshManagedMarkdownList(currentManagedMarkdownName);
+  if (files.length && !currentManagedMarkdownName) await loadManagedMarkdown(managedMdSelect.value);
+});
+
+managedMdSelect.addEventListener("change", () => loadManagedMarkdown(managedMdSelect.value));
+
+btnOverwriteManagedMd.addEventListener("click", async () => {
+  try {
+    const saveName = normalizeMarkdownFileName(currentManagedMarkdownName || metaFileName.value || editorFileName.value);
+    if (!currentManagedMarkdownName) {
+      const ok = confirm(`${saveName} を data/markdown の管理対象として保存しますか？`);
+      if (!ok) return;
+    }
+    await saveManagedMarkdown(saveName, editorEl.value);
+  } catch (err) {
+    alert("上書き保存に失敗しました。\n" + err.message);
   }
 });
 
@@ -920,8 +1117,15 @@ tocDepthBtns.forEach(btn=>btn.addEventListener("click",()=>{
   buildToc();
 }));
 
-// 初期ロード
-loadMarkdown(mdUrlEl.value);
+// 初期ロード: data/markdown に管理Markdownがあれば先頭を容赦なく読み込み。無ければ従来のURLを読む。
+(async () => {
+  const files = await refreshManagedMarkdownList();
+  if (files.length) {
+    await loadManagedMarkdown(managedMdSelect.value || files[0]);
+  } else {
+    loadMarkdown(mdUrlEl.value);
+  }
+})();
 </script>
 </body>
 </html>
