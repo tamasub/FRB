@@ -8,6 +8,10 @@ https://www.google.com/search?q=Fishing+Rod+Benchmark+FRB&sca_esv=d2b5db79e1641e
 https://zenn.dev/frb_tamasub/articles/c6660a4e81fef1?locale=en
 
 
+python3 merge_zenn.py *.md -o Zenn_Blog_All_merged.md
+
+
+
 CTRL + SHIFT + I
 
 
