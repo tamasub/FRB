@@ -135,6 +135,25 @@ async function loadFromServerNames(defName, dataName) {
   loadFromObjects(defObj, dataObj, `API管理ファイルを読み込みました: ${dataName}`, `/api/data/${encodeURIComponent(dataName)}`);
 }
 
+
+async function registerDroppedDef(fileName, defObj) {
+  const name = safeJsonFileName(fileName);
+  if (!name) throw new Error('画面定義JSONファイル名が不正です');
+
+  const res = await fetch('/api/defs/drop', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, json: defObj })
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`画面定義JSONの管理対象コピーに失敗しました (${res.status}) ${text}`);
+  }
+  await refreshServerLists();
+  $('defNameInput').value = name;
+  return `/api/defs/${encodeURIComponent(name)}`;
+}
+
 async function registerDroppedData(fileName, dataObj, defName) {
   const name = safeJsonFileName(fileName);
   if (!name) throw new Error('JSONファイル名が不正です');
@@ -179,7 +198,9 @@ async function loadFromDroppedFilesOrServer() {
   }
 
   let defObj = null;
+  let droppedDefName = null;
   if (defFile) {
+    droppedDefName = defFile.name;
     defObj = JSON.parse(await defFile.text());
     defName = safeJsonFileName(defFile.name) || defName || 'dropped_view_def.json';
     $('defNameInput').value = defName;
@@ -199,10 +220,21 @@ async function loadFromDroppedFilesOrServer() {
   lastLoadedDefName = defName;
 
   let dataApiUrl = null;
-  if (confirm(`このファイルをFRB Studioで管理しますか？\n\n${droppedDataName}\n\n[OK] dataフォルダへコピーして上書き保存可能にする\n[キャンセル] 今回は見るだけ（保存は別名保存）`)) {
+  const manageTargets = droppedDefName
+    ? `${droppedDefName}  → defsフォルダ\n${droppedDataName}  → dataフォルダ`
+    : `${droppedDataName}  → dataフォルダ`;
+
+  if (confirm(`このファイルをFRB Studioで管理しますか？\n\n${manageTargets}\n\n[OK] 管理対象へコピーして上書き保存可能にする\n[キャンセル] 今回は見るだけ（保存は別名保存）`)) {
+    if (droppedDefName) {
+      await registerDroppedDef(droppedDefName, defObj);
+    }
     dataApiUrl = await registerDroppedData(droppedDataName, dataObj, defName);
-    loadFromObjects(defObj, dataObj, `管理対象にコピーして読み込みました: ${droppedDataName}`, dataApiUrl);
+    const copiedLabel = droppedDefName
+      ? `管理対象にコピーして読み込みました: ${droppedDefName} / ${droppedDataName}`
+      : `管理対象にコピーして読み込みました: ${droppedDataName}`;
+    loadFromObjects(defObj, dataObj, copiedLabel, dataApiUrl);
   } else {
+    if (droppedDefName) $('defNameInput').value = '';
     $('dataNameInput').value = '';
     loadFromObjects(defObj, dataObj, `見るだけで読み込みました: ${droppedDataName}`, null);
   }

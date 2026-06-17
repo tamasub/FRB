@@ -406,6 +406,134 @@
 
     body.drag-over .article-card { outline: 3px dashed var(--brand-color); outline-offset: 6px; background: rgba(105,120,160,0.05); }
     .footer-note { margin-top: 40px; color: var(--muted); font-size: 11px; text-align: center; letter-spacing: 0.05em; }
+
+
+    /* PDF印刷: 本文だけを印刷対象にする */
+    @media print {
+      @page {
+        size: A4;
+        margin: 14mm 12mm;
+      }
+
+      html,
+      body {
+        width: auto !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+        color: #111827 !important;
+        overflow: visible !important;
+      }
+
+      body * {
+        visibility: hidden !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+      }
+
+      .app,
+      .layout,
+      .article-card,
+      #preview,
+      #preview * {
+        visibility: visible !important;
+      }
+
+      .topbar,
+      .sidebar,
+      .edit-container,
+      .fm-panel,
+      #fmSuggestArea,
+      .footer-note {
+        display: none !important;
+      }
+
+      .app {
+        width: 100% !important;
+        margin: 0 !important;
+      }
+
+      .layout {
+        display: block !important;
+        margin: 0 !important;
+      }
+
+      .article-card {
+        display: block !important;
+        width: 100% !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: #fff !important;
+        overflow: visible !important;
+      }
+
+      #preview {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+        color: #111827 !important;
+        font-size: 11pt !important;
+        line-height: 1.72 !important;
+        overflow: visible !important;
+      }
+
+      #preview h1 {
+        font-size: 20pt !important;
+        margin: 0 0 14pt !important;
+        page-break-after: avoid;
+        break-after: avoid;
+      }
+
+      #preview h2 {
+        font-size: 16pt !important;
+        margin: 24pt 0 10pt !important;
+        page-break-after: avoid;
+        break-after: avoid;
+      }
+
+      #preview h3 {
+        font-size: 13pt !important;
+        margin: 18pt 0 8pt !important;
+        page-break-after: avoid;
+        break-after: avoid;
+      }
+
+      #preview p,
+      #preview li,
+      #preview blockquote,
+      #preview table,
+      #preview pre {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+
+      #preview a {
+        color: #111827 !important;
+        text-decoration: underline !important;
+      }
+
+      #preview pre,
+      #preview code {
+        white-space: pre-wrap !important;
+        word-break: break-word !important;
+      }
+
+      #preview img {
+        max-width: 100% !important;
+        height: auto !important;
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+    }
+
   </style>
 </head>
 <body data-mode="viewer">

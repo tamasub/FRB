@@ -135,6 +135,15 @@ internal static class Program
             return Results.Text(await File.ReadAllTextAsync(path), "application/json");
         });
 
+        app.MapPost("/api/defs/drop", async (DropJsonRequest req) =>
+        {
+            var path = SafeJsonPath(defsDir, req.Name);
+            if (path is null) return Results.BadRequest("invalid file name");
+
+            await WriteJsonAsync(path, req.Json);
+            return Results.Ok(new { saved = req.Name });
+        });
+
         return app;
     }
 
