@@ -38,7 +38,6 @@ data/exports/tmp/
 # FRBStudio
 /tools/FRBStudio/bin/
 /tools/FRBStudio/obj/
-/tools/FRBStudio_App/
 
 
 
@@ -49,6 +48,7 @@ data/exports/tmp/
 *.exe
 *.bin
 *.dll
+*.pdb
 
 # ======
 
