@@ -468,6 +468,112 @@ function normalizeChatMessages(field, row, gd) {
   return candidates.filter(m => existing.has(m.field));
 }
 
+function currentDetailRow() {
+  if (detailMode === 'new') return draftRow;
+  if (selectedIndex >= 0 && Array.isArray(currentRows)) return currentRows[selectedIndex];
+  return null;
+}
+
+function chatTextValue(row, fieldName) {
+  return String(getByPath(row, fieldName) ?? '').trim();
+}
+
+function shouldRenderChatMessage(msg, row) {
+  const fieldName = msg?.field;
+  if (!fieldName) return true;
+
+  // 追加会話は、まだ人間が追記していない間は空の吹き出しを出さない。
+  if (fieldName === 'user_reply') {
+    return chatTextValue(row, 'user_reply') !== '';
+  }
+
+  // AI再回答は、人間の追記が入った時点で「空のAI回答待ち欄」として表示する。
+  if (fieldName === 'ai_followup_response') {
+    return chatTextValue(row, 'user_reply') !== '' || chatTextValue(row, 'ai_followup_response') !== '';
+  }
+
+  return true;
+}
+
+function chatInputConfig(field, gd) {
+  const cfg = field?.edit?.input ?? field?.input ?? field?.chat?.input ?? {};
+  const existing = new Set((gd?.fields ?? []).map(f => f.field));
+  const userField = cfg.userField ?? cfg.user_field ?? (existing.has('user_reply') ? 'user_reply' : null);
+  const aiField = cfg.aiField ?? cfg.ai_field ?? (existing.has('ai_followup_response') ? 'ai_followup_response' : null);
+  return {
+    enabled: cfg.enabled !== false && Boolean(userField),
+    userField,
+    aiField,
+    placeholder: cfg.placeholder ?? 'この行へのコメントを追加...',
+    sendLabel: (cfg.sendLabel ?? cfg.send_label ?? '送信') || '送信'
+  };
+}
+
+function createChatComposer(field, row, gd, prefix) {
+  const cfg = chatInputConfig(field, gd);
+  if (!cfg.enabled) return null;
+
+  const composer = document.createElement('div');
+  composer.className = 'chat-composer';
+
+  const plus = document.createElement('div');
+  plus.className = 'chat-composer-plus';
+  plus.textContent = '+';
+  composer.appendChild(plus);
+
+  const input = document.createElement('textarea');
+  input.className = 'chat-composer-input';
+  input.placeholder = cfg.placeholder;
+  input.rows = 1;
+  input.dataset.prefix = prefix;
+  composer.appendChild(input);
+
+  const send = document.createElement('button');
+  send.type = 'button';
+  send.className = 'chat-composer-send';
+  send.textContent = cfg.sendLabel;
+  composer.appendChild(send);
+
+  const submit = () => {
+    const text = input.value.trim();
+    if (!text) {
+      input.focus();
+      return;
+    }
+
+    const targetRow = currentDetailRow() ?? row;
+    if (!targetRow) return;
+
+    // 送信前に画面上の未反映入力を行データへ回収する。
+    applyDetailInputsToRow(targetRow);
+
+    const previous = chatTextValue(targetRow, cfg.userField);
+    const next = previous ? `${previous}\n\n${text}` : text;
+    setByPath(targetRow, cfg.userField, next);
+
+    if (cfg.aiField && getByPath(targetRow, cfg.aiField) == null) {
+      setByPath(targetRow, cfg.aiField, '');
+    }
+
+    renderDetailForRow(targetRow);
+    setStatus('コメントを追加しました。必要に応じてAI再回答欄へ回答を追記してください。');
+  };
+
+  send.addEventListener('click', submit);
+  input.addEventListener('input', () => {
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+  });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      submit();
+    }
+  });
+
+  return composer;
+}
+
 function createChatInput(field, row, gd, prefix) {
   const wrap = document.createElement('div');
   wrap.className = 'field chat-field';
@@ -480,6 +586,8 @@ function createChatInput(field, row, gd, prefix) {
   timeline.className = 'chat-timeline';
 
   normalizeChatMessages(field, row, gd).forEach(msg => {
+    if (!shouldRenderChatMessage(msg, row)) return;
+
     const srcField = (gd?.fields ?? []).find(f => f.field === msg.field) ?? {};
     const raw = getByPath(row, msg.field);
     const role = String(msg.role ?? '').toLowerCase();
@@ -532,6 +640,9 @@ function createChatInput(field, row, gd, prefix) {
 
     timeline.appendChild(item);
   });
+
+  const composer = createChatComposer(field, row, gd, prefix);
+  if (composer) timeline.appendChild(composer);
 
   wrap.appendChild(timeline);
   return wrap;

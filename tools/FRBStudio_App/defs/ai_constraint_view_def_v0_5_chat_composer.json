@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "No-Code JSON Studio",
-    "version": "0.5-draft-verification-radio"
+    "version": "0.5-draft-chat-composer"
   },
   "views": [
     {
@@ -393,7 +393,14 @@
                     "readonly": true,
                     "height": 110
                   }
-                ]
+                ],
+                "input": {
+                  "enabled": true,
+                  "placeholder": "この制約へのコメントを追加...",
+                  "userField": "user_reply",
+                  "aiField": "ai_followup_response",
+                  "sendLabel": "送信"
+                }
               },
               "search": {
                 "visible": false
@@ -401,7 +408,7 @@
               "create": {
                 "include": false
               },
-              "chat_layout_note": "review_check は俺コメントカード内に横並びラジオとして表示する想定。会話順は 制約本文 → 俺コメント/承認 → AI回答 → 俺追加回答 → AI再回答。"
+              "chat_layout_note": "空の俺追加回答/AI再回答は通常非表示。下部入力バーからコメント送信すると user_reply に追加し、AI再回答欄を空で表示する。"
             },
             {
               "field": "statement",
