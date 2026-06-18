@@ -1,0 +1,33 @@
+{
+  "view_def": "fft_view_def_\u5B9F\u9A13\u6761\u4EF6\u30D7\u30EA\u30BB\u30C3\u30C8.json",
+  "items": [
+    {
+      "profile_id": "auto_sweep_30s_v1",
+      "name": "\u81EA\u52D5\u30B9\u30A4\u30FC\u30D730\u79D2",
+      "input_type": "speaker_sweep",
+      "target": "effecter_response",
+      "notes": "\u30B9\u30D4\u30FC\u30AB\u30FC\u2192effecter\u2192\u8A08\u6E2C\uFF13\u53F7\u6A5F\u304F\u3093",
+      "sweep_settings": [
+        {
+          "duration_sec": 30,
+          "freq_start_hz": 30,
+          "freq_end_hz": 300
+        }
+      ]
+    },
+    {
+      "profile_id": "auto_sweep_30s_v2",
+      "name": "\u81EA\u52D5\u30B9\u30A4\u30FC\u30D730\u79D2",
+      "input_type": "speaker_sweep",
+      "target": "\u30EB\u30A2\u30FC\u30CB\u30B9\u30C8\u6539_response",
+      "notes": "\u30B9\u30D4\u30FC\u30AB\u30FCN4P2\u2192\u30EB\u30A2\u30FC\u30CB\u30B9\u30C8\u6539\u2192WCG\u2192\u8A08\u6E2C\uFF13\u53F7\u6A5F\u304F\u3093",
+      "sweep_settings": [
+        {
+          "duration_sec": 30,
+          "freq_start_hz": 20,
+          "freq_end_hz": 300
+        }
+      ]
+    }
+  ]
+}
