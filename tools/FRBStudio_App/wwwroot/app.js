@@ -9,6 +9,8 @@ let currentDataApiUrl = null; // /api/data/xxx.json のときだけ上書き保�
 let lastLoadedDefName = null;
 let serverDefNames = [];
 let serverDataNames = [];
+let detailMode = 'edit'; // edit | new
+let draftRow = null;
 
 const $ = (id) => document.getElementById(id);
 
@@ -363,6 +365,93 @@ function applySelectDisplayMode(input, field) {
   input.classList.add('listbox-select');
 }
 
+
+function wantsRadioControl(field) {
+  return field?.edit?.control === 'radio' || field?.control === 'radio';
+}
+
+function createRadioControl(field, value, prefix, readonly=false) {
+  const group = document.createElement('div');
+  group.className = 'field-radio-group';
+  const name = `${prefix}_${field.field}_${selectedIndex}`;
+  (field.options ?? []).forEach(opt => {
+    const label = document.createElement('label');
+    label.className = 'field-radio-option';
+    const input = document.createElement('input');
+    input.type = 'radio';
+    input.name = name;
+    input.value = opt;
+    input.dataset.field = field.field;
+    input.dataset.type = field.type ?? 'select';
+    input.dataset.prefix = prefix;
+    input.checked = String(value ?? field.defaultValue ?? '') === String(opt);
+    if (readonly) input.disabled = true;
+    label.appendChild(input);
+    const text = document.createElement('span');
+    text.textContent = String(opt);
+    label.appendChild(text);
+    group.appendChild(label);
+  });
+  return group;
+}
+
+function stripReviewOptionLabel(value) {
+  return String(value ?? '').replace(/^[◎△×★]\s*/, '');
+}
+
+function createEmbeddedChatField(config, row, gd, prefix) {
+  const srcField = (gd?.fields ?? []).find(f => f.field === config.field) ?? {};
+  const merged = { ...srcField, ...config, edit: { ...(srcField.edit ?? {}), ...(config.edit ?? {}) } };
+  const readonly = Boolean(merged.readonly || merged.edit?.readonly);
+  const current = getByPath(row, merged.field) ?? merged.defaultValue ?? '';
+
+  const box = document.createElement('div');
+  box.className = 'chat-embedded-field';
+
+  if (config.label) {
+    const cap = document.createElement('span');
+    cap.className = 'chat-embedded-caption';
+    cap.textContent = config.label;
+    box.appendChild(cap);
+  }
+
+  const control = merged.control ?? merged.edit?.control;
+  if (control === 'radio') {
+    const group = document.createElement('div');
+    group.className = 'chat-radio-group';
+    const name = `${prefix}_${merged.field}_${selectedIndex}`;
+    (merged.options ?? []).forEach(opt => {
+      const label = document.createElement('label');
+      label.className = 'chat-radio-option';
+
+      const input = document.createElement('input');
+      input.type = 'radio';
+      input.name = name;
+      input.value = opt;
+      input.dataset.field = merged.field;
+      input.dataset.type = merged.type ?? 'select';
+      input.dataset.prefix = prefix;
+      input.checked = String(current) === String(opt);
+      if (readonly) input.disabled = true;
+
+      label.appendChild(input);
+
+      const text = document.createElement('span');
+      text.textContent = stripReviewOptionLabel(opt);
+      label.appendChild(text);
+
+      group.appendChild(label);
+    });
+    box.appendChild(group);
+    return box;
+  }
+
+  const normal = createInput(merged, current, prefix, readonly, row, gd);
+  normal.classList.add('chat-embedded-normal');
+  box.appendChild(normal);
+  return box;
+}
+
 function normalizeChatMessages(field, row, gd) {
   const configured = field?.edit?.messages ?? field?.messages ?? field?.chat?.messages;
   if (Array.isArray(configured) && configured.length) return configured;
@@ -406,6 +495,14 @@ function createChatInput(field, row, gd, prefix) {
     meta.className = 'chat-meta';
     meta.textContent = msg.label ?? srcField.caption ?? msg.field;
     item.appendChild(meta);
+
+    const embeddedFields = msg.embeddedFields ?? msg.embedded_fields ?? [];
+    if (Array.isArray(embeddedFields) && embeddedFields.length) {
+      const embeddedWrap = document.createElement('div');
+      embeddedWrap.className = 'chat-embedded-fields';
+      embeddedFields.forEach(ef => embeddedWrap.appendChild(createEmbeddedChatField(ef, row, gd, prefix)));
+      item.appendChild(embeddedWrap);
+    }
 
     const bubble = document.createElement('div');
     bubble.className = 'chat-text';
@@ -452,7 +549,9 @@ function createInput(field, value, prefix, readonlyOverride=false, row=null, gd=
   wrap.appendChild(label);
 
   let input;
-  if (field.type === 'select') {
+  if (wantsRadioControl(field)) {
+    input = createRadioControl(field, value, prefix, readonly);
+  } else if (field.type === 'select') {
     input = document.createElement('select');
     const blank = document.createElement('option');
     blank.value = '';
@@ -637,20 +736,14 @@ function createDefaultRow() {
     if (field.create?.include === false) return;
     setByPath(row, field.field, defaultForField(field));
   });
-  return row;
+  return assignNewRowKeys(row);
 }
-
 function addGridRow() {
   if (!Array.isArray(currentRows)) return;
   applyHeaderEdits();
   const row = createDefaultRow();
-  currentRows.push(row);
-  selectedIndex = currentRows.length - 1;
-  applySearch();
-  setStatus('1行追加しました');
-  openDetail(selectedIndex);
+  openNewDetail(row, '新規登録画面を開きました（反映するまで行は追加されません）');
 }
-
 function deleteSelectedRow() {
   if (!Array.isArray(currentRows) || selectedIndex < 0) {
     setStatus('削除する行を選択してください');
@@ -670,7 +763,6 @@ function copyRow(index) {
   setStatus(`行をコピーしました: ${index}`);
 }
 
-
 function nextNumberValue(fieldName) {
   const vals = (currentRows ?? [])
     .map(r => Number(getByPath(r, fieldName)))
@@ -685,8 +777,6 @@ function regexEscape(text) {
 function nextUniqueKeyValue(keyField, sourceValue) {
   const existing = new Set((currentRows ?? []).map(r => String(getByPath(r, keyField) ?? '')).filter(Boolean));
   const src = String(sourceValue ?? '').trim();
-
-  // 例: VIEW-003 -> VIEW-005 のように、末尾番号形式は同じprefix内で次番号を採番する。
   const m = src.match(/^(.*?)(\d+)$/);
   if (m) {
     const prefix = m[1];
@@ -705,8 +795,6 @@ function nextUniqueKeyValue(keyField, sourceValue) {
     }
     return candidate;
   }
-
-  // 末尾番号でない場合は _copy_N を付ける。
   const base = src || 'row';
   let n = 1;
   let candidate = `${base}_copy_${n}`;
@@ -717,11 +805,8 @@ function nextUniqueKeyValue(keyField, sourceValue) {
   return candidate;
 }
 
-function createRowFromSourceRow(sourceRow) {
+function removeCreateExcludedFields(row) {
   const gd = gridDef();
-  const row = cloneData(sourceRow);
-
-  // create.include=false の仮想/表示専用フィールドは、新規行では持たせない。
   (gd.fields ?? []).forEach(field => {
     if (field.create?.include === false) {
       const parts = String(field.field ?? '').split('.');
@@ -735,34 +820,23 @@ function createRowFromSourceRow(sourceRow) {
       }
     }
   });
+}
 
-  // よくある連番Noは重複しないように最大+1へ更新する。
+function assignNewRowKeys(row, sourceRow=null) {
+  const gd = gridDef();
   const noField = (gd.fields ?? []).find(f => f.field === 'no' || String(f.field).toLowerCase() === 'no');
   if (noField) setByPath(row, noField.field, nextNumberValue(noField.field));
-
-  // keyField がある場合は必ず一意化する。
   if (gd.keyField) {
-    const oldKey = getByPath(row, gd.keyField);
+    const oldKey = sourceRow ? getByPath(sourceRow, gd.keyField) : getByPath(row, gd.keyField);
     setByPath(row, gd.keyField, nextUniqueKeyValue(gd.keyField, oldKey));
   }
-
   return row;
 }
 
-function duplicateRowToNew(index) {
-  if (!Array.isArray(currentRows) || index < 0 || !currentRows[index]) {
-    setStatus('コピー新規する行を選択してください');
-    return;
-  }
-  applyHeaderEdits();
-  copiedRow = cloneData(currentRows[index]);
-  const row = createRowFromSourceRow(copiedRow);
-  currentRows.push(row);
-  selectedIndex = currentRows.length - 1;
-  applySearch();
-  const keyMsg = gridDef()?.keyField ? ` / ${gridDef().keyField}: ${getByPath(row, gridDef().keyField)}` : '';
-  setStatus(`この行をコピーして新規登録画面へ遷移しました${keyMsg}`);
-  openDetail(selectedIndex);
+function createRowFromSourceRow(sourceRow) {
+  const row = cloneData(sourceRow);
+  removeCreateExcludedFields(row);
+  return assignNewRowKeys(row, sourceRow);
 }
 
 function detailEditableControls() {
@@ -811,16 +885,23 @@ function addRowFromCopiedRow() {
   }
   applyHeaderEdits();
   const row = createRowFromSourceRow(copiedRow);
-  currentRows.push(row);
-  selectedIndex = currentRows.length - 1;
-  applySearch();
-  setStatus('コピー行から1行追加しました');
-  openDetail(selectedIndex);
+  openNewDetail(row, 'コピー行から新規登録画面を開きました（反映するまで行は追加されません）');
 }
-
 function hideRowContextMenu() {
   const menu = $('rowContextMenu');
   if (menu) menu.classList.add('hidden');
+}
+
+function duplicateRowToNew(index) {
+  if (!Array.isArray(currentRows) || index < 0 || !currentRows[index]) {
+    setStatus('コピー新規する行を選択してください');
+    return;
+  }
+  applyHeaderEdits();
+  copiedRow = cloneData(currentRows[index]);
+  const row = createRowFromSourceRow(copiedRow);
+  const keyMsg = gridDef()?.keyField ? ` / ${gridDef().keyField}: ${getByPath(row, gridDef().keyField)}` : '';
+  openNewDetail(row, `この行をコピーして新規登録画面へ遷移しました${keyMsg}（反映するまで行は追加されません）`);
 }
 
 function showRowContextMenu(x, y, index) {
@@ -837,8 +918,7 @@ function showRowContextMenu(x, y, index) {
   menu.style.top = y + 'px';
   menu.classList.remove('hidden');
 }
-
-document.addEventListener('click' , hideRowContextMenu);
+document.addEventListener('click', hideRowContextMenu);
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') hideRowContextMenu();
   if (!$('detailDialog')?.open) return;
@@ -856,23 +936,33 @@ function updateDetailNavButtons() {
   const pos = currentFilteredPosition();
   const prevBtn = $('prevDetailBtn');
   const nextBtn = $('nextDetailBtn');
+  if (detailMode === 'new') {
+    if (prevBtn) prevBtn.disabled = true;
+    if (nextBtn) nextBtn.disabled = true;
+    return;
+  }
   if (prevBtn) prevBtn.disabled = pos <= 0;
   if (nextBtn) nextBtn.disabled = pos < 0 || pos >= filteredRows.length - 1;
 }
 
-function applyDetailInputsToSelectedRow() {
-  if (selectedIndex < 0) return;
-  const row = currentRows[selectedIndex];
+function applyDetailInputsToRow(row) {
+  if (!row) return;
   const gd = gridDef();
   detailEditableControls().forEach(inp => {
     if (!inp.dataset.field) return;
+    if (inp.type === 'radio' && !inp.checked) return;
     const field = gd.fields.find(f => f.field === inp.dataset.field);
     if (!field || field.edit?.readonly || field.readonly || isControlReadonly(inp)) return;
     setByPath(row, field.field, convertValue(field.type, getControlValue(inp)));
   });
 }
 
+function applyDetailInputsToSelectedRow() {
+  if (selectedIndex < 0) return;
+  applyDetailInputsToRow(currentRows[selectedIndex]);
+}
 function moveDetail(delta) {
+  if (detailMode === 'new') return;
   const pos = currentFilteredPosition();
   const nextPos = pos + delta;
   if (pos < 0 || nextPos < 0 || nextPos >= filteredRows.length) return;
@@ -1004,9 +1094,7 @@ async function exportMarkdown() {
   }
 }
 
-function openDetail(index, keepOpen=false) {
-  selectedIndex = index;
-  const row = currentRows[index];
+function renderDetailForRow(row) {
   const gd = gridDef();
   const pasteBtn = $('pasteCopiedBtn');
   if (pasteBtn) pasteBtn.disabled = !copiedRow;
@@ -1017,9 +1105,26 @@ function openDetail(index, keepOpen=false) {
   });
   renderChildArea(row, gd);
   updateDetailNavButtons();
+}
+
+function openDetail(index, keepOpen=false) {
+  detailMode = 'edit';
+  draftRow = null;
+  selectedIndex = index;
+  const row = currentRows[index];
+  renderDetailForRow(row);
   if (!keepOpen || !$('detailDialog').open) $('detailDialog').showModal();
 }
 
+function openNewDetail(row, statusMessage='新規登録画面を開きました') {
+  detailMode = 'new';
+  draftRow = row;
+  selectedIndex = -1;
+  renderGrid();
+  renderDetailForRow(draftRow);
+  setStatus(statusMessage);
+  if (!$('detailDialog').open) $('detailDialog').showModal();
+}
 function renderChildArea(row, gd) {
   const area = $('childArea');
   area.innerHTML = '';
@@ -1063,6 +1168,24 @@ function renderChildArea(row, gd) {
 
 function applyDetail(e) {
   if (e) e.preventDefault();
+
+  if (detailMode === 'new') {
+    if (!draftRow || !Array.isArray(currentRows)) return;
+    applyDetailInputsToRow(draftRow);
+    // 反映直前にもNo/Keyを再採番して、開いている間に増えた行との重複を避ける。
+    assignNewRowKeys(draftRow, draftRow);
+    currentRows.push(draftRow);
+    selectedIndex = currentRows.length - 1;
+    detailMode = 'edit';
+    draftRow = null;
+    applySearch();
+    renderGrid();
+    updateDetailNavButtons();
+    setStatus('新規行を追加して詳細を反映しました');
+    openDetail(selectedIndex, true);
+    return;
+  }
+
   if (selectedIndex < 0) return;
   applyDetailInputsToSelectedRow();
   renderGrid();
@@ -1071,7 +1194,6 @@ function applyDetail(e) {
   // 承認作業では連続レビューしたいので、反映では詳細ダイアログを閉じない。
   // 閉じる場合は「閉じる」ボタンまたは右上×を使う。
 }
-
 function applyHeaderEdits() {
   const def = headerDef();
   if (!def) return;
@@ -1138,6 +1260,8 @@ function loadFromObjects(defObj, dataObj, label='読み込み完了', dataApiUrl
   selectedIndex = -1;
   sortState = { field: null, direction: null };
   copiedRow = null;
+  detailMode = 'edit';
+  draftRow = null;
   currentDataApiUrl = dataApiUrl;
   if (lastLoadedDefName && $('defNameInput')) $('defNameInput').value = lastLoadedDefName;
   renderHeader();

@@ -400,22 +400,141 @@ th.sortable:hover { background: linear-gradient(180deg, #eef6ff, #ddecfb); }
 }
 
 
-/* 検索フォームでは textarea も通常textboxと同じ低い高さに固定する */
+/* ===== Final override: 検索フォーム textarea 低さ固定（最優先） ===== */
+#searchSection #searchForm textarea,
+#searchSection .search-grid textarea,
 #searchForm .field textarea,
 .search-grid .field textarea {
   min-height: 36px !important;
   height: 36px !important;
   max-height: 36px !important;
-  resize: none;
-  line-height: 1.25;
-  font-family: inherit;
-  overflow: auto;
+  resize: none !important;
+  line-height: 1.25 !important;
+  font-family: inherit !important;
+  overflow: auto !important;
+}
+
+/* 詳細エディター側の textarea は従来通り広め */
+#detailDialog #detailForm textarea,
+#detailDialog .detail-grid textarea {
+  min-height: 76px;
+  height: auto;
+  max-height: none;
+  resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  line-height: 1.55;
+}
+
+/* 詳細エディター: ボタン行を固定フッター化（維持） */
+#detailDialog { overflow: hidden; }
+#detailDialog .dialog-body {
+  max-height: 92vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
+}
+#detailDialog .detail-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  margin: 14px -16px -16px;
+  padding: 10px 16px 12px;
+  background: linear-gradient(180deg, rgba(248,251,255,.82), rgba(255,255,255,.98) 35%, #ffffff);
+  border-top: 1px solid var(--line);
+  box-shadow: 0 -10px 24px rgba(15,23,42,.08);
+  backdrop-filter: blur(8px);
+}
+#detailDialog .detail-footer button { flex: 0 0 auto; }
+@media (max-width: 760px) {
+  #detailDialog .detail-footer {
+    justify-content: flex-start;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
 }
 
 
-/* 詳細エディター: ボタン行を固定フッター化 */
-#detailDialog { overflow: hidden; }
-#detailDialog .dialog-body { max-height: 92vh; overflow-y: auto; display: flex; flex-direction: column; padding-bottom: 0; }
-#detailDialog .detail-footer { position: sticky; bottom: 0; z-index: 5; margin: 14px -16px -16px; padding: 10px 16px 12px; background: linear-gradient(180deg, rgba(248,251,255,.82), rgba(255,255,255,.98) 35%, #ffffff); border-top: 1px solid var(--line); box-shadow: 0 -10px 24px rgba(15,23,42,.08); backdrop-filter: blur(8px); }
-#detailDialog .detail-footer button { flex: 0 0 auto; }
-@media (max-width: 760px) { #detailDialog .detail-footer { justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; } }
+/* chat内の承認ラジオ表示 */
+.chat-embedded-fields {
+  margin: 4px 0 6px;
+}
+.chat-embedded-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.chat-embedded-caption {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 800;
+}
+.chat-radio-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 2px 0 6px;
+}
+.chat-radio-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 650;
+  color: #0f172a;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.chat-radio-option input {
+  width: auto;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.chat-radio-option span {
+  line-height: 1.2;
+}
+.chat-embedded-normal.field {
+  width: 100%;
+  margin: 0;
+}
+
+/* 通常フィールド用 Option ボタン */
+.field-radio-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  min-height: 36px;
+  padding: 8px 9px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+}
+.field.readonly .field-radio-group {
+  background: var(--readonly);
+  border-color: #d8e2ee;
+}
+.field-radio-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.field-radio-option input {
+  width: auto;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.field-radio-option span {
+  line-height: 1.2;
+}
