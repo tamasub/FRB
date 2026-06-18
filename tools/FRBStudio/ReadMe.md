@@ -40,3 +40,4 @@ dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=
 
 ![alt text](image.png)
 ![alt text](image-1.png)
+![alt text](image-2.png)
