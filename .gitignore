@@ -53,6 +53,7 @@ data/exports/tmp/
 # ======
 
 mymemo.md
+OhMyClaude.md
 README_V0_mermaid.md
 ./BlogStory
 *ネタ*.md
@@ -60,7 +61,7 @@ README_V0_mermaid.md
 やることメモ.md
 ./docsExcel
 *.xlsx
-OhMyClaude.md
+
 
 
 
