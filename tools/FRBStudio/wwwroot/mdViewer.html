@@ -1245,10 +1245,14 @@ tocDepthBtns.forEach(btn=>btn.addEventListener("click",()=>{
   buildToc();
 }));
 
-// 初期ロード: data/markdown に管理Markdownがあれば先頭を容赦なく読み込み。無ければ従来のURLを読む。
+// 初期ロード: ?file=xxx.md があればそれを優先。無ければ data/markdown の先頭を読む。
 (async () => {
-  const files = await refreshManagedMarkdownList();
-  if (files.length) {
+  const params = new URLSearchParams(location.search);
+  const requestedFile = params.get('file') || params.get('md');
+  const files = await refreshManagedMarkdownList(requestedFile || '');
+  if (requestedFile) {
+    await loadManagedMarkdown(requestedFile);
+  } else if (files.length) {
     await loadManagedMarkdown(managedMdSelect.value || files[0]);
   } else {
     loadMarkdown(mdUrlEl.value);

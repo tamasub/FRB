@@ -91,6 +91,7 @@
       </label>
       <button id="loadBtn" class="primary-button">読み込み</button>
       <button id="saveBtn" class="ghost-button" disabled>保存</button>
+      <button id="exportMarkdownBtn" class="ghost-button" disabled>Markdown出力→Viewer</button>
       <a class="studio-nav-link" href="mdViewer.html" title="Markdown Viewer / Editor を開く">
         <span class="nav-icon">📝</span>
         <span>Markdown<span class="nav-sub">Viewer / Editor</span></span>
@@ -143,14 +144,16 @@
       <div id="detailForm" class="form-grid detail-grid"></div>
       <div id="childArea"></div>
       <div class="button-row right">
+        <button id="prevDetailBtn" type="button" class="ghost-button" title="F7">前へ(F7)</button>
+        <button id="nextDetailBtn" type="button" class="ghost-button" title="F8">次へ(F8)</button>
         <button id="pasteCopiedBtn" type="button" class="ghost-button" disabled>コピー行を貼り付け</button>
-        <button id="applyDetailBtn" class="primary-button" value="default">反映</button>
+        <button id="applyDetailBtn" class="primary-button" value="default" title="F12">反映(F12)</button>
         <button class="ghost-button" value="cancel">閉じる</button>
       </div>
     </form>
   </dialog>
 
   <div id="rowContextMenu" class="context-menu hidden"></div>
-  <script src="app.js?v=manage-data-004"></script>
+  <script src="app.js?v=ai-constraint-ops-002"></script>
 </body>
 </html>

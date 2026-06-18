@@ -276,3 +276,125 @@ th.sortable:hover { background: linear-gradient(180deg, #eef6ff, #ddecfb); }
 }
 .context-menu button:hover:not(:disabled) { background: var(--accent-soft); transform: none; }
 .context-menu button:disabled { color: #98a2b3; }
+
+
+/* AI制約設計書レビュー支援 */
+#exportMarkdownBtn {
+  border-color: rgba(14, 165, 233, 0.35);
+}
+#prevDetailBtn, #nextDetailBtn {
+  min-width: 78px;
+}
+#prevDetailBtn:disabled, #nextDetailBtn:disabled, #exportMarkdownBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* selectを全候補表示リストとして使う編集モード */
+.field select.listbox-select {
+  height: auto;
+  min-height: 0;
+  padding: 5px 7px;
+  border-radius: 10px;
+  line-height: 1.35;
+  overflow-y: auto;
+}
+.field select.listbox-select option {
+  padding: 6px 8px;
+}
+
+/* FieldType: chat — JSON上の複数フィールドを会話タイムラインとして表示する */
+.chat-field {
+  grid-column: 1 / -1;
+}
+.chat-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #f8fbff, #eef5fb);
+}
+.chat-message {
+  width: fit-content;
+  max-width: 72%;
+  min-width: min(340px, 100%);
+  padding: 8px 10px 10px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 5px 14px rgba(15,23,42,.06);
+}
+.chat-text {
+  min-width: min(300px, 100%);
+  max-width: 100%;
+  box-sizing: border-box;
+  border: 0;
+  outline: none;
+  padding: 4px 2px 0;
+  background: transparent;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.7;
+  color: #0f172a;
+}
+.chat-text:empty::before {
+  content: attr(data-placeholder);
+  color: #94a3b8;
+}
+.chat-text[contenteditable="true"] {
+  cursor: text;
+}
+.chat-text[contenteditable="true"]:focus {
+  background: rgba(255,255,255,.55);
+  border-radius: 8px;
+  box-shadow: 0 0 0 2px rgba(99,102,241,.14);
+}
+.chat-text.readonly {
+  color: #334155;
+}
+.chat-meta {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .02em;
+  color: var(--muted);
+  margin-bottom: 3px;
+}
+.chat-user {
+  align-self: flex-start;
+  border-top-left-radius: 6px;
+  background: #ffffff;
+}
+.chat-user .chat-meta::before { content: '👤 '; }
+.chat-ai {
+  align-self: flex-end;
+  border-top-right-radius: 6px;
+  background: #eef5ff;
+  border-color: #bfdbfe;
+}
+.chat-ai .chat-meta::before { content: '🤖 '; }
+.chat-constraint {
+  align-self: center;
+  max-width: 100%;
+  width: 100%;
+  border-radius: 14px;
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+.chat-constraint .chat-meta::before { content: '📌 '; }
+.chat-other {
+  align-self: center;
+  background: #f8fafc;
+}
+
+@media (max-width: 760px) {
+  .chat-message {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+  .chat-text {
+    min-width: 0;
+  }
+}

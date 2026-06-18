@@ -352,12 +352,103 @@ function formatValue(value, field=null) {
 }
 
 
-function createInput(field, value, prefix, readonlyOverride=false) {
+function wantsListBox(field) {
+  return field?.edit?.control === 'listbox' || field?.edit?.selectMode === 'listbox' || field?.control === 'listbox';
+}
+
+function applySelectDisplayMode(input, field) {
+  if (!wantsListBox(field)) return;
+  const optionCount = (field.options?.length ?? 0) + 1;
+  input.size = Math.max(2, optionCount);
+  input.classList.add('listbox-select');
+}
+
+function normalizeChatMessages(field, row, gd) {
+  const configured = field?.edit?.messages ?? field?.messages ?? field?.chat?.messages;
+  if (Array.isArray(configured) && configured.length) return configured;
+
+  // 既存のAI制約設計書v0.3形式を、専用データ移行なしでチャット表示できる既定マッピング。
+  const existing = new Set((gd?.fields ?? []).map(f => f.field));
+  const candidates = [
+    { role: 'constraint', field: 'statement', label: '制約本文', readonly: true },
+    { role: 'user', field: 'user_comment', label: '俺コメント' },
+    { role: 'ai', field: 'ai_response', label: 'AI回答', readonly: true },
+    { role: 'user', field: 'user_reply', label: '俺追加回答' },
+    { role: 'ai', field: 'ai_followup_response', label: 'AI再回答', readonly: true }
+  ];
+  return candidates.filter(m => existing.has(m.field));
+}
+
+function createChatInput(field, row, gd, prefix) {
+  const wrap = document.createElement('div');
+  wrap.className = 'field chat-field';
+
+  const label = document.createElement('label');
+  label.textContent = field.caption ?? '会話';
+  wrap.appendChild(label);
+
+  const timeline = document.createElement('div');
+  timeline.className = 'chat-timeline';
+
+  normalizeChatMessages(field, row, gd).forEach(msg => {
+    const srcField = (gd?.fields ?? []).find(f => f.field === msg.field) ?? {};
+    const raw = getByPath(row, msg.field);
+    const role = String(msg.role ?? '').toLowerCase();
+    const isAi = role === 'ai' || role === 'assistant';
+    const isUser = role === 'user' || role === 'human' || role === '俺';
+    const isConstraint = role === 'constraint' || role === 'system' || role === 'statement';
+    const readonly = Boolean(msg.readonly || srcField.readonly || srcField.edit?.readonly);
+
+    const item = document.createElement('div');
+    item.className = 'chat-message ' + (isAi ? 'chat-ai' : isUser ? 'chat-user' : isConstraint ? 'chat-constraint' : 'chat-other');
+
+    const meta = document.createElement('div');
+    meta.className = 'chat-meta';
+    meta.textContent = msg.label ?? srcField.caption ?? msg.field;
+    item.appendChild(meta);
+
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-text';
+    bubble.textContent = raw == null ? '' : String(raw);
+    bubble.dataset.field = msg.field;
+    bubble.dataset.type = srcField.type ?? 'textarea';
+    bubble.dataset.prefix = prefix;
+    bubble.dataset.placeholder = msg.placeholder ?? '';
+    bubble.setAttribute('role', 'textbox');
+    bubble.setAttribute('aria-label', msg.label ?? srcField.caption ?? msg.field);
+    bubble.setAttribute('spellcheck', 'false');
+    bubble.contentEditable = readonly ? 'false' : 'true';
+    if (readonly) {
+      bubble.classList.add('readonly');
+      item.classList.add('readonly');
+    }
+    bubble.addEventListener('keydown', (e) => {
+      // contenteditable内ではF12/F7/F8だけ親の詳細操作へ渡す。
+      if (e.key === 'F7' || e.key === 'F8' || e.key === 'F12') return;
+      // Ctrl+Enter は反映のショートカット。改行は Enter で通常通り入力できる。
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        applyDetail(e);
+      }
+    });
+    item.appendChild(bubble);
+
+    timeline.appendChild(item);
+  });
+
+  wrap.appendChild(timeline);
+  return wrap;
+}
+
+function createInput(field, value, prefix, readonlyOverride=false, row=null, gd=null) {
+  if (field.type === 'chat') return createChatInput(field, row ?? {}, gd ?? gridDef(), prefix);
+
   const readonly = readonlyOverride || field.readonly || field.edit?.readonly;
   const wrap = document.createElement('div');
   wrap.className = 'field' + (readonly ? ' readonly' : '');
   const label = document.createElement('label');
-  label.textContent = field.caption ?? field.field;
+  const shortcut = field.edit?.shortcut ? ` (${field.edit.shortcut})` : '';
+  label.textContent = (field.caption ?? field.field) + shortcut;
   wrap.appendChild(label);
 
   let input;
@@ -373,6 +464,7 @@ function createInput(field, value, prefix, readonlyOverride=false) {
       o.textContent = opt;
       input.appendChild(o);
     });
+    applySelectDisplayMode(input, field);
     input.value = value ?? '';
   } else if (field.type === 'textarea') {
     input = document.createElement('textarea');
@@ -385,6 +477,7 @@ function createInput(field, value, prefix, readonlyOverride=false) {
       o.value = v; o.textContent = v;
       input.appendChild(o);
     });
+    applySelectDisplayMode(input, field);
     input.value = value === true ? 'true' : value === false ? 'false' : '';
   } else {
     input = document.createElement('input');
@@ -577,17 +670,41 @@ function copyRow(index) {
   setStatus(`行をコピーしました: ${index}`);
 }
 
+function detailEditableControls() {
+  return [...$('detailForm').querySelectorAll('input, select, textarea, [contenteditable][data-field]')];
+}
+
+function getControlValue(el) {
+  if (el.hasAttribute('contenteditable')) return el.innerText ?? '';
+  return el.value;
+}
+
+function setControlValue(el, value) {
+  const text = value == null ? '' : String(value);
+  if (el.hasAttribute('contenteditable')) {
+    el.innerText = text;
+  } else {
+    el.value = text;
+  }
+}
+
+function isControlReadonly(el) {
+  if (el.disabled) return true;
+  if (el.hasAttribute('contenteditable')) return el.getAttribute('contenteditable') === 'false';
+  return false;
+}
+
 function pasteCopiedRowToForm() {
   if (!copiedRow) {
     setStatus('コピー済み行がありません');
     return;
   }
   const gd = gridDef();
-  [...$('detailForm').querySelectorAll('input, select, textarea')].forEach(inp => {
+  detailEditableControls().forEach(inp => {
     const field = gd.fields.find(f => f.field === inp.dataset.field);
-    if (!field || field.edit?.readonly || field.readonly || inp.disabled) return;
+    if (!field || field.edit?.readonly || field.readonly || isControlReadonly(inp)) return;
     const value = getByPath(copiedRow, field.field);
-    inp.value = value == null ? '' : value;
+    setControlValue(inp, value);
   });
   setStatus('コピー行の値を詳細ダイアログへ貼り付けました');
 }
@@ -632,9 +749,172 @@ function showRowContextMenu(x, y, index) {
 }
 
 document.addEventListener('click', hideRowContextMenu);
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hideRowContextMenu(); });
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') hideRowContextMenu();
+  if (!$('detailDialog')?.open) return;
+  if (e.key === 'F7') { e.preventDefault(); moveDetail(-1); }
+  if (e.key === 'F8') { e.preventDefault(); moveDetail(1); }
+  if (e.key === 'F12') { e.preventDefault(); applyDetail(e); }
+});
 
-function openDetail(index) {
+function currentFilteredPosition() {
+  if (selectedIndex < 0) return -1;
+  return filteredRows.findIndex(x => x.index === selectedIndex);
+}
+
+function updateDetailNavButtons() {
+  const pos = currentFilteredPosition();
+  const prevBtn = $('prevDetailBtn');
+  const nextBtn = $('nextDetailBtn');
+  if (prevBtn) prevBtn.disabled = pos <= 0;
+  if (nextBtn) nextBtn.disabled = pos < 0 || pos >= filteredRows.length - 1;
+}
+
+function applyDetailInputsToSelectedRow() {
+  if (selectedIndex < 0) return;
+  const row = currentRows[selectedIndex];
+  const gd = gridDef();
+  detailEditableControls().forEach(inp => {
+    if (!inp.dataset.field) return;
+    const field = gd.fields.find(f => f.field === inp.dataset.field);
+    if (!field || field.edit?.readonly || field.readonly || isControlReadonly(inp)) return;
+    setByPath(row, field.field, convertValue(field.type, getControlValue(inp)));
+  });
+}
+
+function moveDetail(delta) {
+  const pos = currentFilteredPosition();
+  const nextPos = pos + delta;
+  if (pos < 0 || nextPos < 0 || nextPos >= filteredRows.length) return;
+  applyDetailInputsToSelectedRow();
+  selectedIndex = filteredRows[nextPos].index;
+  renderGrid();
+  openDetail(selectedIndex, true);
+}
+
+function markdownEscape(value) {
+  return String(value ?? '').replace(/\r?\n/g, '<br>').replace(/\|/g, '\\|');
+}
+
+function isConstraintLike(row) {
+  return row && (row.constraint_id || row.statement || row.review_check || row.user_comment);
+}
+
+function rowToConstraintMarkdown(row, fields, no) {
+  const id = row.constraint_id ?? row.id ?? `ROW-${no}`;
+  const title = row.title ?? row.caption ?? row.name ?? '';
+  const lines = [];
+  lines.push(`## ${id}${title ? '：' + title : ''}`);
+  if (row.category) lines.push(`- 分類: ${row.category}`);
+  if (row.priority) lines.push(`- 優先度: ${row.priority}`);
+  if (row.source_type) lines.push(`- 由来: ${row.source_type}`);
+  if (row.review_check) lines.push(`- 承認: ${row.review_check}`);
+  if (row.statement) lines.push(`\n### 制約\n${row.statement}`);
+  if (row.evidence) lines.push(`\n### 根拠\n${row.evidence}`);
+  if (row.user_comment) lines.push(`\n### 俺コメント\n${row.user_comment}`);
+  if (row.ai_note) lines.push(`\n### AIメモ\n${row.ai_note}`);
+  const known = new Set(['no','constraint_id','id','title','caption','name','category','priority','source_type','review_check','statement','evidence','user_comment','ai_note','gap_type']);
+  const extras = fields.filter(f => !known.has(f.field)).map(f => [f.caption ?? f.field, getByPath(row, f.field)]).filter(([,v]) => v != null && v !== '');
+  if (extras.length) {
+    lines.push('\n### その他');
+    extras.forEach(([k,v]) => lines.push(`- ${k}: ${formatValue(v)}`));
+  }
+  return lines.join('\n') + '\n';
+}
+
+function rowsToTableMarkdown(rows, fields) {
+  const visibleFields = fields.filter(f => f.grid?.visible !== false).slice(0, 8);
+  const head = '| ' + visibleFields.map(f => markdownEscape(f.caption ?? f.field)).join(' | ') + ' |';
+  const sep = '| ' + visibleFields.map(() => '---').join(' | ') + ' |';
+  const body = rows.map(row => '| ' + visibleFields.map(f => markdownEscape(formatValue(getByPath(row, f.field), f))).join(' | ') + ' |');
+  return [head, sep, ...body].join('\n');
+}
+
+function buildMarkdownFromCurrentData() {
+  applyHeaderEdits();
+  const gd = gridDef();
+  const hd = headerDef();
+  const rows = Array.isArray(currentRows) ? currentRows : [];
+  const title = sourceData?.title || mainView()?.caption || gd?.caption || 'No-Code JSON Studio Export';
+  const lines = [];
+  lines.push(`# ${title}`);
+  lines.push('');
+  lines.push(`- 出力日時: ${new Date().toLocaleString('ja-JP')}`);
+  if (sourceData?.target) lines.push(`- 対象: ${sourceData.target}`);
+  if (sourceData?.schema_version) lines.push(`- schema_version: ${sourceData.schema_version}`);
+  if (sourceData?.status) lines.push(`- status: ${sourceData.status}`);
+  lines.push(`- 件数: ${rows.length}`);
+  if (hd?.fields?.length) {
+    lines.push('\n## 基本情報');
+    hd.fields.forEach(f => {
+      const fullPath = (hd.dataPath === '$' ? '$.' : hd.dataPath + '.') + f.field;
+      const v = getByPath(sourceData, fullPath);
+      if (v != null && v !== '' && typeof v !== 'object') lines.push(`- ${f.caption ?? f.field}: ${formatValue(v, f)}`);
+    });
+  }
+  lines.push('\n---\n');
+  if (rows.every(isConstraintLike)) {
+    rows.forEach((row, i) => lines.push(rowToConstraintMarkdown(row, gd.fields, i + 1)));
+  } else {
+    lines.push(`## ${gd.caption ?? '一覧'}`);
+    lines.push(rowsToTableMarkdown(rows, gd.fields));
+  }
+  return lines.join('\n');
+}
+
+function downloadTextFile(filename, text, type='text/markdown') {
+  const blob = new Blob([text], {type});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function normalizeMarkdownFileName(name) {
+  let n = String(name || '').trim();
+  if (!n) n = 'json_studio_export.md';
+  n = n.replace(/[\\/:*?"<>|]/g, '_');
+  if (!/\.(md|markdown)$/i.test(n)) n += '.md';
+  return n;
+}
+
+function markdownExportFileName() {
+  const base = sourceData?.export_md_name || sourceData?.markdown_file || sourceData?.title || lastLoadedDataUrl?.split('/').pop() || 'json_studio_export';
+  const clean = normalizeMarkdownFileName(String(base).replace(/\.json$/i, ''));
+  return clean;
+}
+
+async function saveMarkdownToManagedFolder(filename, content) {
+  const safeName = normalizeMarkdownFileName(filename);
+  const res = await fetch(`/api/markdown/${encodeURIComponent(safeName)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: safeName, content })
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return safeName;
+}
+
+async function exportMarkdown() {
+  if (!sourceData || !viewDef) {
+    setStatus('Markdown出力するデータがありません');
+    return;
+  }
+  const md = buildMarkdownFromCurrentData();
+  const fileName = markdownExportFileName();
+  try {
+    const savedName = await saveMarkdownToManagedFolder(fileName, md);
+    setStatus(`Markdownを data/markdown/${savedName} に出力しました`);
+    location.href = `mdViewer.html?file=${encodeURIComponent(savedName)}`;
+  } catch (err) {
+    console.warn('管理Markdown保存に失敗。ダウンロードへフォールバックします。', err);
+    downloadTextFile(fileName, md);
+    setStatus('Markdown API保存に失敗したため、ダウンロード出力しました: ' + err.message);
+  }
+}
+
+function openDetail(index, keepOpen=false) {
   selectedIndex = index;
   const row = currentRows[index];
   const gd = gridDef();
@@ -643,10 +923,11 @@ function openDetail(index) {
   const form = $('detailForm');
   form.innerHTML = '';
   gd.fields.filter(f => f.edit?.visible !== false).forEach(field => {
-    form.appendChild(createInput(field, getByPath(row, field.field), 'detail'));
+    form.appendChild(createInput(field, getByPath(row, field.field), 'detail', false, row, gd));
   });
   renderChildArea(row, gd);
-  $('detailDialog').showModal();
+  updateDetailNavButtons();
+  if (!keepOpen || !$('detailDialog').open) $('detailDialog').showModal();
 }
 
 function renderChildArea(row, gd) {
@@ -691,17 +972,14 @@ function renderChildArea(row, gd) {
 }
 
 function applyDetail(e) {
-  e.preventDefault();
+  if (e) e.preventDefault();
   if (selectedIndex < 0) return;
-  const row = currentRows[selectedIndex];
-  const gd = gridDef();
-  [...$('detailForm').querySelectorAll('input, select, textarea')].forEach(inp => {
-    const field = gd.fields.find(f => f.field === inp.dataset.field);
-    if (!field || field.edit?.readonly || field.readonly || inp.disabled) return;
-    setByPath(row, field.field, convertValue(field.type, inp.value));
-  });
+  applyDetailInputsToSelectedRow();
   renderGrid();
-  $('detailDialog').close();
+  updateDetailNavButtons();
+  setStatus('詳細を反映しました（F7/F8で前後移動できます）');
+  // 承認作業では連続レビューしたいので、反映では詳細ダイアログを閉じない。
+  // 閉じる場合は「閉じる」ボタンまたは右上×を使う。
 }
 
 function applyHeaderEdits() {
@@ -777,6 +1055,7 @@ function loadFromObjects(defObj, dataObj, label='読み込み完了', dataApiUrl
   loadRows();
   renderGrid();
   $('saveBtn').disabled = false;
+  if ($('exportMarkdownBtn')) $('exportMarkdownBtn').disabled = false;
   $('saveBtn').textContent = currentDataApiUrl ? '上書き保存' : '別名保存';
   $('addRowBtn').disabled = false;
   $('deleteRowBtn').disabled = false;
@@ -836,6 +1115,9 @@ $('clearSearchBtn').addEventListener('click', () => {
 });
 $('applyDetailBtn').addEventListener('click', applyDetail);
 $('pasteCopiedBtn').addEventListener('click', pasteCopiedRowToForm);
+$('prevDetailBtn').addEventListener('click', () => moveDetail(-1));
+$('nextDetailBtn').addEventListener('click', () => moveDetail(1));
+$('exportMarkdownBtn').addEventListener('click', exportMarkdown);
 $('saveBtn').addEventListener('click', async () => {
   try {
     await saveOverwriteJson();
