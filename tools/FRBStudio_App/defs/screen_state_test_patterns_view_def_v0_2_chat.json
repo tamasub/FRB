@@ -584,7 +584,13 @@
             }
           ]
         }
-      ]
+      ],
+      "markdown": {
+        "enabled": true,
+        "type": "screen_state_test_patterns",
+        "title": "画面状態JSON テストパターン台帳",
+        "defaultFileName": "screen_state_test_patterns_export.md"
+      }
     }
   ]
 }

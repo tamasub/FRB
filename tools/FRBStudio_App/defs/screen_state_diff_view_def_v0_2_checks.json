@@ -389,7 +389,13 @@
             }
           ]
         }
-      ]
+      ],
+      "markdown": {
+        "enabled": true,
+        "type": "screen_state_diff",
+        "title": "画面状態JSON 差分結果",
+        "defaultFileName": "screen_state_diff_export.md"
+      }
     }
   ]
 }

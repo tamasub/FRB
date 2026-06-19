@@ -174,7 +174,13 @@
             }
           ]
         }
-      ]
+      ],
+      "markdown": {
+        "enabled": true,
+        "type": "screen_state_expected",
+        "title": "画面状態JSON Expected定義",
+        "defaultFileName": "screen_state_expected_export.md"
+      }
     }
   ]
 }

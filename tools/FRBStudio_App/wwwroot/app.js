@@ -1694,12 +1694,46 @@ function rowsToTableMarkdown(rows, fields) {
   return [head, sep, ...body].join('\n');
 }
 
-function buildMarkdownFromCurrentData() {
-  applyHeaderEdits();
+function markdownConfig() {
+  return viewDef?.markdown || mainView()?.markdown || gridDef()?.markdown || {};
+}
+
+function markdownExportType() {
+  return String(markdownConfig()?.type ?? markdownConfig()?.exportType ?? 'auto').trim();
+}
+
+function markdownValueBlock(value) {
+  if (value == null || value === '') return '';
+  if (Array.isArray(value) || (typeof value === 'object' && value !== null)) {
+    return '```json\n' + JSON.stringify(value, null, 2) + '\n```';
+  }
+  return String(value);
+}
+
+function pushMarkdownValue(lines, label, value, field=null) {
+  if (value == null || value === '') return;
+  if (Array.isArray(value) || (typeof value === 'object' && value !== null)) {
+    lines.push(`- ${label}:`);
+    lines.push(markdownValueBlock(value));
+  } else {
+    lines.push(`- ${label}: ${formatValue(value, field)}`);
+  }
+}
+
+function rowsToTableMarkdownWithFields(rows, fields, limit=12) {
+  const visibleFields = fields.filter(f => f.grid?.visible !== false).slice(0, limit);
+  const head = '| ' + visibleFields.map(f => markdownEscape(f.caption ?? f.field)).join(' | ') + ' |';
+  const sep = '| ' + visibleFields.map(() => '---').join(' | ') + ' |';
+  const body = rows.map(row => '| ' + visibleFields.map(f => markdownEscape(formatValue(getByPath(row, f.field), f))).join(' | ') + ' |');
+  return [head, sep, ...body].join('\n');
+}
+
+function buildGenericMarkdown() {
   const gd = gridDef();
   const hd = headerDef();
   const rows = Array.isArray(currentRows) ? currentRows : [];
-  const title = sourceData?.title || mainView()?.caption || gd?.caption || 'No-Code JSON Studio Export';
+  const cfg = markdownConfig();
+  const title = cfg.title || sourceData?.title || mainView()?.caption || gd?.caption || 'No-Code JSON Studio Export';
   const lines = [];
   lines.push(`# ${title}`);
   lines.push('');
@@ -1717,13 +1751,177 @@ function buildMarkdownFromCurrentData() {
     });
   }
   lines.push('\n---\n');
-  if (rows.every(isConstraintLike)) {
+  if (rows.length && rows.every(isConstraintLike)) {
     rows.forEach((row, i) => lines.push(rowToConstraintMarkdown(row, gd.fields, i + 1)));
   } else {
     lines.push(`## ${gd.caption ?? '一覧'}`);
     lines.push(rowsToTableMarkdown(rows, gd.fields));
   }
   return lines.join('\n');
+}
+
+function buildScreenStateExpectedMarkdown() {
+  const gd = gridDef();
+  const rows = Array.isArray(currentRows) ? currentRows : [];
+  const title = sourceData?.title || sourceData?.testId || 'Screen State Expected';
+  const lines = [];
+  lines.push(`# ${title}`);
+  lines.push('');
+  lines.push('## 基本情報');
+  pushMarkdownValue(lines, '出力日時', new Date().toLocaleString('ja-JP'));
+  pushMarkdownValue(lines, 'Test ID', sourceData?.testId);
+  pushMarkdownValue(lines, '画面定義', sourceData?.view_def || lastLoadedDefName);
+  pushMarkdownValue(lines, 'チェック数', rows.length);
+  if (sourceData?.memo) pushMarkdownValue(lines, 'メモ', sourceData.memo);
+
+  lines.push('\n## チェック定義一覧');
+  lines.push(rowsToTableMarkdownWithFields(rows, gd.fields, 8));
+
+  if (rows.length) {
+    lines.push('\n## チェック詳細');
+    rows.forEach((row, i) => {
+      lines.push(`\n### ${i + 1}. ${row.name ?? 'check'}`);
+      pushMarkdownValue(lines, 'Type', row.type);
+      pushMarkdownValue(lines, 'Target', row.target);
+      if (row.expected != null && row.expected !== '') {
+        lines.push('\n#### Expected');
+        lines.push(markdownValueBlock(row.expected));
+      }
+      if (row.description) {
+        lines.push('\n#### 説明');
+        lines.push(String(row.description));
+      }
+    });
+  }
+  return lines.join('\n');
+}
+
+function buildScreenStateDiffMarkdown() {
+  const gd = gridDef();
+  const rows = Array.isArray(currentRows) ? currentRows : [];
+  const failedRows = rows.filter(row => valueIsFail(row?.pass) || valueIsFail(row?.status));
+  const result = sourceData?.resultLabel || sourceData?.status || (failedRows.length ? 'FAIL' : 'PASS');
+  const title = sourceData?.title || sourceData?.testId || 'Screen State Diff';
+  const lines = [];
+  lines.push(`# ${title} — ${result}`);
+  lines.push('');
+  lines.push('## テスト結果サマリ');
+  pushMarkdownValue(lines, '出力日時', new Date().toLocaleString('ja-JP'));
+  pushMarkdownValue(lines, '判定', result);
+  pushMarkdownValue(lines, 'Test ID', sourceData?.testId);
+  pushMarkdownValue(lines, '取得日時', sourceData?.capturedAt);
+  pushMarkdownValue(lines, 'URL', sourceData?.url);
+  pushMarkdownValue(lines, '失敗件数', sourceData?.failedCount ?? failedRows.length);
+  if (sourceData?.summary) {
+    lines.push('\n### 差分サマリ');
+    lines.push(String(sourceData.summary));
+  }
+  if (sourceData?.failedChecks?.length) pushMarkdownValue(lines, '失敗チェッカー一覧', sourceData.failedChecks);
+
+  if (sourceData?.firstFailure) {
+    lines.push('\n## 初回失敗');
+    pushMarkdownValue(lines, 'Check', sourceData.firstFailure.name);
+    pushMarkdownValue(lines, 'Expected', sourceData.firstFailure.expected);
+    pushMarkdownValue(lines, 'Actual', sourceData.firstFailure.actual);
+  }
+
+  lines.push('\n## チェッカー結果一覧');
+  lines.push(rowsToTableMarkdownWithFields(rows, gd.fields, 10));
+
+  if (failedRows.length) {
+    lines.push('\n## 失敗チェック詳細');
+    failedRows.forEach((row, i) => {
+      lines.push(`\n### ${i + 1}. ${row.name ?? 'check'}`);
+      pushMarkdownValue(lines, 'Type', row.type);
+      pushMarkdownValue(lines, 'Target', row.target);
+      pushMarkdownValue(lines, 'Message', row.message);
+      if (hasMissingItems(row.missing)) pushMarkdownValue(lines, 'Missing', row.missing);
+      if (row.expected != null && row.expected !== '') {
+        lines.push('\n#### Expected');
+        lines.push(markdownValueBlock(row.expected));
+      }
+      if (row.actual != null && row.actual !== '') {
+        lines.push('\n#### Actual');
+        lines.push(markdownValueBlock(row.actual));
+      }
+    });
+  }
+  return lines.join('\n');
+}
+
+function buildScreenStateTestPatternsMarkdown() {
+  const gd = gridDef();
+  const rows = Array.isArray(currentRows) ? currentRows : [];
+  const title = sourceData?.title || sourceData?.suiteId || '画面状態JSON テストパターン台帳';
+  const lines = [];
+  lines.push(`# ${title}`);
+  lines.push('');
+  lines.push('## 基本情報');
+  pushMarkdownValue(lines, '出力日時', new Date().toLocaleString('ja-JP'));
+  pushMarkdownValue(lines, 'Suite ID', sourceData?.suiteId);
+  pushMarkdownValue(lines, 'Schema', sourceData?.schema_version);
+  pushMarkdownValue(lines, '対象アプリ', sourceData?.targetApp);
+  pushMarkdownValue(lines, 'Base URL', sourceData?.baseUrl);
+  pushMarkdownValue(lines, 'パターン数', rows.length);
+  if (sourceData?.memo) {
+    lines.push('\n### メモ');
+    lines.push(String(sourceData.memo));
+  }
+
+  lines.push('\n## テストパターン一覧');
+  const tableFields = (gd.fields ?? []).filter(f => [
+    'enabled', 'patternId', 'title', 'category', 'testKind', 'targetUrl', 'expectedFile', 'status', 'priority', 'checksCount', 'my_confirm_status'
+  ].includes(f.field));
+  lines.push(rowsToTableMarkdownWithFields(rows, tableFields.length ? tableFields : gd.fields, 12));
+
+  if (rows.length) {
+    lines.push('\n## パターン詳細');
+    rows.forEach((row, i) => {
+      lines.push(`\n### ${i + 1}. ${row.patternId ?? 'pattern'}：${row.title ?? ''}`);
+      pushMarkdownValue(lines, '有効', row.enabled);
+      pushMarkdownValue(lines, 'Category', row.category);
+      pushMarkdownValue(lines, 'Kind', row.testKind);
+      pushMarkdownValue(lines, 'URL', row.targetUrl);
+      pushMarkdownValue(lines, 'Expected JSON', row.expectedFile);
+      pushMarkdownValue(lines, 'Status', row.status);
+      pushMarkdownValue(lines, 'Priority', row.priority);
+      pushMarkdownValue(lines, '確認状態', row.my_confirm_status);
+      if (row.notes) {
+        lines.push('\n#### メモ');
+        lines.push(String(row.notes));
+      }
+      if (row.user_comment) {
+        lines.push('\n#### 俺コメント');
+        lines.push(String(row.user_comment));
+      }
+      if (row.ai_response) {
+        lines.push('\n#### AI回答');
+        lines.push(String(row.ai_response));
+      }
+      if (row.user_reply) {
+        lines.push('\n#### 俺追加回答');
+        lines.push(String(row.user_reply));
+      }
+      if (row.ai_followup_response) {
+        lines.push('\n#### AI再回答');
+        lines.push(String(row.ai_followup_response));
+      }
+      if (Array.isArray(row.checks) && row.checks.length) {
+        lines.push('\n#### チェック定義');
+        lines.push(markdownValueBlock(row.checks));
+      }
+    });
+  }
+  return lines.join('\n');
+}
+
+function buildMarkdownFromCurrentData() {
+  applyHeaderEdits();
+  const type = markdownExportType();
+  if (type === 'screen_state_expected') return buildScreenStateExpectedMarkdown();
+  if (type === 'screen_state_diff') return buildScreenStateDiffMarkdown();
+  if (type === 'screen_state_test_patterns') return buildScreenStateTestPatternsMarkdown();
+  return buildGenericMarkdown();
 }
 
 function downloadTextFile(filename, text, type='text/markdown') {
@@ -1743,8 +1941,25 @@ function normalizeMarkdownFileName(name) {
   return n;
 }
 
+function currentDataNameForExport() {
+  const fromCombo = $('dataNameInput')?.value;
+  if (fromCombo) return fromCombo.split('/').pop();
+  const fromApi = currentDataApiUrl ? jsonNameFromUrl(currentDataApiUrl, 'data') : null;
+  if (fromApi) return fromApi.split('/').pop();
+  return null;
+}
+
 function markdownExportFileName() {
-  const base = sourceData?.export_md_name || sourceData?.markdown_file || sourceData?.title || lastLoadedDataUrl?.split('/').pop() || 'json_studio_export';
+  const cfg = markdownConfig();
+  const base =
+    sourceData?.export_md_name ||
+    sourceData?.markdown_file ||
+    cfg.fileName ||
+    cfg.filename ||
+    cfg.defaultFileName ||
+    sourceData?.title ||
+    currentDataNameForExport() ||
+    'json_studio_export';
   const clean = normalizeMarkdownFileName(String(base).replace(/\.json$/i, ''));
   return clean;
 }
