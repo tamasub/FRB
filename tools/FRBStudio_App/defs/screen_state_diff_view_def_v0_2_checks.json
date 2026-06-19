@@ -1,23 +1,23 @@
 {
   "app": {
     "name": "No-Code JSON Studio",
-    "version": "0.2-draft"
+    "version": "0.3-draft"
   },
   "views": [
     {
-      "id": "screen_state_diff_main_v0_2",
-      "caption": "Screen State Diff Viewer / Emphasis",
+      "id": "screen_state_diff_main",
+      "caption": "Screen State Diff Viewer",
       "layout": "header-search-grid-detail",
       "sections": [
         {
           "id": "header",
-          "caption": "🚨 テスト結果サマリ / 差分強調",
+          "caption": "🔥 テスト結果サマリ / 差分強調",
           "type": "form",
           "dataPath": "$",
           "fields": [
             {
               "field": "resultLabel",
-              "caption": "🚨 判定",
+              "caption": "判定",
               "type": "text",
               "readonly": true,
               "grid": {
@@ -26,12 +26,7 @@
               "edit": {
                 "visible": true,
                 "readonly": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "contains"
-              },
-              "defaultValue": ""
+              }
             },
             {
               "field": "summary",
@@ -44,13 +39,8 @@
               "edit": {
                 "visible": true,
                 "readonly": true,
-                "height": 72
-              },
-              "search": {
-                "visible": true,
-                "operator": "contains"
-              },
-              "defaultValue": ""
+                "height": 74
+              }
             },
             {
               "field": "failedCount",
@@ -63,16 +53,11 @@
               "edit": {
                 "visible": true,
                 "readonly": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "gte"
-              },
-              "defaultValue": 0
+              }
             },
             {
               "field": "failedChecks",
-              "caption": "失敗チェック一覧",
+              "caption": "失敗チェッカー一覧",
               "type": "stringArray",
               "readonly": true,
               "grid": {
@@ -81,11 +66,7 @@
               "edit": {
                 "visible": true,
                 "readonly": true
-              },
-              "search": {
-                "visible": false
-              },
-              "defaultValue": []
+              }
             },
             {
               "field": "firstFailure.name",
@@ -98,12 +79,7 @@
               "edit": {
                 "visible": true,
                 "readonly": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "contains"
-              },
-              "defaultValue": ""
+              }
             },
             {
               "field": "firstFailure.expected",
@@ -116,12 +92,8 @@
               "edit": {
                 "visible": true,
                 "readonly": true,
-                "height": 80
-              },
-              "search": {
-                "visible": false
-              },
-              "defaultValue": ""
+                "height": 84
+              }
             },
             {
               "field": "firstFailure.actual",
@@ -134,12 +106,8 @@
               "edit": {
                 "visible": true,
                 "readonly": true,
-                "height": 80
-              },
-              "search": {
-                "visible": false
-              },
-              "defaultValue": ""
+                "height": 84
+              }
             },
             {
               "field": "testId",
@@ -152,32 +120,20 @@
               "edit": {
                 "visible": true,
                 "readonly": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "contains"
-              },
-              "validation": {
-                "required": true
               }
             },
             {
               "field": "title",
               "caption": "テスト名",
               "type": "text",
-              "readonly": false,
+              "readonly": true,
               "grid": {
                 "visible": false
               },
               "edit": {
                 "visible": true,
-                "readonly": false
-              },
-              "search": {
-                "visible": true,
-                "operator": "contains"
-              },
-              "defaultValue": ""
+                "readonly": true
+              }
             },
             {
               "field": "capturedAt",
@@ -190,10 +146,6 @@
               "edit": {
                 "visible": true,
                 "readonly": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "contains"
               }
             },
             {
@@ -207,10 +159,6 @@
               "edit": {
                 "visible": true,
                 "readonly": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "contains"
               }
             },
             {
@@ -232,8 +180,7 @@
               "search": {
                 "visible": true,
                 "operator": "equals"
-              },
-              "defaultValue": "pass"
+              }
             },
             {
               "field": "actualState.appTitle",
@@ -246,10 +193,6 @@
               "edit": {
                 "visible": true,
                 "readonly": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "contains"
               }
             },
             {
@@ -263,10 +206,6 @@
               "edit": {
                 "visible": true,
                 "readonly": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "equals"
               }
             },
             {
@@ -280,11 +219,7 @@
               "edit": {
                 "visible": true,
                 "readonly": true
-              },
-              "search": {
-                "visible": false
-              },
-              "defaultValue": []
+              }
             },
             {
               "field": "actualState.inputs",
@@ -297,17 +232,13 @@
               "edit": {
                 "visible": true,
                 "readonly": true
-              },
-              "search": {
-                "visible": false
-              },
-              "defaultValue": []
+              }
             }
           ]
         },
         {
           "id": "checks",
-          "caption": "チェック一覧",
+          "caption": "チェッカー一覧",
           "type": "grid",
           "dataPath": "$.checks",
           "keyField": "name",
@@ -316,10 +247,9 @@
               "field": "pass",
               "caption": "判定",
               "type": "boolean",
-              "readonly": true,
               "grid": {
                 "visible": true,
-                "width": 70
+                "width": 72
               },
               "edit": {
                 "visible": true,
@@ -329,21 +259,39 @@
                 "visible": true,
                 "operator": "equals"
               },
-              "defaultValue": true
+              "readonly": true
             },
             {
               "field": "name",
               "caption": "Check",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 190
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "readonly": true
+            },
+            {
+              "field": "type",
+              "caption": "Type",
               "type": "select",
               "options": [
-                "appTitle",
-                "headerText",
-                "requiredButtons",
-                "requiredInputIds"
+                "equals",
+                "includesAll",
+                "contains",
+                "exists"
               ],
               "grid": {
                 "visible": true,
-                "width": 170
+                "width": 110
               },
               "edit": {
                 "visible": true,
@@ -353,17 +301,12 @@
                 "visible": true,
                 "operator": "equals"
               },
-              "validation": {
-                "required": true
-              },
-              "defaultValue": "appTitle",
               "readonly": true
             },
             {
-              "field": "missing",
-              "caption": "Missing",
-              "type": "stringArray",
-              "readonly": true,
+              "field": "target",
+              "caption": "Target",
+              "type": "text",
               "grid": {
                 "visible": true,
                 "width": 180
@@ -373,47 +316,76 @@
                 "readonly": true
               },
               "search": {
-                "visible": false
+                "visible": true,
+                "operator": "contains"
               },
-              "defaultValue": []
+              "readonly": true
+            },
+            {
+              "field": "missing",
+              "caption": "Missing",
+              "type": "stringArray",
+              "grid": {
+                "visible": true,
+                "width": 210
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true
             },
             {
               "field": "expected",
               "caption": "Expected",
               "type": "textarea",
-              "readonly": true,
               "grid": {
                 "visible": true,
-                "width": 330
+                "width": 360
               },
               "edit": {
                 "visible": true,
                 "readonly": true,
-                "height": 90
+                "height": 96
               },
               "search": {
-                "visible": false
+                "visible": true,
+                "operator": "contains"
               },
-              "defaultValue": ""
+              "readonly": true
             },
             {
               "field": "actual",
               "caption": "Actual",
               "type": "textarea",
-              "readonly": true,
               "grid": {
                 "visible": true,
-                "width": 330
+                "width": 360
               },
               "edit": {
                 "visible": true,
                 "readonly": true,
-                "height": 120
+                "height": 96
               },
               "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "readonly": true
+            },
+            {
+              "field": "message",
+              "caption": "Message",
+              "type": "textarea",
+              "grid": {
                 "visible": false
               },
-              "defaultValue": ""
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 80
+              },
+              "readonly": true
             }
           ]
         }

@@ -2,13 +2,13 @@
   "view_def": "screen_state_diff_view_def_v0_1.json",
   "testId": "screen_state_smoke_001",
   "title": "初期表示の画面状態JSONを検証する",
-  "capturedAt": "2026-06-19T12:19:51.107Z",
+  "capturedAt": "2026-06-19T12:46:36.477Z",
   "url": "http://localhost:5055/",
   "status": "fail",
   "checks": [
     {
       "name": "appTitle",
-      "expected": "No-Code JSON Studio v0.3-draftyyy",
+      "expected": "No-Code JSON Studio v0.3-draft eeee",
       "actual": "No-Code JSON Studio v0.3-draft",
       "pass": false
     },
@@ -111,7 +111,7 @@
   "summary": "🚨 1件の差分を検出しました: appTitle",
   "firstFailure": {
     "name": "appTitle",
-    "expected": "No-Code JSON Studio v0.3-draftyyy",
+    "expected": "No-Code JSON Studio v0.3-draft eeee",
     "actual": "No-Code JSON Studio v0.3-draft"
   }
 }
