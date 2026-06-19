@@ -1453,3 +1453,23 @@ $('saveBtn').addEventListener('click', async () => {
 });
 
 refreshServerLists().finally(autoLoadFromQuery);
+
+
+window.__NCJS_exportScreenState = function () {
+  return {
+    appTitle: document.title,
+    url: location.href,
+    headerText: document.body.innerText.includes("No-Code JSON Studio"),
+    buttons: Array.from(document.querySelectorAll("button")).map(b => b.innerText.trim()).filter(Boolean),
+    selects: Array.from(document.querySelectorAll("select")).map(s => ({
+      id: s.id || "",
+      value: s.value || "",
+      optionCount: s.options.length
+    })),
+    inputs: Array.from(document.querySelectorAll("input")).map(i => ({
+      id: i.id || "",
+      type: i.type || "",
+      value: i.value || ""
+    }))
+  };
+};
