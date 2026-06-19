@@ -1,17 +1,17 @@
 {
   "app": {
     "name": "No-Code JSON Studio",
-    "version": "0.3-draft"
+    "version": "0.3-draft-base-screen-state-diff"
   },
   "views": [
     {
       "id": "screen_state_diff_main",
-      "caption": "Screen State Diff Viewer",
+      "caption": "【継承元BASE】Screen State Diff Viewer / Full Checks",
       "layout": "header-search-grid-detail",
       "sections": [
         {
           "id": "header",
-          "caption": "🔥 テスト結果サマリ / 差分強調",
+          "caption": "【継承元BASE】🔥 テスト結果サマリ / 差分強調",
           "type": "form",
           "dataPath": "$",
           "fields": [
@@ -238,7 +238,7 @@
         },
         {
           "id": "checks",
-          "caption": "チェッカー一覧",
+          "caption": "【継承元BASE】チェッカー一覧 / Full Checks",
           "type": "grid",
           "dataPath": "$.checks",
           "keyField": "name",
@@ -393,8 +393,8 @@
       "markdown": {
         "enabled": true,
         "type": "screen_state_diff",
-        "title": "画面状態JSON 差分結果",
-        "defaultFileName": "screen_state_diff_export.md"
+        "title": "【継承元BASE】画面状態JSON 差分結果",
+        "defaultFileName": "screen_state_diff_base_export.md"
       }
     }
   ]
