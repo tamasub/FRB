@@ -126,6 +126,126 @@ async function fetchApiJson(kind, name) {
   return (await fetchApiJsonWithUrl(kind, name)).json;
 }
 
+
+function normalizeExtendsValue(value) {
+  if (Array.isArray(value)) return value.map(safeJsonFileName).filter(Boolean);
+  const n = safeJsonFileName(value);
+  return n ? [n] : [];
+}
+
+function resolveRelativeJsonName(name, baseName=null) {
+  const n = safeJsonFileName(name);
+  if (!n) return null;
+  if (n.includes('/') || !baseName) return n;
+  const base = safeJsonFileName(baseName);
+  if (!base || !base.includes('/')) return n;
+  const dir = base.split('/').slice(0, -1).join('/');
+  return dir ? `${dir}/${n}` : n;
+}
+
+function mergeArrayByKey(parentArr, childArr) {
+  if (!Array.isArray(parentArr)) return cloneData(childArr);
+  if (!Array.isArray(childArr)) return cloneData(parentArr);
+
+  const keyNames = ['id', 'field', 'name'];
+  const key = keyNames.find(k =>
+    childArr.some(x => x && typeof x === 'object' && !Array.isArray(x) && x[k] != null)
+  );
+
+  // options などの単純配列、またはキーを持たない配列は「子で丸ごと置換」。
+  if (!key) return cloneData(childArr);
+
+  const result = cloneData(parentArr);
+  const indexByKey = new Map();
+  result.forEach((item, i) => {
+    if (item && typeof item === 'object' && !Array.isArray(item) && item[key] != null) {
+      indexByKey.set(String(item[key]), i);
+    }
+  });
+
+  childArr.forEach(childItem => {
+    if (!childItem || typeof childItem !== 'object' || Array.isArray(childItem) || childItem[key] == null) {
+      result.push(cloneData(childItem));
+      return;
+    }
+
+    const k = String(childItem[key]);
+    const remove = childItem.remove === true || childItem.$remove === true || childItem._remove === true;
+    if (remove) {
+      const idx = indexByKey.get(k);
+      if (idx != null) result.splice(idx, 1);
+      indexByKey.clear();
+      result.forEach((item, i) => {
+        if (item && typeof item === 'object' && !Array.isArray(item) && item[key] != null) {
+          indexByKey.set(String(item[key]), i);
+        }
+      });
+      return;
+    }
+
+    if (indexByKey.has(k)) {
+      const idx = indexByKey.get(k);
+      result[idx] = mergeViewDefObject(result[idx], childItem);
+    } else {
+      indexByKey.set(k, result.length);
+      result.push(cloneData(childItem));
+    }
+  });
+
+  return result;
+}
+
+function mergeViewDefObject(parentValue, childValue) {
+  if (Array.isArray(parentValue) || Array.isArray(childValue)) {
+    return mergeArrayByKey(parentValue, childValue);
+  }
+
+  if (
+    parentValue && typeof parentValue === 'object' &&
+    childValue && typeof childValue === 'object'
+  ) {
+    const result = cloneData(parentValue);
+    Object.entries(childValue).forEach(([key, value]) => {
+      if (key === 'extends') return;
+      result[key] = key in result ? mergeViewDefObject(result[key], value) : cloneData(value);
+    });
+    return result;
+  }
+
+  return cloneData(childValue);
+}
+
+async function fetchResolvedViewDef(name, stack=[]) {
+  const loaded = await fetchApiJsonWithUrl('defs', name);
+  const actualName = loaded.correctedName || jsonNameFromUrl(loaded.url, 'defs') || safeJsonFileName(name);
+  return resolveViewDefInheritance(loaded.json, actualName, stack);
+}
+
+async function resolveViewDefInheritance(defObj, currentName=null, stack=[]) {
+  const parents = normalizeExtendsValue(defObj?.extends);
+  if (!parents.length) return cloneData(defObj);
+
+  const current = safeJsonFileName(currentName) || '(dropped view_def)';
+  let merged = {};
+
+  for (const parentRaw of parents) {
+    const parentName = resolveRelativeJsonName(parentRaw, currentName);
+    if (!parentName) throw new Error(`extends の指定が不正です: ${parentRaw}`);
+    if (stack.includes(parentName)) {
+      throw new Error(`ViewDef継承が循環しています: ${[...stack, parentName].join(' -> ')}`);
+    }
+
+    const parentResolved = await fetchResolvedViewDef(parentName, [...stack, current]);
+    merged = mergeViewDefObject(merged, parentResolved);
+  }
+
+  const child = cloneData(defObj);
+  delete child.extends;
+  const resolved = mergeViewDefObject(merged, child);
+  resolved._resolved_extends = parents;
+  return resolved;
+}
+
 function jsonNameFromUrl(url, kind=null) {
   try {
     const u = new URL(url, location.href);
@@ -340,7 +460,7 @@ async function findCompatibleDefForData(dataObj, dataName='', excludedNames=[]) 
 
   for (const candidate of candidates) {
     try {
-      const defObj = await fetchApiJson('defs', candidate);
+      const defObj = await fetchResolvedViewDef(candidate);
       if (isDefCompatibleWithData(defObj, dataObj)) {
         return { defName: candidate, defObj };
       }
@@ -352,13 +472,17 @@ async function findCompatibleDefForData(dataObj, dataName='', excludedNames=[]) 
 }
 
 async function resolveDefForData(preferredDefName, dataObj, dataName='') {
+  const preferred = safeJsonFileName(preferredDefName);
   const embeddedDefName = getDataViewDefName(dataObj);
-  let defName = embeddedDefName || safeJsonFileName(preferredDefName);
+
+  // 画面定義JSONを明示選択した場合は、対象JSON内の view_def より優先する。
+  // これで「同じデータを別ViewDefで見る」デモが成立する。
+  let defName = preferred || embeddedDefName;
 
   if (defName) {
-    const defObj = await fetchApiJson('defs', defName);
+    const defObj = await fetchResolvedViewDef(defName);
     if (isDefCompatibleWithData(defObj, dataObj)) {
-      return { defName, defObj, autoChanged: embeddedDefName && embeddedDefName !== preferredDefName };
+      return { defName, defObj, autoChanged: !preferred && embeddedDefName && embeddedDefName !== preferredDefName };
     }
 
     const compatible = await findCompatibleDefForData(dataObj, dataName, [defName]);
@@ -471,18 +595,20 @@ async function loadFromDroppedFilesOrServer() {
   }
 
   let defName = defNameFromInput;
-  if (dataObj && getDataViewDefName(dataObj)) {
+  if (dataObj && !defName && getDataViewDefName(dataObj)) {
     defName = getDataViewDefName(dataObj);
     $('defNameInput').value = defName;
   }
 
   let defObj = null;
   let droppedDefName = null;
+  let droppedDefRawObj = null;
   if (defFile) {
     droppedDefName = defFile.name;
-    defObj = JSON.parse(await defFile.text());
+    droppedDefRawObj = JSON.parse(await defFile.text());
     defName = safeJsonFileName(defFile.name) || defName || 'dropped_view_def.json';
     $('defNameInput').value = defName;
+    defObj = await resolveViewDefInheritance(droppedDefRawObj, defName);
     if (dataObj && !isDefCompatibleWithData(defObj, dataObj)) {
       throw new Error(defCompatibilityMessage(defName, defObj, dataObj, droppedDataName) + '。Dropした画面定義JSONと対象JSONの組み合わせを確認してください');
     }
@@ -492,7 +618,7 @@ async function loadFromDroppedFilesOrServer() {
     defObj = resolved.defObj;
     $('defNameInput').value = defName;
   } else if (defName) {
-    defObj = await fetchApiJson('defs', defName);
+    defObj = await fetchResolvedViewDef(defName);
   } else {
     throw new Error('画面定義JSONをDropするか、defsから選択してください');
   }
@@ -513,7 +639,7 @@ async function loadFromDroppedFilesOrServer() {
 
   if (confirm(`このファイルをFRB Studioで管理しますか？\n\n${manageTargets}\n\n[OK] 管理対象へコピーして上書き保存可能にする\n[キャンセル] 今回は見るだけ（保存は別名保存）`)) {
     if (droppedDefName) {
-      await registerDroppedDef(droppedDefName, defObj);
+      await registerDroppedDef(droppedDefName, droppedDefRawObj ?? defObj);
     }
     dataApiUrl = await registerDroppedData(droppedDataName, dataObj, defName);
     const copiedLabel = droppedDefName
@@ -1865,8 +1991,9 @@ async function autoLoadFromQuery() {
     $('defFileName').textContent = viewUrl;
     $('dataFileName').textContent = dataUrl;
     setStatus('URLパラメータから読み込み中...');
-    const [defObj, dataObj] = await Promise.all([fetchJson(viewUrl), fetchJson(dataUrl)]);
+    const [rawDefObj, dataObj] = await Promise.all([fetchJson(viewUrl), fetchJson(dataUrl)]);
     const normalizedDefName = jsonNameFromUrl(viewUrl, 'defs');
+    const defObj = await resolveViewDefInheritance(rawDefObj, normalizedDefName || jsonNameFromUrl(viewUrl));
     lastLoadedDefName = normalizedDefName || getDataViewDefName(dataObj) || null;
     if (lastLoadedDefName && $('defNameInput')) $('defNameInput').value = lastLoadedDefName;
     const normalizedDataName = jsonNameFromUrl(dataUrl, 'data');
