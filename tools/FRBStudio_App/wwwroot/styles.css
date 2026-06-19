@@ -608,3 +608,58 @@ th.sortable:hover { background: linear-gradient(180deg, #eef6ff, #ddecfb); }
   .chat-composer { border-radius: 18px; }
   .chat-composer-send { min-width: 54px; padding-left: 10px !important; padding-right: 10px !important; }
 }
+
+/* ===== Grid emphasis: diff結果の失敗行を叫ばせる ===== */
+tbody tr.row-fail td {
+  background: linear-gradient(90deg, #fff1f2 0%, #ffe4e6 42%, #fff7ed 100%) !important;
+  border-bottom-color: #fecdd3;
+}
+tbody tr.row-fail:hover td {
+  background: linear-gradient(90deg, #ffe4e6 0%, #fecdd3 42%, #ffedd5 100%) !important;
+}
+tbody tr.row-pass td {
+  background: #f7fff9;
+}
+tbody tr.row-missing td {
+  box-shadow: inset 4px 0 0 #f97316;
+}
+td.cell-result {
+  font-weight: 950;
+  text-align: center;
+  letter-spacing: .02em;
+}
+td.cell-fail {
+  color: #be123c;
+  background: #ffe4e6 !important;
+  box-shadow: inset 0 0 0 1px #fb7185;
+}
+td.cell-pass {
+  color: #047857;
+}
+td.cell-check-fail {
+  color: #9f1239;
+  font-weight: 950;
+}
+td.cell-expected-fail {
+  background: #fff7ed !important;
+  color: #9a3412;
+  font-weight: 850;
+}
+td.cell-actual-fail {
+  background: #eff6ff !important;
+  color: #1d4ed8;
+  font-weight: 850;
+}
+td.cell-missing {
+  color: #c2410c;
+  background: #ffedd5 !important;
+  font-weight: 900;
+}
+td.cell-missing-empty {
+  color: #64748b;
+  opacity: .82;
+}
+tr.selected.row-fail td {
+  background: linear-gradient(90deg, #fecdd3 0%, #fda4af 45%, #fed7aa 100%) !important;
+  box-shadow: inset 0 0 0 1px rgba(190,18,60,.18);
+}

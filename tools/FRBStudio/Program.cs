@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Windows.Forms;
 using System.Drawing;
+using Microsoft.Extensions.Configuration;
 
 namespace FRBStudio;
 
@@ -46,10 +47,12 @@ internal static class Program
 
     private static WebApplication CreateWebApplication(string[] args)
     {
-        var builder = WebApplication.CreateBuilder(args);
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+        {
+            Args = args,
+            ContentRootPath = AppContext.BaseDirectory
+        });
         builder.WebHost.UseUrls(AppUrl);
-
-        var app = builder.Build();
 
         var root = AppContext.BaseDirectory;
         var dataRootDir = Path.Combine(root, "data");
@@ -62,6 +65,12 @@ internal static class Program
         Directory.CreateDirectory(markdownDir);
         Directory.CreateDirectory(defsDir);
 
+        var dataFolders = ResolveDataFolders(
+            builder.Configuration,
+            root,
+            "FrbStudio:DataFolders",
+            new[] { "data/json" });
+
         // 旧構成 data/*.json から新構成 data/json/*.json へ、初回だけ安全に移行する。
         foreach (var oldJson in Directory.GetFiles(dataRootDir, "*.json"))
         {
@@ -69,36 +78,40 @@ internal static class Program
             if (!File.Exists(dest)) File.Copy(oldJson, dest);
         }
 
+        var app = builder.Build();
+
         app.UseDefaultFiles();
         app.UseStaticFiles();
 
-        app.MapGet("/api/data", () => Results.Json(ListJsonFiles(dataDir)));
+        app.MapGet("/api/data", () => Results.Json(ListJsonFiles(dataFolders)));
 
         app.MapGet("/api/defs", () => Results.Json(ListJsonFiles(defsDir)));
 
-        app.MapGet("/api/data/{name}", async (string name) =>
+        app.MapPost("/api/data/drop", async (DropJsonRequest req) =>
         {
-            var path = SafeJsonPath(dataDir, name);
+            var path = SafeDataPath(dataFolders, req.Name, preferExisting: false);
+            if (path is null) return Results.BadRequest("invalid file name");
+
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            await WriteJsonAsync(path, req.Json);
+            return Results.Ok(new { saved = ToApiName(dataFolders, path) ?? req.Name });
+        });
+
+        app.MapGet("/api/data/{**name}", async (string name) =>
+        {
+            var path = SafeDataPath(dataFolders, name, preferExisting: true);
             if (path is null || !File.Exists(path)) return Results.NotFound();
             return Results.Text(await File.ReadAllTextAsync(path), "application/json");
         });
 
-        app.MapPost("/api/data/{name}", async (string name, JsonElement json) =>
+        app.MapPost("/api/data/{**name}", async (string name, JsonElement json) =>
         {
-            var path = SafeJsonPath(dataDir, name);
+            var path = SafeDataPath(dataFolders, name, preferExisting: false);
             if (path is null) return Results.BadRequest("invalid file name");
 
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             await WriteJsonAsync(path, json);
-            return Results.Ok(new { saved = name });
-        });
-
-        app.MapPost("/api/data/drop", async (DropJsonRequest req) =>
-        {
-            var path = SafeJsonPath(dataDir, req.Name);
-            if (path is null) return Results.BadRequest("invalid file name");
-
-            await WriteJsonAsync(path, req.Json);
-            return Results.Ok(new { saved = req.Name });
+            return Results.Ok(new { saved = ToApiName(dataFolders, path) ?? name });
         });
 
         app.MapGet("/api/markdown", () => Results.Json(ListMarkdownFiles(markdownDir)));
@@ -147,6 +160,71 @@ internal static class Program
         return app;
     }
 
+    private static IReadOnlyList<DataFolder> ResolveDataFolders(
+        IConfiguration config,
+        string root,
+        string sectionName,
+        string[] defaults)
+    {
+        var configured = config.GetSection(sectionName).Get<string[]>();
+        var values = configured is { Length: > 0 } ? configured : defaults;
+
+        var result = new List<DataFolder>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var rootFull = EnsureTrailingSeparator(Path.GetFullPath(root));
+
+        foreach (var raw in values)
+        {
+            if (string.IsNullOrWhiteSpace(raw)) continue;
+
+            var relative = raw.Replace('\\', '/').Trim('/');
+            if (string.IsNullOrWhiteSpace(relative)) continue;
+            if (Path.IsPathRooted(relative)) continue;
+            if (relative.Split('/', StringSplitOptions.RemoveEmptyEntries).Any(part => part == "..")) continue;
+
+            var fullPath = Path.GetFullPath(Path.Combine(root, relative.Replace('/', Path.DirectorySeparatorChar)));
+            if (!EnsureTrailingSeparator(fullPath).StartsWith(rootFull, StringComparison.OrdinalIgnoreCase)) continue;
+            if (!seen.Add(fullPath)) continue;
+
+            Directory.CreateDirectory(fullPath);
+            result.Add(new DataFolder(relative, fullPath, result.Count == 0));
+        }
+
+        if (result.Count == 0)
+        {
+            var fallback = Path.Combine(root, "data", "json");
+            Directory.CreateDirectory(fallback);
+            result.Add(new DataFolder("data/json", fallback, true));
+        }
+
+        return result;
+    }
+
+    private static string[] ListJsonFiles(IReadOnlyList<DataFolder> folders)
+    {
+        var files = new List<string>();
+
+        foreach (var folder in folders)
+        {
+            Directory.CreateDirectory(folder.FullPath);
+
+            foreach (var file in Directory.GetFiles(folder.FullPath, "*.json"))
+            {
+                var name = Path.GetFileName(file);
+                if (string.IsNullOrWhiteSpace(name)) continue;
+
+                files.Add(folder.IsPrimary
+                    ? name
+                    : $"{folder.ApiPrefix}/{name}");
+            }
+        }
+
+        return files
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+    }
+
     private static string[] ListJsonFiles(string dir)
     {
         Directory.CreateDirectory(dir);
@@ -178,6 +256,62 @@ internal static class Program
         await File.WriteAllTextAsync(path, formatted);
     }
 
+    private static string? SafeDataPath(IReadOnlyList<DataFolder> folders, string name, bool preferExisting)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return null;
+
+        var normalized = Uri.UnescapeDataString(name).Replace('\\', '/').Trim('/');
+        if (string.IsNullOrWhiteSpace(normalized)) return null;
+        if (!normalized.EndsWith(".json", StringComparison.OrdinalIgnoreCase)) return null;
+        if (Path.IsPathRooted(normalized)) return null;
+        if (normalized.Split('/', StringSplitOptions.RemoveEmptyEntries).Any(part => part == "..")) return null;
+
+        // 旧互換: ファイル名だけ指定された場合は、既存ファイルを全DataFoldersから探す。
+        // 保存時に既存が見つからない場合は、先頭のDataFolder(data/json)へ保存する。
+        if (!normalized.Contains('/'))
+        {
+            if (preferExisting)
+            {
+                foreach (var folder in folders)
+                {
+                    var existing = SafeJsonPath(folder.FullPath, normalized);
+                    if (existing is not null && File.Exists(existing)) return existing;
+                }
+            }
+
+            return SafeJsonPath(folders[0].FullPath, normalized);
+        }
+
+        // 新方式: tests_screen_state/foo.diff.json のようにフォルダー接頭辞つきで指定する。
+        foreach (var folder in folders)
+        {
+            var prefix = folder.ApiPrefix + "/";
+            if (!normalized.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) continue;
+
+            var fileName = normalized[prefix.Length..];
+            if (fileName.Contains('/')) return null; // DataFolder直下のJSONだけを扱う
+            return SafeJsonPath(folder.FullPath, fileName);
+        }
+
+        return null;
+    }
+
+    private static string? ToApiName(IReadOnlyList<DataFolder> folders, string path)
+    {
+        var fullPath = Path.GetFullPath(path);
+
+        foreach (var folder in folders)
+        {
+            var folderPath = EnsureTrailingSeparator(Path.GetFullPath(folder.FullPath));
+            if (!fullPath.StartsWith(folderPath, StringComparison.OrdinalIgnoreCase)) continue;
+
+            var fileName = Path.GetFileName(fullPath);
+            return folder.IsPrimary ? fileName : $"{folder.ApiPrefix}/{fileName}";
+        }
+
+        return null;
+    }
+
     private static string? SafeJsonPath(string baseDir, string name)
     {
         if (string.IsNullOrWhiteSpace(name)) return null;
@@ -185,11 +319,13 @@ internal static class Program
         if (name.Contains("..") || name.Contains('/') || name.Contains('\\')) return null;
 
         var full = Path.GetFullPath(Path.Combine(baseDir, name));
-        var allowed = Path.GetFullPath(baseDir);
+        var allowed = EnsureTrailingSeparator(Path.GetFullPath(baseDir));
 
-        return full.StartsWith(allowed, StringComparison.OrdinalIgnoreCase) ? full : null;
+        return EnsureTrailingSeparator(Path.GetDirectoryName(full) ?? string.Empty)
+            .StartsWith(allowed, StringComparison.OrdinalIgnoreCase)
+            ? full
+            : null;
     }
-
 
     private static string? SafeMarkdownPath(string baseDir, string name)
     {
@@ -199,9 +335,19 @@ internal static class Program
         if (name.Contains("..") || name.Contains('/') || name.Contains('\\')) return null;
 
         var full = Path.GetFullPath(Path.Combine(baseDir, name));
-        var allowed = Path.GetFullPath(baseDir);
+        var allowed = EnsureTrailingSeparator(Path.GetFullPath(baseDir));
 
-        return full.StartsWith(allowed, StringComparison.OrdinalIgnoreCase) ? full : null;
+        return EnsureTrailingSeparator(Path.GetDirectoryName(full) ?? string.Empty)
+            .StartsWith(allowed, StringComparison.OrdinalIgnoreCase)
+            ? full
+            : null;
+    }
+
+    private static string EnsureTrailingSeparator(string path)
+    {
+        return path.EndsWith(Path.DirectorySeparatorChar)
+            ? path
+            : path + Path.DirectorySeparatorChar;
     }
 
     internal static void OpenBrowser(string url)
@@ -263,6 +409,8 @@ internal sealed class FrbStudioTrayContext : ApplicationContext
         var jsonDir = Path.Combine(dataDir, "json");
         var markdownDir = Path.Combine(dataDir, "markdown");
         var defsDir = Path.Combine(root, "defs");
+        var testsScreenStateDir = Path.Combine(root, "tests_screen_state");
+        var testResultsDiffDir = Path.Combine(root, "tests_screen_state", "test_results", "diff");
 
         var menu = new ContextMenuStrip();
         menu.Items.Add("FRB Studio を開く", null, (_, _) => Program.OpenBrowser(_url));
@@ -270,6 +418,8 @@ internal sealed class FrbStudioTrayContext : ApplicationContext
         menu.Items.Add("json フォルダーを開く", null, (_, _) => Program.OpenFolder(jsonDir));
         menu.Items.Add("markdown フォルダーを開く", null, (_, _) => Program.OpenFolder(markdownDir));
         menu.Items.Add("defs フォルダーを開く", null, (_, _) => Program.OpenFolder(defsDir));
+        menu.Items.Add("tests_screen_state フォルダーを開く", null, (_, _) => Program.OpenFolder(testsScreenStateDir));
+        menu.Items.Add("tests_screen_state/test_results/diff フォルダーを開く", null, (_, _) => Program.OpenFolder(testResultsDiffDir));
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("終了", null, async (_, _) => await ExitAsync());
 
@@ -306,6 +456,11 @@ internal sealed class FrbStudioTrayContext : ApplicationContext
 
         base.Dispose(disposing);
     }
+}
+
+internal sealed record DataFolder(string RelativePath, string FullPath, bool IsPrimary)
+{
+    public string ApiPrefix => RelativePath.Replace('\\', '/').Trim('/');
 }
 
 public sealed record DropJsonRequest(string Name, JsonElement Json);

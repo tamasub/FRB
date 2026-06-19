@@ -62,6 +62,19 @@ function safeJsonFileName(name) {
   return n;
 }
 
+function safeDataApiName(name) {
+  const n = String(name ?? '').trim().replace(/\\/g, '/').replace(/^\/+|\/+$/g, '');
+  if (!n || !n.toLowerCase().endsWith('.json')) return null;
+  if (n.includes('..')) return null;
+  if (/^[a-zA-Z]:/.test(n) || n.startsWith('/')) return null;
+  if (n.split('/').some(part => !part || !/^[^\\/]+$/i.test(part))) return null;
+  return n;
+}
+
+function encodeApiPath(name) {
+  return String(name).split('/').map(encodeURIComponent).join('/');
+}
+
 function setDatalist(id, names) {
   const dl = $(id);
   if (!dl) return;
@@ -95,7 +108,7 @@ function selectedDefName() {
 }
 
 function selectedDataName() {
-  return safeJsonFileName($('dataNameInput')?.value) || null;
+  return safeDataApiName($('dataNameInput')?.value) || null;
 }
 
 function getDataViewDefName(dataObj) {
@@ -112,7 +125,7 @@ async function loadFromServerNames(defName, dataName) {
   // dataコンボから読み込む場合も、対象JSON内の view_def を優先する。
   // これにより「対象JSONだけ選ぶ → 読み込み」で画面定義を自動決定できる。
   defName = safeJsonFileName(defName);
-  dataName = safeJsonFileName(dataName);
+  dataName = safeDataApiName(dataName);
   if (!dataName) throw new Error('対象JSONを選択してください');
 
   $('dataNameInput').value = dataName;
@@ -120,7 +133,7 @@ async function loadFromServerNames(defName, dataName) {
   $('dataFileName').textContent = 'Drop';
   setStatus('API管理ファイルを読み込み中...');
 
-  const dataObj = await fetchJson(`/api/data/${encodeURIComponent(dataName)}`);
+  const dataObj = await fetchJson(`/api/data/${encodeApiPath(dataName)}`);
 
   const embeddedDefName = getDataViewDefName(dataObj);
   if (embeddedDefName) {
@@ -134,7 +147,7 @@ async function loadFromServerNames(defName, dataName) {
   const defObj = await fetchJson(`/api/defs/${encodeURIComponent(defName)}`);
   ensureViewDefNameInData(dataObj, defName);
   lastLoadedDefName = defName;
-  loadFromObjects(defObj, dataObj, `API管理ファイルを読み込みました: ${dataName}`, `/api/data/${encodeURIComponent(dataName)}`);
+  loadFromObjects(defObj, dataObj, `API管理ファイルを読み込みました: ${dataName}`, `/api/data/${encodeApiPath(dataName)}`);
 }
 
 
@@ -739,6 +752,66 @@ function renderSearch() {
   $('searchSection').classList.remove('hidden');
 }
 
+
+function valueIsFail(value) {
+  return value === false || String(value).toLowerCase() === 'false' || String(value).toLowerCase() === 'fail';
+}
+
+function valueIsPass(value) {
+  return value === true || String(value).toLowerCase() === 'true' || String(value).toLowerCase() === 'pass';
+}
+
+function hasMissingItems(value) {
+  if (Array.isArray(value)) return value.length > 0;
+  const text = String(value ?? '').trim();
+  return text !== '' && text !== '[]' && text.toLowerCase() !== 'n/a';
+}
+
+function safeCssToken(value) {
+  return String(value ?? '')
+    .replace(/[^a-zA-Z0-9_-]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .toLowerCase();
+}
+
+function applyGridRowEmphasis(tr, row) {
+  const passValue = row?.pass;
+  const statusValue = row?.status;
+  const resultLabel = String(row?.resultLabel ?? '');
+
+  if (valueIsFail(passValue) || valueIsFail(statusValue) || resultLabel.includes('FAIL') || resultLabel.includes('失敗')) {
+    tr.classList.add('row-fail');
+  } else if (valueIsPass(passValue) || valueIsPass(statusValue) || resultLabel.includes('PASS')) {
+    tr.classList.add('row-pass');
+  }
+
+  if (hasMissingItems(row?.missing)) tr.classList.add('row-missing');
+}
+
+function applyGridCellEmphasis(td, field, row, value) {
+  const fieldName = field?.field ?? '';
+  const token = safeCssToken(fieldName);
+  if (token) td.classList.add('cell-field-' + token);
+
+  if (fieldName === 'pass' || fieldName === 'status') {
+    if (valueIsFail(value)) td.classList.add('cell-fail', 'cell-result');
+    if (valueIsPass(value)) td.classList.add('cell-pass', 'cell-result');
+  }
+
+  if (fieldName === 'missing') {
+    td.classList.add('cell-missing-list');
+    if (hasMissingItems(value)) td.classList.add('cell-missing');
+    else td.classList.add('cell-missing-empty');
+  }
+
+  if (row?.pass === false || String(row?.pass).toLowerCase() === 'false') {
+    if (fieldName === 'expected') td.classList.add('cell-expected-fail');
+    if (fieldName === 'actual') td.classList.add('cell-actual-fail');
+    if (fieldName === 'name') td.classList.add('cell-check-fail');
+  }
+}
+
 function loadRows() {
   const gd = gridDef();
   currentRows = getByPath(sourceData, gd.dataPath);
@@ -776,6 +849,7 @@ function renderGrid() {
   const tbody = document.createElement('tbody');
   filteredRows.forEach(({row, index}) => {
     const tr = document.createElement('tr');
+    applyGridRowEmphasis(tr, row);
     if (index === selectedIndex) tr.classList.add('selected');
     tr.addEventListener('click', () => { selectedIndex = index; renderGrid(); });
     tr.addEventListener('dblclick', () => openDetail(index));
@@ -787,8 +861,10 @@ function renderGrid() {
     });
     visibleFields.forEach(f => {
       const td = document.createElement('td');
-      td.className = f.type ?? '';
-      td.textContent = formatValue(getByPath(row, f.field), f);
+      if (f.type) td.classList.add(f.type);
+      const value = getByPath(row, f.field);
+      td.textContent = formatValue(value, f);
+      applyGridCellEmphasis(td, f, row, value);
       if (f.grid?.width) td.style.maxWidth = f.grid.width + 'px';
       tr.appendChild(td);
     });
@@ -1332,8 +1408,8 @@ function normalizeApiDataUrl(url) {
   try {
     const u = new URL(url, location.href);
     if (u.origin !== location.origin) return null;
-    const m = u.pathname.match(/^\/api\/data\/([^\/]+\.json)$/i);
-    return m ? u.pathname : null;
+    const m = u.pathname.match(/^\/api\/data\/(.+\.json)$/i);
+    return m && safeDataApiName(decodeURIComponent(m[1])) ? u.pathname : null;
   } catch {
     return null;
   }
@@ -1411,8 +1487,8 @@ async function autoLoadFromQuery() {
     const normalizedDefName = new URL(viewUrl, location.href).pathname.split('/').pop();
     lastLoadedDefName = safeJsonFileName(normalizedDefName) || getDataViewDefName(dataObj) || null;
     if (lastLoadedDefName && $('defNameInput')) $('defNameInput').value = lastLoadedDefName;
-    const normalizedDataName = new URL(dataUrl, location.href).pathname.split('/').pop();
-    if (safeJsonFileName(normalizedDataName) && $('dataNameInput')) $('dataNameInput').value = normalizedDataName;
+    const dataPathName = decodeURIComponent(new URL(dataUrl, location.href).pathname.replace(/^\/api\/data\//, ''));
+    if (safeDataApiName(dataPathName) && $('dataNameInput')) $('dataNameInput').value = dataPathName;
     ensureViewDefNameInData(dataObj, lastLoadedDefName);
     loadFromObjects(defObj, dataObj, 'URLパラメータから読み込み完了', normalizeApiDataUrl(dataUrl));
   } catch (err) {

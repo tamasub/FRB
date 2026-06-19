@@ -1,0 +1,20 @@
+{
+  "testId": "screen_state_smoke_001",
+  "title": "初期表示の画面状態JSONを検証する",
+  "expected": {
+    "appTitle": "No-Code JSON Studio v0.3-draftyyy",
+    "headerText": true,
+    "requiredButtons": [
+      "読み込み",
+      "保存",
+      "新規",
+      "削除"
+    ],
+    "requiredInputIds": [
+      "defNameInput",
+      "dataNameInput",
+      "defFile",
+      "dataFile"
+    ]
+  }
+}
