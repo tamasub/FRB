@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.local/frb/view_def_schema_v0_1.json",
+  "$id": "https://example.local/frb/view_def_schema_v0_3_chat_layout.json",
   "title": "FRB Studio View Definition Schema",
-  "description": "Schema for FRBStudio_App / No-Code JSON Studio view_def JSON files. Generated from v0.4.1 source behavior. Includes v0.4-draft chat field type.",
+  "description": "Schema for FRBStudio_App / No-Code JSON Studio view_def JSON files. Generated from v0.4.1 source behavior. Includes v0.4-draft chat field type. Includes detail layout placement for footer fields.",
   "type": "object",
   "additionalProperties": true,
   "properties": {
@@ -152,6 +152,30 @@
         },
         "create": {
           "$ref": "#/$defs/createOptions"
+        },
+        "layout": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Detail Dialog内の配置制御。例: {\"placement\":\"detailFooter\"} で子配列表示後に描画する。",
+          "properties": {
+            "placement": {
+              "type": "string",
+              "enum": [
+                "detailBody",
+                "detailFooter",
+                "afterChildGrids"
+              ]
+            },
+            "after": {
+              "type": "string",
+              "enum": [
+                "childGrids"
+              ]
+            },
+            "order": {
+              "type": "number"
+            }
+          }
         }
       },
       "required": [
@@ -272,6 +296,30 @@
               "role",
               "field"
             ]
+          }
+        },
+        "layout": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Fieldのedit表示における配置制御。field.layout と同じ意味で利用可能。",
+          "properties": {
+            "placement": {
+              "type": "string",
+              "enum": [
+                "detailBody",
+                "detailFooter",
+                "afterChildGrids"
+              ]
+            },
+            "after": {
+              "type": "string",
+              "enum": [
+                "childGrids"
+              ]
+            },
+            "order": {
+              "type": "number"
+            }
           }
         }
       }

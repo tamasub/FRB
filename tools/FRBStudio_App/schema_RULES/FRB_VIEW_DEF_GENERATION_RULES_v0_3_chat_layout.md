@@ -580,3 +580,51 @@ AIレビューや制約レビュー用の view_def を作る場合、以下の�
 - `ai_followup_response`
 
 ただし、Grid検索や一覧確認のため、元フィールド自体は消さず、必要に応じて `edit.visible: false` にして chat に集約する。
+
+
+---
+
+## 16. Detail Dialog 配置制御: `layout.placement`（v0.5-draft）
+
+Detail Dialog内で、通常フォーム・子配列表示・会話欄の順番を制御したい場合、fieldに `layout.placement` を指定できる。
+
+### 16.1 目的
+
+レビュー画面では、まずレビュー対象を読み、その後に個別明細を確認し、最後にコメントする流れが自然である。
+
+```text
+通常フォーム / レビュー対象
+↓
+objectArray / stringArray の子テーブル
+↓
+会話・コメント欄
+```
+
+このため、会話欄などを子テーブルより後ろに表示したい場合は `detailFooter` を使う。
+
+### 16.2 指定例
+
+```json
+{
+  "field": "__group_chat",
+  "caption": "制約グループ会話",
+  "type": "chat",
+  "layout": {
+    "placement": "detailFooter",
+    "order": 900
+  },
+  "grid": { "visible": false },
+  "edit": {
+    "visible": true,
+    "messages": []
+  },
+  "create": { "include": false }
+}
+```
+
+### 16.3 AI生成ルール
+
+- レビュー対象カードは通常位置に置く。
+- objectArray / stringArray は子テーブルとして表示する。
+- コメント欄・会話欄・レビュー後に入力する項目は `layout.placement: "detailFooter"` を指定する。
+- caption名で表示順を判定しない。役割を `layout.placement` に明示する。

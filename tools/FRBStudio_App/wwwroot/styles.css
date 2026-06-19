@@ -102,6 +102,66 @@ main { padding: 14px; }
   border-color: #93c5fd;
   box-shadow: 0 0 0 3px rgba(59,130,246,.16);
 }
+
+.combo-field.has-clear {
+  position: relative;
+}
+.combo-input-wrap {
+  position: relative;
+  display: block;
+}
+.combo-field.has-clear input {
+  padding-right: 34px;
+}
+.combo-clear-button {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  transform: translateY(-50%) scale(.92);
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .34);
+  border-radius: 999px;
+  color: #dbeafe;
+  background:
+    radial-gradient(circle at 30% 25%, rgba(255,255,255,.35), transparent 34%),
+    linear-gradient(135deg, rgba(59,130,246,.72), rgba(124,58,237,.72));
+  box-shadow:
+    0 6px 16px rgba(37,99,235,.22),
+    inset 0 1px 0 rgba(255,255,255,.26);
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .16s ease, transform .16s ease, box-shadow .16s ease, filter .16s ease;
+}
+.combo-clear-button.visible,
+.combo-input-wrap:focus-within .combo-clear-button,
+.combo-input-wrap:hover .combo-clear-button {
+  opacity: 1;
+  pointer-events: auto;
+}
+.combo-clear-button:hover {
+  transform: translateY(-50%) scale(1.06);
+  filter: brightness(1.12);
+  box-shadow:
+    0 9px 20px rgba(124,58,237,.32),
+    inset 0 1px 0 rgba(255,255,255,.36);
+}
+.combo-clear-button:active {
+  transform: translateY(-50%) scale(.96);
+}
+.combo-clear-button:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(147,197,253,.28),
+    0 9px 20px rgba(124,58,237,.32),
+    inset 0 1px 0 rgba(255,255,255,.36);
+}
 .compact-drop { min-height: 56px; padding: 8px 10px; }
 .drop-label { display:block; color:#bfdbfe; font-size:11px; margin-bottom: 4px; }
 .drop-name {
@@ -663,3 +723,107 @@ tr.selected.row-fail td {
   background: linear-gradient(90deg, #fecdd3 0%, #fda4af 45%, #fed7aa 100%) !important;
   box-shadow: inset 0 0 0 1px rgba(190,18,60,.18);
 }
+
+
+/* Detail layout placement: child grid の後に出す footer field */
+.detail-after-child-fields {
+  margin-top: 14px;
+  display: grid;
+  gap: 14px;
+}
+.detail-after-child-fields > .field {
+  margin: 0;
+}
+.detail-after-child-fields .chat-timeline {
+  background: linear-gradient(180deg, #f8fbff, #eef5fb);
+}
+
+/* Combo clear button + datalist arrow - fixed alignment v005
+   汎用 button CSS より後で上書きして、ズレを防ぐ。
+   ネイティブの datalist ▼ は位置がズレやすいので隠し、見た目用の▼を中央配置する。 */
+.combo-input-wrap {
+  position: relative;
+  display: block;
+  line-height: 0;
+}
+.combo-input-wrap input {
+  display: block;
+  height: 30px;
+  line-height: 18px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.combo-field.has-clear input {
+  padding-right: 52px;
+}
+.combo-input-wrap::after {
+  content: "▾";
+  position: absolute;
+  top: 50%;
+  right: 31px;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 12px;
+  display: grid;
+  place-items: center;
+  color: #dbeafe;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
+  opacity: .92;
+  pointer-events: none;
+  text-shadow: 0 1px 4px rgba(15,23,42,.45);
+  z-index: 2;
+}
+.combo-input-wrap input::-webkit-calendar-picker-indicator {
+  opacity: 0;
+}
+button.combo-clear-button {
+  position: absolute;
+  top: 50%;
+  right: 7px;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
+  padding: 0;
+  margin: 0;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, .34);
+  border-radius: 999px;
+  color: #eaf2ff;
+  background: linear-gradient(135deg, rgba(59,130,246,.86), rgba(124,58,237,.86));
+  box-shadow: 0 3px 10px rgba(37,99,235,.22), inset 0 1px 0 rgba(255,255,255,.24);
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 20px;
+  text-align: center;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: none;
+  white-space: nowrap;
+  z-index: 3;
+}
+button.combo-clear-button.visible,
+.combo-input-wrap:focus-within button.combo-clear-button,
+.combo-input-wrap:hover button.combo-clear-button {
+  opacity: 1;
+  pointer-events: auto;
+}
+button.combo-clear-button:hover:not(:disabled),
+button.combo-clear-button:active {
+  transform: translateY(-50%);
+  filter: brightness(1.08);
+}
+button.combo-clear-button:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(147,197,253,.28),
+    0 3px 10px rgba(37,99,235,.22),
+    inset 0 1px 0 rgba(255,255,255,.24);
+}
+

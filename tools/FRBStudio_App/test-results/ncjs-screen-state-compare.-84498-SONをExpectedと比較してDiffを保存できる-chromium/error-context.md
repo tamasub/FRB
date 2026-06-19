@@ -49,7 +49,7 @@ Received: "fail"
         - generic [ref=e25]:
           - text: Markdown
           - generic [ref=e26]: Viewer / Editor
-      - generic [ref=e27]: "一覧を更新しました: defs 7件 / data 7件"
+      - generic [ref=e27]: "一覧を更新しました: defs 9件 / data 8件"
   - main [ref=e28]
 ```
 

@@ -1,14 +1,14 @@
 {
-  "view_def": "ai_constraint_grouped_view_def_v0_2_chat.json",
-  "schema_version": "0.2-aggregated-chat",
+  "view_def": "ai_constraint_grouped_view_def_v0_6_footer_chat.json",
+  "schema_version": "0.6-footer-chat",
   "document_type": "ai_constraint_spec_aggregated",
   "target": "No-Code JSON Studio v0.3-draft",
-  "title": "No-Code JSON Studio v0.3-draft AI制約設計書 集約版 v0.2-chat",
+  "title": "No-Code JSON Studio v0.3-draft AI制約設計書 集約版 v0.5-split-review-chat",
   "generated_by": "ChatGPT",
-  "status": "aggregated_chat_draft",
+  "status": "集約ドラフト / footer chat対応",
   "source_document": "No-Code JSON Studiov0.3-draft.md",
-  "aggregation_policy": "原子制約をカテゴリ単位に集約し、個別制約は constraints[] 子テーブルに残す。会話本文は初期化しつつ、グループ単位で人間コメント・AI回答・追加会話を育てられる chat 欄を保持する。",
-  "source_constraint_count": 80,
+  "aggregation_policy": "原子制約をカテゴリ単位に集約し、個別制約はサブグリッドで確認する。詳細画面では、レビュー対象（集約サマリ・対象範囲）と制約グループ会話を分離して表示する。",
+  "source_constraint_count": 84,
   "group_count": 12,
   "constraint_groups": [
     {
@@ -117,9 +117,9 @@
       "priority": "high",
       "review_status": "集約ドラフト",
       "verification_status": "未確認",
-      "constraint_count": 9,
-      "summary": "1画面1グリッド、views[0]、Header/Grid section、dot pathをまとめた画面定義の核。",
-      "scope": "view_defの基本構造、dataPath/fieldの参照ルール。",
+      "constraint_count": 10,
+      "summary": "1画面1グリッド、views[0]、Header/Grid section、dot pathをまとめた画面定義の核。 Detail Dialogでは、会話欄をレビュー対象と個別明細の後ろへ送るためのfooter配置も扱う。",
+      "scope": "view_defの基本構造、dataPath/fieldの参照ルール。 Detail Dialog内の表示順制御を含む。",
       "constraints": [
         {
           "id": "VIEW-001",
@@ -165,6 +165,11 @@
           "id": "PATH-003",
           "title": "キー名にドットを含むJSONは非推奨",
           "statement": "dot pathで解釈するため、キー名に `.` を含む構造は避ける。 ---"
+        },
+        {
+          "id": "VIEW-007",
+          "title": "detailFooter配置は子配列の後に描画する",
+          "statement": "Field定義に `layout.placement: \"detailFooter\"`、または `edit.layout.placement: \"detailFooter\"` を指定した場合、そのFieldは通常の詳細フォームではなく、objectArray / stringArray の子テーブル表示後に描画する。会話・コメント欄など、レビュー対象と個別明細を読んだ後に扱う入力欄に使用する。"
         }
       ],
       "notes": "",
@@ -656,17 +661,5 @@
     }
   ],
   "export_md_name": "ai_constraint_spec_aggregated_v0_1.md",
-  "conversation_policy": {
-    "usage": "制約グループ単位で違和感・補足・AI回答・追加議論を記録する。原子制約ごとではなく、まずグループ単位で思考を整理する。",
-    "human_input_fields": [
-      "user_comment",
-      "user_reply",
-      "verification_status"
-    ],
-    "ai_output_fields": [
-      "ai_response",
-      "ai_followup_response"
-    ],
-    "composer_usage": "チャット下部の送信欄から入力したコメントは user_reply に追記し、ai_followup_response をAI再回答待ち欄として表示する。"
-  }
+  "conversation_policy": "v0.4: app.js側の描画順変更前の暫定対応として、集約サマリ・対象範囲をchatのconstraintカードとして表示し、レビュー対象を読みやすくグルーピングする。"
 }

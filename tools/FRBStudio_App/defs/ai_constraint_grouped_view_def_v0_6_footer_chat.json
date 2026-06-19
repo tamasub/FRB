@@ -1,12 +1,12 @@
 {
   "app": {
     "name": "No-Code JSON Studio",
-    "version": "0.6-aggregated-constraints-chat"
+    "version": "0.6-footer-chat"
   },
   "views": [
     {
-      "id": "ai_constraint_grouped_chat_main",
-      "caption": "AI制約設計書 Aggregated Review Editor v0.2-chat",
+      "id": "ai_constraint_grouped_v0_6_footer_chat",
+      "caption": "AI制約設計書 集約版 / Footer Chat",
       "layout": "header-search-grid-detail",
       "sections": [
         {
@@ -116,7 +116,7 @@
         },
         {
           "id": "constraint_groups",
-          "caption": "制約グループ一覧",
+          "caption": "制約グループ一覧 / レビュー対象→個別制約→会話",
           "type": "grid",
           "dataPath": "$.constraint_groups",
           "keyField": "group_id",
@@ -294,13 +294,14 @@
                 "width": 380
               },
               "edit": {
-                "visible": true,
-                "height": 100
+                "visible": false,
+                "height": 90
               },
               "search": {
                 "visible": true,
                 "operator": "contains"
-              }
+              },
+              "display_note": "詳細画面では __review_target_cards のconstraintカードとして表示する。"
             },
             {
               "field": "scope",
@@ -310,35 +311,18 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "height": 80
               },
               "search": {
                 "visible": true,
                 "operator": "contains"
-              }
+              },
+              "display_note": "詳細画面では __review_target_cards のconstraintカードとして表示する。"
             },
             {
-              "field": "notes",
-              "caption": "グループメモ",
-              "type": "textarea",
-              "grid": {
-                "visible": true,
-                "width": 260
-              },
-              "edit": {
-                "visible": false,
-                "height": 100
-              },
-              "search": {
-                "visible": true,
-                "operator": "contains"
-              },
-              "defaultValue": ""
-            },
-            {
-              "field": "__group_chat",
-              "caption": "制約グループ会話",
+              "field": "__review_target_cards",
+              "caption": "レビュー対象",
               "type": "chat",
               "grid": {
                 "visible": false
@@ -359,7 +343,34 @@
                     "label": "対象範囲",
                     "readonly": true,
                     "height": 70
-                  },
+                  }
+                ],
+                "input": {
+                  "enabled": false
+                }
+              },
+              "search": {
+                "visible": false
+              },
+              "create": {
+                "include": false
+              },
+              "display_note": "レビュー対象カード。通常詳細フォーム側に表示し、個別制約と会話の前提として読ませる。",
+              "layout": {
+                "placement": "detailBody",
+                "order": 100
+              }
+            },
+            {
+              "field": "__group_chat",
+              "caption": "制約グループ会話",
+              "type": "chat",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "messages": [
                   {
                     "role": "user",
                     "field": "user_comment",
@@ -401,7 +412,41 @@
               "create": {
                 "include": false
               },
-              "chat_layout_note": "グループ単位で制約レビューを育てる。確認状態は独立したOptionボタンで管理し、俺コメント内には埋め込まない。"
+              "display_note": "layout.placement=detailFooter により、子配列（含まれる個別制約）の後ろに表示するコメント用チャット欄。",
+              "layout": {
+                "placement": "detailFooter",
+                "order": 900
+              }
+            },
+            {
+              "field": "constraints",
+              "caption": "含まれる個別制約",
+              "type": "objectArray",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "defaultValue": []
+            },
+            {
+              "field": "notes",
+              "caption": "グループメモ",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "defaultValue": ""
             },
             {
               "field": "user_comment",
@@ -477,24 +522,11 @@
                 "operator": "contains"
               },
               "defaultValue": ""
-            },
-            {
-              "field": "constraints",
-              "caption": "含まれる個別制約",
-              "type": "objectArray",
-              "readonly": true,
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": true,
-                "readonly": true
-              },
-              "defaultValue": []
             }
           ]
         }
       ]
     }
-  ]
+  ],
+  "layout_note": "v0.5: app.js修正前の暫定対応として、レビュー対象カードと制約グループ会話を別々のchatフィールドに分離する。含まれる個別制約をチャットより上に出すには、app.js側のdetail描画順制御が必要。"
 }
