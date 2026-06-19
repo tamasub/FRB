@@ -91,8 +91,27 @@ async function fetchApiJsonWithUrl(kind, name) {
   try {
     return { json: await fetchJson(primaryUrl), url: primaryUrl };
   } catch (primaryErr) {
+    // datalist は「表示候補」ではあるが、一覧API側が basename だけ返す構成だと、
+    // 実体が data/json/foo.json でも foo.json として選択されてしまうことがある。
+    // その場合は、代表サブフォルダをフォールバック探索する。
+    if (!n.includes('/')) {
+      const fallbackDirsByKind = {
+        data: ['json'],
+        defs: ['json']
+      };
+      for (const dir of fallbackDirsByKind[kind] ?? []) {
+        const fallbackName = `${dir}/${n}`;
+        const fallbackUrl = apiJsonUrl(kind, fallbackName);
+        try {
+          return { json: await fetchJson(fallbackUrl), url: fallbackUrl, correctedName: fallbackName };
+        } catch {
+          // 次の候補へ
+        }
+      }
+      throw primaryErr;
+    }
+
     // 旧APIが /api/data/<encoded full path> 形式で受けている場合に備えた保険。
-    if (!n.includes('/')) throw primaryErr;
     const legacyUrl = `/api/${kind}/${encodeURIComponent(n)}`;
     if (legacyUrl === primaryUrl) throw primaryErr;
     try {
@@ -122,15 +141,73 @@ function jsonNameFromUrl(url, kind=null) {
   }
 }
 
+function extractServerFileNames(payload) {
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.files)) return payload.files;
+  if (Array.isArray(payload?.items)) {
+    return payload.items.map(item => {
+      if (typeof item === 'string') return item;
+      return item?.path || item?.name || item?.file || '';
+    });
+  }
+  return [];
+}
+
+function normalizeServerNames(payload) {
+  return uniqueNames(extractServerFileNames(payload)).sort((a, b) => a.localeCompare(b));
+}
+
+function baseJsonName(name) {
+  const n = safeJsonFileName(name);
+  return n ? n.split('/').pop() : '';
+}
+
+function resolveServerListedName(rawName, serverNames, label) {
+  const n = safeJsonFileName(rawName);
+  if (!n) return null;
+
+  const names = uniqueNames(serverNames);
+
+  // 一覧APIが使えない環境では、従来どおり安全なJSON名なら許可する。
+  if (!names.length) return n;
+
+  if (names.includes(n)) return n;
+
+  // data/json/foo.json のようにサブフォルダ配下へ移動していても、
+  // basename が一意なら自動補正する。
+  const matches = names.filter(name => baseJsonName(name) === n);
+  if (matches.length === 1) return matches[0];
+
+  if (matches.length > 1) {
+    throw new Error(`${label}「${n}」は複数候補があります: ${matches.join(' / ')}。フルパスで選択してください`);
+  }
+
+  throw new Error(`${label}「${n}」は管理対象一覧にありません。コンボの一覧から選び直すか、Dropしてください`);
+}
+
 function setDatalist(id, names) {
   const dl = $(id);
   if (!dl) return;
   dl.innerHTML = '';
-  names.forEach(name => {
+  uniqueNames(names).forEach(name => {
     const opt = document.createElement('option');
     opt.value = name;
+    // label属性を入れると Chrome / Edge の datalist が
+    // 「value + label」の2行表示になるため、1行表示を優先して value のみにする。
     dl.appendChild(opt);
   });
+}
+
+function normalizeComboInput(input, serverNames, label) {
+  if (!input) return null;
+  const raw = String(input.value ?? '').trim();
+  if (!raw) return null;
+  const resolved = resolveServerListedName(raw, serverNames, label);
+  if (resolved && resolved !== raw) {
+    input.value = resolved;
+    setStatus(`${label}のパスを補正しました: ${raw} → ${resolved}`);
+  }
+  return resolved;
 }
 
 async function refreshServerLists() {
@@ -139,8 +216,8 @@ async function refreshServerLists() {
       fetchJson('/api/defs'),
       fetchJson('/api/data')
     ]);
-    serverDefNames = Array.isArray(defs) ? defs : (defs.files ?? []);
-    serverDataNames = Array.isArray(data) ? data : (data.files ?? []);
+    serverDefNames = normalizeServerNames(defs);
+    serverDataNames = normalizeServerNames(data);
     setDatalist('defNameList', serverDefNames);
     setDatalist('dataNameList', serverDataNames);
     setStatus(`一覧を更新しました: defs ${serverDefNames.length}件 / data ${serverDataNames.length}件`);
@@ -151,11 +228,11 @@ async function refreshServerLists() {
 }
 
 function selectedDefName() {
-  return safeJsonFileName($('defNameInput')?.value) || null;
+  return normalizeComboInput($('defNameInput'), serverDefNames, '画面定義JSON');
 }
 
 function selectedDataName() {
-  return safeJsonFileName($('dataNameInput')?.value) || null;
+  return normalizeComboInput($('dataNameInput'), serverDataNames, '対象JSON');
 }
 
 function getDataViewDefName(dataObj) {
@@ -307,8 +384,8 @@ function ensureViewDefNameInData(dataObj, defName) {
 async function loadFromServerNames(defName, dataName) {
   // dataコンボから読み込む場合も、対象JSON内の view_def を優先する。
   // これにより「対象JSONだけ選ぶ → 読み込み」で画面定義を自動決定できる。
-  defName = safeJsonFileName(defName);
-  dataName = safeJsonFileName(dataName);
+  defName = resolveServerListedName(defName, serverDefNames, '画面定義JSON');
+  dataName = resolveServerListedName(dataName, serverDataNames, '対象JSON');
   if (!dataName) throw new Error('対象JSONを選択してください');
 
   $('dataNameInput').value = dataName;
@@ -317,6 +394,11 @@ async function loadFromServerNames(defName, dataName) {
   setStatus('API管理ファイルを読み込み中...');
 
   const loadedData = await fetchApiJsonWithUrl('data', dataName);
+  const actualDataName = loadedData.correctedName || jsonNameFromUrl(loadedData.url, 'data');
+  if (actualDataName && actualDataName !== dataName) {
+    dataName = actualDataName;
+    $('dataNameInput').value = dataName;
+  }
   const dataObj = loadedData.json;
 
   const resolved = await resolveDefForData(defName, dataObj, dataName);
@@ -445,6 +527,22 @@ async function loadFromDroppedFilesOrServer() {
   }
 }
 
+
+function suppressBrowserAutofillOnComboInputs() {
+  [
+    { id: 'defNameInput', name: 'frb_def_combo_009' },
+    { id: 'dataNameInput', name: 'frb_data_combo_009' }
+  ].forEach(({ id, name }) => {
+    const input = $(id);
+    if (!input) return;
+    input.setAttribute('autocomplete', 'off');
+    input.setAttribute('autocorrect', 'off');
+    input.setAttribute('autocapitalize', 'off');
+    input.setAttribute('spellcheck', 'false');
+    input.setAttribute('name', name);
+  });
+}
+
 function setupPageDrop() {
   document.querySelectorAll('.drop-file-box').forEach(setupDropFileBox);
   document.addEventListener('dragover', (e) => e.preventDefault());
@@ -453,10 +551,10 @@ function setupPageDrop() {
 
 function setupComboClearButtons() {
   const configs = [
-    { inputId: 'defNameInput', buttonId: 'clearDefNameBtn', label: '画面定義JSON' },
-    { inputId: 'dataNameInput', buttonId: 'clearDataNameBtn', label: '対象JSON' }
+    { inputId: 'defNameInput', buttonId: 'clearDefNameBtn', label: '画面定義JSON', names: () => serverDefNames },
+    { inputId: 'dataNameInput', buttonId: 'clearDataNameBtn', label: '対象JSON', names: () => serverDataNames }
   ];
-  configs.forEach(({ inputId, buttonId, label }) => {
+  configs.forEach(({ inputId, buttonId, label, names }) => {
     const input = $(inputId);
     const button = $(buttonId);
     if (!input || !button) return;
@@ -466,7 +564,15 @@ function setupComboClearButtons() {
     };
 
     input.addEventListener('input', sync);
-    input.addEventListener('change', sync);
+    input.addEventListener('change', () => {
+      try {
+        normalizeComboInput(input, names(), label);
+      } catch (err) {
+        console.warn(err);
+        setStatus('選択エラー: ' + err.message);
+      }
+      sync();
+    });
     button.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -1773,6 +1879,7 @@ async function autoLoadFromQuery() {
   }
 }
 
+suppressBrowserAutofillOnComboInputs();
 $('loadBtn').addEventListener('click', async () => {
   try {
     await loadFromFiles();

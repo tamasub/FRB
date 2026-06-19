@@ -738,7 +738,7 @@ tr.selected.row-fail td {
   background: linear-gradient(180deg, #f8fbff, #eef5fb);
 }
 
-/* Combo clear button + datalist arrow - fixed alignment v005
+/* Combo clear button + datalist arrow - fixed alignment v005 / datalist one-line v009
    汎用 button CSS より後で上書きして、ズレを防ぐ。
    ネイティブの datalist ▼ は位置がズレやすいので隠し、見た目用の▼を中央配置する。 */
 .combo-input-wrap {

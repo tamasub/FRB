@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>No-Code JSON Studio v0.3-draft</title>
-  <link rel="stylesheet" href="styles.css?v=combo-clear-005" />
+  <link rel="stylesheet" href="styles.css?v=combo-clear-009" />
 
   <style>
     /* Markdown Viewer / Editor への導線ボタン */
@@ -72,7 +72,7 @@
       <label class="combo-field has-clear">
         <span class="drop-label">画面定義JSON</span>
         <span class="combo-input-wrap">
-          <input id="defNameInput" list="defNameList" placeholder="defs から検索・選択" />
+          <input id="defNameInput" name="frb_def_combo_009" list="defNameList" placeholder="defs から検索・選択" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
           <button id="clearDefNameBtn" class="combo-clear-button" type="button" aria-label="画面定義JSONの選択をクリア" title="画面定義JSONの選択をクリア">×</button>
         </span>
         <datalist id="defNameList"></datalist>
@@ -80,7 +80,7 @@
       <label class="combo-field has-clear">
         <span class="drop-label">対象JSON</span>
         <span class="combo-input-wrap">
-          <input id="dataNameInput" list="dataNameList" placeholder="data から検索・選択" />
+          <input id="dataNameInput" name="frb_data_combo_009" list="dataNameList" placeholder="data から検索・選択" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
           <button id="clearDataNameBtn" class="combo-clear-button" type="button" aria-label="対象JSONの選択をクリア" title="対象JSONの選択をクリア">×</button>
         </span>
         <datalist id="dataNameList"></datalist>
@@ -159,6 +159,6 @@
   </dialog>
 
   <div id="rowContextMenu" class="context-menu hidden"></div>
-  <script src="app.js?v=combo-clear-005"></script>
+  <script src="app.js?v=combo-clear-009"></script>
 </body>
 </html>
