@@ -1,11 +1,11 @@
 {
   "schema_version": "0.1-draft",
   "document_type": "constraint_trace_relations",
-  "view_def": "relation_axis_constraint_view_def_v0_1.json",
-  "title": "制約証跡リレーション v0.1",
+  "view_def": "relation_approval_view_def_v0_1.json",
+  "title": "\u5236\u7D04\u8A3C\u8DE1\u30EA\u30EC\u30FC\u30B7\u30E7\u30F3 v0.1",
   "target": "No-Code JSON Studio v0.3-draft",
-  "policy": "このJSONはコネクト線だけを持つ。テスト結果・diff結果・集計カードは保存しない。AIが作った候補線を人間が承認して育てるためのデータ。",
-  "source_note": "v0.1 seed。status=candidate は人間レビュー前の仮説線。approved に変えると承認済み線として扱う想定。",
+  "policy": "\u3053\u306EJSON\u306F\u30B3\u30CD\u30AF\u30C8\u7DDA\u3060\u3051\u3092\u6301\u3064\u3002\u30C6\u30B9\u30C8\u7D50\u679C\u30FBdiff\u7D50\u679C\u30FB\u96C6\u8A08\u30AB\u30FC\u30C9\u306F\u4FDD\u5B58\u3057\u306A\u3044\u3002AI\u304C\u4F5C\u3063\u305F\u5019\u88DC\u7DDA\u3092\u4EBA\u9593\u304C\u627F\u8A8D\u3057\u3066\u80B2\u3066\u308B\u305F\u3081\u306E\u30C7\u30FC\u30BF\u3002",
+  "source_note": "v0.1 seed\u3002status=candidate \u306F\u4EBA\u9593\u30EC\u30D3\u30E5\u30FC\u524D\u306E\u4EEE\u8AAC\u7DDA\u3002approved \u306B\u5909\u3048\u308B\u3068\u627F\u8A8D\u6E08\u307F\u7DDA\u3068\u3057\u3066\u6271\u3046\u60F3\u5B9A\u3002",
   "relations": [
     {
       "relation_id": "REL-APP-001-SMOKE-001",
@@ -18,9 +18,11 @@
       "confidence": "medium",
       "required": true,
       "enabled": true,
-      "status": "candidate",
+      "status": "approved",
       "priority": "high",
-      "note": "ローカルWebアプリとして画面が応答していることを、初期画面スモークテストで確認する候補線。"
+      "note": "\u30ED\u30FC\u30AB\u30EBWeb\u30A2\u30D7\u30EA\u3068\u3057\u3066\u753B\u9762\u304C\u5FDC\u7B54\u3057\u3066\u3044\u308B\u3053\u3068\u3092\u3001\u521D\u671F\u753B\u9762\u30B9\u30E2\u30FC\u30AF\u30C6\u30B9\u30C8\u3067\u78BA\u8A8D\u3059\u308B\u5019\u88DC\u7DDA\u3002",
+      "approved_by": "",
+      "approved_at": ""
     },
     {
       "relation_id": "REL-VIEW-003-SMOKE-001",
@@ -33,9 +35,11 @@
       "confidence": "low",
       "required": false,
       "enabled": true,
-      "status": "candidate",
+      "status": "approved",
       "priority": "medium",
-      "note": "初期画面の存在確認は画面構成固定制約の一部を確認する候補線。"
+      "note": "\u521D\u671F\u753B\u9762\u306E\u5B58\u5728\u78BA\u8A8D\u306F\u753B\u9762\u69CB\u6210\u56FA\u5B9A\u5236\u7D04\u306E\u4E00\u90E8\u3092\u78BA\u8A8D\u3059\u308B\u5019\u88DC\u7DDA\u3002",
+      "approved_by": "",
+      "approved_at": ""
     },
     {
       "relation_id": "REL-VIEW-004-SMOKE-001",
@@ -48,9 +52,11 @@
       "confidence": "low",
       "required": false,
       "enabled": true,
-      "status": "candidate",
+      "status": "rejected",
       "priority": "medium",
-      "note": "Header Form表示の存在確認に関係する候補線。"
+      "note": "Header Form\u8868\u793A\u306E\u5B58\u5728\u78BA\u8A8D\u306B\u95A2\u4FC2\u3059\u308B\u5019\u88DC\u7DDA\u3002",
+      "approved_by": "",
+      "approved_at": ""
     },
     {
       "relation_id": "REL-VIEW-005-SMOKE-001",
@@ -65,7 +71,9 @@
       "enabled": true,
       "status": "candidate",
       "priority": "medium",
-      "note": "Grid表示の存在確認に関係する候補線。"
+      "note": "Grid\u8868\u793A\u306E\u5B58\u5728\u78BA\u8A8D\u306B\u95A2\u4FC2\u3059\u308B\u5019\u88DC\u7DDA\u3002",
+      "approved_by": "",
+      "approved_at": ""
     },
     {
       "relation_id": "REL-DROP-001-SMOKE-001-INPUTS",
@@ -78,9 +86,11 @@
       "confidence": "medium",
       "required": true,
       "enabled": true,
-      "status": "candidate",
+      "status": "approved",
       "priority": "high",
-      "note": "defFile / dataFile の入力が存在することを requiredInputs チェックで確認する候補線。"
+      "note": "defFile / dataFile \u306E\u5165\u529B\u304C\u5B58\u5728\u3059\u308B\u3053\u3068\u3092 requiredInputs \u30C1\u30A7\u30C3\u30AF\u3067\u78BA\u8A8D\u3059\u308B\u5019\u88DC\u7DDA\u3002",
+      "approved_by": "",
+      "approved_at": ""
     },
     {
       "relation_id": "REL-SAVE-001-SMOKE-001-BUTTONS",
@@ -93,16 +103,18 @@
       "confidence": "low",
       "required": false,
       "enabled": true,
-      "status": "candidate",
+      "status": "approved",
       "priority": "medium",
-      "note": "保存ボタン存在の確認に関係する候補線。API上書き保存の完全検証ではない。"
+      "note": "\u4FDD\u5B58\u30DC\u30BF\u30F3\u5B58\u5728\u306E\u78BA\u8A8D\u306B\u95A2\u4FC2\u3059\u308B\u5019\u88DC\u7DDA\u3002API\u4E0A\u66F8\u304D\u4FDD\u5B58\u306E\u5B8C\u5168\u691C\u8A3C\u3067\u306F\u306A\u3044\u3002",
+      "approved_by": "",
+      "approved_at": ""
     },
     {
       "relation_id": "REL-T-SMOKE-CHK-APP-TITLE",
       "from_type": "test_pattern",
       "from_id": "screen_state_smoke_001",
       "to_type": "check",
-      "to_id": "screen_state_smoke_001.appTitle",
+      "to_id": "screen_state_smoke_001.requiredInputs",
       "relation": "contains_check",
       "coverage": "structure",
       "confidence": "high",
@@ -110,7 +122,9 @@
       "enabled": true,
       "status": "derived",
       "priority": "high",
-      "note": "screen_state_smoke_001 テストは appTitle チェックを含む。"
+      "note": "screen_state_smoke_001 \u30C6\u30B9\u30C8\u306F requiredInputs \u30C1\u30A7\u30C3\u30AF\u3092\u542B\u3080\u3002",
+      "approved_by": "",
+      "approved_at": ""
     },
     {
       "relation_id": "REL-T-SMOKE-CHK-HEADER-TEXT",
@@ -125,7 +139,9 @@
       "enabled": true,
       "status": "derived",
       "priority": "high",
-      "note": "screen_state_smoke_001 テストは headerText チェックを含む。"
+      "note": "screen_state_smoke_001 \u30C6\u30B9\u30C8\u306F headerText \u30C1\u30A7\u30C3\u30AF\u3092\u542B\u3080\u3002",
+      "approved_by": "",
+      "approved_at": ""
     },
     {
       "relation_id": "REL-T-SMOKE-CHK-REQUIRED-BUTTONS",
@@ -140,7 +156,9 @@
       "enabled": true,
       "status": "derived",
       "priority": "high",
-      "note": "screen_state_smoke_001 テストは requiredButtons チェックを含む。"
+      "note": "screen_state_smoke_001 \u30C6\u30B9\u30C8\u306F requiredButtons \u30C1\u30A7\u30C3\u30AF\u3092\u542B\u3080\u3002",
+      "approved_by": "",
+      "approved_at": ""
     },
     {
       "relation_id": "REL-T-SMOKE-CHK-REQUIRED-INPUTS",
@@ -155,7 +173,9 @@
       "enabled": true,
       "status": "derived",
       "priority": "high",
-      "note": "screen_state_smoke_001 テストは requiredInputs チェックを含む。"
+      "note": "screen_state_smoke_001 \u30C6\u30B9\u30C8\u306F requiredInputs \u30C1\u30A7\u30C3\u30AF\u3092\u542B\u3080\u3002",
+      "approved_by": "",
+      "approved_at": ""
     }
   ]
 }
