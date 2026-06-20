@@ -3888,6 +3888,144 @@ function buildViewDefDiffRows(parentDef, childDef) {
   return rowsByScope;
 }
 
+
+function viewDefFieldTypeRef(field) {
+  if (!field || typeof field !== 'object') return '';
+  const explicit = field.fieldType ?? field.field_type ?? field.typeRef ?? field.type_ref;
+  if (explicit != null && explicit !== '') return String(explicit);
+  const typeValue = String(field.type ?? '').trim();
+  return typeValue.includes('.') ? typeValue : '';
+}
+
+function viewDefStripResolvedMeta(value) {
+  if (Array.isArray(value)) return value.map(viewDefStripResolvedMeta);
+  if (value && typeof value === 'object') {
+    const out = {};
+    Object.entries(value).forEach(([key, val]) => {
+      if (key.startsWith('_resolved_')) return;
+      out[key] = viewDefStripResolvedMeta(val);
+    });
+    return out;
+  }
+  return value;
+}
+
+function viewDefHasResolutionDifference(rawDef, resolvedDef) {
+  if (!rawDef || !resolvedDef) return false;
+  return !viewDefDeepEqual(viewDefStripResolvedMeta(rawDef), viewDefStripResolvedMeta(resolvedDef));
+}
+
+function viewDefCollectFields(defObj) {
+  const map = new Map();
+  viewDefViews(defObj).forEach((view, viewIndex) => {
+    const viewKey = viewDefDiffKey(view, viewIndex, 'view');
+    viewDefSections(view).forEach((section, sectionIndex) => {
+      const sectionKey = viewDefDiffKey(section, sectionIndex, 'section');
+      viewDefFields(section).forEach((field, fieldIndex) => {
+        const fieldKey = viewDefDiffKey(field, fieldIndex, 'field');
+        const key = `${viewKey} / ${sectionKey} / ${fieldKey}`;
+        map.set(key, { viewKey, sectionKey, fieldKey, field });
+      });
+    });
+  });
+  return map;
+}
+
+function viewDefBriefValue(value) {
+  if (value === undefined) return '';
+  if (value === null) return 'null';
+  if (Array.isArray(value)) return value.length ? `[${value.length}件]` : '[]';
+  if (typeof value === 'object') return JSON.stringify(value);
+  return String(value);
+}
+
+function viewDefOptionBrief(field) {
+  const options = field?.options;
+  if (!Array.isArray(options) || !options.length) return '';
+  return `${options.length}件`;
+}
+
+function viewDefPropListForField(field, props) {
+  return props
+    .map(prop => {
+      const value = getByPath(field, prop);
+      return value === undefined ? null : `${prop}=${viewDefBriefValue(value)}`;
+    })
+    .filter(Boolean);
+}
+
+function viewDefResolvedFieldTypeSummaryMarkdown(rawDef=null, resolvedDef=null) {
+  const lines = [];
+  lines.push('\n## 解決サマリ');
+  lines.push('');
+  if (!rawDef || !resolvedDef) {
+    lines.push('元ViewDefまたは解決済みViewDefを取得できなかったため、解決サマリは作成できませんでした。');
+    return lines.join('\n');
+  }
+
+  const rawFields = viewDefCollectFields(rawDef);
+  const resolvedFields = viewDefCollectFields(resolvedDef);
+  const keys = new Set([...rawFields.keys(), ...resolvedFields.keys()]);
+  const rows = [];
+  const commonProps = ['caption', 'type', 'readonly', 'grid.visible', 'grid.width', 'edit.visible', 'edit.readonly', 'search.visible', 'search.operator', 'options'];
+
+  keys.forEach(key => {
+    const rawItem = rawFields.get(key);
+    const resolvedItem = resolvedFields.get(key);
+    const rawField = rawItem?.field ?? null;
+    const resolvedField = resolvedItem?.field ?? null;
+    const fieldType = viewDefFieldTypeRef(rawField) || viewDefFieldTypeRef(resolvedField);
+    if (!fieldType) return;
+
+    const commonDerived = [];
+    const viewSpecified = [];
+    commonProps.forEach(prop => {
+      const rawValue = rawField ? getByPath(rawField, prop) : undefined;
+      const resolvedValue = resolvedField ? getByPath(resolvedField, prop) : undefined;
+      if (rawValue === undefined && resolvedValue !== undefined) {
+        commonDerived.push(`${prop}=${viewDefBriefValue(resolvedValue)}`);
+      } else if (rawValue !== undefined) {
+        viewSpecified.push(`${prop}=${viewDefBriefValue(rawValue)}`);
+      }
+    });
+
+    rows.push({
+      view: resolvedItem?.viewKey ?? rawItem?.viewKey ?? '',
+      section: resolvedItem?.sectionKey ?? rawItem?.sectionKey ?? '',
+      field: resolvedItem?.fieldKey ?? rawItem?.fieldKey ?? '',
+      fieldType,
+      caption: resolvedField?.caption ?? rawField?.caption ?? '',
+      type: resolvedField?.type ?? rawField?.type ?? '',
+      width: resolvedField?.grid?.width ?? '',
+      options: viewDefOptionBrief(resolvedField),
+      commonDerived: commonDerived.slice(0, 6).join(' / ') + (commonDerived.length > 6 ? ` / ... +${commonDerived.length - 6}` : ''),
+      viewSpecified: viewSpecified.slice(0, 6).join(' / ') + (viewSpecified.length > 6 ? ` / ... +${viewSpecified.length - 6}` : '')
+    });
+  });
+
+  const commonTypes = resolvedDef?._resolved_common_types;
+  if (Array.isArray(commonTypes) && commonTypes.length) {
+    lines.push(`- 読込済み共通Type namespace: ${commonTypes.join(' / ')}`);
+  }
+
+  if (!rows.length) {
+    lines.push('- fieldType参照: 0件');
+    lines.push('- extends / fieldType 解決による差分: ' + (viewDefHasResolutionDifference(rawDef, resolvedDef) ? 'あり' : 'なし'));
+    return lines.join('\n');
+  }
+
+  lines.push(`- fieldType参照: ${rows.length}件`);
+  lines.push('- 見方: 「Common由来候補」は元ViewDefに書かれておらず、解決後に現れた項目です。');
+  lines.push('');
+  const header = '| View | Section | field | fieldType | caption | type | width | options | Common由来候補 | ViewDef個別指定 |';
+  const sep = '| --- | --- | --- | --- | --- | --- | ---: | --- | --- | --- |';
+  const body = rows.map(r => '| ' + [
+    r.view, r.section, r.field, r.fieldType, r.caption, r.type, r.width, r.options, r.commonDerived, r.viewSpecified
+  ].map(markdownEscape).join(' | ') + ' |');
+  lines.push([header, sep, ...body].join('\n'));
+  return lines.join('\n');
+}
+
 function buildViewDefInheritanceDiffMarkdown(parentDef=null, childDef=null, rawExtends=[]) {
   const lines = [];
   lines.push('\n## 継承差分サマリ');
@@ -3968,13 +4106,16 @@ function buildViewDefMarkdown(rawInfo=null, resolvedOverride=null, parentResolve
 
   lines.push(buildViewDefInheritanceDiffMarkdown(parentResolvedOverride, resolvedDef, rawExtends));
 
+  lines.push(viewDefResolvedFieldTypeSummaryMarkdown(rawDef || resolvedDef, resolvedDef));
+
   lines.push(viewDefDetailMarkdown(baseDef));
 
-  if (rawDef && resolvedDef && rawExtends.length) {
+  const showResolvedViewDef = rawDef && resolvedDef && viewDefHasResolutionDifference(rawDef, resolvedDef);
+  if (showResolvedViewDef) {
     lines.push('\n---\n');
     lines.push('## 解決済みViewDef概要');
     lines.push('');
-    lines.push('このViewDefは extends を持つため、現在画面描画に使っている解決済みViewDefの概要も併記します。');
+    lines.push('extends / fieldType を解決した、現在画面描画に使っているViewDefの概要です。');
     lines.push('');
     lines.push(viewDefSummaryTableMarkdown(resolvedDef));
     lines.push(viewDefDetailMarkdown(resolvedDef, 'Resolved: '));
@@ -3990,9 +4131,9 @@ function buildViewDefMarkdown(rawInfo=null, resolvedOverride=null, parentResolve
   lines.push('');
   lines.push('</details>');
 
-  if (rawDef && resolvedDef && rawExtends.length) {
+  if (rawDef && resolvedDef && viewDefHasResolutionDifference(rawDef, resolvedDef)) {
     lines.push('');
-    lines.push('<details>');
+    lines.push('<details open>');
     lines.push('<summary>解決済みViewDef JSONを表示</summary>');
     lines.push('');
     lines.push(markdownJsonBlock(resolvedDef));
@@ -4014,8 +4155,10 @@ async function exportViewDefMarkdown() {
   let parentResolvedForReport = null;
   if (rawInfo?.json) {
     try {
-      resolvedForReport = await resolveViewDefInheritance(rawInfo.json, rawInfo.name);
-      parentResolvedForReport = await resolveViewDefParentsOnly(rawInfo.json, rawInfo.name);
+      const inheritedForReport = await resolveViewDefInheritance(rawInfo.json, rawInfo.name);
+      resolvedForReport = await resolveFieldTypesForViewDef(inheritedForReport);
+      const parentInheritedForReport = await resolveViewDefParentsOnly(rawInfo.json, rawInfo.name);
+      parentResolvedForReport = parentInheritedForReport ? await resolveFieldTypesForViewDef(parentInheritedForReport) : null;
     } catch (err) {
       console.warn('ViewDef resolved markdown skipped:', err);
       resolvedForReport = viewDef || rawInfo.json;
