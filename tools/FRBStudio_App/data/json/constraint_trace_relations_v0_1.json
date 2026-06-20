@@ -1,7 +1,7 @@
 {
   "schema_version": "0.1-draft",
   "document_type": "constraint_trace_relations",
-  "view_def": "constraint_trace_cards_virtual_view_def_v0_1.json",
+  "view_def": "constraint_axis_view_def_v0_1.json",
   "title": "制約証跡リレーション v0.1",
   "target": "No-Code JSON Studio v0.3-draft",
   "policy": "このJSONはコネクト線だけを持つ。テスト結果・diff結果・集計カードは保存しない。AIが作った候補線を人間が承認して育てるためのデータ。",
