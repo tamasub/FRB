@@ -18,6 +18,7 @@ type ScreenState = {
 type CheckType = 'equals' | 'includesAll' | 'contains' | 'exists';
 
 type CheckPattern = {
+  check_id?: string;
   name: string;
   type: CheckType;
   target: string;
@@ -33,6 +34,7 @@ type ExpectedPattern = {
 };
 
 type DiffCheck = {
+  check_id: string;
   name: string;
   type: CheckType;
   target: string;
@@ -175,6 +177,7 @@ function evaluateCheck(check: CheckPattern, state: ScreenState): DiffCheck {
   }
 
   return {
+    check_id: check.check_id ?? check.name,
     name: check.name,
     type: check.type,
     target: check.target,
@@ -218,11 +221,13 @@ test('画面状態JSONをExpectedと比較してDiffを保存できる', async (
     resultLabel: status === 'pass' ? '✅ PASS' : '🚨 FAIL',
     failedCount: failedChecks.length,
     failedChecks: failedChecks.map(check => check.name),
+    failedCheckIds: failedChecks.map(check => check.check_id),
     summary: failedChecks.length === 0
       ? '✅ すべてのチェックに合格しました'
       : `🚨 ${failedChecks.length}件の差分を検出しました: ${failedChecks.map(check => check.name).join(', ')}`,
     firstFailure: firstFailure
       ? {
+          check_id: firstFailure.check_id,
           name: firstFailure.name,
           type: firstFailure.type,
           target: firstFailure.target,
@@ -265,7 +270,7 @@ test('画面状態JSONをExpectedと比較してDiffを保存できる', async (
   });
 
   expect(emphasizedDiff.status).toBe('pass');
-
 });
 
+//zzz
 

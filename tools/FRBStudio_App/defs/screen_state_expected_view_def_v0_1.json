@@ -91,6 +91,27 @@
               }
             },
             {
+              "field": "check_id",
+              "caption": "Check ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 240
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "validation": {
+                "required": true
+              },
+              "description": "Expected定義・テスト結果・Relationを紐づけるためのチェックID。"
+            },
+            {
               "field": "type",
               "caption": "Type",
               "type": "select",

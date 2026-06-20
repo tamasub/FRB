@@ -1,6 +1,6 @@
 {
   "version": "0.1",
-  "description": "No-Code JSON Studio 共通FieldType定義。cd/name選択肢と、意味のある通常項目FieldTypeを管理する。",
+  "description": "No-Code JSON Studio 共通FieldType定義。cd/name選択肢と、意味のある通常項目FieldTypeを管理する。 不足検出VirtualData用FieldTypeを追加。",
   "namespaces": {
     "qa": {
       "fieldTypes": {
@@ -332,17 +332,15 @@
           "readonly": false
         },
         "constraint_ids": {
-          "caption": "制約ID",
+          "caption": "制約ID一覧",
           "baseType": "stringArray",
           "grid": {
             "visible": true,
-            "width": 180
+            "width": 260
           },
           "edit": {
-            "visible": true,
-            "readonly": false
-          },
-          "readonly": false
+            "visible": true
+          }
         },
         "evidence_hint": {
           "caption": "証跡ヒント",
@@ -361,6 +359,410 @@
             "operator": "contains"
           },
           "readonly": false
+        },
+        "check_count": {
+          "caption": "チェック件数",
+          "baseType": "number",
+          "grid": {
+            "visible": true,
+            "width": 90
+          },
+          "edit": {
+            "visible": true
+          },
+          "search": {
+            "visible": true,
+            "operator": ">="
+          }
+        },
+        "high_count": {
+          "caption": "高リスク件数",
+          "baseType": "number",
+          "grid": {
+            "visible": true,
+            "width": 100
+          },
+          "edit": {
+            "visible": true
+          },
+          "search": {
+            "visible": true,
+            "operator": ">="
+          }
+        },
+        "medium_count": {
+          "caption": "中リスク件数",
+          "baseType": "number",
+          "grid": {
+            "visible": true,
+            "width": 100
+          },
+          "edit": {
+            "visible": true
+          },
+          "search": {
+            "visible": true,
+            "operator": ">="
+          }
+        },
+        "low_count": {
+          "caption": "低リスク件数",
+          "baseType": "number",
+          "grid": {
+            "visible": true,
+            "width": 100
+          },
+          "edit": {
+            "visible": true
+          },
+          "search": {
+            "visible": true,
+            "operator": ">="
+          }
+        },
+        "risk_summary": {
+          "caption": "リスク内訳",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 140
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          }
+        },
+        "quality_axis_name": {
+          "caption": "品質観点名",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 120
+          },
+          "edit": {
+            "visible": true,
+            "readonly": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          }
+        },
+        "check_axis_name": {
+          "caption": "チェック観点名",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 130
+          },
+          "edit": {
+            "visible": true,
+            "readonly": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          }
+        },
+        "risk_name": {
+          "caption": "リスク名",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 90
+          },
+          "edit": {
+            "visible": true,
+            "readonly": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          }
+        },
+        "test_pattern_title": {
+          "caption": "テストパターン名",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 320
+          },
+          "edit": {
+            "visible": true,
+            "readonly": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          }
+        },
+        "constraint_id": {
+          "caption": "制約ID",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 180
+          },
+          "edit": {
+            "visible": true,
+            "readonly": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          }
+        },
+        "check_ids": {
+          "caption": "チェックID一覧",
+          "baseType": "stringArray",
+          "grid": {
+            "visible": true,
+            "width": 280
+          },
+          "edit": {
+            "visible": true
+          }
+        },
+        "test_pattern_ids": {
+          "caption": "テストパターンID一覧",
+          "baseType": "stringArray",
+          "grid": {
+            "visible": true,
+            "width": 260
+          },
+          "edit": {
+            "visible": true
+          }
+        },
+        "finding_id": {
+          "caption": "不足ID",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 100
+          },
+          "edit": {
+            "visible": true,
+            "readonly": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          }
+        },
+        "finding_type": {
+          "caption": "検出種別",
+          "baseType": "select",
+          "valueField": "cd",
+          "labelField": "name",
+          "options": [
+            {
+              "cd": "axis_risk_shortage",
+              "name": "観点×リスク不足"
+            },
+            {
+              "cd": "constraint_thin_coverage",
+              "name": "制約Expected薄い"
+            },
+            {
+              "cd": "test_pattern_thin_coverage",
+              "name": "TP Expected薄い"
+            },
+            {
+              "cd": "required_field_missing",
+              "name": "必須項目未設定"
+            }
+          ],
+          "grid": {
+            "visible": true,
+            "width": 160
+          },
+          "edit": {
+            "visible": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "equals"
+          }
+        },
+        "finding_type_name": {
+          "caption": "検出種別名",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 160
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          }
+        },
+        "severity": {
+          "caption": "重要度",
+          "baseType": "select",
+          "valueField": "cd",
+          "labelField": "name",
+          "options": [
+            {
+              "cd": "high",
+              "name": "高"
+            },
+            {
+              "cd": "medium",
+              "name": "中"
+            },
+            {
+              "cd": "low",
+              "name": "低"
+            },
+            {
+              "cd": "info",
+              "name": "情報"
+            }
+          ],
+          "grid": {
+            "visible": true,
+            "width": 80
+          },
+          "edit": {
+            "visible": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "equals"
+          }
+        },
+        "severity_name": {
+          "caption": "重要度名",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 80
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          }
+        },
+        "target_type": {
+          "caption": "対象種別CD",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 120
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          }
+        },
+        "target_type_name": {
+          "caption": "対象種別",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 120
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          }
+        },
+        "target_cd": {
+          "caption": "対象CD",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 170
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          }
+        },
+        "target_name": {
+          "caption": "対象名",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 220
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          }
+        },
+        "threshold_summary": {
+          "caption": "判定基準",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 260
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          }
+        },
+        "shortage_message": {
+          "caption": "検出メッセージ",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 420
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          }
+        },
+        "suggested_action": {
+          "caption": "推奨アクション",
+          "baseType": "textarea",
+          "grid": {
+            "visible": true,
+            "width": 420
+          },
+          "edit": {
+            "visible": true,
+            "height": 90
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          }
         }
       }
     },

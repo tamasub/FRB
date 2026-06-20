@@ -1,7 +1,7 @@
 {
   "testId": "screen_state_smoke_001",
   "title": "初期表示の画面状態JSONを検証する",
-  "capturedAt": "2026-06-20T03:40:06.094Z",
+  "capturedAt": "2026-06-20T13:25:04.170Z",
   "state": {
     "appTitle": "No-Code JSON Studio v0.3-draft",
     "url": "http://localhost:5055/",

@@ -1,0 +1,117 @@
+{
+  "app": {
+    "title": "QA Expected Checks Candidate Review"
+  },
+  "fieldTypeSources": [
+    "common_types_v0_1.json"
+  ],
+  "views": [
+    {
+      "id": "main",
+      "caption": "Expected追加候補レビュー（トップレベル配列）",
+      "layout": "header-search-grid-detail",
+      "sections": [
+        {
+          "id": "mainGrid",
+          "type": "grid",
+          "caption": "Expected追加候補一覧",
+          "dataPath": "$",
+          "keyField": "check_id",
+          "fields": [
+            {
+              "field": "review_status",
+              "caption": "レビュー状態",
+              "type": "select",
+              "options": [
+                "candidate",
+                "approved",
+                "rejected",
+                "needs_review"
+              ],
+              "defaultValue": "candidate",
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "check_id",
+              "caption": "チェックID",
+              "fieldType": "qa.check_id"
+            },
+            {
+              "field": "test_pattern_id",
+              "caption": "テストパターンID",
+              "fieldType": "qa.test_pattern_id"
+            },
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "fieldType": "core.title",
+              "grid": {
+                "width": 360
+              }
+            },
+            {
+              "field": "quality_axis_cd",
+              "caption": "品質観点",
+              "fieldType": "qa.quality_axis"
+            },
+            {
+              "field": "check_axis_cd",
+              "caption": "チェック観点",
+              "fieldType": "qa.check_axis"
+            },
+            {
+              "field": "risk_cd",
+              "caption": "リスク",
+              "fieldType": "qa.risk"
+            },
+            {
+              "field": "source_check_name",
+              "caption": "実チェック名",
+              "fieldType": "qa.source_check_name"
+            },
+            {
+              "field": "expected_summary",
+              "caption": "期待値概要",
+              "fieldType": "qa.expected_summary",
+              "grid": {
+                "width": 420
+              }
+            },
+            {
+              "field": "constraint_ids",
+              "caption": "制約ID",
+              "fieldType": "qa.constraint_ids"
+            },
+            {
+              "field": "evidence_hint",
+              "caption": "証跡ヒント",
+              "fieldType": "qa.evidence_hint",
+              "grid": {
+                "width": 420
+              }
+            },
+            {
+              "field": "note",
+              "caption": "メモ",
+              "fieldType": "core.note",
+              "grid": {
+                "width": 320
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -7,13 +7,15 @@
       "name": "appTitle",
       "type": "equals",
       "target": "appTitle",
-      "expected": "No-Code JSON Studio v0.3-draft"
+      "expected": "No-Code JSON Studio v0.3-draft",
+      "check_id": "screen_state_smoke_001.appTitle"
     },
     {
       "name": "headerText",
       "type": "equals",
       "target": "headerText",
-      "expected": true
+      "expected": true,
+      "check_id": "screen_state_smoke_001.headerText"
     },
     {
       "name": "requiredButtons",
@@ -24,7 +26,8 @@
         "保存",
         "新規",
         "削除"
-      ]
+      ],
+      "check_id": "screen_state_smoke_001.requiredButtons"
     },
     {
       "name": "requiredInputs",
@@ -35,7 +38,8 @@
         "dataNameInput",
         "defFile",
         "dataFile"
-      ]
+      ],
+      "check_id": "screen_state_smoke_001.requiredInputs"
     }
   ]
 }

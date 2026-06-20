@@ -1,0 +1,103 @@
+{
+  "candidates": [
+    {
+      "check_id": "CHK-MD-008",
+      "test_pattern_id": "TP-MD-001",
+      "title": "Markdown\u51FA\u529B\u306BAI\u8CBC\u308A\u4ED8\u3051\u7528\u30D6\u30ED\u30C3\u30AF\u304C\u8868\u793A\u3055\u308C\u308B",
+      "quality_axis_cd": "display",
+      "check_axis_cd": "display",
+      "risk_cd": "high",
+      "source_check_name": "markdown_ai_copy_block_visible",
+      "expected_summary": "Markdown\u51FA\u529B\u2192Viewer \u306E\u672B\u5C3E\u306B\u3001AI\u8CBC\u308A\u4ED8\u3051\u7528\u30D7\u30ED\u30F3\u30D7\u30C8\u3001TSV\u3001Grid JSON \u304C\u8868\u793A\u3055\u308C\u3001\u8FFD\u52A0Expected\u5019\u88DC\u751F\u6210\u306B\u5FC5\u8981\u306A\u5217\u60C5\u5831\u3068\u884C\u30C7\u30FC\u30BF\u3092\u78BA\u8A8D\u3067\u304D\u308B\u3053\u3068\u3002",
+      "constraint_ids": "4 items",
+      "evidence_hint": "qa_shortage_expected_findings_view_def_v0_1.json \u3067\u4E0D\u8DB3\u691C\u51FA\u4E00\u89A7\u3092\u8868\u793A\u3057\u3001Markdown\u51FA\u529B\u2192Viewer \u3092\u5B9F\u884C\u3059\u308B\u3002Viewer\u672B\u5C3E\u306E\u300CAI\u8CBC\u308A\u4ED8\u3051\u7528\u300D\u30D6\u30ED\u30C3\u30AF\u306B\u30D7\u30ED\u30F3\u30D7\u30C8\u3001TSV\u3001Grid JSON \u304C\u51FA\u529B\u3055\u308C\u3066\u3044\u308B\u3053\u3068\u3092\u78BA\u8A8D\u3059\u308B\u3002",
+      "note": "GAP-001 / GAP-006 / GAP-028 \u5BFE\u5FDC\u3002TP\u306F\u5897\u3084\u3055\u305A\u3001\u65E2\u5B58\u306E TP-MD-001 \u306B\u9AD8\u30EA\u30B9\u30AF\u8868\u793A\u78BA\u8A8D\u3092\u8FFD\u52A0\u3059\u308B\u3002",
+      "review_status": "approved"
+    },
+    {
+      "check_id": "CHK-REL-STATUS-007",
+      "test_pattern_id": "TP-REL-STATUS-001",
+      "title": "Relation\u627F\u8A8D\u30D3\u30E5\u30FC\u3067\u5019\u88DC\u7DDA\u306E\u627F\u8A8D\u5BFE\u8C61\u3092\u64CD\u4F5C\u89B3\u70B9\u3067\u78BA\u8A8D\u3067\u304D\u308B",
+      "quality_axis_cd": "operation",
+      "check_axis_cd": "display",
+      "risk_cd": "high",
+      "source_check_name": "relation_approval_candidate_operation_visible",
+      "expected_summary": "Relation\u627F\u8A8D\u30D3\u30E5\u30FC\u3067 candidate / needs_review \u306E Relation \u884C\u304C\u4EBA\u9593\u30EC\u30D3\u30E5\u30FC\u5BFE\u8C61\u3068\u3057\u3066\u8868\u793A\u3055\u308C\u3001\u627F\u8A8D\u30FB\u5374\u4E0B\u30FB\u8981\u78BA\u8A8D\u306E\u5224\u65AD\u5BFE\u8C61\u3092\u64CD\u4F5C\u524D\u306B\u78BA\u8A8D\u3067\u304D\u308B\u3053\u3068\u3002",
+      "constraint_ids": "1 items",
+      "evidence_hint": "relation_approval_view_def_v0_1.json \u3092\u8868\u793A\u3057\u3001candidate \u307E\u305F\u306F needs_review \u306E Relation \u884C\u304C\u627F\u8A8D\u5BFE\u8C61\u3068\u3057\u3066\u4E00\u89A7\u306B\u8868\u793A\u3055\u308C\u308B\u3053\u3068\u3092\u78BA\u8A8D\u3059\u308B\u3002",
+      "note": "GAP-002 / GAP-006 \u5BFE\u5FDC\u3002\u64CD\u4F5C\u305D\u306E\u3082\u306E\u3067\u306F\u306A\u304F\u3001\u64CD\u4F5C\u5BFE\u8C61\u304C\u660E\u78BA\u306B\u898B\u3048\u3066\u3044\u308B\u3053\u3068\u3092\u9AD8\u30EA\u30B9\u30AF\u306E\u524D\u63D0\u78BA\u8A8D\u3068\u3057\u3066\u8FFD\u52A0\u3059\u308B\u3002",
+      "review_status": "approved"
+    },
+    {
+      "check_id": "CHK-REL-STATUS-008",
+      "test_pattern_id": "TP-REL-STATUS-001",
+      "title": "contains_check \u69CB\u9020\u7DDA\u304C\u9AD8\u30EA\u30B9\u30AF\u89B3\u70B9\u3067\u63A1\u7528\u78BA\u8A8D\u3067\u304D\u308B",
+      "quality_axis_cd": "evidence",
+      "check_axis_cd": "structure",
+      "risk_cd": "high",
+      "source_check_name": "contains_check_structure_high_risk_adopted",
+      "expected_summary": "contains_check \u306E Relation \u304C\u69CB\u9020\u7DDA\u3068\u3057\u3066\u6271\u308F\u308C\u3001\u30C6\u30B9\u30C8\u30D1\u30BF\u30FC\u30F3\u304B\u3089\u30C1\u30A7\u30C3\u30AF\u9805\u76EE\u3078\u306E\u69CB\u6210\u95A2\u4FC2\u3068\u3057\u3066\u63A1\u7528\u3055\u308C\u308B\u3053\u3068\u3092\u78BA\u8A8D\u3067\u304D\u308B\u3053\u3068\u3002",
+      "constraint_ids": "1 items",
+      "evidence_hint": "relation_axis_test_pattern_view_def_v0_1.json \u307E\u305F\u306F relation_axis_diff_check_view_def_v0_1.json \u3092\u8868\u793A\u3057\u3001contains_check \u304C\u69CB\u9020\u7DDA\u3068\u3057\u3066\u30C1\u30A7\u30C3\u30AF\u9805\u76EE\u4E00\u89A7\u306B\u53CD\u6620\u3055\u308C\u3066\u3044\u308B\u3053\u3068\u3092\u78BA\u8A8D\u3059\u308B\u3002",
+      "note": "GAP-005 \u5BFE\u5FDC\u3002structure \u306F\u8A3C\u62E0\u7DDA\u3067\u306F\u306A\u304F\u69CB\u9020\u7DDA\u306A\u306E\u3067\u3001\u63A1\u7528\u7406\u7531\u3092 Expected \u5074\u3067\u660E\u793A\u3059\u308B\u3002",
+      "review_status": "approved"
+    },
+    {
+      "check_id": "CHK-MD-009",
+      "test_pattern_id": "TP-MD-001",
+      "title": "Markdown AI Prompt \u51FA\u529B\u3067\u5BFE\u8C61\u884C\u304C\u6B20\u843D\u3057\u305F\u5834\u5408\u306B\u691C\u51FA\u3067\u304D\u308B",
+      "quality_axis_cd": "error",
+      "check_axis_cd": "error",
+      "risk_cd": "high",
+      "source_check_name": "markdown_ai_prompt_missing_rows_error",
+      "expected_summary": "Markdown\u51FA\u529B\u6642\u306BAI\u8CBC\u308A\u4ED8\u3051\u7528TSV\u307E\u305F\u306FGrid JSON\u306E\u884C\u6570\u304C\u8868\u793A\u4E2D\u30B0\u30EA\u30C3\u30C9\u4EF6\u6570\u3068\u4E00\u81F4\u3057\u306A\u3044\u5834\u5408\u3001\u6B20\u843D\u306E\u53EF\u80FD\u6027\u3092\u78BA\u8A8D\u3067\u304D\u308B\u3053\u3068\u3002",
+      "constraint_ids": "2 items",
+      "evidence_hint": "\u4E0D\u8DB3\u691C\u51FA\u4E00\u89A7\u3092\u7D5E\u308A\u8FBC\u3093\u3060\u72B6\u614B\u3067Markdown\u51FA\u529B\u3092\u5B9F\u884C\u3057\u3001AI\u8CBC\u308A\u4ED8\u3051\u7528\u30D6\u30ED\u30C3\u30AF\u306ETSV\u884C\u6570\u3001Grid JSON rows\u4EF6\u6570\u3001\u8868\u793A\u4E2D\u4EF6\u6570\u304C\u4E00\u81F4\u3057\u3066\u3044\u308B\u3053\u3068\u3092\u78BA\u8A8D\u3059\u308B\u3002\u4E0D\u4E00\u81F4\u304C\u3042\u308C\u3070\u6B20\u843D\u3068\u3057\u3066\u6271\u3046\u3002",
+      "note": "GAP-003 / GAP-008 / GAP-028 \u5BFE\u5FDC\u3002\u30A8\u30E9\u30FC\u51E6\u7406\u7CFB\u306E\u95A2\u9023\u5236\u7D04ID\u304C\u4E0D\u8DB3\u691C\u51FA\u4E00\u89A7\u3067\u306F\u7A7A\u3060\u3063\u305F\u305F\u3081\u3001Markdown\u51FA\u529B\u306E\u6B20\u843D\u691C\u51FA\u3092\u9AD8\u30EA\u30B9\u30AF\u78BA\u8A8D\u3068\u3057\u3066\u8FFD\u52A0\u3059\u308B\u3002",
+      "review_status": "approved"
+    },
+    {
+      "check_id": "CHK-WB-006",
+      "test_pattern_id": "TP-WB-001",
+      "title": "FieldType\u8868\u793A\u9805\u76EE\u306E\u9AD8\u30EA\u30B9\u30AF\u8868\u793A\u78BA\u8A8D",
+      "quality_axis_cd": "display",
+      "check_axis_cd": "display",
+      "risk_cd": "high",
+      "source_check_name": "fieldtype_caption_high_risk_display",
+      "expected_summary": "FieldType\u3067\u5B9A\u7FA9\u3055\u308C\u305F caption / type / grid / edit / search \u304C\u3001\u5BFE\u8C61\u753B\u9762\u306E\u30B0\u30EA\u30C3\u30C9\u8868\u793A\u306B\u53CD\u6620\u3055\u308C\u3001\u4EBA\u9593\u304C\u5217\u610F\u5473\u3092\u8AA4\u8A8D\u3057\u306A\u3044\u72B6\u614B\u3067\u78BA\u8A8D\u3067\u304D\u308B\u3053\u3068\u3002",
+      "constraint_ids": "2 items",
+      "evidence_hint": "qa_expected_checks_classified_view_def_v0_1.json \u307E\u305F\u306F business_customers_fieldtype_sample_view_def_v0_1.json \u3092\u8868\u793A\u3057\u3001fieldType\u53C2\u7167\u9805\u76EE\u306Ecaption\u3068\u8868\u793A\u5F62\u5F0F\u304C\u671F\u5F85\u901A\u308A\u53CD\u6620\u3055\u308C\u3066\u3044\u308B\u3053\u3068\u3092\u78BA\u8A8D\u3059\u308B\u3002",
+      "note": "GAP-001 / GAP-006 \u5BFE\u5FDC\u3002\u65E2\u5B58\u306E\u4F4E\u30EA\u30B9\u30AF\u78BA\u8A8D CHK-WB-005 \u3092\u88DC\u5F37\u3059\u308B\u9AD8\u30EA\u30B9\u30AF\u8868\u793A\u78BA\u8A8D\u3068\u3057\u3066\u8FFD\u52A0\u3059\u308B\u3002",
+      "review_status": "approved"
+    },
+    {
+      "check_id": "CHK-MD-010",
+      "test_pattern_id": "TP-MD-001",
+      "title": "ViewDef Markdown\u30EC\u30DD\u30FC\u30C8\u3067\u5143ViewDef\u3068\u89E3\u6C7A\u6E08\u307FViewDef\u3092\u78BA\u8A8D\u3067\u304D\u308B",
+      "quality_axis_cd": "display",
+      "check_axis_cd": "display",
+      "risk_cd": "high",
+      "source_check_name": "viewdef_resolved_report_high_risk_display",
+      "expected_summary": "ViewDef Markdown\u2192Viewer \u306E\u30EC\u30DD\u30FC\u30C8\u3067\u3001\u5143ViewDef JSON\u3068\u89E3\u6C7A\u6E08\u307FViewDef JSON\u304C\u8868\u793A\u3055\u308C\u3001fieldType / extends \u89E3\u6C7A\u5F8C\u306E\u5185\u5BB9\u3092\u4EBA\u9593\u304C\u78BA\u8A8D\u3067\u304D\u308B\u3053\u3068\u3002",
+      "constraint_ids": "3 items",
+      "evidence_hint": "qa_expected_checks_classified_view_def_v0_1.json \u306A\u3069 fieldType \u3092\u542B\u3080ViewDef\u3067 ViewDef Markdown\u2192Viewer \u3092\u5B9F\u884C\u3057\u3001\u5143ViewDef JSON\u3068\u89E3\u6C7A\u6E08\u307FViewDef JSON\u306E\u4E21\u65B9\u304C\u78BA\u8A8D\u3067\u304D\u308B\u3053\u3068\u3092\u78BA\u8A8D\u3059\u308B\u3002",
+      "note": "GAP-001 / GAP-006 / GAP-028 \u5BFE\u5FDC\u3002TP-MD-001 \u914D\u4E0B\u306B\u9AD8\u30EA\u30B9\u30AF\u8868\u793A\u78BA\u8A8D\u3092\u8FFD\u52A0\u3057\u3001Markdown\u7CFBExpected\u306E\u9AD8\u30EA\u30B9\u30AF\u4E0D\u8DB3\u3092\u57CB\u3081\u308B\u3002",
+      "review_status": "approved"
+    },
+    {
+      "check_id": "CHK-REL-STATUS-009",
+      "test_pattern_id": "TP-REL-STATUS-001",
+      "title": "Relation status filter \u306E\u7570\u5E38\u7CFB\u3092\u78BA\u8A8D\u3067\u304D\u308B",
+      "quality_axis_cd": "error",
+      "check_axis_cd": "error",
+      "risk_cd": "high",
+      "source_check_name": "relation_status_filter_invalid_status_error",
+      "expected_summary": "Relation status filter \u306B\u60F3\u5B9A\u5916\u306E status \u304C\u542B\u307E\u308C\u308B\u5834\u5408\u3001\u63A1\u7528\u5BFE\u8C61\u304B\u3089\u5916\u308C\u308B\u3001\u307E\u305F\u306F\u78BA\u8A8D\u53EF\u80FD\u306A\u5F62\u3067\u8AA4\u8A2D\u5B9A\u3092\u691C\u51FA\u3067\u304D\u308B\u3053\u3068\u3002",
+      "constraint_ids": "",
+      "evidence_hint": "Relation status filter \u3092\u4F7F\u3046ViewDef\u3067\u3001approved / candidate / rejected / derived \u4EE5\u5916\u306Estatus\u3092\u542B\u3080Relation\u30C7\u30FC\u30BF\u3092\u78BA\u8A8D\u3057\u3001\u8AA4\u3063\u305F\u7DDA\u304C\u627F\u8A8D\u6E08\u307F\u8A3C\u8DE1\u30D3\u30E5\u30FC\u3078\u6DF7\u5165\u3057\u306A\u3044\u3053\u3068\u3092\u78BA\u8A8D\u3059\u308B\u3002",
+      "note": "GAP-003 / GAP-008 \u5BFE\u5FDC\u3002\u30A8\u30E9\u30FC\u51E6\u7406\u7CFB\u306E\u4E0D\u8DB3\u3092\u57CB\u3081\u308B\u305F\u3081\u3001Relation status filter \u306E\u8AA4\u8A2D\u5B9A\u78BA\u8A8D\u3092\u8FFD\u52A0\u3059\u308B\u3002\u5B9F\u30C7\u30FC\u30BF\u306B\u7570\u5E38\u5024\u3092\u5165\u308C\u306A\u3044\u904B\u7528\u306A\u3089\u3001\u30C6\u30B9\u30C8\u30C7\u30FC\u30BF\u5074\u3067\u306E\u307F\u78BA\u8A8D\u3059\u308B\u3002",
+      "review_status": "approved"
+    }
+  ],
+  "view_def": "qa_expected_checks_candidate_review_wrapped_view_def_v0_1.json"
+}

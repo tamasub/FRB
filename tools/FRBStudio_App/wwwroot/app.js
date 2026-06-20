@@ -596,10 +596,16 @@ function virtualDataTargetPath(config) {
 }
 
 function isVirtualDataCompatible(defObj, gd) {
-  const config = virtualDataConfigOf(defObj);
-  if (!config || !gd?.dataPath) return false;
-  const targetPath = virtualDataTargetPath(config);
-  return Boolean(targetPath && targetPath === gd.dataPath);
+  if (!gd?.dataPath) return false;
+  const configs = virtualDataArrayConfigOf(defObj);
+  if (!configs.length) return false;
+
+  // virtualData は単体 object / 配列の両方を許可する。
+  // 配列形式の場合、mainGrid.dataPath と一致する targetPath が1つでもあれば互換あり。
+  return configs.some(config => {
+    const targetPath = virtualDataTargetPath(config);
+    return Boolean(targetPath && targetPath === gd.dataPath);
+  });
 }
 
 function isDefCompatibleWithData(defObj, dataObj) {
@@ -697,13 +703,22 @@ async function resolveDefForData(preferredDefName, dataObj, dataName='') {
   const embeddedDefName = getDataViewDefName(dataObj);
 
   // 画面定義JSONを明示選択した場合は、対象JSON内の view_def より優先する。
-  // これで「同じデータを別ViewDefで見る」デモが成立する。
-  let defName = preferred || embeddedDefName;
+  // 明示選択した ViewDef が互換なしでも、対象JSON側 view_def へ黙って戻さない。
+  // これで「同じデータを別ViewDef / VirtualData ViewDefで見る」デモが成立する。
+  if (preferred) {
+    const defObj = await fetchResolvedViewDef(preferred);
+    if (isDefCompatibleWithData(defObj, dataObj)) {
+      return { defName: preferred, defObj, autoChanged: false, explicit: true };
+    }
+    throw new Error(defCompatibilityMessage(preferred, defObj, dataObj, dataName) + '。画面定義JSONを選び直してください');
+  }
+
+  const defName = embeddedDefName;
 
   if (defName) {
     const defObj = await fetchResolvedViewDef(defName);
     if (isDefCompatibleWithData(defObj, dataObj)) {
-      return { defName, defObj, autoChanged: !preferred && embeddedDefName && embeddedDefName !== preferredDefName };
+      return { defName, defObj, autoChanged: true };
     }
 
     const compatible = await findCompatibleDefForData(dataObj, dataName, [defName]);
@@ -727,8 +742,8 @@ function ensureViewDefNameInData(dataObj, defName) {
 }
 
 async function loadFromServerNames(defName, dataName) {
-  // dataコンボから読み込む場合も、対象JSON内の view_def を優先する。
-  // これにより「対象JSONだけ選ぶ → 読み込み」で画面定義を自動決定できる。
+  // 画面定義JSONコンボに値がある場合は、その明示選択を最優先する。
+  // 空の場合だけ、対象JSON内 view_def / 推定ViewDefで自動決定する。
   defName = resolveServerListedName(defName, serverDefNames, '画面定義JSON');
   dataName = resolveServerListedName(dataName, serverDataNames, '対象JSON');
   if (!dataName) throw new Error('対象JSONを選択してください');
@@ -2002,6 +2017,447 @@ function buildLegacyAliasFields(card, cfg) {
   return {};
 }
 
+
+function normalizeExpectedCheckCrossConfig(config) {
+  const source = config.source ?? {};
+  const outputs = config.outputs ?? {};
+  const dimensions = Array.isArray(config.dimensions) ? config.dimensions : [];
+  return {
+    targetPath: virtualDataTargetPath(config),
+    source: {
+      source: source.source ?? source.dataSource ?? source.data_source ?? '$current',
+      path: source.path ?? source.dataPath ?? source.data_path ?? config.sourcePath ?? config.source_path ?? '$.expected_checks'
+    },
+    dimensions: dimensions.map((d, idx) => ({
+      field: d.field ?? d.path ?? '',
+      outputField: d.outputField ?? d.output_field ?? d.as ?? d.field ?? `axis_${idx + 1}_cd`,
+      labelField: d.labelField ?? d.label_field ?? '',
+      labelMap: d.labelMap ?? d.label_map ?? {},
+      emptyValue: d.emptyValue ?? d.empty_value ?? '(blank)',
+      emptyLabel: d.emptyLabel ?? d.empty_label ?? '未設定',
+      explode: d.explode === true || d.mode === 'explode',
+      labelSource: d.labelSource ?? d.label_source ?? null
+    })).filter(d => d.field),
+    outputs: {
+      countField: outputs.countField ?? outputs.count_field ?? 'check_count',
+      highCountField: outputs.highCountField ?? outputs.high_count_field ?? 'high_count',
+      mediumCountField: outputs.mediumCountField ?? outputs.medium_count_field ?? 'medium_count',
+      lowCountField: outputs.lowCountField ?? outputs.low_count_field ?? 'low_count',
+      checkIdsField: outputs.checkIdsField ?? outputs.check_ids_field ?? 'check_ids',
+      testPatternIdsField: outputs.testPatternIdsField ?? outputs.test_pattern_ids_field ?? 'test_pattern_ids',
+      constraintIdsField: outputs.constraintIdsField ?? outputs.constraint_ids_field ?? 'constraint_ids',
+      riskSummaryField: outputs.riskSummaryField ?? outputs.risk_summary_field ?? 'risk_summary'
+    },
+    sort: config.sort ?? [{ field: outputs.countField ?? outputs.count_field ?? 'check_count', direction: 'desc' }]
+  };
+}
+
+function lookupLabelMapFromSource({ dimension, sources, dataObj }) {
+  const spec = dimension.labelSource;
+  if (!spec) return {};
+  const raw = sourceJsonFromKey(sources, dataObj, spec.source ?? spec.dataSource ?? spec.data_source ?? '$current');
+  const rows = normalizeArray(getByPath(raw, spec.path ?? spec.dataPath ?? spec.data_path ?? '$'));
+  const idField = spec.idField ?? spec.id_field ?? dimension.field;
+  const labelField = spec.labelField ?? spec.label_field ?? 'title';
+  const out = {};
+  rows.forEach(row => {
+    const id = getByPath(row, idField);
+    if (id == null || id === '') return;
+    out[String(id)] = String(getByPath(row, labelField) ?? id);
+  });
+  return out;
+}
+
+function dimensionValuesForRow(row, dimension) {
+  const raw = getByPath(row, dimension.field);
+  if (dimension.explode && Array.isArray(raw)) {
+    const vals = raw.map(v => String(v ?? '').trim()).filter(Boolean);
+    return vals.length ? vals : [dimension.emptyValue];
+  }
+  if (Array.isArray(raw)) {
+    const text = raw.map(v => String(v ?? '').trim()).filter(Boolean).join(', ');
+    return [text || dimension.emptyValue];
+  }
+  const value = String(raw ?? '').trim();
+  return [value || dimension.emptyValue];
+}
+
+function cartesianProduct(items) {
+  return items.reduce((acc, list) => {
+    const next = [];
+    acc.forEach(prefix => list.forEach(value => next.push([...prefix, value])));
+    return next;
+  }, [[]]);
+}
+
+function sortVirtualRows(rows, sortSpec) {
+  const specs = Array.isArray(sortSpec) ? sortSpec : [];
+  if (!specs.length) return rows;
+  return rows.sort((a, b) => {
+    for (const spec of specs) {
+      const field = spec.field ?? spec.by;
+      if (!field) continue;
+      const dir = String(spec.direction ?? spec.dir ?? 'asc').toLowerCase() === 'desc' ? -1 : 1;
+      const av = getByPath(a, field);
+      const bv = getByPath(b, field);
+      const an = Number(av); const bn = Number(bv);
+      let cmp;
+      if (!Number.isNaN(an) && !Number.isNaN(bn)) cmp = an === bn ? 0 : (an < bn ? -1 : 1);
+      else cmp = String(av ?? '').localeCompare(String(bv ?? ''), 'ja');
+      if (cmp !== 0) return cmp * dir;
+    }
+    return 0;
+  });
+}
+
+function buildExpectedCheckCrossCounts({ config, dataObj, sources }) {
+  const cfg = normalizeExpectedCheckCrossConfig(config);
+  const sourceJson = sourceJsonFromKey(sources, dataObj, cfg.source.source);
+  const checks = normalizeArray(getByPath(sourceJson, cfg.source.path));
+  const dimLabelMaps = cfg.dimensions.map(d => ({
+    ...d,
+    _resolvedLabelMap: { ...lookupLabelMapFromSource({ dimension: d, sources, dataObj }), ...(d.labelMap ?? {}) }
+  }));
+  const groups = new Map();
+
+  checks.forEach(row => {
+    const valueLists = dimLabelMaps.map(d => dimensionValuesForRow(row, d));
+    cartesianProduct(valueLists).forEach(values => {
+      const key = values.join('\u001f');
+      if (!groups.has(key)) {
+        const item = {
+          [cfg.outputs.countField]: 0,
+          [cfg.outputs.highCountField]: 0,
+          [cfg.outputs.mediumCountField]: 0,
+          [cfg.outputs.lowCountField]: 0,
+          _checkIds: new Set(),
+          _testPatternIds: new Set(),
+          _constraintIds: new Set()
+        };
+        dimLabelMaps.forEach((d, i) => {
+          const value = values[i];
+          item[d.outputField] = value;
+          if (d.labelField) item[d.labelField] = d._resolvedLabelMap[value] ?? (value === d.emptyValue ? d.emptyLabel : value);
+        });
+        groups.set(key, item);
+      }
+      const item = groups.get(key);
+      item[cfg.outputs.countField] += 1;
+      const risk = String(row?.risk_cd ?? row?.risk ?? '').toLowerCase();
+      if (risk === 'high') item[cfg.outputs.highCountField] += 1;
+      else if (risk === 'medium') item[cfg.outputs.mediumCountField] += 1;
+      else if (risk === 'low') item[cfg.outputs.lowCountField] += 1;
+      if (row?.check_id) item._checkIds.add(String(row.check_id));
+      if (row?.test_pattern_id) item._testPatternIds.add(String(row.test_pattern_id));
+      normalizeArray(row?.constraint_ids).forEach(id => { if (id) item._constraintIds.add(String(id)); });
+    });
+  });
+
+  const rows = [...groups.values()].map(item => {
+    item[cfg.outputs.checkIdsField] = [...item._checkIds];
+    item[cfg.outputs.testPatternIdsField] = [...item._testPatternIds];
+    item[cfg.outputs.constraintIdsField] = [...item._constraintIds];
+    item[cfg.outputs.riskSummaryField] = `高:${item[cfg.outputs.highCountField]} / 中:${item[cfg.outputs.mediumCountField]} / 低:${item[cfg.outputs.lowCountField]}`;
+    delete item._checkIds;
+    delete item._testPatternIds;
+    delete item._constraintIds;
+    return item;
+  });
+  return sortVirtualRows(rows, cfg.sort);
+}
+
+
+function countRiskBucketsForChecks(rows) {
+  const out = { total: 0, high: 0, medium: 0, low: 0 };
+  normalizeArray(rows).forEach(row => {
+    out.total += 1;
+    const risk = String(row?.risk_cd ?? row?.risk ?? '').toLowerCase();
+    if (risk === 'high') out.high += 1;
+    else if (risk === 'medium') out.medium += 1;
+    else if (risk === 'low') out.low += 1;
+  });
+  return out;
+}
+
+function uniqueArray(values) {
+  return [...new Set(normalizeArray(values).map(v => String(v ?? '').trim()).filter(Boolean))];
+}
+
+function riskLabelOf(code) {
+  const c = String(code ?? '').toLowerCase();
+  if (c === 'high') return '高';
+  if (c === 'medium') return '中';
+  if (c === 'low') return '低';
+  return code || '未設定';
+}
+
+function severityLabelOf(code) {
+  const c = String(code ?? '').toLowerCase();
+  if (c === 'high') return '高';
+  if (c === 'medium') return '中';
+  if (c === 'low') return '低';
+  if (c === 'info') return '情報';
+  return code || '未設定';
+}
+
+function normalizeExpectedShortageConfig(config) {
+  const source = config.source ?? {};
+  const outputs = config.outputs ?? {};
+  const rules = config.rules ?? {};
+  return {
+    targetPath: virtualDataTargetPath(config),
+    source: {
+      source: source.source ?? source.dataSource ?? source.data_source ?? '$current',
+      path: source.path ?? source.dataPath ?? source.data_path ?? config.sourcePath ?? config.source_path ?? '$.expected_checks'
+    },
+    rules: {
+      axisRisk: normalizeArray(rules.axisRisk ?? rules.axis_risk).map(axis => ({
+        axisType: axis.axisType ?? axis.axis_type ?? axis.field ?? 'axis',
+        axisLabel: axis.axisLabel ?? axis.axis_label ?? axis.caption ?? axis.field ?? '観点',
+        field: axis.field ?? '',
+        nameField: axis.nameField ?? axis.name_field ?? '',
+        values: normalizeArray(axis.values ?? axis.options).map(v => typeof v === 'string' ? { cd: v, name: v } : v),
+        risks: normalizeArray(axis.risks ?? axis.riskValues ?? axis.risk_values).map(r => typeof r === 'string' ? { cd: r } : r)
+      })).filter(axis => axis.field),
+      constraintCoverage: rules.constraintCoverage ?? rules.constraint_coverage ?? null,
+      testPatternCoverage: rules.testPatternCoverage ?? rules.test_pattern_coverage ?? null,
+      requiredFields: normalizeArray(rules.requiredFields ?? rules.required_fields)
+    },
+    outputs: {
+      findingIdField: outputs.findingIdField ?? outputs.finding_id_field ?? 'finding_id',
+      findingTypeField: outputs.findingTypeField ?? outputs.finding_type_field ?? 'finding_type_cd',
+      findingTypeNameField: outputs.findingTypeNameField ?? outputs.finding_type_name_field ?? 'finding_type_name',
+      severityField: outputs.severityField ?? outputs.severity_field ?? 'severity_cd',
+      severityNameField: outputs.severityNameField ?? outputs.severity_name_field ?? 'severity_name',
+      targetTypeField: outputs.targetTypeField ?? outputs.target_type_field ?? 'target_type_cd',
+      targetTypeNameField: outputs.targetTypeNameField ?? outputs.target_type_name_field ?? 'target_type_name',
+      targetIdField: outputs.targetIdField ?? outputs.target_id_field ?? 'target_cd',
+      targetNameField: outputs.targetNameField ?? outputs.target_name_field ?? 'target_name',
+      riskField: outputs.riskField ?? outputs.risk_field ?? 'risk_cd',
+      riskNameField: outputs.riskNameField ?? outputs.risk_name_field ?? 'risk_name',
+      countField: outputs.countField ?? outputs.count_field ?? 'check_count',
+      highCountField: outputs.highCountField ?? outputs.high_count_field ?? 'high_count',
+      mediumCountField: outputs.mediumCountField ?? outputs.medium_count_field ?? 'medium_count',
+      lowCountField: outputs.lowCountField ?? outputs.low_count_field ?? 'low_count',
+      thresholdField: outputs.thresholdField ?? outputs.threshold_field ?? 'threshold_summary',
+      messageField: outputs.messageField ?? outputs.message_field ?? 'message',
+      suggestedActionField: outputs.suggestedActionField ?? outputs.suggested_action_field ?? 'suggested_action',
+      checkIdsField: outputs.checkIdsField ?? outputs.check_ids_field ?? 'check_ids',
+      testPatternIdsField: outputs.testPatternIdsField ?? outputs.test_pattern_ids_field ?? 'test_pattern_ids',
+      constraintIdsField: outputs.constraintIdsField ?? outputs.constraint_ids_field ?? 'constraint_ids',
+      riskSummaryField: outputs.riskSummaryField ?? outputs.risk_summary_field ?? 'risk_summary'
+    },
+    sort: config.sort ?? [
+      { field: outputs.severityField ?? outputs.severity_field ?? 'severity_cd', direction: 'asc' },
+      { field: outputs.findingTypeField ?? outputs.finding_type_field ?? 'finding_type_cd', direction: 'asc' }
+    ]
+  };
+}
+
+function makeExpectedShortageFinding({ cfg, index, type, typeName, severity, targetType, targetTypeName, targetId, targetName, risk, counts, threshold, message, action, rows=[] }) {
+  const item = {
+    [cfg.outputs.findingIdField]: `GAP-${String(index).padStart(3, '0')}`,
+    [cfg.outputs.findingTypeField]: type,
+    [cfg.outputs.findingTypeNameField]: typeName,
+    [cfg.outputs.severityField]: severity,
+    [cfg.outputs.severityNameField]: severityLabelOf(severity),
+    [cfg.outputs.targetTypeField]: targetType,
+    [cfg.outputs.targetTypeNameField]: targetTypeName,
+    [cfg.outputs.targetIdField]: targetId,
+    [cfg.outputs.targetNameField]: targetName,
+    [cfg.outputs.riskField]: risk ?? '',
+    [cfg.outputs.riskNameField]: risk ? riskLabelOf(risk) : '',
+    [cfg.outputs.countField]: counts?.total ?? 0,
+    [cfg.outputs.highCountField]: counts?.high ?? 0,
+    [cfg.outputs.mediumCountField]: counts?.medium ?? 0,
+    [cfg.outputs.lowCountField]: counts?.low ?? 0,
+    [cfg.outputs.thresholdField]: threshold,
+    [cfg.outputs.messageField]: message,
+    [cfg.outputs.suggestedActionField]: action,
+    [cfg.outputs.riskSummaryField]: `高:${counts?.high ?? 0} / 中:${counts?.medium ?? 0} / 低:${counts?.low ?? 0}`,
+    [cfg.outputs.checkIdsField]: uniqueArray(rows.map(r => r?.check_id)),
+    [cfg.outputs.testPatternIdsField]: uniqueArray(rows.map(r => r?.test_pattern_id)),
+    [cfg.outputs.constraintIdsField]: uniqueArray(rows.flatMap(r => normalizeArray(r?.constraint_ids)))
+  };
+  return item;
+}
+
+function rowsForConstraintId(checks, constraintId) {
+  const cid = String(constraintId ?? '');
+  return checks.filter(row => normalizeArray(row?.constraint_ids).map(v => String(v)).includes(cid));
+}
+
+function buildExpectedCheckShortageFindings({ config, dataObj, sources }) {
+  const cfg = normalizeExpectedShortageConfig(config);
+  const sourceJson = sourceJsonFromKey(sources, dataObj, cfg.source.source);
+  const checks = normalizeArray(getByPath(sourceJson, cfg.source.path));
+  const findings = [];
+  let seq = 1;
+
+  // 1) 観点 × リスクのゼロ/不足検出。
+  cfg.rules.axisRisk.forEach(axis => {
+    const values = axis.values.length
+      ? axis.values
+      : uniqueArray(checks.map(row => getByPath(row, axis.field))).map(cd => ({ cd, name: cd }));
+    const risks = axis.risks.length
+      ? axis.risks
+      : [{ cd: 'high', name: '高', minCount: 1, severity: 'high' }];
+
+    values.forEach(valueObj => {
+      const valueCd = String(valueObj?.cd ?? valueObj?.value ?? valueObj ?? '').trim();
+      if (!valueCd) return;
+      const valueName = String(valueObj?.name ?? valueObj?.label ?? valueCd);
+      const axisRows = checks.filter(row => String(getByPath(row, axis.field) ?? '').trim() === valueCd);
+      risks.forEach(riskObj => {
+        const riskCd = String(riskObj?.cd ?? riskObj?.value ?? riskObj ?? '').trim();
+        if (!riskCd) return;
+        const minCount = Number(riskObj?.minCount ?? riskObj?.min_count ?? 1);
+        const riskRows = axisRows.filter(row => String(row?.risk_cd ?? row?.risk ?? '').toLowerCase() === riskCd.toLowerCase());
+        if (riskRows.length >= minCount) return;
+        const severity = riskObj?.severity ?? (riskCd === 'high' ? 'high' : 'medium');
+        const counts = countRiskBucketsForChecks(riskRows);
+        findings.push(makeExpectedShortageFinding({
+          cfg,
+          index: seq++,
+          type: 'axis_risk_shortage',
+          typeName: '観点×リスク不足',
+          severity,
+          targetType: axis.axisType,
+          targetTypeName: axis.axisLabel,
+          targetId: valueCd,
+          targetName: valueName,
+          risk: riskCd,
+          counts,
+          threshold: `${axis.axisLabel}=${valueName} / リスク=${riskLabelOf(riskCd)} / 最低${minCount}件`,
+          message: `${axis.axisLabel}「${valueName}」× リスク「${riskLabelOf(riskCd)}」の Expected が ${riskRows.length}件です。`,
+          action: `この領域を確認する Expected / Check を追加するか、意図的に不要なら除外理由をメモに残す。`,
+          rows: axisRows
+        }));
+      });
+    });
+  });
+
+  // 2) 制約IDごとのExpected件数不足。
+  const constraintRule = cfg.rules.constraintCoverage;
+  if (constraintRule?.enabled !== false && constraintRule) {
+    const field = constraintRule.field ?? constraintRule.path ?? 'constraint_ids';
+    const minTotal = Number(constraintRule.minTotal ?? constraintRule.min_total ?? 2);
+    const minHigh = Number(constraintRule.minHigh ?? constraintRule.min_high ?? 0);
+    const ids = uniqueArray(checks.flatMap(row => normalizeArray(getByPath(row, field))));
+    ids.forEach(cid => {
+      const rows = rowsForConstraintId(checks, cid);
+      const counts = countRiskBucketsForChecks(rows);
+      const totalNg = counts.total < minTotal;
+      const highNg = counts.high < minHigh;
+      if (!totalNg && !highNg) return;
+      const severity = highNg ? 'high' : 'medium';
+      findings.push(makeExpectedShortageFinding({
+        cfg,
+        index: seq++,
+        type: 'constraint_thin_coverage',
+        typeName: '制約Expected薄い',
+        severity,
+        targetType: 'constraint',
+        targetTypeName: '制約',
+        targetId: cid,
+        targetName: cid,
+        risk: highNg ? 'high' : '',
+        counts,
+        threshold: `合計${minTotal}件以上${minHigh ? ` / 高リスク${minHigh}件以上` : ''}`,
+        message: `制約「${cid}」に紐づく Expected が ${counts.total}件です。`,
+        action: `この制約を確認する別観点の Expected を追加する。1件で十分なら、根拠を note/evidence_hint に明記する。`,
+        rows
+      }));
+    });
+  }
+
+  // 3) テストパターンごとのExpected偏り/高リスク不足。
+  const tpRule = cfg.rules.testPatternCoverage;
+  if (tpRule?.enabled !== false && tpRule) {
+    const idField = tpRule.idField ?? tpRule.id_field ?? 'test_pattern_id';
+    const titleField = tpRule.titleField ?? tpRule.title_field ?? 'title';
+    const minTotal = Number(tpRule.minTotal ?? tpRule.min_total ?? 1);
+    const minHigh = Number(tpRule.minHigh ?? tpRule.min_high ?? 0);
+    const sourceSpec = tpRule.source ?? null;
+    let patterns = [];
+    if (sourceSpec) {
+      const raw = sourceJsonFromKey(sources, dataObj, sourceSpec.source ?? sourceSpec.dataSource ?? sourceSpec.data_source ?? 'test_patterns');
+      patterns = normalizeArray(getByPath(raw, sourceSpec.path ?? sourceSpec.dataPath ?? sourceSpec.data_path ?? '$.test_patterns'));
+    }
+    if (!patterns.length) {
+      patterns = uniqueArray(checks.map(row => row?.test_pattern_id)).map(id => ({ [idField]: id, [titleField]: id }));
+    }
+    patterns.forEach(tp => {
+      const tid = String(getByPath(tp, idField) ?? '').trim();
+      if (!tid) return;
+      const title = String(getByPath(tp, titleField) ?? tid);
+      const rows = checks.filter(row => String(row?.test_pattern_id ?? '').trim() === tid);
+      const counts = countRiskBucketsForChecks(rows);
+      const totalNg = counts.total < minTotal;
+      const highNg = counts.high < minHigh;
+      if (!totalNg && !highNg) return;
+      const severity = highNg ? 'high' : 'medium';
+      findings.push(makeExpectedShortageFinding({
+        cfg,
+        index: seq++,
+        type: 'test_pattern_thin_coverage',
+        typeName: 'TP Expected薄い',
+        severity,
+        targetType: 'test_pattern',
+        targetTypeName: 'テストパターン',
+        targetId: tid,
+        targetName: title,
+        risk: highNg ? 'high' : '',
+        counts,
+        threshold: `合計${minTotal}件以上${minHigh ? ` / 高リスク${minHigh}件以上` : ''}`,
+        message: `テストパターン「${tid}」の Expected は ${counts.total}件、高リスク ${counts.high}件です。`,
+        action: `このTP配下の確認観点を増やす。TPを増やす前に Expected / Check を追加する。`,
+        rows
+      }));
+    });
+  }
+
+  // 4) 必須項目の未設定検出。
+  cfg.rules.requiredFields.forEach(rule => {
+    const field = typeof rule === 'string' ? rule : (rule.field ?? '');
+    if (!field) return;
+    const label = typeof rule === 'string' ? rule : (rule.caption ?? rule.label ?? field);
+    const severity = typeof rule === 'string' ? 'high' : (rule.severity ?? 'high');
+    const badRows = checks.filter(row => {
+      const v = getByPath(row, field);
+      return v == null || v === '' || (Array.isArray(v) && v.length === 0);
+    });
+    if (!badRows.length) return;
+    const counts = countRiskBucketsForChecks(badRows);
+    findings.push(makeExpectedShortageFinding({
+      cfg,
+      index: seq++,
+      type: 'required_field_missing',
+      typeName: '必須項目未設定',
+      severity,
+      targetType: 'field',
+      targetTypeName: '項目',
+      targetId: field,
+      targetName: label,
+      risk: '',
+      counts,
+      threshold: `${label} は必須`,
+      message: `Expected / Check の ${badRows.length}件で「${label}」が未設定です。`,
+      action: `該当行の ${field} を設定する。`,
+      rows: badRows
+    }));
+  });
+
+  const order = { high: 1, medium: 2, low: 3, info: 4 };
+  findings.sort((a, b) => {
+    const sa = order[String(a[cfg.outputs.severityField] ?? '').toLowerCase()] ?? 9;
+    const sb = order[String(b[cfg.outputs.severityField] ?? '').toLowerCase()] ?? 9;
+    if (sa !== sb) return sa - sb;
+    return String(a[cfg.outputs.findingIdField]).localeCompare(String(b[cfg.outputs.findingIdField]), 'ja');
+  });
+  return sortVirtualRows(findings, cfg.sort);
+}
+
 function buildVirtualDatasetByConfig({ config, dataObj, sources }) {
   const builder = config.builder ?? config.type ?? config.kind ?? 'relation_axis_cards';
   if (builder === 'relation_axis_cards') {
@@ -2012,6 +2468,13 @@ function buildVirtualDatasetByConfig({ config, dataObj, sources }) {
   }
   if (builder === 'relation_diff_check_cards') {
     return buildRelationDiffCheckCards({ config, dataObj, sources });
+  }
+  if (builder === 'expected_check_cross_counts' || builder === 'expected_checks_cross_counts' || builder === 'qa_expected_cross_counts') {
+    return buildExpectedCheckCrossCounts({ config, dataObj, sources });
+  }
+
+  if (builder === 'expected_check_shortage_findings' || builder === 'expected_checks_shortage_findings' || builder === 'qa_expected_shortage_findings' || builder === 'expected_check_gap_findings') {
+    return buildExpectedCheckShortageFindings({ config, dataObj, sources });
   }
 
   // 旧ViewDefとの互換。専用生成ではなく、内部で汎用relation_axis_cards定義へ変換する。
@@ -3469,14 +3932,193 @@ function buildGenericSectionsMarkdown() {
   return lines.join('\n').replace(/\n{4,}/g, '\n\n\n');
 }
 
+
+function markdownAiPromptConfigs() {
+  const configs = [];
+  const pushPrompt = (prompt, sourceSection=null, sourceName='') => {
+    if (!prompt) return;
+    const list = Array.isArray(prompt) ? prompt : [prompt];
+    list.forEach(item => {
+      if (!item || item.enabled === false) return;
+      configs.push({ ...item, _sourceSection: sourceSection, _sourceName: sourceName });
+    });
+  };
+
+  pushPrompt(viewDef?.aiPrompt || viewDef?.ai_prompt || viewDef?.markdown?.aiPrompt || viewDef?.markdown?.ai_prompt, null, 'viewDef');
+  const mv = mainView();
+  pushPrompt(mv?.aiPrompt || mv?.ai_prompt || mv?.markdown?.aiPrompt || mv?.markdown?.ai_prompt, null, 'view');
+  (mv?.sections ?? []).forEach(section => {
+    pushPrompt(section?.aiPrompt || section?.ai_prompt || section?.markdown?.aiPrompt || section?.markdown?.ai_prompt, section, section?.id || section?.caption || 'section');
+  });
+  return configs;
+}
+
+function markdownRowsForAiPrompt(config={}) {
+  const rowSource = String(config.rowSource ?? config.sourceRows ?? config.rows ?? 'filtered').toLowerCase();
+  let rows;
+  if (rowSource === 'all' || rowSource === 'current' || rowSource === 'currentrows') {
+    rows = Array.isArray(currentRows) ? currentRows : [];
+  } else if (rowSource === 'selected') {
+    rows = selectedIndex >= 0 && Array.isArray(currentRows) && currentRows[selectedIndex] ? [currentRows[selectedIndex]] : [];
+  } else {
+    rows = Array.isArray(filteredRows) && filteredRows.length ? filteredRows.map(x => x.row) : (Array.isArray(currentRows) ? currentRows : []);
+  }
+  const maxRows = Number(config.maxRows ?? config.limit ?? 0);
+  if (maxRows > 0) rows = rows.slice(0, maxRows);
+  return rows;
+}
+
+function markdownFieldsForAiPrompt(config={}, sourceSection=null) {
+  const gd = gridDef();
+  let fields = Array.isArray(config.fields) && config.fields.length
+    ? config.fields.map(markdownFieldConfig)
+    : ((sourceSection?.fields ?? gd?.fields ?? []).map(markdownFieldConfig));
+  const include = config.includeFields || config.include_fields;
+  if (Array.isArray(include) && include.length) {
+    const set = new Set(include.map(String));
+    fields = fields.filter(f => set.has(String(f.field)));
+  } else if (config.visibleOnly !== false) {
+    fields = fields.filter(f => f.grid?.visible !== false && f.visible !== false);
+  }
+  const exclude = config.excludeFields || config.exclude_fields;
+  if (Array.isArray(exclude) && exclude.length) {
+    const set = new Set(exclude.map(String));
+    fields = fields.filter(f => !set.has(String(f.field)));
+  }
+  return fields.filter(f => f.field);
+}
+
+function markdownTsvCell(value, field=null) {
+  const text = formatValue(value, field)
+    .replace(/\r?\n/g, '\\n')
+    .replace(/\t/g, ' ');
+  return text;
+}
+
+function markdownRowsToTsv(rows, fields) {
+  const header = fields.map(f => markdownLabelForField(f)).join('\t');
+  const body = rows.map(row => fields.map(f => markdownTsvCell(getByPath(row, f.field), f)).join('\t'));
+  return [header, ...body].join('\n');
+}
+
+function markdownRowsToGridJson(rows, fields, config={}) {
+  const columns = fields.map(f => ({
+    field: f.field,
+    caption: markdownLabelForField(f),
+    type: f.type ?? null
+  }));
+  const rawRows = rows.map(row => {
+    const out = {};
+    fields.forEach(f => { out[f.field] = getByPath(row, f.field); });
+    return out;
+  });
+  return {
+    view_def: lastLoadedDefName || sourceData?.view_def || '',
+    data_file: currentDataNameForExport() || '',
+    section: config.sectionCaption || config._sourceSection?.caption || gridDef()?.caption || '',
+    row_count: rawRows.length,
+    columns,
+    rows: rawRows
+  };
+}
+
+function applyAiPromptTemplate(template, context) {
+  return String(template ?? '').replace(/\{\{\s*([^}]+?)\s*\}\}/g, (_, key) => {
+    const value = context[String(key).trim()];
+    return value == null ? '' : String(value);
+  });
+}
+
+function markdownAiPromptTemplate(config={}, context={}) {
+  const tpl = config.template ?? config.prompt ?? [
+    '以下は {{sectionCaption}} のTSVです。',
+    'この内容をもとに、{{targetFile}} に追加する候補データを作成してください。',
+    '',
+    '条件:',
+    '- 出力はJSON配列',
+    '',
+    'TSV:'
+  ];
+  const text = Array.isArray(tpl) ? tpl.join('\n') : String(tpl);
+  return applyAiPromptTemplate(text, context).trimEnd();
+}
+
+function buildMarkdownAiCopyBlocks() {
+  const configs = markdownAiPromptConfigs();
+  if (!configs.length) return '';
+
+  const blocks = [];
+  configs.forEach((config, idx) => {
+    const rows = markdownRowsForAiPrompt(config);
+    const fields = markdownFieldsForAiPrompt(config, config._sourceSection);
+    if (!fields.length) return;
+
+    const sectionCaption = config.sectionCaption || config._sourceSection?.caption || gridDef()?.caption || 'Grid';
+    const context = {
+      targetFile: config.targetFile || sourceData?.targetFile || currentDataNameForExport() || '',
+      sourceFile: currentDataNameForExport() || '',
+      dataFile: currentDataNameForExport() || '',
+      viewDef: lastLoadedDefName || sourceData?.view_def || '',
+      title: config.title || sourceData?.title || mainView()?.caption || sectionCaption,
+      sectionCaption,
+      rowCount: rows.length,
+      totalRowCount: Array.isArray(currentRows) ? currentRows.length : rows.length,
+      filteredRowCount: Array.isArray(filteredRows) ? filteredRows.length : rows.length
+    };
+
+    const title = config.title || `AI貼り付け用プロンプト${configs.length > 1 ? ' ' + (idx + 1) : ''}`;
+    const tsv = markdownRowsToTsv(rows, fields);
+    const prompt = markdownAiPromptTemplate(config, context);
+    const promptWithTsv = (prompt ? prompt + '\n' : '') + tsv;
+
+    blocks.push(`## ${markdownEscape(title)}`);
+    if (config.description) {
+      blocks.push('');
+      blocks.push(String(config.description));
+    }
+    blocks.push('');
+    blocks.push('<details open>');
+    blocks.push(`<summary>${markdownEscape(config.summary || 'プロンプト + TSV を表示')}</summary>`);
+    blocks.push('');
+    blocks.push('```text');
+    blocks.push(promptWithTsv);
+    blocks.push('```');
+    blocks.push('');
+    blocks.push('</details>');
+
+    if (config.includeGridJson || config.includeJson || config.gridJson) {
+      blocks.push('');
+      blocks.push('<details>');
+      blocks.push('<summary>Grid JSON を表示</summary>');
+      blocks.push('');
+      blocks.push('```json');
+      blocks.push(JSON.stringify(markdownRowsToGridJson(rows, fields, { ...config, sectionCaption }), null, 2));
+      blocks.push('```');
+      blocks.push('');
+      blocks.push('</details>');
+    }
+  });
+
+  if (!blocks.length) return '';
+  return ['---', '', '# AI貼り付け用', '', ...blocks].join('\n');
+}
+
+function appendMarkdownAiCopyBlocks(markdownText) {
+  const block = buildMarkdownAiCopyBlocks();
+  if (!block) return markdownText;
+  return String(markdownText ?? '').replace(/\s+$/,'') + '\n\n' + block;
+}
+
 function buildMarkdownFromCurrentData() {
   applyHeaderEdits();
   const type = markdownExportType();
-  if (type === 'screen_state_expected') return buildScreenStateExpectedMarkdown();
-  if (type === 'screen_state_diff') return buildScreenStateDiffMarkdown();
-  if (type === 'screen_state_test_patterns') return buildScreenStateTestPatternsMarkdown();
-  if (type === 'generic_sections') return buildGenericSectionsMarkdown();
-  return buildGenericMarkdown();
+  let md;
+  if (type === 'screen_state_expected') md = buildScreenStateExpectedMarkdown();
+  else if (type === 'screen_state_diff') md = buildScreenStateDiffMarkdown();
+  else if (type === 'screen_state_test_patterns') md = buildScreenStateTestPatternsMarkdown();
+  else if (type === 'generic_sections') md = buildGenericSectionsMarkdown();
+  else md = buildGenericMarkdown();
+  return appendMarkdownAiCopyBlocks(md);
 }
 
 function downloadTextFile(filename, text, type='text/markdown') {
