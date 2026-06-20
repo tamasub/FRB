@@ -13,6 +13,8 @@ let serverDefNames = [];
 let serverDataNames = [];
 let detailMode = 'edit'; // edit | new
 let draftRow = null;
+const DEFAULT_COMMON_TYPES_FILE = 'common_types_v0_1.json';
+const fieldTypeRegistryCache = new Map();
 
 const $ = (id) => document.getElementById(id);
 
@@ -126,6 +128,200 @@ async function fetchApiJsonWithUrl(kind, name) {
 
 async function fetchApiJson(kind, name) {
   return (await fetchApiJsonWithUrl(kind, name)).json;
+}
+
+
+function normalizeCommonTypeSourceItems(defObj) {
+  const raw = defObj?.fieldTypeSources ?? defObj?.field_type_sources ?? defObj?.typeSources ?? defObj?.type_sources ?? null;
+  const out = [];
+  const push = (value, explicit=true) => {
+    const n = safeJsonFileName(value);
+    if (n) out.push({ name: n, explicit });
+  };
+  if (Array.isArray(raw)) raw.forEach(x => push(x, true));
+  else if (typeof raw === 'string') push(raw, true);
+
+  // スモールスタートでは common_types_v0_1.json を既定の共通語彙ファイルとして読む。
+  // 存在しない環境では無視し、既存ViewDefには影響させない。
+  if (!out.some(x => x.name === DEFAULT_COMMON_TYPES_FILE)) out.push({ name: DEFAULT_COMMON_TYPES_FILE, explicit: false });
+  return out;
+}
+
+function emptyFieldTypeRegistry() {
+  return { namespaces: {} };
+}
+
+function deepMergePlain(base, override) {
+  if (Array.isArray(base) || Array.isArray(override)) return cloneData(override);
+  if (
+    base && typeof base === 'object' &&
+    override && typeof override === 'object'
+  ) {
+    const out = { ...cloneData(base) };
+    Object.keys(override).forEach(key => {
+      out[key] = key in out ? deepMergePlain(out[key], override[key]) : cloneData(override[key]);
+    });
+    return out;
+  }
+  return cloneData(override);
+}
+
+function mergeFieldTypeRegistry(target, src) {
+  if (!src || typeof src !== 'object' || Array.isArray(src)) return target;
+  if (!target.namespaces) target.namespaces = {};
+
+  const mergeNamespace = (nsName, nsObj) => {
+    if (!nsObj || typeof nsObj !== 'object' || Array.isArray(nsObj)) return;
+    const dst = target.namespaces[nsName] ?? { fieldTypes: {}, fieldGroups: {}, tableTypes: {}, fileTypes: {} };
+    ['fieldTypes', 'field_types', 'fieldGroups', 'field_groups', 'tableTypes', 'table_types', 'fileTypes', 'file_types'].forEach(key => {
+      const srcGroup = nsObj[key];
+      if (!srcGroup || typeof srcGroup !== 'object' || Array.isArray(srcGroup)) return;
+      const normalizedKey = key.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+      dst[normalizedKey] = deepMergePlain(dst[normalizedKey] ?? {}, srcGroup);
+    });
+    target.namespaces[nsName] = dst;
+  };
+
+  Object.entries(src.namespaces ?? {}).forEach(([nsName, nsObj]) => mergeNamespace(nsName, nsObj));
+
+  // ルート直下に fieldTypes がある場合は core 名前空間として扱う。
+  if (src.fieldTypes || src.field_types) {
+    mergeNamespace('core', { fieldTypes: src.fieldTypes ?? src.field_types });
+  }
+  return target;
+}
+
+async function loadFieldTypeRegistryForViewDef(defObj) {
+  const sourceItems = normalizeCommonTypeSourceItems(defObj);
+  const cacheKey = sourceItems.map(x => `${x.name}:${x.explicit ? '1' : '0'}`).join('|');
+  if (fieldTypeRegistryCache.has(cacheKey)) return cloneData(fieldTypeRegistryCache.get(cacheKey));
+
+  const registry = emptyFieldTypeRegistry();
+  for (const item of sourceItems) {
+    try {
+      const common = await fetchApiJson('defs', item.name);
+      mergeFieldTypeRegistry(registry, common);
+    } catch (err) {
+      // 現行FRBStudio APIは defs/common/foo.json のようなサブフォルダ取得に対応していない構成がある。
+      // その場合は basename を defs 直下としてフォールバックする。
+      const baseName = item.name.split('/').pop();
+      if (baseName && baseName !== item.name) {
+        try {
+          const common = await fetchApiJson('defs', baseName);
+          mergeFieldTypeRegistry(registry, common);
+          continue;
+        } catch {
+          // 元エラーで処理する
+        }
+      }
+      if (item.explicit) throw new Error(`共通Type定義JSON「${item.name}」を読み込めません: ${err.message}`);
+      console.info(`共通Type定義JSON「${item.name}」は未使用です`, err);
+    }
+  }
+
+  // ViewDef内に直接 commonTypeRegistry / commonTypes を持たせる将来形も許容する。
+  if (defObj?.commonTypeRegistry) mergeFieldTypeRegistry(registry, defObj.commonTypeRegistry);
+  if (defObj?.common_type_registry) mergeFieldTypeRegistry(registry, defObj.common_type_registry);
+  if (defObj?.commonTypes && typeof defObj.commonTypes === 'object' && !Array.isArray(defObj.commonTypes)) mergeFieldTypeRegistry(registry, defObj.commonTypes);
+  if (defObj?.common_types && typeof defObj.common_types === 'object' && !Array.isArray(defObj.common_types)) mergeFieldTypeRegistry(registry, defObj.common_types);
+
+  fieldTypeRegistryCache.set(cacheKey, cloneData(registry));
+  return registry;
+}
+
+function findFieldType(registry, ref) {
+  const key = String(ref ?? '').trim();
+  if (!key || !registry?.namespaces) return null;
+  const dot = key.indexOf('.');
+  if (dot > 0) {
+    const ns = key.slice(0, dot);
+    const name = key.slice(dot + 1);
+    return registry.namespaces?.[ns]?.fieldTypes?.[name] ?? null;
+  }
+  for (const nsObj of Object.values(registry.namespaces)) {
+    if (nsObj?.fieldTypes?.[key]) return nsObj.fieldTypes[key];
+  }
+  return null;
+}
+
+function normalizeFieldTypeObject(typeObj) {
+  const out = cloneData(typeObj ?? {});
+  if (out.baseType != null && out.type == null) out.type = out.baseType;
+  if (out.base_type != null && out.type == null) out.type = out.base_type;
+  delete out.baseType;
+  delete out.base_type;
+  return out;
+}
+
+function maybeResolveFieldTypeRefFromType(field, registry) {
+  const typeValue = String(field?.type ?? '').trim();
+  if (!typeValue || !typeValue.includes('.')) return null;
+  return findFieldType(registry, typeValue) ? typeValue : null;
+}
+
+function resolveFieldTypeForField(field, registry) {
+  if (!field || typeof field !== 'object' || Array.isArray(field)) return field;
+  const explicitRef = field.fieldType ?? field.field_type ?? field.typeRef ?? field.type_ref;
+  const typeRef = explicitRef ?? maybeResolveFieldTypeRefFromType(field, registry);
+  if (!typeRef) return field;
+
+  const typeObj = findFieldType(registry, typeRef);
+  if (!typeObj) {
+    console.warn(`FieldType「${typeRef}」が見つかりません`, field);
+    return field;
+  }
+
+  const base = normalizeFieldTypeObject(typeObj);
+  const override = cloneData(field);
+  if (explicitRef == null && override.type === typeRef) delete override.type;
+  const merged = deepMergePlain(base, override);
+  merged.fieldType = typeRef;
+  return merged;
+}
+
+function resolveFieldTypesDeep(obj, registry) {
+  if (Array.isArray(obj)) return obj.map(x => resolveFieldTypesDeep(x, registry));
+  if (!obj || typeof obj !== 'object') return obj;
+
+  let current = obj;
+  if (current.field || current.fieldType || current.field_type || current.typeRef || current.type_ref) {
+    current = resolveFieldTypeForField(current, registry);
+  }
+
+  Object.keys(current).forEach(key => {
+    current[key] = resolveFieldTypesDeep(current[key], registry);
+  });
+  return current;
+}
+
+async function resolveFieldTypesForViewDef(defObj) {
+  const registry = await loadFieldTypeRegistryForViewDef(defObj);
+  const resolved = resolveFieldTypesDeep(cloneData(defObj), registry);
+  resolved._resolved_common_types = Object.keys(registry.namespaces ?? {});
+  return resolved;
+}
+
+function optionValue(opt, field=null) {
+  if (opt && typeof opt === 'object' && !Array.isArray(opt)) {
+    const valueField = field?.valueField ?? field?.value_field ?? field?.optionValueField ?? field?.option_value_field ?? 'cd';
+    return opt[valueField] ?? opt.cd ?? opt.value ?? opt.id ?? opt.key ?? '';
+  }
+  return opt;
+}
+
+function optionLabel(opt, field=null) {
+  if (opt && typeof opt === 'object' && !Array.isArray(opt)) {
+    const labelField = field?.labelField ?? field?.label_field ?? field?.optionLabelField ?? field?.option_label_field ?? 'name';
+    return opt[labelField] ?? opt.name ?? opt.label ?? opt.caption ?? opt.text ?? opt.cd ?? opt.value ?? '';
+  }
+  return opt;
+}
+
+function optionLabelForValue(value, field=null) {
+  const options = field?.options;
+  if (!Array.isArray(options)) return value;
+  const found = options.find(opt => String(optionValue(opt, field)) === String(value ?? ''));
+  return found ? optionLabel(found, field) : value;
 }
 
 
@@ -1959,6 +2155,7 @@ function formatNumber(value, pattern) {
 
 function formatValue(value, field=null) {
   if (value == null) return '';
+  if (field?.type === 'select') return String(optionLabelForValue(value, field) ?? '');
   if (field?.type === 'number') return formatNumber(value, field.format ?? field.grid?.format ?? field.edit?.format);
   if (typeof value === 'object') return JSON.stringify(value);
   return String(value);
@@ -1986,20 +2183,22 @@ function createRadioControl(field, value, prefix, readonly=false) {
   group.className = 'field-radio-group';
   const name = `${prefix}_${field.field}_${selectedIndex}`;
   (field.options ?? []).forEach(opt => {
+    const optValue = optionValue(opt, field);
+    const optLabel = optionLabel(opt, field);
     const label = document.createElement('label');
     label.className = 'field-radio-option';
     const input = document.createElement('input');
     input.type = 'radio';
     input.name = name;
-    input.value = opt;
+    input.value = optValue;
     input.dataset.field = field.field;
     input.dataset.type = field.type ?? 'select';
     input.dataset.prefix = prefix;
-    input.checked = String(value ?? field.defaultValue ?? '') === String(opt);
+    input.checked = String(value ?? field.defaultValue ?? '') === String(optValue);
     if (readonly) input.disabled = true;
     label.appendChild(input);
     const text = document.createElement('span');
-    text.textContent = String(opt);
+    text.textContent = String(optLabel);
     label.appendChild(text);
     group.appendChild(label);
   });
@@ -2032,23 +2231,25 @@ function createEmbeddedChatField(config, row, gd, prefix) {
     group.className = 'chat-radio-group';
     const name = `${prefix}_${merged.field}_${selectedIndex}`;
     (merged.options ?? []).forEach(opt => {
+      const optValue = optionValue(opt, merged);
+      const optLabel = optionLabel(opt, merged);
       const label = document.createElement('label');
       label.className = 'chat-radio-option';
 
       const input = document.createElement('input');
       input.type = 'radio';
       input.name = name;
-      input.value = opt;
+      input.value = optValue;
       input.dataset.field = merged.field;
       input.dataset.type = merged.type ?? 'select';
       input.dataset.prefix = prefix;
-      input.checked = String(current) === String(opt);
+      input.checked = String(current) === String(optValue);
       if (readonly) input.disabled = true;
 
       label.appendChild(input);
 
       const text = document.createElement('span');
-      text.textContent = stripReviewOptionLabel(opt);
+      text.textContent = stripReviewOptionLabel(optLabel);
       label.appendChild(text);
 
       group.appendChild(label);
@@ -2281,8 +2482,8 @@ function createInput(field, value, prefix, readonlyOverride=false, row=null, gd=
     input.appendChild(blank);
     (field.options ?? []).forEach(opt => {
       const o = document.createElement('option');
-      o.value = opt;
-      o.textContent = opt;
+      o.value = optionValue(opt, field);
+      o.textContent = optionLabel(opt, field);
       input.appendChild(o);
     });
     applySelectDisplayMode(input, field);
@@ -2557,7 +2758,7 @@ function defaultForField(field) {
   if (field.type === 'number') return 0;
   if (field.type === 'boolean') return false;
   if (field.type === 'objectArray' || field.type === 'stringArray') return [];
-  if (field.type === 'select') return field.options?.[0] ?? '';
+  if (field.type === 'select') return field.options?.length ? optionValue(field.options[0], field) : '';
   return '';
 }
 
@@ -3394,7 +3595,7 @@ function viewDefFieldSearchText(field) {
 function viewDefFieldOptionsText(field) {
   const options = field?.options;
   if (!Array.isArray(options) || !options.length) return '';
-  return options.slice(0, 8).join(', ') + (options.length > 8 ? ` ... +${options.length - 8}` : '');
+  return options.slice(0, 8).map(opt => `${optionValue(opt, field)}:${optionLabel(opt, field)}`).join(', ') + (options.length > 8 ? ` ... +${options.length - 8}` : '');
 }
 
 function viewDefFieldTableMarkdown(fields) {
@@ -4146,6 +4347,7 @@ setupComboClearButtons();
 setupViewDefMarkdownButtonState();
 
 async function loadFromObjects(defObj, dataObj, label='読み込み完了', dataApiUrl=null) {
+  defObj = await resolveFieldTypesForViewDef(defObj);
   viewDef = defObj;
   currentDataSources = {};
   currentDataSourceSpecs = {};

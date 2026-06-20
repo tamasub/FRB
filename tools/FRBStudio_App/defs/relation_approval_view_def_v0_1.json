@@ -19,42 +19,15 @@
           "fields": [
             {
               "field": "title",
-              "caption": "タイトル",
-              "type": "text",
-              "readonly": true,
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": true,
-                "readonly": true
-              }
+              "fieldType": "core.title"
             },
             {
               "field": "schema_version",
-              "caption": "Schema",
-              "type": "text",
-              "readonly": true,
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": true,
-                "readonly": true
-              }
+              "fieldType": "core.schema_version"
             },
             {
               "field": "document_type",
-              "caption": "Document Type",
-              "type": "text",
-              "readonly": true,
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": true,
-                "readonly": true
-              }
+              "fieldType": "core.document_type"
             },
             {
               "field": "target",
@@ -99,17 +72,7 @@
             },
             {
               "field": "note",
-              "caption": "メモ",
-              "type": "textarea",
-              "readonly": true,
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": true,
-                "readonly": true,
-                "height": 74
-              }
+              "fieldType": "core.note"
             }
           ]
         },
@@ -122,217 +85,78 @@
           "fields": [
             {
               "field": "relation_id",
-              "caption": "Relation ID",
-              "type": "text",
+              "fieldType": "relation.relation_id",
               "grid": {
                 "visible": true,
                 "width": 210
               },
               "edit": {
-                "visible": true,
                 "readonly": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "contains"
-              },
-              "defaultValue": "REL-NEW-001"
+              }
             },
             {
               "field": "from_type",
-              "caption": "From Type",
-              "type": "select",
-              "options": [
-                "",
-                "constraint",
-                "test_pattern",
-                "check",
-                "diff",
-                "test_run",
-                "customer",
-                "project",
-                "task",
-                "employee"
-              ],
+              "fieldType": "relation.node_type",
               "grid": {
                 "visible": true,
                 "width": 105
-              },
-              "edit": {
-                "visible": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "equals"
-              },
-              "defaultValue": ""
+              }
             },
             {
               "field": "from_id",
-              "caption": "From ID",
-              "type": "text",
+              "fieldType": "relation.from_id",
               "grid": {
                 "visible": true,
                 "width": 150
-              },
-              "edit": {
-                "visible": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "contains"
-              },
-              "defaultValue": ""
+              }
             },
             {
               "field": "relation",
-              "caption": "Relation",
-              "type": "select",
-              "options": [
-                "",
-                "verified_by",
-                "contains_check",
-                "has_project",
-                "has_task",
-                "assigned_to",
-                "related_to",
-                "depends_on",
-                "may_violate"
-              ],
+              "fieldType": "relation.relation_type",
               "grid": {
                 "visible": true,
                 "width": 130
-              },
-              "edit": {
-                "visible": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "equals"
-              },
-              "defaultValue": ""
+              }
             },
             {
               "field": "to_type",
-              "caption": "To Type",
-              "type": "select",
-              "options": [
-                "",
-                "constraint",
-                "test_pattern",
-                "check",
-                "diff",
-                "test_run",
-                "customer",
-                "project",
-                "task",
-                "employee"
-              ],
+              "fieldType": "relation.node_type",
               "grid": {
                 "visible": true,
                 "width": 105
-              },
-              "edit": {
-                "visible": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "equals"
-              },
-              "defaultValue": ""
+              }
             },
             {
               "field": "to_id",
-              "caption": "To ID",
-              "type": "text",
+              "fieldType": "relation.to_id",
               "grid": {
                 "visible": true,
                 "width": 150
-              },
-              "edit": {
-                "visible": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "contains"
-              },
-              "defaultValue": ""
+              }
             },
             {
               "field": "status",
-              "caption": "承認状態",
-              "type": "select",
-              "options": [
-                "candidate",
-                "approved",
-                "rejected",
-                "derived",
-                "needs_review",
-                "deprecated"
-              ],
+              "fieldType": "relation.status",
               "grid": {
                 "visible": true,
                 "width": 108
-              },
-              "edit": {
-                "visible": true,
-                "control": "radio"
-              },
-              "search": {
-                "visible": true,
-                "operator": "equals"
-              },
-              "defaultValue": "candidate"
+              }
             },
             {
               "field": "coverage",
-              "caption": "Coverage",
-              "type": "select",
-              "options": [
-                "",
-                "primary",
-                "secondary",
-                "structure",
-                "support",
-                "reference",
-                "direct",
-                "indirect"
-              ],
+              "fieldType": "relation.coverage",
               "grid": {
                 "visible": true,
                 "width": 104
-              },
-              "edit": {
-                "visible": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "equals"
-              },
-              "defaultValue": "secondary"
+              }
             },
             {
               "field": "confidence",
-              "caption": "Confidence",
-              "type": "select",
-              "options": [
-                "",
-                "low",
-                "medium",
-                "high"
-              ],
+              "fieldType": "relation.confidence",
               "grid": {
                 "visible": true,
                 "width": 92
-              },
-              "edit": {
-                "visible": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "equals"
-              },
-              "defaultValue": "medium"
+              }
             },
             {
               "field": "required",
@@ -370,80 +194,42 @@
             },
             {
               "field": "priority",
-              "caption": "Priority",
-              "type": "select",
-              "options": [
-                "",
-                "low",
-                "medium",
-                "high"
-              ],
+              "fieldType": "relation.priority",
               "grid": {
                 "visible": true,
                 "width": 82
-              },
-              "edit": {
-                "visible": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "equals"
-              },
-              "defaultValue": "medium"
+              }
             },
             {
               "field": "approved_by",
-              "caption": "Approved By",
-              "type": "text",
+              "fieldType": "relation.approved_by",
               "grid": {
                 "visible": false,
                 "width": 120
-              },
-              "edit": {
-                "visible": true
-              },
-              "search": {
-                "visible": false
-              },
-              "defaultValue": ""
+              }
             },
             {
               "field": "approved_at",
-              "caption": "Approved At",
-              "type": "datetime",
+              "fieldType": "relation.approved_at",
               "grid": {
                 "visible": false,
                 "width": 170
-              },
-              "edit": {
-                "visible": true
-              },
-              "search": {
-                "visible": false
-              },
-              "defaultValue": ""
+              }
             },
             {
               "field": "note",
-              "caption": "承認メモ",
-              "type": "textarea",
+              "fieldType": "relation.approval_note",
               "grid": {
                 "visible": true,
                 "width": 360
-              },
-              "edit": {
-                "visible": true,
-                "height": 92
-              },
-              "search": {
-                "visible": true,
-                "operator": "contains"
-              },
-              "defaultValue": ""
+              }
             }
           ]
         }
       ]
     }
+  ],
+  "fieldTypeSources": [
+    "common_types_v0_1.json"
   ]
 }

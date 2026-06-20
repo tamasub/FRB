@@ -147,96 +147,68 @@
           "fields": [
             {
               "field": "customer_id",
-              "caption": "顧客ID",
-              "type": "text",
+              "fieldType": "business.customer_id",
               "grid": {
                 "visible": true,
                 "width": 110
               },
               "edit": {
-                "visible": true,
                 "readonly": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "contains"
               }
             },
             {
               "field": "customer_name",
-              "caption": "顧客名",
-              "type": "text",
+              "fieldType": "business.customer_name",
               "grid": {
                 "visible": true,
                 "width": 180
               },
               "edit": {
-                "visible": true,
                 "readonly": false
-              },
-              "search": {
-                "visible": true,
-                "operator": "contains"
               },
               "readonly": false
             },
             {
               "field": "trace_label",
-              "caption": "状態",
-              "type": "text",
+              "fieldType": "business.trace_label",
               "grid": {
                 "visible": true,
                 "width": 120
               },
               "edit": {
-                "visible": true,
                 "readonly": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "contains"
               }
             },
             {
               "field": "project_count",
-              "caption": "案件数",
-              "type": "number",
+              "fieldType": "business.project_count",
               "grid": {
                 "visible": true,
                 "width": 80
               },
               "edit": {
-                "visible": true,
                 "readonly": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "contains"
               }
             },
             {
               "field": "primary_count",
-              "caption": "主",
-              "type": "number",
+              "fieldType": "business.primary_count",
               "grid": {
                 "visible": true,
                 "width": 70
               },
               "edit": {
-                "visible": true,
                 "readonly": true
               }
             },
             {
               "field": "secondary_count",
-              "caption": "補助",
-              "type": "number",
+              "fieldType": "business.secondary_count",
               "grid": {
                 "visible": true,
                 "width": 70
               },
               "edit": {
-                "visible": true,
                 "readonly": true
               }
             },
@@ -287,5 +259,8 @@
         }
       ]
     }
+  ],
+  "fieldTypeSources": [
+    "common_types_v0_1.json"
   ]
 }

@@ -1,0 +1,32 @@
+{
+  "view_def": "qa_test_patterns_sample_view_def_v0_1.json",
+  "test_patterns": [
+    {
+      "test_pattern_id": "TP-REL-STATUS-001",
+      "title": "Relation status filter の基本動作確認",
+      "feature_area_cd": "relation",
+      "test_axis_cd": "status_filter",
+      "scenario_type_cd": "normal",
+      "risk_cd": "high",
+      "note": "approvedだけ正式証跡に採用されるかを見る"
+    },
+    {
+      "test_pattern_id": "TP-WB-001",
+      "title": "WriteBackで主対象JSONだけ更新される",
+      "feature_area_cd": "writeback",
+      "test_axis_cd": "writeback",
+      "scenario_type_cd": "normal",
+      "risk_cd": "high",
+      "note": "VirtualData表示からsource側へ書き戻す"
+    },
+    {
+      "test_pattern_id": "TP-MD-001",
+      "title": "Markdown出力がViewerで読める",
+      "feature_area_cd": "markdown",
+      "test_axis_cd": "markdown_export",
+      "scenario_type_cd": "normal",
+      "risk_cd": "medium",
+      "note": "Markdown出力ボタンとViewer連携の確認"
+    }
+  ]
+}

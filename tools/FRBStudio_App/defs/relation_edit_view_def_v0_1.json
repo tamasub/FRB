@@ -19,29 +19,11 @@
           "fields": [
             {
               "field": "title",
-              "caption": "タイトル",
-              "type": "text",
-              "readonly": true,
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": true,
-                "readonly": true
-              }
+              "fieldType": "core.title"
             },
             {
               "field": "schema_version",
-              "caption": "Schema",
-              "type": "text",
-              "readonly": true,
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": true,
-                "readonly": true
-              }
+              "fieldType": "core.schema_version"
             },
             {
               "field": "policy",
@@ -68,190 +50,74 @@
           "fields": [
             {
               "field": "relation_id",
-              "caption": "Relation ID",
-              "type": "text",
+              "fieldType": "relation.relation_id",
               "grid": {
                 "visible": true,
                 "width": 210
-              },
-              "edit": {
-                "visible": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "contains"
               }
             },
             {
               "field": "from_type",
-              "caption": "From Type",
-              "type": "select",
-              "options": [
-                "constraint",
-                "test_pattern",
-                "check",
-                "expected_state",
-                "diff",
-                "test_run"
-              ],
+              "fieldType": "relation.node_type",
               "grid": {
                 "visible": true,
                 "width": 120
-              },
-              "edit": {
-                "visible": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "equals"
               }
             },
             {
               "field": "from_id",
-              "caption": "From ID",
-              "type": "text",
+              "fieldType": "relation.from_id",
               "grid": {
                 "visible": true,
                 "width": 170
-              },
-              "edit": {
-                "visible": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "contains"
               }
             },
             {
               "field": "relation",
-              "caption": "Relation",
-              "type": "select",
-              "options": [
-                "verified_by",
-                "contains_check",
-                "expects",
-                "produced_diff",
-                "failed_check",
-                "may_violate"
-              ],
+              "fieldType": "relation.relation_type",
               "grid": {
                 "visible": true,
                 "width": 140
-              },
-              "edit": {
-                "visible": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "equals"
               }
             },
             {
               "field": "to_type",
-              "caption": "To Type",
-              "type": "select",
-              "options": [
-                "constraint",
-                "test_pattern",
-                "check",
-                "expected_state",
-                "diff",
-                "test_run"
-              ],
+              "fieldType": "relation.node_type",
               "grid": {
                 "visible": true,
                 "width": 120
-              },
-              "edit": {
-                "visible": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "equals"
               }
             },
             {
               "field": "to_id",
-              "caption": "To ID",
-              "type": "text",
+              "fieldType": "relation.to_id",
               "grid": {
                 "visible": true,
                 "width": 180
-              },
-              "edit": {
-                "visible": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "contains"
               }
             },
             {
               "field": "status",
-              "caption": "承認状態",
-              "type": "select",
-              "options": [
-                "candidate",
-                "approved",
-                "rejected",
-                "derived",
-                "deprecated"
-              ],
+              "fieldType": "relation.status",
               "grid": {
                 "visible": true,
                 "width": 110
-              },
-              "edit": {
-                "visible": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "equals"
               }
             },
             {
               "field": "coverage",
-              "caption": "Coverage",
-              "type": "select",
-              "options": [
-                "primary",
-                "secondary",
-                "structure",
-                "manual",
-                "regression"
-              ],
+              "fieldType": "relation.coverage",
               "grid": {
                 "visible": true,
                 "width": 110
-              },
-              "edit": {
-                "visible": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "equals"
               }
             },
             {
               "field": "confidence",
-              "caption": "Confidence",
-              "type": "select",
-              "options": [
-                "high",
-                "medium",
-                "low",
-                "unknown"
-              ],
+              "fieldType": "relation.confidence",
               "grid": {
                 "visible": true,
                 "width": 110
-              },
-              "edit": {
-                "visible": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "equals"
               }
             },
             {
@@ -288,35 +154,17 @@
             },
             {
               "field": "priority",
-              "caption": "Priority",
-              "type": "select",
-              "options": [
-                "high",
-                "medium",
-                "low"
-              ],
+              "fieldType": "relation.priority",
               "grid": {
                 "visible": true,
                 "width": 90
-              },
-              "edit": {
-                "visible": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "equals"
               }
             },
             {
               "field": "note",
-              "caption": "メモ",
-              "type": "textarea",
+              "fieldType": "relation.approval_note",
               "grid": {
                 "visible": false
-              },
-              "edit": {
-                "visible": true,
-                "height": 92
               }
             }
           ]
@@ -347,5 +195,8 @@
         ]
       }
     }
+  ],
+  "fieldTypeSources": [
+    "common_types_v0_1.json"
   ]
 }

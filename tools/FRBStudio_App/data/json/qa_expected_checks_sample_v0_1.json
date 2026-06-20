@@ -1,0 +1,55 @@
+{
+  "view_def": "qa_expected_checks_sample_view_def_v0_1.json",
+  "expected_checks": [
+    {
+      "check_id": "CHK-REL-STATUS-001",
+      "test_pattern_id": "TP-REL-STATUS-001",
+      "title": "approved の Relation は証跡に採用される",
+      "quality_axis_cd": "evidence",
+      "check_axis_cd": "include",
+      "risk_cd": "high",
+      "expected_summary": "linked_constraints_count に approved の線だけが反映される",
+      "constraint_ids": ["REL-STATUS-001"]
+    },
+    {
+      "check_id": "CHK-REL-STATUS-002",
+      "test_pattern_id": "TP-REL-STATUS-001",
+      "title": "candidate の Relation は正式証跡から除外される",
+      "quality_axis_cd": "evidence",
+      "check_axis_cd": "exclude",
+      "risk_cd": "high",
+      "expected_summary": "candidate の線は approved-only ビューに出ない",
+      "constraint_ids": ["REL-STATUS-002"]
+    },
+    {
+      "check_id": "CHK-REL-STATUS-003",
+      "test_pattern_id": "TP-REL-STATUS-001",
+      "title": "derived の contains_check は構造線として採用される",
+      "quality_axis_cd": "evidence",
+      "check_axis_cd": "structure",
+      "risk_cd": "medium",
+      "expected_summary": "contains_check は structureStatusFilter で通る",
+      "constraint_ids": ["REL-STATUS-003"]
+    },
+    {
+      "check_id": "CHK-WB-001",
+      "test_pattern_id": "TP-WB-001",
+      "title": "顧客名の編集は business_customers に書き戻される",
+      "quality_axis_cd": "save",
+      "check_axis_cd": "write",
+      "risk_cd": "high",
+      "expected_summary": "VirtualData上の編集がsource customersに反映される",
+      "constraint_ids": ["WB-001"]
+    },
+    {
+      "check_id": "CHK-MD-001",
+      "test_pattern_id": "TP-MD-001",
+      "title": "Markdown出力ボタンが表示される",
+      "quality_axis_cd": "display",
+      "check_axis_cd": "display",
+      "risk_cd": "medium",
+      "expected_summary": "Markdown→Viewer ボタンが利用可能になる",
+      "constraint_ids": ["MD-001"]
+    }
+  ]
+}
