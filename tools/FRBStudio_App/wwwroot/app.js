@@ -960,6 +960,39 @@ function normalizeRelations(relationsData, config=null) {
 }
 
 
+function normalizeStatusList(value, fallback=null) {
+  const raw = value == null ? fallback : value;
+  if (raw == null) return null;
+  const arr = Array.isArray(raw) ? raw : String(raw).split(',');
+  const normalized = arr
+    .map(v => String(v ?? '').trim().toLowerCase())
+    .filter(Boolean);
+  return normalized.length ? normalized : null;
+}
+
+function relationStatusOf(rel) {
+  return String(rel?.status ?? '').trim().toLowerCase();
+}
+
+function relationStatusAllowed(rel, allowList=null, excludeList=null) {
+  const status = relationStatusOf(rel);
+  const excludes = normalizeStatusList(excludeList);
+  if (excludes && excludes.includes(status)) return false;
+
+  const allows = normalizeStatusList(allowList);
+  if (!allows) return true;
+  return allows.includes(status);
+}
+
+function relationEvidenceStatusAllowed(rel, cfg) {
+  return relationStatusAllowed(rel, cfg?.relation?.statusFilter, cfg?.relation?.excludeStatus);
+}
+
+function relationStructureStatusAllowed(rel, cfg) {
+  return relationStatusAllowed(rel, cfg?.relation?.structureStatusFilter, cfg?.relation?.excludeStatus);
+}
+
+
 function diffResultIsFail(diff) {
   return valueIsFail(diff?.status) || valueIsFail(diff?.result) || Number(diff?.failedCount ?? diff?.failed_count ?? 0) > 0;
 }
@@ -1064,7 +1097,10 @@ function normalizeRelationAxisVirtualConfig(config) {
       direction: relation.direction ?? 'outgoing',
       includeViaCheck: relation.includeViaCheck ?? relation.include_via_check ?? false,
       containsCheckRelation: relation.containsCheckRelation ?? relation.contains_check_relation ?? 'contains_check',
-      checkType: relation.checkType ?? relation.check_type ?? 'check'
+      checkType: relation.checkType ?? relation.check_type ?? 'check',
+      statusFilter: normalizeStatusList(relation.statusFilter ?? relation.status_filter ?? relation.includeStatus ?? relation.include_status),
+      structureStatusFilter: normalizeStatusList(relation.structureStatusFilter ?? relation.structure_status_filter ?? relation.structureStatus ?? relation.structure_status),
+      excludeStatus: normalizeStatusList(relation.excludeStatus ?? relation.exclude_status)
     },
     diff: {
       source: diff.source ?? diff.dataSource ?? diff.data_source ?? 'diff',
@@ -1096,6 +1132,7 @@ function relationMatchesDirect(r, cfg, axisId) {
   const axisType = cfg.axis.nodeType;
   const linkedType = cfg.linked.nodeType;
   if (r.relation !== cfg.relation.name) return false;
+  if (!relationEvidenceStatusAllowed(r, cfg)) return false;
 
   if (cfg.relation.direction === 'incoming') {
     return r.to_type === axisType && r.to_id === axisId && r.from_type === linkedType;
@@ -1133,19 +1170,27 @@ function findRelationAxisLinks(relations, cfg, axisId) {
   let via = [];
   if (cfg.relation.direction === 'outgoing') {
     const axisToCheck = relations.filter(r =>
-      r.from_type === axisType && r.from_id === axisId && r.relation === verifiedName && r.to_type === checkType
+      r.from_type === axisType && r.from_id === axisId && r.relation === verifiedName && r.to_type === checkType &&
+      relationEvidenceStatusAllowed(r, cfg)
     );
     via = axisToCheck.flatMap(ac => relations
-      .filter(r => r.from_type === linkedType && r.relation === containsName && r.to_type === checkType && r.to_id === ac.to_id)
+      .filter(r =>
+        r.from_type === linkedType && r.relation === containsName && r.to_type === checkType && r.to_id === ac.to_id &&
+        relationStructureStatusAllowed(r, cfg)
+      )
       .map(r => relationToLinkItem({ ...ac, to_type: linkedType, to_id: r.from_id }, cfg, axisId, ac.to_id))
     );
   } else {
     const axisToCheck = relations.filter(r =>
-      r.from_type === axisType && r.from_id === axisId && r.relation === containsName && r.to_type === checkType
+      r.from_type === axisType && r.from_id === axisId && r.relation === containsName && r.to_type === checkType &&
+      relationStructureStatusAllowed(r, cfg)
     );
     const checkIds = new Set(axisToCheck.map(r => r.to_id));
     via = relations
-      .filter(r => r.from_type === linkedType && r.relation === verifiedName && r.to_type === checkType && checkIds.has(r.to_id))
+      .filter(r =>
+        r.from_type === linkedType && r.relation === verifiedName && r.to_type === checkType && checkIds.has(r.to_id) &&
+        relationEvidenceStatusAllowed(r, cfg)
+      )
       .map(r => relationToLinkItem({ ...r, to_type: axisType, to_id: axisId }, cfg, axisId, r.to_id));
   }
 
@@ -1413,7 +1458,10 @@ function normalizeRelationDiffCheckVirtualConfig(config) {
       containsCheckRelation: relation.containsCheckRelation ?? relation.contains_check_relation ?? 'contains_check',
       testNodeType: relation.testNodeType ?? relation.test_node_type ?? diff.testNodeType ?? diff.test_node_type ?? 'test_pattern',
       checkType: relation.checkType ?? relation.check_type ?? 'check',
-      constraintType: relation.constraintType ?? relation.constraint_type ?? 'constraint'
+      constraintType: relation.constraintType ?? relation.constraint_type ?? 'constraint',
+      statusFilter: normalizeStatusList(relation.statusFilter ?? relation.status_filter ?? relation.includeStatus ?? relation.include_status),
+      structureStatusFilter: normalizeStatusList(relation.structureStatusFilter ?? relation.structure_status_filter ?? relation.structureStatus ?? relation.structure_status),
+      excludeStatus: normalizeStatusList(relation.excludeStatus ?? relation.exclude_status)
     },
     diff: {
       source: diff.source ?? diff.dataSource ?? diff.data_source ?? 'diff',
@@ -1476,11 +1524,23 @@ function buildRelationDiffCheckCards({ config, dataObj, sources }) {
         const checkPassed = check?.pass === true || check?.ok === true || check?.result === true || String(check?.judgement ?? '').toLowerCase() === 'true';
         const checkFailed = check?.pass === false || check?.ok === false || check?.result === false || String(check?.judgement ?? '').toLowerCase() === 'false';
 
-        const containsRelations = relations.filter(r => r.relation === cfg.relation.containsCheckRelation && relationConnectsTypes(r, cfg.relation.testNodeType, testId, cfg.relation.checkType, checkId));
+        const containsRelations = relations.filter(r =>
+          r.relation === cfg.relation.containsCheckRelation &&
+          relationStructureStatusAllowed(r, cfg) &&
+          relationConnectsTypes(r, cfg.relation.testNodeType, testId, cfg.relation.checkType, checkId)
+        );
 
-        const testScopedRelations = relations.filter(r => r.relation === cfg.relation.verifiedByRelation && relationConnectsTypes(r, cfg.relation.constraintType, constraintIdFromRelation(r, cfg), cfg.relation.testNodeType, testId));
+        const testScopedRelations = relations.filter(r =>
+          r.relation === cfg.relation.verifiedByRelation &&
+          relationEvidenceStatusAllowed(r, cfg) &&
+          relationConnectsTypes(r, cfg.relation.constraintType, constraintIdFromRelation(r, cfg), cfg.relation.testNodeType, testId)
+        );
 
-        const checkScopedRelations = relations.filter(r => r.relation === cfg.relation.verifiedByRelation && relationConnectsTypes(r, cfg.relation.constraintType, constraintIdFromRelation(r, cfg), cfg.relation.checkType, checkId));
+        const checkScopedRelations = relations.filter(r =>
+          r.relation === cfg.relation.verifiedByRelation &&
+          relationEvidenceStatusAllowed(r, cfg) &&
+          relationConnectsTypes(r, cfg.relation.constraintType, constraintIdFromRelation(r, cfg), cfg.relation.checkType, checkId)
+        );
 
         const relatedVerified = [...testScopedRelations, ...checkScopedRelations];
         const uniqueConstraintIds = [...new Set(relatedVerified.map(r => constraintIdFromRelation(r, cfg)).filter(Boolean))];
@@ -1634,7 +1694,10 @@ function buildRelationAxisCards({ config, dataObj, sources }) {
         confidence: link.confidence,
         note: link.note
       })),
-      ...relations.filter(r => r.from_type === cfg.axis.nodeType && r.from_id === axisId && r.relation === cfg.relation.containsCheckRelation).map(r => ({
+      ...relations.filter(r =>
+        r.from_type === cfg.axis.nodeType && r.from_id === axisId && r.relation === cfg.relation.containsCheckRelation &&
+        relationStructureStatusAllowed(r, cfg)
+      ).map(r => ({
         from: `${r.from_type}:${r.from_id}`,
         relation: r.relation,
         to: `${r.to_type}:${r.to_id}`,

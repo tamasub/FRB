@@ -19,7 +19,17 @@
       "containsCheckRelation": "contains_check",
       "testNodeType": "test_pattern",
       "checkType": "check",
-      "constraintType": "constraint"
+      "constraintType": "constraint",
+      "statusFilter": [
+        "approved"
+      ],
+      "structureStatusFilter": [
+        "derived",
+        "approved"
+      ],
+      "excludeStatus": [
+        "rejected"
+      ]
     },
     "diff": {
       "source": "diff",
@@ -46,7 +56,7 @@
         }
       ]
     },
-    "note": "Diffのcheckを軸に4行で表示する。Relation行をそのまま増やさず、checkごとに関連Relation/制約/BASE・CHILD候補を集約する。"
+    "note": "Diffのcheckを軸に4行で表示する。Relation行をそのまま増やさず、checkごとに関連Relation/制約/BASE・CHILD候補を集約する。 statusFilterにより、影響制約として採用する verified_by は approved のみ、構造線 contains_check は derived/approved を採用する。"
   },
   "views": [
     {

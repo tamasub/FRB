@@ -32,7 +32,17 @@
       "name": "verified_by",
       "direction": "outgoing",
       "includeViaCheck": true,
-      "containsCheckRelation": "contains_check"
+      "containsCheckRelation": "contains_check",
+      "statusFilter": [
+        "approved"
+      ],
+      "structureStatusFilter": [
+        "derived",
+        "approved"
+      ],
+      "excludeStatus": [
+        "rejected"
+      ]
     },
     "diff": {
       "source": "diff",
@@ -48,7 +58,7 @@
       "failedChecksField": "failed_checks",
       "evidenceEdgesField": "evidence_edges"
     },
-    "note": "汎用 relation_axis_cards によって、制約を軸に relation JSON と最新diff JSON から表示用カードを保存せず一時生成する。"
+    "note": "汎用 relation_axis_cards によって、制約を軸に relation JSON と最新diff JSON から表示用カードを保存せず一時生成する。 statusFilterにより、正式証拠線は approved のみ採用し、contains_check などの構造線は derived/approved を採用する。"
   },
   "views": [
     {
