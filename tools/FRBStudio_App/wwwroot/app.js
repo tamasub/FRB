@@ -6,6 +6,8 @@ let selectedIndex = -1;
 let sortState = { field: null, direction: null };
 let copiedRow = null;
 let currentDataApiUrl = null; // /api/data/xxx.json のときだけ上書き保存可能
+let currentDataSources = {}; // dataSourcesで読み込んだ参照JSON。virtualData writeBack時の主対象にもなる。
+let currentDataSourceSpecs = {}; // dataSourcesの元定義。保存先ファイル名解決用。
 let lastLoadedDefName = null;
 let serverDefNames = [];
 let serverDataNames = [];
@@ -842,9 +844,13 @@ async function loadDataSourceJson(spec, label) {
 async function loadConfiguredDataSources(defObj) {
   const config = dataSourcesConfigOf(defObj);
   const result = {};
+  const specs = {};
   for (const [key, spec] of Object.entries(config)) {
     result[key] = await loadDataSourceJson(spec, key);
+    specs[key] = spec;
   }
+  currentDataSources = result;
+  currentDataSourceSpecs = specs;
   return result;
 }
 
@@ -3906,9 +3912,151 @@ function normalizeApiDataUrl(url) {
   }
 }
 
+
+function normalizeWriteBackConfig(config) {
+  const wb = config?.writeBack ?? config?.write_back;
+  if (!wb || wb.enabled === false) return null;
+
+  const source = wb.source ?? wb.dataSource ?? wb.data_source ?? '$current';
+  const path = wb.path ?? wb.dataPath ?? wb.data_path ?? config?.axis?.path ?? config?.base?.path ?? '$';
+  const keyField = wb.keyField ?? wb.key_field ?? config?.axis?.idField ?? config?.axis?.id_field ?? 'id';
+  const rowKeyField = wb.rowKeyField ?? wb.row_key_field ?? keyField;
+  const fields = normalizeWriteBackFields(wb.fields ?? wb.fieldMap ?? wb.field_map ?? []);
+
+  if (!source || !path || !keyField || !rowKeyField || !fields.length) return null;
+  return { source, path, keyField, rowKeyField, fields };
+}
+
+function normalizeWriteBackFields(fields) {
+  if (Array.isArray(fields)) {
+    return fields.map(item => {
+      if (typeof item === 'string') return { from: item, to: item };
+      if (item && typeof item === 'object') {
+        const from = item.from ?? item.virtualField ?? item.virtual_field ?? item.field;
+        const to = item.to ?? item.sourceField ?? item.source_field ?? item.field ?? from;
+        return from && to ? { from, to } : null;
+      }
+      return null;
+    }).filter(Boolean);
+  }
+
+  if (fields && typeof fields === 'object') {
+    return Object.entries(fields).map(([from, to]) => ({ from, to: String(to || from) }));
+  }
+
+  return [];
+}
+
+function isCurrentSourceKey(key) {
+  return !key || key === '$current' || key === 'current';
+}
+
+function dataSourceSpecByKey(key) {
+  if (isCurrentSourceKey(key)) return null;
+  return currentDataSourceSpecs[key] ?? currentDataSourceSpecs[String(key).replace(/-([a-z])/g, (_, c) => c.toUpperCase())] ?? null;
+}
+
+function dataSourceJsonByKey(key) {
+  if (isCurrentSourceKey(key)) return sourceData;
+  return currentDataSources[key] ?? currentDataSources[String(key).replace(/-([a-z])/g, (_, c) => c.toUpperCase())] ?? null;
+}
+
+function indexRowsByField(rows, field) {
+  const map = new Map();
+  normalizeArray(rows).forEach(row => {
+    const key = String(getByPath(row, field) ?? '');
+    if (key) map.set(key, row);
+  });
+  return map;
+}
+
+function applyVirtualRowsToWriteBackSource(config, wb) {
+  const targetPath = virtualDataTargetPath(config);
+  if (!targetPath) return { updated: 0, skipped: 0 };
+
+  const virtualRows = getByPath(sourceData, targetPath);
+  const sourceJson = dataSourceJsonByKey(wb.source);
+  const sourceRows = getByPath(sourceJson, wb.path);
+  if (!Array.isArray(virtualRows)) throw new Error(`writeBack対象の仮想データが配列ではありません: ${targetPath}`);
+  if (!Array.isArray(sourceRows)) throw new Error(`writeBack source ${wb.source} の ${wb.path} が配列ではありません`);
+
+  const sourceByKey = indexRowsByField(sourceRows, wb.keyField);
+  let updated = 0;
+  let skipped = 0;
+
+  virtualRows.forEach(vrow => {
+    const key = String(getByPath(vrow, wb.rowKeyField) ?? '');
+    const sourceRow = sourceByKey.get(key);
+    if (!key || !sourceRow) {
+      skipped += 1;
+      return;
+    }
+
+    wb.fields.forEach(({ from, to }) => {
+      const value = getByPath(vrow, from);
+      setByPath(sourceRow, to, cloneData(value));
+    });
+    updated += 1;
+  });
+
+  return { updated, skipped };
+}
+
+async function postDataSourceJsonByKey(key) {
+  if (isCurrentSourceKey(key)) return null;
+  const spec = dataSourceSpecByKey(key);
+  const name = dataSourceFileName(spec);
+  if (!name) throw new Error(`writeBack source「${key}」の保存先ファイル名を解決できません`);
+  const url = apiJsonUrl('data', name);
+  const json = dataSourceJsonByKey(key);
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(json)
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`writeBack保存に失敗しました ${name} (${res.status}) ${text}`);
+  }
+  return { key, name, url };
+}
+
+async function writeBackVirtualDataEdits() {
+  const configs = virtualDataArrayConfigOf(viewDef);
+  if (!configs.length) return [];
+
+  const touched = new Map();
+  for (const config of configs) {
+    const wb = normalizeWriteBackConfig(config);
+    if (!wb) continue;
+    const result = applyVirtualRowsToWriteBackSource(config, wb);
+    const current = touched.get(wb.source) ?? { source: wb.source, updated: 0, skipped: 0 };
+    current.updated += result.updated;
+    current.skipped += result.skipped;
+    touched.set(wb.source, current);
+  }
+
+  const saved = [];
+  for (const item of touched.values()) {
+    if (!item.updated) continue;
+    const posted = await postDataSourceJsonByKey(item.source);
+    saved.push({ ...item, ...(posted ?? { key: item.source, name: '(current)' }) });
+  }
+  return saved;
+}
+
 async function saveOverwriteJson() {
   applyHeaderEdits();
+  if (detailMode === 'edit' && selectedIndex >= 0) applyDetailInputsToSelectedRow();
   ensureViewDefNameInData(sourceData, lastLoadedDefName || selectedDefName());
+
+  const writeBackSaved = await writeBackVirtualDataEdits();
+  if (writeBackSaved.length) {
+    const names = writeBackSaved.map(x => `${x.name}: ${x.updated}件`).join(' / ');
+    setStatus(`主対象JSONを上書き保存しました: ${names}`);
+    renderGrid();
+    return;
+  }
 
   if (!currentDataApiUrl) {
     setStatus('API読み込みではないため、別名保存します（上書き保存するには /api/data/xxx.json で読み込んでください）');
@@ -3936,6 +4084,8 @@ setupViewDefMarkdownButtonState();
 
 async function loadFromObjects(defObj, dataObj, label='読み込み完了', dataApiUrl=null) {
   viewDef = defObj;
+  currentDataSources = {};
+  currentDataSourceSpecs = {};
   sourceData = await materializeVirtualDataForViewDef(defObj, dataObj);
 
   if (!isDefCompatibleWithData(defObj, sourceData)) {
@@ -3957,8 +4107,9 @@ async function loadFromObjects(defObj, dataObj, label='読み込み完了', data
   updateViewDefMarkdownButtonState();
   if ($('exportViewDefMarkdownBtn')) $('exportViewDefMarkdownBtn').disabled = false;
   $('saveBtn').textContent = currentDataApiUrl ? '上書き保存' : '別名保存';
-  $('addRowBtn').disabled = false;
-  $('deleteRowBtn').disabled = false;
+  const mainGridIsVirtual = isVirtualDataCompatible(defObj, gridDef());
+  $('addRowBtn').disabled = mainGridIsVirtual;
+  $('deleteRowBtn').disabled = mainGridIsVirtual;
   updateFileLabels();
   setStatus(label);
 }

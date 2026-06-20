@@ -12,9 +12,17 @@
   },
   "writePolicy": {
     "mode": "singleSource",
-    "primarySource": "relations",
-    "virtualDataReadonly": true,
-    "note": "この画面ではbusiness_relations_v0_1.jsonだけを主更新対象とし、仮想データは保存しない。"
+    "primarySource": "employees",
+    "virtualDataReadonly": false,
+    "editableSources": [
+      "employees"
+    ],
+    "readonlySources": [
+      "customers",
+      "projects",
+      "tasks",
+      "relations"
+    ]
   },
   "virtualData": {
     "builder": "relation_axis_cards",
@@ -52,6 +60,16 @@
       "primaryCountField": "primary_count",
       "secondaryCountField": "secondary_count",
       "coverageField": "coverage"
+    },
+    "writeBack": {
+      "enabled": true,
+      "source": "employees",
+      "path": "$.employees",
+      "keyField": "employee_id",
+      "rowKeyField": "employee_id",
+      "fields": [
+        "employee_name"
+      ]
     }
   },
   "views": [
@@ -154,12 +172,13 @@
               },
               "edit": {
                 "visible": true,
-                "readonly": true
+                "readonly": false
               },
               "search": {
                 "visible": true,
                 "operator": "contains"
-              }
+              },
+              "readonly": false
             },
             {
               "field": "trace_label",
