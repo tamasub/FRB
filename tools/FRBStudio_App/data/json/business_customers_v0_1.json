@@ -1,0 +1,19 @@
+{
+  "schema_version": "0.1-draft",
+  "document_type": "business_customers",
+  "title": "業務サンプル / 顧客",
+  "customers": [
+    {
+      "customer_id": "CUST-001",
+      "customer_name": "青波製作所"
+    },
+    {
+      "customer_id": "CUST-002",
+      "customer_name": "瀬戸内物流"
+    },
+    {
+      "customer_id": "CUST-003",
+      "customer_name": "明石テック"
+    }
+  ]
+}

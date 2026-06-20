@@ -1,0 +1,23 @@
+{
+  "schema_version": "0.1-draft",
+  "document_type": "business_tasks",
+  "title": "業務サンプル / タスク",
+  "tasks": [
+    {
+      "task_id": "TASK-001",
+      "task_name": "画面項目確認"
+    },
+    {
+      "task_id": "TASK-002",
+      "task_name": "JSON定義作成"
+    },
+    {
+      "task_id": "TASK-003",
+      "task_name": "CSV出力確認"
+    },
+    {
+      "task_id": "TASK-004",
+      "task_name": "在庫API確認"
+    }
+  ]
+}

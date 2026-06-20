@@ -1,0 +1,19 @@
+{
+  "schema_version": "0.1-draft",
+  "document_type": "business_employees",
+  "title": "業務サンプル / 担当者",
+  "employees": [
+    {
+      "employee_id": "EMP-001",
+      "employee_name": "佐藤"
+    },
+    {
+      "employee_id": "EMP-002",
+      "employee_name": "田中"
+    },
+    {
+      "employee_id": "EMP-003",
+      "employee_name": "山本"
+    }
+  ]
+}

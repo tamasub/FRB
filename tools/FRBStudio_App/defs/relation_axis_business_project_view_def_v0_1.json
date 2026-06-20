@@ -1,0 +1,272 @@
+{
+  "app": {
+    "name": "No-Code JSON Studio",
+    "version": "0.5-relation-business-sample"
+  },
+  "dataSources": {
+    "customers": "business_customers_v0_1.json",
+    "projects": "business_projects_v0_1.json",
+    "tasks": "business_tasks_v0_1.json",
+    "employees": "business_employees_v0_1.json",
+    "relations": "business_relations_v0_1.json"
+  },
+  "writePolicy": {
+    "mode": "singleSource",
+    "primarySource": "relations",
+    "virtualDataReadonly": true,
+    "note": "この画面ではbusiness_relations_v0_1.jsonだけを主更新対象とし、仮想データは保存しない。"
+  },
+  "virtualData": {
+    "builder": "relation_axis_cards",
+    "targetPath": "$.relation_axis_business_project_cards",
+    "axis": {
+      "source": "projects",
+      "path": "$.projects",
+      "nodeType": "project",
+      "idField": "project_id",
+      "titleField": "project_name"
+    },
+    "linked": {
+      "source": "tasks",
+      "path": "$.tasks",
+      "nodeType": "task",
+      "idField": "task_id",
+      "titleField": "task_name"
+    },
+    "relation": {
+      "source": "relations",
+      "path": "$.relations",
+      "name": "has_task",
+      "direction": "outgoing",
+      "includeViaCheck": false
+    },
+    "diff": {
+      "enabled": false
+    },
+    "outputs": {
+      "idField": "project_id",
+      "titleField": "project_name",
+      "linkedItemsField": "related_tasks",
+      "evidenceEdgesField": "evidence_edges",
+      "linkedCountField": "task_count",
+      "primaryCountField": "primary_count",
+      "secondaryCountField": "secondary_count",
+      "coverageField": "coverage"
+    }
+  },
+  "views": [
+    {
+      "id": "relation_axis_business_project",
+      "caption": "relation_axis_business_project / 案件軸",
+      "layout": "header-search-grid-detail",
+      "sections": [
+        {
+          "id": "header",
+          "caption": "Business Relation / 基本情報",
+          "type": "form",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 220
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "schema_version",
+              "caption": "Schema",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "document_type",
+              "caption": "Document Type",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 170
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "note",
+              "caption": "メモ",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 260
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "main_grid",
+          "caption": "relation_axis_business_project / 案件軸",
+          "type": "grid",
+          "dataPath": "$.relation_axis_business_project_cards",
+          "keyField": "project_id",
+          "fields": [
+            {
+              "field": "project_id",
+              "caption": "案件ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 110
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "project_name",
+              "caption": "案件名",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 180
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "trace_label",
+              "caption": "状態",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "task_count",
+              "caption": "タスク数",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 90
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "primary_count",
+              "caption": "主",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 70
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "secondary_count",
+              "caption": "補助",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 70
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "coverage",
+              "caption": "Coverage",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 110
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "related_tasks",
+              "caption": "関連タスク",
+              "type": "objectArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true
+            },
+            {
+              "field": "evidence_edges",
+              "caption": "証跡エッジ",
+              "type": "objectArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

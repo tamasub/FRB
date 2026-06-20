@@ -1,0 +1,19 @@
+{
+  "schema_version": "0.1-draft",
+  "document_type": "business_projects",
+  "title": "業務サンプル / 案件",
+  "projects": [
+    {
+      "project_id": "PRJ-001",
+      "project_name": "見積Web化"
+    },
+    {
+      "project_id": "PRJ-002",
+      "project_name": "請求CSV整理"
+    },
+    {
+      "project_id": "PRJ-003",
+      "project_name": "在庫照会改善"
+    }
+  ]
+}
