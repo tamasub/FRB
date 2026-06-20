@@ -3897,6 +3897,23 @@ function viewDefFieldTypeRef(field) {
   return typeValue.includes('.') ? typeValue : '';
 }
 
+function viewDefHasOwnCaption(field) {
+  if (!field || typeof field !== 'object') return false;
+  if (!Object.prototype.hasOwnProperty.call(field, 'caption')) return false;
+  return String(field.caption ?? '').trim() !== '';
+}
+
+function viewDefFieldCaptionIssue(rawField, resolvedField) {
+  const fieldType = viewDefFieldTypeRef(rawField) || viewDefFieldTypeRef(resolvedField);
+  if (!fieldType) return null;
+  if (viewDefHasOwnCaption(rawField)) return null;
+  return {
+    fieldType,
+    fallbackCaption: resolvedField?.caption ?? rawField?.caption ?? '',
+    field: resolvedField?.field ?? rawField?.field ?? ''
+  };
+}
+
 function viewDefStripResolvedMeta(value) {
   if (Array.isArray(value)) return value.map(viewDefStripResolvedMeta);
   if (value && typeof value === 'object') {
@@ -3967,6 +3984,7 @@ function viewDefResolvedFieldTypeSummaryMarkdown(rawDef=null, resolvedDef=null) 
   const resolvedFields = viewDefCollectFields(resolvedDef);
   const keys = new Set([...rawFields.keys(), ...resolvedFields.keys()]);
   const rows = [];
+  const captionIssues = [];
   const commonProps = ['caption', 'type', 'readonly', 'grid.visible', 'grid.width', 'edit.visible', 'edit.readonly', 'search.visible', 'search.operator', 'options'];
 
   keys.forEach(key => {
@@ -3976,6 +3994,17 @@ function viewDefResolvedFieldTypeSummaryMarkdown(rawDef=null, resolvedDef=null) 
     const resolvedField = resolvedItem?.field ?? null;
     const fieldType = viewDefFieldTypeRef(rawField) || viewDefFieldTypeRef(resolvedField);
     if (!fieldType) return;
+
+    const captionIssue = viewDefFieldCaptionIssue(rawField, resolvedField);
+    if (captionIssue) {
+      captionIssues.push({
+        view: resolvedItem?.viewKey ?? rawItem?.viewKey ?? '',
+        section: resolvedItem?.sectionKey ?? rawItem?.sectionKey ?? '',
+        field: resolvedItem?.fieldKey ?? rawItem?.fieldKey ?? captionIssue.field,
+        fieldType: captionIssue.fieldType,
+        fallbackCaption: captionIssue.fallbackCaption
+      });
+    }
 
     const commonDerived = [];
     const viewSpecified = [];
@@ -4010,12 +4039,27 @@ function viewDefResolvedFieldTypeSummaryMarkdown(rawDef=null, resolvedDef=null) 
 
   if (!rows.length) {
     lines.push('- fieldType参照: 0件');
+    lines.push('- fieldType caption未指定: 0件');
     lines.push('- extends / fieldType 解決による差分: ' + (viewDefHasResolutionDifference(rawDef, resolvedDef) ? 'あり' : 'なし'));
     return lines.join('\n');
   }
 
   lines.push(`- fieldType参照: ${rows.length}件`);
+  lines.push(`- fieldType caption未指定: ${captionIssues.length}件`);
+  lines.push('- 制約: fieldType を使う field でも、元ViewDef側に caption を明示することを推奨します。ViewDef側 caption が Common 側 caption より優先されます。');
   lines.push('- 見方: 「Common由来候補」は元ViewDefに書かれておらず、解決後に現れた項目です。');
+  if (captionIssues.length) {
+    lines.push('');
+    lines.push('### fieldType caption未指定警告');
+    lines.push('');
+    lines.push('caption がない fieldType 参照があります。動作上は Common 側 caption に fallback しますが、元ViewDefの可読性を保つため caption を明示してください。');
+    lines.push('');
+    lines.push('| View | Section | field | fieldType | fallback caption |');
+    lines.push('| --- | --- | --- | --- | --- |');
+    captionIssues.forEach(r => {
+      lines.push('| ' + [r.view, r.section, r.field, r.fieldType, r.fallbackCaption].map(markdownEscape).join(' | ') + ' |');
+    });
+  }
   lines.push('');
   const header = '| View | Section | field | fieldType | caption | type | width | options | Common由来候補 | ViewDef個別指定 |';
   const sep = '| --- | --- | --- | --- | --- | --- | ---: | --- | --- | --- |';

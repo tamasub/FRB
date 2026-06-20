@@ -147,6 +147,7 @@
           "fields": [
             {
               "field": "project_id",
+              "caption": "案件ID",
               "fieldType": "business.project_id",
               "grid": {
                 "visible": true,
@@ -158,6 +159,7 @@
             },
             {
               "field": "project_name",
+              "caption": "案件名",
               "fieldType": "business.project_name",
               "grid": {
                 "visible": true,
@@ -170,6 +172,7 @@
             },
             {
               "field": "trace_label",
+              "caption": "状態",
               "fieldType": "business.trace_label",
               "grid": {
                 "visible": true,
@@ -181,6 +184,7 @@
             },
             {
               "field": "task_count",
+              "caption": "タスク数",
               "fieldType": "business.task_count",
               "grid": {
                 "visible": true,
@@ -192,6 +196,7 @@
             },
             {
               "field": "primary_count",
+              "caption": "主",
               "fieldType": "business.primary_count",
               "grid": {
                 "visible": true,
@@ -203,6 +208,7 @@
             },
             {
               "field": "secondary_count",
+              "caption": "補助",
               "fieldType": "business.secondary_count",
               "grid": {
                 "visible": true,

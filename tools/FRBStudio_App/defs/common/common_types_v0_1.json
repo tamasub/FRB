@@ -261,6 +261,106 @@
             "visible": true,
             "operator": "equals"
           }
+        },
+        "check_id": {
+          "caption": "チェックID",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 170
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          },
+          "readonly": false
+        },
+        "test_pattern_id": {
+          "caption": "テストパターンID",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 170
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          },
+          "readonly": false
+        },
+        "source_check_name": {
+          "caption": "実チェック名",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 180
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          },
+          "readonly": false
+        },
+        "expected_summary": {
+          "caption": "期待値概要",
+          "baseType": "textarea",
+          "grid": {
+            "visible": true,
+            "width": 380
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false,
+            "height": 90
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          },
+          "readonly": false
+        },
+        "constraint_ids": {
+          "caption": "制約ID",
+          "baseType": "stringArray",
+          "grid": {
+            "visible": true,
+            "width": 180
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "readonly": false
+        },
+        "evidence_hint": {
+          "caption": "証跡ヒント",
+          "baseType": "textarea",
+          "grid": {
+            "visible": true,
+            "width": 320
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false,
+            "height": 90
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          },
+          "readonly": false
         }
       }
     },

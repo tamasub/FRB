@@ -1,0 +1,285 @@
+{
+  "schema_version": "0.1",
+  "document_type": "qa_expected_checks_classified",
+  "view_def": "qa_expected_checks_classified_view_def_v0_1.json",
+  "title": "観点分類入りExpected定義 v0.1",
+  "description": "テストパターンは増やさず、既存TPにぶら下がるチェック項目を品質観点・チェック観点・リスクで分類するためのExpected定義。",
+  "policy": {
+    "test_pattern_policy": "テストパターンは実行単位。むやみに増やさず、確認粒度は expected_checks を増やして表現する。",
+    "classification_policy": "feature_area/test_axis/scenario_type は原則 TestPattern 側、quality_axis/check_axis/risk は Expected/Check 側で管理する。",
+    "caption_policy": "fieldType を使う場合でも ViewDef 側 caption を明示する。"
+  },
+  "source_test_patterns_file": "qa_test_patterns_sample_v0_1.json",
+  "expected_checks": [
+    {
+      "check_id": "CHK-REL-STATUS-001",
+      "test_pattern_id": "TP-REL-STATUS-001",
+      "title": "approved の Relation は証跡に採用される",
+      "quality_axis_cd": "evidence",
+      "check_axis_cd": "include",
+      "risk_cd": "high",
+      "source_check_name": "approved_relation_included",
+      "expected_summary": "status=approved の Relation だけが正式証跡ビューに採用されること。",
+      "constraint_ids": [
+        "REL-STATUS-001"
+      ],
+      "evidence_hint": "Relation軸ビューで linked_constraints_count / related_constraints に approved の線だけが反映される。",
+      "note": "AI候補線を人間承認済みにした後の主確認。"
+    },
+    {
+      "check_id": "CHK-REL-STATUS-002",
+      "test_pattern_id": "TP-REL-STATUS-001",
+      "title": "candidate の Relation は正式証跡から除外される",
+      "quality_axis_cd": "evidence",
+      "check_axis_cd": "exclude",
+      "risk_cd": "high",
+      "source_check_name": "candidate_relation_excluded",
+      "expected_summary": "status=candidate の Relation は approved-only の証跡ビューには出ないこと。",
+      "constraint_ids": [
+        "REL-STATUS-002"
+      ],
+      "evidence_hint": "VIEW-005 など candidate の線が正式採用ビューから除外されているかを見る。",
+      "note": "AI候補のまま証拠化しないための安全確認。"
+    },
+    {
+      "check_id": "CHK-REL-STATUS-003",
+      "test_pattern_id": "TP-REL-STATUS-001",
+      "title": "rejected の Relation は正式証跡から除外される",
+      "quality_axis_cd": "evidence",
+      "check_axis_cd": "exclude",
+      "risk_cd": "high",
+      "source_check_name": "rejected_relation_excluded",
+      "expected_summary": "status=rejected の Relation は正式証跡にも構造線にも採用されないこと。",
+      "constraint_ids": [
+        "REL-STATUS-004"
+      ],
+      "evidence_hint": "VIEW-004 など rejected の線が関連制約一覧に出ないことを確認する。",
+      "note": "間違った線を明示的に消すための確認。"
+    },
+    {
+      "check_id": "CHK-REL-STATUS-004",
+      "test_pattern_id": "TP-REL-STATUS-001",
+      "title": "derived の contains_check は構造線として採用される",
+      "quality_axis_cd": "evidence",
+      "check_axis_cd": "structure",
+      "risk_cd": "medium",
+      "source_check_name": "derived_contains_check_kept",
+      "expected_summary": "contains_check は証拠線ではなく構造線として structureStatusFilter で採用されること。",
+      "constraint_ids": [
+        "REL-STATUS-003"
+      ],
+      "evidence_hint": "テストパターン軸で check 一覧が維持されるかを見る。",
+      "note": "構成の線と根拠の線を混ぜないための確認。"
+    },
+    {
+      "check_id": "CHK-REL-STATUS-005",
+      "test_pattern_id": "TP-REL-STATUS-001",
+      "title": "statusFilter は証拠線だけに適用される",
+      "quality_axis_cd": "safety",
+      "check_axis_cd": "exclude",
+      "risk_cd": "medium",
+      "source_check_name": "status_filter_scope",
+      "expected_summary": "statusFilter と structureStatusFilter が別軸で効き、contains_check が誤って消えないこと。",
+      "constraint_ids": [
+        "REL-STATUS-005"
+      ],
+      "evidence_hint": "relation_axis_test_pattern / relation_axis_diff_check の件数を見る。",
+      "note": "正式証跡だけ絞ってもテスト構造は残す。"
+    },
+    {
+      "check_id": "CHK-REL-STATUS-006",
+      "test_pattern_id": "TP-REL-STATUS-001",
+      "title": "承認ビューは candidate を人間判断対象として表示する",
+      "quality_axis_cd": "operation",
+      "check_axis_cd": "display",
+      "risk_cd": "medium",
+      "source_check_name": "approval_candidate_visible",
+      "expected_summary": "relation_approval_view_def では candidate / needs_review を人間が確認できること。",
+      "constraint_ids": [
+        "REL-APPROVAL-001"
+      ],
+      "evidence_hint": "relation_approval_view_def_v0_1.json の一覧に候補線が表示される。",
+      "note": "承認操作前の画面確認。"
+    },
+    {
+      "check_id": "CHK-WB-001",
+      "test_pattern_id": "TP-WB-001",
+      "title": "顧客名の編集は business_customers に書き戻される",
+      "quality_axis_cd": "save",
+      "check_axis_cd": "write",
+      "risk_cd": "high",
+      "source_check_name": "customer_name_writeback",
+      "expected_summary": "VirtualData 上の customer_name 編集が source=customers の data/json/business_customers_v0_1.json に反映されること。",
+      "constraint_ids": [
+        "WB-001"
+      ],
+      "evidence_hint": "保存後に business_customers_v0_1.json を再読込して値が残る。",
+      "note": "WriteBack の主機能。"
+    },
+    {
+      "check_id": "CHK-WB-002",
+      "test_pattern_id": "TP-WB-001",
+      "title": "Relation JSON には顧客名編集を書き戻さない",
+      "quality_axis_cd": "safety",
+      "check_axis_cd": "not_write",
+      "risk_cd": "high",
+      "source_check_name": "relation_not_written_by_customer_edit",
+      "expected_summary": "VirtualData の表示行を編集しても、relations[] には customer_name の変更を書き戻さないこと。",
+      "constraint_ids": [
+        "WB-002"
+      ],
+      "evidence_hint": "business_relations_v0_1.json の差分に customer_name が出ないこと。",
+      "note": "読みは広く、書きは狭く。"
+    },
+    {
+      "check_id": "CHK-WB-003",
+      "test_pattern_id": "TP-WB-001",
+      "title": "writeBack対象外フィールドは編集不可または保存対象外になる",
+      "quality_axis_cd": "safety",
+      "check_axis_cd": "not_write",
+      "risk_cd": "medium",
+      "source_check_name": "readonly_non_writeback_fields",
+      "expected_summary": "関連件数や集計値など VirtualData 生成項目は source JSON に書き戻されないこと。",
+      "constraint_ids": [
+        "WB-003"
+      ],
+      "evidence_hint": "project_count / task_count / primary_count などが保存差分に入らない。",
+      "note": "仮想データと実データを混同しない。"
+    },
+    {
+      "check_id": "CHK-WB-004",
+      "test_pattern_id": "TP-WB-001",
+      "title": "保存後再読込で書き戻し結果が維持される",
+      "quality_axis_cd": "save",
+      "check_axis_cd": "include",
+      "risk_cd": "medium",
+      "source_check_name": "writeback_save_reload",
+      "expected_summary": "編集、保存、再読込の後も customer_name の変更が維持されること。",
+      "constraint_ids": [
+        "WB-004"
+      ],
+      "evidence_hint": "保存後にコンボから同じデータを読み直す。",
+      "note": "画面上だけの変更ではないことを確認する。"
+    },
+    {
+      "check_id": "CHK-WB-005",
+      "test_pattern_id": "TP-WB-001",
+      "title": "business FieldType の caption と列幅が適用される",
+      "quality_axis_cd": "display",
+      "check_axis_cd": "display",
+      "risk_cd": "low",
+      "source_check_name": "business_fieldtype_display",
+      "expected_summary": "business.customer_name などの FieldType により、caption / type / grid / search が補完されること。",
+      "constraint_ids": [
+        "FIELD-TYPE-001"
+      ],
+      "evidence_hint": "business_customers_fieldtype_sample_view_def_v0_1.json の解決済みViewDefを見る。",
+      "note": "意味のある単位で共通化した普通項目の確認。"
+    },
+    {
+      "check_id": "CHK-MD-001",
+      "test_pattern_id": "TP-MD-001",
+      "title": "Markdown出力ボタンが表示される",
+      "quality_axis_cd": "display",
+      "check_axis_cd": "display",
+      "risk_cd": "medium",
+      "source_check_name": "markdown_button_visible",
+      "expected_summary": "Markdown出力→Viewer ボタンが対象画面で利用可能になること。",
+      "constraint_ids": [
+        "MD-001"
+      ],
+      "evidence_hint": "ヘッダー操作部に Markdown出力→Viewer が表示される。",
+      "note": "データMarkdown出力の入口。"
+    },
+    {
+      "check_id": "CHK-MD-002",
+      "test_pattern_id": "TP-MD-001",
+      "title": "ViewDef Markdown レポートに解決サマリが出る",
+      "quality_axis_cd": "evidence",
+      "check_axis_cd": "display",
+      "risk_cd": "medium",
+      "source_check_name": "viewdef_report_resolution_summary",
+      "expected_summary": "ViewDef Markdown→Viewer に fieldType 参照件数、namespace、caption未指定件数が表示されること。",
+      "constraint_ids": [
+        "VIEWDEF-REPORT-001"
+      ],
+      "evidence_hint": "解決サマリ セクションを見る。",
+      "note": "共通化が効いているかの可視化。"
+    },
+    {
+      "check_id": "CHK-MD-003",
+      "test_pattern_id": "TP-MD-001",
+      "title": "元ViewDef JSON と解決済みViewDef JSON を折りたたみ表示できる",
+      "quality_axis_cd": "evidence",
+      "check_axis_cd": "display",
+      "risk_cd": "low",
+      "source_check_name": "original_and_resolved_json_details",
+      "expected_summary": "元ViewDef JSON と解決済みViewDef JSON が details で確認できること。",
+      "constraint_ids": [
+        "VIEWDEF-REPORT-002"
+      ],
+      "evidence_hint": "レポート末尾の details ブロックを開閉する。",
+      "note": "管理用JSONとAI確認用JSONの二層確認。"
+    },
+    {
+      "check_id": "CHK-MD-004",
+      "test_pattern_id": "TP-MD-001",
+      "title": "fieldType は caption 明示なしでも fallback で動作する",
+      "quality_axis_cd": "safety",
+      "check_axis_cd": "include",
+      "risk_cd": "low",
+      "source_check_name": "fieldtype_caption_fallback",
+      "expected_summary": "既存互換のため、caption 未指定でも Common caption に fallback して画面描画は継続すること。",
+      "constraint_ids": [
+        "FIELD-TYPE-CAPTION-001"
+      ],
+      "evidence_hint": "caption未指定警告が出ても描画自体は壊れない。",
+      "note": "strict化前の安全運用。"
+    },
+    {
+      "check_id": "CHK-MD-005",
+      "test_pattern_id": "TP-MD-001",
+      "title": "fieldType 使用時は ViewDef側 caption 明示を推奨する",
+      "quality_axis_cd": "safety",
+      "check_axis_cd": "include",
+      "risk_cd": "medium",
+      "source_check_name": "fieldtype_caption_required_warning_zero",
+      "expected_summary": "新規ViewDefでは fieldType 使用箇所に caption を明示し、caption未指定件数が0件になること。",
+      "constraint_ids": [
+        "FIELD-TYPE-CAPTION-002"
+      ],
+      "evidence_hint": "qa_expected_checks_classified_view_def_v0_1.json の解決サマリで caption未指定=0件を確認する。",
+      "note": "人間が元ViewDefを読めるようにするための制約。"
+    },
+    {
+      "check_id": "CHK-MD-006",
+      "test_pattern_id": "TP-MD-001",
+      "title": "解決済みViewDefでは cd/name options が展開される",
+      "quality_axis_cd": "evidence",
+      "check_axis_cd": "display",
+      "risk_cd": "medium",
+      "source_check_name": "resolved_cd_name_options",
+      "expected_summary": "quality_axis_cd / check_axis_cd / risk_cd の options が cd:name で展開されること。",
+      "constraint_ids": [
+        "FIELD-TYPE-OPTIONS-001"
+      ],
+      "evidence_hint": "解決済みViewDef概要の options 欄を見る。",
+      "note": "AIにも人間にも選択肢の意味が見える。"
+    },
+    {
+      "check_id": "CHK-MD-007",
+      "test_pattern_id": "TP-MD-001",
+      "title": "元ViewDefは field / caption / fieldType の3点セットで読める",
+      "quality_axis_cd": "display",
+      "check_axis_cd": "display",
+      "risk_cd": "low",
+      "source_check_name": "source_viewdef_readability",
+      "expected_summary": "共通化後も元ViewDefだけで項目の意味が分かること。",
+      "constraint_ids": [
+        "FIELD-TYPE-CAPTION-003"
+      ],
+      "evidence_hint": "元ViewDef JSON に field / caption / fieldType が並ぶ。",
+      "note": "共通化しても人間の読みやすさは消さない。"
+    }
+  ]
+}

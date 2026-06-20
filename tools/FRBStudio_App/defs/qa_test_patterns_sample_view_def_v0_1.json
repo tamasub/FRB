@@ -70,18 +70,22 @@
             },
             {
               "field": "feature_area_cd",
+              "caption": "機能領域",
               "fieldType": "qa.feature_area"
             },
             {
               "field": "test_axis_cd",
+              "caption": "テスト観点",
               "fieldType": "qa.test_axis"
             },
             {
               "field": "scenario_type_cd",
+              "caption": "シナリオ種別",
               "fieldType": "qa.scenario_type"
             },
             {
               "field": "risk_cd",
+              "caption": "リスク",
               "fieldType": "qa.risk"
             },
             {

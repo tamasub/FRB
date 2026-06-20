@@ -38,10 +38,12 @@
           "fields": [
             {
               "field": "customer_id",
+              "caption": "顧客ID",
               "fieldType": "business.customer_id"
             },
             {
               "field": "customer_name",
+              "caption": "顧客名",
               "fieldType": "business.customer_name"
             }
           ]

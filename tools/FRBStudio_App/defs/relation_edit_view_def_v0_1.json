@@ -19,10 +19,12 @@
           "fields": [
             {
               "field": "title",
+              "caption": "タイトル",
               "fieldType": "core.title"
             },
             {
               "field": "schema_version",
+              "caption": "Schema",
               "fieldType": "core.schema_version"
             },
             {
@@ -50,6 +52,7 @@
           "fields": [
             {
               "field": "relation_id",
+              "caption": "Relation ID",
               "fieldType": "relation.relation_id",
               "grid": {
                 "visible": true,
@@ -58,6 +61,7 @@
             },
             {
               "field": "from_type",
+              "caption": "Node Type",
               "fieldType": "relation.node_type",
               "grid": {
                 "visible": true,
@@ -66,6 +70,7 @@
             },
             {
               "field": "from_id",
+              "caption": "From ID",
               "fieldType": "relation.from_id",
               "grid": {
                 "visible": true,
@@ -74,6 +79,7 @@
             },
             {
               "field": "relation",
+              "caption": "Relation",
               "fieldType": "relation.relation_type",
               "grid": {
                 "visible": true,
@@ -82,6 +88,7 @@
             },
             {
               "field": "to_type",
+              "caption": "Node Type",
               "fieldType": "relation.node_type",
               "grid": {
                 "visible": true,
@@ -90,6 +97,7 @@
             },
             {
               "field": "to_id",
+              "caption": "To ID",
               "fieldType": "relation.to_id",
               "grid": {
                 "visible": true,
@@ -98,6 +106,7 @@
             },
             {
               "field": "status",
+              "caption": "承認状態",
               "fieldType": "relation.status",
               "grid": {
                 "visible": true,
@@ -106,6 +115,7 @@
             },
             {
               "field": "coverage",
+              "caption": "Coverage",
               "fieldType": "relation.coverage",
               "grid": {
                 "visible": true,
@@ -114,6 +124,7 @@
             },
             {
               "field": "confidence",
+              "caption": "Confidence",
               "fieldType": "relation.confidence",
               "grid": {
                 "visible": true,
@@ -154,6 +165,7 @@
             },
             {
               "field": "priority",
+              "caption": "Priority",
               "fieldType": "relation.priority",
               "grid": {
                 "visible": true,
@@ -162,6 +174,7 @@
             },
             {
               "field": "note",
+              "caption": "承認メモ",
               "fieldType": "relation.approval_note",
               "grid": {
                 "visible": false

@@ -1,7 +1,7 @@
 # ViewDef定義レポート — 期待値チェック分類サンプル
 
 ## 基本情報
-- 出力日時: 2026/6/20 19:23:49
+- 出力日時: 2026/6/20 19:42:06
 - 対象ViewDef: qa_expected_checks_sample_view_def_v0_1.json
 - views: 1
 
@@ -19,13 +19,15 @@
 
 - 読込済み共通Type namespace: qa / relation / business / core
 - fieldType参照: 3件
+- fieldType caption未指定: 0件
+- 制約: fieldType を使う field でも、元ViewDef側に caption を明示することを推奨します。ViewDef側 caption が Common 側 caption より優先されます。
 - 見方: 「Common由来候補」は元ViewDefに書かれておらず、解決後に現れた項目です。
 
 | View | Section | field | fieldType | caption | type | width | options | Common由来候補 | ViewDef個別指定 |
 | --- | --- | --- | --- | --- | --- | ---: | --- | --- | --- |
-| main | mainGrid | quality_axis_cd | qa.quality_axis | 品質観点 | select | 120 | 6件 | caption=品質観点 / type=select / grid.visible=true / grid.width=120 / edit.visible=true / search.visible=true / ... +2 |  |
-| main | mainGrid | check_axis_cd | qa.check_axis | チェック観点 | select | 120 | 7件 | caption=チェック観点 / type=select / grid.visible=true / grid.width=120 / edit.visible=true / search.visible=true / ... +2 |  |
-| main | mainGrid | risk_cd | qa.risk | リスク | select | 80 | 3件 | caption=リスク / type=select / grid.visible=true / grid.width=80 / edit.visible=true / search.visible=true / ... +2 |  |
+| main | mainGrid | quality_axis_cd | qa.quality_axis | 品質観点 | select | 120 | 6件 | type=select / grid.visible=true / grid.width=120 / edit.visible=true / search.visible=true / search.operator=equals / ... +1 | caption=品質観点 |
+| main | mainGrid | check_axis_cd | qa.check_axis | チェック観点 | select | 120 | 7件 | type=select / grid.visible=true / grid.width=120 / edit.visible=true / search.visible=true / search.operator=equals / ... +1 | caption=チェック観点 |
+| main | mainGrid | risk_cd | qa.risk | リスク | select | 80 | 3件 | type=select / grid.visible=true / grid.width=80 / edit.visible=true / search.visible=true / search.operator=equals / ... +1 | caption=リスク |
 
 ## 期待値チェック分類サンプル
 
@@ -54,9 +56,9 @@
 | check_id | チェックID | text | true | 170 | true |  | true (contains) |  |
 | test_pattern_id | テストパターンID | text | true | 170 | true |  | true (contains) |  |
 | title | タイトル | text | true | 360 | true |  | true (contains) |  |
-| quality_axis_cd |  | text |  |  |  |  |  |  |
-| check_axis_cd |  | text |  |  |  |  |  |  |
-| risk_cd |  | text |  |  |  |  |  |  |
+| quality_axis_cd | 品質観点 | text |  |  |  |  |  |  |
+| check_axis_cd | チェック観点 | text |  |  |  |  |  |  |
+| risk_cd | リスク | text |  |  |  |  |  |  |
 | expected_summary | 期待値概要 | textarea | true | 360 | true |  | true (contains) |  |
 | constraint_ids | 制約ID | stringArray | true | 180 | true |  |  |  |
 
@@ -200,14 +202,17 @@ extends / fieldType を解決した、現在画面描画に使っているViewDe
             },
             {
               "field": "quality_axis_cd",
+              "caption": "品質観点",
               "fieldType": "qa.quality_axis"
             },
             {
               "field": "check_axis_cd",
+              "caption": "チェック観点",
               "fieldType": "qa.check_axis"
             },
             {
               "field": "risk_cd",
+              "caption": "リスク",
               "fieldType": "qa.risk"
             },
             {

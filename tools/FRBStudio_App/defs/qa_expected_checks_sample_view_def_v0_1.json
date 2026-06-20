@@ -86,14 +86,17 @@
             },
             {
               "field": "quality_axis_cd",
+              "caption": "品質観点",
               "fieldType": "qa.quality_axis"
             },
             {
               "field": "check_axis_cd",
+              "caption": "チェック観点",
               "fieldType": "qa.check_axis"
             },
             {
               "field": "risk_cd",
+              "caption": "リスク",
               "fieldType": "qa.risk"
             },
             {
