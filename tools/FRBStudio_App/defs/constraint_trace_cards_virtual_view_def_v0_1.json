@@ -1,18 +1,54 @@
 {
   "app": {
     "name": "No-Code JSON Studio",
-    "version": "0.3-draft-relation-virtual-cards-010"
+    "version": "0.3-draft-relation-generic-012"
   },
   "dataSources": {
     "constraints": "ai_constraint_spec_aggregated_v0_6_footer_chat.json",
     "tests": "screen_state_test_patterns_data_v0_2_chat.json",
-    "diff": "screen_state_smoke_001.diff.json"
+    "diff": "screen_state_smoke_001.diff.json",
+    "relations": "constraint_trace_relations_v0_1.json"
   },
   "virtualData": {
-    "builder": "constraint_trace_cards",
+    "builder": "relation_axis_cards",
     "targetPath": "$.constraint_trace_cards",
-    "relationsPath": "$.relations",
-    "note": "relations JSON + 最新diff JSONから、画面表示用カードを保存せずに一時生成する。"
+    "axis": {
+      "source": "constraints",
+      "adapter": "constraints",
+      "nodeType": "constraint",
+      "idField": "constraint_id",
+      "titleField": "constraint_title"
+    },
+    "linked": {
+      "source": "tests",
+      "adapter": "testPatterns",
+      "nodeType": "test_pattern",
+      "idField": "test_pattern_id",
+      "titleField": "title"
+    },
+    "relation": {
+      "source": "relations",
+      "path": "$.relations",
+      "name": "verified_by",
+      "direction": "outgoing",
+      "includeViaCheck": true,
+      "containsCheckRelation": "contains_check"
+    },
+    "diff": {
+      "source": "diff",
+      "testNodeType": "test_pattern"
+    },
+    "outputs": {
+      "idField": "constraint_id",
+      "titleField": "constraint_title",
+      "linkedItemsField": "linked_tests",
+      "linkedCountField": "tests_count",
+      "coverageField": "coverage",
+      "relatedDiffsField": "related_diffs",
+      "failedChecksField": "failed_checks",
+      "evidenceEdgesField": "evidence_edges"
+    },
+    "note": "汎用 relation_axis_cards によって、制約を軸に relation JSON と最新diff JSON から表示用カードを保存せず一時生成する。"
   },
   "views": [
     {

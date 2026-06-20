@@ -953,31 +953,6 @@ function normalizeRelations(relationsData, config=null) {
   })).filter(r => r.enabled !== false && r.from_id && r.to_id && r.relation);
 }
 
-function relationFromConstraintToTestIds(relations, constraintId) {
-  const direct = relations.filter(r =>
-    r.from_type === 'constraint' &&
-    r.from_id === constraintId &&
-    r.relation === 'verified_by' &&
-    r.to_type === 'test_pattern'
-  );
-
-  const checkRels = relations.filter(r =>
-    r.from_type === 'constraint' &&
-    r.from_id === constraintId &&
-    r.relation === 'verified_by' &&
-    r.to_type === 'check'
-  );
-
-  const viaCheck = checkRels.flatMap(cr => {
-    return relations
-      .filter(r => r.relation === 'contains_check' && r.to_type === 'check' && r.to_id === cr.to_id && r.from_type === 'test_pattern')
-      .map(r => ({ ...cr, to_type: 'test_pattern', to_id: r.from_id, via_check_id: cr.to_id, note: [cr.note, `check経由: ${cr.to_id}`].filter(Boolean).join(' / ') }));
-  });
-
-  const byKey = new Map();
-  [...direct, ...viaCheck].forEach(r => byKey.set(`${r.to_type}:${r.to_id}:${r.relation}`, r));
-  return [...byKey.values()];
-}
 
 function diffResultIsFail(diff) {
   return valueIsFail(diff?.status) || valueIsFail(diff?.result) || Number(diff?.failedCount ?? diff?.failed_count ?? 0) > 0;
@@ -991,257 +966,669 @@ function failedCheckRows(diff) {
   return normalizeArray(diff?.checks).filter(ch => valueIsFail(ch?.pass) || valueIsFail(ch?.status));
 }
 
-function buildConstraintTraceCards({ constraintsData, testsData, diffData, relationsData, config }) {
-  const constraints = flattenConstraintNodes(constraintsData);
-  const tests = flattenTestPatternNodes(testsData);
-  const diffs = normalizeDiffNodes(diffData);
-  const relations = normalizeRelations(relationsData, config);
+function diffCheckId(testId, ch) {
+  return `${testId}.${ch?.name ?? ch?.target ?? ''}`;
+}
 
-  const testById = new Map(tests.map(t => [t.test_pattern_id, t]));
-  const diffsByTestId = new Map();
+function virtualDataArrayConfigOf(defObj) {
+  const config = virtualDataConfigOf(defObj);
+  if (!config) return [];
+  return Array.isArray(config) ? config : [config];
+}
+
+function inferIdOutputField(nodeType) {
+  if (!nodeType) return 'axis_id';
+  return `${String(nodeType).replace(/[^a-zA-Z0-9_]/g, '_')}_id`;
+}
+
+function inferTitleOutputField(nodeType) {
+  if (nodeType === 'constraint') return 'constraint_title';
+  if (nodeType === 'test_pattern') return 'test_pattern_title';
+  return `${String(nodeType || 'axis').replace(/[^a-zA-Z0-9_]/g, '_')}_title`;
+}
+
+function sourceJsonFromKey(sources, dataObj, key) {
+  if (!key || key === '$current' || key === 'current') return dataObj;
+  return sources[key] ?? sources[String(key).replace(/-([a-z])/g, (_, c) => c.toUpperCase())] ?? {};
+}
+
+function normalizeGenericRecords(rawData, sourceDef={}) {
+  if (!sourceDef) sourceDef = {};
+  const adapter = sourceDef.adapter ?? sourceDef.kind ?? '';
+
+  if (adapter === 'constraints') return flattenConstraintNodes(rawData);
+  if (adapter === 'testPatterns' || adapter === 'test_patterns' || adapter === 'tests') return flattenTestPatternNodes(rawData);
+  if (adapter === 'diffs' || adapter === 'diff') return normalizeDiffNodes(rawData);
+
+  const path = sourceDef.path ?? sourceDef.dataPath ?? '$';
+  let items = getByPath(rawData, path);
+  if (!Array.isArray(items)) {
+    const fallbackKeys = sourceDef.fallbackPaths ?? sourceDef.fallback_paths ?? [];
+    for (const fp of fallbackKeys) {
+      items = getByPath(rawData, fp);
+      if (Array.isArray(items)) break;
+    }
+  }
+  return normalizeArray(items).map(item => ({ ...item, source: item }));
+}
+
+function pickRecordId(record, sourceDef={}, fallback='') {
+  const idField = sourceDef.idField ?? sourceDef.id_field;
+  const candidates = [idField, 'id', 'constraint_id', 'test_pattern_id', 'patternId', 'testId', 'diff_id', 'diffId'].filter(Boolean);
+  return String(fieldFirst(record, candidates, fallback));
+}
+
+function pickRecordTitle(record, sourceDef={}, fallback='') {
+  const titleField = sourceDef.titleField ?? sourceDef.title_field;
+  const candidates = [titleField, 'title', 'name', 'constraint_title', 'test_pattern_title', 'summary'].filter(Boolean);
+  return fieldFirst(record, candidates, fallback);
+}
+
+function normalizeRelationAxisVirtualConfig(config) {
+  const axis = config.axis ?? config.base ?? {};
+  const linked = config.linked ?? config.target ?? {};
+  const relation = config.relationQuery ?? config.relation_query ?? config.relation ?? {};
+  const diff = config.diff ?? {};
+  const outputs = config.outputs ?? {};
+
+  return {
+    targetPath: virtualDataTargetPath(config),
+    axis: {
+      source: axis.source ?? axis.dataSource ?? axis.data_source ?? '',
+      adapter: axis.adapter ?? axis.kind ?? '',
+      path: axis.path ?? axis.dataPath ?? axis.data_path ?? '$',
+      fallbackPaths: axis.fallbackPaths ?? axis.fallback_paths ?? [],
+      nodeType: axis.nodeType ?? axis.node_type ?? '',
+      idField: axis.idField ?? axis.id_field ?? '',
+      titleField: axis.titleField ?? axis.title_field ?? ''
+    },
+    linked: {
+      source: linked.source ?? linked.dataSource ?? linked.data_source ?? '',
+      adapter: linked.adapter ?? linked.kind ?? '',
+      path: linked.path ?? linked.dataPath ?? linked.data_path ?? '$',
+      fallbackPaths: linked.fallbackPaths ?? linked.fallback_paths ?? [],
+      nodeType: linked.nodeType ?? linked.node_type ?? '',
+      idField: linked.idField ?? linked.id_field ?? '',
+      titleField: linked.titleField ?? linked.title_field ?? ''
+    },
+    relation: {
+      source: relation.source ?? relation.dataSource ?? relation.data_source ?? 'relations',
+      path: relation.path ?? relation.relationsPath ?? relation.relations_path ?? '$.relations',
+      name: relation.name ?? relation.relation ?? relation.relationName ?? relation.relation_name ?? 'verified_by',
+      direction: relation.direction ?? 'outgoing',
+      includeViaCheck: relation.includeViaCheck ?? relation.include_via_check ?? false,
+      containsCheckRelation: relation.containsCheckRelation ?? relation.contains_check_relation ?? 'contains_check',
+      checkType: relation.checkType ?? relation.check_type ?? 'check'
+    },
+    diff: {
+      source: diff.source ?? diff.dataSource ?? diff.data_source ?? 'diff',
+      enabled: diff.enabled !== false,
+      testNodeType: diff.testNodeType ?? diff.test_node_type ?? 'test_pattern',
+      testIdField: diff.testIdField ?? diff.test_id_field ?? '',
+      checksPath: diff.checksPath ?? diff.checks_path ?? '$.checks'
+    },
+    outputs: {
+      idField: outputs.idField ?? outputs.id_field ?? inferIdOutputField(axis.nodeType ?? axis.node_type),
+      titleField: outputs.titleField ?? outputs.title_field ?? inferTitleOutputField(axis.nodeType ?? axis.node_type),
+      linkedItemsField: outputs.linkedItemsField ?? outputs.linked_items_field ?? 'linked_items',
+      relatedDiffsField: outputs.relatedDiffsField ?? outputs.related_diffs_field ?? 'related_diffs',
+      failedChecksField: outputs.failedChecksField ?? outputs.failed_checks_field ?? 'failed_checks',
+      evidenceEdgesField: outputs.evidenceEdgesField ?? outputs.evidence_edges_field ?? 'evidence_edges',
+      impactedItemsField: outputs.impactedItemsField ?? outputs.impacted_items_field ?? 'impacted_items',
+      linkedCountField: outputs.linkedCountField ?? outputs.linked_count_field ?? 'linked_count',
+      primaryCountField: outputs.primaryCountField ?? outputs.primary_count_field ?? 'primary_count',
+      secondaryCountField: outputs.secondaryCountField ?? outputs.secondary_count_field ?? 'secondary_count',
+      requiredCountField: outputs.requiredCountField ?? outputs.required_count_field ?? 'required_count',
+      failLinkedCountField: outputs.failLinkedCountField ?? outputs.fail_linked_count_field ?? 'fail_linked_count',
+      coverageField: outputs.coverageField ?? outputs.coverage_field ?? 'coverage'
+    },
+    summaryFields: config.summaryFields ?? config.summary_fields ?? {}
+  };
+}
+
+function relationMatchesDirect(r, cfg, axisId) {
+  const axisType = cfg.axis.nodeType;
+  const linkedType = cfg.linked.nodeType;
+  if (r.relation !== cfg.relation.name) return false;
+
+  if (cfg.relation.direction === 'incoming') {
+    return r.to_type === axisType && r.to_id === axisId && r.from_type === linkedType;
+  }
+  return r.from_type === axisType && r.from_id === axisId && r.to_type === linkedType;
+}
+
+function relationToLinkItem(r, cfg, axisId, viaCheckId='') {
+  const isIncoming = cfg.relation.direction === 'incoming';
+  const linkedId = isIncoming ? r.from_id : r.to_id;
+  const linkedType = isIncoming ? r.from_type : r.to_type;
+  return {
+    ...r,
+    axis_id: axisId,
+    linked_type: linkedType,
+    linked_id: linkedId,
+    via_check_id: viaCheckId,
+    note: viaCheckId ? [r.note, `check経由: ${viaCheckId}`].filter(Boolean).join(' / ') : (r.note ?? '')
+  };
+}
+
+function findRelationAxisLinks(relations, cfg, axisId) {
+  const direct = relations
+    .filter(r => relationMatchesDirect(r, cfg, axisId))
+    .map(r => relationToLinkItem(r, cfg, axisId));
+
+  if (!cfg.relation.includeViaCheck) return uniqueRelationLinks(direct);
+
+  const checkType = cfg.relation.checkType;
+  const containsName = cfg.relation.containsCheckRelation;
+  const axisType = cfg.axis.nodeType;
+  const linkedType = cfg.linked.nodeType;
+  const verifiedName = cfg.relation.name;
+
+  let via = [];
+  if (cfg.relation.direction === 'outgoing') {
+    const axisToCheck = relations.filter(r =>
+      r.from_type === axisType && r.from_id === axisId && r.relation === verifiedName && r.to_type === checkType
+    );
+    via = axisToCheck.flatMap(ac => relations
+      .filter(r => r.from_type === linkedType && r.relation === containsName && r.to_type === checkType && r.to_id === ac.to_id)
+      .map(r => relationToLinkItem({ ...ac, to_type: linkedType, to_id: r.from_id }, cfg, axisId, ac.to_id))
+    );
+  } else {
+    const axisToCheck = relations.filter(r =>
+      r.from_type === axisType && r.from_id === axisId && r.relation === containsName && r.to_type === checkType
+    );
+    const checkIds = new Set(axisToCheck.map(r => r.to_id));
+    via = relations
+      .filter(r => r.from_type === linkedType && r.relation === verifiedName && r.to_type === checkType && checkIds.has(r.to_id))
+      .map(r => relationToLinkItem({ ...r, to_type: axisType, to_id: axisId }, cfg, axisId, r.to_id));
+  }
+
+  return uniqueRelationLinks([...direct, ...via]);
+}
+
+function uniqueRelationLinks(items) {
+  const byKey = new Map();
+  items.forEach(item => {
+    const key = `${item.linked_type}:${item.linked_id}:${item.relation}:${item.via_check_id || ''}:${item.coverage || ''}`;
+    if (!byKey.has(key)) byKey.set(key, item);
+  });
+  return [...byKey.values()];
+}
+
+function diffTestId(diff) {
+  return String(diff?.testId ?? diff?.test_pattern_id ?? diff?.patternId ?? diff?.test_pattern ?? '');
+}
+
+function buildDiffIndexByTestId(diffData) {
+  const diffs = normalizeDiffNodes(diffData);
+  const map = new Map();
   diffs.forEach(diff => {
-    const id = String(diff?.testId ?? diff?.test_pattern_id ?? diff?.patternId ?? '');
+    const id = diffTestId(diff);
     if (!id) return;
-    if (!diffsByTestId.has(id)) diffsByTestId.set(id, []);
-    diffsByTestId.get(id).push(diff);
+    if (!map.has(id)) map.set(id, []);
+    map.get(id).push(diff);
+  });
+  return map;
+}
+
+function linkedTestIdsForAxis(axisId, cfg, links) {
+  const ids = new Set();
+  if (cfg.axis.nodeType === cfg.diff.testNodeType) ids.add(axisId);
+  if (cfg.linked.nodeType === cfg.diff.testNodeType) links.forEach(link => ids.add(link.linked_id));
+  return [...ids].filter(Boolean);
+}
+
+function relatedDiffSummaries(testIds, diffsByTestId) {
+  return testIds.flatMap(testId => normalizeArray(diffsByTestId.get(testId)).map(diff => ({
+    diff_id: diff?.diffId ?? diff?.diff_id ?? diff?.testId ?? testId,
+    test_pattern_id: testId,
+    relation: 'has_latest_diff',
+    result: diff?.status ?? diff?.result ?? '',
+    resultLabel: diff?.resultLabel ?? '',
+    failed_count: Number(diff?.failedCount ?? diff?.failed_count ?? 0),
+    captured_at: diff?.capturedAt ?? diff?.captured_at ?? '',
+    summary: diff?.summary ?? ''
+  })));
+}
+
+function failedCheckSummaries(testIds, diffsByTestId, filterCheckIds=null) {
+  const filterSet = filterCheckIds ? new Set(filterCheckIds) : null;
+  return testIds.flatMap(testId => normalizeArray(diffsByTestId.get(testId)).flatMap(diff => {
+    return failedCheckRows(diff)
+      .map(ch => ({
+        diff_id: diff?.diffId ?? diff?.diff_id ?? diff?.testId ?? testId,
+        test_pattern_id: testId,
+        check_id: diffCheckId(testId, ch),
+        check_name: ch?.name ?? '',
+        target: ch?.target ?? '',
+        expected: formatValue(ch?.expected),
+        actual: formatValue(ch?.actual),
+        severity: 'high',
+        message: ch?.message ?? ''
+      }))
+      .filter(ch => !filterSet || filterSet.has(ch.check_id));
+  }));
+}
+
+
+function normalizeRelationDiffVirtualConfig(config) {
+  const rel = config.relations ?? config.relationSource ?? config.relation_source ?? {};
+  const relation = config.relation ?? {};
+  const diff = config.diff ?? {};
+  const viewDefs = config.diffViewDefs ?? config.diff_view_defs ?? {};
+  const outputs = config.outputs ?? {};
+  const base = viewDefs.base ?? {};
+  const children = normalizeArray(viewDefs.children ?? viewDefs.child ?? []);
+
+  return {
+    targetPath: virtualDataTargetPath(config),
+    relations: {
+      source: rel.source ?? rel.dataSource ?? rel.data_source ?? 'relations',
+      path: rel.path ?? rel.relationsPath ?? rel.relations_path ?? '$.relations'
+    },
+    relation: {
+      testNodeType: relation.testNodeType ?? relation.test_node_type ?? diff.testNodeType ?? diff.test_node_type ?? 'test_pattern',
+      checkType: relation.checkType ?? relation.check_type ?? 'check',
+      containsCheckRelation: relation.containsCheckRelation ?? relation.contains_check_relation ?? 'contains_check'
+    },
+    diff: {
+      source: diff.source ?? diff.dataSource ?? diff.data_source ?? 'diff',
+      testNodeType: diff.testNodeType ?? diff.test_node_type ?? 'test_pattern'
+    },
+    diffViewDefs: {
+      base: {
+        role: 'base',
+        view_def: base.view_def ?? base.name ?? base.file ?? 'screen_state_diff_view_def_base_v0_2_checks.json',
+        caption: base.caption ?? base.label ?? '【BASE】Screen State Diff Base View',
+        extends: base.extends ?? '',
+        note: base.note ?? 'diff JSONの共通表示定義。child view はこの定義を継承する。'
+      },
+      children: children.map((c, i) => ({
+        role: 'child',
+        view_def: c.view_def ?? c.name ?? c.file ?? '',
+        caption: c.caption ?? c.label ?? `【CHILD】Diff Child View ${i + 1}`,
+        extends: c.extends ?? base.view_def ?? base.name ?? base.file ?? 'screen_state_diff_view_def_base_v0_2_checks.json',
+        note: c.note ?? ''
+      })).filter(c => c.view_def)
+    },
+    outputs: {
+      targetPath: outputs.targetPath ?? outputs.target_path ?? virtualDataTargetPath(config) ?? '$.relation_diff_cards'
+    }
+  };
+}
+
+function relationCheckIds(rel, relations, cfg) {
+  const ids = new Set();
+  const checkType = cfg.relation.checkType;
+  const containsName = cfg.relation.containsCheckRelation;
+  const testType = cfg.relation.testNodeType;
+
+  if (rel.from_type === checkType && rel.from_id) ids.add(rel.from_id);
+  if (rel.to_type === checkType && rel.to_id) ids.add(rel.to_id);
+
+  // test_pattern -> check の contains_check から、テスト直結リレーションのチェック候補も拾う。
+  const directTestId = rel.from_type === testType ? rel.from_id : (rel.to_type === testType ? rel.to_id : '');
+  if (directTestId) {
+    relations
+      .filter(r => r.relation === containsName && (
+        (r.from_type === testType && r.from_id === directTestId && r.to_type === checkType) ||
+        (r.to_type === testType && r.to_id === directTestId && r.from_type === checkType)
+      ))
+      .forEach(r => {
+        if (r.from_type === checkType) ids.add(r.from_id);
+        if (r.to_type === checkType) ids.add(r.to_id);
+      });
+  }
+  return [...ids].filter(Boolean);
+}
+
+function relationTestIds(rel, relations, cfg) {
+  const ids = new Set();
+  const testType = cfg.relation.testNodeType;
+  const checkType = cfg.relation.checkType;
+  const containsName = cfg.relation.containsCheckRelation;
+
+  if (rel.from_type === testType && rel.from_id) ids.add(rel.from_id);
+  if (rel.to_type === testType && rel.to_id) ids.add(rel.to_id);
+
+  const checkIds = relationCheckIds(rel, relations, cfg);
+  checkIds.forEach(checkId => {
+    relations
+      .filter(r => r.relation === containsName && (
+        (r.from_type === testType && r.to_type === checkType && r.to_id === checkId) ||
+        (r.to_type === testType && r.from_type === checkType && r.from_id === checkId)
+      ))
+      .forEach(r => {
+        if (r.from_type === testType) ids.add(r.from_id);
+        if (r.to_type === testType) ids.add(r.to_id);
+      });
   });
 
-  return constraints.map(c => {
-    const linkRels = relationFromConstraintToTestIds(relations, c.constraint_id);
-    const linkedTests = linkRels.map(rel => {
-      const t = testById.get(rel.to_id);
-      return {
-        test_pattern_id: rel.to_id,
-        title: t?.title ?? rel.to_id,
-        relation: rel.relation,
-        coverage: rel.coverage,
-        confidence: rel.confidence,
-        required: rel.required,
-        enabled: rel.enabled,
-        status: rel.status,
-        priority: rel.priority,
-        expected_file: t?.expected_file ?? '',
-        diff_file: t?.diff_file ?? '',
-        via_check_id: rel.via_check_id ?? '',
-        note: rel.note ?? ''
-      };
-    });
+  return [...ids].filter(Boolean);
+}
 
-    const relatedDiffs = linkedTests.flatMap(t => normalizeArray(diffsByTestId.get(t.test_pattern_id)).map(diff => ({
-      diff_id: diff?.diffId ?? diff?.diff_id ?? diff?.testId ?? t.test_pattern_id,
-      test_pattern_id: t.test_pattern_id,
-      relation: 'has_latest_diff',
-      result: diff?.status ?? diff?.result ?? '',
-      resultLabel: diff?.resultLabel ?? '',
-      failed_count: Number(diff?.failedCount ?? diff?.failed_count ?? 0),
-      captured_at: diff?.capturedAt ?? diff?.captured_at ?? '',
-      summary: diff?.summary ?? ''
-    })));
+function diffViewDefRows(cfg, diff=null) {
+  const baseName = diff?.view_def ?? cfg.diffViewDefs.base.view_def;
+  const base = {
+    ...cfg.diffViewDefs.base,
+    view_def: baseName || cfg.diffViewDefs.base.view_def,
+    active: true
+  };
+  return [base, ...cfg.diffViewDefs.children.map(c => ({ ...c, active: false }))];
+}
 
-    const failedChecks = linkedTests.flatMap(t => normalizeArray(diffsByTestId.get(t.test_pattern_id)).flatMap(diff => {
-      return failedCheckRows(diff)
-        .filter(ch => !t.via_check_id || `${t.test_pattern_id}.${ch?.name ?? ch?.target ?? ''}` === t.via_check_id)
-        .map(ch => ({
-          diff_id: diff?.diffId ?? diff?.diff_id ?? diff?.testId ?? t.test_pattern_id,
-          test_pattern_id: t.test_pattern_id,
-          check_id: `${t.test_pattern_id}.${ch?.name ?? ch?.target ?? ''}`,
-          check_name: ch?.name ?? '',
-          target: ch?.target ?? '',
-          expected: formatValue(ch?.expected),
-          actual: formatValue(ch?.actual),
-          severity: 'high',
-          message: ch?.message ?? ''
-        }));
-    }));
+function buildRelationDiffCards({ config, dataObj, sources }) {
+  const cfg = normalizeRelationDiffVirtualConfig(config);
+  const relationsData = sourceJsonFromKey(sources, dataObj, cfg.relations.source);
+  const diffData = sourceJsonFromKey(sources, dataObj, cfg.diff.source);
+  const relations = normalizeRelations(relationsData, { relationsPath: cfg.relations.path });
+  const diffsByTestId = buildDiffIndexByTestId(diffData);
 
-    const evidenceEdges = linkRels.map(r => ({
-      from: `${r.from_type}:${r.from_id}`,
-      relation: r.relation,
-      to: `${r.to_type}:${r.to_id}`,
-      status: r.status,
-      coverage: r.coverage,
-      confidence: r.confidence,
-      note: r.note
-    }));
-
-    const directLinkedTests = linkedTests.filter(t => !t.via_check_id);
-    const checkLinkedTests = linkedTests.filter(t => t.via_check_id);
-    const directHasFail = directLinkedTests.some(t => normalizeArray(diffsByTestId.get(t.test_pattern_id)).some(diff => diffResultIsFail(diff)));
-    const directHasPass = directLinkedTests.some(t => normalizeArray(diffsByTestId.get(t.test_pattern_id)).some(diff => diffResultIsPass(diff)));
-    const checkHasAnyDiff = checkLinkedTests.some(t => normalizeArray(diffsByTestId.get(t.test_pattern_id)).length > 0);
-    const checkHasFail = failedChecks.length > 0;
-    const checkHasPass = checkLinkedTests.length > 0 && checkHasAnyDiff && failedChecks.length === 0;
-
-    const hasFail = directHasFail || checkHasFail;
-    const hasPass = directHasPass || checkHasPass;
+  return relations.map(rel => {
+    const testIds = relationTestIds(rel, relations, cfg);
+    const checkIds = relationCheckIds(rel, relations, cfg);
+    const relationIsCheckScoped = rel.from_type === cfg.relation.checkType || rel.to_type === cfg.relation.checkType || rel.relation === cfg.relation.containsCheckRelation;
+    const relatedDiffs = relatedDiffSummaries(testIds, diffsByTestId);
+    const failedChecks = failedCheckSummaries(testIds, diffsByTestId, relationIsCheckScoped && checkIds.length ? checkIds : null);
+    const allFailedChecks = failedCheckSummaries(testIds, diffsByTestId);
+    const hasFail = testIds.some(testId => normalizeArray(diffsByTestId.get(testId)).some(diff => diffResultIsFail(diff)));
+    const hasPass = testIds.some(testId => normalizeArray(diffsByTestId.get(testId)).some(diff => diffResultIsPass(diff)));
+    const firstDiff = testIds.flatMap(testId => normalizeArray(diffsByTestId.get(testId))).find(Boolean) ?? null;
     const lastCheckedAt = relatedDiffs.map(d => d.captured_at).filter(Boolean).sort().at(-1) ?? '';
-    const coverageSet = [...new Set(linkedTests.map(t => t.coverage).filter(Boolean))];
 
-    let traceStatus = 'untested';
-    let traceLabel = '未テスト';
-    let latestResult = 'unverified';
-    if (linkedTests.length > 0) {
-      traceStatus = 'linked';
-      traceLabel = 'リンクあり / 未実行';
-      latestResult = 'linked';
-    }
+    let latestResult = relatedDiffs.length ? 'executed' : 'unverified';
+    let traceLabel = relatedDiffs.length ? '実行済み' : 'diff未接続';
     if (hasPass) {
-      traceStatus = 'verified';
-      traceLabel = '最新成功';
       latestResult = 'pass';
+      traceLabel = '最新成功';
     }
     if (hasFail) {
-      traceStatus = 'failing';
-      traceLabel = '🚨 失敗diffあり';
       latestResult = 'fail';
+      traceLabel = '🚨 失敗diffあり';
     }
 
+    const impacted = relationIsCheckScoped ? failedChecks.length > 0 : hasFail;
+
     return {
-      constraint_id: c.constraint_id,
-      constraint_title: c.constraint_title,
-      group_id: c.group_id,
-      category: c.category,
-      priority: c.priority,
-      review_status: c.review_status,
-      verification_status: c.verification_status,
-      trace_status: traceStatus,
-      trace_label: traceLabel,
+      relation_id: rel.relation_id,
+      from_type: rel.from_type,
+      from_id: rel.from_id,
+      to_type: rel.to_type,
+      to_id: rel.to_id,
+      relation: rel.relation,
+      coverage: rel.coverage,
+      confidence: rel.confidence,
+      required: rel.required,
+      enabled: rel.enabled,
+      status: rel.status,
+      priority: rel.priority,
+      note: rel.note,
+      test_pattern_ids: testIds.join(', '),
+      test_pattern_count: testIds.length,
+      check_ids: checkIds.join(', '),
+      check_scope: relationIsCheckScoped ? 'check scoped' : 'test scoped',
       latest_result: latestResult,
-      status: latestResult,
-      resultLabel: traceLabel,
-      coverage: coverageSet.join(', '),
-      tests_count: linkedTests.length,
+      trace_label: traceLabel,
+      impacted,
+      impact_label: impacted ? '影響あり' : '影響なし/未判定',
+      diff_count: relatedDiffs.length,
       fail_count: failedChecks.length,
+      all_fail_count: allFailedChecks.length,
       last_checked_at: lastCheckedAt,
-      constraint_text: c.constraint_text,
-      linked_tests: linkedTests,
+      diff_view_def: firstDiff?.view_def ?? cfg.diffViewDefs.base.view_def,
+      base_view_def: firstDiff?.view_def ?? cfg.diffViewDefs.base.view_def,
+      child_view_defs: cfg.diffViewDefs.children.map(c => c.view_def).join(', '),
       related_diffs: relatedDiffs,
       failed_checks: failedChecks,
-      evidence_edges: evidenceEdges
+      all_failed_checks: allFailedChecks,
+      diff_view_defs: diffViewDefRows(cfg, firstDiff)
     };
   });
 }
 
 
-function relationFromTestToConstraintItems(relations, testId) {
-  const direct = relations.filter(r =>
-    r.from_type === 'constraint' &&
-    r.relation === 'verified_by' &&
-    r.to_type === 'test_pattern' &&
-    r.to_id === testId
-  ).map(r => ({ ...r, constraint_id: r.from_id, via_check_id: '' }));
+function normalizeRelationDiffCheckVirtualConfig(config) {
+  const rel = config.relations ?? config.relationSource ?? config.relation_source ?? {};
+  const relation = config.relation ?? {};
+  const diff = config.diff ?? {};
+  const viewDefs = config.diffViewDefs ?? config.diff_view_defs ?? {};
+  const outputs = config.outputs ?? {};
+  const base = viewDefs.base ?? {};
+  const children = normalizeArray(viewDefs.children ?? viewDefs.child ?? []);
 
-  const checkIds = relations
-    .filter(r => r.from_type === 'test_pattern' && r.from_id === testId && r.relation === 'contains_check' && r.to_type === 'check')
-    .map(r => r.to_id);
-  const checkSet = new Set(checkIds);
-
-  const viaCheck = relations.filter(r =>
-    r.from_type === 'constraint' &&
-    r.relation === 'verified_by' &&
-    r.to_type === 'check' &&
-    checkSet.has(r.to_id)
-  ).map(r => ({
-    ...r,
-    constraint_id: r.from_id,
-    to_type: 'test_pattern',
-    to_id: testId,
-    via_check_id: r.to_id,
-    note: [r.note, `check経由: ${r.to_id}`].filter(Boolean).join(' / ')
-  }));
-
-  const byKey = new Map();
-  [...direct, ...viaCheck].forEach(r => {
-    const key = `${r.constraint_id}:${r.via_check_id || 'test'}:${r.coverage || ''}`;
-    if (!byKey.has(key)) byKey.set(key, r);
-  });
-  return [...byKey.values()];
+  return {
+    targetPath: virtualDataTargetPath(config),
+    relations: {
+      source: rel.source ?? rel.dataSource ?? rel.data_source ?? 'relations',
+      path: rel.path ?? rel.relationsPath ?? rel.relations_path ?? '$.relations'
+    },
+    relation: {
+      verifiedByRelation: relation.verifiedByRelation ?? relation.verified_by_relation ?? 'verified_by',
+      containsCheckRelation: relation.containsCheckRelation ?? relation.contains_check_relation ?? 'contains_check',
+      testNodeType: relation.testNodeType ?? relation.test_node_type ?? diff.testNodeType ?? diff.test_node_type ?? 'test_pattern',
+      checkType: relation.checkType ?? relation.check_type ?? 'check',
+      constraintType: relation.constraintType ?? relation.constraint_type ?? 'constraint'
+    },
+    diff: {
+      source: diff.source ?? diff.dataSource ?? diff.data_source ?? 'diff',
+      testNodeType: diff.testNodeType ?? diff.test_node_type ?? 'test_pattern'
+    },
+    diffViewDefs: {
+      base: {
+        role: 'base',
+        view_def: base.view_def ?? base.name ?? base.file ?? 'screen_state_diff_view_def_base_v0_2_checks.json',
+        caption: base.caption ?? base.label ?? '【BASE】Screen State Diff Base View',
+        extends: base.extends ?? '',
+        note: base.note ?? 'diff JSONの共通表示定義。child view はこの定義を継承する。'
+      },
+      children: children.map((c, i) => ({
+        role: 'child',
+        view_def: c.view_def ?? c.name ?? c.file ?? '',
+        caption: c.caption ?? c.label ?? `【CHILD】Diff Child View ${i + 1}`,
+        extends: c.extends ?? base.view_def ?? base.name ?? base.file ?? 'screen_state_diff_view_def_base_v0_2_checks.json',
+        note: c.note ?? ''
+      })).filter(c => c.view_def)
+    },
+    outputs: {
+      targetPath: outputs.targetPath ?? outputs.target_path ?? virtualDataTargetPath(config) ?? '$.diff_check_trace_cards'
+    }
+  };
 }
 
-function diffCheckId(testId, ch) {
-  return `${testId}.${ch?.name ?? ch?.target ?? ''}`;
+function relationEndpointMatches(rel, side, type, id) {
+  const prefix = side === 'from' ? 'from' : 'to';
+  return rel?.[`${prefix}_type`] === type && rel?.[`${prefix}_id`] === id;
 }
 
-function buildTestPatternTraceCards({ constraintsData, testsData, diffData, relationsData, config }) {
-  const constraints = flattenConstraintNodes(constraintsData);
-  const tests = flattenTestPatternNodes(testsData);
-  const diffs = normalizeDiffNodes(diffData);
-  const relations = normalizeRelations(relationsData, config);
+function relationConnectsTypes(rel, leftType, leftId, rightType, rightId) {
+  return (
+    relationEndpointMatches(rel, 'from', leftType, leftId) && relationEndpointMatches(rel, 'to', rightType, rightId)
+  ) || (
+    relationEndpointMatches(rel, 'from', rightType, rightId) && relationEndpointMatches(rel, 'to', leftType, leftId)
+  );
+}
 
-  const constraintById = new Map(constraints.map(c => [c.constraint_id, c]));
-  const diffsByTestId = new Map();
-  diffs.forEach(diff => {
-    const id = String(diff?.testId ?? diff?.test_pattern_id ?? diff?.patternId ?? '');
-    if (!id) return;
-    if (!diffsByTestId.has(id)) diffsByTestId.set(id, []);
-    diffsByTestId.get(id).push(diff);
-  });
+function constraintIdFromRelation(rel, cfg) {
+  if (rel?.from_type === cfg.relation.constraintType) return rel.from_id;
+  if (rel?.to_type === cfg.relation.constraintType) return rel.to_id;
+  return '';
+}
 
-  return tests.map(t => {
-    const testId = t.test_pattern_id;
-    const constraintRels = relationFromTestToConstraintItems(relations, testId);
-    const relatedDiffsRaw = normalizeArray(diffsByTestId.get(testId));
-    const failedChecks = relatedDiffsRaw.flatMap(diff => failedCheckRows(diff).map(ch => ({
-      diff_id: diff?.diffId ?? diff?.diff_id ?? diff?.testId ?? testId,
-      test_pattern_id: testId,
-      check_id: diffCheckId(testId, ch),
-      check_name: ch?.name ?? '',
-      target: ch?.target ?? '',
-      expected: formatValue(ch?.expected),
-      actual: formatValue(ch?.actual),
-      severity: 'high',
-      message: ch?.message ?? ''
-    })));
-    const failedCheckSet = new Set(failedChecks.map(ch => ch.check_id));
-    const hasFail = relatedDiffsRaw.some(diff => diffResultIsFail(diff));
-    const hasPass = relatedDiffsRaw.some(diff => diffResultIsPass(diff));
+function buildRelationDiffCheckCards({ config, dataObj, sources }) {
+  const cfg = normalizeRelationDiffCheckVirtualConfig(config);
+  const relationsData = sourceJsonFromKey(sources, dataObj, cfg.relations.source);
+  const diffData = sourceJsonFromKey(sources, dataObj, cfg.diff.source);
+  const relations = normalizeRelations(relationsData, { relationsPath: cfg.relations.path });
+  const diffsByTestId = buildDiffIndexByTestId(diffData);
+  const rows = [];
 
-    const relatedConstraints = constraintRels.map(rel => {
-      const c = constraintById.get(rel.constraint_id);
-      const impactedByCheck = rel.via_check_id && failedCheckSet.has(rel.via_check_id);
-      const impactedByDirect = !rel.via_check_id && hasFail;
-      const impacted = Boolean(impactedByCheck || impactedByDirect);
+  for (const [testId, diffs] of diffsByTestId.entries()) {
+    normalizeArray(diffs).forEach(diff => {
+      const checks = normalizeArray(diff?.checks ?? diff?.full_checks ?? diff?.fullChecks);
+      checks.forEach((check, index) => {
+        const checkId = diffCheckId(testId, check);
+        const checkPassed = check?.pass === true || check?.ok === true || check?.result === true || String(check?.judgement ?? '').toLowerCase() === 'true';
+        const checkFailed = check?.pass === false || check?.ok === false || check?.result === false || String(check?.judgement ?? '').toLowerCase() === 'false';
+
+        const containsRelations = relations.filter(r => r.relation === cfg.relation.containsCheckRelation && relationConnectsTypes(r, cfg.relation.testNodeType, testId, cfg.relation.checkType, checkId));
+
+        const testScopedRelations = relations.filter(r => r.relation === cfg.relation.verifiedByRelation && relationConnectsTypes(r, cfg.relation.constraintType, constraintIdFromRelation(r, cfg), cfg.relation.testNodeType, testId));
+
+        const checkScopedRelations = relations.filter(r => r.relation === cfg.relation.verifiedByRelation && relationConnectsTypes(r, cfg.relation.constraintType, constraintIdFromRelation(r, cfg), cfg.relation.checkType, checkId));
+
+        const relatedVerified = [...testScopedRelations, ...checkScopedRelations];
+        const uniqueConstraintIds = [...new Set(relatedVerified.map(r => constraintIdFromRelation(r, cfg)).filter(Boolean))];
+        const impactedVerified = checkFailed ? relatedVerified : [];
+        const impactedConstraintIds = [...new Set(impactedVerified.map(r => constraintIdFromRelation(r, cfg)).filter(Boolean))];
+        const relatedRelations = [...containsRelations, ...relatedVerified];
+
+        const relatedConstraintRows = relatedVerified.map(r => ({
+          relation_id: r.relation_id ?? '',
+          constraint_id: constraintIdFromRelation(r, cfg),
+          relation: r.relation ?? '',
+          scope: (r.from_type === cfg.relation.checkType || r.to_type === cfg.relation.checkType) ? 'check' : 'test',
+          coverage: r.coverage ?? '',
+          confidence: r.confidence ?? '',
+          required: r.required ?? '',
+          status: r.status ?? '',
+          priority: r.priority ?? '',
+          note: r.note ?? ''
+        }));
+
+        const relationRows = relatedRelations.map(r => ({
+          relation_id: r.relation_id ?? '',
+          from_type: r.from_type ?? '',
+          from_id: r.from_id ?? '',
+          relation: r.relation ?? '',
+          to_type: r.to_type ?? '',
+          to_id: r.to_id ?? '',
+          coverage: r.coverage ?? '',
+          status: r.status ?? '',
+          note: r.note ?? ''
+        }));
+
+        rows.push({
+          diff_check_id: checkId,
+          test_pattern_id: testId,
+          diff_id: diff?.diffId ?? diff?.diff_id ?? diff?.testId ?? testId,
+          check_name: check?.name ?? '',
+          check_index: index + 1,
+          judgement: checkFailed ? 'false' : (checkPassed ? 'true' : ''),
+          result_label: checkFailed ? '🚨 失敗' : (checkPassed ? '成功' : '未判定'),
+          type: check?.type ?? '',
+          target: check?.target ?? '',
+          expected: formatValue(check?.expected),
+          actual: formatValue(check?.actual),
+          missing: formatValue(check?.missing ?? []),
+          message: check?.message ?? '',
+          latest_result: diffResultIsFail(diff) ? 'fail' : (diffResultIsPass(diff) ? 'pass' : 'executed'),
+          diff_status: diff?.status ?? '',
+          captured_at: diff?.capturedAt ?? diff?.captured_at ?? '',
+          summary: diff?.summary ?? '',
+          relation_count: relatedRelations.length,
+          constraint_count: uniqueConstraintIds.length,
+          impacted_constraint_count: impactedConstraintIds.length,
+          test_scoped_constraint_count: testScopedRelations.length,
+          check_scoped_constraint_count: checkScopedRelations.length,
+          structure_relation_count: containsRelations.length,
+          impacted_constraints_text: impactedConstraintIds.join(', '),
+          related_constraints_text: uniqueConstraintIds.join(', '),
+          contains_relation_ids: containsRelations.map(r => r.relation_id).filter(Boolean).join(', '),
+          verified_relation_ids: relatedVerified.map(r => r.relation_id).filter(Boolean).join(', '),
+          diff_view_def: diff?.view_def ?? cfg.diffViewDefs.base.view_def,
+          base_view_def: diff?.view_def ?? cfg.diffViewDefs.base.view_def,
+          child_view_defs: cfg.diffViewDefs.children.map(c => c.view_def).join(', '),
+          related_constraints: relatedConstraintRows,
+          impacted_constraints: checkFailed ? relatedConstraintRows : [],
+          related_relations: relationRows,
+          diff_view_defs: diffViewDefRows(cfg, diff)
+        });
+      });
+    });
+  }
+
+  return rows;
+}
+
+
+function linkIsImpactedByFailedChecks(link, hasFail, failedCheckSet) {
+  if (link.via_check_id) return failedCheckSet.has(link.via_check_id);
+  return hasFail;
+}
+
+function buildRelationAxisCards({ config, dataObj, sources }) {
+  const cfg = normalizeRelationAxisVirtualConfig(config);
+  const axisData = sourceJsonFromKey(sources, dataObj, cfg.axis.source);
+  const linkedData = sourceJsonFromKey(sources, dataObj, cfg.linked.source);
+  const relationsData = sourceJsonFromKey(sources, dataObj, cfg.relation.source);
+  const diffData = sourceJsonFromKey(sources, dataObj, cfg.diff.source);
+
+  const axisRecords = normalizeGenericRecords(axisData, cfg.axis).map((record, index) => ({
+    ...record,
+    __axis_id: pickRecordId(record, cfg.axis, String(index + 1)),
+    __axis_title: pickRecordTitle(record, cfg.axis, pickRecordId(record, cfg.axis, String(index + 1)))
+  })).filter(record => record.__axis_id);
+
+  const linkedRecords = normalizeGenericRecords(linkedData, cfg.linked).map((record, index) => ({
+    ...record,
+    __linked_id: pickRecordId(record, cfg.linked, String(index + 1)),
+    __linked_title: pickRecordTitle(record, cfg.linked, pickRecordId(record, cfg.linked, String(index + 1)))
+  })).filter(record => record.__linked_id);
+
+  const linkedById = new Map(linkedRecords.map(record => [record.__linked_id, record]));
+  const relations = normalizeRelations(relationsData, { relationsPath: cfg.relation.path });
+  const diffsByTestId = cfg.diff.enabled ? buildDiffIndexByTestId(diffData) : new Map();
+
+  return axisRecords.map(axis => {
+    const axisId = axis.__axis_id;
+    const links = findRelationAxisLinks(relations, cfg, axisId);
+    const linkedItems = links.map(link => {
+      const linked = linkedById.get(link.linked_id);
       return {
-        constraint_id: rel.constraint_id,
-        constraint_title: c?.constraint_title ?? rel.constraint_id,
-        group_id: c?.group_id ?? '',
-        category: c?.category ?? '',
-        relation: rel.relation,
-        coverage: rel.coverage,
-        confidence: rel.confidence,
-        required: rel.required,
-        status: rel.status,
-        priority: rel.priority,
-        via_check_id: rel.via_check_id ?? '',
-        impacted,
-        impact_label: impacted ? '影響あり' : '影響なし/未判定',
-        note: rel.note ?? ''
+        [`${inferIdOutputField(cfg.linked.nodeType)}`]: link.linked_id,
+        [`${inferTitleOutputField(cfg.linked.nodeType)}`]: linked?.__linked_title ?? link.linked_id,
+        linked_id: link.linked_id,
+        linked_title: linked?.__linked_title ?? link.linked_id,
+        relation: link.relation,
+        coverage: link.coverage,
+        confidence: link.confidence,
+        required: link.required,
+        enabled: link.enabled,
+        status: link.status,
+        priority: link.priority,
+        via_check_id: link.via_check_id ?? '',
+        note: link.note ?? ''
       };
     });
 
-    const impactedConstraints = relatedConstraints.filter(c => c.impacted);
-    const relatedDiffs = relatedDiffsRaw.map(diff => ({
-      diff_id: diff?.diffId ?? diff?.diff_id ?? diff?.testId ?? testId,
-      test_pattern_id: testId,
-      relation: 'has_latest_diff',
-      result: diff?.status ?? diff?.result ?? '',
-      resultLabel: diff?.resultLabel ?? '',
-      failed_count: Number(diff?.failedCount ?? diff?.failed_count ?? 0),
-      captured_at: diff?.capturedAt ?? diff?.captured_at ?? '',
-      summary: diff?.summary ?? ''
-    }));
+    const testIds = linkedTestIdsForAxis(axisId, cfg, links);
+    const relatedDiffs = relatedDiffSummaries(testIds, diffsByTestId);
+    const allFailedChecks = failedCheckSummaries(testIds, diffsByTestId);
+    const failedCheckSet = new Set(allFailedChecks.map(ch => ch.check_id));
+    const hasFail = testIds.some(testId => normalizeArray(diffsByTestId.get(testId)).some(diff => diffResultIsFail(diff)));
+    const hasPass = testIds.some(testId => normalizeArray(diffsByTestId.get(testId)).some(diff => diffResultIsPass(diff)));
+
+    const impactedItems = linkedItems.map((item, index) => {
+      const link = links[index];
+      const impacted = linkIsImpactedByFailedChecks(link, hasFail, failedCheckSet);
+      return {
+        ...item,
+        impacted,
+        impact_label: impacted ? '影響あり' : '影響なし/未判定'
+      };
+    }).filter(item => item.impacted);
 
     const evidenceEdges = [
-      ...constraintRels.map(r => ({
-        from: `${r.from_type}:${r.from_id}`,
-        relation: r.relation,
-        to: r.via_check_id ? `check:${r.via_check_id}` : `test_pattern:${testId}`,
-        status: r.status,
-        coverage: r.coverage,
-        confidence: r.confidence,
-        note: r.note
+      ...links.map(link => ({
+        from: `${link.from_type}:${link.from_id}`,
+        relation: link.relation,
+        to: link.via_check_id ? `check:${link.via_check_id}` : `${link.to_type}:${link.to_id}`,
+        status: link.status,
+        coverage: link.coverage,
+        confidence: link.confidence,
+        note: link.note
       })),
-      ...relations.filter(r => r.from_type === 'test_pattern' && r.from_id === testId && r.relation === 'contains_check').map(r => ({
+      ...relations.filter(r => r.from_type === cfg.axis.nodeType && r.from_id === axisId && r.relation === cfg.relation.containsCheckRelation).map(r => ({
         from: `${r.from_type}:${r.from_id}`,
         relation: r.relation,
         to: `${r.to_type}:${r.to_id}`,
@@ -1252,21 +1639,22 @@ function buildTestPatternTraceCards({ constraintsData, testsData, diffData, rela
       }))
     ];
 
+    const primaryCount = links.filter(l => l.coverage === 'primary').length;
+    const secondaryCount = links.filter(l => l.coverage === 'secondary').length;
+    const requiredCount = links.filter(l => l.required === true).length;
+    const coverageSet = [...new Set(links.map(l => l.coverage).filter(Boolean))];
     const lastCheckedAt = relatedDiffs.map(d => d.captured_at).filter(Boolean).sort().at(-1) ?? '';
-    const primaryCount = relatedConstraints.filter(c => c.coverage === 'primary').length;
-    const secondaryCount = relatedConstraints.filter(c => c.coverage === 'secondary').length;
-    const requiredCount = relatedConstraints.filter(c => c.required === true).length;
 
-    let traceStatus = 'untested';
-    let traceLabel = '未実行';
-    let latestResult = 'unverified';
+    let traceStatus = links.length > 0 ? 'linked' : 'untested';
+    let traceLabel = links.length > 0 ? 'リンクあり / 未実行' : '未テスト';
+    let latestResult = links.length > 0 ? 'linked' : 'unverified';
     if (relatedDiffs.length > 0) {
       traceStatus = 'executed';
       traceLabel = '実行済み';
       latestResult = 'executed';
     }
     if (hasPass) {
-      traceStatus = 'passed';
+      traceStatus = cfg.axis.nodeType === 'test_pattern' ? 'passed' : 'verified';
       traceLabel = '最新成功';
       latestResult = 'pass';
     }
@@ -1276,69 +1664,159 @@ function buildTestPatternTraceCards({ constraintsData, testsData, diffData, rela
       latestResult = 'fail';
     }
 
-    return {
-      test_pattern_id: testId,
-      test_pattern_title: t.title,
-      category: t.category,
-      test_kind: t.test_kind,
-      enabled: t.enabled,
-      pattern_status: t.status,
-      priority: t.priority,
-      checks_count: t.checks_count,
-      expected_file: t.expected_file,
-      diff_file: t.diff_file,
+    const card = {
+      axis_type: cfg.axis.nodeType,
+      axis_id: axisId,
+      axis_title: axis.__axis_title,
+      [cfg.outputs.idField]: axisId,
+      [cfg.outputs.titleField]: axis.__axis_title,
+      category: axis.category ?? '',
+      test_kind: axis.test_kind ?? '',
+      enabled: axis.enabled,
+      pattern_status: axis.status ?? '',
+      priority: axis.priority ?? '',
+      group_id: axis.group_id ?? '',
+      review_status: axis.review_status ?? '',
+      verification_status: axis.verification_status ?? '',
+      constraint_text: axis.constraint_text ?? '',
+      checks_count: axis.checks_count ?? '',
+      expected_file: axis.expected_file ?? '',
+      diff_file: axis.diff_file ?? '',
       trace_status: traceStatus,
       trace_label: traceLabel,
       latest_result: latestResult,
       status: latestResult,
       resultLabel: traceLabel,
-      linked_constraints_count: relatedConstraints.length,
-      primary_constraints_count: primaryCount,
-      secondary_constraints_count: secondaryCount,
-      required_constraints_count: requiredCount,
-      fail_constraints_count: impactedConstraints.length,
-      fail_count: failedChecks.length,
+      [cfg.outputs.coverageField]: coverageSet.join(', '),
+      [cfg.outputs.linkedCountField]: links.length,
+      [cfg.outputs.primaryCountField]: primaryCount,
+      [cfg.outputs.secondaryCountField]: secondaryCount,
+      [cfg.outputs.requiredCountField]: requiredCount,
+      [cfg.outputs.failLinkedCountField]: impactedItems.length,
+      fail_count: allFailedChecks.length,
       diff_count: relatedDiffs.length,
       last_checked_at: lastCheckedAt,
-      related_constraints: relatedConstraints,
-      impacted_constraints: impactedConstraints,
-      related_diffs: relatedDiffs,
-      failed_checks: failedChecks,
-      evidence_edges: evidenceEdges
+      [cfg.outputs.linkedItemsField]: linkedItems,
+      [cfg.outputs.impactedItemsField]: impactedItems,
+      [cfg.outputs.relatedDiffsField]: relatedDiffs,
+      [cfg.outputs.failedChecksField]: allFailedChecks,
+      [cfg.outputs.evidenceEdgesField]: evidenceEdges
     };
+
+    Object.assign(card, buildLegacyAliasFields(card, cfg));
+    return card;
   });
 }
 
-async function materializeVirtualDataForViewDef(defObj, dataObj) {
-  const config = virtualDataConfigOf(defObj);
-  if (!config) return dataObj;
+function buildLegacyAliasFields(card, cfg) {
+  // 既存ViewDef資産を壊さないための互換エイリアス。
+  // 本体は cfg.outputs で定義したフィールド名に出力し、必要に応じて従来名も重ねる。
+  if (cfg.axis.nodeType === 'constraint') {
+    return {
+      tests_count: card[cfg.outputs.linkedCountField],
+      linked_tests: card[cfg.outputs.linkedItemsField],
+      related_diffs: card[cfg.outputs.relatedDiffsField],
+      failed_checks: card[cfg.outputs.failedChecksField],
+      evidence_edges: card[cfg.outputs.evidenceEdgesField]
+    };
+  }
+  if (cfg.axis.nodeType === 'test_pattern') {
+    return {
+      linked_constraints_count: card[cfg.outputs.linkedCountField],
+      primary_constraints_count: card[cfg.outputs.primaryCountField],
+      secondary_constraints_count: card[cfg.outputs.secondaryCountField],
+      required_constraints_count: card[cfg.outputs.requiredCountField],
+      fail_constraints_count: card[cfg.outputs.failLinkedCountField],
+      related_constraints: card[cfg.outputs.linkedItemsField],
+      impacted_constraints: card[cfg.outputs.impactedItemsField],
+      related_diffs: card[cfg.outputs.relatedDiffsField],
+      failed_checks: card[cfg.outputs.failedChecksField],
+      evidence_edges: card[cfg.outputs.evidenceEdgesField]
+    };
+  }
+  return {};
+}
 
-  const builder = config.builder ?? config.type ?? config.kind;
-  const targetPath = virtualDataTargetPath(config);
-  if (!builder || !targetPath) return dataObj;
-
-  const sources = await loadConfiguredDataSources(defObj);
-  const constraintsData = sources.constraints ?? sources.constraint ?? dataObj;
-  const testsData = sources.tests ?? sources.testPatterns ?? sources.test_patterns ?? {};
-  const diffData = sources.diff ?? sources.diffs ?? {};
-  const relationsData = sources.relations ?? sources.edges ?? dataObj;
-
-  let cards = [];
-  if (builder === 'constraint_trace_cards') {
-    cards = buildConstraintTraceCards({ constraintsData, testsData, diffData, relationsData, config });
-  } else if (builder === 'test_pattern_trace_cards') {
-    cards = buildTestPatternTraceCards({ constraintsData, testsData, diffData, relationsData, config });
-  } else {
-    throw new Error(`未対応の virtualData builder です: ${builder}`);
+function buildVirtualDatasetByConfig({ config, dataObj, sources }) {
+  const builder = config.builder ?? config.type ?? config.kind ?? 'relation_axis_cards';
+  if (builder === 'relation_axis_cards') {
+    return buildRelationAxisCards({ config, dataObj, sources });
+  }
+  if (builder === 'relation_diff_cards') {
+    return buildRelationDiffCards({ config, dataObj, sources });
+  }
+  if (builder === 'relation_diff_check_cards') {
+    return buildRelationDiffCheckCards({ config, dataObj, sources });
   }
 
-  setVirtualByPath(dataObj, targetPath, cards);
+  // 旧ViewDefとの互換。専用生成ではなく、内部で汎用relation_axis_cards定義へ変換する。
+  if (builder === 'constraint_trace_cards') {
+    const generic = legacyConstraintTraceConfig(config);
+    return buildRelationAxisCards({ config: generic, dataObj, sources });
+  }
+  if (builder === 'test_pattern_trace_cards') {
+    const generic = legacyTestPatternTraceConfig(config);
+    return buildRelationAxisCards({ config: generic, dataObj, sources });
+  }
+
+  throw new Error(`未対応の virtualData builder です: ${builder}`);
+}
+
+function legacyConstraintTraceConfig(config) {
+  return {
+    ...config,
+    builder: 'relation_axis_cards',
+    axis: { source: 'constraints', adapter: 'constraints', nodeType: 'constraint', idField: 'constraint_id', titleField: 'constraint_title' },
+    linked: { source: 'tests', adapter: 'testPatterns', nodeType: 'test_pattern', idField: 'test_pattern_id', titleField: 'title' },
+    relation: { source: 'relations', path: config?.relationsPath ?? config?.relations_path ?? '$.relations', name: 'verified_by', direction: 'outgoing', includeViaCheck: true },
+    diff: { source: 'diff', testNodeType: 'test_pattern' },
+    outputs: {
+      idField: 'constraint_id', titleField: 'constraint_title', linkedItemsField: 'linked_tests', linkedCountField: 'tests_count',
+      coverageField: 'coverage', relatedDiffsField: 'related_diffs', failedChecksField: 'failed_checks', evidenceEdgesField: 'evidence_edges'
+    }
+  };
+}
+
+function legacyTestPatternTraceConfig(config) {
+  return {
+    ...config,
+    builder: 'relation_axis_cards',
+    axis: { source: 'tests', adapter: 'testPatterns', nodeType: 'test_pattern', idField: 'test_pattern_id', titleField: 'title' },
+    linked: { source: 'constraints', adapter: 'constraints', nodeType: 'constraint', idField: 'constraint_id', titleField: 'constraint_title' },
+    relation: { source: 'relations', path: config?.relationsPath ?? config?.relations_path ?? '$.relations', name: 'verified_by', direction: 'incoming', includeViaCheck: true },
+    diff: { source: 'diff', testNodeType: 'test_pattern' },
+    outputs: {
+      idField: 'test_pattern_id', titleField: 'test_pattern_title', linkedItemsField: 'related_constraints', impactedItemsField: 'impacted_constraints',
+      linkedCountField: 'linked_constraints_count', primaryCountField: 'primary_constraints_count', secondaryCountField: 'secondary_constraints_count',
+      requiredCountField: 'required_constraints_count', failLinkedCountField: 'fail_constraints_count', relatedDiffsField: 'related_diffs',
+      failedChecksField: 'failed_checks', evidenceEdgesField: 'evidence_edges'
+    }
+  };
+}
+
+async function materializeVirtualDataForViewDef(defObj, dataObj) {
+  const configs = virtualDataArrayConfigOf(defObj);
+  if (!configs.length) return dataObj;
+
+  const sources = await loadConfiguredDataSources(defObj);
+  const metas = [];
+
+  for (const config of configs) {
+    const targetPath = virtualDataTargetPath(config);
+    if (!targetPath) continue;
+
+    const cards = buildVirtualDatasetByConfig({ config, dataObj, sources });
+    setVirtualByPath(dataObj, targetPath, cards);
+    metas.push({
+      builder: config.builder ?? config.type ?? config.kind ?? 'relation_axis_cards',
+      target_path: targetPath,
+      card_count: Array.isArray(cards) ? cards.length : 0
+    });
+  }
 
   setVirtualByPath(dataObj, '$.constraint_trace_virtual_meta', {
     generated_at: new Date().toISOString(),
-    builder,
-    target_path: targetPath,
-    card_count: cards.length
+    builders: metas
   });
   return dataObj;
 }

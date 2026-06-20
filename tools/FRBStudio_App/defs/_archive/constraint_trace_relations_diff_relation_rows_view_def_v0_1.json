@@ -1,63 +1,55 @@
 {
   "app": {
     "name": "No-Code JSON Studio",
-    "version": "0.3-draft-relation-generic-012"
+    "version": "0.3-draft-relation-diff-013"
   },
   "dataSources": {
-    "constraints": "ai_constraint_spec_aggregated_v0_6_footer_chat.json",
-    "tests": "screen_state_test_patterns_data_v0_2_chat.json",
-    "diff": "screen_state_smoke_001.diff.json",
-    "relations": "constraint_trace_relations_v0_1.json"
+    "relations": "constraint_trace_relations_v0_1.json",
+    "diff": "screen_state_smoke_001.diff.json"
   },
   "virtualData": {
-    "builder": "relation_axis_cards",
-    "targetPath": "$.test_pattern_trace_cards",
-    "axis": {
-      "source": "tests",
-      "adapter": "testPatterns",
-      "nodeType": "test_pattern",
-      "idField": "test_pattern_id",
-      "titleField": "title"
-    },
-    "linked": {
-      "source": "constraints",
-      "adapter": "constraints",
-      "nodeType": "constraint",
-      "idField": "constraint_id",
-      "titleField": "constraint_title"
+    "builder": "relation_diff_cards",
+    "targetPath": "$.relation_diff_cards",
+    "relations": {
+      "source": "relations",
+      "path": "$.relations"
     },
     "relation": {
-      "source": "relations",
-      "path": "$.relations",
-      "name": "verified_by",
-      "direction": "incoming",
-      "includeViaCheck": true,
+      "testNodeType": "test_pattern",
+      "checkType": "check",
       "containsCheckRelation": "contains_check"
     },
     "diff": {
       "source": "diff",
       "testNodeType": "test_pattern"
     },
-    "outputs": {
-      "idField": "test_pattern_id",
-      "titleField": "test_pattern_title",
-      "linkedItemsField": "related_constraints",
-      "impactedItemsField": "impacted_constraints",
-      "linkedCountField": "linked_constraints_count",
-      "primaryCountField": "primary_constraints_count",
-      "secondaryCountField": "secondary_constraints_count",
-      "requiredCountField": "required_constraints_count",
-      "failLinkedCountField": "fail_constraints_count",
-      "relatedDiffsField": "related_diffs",
-      "failedChecksField": "failed_checks",
-      "evidenceEdgesField": "evidence_edges"
+    "diffViewDefs": {
+      "base": {
+        "view_def": "screen_state_diff_view_def_base_v0_2_checks.json",
+        "caption": "【BASE】Screen State Diff Base View",
+        "note": "diff JSON の共通表示定義。チェック一覧・期待値・実測値を持つ基底ビュー。"
+      },
+      "children": [
+        {
+          "view_def": "screen_state_diff_view_def_child_v0_3_summary.json",
+          "caption": "【CHILD】Screen State Diff Summary View",
+          "extends": "screen_state_diff_view_def_base_v0_2_checks.json",
+          "note": "BASEを継承し、差分サマリ確認に寄せた子View。"
+        },
+        {
+          "view_def": "screen_state_diff_view_def_child_v0_3_failure_focus.json",
+          "caption": "【CHILD】Screen State Diff Failure Focus View",
+          "extends": "screen_state_diff_view_def_base_v0_2_checks.json",
+          "note": "BASEを継承し、失敗原因確認に寄せた子View。"
+        }
+      ]
     },
-    "note": "汎用 relation_axis_cards によって、テストパターンを軸に relation JSON と最新diff JSON から表示用カードを保存せず一時生成する。"
+    "note": "Relation行を軸に、from/toから関連test_patternを推定し、最新diff・失敗チェック・BASE/CHILD diff ViewDef候補を保存せず一時生成する。"
   },
   "views": [
     {
-      "id": "test_pattern_trace_cards_view",
-      "caption": "テストパターン証跡カード / Relation JSON × 最新diff",
+      "id": "relation_diff_cards_view",
+      "caption": "Relation → Diff 証跡カード / コネクト線 × 最新diff",
       "layout": {
         "detailDialog": "wide"
       },
@@ -74,7 +66,8 @@
               "type": "text",
               "readonly": true,
               "grid": {
-                "visible": false
+                "visible": false,
+                "width": 260
               },
               "edit": {
                 "visible": true,
@@ -87,7 +80,8 @@
               "type": "text",
               "readonly": true,
               "grid": {
-                "visible": false
+                "visible": false,
+                "width": 120
               },
               "edit": {
                 "visible": true,
@@ -100,7 +94,8 @@
               "type": "text",
               "readonly": true,
               "grid": {
-                "visible": false
+                "visible": false,
+                "width": 180
               },
               "edit": {
                 "visible": true,
@@ -138,20 +133,20 @@
           ]
         },
         {
-          "id": "test_pattern_trace_cards",
-          "caption": "テストパターン一覧 / 証拠保管庫入口",
+          "id": "relation_diff_cards",
+          "caption": "リレーション一覧 / Diff入口",
           "type": "grid",
-          "dataPath": "$.test_pattern_trace_cards",
-          "keyField": "test_pattern_id",
+          "dataPath": "$.relation_diff_cards",
+          "keyField": "relation_id",
           "fields": [
             {
-              "field": "test_pattern_id",
-              "caption": "テストID",
+              "field": "relation_id",
+              "caption": "Relation ID",
               "type": "text",
               "readonly": true,
               "grid": {
                 "visible": true,
-                "width": 190
+                "width": 220
               },
               "edit": {
                 "visible": true,
@@ -163,13 +158,36 @@
               }
             },
             {
-              "field": "test_pattern_title",
-              "caption": "テスト名",
+              "field": "from_type",
+              "caption": "From Type",
+              "type": "select",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 110
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              },
+              "options": [
+                "constraint",
+                "test_pattern",
+                "check"
+              ]
+            },
+            {
+              "field": "from_id",
+              "caption": "From ID",
               "type": "text",
               "readonly": true,
               "grid": {
                 "visible": true,
-                "width": 280
+                "width": 150
               },
               "edit": {
                 "visible": true,
@@ -181,13 +199,13 @@
               }
             },
             {
-              "field": "category",
-              "caption": "分類",
-              "type": "text",
+              "field": "relation",
+              "caption": "Relation",
+              "type": "select",
               "readonly": true,
               "grid": {
                 "visible": true,
-                "width": 100
+                "width": 130
               },
               "edit": {
                 "visible": true,
@@ -195,17 +213,46 @@
               },
               "search": {
                 "visible": true,
-                "operator": "contains"
-              }
+                "operator": "equals"
+              },
+              "options": [
+                "verified_by",
+                "contains_check",
+                "related_to",
+                "depends_on"
+              ]
             },
             {
-              "field": "test_kind",
-              "caption": "種別",
+              "field": "to_type",
+              "caption": "To Type",
+              "type": "select",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 110
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              },
+              "options": [
+                "constraint",
+                "test_pattern",
+                "check"
+              ]
+            },
+            {
+              "field": "to_id",
+              "caption": "To ID",
               "type": "text",
               "readonly": true,
               "grid": {
                 "visible": true,
-                "width": 120
+                "width": 170
               },
               "edit": {
                 "visible": true,
@@ -218,12 +265,12 @@
             },
             {
               "field": "trace_label",
-              "caption": "証跡状態",
+              "caption": "Diff状態",
               "type": "text",
               "readonly": true,
               "grid": {
                 "visible": true,
-                "width": 140
+                "width": 130
               },
               "edit": {
                 "visible": true,
@@ -238,16 +285,10 @@
               "field": "latest_result",
               "caption": "最新結果",
               "type": "select",
-              "options": [
-                "fail",
-                "pass",
-                "executed",
-                "unverified"
-              ],
               "readonly": true,
               "grid": {
                 "visible": true,
-                "width": 90
+                "width": 100
               },
               "edit": {
                 "visible": true,
@@ -256,16 +297,22 @@
               "search": {
                 "visible": true,
                 "operator": "equals"
-              }
+              },
+              "options": [
+                "pass",
+                "fail",
+                "executed",
+                "unverified"
+              ]
             },
             {
-              "field": "linked_constraints_count",
-              "caption": "制約数",
-              "type": "number",
+              "field": "impact_label",
+              "caption": "影響",
+              "type": "text",
               "readonly": true,
               "grid": {
                 "visible": true,
-                "width": 80
+                "width": 130
               },
               "edit": {
                 "visible": true,
@@ -273,17 +320,17 @@
               },
               "search": {
                 "visible": true,
-                "operator": "gte"
+                "operator": "contains"
               }
             },
             {
-              "field": "primary_constraints_count",
-              "caption": "主証拠",
-              "type": "number",
+              "field": "test_pattern_ids",
+              "caption": "関連テスト",
+              "type": "text",
               "readonly": true,
               "grid": {
                 "visible": true,
-                "width": 80
+                "width": 210
               },
               "edit": {
                 "visible": true,
@@ -291,17 +338,17 @@
               },
               "search": {
                 "visible": true,
-                "operator": "gte"
+                "operator": "contains"
               }
             },
             {
-              "field": "secondary_constraints_count",
-              "caption": "補助証拠",
-              "type": "number",
+              "field": "check_scope",
+              "caption": "粒度",
+              "type": "text",
               "readonly": true,
               "grid": {
                 "visible": true,
-                "width": 90
+                "width": 110
               },
               "edit": {
                 "visible": true,
@@ -309,25 +356,7 @@
               },
               "search": {
                 "visible": true,
-                "operator": "gte"
-              }
-            },
-            {
-              "field": "fail_constraints_count",
-              "caption": "影響制約",
-              "type": "number",
-              "readonly": true,
-              "grid": {
-                "visible": true,
-                "width": 90
-              },
-              "edit": {
-                "visible": true,
-                "readonly": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "gte"
+                "operator": "contains"
               }
             },
             {
@@ -342,10 +371,6 @@
               "edit": {
                 "visible": true,
                 "readonly": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "gte"
               }
             },
             {
@@ -360,20 +385,95 @@
               "edit": {
                 "visible": true,
                 "readonly": true
+              }
+            },
+            {
+              "field": "coverage",
+              "caption": "Coverage",
+              "type": "select",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 100
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
               },
               "search": {
                 "visible": true,
-                "operator": "gte"
+                "operator": "equals"
+              },
+              "options": [
+                "primary",
+                "secondary",
+                "structure"
+              ]
+            },
+            {
+              "field": "status",
+              "caption": "承認状態",
+              "type": "select",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 110
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              },
+              "options": [
+                "candidate",
+                "approved",
+                "rejected",
+                "deprecated"
+              ]
+            },
+            {
+              "field": "base_view_def",
+              "caption": "BASE ViewDef",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 250
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "child_view_defs",
+              "caption": "CHILD ViewDef",
+              "type": "textarea",
+              "readonly": true,
+              "grid": {
+                "visible": false,
+                "width": 300
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
               }
             },
             {
               "field": "last_checked_at",
-              "caption": "最終実行日時",
+              "caption": "最終確認日時",
               "type": "datetime",
               "readonly": true,
               "grid": {
                 "visible": true,
-                "width": 190
+                "width": 180
               },
               "edit": {
                 "visible": true,
@@ -381,112 +481,22 @@
               }
             },
             {
-              "field": "enabled",
-              "caption": "有効",
-              "type": "boolean",
+              "field": "note",
+              "caption": "メモ",
+              "type": "textarea",
               "readonly": true,
               "grid": {
                 "visible": false
               },
               "edit": {
                 "visible": true,
-                "readonly": true
-              }
-            },
-            {
-              "field": "pattern_status",
-              "caption": "パターン状態",
-              "type": "text",
-              "readonly": true,
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": true,
-                "readonly": true
-              }
-            },
-            {
-              "field": "priority",
-              "caption": "優先度",
-              "type": "text",
-              "readonly": true,
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": true,
-                "readonly": true
-              }
-            },
-            {
-              "field": "checks_count",
-              "caption": "チェック数",
-              "type": "number",
-              "readonly": true,
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": true,
-                "readonly": true
-              }
-            },
-            {
-              "field": "expected_file",
-              "caption": "Expected File",
-              "type": "text",
-              "readonly": true,
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": true,
-                "readonly": true
-              }
-            },
-            {
-              "field": "diff_file",
-              "caption": "Diff File",
-              "type": "text",
-              "readonly": true,
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": true,
-                "readonly": true
-              }
-            },
-            {
-              "field": "related_constraints",
-              "caption": "関連制約",
-              "type": "objectArray",
-              "readonly": true,
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": true,
-                "readonly": true
-              }
-            },
-            {
-              "field": "impacted_constraints",
-              "caption": "影響制約",
-              "type": "objectArray",
-              "readonly": true,
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": true,
-                "readonly": true
+                "readonly": true,
+                "height": 82
               }
             },
             {
               "field": "related_diffs",
-              "caption": "テスト→diff",
+              "caption": "関連diff",
               "type": "objectArray",
               "readonly": true,
               "grid": {
@@ -499,7 +509,7 @@
             },
             {
               "field": "failed_checks",
-              "caption": "失敗チェック",
+              "caption": "このリレーションに刺さる失敗チェック",
               "type": "objectArray",
               "readonly": true,
               "grid": {
@@ -511,8 +521,21 @@
               }
             },
             {
-              "field": "evidence_edges",
-              "caption": "証跡エッジ",
+              "field": "all_failed_checks",
+              "caption": "関連テスト全体の失敗チェック",
+              "type": "objectArray",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "diff_view_defs",
+              "caption": "Diff ViewDef / BASE・CHILD",
               "type": "objectArray",
               "readonly": true,
               "grid": {
@@ -529,31 +552,23 @@
       "markdown": {
         "enabled": true,
         "type": "generic_sections",
-        "title": "テストパターン証跡カード",
-        "defaultFileName": "test_pattern_trace_cards_report.md",
+        "title": "Relation → Diff 証跡カード",
+        "defaultFileName": "relation_diff_cards_export.md",
         "sections": [
           {
-            "title": "基本情報",
-            "dataPath": "$",
-            "fields": [
-              "title",
-              "schema_version",
-              "policy"
-            ]
-          },
-          {
-            "title": "テストパターン証跡カード",
-            "dataPath": "$.test_pattern_trace_cards",
+            "title": "リレーション→Diff",
+            "path": "$.relation_diff_cards",
             "format": "table",
             "fields": [
-              "test_pattern_id",
-              "test_pattern_title",
-              "trace_label",
+              "relation_id",
+              "from_id",
+              "relation",
+              "to_id",
               "latest_result",
-              "linked_constraints_count",
-              "fail_constraints_count",
+              "impact_label",
+              "test_pattern_ids",
               "fail_count",
-              "last_checked_at"
+              "base_view_def"
             ]
           }
         ]
