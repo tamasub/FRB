@@ -382,10 +382,33 @@ function defCompatibilityMessage(defName, defObj, dataObj, dataName='') {
   return `画面定義JSON「${defName ?? '(未選択)'}」と${dataLabel}の形が合いません。mainGrid dataPath ${gd.dataPath} が Array ではありません。${arrayHint}`;
 }
 
+function virtualDataConfigOf(defObj) {
+  const view = mainViewOf(defObj);
+  return defObj?.virtualData ?? defObj?.virtual_data ?? view?.virtualData ?? view?.virtual_data ?? null;
+}
+
+function dataSourcesConfigOf(defObj) {
+  const view = mainViewOf(defObj);
+  return { ...(defObj?.dataSources ?? defObj?.data_sources ?? {}), ...(view?.dataSources ?? view?.data_sources ?? {}) };
+}
+
+function virtualDataTargetPath(config) {
+  if (!config) return null;
+  return config.targetPath ?? config.target_path ?? config.dataPath ?? config.data_path ?? null;
+}
+
+function isVirtualDataCompatible(defObj, gd) {
+  const config = virtualDataConfigOf(defObj);
+  if (!config || !gd?.dataPath) return false;
+  const targetPath = virtualDataTargetPath(config);
+  return Boolean(targetPath && targetPath === gd.dataPath);
+}
+
 function isDefCompatibleWithData(defObj, dataObj) {
   const gd = gridDefOf(defObj);
   if (!gd?.dataPath) return false;
-  return Array.isArray(getByPath(dataObj, gd.dataPath));
+  if (Array.isArray(getByPath(dataObj, gd.dataPath))) return true;
+  return isVirtualDataCompatible(defObj, gd);
 }
 
 function scoreDefNameForData(name, dataObj, dataName='') {
@@ -535,7 +558,7 @@ async function loadFromServerNames(defName, dataName) {
   const autoMsg = resolved.previousDefName
     ? ` / 画面定義を自動補正: ${resolved.previousDefName} → ${defName}`
     : (resolved.autoChanged ? ` / 画面定義を自動選択: ${defName}` : '');
-  loadFromObjects(defObj, dataObj, `API管理ファイルを読み込みました: ${dataName}${autoMsg}`, loadedData.url);
+  await loadFromObjects(defObj, dataObj, `API管理ファイルを読み込みました: ${dataName}${autoMsg}`, loadedData.url);
 }
 
 
@@ -646,11 +669,11 @@ async function loadFromDroppedFilesOrServer() {
     const copiedLabel = droppedDefName
       ? `管理対象にコピーして読み込みました: ${droppedDefName} / ${droppedDataName}`
       : `管理対象にコピーして読み込みました: ${droppedDataName}`;
-    loadFromObjects(defObj, dataObj, copiedLabel, dataApiUrl);
+    await loadFromObjects(defObj, dataObj, copiedLabel, dataApiUrl);
   } else {
     if (droppedDefName) $('defNameInput').value = '';
     $('dataNameInput').value = '';
-    loadFromObjects(defObj, dataObj, `見るだけで読み込みました: ${droppedDataName}`, null);
+    await loadFromObjects(defObj, dataObj, `見るだけで読み込みました: ${droppedDataName}`, null);
   }
 }
 
@@ -767,6 +790,557 @@ function setByPath(obj, path, value) {
 function cloneData(value) {
   if (value == null) return value;
   return typeof structuredClone === 'function' ? structuredClone(value) : JSON.parse(JSON.stringify(value));
+}
+
+
+function fieldFirst(obj, names, fallback='') {
+  for (const name of names) {
+    const v = getByPath(obj, name);
+    if (v != null && v !== '') return v;
+  }
+  return fallback;
+}
+
+function normalizeArray(value) {
+  return Array.isArray(value) ? value : [];
+}
+
+function setVirtualByPath(obj, path, value) {
+  const normalized = String(path ?? '').startsWith('$.') ? String(path).slice(2) : String(path ?? '');
+  if (!normalized) return;
+
+  // 保存対象JSONに派生データを書き戻さないため、トップレベルの仮想配列は非列挙プロパティにする。
+  // getByPath では普通に参照できるが、JSON.stringify では出力されない。
+  if (!normalized.includes('.')) {
+    Object.defineProperty(obj, normalized, {
+      value,
+      writable: true,
+      configurable: true,
+      enumerable: false
+    });
+    return;
+  }
+
+  setByPath(obj, path, value);
+}
+
+function dataSourceFileName(spec) {
+  if (typeof spec === 'string') return safeJsonFileName(spec);
+  if (spec && typeof spec === 'object') {
+    return safeJsonFileName(spec.name ?? spec.file ?? spec.path ?? spec.data ?? spec.source);
+  }
+  return null;
+}
+
+async function loadDataSourceJson(spec, label) {
+  if (spec && typeof spec === 'object' && spec.inline != null) return cloneData(spec.inline);
+  const name = dataSourceFileName(spec);
+  if (!name) throw new Error(`dataSources.${label} のJSONファイル名が不正です`);
+  return await fetchApiJson('data', name);
+}
+
+async function loadConfiguredDataSources(defObj) {
+  const config = dataSourcesConfigOf(defObj);
+  const result = {};
+  for (const [key, spec] of Object.entries(config)) {
+    result[key] = await loadDataSourceJson(spec, key);
+  }
+  return result;
+}
+
+function flattenConstraintNodes(constraintsData) {
+  const out = [];
+
+  normalizeArray(constraintsData?.constraint_groups).forEach(group => {
+    normalizeArray(group?.constraints).forEach(item => {
+      const id = item?.id ?? item?.constraint_id;
+      if (!id) return;
+      out.push({
+        constraint_id: String(id),
+        constraint_title: item?.title ?? item?.name ?? String(id),
+        constraint_text: item?.statement ?? item?.description ?? item?.summary ?? '',
+        group_id: group?.group_id ?? group?.id ?? '',
+        category: group?.category ?? '',
+        group_title: group?.title ?? '',
+        priority: item?.priority ?? group?.priority ?? '',
+        review_status: item?.review_status ?? group?.review_status ?? '',
+        verification_status: item?.verification_status ?? group?.verification_status ?? '',
+        source: item
+      });
+    });
+  });
+
+  normalizeArray(constraintsData?.constraints).forEach(item => {
+    const id = item?.id ?? item?.constraint_id;
+    if (!id) return;
+    out.push({
+      constraint_id: String(id),
+      constraint_title: item?.title ?? item?.name ?? String(id),
+      constraint_text: item?.statement ?? item?.description ?? item?.summary ?? '',
+      group_id: item?.group_id ?? '',
+      category: item?.category ?? '',
+      group_title: item?.group_title ?? '',
+      priority: item?.priority ?? '',
+      review_status: item?.review_status ?? '',
+      verification_status: item?.verification_status ?? '',
+      source: item
+    });
+  });
+
+  const seen = new Set();
+  return out.filter(item => {
+    if (seen.has(item.constraint_id)) return false;
+    seen.add(item.constraint_id);
+    return true;
+  });
+}
+
+function flattenTestPatternNodes(testsData) {
+  const source = testsData?.patterns ?? testsData?.test_patterns ?? testsData?.tests ?? [];
+  return normalizeArray(source).map(item => {
+    const id = item?.patternId ?? item?.test_pattern_id ?? item?.testId ?? item?.id;
+    if (!id) return null;
+    return {
+      test_pattern_id: String(id),
+      title: item?.title ?? item?.name ?? String(id),
+      category: item?.category ?? '',
+      test_kind: item?.testKind ?? item?.test_kind ?? '',
+      enabled: item?.enabled,
+      status: item?.status ?? '',
+      priority: item?.priority ?? '',
+      expected_file: item?.expectedFile ?? item?.expected_file ?? '',
+      diff_file: item?.outputDiffFile ?? item?.diffFile ?? item?.diff_file ?? '',
+      checks_count: item?.checksCount ?? normalizeArray(item?.checks).length,
+      checks: normalizeArray(item?.checks).map(ch => ({
+        check_id: `${id}.${ch?.name ?? ch?.target ?? normalizeArray(item?.checks).indexOf(ch) + 1}`,
+        name: ch?.name ?? '',
+        target: ch?.target ?? '',
+        type: ch?.type ?? '',
+        expected: ch?.expected
+      })),
+      source: item
+    };
+  }).filter(Boolean);
+}
+
+function normalizeDiffNodes(diffData) {
+  if (!diffData) return [];
+  if (Array.isArray(diffData)) return diffData;
+  if (Array.isArray(diffData?.diffs)) return diffData.diffs;
+  if (Array.isArray(diffData?.results)) return diffData.results;
+  if (diffData?.testId || diffData?.test_pattern_id || diffData?.checks) return [diffData];
+  return [];
+}
+
+function normalizeRelations(relationsData, config=null) {
+  const path = config?.relationsPath ?? config?.relations_path ?? '$.relations';
+  const rels = getByPath(relationsData, path) ?? relationsData?.edges ?? relationsData?.links ?? [];
+  return normalizeArray(rels).map((r, index) => ({
+    relation_id: r?.relation_id ?? r?.edge_id ?? r?.link_id ?? `REL-${index + 1}`,
+    from_type: r?.from_type ?? r?.fromType ?? r?.source_type ?? r?.sourceType ?? '',
+    from_id: String(r?.from_id ?? r?.fromId ?? r?.source_id ?? r?.sourceId ?? r?.from ?? ''),
+    to_type: r?.to_type ?? r?.toType ?? r?.target_type ?? r?.targetType ?? '',
+    to_id: String(r?.to_id ?? r?.toId ?? r?.target_id ?? r?.targetId ?? r?.to ?? ''),
+    relation: r?.relation ?? r?.type ?? '',
+    coverage: r?.coverage ?? '',
+    confidence: r?.confidence ?? '',
+    required: r?.required,
+    enabled: r?.enabled !== false,
+    status: r?.status ?? '',
+    priority: r?.priority ?? '',
+    note: r?.note ?? r?.memo ?? '',
+    source: r
+  })).filter(r => r.enabled !== false && r.from_id && r.to_id && r.relation);
+}
+
+function relationFromConstraintToTestIds(relations, constraintId) {
+  const direct = relations.filter(r =>
+    r.from_type === 'constraint' &&
+    r.from_id === constraintId &&
+    r.relation === 'verified_by' &&
+    r.to_type === 'test_pattern'
+  );
+
+  const checkRels = relations.filter(r =>
+    r.from_type === 'constraint' &&
+    r.from_id === constraintId &&
+    r.relation === 'verified_by' &&
+    r.to_type === 'check'
+  );
+
+  const viaCheck = checkRels.flatMap(cr => {
+    return relations
+      .filter(r => r.relation === 'contains_check' && r.to_type === 'check' && r.to_id === cr.to_id && r.from_type === 'test_pattern')
+      .map(r => ({ ...cr, to_type: 'test_pattern', to_id: r.from_id, via_check_id: cr.to_id, note: [cr.note, `check経由: ${cr.to_id}`].filter(Boolean).join(' / ') }));
+  });
+
+  const byKey = new Map();
+  [...direct, ...viaCheck].forEach(r => byKey.set(`${r.to_type}:${r.to_id}:${r.relation}`, r));
+  return [...byKey.values()];
+}
+
+function diffResultIsFail(diff) {
+  return valueIsFail(diff?.status) || valueIsFail(diff?.result) || Number(diff?.failedCount ?? diff?.failed_count ?? 0) > 0;
+}
+
+function diffResultIsPass(diff) {
+  return valueIsPass(diff?.status) || valueIsPass(diff?.result) || String(diff?.resultLabel ?? '').includes('PASS');
+}
+
+function failedCheckRows(diff) {
+  return normalizeArray(diff?.checks).filter(ch => valueIsFail(ch?.pass) || valueIsFail(ch?.status));
+}
+
+function buildConstraintTraceCards({ constraintsData, testsData, diffData, relationsData, config }) {
+  const constraints = flattenConstraintNodes(constraintsData);
+  const tests = flattenTestPatternNodes(testsData);
+  const diffs = normalizeDiffNodes(diffData);
+  const relations = normalizeRelations(relationsData, config);
+
+  const testById = new Map(tests.map(t => [t.test_pattern_id, t]));
+  const diffsByTestId = new Map();
+  diffs.forEach(diff => {
+    const id = String(diff?.testId ?? diff?.test_pattern_id ?? diff?.patternId ?? '');
+    if (!id) return;
+    if (!diffsByTestId.has(id)) diffsByTestId.set(id, []);
+    diffsByTestId.get(id).push(diff);
+  });
+
+  return constraints.map(c => {
+    const linkRels = relationFromConstraintToTestIds(relations, c.constraint_id);
+    const linkedTests = linkRels.map(rel => {
+      const t = testById.get(rel.to_id);
+      return {
+        test_pattern_id: rel.to_id,
+        title: t?.title ?? rel.to_id,
+        relation: rel.relation,
+        coverage: rel.coverage,
+        confidence: rel.confidence,
+        required: rel.required,
+        enabled: rel.enabled,
+        status: rel.status,
+        priority: rel.priority,
+        expected_file: t?.expected_file ?? '',
+        diff_file: t?.diff_file ?? '',
+        via_check_id: rel.via_check_id ?? '',
+        note: rel.note ?? ''
+      };
+    });
+
+    const relatedDiffs = linkedTests.flatMap(t => normalizeArray(diffsByTestId.get(t.test_pattern_id)).map(diff => ({
+      diff_id: diff?.diffId ?? diff?.diff_id ?? diff?.testId ?? t.test_pattern_id,
+      test_pattern_id: t.test_pattern_id,
+      relation: 'has_latest_diff',
+      result: diff?.status ?? diff?.result ?? '',
+      resultLabel: diff?.resultLabel ?? '',
+      failed_count: Number(diff?.failedCount ?? diff?.failed_count ?? 0),
+      captured_at: diff?.capturedAt ?? diff?.captured_at ?? '',
+      summary: diff?.summary ?? ''
+    })));
+
+    const failedChecks = linkedTests.flatMap(t => normalizeArray(diffsByTestId.get(t.test_pattern_id)).flatMap(diff => {
+      return failedCheckRows(diff)
+        .filter(ch => !t.via_check_id || `${t.test_pattern_id}.${ch?.name ?? ch?.target ?? ''}` === t.via_check_id)
+        .map(ch => ({
+          diff_id: diff?.diffId ?? diff?.diff_id ?? diff?.testId ?? t.test_pattern_id,
+          test_pattern_id: t.test_pattern_id,
+          check_id: `${t.test_pattern_id}.${ch?.name ?? ch?.target ?? ''}`,
+          check_name: ch?.name ?? '',
+          target: ch?.target ?? '',
+          expected: formatValue(ch?.expected),
+          actual: formatValue(ch?.actual),
+          severity: 'high',
+          message: ch?.message ?? ''
+        }));
+    }));
+
+    const evidenceEdges = linkRels.map(r => ({
+      from: `${r.from_type}:${r.from_id}`,
+      relation: r.relation,
+      to: `${r.to_type}:${r.to_id}`,
+      status: r.status,
+      coverage: r.coverage,
+      confidence: r.confidence,
+      note: r.note
+    }));
+
+    const directLinkedTests = linkedTests.filter(t => !t.via_check_id);
+    const checkLinkedTests = linkedTests.filter(t => t.via_check_id);
+    const directHasFail = directLinkedTests.some(t => normalizeArray(diffsByTestId.get(t.test_pattern_id)).some(diff => diffResultIsFail(diff)));
+    const directHasPass = directLinkedTests.some(t => normalizeArray(diffsByTestId.get(t.test_pattern_id)).some(diff => diffResultIsPass(diff)));
+    const checkHasAnyDiff = checkLinkedTests.some(t => normalizeArray(diffsByTestId.get(t.test_pattern_id)).length > 0);
+    const checkHasFail = failedChecks.length > 0;
+    const checkHasPass = checkLinkedTests.length > 0 && checkHasAnyDiff && failedChecks.length === 0;
+
+    const hasFail = directHasFail || checkHasFail;
+    const hasPass = directHasPass || checkHasPass;
+    const lastCheckedAt = relatedDiffs.map(d => d.captured_at).filter(Boolean).sort().at(-1) ?? '';
+    const coverageSet = [...new Set(linkedTests.map(t => t.coverage).filter(Boolean))];
+
+    let traceStatus = 'untested';
+    let traceLabel = '未テスト';
+    let latestResult = 'unverified';
+    if (linkedTests.length > 0) {
+      traceStatus = 'linked';
+      traceLabel = 'リンクあり / 未実行';
+      latestResult = 'linked';
+    }
+    if (hasPass) {
+      traceStatus = 'verified';
+      traceLabel = '最新成功';
+      latestResult = 'pass';
+    }
+    if (hasFail) {
+      traceStatus = 'failing';
+      traceLabel = '🚨 失敗diffあり';
+      latestResult = 'fail';
+    }
+
+    return {
+      constraint_id: c.constraint_id,
+      constraint_title: c.constraint_title,
+      group_id: c.group_id,
+      category: c.category,
+      priority: c.priority,
+      review_status: c.review_status,
+      verification_status: c.verification_status,
+      trace_status: traceStatus,
+      trace_label: traceLabel,
+      latest_result: latestResult,
+      status: latestResult,
+      resultLabel: traceLabel,
+      coverage: coverageSet.join(', '),
+      tests_count: linkedTests.length,
+      fail_count: failedChecks.length,
+      last_checked_at: lastCheckedAt,
+      constraint_text: c.constraint_text,
+      linked_tests: linkedTests,
+      related_diffs: relatedDiffs,
+      failed_checks: failedChecks,
+      evidence_edges: evidenceEdges
+    };
+  });
+}
+
+
+function relationFromTestToConstraintItems(relations, testId) {
+  const direct = relations.filter(r =>
+    r.from_type === 'constraint' &&
+    r.relation === 'verified_by' &&
+    r.to_type === 'test_pattern' &&
+    r.to_id === testId
+  ).map(r => ({ ...r, constraint_id: r.from_id, via_check_id: '' }));
+
+  const checkIds = relations
+    .filter(r => r.from_type === 'test_pattern' && r.from_id === testId && r.relation === 'contains_check' && r.to_type === 'check')
+    .map(r => r.to_id);
+  const checkSet = new Set(checkIds);
+
+  const viaCheck = relations.filter(r =>
+    r.from_type === 'constraint' &&
+    r.relation === 'verified_by' &&
+    r.to_type === 'check' &&
+    checkSet.has(r.to_id)
+  ).map(r => ({
+    ...r,
+    constraint_id: r.from_id,
+    to_type: 'test_pattern',
+    to_id: testId,
+    via_check_id: r.to_id,
+    note: [r.note, `check経由: ${r.to_id}`].filter(Boolean).join(' / ')
+  }));
+
+  const byKey = new Map();
+  [...direct, ...viaCheck].forEach(r => {
+    const key = `${r.constraint_id}:${r.via_check_id || 'test'}:${r.coverage || ''}`;
+    if (!byKey.has(key)) byKey.set(key, r);
+  });
+  return [...byKey.values()];
+}
+
+function diffCheckId(testId, ch) {
+  return `${testId}.${ch?.name ?? ch?.target ?? ''}`;
+}
+
+function buildTestPatternTraceCards({ constraintsData, testsData, diffData, relationsData, config }) {
+  const constraints = flattenConstraintNodes(constraintsData);
+  const tests = flattenTestPatternNodes(testsData);
+  const diffs = normalizeDiffNodes(diffData);
+  const relations = normalizeRelations(relationsData, config);
+
+  const constraintById = new Map(constraints.map(c => [c.constraint_id, c]));
+  const diffsByTestId = new Map();
+  diffs.forEach(diff => {
+    const id = String(diff?.testId ?? diff?.test_pattern_id ?? diff?.patternId ?? '');
+    if (!id) return;
+    if (!diffsByTestId.has(id)) diffsByTestId.set(id, []);
+    diffsByTestId.get(id).push(diff);
+  });
+
+  return tests.map(t => {
+    const testId = t.test_pattern_id;
+    const constraintRels = relationFromTestToConstraintItems(relations, testId);
+    const relatedDiffsRaw = normalizeArray(diffsByTestId.get(testId));
+    const failedChecks = relatedDiffsRaw.flatMap(diff => failedCheckRows(diff).map(ch => ({
+      diff_id: diff?.diffId ?? diff?.diff_id ?? diff?.testId ?? testId,
+      test_pattern_id: testId,
+      check_id: diffCheckId(testId, ch),
+      check_name: ch?.name ?? '',
+      target: ch?.target ?? '',
+      expected: formatValue(ch?.expected),
+      actual: formatValue(ch?.actual),
+      severity: 'high',
+      message: ch?.message ?? ''
+    })));
+    const failedCheckSet = new Set(failedChecks.map(ch => ch.check_id));
+    const hasFail = relatedDiffsRaw.some(diff => diffResultIsFail(diff));
+    const hasPass = relatedDiffsRaw.some(diff => diffResultIsPass(diff));
+
+    const relatedConstraints = constraintRels.map(rel => {
+      const c = constraintById.get(rel.constraint_id);
+      const impactedByCheck = rel.via_check_id && failedCheckSet.has(rel.via_check_id);
+      const impactedByDirect = !rel.via_check_id && hasFail;
+      const impacted = Boolean(impactedByCheck || impactedByDirect);
+      return {
+        constraint_id: rel.constraint_id,
+        constraint_title: c?.constraint_title ?? rel.constraint_id,
+        group_id: c?.group_id ?? '',
+        category: c?.category ?? '',
+        relation: rel.relation,
+        coverage: rel.coverage,
+        confidence: rel.confidence,
+        required: rel.required,
+        status: rel.status,
+        priority: rel.priority,
+        via_check_id: rel.via_check_id ?? '',
+        impacted,
+        impact_label: impacted ? '影響あり' : '影響なし/未判定',
+        note: rel.note ?? ''
+      };
+    });
+
+    const impactedConstraints = relatedConstraints.filter(c => c.impacted);
+    const relatedDiffs = relatedDiffsRaw.map(diff => ({
+      diff_id: diff?.diffId ?? diff?.diff_id ?? diff?.testId ?? testId,
+      test_pattern_id: testId,
+      relation: 'has_latest_diff',
+      result: diff?.status ?? diff?.result ?? '',
+      resultLabel: diff?.resultLabel ?? '',
+      failed_count: Number(diff?.failedCount ?? diff?.failed_count ?? 0),
+      captured_at: diff?.capturedAt ?? diff?.captured_at ?? '',
+      summary: diff?.summary ?? ''
+    }));
+
+    const evidenceEdges = [
+      ...constraintRels.map(r => ({
+        from: `${r.from_type}:${r.from_id}`,
+        relation: r.relation,
+        to: r.via_check_id ? `check:${r.via_check_id}` : `test_pattern:${testId}`,
+        status: r.status,
+        coverage: r.coverage,
+        confidence: r.confidence,
+        note: r.note
+      })),
+      ...relations.filter(r => r.from_type === 'test_pattern' && r.from_id === testId && r.relation === 'contains_check').map(r => ({
+        from: `${r.from_type}:${r.from_id}`,
+        relation: r.relation,
+        to: `${r.to_type}:${r.to_id}`,
+        status: r.status,
+        coverage: r.coverage,
+        confidence: r.confidence,
+        note: r.note
+      }))
+    ];
+
+    const lastCheckedAt = relatedDiffs.map(d => d.captured_at).filter(Boolean).sort().at(-1) ?? '';
+    const primaryCount = relatedConstraints.filter(c => c.coverage === 'primary').length;
+    const secondaryCount = relatedConstraints.filter(c => c.coverage === 'secondary').length;
+    const requiredCount = relatedConstraints.filter(c => c.required === true).length;
+
+    let traceStatus = 'untested';
+    let traceLabel = '未実行';
+    let latestResult = 'unverified';
+    if (relatedDiffs.length > 0) {
+      traceStatus = 'executed';
+      traceLabel = '実行済み';
+      latestResult = 'executed';
+    }
+    if (hasPass) {
+      traceStatus = 'passed';
+      traceLabel = '最新成功';
+      latestResult = 'pass';
+    }
+    if (hasFail) {
+      traceStatus = 'failing';
+      traceLabel = '🚨 失敗diffあり';
+      latestResult = 'fail';
+    }
+
+    return {
+      test_pattern_id: testId,
+      test_pattern_title: t.title,
+      category: t.category,
+      test_kind: t.test_kind,
+      enabled: t.enabled,
+      pattern_status: t.status,
+      priority: t.priority,
+      checks_count: t.checks_count,
+      expected_file: t.expected_file,
+      diff_file: t.diff_file,
+      trace_status: traceStatus,
+      trace_label: traceLabel,
+      latest_result: latestResult,
+      status: latestResult,
+      resultLabel: traceLabel,
+      linked_constraints_count: relatedConstraints.length,
+      primary_constraints_count: primaryCount,
+      secondary_constraints_count: secondaryCount,
+      required_constraints_count: requiredCount,
+      fail_constraints_count: impactedConstraints.length,
+      fail_count: failedChecks.length,
+      diff_count: relatedDiffs.length,
+      last_checked_at: lastCheckedAt,
+      related_constraints: relatedConstraints,
+      impacted_constraints: impactedConstraints,
+      related_diffs: relatedDiffs,
+      failed_checks: failedChecks,
+      evidence_edges: evidenceEdges
+    };
+  });
+}
+
+async function materializeVirtualDataForViewDef(defObj, dataObj) {
+  const config = virtualDataConfigOf(defObj);
+  if (!config) return dataObj;
+
+  const builder = config.builder ?? config.type ?? config.kind;
+  const targetPath = virtualDataTargetPath(config);
+  if (!builder || !targetPath) return dataObj;
+
+  const sources = await loadConfiguredDataSources(defObj);
+  const constraintsData = sources.constraints ?? sources.constraint ?? dataObj;
+  const testsData = sources.tests ?? sources.testPatterns ?? sources.test_patterns ?? {};
+  const diffData = sources.diff ?? sources.diffs ?? {};
+  const relationsData = sources.relations ?? sources.edges ?? dataObj;
+
+  let cards = [];
+  if (builder === 'constraint_trace_cards') {
+    cards = buildConstraintTraceCards({ constraintsData, testsData, diffData, relationsData, config });
+  } else if (builder === 'test_pattern_trace_cards') {
+    cards = buildTestPatternTraceCards({ constraintsData, testsData, diffData, relationsData, config });
+  } else {
+    throw new Error(`未対応の virtualData builder です: ${builder}`);
+  }
+
+  setVirtualByPath(dataObj, targetPath, cards);
+
+  setVirtualByPath(dataObj, '$.constraint_trace_virtual_meta', {
+    generated_at: new Date().toISOString(),
+    builder,
+    target_path: targetPath,
+    card_count: cards.length
+  });
+  return dataObj;
 }
 
 function getFieldValue(row, field) {
@@ -2882,12 +3456,13 @@ setupPageDrop();
 setupComboClearButtons();
 setupViewDefMarkdownButtonState();
 
-function loadFromObjects(defObj, dataObj, label='読み込み完了', dataApiUrl=null) {
-  if (!isDefCompatibleWithData(defObj, dataObj)) {
-    throw new Error(defCompatibilityMessage(lastLoadedDefName, defObj, dataObj));
-  }
+async function loadFromObjects(defObj, dataObj, label='読み込み完了', dataApiUrl=null) {
   viewDef = defObj;
-  sourceData = dataObj;
+  sourceData = await materializeVirtualDataForViewDef(defObj, dataObj);
+
+  if (!isDefCompatibleWithData(defObj, sourceData)) {
+    throw new Error(defCompatibilityMessage(lastLoadedDefName, defObj, sourceData));
+  }
   selectedIndex = -1;
   sortState = { field: null, direction: null };
   copiedRow = null;
@@ -2937,7 +3512,7 @@ async function autoLoadFromQuery() {
     const normalizedDataName = jsonNameFromUrl(dataUrl, 'data');
     if (normalizedDataName && $('dataNameInput')) $('dataNameInput').value = normalizedDataName;
     ensureViewDefNameInData(dataObj, lastLoadedDefName);
-    loadFromObjects(defObj, dataObj, 'URLパラメータから読み込み完了', normalizeApiDataUrl(dataUrl));
+    await loadFromObjects(defObj, dataObj, 'URLパラメータから読み込み完了', normalizeApiDataUrl(dataUrl));
   } catch (err) {
     console.error(err);
     setStatus('URL読込エラー: ' + err.message + '（file://直開きの場合はローカルサーバ起動が必要な場合があります）');

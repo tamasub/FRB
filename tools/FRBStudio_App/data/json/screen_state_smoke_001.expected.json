@@ -7,7 +7,7 @@
       "name": "appTitle",
       "type": "equals",
       "target": "appTitle",
-      "expected": "No-Code JSON Studio v0.3-draft"
+      "expected": "No-Code JSON Studio v0.3-draft eeee"
     },
     {
       "name": "headerText",

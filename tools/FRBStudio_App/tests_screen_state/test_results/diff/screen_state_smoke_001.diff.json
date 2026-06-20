@@ -1,20 +1,20 @@
 {
-  "view_def": "screen_state_diff_view_def_base_v0_2_checks.json",
+  "view_def": "screen_state_diff_view_def_v0_2_checks.json",
   "testId": "screen_state_smoke_001",
   "title": "初期表示の画面状態JSONを検証する",
-  "capturedAt": "2026-06-19T14:24:02.883Z",
+  "capturedAt": "2026-06-20T03:40:06.094Z",
   "url": "http://localhost:5055/",
-  "status": "fail",
+  "status": "pass",
   "checks": [
     {
       "name": "appTitle",
       "type": "equals",
       "target": "appTitle",
-      "expected": "No-Code JSON Studio v0.3-draft eeee",
+      "expected": "No-Code JSON Studio v0.3-draft",
       "actual": "No-Code JSON Studio v0.3-draft",
       "missing": [],
-      "pass": false,
-      "message": "appTitle failed: expected No-Code JSON Studio v0.3-draft eeee, actual No-Code JSON Studio v0.3-draft"
+      "pass": true,
+      "message": "OK"
     },
     {
       "name": "headerText",
@@ -31,7 +31,7 @@
       "type": "includesAll",
       "target": "buttons",
       "expected": "[\"読み込み\",\"保存\",\"新規\",\"削除\"]",
-      "actual": "[\"読み込み\",\"保存\",\"Markdown出力→Viewer\",\"検索\",\"取消\",\"新規\",\"削除\",\"×\",\"前へ(F7)\",\"次へ(F8)\",\"反映(F12)\",\"閉じる\"]",
+      "actual": "[\"×\",\"×\",\"読み込み\",\"保存\",\"Markdown出力→Viewer\",\"ViewDef Markdown→Viewer\",\"検索\",\"取消\",\"新規\",\"削除\",\"×\",\"前へ(F7)\",\"次へ(F8)\",\"反映(F12)\",\"閉じる\"]",
       "missing": [],
       "pass": true,
       "message": "OK"
@@ -47,28 +47,22 @@
       "message": "OK"
     }
   ],
-  "resultLabel": "🚨 FAIL",
-  "failedCount": 1,
-  "failedChecks": [
-    "appTitle"
-  ],
-  "summary": "🚨 1件の差分を検出しました: appTitle",
-  "firstFailure": {
-    "name": "appTitle",
-    "type": "equals",
-    "target": "appTitle",
-    "expected": "No-Code JSON Studio v0.3-draft eeee",
-    "actual": "No-Code JSON Studio v0.3-draft",
-    "missing": []
-  },
+  "resultLabel": "✅ PASS",
+  "failedCount": 0,
+  "failedChecks": [],
+  "summary": "✅ すべてのチェックに合格しました",
+  "firstFailure": null,
   "actualState": {
     "appTitle": "No-Code JSON Studio v0.3-draft",
     "url": "http://localhost:5055/",
     "headerText": true,
     "buttons": [
+      "×",
+      "×",
       "読み込み",
       "保存",
       "Markdown出力→Viewer",
+      "ViewDef Markdown→Viewer",
       "検索",
       "取消",
       "新規",

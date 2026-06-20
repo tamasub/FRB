@@ -1,0 +1,665 @@
+{
+  "view_def": "ai_constraint_grouped_view_def_v0_6_footer_chat.json",
+  "schema_version": "0.6-footer-chat",
+  "document_type": "ai_constraint_spec_aggregated",
+  "target": "No-Code JSON Studio v0.3-draft",
+  "title": "No-Code JSON Studio v0.3-draft AI制約設計書 集約版 v0.5-split-review-chat",
+  "generated_by": "ChatGPT",
+  "status": "集約ドラフト / footer chat対応",
+  "source_document": "No-Code JSON Studiov0.3-draft.md",
+  "aggregation_policy": "原子制約をカテゴリ単位に集約し、個別制約はサブグリッドで確認する。詳細画面では、レビュー対象（集約サマリ・対象範囲）と制約グループ会話を分離して表示する。",
+  "source_constraint_count": 84,
+  "group_count": 12,
+  "constraint_groups": [
+    {
+      "no": 1,
+      "group_id": "APP_RUNTIME",
+      "category": "アプリ構成",
+      "title": "アプリ実行・起動・常駐",
+      "priority": "high",
+      "review_status": "集約ドラフト",
+      "verification_status": "未確認",
+      "constraint_count": 3,
+      "summary": "ローカルWebアプリとしての起動、ブラウザ表示、タスクトレイ常駐をまとめた制約グループ。",
+      "scope": "FRB Studioの実行形態とユーザー起動導線。",
+      "constraints": [
+        {
+          "id": "APP-001",
+          "title": "ローカルWebアプリとして動作する",
+          "statement": "FRB Studioは `http://localhost:5055` で起動するローカルWebアプリである。"
+        },
+        {
+          "id": "APP-002",
+          "title": "起動時にブラウザを開く",
+          "statement": "アプリ起動後、自動的にブラウザで画面を開く。"
+        },
+        {
+          "id": "APP-003",
+          "title": "タスクトレイ常駐する",
+          "statement": "アプリはタスクトレイに常駐し、右クリックメニューから以下を開ける。 ---"
+        }
+      ],
+      "notes": "",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": ""
+    },
+    {
+      "no": 2,
+      "group_id": "FILE_SECURITY",
+      "category": "ファイル管理",
+      "title": "ファイル配置・安全制約",
+      "priority": "high",
+      "review_status": "集約ドラフト",
+      "verification_status": "未確認",
+      "constraint_count": 9,
+      "summary": "data/json、data/markdown、defsなどの管理フォルダーと、拡張子・パストラバーサル・保存範囲の安全制約をまとめる。",
+      "scope": "管理対象ファイル、保存先、安全なファイル名。",
+      "constraints": [
+        {
+          "id": "FILE-001",
+          "title": "JSONデータは data/json に保存する",
+          "statement": "対象JSONは `data/json` 配下で管理される。"
+        },
+        {
+          "id": "FILE-002",
+          "title": "Markdownは data/markdown に保存する",
+          "statement": "Markdownファイルは `data/markdown` 配下で管理される。"
+        },
+        {
+          "id": "FILE-003",
+          "title": "画面定義JSONは defs に保存する",
+          "statement": "View定義JSONは `defs` 配下で管理される。"
+        },
+        {
+          "id": "FILE-004",
+          "title": "旧 data/*.json は data/json へ初回移行する",
+          "statement": "旧構成の `data/*.json` は、新構成の `data/json/*.json` へコピーされる。"
+        },
+        {
+          "id": "FILE-005",
+          "title": "管理対象外ファイルは直接上書き保存しない",
+          "statement": "DropしたJSONを管理対象へコピーしない場合、上書き保存ではなく別名保存になる。 ---"
+        },
+        {
+          "id": "SAFE-001",
+          "title": "JSONファイル名は `.json` のみ許可する",
+          "statement": "JSON APIで扱えるファイル名は `.json` で終わる必要がある。"
+        },
+        {
+          "id": "SAFE-002",
+          "title": "Markdownファイル名は `.md` または `.markdown` のみ許可する",
+          "statement": "Markdown APIで扱えるファイル名は `.md` または `.markdown` のみ許可される。"
+        },
+        {
+          "id": "SAFE-003",
+          "title": "パストラバーサルは禁止する",
+          "statement": "ファイル名に以下を含む場合は拒否する。"
+        },
+        {
+          "id": "SAFE-004",
+          "title": "API経由保存は管理対象フォルダー内に限定する",
+          "statement": "保存先は `data/json`、`data/markdown`、`defs` の配下に限定される。 ---"
+        }
+      ],
+      "notes": "",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": ""
+    },
+    {
+      "no": 3,
+      "group_id": "VIEW_PATH",
+      "category": "画面定義",
+      "title": "View構造・JSONパス",
+      "priority": "high",
+      "review_status": "集約ドラフト",
+      "verification_status": "未確認",
+      "constraint_count": 10,
+      "summary": "1画面1グリッド、views[0]、Header/Grid section、dot pathをまとめた画面定義の核。 Detail Dialogでは、会話欄をレビュー対象と個別明細の後ろへ送るためのfooter配置も扱う。",
+      "scope": "view_defの基本構造、dataPath/fieldの参照ルール。 Detail Dialog内の表示順制御を含む。",
+      "constraints": [
+        {
+          "id": "VIEW-001",
+          "title": "現行アプリは 1画面1グリッドを前提とする",
+          "statement": "複数グリッドではなく、主グリッド1つを扱う。"
+        },
+        {
+          "id": "VIEW-002",
+          "title": "使用するViewは `views[0]`",
+          "statement": "画面定義に複数Viewがあっても、現行アプリは先頭Viewを使用する。"
+        },
+        {
+          "id": "VIEW-003",
+          "title": "画面構成は固定である",
+          "statement": "画面は以下の構造を前提とする。"
+        },
+        {
+          "id": "VIEW-004",
+          "title": "Header Formは最初の form section",
+          "statement": "`type: \"form\"` かつ `role !== \"detailOnly\"` の最初のsectionをHeaderとして扱う。"
+        },
+        {
+          "id": "VIEW-005",
+          "title": "Gridは最初の grid section",
+          "statement": "`type: \"grid\"` の最初のsectionをメイングリッドとして扱う。"
+        },
+        {
+          "id": "VIEW-006",
+          "title": "Gridの dataPath は Array を指す必要がある",
+          "statement": "Grid section の `dataPath` が配列でない場合、読み込みエラーになる。 ---"
+        },
+        {
+          "id": "PATH-001",
+          "title": "JSONパスは簡易 dot path とする",
+          "statement": "対応する形式は以下。"
+        },
+        {
+          "id": "PATH-002",
+          "title": "bracket記法は非対応",
+          "statement": "以下の形式は非対応。"
+        },
+        {
+          "id": "PATH-003",
+          "title": "キー名にドットを含むJSONは非推奨",
+          "statement": "dot pathで解釈するため、キー名に `.` を含む構造は避ける。 ---"
+        },
+        {
+          "id": "VIEW-007",
+          "title": "detailFooter配置は子配列の後に描画する",
+          "statement": "Field定義に `layout.placement: \"detailFooter\"`、または `edit.layout.placement: \"detailFooter\"` を指定した場合、そのFieldは通常の詳細フォームではなく、objectArray / stringArray の子テーブル表示後に描画する。会話・コメント欄など、レビュー対象と個別明細を読んだ後に扱う入力欄に使用する。"
+        }
+      ],
+      "notes": "",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": ""
+    },
+    {
+      "no": 4,
+      "group_id": "FIELD_INPUT",
+      "category": "Field",
+      "title": "Field Type・入力変換",
+      "priority": "high",
+      "review_status": "集約ドラフト",
+      "verification_status": "未確認",
+      "constraint_count": 5,
+      "summary": "対応Field Type、number/boolean/select/textareaなどの入力UIと保存時変換をまとめる。",
+      "scope": "Field定義、入力UI、保存時の型変換。",
+      "constraints": [
+        {
+          "id": "FIELD-001",
+          "title": "対応Field Typeは固定",
+          "statement": "現行アプリが扱うField Typeは以下。"
+        },
+        {
+          "id": "FIELD-002",
+          "title": "numberは空文字なら null、入力ありなら Number変換する",
+          "statement": "number入力は保存時に数値へ変換される。"
+        },
+        {
+          "id": "FIELD-003",
+          "title": "booleanは select で true / false / 空 を扱う",
+          "statement": "booleanは文字列 `\"true\"` を true、`\"false\"` を false として扱う。"
+        },
+        {
+          "id": "FIELD-004",
+          "title": "selectは options 配列から選択する",
+          "statement": "select型は `options` 配列を選択肢として表示する。"
+        },
+        {
+          "id": "FIELD-005",
+          "title": "textareaは edit.height を最小高さとして扱う",
+          "statement": "`edit.height` がある場合、textareaの高さに反映する。 ---"
+        }
+      ],
+      "notes": "",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": ""
+    },
+    {
+      "no": 5,
+      "group_id": "GRID_SEARCH_SORT",
+      "category": "一覧・検索",
+      "title": "Grid表示・検索・ソート",
+      "priority": "high",
+      "review_status": "集約ドラフト",
+      "verification_status": "未確認",
+      "constraint_count": 10,
+      "summary": "一覧表示、列幅、number format、検索対象、検索演算子、列ヘッダーソートをまとめる。",
+      "scope": "メイングリッドの見え方、検索条件、並び替え。",
+      "constraints": [
+        {
+          "id": "GRID-001",
+          "title": "grid.visible が false のFieldは一覧に表示しない",
+          "statement": "未指定の場合は表示する。"
+        },
+        {
+          "id": "GRID-002",
+          "title": "grid.width は列幅に反映する",
+          "statement": "`grid.width` がある場合、列幅または最大幅として扱う。"
+        },
+        {
+          "id": "GRID-003",
+          "title": "numberは format 指定で小数桁表示できる",
+          "statement": "`format`、`grid.format`、`edit.format` により小数桁表示を行う。 ---"
+        },
+        {
+          "id": "SEARCH-001",
+          "title": "search.visible が true のFieldのみ検索フォームに表示する",
+          "statement": "検索対象はView定義で明示されたFieldのみ。"
+        },
+        {
+          "id": "SEARCH-002",
+          "title": "number検索の既定演算子は gte",
+          "statement": "number型は未指定なら `gte` として扱う。"
+        },
+        {
+          "id": "SEARCH-003",
+          "title": "number以外の既定演算子は contains",
+          "statement": "文字列系は未指定なら部分一致検索。"
+        },
+        {
+          "id": "SEARCH-004",
+          "title": "対応検索演算子は contains / equals / gte / lte",
+          "statement": "検索演算子は限定される。 ---"
+        },
+        {
+          "id": "SORT-001",
+          "title": "一覧ヘッダークリックでソートする",
+          "statement": "列ヘッダークリックで昇順、降順、解除を切り替える。"
+        },
+        {
+          "id": "SORT-002",
+          "title": "number型は数値として比較する",
+          "statement": "number型はNumber変換できる場合、数値比較する。"
+        },
+        {
+          "id": "SORT-003",
+          "title": "null / 空文字は後ろに並べる",
+          "statement": "空値は非空値より後ろに配置される。 ---"
+        }
+      ],
+      "notes": "",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": ""
+    },
+    {
+      "no": 6,
+      "group_id": "EDIT_ROW_COPY",
+      "category": "編集・行操作",
+      "title": "編集・新規・削除・コピー",
+      "priority": "high",
+      "review_status": "集約ドラフト",
+      "verification_status": "未確認",
+      "constraint_count": 14,
+      "summary": "readonly、Detail反映、新規行生成、削除確認、行コピー/貼り付けをまとめる。",
+      "scope": "Detail Dialog内の編集、行のライフサイクル操作。",
+      "constraints": [
+        {
+          "id": "EDIT-001",
+          "title": "readonly指定のFieldは編集不可",
+          "statement": "以下のいずれかが true の場合、入力不可とする。"
+        },
+        {
+          "id": "EDIT-002",
+          "title": "edit.visible が false のFieldは詳細画面に表示しない",
+          "statement": "Detail Dialogでは `edit.visible !== false` のFieldのみ表示する。"
+        },
+        {
+          "id": "EDIT-003",
+          "title": "Header Formの編集は保存時に反映される",
+          "statement": "Headerの入力値は保存前に sourceData へ反映される。"
+        },
+        {
+          "id": "EDIT-004",
+          "title": "Detail Dialogの編集は反映ボタンで行データへ反映される",
+          "statement": "詳細画面の値は「反映」操作で対象行へ反映される。 ---"
+        },
+        {
+          "id": "ROW-001",
+          "title": "新規行は grid.fields から生成する",
+          "statement": "新規行追加時、Grid sectionのfields定義をもとに行オブジェクトを生成する。"
+        },
+        {
+          "id": "ROW-002",
+          "title": "create.include false のFieldは新規行に含めない",
+          "statement": "`create.include: false` のFieldは初期生成対象から除外する。"
+        },
+        {
+          "id": "ROW-003",
+          "title": "defaultValue があれば優先する",
+          "statement": "`defaultValue` がある場合はその値を初期値にする。"
+        },
+        {
+          "id": "ROW-004",
+          "title": "defaultValue がない場合は型別既定値を使う",
+          "statement": "既定値は以下。 ---"
+        },
+        {
+          "id": "ROW-DEL-001",
+          "title": "選択行のみ削除可能",
+          "statement": "削除は現在選択中の1行に対して行う。"
+        },
+        {
+          "id": "ROW-DEL-002",
+          "title": "削除前に確認ダイアログを表示する",
+          "statement": "削除操作には confirm を要求する。 ---"
+        },
+        {
+          "id": "COPY-001",
+          "title": "行単位でコピーできる",
+          "statement": "右クリックメニューから選択行をコピーできる。"
+        },
+        {
+          "id": "COPY-002",
+          "title": "コピー行から新規行追加できる",
+          "statement": "コピー済み行を複製して新規行として追加できる。"
+        },
+        {
+          "id": "COPY-003",
+          "title": "コピー行の値を詳細ダイアログへ貼り付けできる",
+          "statement": "コピー済み行の値を、編集可能Fieldにのみ貼り付ける。"
+        },
+        {
+          "id": "COPY-004",
+          "title": "readonly Fieldには貼り付けない",
+          "statement": "readonly または disabled のFieldは貼り付け対象外とする。 ---"
+        }
+      ],
+      "notes": "",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": ""
+    },
+    {
+      "no": 7,
+      "group_id": "CHILD_ARRAY",
+      "category": "子配列",
+      "title": "子配列表示・編集候補",
+      "priority": "high",
+      "review_status": "集約ドラフト",
+      "verification_status": "未確認",
+      "constraint_count": 4,
+      "summary": "objectArray/stringArrayの子テーブル表示と、直接編集が弱いというGAPをまとめる。",
+      "scope": "Detail Dialog下部の子テーブル表示と将来編集。",
+      "constraints": [
+        {
+          "id": "CHILD-001",
+          "title": "objectArray / stringArray は詳細画面下部に子テーブル表示する",
+          "statement": "配列型FieldはDetail Dialogの下部にテーブルとして表示する。"
+        },
+        {
+          "id": "CHILD-002",
+          "title": "stringArray は # / value の2列で表示する",
+          "statement": "文字列配列は行番号と値を表示する。"
+        },
+        {
+          "id": "CHILD-003",
+          "title": "objectArray はオブジェクトキーを列として表示する",
+          "statement": "objectArrayは含まれるオブジェクトのキー一覧を列として表示する。"
+        },
+        {
+          "id": "CHILD-004",
+          "title": "現行実装では子配列は編集対象ではなく閲覧寄りである",
+          "statement": "子配列はテーブル表示されるが、直接編集UIはない。 ---"
+        }
+      ],
+      "notes": "",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": ""
+    },
+    {
+      "no": 8,
+      "group_id": "SAVE_DROP_REL",
+      "category": "保存・関連",
+      "title": "保存・Drop・view_def関連付け",
+      "priority": "high",
+      "review_status": "集約ドラフト",
+      "verification_status": "未確認",
+      "constraint_count": 10,
+      "summary": "API管理ファイルの上書き保存、管理外の別名保存、Drop登録、data JSON内view_def優先をまとめる。",
+      "scope": "読み込み、保存、管理対象コピー、画面定義の決定。",
+      "constraints": [
+        {
+          "id": "SAVE-001",
+          "title": "API管理ファイルは上書き保存できる",
+          "statement": "`/api/data/xxx.json` として読み込まれたデータは上書き保存できる。"
+        },
+        {
+          "id": "SAVE-002",
+          "title": "API管理外ファイルは別名保存する",
+          "statement": "API管理外のJSONはブラウザダウンロードとして保存する。"
+        },
+        {
+          "id": "SAVE-003",
+          "title": "保存時に view_def 名を data JSON へ埋め込む",
+          "statement": "保存時、対象データに `view_def` を付与する。"
+        },
+        {
+          "id": "SAVE-004",
+          "title": "保存JSONはインデント付きで整形する",
+          "statement": "サーバー保存時は整形済みJSONとして保存する。 ---"
+        },
+        {
+          "id": "DROP-001",
+          "title": "画面定義JSONと対象JSONをDropできる",
+          "statement": "画面定義JSON、対象JSONともにDrop入力を受け付ける。"
+        },
+        {
+          "id": "DROP-002",
+          "title": "Drop後に管理対象へコピーするか確認する",
+          "statement": "Dropしたファイルは、管理対象へコピーするかユーザー確認する。"
+        },
+        {
+          "id": "DROP-003",
+          "title": "管理対象コピー後はコンボ一覧に反映する",
+          "statement": "コピー成功後、defs / data の一覧を更新する。 ---"
+        },
+        {
+          "id": "REL-001",
+          "title": "data JSON 内の view_def を優先する",
+          "statement": "対象JSONに `view_def` がある場合、選択中の画面定義より優先する。"
+        },
+        {
+          "id": "REL-002",
+          "title": "view_def がない場合はユーザー指定の画面定義を使う",
+          "statement": "対象JSONに view_def がない場合、画面定義JSONの選択が必要。"
+        },
+        {
+          "id": "REL-003",
+          "title": "対応する view_def がない場合は読み込みエラーにする",
+          "statement": "画面定義を決定できない場合は読み込まない。 ---"
+        }
+      ],
+      "notes": "",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": ""
+    },
+    {
+      "no": 9,
+      "group_id": "MARKDOWN",
+      "category": "Markdown",
+      "title": "Markdown入出力",
+      "priority": "medium",
+      "review_status": "集約ドラフト",
+      "verification_status": "未確認",
+      "constraint_count": 4,
+      "summary": "Markdown一覧取得、読み込み、保存、Drop登録、表示中データのMarkdown出力をまとめる。",
+      "scope": "Markdown Viewer / Editorとの接続。",
+      "constraints": [
+        {
+          "id": "MD-001",
+          "title": "Markdownファイル一覧を取得できる",
+          "statement": "`data/markdown` 内の `.md` / `.markdown` を一覧取得する。"
+        },
+        {
+          "id": "MD-002",
+          "title": "Markdownを読み込みできる",
+          "statement": "API経由でMarkdown本文を取得する。"
+        },
+        {
+          "id": "MD-003",
+          "title": "Markdownを保存できる",
+          "statement": "API経由でMarkdown本文を保存する。"
+        },
+        {
+          "id": "MD-004",
+          "title": "MarkdownをDrop登録できる",
+          "statement": "MarkdownファイルをDrop登録できる。 ---"
+        }
+      ],
+      "notes": "",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": ""
+    },
+    {
+      "no": 10,
+      "group_id": "KNOWN_GAPS",
+      "category": "未実装",
+      "title": "現時点の未実装・弱い制約",
+      "priority": "high",
+      "review_status": "集約ドラフト",
+      "verification_status": "未確認",
+      "constraint_count": 7,
+      "summary": "validation.required、子配列直接編集、複数グリッド、複数View、FieldType継承、テスト生成などの未実装をまとめる。",
+      "scope": "現時点では仕様化されているが未実装、または弱い機能。",
+      "constraints": [
+        {
+          "id": "GAP-001",
+          "title": "validation.required は実質未実装",
+          "statement": "View定義に `validation.required` は存在するが、入力チェックとしてはほぼ機能していない。"
+        },
+        {
+          "id": "GAP-002",
+          "title": "子配列の直接編集は未実装",
+          "statement": "objectArray / stringArray は表示できるが、直接編集はできない。"
+        },
+        {
+          "id": "GAP-003",
+          "title": "複数グリッドは未対応",
+          "statement": "現行は1画面1グリッド前提。"
+        },
+        {
+          "id": "GAP-004",
+          "title": "複数View切替は未対応",
+          "statement": "`views[0]` のみ使用。"
+        },
+        {
+          "id": "GAP-005",
+          "title": "FieldType継承 / FieldGroup継承は未実装",
+          "statement": "制約継承の仕組みはまだ存在しない。"
+        },
+        {
+          "id": "GAP-006",
+          "title": "テストパターン生成機能は未実装",
+          "statement": "制約からテストパターンを生成する仕組みはまだない。"
+        },
+        {
+          "id": "GAP-007",
+          "title": "制約設計書そのものを扱う専用構造は未実装",
+          "statement": "現行はview_defを管理できるが、AI制約設計書専用の構造はまだない。 ---"
+        }
+      ],
+      "notes": "",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": ""
+    },
+    {
+      "no": 11,
+      "group_id": "FUTURE_ADD",
+      "category": "追加候補",
+      "title": "次に追加候補となる制約",
+      "priority": "medium",
+      "review_status": "集約ドラフト",
+      "verification_status": "未確認",
+      "constraint_count": 5,
+      "summary": "子配列編集、required実装、FieldType継承、制約からテストパターン生成、テストコード生成をまとめる。",
+      "scope": "将来の機能拡張バックログ。",
+      "constraints": [
+        {
+          "id": "ADD-001",
+          "title": "子配列を編集可能にする",
+          "statement": "objectArray / stringArray をDetail Dialog内で編集可能にする。"
+        },
+        {
+          "id": "ADD-002",
+          "title": "validation.required を実装する",
+          "statement": "required指定されたFieldは保存・反映時に空を許可しない。"
+        },
+        {
+          "id": "ADD-003",
+          "title": "FieldType制約継承を実装する",
+          "statement": "例:"
+        },
+        {
+          "id": "ADD-004",
+          "title": "制約からテストパターンJSONを生成する",
+          "statement": "制約定義をもとに正常系・異常系・境界値テストを生成する。"
+        },
+        {
+          "id": "ADD-005",
+          "title": "テストパターンからテストコードを生成する",
+          "statement": "test_patterns.json から Playwright 等のテストコードを生成する。"
+        }
+      ],
+      "notes": "",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": ""
+    },
+    {
+      "no": 12,
+      "group_id": "REVIEW_POLICY",
+      "category": "レビュー",
+      "title": "人間レビュー観点",
+      "priority": "medium",
+      "review_status": "集約ドラフト",
+      "verification_status": "未確認",
+      "constraint_count": 3,
+      "summary": "AIが制約と呼んだものが本当に制約か、実装都合を誤認していないか、粒度がテスト生成に使えるかを確認する。",
+      "scope": "制約設計書を育てるための人間レビュー方針。",
+      "constraints": [
+        {
+          "id": "REVIEW-POINT-001",
+          "title": "AIが制約と呼んだものは本当に制約か確認する",
+          "statement": "実装説明・希望・運用メモを制約と誤認していないか確認する。"
+        },
+        {
+          "id": "REVIEW-POINT-002",
+          "title": "大事な制約の見落としを補う",
+          "statement": "コードから逆算できない思想由来・運用由来の制約を人間が追加する。"
+        },
+        {
+          "id": "REVIEW-POINT-003",
+          "title": "テストパターン生成に使える粒度に整える",
+          "statement": "制約がExpected JSONやPlaywrightテストへ変換できる粒度か確認する。"
+        }
+      ],
+      "notes": "",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": ""
+    }
+  ],
+  "export_md_name": "ai_constraint_spec_aggregated_v0_1.md",
+  "conversation_policy": "v0.4: app.js側の描画順変更前の暫定対応として、集約サマリ・対象範囲をchatのconstraintカードとして表示し、レビュー対象を読みやすくグルーピングする。"
+}
