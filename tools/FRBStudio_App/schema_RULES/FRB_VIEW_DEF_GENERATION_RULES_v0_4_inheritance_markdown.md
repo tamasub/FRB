@@ -1,8 +1,28 @@
 # FRB Studio View Definition Generation Rules
 
-対象: `FRBStudio_App` / No-Code JSON Studio v0.4.1 系
+対象: `FRBStudio_App` / No-Code JSON Studio v0.4.1+ 系
 
 この文書は、AI が新しいデータ JSON から `view_def.json` を生成するための作成ルールである。
+
+## 0. v0.4追加方針（継承・Markdown・レポート）
+
+この版では、ViewDefを単なる画面定義ではなく、以下の3つを扱う定義として拡張する。
+
+```text
+画面でどう見るか
+Markdownでどう読むか
+継承差分をどう理解するか
+```
+
+追加された主な考え方は以下である。
+
+- `extends` による ViewDef 継承。
+- `markdown.type` は **データJSONのMarkdown出力用** として扱う。
+- `ViewDef Markdown→Viewer` は ViewDef定義そのものを読むための固定レポートであり、`markdown.type` とは別系統とする。
+- 画面用の `grid.visible` / `edit.visible` と、Markdown出力用の `markdown.sections` は分離する。
+- 継承表示ラベルは、人間が見る caption では **【BASE】/【CHILD】** を使う。
+
+---
 
 ---
 
@@ -628,3 +648,349 @@ objectArray / stringArray の子テーブル
 - objectArray / stringArray は子テーブルとして表示する。
 - コメント欄・会話欄・レビュー後に入力する項目は `layout.placement: "detailFooter"` を指定する。
 - caption名で表示順を判定しない。役割を `layout.placement` に明示する。
+
+
+---
+
+## 17. ViewDef継承: `extends`（v0.4-draft）
+
+ViewDefは、他のViewDefを継承できる。
+目的は、同じデータJSONに対して、差分だけで別の観察モードを作ることである。
+
+```text
+同じデータJSON
+↓
+親BASE ViewDef
+↓ extends
+子CHILD ViewDef
+↓
+Summary View / Failure Focus View / Peak Focus View など
+```
+
+### 17.1 基本形
+
+```json
+{
+  "extends": "screen_state_diff_view_def_base_v0_2_checks.json",
+  "views": [
+    {
+      "id": "screen_state_diff_main",
+      "caption": "【CHILD】Screen State Diff Failure Focus View",
+      "sections": []
+    }
+  ]
+}
+```
+
+### 17.2 マージルール
+
+継承解決では、親BASEを読み込んだ後、子CHILDの定義で上書きする。
+
+| 対象 | マージキー | ルール |
+|---|---|---|
+| `views[]` | `id` | 同じ `id` の view をマージする |
+| `sections[]` | `id` | 同じ `id` の section をマージする |
+| `fields[]` | `field` | 同じ `field` の field をマージする |
+| その他の配列 | キーなし | 原則として子CHILDで置換する |
+| object | key | 再帰的にマージする |
+| scalar | - | 子CHILDの値で上書きする |
+
+### 17.3 内部IDと表示名のルール
+
+親BASEを上書きしたい場合、内部IDは親子で同じにする。
+
+```text
+views[].id      → 親子で同じ
+sections[].id   → 親子で同じ
+fields[].field  → 親子で同じ
+```
+
+ただし、人間が見る名前は脳バグ防止のため、必ず区別する。
+
+```text
+ファイル名: base / child を入れる
+caption:   【BASE】/【CHILD】 を入れる
+```
+
+例:
+
+```json
+{ "caption": "【BASE】Screen State Diff Viewer / Full Checks" }
+```
+
+```json
+{ "caption": "【CHILD】Screen State Diff Failure Focus View" }
+```
+
+### 17.4 AI生成ルール
+
+- 共通の基本ViewDefは `base` と命名する。
+- 差分だけを持つViewDefは `child` と命名する。
+- captionには `【BASE】` または `【CHILD】` を入れる。
+- 内部IDはマージキーとして使うため、親子で同じものを維持する。
+- 継承は差分を小さくするために使う。抽象化しすぎない。
+
+---
+
+## 18. Markdown出力ルール（データJSON用）（v0.4-draft）
+
+`Markdown出力→Viewer` は、対象JSONの内容をMarkdown化するための出口である。
+この制御は ViewDef の `markdown` 設定で行う。
+
+```json
+{
+  "markdown": {
+    "enabled": true,
+    "type": "screen_state_diff",
+    "title": "画面状態JSON 差分結果",
+    "defaultFileName": "screen_state_diff_export.md"
+  }
+}
+```
+
+### 18.1 重要な分離
+
+`markdown.type` は **データJSONのMarkdown出力タイプ** である。
+`ViewDef Markdown→Viewer` の出力形式を制御するものではない。
+
+```text
+Markdown出力→Viewer
+  対象: データJSON
+  設定: viewDef.markdown
+
+ViewDef Markdown→Viewer
+  対象: ViewDef JSON
+  設定: 原則アプリ側の固定レポート
+```
+
+将来、ViewDefレポート側の制御が必要になった場合は、`markdown` ではなく `viewDefReport` などの別名を使う。
+
+### 18.2 既存 type
+
+| type | 用途 |
+|---|---|
+| `screen_state_expected` | 画面状態JSONの期待値定義 |
+| `screen_state_diff` | 画面状態JSONの差分結果 |
+| `screen_state_test_patterns` | 画面状態JSONのテストパターン台帳 |
+| `auto` / 未指定 | 汎用テーブル出力 |
+
+### 18.3 AI生成ルール
+
+- 専用Markdownが必要なデータは `markdown.type` を明示する。
+- 専用Markdownが不要なデータは未指定でもよい。汎用出力へフォールバックする。
+- ファイル名を固定したい場合は `defaultFileName` を指定する。
+- Markdown出力の見出しは `markdown.title` を優先する。
+
+---
+
+## 19. 汎用Markdownセクション出力: `markdown.type = generic_sections`（v0.4-draft）
+
+画面で見たい構造と、Markdownで読ませたい構造は一致しないことがある。
+そのため、Markdown出力では `grid.visible` に依存せず、`markdown.sections` で出力構造を定義できる。
+
+```text
+grid.visible / edit.visible
+  → 画面表示の制御
+
+markdown.sections
+  → Markdown出力の制御
+```
+
+### 19.1 基本形
+
+```json
+{
+  "markdown": {
+    "enabled": true,
+    "type": "generic_sections",
+    "title": "AI制約設計書",
+    "defaultFileName": "ai_constraint_spec_export.md",
+    "sections": [
+      {
+        "title": "レビュー対象",
+        "source": "currentRow",
+        "fields": [
+          { "field": "summary", "caption": "要約", "format": "blockquote" },
+          { "field": "scope", "caption": "対象範囲", "format": "paragraph" }
+        ]
+      },
+      {
+        "title": "含まれる個別制約",
+        "source": "currentRow",
+        "arrayField": "constraints",
+        "format": "table",
+        "fields": [
+          { "field": "id", "caption": "ID" },
+          { "field": "title", "caption": "タイトル" },
+          { "field": "statement", "caption": "制約本文" }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### 19.2 markdown section
+
+| key | 説明 |
+|---|---|
+| `title` | Markdown見出し |
+| `source` | 出力元。`sourceData` / `currentRow` / `allRows` など |
+| `dataPath` | 任意のデータパス |
+| `arrayField` | 配列項目を表・カードとして出す場合の field |
+| `format` | `table` / `list` / `cards` / `paragraph` / `blockquote` / `json` / `chat` |
+| `fields` | 出力する項目の配列 |
+
+### 19.3 markdown field
+
+| key | 説明 |
+|---|---|
+| `field` | データ項目パス |
+| `caption` | Markdown上の表示名 |
+| `format` | `text` / `paragraph` / `blockquote` / `code` / `json` / `note` |
+| `visible` | `false` の場合Markdownに出さない |
+| `empty` | 空値時の表示文字 |
+
+### 19.4 AI生成ルール
+
+- 詳細ダイアログで読む重要情報は、必要に応じて `markdown.sections` にも明示する。
+- `objectArray` / `stringArray` の中身をMarkdownに出したい場合は、`arrayField` を使う。
+- レビュー対象文章、含まれる個別制約、会話ログなどは `generic_sections` の主対象である。
+- 画面で非表示の項目でも、Markdownで必要なら `markdown.sections` に含める。
+
+---
+
+## 20. ViewDef Markdownレポート（ViewDef定義用）（v0.4-draft）
+
+`ViewDef Markdown→Viewer` は、ViewDef定義そのものをMarkdown化する出口である。
+これはデータJSONのMarkdown出力とは別系統である。
+
+### 20.1 出力内容
+
+標準レポートでは以下を出力する。
+
+```text
+基本情報
+View / Section 概要
+継承差分サマリ
+生ViewDef概要
+解決済みViewDef概要
+元ViewDef JSON
+解決済みViewDef JSON
+```
+
+### 20.2 継承差分サマリ
+
+`extends` がある場合、親BASEの解決済みViewDefと、子CHILDの解決済みViewDefを比較し、以下の差分を出力する。
+
+- View差分
+- Section差分
+- Field差分
+
+`extends` がない場合は、継承差分なしとして出力する。
+
+### 20.3 viewDefReport（将来用）
+
+将来、ViewDefレポートの出力内容をViewDef側から制御したい場合は、`markdown` ではなく `viewDefReport` を使う。
+
+```json
+{
+  "viewDefReport": {
+    "enabled": true,
+    "includeInheritanceDiff": true,
+    "includeResolvedJson": true
+  }
+}
+```
+
+---
+
+## 21. chat field 拡張: `edit.input` / `embeddedFields` / radio（v0.4-draft）
+
+`chat` field は、会話表示だけでなく、コメント追加入力や埋め込みフィールドも扱える。
+
+### 21.1 コメント追加入力: `edit.input`
+
+```json
+{
+  "field": "__group_chat",
+  "caption": "制約グループ会話",
+  "type": "chat",
+  "edit": {
+    "visible": true,
+    "messages": [],
+    "input": {
+      "enabled": true,
+      "userField": "user_reply",
+      "aiField": "ai_followup_response",
+      "placeholder": "この制約グループへのコメントを追加...",
+      "sendLabel": "送信"
+    }
+  }
+}
+```
+
+| key | 説明 |
+|---|---|
+| `enabled` | 入力バーを表示するか |
+| `userField` | 送信内容を書き込むフィールド |
+| `aiField` | AI回答待ち欄として用意するフィールド |
+| `placeholder` | 入力欄のプレースホルダー |
+| `sendLabel` | 送信ボタン表示 |
+
+### 21.2 メッセージ内埋め込み: `embeddedFields`
+
+チャット吹き出しの中に、承認ラジオなどの入力部品を埋め込める。
+
+```json
+{
+  "role": "constraint",
+  "field": "statement",
+  "label": "制約本文",
+  "readonly": true,
+  "embeddedFields": [
+    {
+      "field": "review_check",
+      "label": "確認",
+      "control": "radio",
+      "options": ["未確認", "確認済み", "対象外"]
+    }
+  ]
+}
+```
+
+### 21.3 radio control
+
+通常Fieldまたは埋め込みFieldで、`control: "radio"` または `edit.control: "radio"` を指定できる。
+
+```json
+{
+  "field": "review_check",
+  "caption": "確認状態",
+  "type": "select",
+  "options": ["未確認", "確認済み", "対象外"],
+  "edit": {
+    "visible": true,
+    "control": "radio"
+  }
+}
+```
+
+### 21.4 AI生成ルール
+
+- レビュー状態・承認状態など、候補が少なく頻繁に触る項目は radio を推奨する。
+- 会話末尾にコメントを追記したい場合は `edit.input` を使う。
+- 会話の中で同時に確認状態を変更したい場合は `embeddedFields` を使う。
+
+---
+
+## 22. 追加制約まとめ（v0.4）
+
+- `extends` は ViewDef継承用。
+- 継承マージでは `views.id` / `sections.id` / `fields.field` をキーにする。
+- 人間が見る caption は `【BASE】/【CHILD】` で親子を区別する。
+- `markdown.type` はデータJSONのMarkdown出力用。
+- `ViewDef Markdown→Viewer` はViewDef定義レポート用であり、`markdown.type` とは別系統。
+- `generic_sections` では、画面表示とは別にMarkdown出力順を定義できる。
+- `grid.visible` は画面用、`markdown.sections` はMarkdown用。
+- chat field は `edit.messages` / `edit.input` / `embeddedFields` を使ってレビュー会話を構成できる。

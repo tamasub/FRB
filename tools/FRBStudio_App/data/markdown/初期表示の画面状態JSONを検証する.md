@@ -1,6 +1,6 @@
 # 初期表示の画面状態JSONを検証する
 
-- 出力日時: 2026/6/20 0:42:46
+- 出力日時: 2026/6/20 8:14:37
 - status: fail
 - 件数: 4
 
@@ -21,7 +21,7 @@
 
 ---
 
-## チェッカー一覧
+## 【継承元BASE】チェッカー一覧 / Full Checks
 | 判定 | Check | Type | Target | Missing | Expected | Actual |
 | --- | --- | --- | --- | --- | --- | --- |
 | false | appTitle | equals | appTitle | [] | No-Code JSON Studio v0.3-draft eeee | No-Code JSON Studio v0.3-draft |

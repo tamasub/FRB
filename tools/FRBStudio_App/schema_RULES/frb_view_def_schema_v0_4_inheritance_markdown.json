@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.local/frb/view_def_schema_v0_3_chat_layout.json",
+  "$id": "https://example.local/frb/view_def_schema_v0_4_inheritance_markdown.json",
   "title": "FRB Studio View Definition Schema",
-  "description": "Schema for FRBStudio_App / No-Code JSON Studio view_def JSON files. Generated from v0.4.1 source behavior. Includes v0.4-draft chat field type. Includes detail layout placement for footer fields.",
+  "description": "Schema for FRBStudio_App / No-Code JSON Studio view_def JSON files. Includes inheritance (extends), data Markdown export configuration, ViewDef report configuration, chat field extensions, and detail layout placement.",
   "type": "object",
   "additionalProperties": true,
   "properties": {
@@ -24,6 +24,25 @@
       "items": {
         "$ref": "#/$defs/view"
       }
+    },
+    "extends": {
+      "description": "ViewDef inheritance. String or array of parent view_def JSON file names.",
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      ]
+    },
+    "viewDefReport": {
+      "$ref": "#/$defs/viewDefReportOptions"
     }
   },
   "required": [
@@ -53,6 +72,12 @@
           "items": {
             "$ref": "#/$defs/section"
           }
+        },
+        "markdown": {
+          "$ref": "#/$defs/markdownOptions"
+        },
+        "viewDefReport": {
+          "$ref": "#/$defs/viewDefReportOptions"
         }
       },
       "required": [
@@ -96,6 +121,9 @@
           "items": {
             "$ref": "#/$defs/field"
           }
+        },
+        "markdown": {
+          "$ref": "#/$defs/markdownSectionOptions"
         }
       },
       "required": [
@@ -176,6 +204,14 @@
               "type": "number"
             }
           }
+        },
+        "control": {
+          "type": "string",
+          "enum": [
+            "combobox",
+            "listbox",
+            "radio"
+          ]
         }
       },
       "required": [
@@ -253,7 +289,8 @@
           "type": "string",
           "enum": [
             "combobox",
-            "listbox"
+            "listbox",
+            "radio"
           ]
         },
         "messages": {
@@ -290,6 +327,20 @@
               },
               "placeholder": {
                 "type": "string"
+              },
+              "embeddedFields": {
+                "type": "array",
+                "description": "chat吹き出し内に埋め込む入力フィールド。承認ラジオ等に利用する。",
+                "items": {
+                  "$ref": "#/$defs/chatEmbeddedField"
+                }
+              },
+              "embedded_fields": {
+                "type": "array",
+                "description": "chat吹き出し内に埋め込む入力フィールド。承認ラジオ等に利用する。",
+                "items": {
+                  "$ref": "#/$defs/chatEmbeddedField"
+                }
               }
             },
             "required": [
@@ -319,6 +370,37 @@
             },
             "order": {
               "type": "number"
+            }
+          }
+        },
+        "input": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Field type chat用のコメント追加入力バー設定。",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "userField": {
+              "type": "string"
+            },
+            "user_field": {
+              "type": "string"
+            },
+            "aiField": {
+              "type": "string"
+            },
+            "ai_field": {
+              "type": "string"
+            },
+            "placeholder": {
+              "type": "string"
+            },
+            "sendLabel": {
+              "type": "string"
+            },
+            "send_label": {
+              "type": "string"
             }
           }
         }
@@ -359,6 +441,201 @@
           "type": "boolean"
         }
       }
+    },
+    "markdownOptions": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Data JSON export configuration used by Markdown出力→Viewer. Not used for ViewDef Markdown→Viewer.",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "generic_sections",
+            "screen_state_expected",
+            "screen_state_diff",
+            "screen_state_test_patterns"
+          ]
+        },
+        "exportType": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "fileName": {
+          "type": "string"
+        },
+        "filename": {
+          "type": "string"
+        },
+        "defaultFileName": {
+          "type": "string"
+        },
+        "sections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/markdownSectionOptions"
+          }
+        }
+      }
+    },
+    "markdownSectionOptions": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "sourceData",
+            "currentRow",
+            "allRows",
+            "header",
+            "grid"
+          ]
+        },
+        "dataPath": {
+          "type": "string"
+        },
+        "arrayField": {
+          "type": "string"
+        },
+        "format": {
+          "type": "string",
+          "enum": [
+            "text",
+            "paragraph",
+            "blockquote",
+            "code",
+            "json",
+            "note",
+            "table",
+            "list",
+            "cards",
+            "chat"
+          ]
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/markdownFieldOptions"
+          }
+        },
+        "visible": {
+          "type": "boolean"
+        }
+      }
+    },
+    "markdownFieldOptions": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "field": {
+          "type": "string"
+        },
+        "caption": {
+          "type": "string"
+        },
+        "format": {
+          "type": "string",
+          "enum": [
+            "text",
+            "paragraph",
+            "blockquote",
+            "code",
+            "json",
+            "note",
+            "table",
+            "list",
+            "cards",
+            "chat"
+          ]
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "empty": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "field"
+      ]
+    },
+    "viewDefReportOptions": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Future options for ViewDef Markdown→Viewer report. Separate from markdown.type.",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "includeInheritanceDiff": {
+          "type": "boolean"
+        },
+        "includeResolvedJson": {
+          "type": "boolean"
+        },
+        "includeRawJson": {
+          "type": "boolean"
+        }
+      }
+    },
+    "chatEmbeddedField": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "field": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "caption": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/$defs/fieldType"
+        },
+        "control": {
+          "type": "string",
+          "enum": [
+            "combobox",
+            "listbox",
+            "radio"
+          ]
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "number",
+              "boolean"
+            ]
+          }
+        },
+        "readonly": {
+          "type": "boolean"
+        },
+        "edit": {
+          "$ref": "#/$defs/editOptions"
+        }
+      },
+      "required": [
+        "field"
+      ]
     }
   }
 }

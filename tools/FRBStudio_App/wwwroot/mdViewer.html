@@ -352,12 +352,18 @@
     /* Markdownスタイル */
 	/* --- Markdownスタイル 内に追加・統合 --- */
 	.markdown-body {
-	  font-size: 16px;
+	  font-size: 15px;
+	  line-height: 1.78;
 	  min-width: 0;
 	  max-width: 100%;
 	  overflow-wrap: anywhere; /* 長いURLや英単語が枠外に突き抜けるのを防ぐ */
 	  word-break: normal;
 	}
+
+    .markdown-body p,
+    .markdown-body li {
+      font-size: 14.5px;
+    }
 
 	/* 2. 画像の暴走を完全に抑え込む */
 	.markdown-body img {
@@ -379,17 +385,160 @@
 	.markdown-body table th, .markdown-body table td {
 	  padding: 10px 16px;
 	  border: 1px solid var(--line);
+      font-size: 13.5px;
+      line-height: 1.65;
 	}
 	.markdown-body table th {
 	  background: rgba(105, 120, 160, 0.06);
 	}
 
-    .markdown-body h1, .markdown-body h2, .markdown-body h3 { color: var(--text); line-height: 1.35; padding-left: 8px; margin-left: -8px; overflow-wrap:anywhere; }
+    /* 見出し共通: v007 heading-align
+       h1/h2/h3の padding-left が本文より右ズレして見える原因だったため、
+       通常の見出しは本文と同じ左端に揃える。
+       制約レポートだけは .constraint-report 側の専用インデントで調整する。 */
+    .markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4, .markdown-body h5, .markdown-body h6 {
+      color: var(--text);
+      line-height: 1.35;
+      padding-left: 0;
+      margin-left: 0;
+      overflow-wrap:anywhere;
+    }
     .markdown-body h1 { margin: 0 0 24px; font-size: clamp(28px, 4vw, 36px); font-weight: 800; letter-spacing: -.03em; }
     .markdown-body h2 { margin: 46px 0 20px; padding-bottom: 10px; border-bottom: 2px solid rgba(105,120,160,0.15); font-size: clamp(20px, 3vw, 26px); font-weight: 800; }
     html[data-theme="qiita"] .markdown-body h2 { border-bottom-color: rgba(85,197,0,0.3); }
     html[data-theme="zenn"] .markdown-body h2 { border-bottom-color: rgba(62,168,255,0.3); }
     .markdown-body h3 { margin: 36px 0 16px; font-size: 19px; font-weight: 800; }
+    .markdown-body h4 { margin: 30px 0 12px; font-size: 16.5px; font-weight: 900; }
+    .markdown-body h5 { margin: 20px 0 8px; font-size: 15px; font-weight: 900; }
+    .markdown-body h6 { margin: 16px 0 6px; font-size: 14px; font-weight: 850; color: var(--muted); }
+    .markdown-body h4 + p, .markdown-body h5 + p, .markdown-body h6 + p { margin-top: 6px; }
+
+    /* Markdown階層インデント v005-safe
+       通常記事にインデント補正をかけると本文が崩れるため、
+       AI制約設計書レポートとして検出した時だけ .constraint-report を付けて有効化する。 */
+    .markdown-body.constraint-report {
+      --md-indent-h4: 8px;
+      --md-indent-h5: 24px;
+      --md-indent-h6: 36px;
+      --md-content-indent-h4: 14px;
+      --md-content-indent-h5: 34px;
+      --md-content-indent-h6: 46px;
+    }
+    .markdown-body.constraint-report h4 {
+      margin-left: var(--md-indent-h4);
+      padding-left: 0;
+    }
+    .markdown-body.constraint-report h5 {
+      margin-left: var(--md-indent-h5);
+      padding-left: 0;
+    }
+    .markdown-body.constraint-report h6 {
+      margin-left: var(--md-indent-h6);
+      padding-left: 0;
+    }
+    .markdown-body.constraint-report .md-indent-h4-content,
+    .markdown-body.constraint-report .md-indent-h5-content,
+    .markdown-body.constraint-report .md-indent-h6-content {
+      box-sizing: border-box;
+    }
+    .markdown-body.constraint-report .md-indent-h4-content { margin-left: var(--md-content-indent-h4); }
+    .markdown-body.constraint-report .md-indent-h5-content { margin-left: var(--md-content-indent-h5); }
+    .markdown-body.constraint-report .md-indent-h6-content { margin-left: var(--md-content-indent-h6); }
+
+    .markdown-body.constraint-report table.md-indent-h4-content,
+    .markdown-body.constraint-report pre.md-indent-h4-content,
+    .markdown-body.constraint-report blockquote.md-indent-h4-content {
+      width: calc(100% - var(--md-content-indent-h4));
+      max-width: calc(100% - var(--md-content-indent-h4));
+    }
+    .markdown-body.constraint-report table.md-indent-h5-content,
+    .markdown-body.constraint-report pre.md-indent-h5-content,
+    .markdown-body.constraint-report blockquote.md-indent-h5-content {
+      width: calc(100% - var(--md-content-indent-h5));
+      max-width: calc(100% - var(--md-content-indent-h5));
+    }
+    .markdown-body.constraint-report table.md-indent-h6-content,
+    .markdown-body.constraint-report pre.md-indent-h6-content,
+    .markdown-body.constraint-report blockquote.md-indent-h6-content {
+      width: calc(100% - var(--md-content-indent-h6));
+      max-width: calc(100% - var(--md-content-indent-h6));
+    }
+
+    @media (max-width: 760px) {
+      .markdown-body.constraint-report {
+        --md-indent-h4: 4px;
+        --md-indent-h5: 12px;
+        --md-indent-h6: 18px;
+        --md-content-indent-h4: 8px;
+        --md-content-indent-h5: 16px;
+        --md-content-indent-h6: 22px;
+      }
+    }
+    /* Markdown通常記事 v008-body-indent
+       通常の記事Markdownは、見出しを左端の基準にして、本文だけを少し右へ寄せる。
+       制約レポートは .constraint-report 側の専用階層インデントを維持する。 */
+    .markdown-body.normal-article {
+      --md-normal-body-indent: 18px;
+    }
+    .markdown-body.normal-article h1,
+    .markdown-body.normal-article h2,
+    .markdown-body.normal-article h3,
+    .markdown-body.normal-article h4,
+    .markdown-body.normal-article h5,
+    .markdown-body.normal-article h6 {
+      margin-left: 0 !important;
+      padding-left: 0 !important;
+    }
+    .markdown-body.normal-article .md-indent-h4-content,
+    .markdown-body.normal-article .md-indent-h5-content,
+    .markdown-body.normal-article .md-indent-h6-content {
+      margin-left: 0 !important;
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+    .markdown-body.normal-article > p,
+    .markdown-body.normal-article > ul,
+    .markdown-body.normal-article > ol,
+    .markdown-body.normal-article > blockquote,
+    .markdown-body.normal-article > table,
+    .markdown-body.normal-article > pre,
+    .markdown-body.normal-article > .qiita-note,
+    .markdown-body.normal-article > img {
+      margin-left: var(--md-normal-body-indent) !important;
+      max-width: calc(100% - var(--md-normal-body-indent)) !important;
+    }
+    .markdown-body.normal-article > p {
+      margin-top: 0;
+      margin-bottom: 16px;
+    }
+    .markdown-body.normal-article > ul,
+    .markdown-body.normal-article > ol {
+      margin-top: 0;
+      margin-bottom: 18px;
+      padding-left: 1.45em;
+    }
+    .markdown-body.normal-article li {
+      margin: 3px 0;
+      padding-left: 0.15em;
+    }
+    .markdown-body.normal-article li > ul,
+    .markdown-body.normal-article li > ol {
+      margin-top: 4px;
+      margin-bottom: 4px;
+      padding-left: 1.35em;
+    }
+    .markdown-body.normal-article > table,
+    .markdown-body.normal-article > pre,
+    .markdown-body.normal-article > blockquote,
+    .markdown-body.normal-article > .qiita-note {
+      width: calc(100% - var(--md-normal-body-indent)) !important;
+    }
+    @media (max-width: 760px) {
+      .markdown-body.normal-article {
+        --md-normal-body-indent: 10px;
+      }
+    }
+
     .markdown-body a { color: var(--brand-color); text-decoration: none; font-weight: 700; }
     .markdown-body a:hover { text-decoration: underline; }
     .markdown-body blockquote { margin: 24px 0; padding: 14px 22px; border-left: 5px solid var(--brand-color); border-radius: 12px; background: rgba(105,120,160,.05); color: var(--muted); }
@@ -504,6 +653,102 @@
         margin: 18pt 0 8pt !important;
         page-break-after: avoid;
         break-after: avoid;
+      }
+
+      #preview h4 {
+        font-size: 12pt !important;
+        margin: 16pt 0 7pt !important;
+        page-break-after: avoid;
+        break-after: avoid;
+      }
+
+      #preview h5 {
+        font-size: 11pt !important;
+        margin: 12pt 0 6pt !important;
+        page-break-after: avoid;
+        break-after: avoid;
+      }
+
+      #preview h6 {
+        font-size: 10pt !important;
+        margin: 10pt 0 5pt !important;
+        page-break-after: avoid;
+        break-after: avoid;
+      }
+
+      #preview.constraint-report h4 {
+        margin-left: 3mm !important;
+        padding-left: 0 !important;
+      }
+
+      #preview.constraint-report h5 {
+        margin-left: 7mm !important;
+        padding-left: 0 !important;
+      }
+
+      #preview.constraint-report h6 {
+        margin-left: 10mm !important;
+        padding-left: 0 !important;
+      }
+
+      #preview.constraint-report .md-indent-h4-content {
+        margin-left: 5mm !important;
+      }
+
+      #preview.constraint-report .md-indent-h5-content {
+        margin-left: 9mm !important;
+      }
+
+      #preview.constraint-report .md-indent-h6-content {
+        margin-left: 12mm !important;
+      }
+
+      #preview.constraint-report table.md-indent-h4-content,
+      #preview.constraint-report pre.md-indent-h4-content,
+      #preview.constraint-report blockquote.md-indent-h4-content {
+        width: calc(100% - 5mm) !important;
+        max-width: calc(100% - 5mm) !important;
+      }
+
+      #preview.constraint-report table.md-indent-h5-content,
+      #preview.constraint-report pre.md-indent-h5-content,
+      #preview.constraint-report blockquote.md-indent-h5-content {
+        width: calc(100% - 9mm) !important;
+        max-width: calc(100% - 9mm) !important;
+      }
+
+      #preview.constraint-report table.md-indent-h6-content,
+      #preview.constraint-report pre.md-indent-h6-content,
+      #preview.constraint-report blockquote.md-indent-h6-content {
+        width: calc(100% - 12mm) !important;
+        max-width: calc(100% - 12mm) !important;
+      }
+
+      #preview.normal-article h1,
+      #preview.normal-article h2,
+      #preview.normal-article h3,
+      #preview.normal-article h4,
+      #preview.normal-article h5,
+      #preview.normal-article h6,
+      #preview.normal-article .md-indent-h4-content,
+      #preview.normal-article .md-indent-h5-content,
+      #preview.normal-article .md-indent-h6-content {
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+        width: auto !important;
+        max-width: 100% !important;
+      }
+
+      #preview.normal-article > p,
+      #preview.normal-article > ul,
+      #preview.normal-article > ol,
+      #preview.normal-article > blockquote,
+      #preview.normal-article > table,
+      #preview.normal-article > pre,
+      #preview.normal-article > .qiita-note,
+      #preview.normal-article > img {
+        margin-left: 4mm !important;
+        max-width: calc(100% - 4mm) !important;
       }
 
       #preview p,
@@ -965,6 +1210,84 @@ function setupSmoothScrollLinks() {
   });
 }
 
+
+function isConstraintReportMarkdown(content) {
+  const text = String(content || "");
+  return (
+    text.includes("## 制約グループ詳細") ||
+    (text.includes("# AI制約設計書") && text.includes("#### 含まれる個別制約"))
+  );
+}
+
+function normalizePseudoJapaneseLists(md) {
+  const lines = String(md || "").split(/\r?\n/);
+  let inFence = false;
+  let inPseudoList = false;
+
+  const normalized = lines.map(line => {
+    const trimmed = line.trim();
+
+    if (/^```/.test(trimmed) || /^~~~/.test(trimmed)) {
+      inFence = !inFence;
+      inPseudoList = false;
+      return line;
+    }
+    if (inFence) return line;
+
+    // 日本語記事でよく使う「・」「･」をMarkdownリストとして扱う。
+    if (/^[ \t　]*[・･]\s*/.test(line)) {
+      inPseudoList = true;
+      return line.replace(/^[ \t　]*[・･]\s*/, "- ");
+    }
+
+    // 「・項目」の直後に全角スペース等で字下げされた行は、子リストとして扱う。
+    if (inPseudoList && /^[ \t　]+\S/.test(line)) {
+      const body = line.replace(/^[ \t　]+/, "");
+      if (!/^([-*+]|\d+\.|#{1,6}\s|>|\||```|~~~)/.test(body)) {
+        return "  - " + body;
+      }
+    }
+
+    if (!trimmed) {
+      inPseudoList = false;
+      return line;
+    }
+
+    if (!/^[ \t　]/.test(line)) inPseudoList = false;
+    return line;
+  });
+
+  return normalized.join("\n");
+}
+
+function applyMarkdownIndentClasses(enabled = false) {
+  const indentClasses = ["md-indent-h4-content", "md-indent-h5-content", "md-indent-h6-content"];
+  previewEl.classList.toggle("constraint-report", Boolean(enabled));
+  previewEl.classList.toggle("normal-article", !Boolean(enabled));
+
+  let currentHeadingLevel = 0;
+  [...previewEl.children].forEach(el => {
+    el.classList.remove(...indentClasses);
+    const match = el.tagName.match(/^H([1-6])$/);
+    if (match) {
+      currentHeadingLevel = Number(match[1]);
+      return;
+    }
+
+    // 通常記事ではインデント補正しない。
+    // AI制約設計書レポートだけ、h4/h5/h6配下の本文・表・リストを軽く右へ寄せる。
+    if (!enabled) return;
+
+    if (currentHeadingLevel >= 6) {
+      el.classList.add("md-indent-h6-content");
+    } else if (currentHeadingLevel >= 5) {
+      el.classList.add("md-indent-h5-content");
+    } else if (currentHeadingLevel >= 4) {
+      el.classList.add("md-indent-h4-content");
+    }
+  });
+}
+
 function buildToc(){
   const allHeadings=[...previewEl.querySelectorAll("h1,h2,h3")];
   allHeadings.forEach((h,i)=>{if(!h.id)h.id=slugify(h.textContent,i)});
@@ -1037,9 +1360,12 @@ function renderMarkdown(rawMd, sourceUrl, sourceLabel){
       if (!metaFileName.value) syncFileNameUI(fallbackName + ".md");
     }
     
-    const html = marked.parse(preprocessQiita(content));
+    const constraintReport = isConstraintReportMarkdown(content);
+    const renderContent = constraintReport ? content : normalizePseudoJapaneseLists(content);
+    const html = marked.parse(preprocessQiita(renderContent));
     previewEl.innerHTML = DOMPurify.sanitize(html, { ADD_ATTR: ["target"] });
     previewEl.querySelectorAll('a[href^="http"]').forEach(a => { a.target = "_blank"; a.rel = "noreferrer"; });
+    applyMarkdownIndentClasses(constraintReport);
     
     buildToc();
     updateMeta(rawMd, content);

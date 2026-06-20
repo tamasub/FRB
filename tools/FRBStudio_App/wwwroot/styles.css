@@ -57,7 +57,7 @@ main { padding: 14px; }
 
 .loader-panel {
   display: grid;
-  grid-template-columns: minmax(190px, 1fr) minmax(190px, 1fr) minmax(120px,.65fr) minmax(120px,.65fr) auto auto minmax(110px, auto);
+  grid-template-columns: minmax(190px, 1fr) minmax(190px, 1fr) minmax(120px,.65fr) minmax(120px,.65fr) auto auto auto auto;
   align-items: center;
   gap: 8px;
 }
@@ -173,6 +173,15 @@ main { padding: 14px; }
   text-overflow: ellipsis;
 }
 .status { color: #dbeafe; font-size:12px; white-space: nowrap; }
+
+/* Header actions: ViewDef Markdownボタン追加後も、導線とステータスを2段目に逃がす */
+.loader-panel .studio-nav-link {
+  grid-column: 1 / span 2;
+  justify-self: start;
+}
+.loader-panel .status {
+  grid-column: 3 / -1;
+}
 
 .card {
   background: var(--panel);
@@ -307,7 +316,8 @@ td.boolean { text-align:center; }
 @media (max-width: 980px) {
   .app-header { grid-template-columns: 1fr; }
   .loader-panel { grid-template-columns: 1fr 1fr; }
-  .status { grid-column: 1 / -1; }
+  .loader-panel .studio-nav-link { grid-column: 1 / -1; }
+  .loader-panel .status { grid-column: 1 / -1; }
 }
 
 th.sortable { cursor: pointer; user-select: none; }
@@ -342,10 +352,15 @@ th.sortable:hover { background: linear-gradient(180deg, #eef6ff, #ddecfb); }
 #exportMarkdownBtn {
   border-color: rgba(14, 165, 233, 0.35);
 }
+#exportViewDefMarkdownBtn {
+  border-color: rgba(168, 85, 247, 0.42);
+  background: rgba(255,255,255,.14);
+  color: #f3e8ff;
+}
 #prevDetailBtn, #nextDetailBtn {
   min-width: 78px;
 }
-#prevDetailBtn:disabled, #nextDetailBtn:disabled, #exportMarkdownBtn:disabled {
+#prevDetailBtn:disabled, #nextDetailBtn:disabled, #exportMarkdownBtn:disabled, #exportViewDefMarkdownBtn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }

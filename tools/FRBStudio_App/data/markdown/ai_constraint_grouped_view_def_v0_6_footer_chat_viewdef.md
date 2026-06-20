@@ -1,3 +1,81 @@
+# ViewDef定義レポート — AI制約設計書 集約版 / Footer Chat
+
+## 基本情報
+- 出力日時: 2026/6/20 8:36:19
+- 対象ViewDef: ai_constraint_grouped_view_def_v0_6_footer_chat.json
+- app.name: No-Code JSON Studio
+- app.version: 0.6-footer-chat
+- views: 1
+
+## View / Section 概要
+| View | View Caption | Section | Section Caption | Type | DataPath | KeyField | Fields |
+| --- | --- | --- | --- | --- | --- | --- | ---: |
+| ai_constraint_grouped_v0_6_footer_chat | AI制約設計書 集約版 / Footer Chat | header | 制約設計書 集約版 / 基本情報 | form | $ |  | 7 |
+| ai_constraint_grouped_v0_6_footer_chat | AI制約設計書 集約版 / Footer Chat | constraint_groups | 制約グループ一覧 / レビュー対象→個別制約→会話 | grid | $.constraint_groups | group_id | 18 |
+
+## 継承差分サマリ
+
+このViewDefは extends を持たないため、継承差分はありません。
+
+## AI制約設計書 集約版 / Footer Chat
+
+- view.id: ai_constraint_grouped_v0_6_footer_chat
+- layout: header-search-grid-detail
+
+### 制約設計書 集約版 / 基本情報
+
+- section.id: header
+- type: form
+- dataPath: $
+- fields: 7
+
+| field | caption | type | grid.visible | width | edit.visible | readonly | search | options |
+| --- | --- | --- | --- | ---: | --- | --- | --- | --- |
+| title | タイトル | text | false |  | true | true |  |  |
+| target | 対象 | text | false |  | true | true |  |  |
+| schema_version | Schema Version | text | false |  | true | true |  |  |
+| status | 状態 | select | false |  | true |  |  | aggregated_chat_draft, aggregated_draft, reviewing, approved, needs_rework |
+| source_constraint_count | 元制約数 | number | false |  | true | true |  |  |
+| group_count | 集約グループ数 | number | false |  | true | true |  |  |
+| aggregation_policy | 集約方針 | textarea | false |  | true | true |  |  |
+
+### 制約グループ一覧 / レビュー対象→個別制約→会話
+
+- section.id: constraint_groups
+- type: grid
+- dataPath: $.constraint_groups
+- keyField: group_id
+- fields: 18
+
+| field | caption | type | grid.visible | width | edit.visible | readonly | search | options |
+| --- | --- | --- | --- | ---: | --- | --- | --- | --- |
+| no | No | number | true | 60 | true | true |  |  |
+| group_id | Group ID | text | true | 150 | true | true | true (contains) |  |
+| category | 分類 | select | true | 120 | true |  | true (equals) | アプリ構成, ファイル管理, 画面定義, Field, 一覧・検索, 編集・行操作, 子配列, 保存・関連 ... +4 |
+| title | 制約グループ名 | text | true | 260 | true |  | true (contains) |  |
+| priority | 優先度 | select | true | 90 | true |  | true (equals) | high, medium, low |
+| review_status | レビュー状態 | select | true | 120 | true |  | true (equals) | 集約ドラフト, 確認中, 確認済み, 要再整理, 保留 |
+| verification_status | 確認状態 | select | true | 110 | true |  | true (equals) | 未確認, 確認済み, 対象外 |
+| constraint_count | 制約数 | number | true | 80 | true | true | true (gte) |  |
+| summary | 集約サマリ | textarea | true | 380 | false |  | true (contains) |  |
+| scope | 対象範囲 | textarea | false |  | false |  | true (contains) |  |
+| __review_target_cards | レビュー対象 | chat | false |  | true |  | false |  |
+| __group_chat | 制約グループ会話 | chat | false |  | true |  | false |  |
+| constraints | 含まれる個別制約 | objectArray | false |  | true | true |  |  |
+| notes | グループメモ | textarea | false |  | false |  | true (contains) |  |
+| user_comment | 俺コメント | textarea | true | 260 | false |  | true (contains) |  |
+| ai_response | AI回答 | textarea | true | 300 | false | true | true (contains) |  |
+| user_reply | 俺追加回答 | textarea | false | 260 | false |  | true (contains) |  |
+| ai_followup_response | AI再回答 | textarea | false |  | false | true | true (contains) |  |
+
+---
+
+## ViewDef JSON
+
+<details>
+<summary>元ViewDef JSONを表示</summary>
+
+```json
 {
   "app": {
     "name": "No-Code JSON Studio",
@@ -525,197 +603,11 @@
             }
           ]
         }
-      ],
-      "markdown": {
-        "enabled": true,
-        "type": "generic_sections",
-        "title": "AI制約設計書 集約版",
-        "defaultFileName": "ai_constraint_spec_aggregated_export.md",
-        "sections": [
-          {
-            "title": "基本情報",
-            "source": "root",
-            "fields": [
-              {
-                "field": "title",
-                "caption": "タイトル"
-              },
-              {
-                "field": "target",
-                "caption": "対象"
-              },
-              {
-                "field": "schema_version",
-                "caption": "Schema Version"
-              },
-              {
-                "field": "document_type",
-                "caption": "Document Type"
-              },
-              {
-                "field": "status",
-                "caption": "状態"
-              },
-              {
-                "field": "source_document",
-                "caption": "元ドキュメント"
-              },
-              {
-                "field": "source_constraint_count",
-                "caption": "元制約数"
-              },
-              {
-                "field": "group_count",
-                "caption": "集約グループ数"
-              },
-              {
-                "field": "aggregation_policy",
-                "caption": "集約方針",
-                "format": "paragraph"
-              }
-            ]
-          },
-          {
-            "title": "制約グループ一覧",
-            "source": "rows",
-            "format": "table",
-            "fields": [
-              {
-                "field": "no",
-                "caption": "No"
-              },
-              {
-                "field": "group_id",
-                "caption": "Group ID"
-              },
-              {
-                "field": "category",
-                "caption": "分類"
-              },
-              {
-                "field": "title",
-                "caption": "制約グループ名"
-              },
-              {
-                "field": "priority",
-                "caption": "優先度"
-              },
-              {
-                "field": "review_status",
-                "caption": "レビュー状態"
-              },
-              {
-                "field": "verification_status",
-                "caption": "確認状態"
-              },
-              {
-                "field": "constraint_count",
-                "caption": "制約数"
-              },
-              {
-                "field": "summary",
-                "caption": "集約サマリ"
-              }
-            ]
-          },
-          {
-            "title": "制約グループ詳細",
-            "source": "rows",
-            "format": "detail",
-            "itemTitle": "{no}. {group_id}：{title}",
-            "fields": [
-              {
-                "field": "category",
-                "caption": "分類"
-              },
-              {
-                "field": "priority",
-                "caption": "優先度"
-              },
-              {
-                "field": "review_status",
-                "caption": "レビュー状態"
-              },
-              {
-                "field": "verification_status",
-                "caption": "確認状態"
-              },
-              {
-                "field": "constraint_count",
-                "caption": "制約数"
-              }
-            ],
-            "sections": [
-              {
-                "title": "レビュー対象",
-                "fields": [
-                  {
-                    "field": "summary",
-                    "caption": "集約サマリ",
-                    "format": "paragraph"
-                  },
-                  {
-                    "field": "scope",
-                    "caption": "対象範囲",
-                    "format": "paragraph"
-                  },
-                  {
-                    "field": "notes",
-                    "caption": "グループメモ",
-                    "format": "paragraph"
-                  }
-                ]
-              },
-              {
-                "title": "含まれる個別制約",
-                "arrayField": "constraints",
-                "format": "table",
-                "fields": [
-                  {
-                    "field": "id",
-                    "caption": "ID"
-                  },
-                  {
-                    "field": "title",
-                    "caption": "タイトル"
-                  },
-                  {
-                    "field": "statement",
-                    "caption": "制約本文"
-                  }
-                ],
-                "display_note": "Markdown出力では個別制約を表形式で出す。詳細見出し列挙よりレビューしやすくするため。"
-              },
-              {
-                "title": "制約グループ会話",
-                "fields": [
-                  {
-                    "field": "user_comment",
-                    "caption": "俺コメント",
-                    "format": "paragraph"
-                  },
-                  {
-                    "field": "ai_response",
-                    "caption": "AI回答",
-                    "format": "paragraph"
-                  },
-                  {
-                    "field": "user_reply",
-                    "caption": "俺追加回答",
-                    "format": "paragraph"
-                  },
-                  {
-                    "field": "ai_followup_response",
-                    "caption": "AI再回答",
-                    "format": "paragraph"
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }
+      ]
     }
   ],
   "layout_note": "v0.5: app.js修正前の暫定対応として、レビュー対象カードと制約グループ会話を別々のchatフィールドに分離する。含まれる個別制約をチャットより上に出すには、app.js側のdetail描画順制御が必要。"
 }
+```
+
+</details>

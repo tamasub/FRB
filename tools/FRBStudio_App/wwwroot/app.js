@@ -1915,12 +1915,218 @@ function buildScreenStateTestPatternsMarkdown() {
   return lines.join('\n');
 }
 
+
+function markdownHeading(level, title) {
+  const lv = Math.max(1, Math.min(6, Number(level) || 2));
+  return `${'#'.repeat(lv)} ${title}`;
+}
+
+function markdownIsBlank(value) {
+  if (value == null) return true;
+  if (Array.isArray(value)) return value.length === 0;
+  if (typeof value === 'object') return Object.keys(value).length === 0;
+  return String(value).trim() === '';
+}
+
+function markdownFieldConfig(field) {
+  if (typeof field === 'string') return { field };
+  return field ?? {};
+}
+
+function markdownLookupField(fieldName) {
+  const gd = gridDef();
+  const hd = headerDef();
+  return (gd?.fields ?? []).find(f => f.field === fieldName) ||
+         (hd?.fields ?? []).find(f => f.field === fieldName) ||
+         null;
+}
+
+function markdownLabelForField(fieldCfg) {
+  const cfg = markdownFieldConfig(fieldCfg);
+  const def = markdownLookupField(cfg.field);
+  return cfg.caption || cfg.label || def?.caption || cfg.field || '';
+}
+
+function markdownFormatDataValue(value, fieldCfg=null) {
+  const cfg = markdownFieldConfig(fieldCfg);
+  const def = markdownLookupField(cfg.field);
+  if (value == null) return '';
+  if (Array.isArray(value) || (typeof value === 'object' && value !== null)) {
+    return JSON.stringify(value, null, 2);
+  }
+  return formatValue(value, def || cfg);
+}
+
+function markdownBlockquote(value) {
+  return String(value ?? '')
+    .split(/\r?\n/)
+    .map(line => `> ${line}`)
+    .join('\n');
+}
+
+function markdownApplyTemplate(template, row, index=0) {
+  return String(template ?? '')
+    .replace(/\{#\}/g, String(index + 1))
+    .replace(/\{index\}/g, String(index))
+    .replace(/\{no\}/g, String(row?.no ?? index + 1))
+    .replace(/\{([^}]+)\}/g, (_, path) => {
+      const value = getByPath(row, path.trim());
+      return value == null ? '' : String(value);
+    })
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function pushGenericMarkdownField(lines, obj, fieldCfg, level=3) {
+  const cfg = markdownFieldConfig(fieldCfg);
+  if (!cfg.field) return;
+  const value = getByPath(obj, cfg.field);
+  if (cfg.visible === false) return;
+  if (markdownIsBlank(value) && cfg.showEmpty !== true) return;
+
+  const label = markdownLabelForField(cfg);
+  const format = cfg.format || cfg.markdownFormat || 'auto';
+
+  if (format === 'heading') {
+    lines.push(markdownHeading(level, markdownFormatDataValue(value, cfg)));
+    return;
+  }
+
+  if (format === 'blockquote') {
+    lines.push(`\n${markdownHeading(level, label)}`);
+    lines.push('');
+    lines.push(markdownBlockquote(markdownFormatDataValue(value, cfg)));
+    return;
+  }
+
+  if (format === 'paragraph' || format === 'textarea' || String(value).includes('\n')) {
+    lines.push(`\n${markdownHeading(level, label)}`);
+    lines.push('');
+    lines.push(markdownFormatDataValue(value, cfg));
+    return;
+  }
+
+  if (Array.isArray(value) || (typeof value === 'object' && value !== null)) {
+    lines.push(`- ${label}:`);
+    lines.push(markdownValueBlock(value));
+    return;
+  }
+
+  lines.push(`- ${label}: ${markdownEscape(markdownFormatDataValue(value, cfg))}`);
+}
+
+function markdownObjectTable(items, fields) {
+  const list = Array.isArray(items) ? items : [];
+  const fieldCfgs = (fields ?? []).map(markdownFieldConfig).filter(f => f.field);
+  if (!fieldCfgs.length) return '';
+  const head = '| ' + fieldCfgs.map(f => markdownEscape(markdownLabelForField(f))).join(' | ') + ' |';
+  const sep = '| ' + fieldCfgs.map(() => '---').join(' | ') + ' |';
+  const body = list.map(item => '| ' + fieldCfgs.map(f => markdownEscape(markdownFormatDataValue(getByPath(item, f.field), f))).join(' | ') + ' |');
+  return [head, sep, ...body].join('\n');
+}
+
+function renderMarkdownArray(lines, arrayValue, section, level=3) {
+  const items = Array.isArray(arrayValue) ? arrayValue : [];
+  if (!items.length) {
+    if (section.showEmpty === true) lines.push('（なし）');
+    return;
+  }
+
+  const format = section.format || 'table';
+  const fields = section.fields ?? [];
+
+  if (format === 'constraintList' || format === 'detailList') {
+    items.forEach((item, index) => {
+      const titleTpl = section.itemTitle || (format === 'constraintList' ? '{id}：{title}' : '{#}. {title}');
+      const title = markdownApplyTemplate(titleTpl, item, index) || `${index + 1}`;
+      lines.push(`\n${markdownHeading(level, title)}`);
+      const fieldCfgs = fields.map(markdownFieldConfig).filter(f => f.field);
+      if (fieldCfgs.length) {
+        fieldCfgs.forEach(f => pushGenericMarkdownField(lines, item, f, level + 1));
+      } else {
+        lines.push(markdownValueBlock(item));
+      }
+    });
+    return;
+  }
+
+  if (format === 'json') {
+    lines.push(markdownValueBlock(items));
+    return;
+  }
+
+  const table = markdownObjectTable(items, fields);
+  if (table) lines.push(table);
+  else lines.push(markdownValueBlock(items));
+}
+
+function renderGenericMarkdownSection(lines, section, context={ data: sourceData, rows: currentRows }, level=2) {
+  if (!section || section.visible === false) return;
+  const title = section.title || section.caption;
+  if (title) {
+    lines.push(`\n${markdownHeading(level, title)}`);
+    lines.push('');
+  }
+
+  const source = section.source || 'root';
+  if (source === 'rows' || source === 'currentRows' || source === 'grid') {
+    const rows = Array.isArray(context.rows) ? context.rows : [];
+    if (section.format === 'table') {
+      lines.push(markdownObjectTable(rows, section.fields ?? []));
+      return;
+    }
+
+    rows.forEach((row, index) => {
+      const itemTitle = markdownApplyTemplate(section.itemTitle || '{no}. {group_id}：{title}', row, index) || `${index + 1}`;
+      lines.push(`\n${markdownHeading(level + 1, itemTitle)}`);
+      (section.fields ?? []).forEach(f => pushGenericMarkdownField(lines, row, f, level + 2));
+      (section.sections ?? []).forEach(child => renderGenericMarkdownSection(lines, child, { data: row, rows: context.rows }, level + 2));
+    });
+    return;
+  }
+
+  const obj = context.data ?? sourceData;
+
+  if (section.arrayField) {
+    const arrayValue = getByPath(obj, section.arrayField);
+    renderMarkdownArray(lines, arrayValue, section, level + 1);
+    return;
+  }
+
+  (section.fields ?? []).forEach(f => pushGenericMarkdownField(lines, obj, f, level + 1));
+  (section.sections ?? []).forEach(child => renderGenericMarkdownSection(lines, child, { data: obj, rows: context.rows }, level + 1));
+}
+
+function buildGenericSectionsMarkdown() {
+  applyHeaderEdits();
+  const cfg = markdownConfig();
+  const gd = gridDef();
+  const rows = Array.isArray(currentRows) ? currentRows : [];
+  const title = cfg.title || sourceData?.title || mainView()?.caption || gd?.caption || 'No-Code JSON Studio Export';
+  const lines = [];
+
+  lines.push(`# ${title}`);
+  lines.push('');
+  lines.push(`- 出力日時: ${new Date().toLocaleString('ja-JP')}`);
+  if (sourceData?.target) lines.push(`- 対象: ${sourceData.target}`);
+  if (sourceData?.schema_version) lines.push(`- schema_version: ${sourceData.schema_version}`);
+  if (sourceData?.status) lines.push(`- status: ${sourceData.status}`);
+  lines.push(`- 件数: ${rows.length}`);
+
+  const sections = Array.isArray(cfg.sections) ? cfg.sections : [];
+  if (!sections.length) return buildGenericMarkdown();
+
+  sections.forEach(section => renderGenericMarkdownSection(lines, section, { data: sourceData, rows }, 2));
+  return lines.join('\n').replace(/\n{4,}/g, '\n\n\n');
+}
+
 function buildMarkdownFromCurrentData() {
   applyHeaderEdits();
   const type = markdownExportType();
   if (type === 'screen_state_expected') return buildScreenStateExpectedMarkdown();
   if (type === 'screen_state_diff') return buildScreenStateDiffMarkdown();
   if (type === 'screen_state_test_patterns') return buildScreenStateTestPatternsMarkdown();
+  if (type === 'generic_sections') return buildGenericSectionsMarkdown();
   return buildGenericMarkdown();
 }
 
@@ -1990,6 +2196,493 @@ async function exportMarkdown() {
     console.warn('管理Markdown保存に失敗。ダウンロードへフォールバックします。', err);
     downloadTextFile(fileName, md);
     setStatus('Markdown API保存に失敗したため、ダウンロード出力しました: ' + err.message);
+  }
+}
+
+function viewDefMarkdownDisplay(value) {
+  if (value == null || value === '') return '';
+  if (Array.isArray(value)) return value.length ? value.join(', ') : '[]';
+  if (typeof value === 'object') return JSON.stringify(value);
+  return String(value);
+}
+
+function markdownJsonBlock(value) {
+  return '```json\n' + JSON.stringify(value ?? {}, null, 2).replace(/```/g, '`\u200b``') + '\n```';
+}
+
+function viewDefViews(defObj) {
+  if (Array.isArray(defObj?.views)) return defObj.views;
+  return defObj ? [defObj] : [];
+}
+
+function viewDefSections(view) {
+  return Array.isArray(view?.sections) ? view.sections : [];
+}
+
+function viewDefFields(section) {
+  return Array.isArray(section?.fields) ? section.fields : [];
+}
+
+function viewDefFieldVisibleText(field, area='grid') {
+  const areaObj = field?.[area] ?? {};
+  if (areaObj.visible === false) return 'false';
+  if (areaObj.visible === true) return 'true';
+  if (area === 'edit' && field?.readonly === true && areaObj.visible == null) return '';
+  return '';
+}
+
+function viewDefFieldReadonlyText(field) {
+  if (field?.readonly === true || field?.edit?.readonly === true) return 'true';
+  if (field?.readonly === false || field?.edit?.readonly === false) return 'false';
+  return '';
+}
+
+function viewDefFieldSearchText(field) {
+  if (!field?.search) return '';
+  if (field.search.visible === false) return 'false';
+  return field.search.operator ? `true (${field.search.operator})` : 'true';
+}
+
+function viewDefFieldOptionsText(field) {
+  const options = field?.options;
+  if (!Array.isArray(options) || !options.length) return '';
+  return options.slice(0, 8).join(', ') + (options.length > 8 ? ` ... +${options.length - 8}` : '');
+}
+
+function viewDefFieldTableMarkdown(fields) {
+  const header = '| field | caption | type | grid.visible | width | edit.visible | readonly | search | options |';
+  const sep = '| --- | --- | --- | --- | ---: | --- | --- | --- | --- |';
+  const body = (fields ?? []).map(f => {
+    return '| ' + [
+      f.field,
+      f.caption,
+      f.type ?? 'text',
+      viewDefFieldVisibleText(f, 'grid'),
+      f.grid?.width ?? '',
+      viewDefFieldVisibleText(f, 'edit'),
+      viewDefFieldReadonlyText(f),
+      viewDefFieldSearchText(f),
+      viewDefFieldOptionsText(f)
+    ].map(markdownEscape).join(' | ') + ' |';
+  });
+  return [header, sep, ...body].join('\n');
+}
+
+function viewDefSummaryTableMarkdown(defObj) {
+  const rows = [];
+  viewDefViews(defObj).forEach((view, viewIndex) => {
+    viewDefSections(view).forEach((section, sectionIndex) => {
+      rows.push({
+        view: view.id ?? `view[${viewIndex}]`,
+        viewCaption: view.caption ?? '',
+        section: section.id ?? `section[${sectionIndex}]`,
+        sectionCaption: section.caption ?? '',
+        type: section.type ?? '',
+        dataPath: section.dataPath ?? '',
+        keyField: section.keyField ?? '',
+        fields: viewDefFields(section).length
+      });
+    });
+  });
+
+  const header = '| View | View Caption | Section | Section Caption | Type | DataPath | KeyField | Fields |';
+  const sep = '| --- | --- | --- | --- | --- | --- | --- | ---: |';
+  const body = rows.map(r => '| ' + [
+    r.view, r.viewCaption, r.section, r.sectionCaption, r.type, r.dataPath, r.keyField, r.fields
+  ].map(markdownEscape).join(' | ') + ' |');
+  return [header, sep, ...body].join('\n');
+}
+
+function viewDefDetailMarkdown(defObj, titlePrefix='') {
+  const lines = [];
+  viewDefViews(defObj).forEach((view, viewIndex) => {
+    const viewTitle = view.caption || view.id || `view[${viewIndex}]`;
+    lines.push(`\n## ${titlePrefix}${viewTitle}`);
+    lines.push('');
+    lines.push(`- view.id: ${viewDefMarkdownDisplay(view.id ?? `view[${viewIndex}]`)}`);
+    if (view.layout) lines.push(`- layout: ${viewDefMarkdownDisplay(view.layout)}`);
+    if (view.markdown?.type) lines.push(`- markdown.type: ${viewDefMarkdownDisplay(view.markdown.type)}`);
+    if (view.markdown?.title) lines.push(`- markdown.title: ${viewDefMarkdownDisplay(view.markdown.title)}`);
+    if (view.markdown?.defaultFileName) lines.push(`- markdown.defaultFileName: ${viewDefMarkdownDisplay(view.markdown.defaultFileName)}`);
+
+    viewDefSections(view).forEach((section, sectionIndex) => {
+      const sectionTitle = section.caption || section.id || `section[${sectionIndex}]`;
+      lines.push(`\n### ${sectionTitle}`);
+      lines.push('');
+      lines.push(`- section.id: ${viewDefMarkdownDisplay(section.id ?? `section[${sectionIndex}]`)}`);
+      if (section.type) lines.push(`- type: ${viewDefMarkdownDisplay(section.type)}`);
+      if (section.dataPath) lines.push(`- dataPath: ${viewDefMarkdownDisplay(section.dataPath)}`);
+      if (section.keyField) lines.push(`- keyField: ${viewDefMarkdownDisplay(section.keyField)}`);
+      const fields = viewDefFields(section);
+      lines.push(`- fields: ${fields.length}`);
+      if (fields.length) {
+        lines.push('');
+        lines.push(viewDefFieldTableMarkdown(fields));
+      }
+    });
+  });
+  return lines.join('\n');
+}
+
+async function loadRawViewDefForMarkdown() {
+  const droppedDefFile = $('defFile')?.files?.[0] ?? null;
+  if (droppedDefFile) {
+    try {
+      return {
+        name: safeJsonFileName(droppedDefFile.name) || droppedDefFile.name || 'dropped_view_def.json',
+        json: JSON.parse(await droppedDefFile.text()),
+        source: 'drop'
+      };
+    } catch (err) {
+      console.warn('ViewDef drop read skipped:', err);
+    }
+  }
+
+  const name = safeJsonFileName(lastLoadedDefName || $('defNameInput')?.value);
+  if (!name) return null;
+  try {
+    const loaded = await fetchApiJsonWithUrl('defs', name);
+    return {
+      name: loaded.correctedName || jsonNameFromUrl(loaded.url, 'defs') || name,
+      json: loaded.json,
+      source: 'api'
+    };
+  } catch (err) {
+    console.warn('ViewDef raw load skipped:', err);
+    return null;
+  }
+}
+
+
+async function resolveViewDefParentsOnly(defObj, currentName=null, stack=[]) {
+  const parents = normalizeExtendsValue(defObj?.extends);
+  if (!parents.length) return null;
+
+  const current = safeJsonFileName(currentName) || '(dropped view_def)';
+  let merged = {};
+
+  for (const parentRaw of parents) {
+    const parentName = resolveRelativeJsonName(parentRaw, currentName);
+    if (!parentName) throw new Error(`extends の指定が不正です: ${parentRaw}`);
+    if (stack.includes(parentName)) {
+      throw new Error(`ViewDef継承が循環しています: ${[...stack, parentName].join(' -> ')}`);
+    }
+
+    const parentResolved = await fetchResolvedViewDef(parentName, [...stack, current]);
+    merged = mergeViewDefObject(merged, parentResolved);
+  }
+
+  return merged;
+}
+
+function viewDefDiffKey(item, index, fallbackPrefix='item') {
+  return String(item?.id ?? item?.field ?? item?.name ?? `${fallbackPrefix}[${index}]`);
+}
+
+function viewDefMapByKey(items, fallbackPrefix='item') {
+  const map = new Map();
+  (items ?? []).forEach((item, index) => map.set(viewDefDiffKey(item, index, fallbackPrefix), item));
+  return map;
+}
+
+function viewDefDiffValue(value) {
+  if (value === undefined) return '（未定義）';
+  if (value === null) return 'null';
+  if (value === '') return '（空）';
+  if (Array.isArray(value)) return value.length ? JSON.stringify(value) : '[]';
+  if (typeof value === 'object') return JSON.stringify(value);
+  return String(value);
+}
+
+function viewDefComparable(value) {
+  if (value === undefined) return '__FRB_UNDEFINED__';
+  if (Array.isArray(value)) return value.map(viewDefComparable);
+  if (value && typeof value === 'object') {
+    const out = {};
+    Object.keys(value).sort().forEach(key => out[key] = viewDefComparable(value[key]));
+    return out;
+  }
+  return value;
+}
+
+function viewDefDeepEqual(a, b) {
+  return JSON.stringify(viewDefComparable(a)) === JSON.stringify(viewDefComparable(b));
+}
+
+function viewDefDiffGet(obj, path) {
+  return String(path).split('.').reduce((cur, key) => cur == null ? undefined : cur[key], obj);
+}
+
+function pushViewDefPropDiff(rows, scope, target, propPath, parentObj, childObj) {
+  const parentValue = viewDefDiffGet(parentObj, propPath);
+  const childValue = viewDefDiffGet(childObj, propPath);
+  if (viewDefDeepEqual(parentValue, childValue)) return;
+  rows.push({
+    kind: '変更',
+    scope,
+    target,
+    item: propPath,
+    parent: viewDefDiffValue(parentValue),
+    child: viewDefDiffValue(childValue)
+  });
+}
+
+function viewDefShortSummary(obj) {
+  if (!obj) return '';
+  const parts = [];
+  if (obj.caption) parts.push(`caption=${obj.caption}`);
+  if (obj.type) parts.push(`type=${obj.type}`);
+  if (obj.dataPath) parts.push(`dataPath=${obj.dataPath}`);
+  if (obj.keyField) parts.push(`keyField=${obj.keyField}`);
+  if (obj.field) parts.push(`field=${obj.field}`);
+  if (obj.grid?.visible != null) parts.push(`grid.visible=${obj.grid.visible}`);
+  if (obj.grid?.width != null) parts.push(`width=${obj.grid.width}`);
+  if (obj.markdown?.type) parts.push(`markdown.type=${obj.markdown.type}`);
+  return parts.length ? parts.join(', ') : JSON.stringify(obj);
+}
+
+function pushViewDefAddedRemoved(rows, scope, target, kind, obj) {
+  rows.push({
+    kind,
+    scope,
+    target,
+    item: '全体',
+    parent: kind === '追加' ? '（なし）' : viewDefShortSummary(obj),
+    child: kind === '削除' ? '（なし）' : viewDefShortSummary(obj)
+  });
+}
+
+function viewDefDiffTableMarkdown(rows) {
+  const header = '| 種別 | 対象 | 項目 | 親BASE | 子CHILD / 解決済み |';
+  const sep = '| --- | --- | --- | --- | --- |';
+  const body = rows.map(r => '| ' + [r.kind, r.target, r.item, r.parent, r.child].map(markdownEscape).join(' | ') + ' |');
+  return [header, sep, ...body].join('\n');
+}
+
+function buildViewDefDiffRows(parentDef, childDef) {
+  const rowsByScope = { view: [], section: [], field: [] };
+  const parentViews = viewDefMapByKey(viewDefViews(parentDef), 'view');
+  const childViews = viewDefMapByKey(viewDefViews(childDef), 'view');
+  const viewKeys = new Set([...parentViews.keys(), ...childViews.keys()]);
+
+  viewKeys.forEach(viewKey => {
+    const parentView = parentViews.get(viewKey);
+    const childView = childViews.get(viewKey);
+    const viewTarget = `view:${viewKey}`;
+
+    if (!parentView && childView) {
+      pushViewDefAddedRemoved(rowsByScope.view, 'view', viewTarget, '追加', childView);
+      return;
+    }
+    if (parentView && !childView) {
+      pushViewDefAddedRemoved(rowsByScope.view, 'view', viewTarget, '削除', parentView);
+      return;
+    }
+
+    ['caption', 'layout', 'markdown.enabled', 'markdown.type', 'markdown.title', 'markdown.defaultFileName', 'markdown.fileName'].forEach(prop => {
+      pushViewDefPropDiff(rowsByScope.view, 'view', viewTarget, prop, parentView, childView);
+    });
+
+    const parentSections = viewDefMapByKey(viewDefSections(parentView), 'section');
+    const childSections = viewDefMapByKey(viewDefSections(childView), 'section');
+    const sectionKeys = new Set([...parentSections.keys(), ...childSections.keys()]);
+
+    sectionKeys.forEach(sectionKey => {
+      const parentSection = parentSections.get(sectionKey);
+      const childSection = childSections.get(sectionKey);
+      const sectionTarget = `${viewKey} / section:${sectionKey}`;
+
+      if (!parentSection && childSection) {
+        pushViewDefAddedRemoved(rowsByScope.section, 'section', sectionTarget, '追加', childSection);
+        return;
+      }
+      if (parentSection && !childSection) {
+        pushViewDefAddedRemoved(rowsByScope.section, 'section', sectionTarget, '削除', parentSection);
+        return;
+      }
+
+      ['caption', 'type', 'dataPath', 'keyField', 'role'].forEach(prop => {
+        pushViewDefPropDiff(rowsByScope.section, 'section', sectionTarget, prop, parentSection, childSection);
+      });
+
+      const parentFields = viewDefMapByKey(viewDefFields(parentSection), 'field');
+      const childFields = viewDefMapByKey(viewDefFields(childSection), 'field');
+      const fieldKeys = new Set([...parentFields.keys(), ...childFields.keys()]);
+
+      fieldKeys.forEach(fieldKey => {
+        const parentField = parentFields.get(fieldKey);
+        const childField = childFields.get(fieldKey);
+        const fieldTarget = `${viewKey} / ${sectionKey} / field:${fieldKey}`;
+
+        if (!parentField && childField) {
+          pushViewDefAddedRemoved(rowsByScope.field, 'field', fieldTarget, '追加', childField);
+          return;
+        }
+        if (parentField && !childField) {
+          pushViewDefAddedRemoved(rowsByScope.field, 'field', fieldTarget, '削除', parentField);
+          return;
+        }
+
+        [
+          'caption', 'type', 'readonly', 'format',
+          'grid.visible', 'grid.width', 'grid.format', 'grid.align',
+          'edit.visible', 'edit.readonly', 'edit.height', 'edit.control', 'edit.placement', 'edit.layout.placement',
+          'search.visible', 'search.operator',
+          'options'
+        ].forEach(prop => {
+          pushViewDefPropDiff(rowsByScope.field, 'field', fieldTarget, prop, parentField, childField);
+        });
+      });
+    });
+  });
+
+  return rowsByScope;
+}
+
+function buildViewDefInheritanceDiffMarkdown(parentDef=null, childDef=null, rawExtends=[]) {
+  const lines = [];
+  lines.push('\n## 継承差分サマリ');
+  lines.push('');
+
+  if (!rawExtends.length) {
+    lines.push('このViewDefは extends を持たないため、継承差分はありません。');
+    return lines.join('\n');
+  }
+
+  lines.push(`- 継承元: ${rawExtends.join(' / ')}`);
+
+  if (!parentDef || !childDef) {
+    lines.push('- 継承差分: 親ViewDefまたは解決済みViewDefを取得できなかったため、差分を作成できませんでした。');
+    return lines.join('\n');
+  }
+
+  const rowsByScope = buildViewDefDiffRows(parentDef, childDef);
+  const allRows = [...rowsByScope.view, ...rowsByScope.section, ...rowsByScope.field];
+  const changed = allRows.filter(r => r.kind === '変更').length;
+  const added = allRows.filter(r => r.kind === '追加').length;
+  const removed = allRows.filter(r => r.kind === '削除').length;
+
+  lines.push(`- 差分件数: ${allRows.length}`);
+  lines.push(`- 内訳: 変更 ${changed} / 追加 ${added} / 削除 ${removed}`);
+
+  if (!allRows.length) {
+    lines.push('');
+    lines.push('親BASEとの差分は検出されませんでした。');
+    return lines.join('\n');
+  }
+
+  if (rowsByScope.view.length) {
+    lines.push('\n### View差分');
+    lines.push(viewDefDiffTableMarkdown(rowsByScope.view));
+  }
+  if (rowsByScope.section.length) {
+    lines.push('\n### Section差分');
+    lines.push(viewDefDiffTableMarkdown(rowsByScope.section));
+  }
+  if (rowsByScope.field.length) {
+    lines.push('\n### Field差分');
+    lines.push(viewDefDiffTableMarkdown(rowsByScope.field));
+  }
+
+  return lines.join('\n');
+}
+
+function viewDefMarkdownExportFileName(rawInfo=null) {
+  const sourceName = rawInfo?.name || lastLoadedDefName || $('defNameInput')?.value || mainView()?.id || 'view_def';
+  const base = String(sourceName).split('/').pop().replace(/\.json$/i, '') + '_viewdef';
+  return normalizeMarkdownFileName(base);
+}
+
+function buildViewDefMarkdown(rawInfo=null, resolvedOverride=null, parentResolvedOverride=null) {
+  const rawDef = rawInfo?.json ?? null;
+  const resolvedDef = resolvedOverride || viewDef || rawDef;
+  const baseDef = rawDef || resolvedDef;
+  const main = mainViewOf(baseDef);
+  const title = main?.caption || rawInfo?.name || lastLoadedDefName || 'ViewDef Definition';
+  const rawExtends = normalizeExtendsValue(rawDef?.extends);
+  const resolvedExtends = normalizeExtendsValue(resolvedDef?._resolved_extends);
+  const lines = [];
+
+  lines.push(`# ViewDef定義レポート — ${title}`);
+  lines.push('');
+  lines.push('## 基本情報');
+  lines.push(`- 出力日時: ${new Date().toLocaleString('ja-JP')}`);
+  lines.push(`- 対象ViewDef: ${viewDefMarkdownDisplay(rawInfo?.name || lastLoadedDefName || $('defNameInput')?.value || '(dropped / resolved)')}`);
+  if (rawDef?.app?.name || resolvedDef?.app?.name) lines.push(`- app.name: ${viewDefMarkdownDisplay(rawDef?.app?.name || resolvedDef?.app?.name)}`);
+  if (rawDef?.app?.version || resolvedDef?.app?.version) lines.push(`- app.version: ${viewDefMarkdownDisplay(rawDef?.app?.version || resolvedDef?.app?.version)}`);
+  if (rawExtends.length) lines.push(`- extends(raw): ${rawExtends.join(' / ')}`);
+  if (resolvedExtends.length) lines.push(`- extends(resolved): ${resolvedExtends.join(' / ')}`);
+  lines.push(`- views: ${viewDefViews(baseDef).length}`);
+
+  lines.push('\n## View / Section 概要');
+  lines.push(viewDefSummaryTableMarkdown(baseDef));
+
+  lines.push(buildViewDefInheritanceDiffMarkdown(parentResolvedOverride, resolvedDef, rawExtends));
+
+  lines.push(viewDefDetailMarkdown(baseDef));
+
+  if (rawDef && resolvedDef && rawExtends.length) {
+    lines.push('\n---\n');
+    lines.push('## 解決済みViewDef概要');
+    lines.push('');
+    lines.push('このViewDefは extends を持つため、現在画面描画に使っている解決済みViewDefの概要も併記します。');
+    lines.push('');
+    lines.push(viewDefSummaryTableMarkdown(resolvedDef));
+    lines.push(viewDefDetailMarkdown(resolvedDef, 'Resolved: '));
+  }
+
+  lines.push('\n---\n');
+  lines.push('## ViewDef JSON');
+  lines.push('');
+  lines.push('<details>');
+  lines.push('<summary>元ViewDef JSONを表示</summary>');
+  lines.push('');
+  lines.push(markdownJsonBlock(rawDef || resolvedDef));
+  lines.push('');
+  lines.push('</details>');
+
+  if (rawDef && resolvedDef && rawExtends.length) {
+    lines.push('');
+    lines.push('<details>');
+    lines.push('<summary>解決済みViewDef JSONを表示</summary>');
+    lines.push('');
+    lines.push(markdownJsonBlock(resolvedDef));
+    lines.push('');
+    lines.push('</details>');
+  }
+
+  return lines.join('\n');
+}
+
+async function exportViewDefMarkdown() {
+  const rawInfo = await loadRawViewDefForMarkdown();
+  if (!rawInfo && !viewDef) {
+    setStatus('ViewDef Markdown出力する画面定義がありません。画面定義JSONを選択するかDropしてください。');
+    return;
+  }
+
+  let resolvedForReport = viewDef || null;
+  let parentResolvedForReport = null;
+  if (rawInfo?.json) {
+    try {
+      resolvedForReport = await resolveViewDefInheritance(rawInfo.json, rawInfo.name);
+      parentResolvedForReport = await resolveViewDefParentsOnly(rawInfo.json, rawInfo.name);
+    } catch (err) {
+      console.warn('ViewDef resolved markdown skipped:', err);
+      resolvedForReport = viewDef || rawInfo.json;
+    }
+  }
+
+  const md = buildViewDefMarkdown(rawInfo, resolvedForReport, parentResolvedForReport);
+  const fileName = viewDefMarkdownExportFileName(rawInfo);
+  try {
+    const savedName = await saveMarkdownToManagedFolder(fileName, md);
+    setStatus(`ViewDef Markdownを data/markdown/${savedName} に出力しました`);
+    location.href = `mdViewer.html?file=${encodeURIComponent(savedName)}`;
+  } catch (err) {
+    console.warn('ViewDef Markdown保存に失敗。ダウンロードへフォールバックします。', err);
+    downloadTextFile(fileName, md);
+    setStatus('ViewDef Markdown API保存に失敗したため、ダウンロード出力しました: ' + err.message);
   }
 }
 
@@ -2180,6 +2873,7 @@ function loadFromObjects(defObj, dataObj, label='読み込み完了', dataApiUrl
   renderGrid();
   $('saveBtn').disabled = false;
   if ($('exportMarkdownBtn')) $('exportMarkdownBtn').disabled = false;
+  if ($('exportViewDefMarkdownBtn')) $('exportViewDefMarkdownBtn').disabled = false;
   $('saveBtn').textContent = currentDataApiUrl ? '上書き保存' : '別名保存';
   $('addRowBtn').disabled = false;
   $('deleteRowBtn').disabled = false;
@@ -2244,6 +2938,7 @@ if ($('pasteCopiedBtn')) $('pasteCopiedBtn').addEventListener('click', pasteCopi
 $('prevDetailBtn').addEventListener('click', () => moveDetail(-1));
 $('nextDetailBtn').addEventListener('click', () => moveDetail(1));
 $('exportMarkdownBtn').addEventListener('click', exportMarkdown);
+if ($('exportViewDefMarkdownBtn')) $('exportViewDefMarkdownBtn').addEventListener('click', exportViewDefMarkdown);
 $('saveBtn').addEventListener('click', async () => {
   try {
     await saveOverwriteJson();
