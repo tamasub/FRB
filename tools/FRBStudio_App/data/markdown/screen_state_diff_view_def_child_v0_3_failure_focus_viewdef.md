@@ -1,7 +1,7 @@
 # ViewDef定義レポート — 【継承先CHILD】Screen State Diff Failure Focus View
 
 ## 基本情報
-- 出力日時: 2026/6/20 8:33:51
+- 出力日時: 2026/6/20 9:54:37
 - 対象ViewDef: screen_state_diff_view_def_child_v0_3_failure_focus.json
 - app.name: No-Code JSON Studio
 - app.version: 0.3-draft-child-failure-focus

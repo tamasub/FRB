@@ -51,7 +51,7 @@ function setupDropFileBox(box) {
     updateFileLabels();
     setStatus(`${file.name} を受け取りました`);
   });
-  input.addEventListener('change', updateFileLabels);
+  input.addEventListener('change', () => { updateFileLabels(); updateViewDefMarkdownButtonState(); });
 }
 
 
@@ -554,6 +554,7 @@ async function registerDroppedDef(fileName, defObj) {
   }
   await refreshServerLists();
   $('defNameInput').value = name;
+  updateViewDefMarkdownButtonState();
   return apiJsonUrl('defs', name);
 }
 
@@ -675,6 +676,31 @@ function setupPageDrop() {
   document.addEventListener('drop', (e) => e.preventDefault());
 }
 
+
+function hasViewDefMarkdownTarget() {
+  const droppedDefFile = $('defFile')?.files?.[0] ?? null;
+  const comboName = safeJsonFileName($('defNameInput')?.value);
+  const loadedName = safeJsonFileName(lastLoadedDefName);
+  return Boolean(viewDef || droppedDefFile || comboName || loadedName);
+}
+
+function updateViewDefMarkdownButtonState() {
+  const btn = $('exportViewDefMarkdownBtn');
+  if (!btn) return;
+  btn.disabled = !hasViewDefMarkdownTarget();
+}
+
+function setupViewDefMarkdownButtonState() {
+  const defInput = $('defNameInput');
+  const defFile = $('defFile');
+  if (defInput) {
+    defInput.addEventListener('input', updateViewDefMarkdownButtonState);
+    defInput.addEventListener('change', updateViewDefMarkdownButtonState);
+  }
+  if (defFile) defFile.addEventListener('change', updateViewDefMarkdownButtonState);
+  updateViewDefMarkdownButtonState();
+}
+
 function setupComboClearButtons() {
   const configs = [
     { inputId: 'defNameInput', buttonId: 'clearDefNameBtn', label: '画面定義JSON', names: () => serverDefNames },
@@ -704,6 +730,7 @@ function setupComboClearButtons() {
       e.stopPropagation();
       input.value = '';
       input.dispatchEvent(new Event('input', { bubbles: true }));
+      updateViewDefMarkdownButtonState();
       input.focus();
       setStatus(`${label}の選択をクリアしました`);
     });
@@ -2853,6 +2880,7 @@ async function saveOverwriteJson() {
 
 setupPageDrop();
 setupComboClearButtons();
+setupViewDefMarkdownButtonState();
 
 function loadFromObjects(defObj, dataObj, label='読み込み完了', dataApiUrl=null) {
   if (!isDefCompatibleWithData(defObj, dataObj)) {
@@ -2873,6 +2901,7 @@ function loadFromObjects(defObj, dataObj, label='読み込み完了', dataApiUrl
   renderGrid();
   $('saveBtn').disabled = false;
   if ($('exportMarkdownBtn')) $('exportMarkdownBtn').disabled = false;
+  updateViewDefMarkdownButtonState();
   if ($('exportViewDefMarkdownBtn')) $('exportViewDefMarkdownBtn').disabled = false;
   $('saveBtn').textContent = currentDataApiUrl ? '上書き保存' : '別名保存';
   $('addRowBtn').disabled = false;
@@ -2948,7 +2977,10 @@ $('saveBtn').addEventListener('click', async () => {
   }
 });
 
-refreshServerLists().finally(autoLoadFromQuery);
+refreshServerLists().finally(async () => {
+  await autoLoadFromQuery();
+  updateViewDefMarkdownButtonState();
+});
 
 
 window.__NCJS_exportScreenState = function () {

@@ -1,7 +1,7 @@
 # ViewDef定義レポート — 【継承元BASE】Screen State Diff Viewer / Full Checks
 
 ## 基本情報
-- 出力日時: 2026/6/20 8:32:17
+- 出力日時: 2026/6/20 9:53:37
 - 対象ViewDef: screen_state_diff_view_def_base_v0_2_checks.json
 - app.name: No-Code JSON Studio
 - app.version: 0.3-draft-base-screen-state-diff

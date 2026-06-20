@@ -57,7 +57,7 @@ main { padding: 14px; }
 
 .loader-panel {
   display: grid;
-  grid-template-columns: minmax(190px, 1fr) minmax(190px, 1fr) minmax(120px,.65fr) minmax(120px,.65fr) auto auto auto auto;
+  grid-template-columns: minmax(190px, 1fr) minmax(190px, 1fr) minmax(120px,.65fr) minmax(120px,.65fr) auto auto auto auto auto;
   align-items: center;
   gap: 8px;
 }
@@ -356,6 +356,10 @@ th.sortable:hover { background: linear-gradient(180deg, #eef6ff, #ddecfb); }
   border-color: rgba(168, 85, 247, 0.42);
   background: rgba(255,255,255,.14);
   color: #f3e8ff;
+}
+/* ViewDef Markdown button restored v009 */
+#exportViewDefMarkdownBtn:not(:disabled) {
+  box-shadow: 0 0 0 1px rgba(216,180,254,.16), 0 8px 18px rgba(168,85,247,.16);
 }
 #prevDetailBtn, #nextDetailBtn {
   min-width: 78px;

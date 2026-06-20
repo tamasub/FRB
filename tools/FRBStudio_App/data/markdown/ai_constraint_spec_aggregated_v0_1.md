@@ -1,6 +1,6 @@
 # AI制約設計書 集約版
 
-- 出力日時: 2026/6/20 9:44:27
+- 出力日時: 2026/6/20 9:58:42
 - 対象: No-Code JSON Studio v0.3-draft
 - schema_version: 0.6-footer-chat
 - 件数: 12
