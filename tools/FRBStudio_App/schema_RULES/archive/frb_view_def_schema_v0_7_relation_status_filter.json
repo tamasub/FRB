@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.local/frb/view_def_schema_v0_6_relation_virtual_writeback.json",
-  "title": "FRB Studio View Definition Schema v0.6 Relation Virtual WriteBack",
-  "description": "Schema for FRBStudio_App / No-Code JSON Studio view_def JSON files. Includes inheritance, Markdown export, dataSources, relation virtualData builders, and single-source writeBack from virtualData.",
+  "$id": "https://example.local/frb/view_def_schema_v0_7_relation_status_filter.json",
+  "title": "FRB Studio View Definition Schema v0.7 - Relation Status Filter",
+  "description": "Schema for FRBStudio_App / No-Code JSON Studio view_def JSON files. Includes inheritance, Markdown export, dataSources, relation virtualData builders, single-source writeBack, and Relation status filters for approved/candidate/rejected/derived relation lines.",
   "type": "object",
   "additionalProperties": true,
   "properties": {
@@ -976,6 +976,118 @@
         },
         "constraint_type": {
           "type": "string"
+        },
+        "statusFilter": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ],
+          "description": "Evidence relation statuses to include, e.g. [\"approved\"]."
+        },
+        "status_filter": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ],
+          "description": "Evidence relation statuses to include, snake_case alias."
+        },
+        "structureStatusFilter": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ],
+          "description": "Structure relation statuses to include for contains_check etc, e.g. [\"derived\",\"approved\"]."
+        },
+        "structure_status_filter": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ],
+          "description": "Structure relation statuses to include, snake_case alias."
+        },
+        "excludeStatus": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ],
+          "description": "Relation statuses to always exclude, e.g. [\"rejected\"]."
+        },
+        "exclude_status": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ],
+          "description": "Relation statuses to always exclude, snake_case alias."
+        },
+        "includeStatus": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ],
+          "description": "Alias for statusFilter."
+        },
+        "include_status": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ],
+          "description": "Alias for statusFilter, snake_case."
         }
       }
     },
