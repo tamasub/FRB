@@ -31,11 +31,13 @@ async function loadFromObjects(defObj, dataObj, label='読み込み完了', data
   const mainGridIsVirtual = isVirtualDataCompatible(defObj, gridDef());
   $('addRowBtn').disabled = mainGridIsVirtual;
   $('deleteRowBtn').disabled = mainGridIsVirtual;
+  updateReadonlyLaunchControls();
   updateFileLabels();
   setStatus(label);
 }
 
 async function loadFromFiles() {
+  launchRuntime = { fromUrl: false, mode: '', readonly: false, dataParam: '', viewParam: '', fileParam: '' };
   await loadFromDroppedFilesOrServer();
 }
 
@@ -45,26 +47,183 @@ async function fetchJson(url) {
   return res.json();
 }
 
+
+function isLaunchReadonlyMode(mode) {
+  return String(mode ?? '').trim().toLowerCase() === 'readonly';
+}
+
+function updateReadonlyLaunchControls() {
+  const readonly = Boolean(launchRuntime?.readonly);
+  const idsToDisable = [
+    'saveBtn',
+    'addRowBtn',
+    'deleteRowBtn',
+    'applyDetailBtn',
+    'pasteCopiedBtn'
+  ];
+  idsToDisable.forEach(id => {
+    const el = $(id);
+    if (el) el.disabled = readonly || el.disabled;
+  });
+
+  if (readonly) {
+    const saveBtn = $('saveBtn');
+    if (saveBtn) saveBtn.textContent = 'ReadOnly';
+  }
+}
+
+function normalizeLaunchJsonPath(raw, label) {
+  const value = String(raw ?? '').trim();
+  if (!value) return null;
+  const decoded = value.replace(/\\/g, '/');
+  if (decoded.includes('://') || decoded.startsWith('//')) {
+    throw new Error(`${label} に外部URLは指定できません: ${value}`);
+  }
+  if (decoded.startsWith('/')) {
+    throw new Error(`${label} に絶対パスは指定できません: ${value}`);
+  }
+  if (/^[a-zA-Z]:/.test(decoded)) {
+    throw new Error(`${label} にローカルドライブパスは指定できません: ${value}`);
+  }
+  if (/[?#]/.test(decoded)) {
+    throw new Error(`${label} にクエリ文字列やハッシュは指定できません: ${value}`);
+  }
+  if (!decoded.toLowerCase().endsWith('.json')) {
+    throw new Error(`${label} は .json を指定してください: ${value}`);
+  }
+  const parts = decoded.split('/');
+  if (parts.some(part => !part || part === '.' || part === '..')) {
+    throw new Error(`${label} のパスが不正です: ${value}`);
+  }
+  return parts.join('/');
+}
+
+function staticJsonKindPath(path, kind) {
+  if (!path) return null;
+  const prefix = kind === 'data' ? 'data/' : 'defs/';
+  if (!path.startsWith(prefix)) return null;
+  return path.slice(prefix.length);
+}
+
+function launchApiNameFromStaticPath(path, kind) {
+  const rel = staticJsonKindPath(path, kind);
+  return rel ? safeJsonFileName(rel) : null;
+}
+
+async function fetchLaunchDataJson(rawPath) {
+  const path = normalizeLaunchJsonPath(rawPath, 'data');
+  const managedName = launchApiNameFromStaticPath(path, 'data');
+
+  if (managedName) {
+    return {
+      json: await fetchJson(path),
+      dataName: managedName,
+      dataApiUrl: apiJsonUrl('data', managedName),
+      displayPath: path
+    };
+  }
+
+  const loaded = await fetchApiJsonWithUrl('data', path);
+  const dataName = loaded.correctedName || jsonNameFromUrl(loaded.url, 'data') || safeJsonFileName(path);
+  return {
+    json: loaded.json,
+    dataName,
+    dataApiUrl: normalizeApiDataUrl(loaded.url),
+    displayPath: loaded.url
+  };
+}
+
+async function fetchLaunchViewDefJson(rawPath) {
+  const path = normalizeLaunchJsonPath(rawPath, 'view');
+  const managedName = launchApiNameFromStaticPath(path, 'defs');
+
+  if (managedName) {
+    const rawDefObj = await fetchJson(path);
+    return {
+      defName: managedName,
+      defObj: await resolveViewDefInheritance(rawDefObj, managedName),
+      displayPath: path
+    };
+  }
+
+  const defName = safeJsonFileName(path);
+  if (!defName) throw new Error(`view のパスが不正です: ${rawPath}`);
+  return {
+    defName,
+    defObj: await fetchResolvedViewDef(defName),
+    displayPath: path
+  };
+}
+
+function launchStatusSuffix() {
+  return launchRuntime?.readonly ? ' / ReadOnly' : '';
+}
+
 async function autoLoadFromQuery() {
   const params = new URLSearchParams(location.search);
-  const viewUrl = params.get('view') || params.get('def');
-  const dataUrl = params.get('data');
-  if (!viewUrl || !dataUrl) return;
+  const viewParam = params.get('view') || params.get('def');
+  const dataParam = params.get('data');
+  const mode = params.get('mode') || '';
+
+  if (!viewParam && !dataParam && !mode) return;
+
+  launchRuntime = {
+    fromUrl: Boolean(viewParam || dataParam),
+    mode,
+    readonly: isLaunchReadonlyMode(mode),
+    dataParam: dataParam || '',
+    viewParam: viewParam || '',
+    fileParam: ''
+  };
+
   try {
-    $('defFileName').textContent = viewUrl;
-    $('dataFileName').textContent = dataUrl;
+    if (!dataParam) {
+      if (viewParam) throw new Error('URL起動では data パラメータを指定してください');
+      return;
+    }
+    if ($('defFileName')) $('defFileName').textContent = viewParam || '(data内 view_def)';
+    if ($('dataFileName')) $('dataFileName').textContent = dataParam;
     setStatus('URLパラメータから読み込み中...');
-    const [rawDefObj, dataObj] = await Promise.all([fetchJson(viewUrl), fetchJson(dataUrl)]);
-    const normalizedDefName = jsonNameFromUrl(viewUrl, 'defs');
-    const defObj = await resolveViewDefInheritance(rawDefObj, normalizedDefName || jsonNameFromUrl(viewUrl));
-    lastLoadedDefName = normalizedDefName || getDataViewDefName(dataObj) || null;
-    if (lastLoadedDefName && $('defNameInput')) $('defNameInput').value = lastLoadedDefName;
-    const normalizedDataName = jsonNameFromUrl(dataUrl, 'data');
-    if (normalizedDataName && $('dataNameInput')) $('dataNameInput').value = normalizedDataName;
-    ensureViewDefNameInData(dataObj, lastLoadedDefName);
-    await loadFromObjects(defObj, dataObj, 'URLパラメータから読み込み完了', normalizeApiDataUrl(dataUrl));
+
+    const loadedData = await fetchLaunchDataJson(dataParam);
+    const dataObj = loadedData.json;
+    const dataName = loadedData.dataName;
+    if (dataName && $('dataNameInput')) $('dataNameInput').value = dataName;
+
+    let defName = null;
+    let defObj = null;
+    let autoMsg = '';
+
+    if (viewParam) {
+      const loadedDef = await fetchLaunchViewDefJson(viewParam);
+      defName = loadedDef.defName;
+      defObj = loadedDef.defObj;
+      if (!isDefCompatibleWithData(defObj, dataObj)) {
+        throw new Error(defCompatibilityMessage(defName, defObj, dataObj, dataName) + '。URLの view パラメータを確認してください');
+      }
+    } else {
+      const resolved = await resolveDefForData(null, dataObj, dataName);
+      defName = resolved.defName;
+      defObj = resolved.defObj;
+      autoMsg = resolved.previousDefName
+        ? ` / 画面定義を自動補正: ${resolved.previousDefName} → ${defName}`
+        : (resolved.autoChanged ? ` / 画面定義を自動選択: ${defName}` : '');
+    }
+
+    lastLoadedDefName = defName;
+    if (defName && $('defNameInput')) $('defNameInput').value = defName;
+    ensureViewDefNameInData(dataObj, defName);
+
+    const saveUrl = launchRuntime.readonly ? null : loadedData.dataApiUrl;
+    await loadFromObjects(
+      defObj,
+      dataObj,
+      `URLパラメータから読み込み完了: ${dataName || dataParam}${autoMsg}${launchStatusSuffix()}`,
+      saveUrl
+    );
   } catch (err) {
     console.error(err);
     setStatus('URL読込エラー: ' + err.message + '（file://直開きの場合はローカルサーバ起動が必要な場合があります）');
   }
 }
+

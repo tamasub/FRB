@@ -923,6 +923,7 @@ const fmTitle=document.getElementById("fmTitle"),fmSlug=document.getElementById(
 let tocDepth="all";
 let currentManagedMarkdownName = "";
 let isManagedMarkdownDirty = false;
+let launchMarkdownRuntime = { fromUrl: false, readonly: false, fileParam: "" };
 
 // 最新のmarked.js仕様に合わせてグローバル設定を適用
 marked.use({ gfm: true, breaks: true });
@@ -1373,6 +1374,44 @@ function renderMarkdown(rawMd, sourceUrl, sourceLabel){
   }, 40);
 }
 
+
+function isReadonlyLaunchModeValue(mode) {
+  return String(mode ?? '').trim().toLowerCase() === 'readonly';
+}
+
+function normalizeLaunchMarkdownName(raw) {
+  const value = String(raw ?? '').trim();
+  if (!value) return null;
+  const decoded = value.replace(/\\/g, '/');
+  if (decoded.includes('://') || decoded.startsWith('//')) throw new Error(`file に外部URLは指定できません: ${value}`);
+  if (decoded.startsWith('/')) throw new Error(`file に絶対パスは指定できません: ${value}`);
+  if (/^[a-zA-Z]:/.test(decoded)) throw new Error(`file にローカルドライブパスは指定できません: ${value}`);
+  if (/[?#]/.test(decoded)) throw new Error(`file にクエリ文字列やハッシュは指定できません: ${value}`);
+  if (!/\.(md|markdown|txt)$/i.test(decoded)) throw new Error(`file は .md / .markdown / .txt を指定してください: ${value}`);
+  const parts = decoded.split('/');
+  if (parts.some(part => !part || part === '.' || part === '..')) throw new Error(`file のパスが不正です: ${value}`);
+
+  let rel = parts.join('/');
+  if (rel.startsWith('data/markdown/')) rel = rel.slice('data/markdown/'.length);
+  if (rel.startsWith('markdown/')) rel = rel.slice('markdown/'.length);
+  return rel;
+}
+
+function applyMarkdownReadonlyLaunchControls() {
+  if (!launchMarkdownRuntime.readonly) return;
+  editorEl.readOnly = true;
+  editorEl.setAttribute('aria-readonly', 'true');
+  [btnOverwriteManagedMd, document.getElementById('btnSaveFile'), localFileBtn, document.getElementById('btnPasteClip')]
+    .forEach(btn => { if (btn) btn.disabled = true; });
+  if (previewEl && !document.getElementById('readonlyLaunchNote')) {
+    const note = document.createElement('div');
+    note.id = 'readonlyLaunchNote';
+    note.className = 'qiita-note info';
+    note.textContent = 'URL Launch ReadOnly: このMarkdownは閲覧モードで開いています。';
+    previewEl.parentElement?.insertBefore(note, previewEl);
+  }
+}
+
 function normalizeMarkdownFileName(name) {
   let n = (name || "").trim();
   if (!n) n = "frb_thought.md";
@@ -1430,6 +1469,7 @@ async function loadManagedMarkdown(name) {
     editorEl.value = md;
     syncFileNameUI(name);
     renderMarkdown(md, "#", "Managed Markdown");
+    applyMarkdownReadonlyLaunchControls();
   } catch (err) {
     previewEl.innerHTML = `<div class="qiita-note warn">管理Markdown読み込みエラー: ${err.message}</div>`;
   }
@@ -1574,14 +1614,29 @@ tocDepthBtns.forEach(btn=>btn.addEventListener("click",()=>{
 // 初期ロード: ?file=xxx.md があればそれを優先。無ければ data/markdown の先頭を読む。
 (async () => {
   const params = new URLSearchParams(location.search);
-  const requestedFile = params.get('file') || params.get('md');
-  const files = await refreshManagedMarkdownList(requestedFile || '');
-  if (requestedFile) {
-    await loadManagedMarkdown(requestedFile);
-  } else if (files.length) {
-    await loadManagedMarkdown(managedMdSelect.value || files[0]);
-  } else {
-    loadMarkdown(mdUrlEl.value);
+  const requestedFileRaw = params.get('file') || params.get('md');
+  const mode = params.get('mode') || '';
+  launchMarkdownRuntime = {
+    fromUrl: Boolean(requestedFileRaw),
+    readonly: isReadonlyLaunchModeValue(mode),
+    fileParam: requestedFileRaw || ''
+  };
+
+  try {
+    const requestedFile = requestedFileRaw ? normalizeLaunchMarkdownName(requestedFileRaw) : '';
+    const files = await refreshManagedMarkdownList(requestedFile || '');
+    if (requestedFile) {
+      await loadManagedMarkdown(requestedFile);
+    } else if (files.length) {
+      await loadManagedMarkdown(managedMdSelect.value || files[0]);
+    } else {
+      loadMarkdown(mdUrlEl.value);
+      applyMarkdownReadonlyLaunchControls();
+    }
+  } catch (err) {
+    console.error(err);
+    previewEl.innerHTML = `<div class="qiita-note warn">URL Launch 読み込みエラー: ${String(err.message || err)}</div>`;
+    applyMarkdownReadonlyLaunchControls();
   }
 })();
 </script>

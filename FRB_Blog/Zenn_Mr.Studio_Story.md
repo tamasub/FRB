@@ -133,8 +133,451 @@ AI駆動開発研究日誌 #10 — Studioくん、インシデント管理を覚
 
 ----
 
+# 第２話以降用の引継ぎ要約 2026/6/21
 
+もちろん。次チャットへそのまま貼れる引継ぎ用にまとめるでぇ。
 
+````markdown
+# 引継ぎメモ：AI駆動開発研究日誌 / Studioくん爆誕物語
+
+## 現在の流れ
+
+AI駆動開発研究日誌シリーズを立ち上げ中。
+
+シリーズの主役は **Studioくん**。
+
+Studioくんは、最初は「JSON Editor」として作り始めたが、会話と実装の中で、
+
+- JSON Editor
+- ViewDef管理
+- Markdown Viewer
+- Diff Viewer
+- ActionRegistry
+- ScreenState / Expected / AI差分物語
+- インシデント管理
+- URL起動による読者体験
+
+などを背負わされていく、AI駆動開発研究の実験装置になり始めている。
+
+---
+
+## 第一話
+
+### タイトル
+
+```text
+AI駆動開発研究日誌 #1 — Studioくん爆誕物語
+````
+
+### Zennファイル名
+
+```text
+ai-driven-development-diary-01-json-studio-birth.md
+```
+
+### Zenn記事トップ
+
+```yaml
+---
+title: "AI駆動開発研究日誌 #1 — Studioくん爆誕物語"
+emoji: "🧪"
+type: "idea"
+topics: ["ai", "json", "markdown", "nocode", "development"]
+published: false
+---
+```
+
+---
+
+## 第一話の主旨
+
+第一話は、完成したAI駆動開発理論の説明ではない。
+
+**Studioくんが、ただのJSON Editorとして生まれたはずなのに、気づけばAI駆動開発の未来を背負わされ始めた話。**
+
+主な流れ：
+
+1. 2026年3月17日、ChatGPTから「AI協働にはMarkdown/JSONが相性いい」と言われる
+2. MarkdownはQiita/Zenn/GitHubで自然に生活に入った
+3. JSONはFFTログでは使っていたが、人間が直接触る存在ではなかった
+4. AI協働の概念図の中心にMarkdown/JSONを書いたが、JSONにはまだ距離があった
+5. JSONに慣れるため、JSON Editorが必要だと思った
+6. その瞬間、2017年頃に作っていたノーコード系マルチマスタメンテ画面の記憶が蘇る
+7. Array = Grid、Object = Form、Child Array = SubGrid という発想へ進む
+8. DataとViewを分離するため、ViewDefが生える
+9. ViewDefもJSONなので、ViewDefを編集する画面まで生える
+10. ここで「Studioくん爆誕」
+11. Data / ViewDef / Action / Runtime の分離が、AI協働の構造になり始める
+12. Git DiffとJSONにより、差分文化とAI協働がつながる
+13. ただし、これは理論から始まったのではなく、横道から始まった
+14. 最後に「まだ私はAI駆動開発なるものをちゃんとやったことがない」というオチを入れる
+
+---
+
+## 第一話のオチ案
+
+本文最後に入れる追伸。
+
+```markdown
+## 追伸
+
+ここまで、それっぽくAI駆動開発について語ってきた。
+
+JSON。
+
+ViewDef。
+
+Action。
+
+Runtime。
+
+差分文化。
+
+AI協働。
+
+なんだか、とても分かったような顔をしている。
+
+しかし、最後に大事なことを書いておく。
+
+**なお、私はまだ、AI駆動開発なるものをちゃんとやったことがない。**
+
+がはははは。
+
+これからやるのである。
+
+だからこの日誌は、AI駆動開発の解説記事ではない。
+
+AI駆動開発という言葉に、自分の手で追いついていくための研究日誌である。
+
+明日もStudioくんで実験を続ける。
+```
+
+このオチにより、第一話は「理論記事」ではなく「研究日誌」になる。
+
+---
+
+## 既存記事との接続
+
+既にZennには以下の記事を投稿済み。
+
+```text
+ai-collaboration-json-studio-and-diff-culture.md
+```
+
+内容は、Viewをデータ化した先に見えた世界、JSON、Git Diff、AI協働、差分文化の話。
+
+ただし、この記事は否定しない。
+
+扱いとしては、
+
+```text
+先に理論側を書いてしまった記事
+```
+
+または
+
+```text
+観測結果レポート
+```
+
+第一話は、それに対して、
+
+```text
+Studioくんがどう生まれたかを描く爆誕物語
+```
+
+という位置づけ。
+
+第一話の終盤で、
+
+> 実は、この気づきについては、すでに別の記事として整理してしまっている。
+> ただ、今振り返ると、あの記事は少し早かったのかもしれない。
+> 理論として整理する前に、本当はこの爆誕物語が必要だった。
+
+という接続にしている。
+
+---
+
+## シリーズ方針
+
+AI駆動開発研究日誌は、理論記事ではなく **研究実況**。
+
+完成した考えを発表するのではなく、
+
+* 仮説を書く
+* 実装する
+* 外れたら外れ方を書く
+* 当たったら回収する
+* Studioくんが毎回何かを覚える
+
+という形式。
+
+締めの定番候補：
+
+```text
+今日の仮説はここまで。
+明日もStudioくんで実験を続ける。
+```
+
+---
+
+## シリーズ候補タイトル
+
+現在の候補：
+
+```text
+AI駆動開発研究日誌 #1 — Studioくん爆誕物語
+AI駆動開発研究日誌 #2 — Studioくん、画面定義まで食べ始める
+AI駆動開発研究日誌 #3 — Studioくん、Markdownまで飲み込む
+AI駆動開発研究日誌 #4 — Studioくん、差分を語り始める
+AI駆動開発研究日誌 #4.5 — テストコードを作ってくれないAI
+AI駆動開発研究日誌 #5 — Studioくん、共通化したのに太る
+AI駆動開発研究日誌 #10 — Studioくん、インシデント管理を覚える
+```
+
+特に **#4.5 — テストコードを作ってくれないAI** は本筋中の本筋。
+
+理由：
+
+* テストコードが追加されていない違和感から始まる
+* AI駆動開発の核心にぶつかる
+* 一度テンションダウンする
+* 雑談に流れる
+* そこで「400KSを読むのではなく、承認できる情報構造に圧縮する」という仮説が生まれる
+* さらに「プロンプト職人」ではなく「文脈設計士 / AI思考アーキテクト / 思考パイプライン設計者」という発想へつながる
+* この雑談から、AI駆動開発研究日誌という形式そのものが生まれた
+
+---
+
+## #10 インシデント管理との接続
+
+#10候補：
+
+```text
+AI駆動開発研究日誌 #10 — Studioくん、インシデント管理を覚える
+```
+
+この回では、Studioくんが作業項目管理 / インシデント管理を覚える話にする。
+
+重要な出来事：
+
+* 「URL起動対応」の話を探しても出てこなかった
+* 実は `coding_constraints_review_data_v0_3.json` の第15条「URL 起動対応」に思想としては存在していた
+* ただし、その憲法レビュー時点ではインシデント管理JSONがまだなかった
+* そのため、思想は条文として存在したが、作業項目として登録されていなかった
+* 今回、`studio_work_incident_data` に新規作業項目 `studio_work_0013` として回収した
+
+この流れが非常に重要。
+
+```text
+憲法にあった思想
+  ↓
+でも作業項目にない
+  ↓
+探しても見つからない
+  ↓
+インシデント管理の必要性が証明される
+  ↓
+作業項目として回収
+```
+
+記事に入れるならこの表現がよい。
+
+```markdown
+皮肉なことに、インシデント管理が必要だと証明したのは、
+インシデント管理が存在しなかった頃の作業漏れだった。
+```
+
+---
+
+## URL起動対応の扱い
+
+`coding_constraints_review_data_v0_3.json` の第15条に存在。
+
+内容：
+
+```text
+Studio は URL による起動に対応する。
+
+studio.html?data=...&view=...
+
+将来的には、
+
+studio.html?data=...&view=...&mode=readonly
+studio.html?data=...&view=...&step=12
+studio.html?data=...&view=...&action=replay
+
+記事から直接 Studio 体験へリンクするために、URL 起動は重要である。
+```
+
+第14条 ReadOnly モードとも接続している。
+
+第14条の意味：
+
+```text
+ReadOnly モードは、読者が安全に見るための公開モード。
+GitHub Pages公開、URLによるData/ViewDef読込、読者の追体験入口。
+```
+
+つまり：
+
+```text
+第14条 ReadOnly モード
+  ↓
+読者が安全に見る公開モード
+
+第15条 URL 起動対応
+  ↓
+記事から data/view を指定して直接Studio体験へ飛ばす
+
+studio_work_0013
+  ↓
+憲法にあった思想を実装インシデントとして回収
+```
+
+---
+
+## 追加済み作業項目
+
+`studio_work_incident_data_v0_11_folder_hierarchy_done.json` に対して、以下を追加した更新版を作成済み。
+
+出力ファイル：
+
+```text
+studio_work_incident_data_v0_12_url_param_launch_load.json
+```
+
+追加内容：
+
+```text
+studio_work_0013
+phase: v0.8-url-param-launch-load
+title: 起動URLパラメータによるData/ViewDef自動読込
+status: 未着手
+priority: high
+```
+
+目的：
+
+```text
+記事・README・MarkdownからURLをクリックするだけで、
+Studioくんが指定された Data JSON / ViewDef JSON / Markdown を自動読込し、
+読者が同じ画面・同じ体験を再現できるようにする。
+```
+
+想定URL：
+
+```text
+index.html?data=data/studio/sample.json&view=defs/studio/sample_view_def.json
+index.html?data=data/studio/sample.json&view=defs/studio/sample_view_def.json&mode=readonly
+index.html?data=data/studio/sample.json&view=defs/studio/sample_view_def.json&step=12
+index.html?data=data/studio/sample.json&view=defs/studio/sample_view_def.json&action=replay
+mdViewer.html?file=docs/sample.md
+```
+
+---
+
+## 重要概念
+
+### Studioくんの正体
+
+```text
+JSON Editorではない。
+JSONを体験に変換するプラットフォーム。
+```
+
+### 憲法の表現
+
+```text
+Data JSON
+  + ViewDef JSON
+  + Action
+  = Experience
+```
+
+### Studioくんの使命
+
+```text
+見えないもの
+  -> JSON
+  -> ViewDef
+  -> Action
+  -> Experience
+  -> 共有可能な理解
+```
+
+### AI協働の核心
+
+```text
+AIが賢いから速いのではない。
+人間が構造を渡せるようになると速い。
+```
+
+### 差分文化
+
+```text
+JSON
+  ↓
+Git Diff
+  ↓
+AI
+```
+
+差分をAIに渡すことで、AIとの協働が成立しやすくなる。
+
+---
+
+## 今後の進め方
+
+次チャットでは、必要に応じて以下をやる。
+
+1. 第一話本文の最終整形
+2. 追伸オチを本文に統合
+3. #2「Studioくん、画面定義まで食べ始める」の記事作成
+4. #4.5「テストコードを作ってくれないAI」の構成
+5. #10「Studioくん、インシデント管理を覚える」の構成
+6. `studio_work_0013` の実装作業
+7. URL起動対応の仕様化
+8. ReadOnly / GitHub Pages公開導線の整理
+
+---
+
+## トーン
+
+Zenn用だが、堅すぎない。
+
+FRB実験ログと同じく、
+
+* 技術
+* 研究実況
+* 物語
+* 失敗
+* 違和感
+* 笑い
+* 仮説
+
+を混ぜる。
+
+読者に完成理論を押し付けるのではなく、
+
+```text
+この人、なんか変なことを試しているな
+でも、ちょっと面白いな
+自分も試せるかも
+```
+
+と思ってもらう。
+
+Studioくんはキャラクターとして扱う。
+
+ただし、ソースコード側は清潔に保つ。
+
+キャラクター化は、Story / ViewDef / Replay / Review 出力側で行う。
+
+```
+
+これを次回の頭に貼れば、ほぼそのまま続きからいけるはず。
+```
 
 
 
