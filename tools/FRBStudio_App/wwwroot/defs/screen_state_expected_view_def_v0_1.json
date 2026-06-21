@@ -1,0 +1,207 @@
+{
+  "app": {
+    "name": "No-Code JSON Studio",
+    "version": "0.3-draft"
+  },
+  "views": [
+    {
+      "id": "screen_state_expected_main",
+      "caption": "Screen State Expected Pattern Editor",
+      "layout": "header-search-grid-detail",
+      "sections": [
+        {
+          "id": "header",
+          "caption": "🧪 テストパターン / Expected定義",
+          "type": "form",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "view_def",
+              "caption": "画面定義",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "testId",
+              "caption": "Test ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "title",
+              "caption": "テスト名",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            }
+          ]
+        },
+        {
+          "id": "checks",
+          "caption": "チェック定義一覧",
+          "type": "grid",
+          "dataPath": "$.checks",
+          "keyField": "name",
+          "fields": [
+            {
+              "field": "name",
+              "caption": "Check",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 180
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "validation": {
+                "required": true
+              }
+            },
+            {
+              "field": "check_id",
+              "caption": "Check ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 240
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "validation": {
+                "required": true
+              },
+              "description": "Expected定義・テスト結果・Relationを紐づけるためのチェックID。"
+            },
+            {
+              "field": "type",
+              "caption": "Type",
+              "type": "select",
+              "options": [
+                "equals",
+                "includesAll",
+                "contains",
+                "exists"
+              ],
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              },
+              "validation": {
+                "required": true
+              },
+              "defaultValue": "equals"
+            },
+            {
+              "field": "target",
+              "caption": "Target",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 180
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "validation": {
+                "required": true
+              }
+            },
+            {
+              "field": "expected",
+              "caption": "Expected",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 420
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 110
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "description",
+              "caption": "説明",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 90
+              },
+              "search": {
+                "visible": false
+              },
+              "defaultValue": ""
+            }
+          ]
+        }
+      ],
+      "markdown": {
+        "enabled": true,
+        "type": "screen_state_expected",
+        "title": "画面状態JSON Expected定義",
+        "defaultFileName": "screen_state_expected_export.md"
+      }
+    }
+  ]
+}

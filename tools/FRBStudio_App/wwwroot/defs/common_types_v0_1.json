@@ -1,0 +1,1418 @@
+{
+  "version": "0.1",
+  "description": "No-Code JSON Studio 共通FieldType定義。cd/name選択肢と、意味のある通常項目FieldTypeを管理する。 不足検出VirtualData用FieldTypeを追加。",
+  "namespaces": {
+    "qa": {
+      "fieldTypes": {
+        "feature_area": {
+          "caption": "機能領域",
+          "baseType": "select",
+          "valueField": "cd",
+          "labelField": "name",
+          "options": [
+            {
+              "cd": "viewdef",
+              "name": "ViewDef"
+            },
+            {
+              "cd": "relation",
+              "name": "Relation"
+            },
+            {
+              "cd": "virtual_data",
+              "name": "VirtualData"
+            },
+            {
+              "cd": "writeback",
+              "name": "WriteBack"
+            },
+            {
+              "cd": "markdown",
+              "name": "Markdown"
+            },
+            {
+              "cd": "save",
+              "name": "保存"
+            },
+            {
+              "cd": "drop",
+              "name": "Drop"
+            }
+          ],
+          "grid": {
+            "visible": true,
+            "width": 130
+          },
+          "edit": {
+            "visible": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "equals"
+          }
+        },
+        "test_axis": {
+          "caption": "テスト観点",
+          "baseType": "select",
+          "valueField": "cd",
+          "labelField": "name",
+          "options": [
+            {
+              "cd": "initial_display",
+              "name": "初期表示"
+            },
+            {
+              "cd": "load",
+              "name": "読込"
+            },
+            {
+              "cd": "status_filter",
+              "name": "statusFilter"
+            },
+            {
+              "cd": "inheritance",
+              "name": "継承"
+            },
+            {
+              "cd": "writeback",
+              "name": "WriteBack"
+            },
+            {
+              "cd": "markdown_export",
+              "name": "Markdown出力"
+            },
+            {
+              "cd": "save_reload",
+              "name": "保存後再読込"
+            }
+          ],
+          "grid": {
+            "visible": true,
+            "width": 140
+          },
+          "edit": {
+            "visible": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "equals"
+          }
+        },
+        "quality_axis": {
+          "caption": "品質観点",
+          "baseType": "select",
+          "valueField": "cd",
+          "labelField": "name",
+          "options": [
+            {
+              "cd": "display",
+              "name": "表示"
+            },
+            {
+              "cd": "operation",
+              "name": "操作"
+            },
+            {
+              "cd": "save",
+              "name": "保存"
+            },
+            {
+              "cd": "evidence",
+              "name": "証跡"
+            },
+            {
+              "cd": "safety",
+              "name": "安全性"
+            },
+            {
+              "cd": "error",
+              "name": "エラー処理"
+            }
+          ],
+          "grid": {
+            "visible": true,
+            "width": 120
+          },
+          "edit": {
+            "visible": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "equals"
+          }
+        },
+        "check_axis": {
+          "caption": "チェック観点",
+          "baseType": "select",
+          "valueField": "cd",
+          "labelField": "name",
+          "options": [
+            {
+              "cd": "include",
+              "name": "採用確認"
+            },
+            {
+              "cd": "exclude",
+              "name": "除外確認"
+            },
+            {
+              "cd": "structure",
+              "name": "構造線確認"
+            },
+            {
+              "cd": "display",
+              "name": "表示確認"
+            },
+            {
+              "cd": "write",
+              "name": "書込確認"
+            },
+            {
+              "cd": "not_write",
+              "name": "非書込確認"
+            },
+            {
+              "cd": "error",
+              "name": "エラー確認"
+            }
+          ],
+          "grid": {
+            "visible": true,
+            "width": 120
+          },
+          "edit": {
+            "visible": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "equals"
+          }
+        },
+        "scenario_type": {
+          "caption": "シナリオ種別",
+          "baseType": "select",
+          "valueField": "cd",
+          "labelField": "name",
+          "options": [
+            {
+              "cd": "normal",
+              "name": "正常系"
+            },
+            {
+              "cd": "error",
+              "name": "異常系"
+            },
+            {
+              "cd": "boundary",
+              "name": "境界値"
+            },
+            {
+              "cd": "missing",
+              "name": "未指定"
+            },
+            {
+              "cd": "reload",
+              "name": "再読込"
+            },
+            {
+              "cd": "diff",
+              "name": "差分"
+            }
+          ],
+          "grid": {
+            "visible": true,
+            "width": 110
+          },
+          "edit": {
+            "visible": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "equals"
+          }
+        },
+        "risk": {
+          "caption": "リスク",
+          "baseType": "select",
+          "valueField": "cd",
+          "labelField": "name",
+          "options": [
+            {
+              "cd": "high",
+              "name": "高"
+            },
+            {
+              "cd": "medium",
+              "name": "中"
+            },
+            {
+              "cd": "low",
+              "name": "低"
+            }
+          ],
+          "grid": {
+            "visible": true,
+            "width": 80
+          },
+          "edit": {
+            "visible": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "equals"
+          }
+        },
+        "check_id": {
+          "caption": "チェックID",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 170
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          },
+          "readonly": false
+        },
+        "test_pattern_id": {
+          "caption": "テストパターンID",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 170
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          },
+          "readonly": false
+        },
+        "source_check_name": {
+          "caption": "実チェック名",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 180
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          },
+          "readonly": false
+        },
+        "expected_summary": {
+          "caption": "期待値概要",
+          "baseType": "textarea",
+          "grid": {
+            "visible": true,
+            "width": 380
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false,
+            "height": 90
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          },
+          "readonly": false
+        },
+        "constraint_ids": {
+          "caption": "制約ID一覧",
+          "baseType": "stringArray",
+          "grid": {
+            "visible": true,
+            "width": 260
+          },
+          "edit": {
+            "visible": true
+          }
+        },
+        "evidence_hint": {
+          "caption": "証跡ヒント",
+          "baseType": "textarea",
+          "grid": {
+            "visible": true,
+            "width": 320
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false,
+            "height": 90
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          },
+          "readonly": false
+        },
+        "check_count": {
+          "caption": "チェック件数",
+          "baseType": "number",
+          "grid": {
+            "visible": true,
+            "width": 90
+          },
+          "edit": {
+            "visible": true
+          },
+          "search": {
+            "visible": true,
+            "operator": ">="
+          }
+        },
+        "high_count": {
+          "caption": "高リスク件数",
+          "baseType": "number",
+          "grid": {
+            "visible": true,
+            "width": 100
+          },
+          "edit": {
+            "visible": true
+          },
+          "search": {
+            "visible": true,
+            "operator": ">="
+          }
+        },
+        "medium_count": {
+          "caption": "中リスク件数",
+          "baseType": "number",
+          "grid": {
+            "visible": true,
+            "width": 100
+          },
+          "edit": {
+            "visible": true
+          },
+          "search": {
+            "visible": true,
+            "operator": ">="
+          }
+        },
+        "low_count": {
+          "caption": "低リスク件数",
+          "baseType": "number",
+          "grid": {
+            "visible": true,
+            "width": 100
+          },
+          "edit": {
+            "visible": true
+          },
+          "search": {
+            "visible": true,
+            "operator": ">="
+          }
+        },
+        "risk_summary": {
+          "caption": "リスク内訳",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 140
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          }
+        },
+        "quality_axis_name": {
+          "caption": "品質観点名",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 120
+          },
+          "edit": {
+            "visible": true,
+            "readonly": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          }
+        },
+        "check_axis_name": {
+          "caption": "チェック観点名",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 130
+          },
+          "edit": {
+            "visible": true,
+            "readonly": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          }
+        },
+        "risk_name": {
+          "caption": "リスク名",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 90
+          },
+          "edit": {
+            "visible": true,
+            "readonly": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          }
+        },
+        "test_pattern_title": {
+          "caption": "テストパターン名",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 320
+          },
+          "edit": {
+            "visible": true,
+            "readonly": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          }
+        },
+        "constraint_id": {
+          "caption": "制約ID",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 180
+          },
+          "edit": {
+            "visible": true,
+            "readonly": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          }
+        },
+        "check_ids": {
+          "caption": "チェックID一覧",
+          "baseType": "stringArray",
+          "grid": {
+            "visible": true,
+            "width": 280
+          },
+          "edit": {
+            "visible": true
+          }
+        },
+        "test_pattern_ids": {
+          "caption": "テストパターンID一覧",
+          "baseType": "stringArray",
+          "grid": {
+            "visible": true,
+            "width": 260
+          },
+          "edit": {
+            "visible": true
+          }
+        },
+        "finding_id": {
+          "caption": "不足ID",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 100
+          },
+          "edit": {
+            "visible": true,
+            "readonly": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          }
+        },
+        "finding_type": {
+          "caption": "検出種別",
+          "baseType": "select",
+          "valueField": "cd",
+          "labelField": "name",
+          "options": [
+            {
+              "cd": "axis_risk_shortage",
+              "name": "観点×リスク不足"
+            },
+            {
+              "cd": "constraint_thin_coverage",
+              "name": "制約Expected薄い"
+            },
+            {
+              "cd": "test_pattern_thin_coverage",
+              "name": "TP Expected薄い"
+            },
+            {
+              "cd": "required_field_missing",
+              "name": "必須項目未設定"
+            }
+          ],
+          "grid": {
+            "visible": true,
+            "width": 160
+          },
+          "edit": {
+            "visible": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "equals"
+          }
+        },
+        "finding_type_name": {
+          "caption": "検出種別名",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 160
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          }
+        },
+        "severity": {
+          "caption": "重要度",
+          "baseType": "select",
+          "valueField": "cd",
+          "labelField": "name",
+          "options": [
+            {
+              "cd": "high",
+              "name": "高"
+            },
+            {
+              "cd": "medium",
+              "name": "中"
+            },
+            {
+              "cd": "low",
+              "name": "低"
+            },
+            {
+              "cd": "info",
+              "name": "情報"
+            }
+          ],
+          "grid": {
+            "visible": true,
+            "width": 80
+          },
+          "edit": {
+            "visible": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "equals"
+          }
+        },
+        "severity_name": {
+          "caption": "重要度名",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 80
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          }
+        },
+        "target_type": {
+          "caption": "対象種別CD",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 120
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          }
+        },
+        "target_type_name": {
+          "caption": "対象種別",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 120
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          }
+        },
+        "target_cd": {
+          "caption": "対象CD",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 170
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          }
+        },
+        "target_name": {
+          "caption": "対象名",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 220
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          }
+        },
+        "threshold_summary": {
+          "caption": "判定基準",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 260
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          }
+        },
+        "shortage_message": {
+          "caption": "検出メッセージ",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 420
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          }
+        },
+        "suggested_action": {
+          "caption": "推奨アクション",
+          "baseType": "textarea",
+          "grid": {
+            "visible": true,
+            "width": 420
+          },
+          "edit": {
+            "visible": true,
+            "height": 90
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          }
+        }
+      }
+    },
+    "relation": {
+      "fieldTypes": {
+        "status": {
+          "caption": "承認状態",
+          "baseType": "select",
+          "valueField": "cd",
+          "labelField": "name",
+          "options": [
+            {
+              "cd": "candidate",
+              "name": "候補"
+            },
+            {
+              "cd": "approved",
+              "name": "承認済み"
+            },
+            {
+              "cd": "rejected",
+              "name": "却下"
+            },
+            {
+              "cd": "derived",
+              "name": "自動生成"
+            },
+            {
+              "cd": "needs_review",
+              "name": "要確認"
+            },
+            {
+              "cd": "deprecated",
+              "name": "廃止"
+            }
+          ],
+          "grid": {
+            "visible": true,
+            "width": 110
+          },
+          "edit": {
+            "visible": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "equals"
+          },
+          "defaultValue": "candidate"
+        },
+        "coverage": {
+          "caption": "Coverage",
+          "baseType": "select",
+          "valueField": "cd",
+          "labelField": "name",
+          "options": [
+            {
+              "cd": "primary",
+              "name": "主証拠"
+            },
+            {
+              "cd": "secondary",
+              "name": "補助"
+            },
+            {
+              "cd": "structure",
+              "name": "構造線"
+            }
+          ],
+          "grid": {
+            "visible": true,
+            "width": 110
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "equals"
+          },
+          "readonly": false
+        },
+        "relation_id": {
+          "caption": "Relation ID",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 210
+          },
+          "edit": {
+            "visible": true,
+            "readonly": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          },
+          "readonly": true
+        },
+        "from_id": {
+          "caption": "From ID",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 160
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          },
+          "readonly": false
+        },
+        "to_id": {
+          "caption": "To ID",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 170
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          },
+          "readonly": false
+        },
+        "node_type": {
+          "caption": "Node Type",
+          "baseType": "select",
+          "valueField": "cd",
+          "labelField": "name",
+          "options": [
+            {
+              "cd": "constraint",
+              "name": "制約"
+            },
+            {
+              "cd": "test_pattern",
+              "name": "テストパターン"
+            },
+            {
+              "cd": "check",
+              "name": "チェック"
+            },
+            {
+              "cd": "diff",
+              "name": "Diff"
+            },
+            {
+              "cd": "customer",
+              "name": "顧客"
+            },
+            {
+              "cd": "project",
+              "name": "案件"
+            },
+            {
+              "cd": "task",
+              "name": "タスク"
+            },
+            {
+              "cd": "employee",
+              "name": "担当者"
+            }
+          ],
+          "grid": {
+            "visible": true,
+            "width": 110
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "equals"
+          },
+          "readonly": false
+        },
+        "relation_type": {
+          "caption": "Relation",
+          "baseType": "select",
+          "valueField": "cd",
+          "labelField": "name",
+          "options": [
+            {
+              "cd": "verified_by",
+              "name": "verified_by"
+            },
+            {
+              "cd": "contains_check",
+              "name": "contains_check"
+            },
+            {
+              "cd": "has_project",
+              "name": "has_project"
+            },
+            {
+              "cd": "has_task",
+              "name": "has_task"
+            },
+            {
+              "cd": "assigned_to",
+              "name": "assigned_to"
+            },
+            {
+              "cd": "related_to",
+              "name": "related_to"
+            },
+            {
+              "cd": "depends_on",
+              "name": "depends_on"
+            }
+          ],
+          "grid": {
+            "visible": true,
+            "width": 140
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "equals"
+          },
+          "readonly": false
+        },
+        "confidence": {
+          "caption": "Confidence",
+          "baseType": "select",
+          "valueField": "cd",
+          "labelField": "name",
+          "options": [
+            {
+              "cd": "high",
+              "name": "高"
+            },
+            {
+              "cd": "medium",
+              "name": "中"
+            },
+            {
+              "cd": "low",
+              "name": "低"
+            }
+          ],
+          "grid": {
+            "visible": true,
+            "width": 100
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "equals"
+          },
+          "readonly": false
+        },
+        "priority": {
+          "caption": "Priority",
+          "baseType": "select",
+          "valueField": "cd",
+          "labelField": "name",
+          "options": [
+            {
+              "cd": "high",
+              "name": "高"
+            },
+            {
+              "cd": "medium",
+              "name": "中"
+            },
+            {
+              "cd": "low",
+              "name": "低"
+            }
+          ],
+          "grid": {
+            "visible": true,
+            "width": 90
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "equals"
+          },
+          "readonly": false
+        },
+        "approved_by": {
+          "caption": "承認者",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 120
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          },
+          "readonly": false
+        },
+        "approved_at": {
+          "caption": "承認日時",
+          "baseType": "datetime",
+          "grid": {
+            "visible": true,
+            "width": 170
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          },
+          "readonly": false
+        },
+        "approval_note": {
+          "caption": "承認メモ",
+          "baseType": "textarea",
+          "grid": {
+            "visible": true,
+            "width": 360
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          },
+          "readonly": false
+        }
+      }
+    },
+    "business": {
+      "fieldTypes": {
+        "customer_id": {
+          "caption": "顧客ID",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 110
+          },
+          "edit": {
+            "visible": true,
+            "readonly": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          },
+          "readonly": true
+        },
+        "customer_name": {
+          "caption": "顧客名",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 180
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          },
+          "readonly": false
+        },
+        "project_id": {
+          "caption": "案件ID",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 110
+          },
+          "edit": {
+            "visible": true,
+            "readonly": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          },
+          "readonly": true
+        },
+        "project_name": {
+          "caption": "案件名",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 180
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          },
+          "readonly": false
+        },
+        "employee_id": {
+          "caption": "担当ID",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 110
+          },
+          "edit": {
+            "visible": true,
+            "readonly": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          },
+          "readonly": true
+        },
+        "employee_name": {
+          "caption": "担当者",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 160
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          },
+          "readonly": false
+        },
+        "task_id": {
+          "caption": "タスクID",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 110
+          },
+          "edit": {
+            "visible": true,
+            "readonly": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          },
+          "readonly": true
+        },
+        "task_name": {
+          "caption": "タスク名",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 180
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          },
+          "readonly": false
+        },
+        "trace_label": {
+          "caption": "状態",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 120
+          },
+          "edit": {
+            "visible": true,
+            "readonly": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          },
+          "readonly": true
+        },
+        "project_count": {
+          "caption": "案件数",
+          "baseType": "number",
+          "grid": {
+            "visible": true,
+            "width": 80
+          },
+          "edit": {
+            "visible": true,
+            "readonly": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "equals"
+          },
+          "readonly": true
+        },
+        "task_count": {
+          "caption": "タスク数",
+          "baseType": "number",
+          "grid": {
+            "visible": true,
+            "width": 90
+          },
+          "edit": {
+            "visible": true,
+            "readonly": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "equals"
+          },
+          "readonly": true
+        },
+        "primary_count": {
+          "caption": "主",
+          "baseType": "number",
+          "grid": {
+            "visible": true,
+            "width": 70
+          },
+          "edit": {
+            "visible": true,
+            "readonly": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "equals"
+          },
+          "readonly": true
+        },
+        "secondary_count": {
+          "caption": "補助",
+          "baseType": "number",
+          "grid": {
+            "visible": true,
+            "width": 70
+          },
+          "edit": {
+            "visible": true,
+            "readonly": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "equals"
+          },
+          "readonly": true
+        }
+      }
+    },
+    "core": {
+      "fieldTypes": {
+        "title": {
+          "caption": "タイトル",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 260
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          },
+          "readonly": false
+        },
+        "schema_version": {
+          "caption": "Schema",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 120
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          },
+          "readonly": false
+        },
+        "document_type": {
+          "caption": "Document Type",
+          "baseType": "text",
+          "grid": {
+            "visible": true,
+            "width": 170
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          },
+          "readonly": false
+        },
+        "note": {
+          "caption": "メモ",
+          "baseType": "textarea",
+          "grid": {
+            "visible": true,
+            "width": 300
+          },
+          "edit": {
+            "visible": true,
+            "readonly": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "contains"
+          },
+          "readonly": false
+        }
+      }
+    }
+  }
+}

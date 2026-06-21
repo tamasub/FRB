@@ -1,0 +1,252 @@
+{
+  "app": {
+    "name": "No-Code JSON Studio",
+    "version": "0.3-draft-relation-approval-017"
+  },
+  "views": [
+    {
+      "id": "relation_approval",
+      "caption": "Relation承認レビュー / AI候補線→人間承認線",
+      "layout": {
+        "detailDialog": "wide"
+      },
+      "sections": [
+        {
+          "id": "header",
+          "caption": "Relation JSON / 基本情報",
+          "type": "form",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "fieldType": "core.title"
+            },
+            {
+              "field": "schema_version",
+              "caption": "Schema",
+              "fieldType": "core.schema_version"
+            },
+            {
+              "field": "document_type",
+              "caption": "Document Type",
+              "fieldType": "core.document_type"
+            },
+            {
+              "field": "target",
+              "caption": "Target",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "policy",
+              "caption": "設計方針",
+              "type": "textarea",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 74
+              }
+            },
+            {
+              "field": "source_note",
+              "caption": "Source Note",
+              "type": "textarea",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 74
+              }
+            },
+            {
+              "field": "note",
+              "caption": "メモ",
+              "fieldType": "core.note"
+            }
+          ]
+        },
+        {
+          "id": "relations",
+          "caption": "Relation承認一覧 / Candidate → Approved",
+          "type": "grid",
+          "dataPath": "$.relations",
+          "keyField": "relation_id",
+          "fields": [
+            {
+              "field": "relation_id",
+              "caption": "Relation ID",
+              "fieldType": "relation.relation_id",
+              "grid": {
+                "visible": true,
+                "width": 210
+              },
+              "edit": {
+                "readonly": true
+              }
+            },
+            {
+              "field": "from_type",
+              "caption": "Node Type",
+              "fieldType": "relation.node_type",
+              "grid": {
+                "visible": true,
+                "width": 105
+              }
+            },
+            {
+              "field": "from_id",
+              "caption": "From ID",
+              "fieldType": "relation.from_id",
+              "grid": {
+                "visible": true,
+                "width": 150
+              }
+            },
+            {
+              "field": "relation",
+              "caption": "Relation",
+              "fieldType": "relation.relation_type",
+              "grid": {
+                "visible": true,
+                "width": 130
+              }
+            },
+            {
+              "field": "to_type",
+              "caption": "Node Type",
+              "fieldType": "relation.node_type",
+              "grid": {
+                "visible": true,
+                "width": 105
+              }
+            },
+            {
+              "field": "to_id",
+              "caption": "To ID",
+              "fieldType": "relation.to_id",
+              "grid": {
+                "visible": true,
+                "width": 150
+              }
+            },
+            {
+              "field": "status",
+              "caption": "承認状態",
+              "fieldType": "relation.status",
+              "grid": {
+                "visible": true,
+                "width": 108
+              }
+            },
+            {
+              "field": "coverage",
+              "caption": "Coverage",
+              "fieldType": "relation.coverage",
+              "grid": {
+                "visible": true,
+                "width": 104
+              }
+            },
+            {
+              "field": "confidence",
+              "caption": "Confidence",
+              "fieldType": "relation.confidence",
+              "grid": {
+                "visible": true,
+                "width": 92
+              }
+            },
+            {
+              "field": "required",
+              "caption": "Required",
+              "type": "boolean",
+              "grid": {
+                "visible": true,
+                "width": 80
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              },
+              "defaultValue": false
+            },
+            {
+              "field": "enabled",
+              "caption": "Enabled",
+              "type": "boolean",
+              "grid": {
+                "visible": true,
+                "width": 78
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              },
+              "defaultValue": true
+            },
+            {
+              "field": "priority",
+              "caption": "Priority",
+              "fieldType": "relation.priority",
+              "grid": {
+                "visible": true,
+                "width": 82
+              }
+            },
+            {
+              "field": "approved_by",
+              "caption": "承認者",
+              "fieldType": "relation.approved_by",
+              "grid": {
+                "visible": false,
+                "width": 120
+              }
+            },
+            {
+              "field": "approved_at",
+              "caption": "承認日時",
+              "fieldType": "relation.approved_at",
+              "grid": {
+                "visible": false,
+                "width": 170
+              }
+            },
+            {
+              "field": "note",
+              "caption": "承認メモ",
+              "fieldType": "relation.approval_note",
+              "grid": {
+                "visible": true,
+                "width": 360
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "fieldTypeSources": [
+    "common_types_v0_1.json"
+  ]
+}

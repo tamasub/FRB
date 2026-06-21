@@ -1,0 +1,168 @@
+{
+  "app": {
+    "title": "QA Expected Checks Classified"
+  },
+  "fieldTypeSources": [
+    "common_types_v0_1.json"
+  ],
+  "views": [
+    {
+      "id": "main",
+      "caption": "観点分類入りExpected定義",
+      "sections": [
+        {
+          "id": "summary",
+          "type": "form",
+          "caption": "概要",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "view_def",
+              "caption": "view_def",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "schema_version",
+              "caption": "Schema",
+              "fieldType": "core.schema_version"
+            },
+            {
+              "field": "document_type",
+              "caption": "文書種別",
+              "fieldType": "core.document_type"
+            },
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "fieldType": "core.title",
+              "grid": {
+                "visible": false,
+                "width": 360
+              }
+            },
+            {
+              "field": "description",
+              "caption": "説明",
+              "fieldType": "core.note",
+              "grid": {
+                "visible": false,
+                "width": 420
+              }
+            }
+          ]
+        },
+        {
+          "id": "mainGrid",
+          "type": "grid",
+          "caption": "Expected / Check 一覧",
+          "dataPath": "$.expected_checks",
+          "fields": [
+            {
+              "field": "check_id",
+              "caption": "チェックID",
+              "fieldType": "qa.check_id"
+            },
+            {
+              "field": "test_pattern_id",
+              "caption": "テストパターンID",
+              "fieldType": "qa.test_pattern_id"
+            },
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "fieldType": "core.title",
+              "grid": {
+                "width": 360
+              }
+            },
+            {
+              "field": "quality_axis_cd",
+              "caption": "品質観点",
+              "fieldType": "qa.quality_axis"
+            },
+            {
+              "field": "check_axis_cd",
+              "caption": "チェック観点",
+              "fieldType": "qa.check_axis"
+            },
+            {
+              "field": "risk_cd",
+              "caption": "リスク",
+              "fieldType": "qa.risk"
+            },
+            {
+              "field": "source_check_name",
+              "caption": "実チェック名",
+              "fieldType": "qa.source_check_name"
+            },
+            {
+              "field": "expected_summary",
+              "caption": "期待値概要",
+              "fieldType": "qa.expected_summary"
+            },
+            {
+              "field": "constraint_ids",
+              "caption": "制約ID",
+              "fieldType": "qa.constraint_ids"
+            },
+            {
+              "field": "evidence_hint",
+              "caption": "証跡ヒント",
+              "fieldType": "qa.evidence_hint"
+            },
+            {
+              "field": "note",
+              "caption": "メモ",
+              "fieldType": "core.note",
+              "grid": {
+                "width": 260
+              }
+            }
+          ]
+        },
+        {
+          "id": "policy",
+          "type": "form",
+          "caption": "運用方針",
+          "dataPath": "$.policy",
+          "fields": [
+            {
+              "field": "test_pattern_policy",
+              "caption": "テストパターン方針",
+              "fieldType": "core.note",
+              "grid": {
+                "visible": false,
+                "width": 520
+              }
+            },
+            {
+              "field": "classification_policy",
+              "caption": "分類方針",
+              "fieldType": "core.note",
+              "grid": {
+                "visible": false,
+                "width": 520
+              }
+            },
+            {
+              "field": "caption_policy",
+              "caption": "caption方針",
+              "fieldType": "core.note",
+              "grid": {
+                "visible": false,
+                "width": 520
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,153 @@
+{
+  "app": {
+    "title": "QA Cross TestPattern"
+  },
+  "fieldTypeSources": [
+    "common_types_v0_1.json"
+  ],
+  "virtualData": [
+    {
+      "builder": "expected_check_cross_counts",
+      "targetPath": "$.test_pattern_cross",
+      "source": {
+        "source": "$current",
+        "path": "$.expected_checks"
+      },
+      "dimensions": [
+        {
+          "field": "test_pattern_id",
+          "outputField": "test_pattern_id",
+          "labelField": "test_pattern_title",
+          "labelSource": {
+            "source": "test_patterns",
+            "path": "$.test_patterns",
+            "idField": "test_pattern_id",
+            "labelField": "title"
+          }
+        }
+      ],
+      "outputs": {
+        "countField": "check_count",
+        "highCountField": "high_count",
+        "mediumCountField": "medium_count",
+        "lowCountField": "low_count",
+        "checkIdsField": "check_ids",
+        "testPatternIdsField": "test_pattern_ids",
+        "constraintIdsField": "constraint_ids",
+        "riskSummaryField": "risk_summary"
+      },
+      "sort": [
+        {
+          "field": "check_count",
+          "direction": "desc"
+        },
+        {
+          "field": "test_pattern_id",
+          "direction": "asc"
+        }
+      ]
+    }
+  ],
+  "views": [
+    {
+      "id": "main",
+      "caption": "テストパターン別 Expected 件数",
+      "sections": [
+        {
+          "id": "summary",
+          "type": "form",
+          "caption": "概要",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "view_def",
+              "caption": "view_def",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "fieldType": "core.title",
+              "grid": {
+                "visible": false,
+                "width": 360
+              }
+            },
+            {
+              "field": "description",
+              "caption": "説明",
+              "fieldType": "core.note",
+              "grid": {
+                "visible": false,
+                "width": 420
+              }
+            }
+          ]
+        },
+        {
+          "id": "mainGrid",
+          "type": "grid",
+          "caption": "テストパターン別 Expected 件数",
+          "dataPath": "$.test_pattern_cross",
+          "fields": [
+            {
+              "field": "test_pattern_id",
+              "caption": "テストパターンID",
+              "fieldType": "qa.test_pattern_id"
+            },
+            {
+              "field": "test_pattern_title",
+              "caption": "テストパターン名",
+              "fieldType": "qa.test_pattern_title"
+            },
+            {
+              "field": "check_count",
+              "caption": "チェック件数",
+              "fieldType": "qa.check_count"
+            },
+            {
+              "field": "high_count",
+              "caption": "高リスク件数",
+              "fieldType": "qa.high_count"
+            },
+            {
+              "field": "medium_count",
+              "caption": "中リスク件数",
+              "fieldType": "qa.medium_count"
+            },
+            {
+              "field": "low_count",
+              "caption": "低リスク件数",
+              "fieldType": "qa.low_count"
+            },
+            {
+              "field": "risk_summary",
+              "caption": "リスク内訳",
+              "fieldType": "qa.risk_summary"
+            },
+            {
+              "field": "check_ids",
+              "caption": "チェックID一覧",
+              "fieldType": "qa.check_ids"
+            },
+            {
+              "field": "constraint_ids",
+              "caption": "制約ID一覧",
+              "fieldType": "qa.constraint_ids"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "dataSources": {
+    "test_patterns": "qa_test_patterns_sample_v0_1.json"
+  }
+}

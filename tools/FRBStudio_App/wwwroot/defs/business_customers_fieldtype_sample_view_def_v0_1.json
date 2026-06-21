@@ -1,0 +1,54 @@
+{
+  "app": {
+    "title": "Business Customers FieldType Sample"
+  },
+  "fieldTypeSources": [
+    "common_types_v0_1.json"
+  ],
+  "views": [
+    {
+      "id": "main",
+      "caption": "顧客マスタ FieldTypeサンプル",
+      "sections": [
+        {
+          "id": "summary",
+          "type": "form",
+          "caption": "概要",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "view_def",
+              "caption": "view_def",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": false,
+                "readonly": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "mainGrid",
+          "type": "grid",
+          "caption": "顧客マスタ",
+          "dataPath": "$.customers",
+          "fields": [
+            {
+              "field": "customer_id",
+              "caption": "顧客ID",
+              "fieldType": "business.customer_id"
+            },
+            {
+              "field": "customer_name",
+              "caption": "顧客名",
+              "fieldType": "business.customer_name"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
