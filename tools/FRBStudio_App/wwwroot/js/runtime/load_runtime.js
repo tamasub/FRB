@@ -118,7 +118,7 @@ async function fetchLaunchDataJson(rawPath) {
     return {
       json: await fetchJson(path),
       dataName: managedName,
-      dataApiUrl: apiJsonUrl('data', managedName),
+      dataApiUrl: isStaticHostingMode() ? null : apiJsonUrl('data', managedName),
       displayPath: path
     };
   }

@@ -57,3 +57,55 @@ mdViewer.html?md=FRB_Lab_Notes_Qiita.md&mode=readonly
 - step指定ジャンプ
 - 外部URLからのJSON読込
 - 完全な公開サイト用権限制御
+
+---
+
+# v0.8.1 GitHub Pages Static Launch
+
+## 目的
+
+GitHub Pagesなどの静的ホスティング環境では、FRBStudio.exe の `/api/defs/...` / `/api/data/...` が存在しない。
+そのため、URL起動やData内 `view_def` 自動解決時に、静的ファイルとして `wwwroot` 配下を直接参照する。
+
+## 静的ホスティング判定
+
+以下では `/api` を前提にせず、静的ファイル探索を優先する。
+
+```text
+location.protocol === "file:"
+location.hostname.endsWith("github.io")
+localhost / 127.0.0.1 / ::1 以外の http(s)
+```
+
+## ViewDef探索
+
+Data JSON内に次のような指定がある場合:
+
+```json
+{
+  "view_def": "studio_work_incident_view_def_v0_2_readable_cards.json"
+}
+```
+
+GitHub Pages上では、次の候補を静的ファイルとして探索する。
+
+```text
+defs/studio_work_incident_view_def_v0_2_readable_cards.json
+defs/studio/studio_work_incident_view_def_v0_2_readable_cards.json
+defs/json/studio_work_incident_view_def_v0_2_readable_cards.json
+```
+
+## Data探索
+
+Data JSONについても、必要に応じて次の候補を静的ファイルとして探索する。
+
+```text
+data/<name>
+data/json/<name>
+```
+
+## 方針
+
+- ローカルFRBStudio.exeでは従来どおり `/api` を優先する。
+- GitHub Pagesでは `/api` へアクセスせず、静的ファイルとして読み込む。
+- 静的ホスティングで読み込んだDataは上書き保存できないため、`dataApiUrl` は `null` とし、保存時は別名保存側へ倒す。

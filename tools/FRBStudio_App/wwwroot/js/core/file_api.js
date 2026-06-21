@@ -64,6 +64,76 @@ function encodeJsonPath(name) {
   return n.split('/').map(encodeURIComponent).join('/');
 }
 
+function isStaticHostingMode() {
+  try {
+    const protocol = String(location.protocol || '').toLowerCase();
+    const host = String(location.hostname || '').toLowerCase();
+
+    // GitHub Pages / file:// では .NET Minimal API が存在しない。
+    if (protocol === 'file:') return true;
+    if (host.endsWith('github.io')) return true;
+
+    // localhost / 127.0.0.1 / ::1 は FRBStudio.exe のAPIが使える前提。
+    if (host === 'localhost' || host === '127.0.0.1' || host === '::1') return false;
+
+    // それ以外の静的ホスティングでは /api 依存を避ける。
+    return protocol === 'http:' || protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+function staticJsonCandidates(kind, name) {
+  const n = safeJsonFileName(name);
+  if (!n) return [];
+
+  const out = [];
+  const push = (value) => {
+    const v = String(value ?? '').replace(/\\/g, '/').replace(/^\/+/, '');
+    if (!v || out.includes(v)) return;
+    out.push(v);
+  };
+
+  if (kind === 'data') {
+    if (n.startsWith('data/')) {
+      push(n);
+    } else {
+      push(`data/${n}`);
+      if (!n.startsWith('json/')) push(`data/json/${n}`);
+    }
+  } else if (kind === 'defs') {
+    if (n.startsWith('defs/')) {
+      push(n);
+    } else {
+      push(`defs/${n}`);
+      if (!n.includes('/')) push(`defs/studio/${n}`);
+      if (!n.startsWith('json/')) push(`defs/json/${n}`);
+    }
+  }
+
+  return out;
+}
+
+async function fetchStaticJsonWithUrl(kind, name) {
+  const candidates = staticJsonCandidates(kind, name);
+  let lastErr = null;
+
+  for (const url of candidates) {
+    try {
+      return {
+        json: await fetchJson(url),
+        url,
+        correctedName: url.replace(new RegExp(`^${kind === 'data' ? 'data' : 'defs'}/`), '')
+      };
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+
+  if (lastErr) throw lastErr;
+  throw new Error(`${kind} JSONファイル名が不正です`);
+}
+
 function apiJsonUrl(kind, name) {
   const path = encodeJsonPath(name);
   if (!path) throw new Error(`${kind} JSONファイル名が不正です`);
@@ -73,6 +143,12 @@ function apiJsonUrl(kind, name) {
 async function fetchApiJsonWithUrl(kind, name) {
   const n = safeJsonFileName(name);
   if (!n) throw new Error(`${kind} JSONファイル名が不正です`);
+
+  // v0.8.1: GitHub Pages などの静的ホスティングでは /api が存在しないため、
+  // Data内 view_def やURL指定ViewDefを wwwroot 配下の静的ファイルとして読む。
+  if (isStaticHostingMode()) {
+    return fetchStaticJsonWithUrl(kind, n);
+  }
 
   const primaryUrl = apiJsonUrl(kind, n);
   try {
@@ -95,14 +171,27 @@ async function fetchApiJsonWithUrl(kind, name) {
           // 次の候補へ
         }
       }
-      throw primaryErr;
+
+      // API起動ではないローカル静的サーバ等の保険として、最後に静的ファイルも探索する。
+      try {
+        return await fetchStaticJsonWithUrl(kind, n);
+      } catch {
+        throw primaryErr;
+      }
     }
 
     // 旧APIが /api/data/<encoded full path> 形式で受けている場合に備えた保険。
     const legacyUrl = `/api/${kind}/${encodeURIComponent(n)}`;
-    if (legacyUrl === primaryUrl) throw primaryErr;
+    if (legacyUrl !== primaryUrl) {
+      try {
+        return { json: await fetchJson(legacyUrl), url: legacyUrl };
+      } catch {
+        // 最後に静的ファイルを試す。
+      }
+    }
+
     try {
-      return { json: await fetchJson(legacyUrl), url: legacyUrl };
+      return await fetchStaticJsonWithUrl(kind, n);
     } catch {
       throw primaryErr;
     }
