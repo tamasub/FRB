@@ -721,6 +721,12 @@ JSON Editorを作っていたはずなのに、なぜViewDefまでJSONになっ�
 
 明日もStudioくんで実験を続ける。
 
+
+----
+■ Studioくん
+
+![alt text](/images/ai-collaboration-json-studio-and-diff-culture.png)
+
 ----
 
 
