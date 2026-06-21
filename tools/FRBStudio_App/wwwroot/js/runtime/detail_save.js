@@ -307,3 +307,8 @@ async function saveOverwriteJson() {
 
   setStatus(`上書き保存しました: ${currentDataApiUrl}`);
 }
+
+// v0.5-registry: high-level renderer registrations.
+registerRenderer('detail', renderDetailForRow);
+registerRenderer('childArea', renderChildArea);
+

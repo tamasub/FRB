@@ -644,15 +644,17 @@ function appendMarkdownAiCopyBlocks(markdownText) {
 
 function buildMarkdownFromCurrentData() {
   applyHeaderEdits();
-  const type = markdownExportType();
-  let md;
-  if (type === 'screen_state_expected') md = buildScreenStateExpectedMarkdown();
-  else if (type === 'screen_state_diff') md = buildScreenStateDiffMarkdown();
-  else if (type === 'screen_state_test_patterns') md = buildScreenStateTestPatternsMarkdown();
-  else if (type === 'generic_sections') md = buildGenericSectionsMarkdown();
-  else md = buildGenericMarkdown();
+  const md = buildMarkdownByRegisteredType(markdownExportType());
   return appendMarkdownAiCopyBlocks(md);
 }
+
+
+// v0.5-registry: Markdown export builders.
+registerMarkdownExportBuilder('auto', buildGenericMarkdown);
+registerMarkdownExportBuilder('screen_state_expected', buildScreenStateExpectedMarkdown);
+registerMarkdownExportBuilder('screen_state_diff', buildScreenStateDiffMarkdown);
+registerMarkdownExportBuilder('screen_state_test_patterns', buildScreenStateTestPatternsMarkdown);
+registerMarkdownExportBuilder('generic_sections', buildGenericSectionsMarkdown);
 
 function downloadTextFile(filename, text, type='text/markdown') {
   const blob = new Blob([text], {type});

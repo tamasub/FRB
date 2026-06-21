@@ -21,7 +21,7 @@
       "incident_type": "refactoring",
       "category": "source_split",
       "priority": "high",
-      "status": "\u78BA\u8A8D\u4E2D",
+      "status": "\u5B8C\u4E86",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-06-21",
@@ -38,11 +38,62 @@
       "test_points": "JSON\u8AAD\u8FBC\u3001\u4FDD\u5B58\u3001Grid\u8868\u793A\u3001Detail\u7DE8\u96C6\u3001\u30B5\u30D6\u30B0\u30EA\u30C3\u30C9\u3001chat\u578B\u3001Markdown\u51FA\u529B\u3001ViewDef Markdown\u51FA\u529B\u3001Drop\u3001\u30B3\u30F3\u30DC\u8AAD\u8FBC\u3092\u78BA\u8A8D\u3059\u308B\u3002",
       "user_request": "v0.4-split \u3068\u3057\u3066\u3059\u3059\u3081\u3088\u3046\u3002Runtime\u5185\u306EData\u56FA\u5B9A\u540D\u306F\u539F\u5247NG\u3067\u3001Studio\u3068\u3057\u3066\u6C4E\u7528\u7684\u306B\u3088\u304F\u4F7F\u3046\u30D5\u30A3\u30FC\u30EB\u30C9\u3068\u8A8D\u5B9A\u3059\u308B\u3082\u306E\u306F\u3001\u61B2\u6CD5\u306B\u8A18\u8F09\u3057\u3066\u304A\u3051\u3070OK\u3002type=\u0022module\u0022 \u306F\u5C06\u6765\u7684\u306B\u306E\u30B9\u30BF\u30F3\u30B9\u3067\u3088\u3044\u3002",
       "ai_response": "\u610F\u8B58\u5408\u308F\u305B\u5B8C\u4E86\u3002v0.4-split \u306F\u6A5F\u80FD\u8FFD\u52A0\u3067\u306F\u306A\u304F\u65E2\u5B58\u6A5F\u80FD\u7DAD\u6301\u306E\u8CAC\u52D9\u5206\u5272\u3002\u56FA\u5B9A\u30D5\u30A3\u30FC\u30EB\u30C9\u540D\u306F\u3001\u9AA8\u683C\u30FB\u8102\u80AA\u3092\u5206\u985E\u3057\u3001\u6A19\u6E96\u30E1\u30BF\u30D5\u30A3\u30FC\u30EB\u30C9\u5236\u5EA6\u3068\u3057\u3066\u61B2\u6CD5\u30FB\u4ED5\u69D8\u3067\u5B9A\u7FA9\u3055\u308C\u305F\u3082\u306E\u306F\u8A31\u5BB9\u3059\u308B\u3002",
-      "latest_user_comment": "v0.4-split \u306E\u4F5C\u696D\u3092\u4F9D\u983C\u3002data.zip \u3068 studio_work_incident_data_v0_1.json \u3092\u6DFB\u4ED8\u3002\n\nv0.4-split\u3000\u4F5C\u696D\u5F8C\u30D0\u30FC\u30B8\u30E7\u30F3\u3067\u5165\u529B\u3057\u3066\u307E\u3059\u3002\u4FDD\u5B58\u3067\u304D\u308B\u304B\u306A\uFF1F",
+      "latest_user_comment": "v0.4-split \u306E\u4F5C\u696D\u3092\u4F9D\u983C\u3002data.zip \u3068 studio_work_incident_data_v0_1.json \u3092\u6DFB\u4ED8\u3002",
       "latest_ai_response": "\u65E2\u5B58\u6A5F\u80FD\u7DAD\u6301\u3092\u512A\u5148\u3057\u3001type=\u0022module\u0022 \u5316\u305B\u305A\u5F93\u6765script\u65B9\u5F0F\u3067 app.js \u3092\u8CAC\u52D9\u5206\u5272\u3002Registry\u5316\u3068 toolbar.executeButton \u672C\u683C\u5BFE\u5FDC\u306F\u30B9\u30B3\u30FC\u30D7\u5916\u3068\u3057\u3066\u7DAD\u6301\u3002",
-      "discussion_history": "",
-      "decision_log": "",
-      "change_history": ""
+      "discussion_history": [
+        {
+          "history_id": "disc_0001_001",
+          "at": "2026-06-21",
+          "speaker": "user",
+          "message": "v0.4-split \u3068\u3057\u3066\u3059\u3059\u3081\u3088\u3046\u3002Runtime\u5185\u306EData\u56FA\u5B9A\u540D\u306F\u539F\u5247NG\u3060\u304C\u3001\u6C4E\u7528\u30D5\u30A3\u30FC\u30EB\u30C9\u306F\u61B2\u6CD5\u306B\u8A18\u8F09\u3057\u3066\u304A\u3051\u3070OK\u3002",
+          "topic": "\u65B9\u91DD\u5408\u610F"
+        },
+        {
+          "history_id": "disc_0001_002",
+          "at": "2026-06-21",
+          "speaker": "assistant",
+          "message": "v0.4-split \u306F\u6A5F\u80FD\u7DAD\u6301\u306E\u307E\u307E\u30BD\u30FC\u30B9\u5206\u5272\u3002type=\u0022module\u0022 \u5316\u306F\u898B\u9001\u308A\u3001\u56FA\u5B9A\u540D\u306F\u5206\u985E\u3057\u3066\u6271\u3046\u3002",
+          "topic": "\u65B9\u91DD\u6574\u7406"
+        },
+        {
+          "history_id": "disc_0001_003",
+          "at": "2026-06-21",
+          "speaker": "user",
+          "topic": "\u4F5C\u696D\u4F9D\u983C",
+          "message": "studio_work_incident_data_v0_1.json \u306E v0.4-split \u306E\u4F5C\u696D\u3092\u304A\u9858\u3044\u3057\u307E\u3059\u3002"
+        },
+        {
+          "history_id": "disc_0001_004",
+          "at": "2026-06-21",
+          "speaker": "assistant",
+          "topic": "\u4F5C\u696D\u7D50\u679C",
+          "message": "app.js \u3092 core / ui / virtualData / renderers / markdown / runtime \u306B\u5206\u5272\u3057\u3001index.html \u306E script \u8AAD\u307F\u8FBC\u307F\u3092\u66F4\u65B0\u3002"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0001_001",
+          "at": "2026-06-21",
+          "decision": "v0.4-split \u306F\u5F93\u6765script\u65B9\u5F0F\u3067\u9032\u3081\u308B\u3002",
+          "reason": "type=\u0022module\u0022 \u5316\u306F\u30B9\u30B3\u30FC\u30D7\u3084\u8AAD\u307F\u8FBC\u307F\u9806\u5909\u66F4\u306E\u30EA\u30B9\u30AF\u304C\u3042\u308B\u305F\u3081\u3001\u521D\u56DE\u5206\u5272\u3067\u306F\u5B89\u5168\u3092\u512A\u5148\u3059\u308B\u3002"
+        },
+        {
+          "decision_id": "dec_0001_002",
+          "at": "2026-06-21",
+          "decision": "\u56FA\u5B9A\u540D\u306F\u5373\u524A\u9664\u3067\u306F\u306A\u304F\u5206\u985E\u3059\u308B\u3002",
+          "reason": "Studio\u4ED5\u69D8\u30FBDOM\u9AA8\u683C\u30FBViewDef\u5BA3\u8A00\u5024\u30FBAdapter\u4ED5\u69D8\u30FBRuntime\u8102\u80AA\u3092\u533A\u5225\u3059\u308B\u5FC5\u8981\u304C\u3042\u308B\u305F\u3081\u3002"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0001_001",
+          "at": "2026-06-21",
+          "change_type": "source_split",
+          "before": "wwwroot/app.js 1\u30D5\u30A1\u30A4\u30EB\u69CB\u6210",
+          "after": "wwwroot/js \u914D\u4E0B\u306B\u8CAC\u52D9\u5206\u5272\u3057\u3001wwwroot/app.js \u306F\u8D77\u52D5\u30FB\u30A4\u30D9\u30F3\u30C8\u914D\u7DDA\u4E2D\u5FC3\u3078\u7E2E\u5C0F",
+          "reason": "v0.4-split \u306E\u76EE\u7684\u3067\u3042\u308B\u65E2\u5B58\u6A5F\u80FD\u7DAD\u6301\u306E\u307E\u307E\u306E\u8CAC\u52D9\u5206\u5272\u3092\u5B9F\u65BD\u3059\u308B\u305F\u3081\u3002"
+        }
+      ]
     },
     {
       "work_item_id": "studio_work_0002",
@@ -51,43 +102,28 @@
       "incident_type": "architecture",
       "category": "registry",
       "priority": "high",
-      "status": "\u69CB\u60F3",
+      "status": "\u5B8C\u4E86",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-06-21",
       "updated_at": "2026-06-21",
-      "target_files": "app.js\u5206\u5272\u5F8C\u306E core/renderers/virtualData/actions",
+      "target_files": "wwwroot/js/core/registry.js, wwwroot/js/renderers/*registry.js, wwwroot/js/virtualData/virtual_data_registry.js, wwwroot/js/markdown/markdown_registry.js, wwwroot/js/actions/action_registry.js, index.html",
       "objective": "\u5206\u5C90\u3084\u56FA\u5B9A\u5B9F\u88C5\u3092Registry\u3078\u5BC4\u305B\u3001\u6226\u7565\u7684\u8A2D\u8A08\u30D1\u30BF\u30FC\u30F3\u3068\u3057\u3066\u5DEE\u3057\u66FF\u3048\u53EF\u80FD\u306A\u69CB\u9020\u3078\u79FB\u884C\u3059\u308B\u3002",
       "background": "v0.4-split \u3067\u8CAC\u52D9\u5206\u5272\u3057\u305F\u5F8C\u3001Renderer / VirtualDataBuilder / Action \u3092Registry\u7BA1\u7406\u306B\u3059\u308B\u3053\u3068\u3067\u3001Studio\u304F\u3093\u3092\u5C02\u7528\u51E6\u7406\u306E\u584A\u3067\u306F\u306A\u304F\u62E1\u5F35\u53EF\u80FD\u306ARuntime\u3078\u8FD1\u3065\u3051\u308B\u3002",
       "scope": "RendererRegistry\u3001VirtualDataBuilderRegistry\u3001ActionRegistry \u306E\u5C0E\u5165\u65B9\u91DD\u3092\u6574\u7406\u3059\u308B\u3002\u65E2\u5B58 builder \u540D\u3084 renderer \u5206\u5C90\u3092\u3001\u6BB5\u968E\u7684\u306BRegistry\u3078\u5BC4\u305B\u308B\u3002",
       "out_of_scope": "ActionRegistry\u306E\u5B8C\u5168\u306A\u5B9F\u884C\u30DC\u30BF\u30F3\u9023\u52D5\u306F v0.6-action-execute-button \u5074\u3067\u6271\u3046\u3002v0.5\u3067\u306FRegistry\u306E\u9AA8\u683C\u3068\u65E2\u5B58\u51E6\u7406\u306E\u79FB\u8A2D\u3092\u4E3B\u76EE\u7684\u3068\u3059\u308B\u3002",
       "fixed_name_policy": "builder\u540D\u3084renderer\u7A2E\u5225\u306A\u3069\u3001ViewDef\u3067\u5BA3\u8A00\u3055\u308C\u308B\u8B58\u5225\u5B50\u306F\u6761\u4EF6\u4ED8\u304DOK\u3002Runtime\u304C\u7279\u5B9AData\u30D5\u30A3\u30FC\u30EB\u30C9\u540D\u3092\u76F4\u63A5\u53C2\u7167\u3059\u308B\u5834\u5408\u306F\u539F\u5247NG\u3002",
       "module_policy": "type=\u0022module\u0022 \u5316\u306F\u307E\u3060\u884C\u308F\u306A\u3044\u3002v0.4\u3068\u540C\u3058script\u65B9\u5F0F\u3092\u7DAD\u6301\u3059\u308B\u3002",
-      "expected_outputs": "Registry\u95A2\u9023JS\u3001\u65E2\u5B58renderer/builder\u767B\u9332\u51E6\u7406\u3001\u65E2\u5B58ViewDef\u4E92\u63DB\u306E\u7DAD\u6301\u3001\u5206\u5C90\u524A\u6E1B\u30E1\u30E2\u3002",
-      "risk": "\u65E2\u5B58VirtualData builder\u306E\u4F9D\u5B58\u95A2\u4FC2\u3001relation\u7CFB\u51E6\u7406\u3001Markdown\u51FA\u529B\u3001ViewDef\u7D99\u627F\u89E3\u6C7A\u3078\u306E\u5F71\u97FF\u3002",
-      "test_points": "\u65E2\u5B58\u306EGrid/Form/Chat/ObjectArray\u8868\u793A\u3001relation\u7CFBVirtualData\u3001Markdown AI Prompt\u51FA\u529B\u3001\u4FDD\u5B58\u51E6\u7406\u3092\u78BA\u8A8D\u3059\u308B\u3002",
+      "expected_outputs": "Registry\u95A2\u9023JS\u3001\u65E2\u5B58renderer/builder\u767B\u9332\u51E6\u7406\u3001\u65E2\u5B58ViewDef\u4E92\u63DB\u306E\u7DAD\u6301\u3001REGISTRY_NOTES_v0_5.md\u3001\u5206\u5C90\u524A\u6E1B\u30E1\u30E2\u3001node --check\u78BA\u8A8D\u7D50\u679C\u3002",
+      "risk": "Registry\u8AAD\u307F\u8FBC\u307F\u9806\u3001\u767B\u9332\u6F0F\u308C\u3001field control factory\u79FB\u8A2D\u3001virtualData builder alias\u4E0D\u8DB3\u3001markdown.type\u672A\u767B\u9332\u6642\u306E\u56DE\u5E30\u30EA\u30B9\u30AF\u3002",
+      "test_points": "\u5168JS\u306Enode --check\u78BA\u8A8D\u6E08\u307F\u3002\u5B9F\u6A5F\u3067\u306FJSON\u8AAD\u8FBC\u3001Grid/Form/Chat/ObjectArray\u8868\u793A\u3001relation\u7CFBVirtualData\u3001Markdown AI Prompt\u51FA\u529B\u3001\u4FDD\u5B58\u51E6\u7406\u3092\u78BA\u8A8D\u3059\u308B\u3002",
       "user_request": "v0.5-registry \u3092\u91CD\u8981\u4F5C\u696D\u9805\u76EE\u3068\u3057\u3066\u7BA1\u7406\u3057\u305F\u3044\u3002",
       "ai_response": "v0.5-registry \u306F\u3001v0.4\u3067\u5206\u5272\u3057\u305F\u8CAC\u52D9\u3092\u6226\u7565\u7684\u8A2D\u8A08\u30D1\u30BF\u30FC\u30F3\u3078\u5BC4\u305B\u308B\u6BB5\u968E\u3002Registry\u5316\u306B\u3088\u3063\u3066\u3001Renderer\u30FBVirtualDataBuilder\u30FBAction\u306E\u5DEE\u3057\u66FF\u3048\u53EF\u80FD\u6027\u3092\u9AD8\u3081\u308B\u3002",
-      "latest_user_comment": "",
-      "latest_ai_response": "",
-      "discussion_history": [
-        {
-          "history_id": "disc_0002_001",
-          "at": "2026-06-21",
-          "speaker": "assistant",
-          "message": "v0.5-registry \u3067\u306F RendererRegistry / VirtualDataBuilderRegistry / ActionRegistry \u3092\u5165\u308C\u308B\u306E\u304C\u81EA\u7136\u3002",
-          "topic": "\u4F5C\u696D\u69CB\u60F3"
-        }
-      ],
-      "decision_log": [
-        {
-          "decision_id": "dec_0002_001",
-          "at": "2026-06-21",
-          "decision": "Registry\u5316\u306F v0.4-split \u306E\u5F8C\u306B\u884C\u3046\u3002",
-          "reason": "\u5148\u306B\u8CAC\u52D9\u5206\u5272\u3057\u306A\u3044\u3068\u3001Registry\u5316\u3068\u65E2\u5B58\u30B3\u30FC\u30C9\u6574\u7406\u304C\u6DF7\u3056\u3063\u3066\u56DE\u5E30\u30EA\u30B9\u30AF\u304C\u4E0A\u304C\u308B\u305F\u3081\u3002"
-        }
-      ],
-      "change_history": []
+      "latest_user_comment": "studio_work_incident_data_v0_2.json \u306E v0.5-registry \u4F5C\u696D\u3092\u6DFB\u4ED8\u306B\u57FA\u3065\u3044\u3066\u4F9D\u983C\u3002\u4E8B\u524D\u306B\u610F\u8B58\u5408\u308F\u305B\u3059\u3079\u304D\u9805\u76EE\u304C\u3042\u308C\u3070\u78BA\u8A8D\u3057\u3066\u307B\u3057\u3044\u3002",
+      "latest_ai_response": "\u8FFD\u52A0\u306E\u4E8B\u524D\u78BA\u8A8D\u306A\u3057\u3067\u3001v0.5-registry \u306E\u7BC4\u56F2\u306B\u9650\u5B9A\u3057\u3066\u5B9F\u65BD\u3002Renderer / FieldControl / VirtualData / Markdown / Action \u306ERegistry\u9AA8\u683C\u3092\u8FFD\u52A0\u3057\u3001\u65E2\u5B58\u30D8\u30C3\u30C0\u30FC\u30DC\u30BF\u30F3\u52D5\u4F5C\u3084 toolbar.executeButton \u672C\u683C\u5BFE\u5FDC\u306F v0.6 \u306B\u6B8B\u3057\u305F\u3002",
+      "discussion_history": "3 items",
+      "decision_log": "3 items",
+      "change_history": "1 items"
     },
     {
       "work_item_id": "studio_work_0003",

@@ -18,10 +18,10 @@ async function loadFromObjects(defObj, dataObj, label='読み込み完了', data
   draftRow = null;
   currentDataApiUrl = dataApiUrl;
   if (lastLoadedDefName && $('defNameInput')) $('defNameInput').value = lastLoadedDefName;
-  renderHeader();
-  renderSearch();
+  renderByKey('header');
+  renderByKey('search');
   loadRows();
-  renderGrid();
+  renderByKey('grid');
   $('saveBtn').disabled = false;
   if ($('exportMarkdownBtn')) $('exportMarkdownBtn').disabled = false;
   updateViewDefMarkdownButtonState();

@@ -347,3 +347,7 @@ function moveDetail(delta) {
   renderGrid();
   openDetail(selectedIndex, true);
 }
+
+// v0.5-registry: high-level renderer registrations.
+registerRenderer('grid', renderGrid);
+

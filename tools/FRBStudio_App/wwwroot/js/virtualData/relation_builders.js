@@ -953,3 +953,8 @@ function buildLegacyAliasFields(card, cfg) {
   return {};
 }
 
+// v0.5-registry: relation系builderを登録する。
+registerVirtualDataBuilder('relation_axis_cards', buildRelationAxisCards);
+registerVirtualDataBuilder('relation_diff_cards', buildRelationDiffCards);
+registerVirtualDataBuilder('relation_diff_check_cards', buildRelationDiffCheckCards);
+

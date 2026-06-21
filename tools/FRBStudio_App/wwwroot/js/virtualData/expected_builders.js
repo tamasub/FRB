@@ -441,37 +441,6 @@ function buildExpectedCheckShortageFindings({ config, dataObj, sources }) {
   return sortVirtualRows(findings, cfg.sort);
 }
 
-function buildVirtualDatasetByConfig({ config, dataObj, sources }) {
-  const builder = config.builder ?? config.type ?? config.kind ?? 'relation_axis_cards';
-  if (builder === 'relation_axis_cards') {
-    return buildRelationAxisCards({ config, dataObj, sources });
-  }
-  if (builder === 'relation_diff_cards') {
-    return buildRelationDiffCards({ config, dataObj, sources });
-  }
-  if (builder === 'relation_diff_check_cards') {
-    return buildRelationDiffCheckCards({ config, dataObj, sources });
-  }
-  if (builder === 'expected_check_cross_counts' || builder === 'expected_checks_cross_counts' || builder === 'qa_expected_cross_counts') {
-    return buildExpectedCheckCrossCounts({ config, dataObj, sources });
-  }
-
-  if (builder === 'expected_check_shortage_findings' || builder === 'expected_checks_shortage_findings' || builder === 'qa_expected_shortage_findings' || builder === 'expected_check_gap_findings') {
-    return buildExpectedCheckShortageFindings({ config, dataObj, sources });
-  }
-
-  // 旧ViewDefとの互換。専用生成ではなく、内部で汎用relation_axis_cards定義へ変換する。
-  if (builder === 'constraint_trace_cards') {
-    const generic = legacyConstraintTraceConfig(config);
-    return buildRelationAxisCards({ config: generic, dataObj, sources });
-  }
-  if (builder === 'test_pattern_trace_cards') {
-    const generic = legacyTestPatternTraceConfig(config);
-    return buildRelationAxisCards({ config: generic, dataObj, sources });
-  }
-
-  throw new Error(`未対応の virtualData builder です: ${builder}`);
-}
 
 function legacyConstraintTraceConfig(config) {
   return {
@@ -504,6 +473,29 @@ function legacyTestPatternTraceConfig(config) {
     }
   };
 }
+
+
+// v0.5-registry: expected系・旧互換builderを登録する。
+registerVirtualDataBuilder('expected_check_cross_counts', buildExpectedCheckCrossCounts, [
+  'expected_checks_cross_counts',
+  'qa_expected_cross_counts'
+]);
+
+registerVirtualDataBuilder('expected_check_shortage_findings', buildExpectedCheckShortageFindings, [
+  'expected_checks_shortage_findings',
+  'qa_expected_shortage_findings',
+  'expected_check_gap_findings'
+]);
+
+registerVirtualDataBuilder('constraint_trace_cards', ({ config, dataObj, sources }) => {
+  const generic = legacyConstraintTraceConfig(config);
+  return buildRelationAxisCards({ config: generic, dataObj, sources });
+});
+
+registerVirtualDataBuilder('test_pattern_trace_cards', ({ config, dataObj, sources }) => {
+  const generic = legacyTestPatternTraceConfig(config);
+  return buildRelationAxisCards({ config: generic, dataObj, sources });
+});
 
 async function materializeVirtualDataForViewDef(defObj, dataObj) {
   const configs = virtualDataArrayConfigOf(defObj);

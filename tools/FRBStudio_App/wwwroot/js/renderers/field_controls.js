@@ -375,6 +375,76 @@ function createChatInput(field, row, gd, prefix) {
   return wrap;
 }
 
+function createSelectControlElement({ field, value }) {
+  const input = document.createElement('select');
+  const blank = document.createElement('option');
+  blank.value = '';
+  blank.textContent = '';
+  input.appendChild(blank);
+  (field.options ?? []).forEach(opt => {
+    const o = document.createElement('option');
+    o.value = optionValue(opt, field);
+    o.textContent = optionLabel(opt, field);
+    input.appendChild(o);
+  });
+  applySelectDisplayMode(input, field);
+  input.value = value ?? '';
+  return input;
+}
+
+function createTextareaControlElement({ field, value }) {
+  const input = document.createElement('textarea');
+  input.value = formatValue(value, field);
+  if (field.edit?.height) input.style.minHeight = field.edit.height + 'px';
+  return input;
+}
+
+function createBooleanControlElement({ field, value }) {
+  const input = document.createElement('select');
+  ['', 'true', 'false'].forEach(v => {
+    const o = document.createElement('option');
+    o.value = v;
+    o.textContent = v;
+    input.appendChild(o);
+  });
+  applySelectDisplayMode(input, field);
+  input.value = value === true ? 'true' : value === false ? 'false' : '';
+  return input;
+}
+
+function createTextLikeControlElement({ field, value }) {
+  const input = document.createElement('input');
+  input.type = field.type === 'number' ? 'number' : field.type === 'datetime' ? 'text' : 'text';
+  if (field.type === 'number') {
+    const step = field.edit?.step ?? field.step;
+    const min = field.edit?.min ?? field.min;
+    const max = field.edit?.max ?? field.max;
+    if (step != null) input.step = String(step);
+    if (min != null) input.min = String(min);
+    if (max != null) input.max = String(max);
+  }
+  input.value = (field.type === 'objectArray' || field.type === 'stringArray')
+    ? (Array.isArray(value) ? `${value.length} items` : '')
+    : (typeof value === 'object' && value !== null ? formatValue(value, field) : (value ?? ''));
+  return input;
+}
+
+function createRadioControlElement({ field, value, prefix, readonly }) {
+  return createRadioControl(field, value, prefix, readonly);
+}
+
+// v0.5-registry: field control factories.
+registerFieldControl('radio', createRadioControlElement);
+registerFieldControl('select', createSelectControlElement);
+registerFieldControl('textarea', createTextareaControlElement);
+registerFieldControl('boolean', createBooleanControlElement);
+registerFieldControl('text', createTextLikeControlElement, [
+  'number',
+  'datetime',
+  'objectArray',
+  'stringArray'
+]);
+
 function createInput(field, value, prefix, readonlyOverride=false, row=null, gd=null) {
   if (field.type === 'chat') return createChatInput(field, row ?? {}, gd ?? gridDef(), prefix);
 
@@ -386,51 +456,7 @@ function createInput(field, value, prefix, readonlyOverride=false, row=null, gd=
   label.textContent = (field.caption ?? field.field) + shortcut;
   wrap.appendChild(label);
 
-  let input;
-  if (wantsRadioControl(field)) {
-    input = createRadioControl(field, value, prefix, readonly);
-  } else if (field.type === 'select') {
-    input = document.createElement('select');
-    const blank = document.createElement('option');
-    blank.value = '';
-    blank.textContent = '';
-    input.appendChild(blank);
-    (field.options ?? []).forEach(opt => {
-      const o = document.createElement('option');
-      o.value = optionValue(opt, field);
-      o.textContent = optionLabel(opt, field);
-      input.appendChild(o);
-    });
-    applySelectDisplayMode(input, field);
-    input.value = value ?? '';
-  } else if (field.type === 'textarea') {
-    input = document.createElement('textarea');
-    input.value = formatValue(value, field);
-    if (field.edit?.height) input.style.minHeight = field.edit.height + 'px';
-  } else if (field.type === 'boolean') {
-    input = document.createElement('select');
-    ['', 'true', 'false'].forEach(v => {
-      const o = document.createElement('option');
-      o.value = v; o.textContent = v;
-      input.appendChild(o);
-    });
-    applySelectDisplayMode(input, field);
-    input.value = value === true ? 'true' : value === false ? 'false' : '';
-  } else {
-    input = document.createElement('input');
-    input.type = field.type === 'number' ? 'number' : field.type === 'datetime' ? 'text' : 'text';
-    if (field.type === 'number') {
-      const step = field.edit?.step ?? field.step;
-      const min = field.edit?.min ?? field.min;
-      const max = field.edit?.max ?? field.max;
-      if (step != null) input.step = String(step);
-      if (min != null) input.min = String(min);
-      if (max != null) input.max = String(max);
-    }
-    input.value = (field.type === 'objectArray' || field.type === 'stringArray')
-      ? (Array.isArray(value) ? `${value.length} items` : '')
-      : (typeof value === 'object' && value !== null ? formatValue(value, field) : (value ?? ''));
-  }
+  const input = createFieldControlElement({ field, value, prefix, readonly, row, gd });
   input.dataset.field = field.field;
   input.dataset.type = field.type ?? 'text';
   input.dataset.prefix = prefix;
@@ -572,3 +598,9 @@ function applyGridCellEmphasis(td, field, row, value) {
     if (fieldName === 'name') td.classList.add('cell-check-fail');
   }
 }
+
+// v0.5-registry: high-level renderer registrations.
+registerRenderer('header', renderHeader);
+registerRenderer('search', renderSearch);
+registerRenderer('detailFooterFields', renderDetailFooterFields);
+

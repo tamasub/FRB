@@ -1,6 +1,6 @@
 # Studioくん憲法 レビュー記録
 
-- 出力日時: 2026/6/21 14:46:16
+- 出力日時: 2026/6/21 16:11:06
 - 対象: CODING_CONSTRAINTS.md / Studio Architecture Constraints
 - schema_version: coding_constraints_review_data_v0_1
 - status: ceremony_review_draft_with_change_history
@@ -498,6 +498,8 @@ actionRegistry.execute("PlayMidi", context); は固定文字列指定なのでNG
 ##### 俺追加回答
 
 実行ボタンの名称は ViewDef で「再生」「テスト実行」「Replay開始」などに変わる。そのため、UI側は固定の実行処理を知らず、ViewDef 側の executeButton 定義を読む形にしたい。
+
+v0.4-split作業後バージョンで入力しています。動作確認用コメント
 
 ##### AI再回答
 
