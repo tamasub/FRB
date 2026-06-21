@@ -205,9 +205,107 @@ function chatTextValue(row, fieldName) {
   return String(getByPath(row, fieldName) ?? '').trim();
 }
 
-function shouldRenderChatMessage(msg, row) {
+
+function normalizeChatMarkdownConfig(...configs) {
+  const result = { enabled: false, allowLinks: true, allowImages: false };
+  configs.forEach(cfg => {
+    if (cfg == null || cfg === false) return;
+    if (cfg === true) {
+      result.enabled = true;
+      result.allowLinks = true;
+      result.allowImages = true;
+      return;
+    }
+    if (typeof cfg !== 'object') return;
+    const inline = cfg.inline;
+    const enabled = cfg.enabled ?? cfg.markdown ?? inline?.enabled;
+    if (enabled === false) return;
+    if (enabled === true || cfg.allowLinks != null || cfg.allowImages != null || inline === true || typeof inline === 'object') {
+      result.enabled = true;
+    }
+    const linkValue = cfg.allowLinks ?? cfg.allow_links ?? inline?.allowLinks ?? inline?.allow_links;
+    const imageValue = cfg.allowImages ?? cfg.allow_images ?? inline?.allowImages ?? inline?.allow_images;
+    if (linkValue != null) result.allowLinks = Boolean(linkValue);
+    if (imageValue != null) result.allowImages = Boolean(imageValue);
+  });
+  return result;
+}
+
+function escapeHtmlText(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function escapeHtmlAttr(value) {
+  return escapeHtmlText(value).replace(/`/g, '&#96;');
+}
+
+function isSafeMarkdownUrl(url) {
+  const text = String(url ?? '').trim();
+  if (!text) return false;
+  const compact = text.replace(/\s+/g, '').toLowerCase();
+  if (compact.startsWith('javascript:') || compact.startsWith('vbscript:') || compact.startsWith('data:')) return false;
+  return true;
+}
+
+function hasInlineMarkdownSyntax(text, cfg) {
+  const value = String(text ?? '');
+  if (!cfg?.enabled || !value) return false;
+  if (cfg.allowImages && /!\[[^\]]*\]\([^\)]+\)/.test(value)) return true;
+  if (cfg.allowLinks && /(^|[^!])\[[^\]]+\]\([^\)]+\)/.test(value)) return true;
+  return false;
+}
+
+function renderInlineMarkdown(text, cfg) {
+  let html = escapeHtmlText(text);
+  if (!cfg?.enabled) return html;
+
+  if (cfg.allowImages) {
+    html = html.replace(/!\[([^\]]*)\]\(([^\s\)]+)(?:\s+&quot;([^&]*)&quot;)?\)/g, (m, alt, url, title) => {
+      const cleanUrl = String(url ?? '').trim();
+      if (!isSafeMarkdownUrl(cleanUrl)) return m;
+      const titleAttr = title ? ` title="${escapeHtmlAttr(title)}"` : '';
+      return `<img class="chat-md-image" src="${escapeHtmlAttr(cleanUrl)}" alt="${escapeHtmlAttr(alt)}" loading="lazy"${titleAttr}>`;
+    });
+  }
+
+  if (cfg.allowLinks) {
+    html = html.replace(/(^|[^!])\[([^\]]+)\]\(([^\s\)]+)(?:\s+&quot;([^&]*)&quot;)?\)/g, (m, prefix, label, url, title) => {
+      const cleanUrl = String(url ?? '').trim();
+      if (!isSafeMarkdownUrl(cleanUrl)) return m;
+      const titleAttr = title ? ` title="${escapeHtmlAttr(title)}"` : '';
+      return `${prefix}<a class="chat-md-link" href="${escapeHtmlAttr(cleanUrl)}" target="_blank" rel="noopener noreferrer"${titleAttr}>${label}</a>`;
+    });
+  }
+
+  return html;
+}
+
+function chatMessageMarkdownConfig(field, msg, srcField) {
+  return normalizeChatMarkdownConfig(
+    field?.markdown,
+    field?.edit?.markdown,
+    field?.chat?.markdown,
+    srcField?.markdown,
+    srcField?.edit?.markdown,
+    msg?.markdown
+  );
+}
+
+function shouldRenderChatMessage(msg, row, inputCfg=null) {
   const fieldName = msg?.field;
   if (!fieldName) return true;
+
+  // v0.7-chat-input-mapping:
+  // 送信欄の保存先 userField は、messages定義位置ではなく末尾表示へ寄せる。
+  // これにより「最後のAI回答の直前に新コメントが割り込む」時系列崩れを防ぐ。
+  if (inputCfg?.appendPosition === 'afterMessages' && fieldName === inputCfg.userField) {
+    return false;
+  }
 
   // 追加会話は、まだ人間が追記していない間は空の吹き出しを出さない。
   if (fieldName === 'user_reply') {
@@ -223,16 +321,22 @@ function shouldRenderChatMessage(msg, row) {
 }
 
 function chatInputConfig(field, gd) {
-  const cfg = field?.edit?.input ?? field?.input ?? field?.chat?.input ?? {};
+  const raw = field?.edit?.input ?? field?.input ?? field?.chat?.input;
+  const cfg = raw ?? {};
   const existing = new Set((gd?.fields ?? []).map(f => f.field));
-  const userField = cfg.userField ?? cfg.user_field ?? (existing.has('user_reply') ? 'user_reply' : null);
-  const aiField = cfg.aiField ?? cfg.ai_field ?? (existing.has('ai_followup_response') ? 'ai_followup_response' : null);
+  const hasExplicitInput = raw && typeof raw === 'object';
+  const userField = cfg.userField ?? cfg.user_field ?? (!hasExplicitInput && existing.has('user_reply') ? 'user_reply' : null);
+  const aiField = cfg.aiField ?? cfg.ai_field ?? (!hasExplicitInput && existing.has('ai_followup_response') ? 'ai_followup_response' : null);
+  const appendPosition = cfg.appendPosition ?? cfg.append_position ?? 'afterMessages';
   return {
     enabled: cfg.enabled !== false && Boolean(userField),
     userField,
     aiField,
+    appendPosition,
     placeholder: cfg.placeholder ?? 'この行へのコメントを追加...',
-    sendLabel: (cfg.sendLabel ?? cfg.send_label ?? '送信') || '送信'
+    sendLabel: (cfg.sendLabel ?? cfg.send_label ?? '送信') || '送信',
+    label: cfg.label ?? cfg.appendLabel ?? cfg.append_label ?? null,
+    markdown: normalizeChatMarkdownConfig(field?.markdown, field?.edit?.markdown, field?.chat?.markdown, cfg.markdown)
   };
 }
 
@@ -301,6 +405,145 @@ function createChatComposer(field, row, gd, prefix) {
   return composer;
 }
 
+function createChatMessageElement(field, msg, row, gd, prefix, options={}) {
+  const srcField = (gd?.fields ?? []).find(f => f.field === msg.field) ?? {};
+  const raw = getByPath(row, msg.field);
+  const rawText = raw == null ? '' : String(raw);
+  const role = String(msg.role ?? '').toLowerCase();
+  const isAi = role === 'ai' || role === 'assistant';
+  const isUser = role === 'user' || role === 'human' || role === '俺';
+  const isConstraint = role === 'constraint' || role === 'system' || role === 'statement';
+  const renderMarkdownOnly = Boolean(
+    options.renderMarkdownOnly ??
+    options.markdownDisplay ??
+    options.displayMode === 'markdown'
+  );
+  // v0.9.1-chat-markdown-editable-fix:
+  // appendPosition=afterMessages の保存済み追加コメントは、通常表示ではMarkdown表示、
+  // クリック後はMarkdown原文編集へ切り替える。
+  const editableMarkdownDisplay = Boolean(options.editableMarkdownDisplay);
+  const readonly = Boolean(options.readonly ?? msg.readonly ?? srcField.readonly ?? srcField.edit?.readonly) || (renderMarkdownOnly && !editableMarkdownDisplay);
+  const mdCfg = normalizeChatMarkdownConfig(chatMessageMarkdownConfig(field, msg, srcField), options.markdown);
+
+  const item = document.createElement('div');
+  item.className = 'chat-message ' + (isAi ? 'chat-ai' : isUser ? 'chat-user' : isConstraint ? 'chat-constraint' : 'chat-other');
+
+  const meta = document.createElement('div');
+  meta.className = 'chat-meta';
+  meta.textContent = msg.label ?? srcField.caption ?? msg.field;
+  item.appendChild(meta);
+
+  const embeddedFields = msg.embeddedFields ?? msg.embedded_fields ?? [];
+  if (Array.isArray(embeddedFields) && embeddedFields.length) {
+    const embeddedWrap = document.createElement('div');
+    embeddedWrap.className = 'chat-embedded-fields';
+    embeddedFields.forEach(ef => embeddedWrap.appendChild(createEmbeddedChatField(ef, row, gd, prefix)));
+    item.appendChild(embeddedWrap);
+  }
+
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-text';
+  bubble.dataset.field = msg.field;
+  bubble.dataset.type = srcField.type ?? 'textarea';
+  bubble.dataset.prefix = prefix;
+  bubble.dataset.placeholder = msg.placeholder ?? '';
+  bubble.setAttribute('role', 'textbox');
+  bubble.setAttribute('aria-label', msg.label ?? srcField.caption ?? msg.field);
+  bubble.setAttribute('spellcheck', 'false');
+  // editableMarkdownDisplay の場合、通常時はHTML表示を守るため contenteditable=false。
+  // クリックでMarkdown原文編集モードへ切り替える。
+  bubble.contentEditable = (readonly || editableMarkdownDisplay) ? 'false' : 'true';
+
+  // v0.8.1-chat-markdown-preview-fix / v0.9.1-chat-markdown-editable-fix:
+  // 保存済みメッセージは「本文 + Markdown preview」の二重表示にしない。
+  // appendPosition=afterMessages の送信済みユーザーコメントは、通常表示ではMarkdownを1回だけ描画し、
+  // 編集時だけMarkdown原文へ戻す。
+  if ((readonly || renderMarkdownOnly || editableMarkdownDisplay) && mdCfg.enabled) {
+    bubble.innerHTML = renderInlineMarkdown(rawText, mdCfg);
+    bubble.dataset.rawValue = rawText;
+    bubble.dataset.markdownDisplay = 'true';
+    bubble.classList.add('markdown-rendered');
+  } else {
+    bubble.textContent = rawText;
+  }
+
+  if (renderMarkdownOnly) {
+    bubble.classList.add('chat-display-only');
+    item.classList.add('chat-display-only');
+  }
+
+  if (readonly) {
+    bubble.classList.add('readonly');
+    item.classList.add('readonly');
+  }
+
+  if (editableMarkdownDisplay && !readonly) {
+    bubble.title = 'クリックするとMarkdown原文を編集できます';
+    bubble.classList.add('chat-editable-markdown-display');
+    item.classList.add('chat-editable-markdown-display');
+
+    const enterMarkdownRawEditMode = () => {
+      if (bubble.dataset.editMode === 'raw') return;
+      const rawValue = bubble.dataset.rawValue ?? rawText;
+      bubble.dataset.editMode = 'raw';
+      bubble.classList.remove('markdown-rendered');
+      bubble.classList.remove('chat-display-only');
+      item.classList.remove('chat-display-only');
+      bubble.classList.add('chat-md-editing');
+      bubble.contentEditable = 'true';
+      bubble.textContent = rawValue;
+      requestAnimationFrame(() => {
+        bubble.focus();
+        const range = document.createRange();
+        range.selectNodeContents(bubble);
+        range.collapse(false);
+        const sel = window.getSelection();
+        if (sel) {
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+      });
+    };
+
+    bubble.addEventListener('click', (e) => {
+      // リンクは Ctrl/Cmdクリックなら通常リンクとして扱う。通常クリックは編集を優先。
+      if (e.target.closest?.('a') && (e.ctrlKey || e.metaKey)) return;
+      e.preventDefault();
+      enterMarkdownRawEditMode();
+    });
+  }
+
+  bubble.addEventListener('keydown', (e) => {
+    // contenteditable内ではF12/F7/F8だけ親の詳細操作へ渡す。
+    if (e.key === 'F7' || e.key === 'F8' || e.key === 'F12') return;
+    // Ctrl+Enter は反映のショートカット。改行は Enter で通常通り入力できる。
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      applyDetail(e);
+    }
+  });
+  item.appendChild(bubble);
+
+  // Markdown previewは入力中/編集中の専用UIとして扱う。
+  // 保存済みchat messageでは、原文とpreviewの二重表示を避けるため既定では出さない。
+  if (!readonly && options.showMarkdownPreview === true && hasInlineMarkdownSyntax(rawText, mdCfg)) {
+    const preview = document.createElement('div');
+    preview.className = 'chat-markdown-preview';
+    preview.innerHTML = renderInlineMarkdown(rawText, mdCfg);
+    item.appendChild(preview);
+  }
+
+  return item;
+}
+
+function findConfiguredChatMessage(messages, fieldName) {
+  return (messages ?? []).find(m => m?.field === fieldName) ?? null;
+}
+
+function shouldAppendInputUserMessage(inputCfg, row) {
+  return inputCfg?.enabled && inputCfg.appendPosition === 'afterMessages' && inputCfg.userField && chatTextValue(row, inputCfg.userField) !== '';
+}
+
 function createChatInput(field, row, gd, prefix) {
   const wrap = document.createElement('div');
   wrap.className = 'field chat-field';
@@ -312,61 +555,30 @@ function createChatInput(field, row, gd, prefix) {
   const timeline = document.createElement('div');
   timeline.className = 'chat-timeline';
 
-  normalizeChatMessages(field, row, gd).forEach(msg => {
-    if (!shouldRenderChatMessage(msg, row)) return;
-
-    const srcField = (gd?.fields ?? []).find(f => f.field === msg.field) ?? {};
-    const raw = getByPath(row, msg.field);
-    const role = String(msg.role ?? '').toLowerCase();
-    const isAi = role === 'ai' || role === 'assistant';
-    const isUser = role === 'user' || role === 'human' || role === '俺';
-    const isConstraint = role === 'constraint' || role === 'system' || role === 'statement';
-    const readonly = Boolean(msg.readonly || srcField.readonly || srcField.edit?.readonly);
-
-    const item = document.createElement('div');
-    item.className = 'chat-message ' + (isAi ? 'chat-ai' : isUser ? 'chat-user' : isConstraint ? 'chat-constraint' : 'chat-other');
-
-    const meta = document.createElement('div');
-    meta.className = 'chat-meta';
-    meta.textContent = msg.label ?? srcField.caption ?? msg.field;
-    item.appendChild(meta);
-
-    const embeddedFields = msg.embeddedFields ?? msg.embedded_fields ?? [];
-    if (Array.isArray(embeddedFields) && embeddedFields.length) {
-      const embeddedWrap = document.createElement('div');
-      embeddedWrap.className = 'chat-embedded-fields';
-      embeddedFields.forEach(ef => embeddedWrap.appendChild(createEmbeddedChatField(ef, row, gd, prefix)));
-      item.appendChild(embeddedWrap);
-    }
-
-    const bubble = document.createElement('div');
-    bubble.className = 'chat-text';
-    bubble.textContent = raw == null ? '' : String(raw);
-    bubble.dataset.field = msg.field;
-    bubble.dataset.type = srcField.type ?? 'textarea';
-    bubble.dataset.prefix = prefix;
-    bubble.dataset.placeholder = msg.placeholder ?? '';
-    bubble.setAttribute('role', 'textbox');
-    bubble.setAttribute('aria-label', msg.label ?? srcField.caption ?? msg.field);
-    bubble.setAttribute('spellcheck', 'false');
-    bubble.contentEditable = readonly ? 'false' : 'true';
-    if (readonly) {
-      bubble.classList.add('readonly');
-      item.classList.add('readonly');
-    }
-    bubble.addEventListener('keydown', (e) => {
-      // contenteditable内ではF12/F7/F8だけ親の詳細操作へ渡す。
-      if (e.key === 'F7' || e.key === 'F8' || e.key === 'F12') return;
-      // Ctrl+Enter は反映のショートカット。改行は Enter で通常通り入力できる。
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        e.preventDefault();
-        applyDetail(e);
-      }
-    });
-    item.appendChild(bubble);
-
-    timeline.appendChild(item);
+  const inputCfg = chatInputConfig(field, gd);
+  const messages = normalizeChatMessages(field, row, gd);
+  messages.forEach(msg => {
+    if (!shouldRenderChatMessage(msg, row, inputCfg)) return;
+    timeline.appendChild(createChatMessageElement(field, msg, row, gd, prefix));
   });
+
+  // v0.7-chat-input-mapping:
+  // 送信欄由来の人間コメントは、messages定義位置に割り込ませず、会話の末尾に表示する。
+  if (shouldAppendInputUserMessage(inputCfg, row)) {
+    const original = findConfiguredChatMessage(messages, inputCfg.userField) ?? {};
+    const msg = {
+      ...original,
+      role: original.role ?? 'user',
+      field: inputCfg.userField,
+      label: inputCfg.label ?? original.label ?? '追加コメント',
+      markdown: inputCfg.markdown
+    };
+    timeline.appendChild(createChatMessageElement(field, msg, row, gd, prefix, {
+      markdown: inputCfg.markdown,
+      renderMarkdownOnly: true,
+      editableMarkdownDisplay: true
+    }));
+  }
 
   const composer = createChatComposer(field, row, gd, prefix);
   if (composer) timeline.appendChild(composer);
@@ -423,9 +635,7 @@ function createTextLikeControlElement({ field, value }) {
     if (min != null) input.min = String(min);
     if (max != null) input.max = String(max);
   }
-  input.value = (field.type === 'objectArray' || field.type === 'stringArray')
-    ? (Array.isArray(value) ? `${value.length} items` : '')
-    : (typeof value === 'object' && value !== null ? formatValue(value, field) : (value ?? ''));
+  input.value = typeof value === 'object' && value !== null ? formatValue(value, field) : (value ?? '');
   return input;
 }
 
@@ -444,6 +654,10 @@ registerFieldControl('text', createTextLikeControlElement, [
   'objectArray',
   'stringArray'
 ]);
+
+function isChildArrayField(field) {
+  return field?.type === 'objectArray' || field?.type === 'stringArray';
+}
 
 function createInput(field, value, prefix, readonlyOverride=false, row=null, gd=null) {
   if (field.type === 'chat') return createChatInput(field, row ?? {}, gd ?? gridDef(), prefix);
@@ -520,7 +734,11 @@ function isDetailFooterField(field) {
 }
 
 function detailVisibleFields(gd) {
-  return (gd?.fields ?? []).filter(f => f.edit?.visible !== false);
+  // v0.7-objectarray-save-integrity:
+  // objectArray / stringArray は childArea の専用サブグリッドで表示する。
+  // Detail Form へ「2 items」のような表示専用テキスト入力を出すと、
+  // 反映・保存時に配列本体を文字列へ壊す危険があるため除外する。
+  return (gd?.fields ?? []).filter(f => f.edit?.visible !== false && !isChildArrayField(f));
 }
 
 function renderDetailFooterFields(row, gd) {

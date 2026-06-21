@@ -1,0 +1,26 @@
+{
+  "created_at": "2026-06-21",
+  "source_rules": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_15.md",
+  "output_rules": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
+  "source_incident": "studio_work_incident_data_v0_5.json",
+  "output_incident": "studio_work_incident_data_v0_6.json",
+  "schema_updated": false,
+  "schema_note": "今回はRulesレビューとして、既存schema v0_8の範囲を前提にMDを更新。markdown inline/image等はSchema追記候補として後続インシデントで確認。",
+  "changes": [
+    "Rules正本命名ルールを追加: ALL付き、バージョン数字のみ変更、目的語・差分名禁止",
+    "固定名分類とStudio標準メタフィールド候補を追記",
+    "objectArray/stringArray保存契約を追加",
+    "chat input保存契約を追加",
+    "chat本文Markdownリンク/画像記法ルールを追加",
+    "detailBody readable cardsルールを追加",
+    "Markdown出力契約、展開前/展開後JSON、Markdownリンク/画像記法を追加",
+    "Markdown出力ファイル名sanitizeルールを追加",
+    "AI依頼テンプレートをv0.16へ更新"
+  ],
+  "remaining_implementation_incidents": [
+    "v0.7-objectarray-save-integrity",
+    "v0.7-chat-input-mapping",
+    "v0.7-markdown-export-contract",
+    "v0.7-filename-encoding-sanitize"
+  ]
+}

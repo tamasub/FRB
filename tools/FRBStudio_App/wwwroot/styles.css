@@ -856,3 +856,78 @@ button.combo-clear-button:focus-visible {
   content: "▶ ";
   font-weight: 900;
 }
+
+/* ===== v0.7-chat-input-mapping: chat Markdown inline preview ===== */
+.chat-text.markdown-rendered a,
+.chat-markdown-preview a {
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.chat-markdown-preview {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  background: rgba(255,255,255,.70);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.65;
+  color: #334155;
+}
+.chat-markdown-preview::before {
+  content: 'Markdown preview';
+  display: block;
+  margin-bottom: 5px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .04em;
+  color: #64748b;
+}
+.chat-md-image {
+  display: block;
+  max-width: min(520px, 100%);
+  max-height: 340px;
+  margin: 6px 0;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #fff;
+  object-fit: contain;
+}
+
+/* v0.8.1-chat-markdown-preview-fix: appended saved comments are display-only Markdown */
+.chat-message.chat-display-only .chat-text {
+  cursor: default;
+}
+.chat-text.chat-display-only img.chat-md-image {
+  margin-top: 8px;
+}
+
+/* v0.9.1-chat-markdown-editable-fix: appended Markdown comments are display first, editable on click */
+.chat-message.chat-editable-markdown-display .chat-text {
+  cursor: text;
+}
+.chat-text.chat-editable-markdown-display::after {
+  content: 'クリックで編集';
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--muted);
+  background: rgba(255,255,255,.65);
+  vertical-align: middle;
+}
+.chat-text.chat-md-editing {
+  min-height: 96px;
+  cursor: text;
+  white-space: pre-wrap;
+  outline: 2px solid rgba(37, 99, 235, .18);
+  background: rgba(255,255,255,.88);
+}
+.chat-text.chat-md-editing::after {
+  content: 'Markdown原文を編集中';
+}

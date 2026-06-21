@@ -657,35 +657,51 @@
                     "role": "user",
                     "field": "user_request",
                     "label": "依頼 / 方針",
-                    "height": 110
+                    "height": 110,
+                    "markdown": {
+                      "enabled": true,
+                      "allowLinks": true,
+                      "allowImages": true
+                    }
                   },
                   {
                     "role": "ai",
                     "field": "ai_response",
                     "label": "AI整理",
                     "readonly": true,
-                    "height": 130
-                  },
-                  {
-                    "role": "user",
-                    "field": "latest_user_comment",
-                    "label": "追加コメント",
-                    "height": 90
+                    "height": 130,
+                    "markdown": {
+                      "enabled": true,
+                      "allowLinks": true,
+                      "allowImages": true
+                    }
                   },
                   {
                     "role": "ai",
                     "field": "latest_ai_response",
                     "label": "AI追加回答",
                     "readonly": true,
-                    "height": 110
+                    "height": 110,
+                    "markdown": {
+                      "enabled": true,
+                      "allowLinks": true,
+                      "allowImages": true
+                    }
                   }
                 ],
                 "input": {
                   "enabled": true,
-                  "placeholder": "この作業項目への会話メモを追加...",
+                  "placeholder": "この作業項目への会話メモを追加...（Markdownリンク/画像OK）",
                   "userField": "latest_user_comment",
                   "aiField": "latest_ai_response",
-                  "sendLabel": "送信"
+                  "sendLabel": "送信",
+                  "appendPosition": "afterMessages",
+                  "appendLabel": "追加コメント",
+                  "markdown": {
+                    "enabled": true,
+                    "allowLinks": true,
+                    "allowImages": true
+                  }
                 }
               },
               "search": {
@@ -697,7 +713,8 @@
               "layout": {
                 "placement": "detailFooter",
                 "order": 800
-              }
+              },
+              "display_note": "送信欄の入力はedit.input.userFieldへ保存し、messages定義位置ではなく末尾へ表示する。Markdownリンク/画像記法を許可する。"
             },
             {
               "field": "user_request",

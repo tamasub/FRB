@@ -216,7 +216,12 @@ function createRowFromSourceRow(sourceRow) {
 }
 
 function detailEditableControls() {
-  return [...$('detailForm').querySelectorAll('input, select, textarea, [contenteditable][data-field]')];
+  // v0.7-objectarray-save-integrity:
+  // 詳細ダイアログ内の編集可能コントロールを広く回収する。
+  // chat/detailFooter は detailForm の外側(childArea)へ描画されるため、
+  // detailFormだけを見ると追加コメント欄の編集・削除が保存されない。
+  const root = $('detailDialog') ?? document;
+  return [...root.querySelectorAll('input[data-field], select[data-field], textarea[data-field], [contenteditable][data-field]')];
 }
 
 function getControlValue(el) {
@@ -324,11 +329,25 @@ function updateDetailNavButtons() {
 function applyDetailInputsToRow(row) {
   if (!row) return;
   const gd = gridDef();
+  const seenRadio = new Set();
+
   detailEditableControls().forEach(inp => {
     if (!inp.dataset.field) return;
     if (inp.type === 'radio' && !inp.checked) return;
+
     const field = gd.fields.find(f => f.field === inp.dataset.field);
     if (!field || field.edit?.readonly || field.readonly || isControlReadonly(inp)) return;
+
+    // objectArray / stringArray は childArea のサブグリッド表示が正本。
+    // 表示用の件数文字列やtableセルから配列を上書きしない。
+    if (field.type === 'objectArray' || field.type === 'stringArray') return;
+
+    if (inp.type === 'radio') {
+      const radioKey = `${field.field}:${inp.name}`;
+      if (seenRadio.has(radioKey)) return;
+      seenRadio.add(radioKey);
+    }
+
     setByPath(row, field.field, convertValue(field.type, getControlValue(inp)));
   });
 }
