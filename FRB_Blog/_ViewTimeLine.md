@@ -8,6 +8,14 @@ https://www.google.com/search?q=Fishing+Rod+Benchmark+FRB&sca_esv=d2b5db79e1641e
 https://zenn.dev/frb_tamasub/articles/c6660a4e81fef1?locale=en
 
 
+http://localhost:5055/?data=data/json/01_main/studio_work_incident_data_v0_12_url_param_launch_load.json
+
+https://tamasub.github.io/FRB/tools/FRBStudio_App/wwwroot/?data=data/json/01_main/studio_work_incident_data_v0_12_url_param_launch_load.json&mode=readonly
+
+
+
+
+
 python3 merge_zenn.py *.md -o Zenn_Blog_All_merged.md
 
 
