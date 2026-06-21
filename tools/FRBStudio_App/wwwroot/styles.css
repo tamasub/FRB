@@ -846,3 +846,13 @@ button.combo-clear-button:focus-visible {
     inset 0 1px 0 rgba(255,255,255,.24);
 }
 
+
+
+/* v0.6-action-execute-button: ViewDef-driven primary action button */
+.view-execute-action-button {
+  box-shadow: 0 8px 18px rgba(59,130,246,.16);
+}
+.view-execute-action-button::before {
+  content: "▶ ";
+  font-weight: 900;
+}

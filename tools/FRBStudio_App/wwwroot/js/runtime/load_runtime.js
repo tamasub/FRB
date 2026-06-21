@@ -22,6 +22,7 @@ async function loadFromObjects(defObj, dataObj, label='読み込み完了', data
   renderByKey('search');
   loadRows();
   renderByKey('grid');
+  renderByKey('viewExecuteButton');
   $('saveBtn').disabled = false;
   if ($('exportMarkdownBtn')) $('exportMarkdownBtn').disabled = false;
   updateViewDefMarkdownButtonState();

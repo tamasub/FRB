@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.local/frb/view_def_schema_v0_7_relation_status_filter.json",
-  "title": "FRB Studio View Definition Schema v0.7 - Relation Status Filter",
-  "description": "Schema for FRBStudio_App / No-Code JSON Studio view_def JSON files. Includes inheritance, Markdown export, dataSources, relation virtualData builders, single-source writeBack, and Relation status filters for approved/candidate/rejected/derived relation lines.",
+  "$id": "https://example.local/frb/view_def_schema_v0_8_action_registry_toolbar.json",
+  "title": "FRB Studio View Definition Schema v0.8 - Action Registry / Toolbar",
+  "description": "Schema for FRBStudio_App / No-Code JSON Studio view_def JSON files. Includes inheritance, common field types, Markdown export / AI Prompt, dataSources, virtualData registry builders, single-source writeBack, Relation status filters, and toolbar.executeButton action declarations.",
   "type": "object",
   "additionalProperties": true,
   "properties": {
@@ -61,6 +61,77 @@
     },
     "write_policy": {
       "$ref": "#/$defs/writePolicy"
+    },
+    "fieldTypeSources": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "field_type_sources": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "typeSources": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "type_sources": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "commonTypeRegistry": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "common_type_registry": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "commonTypes": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "common_types": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "toolbar": {
+      "$ref": "#/$defs/toolbarOptions"
     }
   },
   "required": [
@@ -79,9 +150,16 @@
           "type": "string"
         },
         "layout": {
-          "type": "string",
-          "enum": [
-            "header-search-grid-detail"
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [
+                "header-search-grid-detail"
+              ]
+            },
+            {
+              "$ref": "#/$defs/layoutOptions"
+            }
           ]
         },
         "sections": {
@@ -114,6 +192,77 @@
         },
         "write_policy": {
           "$ref": "#/$defs/writePolicy"
+        },
+        "toolbar": {
+          "$ref": "#/$defs/toolbarOptions"
+        },
+        "fieldTypeSources": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "field_type_sources": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "typeSources": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "type_sources": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "commonTypeRegistry": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "common_type_registry": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "commonTypes": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "common_types": {
+          "type": "object",
+          "additionalProperties": true
         }
       },
       "required": [
@@ -191,11 +340,7 @@
         "options": {
           "type": "array",
           "items": {
-            "type": [
-              "string",
-              "number",
-              "boolean"
-            ]
+            "$ref": "#/$defs/optionItem"
           }
         },
         "grid": {
@@ -248,6 +393,42 @@
             "listbox",
             "radio"
           ]
+        },
+        "fieldType": {
+          "type": "string"
+        },
+        "field_type": {
+          "type": "string"
+        },
+        "typeRef": {
+          "type": "string"
+        },
+        "type_ref": {
+          "type": "string"
+        },
+        "valueField": {
+          "type": "string"
+        },
+        "value_field": {
+          "type": "string"
+        },
+        "optionValueField": {
+          "type": "string"
+        },
+        "option_value_field": {
+          "type": "string"
+        },
+        "labelField": {
+          "type": "string"
+        },
+        "label_field": {
+          "type": "string"
+        },
+        "optionLabelField": {
+          "type": "string"
+        },
+        "option_label_field": {
+          "type": "string"
         }
       },
       "required": [
@@ -494,7 +675,8 @@
             "screen_state_expected",
             "screen_state_diff",
             "screen_state_test_patterns"
-          ]
+          ],
+          "description": "MarkdownExportRegistry key. Current registered values: auto, generic_sections, screen_state_expected, screen_state_diff, screen_state_test_patterns."
         },
         "exportType": {
           "type": "string"
@@ -529,11 +711,14 @@
         "source": {
           "type": "string",
           "enum": [
+            "root",
             "sourceData",
             "currentRow",
             "allRows",
             "header",
-            "grid"
+            "grid",
+            "rows",
+            "currentRows"
           ]
         },
         "dataPath": {
@@ -545,8 +730,10 @@
         "format": {
           "type": "string",
           "enum": [
+            "auto",
             "text",
             "paragraph",
+            "textarea",
             "blockquote",
             "code",
             "json",
@@ -554,7 +741,11 @@
             "table",
             "list",
             "cards",
-            "chat"
+            "chat",
+            "heading",
+            "constraintList",
+            "detailList",
+            "detail"
           ]
         },
         "fields": {
@@ -565,6 +756,24 @@
         },
         "visible": {
           "type": "boolean"
+        },
+        "aiPrompt": {
+          "$ref": "#/$defs/aiPromptOptions"
+        },
+        "ai_prompt": {
+          "$ref": "#/$defs/aiPromptOptions"
+        },
+        "itemTitle": {
+          "type": "string"
+        },
+        "showEmpty": {
+          "type": "boolean"
+        },
+        "sections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/markdownSectionOptions"
+          }
         }
       }
     },
@@ -581,8 +790,10 @@
         "format": {
           "type": "string",
           "enum": [
+            "auto",
             "text",
             "paragraph",
+            "textarea",
             "blockquote",
             "code",
             "json",
@@ -590,7 +801,11 @@
             "table",
             "list",
             "cards",
-            "chat"
+            "chat",
+            "heading",
+            "constraintList",
+            "detailList",
+            "detail"
           ]
         },
         "visible": {
@@ -603,6 +818,33 @@
             "boolean",
             "null"
           ]
+        },
+        "markdownFormat": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "text",
+            "paragraph",
+            "textarea",
+            "blockquote",
+            "code",
+            "json",
+            "note",
+            "table",
+            "list",
+            "cards",
+            "chat",
+            "heading",
+            "constraintList",
+            "detailList",
+            "detail"
+          ]
+        },
+        "showEmpty": {
+          "type": "boolean"
+        },
+        "label": {
+          "type": "string"
         }
       },
       "required": [
@@ -655,11 +897,7 @@
         "options": {
           "type": "array",
           "items": {
-            "type": [
-              "string",
-              "number",
-              "boolean"
-            ]
+            "$ref": "#/$defs/optionItem"
           }
         },
         "readonly": {
@@ -728,13 +966,7 @@
       "properties": {
         "builder": {
           "type": "string",
-          "enum": [
-            "relation_axis_cards",
-            "relation_diff_cards",
-            "relation_diff_check_cards",
-            "constraint_trace_cards",
-            "test_pattern_trace_cards"
-          ]
+          "description": "VirtualDataBuilderRegistry key. Registered examples: relation_axis_cards, relation_diff_cards, relation_diff_check_cards, constraint_trace_cards, test_pattern_trace_cards, expected_check_cross_counts, expected_check_shortage_findings."
         },
         "type": {
           "type": "string"
@@ -1439,6 +1671,235 @@
           "additionalProperties": {
             "type": "string"
           }
+        }
+      }
+    },
+    "optionItem": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Select/radio option object. Default value field is cd; default label field is name. value/id/key and label/caption/text are also supported by runtime.",
+          "properties": {
+            "cd": {
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "value": {
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "id": {
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "key": {
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "name": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            },
+            "caption": {
+              "type": "string"
+            },
+            "text": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "layoutOptions": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "View/layout options. Runtime currently uses detailDialog: wide for wide detail dialog. String layout header-search-grid-detail is still valid.",
+      "properties": {
+        "detailDialog": {
+          "type": "string",
+          "enum": [
+            "normal",
+            "wide"
+          ]
+        },
+        "detail_dialog": {
+          "type": "string",
+          "enum": [
+            "normal",
+            "wide"
+          ]
+        }
+      }
+    },
+    "executeButtonOptions": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "View-specific primary execute action. Runtime reads action/actionId/action_id as actionId and passes it to ActionRegistry. Do not hard-code Action names in Runtime.",
+      "properties": {
+        "visible": {
+          "type": "boolean"
+        },
+        "caption": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string"
+        },
+        "actionId": {
+          "type": "string"
+        },
+        "action_id": {
+          "type": "string"
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "action"
+          ]
+        },
+        {
+          "required": [
+            "actionId"
+          ]
+        },
+        {
+          "required": [
+            "action_id"
+          ]
+        }
+      ]
+    },
+    "toolbarButtonOptions": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Reserved for future secondary toolbar buttons. v0.6 runtime only renders executeButton.",
+      "properties": {
+        "visible": {
+          "type": "boolean"
+        },
+        "caption": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string"
+        },
+        "actionId": {
+          "type": "string"
+        },
+        "action_id": {
+          "type": "string"
+        }
+      }
+    },
+    "toolbarOptions": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Toolbar declarations. Current runtime supports toolbar.executeButton / toolbar.execute_button as the primary View action.",
+      "properties": {
+        "executeButton": {
+          "$ref": "#/$defs/executeButtonOptions"
+        },
+        "execute_button": {
+          "$ref": "#/$defs/executeButtonOptions"
+        },
+        "buttons": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/toolbarButtonOptions"
+          }
+        }
+      }
+    },
+    "aiPromptOptions": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Markdown export AI copy block. Attach to grid section markdown.aiPrompt.",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "title": {
+          "type": "string"
+        },
+        "targetFile": {
+          "type": "string"
+        },
+        "target_file": {
+          "type": "string"
+        },
+        "rowSource": {
+          "type": "string",
+          "enum": [
+            "filtered",
+            "all",
+            "current",
+            "selected"
+          ]
+        },
+        "row_source": {
+          "type": "string",
+          "enum": [
+            "filtered",
+            "all",
+            "current",
+            "selected"
+          ]
+        },
+        "visibleOnly": {
+          "type": "boolean"
+        },
+        "visible_only": {
+          "type": "boolean"
+        },
+        "includeGridJson": {
+          "type": "boolean"
+        },
+        "include_grid_json": {
+          "type": "boolean"
+        },
+        "template": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
         }
       }
     }

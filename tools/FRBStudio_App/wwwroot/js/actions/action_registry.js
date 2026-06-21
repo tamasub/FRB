@@ -22,14 +22,32 @@ function currentStudioActionContext(extra={}) {
     filteredRows,
     selectedIndex,
     currentDataApiUrl,
+    setStatus,
+    renderByKey,
     ...extra
   };
 }
 
 // 既存ボタンと同等の代表Actionを登録しておく。
-// ただしv0.5ではUIからは直接呼ばない。v0.6でViewDef駆動のexecuteButtonに接続する。
-registerStudioAction('LoadData', async () => loadFromFiles());
-registerStudioAction('SaveData', async () => saveOverwriteJson());
-registerStudioAction('ExportMarkdown', async () => exportMarkdown());
-registerStudioAction('ExportViewDefMarkdown', async () => exportViewDefMarkdown());
-registerStudioAction('RefreshServerLists', async () => refreshServerLists());
+// v0.6では toolbar.executeButton.action から渡された actionId で実行される。
+registerStudioAction('LoadData', async () => loadFromFiles(), ['LoadJson']);
+registerStudioAction('SaveData', async () => saveOverwriteJson(), ['SaveJson']);
+registerStudioAction('ExportMarkdown', async () => {
+  await exportMarkdown();
+  return { message: 'Markdown出力を実行しました' };
+});
+registerStudioAction('ExportViewDefMarkdown', async () => {
+  await exportViewDefMarkdown();
+  return { message: 'ViewDef Markdown出力を実行しました' };
+});
+registerStudioAction('RefreshServerLists', async () => {
+  await refreshServerLists();
+  return { message: 'サーバー側JSON一覧を更新しました' };
+});
+registerStudioAction('ShowActionContext', async (context={}) => {
+  console.log('ShowActionContext', context);
+  return { message: `ActionContext確認: ${context.executeButton?.action ?? ''}` };
+});
+registerStudioAction('Noop', async (context={}) => {
+  return { message: `${context.executeButton?.caption ?? 'Action'} はNoopとして実行されました` };
+});

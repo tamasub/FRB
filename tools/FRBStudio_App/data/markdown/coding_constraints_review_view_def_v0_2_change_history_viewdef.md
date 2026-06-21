@@ -1,7 +1,102 @@
+# ViewDef定義レポート — Studioくん憲法レビュー / 承認セレモニー
+
+## 基本情報
+- 出力日時: 2026/6/21 16:31:36
+- 対象ViewDef: coding_constraints_review_view_def_v0_2_change_history.json
+- app.name: No-Code JSON Studio
+- app.version: coding-constraints-review-v0.2-change-history
+- views: 1
+
+## View / Section 概要
+| View | View Caption | Section | Section Caption | Type | DataPath | KeyField | Fields |
+| --- | --- | --- | --- | --- | --- | --- | ---: |
+| coding_constraints_review_v0_1 | Studioくん憲法レビュー / 承認セレモニー | header | Studioくん憲法 / 基本情報 | form | $ |  | 10 |
+| coding_constraints_review_v0_1 | Studioくん憲法レビュー / 承認セレモニー | constitution_sections | Studioくん憲法 条文レビュー / 承認セレモニー | grid | $.constitution_sections | section_id | 22 |
+
+## 継承差分サマリ
+
+このViewDefは extends を持たないため、継承差分はありません。
+
+## 解決サマリ
+
+- 読込済み共通Type namespace: qa / relation / business / core
+- fieldType参照: 0件
+- fieldType caption未指定: 0件
+- extends / fieldType 解決による差分: なし
+
+## Studioくん憲法レビュー / 承認セレモニー
+
+- view.id: coding_constraints_review_v0_1
+- layout: header-search-grid-detail
+- markdown.type: generic_sections
+- markdown.title: Studioくん憲法 レビュー記録
+- markdown.defaultFileName: coding_constraints_review_export.md
+
+### Studioくん憲法 / 基本情報
+
+- section.id: header
+- type: form
+- dataPath: $
+- fields: 10
+
+| field | caption | type | grid.visible | width | edit.visible | readonly | search | options |
+| --- | --- | --- | --- | ---: | --- | --- | --- | --- |
+| title | タイトル | text | false |  | true | true |  |  |
+| target | 対象 | text | false |  | true | true |  |  |
+| schema_version | Schema Version | text | false |  | true | true |  |  |
+| status | 状態 | select | false |  | true |  |  | ceremony_review_draft:ceremony_review_draft, reviewing:reviewing, approved:approved, needs_rework:needs_rework, ceremony_review_draft_with_change_history:ceremony_review_draft_with_change_history |
+| source_version | Source Version | text | false |  | true | true |  |  |
+| section_count | レビュー条文数 | number | false |  | true | true |  |  |
+| approved_count | 承認済み数 | number | false |  | true | true |  |  |
+| approval_policy | 承認方針 | textarea | false |  | true | true |  |  |
+| preamble | 前文 / この文書の目的 | textarea | false |  | true | true |  |  |
+| change_history_policy | 変更履歴方針 | textarea | false |  | true | true |  |  |
+
+### Studioくん憲法 条文レビュー / 承認セレモニー
+
+- section.id: constitution_sections
+- type: grid
+- dataPath: $.constitution_sections
+- keyField: section_id
+- fields: 22
+
+| field | caption | type | grid.visible | width | edit.visible | readonly | search | options |
+| --- | --- | --- | --- | ---: | --- | --- | --- | --- |
+| no | 条 | number | true | 60 | true | true | true (gte) |  |
+| section_id | Section ID | text | true | 150 | true | true | true (contains) |  |
+| category | 分類 | select | true | 140 | true |  | true (equals) | 理念:理念, アーキテクチャ:アーキテクチャ, 設計パターン:設計パターン, Data:Data, ViewDef:ViewDef, Action:Action, Replay:Replay, Diff:Diff ... +15 |
+| title | 条文名 | text | true | 260 | true |  | true (contains) |  |
+| priority | 優先度 | select | true | 90 | true |  | true (equals) | high:high, medium:medium, low:low |
+| review_status | レビュー状態 | select | true | 120 | true |  | true (equals) | 建国レビュー:建国レビュー, 確認中:確認中, 確認済み:確認済み, 要再整理:要再整理, 保留:保留 |
+| verification_status | 確認状態 | select | true | 110 | true |  | true (equals) | 未確認:未確認, 確認済み:確認済み, 対象外:対象外 |
+| approval_decision | 承認 | select | true | 120 | true |  | true (equals) | 未承認:未承認, 承認する:承認する, 差戻し:差戻し, 保留:保留 |
+| summary | 要約 | textarea | true | 420 | false | true | true (contains) |  |
+| body | 条文本文 | textarea | false |  | false | true | true (contains) |  |
+| ceremony_phrase | 承認セレモニー文 | textarea | false |  | false | true | true (contains) |  |
+| __review_target_cards | レビュー対象 | chat | false |  | true |  | false |  |
+| __section_chat | 条文レビュー会話 | chat | false |  | true |  | false |  |
+| user_comment | 俺コメント | textarea | true | 260 | false |  | true (contains) |  |
+| ai_response | AI回答 | textarea | true | 300 | false | true | true (contains) |  |
+| user_reply | 俺追加回答 | textarea | false | 260 | false |  | true (contains) |  |
+| ai_followup_response | AI再回答 | textarea | false |  | false | true | true (contains) |  |
+| approved_by | 承認者 | text | false | 120 | true |  | true (contains) |  |
+| approved_at | 承認日時 | datetime | false | 160 | true |  | true (contains) |  |
+| approval_stamp | 承認印 | text | false |  | true |  | false |  |
+| notes | メモ | textarea | false |  | true |  | true (contains) |  |
+| change_history | 仕様変更履歴 | objectArray | false |  | true | true |  |  |
+
+---
+
+## ViewDef JSON
+
+<details>
+<summary>元ViewDef JSONを表示</summary>
+
+```json
 {
   "app": {
     "name": "No-Code JSON Studio",
-    "version": "coding-constraints-review-v0.1"
+    "version": "coding-constraints-review-v0.2-change-history"
   },
   "views": [
     {
@@ -62,7 +157,8 @@
                 "ceremony_review_draft",
                 "reviewing",
                 "approved",
-                "needs_rework"
+                "needs_rework",
+                "ceremony_review_draft_with_change_history"
               ],
               "grid": {
                 "visible": false
@@ -136,6 +232,20 @@
                 "visible": true,
                 "readonly": true,
                 "height": 160
+              }
+            },
+            {
+              "field": "change_history_policy",
+              "caption": "変更履歴方針",
+              "type": "textarea",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 90
               }
             }
           ]
@@ -659,6 +769,21 @@
                 "operator": "contains"
               },
               "defaultValue": ""
+            },
+            {
+              "field": "change_history",
+              "caption": "仕様変更履歴",
+              "type": "objectArray",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "defaultValue": [],
+              "display_note": "レビューで条文・仕様を変更した場合、変更前後・理由・会話を残すサブグリッド。"
             }
           ],
           "markdown": {
@@ -739,6 +864,11 @@
               {
                 "field": "preamble",
                 "caption": "前文",
+                "format": "paragraph"
+              },
+              {
+                "field": "change_history_policy",
+                "caption": "変更履歴方針",
                 "format": "paragraph"
               }
             ]
@@ -871,6 +1001,49 @@
                     "format": "paragraph"
                   }
                 ]
+              },
+              {
+                "title": "仕様変更履歴",
+                "arrayField": "change_history",
+                "format": "table",
+                "fields": [
+                  {
+                    "field": "history_id",
+                    "caption": "History ID"
+                  },
+                  {
+                    "field": "revision",
+                    "caption": "Revision"
+                  },
+                  {
+                    "field": "changed_at",
+                    "caption": "変更日"
+                  },
+                  {
+                    "field": "changed_by",
+                    "caption": "変更者"
+                  },
+                  {
+                    "field": "change_type",
+                    "caption": "変更種別"
+                  },
+                  {
+                    "field": "target_fields",
+                    "caption": "対象フィールド"
+                  },
+                  {
+                    "field": "before_title",
+                    "caption": "変更前タイトル"
+                  },
+                  {
+                    "field": "after_title",
+                    "caption": "変更後タイトル"
+                  },
+                  {
+                    "field": "reason",
+                    "caption": "変更理由"
+                  }
+                ]
               }
             ]
           }
@@ -880,3 +1053,6 @@
   ],
   "layout_note": "ai_constraint_grouped_view_def_v0_6_footer_chat.json の構成に寄せ、レビュー対象カードを detailBody、条文レビュー会話を detailFooter に配置する。承認セレモニー用に approval_decision を radio 表示できるようにした。"
 }
+```
+
+</details>

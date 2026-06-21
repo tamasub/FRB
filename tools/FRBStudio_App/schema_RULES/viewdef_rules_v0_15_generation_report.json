@@ -1,0 +1,63 @@
+{
+  "rules": "FRB_VIEW_DEF_GENERATION_RULES_v0_15_action_registry_current.md",
+  "schema": "frb_view_def_schema_v0_8_action_registry_toolbar.json",
+  "readme": "README_viewdef_rules_v0_15.md",
+  "validation_samples": [
+    {
+      "file": "studio_work_incident_view_def_v0_2_execute_button_sample.json",
+      "valid": true,
+      "error_count": 0,
+      "errors": []
+    },
+    {
+      "file": "relation_axis_diff_check_view_def_v0_1.json",
+      "valid": true,
+      "error_count": 0,
+      "errors": []
+    },
+    {
+      "file": "coding_constraints_review_view_def_v0_2_change_history.json",
+      "valid": true,
+      "error_count": 0,
+      "errors": []
+    }
+  ],
+  "source_runtime_basis": {
+    "actions": [
+      "LoadData",
+      "SaveData",
+      "ExportMarkdown",
+      "ExportViewDefMarkdown",
+      "RefreshServerLists",
+      "ShowActionContext",
+      "Noop"
+    ],
+    "virtualDataBuilders": [
+      "relation_axis_cards",
+      "relation_diff_cards",
+      "relation_diff_check_cards",
+      "constraint_trace_cards",
+      "test_pattern_trace_cards",
+      "expected_check_cross_counts",
+      "expected_check_shortage_findings"
+    ],
+    "markdownTypes": [
+      "auto",
+      "generic_sections",
+      "screen_state_expected",
+      "screen_state_diff",
+      "screen_state_test_patterns"
+    ],
+    "fieldTypes": [
+      "text",
+      "textarea",
+      "number",
+      "boolean",
+      "select",
+      "datetime",
+      "objectArray",
+      "stringArray",
+      "chat"
+    ]
+  }
+}
