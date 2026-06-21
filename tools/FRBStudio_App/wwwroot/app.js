@@ -3,6 +3,7 @@
 
 setupPageDrop();
 setupComboClearButtons();
+setupFileTreePickers();
 setupViewDefMarkdownButtonState();
 
 suppressBrowserAutofillOnComboInputs();

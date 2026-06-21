@@ -214,6 +214,7 @@ async function refreshServerLists() {
     serverDataNames = normalizeServerNames(data);
     setDatalist('defNameList', serverDefNames);
     setDatalist('dataNameList', serverDataNames);
+    if (typeof refreshFileTreePickers === 'function') refreshFileTreePickers();
     setStatus(`一覧を更新しました: defs ${serverDefNames.length}件 / data ${serverDataNames.length}件`);
   } catch (err) {
     console.warn(err);

@@ -141,7 +141,7 @@ internal static class Program
             return Results.Ok(new { saved = req.Name });
         });
 
-        app.MapGet("/api/defs/{name}", async (string name) =>
+        app.MapGet("/api/defs/{**name}", async (string name) =>
         {
             var path = SafeJsonPath(defsDir, name);
             if (path is null || !File.Exists(path)) return Results.NotFound();
@@ -208,14 +208,14 @@ internal static class Program
         {
             Directory.CreateDirectory(folder.FullPath);
 
-            foreach (var file in Directory.GetFiles(folder.FullPath, "*.json"))
+            foreach (var file in Directory.GetFiles(folder.FullPath, "*.json", SearchOption.AllDirectories))
             {
-                var name = Path.GetFileName(file);
-                if (string.IsNullOrWhiteSpace(name)) continue;
+                var relative = ToRelativeApiPath(folder.FullPath, file);
+                if (string.IsNullOrWhiteSpace(relative)) continue;
 
                 files.Add(folder.IsPrimary
-                    ? name
-                    : $"{folder.ApiPrefix}/{name}");
+                    ? relative
+                    : $"{folder.ApiPrefix}/{relative}");
             }
         }
 
@@ -225,15 +225,18 @@ internal static class Program
             .ToArray();
     }
 
+
     private static string[] ListJsonFiles(string dir)
     {
         Directory.CreateDirectory(dir);
-        return Directory.GetFiles(dir, "*.json")
-            .Select(Path.GetFileName)
+        return Directory.GetFiles(dir, "*.json", SearchOption.AllDirectories)
+            .Select(file => ToRelativeApiPath(dir, file))
             .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
             .ToArray()!;
     }
+
 
     private static string[] ListMarkdownFiles(string dir)
     {
@@ -263,8 +266,9 @@ internal static class Program
         var normalized = Uri.UnescapeDataString(name).Replace('\\', '/').Trim('/');
         if (string.IsNullOrWhiteSpace(normalized)) return null;
         if (!normalized.EndsWith(".json", StringComparison.OrdinalIgnoreCase)) return null;
+        if (normalized.Contains("://", StringComparison.OrdinalIgnoreCase)) return null;
         if (Path.IsPathRooted(normalized)) return null;
-        if (normalized.Split('/', StringSplitOptions.RemoveEmptyEntries).Any(part => part == "..")) return null;
+        if (normalized.Split('/', StringSplitOptions.RemoveEmptyEntries).Any(part => part is "." or "..")) return null;
 
         // 旧互換: ファイル名だけ指定された場合は、既存ファイルを全DataFoldersから探す。
         // 保存時に既存が見つからない場合は、先頭のDataFolder(data/json)へ保存する。
@@ -282,50 +286,64 @@ internal static class Program
             return SafeJsonPath(folders[0].FullPath, normalized);
         }
 
-        // 新方式: tests_screen_state/foo.diff.json のようにフォルダー接頭辞つきで指定する。
-        foreach (var folder in folders)
+        // DataFoldersで外部フォルダーが定義されている場合は、接頭辞つき相対パスとして扱う。
+        // Primary(data/json)配下のサブフォルダーは、接頭辞なしの相対パスとして扱う。
+        foreach (var folder in folders.Where(f => !f.IsPrimary).OrderByDescending(f => f.ApiPrefix.Length))
         {
             var prefix = folder.ApiPrefix + "/";
             if (!normalized.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) continue;
 
-            var fileName = normalized[prefix.Length..];
-            if (fileName.Contains('/')) return null; // DataFolder直下のJSONだけを扱う
-            return SafeJsonPath(folder.FullPath, fileName);
+            var relative = normalized[prefix.Length..];
+            return SafeJsonPath(folder.FullPath, relative);
         }
 
-        return null;
+        if (preferExisting)
+        {
+            var primaryExisting = SafeJsonPath(folders[0].FullPath, normalized);
+            if (primaryExisting is not null && File.Exists(primaryExisting)) return primaryExisting;
+        }
+
+        return SafeJsonPath(folders[0].FullPath, normalized);
     }
+
 
     private static string? ToApiName(IReadOnlyList<DataFolder> folders, string path)
     {
         var fullPath = Path.GetFullPath(path);
 
-        foreach (var folder in folders)
+        foreach (var folder in folders.OrderByDescending(f => f.FullPath.Length))
         {
             var folderPath = EnsureTrailingSeparator(Path.GetFullPath(folder.FullPath));
             if (!fullPath.StartsWith(folderPath, StringComparison.OrdinalIgnoreCase)) continue;
 
-            var fileName = Path.GetFileName(fullPath);
-            return folder.IsPrimary ? fileName : $"{folder.ApiPrefix}/{fileName}";
+            var relative = ToRelativeApiPath(folder.FullPath, fullPath);
+            if (string.IsNullOrWhiteSpace(relative)) return null;
+            return folder.IsPrimary ? relative : $"{folder.ApiPrefix}/{relative}";
         }
 
         return null;
     }
 
+
     private static string? SafeJsonPath(string baseDir, string name)
     {
         if (string.IsNullOrWhiteSpace(name)) return null;
-        if (!name.EndsWith(".json", StringComparison.OrdinalIgnoreCase)) return null;
-        if (name.Contains("..") || name.Contains('/') || name.Contains('\\')) return null;
 
-        var full = Path.GetFullPath(Path.Combine(baseDir, name));
+        var normalized = Uri.UnescapeDataString(name).Replace('\\', '/').Trim('/');
+        if (string.IsNullOrWhiteSpace(normalized)) return null;
+        if (!normalized.EndsWith(".json", StringComparison.OrdinalIgnoreCase)) return null;
+        if (normalized.Contains("://", StringComparison.OrdinalIgnoreCase)) return null;
+        if (Path.IsPathRooted(normalized)) return null;
+        if (normalized.Split('/', StringSplitOptions.RemoveEmptyEntries).Any(part => part is "." or "..")) return null;
+
+        var full = Path.GetFullPath(Path.Combine(baseDir, normalized.Replace('/', Path.DirectorySeparatorChar)));
         var allowed = EnsureTrailingSeparator(Path.GetFullPath(baseDir));
 
-        return EnsureTrailingSeparator(Path.GetDirectoryName(full) ?? string.Empty)
-            .StartsWith(allowed, StringComparison.OrdinalIgnoreCase)
+        return full.StartsWith(allowed, StringComparison.OrdinalIgnoreCase)
             ? full
             : null;
     }
+
 
     private static string? SafeMarkdownPath(string baseDir, string name)
     {
@@ -341,6 +359,18 @@ internal static class Program
             .StartsWith(allowed, StringComparison.OrdinalIgnoreCase)
             ? full
             : null;
+    }
+
+    private static string ToRelativeApiPath(string baseDir, string path)
+    {
+        var baseFull = EnsureTrailingSeparator(Path.GetFullPath(baseDir));
+        var fileFull = Path.GetFullPath(path);
+        if (!fileFull.StartsWith(baseFull, StringComparison.OrdinalIgnoreCase)) return string.Empty;
+
+        return Path.GetRelativePath(baseFull, fileFull)
+            .Replace(Path.DirectorySeparatorChar, '/')
+            .Replace(Path.AltDirectorySeparatorChar, '/')
+            .Trim('/');
     }
 
     private static string EnsureTrailingSeparator(string path)
