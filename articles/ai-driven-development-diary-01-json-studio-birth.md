@@ -725,7 +725,7 @@ JSON Editorを作っていたはずなのに、なぜViewDefまでJSONになっ�
 ----
 ■ Studioくん
 
-[こちらから現在開発中 Studioくん のインシデント管理している画面見れます！現在進行中！！](https://tamasub.github.io/FRB/tools/FRBStudio_App/wwwroot/?data=data/json/01_main/studio_work_incident_data_v0_12_url_param_launch_load.json&mode=readonly)
+[こちらから現在開発中 Studioくん のインシデント管理している画面見れます！現在進行中！！](https://tamasub.github.io/FRB/tools/FRBStudio_App/wwwroot/?data=data/json/01_main/studio_work_incident_data_v0_00.json&mode=readonly)
 
 
 
