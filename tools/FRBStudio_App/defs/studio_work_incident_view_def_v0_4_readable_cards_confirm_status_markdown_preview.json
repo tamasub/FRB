@@ -1,12 +1,12 @@
 {
   "app": {
     "name": "FRB Studio / JSON Object Studio",
-    "version": "studio-work-incident-v0.2-readable-cards"
+    "version": "studio-work-incident-v0.4-readable-cards-confirm-status-markdown-preview"
   },
   "views": [
     {
-      "id": "studio_work_incident_v0_2_readable_cards",
-      "caption": "Studioくん 改修インシデント管理 / 読みやすい詳細カード",
+      "id": "studio_work_incident_v0_4_readable_cards_confirm_status_markdown_preview",
+      "caption": "Studioくん 改修インシデント管理 / 読みやすい詳細カード / 確認状態付き / Markdownプレビュー",
       "layout": "header-search-grid-detail",
       "sections": [
         {
@@ -129,7 +129,7 @@
               "edit": {
                 "visible": true,
                 "readonly": true,
-                "height": 90
+                "height": 60
               }
             },
             {
@@ -143,7 +143,7 @@
               "edit": {
                 "visible": true,
                 "readonly": true,
-                "height": 100
+                "height": 60
               }
             },
             {
@@ -157,7 +157,7 @@
               "edit": {
                 "visible": true,
                 "readonly": true,
-                "height": 100
+                "height": 60
               }
             }
           ]
@@ -331,6 +331,30 @@
               }
             },
             {
+              "field": "verification_status",
+              "caption": "確認状態",
+              "type": "select",
+              "options": [
+                "未確認",
+                "確認済み",
+                "対象外"
+              ],
+              "defaultValue": "未確認",
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "control": "radio"
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              },
+              "display_note": "人間が作業結果や内容を確認した状態を記録する。作業ステータスとは別に、tamasub確認用として扱う。"
+            },
+            {
               "field": "owner",
               "caption": "Owner",
               "type": "text",
@@ -398,61 +422,111 @@
                     "role": "constraint",
                     "field": "target_files",
                     "label": "対象ファイル",
-                    "height": 120
+                    "height": 120,
+                    "markdown": {
+                      "enabled": true,
+                      "allowLinks": true,
+                      "allowImages": true
+                    }
                   },
                   {
                     "role": "constraint",
                     "field": "objective",
                     "label": "目的",
-                    "height": 120
+                    "height": 120,
+                    "markdown": {
+                      "enabled": true,
+                      "allowLinks": true,
+                      "allowImages": true
+                    }
                   },
                   {
                     "role": "constraint",
                     "field": "background",
                     "label": "背景",
-                    "height": 120
+                    "height": 120,
+                    "markdown": {
+                      "enabled": true,
+                      "allowLinks": true,
+                      "allowImages": true
+                    }
                   },
                   {
                     "role": "constraint",
                     "field": "scope",
                     "label": "対象範囲",
-                    "height": 120
+                    "height": 120,
+                    "markdown": {
+                      "enabled": true,
+                      "allowLinks": true,
+                      "allowImages": true
+                    }
                   },
                   {
                     "role": "constraint",
                     "field": "out_of_scope",
                     "label": "対象外",
-                    "height": 120
+                    "height": 120,
+                    "markdown": {
+                      "enabled": true,
+                      "allowLinks": true,
+                      "allowImages": true
+                    }
                   },
                   {
                     "role": "constraint",
                     "field": "fixed_name_policy",
                     "label": "固定名方針",
-                    "height": 120
+                    "height": 120,
+                    "markdown": {
+                      "enabled": true,
+                      "allowLinks": true,
+                      "allowImages": true
+                    }
                   },
                   {
                     "role": "constraint",
                     "field": "module_policy",
                     "label": "module化方針",
-                    "height": 120
+                    "height": 120,
+                    "markdown": {
+                      "enabled": true,
+                      "allowLinks": true,
+                      "allowImages": true
+                    }
                   },
                   {
                     "role": "constraint",
                     "field": "expected_outputs",
                     "label": "成果物",
-                    "height": 120
+                    "height": 120,
+                    "markdown": {
+                      "enabled": true,
+                      "allowLinks": true,
+                      "allowImages": true
+                    }
                   },
                   {
                     "role": "constraint",
                     "field": "risk",
                     "label": "リスク",
-                    "height": 120
+                    "height": 120,
+                    "markdown": {
+                      "enabled": true,
+                      "allowLinks": true,
+                      "allowImages": true
+                    }
                   },
                   {
                     "role": "constraint",
                     "field": "test_points",
                     "label": "確認観点",
-                    "height": 120
+                    "height": 120,
+                    "markdown": {
+                      "enabled": true,
+                      "allowLinks": true,
+                      "allowImages": true
+                    }
                   }
                 ],
                 "input": {
@@ -465,7 +539,7 @@
               "create": {
                 "include": false
               },
-              "display_note": "長文フィールドをtextareaの羅列ではなく、詳細画面上部の横広カードとして表示する。",
+              "display_note": "長文フィールドをtextareaの羅列ではなく、詳細画面上部の横広カードとして表示する。 Markdownプレビュー表示に対応。表示時はHTML、編集時はMarkdown原文。",
               "layout": {
                 "placement": "detailBody",
                 "order": 120
@@ -487,7 +561,12 @@
                 "visible": true,
                 "operator": "contains"
               },
-              "display_note": "詳細画面では __work_summary_cards の「対象ファイル」カードとして横広に表示する。"
+              "display_note": "詳細画面では __work_summary_cards の「対象ファイル」カードとして横広に表示する。",
+              "markdown": {
+                "enabled": true,
+                "allowLinks": true,
+                "allowImages": true
+              }
             },
             {
               "field": "objective",
@@ -505,7 +584,12 @@
                 "visible": true,
                 "operator": "contains"
               },
-              "display_note": "詳細画面では __work_summary_cards の「目的」カードとして横広に表示する。"
+              "display_note": "詳細画面では __work_summary_cards の「目的」カードとして横広に表示する。",
+              "markdown": {
+                "enabled": true,
+                "allowLinks": true,
+                "allowImages": true
+              }
             },
             {
               "field": "background",
@@ -522,7 +606,12 @@
                 "visible": true,
                 "operator": "contains"
               },
-              "display_note": "詳細画面では __work_summary_cards の「背景」カードとして横広に表示する。"
+              "display_note": "詳細画面では __work_summary_cards の「背景」カードとして横広に表示する。",
+              "markdown": {
+                "enabled": true,
+                "allowLinks": true,
+                "allowImages": true
+              }
             },
             {
               "field": "scope",
@@ -539,7 +628,12 @@
                 "visible": true,
                 "operator": "contains"
               },
-              "display_note": "詳細画面では __work_summary_cards の「対象範囲」カードとして横広に表示する。"
+              "display_note": "詳細画面では __work_summary_cards の「対象範囲」カードとして横広に表示する。",
+              "markdown": {
+                "enabled": true,
+                "allowLinks": true,
+                "allowImages": true
+              }
             },
             {
               "field": "out_of_scope",
@@ -556,7 +650,12 @@
                 "visible": true,
                 "operator": "contains"
               },
-              "display_note": "詳細画面では __work_summary_cards の「対象外」カードとして横広に表示する。"
+              "display_note": "詳細画面では __work_summary_cards の「対象外」カードとして横広に表示する。",
+              "markdown": {
+                "enabled": true,
+                "allowLinks": true,
+                "allowImages": true
+              }
             },
             {
               "field": "fixed_name_policy",
@@ -573,7 +672,12 @@
                 "visible": true,
                 "operator": "contains"
               },
-              "display_note": "詳細画面では __work_summary_cards の「固定名方針」カードとして横広に表示する。"
+              "display_note": "詳細画面では __work_summary_cards の「固定名方針」カードとして横広に表示する。",
+              "markdown": {
+                "enabled": true,
+                "allowLinks": true,
+                "allowImages": true
+              }
             },
             {
               "field": "module_policy",
@@ -590,7 +694,12 @@
                 "visible": true,
                 "operator": "contains"
               },
-              "display_note": "詳細画面では __work_summary_cards の「module化方針」カードとして横広に表示する。"
+              "display_note": "詳細画面では __work_summary_cards の「module化方針」カードとして横広に表示する。",
+              "markdown": {
+                "enabled": true,
+                "allowLinks": true,
+                "allowImages": true
+              }
             },
             {
               "field": "expected_outputs",
@@ -607,7 +716,12 @@
                 "visible": true,
                 "operator": "contains"
               },
-              "display_note": "詳細画面では __work_summary_cards の「成果物」カードとして横広に表示する。"
+              "display_note": "詳細画面では __work_summary_cards の「成果物」カードとして横広に表示する。",
+              "markdown": {
+                "enabled": true,
+                "allowLinks": true,
+                "allowImages": true
+              }
             },
             {
               "field": "risk",
@@ -624,7 +738,12 @@
                 "visible": true,
                 "operator": "contains"
               },
-              "display_note": "詳細画面では __work_summary_cards の「リスク」カードとして横広に表示する。"
+              "display_note": "詳細画面では __work_summary_cards の「リスク」カードとして横広に表示する。",
+              "markdown": {
+                "enabled": true,
+                "allowLinks": true,
+                "allowImages": true
+              }
             },
             {
               "field": "test_points",
@@ -641,7 +760,12 @@
                 "visible": true,
                 "operator": "contains"
               },
-              "display_note": "詳細画面では __work_summary_cards の「確認観点」カードとして横広に表示する。"
+              "display_note": "詳細画面では __work_summary_cards の「確認観点」カードとして横広に表示する。",
+              "markdown": {
+                "enabled": true,
+                "allowLinks": true,
+                "allowImages": true
+              }
             },
             {
               "field": "__work_chat",
@@ -714,7 +838,7 @@
                 "placement": "detailFooter",
                 "order": 800
               },
-              "display_note": "送信欄の入力はedit.input.userFieldへ保存し、messages定義位置ではなく末尾へ表示する。Markdownリンク/画像記法を許可する。"
+              "display_note": "送信欄の入力はedit.input.userFieldへ保存し、messages定義位置ではなく末尾へ表示する。Markdownリンク/画像記法を許可し、表示モードではMarkdownプレビューする。"
             },
             {
               "field": "user_request",
@@ -731,7 +855,12 @@
                 "visible": true,
                 "operator": "contains"
               },
-              "defaultValue": ""
+              "defaultValue": "",
+              "markdown": {
+                "enabled": true,
+                "allowLinks": true,
+                "allowImages": true
+              }
             },
             {
               "field": "ai_response",
@@ -750,7 +879,12 @@
                 "visible": true,
                 "operator": "contains"
               },
-              "defaultValue": ""
+              "defaultValue": "",
+              "markdown": {
+                "enabled": true,
+                "allowLinks": true,
+                "allowImages": true
+              }
             },
             {
               "field": "latest_user_comment",
@@ -767,7 +901,12 @@
                 "visible": true,
                 "operator": "contains"
               },
-              "defaultValue": ""
+              "defaultValue": "",
+              "markdown": {
+                "enabled": true,
+                "allowLinks": true,
+                "allowImages": true
+              }
             },
             {
               "field": "latest_ai_response",
@@ -786,7 +925,12 @@
                 "visible": true,
                 "operator": "contains"
               },
-              "defaultValue": ""
+              "defaultValue": "",
+              "markdown": {
+                "enabled": true,
+                "allowLinks": true,
+                "allowImages": true
+              }
             },
             {
               "field": "discussion_history",
@@ -832,7 +976,7 @@
             "aiPrompt": {
               "enabled": true,
               "title": "Studio改修インシデント レビュー / 次アクション生成プロンプト",
-              "targetFile": "studio_work_incident_data_v0_6.json",
+              "targetFile": "studio_work_incident_data_v0_18_markdown_block_preview_fix_done.json",
               "rowSource": "filtered",
               "visibleOnly": true,
               "includeGridJson": true,
@@ -932,6 +1076,10 @@
                 "caption": "状態"
               },
               {
+                "field": "verification_status",
+                "caption": "確認状態"
+              },
+              {
                 "field": "objective",
                 "caption": "目的"
               }
@@ -962,6 +1110,10 @@
               {
                 "field": "status",
                 "caption": "状態"
+              },
+              {
+                "field": "verification_status",
+                "caption": "確認状態"
               },
               {
                 "field": "target_files",
@@ -1122,5 +1274,5 @@
       "layout_note": "長文の作業説明はtextareaを並べず、detailBodyのchat型カードで横広に表示する。配列履歴はobjectArrayとして保持し、入力欄化しない。"
     }
   ],
-  "layout_note": "作業項目ごとに discussion_history / decision_log / change_history を objectArray として保持する。長文の作業説明は __work_summary_cards のchat型カードでdetailBodyに表示し、会話サマリは __work_chat でdetailFooterに表示する。"
+  "layout_note": "作業項目ごとに discussion_history / decision_log / change_history を objectArray として保持する。長文の作業説明は __work_summary_cards のchat型カードでdetailBodyに表示し、会話サマリは __work_chat でdetailFooterに表示する。 v0.10.1で、Markdown許可欄は見出し・箇条書き・コードブロックを含む表示モードプレビューに対応。"
 }

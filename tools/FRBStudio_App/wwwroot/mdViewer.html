@@ -965,17 +965,99 @@ function syncFileNameUI(name) {
   input.addEventListener("input", (e) => syncFileNameUI(e.target.value));
 });
 
-// モード切り替え
-btnViewerMode.addEventListener("click", () => {
+// モード切り替え / Editor blur preview
+function setViewerMode() {
   document.body.setAttribute("data-mode", "viewer");
   btnViewerMode.classList.add("mode-active");
   btnEditorMode.classList.remove("mode-active");
   buildToc();
-});
-btnEditorMode.addEventListener("click", () => {
+}
+
+function setEditorMode() {
   document.body.setAttribute("data-mode", "editor");
   btnEditorMode.classList.add("mode-active");
   btnViewerMode.classList.remove("mode-active");
+}
+
+function getEditorScrollRatio() {
+  const max = Math.max(1, editorEl.scrollHeight - editorEl.clientHeight);
+  return Math.max(0, Math.min(1, editorEl.scrollTop / max));
+}
+
+function getCaretLineIndex(value, caretIndex) {
+  const before = String(value || "").slice(0, Math.max(0, caretIndex || 0));
+  return before.split(/\r?\n/).length - 1;
+}
+
+function getNearestHeadingSnapshot(value, caretIndex) {
+  const text = String(value || "");
+  const lineIndex = getCaretLineIndex(text, caretIndex);
+  const lines = text.split(/\r?\n/);
+  for (let i = Math.min(lineIndex, lines.length - 1); i >= 0; i--) {
+    const m = lines[i].match(/^\s{0,3}(#{1,6})\s+(.+?)\s*#*\s*$/);
+    if (!m) continue;
+    return { level: m[1].length, text: m[2].trim(), lineIndex: i };
+  }
+  return { level: 0, text: "", lineIndex };
+}
+
+function getEditorPreviewSnapshot() {
+  const value = editorEl.value || "";
+  const caret = typeof editorEl.selectionStart === "number" ? editorEl.selectionStart : 0;
+  return {
+    ratio: getEditorScrollRatio(),
+    caret,
+    heading: getNearestHeadingSnapshot(value, caret),
+    pageYOffset: window.pageYOffset || document.documentElement.scrollTop || 0
+  };
+}
+
+function findPreviewHeading(snapshot) {
+  const headingText = snapshot?.heading?.text;
+  if (!headingText) return null;
+  const selector = `h${snapshot.heading.level || 1}`;
+  const candidates = [...previewEl.querySelectorAll(selector)];
+  return candidates.find(h => h.textContent.trim() === headingText)
+    || [...previewEl.querySelectorAll("h1,h2,h3,h4,h5,h6")].find(h => h.textContent.trim() === headingText)
+    || null;
+}
+
+function restorePreviewScrollFromEditor(snapshot) {
+  const run = () => {
+    const topbar = document.querySelector(".topbar");
+    const offset = (topbar?.getBoundingClientRect().height || 84) + 28;
+    const headingEl = findPreviewHeading(snapshot);
+    if (headingEl) {
+      const y = headingEl.getBoundingClientRect().top + window.pageYOffset - offset;
+      window.scrollTo({ top: Math.max(0, y), behavior: "auto" });
+      headingEl.classList.remove("flash-target");
+      void headingEl.offsetWidth;
+      headingEl.classList.add("flash-target");
+      return;
+    }
+
+    const previewRectTop = previewEl.getBoundingClientRect().top + window.pageYOffset;
+    const scrollable = Math.max(0, previewEl.scrollHeight - window.innerHeight + offset);
+    const y = previewRectTop + scrollable * Math.max(0, Math.min(1, snapshot?.ratio ?? 0)) - offset;
+    window.scrollTo({ top: Math.max(0, y), behavior: "auto" });
+  };
+
+  requestAnimationFrame(() => requestAnimationFrame(run));
+}
+
+function switchToViewerFromEditorSnapshot(snapshot) {
+  hideSlashMenu();
+  renderMarkdown(editorEl.value, "#", "Editor Blur Preview");
+  setViewerMode();
+  const once = () => restorePreviewScrollFromEditor(snapshot);
+  previewEl.addEventListener("frb:markdown-rendered", once, { once: true });
+  setTimeout(() => restorePreviewScrollFromEditor(snapshot), 180);
+}
+
+btnViewerMode.addEventListener("click", () => setViewerMode());
+btnEditorMode.addEventListener("click", () => {
+  setEditorMode();
+  setTimeout(() => editorEl.focus(), 0);
 });
 
 // テーマ切り替え
@@ -1195,6 +1277,33 @@ editorEl.addEventListener("input", () => {
   updateSlashFromInput();
 });
 
+let lastPointerDownTarget = null;
+let editorBlurPreviewTimer = null;
+
+document.addEventListener("pointerdown", (e) => {
+  lastPointerDownTarget = e.target;
+}, true);
+
+function isEditorAuxiliaryTarget(el) {
+  if (!el) return false;
+  return Boolean(
+    el.closest?.(".edit-container") ||
+    el.closest?.("#slashMenu")
+  );
+}
+
+editorEl.addEventListener("blur", () => {
+  clearTimeout(editorBlurPreviewTimer);
+  const snapshot = getEditorPreviewSnapshot();
+  editorBlurPreviewTimer = setTimeout(() => {
+    if (document.body.getAttribute("data-mode") !== "editor") return;
+    const active = document.activeElement;
+    const pointerTarget = lastPointerDownTarget;
+    if (isEditorAuxiliaryTarget(active) || isEditorAuxiliaryTarget(pointerTarget)) return;
+    switchToViewerFromEditorSnapshot(snapshot);
+  }, 80);
+});
+
 function setupSmoothScrollLinks() {
   tocEl.querySelectorAll("a").forEach(link => {
     link.addEventListener("click", (e) => {
@@ -1371,6 +1480,7 @@ function renderMarkdown(rawMd, sourceUrl, sourceLabel){
     buildToc();
     updateMeta(rawMd, content);
     articleCard.style.opacity = 1;
+    previewEl.dispatchEvent(new CustomEvent("frb:markdown-rendered", { detail: { sourceLabel } }));
   }, 40);
 }
 
