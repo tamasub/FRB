@@ -171,10 +171,11 @@
     }
     .layout > * { min-width: 0; }
     
-    body[data-mode="editor"] .layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; }
+    body[data-mode="editor"] .layout { grid-template-columns: 320px minmax(0, 1fr) !important; }
 
-    body[data-mode="editor"] .sidebar { display: none; }
-    body[data-mode="viewer"] .edit-container { display: none; }
+    body[data-mode="editor"] .sidebar { display: grid; }
+    body[data-mode="viewer"] .edit-container,
+    body[data-mode="editor"] .edit-container { display: none; }
 
     .sidebar { position: sticky; top: 108px; display: grid; gap: 16px; }
     .side-card, .article-card, .edit-card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); backdrop-filter: blur(18px); box-shadow: var(--shadow); min-width: 0; }
@@ -209,6 +210,89 @@
       outline: none;
     }
     .edit-tools { display: flex; gap: 10px; border-top: 1px solid var(--line); padding-top: 12px; align-items: center; }
+
+    /* mdViewer v0.11.5: Editorモードは右本文欄だけをプレビュー⇄入力に切替。見出し相対アンカーで位置復元 */
+    .editor-inline-host { display: none; min-width: 0; }
+    body.md-inline-editing #preview { display: none; }
+    body.md-inline-editing #editorInlineHost { display: block; }
+    .editor-inline-host #editor {
+      display: block;
+      box-sizing: border-box;
+      width: 100%;
+      height: calc(100vh - 220px);
+      min-height: 58vh;
+      padding: 20px 22px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.74);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.45);
+      overflow: auto;
+    }
+    [data-theme="dark"] .editor-inline-host #editor {
+      background: rgba(15,23,42,0.72);
+    }
+    body[data-mode="editor"] #preview [data-md-line] {
+      cursor: text;
+      border-radius: 10px;
+      transition: background .15s ease, outline-color .15s ease, box-shadow .15s ease;
+    }
+    body[data-mode="editor"] #preview [data-md-line]:hover,
+    #preview .md-current-block {
+      outline: 1.5px dashed rgba(63,124,255,.42);
+      outline-offset: 5px;
+      background: rgba(63,124,255,.035);
+      box-shadow: 0 0 0 3px rgba(63,124,255,.018);
+    }
+    #preview .md-current-block {
+      outline-color: rgba(85,197,0,.55);
+      background: rgba(85,197,0,.045);
+    }
+    #preview .md-block-highlight {
+      background: rgba(250, 204, 21, 0.34) !important;
+      box-shadow: inset 0 0 0 9999px rgba(250, 204, 21, 0.10), 0 0 0 3px rgba(250, 204, 21, 0.12);
+      border-radius: 10px;
+    }
+    #preview .md-block-highlight.md-current-block,
+    body[data-mode="editor"] #preview .md-block-highlight:hover {
+      outline: 1.5px dashed rgba(202, 138, 4, 0.62);
+      outline-offset: 5px;
+      background: rgba(250, 204, 21, 0.40) !important;
+    }
+    .md-block-action-menu {
+      position: fixed;
+      z-index: 220;
+      min-width: 172px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 18px 48px rgba(15,23,42,.20);
+      display: none;
+    }
+    .md-block-action-menu.show { display: grid; gap: 6px; }
+    .md-block-action-menu button {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      text-align: left;
+      padding: 9px 10px;
+      border-radius: 10px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: none;
+    }
+    .md-block-action-menu button:hover {
+      background: rgba(250, 204, 21, 0.18);
+      transform: none;
+    }
+    .md-block-action-menu .menu-note {
+      padding: 2px 10px 6px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+    }
 
     /* Qiita風 / コマンドメニュー */
     .editor-wrap { position: relative; flex: 1; min-height: 0; display: flex; }
@@ -906,6 +990,7 @@
           </div>
         </div>
 
+        <div id="editorInlineHost" class="editor-inline-host" aria-label="Markdown原文編集エリア"></div>
         <div id="preview" class="markdown-body">
           <div class="status-shimmer">data/markdown のMarkdownを選択、またはファイルをDropしてください...</div>
         </div>
@@ -915,7 +1000,7 @@
   </div>
 
 <script>
-const mdUrlEl=document.getElementById("mdUrl"),previewEl=document.getElementById("preview"),tocEl=document.getElementById("toc"),charCountEl=document.getElementById("charCount"),readTimeEl=document.getElementById("readTime"),localFileBtn=document.getElementById("localFileBtn"),localFileInput=document.getElementById("localFileInput"),tocDepthBtns=[...document.querySelectorAll(".toc-depth-btn")],themeSelect=document.getElementById("themeSelect"),editorEl=document.getElementById("editor"),btnViewerMode=document.getElementById("btnViewerMode"),btnEditorMode=document.getElementById("btnEditorMode"),articleCard=document.getElementById("articleCard"),metaFileName=document.getElementById("metaFileName"),editorFileName=document.getElementById("editorFileName"),slashMenu=document.getElementById("slashMenu"),managedMdSelect=document.getElementById("managedMdSelect"),btnRefreshManagedMd=document.getElementById("btnRefreshManagedMd"),btnOverwriteManagedMd=document.getElementById("btnOverwriteManagedMd");
+const mdUrlEl=document.getElementById("mdUrl"),previewEl=document.getElementById("preview"),editorInlineHost=document.getElementById("editorInlineHost"),tocEl=document.getElementById("toc"),charCountEl=document.getElementById("charCount"),readTimeEl=document.getElementById("readTime"),localFileBtn=document.getElementById("localFileBtn"),localFileInput=document.getElementById("localFileInput"),tocDepthBtns=[...document.querySelectorAll(".toc-depth-btn")],themeSelect=document.getElementById("themeSelect"),editorEl=document.getElementById("editor"),btnViewerMode=document.getElementById("btnViewerMode"),btnEditorMode=document.getElementById("btnEditorMode"),articleCard=document.getElementById("articleCard"),metaFileName=document.getElementById("metaFileName"),editorFileName=document.getElementById("editorFileName"),slashMenu=document.getElementById("slashMenu"),managedMdSelect=document.getElementById("managedMdSelect"),btnRefreshManagedMd=document.getElementById("btnRefreshManagedMd"),btnOverwriteManagedMd=document.getElementById("btnOverwriteManagedMd");
 
 const fmPanel=document.getElementById("fmPanel"),fmHeader=document.getElementById("fmHeader"),fmBody=document.getElementById("fmBody"),fmToggleIcon=document.getElementById("fmToggleIcon"),fmSuggestArea=document.getElementById("fmSuggestArea");
 const fmTitle=document.getElementById("fmTitle"),fmSlug=document.getElementById("fmSlug"),fmEmoji=document.getElementById("fmEmoji"),fmType=document.getElementById("fmType"),fmTopics=document.getElementById("fmTopics"),fmPublished=document.getElementById("fmPublished");
@@ -924,6 +1009,19 @@ let tocDepth="all";
 let currentManagedMarkdownName = "";
 let isManagedMarkdownDirty = false;
 let launchMarkdownRuntime = { fromUrl: false, readonly: false, fileParam: "" };
+let markdownEditorRuntime = {
+  editing: false,
+  lastActiveLine: 1,
+  lastActiveAnchor: null,
+  pendingPreviewRestoreLine: null,
+  pendingPreviewRestoreAnchor: null,
+  editorHome: editorEl.parentElement,
+  editorNextSibling: editorEl.nextSibling
+};
+let mdBlockActionRuntime = {
+  menu: null,
+  targetBlock: null
+};
 
 // 最新のmarked.js仕様に合わせてグローバル設定を適用
 marked.use({ gfm: true, breaks: true });
@@ -965,100 +1063,24 @@ function syncFileNameUI(name) {
   input.addEventListener("input", (e) => syncFileNameUI(e.target.value));
 });
 
-// モード切り替え / Editor blur preview
-function setViewerMode() {
-  document.body.setAttribute("data-mode", "viewer");
-  btnViewerMode.classList.add("mode-active");
-  btnEditorMode.classList.remove("mode-active");
-  buildToc();
-}
-
-function setEditorMode() {
-  document.body.setAttribute("data-mode", "editor");
-  btnEditorMode.classList.add("mode-active");
-  btnViewerMode.classList.remove("mode-active");
-}
-
-function getEditorScrollRatio() {
-  const max = Math.max(1, editorEl.scrollHeight - editorEl.clientHeight);
-  return Math.max(0, Math.min(1, editorEl.scrollTop / max));
-}
-
-function getCaretLineIndex(value, caretIndex) {
-  const before = String(value || "").slice(0, Math.max(0, caretIndex || 0));
-  return before.split(/\r?\n/).length - 1;
-}
-
-function getNearestHeadingSnapshot(value, caretIndex) {
-  const text = String(value || "");
-  const lineIndex = getCaretLineIndex(text, caretIndex);
-  const lines = text.split(/\r?\n/);
-  for (let i = Math.min(lineIndex, lines.length - 1); i >= 0; i--) {
-    const m = lines[i].match(/^\s{0,3}(#{1,6})\s+(.+?)\s*#*\s*$/);
-    if (!m) continue;
-    return { level: m[1].length, text: m[2].trim(), lineIndex: i };
+// モード切り替え
+function setMarkdownMode(mode) {
+  if (mode === "viewer") {
+    leaveInlineMarkdownEdit({ restorePreview: true });
   }
-  return { level: 0, text: "", lineIndex };
+  document.body.setAttribute("data-mode", mode);
+  btnViewerMode.classList.toggle("mode-active", mode === "viewer");
+  btnEditorMode.classList.toggle("mode-active", mode === "editor");
+  if (mode === "editor") {
+    markdownEditorRuntime.pendingPreviewRestoreAnchor = markdownEditorRuntime.lastActiveAnchor || anchorFromLine(markdownEditorRuntime.lastActiveLine || getCaretLineNumber());
+    markdownEditorRuntime.pendingPreviewRestoreLine = markdownEditorRuntime.pendingPreviewRestoreAnchor.line || markdownEditorRuntime.lastActiveLine || getCaretLineNumber();
+    renderMarkdown(editorEl.value, "#", "Editor Preview");
+  } else {
+    buildToc();
+  }
 }
-
-function getEditorPreviewSnapshot() {
-  const value = editorEl.value || "";
-  const caret = typeof editorEl.selectionStart === "number" ? editorEl.selectionStart : 0;
-  return {
-    ratio: getEditorScrollRatio(),
-    caret,
-    heading: getNearestHeadingSnapshot(value, caret),
-    pageYOffset: window.pageYOffset || document.documentElement.scrollTop || 0
-  };
-}
-
-function findPreviewHeading(snapshot) {
-  const headingText = snapshot?.heading?.text;
-  if (!headingText) return null;
-  const selector = `h${snapshot.heading.level || 1}`;
-  const candidates = [...previewEl.querySelectorAll(selector)];
-  return candidates.find(h => h.textContent.trim() === headingText)
-    || [...previewEl.querySelectorAll("h1,h2,h3,h4,h5,h6")].find(h => h.textContent.trim() === headingText)
-    || null;
-}
-
-function restorePreviewScrollFromEditor(snapshot) {
-  const run = () => {
-    const topbar = document.querySelector(".topbar");
-    const offset = (topbar?.getBoundingClientRect().height || 84) + 28;
-    const headingEl = findPreviewHeading(snapshot);
-    if (headingEl) {
-      const y = headingEl.getBoundingClientRect().top + window.pageYOffset - offset;
-      window.scrollTo({ top: Math.max(0, y), behavior: "auto" });
-      headingEl.classList.remove("flash-target");
-      void headingEl.offsetWidth;
-      headingEl.classList.add("flash-target");
-      return;
-    }
-
-    const previewRectTop = previewEl.getBoundingClientRect().top + window.pageYOffset;
-    const scrollable = Math.max(0, previewEl.scrollHeight - window.innerHeight + offset);
-    const y = previewRectTop + scrollable * Math.max(0, Math.min(1, snapshot?.ratio ?? 0)) - offset;
-    window.scrollTo({ top: Math.max(0, y), behavior: "auto" });
-  };
-
-  requestAnimationFrame(() => requestAnimationFrame(run));
-}
-
-function switchToViewerFromEditorSnapshot(snapshot) {
-  hideSlashMenu();
-  renderMarkdown(editorEl.value, "#", "Editor Blur Preview");
-  setViewerMode();
-  const once = () => restorePreviewScrollFromEditor(snapshot);
-  previewEl.addEventListener("frb:markdown-rendered", once, { once: true });
-  setTimeout(() => restorePreviewScrollFromEditor(snapshot), 180);
-}
-
-btnViewerMode.addEventListener("click", () => setViewerMode());
-btnEditorMode.addEventListener("click", () => {
-  setEditorMode();
-  setTimeout(() => editorEl.focus(), 0);
-});
+btnViewerMode.addEventListener("click", () => setMarkdownMode("viewer"));
+btnEditorMode.addEventListener("click", () => setMarkdownMode("editor"));
 
 // テーマ切り替え
 themeSelect.addEventListener("change", (e) => {
@@ -1085,6 +1107,480 @@ window.insertSuggestedFrontMatter = function() {
 };
 
 
+
+// mdViewer v0.11.5: 見出し相対アンカー + textareaミラーで、後半ズレを抑える
+function getMode() {
+  return document.body.getAttribute("data-mode") || "viewer";
+}
+function getCaretLineNumber() {
+  const pos = Math.max(0, Number(editorEl.selectionStart || 0));
+  return editorEl.value.slice(0, pos).split(/\r?\n/).length;
+}
+function lineToCharIndex(lineNo) {
+  const target = Math.max(1, Number(lineNo || 1));
+  const lines = editorEl.value.split(/\r?\n/);
+  let idx = 0;
+  for (let i = 1; i < target && i <= lines.length; i++) idx += lines[i - 1].length + 1;
+  return Math.min(idx, editorEl.value.length);
+}
+function getContentLineOffset(rawMd) {
+  const match = String(rawMd || "").match(/^---\r?\n[\s\S]*?\r?\n---\r?\n/);
+  if (!match) return 0;
+  return match[0].split(/\r?\n/).length - 1;
+}
+function normalizeMdSearchText(text) {
+  return String(text || "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/[`*_~]/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/[\s\u3000]+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+function stripMarkdownBlockPrefix(line) {
+  return String(line || "")
+    .replace(/^\s{0,3}#{1,6}\s+/, "")
+    .replace(/^\s{0,3}([-*+]\s+|\d+\.\s+)/, "")
+    .replace(/^\s{0,3}>\s?/, "")
+    .replace(/^\s*\|/, "")
+    .replace(/\|\s*$/, "")
+    .trim();
+}
+function getHeadingAnchors(rawMd) {
+  const raw = String(rawMd || "");
+  const offset = getContentLineOffset(raw);
+  const lines = raw.split(/\r?\n/);
+  const headings = [];
+  const seen = new Map();
+  for (let i = offset; i < lines.length; i++) {
+    const m = lines[i].match(/^\s{0,3}(#{1,6})\s+(.+?)\s*#*\s*$/);
+    if (!m) continue;
+    const level = m[1].length;
+    const text = m[2].trim();
+    const norm = normalizeMdSearchText(text);
+    const occurrence = (seen.get(norm) || 0) + 1;
+    seen.set(norm, occurrence);
+    headings.push({ line: i + 1, level, text, norm, occurrence });
+  }
+  return headings;
+}
+function headingContextForLine(lineNo, rawMd = editorEl.value) {
+  const line = Math.max(1, Number(lineNo || 1));
+  const headings = getHeadingAnchors(rawMd);
+  let best = null;
+  for (const h of headings) {
+    if (h.line <= line) best = h;
+    else break;
+  }
+  if (!best) return { line, headingLine: 0, headingText: "", headingNorm: "", headingOccurrence: 0, offset: Math.max(0, line - 1) };
+  return {
+    line,
+    headingLine: best.line,
+    headingText: best.text,
+    headingNorm: best.norm,
+    headingOccurrence: best.occurrence,
+    offset: Math.max(0, line - best.line)
+  };
+}
+function resolveHeadingRelativeAnchor(anchor, rawMd = editorEl.value) {
+  if (!anchor) return Math.max(1, Number(markdownEditorRuntime.lastActiveLine || 1));
+  const fallback = Math.max(1, Number(anchor.line || markdownEditorRuntime.lastActiveLine || 1));
+  if (!anchor.headingNorm) return fallback;
+  const headings = getHeadingAnchors(rawMd);
+  let matched = headings.find(h => h.norm === anchor.headingNorm && h.occurrence === Number(anchor.headingOccurrence || 1));
+  if (!matched) matched = headings.find(h => h.norm === anchor.headingNorm);
+  if (!matched) return fallback;
+  return Math.max(1, matched.line + Number(anchor.offset || 0));
+}
+function buildMarkdownLineAnchors(rawMd) {
+  const raw = String(rawMd || "");
+  const offset = getContentLineOffset(raw);
+  const lines = raw.split(/\r?\n/);
+  const headings = getHeadingAnchors(raw);
+  const anchors = [];
+  const addAnchor = (startLine, endLine, kind, text) => {
+    const ctx = headingContextForLine(startLine, raw);
+    anchors.push({
+      line: startLine,
+      endLine: Math.max(startLine, endLine || startLine),
+      kind,
+      text: String(text || "").trim(),
+      norm: normalizeMdSearchText(text || ""),
+      headingLine: ctx.headingLine,
+      headingText: ctx.headingText,
+      headingNorm: ctx.headingNorm,
+      headingOccurrence: ctx.headingOccurrence,
+      offset: ctx.offset
+    });
+  };
+  let i = offset;
+  while (i < lines.length) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    const lineNo = i + 1;
+    if (!trimmed) { i++; continue; }
+
+    if (/^\s*(```|~~~)/.test(line)) {
+      const fence = line.match(/^\s*(```|~~~)/)[1];
+      const start = lineNo;
+      const body = [];
+      i++;
+      while (i < lines.length && !new RegExp('^\\s*' + fence).test(lines[i])) {
+        if (body.length < 6 && lines[i].trim()) body.push(lines[i].trim());
+        i++;
+      }
+      const end = Math.min(lines.length, i + 1);
+      addAnchor(start, end, "pre", body.join(" ") || line);
+      if (i < lines.length) i++;
+      continue;
+    }
+
+    const hm = line.match(/^\s{0,3}(#{1,6})\s+(.+?)\s*#*\s*$/);
+    if (hm) {
+      addAnchor(lineNo, lineNo, "heading", hm[2]);
+      i++;
+      continue;
+    }
+
+    if (/^\s*\|.*\|\s*$/.test(line)) {
+      const start = lineNo;
+      const body = [];
+      while (i < lines.length && /^\s*\|.*\|\s*$/.test(lines[i])) {
+        body.push(stripMarkdownBlockPrefix(lines[i]).replace(/\|/g, " "));
+        i++;
+      }
+      addAnchor(start, i, "table", body.join(" "));
+      continue;
+    }
+
+    if (/^\s{0,3}>\s?/.test(line)) {
+      const start = lineNo;
+      const body = [];
+      while (i < lines.length && /^\s{0,3}>\s?/.test(lines[i])) {
+        body.push(stripMarkdownBlockPrefix(lines[i]));
+        i++;
+      }
+      addAnchor(start, i, "blockquote", body.join(" "));
+      continue;
+    }
+
+    const li = line.match(/^\s{0,3}([-*+]\s+|\d+\.\s+)(.+)$/);
+    if (li) {
+      addAnchor(lineNo, lineNo, "li", li[2]);
+      i++;
+      continue;
+    }
+
+    const start = lineNo;
+    const body = [];
+    while (i < lines.length) {
+      const cur = lines[i];
+      const t = cur.trim();
+      if (!t) break;
+      if (i !== start - 1 && (/^\s{0,3}#{1,6}\s+/.test(cur) || /^\s{0,3}([-*+]\s+|\d+\.\s+)/.test(cur) || /^\s{0,3}>\s?/.test(cur) || /^\s*(```|~~~)/.test(cur) || /^\s*\|.*\|\s*$/.test(cur))) break;
+      body.push(stripMarkdownBlockPrefix(cur));
+      i++;
+    }
+    addAnchor(start, i, "p", body.join(" "));
+  }
+  return anchors;
+}
+function previewBlockKind(el) {
+  const tag = String(el?.tagName || "").toUpperCase();
+  if (/^H[1-6]$/.test(tag)) return "heading";
+  if (tag === "LI") return "li";
+  if (tag === "PRE") return "pre";
+  if (tag === "TABLE") return "table";
+  if (tag === "BLOCKQUOTE") return "blockquote";
+  return "p";
+}
+function getPreviewAnchorBlocks() {
+  return [...previewEl.querySelectorAll("h1,h2,h3,h4,h5,h6,p,li,blockquote,pre,table,.qiita-note")]
+    .filter(el => {
+      const tag = String(el.tagName || "").toUpperCase();
+      if (tag === "P" && el.closest("li,blockquote")) return false;
+      if (tag !== "PRE" && el.closest("pre")) return false;
+      if (tag !== "LI" && el.closest("li")) return false;
+      if (tag !== "BLOCKQUOTE" && el.closest("blockquote")) return false;
+      return true;
+    });
+}
+function compatibleAnchorKind(blockKind, anchorKind) {
+  if (blockKind === anchorKind) return true;
+  if (blockKind === "p" && ["p", "blockquote"].includes(anchorKind)) return true;
+  if (blockKind === "blockquote" && ["blockquote", "p"].includes(anchorKind)) return true;
+  return false;
+}
+function chooseAnchorForBlock(anchors, used, cursorIndex, block) {
+  const kind = previewBlockKind(block);
+  const text = normalizeMdSearchText(block.innerText || block.textContent || "");
+  const maxLookAhead = kind === "heading" ? 9999 : 42;
+  const candidates = [];
+  for (let i = cursorIndex; i < anchors.length && i < cursorIndex + maxLookAhead; i++) {
+    if (used.has(i)) continue;
+    const a = anchors[i];
+    if (!compatibleAnchorKind(kind, a.kind)) continue;
+    let score = (i - cursorIndex) * 12;
+    if (text && a.norm) {
+      if (text === a.norm) score -= 120;
+      else if (a.norm.includes(text) || text.includes(a.norm)) score -= 70;
+      else if (kind === "heading") score += 80;
+    }
+    if (kind === "heading" && a.kind !== "heading") score += 999;
+    candidates.push({ i, a, score });
+  }
+  candidates.sort((x, y) => x.score - y.score);
+  if (candidates.length) return candidates[0];
+  for (let i = cursorIndex; i < anchors.length; i++) {
+    if (!used.has(i)) return { i, a: anchors[i], score: 9999 };
+  }
+  return null;
+}
+function annotatePreviewBlocks(rawMd) {
+  const anchors = buildMarkdownLineAnchors(rawMd);
+  const blocks = getPreviewAnchorBlocks();
+  const used = new Set();
+  let cursor = 0;
+  blocks.forEach(el => {
+    el.removeAttribute("data-md-line");
+    el.removeAttribute("data-md-end-line");
+    el.removeAttribute("data-md-heading-line");
+    el.removeAttribute("data-md-heading-norm");
+    el.removeAttribute("data-md-heading-occurrence");
+    el.removeAttribute("data-md-offset");
+    const chosen = chooseAnchorForBlock(anchors, used, cursor, el);
+    if (!chosen) return;
+    used.add(chosen.i);
+    cursor = Math.max(cursor, chosen.i + 1);
+    const a = chosen.a;
+    el.dataset.mdLine = String(a.line);
+    el.dataset.mdEndLine = String(a.endLine || a.line);
+    el.dataset.mdHeadingLine = String(a.headingLine || 0);
+    el.dataset.mdHeadingNorm = a.headingNorm || "";
+    el.dataset.mdHeadingOccurrence = String(a.headingOccurrence || 0);
+    el.dataset.mdOffset = String(a.offset || 0);
+  });
+}
+function anchorFromPreviewBlock(block) {
+  if (!block) return null;
+  return {
+    line: Number(block.dataset.mdLine || 1),
+    endLine: Number(block.dataset.mdEndLine || block.dataset.mdLine || 1),
+    headingLine: Number(block.dataset.mdHeadingLine || 0),
+    headingNorm: block.dataset.mdHeadingNorm || "",
+    headingOccurrence: Number(block.dataset.mdHeadingOccurrence || 0),
+    offset: Number(block.dataset.mdOffset || 0)
+  };
+}
+function anchorFromLine(lineNo) {
+  return headingContextForLine(lineNo, editorEl.value);
+}
+function clearCurrentPreviewBlock() {
+  previewEl.querySelectorAll(".md-current-block").forEach(el => el.classList.remove("md-current-block"));
+}
+function findPreviewBlockForLine(lineNo) {
+  const line = Number(lineNo || 1);
+  const blocks = [...previewEl.querySelectorAll("[data-md-line]")];
+  if (!blocks.length) return null;
+  let best = blocks[0];
+  let bestLine = Number(best.dataset.mdLine || 1);
+  for (const block of blocks) {
+    const start = Number(block.dataset.mdLine || 1);
+    const end = Number(block.dataset.mdEndLine || start);
+    if (line >= start && line <= end) return block;
+    if (start <= line && start >= bestLine) {
+      best = block;
+      bestLine = start;
+    }
+  }
+  return best;
+}
+function scrollElementToViewportCenterish(el, behavior = "auto") {
+  if (!el) return;
+  const ratio = 0.42;
+  const rect = el.getBoundingClientRect();
+  const targetTop = Math.max(0, window.scrollY + rect.top - window.innerHeight * ratio);
+  window.scrollTo({ top: targetTop, behavior });
+}
+function scrollPreviewToLine(lineNo, behavior = "auto") {
+  const line = Math.max(1, Number(lineNo || 1));
+  const block = findPreviewBlockForLine(line);
+  if (!block) return;
+  clearCurrentPreviewBlock();
+  block.classList.add("md-current-block");
+  scrollElementToViewportCenterish(block, behavior);
+  markdownEditorRuntime.lastActiveLine = Number(block.dataset.mdLine || line || 1);
+  markdownEditorRuntime.lastActiveAnchor = anchorFromPreviewBlock(block) || anchorFromLine(line);
+}
+function ensureMdBlockActionMenu() {
+  if (mdBlockActionRuntime.menu) return mdBlockActionRuntime.menu;
+  const menu = document.createElement("div");
+  menu.id = "mdBlockActionMenu";
+  menu.className = "md-block-action-menu";
+  menu.setAttribute("role", "menu");
+  menu.innerHTML = `
+    <button type="button" data-action="highlight" role="menuitem">🟨 ハイライト</button>
+    <div class="menu-note">プレビュー表示中だけの一時ハイライトです</div>
+  `;
+  document.body.appendChild(menu);
+  menu.addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-action]");
+    if (!btn) return;
+    const block = mdBlockActionRuntime.targetBlock;
+    if (btn.dataset.action === "highlight" && block && previewEl.contains(block)) {
+      block.classList.toggle("md-block-highlight");
+      block.classList.add("md-current-block");
+      markdownEditorRuntime.lastActiveLine = Number(block.dataset.mdLine || markdownEditorRuntime.lastActiveLine || 1);
+      markdownEditorRuntime.lastActiveAnchor = anchorFromPreviewBlock(block) || markdownEditorRuntime.lastActiveAnchor;
+    }
+    hideMdBlockActionMenu();
+  });
+  mdBlockActionRuntime.menu = menu;
+  return menu;
+}
+function hideMdBlockActionMenu() {
+  const menu = mdBlockActionRuntime.menu;
+  if (menu) menu.classList.remove("show");
+  mdBlockActionRuntime.targetBlock = null;
+}
+function showMdBlockActionMenu(x, y, block) {
+  const menu = ensureMdBlockActionMenu();
+  mdBlockActionRuntime.targetBlock = block;
+  const btn = menu.querySelector('[data-action="highlight"]');
+  if (btn) btn.textContent = block.classList.contains("md-block-highlight") ? "⬜ ハイライト解除" : "🟨 ハイライト";
+  menu.style.left = "0px";
+  menu.style.top = "0px";
+  menu.classList.add("show");
+  const rect = menu.getBoundingClientRect();
+  const left = Math.min(Math.max(8, x), window.innerWidth - rect.width - 8);
+  const top = Math.min(Math.max(8, y), window.innerHeight - rect.height - 8);
+  menu.style.left = `${left}px`;
+  menu.style.top = `${top}px`;
+}
+function ensureTextareaMirror() {
+  let mirror = document.getElementById("mdTextareaMirror");
+  if (!mirror) {
+    mirror = document.createElement("div");
+    mirror.id = "mdTextareaMirror";
+    mirror.setAttribute("aria-hidden", "true");
+    document.body.appendChild(mirror);
+  }
+  return mirror;
+}
+function syncTextareaMirrorStyle(mirror) {
+  const cs = window.getComputedStyle(editorEl);
+  const props = ["fontFamily", "fontSize", "fontWeight", "fontStyle", "letterSpacing", "lineHeight", "textTransform", "textIndent", "textRendering", "wordSpacing", "tabSize", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft", "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth", "boxSizing"];
+  mirror.style.position = "absolute";
+  mirror.style.left = "-100000px";
+  mirror.style.top = "0";
+  mirror.style.visibility = "hidden";
+  mirror.style.whiteSpace = "pre-wrap";
+  mirror.style.overflowWrap = "break-word";
+  mirror.style.wordBreak = "break-word";
+  mirror.style.width = `${Math.max(1, editorEl.clientWidth)}px`;
+  mirror.style.minHeight = "0";
+  mirror.style.overflow = "hidden";
+  props.forEach(prop => { mirror.style[prop] = cs[prop]; });
+}
+function measureTextareaCaretTop(charIndex) {
+  const mirror = ensureTextareaMirror();
+  syncTextareaMirrorStyle(mirror);
+  const before = editorEl.value.slice(0, Math.max(0, charIndex));
+  mirror.textContent = before;
+  const marker = document.createElement("span");
+  marker.textContent = "\u200b";
+  mirror.appendChild(marker);
+  return marker.offsetTop;
+}
+function centerTextareaOnCharIndex(charIndex, behavior = "auto") {
+  const top = measureTextareaCaretTop(charIndex);
+  const target = Math.max(0, top - editorEl.clientHeight * 0.42);
+  editorEl.scrollTo({ top: target, behavior });
+}
+function moveCaretToLine(lineNo, behavior = "auto") {
+  const line = Math.max(1, Number(lineNo || 1));
+  const pos = lineToCharIndex(line);
+  editorEl.focus({ preventScroll: true });
+  editorEl.setSelectionRange(pos, pos);
+  requestAnimationFrame(() => requestAnimationFrame(() => centerTextareaOnCharIndex(pos, behavior)));
+  markdownEditorRuntime.lastActiveLine = line;
+  markdownEditorRuntime.lastActiveAnchor = anchorFromLine(line);
+}
+function enterInlineMarkdownEdit(lineNo, anchor = null) {
+  if (getMode() !== "editor" || launchMarkdownRuntime.readonly) return;
+  const resolvedLine = resolveHeadingRelativeAnchor(anchor, editorEl.value);
+  const line = Math.max(1, Number(resolvedLine || lineNo || markdownEditorRuntime.lastActiveLine || 1));
+  markdownEditorRuntime.editing = true;
+  markdownEditorRuntime.lastActiveLine = line;
+  markdownEditorRuntime.lastActiveAnchor = anchor || anchorFromLine(line);
+  document.body.classList.add("md-inline-editing");
+  if (editorEl.parentElement !== editorInlineHost) editorInlineHost.appendChild(editorEl);
+  moveCaretToLine(line, "auto");
+}
+function leaveInlineMarkdownEdit({ restorePreview = true } = {}) {
+  if (!markdownEditorRuntime.editing) return;
+  const line = getCaretLineNumber();
+  const anchor = anchorFromLine(line);
+  markdownEditorRuntime.editing = false;
+  markdownEditorRuntime.lastActiveLine = line;
+  markdownEditorRuntime.lastActiveAnchor = anchor;
+  hideSlashMenu();
+  document.body.classList.remove("md-inline-editing");
+  if (markdownEditorRuntime.editorHome && editorEl.parentElement !== markdownEditorRuntime.editorHome) {
+    markdownEditorRuntime.editorHome.insertBefore(editorEl, markdownEditorRuntime.editorNextSibling || null);
+  }
+  if (restorePreview) {
+    markdownEditorRuntime.pendingPreviewRestoreAnchor = anchor;
+    markdownEditorRuntime.pendingPreviewRestoreLine = line;
+    renderMarkdown(editorEl.value, "#", "Editor Blur Preview");
+  }
+}
+previewEl.addEventListener("contextmenu", (e) => {
+  if (markdownEditorRuntime.editing) return;
+  const block = e.target.closest("[data-md-line]");
+  if (!block || !previewEl.contains(block)) return;
+  e.preventDefault();
+  e.stopPropagation();
+  clearCurrentPreviewBlock();
+  block.classList.add("md-current-block");
+  markdownEditorRuntime.lastActiveLine = Number(block.dataset.mdLine || markdownEditorRuntime.lastActiveLine || 1);
+  markdownEditorRuntime.lastActiveAnchor = anchorFromPreviewBlock(block) || markdownEditorRuntime.lastActiveAnchor;
+  showMdBlockActionMenu(e.clientX, e.clientY, block);
+});
+document.addEventListener("click", (e) => {
+  const menu = mdBlockActionRuntime.menu;
+  if (!menu || !menu.classList.contains("show")) return;
+  if (menu.contains(e.target)) return;
+  hideMdBlockActionMenu();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") hideMdBlockActionMenu();
+});
+window.addEventListener("scroll", hideMdBlockActionMenu, true);
+window.addEventListener("resize", hideMdBlockActionMenu);
+
+previewEl.addEventListener("click", (e) => {
+  hideMdBlockActionMenu();
+  if (getMode() !== "editor" || markdownEditorRuntime.editing) return;
+  const block = e.target.closest("[data-md-line]");
+  if (!block || !previewEl.contains(block)) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const anchor = anchorFromPreviewBlock(block);
+  const line = resolveHeadingRelativeAnchor(anchor, editorEl.value);
+  clearCurrentPreviewBlock();
+  block.classList.add("md-current-block");
+  enterInlineMarkdownEdit(line, anchor);
+});
+editorEl.addEventListener("blur", () => {
+  if (!markdownEditorRuntime.editing) return;
+  setTimeout(() => {
+    if (document.activeElement === editorEl || slashMenu.contains(document.activeElement)) return;
+    leaveInlineMarkdownEdit({ restorePreview: true });
+  }, 0);
+});
 
 // Qiita風 / コマンド入力（Code / Table）
 const slashCommands = [
@@ -1273,35 +1769,15 @@ document.getElementById("btnInsertTable").addEventListener("click", () => insert
 // エディター入力連動
 editorEl.addEventListener("input", () => {
   isManagedMarkdownDirty = true;
+  markdownEditorRuntime.lastActiveLine = getCaretLineNumber();
   renderMarkdown(editorEl.value, "#", "Live Editing");
   updateSlashFromInput();
 });
-
-let lastPointerDownTarget = null;
-let editorBlurPreviewTimer = null;
-
-document.addEventListener("pointerdown", (e) => {
-  lastPointerDownTarget = e.target;
-}, true);
-
-function isEditorAuxiliaryTarget(el) {
-  if (!el) return false;
-  return Boolean(
-    el.closest?.(".edit-container") ||
-    el.closest?.("#slashMenu")
-  );
-}
-
-editorEl.addEventListener("blur", () => {
-  clearTimeout(editorBlurPreviewTimer);
-  const snapshot = getEditorPreviewSnapshot();
-  editorBlurPreviewTimer = setTimeout(() => {
-    if (document.body.getAttribute("data-mode") !== "editor") return;
-    const active = document.activeElement;
-    const pointerTarget = lastPointerDownTarget;
-    if (isEditorAuxiliaryTarget(active) || isEditorAuxiliaryTarget(pointerTarget)) return;
-    switchToViewerFromEditorSnapshot(snapshot);
-  }, 80);
+editorEl.addEventListener("keyup", () => {
+  markdownEditorRuntime.lastActiveLine = getCaretLineNumber();
+});
+editorEl.addEventListener("click", () => {
+  markdownEditorRuntime.lastActiveLine = getCaretLineNumber();
 });
 
 function setupSmoothScrollLinks() {
@@ -1424,6 +1900,7 @@ function updateMeta(rawMd, parsedContent){
 }
 
 function renderMarkdown(rawMd, sourceUrl, sourceLabel){
+  hideMdBlockActionMenu();
   articleCard.style.opacity = 0.85;
   
   setTimeout(() => {
@@ -1473,14 +1950,21 @@ function renderMarkdown(rawMd, sourceUrl, sourceLabel){
     const constraintReport = isConstraintReportMarkdown(content);
     const renderContent = constraintReport ? content : normalizePseudoJapaneseLists(content);
     const html = marked.parse(preprocessQiita(renderContent));
-    previewEl.innerHTML = DOMPurify.sanitize(html, { ADD_ATTR: ["target"] });
+    previewEl.innerHTML = DOMPurify.sanitize(html, { ADD_ATTR: ["target", "data-md-line"] });
     previewEl.querySelectorAll('a[href^="http"]').forEach(a => { a.target = "_blank"; a.rel = "noreferrer"; });
     applyMarkdownIndentClasses(constraintReport);
+    annotatePreviewBlocks(rawMd);
     
     buildToc();
     updateMeta(rawMd, content);
     articleCard.style.opacity = 1;
-    previewEl.dispatchEvent(new CustomEvent("frb:markdown-rendered", { detail: { sourceLabel } }));
+    const restoreAnchor = markdownEditorRuntime.pendingPreviewRestoreAnchor;
+    const restoreLine = restoreAnchor ? resolveHeadingRelativeAnchor(restoreAnchor, rawMd) : markdownEditorRuntime.pendingPreviewRestoreLine;
+    markdownEditorRuntime.pendingPreviewRestoreAnchor = null;
+    markdownEditorRuntime.pendingPreviewRestoreLine = null;
+    if (restoreLine && !markdownEditorRuntime.editing) {
+      requestAnimationFrame(() => requestAnimationFrame(() => scrollPreviewToLine(restoreLine)));
+    }
   }, 40);
 }
 
