@@ -729,10 +729,10 @@ JSON Editorを作っていたはずなのに、なぜViewDefまでJSONになっ�
 
 
 
+
 ----
 
-
-[思考拡張・AI駆動開発の記事はこちら](https://zenn.dev/frb_tamasub)
+[AI駆動開発研究日誌 や 思考拡張・AI駆動開発の記事はこちら](https://zenn.dev/frb_tamasub)
 
 この思考拡張・AI駆動開発の実例として、私はFRB（Fishing Rod Benchmark）という個人研究を続けている。
 釣り竿の感度を振動として比較・可視化しようとする、一見おかしな研究だが、そこで起きているのは「差分」「再現性」「制約」を使ったAI協働そのものである。
