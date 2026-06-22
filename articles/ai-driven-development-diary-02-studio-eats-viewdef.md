@@ -231,6 +231,11 @@ CSVを食べる。
 （第3話へ続く）
 
 
+---
+
+■ 画面定義JSONを画面定義JSONでメンテナンス？
+
+![alt text](/images/ai-collaboration-json-studio-and-diff-culture.png)
 
 ----
 
