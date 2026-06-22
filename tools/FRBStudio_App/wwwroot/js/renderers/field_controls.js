@@ -539,6 +539,54 @@ function createChatComposer(field, row, gd, prefix) {
   return composer;
 }
 
+
+function markdownPreviewRawValue(el) {
+  // contenteditable の innerText は最後に余分な改行が付くことがあるので、
+  // 元データと近い形へ軽く正規化する。
+  return String(el?.innerText ?? '').replace(/\u00a0/g, ' ').replace(/\n+$/g, '');
+}
+
+function syncMarkdownRawToRow(el, rawValue) {
+  const fieldName = el?.dataset?.field;
+  if (!fieldName) return;
+  const row = currentDetailRow();
+  if (!row) return;
+  const gd = gridDef();
+  const field = (gd?.fields ?? []).find(f => f.field === fieldName);
+  const type = field?.type ?? el.dataset.type ?? 'textarea';
+  setByPath(row, fieldName, convertValue(type, rawValue));
+}
+
+function restoreMarkdownPreviewElement(el, mdCfg, rawValue, options={}) {
+  if (!el || !mdCfg?.enabled) return;
+  el.dataset.rawValue = rawValue;
+  el.dataset.markdownDisplay = 'true';
+  el.dataset.editMode = 'preview';
+  el.contentEditable = 'false';
+  el.innerHTML = renderMarkdownContent(rawValue, mdCfg);
+  el.classList.add('markdown-rendered');
+  el.classList.remove('markdown-raw-editing', 'chat-md-editing');
+  if (options.displayClass) el.classList.add(options.displayClass);
+  if (options.item && options.itemDisplayClass) options.item.classList.add(options.itemDisplayClass);
+  if (options.displayOnly) {
+    el.classList.add('chat-display-only');
+    if (options.item) options.item.classList.add('chat-display-only');
+  }
+}
+
+function installMarkdownBlurPreview(el, mdCfg, options={}) {
+  if (!el || !mdCfg?.enabled) return;
+  el.addEventListener('blur', () => {
+    if (el.dataset.editMode !== 'raw') return;
+    const rawValue = markdownPreviewRawValue(el);
+    syncMarkdownRawToRow(el, rawValue);
+    restoreMarkdownPreviewElement(el, mdCfg, rawValue, options);
+    if (typeof setStatus === 'function') {
+      setStatus('Markdownプレビューを更新しました（保存する場合は上書き保存してください）');
+    }
+  });
+}
+
 function createChatMessageElement(field, msg, row, gd, prefix, options={}) {
   const srcField = (gd?.fields ?? []).find(f => f.field === msg.field) ?? {};
   const raw = getByPath(row, msg.field);
@@ -645,6 +693,13 @@ function createChatMessageElement(field, msg, row, gd, prefix, options={}) {
       if (e.target.closest?.('a') && (e.ctrlKey || e.metaKey)) return;
       e.preventDefault();
       enterMarkdownRawEditMode();
+    });
+
+    installMarkdownBlurPreview(bubble, mdCfg, {
+      item,
+      displayClass: 'chat-editable-markdown-display',
+      itemDisplayClass: 'chat-editable-markdown-display',
+      displayOnly: renderMarkdownOnly
     });
   }
 
@@ -791,6 +846,10 @@ function createMarkdownTextareaDisplayElement({ field, value, readonly }) {
     if (e.target.closest?.('a') && (e.ctrlKey || e.metaKey)) return;
     e.preventDefault();
     enterRawEditMode();
+  });
+
+  installMarkdownBlurPreview(box, mdCfg, {
+    displayClass: 'markdown-editable-display'
   });
 
   box.addEventListener('keydown', (e) => {
