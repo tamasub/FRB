@@ -1,6 +1,6 @@
 # Studioくん憲法 レビュー記録
 
-- 出力日時: 2026/6/21 17:09:08
+- 出力日時: 2026/6/22 0:42:56
 - 対象: CODING_CONSTRAINTS.md / Studio Architecture Constraints
 - schema_version: coding_constraints_review_data_v0_1
 - status: ceremony_review_draft_with_change_history

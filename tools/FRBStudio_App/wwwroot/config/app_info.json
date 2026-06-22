@@ -1,0 +1,12 @@
+{
+  "detail_id": "vd_20260622_001",
+  "version": "v0.4",
+  "revision": "r001",
+  "display_version": "v0.4-r001",
+  "phase": "url-param-launch-load",
+  "title": "起動URLパラメータによる自動読込対応",
+  "linked_incident_ids": [
+    "studio_work_0013"
+  ],
+  "summary": "URLパラメータからData/ViewDef/Markdownを自動読込できるようにする。"
+}
