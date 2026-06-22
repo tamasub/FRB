@@ -241,7 +241,10 @@ CSVを食べる。
 
 ■ Studioくん
 
-[こちらから現在開発中 Studioくん のインシデント管理している画面見れます！現在進行中！！](https://tamasub.github.io/FRB/tools/FRBStudio_App/wwwroot/?data=data/json/01_main/studio_work_incident_data_v0_00.json&mode=readonly)
+[Studioくん インシデント管理データ公開中！現在進行中です！！](https://tamasub.github.io/FRB/tools/FRBStudio_App/wwwroot/?data=data/json/01_main/studio_work_incident_data_v0_00.json&mode=readonly)
+
+[Studioくん憲法　レビューデータ公開中！！](https://tamasub.github.io/FRB/tools/FRBStudio_App/wwwroot/?data=data/json/01_main/frb_coding_constraints_review_data_v0_3.json&mode=readonly)
+
 
 
 ----
