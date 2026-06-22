@@ -1,10 +1,10 @@
 # ルールレビュー記録
 
-- 出力日時: 2026/6/22 14:03:33
+- 出力日時: 2026/6/22 18:58:29
 - 対象: FRB Studio / JSON Object Studio
 - schema_version: rule_review_data_v0_1
 - status: converted_draft
-- 件数: 17
+- 件数: 19
 
 ## 基本情報
 
@@ -18,7 +18,7 @@
 - Source Version: v0.1
 - Introduced In: v0.4-r001
 - 生成日時: 2026-06-22T12:24:16+09:00
-- ルール数: 17
+- ルール数: 18
 - 承認済み数: 0
 
 ### 承認方針
@@ -62,6 +62,8 @@ Data JSONをViewDefで表示・編集し、Markdownは必要に応じてExport V
 | 15 | 15 | foundation_rule_015 |  | 基本構造 | Data / View / Export の原則 | high | 未レビュー | 確認済み | 承認する | Data JSON、ViewDef JSON、Markdown Export、Git Diff、AI、Human の役割を分ける。 |
 | 16 | 16 | foundation_rule_016 |  | 原則 | 承認判断は人間が行う | high | 未レビュー | 確認済み | 承認する | AIはレビューを支援するが、採用可否・承認・保留・差戻しの最終判断は人間が行う。 |
 | 17 | 17 | foundation_rule_017 |  | 運用 | v0.4-r001 の意味 | high | 未レビュー | 確認済み | 承認する | v0.4-r001 は、JSON Object Studio としての正式命名、およびバージョン・リビジョン・インシデント・ルール管理の整理を開始したリビジョンとして扱う。 |
+| 18 | 18 | foundation_rule_018 |  | 運用 | AI作業ファイル記録とインシデント回答記録 | high | 未レビュー | 未確認 | 未承認 | AIが更新したファイルと完了報告は、インシデントJSONへ残す。 |
+| 19 |  | row_copy_1 |  | 運用 | ★マークダウン　入力テストデータ | high | 未レビュー | 未確認 | 未承認 | # 見出し<br>## 見出し<br>- 箇条書き<br>1. 番号付きリスト |
 
 ## ルールレビュー詳細
 
@@ -853,6 +855,103 @@ v0.4-r001 は、Studioくんが単なるJSON編集ツールから、自分自身
 
 （なし）
 
+### 18 AI作業ファイル記録とインシデント回答記録
+- Rule ID: foundation_rule_018
+- 分類: 運用
+- 優先度: high
+- レビュー状態: 未レビュー
+- 確認状態: 未確認
+- 承認: 未承認
+- 元MD: FRB Studio Foundation Rules
+- 元行: 0
+
+#### レビュー対象
+
+
+##### 元見出し
+
+18. AI作業ファイル記録とインシデント回答記録
+
+##### 要約
+
+AIが更新したファイルと完了報告は、インシデントJSONへ残す。
+
+##### ルール本文
+
+AIがData JSON、Defs JSON、Rules JSON、Incident JSON、Markdownプロンプト等を更新した場合、更新したファイル、変更理由、変更概要、対応結果を該当インシデントJSONへ記録する。
+
+root data/defs は一律変更禁止ではなく、作業目的に必要な場合は更新可能とする。ただし、更新対象と結果を必ず記録する。
+
+wwwroot/data / wwwroot/defs はGitHub Pages等の公開用静的領域として扱うため、明示依頼がない限り更新しない。
+
+インシデント対応後のAI完了報告は、会話上だけでなく ai_response / latest_ai_response / discussion_history に残す。
+
+##### 確認メッセージ
+
+Foundation Rule 18「AI作業ファイル記録とインシデント回答記録」をレビューする。
+
+#### レビュー会話
+
+
+#### 変更履歴
+
+| History ID | Revision | 変更日 | 変更者 | 変更種別 | 対象フィールド | 変更前タイトル | 変更後タイトル | 変更理由 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| chg_foundation_rule_018_v012_001 |  |  |  | rule_added |  |  |  | v0.12-rules-update-reporting-policy をStudio運用の基礎ルールとして定着させるため。 |
+
+### ★マークダウン 入力テストデータ
+- Rule ID: row_copy_1
+- 分類: 運用
+- 優先度: high
+- レビュー状態: 未レビュー
+- 確認状態: 未確認
+- 承認: 未承認
+- 元行: 0
+
+#### レビュー対象
+
+
+##### 元見出し
+
+# 見出し
+## 見出し
+- 箇条書き
+1. 番号付きリスト
+
+##### 要約
+
+# 見出し
+## 見出し
+- 箇条書き
+1. 番号付きリスト
+
+##### ルール本文
+
+# 見出し
+## 見出し
+- 箇条書き
+1. 番号付きリスト
+> 引用
+`inline code`
+**太字**
+
+
+```
+やばいっす
+
+
+```
+
+
+![alt text](./images/chat/tamasub.png)
+
+#### レビュー会話
+
+
+#### 変更履歴
+
+（なし）
+
 ---
 
 # AI貼り付け用
@@ -892,6 +991,8 @@ No.	Rule ID	章番号	分類	ルール名	優先度	レビュー状態	確認状
 15	foundation_rule_015	15	基本構造	Data / View / Export の原則	high	未レビュー	確認済み	承認する	Data JSON、ViewDef JSON、Markdown Export、Git Diff、AI、Human の役割を分ける。		
 16	foundation_rule_016	16	原則	承認判断は人間が行う	high	未レビュー	確認済み	承認する	AIはレビューを支援するが、採用可否・承認・保留・差戻しの最終判断は人間が行う。		
 17	foundation_rule_017	17	運用	v0.4-r001 の意味	high	未レビュー	確認済み	承認する	v0.4-r001 は、JSON Object Studio としての正式命名、およびバージョン・リビジョン・インシデント・ルール管理の整理を開始したリビジョンとして扱う。		
+18	foundation_rule_018	18	運用	AI作業ファイル記録とインシデント回答記録	high	未レビュー	未確認	未承認	AIが更新したファイルと完了報告は、インシデントJSONへ残す。		
+19	row_copy_1		運用	★マークダウン　入力テストデータ	high	未レビュー	未確認	未承認	# 見出し\n## 見出し\n- 箇条書き\n1. 番号付きリスト		
 ```
 
 </details>
@@ -904,7 +1005,7 @@ No.	Rule ID	章番号	分類	ルール名	優先度	レビュー状態	確認状
   "view_def": "rules/rule_review_common_view_def_v0_2_editable_review_target.json",
   "data_file": "frb_studio_foundation_review_data_v0_1.json",
   "section": "レビュー項目一覧",
-  "row_count": 17,
+  "row_count": 19,
   "columns": [
     {
       "field": "no",
@@ -1203,6 +1304,34 @@ No.	Rule ID	章番号	分類	ルール名	優先度	レビュー状態	確認状
       "verification_status": "確認済み",
       "approval_decision": "承認する",
       "summary": "v0.4-r001 は、JSON Object Studio としての正式命名、およびバージョン・リビジョン・インシデント・ルール管理の整理を開始したリビジョンとして扱う。",
+      "user_comment": "",
+      "ai_response": ""
+    },
+    {
+      "no": 18,
+      "rule_id": "foundation_rule_018",
+      "section_no": "18",
+      "category": "運用",
+      "title": "AI作業ファイル記録とインシデント回答記録",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "未確認",
+      "approval_decision": "未承認",
+      "summary": "AIが更新したファイルと完了報告は、インシデントJSONへ残す。",
+      "user_comment": "",
+      "ai_response": ""
+    },
+    {
+      "no": 19,
+      "rule_id": "row_copy_1",
+      "section_no": "",
+      "category": "運用",
+      "title": "★マークダウン　入力テストデータ",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "未確認",
+      "approval_decision": "未承認",
+      "summary": "# 見出し\n## 見出し\n- 箇条書き\n1. 番号付きリスト",
       "user_comment": "",
       "ai_response": ""
     }

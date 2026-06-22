@@ -14992,5 +14992,7 @@
       "title": "元Schemaとの関係",
       "body": "このData JSONは元Schemaの置換ではなく、Schema内容を人間とAIがレビューしやすくするための構造化ビューである。"
     }
-  ]
+  ],
+  "updated_at": "2026-06-22",
+  "change_history": []
 }

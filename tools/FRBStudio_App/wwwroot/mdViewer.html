@@ -211,7 +211,7 @@
     }
     .edit-tools { display: flex; gap: 10px; border-top: 1px solid var(--line); padding-top: 12px; align-items: center; }
 
-    /* mdViewer v0.11.5: Editorモードは右本文欄だけをプレビュー⇄入力に切替。見出し相対アンカーで位置復元 */
+    /* mdViewer v0.11.7: Editorモードの位置復元 + Markdown汚し方式FRBコメント */
     .editor-inline-host { display: none; min-width: 0; }
     body.md-inline-editing #preview { display: none; }
     body.md-inline-editing #editorInlineHost { display: block; }
@@ -287,11 +287,86 @@
       background: rgba(250, 204, 21, 0.18);
       transform: none;
     }
+    .md-block-action-menu button:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+    .md-block-action-menu button:disabled:hover {
+      background: transparent;
+    }
     .md-block-action-menu .menu-note {
       padding: 2px 10px 6px;
       color: var(--muted);
       font-size: 11px;
       line-height: 1.35;
+    }
+    .md-block-action-menu .menu-separator {
+      height: 1px;
+      margin: 3px 4px;
+      background: var(--line);
+    }
+    #preview .frb-comment-bubble {
+      position: relative;
+      margin: 14px 0 18px 18px;
+      padding: 14px 16px 14px 18px;
+      border-left: 6px solid rgba(63,124,255,.55);
+      border-radius: 16px 18px 18px 16px;
+      background: rgba(63,124,255,.085);
+      box-shadow: 0 10px 28px rgba(15,23,42,.08), inset 0 1px 0 rgba(255,255,255,.45);
+      color: var(--text);
+    }
+    #preview .frb-comment-bubble::before {
+      content: "";
+      position: absolute;
+      left: -13px;
+      top: 18px;
+      width: 14px;
+      height: 14px;
+      transform: rotate(45deg);
+      background: inherit;
+      border-left: 1px solid rgba(63,124,255,.18);
+      border-bottom: 1px solid rgba(63,124,255,.18);
+    }
+    #preview .frb-comment-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 8px;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: .02em;
+    }
+    #preview .frb-comment-meta {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+    #preview .frb-comment-body {
+      white-space: pre-wrap;
+      line-height: 1.75;
+      font-size: 14px;
+      font-weight: 650;
+    }
+    #preview .frb-comment-status-OK {
+      border-left-color: rgba(34,197,94,.70);
+      background: rgba(34,197,94,.10);
+    }
+    #preview .frb-comment-status-NG {
+      border-left-color: rgba(239,68,68,.74);
+      background: rgba(239,68,68,.10);
+    }
+    #preview .frb-comment-status-TODO {
+      border-left-color: rgba(245,158,11,.78);
+      background: rgba(245,158,11,.12);
+    }
+    #preview .frb-comment-status-ASK {
+      border-left-color: rgba(168,85,247,.72);
+      background: rgba(168,85,247,.10);
+    }
+    #preview .frb-comment-status-MEMO,
+    #preview .frb-comment-status-COMMENT {
+      border-left-color: rgba(59,130,246,.70);
+      background: rgba(59,130,246,.10);
     }
 
     /* Qiita風 / コマンドメニュー */
@@ -1108,7 +1183,7 @@ window.insertSuggestedFrontMatter = function() {
 
 
 
-// mdViewer v0.11.5: 見出し相対アンカー + textareaミラーで、後半ズレを抑える
+// mdViewer v0.11.7: 見出し相対アンカー + Markdown汚し方式FRBコメント
 function getMode() {
   return document.body.getAttribute("data-mode") || "viewer";
 }
@@ -1414,6 +1489,102 @@ function scrollPreviewToLine(lineNo, behavior = "auto") {
   markdownEditorRuntime.lastActiveLine = Number(block.dataset.mdLine || line || 1);
   markdownEditorRuntime.lastActiveAnchor = anchorFromPreviewBlock(block) || anchorFromLine(line);
 }
+function escapeHtml(text) {
+  return String(text ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+function frbCommentLabel(status) {
+  const key = String(status || "COMMENT").toUpperCase();
+  const map = {
+    OK: { emoji: "✅", label: "OK" },
+    NG: { emoji: "🚫", label: "NG" },
+    TODO: { emoji: "🛠", label: "要修正" },
+    ASK: { emoji: "❓", label: "要確認" },
+    MEMO: { emoji: "📝", label: "メモ" },
+    COMMENT: { emoji: "💬", label: "コメント" }
+  };
+  return map[key] || map.COMMENT;
+}
+function preprocessFrbComments(md) {
+  return String(md || "").replace(/<!--\s*FRB_COMMENT_START\s*([^>]*)-->\s*([\s\S]*?)\s*<!--\s*FRB_COMMENT_END\s*-->/g, (all, attrText, body) => {
+    const attrs = {};
+    String(attrText || "").replace(/([a-zA-Z0-9_-]+)="([^"]*)"/g, (_, k, v) => { attrs[k] = v; return ""; });
+    const status = String(attrs.status || "COMMENT").toUpperCase();
+    const id = attrs.id || "";
+    const meta = id ? ` <span class="frb-comment-meta">${escapeHtml(id)}</span>` : "";
+    const label = frbCommentLabel(status);
+    const lines = String(body || "")
+      .split(/\r?\n/)
+      .map(line => line.replace(/^\s*>\s?/, ""))
+      .filter(line => !/^\s*$/.test(line) || true);
+    let cleaned = lines.join("\n")
+      .replace(/^\s*(?:💬|✅|🚫|🛠|❓|📝)?\s*\*\*FRBコメント[^*]*\*\*\s*\n?/i, "")
+      .replace(/^\s*FRBコメント[^\n]*\n?/i, "")
+      .trim();
+    if (!cleaned) cleaned = "（コメント本文なし）";
+    return `\n<blockquote class="frb-comment-bubble frb-comment-status-${escapeHtml(status)}" data-frb-comment-id="${escapeHtml(id)}" data-frb-comment-status="${escapeHtml(status)}">\n<div class="frb-comment-title">${label.emoji} FRBコメント：${escapeHtml(label.label)}${meta}</div>\n<div class="frb-comment-body">${escapeHtml(cleaned)}</div>\n</blockquote>\n`;
+  });
+}
+function createFrbCommentId() {
+  const d = new Date();
+  const pad = n => String(n).padStart(2, "0");
+  const stamp = `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+  return `frbcmt_${stamp}_${Math.random().toString(36).slice(2, 6)}`;
+}
+function createFrbCommentMarkdown(status, commentText) {
+  const key = String(status || "COMMENT").toUpperCase();
+  const label = frbCommentLabel(key);
+  const body = String(commentText || "").trim() || "（コメント本文なし）";
+  const quoted = body.split(/\r?\n/).map(line => `> ${line}`).join("\n");
+  return `<!-- FRB_COMMENT_START id="${createFrbCommentId()}" status="${key}" -->\n> ${label.emoji} **FRBコメント：${label.label}**\n>\n${quoted}\n<!-- FRB_COMMENT_END -->`;
+}
+function insertMarkdownAfterLine(rawMd, lineNo, insertText) {
+  const lines = String(rawMd || "").split(/\r?\n/);
+  const idx = Math.min(Math.max(0, Number(lineNo || lines.length)), lines.length);
+  const beforeBlank = idx > 0 && lines[idx - 1] !== "" ? [""] : [];
+  const afterBlank = idx < lines.length && lines[idx] !== "" ? [""] : [];
+  lines.splice(idx, 0, ...beforeBlank, insertText, ...afterBlank);
+  return lines.join("\n");
+}
+function addFrbCommentToBlock(block, status) {
+  if (!block || launchMarkdownRuntime.readonly) return;
+  const key = String(status || "COMMENT").toUpperCase();
+  const label = frbCommentLabel(key);
+  const defaults = {
+    OK: "了解。この方針でOK。",
+    NG: "ここはNG。理由を追記。",
+    TODO: "ここは要修正。修正方針を追記。",
+    ASK: "ここは確認したい。",
+    MEMO: "メモ。",
+    COMMENT: "コメント。"
+  };
+  const text = prompt(`${label.emoji} FRBコメント：${label.label} を入力`, defaults[key] || defaults.COMMENT);
+  if (text === null) return;
+  const endLine = Number(block.dataset.mdEndLine || block.dataset.mdLine || markdownEditorRuntime.lastActiveLine || 1);
+  const commentMd = createFrbCommentMarkdown(key, text);
+  editorEl.value = insertMarkdownAfterLine(editorEl.value, endLine, commentMd);
+  isManagedMarkdownDirty = true;
+  const restoreLine = Math.max(1, endLine + 1);
+  markdownEditorRuntime.lastActiveLine = restoreLine;
+  markdownEditorRuntime.lastActiveAnchor = anchorFromLine(restoreLine);
+  markdownEditorRuntime.pendingPreviewRestoreLine = restoreLine;
+  markdownEditorRuntime.pendingPreviewRestoreAnchor = markdownEditorRuntime.lastActiveAnchor;
+  renderMarkdown(editorEl.value, "#", "FRB Comment Inserted");
+}
+async function copyDirtyMarkdownToClipboard() {
+  const text = editorEl.value || "";
+  try {
+    await navigator.clipboard.writeText(text);
+    alert("コメント付きMarkdownをクリップボードにコピーしました。レビュー会話へペコっと貼れます。");
+  } catch (err) {
+    console.warn("clipboard write failed", err);
+    prompt("コピーできない場合は、この内容をコピーしてください", text);
+  }
+}
 function ensureMdBlockActionMenu() {
   if (mdBlockActionRuntime.menu) return mdBlockActionRuntime.menu;
   const menu = document.createElement("div");
@@ -1422,7 +1593,15 @@ function ensureMdBlockActionMenu() {
   menu.setAttribute("role", "menu");
   menu.innerHTML = `
     <button type="button" data-action="highlight" role="menuitem">🟨 ハイライト</button>
-    <div class="menu-note">プレビュー表示中だけの一時ハイライトです</div>
+    <div class="menu-separator"></div>
+    <button type="button" data-action="comment" data-status="COMMENT" role="menuitem">💬 コメント追加</button>
+    <button type="button" data-action="comment" data-status="OK" role="menuitem">✅ OKコメント</button>
+    <button type="button" data-action="comment" data-status="NG" role="menuitem">🚫 NGコメント</button>
+    <button type="button" data-action="comment" data-status="TODO" role="menuitem">🛠 要修正コメント</button>
+    <button type="button" data-action="comment" data-status="ASK" role="menuitem">❓ 要確認コメント</button>
+    <div class="menu-separator"></div>
+    <button type="button" data-action="copyMarkdown" role="menuitem">📋 コメント付きMarkdownをコピー</button>
+    <div class="menu-note">コメントはMarkdown本文へFRB_COMMENTとして挿入します</div>
   `;
   document.body.appendChild(menu);
   menu.addEventListener("click", (e) => {
@@ -1434,6 +1613,10 @@ function ensureMdBlockActionMenu() {
       block.classList.add("md-current-block");
       markdownEditorRuntime.lastActiveLine = Number(block.dataset.mdLine || markdownEditorRuntime.lastActiveLine || 1);
       markdownEditorRuntime.lastActiveAnchor = anchorFromPreviewBlock(block) || markdownEditorRuntime.lastActiveAnchor;
+    } else if (btn.dataset.action === "comment" && block && previewEl.contains(block)) {
+      addFrbCommentToBlock(block, btn.dataset.status || "COMMENT");
+    } else if (btn.dataset.action === "copyMarkdown") {
+      copyDirtyMarkdownToClipboard();
     }
     hideMdBlockActionMenu();
   });
@@ -1450,6 +1633,10 @@ function showMdBlockActionMenu(x, y, block) {
   mdBlockActionRuntime.targetBlock = block;
   const btn = menu.querySelector('[data-action="highlight"]');
   if (btn) btn.textContent = block.classList.contains("md-block-highlight") ? "⬜ ハイライト解除" : "🟨 ハイライト";
+  menu.querySelectorAll('[data-action="comment"]').forEach(commentBtn => {
+    commentBtn.disabled = !!launchMarkdownRuntime.readonly;
+    commentBtn.title = launchMarkdownRuntime.readonly ? "readonlyモードではコメントを挿入できません" : "Markdown本文へコメントを挿入します";
+  });
   menu.style.left = "0px";
   menu.style.top = "0px";
   menu.classList.add("show");
@@ -1949,8 +2136,8 @@ function renderMarkdown(rawMd, sourceUrl, sourceLabel){
     
     const constraintReport = isConstraintReportMarkdown(content);
     const renderContent = constraintReport ? content : normalizePseudoJapaneseLists(content);
-    const html = marked.parse(preprocessQiita(renderContent));
-    previewEl.innerHTML = DOMPurify.sanitize(html, { ADD_ATTR: ["target", "data-md-line"] });
+    const html = marked.parse(preprocessFrbComments(preprocessQiita(renderContent)));
+    previewEl.innerHTML = DOMPurify.sanitize(html, { ADD_ATTR: ["target", "data-md-line", "data-frb-comment-id", "data-frb-comment-status"] });
     previewEl.querySelectorAll('a[href^="http"]').forEach(a => { a.target = "_blank"; a.rel = "noreferrer"; });
     applyMarkdownIndentClasses(constraintReport);
     annotatePreviewBlocks(rawMd);

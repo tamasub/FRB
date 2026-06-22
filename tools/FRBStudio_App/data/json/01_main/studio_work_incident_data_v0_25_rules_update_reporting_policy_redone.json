@@ -12,7 +12,7 @@
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。",
-  "items_count": 22,
+  "items_count": 23,
   "work_items": [
     {
       "work_item_id": "studio_work_0001",
@@ -1621,7 +1621,7 @@
           "reason": "Markdown本文を編集しながら、すぐ読み物表示で確認できるようにするため。"
         }
       ],
-      "verification_status": "未確認"
+      "verification_status": "確認済み"
     },
     {
       "work_item_id": "studio_work_0020",
@@ -1709,7 +1709,7 @@
           "reason": "書く→離す→記事として読む、の操作感をMarkdown Viewer / Editorにも適用し、記事編集のモチベーションを上げるため。"
         }
       ],
-      "verification_status": "未確認"
+      "verification_status": "確認済み"
     },
     {
       "work_item_id": "studio_work_0021",
@@ -1719,7 +1719,7 @@
       "category": "",
       "priority": "high",
       "status": "完了",
-      "verification_status": "未確認",
+      "verification_status": "確認済み",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-06-22",
@@ -1791,20 +1791,15 @@
       "phase": "v0.12-rules-update-reporting-policy",
       "title": "AI作業対象ファイル記録 / インシデント回答記録ルール整備",
       "incident_type": "rules_review",
-      "category": "ai_file_operation_policy",
+      "category": "",
       "priority": "high",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-06-22",
       "updated_at": "2026-06-22",
-      "target_files": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md, frb_viewdef_generation_rules_review_data_v0_1.json, frb_coding_constraints_review_data_v0_3.json, _JSON作成プロンプト.md",
-      "target_rule_files": [
-        "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
-        "frb_viewdef_generation_rules_review_data_v0_1.json",
-        "frb_coding_constraints_review_data_v0_3.json",
-        "_JSON作成プロンプト.md"
-      ],
+      "target_files": "優先度A: data/json/00_rules/frb_coding_constraints_review_data_v0_3.json, data/json/00_rules/frb_studio_foundation_review_data_v0_1.json, data/json/00_rules/_json_creation_prompt.md。前回誤反映の取り下げ: data/json/00_rules/frb_viewdef_generation_rules_review_data_v0_1.json, data/json/00_rules/frb_view_def_schema_review_data_v0_1.json。作業結果収録: data/json/01_main/studio_work_incident_data_v0_25_rules_update_reporting_policy_redone.json。",
+      "target_rule_files": "優先度Aとして修正: frb_coding_constraints_review_data_v0_3.json / frb_studio_foundation_review_data_v0_1.json / _json_creation_prompt.md。ViewDef Generation Rules と Schema Review は新規ルール追加対象ではなく、前回の過剰反映を取り下げる範囲のみ。",
       "objective": "AI作業時のファイル更新ルールを整理し、root data/defs を過剰に保護しすぎないこと、AIが更新したファイルをインシデントJSONへ記録すること、インシデント対応後の報告内容をAI回答欄へ残すことをルール化する。",
       "background": "ルール系ブラッシュアップ候補メモで「ZIP内に root data/ / defs/ が存在する場合も、同様に原則変更しない」と整理したが、この表現は強すぎる。root data/defs はAI作業で更新が必要になることがあるため、禁止ではなく、更新対象と更新結果をインシデントJSONに記録する運用へ寄せる必要がある。",
       "scope": "root data/defs は、作業目的に必要な場合はAIが更新してよい。ただし、更新したファイル名、変更理由、変更概要を該当インシデントの change_history / latest_ai_response / discussion_history へ記録する。インシデント対応後のAI完了報告は、会話上だけでなく、インシデントJSONの ai_response または latest_ai_response にも反映する。今後予定するルール変更では、どのルールファイルに対する変更かを target_files または target_rule_files として明記する。",
@@ -1815,9 +1810,9 @@
       "risk": "root data/defs の更新を許容すると、AIが不要なデータ更新まで行うリスクがある。そのため、許可ではなく「必要時のみ更新可」「更新ファイルを必ず記録」「理由と結果をインシデントに残す」という制約で管理する。",
       "test_points": "インシデントJSONに今回の論点が作業項目として追加されていること。target_files / target_rule_files に予定変更対象のルールファイルが明記されていること。root data/defs の一律変更禁止が入っていないこと。更新ファイル一覧とAI完了報告をインシデントJSONに残す方針が入っていること。",
       "user_request": "ルール系ブラッシュアップ候補をインシデントとして追加したい。特に、root data/defs まで原則変更しないという表現は強すぎるため削除したい。def/dataフォルダーはAI側でも更新してよく、どのファイルを更新したかをインシデントJSONへ記録してほしい。インシデント対応後のAI報告内容も、インシデントJSONのAI回答欄へ記録するルールにしたい。今回予定する変更内容がどのルールファイルに対する変更かも明記したい。",
-      "ai_response": "本件は新規インシデントとして登録する。root data/defs は一律保護ではなく、作業目的に必要な場合はAIが更新可能とし、更新ファイル・変更理由・作業結果をインシデントJSONへ記録する方針とする。AIの完了報告も会話上だけでなく、ai_response / latest_ai_response / discussion_history に残す運用をルール化する。予定変更対象のルールファイルは target_files / target_rule_files に明記する。",
-      "latest_user_comment": "root data/defs まで原則変更しないという表現は強すぎるため削除したい。def/dataフォルダーはAI側でも更新してよく、更新ファイルをインシデントJSONに記録してほしい。インシデント対応後のAI報告内容もAI回答欄に記録するルールにしたい。今回予定する変更内容がどのルールファイルに対する変更かも明記したい。",
-      "latest_ai_response": "studio_work_0022 として、AI作業対象ファイル記録 / インシデント回答記録ルール整備を追加。対象ルールファイル候補は FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md、frb_viewdef_generation_rules_review_data_v0_1.json、frb_coding_constraints_review_data_v0_3.json、_JSON作成プロンプト.md として明記。root data/defs は一律更新禁止ではなく、必要時更新可＋インシデントJSONへの更新ファイル記録という方針で登録した。",
+      "ai_response": "v0.12-rules-update-reporting-policy 対応完了。root data/defs は一律変更禁止ではなく、必要時更新可＋インシデントJSONへの更新ファイル記録をルール化。AI完了報告は ai_response / latest_ai_response / discussion_history に残す方針を追加。各ルールJSONに v0.12 の変更履歴コメントまたはレビューNoteを追加し、_JSON作成プロンプトにも同方針を追記。",
+      "latest_user_comment": "studio_work_incident_data_v0_22_rules_update_reporting_policy_added.json の v0.12-rules-update-reporting-policy 対応を依頼。各ルールJSONにも変更履歴コメントを追加する。\n\n----\n# AIチャットコメントに対する俺コメント追加\n\n---\nうぃーー、これはたぶん前回こっちが **「全部のルールJSONに同じ思想を横流ししすぎた」** 感あるね💦\n整理すると、今回の v0.12 は **全ルールに同じ文章を入れる話ではなく、各ファイルの責務に応じて置き場所を分ける話** やと思う。\n\n# v0.12-rules-update-reporting-policy ルール反映方針メモ\n\n## まず全体方針\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_194023_62pl\" status=\"OK\" -->\n> ✅ **FRBコメント：OK**\n>\n> 了解。この方針でOK。\n<!-- FRB_COMMENT_END -->\n\n今回追加したい本質はこれ。\n\n```text\nAIが何を触ったか\nなぜ触ったか\n結果どうなったか\nそれをインシデントJSONに残す\n```\n\nただし、これは **ViewDef生成ルールそのもの** ではなく、もう少し上位の **AI作業運用ルール**。\n\nなので、配置としてはこう分けるのが自然。\n\n```text\n憲法 / Coding Constraints:\n  AI作業時の守るべき原則\n\nFoundation Rules:\n  data / defs / wwwroot/data / wwwroot/defs の位置づけ\n\nViewDef Generation Rules:\n  その情報を画面に出す場合のViewDef設計ルール\n\nSchema Review:\n  Schema変更が必要かどうかの判断メモ\n\nJSON作成プロンプト:\n  AIに作業させるときの短い実務指示\n```\n\n---\n\n# 1. `frb_coding_constraints_review_data_v0_3.json`\n\n## 役割\n\nStudioくん憲法・AI作業時の安全柵。\n\nここが今回の **主戦場その1**。\n\n## 追加・変更したらよい内容\n\n### 追加候補\n\n`constitution_20: AI協働ルール` あたりに追加するのが自然。\n\n```text\nAIがファイルを更新した場合、更新したファイル名、変更理由、変更概要、対応結果をインシデントJSONへ記録する。\n```\n\n記録先の考え方もここに置く。\n\n```text\ntarget_files:\n  予定していた対象ファイル\n\ntarget_rule_files:\n  ルール更新作業で予定していたルールファイル\n\nactual_updated_files:\n  実際にAIが更新したファイル\n\nlatest_ai_response:\n  AIの完了報告\n\ndiscussion_history:\n  作業依頼・判断・結果の会話履歴\n\nchange_history:\n  変更前後と理由\n```\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_194322_1ixp\" status=\"COMMENT\" -->\n> 💬 **FRBコメント：コメント**\n>\n> インシデントに情報追加する場合は、ご提案のテキスト文章の追加でOK。よろしく\n<!-- FRB_COMMENT_END -->\n\n### 修正候補\n\n`root data/defs は原則変更しない` みたいな強い書き方がある場合は弱める。\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_194545_b7se\" status=\"COMMENT\" -->\n> 💬 **FRBコメント：コメント**\n>\n> root\\data\\json\\01_main\\studio_work_incident_data_*.json の更新済みファイルを収録して欲しいというのと、defやJsonDataはAIでも更新して欲しいという意図。でも、更新したら、その痕跡をどこかに記録して開示して欲しいという意図。\n<!-- FRB_COMMENT_END -->\n\n```text\nroot data/ / defs/:\n  作業目的に必要ならAI更新可。\n  ただし、更新ファイルと理由をインシデントJSONへ記録する。\n\nwwwroot/data / wwwroot/defs:\n  GitHub Pages等の公開用静的領域。\n  明示依頼がない限りAI更新しない。\n```\n\n### 削る・弱める候補\n\n```text\nwwwroot/data 差分なし\nwwwroot/defs 差分なし\n```\n\nこれは毎回の必須報告ルールにはしない。\n必要な作業のときだけ確認・報告でよい。\n\n## 変更履歴コメントの入れ方\n\n対象は `constitution_20`、必要なら `constitution_10` / `constitution_11` くらい。\n\n全条文に入れない。\n\n---\n\n# 2. `frb_studio_foundation_review_data_v0_1.json`\n\n## 役割\n\nStudio全体の基礎方針・フォルダー思想・運用思想。\n\nここが今回の **主戦場その2**。\n\n## 追加・変更したらよい内容\n\n### 追加候補\n\n`foundation_rule_007: Incident と Version Detail の関係` に寄せる。\n\n```text\nIncident JSON は、作業依頼・対象ファイル・実更新ファイル・AI完了報告・判断履歴を残す作業台帳である。\n```\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_194626_htxx\" status=\"OK\" -->\n> ✅ **FRBコメント：OK**\n>\n> 了解。この方針でOK。\n<!-- FRB_COMMENT_END -->\n\n`foundation_rule_011: rules フォルダーの役割` に寄せる。\n\n```text\nroot data/defs と wwwroot/data/defs は役割が違う。\n```\n\n整理するとこう。\n\n```text\nroot data/:\n  作業用・管理用Data JSONを置く場所。\n  AIが更新することがある。\n\nroot defs/:\n  作業用・管理用ViewDef JSONを置く場所。\n  AIが更新することがある。\n\nwwwroot/data/:\n  公開・静的ホスティング用Data JSON。\n  明示依頼がない限り更新しない。\n\nwwwroot/defs/:\n  公開・静的ホスティング用ViewDef JSON。\n  明示依頼がない限り更新しない。\n```\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_194651_62dk\" status=\"OK\" -->\n> ✅ **FRBコメント：OK**\n>\n> 了解。この方針でOK。\n<!-- FRB_COMMENT_END -->\n\n### 追加したい基本原則\n\n```text\nAIがroot data/defsを更新すること自体は禁止しない。\nただし、更新した事実をインシデントJSONに残す。\n```\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_194712_b5up\" status=\"OK\" -->\n> ✅ **FRBコメント：OK**\n>\n> 了解。この方針でOK。\n<!-- FRB_COMMENT_END -->\n\n## 変更履歴コメントの入れ方\n\n対象は以下あたりだけでよさそう。\n\n```text\nfoundation_rule_007\nfoundation_rule_011\nfoundation_rule_018\n```\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_194719_fiz9\" status=\"OK\" -->\n> ✅ **FRBコメント：OK**\n>\n> 了解。この方針でOK。\n<!-- FRB_COMMENT_END -->\n\nもし `foundation_rule_018` がすでにあるなら、そこを本命にして整える。\n\n---\n\n# 3. `frb_viewdef_generation_rules_review_data_v0_1.json`\n\n## 役割\n\nViewDefをどう作るかのルール。\n\nここに **AI作業運用ルールを濃く入れすぎるとズレる**。\n\n## 追加・変更したらよい内容\n\nここでは、運用ルールそのものではなく、\n\n```text\nインシデントJSONに記録された情報を、ViewDefでどう見せるか\n```\n\nに寄せるのがよい。\n\n### 追加候補\n\n`AI生成時の出力ルール` か `Detail Body readable cards` あたりに追加。\n\n```text\nインシデント管理ViewDefを生成する場合、以下のフィールドは見える位置に配置する。\n```\n\n候補フィールド。\n\n```text\ntarget_files\ntarget_rule_files\nactual_updated_files\nai_response\nlatest_ai_response\ndiscussion_history\nchange_history\n```\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_194832_j8xl\" status=\"ASK\" -->\n> ❓ **FRBコメント：要確認**\n>\n> ここまではまずはしなくてよいと思う。管理項目数はまずは押さえて運用したい。\n<!-- FRB_COMMENT_END -->\n\n### 表示方針\n\n```text\ntarget_files:\n  予定対象としてカード表示\n\ntarget_rule_files:\n  ルール変更対象としてカード表示\n\nactual_updated_files:\n  実更新ファイル一覧としてカード表示\n\nlatest_ai_response:\n  AI完了報告としてMarkdown表示\n\ndiscussion_history:\n  chat / objectArray として履歴表示\n\nchange_history:\n  objectArray として変更前後を表示\n```\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_194907_k2xh\" status=\"COMMENT\" -->\n> 💬 **FRBコメント：コメント**\n>\n> 項目ではなく、テキスト文章でのコメントを希望する。\n<!-- FRB_COMMENT_END -->\n\n### 注意点\n\nここでは、以下のような運用ルールを主語にしすぎない方がよい。\n\n```text\nAIはroot data/defsを更新してよい\nAIはwwwroot/dataを更新してはいけない\n```\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_194919_716p\" status=\"OK\" -->\n> ✅ **FRBコメント：OK**\n>\n> 了解。この方針でOK。\n<!-- FRB_COMMENT_END -->\n\nこれは ViewDef生成ルールではなく、Foundation / Coding Constraints 側の責務。\n\nViewDef側ではこう言う程度でよい。\n\n```text\nDataに作業対象・更新対象・AI回答欄が存在する場合、それらを人間が確認できるViewDefにする。\n```\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_194950_ovpm\" status=\"OK\" -->\n> ✅ **FRBコメント：OK**\n>\n> 了解。この方針でOK。\n<!-- FRB_COMMENT_END -->\n\n## 変更履歴コメントの入れ方\n\n対象は以下だけで十分。\n\n```text\nviewdef_rule_10_01 Detail Body readable cards\nviewdef_rule_20 AI生成時の出力ルール\n必要なら viewdef_rule_09 chat type\n```\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_195005_3tz3\" status=\"OK\" -->\n> ✅ **FRBコメント：OK**\n>\n> 了解。この方針でOK。\n<!-- FRB_COMMENT_END -->\n\n今ある `viewdef_rule_20_01〜20_04` は、少し運用ルールに寄りすぎているなら、本文を薄くして **表示・生成時の扱い** に寄せるのが良さそう。\n\n---\n\n# 4. `frb_view_def_schema_review_data_v0_1.json`\n\n## 役割\n\nViewDef Schema のレビュー記録。\n\nここは **今回ほぼ変更不要寄り**。\n\n## 追加・変更したらよい内容\n\n今回の `target_rule_files` / `actual_updated_files` は、基本的には **Data JSON側のフィールド名**。\n\nViewDef Schemaそのものの新しい構文ではない。\n\nなので、ここに入れるならルール追加ではなく、レビューコメントでよい。\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_195047_96cm\" status=\"OK\" -->\n> ✅ **FRBコメント：OK**\n>\n> 了解。この方針でOK。\n<!-- FRB_COMMENT_END -->\n\n```text\nv0.12の target_rule_files / actual_updated_files は、ViewDef Schemaの新規プロパティではなく、インシデント管理Data上のフィールドとして扱う。\n現行Schemaでは fields[] に任意field名を定義できるため、Schema変更は必須ではない。\n```\n\n### 将来検討として残すなら\n\n```text\nもし将来、incident系DataをStudio標準管理データとして扱うなら、\ntarget_rule_files / actual_updated_files / completion_report などを\n標準メタフィールド候補として検討する。\n```\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_195119_spte\" status=\"NG\" -->\n> 🚫 **FRBコメント：NG**\n>\n> まずは無しの方向で。\n<!-- FRB_COMMENT_END -->\n\n## 変更履歴コメントの入れ方\n\nトップレベルの `review_notes` に1件でよい。\n360件ある schema_items に無理に追加しない。\n\n---\n\n# 5. `_frb_view_def_schema_v0_9_chat_input_mapping.json`\n\n## 役割\n\n実際の ViewDef JSON Schema。\n\nここは **今回変更しない方がよい**。\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_195127_91c8\" status=\"OK\" -->\n> ✅ **FRBコメント：OK**\n>\n> 了解。この方針でOK。\n<!-- FRB_COMMENT_END -->\n\n## 理由\n\n今回の話は、\n\n```text\nData JSONの運用ルール\nIncident JSONの記録ルール\nAI作業完了報告の残し方\n```\n\nであって、\n\n```text\nViewDef Schemaに新しい構文を追加する話\n```\n\nではない。\n\n`target_rule_files` や `actual_updated_files` は、ViewDef Schemaのプロパティではなく、Data側の任意フィールド。\n\nだから、現時点では schema 本体に入れない。\n\n## 将来変更するなら\n\n以下のような新機能を入れるとき。\n\n```text\nmarkdown.blockActions\ncontextMenu\ntemporaryHighlight\ncommentBadge\nblockToAiAction\n```\n\nつまり、Markdownプレビューのブロック操作をViewDef化するとき。\n\n今回の v0.12 では不要。\n\n---\n\n# 6. `_json_creation_prompt.md`\n\n## 役割\n\nAIにViewDef JSONを作らせるときの実務プロンプト。\n\nここは **短く実務指示だけ入れる** のがよい。\n\n## 追加・変更したらよい内容\n\n今後のAI作業向けに、こういう短いチェックを入れる。\n\n```text\nルール更新作業の場合:\n- インシデントJSONの target_files / target_rule_files を確認する\n- 予定外のファイルを更新しない\n- 更新したファイルは actual_updated_files に記録する\n- 完了報告は latest_ai_response に残す\n- ルール本文を変更した場合は、その rule.change_history に変更前後と理由を残す\n```\n\n### 注意点\n\nここに長い思想文を入れすぎない。\n\nこのファイルはAIへの実務プロンプトなので、\n\n```text\n詳しい思想は frb_coding_constraints_review_data / foundation / viewdef_generation_rules を参照\n```\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_195241_689v\" status=\"OK\" -->\n> ✅ **FRBコメント：OK**\n>\n> 了解。この方針でOK。\n<!-- FRB_COMMENT_END -->\n\nぐらいがよい。\n\n## 変更履歴コメントの入れ方\n\nMarkdownコメントで末尾に1行で十分。\n\n```markdown\n<!-- change_history: 2026-06-22 v0.12 / AI作業対象ファイル記録とインシデント回答記録の実務指示を追加 -->\n```\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_195249_90cm\" status=\"OK\" -->\n> ✅ **FRBコメント：OK**\n>\n> 了解。この方針でOK。\n<!-- FRB_COMMENT_END -->\n\n---\n\n# 7. インシデントJSON側に必要な考え方\n\nこれは `00_rules.zip` のルールファイルではないけど、今回の本命。\n\n## 追加・整理したいフィールド\n\n```text\ntarget_files:\n  作業依頼時点での予定対象\n\ntarget_rule_files:\n  ルール更新の場合の予定対象ルールファイル\n\nactual_updated_files:\n  AIが実際に更新したファイル\n\nai_response:\n  その作業項目のAI回答・方針\n\nlatest_ai_response:\n  今回対応後のAI完了報告\n\ndiscussion_history:\n  会話履歴\n\nchange_history:\n  変更前後・理由\n```\n\n## 重要な整理\n\n```text\ntarget_files = 予定\nactual_updated_files = 実績\nlatest_ai_response = 完了報告\nchange_history = 変更内容の履歴\ndiscussion_history = 会話の履歴\n```\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_195419_xrcv\" status=\"COMMENT\" -->\n> 💬 **FRBコメント：コメント**\n>\n> actual_updated_files = 実績　は、テキスト文字列でまずはスタート\n<!-- FRB_COMMENT_END -->\n\nこの分離が大事。\n\n---\n\n# 今回の修正優先順位\n\n## 優先度A\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_195519_f4h7\" status=\"COMMENT\" -->\n> 💬 **FRBコメント：コメント**\n>\n> 優先度Aだけの対応としましょう。\n<!-- FRB_COMMENT_END -->\n\n```text\nfrb_coding_constraints_review_data_v0_3.json\nfrb_studio_foundation_review_data_v0_1.json\n_json_creation_prompt.md\n```\n\nここに今回の運用ルールを入れる。\n\n## 優先度B\n\n```text\nfrb_viewdef_generation_rules_review_data_v0_1.json\n```\n\nここは「インシデント管理ViewDefでどう見せるか」に限定して入れる。\n\n## 優先度C\n\n```text\nfrb_view_def_schema_review_data_v0_1.json\n```\n\nSchema変更不要の判断メモを残す程度。\n\n## 原則変更なし\n\n```text\n_frb_view_def_schema_v0_9_chat_input_mapping.json\n```\n\n今回の v0.12 では触らない。\n\n---\n\n# まとめ\n\n今回のズレはたぶんここ。\n\n```text\n前回の方向:\n  各ルールJSONに同じ運用ルールを広く追加しすぎた\n\n今回の正しい方向:\n  ルールの責務ごとに置き場所を分ける\n```\n\n最終形はこれがよさそう。\n\n```text\nCoding Constraints:\n  AI作業の義務として記録する\n\nFoundation:\n  data/defs と wwwroot/data/defs の役割を分ける\n\nViewDef Generation Rules:\n  記録された情報を見えるViewDefにする\n\nSchema Review:\n  Schema変更は不要と判断記録する\n\nSchema本体:\n  触らない\n\nJSON作成プロンプト:\n  AIへの短い実務チェックだけ置く\n```\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_195549_cbuo\" status=\"COMMENT\" -->\n> 💬 **FRBコメント：コメント**\n>\n> これは憲法に追加しましょう\n<!-- FRB_COMMENT_END -->\n\nこれなら、ルールが太りすぎず、責務もかなり綺麗に分かれると思う。\n\n---\n# 2026-06-22 再対応依頼\n\nv0.12-rules-update-reporting-policy に基づいて、ルールデータの修正を依頼。mdViewerで入れたFRBコメントを反映し、優先度Aを中心に対応する。",
+      "latest_ai_response": "v0.12-rules-update-reporting-policy 再対応完了。mdViewerで付与されたFRBコメントを反映し、優先度Aとして Coding Constraints / Foundation Rules / _json_creation_prompt.md を修正。root data/defs はAI更新可、wwwroot/data/defs は明示依頼がない限り更新しない方針を整理。更新ファイル・理由・対応結果は、まずテキスト文章でインシデントJSONへ残す運用に修正。前回過剰反映していた ViewDef Generation Rules のv0.12運用ルール群と Schema Review の将来検討メモは取り下げた。",
       "discussion_history": [
         {
           "history_id": "disc_0022_001",
@@ -1832,6 +1827,34 @@
           "speaker": "assistant",
           "topic": "インシデント追加結果",
           "message": "studio_work_0022 を追加。root data/defs は一律保護ではなく、必要時更新可＋更新ファイル記録へ方針変更する作業項目として登録。AI対応報告を ai_response / latest_ai_response / discussion_history へ残す運用も対象に含めた。"
+        },
+        {
+          "history_id": "disc_0022_003",
+          "at": "2026-06-22",
+          "speaker": "user",
+          "topic": "v0.12対応依頼",
+          "message": "studio_work_incident_data_v0_22_rules_update_reporting_policy_added.json v0.12-rules-update-reporting-policy の対応を依頼。各ルールJSONにも変更履歴コメントを追加してほしい。"
+        },
+        {
+          "history_id": "disc_0022_004",
+          "at": "2026-06-22",
+          "speaker": "assistant",
+          "topic": "v0.12対応結果",
+          "message": "v0.12-rules-update-reporting-policy 対応完了。root data/defs は一律変更禁止ではなく、必要時更新可＋インシデントJSONへの更新ファイル記録をルール化。AI完了報告は ai_response / latest_ai_response / discussion_history に残す方針を追加。各ルールJSONに v0.12 の変更履歴コメントまたはレビューNoteを追加し、_JSON作成プロンプトにも同方針を追記。"
+        },
+        {
+          "history_id": "disc_0022_redo_20260622_user",
+          "at": "2026-06-22",
+          "speaker": "user",
+          "topic": "v0.12-rules-update-reporting-policy 再対応依頼",
+          "message": "mdViewerで入れたFRBコメントに基づき、優先度A中心でルールデータの修正を依頼。実更新ファイルはまずテキスト文字列で記録する方針。"
+        },
+        {
+          "history_id": "disc_0022_redo_20260622_assistant",
+          "at": "2026-06-22",
+          "speaker": "assistant",
+          "topic": "v0.12-rules-update-reporting-policy 再対応結果",
+          "message": "v0.12-rules-update-reporting-policy 再対応完了。mdViewerで付与されたFRBコメントを反映し、優先度Aとして Coding Constraints / Foundation Rules / _json_creation_prompt.md を修正。root data/defs はAI更新可、wwwroot/data/defs は明示依頼がない限り更新しない方針を整理。更新ファイル・理由・対応結果は、まずテキスト文章でインシデントJSONへ残す運用に修正。前回過剰反映していた ViewDef Generation Rules のv0.12運用ルール群と Schema Review の将来検討メモは取り下げた。"
         }
       ],
       "decision_log": [
@@ -1868,6 +1891,129 @@
           "before": "studio_work_incident_data_v0_21_mdviewer_single_pane_blur_preview_done.json / items_count=21",
           "after": "studio_work_incident_data_v0_22_rules_update_reporting_policy_added.json / items_count=22",
           "reason": "ルール系ブラッシュアップを細かい実装前にインシデントとして管理し、ユーザーコメントで文言調整できる状態にするため。"
+        },
+        {
+          "history_id": "chg_0022_002",
+          "at": "2026-06-22",
+          "change_type": "rules_update_reporting_policy_applied",
+          "before": "root data/defs の扱い、AI更新ファイル記録、AI完了報告のインシデント記録がルールJSON群へ十分に反映されていない状態",
+          "after": "各ルールJSONにv0.12変更履歴コメントを追加し、AI更新ファイル記録とAI完了報告のインシデント記録を明文化。完了版は studio_work_incident_data_v0_23_rules_update_reporting_policy_done.json として保存。",
+          "reason": "AI作業の更新対象と結果を、会話だけではなくインシデント管理データから追体験できるようにするため。",
+          "updated_files": [
+            "data/json/00_rules/frb_viewdef_generation_rules_review_data_v0_1.json",
+            "data/json/00_rules/frb_coding_constraints_review_data_v0_3.json",
+            "data/json/00_rules/frb_studio_foundation_review_data_v0_1.json",
+            "data/json/00_rules/frb_view_def_schema_review_data_v0_1.json",
+            "data/json/00_rules/_JSON#U4f5c#U6210#U30d7#U30ed#U30f3#U30d7#U30c8.md",
+            "data/json/01_main/studio_work_incident_data_v0_23_rules_update_reporting_policy_done.json"
+          ]
+        },
+        {
+          "history_id": "chg_0022_redo_20260622_001",
+          "at": "2026-06-22",
+          "change_type": "rules_scope_correction",
+          "before": "前回v0.12対応では ViewDef Generation Rules / Schema Review にも運用ルールを広く追加し、target_rule_files / actual_updated_files を構造フィールドとして扱う方向が強かった。",
+          "after": "優先度A中心に修正。Coding Constraints / Foundation / JSON作成プロンプトに運用ルールを置き、実更新ファイルはまずテキスト文章でインシデントJSONへ残す。ViewDef Generation Rules / Schema Review の過剰反映は取り下げ。",
+          "reason": "mdViewer上のFRBコメントで、管理項目数を抑え、コメント/報告はテキスト文章中心で始める方針が確認されたため。"
+        }
+      ],
+      "verification_status": "確認済み",
+      "actual_updated_files": "data/json/00_rules/frb_coding_constraints_review_data_v0_3.json; data/json/00_rules/frb_studio_foundation_review_data_v0_1.json; data/json/00_rules/_json_creation_prompt.md; data/json/00_rules/frb_viewdef_generation_rules_review_data_v0_1.json（前回v0.12追加ルール取り下げ）; data/json/00_rules/frb_view_def_schema_review_data_v0_1.json（前回v0.12検討メモ取り下げ）; data/json/01_main/studio_work_incident_data_v0_25_rules_update_reporting_policy_redone.json"
+    },
+    {
+      "work_item_id": "studio_work_0023",
+      "phase": "v0.11.7-mdviewer-dirty-block-comment",
+      "title": "Markdown汚し方式の吹き出しFRBコメント",
+      "incident_type": "feature_experiment",
+      "category": "mdviewer_comment",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-22",
+      "updated_at": "2026-06-22",
+      "target_files": "wwwroot/mdViewer.html, wwwroot/js/runtime/MDVIEWER_DIRTY_BLOCK_COMMENT_NOTES_v0_11_7.md, studio_work_incident_data_v0_24_mdviewer_dirty_block_comment_done.json",
+      "target_rule_files": "なし。今回はルール文書更新ではなく、mdViewer体験実装とインシデント追加を対象とする。",
+      "actual_updated_files": "wwwroot/mdViewer.html, wwwroot/js/runtime/MDVIEWER_DIRTY_BLOCK_COMMENT_NOTES_v0_11_7.md, studio_work_incident_data_v0_24_mdviewer_dirty_block_comment_done.json",
+      "objective": "Markdownプレビュー上の意味ブロックに対して、右クリックからFRBコメントを追加できるようにする。コメントはsidecar JSONではなく、Markdown本文をあえて汚す形式で挿入し、レビュー会話へそのまま貼り付けられる体験を確認する。",
+      "background": "ブロックハイライト機能により、プレビュー上の意味ブロックを操作対象にできる感覚が得られた。次の段階として、AI案やルール案に対して「了解」「NG」「要修正」「要確認」などの人間コメントをUI上で明確に残し、コメントする文化を育てたい。",
+      "scope": "mdViewer.htmlのプレビューブロック右クリックメニューにコメント系アクションを追加する。対象ブロック直後に FRB_COMMENT_START / FRB_COMMENT_END で囲んだMarkdownコメントブロックを挿入し、Previewでは吹き出し風コメントとして表示する。",
+      "out_of_scope": "sidecar JSONによるコメント永続化、コメント一覧管理、レビューJSONへの自動流し込み、AI自動分類、複数コメントの高度な編集UIは今回対象外。まずはMarkdown汚し方式で体験確認を行う。",
+      "fixed_name_policy": "FRB_COMMENT_START / FRB_COMMENT_END はMarkdown内コメントブロックを機械抽出するための明示マーカーとして扱う。RuntimeのData固定名ではなく、Markdownレビュー記法としての固定マーカーである。",
+      "module_policy": "type=\"module\" 化は行わない。既存のmdViewer.html内script方式を維持し、最新資材に対して最小差分で追加する。",
+      "expected_outputs": "右クリックメニューにコメント追加、OKコメント、NGコメント、要修正コメント、要確認コメント、コメント付きMarkdownコピーを追加。Markdown本文にはFRB_COMMENTマーカー付きコメントを挿入し、Previewでは吹き出し風に表示する。",
+      "risk": "Markdown本文を汚すため、公開用Markdownにそのまま残るリスクがある。コードブロックやテーブル内部へ挿入するとMarkdown構造を壊す可能性があるため、対象ブロック直後へ挿入する方針とする。",
+      "test_points": "mdViewer.html inline scriptがnode --check OKであること。wwwroot/js/*.jsがnode --check OKであること。右クリックメニューから各コメント種別を挿入できること。FRB_COMMENTがPreviewで吹き出し風に表示されること。コメント付きMarkdownコピーが使えること。",
+      "user_request": "Markdown汚し方式の吹き出しコメントをインシデントに追加した上で、最新資材に対して対応してほしい。コメントをする文化を大切に育てたい。",
+      "ai_response": "対応方針: sidecar JSON保存設計には進まず、まずはMarkdown本文をあえて汚すFRB_COMMENT方式で、ブロック単位のコメント体験を実装する。コメントは対象ブロック直後に挿入し、Previewでは吹き出し風に表示する。",
+      "latest_user_comment": "Markdown汚し方式の吹き出しコメントをインシデントに追加した上で、最新資材に対して対応をお願いします。コメントをする文化を大切に育てよう！！",
+      "latest_ai_response": "v0.11.7-mdviewer-dirty-block-comment 対応完了。mdViewer.html に右クリックコメントメニューを追加し、対象ブロック直後へ FRB_COMMENT_START / FRB_COMMENT_END 付きMarkdownコメントを挿入できるようにした。PreviewではFRBコメントを吹き出し風に表示し、コメント付きMarkdown全体をコピーできる導線も追加した。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0023_001",
+          "at": "2026-06-22",
+          "speaker": "user",
+          "topic": "機能相談",
+          "message": "mdViewer.htmlに、Markdownを汚していいから意味ブロックごとにコメントを入れたい。コメントしたものをレビュー会話に貼り付けたい。UI的にコメントだと分かる吹き出しコメントにしたい。"
+        },
+        {
+          "history_id": "disc_0023_002",
+          "at": "2026-06-22",
+          "speaker": "assistant",
+          "topic": "方針整理",
+          "message": "Markdown内に FRB_COMMENT_START / FRB_COMMENT_END マーカー付きコメントを挿入し、Previewでは吹き出し風に表示する方式を提案。sidecar JSONより軽く、レビュー会話へそのまま貼り付けられる。"
+        },
+        {
+          "history_id": "disc_0023_003",
+          "at": "2026-06-22",
+          "speaker": "user",
+          "topic": "作業依頼",
+          "message": "Markdown汚し方式の吹き出しコメントをインシデントに追加した上で、最新資材に対して対応してほしい。コメントする文化を大切に育てたい。"
+        },
+        {
+          "history_id": "disc_0023_004",
+          "at": "2026-06-22",
+          "speaker": "assistant",
+          "topic": "作業結果",
+          "message": "mdViewer.htmlへ右クリックコメントメニュー、FRB_COMMENT挿入、吹き出しPreview表示、コメント付きMarkdownコピーを追加。ノートファイル MDVIEWER_DIRTY_BLOCK_COMMENT_NOTES_v0_11_7.md を追加。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0023_001",
+          "at": "2026-06-22",
+          "decision": "コメントはsidecar JSONではなくMarkdown本文へ挿入する。",
+          "reason": "まずはコメント文化とレビュー会話へ貼り付ける体験を優先し、保存設計を重くしないため。"
+        },
+        {
+          "decision_id": "dec_0023_002",
+          "at": "2026-06-22",
+          "decision": "コメントは対象ブロックの直後へ挿入する。",
+          "reason": "コードブロックやテーブル内部を壊さず、意味ブロックに対する人間コメントとして読みやすくするため。"
+        },
+        {
+          "decision_id": "dec_0023_003",
+          "at": "2026-06-22",
+          "decision": "FRB_COMMENT_START / FRB_COMMENT_END を固定マーカーとして採用する。",
+          "reason": "Markdownを汚しつつ、後からAIやRuntimeがコメント範囲を機械抽出できるようにするため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0023_001",
+          "at": "2026-06-22",
+          "change_type": "mdviewer_dirty_comment",
+          "before": "mdViewerのプレビュー右クリックでは一時ハイライトのみ可能で、意味ブロックに人間コメントを残す導線はなかった。",
+          "after": "右クリックからコメント追加/OK/NG/要修正/要確認コメントを選び、FRB_COMMENT付きMarkdownブロックを対象ブロック直後に挿入できるようにした。",
+          "reason": "AI案やルール案に対する人間判断を、テキストだけでなくUI上で明確なコメントとして残し、レビュー会話へ貼り付けられるようにするため。"
+        },
+        {
+          "history_id": "chg_0023_002",
+          "at": "2026-06-22",
+          "change_type": "preview_rendering",
+          "before": "FRB_COMMENT記法は存在せず、コメントをUI的に吹き出し表示する仕組みはなかった。",
+          "after": "FRB_COMMENT_START / END で囲まれたコメントをPreviewで吹き出し風に表示する preprocessFrbComments を追加。",
+          "reason": "Markdown本文は汚すが、Preview上では人間がコメントだと一目で分かる表示にするため。"
         }
       ],
       "verification_status": "未確認"

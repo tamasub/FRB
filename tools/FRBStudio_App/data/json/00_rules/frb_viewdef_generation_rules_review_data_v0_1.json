@@ -1888,5 +1888,15 @@
       "introduced_in": "v0.4-r001",
       "change_history": []
     }
+  ],
+  "updated_at": "2026-06-22",
+  "review_revision": "v0.12-scope-correction-no-viewdef-rule-addition",
+  "review_notes": [
+    {
+      "note_id": "note_v012_scope_correction",
+      "at": "2026-06-22",
+      "title": "v0.12 スコープ補正: AI作業運用ルールはViewDef生成ルールに入れない",
+      "body": "v0.12-rules-update-reporting-policy の本体は、Coding Constraints と Foundation Rules と JSON作成プロンプトに置く。ViewDef Generation Rules には、今回の運用ルールを追加しない。前回追加した v0.12 運用ルール群は、責務が違うため取り下げた。"
+    }
   ]
 }
