@@ -1082,3 +1082,58 @@ button.combo-clear-button:focus-visible {
 .combo-field.file-tree-field {
   overflow: visible;
 }
+
+/* v0.10-markdown-preview-display-mode: textarea/detailBody Markdown display mode */
+.markdown-textarea-display {
+  width: 100%;
+  min-height: 90px;
+  box-sizing: border-box;
+  padding: 10px 11px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: rgba(255,255,255,.74);
+  color: #0f172a;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.75;
+  outline: none;
+}
+.markdown-textarea-display.markdown-rendered a,
+.chat-text.markdown-rendered a {
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.markdown-textarea-display.markdown-rendered img.chat-md-image {
+  margin: 8px 0;
+}
+.markdown-textarea-display.markdown-editable-display {
+  cursor: text;
+}
+.markdown-textarea-display.markdown-editable-display::after {
+  content: 'クリックで編集';
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 7px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--muted);
+  background: rgba(255,255,255,.72);
+  vertical-align: middle;
+}
+.markdown-textarea-display.markdown-raw-editing {
+  cursor: text;
+  background: rgba(255,255,255,.92);
+  outline: 2px solid rgba(37, 99, 235, .20);
+  box-shadow: inset 0 0 0 1px rgba(59,130,246,.12);
+}
+.markdown-textarea-display.markdown-raw-editing::after {
+  content: 'Markdown原文を編集中';
+}
+.markdown-textarea-display:empty::before {
+  content: attr(data-placeholder);
+  color: #94a3b8;
+}

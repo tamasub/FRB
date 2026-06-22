@@ -285,6 +285,140 @@ function renderInlineMarkdown(text, cfg) {
   return html;
 }
 
+
+function renderInlineMarkdownTokens(text, cfg) {
+  let html = escapeHtmlText(text);
+  if (!cfg?.enabled) return html;
+
+  // inline code first, then emphasis, then links/images.
+  html = html.replace(/`([^`]+)`/g, '<code class="md-inline-code">$1</code>');
+  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+  html = html.replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
+
+  if (cfg.allowImages) {
+    html = html.replace(/!\[([^\]]*)\]\(([^\s\)]+)(?:\s+&quot;([^&]*)&quot;)?\)/g, (m, alt, url, title) => {
+      const cleanUrl = String(url ?? '').trim();
+      if (!isSafeMarkdownUrl(cleanUrl)) return m;
+      const titleAttr = title ? ` title="${escapeHtmlAttr(title)}"` : '';
+      return `<img class="chat-md-image" src="${escapeHtmlAttr(cleanUrl)}" alt="${escapeHtmlAttr(alt)}" loading="lazy"${titleAttr}>`;
+    });
+  }
+
+  if (cfg.allowLinks) {
+    html = html.replace(/(^|[^!])\[([^\]]+)\]\(([^\s\)]+)(?:\s+&quot;([^&]*)&quot;)?\)/g, (m, prefix, label, url, title) => {
+      const cleanUrl = String(url ?? '').trim();
+      if (!isSafeMarkdownUrl(cleanUrl)) return m;
+      const titleAttr = title ? ` title="${escapeHtmlAttr(title)}"` : '';
+      return `${prefix}<a class="chat-md-link" href="${escapeHtmlAttr(cleanUrl)}" target="_blank" rel="noopener noreferrer"${titleAttr}>${label}</a>`;
+    });
+  }
+
+  return html;
+}
+
+function renderMarkdownContent(text, cfg) {
+  const raw = String(text ?? '').replace(/\r\n/g, '\n');
+  if (!cfg?.enabled) return escapeHtmlText(raw);
+  if (!raw) return '';
+
+  const lines = raw.split('\n');
+  const out = [];
+  let paragraph = [];
+  let listType = null;
+  let listItems = [];
+  let inCode = false;
+  let codeLines = [];
+
+  const flushParagraph = () => {
+    if (!paragraph.length) return;
+    out.push(`<p>${paragraph.join('<br>')}</p>`);
+    paragraph = [];
+  };
+  const flushList = () => {
+    if (!listType || !listItems.length) return;
+    out.push(`<${listType}>${listItems.map(x => `<li>${x}</li>`).join('')}</${listType}>`);
+    listType = null;
+    listItems = [];
+  };
+  const flushCode = () => {
+    out.push(`<pre><code>${escapeHtmlText(codeLines.join('\n'))}</code></pre>`);
+    codeLines = [];
+  };
+
+  lines.forEach(line => {
+    const trimmed = line.trim();
+
+    if (/^```/.test(trimmed)) {
+      if (inCode) {
+        flushCode();
+        inCode = false;
+      } else {
+        flushParagraph();
+        flushList();
+        inCode = true;
+        codeLines = [];
+      }
+      return;
+    }
+
+    if (inCode) {
+      codeLines.push(line);
+      return;
+    }
+
+    if (!trimmed) {
+      flushParagraph();
+      flushList();
+      return;
+    }
+
+    const heading = line.match(/^\s*(#{1,6})\s+(.+)$/);
+    if (heading) {
+      flushParagraph();
+      flushList();
+      const level = Math.min(heading[1].length, 6);
+      out.push(`<h${level}>${renderInlineMarkdownTokens(heading[2].trim(), cfg)}</h${level}>`);
+      return;
+    }
+
+    const unordered = line.match(/^\s*[-*+]\s+(.+)$/);
+    if (unordered) {
+      flushParagraph();
+      if (listType && listType !== 'ul') flushList();
+      listType = 'ul';
+      listItems.push(renderInlineMarkdownTokens(unordered[1], cfg));
+      return;
+    }
+
+    const ordered = line.match(/^\s*\d+[.)]\s+(.+)$/);
+    if (ordered) {
+      flushParagraph();
+      if (listType && listType !== 'ol') flushList();
+      listType = 'ol';
+      listItems.push(renderInlineMarkdownTokens(ordered[1], cfg));
+      return;
+    }
+
+    const quote = line.match(/^\s*>\s?(.*)$/);
+    if (quote) {
+      flushParagraph();
+      flushList();
+      out.push(`<blockquote>${renderInlineMarkdownTokens(quote[1], cfg)}</blockquote>`);
+      return;
+    }
+
+    flushList();
+    paragraph.push(renderInlineMarkdownTokens(line, cfg));
+  });
+
+  if (inCode) flushCode();
+  flushParagraph();
+  flushList();
+
+  return out.join('\n');
+}
+
 function chatMessageMarkdownConfig(field, msg, srcField) {
   return normalizeChatMarkdownConfig(
     field?.markdown,
@@ -418,12 +552,13 @@ function createChatMessageElement(field, msg, row, gd, prefix, options={}) {
     options.markdownDisplay ??
     options.displayMode === 'markdown'
   );
-  // v0.9.1-chat-markdown-editable-fix:
-  // appendPosition=afterMessages の保存済み追加コメントは、通常表示ではMarkdown表示、
-  // クリック後はMarkdown原文編集へ切り替える。
-  const editableMarkdownDisplay = Boolean(options.editableMarkdownDisplay);
-  const readonly = Boolean(options.readonly ?? msg.readonly ?? srcField.readonly ?? srcField.edit?.readonly) || (renderMarkdownOnly && !editableMarkdownDisplay);
   const mdCfg = normalizeChatMarkdownConfig(chatMessageMarkdownConfig(field, msg, srcField), options.markdown);
+  const baseReadonly = Boolean(options.readonly ?? msg.readonly ?? srcField.readonly ?? srcField.edit?.readonly);
+  // v0.10-markdown-preview-display-mode:
+  // ViewDefでMarkdown許可されたchat messageは、通常表示ではMarkdownプレビュー、
+  // クリック後だけMarkdown原文編集へ切り替える。
+  const editableMarkdownDisplay = Boolean(options.editableMarkdownDisplay ?? (mdCfg.enabled && !baseReadonly && !renderMarkdownOnly));
+  const readonly = baseReadonly || (renderMarkdownOnly && !editableMarkdownDisplay);
 
   const item = document.createElement('div');
   item.className = 'chat-message ' + (isAi ? 'chat-ai' : isUser ? 'chat-user' : isConstraint ? 'chat-constraint' : 'chat-other');
@@ -459,7 +594,7 @@ function createChatMessageElement(field, msg, row, gd, prefix, options={}) {
   // appendPosition=afterMessages の送信済みユーザーコメントは、通常表示ではMarkdownを1回だけ描画し、
   // 編集時だけMarkdown原文へ戻す。
   if ((readonly || renderMarkdownOnly || editableMarkdownDisplay) && mdCfg.enabled) {
-    bubble.innerHTML = renderInlineMarkdown(rawText, mdCfg);
+    bubble.innerHTML = renderMarkdownContent(rawText, mdCfg);
     bubble.dataset.rawValue = rawText;
     bubble.dataset.markdownDisplay = 'true';
     bubble.classList.add('markdown-rendered');
@@ -529,7 +664,7 @@ function createChatMessageElement(field, msg, row, gd, prefix, options={}) {
   if (!readonly && options.showMarkdownPreview === true && hasInlineMarkdownSyntax(rawText, mdCfg)) {
     const preview = document.createElement('div');
     preview.className = 'chat-markdown-preview';
-    preview.innerHTML = renderInlineMarkdown(rawText, mdCfg);
+    preview.innerHTML = renderMarkdownContent(rawText, mdCfg);
     item.appendChild(preview);
   }
 
@@ -604,7 +739,81 @@ function createSelectControlElement({ field, value }) {
   return input;
 }
 
-function createTextareaControlElement({ field, value }) {
+function fieldMarkdownConfig(field) {
+  return normalizeChatMarkdownConfig(field?.markdown, field?.edit?.markdown, field?.display?.markdown);
+}
+
+function createMarkdownTextareaDisplayElement({ field, value, readonly }) {
+  const mdCfg = fieldMarkdownConfig(field);
+  const rawText = formatValue(value, field);
+  const box = document.createElement('div');
+  box.className = 'markdown-textarea-display markdown-rendered';
+  box.setAttribute('role', 'textbox');
+  box.setAttribute('aria-label', field.caption ?? field.field);
+  box.setAttribute('spellcheck', 'false');
+  box.dataset.rawValue = rawText;
+  box.dataset.markdownDisplay = 'true';
+  box.dataset.placeholder = field.placeholder ?? field.edit?.placeholder ?? '';
+  box.contentEditable = 'false';
+  box.innerHTML = renderMarkdownContent(rawText, mdCfg);
+  if (field.edit?.height) box.style.minHeight = field.edit.height + 'px';
+
+  if (readonly) {
+    box.classList.add('readonly');
+    return box;
+  }
+
+  box.title = 'クリックするとMarkdown原文を編集できます';
+  box.classList.add('markdown-editable-display');
+
+  const enterRawEditMode = () => {
+    if (box.dataset.editMode === 'raw') return;
+    const rawValue = box.dataset.rawValue ?? rawText;
+    box.dataset.editMode = 'raw';
+    box.classList.remove('markdown-rendered');
+    box.classList.add('markdown-raw-editing');
+    box.contentEditable = 'true';
+    box.textContent = rawValue;
+    requestAnimationFrame(() => {
+      box.focus();
+      const range = document.createRange();
+      range.selectNodeContents(box);
+      range.collapse(false);
+      const sel = window.getSelection();
+      if (sel) {
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    });
+  };
+
+  box.addEventListener('click', (e) => {
+    if (e.target.closest?.('a') && (e.ctrlKey || e.metaKey)) return;
+    e.preventDefault();
+    enterRawEditMode();
+  });
+
+  box.addEventListener('keydown', (e) => {
+    if (e.key === 'F7' || e.key === 'F8' || e.key === 'F12') return;
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      applyDetail(e);
+    }
+  });
+
+  return box;
+}
+
+function createTextareaControlElement({ field, value, prefix, readonly }) {
+  const mdCfg = fieldMarkdownConfig(field);
+  // v0.10-markdown-preview-display-mode:
+  // 詳細表示では、ViewDefでMarkdownを許可したtextareaをプレビュー表示する。
+  // 保存値はMarkdown原文のまま保持し、クリック時だけ原文編集に切り替える。
+  // 検索・ヘッダーでは従来どおり通常textareaを使う。
+  if (prefix === 'detail' && mdCfg.enabled) {
+    return createMarkdownTextareaDisplayElement({ field, value, readonly });
+  }
+
   const input = document.createElement('textarea');
   input.value = formatValue(value, field);
   if (field.edit?.height) input.style.minHeight = field.edit.height + 'px';

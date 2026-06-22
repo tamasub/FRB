@@ -1082,3 +1082,113 @@ button.combo-clear-button:focus-visible {
 .combo-field.file-tree-field {
   overflow: visible;
 }
+
+/* v0.10-markdown-preview-display-mode: textarea/detailBody Markdown display mode */
+.markdown-textarea-display {
+  width: 100%;
+  min-height: 90px;
+  box-sizing: border-box;
+  padding: 10px 11px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: rgba(255,255,255,.74);
+  color: #0f172a;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.75;
+  outline: none;
+}
+.markdown-textarea-display.markdown-rendered a,
+.chat-text.markdown-rendered a {
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.markdown-textarea-display.markdown-rendered img.chat-md-image {
+  margin: 8px 0;
+}
+.markdown-textarea-display.markdown-editable-display {
+  cursor: text;
+}
+.markdown-textarea-display.markdown-editable-display::after {
+  content: 'クリックで編集';
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 7px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--muted);
+  background: rgba(255,255,255,.72);
+  vertical-align: middle;
+}
+.markdown-textarea-display.markdown-raw-editing {
+  cursor: text;
+  background: rgba(255,255,255,.92);
+  outline: 2px solid rgba(37, 99, 235, .20);
+  box-shadow: inset 0 0 0 1px rgba(59,130,246,.12);
+}
+.markdown-textarea-display.markdown-raw-editing::after {
+  content: 'Markdown原文を編集中';
+}
+.markdown-textarea-display:empty::before {
+  content: attr(data-placeholder);
+  color: #94a3b8;
+}
+
+/* v0.10.1-markdown-block-preview-fix: headings / lists / code blocks for Markdown display */
+.markdown-rendered p {
+  margin: 0 0 0.72em;
+}
+.markdown-rendered p:last-child {
+  margin-bottom: 0;
+}
+.markdown-rendered h1,
+.markdown-rendered h2,
+.markdown-rendered h3,
+.markdown-rendered h4,
+.markdown-rendered h5,
+.markdown-rendered h6 {
+  margin: 0.35em 0 0.45em;
+  line-height: 1.35;
+  font-weight: 900;
+  color: #0f172a;
+}
+.markdown-rendered h1 { font-size: 1.28em; }
+.markdown-rendered h2 { font-size: 1.18em; }
+.markdown-rendered h3 { font-size: 1.08em; }
+.markdown-rendered ul,
+.markdown-rendered ol {
+  margin: 0.25em 0 0.8em 1.35em;
+  padding-left: 0.45em;
+}
+.markdown-rendered li {
+  margin: 0.15em 0;
+}
+.markdown-rendered blockquote {
+  margin: 0.4em 0 0.8em;
+  padding: 0.35em 0.8em;
+  border-left: 4px solid #bfdbfe;
+  background: rgba(239,246,255,.75);
+  border-radius: 8px;
+  color: #334155;
+}
+.markdown-rendered pre {
+  margin: 0.45em 0 0.8em;
+  padding: 0.75em 0.9em;
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+  background: rgba(15,23,42,.92);
+  color: #e5e7eb;
+  overflow-x: auto;
+  white-space: pre;
+}
+.markdown-rendered code.md-inline-code {
+  padding: 0.08em 0.32em;
+  border: 1px solid #dbeafe;
+  border-radius: 6px;
+  background: rgba(241,245,249,.9);
+  color: #1e293b;
+}

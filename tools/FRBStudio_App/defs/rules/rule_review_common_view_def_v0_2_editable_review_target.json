@@ -1,12 +1,12 @@
 {
   "app": {
     "name": "FRB Studio / JSON Object Studio",
-    "version": "rule-review-common-v0.1"
+    "version": "rule-review-common-v0.2-editable-review-target"
   },
   "views": [
     {
-      "id": "rule_review_common_v0_1",
-      "caption": "ルールレビュー（共通）",
+      "id": "rule_review_common_v0_2_editable_review_target",
+      "caption": "ルールレビュー（共通）/ レビュー対象編集対応",
       "layout": {
         "detailDialog": "wide"
       },
@@ -547,40 +547,40 @@
               "field": "summary",
               "caption": "要約",
               "type": "textarea",
-              "readonly": true,
+              "readonly": false,
               "grid": {
                 "visible": true,
                 "width": 430
               },
               "edit": {
                 "visible": false,
-                "readonly": true,
-                "height": 90
+                "readonly": false,
+                "height": 120
               },
               "search": {
                 "visible": true,
                 "operator": "contains"
               },
-              "display_note": "詳細画面では __review_target_cards の要約カードとして表示する。"
+              "display_note": "詳細画面では __review_target_cards の要約カードとして編集可能に表示する。Markdownリンク/画像記法を許可する。"
             },
             {
               "field": "body",
               "caption": "ルール本文",
               "type": "textarea",
-              "readonly": true,
+              "readonly": false,
               "grid": {
                 "visible": false
               },
               "edit": {
                 "visible": false,
-                "readonly": true,
-                "height": 280
+                "readonly": false,
+                "height": 340
               },
               "search": {
                 "visible": true,
                 "operator": "contains"
               },
-              "display_note": "詳細画面では __review_target_cards の本文カードとして表示する。"
+              "display_note": "詳細画面では __review_target_cards の本文カードとして編集可能に表示する。Markdownリンク/画像記法を許可する。"
             },
             {
               "field": "source_heading",
@@ -593,12 +593,14 @@
               },
               "edit": {
                 "visible": false,
-                "readonly": true
+                "readonly": false,
+                "height": 70
               },
               "search": {
                 "visible": true,
                 "operator": "contains"
-              }
+              },
+              "display_note": "詳細画面では __review_target_cards の見出しカードとして編集可能に表示する。"
             },
             {
               "field": "source_line_start",
@@ -685,32 +687,40 @@
                     "role": "constraint",
                     "field": "source_heading",
                     "label": "見出し",
-                    "readonly": true,
-                    "height": 70
+                    "readonly": false,
+                    "height": 80,
+                    "markdown": {
+                      "inline": true,
+                      "allowLinks": true,
+                      "allowImages": false
+                    },
+                    "display_note": "見出しも必要に応じて編集可能。画像は通常不要なのでリンクのみ許可。"
                   },
                   {
                     "role": "constraint",
                     "field": "summary",
                     "label": "要約",
-                    "readonly": true,
-                    "height": 90,
+                    "readonly": false,
+                    "height": 120,
                     "markdown": {
                       "inline": true,
                       "allowLinks": true,
-                      "allowImages": false
-                    }
+                      "allowImages": true
+                    },
+                    "display_note": "要約をレビュー画面で直接編集可能。Markdownリンク/画像記法を許可。"
                   },
                   {
                     "role": "constraint",
                     "field": "body",
                     "label": "ルール本文",
-                    "readonly": true,
-                    "height": 300,
+                    "readonly": false,
+                    "height": 360,
                     "markdown": {
                       "inline": true,
                       "allowLinks": true,
                       "allowImages": true
-                    }
+                    },
+                    "display_note": "ルール本文をレビュー画面で直接編集可能。Markdownリンク/画像記法を許可。"
                   },
                   {
                     "role": "system",
@@ -759,7 +769,7 @@
                 "placement": "detailBody",
                 "order": 100
               },
-              "display_note": "レビュー対象カード。元見出し・要約・本文・確認メッセージを詳細画面上部に表示する。"
+              "display_note": "レビュー対象カード。元見出し・要約・本文は編集可能。本文と要約ではMarkdownリンク/画像記法を許可し、確認メッセージは確認・承認操作用としてreadonly表示する。"
             },
             {
               "field": "__review_chat",
@@ -921,7 +931,7 @@
               },
               "defaultValue": ""
             },
-           {
+            {
               "field": "change_history",
               "caption": "変更履歴",
               "type": "objectArray",
@@ -934,7 +944,7 @@
               "defaultValue": [],
               "display_note": "レビューでルールを変更した場合、変更前後・理由・会話を残すサブグリッド。"
             },
-             {
+            {
               "field": "approved_by",
               "caption": "承認者",
               "type": "text",
@@ -1300,8 +1310,9 @@
             ]
           }
         ]
-      }
+      },
+      "layout_note": "レビュー対象カード内の source_heading / summary / body を直接編集可能にした共通Rule Review ViewDef。Markdownリンク/画像記法は要約・本文で許可する。"
     }
   ],
-  "layout_note": "ルール・制約・憲法・運用原則を共通表示するためのViewDef。データ原本はドメイン別JSON、ViewDefは rules 配列構造に対して共有する。"
+  "layout_note": "ルール・制約・憲法・運用原則を共通表示するためのViewDef。データ原本はドメイン別JSON、ViewDefは rules 配列構造に対して共有する。v0.2ではレビュー対象本文をカード内で直接編集可能にした。"
 }

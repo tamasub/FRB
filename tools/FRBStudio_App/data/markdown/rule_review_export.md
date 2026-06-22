@@ -1,6 +1,6 @@
 # ルールレビュー記録
 
-- 出力日時: 2026/6/22 12:26:39
+- 出力日時: 2026/6/22 14:03:33
 - 対象: FRB Studio / JSON Object Studio
 - schema_version: rule_review_data_v0_1
 - status: converted_draft
@@ -901,7 +901,7 @@ No.	Rule ID	章番号	分類	ルール名	優先度	レビュー状態	確認状
 
 ```json
 {
-  "view_def": "rules/rule_review_common_view_def_v0_1.json",
+  "view_def": "rules/rule_review_common_view_def_v0_2_editable_review_target.json",
   "data_file": "frb_studio_foundation_review_data_v0_1.json",
   "section": "レビュー項目一覧",
   "row_count": 17,

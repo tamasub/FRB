@@ -418,12 +418,13 @@ function createChatMessageElement(field, msg, row, gd, prefix, options={}) {
     options.markdownDisplay ??
     options.displayMode === 'markdown'
   );
-  // v0.9.1-chat-markdown-editable-fix:
-  // appendPosition=afterMessages の保存済み追加コメントは、通常表示ではMarkdown表示、
-  // クリック後はMarkdown原文編集へ切り替える。
-  const editableMarkdownDisplay = Boolean(options.editableMarkdownDisplay);
-  const readonly = Boolean(options.readonly ?? msg.readonly ?? srcField.readonly ?? srcField.edit?.readonly) || (renderMarkdownOnly && !editableMarkdownDisplay);
   const mdCfg = normalizeChatMarkdownConfig(chatMessageMarkdownConfig(field, msg, srcField), options.markdown);
+  const baseReadonly = Boolean(options.readonly ?? msg.readonly ?? srcField.readonly ?? srcField.edit?.readonly);
+  // v0.10-markdown-preview-display-mode:
+  // ViewDefでMarkdown許可されたchat messageは、通常表示ではMarkdownプレビュー、
+  // クリック後だけMarkdown原文編集へ切り替える。
+  const editableMarkdownDisplay = Boolean(options.editableMarkdownDisplay ?? (mdCfg.enabled && !baseReadonly && !renderMarkdownOnly));
+  const readonly = baseReadonly || (renderMarkdownOnly && !editableMarkdownDisplay);
 
   const item = document.createElement('div');
   item.className = 'chat-message ' + (isAi ? 'chat-ai' : isUser ? 'chat-user' : isConstraint ? 'chat-constraint' : 'chat-other');
@@ -604,7 +605,81 @@ function createSelectControlElement({ field, value }) {
   return input;
 }
 
-function createTextareaControlElement({ field, value }) {
+function fieldMarkdownConfig(field) {
+  return normalizeChatMarkdownConfig(field?.markdown, field?.edit?.markdown, field?.display?.markdown);
+}
+
+function createMarkdownTextareaDisplayElement({ field, value, readonly }) {
+  const mdCfg = fieldMarkdownConfig(field);
+  const rawText = formatValue(value, field);
+  const box = document.createElement('div');
+  box.className = 'markdown-textarea-display markdown-rendered';
+  box.setAttribute('role', 'textbox');
+  box.setAttribute('aria-label', field.caption ?? field.field);
+  box.setAttribute('spellcheck', 'false');
+  box.dataset.rawValue = rawText;
+  box.dataset.markdownDisplay = 'true';
+  box.dataset.placeholder = field.placeholder ?? field.edit?.placeholder ?? '';
+  box.contentEditable = 'false';
+  box.innerHTML = renderInlineMarkdown(rawText, mdCfg);
+  if (field.edit?.height) box.style.minHeight = field.edit.height + 'px';
+
+  if (readonly) {
+    box.classList.add('readonly');
+    return box;
+  }
+
+  box.title = 'クリックするとMarkdown原文を編集できます';
+  box.classList.add('markdown-editable-display');
+
+  const enterRawEditMode = () => {
+    if (box.dataset.editMode === 'raw') return;
+    const rawValue = box.dataset.rawValue ?? rawText;
+    box.dataset.editMode = 'raw';
+    box.classList.remove('markdown-rendered');
+    box.classList.add('markdown-raw-editing');
+    box.contentEditable = 'true';
+    box.textContent = rawValue;
+    requestAnimationFrame(() => {
+      box.focus();
+      const range = document.createRange();
+      range.selectNodeContents(box);
+      range.collapse(false);
+      const sel = window.getSelection();
+      if (sel) {
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    });
+  };
+
+  box.addEventListener('click', (e) => {
+    if (e.target.closest?.('a') && (e.ctrlKey || e.metaKey)) return;
+    e.preventDefault();
+    enterRawEditMode();
+  });
+
+  box.addEventListener('keydown', (e) => {
+    if (e.key === 'F7' || e.key === 'F8' || e.key === 'F12') return;
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      applyDetail(e);
+    }
+  });
+
+  return box;
+}
+
+function createTextareaControlElement({ field, value, prefix, readonly }) {
+  const mdCfg = fieldMarkdownConfig(field);
+  // v0.10-markdown-preview-display-mode:
+  // 詳細表示では、ViewDefでMarkdownを許可したtextareaをプレビュー表示する。
+  // 保存値はMarkdown原文のまま保持し、クリック時だけ原文編集に切り替える。
+  // 検索・ヘッダーでは従来どおり通常textareaを使う。
+  if (prefix === 'detail' && mdCfg.enabled) {
+    return createMarkdownTextareaDisplayElement({ field, value, readonly });
+  }
+
   const input = document.createElement('textarea');
   input.value = formatValue(value, field);
   if (field.edit?.height) input.style.minHeight = field.edit.height + 'px';

@@ -1,5 +1,5 @@
 {
-  "view_def": "rules/rule_review_common_view_def_v0_1.json",
+  "view_def": "rules/rule_review_common_view_def_v0_2_editable_review_target.json",
   "schema_version": "rule_review_data_v0_1",
   "document_type": "rule_review_data",
   "domain": "frb_studio_foundation",
@@ -507,6 +507,33 @@
       "source_md_file": "FRB_STUDIO_FOUNDATION_RULES_v0_1_draft.md",
       "introduced_in": "v0.4-r001",
       "change_history": []
+    },
+    {
+      "no": 18,
+      "rule_id": "row_copy_1",
+      "section_no": "",
+      "parent_rule_id": "",
+      "category": "\u904B\u7528",
+      "title": "\u2605\u30DE\u30FC\u30AF\u30C0\u30A6\u30F3\u3000\u5165\u529B\u30C6\u30B9\u30C8\u30C7\u30FC\u30BF",
+      "priority": "high",
+      "review_status": "\u672A\u30EC\u30D3\u30E5\u30FC",
+      "verification_status": "\u672A\u78BA\u8A8D",
+      "approval_decision": "\u672A\u627F\u8A8D",
+      "summary": "",
+      "body": "# \u898B\u51FA\u3057\n## \u898B\u51FA\u3057\n- \u7B87\u6761\u66F8\u304D\n1. \u756A\u53F7\u4ED8\u304D\u30EA\u30B9\u30C8\n\u003E \u5F15\u7528\n\u0060inline code\u0060\n**\u592A\u5B57**\n\n\n\n\n\u0060\u0060\u0060\n\u3084\u3070\u3044\u3063\u3059\n\n\n\u0060\u0060\u0060\n\n\n\n\n\n\n![alt text](./images/chat/tamasub.png)\n\n",
+      "source_heading": "",
+      "source_line_start": 0,
+      "source_md_file": "",
+      "introduced_in": "",
+      "ceremony_phrase": "",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "change_history": [],
+      "approved_by": "",
+      "approved_at": "",
+      "notes": ""
     }
   ]
 }
