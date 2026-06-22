@@ -1,5 +1,5 @@
 {
-  "view_def": "view_def_maint_fields_v0_2.json",
+  "view_def": "frb/fft_log_view_def_v0_2.json",
   "app": {
     "name": "No-Code JSON Studio",
     "version": "0.2-draft"

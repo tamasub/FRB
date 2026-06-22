@@ -4,8 +4,8 @@
     "version": "0.3-draft-relation-diff-013"
   },
   "dataSources": {
-    "relations": "constraint_trace_relations_v0_1.json",
-    "diff": "screen_state_smoke_001.diff.json"
+    "relations": "03_screen_state/constraint_trace_relations_v0_1.json",
+    "diff": "03_screen_state/screen_state_smoke_001.diff.json"
   },
   "virtualData": {
     "builder": "relation_diff_cards",
@@ -25,21 +25,21 @@
     },
     "diffViewDefs": {
       "base": {
-        "view_def": "screen_state_diff_view_def_base_v0_2_checks.json",
+        "view_def": "screen_state/screen_state_diff_view_def_base_v0_2_checks.json",
         "caption": "【BASE】Screen State Diff Base View",
         "note": "diff JSON の共通表示定義。チェック一覧・期待値・実測値を持つ基底ビュー。"
       },
       "children": [
         {
-          "view_def": "screen_state_diff_view_def_child_v0_3_summary.json",
+          "view_def": "screen_state/screen_state_diff_view_def_child_v0_3_summary.json",
           "caption": "【CHILD】Screen State Diff Summary View",
-          "extends": "screen_state_diff_view_def_base_v0_2_checks.json",
+          "extends": "screen_state/screen_state_diff_view_def_base_v0_2_checks.json",
           "note": "BASEを継承し、差分サマリ確認に寄せた子View。"
         },
         {
-          "view_def": "screen_state_diff_view_def_child_v0_3_failure_focus.json",
+          "view_def": "screen_state/screen_state_diff_view_def_child_v0_3_failure_focus.json",
           "caption": "【CHILD】Screen State Diff Failure Focus View",
-          "extends": "screen_state_diff_view_def_base_v0_2_checks.json",
+          "extends": "screen_state/screen_state_diff_view_def_base_v0_2_checks.json",
           "note": "BASEを継承し、失敗原因確認に寄せた子View。"
         }
       ]
@@ -482,6 +482,6 @@
     }
   ],
   "fieldTypeSources": [
-    "common_types_v0_1.json"
+    "common/common_types_v0_1.json"
   ]
 }

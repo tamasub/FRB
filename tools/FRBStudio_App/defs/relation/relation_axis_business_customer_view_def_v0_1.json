@@ -4,11 +4,11 @@
     "version": "0.5-relation-business-sample"
   },
   "dataSources": {
-    "customers": "business_customers_v0_1.json",
-    "projects": "business_projects_v0_1.json",
-    "tasks": "business_tasks_v0_1.json",
-    "employees": "business_employees_v0_1.json",
-    "relations": "business_relations_v0_1.json"
+    "customers": "02_business/business_customers_v0_1.json",
+    "projects": "02_business/business_projects_v0_1.json",
+    "tasks": "02_business/business_tasks_v0_1.json",
+    "employees": "02_business/business_employees_v0_1.json",
+    "relations": "02_business/business_relations_v0_1.json"
   },
   "writePolicy": {
     "mode": "singleSource",
@@ -267,6 +267,6 @@
     }
   ],
   "fieldTypeSources": [
-    "common_types_v0_1.json"
+    "common/common_types_v0_1.json"
   ]
 }

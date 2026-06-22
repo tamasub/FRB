@@ -3,7 +3,7 @@
     "title": "QA Expected Shortage Findings"
   },
   "fieldTypeSources": [
-    "common_types_v0_1.json"
+    "common/common_types_v0_1.json"
   ],
   "dataSources": {
     "test_patterns": "qa_test_patterns_sample_v0_1.json"

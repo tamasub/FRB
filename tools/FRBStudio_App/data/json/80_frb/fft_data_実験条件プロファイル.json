@@ -1,5 +1,5 @@
 {
-  "view_def": "fft_view_def_\u5B9F\u9A13\u6761\u4EF6\u30D7\u30EA\u30BB\u30C3\u30C8.json",
+  "view_def": "frb/fft_view_def_実験条件プロファイル.json",
   "items": [
     {
       "profile_id": "auto_sweep_30s_v1",

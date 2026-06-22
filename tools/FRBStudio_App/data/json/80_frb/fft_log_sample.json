@@ -1,5 +1,5 @@
 {
-  "view_def": "fft_log_view_def_v0_2.json",
+  "view_def": "frb/fft_log_view_def_v0_2.json",
   "version": 3,
   "experiment": {
     "memo": "\u30B9\u30D4\u30FC\u30AB\u30FCOn\u3000\u77ED\u30D0\u30CD\u30C0\u30D6\u30EB\u30AB\u30FC\u30DC\u30F3\u30A8\u30D5\u30A7\u30AF\u30BF\u30FCV1-2"

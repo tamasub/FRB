@@ -1,5 +1,5 @@
 {
-  "view_def": "screen_state_diff_view_def_base_v0_2_checks.json",
+  "view_def": "screen_state/screen_state_diff_view_def_base_v0_2_checks.json",
   "testId": "screen_state_smoke_001",
   "title": "初期表示の画面状態JSONを検証する",
   "capturedAt": "2026-06-19T14:24:02.883Z",

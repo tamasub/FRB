@@ -1,5 +1,5 @@
 {
-  "view_def": "screen_state_expected_view_def_v0_1.json",
+  "view_def": "screen_state/screen_state_expected_view_def_v0_1.json",
   "testId": "screen_state_smoke_001",
   "title": "初期表示の画面状態JSONを検証する",
   "checks": [

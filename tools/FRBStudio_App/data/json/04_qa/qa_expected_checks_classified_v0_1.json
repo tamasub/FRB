@@ -1,7 +1,7 @@
 {
   "schema_version": "0.1",
   "document_type": "qa_expected_checks_classified",
-  "view_def": "qa_expected_checks_classified_view_def_v0_1.json",
+  "view_def": "qa/qa_expected_checks_classified_view_def_v0_1.json",
   "title": "観点分類入りExpected定義 v0.1",
   "description": "テストパターンは増やさず、既存TPにぶら下がるチェック項目を品質観点・チェック観点・リスクで分類するためのExpected定義。",
   "policy": {

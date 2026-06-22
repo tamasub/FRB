@@ -3,7 +3,7 @@
     "title": "QA Cross CheckAxis x Risk"
   },
   "fieldTypeSources": [
-    "common_types_v0_1.json"
+    "common/common_types_v0_1.json"
   ],
   "virtualData": [
     {

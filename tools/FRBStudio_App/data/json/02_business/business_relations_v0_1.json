@@ -1,5 +1,5 @@
 {
-  "view_def": "relation_edit_view_def_v0_1.json",
+  "view_def": "relation/relation_edit_view_def_v0_1.json",
   "schema_version": "0.1-draft",
   "document_type": "business_relations",
   "title": "\u696D\u52D9Relation\u30B5\u30F3\u30D7\u30EB v0.1",

@@ -5,10 +5,10 @@
   },
   "views": [
     {
-      "id": "constraint_trace_relations_edit",
-      "caption": "制約証跡リレーション編集 / コネクト線定義",
-      "layout": {
-        "detailDialog": "wide"
+     "id": "constraint_trace_relations_edit",
+     "caption": "制約証跡リレーション編集 / コネクト線定義",
+     "layout": {
+     "detailDialog": "wide"
       },
       "sections": [
         {
@@ -210,6 +210,6 @@
     }
   ],
   "fieldTypeSources": [
-    "common_types_v0_1.json"
+    "common/common_types_v0_1.json"
   ]
 }
