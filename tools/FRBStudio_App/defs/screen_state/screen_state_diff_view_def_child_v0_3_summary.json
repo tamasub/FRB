@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "No-Code JSON Studio",
+    "name": "FRB Studio / JSON Object Studio",
     "version": "0.3-draft-child-summary"
   },
   "extends": "screen_state_diff_view_def_base_v0_2_checks.json",

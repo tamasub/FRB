@@ -1,7 +1,7 @@
 {
   "extends": "fft_log_view_def_v0_2.json",
   "app": {
-    "name": "No-Code JSON Studio",
+    "name": "FRB Studio / JSON Object Studio",
     "version": "0.3-draft / extends-demo-phase2"
   },
   "views": [

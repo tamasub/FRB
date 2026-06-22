@@ -1,0 +1,19 @@
+{
+  "schema_version": "app_settings_v0_1",
+  "document_type": "app_settings",
+  "status": "draft",
+  "updated_at": "2026-06-22",
+  "purpose": "FRB Studio / JSON Object Studio の動作設定を将来分離するための雛形。app_info.json には名札情報のみを置き、動作設定はこのファイル側へ分離する。",
+  "hosting": {
+    "prefer_api_on_localhost": true,
+    "static_fallback_enabled": true
+  },
+  "ui": {
+    "show_branding": true,
+    "show_tagline": true
+  },
+  "default_launch": {
+    "data": "",
+    "view_def": ""
+  }
+}
