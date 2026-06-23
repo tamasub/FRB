@@ -1,0 +1,774 @@
+{
+  "$schema": "frb_view_def_schema_v0_9_chat_input_mapping.json",
+  "app": {
+    "name": "ChatGPT Shared Context Viewer",
+    "version": "v0.1-draft"
+  },
+  "viewDefReport": {
+    "enabled": true,
+    "includeRawJson": true,
+    "includeResolvedJson": false,
+    "includeInheritanceDiff": false
+  },
+  "views": [
+    {
+      "id": "chatgpt_context_overview",
+      "caption": "ChatGPT共有用文脈 - ContextDef View",
+      "layout": {
+        "detailDialog": "wide"
+      },
+      "sections": [
+        {
+          "id": "context_meta",
+          "caption": "文脈メタ",
+          "type": "form",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "context_id",
+              "caption": "Context ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 220
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 220
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "schema_version",
+              "caption": "Schema Version",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "source.file_name",
+              "caption": "元ファイル",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 240
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "source.last_updated",
+              "caption": "最終更新",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "purpose",
+              "caption": "目的",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 110
+              }
+            },
+            {
+              "field": "current_one_line_summary",
+              "caption": "一言まとめ",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 140
+              }
+            }
+          ]
+        },
+        {
+          "id": "core_themes",
+          "caption": "中心テーマ",
+          "type": "grid",
+          "dataPath": "core_themes",
+          "keyField": "theme_id",
+          "fields": [
+            {
+              "field": "theme_id",
+              "caption": "Theme ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 210
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "order",
+              "caption": "順",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 60
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "title",
+              "caption": "テーマ",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 240
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "category",
+              "caption": "カテゴリ",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 180
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "summary",
+              "caption": "要約",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 520
+              },
+              "edit": {
+                "visible": true,
+                "height": 160
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "important_points",
+              "caption": "重要ポイント",
+              "type": "stringArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 160
+              }
+            },
+            {
+              "field": "keywords",
+              "caption": "キーワード",
+              "type": "stringArray",
+              "grid": {
+                "visible": true,
+                "width": 300
+              },
+              "edit": {
+                "visible": true,
+                "height": 140
+              }
+            },
+            {
+              "field": "avoid_misreadings",
+              "caption": "避けるズレ",
+              "type": "stringArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 120
+              }
+            },
+            {
+              "field": "main_outputs",
+              "caption": "主な成果物",
+              "type": "stringArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 120
+              }
+            }
+          ],
+          "markdown": {
+            "title": "中心テーマ",
+            "source": "allRows",
+            "format": "cards",
+            "fields": [
+              {
+                "field": "title",
+                "caption": "テーマ",
+                "format": "heading"
+              },
+              {
+                "field": "summary",
+                "caption": "要約",
+                "format": "paragraph"
+              },
+              {
+                "field": "important_points",
+                "caption": "重要ポイント",
+                "format": "list"
+              },
+              {
+                "field": "keywords",
+                "caption": "キーワード",
+                "format": "list"
+              }
+            ]
+          }
+        },
+        {
+          "id": "assistant_expectations",
+          "caption": "ChatGPTへの期待",
+          "type": "grid",
+          "dataPath": "assistant_expectations",
+          "keyField": "role_id",
+          "fields": [
+            {
+              "field": "role_id",
+              "caption": "Role ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 210
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "order",
+              "caption": "順",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 60
+              }
+            },
+            {
+              "field": "role_name",
+              "caption": "役割",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 220
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "summary",
+              "caption": "要約",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 520
+              },
+              "edit": {
+                "visible": true,
+                "height": 160
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "actions",
+              "caption": "期待アクション",
+              "type": "stringArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 160
+              }
+            },
+            {
+              "field": "keywords",
+              "caption": "キーワード",
+              "type": "stringArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 120
+              }
+            }
+          ]
+        },
+        {
+          "id": "cultures",
+          "caption": "大事にしている文化",
+          "type": "grid",
+          "dataPath": "cultures",
+          "keyField": "culture_id",
+          "fields": [
+            {
+              "field": "culture_id",
+              "caption": "Culture ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 220
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "name",
+              "caption": "文化",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 180
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "summary",
+              "caption": "要約",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 560
+              },
+              "edit": {
+                "visible": true,
+                "height": 150
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "examples",
+              "caption": "例",
+              "type": "stringArray",
+              "grid": {
+                "visible": true,
+                "width": 340
+              },
+              "edit": {
+                "visible": true,
+                "height": 140
+              }
+            }
+          ]
+        },
+        {
+          "id": "response_preferences",
+          "caption": "回答スタイル",
+          "type": "grid",
+          "dataPath": "response_preferences",
+          "keyField": "context",
+          "fields": [
+            {
+              "field": "context",
+              "caption": "場面",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 220
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "rules",
+              "caption": "ルール",
+              "type": "stringArray",
+              "grid": {
+                "visible": true,
+                "width": 700
+              },
+              "edit": {
+                "visible": true,
+                "height": 180
+              }
+            }
+          ]
+        },
+        {
+          "id": "publishing_channels",
+          "caption": "発信先",
+          "type": "grid",
+          "dataPath": "publishing_channels",
+          "keyField": "channel_id",
+          "fields": [
+            {
+              "field": "channel_id",
+              "caption": "Channel ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 140
+              }
+            },
+            {
+              "field": "name",
+              "caption": "発信先",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 140
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "role",
+              "caption": "役割",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 420
+              },
+              "edit": {
+                "visible": true,
+                "height": 100
+              }
+            },
+            {
+              "field": "topics",
+              "caption": "扱うもの",
+              "type": "stringArray",
+              "grid": {
+                "visible": true,
+                "width": 420
+              },
+              "edit": {
+                "visible": true,
+                "height": 160
+              }
+            }
+          ]
+        },
+        {
+          "id": "avoid_misalignments",
+          "caption": "避けるべきズレ",
+          "type": "grid",
+          "dataPath": "avoid_misalignments",
+          "keyField": "avoid_id",
+          "fields": [
+            {
+              "field": "avoid_id",
+              "caption": "Avoid ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 220
+              }
+            },
+            {
+              "field": "target",
+              "caption": "対象",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 140
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "misalignment",
+              "caption": "ズレ",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 360
+              },
+              "edit": {
+                "visible": true,
+                "height": 120
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "better_direction",
+              "caption": "より良い方向",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 460
+              },
+              "edit": {
+                "visible": true,
+                "height": 120
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            }
+          ]
+        },
+        {
+          "id": "relations",
+          "caption": "文脈リレーション",
+          "type": "grid",
+          "dataPath": "relations",
+          "keyField": "from",
+          "fields": [
+            {
+              "field": "from",
+              "caption": "From",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 220
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "relation",
+              "caption": "Relation",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 160
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "to",
+              "caption": "To",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 260
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "note",
+              "caption": "メモ",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 500
+              },
+              "edit": {
+                "visible": true,
+                "height": 120
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            }
+          ]
+        },
+        {
+          "id": "contextdef_candidates",
+          "caption": "ContextDef候補",
+          "type": "grid",
+          "dataPath": "next_contextdef_candidates",
+          "keyField": "candidate_id",
+          "fields": [
+            {
+              "field": "candidate_id",
+              "caption": "Candidate ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 180
+              }
+            },
+            {
+              "field": "title",
+              "caption": "候補",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 220
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "reason",
+              "caption": "理由",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 520
+              },
+              "edit": {
+                "visible": true,
+                "height": 140
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "suggested_fields",
+              "caption": "推奨フィールド",
+              "type": "stringArray",
+              "grid": {
+                "visible": true,
+                "width": 420
+              },
+              "edit": {
+                "visible": true,
+                "height": 160
+              }
+            }
+          ]
+        }
+      ],
+      "markdown": {
+        "enabled": true,
+        "type": "generic_sections",
+        "title": "ChatGPT共有用文脈 ContextDef Report",
+        "fileName": "chatgpt_shared_context_report.md",
+        "sections": [
+          {
+            "title": "一言まとめ",
+            "source": "root",
+            "format": "paragraph",
+            "fields": [
+              {
+                "field": "current_one_line_summary",
+                "caption": "一言まとめ",
+                "format": "paragraph"
+              }
+            ]
+          },
+          {
+            "title": "中心テーマ",
+            "source": "rows",
+            "dataPath": "core_themes",
+            "format": "cards",
+            "fields": [
+              {
+                "field": "title",
+                "caption": "テーマ",
+                "format": "heading"
+              },
+              {
+                "field": "summary",
+                "caption": "要約",
+                "format": "paragraph"
+              },
+              {
+                "field": "important_points",
+                "caption": "重要ポイント",
+                "format": "list"
+              }
+            ]
+          },
+          {
+            "title": "避けるべきズレ",
+            "source": "rows",
+            "dataPath": "avoid_misalignments",
+            "format": "table",
+            "fields": [
+              {
+                "field": "target",
+                "caption": "対象"
+              },
+              {
+                "field": "misalignment",
+                "caption": "ズレ"
+              },
+              {
+                "field": "better_direction",
+                "caption": "より良い方向"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

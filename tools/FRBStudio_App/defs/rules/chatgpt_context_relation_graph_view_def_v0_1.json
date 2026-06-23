@@ -1,0 +1,671 @@
+{
+  "app": {
+    "name": "ChatGPT Context Relation Graph Viewer",
+    "version": "v0.1"
+  },
+  "views": [
+    {
+      "id": "relation_edges",
+      "caption": "キーワード関係性",
+      "layout": {
+        "detailDialog": "wide"
+      },
+      "sections": [
+        {
+          "id": "meta",
+          "caption": "文脈メタ",
+          "type": "form",
+          "dataPath": "$.meta",
+          "fields": [
+            {
+              "field": "context_id",
+              "caption": "Context ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "purpose",
+              "caption": "目的",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 90
+              }
+            },
+            {
+              "field": "main_question",
+              "caption": "主問い",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 70
+              }
+            },
+            {
+              "field": "design_note",
+              "caption": "設計メモ",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 70
+              }
+            }
+          ]
+        },
+        {
+          "id": "relations",
+          "caption": "関係性エッジ",
+          "type": "grid",
+          "dataPath": "$.relations",
+          "keyField": "relation_id",
+          "fields": [
+            {
+              "field": "relation_id",
+              "caption": "Relation ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 95
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "source_keyword",
+              "caption": "起点キーワード",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 150
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "relation_type",
+              "caption": "関係",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 130
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "target_keyword",
+              "caption": "接続キーワード",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 160
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "weight",
+              "caption": "重み",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 70
+              },
+              "edit": {
+                "visible": true,
+                "min": 1,
+                "max": 5
+              }
+            },
+            {
+              "field": "relation_sentence",
+              "caption": "関係文",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 300
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "summary",
+              "caption": "関係の意味",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 420
+              },
+              "edit": {
+                "visible": true,
+                "height": 120
+              }
+            },
+            {
+              "field": "usage_hint",
+              "caption": "使いどころ",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 100
+              }
+            },
+            {
+              "field": "human_wrap_hint",
+              "caption": "他者巻き込みヒント",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 100
+              }
+            },
+            {
+              "field": "source_id",
+              "caption": "Source ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "target_id",
+              "caption": "Target ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "keyword_hubs",
+      "caption": "キーワード別リンク群",
+      "layout": {
+        "detailDialog": "wide"
+      },
+      "sections": [
+        {
+          "id": "keyword_hubs",
+          "caption": "ハブキーワード",
+          "type": "grid",
+          "dataPath": "$.keyword_hubs",
+          "keyField": "hub_id",
+          "fields": [
+            {
+              "field": "hub_id",
+              "caption": "Hub ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 80
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "hub_keyword",
+              "caption": "中心キーワード",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 180
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "category",
+              "caption": "カテゴリ",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 150
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "summary",
+              "caption": "要約",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 480
+              },
+              "edit": {
+                "visible": true,
+                "height": 120
+              }
+            },
+            {
+              "field": "linked_count",
+              "caption": "リンク数",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 80
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "linked_keywords",
+              "caption": "接続キーワード群",
+              "type": "objectArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 260
+              },
+              "fields": [
+                {
+                  "field": "keyword",
+                  "caption": "Keyword",
+                  "type": "text",
+                  "grid": {
+                    "visible": true,
+                    "width": 160
+                  },
+                  "edit": {
+                    "visible": true
+                  }
+                },
+                {
+                  "field": "direction",
+                  "caption": "方向",
+                  "type": "text",
+                  "grid": {
+                    "visible": true,
+                    "width": 90
+                  },
+                  "edit": {
+                    "visible": true
+                  }
+                },
+                {
+                  "field": "relation_type",
+                  "caption": "関係",
+                  "type": "text",
+                  "grid": {
+                    "visible": true,
+                    "width": 130
+                  },
+                  "edit": {
+                    "visible": true
+                  }
+                },
+                {
+                  "field": "weight",
+                  "caption": "重み",
+                  "type": "number",
+                  "grid": {
+                    "visible": true,
+                    "width": 60
+                  },
+                  "edit": {
+                    "visible": true
+                  }
+                },
+                {
+                  "field": "note",
+                  "caption": "メモ",
+                  "type": "textarea",
+                  "grid": {
+                    "visible": true,
+                    "width": 420
+                  },
+                  "edit": {
+                    "visible": true,
+                    "height": 80
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "keyword_nodes",
+      "caption": "キーワード辞書",
+      "layout": {
+        "detailDialog": "wide"
+      },
+      "sections": [
+        {
+          "id": "keywords",
+          "caption": "キーワード",
+          "type": "grid",
+          "dataPath": "$.keywords",
+          "keyField": "keyword_id",
+          "fields": [
+            {
+              "field": "keyword_id",
+              "caption": "Keyword ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "keyword",
+              "caption": "キーワード",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 180
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "category",
+              "caption": "カテゴリ",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 170
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "importance",
+              "caption": "重要度",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 70
+              },
+              "edit": {
+                "visible": true,
+                "min": 1,
+                "max": 5
+              }
+            },
+            {
+              "field": "definition",
+              "caption": "定義",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 520
+              },
+              "edit": {
+                "visible": true,
+                "height": 120
+              }
+            },
+            {
+              "field": "aliases",
+              "caption": "別名",
+              "type": "stringArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 120
+              }
+            },
+            {
+              "field": "note",
+              "caption": "メモ",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 100
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "onboarding_paths",
+      "caption": "他者巻き込み導線",
+      "layout": {
+        "detailDialog": "wide"
+      },
+      "sections": [
+        {
+          "id": "onboarding_paths",
+          "caption": "導線",
+          "type": "grid",
+          "dataPath": "$.onboarding_paths",
+          "keyField": "path_id",
+          "fields": [
+            {
+              "field": "path_id",
+              "caption": "Path ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 90
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "title",
+              "caption": "導線名",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 220
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "start_keyword",
+              "caption": "入口キーワード",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 150
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "route",
+              "caption": "ルート",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 420
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "message",
+              "caption": "伝え方",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 420
+              },
+              "edit": {
+                "visible": true,
+                "height": 120
+              }
+            },
+            {
+              "field": "expected_reaction",
+              "caption": "期待反応",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 100
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "relation_types",
+      "caption": "関係タイプ辞書",
+      "layout": "header-search-grid-detail",
+      "sections": [
+        {
+          "id": "relation_types",
+          "caption": "関係タイプ",
+          "type": "grid",
+          "dataPath": "$.relation_types",
+          "keyField": "relation_type",
+          "fields": [
+            {
+              "field": "relation_type",
+              "caption": "Relation Type",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 170
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "label",
+              "caption": "表示名",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 180
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "description",
+              "caption": "説明",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 520
+              },
+              "edit": {
+                "visible": true,
+                "height": 120
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

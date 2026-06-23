@@ -1,0 +1,561 @@
+{
+  "app": {
+    "name": "Raw Keyword Activation Viewer",
+    "version": "v0.1"
+  },
+  "views": [
+    {
+      "id": "raw_keywords",
+      "caption": "生キーワード",
+      "layout": {
+        "detailDialog": "wide"
+      },
+      "sections": [
+        {
+          "id": "meta",
+          "caption": "メタ",
+          "type": "form",
+          "dataPath": "$.meta",
+          "fields": [
+            {
+              "field": "title",
+              "caption": "Title",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "purpose",
+              "caption": "Purpose",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 90
+              }
+            },
+            {
+              "field": "mode",
+              "caption": "Mode",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "constraint",
+              "caption": "Constraint",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 80
+              }
+            }
+          ]
+        },
+        {
+          "id": "raw_keywords",
+          "caption": "生キーワード一覧",
+          "type": "grid",
+          "dataPath": "$.raw_keywords",
+          "keyField": "keyword_id",
+          "fields": [
+            {
+              "field": "keyword_id",
+              "caption": "ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 80
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "raw_keyword",
+              "caption": "Raw Keyword",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 220
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "bucket",
+              "caption": "Bucket",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 130
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "importance",
+              "caption": "Imp",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 55
+              },
+              "edit": {
+                "visible": true,
+                "min": 1,
+                "max": 5
+              }
+            },
+            {
+              "field": "static_strength",
+              "caption": "Static",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 75,
+                "format": "#.00"
+              },
+              "edit": {
+                "visible": true,
+                "step": 0.01
+              }
+            },
+            {
+              "field": "context_prime",
+              "caption": "Prime",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 75,
+                "format": "#.00"
+              },
+              "edit": {
+                "visible": true,
+                "step": 0.01
+              }
+            },
+            {
+              "field": "raw_role",
+              "caption": "Role",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 140
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "normalization_state",
+              "caption": "State",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 90
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "note",
+              "caption": "Note",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 320
+              },
+              "edit": {
+                "visible": true,
+                "height": 100
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_edges",
+      "caption": "生キーワードペア",
+      "layout": {
+        "detailDialog": "wide"
+      },
+      "sections": [
+        {
+          "id": "raw_edges",
+          "caption": "Raw Edges",
+          "type": "grid",
+          "dataPath": "$.raw_edges",
+          "keyField": "edge_id",
+          "fields": [
+            {
+              "field": "edge_id",
+              "caption": "ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 80
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "keyword_a",
+              "caption": "Keyword A",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 180
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "keyword_b",
+              "caption": "Keyword B",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 180
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "static_strength",
+              "caption": "Static",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 75,
+                "format": "#.00"
+              },
+              "edit": {
+                "visible": true,
+                "step": 0.01
+              }
+            },
+            {
+              "field": "context_prime",
+              "caption": "Prime",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 75,
+                "format": "#.00"
+              },
+              "edit": {
+                "visible": true,
+                "step": 0.01
+              }
+            },
+            {
+              "field": "treasure_score",
+              "caption": "Treasure",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 80
+              },
+              "edit": {
+                "visible": true,
+                "min": 1,
+                "max": 5
+              }
+            },
+            {
+              "field": "status",
+              "caption": "Status",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 130
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "raw_pair",
+              "caption": "Raw Pair",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 320
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "view_hint",
+              "caption": "View Hint",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 80
+              }
+            },
+            {
+              "field": "note",
+              "caption": "Note",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 80
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "activation_candidates",
+      "caption": "発火候補ランキング",
+      "layout": {
+        "detailDialog": "wide"
+      },
+      "sections": [
+        {
+          "id": "activation_candidates",
+          "caption": "Candidates",
+          "type": "grid",
+          "dataPath": "$.activation_candidates",
+          "keyField": "candidate_id",
+          "fields": [
+            {
+              "field": "candidate_id",
+              "caption": "ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 90
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "rank",
+              "caption": "Rank",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 60
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "candidate_label",
+              "caption": "Candidate",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 300
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "activation_score",
+              "caption": "Activation",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 90,
+                "format": "#.00"
+              },
+              "edit": {
+                "visible": true,
+                "step": 0.01
+              }
+            },
+            {
+              "field": "adopted",
+              "caption": "Adopted",
+              "type": "boolean",
+              "grid": {
+                "visible": true,
+                "width": 80
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "raw_keywords",
+              "caption": "Raw Keywords",
+              "type": "stringArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 180
+              }
+            },
+            {
+              "field": "memo",
+              "caption": "Memo",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 360
+              },
+              "edit": {
+                "visible": true,
+                "height": 100
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raw_sequences",
+      "caption": "生キーワード系列",
+      "layout": {
+        "detailDialog": "wide"
+      },
+      "sections": [
+        {
+          "id": "raw_sequences",
+          "caption": "Sequences",
+          "type": "grid",
+          "dataPath": "$.raw_sequences",
+          "keyField": "seq_id",
+          "fields": [
+            {
+              "field": "seq_id",
+              "caption": "ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 80
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "order",
+              "caption": "Order",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 70
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "raw_sequence",
+              "caption": "Raw Sequence",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 520
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "activation",
+              "caption": "Activation",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 90,
+                "format": "#.00"
+              },
+              "edit": {
+                "visible": true,
+                "step": 0.01
+              }
+            },
+            {
+              "field": "note",
+              "caption": "Note",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 320
+              },
+              "edit": {
+                "visible": true,
+                "height": 100
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

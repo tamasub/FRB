@@ -1,0 +1,642 @@
+{
+  "app": {
+    "name": "Sentence Prime Map Viewer",
+    "version": "v0.1"
+  },
+  "views": [
+    {
+      "id": "sentences",
+      "caption": "センテンス一覧",
+      "layout": {
+        "detailDialog": "wide"
+      },
+      "sections": [
+        {
+          "id": "meta",
+          "caption": "メタ",
+          "type": "form",
+          "dataPath": "$.meta",
+          "fields": [
+            {
+              "field": "title",
+              "caption": "Title",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "purpose",
+              "caption": "Purpose",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 80
+              }
+            },
+            {
+              "field": "concept",
+              "caption": "Concept",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "expected_win_condition",
+              "caption": "勝ち条件",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 80
+              }
+            },
+            {
+              "field": "warning",
+              "caption": "Warning",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 80
+              }
+            }
+          ]
+        },
+        {
+          "id": "sentences",
+          "caption": "センテンス",
+          "type": "grid",
+          "dataPath": "$.sentences",
+          "keyField": "sentence_id",
+          "fields": [
+            {
+              "field": "sentence_id",
+              "caption": "Sentence ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 95
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "source_section",
+              "caption": "Source Section",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 220
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "primary_anchor",
+              "caption": "Primary Anchor",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 150
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "source_sentence",
+              "caption": "Source Sentence",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 620
+              },
+              "edit": {
+                "visible": true,
+                "height": 130
+              }
+            },
+            {
+              "field": "sentence_note",
+              "caption": "Sentence Note",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 90
+              }
+            },
+            {
+              "field": "top_on_question",
+              "caption": "Top おん？",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 360
+              },
+              "edit": {
+                "visible": true,
+                "height": 100
+              }
+            },
+            {
+              "field": "anchors",
+              "caption": "Anchors",
+              "type": "objectArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 220
+              },
+              "fields": [
+                {
+                  "field": "anchor_id",
+                  "caption": "Anchor ID",
+                  "type": "text",
+                  "grid": {
+                    "visible": true,
+                    "width": 90
+                  },
+                  "edit": {
+                    "visible": true
+                  }
+                },
+                {
+                  "field": "anchor_word",
+                  "caption": "Anchor Word",
+                  "type": "text",
+                  "grid": {
+                    "visible": true,
+                    "width": 160
+                  },
+                  "edit": {
+                    "visible": true
+                  }
+                },
+                {
+                  "field": "candidates",
+                  "caption": "Candidates",
+                  "type": "objectArray",
+                  "grid": {
+                    "visible": false
+                  },
+                  "edit": {
+                    "visible": true,
+                    "height": 180
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "candidate_ranking",
+      "caption": "候補ランキング",
+      "layout": {
+        "detailDialog": "wide"
+      },
+      "sections": [
+        {
+          "id": "sentence_candidates",
+          "caption": "センテンス別 候補ランキング",
+          "type": "grid",
+          "dataPath": "$.sentence_candidates",
+          "keyField": "candidate_id",
+          "fields": [
+            {
+              "field": "candidate_id",
+              "caption": "Candidate ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "sentence_id",
+              "caption": "Sentence ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 95
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "anchor_word",
+              "caption": "Anchor",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 130
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "rank",
+              "caption": "Rank",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 60
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "candidate_word",
+              "caption": "Candidate Word",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 220
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "status",
+              "caption": "Status",
+              "type": "select",
+              "options": [
+                "adopted",
+                "discarded"
+              ],
+              "grid": {
+                "visible": true,
+                "width": 100
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "relation_type",
+              "caption": "Relation",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 150
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "prime",
+              "caption": "Prime",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 70,
+                "format": "#.00"
+              },
+              "edit": {
+                "visible": true,
+                "step": 0.01
+              }
+            },
+            {
+              "field": "confidence",
+              "caption": "Conf",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 70,
+                "format": "#.00"
+              },
+              "edit": {
+                "visible": true,
+                "step": 0.01
+              }
+            },
+            {
+              "field": "treasure_score",
+              "caption": "Treasure",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 80
+              },
+              "edit": {
+                "visible": true,
+                "min": 1,
+                "max": 5
+              }
+            },
+            {
+              "field": "output_role",
+              "caption": "Output Role",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 180
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "on_candidate",
+              "caption": "おん？",
+              "type": "boolean",
+              "grid": {
+                "visible": true,
+                "width": 70
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "discarded_reason",
+              "caption": "Discarded Reason",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 100
+              }
+            },
+            {
+              "field": "review_question",
+              "caption": "Review Question",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 420
+              },
+              "edit": {
+                "visible": true,
+                "height": 110
+              }
+            },
+            {
+              "field": "source_sentence",
+              "caption": "Source Sentence",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 120
+              }
+            },
+            {
+              "field": "source_section",
+              "caption": "Source Section",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "on_candidates",
+      "caption": "おん？候補",
+      "layout": {
+        "detailDialog": "wide"
+      },
+      "sections": [
+        {
+          "id": "on_candidates",
+          "caption": "捨てられた2位・3位候補",
+          "type": "grid",
+          "dataPath": "$.on_candidates",
+          "keyField": "candidate_id",
+          "fields": [
+            {
+              "field": "sentence_id",
+              "caption": "Sentence ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 95
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "anchor_word",
+              "caption": "Anchor",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 130
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "rank",
+              "caption": "Rank",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 60
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "candidate_word",
+              "caption": "捨て候補",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 240
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "prime",
+              "caption": "Prime",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 70,
+                "format": "#.00"
+              },
+              "edit": {
+                "visible": true,
+                "step": 0.01
+              }
+            },
+            {
+              "field": "treasure_score",
+              "caption": "Treasure",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 80
+              },
+              "edit": {
+                "visible": true,
+                "min": 1,
+                "max": 5
+              }
+            },
+            {
+              "field": "review_question",
+              "caption": "おん？質問",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 520
+              },
+              "edit": {
+                "visible": true,
+                "height": 120
+              }
+            },
+            {
+              "field": "discarded_reason",
+              "caption": "捨てた理由",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 360
+              },
+              "edit": {
+                "visible": true,
+                "height": 100
+              }
+            },
+            {
+              "field": "source_sentence",
+              "caption": "元センテンス",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 140
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "markdown_preview",
+      "caption": "Markdown Preview",
+      "layout": {
+        "detailDialog": "wide"
+      },
+      "sections": [
+        {
+          "id": "markdown_preview",
+          "caption": "Markdown",
+          "type": "form",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "markdown_preview",
+              "caption": "Markdown Preview",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 700
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

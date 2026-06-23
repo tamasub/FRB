@@ -1,0 +1,1068 @@
+{
+  "schema_version": "chatgpt_context_relation_graph_v0_1",
+  "view_def_name": "chatgpt_context_relation_graph_view_def_v0_1.json",
+  "created_at": "2026-06-23",
+  "source": {
+    "source_file": "ChatGPT共有用文脈.md",
+    "extraction_view": "ChatGPTから見えたキーワード関係性",
+    "note": "前回の分類型JSONではなく、キーワード間の関係性を中心にしたContextDef原型。"
+  },
+  "meta": {
+    "context_id": "chatgpt_shared_context_relation_graph",
+    "title": "ChatGPT共有文脈 関係性グラフ",
+    "purpose": "ChatGPT共有用文脈.mdから、キーワード同士の関係性をJSON化し、Studioくんで観測・編集できるようにする。",
+    "main_question": "あるキーワードに紐づく別のキーワード群との関係性をどう見える化するか。",
+    "design_note": "relationsはエッジリスト、keyword_hubsは人間が見やすいハブ別表示。"
+  },
+  "keywords": [
+    {
+      "keyword_id": "kw_frb",
+      "keyword": "FRB",
+      "category": "center_theme",
+      "definition": "釣り竿の感度を振動構造として比較・可視化・共有する個人研究。",
+      "importance": 5,
+      "aliases": [
+        "Fishing Rod Benchmark"
+      ],
+      "note": "ランキングではなく、違いを共有する共通言語。"
+    },
+    {
+      "keyword_id": "kw_sensitivity",
+      "keyword": "感度",
+      "category": "target_concept",
+      "definition": "単純な振動量ではなく、人間が認識可能な振動構造。",
+      "importance": 5,
+      "aliases": [
+        "ロッド感度"
+      ],
+      "note": "FRBの再定義対象。"
+    },
+    {
+      "keyword_id": "kw_vibration_structure",
+      "keyword": "振動構造",
+      "category": "core_concept",
+      "definition": "人間が情報として認識できる振動の帯域・時間変化・残り方・まとまり。",
+      "importance": 5,
+      "aliases": [
+        "周波数構造",
+        "和音構造"
+      ],
+      "note": "感度の中身として扱う。"
+    },
+    {
+      "keyword_id": "kw_indoor_reproduction",
+      "keyword": "室内再現テスト",
+      "category": "method",
+      "definition": "床擦り、擬似バイト、素材干渉などで海の振動差分を室内に持ち込む方法。",
+      "importance": 5,
+      "aliases": [
+        "室内テスト"
+      ],
+      "note": "海の代替ではなく、海で感じるための振動辞書作り。"
+    },
+    {
+      "keyword_id": "kw_vibration_dictionary",
+      "keyword": "振動辞書",
+      "category": "concept",
+      "definition": "室内で体験した振動差分を、海で認識するための身体側の参照辞書。",
+      "importance": 4,
+      "aliases": [
+        "知覚辞書"
+      ],
+      "note": "FRBが人間側にも踏み込む理由。"
+    },
+    {
+      "keyword_id": "kw_perception_training",
+      "keyword": "知覚トレーニング",
+      "category": "practice",
+      "definition": "微細な振動を砂・岩・藻・糸擦れ・ぷるぷる等として認識できるようにする練習。",
+      "importance": 5,
+      "aliases": [
+        "感覚トレーニング"
+      ],
+      "note": "FRBは測定器開発だけではない。"
+    },
+    {
+      "keyword_id": "kw_difference_culture",
+      "keyword": "差分文化",
+      "category": "culture",
+      "definition": "差分を見ることで問いが生まれ、仮説・実験・共有が動き出す文化。",
+      "importance": 5,
+      "aliases": [
+        "差分を見る文化"
+      ],
+      "note": "FRBとAI駆動開発の共通原理。"
+    },
+    {
+      "keyword_id": "kw_esp32",
+      "keyword": "ESP32",
+      "category": "device",
+      "definition": "FRBの振動計測装置の中心となるマイコン。",
+      "importance": 3,
+      "aliases": [
+        "ESP32装置"
+      ],
+      "note": "MPU-6050 / INMP441と組み合わせて使う。"
+    },
+    {
+      "keyword_id": "kw_fft",
+      "keyword": "FFT解析",
+      "category": "method",
+      "definition": "振動を周波数構造として可視化する解析方法。",
+      "importance": 4,
+      "aliases": [
+        "周波数解析"
+      ],
+      "note": "見えない振動を見える形へ変換する。"
+    },
+    {
+      "keyword_id": "kw_ai_collaboration",
+      "keyword": "AI協働",
+      "category": "work_style",
+      "definition": "AIを回答生成器ではなく、文脈を共有して思考を広げる相棒として扱うこと。",
+      "importance": 5,
+      "aliases": [
+        "人間×AI協働"
+      ],
+      "note": "FRB、記事、Studioくんを貫く仕事の型。"
+    },
+    {
+      "keyword_id": "kw_thought_expansion",
+      "keyword": "思考拡張",
+      "category": "center_theme",
+      "definition": "AIとの対話を通じて、一人では到達できなかった思考領域へ踏み込む現象。",
+      "importance": 5,
+      "aliases": [
+        "思考の拡張"
+      ],
+      "note": "違和感を流さず、問いへ変えることで進む。"
+    },
+    {
+      "keyword_id": "kw_discomfort",
+      "keyword": "違和感",
+      "category": "trigger",
+      "definition": "既存の理解と現象のズレ。思考拡張の入口。",
+      "importance": 5,
+      "aliases": [
+        "ひっかかり",
+        "おん？"
+      ],
+      "note": "流すと消える。拾うと研究になる。"
+    },
+    {
+      "keyword_id": "kw_question_design",
+      "keyword": "問い設置",
+      "category": "method",
+      "definition": "答えを渡すのではなく、相手の思考が立ち上がる問いを置くこと。",
+      "importance": 4,
+      "aliases": [
+        "問いを置く"
+      ],
+      "note": "他者巻き込みにも効く。"
+    },
+    {
+      "keyword_id": "kw_context",
+      "keyword": "文脈",
+      "category": "infrastructure",
+      "definition": "途中経過・判断軸・感情・失敗・違和感を含む、AI協働の土台。",
+      "importance": 5,
+      "aliases": [
+        "Context"
+      ],
+      "note": "AIとの対話は人間との対話と同じ、という前提。"
+    },
+    {
+      "keyword_id": "kw_contextdef",
+      "keyword": "ContextDef",
+      "category": "studio_concept",
+      "definition": "AIや人間が使う文脈構造を定義するためのJSON的な設計対象。",
+      "importance": 5,
+      "aliases": [
+        "文脈定義"
+      ],
+      "note": "今回の関係性JSONが原型。"
+    },
+    {
+      "keyword_id": "kw_viewdef",
+      "keyword": "ViewDef",
+      "category": "studio_concept",
+      "definition": "JSON Dataをどう見せるかを定義する画面定義JSON。",
+      "importance": 5,
+      "aliases": [
+        "画面定義JSON"
+      ],
+      "note": "Viewをデータ化する仕組み。"
+    },
+    {
+      "keyword_id": "kw_json_studio",
+      "keyword": "Studioくん",
+      "category": "tool",
+      "definition": "JSONで思考を構造化し、AIとの文脈を育てるためのStudio。",
+      "importance": 5,
+      "aliases": [
+        "JSON Object Studio",
+        "No-Code JSON Studio"
+      ],
+      "note": "JSON Editorから育った存在。"
+    },
+    {
+      "keyword_id": "kw_data_view_separation",
+      "keyword": "Data/View分離",
+      "category": "design_principle",
+      "definition": "MarkdownやJSONをDataとして扱い、Viewは後から生成する考え方。",
+      "importance": 5,
+      "aliases": [
+        "Viewのデータ化"
+      ],
+      "note": "JSON Studioの根っこ。"
+    },
+    {
+      "keyword_id": "kw_markdown",
+      "keyword": "Markdown",
+      "category": "data_format",
+      "definition": "文書・物語・文脈を扱うためのData。",
+      "importance": 4,
+      "aliases": [
+        "md"
+      ],
+      "note": "AI協働の外部記憶。"
+    },
+    {
+      "keyword_id": "kw_json",
+      "keyword": "JSON",
+      "category": "data_format",
+      "definition": "構造化された思考・制約・ログ・関係性を扱うためのData。",
+      "importance": 5,
+      "aliases": [
+        "構造化Data"
+      ],
+      "note": "AIとGit diffとの相性が高い。"
+    },
+    {
+      "keyword_id": "kw_gitdiff",
+      "keyword": "Git diff",
+      "category": "method",
+      "definition": "JSON/Markdownの変更差分を観測し、AIに渡すための仕組み。",
+      "importance": 4,
+      "aliases": [
+        "差分"
+      ],
+      "note": "データフォーマットを超えた差分文化につながる。"
+    },
+    {
+      "keyword_id": "kw_ai_driven_dev",
+      "keyword": "AI駆動開発",
+      "category": "center_theme",
+      "definition": "AIにコードを書かせる話ではなく、差分・再現性・制約を大切にする文化。",
+      "importance": 5,
+      "aliases": [
+        "AI駆動開発文化"
+      ],
+      "note": "レビュー対象はコードから制約へ移っていく可能性がある。"
+    },
+    {
+      "keyword_id": "kw_reproducibility",
+      "keyword": "再現性",
+      "category": "principle",
+      "definition": "同じ条件で何度でも試せること。差分を見るための前提。",
+      "importance": 5,
+      "aliases": [
+        "再実行可能性"
+      ],
+      "note": "AIに渡せる情報とは、再現できる情報。"
+    },
+    {
+      "keyword_id": "kw_constraints",
+      "keyword": "制約",
+      "category": "principle",
+      "definition": "AIや人間の思考を安全に動かすための境界線。",
+      "importance": 5,
+      "aliases": [
+        "安全柵"
+      ],
+      "note": "制約は自由の反対ではなく、発見の器。"
+    },
+    {
+      "keyword_id": "kw_test_code",
+      "keyword": "テストコード",
+      "category": "engineering_artifact",
+      "definition": "判断の根拠を再現可能な差分として残す行為。",
+      "importance": 5,
+      "aliases": [
+        "宝物"
+      ],
+      "note": "AI駆動開発の中核。"
+    },
+    {
+      "keyword_id": "kw_ai_test_story",
+      "keyword": "AIテスト物語",
+      "category": "ai_artifact",
+      "definition": "テストコードを読み、何を守ろうとしたのかを人間が理解できる物語へ圧縮する成果物。",
+      "importance": 4,
+      "aliases": [],
+      "note": "大量コード承認を助ける。"
+    },
+    {
+      "keyword_id": "kw_ai_diff_story",
+      "keyword": "AI差分物語",
+      "category": "ai_artifact",
+      "definition": "差分を人間が読める物語へ変換し、承認判断や違和感回収を助ける成果物。",
+      "importance": 5,
+      "aliases": [
+        "差分物語"
+      ],
+      "note": "変更点から思考を再起動する。"
+    },
+    {
+      "keyword_id": "kw_constraint_compare",
+      "keyword": "Constraint Compare",
+      "category": "ai_artifact",
+      "definition": "人間の制約とAIが推定した制約を比較し、ズレを観測する仕組み。",
+      "importance": 4,
+      "aliases": [
+        "制約比較"
+      ],
+      "note": "おん？を早く発見するための構造。"
+    },
+    {
+      "keyword_id": "kw_human_onboarding",
+      "keyword": "他者巻き込み",
+      "category": "mission",
+      "definition": "まだ伝わっていない研究や文化を、他の人間が一緒に遊べる形へ変換すること。",
+      "importance": 5,
+      "aliases": [
+        "仲間づくり",
+        "一緒にあそぶ"
+      ],
+      "note": "最大の課題。"
+    },
+    {
+      "keyword_id": "kw_artifact",
+      "keyword": "成果物化",
+      "category": "practice",
+      "definition": "良い概念を流さず、記事・JSON・ViewDef・引継ぎ要約として残すこと。",
+      "importance": 5,
+      "aliases": [
+        "外部記憶化"
+      ],
+      "note": "思考冷却と文脈継承にもなる。"
+    },
+    {
+      "keyword_id": "kw_u632fu52d5u8a08u6e2c",
+      "keyword": "振動計測",
+      "category": "method",
+      "definition": "センサーで振動を観測し、数値・ログとして保存すること。",
+      "importance": 4,
+      "aliases": [],
+      "note": "関係性グラフ補助ノード。"
+    },
+    {
+      "keyword_id": "kw_u95a2u4fc2u6027",
+      "keyword": "関係性",
+      "category": "structure",
+      "definition": "キーワード同士のつながり、因果、依存、変換、役割を表す構造。",
+      "importance": 4,
+      "aliases": [],
+      "note": "関係性グラフ補助ノード。"
+    }
+  ],
+  "relations": [
+    {
+      "relation_id": "rel_001",
+      "source_id": "kw_frb",
+      "source_keyword": "FRB",
+      "relation_type": "redefines",
+      "target_id": "kw_sensitivity",
+      "target_keyword": "感度",
+      "weight": 5,
+      "summary": "感度を単純な強弱ではなく、人間が認識可能な振動構造として扱う。",
+      "usage_hint": "FRBを説明するときの最初の変換点。",
+      "relation_sentence": "FRB --redefines--> 感度",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_002",
+      "source_id": "kw_sensitivity",
+      "source_keyword": "感度",
+      "relation_type": "is_expressed_as",
+      "target_id": "kw_vibration_structure",
+      "target_keyword": "振動構造",
+      "weight": 5,
+      "summary": "感じているものの中身を、周波数・時間変化・残留・まとまりとして見る。",
+      "usage_hint": "感度という曖昧語を分解できる。",
+      "relation_sentence": "感度 --is_expressed_as--> 振動構造",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_003",
+      "source_id": "kw_frb",
+      "source_keyword": "FRB",
+      "relation_type": "uses",
+      "target_id": "kw_indoor_reproduction",
+      "target_keyword": "室内再現テスト",
+      "weight": 5,
+      "summary": "海でしか起きないと思っていた振動差分を、室内で再現して観測する。",
+      "usage_hint": "他者が追試できる入口になる。",
+      "relation_sentence": "FRB --uses--> 室内再現テスト",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_004",
+      "source_id": "kw_indoor_reproduction",
+      "source_keyword": "室内再現テスト",
+      "relation_type": "builds",
+      "target_id": "kw_vibration_dictionary",
+      "target_keyword": "振動辞書",
+      "weight": 5,
+      "summary": "室内体験を海で感じるための参照辞書として育てる。",
+      "usage_hint": "測定と知覚トレーニングを接続する。",
+      "relation_sentence": "室内再現テスト --builds--> 振動辞書",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_005",
+      "source_id": "kw_frb",
+      "source_keyword": "FRB",
+      "relation_type": "includes",
+      "target_id": "kw_perception_training",
+      "target_keyword": "知覚トレーニング",
+      "weight": 5,
+      "summary": "測定器だけではなく、人間側の受信能力を育てる。",
+      "usage_hint": "FRBの独自性。",
+      "relation_sentence": "FRB --includes--> 知覚トレーニング",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_006",
+      "source_id": "kw_frb",
+      "source_keyword": "FRB",
+      "relation_type": "cultivates",
+      "target_id": "kw_difference_culture",
+      "target_keyword": "差分文化",
+      "weight": 5,
+      "summary": "前後差・素材差・ロッド差を見ることで問いが生まれる。",
+      "usage_hint": "比較ランキングではなく、違いを楽しむ文化になる。",
+      "relation_sentence": "FRB --cultivates--> 差分文化",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_007",
+      "source_id": "kw_esp32",
+      "source_keyword": "ESP32",
+      "relation_type": "enables",
+      "target_id": "kw_u632fu52d5u8a08u6e2c",
+      "target_keyword": "振動計測",
+      "weight": 3,
+      "summary": "センサー入力を取得し、振動を測るための実装基盤になる。",
+      "usage_hint": "FRBを物理実験へ接続する。",
+      "relation_sentence": "ESP32 --enables--> 振動計測",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_008",
+      "source_id": "kw_fft",
+      "source_keyword": "FFT解析",
+      "relation_type": "visualizes",
+      "target_id": "kw_vibration_structure",
+      "target_keyword": "振動構造",
+      "weight": 4,
+      "summary": "振動を周波数帯として見える化する。",
+      "usage_hint": "体感と数値のズレを見るために必要。",
+      "relation_sentence": "FFT解析 --visualizes--> 振動構造",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_009",
+      "source_id": "kw_thought_expansion",
+      "source_keyword": "思考拡張",
+      "relation_type": "starts_from",
+      "target_id": "kw_discomfort",
+      "target_keyword": "違和感",
+      "weight": 5,
+      "summary": "腑に落ちないものを流さず拾うことで思考が動く。",
+      "usage_hint": "研究の燃料。",
+      "relation_sentence": "思考拡張 --starts_from--> 違和感",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_010",
+      "source_id": "kw_discomfort",
+      "source_keyword": "違和感",
+      "relation_type": "becomes",
+      "target_id": "kw_question_design",
+      "target_keyword": "問い設置",
+      "weight": 4,
+      "summary": "違和感を問いへ変えると、AIや他者との対話が進む。",
+      "usage_hint": "答えより問いを置く文化へつながる。",
+      "relation_sentence": "違和感 --becomes--> 問い設置",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_011",
+      "source_id": "kw_thought_expansion",
+      "source_keyword": "思考拡張",
+      "relation_type": "requires",
+      "target_id": "kw_context",
+      "target_keyword": "文脈",
+      "weight": 5,
+      "summary": "AIに途中経過・判断軸・感情・失敗を渡すほど、出力の質が上がる。",
+      "usage_hint": "文脈.mdの存在理由。",
+      "relation_sentence": "思考拡張 --requires--> 文脈",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_012",
+      "source_id": "kw_ai_collaboration",
+      "source_keyword": "AI協働",
+      "relation_type": "depends_on",
+      "target_id": "kw_context",
+      "target_keyword": "文脈",
+      "weight": 5,
+      "summary": "人間との対話と同じく、深く理解してほしければ文脈共有が必要。",
+      "usage_hint": "AIを相棒にする前提。",
+      "relation_sentence": "AI協働 --depends_on--> 文脈",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_013",
+      "source_id": "kw_ai_driven_dev",
+      "source_keyword": "AI駆動開発",
+      "relation_type": "depends_on",
+      "target_id": "kw_difference_culture",
+      "target_keyword": "差分文化",
+      "weight": 5,
+      "summary": "AI出力と期待値の差分を見て、人間が判断する。",
+      "usage_hint": "AI駆動開発の文化面。",
+      "relation_sentence": "AI駆動開発 --depends_on--> 差分文化",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_014",
+      "source_id": "kw_ai_driven_dev",
+      "source_keyword": "AI駆動開発",
+      "relation_type": "depends_on",
+      "target_id": "kw_reproducibility",
+      "target_keyword": "再現性",
+      "weight": 5,
+      "summary": "再実行できないものはAIに渡しにくい。",
+      "usage_hint": "テストコード重視につながる。",
+      "relation_sentence": "AI駆動開発 --depends_on--> 再現性",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_015",
+      "source_id": "kw_ai_driven_dev",
+      "source_keyword": "AI駆動開発",
+      "relation_type": "depends_on",
+      "target_id": "kw_constraints",
+      "target_keyword": "制約",
+      "weight": 5,
+      "summary": "AIが守るべき境界線を人間が設計する。",
+      "usage_hint": "レビュー対象が制約へ移る。",
+      "relation_sentence": "AI駆動開発 --depends_on--> 制約",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_016",
+      "source_id": "kw_test_code",
+      "source_keyword": "テストコード",
+      "relation_type": "records",
+      "target_id": "kw_constraints",
+      "target_keyword": "制約",
+      "weight": 5,
+      "summary": "境界条件や設計判断を再現可能な形で残す。",
+      "usage_hint": "テストコードは宝物という思想。",
+      "relation_sentence": "テストコード --records--> 制約",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_017",
+      "source_id": "kw_ai_test_story",
+      "source_keyword": "AIテスト物語",
+      "relation_type": "summarizes",
+      "target_id": "kw_test_code",
+      "target_keyword": "テストコード",
+      "weight": 4,
+      "summary": "大量のテストコードを人間が理解できる物語に圧縮する。",
+      "usage_hint": "承認判断の速度を上げる。",
+      "relation_sentence": "AIテスト物語 --summarizes--> テストコード",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_018",
+      "source_id": "kw_ai_diff_story",
+      "source_keyword": "AI差分物語",
+      "relation_type": "summarizes",
+      "target_id": "kw_gitdiff",
+      "target_keyword": "Git diff",
+      "weight": 5,
+      "summary": "変更差分を物語化して、人間が違和感に早く到達できるようにする。",
+      "usage_hint": "大量差分承認を助ける。",
+      "relation_sentence": "AI差分物語 --summarizes--> Git diff",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_019",
+      "source_id": "kw_constraint_compare",
+      "source_keyword": "Constraint Compare",
+      "relation_type": "compares",
+      "target_id": "kw_constraints",
+      "target_keyword": "制約",
+      "weight": 4,
+      "summary": "人間が書いた制約とAIが推定した制約のズレを見る。",
+      "usage_hint": "おん？を発見する装置。",
+      "relation_sentence": "Constraint Compare --compares--> 制約",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_020",
+      "source_id": "kw_json_studio",
+      "source_keyword": "Studioくん",
+      "relation_type": "implements",
+      "target_id": "kw_data_view_separation",
+      "target_keyword": "Data/View分離",
+      "weight": 5,
+      "summary": "Data JSONとViewDef JSONを分けて扱う。",
+      "usage_hint": "JSON Editorを超えてViewのデータ化へ進む。",
+      "relation_sentence": "Studioくん --implements--> Data/View分離",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_021",
+      "source_id": "kw_json_studio",
+      "source_keyword": "Studioくん",
+      "relation_type": "uses",
+      "target_id": "kw_viewdef",
+      "target_keyword": "ViewDef",
+      "weight": 5,
+      "summary": "画面そのものをJSONで定義する。",
+      "usage_hint": "人間がJSONを触れるようにする。",
+      "relation_sentence": "Studioくん --uses--> ViewDef",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_022",
+      "source_id": "kw_json_studio",
+      "source_keyword": "Studioくん",
+      "relation_type": "grows_into",
+      "target_id": "kw_contextdef",
+      "target_keyword": "ContextDef",
+      "weight": 5,
+      "summary": "文脈をJSON化し、AIとの協働開始時に使える構造へ育てる。",
+      "usage_hint": "今回の関係性JSONの狙い。",
+      "relation_sentence": "Studioくん --grows_into--> ContextDef",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_023",
+      "source_id": "kw_markdown",
+      "source_keyword": "Markdown",
+      "relation_type": "is_data_for",
+      "target_id": "kw_context",
+      "target_keyword": "文脈",
+      "weight": 4,
+      "summary": "文書・記事・物語・引継ぎを外部記憶化する。",
+      "usage_hint": "人間が読みやすいData。",
+      "relation_sentence": "Markdown --is_data_for--> 文脈",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_024",
+      "source_id": "kw_json",
+      "source_keyword": "JSON",
+      "relation_type": "is_data_for",
+      "target_id": "kw_u95a2u4fc2u6027",
+      "target_keyword": "関係性",
+      "weight": 5,
+      "summary": "キーワード・制約・ログ・差分・文脈を構造化して持つ。",
+      "usage_hint": "AIが扱いやすいData。",
+      "relation_sentence": "JSON --is_data_for--> 関係性",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_025",
+      "source_id": "kw_gitdiff",
+      "source_keyword": "Git diff",
+      "relation_type": "connects",
+      "target_id": "kw_json",
+      "target_keyword": "JSON",
+      "weight": 4,
+      "summary": "構造化Dataの変更を差分として見られる。",
+      "usage_hint": "AI差分物語の入力になる。",
+      "relation_sentence": "Git diff --connects--> JSON",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_026",
+      "source_id": "kw_viewdef",
+      "source_keyword": "ViewDef",
+      "relation_type": "is_view_for",
+      "target_id": "kw_json",
+      "target_keyword": "JSON",
+      "weight": 5,
+      "summary": "Data JSONを人間が編集・観測できる画面へ変換する。",
+      "usage_hint": "Data/View分離の実装。",
+      "relation_sentence": "ViewDef --is_view_for--> JSON",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_027",
+      "source_id": "kw_contextdef",
+      "source_keyword": "ContextDef",
+      "relation_type": "is_view_for",
+      "target_id": "kw_context",
+      "target_keyword": "文脈",
+      "weight": 5,
+      "summary": "AIが文脈を読み違えないよう、関係性と判断軸を構造化する。",
+      "usage_hint": "文脈.mdの次段階。",
+      "relation_sentence": "ContextDef --is_view_for--> 文脈",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_028",
+      "source_id": "kw_human_onboarding",
+      "source_keyword": "他者巻き込み",
+      "relation_type": "requires",
+      "target_id": "kw_question_design",
+      "target_keyword": "問い設置",
+      "weight": 5,
+      "summary": "説明しきるより、相手が自分で考え始める問いを置く。",
+      "usage_hint": "一緒に遊べる導線になる。",
+      "relation_sentence": "他者巻き込み --requires--> 問い設置",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_029",
+      "source_id": "kw_human_onboarding",
+      "source_keyword": "他者巻き込み",
+      "relation_type": "uses",
+      "target_id": "kw_artifact",
+      "target_keyword": "成果物化",
+      "weight": 4,
+      "summary": "記事・デモ・JSON・ViewDefとして見えるものを置く。",
+      "usage_hint": "伝わっていない最大課題への対策。",
+      "relation_sentence": "他者巻き込み --uses--> 成果物化",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_030",
+      "source_id": "kw_artifact",
+      "source_keyword": "成果物化",
+      "relation_type": "preserves",
+      "target_id": "kw_context",
+      "target_keyword": "文脈",
+      "weight": 5,
+      "summary": "会話の発見をファイル化し、次回の続きへ渡す。",
+      "usage_hint": "文脈保守。",
+      "relation_sentence": "成果物化 --preserves--> 文脈",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_031",
+      "source_id": "kw_frb",
+      "source_keyword": "FRB",
+      "relation_type": "is_case_study_of",
+      "target_id": "kw_thought_expansion",
+      "target_keyword": "思考拡張",
+      "weight": 5,
+      "summary": "AIとの対話により、床擦りから規格構想まで発展した実例。",
+      "usage_hint": "FRBは思考拡張の具体例。",
+      "relation_sentence": "FRB --is_case_study_of--> 思考拡張",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    },
+    {
+      "relation_id": "rel_032",
+      "source_id": "kw_json",
+      "source_keyword": "JSON",
+      "relation_type": "works_with",
+      "target_id": "kw_ai_collaboration",
+      "target_keyword": "AI協働",
+      "weight": 5,
+      "summary": "構造化されているため、AIに意図・制約・差分を渡しやすい。",
+      "usage_hint": "AIとの相性の証明デモになる。",
+      "relation_sentence": "JSON --works_with--> AI協働",
+      "human_wrap_hint": "初見の人には、結論よりも差分・体験・問いの順に見せると巻き込みやすい。"
+    }
+  ],
+  "keyword_hubs": [
+    {
+      "hub_id": "hub_001",
+      "hub_keyword": "FRB",
+      "category": "center_theme",
+      "summary": "釣り竿の感度を振動構造として比較・可視化・共有する個人研究。",
+      "linked_count": 5,
+      "linked_keywords": [
+        {
+          "keyword": "感度",
+          "direction": "outgoing",
+          "relation_type": "redefines",
+          "weight": 5,
+          "note": "感度を単純な強弱ではなく、人間が認識可能な振動構造として扱う。"
+        },
+        {
+          "keyword": "室内再現テスト",
+          "direction": "outgoing",
+          "relation_type": "uses",
+          "weight": 5,
+          "note": "海でしか起きないと思っていた振動差分を、室内で再現して観測する。"
+        },
+        {
+          "keyword": "知覚トレーニング",
+          "direction": "outgoing",
+          "relation_type": "includes",
+          "weight": 5,
+          "note": "測定器だけではなく、人間側の受信能力を育てる。"
+        },
+        {
+          "keyword": "差分文化",
+          "direction": "outgoing",
+          "relation_type": "cultivates",
+          "weight": 5,
+          "note": "前後差・素材差・ロッド差を見ることで問いが生まれる。"
+        },
+        {
+          "keyword": "思考拡張",
+          "direction": "outgoing",
+          "relation_type": "is_case_study_of",
+          "weight": 5,
+          "note": "AIとの対話により、床擦りから規格構想まで発展した実例。"
+        }
+      ]
+    },
+    {
+      "hub_id": "hub_002",
+      "hub_keyword": "思考拡張",
+      "category": "center_theme",
+      "summary": "AIとの対話を通じて、一人では到達できなかった思考領域へ踏み込む現象。",
+      "linked_count": 3,
+      "linked_keywords": [
+        {
+          "keyword": "違和感",
+          "direction": "outgoing",
+          "relation_type": "starts_from",
+          "weight": 5,
+          "note": "腑に落ちないものを流さず拾うことで思考が動く。"
+        },
+        {
+          "keyword": "文脈",
+          "direction": "outgoing",
+          "relation_type": "requires",
+          "weight": 5,
+          "note": "AIに途中経過・判断軸・感情・失敗を渡すほど、出力の質が上がる。"
+        },
+        {
+          "keyword": "FRB",
+          "direction": "incoming",
+          "relation_type": "is_case_study_of",
+          "weight": 5,
+          "note": "AIとの対話により、床擦りから規格構想まで発展した実例。"
+        }
+      ]
+    },
+    {
+      "hub_id": "hub_003",
+      "hub_keyword": "AI駆動開発",
+      "category": "center_theme",
+      "summary": "AIにコードを書かせる話ではなく、差分・再現性・制約を大切にする文化。",
+      "linked_count": 3,
+      "linked_keywords": [
+        {
+          "keyword": "差分文化",
+          "direction": "outgoing",
+          "relation_type": "depends_on",
+          "weight": 5,
+          "note": "AI出力と期待値の差分を見て、人間が判断する。"
+        },
+        {
+          "keyword": "再現性",
+          "direction": "outgoing",
+          "relation_type": "depends_on",
+          "weight": 5,
+          "note": "再実行できないものはAIに渡しにくい。"
+        },
+        {
+          "keyword": "制約",
+          "direction": "outgoing",
+          "relation_type": "depends_on",
+          "weight": 5,
+          "note": "AIが守るべき境界線を人間が設計する。"
+        }
+      ]
+    },
+    {
+      "hub_id": "hub_004",
+      "hub_keyword": "Studioくん",
+      "category": "tool",
+      "summary": "JSONで思考を構造化し、AIとの文脈を育てるためのStudio。",
+      "linked_count": 3,
+      "linked_keywords": [
+        {
+          "keyword": "Data/View分離",
+          "direction": "outgoing",
+          "relation_type": "implements",
+          "weight": 5,
+          "note": "Data JSONとViewDef JSONを分けて扱う。"
+        },
+        {
+          "keyword": "ViewDef",
+          "direction": "outgoing",
+          "relation_type": "uses",
+          "weight": 5,
+          "note": "画面そのものをJSONで定義する。"
+        },
+        {
+          "keyword": "ContextDef",
+          "direction": "outgoing",
+          "relation_type": "grows_into",
+          "weight": 5,
+          "note": "文脈をJSON化し、AIとの協働開始時に使える構造へ育てる。"
+        }
+      ]
+    },
+    {
+      "hub_id": "hub_005",
+      "hub_keyword": "ContextDef",
+      "category": "studio_concept",
+      "summary": "AIや人間が使う文脈構造を定義するためのJSON的な設計対象。",
+      "linked_count": 2,
+      "linked_keywords": [
+        {
+          "keyword": "文脈",
+          "direction": "outgoing",
+          "relation_type": "is_view_for",
+          "weight": 5,
+          "note": "AIが文脈を読み違えないよう、関係性と判断軸を構造化する。"
+        },
+        {
+          "keyword": "Studioくん",
+          "direction": "incoming",
+          "relation_type": "grows_into",
+          "weight": 5,
+          "note": "文脈をJSON化し、AIとの協働開始時に使える構造へ育てる。"
+        }
+      ]
+    },
+    {
+      "hub_id": "hub_006",
+      "hub_keyword": "他者巻き込み",
+      "category": "mission",
+      "summary": "まだ伝わっていない研究や文化を、他の人間が一緒に遊べる形へ変換すること。",
+      "linked_count": 2,
+      "linked_keywords": [
+        {
+          "keyword": "問い設置",
+          "direction": "outgoing",
+          "relation_type": "requires",
+          "weight": 5,
+          "note": "説明しきるより、相手が自分で考え始める問いを置く。"
+        },
+        {
+          "keyword": "成果物化",
+          "direction": "outgoing",
+          "relation_type": "uses",
+          "weight": 4,
+          "note": "記事・デモ・JSON・ViewDefとして見えるものを置く。"
+        }
+      ]
+    },
+    {
+      "hub_id": "hub_007",
+      "hub_keyword": "差分文化",
+      "category": "culture",
+      "summary": "差分を見ることで問いが生まれ、仮説・実験・共有が動き出す文化。",
+      "linked_count": 2,
+      "linked_keywords": [
+        {
+          "keyword": "FRB",
+          "direction": "incoming",
+          "relation_type": "cultivates",
+          "weight": 5,
+          "note": "前後差・素材差・ロッド差を見ることで問いが生まれる。"
+        },
+        {
+          "keyword": "AI駆動開発",
+          "direction": "incoming",
+          "relation_type": "depends_on",
+          "weight": 5,
+          "note": "AI出力と期待値の差分を見て、人間が判断する。"
+        }
+      ]
+    }
+  ],
+  "relation_types": [
+    {
+      "relation_type": "redefines",
+      "label": "再定義する",
+      "description": "曖昧な概念を新しい構造として捉え直す。"
+    },
+    {
+      "relation_type": "depends_on",
+      "label": "依存する",
+      "description": "その概念が成立するための前提になる。"
+    },
+    {
+      "relation_type": "uses",
+      "label": "使う",
+      "description": "方法・道具として利用する。"
+    },
+    {
+      "relation_type": "includes",
+      "label": "含む",
+      "description": "上位概念の構成要素である。"
+    },
+    {
+      "relation_type": "cultivates",
+      "label": "育てる",
+      "description": "継続的な文化や行動を生み出す。"
+    },
+    {
+      "relation_type": "summarizes",
+      "label": "要約・物語化する",
+      "description": "複雑な情報を人間が読める形へ圧縮する。"
+    },
+    {
+      "relation_type": "implements",
+      "label": "実装する",
+      "description": "思想をツールや構造として実現する。"
+    },
+    {
+      "relation_type": "is_case_study_of",
+      "label": "実例である",
+      "description": "抽象理論の具体例として機能する。"
+    }
+  ],
+  "onboarding_paths": [
+    {
+      "path_id": "path_001",
+      "title": "釣り人向け導線",
+      "start_keyword": "床擦り",
+      "route": "床擦り → 振動構造 → 知覚トレーニング → FRB",
+      "message": "まずは『同じ床でもロッドで違う』という体験差分から入る。",
+      "expected_reaction": "これ、自分のロッドでも試せるかも。"
+    },
+    {
+      "path_id": "path_002",
+      "title": "AI協働に興味がある人向け導線",
+      "start_keyword": "文脈",
+      "route": "文脈 → 違和感 → 思考拡張 → 成果物化",
+      "message": "AIに答えを求めるのではなく、途中経過を渡すと発見頻度が上がると見せる。",
+      "expected_reaction": "AIとの会話ログを残して育てる意味が分かる。"
+    },
+    {
+      "path_id": "path_003",
+      "title": "開発者向け導線",
+      "start_keyword": "差分文化",
+      "route": "差分文化 → 再現性 → 制約 → テストコード → AI差分物語",
+      "message": "AI駆動開発はコード生成ではなく、承認可能な差分を作る文化だと見せる。",
+      "expected_reaction": "テストコードと制約レビューの価値が見える。"
+    },
+    {
+      "path_id": "path_004",
+      "title": "Studioくん利用者向け導線",
+      "start_keyword": "JSON",
+      "route": "JSON → Data/View分離 → ViewDef → ContextDef",
+      "message": "JSONを直接読むのではなく、ViewDefで人間が触れる形にする。",
+      "expected_reaction": "文脈や関係性もメンテ対象にできると気づく。"
+    }
+  ]
+}
