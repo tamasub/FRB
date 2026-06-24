@@ -177,23 +177,39 @@
     body[data-mode="viewer"] .edit-container,
     body[data-mode="editor"] .edit-container { display: none; }
 
-    .sidebar { position: sticky; top: 108px; display: grid; gap: 16px; }
+    .sidebar {
+      position: sticky;
+      top: 108px;
+      display: grid;
+      gap: 10px;
+      height: calc(100dvh - 126px);
+      max-height: calc(100dvh - 126px);
+      min-height: 0;
+      overflow: hidden;
+      grid-template-rows: minmax(150px, 38%) auto minmax(150px, 1fr);
+    }
     .side-card, .article-card, .edit-card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); backdrop-filter: blur(18px); box-shadow: var(--shadow); min-width: 0; }
-    .side-card { padding: 20px; }
-    .side-card h2 { margin: 0 0 14px; font-size: 16px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+    .side-card { padding: 16px; min-height: 0; }
+    .side-card h2 { margin: 0 0 10px; font-size: 14px; font-weight: 850; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
     
     /* 目次 */
-    .toc { display: grid; gap: 2px; max-height: 40vh; overflow: auto; padding-right: 4px; }
-    .toc a { display: block; padding: 8px 12px; border-radius: 10px; color: var(--muted); text-decoration: none; font-size: 13.5px; line-height: 1.45; transition: all 0.2s; }
-    .toc a:hover { background: rgba(63,124,255,.08); color: var(--brand-color); padding-left: 16px; }
-    .toc .level-2 { padding-left: 20px; font-size: 13px; }
-    .toc .level-3 { padding-left: 32px; font-size: 12px; }
-    .toc-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 14px; }
-    .toc-depth-btn { padding: 6px 4px; border-radius: 10px; background: rgba(105,120,160,.1); color: var(--muted); font-size: 11px; font-weight: 800; border:0; cursor:pointer;}
+    .md-toc-panel,
+    .md-meta-panel,
+    .md-comment-review-panel { min-height: 0; overflow: hidden; }
+    .md-toc-panel { display: flex; flex-direction: column; }
+    .toc { display: grid; gap: 1px; flex: 1; min-height: 0; max-height: none; overflow: auto; padding-right: 4px; }
+    .toc a { display: block; padding: 5px 9px; border-radius: 9px; color: var(--muted); text-decoration: none; font-size: 12px; line-height: 1.32; transition: all 0.2s; }
+    .toc a:hover { background: rgba(63,124,255,.08); color: var(--brand-color); padding-left: 13px; }
+    .toc .level-2 { padding-left: 18px; font-size: 11.5px; }
+    .toc .level-3 { padding-left: 28px; font-size: 11px; }
+    .toc-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 8px; }
+    .toc-depth-btn { padding: 5px 4px; border-radius: 9px; background: rgba(105,120,160,.1); color: var(--muted); font-size: 10.5px; font-weight: 850; border:0; cursor:pointer;}
     .toc-depth-btn.active { background: var(--brand-gradient); color: #fff; }
 
-    .meta-list { display: grid; gap: 12px; color: var(--muted); font-size: 13px; }
-    .meta-list b { display: block; color: var(--text); margin-bottom: 2px; }
+    .meta-list { display: grid; gap: 7px; color: var(--muted); font-size: 11.5px; }
+    .meta-list b { display: block; color: var(--text); margin-bottom: 1px; font-size: 11.5px; }
+    .md-meta-panel { padding: 13px 16px; }
+    .md-meta-panel .meta-list input { padding: 5px 8px !important; border-radius: 10px !important; font-size: 11px !important; }
 
     /* エディターコックピット */
     .edit-card { height: calc(100vh - 130px); position: sticky; top: 108px; display: flex; flex-direction: column; padding: 20px; gap: 14px; }
@@ -580,6 +596,74 @@
       background: rgba(59,130,246,.10);
     }
 
+    /* mdViewer v0.13.4: Sidecar comment review UI */
+    .md-comment-review-panel {
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
+      gap: 8px;
+      padding: 13px 14px;
+    }
+    .md-comment-review-head { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .md-comment-review-head h2 { margin:0; }
+    .md-comment-review-count {
+      display:inline-flex; align-items:center; justify-content:center;
+      min-width:30px; height:22px; padding:0 8px; border-radius:999px;
+      background:rgba(59,130,246,.10); border:1px solid rgba(59,130,246,.18);
+      color:var(--text); font-size:10.5px; font-weight:950;
+    }
+    .md-comment-review-controls { display:grid; grid-template-columns:repeat(3,1fr); gap:5px; }
+    .md-comment-review-controls button {
+      padding:6px 5px; border-radius:9px; font-size:10.5px; font-weight:900;
+      background:rgba(105,120,160,.10); color:var(--muted); box-shadow:none;
+    }
+    .md-comment-review-controls button.active { background:var(--brand-gradient); color:#fff; }
+    .md-comment-review-list { display:grid; gap:7px; min-height:0; max-height:none; overflow:auto; padding-right:3px; }
+    .md-comment-empty {
+      padding:12px; border:1px dashed var(--line); border-radius:14px;
+      color:var(--muted); font-size:12px; font-weight:750; line-height:1.5;
+      background:rgba(105,120,160,.05);
+    }
+    .md-comment-review-item {
+      display:grid; gap:5px; padding:8px 9px 8px; border:1px solid var(--line);
+      border-radius:14px; background:rgba(255,255,255,.58); cursor:pointer;
+      transition:transform .15s, box-shadow .15s, border-color .15s, background .15s;
+    }
+    [data-theme="dark"] .md-comment-review-item { background:rgba(15,23,42,.38); }
+    .md-comment-review-item:hover, .md-comment-review-item.active {
+      transform:translateY(-1px); border-color:rgba(59,130,246,.35);
+      box-shadow:0 10px 24px rgba(15,23,42,.10); background:rgba(59,130,246,.07);
+    }
+    .md-comment-review-item.resolved { opacity:.58; }
+    .md-comment-review-title { display:flex; align-items:center; gap:6px; min-width:0; font-size:12px; font-weight:950; }
+    .md-comment-status-chip {
+      display:inline-flex; align-items:center; gap:3px; padding:2px 7px; border-radius:999px;
+      background:rgba(105,120,160,.10); border:1px solid rgba(105,120,160,.12);
+      font-size:10.5px; font-weight:950; white-space:nowrap;
+    }
+    .md-comment-target-label { color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .md-comment-review-body {
+      color:var(--text); font-size:11.6px; line-height:1.45; font-weight:700;
+      display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+      white-space:pre-wrap;
+    }
+    .md-comment-review-meta { color:var(--muted); font-size:10.5px; font-weight:800; }
+    .md-comment-review-actions { display:flex; gap:6px; flex-wrap:wrap; }
+    .md-comment-review-actions button {
+      padding:4px 7px; border-radius:8px; font-size:10px; box-shadow:none;
+      background:rgba(105,120,160,.12); color:var(--text);
+    }
+    .md-comment-review-actions button[data-comment-action="toggle-resolved"] { background:rgba(34,197,94,.13); }
+    .md-comment-review-actions button[data-comment-action="delete"] { background:rgba(239,68,68,.12); }
+    #preview .md-sidecar-comment-focus {
+      animation: mdSidecarFocusPulse 1.35s ease-out 1;
+      outline: 2.5px solid rgba(255,184,0,.72) !important;
+      outline-offset: 5px !important;
+    }
+    @keyframes mdSidecarFocusPulse {
+      0% { box-shadow:0 0 0 0 rgba(255,184,0,.55); }
+      100% { box-shadow:0 0 0 16px rgba(255,184,0,0); }
+    }
+
     /* Qiita風 / コマンドメニュー */
     .editor-wrap { position: relative; flex: 1; min-height: 0; display: flex; }
     .slash-menu {
@@ -926,8 +1010,69 @@
     body.drag-over .article-card { outline: 3px dashed var(--brand-color); outline-offset: 6px; background: rgba(105,120,160,0.05); }
     .footer-note { margin-top: 40px; color: var(--muted); font-size: 11px; text-align: center; letter-spacing: 0.05em; }
 
+    /* mdViewer v0.13.4.1: left sidebar compact layout for 100% zoom */
+    @media (max-height: 820px) {
+      .sidebar {
+        gap: 8px;
+        grid-template-rows: minmax(128px, 34%) auto minmax(132px, 1fr);
+      }
+      .side-card { padding: 12px 14px; }
+      .side-card h2 { margin-bottom: 7px; font-size: 12.5px; }
+      .toc-options { margin-bottom: 6px; }
+      .toc a { padding: 4px 8px; font-size: 11.4px; line-height: 1.26; }
+      .toc .level-2 { font-size: 11px; padding-left: 16px; }
+      .toc .level-3 { font-size: 10.5px; padding-left: 24px; }
+      .meta-list { gap: 5px; font-size: 10.8px; }
+      .meta-list b { font-size: 10.8px; }
+      .md-comment-review-panel { gap: 6px; padding: 12px 13px; }
+      .md-comment-review-item { gap: 4px; padding: 7px 8px; }
+      .md-comment-review-body { -webkit-line-clamp: 2; font-size: 11px; line-height: 1.38; }
+      .md-comment-review-meta { font-size: 9.8px; }
+    }
+
+    @media (max-width: 760px) {
+      .sidebar {
+        position: static;
+        height: auto;
+        max-height: none;
+        overflow: visible;
+        grid-template-rows: none;
+      }
+      .toc,
+      .md-comment-review-list {
+        max-height: 42vh;
+      }
+    }
+
 
     /* PDF印刷: 本文だけを印刷対象にする */
+
+
+    /* mdViewer v0.13.5: RoundTrip / Save Safety */
+    #btnMarkdownSaveSafety.safety-ok {
+      background: rgba(34,197,94,.14);
+      color: var(--brand-color);
+    }
+    #btnMarkdownSaveSafety.safety-warn {
+      background: rgba(245,158,11,.16);
+      color: #b45309;
+    }
+    #btnMarkdownSaveSafety.safety-error {
+      background: rgba(239,68,68,.14);
+      color: #dc2626;
+    }
+    .md-save-safety-summary {
+      margin-top: 8px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(105,120,160,.07);
+      border: 1px solid rgba(105,120,160,.13);
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
     @media print {
       @page {
         size: A4;
@@ -1187,6 +1332,7 @@
           </select>
           <button id="btnRefreshManagedMd" class="ghost-btn compact-icon-btn" title="管理Markdown一覧を再取得">↻</button>
           <button id="btnOverwriteManagedMd" class="compact-text-btn" title="data/markdownへ上書き保存">上書き</button>
+          <button id="btnMarkdownSaveSafety" class="ghost-btn compact-text-btn" title="保存前にMarkdown本文・表・Sidecarコメントの安全性を検査">保存検査</button>
         </div>
 
 
@@ -1205,7 +1351,7 @@
 
     <main class="layout">
       <aside class="sidebar">
-        <section class="side-card">
+        <section class="side-card md-toc-panel">
           <h2>目次</h2>
           <div class="toc-options">
             <button type="button" class="toc-depth-btn" data-depth="all">全階層</button>
@@ -1214,7 +1360,22 @@
           </div>
           <nav id="toc" class="toc"></nav>
         </section>
-        <section class="side-card">
+
+        <section class="side-card md-comment-review-panel" id="mdCommentReviewPanel">
+          <div class="md-comment-review-head">
+            <h2>コメントレビュー</h2>
+            <span id="mdCommentReviewCount" class="md-comment-review-count">0</span>
+          </div>
+          <div class="md-comment-review-controls" aria-label="Sidecarコメントフィルター">
+            <button type="button" class="active" data-comment-filter="open">未解決</button>
+            <button type="button" data-comment-filter="all">全件</button>
+            <button type="button" data-comment-filter="resolved">解決済</button>
+          </div>
+          <div id="mdCommentReviewList" class="md-comment-review-list">
+            <div class="md-comment-empty">Sidecarコメントはまだありません。</div>
+          </div>
+        </section>
+        <section class="side-card md-meta-panel">
           <h2>ドキュメントメタ</h2>
           <div class="meta-list">
             <div><b>保存ファイル名</b><input id="metaFileName" type="text" value="" style="width:100%; margin-top:4px; font-size:12px; padding:6px 10px;" placeholder="ファイル名を入力"/></div>
@@ -1325,8 +1486,21 @@ let mdCommentSidecarRuntime = {
   dirty: false,
   lastSaveError: ""
 };
+let mdCommentReviewRuntime = {
+  filter: "open",
+  lastFocusedCommentId: ""
+};
+let mdSaveSafetyRuntime = {
+  version: "v0.13.5-md-roundtrip-save-safety",
+  loadedName: "",
+  loadedContent: "",
+  lastCheck: null,
+  lastBackupKey: ""
+};
+const mdCommentReviewCountEl = document.getElementById("mdCommentReviewCount");
+const mdCommentReviewListEl = document.getElementById("mdCommentReviewList");
 let markdownBlockModelRuntime = {
-  version: "v0.13.3-md-comment-sidecar-json",
+  version: "v0.13.4-md-comment-review-ui",
   blocks: [],
   byId: new Map(),
   currentBlockId: "",
@@ -1391,6 +1565,29 @@ function setMarkdownMode(mode) {
 }
 btnViewerMode.addEventListener("click", () => setMarkdownMode("viewer"));
 btnEditorMode.addEventListener("click", () => setMarkdownMode("editor"));
+
+// mdViewer v0.13.4: コメントレビューUI
+document.querySelectorAll("[data-comment-filter]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    mdCommentReviewRuntime.filter = btn.dataset.commentFilter || "open";
+    renderMarkdownCommentReviewUI();
+  });
+});
+mdCommentReviewListEl?.addEventListener("click", async (e) => {
+  const actionBtn = e.target.closest("button[data-comment-action][data-comment-id]");
+  if (actionBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+    const id = actionBtn.dataset.commentId;
+    const action = actionBtn.dataset.commentAction;
+    if (action === "toggle-resolved") await toggleMarkdownSidecarCommentResolved(id);
+    else if (action === "edit") await editMarkdownSidecarComment(id);
+    else if (action === "delete") await deleteMarkdownSidecarComment(id);
+    return;
+  }
+  const item = e.target.closest(".md-comment-review-item[data-comment-id]");
+  if (item) focusMarkdownSidecarComment(item.dataset.commentId);
+});
 
 // テーマ切り替え
 themeSelect.addEventListener("change", (e) => {
@@ -2062,6 +2259,124 @@ function scrollPreviewToLine(lineNo, behavior = "auto") {
   markdownEditorRuntime.lastActiveLine = Number(block.dataset.mdLine || line || 1);
   markdownEditorRuntime.lastActiveAnchor = anchorFromPreviewBlock(block) || anchorFromLine(line);
 }
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, ch => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[ch] || ch));
+}
+function markdownCommentTargetLabel(c) {
+  if (!c) return "target unknown";
+  const line = c.line || c.start_line || "?";
+  if (c.target_type === "table_cell") {
+    const row = Number.isFinite(Number(c.row_index)) ? Number(c.row_index) + 1 : "?";
+    const col = Number.isFinite(Number(c.column_index)) ? Number(c.column_index) + 1 : "?";
+    return `TableCell r${row} c${col} / L${line}`;
+  }
+  return `${c.block_type || "block"} / L${line}`;
+}
+function markdownCommentFilterMatches(c) {
+  const filter = mdCommentReviewRuntime.filter || "open";
+  if (filter === "all") return true;
+  if (filter === "resolved") return !!c.resolved;
+  return !c.resolved;
+}
+function markdownCommentShortId(id) {
+  const v = String(id || "");
+  return v.length > 16 ? `${v.slice(0, 10)}…${v.slice(-4)}` : v;
+}
+function renderMarkdownCommentReviewUI() {
+  if (!mdCommentReviewListEl || !mdCommentReviewCountEl) return;
+  const all = mdCommentSidecarRuntime.comments || [];
+  const openCount = all.filter(c => !c.resolved).length;
+  mdCommentReviewCountEl.textContent = all.length ? `${openCount}/${all.length}` : "0";
+  mdCommentReviewCountEl.title = `未解決 ${openCount} / 全 ${all.length}`;
+  document.querySelectorAll("[data-comment-filter]").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.commentFilter === mdCommentReviewRuntime.filter);
+  });
+  const filtered = all.filter(markdownCommentFilterMatches);
+  if (!filtered.length) {
+    const message = all.length
+      ? "このフィルターに該当するコメントはありません。"
+      : "Sidecarコメントはまだありません。Blockや表セルを右クリックしてコメントを追加できます。";
+    mdCommentReviewListEl.innerHTML = `<div class="md-comment-empty">${escapeHtml(message)}</div>`;
+    return;
+  }
+  mdCommentReviewListEl.innerHTML = filtered.map(c => {
+    const label = frbCommentLabel(c.status || "COMMENT");
+    const resolvedText = c.resolved ? "再開" : "解決";
+    const itemClasses = ["md-comment-review-item", c.resolved ? "resolved" : "", mdCommentReviewRuntime.lastFocusedCommentId === c.comment_id ? "active" : ""].filter(Boolean).join(" ");
+    const body = String(c.body || "（コメント本文なし）");
+    const target = markdownCommentTargetLabel(c);
+    const id = markdownCommentShortId(c.comment_id);
+    return `
+      <div class="${itemClasses}" data-comment-id="${escapeHtml(c.comment_id)}" title="クリックで対象へジャンプ">
+        <div class="md-comment-review-title">
+          <span class="md-comment-status-chip">${label.emoji} ${escapeHtml(label.label)}</span>
+          <span class="md-comment-target-label">${escapeHtml(target)}</span>
+        </div>
+        <div class="md-comment-review-body">${escapeHtml(body)}</div>
+        <div class="md-comment-review-meta">${escapeHtml(id)}${c.resolved ? " / resolved" : ""}</div>
+        <div class="md-comment-review-actions">
+          <button type="button" data-comment-action="toggle-resolved" data-comment-id="${escapeHtml(c.comment_id)}">${resolvedText}</button>
+          <button type="button" data-comment-action="edit" data-comment-id="${escapeHtml(c.comment_id)}">編集</button>
+          <button type="button" data-comment-action="delete" data-comment-id="${escapeHtml(c.comment_id)}">削除</button>
+        </div>
+      </div>`;
+  }).join("");
+}
+function findSidecarCommentById(commentId) {
+  return (mdCommentSidecarRuntime.comments || []).find(c => c.comment_id === commentId) || null;
+}
+function focusMarkdownSidecarComment(commentId, options = {}) {
+  const c = findSidecarCommentById(commentId);
+  if (!c) return;
+  mdCommentReviewRuntime.lastFocusedCommentId = commentId;
+  renderMarkdownCommentReviewUI();
+  const el = findPreviewElementForSidecarComment(c);
+  if (!el) {
+    if (!options.quiet) alert("対象Block/Cellが見つかりません。Markdown本文の構造が変わった可能性があります。");
+    return;
+  }
+  const block = el.closest("[data-md-block-id]") || el;
+  if (block && block.dataset && block.dataset.mdBlockId) setCurrentMarkdownBlockElement(block);
+  scrollElementToViewportCenterish(el, options.behavior || "smooth");
+  el.classList.add("md-sidecar-comment-focus");
+  setTimeout(() => el.classList.remove("md-sidecar-comment-focus"), 1500);
+}
+async function persistMarkdownCommentReviewMutation({ quiet = true } = {}) {
+  mdCommentSidecarRuntime.dirty = true;
+  await saveMarkdownCommentSidecar({ quiet });
+  applyMarkdownSidecarComments();
+}
+async function toggleMarkdownSidecarCommentResolved(commentId) {
+  const c = findSidecarCommentById(commentId);
+  if (!c) return;
+  c.resolved = !c.resolved;
+  c.updated_at = new Date().toISOString();
+  await persistMarkdownCommentReviewMutation({ quiet: true });
+}
+async function editMarkdownSidecarComment(commentId) {
+  const c = findSidecarCommentById(commentId);
+  if (!c) return;
+  const label = frbCommentLabel(c.status || "COMMENT");
+  const text = prompt(`${label.emoji} コメント本文を編集`, c.body || "");
+  if (text === null) return;
+  c.body = String(text || "").trim() || "（コメント本文なし）";
+  c.updated_at = new Date().toISOString();
+  await persistMarkdownCommentReviewMutation({ quiet: true });
+}
+async function deleteMarkdownSidecarComment(commentId) {
+  const c = findSidecarCommentById(commentId);
+  if (!c) return;
+  if (!confirm(`このSidecarコメントを削除しますか？\n\n${c.body || "（コメント本文なし）"}`)) return;
+  mdCommentSidecarRuntime.comments = (mdCommentSidecarRuntime.comments || []).filter(x => x.comment_id !== commentId);
+  if (mdCommentReviewRuntime.lastFocusedCommentId === commentId) mdCommentReviewRuntime.lastFocusedCommentId = "";
+  await persistMarkdownCommentReviewMutation({ quiet: true });
+}
 function markdownCommentSidecarName(markdownName) {
   const base = normalizeMarkdownFileName(markdownName || currentManagedMarkdownName || metaFileName.value || editorFileName.value || "article.md");
   return `${base}.comments.json`;
@@ -2131,6 +2446,7 @@ async function loadMarkdownCommentSidecar(targetName) {
   const doc = normalizeMarkdownCommentSidecarDocument(raw, targetName);
   mdCommentSidecarRuntime.comments = doc.comments;
   mdCommentSidecarRuntime.dirty = false;
+  renderMarkdownCommentReviewUI();
 }
 async function saveMarkdownCommentSidecar({ quiet = true } = {}) {
   const sidecarName = mdCommentSidecarRuntime.sidecarName || markdownCommentSidecarName(mdCommentSidecarRuntime.targetFile);
@@ -2216,11 +2532,17 @@ function applyMarkdownSidecarComments() {
     badge.addEventListener("click", e => {
       e.preventDefault();
       e.stopPropagation();
-      alert(titleForSidecarComments(comments));
+      if (e.shiftKey || comments.length > 1) {
+        alert(titleForSidecarComments(comments));
+        if (comments[0]?.comment_id) focusMarkdownSidecarComment(comments[0].comment_id, { quiet: true, behavior: "auto" });
+      } else if (comments[0]?.comment_id) {
+        focusMarkdownSidecarComment(comments[0].comment_id, { quiet: true, behavior: "smooth" });
+      }
     });
     el.appendChild(badge);
   });
   updateBlockModelMeta();
+  renderMarkdownCommentReviewUI();
 }
 function buildSidecarCommentTarget(block, cell) {
   if (cell) {
@@ -2303,6 +2625,8 @@ function resetMarkdownCommentSidecarForLocal(targetName = "") {
   mdCommentSidecarRuntime.comments = [];
   mdCommentSidecarRuntime.dirty = false;
   mdCommentSidecarRuntime.lastSaveError = "";
+  mdCommentReviewRuntime.lastFocusedCommentId = "";
+  renderMarkdownCommentReviewUI();
 }
 
 function frbCommentLabel(status) {
@@ -3275,6 +3599,240 @@ function applyMarkdownReadonlyLaunchControls() {
   }
 }
 
+
+// mdViewer v0.13.5: Markdown RoundTrip / Save Safety
+function normalizeMarkdownForSafety(text) {
+  return String(text ?? "").replace(/\r\n?/g, "\n");
+}
+function markdownSafetyStoragePrefix() {
+  return "frb-md-save-backup:";
+}
+function recordMarkdownLoadedSnapshot(name, content) {
+  mdSaveSafetyRuntime.loadedName = normalizeMarkdownFileName(name || currentManagedMarkdownName || metaFileName.value || "frb_thought.md");
+  mdSaveSafetyRuntime.loadedContent = String(content ?? "");
+  updateMarkdownSaveSafetyButton(null);
+}
+function diffLineStatsForSafety(beforeText, afterText) {
+  const before = normalizeMarkdownForSafety(beforeText).split("\n");
+  const after = normalizeMarkdownForSafety(afterText).split("\n");
+  const max = Math.max(before.length, after.length);
+  let changed = 0, added = 0, removed = 0;
+  for (let i = 0; i < max; i++) {
+    const b = before[i];
+    const a = after[i];
+    if (b === a) continue;
+    changed++;
+    if (b === undefined) added++;
+    else if (a === undefined) removed++;
+  }
+  return { beforeLines: before.length, afterLines: after.length, changed, added, removed };
+}
+function markdownSafetyBlockSignature(blocks) {
+  return (blocks || []).map(b => `${b.type}:${b.start_line}-${b.end_line}:${(b.rows || []).map(r => (r.cells || []).length).join(".")}`).join("|");
+}
+function validateMarkdownFenceBalanceForSafety(rawMd) {
+  const lines = normalizeMarkdownForSafety(rawMd).split("\n");
+  let fence = null;
+  let startLine = 0;
+  lines.forEach((line, idx) => {
+    const m = line.match(/^\s*(```|~~~)/);
+    if (!m) return;
+    if (!fence) {
+      fence = m[1];
+      startLine = idx + 1;
+    } else if (m[1] === fence) {
+      fence = null;
+      startLine = 0;
+    }
+  });
+  return fence ? { ok: false, message: `コードブロックの閉じフェンスが見つかりません。開始行: L${startLine} (${fence})` } : { ok: true };
+}
+function validateMarkdownTablesForSafety(blocks) {
+  const issues = [];
+  (blocks || []).filter(b => b.type === "table").forEach(table => {
+    const rows = table.rows || [];
+    const counts = rows.map(r => (r.cells || []).length);
+    const expected = counts[0] || 0;
+    const bad = counts.map((count, idx) => ({ count, idx })).filter(x => x.count !== expected);
+    if (bad.length) {
+      issues.push({ level: "error", message: `${table.table_id || table.block_id}: 表の列数が揃っていません。期待 ${expected} 列 / 不一致 row ${bad.map(x => x.idx + 1 + ":" + x.count).join(", ")}` });
+    }
+    if (rows.length >= 2 && !rows[1]?.is_separator) {
+      issues.push({ level: "error", message: `${table.table_id || table.block_id}: 2行目がMarkdown表の区切り行として認識できません。` });
+    }
+    if (rows.length && rows.length < 2) {
+      issues.push({ level: "warning", message: `${table.table_id || table.block_id}: 表として認識されていますが行数が少なすぎます。` });
+    }
+  });
+  return issues;
+}
+function validateSidecarTargetsForSafety(blocks) {
+  const issues = [];
+  const comments = (mdCommentSidecarRuntime.comments || []).filter(c => !c.resolved);
+  if (!comments.length) return issues;
+  const renderable = (blocks || []).filter(b => b.renderable !== false);
+  comments.forEach(c => {
+    if (c.target_type === "table_cell") {
+      const line = Number(c.line || c.start_line || 0);
+      let table = renderable.find(b => b.type === "table" && line >= b.start_line && line <= b.end_line);
+      if (!table && c.table_id) table = renderable.find(b => b.type === "table" && b.table_id === c.table_id);
+      if (!table) {
+        issues.push({ level: "warning", message: `Sidecarコメント ${c.comment_id || "?"}: 対象TableCellの表が見つかりません。` });
+        return;
+      }
+      const rowIndex = Number(c.row_index);
+      const colIndex = Number(c.column_index);
+      const row = (table.rows || [])[rowIndex];
+      const cell = row && (row.cells || [])[colIndex];
+      if (!row || row.is_separator || !cell) {
+        issues.push({ level: "warning", message: `Sidecarコメント ${c.comment_id || "?"}: TableCell row=${rowIndex} col=${colIndex} が現在の表構造に一致しません。` });
+      }
+      return;
+    }
+    const line = Number(c.line || c.start_line || 0);
+    let block = c.block_id ? renderable.find(b => b.block_id === c.block_id) : null;
+    if (!block && line) block = renderable.find(b => line >= b.start_line && line <= b.end_line);
+    if (!block) {
+      issues.push({ level: "warning", message: `Sidecarコメント ${c.comment_id || "?"}: 対象Blockが現在のMarkdown本文に見つかりません。` });
+    }
+  });
+  return issues;
+}
+function buildMarkdownSaveSafetyResult(fileName, content) {
+  const raw = String(content ?? "");
+  const result = {
+    ok: true,
+    fileName: normalizeMarkdownFileName(fileName || currentManagedMarkdownName || metaFileName.value || editorFileName.value),
+    at: new Date().toISOString(),
+    errors: [],
+    warnings: [],
+    info: [],
+    stats: {}
+  };
+  try {
+    const blocks = parseMarkdownBlocks(raw);
+    const blocks2 = parseMarkdownBlocks(raw);
+    const renderable = blocks.filter(b => b.renderable !== false);
+    result.stats = {
+      chars: raw.length,
+      lines: normalizeMarkdownForSafety(raw).split("\n").length,
+      blocks: renderable.length,
+      tables: blocks.filter(b => b.type === "table").length,
+      codeBlocks: blocks.filter(b => b.type === "code_block").length,
+      comments: (mdCommentSidecarRuntime.comments || []).length,
+      openComments: (mdCommentSidecarRuntime.comments || []).filter(c => !c.resolved).length,
+      diff: diffLineStatsForSafety(mdSaveSafetyRuntime.loadedContent || "", raw)
+    };
+    if (markdownSafetyBlockSignature(blocks) !== markdownSafetyBlockSignature(blocks2)) {
+      result.errors.push("Block ModelのRoundTrip検査で、同一本文の解析結果が安定しませんでした。");
+    }
+    const fence = validateMarkdownFenceBalanceForSafety(raw);
+    if (!fence.ok) result.errors.push(fence.message);
+    validateMarkdownTablesForSafety(blocks).forEach(issue => {
+      (issue.level === "error" ? result.errors : result.warnings).push(issue.message);
+    });
+    validateSidecarTargetsForSafety(blocks).forEach(issue => result.warnings.push(issue.message));
+    try {
+      DOMPurify.sanitize(marked.parse(preprocessFrbComments(preprocessQiita(raw))));
+    } catch (err) {
+      result.errors.push(`Markdownレンダリング検査に失敗しました: ${err.message}`);
+    }
+    if (!raw.trim()) result.warnings.push("Markdown本文が空です。");
+  } catch (err) {
+    result.errors.push(`保存前検査で例外が発生しました: ${err.message}`);
+  }
+  result.ok = result.errors.length === 0;
+  return result;
+}
+function markdownSaveSafetySummary(result) {
+  const stats = result.stats || {};
+  const diff = stats.diff || {};
+  const lines = [];
+  lines.push(`${result.ok ? "✅" : "🚫"} Save Safety / ${result.fileName}`);
+  lines.push(`lines ${stats.lines ?? "?"} / blocks ${stats.blocks ?? "?"} / tables ${stats.tables ?? 0} / comments ${stats.openComments ?? 0}/${stats.comments ?? 0}`);
+  if (diff.beforeLines || diff.afterLines) lines.push(`diff lines: changed ${diff.changed || 0} / +${diff.added || 0} / -${diff.removed || 0}`);
+  if (result.errors.length) lines.push("\n[ERROR]\n" + result.errors.map(x => `- ${x}`).join("\n"));
+  if (result.warnings.length) lines.push("\n[WARN]\n" + result.warnings.map(x => `- ${x}`).join("\n"));
+  if (!result.errors.length && !result.warnings.length) lines.push("本文・表構造・Sidecarコメント参照はMVP検査で問題なし。");
+  return lines.join("\n");
+}
+function updateMarkdownSaveSafetyButton(result) {
+  const btn = document.getElementById("btnMarkdownSaveSafety");
+  if (!btn) return;
+  btn.classList.remove("safety-ok", "safety-warn", "safety-error");
+  if (!result) {
+    btn.textContent = "保存検査";
+    return;
+  }
+  if (result.errors?.length) {
+    btn.classList.add("safety-error");
+    btn.textContent = `保存検査 ${result.errors.length}E`;
+  } else if (result.warnings?.length) {
+    btn.classList.add("safety-warn");
+    btn.textContent = `保存検査 ${result.warnings.length}W`;
+  } else {
+    btn.classList.add("safety-ok");
+    btn.textContent = "保存検査 OK";
+  }
+}
+function createMarkdownSaveSafetyBackup(fileName, content, result) {
+  const safeName = normalizeMarkdownFileName(fileName || "frb_thought.md");
+  const backup = {
+    document_type: "markdown_save_backup",
+    schema_version: "md_save_safety_backup_v0_1",
+    created_at: new Date().toISOString(),
+    file_name: safeName,
+    sidecar_name: mdCommentSidecarRuntime.sidecarName || markdownCommentSidecarName(safeName),
+    safety: result,
+    content: String(content ?? ""),
+    sidecar: buildMarkdownCommentSidecarDocument()
+  };
+  const latestKey = `${markdownSafetyStoragePrefix()}${safeName}:latest`;
+  try {
+    localStorage.setItem(latestKey, JSON.stringify(backup));
+    mdSaveSafetyRuntime.lastBackupKey = latestKey;
+  } catch (err) {
+    result.warnings.push(`localStorageバックアップに失敗しました: ${err.message}`);
+  }
+  return latestKey;
+}
+async function runMarkdownSaveSafetyBeforeSave(fileName, content) {
+  const result = buildMarkdownSaveSafetyResult(fileName, content);
+  createMarkdownSaveSafetyBackup(fileName, content, result);
+  mdSaveSafetyRuntime.lastCheck = result;
+  updateMarkdownSaveSafetyButton(result);
+  if (result.errors.length) {
+    alert(markdownSaveSafetySummary(result) + "\n\n保存は中止しました。直前バックアップはlocalStorageに残しています。");
+    return false;
+  }
+  if (result.warnings.length) {
+    return confirm(markdownSaveSafetySummary(result) + "\n\n警告があります。このまま保存しますか？\n直前バックアップはlocalStorageに残しています。");
+  }
+  return true;
+}
+async function verifySavedManagedMarkdown(fileName, expectedContent) {
+  const res = await fetch(`/api/markdown/${encodeURIComponent(fileName)}`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`保存後RoundTrip確認のGETに失敗しました: HTTP ${res.status}`);
+  const actual = await res.text();
+  if (actual !== String(expectedContent ?? "")) {
+    const expectedNorm = normalizeMarkdownForSafety(expectedContent);
+    const actualNorm = normalizeMarkdownForSafety(actual);
+    if (expectedNorm !== actualNorm) {
+      const diff = diffLineStatsForSafety(expectedContent, actual);
+      throw new Error(`保存後RoundTrip差分を検出しました。changed=${diff.changed} +${diff.added} -${diff.removed}`);
+    }
+  }
+  return true;
+}
+async function runManualMarkdownSaveSafetyCheck() {
+  const fileName = normalizeMarkdownFileName(currentManagedMarkdownName || metaFileName.value || editorFileName.value);
+  const result = buildMarkdownSaveSafetyResult(fileName, editorEl.value);
+  createMarkdownSaveSafetyBackup(fileName, editorEl.value, result);
+  mdSaveSafetyRuntime.lastCheck = result;
+  updateMarkdownSaveSafetyButton(result);
+  alert(markdownSaveSafetySummary(result) + "\n\n直前バックアップ: localStorage / " + (mdSaveSafetyRuntime.lastBackupKey || "-") );
+}
+
 function normalizeMarkdownFileName(name) {
   let n = (name || "").trim();
   if (!n) n = "frb_thought.md";
@@ -3330,6 +3888,7 @@ async function loadManagedMarkdown(name) {
     currentManagedMarkdownName = name;
     isManagedMarkdownDirty = false;
     editorEl.value = md;
+    recordMarkdownLoadedSnapshot(name, md);
     syncFileNameUI(name);
     await loadMarkdownCommentSidecar(name);
     renderMarkdown(md, "#", "Managed Markdown");
@@ -3341,20 +3900,28 @@ async function loadManagedMarkdown(name) {
 
 async function saveManagedMarkdown(name, content, quiet = false) {
   const fileName = normalizeMarkdownFileName(name);
+  const safetyOk = await runMarkdownSaveSafetyBeforeSave(fileName, content);
+  if (!safetyOk) throw new Error("Save Safety 検査により保存を中止しました。");
   const res = await fetch(`/api/markdown/${encodeURIComponent(fileName)}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name: fileName, content })
   });
   if (!res.ok) throw new Error(await res.text());
+  await verifySavedManagedMarkdown(fileName, content);
   currentManagedMarkdownName = fileName;
   isManagedMarkdownDirty = false;
+  recordMarkdownLoadedSnapshot(fileName, content);
   syncFileNameUI(fileName);
   await refreshManagedMarkdownList(fileName);
   if (mdCommentSidecarRuntime.dirty && (mdCommentSidecarRuntime.targetFile === fileName || mdCommentSidecarRuntime.targetFile === currentManagedMarkdownName)) {
     await saveMarkdownCommentSidecar({ quiet: true });
   }
-  if (!quiet) alert(`保存しました: data/markdown/${fileName}`);
+  const summary = mdSaveSafetyRuntime.lastCheck ? `
+
+Save Safety: ${mdSaveSafetyRuntime.lastCheck.errors.length} errors / ${mdSaveSafetyRuntime.lastCheck.warnings.length} warnings
+Backup: ${mdSaveSafetyRuntime.lastBackupKey || "-"}` : "";
+  if (!quiet) alert(`保存しました: data/markdown/${fileName}${summary}`);
   return fileName;
 }
 
@@ -3384,6 +3951,7 @@ async function loadMarkdown(rawUrl){
     const md=await res.text();
     resetMarkdownCommentSidecarForLocal(rawUrl.split('/').pop() || "remote.md");
     editorEl.value = md;
+    recordMarkdownLoadedSnapshot(rawUrl.split('/').pop() || "remote.md", md);
     renderMarkdown(md, rawUrl, "GitHub Raw");
   }catch(err){
     previewEl.innerHTML=`<div class="qiita-note alert">読み込みエラー: ${err.message}</div>`;
@@ -3400,6 +3968,7 @@ function loadLocalFile(file){
     isManagedMarkdownDirty = true;
     resetMarkdownCommentSidecarForLocal(file.name);
     editorEl.value = md;
+    recordMarkdownLoadedSnapshot(file.name, md);
     syncFileNameUI(normalizeMarkdownFileName(file.name));
     renderMarkdown(md, "#", "Local file");
     await askRegisterAsManagedMarkdown(file.name, md);
@@ -3438,6 +4007,8 @@ btnRefreshManagedMd.addEventListener("click", async () => {
 });
 
 managedMdSelect.addEventListener("change", () => loadManagedMarkdown(managedMdSelect.value));
+const btnMarkdownSaveSafety = document.getElementById("btnMarkdownSaveSafety");
+if (btnMarkdownSaveSafety) btnMarkdownSaveSafety.addEventListener("click", () => runManualMarkdownSaveSafetyCheck());
 
 btnOverwriteManagedMd.addEventListener("click", async () => {
   try {

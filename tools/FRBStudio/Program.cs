@@ -120,7 +120,12 @@ internal static class Program
         {
             var path = SafeMarkdownPath(markdownDir, name);
             if (path is null || !File.Exists(path)) return Results.NotFound();
-            return Results.Text(await File.ReadAllTextAsync(path), "text/markdown; charset=utf-8");
+
+            var contentType = IsMarkdownCommentSidecarName(Path.GetFileName(path))
+                ? "application/json; charset=utf-8"
+                : "text/markdown; charset=utf-8";
+
+            return Results.Text(await File.ReadAllTextAsync(path), contentType);
         });
 
         app.MapPost("/api/markdown/{name}", async (string name, MarkdownSaveRequest req) =>
@@ -348,17 +353,39 @@ internal static class Program
     private static string? SafeMarkdownPath(string baseDir, string name)
     {
         if (string.IsNullOrWhiteSpace(name)) return null;
-        if (!name.EndsWith(".md", StringComparison.OrdinalIgnoreCase) &&
-            !name.EndsWith(".markdown", StringComparison.OrdinalIgnoreCase)) return null;
-        if (name.Contains("..") || name.Contains('/') || name.Contains('\\')) return null;
 
-        var full = Path.GetFullPath(Path.Combine(baseDir, name));
+        var normalized = Uri.UnescapeDataString(name).Replace('\\', '/').Trim('/');
+        if (string.IsNullOrWhiteSpace(normalized)) return null;
+        if (normalized.Contains("://", StringComparison.OrdinalIgnoreCase)) return null;
+        if (Path.IsPathRooted(normalized)) return null;
+        if (normalized.Split('/', StringSplitOptions.RemoveEmptyEntries).Any(part => part is "." or "..")) return null;
+
+        // v0.13.3.1:
+        // Markdown本文の管理APIで、本文に紐づくSidecarコメントJSONも保存できるようにする。
+        // 例: article.md.comments.json / article.markdown.comments.json
+        // ただし任意JSON保存口にはしない。Markdown本文に紐づく .comments.json のみ許可する。
+        if (normalized.Contains('/')) return null;
+        if (!IsManagedMarkdownFileName(normalized) && !IsMarkdownCommentSidecarName(normalized)) return null;
+
+        var full = Path.GetFullPath(Path.Combine(baseDir, normalized));
         var allowed = EnsureTrailingSeparator(Path.GetFullPath(baseDir));
 
         return EnsureTrailingSeparator(Path.GetDirectoryName(full) ?? string.Empty)
             .StartsWith(allowed, StringComparison.OrdinalIgnoreCase)
             ? full
             : null;
+    }
+
+    private static bool IsManagedMarkdownFileName(string name)
+    {
+        return name.EndsWith(".md", StringComparison.OrdinalIgnoreCase) ||
+               name.EndsWith(".markdown", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsMarkdownCommentSidecarName(string name)
+    {
+        return name.EndsWith(".md.comments.json", StringComparison.OrdinalIgnoreCase) ||
+               name.EndsWith(".markdown.comments.json", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string ToRelativeApiPath(string baseDir, string path)
