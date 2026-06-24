@@ -1,0 +1,2662 @@
+{
+  "view_def": "studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",
+  "schema_version": "studio_work_incident_data_v0_1",
+  "document_type": "studio_work_incident_management",
+  "title": "FRB Studio / JSON Object Studio 改修インシデント管理",
+  "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
+  "status": "active",
+  "created_at": "2026-06-21",
+  "updated_at": "2026-06-24",
+  "owner": "tamasub",
+  "ai_partner": "ChatGPT",
+  "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
+  "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。",
+  "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。",
+  "items_count": 30,
+  "work_items": [
+    {
+      "work_item_id": "studio_work_0001",
+      "phase": "v0.4-split",
+      "title": "app.js ソース分割",
+      "incident_type": "refactoring",
+      "category": "source_split",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-21",
+      "updated_at": "2026-06-21",
+      "target_files": "app.js, index.html",
+      "objective": "既存機能を維持したまま、巨大化した app.js を責務ごとに分割する。",
+      "background": "Studioくん憲法に基づき、Data / ViewDef / Action / Runtime の責務分離を進める。まずは機能追加ではなく、肥満化した app.js の内臓整理を行う。",
+      "scope": "従来script方式のまま、core / renderers / virtualData / markdown などの責務単位へ分割する。index.html は分割後の script 読み込みへ変更する。",
+      "out_of_scope": "type=\"module\" 化は行わない。ActionRegistry完全実装、toolbar.executeButton本格対応、Chat View完全可変化、固定フィールド名の全面撤去はこの段階では行わない。",
+      "fixed_name_policy": "固定名を見つけたら即削除ではなく分類する。Studio仕様の固定名・DOMシェル固定名は骨格として残す。Runtime内のData固定名は原則NG。ただしStudio標準メタフィールドとして憲法・仕様に明記されたものは例外。",
+      "module_policy": "type=\"module\" は将来検討。v0.4-split では従来script方式 + window名前空間または既存グローバル互換で安全に進める。",
+      "expected_outputs": "分割後のJSファイル一式、更新された index.html、既存動作維持の確認ポイント、固定名分類メモ。",
+      "risk": "グローバル変数依存、関数定義順、イベント初期化順、保存処理、サブグリッド編集、chat型表示、Markdown出力への回帰リスク。",
+      "test_points": "JSON読込、保存、Grid表示、Detail編集、サブグリッド、chat型、Markdown出力、ViewDef Markdown出力、Drop、コンボ読込を確認する。",
+      "user_request": "v0.4-split としてすすめよう。Runtime内のData固定名は原則NGで、Studioとして汎用的によく使うフィールドと認定するものは、憲法に記載しておけばOK。type=\"module\" は将来的にのスタンスでよい。",
+      "ai_response": "意識合わせ完了。v0.4-split は機能追加ではなく既存機能維持の責務分割。固定フィールド名は、骨格・脂肪を分類し、標準メタフィールド制度として憲法・仕様で定義されたものは許容する。",
+      "latest_user_comment": "v0.4-split の作業を依頼。data.zip と studio_work_incident_data_v0_1.json を添付。",
+      "latest_ai_response": "既存機能維持を優先し、type=\"module\" 化せず従来script方式で app.js を責務分割。Registry化と toolbar.executeButton 本格対応はスコープ外として維持。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0001_001",
+          "at": "2026-06-21",
+          "speaker": "user",
+          "message": "v0.4-split としてすすめよう。Runtime内のData固定名は原則NGだが、汎用フィールドは憲法に記載しておけばOK。",
+          "topic": "方針合意"
+        },
+        {
+          "history_id": "disc_0001_002",
+          "at": "2026-06-21",
+          "speaker": "assistant",
+          "message": "v0.4-split は機能維持のままソース分割。type=\"module\" 化は見送り、固定名は分類して扱う。",
+          "topic": "方針整理"
+        },
+        {
+          "history_id": "disc_0001_003",
+          "at": "2026-06-21",
+          "speaker": "user",
+          "topic": "作業依頼",
+          "message": "studio_work_incident_data_v0_1.json の v0.4-split の作業をお願いします。"
+        },
+        {
+          "history_id": "disc_0001_004",
+          "at": "2026-06-21",
+          "speaker": "assistant",
+          "topic": "作業結果",
+          "message": "app.js を core / ui / virtualData / renderers / markdown / runtime に分割し、index.html の script 読み込みを更新。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0001_001",
+          "at": "2026-06-21",
+          "decision": "v0.4-split は従来script方式で進める。",
+          "reason": "type=\"module\" 化はスコープや読み込み順変更のリスクがあるため、初回分割では安全を優先する。"
+        },
+        {
+          "decision_id": "dec_0001_002",
+          "at": "2026-06-21",
+          "decision": "固定名は即削除ではなく分類する。",
+          "reason": "Studio仕様・DOM骨格・ViewDef宣言値・Adapter仕様・Runtime脂肪を区別する必要があるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0001_001",
+          "at": "2026-06-21",
+          "change_type": "source_split",
+          "before": "wwwroot/app.js 1ファイル構成",
+          "after": "wwwroot/js 配下に責務分割し、wwwroot/app.js は起動・イベント配線中心へ縮小",
+          "reason": "v0.4-split の目的である既存機能維持のままの責務分割を実施するため。"
+        }
+      ],
+      "verification_status": "確認済み"
+    },
+    {
+      "work_item_id": "studio_work_0002",
+      "phase": "v0.5-registry",
+      "title": "Renderer / VirtualData / Action のRegistry化",
+      "incident_type": "architecture",
+      "category": "registry",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-21",
+      "updated_at": "2026-06-21",
+      "target_files": "wwwroot/js/core/registry.js, wwwroot/js/renderers/*registry.js, wwwroot/js/virtualData/virtual_data_registry.js, wwwroot/js/markdown/markdown_registry.js, wwwroot/js/actions/action_registry.js, index.html",
+      "objective": "分岐や固定実装をRegistryへ寄せ、戦略的設計パターンとして差し替え可能な構造へ移行する。",
+      "background": "v0.4-split で責務分割した後、Renderer / VirtualDataBuilder / Action をRegistry管理にすることで、Studioくんを専用処理の塊ではなく拡張可能なRuntimeへ近づける。",
+      "scope": "RendererRegistry、VirtualDataBuilderRegistry、ActionRegistry の導入方針を整理する。既存 builder 名や renderer 分岐を、段階的にRegistryへ寄せる。",
+      "out_of_scope": "ActionRegistryの完全な実行ボタン連動は v0.6-action-execute-button 側で扱う。v0.5ではRegistryの骨格と既存処理の移設を主目的とする。",
+      "fixed_name_policy": "builder名やrenderer種別など、ViewDefで宣言される識別子は条件付きOK。Runtimeが特定Dataフィールド名を直接参照する場合は原則NG。",
+      "module_policy": "type=\"module\" 化はまだ行わない。v0.4と同じscript方式を維持する。",
+      "expected_outputs": "Registry関連JS、既存renderer/builder登録処理、既存ViewDef互換の維持、REGISTRY_NOTES_v0_5.md、分岐削減メモ、node --check確認結果。",
+      "risk": "Registry読み込み順、登録漏れ、field control factory移設、virtualData builder alias不足、markdown.type未登録時の回帰リスク。",
+      "test_points": "全JSのnode --check確認済み。実機ではJSON読込、Grid/Form/Chat/ObjectArray表示、relation系VirtualData、Markdown AI Prompt出力、保存処理を確認する。",
+      "user_request": "v0.5-registry を重要作業項目として管理したい。",
+      "ai_response": "v0.5-registry は、v0.4で分割した責務を戦略的設計パターンへ寄せる段階。Registry化によって、Renderer・VirtualDataBuilder・Actionの差し替え可能性を高める。",
+      "latest_user_comment": "v0.5-registry確認完了。続いて v0.6-action-execute-button の対応を依頼。",
+      "latest_ai_response": "追加の事前確認なしで、v0.5-registry の範囲に限定して実施。Renderer / FieldControl / VirtualData / Markdown / Action のRegistry骨格を追加し、既存ヘッダーボタン動作や toolbar.executeButton 本格対応は v0.6 に残した。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0002_001",
+          "at": "2026-06-21",
+          "speaker": "assistant",
+          "message": "v0.5-registry では RendererRegistry / VirtualDataBuilderRegistry / ActionRegistry を入れるのが自然。",
+          "topic": "作業構想"
+        },
+        {
+          "history_id": "disc_0002_002",
+          "at": "2026-06-21",
+          "speaker": "user",
+          "topic": "v0.5-registry作業依頼",
+          "message": "studio_work_incident_data_v0_2.json の v0.5-registry 作業を添付に基づいて依頼。事前に意識合わせすべき項目があれば確認。"
+        },
+        {
+          "history_id": "disc_0002_003",
+          "at": "2026-06-21",
+          "speaker": "assistant",
+          "topic": "v0.5-registry作業結果",
+          "message": "v0.5-registry は機能追加ではなく健康体化。Registry骨格を追加し、分岐を登録制に寄せた。v0.6-action-execute-button の実装はスコープ外として保持。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0002_001",
+          "at": "2026-06-21",
+          "decision": "Registry化は v0.4-split の後に行う。",
+          "reason": "先に責務分割しないと、Registry化と既存コード整理が混ざって回帰リスクが上がるため。"
+        },
+        {
+          "decision_id": "dec_0002_002",
+          "at": "2026-06-21",
+          "decision": "v0.5ではActionRegistryを追加するが、既存UIボタンとの接続は行わない。",
+          "reason": "toolbar.executeButton本格対応は v0.6 の作業範囲であり、v0.5ではRegistryの受け皿整備に留めるため。"
+        },
+        {
+          "decision_id": "dec_0002_003",
+          "at": "2026-06-21",
+          "decision": "virtualData builder / markdown.type / field control をRegistryへ寄せる。",
+          "reason": "ViewDefで宣言される識別子をRuntime分岐ではなく登録済み実装へ委譲し、追加時の触る場所を明確にするため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "hist_0002_001",
+          "at": "2026-06-21",
+          "change_type": "architecture_registry",
+          "before": "v0.4-splitでは責務別ファイルに分割したが、builder/typeごとの一部固定分岐は残っていた。",
+          "after": "Registry骨格を追加し、VirtualData / Markdown / FieldControl / Renderer / Action を登録制へ寄せた。",
+          "reason": "ステップ数削減より、追加・変更時に触る場所を明確にし、AIが迷子にならない健康体へ近づけるため。"
+        }
+      ],
+      "verification_status": "確認済み"
+    },
+    {
+      "work_item_id": "studio_work_0003",
+      "phase": "v0.6-action-execute-button",
+      "title": "toolbar.executeButton / Action 実行対応",
+      "incident_type": "feature",
+      "category": "action",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-21",
+      "updated_at": "2026-06-21",
+      "target_files": "wwwroot/js/actions/action_registry.js, wwwroot/js/actions/action_toolbar.js, wwwroot/js/runtime/load_runtime.js, wwwroot/index.html, wwwroot/styles.css, defs/studio/*execute_button_sample.json",
+      "objective": "ViewDefで定義された toolbar.executeButton を読み取り、caption と action に応じた主役操作を実行できるようにする。",
+      "background": "Action Separation の会話で、toolbar直下配列ではなく toolbar.executeButton を主役操作として定義する方針になった。RuntimeはActionの意味を知らず、ViewDef由来の actionId を ActionRegistry に渡すだけにする。",
+      "scope": "ViewDefの toolbar.executeButton 定義を読み取り、ボタン表示名を caption から出す。クリック時は actionId を変数として ActionRegistry.execute(actionId, context) に渡す。",
+      "out_of_scope": "MIDI再生やテスト実行など、各Actionの中身の作り込みは必要最小限。まずはAction実行の骨格とサンプルActionを優先する。",
+      "fixed_name_policy": "Runtimeに actionRegistry.execute(\"PlayMidi\", context) のような固定Action名を書かない。\"PlayMidi\" は ViewDef上のAction識別子としてのみ許容する。",
+      "module_policy": "type=\"module\" 化はまだ行わない。v0.4/v0.5のscript方式を継続する。",
+      "expected_outputs": "toolbar.executeButton対応、ActionRegistry実行、サンプルAction、ViewDef例、既存画面への影響確認、ACTION_EXECUTE_BUTTON_NOTES_v0_6.md、node --check確認結果。",
+      "risk": "ActionRegistry読込順、executeButton未定義時の既存画面影響、未登録Actionクリック時のエラーハンドリング、既存ヘッダーボタン群との役割混同、ActionContext肥満化。",
+      "test_points": "全JSのnode --check確認済み。実機ではexecuteButton未定義ViewDefで既存動作に影響しないこと、executeButton定義ViewDefでcaption表示とAction実行が動くこと、ExportMarkdown/Noop/ShowActionContextなどの登録済みActionが実行できることを確認する。",
+      "user_request": "v0.6-action-execute-button を重要作業項目として管理したい。",
+      "ai_response": "v0.6-action-execute-button は、Studioくんの実行ボタンポリモーフィズムの中核。Runtimeに固定Action名を置かず、ViewDefのexecuteButton定義を変数として扱う。",
+      "latest_user_comment": "v0.5-registry確認完了。続いて、studio_work_incident_data_v0_3.json の v0.6-action-execute-button 対応を依頼。事前に意識合わせすべき項目があれば確認してほしい。",
+      "latest_ai_response": "追加の事前確認なしで、v0.6-action-execute-button の範囲に限定して実施。ViewDefの toolbar.executeButton から actionId を取得し、固定Action名をRuntimeに置かず ActionRegistry へ変数として渡す実行ボタンを追加した。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0003_001",
+          "at": "2026-06-21",
+          "speaker": "user",
+          "message": "{ \"toolbar\": [ { \"caption\": \"再生\", \"action\": \"PlayMidi\" } ] } ではなく、toolbar の下に executeButton がある構造ではないか。",
+          "topic": "ViewDef構造"
+        },
+        {
+          "history_id": "disc_0003_002",
+          "at": "2026-06-21",
+          "speaker": "assistant",
+          "message": "主役操作は toolbar.executeButton、補助操作は toolbar.buttons に分けるのが自然。",
+          "topic": "ViewDef構造整理"
+        },
+        {
+          "history_id": "disc_0003_003",
+          "at": "2026-06-21",
+          "speaker": "user",
+          "topic": "作業依頼",
+          "message": "v0.5-registry確認完了。続いて v0.6-action-execute-button の対応を依頼。"
+        },
+        {
+          "history_id": "disc_0003_004",
+          "at": "2026-06-21",
+          "speaker": "assistant",
+          "topic": "作業結果",
+          "message": "toolbar.executeButton を読み取り、captionを表示し、actionIdをActionRegistryへ渡す view execute button runtime を追加。未定義時はボタンを出さず既存画面に影響しないようにした。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0003_001",
+          "at": "2026-06-21",
+          "decision": "主役操作は toolbar.executeButton とする。",
+          "reason": "単なるボタン一覧ではなく、そのViewにおける代表的な実行操作として意味づけるため。"
+        },
+        {
+          "decision_id": "dec_0003_002",
+          "at": "2026-06-21",
+          "decision": "RuntimeはAction名を固定文字列で指定しない。",
+          "reason": "Action名はViewDefから取得したactionIdとして変数で受け渡す必要があるため。"
+        },
+        {
+          "decision_id": "dec_0003_003",
+          "at": "2026-06-21",
+          "decision": "executeButton はGrid右上の操作エリアに表示する。",
+          "reason": "ViewDefに紐づく主役操作であり、既存ヘッダーボタン群と混同せず、Gridの作業文脈に近い位置へ置くため。"
+        },
+        {
+          "decision_id": "dec_0003_004",
+          "at": "2026-06-21",
+          "decision": "RuntimeはAction名を固定せず、executeButton.actionをactionId変数として渡す。",
+          "reason": "Action Separationとポリモーフィズムの原則を守るため。"
+        },
+        {
+          "decision_id": "dec_0003_005",
+          "at": "2026-06-21",
+          "decision": "v0.6では補助ボタン toolbar.buttons の実装は行わない。",
+          "reason": "今回のスコープは主役操作 toolbar.executeButton の接続であり、補助ボタン群は将来拡張として分離するため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0003_001",
+          "at": "2026-06-21",
+          "change_type": "action_execute_button",
+          "before": "ActionRegistryはv0.5で受け皿のみ存在し、ViewDefのtoolbar.executeButtonからは実行されていなかった。",
+          "after": "toolbar.executeButtonを読み取り、Grid右上に主役実行ボタンを表示し、executeButton.actionをActionRegistryへ変数として渡して実行する。",
+          "reason": "Viewごとに「再生」「テスト実行」「Replay開始」などの主役操作をViewDefで宣言し、Runtimeを固定Action名から切り離すため。"
+        }
+      ],
+      "verification_status": "確認済み"
+    },
+    {
+      "work_item_id": "studio_work_0004",
+      "phase": "v0.7-viewdef-rules-review",
+      "title": "★FRB_VIEW_DEF_GENERATION_RULES / Schema レビュー",
+      "incident_type": "rules_review",
+      "category": "rules_schema",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-21",
+      "updated_at": "2026-06-21",
+      "target_files": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_15.md, FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md, frb_view_def_schema_v0_8_action_registry_toolbar.json, wwwroot.zip",
+      "objective": "現時点の最新Runtime、Registry、toolbar.executeButton、Markdown出力、chat/objectArray仕様に合わせて、ViewDef生成ルールMDをv0.16へ更新する。",
+      "background": "既存のルール文書が紛失・不完全になったため、最新ソースと過去の設計判断をもとに、AIへViewDef生成を依頼する際の公用ルールを再構築する必要がある。",
+      "scope": "FRB_VIEW_DEF_GENERATION_RULES_ALL正本を更新し、detailBodyカード化、objectArray/chat保存契約、Markdown出力契約、Markdownリンク/画像記法、ファイル名sanitize、Rules正本命名ルールを追加する。",
+      "out_of_scope": "この作業ではテストパターンや制約レビューの細部仕様には踏み込まない。まずViewDef生成ルールとSchemaの地ならしを行う。",
+      "fixed_name_policy": "Runtime内Data固定名を前提とする記述は原則NG。Data側の固定名ではなく、ViewDefでfield/path/type/markdown/actionを宣言する方針を明記する。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、必要なルール・Runtime仕様・保存仕様を整理する。",
+      "expected_outputs": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md、更新内容レポート、studio_work_incident_data更新版。",
+      "risk": "Rulesに実装未対応の概念を書きすぎるとRuntimeと乖離する。今回、実装修正が必要なものは既存v0.7インシデントへ明示的に残す。",
+      "test_points": "v0.16にdetailBody readable card、objectArray保存契約、chat input mapping、chat Markdownリンク/画像、Markdown出力契約、展開前/展開後JSON、文字化けファイル名対策、Rules正本命名ルールが入っているか確認する。",
+      "user_request": "studio_work_incident_data_v0_4.json に次の作業データを追加したい。FRB_VIEW_DEF_GENERATION_RULESレビュー、objectArray/chat保存健全性、chat input mapping、Markdown出力契約、ViewDef代表サンプル整理、固定フィールド名監査、Studio標準メタフィールド定義、文字化けファイル名大量発生対応を整理したい。",
+      "ai_response": "FRB_VIEW_DEF_GENERATION_RULESレビューは確定で追加。最新RuntimeとSchema/Rulesのズレを見直し、AIへViewDef生成を依頼するための公用語を整える。",
+      "latest_user_comment": "#依頼結論20260621_1746\n01:FRB_VIEW_DEF_GENERATION_RULESに長文説明フィールドは必要に応じてdetailBodyカード化するルールを追加お願いします。\n02:objectArray/chat保存健全性、chat input mapping、Markdown出力契約、ViewDef代表サンプル整理、固定フィールド名監査、Studio標準メタフィールド定義、文字化けファイル名大量発生対応をお願いします。\n03:チャット欄において、画像リンク(MarkDown書式のリンク文字）に対応し、画像表示を可能として欲しい。\n04:追加コメント欄に入力し、「反映(F12)」した文字が上書き保存しても保存されない。尚、チャット送信欄に内容を追加したら、追加されて保存された。しかし、同じ追加コメント欄の別の文書を削除して保存しても、ゾンビの様に復活してくる笑。\n05:FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_15.mdを更新お願いします。尚、ファイル名のバージョン番号の後ろに目的を示す言葉を付加するのは禁止します。GENERATION_RULESのみ適用ルール。本ルールも追記ください。更新したらバージョン数字のみ変更ください。FRB_VIEW_DEF_GENERATION_RULESを使って差分情報を記載する文書も禁止。ファイル名にALLという文言追加し、明示しています。（本ファイルの紛失防止対策）",
+      "latest_ai_response": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.mdを作成。長文説明フィールドのdetailBody readable card化、objectArray保存契約、chat input mapping、chat本文Markdownリンク/画像記法、Markdown出力契約、展開前/展開後JSON、ファイル名sanitize、Rules正本命名ルールを追記。実装修正が必要な保存バグ等は既存v0.7インシデントへ継続課題として残す。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0004_001",
+          "at": "2026-06-21",
+          "speaker": "user",
+          "topic": "作業候補整理",
+          "message": "studio_work_incident_data_v0_4.json に次の作業データを追加したい。FRB_VIEW_DEF_GENERATION_RULESレビュー、objectArray/chat保存健全性、chat input mapping、Markdown出力契約、ViewDef代表サンプル整理、固定フィールド名監査、Studio標準メタフィールド定義、文字化けファイル名大量発生対応を整理したい。"
+        },
+        {
+          "history_id": "disc_0004_002",
+          "at": "2026-06-21",
+          "speaker": "assistant",
+          "topic": "作業候補整理",
+          "message": "FRB_VIEW_DEF_GENERATION_RULESレビューは確定で追加。最新RuntimeとSchema/Rulesのズレを見直し、AIへViewDef生成を依頼するための公用語を整える。"
+        },
+        {
+          "history_id": "disc_0004_003",
+          "at": "2026-06-21",
+          "speaker": "user",
+          "topic": "Rules v0.16更新依頼",
+          "message": "#依頼結論20260621_1746\n01:FRB_VIEW_DEF_GENERATION_RULESに長文説明フィールドは必要に応じてdetailBodyカード化するルールを追加お願いします。\n02:objectArray/chat保存健全性、chat input mapping、Markdown出力契約、ViewDef代表サンプル整理、固定フィールド名監査、Studio標準メタフィールド定義、文字化けファイル名大量発生対応をお願いします。\n03:チャット欄において、画像リンク(MarkDown書式のリンク文字）に対応し、画像表示を可能として欲しい。\n04:追加コメント欄に入力し、「反映(F12)」した文字が上書き保存しても保存されない。尚、チャット送信欄に内容を追加したら、追加されて保存された。しかし、同じ追加コメント欄の別の文書を削除して保存しても、ゾンビの様に復活してくる笑。\n05:FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_15.mdを更新お願いします。尚、ファイル名のバージョン番号の後ろに目的を示す言葉を付加するのは禁止します。GENERATION_RULESのみ適用ルール。本ルールも追記ください。更新したらバージョン数字のみ変更ください。FRB_VIEW_DEF_GENERATION_RULESを使って差分情報を記載する文書も禁止。ファイル名にALLという文言追加し、明示しています。（本ファイルの紛失防止対策）"
+        },
+        {
+          "history_id": "disc_0004_004",
+          "at": "2026-06-21",
+          "speaker": "assistant",
+          "topic": "Rules v0.16更新結果",
+          "message": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.mdを作成。長文説明フィールドのdetailBody readable card化、objectArray保存契約、chat input mapping、chat本文Markdownリンク/画像記法、Markdown出力契約、展開前/展開後JSON、ファイル名sanitize、Rules正本命名ルールを追記。実装修正が必要な保存バグ等は既存v0.7インシデントへ継続課題として残す。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0004_001",
+          "at": "2026-06-21",
+          "decision": "FRB_VIEW_DEF_GENERATION_RULES正本はALL付き・バージョン数字のみ更新する。",
+          "reason": "派生名や差分名が増えると、AIが正本を誤認し、ルール文書紛失や旧版参照が起きるため。"
+        },
+        {
+          "decision_id": "dec_0004_002",
+          "at": "2026-06-21",
+          "decision": "長文説明フィールドは必要に応じてdetailBody readable cardへ寄せる。",
+          "reason": "目的・背景・対象範囲・リスク等をtextareaの羅列にすると読みにくく、レビュー画面としての体験が悪化するため。"
+        },
+        {
+          "decision_id": "dec_0004_003",
+          "at": "2026-06-21",
+          "decision": "chat/textarea内のMarkdownリンク・画像記法は、ViewDefで許可された場所だけ表示対象とする。",
+          "reason": "全フィールド自動Markdown化は危険だが、会話履歴にスクリーンショットリンクを残す用途は重要なため。"
+        },
+        {
+          "decision_id": "dec_0004_004",
+          "at": "2026-06-21",
+          "decision": "追加コメント欄の保存バグとゾンビ復活は、Rulesに保存契約を明記しつつ、実装修正は別インシデントで扱う。",
+          "reason": "Rules更新とRuntime修正を混ぜると作業範囲が肥大化するため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0004_001",
+          "at": "2026-06-21",
+          "change_type": "rules_update",
+          "before": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_15.md",
+          "after": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
+          "reason": "最新Runtime/ActionRegistry/Markdown/chat/objectArray運用と、ユーザーコメントで明確化されたRules正本命名ルールを反映するため。"
+        }
+      ],
+      "verification_status": "確認済み"
+    },
+    {
+      "work_item_id": "studio_work_0005",
+      "phase": "v0.7-objectarray-save-integrity",
+      "title": "objectArray / 履歴配列の保存健全性確認",
+      "incident_type": "bugfix",
+      "category": "save_integrity",
+      "priority": "",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-21",
+      "updated_at": "2026-06-21",
+      "target_files": "wwwroot/js/renderers/field_controls.js, wwwroot/js/renderers/grid_detail.js, wwwroot/js/runtime/detail_save.js, representative objectArray/chat data/view_def",
+      "objective": "discussion_history / decision_log / change_history などの配列データが、保存後も配列として保持されることを保証し、detailFooter/chat欄の編集・削除が反映・上書き保存されるようにする。",
+      "background": "インシデント管理JSON自体がStudioくんの作業記憶であるため、履歴配列が '3 items' のような表示文字列へ置き換わると、未来の人間とAIが経緯を追体験できなくなる。",
+      "scope": "objectArray/stringArrayをDetail Formの通常入力欄から除外し、childAreaサブグリッド表示へ限定する。detailFooter/chatなどdetailForm外に描画されたcontenteditableも反映対象に含める。",
+      "out_of_scope": "この作業ではobjectArrayの高度な並べ替え・差分比較・個別承認までは行わない。",
+      "fixed_name_policy": "discussion_history などのフィールド名をRuntimeが特別扱いしない。objectArrayとしてViewDefで定義されたフィールドを汎用的に扱う。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、必要なルール・Runtime仕様・保存仕様を整理する。",
+      "expected_outputs": "保存処理修正、objectArray/stringArrayの表示専用入力欄排除、detailFooter/chat編集値の反映対象化、OBJECTARRAY_SAVE_INTEGRITY_NOTES_v0_7.md、node --check確認結果。",
+      "risk": "保存処理の修正により、通常文字列フィールドやchat型、detail保存に回帰が起きるリスクがある。",
+      "test_points": "discussion_history / decision_log / change_history が保存後もArrayで残ること。chat/detailFooterのlatest_user_comment編集・削除がF12反映と上書き保存で残ること。objectArrayの「2 items」表示文字列が保存値へ混入しないこと。",
+      "user_request": "studio_work_incident_data_v0_4.json に次の作業データを追加したい。FRB_VIEW_DEF_GENERATION_RULESレビュー、objectArray/chat保存健全性、chat input mapping、Markdown出力契約、ViewDef代表サンプル整理、固定フィールド名監査、Studio標準メタフィールド定義、文字化けファイル名大量発生対応を整理したい。",
+      "ai_response": "objectArray保存健全性は最優先候補。作業履歴の母艦が壊れないよう、表示文字列と保存実体を分離する。",
+      "latest_user_comment": "studio_work_incident_data_v0_6.json の v0.7-objectarray-save-integrity 対応を依頼。追加コメント欄が保存されない・削除してもゾンビ復活するため、objectArray/chat保存健全性を先に直したい。",
+      "latest_ai_response": "Detail Formだけでなく detailDialog 全体の data-field コントロールを反映対象にし、detailFooter/chat欄の編集・削除を保存対象にした。objectArray/stringArrayはDetail Formの通常入力欄から除外し、配列を「2 items」文字列で上書きしないようにした。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0005_001",
+          "at": "2026-06-21",
+          "speaker": "user",
+          "topic": "作業候補整理",
+          "message": "studio_work_incident_data_v0_4.json に次の作業データを追加したい。FRB_VIEW_DEF_GENERATION_RULESレビュー、objectArray/chat保存健全性、chat input mapping、Markdown出力契約、ViewDef代表サンプル整理、固定フィールド名監査、Studio標準メタフィールド定義、文字化けファイル名大量発生対応を整理したい。"
+        },
+        {
+          "history_id": "disc_0005_002",
+          "at": "2026-06-21",
+          "speaker": "assistant",
+          "topic": "作業候補整理",
+          "message": "objectArray保存健全性は最優先候補。作業履歴の母艦が壊れないよう、表示文字列と保存実体を分離する。"
+        },
+        {
+          "history_id": "disc_0005_extra_20260621",
+          "at": "2026-06-21",
+          "speaker": "user",
+          "topic": "Rulesレビューからの追加論点",
+          "message": "追加コメント欄に入力して反映(F12)しても上書き保存されない。削除して保存した文言がゾンビのように復活する。objectArray/chat保存健全性の観点で実装修正が必要。"
+        },
+        {
+          "history_id": "disc_0005_003",
+          "at": "2026-06-21",
+          "speaker": "user",
+          "topic": "v0.7-objectarray-save-integrity作業依頼",
+          "message": "studio_work_incident_data_v0_6.json v0.7-objectarray-save-integrity の対応を依頼。事前意識合わせが必要なら確認してほしい。"
+        },
+        {
+          "history_id": "disc_0005_004",
+          "at": "2026-06-21",
+          "speaker": "assistant",
+          "topic": "v0.7-objectarray-save-integrity作業結果",
+          "message": "detailEditableControlsをdetailDialog全体へ拡張し、detailFooter/chatのcontenteditable編集を反映対象にした。objectArray/stringArrayを通常Detail Formから除外し、配列保存の破壊を防止した。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0005_001",
+          "at": "2026-06-21",
+          "decision": "objectArray/stringArrayは通常Detail Formに入力欄として表示しない。",
+          "reason": "「2 items」のような表示専用文字列が、反映・保存時に配列本体を上書きするリスクをなくすため。"
+        },
+        {
+          "decision_id": "dec_0005_002",
+          "at": "2026-06-21",
+          "decision": "反映対象の取得範囲をdetailFormからdetailDialog全体へ広げる。",
+          "reason": "chat/detailFooterはchildArea側に描画されるため、detailFormだけでは追加コメント欄の編集・削除を保存できないため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0005_001",
+          "at": "2026-06-21",
+          "change_type": "save_integrity_fix",
+          "before": "detailEditableControlsはdetailForm内だけを対象にしており、detailFooter/chat欄の編集がF12反映・上書き保存に回収されなかった。またobjectArray/stringArrayが通常入力欄に出ると件数文字列で配列を壊す可能性があった。",
+          "after": "detailDialog全体のdata-field付きコントロールを回収し、chat/detailFooterのcontenteditableを保存対象にした。objectArray/stringArrayは通常入力欄から除外し、childArea表示専用にした。",
+          "reason": "作業履歴配列とチャットコメントをStudioくんの記憶として安全に保持するため。"
+        }
+      ],
+      "verification_status": "確認済み"
+    },
+    {
+      "work_item_id": "studio_work_0006",
+      "phase": "v0.7-chat-input-mapping",
+      "title": "☆彡chat送信欄の保存先・末尾表示・Markdownリンク/画像対応",
+      "incident_type": "feature_fix",
+      "category": "chat",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-21",
+      "updated_at": "2026-06-21",
+      "target_files": "wwwroot/js/renderers/field_controls.js, wwwroot/js/runtime/detail_save.js, wwwroot/js/runtime/CHAT_INPUT_MAPPING_NOTES_v0_7.md, wwwroot/js/runtime/CHAT_MARKDOWN_PREVIEW_FIX_NOTES_v0_8_1.md, styles.css, studio_work_incident_data_v0_9.json",
+      "objective": "chat型で追加コメント入力欄を使う場合に、保存先userField/aiFieldをViewDefで明示し、送信したユーザーコメントをmessages定義位置ではなく会話末尾へ表示する。あわせて、ViewDefで許可されたchat本文に限りMarkdownリンク/画像記法を表示できるようにする。",
+      "background": "chat edit.messages は任意フィールドを吹き出し表示できるが、追加入力欄が既定の user_reply / ai_followup_response に依存すると、固定フィールド名肥満につながる。",
+      "scope": "chat型の edit.input.enabled / userField / aiField / appendPosition / placeholder / sendLabel / markdown をRuntimeで扱う。input.userField と同じfieldがmessagesに定義されていても、appendPosition=afterMessagesの場合は通常messages表示から除外し、最後のAI回答の後ろへ末尾表示する。Markdownは保存値を原文のまま保持し、表示時だけリンク/画像へ変換する。",
+      "out_of_scope": "チャット履歴のAI自動生成や外部LLM連携は行わない。まず入力欄の保存先明示と既存表示の安定化に限定する。",
+      "fixed_name_policy": "user_request / latest_user_comment などのフィールド名をRuntimeで決め打ちしない。ViewDefの edit.input.userField / aiField を優先する。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、必要なルール・Runtime仕様・保存仕様を整理する。",
+      "expected_outputs": "chat input mapping対応、送信メッセージ末尾表示、Markdown inline rendering対応、保存済み追加コメントのMarkdownプレビュー二重表示解消、CHAT_MARKDOWN_PREVIEW_FIX_NOTES_v0_8_1.md、node --check確認結果。",
+      "risk": "既存chat表示やreadonly吹き出し、contenteditable保存との競合リスクがある。",
+      "test_points": "送信欄入力がedit.input.userFieldへ保存されること。送信後の追加コメントが最後のAI回答の後ろに表示されること。input.userFieldと同じfieldがmessagesにあっても二重表示されないこと。Markdownリンク [text](./path) と画像 ![alt](./path) がViewDef許可時のみ表示されること。保存済み追加コメントでMarkdown原文とMarkdown previewが二重表示されないこと。保存値はMarkdown原文のまま残り、HTMLがJSONへ混入しないこと。",
+      "user_request": "studio_work_incident_data_v0_4.json に次の作業データを追加したい。FRB_VIEW_DEF_GENERATION_RULESレビュー、objectArray/chat保存健全性、chat input mapping、Markdown出力契約、ViewDef代表サンプル整理、固定フィールド名監査、Studio標準メタフィールド定義、文字化けファイル名大量発生対応を整理したい。",
+      "ai_response": "chat入力欄は固定名に逃げず、edit.input.userField / aiField を明示するルールにする。",
+      "latest_user_comment": "studio_work_incident_data_v0_7.json の v0.7-chat-input-mapping 対応を依頼。チャット送信欄の保存先を固定名ではなく edit.input.userField / aiField で明示したい。送信したコメントは最後のAI回答の直前ではなく、最後のAI回答の次に表示したい。あわせて、チャット欄でMarkdown書式のリンク/画像を扱いたい。\n\n\n# AI作業完了報告\n1. edit.input.userField / aiField をRuntimeで読む\n2. 送信欄の内容を userField に保存する\n3. appendPosition=afterMessages の場合、追加コメントを会話末尾に表示する\n4. userField が messages 側にもある場合は二重表示しない\n5. chat欄で Markdownリンク / 画像記法を表示できるようにする\n6. studio_work_incident_view_def_v0_2_readable_cards.json を更新\n7. studio_work_incident_data_v0_8.json で該当インシデントを完了扱いに更新\n\n\n# バグ報告　\n- MarkDownプレビューにコメント原文が表示されて、コメント原文が２重表示されている。\n\n# バグ報告後AI回答\n1. 送信欄の下に出る preview は入力欄専用にする\n2. 保存済み latest_user_comment の末尾表示では preview 枠を出さない\n3. 保存済みコメントは Markdown変換済みHTMLだけを1回表示する\n4. 編集モードに入った時だけ、原文 + preview を出すか検討\n\n\n![alt text](./images/chat/tamasub.png)",
+      "latest_ai_response": "v0.7-chat-input-mapping バグ対応完了。appendPosition=afterMessages で末尾表示する保存済み追加コメントを、編集可能メッセージではなく表示専用Markdownメッセージとして描画するように修正した。これにより、Markdown画像/リンクを含むコメントで「原文 + Markdown preview」が二重表示される問題を解消。保存値はMarkdown原文のまま保持し、表示時のみMarkdown変換する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0006_001",
+          "at": "2026-06-21",
+          "speaker": "user",
+          "topic": "作業候補整理",
+          "message": "studio_work_incident_data_v0_4.json に次の作業データを追加したい。FRB_VIEW_DEF_GENERATION_RULESレビュー、objectArray/chat保存健全性、chat input mapping、Markdown出力契約、ViewDef代表サンプル整理、固定フィールド名監査、Studio標準メタフィールド定義、文字化けファイル名大量発生対応を整理したい。"
+        },
+        {
+          "history_id": "disc_0006_002",
+          "at": "2026-06-21",
+          "speaker": "assistant",
+          "topic": "作業候補整理",
+          "message": "chat入力欄は固定名に逃げず、edit.input.userField / aiField を明示するルールにする。"
+        },
+        {
+          "history_id": "disc_0006_extra_20260621",
+          "at": "2026-06-21",
+          "speaker": "user",
+          "topic": "Rulesレビューからの追加論点",
+          "message": "チャット欄でMarkdown書式のリンク/画像を扱いたい。追加コメント欄の保存先も固定名ではなくedit.input.userField/aiFieldで明示したい。"
+        },
+        {
+          "history_id": "disc_0006_003",
+          "at": "2026-06-21",
+          "speaker": "user",
+          "topic": "v0.7-chat-input-mapping作業依頼",
+          "message": "studio_work_incident_data_v0_7.json の v0.7-chat-input-mapping 対応を依頼。チャット欄でMarkdown書式のリンク/画像を扱いたい。追加コメント欄の保存先も固定名ではなくedit.input.userField/aiFieldで明示したい。"
+        },
+        {
+          "history_id": "disc_0006_004",
+          "at": "2026-06-21",
+          "speaker": "user",
+          "topic": "送信コメント表示位置の違和感",
+          "message": "現状ではメッセージ送信すると最後のAI回答の直前の欄に追加されて意味不明な時系列になる。送信したコメントは最後のAI回答の次に表示したい。"
+        },
+        {
+          "history_id": "disc_0006_005",
+          "at": "2026-06-21",
+          "speaker": "assistant",
+          "topic": "v0.7-chat-input-mapping作業結果",
+          "message": "chatInputConfigでedit.input.userField/aiField/appendPosition/markdownを扱うようにし、appendPosition=afterMessagesの場合はinput.userFieldを通常messages表示から除外して末尾表示するようにした。Markdownリンク/画像は許可されたchatだけ表示変換し、編集可能欄では原文を保持しつつプレビュー表示する。"
+        },
+        {
+          "history_id": "disc_0006_006",
+          "at": "2026-06-21",
+          "speaker": "user",
+          "topic": "Markdownプレビュー二重表示バグ報告",
+          "message": "AI回答が最終ではない状態でMarkdown画像リンクを送信すると、追加コメント欄に原文が追加され、その下にMarkdown previewも出るため、コメント原文が二重表示される。v0.7-chat-input-mappingのバグ対応として修正したい。"
+        },
+        {
+          "history_id": "disc_0006_007",
+          "at": "2026-06-21",
+          "speaker": "assistant",
+          "topic": "Markdownプレビュー二重表示バグ対応結果",
+          "message": "保存済みの末尾追加コメントは入力欄/編集中UIではなく会話タイムライン上の保存済みメッセージとして扱う。renderMarkdownOnly表示モードを追加し、Markdown変換済み表示を1回だけ行い、preview枠は出さないようにした。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0006_001",
+          "at": "2026-06-21",
+          "decision": "chat送信欄の保存先はRuntime固定名ではなく、ViewDefのedit.input.userField / aiFieldを優先する。",
+          "reason": "データごとにコメント欄のフィールド名は異なるため、Runtimeがuser_reply等の固定Data名へ依存するとStudioくんが特定データ構造に太るため。"
+        },
+        {
+          "decision_id": "dec_0006_002",
+          "at": "2026-06-21",
+          "decision": "送信欄由来のユーザーコメントはappendPosition=afterMessagesを既定とし、会話末尾へ表示する。",
+          "reason": "messages定義順の途中にあるuserFieldへ追記すると、最後のAI回答の直前に新コメントが割り込んで時系列が崩れるため。"
+        },
+        {
+          "decision_id": "dec_0006_003",
+          "at": "2026-06-21",
+          "decision": "chat内Markdownリンク/画像はViewDefで許可された場合のみ表示変換し、保存値はMarkdown原文のまま保持する。",
+          "reason": "全フィールド自動Markdown化は危険だが、作業会話にスクリーンショットリンクや画像を残す用途は重要なため。"
+        },
+        {
+          "decision_id": "dec_0006_004",
+          "at": "2026-06-21",
+          "decision": "保存済みの末尾追加コメントではMarkdown preview枠を表示しない。",
+          "reason": "送信済みコメントは入力中UIではなく保存済み会話メッセージであり、原文とpreviewを同時に出すと同一コメントが二重表示されて時系列レビューが読みにくくなるため。"
+        },
+        {
+          "decision_id": "dec_0006_005",
+          "at": "2026-06-21",
+          "decision": "appendPosition=afterMessages の userField 表示は renderMarkdownOnly の表示専用モードで描画する。",
+          "reason": "Markdown画像/リンクを表示しつつ、contenteditableによるHTML保存値混入やpreview二重表示を避けるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0006_001",
+          "at": "2026-06-21",
+          "change_type": "chat_input_mapping",
+          "before": "chat送信欄はuserFieldの定義位置に従って表示され、latest_user_commentがlatest_ai_responseの前にある場合、新規送信コメントも最後のAI回答の前へ割り込んでいた。Markdownリンク/画像もchat本文では表示変換されなかった。",
+          "after": "edit.input.userFieldを保存先として扱いながら、appendPosition=afterMessagesの場合はuserFieldを会話末尾へ表示するように変更。Markdownリンク/画像は許可されたchat本文で表示変換するようにした。",
+          "reason": "チャットの時系列を自然に保ち、作業会話にスクリーンショットや関連資料リンクを残せるようにするため。"
+        },
+        {
+          "history_id": "chg_0006_002",
+          "at": "2026-06-21",
+          "change_type": "chat_markdown_preview_fix",
+          "before": "末尾表示された保存済み追加コメントが編集可能メッセージとして描画され、Markdown記法を含む場合に本文原文とMarkdown previewが同時に表示されていた。",
+          "after": "末尾表示された保存済み追加コメントは表示専用Markdownメッセージとして描画され、Markdown変換済み表示だけを1回表示する。preview枠は入力中/編集中UI専用に限定した。",
+          "reason": "チャットタイムライン上の保存済みコメントを読み物として自然に表示し、二重表示とHTML保存値混入を防ぐため。"
+        }
+      ],
+      "verification_status": "確認済み"
+    },
+    {
+      "work_item_id": "studio_work_0007",
+      "phase": "v0.7-markdown-export-contract",
+      "title": "Markdown出力契約 / JSON展開情報 / AI貼り付け用",
+      "incident_type": "specification",
+      "category": "markdown_export",
+      "priority": "high",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-21",
+      "updated_at": "2026-06-21",
+      "target_files": "wwwroot/js/markdown/*.js, mdViewer.html, FRB_VIEW_DEF_GENERATION_RULES_*.md, frb_view_def_schema_*.json",
+      "objective": "Markdown出力ボタンで何を出力できるべきかを、ViewDef生成ルール・Schema・Runtime仕様として整理する。",
+      "background": "Markdown出力は単なる表示ではなく、Studioの現在状態・Data・ViewDef・AI貼り付け用TSVを人間とAIへ渡す外交文書フォーマットになっている。",
+      "scope": "AI貼り付け用、TSV、Grid JSON、展開前ViewDef JSON、展開後ViewDef JSON、必要に応じたData JSON、Markdown内リンク/画像記法の扱いを定義する。",
+      "out_of_scope": "この作業ではMarkdown ViewerのUI大改修やPDF印刷最適化は主目的にしない。",
+      "fixed_name_policy": "画像やリンクはData固定名ではなく、chat/textarea/markdown対象フィールドのMarkdown記法として扱う。画像URL専用固定フィールド名は原則作らない。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、必要なルール・Runtime仕様・保存仕様を整理する。",
+      "expected_outputs": "Markdown出力契約章、Schema追記案、Runtime出力オプション整理、サンプルViewDef。",
+      "risk": "出力内容を増やしすぎるとMarkdownが巨大化し、AI貼り付け用途で扱いづらくなるリスクがある。",
+      "test_points": "markdown.aiPrompt、includeGridJson、rowSource、visibleOnly、source/resolved JSON出力、chat/textarea内Markdownリンク/画像記法が期待どおり出るか確認する。",
+      "user_request": "studio_work_incident_data_v0_4.json に次の作業データを追加したい。FRB_VIEW_DEF_GENERATION_RULESレビュー、objectArray/chat保存健全性、chat input mapping、Markdown出力契約、ViewDef代表サンプル整理、固定フィールド名監査、Studio標準メタフィールド定義、文字化けファイル名大量発生対応を整理したい。",
+      "ai_response": "Markdown出力契約はテストパターン以前に整える。AI貼り付け用、展開前/展開後JSON、Markdown記法の扱いを正式化する。",
+      "latest_user_comment": "Markdown出力契約として、AI貼り付け用、展開前/展開後JSON、チャット欄Markdownリンク/画像記法の扱いを整理したい。",
+      "latest_ai_response": "v0.16 Rulesに契約として追記済み。Runtime実装とSchema必要性はこのインシデントで継続確認する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0007_001",
+          "at": "2026-06-21",
+          "speaker": "user",
+          "topic": "作業候補整理",
+          "message": "studio_work_incident_data_v0_4.json に次の作業データを追加したい。FRB_VIEW_DEF_GENERATION_RULESレビュー、objectArray/chat保存健全性、chat input mapping、Markdown出力契約、ViewDef代表サンプル整理、固定フィールド名監査、Studio標準メタフィールド定義、文字化けファイル名大量発生対応を整理したい。"
+        },
+        {
+          "history_id": "disc_0007_002",
+          "at": "2026-06-21",
+          "speaker": "assistant",
+          "topic": "作業候補整理",
+          "message": "Markdown出力契約はテストパターン以前に整える。AI貼り付け用、展開前/展開後JSON、Markdown記法の扱いを正式化する。"
+        },
+        {
+          "history_id": "disc_0007_extra_20260621",
+          "at": "2026-06-21",
+          "speaker": "user",
+          "topic": "Rulesレビューからの追加論点",
+          "message": "Markdown出力契約として、AI貼り付け用、展開前/展開後JSON、チャット欄Markdownリンク/画像記法の扱いを整理したい。"
+        }
+      ],
+      "decision_log": [],
+      "change_history": [],
+      "verification_status": "未確認"
+    },
+    {
+      "work_item_id": "studio_work_0008",
+      "phase": "v0.7-filename-encoding-sanitize",
+      "title": "Markdown出力ファイル名の文字化け対策",
+      "incident_type": "bugfix",
+      "category": "file_io",
+      "priority": "high",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-21",
+      "updated_at": "2026-06-21",
+      "target_files": "wwwroot/js/core/file_api.js, wwwroot/js/core/fileNameUtils.js or equivalent, wwwroot/js/markdown/*.js, mdViewer.html, backend save/load API if needed",
+      "objective": "Markdown出力やViewer連携で、Unicodeエスケープ/URLエンコード/HTMLエンティティ風の文字化けファイル名が大量発生する問題を解消する。",
+      "background": "画面上のファイル一覧に #U521d#U671f... のような文字化けファイル名が大量表示されており、Markdown出力ファイルの再利用・検索・削除・GitHub連携に悪影響がある。",
+      "scope": "ファイル名生成、URLエンコード/デコード、Markdown出力名、Viewer遷移URL、保存APIへの渡し方を確認し、ファイルシステム上で安全かつ人間が読める名前に正規化する。",
+      "out_of_scope": "過去に生成済みの文字化けファイルの一括リネームや削除ツールは、必要なら別作業とする。まず新規発生を止める。",
+      "fixed_name_policy": "Dataフィールド名に依存したファイル名決め打ちは避ける。ViewDef名・Data名・titleなどを使う場合も、共通sanitize関数を通す。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、必要なルール・Runtime仕様・保存仕様を整理する。",
+      "expected_outputs": "ファイル名sanitize/decode処理、Markdown出力名ルール、既存API呼び出し確認、再発防止メモ。",
+      "risk": "日本語ファイル名、記号、空白、Windows禁止文字、URL相対パス、GitHub Pages上のパス解決で回帰するリスクがある。",
+      "test_points": "日本語タイトル、英数字タイトル、空白入り、記号入り、既存mdファイル、Viewer URL遷移、保存後のファイル一覧表示を確認する。",
+      "user_request": "Markdown出力時に文字化けファイル名が大量発生している。さっき提案した作業候補も含めて、studio_work_incident_data_v0_4.json に作業データを追加して整理したい。",
+      "ai_response": "文字化けファイル名対応は新規インシデントとして追加する。まず新規発生を止め、ファイル名生成・URL・保存APIの境界を確認する。",
+      "latest_user_comment": "Rules正本ファイル名はALL付き・バージョン数字のみ変更。Markdown出力やViewerで文字化けファイル名を新規生成しないルールも必要。",
+      "latest_ai_response": "v0.16 Rulesに正本命名ルールとMarkdown出力ファイル名sanitizeを追記済み。実装修正はこのインシデントで扱う。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0008_001",
+          "at": "2026-06-21",
+          "speaker": "user",
+          "topic": "不具合報告",
+          "message": "Markdown出力/Viewer付近で、#U521d#U671f... のような文字化けファイル名が大量発生している。"
+        },
+        {
+          "history_id": "disc_0008_002",
+          "at": "2026-06-21",
+          "speaker": "assistant",
+          "topic": "作業候補化",
+          "message": "ファイル名生成・URLエンコード/デコード・保存API境界を確認し、Markdown出力ファイル名のsanitize/decodeルールを整備するインシデントとして扱う。"
+        },
+        {
+          "history_id": "disc_0008_extra_20260621",
+          "at": "2026-06-21",
+          "speaker": "user",
+          "topic": "Rulesレビューからの追加論点",
+          "message": "Rules正本ファイル名はALL付き・バージョン数字のみ変更。Markdown出力やViewerで文字化けファイル名を新規生成しないルールも必要。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0008_001",
+          "at": "2026-06-21",
+          "decision": "文字化けファイル名問題は、テストパターンや制約詳細に進む前の基盤不具合として扱う。",
+          "reason": "Markdown出力やAI貼り付け用ファイルが再利用できなくなると、Studioくんの外部記憶・外交文書機能が壊れるため。"
+        }
+      ],
+      "change_history": [],
+      "verification_status": "未確認"
+    },
+    {
+      "work_item_id": "studio_work_0009",
+      "phase": "v0.7-viewdef-sample-fixtures",
+      "title": "ViewDef代表サンプル / 健康診断セット整理",
+      "incident_type": "maintenance",
+      "category": "fixtures",
+      "priority": "medium",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-21",
+      "updated_at": "2026-06-21",
+      "target_files": "defs/studio/*, data/studio/*, sample fixtures README",
+      "objective": "今後の改修時に最低限確認する代表Data/ViewDefセットを整理し、回帰確認の基準を作る。",
+      "background": "v0.4〜v0.6で機能が増えたため、通常Grid/Formだけでなく、chat、objectArray、markdown.aiPrompt、toolbar.executeButton、relation系virtualDataを代表サンプルとして持つ必要がある。",
+      "scope": "代表サンプルの一覧、用途、確認観点、保存場所、最新版の見分け方を整理する。",
+      "out_of_scope": "自動テストパターンJSONやテストコード化は今回の対象外。まず人間とAIが確認できるfixturesを整理する。",
+      "fixed_name_policy": "サンプルDataのフィールド名をRuntimeが標準として解釈しない。あくまでサンプルであり、ViewDefで構造を説明する。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、必要なルール・Runtime仕様・保存仕様を整理する。",
+      "expected_outputs": "fixtures一覧、README、代表Data/ViewDefコピー、確認観点メモ。",
+      "risk": "サンプルが増えすぎると管理不能になるリスクがある。代表性と最小構成を重視する。",
+      "test_points": "通常Grid/Form、chat、objectArray、markdown.aiPrompt、toolbar.executeButton、relation系virtualData、憲法レビュー、インシデント管理を確認する。",
+      "user_request": "studio_work_incident_data_v0_4.json に次の作業データを追加したい。FRB_VIEW_DEF_GENERATION_RULESレビュー、objectArray/chat保存健全性、chat input mapping、Markdown出力契約、ViewDef代表サンプル整理、固定フィールド名監査、Studio標準メタフィールド定義、文字化けファイル名大量発生対応を整理したい。",
+      "ai_response": "テストコードに入る前に、Studioくん健康診断用の代表サンプルセットを整理する。",
+      "latest_user_comment": "テスト送信\n\n![alt text](./images/chat/tamasub.png)",
+      "latest_ai_response": "",
+      "discussion_history": [
+        {
+          "history_id": "disc_0009_001",
+          "at": "2026-06-21",
+          "speaker": "user",
+          "topic": "作業候補整理",
+          "message": "studio_work_incident_data_v0_4.json に次の作業データを追加したい。FRB_VIEW_DEF_GENERATION_RULESレビュー、objectArray/chat保存健全性、chat input mapping、Markdown出力契約、ViewDef代表サンプル整理、固定フィールド名監査、Studio標準メタフィールド定義、文字化けファイル名大量発生対応を整理したい。"
+        },
+        {
+          "history_id": "disc_0009_002",
+          "at": "2026-06-21",
+          "speaker": "assistant",
+          "topic": "作業候補整理",
+          "message": "テストコードに入る前に、Studioくん健康診断用の代表サンプルセットを整理する。"
+        }
+      ],
+      "decision_log": [],
+      "change_history": [],
+      "verification_status": "未確認"
+    },
+    {
+      "work_item_id": "studio_work_0010",
+      "phase": "v0.7-fixed-name-audit",
+      "title": "Runtime内固定フィールド名監査",
+      "incident_type": "architecture_audit",
+      "category": "fixed_name",
+      "priority": "medium",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-21",
+      "updated_at": "2026-06-21",
+      "target_files": "wwwroot/js/**/*.js, index.html, ViewDef schema/rules",
+      "objective": "Runtime内に残っている固定フィールド名・固定Action名・固定builder名を棚卸しし、骨格か脂肪かを分類する。",
+      "background": "Studioくん憲法ではRuntime内Data固定名は原則NG。ただしStudio仕様・DOM骨格・ViewDef宣言値・Adapter仕様・標準メタフィールド候補は例外になり得るため、まず分類が必要。",
+      "scope": "JS全体を対象に、固定文字列参照を抽出し、分類メモを作る。すぐ削除せず、v0.8以降の改善候補へつなげる。",
+      "out_of_scope": "この作業では大規模な置換やリファクタリングは行わない。分類と判断ログ作成を主目的とする。",
+      "fixed_name_policy": "固定名を見つけても即削除しない。Studio仕様の骨格、DOMシェル、ViewDef宣言値、Adapter仕様、Runtime脂肪、標準メタフィールド候補に分類する。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、必要なルール・Runtime仕様・保存仕様を整理する。",
+      "expected_outputs": "固定名監査表、分類メモ、改善候補一覧。",
+      "risk": "過剰に固定名を悪者扱いすると、DOM骨格やViewDef公用語まで壊すリスクがある。",
+      "test_points": "row.xxx / message.xxx / action名直書き / builder名分岐 / DOM ID / ViewDefキーの分類ができていることを確認する。",
+      "user_request": "studio_work_incident_data_v0_4.json に次の作業データを追加したい。FRB_VIEW_DEF_GENERATION_RULESレビュー、objectArray/chat保存健全性、chat input mapping、Markdown出力契約、ViewDef代表サンプル整理、固定フィールド名監査、Studio標準メタフィールド定義、文字化けファイル名大量発生対応を整理したい。",
+      "ai_response": "固定名監査は削除ではなく分類。Studioくんの骨格と脂肪を見分ける作業として登録する。",
+      "latest_user_comment": "",
+      "latest_ai_response": "",
+      "discussion_history": [
+        {
+          "history_id": "disc_0010_001",
+          "at": "2026-06-21",
+          "speaker": "user",
+          "topic": "作業候補整理",
+          "message": "studio_work_incident_data_v0_4.json に次の作業データを追加したい。FRB_VIEW_DEF_GENERATION_RULESレビュー、objectArray/chat保存健全性、chat input mapping、Markdown出力契約、ViewDef代表サンプル整理、固定フィールド名監査、Studio標準メタフィールド定義、文字化けファイル名大量発生対応を整理したい。"
+        },
+        {
+          "history_id": "disc_0010_002",
+          "at": "2026-06-21",
+          "speaker": "assistant",
+          "topic": "作業候補整理",
+          "message": "固定名監査は削除ではなく分類。Studioくんの骨格と脂肪を見分ける作業として登録する。"
+        }
+      ],
+      "decision_log": [],
+      "change_history": [],
+      "verification_status": "未確認"
+    },
+    {
+      "work_item_id": "studio_work_0011",
+      "phase": "v0.7-standard-meta-fields",
+      "title": "Studio標準メタフィールド定義",
+      "incident_type": "rules_review",
+      "category": "standard_fields",
+      "priority": "medium",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-21",
+      "updated_at": "2026-06-21",
+      "target_files": "CODING_CONSTRAINTS.md, FRB_VIEW_DEF_GENERATION_RULES_*.md, frb_view_def_schema_*.json",
+      "objective": "Runtime内Data固定名禁止の例外として認めるStudio標準メタフィールド候補を整理し、採用ルールを定義する。",
+      "background": "created_at / updated_at / deleted / is_deleted などは汎用性が高い一方、安易に標準化すると固定名肥満につながるため、例外申請制として整理する必要がある。",
+      "scope": "標準メタフィールド候補、用途、型、表示方針、保存方針、Runtimeが参照してよい範囲を整理する。",
+      "out_of_scope": "この作業では全Dataへ標準メタフィールドを強制追加しない。採用基準と予約候補を決めるだけに留める。",
+      "fixed_name_policy": "標準メタフィールドは憲法・Rules・Schemaに明記されたものだけ例外扱い。追加時はtamasub協議を必須とする。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、必要なルール・Runtime仕様・保存仕様を整理する。",
+      "expected_outputs": "標準メタフィールド候補表、採用判断ルール、Rules/Schema追記案。",
+      "risk": "便利だからという理由で標準フィールドを増やしすぎると、Studioくんが特定データ構造に太るリスクがある。",
+      "test_points": "created_at / updated_at / created_by / updated_by / deleted / is_deleted / sort_order / status などの採用可否と扱いが整理されていることを確認する。",
+      "user_request": "studio_work_incident_data_v0_4.json に次の作業データを追加したい。FRB_VIEW_DEF_GENERATION_RULESレビュー、objectArray/chat保存健全性、chat input mapping、Markdown出力契約、ViewDef代表サンプル整理、固定フィールド名監査、Studio標準メタフィールド定義、文字化けファイル名大量発生対応を整理したい。",
+      "ai_response": "標準メタフィールドは便利だが肥満リスクも高い。候補と採用ルールを先に定義する。",
+      "latest_user_comment": "",
+      "latest_ai_response": "",
+      "discussion_history": [
+        {
+          "history_id": "disc_0011_001",
+          "at": "2026-06-21",
+          "speaker": "user",
+          "topic": "作業候補整理",
+          "message": "studio_work_incident_data_v0_4.json に次の作業データを追加したい。FRB_VIEW_DEF_GENERATION_RULESレビュー、objectArray/chat保存健全性、chat input mapping、Markdown出力契約、ViewDef代表サンプル整理、固定フィールド名監査、Studio標準メタフィールド定義、文字化けファイル名大量発生対応を整理したい。"
+        },
+        {
+          "history_id": "disc_0011_002",
+          "at": "2026-06-21",
+          "speaker": "assistant",
+          "topic": "作業候補整理",
+          "message": "標準メタフィールドは便利だが肥満リスクも高い。候補と採用ルールを先に定義する。"
+        }
+      ],
+      "decision_log": [],
+      "change_history": [],
+      "verification_status": "未確認"
+    },
+    {
+      "work_item_id": "studio_work_0012",
+      "phase": "v0.7-json-select-folder-hierarchy",
+      "title": "JSON / ViewDef 選択一覧のサブフォルダー階層対応",
+      "incident_type": "feature",
+      "category": "",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-21",
+      "updated_at": "2026-06-21",
+      "target_files": "Program.cs, wwwroot/index.html, wwwroot/app.js, wwwroot/js/core/viewdef_resolver.js, wwwroot/js/ui/file_tree_picker.js, wwwroot/styles.css",
+      "objective": "JSON / ViewDef 選択一覧を、フラットなdatalistではなくフォルダー階層で選べるツリー型ファイルピッカーへ変更する。data/json配下およびdefs配下のサブフォルダーJSONを手動ツリーJSONなしで自動表示し、文字列検索にも対応する。",
+      "background": "現在のJSON選択一覧は data 配下のJSONがフラットに並ぶため、test_patterns や tests_screen_state などのサブフォルダー内ファイルが混ざって表示され、目的のJSONを探しにくい。今後Studioくん自身の管理データ、制約、テストパターン、画面状態、実験ログが増えるほど、フォルダー階層で整理できることが必須になる。",
+      "scope": "Program.csでdata/defs配下のJSONを再帰列挙し、相対パスをAPI一覧として返す。load/save/dropは相対パスを安全に扱う。フロント側はAPIが返す相対パス一覧から自動でツリーを生成し、フォルダー開閉・ファイル選択・文字列検索を行う。日本語displayName/manifest管理は後続検討とする。",
+      "out_of_scope": "日本語ファイル名の全面採用、日本語表示名レジストリ、既存ファイルの一括リネーム、過去の文字化けファイル名の一括修復はこの作業では必須にしない。まずはサブフォルダー階層対応を優先し、日本語名/日本語説明表示は後続候補として整理する。",
+      "fixed_name_policy": "Runtimeが特定のDataフィールド名に依存しない方針は維持する。ファイル一覧については data / defs というStudioの管理ルートは骨格として扱うが、配下のフォルダー名やファイル名は固定しない。読込対象はAPIが返す相対パスで扱う。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、ファイル一覧APIとUI選択処理を安全に拡張する。",
+      "expected_outputs": "Program.csの再帰一覧/相対パス対応、defs catch-all load対応、ツリー型ファイルピッカーJS、index.html script追加、CSS追加、node --check確認結果、更新済みインシデント管理JSON。",
+      "risk": "basenameだけで読込・保存している箇所が残ると、同名ファイル衝突や別フォルダーへの誤保存が起きる。Windowsの区切り文字、URLエンコード、日本語ファイル名、文字化けファイル名、既存API互換性、Drop時の管理対象コピー先との整合に注意する必要がある。",
+      "test_points": "data/json/test_patterns/foo.json のようなサブフォルダーJSONがツリー表示されること。defs/studio/foo.json のようなViewDefもツリー表示されること。検索語で相対パス検索できること。選択後に相対パスが入力欄へ入り、読み込み・上書き保存できること。同名ファイルが別フォルダーにあっても区別できること。",
+      "user_request": "JSON選択一覧をフォルダー階層に対応してほしい。JSONフォルダー配下のサブフォルダーに対応してほしい。ViewDefも同様。日本語ファイル名または日本語説明表示も将来的に検討したいが、まずサブフォルダー対応は必須。",
+      "ai_response": "サブフォルダー対応は先に作業項目化する価値が高い。data/defs の再帰一覧と相対パス読込を先に入れ、英語ファイル名がつらい問題は日本語表示名レジストリやファイル説明メタデータとして後続検討に分離するのが安全。",
+      "latest_user_comment": "studio_work_incident_data_v0_10_folder_hierarchy.json の v0.7-json-select-folder-hierarchy 対応を依頼。Program.csも添付。手動でツリー用JSONを作る方式は避けたい。data/json配下とdefs配下のサブフォルダーを自動でツリー表示したい。文字列検索にも対応したい。フォルダー一覧の最新化はリアルタイムでなく、システム全体リロードタイミングでよい。\nAI完了報告\n1. file-tree-row を flex から grid に変更\n2. アイコン列・ファイル名列を明示的に確保\n3. file-tree-label を追加して、文字色・表示状態を強制\n4. folder名 / file名 用の専用classを追加\n5. 万一名前が空になった場合の fallback も追加",
+      "latest_ai_response": "対応完了。Program.csで data/defs のJSON一覧を再帰取得し、相対パスで返すように変更。data/defsのload/save/dropでサブフォルダー相対パスを安全に扱えるようにした。フロント側では datalist ではなく独自のツリー型ファイルピッカーを追加し、API一覧の相対パスから自動でフォルダー階層を生成する。検索は相対パス全体に対するトークン検索として実装。日本語displayName/manifestは未実装で後続検討。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0012_001",
+          "at": "2026-06-21",
+          "speaker": "user",
+          "topic": "JSON選択一覧の階層対応依頼",
+          "message": "JSON選択一覧をフォルダー階層に対応して欲しい。JSONフォルダー配下のサブフォルダーに対応して欲しい。ViewDefも同様。英語のファイル名がつらいので、日本語ファイル名か日本語説明表示も考えたいが、後でもよい。"
+        },
+        {
+          "history_id": "disc_0012_002",
+          "at": "2026-06-21",
+          "speaker": "assistant",
+          "topic": "作業項目化方針",
+          "message": "まず必須要件として data / defs 配下の再帰ファイル一覧と相対パス読込・保存を作業項目化する。日本語表示名は、ファイル名そのものを日本語化するより、displayName/descriptionを持つmanifest方式を後続候補に分けるのが安全。"
+        },
+        {
+          "history_id": "disc_0012_003",
+          "at": "2026-06-21",
+          "speaker": "user",
+          "topic": "v0.7-json-select-folder-hierarchy作業依頼",
+          "message": "Program.csも添付して、JSON/ViewDef選択一覧のサブフォルダー階層対応を依頼。手動でツリー用JSONを作る方式は避け、Program.csの再帰一覧とJS側の自動ツリー生成で対応したい。文字列検索も必要。"
+        },
+        {
+          "history_id": "disc_0012_004",
+          "at": "2026-06-21",
+          "speaker": "assistant",
+          "topic": "v0.7-json-select-folder-hierarchy作業結果",
+          "message": "Program.csでListJsonFilesを再帰列挙に変更し、SafeJsonPath/SafeDataPath/ToApiNameをサブフォルダー相対パス対応にした。wwwroot側にfile_tree_picker.jsを追加し、入力欄からフォルダー開閉・検索・選択できる独自ツリーUIを導入した。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0012_001",
+          "at": "2026-06-21",
+          "decision": "JSON選択一覧はbasenameではなくrelativePathを内部値として扱う。",
+          "reason": "サブフォルダー対応後は同名ファイルが複数存在し得るため、basenameだけでは読込・保存先を一意に決められない。"
+        },
+        {
+          "decision_id": "dec_0012_002",
+          "at": "2026-06-21",
+          "decision": "data と defs の両方でサブフォルダー階層対応を行う。",
+          "reason": "対象JSONだけでなくViewDefも増え続けるため、片方だけ階層対応すると運用上の迷子が残るため。"
+        },
+        {
+          "decision_id": "dec_0012_003",
+          "at": "2026-06-21",
+          "decision": "日本語ファイル名/日本語説明表示は、サブフォルダー対応後の後続検討に分離する。",
+          "reason": "ファイル名エンコーディング問題と混ぜると原因切り分けが難しくなる。まずASCII寄りファイル名＋日本語displayName/description候補を安全策として検討する。"
+        },
+        {
+          "decision_id": "dec_0012_001",
+          "at": "2026-06-21",
+          "decision": "ツリー構造は手動JSONではなく、APIが返す相対パス一覧からJS側で自動生成する。",
+          "reason": "フォルダー追加やファイル移動のたびに管理用JSONを手で更新する運用は、Studioくんのやる気回復UIとして逆効果であり、保守負荷も高いため。"
+        },
+        {
+          "decision_id": "dec_0012_002",
+          "at": "2026-06-21",
+          "decision": "日本語ファイル名/displayName/manifest管理は今回のスコープ外とし、まずサブフォルダー階層と検索を優先する。",
+          "reason": "フォルダー階層対応、文字化けファイル名、表示名管理を同時に進めると原因切り分けが難しくなるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0012_001",
+          "at": "2026-06-21",
+          "change_type": "folder_hierarchy_picker",
+          "before": "JSON/ViewDef選択一覧はフラットな入力欄+datalist中心で、サブフォルダー階層が見えず、長い英語ファイル名が大量に並んで探しづらかった。",
+          "after": "Program.csが再帰的にJSON一覧を相対パスで返し、フロント側が相対パスからフォルダー階層ツリーを自動生成する。検索語入力時は相対パス全体で絞り込み、該当ファイルを選択できる。",
+          "reason": "ファイル選択を「長い一覧」から「整理された棚」に変え、Studioくんを使う心理的負荷を下げるため。"
+        }
+      ],
+      "verification_status": "確認済み"
+    },
+    {
+      "work_item_id": "studio_work_0013",
+      "phase": "v0.8-url-param-launch-load",
+      "title": "起動URLパラメータによるData/ViewDef自動読込",
+      "incident_type": "feature",
+      "category": "",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-21",
+      "updated_at": "2026-06-21",
+      "target_files": "wwwroot/index.html, wwwroot/app.js, wwwroot/js/runtime/load_runtime.js, wwwroot/js/core/file_api.js, wwwroot/js/core/viewdef_resolver.js, mdViewer.html, Program.cs if API routing/relative path handling is needed",
+      "objective": "記事やREADMEからURLをクリックするだけで、指定されたData JSON / ViewDef JSON / Markdownを自動読込し、読者がStudioくん上で同じ画面・同じデータを体験できるようにする。",
+      "background": "AI駆動開発研究日誌やZenn/Qiita記事でStudioくんの体験を読者に共有するには、説明だけでは足りない。記事内に「この画面をStudioで開く」リンクを置き、起動URLにJSONファイルパスを付けて参照できるようにしないと、読者がData/View分離・ViewDef・差分文化を実際に触って追体験できない。以前この話を確認したはずだが、作業項目から抜け落ちていたため、ここで明示的に登録する。",
+      "scope": "index.html起動時にURLSearchParamsを読み取り、data/view/view_def/md/file等のパラメータを解釈する。例: index.html?data=data/json/sample.json&view=defs/studio/sample_view_def.json。指定がある場合は通常のコンボ選択を待たずに、自動でData JSONとViewDef JSONを読み込む。mdViewer.html側も必要に応じて file=... でMarkdownを自動表示できるようにする。相対パスはdata/defs/docs等の許可ルート内に正規化し、URLエンコード/日本語/空白/サブフォルダーに対応する。\n\nv0.8.1追加スコープ: GitHub Pagesなどの静的ホスティング環境では /api/defs / /api/data が存在しないため、URL起動およびData内 view_def 自動解決時に静的ファイルとして defs/... / data/... を探索する。",
+      "out_of_scope": "任意の外部URLからのJSON読込、CORS回避、ユーザーPC上の任意ローカルファイル直接参照、認証付きファイル参照、公開用GitHub Pages完全対応はこの作業の必須範囲外。まずはStudio管理配下の相対パス指定とローカルFRBStudio上での体験共有導線を優先する。",
+      "fixed_name_policy": "URLパラメータ名 data/view/view_def/md/file はStudio標準起動契約として扱うため使用可。ただしData内部のフィールド名をRuntimeが固定参照してはいけない。パラメータ値はファイル相対パスであり、Data構造ではなくStudioの外部入力契約として扱う。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、起動時のURLパラメータ読込と既存load処理への橋渡しを安全に追加する。",
+      "expected_outputs": "URLパラメータ仕様メモ、index.html起動時のData/ViewDef自動読込処理、mdViewer.htmlのfileパラメータ自動読込、相対パスsanitize/normalize、記事用リンク例、回帰確認メモ。",
+      "risk": "URLエンコード/デコード、日本語ファイル名、#を含むパス、空白、Windows区切り文字、サブフォルダー相対パス、GitHub Pages上の相対パス、既存コンボ読込との競合、自動読込失敗時のエラー表示で回帰するリスクがある。特に # はURLフラグメントとして扱われるため、ファイル名や記事リンクではエンコードまたは回避ルールが必要。",
+      "test_points": "index.html?data=data/json/foo.json でData JSONだけ自動読込できること。index.html?data=data/json/foo.json&view=defs/studio/foo_view_def.json でData/ViewDefを同時に自動読込できること。サブフォルダー指定が動くこと。URLエンコードされた日本語/空白パスが扱えること。存在しないファイル指定時に画面が壊れず分かりやすいエラーになること。通常の手動コンボ読込・Drop読込に影響しないこと。mdViewer.html?file=... でMarkdownが自動表示されること。記事中の「この画面をStudioで開く」リンク例が成立すること。\n\nv0.8.1確認: GitHub Pages上の index.html?data=data/json/01_main/studio_work_incident_data_v0_12_url_param_launch_load.json で、Data内 view_def から defs/studio_work_incident_view_def_v0_2_readable_cards.json を静的読込できること。/api/defs へアクセスして404にならないこと。localhostでは従来どおりAPI優先で動くこと。",
+      "user_request": "読者に体験してもらう為に、起動URLにJSONのファイルパスをつけて参照できるようにせんとあかん。以前どこかで確認したはずだが、データが作業項目から抜け落ちているので、まず添付JSONに作業項目として追加したい。",
+      "ai_response": "URL起動によるData/ViewDef自動読込は、Studioくんを単なるローカル編集ツールから、記事読者が体験できる共有ビューアへ拡張する重要項目。v0.8-url-param-launch-loadとして新規インシデント登録し、実装は既存の相対パス読込・ファイルツリー対応を土台に進めるのが自然。",
+      "latest_user_comment": "GitHub Pages上では /api/defs/... が存在せず、Data内 view_def 自動解決時に 404 になる。v0.8.1-github-pages-static-launch として、静的ホスティング時だけ /api/defs 依存を外してほしい。",
+      "latest_ai_response": "v0.8.1-github-pages-static-launch として、GitHub Pages / file:// / 非localhost静的ホスティングでは /api を使わず、defs/... / data/... の静的ファイル探索を優先するように修正。Data内 view_def がファイル名のみの場合も defs/<name> 等から読めるようにした。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0013_001",
+          "at": "2026-06-21",
+          "speaker": "user",
+          "topic": "URL参照作業項目の欠落確認",
+          "message": "読者に体験してもらう為に、起動URLにJSONのファイルパスをつけて、参照できるようにせんとあかんなって話がでてこない。"
+        },
+        {
+          "history_id": "disc_0013_002",
+          "at": "2026-06-21",
+          "speaker": "assistant",
+          "topic": "作業項目化方針",
+          "message": "URLにData/ViewDef/Markdownの相対パスを付けて起動し、読者が記事から同じ画面を開ける導線として作業項目化する。"
+        },
+        {
+          "history_id": "disc_0013_003",
+          "at": "2026-06-21",
+          "speaker": "user",
+          "topic": "作業項目追加依頼",
+          "message": "どこかの時点でデータがなくなっている。まず添付JSONに作業項目として追加してほしい。"
+        },
+        {
+          "history_id": "disc_0013_003",
+          "at": "2026-06-21",
+          "speaker": "user",
+          "topic": "v0.8-url-param-launch-load作業依頼",
+          "message": "studio_work_incident_data_v0_12_url_param_launch_load.json v0.8-url-param-launch-load の対応を依頼。"
+        },
+        {
+          "history_id": "disc_0013_004",
+          "at": "2026-06-21",
+          "speaker": "assistant",
+          "topic": "v0.8-url-param-launch-load作業結果",
+          "message": "index.html のURL Launch Loadを強化し、data/view/def/mode=readonlyに対応。dataのみ指定時はData内 view_def からViewDefを解決。mdViewer.html は file/md による管理Markdown自動読込に対応。不正パス拒否とReadOnly制御を追加。"
+        },
+        {
+          "history_id": "disc_0013_008",
+          "at": "2026-06-21",
+          "speaker": "user",
+          "topic": "GitHub Pages上のURL起動エラー",
+          "message": "GitHub Pages上では /api/defs/studio_work_incident_view_def_v0_2_readable_cards.json の読み込みに失敗し404になった。v0.8.1-github-pages-static-launch として、静的ホスティング時だけ /api/defs 依存を外す対応を依頼。"
+        },
+        {
+          "history_id": "disc_0013_009",
+          "at": "2026-06-21",
+          "speaker": "assistant",
+          "topic": "v0.8.1 GitHub Pages静的読込対応",
+          "message": "GitHub Pages / file:// / 非localhost静的ホスティングでは /api を使わず、Data/ViewDefを wwwroot配下の静的ファイルとして探索する方針で対応。Data内 view_def がファイル名のみの場合も defs/<name> などから解決する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0013_001",
+          "at": "2026-06-21",
+          "decision": "URL起動によるData/ViewDef自動読込をv0.8の高優先度作業項目として登録する。",
+          "reason": "読者が記事からStudioくんを直接体験できないと、AI駆動開発研究日誌の『体験共有』が説明止まりになり、Studioくんの価値が伝わりにくいため。"
+        },
+        {
+          "decision_id": "dec_0013_002",
+          "at": "2026-06-21",
+          "decision": "URLパラメータ名 data/view/view_def/md/file はStudio標準起動契約として扱う。",
+          "reason": "これはData内部フィールド名ではなく、Studio外部起動インターフェースの契約であり、記事・README・GitHub連携から再利用するための公用語になるため。"
+        },
+        {
+          "decision_id": "dec_0013_003",
+          "at": "2026-06-21",
+          "decision": "v0.8ではURLからのAction実行やReplay実行は行わず、data/view/fileの起動読込とreadonly入口に限定する。",
+          "reason": "URLクリックだけでActionを実行できると事故リスクが上がるため、まず追体験リンクとして安全な読込機能に絞る。"
+        },
+        {
+          "decision_id": "dec_0013_004",
+          "at": "2026-06-21",
+          "decision": "URLパラメータのパスは同一アプリ配下の相対パスまたはAPI管理名に限定し、外部URL・絶対パス・親ディレクトリ参照を拒否する。",
+          "reason": "記事やREADMEから安全に起動できるようにしつつ、任意ファイル読込の事故を防ぐため。"
+        },
+        {
+          "decision_id": "dec_0013_006",
+          "at": "2026-06-21",
+          "decision": "GitHub Pagesなどの静的ホスティングでは /api/defs / /api/data に依存せず、静的ファイル探索を優先する。",
+          "reason": "GitHub PagesにはFRBStudio.exeのMinimal APIが存在しないため、Dataは読めてもData内 view_def の解決で /api/defs 404 が発生する。記事からStudio体験へリンクするには静的ホスティングで完結する必要があるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0013_001",
+          "at": "2026-06-21",
+          "change_type": "incident_added",
+          "before": "URL起動でData/ViewDefを参照する作業項目がインシデント管理JSONに存在しなかった。",
+          "after": "studio_work_0013 v0.8-url-param-launch-load として、起動URLパラメータによるData/ViewDef/Markdown自動読込を追加。",
+          "reason": "読者体験リンクを実現するための前提作業として、忘れないように作業管理へ登録するため。"
+        },
+        {
+          "history_id": "chg_0013_001",
+          "at": "2026-06-21",
+          "change_type": "url_param_launch_load",
+          "before": "autoLoadFromQuery は view と data の両方がある場合の単純fetchに近く、dataのみ指定・readonly・パス検証・mdViewer file起動は不足していた。",
+          "after": "URLパラメータから data/view(def)/mode=readonly を解釈し、dataだけ指定時はData内 view_def でViewDefを解決する。mdViewer.html は file/md パラメータから管理Markdownを自動読込する。パス検証とreadonly制御を追加した。",
+          "reason": "記事・README・Markdownから読者が同じData/ViewDef/Markdown体験へ直接入れるようにするため。"
+        },
+        {
+          "history_id": "chg_0013_004",
+          "at": "2026-06-21",
+          "change_type": "github_pages_static_launch_fix",
+          "before": "Data内 view_def の自動解決は fetchApiJsonWithUrl('defs', name) から /api/defs/... へ向かい、GitHub Pages上で404になっていた。",
+          "after": "静的ホスティング判定を追加し、GitHub Pages等では /api を使わず defs/<name> / defs/studio/<name> / defs/json/<name> を静的ファイルとして探索するようにした。Data側も data/<name> / data/json/<name> を探索候補にした。",
+          "reason": "GitHub Pages上の記事リンクからData/ViewDefを自動読込し、読者が同じStudio画面を追体験できるようにするため。"
+        }
+      ],
+      "verification_status": "確認済み"
+    },
+    {
+      "work_item_id": "studio_work_0014",
+      "phase": "v0.9-json-object-studio-branding",
+      "title": "FRB Studio / JSON Object Studio 正式表示名・app_info導入",
+      "incident_type": "",
+      "category": "",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-22",
+      "updated_at": "2026-06-22",
+      "target_files": "wwwroot/config/app_info.json, wwwroot/config/app_settings.json, wwwroot/index.html, wwwroot/styles.css, wwwroot/js/ui/page_setup.js, wwwroot/js/core/state.js, wwwroot/app.js, wwwroot/mdViewer.html, wwwroot/js/markdown/data_markdown.js, wwwroot/defs/*.json",
+      "objective": "画面上の正式表示名を FRB Studio / JSON Object Studio へ整理し、現在のブランド・プロダクト名・version・revision・taglineを app_info.json で管理できるようにする。",
+      "background": "No-Code JSON Studio という旧称から、JSON Object Studio へ名称を寄せる方針が固まった。Studioくんは単なるJSONエディターではなく、思考・制約・差分・レビュー・インシデント・物語をJSON Objectとして扱うStudioになり始めているため、表示名と思想を画面上に明示する必要がある。",
+      "scope": "app_info.jsonを導入し、brand/product/version/revision/display_version/tagline/statusを保持する。画面ヘッダーは FRB Studio / JSON Object Studio v0.4-r001 / JSONで思考を構造化し、AIとの文脈を育てる。を基本表示にする。version/revisionは主役ではなく、小さく控えめに表示する。app_settings.jsonは将来の動作設定分離先として方針だけ定義する。",
+      "out_of_scope": "この作業ではリリース履歴、インシデント詳細、全設定値、全画面ViewDefを app_info.json へ混在させない。app_settings.json の詳細項目設計や設定UIまでは必須にしない。",
+      "fixed_name_policy": "app_info.json の brand/product/version/revision/display_version/tagline はStudio標準の名札情報として扱う。個別Data JSONのフィールド名をRuntimeが決め打ちするものではない。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、起動時にapp_info.jsonを読める範囲で実装する。",
+      "expected_outputs": "app_info.json、必要に応じたapp_settings.json雛形、ヘッダー表示更新、旧称No-Code JSON Studio表示の整理、Foundation Rulesへの反映。",
+      "risk": "旧称がViewDefやData内に残り、正式名称と過去名が混在するリスクがある。app_info.json に設定や履歴を詰め込みすぎると、名札ファイルとしての役割が崩れる。",
+      "test_points": "ヘッダーにFRB Studio / JSON Object Studio / v0.4-r001 / taglineが表示されること。version表記が主張しすぎないこと。app_info.jsonが存在しない場合も画面が壊れないこと。旧称が必要以上に表面へ出ないこと。",
+      "user_request": "v0.4-r001の命名・Foundation・ルール管理まわりで見えている追加インシデントを、まとめられるものはまとめて studio_work_incident_data_v0_12_url_param_launch_load.json に追加したい。共通ViewDefのAI Prompt targetFile固定の件も、優先低でよいので漏れないように追加してほしい。",
+      "ai_response": "命名・表示名・app_info導入は1つのFoundation系インシデントとしてまとめる。app_infoはアプリの名札、app_settingsは将来の動作設定として分離し、表示名と思想を画面に出す。",
+      "latest_user_comment": "studio_work_incident_data_v0_13_foundation_incidents_added.json の v0.9-json-object-studio-branding 対応として、正式名称への切り替えを依頼。",
+      "latest_ai_response": "正式表示名を FRB Studio / JSON Object Studio へ切り替え、config/app_info.json を名札情報として作成。ヘッダーは app_info.json から brand/product/display_version/tagline を読み込むようにし、旧称No-Code JSON Studioの画面表面表示を整理。app_settings.json は将来設定分離用の雛形として追加。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0014_001",
+          "at": "2026-06-22",
+          "speaker": "user",
+          "topic": "正式名称と表示方針",
+          "message": "FRB Studio / JSON Object Studio として表示し、JSONで思考を構造化し、AIとの文脈を育てるというタグラインを使いたい。"
+        },
+        {
+          "history_id": "disc_0014_002",
+          "at": "2026-06-22",
+          "speaker": "assistant",
+          "topic": "app_info分離",
+          "message": "app_info.jsonはアプリの名札として、現在の名称・version・revision・taglineだけを持つ。動作設定や履歴は混ぜない。"
+        },
+        {
+          "history_id": "disc_0014_003",
+          "at": "2026-06-22",
+          "speaker": "user",
+          "topic": "v0.9-json-object-studio-branding作業依頼",
+          "message": "v0.9-json-object-studio-branding として正式名称への切り替えを依頼。"
+        },
+        {
+          "history_id": "disc_0014_004",
+          "at": "2026-06-22",
+          "speaker": "assistant",
+          "topic": "v0.9-json-object-studio-branding作業結果",
+          "message": "app_info.jsonを作成し、ヘッダー表示・document.title・Markdown Viewer導線・Markdown出力既定名・ViewDef app.nameの表面表示をFRB Studio / JSON Object Studioへ更新。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0014_001",
+          "at": "2026-06-22",
+          "decision": "正式表示名は FRB Studio / JSON Object Studio とする。",
+          "reason": "No-Codeではなく、JSON Objectとして思考・文脈・差分を扱うStudioであることを明確にするため。"
+        },
+        {
+          "decision_id": "dec_0014_002",
+          "at": "2026-06-22",
+          "decision": "app_info.jsonは名札情報に限定する。",
+          "reason": "設定・履歴・インシデントを混ぜると役割が曖昧になり、将来の管理が破綻しやすいため。"
+        },
+        {
+          "decision_id": "dec_0014_003",
+          "at": "2026-06-22",
+          "decision": "app_info.json は wwwroot/config/app_info.json に配置する。",
+          "reason": "アプリ名札としてRuntime起動時に静的ファイルとして読み込みやすく、dataやdefsのドメインデータと混ざらないため。"
+        },
+        {
+          "decision_id": "dec_0014_004",
+          "at": "2026-06-22",
+          "decision": "画面表面上の旧称 No-Code JSON Studio は JSON Object Studio へ切り替える。",
+          "reason": "正式名称をJSON Object Studioに統一し、No-Codeは過去名として扱うため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0014_001",
+          "at": "2026-06-22",
+          "change_type": "incident_added",
+          "before": "正式名称・app_info・taglineの導入作業がインシデント管理に存在しなかった。",
+          "after": "studio_work_0014 として、JSON Object Studio正式表示名とapp_info導入を登録。",
+          "reason": "Studioくん自身の名前と名札をDataとして管理するため。"
+        },
+        {
+          "history_id": "chg_0014_002",
+          "at": "2026-06-22",
+          "change_type": "branding_runtime_update",
+          "before": "ヘッダー・title・一部導線に No-Code JSON Studio / FRB Studio Lab / v0.3-draft が残っていた。",
+          "after": "ヘッダー・title・Markdown Viewer導線を FRB Studio / JSON Object Studio / v0.4-r001 / タグライン表示へ更新。表示値は config/app_info.json から読み込む。",
+          "reason": "Studioくん自身の正式名称と思想を画面上の名札として明示するため。"
+        }
+      ],
+      "verification_status": "確認済み"
+    },
+    {
+      "work_item_id": "studio_work_0015",
+      "phase": "v0.9-versioned-incident-management",
+      "title": "Version / Revision / Phase 分離とVersion Detail連携",
+      "incident_type": "data_model",
+      "category": "incident_versioning",
+      "priority": "high",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-22",
+      "updated_at": "2026-06-22",
+      "target_files": "studio_work_incident_data_*.json, studio_work_incident_view_def_*.json, release_data.json, release_view_def_*.json, version_detail_data.json if created",
+      "objective": "Version / Revision / Phase の役割を分離し、IncidentがどのVersionで見つかり、どのVersionで対応され、どのVersion Detailに含まれたかを追跡できるようにする。",
+      "background": "phaseに v0.8-url-param-launch-load のような値が入り、Versionと作業テーマが混在している。今後、Studioくんの変更履歴を追うには、製品リリース単位と作業テーマ、インシデント発見・対応状況を分ける必要がある。",
+      "scope": "Incidentに found_in_version / target_version / fixed_in_version を追加する方針を定義する。Version Detailまたはrelease_data側に、どのwork_item_idを含むかを保持する。phaseは作業テーマとして残し、version/revisionとは混ぜない。",
+      "out_of_scope": "この作業では既存全インシデントの完全な履歴補正までは必須にしない。まずData構造とViewDef表示方針を決め、以降のインシデントから運用できるようにする。",
+      "fixed_name_policy": "found_in_version / target_version / fixed_in_version はStudioインシデント管理Dataの標準候補として扱う。ただし他Dataへ無条件に要求するRuntime固定名にはしない。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、ViewDefとData構造の追加で表現する。",
+      "expected_outputs": "Incident Data項目追加案、ViewDef列/詳細項目追加案、release_dataまたはVersion Detailとの紐づけ案、既存work_itemsへの段階的適用方針。",
+      "risk": "既存phase値を一気に修正すると履歴追跡が難しくなる。Version DetailとIncidentの責務を混ぜると、なぜやるのか/何を入れたのかが再び曖昧になる。",
+      "test_points": "work_itemにfound_in_version/target_version/fixed_in_versionを追加しても既存画面が壊れないこと。phaseは作業テーマとして残ること。release_data側からwork_item_idを辿れること。",
+      "user_request": "v0.4-r001の命名・Foundation・ルール管理まわりで見えている追加インシデントを、まとめられるものはまとめて studio_work_incident_data_v0_12_url_param_launch_load.json に追加したい。共通ViewDefのAI Prompt targetFile固定の件も、優先低でよいので漏れないように追加してほしい。",
+      "ai_response": "Version/Revision/Phase分離とIncident-Version Detail連携は1つのデータモデル整理としてまとめる。Incidentは理由、Version Detailは含めた変更内容を記録する。",
+      "latest_user_comment": "v0.4-r001の命名・Foundation・ルール管理まわりで見えている追加インシデントを、まとめられるものはまとめて studio_work_incident_data_v0_12_url_param_launch_load.json に追加したい。共通ViewDefのAI Prompt targetFile固定の件も、優先低でよいので漏れないように追加してほしい。",
+      "latest_ai_response": "Version/Revision/Phase分離、found/target/fixed version、IncidentとVersion DetailのID連携を1件にまとめて追加する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0015_001",
+          "at": "2026-06-22",
+          "speaker": "user",
+          "topic": "VersionとPhaseの違和感",
+          "message": "phaseにv0.8-url-param-launch-loadのような値が入ると、Versionなのか作業テーマなのか分かりにくい。"
+        },
+        {
+          "history_id": "disc_0015_002",
+          "at": "2026-06-22",
+          "speaker": "assistant",
+          "topic": "データモデル整理",
+          "message": "Version/Revisionは製品リリース、Phaseは作業テーマ、Incidentはなぜやるのか、Version Detailは何を入れたのかとして分離するのがよい。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0015_001",
+          "at": "2026-06-22",
+          "decision": "Phaseは作業テーマとして扱い、Version/Revisionとは分離する。",
+          "reason": "作業テーマとリリース単位を混ぜると、履歴と責任範囲を追いにくくなるため。"
+        },
+        {
+          "decision_id": "dec_0015_002",
+          "at": "2026-06-22",
+          "decision": "Incidentには found_in_version / target_version / fixed_in_version を持たせる。",
+          "reason": "不具合や違和感がどのVersionで見つかり、どのVersionで直ったかを追跡するため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0015_001",
+          "at": "2026-06-22",
+          "change_type": "incident_added",
+          "before": "Version/Revision/Phase分離とVersion Detail連携が作業項目化されていなかった。",
+          "after": "studio_work_0015 として、Versioned Incident Managementを登録。",
+          "reason": "Studioくんの変更履歴とインシデント管理を長期運用できるようにするため。"
+        }
+      ],
+      "verification_status": "未確認"
+    },
+    {
+      "work_item_id": "studio_work_0016",
+      "phase": "v0.9-rules-json-source-of-truth",
+      "title": "ルール系Data JSON原本化 / Foundation Rules追加",
+      "incident_type": "data_design",
+      "category": "rules_data",
+      "priority": "high",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-22",
+      "updated_at": "2026-06-22",
+      "target_files": "wwwroot/data/rules/frb_studio_foundation_review_data_v0_1.json, wwwroot/data/rules/frb_viewdef_generation_rules_review_data_v0_1.json, wwwroot/defs/rules/rule_review_common_view_def_v0_1.json, wwwroot/exports/rules/*.md",
+      "objective": "Markdownをルール原本にせず、ルール・制約・レビュー対象はドメイン別Data JSONを原本として管理し、共通ViewDefでレビューできるようにする。",
+      "background": "coding_constraints_review_data_v0_3.json が実は憲法レビューの原本であり、Markdown Exportは原本ではなく表示用Viewだったことを確認した。今後はFRB Studio FoundationやViewDef生成ルールも、MarkdownではなくData JSONを原本として扱う必要がある。",
+      "scope": "frb_studio_foundation_review_data_v0_1.json を追加し、Studio運用原則をrules配列として管理する。frb_viewdef_generation_rules_review_data_v0_1.json と同じ rule_review_data_v0_1 構造に寄せる。data/rules・defs/rules・exports/rules の配置方針を使う。MarkdownはData JSONからのExport Viewとして扱う。",
+      "out_of_scope": "この作業ではすべての既存Markdownを即Data JSONへ変換しない。まずFoundation RulesとViewDef生成Rulesを代表例として整える。",
+      "fixed_name_policy": "rules配列はルールレビュー共通構造の契約として扱う。個別ドメインの意味はdomainとrule_idで分け、Runtimeが特定ドメイン名に依存しないようにする。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、Data/ViewDef/Markdown Exportの役割分離を徹底する。",
+      "expected_outputs": "frb_studio_foundation_review_data_v0_1.json、rulesフォルダー配置、Markdown Export方針、Foundation Rulesレビュー開始、必要に応じたViewDef項目追加候補。",
+      "risk": "Markdownを原本として編集し続けると、承認状態・変更履歴・レビュー会話が分散する。逆にData JSON化しすぎると人間の初期確認が重くなるため、Markdown下書き→Data JSON原本化の流れを明確にする必要がある。",
+      "test_points": "frb_studio_foundation_review_data_v0_1.json が rule_review_common_view_def_v0_1.json で読み込めること。rules配列17件が表示されること。Markdown Exportは原本ではなく表示用であることが分かること。data/rules配下でURL起動できること。",
+      "user_request": "v0.4-r001の命名・Foundation・ルール管理まわりで見えている追加インシデントを、まとめられるものはまとめて studio_work_incident_data_v0_12_url_param_launch_load.json に追加したい。共通ViewDefのAI Prompt targetFile固定の件も、優先低でよいので漏れないように追加してほしい。",
+      "ai_response": "Markdown原本化を避ける方針、Foundation Rules JSON追加、rulesフォルダー配置、ドメイン別Data JSON＋共通ViewDefを1つの作業項目にまとめる。",
+      "latest_user_comment": "v0.4-r001の命名・Foundation・ルール管理まわりで見えている追加インシデントを、まとめられるものはまとめて studio_work_incident_data_v0_12_url_param_launch_load.json に追加したい。共通ViewDefのAI Prompt targetFile固定の件も、優先低でよいので漏れないように追加してほしい。",
+      "latest_ai_response": "Foundation RulesをData JSON原本として追加し、MarkdownはExport Viewとして扱うインシデントを登録する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0016_001",
+          "at": "2026-06-22",
+          "speaker": "user",
+          "topic": "Markdown原本化への違和感",
+          "message": "Markdownを原本にするとまた分からなくなりそう。coding_constraints_review_data_v0_3.json が原本で、MarkdownはExportだった。"
+        },
+        {
+          "history_id": "disc_0016_002",
+          "at": "2026-06-22",
+          "speaker": "assistant",
+          "topic": "Data JSON原本方針",
+          "message": "Data JSONはドメインで分ける。ViewDefは構造で共有する。MarkdownはJSONから生成されるViewとする。"
+        },
+        {
+          "history_id": "disc_0016_003",
+          "at": "2026-06-22",
+          "speaker": "assistant",
+          "topic": "Foundation Rules生成",
+          "message": "frb_studio_foundation_review_data_v0_1.json を、rule_review_common_view_def_v0_1.json 前提で生成する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0016_001",
+          "at": "2026-06-22",
+          "decision": "構造化できるルールはData JSONを原本とする。",
+          "reason": "承認状態・レビュー会話・変更履歴・差分管理を保持するにはMarkdownよりData JSONが適しているため。"
+        },
+        {
+          "decision_id": "dec_0016_002",
+          "at": "2026-06-22",
+          "decision": "ルール系Dataはドメイン別に分け、ViewDefはrules構造で共通化する。",
+          "reason": "ドメインごとの責任範囲を分けながら、レビュー体験を共通化するため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0016_001",
+          "at": "2026-06-22",
+          "change_type": "incident_added",
+          "before": "Foundation Rules JSON化とMarkdown非原本化が作業項目化されていなかった。",
+          "after": "studio_work_0016 として、ルール系Data JSON原本化 / Foundation Rules追加を登録。",
+          "reason": "Studioくん自身の原則をData JSON原本として管理するため。"
+        }
+      ],
+      "verification_status": "未確認"
+    },
+    {
+      "work_item_id": "studio_work_0017",
+      "phase": "v0.9-rule-review-common-viewdef-polish",
+      "title": "共通Rule Review ViewDefの汎用化仕上げ",
+      "incident_type": "improvement",
+      "category": "viewdef_polish",
+      "priority": "low",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-22",
+      "updated_at": "2026-06-22",
+      "target_files": "wwwroot/defs/rules/rule_review_common_view_def_v0_1.json, related rule review data json, markdown export templates",
+      "objective": "rule_review_common_view_def_v0_1.json を特定データ専用の匂いから切り離し、複数ドメインのルールレビューで安全に使える共通ViewDefへ整える。",
+      "background": "共通ViewDefとして使い始めたが、AI Prompt targetFile が frb_viewdef_generation_rules_review_data_v0_1.json 固定になっている。また、承認印など憲法レビュー由来のトーン、Foundation系カテゴリ未対応、Markdown Exportでsummary/body等が重複しやすい問題が見えている。",
+      "scope": "markdown.aiPrompt.targetFile固定をなくす、または現在Data名から動的に扱う方針を検討する。カテゴリ選択肢にFoundation系を含めるか、select固定ではなくtext/柔軟候補にする。approval_stampなど共通ViewDefに不要な専用項目を非表示または削除する。Markdown Exportでsource_heading/summary/bodyを出しすぎる問題を整理し、レビュー記録用と元Rules風出力の分離を検討する。",
+      "out_of_scope": "この作業は優先低。現時点でStudio読込やレビューができる場合、v0.9高優先タスクを止めてまで実施しない。大規模なMarkdown Exportエンジン刷新は別作業に分ける。",
+      "fixed_name_policy": "共通ViewDef内に特定Data JSONファイル名を固定しない。targetFile等が必要な場合も、現在読込中Data名・ViewDef設定・ActionContextから取得できる設計に寄せる。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、ViewDef定義とMarkdown出力設定の調整で対応する。",
+      "expected_outputs": "rule_review_common_view_def_v0_2案、AI Prompt targetFile固定解消方針、カテゴリ候補整理、Markdown Export重複抑制方針、承認印など専用項目の扱い整理。",
+      "risk": "共通ViewDefに特定ドメインの匂いが残ると、Foundation Rulesや他ドメインRulesで誤ったファイル名・カテゴリ・表示トーンが混入する。逆に柔軟にしすぎると入力補助が弱くなる。",
+      "test_points": "frb_viewdef_generation_rules_review_data と frb_studio_foundation_review_data の両方で同じViewDefを使えること。AI PromptのtargetFileが誤った固定名にならないこと。Markdown Exportで同じ説明が過剰に重複しないこと。承認印など不要項目が共通画面で目立たないこと。",
+      "user_request": "v0.4-r001の命名・Foundation・ルール管理まわりで見えている追加インシデントを、まとめられるものはまとめて studio_work_incident_data_v0_12_url_param_launch_load.json に追加したい。共通ViewDefのAI Prompt targetFile固定の件も、優先低でよいので漏れないように追加してほしい。",
+      "ai_response": "共通ViewDefのAI Prompt targetFile固定は優先低だが、共通ViewDefとしては危険なので漏れないように専用インシデントとして登録する。関連する汎用化仕上げも同じ低優先タスクにまとめる。",
+      "latest_user_comment": "v0.4-r001の命名・Foundation・ルール管理まわりで見えている追加インシデントを、まとめられるものはまとめて studio_work_incident_data_v0_12_url_param_launch_load.json に追加したい。共通ViewDefのAI Prompt targetFile固定の件も、優先低でよいので漏れないように追加してほしい。",
+      "latest_ai_response": "targetFile固定、カテゴリ候補、承認印、Markdown Export重複などを低優先の共通ViewDef汎用化仕上げとして追加する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0017_001",
+          "at": "2026-06-22",
+          "speaker": "assistant",
+          "topic": "targetFile固定の発見",
+          "message": "共通ViewDefのAI Prompt targetFile が frb_viewdef_generation_rules_review_data_v0_1.json 固定っぽい。共通の顔をして、心に元カノの名前を刻んでいる状態。"
+        },
+        {
+          "history_id": "disc_0017_002",
+          "at": "2026-06-22",
+          "speaker": "user",
+          "topic": "優先度指定",
+          "message": "共通ViewDefのAI Prompt targetFileの件も、優先低でいいのでもれないように追加してほしい。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0017_001",
+          "at": "2026-06-22",
+          "decision": "AI Prompt targetFile固定の件は優先低で作業項目化する。",
+          "reason": "今すぐ致命的ではないが、共通ViewDefとして複数Dataに使う場合に誤ったファイル名をAI Promptへ出すリスクがあるため。"
+        },
+        {
+          "decision_id": "dec_0017_002",
+          "at": "2026-06-22",
+          "decision": "共通ViewDefは憲法専用トーンを落とし、汎用ルールレビューとして整える。",
+          "reason": "Foundation Rules、ViewDef Rules、Coding Constraintsなど複数ドメインで共有するため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0017_001",
+          "at": "2026-06-22",
+          "change_type": "incident_added",
+          "before": "共通ViewDefのtargetFile固定や汎用化仕上げが作業項目として登録されていなかった。",
+          "after": "studio_work_0017 として、低優先の共通Rule Review ViewDef汎用化仕上げを登録。",
+          "reason": "優先は低いが、共通ViewDefの将来事故を防ぐため。"
+        }
+      ],
+      "verification_status": "未確認"
+    },
+    {
+      "work_item_id": "studio_work_0018",
+      "phase": "v0.9-json-utf8-human-readable-save",
+      "title": "Data JSONの日本語可読保存",
+      "incident_type": "bugfix_improvement",
+      "category": "encoding",
+      "priority": "high",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-22",
+      "updated_at": "2026-06-22",
+      "target_files": "JSON generation scripts, Program.cs save API, wwwroot/js/core/file_api.js, any export/save utilities",
+      "objective": "Data JSONを人間が直接読めるUTF-8日本語で保存し、\\uXXXX だらけの人間拒否モードを避ける。",
+      "background": "frb_viewdef_generation_rules_review_data_v0_1.json の日本語が Unicode escape で表示され、人間が直接読むにはつらい状態になった。JSONとしては正しいが、Studioくんの原本思想ではData JSONも人間が読める必要がある。",
+      "scope": "Python生成時はensure_ascii=false相当で保存する。.NETのSystem.Text.Json保存時は日本語を過剰にescapeしない設定を検討する。Studioくんの保存APIやExport処理でも、UTF-8で日本語がそのまま読めることを基本にする。",
+      "out_of_scope": "この作業では既存の全JSONを一括変換しない。必要な代表Dataから順次UTF-8可読版へ置き換える。ファイル名文字化け問題はstudio_work_0008側の範囲とし、ここではJSON本文の可読性を扱う。",
+      "fixed_name_policy": "エンコーディング設定はData構造ではなく保存処理の契約として扱う。特定Dataフィールド名をRuntimeが参照する作業ではない。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。保存処理・生成スクリプト・API設定を中心に確認する。",
+      "expected_outputs": "UTF-8日本語保存方針、生成スクリプト修正、Program.cs保存設定確認、代表JSONのUTF-8可読版、再発防止メモ。",
+      "risk": "JSONとしては正常でも、人間が読めない状態が再発すると、Data JSON原本化の思想と矛盾する。過剰なUnsafeRelaxed設定はHTML/URL系エスケープとの境界に注意が必要。",
+      "test_points": "日本語title/summary/bodyが\\uXXXXではなく日本語のまま保存されること。Studioで読み込んでも値が壊れないこと。保存→再読込→Git diffで可読性が保たれること。既存の文字化けファイル名対策と混同しないこと。",
+      "user_request": "v0.4-r001の命名・Foundation・ルール管理まわりで見えている追加インシデントを、まとめられるものはまとめて studio_work_incident_data_v0_12_url_param_launch_load.json に追加したい。共通ViewDefのAI Prompt targetFile固定の件も、優先低でよいので漏れないように追加してほしい。",
+      "ai_response": "日本語JSONの可読保存は、Data JSONを原本にするなら重要度が高い。ファイル名文字化けとは別に、JSON本文のUTF-8可読性インシデントとして追加する。",
+      "latest_user_comment": "v0.4-r001の命名・Foundation・ルール管理まわりで見えている追加インシデントを、まとめられるものはまとめて studio_work_incident_data_v0_12_url_param_launch_load.json に追加したい。共通ViewDefのAI Prompt targetFile固定の件も、優先低でよいので漏れないように追加してほしい。",
+      "latest_ai_response": "日本語JSONを\\uXXXXではなくUTF-8可読形式で保存する作業を追加する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0018_001",
+          "at": "2026-06-22",
+          "speaker": "user",
+          "topic": "Unicode escape表示の違和感",
+          "message": "この人間は日本語よめません状態ってどうにかなるよね？？？笑"
+        },
+        {
+          "history_id": "disc_0018_002",
+          "at": "2026-06-22",
+          "speaker": "assistant",
+          "topic": "原因整理",
+          "message": "文字化けではなくUnicodeエスケープ保存。JSONとしては正しいが人間可読性が死んでいる。Pythonならensure_ascii=False、.NETなら日本語を過剰escapeしない設定で直せる。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0018_001",
+          "at": "2026-06-22",
+          "decision": "Data JSON本文はUTF-8で日本語が読める形式を基本とする。",
+          "reason": "Data JSONは原本であり、人間も直接読む対象であるため。"
+        },
+        {
+          "decision_id": "dec_0018_002",
+          "at": "2026-06-22",
+          "decision": "JSON本文のUnicode escape問題は、Markdown出力ファイル名の文字化け問題とは別インシデントで扱う。",
+          "reason": "本文保存の可読性とファイル名sanitizeは原因も対策箇所も異なるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0018_001",
+          "at": "2026-06-22",
+          "change_type": "incident_added",
+          "before": "JSON本文の日本語可読保存が作業項目として登録されていなかった。",
+          "after": "studio_work_0018 として、Data JSONの日本語可読保存を登録。",
+          "reason": "Data JSON原本化の思想を守るため。"
+        }
+      ],
+      "verification_status": "未確認"
+    },
+    {
+      "work_item_id": "studio_work_0019",
+      "phase": "v0.10-markdown-preview-display-mode",
+      "title": "表示モードのMarkdownプレビュー対応",
+      "incident_type": "feature",
+      "category": "markdown",
+      "priority": "medium",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-22",
+      "updated_at": "2026-06-22",
+      "target_files": "wwwroot/js/renderers/field_controls.js, wwwroot/styles.css, wwwroot/defs/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json, representative ViewDefs such as rule_review_common_view_def_v0_2_editable_review_target.json",
+      "objective": "textarea / chat / detailBodyカードなど、Markdown記法を許可した文言欄について、表示モードではMarkdownプレビューとして表示し、編集時はMarkdown原文を編集できるようにする。",
+      "background": "rule_review_common_view_def でレビュー対象の本文を編集可能にし、Markdownリンク/画像記法を入れられるようになった。一方、表示モードではMarkdown原文がそのまま見えるため、仕様書本文・ルール本文・チャット欄・作業メモなどの読み物としての体験が弱い。チャット欄ではMarkdown表示の仕組みが一部入っているため、同じ考え方を共通の文言欄へ広げたい。",
+      "scope": "ViewDefで markdown.enabled / inline / allowLinks / allowImages が指定された textarea/chat/message/detailBodyカードを対象に、表示モードではMarkdownをHTMLへ変換してプレビュー表示する。編集モードではMarkdown原文を保持し、必要に応じて入力中プレビューを表示する。保存値は必ずMarkdown原文のままとし、HTMLをData JSONへ混入させない。既存のchat送信欄、末尾表示、Markdown preview二重表示対策との整合を取る。",
+      "out_of_scope": "この作業では外部Markdownエディタ化、WYSIWYG本格編集、全フィールド自動Markdown化、任意HTML許可、外部URL画像の高度なセキュリティ制御までは行わない。まずViewDefで許可された文言欄の表示モードMarkdownプレビューに限定する。",
+      "fixed_name_policy": "Runtimeが body / summary / user_comment など特定Dataフィールド名を決め打ちしてMarkdown化しない。Markdown表示可否はViewDefのfield/message定義上の markdown 設定に従う。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、Markdown描画処理を共通関数化して既存renderingへ安全に差し込む。",
+      "expected_outputs": "表示モードMarkdownプレビュー対応、textarea/chat/detailBodyカードのMarkdown表示共通化、編集時はMarkdown原文を保持する実装、二重表示防止、CSS調整、代表ViewDefでの確認、必要に応じたRules/Schema追記案。",
+      "risk": "Markdown変換とcontenteditable保存が混ざると、HTMLがJSONへ保存されるリスクがある。既存chatのpreview二重表示問題が再発するリスクがある。全フィールドを自動Markdown化すると意図しないリンク化・画像表示が起きるため、ViewDef明示設定に限定する必要がある。",
+      "test_points": "rule_review_common_view_def の body に Markdownリンクと画像を入れ、表示モードではプレビュー表示、編集時は原文編集、保存後もMarkdown原文がData JSONに残ること。chat欄の保存済みコメントで二重表示が再発しないこと。allowImages=false の欄では画像表示されないこと。通常textareaで markdown 未指定の欄は従来表示のまま壊れないこと。F12反映→上書き保存→再読込でHTML混入がないこと。",
+      "user_request": "今の仕様書の文言欄とかチャット欄とか共通なんやけど、表示モードの時は、Markdownプレビューモードに対応してもらうことはできそう？できそうなら、添付インシデントに追加をお願いしたい。",
+      "ai_response": "対応可能。すでにchat欄でMarkdownリンク/画像表示とpreview二重表示対策の考え方があるため、ViewDefのmarkdown設定を契約として、表示モードではMarkdownプレビュー、編集時は原文編集に分けるインシデントとして追加する。",
+      "latest_user_comment": "Markdown原文を編集した後、前へ/次へで別データへ移動しないとプレビューへ戻らない。カーソルがカレントテキストボックスを外れた時にプレビュー表示へ戻してほしい。",
+      "latest_ai_response": "v0.10.2として、Markdown原文編集モードのcontenteditableがblurしたタイミングで、Markdown原文を行データへ反映し、その場でMarkdownプレビュー表示へ戻す処理を追加した。保存値はMarkdown原文のままとし、HTMLはData JSONへ混入させない。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0019_001",
+          "at": "2026-06-22",
+          "speaker": "user",
+          "topic": "表示モードMarkdownプレビュー相談",
+          "message": "今の仕様書の文言欄とかチャット欄とか共通なんやけど、表示モードの時は、Markdownプレビューモードに対応してもらうことはできそう？できそうなら、添付インシデントに追加をお願いしたい。"
+        },
+        {
+          "history_id": "disc_0019_002",
+          "at": "2026-06-22",
+          "speaker": "assistant",
+          "topic": "作業項目化方針",
+          "message": "対応可能。ViewDefでMarkdownを許可したtextarea/chat/detailBodyカードについて、表示モードはMarkdownプレビュー、編集時はMarkdown原文編集に分ける作業として登録する。"
+        },
+        {
+          "history_id": "disc_0019_003",
+          "at": "2026-06-22",
+          "speaker": "user",
+          "topic": "v0.10-markdown-preview-display-mode作業依頼",
+          "message": "studio_work_incident_data_v0_16_markdown_preview_display_mode_added.json v0.10-markdown-preview-display-mode の対応を依頼。仕様書欄やチャット欄の表示モードMarkdownプレビューはモチベーションが上がるため優先したい。"
+        },
+        {
+          "history_id": "disc_0019_004",
+          "at": "2026-06-22",
+          "speaker": "assistant",
+          "topic": "v0.10-markdown-preview-display-mode作業結果",
+          "message": "field_controls.jsにMarkdown表示モードを追加。Markdown許可済みchat messageとtextareaは、表示時にMarkdown変換済みHTMLを1回だけ表示し、クリック後にMarkdown原文編集へ切り替える。styles.cssに表示/編集中の見た目を追加し、index.htmlのcache busterを更新した。"
+        },
+        {
+          "history_id": "disc_0019_003",
+          "at": "2026-06-22",
+          "speaker": "user",
+          "topic": "v0.10確認結果",
+          "message": "01_main/studio_work_incident_data_v0_17_markdown_preview_display_mode_done.json で確認しているけど、Markdownプレビュー表示が変わらない。"
+        },
+        {
+          "history_id": "disc_0019_004",
+          "at": "2026-06-22",
+          "speaker": "assistant",
+          "topic": "v0.10.1修正方針",
+          "message": "v0.10はリンク/画像のインラインMarkdown変換中心で、#見出しや箇条書きを処理していなかった。Markdownブロックレンダリングを追加し、ViewDef側にもmarkdown設定を追加する。"
+        },
+        {
+          "history_id": "disc_0019_005",
+          "at": "2026-06-22",
+          "speaker": "user",
+          "topic": "Markdown編集後プレビュー復帰相談",
+          "message": "Markdownを編集した後、プレビュー状態にするには前へ/次へで別データを表示させて戻る必要がある。理想はカーソルがカレントテキストボックスを外れた時にプレビュー表示になってほしい。"
+        },
+        {
+          "history_id": "disc_0019_006",
+          "at": "2026-06-22",
+          "speaker": "assistant",
+          "topic": "v0.10.2 Markdown blur preview fix",
+          "message": "Markdown原文編集欄のblur時に、raw値を行データへ同期し、同じ欄をMarkdownプレビューへ戻す処理を追加。F12や上書き保存時もMarkdown原文が保存される。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0019_001",
+          "at": "2026-06-22",
+          "decision": "Markdownプレビューは表示モードに限定し、保存値はMarkdown原文のまま保持する。",
+          "reason": "HTMLをData JSONへ混入させると、原本としてのJSONが壊れ、Git diffやAI貼り付け時の再利用性も下がるため。"
+        },
+        {
+          "decision_id": "dec_0019_002",
+          "at": "2026-06-22",
+          "decision": "Markdown化する対象はViewDefのmarkdown設定で明示された欄に限定する。",
+          "reason": "全textareaを自動Markdown化すると、意図しないリンク化・画像表示・表示崩れが起きるため。"
+        },
+        {
+          "decision_id": "dec_0019_003",
+          "at": "2026-06-22",
+          "decision": "chat欄の既存Markdown表示/preview二重表示対策と同じ思想で、文言欄の表示モードにも展開する。",
+          "reason": "仕様書本文、ルール本文、レビューコメント、作業メモを共通の読み物体験として扱うため。"
+        },
+        {
+          "decision_id": "dec_0019_004",
+          "at": "2026-06-22",
+          "decision": "通常表示ではMarkdownプレビュー、クリック後にMarkdown原文編集へ切り替える方式を採用する。",
+          "reason": "常時textarea原文表示だと読み物としての気持ちよさが弱く、常時HTML編集だとData JSONへHTMLが混入するリスクがあるため。"
+        },
+        {
+          "decision_id": "dec_0019_004",
+          "at": "2026-06-22",
+          "decision": "Markdownプレビューはリンク/画像だけでなく、見出し・箇条書き・コードブロックも表示対象とする。",
+          "reason": "仕様書本文やルール本文を読み物として扱うには、#見出しや箇条書きがそのまま見えるだけではモチベーションが上がる表示体験にならないため。"
+        },
+        {
+          "decision_id": "dec_0019_004",
+          "at": "2026-06-22",
+          "decision": "Markdown原文編集欄はblur時にプレビューへ戻す。",
+          "reason": "前へ/次へで再描画しないとプレビューへ戻れない操作は、読み物として育てるStudio体験に合わないため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0019_001",
+          "at": "2026-06-22",
+          "change_type": "incident_added",
+          "before": "表示モードでtextarea/chat/detailBodyカードをMarkdownプレビュー表示する作業項目が存在しなかった。",
+          "after": "studio_work_0019 として、表示モードのMarkdownプレビュー対応を登録。",
+          "reason": "JSON原本の本文をMarkdown記法で育てつつ、表示時は読み物として自然に確認できるようにするため。"
+        },
+        {
+          "history_id": "chg_0019_002",
+          "at": "2026-06-22",
+          "change_type": "markdown_preview_display_mode_runtime_update",
+          "before": "Markdown許可されたchat/detailBody/textareaでも、編集可能欄はMarkdown原文がそのまま表示されることが多く、仕様書本文やルール本文を読み物として確認しづらかった。",
+          "after": "Markdown許可されたchat messageとdetail textareaは、通常表示でMarkdownプレビューを表示し、クリック後にMarkdown原文編集へ切り替わる。保存値はMarkdown原文のまま保持する。",
+          "reason": "JSON原本をMarkdown記法で育てつつ、表示時は読み物として自然に確認できるようにするため。"
+        },
+        {
+          "history_id": "chg_0019_002",
+          "at": "2026-06-22",
+          "change_type": "markdown_block_preview_fix",
+          "before": "Markdown表示は主にリンク/画像のインライン変換で、#見出し・箇条書き・引用・コードブロックはプレーンテキストのまま表示されていた。",
+          "after": "renderMarkdownContentを追加し、表示モードで見出し・箇条書き・引用・コードブロックをHTMLプレビュー表示する。編集時はMarkdown原文へ戻す。",
+          "reason": "表示モードMarkdownプレビューを、仕様書・ルール本文として読める体験にするため。"
+        },
+        {
+          "history_id": "chg_0019_003",
+          "at": "2026-06-22",
+          "change_type": "markdown_blur_preview_fix",
+          "before": "Markdown原文編集後、同じ欄をプレビュー表示へ戻すには詳細再描画が必要だった。",
+          "after": "contenteditableのblur時にMarkdown原文を行データへ同期し、その場でMarkdownプレビュー表示へ戻す。",
+          "reason": "Markdown本文を編集しながら、すぐ読み物表示で確認できるようにするため。"
+        }
+      ],
+      "verification_status": "確認済み"
+    },
+    {
+      "work_item_id": "studio_work_0020",
+      "phase": "v0.11-mdviewer-blur-preview-mode",
+      "title": "Markdown Viewer / Editor のblur時プレビュー自動復帰",
+      "incident_type": "feature",
+      "category": "markdown",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-22",
+      "updated_at": "2026-06-22",
+      "target_files": "wwwroot/mdViewer.html, wwwroot/js/runtime/MDVIEWER_BLUR_PREVIEW_MODE_NOTES_v0_11.md",
+      "objective": "Markdown Viewer / Editor で本文textareaを編集した後、前へ/次へや手動Viewer切替を行わなくても、カーソルが本文エディターから外れた時点で自動的にViewer表示へ戻るようにする。",
+      "background": "JSON Object Studio側のMarkdown編集カードでは、編集後にフォーカスが外れるとプレビュー表示へ戻る操作感が非常に気持ちよかった。同じ体験をMarkdown Viewer / Editorへ適用できれば、Markdown記事編集も「書く → 離す → 記事として読む」の往復になり、モチベーションが大きく上がる。",
+      "scope": "Editorモードの本文textareaにblurハンドリングを追加する。フォーカスがeditor内の補助ボタンやslash menuへ移った場合は自動Viewer復帰しない。本文エリア外へ出た場合はMarkdownを再描画し、Viewerモードへ戻す。Preview側のスクロール位置は、カーソル位置直前の見出しを優先し、見出しが取れない場合はeditor.scrollTop比率で復元する。",
+      "out_of_scope": "完全な行単位アンカー同期、分割ビューのライブカーソル追従、編集中部分だけの差分プレビュー、Markdown ASTによる厳密な位置対応は今回の対象外。まずは体験価値を優先し、近い位置へ戻る実用的な復元に留める。",
+      "fixed_name_policy": "特定Markdownファイル名やDataフィールド名には依存しない。mdViewer.html内のEditor/Preview DOMに対するUI動作として実装し、Markdown原文とHTMLプレビューの責務を分離する。",
+      "module_policy": "既存のmdViewer.html単体script構成を維持する。type=\"module\"化や大規模分割は行わない。",
+      "expected_outputs": "mdViewer.htmlのblur時Viewer復帰対応、スクロール復元ロジック、実装メモMD、更新済みインシデントJSON、更新版wwwroot zip。",
+      "risk": "textareaのblurは、保存ボタン・挿入ボタン・slash menu操作でも発生するため、補助UIクリック時に意図せずViewerへ戻るリスクがある。またMarkdown原文とPreview HTMLは高さが一致しないため、スクロール位置の完全一致は保証しない。",
+      "test_points": "Editorモードで本文を編集し、本文エリア外をクリックするとViewerモードへ戻ること。編集内容がPreviewへ反映されること。editor内のCode/Table/保存/ファイル名など補助UIへ移動した場合は勝手にViewerへ戻らないこと。カーソル近くの見出し、またはスクロール比率によりViewer側が近い位置へ戻ること。保存値はMarkdown原文のままでHTMLが混入しないこと。",
+      "user_request": "Markdown Viewer / Editorにも、Studio側のMarkdown編集欄と同じ入力方式を適用したい。Editorで編集したあと、フォーカスが外れた時にPreview表示へ戻るようにしたい。Preview表示時のスクロール位置が重要なので、チャレンジ対応してほしい。",
+      "ai_response": "対応方針として、Editor本文textareaのblur時にViewerモードへ自動復帰する処理を追加する。復帰時はMarkdownを再レンダリングし、カーソル位置直前の見出しへスクロールする。見出しが取れない場合はeditor.scrollTop比率をPreview側へ反映する。",
+      "latest_user_comment": "これはやばいことになってきましたよぉ～。インシデントに追加した上で、チャレンジ対応をお願いします。最新資材投入します。よろしく！！やばいよやばいよぉ～笑",
+      "latest_ai_response": "Markdown Viewer / Editor の本文textarea blur時Viewer自動復帰に対応。editor内補助UIへの移動は除外し、本文外へフォーカスが出た時だけViewerへ戻す。スクロール復元はカーソル直前見出し優先、なければスクロール比率方式で実装した。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0020_001",
+          "at": "2026-06-22",
+          "speaker": "user",
+          "topic": "Markdown Viewerへの操作感適用相談",
+          "message": "Studio側のMarkdown編集欄と同じように、Markdown Viewer / Editorでもフォーカスが外れた時にプレビュー表示へ戻せるか相談。スクロール位置がポイントになると指摘。"
+        },
+        {
+          "history_id": "disc_0020_002",
+          "at": "2026-06-22",
+          "speaker": "assistant",
+          "topic": "対応方針",
+          "message": "まずはscroll ratio方式で可能。さらに気持ちよくするならカーソル位置直前の見出しアンカーへ戻す方式が良いと整理。"
+        },
+        {
+          "history_id": "disc_0020_003",
+          "at": "2026-06-22",
+          "speaker": "user",
+          "topic": "チャレンジ対応依頼",
+          "message": "インシデントに追加した上で、最新資材を投入してチャレンジ対応を依頼。"
+        },
+        {
+          "history_id": "disc_0020_004",
+          "at": "2026-06-22",
+          "speaker": "assistant",
+          "topic": "作業結果",
+          "message": "mdViewer.htmlへEditor blur preview modeを追加。本文textareaからフォーカスが外れたらViewerへ戻し、見出しまたはスクロール比率でPreview位置を復元する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0020_001",
+          "at": "2026-06-22",
+          "decision": "Editor補助UIへのフォーカス移動では自動Viewer復帰しない。",
+          "reason": "Code/Table/保存/ファイル名入力/slash menuなどの操作中にEditorが消えると作業が壊れるため。"
+        },
+        {
+          "decision_id": "dec_0020_002",
+          "at": "2026-06-22",
+          "decision": "スクロール復元は見出しアンカー優先、比率復元をフォールバックとする。",
+          "reason": "Markdown原文とHTMLプレビューでは高さが一致しないため、単純なscrollTop比率だけではズレる。カーソル直前の見出しが取れれば体感位置が自然になるため。"
+        },
+        {
+          "decision_id": "dec_0020_003",
+          "at": "2026-06-22",
+          "decision": "保存値はMarkdown原文のまま保持し、Viewer表示はHTMLプレビューに限定する。",
+          "reason": "Markdown Viewer / Editorでも、JSON Object Studio側と同じく原文と表示を分離し、HTMLを保存値へ混入させないため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0020_001",
+          "at": "2026-06-22",
+          "change_type": "mdviewer_blur_preview_mode",
+          "before": "EditorでMarkdown本文を編集した後、Viewer表示へ戻るにはViewerボタンを押すか、別操作で再描画・再表示する必要があった。",
+          "after": "本文textareaからフォーカスが外れた時、自動でMarkdownを再レンダリングしViewerモードへ戻る。スクロール位置は見出しアンカーまたはeditor scroll比率で復元する。",
+          "reason": "書く→離す→記事として読む、の操作感をMarkdown Viewer / Editorにも適用し、記事編集のモチベーションを上げるため。"
+        }
+      ],
+      "verification_status": "確認済み"
+    },
+    {
+      "work_item_id": "studio_work_0021",
+      "phase": "v0.11.1-mdviewer-single-pane-blur-preview",
+      "title": "Markdown Viewer / Editor の単一欄blurプレビュー再チャレンジ",
+      "incident_type": "",
+      "category": "",
+      "priority": "high",
+      "status": "完了",
+      "verification_status": "確認済み",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-22",
+      "updated_at": "2026-06-22",
+      "target_files": "wwwroot/mdViewer.html",
+      "objective": "Editorモードで入力欄とプレビュー欄を2つ並べず、1つの欄で、テキストボックスにフォーカスがある時だけMarkdown原文入力モード、フォーカスが外れたらMarkdownプレビューモードへ戻る操作感にする。",
+      "background": "v0.11-mdviewer-blur-preview-mode の1回目対応では、Editorモード中に入力欄とプレビュー欄の2ペイン構成が残り、JSON Object Studio側で得られた『書く→離す→読める』操作感と一致しなかった。Markdown Viewer / Editorでも、1つの欄が入力面とプレビュー面を切り替える体験へ寄せる必要がある。",
+      "scope": "mdViewer.htmlのEditorモードを単一ペイン構成へ変更する。Editorモードではarticle previewとの2カラムをやめ、編集カード内の1つの領域でtextareaとMarkdownプレビューを切り替える。textarea blur時にMarkdownプレビューへ戻し、プレビューをクリックしたら同じ欄で入力モードへ戻る。スクロール位置は見出しまたはスクロール比率で可能な範囲で復元する。",
+      "out_of_scope": "wwwroot/data配下、wwwroot/defs配下のファイル追加・更新は行わない。GitHub専用公開エリアのためAI更新禁止とする。Markdown本文の保存仕様、API仕様、管理Markdown一覧仕様の大規模変更は行わない。",
+      "fixed_name_policy": "特定Markdownファイル名や特定データ名へ依存しない。EditorモードのDOM制御はmdViewer.html内の汎用UI要素に限定する。",
+      "module_policy": "type=\"module\" 化は行わず、既存の単一HTML内script方式を維持する。",
+      "expected_outputs": "更新済みwwwroot/mdViewer.html、v0.11.1対応zip、更新済みインシデントJSON。wwwroot/dataおよびwwwroot/defs配下に変更がないこと。",
+      "risk": "textareaとプレビューを同一欄で切り替えるため、blurタイミング、Code/Tableボタン、slash menu、保存ボタン、ファイル名入力欄とのフォーカス競合が起きる可能性がある。スクロール復元はMarkdown原文とHTMLプレビューで高さが異なるため完全一致しない可能性がある。",
+      "test_points": "Editorボタン押下で入力モードになること。本文textareaからフォーカスが外れると同じ欄がMarkdownプレビューになること。プレビューをクリックすると同じ欄が入力モードへ戻ること。Code/Tableボタンで意図せずプレビューモードへ落ちないこと。Viewerボタンで通常Viewer表示へ戻ること。保存値にHTMLが混入しないこと。wwwroot/dataおよびwwwroot/defs配下が更新されていないこと。",
+      "user_request": "対応1回目後コメントとして、Editorモードの時は入力欄とプレビュー欄を2つ持つのではなく、1つの欄でテキストボックスのフォーカスがある時は入力モード、フォーカスが外れたらプレビューモードにするチャレンジを依頼。補足として、wwwroot\\data と wwwroot\\defs はGitHub専用公開エリアのためAIによるファイル追加更新を禁止、不要だったwwwroot\\wwwrootフォルダーは削除済みとの共有あり。",
+      "ai_response": "Editorモードを単一欄方式へ変更。Editorモードではarticle-card側を非表示にし、編集カード内の同じ領域でtextareaとMarkdownプレビューを切り替える。blur時はMarkdownプレビューへ戻し、プレビュークリックでtextarea入力へ戻る。スクロール復元は見出し優先、取れない場合はスクロール比率で復元する。wwwroot/dataおよびwwwroot/defs配下は変更しない。",
+      "latest_user_comment": "Editorモードの時は、入力欄とプレビュー欄を２つもつのではなく、１つの欄でテキストボックスのフォーカスがある時は入力モード。フォーカスが外れたらプレビューモードにするチャレンジをお願いします。wwwroot/data・wwwroot/defs はGitHub専用公開エリアのためAI更新禁止。\n\n# ２回目チャレンジ後コメント\n\nおおおーーーかなりいけている笑　まずは相談。\n\nエディターモードの時に、左端の目次とメタは出したままにしておいてほしい。\n\nエディターモードの時の欄の横幅は、プレビューモードの時の文章欄と同じ幅・位置になるように調整お願いしたい。\n\nエディターモードの時のプレビューでクリックした行を記憶しておいて、エディターモードに切り替わった時に、その行にカーソルがいけば完璧！！できるだろうか？\n\nプレビューモードの時は、現状でOKで、テキスト欄（文章欄）をクリックしてもエディターモードに切り替わらなければOK",
+      "latest_ai_response": "単一欄blurプレビュー方式で再実装。mdViewer.htmlのみを変更し、wwwroot/data・wwwroot/defsは未変更。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0021_001",
+          "at": "2026-06-22",
+          "speaker": "user",
+          "topic": "対応1回目後コメント",
+          "message": "Editorモードの時は、入力欄とプレビュー欄を２つもつのではなく、１つの欄でテキストボックスのフォーカスがある時は入力モード。フォーカスが外れたらプレビューモードにするチャレンジをお願いします。"
+        },
+        {
+          "history_id": "disc_0021_002",
+          "at": "2026-06-22",
+          "speaker": "user",
+          "topic": "公開エリア更新禁止",
+          "message": "wwwroot\\data と wwwroot\\def はGitHub専用公開エリアの為、AIによるファイル追加更新を禁止。wwwroot\\wwwroot は不要なフォルダーとして削除済み。"
+        },
+        {
+          "history_id": "disc_0021_003",
+          "at": "2026-06-22",
+          "speaker": "assistant",
+          "topic": "再チャレンジ対応結果",
+          "message": "mdViewer.htmlを単一欄方式へ変更。EditorモードではtextareaとMarkdownプレビューを同じ欄で切り替える。blurでプレビュー、プレビュークリックで入力に戻る。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0021_001",
+          "at": "2026-06-22",
+          "decision": "Editorモードでは入力欄とプレビュー欄を2カラムで並べない。",
+          "reason": "書く場所と読む場所が分かれると、JSON Object Studio側で得られた『書く→離す→読める』操作感にならないため。"
+        },
+        {
+          "decision_id": "dec_0021_002",
+          "at": "2026-06-22",
+          "decision": "wwwroot/dataおよびwwwroot/defs配下はAI更新禁止エリアとして扱う。",
+          "reason": "GitHub専用公開エリアであり、AIによる不用意なファイル追加・更新を避けるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0021_001",
+          "at": "2026-06-22",
+          "change_type": "mdviewer_single_pane_blur_preview",
+          "before": "Editorモードで入力欄とプレビュー欄が2つの領域として存在し、blur後の体験が分離していた。",
+          "after": "Editorモードで1つの欄が、focus時はtextarea、blur時はMarkdownプレビューとして切り替わる。",
+          "reason": "Markdown Viewer / Editorでも『書く→離す→記事として読む』体験を成立させるため。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0022",
+      "phase": "v0.12-rules-update-reporting-policy",
+      "title": "AI作業対象ファイル記録 / インシデント回答記録ルール整備",
+      "incident_type": "rules_review",
+      "category": "",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-22",
+      "updated_at": "2026-06-22",
+      "target_files": "優先度A: data/json/00_rules/frb_coding_constraints_review_data_v0_3.json, data/json/00_rules/frb_studio_foundation_review_data_v0_1.json, data/json/00_rules/_json_creation_prompt.md。前回誤反映の取り下げ: data/json/00_rules/frb_viewdef_generation_rules_review_data_v0_1.json, data/json/00_rules/frb_view_def_schema_review_data_v0_1.json。作業結果収録: data/json/01_main/studio_work_incident_data_v0_25_rules_update_reporting_policy_redone.json。",
+      "target_rule_files": "優先度Aとして修正: frb_coding_constraints_review_data_v0_3.json / frb_studio_foundation_review_data_v0_1.json / _json_creation_prompt.md。ViewDef Generation Rules と Schema Review は新規ルール追加対象ではなく、前回の過剰反映を取り下げる範囲のみ。",
+      "objective": "AI作業時のファイル更新ルールを整理し、root data/defs を過剰に保護しすぎないこと、AIが更新したファイルをインシデントJSONへ記録すること、インシデント対応後の報告内容をAI回答欄へ残すことをルール化する。",
+      "background": "ルール系ブラッシュアップ候補メモで「ZIP内に root data/ / defs/ が存在する場合も、同様に原則変更しない」と整理したが、この表現は強すぎる。root data/defs はAI作業で更新が必要になることがあるため、禁止ではなく、更新対象と更新結果をインシデントJSONに記録する運用へ寄せる必要がある。",
+      "scope": "root data/defs は、作業目的に必要な場合はAIが更新してよい。ただし、更新したファイル名、変更理由、変更概要を該当インシデントの change_history / latest_ai_response / discussion_history へ記録する。インシデント対応後のAI完了報告は、会話上だけでなく、インシデントJSONの ai_response または latest_ai_response にも反映する。今後予定するルール変更では、どのルールファイルに対する変更かを target_files または target_rule_files として明記する。",
+      "out_of_scope": "このインシデント追加時点では、ルール本文そのものの細部修正までは行わない。まずは作業項目として登録し、細かい文言や対象ルールファイルはユーザーコメントで確認しながら詰める。wwwroot/data と wwwroot/defs に関する既存の公開用領域ルールそのものを今回ここで再定義しない。",
+      "fixed_name_policy": "変更ファイル記録やAI回答記録のために、必要な管理フィールドはインシデント管理JSONの標準運用として扱う。ただし、Runtime側が特定データ専用の固定フィールド名に依存する実装は行わない。",
+      "module_policy": "type=\"module\" 化は今回の目的ではない。ルール文書とインシデント運用の整理を対象とする。",
+      "expected_outputs": "本インシデントの追加、対象ルールファイルの明記、root data/defs の扱い見直し、AI更新ファイル記録ルール、AI対応報告をインシデントJSONへ反映するルール案。",
+      "risk": "root data/defs の更新を許容すると、AIが不要なデータ更新まで行うリスクがある。そのため、許可ではなく「必要時のみ更新可」「更新ファイルを必ず記録」「理由と結果をインシデントに残す」という制約で管理する。",
+      "test_points": "インシデントJSONに今回の論点が作業項目として追加されていること。target_files / target_rule_files に予定変更対象のルールファイルが明記されていること。root data/defs の一律変更禁止が入っていないこと。更新ファイル一覧とAI完了報告をインシデントJSONに残す方針が入っていること。",
+      "user_request": "ルール系ブラッシュアップ候補をインシデントとして追加したい。特に、root data/defs まで原則変更しないという表現は強すぎるため削除したい。def/dataフォルダーはAI側でも更新してよく、どのファイルを更新したかをインシデントJSONへ記録してほしい。インシデント対応後のAI報告内容も、インシデントJSONのAI回答欄へ記録するルールにしたい。今回予定する変更内容がどのルールファイルに対する変更かも明記したい。",
+      "ai_response": "v0.12-rules-update-reporting-policy 対応完了。root data/defs は一律変更禁止ではなく、必要時更新可＋インシデントJSONへの更新ファイル記録をルール化。AI完了報告は ai_response / latest_ai_response / discussion_history に残す方針を追加。各ルールJSONに v0.12 の変更履歴コメントまたはレビューNoteを追加し、_JSON作成プロンプトにも同方針を追記。",
+      "latest_user_comment": "studio_work_incident_data_v0_22_rules_update_reporting_policy_added.json の v0.12-rules-update-reporting-policy 対応を依頼。各ルールJSONにも変更履歴コメントを追加する。\n\n----\n# AIチャットコメントに対する俺コメント追加\n\n---\nうぃーー、これはたぶん前回こっちが **「全部のルールJSONに同じ思想を横流ししすぎた」** 感あるね💦\n整理すると、今回の v0.12 は **全ルールに同じ文章を入れる話ではなく、各ファイルの責務に応じて置き場所を分ける話** やと思う。\n\n# v0.12-rules-update-reporting-policy ルール反映方針メモ\n\n## まず全体方針\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_194023_62pl\" status=\"OK\" -->\n> ✅ **FRBコメント：OK**\n>\n> 了解。この方針でOK。\n<!-- FRB_COMMENT_END -->\n\n今回追加したい本質はこれ。\n\n```text\nAIが何を触ったか\nなぜ触ったか\n結果どうなったか\nそれをインシデントJSONに残す\n```\n\nただし、これは **ViewDef生成ルールそのもの** ではなく、もう少し上位の **AI作業運用ルール**。\n\nなので、配置としてはこう分けるのが自然。\n\n```text\n憲法 / Coding Constraints:\n  AI作業時の守るべき原則\n\nFoundation Rules:\n  data / defs / wwwroot/data / wwwroot/defs の位置づけ\n\nViewDef Generation Rules:\n  その情報を画面に出す場合のViewDef設計ルール\n\nSchema Review:\n  Schema変更が必要かどうかの判断メモ\n\nJSON作成プロンプト:\n  AIに作業させるときの短い実務指示\n```\n\n---\n\n# 1. `frb_coding_constraints_review_data_v0_3.json`\n\n## 役割\n\nStudioくん憲法・AI作業時の安全柵。\n\nここが今回の **主戦場その1**。\n\n## 追加・変更したらよい内容\n\n### 追加候補\n\n`constitution_20: AI協働ルール` あたりに追加するのが自然。\n\n```text\nAIがファイルを更新した場合、更新したファイル名、変更理由、変更概要、対応結果をインシデントJSONへ記録する。\n```\n\n記録先の考え方もここに置く。\n\n```text\ntarget_files:\n  予定していた対象ファイル\n\ntarget_rule_files:\n  ルール更新作業で予定していたルールファイル\n\nactual_updated_files:\n  実際にAIが更新したファイル\n\nlatest_ai_response:\n  AIの完了報告\n\ndiscussion_history:\n  作業依頼・判断・結果の会話履歴\n\nchange_history:\n  変更前後と理由\n```\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_194322_1ixp\" status=\"COMMENT\" -->\n> 💬 **FRBコメント：コメント**\n>\n> インシデントに情報追加する場合は、ご提案のテキスト文章の追加でOK。よろしく\n<!-- FRB_COMMENT_END -->\n\n### 修正候補\n\n`root data/defs は原則変更しない` みたいな強い書き方がある場合は弱める。\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_194545_b7se\" status=\"COMMENT\" -->\n> 💬 **FRBコメント：コメント**\n>\n> root\\data\\json\\01_main\\studio_work_incident_data_*.json の更新済みファイルを収録して欲しいというのと、defやJsonDataはAIでも更新して欲しいという意図。でも、更新したら、その痕跡をどこかに記録して開示して欲しいという意図。\n<!-- FRB_COMMENT_END -->\n\n```text\nroot data/ / defs/:\n  作業目的に必要ならAI更新可。\n  ただし、更新ファイルと理由をインシデントJSONへ記録する。\n\nwwwroot/data / wwwroot/defs:\n  GitHub Pages等の公開用静的領域。\n  明示依頼がない限りAI更新しない。\n```\n\n### 削る・弱める候補\n\n```text\nwwwroot/data 差分なし\nwwwroot/defs 差分なし\n```\n\nこれは毎回の必須報告ルールにはしない。\n必要な作業のときだけ確認・報告でよい。\n\n## 変更履歴コメントの入れ方\n\n対象は `constitution_20`、必要なら `constitution_10` / `constitution_11` くらい。\n\n全条文に入れない。\n\n---\n\n# 2. `frb_studio_foundation_review_data_v0_1.json`\n\n## 役割\n\nStudio全体の基礎方針・フォルダー思想・運用思想。\n\nここが今回の **主戦場その2**。\n\n## 追加・変更したらよい内容\n\n### 追加候補\n\n`foundation_rule_007: Incident と Version Detail の関係` に寄せる。\n\n```text\nIncident JSON は、作業依頼・対象ファイル・実更新ファイル・AI完了報告・判断履歴を残す作業台帳である。\n```\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_194626_htxx\" status=\"OK\" -->\n> ✅ **FRBコメント：OK**\n>\n> 了解。この方針でOK。\n<!-- FRB_COMMENT_END -->\n\n`foundation_rule_011: rules フォルダーの役割` に寄せる。\n\n```text\nroot data/defs と wwwroot/data/defs は役割が違う。\n```\n\n整理するとこう。\n\n```text\nroot data/:\n  作業用・管理用Data JSONを置く場所。\n  AIが更新することがある。\n\nroot defs/:\n  作業用・管理用ViewDef JSONを置く場所。\n  AIが更新することがある。\n\nwwwroot/data/:\n  公開・静的ホスティング用Data JSON。\n  明示依頼がない限り更新しない。\n\nwwwroot/defs/:\n  公開・静的ホスティング用ViewDef JSON。\n  明示依頼がない限り更新しない。\n```\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_194651_62dk\" status=\"OK\" -->\n> ✅ **FRBコメント：OK**\n>\n> 了解。この方針でOK。\n<!-- FRB_COMMENT_END -->\n\n### 追加したい基本原則\n\n```text\nAIがroot data/defsを更新すること自体は禁止しない。\nただし、更新した事実をインシデントJSONに残す。\n```\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_194712_b5up\" status=\"OK\" -->\n> ✅ **FRBコメント：OK**\n>\n> 了解。この方針でOK。\n<!-- FRB_COMMENT_END -->\n\n## 変更履歴コメントの入れ方\n\n対象は以下あたりだけでよさそう。\n\n```text\nfoundation_rule_007\nfoundation_rule_011\nfoundation_rule_018\n```\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_194719_fiz9\" status=\"OK\" -->\n> ✅ **FRBコメント：OK**\n>\n> 了解。この方針でOK。\n<!-- FRB_COMMENT_END -->\n\nもし `foundation_rule_018` がすでにあるなら、そこを本命にして整える。\n\n---\n\n# 3. `frb_viewdef_generation_rules_review_data_v0_1.json`\n\n## 役割\n\nViewDefをどう作るかのルール。\n\nここに **AI作業運用ルールを濃く入れすぎるとズレる**。\n\n## 追加・変更したらよい内容\n\nここでは、運用ルールそのものではなく、\n\n```text\nインシデントJSONに記録された情報を、ViewDefでどう見せるか\n```\n\nに寄せるのがよい。\n\n### 追加候補\n\n`AI生成時の出力ルール` か `Detail Body readable cards` あたりに追加。\n\n```text\nインシデント管理ViewDefを生成する場合、以下のフィールドは見える位置に配置する。\n```\n\n候補フィールド。\n\n```text\ntarget_files\ntarget_rule_files\nactual_updated_files\nai_response\nlatest_ai_response\ndiscussion_history\nchange_history\n```\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_194832_j8xl\" status=\"ASK\" -->\n> ❓ **FRBコメント：要確認**\n>\n> ここまではまずはしなくてよいと思う。管理項目数はまずは押さえて運用したい。\n<!-- FRB_COMMENT_END -->\n\n### 表示方針\n\n```text\ntarget_files:\n  予定対象としてカード表示\n\ntarget_rule_files:\n  ルール変更対象としてカード表示\n\nactual_updated_files:\n  実更新ファイル一覧としてカード表示\n\nlatest_ai_response:\n  AI完了報告としてMarkdown表示\n\ndiscussion_history:\n  chat / objectArray として履歴表示\n\nchange_history:\n  objectArray として変更前後を表示\n```\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_194907_k2xh\" status=\"COMMENT\" -->\n> 💬 **FRBコメント：コメント**\n>\n> 項目ではなく、テキスト文章でのコメントを希望する。\n<!-- FRB_COMMENT_END -->\n\n### 注意点\n\nここでは、以下のような運用ルールを主語にしすぎない方がよい。\n\n```text\nAIはroot data/defsを更新してよい\nAIはwwwroot/dataを更新してはいけない\n```\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_194919_716p\" status=\"OK\" -->\n> ✅ **FRBコメント：OK**\n>\n> 了解。この方針でOK。\n<!-- FRB_COMMENT_END -->\n\nこれは ViewDef生成ルールではなく、Foundation / Coding Constraints 側の責務。\n\nViewDef側ではこう言う程度でよい。\n\n```text\nDataに作業対象・更新対象・AI回答欄が存在する場合、それらを人間が確認できるViewDefにする。\n```\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_194950_ovpm\" status=\"OK\" -->\n> ✅ **FRBコメント：OK**\n>\n> 了解。この方針でOK。\n<!-- FRB_COMMENT_END -->\n\n## 変更履歴コメントの入れ方\n\n対象は以下だけで十分。\n\n```text\nviewdef_rule_10_01 Detail Body readable cards\nviewdef_rule_20 AI生成時の出力ルール\n必要なら viewdef_rule_09 chat type\n```\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_195005_3tz3\" status=\"OK\" -->\n> ✅ **FRBコメント：OK**\n>\n> 了解。この方針でOK。\n<!-- FRB_COMMENT_END -->\n\n今ある `viewdef_rule_20_01〜20_04` は、少し運用ルールに寄りすぎているなら、本文を薄くして **表示・生成時の扱い** に寄せるのが良さそう。\n\n---\n\n# 4. `frb_view_def_schema_review_data_v0_1.json`\n\n## 役割\n\nViewDef Schema のレビュー記録。\n\nここは **今回ほぼ変更不要寄り**。\n\n## 追加・変更したらよい内容\n\n今回の `target_rule_files` / `actual_updated_files` は、基本的には **Data JSON側のフィールド名**。\n\nViewDef Schemaそのものの新しい構文ではない。\n\nなので、ここに入れるならルール追加ではなく、レビューコメントでよい。\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_195047_96cm\" status=\"OK\" -->\n> ✅ **FRBコメント：OK**\n>\n> 了解。この方針でOK。\n<!-- FRB_COMMENT_END -->\n\n```text\nv0.12の target_rule_files / actual_updated_files は、ViewDef Schemaの新規プロパティではなく、インシデント管理Data上のフィールドとして扱う。\n現行Schemaでは fields[] に任意field名を定義できるため、Schema変更は必須ではない。\n```\n\n### 将来検討として残すなら\n\n```text\nもし将来、incident系DataをStudio標準管理データとして扱うなら、\ntarget_rule_files / actual_updated_files / completion_report などを\n標準メタフィールド候補として検討する。\n```\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_195119_spte\" status=\"NG\" -->\n> 🚫 **FRBコメント：NG**\n>\n> まずは無しの方向で。\n<!-- FRB_COMMENT_END -->\n\n## 変更履歴コメントの入れ方\n\nトップレベルの `review_notes` に1件でよい。\n360件ある schema_items に無理に追加しない。\n\n---\n\n# 5. `_frb_view_def_schema_v0_9_chat_input_mapping.json`\n\n## 役割\n\n実際の ViewDef JSON Schema。\n\nここは **今回変更しない方がよい**。\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_195127_91c8\" status=\"OK\" -->\n> ✅ **FRBコメント：OK**\n>\n> 了解。この方針でOK。\n<!-- FRB_COMMENT_END -->\n\n## 理由\n\n今回の話は、\n\n```text\nData JSONの運用ルール\nIncident JSONの記録ルール\nAI作業完了報告の残し方\n```\n\nであって、\n\n```text\nViewDef Schemaに新しい構文を追加する話\n```\n\nではない。\n\n`target_rule_files` や `actual_updated_files` は、ViewDef Schemaのプロパティではなく、Data側の任意フィールド。\n\nだから、現時点では schema 本体に入れない。\n\n## 将来変更するなら\n\n以下のような新機能を入れるとき。\n\n```text\nmarkdown.blockActions\ncontextMenu\ntemporaryHighlight\ncommentBadge\nblockToAiAction\n```\n\nつまり、Markdownプレビューのブロック操作をViewDef化するとき。\n\n今回の v0.12 では不要。\n\n---\n\n# 6. `_json_creation_prompt.md`\n\n## 役割\n\nAIにViewDef JSONを作らせるときの実務プロンプト。\n\nここは **短く実務指示だけ入れる** のがよい。\n\n## 追加・変更したらよい内容\n\n今後のAI作業向けに、こういう短いチェックを入れる。\n\n```text\nルール更新作業の場合:\n- インシデントJSONの target_files / target_rule_files を確認する\n- 予定外のファイルを更新しない\n- 更新したファイルは actual_updated_files に記録する\n- 完了報告は latest_ai_response に残す\n- ルール本文を変更した場合は、その rule.change_history に変更前後と理由を残す\n```\n\n### 注意点\n\nここに長い思想文を入れすぎない。\n\nこのファイルはAIへの実務プロンプトなので、\n\n```text\n詳しい思想は frb_coding_constraints_review_data / foundation / viewdef_generation_rules を参照\n```\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_195241_689v\" status=\"OK\" -->\n> ✅ **FRBコメント：OK**\n>\n> 了解。この方針でOK。\n<!-- FRB_COMMENT_END -->\n\nぐらいがよい。\n\n## 変更履歴コメントの入れ方\n\nMarkdownコメントで末尾に1行で十分。\n\n```markdown\n<!-- change_history: 2026-06-22 v0.12 / AI作業対象ファイル記録とインシデント回答記録の実務指示を追加 -->\n```\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_195249_90cm\" status=\"OK\" -->\n> ✅ **FRBコメント：OK**\n>\n> 了解。この方針でOK。\n<!-- FRB_COMMENT_END -->\n\n---\n\n# 7. インシデントJSON側に必要な考え方\n\nこれは `00_rules.zip` のルールファイルではないけど、今回の本命。\n\n## 追加・整理したいフィールド\n\n```text\ntarget_files:\n  作業依頼時点での予定対象\n\ntarget_rule_files:\n  ルール更新の場合の予定対象ルールファイル\n\nactual_updated_files:\n  AIが実際に更新したファイル\n\nai_response:\n  その作業項目のAI回答・方針\n\nlatest_ai_response:\n  今回対応後のAI完了報告\n\ndiscussion_history:\n  会話履歴\n\nchange_history:\n  変更前後・理由\n```\n\n## 重要な整理\n\n```text\ntarget_files = 予定\nactual_updated_files = 実績\nlatest_ai_response = 完了報告\nchange_history = 変更内容の履歴\ndiscussion_history = 会話の履歴\n```\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_195419_xrcv\" status=\"COMMENT\" -->\n> 💬 **FRBコメント：コメント**\n>\n> actual_updated_files = 実績　は、テキスト文字列でまずはスタート\n<!-- FRB_COMMENT_END -->\n\nこの分離が大事。\n\n---\n\n# 今回の修正優先順位\n\n## 優先度A\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_195519_f4h7\" status=\"COMMENT\" -->\n> 💬 **FRBコメント：コメント**\n>\n> 優先度Aだけの対応としましょう。\n<!-- FRB_COMMENT_END -->\n\n```text\nfrb_coding_constraints_review_data_v0_3.json\nfrb_studio_foundation_review_data_v0_1.json\n_json_creation_prompt.md\n```\n\nここに今回の運用ルールを入れる。\n\n## 優先度B\n\n```text\nfrb_viewdef_generation_rules_review_data_v0_1.json\n```\n\nここは「インシデント管理ViewDefでどう見せるか」に限定して入れる。\n\n## 優先度C\n\n```text\nfrb_view_def_schema_review_data_v0_1.json\n```\n\nSchema変更不要の判断メモを残す程度。\n\n## 原則変更なし\n\n```text\n_frb_view_def_schema_v0_9_chat_input_mapping.json\n```\n\n今回の v0.12 では触らない。\n\n---\n\n# まとめ\n\n今回のズレはたぶんここ。\n\n```text\n前回の方向:\n  各ルールJSONに同じ運用ルールを広く追加しすぎた\n\n今回の正しい方向:\n  ルールの責務ごとに置き場所を分ける\n```\n\n最終形はこれがよさそう。\n\n```text\nCoding Constraints:\n  AI作業の義務として記録する\n\nFoundation:\n  data/defs と wwwroot/data/defs の役割を分ける\n\nViewDef Generation Rules:\n  記録された情報を見えるViewDefにする\n\nSchema Review:\n  Schema変更は不要と判断記録する\n\nSchema本体:\n  触らない\n\nJSON作成プロンプト:\n  AIへの短い実務チェックだけ置く\n```\n\n<!-- FRB_COMMENT_START id=\"frbcmt_20260622_195549_cbuo\" status=\"COMMENT\" -->\n> 💬 **FRBコメント：コメント**\n>\n> これは憲法に追加しましょう\n<!-- FRB_COMMENT_END -->\n\nこれなら、ルールが太りすぎず、責務もかなり綺麗に分かれると思う。\n\n---\n# 2026-06-22 再対応依頼\n\nv0.12-rules-update-reporting-policy に基づいて、ルールデータの修正を依頼。mdViewerで入れたFRBコメントを反映し、優先度Aを中心に対応する。",
+      "latest_ai_response": "v0.12-rules-update-reporting-policy 再対応完了。mdViewerで付与されたFRBコメントを反映し、優先度Aとして Coding Constraints / Foundation Rules / _json_creation_prompt.md を修正。root data/defs はAI更新可、wwwroot/data/defs は明示依頼がない限り更新しない方針を整理。更新ファイル・理由・対応結果は、まずテキスト文章でインシデントJSONへ残す運用に修正。前回過剰反映していた ViewDef Generation Rules のv0.12運用ルール群と Schema Review の将来検討メモは取り下げた。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0022_001",
+          "at": "2026-06-22",
+          "speaker": "user",
+          "topic": "ルール系ブラッシュアップのインシデント追加",
+          "message": "ルール系ブラッシュアップ候補をインシデントとして管理したい。root data/defs まで原則変更しないという表現は強すぎるため削除したい。def/dataフォルダーはAI側でも更新してよく、どのファイルを更新したかをインシデントJSONへ記録してほしい。インシデント対応結果の報告内容もAI回答欄へ記録するルールにしたい。今回予定する変更内容がどのルールファイルに対する変更かも明記したい。"
+        },
+        {
+          "history_id": "disc_0022_002",
+          "at": "2026-06-22",
+          "speaker": "assistant",
+          "topic": "インシデント追加結果",
+          "message": "studio_work_0022 を追加。root data/defs は一律保護ではなく、必要時更新可＋更新ファイル記録へ方針変更する作業項目として登録。AI対応報告を ai_response / latest_ai_response / discussion_history へ残す運用も対象に含めた。"
+        },
+        {
+          "history_id": "disc_0022_003",
+          "at": "2026-06-22",
+          "speaker": "user",
+          "topic": "v0.12対応依頼",
+          "message": "studio_work_incident_data_v0_22_rules_update_reporting_policy_added.json v0.12-rules-update-reporting-policy の対応を依頼。各ルールJSONにも変更履歴コメントを追加してほしい。"
+        },
+        {
+          "history_id": "disc_0022_004",
+          "at": "2026-06-22",
+          "speaker": "assistant",
+          "topic": "v0.12対応結果",
+          "message": "v0.12-rules-update-reporting-policy 対応完了。root data/defs は一律変更禁止ではなく、必要時更新可＋インシデントJSONへの更新ファイル記録をルール化。AI完了報告は ai_response / latest_ai_response / discussion_history に残す方針を追加。各ルールJSONに v0.12 の変更履歴コメントまたはレビューNoteを追加し、_JSON作成プロンプトにも同方針を追記。"
+        },
+        {
+          "history_id": "disc_0022_redo_20260622_user",
+          "at": "2026-06-22",
+          "speaker": "user",
+          "topic": "v0.12-rules-update-reporting-policy 再対応依頼",
+          "message": "mdViewerで入れたFRBコメントに基づき、優先度A中心でルールデータの修正を依頼。実更新ファイルはまずテキスト文字列で記録する方針。"
+        },
+        {
+          "history_id": "disc_0022_redo_20260622_assistant",
+          "at": "2026-06-22",
+          "speaker": "assistant",
+          "topic": "v0.12-rules-update-reporting-policy 再対応結果",
+          "message": "v0.12-rules-update-reporting-policy 再対応完了。mdViewerで付与されたFRBコメントを反映し、優先度Aとして Coding Constraints / Foundation Rules / _json_creation_prompt.md を修正。root data/defs はAI更新可、wwwroot/data/defs は明示依頼がない限り更新しない方針を整理。更新ファイル・理由・対応結果は、まずテキスト文章でインシデントJSONへ残す運用に修正。前回過剰反映していた ViewDef Generation Rules のv0.12運用ルール群と Schema Review の将来検討メモは取り下げた。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0022_001",
+          "at": "2026-06-22",
+          "decision": "root data/defs は一律変更禁止とはしない。",
+          "reason": "root data/defs はAI作業で更新が必要になる場合があり、公開用領域である wwwroot/data・wwwroot/defs と同じ強さで保護すると運用が硬くなりすぎるため。"
+        },
+        {
+          "decision_id": "dec_0022_002",
+          "at": "2026-06-22",
+          "decision": "AIが更新したファイルはインシデントJSONへ記録する。",
+          "reason": "どのファイルを更新したかがインシデント単位で追えると、未来の人間とAIが作業経緯・影響範囲・判断理由を追体験しやすくなるため。"
+        },
+        {
+          "decision_id": "dec_0022_003",
+          "at": "2026-06-22",
+          "decision": "インシデント対応後のAI報告内容を ai_response / latest_ai_response / discussion_history に残す。",
+          "reason": "会話上の完了報告だけでは後から流れやすいため、作業結果をインシデントJSONに残して管理画面上で確認できるようにするため。"
+        },
+        {
+          "decision_id": "dec_0022_004",
+          "at": "2026-06-22",
+          "decision": "ルール変更インシデントでは、予定変更対象のルールファイルを明記する。",
+          "reason": "ルール系ファイルが複数存在するため、どのルールに対する変更かを明示しないと、AIが正本や対象範囲を誤認するリスクがあるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0022_001",
+          "at": "2026-06-22",
+          "change_type": "incident_added",
+          "before": "studio_work_incident_data_v0_21_mdviewer_single_pane_blur_preview_done.json / items_count=21",
+          "after": "studio_work_incident_data_v0_22_rules_update_reporting_policy_added.json / items_count=22",
+          "reason": "ルール系ブラッシュアップを細かい実装前にインシデントとして管理し、ユーザーコメントで文言調整できる状態にするため。"
+        },
+        {
+          "history_id": "chg_0022_002",
+          "at": "2026-06-22",
+          "change_type": "rules_update_reporting_policy_applied",
+          "before": "root data/defs の扱い、AI更新ファイル記録、AI完了報告のインシデント記録がルールJSON群へ十分に反映されていない状態",
+          "after": "各ルールJSONにv0.12変更履歴コメントを追加し、AI更新ファイル記録とAI完了報告のインシデント記録を明文化。完了版は studio_work_incident_data_v0_23_rules_update_reporting_policy_done.json として保存。",
+          "reason": "AI作業の更新対象と結果を、会話だけではなくインシデント管理データから追体験できるようにするため。",
+          "updated_files": [
+            "data/json/00_rules/frb_viewdef_generation_rules_review_data_v0_1.json",
+            "data/json/00_rules/frb_coding_constraints_review_data_v0_3.json",
+            "data/json/00_rules/frb_studio_foundation_review_data_v0_1.json",
+            "data/json/00_rules/frb_view_def_schema_review_data_v0_1.json",
+            "data/json/00_rules/_JSON#U4f5c#U6210#U30d7#U30ed#U30f3#U30d7#U30c8.md",
+            "data/json/01_main/studio_work_incident_data_v0_23_rules_update_reporting_policy_done.json"
+          ]
+        },
+        {
+          "history_id": "chg_0022_redo_20260622_001",
+          "at": "2026-06-22",
+          "change_type": "rules_scope_correction",
+          "before": "前回v0.12対応では ViewDef Generation Rules / Schema Review にも運用ルールを広く追加し、target_rule_files / actual_updated_files を構造フィールドとして扱う方向が強かった。",
+          "after": "優先度A中心に修正。Coding Constraints / Foundation / JSON作成プロンプトに運用ルールを置き、実更新ファイルはまずテキスト文章でインシデントJSONへ残す。ViewDef Generation Rules / Schema Review の過剰反映は取り下げ。",
+          "reason": "mdViewer上のFRBコメントで、管理項目数を抑え、コメント/報告はテキスト文章中心で始める方針が確認されたため。"
+        }
+      ],
+      "verification_status": "確認済み",
+      "actual_updated_files": "data/json/00_rules/frb_coding_constraints_review_data_v0_3.json; data/json/00_rules/frb_studio_foundation_review_data_v0_1.json; data/json/00_rules/_json_creation_prompt.md; data/json/00_rules/frb_viewdef_generation_rules_review_data_v0_1.json（前回v0.12追加ルール取り下げ）; data/json/00_rules/frb_view_def_schema_review_data_v0_1.json（前回v0.12検討メモ取り下げ）; data/json/01_main/studio_work_incident_data_v0_25_rules_update_reporting_policy_redone.json"
+    },
+    {
+      "work_item_id": "studio_work_0023",
+      "phase": "v0.11.7-mdviewer-dirty-block-comment",
+      "title": "Markdown汚し方式の吹き出しFRBコメント",
+      "incident_type": "",
+      "category": "",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-22",
+      "updated_at": "2026-06-22",
+      "target_files": "wwwroot/mdViewer.html, wwwroot/js/runtime/MDVIEWER_DIRTY_BLOCK_COMMENT_NOTES_v0_11_7.md, studio_work_incident_data_v0_24_mdviewer_dirty_block_comment_done.json",
+      "target_rule_files": "なし。今回はルール文書更新ではなく、mdViewer体験実装とインシデント追加を対象とする。",
+      "actual_updated_files": "wwwroot/mdViewer.html, wwwroot/js/runtime/MDVIEWER_DIRTY_BLOCK_COMMENT_NOTES_v0_11_7.md, studio_work_incident_data_v0_24_mdviewer_dirty_block_comment_done.json",
+      "objective": "Markdownプレビュー上の意味ブロックに対して、右クリックからFRBコメントを追加できるようにする。コメントはsidecar JSONではなく、Markdown本文をあえて汚す形式で挿入し、レビュー会話へそのまま貼り付けられる体験を確認する。",
+      "background": "ブロックハイライト機能により、プレビュー上の意味ブロックを操作対象にできる感覚が得られた。次の段階として、AI案やルール案に対して「了解」「NG」「要修正」「要確認」などの人間コメントをUI上で明確に残し、コメントする文化を育てたい。",
+      "scope": "mdViewer.htmlのプレビューブロック右クリックメニューにコメント系アクションを追加する。対象ブロック直後に FRB_COMMENT_START / FRB_COMMENT_END で囲んだMarkdownコメントブロックを挿入し、Previewでは吹き出し風コメントとして表示する。",
+      "out_of_scope": "sidecar JSONによるコメント永続化、コメント一覧管理、レビューJSONへの自動流し込み、AI自動分類、複数コメントの高度な編集UIは今回対象外。まずはMarkdown汚し方式で体験確認を行う。",
+      "fixed_name_policy": "FRB_COMMENT_START / FRB_COMMENT_END はMarkdown内コメントブロックを機械抽出するための明示マーカーとして扱う。RuntimeのData固定名ではなく、Markdownレビュー記法としての固定マーカーである。",
+      "module_policy": "type=\"module\" 化は行わない。既存のmdViewer.html内script方式を維持し、最新資材に対して最小差分で追加する。",
+      "expected_outputs": "右クリックメニューにコメント追加、OKコメント、NGコメント、要修正コメント、要確認コメント、コメント付きMarkdownコピーを追加。Markdown本文にはFRB_COMMENTマーカー付きコメントを挿入し、Previewでは吹き出し風に表示する。",
+      "risk": "Markdown本文を汚すため、公開用Markdownにそのまま残るリスクがある。コードブロックやテーブル内部へ挿入するとMarkdown構造を壊す可能性があるため、対象ブロック直後へ挿入する方針とする。",
+      "test_points": "mdViewer.html inline scriptがnode --check OKであること。wwwroot/js/*.jsがnode --check OKであること。右クリックメニューから各コメント種別を挿入できること。FRB_COMMENTがPreviewで吹き出し風に表示されること。コメント付きMarkdownコピーが使えること。",
+      "user_request": "Markdown汚し方式の吹き出しコメントをインシデントに追加した上で、最新資材に対して対応してほしい。コメントをする文化を大切に育てたい。",
+      "ai_response": "対応方針: sidecar JSON保存設計には進まず、まずはMarkdown本文をあえて汚すFRB_COMMENT方式で、ブロック単位のコメント体験を実装する。コメントは対象ブロック直後に挿入し、Previewでは吹き出し風に表示する。",
+      "latest_user_comment": "Markdown汚し方式の吹き出しコメントをインシデントに追加した上で、最新資材に対して対応をお願いします。コメントをする文化を大切に育てよう！！",
+      "latest_ai_response": "v0.11.7-mdviewer-dirty-block-comment 対応完了。mdViewer.html に右クリックコメントメニューを追加し、対象ブロック直後へ FRB_COMMENT_START / FRB_COMMENT_END 付きMarkdownコメントを挿入できるようにした。PreviewではFRBコメントを吹き出し風に表示し、コメント付きMarkdown全体をコピーできる導線も追加した。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0023_001",
+          "at": "2026-06-22",
+          "speaker": "user",
+          "topic": "機能相談",
+          "message": "mdViewer.htmlに、Markdownを汚していいから意味ブロックごとにコメントを入れたい。コメントしたものをレビュー会話に貼り付けたい。UI的にコメントだと分かる吹き出しコメントにしたい。"
+        },
+        {
+          "history_id": "disc_0023_002",
+          "at": "2026-06-22",
+          "speaker": "assistant",
+          "topic": "方針整理",
+          "message": "Markdown内に FRB_COMMENT_START / FRB_COMMENT_END マーカー付きコメントを挿入し、Previewでは吹き出し風に表示する方式を提案。sidecar JSONより軽く、レビュー会話へそのまま貼り付けられる。"
+        },
+        {
+          "history_id": "disc_0023_003",
+          "at": "2026-06-22",
+          "speaker": "user",
+          "topic": "作業依頼",
+          "message": "Markdown汚し方式の吹き出しコメントをインシデントに追加した上で、最新資材に対して対応してほしい。コメントする文化を大切に育てたい。"
+        },
+        {
+          "history_id": "disc_0023_004",
+          "at": "2026-06-22",
+          "speaker": "assistant",
+          "topic": "作業結果",
+          "message": "mdViewer.htmlへ右クリックコメントメニュー、FRB_COMMENT挿入、吹き出しPreview表示、コメント付きMarkdownコピーを追加。ノートファイル MDVIEWER_DIRTY_BLOCK_COMMENT_NOTES_v0_11_7.md を追加。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0023_001",
+          "at": "2026-06-22",
+          "decision": "コメントはsidecar JSONではなくMarkdown本文へ挿入する。",
+          "reason": "まずはコメント文化とレビュー会話へ貼り付ける体験を優先し、保存設計を重くしないため。"
+        },
+        {
+          "decision_id": "dec_0023_002",
+          "at": "2026-06-22",
+          "decision": "コメントは対象ブロックの直後へ挿入する。",
+          "reason": "コードブロックやテーブル内部を壊さず、意味ブロックに対する人間コメントとして読みやすくするため。"
+        },
+        {
+          "decision_id": "dec_0023_003",
+          "at": "2026-06-22",
+          "decision": "FRB_COMMENT_START / FRB_COMMENT_END を固定マーカーとして採用する。",
+          "reason": "Markdownを汚しつつ、後からAIやRuntimeがコメント範囲を機械抽出できるようにするため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0023_001",
+          "at": "2026-06-22",
+          "change_type": "mdviewer_dirty_comment",
+          "before": "mdViewerのプレビュー右クリックでは一時ハイライトのみ可能で、意味ブロックに人間コメントを残す導線はなかった。",
+          "after": "右クリックからコメント追加/OK/NG/要修正/要確認コメントを選び、FRB_COMMENT付きMarkdownブロックを対象ブロック直後に挿入できるようにした。",
+          "reason": "AI案やルール案に対する人間判断を、テキストだけでなくUI上で明確なコメントとして残し、レビュー会話へ貼り付けられるようにするため。"
+        },
+        {
+          "history_id": "chg_0023_002",
+          "at": "2026-06-22",
+          "change_type": "preview_rendering",
+          "before": "FRB_COMMENT記法は存在せず、コメントをUI的に吹き出し表示する仕組みはなかった。",
+          "after": "FRB_COMMENT_START / END で囲まれたコメントをPreviewで吹き出し風に表示する preprocessFrbComments を追加。",
+          "reason": "Markdown本文は汚すが、Preview上では人間がコメントだと一目で分かる表示にするため。"
+        }
+      ],
+      "verification_status": "確認済み"
+    },
+    {
+      "work_item_id": "studio_work_0024",
+      "phase": "v0.13-md-block-model-foundation",
+      "title": "Markdown Block Model基盤 / SentenceBlock化",
+      "incident_type": "feature_foundation",
+      "category": "markdown_block_model",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-24",
+      "updated_at": "2026-06-24",
+      "target_files": "wwwroot/mdViewer.html, wwwroot/js/markdown/*, wwwroot/js/runtime/*",
+      "target_rule_files": "FRB_VIEW_DEF_GENERATION_RULES_ALL_*.md, markdown block/comment related notes, ViewDef schema/rules if needed",
+      "actual_updated_files": "wwwroot/mdViewer.html, wwwroot/js/runtime/BLOCK_MODEL_NOTES_v0_13.md, studio_work_incident_data_v0_27_md_block_model_foundation_done.json",
+      "objective": "Markdown本文を直接文字列編集するのではなく、見出し・段落・リスト・表・コードブロック等のBlock構造へ分解し、UI上で選択可能なSentenceBlock/Blockとして扱う基盤を作る。",
+      "background": "MarkdownをAI協働の文書Dataとして普及させるには、文章全体をtextareaで編集するだけでは弱い。Copilotが出した表形式計画案のように、部分単位で指摘・修正・差し込みできる編集粒度が必要になった。",
+      "scope": "mdViewerのプレビュー表示時にMarkdownをBlock配列へ分解し、各Blockへblock_id/type/source_range等の内部情報を付与する。まずは表示・選択・点線枠表示までを対象とし、編集保存は後続インシデントで扱う。",
+      "out_of_scope": "完全なMarkdown AST互換、全Markdown方言対応、表セル編集、コメント永続化、AI自動レビュー連携は対象外。まずブロック選択できる基盤を作る。",
+      "fixed_name_policy": "block_id / table_id はMarkdown編集Runtimeの内部識別子として扱う。Data JSONの固定フィールド名ではなく、Markdown編集セッション内の構造識別子である。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、mdViewer/Runtime側へ最小差分で追加する。必要なら将来の分割・Registry化は別インシデントで扱う。",
+      "expected_outputs": "Block分解処理、ブロック選択、点線枠表示、current block管理、BLOCK_MODEL_NOTES_v0_13.md。",
+      "risk": "Markdownパーサを作り込みすぎると実装が肥大化する。コードブロック内の記号や表内の | を誤認識して構造を壊すリスクがあるため、MVPでは対応Markdown範囲を明示する。",
+      "test_points": "見出し、段落、箇条書き、表、コードブロック、引用を含むMarkdownを読み込み、想定どおりBlock化されること。コードブロック内部は編集対象Blockとして分解しすぎないこと。カレントBlockが点線枠で分かること。",
+      "user_request": "Markdownの表のセル単位編集とセル単位コメントをしたい。背景として、会社でCopilotが出してきた表形式の計画案に対してコメント・編集したかったが、Markdown上ではうまくできず、やむなくExcelに頼った。Json+Markdownを普及させるには、MarkdownをSentenceBlock/CellBlock単位で編集・コメントできる機能が必要だと感じた。",
+      "ai_response": "Markdownを直接文字列編集するのではなく、MarkdownをBlock構造へ分解し、SentenceBlock / TableCellBlock として編集したうえでMarkdownへ再生成する方針が現実的。巨大案件にせず、基盤・段落編集・表セル編集・コメント永続化・レビューUI・保存安全性・代表fixtureに分割して登録する。",
+      "latest_user_comment": "じゃーー覚悟して、進みますかぁーーーJson＋MarkDownの未来に向かって！！ v0.13-md-block-model-foundation の対応をお願いしまっす！！ファーストステップゴー！！",
+      "latest_ai_response": "v0.13-md-block-model-foundation 対応完了。mdViewerにMarkdown Block Model Runtimeを追加し、Markdown原文をfront_matter / heading / paragraph / list_item / table / code_block / blockquote / horizontal_ruleへ分解する基盤を実装。Preview DOMへ data-md-block-id / data-md-block-type / data-md-table-id を付与し、Editorモードで点線枠・current block管理・Block Modelメタ表示・右クリックBlock情報確認を可能にした。表はTable Blockとしてrows/cellsメタデータまで持たせたが、セル編集・コメント永続化は後続v0.13.2/v0.13.3へ分離。保存値はMarkdown原文のまま保持し、HTMLやBlock JSONは混入しない。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0024_001",
+          "at": "2026-06-24",
+          "speaker": "user",
+          "topic": "Markdownセル編集/コメント機能の背景共有",
+          "message": "Markdownの表のセル単位編集とセル単位コメントをしたい。背景として、会社でCopilotが出してきた表形式の計画案に対してコメント・編集したかったが、Markdown上ではうまくできず、やむなくExcelに頼った。Json+Markdownを普及させるには、MarkdownをSentenceBlock/CellBlock単位で編集・コメントできる機能が必要だと感じた。"
+        },
+        {
+          "history_id": "disc_0024_002",
+          "at": "2026-06-24",
+          "speaker": "assistant",
+          "topic": "インシデント分割方針",
+          "message": "Markdownを直接文字列編集するのではなく、MarkdownをBlock構造へ分解し、SentenceBlock / TableCellBlock として編集したうえでMarkdownへ再生成する方針が現実的。巨大案件にせず、基盤・段落編集・表セル編集・コメント永続化・レビューUI・保存安全性・代表fixtureに分割して登録する。"
+        },
+        {
+          "history_id": "disc_0024_003",
+          "at": "2026-06-24",
+          "speaker": "user",
+          "topic": "v0.13-md-block-model-foundation 作業依頼",
+          "message": "じゃーー覚悟して、進みますかぁーーーJson＋MarkDownの未来に向かって！！ v0.13-md-block-model-foundation の対応をお願いしまっす！！ファーストステップゴー！！"
+        },
+        {
+          "history_id": "disc_0024_004",
+          "at": "2026-06-24",
+          "speaker": "assistant",
+          "topic": "v0.13-md-block-model-foundation 作業結果",
+          "message": "v0.13-md-block-model-foundation 対応完了。mdViewerにMarkdown Block Model Runtimeを追加し、Markdown原文をfront_matter / heading / paragraph / list_item / table / code_block / blockquote / horizontal_ruleへ分解する基盤を実装。Preview DOMへ data-md-block-id / data-md-block-type / data-md-table-id を付与し、Editorモードで点線枠・current block管理・Block Modelメタ表示・右クリックBlock情報確認を可能にした。表はTable Blockとしてrows/cellsメタデータまで持たせたが、セル編集・コメント永続化は後続v0.13.2/v0.13.3へ分離。保存値はMarkdown原文のまま保持し、HTMLやBlock JSONは混入しない。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0024_001",
+          "at": "2026-06-24",
+          "decision": "Markdown本文を直接編集対象にせず、Block構造へ変換してから編集対象にする。",
+          "reason": "直接文字列編集では挿入・削除・コメント位置管理が破綻しやすく、削除後の空行整理や表セル位置追跡が難しいため。"
+        },
+        {
+          "decision_id": "dec_0024_002",
+          "at": "2026-06-24",
+          "decision": "v0.13では完全Markdown ASTではなく、mdViewer内MVP Block Modelとして実装する。",
+          "reason": "表セル編集・コメント永続化まで一気に作ると肥大化するため、まずPreview DOMとMarkdown原文の対応付けを安定させる。"
+        },
+        {
+          "decision_id": "dec_0024_003",
+          "at": "2026-06-24",
+          "decision": "Table Blockはrows/cellsメタデータまで保持するが、セル編集UIは後続インシデントに分離する。",
+          "reason": "会社でCopilot表を編集できずExcelに逃げた課題に向けた足場は必要だが、初回はBlock基盤を壊さず小さく成立させるため。"
+        },
+        {
+          "decision_id": "dec_0024_004",
+          "at": "2026-06-24",
+          "decision": "Block ModelはMarkdown本文へ保存せず、Runtime内部状態とPreview DOM属性として扱う。",
+          "reason": "Markdown原文を原本として守り、HTMLや一時的なBlock JSONを保存値へ混入させないため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0024_001",
+          "at": "2026-06-24",
+          "change_type": "incident_registration",
+          "before": "Markdown表セル編集・セルコメント・SentenceBlock編集に関する作業項目が未登録。",
+          "after": "v0.13-md-block-model-foundation として作業項目を登録。",
+          "reason": "会社でCopilot表形式計画案をMarkdown上でレビューできずExcelへ逃げた実体験を、JSON+Markdown普及に必要な機能改善として回収するため。"
+        },
+        {
+          "history_id": "chg_0024_002",
+          "at": "2026-06-24",
+          "change_type": "md_block_model_foundation_runtime_added",
+          "before": "mdViewerはdata-md-line中心でPreview要素とMarkdown行を対応付けていたが、Block ID/type/source_range/table cellsを持つ正式なBlock Model Runtimeはなかった。",
+          "after": "markdownBlockModelRuntimeとparseMarkdownBlocksを追加し、Preview要素へdata-md-block-id/type/table-idを付与。サイドバーでBlock Model状態を表示し、右クリックメニューからBlock情報を確認できるようにした。",
+          "reason": "MarkdownをSentenceBlock / TableCellBlock単位で編集・コメントする後続機能の土台を作るため。",
+          "updated_files": "wwwroot/mdViewer.html, wwwroot/js/runtime/BLOCK_MODEL_NOTES_v0_13.md, studio_work_incident_data_v0_27_md_block_model_foundation_done.json"
+        }
+      ],
+      "verification_status": "確認済み"
+    },
+    {
+      "work_item_id": "studio_work_0025",
+      "phase": "v0.13.1-md-sentence-insert-delete",
+      "title": "SentenceBlockの＋挿入 / 削除 / Markdown再生成",
+      "incident_type": "feature",
+      "category": "markdown_sentence_edit",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-24",
+      "updated_at": "2026-06-24",
+      "target_files": "wwwroot/mdViewer.html, wwwroot/js/markdown/*, wwwroot/js/runtime/*, styles.css",
+      "target_rule_files": "FRB_VIEW_DEF_GENERATION_RULES_ALL_*.md, markdown block/comment related notes, ViewDef schema/rules if needed",
+      "actual_updated_files": "wwwroot/mdViewer.html, wwwroot/js/runtime/SENTENCE_INSERT_DELETE_NOTES_v0_13_1.md, studio_work_incident_data_v0_28_md_sentence_insert_delete_done.json",
+      "objective": "カレントSentenceBlockの点線枠付近に「＋」を表示し、前後へのセンテンス挿入と既存センテンス削除を行い、Markdownへ綺麗に再生成できるようにする。",
+      "background": "Markdownで文章を育てるには、既存文を修正するだけでなく、途中へ一文足す・不要文を消す操作が必要。textarea全体編集では、レビュー対象の文脈と操作対象がズレやすい。",
+      "scope": "paragraph/list item相当のSentenceBlockを対象に、insert before/after、delete、empty block cleanup、空行正規化、Undo用の直前バックアップを実装する。",
+      "out_of_scope": "表セル編集、複数ブロック一括移動、ドラッグ&ドロップ並べ替え、AI自動挿入提案は対象外。",
+      "fixed_name_policy": "insert/delete操作名はMarkdown Editor内部Actionとして扱う。Runtimeが特定Dataフィールド名に依存しないよう、対象はcurrentBlockIdで渡す。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、mdViewer/Runtime側へ最小差分で追加する。必要なら将来の分割・Registry化は別インシデントで扱う。",
+      "expected_outputs": "＋挿入UI、削除UI、Markdown再生成、空行整理、直前バックアップ、SENTENCE_INSERT_DELETE_NOTES_v0_13_1.md。",
+      "risk": "削除時に見出し直下の空行やリスト構造を壊すリスクがある。文章ブロックとMarkdown構文ブロックの境界を誤ると公開用Markdownが崩れる。",
+      "test_points": "段落の前後挿入、段落削除、リスト項目削除、見出し直後への挿入、末尾挿入を確認する。削除後に余計な空行が増えないこと。保存前後でMarkdown構造が破綻しないこと。",
+      "user_request": "Markdownの表のセル単位編集とセル単位コメントをしたい。背景として、会社でCopilotが出してきた表形式の計画案に対してコメント・編集したかったが、Markdown上ではうまくできず、やむなくExcelに頼った。Json+Markdownを普及させるには、MarkdownをSentenceBlock/CellBlock単位で編集・コメントできる機能が必要だと感じた。",
+      "ai_response": "Markdownを直接文字列編集するのではなく、MarkdownをBlock構造へ分解し、SentenceBlock / TableCellBlock として編集したうえでMarkdownへ再生成する方針が現実的。巨大案件にせず、基盤・段落編集・表セル編集・コメント永続化・レビューUI・保存安全性・代表fixtureに分割して登録する。",
+      "latest_user_comment": "v0.13.1-md-sentence-insert-delete の対応依頼。セカンドステップとして、SentenceBlockの＋挿入 / 削除 / Markdown再生成へ進む。",
+      "latest_ai_response": "v0.13.1-md-sentence-insert-delete 対応完了。v0.13のMarkdown Block Modelを土台に、EditorモードのPreview上でBlock付近に「＋上 / ＋下 / 削除 / ↩」の操作バーを表示し、右クリックメニューにも挿入・削除・Undoを追加した。挿入・削除はDOM直接編集ではなくMarkdown原文を行単位で更新し、renderMarkdownで再生成する。保存値はMarkdown原文のまま保持し、HTMLやBlock情報は本文へ混入させない。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0025_001",
+          "at": "2026-06-24",
+          "speaker": "user",
+          "topic": "Markdownセル編集/コメント機能の背景共有",
+          "message": "Markdownの表のセル単位編集とセル単位コメントをしたい。背景として、会社でCopilotが出してきた表形式の計画案に対してコメント・編集したかったが、Markdown上ではうまくできず、やむなくExcelに頼った。Json+Markdownを普及させるには、MarkdownをSentenceBlock/CellBlock単位で編集・コメントできる機能が必要だと感じた。"
+        },
+        {
+          "history_id": "disc_0025_002",
+          "at": "2026-06-24",
+          "speaker": "assistant",
+          "topic": "インシデント分割方針",
+          "message": "Markdownを直接文字列編集するのではなく、MarkdownをBlock構造へ分解し、SentenceBlock / TableCellBlock として編集したうえでMarkdownへ再生成する方針が現実的。巨大案件にせず、基盤・段落編集・表セル編集・コメント永続化・レビューUI・保存安全性・代表fixtureに分割して登録する。"
+        },
+        {
+          "history_id": "disc_0025_003",
+          "at": "2026-06-24",
+          "speaker": "user",
+          "topic": "v0.13.1作業依頼",
+          "message": "v0.13.1-md-sentence-insert-delete の対応を依頼。セカンドステップとして、SentenceBlockの＋挿入 / 削除 / Markdown再生成に進む。"
+        },
+        {
+          "history_id": "disc_0025_004",
+          "at": "2026-06-24",
+          "speaker": "assistant",
+          "topic": "v0.13.1作業結果",
+          "message": "EditorモードのPreview上でBlockへマウスを乗せると、＋上/＋下/削除/↩の操作バーを表示するようにした。右クリックメニューにも同等のSentenceBlock操作を追加。操作時はMarkdown原文を行単位で更新し、Previewを再描画する。直前操作バックアップも追加した。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0025_001",
+          "at": "2026-06-24",
+          "decision": "SentenceBlockの挿入・削除はBlock配列操作後にMarkdown再生成する。",
+          "reason": "Markdown文字列に対して直接spliceすると、空行・リスト・表・コードブロックの整合性を保ちにくいため。"
+        },
+        {
+          "decision_id": "dec_0025_002",
+          "at": "2026-06-24",
+          "decision": "SentenceBlock操作はDOM直接編集ではなくMarkdown原文更新後の再描画方式とする。",
+          "reason": "Preview DOMだけを編集すると保存値と表示が乖離しやすい。Markdown原文を更新して再描画すれば、保存値を原文のまま保ち、Block ID/行範囲も再計算できるため。"
+        },
+        {
+          "decision_id": "dec_0025_003",
+          "at": "2026-06-24",
+          "decision": "＋挿入UIはEditorモードのPreview上に小さな操作バーとして表示する。",
+          "reason": "textarea全体編集へ戻らず、対象Blockの文脈上で「足す/消す」を実行できる体験を優先するため。"
+        },
+        {
+          "decision_id": "dec_0025_004",
+          "at": "2026-06-24",
+          "decision": "v0.13.1ではSentenceBlock=Markdown Blockとして扱い、表セル編集はv0.13.2へ分離する。",
+          "reason": "表セル編集まで同時に入れると、Block挿入削除の保存安全性確認とセル編集の複雑性が混ざるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0025_001",
+          "at": "2026-06-24",
+          "change_type": "incident_registration",
+          "before": "Markdown表セル編集・セルコメント・SentenceBlock編集に関する作業項目が未登録。",
+          "after": "v0.13.1-md-sentence-insert-delete として作業項目を登録。",
+          "reason": "会社でCopilot表形式計画案をMarkdown上でレビューできずExcelへ逃げた実体験を、JSON+Markdown普及に必要な機能改善として回収するため。"
+        },
+        {
+          "history_id": "chg_0025_002",
+          "at": "2026-06-24",
+          "change_type": "md_sentence_insert_delete_runtime",
+          "before": "v0.13ではMarkdown Block ModelによりPreview上のBlock特定はできたが、Block単位で文を追加・削除する操作は存在しなかった。",
+          "after": "EditorモードのPreview上でBlock付近に＋上/＋下/削除/↩操作バーを表示し、右クリックメニューからも同操作を実行できるようにした。挿入・削除はMarkdown原文へ反映し、renderMarkdownで再描画する。",
+          "reason": "Markdownを単なる表示対象ではなく、SentenceBlock単位で育てられる編集対象に進化させるため。",
+          "updated_files": "wwwroot/mdViewer.html, wwwroot/js/runtime/SENTENCE_INSERT_DELETE_NOTES_v0_13_1.md"
+        }
+      ],
+      "verification_status": "確認待ち"
+    },
+    {
+      "work_item_id": "studio_work_0026",
+      "phase": "v0.13.2-md-table-cell-editor",
+      "title": "Markdown表セル単位編集",
+      "incident_type": "feature",
+      "category": "markdown_table_cell_edit",
+      "priority": "high",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-24",
+      "updated_at": "2026-06-24",
+      "target_files": "wwwroot/mdViewer.html, wwwroot/js/markdown/*, wwwroot/js/runtime/*, styles.css",
+      "target_rule_files": "FRB_VIEW_DEF_GENERATION_RULES_ALL_*.md, markdown block/comment related notes, ViewDef schema/rules if needed",
+      "actual_updated_files": "studio_work_incident_data_v0_26_markdown_sentence_block_editor_incidents.json",
+      "objective": "Markdown表をTableBlockとして認識し、セル単位でクリック選択・編集ダイアログ表示・値更新・Markdown表再生成を行えるようにする。",
+      "background": "会社でCopilotが提示した表形式の計画案に対して、セル単位でコメント・修正したかったがMarkdown上では難しく、Excelへ逃げるしかなかった。この悔しさが本件の直接の起点である。",
+      "scope": "GitHub Flavored Markdown相当の単純な表を対象に、header/align/body rowsを解析し、table_id/row_index/column_keyでセルを識別する。セル編集はインラインではなく小ダイアログから行い、| はエスケープ、改行は <br> へ変換する。",
+      "out_of_scope": "結合セル、複雑なHTML表、セル内の複数段落Markdown、表全体の高度な整形、Excel完全互換は対象外。まずCopilotの計画表を編集できる最小機能に限定する。",
+      "fixed_name_policy": "row_index / column_key / table_id はMarkdown Table Editor内部の識別子。Data固定名ではなく、Markdown表構造の一時識別子として扱う。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、mdViewer/Runtime側へ最小差分で追加する。必要なら将来の分割・Registry化は別インシデントで扱う。",
+      "expected_outputs": "表検出、セル選択ハイライト、セル編集ダイアログ、Markdown表再生成、TABLE_CELL_EDITOR_NOTES_v0_13_2.md。",
+      "risk": "Markdown表は |、改行、桁揃え、エスケープの扱いで壊れやすい。セル内Markdownを許可しすぎると再生成が不安定になるため、MVPでは1行セルを基本にする。",
+      "test_points": "Copilot風の計画表を読み込み、任意セルを編集して保存できること。| が \\| として保存されること。セル内改行が <br> へ変換されること。表の列数が崩れないこと。",
+      "user_request": "Markdownの表のセル単位編集とセル単位コメントをしたい。背景として、会社でCopilotが出してきた表形式の計画案に対してコメント・編集したかったが、Markdown上ではうまくできず、やむなくExcelに頼った。Json+Markdownを普及させるには、MarkdownをSentenceBlock/CellBlock単位で編集・コメントできる機能が必要だと感じた。",
+      "ai_response": "Markdownを直接文字列編集するのではなく、MarkdownをBlock構造へ分解し、SentenceBlock / TableCellBlock として編集したうえでMarkdownへ再生成する方針が現実的。巨大案件にせず、基盤・段落編集・表セル編集・コメント永続化・レビューUI・保存安全性・代表fixtureに分割して登録する。",
+      "latest_user_comment": "Markdownの表のセル単位編集とセル単位コメントをしたい。背景として、会社でCopilotが出してきた表形式の計画案に対してコメント・編集したかったが、Markdown上ではうまくできず、やむなくExcelに頼った。Json+Markdownを普及させるには、MarkdownをSentenceBlock/CellBlock単位で編集・コメントできる機能が必要だと感じた。",
+      "latest_ai_response": "v0.13.2-md-table-cell-editor を新規インシデントとして登録。MarkdownをAI協働用の編集基盤へ進化させるため、まず現実的な改善単位に分割して管理する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0026_001",
+          "at": "2026-06-24",
+          "speaker": "user",
+          "topic": "Markdownセル編集/コメント機能の背景共有",
+          "message": "Markdownの表のセル単位編集とセル単位コメントをしたい。背景として、会社でCopilotが出してきた表形式の計画案に対してコメント・編集したかったが、Markdown上ではうまくできず、やむなくExcelに頼った。Json+Markdownを普及させるには、MarkdownをSentenceBlock/CellBlock単位で編集・コメントできる機能が必要だと感じた。"
+        },
+        {
+          "history_id": "disc_0026_002",
+          "at": "2026-06-24",
+          "speaker": "assistant",
+          "topic": "インシデント分割方針",
+          "message": "Markdownを直接文字列編集するのではなく、MarkdownをBlock構造へ分解し、SentenceBlock / TableCellBlock として編集したうえでMarkdownへ再生成する方針が現実的。巨大案件にせず、基盤・段落編集・表セル編集・コメント永続化・レビューUI・保存安全性・代表fixtureに分割して登録する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0026_001",
+          "at": "2026-06-24",
+          "decision": "表セル編集はMVPでは小ダイアログ方式にする。",
+          "reason": "インライン編集はカーソル制御・列幅・Markdown再生成の難易度が高く、最初の実装では事故りやすいため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0026_001",
+          "at": "2026-06-24",
+          "change_type": "incident_registration",
+          "before": "Markdown表セル編集・セルコメント・SentenceBlock編集に関する作業項目が未登録。",
+          "after": "v0.13.2-md-table-cell-editor として作業項目を登録。",
+          "reason": "会社でCopilot表形式計画案をMarkdown上でレビューできずExcelへ逃げた実体験を、JSON+Markdown普及に必要な機能改善として回収するため。"
+        }
+      ],
+      "verification_status": "未確認"
+    },
+    {
+      "work_item_id": "studio_work_0027",
+      "phase": "v0.13.3-md-comment-sidecar-json",
+      "title": "SentenceBlock / TableCell コメント sidecar JSON",
+      "incident_type": "feature",
+      "category": "markdown_comment_layer",
+      "priority": "high",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-24",
+      "updated_at": "2026-06-24",
+      "target_files": "wwwroot/mdViewer.html, wwwroot/js/markdown/*, wwwroot/js/runtime/*, comments sidecar data files",
+      "target_rule_files": "FRB_VIEW_DEF_GENERATION_RULES_ALL_*.md, markdown block/comment related notes, ViewDef schema/rules if needed",
+      "actual_updated_files": "studio_work_incident_data_v0_26_markdown_sentence_block_editor_incidents.json",
+      "objective": "Markdown本文を汚さずに、SentenceBlockやTableCellへコメントを付けられるsidecar JSON方式を導入する。",
+      "background": "Markdown汚し方式のFRBコメントは体験確認として有効だったが、表セル単位コメントをMarkdown本文へ直接埋め込むと表が壊れやすい。レビューコメントは本文と分離し、必要に応じて表示・解決・AI共有できる形が望ましい。",
+      "scope": "article.md に対して article.md.comments.json のようなsidecar JSONを持ち、block_id/table_id/row_index/column_key/comment/status/author/created_at を保存する。Markdown本体は原文を維持する。",
+      "out_of_scope": "複数ユーザー同時編集、クラウド同期、コメントのGitHub PR連携、AI自動コメント生成は対象外。",
+      "fixed_name_policy": "comments.jsonの標準キーはMarkdownコメントレイヤー仕様として扱う。Studio一般Dataの固定名ではなく、sidecar comment schemaとして明示的に定義する。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、mdViewer/Runtime側へ最小差分で追加する。必要なら将来の分割・Registry化は別インシデントで扱う。",
+      "expected_outputs": "sidecar comments JSON仕様、コメント追加/保存/読込、対象Block/Cellへの紐づけ、COMMENT_SIDECAR_NOTES_v0_13_3.md。",
+      "risk": "block_idがMarkdown編集により変化するとコメントの紐づけが外れるリスクがある。表の行追加・削除時にrow_indexだけでは位置がズレる可能性があるため、将来的にanchor textやhash補助が必要。",
+      "test_points": "SentenceBlockコメント、TableCellコメントを追加して保存・再読込できること。Markdown本文にはコメント本文が混入しないこと。表セル編集後も可能な範囲でコメント紐づけが維持されること。",
+      "user_request": "Markdownの表のセル単位編集とセル単位コメントをしたい。背景として、会社でCopilotが出してきた表形式の計画案に対してコメント・編集したかったが、Markdown上ではうまくできず、やむなくExcelに頼った。Json+Markdownを普及させるには、MarkdownをSentenceBlock/CellBlock単位で編集・コメントできる機能が必要だと感じた。",
+      "ai_response": "Markdownを直接文字列編集するのではなく、MarkdownをBlock構造へ分解し、SentenceBlock / TableCellBlock として編集したうえでMarkdownへ再生成する方針が現実的。巨大案件にせず、基盤・段落編集・表セル編集・コメント永続化・レビューUI・保存安全性・代表fixtureに分割して登録する。",
+      "latest_user_comment": "Markdownの表のセル単位編集とセル単位コメントをしたい。背景として、会社でCopilotが出してきた表形式の計画案に対してコメント・編集したかったが、Markdown上ではうまくできず、やむなくExcelに頼った。Json+Markdownを普及させるには、MarkdownをSentenceBlock/CellBlock単位で編集・コメントできる機能が必要だと感じた。",
+      "latest_ai_response": "v0.13.3-md-comment-sidecar-json を新規インシデントとして登録。MarkdownをAI協働用の編集基盤へ進化させるため、まず現実的な改善単位に分割して管理する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0027_001",
+          "at": "2026-06-24",
+          "speaker": "user",
+          "topic": "Markdownセル編集/コメント機能の背景共有",
+          "message": "Markdownの表のセル単位編集とセル単位コメントをしたい。背景として、会社でCopilotが出してきた表形式の計画案に対してコメント・編集したかったが、Markdown上ではうまくできず、やむなくExcelに頼った。Json+Markdownを普及させるには、MarkdownをSentenceBlock/CellBlock単位で編集・コメントできる機能が必要だと感じた。"
+        },
+        {
+          "history_id": "disc_0027_002",
+          "at": "2026-06-24",
+          "speaker": "assistant",
+          "topic": "インシデント分割方針",
+          "message": "Markdownを直接文字列編集するのではなく、MarkdownをBlock構造へ分解し、SentenceBlock / TableCellBlock として編集したうえでMarkdownへ再生成する方針が現実的。巨大案件にせず、基盤・段落編集・表セル編集・コメント永続化・レビューUI・保存安全性・代表fixtureに分割して登録する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0027_001",
+          "at": "2026-06-24",
+          "decision": "表セルコメントはMarkdown本文へ直接埋め込まず、sidecar JSONを第一候補とする。",
+          "reason": "Markdown表内部へコメントを埋め込むと表構造が壊れやすく、公開用Markdownにもレビューコメントが漏れるリスクがあるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0027_001",
+          "at": "2026-06-24",
+          "change_type": "incident_registration",
+          "before": "Markdown表セル編集・セルコメント・SentenceBlock編集に関する作業項目が未登録。",
+          "after": "v0.13.3-md-comment-sidecar-json として作業項目を登録。",
+          "reason": "会社でCopilot表形式計画案をMarkdown上でレビューできずExcelへ逃げた実体験を、JSON+Markdown普及に必要な機能改善として回収するため。"
+        }
+      ],
+      "verification_status": "未確認"
+    },
+    {
+      "work_item_id": "studio_work_0028",
+      "phase": "v0.13.4-md-comment-review-ui",
+      "title": "Markdownコメント表示 / 解決 / コメント一覧UI",
+      "incident_type": "feature",
+      "category": "markdown_review_ui",
+      "priority": "medium",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-24",
+      "updated_at": "2026-06-24",
+      "target_files": "wwwroot/mdViewer.html, wwwroot/js/markdown/*, wwwroot/js/runtime/*, styles.css",
+      "target_rule_files": "FRB_VIEW_DEF_GENERATION_RULES_ALL_*.md, markdown block/comment related notes, ViewDef schema/rules if needed",
+      "actual_updated_files": "studio_work_incident_data_v0_26_markdown_sentence_block_editor_incidents.json",
+      "objective": "SentenceBlock/TableCellに付与されたコメントを、本文上のバッジ・サイド一覧・解決状態として確認できるレビューUIを整える。",
+      "background": "コメントを保存できても、本文上でどこにコメントが付いているか分からなければレビュー文化として使いにくい。Excelのセルコメントのように、対象箇所とコメントの関係が一目で見える必要がある。",
+      "scope": "コメント付きBlock/Cellへ💬バッジを表示し、クリックでコメント一覧/詳細を表示する。status=open/resolved、comment type=note/question/fix/ok/ng程度を扱う。",
+      "out_of_scope": "コメントスレッドの多段返信、通知、権限管理、外部レビューサービス連携は対象外。",
+      "fixed_name_policy": "status/open/resolved 等はcomment sidecar schema内の状態値として扱う。Runtimeが任意Dataフィールドへ固定依存しないよう、comment layer専用に閉じる。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、mdViewer/Runtime側へ最小差分で追加する。必要なら将来の分割・Registry化は別インシデントで扱う。",
+      "expected_outputs": "コメントバッジ、コメント一覧、解決/再オープン、コメント種別表示、COMMENT_REVIEW_UI_NOTES_v0_13_4.md。",
+      "risk": "UIが重くなるとMarkdown Viewerの読みやすさが落ちる。コメントが多い場合に本文が騒がしくなるため、表示ON/OFFや一覧への逃がしが必要。",
+      "test_points": "コメント付き段落・表セルにバッジが出ること。コメント一覧から対象位置へジャンプできること。resolvedにしたコメントが通常表示で邪魔にならないこと。",
+      "user_request": "Markdownの表のセル単位編集とセル単位コメントをしたい。背景として、会社でCopilotが出してきた表形式の計画案に対してコメント・編集したかったが、Markdown上ではうまくできず、やむなくExcelに頼った。Json+Markdownを普及させるには、MarkdownをSentenceBlock/CellBlock単位で編集・コメントできる機能が必要だと感じた。",
+      "ai_response": "Markdownを直接文字列編集するのではなく、MarkdownをBlock構造へ分解し、SentenceBlock / TableCellBlock として編集したうえでMarkdownへ再生成する方針が現実的。巨大案件にせず、基盤・段落編集・表セル編集・コメント永続化・レビューUI・保存安全性・代表fixtureに分割して登録する。",
+      "latest_user_comment": "Markdownの表のセル単位編集とセル単位コメントをしたい。背景として、会社でCopilotが出してきた表形式の計画案に対してコメント・編集したかったが、Markdown上ではうまくできず、やむなくExcelに頼った。Json+Markdownを普及させるには、MarkdownをSentenceBlock/CellBlock単位で編集・コメントできる機能が必要だと感じた。",
+      "latest_ai_response": "v0.13.4-md-comment-review-ui を新規インシデントとして登録。MarkdownをAI協働用の編集基盤へ進化させるため、まず現実的な改善単位に分割して管理する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0028_001",
+          "at": "2026-06-24",
+          "speaker": "user",
+          "topic": "Markdownセル編集/コメント機能の背景共有",
+          "message": "Markdownの表のセル単位編集とセル単位コメントをしたい。背景として、会社でCopilotが出してきた表形式の計画案に対してコメント・編集したかったが、Markdown上ではうまくできず、やむなくExcelに頼った。Json+Markdownを普及させるには、MarkdownをSentenceBlock/CellBlock単位で編集・コメントできる機能が必要だと感じた。"
+        },
+        {
+          "history_id": "disc_0028_002",
+          "at": "2026-06-24",
+          "speaker": "assistant",
+          "topic": "インシデント分割方針",
+          "message": "Markdownを直接文字列編集するのではなく、MarkdownをBlock構造へ分解し、SentenceBlock / TableCellBlock として編集したうえでMarkdownへ再生成する方針が現実的。巨大案件にせず、基盤・段落編集・表セル編集・コメント永続化・レビューUI・保存安全性・代表fixtureに分割して登録する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0028_001",
+          "at": "2026-06-24",
+          "decision": "コメントは本文常時展開ではなく、バッジ＋一覧で扱う。",
+          "reason": "常時本文へ吹き出し表示すると、Markdown本文の読解体験が崩れ、レビュー対象そのものが読みにくくなるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0028_001",
+          "at": "2026-06-24",
+          "change_type": "incident_registration",
+          "before": "Markdown表セル編集・セルコメント・SentenceBlock編集に関する作業項目が未登録。",
+          "after": "v0.13.4-md-comment-review-ui として作業項目を登録。",
+          "reason": "会社でCopilot表形式計画案をMarkdown上でレビューできずExcelへ逃げた実体験を、JSON+Markdown普及に必要な機能改善として回収するため。"
+        }
+      ],
+      "verification_status": "未確認"
+    },
+    {
+      "work_item_id": "studio_work_0029",
+      "phase": "v0.13.5-md-roundtrip-save-safety",
+      "title": "Markdown Block編集の保存安全性 / RoundTrip / Diff確認",
+      "incident_type": "bugfix_foundation",
+      "category": "markdown_save_integrity",
+      "priority": "high",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-24",
+      "updated_at": "2026-06-24",
+      "target_files": "wwwroot/mdViewer.html, wwwroot/js/markdown/*, wwwroot/js/runtime/*, Program.cs if save API changes are needed",
+      "target_rule_files": "FRB_VIEW_DEF_GENERATION_RULES_ALL_*.md, markdown block/comment related notes, ViewDef schema/rules if needed",
+      "actual_updated_files": "studio_work_incident_data_v0_26_markdown_sentence_block_editor_incidents.json",
+      "objective": "Block編集・表セル編集・コメント操作後も、Markdown本文とsidecar JSONが安全に保存され、意図しない本文破壊が起きないことを確認する保存安全性レイヤーを作る。",
+      "background": "Markdownを構造編集する以上、保存時に本文が壊れると信頼を失う。JSON+Markdown普及のためには、Excelに逃げなくても安全に戻れるという安心感が必須である。",
+      "scope": "保存前バックアップ、差分プレビュー、RoundTrip検査、コードブロック保護、表列数検査、sidecar JSONの整合性検査を行う。まずは手動確認できるログ/警告を優先する。",
+      "out_of_scope": "完全な自動テストスイート、Git操作自動化、外部バックアップサービス連携は対象外。まず保存前後で壊れていないか見えるようにする。",
+      "fixed_name_policy": "RoundTrip検査用の内部メタ情報はMarkdown Editor Runtime内に閉じる。Markdown本文へ不可視メタを大量埋め込みしない。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、mdViewer/Runtime側へ最小差分で追加する。必要なら将来の分割・Registry化は別インシデントで扱う。",
+      "expected_outputs": "保存前バックアップ、差分プレビュー、RoundTrip検査、表列数検査、SAVE_SAFETY_NOTES_v0_13_5.md。",
+      "risk": "安全性チェックを厳しくしすぎると保存できないケースが増える。逆に緩すぎると本文破壊を見逃すため、警告と強行保存のバランスが必要。",
+      "test_points": "編集なし保存で本文が変化しないこと。段落追加/削除後の差分が最小であること。表セル編集後に列数が崩れないこと。sidecar comments JSONが壊れている場合に警告できること。",
+      "user_request": "Markdownの表のセル単位編集とセル単位コメントをしたい。背景として、会社でCopilotが出してきた表形式の計画案に対してコメント・編集したかったが、Markdown上ではうまくできず、やむなくExcelに頼った。Json+Markdownを普及させるには、MarkdownをSentenceBlock/CellBlock単位で編集・コメントできる機能が必要だと感じた。",
+      "ai_response": "Markdownを直接文字列編集するのではなく、MarkdownをBlock構造へ分解し、SentenceBlock / TableCellBlock として編集したうえでMarkdownへ再生成する方針が現実的。巨大案件にせず、基盤・段落編集・表セル編集・コメント永続化・レビューUI・保存安全性・代表fixtureに分割して登録する。",
+      "latest_user_comment": "Markdownの表のセル単位編集とセル単位コメントをしたい。背景として、会社でCopilotが出してきた表形式の計画案に対してコメント・編集したかったが、Markdown上ではうまくできず、やむなくExcelに頼った。Json+Markdownを普及させるには、MarkdownをSentenceBlock/CellBlock単位で編集・コメントできる機能が必要だと感じた。",
+      "latest_ai_response": "v0.13.5-md-roundtrip-save-safety を新規インシデントとして登録。MarkdownをAI協働用の編集基盤へ進化させるため、まず現実的な改善単位に分割して管理する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0029_001",
+          "at": "2026-06-24",
+          "speaker": "user",
+          "topic": "Markdownセル編集/コメント機能の背景共有",
+          "message": "Markdownの表のセル単位編集とセル単位コメントをしたい。背景として、会社でCopilotが出してきた表形式の計画案に対してコメント・編集したかったが、Markdown上ではうまくできず、やむなくExcelに頼った。Json+Markdownを普及させるには、MarkdownをSentenceBlock/CellBlock単位で編集・コメントできる機能が必要だと感じた。"
+        },
+        {
+          "history_id": "disc_0029_002",
+          "at": "2026-06-24",
+          "speaker": "assistant",
+          "topic": "インシデント分割方針",
+          "message": "Markdownを直接文字列編集するのではなく、MarkdownをBlock構造へ分解し、SentenceBlock / TableCellBlock として編集したうえでMarkdownへ再生成する方針が現実的。巨大案件にせず、基盤・段落編集・表セル編集・コメント永続化・レビューUI・保存安全性・代表fixtureに分割して登録する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0029_001",
+          "at": "2026-06-24",
+          "decision": "Markdown構造編集には保存前差分確認とRoundTrip検査をセットで導入する。",
+          "reason": "Markdownを再生成する方式では、意図しない整形差分や構造破壊が起きる可能性があるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0029_001",
+          "at": "2026-06-24",
+          "change_type": "incident_registration",
+          "before": "Markdown表セル編集・セルコメント・SentenceBlock編集に関する作業項目が未登録。",
+          "after": "v0.13.5-md-roundtrip-save-safety として作業項目を登録。",
+          "reason": "会社でCopilot表形式計画案をMarkdown上でレビューできずExcelへ逃げた実体験を、JSON+Markdown普及に必要な機能改善として回収するため。"
+        }
+      ],
+      "verification_status": "未確認"
+    },
+    {
+      "work_item_id": "studio_work_0030",
+      "phase": "v0.13.6-md-copilot-table-review-fixture",
+      "title": "Copilot表形式計画案レビュー用fixture",
+      "incident_type": "maintenance",
+      "category": "markdown_review_fixture",
+      "priority": "medium",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-24",
+      "updated_at": "2026-06-24",
+      "target_files": "wwwroot/data/markdown_samples/*, wwwroot/defs/markdown_samples/*, sample fixture README",
+      "target_rule_files": "なし。まずは実体験に基づく確認用fixtureを追加する。必要なら後続でRulesへ反映する。",
+      "actual_updated_files": "studio_work_incident_data_v0_26_markdown_sentence_block_editor_incidents.json",
+      "objective": "Copilotが出力しがちな表形式の計画案Markdownを代表サンプルとして用意し、表セル編集・セルコメント・SentenceBlockコメントの確認に使えるfixtureを整備する。",
+      "background": "今回の直接の痛みは、会社でCopilotが出した表形式計画案をMarkdown上でレビューできず、Excelに頼ったこと。実体験に近いfixtureがないと、実装しても本当に欲しかった体験に近づいたか判断しにくい。",
+      "scope": "計画案テーブル、担当/期限/状態/懸念/コメント欄を含むサンプルMarkdownと、コメントsidecar JSON例、確認手順を用意する。",
+      "out_of_scope": "実際の会社情報や機密計画の投入は対象外。架空データで、構造と不満だけを再現する。",
+      "fixed_name_policy": "fixture内の列名はサンプルDataでありRuntime固定名ではない。Runtimeは列名に依存せず、table headerからcolumn_keyを生成する。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、mdViewer/Runtime側へ最小差分で追加する。必要なら将来の分割・Registry化は別インシデントで扱う。",
+      "expected_outputs": "copilot_plan_review_sample.md、copilot_plan_review_sample.md.comments.json、fixture README、確認観点メモ。",
+      "risk": "実データに近づけすぎると機密情報混入リスクがある。fixtureは架空の計画案として作成し、構造だけ再現する。",
+      "test_points": "fixtureを読み込み、表セル編集、セルコメント追加、SentenceBlockコメント追加、保存、再読込が一通り確認できること。",
+      "user_request": "Markdownの表のセル単位編集とセル単位コメントをしたい。背景として、会社でCopilotが出してきた表形式の計画案に対してコメント・編集したかったが、Markdown上ではうまくできず、やむなくExcelに頼った。Json+Markdownを普及させるには、MarkdownをSentenceBlock/CellBlock単位で編集・コメントできる機能が必要だと感じた。",
+      "ai_response": "Markdownを直接文字列編集するのではなく、MarkdownをBlock構造へ分解し、SentenceBlock / TableCellBlock として編集したうえでMarkdownへ再生成する方針が現実的。巨大案件にせず、基盤・段落編集・表セル編集・コメント永続化・レビューUI・保存安全性・代表fixtureに分割して登録する。",
+      "latest_user_comment": "Markdownの表のセル単位編集とセル単位コメントをしたい。背景として、会社でCopilotが出してきた表形式の計画案に対してコメント・編集したかったが、Markdown上ではうまくできず、やむなくExcelに頼った。Json+Markdownを普及させるには、MarkdownをSentenceBlock/CellBlock単位で編集・コメントできる機能が必要だと感じた。",
+      "latest_ai_response": "v0.13.6-md-copilot-table-review-fixture を新規インシデントとして登録。MarkdownをAI協働用の編集基盤へ進化させるため、まず現実的な改善単位に分割して管理する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0030_001",
+          "at": "2026-06-24",
+          "speaker": "user",
+          "topic": "Markdownセル編集/コメント機能の背景共有",
+          "message": "Markdownの表のセル単位編集とセル単位コメントをしたい。背景として、会社でCopilotが出してきた表形式の計画案に対してコメント・編集したかったが、Markdown上ではうまくできず、やむなくExcelに頼った。Json+Markdownを普及させるには、MarkdownをSentenceBlock/CellBlock単位で編集・コメントできる機能が必要だと感じた。"
+        },
+        {
+          "history_id": "disc_0030_002",
+          "at": "2026-06-24",
+          "speaker": "assistant",
+          "topic": "インシデント分割方針",
+          "message": "Markdownを直接文字列編集するのではなく、MarkdownをBlock構造へ分解し、SentenceBlock / TableCellBlock として編集したうえでMarkdownへ再生成する方針が現実的。巨大案件にせず、基盤・段落編集・表セル編集・コメント永続化・レビューUI・保存安全性・代表fixtureに分割して登録する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0030_001",
+          "at": "2026-06-24",
+          "decision": "実会社情報は使わず、Copilot風の架空計画案fixtureで検証する。",
+          "reason": "会社情報・業務計画の機密混入を避けつつ、Excelへ逃げたくなった編集体験だけを安全に再現するため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0030_001",
+          "at": "2026-06-24",
+          "change_type": "incident_registration",
+          "before": "Markdown表セル編集・セルコメント・SentenceBlock編集に関する作業項目が未登録。",
+          "after": "v0.13.6-md-copilot-table-review-fixture として作業項目を登録。",
+          "reason": "会社でCopilot表形式計画案をMarkdown上でレビューできずExcelへ逃げた実体験を、JSON+Markdown普及に必要な機能改善として回収するため。"
+        }
+      ],
+      "verification_status": "未確認"
+    }
+  ],
+  "review_notes": [
+    {
+      "note_id": "note_001",
+      "title": "承認は不要",
+      "body": "このデータは憲法レビューではなく、改修作業のインシデント管理であるため、approval_decision は持たせない。"
+    },
+    {
+      "note_id": "note_002",
+      "title": "会話履歴を作業項目ごとに保持する",
+      "body": "各 work_item に discussion_history を持たせ、作業ごとのユーザー発言・AI回答・判断根拠を追跡できるようにする。"
+    },
+    {
+      "note_id": "note_003",
+      "title": "v0.6-action-execute-button 完了",
+      "body": "ViewDefの toolbar.executeButton によって主役操作ボタンを表示し、actionIdをActionRegistryへ渡す構造を実装。未定義Viewでは既存動作に影響しない。"
+    },
+    {
+      "note_id": "note_004",
+      "title": "v0.7基盤整備候補を追加",
+      "body": "FRB_VIEW_DEF_GENERATION_RULESレビュー、objectArray/chat保存健全性、Markdown出力契約、文字化けファイル名対策など、テストパターン・制約詳細に進む前の基盤整備作業を追加した。"
+    },
+    {
+      "note_id": "note_005",
+      "title": "文字化けファイル名対策",
+      "body": "Markdown出力/Viewer連携で #U521d#U671f... のような文字化けファイル名が大量発生しているため、新規発生防止を優先インシデントとして登録した。"
+    },
+    {
+      "note_id": "note_006",
+      "title": "FRB_VIEW_DEF_GENERATION_RULES_ALL v0.16更新",
+      "body": "Rules正本をv0.16へ更新。ファイル名はALL付き、バージョン数字のみ変更し、目的語や差分名を付けないルールを追加した。"
+    },
+    {
+      "note_id": "note_007",
+      "title": "追加コメント保存バグは継続インシデント",
+      "body": "追加コメント欄の反映/保存不一致と削除文言のゾンビ復活は、objectArray/chat保存健全性・chat input mapping側で実装修正する。"
+    },
+    {
+      "note_id": "note_008",
+      "title": "v0.7-objectArray/chat保存健全性 完了",
+      "body": "detailFooter/chat欄の編集をdetailDialog全体から回収するようにし、追加コメントの保存漏れ・削除文言のゾンビ復活を防止。objectArray/stringArrayは通常入力欄から除外し、件数文字列で配列を壊さないようにした。"
+    },
+    {
+      "note_id": "note_009",
+      "title": "v0.7-chat-input-mapping 完了",
+      "body": "edit.input.userField/aiField/appendPosition/markdownをRuntimeで扱うようにし、送信欄由来の追加コメントを最後のAI回答の後ろへ末尾表示するようにした。Markdownリンク/画像はViewDefで許可されたchat本文のみ表示変換し、保存値はMarkdown原文を保持する。"
+    },
+    {
+      "note_id": "note_010",
+      "title": "JSON / ViewDef選択一覧のサブフォルダー階層対応を追加",
+      "body": "data/defs 配下のJSONをフォルダー階層で管理できるよう、再帰一覧・相対パス読込・保存対応を新規作業項目として追加した。日本語ファイル名/日本語説明表示は、文字化けリスクを避けるため後続検討とする。"
+    },
+    {
+      "note_id": "note_011",
+      "title": "JSON Object Studio正式命名",
+      "body": "FRB Studio / JSON Object Studio の正式表示名、app_info.json、taglineをFoundation系インシデントとして追加した。"
+    },
+    {
+      "note_id": "note_012",
+      "title": "Version / Revision / Phase分離",
+      "body": "phaseを作業テーマ、version/revisionをリリース単位として分離し、found_in_version / target_version / fixed_in_version を検討する作業を追加した。"
+    },
+    {
+      "note_id": "note_013",
+      "title": "Rules Data JSON原本化",
+      "body": "Markdownを原本にせず、ルール系Data JSONをドメイン別に管理し、共通ViewDefでレビューする方針を作業項目化した。"
+    },
+    {
+      "note_id": "note_014",
+      "title": "共通ViewDefのtargetFile固定",
+      "body": "rule_review_common_view_def_v0_1.json の AI Prompt targetFile が特定Data名固定になっている件を、優先低の汎用化仕上げインシデントとして追加した。"
+    },
+    {
+      "note_id": "note_015",
+      "title": "Data JSON日本語可読保存",
+      "body": "Data JSON本文を \\uXXXX ではなくUTF-8日本語として保存する作業を追加した。ファイル名文字化けとは別の可読性インシデントとして扱う。"
+    },
+    {
+      "note_id": "note_016",
+      "title": "v0.9-json-object-studio-branding 完了",
+      "body": "FRB Studio / JSON Object Studio の正式表示名へ切り替え、config/app_info.json を名札として導入した。app_settings.json は将来の動作設定分離用の雛形として追加。"
+    },
+    {
+      "note_id": "note_017",
+      "title": "表示モードMarkdownプレビュー対応を追加",
+      "body": "textarea / chat / detailBodyカードなど、ViewDefでMarkdownを許可した文言欄について、表示モードではMarkdownプレビューとして表示し、編集時はMarkdown原文を編集する作業を追加した。保存値はMarkdown原文のまま保持し、HTMLをData JSONへ混入させない。"
+    },
+    {
+      "note_id": "note_018",
+      "title": "v0.10-markdown-preview-display-mode 完了",
+      "body": "ViewDefでMarkdownを許可したchat message / detail textareaについて、表示モードではMarkdownプレビュー、クリック後はMarkdown原文編集へ切り替える実装を追加した。保存値はMarkdown原文のまま保持する。"
+    },
+    {
+      "note_id": "note_018",
+      "title": "v0.10.1 Markdownブロックプレビュー修正",
+      "body": "v0.10実装ではMarkdownリンク/画像中心の変換だったため、#見出しや箇条書きが表示モードで変換されなかった。v0.10.1で見出し・箇条書き・引用・コードブロックを含む簡易Markdownブロック表示へ拡張した。"
+    },
+    {
+      "note_id": "note_019",
+      "title": "Markdown SentenceBlock / TableCell編集インシデント登録",
+      "body": "会社でCopilotが出した表形式計画案に対してMarkdown上でセル単位コメント・編集ができず、Excelに頼った実体験を背景に、JSON+Markdown普及のためのv0.13系インシデントを追加。Markdownを直接文字列編集するのではなく、Block構造へ分解し、SentenceBlock/TableCell単位で編集・コメントする方針とした。"
+    },
+    {
+      "note_id": "note_021",
+      "at": "2026-06-24",
+      "title": "v0.13.1-md-sentence-insert-delete 対応完了",
+      "body": "Markdown Block Modelで特定したSentenceBlockに対して、Preview上の＋上/＋下/削除操作と右クリックメニュー操作を追加。DOM直接編集ではなくMarkdown原文を行単位で更新し、renderMarkdownで再生成する方式とした。直前操作のバックアップ/UndoもMVPとして追加。"
+    }
+  ],
+  "work_revision": "v0.28-md-sentence-insert-delete-done",
+  "latest_planning_note": "v0.13.1としてMarkdown SentenceBlockの＋挿入 / 削除 / Markdown再生成を実装。v0.13のBlock Modelを土台に、Preview上のBlock付近へ操作バーを表示し、Markdown原文を行単位で更新して再描画する方式にした。"
+}

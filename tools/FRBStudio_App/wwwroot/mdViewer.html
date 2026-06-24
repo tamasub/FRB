@@ -236,16 +236,14 @@
       border-radius: 10px;
       transition: background .15s ease, outline-color .15s ease, box-shadow .15s ease;
     }
-    body[data-mode="editor"] #preview [data-md-line]:hover,
-    #preview .md-current-block {
-      outline: 1.5px dashed rgba(63,124,255,.42);
-      outline-offset: 5px;
-      background: rgba(63,124,255,.035);
-      box-shadow: 0 0 0 3px rgba(63,124,255,.018);
+    body[data-mode="editor"] #preview [data-md-line]:hover {
+      background: rgba(63,124,255,.028);
     }
     #preview .md-current-block {
-      outline-color: rgba(85,197,0,.55);
-      background: rgba(85,197,0,.045);
+      outline: 1.5px dashed rgba(63,124,255,.58);
+      outline-offset: 5px;
+      background: rgba(63,124,255,.045);
+      box-shadow: 0 0 0 3px rgba(63,124,255,.022);
     }
     #preview [data-md-block-id] {
       position: relative;
@@ -291,7 +289,7 @@
     }
     .md-block-action-menu {
       position: fixed;
-      z-index: 220;
+      z-index: 260;
       min-width: 172px;
       padding: 8px;
       border: 1px solid var(--line);
@@ -335,6 +333,52 @@
       height: 1px;
       margin: 3px 4px;
       background: var(--line);
+    }
+    .md-block-inline-actions {
+      position: fixed;
+      z-index: 240;
+      pointer-events: auto;
+      display: none;
+      gap: 6px;
+      padding: 6px;
+      border: 1px solid rgba(63,124,255,.20);
+      border-radius: 999px;
+      background: var(--panel);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 14px 36px rgba(15,23,42,.18);
+      transform: translateY(-50%);
+    }
+    .md-block-inline-actions.show { display: flex; align-items: center; }
+    .md-block-inline-actions button {
+      min-width: 34px;
+      height: 30px;
+      padding: 0 10px;
+      border: 0;
+      border-radius: 999px;
+      background: rgba(63,124,255,.10);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 900;
+      line-height: 30px;
+      cursor: pointer;
+      box-shadow: none;
+    }
+    .md-block-inline-actions button:hover {
+      transform: none;
+      background: rgba(85,197,0,.16);
+    }
+    .md-block-inline-actions button[data-action="deleteBlock"] {
+      background: rgba(239,68,68,.10);
+    }
+    .md-block-inline-actions button[data-action="deleteBlock"]:hover {
+      background: rgba(239,68,68,.18);
+    }
+    body:not([data-mode="editor"]) .md-block-inline-actions,
+    body.md-inline-editing .md-block-inline-actions {
+      display: none !important;
+    }
+    body.md-block-inline-actions-visible #preview .md-current-block[data-md-block-id]::after {
+      display: none !important;
     }
     #preview .frb-comment-bubble {
       position: relative;
@@ -1123,14 +1167,17 @@ let markdownEditorRuntime = {
   pendingPreviewRestoreLine: null,
   pendingPreviewRestoreAnchor: null,
   editorHome: editorEl.parentElement,
-  editorNextSibling: editorEl.nextSibling
+  editorNextSibling: editorEl.nextSibling,
+  lastMutationBackup: null
 };
 let mdBlockActionRuntime = {
   menu: null,
-  targetBlock: null
+  targetBlock: null,
+  inlineActions: null,
+  inlineTargetBlock: null
 };
 let markdownBlockModelRuntime = {
-  version: "v0.13-md-block-model-foundation",
+  version: "v0.13.1.2-md-sentence-toolbar-row-anchor-fix",
   blocks: [],
   byId: new Map(),
   currentBlockId: "",
@@ -1485,8 +1532,10 @@ function setCurrentMarkdownBlockElement(block) {
   if (block && previewEl.contains(block)) {
     block.classList.add("md-current-block");
     markdownBlockModelRuntime.currentBlockId = block.dataset.mdBlockId || "";
+    showMdBlockInlineActions(block);
   } else {
     markdownBlockModelRuntime.currentBlockId = "";
+    hideMdBlockInlineActions();
   }
   updateBlockModelMeta();
 }
@@ -1742,6 +1791,128 @@ function insertMarkdownAfterLine(rawMd, lineNo, insertText) {
   lines.splice(idx, 0, ...beforeBlank, insertText, ...afterBlank);
   return lines.join("\n");
 }
+function splitInsertionTextForBlock(text) {
+  return String(text || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
+}
+function normalizeMdLineNo(lineNo, fallback = 1) {
+  return Math.max(1, Number(lineNo || fallback || 1));
+}
+function insertMarkdownBeforeLine(rawMd, lineNo, insertText, options = {}) {
+  const lines = String(rawMd || "").split(/\r?\n/);
+  const idx = Math.min(Math.max(0, normalizeMdLineNo(lineNo, 1) - 1), lines.length);
+  const insertLines = splitInsertionTextForBlock(insertText);
+  const compact = !!options.compact;
+  const beforeBlank = !compact && idx > 0 && String(lines[idx - 1] || "").trim() !== "" ? [""] : [];
+  const afterBlank = !compact && idx < lines.length && String(lines[idx] || "").trim() !== "" ? [""] : [];
+  lines.splice(idx, 0, ...beforeBlank, ...insertLines, ...afterBlank);
+  return lines.join("\n");
+}
+function insertMarkdownAfterLineSmart(rawMd, lineNo, insertText, options = {}) {
+  const lines = String(rawMd || "").split(/\r?\n/);
+  const idx = Math.min(Math.max(0, normalizeMdLineNo(lineNo, lines.length)), lines.length);
+  const insertLines = splitInsertionTextForBlock(insertText);
+  const compact = !!options.compact;
+  const beforeBlank = !compact && idx > 0 && String(lines[idx - 1] || "").trim() !== "" ? [""] : [];
+  const afterBlank = !compact && idx < lines.length && String(lines[idx] || "").trim() !== "" ? [""] : [];
+  lines.splice(idx, 0, ...beforeBlank, ...insertLines, ...afterBlank);
+  return lines.join("\n");
+}
+function deleteMarkdownLineRange(rawMd, startLine, endLine) {
+  const lines = String(rawMd || "").split(/\r?\n/);
+  const start = Math.min(Math.max(0, normalizeMdLineNo(startLine, 1) - 1), lines.length);
+  const end = Math.min(Math.max(start, normalizeMdLineNo(endLine, startLine) - 1), lines.length - 1);
+  if (start >= lines.length) return lines.join("\n");
+  lines.splice(start, Math.max(1, end - start + 1));
+  // 削除地点周辺だけ、過剰な空行を1つに寄せる。文書全体の整形はしない。
+  for (let i = Math.min(start, lines.length - 1); i > 0 && i < lines.length; i--) {
+    if (String(lines[i] || "").trim() === "" && String(lines[i - 1] || "").trim() === "") lines.splice(i, 1);
+    else break;
+  }
+  return lines.join("\n");
+}
+function getMarkdownBlockInfoFromPreview(block) {
+  if (!block) return null;
+  return markdownBlockModelRuntime.byId.get(block.dataset.mdBlockId || "") || {
+    block_id: block.dataset.mdBlockId || "",
+    type: block.dataset.mdBlockType || "block",
+    start_line: normalizeMdLineNo(block.dataset.mdLine, 1),
+    end_line: normalizeMdLineNo(block.dataset.mdEndLine || block.dataset.mdLine, 1),
+    source: ""
+  };
+}
+function isCompactListInsertion(info, text) {
+  return info?.type === "list_item" && /^\s{0,3}([-*+]\s+|\d+\.\s+|[・･]\s*)/.test(String(text || ""));
+}
+function defaultSentenceInsertText(info, position) {
+  const sourceLine = String(info?.source || "").split(/\r?\n/)[0] || "";
+  const listMatch = sourceLine.match(/^(\s{0,3})([-*+]\s+|\d+\.\s+|[・･]\s*)/);
+  if (info?.type === "list_item" && listMatch) return `${listMatch[1]}${listMatch[2]}新しい項目`;
+  if (info?.type === "heading" && position === "after") return "新しい本文";
+  if (info?.type === "table") return "新しい説明文";
+  if (info?.type === "code_block") return "新しい本文";
+  return "新しいセンテンス";
+}
+function captureMarkdownMutationBackup(action, info) {
+  markdownEditorRuntime.lastMutationBackup = {
+    action: action || "sentence_block_mutation",
+    at: new Date().toISOString(),
+    text: editorEl.value || "",
+    line: Number(info?.start_line || markdownEditorRuntime.lastActiveLine || 1),
+    block_id: info?.block_id || "",
+    block_type: info?.type || ""
+  };
+}
+function restoreLastSentenceBlockMutation() {
+  const backup = markdownEditorRuntime.lastMutationBackup;
+  if (!backup || typeof backup.text !== "string") {
+    alert("戻せるSentenceBlock操作はありません。");
+    return;
+  }
+  if (!confirm(`直前のSentenceBlock操作を戻しますか？\n\n${backup.action || "mutation"} / ${backup.block_id || "block"}`)) return;
+  editorEl.value = backup.text;
+  markdownEditorRuntime.lastMutationBackup = null;
+  renderAfterMarkdownBlockMutation(backup.line || 1, "SentenceBlock Undo");
+}
+function renderAfterMarkdownBlockMutation(restoreLine, sourceLabel) {
+  isManagedMarkdownDirty = true;
+  const line = Math.max(1, Number(restoreLine || 1));
+  markdownEditorRuntime.lastActiveLine = line;
+  markdownEditorRuntime.lastActiveAnchor = anchorFromLine(line);
+  markdownEditorRuntime.pendingPreviewRestoreLine = line;
+  markdownEditorRuntime.pendingPreviewRestoreAnchor = markdownEditorRuntime.lastActiveAnchor;
+  renderMarkdown(editorEl.value, "#", sourceLabel || "SentenceBlock Updated");
+}
+function insertSentenceAroundBlock(block, position) {
+  if (!block || launchMarkdownRuntime.readonly) return;
+  const info = getMarkdownBlockInfoFromPreview(block);
+  if (!info) return;
+  const label = position === "before" ? "上に挿入" : "下に挿入";
+  const defaultText = defaultSentenceInsertText(info, position);
+  const text = prompt(`SentenceBlockを${label}`, defaultText);
+  if (text === null) return;
+  const insertText = String(text || "").trimEnd();
+  if (!insertText.trim()) return;
+  const compact = isCompactListInsertion(info, insertText);
+  captureMarkdownMutationBackup(position === "before" ? "insert_before" : "insert_after", info);
+  if (position === "before") {
+    editorEl.value = insertMarkdownBeforeLine(editorEl.value, info.start_line, insertText, { compact });
+    renderAfterMarkdownBlockMutation(info.start_line, "SentenceBlock Insert Before");
+  } else {
+    editorEl.value = insertMarkdownAfterLineSmart(editorEl.value, info.end_line, insertText, { compact });
+    renderAfterMarkdownBlockMutation(info.end_line + 1, "SentenceBlock Insert After");
+  }
+}
+function deleteSentenceBlock(block) {
+  if (!block || launchMarkdownRuntime.readonly) return;
+  const info = getMarkdownBlockInfoFromPreview(block);
+  if (!info) return;
+  const label = `${info.block_id || "SentenceBlock"} / ${info.type || "block"} / L${info.start_line}-${info.end_line}`;
+  const sample = String(info.text || info.source || "").replace(/\s+/g, " ").slice(0, 80);
+  if (!confirm(`このSentenceBlockを削除しますか？\n\n${label}${sample ? `\n${sample}` : ""}`)) return;
+  captureMarkdownMutationBackup("delete_block", info);
+  editorEl.value = deleteMarkdownLineRange(editorEl.value, info.start_line, info.end_line);
+  renderAfterMarkdownBlockMutation(info.start_line, "SentenceBlock Deleted");
+}
 function addFrbCommentToBlock(block, status) {
   if (!block || launchMarkdownRuntime.readonly) return;
   const key = String(status || "COMMENT").toUpperCase();
@@ -1787,6 +1958,11 @@ function ensureMdBlockActionMenu() {
     <button type="button" data-action="inspectBlock" role="menuitem">🔎 Block情報</button>
     <button type="button" data-action="highlight" role="menuitem">🟨 ハイライト</button>
     <div class="menu-separator"></div>
+    <button type="button" data-action="insertBefore" role="menuitem">＋ 上にSentence挿入</button>
+    <button type="button" data-action="insertAfter" role="menuitem">＋ 下にSentence挿入</button>
+    <button type="button" data-action="deleteBlock" role="menuitem">🗑 SentenceBlock削除</button>
+    <button type="button" data-action="undoSentence" role="menuitem">↩ 直前操作を戻す</button>
+    <div class="menu-separator"></div>
     <button type="button" data-action="comment" data-status="COMMENT" role="menuitem">💬 コメント追加</button>
     <button type="button" data-action="comment" data-status="OK" role="menuitem">✅ OKコメント</button>
     <button type="button" data-action="comment" data-status="NG" role="menuitem">🚫 NGコメント</button>
@@ -1794,7 +1970,7 @@ function ensureMdBlockActionMenu() {
     <button type="button" data-action="comment" data-status="ASK" role="menuitem">❓ 要確認コメント</button>
     <div class="menu-separator"></div>
     <button type="button" data-action="copyMarkdown" role="menuitem">📋 コメント付きMarkdownをコピー</button>
-    <div class="menu-note">Block ModelはMVPです。コメントはMarkdown本文へFRB_COMMENTとして挿入します</div>
+    <div class="menu-note">SentenceBlock操作はMVPです。本文はMarkdown原文へ再生成します</div>
   `;
   document.body.appendChild(menu);
   menu.addEventListener("click", (e) => {
@@ -1812,6 +1988,14 @@ function ensureMdBlockActionMenu() {
       setCurrentMarkdownBlockElement(block);
       markdownEditorRuntime.lastActiveLine = Number(block.dataset.mdLine || markdownEditorRuntime.lastActiveLine || 1);
       markdownEditorRuntime.lastActiveAnchor = anchorFromPreviewBlock(block) || markdownEditorRuntime.lastActiveAnchor;
+    } else if (btn.dataset.action === "insertBefore" && block && previewEl.contains(block)) {
+      insertSentenceAroundBlock(block, "before");
+    } else if (btn.dataset.action === "insertAfter" && block && previewEl.contains(block)) {
+      insertSentenceAroundBlock(block, "after");
+    } else if (btn.dataset.action === "deleteBlock" && block && previewEl.contains(block)) {
+      deleteSentenceBlock(block);
+    } else if (btn.dataset.action === "undoSentence") {
+      restoreLastSentenceBlockMutation();
     } else if (btn.dataset.action === "comment" && block && previewEl.contains(block)) {
       addFrbCommentToBlock(block, btn.dataset.status || "COMMENT");
     } else if (btn.dataset.action === "copyMarkdown") {
@@ -1832,10 +2016,15 @@ function showMdBlockActionMenu(x, y, block) {
   mdBlockActionRuntime.targetBlock = block;
   const btn = menu.querySelector('[data-action="highlight"]');
   if (btn) btn.textContent = block.classList.contains("md-block-highlight") ? "⬜ ハイライト解除" : "🟨 ハイライト";
-  menu.querySelectorAll('[data-action="comment"]').forEach(commentBtn => {
-    commentBtn.disabled = !!launchMarkdownRuntime.readonly;
-    commentBtn.title = launchMarkdownRuntime.readonly ? "readonlyモードではコメントを挿入できません" : "Markdown本文へコメントを挿入します";
+  menu.querySelectorAll('[data-action="comment"],[data-action="insertBefore"],[data-action="insertAfter"],[data-action="deleteBlock"]').forEach(actionBtn => {
+    actionBtn.disabled = !!launchMarkdownRuntime.readonly;
+    actionBtn.title = launchMarkdownRuntime.readonly ? "readonlyモードではMarkdown本文を変更できません" : "Markdown本文をBlock配列操作後に再生成します";
   });
+  const undoBtn = menu.querySelector('[data-action="undoSentence"]');
+  if (undoBtn) {
+    undoBtn.disabled = !markdownEditorRuntime.lastMutationBackup || !!launchMarkdownRuntime.readonly;
+    undoBtn.title = markdownEditorRuntime.lastMutationBackup ? "直前のSentenceBlock操作を戻します" : "戻せる操作はありません";
+  }
   menu.style.left = "0px";
   menu.style.top = "0px";
   menu.classList.add("show");
@@ -1844,6 +2033,81 @@ function showMdBlockActionMenu(x, y, block) {
   const top = Math.min(Math.max(8, y), window.innerHeight - rect.height - 8);
   menu.style.left = `${left}px`;
   menu.style.top = `${top}px`;
+}
+function isPointerInsideMdBlockInlineActionsTarget(target) {
+  const bar = mdBlockActionRuntime.inlineActions;
+  if (bar && bar.classList.contains("show") && bar.contains(target)) return true;
+  const block = mdBlockActionRuntime.inlineTargetBlock;
+  return !!(block && block.contains(target));
+}
+function ensureMdBlockInlineActions() {
+  if (mdBlockActionRuntime.inlineActions) return mdBlockActionRuntime.inlineActions;
+  const bar = document.createElement("div");
+  bar.id = "mdBlockInlineActions";
+  bar.className = "md-block-inline-actions";
+  bar.innerHTML = `
+    <button type="button" data-action="insertBefore" title="このBlockの上にSentenceBlockを挿入">＋上</button>
+    <button type="button" data-action="insertAfter" title="このBlockの下にSentenceBlockを挿入">＋下</button>
+    <button type="button" data-action="deleteBlock" title="このSentenceBlockを削除">削除</button>
+    <button type="button" data-action="undoSentence" title="直前のSentenceBlock操作を戻す">↩</button>
+  `;
+  document.body.appendChild(bar);
+  bar.addEventListener("mousedown", e => e.preventDefault());
+  bar.addEventListener("click", e => {
+    const btn = e.target.closest("button[data-action]");
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const block = mdBlockActionRuntime.inlineTargetBlock;
+    if (!block || !previewEl.contains(block)) return;
+    if (btn.dataset.action === "insertBefore") insertSentenceAroundBlock(block, "before");
+    else if (btn.dataset.action === "insertAfter") insertSentenceAroundBlock(block, "after");
+    else if (btn.dataset.action === "deleteBlock") deleteSentenceBlock(block);
+    else if (btn.dataset.action === "undoSentence") restoreLastSentenceBlockMutation();
+    hideMdBlockInlineActions();
+  });
+  mdBlockActionRuntime.inlineActions = bar;
+  return bar;
+}
+function hideMdBlockInlineActions() {
+  const bar = mdBlockActionRuntime.inlineActions;
+  if (bar) bar.classList.remove("show");
+  document.body.classList.remove("md-block-inline-actions-visible");
+  mdBlockActionRuntime.inlineTargetBlock = null;
+}
+function positionMdBlockInlineActions(block) {
+  const bar = ensureMdBlockInlineActions();
+  if (!block || !previewEl.contains(block)) return;
+  bar.style.left = "0px";
+  bar.style.top = "0px";
+  bar.classList.add("show");
+  const undoBtn = bar.querySelector('[data-action="undoSentence"]');
+  if (undoBtn) {
+    undoBtn.disabled = !markdownEditorRuntime.lastMutationBackup || !!launchMarkdownRuntime.readonly;
+    undoBtn.title = markdownEditorRuntime.lastMutationBackup ? "直前のSentenceBlock操作を戻します" : "戻せる操作はありません";
+  }
+  const blockRect = block.getBoundingClientRect();
+  const barRect = bar.getBoundingClientRect();
+  const left = Math.min(Math.max(8, blockRect.right - barRect.width - 10), window.innerWidth - barRect.width - 8);
+  const centerY = blockRect.top + Math.max(14, Math.min(blockRect.height / 2, 26));
+  const top = Math.min(Math.max(barRect.height / 2 + 8, centerY), window.innerHeight - barRect.height / 2 - 8);
+  bar.style.left = `${left}px`;
+  bar.style.top = `${top}px`;
+}
+function showMdBlockInlineActions(block) {
+  if (!block || getMode() !== "editor" || markdownEditorRuntime.editing || launchMarkdownRuntime.readonly) {
+    hideMdBlockInlineActions();
+    return;
+  }
+  mdBlockActionRuntime.inlineTargetBlock = block;
+  document.body.classList.add("md-block-inline-actions-visible");
+  positionMdBlockInlineActions(block);
+}
+function repositionMdBlockInlineActions() {
+  const block = mdBlockActionRuntime.inlineTargetBlock;
+  const bar = mdBlockActionRuntime.inlineActions;
+  if (!bar || !bar.classList.contains("show") || !block || !previewEl.contains(block)) return;
+  positionMdBlockInlineActions(block);
 }
 function ensureTextareaMirror() {
   let mirror = document.getElementById("mdTextareaMirror");
@@ -1896,6 +2160,7 @@ function moveCaretToLine(lineNo, behavior = "auto") {
 }
 function enterInlineMarkdownEdit(lineNo, anchor = null) {
   if (getMode() !== "editor" || launchMarkdownRuntime.readonly) return;
+  hideMdBlockInlineActions();
   const resolvedLine = resolveHeadingRelativeAnchor(anchor, editorEl.value);
   const line = Math.max(1, Number(resolvedLine || lineNo || markdownEditorRuntime.lastActiveLine || 1));
   markdownEditorRuntime.editing = true;
@@ -1936,15 +2201,29 @@ previewEl.addEventListener("contextmenu", (e) => {
 });
 document.addEventListener("click", (e) => {
   const menu = mdBlockActionRuntime.menu;
+  const inline = mdBlockActionRuntime.inlineActions;
+  if (inline && inline.classList.contains("show") && !inline.contains(e.target) && !previewEl.contains(e.target)) hideMdBlockInlineActions();
   if (!menu || !menu.classList.contains("show")) return;
   if (menu.contains(e.target)) return;
   hideMdBlockActionMenu();
 });
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") hideMdBlockActionMenu();
+  if (e.key === "Escape") { hideMdBlockActionMenu(); hideMdBlockInlineActions(); }
 });
-window.addEventListener("scroll", hideMdBlockActionMenu, true);
-window.addEventListener("resize", hideMdBlockActionMenu);
+window.addEventListener("scroll", () => { hideMdBlockActionMenu(); repositionMdBlockInlineActions(); }, true);
+window.addEventListener("resize", () => { hideMdBlockActionMenu(); repositionMdBlockInlineActions(); });
+
+previewEl.addEventListener("mousemove", (e) => {
+  if (getMode() !== "editor" || markdownEditorRuntime.editing || launchMarkdownRuntime.readonly) return;
+  if (isPointerInsideMdBlockInlineActionsTarget(e.target)) return;
+  const block = e.target.closest("[data-md-line]");
+  if (!block || !previewEl.contains(block)) return;
+  if (mdBlockActionRuntime.inlineTargetBlock !== block) {
+    setCurrentMarkdownBlockElement(block);
+    markdownEditorRuntime.lastActiveLine = Number(block.dataset.mdLine || markdownEditorRuntime.lastActiveLine || 1);
+    markdownEditorRuntime.lastActiveAnchor = anchorFromPreviewBlock(block) || markdownEditorRuntime.lastActiveAnchor;
+  }
+});
 
 previewEl.addEventListener("click", (e) => {
   hideMdBlockActionMenu();
@@ -2337,6 +2616,8 @@ function renderMarkdown(rawMd, sourceUrl, sourceLabel){
     previewEl.innerHTML = DOMPurify.sanitize(html, { ADD_ATTR: ["target", "data-md-line", "data-md-block-id", "data-md-block-type", "data-md-table-id", "data-frb-comment-id", "data-frb-comment-status"] });
     previewEl.querySelectorAll('a[href^="http"]').forEach(a => { a.target = "_blank"; a.rel = "noreferrer"; });
     applyMarkdownIndentClasses(constraintReport);
+    hideMdBlockActionMenu();
+    hideMdBlockInlineActions();
     annotatePreviewBlocks(rawMd);
     
     buildToc();
