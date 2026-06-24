@@ -247,6 +247,37 @@
       outline-color: rgba(85,197,0,.55);
       background: rgba(85,197,0,.045);
     }
+    #preview [data-md-block-id] {
+      position: relative;
+    }
+    body[data-mode="editor"] #preview [data-md-block-id]::after {
+      content: attr(data-md-block-type) " / " attr(data-md-block-id);
+      display: none;
+      position: absolute;
+      right: 4px;
+      top: -18px;
+      padding: 2px 6px;
+      border: 1px solid rgba(63,124,255,.22);
+      border-radius: 999px;
+      background: var(--panel);
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.2;
+      pointer-events: none;
+      box-shadow: 0 6px 16px rgba(15,23,42,.10);
+    }
+    body[data-mode="editor"] #preview [data-md-block-id]:hover::after,
+    body[data-mode="editor"] #preview .md-current-block[data-md-block-id]::after {
+      display: inline-block;
+    }
+    #blockModelMeta {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      word-break: break-word;
+    }
     #preview .md-block-highlight {
       background: rgba(250, 204, 21, 0.34) !important;
       box-shadow: inset 0 0 0 9999px rgba(250, 204, 21, 0.10), 0 0 0 3px rgba(250, 204, 21, 0.12);
@@ -1009,6 +1040,7 @@
             <div><b>保存ファイル名</b><input id="metaFileName" type="text" value="" style="width:100%; margin-top:4px; font-size:12px; padding:6px 10px;" placeholder="ファイル名を入力"/></div>
             <div><b>文字数</b><span id="charCount">-</span></div>
             <div><b>読了目安</b><span id="readTime">-</span></div>
+            <div><b>Block Model</b><span id="blockModelMeta">-</span></div>
           </div>
         </section>
       </aside>
@@ -1075,7 +1107,7 @@
   </div>
 
 <script>
-const mdUrlEl=document.getElementById("mdUrl"),previewEl=document.getElementById("preview"),editorInlineHost=document.getElementById("editorInlineHost"),tocEl=document.getElementById("toc"),charCountEl=document.getElementById("charCount"),readTimeEl=document.getElementById("readTime"),localFileBtn=document.getElementById("localFileBtn"),localFileInput=document.getElementById("localFileInput"),tocDepthBtns=[...document.querySelectorAll(".toc-depth-btn")],themeSelect=document.getElementById("themeSelect"),editorEl=document.getElementById("editor"),btnViewerMode=document.getElementById("btnViewerMode"),btnEditorMode=document.getElementById("btnEditorMode"),articleCard=document.getElementById("articleCard"),metaFileName=document.getElementById("metaFileName"),editorFileName=document.getElementById("editorFileName"),slashMenu=document.getElementById("slashMenu"),managedMdSelect=document.getElementById("managedMdSelect"),btnRefreshManagedMd=document.getElementById("btnRefreshManagedMd"),btnOverwriteManagedMd=document.getElementById("btnOverwriteManagedMd");
+const mdUrlEl=document.getElementById("mdUrl"),previewEl=document.getElementById("preview"),editorInlineHost=document.getElementById("editorInlineHost"),tocEl=document.getElementById("toc"),charCountEl=document.getElementById("charCount"),readTimeEl=document.getElementById("readTime"),blockModelMeta=document.getElementById("blockModelMeta"),localFileBtn=document.getElementById("localFileBtn"),localFileInput=document.getElementById("localFileInput"),tocDepthBtns=[...document.querySelectorAll(".toc-depth-btn")],themeSelect=document.getElementById("themeSelect"),editorEl=document.getElementById("editor"),btnViewerMode=document.getElementById("btnViewerMode"),btnEditorMode=document.getElementById("btnEditorMode"),articleCard=document.getElementById("articleCard"),metaFileName=document.getElementById("metaFileName"),editorFileName=document.getElementById("editorFileName"),slashMenu=document.getElementById("slashMenu"),managedMdSelect=document.getElementById("managedMdSelect"),btnRefreshManagedMd=document.getElementById("btnRefreshManagedMd"),btnOverwriteManagedMd=document.getElementById("btnOverwriteManagedMd");
 
 const fmPanel=document.getElementById("fmPanel"),fmHeader=document.getElementById("fmHeader"),fmBody=document.getElementById("fmBody"),fmToggleIcon=document.getElementById("fmToggleIcon"),fmSuggestArea=document.getElementById("fmSuggestArea");
 const fmTitle=document.getElementById("fmTitle"),fmSlug=document.getElementById("fmSlug"),fmEmoji=document.getElementById("fmEmoji"),fmType=document.getElementById("fmType"),fmTopics=document.getElementById("fmTopics"),fmPublished=document.getElementById("fmPublished");
@@ -1096,6 +1128,13 @@ let markdownEditorRuntime = {
 let mdBlockActionRuntime = {
   menu: null,
   targetBlock: null
+};
+let markdownBlockModelRuntime = {
+  version: "v0.13-md-block-model-foundation",
+  blocks: [],
+  byId: new Map(),
+  currentBlockId: "",
+  sourceHash: ""
 };
 
 // 最新のmarked.js仕様に合わせてグローバル設定を適用
@@ -1214,10 +1253,247 @@ function normalizeMdSearchText(text) {
     .trim()
     .toLowerCase();
 }
+// mdViewer v0.13: Markdown Block Model Foundation
+function hashMarkdownSourceForBlockModel(text) {
+  const s = String(text || "");
+  let hash = 0;
+  for (let i = 0; i < s.length; i++) hash = ((hash << 5) - hash + s.charCodeAt(i)) | 0;
+  return Math.abs(hash).toString(36);
+}
+function padBlockNo(n) {
+  return String(Math.max(1, Number(n || 1))).padStart(4, "0");
+}
+function createMarkdownBlockId(type, startLine, blockIndex) {
+  return `mdblk_${padBlockNo(blockIndex + 1)}_${String(type || "block")}_${Math.max(1, Number(startLine || 1))}`;
+}
+function isMarkdownTableRow(line) {
+  return /^\s*\|.*\|\s*$/.test(String(line || ""));
+}
+function isMarkdownTableSeparator(line) {
+  const text = String(line || "").trim();
+  if (!text.includes("|")) return false;
+  const cells = splitMarkdownTableRow(text);
+  return cells.length >= 2 && cells.every(cell => /^:?-{3,}:?$/.test(String(cell || "").trim()));
+}
+function splitMarkdownTableRow(row) {
+  let text = String(row || "").trim();
+  if (text.startsWith("|")) text = text.slice(1);
+  if (text.endsWith("|")) text = text.slice(0, -1);
+  const cells = [];
+  let cur = "";
+  let escaped = false;
+  for (const ch of text) {
+    if (escaped) {
+      cur += ch;
+      escaped = false;
+      continue;
+    }
+    if (ch === "\\") {
+      cur += ch;
+      escaped = true;
+      continue;
+    }
+    if (ch === "|") {
+      cells.push(cur.trim().replace(/\\\|/g, "|"));
+      cur = "";
+      continue;
+    }
+    cur += ch;
+  }
+  cells.push(cur.trim().replace(/\\\|/g, "|"));
+  return cells;
+}
+function isMarkdownBlockStartLine(line, nextLine = "") {
+  const text = String(line || "");
+  if (!text.trim()) return true;
+  if (/^\s*(```|~~~)/.test(text)) return true;
+  if (/^\s{0,3}(#{1,6})\s+/.test(text)) return true;
+  if (/^\s{0,3}>\s?/.test(text)) return true;
+  if (/^\s{0,3}([-*+]\s+|\d+\.\s+|[・･]\s*)/.test(text)) return true;
+  if (/^\s{0,3}(-{3,}|\*{3,}|_{3,})\s*$/.test(text)) return true;
+  if (isMarkdownTableRow(text) && isMarkdownTableSeparator(nextLine)) return true;
+  return false;
+}
+function normalizeMarkdownBlockText(source, type) {
+  const text = String(source || "");
+  if (type === "code_block") return text.replace(/^\s*(```|~~~).*\n?/, "").replace(/\n?\s*(```|~~~)\s*$/, "").trim();
+  return text.split(/\r?\n/).map(stripMarkdownBlockPrefix).join(" ").replace(/\s+/g, " ").trim();
+}
+function parseMarkdownTableRows(tableLines, blockId, startLine) {
+  return tableLines.map((line, rowIndex) => {
+    const cells = splitMarkdownTableRow(line).map((cell, columnIndex) => ({
+      cell_id: `${blockId}_r${rowIndex}_c${columnIndex}`,
+      row_index: rowIndex,
+      column_index: columnIndex,
+      line: startLine + rowIndex,
+      raw: cell,
+      text: cell
+    }));
+    return {
+      row_index: rowIndex,
+      line: startLine + rowIndex,
+      is_separator: isMarkdownTableSeparator(line),
+      cells
+    };
+  });
+}
+function addMarkdownBlock(blocks, lines, type, startIdx, endIdx, extra = {}) {
+  const startLine = startIdx + 1;
+  const endLine = Math.max(startLine, endIdx + 1);
+  const source = lines.slice(startIdx, endIdx + 1).join("\n");
+  const blockId = createMarkdownBlockId(type, startLine, blocks.length);
+  const heading = headingContextForLine(startLine, lines.join("\n"));
+  const block = {
+    block_id: blockId,
+    type,
+    kind: extra.kind || ({ heading: "heading", paragraph: "p", list_item: "li", table: "table", code_block: "pre", blockquote: "blockquote", horizontal_rule: "p" }[type] || "p"),
+    start_line: startLine,
+    end_line: endLine,
+    source_range: { start_line: startLine, end_line: endLine },
+    source,
+    text: normalizeMarkdownBlockText(source, type),
+    heading_line: heading.headingLine || 0,
+    heading_text: heading.headingText || "",
+    heading_norm: heading.headingNorm || "",
+    heading_occurrence: heading.headingOccurrence || 0,
+    offset: heading.offset || 0,
+    renderable: type !== "front_matter",
+    ...extra
+  };
+  if (type === "table") {
+    block.table_id = `tbl_${padBlockNo(blocks.filter(b => b.type === "table").length + 1)}_${startLine}`;
+    block.rows = parseMarkdownTableRows(lines.slice(startIdx, endIdx + 1), blockId, startLine);
+  }
+  blocks.push(block);
+  return block;
+}
+function parseMarkdownBlocks(rawMd) {
+  const raw = String(rawMd || "");
+  const lines = raw.split(/\r?\n/);
+  const blocks = [];
+  let i = 0;
+
+  if (lines[0]?.trim() === "---") {
+    let end = -1;
+    for (let j = 1; j < lines.length; j++) {
+      if (lines[j].trim() === "---") { end = j; break; }
+    }
+    if (end > 0) {
+      addMarkdownBlock(blocks, lines, "front_matter", 0, end, { kind: "front_matter", renderable: false });
+      i = end + 1;
+    }
+  }
+
+  while (i < lines.length) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    if (!trimmed) { i++; continue; }
+
+    if (/^\s*(```|~~~)/.test(line)) {
+      const fence = line.match(/^\s*(```|~~~)/)[1];
+      const lang = line.replace(/^\s*(```|~~~)/, "").trim();
+      const start = i;
+      i++;
+      while (i < lines.length && !new RegExp('^\\s*' + fence).test(lines[i])) i++;
+      const end = i < lines.length ? i : lines.length - 1;
+      addMarkdownBlock(blocks, lines, "code_block", start, end, { language: lang, kind: "pre" });
+      if (i < lines.length) i++;
+      continue;
+    }
+
+    const headingMatch = line.match(/^\s{0,3}(#{1,6})\s+(.+?)\s*#*\s*$/);
+    if (headingMatch) {
+      addMarkdownBlock(blocks, lines, "heading", i, i, { level: headingMatch[1].length, heading_text: headingMatch[2].trim(), kind: "heading" });
+      i++;
+      continue;
+    }
+
+    if (isMarkdownTableRow(line) && isMarkdownTableSeparator(lines[i + 1] || "")) {
+      const start = i;
+      i += 2;
+      while (i < lines.length && isMarkdownTableRow(lines[i])) i++;
+      addMarkdownBlock(blocks, lines, "table", start, i - 1, { kind: "table" });
+      continue;
+    }
+
+    if (/^\s{0,3}>\s?/.test(line)) {
+      const start = i;
+      while (i < lines.length && /^\s{0,3}>\s?/.test(lines[i])) i++;
+      addMarkdownBlock(blocks, lines, "blockquote", start, i - 1, { kind: "blockquote" });
+      continue;
+    }
+
+    if (/^\s{0,3}([-*+]\s+|\d+\.\s+|[・･]\s*)/.test(line)) {
+      const start = i;
+      i++;
+      while (i < lines.length && lines[i].trim() && !/^\s{0,3}([-*+]\s+|\d+\.\s+|[・･]\s*)/.test(lines[i]) && !isMarkdownBlockStartLine(lines[i], lines[i + 1] || "")) i++;
+      addMarkdownBlock(blocks, lines, "list_item", start, i - 1, { kind: "li" });
+      continue;
+    }
+
+    if (/^\s{0,3}(-{3,}|\*{3,}|_{3,})\s*$/.test(line)) {
+      addMarkdownBlock(blocks, lines, "horizontal_rule", i, i, { kind: "p" });
+      i++;
+      continue;
+    }
+
+    const start = i;
+    i++;
+    while (i < lines.length && lines[i].trim() && !isMarkdownBlockStartLine(lines[i], lines[i + 1] || "")) i++;
+    addMarkdownBlock(blocks, lines, "paragraph", start, i - 1, { kind: "p" });
+  }
+  return blocks;
+}
+function setMarkdownBlockModel(blocks, sourceHash = "") {
+  markdownBlockModelRuntime.blocks = Array.isArray(blocks) ? blocks : [];
+  markdownBlockModelRuntime.byId = new Map(markdownBlockModelRuntime.blocks.map(block => [block.block_id, block]));
+  markdownBlockModelRuntime.sourceHash = sourceHash;
+  if (markdownBlockModelRuntime.currentBlockId && !markdownBlockModelRuntime.byId.has(markdownBlockModelRuntime.currentBlockId)) {
+    markdownBlockModelRuntime.currentBlockId = "";
+  }
+  updateBlockModelMeta();
+}
+function updateBlockModelMeta() {
+  if (!blockModelMeta) return;
+  const renderable = markdownBlockModelRuntime.blocks.filter(block => block.renderable !== false);
+  const typeCounts = renderable.reduce((acc, block) => {
+    acc[block.type] = (acc[block.type] || 0) + 1;
+    return acc;
+  }, {});
+  const typeSummary = Object.entries(typeCounts).map(([type, count]) => `${type}:${count}`).join(" / ") || "no blocks";
+  const current = markdownBlockModelRuntime.byId.get(markdownBlockModelRuntime.currentBlockId);
+  const currentText = current ? `current ${current.block_id} ${current.type} L${current.start_line}-${current.end_line}` : "current -";
+  blockModelMeta.textContent = `${renderable.length} blocks / ${currentText} / ${typeSummary}`;
+}
+function markdownBlocksToAnchors(blocks) {
+  return (blocks || []).filter(block => block.renderable !== false).map(block => ({
+    line: block.start_line,
+    endLine: block.end_line,
+    kind: block.kind || "p",
+    text: block.text || block.source || "",
+    norm: normalizeMdSearchText(block.text || block.source || ""),
+    headingLine: block.heading_line || 0,
+    headingText: block.heading_text || "",
+    headingNorm: block.heading_norm || "",
+    headingOccurrence: block.heading_occurrence || 0,
+    offset: block.offset || 0,
+    block
+  }));
+}
+function setCurrentMarkdownBlockElement(block) {
+  clearCurrentPreviewBlock();
+  if (block && previewEl.contains(block)) {
+    block.classList.add("md-current-block");
+    markdownBlockModelRuntime.currentBlockId = block.dataset.mdBlockId || "";
+  } else {
+    markdownBlockModelRuntime.currentBlockId = "";
+  }
+  updateBlockModelMeta();
+}
 function stripMarkdownBlockPrefix(line) {
   return String(line || "")
     .replace(/^\s{0,3}#{1,6}\s+/, "")
-    .replace(/^\s{0,3}([-*+]\s+|\d+\.\s+)/, "")
+    .replace(/^\s{0,3}([-*+]\s+|\d+\.\s+|[・･]\s*)/, "")
     .replace(/^\s{0,3}>\s?/, "")
     .replace(/^\s*\|/, "")
     .replace(/\|\s*$/, "")
@@ -1270,97 +1546,9 @@ function resolveHeadingRelativeAnchor(anchor, rawMd = editorEl.value) {
   return Math.max(1, matched.line + Number(anchor.offset || 0));
 }
 function buildMarkdownLineAnchors(rawMd) {
-  const raw = String(rawMd || "");
-  const offset = getContentLineOffset(raw);
-  const lines = raw.split(/\r?\n/);
-  const headings = getHeadingAnchors(raw);
-  const anchors = [];
-  const addAnchor = (startLine, endLine, kind, text) => {
-    const ctx = headingContextForLine(startLine, raw);
-    anchors.push({
-      line: startLine,
-      endLine: Math.max(startLine, endLine || startLine),
-      kind,
-      text: String(text || "").trim(),
-      norm: normalizeMdSearchText(text || ""),
-      headingLine: ctx.headingLine,
-      headingText: ctx.headingText,
-      headingNorm: ctx.headingNorm,
-      headingOccurrence: ctx.headingOccurrence,
-      offset: ctx.offset
-    });
-  };
-  let i = offset;
-  while (i < lines.length) {
-    const line = lines[i];
-    const trimmed = line.trim();
-    const lineNo = i + 1;
-    if (!trimmed) { i++; continue; }
-
-    if (/^\s*(```|~~~)/.test(line)) {
-      const fence = line.match(/^\s*(```|~~~)/)[1];
-      const start = lineNo;
-      const body = [];
-      i++;
-      while (i < lines.length && !new RegExp('^\\s*' + fence).test(lines[i])) {
-        if (body.length < 6 && lines[i].trim()) body.push(lines[i].trim());
-        i++;
-      }
-      const end = Math.min(lines.length, i + 1);
-      addAnchor(start, end, "pre", body.join(" ") || line);
-      if (i < lines.length) i++;
-      continue;
-    }
-
-    const hm = line.match(/^\s{0,3}(#{1,6})\s+(.+?)\s*#*\s*$/);
-    if (hm) {
-      addAnchor(lineNo, lineNo, "heading", hm[2]);
-      i++;
-      continue;
-    }
-
-    if (/^\s*\|.*\|\s*$/.test(line)) {
-      const start = lineNo;
-      const body = [];
-      while (i < lines.length && /^\s*\|.*\|\s*$/.test(lines[i])) {
-        body.push(stripMarkdownBlockPrefix(lines[i]).replace(/\|/g, " "));
-        i++;
-      }
-      addAnchor(start, i, "table", body.join(" "));
-      continue;
-    }
-
-    if (/^\s{0,3}>\s?/.test(line)) {
-      const start = lineNo;
-      const body = [];
-      while (i < lines.length && /^\s{0,3}>\s?/.test(lines[i])) {
-        body.push(stripMarkdownBlockPrefix(lines[i]));
-        i++;
-      }
-      addAnchor(start, i, "blockquote", body.join(" "));
-      continue;
-    }
-
-    const li = line.match(/^\s{0,3}([-*+]\s+|\d+\.\s+)(.+)$/);
-    if (li) {
-      addAnchor(lineNo, lineNo, "li", li[2]);
-      i++;
-      continue;
-    }
-
-    const start = lineNo;
-    const body = [];
-    while (i < lines.length) {
-      const cur = lines[i];
-      const t = cur.trim();
-      if (!t) break;
-      if (i !== start - 1 && (/^\s{0,3}#{1,6}\s+/.test(cur) || /^\s{0,3}([-*+]\s+|\d+\.\s+)/.test(cur) || /^\s{0,3}>\s?/.test(cur) || /^\s*(```|~~~)/.test(cur) || /^\s*\|.*\|\s*$/.test(cur))) break;
-      body.push(stripMarkdownBlockPrefix(cur));
-      i++;
-    }
-    addAnchor(start, i, "p", body.join(" "));
-  }
-  return anchors;
+  const blocks = parseMarkdownBlocks(rawMd);
+  setMarkdownBlockModel(blocks, hashMarkdownSourceForBlockModel(rawMd));
+  return markdownBlocksToAnchors(blocks);
 }
 function previewBlockKind(el) {
   const tag = String(el?.tagName || "").toUpperCase();
@@ -1425,6 +1613,10 @@ function annotatePreviewBlocks(rawMd) {
     el.removeAttribute("data-md-heading-norm");
     el.removeAttribute("data-md-heading-occurrence");
     el.removeAttribute("data-md-offset");
+    el.removeAttribute("data-md-block-id");
+    el.removeAttribute("data-md-block-type");
+    el.removeAttribute("data-md-table-id");
+    el.removeAttribute("title");
     const chosen = chooseAnchorForBlock(anchors, used, cursor, el);
     if (!chosen) return;
     used.add(chosen.i);
@@ -1436,7 +1628,14 @@ function annotatePreviewBlocks(rawMd) {
     el.dataset.mdHeadingNorm = a.headingNorm || "";
     el.dataset.mdHeadingOccurrence = String(a.headingOccurrence || 0);
     el.dataset.mdOffset = String(a.offset || 0);
+    if (a.block) {
+      el.dataset.mdBlockId = a.block.block_id || "";
+      el.dataset.mdBlockType = a.block.type || "block";
+      if (a.block.table_id) el.dataset.mdTableId = a.block.table_id;
+      el.title = `${a.block.block_id} / ${a.block.type} / L${a.block.start_line}-${a.block.end_line}`;
+    }
   });
+  updateBlockModelMeta();
 }
 function anchorFromPreviewBlock(block) {
   if (!block) return null;
@@ -1446,7 +1645,9 @@ function anchorFromPreviewBlock(block) {
     headingLine: Number(block.dataset.mdHeadingLine || 0),
     headingNorm: block.dataset.mdHeadingNorm || "",
     headingOccurrence: Number(block.dataset.mdHeadingOccurrence || 0),
-    offset: Number(block.dataset.mdOffset || 0)
+    offset: Number(block.dataset.mdOffset || 0),
+    blockId: block.dataset.mdBlockId || "",
+    blockType: block.dataset.mdBlockType || ""
   };
 }
 function anchorFromLine(lineNo) {
@@ -1483,19 +1684,10 @@ function scrollPreviewToLine(lineNo, behavior = "auto") {
   const line = Math.max(1, Number(lineNo || 1));
   const block = findPreviewBlockForLine(line);
   if (!block) return;
-  clearCurrentPreviewBlock();
-  block.classList.add("md-current-block");
+  setCurrentMarkdownBlockElement(block);
   scrollElementToViewportCenterish(block, behavior);
   markdownEditorRuntime.lastActiveLine = Number(block.dataset.mdLine || line || 1);
   markdownEditorRuntime.lastActiveAnchor = anchorFromPreviewBlock(block) || anchorFromLine(line);
-}
-function escapeHtml(text) {
-  return String(text ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
 }
 function frbCommentLabel(status) {
   const key = String(status || "COMMENT").toUpperCase();
@@ -1592,6 +1784,7 @@ function ensureMdBlockActionMenu() {
   menu.className = "md-block-action-menu";
   menu.setAttribute("role", "menu");
   menu.innerHTML = `
+    <button type="button" data-action="inspectBlock" role="menuitem">🔎 Block情報</button>
     <button type="button" data-action="highlight" role="menuitem">🟨 ハイライト</button>
     <div class="menu-separator"></div>
     <button type="button" data-action="comment" data-status="COMMENT" role="menuitem">💬 コメント追加</button>
@@ -1601,16 +1794,22 @@ function ensureMdBlockActionMenu() {
     <button type="button" data-action="comment" data-status="ASK" role="menuitem">❓ 要確認コメント</button>
     <div class="menu-separator"></div>
     <button type="button" data-action="copyMarkdown" role="menuitem">📋 コメント付きMarkdownをコピー</button>
-    <div class="menu-note">コメントはMarkdown本文へFRB_COMMENTとして挿入します</div>
+    <div class="menu-note">Block ModelはMVPです。コメントはMarkdown本文へFRB_COMMENTとして挿入します</div>
   `;
   document.body.appendChild(menu);
   menu.addEventListener("click", (e) => {
     const btn = e.target.closest("button[data-action]");
     if (!btn) return;
     const block = mdBlockActionRuntime.targetBlock;
-    if (btn.dataset.action === "highlight" && block && previewEl.contains(block)) {
+    if (btn.dataset.action === "inspectBlock" && block && previewEl.contains(block)) {
+      const info = markdownBlockModelRuntime.byId.get(block.dataset.mdBlockId || "");
+      if (info) {
+        const tableInfo = info.type === "table" ? `\nrows: ${(info.rows || []).length} / cells: ${(info.rows || []).reduce((n, row) => n + (row.cells || []).length, 0)}` : "";
+        alert(`${info.block_id}\ntype: ${info.type}\nline: ${info.start_line}-${info.end_line}${tableInfo}`);
+      }
+    } else if (btn.dataset.action === "highlight" && block && previewEl.contains(block)) {
       block.classList.toggle("md-block-highlight");
-      block.classList.add("md-current-block");
+      setCurrentMarkdownBlockElement(block);
       markdownEditorRuntime.lastActiveLine = Number(block.dataset.mdLine || markdownEditorRuntime.lastActiveLine || 1);
       markdownEditorRuntime.lastActiveAnchor = anchorFromPreviewBlock(block) || markdownEditorRuntime.lastActiveAnchor;
     } else if (btn.dataset.action === "comment" && block && previewEl.contains(block)) {
@@ -1730,8 +1929,7 @@ previewEl.addEventListener("contextmenu", (e) => {
   if (!block || !previewEl.contains(block)) return;
   e.preventDefault();
   e.stopPropagation();
-  clearCurrentPreviewBlock();
-  block.classList.add("md-current-block");
+  setCurrentMarkdownBlockElement(block);
   markdownEditorRuntime.lastActiveLine = Number(block.dataset.mdLine || markdownEditorRuntime.lastActiveLine || 1);
   markdownEditorRuntime.lastActiveAnchor = anchorFromPreviewBlock(block) || markdownEditorRuntime.lastActiveAnchor;
   showMdBlockActionMenu(e.clientX, e.clientY, block);
@@ -1757,8 +1955,7 @@ previewEl.addEventListener("click", (e) => {
   e.stopPropagation();
   const anchor = anchorFromPreviewBlock(block);
   const line = resolveHeadingRelativeAnchor(anchor, editorEl.value);
-  clearCurrentPreviewBlock();
-  block.classList.add("md-current-block");
+  setCurrentMarkdownBlockElement(block);
   enterInlineMarkdownEdit(line, anchor);
 });
 editorEl.addEventListener("blur", () => {
@@ -2137,7 +2334,7 @@ function renderMarkdown(rawMd, sourceUrl, sourceLabel){
     const constraintReport = isConstraintReportMarkdown(content);
     const renderContent = constraintReport ? content : normalizePseudoJapaneseLists(content);
     const html = marked.parse(preprocessFrbComments(preprocessQiita(renderContent)));
-    previewEl.innerHTML = DOMPurify.sanitize(html, { ADD_ATTR: ["target", "data-md-line", "data-frb-comment-id", "data-frb-comment-status"] });
+    previewEl.innerHTML = DOMPurify.sanitize(html, { ADD_ATTR: ["target", "data-md-line", "data-md-block-id", "data-md-block-type", "data-md-table-id", "data-frb-comment-id", "data-frb-comment-status"] });
     previewEl.querySelectorAll('a[href^="http"]').forEach(a => { a.target = "_blank"; a.rel = "noreferrer"; });
     applyMarkdownIndentClasses(constraintReport);
     annotatePreviewBlocks(rawMd);
