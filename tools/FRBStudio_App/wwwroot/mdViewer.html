@@ -2675,7 +2675,14 @@ function positionMdBlockInlineActions(block) {
   }
   const blockRect = block.getBoundingClientRect();
   const barRect = bar.getBoundingClientRect();
-  const left = Math.min(Math.max(8, blockRect.right - barRect.width - 10), window.innerWidth - barRect.width - 8);
+  //const left = Math.min(Math.max(8, blockRect.right - barRect.width - 10), window.innerWidth - barRect.width - 8);
+  // v0.13.3.1: コメントバッジ用に右端余白を確保
+  const rightReservedForCommentBadge = 40;
+  const left = Math.min(
+    Math.max(8, blockRect.right - barRect.width - rightReservedForCommentBadge),
+    window.innerWidth - barRect.width - 8
+  );
+
   const centerY = blockRect.top + Math.max(14, Math.min(blockRect.height / 2, 26));
   const top = Math.min(Math.max(barRect.height / 2 + 8, centerY), window.innerHeight - barRect.height / 2 - 8);
   bar.style.left = `${left}px`;
