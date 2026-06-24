@@ -380,6 +380,97 @@
     body.md-block-inline-actions-visible #preview .md-current-block[data-md-block-id]::after {
       display: none !important;
     }
+
+    /* mdViewer v0.13.2: Markdown TableCell editor */
+    body[data-mode="editor"] #preview th[data-md-cell-id],
+    body[data-mode="editor"] #preview td[data-md-cell-id] {
+      position: relative;
+      cursor: cell;
+      transition: background .14s ease, box-shadow .14s ease, outline-color .14s ease;
+    }
+    body[data-mode="editor"] #preview th[data-md-cell-id]:hover,
+    body[data-mode="editor"] #preview td[data-md-cell-id]:hover {
+      background: rgba(85,197,0,.10) !important;
+      box-shadow: inset 0 0 0 2px rgba(85,197,0,.30);
+    }
+    #preview th.md-current-table-cell,
+    #preview td.md-current-table-cell {
+      background: rgba(85,197,0,.14) !important;
+      box-shadow: inset 0 0 0 2px rgba(85,197,0,.52), 0 0 0 3px rgba(85,197,0,.08);
+    }
+    .md-table-cell-editor {
+      position: fixed;
+      z-index: 300;
+      width: min(420px, calc(100vw - 24px));
+      padding: 12px;
+      border: 1px solid rgba(85,197,0,.24);
+      border-radius: 18px;
+      background: var(--panel);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 22px 58px rgba(15,23,42,.24);
+      display: none;
+      gap: 10px;
+    }
+    .md-table-cell-editor.show { display: grid; }
+    .md-table-cell-editor-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 900;
+      color: var(--text);
+    }
+    .md-table-cell-editor-title span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .md-table-cell-editor textarea {
+      width: 100%;
+      min-height: 96px;
+      resize: vertical;
+      box-sizing: border-box;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,.72);
+      color: var(--text);
+      font: 13.5px/1.55 "Fira Code", Consolas, Monaco, "Noto Sans JP", monospace;
+      outline: none;
+    }
+    [data-theme="dark"] .md-table-cell-editor textarea {
+      background: rgba(15,23,42,.72);
+    }
+    .md-table-cell-editor textarea:focus {
+      border-color: rgba(85,197,0,.58);
+      box-shadow: 0 0 0 3px rgba(85,197,0,.12);
+    }
+    .md-table-cell-editor-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      align-items: center;
+    }
+    .md-table-cell-editor-actions button {
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      box-shadow: none;
+    }
+    .md-table-cell-editor-actions button[data-action="cancel"] {
+      background: rgba(105,120,160,.12);
+      color: var(--text);
+    }
+    .md-table-cell-editor-note {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+    body.md-table-cell-editing .md-block-inline-actions {
+      display: none !important;
+    }
     #preview .frb-comment-bubble {
       position: relative;
       margin: 14px 0 18px 18px;
@@ -1176,8 +1267,13 @@ let mdBlockActionRuntime = {
   inlineActions: null,
   inlineTargetBlock: null
 };
+let mdTableCellRuntime = {
+  panel: null,
+  targetCell: null,
+  targetInfo: null
+};
 let markdownBlockModelRuntime = {
-  version: "v0.13.1.2-md-sentence-toolbar-row-anchor-fix",
+  version: "v0.13.2-md-table-cell-editor",
   blocks: [],
   byId: new Map(),
   currentBlockId: "",
@@ -1686,6 +1782,178 @@ function annotatePreviewBlocks(rawMd) {
   });
   updateBlockModelMeta();
 }
+function annotateMarkdownTableCells() {
+  const tables = [...previewEl.querySelectorAll("table[data-md-block-id]")];
+  tables.forEach(table => {
+    const info = markdownBlockModelRuntime.byId.get(table.dataset.mdBlockId || "");
+    if (!info || info.type !== "table") return;
+    const tableId = info.table_id || table.dataset.mdTableId || "";
+    const markCell = (cell, rowIndex, columnIndex) => {
+      const row = (info.rows || [])[rowIndex];
+      const cellInfo = row && (row.cells || [])[columnIndex];
+      if (!cellInfo || row?.is_separator) return;
+      cell.dataset.mdTableId = tableId;
+      cell.dataset.mdTableBlockId = info.block_id || "";
+      cell.dataset.mdCellId = cellInfo.cell_id || `${info.block_id}_r${rowIndex}_c${columnIndex}`;
+      cell.dataset.mdCellRowIndex = String(rowIndex);
+      cell.dataset.mdCellColumnIndex = String(columnIndex);
+      cell.dataset.mdCellLine = String(cellInfo.line || row.line || info.start_line);
+      cell.title = `TableCell / ${tableId} / r${rowIndex} c${columnIndex} / L${cell.dataset.mdCellLine}`;
+    };
+    table.querySelectorAll("thead tr").forEach((tr, trIndex) => {
+      tr.querySelectorAll("th,td").forEach((cell, colIndex) => markCell(cell, trIndex, colIndex));
+    });
+    table.querySelectorAll("tbody tr").forEach((tr, bodyIndex) => {
+      const rowIndex = bodyIndex + 2; // Markdown table row 1 is separator and does not exist in rendered DOM.
+      tr.querySelectorAll("td,th").forEach((cell, colIndex) => markCell(cell, rowIndex, colIndex));
+    });
+  });
+}
+function clearCurrentMarkdownTableCell() {
+  previewEl.querySelectorAll(".md-current-table-cell").forEach(el => el.classList.remove("md-current-table-cell"));
+}
+function getMarkdownTableCellInfo(cell) {
+  if (!cell) return null;
+  const block = markdownBlockModelRuntime.byId.get(cell.dataset.mdTableBlockId || "");
+  if (!block || block.type !== "table") return null;
+  const rowIndex = Number(cell.dataset.mdCellRowIndex || -1);
+  const columnIndex = Number(cell.dataset.mdCellColumnIndex || -1);
+  const row = (block.rows || [])[rowIndex];
+  const cellInfo = row && (row.cells || [])[columnIndex];
+  if (!row || !cellInfo || row.is_separator) return null;
+  return {
+    tableBlock: block,
+    tableId: block.table_id || cell.dataset.mdTableId || "",
+    cellId: cell.dataset.mdCellId || cellInfo.cell_id || "",
+    rowIndex,
+    columnIndex,
+    line: Number(cell.dataset.mdCellLine || cellInfo.line || row.line || block.start_line),
+    value: cellInfo.text ?? cellInfo.raw ?? "",
+    domText: cell.innerText || cell.textContent || ""
+  };
+}
+function markdownTableCellValueForEditor(value) {
+  return String(value ?? "").replace(/<br\s*\/?>(?![^<]*>)/gi, "\n");
+}
+function escapeMarkdownTableCellValue(value) {
+  return String(value ?? "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .split("\n")
+    .map(part => part.replace(/\|/g, "\\|"))
+    .join("<br>");
+}
+function buildMarkdownTableRow(cells) {
+  return `| ${cells.map(escapeMarkdownTableCellValue).join(" | ")} |`;
+}
+function updateMarkdownTableCell(rawMd, info, newValue) {
+  const lines = String(rawMd || "").split(/\r?\n/);
+  const lineNo = normalizeMdLineNo(info?.line, 1);
+  const idx = lineNo - 1;
+  if (idx < 0 || idx >= lines.length) return rawMd;
+  if (!isMarkdownTableRow(lines[idx]) || isMarkdownTableSeparator(lines[idx])) return rawMd;
+  const cells = splitMarkdownTableRow(lines[idx]);
+  const col = Math.max(0, Number(info?.columnIndex || 0));
+  while (cells.length <= col) cells.push("");
+  cells[col] = String(newValue ?? "");
+  lines[idx] = buildMarkdownTableRow(cells);
+  return lines.join("\n");
+}
+function ensureMarkdownTableCellEditor() {
+  if (mdTableCellRuntime.panel) return mdTableCellRuntime.panel;
+  const panel = document.createElement("div");
+  panel.id = "mdTableCellEditor";
+  panel.className = "md-table-cell-editor";
+  panel.setAttribute("role", "dialog");
+  panel.setAttribute("aria-label", "Markdown Table Cell Editor");
+  panel.innerHTML = `
+    <div class="md-table-cell-editor-title">▦ TableCell編集 <span data-role="meta"></span></div>
+    <textarea data-role="value" spellcheck="false"></textarea>
+    <div class="md-table-cell-editor-actions">
+      <button type="button" data-action="cancel">キャンセル</button>
+      <button type="button" data-action="apply">反映</button>
+    </div>
+    <div class="md-table-cell-editor-note">Ctrl+Enterで反映。改行は &lt;br&gt;、| は \| にしてMarkdown表へ再生成します。</div>
+  `;
+  document.body.appendChild(panel);
+  panel.addEventListener("mousedown", e => e.stopPropagation());
+  panel.addEventListener("click", e => {
+    const btn = e.target.closest("button[data-action]");
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (btn.dataset.action === "apply") applyMarkdownTableCellEdit();
+    else hideMarkdownTableCellEditor();
+  });
+  const textarea = panel.querySelector('textarea[data-role="value"]');
+  textarea.addEventListener("keydown", e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+      e.preventDefault();
+      applyMarkdownTableCellEdit();
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      hideMarkdownTableCellEditor();
+    }
+  });
+  mdTableCellRuntime.panel = panel;
+  return panel;
+}
+function positionMarkdownTableCellEditor(cell, panel) {
+  const rect = cell.getBoundingClientRect();
+  panel.style.left = "0px";
+  panel.style.top = "0px";
+  panel.classList.add("show");
+  const panelRect = panel.getBoundingClientRect();
+  const preferredLeft = rect.left + Math.min(24, Math.max(0, rect.width - panelRect.width));
+  const left = Math.min(Math.max(8, preferredLeft), window.innerWidth - panelRect.width - 8);
+  const belowTop = rect.bottom + 8;
+  const aboveTop = rect.top - panelRect.height - 8;
+  const top = belowTop + panelRect.height < window.innerHeight - 8 ? belowTop : Math.max(8, aboveTop);
+  panel.style.left = `${left}px`;
+  panel.style.top = `${top}px`;
+}
+function showMarkdownTableCellEditor(cell) {
+  if (!cell || getMode() !== "editor" || markdownEditorRuntime.editing || launchMarkdownRuntime.readonly) return;
+  const info = getMarkdownTableCellInfo(cell);
+  if (!info) return;
+  hideMdBlockActionMenu();
+  hideMdBlockInlineActions();
+  clearCurrentMarkdownTableCell();
+  cell.classList.add("md-current-table-cell");
+  const tableBlock = [...previewEl.querySelectorAll("[data-md-block-id]")].find(el => el.dataset.mdBlockId === info.tableBlock.block_id);
+  if (tableBlock) setCurrentMarkdownBlockElement(tableBlock);
+  const panel = ensureMarkdownTableCellEditor();
+  mdTableCellRuntime.targetCell = cell;
+  mdTableCellRuntime.targetInfo = info;
+  panel.querySelector('[data-role="meta"]').textContent = `${info.tableId || "table"} / row ${info.rowIndex} col ${info.columnIndex} / L${info.line}`;
+  const textarea = panel.querySelector('textarea[data-role="value"]');
+  textarea.value = markdownTableCellValueForEditor(info.value);
+  document.body.classList.add("md-table-cell-editing");
+  positionMarkdownTableCellEditor(cell, panel);
+  requestAnimationFrame(() => {
+    textarea.focus({ preventScroll: true });
+    textarea.select();
+  });
+}
+function hideMarkdownTableCellEditor() {
+  const panel = mdTableCellRuntime.panel;
+  if (panel) panel.classList.remove("show");
+  document.body.classList.remove("md-table-cell-editing");
+  clearCurrentMarkdownTableCell();
+  mdTableCellRuntime.targetCell = null;
+  mdTableCellRuntime.targetInfo = null;
+}
+function applyMarkdownTableCellEdit() {
+  const panel = mdTableCellRuntime.panel;
+  const info = mdTableCellRuntime.targetInfo;
+  if (!panel || !info || launchMarkdownRuntime.readonly) return;
+  const textarea = panel.querySelector('textarea[data-role="value"]');
+  const newValue = textarea ? textarea.value : "";
+  captureMarkdownMutationBackup("edit_table_cell", info.tableBlock);
+  editorEl.value = updateMarkdownTableCell(editorEl.value, info, newValue);
+  hideMarkdownTableCellEditor();
+  renderAfterMarkdownBlockMutation(info.line, "Markdown TableCell Updated");
+}
 function anchorFromPreviewBlock(block) {
   if (!block) return null;
   return {
@@ -1956,6 +2224,7 @@ function ensureMdBlockActionMenu() {
   menu.setAttribute("role", "menu");
   menu.innerHTML = `
     <button type="button" data-action="inspectBlock" role="menuitem">🔎 Block情報</button>
+    <button type="button" data-action="editTableCell" role="menuitem">▦ TableCell編集</button>
     <button type="button" data-action="highlight" role="menuitem">🟨 ハイライト</button>
     <div class="menu-separator"></div>
     <button type="button" data-action="insertBefore" role="menuitem">＋ 上にSentence挿入</button>
@@ -1983,6 +2252,8 @@ function ensureMdBlockActionMenu() {
         const tableInfo = info.type === "table" ? `\nrows: ${(info.rows || []).length} / cells: ${(info.rows || []).reduce((n, row) => n + (row.cells || []).length, 0)}` : "";
         alert(`${info.block_id}\ntype: ${info.type}\nline: ${info.start_line}-${info.end_line}${tableInfo}`);
       }
+    } else if (btn.dataset.action === "editTableCell" && mdTableCellRuntime.targetCell && previewEl.contains(mdTableCellRuntime.targetCell)) {
+      showMarkdownTableCellEditor(mdTableCellRuntime.targetCell);
     } else if (btn.dataset.action === "highlight" && block && previewEl.contains(block)) {
       block.classList.toggle("md-block-highlight");
       setCurrentMarkdownBlockElement(block);
@@ -2011,15 +2282,22 @@ function hideMdBlockActionMenu() {
   if (menu) menu.classList.remove("show");
   mdBlockActionRuntime.targetBlock = null;
 }
-function showMdBlockActionMenu(x, y, block) {
+function showMdBlockActionMenu(x, y, block, targetCell = null) {
   const menu = ensureMdBlockActionMenu();
   mdBlockActionRuntime.targetBlock = block;
+  mdTableCellRuntime.targetCell = targetCell;
   const btn = menu.querySelector('[data-action="highlight"]');
   if (btn) btn.textContent = block.classList.contains("md-block-highlight") ? "⬜ ハイライト解除" : "🟨 ハイライト";
-  menu.querySelectorAll('[data-action="comment"],[data-action="insertBefore"],[data-action="insertAfter"],[data-action="deleteBlock"]').forEach(actionBtn => {
+  menu.querySelectorAll('[data-action="comment"],[data-action="insertBefore"],[data-action="insertAfter"],[data-action="deleteBlock"],[data-action="editTableCell"]').forEach(actionBtn => {
     actionBtn.disabled = !!launchMarkdownRuntime.readonly;
     actionBtn.title = launchMarkdownRuntime.readonly ? "readonlyモードではMarkdown本文を変更できません" : "Markdown本文をBlock配列操作後に再生成します";
   });
+  const editCellBtn = menu.querySelector('[data-action="editTableCell"]');
+  if (editCellBtn) {
+    const canEditCell = !!mdTableCellRuntime.targetCell && !launchMarkdownRuntime.readonly;
+    editCellBtn.disabled = !canEditCell;
+    editCellBtn.title = canEditCell ? "このMarkdown表セルを編集します" : "表セル上で右クリックした場合だけ使えます";
+  }
   const undoBtn = menu.querySelector('[data-action="undoSentence"]');
   if (undoBtn) {
     undoBtn.disabled = !markdownEditorRuntime.lastMutationBackup || !!launchMarkdownRuntime.readonly;
@@ -2197,7 +2475,7 @@ previewEl.addEventListener("contextmenu", (e) => {
   setCurrentMarkdownBlockElement(block);
   markdownEditorRuntime.lastActiveLine = Number(block.dataset.mdLine || markdownEditorRuntime.lastActiveLine || 1);
   markdownEditorRuntime.lastActiveAnchor = anchorFromPreviewBlock(block) || markdownEditorRuntime.lastActiveAnchor;
-  showMdBlockActionMenu(e.clientX, e.clientY, block);
+  showMdBlockActionMenu(e.clientX, e.clientY, block, e.target.closest("td[data-md-cell-id],th[data-md-cell-id]"));
 });
 document.addEventListener("click", (e) => {
   const menu = mdBlockActionRuntime.menu;
@@ -2208,10 +2486,10 @@ document.addEventListener("click", (e) => {
   hideMdBlockActionMenu();
 });
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") { hideMdBlockActionMenu(); hideMdBlockInlineActions(); }
+  if (e.key === "Escape") { hideMdBlockActionMenu(); hideMdBlockInlineActions(); hideMarkdownTableCellEditor(); }
 });
-window.addEventListener("scroll", () => { hideMdBlockActionMenu(); repositionMdBlockInlineActions(); }, true);
-window.addEventListener("resize", () => { hideMdBlockActionMenu(); repositionMdBlockInlineActions(); });
+window.addEventListener("scroll", () => { hideMdBlockActionMenu(); hideMarkdownTableCellEditor(); repositionMdBlockInlineActions(); }, true);
+window.addEventListener("resize", () => { hideMdBlockActionMenu(); hideMarkdownTableCellEditor(); repositionMdBlockInlineActions(); });
 
 previewEl.addEventListener("mousemove", (e) => {
   if (getMode() !== "editor" || markdownEditorRuntime.editing || launchMarkdownRuntime.readonly) return;
@@ -2228,6 +2506,13 @@ previewEl.addEventListener("mousemove", (e) => {
 previewEl.addEventListener("click", (e) => {
   hideMdBlockActionMenu();
   if (getMode() !== "editor" || markdownEditorRuntime.editing) return;
+  const cell = e.target.closest("td[data-md-cell-id],th[data-md-cell-id]");
+  if (cell && previewEl.contains(cell)) {
+    e.preventDefault();
+    e.stopPropagation();
+    showMarkdownTableCellEditor(cell);
+    return;
+  }
   const block = e.target.closest("[data-md-line]");
   if (!block || !previewEl.contains(block)) return;
   e.preventDefault();
@@ -2564,6 +2849,7 @@ function updateMeta(rawMd, parsedContent){
 
 function renderMarkdown(rawMd, sourceUrl, sourceLabel){
   hideMdBlockActionMenu();
+  hideMarkdownTableCellEditor();
   articleCard.style.opacity = 0.85;
   
   setTimeout(() => {
@@ -2613,12 +2899,13 @@ function renderMarkdown(rawMd, sourceUrl, sourceLabel){
     const constraintReport = isConstraintReportMarkdown(content);
     const renderContent = constraintReport ? content : normalizePseudoJapaneseLists(content);
     const html = marked.parse(preprocessFrbComments(preprocessQiita(renderContent)));
-    previewEl.innerHTML = DOMPurify.sanitize(html, { ADD_ATTR: ["target", "data-md-line", "data-md-block-id", "data-md-block-type", "data-md-table-id", "data-frb-comment-id", "data-frb-comment-status"] });
+    previewEl.innerHTML = DOMPurify.sanitize(html, { ADD_ATTR: ["target", "data-md-line", "data-md-block-id", "data-md-block-type", "data-md-table-id", "data-md-cell-id", "data-md-cell-row-index", "data-md-cell-column-index", "data-md-cell-line", "data-frb-comment-id", "data-frb-comment-status"] });
     previewEl.querySelectorAll('a[href^="http"]').forEach(a => { a.target = "_blank"; a.rel = "noreferrer"; });
     applyMarkdownIndentClasses(constraintReport);
     hideMdBlockActionMenu();
     hideMdBlockInlineActions();
     annotatePreviewBlocks(rawMd);
+    annotateMarkdownTableCells();
     
     buildToc();
     updateMeta(rawMd, content);

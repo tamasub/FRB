@@ -224,13 +224,13 @@ AIが意味を推定できる場合は、日本語captionにする。
 | type | 用途 | 備考 |
 |---|---|---|
 | `text` | 短い文字列 | 迷ったらこれ |
-| `textarea` | 長文 | `edit.height` 推奨 |
-| `number` | 数値 | grid format可 |
+| `textarea` | 長文\|xxx | `edit.height` 推奨 |
+| `number` | 数値\|xxx\| | grid format可 |
 | `boolean` | true/false | select表示 |
 | `select` | 状態・分類 | `options` 必須級 |
 | `datetime` | 日付・時刻文字列 | 現状はtext入力 |
 | `objectArray` | オブジェクト配列 | サブグリッド表示向け |
-| `stringArray` | 文字列配列 | サブグリッド表示向け |
+| `stringArray` | 文字列配列aa | サブグリッド表示向け |
 | `chat` | 複数フィールドの会話表示 | `edit.messages` 推奨 |
 
 ### 6.1 select options
