@@ -471,6 +471,51 @@
     body.md-table-cell-editing .md-block-inline-actions {
       display: none !important;
     }
+
+    /* mdViewer v0.13.3: Sidecar JSON comments */
+    #preview .md-sidecar-comment-target {
+      position: relative;
+      outline: 1.5px dashed rgba(59,130,246,.32);
+      outline-offset: 3px;
+    }
+    #preview th.md-sidecar-comment-target,
+    #preview td.md-sidecar-comment-target {
+      outline-offset: -3px;
+      box-shadow: inset 0 0 0 2px rgba(59,130,246,.24);
+    }
+    #preview .md-sidecar-comment-badge {
+      position: absolute;
+      right: 7px;
+      top: 5px;
+      z-index: 18;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 26px;
+      height: 22px;
+      padding: 0 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(59,130,246,.22);
+      background: rgba(255,255,255,.94);
+      color: var(--text);
+      font-size: 11px;
+      font-weight: 950;
+      line-height: 1;
+      box-shadow: 0 8px 18px rgba(15,23,42,.14);
+      cursor: pointer;
+      user-select: none;
+    }
+    [data-theme="dark"] #preview .md-sidecar-comment-badge {
+      background: rgba(15,23,42,.94);
+    }
+    #preview .md-sidecar-comment-badge:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(15,23,42,.20);
+    }
+    #preview .md-sidecar-comment-badge.status-OK { border-color: rgba(34,197,94,.38); background: rgba(34,197,94,.13); }
+    #preview .md-sidecar-comment-badge.status-NG { border-color: rgba(239,68,68,.42); background: rgba(239,68,68,.13); }
+    #preview .md-sidecar-comment-badge.status-TODO { border-color: rgba(245,158,11,.42); background: rgba(245,158,11,.15); }
+    #preview .md-sidecar-comment-badge.status-ASK { border-color: rgba(168,85,247,.38); background: rgba(168,85,247,.13); }
     #preview .frb-comment-bubble {
       position: relative;
       margin: 14px 0 18px 18px;
@@ -1272,8 +1317,16 @@ let mdTableCellRuntime = {
   targetCell: null,
   targetInfo: null
 };
+let mdCommentSidecarRuntime = {
+  schemaVersion: "md_comment_sidecar_v0_1",
+  comments: [],
+  targetFile: "",
+  sidecarName: "",
+  dirty: false,
+  lastSaveError: ""
+};
 let markdownBlockModelRuntime = {
-  version: "v0.13.2-md-table-cell-editor",
+  version: "v0.13.3-md-comment-sidecar-json",
   blocks: [],
   byId: new Map(),
   currentBlockId: "",
@@ -1606,7 +1659,10 @@ function updateBlockModelMeta() {
   const typeSummary = Object.entries(typeCounts).map(([type, count]) => `${type}:${count}`).join(" / ") || "no blocks";
   const current = markdownBlockModelRuntime.byId.get(markdownBlockModelRuntime.currentBlockId);
   const currentText = current ? `current ${current.block_id} ${current.type} L${current.start_line}-${current.end_line}` : "current -";
-  blockModelMeta.textContent = `${renderable.length} blocks / ${currentText} / ${typeSummary}`;
+  const commentCount = (mdCommentSidecarRuntime.comments || []).length;
+  const dirtyMark = mdCommentSidecarRuntime.dirty ? " *" : "";
+  const sidecarText = mdCommentSidecarRuntime.sidecarName ? ` / sidecar ${mdCommentSidecarRuntime.sidecarName}: ${commentCount} comments${dirtyMark}` : ` / sidecar ${commentCount} comments${dirtyMark}`;
+  blockModelMeta.textContent = `${renderable.length} blocks / ${currentText} / ${typeSummary}${sidecarText}`;
 }
 function markdownBlocksToAnchors(blocks) {
   return (blocks || []).filter(block => block.renderable !== false).map(block => ({
@@ -2006,6 +2062,249 @@ function scrollPreviewToLine(lineNo, behavior = "auto") {
   markdownEditorRuntime.lastActiveLine = Number(block.dataset.mdLine || line || 1);
   markdownEditorRuntime.lastActiveAnchor = anchorFromPreviewBlock(block) || anchorFromLine(line);
 }
+function markdownCommentSidecarName(markdownName) {
+  const base = normalizeMarkdownFileName(markdownName || currentManagedMarkdownName || metaFileName.value || editorFileName.value || "article.md");
+  return `${base}.comments.json`;
+}
+function markdownCommentSidecarStorageKey(name) {
+  return `frb-md-comment-sidecar:${String(name || "local").trim() || "local"}`;
+}
+function buildMarkdownCommentSidecarDocument() {
+  return {
+    schema_version: mdCommentSidecarRuntime.schemaVersion,
+    document_type: "markdown_comment_sidecar",
+    target_file: mdCommentSidecarRuntime.targetFile || currentManagedMarkdownName || metaFileName.value || "",
+    sidecar_name: mdCommentSidecarRuntime.sidecarName || markdownCommentSidecarName(mdCommentSidecarRuntime.targetFile),
+    updated_at: new Date().toISOString(),
+    comments: mdCommentSidecarRuntime.comments || []
+  };
+}
+function normalizeMarkdownCommentSidecarDocument(raw, targetName) {
+  let doc = null;
+  try { doc = raw ? JSON.parse(raw) : null; } catch (err) { doc = null; }
+  const comments = Array.isArray(doc?.comments) ? doc.comments : [];
+  return {
+    schema_version: doc?.schema_version || mdCommentSidecarRuntime.schemaVersion,
+    document_type: "markdown_comment_sidecar",
+    target_file: doc?.target_file || targetName || "",
+    sidecar_name: doc?.sidecar_name || markdownCommentSidecarName(targetName),
+    updated_at: doc?.updated_at || "",
+    comments: comments.map((c, i) => ({
+      comment_id: c.comment_id || `mdc_${Date.now()}_${i}`,
+      target_type: c.target_type || "block",
+      status: String(c.status || "COMMENT").toUpperCase(),
+      body: String(c.body || ""),
+      author: c.author || "tamasub",
+      created_at: c.created_at || new Date().toISOString(),
+      updated_at: c.updated_at || c.created_at || new Date().toISOString(),
+      resolved: Boolean(c.resolved),
+      block_id: c.block_id || "",
+      block_type: c.block_type || "",
+      table_id: c.table_id || "",
+      cell_id: c.cell_id || "",
+      row_index: Number.isFinite(Number(c.row_index)) ? Number(c.row_index) : null,
+      column_index: Number.isFinite(Number(c.column_index)) ? Number(c.column_index) : null,
+      line: Number.isFinite(Number(c.line)) ? Number(c.line) : null,
+      start_line: Number.isFinite(Number(c.start_line)) ? Number(c.start_line) : null,
+      end_line: Number.isFinite(Number(c.end_line)) ? Number(c.end_line) : null,
+      target_excerpt: c.target_excerpt || ""
+    }))
+  };
+}
+async function loadMarkdownCommentSidecar(targetName) {
+  const sidecarName = markdownCommentSidecarName(targetName);
+  mdCommentSidecarRuntime.targetFile = targetName || "";
+  mdCommentSidecarRuntime.sidecarName = sidecarName;
+  mdCommentSidecarRuntime.comments = [];
+  mdCommentSidecarRuntime.dirty = false;
+  mdCommentSidecarRuntime.lastSaveError = "";
+  let raw = "";
+  try {
+    const res = await fetch(`/api/markdown/${encodeURIComponent(sidecarName)}`, { cache: "no-store" });
+    if (res.ok) raw = await res.text();
+    else if (res.status !== 404) throw new Error(`HTTP ${res.status}`);
+  } catch (err) {
+    console.warn("sidecar JSON load failed. fallback to localStorage", err);
+    mdCommentSidecarRuntime.lastSaveError = String(err.message || err);
+  }
+  if (!raw) raw = localStorage.getItem(markdownCommentSidecarStorageKey(sidecarName)) || "";
+  const doc = normalizeMarkdownCommentSidecarDocument(raw, targetName);
+  mdCommentSidecarRuntime.comments = doc.comments;
+  mdCommentSidecarRuntime.dirty = false;
+}
+async function saveMarkdownCommentSidecar({ quiet = true } = {}) {
+  const sidecarName = mdCommentSidecarRuntime.sidecarName || markdownCommentSidecarName(mdCommentSidecarRuntime.targetFile);
+  mdCommentSidecarRuntime.sidecarName = sidecarName;
+  const content = JSON.stringify(buildMarkdownCommentSidecarDocument(), null, 2);
+  localStorage.setItem(markdownCommentSidecarStorageKey(sidecarName), content);
+  try {
+    const res = await fetch(`/api/markdown/${encodeURIComponent(sidecarName)}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: sidecarName, content })
+    });
+    if (!res.ok) throw new Error(await res.text());
+    mdCommentSidecarRuntime.dirty = false;
+    mdCommentSidecarRuntime.lastSaveError = "";
+    if (!quiet) alert(`コメントSidecar JSONを保存しました: data/markdown/${sidecarName}`);
+    return true;
+  } catch (err) {
+    mdCommentSidecarRuntime.dirty = true;
+    mdCommentSidecarRuntime.lastSaveError = String(err.message || err);
+    console.warn("sidecar JSON save failed. kept in localStorage", err);
+    if (!quiet) alert(`Sidecar JSONのAPI保存に失敗しました。ブラウザ内には保持しました。\n${mdCommentSidecarRuntime.lastSaveError}`);
+    return false;
+  }
+}
+function sidecarTargetKeyFromComment(c) {
+  if (!c) return "";
+  if (c.target_type === "table_cell") return `cell:${c.cell_id || ""}:${c.line || ""}`;
+  return `block:${c.block_id || ""}:${c.line || c.start_line || ""}`;
+}
+function commentBadgeLabel(comments) {
+  if (!comments.length) return "💬";
+  if (comments.length === 1) return frbCommentLabel(comments[0].status).emoji;
+  return `💬${comments.length}`;
+}
+function titleForSidecarComments(comments) {
+  return comments.map(c => {
+    const label = frbCommentLabel(c.status || "COMMENT");
+    const prefix = c.resolved ? "[resolved] " : "";
+    return `${label.emoji} ${prefix}${c.body || "（コメント本文なし）"}`;
+  }).join("\n---\n");
+}
+function findPreviewElementForSidecarComment(c) {
+  if (!c) return null;
+  if (c.target_type === "table_cell") {
+    if (c.cell_id) {
+      const exactCell = previewEl.querySelector(`[data-md-cell-id="${CSS.escape(c.cell_id)}"]`);
+      if (exactCell) return exactCell;
+    }
+    const lineCell = c.line ? previewEl.querySelector(`[data-md-cell-line="${CSS.escape(String(c.line))}"][data-md-cell-column-index="${CSS.escape(String(c.column_index ?? ""))}"]`) : null;
+    if (lineCell) return lineCell;
+  }
+  if (c.block_id) {
+    const exactBlock = previewEl.querySelector(`[data-md-block-id="${CSS.escape(c.block_id)}"]`);
+    if (exactBlock) return exactBlock;
+  }
+  const line = c.line || c.start_line;
+  return line ? findPreviewBlockForLine(line) : null;
+}
+function clearMarkdownSidecarBadges() {
+  previewEl.querySelectorAll(".md-sidecar-comment-badge").forEach(el => el.remove());
+  previewEl.querySelectorAll(".md-sidecar-comment-target").forEach(el => el.classList.remove("md-sidecar-comment-target"));
+}
+function applyMarkdownSidecarComments() {
+  clearMarkdownSidecarBadges();
+  const activeComments = (mdCommentSidecarRuntime.comments || []).filter(c => !c.resolved);
+  const groups = new Map();
+  activeComments.forEach(c => {
+    const el = findPreviewElementForSidecarComment(c);
+    if (!el) return;
+    const key = sidecarTargetKeyFromComment(c) || c.comment_id;
+    if (!groups.has(key)) groups.set(key, { el, comments: [] });
+    groups.get(key).comments.push(c);
+  });
+  groups.forEach(({ el, comments }) => {
+    if (!el) return;
+    el.classList.add("md-sidecar-comment-target");
+    const badge = document.createElement("span");
+    badge.className = `md-sidecar-comment-badge status-${comments[0]?.status || "COMMENT"}`;
+    badge.dataset.commentIds = comments.map(c => c.comment_id).join(",");
+    badge.textContent = commentBadgeLabel(comments);
+    badge.title = titleForSidecarComments(comments);
+    badge.addEventListener("click", e => {
+      e.preventDefault();
+      e.stopPropagation();
+      alert(titleForSidecarComments(comments));
+    });
+    el.appendChild(badge);
+  });
+  updateBlockModelMeta();
+}
+function buildSidecarCommentTarget(block, cell) {
+  if (cell) {
+    const info = getMarkdownTableCellInfo(cell);
+    if (!info) return null;
+    return {
+      target_type: "table_cell",
+      block_id: info.tableBlock.block_id || "",
+      block_type: "table",
+      table_id: info.tableId || "",
+      cell_id: info.cellId || "",
+      row_index: info.rowIndex,
+      column_index: info.columnIndex,
+      line: info.line,
+      start_line: info.tableBlock.start_line,
+      end_line: info.tableBlock.end_line,
+      target_excerpt: String(info.value || info.domText || "").slice(0, 160)
+    };
+  }
+  const info = getMarkdownBlockInfoFromPreview(block);
+  if (!info) return null;
+  return {
+    target_type: "block",
+    block_id: info.block_id || "",
+    block_type: info.type || "block",
+    table_id: info.table_id || "",
+    cell_id: "",
+    row_index: null,
+    column_index: null,
+    line: info.start_line,
+    start_line: info.start_line,
+    end_line: info.end_line,
+    target_excerpt: String(info.text || info.source || "").replace(/\s+/g, " ").slice(0, 160)
+  };
+}
+async function addSidecarCommentToTarget(block, cell, status) {
+  if ((!block && !cell) || launchMarkdownRuntime.readonly) return;
+  const key = String(status || "COMMENT").toUpperCase();
+  const label = frbCommentLabel(key);
+  const target = buildSidecarCommentTarget(block, cell);
+  if (!target) return;
+  const defaults = {
+    OK: "了解。この方針でOK。",
+    NG: "ここはNG。理由を追記。",
+    TODO: "ここは要修正。修正方針を追記。",
+    ASK: "ここは確認したい。",
+    MEMO: "メモ。",
+    COMMENT: "コメント。"
+  };
+  const text = prompt(`${label.emoji} Sidecarコメント：${label.label} を入力`, defaults[key] || defaults.COMMENT);
+  if (text === null) return;
+  const now = new Date().toISOString();
+  const comment = {
+    comment_id: `mdc_${now.replace(/[-:.TZ]/g, "").slice(0, 14)}_${Math.random().toString(36).slice(2, 6)}`,
+    status: key,
+    body: String(text || "").trim() || "（コメント本文なし）",
+    author: "tamasub",
+    created_at: now,
+    updated_at: now,
+    resolved: false,
+    ...target
+  };
+  mdCommentSidecarRuntime.comments.push(comment);
+  mdCommentSidecarRuntime.dirty = true;
+  await saveMarkdownCommentSidecar({ quiet: true });
+  applyMarkdownSidecarComments();
+}
+async function copyMarkdownCommentSidecarToClipboard() {
+  const content = JSON.stringify(buildMarkdownCommentSidecarDocument(), null, 2);
+  try {
+    await navigator.clipboard.writeText(content);
+    alert("コメントSidecar JSONをクリップボードにコピーしました。");
+  } catch (err) {
+    prompt("コピーできない場合は、このJSONをコピーしてください", content);
+  }
+}
+function resetMarkdownCommentSidecarForLocal(targetName = "") {
+  mdCommentSidecarRuntime.targetFile = targetName || "";
+  mdCommentSidecarRuntime.sidecarName = markdownCommentSidecarName(targetName || "local.md");
+  mdCommentSidecarRuntime.comments = [];
+  mdCommentSidecarRuntime.dirty = false;
+  mdCommentSidecarRuntime.lastSaveError = "";
+}
+
 function frbCommentLabel(status) {
   const key = String(status || "COMMENT").toUpperCase();
   const map = {
@@ -2232,14 +2531,16 @@ function ensureMdBlockActionMenu() {
     <button type="button" data-action="deleteBlock" role="menuitem">🗑 SentenceBlock削除</button>
     <button type="button" data-action="undoSentence" role="menuitem">↩ 直前操作を戻す</button>
     <div class="menu-separator"></div>
-    <button type="button" data-action="comment" data-status="COMMENT" role="menuitem">💬 コメント追加</button>
-    <button type="button" data-action="comment" data-status="OK" role="menuitem">✅ OKコメント</button>
-    <button type="button" data-action="comment" data-status="NG" role="menuitem">🚫 NGコメント</button>
-    <button type="button" data-action="comment" data-status="TODO" role="menuitem">🛠 要修正コメント</button>
-    <button type="button" data-action="comment" data-status="ASK" role="menuitem">❓ 要確認コメント</button>
+    <button type="button" data-action="comment" data-status="COMMENT" role="menuitem">💬 Sidecarコメント</button>
+    <button type="button" data-action="comment" data-status="OK" role="menuitem">✅ Sidecar OK</button>
+    <button type="button" data-action="comment" data-status="NG" role="menuitem">🚫 Sidecar NG</button>
+    <button type="button" data-action="comment" data-status="TODO" role="menuitem">🛠 Sidecar要修正</button>
+    <button type="button" data-action="comment" data-status="ASK" role="menuitem">❓ Sidecar要確認</button>
     <div class="menu-separator"></div>
+    <button type="button" data-action="saveSidecar" role="menuitem">💾 Sidecar JSON保存</button>
+    <button type="button" data-action="copySidecar" role="menuitem">📋 Sidecar JSONコピー</button>
     <button type="button" data-action="copyMarkdown" role="menuitem">📋 コメント付きMarkdownをコピー</button>
-    <div class="menu-note">SentenceBlock操作はMVPです。本文はMarkdown原文へ再生成します</div>
+    <div class="menu-note">v0.13.3: コメントはMarkdown本文を汚さずSidecar JSONへ保存します</div>
   `;
   document.body.appendChild(menu);
   menu.addEventListener("click", (e) => {
@@ -2268,7 +2569,11 @@ function ensureMdBlockActionMenu() {
     } else if (btn.dataset.action === "undoSentence") {
       restoreLastSentenceBlockMutation();
     } else if (btn.dataset.action === "comment" && block && previewEl.contains(block)) {
-      addFrbCommentToBlock(block, btn.dataset.status || "COMMENT");
+      addSidecarCommentToTarget(block, mdTableCellRuntime.targetCell, btn.dataset.status || "COMMENT");
+    } else if (btn.dataset.action === "saveSidecar") {
+      saveMarkdownCommentSidecar({ quiet: false });
+    } else if (btn.dataset.action === "copySidecar") {
+      copyMarkdownCommentSidecarToClipboard();
     } else if (btn.dataset.action === "copyMarkdown") {
       copyDirtyMarkdownToClipboard();
     }
@@ -2288,9 +2593,13 @@ function showMdBlockActionMenu(x, y, block, targetCell = null) {
   mdTableCellRuntime.targetCell = targetCell;
   const btn = menu.querySelector('[data-action="highlight"]');
   if (btn) btn.textContent = block.classList.contains("md-block-highlight") ? "⬜ ハイライト解除" : "🟨 ハイライト";
-  menu.querySelectorAll('[data-action="comment"],[data-action="insertBefore"],[data-action="insertAfter"],[data-action="deleteBlock"],[data-action="editTableCell"]').forEach(actionBtn => {
+  menu.querySelectorAll('[data-action="insertBefore"],[data-action="insertAfter"],[data-action="deleteBlock"],[data-action="editTableCell"]').forEach(actionBtn => {
     actionBtn.disabled = !!launchMarkdownRuntime.readonly;
     actionBtn.title = launchMarkdownRuntime.readonly ? "readonlyモードではMarkdown本文を変更できません" : "Markdown本文をBlock配列操作後に再生成します";
+  });
+  menu.querySelectorAll('[data-action="comment"]').forEach(actionBtn => {
+    actionBtn.disabled = !!launchMarkdownRuntime.readonly;
+    actionBtn.title = launchMarkdownRuntime.readonly ? "readonlyモードではSidecarコメントを追加できません" : "Markdown本文を汚さずSidecar JSONへコメントを追加します";
   });
   const editCellBtn = menu.querySelector('[data-action="editTableCell"]');
   if (editCellBtn) {
@@ -2906,6 +3215,7 @@ function renderMarkdown(rawMd, sourceUrl, sourceLabel){
     hideMdBlockInlineActions();
     annotatePreviewBlocks(rawMd);
     annotateMarkdownTableCells();
+    applyMarkdownSidecarComments();
     
     buildToc();
     updateMeta(rawMd, content);
@@ -3014,6 +3324,7 @@ async function loadManagedMarkdown(name) {
     isManagedMarkdownDirty = false;
     editorEl.value = md;
     syncFileNameUI(name);
+    await loadMarkdownCommentSidecar(name);
     renderMarkdown(md, "#", "Managed Markdown");
     applyMarkdownReadonlyLaunchControls();
   } catch (err) {
@@ -3033,6 +3344,9 @@ async function saveManagedMarkdown(name, content, quiet = false) {
   isManagedMarkdownDirty = false;
   syncFileNameUI(fileName);
   await refreshManagedMarkdownList(fileName);
+  if (mdCommentSidecarRuntime.dirty && (mdCommentSidecarRuntime.targetFile === fileName || mdCommentSidecarRuntime.targetFile === currentManagedMarkdownName)) {
+    await saveMarkdownCommentSidecar({ quiet: true });
+  }
   if (!quiet) alert(`保存しました: data/markdown/${fileName}`);
   return fileName;
 }
@@ -3061,6 +3375,7 @@ async function loadMarkdown(rawUrl){
     const res=await fetch(rawUrl,{cache:"no-store"});
     if(!res.ok)throw new Error(`HTTP ${res.status}`);
     const md=await res.text();
+    resetMarkdownCommentSidecarForLocal(rawUrl.split('/').pop() || "remote.md");
     editorEl.value = md;
     renderMarkdown(md, rawUrl, "GitHub Raw");
   }catch(err){
@@ -3076,6 +3391,7 @@ function loadLocalFile(file){
     const md=String(reader.result||"");
     currentManagedMarkdownName = "";
     isManagedMarkdownDirty = true;
+    resetMarkdownCommentSidecarForLocal(file.name);
     editorEl.value = md;
     syncFileNameUI(normalizeMarkdownFileName(file.name));
     renderMarkdown(md, "#", "Local file");
@@ -3098,6 +3414,7 @@ document.getElementById("btnSaveFile").addEventListener("click", () => {
 document.getElementById("btnPasteClip").addEventListener("click", async () => {
   try {
     const text = await navigator.clipboard.readText();
+    resetMarkdownCommentSidecarForLocal("clipboard.md");
     editorEl.value = text;
     renderMarkdown(text, "#", "Clipboard Paste");
     const originalText = document.getElementById("btnPasteClip").textContent;
