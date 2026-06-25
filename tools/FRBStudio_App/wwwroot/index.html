@@ -8,65 +8,67 @@
   <script>
   (function () {
     if (location.hostname === "localhost" || location.hostname === "127.0.0.1") return;
-
     const s = document.createElement("script");
     s.src = "//xa.shinobi.jp/ufo/192297900";
-    document.body.appendChild(s);
+    if (document.body) document.body.appendChild(s);
+    else document.addEventListener('DOMContentLoaded', () => document.body.appendChild(s), { once: true });
   })();
   </script>
-
   <style>
-    /* Markdown Viewer / Editor への導線ボタン */
-    .studio-nav-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      min-height: 42px;
-      padding: 9px 15px;
-      border: 1px solid rgba(255, 255, 255, 0.36);
-      border-radius: 16px;
-      color: #ffffff;
-      text-decoration: none;
-      font-weight: 900;
-      font-size: 13px;
-      letter-spacing: 0.02em;
-      background:
-        radial-gradient(circle at 20% 20%, rgba(255,255,255,0.32), transparent 28%),
-        linear-gradient(135deg, #22c55e 0%, #14b8a6 45%, #2563eb 100%);
-      box-shadow:
-        0 10px 24px rgba(20, 184, 166, 0.26),
-        inset 0 1px 0 rgba(255, 255, 255, 0.32);
-      transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
-      white-space: nowrap;
-    }
-    .studio-nav-link:hover {
-      transform: translateY(-1px);
-      filter: brightness(1.05);
-      box-shadow:
-        0 14px 30px rgba(37, 99, 235, 0.30),
-        inset 0 1px 0 rgba(255, 255, 255, 0.40);
-    }
-    .studio-nav-link:active {
-      transform: translateY(1px);
-    }
-    .studio-nav-link .nav-icon {
-      width: 24px;
-      height: 24px;
-      display: inline-grid;
-      place-items: center;
-      border-radius: 10px;
-      background: rgba(255,255,255,0.20);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.28);
-      font-size: 14px;
-    }
-    .studio-nav-link .nav-sub {
-      display: block;
-      margin-top: -2px;
-      font-size: 10px;
-      font-weight: 800;
-      opacity: 0.78;
-      letter-spacing: 0.04em;
-    }
+  /* Markdown Viewer / Editor への導線ボタン */
+  .studio-nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 9px 15px;
+    border: 1px solid rgba(255, 255, 255, 0.36);
+    border-radius: 16px;
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 900;
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(255,255,255,0.32), transparent 28%),
+      linear-gradient(135deg, #22c55e 0%, #14b8a6 45%, #2563eb 100%);
+    box-shadow:
+      0 10px 24px rgba(20, 184, 166, 0.26),
+      inset 0 1px 0 rgba(255, 255, 255, 0.32);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+    white-space: nowrap;
+  }
+  .studio-nav-link:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+    box-shadow:
+      0 14px 30px rgba(37, 99, 235, 0.30),
+      inset 0 1px 0 rgba(255, 255, 255, 0.40);
+  }
+  .studio-nav-link:active {
+    transform: translateY(1px);
+  }
+  .studio-nav-link .nav-icon {
+    width: 24px;
+    height: 24px;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.20);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.28);
+    font-size: 14px;
+  }
+  .studio-nav-link .nav-icon::before {
+    content: "📝";
+  }
+  .studio-nav-link .nav-sub {
+    display: block;
+    margin-top: -2px;
+    font-size: 10px;
+    font-weight: 800;
+    opacity: 0.78;
+    letter-spacing: 0.04em;
+  }
   </style>
 </head>
 <body>
@@ -76,7 +78,6 @@
       <h1><span id="appProductName" class="app-product-name">JSON Object Studio</span><span id="appDisplayVersion" class="app-version">v0.4-r001</span></h1>
       <p id="appTagline">JSONで思考を構造化し、AIとの文脈を育てる。</p>
     </div>
-
     <section class="loader-panel" aria-label="JSON読み込み">
       <label class="combo-field has-clear">
         <span class="drop-label">画面定義JSON</span>
@@ -109,7 +110,7 @@
       <button id="exportMarkdownBtn" class="ghost-button" disabled>Markdown出力→Viewer</button>
       <button id="exportViewDefMarkdownBtn" class="ghost-button" disabled>ViewDef Markdown→Viewer</button>
       <a class="studio-nav-link" href="mdViewer.html" title="Markdown Viewer / Editor を開く">
-        <span class="nav-icon">📝</span>
+        <span class="nav-icon"></span>
         <span>Markdown<span class="nav-sub">Viewer / Editor</span></span>
       </a>
       <span id="status" class="status">未読み込み</span>
@@ -169,6 +170,7 @@
   </dialog>
 
   <div id="rowContextMenu" class="context-menu hidden"></div>
+
   <script src="js/core/state.js?v=url-launch-008"></script>
   <script src="js/core/registry.js?v=action-execute-006"></script>
   <script src="js/core/file_api.js?v=action-execute-006"></script>
@@ -192,6 +194,6 @@
   <script src="js/runtime/load_runtime.js?v=url-launch-008"></script>
   <script src="js/actions/action_registry.js?v=action-execute-006"></script>
   <script src="js/actions/action_toolbar.js?v=action-execute-006"></script>
-  <script src="app.js?v=json-object-studio-009"></script>
+  <script src="app.js?v=main-json-select-reset-toast-01310-1"></script>
 </body>
 </html>
