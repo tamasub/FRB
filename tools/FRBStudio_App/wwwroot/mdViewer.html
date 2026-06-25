@@ -1369,6 +1369,57 @@
     }
     #btnInsertTable { display: none !important; }
 
+
+    /* mdViewer v0.13.9: Non-blocking toast notifications */
+    .md-toast-area {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 420;
+      display: grid;
+      gap: 10px;
+      width: min(420px, calc(100vw - 24px));
+      pointer-events: none;
+    }
+    .md-toast {
+      pointer-events: auto;
+      display: grid;
+      gap: 4px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel);
+      color: var(--text);
+      box-shadow: 0 18px 44px rgba(15,23,42,.20);
+      backdrop-filter: blur(18px);
+      animation: mdToastIn .18s ease-out;
+      white-space: pre-wrap;
+      line-height: 1.55;
+      font-size: 12.5px;
+      font-weight: 780;
+    }
+    .md-toast-title { font-size: 12px; font-weight: 950; color: var(--muted); }
+    .md-toast.info { border-color: rgba(59,130,246,.28); }
+    .md-toast.success { border-color: rgba(34,197,94,.35); background: rgba(255,255,255,.94); }
+    .md-toast.warn { border-color: rgba(245,158,11,.40); }
+    .md-toast.error { border-color: rgba(239,68,68,.42); }
+    .md-toast.leaving { opacity: 0; transform: translateY(8px); transition: opacity .18s ease, transform .18s ease; }
+    @keyframes mdToastIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    .md-sidecar-comment-editor {
+      width: min(680px, calc(100vw - 24px));
+      border-color: rgba(59,130,246,.28);
+    }
+    .md-sidecar-comment-editor textarea {
+      min-height: 150px;
+      max-height: min(48vh, 460px);
+      font-size: 13.5px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      overflow: auto;
+      tab-size: 2;
+    }
+    body.md-sidecar-comment-editing .md-block-inline-actions { display: none !important; }
+
   </style>
 </head>
 <body data-mode="editor">
@@ -1564,6 +1615,16 @@ let mdSentenceInsertRuntime = {
   targetInfo: null,
   position: "after"
 };
+let mdSidecarCommentEditorRuntime = {
+  panel: null,
+  mode: "add",
+  commentId: "",
+  targetElement: null,
+  targetBlock: null,
+  targetCell: null,
+  target: null,
+  status: "COMMENT"
+};
 let mdCommentSidecarRuntime = {
   schemaVersion: "md_comment_sidecar_v0_1",
   comments: [],
@@ -1595,6 +1656,44 @@ let markdownBlockModelRuntime = {
 
 // 最新のmarked.js仕様に合わせてグローバル設定を適用
 marked.use({ gfm: true, breaks: true });
+
+// mdViewer v0.13.9: OKだけの情報ダイアログを止め、流れを止めないtoastへ寄せる。
+function ensureMarkdownToastArea() {
+  let area = document.getElementById("mdToastArea");
+  if (!area) {
+    area = document.createElement("div");
+    area.id = "mdToastArea";
+    area.className = "md-toast-area";
+    area.setAttribute("aria-live", "polite");
+    document.body.appendChild(area);
+  }
+  return area;
+}
+function showMarkdownToast(message, options = {}) {
+  const area = ensureMarkdownToastArea();
+  const type = String(options.type || "info").toLowerCase();
+  const titleMap = { success: "完了", error: "エラー", warn: "確認", info: "お知らせ" };
+  const toast = document.createElement("div");
+  toast.className = `md-toast ${type}`;
+  toast.innerHTML = `<div class="md-toast-title">${escapeHtml(options.title || titleMap[type] || "お知らせ")}</div><div>${escapeHtml(message || "")}</div>`;
+  area.appendChild(toast);
+  const duration = Math.max(1200, Number(options.duration || (type === "error" ? 7000 : type === "warn" ? 5200 : 3200)));
+  const close = () => {
+    toast.classList.add("leaving");
+    setTimeout(() => toast.remove(), 220);
+  };
+  toast.addEventListener("click", close, { once: true });
+  setTimeout(close, duration);
+  return toast;
+}
+function showMarkdownInfo(message, duration = 3200) { return showMarkdownToast(message, { type: "info", duration }); }
+function showMarkdownSuccess(message, duration = 3000) { return showMarkdownToast(message, { type: "success", duration }); }
+function showMarkdownWarn(message, duration = 5200) { return showMarkdownToast(message, { type: "warn", duration }); }
+function showMarkdownError(message, duration = 7000) { return showMarkdownToast(message, { type: "error", duration }); }
+function showMarkdownInitialGuide(message) {
+  previewEl.innerHTML = `<div class="status-shimmer">${escapeHtml(message || "data/markdown のMarkdownを選択、またはファイルをDropしてください...")}</div>`;
+}
+
 
 function preprocessQiita(md){return md.replace(/:::note\s*(info|warn)?\s*\n([\s\S]*?)\n:::/g,(_,type,body)=>`<div class="qiita-note ${type||"info"}">\n\n${body.trim()}\n\n</div>`)}
 function slugify(text,index){return"sec-"+index+"-"+encodeURIComponent(text.trim().toLowerCase()).replace(/%/g,"")}
@@ -2329,12 +2428,14 @@ function hideAllMarkdownEditDialogs() {
   hideMarkdownTableCellEditor();
   hideMarkdownRawBlockEditor();
   hideMarkdownSentenceInsertEditor();
+  hideMarkdownSidecarCommentEditor();
 }
 function isAnyMarkdownDialogOpen() {
   return !!(
     (mdTableCellRuntime.panel && mdTableCellRuntime.panel.classList.contains("show")) ||
     (mdRawBlockRuntime.panel && mdRawBlockRuntime.panel.classList.contains("show")) ||
-    (mdSentenceInsertRuntime.panel && mdSentenceInsertRuntime.panel.classList.contains("show"))
+    (mdSentenceInsertRuntime.panel && mdSentenceInsertRuntime.panel.classList.contains("show")) ||
+    (mdSidecarCommentEditorRuntime.panel && mdSidecarCommentEditorRuntime.panel.classList.contains("show"))
   );
 }
 if (!window.__mdViewerDialogEscapeCaptureV01382) {
@@ -2356,6 +2457,9 @@ function repositionMarkdownOpenDialogs() {
   }
   if (mdSentenceInsertRuntime.panel?.classList.contains("show") && mdSentenceInsertRuntime.targetBlock) {
     positionMarkdownSentenceInsertEditor(mdSentenceInsertRuntime.targetBlock, mdSentenceInsertRuntime.panel);
+  }
+  if (mdSidecarCommentEditorRuntime.panel?.classList.contains("show") && mdSidecarCommentEditorRuntime.targetElement) {
+    positionMarkdownSidecarCommentEditor(mdSidecarCommentEditorRuntime.targetElement, mdSidecarCommentEditorRuntime.panel);
   }
 }
 
@@ -2722,7 +2826,7 @@ function focusMarkdownSidecarComment(commentId, options = {}) {
   renderMarkdownCommentReviewUI();
   const el = findPreviewElementForSidecarComment(c);
   if (!el) {
-    if (!options.quiet) alert("対象Block/Cellが見つかりません。Markdown本文の構造が変わった可能性があります。");
+    if (!options.quiet) showMarkdownWarn("対象Block/Cellが見つかりません。Markdown本文の構造が変わった可能性があります。");
     return;
   }
   const block = el.closest("[data-md-block-id]") || el;
@@ -2744,14 +2848,7 @@ async function toggleMarkdownSidecarCommentResolved(commentId) {
   await persistMarkdownCommentReviewMutation({ quiet: true });
 }
 async function editMarkdownSidecarComment(commentId) {
-  const c = findSidecarCommentById(commentId);
-  if (!c) return;
-  const label = frbCommentLabel(c.status || "COMMENT");
-  const text = prompt(`${label.emoji} コメント本文を編集`, c.body || "");
-  if (text === null) return;
-  c.body = String(text || "").trim() || "（コメント本文なし）";
-  c.updated_at = new Date().toISOString();
-  await persistMarkdownCommentReviewMutation({ quiet: true });
+  showMarkdownSidecarCommentEditorForExisting(commentId);
 }
 async function deleteMarkdownSidecarComment(commentId) {
   const c = findSidecarCommentById(commentId);
@@ -2846,13 +2943,13 @@ async function saveMarkdownCommentSidecar({ quiet = true } = {}) {
     if (!res.ok) throw new Error(await res.text());
     mdCommentSidecarRuntime.dirty = false;
     mdCommentSidecarRuntime.lastSaveError = "";
-    if (!quiet) alert(`コメントSidecar JSONを保存しました: data/markdown/${sidecarName}`);
+    if (!quiet) showMarkdownSuccess(`コメントSidecar JSONを保存しました: data/markdown/${sidecarName}`);
     return true;
   } catch (err) {
     mdCommentSidecarRuntime.dirty = true;
     mdCommentSidecarRuntime.lastSaveError = String(err.message || err);
     console.warn("sidecar JSON save failed. kept in localStorage", err);
-    if (!quiet) alert(`Sidecar JSONのAPI保存に失敗しました。ブラウザ内には保持しました。\n${mdCommentSidecarRuntime.lastSaveError}`);
+    if (!quiet) showMarkdownError(`Sidecar JSONのAPI保存に失敗しました。ブラウザ内には保持しました。\n${mdCommentSidecarRuntime.lastSaveError}`);
     return false;
   }
 }
@@ -2917,7 +3014,7 @@ function applyMarkdownSidecarComments() {
       e.preventDefault();
       e.stopPropagation();
       if (e.shiftKey || comments.length > 1) {
-        alert(titleForSidecarComments(comments));
+        showMarkdownInfo(titleForSidecarComments(comments), 6500);
         if (comments[0]?.comment_id) focusMarkdownSidecarComment(comments[0].comment_id, { quiet: true, behavior: "auto" });
       } else if (comments[0]?.comment_id) {
         focusMarkdownSidecarComment(comments[0].comment_id, { quiet: true, behavior: "smooth" });
@@ -2962,7 +3059,44 @@ function buildSidecarCommentTarget(block, cell) {
     target_excerpt: String(info.text || info.source || "").replace(/\s+/g, " ").slice(0, 160)
   };
 }
-async function addSidecarCommentToTarget(block, cell, status) {
+
+function positionMarkdownSidecarCommentEditor(targetEl, panel) {
+  const rect = targetEl?.getBoundingClientRect?.() || { left: 24, top: 120, bottom: 180, width: 360, height: 40 };
+  panel.style.left = "0px";
+  panel.style.top = "0px";
+  panel.classList.add("show");
+  const panelRect = panel.getBoundingClientRect();
+  const preferredLeft = rect.left + Math.min(24, Math.max(0, rect.width - panelRect.width));
+  const left = Math.min(Math.max(8, preferredLeft), window.innerWidth - panelRect.width - 8);
+  const belowTop = rect.bottom + 8;
+  const aboveTop = rect.top - panelRect.height - 8;
+  const topCandidate = belowTop + panelRect.height < window.innerHeight - 8 ? belowTop : Math.max(8, aboveTop);
+  const top = clampMarkdownFloatingTop(topCandidate, panelRect.height, false);
+  panel.style.left = `${left}px`;
+  panel.style.top = `${top}px`;
+}
+function ensureMarkdownSidecarCommentEditor() {
+  if (mdSidecarCommentEditorRuntime.panel) return mdSidecarCommentEditorRuntime.panel;
+  const panel = document.createElement("div");
+  panel.id = "mdSidecarCommentEditor";
+  panel.className = "md-table-cell-editor md-raw-block-editor md-sidecar-comment-editor";
+  panel.setAttribute("role", "dialog");
+  panel.setAttribute("aria-label", "Markdown Sidecar Comment Editor");
+  panel.innerHTML = `
+    <div class="md-table-cell-editor-title">💬 Sidecarコメント <span data-role="meta"></span></div>
+    <textarea data-role="value" spellcheck="false"></textarea>
+    <div class="md-table-cell-editor-actions">
+      <button type="button" data-action="cancel">キャンセル</button>
+      <button type="button" data-action="apply">反映</button>
+    </div>
+    <div class="md-table-cell-editor-note">Ctrl+Enterで反映。ESC/キャンセルで閉じます。貼り付けでは閉じません。Markdown本文は汚さず、Sidecar JSONへコメントとして保存します。</div>
+  `;
+  document.body.appendChild(panel);
+  wireMarkdownDialogPanel(panel, applyMarkdownSidecarCommentEditor, hideMarkdownSidecarCommentEditor);
+  mdSidecarCommentEditorRuntime.panel = panel;
+  return panel;
+}
+function showMarkdownSidecarCommentEditorForTarget(block, cell, status) {
   if ((!block && !cell) || launchMarkdownRuntime.readonly) return;
   const key = String(status || "COMMENT").toUpperCase();
   const label = frbCommentLabel(key);
@@ -2976,13 +3110,90 @@ async function addSidecarCommentToTarget(block, cell, status) {
     MEMO: "メモ。",
     COMMENT: "コメント。"
   };
-  const text = prompt(`${label.emoji} Sidecarコメント：${label.label} を入力`, defaults[key] || defaults.COMMENT);
-  if (text === null) return;
+  hideMdBlockActionMenu();
+  hideMdBlockInlineActions();
+  hideMarkdownTableCellEditor();
+  hideMarkdownRawBlockEditor();
+  hideMarkdownSentenceInsertEditor();
+  const panel = ensureMarkdownSidecarCommentEditor();
+  mdSidecarCommentEditorRuntime.mode = "add";
+  mdSidecarCommentEditorRuntime.commentId = "";
+  mdSidecarCommentEditorRuntime.targetBlock = block || null;
+  mdSidecarCommentEditorRuntime.targetCell = cell || null;
+  mdSidecarCommentEditorRuntime.targetElement = cell || block;
+  mdSidecarCommentEditorRuntime.target = target;
+  mdSidecarCommentEditorRuntime.status = key;
+  panel.querySelector('[data-role="meta"]').textContent = `${label.emoji} ${label.label} / ${markdownCommentTargetLabel(target)}`;
+  const textarea = panel.querySelector('textarea[data-role="value"]');
+  textarea.value = defaults[key] || defaults.COMMENT;
+  document.body.classList.add("md-sidecar-comment-editing");
+  positionMarkdownSidecarCommentEditor(cell || block, panel);
+  requestAnimationFrame(() => {
+    textarea.focus({ preventScroll: true });
+    textarea.select();
+  });
+}
+function showMarkdownSidecarCommentEditorForExisting(commentId) {
+  const c = findSidecarCommentById(commentId);
+  if (!c || launchMarkdownRuntime.readonly) return;
+  const label = frbCommentLabel(c.status || "COMMENT");
+  const targetEl = findPreviewElementForSidecarComment(c) || previewEl;
+  hideMdBlockActionMenu();
+  hideMdBlockInlineActions();
+  hideMarkdownTableCellEditor();
+  hideMarkdownRawBlockEditor();
+  hideMarkdownSentenceInsertEditor();
+  const panel = ensureMarkdownSidecarCommentEditor();
+  mdSidecarCommentEditorRuntime.mode = "edit";
+  mdSidecarCommentEditorRuntime.commentId = commentId;
+  mdSidecarCommentEditorRuntime.targetElement = targetEl;
+  mdSidecarCommentEditorRuntime.target = null;
+  mdSidecarCommentEditorRuntime.status = String(c.status || "COMMENT").toUpperCase();
+  panel.querySelector('[data-role="meta"]').textContent = `${label.emoji} ${label.label} 編集 / ${markdownCommentTargetLabel(c)}`;
+  const textarea = panel.querySelector('textarea[data-role="value"]');
+  textarea.value = c.body || "";
+  document.body.classList.add("md-sidecar-comment-editing");
+  positionMarkdownSidecarCommentEditor(targetEl, panel);
+  requestAnimationFrame(() => {
+    textarea.focus({ preventScroll: true });
+    textarea.select();
+  });
+}
+function hideMarkdownSidecarCommentEditor() {
+  const panel = mdSidecarCommentEditorRuntime.panel;
+  if (panel) panel.classList.remove("show");
+  document.body.classList.remove("md-sidecar-comment-editing");
+  mdSidecarCommentEditorRuntime.mode = "add";
+  mdSidecarCommentEditorRuntime.commentId = "";
+  mdSidecarCommentEditorRuntime.targetElement = null;
+  mdSidecarCommentEditorRuntime.targetBlock = null;
+  mdSidecarCommentEditorRuntime.targetCell = null;
+  mdSidecarCommentEditorRuntime.target = null;
+  mdSidecarCommentEditorRuntime.status = "COMMENT";
+}
+async function applyMarkdownSidecarCommentEditor() {
+  const panel = mdSidecarCommentEditorRuntime.panel;
+  if (!panel || launchMarkdownRuntime.readonly) return;
+  const textarea = panel.querySelector('textarea[data-role="value"]');
+  const body = String(textarea ? textarea.value : "").trim() || "（コメント本文なし）";
   const now = new Date().toISOString();
+  if (mdSidecarCommentEditorRuntime.mode === "edit") {
+    const c = findSidecarCommentById(mdSidecarCommentEditorRuntime.commentId);
+    if (!c) return;
+    c.body = body;
+    c.updated_at = now;
+    hideMarkdownSidecarCommentEditor();
+    await persistMarkdownCommentReviewMutation({ quiet: true });
+    showMarkdownSuccess("Sidecarコメントを更新しました。", 2400);
+    return;
+  }
+  const target = mdSidecarCommentEditorRuntime.target;
+  if (!target) return;
+  const key = String(mdSidecarCommentEditorRuntime.status || "COMMENT").toUpperCase();
   const comment = {
     comment_id: `mdc_${now.replace(/[-:.TZ]/g, "").slice(0, 14)}_${Math.random().toString(36).slice(2, 6)}`,
     status: key,
-    body: String(text || "").trim() || "（コメント本文なし）",
+    body,
     author: "tamasub",
     created_at: now,
     updated_at: now,
@@ -2991,14 +3202,20 @@ async function addSidecarCommentToTarget(block, cell, status) {
   };
   mdCommentSidecarRuntime.comments.push(comment);
   mdCommentSidecarRuntime.dirty = true;
+  hideMarkdownSidecarCommentEditor();
   await saveMarkdownCommentSidecar({ quiet: true });
   applyMarkdownSidecarComments();
+  showMarkdownSuccess("Sidecarコメントを追加しました。", 2400);
 }
+async function addSidecarCommentToTarget(block, cell, status) {
+  showMarkdownSidecarCommentEditorForTarget(block, cell, status);
+}
+
 async function copyMarkdownCommentSidecarToClipboard() {
   const content = JSON.stringify(buildMarkdownCommentSidecarDocument(), null, 2);
   try {
     await navigator.clipboard.writeText(content);
-    alert("コメントSidecar JSONをクリップボードにコピーしました。");
+    showMarkdownSuccess("コメントSidecar JSONをクリップボードにコピーしました。");
   } catch (err) {
     prompt("コピーできない場合は、このJSONをコピーしてください", content);
   }
@@ -3140,7 +3357,7 @@ function captureMarkdownMutationBackup(action, info) {
 function restoreLastSentenceBlockMutation() {
   const backup = markdownEditorRuntime.lastMutationBackup;
   if (!backup || typeof backup.text !== "string") {
-    alert("戻せるSentenceBlock操作はありません。");
+    showMarkdownWarn("戻せるSentenceBlock操作はありません。");
     return;
   }
   if (!confirm(`直前のSentenceBlock操作を戻しますか？\n\n${backup.action || "mutation"} / ${backup.block_id || "block"}`)) return;
@@ -3293,7 +3510,7 @@ async function copyDirtyMarkdownToClipboard() {
   const text = editorEl.value || "";
   try {
     await navigator.clipboard.writeText(text);
-    alert("コメント付きMarkdownをクリップボードにコピーしました。レビュー会話へペコっと貼れます。");
+    showMarkdownSuccess("コメント付きMarkdownをクリップボードにコピーしました。レビュー会話へペコっと貼れます。");
   } catch (err) {
     console.warn("clipboard write failed", err);
     prompt("コピーできない場合は、この内容をコピーしてください", text);
@@ -3337,7 +3554,7 @@ function ensureMdBlockActionMenu() {
       const info = markdownBlockModelRuntime.byId.get(block.dataset.mdBlockId || "");
       if (info) {
         const tableInfo = info.type === "table" ? `\nrows: ${(info.rows || []).length} / cells: ${(info.rows || []).reduce((n, row) => n + (row.cells || []).length, 0)}` : "";
-        alert(`${info.block_id}\ntype: ${info.type}\nline: ${info.start_line}-${info.end_line}${tableInfo}`);
+        showMarkdownInfo(`${info.block_id}\ntype: ${info.type}\nline: ${info.start_line}-${info.end_line}${tableInfo}`, 6500);
       }
     } else if (btn.dataset.action === "editTableCell" && mdTableCellRuntime.targetCell && previewEl.contains(mdTableCellRuntime.targetCell)) {
       showMarkdownTableCellEditor(mdTableCellRuntime.targetCell);
@@ -3842,7 +4059,7 @@ editorEl.addEventListener("keydown", (e) => {
 });
 
 document.getElementById("btnInsertCode").addEventListener("click", () => insertAtCursor("```js\n// code here\n```\n", 6, 18));
-document.getElementById("btnInsertTable")?.addEventListener("click", () => alert("Table挿入は v0.13.8 では対応しません。"));
+document.getElementById("btnInsertTable")?.addEventListener("click", () => showMarkdownInfo("Table挿入は v0.13.8 では対応しません。"));
 
 // エディター入力連動
 editorEl.addEventListener("input", () => {
@@ -4296,7 +4513,7 @@ async function runMarkdownSaveSafetyBeforeSave(fileName, content) {
   mdSaveSafetyRuntime.lastCheck = result;
   updateMarkdownSaveSafetyButton(result);
   if (result.errors.length) {
-    alert(markdownSaveSafetySummary(result) + "\n\n保存は中止しました。直前バックアップはlocalStorageに残しています。");
+    showMarkdownError(markdownSaveSafetySummary(result) + "\n\n保存は中止しました。直前バックアップはlocalStorageに残しています。", 9000);
     return false;
   }
   if (result.warnings.length) {
@@ -4324,7 +4541,7 @@ async function runManualMarkdownSaveSafetyCheck() {
   createMarkdownSaveSafetyBackup(fileName, editorEl.value, result);
   mdSaveSafetyRuntime.lastCheck = result;
   updateMarkdownSaveSafetyButton(result);
-  alert(markdownSaveSafetySummary(result) + "\n\n直前バックアップ: localStorage / " + (mdSaveSafetyRuntime.lastBackupKey || "-") );
+  showMarkdownInfo(markdownSaveSafetySummary(result) + "\n\n直前バックアップ: localStorage / " + (mdSaveSafetyRuntime.lastBackupKey || "-"), 9000 );
 }
 
 function normalizeMarkdownFileName(name) {
@@ -4341,25 +4558,23 @@ async function refreshManagedMarkdownList(selectName = "") {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const files = await res.json();
     managedMdSelect.innerHTML = "";
-    if (!files.length) {
-      const opt = document.createElement("option");
-      opt.value = "";
-      opt.textContent = "管理Markdownなし";
-      managedMdSelect.appendChild(opt);
-      return [];
-    }
+    const emptyOpt = document.createElement("option");
+    emptyOpt.value = "";
+    emptyOpt.textContent = files.length ? "管理Markdownを選択..." : "管理Markdownなし";
+    managedMdSelect.appendChild(emptyOpt);
     files.forEach(name => {
       const opt = document.createElement("option");
       opt.value = name;
       opt.textContent = name;
       managedMdSelect.appendChild(opt);
     });
-    const target = selectName || currentManagedMarkdownName || files[0];
-    if (files.includes(target)) managedMdSelect.value = target;
+    const target = selectName || currentManagedMarkdownName || "";
+    managedMdSelect.value = files.includes(target) ? target : "";
     return files;
   } catch (err) {
     console.warn("管理Markdown一覧の取得に失敗", err);
     managedMdSelect.innerHTML = `<option value="">一覧取得失敗</option>`;
+    showMarkdownWarn("管理Markdown一覧の取得に失敗しました。", 4200);
     return [];
   }
 }
@@ -4415,7 +4630,7 @@ async function saveManagedMarkdown(name, content, quiet = false) {
 
 Save Safety: ${mdSaveSafetyRuntime.lastCheck.errors.length} errors / ${mdSaveSafetyRuntime.lastCheck.warnings.length} warnings
 Backup: ${mdSaveSafetyRuntime.lastBackupKey || "-"}` : "";
-  if (!quiet) alert(`保存しました: data/markdown/${fileName}${summary}`);
+  if (!quiet) showMarkdownSuccess(`保存しました: data/markdown/${fileName}${summary}`, 5200);
   return fileName;
 }
 
@@ -4430,9 +4645,9 @@ async function askRegisterAsManagedMarkdown(fileName, content) {
   }
   try {
     await saveManagedMarkdown(safeName, content, true);
-    alert(`管理対象にしました: data/markdown/${safeName}`);
+    showMarkdownSuccess(`管理対象にしました: data/markdown/${safeName}`);
   } catch (err) {
-    alert("管理対象への保存に失敗しました。\n" + err.message);
+    showMarkdownError("管理対象への保存に失敗しました。\n" + err.message);
   }
 }
 
@@ -4491,13 +4706,13 @@ document.getElementById("btnPasteClip").addEventListener("click", async () => {
     document.getElementById("btnPasteClip").textContent = "⚡ 思考同期完了！";
     setTimeout(() => document.getElementById("btnPasteClip").textContent = originalText, 1500);
   } catch (err) {
-    alert("クリップボードの読み込み権限を許可してください。");
+    showMarkdownError("クリップボードの読み込み権限を許可してください。");
   }
 });
 
 btnRefreshManagedMd.addEventListener("click", async () => {
   const files = await refreshManagedMarkdownList(currentManagedMarkdownName);
-  if (files.length && !currentManagedMarkdownName) await loadManagedMarkdown(managedMdSelect.value);
+  showMarkdownInfo(files.length ? `管理Markdown一覧を更新しました（${files.length}件）。` : "管理Markdownはまだありません。", 2600);
 });
 
 managedMdSelect.addEventListener("change", () => loadManagedMarkdown(managedMdSelect.value));
@@ -4513,7 +4728,7 @@ btnOverwriteManagedMd.addEventListener("click", async () => {
     }
     await saveManagedMarkdown(saveName, editorEl.value);
   } catch (err) {
-    alert("上書き保存に失敗しました。\n" + err.message);
+    showMarkdownError("上書き保存に失敗しました。\n" + err.message);
   }
 });
 
@@ -4546,7 +4761,8 @@ tocDepthBtns.forEach(btn=>btn.addEventListener("click",()=>{
   buildToc();
 }));
 
-// 初期ロード: ?file=xxx.md があればそれを優先。無ければ data/markdown の先頭を読む。
+// 初期ロード: ?file=xxx.md / ?md=xxx.md の明示指定がある場合だけ読む。
+// v0.13.9: 初期表示で先頭ファイルを勝手にプレロードしない。人に見せた時の事故を防ぐ。
 (async () => {
   const params = new URLSearchParams(location.search);
   const requestedFileRaw = params.get('file') || params.get('md');
@@ -4560,13 +4776,14 @@ tocDepthBtns.forEach(btn=>btn.addEventListener("click",()=>{
 
   try {
     const requestedFile = requestedFileRaw ? normalizeLaunchMarkdownName(requestedFileRaw) : '';
-    const files = await refreshManagedMarkdownList(requestedFile || '');
+    await refreshManagedMarkdownList(requestedFile || '');
     if (requestedFile) {
       await loadManagedMarkdown(requestedFile);
-    } else if (files.length) {
-      await loadManagedMarkdown(managedMdSelect.value || files[0]);
     } else {
-      loadMarkdown(mdUrlEl.value);
+      currentManagedMarkdownName = "";
+      managedMdSelect.value = "";
+      resetMarkdownCommentSidecarForLocal("empty.md");
+      showMarkdownInitialGuide("Markdownを選択、URL読込、ローカルファイルDrop、またはRaw Markdown編集から開始してください。初期表示では自動ロードしません。");
       applyMarkdownReadonlyLaunchControls();
     }
   } catch (err) {

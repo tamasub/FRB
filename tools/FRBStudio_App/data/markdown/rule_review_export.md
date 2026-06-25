@@ -1,10 +1,10 @@
 # ルールレビュー記録
 
-- 出力日時: 2026/6/22 18:58:29
+- 出力日時: 2026/6/25 21:30:31
 - 対象: FRB Studio / JSON Object Studio
 - schema_version: rule_review_data_v0_1
 - status: converted_draft
-- 件数: 19
+- 件数: 20
 
 ## 基本情報
 
@@ -18,7 +18,7 @@
 - Source Version: v0.1
 - Introduced In: v0.4-r001
 - 生成日時: 2026-06-22T12:24:16+09:00
-- ルール数: 18
+- ルール数: 19
 - 承認済み数: 0
 
 ### 承認方針
@@ -62,8 +62,9 @@ Data JSONをViewDefで表示・編集し、Markdownは必要に応じてExport V
 | 15 | 15 | foundation_rule_015 |  | 基本構造 | Data / View / Export の原則 | high | 未レビュー | 確認済み | 承認する | Data JSON、ViewDef JSON、Markdown Export、Git Diff、AI、Human の役割を分ける。 |
 | 16 | 16 | foundation_rule_016 |  | 原則 | 承認判断は人間が行う | high | 未レビュー | 確認済み | 承認する | AIはレビューを支援するが、採用可否・承認・保留・差戻しの最終判断は人間が行う。 |
 | 17 | 17 | foundation_rule_017 |  | 運用 | v0.4-r001 の意味 | high | 未レビュー | 確認済み | 承認する | v0.4-r001 は、JSON Object Studio としての正式命名、およびバージョン・リビジョン・インシデント・ルール管理の整理を開始したリビジョンとして扱う。 |
-| 18 | 18 | foundation_rule_018 |  | 運用 | AI作業ファイル記録とインシデント回答記録 | high | 未レビュー | 未確認 | 未承認 | AIが更新したファイルと完了報告は、インシデントJSONへ残す。 |
+| 18 | 18 | foundation_rule_018 |  | 運用 | AI作業ファイル記録とインシデント回答記録 | high | 未レビュー | 確認済み | 承認する | AIが作業で更新したファイル・変更理由・対応結果を、インシデントJSONへ自然文中心で残す。root data/defs は必要時更新可、wwwroot/data/defs は公開用として保護する。 |
 | 19 |  | row_copy_1 |  | 運用 | ★マークダウン　入力テストデータ | high | 未レビュー | 未確認 | 未承認 | # 見出し<br>## 見出し<br>- 箇条書き<br>1. 番号付きリスト |
+| 20 | 19 | foundation_rule_019 |  | 運用 | GitHub基準ソースとZIP返却契約 | high | 未レビュー | 確認済み | 承認する | AI作業では、GitHub main を基準ソースとし、依頼は incident_file と phase を中心に行う。返却物は data / defs / wwwroot 階層のZIPとし、更新済みインシデントJSONを data/json/01_main に含める。取得時は tree/blob URL と raw/archive URL を用途で使い分ける。 |
 
 ## ルールレビュー詳細
 
@@ -383,6 +384,12 @@ Incident には、発見バージョン、対応予定バージョン、対応�
 理由:
 不具合、違和感、改善要望、作業課題と、実際にリリースへ含まれた変更内容は別物であるため。
 
+### v0.12追記：Incident JSONはAI作業台帳でもある
+
+Incident JSON は、作業依頼・対象ファイル・実更新ファイル・変更理由・対応結果・AI完了報告を残す作業台帳でもある。
+
+ただし、最初から管理項目を増やしすぎない。まずは `target_files`、`latest_ai_response`、`discussion_history`、`change_history` など既存の記録場所へ、テキスト文章として残す運用を優先する。
+
 ##### 確認メッセージ
 
 このルールをレビューし、採用可否を判断する。
@@ -392,7 +399,9 @@ Incident には、発見バージョン、対応予定バージョン、対応�
 
 #### 変更履歴
 
-（なし）
+| History ID | Revision | 変更日 | 変更者 | 変更種別 | 対象フィールド | 変更前タイトル | 変更後タイトル | 変更理由 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| chg_foundation_rule_007_v012_redo_001 |  |  |  | body_append |  |  |  | v0.12 FRBコメントで、更新した痕跡をインシデントJSONに残したいという意図が確認されたため。 |
 
 ### 8 Markdownを原本にしない
 - Rule ID: foundation_rule_008
@@ -565,6 +574,14 @@ Data JSON 側は、レビュー対象配列を `rules` に揃える。
 理由:
 ルール系ファイルを通常の業務データや画面定義と混在させると、原本と出力、専用ViewDefと共通ViewDefの区別がつきにくくなるため。
 
+### v0.12追記：root data/defs と wwwroot/data/defs の役割分離
+
+root `data/` / `defs/` は、作業用・管理用の Data JSON / ViewDef JSON を置く場所であり、作業目的に必要な場合はAIが更新してよい。
+
+`wwwroot/data` / `wwwroot/defs` は、GitHub Pages等の公開用静的ホスティング領域として扱う。明示依頼がない限り、AIは更新しない。
+
+AIが root `data/` / `defs/` を更新した場合は、どのファイルを更新したか、なぜ更新したか、結果どうなったかをインシデントJSONへ残す。
+
 ##### 確認メッセージ
 
 このルールをレビューし、採用可否を判断する。
@@ -574,7 +591,9 @@ Data JSON 側は、レビュー対象配列を `rules` に揃える。
 
 #### 変更履歴
 
-（なし）
+| History ID | Revision | 変更日 | 変更者 | 変更種別 | 対象フィールド | 変更前タイトル | 変更後タイトル | 変更理由 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| chg_foundation_rule_011_v012_redo_001 |  |  |  | body_append |  |  |  | root data/defs まで一律更新禁止にするのは強すぎるというユーザーコメントを反映するため。 |
 
 ### 12 日本語JSONの可読性
 - Rule ID: foundation_rule_012
@@ -860,8 +879,8 @@ v0.4-r001 は、Studioくんが単なるJSON編集ツールから、自分自身
 - 分類: 運用
 - 優先度: high
 - レビュー状態: 未レビュー
-- 確認状態: 未確認
-- 承認: 未承認
+- 確認状態: 確認済み
+- 承認: 承認する
 - 元MD: FRB Studio Foundation Rules
 - 元行: 0
 
@@ -874,17 +893,19 @@ v0.4-r001 は、Studioくんが単なるJSON編集ツールから、自分自身
 
 ##### 要約
 
-AIが更新したファイルと完了報告は、インシデントJSONへ残す。
+AIが作業で更新したファイル・変更理由・対応結果を、インシデントJSONへ自然文中心で残す。root data/defs は必要時更新可、wwwroot/data/defs は公開用として保護する。
 
 ##### ルール本文
 
 AIがData JSON、Defs JSON、Rules JSON、Incident JSON、Markdownプロンプト等を更新した場合、更新したファイル、変更理由、変更概要、対応結果を該当インシデントJSONへ記録する。
 
-root data/defs は一律変更禁止ではなく、作業目的に必要な場合は更新可能とする。ただし、更新対象と結果を必ず記録する。
+記録はまずテキスト文章でよい。専用フィールドを増やしすぎず、`target_files`、`latest_ai_response`、`discussion_history`、`change_history` など、既存の記録場所へ人間とAIが後から読める形で残す。
 
-wwwroot/data / wwwroot/defs はGitHub Pages等の公開用静的領域として扱うため、明示依頼がない限り更新しない。
+root `data/` / `defs/` は一律変更禁止ではなく、作業目的に必要な場合は更新可能とする。特に `data/json/01_main/studio_work_incident_data_*.json` は、作業結果を収録するためにAIが更新する対象になり得る。
 
-インシデント対応後のAI完了報告は、会話上だけでなく ai_response / latest_ai_response / discussion_history に残す。
+`wwwroot/data` / `wwwroot/defs` はGitHub Pages等の公開用静的領域として扱うため、明示依頼がない限り更新しない。
+
+インシデント対応後のAI完了報告は、会話上だけでなく `latest_ai_response` 等に残す。
 
 ##### 確認メッセージ
 
@@ -898,6 +919,7 @@ Foundation Rule 18「AI作業ファイル記録とインシデント回答記録
 | History ID | Revision | 変更日 | 変更者 | 変更種別 | 対象フィールド | 変更前タイトル | 変更後タイトル | 変更理由 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | chg_foundation_rule_018_v012_001 |  |  |  | rule_added |  |  |  | v0.12-rules-update-reporting-policy をStudio運用の基礎ルールとして定着させるため。 |
+| chg_foundation_rule_018_v012_redo_001 |  |  |  | body_refine |  |  |  | v0.12 FRBコメントで、管理項目を抑えつつ更新痕跡を残す方針に修正されたため。 |
 
 ### ★マークダウン 入力テストデータ
 - Rule ID: row_copy_1
@@ -952,6 +974,101 @@ Foundation Rule 18「AI作業ファイル記録とインシデント回答記録
 
 （なし）
 
+### 19 GitHub基準ソースとZIP返却契約
+- Rule ID: foundation_rule_019
+- 分類: 運用
+- 優先度: high
+- レビュー状態: 未レビュー
+- 確認状態: 確認済み
+- 承認: 承認する
+- 元MD: FRB Studio Foundation Rules
+- 元行: 0
+
+#### レビュー対象
+
+
+##### 元見出し
+
+19. GitHub基準ソースとZIP返却契約
+
+##### 要約
+
+AI作業では、GitHub main を基準ソースとし、依頼は incident_file と phase を中心に行う。返却物は data / defs / wwwroot 階層のZIPとし、更新済みインシデントJSONを data/json/01_main に含める。取得時は tree/blob URL と raw/archive URL を用途で使い分ける。
+
+##### ルール本文
+
+FRB Studio / JSON Object Studio のAI作業では、原則として GitHub main の最新ソースを基準ソースとして扱う。
+
+ユーザーは毎回ソースZIPを添付するのではなく、incident_file と phase を指定して作業を依頼できるようにする。
+
+AIは、指定された incident_file を読み、work_items[] から phase が一致する作業項目を探し、その objective / scope / user_request / latest_user_comment / decision_log / test_points を正として作業内容を判断する。
+
+phase が見つからない場合、または作業内容が特定できない場合は、推測で実装せず確認する。
+
+返却は原則ZIPとし、ZIP直下の基本階層は以下とする。
+
+- data/
+- defs/
+- wwwroot/
+
+修正したファイルは、FRBStudio_App配下と同じ相対パスで格納する。
+
+更新済みインシデント管理JSONは、必ず data/json/01_main/ に格納する。
+
+インシデントJSONには、AIが更新したファイル、変更理由、変更概要、確認ポイントを latest_ai_response / discussion_history / change_history へ残す。
+
+wwwroot/data と wwwroot/defs は公開用静的領域として扱い、明示依頼がない限り更新しない。
+
+Program.cs など FRBStudio 本体側の更新が必要な場合は、返却前に配置方針と更新対象を明示する。
+
+理由:
+毎回ソースZIPを添付する運用では、依頼準備が重く、AIとの協働が作業単位ではなくファイル受け渡し単位になってしまう。
+GitHub main を基準ソースとし、インシデントJSONを作業台帳として使うことで、作業依頼、実装、返却、履歴記録を一つの運用契約として安定させるため。
+
+### GitHub取得URLの標準
+
+AIがGitHub上の基準ソースを取得する場合は、用途に応じて以下のURLを使い分ける。
+
+人間がブラウザで確認するためのtree/blob URL:
+
+- FRBStudio 本体: https://github.com/tamasub/FRB/tree/main/tools/FRBStudio
+- FRBStudio_App: https://github.com/tamasub/FRB/tree/main/tools/FRBStudio_App
+- Foundation Rules: https://github.com/tamasub/FRB/blob/main/tools/FRBStudio_App/data/json/00_rules/frb_studio_foundation_review_data_v0_1.json
+
+AIやスクリプトが直接取得するためのraw/archive URL:
+
+- リポジトリ main ZIP: https://github.com/tamasub/FRB/archive/refs/heads/main.zip
+- FRBStudio_App raw base: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/
+- FRBStudio 本体 raw base: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio/
+- Foundation Rules raw: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/data/json/00_rules/frb_studio_foundation_review_data_v0_1.json
+
+incident_file は FRBStudio_App からの相対パスとして扱う。
+たとえば `incident_file: data/json/01_main/studio_work_incident_data_xxx.json` が指定された場合、raw URL は以下の形式で解決する。
+
+`https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/{incident_file}`
+
+個別ファイルを直接取得できない場合、またはHTMLなど大きなファイルの完全取得が不安定な場合は、リポジトリ main ZIP を取得し、展開後の `FRB-main/tools/FRBStudio_App/` または `FRB-main/tools/FRBStudio/` を基準として作業する。
+
+GitHubのtree/blob URLは閲覧用であり、機械取得や完全ファイル取得にはraw URLまたはmain ZIPを優先する。
+
+##### 確認メッセージ
+
+Foundation Rule 19「GitHub基準ソースとZIP返却契約」をレビューする。
+
+##### メモ
+
+GitHub上の閲覧用URLだけでは大きなHTML等の完全取得が不安定な場合があるため、raw URLとmain ZIP URLを標準取得URLとして追記。
+
+#### レビュー会話
+
+
+#### 変更履歴
+
+| History ID | Revision | 変更日 | 変更者 | 変更種別 | 対象フィールド | 変更前タイトル | 変更後タイトル | 変更理由 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| chg_foundation_rule_019_v0138_001 |  |  |  | rule_added |  |  |  | ソースZIP添付運用から卒業し、インシデントJSONを中心にAI作業を依頼・記録・返却できるようにするため。 |
+| chg_foundation_rule_019_v0138_002 |  |  |  | body_append |  |  |  | GitHub基準運用で、大きなHTMLファイル等をAIが完全取得できない場合に備え、作業依頼プロンプトから安定してソース取得へ辿れるようにするため。 |
+
 ---
 
 # AI貼り付け用
@@ -991,8 +1108,9 @@ No.	Rule ID	章番号	分類	ルール名	優先度	レビュー状態	確認状
 15	foundation_rule_015	15	基本構造	Data / View / Export の原則	high	未レビュー	確認済み	承認する	Data JSON、ViewDef JSON、Markdown Export、Git Diff、AI、Human の役割を分ける。		
 16	foundation_rule_016	16	原則	承認判断は人間が行う	high	未レビュー	確認済み	承認する	AIはレビューを支援するが、採用可否・承認・保留・差戻しの最終判断は人間が行う。		
 17	foundation_rule_017	17	運用	v0.4-r001 の意味	high	未レビュー	確認済み	承認する	v0.4-r001 は、JSON Object Studio としての正式命名、およびバージョン・リビジョン・インシデント・ルール管理の整理を開始したリビジョンとして扱う。		
-18	foundation_rule_018	18	運用	AI作業ファイル記録とインシデント回答記録	high	未レビュー	未確認	未承認	AIが更新したファイルと完了報告は、インシデントJSONへ残す。		
+18	foundation_rule_018	18	運用	AI作業ファイル記録とインシデント回答記録	high	未レビュー	確認済み	承認する	AIが作業で更新したファイル・変更理由・対応結果を、インシデントJSONへ自然文中心で残す。root data/defs は必要時更新可、wwwroot/data/defs は公開用として保護する。		
 19	row_copy_1		運用	★マークダウン　入力テストデータ	high	未レビュー	未確認	未承認	# 見出し\n## 見出し\n- 箇条書き\n1. 番号付きリスト		
+20	foundation_rule_019	19	運用	GitHub基準ソースとZIP返却契約	high	未レビュー	確認済み	承認する	AI作業では、GitHub main を基準ソースとし、依頼は incident_file と phase を中心に行う。返却物は data / defs / wwwroot 階層のZIPとし、更新済みインシデントJSONを data/json/01_main に含める。取得時は tree/blob URL と raw/archive URL を用途で使い分ける。		
 ```
 
 </details>
@@ -1003,9 +1121,9 @@ No.	Rule ID	章番号	分類	ルール名	優先度	レビュー状態	確認状
 ```json
 {
   "view_def": "rules/rule_review_common_view_def_v0_2_editable_review_target.json",
-  "data_file": "frb_studio_foundation_review_data_v0_1.json",
+  "data_file": "frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json",
   "section": "レビュー項目一覧",
-  "row_count": 19,
+  "row_count": 20,
   "columns": [
     {
       "field": "no",
@@ -1315,9 +1433,9 @@ No.	Rule ID	章番号	分類	ルール名	優先度	レビュー状態	確認状
       "title": "AI作業ファイル記録とインシデント回答記録",
       "priority": "high",
       "review_status": "未レビュー",
-      "verification_status": "未確認",
-      "approval_decision": "未承認",
-      "summary": "AIが更新したファイルと完了報告は、インシデントJSONへ残す。",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "AIが作業で更新したファイル・変更理由・対応結果を、インシデントJSONへ自然文中心で残す。root data/defs は必要時更新可、wwwroot/data/defs は公開用として保護する。",
       "user_comment": "",
       "ai_response": ""
     },
@@ -1332,6 +1450,20 @@ No.	Rule ID	章番号	分類	ルール名	優先度	レビュー状態	確認状
       "verification_status": "未確認",
       "approval_decision": "未承認",
       "summary": "# 見出し\n## 見出し\n- 箇条書き\n1. 番号付きリスト",
+      "user_comment": "",
+      "ai_response": ""
+    },
+    {
+      "no": 20,
+      "rule_id": "foundation_rule_019",
+      "section_no": "19",
+      "category": "運用",
+      "title": "GitHub基準ソースとZIP返却契約",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "AI作業では、GitHub main を基準ソースとし、依頼は incident_file と phase を中心に行う。返却物は data / defs / wwwroot 階層のZIPとし、更新済みインシデントJSONを data/json/01_main に含める。取得時は tree/blob URL と raw/archive URL を用途で使い分ける。",
       "user_comment": "",
       "ai_response": ""
     }
