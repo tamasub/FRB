@@ -1,9 +1,9 @@
 # ViewDef定義レポート — Studioくん憲法レビュー / 承認セレモニー
 
 ## 基本情報
-- 出力日時: 2026/6/21 16:31:36
+- 出力日時: 2026/6/25 22:54:37
 - 対象ViewDef: coding_constraints_review_view_def_v0_2_change_history.json
-- app.name: No-Code JSON Studio
+- app.name: FRB Studio / JSON Object Studio
 - app.version: coding-constraints-review-v0.2-change-history
 - views: 1
 
@@ -19,7 +19,6 @@
 
 ## 解決サマリ
 
-- 読込済み共通Type namespace: qa / relation / business / core
 - fieldType参照: 0件
 - fieldType caption未指定: 0件
 - extends / fieldType 解決による差分: なし
@@ -95,7 +94,7 @@
 ```json
 {
   "app": {
-    "name": "No-Code JSON Studio",
+    "name": "FRB Studio / JSON Object Studio",
     "version": "coding-constraints-review-v0.2-change-history"
   },
   "views": [

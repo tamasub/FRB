@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MetaDiff Hypothesis Viewer v0.2.2-draft</title>
+  <style>
+    :root {
+      --bg:#f7f7f8; --panel:#fff; --text:#1f2328; --muted:#667085; --border:#d0d7de;
+      --accent:#2563eb; --add-bg:#e6ffed; --del-bg:#ffebe9; --code-bg:#0f172a; --code-text:#e5e7eb;
+      --chip-bg:#eef2ff; --chip-text:#3730a3; --focus-bg:#fff7ed; --focus-border:#fb923c;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55}
+    header{padding:16px 22px;background:#111827;color:#fff}
+    header h1{margin:0;font-size:20px}
+    header p{margin:4px 0 0;color:#cbd5e1;font-size:13px}
+    .toolbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding:12px 18px;background:var(--panel);border-bottom:1px solid var(--border)}
+    .toolbar label{font-size:13px;color:var(--muted)}
+    input[type="file"]{max-width:430px;font-size:13px}
+    input[type="search"],select{font-size:13px;padding:7px 9px;border:1px solid var(--border);border-radius:8px;background:#fff}
+    button{font-size:12px;border:1px solid var(--border);border-radius:8px;background:#fff;padding:6px 10px;cursor:pointer}
+    button:hover{background:#eff6ff;border-color:#93c5fd}
+    .drop-zone{
+      flex:1;
+      min-width:420px;
+      min-height:52px;
+      border:2px dashed #cbd5e1;
+      border-radius:12px;
+      background:#f8fafc;
+      color:#475569;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:10px 14px;
+      font-size:13px;
+      transition:.15s ease;
+      user-select:none;
+    }
+    .drop-zone strong{color:#1d4ed8}
+    .drop-zone.dragover{
+      border-color:#fb923c;
+      background:#fff7ed;
+      color:#9a3412;
+      box-shadow:0 0 0 3px rgba(251,146,60,.18);
+    }
+
+    .layout{display:grid;grid-template-columns:minmax(420px,1.05fr) minmax(420px,.95fr);gap:14px;padding:14px;height:calc(100vh - 112px);min-height:720px}
+    .panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 1px 2px rgba(16,24,40,.04);display:flex;flex-direction:column;min-height:0}
+    .panel h2{margin:0;padding:11px 14px;font-size:15px;border-bottom:1px solid var(--border);background:#fbfbfc;display:flex;justify-content:space-between;gap:8px;align-items:center}
+    .body{padding:14px;overflow:auto;min-height:0}
+    .note{color:var(--muted);font-size:13px}
+    .split-note{padding:10px 12px;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;border-radius:10px;margin-bottom:10px;font-size:13px}
+    .markdown{font-size:14px;padding-bottom:48px}
+    .markdown h1,.markdown h2,.markdown h3{line-height:1.25;margin:18px 0 8px}
+    .markdown h1{font-size:22px}.markdown h2{font-size:18px;border-bottom:1px solid var(--border);padding-bottom:4px}.markdown h3{font-size:15px}
+    .markdown code{background:#eef2ff;padding:1px 4px;border-radius:4px}
+    .markdown pre code{
+	  background:transparent;
+	  color:inherit;
+	  padding:0;
+	  border-radius:0;
+   }
+    pre{margin:0;white-space:pre-wrap;word-break:break-word;background:var(--code-bg);color:var(--code-text);padding:12px;border-radius:10px;overflow:auto;font-size:12px}
+    .controls{display:grid;grid-template-columns:1fr 140px auto;gap:8px;margin-bottom:10px}
+    .stats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;font-size:12px;color:var(--muted)}
+    .chip,.cat,.evidence-btn{display:inline-flex;align-items:center;border-radius:999px;padding:2px 8px;font-size:11px;line-height:1.6;margin:2px 3px 2px 0;background:var(--chip-bg);color:var(--chip-text);border:1px solid #c7d2fe;font-weight:650}
+    .cat{cursor:pointer;user-select:none;background:#f8fafc;color:#334155;border-color:#cbd5e1}
+    .cat.active{background:#dbeafe;color:#1d4ed8;border-color:#93c5fd}
+    .evidence-btn{cursor:pointer;background:#fff7ed;color:#9a3412;border-color:#fdba74;font-size:12px;padding:4px 10px}
+    .evidence-btn:hover{background:#ffedd5}
+    .focus-banner{display:none;margin:0 0 10px;padding:10px 12px;border:1px solid var(--focus-border);background:var(--focus-bg);border-radius:10px;font-size:13px;color:#9a3412}
+    .focus-banner.active{display:flex;justify-content:space-between;gap:8px;align-items:center}
+    .evidence-list{display:flex;flex-direction:column;gap:10px}
+    .evidence-card{border:1px solid var(--border);border-radius:12px;background:#fff;overflow:hidden}
+    .evidence-card.focused{border-color:var(--focus-border);box-shadow:0 0 0 2px rgba(251,146,60,.25)}
+    .evidence-header{padding:10px 12px;background:#fbfbfc;border-bottom:1px solid var(--border)}
+    .evidence-title{font-size:14px;font-weight:750;margin:3px 0 2px}
+    .file-path{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;color:#475569;word-break:break-all}
+    .scope{color:var(--muted);font-size:12px}
+    .diff-body{padding:10px 12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.55;background:#fff}
+    .diff-line{display:block;padding:2px 6px;border-radius:4px;margin:1px 0;white-space:pre-wrap;word-break:break-word}
+    .diff-line.add{background:var(--add-bg);color:#116329}
+    .diff-line.del{background:var(--del-bg);color:#82071e}
+    .diff-line.ctx{background:#f8fafc;color:#475569}
+    .keywords{padding:0 12px 10px;color:var(--muted);font-size:12px}
+    details{margin-top:12px;border:1px solid var(--border);border-radius:10px;background:#fff;overflow:hidden}
+    summary{cursor:pointer;padding:9px 12px;background:#fbfbfc;font-size:13px;font-weight:650}
+    details .details-body{padding:12px}
+    .empty{border:1px dashed var(--border);border-radius:12px;padding:18px;text-align:center;color:var(--muted);background:#fff}
+    @media(max-width:980px){.layout{grid-template-columns:1fr;height:auto}.panel{min-height:520px}.controls{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>MetaDiff Hypothesis Viewer v0.2.2-draft</h1>
+  <p>AI仮説Markdownを読み、左の根拠ボタンから右端のカテゴリ付き - / + 根拠差分カードを絞り込みます。</p>
+</header>
+
+<div class="toolbar">
+  <div>
+    <label>AI仮説 Markdown</label><br />
+    <input id="mdFile" type="file" accept=".md,.markdown,text/markdown,text/plain" />
+    <select id="mdEncoding" title="Markdown読み込み文字コード">
+      <option value="utf-8" selected>UTF-8</option>
+      <option value="shift_jis">Shift_JIS</option>
+    </select>
+  </div>
+  <div id="dropZone" class="drop-zone">
+    AI仮説Markdownをここに <strong>Drop</strong> して読み込み
+  </div>
+</div>
+
+<div class="layout">
+  <section class="panel">
+    <h2><span>AI仮説Markdown</span><span class="note" id="mdStatus">未読み込み</span></h2>
+    <div class="body">
+      <div class="split-note">AI出力は「レビュー結果」ではなく「仮説」として扱う前提です。Markdown内の <b>{{evidence:E001,E002}}</b> が根拠ボタンになります。</div>
+      <div id="mdPreview" class="markdown note">AI仮説Markdownを読み込むと、ここに表示されます。</div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2><span>根拠差分カード</span><span class="note" id="evidenceStatus">0件</span></h2>
+    <div class="body">
+      <div id="focusBanner" class="focus-banner">
+        <span id="focusText">根拠ボタンによる絞り込み中</span>
+        <button id="clearFocusBtn">全件表示</button>
+      </div>
+
+      <div class="controls">
+        <input id="searchBox" type="search" placeholder="ファイル名・カテゴリ・キーワード・差分本文を検索" />
+        <select id="fileFilter"><option value="">全ファイル</option></select>
+        <button id="clearFiltersBtn">検索解除</button>
+      </div>
+
+      <div id="categoryChips" class="stats"></div>
+      <div id="evidenceList" class="evidence-list">
+        <div class="empty">Markdown内の <b>diff_hypothesis.json</b> または <b>json</b> ブロックから根拠差分を抽出します。</div>
+      </div>
+
+      <details>
+        <summary>Raw embedded JSON</summary>
+        <div class="details-body"><pre id="rawJson">未読み込み</pre></div>
+      </details>
+    </div>
+  </section>
+</div>
+
+<script>
+let embeddedJson = null;
+let evidenceRows = [];
+let selectedCategory = "";
+let focusedIds = [];
+
+const $ = (id) => document.getElementById(id);
+
+function escapeHtml(s){
+  return String(s ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+}
+
+async function readFileTextWithEncoding(file, encoding){
+  const buffer = await file.arrayBuffer();
+  let text;
+  try { text = new TextDecoder(encoding || "utf-8").decode(buffer); }
+  catch(e){ text = new TextDecoder("utf-8").decode(buffer); }
+  if(text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+  return text;
+}
+
+function simpleMarkdown(md){
+  const lines = String(md || "").split(/\r?\n/);
+  let html = "";
+  let inCode = false;
+  let codeBuf = [];
+
+  function flushCode(){
+    html += `<pre><code>${escapeHtml(codeBuf.join("\n"))}</code></pre>`;
+    codeBuf = [];
+  }
+
+  function renderInline(s){
+    const escaped = escapeHtml(s);
+    return escaped.replace(/\{\{evidence:([A-Za-z0-9_,\-\s]+)\}\}/g, (m, idsRaw) => {
+      const ids = idsRaw.split(",").map(x => x.trim()).filter(Boolean).join(",");
+      const label = ids.includes(",") ? `根拠 ${idsRaw.split(",").length}件` : `根拠 ${ids}`;
+      return `<button class="evidence-btn" data-evidence-ids="${escapeHtml(ids)}">🔎 ${escapeHtml(label)}</button>`;
+    });
+  }
+
+  for(const line of lines){
+    if(line.startsWith("```")){
+      if(!inCode){ inCode = true; codeBuf = []; }
+      else { flushCode(); inCode = false; }
+      continue;
+    }
+    if(inCode){ codeBuf.push(line); continue; }
+
+    if(line.startsWith("# ")) html += `<h1>${renderInline(line.slice(2))}</h1>`;
+    else if(line.startsWith("## ")) html += `<h2>${renderInline(line.slice(3))}</h2>`;
+    else if(line.startsWith("### ")) html += `<h3>${renderInline(line.slice(4))}</h3>`;
+    else if(line.startsWith("- ")) html += `<div>• ${renderInline(line.slice(2))}</div>`;
+    else if(line.trim() === "---") html += `<hr>`;
+    else if(line.trim() === "") html += `<br>`;
+    else html += `<p>${renderInline(line)}</p>`;
+  }
+  if(inCode) flushCode();
+  return html;
+}
+
+function attachEvidenceButtons(){
+  document.querySelectorAll(".evidence-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const ids = btn.getAttribute("data-evidence-ids").split(",").map(x => x.trim()).filter(Boolean);
+      focusedIds = ids;
+      renderEvidence();
+      const rightPanel = $("evidenceList");
+      rightPanel.scrollIntoView({behavior:"smooth", block:"nearest"});
+    });
+  });
+}
+
+function extractJsonBlocks(md){
+  const blocks = [];
+  const lines = String(md || "").split(/\r?\n/);
+  let inFence = false, lang = "", buf = [];
+
+  function tryPushBlock(){
+    const body = buf.join("\n").trim();
+    const normalized = (lang || "").trim().toLowerCase();
+    if(normalized !== "json" && normalized !== "diff_hypothesis.json") return;
+    if(!body.startsWith("{") && !body.startsWith("[")) return;
+    try { blocks.push(JSON.parse(body)); }
+    catch(e){ blocks.push({_parse_error:true, message:e.message, raw_preview:body.slice(0,2000)}); }
+  }
+
+  for(const line of lines){
+    const fence = line.match(/^```([A-Za-z0-9_.-]*)\s*$/);
+    if(fence){
+      if(!inFence){ inFence = true; lang = fence[1] || ""; buf = []; }
+      else { tryPushBlock(); inFence = false; lang = ""; buf = []; }
+      continue;
+    }
+    if(inFence) buf.push(line);
+  }
+  return blocks;
+}
+
+function asArray(value){
+  if(Array.isArray(value)) return value;
+  if(value === undefined || value === null || value === "") return [];
+  return [value];
+}
+
+function normalizeEvidence(data){
+  const rows = [];
+  if(Array.isArray(data?.evidence_files)){
+    data.evidence_files.forEach(fileObj => {
+      const filePath = fileObj.file_path || fileObj.path || "";
+      const fileCategory = asArray(fileObj.file_category);
+      const items = Array.isArray(fileObj.items) ? fileObj.items : [];
+      items.forEach(item => {
+        rows.push({
+          evidence_id: item.evidence_id || `E${String(rows.length+1).padStart(3,"0")}`,
+          file_path: filePath,
+          file_category: fileCategory,
+          category: asArray(item.category),
+          title: item.title || "(no title)",
+          scope: item.scope || "",
+          deleted: asArray(item.deleted),
+          added: asArray(item.added),
+          context: asArray(item.context),
+          keywords: asArray(item.keywords || item.search_keywords),
+          raw: item
+        });
+      });
+    });
+  }
+
+  if(rows.length === 0 && Array.isArray(data?.evidence_items)){
+    data.evidence_items.forEach(item => {
+      rows.push({
+        evidence_id: item.evidence_id || `E${String(rows.length+1).padStart(3,"0")}`,
+        file_path: item.file_path || "",
+        file_category: [],
+        category: asArray(item.category),
+        title: item.title || "(no title)",
+        scope: item.scope || "",
+        deleted: asArray(item.deleted || item.diff_excerpt?.deleted),
+        added: asArray(item.added || item.diff_excerpt?.added),
+        context: asArray(item.context),
+        keywords: asArray(item.keywords || item.search_keywords),
+        raw: item
+      });
+    });
+  }
+  return rows;
+}
+
+function renderFilters(rows){
+  const fileFilter = $("fileFilter");
+  const current = fileFilter.value;
+  const files = [...new Set(rows.map(r => r.file_path).filter(Boolean))].sort();
+  fileFilter.innerHTML = `<option value="">全ファイル</option>` + files.map(f => `<option value="${escapeHtml(f)}">${escapeHtml(f)}</option>`).join("");
+  if(files.includes(current)) fileFilter.value = current;
+
+  const categories = [...new Set(rows.flatMap(r => [...r.file_category, ...r.category]).filter(Boolean))].sort();
+  $("categoryChips").innerHTML = categories.length
+    ? categories.map(c => `<span class="cat ${selectedCategory === c ? "active" : ""}" data-cat="${escapeHtml(c)}">${escapeHtml(c)}</span>`).join("")
+    : `<span class="note">カテゴリなし</span>`;
+
+  document.querySelectorAll(".cat").forEach(el => {
+    el.addEventListener("click", () => {
+      const cat = el.getAttribute("data-cat");
+      selectedCategory = selectedCategory === cat ? "" : cat;
+      renderEvidence();
+    });
+  });
+}
+
+function rowMatches(row, query, file, category, focusIds){
+  if(focusIds.length && !focusIds.includes(row.evidence_id)) return false;
+  if(file && row.file_path !== file) return false;
+  if(category){
+    const cats = [...row.file_category, ...row.category];
+    if(!cats.includes(category)) return false;
+  }
+  if(!query) return true;
+
+  const haystack = [
+    row.evidence_id, row.file_path, ...row.file_category, ...row.category, row.title, row.scope,
+    ...row.deleted, ...row.added, ...row.context, ...row.keywords
+  ].join("\n").toLowerCase();
+
+  return haystack.includes(query.toLowerCase());
+}
+
+function renderEvidence(){
+  renderFilters(evidenceRows);
+
+  const query = $("searchBox").value.trim();
+  const file = $("fileFilter").value;
+  const filtered = evidenceRows.filter(row => rowMatches(row, query, file, selectedCategory, focusedIds));
+
+  $("evidenceStatus").textContent = `${filtered.length} / ${evidenceRows.length}件`;
+
+  const banner = $("focusBanner");
+  if(focusedIds.length){
+    banner.classList.add("active");
+    $("focusText").textContent = `Markdown側の根拠ボタンで絞り込み中: ${focusedIds.join(", ")}`;
+  } else {
+    banner.classList.remove("active");
+  }
+
+  if(!filtered.length){
+    $("evidenceList").innerHTML = `<div class="empty">条件に一致する根拠差分カードはありません。</div>`;
+    return;
+  }
+  $("evidenceList").innerHTML = filtered.map(row => renderEvidenceCard(row)).join("");
+}
+
+function renderEvidenceCard(row){
+  const cats = [...row.file_category, ...row.category];
+  const chips = cats.map(c => `<span class="chip">${escapeHtml(c)}</span>`).join("");
+  const keywords = row.keywords.length
+    ? `<div class="keywords">keywords: ${row.keywords.map(k => `<span class="chip">${escapeHtml(k)}</span>`).join("")}</div>`
+    : "";
+
+  const context = row.context.map(line => `<span class="diff-line ctx">  ${escapeHtml(line)}</span>`).join("");
+  const deleted = row.deleted.map(line => `<span class="diff-line del">- ${escapeHtml(line)}</span>`).join("");
+  const added = row.added.map(line => `<span class="diff-line add">+ ${escapeHtml(line)}</span>`).join("");
+  const diffHtml = (context + deleted + added) || `<span class="diff-line ctx">  差分抜粋なし</span>`;
+  const isFocused = focusedIds.includes(row.evidence_id) ? " focused" : "";
+
+  return `
+    <article class="evidence-card${isFocused}" id="${escapeHtml(row.evidence_id)}">
+      <div class="evidence-header">
+        <div>${chips}</div>
+        <div class="evidence-title">${escapeHtml(row.title)}</div>
+        <div class="file-path">${escapeHtml(row.file_path || "(file pathなし)")}</div>
+        <div class="scope">${escapeHtml(row.evidence_id)}${row.scope ? " / " + escapeHtml(row.scope) : ""}</div>
+      </div>
+      <div class="diff-body">${diffHtml}</div>
+      ${keywords}
+    </article>
+  `;
+}
+
+async function loadMarkdownFile(file){
+  if(!file) return;
+
+  try{
+    const md = await readFileTextWithEncoding(file, $("mdEncoding").value);
+    $("mdPreview").innerHTML = simpleMarkdown(md);
+    $("mdStatus").textContent = file.name;
+    attachEvidenceButtons();
+
+    const blocks = extractJsonBlocks(md);
+    if(!blocks.length){
+      embeddedJson = null; evidenceRows = []; focusedIds = [];
+      $("rawJson").textContent = "Markdown内に json / diff_hypothesis.json ブロックが見つかりませんでした。";
+      $("evidenceList").innerHTML = `<div class="empty">埋め込みJSONが見つかりませんでした。</div>`;
+      $("evidenceStatus").textContent = "0件";
+      renderFilters([]);
+      return;
+    }
+
+    embeddedJson = blocks[0];
+    $("rawJson").textContent = JSON.stringify(embeddedJson, null, 2);
+
+    if(embeddedJson._parse_error){
+      evidenceRows = []; focusedIds = [];
+      $("evidenceList").innerHTML = `<div class="split-note">JSONブロックは見つかりましたが、JSONとしてパースできませんでした: ${escapeHtml(embeddedJson.message)}</div>`;
+      $("evidenceStatus").textContent = "0件";
+      renderFilters([]);
+      return;
+    }
+
+    evidenceRows = normalizeEvidence(embeddedJson);
+    focusedIds = [];
+    renderEvidence();
+  }catch(err){
+    $("mdPreview").innerHTML = `<div class="split-note">AI仮説Markdown の読み込みに失敗しました: ${escapeHtml(err.message)}</div>`;
+    $("evidenceList").innerHTML = `<div class="empty">読み込みエラー</div>`;
+    $("evidenceStatus").textContent = "0件";
+    $("rawJson").textContent = String(err && err.stack ? err.stack : err);
+  }
+}
+
+$("mdFile").addEventListener("change", async (e) => {
+  await loadMarkdownFile(e.target.files[0]);
+});
+
+const dropZone = $("dropZone");
+
+["dragenter","dragover"].forEach(eventName => {
+  dropZone.addEventListener(eventName, (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dropZone.classList.add("dragover");
+  });
+});
+
+["dragleave","drop"].forEach(eventName => {
+  dropZone.addEventListener(eventName, (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dropZone.classList.remove("dragover");
+  });
+});
+
+dropZone.addEventListener("drop", async (e) => {
+  const file = e.dataTransfer && e.dataTransfer.files ? e.dataTransfer.files[0] : null;
+  if(!file) return;
+  await loadMarkdownFile(file);
+});
+
+$("searchBox").addEventListener("input", renderEvidence);
+$("fileFilter").addEventListener("change", renderEvidence);
+
+$("clearFocusBtn").addEventListener("click", () => {
+  focusedIds = [];
+  renderEvidence();
+});
+
+$("clearFiltersBtn").addEventListener("click", () => {
+  $("searchBox").value = "";
+  $("fileFilter").value = "";
+  selectedCategory = "";
+  focusedIds = [];
+  renderEvidence();
+});
+</script>
+</body>
+</html>

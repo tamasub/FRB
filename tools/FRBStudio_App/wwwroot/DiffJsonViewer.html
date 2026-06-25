@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DiffJson Viewer v0.1-draft</title>
+  <style>
+    :root{
+      --bg:#f7f7f8; --panel:#fff; --text:#1f2328; --muted:#667085; --border:#d0d7de;
+      --accent:#2563eb; --add-bg:#e6ffed; --add-text:#116329; --del-bg:#ffebe9; --del-text:#82071e;
+      --ctx-bg:#f8fafc; --meta-bg:#eef2ff; --code-bg:#0f172a; --code-text:#e5e7eb;
+      --warn-bg:#fff7ed; --warn-border:#fdba74; --warn-text:#9a3412;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.5}
+    header{padding:16px 22px;background:#111827;color:#fff}
+    header h1{margin:0;font-size:20px}
+    header p{margin:4px 0 0;color:#cbd5e1;font-size:13px}
+    .toolbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding:12px 18px;background:var(--panel);border-bottom:1px solid var(--border)}
+    .toolbar label{font-size:13px;color:var(--muted)}
+    input[type="file"]{max-width:380px;font-size:13px}
+    input[type="search"],select{font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:9px;background:#fff}
+    button{font-size:12px;border:1px solid var(--border);border-radius:8px;background:#fff;padding:7px 10px;cursor:pointer}
+    button:hover{background:#eff6ff;border-color:#93c5fd}
+    .drop-zone{
+      flex:1; min-width:420px; min-height:52px; border:2px dashed #cbd5e1; border-radius:12px;
+      background:#f8fafc; color:#475569; display:flex; align-items:center; justify-content:center;
+      padding:10px 14px; font-size:13px; transition:.15s ease; user-select:none;
+    }
+    .drop-zone strong{color:#1d4ed8}
+    .drop-zone.dragover{border-color:#fb923c;background:#fff7ed;color:#9a3412;box-shadow:0 0 0 3px rgba(251,146,60,.18)}
+    .layout{display:grid;grid-template-columns:360px minmax(520px,1fr);gap:14px;padding:14px;height:calc(100vh - 112px);min-height:720px}
+    .panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 1px 2px rgba(16,24,40,.04);display:flex;flex-direction:column;min-height:0}
+    .panel h2{margin:0;padding:11px 14px;font-size:15px;border-bottom:1px solid var(--border);background:#fbfbfc;display:flex;justify-content:space-between;gap:8px;align-items:center}
+    .body{padding:14px;overflow:auto;min-height:0}
+    .note{color:var(--muted);font-size:13px}
+    .warn{padding:10px 12px;background:var(--warn-bg);color:var(--warn-text);border:1px solid var(--warn-border);border-radius:10px;font-size:13px;margin-bottom:10px}
+    .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+    .summary-card{border:1px solid var(--border);border-radius:10px;padding:10px 11px;background:#fff}
+    .summary-label{font-size:12px;color:var(--muted)}
+    .summary-value{font-size:20px;font-weight:750;margin-top:4px;color:#475569}
+    .repo-info{font-size:12px;color:#475569;margin:10px 0}
+    .filters{display:grid;grid-template-columns:1fr 120px;gap:8px;margin:10px 0}
+    .file-list{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#fff}
+    .file-item{padding:9px 10px;border-bottom:1px solid var(--border);cursor:pointer}
+    .file-item:last-child{border-bottom:none}
+    .file-item:hover{background:#f8fafc}
+    .file-item.active{background:#eff6ff}
+    .file-row{display:flex;gap:7px;align-items:flex-start}
+    .status{
+      display:inline-flex;align-items:center;justify-content:center;min-width:23px;height:23px;border-radius:999px;
+      font-weight:750;font-size:11px;line-height:1;background:#dbeafe;color:#1d4ed8;flex:0 0 auto;
+    }
+    .status.D{background:#fee2e2;color:#b91c1c}
+    .status.A{background:#dcfce7;color:#15803d}
+    .status.R{background:#fef3c7;color:#92400e}
+    .status.U{background:#f3e8ff;color:#7e22ce}
+    .file-path{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;word-break:break-all}
+    .file-stat{font-size:12px;color:#64748b;margin-top:3px}
+    .main-controls{display:grid;grid-template-columns:1fr 150px 140px auto;gap:8px;margin-bottom:10px}
+    .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+    .chip{display:inline-flex;align-items:center;border-radius:999px;padding:2px 8px;font-size:11px;line-height:1.6;background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe;font-weight:650}
+    .selected-title{font-size:16px;font-weight:800;margin:0 0 4px;word-break:break-all}
+    .selected-meta{font-size:12px;color:#64748b;margin-bottom:10px}
+    .hunk-list{display:flex;flex-direction:column;gap:10px}
+    .hunk-card{border:1px solid var(--border);border-radius:12px;background:#fff;overflow:hidden}
+    .hunk-card.match{border-color:#fb923c;box-shadow:0 0 0 2px rgba(251,146,60,.18)}
+    .hunk-head{padding:9px 12px;background:#fbfbfc;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:8px;align-items:center}
+    .hunk-title{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;color:#334155;word-break:break-all}
+    .hunk-stat{font-size:12px;color:#64748b;white-space:nowrap}
+    .diff-body{padding:10px 12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.55;background:#fff;overflow:auto}
+    .diff-line{display:block;padding:2px 6px;border-radius:4px;margin:1px 0;white-space:pre-wrap;word-break:break-word}
+    .diff-line.add{background:var(--add-bg);color:var(--add-text)}
+    .diff-line.del{background:var(--del-bg);color:var(--del-text)}
+    .diff-line.ctx{background:var(--ctx-bg);color:#475569}
+    .diff-line.meta{background:var(--meta-bg);color:#3730a3}
+    mark{background:#fef08a;color:inherit;padding:0 2px;border-radius:3px}
+    details{margin-top:12px;border:1px solid var(--border);border-radius:10px;background:#fff;overflow:hidden}
+    summary{cursor:pointer;padding:9px 12px;background:#fbfbfc;font-size:13px;font-weight:650}
+    details .details-body{padding:12px}
+    pre{margin:0;white-space:pre-wrap;word-break:break-word;background:var(--code-bg);color:var(--code-text);padding:12px;border-radius:10px;overflow:auto;font-size:12px}
+    .empty{border:1px dashed var(--border);border-radius:12px;padding:18px;text-align:center;color:var(--muted);background:#fff}
+    @media(max-width:980px){
+      .layout{grid-template-columns:1fr;height:auto}
+      .panel{min-height:520px}
+      .main-controls,.filters{grid-template-columns:1fr}
+      .drop-zone{min-width:100%}
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>DiffJson Viewer v0.1-draft</h1>
+  <p>DiffToJson.jsonを読み込み、複数ファイルの差分をファイル一覧・検索・選択ファイル別に確認するローカルViewerです。</p>
+</header>
+
+<div class="toolbar">
+  <div>
+    <label>DiffToJson.json</label><br>
+    <input id="jsonFile" type="file" accept=".json,application/json">
+    <select id="jsonEncoding" title="JSON読み込み文字コード">
+      <option value="utf-8" selected>UTF-8</option>
+      <option value="shift_jis">Shift_JIS</option>
+    </select>
+  </div>
+  <div id="dropZone" class="drop-zone">DiffToJson.jsonをここに <strong>Drop</strong> して読み込み</div>
+</div>
+
+<div class="layout">
+  <aside class="panel">
+    <h2><span>Diff Summary</span><span class="note" id="loadStatus">未読み込み</span></h2>
+    <div class="body">
+      <div id="summaryArea" class="note">DiffToJson.jsonを読み込んでください。</div>
+
+      <div class="filters">
+        <input id="fileSearch" type="search" placeholder="ファイル名検索">
+        <select id="statusFilter">
+          <option value="">全ステータス</option>
+          <option value="M">M: Modified</option>
+          <option value="A">A: Added</option>
+          <option value="D">D: Deleted</option>
+          <option value="R">R: Renamed</option>
+          <option value="U">Untracked</option>
+        </select>
+      </div>
+
+      <div id="fileList" class="file-list"></div>
+    </div>
+  </aside>
+
+  <main class="panel">
+    <h2><span>Difference details</span><span class="note" id="detailStatus">0件</span></h2>
+    <div class="body">
+      <div class="main-controls">
+        <input id="diffSearch" type="search" placeholder="全ファイルの差分本文・ファイル名を検索">
+        <select id="viewMode">
+          <option value="selected">選択ファイルのみ</option>
+          <option value="all">全ファイル一覧</option>
+          <option value="matches">検索一致だけ</option>
+        </select>
+        <select id="lineTypeFilter">
+          <option value="">全行</option>
+          <option value="add">追加行だけ</option>
+          <option value="del">削除行だけ</option>
+          <option value="change">追加/削除だけ</option>
+        </select>
+        <button id="clearSearchBtn">検索解除</button>
+      </div>
+
+      <div id="selectedInfo">
+        <div class="empty">左のファイル一覧から選択してください。</div>
+      </div>
+
+      <div id="hunkList" class="hunk-list" style="margin-top:10px;"></div>
+
+      <details>
+        <summary>Raw DiffToJson.json</summary>
+        <div class="details-body">
+          <pre id="rawJson">未読み込み</pre>
+        </div>
+      </details>
+    </div>
+  </main>
+</div>
+
+<script>
+let diffJson = null;
+let files = [];
+let selectedIndex = -1;
+
+const $ = id => document.getElementById(id);
+
+function escapeHtml(s){
+  return String(s ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+}
+
+function highlight(s, q){
+  const text = escapeHtml(s);
+  if(!q) return text;
+  const safe = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  try{
+    return text.replace(new RegExp(safe, "ig"), m => `<mark>${m}</mark>`);
+  }catch{
+    return text;
+  }
+}
+
+async function readFileTextWithEncoding(file, encoding){
+  const buffer = await file.arrayBuffer();
+  let text;
+  try { text = new TextDecoder(encoding || "utf-8").decode(buffer); }
+  catch(e){ text = new TextDecoder("utf-8").decode(buffer); }
+  if(text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+  return text;
+}
+
+function normalizeFiles(data){
+  const changed = data?.diff_facts?.changed_files || [];
+  const rows = changed.map((f, i) => ({
+    kind:"changed",
+    index:i,
+    path:f.path || "",
+    old_path:f.old_path || "",
+    status:f.status || "",
+    added:Number(f.added || 0),
+    deleted:Number(f.deleted || 0),
+    binary:!!f.binary,
+    patch:f.patch || "",
+    ai_input_notes:f.ai_input_notes || []
+  }));
+
+  const untracked = data?.diff_facts?.untracked_files || [];
+  untracked.forEach((p, i) => {
+    rows.push({
+      kind:"untracked",
+      index:changed.length + i,
+      path:p,
+      old_path:"",
+      status:"U",
+      added:0,
+      deleted:0,
+      binary:false,
+      patch:"",
+      ai_input_notes:[]
+    });
+  });
+
+  return rows;
+}
+
+function statusLabel(status){
+  if(status === "M") return "M";
+  if(status === "D") return "D";
+  if(status === "A") return "A";
+  if(status === "R") return "R";
+  if(status === "U") return "U";
+  return status || "?";
+}
+
+function renderSummary(){
+  if(!diffJson){
+    $("summaryArea").innerHTML = `<div class="note">DiffToJson.jsonを読み込んでください。</div>`;
+    return;
+  }
+
+  const s = diffJson.summary || {};
+  const repo = diffJson.repository || {};
+  const src = diffJson.diff_source || {};
+  const warnings = (diffJson.git_warnings || []).flatMap(w => w.warnings || []);
+  const uniqueWarnings = [...new Set(warnings)];
+
+  $("summaryArea").innerHTML = `
+    ${uniqueWarnings.length ? `<div class="warn">Git warnings: ${uniqueWarnings.length}件<br>${uniqueWarnings.slice(0,3).map(escapeHtml).join("<br>")}${uniqueWarnings.length>3 ? "<br>..." : ""}</div>` : ""}
+    <div class="summary-grid">
+      <div class="summary-card"><div class="summary-label">Files</div><div class="summary-value">${escapeHtml(s.files_changed ?? files.filter(f=>f.kind==="changed").length)}</div></div>
+      <div class="summary-card"><div class="summary-label">Added</div><div class="summary-value">+${escapeHtml(s.total_added ?? sum(files,"added"))}</div></div>
+      <div class="summary-card"><div class="summary-label">Deleted</div><div class="summary-value">-${escapeHtml(s.total_deleted ?? sum(files,"deleted"))}</div></div>
+      <div class="summary-card"><div class="summary-label">Untracked</div><div class="summary-value">${escapeHtml(s.untracked_files_count ?? files.filter(f=>f.kind==="untracked").length)}</div></div>
+    </div>
+    <div class="repo-info">
+      branch: <b>${escapeHtml(repo.branch || "-")}</b><br>
+      head: <b>${escapeHtml(repo.head || "-")}</b><br>
+      mode: <b>${escapeHtml(src.mode || "-")}</b><br>
+      command: <span class="file-path">${escapeHtml(src.command || "-")}</span>
+    </div>
+  `;
+}
+
+function sum(arr, key){ return arr.reduce((a,b)=>a+(Number(b[key]||0)),0); }
+
+function fileMatches(file, q, status){
+  if(status && file.status !== status) return false;
+  if(!q) return true;
+  const hay = [file.path, file.old_path, file.status, file.patch].join("\n").toLowerCase();
+  return hay.includes(q.toLowerCase());
+}
+
+function renderFileList(){
+  const q = $("fileSearch").value.trim();
+  const st = $("statusFilter").value;
+  const filtered = files.filter(f => fileMatches(f, q, st));
+
+  if(!filtered.length){
+    $("fileList").innerHTML = `<div class="empty">一致するファイルはありません。</div>`;
+    return;
+  }
+
+  $("fileList").innerHTML = filtered.map(file => {
+    const active = files.indexOf(file) === selectedIndex ? " active" : "";
+    const s = statusLabel(file.status);
+    const statClass = file.status === "U" ? "U" : s;
+    const path = file.old_path && file.old_path !== file.path
+      ? `${file.old_path} → ${file.path}`
+      : file.path;
+
+    return `
+      <div class="file-item${active}" data-index="${files.indexOf(file)}">
+        <div class="file-row">
+          <span class="status ${escapeHtml(statClass)}">${escapeHtml(s)}</span>
+          <div>
+            <div class="file-path">${escapeHtml(path)}</div>
+            <div class="file-stat">+${file.added} / -${file.deleted}${file.binary ? " / binary" : ""}${file.kind==="untracked" ? " / untracked" : ""}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  document.querySelectorAll(".file-item").forEach(el => {
+    el.addEventListener("click", () => {
+      selectedIndex = Number(el.getAttribute("data-index"));
+      $("viewMode").value = "selected";
+      renderFileList();
+      renderDetail();
+    });
+  });
+}
+
+function parsePatch(patch){
+  if(!patch) return [];
+  const lines = String(patch).split(/\r?\n/);
+  const hunks = [];
+  let current = null;
+  let preamble = [];
+
+  function makeLine(raw){
+    if(raw.startsWith("@@")) return {type:"meta", text:raw};
+    if(raw.startsWith("+++") || raw.startsWith("---") || raw.startsWith("diff --git") || raw.startsWith("index ") || raw.startsWith("new file") || raw.startsWith("deleted file") || raw.startsWith("similarity ") || raw.startsWith("rename ")) {
+      return {type:"meta", text:raw};
+    }
+    if(raw.startsWith("+")) return {type:"add", text:raw.slice(1)};
+    if(raw.startsWith("-")) return {type:"del", text:raw.slice(1)};
+    return {type:"ctx", text:raw.startsWith(" ") ? raw.slice(1) : raw};
+  }
+
+  lines.forEach(raw => {
+    if(raw.startsWith("@@")){
+      current = {header:raw, lines:[makeLine(raw)]};
+      hunks.push(current);
+    } else if(current){
+      current.lines.push(makeLine(raw));
+    } else {
+      preamble.push(makeLine(raw));
+    }
+  });
+
+  if(hunks.length === 0 && preamble.length){
+    hunks.push({header:"file header / no hunks", lines:preamble});
+  } else if(preamble.length && hunks.length){
+    hunks[0].lines = preamble.concat(hunks[0].lines);
+  }
+
+  return hunks.map((h, idx) => {
+    const adds = h.lines.filter(l => l.type === "add").length;
+    const dels = h.lines.filter(l => l.type === "del").length;
+    return {...h, hunkIndex:idx+1, adds, dels};
+  });
+}
+
+function hunkText(file, hunk){
+  return [file.path, file.old_path, file.status, hunk.header, ...hunk.lines.map(l => l.text)].join("\n");
+}
+
+function hunkMatches(file, hunk, query){
+  if(!query) return true;
+  return hunkText(file, hunk).toLowerCase().includes(query.toLowerCase());
+}
+
+function lineTypeMatches(line, filter){
+  if(!filter) return true;
+  if(filter === "add") return line.type === "add";
+  if(filter === "del") return line.type === "del";
+  if(filter === "change") return line.type === "add" || line.type === "del" || line.type === "meta";
+  return true;
+}
+
+function renderDetail(){
+  if(!diffJson){
+    $("selectedInfo").innerHTML = `<div class="empty">DiffToJson.jsonを読み込んでください。</div>`;
+    $("hunkList").innerHTML = "";
+    $("detailStatus").textContent = "0件";
+    return;
+  }
+
+  const query = $("diffSearch").value.trim();
+  const mode = $("viewMode").value;
+
+  let targets = [];
+  if(mode === "selected"){
+    if(selectedIndex < 0 || !files[selectedIndex]){
+      $("selectedInfo").innerHTML = `<div class="empty">左のファイル一覧から選択してください。</div>`;
+      $("hunkList").innerHTML = "";
+      $("detailStatus").textContent = "0件";
+      return;
+    }
+    targets = [files[selectedIndex]];
+  } else {
+    targets = files;
+  }
+
+  const cards = [];
+  targets.forEach(file => {
+    const hunks = parsePatch(file.patch);
+    if(file.kind === "untracked"){
+      cards.push({file, hunk:{header:"untracked file", lines:[{type:"meta", text:"DiffToJson.jsonには未追跡ファイルの内容差分は含まれていません。"}], hunkIndex:1, adds:0, dels:0}, pseudo:true});
+      return;
+    }
+    hunks.forEach(hunk => {
+      if(mode === "matches" && query && !hunkMatches(file, hunk, query)) return;
+      if(mode !== "matches" && query && !hunkMatches(file, hunk, query)) return;
+      cards.push({file, hunk, pseudo:false});
+    });
+  });
+
+  renderSelectedInfo(targets, cards);
+
+  if(!cards.length){
+    $("hunkList").innerHTML = `<div class="empty">表示できる差分はありません。</div>`;
+    $("detailStatus").textContent = "0件";
+    return;
+  }
+
+  $("hunkList").innerHTML = cards.map(c => renderHunkCard(c.file, c.hunk, query)).join("");
+  $("detailStatus").textContent = `${cards.length}件`;
+}
+
+function renderSelectedInfo(targets, cards){
+  const mode = $("viewMode").value;
+  if(mode === "selected" && targets.length === 1){
+    const f = targets[0];
+    const chips = [
+      `<span class="chip">${escapeHtml(statusLabel(f.status))}</span>`,
+      `<span class="chip">+${f.added}</span>`,
+      `<span class="chip">-${f.deleted}</span>`,
+      f.binary ? `<span class="chip">binary</span>` : "",
+      f.kind === "untracked" ? `<span class="chip">untracked</span>` : ""
+    ].filter(Boolean).join("");
+
+    $("selectedInfo").innerHTML = `
+      <div class="selected-title">${escapeHtml(f.path)}</div>
+      <div class="selected-meta">${chips}</div>
+      ${f.old_path ? `<div class="selected-meta">old_path: <span class="file-path">${escapeHtml(f.old_path)}</span></div>` : ""}
+    `;
+  } else {
+    $("selectedInfo").innerHTML = `
+      <div class="selected-title">${mode === "matches" ? "検索一致差分" : "全ファイル差分一覧"}</div>
+      <div class="selected-meta">対象ファイル: ${targets.length}件 / 表示カード: ${cards.length}件</div>
+    `;
+  }
+}
+
+function renderHunkCard(file, hunk, query){
+  const lineFilter = $("lineTypeFilter").value;
+  const lines = hunk.lines.filter(l => lineTypeMatches(l, lineFilter));
+  const body = lines.length
+    ? lines.map(line => `<span class="diff-line ${escapeHtml(line.type)}">${prefix(line.type)} ${highlight(line.text, query)}</span>`).join("")
+    : `<span class="diff-line ctx">  行フィルタ条件に一致する行はありません。</span>`;
+
+  return `
+    <article class="hunk-card ${query && hunkMatches(file,hunk,query) ? "match" : ""}">
+      <div class="hunk-head">
+        <div>
+          <div class="file-path">${escapeHtml(file.path)}</div>
+          <div class="hunk-title">${highlight(hunk.header, query)}</div>
+        </div>
+        <div class="hunk-stat">#${hunk.hunkIndex ?? "-"} / +${hunk.adds ?? 0} / -${hunk.dels ?? 0}</div>
+      </div>
+      <div class="diff-body">${body}</div>
+    </article>
+  `;
+}
+
+function prefix(type){
+  if(type === "add") return "+";
+  if(type === "del") return "-";
+  if(type === "meta") return "";
+  return " ";
+}
+
+async function loadJsonFile(file){
+  if(!file) return;
+  try{
+    const text = await readFileTextWithEncoding(file, $("jsonEncoding").value);
+    diffJson = JSON.parse(text);
+    files = normalizeFiles(diffJson);
+    selectedIndex = files.length ? 0 : -1;
+
+    $("loadStatus").textContent = file.name;
+    $("rawJson").textContent = JSON.stringify(diffJson, null, 2);
+
+    renderSummary();
+    renderFileList();
+    renderDetail();
+  }catch(err){
+    diffJson = null;
+    files = [];
+    selectedIndex = -1;
+    $("loadStatus").textContent = "読み込み失敗";
+    $("summaryArea").innerHTML = `<div class="warn">DiffToJson.json の読み込みに失敗しました: ${escapeHtml(err.message)}</div>`;
+    $("fileList").innerHTML = "";
+    $("selectedInfo").innerHTML = `<div class="empty">読み込みエラー</div>`;
+    $("hunkList").innerHTML = "";
+    $("rawJson").textContent = String(err && err.stack ? err.stack : err);
+  }
+}
+
+$("jsonFile").addEventListener("change", async e => loadJsonFile(e.target.files[0]));
+$("fileSearch").addEventListener("input", renderFileList);
+$("statusFilter").addEventListener("change", renderFileList);
+$("diffSearch").addEventListener("input", renderDetail);
+$("viewMode").addEventListener("change", renderDetail);
+$("lineTypeFilter").addEventListener("change", renderDetail);
+$("clearSearchBtn").addEventListener("click", () => {
+  $("diffSearch").value = "";
+  $("lineTypeFilter").value = "";
+  renderDetail();
+});
+
+const dropZone = $("dropZone");
+["dragenter","dragover"].forEach(name => {
+  dropZone.addEventListener(name, e => {
+    e.preventDefault(); e.stopPropagation();
+    dropZone.classList.add("dragover");
+  });
+});
+["dragleave","drop"].forEach(name => {
+  dropZone.addEventListener(name, e => {
+    e.preventDefault(); e.stopPropagation();
+    dropZone.classList.remove("dragover");
+  });
+});
+dropZone.addEventListener("drop", async e => {
+  const file = e.dataTransfer && e.dataTransfer.files ? e.dataTransfer.files[0] : null;
+  await loadJsonFile(file);
+});
+</script>
+</body>
+</html>

@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>FRB Studio - JSON Object Studio v0.4-r001</title>
-  <link rel="stylesheet" href="styles.css?v=markdown-preview-010" />
+  <link rel="stylesheet" href="styles.css?v=tool-dock-wide-flow-0142" />
   <script>
   (function () {
     if (location.hostname === "localhost" || location.hostname === "127.0.0.1") return;
@@ -15,35 +15,95 @@
   })();
   </script>
   <style>
-  /* Markdown Viewer / Editor への導線ボタン */
+  /* Studio tools: Markdown出力・各Viewerへの導線 */
+  .studio-tool-dock {
+    display: inline-flex;
+    align-items: stretch;
+    gap: 8px;
+    padding: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 18px;
+    background:
+      linear-gradient(135deg, rgba(15, 23, 42, 0.28), rgba(30, 41, 59, 0.12));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    flex-wrap: wrap;
+  }
+  .studio-tool-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.055);
+  }
+  .studio-tool-label {
+    align-self: stretch;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 8px;
+    border-right: 1px solid rgba(255, 255, 255, 0.14);
+    color: rgba(226, 232, 240, 0.72);
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .studio-mini-button,
+  .studio-nav-link {
+    min-height: 40px;
+    border-radius: 13px;
+    white-space: nowrap;
+    line-height: 1.05;
+  }
+  .studio-mini-button {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 2px;
+    min-width: 74px;
+    padding: 7px 11px;
+    text-align: left;
+  }
+  .studio-mini-button .tool-main,
+  .studio-nav-link .nav-main {
+    display: block;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.02em;
+  }
+  .studio-mini-button .tool-sub,
+  .studio-nav-link .nav-sub {
+    display: block;
+    margin-top: 1px;
+    font-size: 9px;
+    font-weight: 800;
+    opacity: 0.70;
+    letter-spacing: 0.03em;
+  }
   .studio-nav-link {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    min-height: 42px;
-    padding: 9px 15px;
-    border: 1px solid rgba(255, 255, 255, 0.36);
-    border-radius: 16px;
+    gap: 7px;
+    padding: 7px 11px;
+    border: 1px solid rgba(255, 255, 255, 0.30);
     color: #ffffff;
     text-decoration: none;
-    font-weight: 900;
-    font-size: 13px;
-    letter-spacing: 0.02em;
     background:
-      radial-gradient(circle at 20% 20%, rgba(255,255,255,0.32), transparent 28%),
-      linear-gradient(135deg, #22c55e 0%, #14b8a6 45%, #2563eb 100%);
+      radial-gradient(circle at 20% 20%, rgba(255,255,255,0.24), transparent 30%),
+      linear-gradient(135deg, #334155 0%, #2563eb 100%);
     box-shadow:
-      0 10px 24px rgba(20, 184, 166, 0.26),
-      inset 0 1px 0 rgba(255, 255, 255, 0.32);
+      0 9px 20px rgba(15, 23, 42, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.24);
     transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
-    white-space: nowrap;
   }
   .studio-nav-link:hover {
     transform: translateY(-1px);
-    filter: brightness(1.05);
+    filter: brightness(1.06);
     box-shadow:
-      0 14px 30px rgba(37, 99, 235, 0.30),
-      inset 0 1px 0 rgba(255, 255, 255, 0.40);
+      0 13px 26px rgba(37, 99, 235, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.34);
   }
   .studio-nav-link:active {
     transform: translateY(1px);
@@ -54,20 +114,36 @@
     display: inline-grid;
     place-items: center;
     border-radius: 10px;
-    background: rgba(255,255,255,0.20);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.28);
-    font-size: 14px;
+    background: rgba(255,255,255,0.18);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.24);
+    font-size: 13px;
   }
-  .studio-nav-link .nav-icon::before {
-    content: "📝";
+  .studio-nav-link.markdown-link {
+    background:
+      radial-gradient(circle at 20% 20%, rgba(255,255,255,0.25), transparent 30%),
+      linear-gradient(135deg, #22c55e 0%, #14b8a6 45%, #2563eb 100%);
   }
-  .studio-nav-link .nav-sub {
-    display: block;
-    margin-top: -2px;
-    font-size: 10px;
-    font-weight: 800;
-    opacity: 0.78;
-    letter-spacing: 0.04em;
+  .studio-nav-link.diff-link {
+    background:
+      radial-gradient(circle at 20% 20%, rgba(255,255,255,0.24), transparent 30%),
+      linear-gradient(135deg, #f97316 0%, #ef4444 48%, #7c3aed 100%);
+  }
+  .studio-nav-link.metadiff-link {
+    background:
+      radial-gradient(circle at 20% 20%, rgba(255,255,255,0.24), transparent 30%),
+      linear-gradient(135deg, #8b5cf6 0%, #2563eb 50%, #0f766e 100%);
+  }
+  @media (max-width: 920px) {
+    .studio-tool-dock,
+    .studio-tool-group {
+      width: 100%;
+    }
+    .studio-tool-group {
+      flex-wrap: wrap;
+    }
+    .studio-tool-label {
+      min-height: 34px;
+    }
   }
   </style>
 </head>
@@ -107,12 +183,37 @@
       </label>
       <button id="loadBtn" class="primary-button">読み込み</button>
       <button id="saveBtn" class="ghost-button" disabled>保存</button>
-      <button id="exportMarkdownBtn" class="ghost-button" disabled>Markdown出力→Viewer</button>
-      <button id="exportViewDefMarkdownBtn" class="ghost-button" disabled>ViewDef Markdown→Viewer</button>
-      <a class="studio-nav-link" href="mdViewer.html" title="Markdown Viewer / Editor を開く">
-        <span class="nav-icon"></span>
-        <span>Markdown<span class="nav-sub">Viewer / Editor</span></span>
-      </a>
+      <div class="studio-tool-dock studio-viewer-dock" aria-label="Viewerリンク">
+        <div class="studio-tool-group" aria-label="Viewerリンク">
+          <span class="studio-tool-label">Viewer</span>
+          <a class="studio-nav-link markdown-link" href="mdViewer.html" title="Markdown Viewer / Editor を開く">
+            <span class="nav-icon">📝</span>
+            <span><span class="nav-main">Markdown</span><span class="nav-sub">Viewer</span></span>
+          </a>
+          <a class="studio-nav-link diff-link" href="DiffJsonViewer.html" title="DiffJson Viewer を開く">
+            <span class="nav-icon">Δ</span>
+            <span><span class="nav-main">DiffJSON</span><span class="nav-sub">差分Viewer</span></span>
+          </a>
+          <a class="studio-nav-link metadiff-link" href="MetaDiff_HypothesisViewer.html" title="MetaDiff Hypothesis Viewer を開く">
+            <span class="nav-icon">🧠</span>
+            <span><span class="nav-main">MetaDiff</span><span class="nav-sub">AI差分仮説</span></span>
+          </a>
+        </div>
+      </div>
+      <span class="studio-row-break" aria-hidden="true"></span>
+      <div class="studio-tool-dock studio-output-dock" aria-label="Markdown出力">
+        <div class="studio-tool-group" aria-label="Markdown出力">
+          <span class="studio-tool-label">Output</span>
+          <button id="exportMarkdownBtn" class="ghost-button studio-mini-button" disabled title="Markdownを出力してViewerで開く">
+            <span class="tool-main">MD</span>
+            <span class="tool-sub">出力→Viewer</span>
+          </button>
+          <button id="exportViewDefMarkdownBtn" class="ghost-button studio-mini-button" disabled title="ViewDef Markdownを出力してViewerで開く">
+            <span class="tool-main">ViewDef</span>
+            <span class="tool-sub">出力→Viewer</span>
+          </button>
+        </div>
+      </div>
       <span id="status" class="status">未読み込み</span>
     </section>
   </header>
