@@ -1316,9 +1316,62 @@
       }
     }
 
+
+    /* mdViewer v0.13.8.1: workplace-safe dialog/empty-doc refinements */
+    body[data-mode="editor"] #preview [data-md-block-id]::after,
+    body[data-mode="editor"] #preview [data-md-block-id]:hover::after,
+    body[data-mode="editor"] #preview .md-current-block[data-md-block-id]::after {
+      display: none !important;
+      content: "" !important;
+    }
+    body.md-debug-md-blocks[data-mode="editor"] #preview [data-md-block-id]:hover::after,
+    body.md-debug-md-blocks[data-mode="editor"] #preview .md-current-block[data-md-block-id]::after {
+      content: attr(data-md-block-type) " / " attr(data-md-block-id);
+      display: inline-block !important;
+    }
+    #blockModelMeta { display: none !important; }
+    body.md-debug-md-blocks #blockModelMeta { display: block !important; }
+    .md-empty-document-placeholder {
+      margin: 18px 0;
+      padding: 18px 20px;
+      border: 1.5px dashed rgba(63,124,255,.28);
+      border-radius: 16px;
+      background: rgba(63,124,255,.045);
+      color: var(--muted);
+      font-weight: 800;
+      line-height: 1.7;
+      cursor: text;
+    }
+    body[data-mode="editor"] #preview .md-empty-document-placeholder[data-md-line] {
+      outline: 1.5px dashed rgba(63,124,255,.30);
+      outline-offset: 3px;
+    }
+    body[data-mode="editor"] #preview .md-empty-document-placeholder[data-md-line]:hover,
+    body[data-mode="editor"] #preview .md-empty-document-placeholder.md-current-block {
+      background: rgba(63,124,255,.075);
+      box-shadow: 0 0 0 3px rgba(63,124,255,.06);
+    }
+    .md-sentence-insert-editor {
+      width: min(680px, calc(100vw - 24px));
+      border-color: rgba(85,197,0,.28);
+    }
+    .md-sentence-insert-editor textarea {
+      min-height: 150px;
+      max-height: min(48vh, 460px);
+      font-size: 13.5px;
+      line-height: 1.6;
+      white-space: pre;
+      overflow: auto;
+      tab-size: 2;
+    }
+    body.md-sentence-insert-editing .md-block-inline-actions {
+      display: none !important;
+    }
+    #btnInsertTable { display: none !important; }
+
   </style>
 </head>
-<body data-mode="viewer">
+<body data-mode="editor">
   <div class="app">
     <header class="topbar">
       <div class="brand">
@@ -1332,8 +1385,8 @@
         <div class="module-nav-frame">
 
           <div class="control-group view-flow">
-          <button id="btnViewerMode" class="ghost-btn mode-active compact-text-btn">Viewer</button>
-          <button id="btnEditorMode" class="ghost-btn compact-text-btn">Editor</button>
+          <button id="btnViewerMode" class="ghost-btn compact-text-btn">Viewer</button>
+          <button id="btnEditorMode" class="ghost-btn mode-active compact-text-btn">Editor</button>
 
           <div class="control-group view-flow">
             <select id="themeSelect" title="表示テーマ">
@@ -1410,7 +1463,7 @@
 
       <section class="edit-container side-card edit-card">
         <div class="editor-wrap">
-          <textarea id="editor" placeholder="# ここにAIの回答や生のテキストを叩き込め！&#10;&#10;行頭で / を入力すると、Code / Table を挿入できます。"></textarea>
+          <textarea id="editor" placeholder="# ここにAIの回答や生のテキストを叩き込め！&#10;&#10;行頭で / を入力すると、Code block を挿入できます。"></textarea>
           <div id="slashMenu" class="slash-menu" role="listbox" aria-label="Markdown insert menu"></div>
         </div>
         <div class="edit-tools">
@@ -1504,6 +1557,12 @@ let mdRawBlockRuntime = {
   panel: null,
   targetBlock: null,
   targetInfo: null
+};
+let mdSentenceInsertRuntime = {
+  panel: null,
+  targetBlock: null,
+  targetInfo: null,
+  position: "after"
 };
 let mdCommentSidecarRuntime = {
   schemaVersion: "md_comment_sidecar_v0_1",
@@ -1791,6 +1850,16 @@ function parseMarkdownBlocks(rawMd) {
   const raw = String(rawMd || "");
   const lines = raw.split(/\r?\n/);
   const blocks = [];
+  if (!raw.trim()) {
+    addMarkdownBlock(blocks, [""], "empty_document", 0, 0, {
+      block_id: "mdblk_empty_document_1",
+      kind: "p",
+      source: "",
+      text: "",
+      renderable: true
+    });
+    return blocks;
+  }
   let i = 0;
 
   if (lines[0]?.trim() === "---") {
@@ -2060,6 +2129,27 @@ function annotatePreviewBlocks(rawMd) {
       el.title = `${a.block.block_id} / ${a.block.type} / L${a.block.start_line}-${a.block.end_line}`;
     }
   });
+  if (!anchors.length) {
+    const empty = previewEl.querySelector(".md-empty-document-placeholder");
+    if (empty) {
+      empty.dataset.mdLine = "1";
+      empty.dataset.mdEndLine = "1";
+      empty.dataset.mdBlockId = "mdblk_empty_document_1";
+      empty.dataset.mdBlockType = "empty_document";
+      const emptyInfo = {
+        block_id: "mdblk_empty_document_1",
+        type: "empty_document",
+        kind: "p",
+        start_line: 1,
+        end_line: 1,
+        source: "",
+        text: "",
+        renderable: true
+      };
+      markdownBlockModelRuntime.blocks = [emptyInfo];
+      markdownBlockModelRuntime.byId = new Map([[emptyInfo.block_id, emptyInfo]]);
+    }
+  }
   updateBlockModelMeta();
 }
 function annotateMarkdownTableCells() {
@@ -2139,6 +2229,136 @@ function updateMarkdownTableCell(rawMd, info, newValue) {
   lines[idx] = buildMarkdownTableRow(cells);
   return lines.join("\n");
 }
+
+function getMarkdownFloatingTopMin() {
+  const topbar = document.querySelector(".topbar");
+  if (!topbar) return 8;
+  const rect = topbar.getBoundingClientRect();
+  return Math.max(8, Math.ceil(rect.bottom + 8));
+}
+function clampMarkdownFloatingTop(top, height = 0, asCenter = false) {
+  const minTop = getMarkdownFloatingTopMin() + (asCenter ? height / 2 : 0);
+  const maxTop = window.innerHeight - (asCenter ? height / 2 : height) - 8;
+  return Math.min(Math.max(minTop, top), Math.max(minTop, maxTop));
+}
+function getTextareaCurrentLineInfo(textarea) {
+  const value = String(textarea?.value || "");
+  const pos = Number(textarea?.selectionStart || 0);
+  const lineStart = value.lastIndexOf("\n", Math.max(0, pos - 1)) + 1;
+  const lineEndIdx = value.indexOf("\n", pos);
+  const lineEnd = lineEndIdx === -1 ? value.length : lineEndIdx;
+  return {
+    value,
+    pos,
+    lineStart,
+    lineEnd,
+    line: value.slice(lineStart, lineEnd),
+    beforeCaret: value.slice(lineStart, pos)
+  };
+}
+function isMarkdownDialogSlashCodeLine(textarea) {
+  if (!textarea || textarea.dataset.mdSlashCode !== "1") return false;
+  const info = getTextareaCurrentLineInfo(textarea);
+  return /^\s*\/\s*$/.test(info.line) && /^\s*\/\s*$/.test(info.beforeCaret);
+}
+function applyMarkdownDialogSlashCodeBlock(textarea) {
+  if (!isMarkdownDialogSlashCodeLine(textarea)) return false;
+  const info = getTextareaCurrentLineInfo(textarea);
+  const insertion = "```\n\n```";
+  textarea.value = info.value.slice(0, info.lineStart) + insertion + info.value.slice(info.lineEnd);
+  const cursor = info.lineStart + 4;
+  textarea.setSelectionRange(cursor, cursor);
+  return true;
+}
+function stopMarkdownDialogEvent(e) {
+  // v0.13.8.3: Raw/Sentence dialog内では、行頭「/」をCode block挿入ショートカットとして扱う。
+  // panel側のcaptureでinputを止めているため、ここで直接処理する。
+  if (e.type === "input" && e.target?.matches?.('textarea[data-md-slash-code="1"]')) {
+    if ((e.data === "/" || e.inputType === "insertText") && isMarkdownDialogSlashCodeLine(e.target)) {
+      applyMarkdownDialogSlashCodeBlock(e.target);
+    }
+  }
+  e.stopPropagation();
+}
+function wireMarkdownDialogPanel(panel, applyFn, cancelFn) {
+  if (!panel || panel.dataset.mdDialogWired === "1") return;
+  panel.dataset.mdDialogWired = "1";
+  ["pointerdown", "mousedown", "mouseup", "paste", "beforeinput", "input"].forEach(type => {
+    panel.addEventListener(type, stopMarkdownDialogEvent, true);
+  });
+  const runDialogAction = (action) => {
+    if (action === "apply") applyFn();
+    else cancelFn();
+  };
+  ["pointerdown", "click"].forEach(type => {
+    panel.addEventListener(type, e => {
+      const btn = e.target.closest("button[data-action]");
+      if (!btn || !panel.contains(btn)) {
+        e.stopPropagation();
+        return;
+      }
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      if (type === "pointerdown") {
+        runDialogAction(btn.dataset.action);
+      }
+    }, true);
+  });
+  panel.addEventListener("keydown", e => {
+    if ((e.key === "Enter" || e.key === "Tab") && e.target?.matches?.('textarea[data-md-slash-code="1"]')) {
+      if (applyMarkdownDialogSlashCodeBlock(e.target)) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return;
+      }
+    }
+    if (e.key === "Escape" || e.key === "Esc") {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      cancelFn();
+      return;
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      applyFn();
+    }
+  }, true);
+}
+function hideAllMarkdownEditDialogs() {
+  hideMarkdownTableCellEditor();
+  hideMarkdownRawBlockEditor();
+  hideMarkdownSentenceInsertEditor();
+}
+function isAnyMarkdownDialogOpen() {
+  return !!(
+    (mdTableCellRuntime.panel && mdTableCellRuntime.panel.classList.contains("show")) ||
+    (mdRawBlockRuntime.panel && mdRawBlockRuntime.panel.classList.contains("show")) ||
+    (mdSentenceInsertRuntime.panel && mdSentenceInsertRuntime.panel.classList.contains("show"))
+  );
+}
+if (!window.__mdViewerDialogEscapeCaptureV01382) {
+  window.__mdViewerDialogEscapeCaptureV01382 = true;
+  window.addEventListener("keydown", (e) => {
+    if ((e.key === "Escape" || e.key === "Esc") && isAnyMarkdownDialogOpen()) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      hideAllMarkdownEditDialogs();
+    }
+  }, true);
+}
+function repositionMarkdownOpenDialogs() {
+  if (mdTableCellRuntime.panel?.classList.contains("show") && mdTableCellRuntime.targetCell) {
+    positionMarkdownTableCellEditor(mdTableCellRuntime.targetCell, mdTableCellRuntime.panel);
+  }
+  if (mdRawBlockRuntime.panel?.classList.contains("show") && mdRawBlockRuntime.targetBlock) {
+    positionMarkdownRawBlockEditor(mdRawBlockRuntime.targetBlock, mdRawBlockRuntime.panel);
+  }
+  if (mdSentenceInsertRuntime.panel?.classList.contains("show") && mdSentenceInsertRuntime.targetBlock) {
+    positionMarkdownSentenceInsertEditor(mdSentenceInsertRuntime.targetBlock, mdSentenceInsertRuntime.panel);
+  }
+}
+
 function ensureMarkdownTableCellEditor() {
   if (mdTableCellRuntime.panel) return mdTableCellRuntime.panel;
   const panel = document.createElement("div");
@@ -2156,6 +2376,7 @@ function ensureMarkdownTableCellEditor() {
     <div class="md-table-cell-editor-note">Ctrl+Enterで反映。改行は &lt;br&gt;、| は \| にしてMarkdown表へ再生成します。</div>
   `;
   document.body.appendChild(panel);
+  wireMarkdownDialogPanel(panel, applyMarkdownTableCellEdit, hideMarkdownTableCellEditor);
   panel.addEventListener("mousedown", e => e.stopPropagation());
   panel.addEventListener("click", e => {
     const btn = e.target.closest("button[data-action]");
@@ -2188,12 +2409,13 @@ function positionMarkdownTableCellEditor(cell, panel) {
   const left = Math.min(Math.max(8, preferredLeft), window.innerWidth - panelRect.width - 8);
   const belowTop = rect.bottom + 8;
   const aboveTop = rect.top - panelRect.height - 8;
-  const top = belowTop + panelRect.height < window.innerHeight - 8 ? belowTop : Math.max(8, aboveTop);
+  const topCandidate = belowTop + panelRect.height < window.innerHeight - 8 ? belowTop : Math.max(8, aboveTop);
+  const top = clampMarkdownFloatingTop(topCandidate, panelRect.height, false);
   panel.style.left = `${left}px`;
   panel.style.top = `${top}px`;
 }
 function showMarkdownTableCellEditor(cell) {
-  if (!cell || getMode() !== "editor" || markdownEditorRuntime.editing || launchMarkdownRuntime.readonly) return;
+  if (!cell || getMode() !== "editor" || markdownEditorRuntime.editing || isAnyMarkdownDialogOpen() || launchMarkdownRuntime.readonly) return;
   const info = getMarkdownTableCellInfo(cell);
   if (!info) return;
   hideMdBlockActionMenu();
@@ -2275,14 +2497,15 @@ function ensureMarkdownRawBlockEditor() {
   panel.setAttribute("aria-label", "Markdown Raw Block Editor");
   panel.innerHTML = `
     <div class="md-table-cell-editor-title">✏ Raw Markdown編集 <span data-role="meta"></span></div>
-    <textarea data-role="value" spellcheck="false"></textarea>
+    <textarea data-role="value" data-md-slash-code="1" spellcheck="false"></textarea>
     <div class="md-table-cell-editor-actions">
       <button type="button" data-action="cancel">キャンセル</button>
       <button type="button" data-action="apply">反映</button>
     </div>
-    <div class="md-table-cell-editor-note">Ctrl+Enterで反映。# / - / &gt; / \`\`\` などのMarkdown記号を隠さず、このBlockのRaw Markdown断片をそのまま置換します。</div>
+    <div class="md-table-cell-editor-note">Ctrl+Enterで反映。行頭で / を入力するとCode blockを挿入します。# / - / &gt; / \`\`\` などのMarkdown記号を隠さず、このBlockのRaw Markdown断片をそのまま置換します。</div>
   `;
   document.body.appendChild(panel);
+  wireMarkdownDialogPanel(panel, applyMarkdownRawBlockEdit, hideMarkdownRawBlockEditor);
   panel.addEventListener("mousedown", e => e.stopPropagation());
   panel.addEventListener("click", e => {
     const btn = e.target.closest("button[data-action]");
@@ -2315,7 +2538,8 @@ function positionMarkdownRawBlockEditor(block, panel) {
   const left = Math.min(Math.max(8, preferredLeft), window.innerWidth - panelRect.width - 8);
   const belowTop = rect.bottom + 8;
   const aboveTop = rect.top - panelRect.height - 8;
-  const top = belowTop + panelRect.height < window.innerHeight - 8 ? belowTop : Math.max(8, aboveTop);
+  const topCandidate = belowTop + panelRect.height < window.innerHeight - 8 ? belowTop : Math.max(8, aboveTop);
+  const top = clampMarkdownFloatingTop(topCandidate, panelRect.height, false);
   panel.style.left = `${left}px`;
   panel.style.top = `${top}px`;
 }
@@ -2326,6 +2550,7 @@ function showMarkdownRawBlockEditor(block) {
   hideMdBlockActionMenu();
   hideMdBlockInlineActions();
   hideMarkdownTableCellEditor();
+  hideMarkdownSentenceInsertEditor();
   setCurrentMarkdownBlockElement(block);
   const panel = ensureMarkdownRawBlockEditor();
   mdRawBlockRuntime.targetBlock = block;
@@ -2357,9 +2582,13 @@ function applyMarkdownRawBlockEdit() {
     if (!confirm("空のRaw Markdownで置換すると、このBlockは実質的に消えます。反映しますか？")) return;
   }
   captureMarkdownMutationBackup("edit_raw_block", info);
-  editorEl.value = updateMarkdownRawBlockRange(editorEl.value, info, newSource);
+  if (info.type === "empty_document" || !String(editorEl.value || "").trim()) {
+    editorEl.value = String(newSource || "");
+  } else {
+    editorEl.value = updateMarkdownRawBlockRange(editorEl.value, info, newSource);
+  }
   hideMarkdownRawBlockEditor();
-  renderAfterMarkdownBlockMutation(info.start_line, "Raw Markdown Block Updated");
+  renderAfterMarkdownBlockMutation(info.start_line || 1, info.type === "empty_document" ? "Raw Markdown First Line Inserted" : "Raw Markdown Block Updated");
 }
 
 function anchorFromPreviewBlock(block) {
@@ -2928,25 +3157,101 @@ function renderAfterMarkdownBlockMutation(restoreLine, sourceLabel) {
   markdownEditorRuntime.pendingPreviewRestoreAnchor = markdownEditorRuntime.lastActiveAnchor;
   renderMarkdown(editorEl.value, "#", sourceLabel || "SentenceBlock Updated");
 }
-function insertSentenceAroundBlock(block, position) {
+function positionMarkdownSentenceInsertEditor(block, panel) {
+  const rect = block.getBoundingClientRect();
+  panel.style.left = "0px";
+  panel.style.top = "0px";
+  panel.classList.add("show");
+  const panelRect = panel.getBoundingClientRect();
+  const preferredLeft = rect.left + Math.min(24, Math.max(0, rect.width - panelRect.width));
+  const left = Math.min(Math.max(8, preferredLeft), window.innerWidth - panelRect.width - 8);
+  const belowTop = rect.bottom + 8;
+  const aboveTop = rect.top - panelRect.height - 8;
+  const topCandidate = belowTop + panelRect.height < window.innerHeight - 8 ? belowTop : Math.max(8, aboveTop);
+  const top = clampMarkdownFloatingTop(topCandidate, panelRect.height, false);
+  panel.style.left = `${left}px`;
+  panel.style.top = `${top}px`;
+}
+function ensureMarkdownSentenceInsertEditor() {
+  if (mdSentenceInsertRuntime.panel) return mdSentenceInsertRuntime.panel;
+  const panel = document.createElement("div");
+  panel.id = "mdSentenceInsertEditor";
+  panel.className = "md-table-cell-editor md-raw-block-editor md-sentence-insert-editor";
+  panel.setAttribute("role", "dialog");
+  panel.setAttribute("aria-label", "Markdown Sentence Insert Editor");
+  panel.innerHTML = `
+    <div class="md-table-cell-editor-title">＋ Sentence挿入 <span data-role="meta"></span></div>
+    <textarea data-role="value" data-md-slash-code="1" spellcheck="false"></textarea>
+    <div class="md-table-cell-editor-actions">
+      <button type="button" data-action="cancel">キャンセル</button>
+      <button type="button" data-action="apply">挿入</button>
+    </div>
+    <div class="md-table-cell-editor-note">Ctrl+Enterで挿入。行頭で / を入力するとCode blockを挿入します。貼り付けでは閉じません。複数行Markdownをそのまま挿入できます。</div>
+  `;
+  document.body.appendChild(panel);
+  wireMarkdownDialogPanel(panel, applyMarkdownSentenceInsertEdit, hideMarkdownSentenceInsertEditor);
+  mdSentenceInsertRuntime.panel = panel;
+  return panel;
+}
+function showMarkdownSentenceInsertEditor(block, position) {
   if (!block || launchMarkdownRuntime.readonly) return;
   const info = getMarkdownBlockInfoFromPreview(block);
   if (!info) return;
-  const label = position === "before" ? "上に挿入" : "下に挿入";
-  const defaultText = defaultSentenceInsertText(info, position);
-  const text = prompt(`SentenceBlockを${label}`, defaultText);
-  if (text === null) return;
-  const insertText = String(text || "").trimEnd();
+  hideMdBlockActionMenu();
+  hideMdBlockInlineActions();
+  hideMarkdownTableCellEditor();
+  hideMarkdownRawBlockEditor();
+  setCurrentMarkdownBlockElement(block);
+  const panel = ensureMarkdownSentenceInsertEditor();
+  mdSentenceInsertRuntime.targetBlock = block;
+  mdSentenceInsertRuntime.targetInfo = info;
+  mdSentenceInsertRuntime.position = position === "before" ? "before" : "after";
+  const label = info.type === "empty_document" ? "最初の行" : (mdSentenceInsertRuntime.position === "before" ? "上に挿入" : "下に挿入");
+  panel.querySelector('[data-role="meta"]').textContent = `${label} / ${info.block_id || "block"} / L${info.start_line}-${info.end_line}`;
+  const textarea = panel.querySelector('textarea[data-role="value"]');
+  textarea.value = defaultSentenceInsertText(info, mdSentenceInsertRuntime.position);
+  document.body.classList.add("md-sentence-insert-editing");
+  positionMarkdownSentenceInsertEditor(block, panel);
+  requestAnimationFrame(() => {
+    textarea.focus({ preventScroll: true });
+    textarea.select();
+  });
+}
+function hideMarkdownSentenceInsertEditor() {
+  const panel = mdSentenceInsertRuntime.panel;
+  if (panel) panel.classList.remove("show");
+  document.body.classList.remove("md-sentence-insert-editing");
+  mdSentenceInsertRuntime.targetBlock = null;
+  mdSentenceInsertRuntime.targetInfo = null;
+}
+function applyMarkdownSentenceInsertEdit() {
+  const panel = mdSentenceInsertRuntime.panel;
+  const info = mdSentenceInsertRuntime.targetInfo;
+  if (!panel || !info || launchMarkdownRuntime.readonly) return;
+  const textarea = panel.querySelector('textarea[data-role="value"]');
+  const insertText = String(textarea ? textarea.value : "").trimEnd();
   if (!insertText.trim()) return;
+  const position = mdSentenceInsertRuntime.position === "before" ? "before" : "after";
   const compact = isCompactListInsertion(info, insertText);
   captureMarkdownMutationBackup(position === "before" ? "insert_before" : "insert_after", info);
+  if (info.type === "empty_document" || !String(editorEl.value || "").trim()) {
+    editorEl.value = insertText;
+    hideMarkdownSentenceInsertEditor();
+    renderAfterMarkdownBlockMutation(1, "SentenceBlock Insert First");
+    return;
+  }
   if (position === "before") {
     editorEl.value = insertMarkdownBeforeLine(editorEl.value, info.start_line, insertText, { compact });
+    hideMarkdownSentenceInsertEditor();
     renderAfterMarkdownBlockMutation(info.start_line, "SentenceBlock Insert Before");
   } else {
     editorEl.value = insertMarkdownAfterLineSmart(editorEl.value, info.end_line, insertText, { compact });
+    hideMarkdownSentenceInsertEditor();
     renderAfterMarkdownBlockMutation(info.end_line + 1, "SentenceBlock Insert After");
   }
+}
+function insertSentenceAroundBlock(block, position) {
+  showMarkdownSentenceInsertEditor(block, position);
 }
 function deleteSentenceBlock(block) {
   if (!block || launchMarkdownRuntime.readonly) return;
@@ -3116,7 +3421,7 @@ function showMdBlockActionMenu(x, y, block, targetCell = null) {
   menu.classList.add("show");
   const rect = menu.getBoundingClientRect();
   const left = Math.min(Math.max(8, x), window.innerWidth - rect.width - 8);
-  const top = Math.min(Math.max(8, y), window.innerHeight - rect.height - 8);
+  const top = clampMarkdownFloatingTop(y, rect.height, false);
   menu.style.left = `${left}px`;
   menu.style.top = `${top}px`;
 }
@@ -3183,12 +3488,12 @@ function positionMdBlockInlineActions(block) {
   );
 
   const centerY = blockRect.top + Math.max(14, Math.min(blockRect.height / 2, 26));
-  const top = Math.min(Math.max(barRect.height / 2 + 8, centerY), window.innerHeight - barRect.height / 2 - 8);
+  const top = clampMarkdownFloatingTop(centerY, barRect.height, true);
   bar.style.left = `${left}px`;
   bar.style.top = `${top}px`;
 }
 function showMdBlockInlineActions(block) {
-  if (!block || getMode() !== "editor" || markdownEditorRuntime.editing || launchMarkdownRuntime.readonly) {
+  if (!block || getMode() !== "editor" || markdownEditorRuntime.editing || isAnyMarkdownDialogOpen() || launchMarkdownRuntime.readonly) {
     hideMdBlockInlineActions();
     return;
   }
@@ -3301,13 +3606,20 @@ document.addEventListener("click", (e) => {
   hideMdBlockActionMenu();
 });
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") { hideMdBlockActionMenu(); hideMdBlockInlineActions(); hideMarkdownTableCellEditor(); hideMarkdownRawBlockEditor(); }
+  if (e.key === "Escape") { hideMdBlockActionMenu(); hideMdBlockInlineActions(); hideAllMarkdownEditDialogs(); }
 });
-window.addEventListener("scroll", () => { hideMdBlockActionMenu(); hideMarkdownTableCellEditor(); hideMarkdownRawBlockEditor(); repositionMdBlockInlineActions(); }, true);
-window.addEventListener("resize", () => { hideMdBlockActionMenu(); hideMarkdownTableCellEditor(); hideMarkdownRawBlockEditor(); repositionMdBlockInlineActions(); });
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && isAnyMarkdownDialogOpen()) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    hideAllMarkdownEditDialogs();
+  }
+}, true);
+window.addEventListener("scroll", () => { hideMdBlockActionMenu(); repositionMarkdownOpenDialogs(); repositionMdBlockInlineActions(); }, true);
+window.addEventListener("resize", () => { hideMdBlockActionMenu(); repositionMarkdownOpenDialogs(); repositionMdBlockInlineActions(); });
 
 previewEl.addEventListener("mousemove", (e) => {
-  if (getMode() !== "editor" || markdownEditorRuntime.editing || isMarkdownRawBlockEditorOpen() || launchMarkdownRuntime.readonly) return;
+  if (getMode() !== "editor" || markdownEditorRuntime.editing || isAnyMarkdownDialogOpen() || launchMarkdownRuntime.readonly) return;
   if (isPointerInsideMdBlockInlineActionsTarget(e.target)) return;
   const block = e.target.closest("[data-md-line]");
   if (!block || !previewEl.contains(block)) return;
@@ -3320,7 +3632,7 @@ previewEl.addEventListener("mousemove", (e) => {
 
 previewEl.addEventListener("click", (e) => {
   hideMdBlockActionMenu();
-  if (getMode() !== "editor" || markdownEditorRuntime.editing || isMarkdownRawBlockEditorOpen()) return;
+  if (getMode() !== "editor" || markdownEditorRuntime.editing || isAnyMarkdownDialogOpen()) return;
   const cell = e.target.closest("td[data-md-cell-id],th[data-md-cell-id]");
   if (cell && previewEl.contains(cell)) {
     e.preventDefault();
@@ -3352,14 +3664,6 @@ const slashCommands = [
     title: "Code block",
     desc: "``` で囲んだコードブロックを挿入",
     make: () => "```\n\n```"
-  },
-  {
-    key: "table",
-    aliases: ["table", "テーブル", "表"],
-    icon: "▦",
-    title: "Table",
-    desc: "Markdownテーブルを挿入",
-    make: () => "| 項目 | 内容 |\n|---|---|\n|  |  |"
   }
 ];
 let slashState = { open: false, start: -1, query: "", active: 0 };
@@ -3391,17 +3695,21 @@ function showSlashMenu(query = "") {
   slashState.open = true;
   slashState.query = query;
   slashState.active = Math.min(slashState.active, matches.length - 1);
-  slashMenu.innerHTML = `<div class="slash-hint">/ でMarkdown部品を挿入　↑↓ Enter / Esc</div>` + matches.map((cmd, i) => `
+  slashMenu.innerHTML = `<div class="slash-hint">/ でCode blockを挿入　↑↓ Enter / Esc</div>` + matches.map((cmd, i) => `
     <button type="button" class="slash-item ${i === slashState.active ? "active" : ""}" data-key="${cmd.key}" role="option" aria-selected="${i === slashState.active}">
       <span class="slash-icon">${cmd.icon}</span>
       <span><div class="slash-title">${cmd.title}</div><div class="slash-desc">${cmd.desc}</div></span>
     </button>
   `).join("");
   slashMenu.querySelectorAll(".slash-item").forEach(btn => {
-    btn.addEventListener("mousedown", e => {
+    const pick = e => {
       e.preventDefault();
+      e.stopImmediatePropagation();
       applySlashCommand(btn.dataset.key);
-    });
+    };
+    btn.addEventListener("pointerdown", pick, true);
+    btn.addEventListener("mousedown", pick, true);
+    btn.addEventListener("click", pick, true);
   });
   positionSlashMenu();
   slashMenu.classList.add("show");
@@ -3505,6 +3813,15 @@ editorEl.addEventListener("keydown", (e) => {
     toggleBoldSelection();
     return;
   }
+  if (!slashState.open && (e.key === "Enter" || e.key === "Tab")) {
+    const info = getCurrentLineInfo();
+    if (/^\s*\/\s*$/.test(info.beforeCaret) && /^\s*\/\s*$/.test(info.line)) {
+      e.preventDefault();
+      slashState.query = "";
+      applySlashCommand("code");
+      return;
+    }
+  }
   if (!slashState.open) return;
   const matches = getSlashMatches(slashState.query);
   if (e.key === "ArrowDown") {
@@ -3525,7 +3842,7 @@ editorEl.addEventListener("keydown", (e) => {
 });
 
 document.getElementById("btnInsertCode").addEventListener("click", () => insertAtCursor("```js\n// code here\n```\n", 6, 18));
-document.getElementById("btnInsertTable").addEventListener("click", () => insertAtCursor("| 項目 | 内容 |\n|---|---|\n|  |  |\n"));
+document.getElementById("btnInsertTable")?.addEventListener("click", () => alert("Table挿入は v0.13.8 では対応しません。"));
 
 // エディター入力連動
 editorEl.addEventListener("input", () => {
@@ -3712,7 +4029,10 @@ function renderMarkdown(rawMd, sourceUrl, sourceLabel){
     
     const constraintReport = isConstraintReportMarkdown(content);
     const renderContent = constraintReport ? content : normalizePseudoJapaneseLists(content);
-    const html = marked.parse(preprocessFrbComments(preprocessQiita(renderContent)));
+    const isEmptyMarkdownDocument = !String(content || "").trim();
+    const html = isEmptyMarkdownDocument
+      ? '<p class="md-empty-document-placeholder md-empty-document-block">空のMarkdownです。＋上 / ＋下、右クリックメニュー、またはRaw Markdown編集から最初の行を挿入できます。</p>'
+      : marked.parse(preprocessFrbComments(preprocessQiita(renderContent)));
     previewEl.innerHTML = DOMPurify.sanitize(html, { ADD_ATTR: ["target", "data-md-line", "data-md-block-id", "data-md-block-type", "data-md-table-id", "data-md-cell-id", "data-md-cell-row-index", "data-md-cell-column-index", "data-md-cell-line", "data-frb-comment-id", "data-frb-comment-status"] });
     previewEl.querySelectorAll('a[href^="http"]').forEach(a => { a.target = "_blank"; a.rel = "noreferrer"; });
     applyMarkdownIndentClasses(constraintReport);
@@ -4231,6 +4551,7 @@ tocDepthBtns.forEach(btn=>btn.addEventListener("click",()=>{
   const params = new URLSearchParams(location.search);
   const requestedFileRaw = params.get('file') || params.get('md');
   const mode = params.get('mode') || '';
+  const initialUiMode = String(mode || "").trim().toLowerCase() === "viewer" || isReadonlyLaunchModeValue(mode) ? "viewer" : "editor";
   launchMarkdownRuntime = {
     fromUrl: Boolean(requestedFileRaw),
     readonly: isReadonlyLaunchModeValue(mode),
@@ -4253,6 +4574,7 @@ tocDepthBtns.forEach(btn=>btn.addEventListener("click",()=>{
     previewEl.innerHTML = `<div class="qiita-note warn">URL Launch 読み込みエラー: ${String(err.message || err)}</div>`;
     applyMarkdownReadonlyLaunchControls();
   }
+  setMarkdownMode(initialUiMode);
 })();
 </script>
 </body>
