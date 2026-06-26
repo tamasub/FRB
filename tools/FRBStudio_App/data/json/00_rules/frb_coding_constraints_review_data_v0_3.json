@@ -1,21 +1,25 @@
 {
-  "view_def": "coding_constraints_review_view_def_v0_2_change_history.json",
+  "view_def": "rules/rule_review_common_view_def_v0_3.json",
   "schema_version": "coding_constraints_review_data_v0_1",
   "document_type": "studio_constitution_review",
+  "domain": "coding_constraints",
   "title": "Studioくん憲法 レビュー記録",
   "target": "CODING_CONSTRAINTS.md / Studio Architecture Constraints",
   "source_document": "CODING_CONSTRAINTS_ja.md",
   "source_version": "0.1-draft",
+  "conversion_note": "Studioくん憲法レビュー記録を共通ルールレビューViewDef v0.3で扱えるように、constitution_sections を rules へ正規化し、各行に rule_id と decision_log を追加した。section_id は旧IDとして残す。",
   "created": "2026-06-21",
   "status": "ceremony_review_draft_with_change_history",
   "section_count": 23,
+  "rule_count": 23,
   "approved_count": 23,
   "approval_policy": "第1条〜第23条を1行ずつレビューし、approval_decision を「承認する」に変更することでStudioくん憲法の建国承認記録とする。",
   "preamble_title": "この文書の目的",
   "preamble": "この文書は、Studio を今後も育て続けるための恒久的なコーディング制約である。\n\nただし、これは単なる「コーディング規約」ではない。\n\nこれは、Studioくんという国の憲法である。\n\nStudio は、ただの JSON エディターではない。\n\nStudio は、JSON を「体験」に変換するためのプラットフォームである。\n\nこの文書の目的は、人間と AI が同じ思想を共有しながら、Studio を壊さず、育て続けるための共通原則を定義することである。\n\n今後、Studio のコードを変更する人間および AI は、まずこの文書を読むこと。\n\n---",
-  "constitution_sections": [
+  "rules": [
     {
       "no": 1,
+      "rule_id": "constitution_01",
       "section_id": "constitution_01",
       "category": "理念",
       "title": "建国宣言",
@@ -34,10 +38,19 @@
       "user_reply": "",
       "ai_followup_response": "",
       "notes": "",
-      "change_history": []
+      "change_history": [],
+      "section_no": "1",
+      "parent_rule_id": "",
+      "source_heading": "1. 建国宣言",
+      "source_heading_level": 2,
+      "source_line_start": 0,
+      "source_md_file": "CODING_CONSTRAINTS_ja.md",
+      "introduced_in": "0.1-draft",
+      "decision_log": []
     },
     {
       "no": 2,
+      "rule_id": "constitution_02",
       "section_id": "constitution_02",
       "category": "アーキテクチャ",
       "title": "基本構造",
@@ -56,10 +69,19 @@
       "user_reply": "",
       "ai_followup_response": "",
       "notes": "",
-      "change_history": []
+      "change_history": [],
+      "section_no": "2",
+      "parent_rule_id": "",
+      "source_heading": "2. 基本構造",
+      "source_heading_level": 2,
+      "source_line_start": 0,
+      "source_md_file": "CODING_CONSTRAINTS_ja.md",
+      "introduced_in": "0.1-draft",
+      "decision_log": []
     },
     {
       "no": 3,
+      "rule_id": "constitution_03",
       "section_id": "constitution_03",
       "category": "設計パターン",
       "title": "戦略的設計パターン",
@@ -78,10 +100,19 @@
       "user_reply": "",
       "ai_followup_response": "",
       "notes": "",
-      "change_history": []
+      "change_history": [],
+      "section_no": "3",
+      "parent_rule_id": "",
+      "source_heading": "3. 戦略的設計パターン",
+      "source_heading_level": 2,
+      "source_line_start": 0,
+      "source_md_file": "CODING_CONSTRAINTS_ja.md",
+      "introduced_in": "0.1-draft",
+      "decision_log": []
     },
     {
       "no": 4,
+      "rule_id": "constitution_04",
       "section_id": "constitution_04",
       "category": "Data",
       "title": "Data First",
@@ -100,10 +131,19 @@
       "user_reply": "",
       "ai_followup_response": "",
       "notes": "",
-      "change_history": []
+      "change_history": [],
+      "section_no": "4",
+      "parent_rule_id": "",
+      "source_heading": "4. Data First",
+      "source_heading_level": 2,
+      "source_line_start": 0,
+      "source_md_file": "CODING_CONSTRAINTS_ja.md",
+      "introduced_in": "0.1-draft",
+      "decision_log": []
     },
     {
       "no": 5,
+      "rule_id": "constitution_05",
       "section_id": "constitution_05",
       "category": "ViewDef",
       "title": "ViewDef First",
@@ -145,10 +185,19 @@
           "ai_comment": "条文本文の意味に合わせて、category=ViewDef、title=ViewDef First に変更するのが自然と判断した。",
           "notes": "本文は変更していない。"
         }
-      ]
+      ],
+      "section_no": "5",
+      "parent_rule_id": "",
+      "source_heading": "5. ViewDef First",
+      "source_heading_level": 2,
+      "source_line_start": 0,
+      "source_md_file": "CODING_CONSTRAINTS_ja.md",
+      "introduced_in": "0.1-draft",
+      "decision_log": []
     },
     {
       "no": 6,
+      "rule_id": "constitution_06",
       "section_id": "constitution_06",
       "category": "Action",
       "title": "Action Separation",
@@ -190,10 +239,19 @@
           "ai_comment": "指摘は妥当。汎用 Runtime 側に PlayMidi のような固定 Action 名が出ると、Action が増えるたびに Runtime が肥大化し、ポリモーフィズムではなく分岐地獄に近づく。ViewDef 側の Action 識別子として PlayMidi が出るのは許容できるが、コード側は ViewDef から取得した actionId を変数として ActionRegistry に渡すだけにするべき。また、toolbar 直下の単純配列より、主役操作として toolbar.executeButton を定義し、補助操作は toolbar.buttons に分ける構造の方が、意味が明確で拡張しやすい。",
           "notes": "toolbar直下配列ではなく、主役操作を toolbar.executeButton として定義する方針も合わせて記録。"
         }
-      ]
+      ],
+      "section_no": "6",
+      "parent_rule_id": "",
+      "source_heading": "6. Action Separation",
+      "source_heading_level": 2,
+      "source_line_start": 0,
+      "source_md_file": "CODING_CONSTRAINTS_ja.md",
+      "introduced_in": "0.1-draft",
+      "decision_log": []
     },
     {
       "no": 7,
+      "rule_id": "constitution_07",
       "section_id": "constitution_07",
       "category": "Replay",
       "title": "Replay Ready",
@@ -212,10 +270,19 @@
       "user_reply": "",
       "ai_followup_response": "",
       "notes": "",
-      "change_history": []
+      "change_history": [],
+      "section_no": "7",
+      "parent_rule_id": "",
+      "source_heading": "7. Replay Ready",
+      "source_heading_level": 2,
+      "source_line_start": 0,
+      "source_md_file": "CODING_CONSTRAINTS_ja.md",
+      "introduced_in": "0.1-draft",
+      "decision_log": []
     },
     {
       "no": 8,
+      "rule_id": "constitution_08",
       "section_id": "constitution_08",
       "category": "Diff",
       "title": "Diff First",
@@ -234,10 +301,19 @@
       "user_reply": "",
       "ai_followup_response": "",
       "notes": "",
-      "change_history": []
+      "change_history": [],
+      "section_no": "8",
+      "parent_rule_id": "",
+      "source_heading": "8. Diff First",
+      "source_heading_level": 2,
+      "source_line_start": 0,
+      "source_md_file": "CODING_CONSTRAINTS_ja.md",
+      "introduced_in": "0.1-draft",
+      "decision_log": []
     },
     {
       "no": 9,
+      "rule_id": "constitution_09",
       "section_id": "constitution_09",
       "category": "Constraint",
       "title": "Constraint First",
@@ -256,10 +332,19 @@
       "user_reply": "",
       "ai_followup_response": "",
       "notes": "",
-      "change_history": []
+      "change_history": [],
+      "section_no": "9",
+      "parent_rule_id": "",
+      "source_heading": "9. Constraint First",
+      "source_heading_level": 2,
+      "source_line_start": 0,
+      "source_md_file": "CODING_CONSTRAINTS_ja.md",
+      "introduced_in": "0.1-draft",
+      "decision_log": []
     },
     {
       "no": 10,
+      "rule_id": "constitution_10",
       "section_id": "constitution_10",
       "category": "変更管理",
       "title": "小さな変更の原則",
@@ -301,10 +386,19 @@
           "ai_comment": "第10条『小さな変更の原則』に、仕様変更履歴の保存ルールとして追記するのが自然。Diff First / Replay Ready / AI協働ルールとも整合する。",
           "notes": "change_history は各条文のサブグリッドとして扱う想定。見栄えは後で app 側で調整する。"
         }
-      ]
+      ],
+      "section_no": "10",
+      "parent_rule_id": "",
+      "source_heading": "10. 小さな変更の原則",
+      "source_heading_level": 2,
+      "source_line_start": 0,
+      "source_md_file": "CODING_CONSTRAINTS_ja.md",
+      "introduced_in": "0.1-draft",
+      "decision_log": []
     },
     {
       "no": 11,
+      "rule_id": "constitution_11",
       "section_id": "constitution_11",
       "category": "品質保護",
       "title": "既存機能保護",
@@ -323,10 +417,19 @@
       "user_reply": "",
       "ai_followup_response": "",
       "notes": "",
-      "change_history": []
+      "change_history": [],
+      "section_no": "11",
+      "parent_rule_id": "",
+      "source_heading": "11. 既存機能保護",
+      "source_heading_level": 2,
+      "source_line_start": 0,
+      "source_md_file": "CODING_CONSTRAINTS_ja.md",
+      "introduced_in": "0.1-draft",
+      "decision_log": []
     },
     {
       "no": 12,
+      "rule_id": "constitution_12",
       "section_id": "constitution_12",
       "category": "ViewDef",
       "title": "固定フィールド名の原則禁止",
@@ -368,10 +471,19 @@
           "ai_comment": "Chat View 限定ではなく、Studio 全体の原則として固定フィールド名を扱うべき。固定フィールド名は、短期的には便利だが、長期的には Studio の汎用性を削り、専用処理を増やす原因になる。したがって、禁止ではなく『例外申請制』とし、仕様ファイル・スキーマ・生成ルールに根拠があるものだけを例外にするのがよい。さらに、固定フィールド名を使う場合は必ず tamasub と協議し、肥満を許容するかどうかを人間が判断する制約を入れるべき。",
           "notes": "固定フィールド名は例外申請制とし、使用する場合は tamasub との協議承認を必要とする。"
         }
-      ]
+      ],
+      "section_no": "12",
+      "parent_rule_id": "",
+      "source_heading": "12. 固定フィールド名の原則禁止",
+      "source_heading_level": 2,
+      "source_line_start": 0,
+      "source_md_file": "CODING_CONSTRAINTS_ja.md",
+      "introduced_in": "0.1-draft",
+      "decision_log": []
     },
     {
       "no": 13,
+      "rule_id": "constitution_13",
       "section_id": "constitution_13",
       "category": "理念",
       "title": "Studio は単なるエディターではない",
@@ -390,10 +502,19 @@
       "user_reply": "",
       "ai_followup_response": "",
       "notes": "",
-      "change_history": []
+      "change_history": [],
+      "section_no": "13",
+      "parent_rule_id": "",
+      "source_heading": "13. Studio は単なるエディターではない",
+      "source_heading_level": 2,
+      "source_line_start": 0,
+      "source_md_file": "CODING_CONSTRAINTS_ja.md",
+      "introduced_in": "0.1-draft",
+      "decision_log": []
     },
     {
       "no": 14,
+      "rule_id": "constitution_14",
       "section_id": "constitution_14",
       "category": "ReadOnly",
       "title": "ReadOnly モードは第一級である",
@@ -412,10 +533,19 @@
       "user_reply": "",
       "ai_followup_response": "",
       "notes": "",
-      "change_history": []
+      "change_history": [],
+      "section_no": "14",
+      "parent_rule_id": "",
+      "source_heading": "14. ReadOnly モードは第一級である",
+      "source_heading_level": 2,
+      "source_line_start": 0,
+      "source_md_file": "CODING_CONSTRAINTS_ja.md",
+      "introduced_in": "0.1-draft",
+      "decision_log": []
     },
     {
       "no": 15,
+      "rule_id": "constitution_15",
       "section_id": "constitution_15",
       "category": "URL",
       "title": "URL 起動対応",
@@ -434,10 +564,19 @@
       "user_reply": "",
       "ai_followup_response": "",
       "notes": "",
-      "change_history": []
+      "change_history": [],
+      "section_no": "15",
+      "parent_rule_id": "",
+      "source_heading": "15. URL 起動対応",
+      "source_heading_level": 2,
+      "source_line_start": 0,
+      "source_md_file": "CODING_CONSTRAINTS_ja.md",
+      "introduced_in": "0.1-draft",
+      "decision_log": []
     },
     {
       "no": 16,
+      "rule_id": "constitution_16",
       "section_id": "constitution_16",
       "category": "AIテスト物語",
       "title": "AIテスト物語との互換性",
@@ -456,10 +595,19 @@
       "user_reply": "",
       "ai_followup_response": "",
       "notes": "",
-      "change_history": []
+      "change_history": [],
+      "section_no": "16",
+      "parent_rule_id": "",
+      "source_heading": "16. AIテスト物語との互換性",
+      "source_heading_level": 2,
+      "source_line_start": 0,
+      "source_md_file": "CODING_CONSTRAINTS_ja.md",
+      "introduced_in": "0.1-draft",
+      "decision_log": []
     },
     {
       "no": 17,
+      "rule_id": "constitution_17",
       "section_id": "constitution_17",
       "category": "認知支援",
       "title": "キャラクター化は認知支援である",
@@ -478,10 +626,19 @@
       "user_reply": "",
       "ai_followup_response": "",
       "notes": "",
-      "change_history": []
+      "change_history": [],
+      "section_no": "17",
+      "parent_rule_id": "",
+      "source_heading": "17. キャラクター化は認知支援である",
+      "source_heading_level": 2,
+      "source_line_start": 0,
+      "source_md_file": "CODING_CONSTRAINTS_ja.md",
+      "introduced_in": "0.1-draft",
+      "decision_log": []
     },
     {
       "no": 18,
+      "rule_id": "constitution_18",
       "section_id": "constitution_18",
       "category": "命名",
       "title": "命名方針",
@@ -500,10 +657,19 @@
       "user_reply": "",
       "ai_followup_response": "",
       "notes": "",
-      "change_history": []
+      "change_history": [],
+      "section_no": "18",
+      "parent_rule_id": "",
+      "source_heading": "18. 命名方針",
+      "source_heading_level": 2,
+      "source_line_start": 0,
+      "source_md_file": "CODING_CONSTRAINTS_ja.md",
+      "introduced_in": "0.1-draft",
+      "decision_log": []
     },
     {
       "no": 19,
+      "rule_id": "constitution_19",
       "section_id": "constitution_19",
       "category": "ファイル構成",
       "title": "ファイル分割方針",
@@ -522,10 +688,19 @@
       "user_reply": "",
       "ai_followup_response": "",
       "notes": "",
-      "change_history": []
+      "change_history": [],
+      "section_no": "19",
+      "parent_rule_id": "",
+      "source_heading": "19. ファイル分割方針",
+      "source_heading_level": 2,
+      "source_line_start": 0,
+      "source_md_file": "CODING_CONSTRAINTS_ja.md",
+      "introduced_in": "0.1-draft",
+      "decision_log": []
     },
     {
       "no": 20,
+      "rule_id": "constitution_20",
       "section_id": "constitution_20",
       "category": "AI協働",
       "title": "AI協働ルール",
@@ -536,8 +711,8 @@
       "approval_stamp": "",
       "approved_by": "",
       "approved_at": "",
-      "summary": "AI協働では、作業対象ファイルと完了報告をインシデントJSONに残す。",
-      "body": "AI が Studio のコードを変更する場合、AI は次を守る。\n\n1. まずこの文書を読む\n2. 関係する設計原則を確認する\n3. 変更意図を簡潔に説明する\n4. 無関係な変更をしない\n5. 差分を小さく保つ\n6. 既存動作を守る\n7. Data / ViewDef / Action の分離を優先する\n8. 不確実な点を報告する\n\n---\n\n---\n\n---\n\n### v0.12追記：AI作業対象ファイルとインシデント回答記録\n\nAIがコード、Data JSON、Defs JSON、Rules JSON、Incident JSON、Markdownプロンプト等を更新した場合、更新したファイル名、変更理由、変更概要、対応結果を該当インシデントJSONへ記録する。\n\n記録は、まず既存フィールドや自然文で扱える範囲を優先する。管理項目を増やしすぎず、必要に応じて `target_files`、`latest_ai_response`、`discussion_history`、`change_history` などへテキストとして残す。\n\nroot `data/` / `defs/` は一律変更禁止ではない。作業目的に必要な場合、AIは更新してよい。特に `data/json/01_main/studio_work_incident_data_*.json` のようなインシデント管理データは、作業結果を収録する対象になり得る。\n\nただし、AIが更新したファイル・変更理由・実施結果は、人間が後から追える形で開示する。\n\n一方、`wwwroot/data` / `wwwroot/defs` は GitHub Pages 等の公開用静的領域として扱うため、明示依頼がない限り更新しない。\n\nインシデント対応後のAI完了報告は、会話上だけに流さず、該当インシデントJSONの `latest_ai_response` 等にも残す。",
+      "summary": "AI協働では、作業対象ファイル・確認種別・完了報告・ViewDef安定ファイル名をインシデントJSONに残す。",
+      "body": "AI が Studio のコードを変更する場合、AI は次を守る。\n\n1. まずこの文書を読む\n2. 関係する設計原則を確認する\n3. 変更意図を簡潔に説明する\n4. 無関係な変更をしない\n5. 差分を小さく保つ\n6. 既存動作を守る\n7. Data / ViewDef / Action の分離を優先する\n8. 不確実な点を報告する\n\n---\n\n---\n\n---\n\n### v0.12追記：AI作業対象ファイルとインシデント回答記録\n\nAIがコード、Data JSON、Defs JSON、Rules JSON、Incident JSON、Markdownプロンプト等を更新した場合、更新したファイル名、変更理由、変更概要、対応結果を該当インシデントJSONへ記録する。\n\n記録は、まず既存フィールドや自然文で扱える範囲を優先する。管理項目を増やしすぎず、必要に応じて `target_files`、`latest_ai_response`、`discussion_history`、`change_history` などへテキストとして残す。\n\nroot `data/` / `defs/` は一律変更禁止ではない。作業目的に必要な場合、AIは更新してよい。特に `data/json/01_main/studio_work_incident_data_*.json` のようなインシデント管理データは、作業結果を収録する対象になり得る。\n\nただし、AIが更新したファイル・変更理由・実施結果は、人間が後から追える形で開示する。\n\n一方、`wwwroot/data` / `wwwroot/defs` は GitHub Pages 等の公開用静的領域として扱うため、明示依頼がない限り更新しない。\n\nインシデント対応後のAI完了報告は、会話上だけに流さず、該当インシデントJSONの `latest_ai_response` 等にも残す。\n\n---\n\n### v0.14追記：判断ログ・確認種別・最新ソース・ViewDef安定ファイル名\n\nAIが判断ログを残す場合は、`decision` / `reason` だけで終わらせず、必要に応じて `applied_axes`、`conditions`、`exceptions`、`expected_behavior`、`acceptance_criteria`、`test_pattern_seed`、`discarded_options`、`remaining_risks`、`axis_update_candidate` を残す。\n\nAIが「確認した」と報告する場合は、確認種別を明示する。少なくとも、静的確認、JSON parse、ビルド確認、ローカル起動確認、スクショ確認、Playwright確認、推定確認、ユーザー実機確認待ちを混同しない。\n\nC# / .NET / Program.cs の修正では、AI側の `dotnet build` / `dotnet run` を必須にしない。ただし、実施したか、未実施か、未実施なら理由をインシデントJSONの作業記録へ残す。\n\nAIは、最新ソースを実ファイルとして確認できない場合、実装修正を行わない。会話文脈、前回チャットの記憶、過去のファイル名を、最新ソース確認の代替として扱わない。\n\n既存Data JSONから参照されている ViewDef / DefView ファイルは、原則として同じファイル名のまま更新する。ViewDefファイル名は、Data JSON の `view_def` 参照、URL起動、GitHub Pages、GitDiff確認の接続キーである。\n\nAIは、通常のViewDef改善・表示項目追加・Markdown出力設定変更などで、新しいViewDefファイル名を勝手に作成しない。新しいViewDef名を作成してよいのは、ユーザーが明示した場合、互換性を意図的に切る場合、または既存ViewDefと並行運用する明確な理由がある場合に限る。その場合も、Data JSON側の `view_def` 参照更新、影響範囲、GitDiff上の扱いをインシデントに記録する。\n",
       "ceremony_phrase": "Studioくん憲法 第20条「AI協働ルール」を承認する。",
       "user_comment": "",
       "ai_response": "",
@@ -562,12 +737,29 @@
           "after": "優先度A方針に合わせ、AI更新ファイル・理由・対応結果をインシデントJSONへ自然文中心で記録する。root data/defs は必要時更新可、wwwroot/data/defs は明示依頼がない限り更新しない。",
           "reason": "mdViewer上のFRBコメントで「インシデントにはテキスト文章でOK」「root data/defs はAIでも更新してよいが痕跡を記録してほしい」と整理されたため。",
           "comment": "target_rule_files / actual_updated_files を必須構造フィールドとして強制せず、まずは既存フィールドやテキスト記録で運用する。"
+        },
+        {
+          "history_id": "chg_constitution_20_v014_001",
+          "at": "2026-06-26",
+          "change_type": "body_append",
+          "before": "判断ログ標準項目、AI確認種別、最新ソース確認、ViewDef安定ファイル名の運用ルールがAI協働ルールにまとまっていなかった。",
+          "after": "v0.14追記として、判断ログ拡張、確認種別明示、C#実行確認非必須だが記録必須、最新ソース未確認時の実装修正禁止、ViewDefファイル名原則維持を追加。",
+          "reason": "v0.14.0-decision-log-confirmation-governance により、AI作業の透明性とGitDiff/参照安定性を守るため。"
         }
       ],
-      "updated_at": "2026-06-22"
+      "updated_at": "2026-06-26",
+      "section_no": "20",
+      "parent_rule_id": "",
+      "source_heading": "20. AI協働ルール",
+      "source_heading_level": 2,
+      "source_line_start": 0,
+      "source_md_file": "CODING_CONSTRAINTS_ja.md",
+      "introduced_in": "0.1-draft",
+      "decision_log": []
     },
     {
       "no": 21,
+      "rule_id": "constitution_21",
       "section_id": "constitution_21",
       "category": "人間協働",
       "title": "人間協働ルール",
@@ -586,10 +778,19 @@
       "user_reply": "",
       "ai_followup_response": "",
       "notes": "",
-      "change_history": []
+      "change_history": [],
+      "section_no": "21",
+      "parent_rule_id": "",
+      "source_heading": "21. 人間協働ルール",
+      "source_heading_level": 2,
+      "source_line_start": 0,
+      "source_md_file": "CODING_CONSTRAINTS_ja.md",
+      "introduced_in": "0.1-draft",
+      "decision_log": []
     },
     {
       "no": 22,
+      "rule_id": "constitution_22",
       "section_id": "constitution_22",
       "category": "憲法",
       "title": "Studio憲法",
@@ -608,10 +809,19 @@
       "user_reply": "",
       "ai_followup_response": "",
       "notes": "",
-      "change_history": []
+      "change_history": [],
+      "section_no": "22",
+      "parent_rule_id": "",
+      "source_heading": "22. Studio憲法",
+      "source_heading_level": 2,
+      "source_line_start": 0,
+      "source_md_file": "CODING_CONSTRAINTS_ja.md",
+      "introduced_in": "0.1-draft",
+      "decision_log": []
     },
     {
       "no": 23,
+      "rule_id": "constitution_23",
       "section_id": "constitution_23",
       "category": "まとめ",
       "title": "まとめ",
@@ -630,7 +840,15 @@
       "user_reply": "",
       "ai_followup_response": "",
       "notes": "",
-      "change_history": []
+      "change_history": [],
+      "section_no": "23",
+      "parent_rule_id": "",
+      "source_heading": "23. まとめ",
+      "source_heading_level": 2,
+      "source_line_start": 0,
+      "source_md_file": "CODING_CONSTRAINTS_ja.md",
+      "introduced_in": "0.1-draft",
+      "decision_log": []
     }
   ],
   "review_notes": [
@@ -665,7 +883,20 @@
       "body": "AIがコード、Data/Defs/Rules/Incident、Markdownプロンプト等を更新した場合、更新ファイル名・変更理由・実施結果を該当インシデントJSONへ記録する。まずは既存フィールドや自然文で扱える範囲を優先し、管理項目を増やしすぎない。root data/defs は必要時更新可、wwwroot/data・wwwroot/defs は公開用静的領域として明示依頼がない限り更新しない。"
     }
   ],
-  "review_revision": "v0.12-rules-update-reporting-policy-redo",
-  "updated": "2026-06-22",
-  "change_history_policy": "レビューで条文・仕様を変更した場合は、対象行の change_history に変更前・変更後・理由・会話を保存する。変更後だけを残さず、修正元を追体験できる状態にする。"
+  "review_revision": "v0.14.0-decision-log-confirmation-governance",
+  "updated": "2026-06-26",
+  "change_history_policy": "レビューで条文・仕様を変更した場合は、対象行の change_history に変更前・変更後・理由・会話を保存する。変更後だけを残さず、修正元を追体験できる状態にする。",
+  "viewing_policy": {
+    "data_json_role": "原本",
+    "view_def_role": "表示・編集・レビュー体験",
+    "markdown_role": "表示用Export",
+    "canonical_array": "rules",
+    "recommended_view_def": "defs/rules/rule_review_common_view_def_v0_3.json"
+  },
+  "source_schema_snapshot": {
+    "file": "rule_review_common_view_def_v0_3.json",
+    "$id": "",
+    "title": "FRB Studio / JSON Object Studio - ルールレビュー（共通）v0.3 判断ログ・変更履歴対応",
+    "description": "共通ルールレビューViewDef v0.3。レビュー対象配列 rules を表示し、判断ログ decision_log と変更履歴 change_history をDetailで扱う。"
+  }
 }

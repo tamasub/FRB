@@ -1,5 +1,5 @@
 {
-  "view_def": "rules/rule_review_common_view_def_v0_1.json",
+  "view_def": "rules/rule_review_common_view_def_v0_3.json",
   "schema_version": "rule_review_data_v0_1",
   "document_type": "rule_review_data",
   "domain": "viewdef_generation_rules",
@@ -12,7 +12,7 @@
   "conversion_note": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md を、共通ルールレビューViewDefで扱えるように rules 配列へ構造化したData JSON。Markdownは原本ではなく、このJSONの出力Viewとして扱う想定。",
   "status": "converted_draft",
   "introduced_in": "v0.4-r001",
-  "generated_at": "2026-06-22T01:08:41",
+  "generated_at": "2026-06-26T00:00:00+09:00",
   "rule_count": 64,
   "approved_count": 0,
   "approval_policy": "各ルールは人間が内容確認し、verification_status を確認済みにしたうえで approval_decision を承認する。AIはレビューコメント案を出せるが、承認判断は人間が行う。",
@@ -23,7 +23,7 @@
     "view_def_role": "表示・編集・レビュー体験",
     "markdown_role": "表示用Export",
     "canonical_array": "rules",
-    "recommended_view_def": "defs/rules/rule_review_common_view_def_v0_1.json"
+    "recommended_view_def": "defs/rules/rule_review_common_view_def_v0_3.json"
   },
   "source_schema_snapshot": {
     "file": "frb_view_def_schema_v0_9_chat_input_mapping.json",
@@ -59,7 +59,8 @@
       "source_line_start": 18,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 2,
@@ -88,7 +89,8 @@
       "source_line_start": 31,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 3,
@@ -117,7 +119,8 @@
       "source_line_start": 57,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 4,
@@ -146,7 +149,8 @@
       "source_line_start": 59,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 5,
@@ -175,7 +179,8 @@
       "source_line_start": 68,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 6,
@@ -204,7 +209,8 @@
       "source_line_start": 72,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 7,
@@ -233,7 +239,8 @@
       "source_line_start": 84,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 8,
@@ -262,7 +269,8 @@
       "source_line_start": 97,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 9,
@@ -291,7 +299,8 @@
       "source_line_start": 117,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 10,
@@ -320,7 +329,8 @@
       "source_line_start": 131,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 11,
@@ -349,7 +359,8 @@
       "source_line_start": 156,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 12,
@@ -378,7 +389,8 @@
       "source_line_start": 176,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 13,
@@ -407,7 +419,8 @@
       "source_line_start": 178,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 14,
@@ -436,7 +449,8 @@
       "source_line_start": 194,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 15,
@@ -465,7 +479,8 @@
       "source_line_start": 211,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 16,
@@ -494,7 +509,8 @@
       "source_line_start": 232,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 17,
@@ -523,7 +539,8 @@
       "source_line_start": 247,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 18,
@@ -552,7 +569,8 @@
       "source_line_start": 252,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 19,
@@ -581,7 +599,8 @@
       "source_line_start": 266,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 20,
@@ -610,7 +629,8 @@
       "source_line_start": 277,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 21,
@@ -639,7 +659,8 @@
       "source_line_start": 293,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 22,
@@ -668,7 +689,8 @@
       "source_line_start": 325,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 23,
@@ -697,7 +719,8 @@
       "source_line_start": 327,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 24,
@@ -726,7 +749,8 @@
       "source_line_start": 347,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 25,
@@ -755,7 +779,8 @@
       "source_line_start": 357,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 26,
@@ -784,7 +809,8 @@
       "source_line_start": 379,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 27,
@@ -813,7 +839,8 @@
       "source_line_start": 409,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 28,
@@ -842,7 +869,8 @@
       "source_line_start": 438,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 29,
@@ -871,7 +899,8 @@
       "source_line_start": 447,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 30,
@@ -900,7 +929,8 @@
       "source_line_start": 472,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 31,
@@ -929,7 +959,8 @@
       "source_line_start": 511,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 32,
@@ -958,7 +989,8 @@
       "source_line_start": 534,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 33,
@@ -987,7 +1019,8 @@
       "source_line_start": 562,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 34,
@@ -1016,7 +1049,8 @@
       "source_line_start": 620,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 35,
@@ -1045,7 +1079,8 @@
       "source_line_start": 622,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 36,
@@ -1074,7 +1109,8 @@
       "source_line_start": 644,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 37,
@@ -1103,7 +1139,8 @@
       "source_line_start": 649,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 38,
@@ -1132,7 +1169,8 @@
       "source_line_start": 692,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 39,
@@ -1161,7 +1199,8 @@
       "source_line_start": 709,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 40,
@@ -1190,7 +1229,8 @@
       "source_line_start": 738,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 41,
@@ -1219,7 +1259,8 @@
       "source_line_start": 756,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 42,
@@ -1248,7 +1289,8 @@
       "source_line_start": 803,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 43,
@@ -1277,7 +1319,8 @@
       "source_line_start": 820,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 44,
@@ -1306,7 +1349,8 @@
       "source_line_start": 851,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 45,
@@ -1335,7 +1379,8 @@
       "source_line_start": 858,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 46,
@@ -1364,7 +1409,8 @@
       "source_line_start": 878,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 47,
@@ -1393,7 +1439,8 @@
       "source_line_start": 910,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 48,
@@ -1422,7 +1469,8 @@
       "source_line_start": 934,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 49,
@@ -1451,7 +1499,8 @@
       "source_line_start": 956,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 50,
@@ -1480,7 +1529,8 @@
       "source_line_start": 963,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 51,
@@ -1509,7 +1559,8 @@
       "source_line_start": 992,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 52,
@@ -1538,7 +1589,8 @@
       "source_line_start": 1025,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 53,
@@ -1553,8 +1605,8 @@
       "review_status": "未レビュー",
       "verification_status": "未確認",
       "approval_decision": "未承認",
-      "summary": "例:",
-      "body": "```text\n<対象>_view_def_v0_1.json\n<対象>_view_def_v0_2_<目的>.json\n```\n\n例:\n\n```text\nstudio_work_incident_view_def_v0_2_execute_button_sample.json\nscreen_state_diff_view_def_child_v0_3_failure_focus.json\n```",
+      "summary": "新規ViewDefを作る場合は命名規則に従う。ただし既存Data JSONから参照されているViewDefを改修する場合は、原則として同じファイル名のまま更新する。",
+      "body": "新規ViewDefを作成する場合の基本形は以下とする。\n\n```text\n<対象>_view_def_v0_1.json\n<対象>_view_def_v0_2_<目的>.json\n```\n\n例:\n\n```text\nstudio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json\nscreen_state_diff_view_def_child_v0_3_failure_focus.json\n```\n\nただし、既存Data JSONから参照されているViewDefを改善・修正する場合は、原則として同じファイル名のまま更新する。\n\nViewDefファイル名は、Data JSON の `view_def` 参照、URL起動、GitHub Pages静的読込、GitDiff確認の接続キーである。AIは、通常の表示項目追加・Markdown設定変更・確認ログ表示追加などの改修で、新しいViewDefファイル名を勝手に作成しない。\n\n新しいViewDefファイル名を作成する場合は、ユーザーの明示指示、互換性を切る明確な理由、または旧ViewDefと新ViewDefを並行運用する理由が必要である。その場合は、Data JSON側の `view_def` 参照更新と、なぜ新ファイル化したかをインシデントに記録する。\n\n---\n",
       "ceremony_phrase": "このルールをレビューし、採用可否を判断する。",
       "user_comment": "",
       "ai_response": "",
@@ -1567,7 +1619,17 @@
       "source_line_start": 1027,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [
+        {
+          "history_id": "chg_viewdef_rule_19_01_v014_001",
+          "at": "2026-06-26",
+          "change_type": "body_refine",
+          "before": "ViewDefファイル名ルールは新規作成時の命名例が中心で、既存ViewDefを改修する場合の同名更新原則が明文化されていなかった。",
+          "after": "既存Data JSONから参照されているViewDefは原則同名更新し、新規ファイル名作成時は参照更新と理由記録を必須とするルールを追加。",
+          "reason": "ViewDefファイル名がData JSONのview_def参照とGitDiffの差分観測点であり、安易な改名が作業事故につながるため。"
+        }
+      ],
+      "decision_log": []
     },
     {
       "no": 54,
@@ -1596,7 +1658,8 @@
       "source_line_start": 1041,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 55,
@@ -1625,7 +1688,8 @@
       "source_line_start": 1061,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 56,
@@ -1654,7 +1718,8 @@
       "source_line_start": 1069,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 57,
@@ -1683,7 +1748,8 @@
       "source_line_start": 1095,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 58,
@@ -1712,7 +1778,8 @@
       "source_line_start": 1097,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 59,
@@ -1741,7 +1808,8 @@
       "source_line_start": 1120,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 60,
@@ -1770,7 +1838,8 @@
       "source_line_start": 1136,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 61,
@@ -1799,7 +1868,8 @@
       "source_line_start": 1156,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 62,
@@ -1828,7 +1898,8 @@
       "source_line_start": 1168,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 63,
@@ -1857,7 +1928,8 @@
       "source_line_start": 1183,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     },
     {
       "no": 64,
@@ -1886,11 +1958,12 @@
       "source_line_start": 1207,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": []
+      "change_history": [],
+      "decision_log": []
     }
   ],
   "updated_at": "2026-06-22",
-  "review_revision": "v0.12-scope-correction-no-viewdef-rule-addition",
+  "review_revision": "v0.14.0-decision-log-confirmation-governance",
   "review_notes": [
     {
       "note_id": "note_v012_scope_correction",

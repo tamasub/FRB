@@ -431,6 +431,17 @@
                   },
                   {
                     "role": "constraint",
+                    "field": "actual_updated_files",
+                    "label": "実更新ファイル",
+                    "height": 90,
+                    "markdown": {
+                      "enabled": true,
+                      "allowLinks": true,
+                      "allowImages": false
+                    }
+                  },
+                  {
+                    "role": "constraint",
                     "field": "objective",
                     "label": "目的",
                     "height": 120,
@@ -527,6 +538,17 @@
                       "allowLinks": true,
                       "allowImages": true
                     }
+                  },
+                  {
+                    "role": "constraint",
+                    "field": "verification_log",
+                    "label": "確認ログ",
+                    "height": 110,
+                    "markdown": {
+                      "enabled": true,
+                      "allowLinks": true,
+                      "allowImages": false
+                    }
                   }
                 ],
                 "input": {
@@ -539,7 +561,7 @@
               "create": {
                 "include": false
               },
-              "display_note": "長文フィールドをtextareaの羅列ではなく、詳細画面上部の横広カードとして表示する。 Markdownプレビュー表示に対応。表示時はHTML、編集時はMarkdown原文。",
+              "display_note": "v0.14.0: 実更新ファイルと確認ログを、既存ViewDefファイル名を変更せず同名更新で表示対象へ追加。",
               "layout": {
                 "placement": "detailBody",
                 "order": 120
@@ -566,6 +588,24 @@
                 "enabled": true,
                 "allowLinks": true,
                 "allowImages": true
+              }
+            },
+            {
+              "field": "actual_updated_files",
+              "caption": "実更新ファイル",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 260
+              },
+              "edit": {
+                "visible": false,
+                "height": 90
+              },
+              "markdown": {
+                "enabled": true,
+                "allowLinks": true,
+                "allowImages": false
               }
             },
             {
@@ -768,6 +808,24 @@
               }
             },
             {
+              "field": "verification_log",
+              "caption": "確認ログ",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 280
+              },
+              "edit": {
+                "visible": false,
+                "height": 120
+              },
+              "markdown": {
+                "enabled": true,
+                "allowLinks": true,
+                "allowImages": false
+              }
+            },
+            {
               "field": "__work_chat",
               "caption": "作業会話サマリ",
               "type": "chat",
@@ -956,7 +1014,7 @@
                 "visible": false
               },
               "defaultValue": [],
-              "display_note": "詳細画面では入力欄化せず、objectArrayの子グリッドとして表示する。表示用の「n items」を保存値にしないため。"
+              "display_note": "判断ログは decision/reason だけでなく、applied_axes / conditions / exceptions / expected_behavior / acceptance_criteria / test_pattern_seed / remaining_risks などを必要に応じて保持する。表示用の件数文字列を保存値にしない。"
             },
             {
               "field": "change_history",
@@ -1274,5 +1332,5 @@
       "layout_note": "長文の作業説明はtextareaを並べず、detailBodyのchat型カードで横広に表示する。配列履歴はobjectArrayとして保持し、入力欄化しない。"
     }
   ],
-  "layout_note": "作業項目ごとに discussion_history / decision_log / change_history を objectArray として保持する。長文の作業説明は __work_summary_cards のchat型カードでdetailBodyに表示し、会話サマリは __work_chat でdetailFooterに表示する。 v0.10.1で、Markdown許可欄は見出し・箇条書き・コードブロックを含む表示モードプレビューに対応。"
+  "layout_note": "作業項目ごとに discussion_history / decision_log / change_history を objectArray として保持する。長文の作業説明は __work_summary_cards のchat型カードでdetailBodyに表示し、会話サマリは __work_chat でdetailFooterに表示する。 v0.10.1で、Markdown許可欄は見出し・箇条書き・コードブロックを含む表示モードプレビューに対応。\n\nv0.14.0: ViewDefファイル名安定ルールに従い、このViewDefは新規名を作らず同名更新する。actual_updated_files / verification_log を表示候補に追加。"
 }

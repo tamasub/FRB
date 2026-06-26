@@ -1,5 +1,5 @@
 {
-  "view_def": "studio_work_incident_view_def_v0_2_readable_cards.json",
+  "view_def": "rules/ai_constraint_grouped_view_def_v0_6_footer_chat.json",
   "schema_version": "0.6-footer-chat",
   "document_type": "ai_constraint_spec_aggregated",
   "target": "No-Code JSON Studio v0.3-draft",
