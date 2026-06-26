@@ -1,6 +1,6 @@
 今回の作業依頼:
-- incident_file: data/json/01_main/studio_work_incident_data_v0_45_main_json_select_reset_toast_ux_added.json
-- phase: v0.13.10-main-json-select-reset-toast-ux
+- incident_file: data/json/01_main/studio_work_incident_data_v0_49_decision_log_confirmation_governance_added.json
+- phase: v0.14.0-decision-log-confirmation-governance
 
 
 作業ルール:

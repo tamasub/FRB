@@ -1,6 +1,6 @@
 # Studioくん憲法 レビュー記録
 
-- 出力日時: 2026/6/22 0:42:56
+- 出力日時: 2026/6/25 23:27:46
 - 対象: CODING_CONSTRAINTS.md / Studio Architecture Constraints
 - schema_version: coding_constraints_review_data_v0_1
 - status: ceremony_review_draft_with_change_history
@@ -67,7 +67,7 @@ Studio は、JSON を「体験」に変換するためのプラットフォー�
 | 17 | constitution_17 | 認知支援 | キャラクター化は認知支援である | medium | 建国レビュー | 確認済み | 承認する | AIテスト物語では、重要なメソッド、役割、概念をキャラクターとして表現してよい。 |
 | 18 | constitution_18 | 命名 | 命名方針 | medium | 建国レビュー | 確認済み | 承認する | 名前は責務を表すものにする。 |
 | 19 | constitution_19 | ファイル構成 | ファイル分割方針 | medium | 建国レビュー | 確認済み | 承認する | 大きなファイルは、責務ごとに分割する。 |
-| 20 | constitution_20 | AI協働 | AI協働ルール | high | 建国レビュー | 確認済み | 承認する | AI が Studio のコードを変更する場合、AI は次を守る。 |
+| 20 | constitution_20 | AI協働 | AI協働ルール | high | 建国レビュー | 確認済み | 承認する | AI協働では、作業対象ファイルと完了報告をインシデントJSONに残す。 |
 | 21 | constitution_21 | 人間協働 | 人間協働ルール | medium | 建国レビュー | 確認済み | 承認する | 人間は自由に Studio を育ててよい。 |
 | 22 | constitution_22 | 憲法 | Studio憲法 | high | 建国レビュー | 確認済み | 承認する | この文書は、Studioくんという国の憲法である。 |
 | 23 | constitution_23 | まとめ | まとめ | high | 建国レビュー | 確認済み | 承認する | Studio は、次のどれかひとつではない。 |
@@ -1231,7 +1231,7 @@ Studioくん憲法 第19条「ファイル分割方針」を承認する。
 
 ##### 要約
 
-AI が Studio のコードを変更する場合、AI は次を守る。
+AI協働では、作業対象ファイルと完了報告をインシデントJSONに残す。
 
 ##### 条文本文
 
@@ -1248,6 +1248,24 @@ AI が Studio のコードを変更する場合、AI は次を守る。
 
 ---
 
+---
+
+---
+
+### v0.12追記：AI作業対象ファイルとインシデント回答記録
+
+AIがコード、Data JSON、Defs JSON、Rules JSON、Incident JSON、Markdownプロンプト等を更新した場合、更新したファイル名、変更理由、変更概要、対応結果を該当インシデントJSONへ記録する。
+
+記録は、まず既存フィールドや自然文で扱える範囲を優先する。管理項目を増やしすぎず、必要に応じて `target_files`、`latest_ai_response`、`discussion_history`、`change_history` などへテキストとして残す。
+
+root `data/` / `defs/` は一律変更禁止ではない。作業目的に必要な場合、AIは更新してよい。特に `data/json/01_main/studio_work_incident_data_*.json` のようなインシデント管理データは、作業結果を収録する対象になり得る。
+
+ただし、AIが更新したファイル・変更理由・実施結果は、人間が後から追える形で開示する。
+
+一方、`wwwroot/data` / `wwwroot/defs` は GitHub Pages 等の公開用静的領域として扱うため、明示依頼がない限り更新しない。
+
+インシデント対応後のAI完了報告は、会話上だけに流さず、該当インシデントJSONの `latest_ai_response` 等にも残す。
+
 ##### 承認セレモニー
 
 Studioくん憲法 第20条「AI協働ルール」を承認する。
@@ -1257,6 +1275,10 @@ Studioくん憲法 第20条「AI協働ルール」を承認する。
 
 #### 仕様変更履歴
 
+| History ID | Revision | 変更日 | 変更者 | 変更種別 | 対象フィールド | 変更前タイトル | 変更後タイトル | 変更理由 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| chg_constitution_20_v012_001 |  |  |  | body_append |  |  |  | v0.12-rules-update-reporting-policy により、AI協働ルールとしてファイル更新記録と対応報告記録を明文化するため。 |
+| chg_constitution_20_v012_redo_001 |  |  |  | body_refine |  |  |  | mdViewer上のFRBコメントで「インシデントにはテキスト文章でOK」「root data/defs はAIでも更新してよいが痕跡を記録してほしい」と整理されたため。 |
 
 ### 第21条：人間協働ルール
 - 分類: 人間協働
@@ -1435,7 +1457,7 @@ TSV:
 17	constitution_17	認知支援	キャラクター化は認知支援である	medium	建国レビュー	確認済み	承認する	AIテスト物語では、重要なメソッド、役割、概念をキャラクターとして表現してよい。		
 18	constitution_18	命名	命名方針	medium	建国レビュー	確認済み	承認する	名前は責務を表すものにする。		
 19	constitution_19	ファイル構成	ファイル分割方針	medium	建国レビュー	確認済み	承認する	大きなファイルは、責務ごとに分割する。		
-20	constitution_20	AI協働	AI協働ルール	high	建国レビュー	確認済み	承認する	AI が Studio のコードを変更する場合、AI は次を守る。		
+20	constitution_20	AI協働	AI協働ルール	high	建国レビュー	確認済み	承認する	AI協働では、作業対象ファイルと完了報告をインシデントJSONに残す。		
 21	constitution_21	人間協働	人間協働ルール	medium	建国レビュー	確認済み	承認する	人間は自由に Studio を育ててよい。		
 22	constitution_22	憲法	Studio憲法	high	建国レビュー	確認済み	承認する	この文書は、Studioくんという国の憲法である。		
 23	constitution_23	まとめ	まとめ	high	建国レビュー	確認済み	承認する	Studio は、次のどれかひとつではない。		
@@ -1449,7 +1471,7 @@ TSV:
 ```json
 {
   "view_def": "coding_constraints_review_view_def_v0_2_change_history.json",
-  "data_file": "coding_constraints_review_data_v0_3.json",
+  "data_file": "frb_coding_constraints_review_data_v0_3.json",
   "section": "Studioくん憲法 条文レビュー / 承認セレモニー",
   "row_count": 23,
   "columns": [
@@ -1766,7 +1788,7 @@ TSV:
       "review_status": "建国レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
-      "summary": "AI が Studio のコードを変更する場合、AI は次を守る。",
+      "summary": "AI協働では、作業対象ファイルと完了報告をインシデントJSONに残す。",
       "user_comment": "",
       "ai_response": ""
     },
