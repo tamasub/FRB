@@ -1329,8 +1329,17 @@
           }
         ]
       },
-      "layout_note": "長文の作業説明はtextareaを並べず、detailBodyのchat型カードで横広に表示する。配列履歴はobjectArrayとして保持し、入力欄化しない。"
+      "layout_note": "長文の作業説明はtextareaを並べず、detailBodyのchat型カードで横広に表示する。配列履歴はobjectArrayとして保持し、入力欄化しない。",
+      "toolbar": {
+        "executeButton": {
+          "caption": "AI依頼プロンプトコピー",
+          "action": "CopyPromptFromTemplate",
+          "promptTemplate": "今回の作業依頼:\n- incident_file: {{data.filePath}}\n- phase: {{row.phase}}\n\n作業ルール:\n\nAIやスクリプトが直接取得するためのraw/archive URL:\n- Foundation Rules raw: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/data/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json\n\n- リポジトリ main ZIP: https://github.com/tamasub/FRB/archive/refs/heads/main.zip\n- FRBStudio_App raw base: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/\n- FRBStudio 本体 raw base: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio/\n\nFRB Studio Foundation Rules の foundation_rule_019「GitHub基準ソースとZIP返却契約」を参照してください。",
+          "requireSelectedRow": true,
+          "description": "選択中の作業項目と現在のData JSONファイル名から、ChatGPT依頼用プロンプトを生成してクリップボードへコピーする。"
+        }
+      }
     }
   ],
-  "layout_note": "作業項目ごとに discussion_history / decision_log / change_history を objectArray として保持する。長文の作業説明は __work_summary_cards のchat型カードでdetailBodyに表示し、会話サマリは __work_chat でdetailFooterに表示する。 v0.10.1で、Markdown許可欄は見出し・箇条書き・コードブロックを含む表示モードプレビューに対応。\n\nv0.14.0: ViewDefファイル名安定ルールに従い、このViewDefは新規名を作らず同名更新する。actual_updated_files / verification_log を表示候補に追加。"
+  "layout_note": "作業項目ごとに discussion_history / decision_log / change_history を objectArray として保持する。長文の作業説明は __work_summary_cards のchat型カードでdetailBodyに表示し、会話サマリは __work_chat でdetailFooterに表示する。 v0.10.1で、Markdown許可欄は見出し・箇条書き・コードブロックを含む表示モードプレビューに対応。\n\nv0.14.0: ViewDefファイル名安定ルールに従い、このViewDefは新規名を作らず同名更新する。actual_updated_files / verification_log を表示候補に追加。\n\nv0.14.2: toolbar.executeButton に CopyPromptFromTemplate を追加。プロンプト本文はViewDef側の promptTemplate に保持し、JS側へ固定文言を置かない。"
 }
