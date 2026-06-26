@@ -1064,5 +1064,6 @@
       "message": "JSONを直接読むのではなく、ViewDefで人間が触れる形にする。",
       "expected_reaction": "文脈や関係性もメンテ対象にできると気づく。"
     }
-  ]
+  ],
+  "view_def": "rules/chatgpt/chatgpt_context_relation_graph_view_def_v0_1.json"
 }

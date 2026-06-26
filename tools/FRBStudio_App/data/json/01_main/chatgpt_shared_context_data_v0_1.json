@@ -3,7 +3,7 @@
   "data_type": "chatgpt_shared_context",
   "context_id": "chatgpt_shared_context_20260623",
   "title": "ChatGPT共有用文脈",
-  "view_def": "rules/chatgpt_shared_context_view_def_v0_1.json",
+  "view_def": "rules/chatgpt/chatgpt_shared_context_view_def_v0_1.json",
   "source": {
     "file_name": "ChatGPT共有用文脈.md",
     "last_updated": "2026-06-23",

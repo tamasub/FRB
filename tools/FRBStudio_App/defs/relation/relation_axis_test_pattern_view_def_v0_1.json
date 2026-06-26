@@ -4,10 +4,10 @@
     "version": "0.3-draft-relation-generic-012"
   },
   "dataSources": {
-    "constraints": "ai_constraint_spec_aggregated_v0_6_footer_chat.json",
-    "tests": "screen_state_test_patterns_data_v0_2_chat.json",
-    "diff": "screen_state_smoke_001.diff.json",
-    "relations": "constraint_trace_relations_v0_1.json"
+    "constraints": "00_rules/ai_constraint_spec_aggregated_v0_6_footer_chat.json",
+    "tests": "03_screen_state/screen_state_test_patterns_data_v0_2_chat.json",
+    "diff": "03_screen_state/screen_state_smoke_001.diff.json",
+    "relations": "03_screen_state/constraint_trace_relations_v0_1.json"
   },
   "virtualData": {
     "builder": "relation_axis_cards",
@@ -568,6 +568,14 @@
           }
         ]
       }
+    }
+  ],
+  "change_history": [
+    {
+      "change_id": "chg_v0_14_1_relation_trace_datasource_path_fix",
+      "at": "2026-06-26",
+      "change": "dataSourcesの参照パスを data/json 配下の実配置に合わせて修正。constraint_trace_relations_v0_1.json を data/json/03_screen_state 配下に配置する前提に統一。",
+      "reason": "Relation系仮想ViewDefが dataSources を読めず、view_def_candidates から切替しても表示できない問題を解消するため。"
     }
   ]
 }

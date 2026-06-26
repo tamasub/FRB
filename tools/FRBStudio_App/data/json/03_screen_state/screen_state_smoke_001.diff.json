@@ -102,5 +102,28 @@
         "value": ""
       }
     ]
-  }
+  },
+  "view_def_candidates": [
+    {
+      "view_def": "screen_state/screen_state_diff_view_def_base_v0_2_checks.json",
+      "label": "Diff標準表示",
+      "role": "default",
+      "status": "active",
+      "note": "Screen State DiffのBASE表示"
+    },
+    {
+      "view_def": "screen_state/screen_state_diff_view_def_child_v0_3_summary.json",
+      "label": "Diff Summary",
+      "role": "summary",
+      "status": "active",
+      "note": "BASEを継承したサマリ確認用"
+    },
+    {
+      "view_def": "screen_state/screen_state_diff_view_def_child_v0_3_failure_focus.json",
+      "label": "Failure Focus",
+      "role": "failure_focus",
+      "status": "active",
+      "note": "BASEを継承した失敗原因確認用"
+    }
+  ]
 }

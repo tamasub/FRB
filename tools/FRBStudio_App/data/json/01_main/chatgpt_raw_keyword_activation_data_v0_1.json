@@ -1625,5 +1625,6 @@
       "activation": 0.62,
       "note": "派生"
     }
-  ]
+  ],
+  "view_def": "rules/chatgpt/chatgpt_raw_keyword_activation_view_def_v0_1.json"
 }

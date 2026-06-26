@@ -1,5 +1,5 @@
 {
-  "view_def": "qa_expected_checks_sample_view_def_v0_1.json",
+  "view_def": "qa/qa_expected_checks_sample_view_def_v0_1.json",
   "expected_checks": [
     {
       "check_id": "CHK-REL-STATUS-001",
@@ -9,7 +9,9 @@
       "check_axis_cd": "include",
       "risk_cd": "high",
       "expected_summary": "linked_constraints_count に approved の線だけが反映される",
-      "constraint_ids": ["REL-STATUS-001"]
+      "constraint_ids": [
+        "REL-STATUS-001"
+      ]
     },
     {
       "check_id": "CHK-REL-STATUS-002",
@@ -19,7 +21,9 @@
       "check_axis_cd": "exclude",
       "risk_cd": "high",
       "expected_summary": "candidate の線は approved-only ビューに出ない",
-      "constraint_ids": ["REL-STATUS-002"]
+      "constraint_ids": [
+        "REL-STATUS-002"
+      ]
     },
     {
       "check_id": "CHK-REL-STATUS-003",
@@ -29,7 +33,9 @@
       "check_axis_cd": "structure",
       "risk_cd": "medium",
       "expected_summary": "contains_check は structureStatusFilter で通る",
-      "constraint_ids": ["REL-STATUS-003"]
+      "constraint_ids": [
+        "REL-STATUS-003"
+      ]
     },
     {
       "check_id": "CHK-WB-001",
@@ -39,7 +45,9 @@
       "check_axis_cd": "write",
       "risk_cd": "high",
       "expected_summary": "VirtualData上の編集がsource customersに反映される",
-      "constraint_ids": ["WB-001"]
+      "constraint_ids": [
+        "WB-001"
+      ]
     },
     {
       "check_id": "CHK-MD-001",
@@ -49,7 +57,60 @@
       "check_axis_cd": "display",
       "risk_cd": "medium",
       "expected_summary": "Markdown→Viewer ボタンが利用可能になる",
-      "constraint_ids": ["MD-001"]
+      "constraint_ids": [
+        "MD-001"
+      ]
+    }
+  ],
+  "view_def_candidates": [
+    {
+      "view_def": "qa/qa_expected_checks_sample_view_def_v0_1.json",
+      "label": "Expected標準表示",
+      "role": "default",
+      "status": "active",
+      "note": "Expected定義の標準表示"
+    },
+    {
+      "view_def": "qa/qa_expected_checks_classified_view_def_v0_1.json",
+      "label": "観点分類表示",
+      "role": "review",
+      "status": "active",
+      "note": "quality_axis/check_axis/riskを含むExpected表示"
+    },
+    {
+      "view_def": "qa/qa_cross_quality_risk_view_def_v0_1.json",
+      "label": "品質観点×リスク",
+      "role": "relation",
+      "status": "active",
+      "note": "expected_checksから品質観点×リスクを集計"
+    },
+    {
+      "view_def": "qa/qa_cross_check_risk_view_def_v0_1.json",
+      "label": "チェック観点×リスク",
+      "role": "relation",
+      "status": "active",
+      "note": "expected_checksからチェック観点×リスクを集計"
+    },
+    {
+      "view_def": "qa/qa_cross_constraint_view_def_v0_1.json",
+      "label": "制約ID別Expected件数",
+      "role": "relation",
+      "status": "active",
+      "note": "expected_checks.constraint_idsを集計"
+    },
+    {
+      "view_def": "qa/qa_cross_test_pattern_view_def_v0_1.json",
+      "label": "テストパターン別Expected件数",
+      "role": "relation",
+      "status": "active",
+      "note": "expected_checks.test_pattern_idを集計"
+    },
+    {
+      "view_def": "qa/qa_shortage_expected_findings_view_def_v0_1.json",
+      "label": "Expected不足検出",
+      "role": "diagnostic",
+      "status": "active",
+      "note": "expected_checksの不足観点を検出"
     }
   ]
 }

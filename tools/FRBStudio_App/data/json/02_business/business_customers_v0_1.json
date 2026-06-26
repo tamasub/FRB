@@ -1,19 +1,29 @@
 {
   "schema_version": "0.1-draft",
   "document_type": "business_customers",
-  "title": "\u696D\u52D9\u30B5\u30F3\u30D7\u30EB / \u9867\u5BA2",
+  "title": "業務サンプル / 顧客",
   "customers": [
     {
       "customer_id": "CUST-001",
-      "customer_name": "\u9752\u6CE2\u88FD\u4F5C\u6240xx"
+      "customer_name": "青波製作所xx"
     },
     {
       "customer_id": "CUST-002",
-      "customer_name": "\u702C\u6238\u5185\u7269\u6D41"
+      "customer_name": "瀬戸内物流"
     },
     {
       "customer_id": "CUST-003",
-      "customer_name": "\u660E\u77F3\u30C6\u30C3\u30AF"
+      "customer_name": "明石テック"
+    }
+  ],
+  "view_def": "relation/relation_axis_business_customer_view_def_v0_1.json",
+  "view_def_candidates": [
+    {
+      "view_def": "relation/relation_axis_business_customer_view_def_v0_1.json",
+      "label": "顧客軸",
+      "role": "default",
+      "status": "active",
+      "note": "顧客軸の標準表示"
     }
   ]
 }

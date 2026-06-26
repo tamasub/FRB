@@ -724,5 +724,28 @@
       "body": "Data JSONの top-level view_def を既定ViewDef、view_def_candidates を手動切替候補として扱う。候補パスは defs/ 配下からの相対パスで書き、defs/ は付けない。候補はDataとViewDefの接続情報として扱い、未参照ViewDefの棚卸しに使う。"
     }
   ],
-  "review_revision": "v0.14.1-data-viewdef-candidates"
+  "review_revision": "v0.14.1-data-viewdef-candidates",
+  "view_def_candidates": [
+    {
+      "view_def": "rules/rule_review_common_view_def_v0_3.json",
+      "label": "ルールレビュー現行v0.3",
+      "role": "default",
+      "status": "active",
+      "note": "判断ログ・変更履歴対応の現行ViewDef"
+    },
+    {
+      "view_def": "rules/tmp/rule_review_common_view_def_v0_2_editable_review_target.json",
+      "label": "旧v0.2レビュー表示",
+      "role": "legacy",
+      "status": "deprecated",
+      "note": "旧版比較用。通常利用はv0.3"
+    },
+    {
+      "view_def": "rules/tmp/rule_review_common_view_def_v0_1.json",
+      "label": "旧v0.1レビュー表示",
+      "role": "legacy",
+      "status": "deprecated",
+      "note": "旧版比較用。通常利用はv0.3"
+    }
+  ]
 }

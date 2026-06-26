@@ -15,5 +15,15 @@
       "employee_id": "EMP-003",
       "employee_name": "山本"
     }
+  ],
+  "view_def": "relation/relation_axis_business_employee_view_def_v0_1.json",
+  "view_def_candidates": [
+    {
+      "view_def": "relation/relation_axis_business_employee_view_def_v0_1.json",
+      "label": "担当者軸",
+      "role": "default",
+      "status": "active",
+      "note": "担当者軸の標準表示"
+    }
   ]
 }

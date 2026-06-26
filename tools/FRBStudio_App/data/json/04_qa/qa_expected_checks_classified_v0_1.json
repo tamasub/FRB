@@ -2,7 +2,7 @@
   "schema_version": "0.1",
   "document_type": "qa_expected_checks_classified",
   "view_def": "qa/qa_expected_checks_classified_view_def_v0_1.json",
-   "view_def_candidates": [
+  "view_def_candidates": [
     {
       "view_def": "qa/qa_expected_checks_classified_view_def_v0_1.json",
       "label": "標準表示",
@@ -12,19 +12,46 @@
     },
     {
       "view_def": "qa/qa_expected_checks_sample_view_def_v0_1.json",
-      "label": "リレーション確認用",
-      "role": "relation",
+      "label": "サンプル形式表示",
+      "role": "review",
       "status": "active",
-      "note": "関連データ確認用"
+      "note": "同じexpected_checks配列を別表示で確認"
     },
     {
-      "view_def": "qa/qa_expected_checks_candidate_review_view_def_v0_1.json",
-      "label": "リレーション確認用",
+      "view_def": "qa/qa_cross_quality_risk_view_def_v0_1.json",
+      "label": "品質観点×リスク",
       "role": "relation",
       "status": "active",
-      "note": "関連データ確認用"
+      "note": "expected_checksから品質観点×リスクを集計"
+    },
+    {
+      "view_def": "qa/qa_cross_check_risk_view_def_v0_1.json",
+      "label": "チェック観点×リスク",
+      "role": "relation",
+      "status": "active",
+      "note": "expected_checksからチェック観点×リスクを集計"
+    },
+    {
+      "view_def": "qa/qa_cross_constraint_view_def_v0_1.json",
+      "label": "制約ID別Expected件数",
+      "role": "relation",
+      "status": "active",
+      "note": "expected_checks.constraint_idsを集計"
+    },
+    {
+      "view_def": "qa/qa_cross_test_pattern_view_def_v0_1.json",
+      "label": "テストパターン別Expected件数",
+      "role": "relation",
+      "status": "active",
+      "note": "expected_checks.test_pattern_idを集計"
+    },
+    {
+      "view_def": "qa/qa_shortage_expected_findings_view_def_v0_1.json",
+      "label": "Expected不足検出",
+      "role": "diagnostic",
+      "status": "active",
+      "note": "expected_checksの不足観点を検出"
     }
-
   ],
   "title": "観点分類入りExpected定義 v0.1",
   "description": "テストパターンは増やさず、既存TPにぶら下がるチェック項目を品質観点・チェック観点・リスクで分類するためのExpected定義。",

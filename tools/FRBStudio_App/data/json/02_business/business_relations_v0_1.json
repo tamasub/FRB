@@ -2,8 +2,8 @@
   "view_def": "relation/relation_edit_view_def_v0_1.json",
   "schema_version": "0.1-draft",
   "document_type": "business_relations",
-  "title": "\u696D\u52D9Relation\u30B5\u30F3\u30D7\u30EB v0.1",
-  "note": "\u696D\u52D9\u30C7\u30FC\u30BF\u540C\u58EB\u3092\u30B3\u30CD\u30AF\u30C8\u7DDA\u3067\u3064\u306A\u3050\u305F\u3081\u306E\u30B5\u30F3\u30D7\u30EB\u3002Data\u306F\u5225JSON\u3001Relation\u306F\u3053\u306EJSON\u3001View\u306Frelation_axis_business_*\u3067\u5207\u308A\u66FF\u3048\u308B\u3002",
+  "title": "業務Relationサンプル v0.1",
+  "note": "業務データ同士をコネクト線でつなぐためのサンプル。Dataは別JSON、RelationはこのJSON、Viewはrelation_axis_business_*で切り替える。",
   "relations": [
     {
       "relation_id": "REL-CUST001-PRJ001",
@@ -14,7 +14,7 @@
       "to_id": "PRJ-001",
       "coverage": "primary",
       "status": "approved",
-      "note": "\u9752\u6CE2\u88FD\u4F5C\u6240\u306E\u898B\u7A4DWeb\u5316\u6848\u4EF6\uFF58\uFF58",
+      "note": "青波製作所の見積Web化案件ｘｘ",
       "confidence": "",
       "required": false,
       "enabled": false,
@@ -29,7 +29,7 @@
       "to_id": "PRJ-002",
       "coverage": "secondary",
       "status": "candidate",
-      "note": "\u540C\u9867\u5BA2\u306E\u95A2\u9023CSV\u6574\u7406\u5019\u88DC"
+      "note": "同顧客の関連CSV整理候補"
     },
     {
       "relation_id": "REL-CUST002-PRJ003",
@@ -40,7 +40,7 @@
       "to_id": "PRJ-003",
       "coverage": "primary",
       "status": "approved",
-      "note": "\u702C\u6238\u5185\u7269\u6D41\u306E\u5728\u5EAB\u7167\u4F1A\u6539\u5584\u6848\u4EF6"
+      "note": "瀬戸内物流の在庫照会改善案件"
     },
     {
       "relation_id": "REL-PRJ001-TASK001",
@@ -51,7 +51,7 @@
       "to_id": "TASK-001",
       "coverage": "primary",
       "status": "approved",
-      "note": "\u898B\u7A4DWeb\u5316\u306E\u753B\u9762\u9805\u76EE\u78BA\u8A8D"
+      "note": "見積Web化の画面項目確認"
     },
     {
       "relation_id": "REL-PRJ001-TASK002",
@@ -62,7 +62,7 @@
       "to_id": "TASK-002",
       "coverage": "primary",
       "status": "approved",
-      "note": "\u898B\u7A4DWeb\u5316\u306EJSON\u5B9A\u7FA9\u4F5C\u6210"
+      "note": "見積Web化のJSON定義作成"
     },
     {
       "relation_id": "REL-PRJ002-TASK003",
@@ -73,7 +73,7 @@
       "to_id": "TASK-003",
       "coverage": "primary",
       "status": "candidate",
-      "note": "\u8ACB\u6C42CSV\u6574\u7406\u306E\u51FA\u529B\u78BA\u8A8D"
+      "note": "請求CSV整理の出力確認"
     },
     {
       "relation_id": "REL-PRJ003-TASK004",
@@ -84,7 +84,7 @@
       "to_id": "TASK-004",
       "coverage": "primary",
       "status": "approved",
-      "note": "\u5728\u5EAB\u7167\u4F1A\u6539\u5584\u306EAPI\u78BA\u8A8D"
+      "note": "在庫照会改善のAPI確認"
     },
     {
       "relation_id": "REL-TASK001-EMP001",
@@ -95,7 +95,7 @@
       "to_id": "EMP-001",
       "coverage": "primary",
       "status": "approved",
-      "note": "\u753B\u9762\u9805\u76EE\u78BA\u8A8D\u306E\u62C5\u5F53"
+      "note": "画面項目確認の担当"
     },
     {
       "relation_id": "REL-TASK002-EMP002",
@@ -106,7 +106,7 @@
       "to_id": "EMP-002",
       "coverage": "primary",
       "status": "approved",
-      "note": "JSON\u5B9A\u7FA9\u4F5C\u6210\u306E\u62C5\u5F53"
+      "note": "JSON定義作成の担当"
     },
     {
       "relation_id": "REL-TASK003-EMP002",
@@ -117,7 +117,7 @@
       "to_id": "EMP-002",
       "coverage": "secondary",
       "status": "candidate",
-      "note": "CSV\u51FA\u529B\u78BA\u8A8D\u306E\u62C5\u5F53\u5019\u88DC"
+      "note": "CSV出力確認の担当候補"
     },
     {
       "relation_id": "REL-TASK004-EMP003",
@@ -128,7 +128,44 @@
       "to_id": "EMP-003",
       "coverage": "primary",
       "status": "approved",
-      "note": "\u5728\u5EABAPI\u78BA\u8A8D\u306E\u62C5\u5F53"
+      "note": "在庫API確認の担当"
+    }
+  ],
+  "view_def_candidates": [
+    {
+      "view_def": "relation/relation_edit_view_def_v0_1.json",
+      "label": "Relation編集",
+      "role": "default",
+      "status": "active",
+      "note": "Relation JSONの標準編集ViewDef"
+    },
+    {
+      "view_def": "relation/relation_approval_view_def_v0_1.json",
+      "label": "Relation承認レビュー",
+      "role": "review",
+      "status": "active",
+      "note": "candidate/approved等のRelation行を人間レビューするViewDef"
+    },
+    {
+      "view_def": "relation/relation_axis_business_customer_view_def_v0_1.json",
+      "label": "顧客軸リレーション",
+      "role": "relation_axis",
+      "status": "active",
+      "note": "顧客→案件のRelation確認用"
+    },
+    {
+      "view_def": "relation/relation_axis_business_project_view_def_v0_1.json",
+      "label": "案件軸リレーション",
+      "role": "relation_axis",
+      "status": "active",
+      "note": "案件→タスクのRelation確認用"
+    },
+    {
+      "view_def": "relation/relation_axis_business_employee_view_def_v0_1.json",
+      "label": "担当者軸リレーション",
+      "role": "relation_axis",
+      "status": "active",
+      "note": "担当者←タスクのRelation確認用"
     }
   ]
 }

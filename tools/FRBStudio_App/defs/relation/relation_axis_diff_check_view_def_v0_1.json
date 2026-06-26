@@ -4,8 +4,8 @@
     "version": "0.3-draft-relation-diff-014"
   },
   "dataSources": {
-    "relations": "constraint_trace_relations_v0_1.json",
-    "diff": "screen_state_smoke_001.diff.json"
+    "relations": "03_screen_state/constraint_trace_relations_v0_1.json",
+    "diff": "03_screen_state/screen_state_smoke_001.diff.json"
   },
   "virtualData": {
     "builder": "relation_diff_check_cards",
@@ -37,21 +37,21 @@
     },
     "diffViewDefs": {
       "base": {
-        "view_def": "screen_state_diff_view_def_base_v0_2_checks.json",
+        "view_def": "screen_state/screen_state_diff_view_def_base_v0_2_checks.json",
         "caption": "【BASE】Screen State Diff Base View",
         "note": "diff JSON の共通表示定義。チェック一覧・期待値・実測値を持つ基底ビュー。"
       },
       "children": [
         {
-          "view_def": "screen_state_diff_view_def_child_v0_3_summary.json",
+          "view_def": "screen_state/screen_state_diff_view_def_child_v0_3_summary.json",
           "caption": "【CHILD】Screen State Diff Summary View",
-          "extends": "screen_state_diff_view_def_base_v0_2_checks.json",
+          "extends": "screen_state/screen_state_diff_view_def_base_v0_2_checks.json",
           "note": "BASEを継承し、差分サマリ確認に寄せた子View。"
         },
         {
-          "view_def": "screen_state_diff_view_def_child_v0_3_failure_focus.json",
+          "view_def": "screen_state/screen_state_diff_view_def_child_v0_3_failure_focus.json",
           "caption": "【CHILD】Screen State Diff Failure Focus View",
-          "extends": "screen_state_diff_view_def_base_v0_2_checks.json",
+          "extends": "screen_state/screen_state_diff_view_def_base_v0_2_checks.json",
           "note": "BASEを継承し、失敗原因確認に寄せた子View。"
         }
       ]
@@ -559,6 +559,14 @@
           ]
         }
       ]
+    }
+  ],
+  "change_history": [
+    {
+      "change_id": "chg_v0_14_1_relation_trace_datasource_path_fix",
+      "at": "2026-06-26",
+      "change": "dataSourcesの参照パスを data/json 配下の実配置に合わせて修正。constraint_trace_relations_v0_1.json を data/json/03_screen_state 配下に配置する前提に統一。",
+      "reason": "Relation系仮想ViewDefが dataSources を読めず、view_def_candidates から切替しても表示できない問題を解消するため。"
     }
   ]
 }

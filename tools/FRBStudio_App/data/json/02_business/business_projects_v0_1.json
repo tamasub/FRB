@@ -15,5 +15,15 @@
       "project_id": "PRJ-003",
       "project_name": "在庫照会改善"
     }
+  ],
+  "view_def": "relation/relation_axis_business_project_view_def_v0_1.json",
+  "view_def_candidates": [
+    {
+      "view_def": "relation/relation_axis_business_project_view_def_v0_1.json",
+      "label": "案件軸",
+      "role": "default",
+      "status": "active",
+      "note": "案件軸の標準表示"
+    }
   ]
 }

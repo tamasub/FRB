@@ -1,7 +1,7 @@
 {
   "schema_version": "0.2-draft",
   "view_def": "screen_state/screen_state_test_patterns_view_def_v0_2_chat.json",
-  "suiteId": "screen_state_suite_v0_1",
+   "suiteId": "screen_state_suite_v0_1",
   "title": "画面状態JSONテストパターン一覧",
   "targetApp": "No-Code JSON Studio v0.3-draft",
   "baseUrl": "http://localhost:5055/",
