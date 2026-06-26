@@ -21,5 +21,12 @@ const fieldTypeRegistryCache = new Map();
 let launchRuntime = { fromUrl: false, mode: '', readonly: false, dataParam: '', viewParam: '', fileParam: '' };
 let currentAppInfo = null;
 
+// v0.14.1-data-viewdef-candidates:
+// Data JSON can declare which ViewDefs are valid manual switch candidates.
+// When candidates are present, the ViewDef picker is restricted to this list.
+let currentDataViewDefCandidates = [];
+let currentDataViewDefCandidateMode = false;
+let currentDataViewDefCandidateDataName = '';
+
 const $ = (id) => document.getElementById(id);
 

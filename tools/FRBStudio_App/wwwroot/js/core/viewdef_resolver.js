@@ -212,7 +212,7 @@ async function refreshServerLists() {
     ]);
     serverDefNames = normalizeServerNames(defs);
     serverDataNames = normalizeServerNames(data);
-    setDatalist('defNameList', serverDefNames);
+    setDatalist('defNameList', viewDefSelectionNames());
     setDatalist('dataNameList', serverDataNames);
     if (typeof refreshFileTreePickers === 'function') refreshFileTreePickers();
     setStatus(`一覧を更新しました: defs ${serverDefNames.length}件 / data ${serverDataNames.length}件`);
@@ -222,8 +222,15 @@ async function refreshServerLists() {
   }
 }
 
+function viewDefSelectionNames() {
+  if (currentDataViewDefCandidateMode) {
+    return uniqueNames((currentDataViewDefCandidates ?? []).map(item => item?.view_def || item?.name || item?.file));
+  }
+  return serverDefNames;
+}
+
 function selectedDefName() {
-  return normalizeComboInput($('defNameInput'), serverDefNames, '画面定義JSON');
+  return normalizeComboInput($('defNameInput'), viewDefSelectionNames(), '画面定義JSON');
 }
 
 function selectedDataName() {
@@ -232,6 +239,117 @@ function selectedDataName() {
 
 function getDataViewDefName(dataObj) {
   return safeJsonFileName(dataObj?.view_def || dataObj?.viewDef || dataObj?.view_definition || dataObj?.viewDefinition);
+}
+
+function viewDefCandidateRawArray(dataObj) {
+  const raw = dataObj?.view_def_candidates ?? dataObj?.viewDefCandidates ?? dataObj?.view_def_candidates_list ?? dataObj?.viewDefs ?? dataObj?.view_defs;
+  if (Array.isArray(raw)) return raw;
+  return [];
+}
+
+function normalizeViewDefCandidateItem(raw, index=0, source='candidate') {
+  const isString = typeof raw === 'string';
+  const name = safeJsonFileName(isString ? raw : (raw?.view_def ?? raw?.viewDef ?? raw?.name ?? raw?.file ?? raw?.path));
+  if (!name) return null;
+
+  return {
+    view_def: name,
+    label: String((isString ? '' : (raw?.label ?? raw?.caption ?? raw?.title)) || '').trim(),
+    role: String((isString ? '' : raw?.role) || (index === 0 ? 'candidate' : '')).trim(),
+    status: String((isString ? '' : raw?.status) || 'active').trim(),
+    note: String((isString ? '' : (raw?.note ?? raw?.notes ?? raw?.description)) || '').trim(),
+    source
+  };
+}
+
+function getDataViewDefCandidateItems(dataObj) {
+  const items = [];
+  const seen = new Set();
+  const push = (item) => {
+    if (!item?.view_def || seen.has(item.view_def)) return;
+    seen.add(item.view_def);
+    items.push(item);
+  };
+
+  const primary = getDataViewDefName(dataObj);
+  if (primary) {
+    push({
+      view_def: primary,
+      label: '既定ViewDef',
+      role: 'default',
+      status: 'active',
+      note: 'top-level view_def',
+      source: 'view_def'
+    });
+  }
+
+  viewDefCandidateRawArray(dataObj).forEach((raw, index) => {
+    const item = normalizeViewDefCandidateItem(raw, index, 'view_def_candidates');
+    if (item) push(item);
+  });
+
+  return items;
+}
+
+function hasExplicitDataViewDefCandidates(dataObj) {
+  return viewDefCandidateRawArray(dataObj).length > 0;
+}
+
+function hasDataViewDefSelectionContract(dataObj) {
+  return getDataViewDefCandidateItems(dataObj).length > 0;
+}
+
+function getPreferredDataViewDefName(dataObj) {
+  return getDataViewDefName(dataObj) || getDataViewDefCandidateItems(dataObj)[0]?.view_def || null;
+}
+
+function isViewDefCandidateAllowedForData(dataObj, defName) {
+  const n = safeJsonFileName(defName);
+  if (!n) return false;
+  const items = getDataViewDefCandidateItems(dataObj);
+  if (!items.length) return true;
+  return items.some(item => item.view_def === n);
+}
+
+function updateCurrentDataViewDefCandidates(dataObj, dataName='') {
+  const items = getDataViewDefCandidateItems(dataObj);
+  currentDataViewDefCandidates = items;
+  currentDataViewDefCandidateMode = items.length > 0;
+  currentDataViewDefCandidateDataName = dataName || '';
+  refreshViewDefSelectionUi();
+  return items;
+}
+
+function clearCurrentDataViewDefCandidates() {
+  currentDataViewDefCandidates = [];
+  currentDataViewDefCandidateMode = false;
+  currentDataViewDefCandidateDataName = '';
+  refreshViewDefSelectionUi();
+}
+
+function refreshViewDefSelectionUi() {
+  try {
+    setDatalist('defNameList', viewDefSelectionNames());
+  } catch { /* ignore */ }
+  try {
+    if (typeof refreshFileTreePickers === 'function') refreshFileTreePickers();
+  } catch { /* ignore */ }
+
+  const input = $('defNameInput');
+  if (input) {
+    if (currentDataViewDefCandidateMode) {
+      const count = viewDefSelectionNames().length;
+      input.placeholder = `このDataのViewDef候補から選択 (${count}件)`;
+      input.title = (currentDataViewDefCandidates ?? []).map(item => {
+        const label = item.label ? ` / ${item.label}` : '';
+        const meta = [item.role, item.status].filter(Boolean).join(', ');
+        return `${item.view_def}${label}${meta ? ` (${meta})` : ''}`;
+      }).join('\n');
+    } else {
+      input.placeholder = 'defs から検索・選択';
+      input.title = '';
+    }
+  }
 }
 
 
@@ -330,6 +448,9 @@ function uniqueNames(names) {
 }
 
 function inferLikelyDefNames(dataObj, dataName='') {
+  const explicitCandidates = getDataViewDefCandidateItems(dataObj).map(item => item.view_def);
+  if (explicitCandidates.length) return uniqueNames(explicitCandidates);
+
   const names = [];
   const embedded = getDataViewDefName(dataObj);
   if (embedded) names.push(embedded);
@@ -377,12 +498,17 @@ async function findCompatibleDefForData(dataObj, dataName='', excludedNames=[]) 
 
 async function resolveDefForData(preferredDefName, dataObj, dataName='') {
   const preferred = safeJsonFileName(preferredDefName);
-  const embeddedDefName = getDataViewDefName(dataObj);
+  const embeddedDefName = getPreferredDataViewDefName(dataObj);
 
   // 画面定義JSONを明示選択した場合は、対象JSON内の view_def より優先する。
-  // 明示選択した ViewDef が互換なしでも、対象JSON側 view_def へ黙って戻さない。
-  // これで「同じデータを別ViewDef / VirtualData ViewDefで見る」デモが成立する。
+  // ただし Data JSON が view_def / view_def_candidates を持つ場合、
+  // 手動切替できるのはData側で明示された ViewDef だけに限定する。
   if (preferred) {
+    if (!isViewDefCandidateAllowedForData(dataObj, preferred)) {
+      const allowed = getDataViewDefCandidateItems(dataObj).map(item => item.view_def).join(' / ') || '(候補なし)';
+      throw new Error(`画面定義JSON「${preferred}」は、このData JSONの view_def / view_def_candidates に含まれていません。候補: ${allowed}`);
+    }
+
     const defObj = await fetchResolvedViewDef(preferred);
     if (isDefCompatibleWithData(defObj, dataObj)) {
       return { defName: preferred, defObj, autoChanged: false, explicit: true };
@@ -415,5 +541,12 @@ async function resolveDefForData(preferredDefName, dataObj, dataName='') {
 function ensureViewDefNameInData(dataObj, defName) {
   if (!dataObj || typeof dataObj !== 'object' || Array.isArray(dataObj)) return;
   const n = safeJsonFileName(defName);
-  if (n) dataObj.view_def = n;
+  if (!n) return;
+
+  // v0.14.1: Data側にViewDef契約がある場合、
+  // 手動切替時に既定 view_def を勝手に書き換えない。
+  // view_def は「既定ViewDef」、候補リストは「切替可能ViewDef」として分ける。
+  if (hasDataViewDefSelectionContract(dataObj) && getDataViewDefName(dataObj)) return;
+
+  dataObj.view_def = n;
 }

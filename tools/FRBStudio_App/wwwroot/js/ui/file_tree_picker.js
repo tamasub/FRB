@@ -9,7 +9,7 @@ function fileTreePickerConfigs() {
       kind: 'defs',
       inputId: 'defNameInput',
       label: '画面定義JSON',
-      names: () => serverDefNames
+      names: () => (typeof viewDefSelectionNames === 'function' ? viewDefSelectionNames() : serverDefNames)
     },
     {
       kind: 'data',
@@ -134,7 +134,9 @@ function renderFileTreePicker(state) {
   if (!names.length) {
     const empty = document.createElement('div');
     empty.className = 'file-tree-empty';
-    empty.textContent = '管理対象JSONが見つかりません';
+    empty.textContent = state.config.inputId === 'defNameInput' && currentDataViewDefCandidateMode
+      ? 'このData JSONにViewDef候補がありません'
+      : '管理対象JSONが見つかりません';
     state.list.appendChild(empty);
     return;
   }

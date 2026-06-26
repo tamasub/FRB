@@ -202,24 +202,33 @@ function setupDataSelectionViewDefReset() {
         dataInput.value = actualDataName;
         lastObservedDataName = actualDataName;
       }
-      const embeddedDef = getDataViewDefName(loaded.json);
+      const candidates = updateCurrentDataViewDefCandidates(loaded.json, actualDataName);
+      const embeddedDef = getPreferredDataViewDefName(loaded.json);
       if (embeddedDef) {
         setComboValueSilently(defInput, embeddedDef);
         updateViewDefMarkdownButtonState();
-        setStatus(`対象JSONの view_def を反映しました: ${embeddedDef}`, { title: '画面定義を再表示', duration: 3200 });
+        const candidateMsg = currentDataViewDefCandidateMode
+          ? ` / 候補 ${candidates.length}件`
+          : '';
+        setStatus(`対象JSONの view_def を反映しました: ${embeddedDef}${candidateMsg}`, { title: '画面定義を再表示', duration: 3200 });
       } else {
+        clearCurrentDataViewDefCandidates();
         setStatus('対象JSONに view_def がないため、読み込み時に互換ViewDefを自動探索します', { title: '画面定義を自動探索', duration: 3200 });
       }
     } catch (err) {
       if (seq !== resolveSeq) return;
       console.warn('対象JSONの view_def 事前解決をスキップ:', err);
+      clearCurrentDataViewDefCandidates();
       setStatus('対象JSONの view_def 事前解決をスキップしました: ' + err.message, { title: '確認', duration: 4200 });
     }
   }
 
   function handleDataSelectionChanged(event) {
     const dataName = safeJsonFileName(dataInput.value);
-    if (!dataName) return;
+    if (!dataName) {
+      clearCurrentDataViewDefCandidates();
+      return;
+    }
     if (dataName === lastObservedDataName && event?.type !== 'change') return;
     lastObservedDataName = dataName;
     resolveSeq += 1;

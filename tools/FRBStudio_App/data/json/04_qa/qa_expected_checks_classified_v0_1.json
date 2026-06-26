@@ -2,6 +2,30 @@
   "schema_version": "0.1",
   "document_type": "qa_expected_checks_classified",
   "view_def": "qa/qa_expected_checks_classified_view_def_v0_1.json",
+   "view_def_candidates": [
+    {
+      "view_def": "qa/qa_expected_checks_classified_view_def_v0_1.json",
+      "label": "標準表示",
+      "role": "default",
+      "status": "active",
+      "note": "通常利用するViewDef"
+    },
+    {
+      "view_def": "qa/qa_expected_checks_sample_view_def_v0_1.json",
+      "label": "リレーション確認用",
+      "role": "relation",
+      "status": "active",
+      "note": "関連データ確認用"
+    },
+    {
+      "view_def": "qa/qa_expected_checks_candidate_review_view_def_v0_1.json",
+      "label": "リレーション確認用",
+      "role": "relation",
+      "status": "active",
+      "note": "関連データ確認用"
+    }
+
+  ],
   "title": "観点分類入りExpected定義 v0.1",
   "description": "テストパターンは増やさず、既存TPにぶら下がるチェック項目を品質観点・チェック観点・リスクで分類するためのExpected定義。",
   "policy": {

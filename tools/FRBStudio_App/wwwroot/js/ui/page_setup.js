@@ -102,7 +102,7 @@ function setupViewDefMarkdownButtonState() {
 
 function setupComboClearButtons() {
   const configs = [
-    { inputId: 'defNameInput', buttonId: 'clearDefNameBtn', label: '画面定義JSON', names: () => serverDefNames },
+    { inputId: 'defNameInput', buttonId: 'clearDefNameBtn', label: '画面定義JSON', names: () => (typeof viewDefSelectionNames === 'function' ? viewDefSelectionNames() : serverDefNames) },
     { inputId: 'dataNameInput', buttonId: 'clearDataNameBtn', label: '対象JSON', names: () => serverDataNames }
   ];
   configs.forEach(({ inputId, buttonId, label, names }) => {

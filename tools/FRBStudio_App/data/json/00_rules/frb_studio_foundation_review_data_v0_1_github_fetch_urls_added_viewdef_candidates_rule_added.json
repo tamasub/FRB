@@ -632,8 +632,8 @@
       "review_status": "未レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
-      "summary": "AI作業では、GitHub main またはユーザー添付ZIPを基準ソースとし、incident_file と phase を中心に行う。返却物は data / defs / wwwroot 階層のZIPとし、更新済みインシデントJSONを data/json/01_main に含める。ViewDefファイル名は原則維持し、GitDiffとData側view_def参照を守る。",
-      "body": "FRB Studio / JSON Object Studio のAI作業では、原則として GitHub main の最新ソースを基準ソースとして扱う。\n\nユーザーは毎回ソースZIPを添付するのではなく、incident_file と phase を指定して作業を依頼できるようにする。\n\nAIは、指定された incident_file を読み、work_items[] から phase が一致する作業項目を探し、その objective / scope / user_request / latest_user_comment / decision_log / test_points を正として作業内容を判断する。\n\nphase が見つからない場合、または作業内容が特定できない場合は、推測で実装せず確認する。\n\n返却は原則ZIPとし、ZIP直下の基本階層は以下とする。\n\n- data/\n- defs/\n- wwwroot/\n\n修正したファイルは、FRBStudio_App配下と同じ相対パスで格納する。\n\n更新済みインシデント管理JSONは、必ず data/json/01_main/ に格納する。\n\nインシデントJSONには、AIが更新したファイル、変更理由、変更概要、確認ポイントを latest_ai_response / discussion_history / change_history へ残す。\n\nwwwroot/data と wwwroot/defs は公開用静的領域として扱い、明示依頼がない限り更新しない。\n\nProgram.cs など FRBStudio 本体側の更新が必要な場合は、返却前に配置方針と更新対象を明示する。\n\n理由:\n毎回ソースZIPを添付する運用では、依頼準備が重く、AIとの協働が作業単位ではなくファイル受け渡し単位になってしまう。\nGitHub main を基準ソースとし、インシデントJSONを作業台帳として使うことで、作業依頼、実装、返却、履歴記録を一つの運用契約として安定させるため。\n\n### GitHub取得URLの標準\n\nAIがGitHub上の基準ソースを取得する場合は、用途に応じて以下のURLを使い分ける。\n\n人間がブラウザで確認するためのtree/blob URL:\n\n- FRBStudio 本体: https://github.com/tamasub/FRB/tree/main/tools/FRBStudio\n- FRBStudio_App: https://github.com/tamasub/FRB/tree/main/tools/FRBStudio_App\n- Foundation Rules: https://github.com/tamasub/FRB/blob/main/tools/FRBStudio_App/data/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json\n\nAIやスクリプトが直接取得するためのraw/archive URL:\n\n- リポジトリ main ZIP: https://github.com/tamasub/FRB/archive/refs/heads/main.zip\n- FRBStudio_App raw base: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/\n- FRBStudio 本体 raw base: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio/\n- Foundation Rules raw: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/data/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json\n\nincident_file は FRBStudio_App からの相対パスとして扱う。\nたとえば `incident_file: data/json/01_main/studio_work_incident_data_xxx.json` が指定された場合、raw URL は以下の形式で解決する。\n\n`https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/{incident_file}`\n\n個別ファイルを直接取得できない場合、またはHTMLなど大きなファイルの完全取得が不安定な場合は、リポジトリ main ZIP を取得し、展開後の `FRB-main/tools/FRBStudio_App/` または `FRB-main/tools/FRBStudio/` を基準として作業する。\n\nGitHubのtree/blob URLは閲覧用であり、機械取得や完全ファイル取得にはraw URLまたはmain ZIPを優先する。\n\n---\n\n### ViewDef安定ファイル名契約\n\n既存Data JSONから参照されている ViewDef / DefView ファイルは、原則として同じファイル名のまま更新する。\n\nViewDefファイル名は単なる成果物名ではなく、以下をつなぐ接続キーである。\n\n- Data JSON の `view_def` 参照\n- URL起動リンク\n- GitHub Pages上の静的読込\n- GitDiffによる変更前後比較\n- 既存の作業履歴・記事リンク・説明文\n\nそのため、AIは通常のViewDef改善で `*_v0_5_*.json` のような新規ファイル名を勝手に作成しない。既存ViewDefを改修する場合は、同じ相対パス・同じファイル名で返却する。\n\n新しいViewDefファイル名を作成できるのは、ユーザーが明示的に新名を指定した場合、既存ViewDefとの互換性を意図的に切る場合、または旧ViewDefと新ViewDefを並行運用する明確な理由がある場合に限る。\n\nViewDefファイル名を変更する場合は、Data JSON側の `view_def` 参照更新、URL起動やGitHub Pagesへの影響、GitDiffで新規追加扱いになる理由を、該当インシデントの `decision_log` / `change_history` / `latest_ai_response` に記録する。\n",
+      "summary": "AI作業では、GitHub main またはユーザー添付ZIPを基準ソースとし、incident_file と phase を中心に行う。返却物は data / defs / wwwroot 階層のZIPとし、更新済みインシデントJSONを data/json/01_main に含める。ViewDefファイル名は原則維持し、Data JSON内の view_def / view_def_candidates をDataとViewDefの接続契約として扱う。",
+      "body": "FRB Studio / JSON Object Studio のAI作業では、原則として GitHub main の最新ソースを基準ソースとして扱う。\n\nユーザーは毎回ソースZIPを添付するのではなく、incident_file と phase を指定して作業を依頼できるようにする。\n\nAIは、指定された incident_file を読み、work_items[] から phase が一致する作業項目を探し、その objective / scope / user_request / latest_user_comment / decision_log / test_points を正として作業内容を判断する。\n\nphase が見つからない場合、または作業内容が特定できない場合は、推測で実装せず確認する。\n\n返却は原則ZIPとし、ZIP直下の基本階層は以下とする。\n\n- data/\n- defs/\n- wwwroot/\n\n修正したファイルは、FRBStudio_App配下と同じ相対パスで格納する。\n\n更新済みインシデント管理JSONは、必ず data/json/01_main/ に格納する。\n\nインシデントJSONには、AIが更新したファイル、変更理由、変更概要、確認ポイントを latest_ai_response / discussion_history / change_history へ残す。\n\nwwwroot/data と wwwroot/defs は公開用静的領域として扱い、明示依頼がない限り更新しない。\n\nProgram.cs など FRBStudio 本体側の更新が必要な場合は、返却前に配置方針と更新対象を明示する。\n\n理由:\n毎回ソースZIPを添付する運用では、依頼準備が重く、AIとの協働が作業単位ではなくファイル受け渡し単位になってしまう。\nGitHub main を基準ソースとし、インシデントJSONを作業台帳として使うことで、作業依頼、実装、返却、履歴記録を一つの運用契約として安定させるため。\n\n### GitHub取得URLの標準\n\nAIがGitHub上の基準ソースを取得する場合は、用途に応じて以下のURLを使い分ける。\n\n人間がブラウザで確認するためのtree/blob URL:\n\n- FRBStudio 本体: https://github.com/tamasub/FRB/tree/main/tools/FRBStudio\n- FRBStudio_App: https://github.com/tamasub/FRB/tree/main/tools/FRBStudio_App\n- Foundation Rules: https://github.com/tamasub/FRB/blob/main/tools/FRBStudio_App/data/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json\n\nAIやスクリプトが直接取得するためのraw/archive URL:\n\n- リポジトリ main ZIP: https://github.com/tamasub/FRB/archive/refs/heads/main.zip\n- FRBStudio_App raw base: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/\n- FRBStudio 本体 raw base: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio/\n- Foundation Rules raw: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/data/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json\n\nincident_file は FRBStudio_App からの相対パスとして扱う。\nたとえば `incident_file: data/json/01_main/studio_work_incident_data_xxx.json` が指定された場合、raw URL は以下の形式で解決する。\n\n`https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/{incident_file}`\n\n個別ファイルを直接取得できない場合、またはHTMLなど大きなファイルの完全取得が不安定な場合は、リポジトリ main ZIP を取得し、展開後の `FRB-main/tools/FRBStudio_App/` または `FRB-main/tools/FRBStudio/` を基準として作業する。\n\nGitHubのtree/blob URLは閲覧用であり、機械取得や完全ファイル取得にはraw URLまたはmain ZIPを優先する。\n\n---\n\n### ViewDef安定ファイル名契約\n\n既存Data JSONから参照されている ViewDef / DefView ファイルは、原則として同じファイル名のまま更新する。\n\nViewDefファイル名は単なる成果物名ではなく、以下をつなぐ接続キーである。\n\n- Data JSON の `view_def` 参照\n- URL起動リンク\n- GitHub Pages上の静的読込\n- GitDiffによる変更前後比較\n- 既存の作業履歴・記事リンク・説明文\n\nそのため、AIは通常のViewDef改善で `*_v0_5_*.json` のような新規ファイル名を勝手に作成しない。既存ViewDefを改修する場合は、同じ相対パス・同じファイル名で返却する。\n\n新しいViewDefファイル名を作成できるのは、ユーザーが明示的に新名を指定した場合、既存ViewDefとの互換性を意図的に切る場合、または旧ViewDefと新ViewDefを並行運用する明確な理由がある場合に限る。\n\nViewDefファイル名を変更する場合は、Data JSON側の `view_def` 参照更新、URL起動やGitHub Pagesへの影響、GitDiffで新規追加扱いになる理由を、該当インシデントの `decision_log` / `change_history` / `latest_ai_response` に記録する。\n\n---\n\n### Data JSON内ViewDef候補契約\n\nData JSON は、既定ViewDefとして top-level `view_def` を持つことができる。\n\n同じData JSONを複数のViewDefで確認したい場合は、追加で top-level `view_def_candidates` を持つ。\n\n推奨形は以下とする。\n\n```json\n{\n  \"view_def\": \"rules/main_view_def.json\",\n  \"view_def_candidates\": [\n    {\n      \"view_def\": \"rules/main_view_def.json\",\n      \"label\": \"標準表示\",\n      \"role\": \"default\",\n      \"status\": \"active\",\n      \"note\": \"通常利用するViewDef\"\n    },\n    {\n      \"view_def\": \"rules/relation_view_def.json\",\n      \"label\": \"リレーション確認\",\n      \"role\": \"relation\",\n      \"status\": \"active\",\n      \"note\": \"関連データ確認用\"\n    }\n  ]\n}\n```\n\nStudio の手動ViewDef切替UIは、Data JSONに `view_def` / `view_def_candidates` として明示されたViewDefだけを切替候補として扱う。\n\nこれにより、Data JSONから参照されていないViewDefを棚卸し対象として発見しやすくし、ViewDefの現役・旧版・診断用・削除候補の判断をData側の接続情報から追えるようにする。\n\n候補リストはViewDefファイル名変更の代替ではない。既存ViewDefの通常改修ではファイル名を変更せず、同名更新を原則とする。\n\n---\n\n### Data JSON内ViewDef候補の記述ルール\n\n`view_def_candidates` は ViewDef JSON 側の定義ではなく、Data JSON 側のメタ情報として扱う。\n\n`view_def_candidates[].view_def` は、`defs/` 配下からの相対パスで記述する。  \nそのため、値には `defs/` を付けない。\n\n例:\n\n```json\n{\n  \"view_def\": \"qa/qa_expected_checks_classified_view_def_v0_1.json\",\n  \"view_def_candidates\": [\n    {\n      \"view_def\": \"qa/qa_expected_checks_classified_view_def_v0_1.json\",\n      \"label\": \"標準表示\",\n      \"role\": \"default\",\n      \"status\": \"active\",\n      \"note\": \"通常利用するViewDef\"\n    },\n    {\n      \"view_def\": \"qa/qa_expected_checks_sample_view_def_v0_1.json\",\n      \"label\": \"リレーション確認用\",\n      \"role\": \"relation\",\n      \"status\": \"active\",\n      \"note\": \"関連データ確認用\"\n    }\n  ]\n}\n```\n\n`view_def` は既定ViewDefであり、通常読込時に最初に使用するViewDefを示す。\n\n`view_def_candidates` は、そのData JSONで手動切替を許可するViewDef候補を示す。\n\n`role` は候補ViewDefの用途を表す。まずは以下を標準候補とする。\n\n- `default`: 通常利用する標準表示\n- `relation`: 関連データ・リレーション確認用\n- `review`: レビュー用\n- `compare`: 比較用\n- `debug`: 診断・確認用\n\n`status` は候補ViewDefの利用状態を表す。まずは以下を標準候補とする。\n\n- `active`: 現役候補\n- `deprecated`: 旧版だが一時的に残す候補\n- `inactive`: 通常の手動切替候補には出さない候補\n\nStudio の手動ViewDef切替UIは、原則として `status: \"active\"` の候補を表示対象とする。\n\ntop-level `view_def` は、`view_def_candidates` 内の `role: \"default\"` または先頭候補と一致させることを推奨する。\n\nAIは、実体が存在しないViewDef、利用意図が不明な試作ViewDef、削除候補のViewDefを、ユーザー確認なしに `view_def_candidates` へ追加しない。\n\n`view_def_candidates` は、ViewDef棚卸しのための接続情報であり、Runtimeが全defsから自由に候補を探すための仕組みではない。\n",
       "ceremony_phrase": "Foundation Rule 19「GitHub基準ソースとZIP返却契約」をレビューする。",
       "user_comment": "",
       "ai_response": "",
@@ -669,12 +669,35 @@
           "before": "GitHub基準ソースとZIP返却契約には、ViewDefファイル名を安定させる契約が明文化されていなかった。",
           "after": "ViewDef安定ファイル名契約を追加し、既存ViewDefは同名更新を原則とし、新規名作成時は参照更新と理由記録を必須化。",
           "reason": "ViewDefファイル名がData JSONのview_def参照・URL起動・GitDiffの差分観測点として機能しているため。"
+        },
+        {
+          "history_id": "chg_foundation_rule_019_v0141_001",
+          "at": "2026-06-26",
+          "change_type": "body_append",
+          "before": "Data JSONが複数ViewDef候補を持つ契約がFoundation Rulesに明文化されていなかった。",
+          "after": "Data JSON内ViewDef候補契約を追加し、view_defを既定ViewDef、view_def_candidatesを手動切替候補として扱う方針を明記。",
+          "reason": "DataとViewDefの接続関係を明確化し、未参照ViewDefの棚卸し・削除候補判断をしやすくするため。"
+        },
+        {
+          "history_id": "chg_foundation_rule_019_v0141_002",
+          "at": "2026-06-26",
+          "change_type": "body_append",
+          "before": "Data JSON内ViewDef候補契約には、view_def_candidates の基本形は記載済みだったが、defs/配下相対パス、role/status、active候補、既定ViewDefとの一致条件などの実務記述が不足していた。",
+          "after": "Data JSON内ViewDef候補の記述ルールを追記し、view_def_candidates はData JSON側メタ情報であること、defs/を付けない相対パスで書くこと、role/statusの標準候補、active候補の扱い、実体なしViewDefを候補に入れないことを明記。",
+          "reason": "v0.14.1-data-viewdef-candidates の実運用確認で、候補パスや表示対象の判断ルールをFoundation Rulesに残す必要が見えたため。"
         }
       ],
-      "decision_log": []
+      "decision_log": [
+        {
+          "decision_id": "dec_foundation_rule_019_v0141_001",
+          "at": "2026-06-26",
+          "decision": "view_def_candidates はData JSON側のメタ情報とし、候補ViewDefのパスは defs/ 配下からの相対パスで記述する。",
+          "reason": "Data JSONとViewDefの接続関係をData側で明示しつつ、defs/付きパスとdefs/なしパスが混在して手動切替UIに重複表示される事故を避けるため。"
+        }
+      ]
     }
   ],
-  "updated_at": "2026-06-25",
+  "updated_at": "2026-06-26",
   "review_notes": [
     {
       "note_id": "note_v012_reporting_policy",
@@ -693,7 +716,13 @@
       "at": "2026-06-25",
       "title": "v0.13.8 GitHub取得URLの標準化",
       "body": "foundation_rule_019 に、閲覧用tree/blob URLだけでなく、AIやスクリプトが直接取得するためのraw URL、リポジトリmain ZIP URL、incident_fileからraw URLを解決する規則を追記した。大きなHTML等の完全取得が不安定な場合はmain ZIPを優先する。"
+    },
+    {
+      "note_id": "note_v0141_viewdef_candidates_contract",
+      "at": "2026-06-26",
+      "title": "v0.14.1 Data JSON内ViewDef候補契約",
+      "body": "Data JSONの top-level view_def を既定ViewDef、view_def_candidates を手動切替候補として扱う。候補パスは defs/ 配下からの相対パスで書き、defs/ は付けない。候補はDataとViewDefの接続情報として扱い、未参照ViewDefの棚卸しに使う。"
     }
   ],
-  "review_revision": "v0.14.0-decision-log-confirmation-governance"
+  "review_revision": "v0.14.1-data-viewdef-candidates"
 }

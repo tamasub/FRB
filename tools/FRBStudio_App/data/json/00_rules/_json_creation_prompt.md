@@ -41,3 +41,8 @@
 - C# / .NET の実行確認は必須ではないが、実施有無と未実施理由を作業記録へ残す。
 - 最新ソースを実ファイルとして確認できない場合、会話文脈だけで実装修正しない。
 
+## v0.14.1 Data JSON内ViewDef候補
+
+Data JSONに `view_def_candidates` がある場合、AIはそのDataで利用可能なViewDef候補として扱う。通常改修でViewDefファイル名を勝手に変えない。複数ViewDefを許可したい場合は、Data JSON側に `view_def_candidates` を明示し、既定ViewDefは `view_def` として残す。
+
+<!-- change_history: 2026-06-26 v0.14.1 / Data JSON内ViewDef候補契約を追加 -->

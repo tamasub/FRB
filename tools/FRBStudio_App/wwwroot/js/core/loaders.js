@@ -20,6 +20,7 @@ async function loadFromServerNames(defName, dataName) {
     $('dataNameInput').value = dataName;
   }
   const dataObj = loadedData.json;
+  updateCurrentDataViewDefCandidates(dataObj, dataName);
 
   const resolved = await resolveDefForData(defName, dataObj, dataName);
   defName = resolved.defName;
@@ -92,8 +93,12 @@ async function loadFromDroppedFilesOrServer() {
   }
 
   let defName = defNameFromInput;
-  if (dataObj && !defName && getDataViewDefName(dataObj)) {
-    defName = getDataViewDefName(dataObj);
+  if (dataObj) {
+    updateCurrentDataViewDefCandidates(dataObj, droppedDataName);
+  }
+
+  if (dataObj && !defName && getPreferredDataViewDefName(dataObj)) {
+    defName = getPreferredDataViewDefName(dataObj);
     $('defNameInput').value = defName;
   }
 
@@ -104,6 +109,10 @@ async function loadFromDroppedFilesOrServer() {
     droppedDefName = defFile.name;
     droppedDefRawObj = JSON.parse(await defFile.text());
     defName = safeJsonFileName(defFile.name) || defName || 'dropped_view_def.json';
+    if (dataObj && !isViewDefCandidateAllowedForData(dataObj, defName)) {
+      const allowed = getDataViewDefCandidateItems(dataObj).map(item => item.view_def).join(' / ') || '(候補なし)';
+      throw new Error(`Dropした画面定義JSON「${defName}」は、このData JSONの view_def / view_def_candidates に含まれていません。候補: ${allowed}`);
+    }
     $('defNameInput').value = defName;
     defObj = await resolveViewDefInheritance(droppedDefRawObj, defName);
     if (dataObj && !isDefCompatibleWithData(defObj, dataObj)) {

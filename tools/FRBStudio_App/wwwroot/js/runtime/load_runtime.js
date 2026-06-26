@@ -189,6 +189,7 @@ async function autoLoadFromQuery() {
     const dataObj = loadedData.json;
     const dataName = loadedData.dataName;
     if (dataName && $('dataNameInput')) $('dataNameInput').value = dataName;
+    updateCurrentDataViewDefCandidates(dataObj, dataName);
 
     let defName = null;
     let defObj = null;
@@ -197,6 +198,10 @@ async function autoLoadFromQuery() {
     if (viewParam) {
       const loadedDef = await fetchLaunchViewDefJson(viewParam);
       defName = loadedDef.defName;
+      if (!isViewDefCandidateAllowedForData(dataObj, defName)) {
+        const allowed = getDataViewDefCandidateItems(dataObj).map(item => item.view_def).join(' / ') || '(候補なし)';
+        throw new Error(`URLの view パラメータ「${defName}」は、このData JSONの view_def / view_def_candidates に含まれていません。候補: ${allowed}`);
+      }
       defObj = loadedDef.defObj;
       if (!isDefCompatibleWithData(defObj, dataObj)) {
         throw new Error(defCompatibilityMessage(defName, defObj, dataObj, dataName) + '。URLの view パラメータを確認してください');
