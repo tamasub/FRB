@@ -13,8 +13,8 @@
   "status": "converted_draft",
   "introduced_in": "v0.4-r001",
   "generated_at": "2026-06-26T00:00:00+09:00",
-  "rule_count": 22,
-  "approved_count": 22,
+  "rule_count": 23,
+  "approved_count": 23,
   "approval_policy": "各ルールは人間が内容確認し、verification_status を確認済みにしたうえで approval_decision を承認する。AIはレビューコメント案を出せるが、承認判断は人間が行う。",
   "preamble": "このData JSONは、FRB Studio / JSON Object Studio の土台となる運用原則を管理するためのレビュー対象データである。\n\nMarkdownを原本にせず、構造化できるルール・制約・判断理由はData JSONを原本として管理する。\n\nData JSONをViewDefで表示・編集し、Markdownは必要に応じてExport Viewとして生成する。",
   "change_history_policy": "ルール本文、要約、カテゴリ、優先度、承認判断を変更した場合は、各 rule.change_history に変更前後・理由・会話を残す。",
@@ -848,6 +848,57 @@
           "reason": "Playwrightレポートや添付ファイルは長いパス名・ノイズ・誤認の原因になるため。"
         }
       ]
+    },
+    {
+      "no": 23,
+      "rule_id": "foundation_rule_023",
+      "section_no": "23",
+      "source_heading": "Diff Result Common Format / diff_result_v0_1契約",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "test_evidence",
+      "title": "Diff Result Common Format / diff_result_v0_1契約",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "Diff Result JSONはdocument_type=diff_result、schema_version=diff_result_v0_1を標準とし、上部サマリとchecks[].passを共通化する。",
+      "body": "Diff Result JSONは、Expected JSON と Actual JSON の比較結果を保持する正本である。\n\nDiff Result共通フォーマットでは、以下を標準とする。\n\n```text\nschema_version = diff_result_v0_1\ndocument_type  = diff_result\ndomain         = qa / screen_state / viewdef など\ndiff_kind      = 差分種別\ntest_id        = テストまたは証跡ID\nstatus         = pass / fail などの機械判定\nresultLabel    = 画面表示用の短い判定\nsummary        = 人間向け要約\ntotal / passCount / failCount / failedCount\nfailedCheckIds / failedChecks / firstFailure\nchecks[]\n```\n\nDiff明細の判定フィールドは、`checks[].pass` を正本とする。\n`passed` / `ok` / `result` などの別名を新規標準化しない。\n\nドメイン固有情報は追加項目として保持してよいが、共通項目の意味を壊してはいけない。\n共通化しすぎて将来苦しくなる場合は、AIが独断せず人間へ相談する。\n\n詳細なDiff Result Format Rulesの正本は、以下のData JSONで管理する。\n\n```text\ndata/json/00_rules/frb_diff_result_format_rules_data_v0_1.json\n```",
+      "ceremony_phrase": "Diff Resultは共通サマリとpassで読む。",
+      "user_comment": "",
+      "ai_response": "v0.14.16で、diff_result_v0_1共通サマリとchecks[].pass標準化をFoundation Rulesへ追加。",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "tamasub",
+      "approved_at": "2026-06-27",
+      "notes": "詳細ルールは frb_diff_result_format_rules_data_v0_1.json を正本として管理する。",
+      "source_line_start": 0,
+      "source_md_file": "",
+      "introduced_in": "v0.14.16-diff-result-common-format-rules",
+      "change_history": [
+        {
+          "history_id": "chg_foundation_rule_023_v01416_001",
+          "at": "2026-06-27",
+          "change_type": "rule_added",
+          "before": "Diff Result共通フォーマットがFoundation Rules上で入口定義されていなかった。",
+          "after": "foundation_rule_023として、Diff Result Common Format / diff_result_v0_1契約を追加。",
+          "reason": "Step 5 Diff Result共通ViewDef化へ進む前に、Data契約を明文化するため。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_foundation_rule_023_v01416_001",
+          "at": "2026-06-27",
+          "decision": "Diff Resultのdocument_typeはdiff_result、schema_versionはdiff_result_v0_1を標準とする。",
+          "reason": "QA / Screen Stateなどドメインを超えて同じ比較結果ViewDefで扱いやすくするため。"
+        },
+        {
+          "decision_id": "dec_foundation_rule_023_v01416_002",
+          "at": "2026-06-27",
+          "decision": "Diff明細の判定フィールドはchecks[].passへ統一する。",
+          "reason": "passed / ok / result などの別名を増やすと、強調表示・比較・ViewDefが分岐するため。"
+        }
+      ]
     }
   ],
   "updated_at": "2026-06-27",
@@ -897,9 +948,15 @@
       "at": "2026-06-27",
       "topic": "Test Folder / Archive / Runtime生成物隔離契約",
       "note": "v0.14.15で、03_tests正本、tests実行コード、tests/.runtime一時生成物、_archive退避、実行言語ごとのテストコード共通化をFoundation Rulesへ追加。"
+    },
+    {
+      "note_id": "note_foundation_v01416_001",
+      "at": "2026-06-27",
+      "topic": "Diff Result Common Format契約",
+      "note": "v0.14.16で、diff_result_v0_1共通サマリとchecks[].pass標準化をfoundation_rule_023として追加。詳細正本は frb_diff_result_format_rules_data_v0_1.json。"
     }
   ],
-  "review_revision": "v0.14.14-test-evidence-rules-contract",
+  "review_revision": "v0.14.16-diff-result-common-format-rules",
   "view_def_candidates": [
     {
       "view_def": "rules/rule_review_common_view_def_v0_3.json",

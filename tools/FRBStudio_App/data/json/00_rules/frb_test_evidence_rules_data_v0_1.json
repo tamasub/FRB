@@ -12,8 +12,8 @@
   "introduced_in": "v0.14.14-test-evidence-rules-contract",
   "generated_at": "2026-06-27T00:00:00+09:00",
   "updated_at": "2026-06-27",
-  "rule_count": 11,
-  "approved_count": 11,
+  "rule_count": 12,
+  "approved_count": 12,
   "approval_policy": "Expected / Actual / Diff / Test Code の責務を1行ずつレビューし、AI駆動開発におけるテスト証跡契約として運用する。",
   "preamble": "Test Evidence Rulesは、テスト失敗時にも人間とAIが失敗理由を追体験できるように、Expected / Actual / Diff / Test Code の責務境界を定義する。",
   "change_history_policy": "ルールを変更した場合は、各rule.change_historyへ変更前後と理由を残す。",
@@ -471,6 +471,51 @@
           "reason": "Expected / Actual / Diff 証跡をData JSONで育て、テストコードの肥大化と旧パス誤認を防ぐため。"
         }
       ]
+    },
+    {
+      "no": 12,
+      "rule_id": "test_evidence_rule_012",
+      "section_no": "12",
+      "source_heading": "Diff Resultはdiff_result_v0_1共通フォーマットへ寄せる",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "diff_result_format",
+      "title": "Diff Resultはdiff_result_v0_1共通フォーマットへ寄せる",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "diff.jsonはdiff_result_v0_1共通フォーマットへ寄せ、上部サマリとchecks[].passを標準化する。",
+      "body": "Test Evidenceのdiff.jsonは、原則として `diff_result_v0_1` 共通フォーマットへ寄せる。\n\n標準サマリ項目は、`schema_version` / `document_type` / `domain` / `diff_kind` / `test_id` / `status` / `resultLabel` / `summary` / `total` / `passCount` / `failCount` / `failedCount` / `failedCheckIds` / `firstFailure` とする。\n\n明細 `checks[]` の判定フィールドは `pass` に統一する。\n\n```text\nchecks[].pass = true  → 成功\nchecks[].pass = false → 失敗\n```\n\n`passed` / `ok` / `result` などの別名を新規標準化しない。\n\n詳細なフォーマット正本は、以下で管理する。\n\n```text\ndata/json/00_rules/frb_diff_result_format_rules_data_v0_1.json\n```",
+      "ceremony_phrase": "Diff Resultはdiff_result_v0_1へ寄せる。",
+      "user_comment": "",
+      "ai_response": "v0.14.16により、Diff Result共通フォーマットへの準拠をTest Evidence Rulesへ追加。",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "tamasub",
+      "approved_at": "2026-06-27",
+      "notes": "フォーマット詳細は frb_diff_result_format_rules_data_v0_1.json を参照。",
+      "source_line_start": 0,
+      "source_md_file": "",
+      "introduced_in": "v0.14.16-diff-result-common-format-rules",
+      "change_history": [
+        {
+          "history_id": "chg_test_evidence_rule_012_v01416_001",
+          "at": "2026-06-27",
+          "change_type": "rule_added",
+          "before": "Test Evidence Rules側にdiff_result_v0_1共通フォーマットへの参照がなかった。",
+          "after": "test_evidence_rule_012として、Diff Resultはdiff_result_v0_1共通フォーマットへ寄せるルールを追加。",
+          "reason": "Expected / Actual / Diff責務分離のうち、Diffの具体的な比較結果フォーマットを明文化するため。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_test_evidence_rule_012_v01416_001",
+          "at": "2026-06-27",
+          "decision": "Test Evidenceのdiff.jsonはdiff_result_v0_1共通フォーマットへ寄せる。",
+          "reason": "QA Diff と Screen State Diff を同じViewDefで読める方向へ寄せるため。"
+        }
+      ]
     }
   ],
   "review_notes": [
@@ -491,9 +536,15 @@
       "at": "2026-06-27",
       "topic": "03_tests正本とテストコード共通化",
       "note": "v0.14.15で、証跡正本フォルダーと実行言語ごとの共通テストランナー原則を追加。"
+    },
+    {
+      "note_id": "note_test_evidence_v01416_001",
+      "at": "2026-06-27",
+      "topic": "Diff Result共通フォーマット",
+      "note": "v0.14.16で、diff.jsonをdiff_result_v0_1共通フォーマットへ寄せ、checks[].passを判定正本とするルールを追加。"
     }
   ],
-  "review_revision": "v0.14.14-test-evidence-rules-contract",
+  "review_revision": "v0.14.16-diff-result-common-format-rules",
   "view_def_candidates": [
     {
       "view_def": "rules/rule_review_common_view_def_v0_3.json",

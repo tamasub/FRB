@@ -74,3 +74,14 @@ Data JSONに `view_def_candidates` がある場合、AIはそのDataで利用可
 - 成果物ZIPには `node_modules/`, `playwright-report/`, `test-results/`, `test_results/`, `tests/.runtime/`, `tests_screen_state/` を含めない。
 - 旧パス・移行済みデータはactiveから削除し、必要に応じて `_archive/{削除日時}/` へ退避する。ただしruntime生成物は再生成可能なので原則archive対象外とする。
 
+
+---
+<!-- change_history: 2026-06-27 v0.14.16 / Diff Result共通フォーマット生成チェックを追加 -->
+
+## v0.14.16 Diff Result Common Formatチェック
+
+- diff.jsonを生成・修正する場合は、`schema_version: diff_result_v0_1` / `document_type: diff_result` を標準とする。
+- 上部サマリは `domain`, `diff_kind`, `test_id`, `status`, `resultLabel`, `summary`, `total`, `passCount`, `failCount`, `failedCount`, `failedCheckIds`, `firstFailure` を基本とする。
+- 明細判定フィールドは `checks[].pass` を正本とし、`passed` / `ok` / `result` を新規標準化しない。
+- ドメイン固有情報は追加項目として保持してよいが、共通項目の意味を壊さない。過剰共通化で苦しくなる場合は人間へ相談する。
+- 詳細ルールは `frb_diff_result_format_rules_data_v0_1.json` を参照する。
