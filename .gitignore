@@ -40,6 +40,7 @@ data/exports/tmp/
 /tools/FRBStudio/obj/
 /tools/FRBStudio_App/playwright-report/
 /tools/FRBStudio_App/test-results/
+/tools/FRBStudio_App/_archive/
 
 
 
