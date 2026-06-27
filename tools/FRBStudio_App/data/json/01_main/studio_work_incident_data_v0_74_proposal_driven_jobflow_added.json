@@ -6811,13 +6811,13 @@
       "incident_type": "data_design",
       "category": "enum",
       "priority": "high",
-      "status": "\u672A\u7740\u624B",
-      "verification_status": "\u672A\u78BA\u8A8D",
+      "status": "\u5B8C\u4E86",
+      "verification_status": "\u78BA\u8A8D\u6E08\u307F",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-06-27",
-      "updated_at": "2026-06-27",
-      "target_files": "data/json/00_rules/common_enums_v0_1.json, data/json/00_rules/common_types_v0_1.json, related ViewDef/Rules if needed",
+      "updated_at": "2026-06-28",
+      "target_files": "data/json/00_rules/common_enums_v0_1.json, defs/common/common_enums_view_def_v0_1.json, data/json/00_rules/COMMON_ENUMS_DEFINITION_REPORT_v0_15_1.md, data/json/01_main/studio_work_incident_data_v0_74_proposal_driven_jobflow_added.json",
       "target_rule_files": "",
       "objective": "Enum\u3092Studio\u304F\u3093\u306E\u5024\u8A9E\u5F59\u306E\u6700\u5C0F\u7BA1\u7406\u5358\u4F4D\u3068\u3057\u3066\u8FFD\u52A0\u3057\u3001cd/name/description/sort_order/deprecated\u306A\u3069\u3092\u6301\u3066\u308B\u5171\u901A\u5B9A\u7FA9\u30D5\u30A1\u30A4\u30EB\u3092\u4F5C\u308B\u3002",
       "background": "common_types_v0_1.json \u306F\u610F\u5473\u3064\u304DFieldType\u30AB\u30BF\u30ED\u30B0\u3068\u3057\u3066\u6210\u7ACB\u3057\u3066\u3044\u308B\u304C\u3001select options \u304CFieldType\u5185\u306B\u76F4\u66F8\u304D\u3055\u308C\u3066\u304A\u308A\u3001\u5024\u5019\u88DC\u305D\u306E\u3082\u306E\u306E\u6B63\u672C\u7BA1\u7406\u304C\u307E\u3060\u5206\u96E2\u3055\u308C\u3066\u3044\u306A\u3044\u3002context_read_timing\u3001status\u3001risk\u3001severity\u3001trust\u306A\u3069\u306F\u8907\u6570FieldType\u30FBViewDef\u30FBData\u30FBAI\u6587\u8108\u5236\u5FA1\u3067\u5171\u6709\u3055\u308C\u308B\u305F\u3081\u3001Enum\u3068\u3057\u3066\u7BA1\u7406\u3059\u308B\u5FC5\u8981\u304C\u3042\u308B\u3002",
@@ -6829,9 +6829,9 @@
       "risk": "Enum\u3092\u4F55\u3067\u3082\u5165\u308C\u308B\u5171\u901A\u3054\u3063\u305F\u716E\u306B\u3059\u308B\u3068\u7BA1\u7406\u4E0D\u80FD\u306B\u306A\u308B\u3002namespace\u3092\u5207\u308A\u3001\u5024\u306E\u610F\u5473\u5358\u4F4D\u3092\u5B88\u308B\u5FC5\u8981\u304C\u3042\u308B\u3002risk.high / priority.high / confidence.high \u306Fcd\u304C\u4F3C\u3066\u3044\u3066\u3082\u610F\u5473\u304C\u9055\u3046\u53EF\u80FD\u6027\u304C\u3042\u308B\u305F\u3081\u3001\u5B89\u6613\u306B\u7D71\u5408\u3057\u306A\u3044\u3002",
       "test_points": "common_enums_v0_1.json \u304CUTF-8\u65E5\u672C\u8A9E\u53EF\u8AAD\u3067\u4FDD\u5B58\u3055\u308C\u308B\u3053\u3068\u3002namespace.enums.items \u3067\u8907\u6570Enum\u3092\u8868\u73FE\u3067\u304D\u308B\u3053\u3068\u3002\u65E2\u5B58common_types\u3092\u58CA\u3055\u305A\u3001\u307E\u3060enumRef\u672A\u5BFE\u5FDC\u3067\u3082\u65E2\u5B58\u753B\u9762\u304C\u52D5\u304F\u3053\u3068\u3002",
       "user_request": "Enum\u306F\u7BA1\u7406\u306E\u6700\u5C0F\u5358\u4F4D\u3068\u3057\u3066\u5FC5\u8981\u3002common_types\u306FFieldType\u306E\u5171\u901A\u7BA1\u7406\u3068\u3057\u3066\u4F7F\u3044\u3001Enum\u306F\u5024\u306E\u6B63\u672C\u3068\u3057\u3066\u5206\u96E2\u3057\u305F\u3044\u3002",
-      "ai_response": "common_enums\u8FFD\u52A0\u3092\u6700\u521D\u306E\u30A4\u30F3\u30B7\u30C7\u30F3\u30C8\u3068\u3057\u3066\u767B\u9332\u3059\u308B\u3002\u3053\u3053\u3067\u306FEnum\u306E\u5668\u3068\u8CAC\u52D9\u3092\u5B9A\u7FA9\u3057\u3001\u65E2\u5B58options\u79FB\u884C\u3084Runtime\u89E3\u6C7A\u306F\u5F8C\u7D9A\u3078\u5206\u3051\u308B\u3002",
+      "ai_response": "common_enums_v0_1.json \u3092\u8FFD\u52A0\u3057\u3001Enum\u3092\u5024\u8A9E\u5F59\u306E\u6B63\u672C\u3068\u3057\u3066\u6271\u3046\u305F\u3081\u306E namespaces / enums / items \u69CB\u9020\u3068 enumRef\u5F62\u5F0F\u3092\u5B9A\u7FA9\u3057\u305F\u3002\u65E2\u5B58common_types options\u306E\u79FB\u884C\u3068Runtime enumRef\u89E3\u6C7A\u306F\u5F8C\u7D9A\u30A4\u30F3\u30B7\u30C7\u30F3\u30C8\u3078\u5206\u96E2\u3057\u305F\u3002",
       "latest_user_comment": "Enum\u306E\u4ED5\u639B\u3051\u3092\u4F5C\u3063\u305F\u5F8C\u3001\u65E2\u5B58\u306EOption\u3067\u3060\u3089\u3060\u3089\u66F8\u3044\u3066\u3044\u308B\u3082\u306E\u3092\u6574\u7406\u3057\u305F\u3044\u3002\u307E\u305A\u30A4\u30F3\u30B7\u30C7\u30F3\u30C8\u3068\u3057\u3066\u8FFD\u52A0\u3057\u305F\u3044\u3002",
-      "latest_ai_response": "",
+      "latest_ai_response": "v0.15.1-common-enums-definition \u3068\u3057\u3066\u3001data/json/00_rules/common_enums_v0_1.json \u3092\u8FFD\u52A0\u3002Enum\u53C2\u7167\u5F62\u5F0F\u3092 {namespace_id}.{enum_id} \u3068\u3057\u3001item\u6A19\u6E96\u9805\u76EE\u3092 cd/name/description/sort_order/deprecated \u3068\u3057\u3066\u5B9A\u7FA9\u3002\u4EE3\u8868Enum\u3068\u3057\u3066 studio.lifecycle_status\u3001qa.risk_level\u3001qa.severity_level\u3001relation.status\u3001relation.confidence\u3001relation.priority \u3092\u53CE\u9332\u3057\u305F\u3002\u65E2\u5B58 common_types_v0_1.json \u306F\u58CA\u3055\u305A\u672A\u5909\u66F4\u3068\u3057\u3001enumRef\u89E3\u6C7A\u30FB\u65E2\u5B58options\u79FB\u884C\u30FBcontext.read_timing\u672C\u8FFD\u52A0\u306F\u5F8C\u7D9A\u30A4\u30F3\u30B7\u30C7\u30F3\u30C8\u3078\u6B8B\u3057\u305F\u3002",
       "discussion_history": [
         {
           "history_id": "disc_0065_001",
@@ -6853,6 +6853,20 @@
           "speaker": "user",
           "topic": "\u30A4\u30F3\u30B7\u30C7\u30F3\u30C8\u8FFD\u52A0\u4F9D\u983C",
           "message": "Enum\u306E\u4ED5\u639B\u3051\u3092\u4F5C\u3063\u305F\u5F8C\u306B\u3001\u65E2\u5B58\u306EOption\u3067\u3060\u3089\u3060\u3089\u66F8\u3044\u3066\u3044\u308B\u3082\u306E\u3092\u6574\u7406\u3057\u305F\u3044\u3002\u30A4\u30F3\u30B7\u30C7\u30F3\u30C8\u8FFD\u52A0\u3068\u66F4\u65B0\u5F8CJSON\u8FD4\u5374\u3092\u4F9D\u983C\u3002"
+        },
+        {
+          "history_id": "disc_0065_004",
+          "at": "2026-06-28",
+          "speaker": "user",
+          "topic": "\u4F5C\u696D\u4F9D\u983C",
+          "message": "v0.15.1-common-enums-definition \u3068\u3057\u3066\u3001\u61B2\u6CD5\u3092\u53C2\u7167\u3057\u3001\u6226\u7565\u7684\u8A2D\u8A08\u30D1\u30BF\u30FC\u30F3\u3092\u76EE\u6307\u3057\u3066 common_enums_v0_1.json \u8FFD\u52A0\u4F5C\u696D\u3092\u4F9D\u983C\u3002"
+        },
+        {
+          "history_id": "disc_0065_005",
+          "at": "2026-06-28",
+          "speaker": "assistant",
+          "topic": "\u4F5C\u696D\u7D50\u679C",
+          "message": "Foundation Rule 19\u3092\u53C2\u7167\u3057\u3001phase\u3092 studio_work_0065 \u3068\u3057\u3066\u7279\u5B9A\u3002common_enums_v0_1.json \u3068 common_enums_view_def_v0_1.json\u3001\u8A2D\u8A08\u30EC\u30DD\u30FC\u30C8\u3092\u8FFD\u52A0\u3057\u3001\u65E2\u5B58common_types options\u79FB\u884C\u3068Runtime enumRef\u89E3\u6C7A\u306F\u30B9\u30B3\u30FC\u30D7\u5916\u3068\u3057\u3066\u6E29\u5B58\u3057\u305F\u3002"
         }
       ],
       "decision_log": [
@@ -6873,6 +6887,24 @@
           "at": "2026-06-27",
           "decision": "\u65E2\u5B58options\u306E\u4E00\u62EC\u79FB\u884C\u306F\u3053\u306E\u30A4\u30F3\u30B7\u30C7\u30F3\u30C8\u3067\u306F\u884C\u308F\u306A\u3044\u3002",
           "reason": "\u4ED5\u639B\u3051\u8FFD\u52A0\u3068\u65E2\u5B58\u6574\u7406\u3092\u6DF7\u305C\u308B\u3068\u5DEE\u5206\u304C\u5927\u304D\u304F\u306A\u308A\u3001\u56DE\u5E30\u30EA\u30B9\u30AF\u304C\u4E0A\u304C\u308B\u305F\u3081\u3002"
+        },
+        {
+          "decision_id": "dec_0065_004",
+          "at": "2026-06-28",
+          "decision": "Enum\u53C2\u7167\u5F62\u5F0F\u306F {namespace_id}.{enum_id} \u3068\u3059\u308B\u3002",
+          "reason": "FieldType\u3084ViewDef\u304B\u3089\u53C2\u7167\u3059\u308B\u969B\u306B\u3001\u610F\u5473\u9818\u57DF\u3068Enum\u672C\u4F53\u3092\u660E\u78BA\u306B\u5206\u3051\u3001\u540C\u540DEnum\u306E\u885D\u7A81\u3092\u907F\u3051\u308B\u305F\u3081\u3002"
+        },
+        {
+          "decision_id": "dec_0065_005",
+          "at": "2026-06-28",
+          "decision": "v0.15.1\u3067\u306Fcommon_types_v0_1.json\u3092\u5909\u66F4\u3057\u306A\u3044\u3002",
+          "reason": "\u65E2\u5B58select options\u3092\u58CA\u3055\u305A\u3001\u5024\u6B63\u672C\u306E\u5668\u8FFD\u52A0\u3068\u65E2\u5B58\u79FB\u884C\u3092\u5206\u96E2\u3057\u3066\u56DE\u5E30\u30EA\u30B9\u30AF\u3092\u6291\u3048\u308B\u305F\u3081\u3002"
+        },
+        {
+          "decision_id": "dec_0065_006",
+          "at": "2026-06-28",
+          "decision": "\u4EE3\u8868Enum\u306F\u30B5\u30F3\u30D7\u30EB\u517C\u79FB\u884C\u5019\u88DC\u3068\u3057\u3066\u53CE\u9332\u3057\u3001\u65E2\u5B58FieldType\u306E\u6B63\u672C\u5207\u66FF\u306F\u884C\u308F\u306A\u3044\u3002",
+          "reason": "common_enums\u306E\u69CB\u9020\u78BA\u8A8D\u306B\u5FC5\u8981\u306A\u5B9F\u4F8B\u3092\u6301\u305F\u305B\u3064\u3064\u3001enumRef\u89E3\u6C7A\u524D\u306B\u753B\u9762\u8868\u793A\u3092\u58CA\u3055\u306A\u3044\u305F\u3081\u3002"
         }
       ],
       "change_history": [
@@ -6883,6 +6915,22 @@
           "before": "Enum\u3092\u5024\u306E\u6B63\u672C\u3068\u3057\u3066\u7BA1\u7406\u3059\u308B\u4F5C\u696D\u9805\u76EE\u304C\u5B58\u5728\u3057\u306A\u304B\u3063\u305F\u3002",
           "after": "studio_work_0065 \u3068\u3057\u3066 common_enums_v0_1.json \u8FFD\u52A0\u3092\u767B\u9332\u3002",
           "reason": "FieldType / Enum / ViewDef / Data \u306E\u8CAC\u52D9\u5206\u96E2\u3092\u9032\u3081\u308B\u305F\u3081\u3002"
+        },
+        {
+          "history_id": "chg_0065_002",
+          "at": "2026-06-28",
+          "change_type": "viewdef_added",
+          "before": "common_enums\u5C02\u7528\u306E\u8868\u793A\u30FB\u7DE8\u96C6ViewDef\u306A\u3057\u3002",
+          "after": "defs/common/common_enums_view_def_v0_1.json \u3092\u8FFD\u52A0\u3057\u3001Namespace\u4E00\u89A7\u3001Notes\u3001Change History\u3092Studio\u4E0A\u3067\u78BA\u8A8D\u3067\u304D\u308B\u3088\u3046\u306B\u3057\u305F\u3002",
+          "reason": "Enum\u6B63\u672C\u3092Data JSON\u3068\u3057\u3066\u6271\u3044\u3001\u4EBA\u9593\u304CStudio\u304F\u3093\u3067\u78BA\u8A8D\u30FB\u7DE8\u96C6\u3067\u304D\u308B\u5165\u53E3\u3092\u7528\u610F\u3059\u308B\u305F\u3081\u3002"
+        },
+        {
+          "history_id": "chg_0065_003",
+          "at": "2026-06-28",
+          "change_type": "scope_guard",
+          "before": "common_types\u5185options\u306E\u79FB\u884C\u3084Runtime enumRef\u89E3\u6C7A\u3082\u540C\u6642\u306B\u884C\u3046\u53EF\u80FD\u6027\u304C\u3042\u3063\u305F\u3002",
+          "after": "v0.15.1\u3067\u306Fcommon_types\u3092\u5909\u66F4\u305B\u305A\u3001\u65E2\u5B58options\u79FB\u884C\u30FBRuntime\u89E3\u6C7A\u30FBcontext\u7CFBEnum\u672C\u8FFD\u52A0\u3092\u5F8C\u7D9A\u30A4\u30F3\u30B7\u30C7\u30F3\u30C8\u3078\u5206\u96E2\u3002",
+          "reason": "\u4ED5\u639B\u3051\u8FFD\u52A0\u3068\u65E2\u5B58\u6574\u7406\u3092\u6DF7\u305C\u308B\u3068\u5DEE\u5206\u304C\u5927\u304D\u304F\u306A\u308A\u3001\u56DE\u5E30\u30EA\u30B9\u30AF\u304C\u4E0A\u304C\u308B\u305F\u3081\u3002"
         }
       ],
       "actual_updated_files": ""
@@ -6892,15 +6940,15 @@
       "phase": "v0.15.2-fieldtype-enumref-resolve",
       "title": "common_types FieldType \u306E enumRef / options\u89E3\u6C7A\u5BFE\u5FDC",
       "incident_type": "feature",
-      "category": "fieldtype_enumref",
+      "category": "",
       "priority": "high",
-      "status": "\u672A\u7740\u624B",
-      "verification_status": "\u672A\u78BA\u8A8D",
+      "status": "\u5B8C\u4E86",
+      "verification_status": "\u78BA\u8A8D\u6E08\u307F",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-06-27",
-      "updated_at": "2026-06-27",
-      "target_files": "data/json/00_rules/common_types_v0_1.json, data/json/00_rules/common_enums_v0_1.json, wwwroot/js/**/*.js related to ViewDef/commonTypes/options resolve, rules/schema if needed",
+      "updated_at": "2026-06-28",
+      "target_files": "wwwroot/js/core/state.js, wwwroot/js/core/field_types.js, wwwroot/index.html, defs/common/common_types_v0_1.json, data/json/00_rules/common_enums_v0_1.json, data/json/00_rules/FIELDTYPE_ENUMREF_RESOLVE_REPORT_v0_15_2.md, data/json/01_main/studio_work_incident_data_v0_74_proposal_driven_jobflow_added.json",
       "target_rule_files": "",
       "objective": "FieldType\u304B\u3089Enum\u3092\u53C2\u7167\u3067\u304D\u308B\u3088\u3046\u306B\u3057\u3001baseType=select \u304B\u3064 enumRef\u3042\u308A\u306E\u5834\u5408\u306B common_enums \u306Eitems\u3092options\u3068\u3057\u3066\u89E3\u6C7A\u3067\u304D\u308B\u3088\u3046\u306B\u3059\u308B\u3002",
       "background": "\u65E2\u5B58\u306Ecommon_types_v0_1.json\u306FFieldType\u5185\u306Boptions\u3092\u76F4\u6301\u3061\u3057\u3066\u3044\u308B\u3002\u4ECA\u5F8C\u306F enumRef \u3092\u8FFD\u52A0\u3057\u3001Enum\u3092\u5024\u306E\u6B63\u672C\u3001FieldType\u3092\u753B\u9762\u9805\u76EE\u3068\u3057\u3066\u306E\u4F7F\u3044\u65B9\u3068\u3057\u3066\u5206\u3051\u308B\u5FC5\u8981\u304C\u3042\u308B\u3002\u65E2\u5B58\u65B9\u5F0F\u3068\u306E\u4E92\u63DB\u3092\u4FDD\u3061\u306A\u304C\u3089\u3001\u6BB5\u968E\u7684\u306BenumRef\u3078\u5BC4\u305B\u308B\u3002",
@@ -6913,8 +6961,8 @@
       "test_points": "\u65E2\u5B58options\u76F4\u66F8\u304DFieldType\u304C\u5F93\u6765\u3069\u304A\u308A\u8868\u793A\u30FB\u7DE8\u96C6\u3067\u304D\u308B\u3053\u3068\u3002enumRef\u306E\u307F\u306Eselect FieldType\u304CEnum\u304B\u3089\u9078\u629E\u80A2\u3092\u53D6\u5F97\u3067\u304D\u308B\u3053\u3068\u3002enumRef\u002Boptions\u306E\u4F75\u7528\u6642\u306BenumRef\u5074\u3092\u6B63\u3068\u3057\u3066\u6271\u3046\u3053\u3068\u3002Enum\u672A\u5B58\u5728\u6642\u306B\u5206\u304B\u308A\u3084\u3059\u304F\u30A8\u30E9\u30FC\u307E\u305F\u306F\u8B66\u544A\u306B\u306A\u308B\u3053\u3068\u3002",
       "user_request": "Enum\u3092\u5B9A\u7FA9\u3057\u305F\u4E0A\u3067\u3001FieldType\u5074\u306B enumRef \u3092\u6301\u305F\u305B\u3001options \u306F enum \u7531\u6765\u306E\u5C55\u958B\u7D50\u679C\u3068\u3057\u3066\u6271\u3046\u30A4\u30E1\u30FC\u30B8\u306B\u3057\u305F\u3044\u3002",
       "ai_response": "common_types \u306EFieldType\u306B enumRef \u3092\u8FFD\u52A0\u3057\u3001\u65E2\u5B58options\u76F4\u66F8\u304D\u65B9\u5F0F\u3068\u4E92\u63DB\u3092\u4FDD\u3061\u306A\u304C\u3089Enum\u53C2\u7167\u3078\u79FB\u884C\u3067\u304D\u308B\u4ED5\u639B\u3051\u3068\u3057\u3066\u767B\u9332\u3059\u308B\u3002",
-      "latest_user_comment": "enumRef \u304C\u4E00\u756A\u5F37\u3044\u3002Enum\u3092\u5B9A\u7FA9\u3057\u305F\u4E0A\u3067\u3001FieldType\u3067\u306F baseType=select / enumRef / grid / edit / search \u3092\u6301\u305F\u305B\u305F\u3044\u3002",
-      "latest_ai_response": "",
+      "latest_user_comment": "v0.15.2-fieldtype-enumref-resolve \u306E\u4F5C\u696D\u4F9D\u983C\u3002\u5E38\u306B\u61B2\u6CD5(frb_coding_constraints)\u3092\u307E\u305A\u53C2\u7167\u3057\u3001constitution_03 \u6226\u7565\u7684\u8A2D\u8A08\u30D1\u30BF\u30FC\u30F3\u3092\u76EE\u6307\u3057\u3066\u4F5C\u696D\u3059\u308B\u3002FieldType\u304B\u3089Enum\u3092\u53C2\u7167\u3067\u304D\u308B\u3088\u3046\u306B\u3057\u3001baseType=select \u304B\u3064 enumRef\u3042\u308A\u306E\u5834\u5408\u306B common_enums \u306Eitems\u3092options\u3068\u3057\u3066\u89E3\u6C7A\u3067\u304D\u308B\u3088\u3046\u306B\u3059\u308B\u3002\n\n# ai\u5831\u544A\n## \u4ECA\u56DE\u306E\u66F4\u65B0\n\n* \u0060wwwroot/js/core/state.js\u0060\n* \u0060wwwroot/js/core/field_types.js\u0060\n* \u0060wwwroot/index.html\u0060\n* \u0060defs/common/common_types_v0_1.json\u0060\n* \u0060data/json/00_rules/common_enums_v0_1.json\u0060\n* \u0060data/json/00_rules/FIELDTYPE_ENUMREF_RESOLVE_REPORT_v0_15_2.md\u0060\n* \u0060data/json/01_main/studio_work_incident_data_v0_74_proposal_driven_jobflow_added.json\u0060\n\n## \u5B9F\u88C5\u5185\u5BB9\n\n* \u0060common_enums_v0_1.json\u0060 \u3092Runtime\u5074\u3067\u8AAD\u307F\u8FBC\u307F\n* \u0060select\u0060 / radio\u7CFB FieldType \u306E \u0060enumRef\u0060 \u3092\u89E3\u6C7A\n* \u0060enumRef\u0060 \u306E items \u3092 \u0060options\u0060 \u3068\u3057\u3066\u5C55\u958B\n* \u0060enumRef \u002B options\u0060 \u4F75\u7528\u6642\u306F \u0060enumRef\u0060 \u3092\u6B63\u672C\u3068\u3057\u3066\u512A\u5148\n* Enum\u672A\u5B58\u5728\u6642\u306F \u0060console.warn\u0060\u3001\u65E2\u5B58options\u304C\u3042\u308C\u3070\u4E92\u63DB\u8868\u793A\u7D99\u7D9A\n* \u65E2\u5B58options\u5168\u9762\u79FB\u884C\u306F\u305B\u305A\u3001v0.15.4\u3078\u6E29\u5B58\n* \u0060qa.risk\u0060 \u306B \u0060enumRef=qa.risk_level\u0060 \u3092\u8FFD\u52A0\n* \u0060qa.risk_enumref_only_sample\u0060 \u3092\u8FFD\u52A0\n\n## \u78BA\u8A8D\u7D50\u679C\n\n* JSON parse\uFF1AOK\n* \u0060wwwroot\u0060 \u914D\u4E0B JS \u0060node --check\u0060\uFF1AOK\n* enumRef\u306E\u307F\u89E3\u6C7A\uFF1AOK\n* enumRef \u002B options \u4F75\u7528\u6642\u306E enumRef\u512A\u5148\uFF1AOK\n* \u65E2\u5B58options\u76F4\u66F8\u304DFieldType\u4E92\u63DB\uFF1AOK\n* Enum\u672A\u5B58\u5728\u6642\u306E\u8B66\u544A\uFF0B\u4E92\u63DB\u7D99\u7D9A\uFF1AOK\n* \u0060tests/.runtime\u0060 \u306A\u3069 runtime\u751F\u6210\u7269\uFF1AZIP\u9664\u5916\u6E08\u307F\n* \u6700\u5927\u76F8\u5BFE\u30D1\u30B9\u9577\uFF1A158\u6587\u5B57\u3067\u5B89\u5168\u570F\n\n[1]: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/data/json/00_rules/frb_foundation_rules_data_v0_1.json \u0022raw.githubusercontent.com\u0022",
+      "latest_ai_response": "v0.15.2-fieldtype-enumref-resolve \u5BFE\u5FDC\u5B8C\u4E86\u3002FieldType Resolver\u3078\u5171\u901AEnum\u89E3\u6C7A\u3092\u8FFD\u52A0\u3057\u3001common_enums_v0_1.json \u3092\u5024\u8A9E\u5F59\u6B63\u672C\u3068\u3057\u3066\u8AAD\u307F\u8FBC\u3081\u308B\u3088\u3046\u306B\u3057\u305F\u3002select/radio\u7CFBFieldType\u304C enumRef \u3092\u6301\u3064\u5834\u5408\u3001Enum items \u3092 options \u3068\u3057\u3066\u5C55\u958B\u3059\u308B\u3002enumRef \u3068 options \u304C\u4F75\u5B58\u3059\u308B\u5834\u5408\u306F enumRef \u5074\u3092\u6B63\u672C\u3068\u3057\u3066\u512A\u5148\u3057\u3001\u65E2\u5B58options\u306F\u4E92\u63DB\u7528\u30FB\u30AD\u30E3\u30C3\u30B7\u30E5\u30FB\u5C55\u958B\u7D50\u679C\u3068\u3057\u3066\u6271\u3046\u3002Enum\u672A\u5B58\u5728\u6642\u306F console.warn \u3067\u8B66\u544A\u3057\u3001\u65E2\u5B58options\u304C\u3042\u308C\u3070\u4E92\u63DB\u8868\u793A\u3092\u7D99\u7D9A\u3059\u308B\u3002\u65E2\u5B58options\u306E\u5168\u9762\u79FB\u884C\u306F\u884C\u308F\u305A\u3001qa.risk \u306B enumRef=qa.risk_level \u3092\u8FFD\u52A0\u3057\u3001enumRef\u306E\u307F\u78BA\u8A8D\u7528\u306E qa.risk_enumref_only_sample \u3092\u8FFD\u52A0\u3057\u305F\u3002JSON parse\u3001wwwroot\u914D\u4E0BJS node --check\u3001enumRef\u6A5F\u80FD\u78BA\u8A8D\u3092\u5B9F\u65BD\u6E08\u307F\u3002",
       "discussion_history": [
         {
           "history_id": "disc_0066_001",
@@ -6936,6 +6984,20 @@
           "speaker": "user",
           "topic": "\u30A4\u30F3\u30B7\u30C7\u30F3\u30C8\u8FFD\u52A0\u4F9D\u983C",
           "message": "Enum\u306E\u4ED5\u639B\u3051\u3092\u4F5C\u3063\u305F\u5F8C\u306B\u3001\u65E2\u5B58\u306EOption\u3067\u3060\u3089\u3060\u3089\u66F8\u3044\u3066\u3044\u308B\u3082\u306E\u3092\u6574\u7406\u3057\u305F\u3044\u3002\u30A4\u30F3\u30B7\u30C7\u30F3\u30C8\u8FFD\u52A0\u3068\u66F4\u65B0\u5F8CJSON\u8FD4\u5374\u3092\u4F9D\u983C\u3002"
+        },
+        {
+          "history_id": "disc_0066_20260628_user_v0152",
+          "at": "2026-06-28",
+          "speaker": "user",
+          "topic": "v0.15.2-fieldtype-enumref-resolve\u4F5C\u696D\u4F9D\u983C",
+          "message": "\u5E38\u306B\u61B2\u6CD5(frb_coding_constraints)\u3092\u307E\u305A\u53C2\u7167\u3057\u3001constitution_03 \u6226\u7565\u7684\u8A2D\u8A08\u30D1\u30BF\u30FC\u30F3\u3092\u76EE\u6307\u3057\u3066\u4F5C\u696D\u3059\u308B\u3002phase v0.15.2-fieldtype-enumref-resolve \u3068\u3057\u3066\u3001FieldType enumRef \u89E3\u6C7A\u5BFE\u5FDC\u3092\u4F9D\u983C\u3002\u56F0\u308B\u3053\u3068\u304C\u3042\u308C\u3070\u63A8\u6E2C\u3067\u9032\u3081\u305A\u4E2D\u6B62\u3057\u3066\u76F8\u8AC7\u3059\u308B\u3002"
+        },
+        {
+          "history_id": "disc_0066_20260628_ai_v0152",
+          "at": "2026-06-28",
+          "speaker": "assistant",
+          "topic": "v0.15.2-fieldtype-enumref-resolve\u4F5C\u696D\u7D50\u679C",
+          "message": "constitution_03\u306E\u6226\u7565\u7684\u8A2D\u8A08\u30D1\u30BF\u30FC\u30F3\u306B\u5F93\u3044\u3001\u500B\u5225Data\u30D5\u30A3\u30FC\u30EB\u30C9\u540D\u5206\u5C90\u3067\u306F\u306A\u304FFieldType Resolver\u3078Enum\u89E3\u6C7A\u3092\u7D71\u5408\u3002common_enums\u3092\u5024\u6B63\u672C\u3001FieldType\u3092\u753B\u9762\u9805\u76EE\u306E\u4F7F\u3044\u65B9\u3068\u3057\u3066\u5206\u96E2\u3057\u3001enumRef\u3092select/radio\u7CFBoptions\u3078\u89E3\u6C7A\u3059\u308BRuntime\u3092\u8FFD\u52A0\u3057\u305F\u3002"
         }
       ],
       "decision_log": [
@@ -6956,6 +7018,24 @@
           "at": "2026-06-27",
           "decision": "enumRef\u3068options\u304C\u4E21\u65B9\u3042\u308B\u5834\u5408\u306FenumRef\u5074\u3092\u6B63\u672C\u3068\u3059\u308B\u3002",
           "reason": "\u5024\u5019\u88DC\u306E\u6B63\u672C\u3092\u4E00\u3064\u306B\u3057\u306A\u3044\u3068\u3001\u5DEE\u5206\u7BA1\u7406\u3068AI\u6587\u8108\u5236\u5FA1\u3067\u610F\u5473\u30BA\u30EC\u304C\u8D77\u304D\u308B\u305F\u3081\u3002"
+        },
+        {
+          "decision_id": "dec_0066_20260628_enumref_priority",
+          "at": "2026-06-28",
+          "decision": "enumRef \u3068 options \u304C\u4F75\u5B58\u3059\u308B\u5834\u5408\u306F enumRef \u5074\u3092\u6B63\u672C\u3068\u3057\u3066\u512A\u5148\u3059\u308B\u3002",
+          "reason": "Enum\u3092\u5024\u5019\u88DC\u306E\u6B63\u672C\u3001options\u3092\u4E92\u63DB\u7528\u30FB\u30AD\u30E3\u30C3\u30B7\u30E5\u30FB\u5C55\u958B\u7D50\u679C\u3068\u3057\u3066\u6271\u3044\u3001\u753B\u9762\u8868\u793A\u3068\u5024\u8A9E\u5F59\u306E\u6B63\u672C\u3092\u5206\u96E2\u3059\u308B\u305F\u3081\u3002"
+        },
+        {
+          "decision_id": "dec_0066_20260628_compat_warn",
+          "at": "2026-06-28",
+          "decision": "Enum\u672A\u5B58\u5728\u6642\u306F\u8B66\u544A\u6271\u3044\u3068\u3057\u3001\u65E2\u5B58options\u304C\u3042\u308C\u3070\u4E92\u63DB\u8868\u793A\u3092\u7D99\u7D9A\u3059\u308B\u3002",
+          "reason": "v0.15.2\u306F\u79FB\u884C\u9014\u4E2D\u306E\u6BB5\u968E\u3067\u3042\u308A\u3001\u65E2\u5B58ViewDef/FieldType\u3092\u58CA\u3055\u305A\u5F8C\u7D9Av0.15.4\u306E\u6574\u7406\u3078\u63A5\u7D9A\u3059\u308B\u305F\u3081\u3002"
+        },
+        {
+          "decision_id": "dec_0066_20260628_no_mass_migration",
+          "at": "2026-06-28",
+          "decision": "\u65E2\u5B58FieldType options\u306E\u5168\u9762enumRef\u5316\u306F\u884C\u308F\u305A\u3001\u4EE3\u8868\u4F8B\u3068\u30B5\u30F3\u30D7\u30EB\u306E\u307F\u8FFD\u52A0\u3059\u308B\u3002",
+          "reason": "\u4ECA\u56DE\u306E\u30B9\u30B3\u30FC\u30D7\u306F\u89E3\u6C7A\u30EB\u30FC\u30EB\u3068\u4E92\u63DB\u65B9\u91DD\u306E\u5B9F\u88C5\u3067\u3042\u308A\u3001\u65E2\u5B58options\u6574\u7406\u306Fv0.15.4\u5074\u3067\u6271\u3046\u305F\u3081\u3002"
         }
       ],
       "change_history": [
@@ -6966,6 +7046,30 @@
           "before": "FieldType\u304B\u3089Enum\u3092\u53C2\u7167\u3059\u308B\u4F5C\u696D\u9805\u76EE\u304C\u5B58\u5728\u3057\u306A\u304B\u3063\u305F\u3002",
           "after": "studio_work_0066 \u3068\u3057\u3066 common_types FieldType \u306E enumRef / options\u89E3\u6C7A\u5BFE\u5FDC\u3092\u767B\u9332\u3002",
           "reason": "\u65E2\u5B58common_types\u904B\u7528\u3092\u7DAD\u6301\u3057\u306A\u304C\u3089Enum\u30EC\u30A4\u30E4\u30FC\u3078\u79FB\u884C\u3059\u308B\u305F\u3081\u3002"
+        },
+        {
+          "history_id": "chg_0066_20260628_runtime_enumref",
+          "at": "2026-06-28",
+          "change_type": "runtime_enumref_resolve",
+          "before": "FieldType Resolver\u306Fcommon_types options\u76F4\u66F8\u304D\u89E3\u6C7A\u306E\u307F\u3067\u3001common_enums\u3092\u5024\u6B63\u672C\u3068\u3057\u3066\u53C2\u7167\u3057\u306A\u304B\u3063\u305F\u3002",
+          "after": "common_enums_v0_1.json\u3092\u8AAD\u307F\u8FBC\u307F\u3001select/radio\u7CFBFieldType\u306EenumRef\u3092Enum items\u304B\u3089options\u3078\u5C55\u958B\u3059\u308BRuntime\u3092\u8FFD\u52A0\u3002",
+          "reason": "Enum / FieldType / ViewDef / Data \u306E\u8CAC\u52D9\u5206\u96E2\u3092Runtime\u3078\u63A5\u7D9A\u3059\u308B\u305F\u3081\u3002"
+        },
+        {
+          "history_id": "chg_0066_20260628_common_types_sample",
+          "at": "2026-06-28",
+          "change_type": "common_types_sample_update",
+          "before": "common_types_v0_1.json\u306BenumRef\u78BA\u8A8D\u7528FieldType\u304C\u306A\u304F\u3001\u65E2\u5B58options\u76F4\u66F8\u304D\u3060\u3051\u3060\u3063\u305F\u3002",
+          "after": "qa.risk\u3078enumRef=qa.risk_level\u3092\u8FFD\u52A0\u3057\u3001\u4E92\u63DB\u7528options\u3092\u4FDD\u6301\u3002qa.risk_enumref_only_sample\u3092\u8FFD\u52A0\u3002",
+          "reason": "enumRef\u002Boptions\u4F75\u7528\u3068enumRef\u306E\u307F\u306E\u4E21\u65B9\u3092\u78BA\u8A8D\u53EF\u80FD\u306B\u3059\u308B\u305F\u3081\u3002"
+        },
+        {
+          "history_id": "chg_0066_20260628_common_enums_policy",
+          "at": "2026-06-28",
+          "change_type": "common_enums_runtime_policy_update",
+          "before": "common_enums_v0_1.json \u306E runtime_policy \u306F\u300C\u81EA\u52D5\u89E3\u6C7A\u3057\u306A\u3044\u300D\u3060\u3063\u305F\u3002",
+          "after": "v0.15.2\u3067Runtime\u304CenumRef\u89E3\u6C7A\u3059\u308B\u65B9\u91DD\u3078\u66F4\u65B0\u3002",
+          "reason": "v0.15.1\u3067\u4F5C\u3063\u305FEnum\u6B63\u672C\u3092FieldType Resolver\u3078\u63A5\u7D9A\u3057\u305F\u305F\u3081\u3002"
         }
       ],
       "actual_updated_files": ""

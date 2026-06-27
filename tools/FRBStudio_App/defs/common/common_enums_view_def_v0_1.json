@@ -1,0 +1,601 @@
+{
+  "app": {
+    "name": "FRB Studio / JSON Object Studio",
+    "version": "common-enums-view-def-v0.1"
+  },
+  "views": [
+    {
+      "id": "common_enums_v0_1",
+      "caption": "Common Enums / 値語彙正本",
+      "layout": {
+        "detailDialog": "wide"
+      },
+      "toolbar": {
+        "executeButton": {
+          "visible": true,
+          "caption": "Markdown出力",
+          "action": "ExportMarkdown"
+        }
+      },
+      "sections": [
+        {
+          "id": "header",
+          "caption": "Enum Registry / 基本情報",
+          "type": "form",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 360
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "schema_version",
+              "caption": "Schema",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 180
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "document_type",
+              "caption": "Document Type",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 220
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "status",
+              "caption": "状態",
+              "type": "select",
+              "grid": {
+                "visible": false,
+                "width": 110
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              },
+              "options": [
+                "draft",
+                "active",
+                "reviewing",
+                "deprecated",
+                "archived"
+              ]
+            },
+            {
+              "field": "introduced_in",
+              "caption": "Introduced In",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 280
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "updated_at",
+              "caption": "Updated",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "purpose",
+              "caption": "目的",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 520
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 80
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "contract.enum_ref_format",
+              "caption": "EnumRef形式",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 220
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "contract.migration_policy",
+              "caption": "移行方針",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 520
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 90
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "contract.runtime_policy",
+              "caption": "Runtime方針",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 520
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 90
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            }
+          ]
+        },
+        {
+          "id": "namespace_search",
+          "caption": "検索",
+          "type": "form",
+          "dataPath": "$.namespaces",
+          "fields": [
+            {
+              "field": "namespace_id",
+              "caption": "Namespace",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 120
+              },
+              "edit": {
+                "visible": false,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "name",
+              "caption": "Namespace名",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 160
+              },
+              "edit": {
+                "visible": false,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "description",
+              "caption": "説明",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 240
+              },
+              "edit": {
+                "visible": false,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            }
+          ]
+        },
+        {
+          "id": "namespaces",
+          "caption": "Namespaces / Enums",
+          "type": "grid",
+          "dataPath": "$.namespaces",
+          "keyField": "namespace_id",
+          "fields": [
+            {
+              "field": "namespace_id",
+              "caption": "Namespace",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 130
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "name",
+              "caption": "名前",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 180
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "description",
+              "caption": "説明",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 420
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 90
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "sort_order",
+              "caption": "順序",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 70
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "deprecated",
+              "caption": "廃止",
+              "type": "boolean",
+              "grid": {
+                "visible": true,
+                "width": 70
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "enums",
+              "caption": "Enums",
+              "type": "objectArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "defaultValue": []
+            }
+          ]
+        },
+        {
+          "id": "notes",
+          "caption": "Notes",
+          "type": "grid",
+          "dataPath": "$.notes",
+          "keyField": "note_id",
+          "fields": [
+            {
+              "field": "note_id",
+              "caption": "Note ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 180
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "at",
+              "caption": "At",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 110
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "title",
+              "caption": "Title",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 220
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "body",
+              "caption": "Body",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 520
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 100
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            }
+          ]
+        },
+        {
+          "id": "change_history",
+          "caption": "Change History",
+          "type": "grid",
+          "dataPath": "$.change_history",
+          "keyField": "history_id",
+          "fields": [
+            {
+              "field": "history_id",
+              "caption": "History ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 220
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "at",
+              "caption": "At",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "change_type",
+              "caption": "Change Type",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 160
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "before",
+              "caption": "Before",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 320
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 90
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "after",
+              "caption": "After",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 320
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 90
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "reason",
+              "caption": "Reason",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 360
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 90
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            }
+          ]
+        }
+      ],
+      "markdown": {
+        "enabled": true,
+        "titleField": "title",
+        "sections": [
+          {
+            "type": "header",
+            "level": 1,
+            "text": "Common Enums"
+          },
+          {
+            "type": "field",
+            "field": "purpose",
+            "label": "Purpose"
+          },
+          {
+            "type": "grid",
+            "dataPath": "$.namespaces",
+            "title": "Namespaces"
+          },
+          {
+            "type": "grid",
+            "dataPath": "$.notes",
+            "title": "Notes"
+          },
+          {
+            "type": "grid",
+            "dataPath": "$.change_history",
+            "title": "Change History"
+          }
+        ]
+      }
+    }
+  ]
+}

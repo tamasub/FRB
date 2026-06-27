@@ -1,0 +1,337 @@
+{
+  "view_def": "common/common_enums_view_def_v0_1.json",
+  "schema_version": "common_enums_data_v0_1",
+  "document_type": "common_enum_registry",
+  "title": "FRB Studio / JSON Object Studio 共通Enum定義",
+  "target": "Studioくんの値語彙を、FieldTypeから分離して管理するための共通Enum正本",
+  "status": "active",
+  "created_at": "2026-06-28",
+  "updated_at": "2026-06-28",
+  "owner": "tamasub",
+  "ai_partner": "ChatGPT",
+  "introduced_in": "v0.15.1-common-enums-definition",
+  "source_incident": {
+    "incident_file": "data/json/01_main/studio_work_incident_data_v0_74_proposal_driven_jobflow_added.json",
+    "phase": "v0.15.1-common-enums-definition",
+    "work_item_id": "studio_work_0065"
+  },
+  "purpose": "EnumをStudioくんの値語彙の最小管理単位として定義し、select options の重複・表記揺れ・意味混同を減らす。FieldTypeは画面項目としての使い方、Enumは値候補そのものの正本として責務分離する。",
+  "contract": {
+    "enum_ref_format": "{namespace_id}.{enum_id}",
+    "namespace_role": "値語彙の意味領域。qa / relation / studio など、似たcdでも意味が違うものを雑に混ぜないための境界。",
+    "enum_role": "同じ判断軸で選択される値候補のまとまり。risk.high と priority.high のようにcdが同じでも判断軸が違う場合は別Enumにする。",
+    "item_required_fields": [
+      "cd",
+      "name"
+    ],
+    "item_standard_fields": [
+      "cd",
+      "name",
+      "description",
+      "sort_order",
+      "deprecated"
+    ],
+    "item_optional_fields": [
+      "source",
+      "note",
+      "aliases"
+    ],
+    "deprecated_policy": "値を廃止する場合も即削除せず、deprecated=true とし、必要に応じてdescription/noteへ移行理由を残す。",
+    "migration_policy": "v0.15.2でFieldType enumRef解決を追加する。既存common_types optionsの全面移行は行わず、enumRefを持つselect系FieldTypeだけcommon_enumsのitemsを正本としてoptionsへ展開する。既存options直書きFieldTypeは従来互換のまま維持する。",
+    "runtime_policy": "Studio RuntimeはViewDef解決時にcommon_enumsを読み込み、select系FieldTypeのenumRefを解決する。enumRefとoptionsが両方ある場合はenumRef側を正本とし、optionsは互換用・キャッシュ・展開結果として扱う。Enum未存在時は警告し、既存optionsがあれば互換表示を継続する。"
+  },
+  "namespaces": [
+    {
+      "namespace_id": "studio",
+      "name": "Studio運用",
+      "description": "Studioくん自身のData/Rule/Incident運用で使う共通語彙。",
+      "sort_order": 10,
+      "deprecated": false,
+      "enums": [
+        {
+          "enum_id": "lifecycle_status",
+          "enum_ref": "studio.lifecycle_status",
+          "name": "ライフサイクル状態",
+          "description": "Data JSON / Rule / Config などの管理状態を表す汎用ステータス。業務承認状態とは混ぜない。",
+          "sort_order": 10,
+          "deprecated": false,
+          "items": [
+            {
+              "cd": "draft",
+              "name": "ドラフト",
+              "description": "作成中・未確定の状態。",
+              "sort_order": 10,
+              "deprecated": false
+            },
+            {
+              "cd": "active",
+              "name": "有効",
+              "description": "現役で利用する状態。",
+              "sort_order": 20,
+              "deprecated": false
+            },
+            {
+              "cd": "reviewing",
+              "name": "レビュー中",
+              "description": "確認・調整中の状態。",
+              "sort_order": 30,
+              "deprecated": false
+            },
+            {
+              "cd": "deprecated",
+              "name": "非推奨",
+              "description": "互換性維持のため残すが、新規利用を推奨しない状態。",
+              "sort_order": 80,
+              "deprecated": false
+            },
+            {
+              "cd": "archived",
+              "name": "退避済み",
+              "description": "active領域から外し、履歴として退避した状態。",
+              "sort_order": 90,
+              "deprecated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "namespace_id": "qa",
+      "name": "QA / Expected / Test",
+      "description": "Expected、Test Pattern、品質観点、リスク分類で使う値語彙。",
+      "sort_order": 20,
+      "deprecated": false,
+      "enums": [
+        {
+          "enum_id": "risk_level",
+          "enum_ref": "qa.risk_level",
+          "name": "リスクレベル",
+          "description": "QA観点・Expected不足・不具合影響のリスク高さ。priority/confidenceとは意味が違うため別Enumとする。",
+          "sort_order": 10,
+          "deprecated": false,
+          "source": "defs/common/common_types_v0_1.json qa.risk options snapshot",
+          "items": [
+            {
+              "cd": "high",
+              "name": "高",
+              "description": "品質影響または見落としリスクが大きい。",
+              "sort_order": 10,
+              "deprecated": false
+            },
+            {
+              "cd": "medium",
+              "name": "中",
+              "description": "確認対象として残すべき中程度のリスク。",
+              "sort_order": 20,
+              "deprecated": false
+            },
+            {
+              "cd": "low",
+              "name": "低",
+              "description": "影響が限定的、または優先度が低いリスク。",
+              "sort_order": 30,
+              "deprecated": false
+            }
+          ]
+        },
+        {
+          "enum_id": "severity_level",
+          "enum_ref": "qa.severity_level",
+          "name": "重要度",
+          "description": "検出結果や不足指摘の重要度。risk_levelとは分けて扱う。",
+          "sort_order": 20,
+          "deprecated": false,
+          "source": "defs/common/common_types_v0_1.json qa.severity options snapshot",
+          "items": [
+            {
+              "cd": "high",
+              "name": "高",
+              "description": "優先的に確認・対応する重要度。",
+              "sort_order": 10,
+              "deprecated": false
+            },
+            {
+              "cd": "medium",
+              "name": "中",
+              "description": "通常確認対象の重要度。",
+              "sort_order": 20,
+              "deprecated": false
+            },
+            {
+              "cd": "low",
+              "name": "低",
+              "description": "低めの重要度。",
+              "sort_order": 30,
+              "deprecated": false
+            },
+            {
+              "cd": "info",
+              "name": "情報",
+              "description": "判断材料としての情報提示。",
+              "sort_order": 40,
+              "deprecated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "namespace_id": "relation",
+      "name": "Relation / Trace",
+      "description": "制約・テスト・Expected・業務データなどの関連線を扱う値語彙。",
+      "sort_order": 30,
+      "deprecated": false,
+      "enums": [
+        {
+          "enum_id": "status",
+          "enum_ref": "relation.status",
+          "name": "リレーション承認状態",
+          "description": "Relation行の採用・確認・廃止状態。studio.lifecycle_statusとは混ぜない。",
+          "sort_order": 10,
+          "deprecated": false,
+          "source": "defs/common/common_types_v0_1.json relation.status options snapshot",
+          "items": [
+            {
+              "cd": "candidate",
+              "name": "候補",
+              "description": "関連候補として提示された状態。",
+              "sort_order": 10,
+              "deprecated": false
+            },
+            {
+              "cd": "approved",
+              "name": "承認済み",
+              "description": "人間または運用上、採用された関連。",
+              "sort_order": 20,
+              "deprecated": false
+            },
+            {
+              "cd": "rejected",
+              "name": "却下",
+              "description": "採用しないと判断された関連。",
+              "sort_order": 30,
+              "deprecated": false
+            },
+            {
+              "cd": "derived",
+              "name": "自動生成",
+              "description": "規則・変換・AI補助により生成された関連。",
+              "sort_order": 40,
+              "deprecated": false
+            },
+            {
+              "cd": "needs_review",
+              "name": "要確認",
+              "description": "人間確認が必要な関連。",
+              "sort_order": 50,
+              "deprecated": false
+            },
+            {
+              "cd": "deprecated",
+              "name": "廃止",
+              "description": "過去互換・履歴確認用に残す関連。",
+              "sort_order": 90,
+              "deprecated": false
+            }
+          ]
+        },
+        {
+          "enum_id": "confidence",
+          "enum_ref": "relation.confidence",
+          "name": "関連信頼度",
+          "description": "関連線の確からしさ。risk/priorityとは意味が違うため別Enumとする。",
+          "sort_order": 20,
+          "deprecated": false,
+          "source": "defs/common/common_types_v0_1.json relation.confidence options snapshot",
+          "items": [
+            {
+              "cd": "high",
+              "name": "高",
+              "description": "関連の確度が高い。",
+              "sort_order": 10,
+              "deprecated": false
+            },
+            {
+              "cd": "medium",
+              "name": "中",
+              "description": "関連の確度が中程度。",
+              "sort_order": 20,
+              "deprecated": false
+            },
+            {
+              "cd": "low",
+              "name": "低",
+              "description": "関連の確度が低い、または仮説寄り。",
+              "sort_order": 30,
+              "deprecated": false
+            }
+          ]
+        },
+        {
+          "enum_id": "priority",
+          "enum_ref": "relation.priority",
+          "name": "関連優先度",
+          "description": "関連確認や表示上の優先度。risk/confidenceとは意味が違うため別Enumとする。",
+          "sort_order": 30,
+          "deprecated": false,
+          "source": "defs/common/common_types_v0_1.json relation.priority options snapshot",
+          "items": [
+            {
+              "cd": "high",
+              "name": "高",
+              "description": "優先的に確認・表示したい関連。",
+              "sort_order": 10,
+              "deprecated": false
+            },
+            {
+              "cd": "medium",
+              "name": "中",
+              "description": "通常優先度の関連。",
+              "sort_order": 20,
+              "deprecated": false
+            },
+            {
+              "cd": "low",
+              "name": "低",
+              "description": "低優先度の関連。",
+              "sort_order": 30,
+              "deprecated": false
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "note_id": "note_common_enums_001",
+      "at": "2026-06-28",
+      "title": "v0.15.1の責務",
+      "body": "このファイルはEnumの器と正本化方針を定義する。既存common_types_v0_1.jsonのoptionsはまだ壊さない。enumRef解決実装と既存options移行は v0.15.2 / v0.15.4 で扱う。"
+    },
+    {
+      "note_id": "note_common_enums_002",
+      "at": "2026-06-28",
+      "title": "high/medium/lowを雑に統合しない",
+      "body": "risk.high / severity.high / confidence.high / priority.high は同じcdでも判断軸が違う可能性がある。共通化はcd一致ではなく意味一致で判断する。"
+    }
+  ],
+  "change_history": [
+    {
+      "history_id": "chg_common_enums_v0_1_001",
+      "at": "2026-06-28",
+      "change_type": "file_added",
+      "before": "Enum正本ファイルなし。select optionsは主にcommon_types内FieldTypeへ直書き。",
+      "after": "common_enums_v0_1.json を追加し、namespaces / enums / items と enum_ref_format を定義。",
+      "reason": "値候補そのものの正本管理をFieldTypeから分離し、後続のenumRef化・AI文脈制御へ接続するため。"
+    },
+    {
+      "history_id": "chg_common_enums_v0_15_2_runtime_policy",
+      "at": "2026-06-28",
+      "change_type": "runtime_policy_update",
+      "before": "v0.15.1時点ではStudio Runtimeはcommon_enumsを自動解決しない方針だった。",
+      "after": "v0.15.2でselect系FieldTypeのenumRefをcommon_enumsから解決する方針へ更新。enumRefが正本、optionsは互換用・キャッシュ・展開結果として扱う。",
+      "reason": "FieldTypeとEnumの責務分離をRuntime解決へ接続するため。"
+    }
+  ]
+}

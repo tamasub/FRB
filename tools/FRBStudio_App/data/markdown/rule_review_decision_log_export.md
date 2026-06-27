@@ -1,6 +1,6 @@
 # ルールレビュー記録（判断ログ・変更履歴対応）
 
-- 出力日時: 2026/6/27 19:28:18
+- 出力日時: 2026/6/28 1:40:33
 - 対象: FRB Studio / JSON Object Studio
 - schema_version: rule_review_data_v0_1
 - status: converted_draft

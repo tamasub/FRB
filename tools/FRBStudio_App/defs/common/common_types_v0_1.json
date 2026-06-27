@@ -1,6 +1,6 @@
 {
   "version": "0.1",
-  "description": "No-Code JSON Studio 共通FieldType定義。cd/name選択肢と、意味のある通常項目FieldTypeを管理する。 不足検出VirtualData用FieldTypeを追加。",
+  "description": "No-Code JSON Studio 共通FieldType定義。cd/name選択肢と、意味のある通常項目FieldTypeを管理する。 不足検出VirtualData用FieldTypeを追加。 v0.15.2でFieldType enumRef解決のサンプルを追加。",
   "namespaces": {
     "qa": {
       "fieldTypes": {
@@ -260,7 +260,9 @@
           "search": {
             "visible": true,
             "operator": "equals"
-          }
+          },
+          "enumRef": "qa.risk_level",
+          "enum_ref_note": "v0.15.2: enumRefを正本とし、既存optionsは互換用スナップショットとして残す。"
         },
         "check_id": {
           "caption": "チェックID",
@@ -763,6 +765,25 @@
             "visible": true,
             "operator": "contains"
           }
+        },
+        "risk_enumref_only_sample": {
+          "caption": "リスク(enumRefのみ)",
+          "baseType": "select",
+          "enumRef": "qa.risk_level",
+          "valueField": "cd",
+          "labelField": "name",
+          "grid": {
+            "visible": true,
+            "width": 110
+          },
+          "edit": {
+            "visible": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "equals"
+          },
+          "notes": "v0.15.2-fieldtype-enumref-resolve の確認用サンプル。optionsを持たず、common_enums_v0_1.jsonから解決する。"
         }
       }
     },
@@ -1414,5 +1435,15 @@
         }
       }
     }
-  }
+  },
+  "change_history": [
+    {
+      "history_id": "chg_common_types_v0_15_2_enumref_sample",
+      "at": "2026-06-28",
+      "change_type": "fieldtype_enumref_sample",
+      "before": "common_types は select FieldType に options を直持ちしており、enumRef の代表例がなかった。",
+      "after": "qa.risk に enumRef=qa.risk_level を追加し、互換用optionsを保持。あわせて qa.risk_enumref_only_sample を追加し、enumRefのみでoptions解決できる確認用FieldTypeを用意。",
+      "reason": "v0.15.2-fieldtype-enumref-resolve でEnumを値正本、FieldTypeを画面項目としての使い方へ責務分離するため。"
+    }
+  ]
 }

@@ -44,7 +44,7 @@ data/exports/tmp/
 
 
 # GitDiffRun generated temporary diff json for viewer
-/tools/FRBStudio_App/wwwroot/diff_runs/DiffToJson_*.json
+/tools/FRBStudio_App/wwwroot/diff/DiffToJson_*.json
 
 # ===== Large experiment artifacts =====
 *.wav
