@@ -1,12 +1,52 @@
 {
   "view_def": "screen_state/screen_state_diff_view_def_base_v0_2_checks.json",
-  "schema_version": "screen_state_diff_v0_2",
-  "document_type": "screen_state_diff",
+  "schema_version": "diff_result_v0_1",
+  "document_type": "diff_result",
+  "domain": "screen_state",
+  "diff_kind": "screen_state_smoke",
+  "test_id": "screen_state_smoke_001",
   "testId": "screen_state_smoke_001",
+  "test_name": "初期表示の画面状態JSONを検証する",
   "title": "初期表示の画面状態JSONを検証する",
-  "capturedAt": "2026-06-27T05:17:07.730Z",
   "url": "http://localhost:5055/",
   "status": "fail",
+  "resultLabel": "🚨 FAIL",
+  "summary": "🚨 1件の差分を検出しました: screen_state_smoke_001.appTitle",
+  "total": 4,
+  "passCount": 3,
+  "failCount": 1,
+  "failedCount": 1,
+  "failedChecks": [
+    "appTitle"
+  ],
+  "failedCheckIds": [
+    "screen_state_smoke_001.appTitle"
+  ],
+  "firstFailure": {
+    "check_id": "screen_state_smoke_001.appTitle",
+    "name": "appTitle",
+    "type": "equals",
+    "target": "appTitle",
+    "expected": "No-Code JSON Studio v0.3-draft eeee",
+    "actual": "FRB Studio - JSON Object Studio v0.4-r001",
+    "missing": []
+  },
+  "generated_at": "2026-06-27T05:17:07.730Z",
+  "capturedAt": "2026-06-27T05:17:07.730Z",
+  "result_summary": {
+    "total_count": 4,
+    "pass_count": 3,
+    "fail_count": 1,
+    "total": 4,
+    "passCount": 3,
+    "failCount": 1
+  },
+  "sourceFiles": {
+    "testPatternFile": "data\\json\\03_tests\\screen_state\\screen_state_smoke_001\\test_patterns\\screen_state_test_patterns_data_v0_2_chat.json",
+    "expectedFile": "data/json/03_tests/screen_state/screen_state_smoke_001/expected/screen_state_smoke_001.expected.json",
+    "outputActualFile": "data/json/03_tests/screen_state/screen_state_smoke_001/actual/screen_state_smoke_001.actual.json",
+    "outputDiffFile": "data/json/03_tests/screen_state/screen_state_smoke_001/diff/screen_state_smoke_001.diff.json"
+  },
   "checks": [
     {
       "check_id": "screen_state_smoke_001.appTitle",
@@ -53,30 +93,6 @@
       "message": "OK"
     }
   ],
-  "resultLabel": "🚨 FAIL",
-  "failedCount": 1,
-  "failedChecks": [
-    "appTitle"
-  ],
-  "failedCheckIds": [
-    "screen_state_smoke_001.appTitle"
-  ],
-  "summary": "🚨 1件の差分を検出しました: appTitle",
-  "firstFailure": {
-    "check_id": "screen_state_smoke_001.appTitle",
-    "name": "appTitle",
-    "type": "equals",
-    "target": "appTitle",
-    "expected": "No-Code JSON Studio v0.3-draft eeee",
-    "actual": "FRB Studio - JSON Object Studio v0.4-r001",
-    "missing": []
-  },
-  "sourceFiles": {
-    "testPatternFile": "data\\json\\03_tests\\screen_state\\screen_state_smoke_001\\test_patterns\\screen_state_test_patterns_data_v0_2_chat.json",
-    "expectedFile": "data/json/03_tests/screen_state/screen_state_smoke_001/expected/screen_state_smoke_001.expected.json",
-    "outputActualFile": "data/json/03_tests/screen_state/screen_state_smoke_001/actual/screen_state_smoke_001.actual.json",
-    "outputDiffFile": "data/json/03_tests/screen_state/screen_state_smoke_001/diff/screen_state_smoke_001.diff.json"
-  },
   "actualState": {
     "appTitle": "FRB Studio - JSON Object Studio v0.4-r001",
     "url": "http://localhost:5055/",

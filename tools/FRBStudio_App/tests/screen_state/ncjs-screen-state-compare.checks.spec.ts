@@ -269,6 +269,9 @@ test('画面状態JSONをExpectedと比較してDiffを保存できる', async (
   }
 
   const checks = pattern.checks.map(check => evaluateCheck(check, state));
+  const total = checks.length;
+  const passCount = checks.filter(check => check.pass).length;
+  const failCount = total - passCount;
   const failedChecks = checks.filter(check => !check.pass);
   const status = failedChecks.length === 0 ? 'pass' : 'fail';
   const firstFailure = failedChecks[0] ?? null;
@@ -277,24 +280,34 @@ test('画面状態JSONをExpectedと比較してDiffを保存できる', async (
   const expectedFile = requireRelativeFile(testPattern.expectedFile, 'expectedFile');
   const outputActualFile = requireRelativeFile(testPattern.outputActualFile, 'outputActualFile');
   const outputDiffFile = requireRelativeFile(testPattern.outputDiffFile, 'outputDiffFile');
+  const testId = pattern.testId || TEST_ID;
+  const failedCheckIds = failedChecks.map(check => check.check_id);
+  const failedCheckNames = failedChecks.map(check => check.name);
 
   const emphasizedDiff = {
     view_def: testPattern.diffViewDef || DIFF_VIEW_DEF,
-    schema_version: 'screen_state_diff_v0_2',
-    document_type: 'screen_state_diff',
-    testId: pattern.testId || TEST_ID,
+    schema_version: 'diff_result_v0_1',
+    document_type: 'diff_result',
+    domain: 'screen_state',
+    diff_kind: 'screen_state_smoke',
+    test_id: testId,
+    testId,
+    test_name: pattern.title,
     title: pattern.title,
+    generated_at: capturedAt,
     capturedAt,
     url: BASE_URL,
     status,
-    checks,
     resultLabel: status === 'pass' ? '✅ PASS' : '🚨 FAIL',
-    failedCount: failedChecks.length,
-    failedChecks: failedChecks.map(check => check.name),
-    failedCheckIds: failedChecks.map(check => check.check_id),
     summary: failedChecks.length === 0
-      ? '✅ すべてのチェックに合格しました'
-      : `🚨 ${failedChecks.length}件の差分を検出しました: ${failedChecks.map(check => check.name).join(', ')}`,
+      ? '✅ 差分は検出されませんでした。'
+      : `🚨 ${failedChecks.length}件の差分を検出しました: ${failedCheckIds.join(', ')}`,
+    total,
+    passCount,
+    failCount,
+    failedCount: failedChecks.length,
+    failedChecks: failedCheckNames,
+    failedCheckIds,
     firstFailure: firstFailure
       ? {
           check_id: firstFailure.check_id,
@@ -306,12 +319,23 @@ test('画面状態JSONをExpectedと比較してDiffを保存できる', async (
           missing: firstFailure.missing
         }
       : null,
+    result_summary: {
+      total_count: total,
+      pass_count: passCount,
+      fail_count: failCount,
+      total,
+      passCount,
+      failCount
+    },
     sourceFiles: {
       testPatternFile: TEST_PATTERN_REGISTRY_FILE,
       expectedFile,
+      actualFile: outputActualFile,
+      diffFile: outputDiffFile,
       outputActualFile,
       outputDiffFile
     },
+    checks,
     actualState: state
   };
 

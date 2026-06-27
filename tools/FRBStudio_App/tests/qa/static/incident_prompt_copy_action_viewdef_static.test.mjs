@@ -228,34 +228,56 @@ function buildDiffResult({ expectedSpec, targetFile, actualObservation, expected
     return makeDiffCheck({ check, actual, evaluation });
   });
 
+  const total = diffChecks.length;
   const passCount = diffChecks.filter((check) => check.pass).length;
-  const failCount = diffChecks.length - passCount;
+  const failCount = total - passCount;
   const status = failCount === 0 ? "pass" : "fail";
   const summary = buildDiffSummary(diffChecks, status);
+  const generatedAt = new Date().toISOString();
+  const actualFile = expectedSpec.execution_contract?.actual_file ?? expectedSpec.execution_contract?.actual_result_file;
+  const diffFile = expectedSpec.execution_contract?.diff_file ?? expectedSpec.execution_contract?.diff_result_file;
 
   return {
-    schema_version: "qa_diff_result_v0_1",
-    document_type: "qa_diff_result",
+    schema_version: "diff_result_v0_1",
+    document_type: "diff_result",
+    domain: "qa",
+    diff_kind: "qa_static_viewdef",
     view_def: expectedSpec.execution_contract?.diff_view_def ?? "qa/qa_diff_result_view_def_v0_1.json",
     test_id: expectedSpec.execution_contract?.test_id ?? TEST_ID,
+    testId: expectedSpec.execution_contract?.test_id ?? TEST_ID,
     test_name: actualObservation.test_name,
+    title: actualObservation.test_name,
     phase: expectedSpec.source_incident?.phase ?? null,
     incident_file: expectedSpec.source_incident?.incident_file ?? null,
     expected_file: EXPECTED_FILE,
-    actual_file: expectedSpec.execution_contract?.actual_file ?? expectedSpec.execution_contract?.actual_result_file,
+    actual_file: actualFile,
+    diff_file: diffFile,
     target_file: targetFile,
     status,
     resultLabel: summary.resultLabel,
     summary: summary.summary,
+    total,
+    passCount,
+    failCount,
     failedCount: summary.failedCount,
     failedChecks: summary.failedChecks,
     failedCheckIds: summary.failedCheckIds,
     firstFailure: summary.firstFailure,
-    generated_at: new Date().toISOString(),
+    generated_at: generatedAt,
+    capturedAt: generatedAt,
     result_summary: {
-      total_count: diffChecks.length,
+      total_count: total,
       pass_count: passCount,
       fail_count: failCount,
+      total,
+      passCount,
+      failCount,
+    },
+    sourceFiles: {
+      expectedFile: EXPECTED_FILE,
+      actualFile,
+      diffFile,
+      targetFile,
     },
     checks: diffChecks,
   };
@@ -290,8 +312,22 @@ test("TP-IPC-001: Expected JSONからActual観測値とDiff結果を分離して
   const actualObservation = buildActualObservation({ expectedSpec, targetFile, targetJson, expectedChecks });
   const diffResult = buildDiffResult({ expectedSpec, targetFile, actualObservation, expectedChecks });
 
-  writeJson(actualFile, actualObservation);
-  writeJson(diffFile, diffResult);
+  // 重要: Expected差分でテストをfailにする場合でも、
+  // Actual/Diff JSONは必ず先に書き出してから判定する。
+  // これにより「failした理由」をStudioくんで確認できる。
+  const actualOutputPath = writeJson(actualFile, actualObservation);
+  const diffOutputPath = writeJson(diffFile, diffResult);
 
-  assert.equal(diffResult.failedCount, 0, `Diff Result JSONを確認してください: ${diffFile}`);
+  assert.ok(fs.existsSync(actualOutputPath), `Actual Observation JSONが出力されていること: ${actualFile}`);
+  assert.ok(fs.existsSync(diffOutputPath), `Diff Result JSONが出力されていること: ${diffFile}`);
+
+  console.log(`[FRBStudio] Actual Observation JSON written: ${actualOutputPath}`);
+  console.log(`[FRBStudio] Diff Result JSON written: ${diffOutputPath}`);
+
+  if (diffResult.failedCount !== 0) {
+    assert.fail(
+      `Diff Result JSONを出力しました。Studioくんで確認してください: ${diffFile} ` +
+      `(failedCount=${diffResult.failedCount}, failedCheckIds=${diffResult.failedCheckIds.join(", ")})`
+    );
+  }
 });
