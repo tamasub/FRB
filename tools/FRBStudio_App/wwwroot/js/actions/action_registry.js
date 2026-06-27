@@ -286,9 +286,9 @@ registerStudioAction('Noop', async (context={}) => {
   return { message: `${context.executeButton?.caption ?? 'Action'} はNoopとして実行されました` };
 });
 
-// v0.14.37-git-diff-export-command-profile:
+// v0.14.38-test-runner-command-profile:
 // ViewDefの toolbar.executeButton から、選択行のCommandProfile実行設定をProgram.csへ渡す。
-// Data JSONには任意commandLine/scriptPathを持たせず、Program.cs側の許可済みprofileだけを実行する。
+// Data JSONには任意commandLine/scriptPath/test_fileを持たせず、Program.cs側の許可済みprofileだけを実行する。
 function commandProfileRowValue(row, ...keys) {
   for (const key of keys) {
     const value = getByPath(row, key);
@@ -296,7 +296,6 @@ function commandProfileRowValue(row, ...keys) {
   }
   return '';
 }
-
 
 function commandProfileBooleanValue(value) {
   if (value === true) return true;
@@ -315,10 +314,14 @@ function buildCommandProfileRunRequest(row) {
     output_path_display: String(commandProfileRowValue(row, 'output_path_display', 'output_path')).trim(),
     unified: Number(commandProfileRowValue(row, 'unified')) || 3,
     max_patch_chars: Number(commandProfileRowValue(row, 'max_patch_chars')) || 60000,
-    no_patch: commandProfileBooleanValue(commandProfileRowValue(row, 'no_patch'))
+    no_patch: commandProfileBooleanValue(commandProfileRowValue(row, 'no_patch')),
+    test_runner_id: String(commandProfileRowValue(row, 'test_runner_id')).trim(),
+    run_config_id: String(commandProfileRowValue(row, 'run_config_id')).trim(),
+    run_mode: String(commandProfileRowValue(row, 'run_mode')).trim(),
+    command_preview: String(commandProfileRowValue(row, 'command_preview')).trim()
   };
 
-  if (!request.command_profile_id) request.command_profile_id = 'git_diff_export';
+  if (!request.command_profile_id) request.command_profile_id = request.test_runner_id ? 'test_runner' : 'git_diff_export';
   return request;
 }
 
@@ -337,32 +340,171 @@ async function postCommandProfileRun(request) {
   }
 
   if (!res.ok) {
+    // v0.14.39-test-runner-result-classification:
+    // wait mode のテスト失敗は、HTTPエラー扱いで届いてもAction起動エラーにしない。
+    if (payload?.result_kind === 'test_failed') return payload;
+
     const message = payload?.message || payload?.error || `CommandProfile API error: ${res.status}`;
     const detail = payload?.stderr ? `\n${payload.stderr}` : '';
-    throw new Error(message + detail);
+    const err = new Error(message + detail);
+    err.commandResult = payload;
+    err.statusOptions = { kind: 'error', title: '起動エラー', duration: 6800, sticky: true };
+    throw err;
   }
 
   return payload || {};
 }
 
+function commandProfileOutputArtifactsText(artifacts) {
+  if (!Array.isArray(artifacts) || artifacts.length === 0) return '';
+  return artifacts.map(a => {
+    const path = a?.path || a?.full_path || '';
+    const exists = a?.exists === true ? 'exists' : (a?.exists === false ? 'missing' : 'unknown');
+    const kind = a?.kind ? ` / ${a.kind}` : '';
+    return `- ${path} [${exists}${kind}]`;
+  }).join('\n');
+}
+
+function commandProfileResultDetailText(result, caption) {
+  const lines = [];
+  lines.push(`Caption: ${caption || ''}`);
+  lines.push(`Result Kind: ${result?.result_kind || ''}`);
+  lines.push(`Success: ${result?.success === true}`);
+  if (result?.profile_id) lines.push(`Profile: ${result.profile_id}`);
+  if (result?.test_runner_id) lines.push(`Test Runner ID: ${result.test_runner_id}`);
+  if (result?.run_mode) lines.push(`Run Mode: ${result.run_mode}`);
+  if (result?.exit_code !== undefined && result?.exit_code !== null) lines.push(`Exit Code: ${result.exit_code}`);
+  if (result?.duration_ms !== undefined && result?.duration_ms !== null) lines.push(`Duration: ${result.duration_ms} ms`);
+  if (result?.working_directory) lines.push(`Working Directory: ${result.working_directory}`);
+  if (result?.command_preview) lines.push(`Command Preview: ${result.command_preview}`);
+  if (result?.message) lines.push(`Message: ${result.message}`);
+
+  const artifacts = commandProfileOutputArtifactsText(result?.output_artifacts);
+  if (artifacts) {
+    lines.push('');
+    lines.push('Output Artifacts:');
+    lines.push(artifacts);
+  }
+
+  if (result?.stdout) {
+    lines.push('');
+    lines.push('STDOUT:');
+    lines.push(String(result.stdout));
+  }
+  if (result?.stderr) {
+    lines.push('');
+    lines.push('STDERR:');
+    lines.push(String(result.stderr));
+  }
+
+  return lines.join('\n');
+}
+
+function showCommandProfileResultDialog(result, caption) {
+  const detailText = commandProfileResultDetailText(result, caption);
+  if (!detailText.trim()) return;
+
+  let overlay = document.getElementById('commandProfileResultOverlay');
+  if (overlay) overlay.remove();
+
+  const kind = result?.result_kind || '';
+  const title = kind === 'test_failed' ? 'テスト失敗の詳細' : 'CommandProfile 実行結果';
+  const note = kind === 'test_failed'
+    ? 'TestRunnerは起動済みです。テスト本体がfailしました。stdout / stderr / artifact path を確認してください。'
+    : 'CommandProfileの実行結果です。';
+
+  overlay = document.createElement('div');
+  overlay.id = 'commandProfileResultOverlay';
+  overlay.className = 'manual-copy-overlay';
+  overlay.innerHTML = `
+    <div class="manual-copy-dialog" role="dialog" aria-modal="true" aria-labelledby="commandProfileResultTitle">
+      <div class="manual-copy-title-row">
+        <div>
+          <div class="manual-copy-kicker">CommandProfile Result</div>
+          <h2 id="commandProfileResultTitle"></h2>
+        </div>
+        <button type="button" class="icon-button command-result-close" aria-label="閉じる">×</button>
+      </div>
+      <p class="manual-copy-note"></p>
+      <textarea class="manual-copy-textarea" readonly></textarea>
+      <div class="button-row right">
+        <button type="button" class="ghost-button command-result-select">全文選択</button>
+        <button type="button" class="primary-button command-result-close2">閉じる</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#commandProfileResultTitle').textContent = title;
+  overlay.querySelector('.manual-copy-note').textContent = note;
+  const textarea = overlay.querySelector('.manual-copy-textarea');
+  textarea.value = detailText;
+  const close = () => overlay.remove();
+  overlay.querySelectorAll('.command-result-close, .command-result-close2').forEach(btn => btn.addEventListener('click', close));
+  overlay.querySelector('.command-result-select')?.addEventListener('click', () => {
+    textarea.focus();
+    textarea.select();
+  });
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) close();
+  });
+}
+
+function commandProfileStatusFromResult(result, caption) {
+  const kind = result?.result_kind || '';
+  const exitCode = result?.exit_code !== undefined && result?.exit_code !== null ? ` exit_code=${result.exit_code}` : '';
+
+  if (kind === 'test_failed') {
+    return {
+      message: result?.message || `テスト失敗: ${caption}${exitCode}`,
+      options: { kind: 'warn', title: 'テスト失敗', duration: 7600, sticky: true }
+    };
+  }
+
+  if (kind === 'launcher_error') {
+    return {
+      message: result?.message || `TestRunner起動エラー: ${caption}`,
+      options: { kind: 'error', title: '起動エラー', duration: 7600, sticky: true }
+    };
+  }
+
+  if (kind === 'test_passed' && result?.run_mode === 'wait') {
+    return {
+      message: result?.message || `テスト成功: ${caption}`,
+      options: { kind: 'success', title: 'テスト成功' }
+    };
+  }
+
+  return {
+    message: result?.message || `CommandProfile Run完了: ${caption}`,
+    options: { kind: 'success', title: '完了' }
+  };
+}
+
 registerStudioAction('RunCommandProfile', async (context={}) => {
   if (typeof isStaticHostingMode === 'function' && isStaticHostingMode()) {
-    throw new Error('Git Diff Run はローカルFRBStudio実行時のみ使用できます');
+    throw new Error('CommandProfile Run はローカルFRBStudio実行時のみ使用できます');
   }
 
   const row = context.selectedRow || null;
-  if (!row) throw new Error('Git Diff Runする設定行を選択してください');
+  if (!row) throw new Error('CommandProfileを実行する設定行を選択してください');
 
   const request = buildCommandProfileRunRequest(row);
-  const caption = row.caption || row.run_config_id || request.mode || request.command_profile_id;
+  const caption = row.caption || row.run_config_id || request.test_runner_id || request.mode || request.command_profile_id;
 
-  if (row.enabled === false) throw new Error(`このGit Diff設定は無効です: ${caption}`);
+  if (row.enabled === false) throw new Error(`この実行設定は無効です: ${caption}`);
 
   const result = await postCommandProfileRun(request);
   console.log('RunCommandProfile result', result);
 
+  if (result?.result_kind === 'test_failed') {
+    showCommandProfileResultDialog(result, caption);
+  }
+
+  const status = commandProfileStatusFromResult(result, caption);
   return {
-    message: result.message || `Git Diff Run完了: ${caption}`,
+    message: status.message,
+    statusOptions: status.options,
+    status_kind: status.options?.kind,
+    status_title: status.options?.title,
     result
   };
-}, ['RunGitDiffExport', 'GitDiffRun']);
+}, ['RunGitDiffExport', 'GitDiffRun', 'RunTestRunner', 'TestRun']);

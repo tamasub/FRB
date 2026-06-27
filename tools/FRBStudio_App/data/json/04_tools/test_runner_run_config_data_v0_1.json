@@ -1,0 +1,42 @@
+{
+  "view_def": "tools/test_runner_run_config_view_def_v0_1.json",
+  "schema_version": "command_profile_run_config_v0_1",
+  "document_type": "test_runner_run_config",
+  "title": "Studio Test Runner Run Config",
+  "target": "TestRunner.ps1 / Studio Test Runner",
+  "status": "active",
+  "created_at": "2026-06-27",
+  "updated_at": "2026-06-27",
+  "owner": "tamasub",
+  "ai_partner": "ChatGPT",
+  "command_profile_id": "test_runner",
+  "command_profile_caption": "TestRunner.ps1",
+  "script_display_name": "tools/test/TestRunner.ps1",
+  "security_policy": "任意commandLine/scriptPath/test_fileはData JSONに持たせない。実行正本はProgram.cs側の許可済みCommandProfileとTestRunner.ps1内の許可済みtest_runner_idとし、command_previewは画面表示専用とする。",
+  "run_policy": "playwright_ui はUI起動後に終了しない可能性が高いため run_mode=launch として起動後すぐAPIを返す。incident_prompt_copy_action_static は終了を待てるため run_mode=wait として exit_code/stdout/stderr を返す。",
+  "run_configs": [
+    {
+      "run_config_id": "test_run_001_playwright_ui",
+      "caption": "Playwright UI / screen_state only",
+      "command_profile_id": "test_runner",
+      "test_runner_id": "playwright_ui",
+      "run_mode": "launch",
+      "command_preview": "npx playwright test --ui",
+      "enabled": "true",
+      "note": "Playwright UIを起動する。起動後に終了しない可能性が高いためlaunch扱い。Playwright側の対象はplaywright.config.tsに従う。",
+      "output_artifact_path": "data/json/03_tests/screen_state/screen_state_smoke_001/diff/screen_state_smoke_001.diff.json"
+    },
+    {
+      "run_config_id": "test_run_002_incident_prompt_copy_action_static",
+      "caption": "Incident Prompt Copy Action Static Test",
+      "command_profile_id": "test_runner",
+      "test_runner_id": "incident_prompt_copy_action_static",
+      "run_mode": "wait",
+      "command_preview": "node --test tests/qa/static/incident_prompt_copy_action_viewdef_static.test.mjs",
+      "enabled": true,
+      "note": "incident_prompt_copy_action_viewdef_static.test.mjs をnode標準testで実行し、終了まで待って結果を返す。fail時もTestRunner起動エラーではなくテスト失敗として扱う。",
+      "output_artifact_path": "data/json/03_tests/qa/v0_14_2_incident_prompt_copy_action/diff/TP-IPC-001.diff.json"
+    }
+  ],
+  "notes": "v0.14.38: Git Diff Runで見えたCommandProfile Runnerの枝として、AI駆動開発の作業台にTest Runを追加するための初期Data JSON。\n\nv0.14.39: TestRunner結果分類に合わせて、各run_configへ output_artifact_path を追加。TestRunner実行結果は result_kind=launcher_error/test_passed/test_failed として扱う。"
+}

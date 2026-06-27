@@ -176,7 +176,9 @@ internal static class Program
             output_path = profile.OutputPath,
             working_directory = profile.WorkingDirectory,
             timeout_seconds = profile.TimeoutSeconds,
-            allowed_modes = profile.AllowedModes
+            kind = profile.Kind,
+            allowed_modes = profile.AllowedModes,
+            allowed_test_runner_ids = profile.AllowedTestRunnerIds
         })));
 
         app.MapPost("/api/actions/command/run", async (CommandRunRequest req) =>
@@ -187,48 +189,88 @@ internal static class Program
 
     private static IReadOnlyDictionary<string, CommandProfile> BuildCommandProfiles(IConfiguration config, string root)
     {
-        var section = config.GetSection("FrbStudio:CommandProfiles:GitDiffExport");
+        var profiles = new Dictionary<string, CommandProfile>(StringComparer.OrdinalIgnoreCase);
 
+        var gitSection = config.GetSection("FrbStudio:CommandProfiles:GitDiffExport");
+        var gitProfile = BuildCommandProfile(
+            gitSection,
+            root,
+            defaultId: "git_diff_export",
+            defaultDisplayName: "Export-DiffToJson.ps1 / Git Diff JSON Export",
+            defaultScriptPath: "tools/git/Export-DiffToJson.ps1",
+            defaultOutputPath: @"F:\FRB_Diff\DiffToJson.json",
+            kind: "git_diff_export",
+            allowedModes: new[] { "WorkingTree", "Staged", "Head", "Range" },
+            allowedTestRunnerIds: Array.Empty<string>(),
+            defaultTimeoutSeconds: 30);
+        profiles[gitProfile.Id] = gitProfile;
+
+        var testSection = config.GetSection("FrbStudio:CommandProfiles:TestRunner");
+        var testProfile = BuildCommandProfile(
+            testSection,
+            root,
+            defaultId: "test_runner",
+            defaultDisplayName: "TestRunner.ps1 / Studio Test Runner",
+            defaultScriptPath: "tools/test/TestRunner.ps1",
+            defaultOutputPath: string.Empty,
+            kind: "test_runner",
+            allowedModes: Array.Empty<string>(),
+            allowedTestRunnerIds: new[] { "playwright_ui", "incident_prompt_copy_action_static" },
+            defaultTimeoutSeconds: 120);
+        profiles[testProfile.Id] = testProfile;
+
+        return profiles;
+    }
+
+    private static CommandProfile BuildCommandProfile(
+        IConfigurationSection section,
+        string root,
+        string defaultId,
+        string defaultDisplayName,
+        string defaultScriptPath,
+        string defaultOutputPath,
+        string kind,
+        IReadOnlyList<string> allowedModes,
+        IReadOnlyList<string> allowedTestRunnerIds,
+        int defaultTimeoutSeconds)
+    {
         var id = string.IsNullOrWhiteSpace(section["Id"])
-            ? "git_diff_export"
+            ? defaultId
             : section["Id"]!.Trim();
 
         var displayName = string.IsNullOrWhiteSpace(section["DisplayName"])
-            ? "Export-DiffToJson.ps1 / Git Diff JSON Export"
+            ? defaultDisplayName
             : section["DisplayName"]!.Trim();
 
-        var scriptPath = ResolveCommandScriptPath(root, section["ScriptPath"] ?? "tools/git/Export-DiffToJson.ps1");
+        var scriptPath = ResolveCommandScriptPath(root, section["ScriptPath"] ?? defaultScriptPath, defaultScriptPath);
         var outputPath = string.IsNullOrWhiteSpace(section["OutputPath"])
-            ? @"F:\FRB_Diff\DiffToJson.json"
+            ? defaultOutputPath
             : section["OutputPath"]!.Trim();
 
         var configuredWorkingDirectory = section["WorkingDirectory"];
         var workingDirectory = ResolveCommandWorkingDirectory(root, configuredWorkingDirectory);
 
-        var timeoutSeconds = 30;
+        var timeoutSeconds = defaultTimeoutSeconds;
         if (int.TryParse(section["TimeoutSeconds"], out var configuredTimeout))
         {
-            timeoutSeconds = Math.Clamp(configuredTimeout, 5, 300);
+            timeoutSeconds = Math.Clamp(configuredTimeout, 5, 600);
         }
 
         var powerShellExe = string.IsNullOrWhiteSpace(section["PowerShellExe"])
             ? DefaultPowerShellExe()
             : section["PowerShellExe"]!.Trim();
 
-        var profile = new CommandProfile(
+        return new CommandProfile(
             id,
             displayName,
             scriptPath,
             outputPath,
             workingDirectory,
             powerShellExe,
-            new[] { "WorkingTree", "Staged", "Head", "Range" },
+            kind,
+            allowedModes,
+            allowedTestRunnerIds,
             timeoutSeconds);
-
-        return new Dictionary<string, CommandProfile>(StringComparer.OrdinalIgnoreCase)
-        {
-            [profile.Id] = profile
-        };
     }
 
     private static string DefaultPowerShellExe()
@@ -236,9 +278,9 @@ internal static class Program
         return OperatingSystem.IsWindows() ? "powershell.exe" : "pwsh";
     }
 
-    private static string ResolveCommandScriptPath(string root, string rawPath)
+    private static string ResolveCommandScriptPath(string root, string rawPath, string fallbackRelativePath)
     {
-        var value = string.IsNullOrWhiteSpace(rawPath) ? "tools/git/Export-DiffToJson.ps1" : rawPath.Trim();
+        var value = string.IsNullOrWhiteSpace(rawPath) ? fallbackRelativePath : rawPath.Trim();
         var full = Path.IsPathRooted(value)
             ? Path.GetFullPath(value)
             : Path.GetFullPath(Path.Combine(root, value.Replace('/', Path.DirectorySeparatorChar)));
@@ -247,7 +289,7 @@ internal static class Program
         var allowedRoot = EnsureTrailingSeparator(Path.GetFullPath(root));
         if (!full.StartsWith(allowedRoot, StringComparison.OrdinalIgnoreCase))
         {
-            return Path.GetFullPath(Path.Combine(root, "tools", "git", "Export-DiffToJson.ps1"));
+            return Path.GetFullPath(Path.Combine(root, fallbackRelativePath.Replace('/', Path.DirectorySeparatorChar)));
         }
 
         return full;
@@ -287,6 +329,13 @@ internal static class Program
         if (string.IsNullOrWhiteSpace(profileId)) return Results.BadRequest("command_profile_id is required");
         if (!profiles.TryGetValue(profileId, out var profile)) return Results.BadRequest($"unsupported command_profile_id: {profileId}");
 
+        return profile.Kind.Equals("test_runner", StringComparison.OrdinalIgnoreCase)
+            ? await RunTestRunnerCommandProfileAsync(profile, req)
+            : await RunGitDiffCommandProfileAsync(profile, req);
+    }
+
+    private static async Task<IResult> RunGitDiffCommandProfileAsync(CommandProfile profile, CommandRunRequest req)
+    {
         if (!File.Exists(profile.ScriptPath))
         {
             return Results.Json(new
@@ -473,6 +522,284 @@ internal static class Program
         return success
             ? Results.Json(result)
             : Results.Json(result, statusCode: 500);
+    }
+
+    private static async Task<IResult> RunTestRunnerCommandProfileAsync(CommandProfile profile, CommandRunRequest req)
+    {
+        if (!File.Exists(profile.ScriptPath))
+        {
+            return Results.Json(new
+            {
+                success = false,
+                result_kind = "launcher_error",
+                profile_id = profile.Id,
+                message = "TestRunnerのscriptPathが見つかりません",
+                script_path = profile.ScriptPath,
+                output_artifacts = Array.Empty<CommandOutputArtifact>()
+            }, statusCode: 500);
+        }
+
+        if (!Directory.Exists(profile.WorkingDirectory))
+        {
+            return Results.Json(new
+            {
+                success = false,
+                result_kind = "launcher_error",
+                profile_id = profile.Id,
+                message = "TestRunnerのworkingDirectoryが見つかりません",
+                working_directory = profile.WorkingDirectory,
+                output_artifacts = Array.Empty<CommandOutputArtifact>()
+            }, statusCode: 500);
+        }
+
+        var testRunnerId = FirstNonBlank(req.TestRunnerId, req.RunConfigId);
+        if (string.IsNullOrWhiteSpace(testRunnerId))
+        {
+            return Results.Json(new
+            {
+                success = false,
+                result_kind = "launcher_error",
+                profile_id = profile.Id,
+                message = "test_runner_id is required",
+                output_artifacts = Array.Empty<CommandOutputArtifact>()
+            }, statusCode: 400);
+        }
+        if (!profile.AllowedTestRunnerIds.Any(x => x.Equals(testRunnerId, StringComparison.OrdinalIgnoreCase)))
+        {
+            return Results.Json(new
+            {
+                success = false,
+                result_kind = "launcher_error",
+                profile_id = profile.Id,
+                test_runner_id = testRunnerId,
+                message = $"unsupported test_runner_id: {testRunnerId}",
+                output_artifacts = Array.Empty<CommandOutputArtifact>()
+            }, statusCode: 400);
+        }
+
+        var outputArtifacts = BuildTestRunnerOutputArtifacts(testRunnerId, profile.WorkingDirectory);
+
+        var expectedRunMode = DefaultTestRunnerRunMode(testRunnerId);
+        var runMode = FirstNonBlank(req.RunMode) ?? expectedRunMode;
+        if (!runMode.Equals("launch", StringComparison.OrdinalIgnoreCase) && !runMode.Equals("wait", StringComparison.OrdinalIgnoreCase))
+        {
+            return Results.Json(new
+            {
+                success = false,
+                result_kind = "launcher_error",
+                profile_id = profile.Id,
+                test_runner_id = testRunnerId,
+                run_mode = runMode,
+                message = $"unsupported run_mode: {runMode}",
+                output_artifacts = outputArtifacts
+            }, statusCode: 400);
+        }
+        if (!runMode.Equals(expectedRunMode, StringComparison.OrdinalIgnoreCase))
+        {
+            return Results.Json(new
+            {
+                success = false,
+                result_kind = "launcher_error",
+                profile_id = profile.Id,
+                test_runner_id = testRunnerId,
+                run_mode = runMode,
+                message = $"run_mode does not match allowed mode for {testRunnerId}: expected {expectedRunMode}",
+                output_artifacts = outputArtifacts
+            }, statusCode: 400);
+        }
+
+        var argsForReport = new List<string>();
+        var redirectOutput = runMode.Equals("wait", StringComparison.OrdinalIgnoreCase);
+        var psi = new ProcessStartInfo
+        {
+            FileName = profile.PowerShellExe,
+            WorkingDirectory = profile.WorkingDirectory,
+            UseShellExecute = false,
+            RedirectStandardOutput = redirectOutput,
+            RedirectStandardError = redirectOutput,
+            CreateNoWindow = redirectOutput
+        };
+
+        // launch mode does not redirect stdout/stderr.  Setting StandardOutputEncoding
+        // when RedirectStandardOutput=false causes Process.Start() to fail on .NET.
+        if (redirectOutput)
+        {
+            psi.StandardOutputEncoding = Encoding.UTF8;
+            psi.StandardErrorEncoding = Encoding.UTF8;
+        }
+
+        void AddArg(string value)
+        {
+            psi.ArgumentList.Add(value);
+            argsForReport.Add(value);
+        }
+
+        AddArg("-NoProfile");
+        AddArg("-ExecutionPolicy");
+        AddArg("Bypass");
+        AddArg("-File");
+        AddArg(profile.ScriptPath);
+        AddArg("-TestRunnerId");
+        AddArg(testRunnerId);
+        AddArg("-RunMode");
+        AddArg(runMode);
+        AddArg("-RepositoryRoot");
+        AddArg(profile.WorkingDirectory);
+
+        var startedAt = DateTimeOffset.Now;
+
+        if (runMode.Equals("launch", StringComparison.OrdinalIgnoreCase))
+        {
+            using var launchProcess = new Process { StartInfo = psi };
+            try
+            {
+                launchProcess.Start();
+            }
+            catch (Exception ex)
+            {
+                return Results.Json(new
+                {
+                    success = false,
+                    result_kind = "launcher_error",
+                    profile_id = profile.Id,
+                    test_runner_id = testRunnerId,
+                    run_mode = runMode,
+                    message = "TestRunnerの起動に失敗しました",
+                    error = ex.Message,
+                    output_artifacts = outputArtifacts
+                }, statusCode: 500);
+            }
+
+            var result = new
+            {
+                success = true,
+                result_kind = "test_passed",
+                profile_id = profile.Id,
+                display_name = profile.DisplayName,
+                test_runner_id = testRunnerId,
+                run_mode = runMode,
+                pid = launchProcess.Id,
+                working_directory = profile.WorkingDirectory,
+                command_preview = req.CommandPreview ?? string.Empty,
+                output_artifacts = outputArtifacts,
+                command = new
+                {
+                    file = profile.PowerShellExe,
+                    args = argsForReport
+                },
+                started_at = startedAt.ToString("yyyy-MM-dd HH:mm:ss zzz"),
+                message = $"TestRunnerを起動しました: {testRunnerId}"
+            };
+            return Results.Json(result);
+        }
+
+        using var process = new Process { StartInfo = psi };
+        try
+        {
+            process.Start();
+        }
+        catch (Exception ex)
+        {
+            return Results.Json(new
+            {
+                success = false,
+                result_kind = "launcher_error",
+                profile_id = profile.Id,
+                test_runner_id = testRunnerId,
+                run_mode = runMode,
+                message = "TestRunnerの実行に失敗しました",
+                error = ex.Message,
+                output_artifacts = outputArtifacts
+            }, statusCode: 500);
+        }
+
+        var stdoutTask = process.StandardOutput.ReadToEndAsync();
+        var stderrTask = process.StandardError.ReadToEndAsync();
+        var waitTask = process.WaitForExitAsync();
+        var timeoutTask = Task.Delay(TimeSpan.FromSeconds(profile.TimeoutSeconds));
+
+        var completed = await Task.WhenAny(waitTask, timeoutTask);
+        var timedOut = completed == timeoutTask;
+        if (timedOut)
+        {
+            try { process.Kill(entireProcessTree: true); } catch { }
+        }
+        else
+        {
+            await waitTask;
+        }
+
+        var stdout = await stdoutTask;
+        var stderr = await stderrTask;
+        var finishedAt = DateTimeOffset.Now;
+        var exitCode = timedOut ? -1 : process.ExitCode;
+        var success = !timedOut && exitCode == 0;
+        var resultKind = timedOut ? "launcher_error" : (success ? "test_passed" : "test_failed");
+
+        var resultWait = new
+        {
+            success,
+            result_kind = resultKind,
+            timed_out = timedOut,
+            exit_code = exitCode,
+            profile_id = profile.Id,
+            display_name = profile.DisplayName,
+            test_runner_id = testRunnerId,
+            run_mode = runMode,
+            working_directory = profile.WorkingDirectory,
+            command_preview = req.CommandPreview ?? string.Empty,
+            output_artifacts = outputArtifacts,
+            command = new
+            {
+                file = profile.PowerShellExe,
+                args = argsForReport
+            },
+            stdout = TruncateCommandOutput(stdout, 20000),
+            stderr = TruncateCommandOutput(stderr, 20000),
+            started_at = startedAt.ToString("yyyy-MM-dd HH:mm:ss zzz"),
+            finished_at = finishedAt.ToString("yyyy-MM-dd HH:mm:ss zzz"),
+            duration_ms = (long)(finishedAt - startedAt).TotalMilliseconds,
+            message = success
+                ? $"TestRunner完了: {testRunnerId}"
+                : (timedOut ? $"TestRunner がタイムアウトしました: {profile.TimeoutSeconds}s" : $"テスト失敗: {testRunnerId} exit_code={exitCode}")
+        };
+
+        return resultKind.Equals("launcher_error", StringComparison.OrdinalIgnoreCase)
+            ? Results.Json(resultWait, statusCode: 500)
+            : Results.Json(resultWait);
+    }
+
+    private static IReadOnlyList<CommandOutputArtifact> BuildTestRunnerOutputArtifacts(string testRunnerId, string workingDirectory)
+    {
+        var relativePaths = testRunnerId switch
+        {
+            "playwright_ui" => new[]
+            {
+                "data/json/03_tests/screen_state/screen_state_smoke_001/diff/screen_state_smoke_001.diff.json"
+            },
+            "incident_prompt_copy_action_static" => new[]
+            {
+                "data/json/03_tests/qa/v0_14_2_incident_prompt_copy_action/diff/TP-IPC-001.diff.json"
+            },
+            _ => Array.Empty<string>()
+        };
+
+        return relativePaths.Select(relativePath =>
+        {
+            var fullPath = Path.GetFullPath(Path.Combine(workingDirectory, relativePath.Replace('/', Path.DirectorySeparatorChar)));
+            return new CommandOutputArtifact(
+                Path: relativePath,
+                FullPath: fullPath,
+                Exists: File.Exists(fullPath),
+                Kind: "diff_json");
+        }).ToArray();
+    }
+
+    private static string DefaultTestRunnerRunMode(string testRunnerId)
+    {
+        return testRunnerId.Equals("playwright_ui", StringComparison.OrdinalIgnoreCase)
+            ? "launch"
+            : "wait";
     }
 
     private static string? FirstNonBlank(params string?[] values)
@@ -834,11 +1161,9 @@ internal sealed class FrbStudioTrayContext : ApplicationContext
         var menu = new ContextMenuStrip();
         menu.Items.Add("FRB Studio を開く", null, (_, _) => Program.OpenBrowser(_url));
         menu.Items.Add("data フォルダーを開く", null, (_, _) => Program.OpenFolder(dataDir));
-        menu.Items.Add("json フォルダーを開く", null, (_, _) => Program.OpenFolder(jsonDir));
-        menu.Items.Add("markdown フォルダーを開く", null, (_, _) => Program.OpenFolder(markdownDir));
+        menu.Items.Add("－ json フォルダーを開く", null, (_, _) => Program.OpenFolder(jsonDir));
+        menu.Items.Add("－ markdown フォルダーを開く", null, (_, _) => Program.OpenFolder(markdownDir));
         menu.Items.Add("defs フォルダーを開く", null, (_, _) => Program.OpenFolder(defsDir));
-        menu.Items.Add("tests_screen_state フォルダーを開く", null, (_, _) => Program.OpenFolder(testsScreenStateDir));
-        menu.Items.Add("tests_screen_state/test_results/diff フォルダーを開く", null, (_, _) => Program.OpenFolder(testResultsDiffDir));
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("終了", null, async (_, _) => await ExitAsync());
 
@@ -911,7 +1236,25 @@ internal sealed class CommandRunRequest
 
     [JsonPropertyName("no_patch")]
     public bool? NoPatch { get; set; }
+
+    [JsonPropertyName("test_runner_id")]
+    public string? TestRunnerId { get; set; }
+
+    [JsonPropertyName("run_config_id")]
+    public string? RunConfigId { get; set; }
+
+    [JsonPropertyName("run_mode")]
+    public string? RunMode { get; set; }
+
+    [JsonPropertyName("command_preview")]
+    public string? CommandPreview { get; set; }
 }
+
+internal sealed record CommandOutputArtifact(
+    [property: JsonPropertyName("path")] string Path,
+    [property: JsonPropertyName("full_path")] string FullPath,
+    [property: JsonPropertyName("exists")] bool Exists,
+    [property: JsonPropertyName("kind")] string Kind);
 
 internal sealed record CommandProfile(
     string Id,
@@ -920,7 +1263,9 @@ internal sealed record CommandProfile(
     string OutputPath,
     string WorkingDirectory,
     string PowerShellExe,
+    string Kind,
     IReadOnlyList<string> AllowedModes,
+    IReadOnlyList<string> AllowedTestRunnerIds,
     int TimeoutSeconds);
 
 internal sealed record DataFolder(string RelativePath, string FullPath, bool IsPrimary)

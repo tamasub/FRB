@@ -91,10 +91,13 @@ function renderViewExecuteButton() {
       setStatus(`${currentDef.caption} 実行中...`);
       const result = await executeStudioAction(actionId, currentExecuteActionContext(currentDef));
       const message = result?.message ?? `${currentDef.caption} を実行しました`;
-      setStatus(message);
+      const statusOptions = result?.statusOptions
+        || (result?.status_kind ? { kind: result.status_kind, title: result.status_title } : undefined);
+      setStatus(message, statusOptions);
     } catch (err) {
       console.error(err);
-      setStatus('Actionエラー: ' + err.message);
+      const statusOptions = err?.statusOptions || { kind: 'error', title: 'Actionエラー', duration: 6800, sticky: true };
+      setStatus('Actionエラー: ' + err.message, statusOptions);
     } finally {
       const refreshed = viewExecuteButtonDef();
       btn.disabled = !refreshed;

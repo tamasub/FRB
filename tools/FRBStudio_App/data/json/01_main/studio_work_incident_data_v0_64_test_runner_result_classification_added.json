@@ -12,7 +12,7 @@
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。",
-  "items_count": 63,
+  "items_count": 64,
   "work_items": [
     {
       "work_item_id": "studio_work_0001",
@@ -6530,8 +6530,8 @@
       "test_points": "Data JSONに最低2行のテスト実行プリセットが存在すること。Playwright UI行は run_mode=launch としてAPIが起動後に返ること。Node static test行は run_mode=wait として終了まで待ち、exit_code/stdout/stderr/duration_msを返すこと。Data JSONに自由commandLineを書いても実行されないこと。test_runner_idが許可値以外の場合は拒否されること。静的ホスティングではTest Runが実行不可になること。Grid上部のTest Runボタンから選択行の設定で実行できること。",
       "user_request": "Git Diff Run の成功で、Studioくんがコマンド引数をData JSONプリセットとして画面化できる可能性が見えた。次はTest Runnerまで行きたい。TestRunnerというスクリプトを作り、パラメータでどちらのコマンドを実行するかを選ぶイメージ。JSONデータとしては最低2行で、`npx playwright test --ui` と `node --test tests/qa/static/incident_prompt_copy_action_viewdef_static.test.mjs` を扱いたい。まずは会話し、その後AI駆動開発の作業台を作り始めるため、インシデント追加を依頼。",
       "ai_response": "方針合意。Test RunnerはGit Diff Runの次の自然な枝として、CommandProfile Runnerに test_runner profile を追加するのがよい。Playwright UIは起動しっぱなしになるため run_mode=launch、node --test は終了を待つ run_mode=wait として扱う。Data JSONには test_runner_id と表示用 command_preview を持たせるが、任意commandLineや自由test_fileは持たせない。TestRunner.ps1内部で許可済みIDだけを分岐実行する。",
-      "latest_user_comment": "最新資材添付。v0.14.38-test-runner-command-profile として、.cs関連は Program.cs フォルダー内で更新し、他と混ぜない方針で TestRunner.ps1 / Test Run CommandProfile連携の実装を依頼。",
-      "latest_ai_response": "v0.14.38-test-runner-command-profile 対応完了。Program.csフォルダー内の Program.cs / FRBStudio.csproj / appsettings.json を更新し、Program.cs/tools/test/TestRunner.ps1 を追加。test_runner CommandProfileを追加し、Playwright UIは run_mode=launch、Node静的テストは run_mode=wait として扱う。Data JSON / ViewDef / ActionRegistryから Test Run ボタンで選択行の test_runner_id を /api/actions/command/run へ渡し、任意commandLine/scriptPath/test_fileは実行しない構成にした。",
+      "latest_user_comment": "最新資材添付。v0.14.38-test-runner-command-profile として、.cs関連は Program.cs フォルダー内で更新し、他と混ぜない方針で TestRunner.ps1 / Test Run CommandProfile連携の実装を依頼。\n\n# 2026-06-27 起動確認結果\nPlaywright UI行で Test Run を押すと「Actionエラー: TestRunnerの起動に失敗しました」と表示された。",
+      "latest_ai_response": "v0.14.38.1 launch mode 起動失敗修正完了。run_mode=launch では stdout/stderr をリダイレクトしないため、StandardOutputEncoding / StandardErrorEncoding を設定しないよう Program.cs を修正。run_mode=wait の時だけ出力をリダイレクトし、UTF-8 encoding を設定する。更新は .cs関連フォルダー内の Program.cs/Program.cs に限定。",
       "discussion_history": [
         {
           "history_id": "disc_0063_001",
@@ -6574,6 +6574,20 @@
           "speaker": "assistant",
           "topic": "v0.14.38作業結果",
           "message": "test_runner CommandProfile、TestRunner.ps1、Test Runner実行設定Data/ViewDef、RunCommandProfile Action拡張、Program.cs launch/wait制御を実装。Playwright UIはlaunchで起動後すぐ返し、Node静的テストはwaitで終了まで待つ構成にした。"
+        },
+        {
+          "history_id": "disc_0063_005",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "v0.14.38 TestRunner launch mode 起動失敗報告",
+          "message": "Playwright UI行でTest Runを押すと、通知後に「Actionエラー: TestRunnerの起動に失敗しました」と表示された。TestRunner.ps1は tools/test 配下に存在する。"
+        },
+        {
+          "history_id": "disc_0063_006",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "v0.14.38.1 起動失敗修正結果",
+          "message": "launch modeではstdout/stderrをリダイレクトしないのにStandardOutputEncoding/StandardErrorEncodingを設定していたため、Process.Start失敗の原因になっていた可能性が高い。wait mode時だけencodingを設定するようProgram.csを修正。"
         }
       ],
       "decision_log": [
@@ -6618,6 +6632,12 @@
           "at": "2026-06-27",
           "decision": "TestRunner.ps1 は test_runner_id の許可値だけを分岐実行し、Data JSONのcommand_previewは表示専用とする。",
           "reason": "コマンド入力を楽にしつつ、画面から任意commandLineや任意test_fileを実行できる状態にしないため。"
+        },
+        {
+          "decision_id": "dec_0063_006",
+          "at": "2026-06-27",
+          "decision": "run_mode=launch では StandardOutputEncoding / StandardErrorEncoding を設定しない。",
+          "reason": "stdout/stderrをリダイレクトしないProcessStartInfoにencodingを指定するとProcess.Start時に失敗する可能性があるため。launch系は起動して返すことを優先し、出力取得はwait系に限定する。"
         }
       ],
       "change_history": [
@@ -6644,9 +6664,107 @@
           "before": "Playwright UIのような起動しっぱなし系と、node --testのような終了待ち系を同じwait実行として扱うと、timeoutや失敗扱いになる可能性があった。",
           "after": "playwright_ui は run_mode=launch として起動後すぐAPIを返し、incident_prompt_copy_action_static は run_mode=wait として exit_code/stdout/stderr/duration_ms を返す。",
           "reason": "テスト種別ごとの実行特性に合わせて、APIの応答体験と安全性を両立するため。"
+        },
+        {
+          "history_id": "chg_0063_004",
+          "at": "2026-06-27",
+          "change_type": "test_runner_launch_encoding_fix",
+          "before": "run_mode=launch でも ProcessStartInfo.StandardOutputEncoding / StandardErrorEncoding を設定していた。",
+          "after": "redirectOutput=true、つまり run_mode=wait の時だけ stdout/stderr encoding を設定する。run_mode=launch ではencodingを設定しない。",
+          "reason": "Playwright UI起動時の TestRunnerの起動に失敗しました エラーを解消するため。",
+          "updated_files": "Program.cs/Program.cs"
         }
       ],
-      "actual_updated_files": "Program.cs/Program.cs / Program.cs/FRBStudio.csproj / Program.cs/appsettings.json / Program.cs/tools/test/TestRunner.ps1 / data/json/04_tools/test_runner_run_config_data_v0_1.json / defs/tools/test_runner_run_config_view_def_v0_1.json / data/json/04_tools/TEST_RUNNER_COMMAND_PROFILE_NOTES_v0_14_38.md / wwwroot/js/actions/action_registry.js / wwwroot/index.html / data/json/01_main/studio_work_incident_data_v0_63_test_runner_command_profile_added.json / data/json/01_main/studio_work_incident_data_v0_63_test_runner_command_profile_done.json / data/json/04_tools/TEST_RUNNER_COMMAND_PROFILE_REPORT_v0_14_38.md"
+      "actual_updated_files": "Program.cs/Program.cs / Program.cs/FRBStudio.csproj / Program.cs/appsettings.json / Program.cs/tools/test/TestRunner.ps1 / data/json/04_tools/test_runner_run_config_data_v0_1.json / defs/tools/test_runner_run_config_view_def_v0_1.json / data/json/04_tools/TEST_RUNNER_COMMAND_PROFILE_NOTES_v0_14_38.md / wwwroot/js/actions/action_registry.js / wwwroot/index.html / data/json/01_main/studio_work_incident_data_v0_63_test_runner_command_profile_added.json / data/json/01_main/studio_work_incident_data_v0_63_test_runner_command_profile_done.json / data/json/04_tools/TEST_RUNNER_COMMAND_PROFILE_REPORT_v0_14_38.md; v0.14.38.1追加修正: Program.cs/Program.cs"
+    },
+    {
+      "work_item_id": "studio_work_0064",
+      "phase": "v0.14.39-test-runner-result-classification",
+      "title": "Studioくん Test Runner 結果分類 / テスト失敗通知改善",
+      "incident_type": "improvement",
+      "category": "test_runner_result_ui",
+      "priority": "high",
+      "status": "未着手",
+      "verification_status": "未確認",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-27",
+      "updated_at": "2026-06-27",
+      "target_files": "Program.cs/Program.cs / wwwroot/js/actions/action_registry.js / data/json/04_tools/test_runner_run_config_data_v0_1.json / defs/tools/test_runner_run_config_view_def_v0_1.json / Program.cs/tools/test/TestRunner.ps1 if needed / data/json/01_main/studio_work_incident_data_v0_64_test_runner_result_classification_added.json",
+      "target_rule_files": "",
+      "objective": "TestRunner wait mode の exit_code=1 をAction起動エラーとして扱わず、ランチャー起動失敗・テスト成功・テスト失敗を result_kind で分類して返し、Studioくん画面上でもテスト失敗を専用通知として表示できるようにする。",
+      "background": "v0.14.38 Test Runner CommandProfile連携により、Studioくんから Playwright UI / node --test を起動できるようになった。一方、node --test が正常に起動してテスト本体がfailした場合でも、現状は「Actionエラー: TestRunner が失敗しました: exit_code=1」と表示され、TestRunnerの起動失敗とテスト失敗が混同される。AI駆動開発の作業台としては、コマンド起動失敗ではなくテスト結果としてfailを確認できる表示へ分離する必要がある。",
+      "scope": "Program.cs の /api/actions/command/run 応答に result_kind を追加する。result_kind は launcher_error / test_passed / test_failed を基本とする。wait mode でプロセス起動に成功し exit_code=0 の場合は test_passed、exit_code!=0 の場合は test_failed とし、Process.Start失敗・Profile不正・Script不在・timeoutなど実行基盤側の失敗は launcher_error として扱う。ActionRegistry側では result_kind に応じて通知文言とトースト種別を分け、test_failed はエラートーストではなく「テスト失敗」通知として表示する。stdout / stderr / output artifact path をユーザーが確認できる形で返す・表示する。",
+      "out_of_scope": "この作業ではテスト本体の期待値修正、Playwright specの合否改善、差分JSONの中身の判定ロジック変更、テストレポートViewerの本格実装、複数テストの一括実行管理、Playwright UI内の実行制御までは行わない。まず起動失敗とテスト失敗の表示分類を整える。",
+      "fixed_name_policy": "result_kind / exit_code / stdout / stderr / output_artifacts はCommandProfile実行結果の標準レスポンス候補として扱う。ただしRuntimeが特定テストファイル名や特定diffファイル名を決め打ちしない。artifact path はData JSONまたはTestRunner.ps1の許可済みtest_runner_idに紐づく表示・返却情報として扱う。",
+      "module_policy": "type=\"module\" 化は行わず、既存のActionRegistry / toolbar.executeButton / Program.cs Minimal API 構成を維持する。",
+      "expected_outputs": "Program.cs の result_kind 付きCommandProfileレスポンス、ActionRegistry の通知分類改善、test_failed時の専用通知、stdout/stderr/output artifact path表示、必要に応じたTestRunner Run Config Data/ViewDefのartifact表示項目追加、更新済みインシデントJSON。",
+      "risk": "exit_code=1 を常にテスト失敗と扱うと、Script内部の前提不足や環境不備までテスト失敗に見えるリスクがある。そのため Process.Start失敗、profile/script/arg検証失敗、timeout、PowerShell起動失敗などは launcher_error として分ける必要がある。stdout/stderrを長く表示しすぎると画面通知が読みにくくなるため、詳細表示と短い通知を分ける必要がある。",
+      "test_points": "node --test が pass した場合に result_kind=test_passed となり成功通知になること。node --test が fail した場合に result_kind=test_failed となり、Action起動エラーではなくテスト失敗通知になること。存在しないscript/profile不正/timeout等では result_kind=launcher_error となり、従来どおり起動・実行基盤のエラーとして表示されること。stdout/stderrとoutput artifact pathがAPIレスポンスまたは画面表示で確認できること。Playwright UI launch行の起動成功表示に悪影響がないこと。",
+      "user_request": "wait mode の exit_code=1 を「Action起動エラー」と呼ばない。result_kind として launcher_error / test_passed / test_failed を返す。テスト失敗時はエラートーストではなく「テスト失敗」通知にする。stdout / stderr / output artifact path を表示できるようにする。",
+      "ai_response": "TestRunner結果分類の改善インシデントとして登録する。v0.14.38でTestRunnerの起動とテスト実行は成立したため、次は起動基盤の失敗とテスト本体の失敗を分離し、AI駆動開発の作業台として人間が判断しやすい通知・証跡表示へ進める。",
+      "latest_user_comment": "TestRunner wait modeでnode --testがfailしたとき、StudioくんがAction起動エラーとして表示してしまう。exit_code=1はTestRunner起動失敗ではなくテスト失敗として扱い、stdout/stderr/output artifact pathを確認できるようにしたい。",
+      "latest_ai_response": "インシデント追加完了。launcher_error / test_passed / test_failed の result_kind を中心に、起動失敗とテスト失敗を分離する作業項目として登録した。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0064_001",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "TestRunner結果表示の違和感",
+          "message": "node --test 実行は動いたが、テスト本体がfailした場合に Actionエラー: TestRunner が失敗しました: exit_code=1 と表示される。"
+        },
+        {
+          "history_id": "disc_0064_002",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "改善方針",
+          "message": "Runner起動失敗ではなくテスト失敗を拾えている状態なので、wait mode の exit_code=1 をAction起動エラーと呼ばず、result_kindで launcher_error / test_passed / test_failed を分けるのがよい。"
+        },
+        {
+          "history_id": "disc_0064_003",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "インシデント追加依頼",
+          "message": "wait mode の exit_code=1 をAction起動エラーと呼ばない。result_kindを返す。テスト失敗時はテスト失敗通知にする。stdout/stderr/output artifact pathを表示できるようにする、という内容をインシデントに追加してほしい。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0064_001",
+          "at": "2026-06-27",
+          "decision": "wait modeでプロセス起動に成功した後のexit_code!=0は、原則としてtest_failedとして扱う。",
+          "reason": "TestRunnerやActionの起動失敗と、テスト本体の失敗を混同すると、人間が見るべき対象が分かりにくくなるため。"
+        },
+        {
+          "decision_id": "dec_0064_002",
+          "at": "2026-06-27",
+          "decision": "Process.Start失敗、Profile不正、Script不在、timeoutなど実行基盤側の失敗はlauncher_errorとして扱う。",
+          "reason": "テスト本体のfailとは異なり、Studioくん・CommandProfile・環境設定側を確認すべきエラーだから。"
+        },
+        {
+          "decision_id": "dec_0064_003",
+          "at": "2026-06-27",
+          "decision": "test_failedはエラートーストではなく、テスト失敗通知として表示する。",
+          "reason": "テスト失敗はAI駆動開発の作業台では正常に観測された結果であり、ランチャー故障のように見せないため。"
+        },
+        {
+          "decision_id": "dec_0064_004",
+          "at": "2026-06-27",
+          "decision": "stdout / stderr / output artifact path をレスポンスまたは画面から確認できるようにする。",
+          "reason": "テスト失敗時に、diff JSONやログへすぐ辿れないと、次の判断・MetaDiff・差分物語へ進みにくいため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0064_001",
+          "at": "2026-06-27",
+          "change_type": "incident_added",
+          "before": "TestRunner wait mode の exit_code=1 が Action起動エラーとして表示され、テスト失敗とランチャー失敗の境界が曖昧だった。",
+          "after": "studio_work_0064 として、result_kindによるTestRunner結果分類と、テスト失敗通知・stdout/stderr/artifact path表示改善を登録。",
+          "reason": "AI駆動開発の作業台として、テスト結果を人間が判断しやすい形で観測できるようにするため。"
+        }
+      ],
+      "actual_updated_files": "data/json/01_main/studio_work_incident_data_v0_64_test_runner_result_classification_added.json"
     }
   ],
   "review_notes": [
@@ -6953,10 +7071,24 @@
       "at": "2026-06-27",
       "title": "v0.14.38 Test Runner CommandProfile実装",
       "body": "Studioくん Test Run / TestRunner.ps1 CommandProfile連携を実装。Program.csフォルダー内で.cs関連を更新し、Playwright UI=launch、Node静的テスト=waitの2行Data JSONから開始する。"
+    },
+    {
+      "note_id": "note_055",
+      "at": "2026-06-27",
+      "title": "v0.14.38.1 TestRunner launch mode encoding fix",
+      "body": "Playwright UI launch modeで起動失敗。stdout/stderrをリダイレクトしないlaunch modeではStandardOutputEncoding/StandardErrorEncodingを設定しないよう修正。",
+      "related_work_item_id": "studio_work_0063"
+    },
+    {
+      "note_id": "note_056",
+      "at": "2026-06-27",
+      "title": "TestRunner結果分類 / テスト失敗通知改善をインシデント化",
+      "body": "wait mode の exit_code=1 を Action起動エラーとして扱わず、result_kind=launcher_error/test_passed/test_failed で起動失敗とテスト失敗を分ける改善を studio_work_0064 として追加した。テスト失敗時はテスト失敗通知とし、stdout/stderr/output artifact pathを確認できるようにする。",
+      "related_work_item_id": "studio_work_0064"
     }
   ],
-  "work_revision": "v0.14.38-test-runner-command-profile-done",
-  "latest_planning_note": "v0.14.38 Test Runner CommandProfile連携完了。次は実機でPlaywright UI行のlaunch起動と、Node static test行のwait実行結果を確認する。",
+  "work_revision": "v0.14.39-test-runner-result-classification-added",
+  "latest_planning_note": "TestRunner wait mode のexit_code=1をAction起動エラーと呼ばず、launcher_error / test_passed / test_failed のresult_kindで分類する改善を studio_work_0064 として追加。",
   "view_def_candidates": [
     {
       "view_def": "rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",

@@ -8,7 +8,7 @@
   "incident_file": "data/json/01_main/studio_work_incident_data_v0_54_incident_prompt_copy_action_implemented.json",
   "expected_file": "data/json/03_tests/qa/v0_14_2_incident_prompt_copy_action/expected/qa_expected_checks_v0_14_2_incident_prompt_copy_action_expected_values_added.json",
   "target_file": "defs/rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",
-  "capturedAt": "2026-06-27T05:37:03.684Z",
+  "capturedAt": "2026-06-27T12:57:20.803Z",
   "result_summary": {
     "total_count": 4
   },
@@ -39,8 +39,8 @@
       "title": "ViewDefにpromptTemplateが定義されている",
       "name": "viewdef_prompt_template_required_variables",
       "target": "incident_prompt_copy_execute_button.promptTemplate",
-      "actual": "今回の作業依頼:\n- incident_file: {{data.filePath}}\n- phase: {{row.phase}}\n\n作業ルール:\n\nAIやスクリプトが直接取得するためのraw/archive URL:\n- Foundation Rules raw: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/data/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json\n\n- リポジトリ main ZIP: https://github.com/tamasub/FRB/archive/refs/heads/main.zip\n- FRBStudio_App raw base: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/\n- FRBStudio 本体 raw base: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio/\n\nFRB Studio Foundation Rules の foundation_rule_019「GitHub基準ソースとZIP返却契約」を参照してください。",
-      "actual_display": "今回の作業依頼:\n- incident_file: {{data.filePath}}\n- phase: {{row.phase}}\n\n作業ルール:\n\nAIやスクリプトが直接取得するためのraw/archive URL:\n- Foundation Rules raw: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/data/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json\n\n- リポジトリ main ZIP: https://github.com/tamasub/FRB/archive/refs/heads/main.zip\n- FRBStudio_App raw base: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/\n- FRBStudio 本体 raw base: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio/\n\nFRB Studio Foundation Rules の foundation_rule_019「GitHub基準ソースとZIP返却契約」を参照してください。",
+      "actual": "今回の作業依頼:\n- incident_file: {{data.filePath}}\n- phase: {{row.phase}}\n\n作業ルール:\n\nAIやスクリプトが直接取得するためのraw/archive URL:\n          - Foundation Rules raw: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/data/json/00_rules/frb_foundation_rules_data_v0_1.json\n\n          FRB Studio Foundation Rules の foundation_rule_019「GitHub基準ソースとZIP返却契約」を参照してください。",
+      "actual_display": "今回の作業依頼:\n- incident_file: {{data.filePath}}\n- phase: {{row.phase}}\n\n作業ルール:\n\nAIやスクリプトが直接取得するためのraw/archive URL:\n          - Foundation Rules raw: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/data/json/00_rules/frb_foundation_rules_data_v0_1.json\n\n          FRB Studio Foundation Rules の foundation_rule_019「GitHub基準ソースとZIP返却契約」を参照してください。",
       "source_check_name": "viewdef_prompt_template_exists"
     },
     {
