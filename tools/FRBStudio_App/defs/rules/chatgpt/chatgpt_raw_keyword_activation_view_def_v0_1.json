@@ -29,18 +29,6 @@
               }
             },
             {
-              "field": "purpose",
-              "caption": "Purpose",
-              "type": "textarea",
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": false,
-                "height": 90
-              }
-            },
-            {
               "field": "mode",
               "caption": "Mode",
               "type": "text",
@@ -49,18 +37,6 @@
               },
               "edit": {
                 "visible": true
-              }
-            },
-            {
-              "field": "constraint",
-              "caption": "Constraint",
-              "type": "textarea",
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": false,
-                "height": 80
               }
             }
           ]

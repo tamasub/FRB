@@ -97,20 +97,6 @@
                 "visible": true,
                 "readonly": true
               }
-            },
-            {
-              "field": "aggregation_policy",
-              "caption": "集約方針",
-              "type": "textarea",
-              "readonly": true,
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": false,
-                "readonly": true,
-                "height": 90
-              }
             }
           ]
         },

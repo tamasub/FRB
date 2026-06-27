@@ -86,30 +86,6 @@
               "edit": {
                 "visible": true
               }
-            },
-            {
-              "field": "purpose",
-              "caption": "目的",
-              "type": "textarea",
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": false,
-                "height": 110
-              }
-            },
-            {
-              "field": "current_one_line_summary",
-              "caption": "一言まとめ",
-              "type": "textarea",
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": false,
-                "height": 140
-              }
             }
           ]
         },

@@ -229,48 +229,6 @@
               }
             },
             {
-              "field": "source_schema_description",
-              "caption": "Schema説明",
-              "type": "textarea",
-              "readonly": true,
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": false,
-                "readonly": true,
-                "height": 120
-              }
-            },
-            {
-              "field": "conversion_note",
-              "caption": "変換メモ",
-              "type": "textarea",
-              "readonly": true,
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": false,
-                "readonly": true,
-                "height": 100
-              }
-            },
-            {
-              "field": "review_policy",
-              "caption": "レビュー方針",
-              "type": "textarea",
-              "readonly": true,
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": false,
-                "readonly": true,
-                "height": 100
-              }
-            },
-            {
               "field": "viewing_policy.data_json_role",
               "caption": "Data JSONの役割",
               "type": "text",

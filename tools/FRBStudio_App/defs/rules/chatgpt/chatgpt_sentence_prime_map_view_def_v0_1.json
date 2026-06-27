@@ -29,18 +29,6 @@
               }
             },
             {
-              "field": "purpose",
-              "caption": "Purpose",
-              "type": "textarea",
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": false,
-                "height": 80
-              }
-            },
-            {
               "field": "concept",
               "caption": "Concept",
               "type": "text",
@@ -49,30 +37,6 @@
               },
               "edit": {
                 "visible": true
-              }
-            },
-            {
-              "field": "expected_win_condition",
-              "caption": "勝ち条件",
-              "type": "textarea",
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": false,
-                "height": 80
-              }
-            },
-            {
-              "field": "warning",
-              "caption": "Warning",
-              "type": "textarea",
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": false,
-                "height": 80
               }
             }
           ]

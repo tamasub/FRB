@@ -117,48 +117,6 @@
                 "visible": true,
                 "readonly": true
               }
-            },
-            {
-              "field": "purpose",
-              "caption": "目的",
-              "type": "textarea",
-              "readonly": true,
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": false,
-                "readonly": true,
-                "height": 60
-              }
-            },
-            {
-              "field": "operation_policy",
-              "caption": "運用方針",
-              "type": "textarea",
-              "readonly": true,
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": false,
-                "readonly": true,
-                "height": 60
-              }
-            },
-            {
-              "field": "standard_field_policy",
-              "caption": "標準メタフィールド方針",
-              "type": "textarea",
-              "readonly": true,
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": false,
-                "readonly": true,
-                "height": 60
-              }
             }
           ]
         },
