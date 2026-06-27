@@ -1,91 +1,65 @@
 # ルールレビュー記録（判断ログ・変更履歴対応）
 
-- 出力日時: 2026/6/26 21:16:05
-- 対象: CODING_CONSTRAINTS.md / Studio Architecture Constraints
-- schema_version: coding_constraints_review_data_v0_1
-- 件数: 23
+- 出力日時: 2026/6/27 15:32:59
+- 対象: FRB Studio / JSON Object Studio / Test Evidence / Expected-Actual-Diff
+- schema_version: rule_review_data_v0_1
+- 件数: 9
 
 ## 基本情報
 
-- タイトル: Studioくん憲法 レビュー記録
-- 対象: CODING_CONSTRAINTS.md / Studio Architecture Constraints
-- ドメイン: coding_constraints
-- Schema Version: coding_constraints_review_data_v0_1
-- Document Type: studio_constitution_review
-- 元ドキュメント: CODING_CONSTRAINTS_ja.md
-- Source Version: 0.1-draft
-- ルール数: 23
-- 承認済み数: 23
+- タイトル: FRB Studio Test Evidence Rules Review Data
+- 対象: FRB Studio / JSON Object Studio / Test Evidence / Expected-Actual-Diff
+- ドメイン: test_evidence_rules
+- Schema Version: rule_review_data_v0_1
+- Document Type: rule_review_data
+- 元ドキュメント: FRB_TEST_EVIDENCE_RULES_v0_1_draft
+- Source Version: v0.1
+- Introduced In: v0.14.14-test-evidence-rules-contract
+- 生成日時: 2026-06-27T00:00:00+09:00
+- ルール数: 9
+- 承認済み数: 9
 
 ### 承認方針
 
-第1条〜第23条を1行ずつレビューし、approval_decision を「承認する」に変更することでStudioくん憲法の建国承認記録とする。
+Expected / Actual / Diff / Test Code の責務を1行ずつレビューし、AI駆動開発におけるテスト証跡契約として運用する。
 
 ### 変換メモ
 
-Studioくん憲法レビュー記録を共通ルールレビューViewDef v0.3で扱えるように、constitution_sections を rules へ正規化し、各行に rule_id と decision_log を追加した。section_id は旧IDとして残す。
+Expected JSON / Actual JSON / Diff JSON / Test Code の責務分離を、共通ルールレビューViewDefで扱えるように rules 配列へ構造化したData JSON。Markdownは原本ではなく、このJSONの出力Viewとして扱う想定。
 
 ### 前文
 
-この文書は、Studio を今後も育て続けるための恒久的なコーディング制約である。
-
-ただし、これは単なる「コーディング規約」ではない。
-
-これは、Studioくんという国の憲法である。
-
-Studio は、ただの JSON エディターではない。
-
-Studio は、JSON を「体験」に変換するためのプラットフォームである。
-
-この文書の目的は、人間と AI が同じ思想を共有しながら、Studio を壊さず、育て続けるための共通原則を定義することである。
-
-今後、Studio のコードを変更する人間および AI は、まずこの文書を読むこと。
-
----
+Test Evidence Rulesは、テスト失敗時にも人間とAIが失敗理由を追体験できるように、Expected / Actual / Diff / Test Code の責務境界を定義する。
 
 ### 変更履歴方針
 
-レビューで条文・仕様を変更した場合は、対象行の change_history に変更前・変更後・理由・会話を保存する。変更後だけを残さず、修正元を追体験できる状態にする。
+ルールを変更した場合は、各rule.change_historyへ変更前後と理由を残す。
 
 ## ルールレビュー一覧
 
 | No. | 章番号 | Rule ID | 親Rule ID | 分類 | ルール名 | 優先度 | レビュー状態 | 確認状態 | 承認 | 要約 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | 1 | constitution_01 |  |  | 建国宣言 | high |  | 確認済み | 承認する | Studio は JSON Experience Platform である。 |
-| 2 | 2 | constitution_02 |  |  | 基本構造 | high |  | 確認済み | 承認する | Studio は、次の4層を分離して考える。 |
-| 3 | 3 | constitution_03 |  |  | 戦略的設計パターン | high |  | 確認済み | 承認する | Studio は、戦略的設計パターンを優先する。 |
-| 4 | 4 | constitution_04 |  |  | Data First | high |  | 確認済み | 承認する | 常に Data から考える。 |
-| 5 | 5 | constitution_05 |  |  | ViewDef First | medium |  | 確認済み | 承認する | ViewDef で表現できるものは、可能な限り ViewDef に寄せる。 |
-| 6 | 6 | constitution_06 |  | Action | Action Separation | high |  | 確認済み | 承認する | Action は ViewDef で宣言し、Runtime は Action 識別子を変数として受け渡す。 |
-| 7 | 7 | constitution_07 |  | Replay | Replay Ready | medium | 建国レビュー | 確認済み | 承認する | Studio は、Replay 可能な構造を優先する。 |
-| 8 | 8 | constitution_08 |  | Diff | Diff First | medium | 建国レビュー | 確認済み | 承認する | Diff は第一級オブジェクトである。 |
-| 9 | 9 | constitution_09 |  | Constraint | Constraint First | high | 建国レビュー | 確認済み | 承認する | AI協働は、制約によって駆動する。 |
-| 10 | 10 | constitution_10 |  | 変更管理 | 小さな変更の原則 | high | 建国レビュー | 確認済み | 承認する | 変更は、小さく、確認可能な単位で行う。 |
-| 11 | 11 | constitution_11 |  | 品質保護 | 既存機能保護 | high | 建国レビュー | 確認済み | 承認する | Studio の既存機能を壊してはならない。 |
-| 12 | 12 | constitution_12 |  | ViewDef | 固定フィールド名の原則禁止 | high | 建国レビュー | 確認済み | 承認する | 固定フィールド名の使用は Chat View に限らず原則禁止し、例外は仕様根拠と協議承認を必要とする。 |
-| 13 | 13 | constitution_13 |  | 理念 | Studio は単なるエディターではない | high | 建国レビュー | 確認済み | 承認する | Studio は JSON を編集できる。 |
-| 14 | 14 | constitution_14 |  | ReadOnly | ReadOnly モードは第一級である | medium | 建国レビュー | 確認済み | 承認する | ReadOnly モードは、機能制限版ではない。 |
-| 15 | 15 | constitution_15 |  | URL | URL 起動対応 | medium | 建国レビュー | 確認済み | 承認する | Studio は URL による起動に対応する。 |
-| 16 | 16 | constitution_16 |  | AIテスト物語 | AIテスト物語との互換性 | medium | 建国レビュー | 確認済み | 承認する | Studio は AIテスト物語の流れを支える。 |
-| 17 | 17 | constitution_17 |  | 認知支援 | キャラクター化は認知支援である | medium | 建国レビュー | 確認済み | 承認する | AIテスト物語では、重要なメソッド、役割、概念をキャラクターとして表現してよい。 |
-| 18 | 18 | constitution_18 |  | 命名 | 命名方針 | medium | 建国レビュー | 確認済み | 承認する | 名前は責務を表すものにする。 |
-| 19 | 19 | constitution_19 |  | ファイル構成 | ファイル分割方針 | medium | 建国レビュー | 確認済み | 承認する | 大きなファイルは、責務ごとに分割する。 |
-| 20 | 20 | constitution_20 |  | AI協働 | AI協働ルール | high | 建国レビュー | 確認済み | 承認する | AI協働では、作業対象ファイル・確認種別・完了報告・ViewDef安定ファイル名をインシデントJSONに残す。 |
-| 21 | 21 | constitution_21 |  | 人間協働 | 人間協働ルール | medium | 建国レビュー | 確認済み | 承認する | 人間は自由に Studio を育ててよい。 |
-| 22 | 22 | constitution_22 |  | 憲法 | Studio憲法 | high | 建国レビュー | 確認済み | 承認する | この文書は、Studioくんという国の憲法である。 |
-| 23 | 23 | constitution_23 |  | まとめ | まとめ | high | 建国レビュー | 確認済み | 承認する | Studio は、次のどれかひとつではない。 |
+| 1 | 1 | test_evidence_rule_001 |  | 証跡契約 | Expected / Actual / Diff / Test Code の責務分離 | high | 未レビュー | 確認済み | 承認する | Expected JSONは期待値の正本、Actual JSONは観測値のみ、Diff JSONは比較結果、Test Codeは実行する仕掛けとして扱う。 |
+| 2 | 2 | test_evidence_rule_002 |  | Expected | Expected JSON は期待値の正本 | high | 未レビュー | 確認済み | 承認する | 期待値はExpected JSONに置き、テストコードへ期待値を直書きしない。 |
+| 3 | 3 | test_evidence_rule_003 |  | Actual | Actual JSON は観測値のみ | high | 未レビュー | 確認済み | 承認する | actual.jsonには実行時に観測した事実だけを記録し、expected / pass / summary / failedCount を持たせない。 |
+| 4 | 4 | test_evidence_rule_004 |  | Diff | Diff JSON は比較結果を持つ | high | 未レビュー | 確認済み | 承認する | diff.jsonはExpectedとActualの比較結果を保持し、判定サマリと明細の正本になる。 |
+| 5 | 5 | test_evidence_rule_005 |  | Diff | 判定フィールドは checks[].pass を標準とする | high | 未レビュー | 確認済み | 承認する | Diff明細の判定フィールドは checks[].pass に統一し、passed / ok / result などへ揺らさない。 |
+| 6 | 6 | test_evidence_rule_006 |  | 実行順序 | テスト失敗時もDiffを必ず残す | high | 未レビュー | 確認済み | 承認する | テストがfailする場合でも、assertより前にactual.jsonとdiff.jsonを保存する。 |
+| 7 | 7 | test_evidence_rule_007 |  | Test Code | Test Code は期待値の保存場所ではない | high | 未レビュー | 確認済み | 承認する | Test CodeはExpected JSONを読み、観測し、Actual/Diffを出力する仕掛けであり、期待値の正本ではない。 |
+| 8 | 8 | test_evidence_rule_008 |  | レビュー文化 | 失敗は証跡で読む | high | 未レビュー | 確認済み | 承認する | テスト失敗は単なる赤信号ではなく、Expected/Actual/Diffで読むレビュー対象として扱う。 |
+| 9 | 9 | test_evidence_rule_009 |  | 運用 | Test Evidence Rules の適用範囲 | high | 未レビュー | 確認済み | 承認する | このルールはQA、Screen State、ViewDef検証など、Expected/Actual/Diffを持つテスト証跡に適用する。 |
 
 ## ルールレビュー詳細
 
 
-### 1 建国宣言
-- Rule ID: constitution_01
+### 1 Expected / Actual / Diff / Test Code の責務分離
+- Rule ID: test_evidence_rule_001
+- 分類: 証跡契約
 - 優先度: high
+- レビュー状態: 未レビュー
 - 確認状態: 確認済み
 - 承認: 承認する
-- 承認者: tamasub
-- 承認日時: 2026/6/21
-- 元MD: CODING_CONSTRAINTS_ja.md
+- 元MD: FRB Test Evidence Rules
 - 元行: 0
 
 #### レビュー対象
@@ -93,54 +67,57 @@ Studio は、JSON を「体験」に変換するためのプラットフォー�
 
 ##### 元見出し
 
-1. 建国宣言
+1. Expected / Actual / Diff / Test Code の責務分離
 
 ##### 要約
 
-Studio は JSON Experience Platform である。
+Expected JSONは期待値の正本、Actual JSONは観測値のみ、Diff JSONは比較結果、Test Codeは実行する仕掛けとして扱う。
 
 ##### ルール本文
 
-Studio は JSON Experience Platform である。
-
-Studio は、構造化されたデータを受け取り、それを人間が読めるもの、人間が操作できるもの、人間が追体験できるものへ変換する。
+Test Evidence では、以下の責務を混ぜない。
 
 ```text
-Data JSON
-  + ViewDef JSON
-  + Action
-  = Experience
+Expected JSON = 期待値の正本
+Actual JSON   = 実行時に観測した値のみ
+Diff JSON     = Expected と Actual の比較結果
+Test Code     = 実行する仕掛け
 ```
 
-Studio は、ひとつの用途に閉じた専用ツールであってはならない。
+Expected / Actual / Diff / Test Code の責務を分けることで、テスト失敗時にも「何を期待し、何が観測され、どこが違ったのか」をStudioくんで追体験できるようにする。
 
-FFT、AI会話、テストパターン、MIDI、Markdown、差分、制約。
+Actual JSON に expected / pass / summary を混ぜない。Diff JSON に観測値だけを置いて終わらせない。Test Code に期待値を直書きしない。
 
-それらはすべて、Studio にとっては「JSON から生まれる体験」の一種である。
+この分離は、AI駆動開発における証跡文化の基本契約である。
 
----
 
 ##### 確認メッセージ
 
-Studioくん憲法 第1条「建国宣言」を承認する。
+Test Evidence Rule 1「Expected / Actual / Diff / Test Code の責務分離」をレビューする。
 
 #### レビュー会話
 
 
 #### 判断ログ
 
-（なし）
+| Decision ID | 日時 | 判断種別 | 判断内容 | 理由 | 条件 | 例外 | 補足 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| dec_test_evidence_rule_001_v01414_001 | 2026-06-27 |  | Expected / Actual / Diff / Test Code の責務を分離する。 | actual.jsonに比較結果が混ざると、diff.jsonの意味が消え、失敗時の追体験性が落ちるため。 |  |  |  |
 
 #### 変更履歴
 
-（なし）
+| History ID | Revision | 変更日 | 変更者 | 変更種別 | 対象フィールド | 変更前タイトル | 変更後タイトル | 変更理由 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| chg_test_evidence_rule_001_v01414_001 |  |  |  | rule_added |  |  |  | Expected / Actual / Diff / Test Code の責務分離をAI作業の証跡契約として固定するため。 |
 
-### 2 基本構造
-- Rule ID: constitution_02
+### 2 Expected JSON は期待値の正本
+- Rule ID: test_evidence_rule_002
+- 分類: Expected
 - 優先度: high
+- レビュー状態: 未レビュー
 - 確認状態: 確認済み
 - 承認: 承認する
-- 元MD: CODING_CONSTRAINTS_ja.md
+- 元MD: FRB Test Evidence Rules
 - 元行: 0
 
 #### レビュー対象
@@ -148,296 +125,28 @@ Studioくん憲法 第1条「建国宣言」を承認する。
 
 ##### 元見出し
 
-2. 基本構造
+2. Expected JSON は期待値の正本
 
 ##### 要約
 
-Studio は、次の4層を分離して考える。
+期待値はExpected JSONに置き、テストコードへ期待値を直書きしない。
 
 ##### ルール本文
 
-Studio は、次の4層を分離して考える。
+Expected JSON は、テストが守るべき期待値の正本である。
 
-```text
-Data
-ViewDef
-Action
-Runtime
-```
+テストコードは Expected JSON を読み込み、そこに記録された check_id / target / type / expected / expected_value などを使って比較する。
 
-### 2.1 Data
+AIは、テストコード側に期待値文字列を直書きしない。
+期待値を直書きすると、Expected JSONを育てる文化が死に、Studioくんで期待値をレビュー・編集・差分確認する意味が弱くなる。
 
-Data は真実の源泉である。
+期待値を変える場合は、まずExpected JSONを変更する。
+Test Codeは、期待値の保存場所ではなく、期待値を実行・観測・比較へ渡す仕掛けである。
 
-例：
-
-- FFTログ JSON
-- AI会話 JSON
-- 制約 JSON
-- テストパターン JSON
-- 期待値 JSON
-- テスト結果 JSON
-- 差分 JSON
-- MIDI JSON
-
-Data は、画面都合で汚してはならない。
-
-ただし、明示的に表示用メタ情報として定義されたものは例外とする。
-
-### 2.2 ViewDef
-
-ViewDef は、Data をどのように表示し、どのような体験として見せるかを定義する。
-
-ViewDef は、単なる設定ファイルではない。
-
-ViewDef は、体験設計書である。
-
-例：
-
-- グリッド表示
-- フォーム表示
-- チャット表示
-- Replay表示
-- FFT表示
-- MIDIピアノロール表示
-- テスト結果表示
-- 差分表示
-
-新しい表示ルールは、可能な限り ViewDef の拡張として実装する。
-
-### 2.3 Action
-
-Action は、ユーザーが操作したときに何が起きるかを定義する。
-
-例：
-
-- MIDIを再生する
-- AI会話をReplayする
-- テストを実行する
-- FFT Viewerを開く
-- Markdownを書き出す
-- URLを開く
-- 差分を比較する
-
-Action は、Renderer から分離する。
-
-ボタンの表示名は ViewDef で変えてよい。
-
-しかし、実際の処理は Action として分離された実装へ委譲する。
-
-### 2.4 Runtime
-
-Runtime は、Data、ViewDef、Action を接続する役割を持つ。
-
-Runtime は薄く保つ。
-
-Runtime に特定ドメイン専用の処理を詰め込んではならない。
-
----
 
 ##### 確認メッセージ
 
-Studioくん憲法 第2条「基本構造」を承認する。
-
-#### レビュー会話
-
-
-#### 判断ログ
-
-（なし）
-
-#### 変更履歴
-
-（なし）
-
-### 3 戦略的設計パターン
-- Rule ID: constitution_03
-- 優先度: high
-- 確認状態: 確認済み
-- 承認: 承認する
-- 元MD: CODING_CONSTRAINTS_ja.md
-- 元行: 0
-
-#### レビュー対象
-
-
-##### 元見出し
-
-3. 戦略的設計パターン
-
-##### 要約
-
-Studio は、戦略的設計パターンを優先する。
-
-##### ルール本文
-
-Studio は、戦略的設計パターンを優先する。
-
-見た目や用途が違っても、共通の考え方で扱えるものは、共通のインターフェースとして扱う。
-
-```text
-FRB
-AI駆動開発
-AI会話Replay
-MIDI
-テスト実行
-```
-
-これらは一見違うものに見える。
-
-しかし Studio では、すべて Data、ViewDef、Action によって成立する Experience として扱う。
-
-### 3.1 中核パターン
-
-Studio 関連の世界では、次の考え方が繰り返し登場する。
-
-```text
-detectGap()
-executeExperience()
-constraints()
-```
-
-- FRB：FFT と体感の差分を検出する
-- AI駆動開発：期待値と実行結果の差分を検出する
-- JSON Studio：Data と View のズレを検出する
-- Replay：思考過程の分岐や違和感を検出する
-- Testing：期待結果と実際の結果の差分を検出する
-
-対象は違う。
-
-しかし、設計思想は共通である。
-
----
-
-##### 確認メッセージ
-
-Studioくん憲法 第3条「戦略的設計パターン」を承認する。
-
-#### レビュー会話
-
-
-#### 判断ログ
-
-（なし）
-
-#### 変更履歴
-
-（なし）
-
-### 4 Data First
-- Rule ID: constitution_04
-- 優先度: high
-- 確認状態: 確認済み
-- 承認: 承認する
-- 元MD: CODING_CONSTRAINTS_ja.md
-- 元行: 0
-
-#### レビュー対象
-
-
-##### 元見出し
-
-4. Data First
-
-##### 要約
-
-常に Data から考える。
-
-##### ルール本文
-
-常に Data から考える。
-
-UI を書き始める前に、次を確認する。
-
-- 何が Data なのか
-- 何が安定しているのか
-- 何が変化するのか
-- 何を ViewDef に寄せるべきか
-- 何を Action に分離すべきか
-- 何を Studio の外側に置くべきか
-
-画面レイアウトから考え始めてはならない。
-
----
-
-##### 確認メッセージ
-
-Studioくん憲法 第4条「Data First」を承認する。
-
-#### レビュー会話
-
-
-#### 判断ログ
-
-（なし）
-
-#### 変更履歴
-
-（なし）
-
-### 5 ViewDef First
-- Rule ID: constitution_05
-- 優先度: medium
-- 確認状態: 確認済み
-- 承認: 承認する
-- 元MD: CODING_CONSTRAINTS_ja.md
-- 元行: 0
-
-#### レビュー対象
-
-
-##### 元見出し
-
-5. ViewDef First
-
-##### 要約
-
-ViewDef で表現できるものは、可能な限り ViewDef に寄せる。
-
-##### ルール本文
-
-ViewDef で表現できるものは、可能な限り ViewDef に寄せる。
-
-次のようなものをコードに固定してはならない。
-
-- フィールド名
-- チャットの role
-- メッセージ本文のキー
-- 固定列構成
-- 固定ラベル
-- 固定ボタン
-- ドメイン固有の表示名
-
-悪い例：
-
-```js
-message.user
-message.assistant
-message.text
-```
-
-良い例：
-
-```json
-{
-  "chat": {
-    "roleField": "speaker",
-    "textField": "message",
-    "timeField": "timestamp",
-    "metaFields": ["pattern", "event_type"]
-  }
-}
-```
-
----
-
-##### 確認メッセージ
-
-Studioくん憲法 第5条「ViewDef First」を承認する。
-
-##### メモ
-
-元データでは category/title が Replay Ready になっていたが、本文および ceremony_phrase は ViewDef First の内容であったため補正。
+Test Evidence Rule 2「Expected JSON は期待値の正本」をレビューする。
 
 #### レビュー会話
 
@@ -450,15 +159,16 @@ Studioくん憲法 第5条「ViewDef First」を承認する。
 
 | History ID | Revision | 変更日 | 変更者 | 変更種別 | 対象フィールド | 変更前タイトル | 変更後タイトル | 変更理由 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| hist_20260621_005_001 | v0.2 | 2026-06-21 | ChatGPT | metadata_correction | category,title | Replay Ready | ViewDef First | 本文と ceremony_phrase は ViewDef First の内容だったが、category/title が Replay Ready になっていたため、メタ情報を補正した。 |
+| chg_test_evidence_rule_002_v01414_001 |  |  |  | rule_added |  |  |  | Expected / Actual / Diff / Test Code の責務分離をAI作業の証跡契約として固定するため。 |
 
-### 6 Action Separation
-- Rule ID: constitution_06
-- 分類: Action
+### 3 Actual JSON は観測値のみ
+- Rule ID: test_evidence_rule_003
+- 分類: Actual
 - 優先度: high
+- レビュー状態: 未レビュー
 - 確認状態: 確認済み
 - 承認: 承認する
-- 元MD: CODING_CONSTRAINTS_ja.md
+- 元MD: FRB Test Evidence Rules
 - 元行: 0
 
 #### レビュー対象
@@ -466,233 +176,72 @@ Studioくん憲法 第5条「ViewDef First」を承認する。
 
 ##### 元見出し
 
-6. Action Separation
+3. Actual JSON は観測値のみ
 
 ##### 要約
 
-Action は ViewDef で宣言し、Runtime は Action 識別子を変数として受け渡す。
+actual.jsonには実行時に観測した事実だけを記録し、expected / pass / summary / failedCount を持たせない。
 
 ##### ルール本文
 
-UI 部品の中に、ドメイン固有の処理を直接書いてはならない。
+Actual JSON は、実行時に観測した値だけを記録する。
 
-Action は ViewDef によって宣言され、Runtime によって変数として受け渡され、ActionRegistry によって実装へ委譲される。
+actual.json に入れてよいものは、たとえば以下である。
 
-汎用 Runtime 側で、特定 Action 名を固定文字列として直接指定してはならない。
-
-悪い例：
-
-```js
-button.onclick = () => playMidi(data);
+```text
+test_id
+check_id
+name
+target
+actual
+actual_display
+observed_at
+source
 ```
 
-悪い例：
+actual.json に原則として入れないものは以下である。
 
-```js
-actionRegistry.execute("PlayMidi", context);
+```text
+expected
+pass
+resultLabel
+summary
+failedCount
+failedCheckIds
+firstFailure
 ```
 
-良い例：
+これらは比較結果であり、Diff JSONの責務である。
+Actual JSONは「事実の記録」であり、「判定の記録」ではない。
 
-```js
-const executeButton = viewDef.toolbar?.executeButton;
-const actionId = executeButton?.action;
-actionRegistry.execute(actionId, context);
-```
-
-ViewDef は、次のように、その View における主役操作を `toolbar.executeButton` として宣言できる。
-
-```json
-{
-  "toolbar": {
-    "executeButton": {
-      "visible": true,
-      "caption": "再生",
-      "action": "PlayMidi"
-    }
-  }
-}
-```
-
-ここでの `"PlayMidi"` は、コードに埋め込まれた固定処理名ではなく、ViewDef によって宣言された Action 識別子である。
-
-Runtime は Action の意味を知らない。
-
-Runtime は ViewDef から取得した Action 識別子を ActionRegistry に渡すだけである。
-
-実際の処理は、ActionRegistry に登録された Action 実装が担当する。
-
-補助的なボタンが必要な場合は、`toolbar.buttons` など、`executeButton` とは別の領域として定義する。
-
-`executeButton` は、その View における代表的な実行操作を表す。
-
-同じ UI 構造でも、ViewDef が変われば呼び出す Action が変わる。
-
-これが Studio におけるポリモーフィズムである。
-
----
 
 ##### 確認メッセージ
 
-Studioくん憲法 第6条「Action Separation」を承認する。
-
-##### メモ
-
-差戻し理由：元条文の良い例に固定文字列 actionRegistry.execute("PlayMidi", context) が含まれていたため。修正案では、固定文字列を Runtime に置かず、ViewDef 由来の actionId を変数として渡す形に変更。
+Test Evidence Rule 3「Actual JSON は観測値のみ」をレビューする。
 
 #### レビュー会話
 
 
-##### 人間コメント
-
-actionRegistry.execute("PlayMidi", context); は固定文字列指定なのでNG。ポリモーフィズムの場合、必ず変数名の指定になると思っている。これはかなり強い思い。
-
-{ "toolbar": [ { "caption": "再生", "action": "PlayMidi" } ] } にも違和感がある。toolbar の下に executeButton みたいなのがあり、その中に { "caption": "再生", "action": "PlayMidi" } がある構造の方が自然ではないか。
-
-##### AI回答
-
-指摘は妥当。汎用 Runtime 側に PlayMidi のような固定 Action 名が出ると、Action が増えるたびに Runtime が肥大化し、ポリモーフィズムではなく分岐地獄に近づく。ViewDef 側の Action 識別子として PlayMidi が出るのは許容できるが、コード側は ViewDef から取得した actionId を変数として ActionRegistry に渡すだけにするべき。また、toolbar 直下の単純配列より、主役操作として toolbar.executeButton を定義し、補助操作は toolbar.buttons に分ける構造の方が、意味が明確で拡張しやすい。
-
-##### 人間追加コメント
-
-実行ボタンの名称は ViewDef で「再生」「テスト実行」「Replay開始」などに変わる。そのため、UI側は固定の実行処理を知らず、ViewDef 側の executeButton 定義を読む形にしたい。
-
-v0.4-split作業後バージョンで入力しています。動作確認用コメント
-
-##### AI再回答
-
-第6条の修正案として、Action は ViewDef で宣言し、Runtime は actionId を変数として扱う方針に更新。主役操作は toolbar.executeButton に定義し、ActionRegistry が実装へ委譲する形を条文へ反映した。
-
 #### 判断ログ
 
-（なし）
+| Decision ID | 日時 | 判断種別 | 判断内容 | 理由 | 条件 | 例外 | 補足 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| dec_test_evidence_rule_003_v01414_001 | 2026-06-27 |  | actual.jsonには expected / pass / summary を持たせない。 | 観測値と判定結果を混ぜると、証跡の責務境界が崩れるため。 |  |  |  |
 
 #### 変更履歴
 
 | History ID | Revision | 変更日 | 変更者 | 変更種別 | 対象フィールド | 変更前タイトル | 変更後タイトル | 変更理由 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| hist_20260621_006_001 | v0.2 | 2026-06-21 | tamasub + ChatGPT | spec_revision | summary,body,user_comment,ai_response,user_reply,ai_followup_response,notes | Action Separation | Action Separation | 汎用Runtime側に actionRegistry.execute("PlayMidi", context) のような固定文字列が出るのは、ポリモーフィズムの思想に反するため修正した。 |
+| chg_test_evidence_rule_003_v01414_001 |  |  |  | rule_added |  |  |  | Expected / Actual / Diff / Test Code の責務分離をAI作業の証跡契約として固定するため。 |
 
-### 7 Replay Ready
-- Rule ID: constitution_07
-- 分類: Replay
-- 優先度: medium
-- レビュー状態: 建国レビュー
-- 確認状態: 確認済み
-- 承認: 承認する
-- 元MD: CODING_CONSTRAINTS_ja.md
-- 元行: 0
-
-#### レビュー対象
-
-
-##### 元見出し
-
-7. Replay Ready
-
-##### 要約
-
-Studio は、Replay 可能な構造を優先する。
-
-##### ルール本文
-
-Studio は、Replay 可能な構造を優先する。
-
-時間に沿って変化するものは、イベント列として表現できないかを検討する。
-
-例：
-
-- AI会話のステップ
-- テスト実行のステップ
-- JSON が育っていく履歴
-- MIDIノート
-- FFT 時系列データ
-- レビュー履歴
-
-Replay は単なる再生ではない。
-
-Replay は、発見の体験を他者と共有するための仕組みである。
-
----
-
-##### 確認メッセージ
-
-Studioくん憲法 第7条「Replay Ready」を承認する。
-
-#### レビュー会話
-
-
-#### 判断ログ
-
-（なし）
-
-#### 変更履歴
-
-（なし）
-
-### 8 Diff First
-- Rule ID: constitution_08
+### 4 Diff JSON は比較結果を持つ
+- Rule ID: test_evidence_rule_004
 - 分類: Diff
-- 優先度: medium
-- レビュー状態: 建国レビュー
-- 確認状態: 確認済み
-- 承認: 承認する
-- 元MD: CODING_CONSTRAINTS_ja.md
-- 元行: 0
-
-#### レビュー対象
-
-
-##### 元見出し
-
-8. Diff First
-
-##### 要約
-
-Diff は第一級オブジェクトである。
-
-##### ルール本文
-
-Diff は第一級オブジェクトである。
-
-Studio は、差分を見える形にすることを重視する。
-
-例：
-
-- 期待値 vs 実行結果
-- 変更前 vs 変更後
-- 旧 ViewDef vs 新 ViewDef
-- 旧 Data vs 新 Data
-- 人間の意図 vs AI の出力
-- 体感 vs FFT 計測結果
-
-可能な限り、差分を観察し、説明し、Replay できる構造にする。
-
----
-
-##### 確認メッセージ
-
-Studioくん憲法 第8条「Diff First」を承認する。
-
-#### レビュー会話
-
-
-#### 判断ログ
-
-（なし）
-
-#### 変更履歴
-
-（なし）
-
-### 9 Constraint First
-- Rule ID: constitution_09
-- 分類: Constraint
 - 優先度: high
-- レビュー状態: 建国レビュー
+- レビュー状態: 未レビュー
 - 確認状態: 確認済み
 - 承認: 承認する
-- 元MD: CODING_CONSTRAINTS_ja.md
+- 元MD: FRB Test Evidence Rules
 - 元行: 0
 
 #### レビュー対象
@@ -700,114 +249,53 @@ Studioくん憲法 第8条「Diff First」を承認する。
 
 ##### 元見出し
 
-9. Constraint First
+4. Diff JSON は比較結果を持つ
 
 ##### 要約
 
-AI協働は、制約によって駆動する。
+diff.jsonはExpectedとActualの比較結果を保持し、判定サマリと明細の正本になる。
 
 ##### ルール本文
 
-AI協働は、制約によって駆動する。
+Diff JSON は、Expected JSON と Actual JSON を比較した結果を記録する。
 
-AI にコード、データ、テスト、ViewDef を生成させる場合は、先に制約を与える。
+Diff JSON には、少なくとも以下の情報を持たせる。
 
-良い依頼には、次が含まれる。
+```text
+test_id
+status
+resultLabel
+summary
+total
+passCount
+failCount
+failedCount
+failedCheckIds
+firstFailure
+checks[]
+```
 
-- 目的
-- 入力構造
-- 出力構造
-- 固定ルール
-- 禁止事項
-- 互換性要件
-- テスト観点
+checks[] には、少なくとも以下の情報を持たせる。
 
-AI に Studio を自由設計させてはならない。
+```text
+check_id
+name
+target
+type
+expected
+actual
+pass
+message
+```
 
-AI には、制約を渡して協働する。
+Diff JSONは、Studioくんで失敗内容・差分・初回失敗・明細判定を確認するための正本である。
 
----
+Diff Resultのより詳細な共通フォーマットは、別途 `v0.14.16-diff-result-common-format-rules` の対象とする。
+
 
 ##### 確認メッセージ
 
-Studioくん憲法 第9条「Constraint First」を承認する。
-
-#### レビュー会話
-
-
-#### 判断ログ
-
-（なし）
-
-#### 変更履歴
-
-（なし）
-
-### 10 小さな変更の原則
-- Rule ID: constitution_10
-- 分類: 変更管理
-- 優先度: high
-- レビュー状態: 建国レビュー
-- 確認状態: 確認済み
-- 承認: 承認する
-- 元MD: CODING_CONSTRAINTS_ja.md
-- 元行: 0
-
-#### レビュー対象
-
-
-##### 元見出し
-
-10. 小さな変更の原則
-
-##### 要約
-
-変更は、小さく、確認可能な単位で行う。
-
-##### ルール本文
-
-変更は、小さく、確認可能な単位で行う。
-
-明示的に依頼されない限り、大規模な全面書き換えを避ける。
-
-リファクタリング時は次の順序を守る。
-
-1. 既存動作を保つ
-2. 責務を分離する
-3. 拡張ポイントを作る
-4. 新しい挙動を ViewDef または Action で追加する
-5. サンプル Data で確認する
-
-### 10.1 仕様変更履歴の保存
-
-レビューによって条文、設計、仕様、ViewDef、Action、固定フィールド名、または運用ルールを変更する場合は、変更前の内容を必ず履歴として残す。
-
-変更後の値だけを保存してはならない。
-
-仕様変更時は、対象行に `change_history` を追加し、少なくとも次を記録する。
-
-- 変更日時
-- 変更者
-- 変更種別
-- 変更対象フィールド
-- 変更前の値
-- 変更後の値
-- 変更理由
-- 人間のコメント
-- AIの回答
-- 補足メモ
-
-修正元を残すことは、単なる履歴管理ではない。
-
-Studio における Diff First、Replay Ready、AI協働の再現性を守るための必須条件である。
-
-特に、レビューで仕様を変更した場合は、なぜその仕様が変更されたのかを未来の人間とAIが追体験できるようにする。
-
----
-
-##### 確認メッセージ
-
-Studioくん憲法 第10条「小さな変更の原則」を承認する。
+Test Evidence Rule 4「Diff JSON は比較結果を持つ」をレビューする。
 
 #### レビュー会話
 
@@ -820,16 +308,16 @@ Studioくん憲法 第10条「小さな変更の原則」を承認する。
 
 | History ID | Revision | 変更日 | 変更者 | 変更種別 | 対象フィールド | 変更前タイトル | 変更後タイトル | 変更理由 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| hist_20260621_010_001 | v0.3 | 2026-06-21 | tamasub + ChatGPT | rule_addition | body | 小さな変更の原則 | 小さな変更の原則 | レビューで仕様を変更した場合、その修正元を必ず残すルールを憲法に明記するため。 |
+| chg_test_evidence_rule_004_v01414_001 |  |  |  | rule_added |  |  |  | Expected / Actual / Diff / Test Code の責務分離をAI作業の証跡契約として固定するため。 |
 
-### 11 既存機能保護
-- Rule ID: constitution_11
-- 分類: 品質保護
+### 5 判定フィールドは checks[].pass を標準とする
+- Rule ID: test_evidence_rule_005
+- 分類: Diff
 - 優先度: high
-- レビュー状態: 建国レビュー
+- レビュー状態: 未レビュー
 - 確認状態: 確認済み
 - 承認: 承認する
-- 元MD: CODING_CONSTRAINTS_ja.md
+- 元MD: FRB Test Evidence Rules
 - 元行: 0
 
 #### レビュー対象
@@ -837,678 +325,33 @@ Studioくん憲法 第10条「小さな変更の原則」を承認する。
 
 ##### 元見出し
 
-11. 既存機能保護
+5. 判定フィールドは checks[].pass を標準とする
 
 ##### 要約
 
-Studio の既存機能を壊してはならない。
+Diff明細の判定フィールドは checks[].pass に統一し、passed / ok / result などへ揺らさない。
 
 ##### ルール本文
 
-Studio の既存機能を壊してはならない。
+Diff JSON の明細判定フィールドは、原則として `checks[].pass` を標準とする。
 
-コード変更前に、影響する機能を確認する。
-
-例：
-
-- グリッド表示
-- フォーム表示
-- コンボ選択読み込み
-- Markdown Viewer 連携
-- サブグリッド編集
-- ReadOnly モード
-- 保存処理
-- Drag & Drop
-- Data と ViewDef の関連付け
-
-回帰リスクがある場合は、必ず明示する。
-
----
-
-##### 確認メッセージ
-
-Studioくん憲法 第11条「既存機能保護」を承認する。
-
-#### レビュー会話
-
-
-#### 判断ログ
-
-（なし）
-
-#### 変更履歴
-
-（なし）
-
-### 12 固定フィールド名の原則禁止
-- Rule ID: constitution_12
-- 分類: ViewDef
-- 優先度: high
-- レビュー状態: 建国レビュー
-- 確認状態: 確認済み
-- 承認: 承認する
-- 元MD: CODING_CONSTRAINTS_ja.md
-- 元行: 0
-
-#### レビュー対象
-
-
-##### 元見出し
-
-12. 固定フィールド名の原則禁止
-
-##### 要約
-
-固定フィールド名の使用は Chat View に限らず原則禁止し、例外は仕様根拠と協議承認を必要とする。
-
-##### ルール本文
-
-Studio は、特定のフィールド名を前提にした実装を原則禁止する。
-
-これは Chat View に限らない。
-
-Grid、Form、Chat、Replay、Diff、Markdown 出力、Action 実行など、すべての表示・操作において、データ構造の差異は ViewDef によって吸収することを原則とする。
-
-固定フィールド名は、Studio が汎用プラットフォームとして育つか、専用処理だらけに肥満化するかの瀬戸際にある重要事項である。
-
-悪い例：
-
-```js
-row.message
-row.user
-row.status
-row.result
-```
-
-良い例：
-
-```js
-const value = getValueByPath(row, fieldDef.field);
-```
-
-Chat View の場合も、固定フィールド名を前提にしてはならない。
-
-悪い例：
-
-```js
-message.role
-message.text
-```
-
-良い例：
-
-```json
-{
-  "chat": {
-    "roleField": "speaker",
-    "textField": "message",
-    "timeField": "timestamp"
-  }
-}
-```
-
-ただし、Studio の仕様、ViewDef スキーマ、生成ルール、または明示された予約語として定義されているものは例外とする。
-
-例外の根拠となる仕様ファイル例：
+以下のような別名を新規標準として増やさない。
 
 ```text
-FRB_VIEW_DEF_GENERATION_RULES_*_markdown_ai_prompt.md
-frb_view_def_schema_*_relation_status_filter.json
+passed
+ok
+result
+is_passed
 ```
 
-固定フィールド名を使いたい場合は、必ず tamasub と協議し、承認を得ること。
+判定フィールドを揺らすと、ViewDefの強調表示、テスト結果表示、AI差分物語生成がドメインごとに分岐してしまう。
 
-固定フィールド名を使う場合は、少なくとも次を説明すること。
-
-1. なぜ ViewDef では吸収できないのか
-2. その固定フィールド名の影響範囲はどこまでか
-3. 根拠となる仕様ファイル、スキーマ、生成ルールは何か
-4. 固定フィールド名を使わない場合の代替案とコストは何か
-
-固定フィールド名は、便利だから使うものではない。
-
-Studio 全体の互換性と再利用性を守るため、固定フィールド名は仕様として定義され、協議によって承認された場合にのみ使用する。
-
----
-
-##### 確認メッセージ
-
-Studioくん憲法 第12条「固定フィールド名の原則禁止」を承認する。
-
-##### メモ
-
-保留理由：思想としては採用。ただし例外ファイル、予約語、既存スキーマとの整合確認が必要。固定フィールド名の使用は例外申請制として運用する。
-
-#### レビュー会話
-
-
-##### 人間コメント
-
-固定フィールド名の使用は原則禁止（Chat View に限らず）。ただし、以下に記載のあるものは除く。
-- FRB_VIEW_DEF_GENERATION_RULES_*_markdown_ai_prompt.md
-- frb_view_def_schema_*_relation_status_filter.json
-
-厳しすぎるなら、なにかうまく逃げれる言葉を調整したい。
-
-特に固定フィールド名を使いたい場合は、必ず協議するという制約を入れたい。Studioくんが肥満になるかどうかの瀬戸際になる話なので、肥満を許容するかどうかは判断させてほしい。
-
-##### AI回答
-
-Chat View 限定ではなく、Studio 全体の原則として固定フィールド名を扱うべき。固定フィールド名は、短期的には便利だが、長期的には Studio の汎用性を削り、専用処理を増やす原因になる。したがって、禁止ではなく『例外申請制』とし、仕様ファイル・スキーマ・生成ルールに根拠があるものだけを例外にするのがよい。さらに、固定フィールド名を使う場合は必ず tamasub と協議し、肥満を許容するかどうかを人間が判断する制約を入れるべき。
-
-##### 人間追加コメント
-
-固定フィールド名は Studioくんの肥満化に直結するため、AI の判断だけで増やしたくない。必要な場合は、なぜ必要か、影響範囲はどこか、仕様上の根拠は何かを確認したうえで判断したい。
-
-##### AI再回答
-
-第12条の修正案として、タイトルを『固定フィールド名の原則禁止』へ変更し、Chat View 限定ではなく Studio 全体の制約に昇格。例外は仕様根拠と tamasub との協議承認を必要とする条文に更新した。
-
-#### 判断ログ
-
-（なし）
-
-#### 変更履歴
-
-| History ID | Revision | 変更日 | 変更者 | 変更種別 | 対象フィールド | 変更前タイトル | 変更後タイトル | 変更理由 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| hist_20260621_012_001 | v0.2 | 2026-06-21 | tamasub + ChatGPT | spec_revision | category,title,summary,body,ceremony_phrase,user_comment,ai_response,user_reply,ai_followup_response,notes | Chat View は可変であること | 固定フィールド名の原則禁止 | 固定フィールド名禁止は Chat View だけではなく Studio 全体の原則であるため、条文の対象範囲を拡張した。 |
-
-### 13 Studio は単なるエディターではない
-- Rule ID: constitution_13
-- 分類: 理念
-- 優先度: high
-- レビュー状態: 建国レビュー
-- 確認状態: 確認済み
-- 承認: 承認する
-- 元MD: CODING_CONSTRAINTS_ja.md
-- 元行: 0
-
-#### レビュー対象
-
-
-##### 元見出し
-
-13. Studio は単なるエディターではない
-
-##### 要約
-
-Studio は JSON を編集できる。
-
-##### ルール本文
-
-Studio は JSON を編集できる。
-
-しかし、編集は Studio の本質ではない。
-
-Studio の本質は、JSON を体験に変換することである。
-
-例：
-
-- FFT 振動を見る
-- AI会話をReplayする
-- テストパターンを実行する
-- MIDIを再生する
-- 制約を確認する
-- 差分を比較する
-- Markdownを読む
-- 関連する体験へ遷移する
-
-編集は、多数ある体験のひとつである。
-
----
-
-##### 確認メッセージ
-
-Studioくん憲法 第13条「Studio は単なるエディターではない」を承認する。
-
-#### レビュー会話
-
-
-#### 判断ログ
-
-（なし）
-
-#### 変更履歴
-
-（なし）
-
-### 14 ReadOnly モードは第一級である
-- Rule ID: constitution_14
-- 分類: ReadOnly
-- 優先度: medium
-- レビュー状態: 建国レビュー
-- 確認状態: 確認済み
-- 承認: 承認する
-- 元MD: CODING_CONSTRAINTS_ja.md
-- 元行: 0
-
-#### レビュー対象
-
-
-##### 元見出し
-
-14. ReadOnly モードは第一級である
-
-##### 要約
-
-ReadOnly モードは、機能制限版ではない。
-
-##### ルール本文
-
-ReadOnly モードは、機能制限版ではない。
-
-ReadOnly モードは、公開・共有のための正式な体験モードである。
-
-ReadOnly モードは、次を支える。
-
-- GitHub Pages 公開
-- URL による Data/ViewDef 読み込み
-- Replay 閲覧
-- FFT 閲覧
-- Markdown 閲覧
-- JSON 確認
-- 関連体験への安全な遷移
-
-ReadOnly モードは、読者が思考過程を追体験するための入口である。
-
----
-
-##### 確認メッセージ
-
-Studioくん憲法 第14条「ReadOnly モードは第一級である」を承認する。
-
-#### レビュー会話
-
-
-#### 判断ログ
-
-（なし）
-
-#### 変更履歴
-
-（なし）
-
-### 15 URL 起動対応
-- Rule ID: constitution_15
-- 分類: URL
-- 優先度: medium
-- レビュー状態: 建国レビュー
-- 確認状態: 確認済み
-- 承認: 承認する
-- 元MD: CODING_CONSTRAINTS_ja.md
-- 元行: 0
-
-#### レビュー対象
-
-
-##### 元見出し
-
-15. URL 起動対応
-
-##### 要約
-
-Studio は URL による起動に対応する。
-
-##### ルール本文
-
-Studio は URL による起動に対応する。
-
-例：
-
-```text
-studio.html?data=...&view=...
-```
-
-将来的には、次のような拡張も想定する。
-
-```text
-studio.html?data=...&view=...&mode=readonly
-studio.html?data=...&view=...&step=12
-studio.html?data=...&view=...&action=replay
-```
-
-記事から直接 Studio 体験へリンクするために、URL 起動は重要である。
-
----
-
-##### 確認メッセージ
-
-Studioくん憲法 第15条「URL 起動対応」を承認する。
-
-#### レビュー会話
-
-
-#### 判断ログ
-
-（なし）
-
-#### 変更履歴
-
-（なし）
-
-### 16 AIテスト物語との互換性
-- Rule ID: constitution_16
-- 分類: AIテスト物語
-- 優先度: medium
-- レビュー状態: 建国レビュー
-- 確認状態: 確認済み
-- 承認: 承認する
-- 元MD: CODING_CONSTRAINTS_ja.md
-- 元行: 0
-
-#### レビュー対象
-
-
-##### 元見出し
-
-16. AIテスト物語との互換性
-
-##### 要約
-
-Studio は AIテスト物語の流れを支える。
-
-##### ルール本文
-
-Studio は AIテスト物語の流れを支える。
-
-中心となる Data 候補：
-
-- 制約 JSON
-- テストパターン JSON
-- 期待値 JSON
-- 実行結果 JSON
-- 差分 JSON
-- レビュー会話 JSON
-- テスト物語 JSON
-
-目的は、単にテスト結果を見せることではない。
-
-制約、テスト、期待値、差分がどのように育っていくかを、人間が追体験できるようにすることである。
-
----
-
-##### 確認メッセージ
-
-Studioくん憲法 第16条「AIテスト物語との互換性」を承認する。
-
-#### レビュー会話
-
-
-#### 判断ログ
-
-（なし）
-
-#### 変更履歴
-
-（なし）
-
-### 17 キャラクター化は認知支援である
-- Rule ID: constitution_17
-- 分類: 認知支援
-- 優先度: medium
-- レビュー状態: 建国レビュー
-- 確認状態: 確認済み
-- 承認: 承認する
-- 元MD: CODING_CONSTRAINTS_ja.md
-- 元行: 0
-
-#### レビュー対象
-
-
-##### 元見出し
-
-17. キャラクター化は認知支援である
-
-##### 要約
-
-AIテスト物語では、重要なメソッド、役割、概念をキャラクターとして表現してよい。
-
-##### ルール本文
-
-AIテスト物語では、重要なメソッド、役割、概念をキャラクターとして表現してよい。
-
-これは装飾ではない。
-
-これは、人間の理解と承認を助けるための認知支援である。
-
-例：
-
-- detectGap()：差分刑事
-- constraints()：制約番長
-- executeExperience()：体験隊長
-- GenerateDetectGap()：問い職人
-- return;：逃げる師匠
-
-ただし、キャラクター化によってソースコードを汚してはならない。
-
-ソースコードは清潔に保つ。
-
-キャラクター化は、ViewDef、Story、Replay、Review 出力側で行う。
-
----
-
-##### 確認メッセージ
-
-Studioくん憲法 第17条「キャラクター化は認知支援である」を承認する。
-
-#### レビュー会話
-
-
-#### 判断ログ
-
-（なし）
-
-#### 変更履歴
-
-（なし）
-
-### 18 命名方針
-- Rule ID: constitution_18
-- 分類: 命名
-- 優先度: medium
-- レビュー状態: 建国レビュー
-- 確認状態: 確認済み
-- 承認: 承認する
-- 元MD: CODING_CONSTRAINTS_ja.md
-- 元行: 0
-
-#### レビュー対象
-
-
-##### 元見出し
-
-18. 命名方針
-
-##### 要約
-
-名前は責務を表すものにする。
-
-##### ルール本文
-
-名前は責務を表すものにする。
-
-曖昧な名前を避ける。
-
-推奨される概念名：
-
-- DataStore
-- ViewDefLoader
-- RendererRegistry
-- ActionRegistry
-- StudioRuntime
-- ChatRenderer
-- GridRenderer
-- FormRenderer
-- ReplayController
-- DiffRenderer
-- UrlLauncher
-
-ひとつのファイルに複数の責務を詰め込まない。
-
----
-
-##### 確認メッセージ
-
-Studioくん憲法 第18条「命名方針」を承認する。
-
-#### レビュー会話
-
-
-#### 判断ログ
-
-（なし）
-
-#### 変更履歴
-
-（なし）
-
-### 19 ファイル分割方針
-- Rule ID: constitution_19
-- 分類: ファイル構成
-- 優先度: medium
-- レビュー状態: 建国レビュー
-- 確認状態: 確認済み
-- 承認: 承認する
-- 元MD: CODING_CONSTRAINTS_ja.md
-- 元行: 0
-
-#### レビュー対象
-
-
-##### 元見出し
-
-19. ファイル分割方針
-
-##### 要約
-
-大きなファイルは、責務ごとに分割する。
-
-##### ルール本文
-
-大きなファイルは、責務ごとに分割する。
-
-推奨構成例：
-
-```text
-app.js
-core/
-  state.js
-  dataStore.js
-  viewDefLoader.js
-  studioRuntime.js
-renderers/
-  gridRenderer.js
-  formRenderer.js
-  chatRenderer.js
-  diffRenderer.js
-actions/
-  actionRegistry.js
-  openUrlAction.js
-  replayAction.js
-  runTestAction.js
-features/
-  replayController.js
-  urlLaunch.js
-utils/
-  dom.js
-  jsonPath.js
-  format.js
-```
-
-`app.js` は、起動と配線の層に近づける。
-
----
-
-##### 確認メッセージ
-
-Studioくん憲法 第19条「ファイル分割方針」を承認する。
-
-#### レビュー会話
-
-
-#### 判断ログ
-
-（なし）
-
-#### 変更履歴
-
-（なし）
-
-### 20 AI協働ルール
-- Rule ID: constitution_20
-- 分類: AI協働
-- 優先度: high
-- レビュー状態: 建国レビュー
-- 確認状態: 確認済み
-- 承認: 承認する
-- 元MD: CODING_CONSTRAINTS_ja.md
-- 元行: 0
-
-#### レビュー対象
-
-
-##### 元見出し
-
-20. AI協働ルール
-
-##### 要約
-
-AI協働では、作業対象ファイル・確認種別・完了報告・ViewDef安定ファイル名をインシデントJSONに残す。
-
-##### ルール本文
-
-AI が Studio のコードを変更する場合、AI は次を守る。
-
-1. まずこの文書を読む
-2. 関係する設計原則を確認する
-3. 変更意図を簡潔に説明する
-4. 無関係な変更をしない
-5. 差分を小さく保つ
-6. 既存動作を守る
-7. Data / ViewDef / Action の分離を優先する
-8. 不確実な点を報告する
-
----
-
----
-
----
-
-### v0.12追記：AI作業対象ファイルとインシデント回答記録
-
-AIがコード、Data JSON、Defs JSON、Rules JSON、Incident JSON、Markdownプロンプト等を更新した場合、更新したファイル名、変更理由、変更概要、対応結果を該当インシデントJSONへ記録する。
-
-記録は、まず既存フィールドや自然文で扱える範囲を優先する。管理項目を増やしすぎず、必要に応じて `target_files`、`latest_ai_response`、`discussion_history`、`change_history` などへテキストとして残す。
-
-root `data/` / `defs/` は一律変更禁止ではない。作業目的に必要な場合、AIは更新してよい。特に `data/json/01_main/studio_work_incident_data_*.json` のようなインシデント管理データは、作業結果を収録する対象になり得る。
-
-ただし、AIが更新したファイル・変更理由・実施結果は、人間が後から追える形で開示する。
-
-一方、`wwwroot/data` / `wwwroot/defs` は GitHub Pages 等の公開用静的領域として扱うため、明示依頼がない限り更新しない。
-
-インシデント対応後のAI完了報告は、会話上だけに流さず、該当インシデントJSONの `latest_ai_response` 等にも残す。
-
----
-
-### v0.14追記：判断ログ・確認種別・最新ソース・ViewDef安定ファイル名
-
-AIが判断ログを残す場合は、`decision` / `reason` だけで終わらせず、必要に応じて `applied_axes`、`conditions`、`exceptions`、`expected_behavior`、`acceptance_criteria`、`test_pattern_seed`、`discarded_options`、`remaining_risks`、`axis_update_candidate` を残す。
-
-AIが「確認した」と報告する場合は、確認種別を明示する。少なくとも、静的確認、JSON parse、ビルド確認、ローカル起動確認、スクショ確認、Playwright確認、推定確認、ユーザー実機確認待ちを混同しない。
-
-C# / .NET / Program.cs の修正では、AI側の `dotnet build` / `dotnet run` を必須にしない。ただし、実施したか、未実施か、未実施なら理由をインシデントJSONの作業記録へ残す。
-
-AIは、最新ソースを実ファイルとして確認できない場合、実装修正を行わない。会話文脈、前回チャットの記憶、過去のファイル名を、最新ソース確認の代替として扱わない。
-
-既存Data JSONから参照されている ViewDef / DefView ファイルは、原則として同じファイル名のまま更新する。ViewDefファイル名は、Data JSON の `view_def` 参照、URL起動、GitHub Pages、GitDiff確認の接続キーである。
-
-AIは、通常のViewDef改善・表示項目追加・Markdown出力設定変更などで、新しいViewDefファイル名を勝手に作成しない。新しいViewDef名を作成してよいのは、ユーザーが明示した場合、互換性を意図的に切る場合、または既存ViewDefと並行運用する明確な理由がある場合に限る。その場合も、Data JSON側の `view_def` 参照更新、影響範囲、GitDiff上の扱いをインシデントに記録する。
+JS側で別名対応を広げるより、Data契約を `pass` に揃えることを優先する。
 
 
 ##### 確認メッセージ
 
-Studioくん憲法 第20条「AI協働ルール」を承認する。
+Test Evidence Rule 5「判定フィールドは checks[].pass を標準とする」をレビューする。
 
 #### レビュー会話
 
@@ -1521,72 +364,16 @@ Studioくん憲法 第20条「AI協働ルール」を承認する。
 
 | History ID | Revision | 変更日 | 変更者 | 変更種別 | 対象フィールド | 変更前タイトル | 変更後タイトル | 変更理由 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| chg_constitution_20_v012_001 |  |  |  | body_append |  |  |  | v0.12-rules-update-reporting-policy により、AI協働ルールとしてファイル更新記録と対応報告記録を明文化するため。 |
-| chg_constitution_20_v012_redo_001 |  |  |  | body_refine |  |  |  | mdViewer上のFRBコメントで「インシデントにはテキスト文章でOK」「root data/defs はAIでも更新してよいが痕跡を記録してほしい」と整理されたため。 |
-| chg_constitution_20_v014_001 |  |  |  | body_append |  |  |  | v0.14.0-decision-log-confirmation-governance により、AI作業の透明性とGitDiff/参照安定性を守るため。 |
+| chg_test_evidence_rule_005_v01414_001 |  |  |  | rule_added |  |  |  | Expected / Actual / Diff / Test Code の責務分離をAI作業の証跡契約として固定するため。 |
 
-### 21 人間協働ルール
-- Rule ID: constitution_21
-- 分類: 人間協働
-- 優先度: medium
-- レビュー状態: 建国レビュー
-- 確認状態: 確認済み
-- 承認: 承認する
-- 元MD: CODING_CONSTRAINTS_ja.md
-- 元行: 0
-
-#### レビュー対象
-
-
-##### 元見出し
-
-21. 人間協働ルール
-
-##### 要約
-
-人間は自由に Studio を育ててよい。
-
-##### ルール本文
-
-人間は自由に Studio を育ててよい。
-
-ただし、新しい枝を伸ばすときは、次を自問する。
-
-- これは Data か
-- これは ViewDef か
-- これは Action か
-- これは Runtime か
-- 再利用できるか
-- Replay できるか
-- 未来の AI が理解できるか
-
-Studio は、積み上げるのではなく、木のように育てる。
-
----
-
-##### 確認メッセージ
-
-Studioくん憲法 第21条「人間協働ルール」を承認する。
-
-#### レビュー会話
-
-
-#### 判断ログ
-
-（なし）
-
-#### 変更履歴
-
-（なし）
-
-### 22 Studio憲法
-- Rule ID: constitution_22
-- 分類: 憲法
+### 6 テスト失敗時もDiffを必ず残す
+- Rule ID: test_evidence_rule_006
+- 分類: 実行順序
 - 優先度: high
-- レビュー状態: 建国レビュー
+- レビュー状態: 未レビュー
 - 確認状態: 確認済み
 - 承認: 承認する
-- 元MD: CODING_CONSTRAINTS_ja.md
+- 元MD: FRB Test Evidence Rules
 - 元行: 0
 
 #### レビュー対象
@@ -1594,99 +381,100 @@ Studioくん憲法 第21条「人間協働ルール」を承認する。
 
 ##### 元見出し
 
-22. Studio憲法
+6. テスト失敗時もDiffを必ず残す
 
 ##### 要約
 
-この文書は、Studioくんという国の憲法である。
+テストがfailする場合でも、assertより前にactual.jsonとdiff.jsonを保存する。
 
 ##### ルール本文
 
-この文書は、Studioくんという国の憲法である。
+テストがfailする場合でも、assertより前に Actual JSON と Diff JSON を保存する。
 
-これは一時的なプロンプトではない。
-
-これは、人間と AI が同じ思想で協働し続けるための約束である。
-
-AI は変わるかもしれない。
-
-ツールは変わるかもしれない。
-
-言語は変わるかもしれない。
-
-しかし、Studio はこの思想のもとで育ち続ける。
-
----
-
-##### 確認メッセージ
-
-Studioくん憲法 第22条「Studio憲法」を承認する。
-
-#### レビュー会話
-
-
-#### 判断ログ
-
-（なし）
-
-#### 変更履歴
-
-（なし）
-
-### 23 まとめ
-- Rule ID: constitution_23
-- 分類: まとめ
-- 優先度: high
-- レビュー状態: 建国レビュー
-- 確認状態: 確認済み
-- 承認: 承認する
-- 元MD: CODING_CONSTRAINTS_ja.md
-- 元行: 0
-
-#### レビュー対象
-
-
-##### 元見出し
-
-23. まとめ
-
-##### 要約
-
-Studio は、次のどれかひとつではない。
-
-##### ルール本文
-
-Studio は、次のどれかひとつではない。
-
-- JSONエディター
-- Viewer
-- Replayツール
-- テストツール
-- FFTツール
-- MIDIツール
-
-Studio は、構造化されたデータを体験へ変換するためのプラットフォームである。
+推奨順序は以下である。
 
 ```text
-見えないもの
-  -> JSON
-  -> ViewDef
-  -> Action
-  -> Experience
-  -> 共有可能な理解
+1. Expected JSON を読む
+2. 実行対象を観測する
+3. Actual JSON を生成する
+4. Diff JSON を生成する
+5. actual.json を保存する
+6. diff.json を保存する
+7. 保存されたことを確認する
+8. 最後に failedCount などで assert する
 ```
 
-Studio の使命は、見えないものを、見えるものへ、構造化されたものへ、Replay 可能なものへ、共有可能なものへ変換することである。
+これにより、テストはfailしても、Studioくんで確認できる証跡は残る。
 
----
+```text
+テストはfailしてよい。
+でもDiffは残れ。
+```
 
-## Revision History
-
-- 2026-06-21: v0.1-draft 初版。Studioくん憲法として誕生。
 
 ##### 確認メッセージ
 
-Studioくん憲法 第23条「まとめ」を承認する。
+Test Evidence Rule 6「テスト失敗時もDiffを必ず残す」をレビューする。
+
+#### レビュー会話
+
+
+#### 判断ログ
+
+| Decision ID | 日時 | 判断種別 | 判断内容 | 理由 | 条件 | 例外 | 補足 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| dec_test_evidence_rule_006_v01414_001 | 2026-06-27 |  | assertは証跡保存後に行う。 | 失敗したのにdiff.jsonが残らないと、人間とAIが失敗理由を追体験できないため。 |  |  |  |
+
+#### 変更履歴
+
+| History ID | Revision | 変更日 | 変更者 | 変更種別 | 対象フィールド | 変更前タイトル | 変更後タイトル | 変更理由 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| chg_test_evidence_rule_006_v01414_001 |  |  |  | rule_added |  |  |  | Expected / Actual / Diff / Test Code の責務分離をAI作業の証跡契約として固定するため。 |
+
+### 7 Test Code は期待値の保存場所ではない
+- Rule ID: test_evidence_rule_007
+- 分類: Test Code
+- 優先度: high
+- レビュー状態: 未レビュー
+- 確認状態: 確認済み
+- 承認: 承認する
+- 元MD: FRB Test Evidence Rules
+- 元行: 0
+
+#### レビュー対象
+
+
+##### 元見出し
+
+7. Test Code は期待値の保存場所ではない
+
+##### 要約
+
+Test CodeはExpected JSONを読み、観測し、Actual/Diffを出力する仕掛けであり、期待値の正本ではない。
+
+##### ルール本文
+
+Test Code は、期待値の保存場所ではない。
+
+Test Code の責務は以下である。
+
+```text
+Expected JSONを読む
+対象を実行・観測する
+Actual JSONを作る
+ExpectedとActualを比較する
+Diff JSONを作る
+証跡出力後にassertする
+```
+
+Test Codeに期待値を直書きすると、Expected JSONとTest Codeの二重管理になる。
+
+AIがテストコードを修正するときは、期待値をコードへ移動させていないか確認する。
+
+
+##### 確認メッセージ
+
+Test Evidence Rule 7「Test Code は期待値の保存場所ではない」をレビューする。
 
 #### レビュー会話
 
@@ -1697,7 +485,122 @@ Studioくん憲法 第23条「まとめ」を承認する。
 
 #### 変更履歴
 
+| History ID | Revision | 変更日 | 変更者 | 変更種別 | 対象フィールド | 変更前タイトル | 変更後タイトル | 変更理由 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| chg_test_evidence_rule_007_v01414_001 |  |  |  | rule_added |  |  |  | Expected / Actual / Diff / Test Code の責務分離をAI作業の証跡契約として固定するため。 |
+
+### 8 失敗は証跡で読む
+- Rule ID: test_evidence_rule_008
+- 分類: レビュー文化
+- 優先度: high
+- レビュー状態: 未レビュー
+- 確認状態: 確認済み
+- 承認: 承認する
+- 元MD: FRB Test Evidence Rules
+- 元行: 0
+
+#### レビュー対象
+
+
+##### 元見出し
+
+8. 失敗は証跡で読む
+
+##### 要約
+
+テスト失敗は単なる赤信号ではなく、Expected/Actual/Diffで読むレビュー対象として扱う。
+
+##### ルール本文
+
+Test Evidence におけるテスト失敗は、単なる赤信号ではない。
+
+失敗は、Expected / Actual / Diff を通じて読むレビュー対象である。
+
+人間は diff.json を見て、以下を確認する。
+
+```text
+期待値が間違っているのか
+実装が間違っているのか
+観測対象が間違っているのか
+テストコードの取り方が間違っているのか
+ViewDefや表示契約がズレているのか
+```
+
+AIは「テストがfailしました」だけで終わらせず、diff.json の出力先、failedCount、failedCheckIds、firstFailure を報告する。
+
+
+##### 確認メッセージ
+
+Test Evidence Rule 8「失敗は証跡で読む」をレビューする。
+
+#### レビュー会話
+
+
+#### 判断ログ
+
 （なし）
+
+#### 変更履歴
+
+| History ID | Revision | 変更日 | 変更者 | 変更種別 | 対象フィールド | 変更前タイトル | 変更後タイトル | 変更理由 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| chg_test_evidence_rule_008_v01414_001 |  |  |  | rule_added |  |  |  | Expected / Actual / Diff / Test Code の責務分離をAI作業の証跡契約として固定するため。 |
+
+### 9 Test Evidence Rules の適用範囲
+- Rule ID: test_evidence_rule_009
+- 分類: 運用
+- 優先度: high
+- レビュー状態: 未レビュー
+- 確認状態: 確認済み
+- 承認: 承認する
+- 元MD: FRB Test Evidence Rules
+- 元行: 0
+
+#### レビュー対象
+
+
+##### 元見出し
+
+9. Test Evidence Rules の適用範囲
+
+##### 要約
+
+このルールはQA、Screen State、ViewDef検証など、Expected/Actual/Diffを持つテスト証跡に適用する。
+
+##### ルール本文
+
+Test Evidence Rules は、以下のようなテスト証跡に適用する。
+
+```text
+QA Expected / Actual / Diff
+Screen State Expected / Actual / Diff
+ViewDef静的検証
+Incident Prompt Copy Action検証
+将来追加されるExpected/Actual/Diff型の検証
+```
+
+一方で、すべての一時ログや開発メモにこの構造を強制しない。
+
+Expected / Actual / Diff の三者が意味を持つ検証に対して、この契約を適用する。
+過剰に適用して将来苦しくなると判断される場合は、人間へ相談する。
+
+
+##### 確認メッセージ
+
+Test Evidence Rule 9「Test Evidence Rules の適用範囲」をレビューする。
+
+#### レビュー会話
+
+
+#### 判断ログ
+
+（なし）
+
+#### 変更履歴
+
+| History ID | Revision | 変更日 | 変更者 | 変更種別 | 対象フィールド | 変更前タイトル | 変更後タイトル | 変更理由 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| chg_test_evidence_rule_009_v01414_001 |  |  |  | rule_added |  |  |  | Expected / Actual / Diff / Test Code の責務分離をAI作業の証跡契約として固定するため。 |
 
 ---
 
@@ -1721,29 +624,15 @@ Studioくん憲法 第23条「まとめ」を承認する。
 
 TSV:
 No.	Rule ID	章番号	分類	ルール名	優先度	レビュー状態	確認状態	承認	要約	人間コメント	AI回答
-1	constitution_01	1		建国宣言	high		確認済み	承認する	Studio は JSON Experience Platform である。		
-2	constitution_02	2		基本構造	high		確認済み	承認する	Studio は、次の4層を分離して考える。		
-3	constitution_03	3		戦略的設計パターン	high		確認済み	承認する	Studio は、戦略的設計パターンを優先する。		
-4	constitution_04	4		Data First	high		確認済み	承認する	常に Data から考える。		
-5	constitution_05	5		ViewDef First	medium		確認済み	承認する	ViewDef で表現できるものは、可能な限り ViewDef に寄せる。		
-6	constitution_06	6	Action	Action Separation	high		確認済み	承認する	Action は ViewDef で宣言し、Runtime は Action 識別子を変数として受け渡す。	actionRegistry.execute("PlayMidi", context); は固定文字列指定なのでNG。ポリモーフィズムの場合、必ず変数名の指定になると思っている。これはかなり強い思い。\n\n{ "toolbar": [ { "caption": "再生", "action": "PlayMidi" } ] } にも違和感がある。toolbar の下に executeButton みたいなのがあり、その中に { "caption": "再生", "action": "PlayMidi" } がある構造の方が自然ではないか。	指摘は妥当。汎用 Runtime 側に PlayMidi のような固定 Action 名が出ると、Action が増えるたびに Runtime が肥大化し、ポリモーフィズムではなく分岐地獄に近づく。ViewDef 側の Action 識別子として PlayMidi が出るのは許容できるが、コード側は ViewDef から取得した actionId を変数として ActionRegistry に渡すだけにするべき。また、toolbar 直下の単純配列より、主役操作として toolbar.executeButton を定義し、補助操作は toolbar.buttons に分ける構造の方が、意味が明確で拡張しやすい。
-7	constitution_07	7	Replay	Replay Ready	medium	建国レビュー	確認済み	承認する	Studio は、Replay 可能な構造を優先する。		
-8	constitution_08	8	Diff	Diff First	medium	建国レビュー	確認済み	承認する	Diff は第一級オブジェクトである。		
-9	constitution_09	9	Constraint	Constraint First	high	建国レビュー	確認済み	承認する	AI協働は、制約によって駆動する。		
-10	constitution_10	10	変更管理	小さな変更の原則	high	建国レビュー	確認済み	承認する	変更は、小さく、確認可能な単位で行う。		
-11	constitution_11	11	品質保護	既存機能保護	high	建国レビュー	確認済み	承認する	Studio の既存機能を壊してはならない。		
-12	constitution_12	12	ViewDef	固定フィールド名の原則禁止	high	建国レビュー	確認済み	承認する	固定フィールド名の使用は Chat View に限らず原則禁止し、例外は仕様根拠と協議承認を必要とする。	固定フィールド名の使用は原則禁止（Chat View に限らず）。ただし、以下に記載のあるものは除く。\n- FRB_VIEW_DEF_GENERATION_RULES_*_markdown_ai_prompt.md\n- frb_view_def_schema_*_relation_status_filter.json\n\n厳しすぎるなら、なにかうまく逃げれる言葉を調整したい。\n\n特に固定フィールド名を使いたい場合は、必ず協議するという制約を入れたい。Studioくんが肥満になるかどうかの瀬戸際になる話なので、肥満を許容するかどうかは判断させてほしい。	Chat View 限定ではなく、Studio 全体の原則として固定フィールド名を扱うべき。固定フィールド名は、短期的には便利だが、長期的には Studio の汎用性を削り、専用処理を増やす原因になる。したがって、禁止ではなく『例外申請制』とし、仕様ファイル・スキーマ・生成ルールに根拠があるものだけを例外にするのがよい。さらに、固定フィールド名を使う場合は必ず tamasub と協議し、肥満を許容するかどうかを人間が判断する制約を入れるべき。
-13	constitution_13	13	理念	Studio は単なるエディターではない	high	建国レビュー	確認済み	承認する	Studio は JSON を編集できる。		
-14	constitution_14	14	ReadOnly	ReadOnly モードは第一級である	medium	建国レビュー	確認済み	承認する	ReadOnly モードは、機能制限版ではない。		
-15	constitution_15	15	URL	URL 起動対応	medium	建国レビュー	確認済み	承認する	Studio は URL による起動に対応する。		
-16	constitution_16	16	AIテスト物語	AIテスト物語との互換性	medium	建国レビュー	確認済み	承認する	Studio は AIテスト物語の流れを支える。		
-17	constitution_17	17	認知支援	キャラクター化は認知支援である	medium	建国レビュー	確認済み	承認する	AIテスト物語では、重要なメソッド、役割、概念をキャラクターとして表現してよい。		
-18	constitution_18	18	命名	命名方針	medium	建国レビュー	確認済み	承認する	名前は責務を表すものにする。		
-19	constitution_19	19	ファイル構成	ファイル分割方針	medium	建国レビュー	確認済み	承認する	大きなファイルは、責務ごとに分割する。		
-20	constitution_20	20	AI協働	AI協働ルール	high	建国レビュー	確認済み	承認する	AI協働では、作業対象ファイル・確認種別・完了報告・ViewDef安定ファイル名をインシデントJSONに残す。		
-21	constitution_21	21	人間協働	人間協働ルール	medium	建国レビュー	確認済み	承認する	人間は自由に Studio を育ててよい。		
-22	constitution_22	22	憲法	Studio憲法	high	建国レビュー	確認済み	承認する	この文書は、Studioくんという国の憲法である。		
-23	constitution_23	23	まとめ	まとめ	high	建国レビュー	確認済み	承認する	Studio は、次のどれかひとつではない。		
+1	test_evidence_rule_001	1	証跡契約	Expected / Actual / Diff / Test Code の責務分離	high	未レビュー	確認済み	承認する	Expected JSONは期待値の正本、Actual JSONは観測値のみ、Diff JSONは比較結果、Test Codeは実行する仕掛けとして扱う。		
+2	test_evidence_rule_002	2	Expected	Expected JSON は期待値の正本	high	未レビュー	確認済み	承認する	期待値はExpected JSONに置き、テストコードへ期待値を直書きしない。		
+3	test_evidence_rule_003	3	Actual	Actual JSON は観測値のみ	high	未レビュー	確認済み	承認する	actual.jsonには実行時に観測した事実だけを記録し、expected / pass / summary / failedCount を持たせない。		
+4	test_evidence_rule_004	4	Diff	Diff JSON は比較結果を持つ	high	未レビュー	確認済み	承認する	diff.jsonはExpectedとActualの比較結果を保持し、判定サマリと明細の正本になる。		
+5	test_evidence_rule_005	5	Diff	判定フィールドは checks[].pass を標準とする	high	未レビュー	確認済み	承認する	Diff明細の判定フィールドは checks[].pass に統一し、passed / ok / result などへ揺らさない。		
+6	test_evidence_rule_006	6	実行順序	テスト失敗時もDiffを必ず残す	high	未レビュー	確認済み	承認する	テストがfailする場合でも、assertより前にactual.jsonとdiff.jsonを保存する。		
+7	test_evidence_rule_007	7	Test Code	Test Code は期待値の保存場所ではない	high	未レビュー	確認済み	承認する	Test CodeはExpected JSONを読み、観測し、Actual/Diffを出力する仕掛けであり、期待値の正本ではない。		
+8	test_evidence_rule_008	8	レビュー文化	失敗は証跡で読む	high	未レビュー	確認済み	承認する	テスト失敗は単なる赤信号ではなく、Expected/Actual/Diffで読むレビュー対象として扱う。		
+9	test_evidence_rule_009	9	運用	Test Evidence Rules の適用範囲	high	未レビュー	確認済み	承認する	このルールはQA、Screen State、ViewDef検証など、Expected/Actual/Diffを持つテスト証跡に適用する。		
 ```
 
 </details>
@@ -1754,9 +643,9 @@ No.	Rule ID	章番号	分類	ルール名	優先度	レビュー状態	確認状
 ```json
 {
   "view_def": "rules/rule_review_common_view_def_v0_3.json",
-  "data_file": "frb_coding_constraints_review_data_v0_3.json",
+  "data_file": "frb_test_evidence_rules_review_data_v0_1.json",
   "section": "レビュー項目一覧",
-  "row_count": 23,
+  "row_count": 9,
   "columns": [
     {
       "field": "no",
@@ -1822,323 +711,127 @@ No.	Rule ID	章番号	分類	ルール名	優先度	レビュー状態	確認状
   "rows": [
     {
       "no": 1,
-      "rule_id": "constitution_01",
+      "rule_id": "test_evidence_rule_001",
       "section_no": "1",
-      "category": "",
-      "title": "建国宣言",
+      "category": "証跡契約",
+      "title": "Expected / Actual / Diff / Test Code の責務分離",
       "priority": "high",
-      "review_status": "",
+      "review_status": "未レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
-      "summary": "Studio は JSON Experience Platform である。",
+      "summary": "Expected JSONは期待値の正本、Actual JSONは観測値のみ、Diff JSONは比較結果、Test Codeは実行する仕掛けとして扱う。",
       "user_comment": "",
       "ai_response": ""
     },
     {
       "no": 2,
-      "rule_id": "constitution_02",
+      "rule_id": "test_evidence_rule_002",
       "section_no": "2",
-      "category": "",
-      "title": "基本構造",
+      "category": "Expected",
+      "title": "Expected JSON は期待値の正本",
       "priority": "high",
-      "review_status": "",
+      "review_status": "未レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
-      "summary": "Studio は、次の4層を分離して考える。",
+      "summary": "期待値はExpected JSONに置き、テストコードへ期待値を直書きしない。",
       "user_comment": "",
       "ai_response": ""
     },
     {
       "no": 3,
-      "rule_id": "constitution_03",
+      "rule_id": "test_evidence_rule_003",
       "section_no": "3",
-      "category": "",
-      "title": "戦略的設計パターン",
+      "category": "Actual",
+      "title": "Actual JSON は観測値のみ",
       "priority": "high",
-      "review_status": "",
+      "review_status": "未レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
-      "summary": "Studio は、戦略的設計パターンを優先する。",
+      "summary": "actual.jsonには実行時に観測した事実だけを記録し、expected / pass / summary / failedCount を持たせない。",
       "user_comment": "",
       "ai_response": ""
     },
     {
       "no": 4,
-      "rule_id": "constitution_04",
+      "rule_id": "test_evidence_rule_004",
       "section_no": "4",
-      "category": "",
-      "title": "Data First",
+      "category": "Diff",
+      "title": "Diff JSON は比較結果を持つ",
       "priority": "high",
-      "review_status": "",
+      "review_status": "未レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
-      "summary": "常に Data から考える。",
+      "summary": "diff.jsonはExpectedとActualの比較結果を保持し、判定サマリと明細の正本になる。",
       "user_comment": "",
       "ai_response": ""
     },
     {
       "no": 5,
-      "rule_id": "constitution_05",
+      "rule_id": "test_evidence_rule_005",
       "section_no": "5",
-      "category": "",
-      "title": "ViewDef First",
-      "priority": "medium",
-      "review_status": "",
+      "category": "Diff",
+      "title": "判定フィールドは checks[].pass を標準とする",
+      "priority": "high",
+      "review_status": "未レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
-      "summary": "ViewDef で表現できるものは、可能な限り ViewDef に寄せる。",
+      "summary": "Diff明細の判定フィールドは checks[].pass に統一し、passed / ok / result などへ揺らさない。",
       "user_comment": "",
       "ai_response": ""
     },
     {
       "no": 6,
-      "rule_id": "constitution_06",
+      "rule_id": "test_evidence_rule_006",
       "section_no": "6",
-      "category": "Action",
-      "title": "Action Separation",
+      "category": "実行順序",
+      "title": "テスト失敗時もDiffを必ず残す",
       "priority": "high",
-      "review_status": "",
+      "review_status": "未レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
-      "summary": "Action は ViewDef で宣言し、Runtime は Action 識別子を変数として受け渡す。",
-      "user_comment": "actionRegistry.execute(\"PlayMidi\", context); は固定文字列指定なのでNG。ポリモーフィズムの場合、必ず変数名の指定になると思っている。これはかなり強い思い。\n\n{ \"toolbar\": [ { \"caption\": \"再生\", \"action\": \"PlayMidi\" } ] } にも違和感がある。toolbar の下に executeButton みたいなのがあり、その中に { \"caption\": \"再生\", \"action\": \"PlayMidi\" } がある構造の方が自然ではないか。",
-      "ai_response": "指摘は妥当。汎用 Runtime 側に PlayMidi のような固定 Action 名が出ると、Action が増えるたびに Runtime が肥大化し、ポリモーフィズムではなく分岐地獄に近づく。ViewDef 側の Action 識別子として PlayMidi が出るのは許容できるが、コード側は ViewDef から取得した actionId を変数として ActionRegistry に渡すだけにするべき。また、toolbar 直下の単純配列より、主役操作として toolbar.executeButton を定義し、補助操作は toolbar.buttons に分ける構造の方が、意味が明確で拡張しやすい。"
+      "summary": "テストがfailする場合でも、assertより前にactual.jsonとdiff.jsonを保存する。",
+      "user_comment": "",
+      "ai_response": ""
     },
     {
       "no": 7,
-      "rule_id": "constitution_07",
+      "rule_id": "test_evidence_rule_007",
       "section_no": "7",
-      "category": "Replay",
-      "title": "Replay Ready",
-      "priority": "medium",
-      "review_status": "建国レビュー",
+      "category": "Test Code",
+      "title": "Test Code は期待値の保存場所ではない",
+      "priority": "high",
+      "review_status": "未レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
-      "summary": "Studio は、Replay 可能な構造を優先する。",
+      "summary": "Test CodeはExpected JSONを読み、観測し、Actual/Diffを出力する仕掛けであり、期待値の正本ではない。",
       "user_comment": "",
       "ai_response": ""
     },
     {
       "no": 8,
-      "rule_id": "constitution_08",
+      "rule_id": "test_evidence_rule_008",
       "section_no": "8",
-      "category": "Diff",
-      "title": "Diff First",
-      "priority": "medium",
-      "review_status": "建国レビュー",
+      "category": "レビュー文化",
+      "title": "失敗は証跡で読む",
+      "priority": "high",
+      "review_status": "未レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
-      "summary": "Diff は第一級オブジェクトである。",
+      "summary": "テスト失敗は単なる赤信号ではなく、Expected/Actual/Diffで読むレビュー対象として扱う。",
       "user_comment": "",
       "ai_response": ""
     },
     {
       "no": 9,
-      "rule_id": "constitution_09",
+      "rule_id": "test_evidence_rule_009",
       "section_no": "9",
-      "category": "Constraint",
-      "title": "Constraint First",
+      "category": "運用",
+      "title": "Test Evidence Rules の適用範囲",
       "priority": "high",
-      "review_status": "建国レビュー",
+      "review_status": "未レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
-      "summary": "AI協働は、制約によって駆動する。",
-      "user_comment": "",
-      "ai_response": ""
-    },
-    {
-      "no": 10,
-      "rule_id": "constitution_10",
-      "section_no": "10",
-      "category": "変更管理",
-      "title": "小さな変更の原則",
-      "priority": "high",
-      "review_status": "建国レビュー",
-      "verification_status": "確認済み",
-      "approval_decision": "承認する",
-      "summary": "変更は、小さく、確認可能な単位で行う。",
-      "user_comment": "",
-      "ai_response": ""
-    },
-    {
-      "no": 11,
-      "rule_id": "constitution_11",
-      "section_no": "11",
-      "category": "品質保護",
-      "title": "既存機能保護",
-      "priority": "high",
-      "review_status": "建国レビュー",
-      "verification_status": "確認済み",
-      "approval_decision": "承認する",
-      "summary": "Studio の既存機能を壊してはならない。",
-      "user_comment": "",
-      "ai_response": ""
-    },
-    {
-      "no": 12,
-      "rule_id": "constitution_12",
-      "section_no": "12",
-      "category": "ViewDef",
-      "title": "固定フィールド名の原則禁止",
-      "priority": "high",
-      "review_status": "建国レビュー",
-      "verification_status": "確認済み",
-      "approval_decision": "承認する",
-      "summary": "固定フィールド名の使用は Chat View に限らず原則禁止し、例外は仕様根拠と協議承認を必要とする。",
-      "user_comment": "固定フィールド名の使用は原則禁止（Chat View に限らず）。ただし、以下に記載のあるものは除く。\n- FRB_VIEW_DEF_GENERATION_RULES_*_markdown_ai_prompt.md\n- frb_view_def_schema_*_relation_status_filter.json\n\n厳しすぎるなら、なにかうまく逃げれる言葉を調整したい。\n\n特に固定フィールド名を使いたい場合は、必ず協議するという制約を入れたい。Studioくんが肥満になるかどうかの瀬戸際になる話なので、肥満を許容するかどうかは判断させてほしい。",
-      "ai_response": "Chat View 限定ではなく、Studio 全体の原則として固定フィールド名を扱うべき。固定フィールド名は、短期的には便利だが、長期的には Studio の汎用性を削り、専用処理を増やす原因になる。したがって、禁止ではなく『例外申請制』とし、仕様ファイル・スキーマ・生成ルールに根拠があるものだけを例外にするのがよい。さらに、固定フィールド名を使う場合は必ず tamasub と協議し、肥満を許容するかどうかを人間が判断する制約を入れるべき。"
-    },
-    {
-      "no": 13,
-      "rule_id": "constitution_13",
-      "section_no": "13",
-      "category": "理念",
-      "title": "Studio は単なるエディターではない",
-      "priority": "high",
-      "review_status": "建国レビュー",
-      "verification_status": "確認済み",
-      "approval_decision": "承認する",
-      "summary": "Studio は JSON を編集できる。",
-      "user_comment": "",
-      "ai_response": ""
-    },
-    {
-      "no": 14,
-      "rule_id": "constitution_14",
-      "section_no": "14",
-      "category": "ReadOnly",
-      "title": "ReadOnly モードは第一級である",
-      "priority": "medium",
-      "review_status": "建国レビュー",
-      "verification_status": "確認済み",
-      "approval_decision": "承認する",
-      "summary": "ReadOnly モードは、機能制限版ではない。",
-      "user_comment": "",
-      "ai_response": ""
-    },
-    {
-      "no": 15,
-      "rule_id": "constitution_15",
-      "section_no": "15",
-      "category": "URL",
-      "title": "URL 起動対応",
-      "priority": "medium",
-      "review_status": "建国レビュー",
-      "verification_status": "確認済み",
-      "approval_decision": "承認する",
-      "summary": "Studio は URL による起動に対応する。",
-      "user_comment": "",
-      "ai_response": ""
-    },
-    {
-      "no": 16,
-      "rule_id": "constitution_16",
-      "section_no": "16",
-      "category": "AIテスト物語",
-      "title": "AIテスト物語との互換性",
-      "priority": "medium",
-      "review_status": "建国レビュー",
-      "verification_status": "確認済み",
-      "approval_decision": "承認する",
-      "summary": "Studio は AIテスト物語の流れを支える。",
-      "user_comment": "",
-      "ai_response": ""
-    },
-    {
-      "no": 17,
-      "rule_id": "constitution_17",
-      "section_no": "17",
-      "category": "認知支援",
-      "title": "キャラクター化は認知支援である",
-      "priority": "medium",
-      "review_status": "建国レビュー",
-      "verification_status": "確認済み",
-      "approval_decision": "承認する",
-      "summary": "AIテスト物語では、重要なメソッド、役割、概念をキャラクターとして表現してよい。",
-      "user_comment": "",
-      "ai_response": ""
-    },
-    {
-      "no": 18,
-      "rule_id": "constitution_18",
-      "section_no": "18",
-      "category": "命名",
-      "title": "命名方針",
-      "priority": "medium",
-      "review_status": "建国レビュー",
-      "verification_status": "確認済み",
-      "approval_decision": "承認する",
-      "summary": "名前は責務を表すものにする。",
-      "user_comment": "",
-      "ai_response": ""
-    },
-    {
-      "no": 19,
-      "rule_id": "constitution_19",
-      "section_no": "19",
-      "category": "ファイル構成",
-      "title": "ファイル分割方針",
-      "priority": "medium",
-      "review_status": "建国レビュー",
-      "verification_status": "確認済み",
-      "approval_decision": "承認する",
-      "summary": "大きなファイルは、責務ごとに分割する。",
-      "user_comment": "",
-      "ai_response": ""
-    },
-    {
-      "no": 20,
-      "rule_id": "constitution_20",
-      "section_no": "20",
-      "category": "AI協働",
-      "title": "AI協働ルール",
-      "priority": "high",
-      "review_status": "建国レビュー",
-      "verification_status": "確認済み",
-      "approval_decision": "承認する",
-      "summary": "AI協働では、作業対象ファイル・確認種別・完了報告・ViewDef安定ファイル名をインシデントJSONに残す。",
-      "user_comment": "",
-      "ai_response": ""
-    },
-    {
-      "no": 21,
-      "rule_id": "constitution_21",
-      "section_no": "21",
-      "category": "人間協働",
-      "title": "人間協働ルール",
-      "priority": "medium",
-      "review_status": "建国レビュー",
-      "verification_status": "確認済み",
-      "approval_decision": "承認する",
-      "summary": "人間は自由に Studio を育ててよい。",
-      "user_comment": "",
-      "ai_response": ""
-    },
-    {
-      "no": 22,
-      "rule_id": "constitution_22",
-      "section_no": "22",
-      "category": "憲法",
-      "title": "Studio憲法",
-      "priority": "high",
-      "review_status": "建国レビュー",
-      "verification_status": "確認済み",
-      "approval_decision": "承認する",
-      "summary": "この文書は、Studioくんという国の憲法である。",
-      "user_comment": "",
-      "ai_response": ""
-    },
-    {
-      "no": 23,
-      "rule_id": "constitution_23",
-      "section_no": "23",
-      "category": "まとめ",
-      "title": "まとめ",
-      "priority": "high",
-      "review_status": "建国レビュー",
-      "verification_status": "確認済み",
-      "approval_decision": "承認する",
-      "summary": "Studio は、次のどれかひとつではない。",
+      "summary": "このルールはQA、Screen State、ViewDef検証など、Expected/Actual/Diffを持つテスト証跡に適用する。",
       "user_comment": "",
       "ai_response": ""
     }

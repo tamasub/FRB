@@ -1,5 +1,5 @@
 {
-  "$schema": "frb_view_def_schema_v0_9_chat_input_mapping.json",
+  "$schema": "frb_view_def_schema_v0_9.json",
   "app": {
     "name": "ChatGPT Shared Context Viewer",
     "version": "v0.1-draft"

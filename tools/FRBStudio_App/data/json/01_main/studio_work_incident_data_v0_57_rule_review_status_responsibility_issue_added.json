@@ -12,7 +12,7 @@
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。",
-  "items_count": 48,
+  "items_count": 49,
   "work_items": [
     {
       "work_item_id": "studio_work_0001",
@@ -4863,26 +4863,26 @@
       "incident_type": "rules_review",
       "category": "folder_policy",
       "priority": "high",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-06-27",
       "updated_at": "2026-06-27",
-      "target_files": "data/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json, data/json/00_rules/_json_creation_prompt.md, tests/tools/cleanup_runtime_artifacts.ps1",
-      "target_rule_files": "frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json / _json_creation_prompt.md",
+      "target_files": "data/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json, data/json/00_rules/frb_test_evidence_rules_review_data_v0_1.json, data/json/00_rules/_json_creation_prompt.md, tests/tools/cleanup_runtime_artifacts.ps1, .gitignore, playwright.config.ts, data/json/03_tests/notes/TEST_FOLDER_ARCHIVE_RUNTIME_POLICY_NOTES_v0_1.md",
+      "target_rule_files": "frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json / frb_test_evidence_rules_review_data_v0_1.json / _json_creation_prompt.md",
       "objective": "テスト証跡の正本フォルダー、旧パス削除、_archive退避、Playwright runtime生成物隔離、root直下に生成物を生やさない方針を整理する。",
       "background": "screen_state_smoke_001 と incident_prompt_copy_action の整理で、data/json/03_tests 配下へ証跡を集約する方針が固まった。同時に tests_screen_state / test-results / playwright-report / 旧QAパスが混乱源になった。",
-      "scope": "Studioくんで見るテスト証跡は data/json/03_tests/{domain}/{suite_id}/ に集約する。test_patterns/expected/actual/diff/relations/summary/notes をテスト単位で持つ。テストコードは tests/ 配下、runtime一時生成物は tests/.runtime/ 配下へ隔離する。旧パスは成果物から削除し、必要なら_archiveへ退避する。",
+      "scope": "Studioくんで見るテスト証跡は data/json/03_tests/{domain}/{suite_id}/ に集約する。test_patterns/expected/actual/diff/relations/summary/notes をテスト単位で持つ。テストコードは tests/ 配下、runtime一時生成物は tests/.runtime/ 配下へ隔離する。旧パスは成果物から削除し、必要なら_archiveへ退避する。\n\n追加方針として、テストコードはコード実行言語ごとに1つの共通ランナーへ寄せることを基本とする。新しいテストケースは、まずTest Pattern JSON / Expected JSONの追加で対応し、ケースごとにテストコードファイルを増やさない。過剰共通化により将来苦しくなる場合は人間へ相談する。",
       "out_of_scope": "Diff Resultの詳細スキーマや共通ViewDef設計は別作業とする。ここでは置き場所と削除/隔離のルールに集中する。",
       "fixed_name_policy": "ルール系ファイルおよびViewDefは、既存参照を壊さないため原則として同じファイル名のまま更新する。新しい正本世代を作る必要がある場合は、人間に確認してからファイル名変更する。",
       "module_policy": "type=\"module\" 化は今回の主目的ではない。ルールData / ルールMD / ViewDef / インシデント管理JSONの作業単位整理を対象とする。",
-      "expected_outputs": "Folder Rules追記案、03_tests標準階層、禁止/除外フォルダー一覧、cleanupスクリプト運用メモ。",
+      "expected_outputs": "Foundation Rules / Test Evidence Rules / _json_creation_prompt.md へのFolder/Archive/Runtime隔離ルール追記、03_tests標準階層、禁止/除外フォルダー一覧、cleanupスクリプト運用メモ、.gitignore、playwright.config.ts、更新済みインシデントJSON。",
       "risk": "旧パスを残すと、ファイルが出ていないのではなく別の旧フォルダーを見ていたという誤認が起きる。runtime生成物をZIPに混ぜるとWindowsパス長エラーやノイズが発生する。",
       "test_points": "data/json/03_tests配下に証跡が集約されること。tests_screen_stateや旧QAパスが正本扱いされないこと。Playwright生成物がroot直下や成果物ZIPに入らないこと。",
       "user_request": "このチャットで見えてきた憲法・ルール系の改正概要を、作業単位ごとにインシデントへ追加する。追加原則として、共通化できるものは原則共通化し、やりすぎて将来苦しくなる場合は人間に相談する。古いデータ・不要データは削除して返却するが、削除データはルートの _archive/{削除日時}/ に退避する。ルール系統およびViewDefを修正する場合は、参照元修正を避けるため原則ファイル名を変更しない。",
       "ai_response": "Folder / Archive Rules 03_tests正本・旧パス削除・Runtime生成物隔離 を作業単位として追加する。実装・ルール本文修正は次工程で行い、今回のインシデント追加では対象ファイル・目的・範囲・判断ログを整理する。",
-      "latest_user_comment": "このチャットで見えてきた憲法・ルール系の改正概要を、作業単位ごとにインシデントへ追加する。追加原則として、共通化できるものは原則共通化し、やりすぎて将来苦しくなる場合は人間に相談する。古いデータ・不要データは削除して返却するが、削除データはルートの _archive/{削除日時}/ に退避する。ルール系統およびViewDefを修正する場合は、参照元修正を避けるため原則ファイル名を変更しない。",
-      "latest_ai_response": "作業項目としてインシデント管理JSONへ追加。まだルール本文・ViewDef本体の修正は未実施。",
+      "latest_user_comment": "今回の作業依頼: v0.14.15-test-folder-archive-runtime-policy。Foundation Rules の foundation_rule_019「GitHub基準ソースとZIP返却契約」を参照し、最新添付資材を使用する。今後方針として「テストコードは、コード実行言語毎（Ex.JSとplaywright）に1ファイルでテスト実行できるよう共通化に努めていくことを基本とする。」というルールも合わせて追加する。",
+      "latest_ai_response": "v0.14.15-test-folder-archive-runtime-policy 対応完了。Foundation Rulesに foundation_rule_022「Test Folder / Archive / Runtime生成物隔離契約」を追加し、foundation_rule_019にもZIP返却契約として03_tests正本・runtime生成物除外・実行言語ごとのテストコード共通化を追記。Test Evidence Rulesには test_evidence_rule_010「テスト証跡フォルダーは03_tests配下に集約する」と test_evidence_rule_011「テストコードは実行言語ごとの共通ランナーへ寄せる」を追加。_json_creation_prompt.md に実務チェックを追加し、cleanup_runtime_artifacts.ps1 / .gitignore / playwright.config.ts / 03_tests notes を整備。成果物ZIPから tests/.runtime などruntime生成物は除外した。",
       "discussion_history": [
         {
           "history_id": "disc_0045_001",
@@ -4897,6 +4897,20 @@
           "speaker": "assistant",
           "topic": "作業単位化方針",
           "message": "Folder / Archive Rules 03_tests正本・旧パス削除・Runtime生成物隔離 として、対象ルールファイル・目的・範囲・リスク・確認観点を整理してインシデントへ追加する。"
+        },
+        {
+          "history_id": "disc_0045_003",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "v0.14.15作業依頼",
+          "message": "今回の作業依頼: v0.14.15-test-folder-archive-runtime-policy。Foundation Rules の foundation_rule_019「GitHub基準ソースとZIP返却契約」を参照し、最新添付資材を使用する。今後方針として「テストコードは、コード実行言語毎（Ex.JSとplaywright）に1ファイルでテスト実行できるよう共通化に努めていくことを基本とする。」というルールも合わせて追加する。"
+        },
+        {
+          "history_id": "disc_0045_004",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "v0.14.15作業結果",
+          "message": "v0.14.15-test-folder-archive-runtime-policy 対応完了。Foundation Rulesに foundation_rule_022「Test Folder / Archive / Runtime生成物隔離契約」を追加し、foundation_rule_019にもZIP返却契約として03_tests正本・runtime生成物除外・実行言語ごとのテストコード共通化を追記。Test Evidence Rulesには test_evidence_rule_010「テスト証跡フォルダーは03_tests配下に集約する」と test_evidence_rule_011「テストコードは実行言語ごとの共通ランナーへ寄せる」を追加。_json_creation_prompt.md に実務チェックを追加し、cleanup_runtime_artifacts.ps1 / .gitignore / playwright.config.ts / 03_tests notes を整備。成果物ZIPから tests/.runtime などruntime生成物は除外した。"
         }
       ],
       "decision_log": [
@@ -4923,6 +4937,12 @@
           "at": "2026-06-27",
           "decision": "旧パスフォルダーは成果物から削除し、必要なら_archiveへ退避する。",
           "reason": "旧パスが存在すると空フォルダーでも正本に見えるため。"
+        },
+        {
+          "decision_id": "dec_0045_005",
+          "at": "2026-06-27",
+          "decision": "テストコードは、コード実行言語ごとに1つの共通ランナーへ寄せることを基本とする。",
+          "reason": "テストケースごとにコードファイルを増やすと、Expected JSONを正本として育てる文化が弱まり、テストコード側へ期待値や分岐が肥大化するため。"
         }
       ],
       "change_history": [
@@ -4933,9 +4953,27 @@
           "before": "03_tests正本化、旧パス削除、runtime隔離が個別対応の履歴に留まっていた。",
           "after": "studio_work_0045 としてFolder/Archive Rules作業を追加。",
           "reason": "今後のテスト追加時に同じ混乱を繰り返さないため。"
+        },
+        {
+          "history_id": "chg_0045_002",
+          "at": "2026-06-27",
+          "change_type": "rules_update",
+          "before": "03_tests正本、runtime生成物隔離、実行言語ごとのテストコード共通化がルール本文へ未反映だった。",
+          "after": "Foundation Rules / Test Evidence Rules / _json_creation_prompt.md にv0.14.15ルールを追加し、cleanupスクリプト・.gitignore・playwright.config.ts・03_tests notes を整備。",
+          "reason": "旧パス罠フォルダー、root直下runtime生成物、テストコード増殖を防ぐため。",
+          "updated_files": [
+            "data/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json",
+            "data/json/00_rules/frb_test_evidence_rules_review_data_v0_1.json",
+            "data/json/00_rules/_json_creation_prompt.md",
+            "tests/tools/cleanup_runtime_artifacts.ps1",
+            ".gitignore",
+            "playwright.config.ts",
+            "data/json/03_tests/notes/TEST_FOLDER_ARCHIVE_RUNTIME_POLICY_NOTES_v0_1.md",
+            "data/json/01_main/studio_work_incident_data_v0_57_rule_review_status_responsibility_issue_added.json"
+          ]
         }
       ],
-      "verification_status": "未確認"
+      "verification_status": "確認済み"
     },
     {
       "work_item_id": "studio_work_0046",
@@ -5179,6 +5217,94 @@
         }
       ],
       "verification_status": "未確認"
+    },
+    {
+      "work_item_id": "studio_work_0049",
+      "phase": "v0.14.19-rule-review-status-responsibility-issue",
+      "title": "Rule Review承認/確認状態の単一正本化と責務整理",
+      "incident_type": "open_issue",
+      "category": "rule_review_workflow",
+      "priority": "high",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-27",
+      "updated_at": "2026-06-27",
+      "target_files": "data/json/00_rules/*_review_data_*.json, data/json/00_rules/frb_test_evidence_rules_review_data_v0_1.json, data/json/00_rules/frb_coding_constraints_review_data_v0_3.json, data/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json, defs/rules/rule_review_common_view_def_*.json, rules/studio_work_incident_view_def_*.json",
+      "target_rule_files": "frb_coding_constraints_review_data_v0_3.json / frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json / frb_test_evidence_rules_review_data_v0_1.json / rule_review_common_view_def_*.json",
+      "objective": "Rule Review系データにおける review_status / verification_status / approval_decision の意味、単一正本、UI上の表示・操作責務、人間とAIの権限範囲を整理する。特に、AIがルール本文・章・要約・分類などを修正した場合に、その章またはルール行が未承認・未確認・未レビューへ戻るべきかを運用ルールとして定義する。",
+      "background": "Test Evidence Rulesレビュー画面で、上部詳細欄・グリッド・確認メッセージカードに承認/確認状態が複数表示され、どれが正本か分かりにくい状態が見えた。現状は同じフィールドを複数UIで表示している可能性が高いが、運用として『AIが修正したものをAIが承認済みにしてよいのか』『確認状態と承認は二つ必要か』『人間が判断する欄とAIが更新する欄の境界はどこか』が未整理である。",
+      "scope": "承認状態・確認状態・レビュー状態の意味を整理する。グリッド/上部詳細/確認メッセージカードが同じ正本フィールドを表示しているか確認する。AIがルール本文や章を修正した場合のステータスリセットルールを定義する。人間が最終承認する項目と、AIが作業都合で更新してよい項目を分離する。verification_status と approval_decision の両方が必要か、統合できるかを検討する。",
+      "out_of_scope": "この作業項目追加時点では、ViewDefやRuntimeの即時修正は行わない。既存データのステータス一括変更もしない。まず懸案として残し、次工程でルール本文・ViewDef・必要ならRuntime動作へ落とし込む。",
+      "fixed_name_policy": "review_status / verification_status / approval_decision は現時点ではRule Review系Dataの管理フィールド候補として扱う。ただし、同じ意味の状態を複数フィールドへ重複保持しない。グリッド・上部詳細・確認カードは、同じ正本フィールドを表示/編集するUIであり、別々の状態を保持してはいけない。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。データ契約・運用ルール・ViewDef表示方針の整理を対象とする。",
+      "expected_outputs": "Rule Reviewステータス運用ルール、AI修正時の未承認リセット契約、人間/AIの責務分担、verification_statusとapproval_decisionの要否判断、グリッド/詳細/確認カードの単一正本方針、必要に応じたViewDef整理案。",
+      "risk": "AIが修正したルールを承認済みのまま残すと、人間未確認の内容が正本化されるリスクがある。逆に状態項目を増やしすぎると、未レビュー/未確認/未承認の違いが分からなくなり、レビュー運用が重くなる。UI上で同じ状態を複数箇所から編集できる場合、正しくても二重管理に見えて人間が不安になる。",
+      "test_points": "AIがルール本文を修正した場合に承認/確認/レビュー状態がどう扱われるべきかを確認する。グリッド・上部詳細・確認メッセージカードが同じ正本フィールドを見ていることを確認する。人間だけが最終承認できる状態になっているか確認する。verification_statusとapproval_decisionが二つ必要か、一つに寄せられるかを確認する。",
+      "user_request": "承認欄・確認状態欄の使い分けは一旦懸案としてインシデントに追加したい。特に、ある章をAIが修正したら、その章は未承認状態にならないといけない。また、確認状態欄と承認欄などについて、人間orAIの責務を明確に運用定義する必要がある。二ついるかどうかも含めて、ひとまず懸案として残したい。",
+      "ai_response": "Rule Review承認/確認状態の単一正本化と責務整理を懸案インシデントとして追加する。即時修正ではなく、AI修正時の未承認リセット、人間/AI責務、verification_statusとapproval_decisionの要否を次工程で整理する対象として管理する。",
+      "latest_user_comment": "承認欄・確認状態欄の使い分けは一旦懸案としてインシデントに追加したい。AIが章を修正した場合の未承認化、人間/AIの責務、確認状態欄と承認欄が二つ必要かを後で整理したい。",
+      "latest_ai_response": "懸案として studio_work_0049 を追加。現時点ではViewDef/Runtime修正は行わず、Rule Reviewステータス運用の設計課題として残す。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0049_001",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "承認/確認状態UIの混乱",
+          "message": "Rule Review画面で、上部詳細欄・グリッド・確認メッセージカードに承認/確認状態が見えており、どれをどう使い分けるのか気になった。"
+        },
+        {
+          "history_id": "disc_0049_002",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "暫定整理",
+          "message": "グリッド・上部詳細・確認メッセージカードは同じ正本フィールドを見ている想定。ただしUI上は二重管理に見えるため、正本フィールドと操作UIの関係をルール化した方がよいと整理した。"
+        },
+        {
+          "history_id": "disc_0049_003",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "懸案追加依頼",
+          "message": "一旦懸案としてインシデントに追加したい。AIが章を修正したら、その章は未承認状態にならないといけない。確認状態欄と承認欄などについて、人間orAIの責務を明確に運用定義する必要がある。二ついるかどうかも後で整理したい。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0049_001",
+          "at": "2026-06-27",
+          "decision": "承認/確認状態の使い分けは、即時修正せず懸案として管理する。",
+          "reason": "単なるUI表示調整ではなく、AI修正時の未承認化と人間/AI責務分担に関わる運用設計課題であるため。"
+        },
+        {
+          "decision_id": "dec_0049_002",
+          "at": "2026-06-27",
+          "decision": "AIがルール本文・章・要約・分類などを修正した場合、対象ルールは少なくとも人間確認待ちへ戻す方向で検討する。",
+          "reason": "AIが更新した内容を、人間未確認のまま承認済みとして残すと正本管理の信頼性が落ちるため。"
+        },
+        {
+          "decision_id": "dec_0049_003",
+          "at": "2026-06-27",
+          "decision": "人間が最終承認する項目と、AIが作業上更新してよい状態項目を分離して定義する。",
+          "reason": "AIが作業完了や要レビューを記録することは有用だが、最終承認までAIが担うと承認ワークフローの意味が薄れるため。"
+        },
+        {
+          "decision_id": "dec_0049_004",
+          "at": "2026-06-27",
+          "decision": "verification_status と approval_decision が二つ必要かを検討課題として残す。",
+          "reason": "状態項目が多すぎると運用が重くなり、違いが分からなくなるため。必要性が薄い場合は統合・非表示・readonly化を検討する。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0049_001",
+          "at": "2026-06-27",
+          "change_type": "incident_added",
+          "before": "Rule Reviewの承認/確認状態の責務とAI修正時の未承認化が作業項目として管理されていなかった。",
+          "after": "studio_work_0049 として、Rule Review承認/確認状態の単一正本化と責務整理を懸案追加。",
+          "reason": "ルール系DataをAIが更新する運用が始まったため、承認状態の信頼性と人間/AIの責務境界を明確にする必要がある。"
+        }
+      ],
+      "verification_status": "未確認"
     }
   ],
   "review_notes": [
@@ -5394,10 +5520,22 @@
       "at": "2026-06-27",
       "title": "Test Evidence Rules / Expected-Actual-Diff責務分離を反映",
       "body": "frb_test_evidence_rules_review_data_v0_1.jsonを追加し、Foundation Rulesへfoundation_rule_021を追加。Expectedは期待値正本、Actualは観測値のみ、Diffは比較結果、Test Codeは実行する仕掛けとして固定した。"
+    },
+    {
+      "note_id": "note_041",
+      "at": "2026-06-27",
+      "title": "Rule Review承認/確認状態の責務整理を懸案追加",
+      "body": "グリッド・上部詳細・確認メッセージカードに表示される review_status / verification_status / approval_decision の単一正本化、人間/AIの責務分担、AIがルール本文や章を修正した場合の未承認化、確認状態と承認欄が二つ必要かを studio_work_0049 として懸案追加した。"
+    },
+    {
+      "note_id": "note_042",
+      "at": "2026-06-27",
+      "topic": "v0.14.15 Test Folder / Archive / Runtime生成物隔離",
+      "note": "03_tests正本、tests実行コード、tests/.runtime一時生成物、_archive退避、実行言語ごとのテストコード共通化をルール化。"
     }
   ],
-  "work_revision": "v0.14.14-test-evidence-rules-contract-done",
-  "latest_planning_note": "v0.14.14でTest Evidence Rulesを追加し、Expected / Actual / Diff / Test Code の責務分離をFoundation Rulesへ反映。次工程は v0.14.15 Folder / Archive Rules 03_tests正本・旧パス削除・Runtime生成物隔離。",
+  "work_revision": "v0.14.15-test-folder-archive-runtime-policy-done",
+  "latest_planning_note": "v0.14.15でTest Folder / Archive / Runtime生成物隔離契約をルール本文へ反映済み。次工程は v0.14.16-diff-result-common-format-rules または Step 5 Diff Result共通ViewDef化。",
   "view_def_candidates": [
     {
       "view_def": "rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",

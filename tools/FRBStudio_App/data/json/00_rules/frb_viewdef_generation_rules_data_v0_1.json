@@ -26,8 +26,8 @@
     "recommended_view_def": "defs/rules/rule_review_common_view_def_v0_3.json"
   },
   "source_schema_snapshot": {
-    "file": "frb_view_def_schema_v0_9_chat_input_mapping.json",
-    "$id": "frb_view_def_schema_v0_9_chat_input_mapping.json",
+    "file": "frb_view_def_schema_v0_9.json",
+    "$id": "frb_view_def_schema_v0_9.json",
     "title": "FRB Studio View Definition Schema v0.9 - Chat Input Mapping / Markdown Inline",
     "description": "Schema for FRBStudio_App / No-Code JSON Studio view_def JSON files. Includes inheritance, common field types, Markdown export / AI Prompt, dataSources, virtualData registry builders, single-source writeBack, Relation status filters, and toolbar.executeButton action declarations. v0.9 adds chat edit.input.appendPosition/appendLabel and chat Markdown inline link/image permissions."
   },

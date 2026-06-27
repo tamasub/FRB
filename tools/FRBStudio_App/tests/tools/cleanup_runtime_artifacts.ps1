@@ -1,5 +1,7 @@
 # FRBStudio_App runtime artifact cleanup
 # Deletes generated Playwright/legacy folders that should not be source-controlled.
+# This script removes only regenerated runtime artifacts.
+# It must not delete Test Evidence source-of-truth files under data/json/03_tests/**.
 
 $targets = @(
   ".\playwright-report",
@@ -15,3 +17,5 @@ foreach ($target in $targets) {
     Write-Host "Removed $target"
   }
 }
+
+Write-Host "FRBStudio runtime artifact cleanup completed. Test Evidence under data/json/03_tests was not touched."

@@ -1334,7 +1334,7 @@
         "executeButton": {
           "caption": "AI依頼プロンプトコピー",
           "action": "CopyPromptFromTemplate",
-          "promptTemplate": "今回の作業依頼:\n- incident_file: {{data.filePath}}\n- phase: {{row.phase}}\n\n作業ルール:\n\nAIやスクリプトが直接取得するためのraw/archive URL:\n- Foundation Rules raw: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/data/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json\n\n- リポジトリ main ZIP: https://github.com/tamasub/FRB/archive/refs/heads/main.zip\n- FRBStudio_App raw base: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/\n- FRBStudio 本体 raw base: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio/\n\nFRB Studio Foundation Rules の foundation_rule_019「GitHub基準ソースとZIP返却契約」を参照してください。",
+          "promptTemplate": "今回の作業依頼:\n- incident_file: {{data.filePath}}\n- phase: {{row.phase}}\n\n作業ルール:\n\nAIやスクリプトが直接取得するためのraw/archive URL:\n- Foundation Rules raw: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/data/json/00_rules/frb_foundation_rules_data_v0_1.json\n\n- リポジトリ main ZIP: https://github.com/tamasub/FRB/archive/refs/heads/main.zip\n- FRBStudio_App raw base: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/\n- FRBStudio 本体 raw base: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio/\n\nFRB Studio Foundation Rules の foundation_rule_019「GitHub基準ソースとZIP返却契約」を参照してください。",
           "requireSelectedRow": true,
           "description": "選択中の作業項目と現在のData JSONファイル名から、ChatGPT依頼用プロンプトを生成してクリップボードへコピーする。"
         }

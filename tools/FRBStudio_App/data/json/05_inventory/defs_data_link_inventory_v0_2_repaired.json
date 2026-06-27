@@ -943,8 +943,8 @@
           "label": "既定ViewDef",
           "status": "active",
           "note": "top-level view_def",
-          "data_path": "data/json/00_rules/ai_constraint_spec_aggregated_v0_6_footer_chat.json",
-          "data_file": "ai_constraint_spec_aggregated_v0_6_footer_chat.json",
+          "data_path": "data/json/00_rules/frb_constraint_spec_v0_6.json",
+          "data_file": "frb_constraint_spec_v0_6.json",
           "resolve_status": "exact"
         }
       ],
@@ -1164,8 +1164,8 @@
           "label": "既定ViewDef",
           "status": "active",
           "note": "top-level view_def",
-          "data_path": "data/json/00_rules/frb_coding_constraints_review_data_v0_3.json",
-          "data_file": "frb_coding_constraints_review_data_v0_3.json",
+          "data_path": "data/json/00_rules/frb_coding_constraints_data_v0_3.json",
+          "data_file": "frb_coding_constraints_data_v0_3.json",
           "resolve_status": "exact"
         },
         {
@@ -1175,8 +1175,8 @@
           "label": "ルールレビュー現行v0.3",
           "status": "active",
           "note": "判断ログ・変更履歴対応の現行ViewDef",
-          "data_path": "data/json/00_rules/frb_coding_constraints_review_data_v0_3.json",
-          "data_file": "frb_coding_constraints_review_data_v0_3.json",
+          "data_path": "data/json/00_rules/frb_coding_constraints_data_v0_3.json",
+          "data_file": "frb_coding_constraints_data_v0_3.json",
           "resolve_status": "exact"
         },
         {
@@ -1186,8 +1186,8 @@
           "label": "推奨ViewDef",
           "status": "reference",
           "note": "viewing_policy",
-          "data_path": "data/json/00_rules/frb_coding_constraints_review_data_v0_3.json",
-          "data_file": "frb_coding_constraints_review_data_v0_3.json",
+          "data_path": "data/json/00_rules/frb_coding_constraints_data_v0_3.json",
+          "data_file": "frb_coding_constraints_data_v0_3.json",
           "resolve_status": "exact"
         },
         {
@@ -1197,8 +1197,8 @@
           "label": "既定ViewDef",
           "status": "active",
           "note": "top-level view_def",
-          "data_path": "data/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added_viewdef_candidates_rule_added.json",
-          "data_file": "frb_studio_foundation_review_data_v0_1_github_fetch_urls_added_viewdef_candidates_rule_added.json",
+          "data_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json",
+          "data_file": "frb_foundation_rules_data_v0_1.json",
           "resolve_status": "exact"
         },
         {
@@ -1208,8 +1208,8 @@
           "label": "ルールレビュー現行v0.3",
           "status": "active",
           "note": "判断ログ・変更履歴対応の現行ViewDef",
-          "data_path": "data/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added_viewdef_candidates_rule_added.json",
-          "data_file": "frb_studio_foundation_review_data_v0_1_github_fetch_urls_added_viewdef_candidates_rule_added.json",
+          "data_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json",
+          "data_file": "frb_foundation_rules_data_v0_1.json",
           "resolve_status": "exact"
         },
         {
@@ -1219,8 +1219,8 @@
           "label": "推奨ViewDef",
           "status": "reference",
           "note": "viewing_policy",
-          "data_path": "data/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added_viewdef_candidates_rule_added.json",
-          "data_file": "frb_studio_foundation_review_data_v0_1_github_fetch_urls_added_viewdef_candidates_rule_added.json",
+          "data_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json",
+          "data_file": "frb_foundation_rules_data_v0_1.json",
           "resolve_status": "exact"
         },
         {
@@ -1230,8 +1230,8 @@
           "label": "既定ViewDef",
           "status": "active",
           "note": "top-level view_def",
-          "data_path": "data/json/00_rules/frb_viewdef_generation_rules_review_data_v0_1.json",
-          "data_file": "frb_viewdef_generation_rules_review_data_v0_1.json",
+          "data_path": "data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json",
+          "data_file": "frb_viewdef_generation_rules_data_v0_1.json",
           "resolve_status": "exact"
         },
         {
@@ -1241,8 +1241,8 @@
           "label": "ルールレビュー現行v0.3",
           "status": "active",
           "note": "判断ログ・変更履歴対応の現行ViewDef",
-          "data_path": "data/json/00_rules/frb_viewdef_generation_rules_review_data_v0_1.json",
-          "data_file": "frb_viewdef_generation_rules_review_data_v0_1.json",
+          "data_path": "data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json",
+          "data_file": "frb_viewdef_generation_rules_data_v0_1.json",
           "resolve_status": "exact"
         },
         {
@@ -1252,8 +1252,8 @@
           "label": "推奨ViewDef",
           "status": "reference",
           "note": "viewing_policy",
-          "data_path": "data/json/00_rules/frb_viewdef_generation_rules_review_data_v0_1.json",
-          "data_file": "frb_viewdef_generation_rules_review_data_v0_1.json",
+          "data_path": "data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json",
+          "data_file": "frb_viewdef_generation_rules_data_v0_1.json",
           "resolve_status": "exact"
         }
       ],
@@ -1454,8 +1454,8 @@
           "label": "旧v0.1レビュー表示",
           "status": "deprecated",
           "note": "旧版比較用。通常利用はv0.3",
-          "data_path": "data/json/00_rules/frb_coding_constraints_review_data_v0_3.json",
-          "data_file": "frb_coding_constraints_review_data_v0_3.json",
+          "data_path": "data/json/00_rules/frb_coding_constraints_data_v0_3.json",
+          "data_file": "frb_coding_constraints_data_v0_3.json",
           "resolve_status": "exact"
         },
         {
@@ -1465,8 +1465,8 @@
           "label": "旧v0.1レビュー表示",
           "status": "deprecated",
           "note": "旧版比較用。通常利用はv0.3",
-          "data_path": "data/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added_viewdef_candidates_rule_added.json",
-          "data_file": "frb_studio_foundation_review_data_v0_1_github_fetch_urls_added_viewdef_candidates_rule_added.json",
+          "data_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json",
+          "data_file": "frb_foundation_rules_data_v0_1.json",
           "resolve_status": "exact"
         },
         {
@@ -1476,8 +1476,8 @@
           "label": "旧v0.1レビュー表示",
           "status": "deprecated",
           "note": "旧版比較用。通常利用はv0.3",
-          "data_path": "data/json/00_rules/frb_viewdef_generation_rules_review_data_v0_1.json",
-          "data_file": "frb_viewdef_generation_rules_review_data_v0_1.json",
+          "data_path": "data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json",
+          "data_file": "frb_viewdef_generation_rules_data_v0_1.json",
           "resolve_status": "exact"
         }
       ],
@@ -1511,8 +1511,8 @@
           "label": "旧v0.2レビュー表示",
           "status": "deprecated",
           "note": "旧版比較用。通常利用はv0.3",
-          "data_path": "data/json/00_rules/frb_coding_constraints_review_data_v0_3.json",
-          "data_file": "frb_coding_constraints_review_data_v0_3.json",
+          "data_path": "data/json/00_rules/frb_coding_constraints_data_v0_3.json",
+          "data_file": "frb_coding_constraints_data_v0_3.json",
           "resolve_status": "exact"
         },
         {
@@ -1522,8 +1522,8 @@
           "label": "旧v0.2レビュー表示",
           "status": "deprecated",
           "note": "旧版比較用。通常利用はv0.3",
-          "data_path": "data/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added_viewdef_candidates_rule_added.json",
-          "data_file": "frb_studio_foundation_review_data_v0_1_github_fetch_urls_added_viewdef_candidates_rule_added.json",
+          "data_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json",
+          "data_file": "frb_foundation_rules_data_v0_1.json",
           "resolve_status": "exact"
         },
         {
@@ -1533,8 +1533,8 @@
           "label": "旧v0.2レビュー表示",
           "status": "deprecated",
           "note": "旧版比較用。通常利用はv0.3",
-          "data_path": "data/json/00_rules/frb_viewdef_generation_rules_review_data_v0_1.json",
-          "data_file": "frb_viewdef_generation_rules_review_data_v0_1.json",
+          "data_path": "data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json",
+          "data_file": "frb_viewdef_generation_rules_data_v0_1.json",
           "resolve_status": "exact"
         }
       ],
@@ -1775,8 +1775,8 @@
   ],
   "data_jsons": [
     {
-      "data_path": "data/json/00_rules/_frb_view_def_schema_v0_9_chat_input_mapping.json",
-      "data_file": "_frb_view_def_schema_v0_9_chat_input_mapping.json",
+      "data_path": "data/json/00_rules/frb_view_def_schema_v0_9.json",
+      "data_file": "frb_view_def_schema_v0_9.json",
       "folder": "data/json/00_rules",
       "parse_status": "ok",
       "document_type": "",
@@ -1788,8 +1788,8 @@
       "missing_reference_count": 0
     },
     {
-      "data_path": "data/json/00_rules/ai_constraint_spec_aggregated_v0_6_footer_chat.json",
-      "data_file": "ai_constraint_spec_aggregated_v0_6_footer_chat.json",
+      "data_path": "data/json/00_rules/frb_constraint_spec_v0_6.json",
+      "data_file": "frb_constraint_spec_v0_6.json",
       "folder": "data/json/00_rules",
       "parse_status": "ok",
       "document_type": "ai_constraint_spec_aggregated",
@@ -1801,8 +1801,8 @@
       "missing_reference_count": 0
     },
     {
-      "data_path": "data/json/00_rules/frb_coding_constraints_review_data_v0_3.json",
-      "data_file": "frb_coding_constraints_review_data_v0_3.json",
+      "data_path": "data/json/00_rules/frb_coding_constraints_data_v0_3.json",
+      "data_file": "frb_coding_constraints_data_v0_3.json",
       "folder": "data/json/00_rules",
       "parse_status": "ok",
       "document_type": "studio_constitution_review",
@@ -1814,8 +1814,8 @@
       "missing_reference_count": 0
     },
     {
-      "data_path": "data/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added_viewdef_candidates_rule_added.json",
-      "data_file": "frb_studio_foundation_review_data_v0_1_github_fetch_urls_added_viewdef_candidates_rule_added.json",
+      "data_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json",
+      "data_file": "frb_foundation_rules_data_v0_1.json",
       "folder": "data/json/00_rules",
       "parse_status": "ok",
       "document_type": "rule_review_data",
@@ -1840,8 +1840,8 @@
       "missing_reference_count": 0
     },
     {
-      "data_path": "data/json/00_rules/frb_viewdef_generation_rules_review_data_v0_1.json",
-      "data_file": "frb_viewdef_generation_rules_review_data_v0_1.json",
+      "data_path": "data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json",
+      "data_file": "frb_viewdef_generation_rules_data_v0_1.json",
       "folder": "data/json/00_rules",
       "parse_status": "ok",
       "document_type": "rule_review_data",
@@ -2325,15 +2325,15 @@
   "parse_errors": [],
   "repair_actions": [
     {
-      "data_path": "data/json/00_rules/frb_coding_constraints_review_data_v0_3.json",
+      "data_path": "data/json/00_rules/frb_coding_constraints_data_v0_3.json",
       "action": "updated_view_def_or_candidates"
     },
     {
-      "data_path": "data/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added_viewdef_candidates_rule_added.json",
+      "data_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json",
       "action": "updated_view_def_or_candidates"
     },
     {
-      "data_path": "data/json/00_rules/frb_viewdef_generation_rules_review_data_v0_1.json",
+      "data_path": "data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json",
       "action": "updated_view_def_or_candidates"
     },
     {
@@ -2423,9 +2423,9 @@
       "support_json_count": 1
     },
     "changed_data_files": [
-      "data/json/00_rules/frb_coding_constraints_review_data_v0_3.json",
-      "data/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added_viewdef_candidates_rule_added.json",
-      "data/json/00_rules/frb_viewdef_generation_rules_review_data_v0_1.json",
+      "data/json/00_rules/frb_coding_constraints_data_v0_3.json",
+      "data/json/00_rules/frb_foundation_rules_data_v0_1.json",
+      "data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json",
       "data/json/01_main/chatgpt_context_relation_graph_data_v0_1.json",
       "data/json/01_main/chatgpt_raw_keyword_activation_data_v0_1.json",
       "data/json/01_main/chatgpt_sentence_prime_map_data_v0_1.json",

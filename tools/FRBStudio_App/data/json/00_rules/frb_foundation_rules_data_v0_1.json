@@ -13,8 +13,8 @@
   "status": "converted_draft",
   "introduced_in": "v0.4-r001",
   "generated_at": "2026-06-26T00:00:00+09:00",
-  "rule_count": 20,
-  "approved_count": 19,
+  "rule_count": 22,
+  "approved_count": 22,
   "approval_policy": "各ルールは人間が内容確認し、verification_status を確認済みにしたうえで approval_decision を承認する。AIはレビューコメント案を出せるが、承認判断は人間が行う。",
   "preamble": "このData JSONは、FRB Studio / JSON Object Studio の土台となる運用原則を管理するためのレビュー対象データである。\n\nMarkdownを原本にせず、構造化できるルール・制約・判断理由はData JSONを原本として管理する。\n\nData JSONをViewDefで表示・編集し、Markdownは必要に応じてExport Viewとして生成する。",
   "change_history_policy": "ルール本文、要約、カテゴリ、優先度、承認判断を変更した場合は、各 rule.change_history に変更前後・理由・会話を残す。",
@@ -287,7 +287,7 @@
       "verification_status": "確認済み",
       "approval_decision": "承認する",
       "summary": "憲法、制約、ViewDef生成ルール、Studio運用原則などのルール系データは、ドメインごとに Data JSON を分ける。",
-      "body": "憲法、制約、ViewDef生成ルール、Studio運用原則などのルール系データは、ドメインごとに Data JSON を分ける。\n\n例:\n\n- `coding_constraints_review_data_v0_3.json`\n- `frb_studio_foundation_review_data_v0_1.json`\n- `frb_viewdef_generation_rules_review_data_v0_1.json`\n\n理由:\nドメインが違うルールを1つのData JSONに混ぜると、目的、責任範囲、更新履歴が曖昧になるため。",
+      "body": "憲法、制約、ViewDef生成ルール、Studio運用原則などのルール系データは、ドメインごとに Data JSON を分ける。\n\n例:\n\n- `frb_coding_constraints_data_v0_3.json`\n- `frb_foundation_rules_data_v0_1.json`\n- `frb_viewdef_generation_rules_data_v0_1.json`\n\n理由:\nドメインが違うルールを1つのData JSONに混ぜると、目的、責任範囲、更新履歴が曖昧になるため。",
       "ceremony_phrase": "このルールをレビューし、採用可否を判断する。",
       "user_comment": "",
       "ai_response": "",
@@ -592,35 +592,6 @@
     },
     {
       "no": 19,
-      "rule_id": "row_copy_1",
-      "section_no": "19",
-      "parent_rule_id": "",
-      "category": "運用",
-      "title": "★マークダウン　入力テストデータ",
-      "priority": "high",
-      "review_status": "未レビュー",
-      "verification_status": "未確認",
-      "approval_decision": "未承認",
-      "summary": "# 見出し\n## 見出し\n- 箇条書き\n1. 番号付きリスト",
-      "body": "# 見出し\n## 見出し\n- 箇条書き\n1. 番号付きリスト\n> 引用\n`inline code`\n**太字**\n\n\n\n\n```\nやばいっす\n\n\n```\n\n\n\n\n\n\n![alt text](./images/chat/tamasub.png)",
-      "source_heading": "# 見出し\n## 見出し\n- 箇条書き\n1. 番号付きリスト",
-      "source_line_start": 0,
-      "source_md_file": "",
-      "introduced_in": "",
-      "ceremony_phrase": "",
-      "user_comment": "",
-      "ai_response": "",
-      "user_reply": "",
-      "ai_followup_response": "",
-      "change_history": [],
-      "approved_by": "",
-      "approved_at": "",
-      "notes": "",
-      "source_heading_level": 2,
-      "decision_log": []
-    },
-    {
-      "no": 20,
       "rule_id": "foundation_rule_019",
       "section_no": "19",
       "source_heading": "19. GitHub基準ソースとZIP返却契約",
@@ -632,8 +603,8 @@
       "review_status": "未レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
-      "summary": "AI作業では、GitHub main またはユーザー添付ZIPを基準ソースとし、incident_file と phase を中心に行う。返却物は data / defs / wwwroot 階層のZIPとし、更新済みインシデントJSONを data/json/01_main に含める。ViewDefファイル名は原則維持し、Data JSON内の view_def / view_def_candidates をDataとViewDefの接続契約として扱う。",
-      "body": "FRB Studio / JSON Object Studio のAI作業では、原則として GitHub main の最新ソースを基準ソースとして扱う。\n\nユーザーは毎回ソースZIPを添付するのではなく、incident_file と phase を指定して作業を依頼できるようにする。\n\nAIは、指定された incident_file を読み、work_items[] から phase が一致する作業項目を探し、その objective / scope / user_request / latest_user_comment / decision_log / test_points を正として作業内容を判断する。\n\nphase が見つからない場合、または作業内容が特定できない場合は、推測で実装せず確認する。\n\n返却は原則ZIPとし、ZIP直下の基本階層は以下とする。\n\n- data/\n- defs/\n- wwwroot/\n\n修正したファイルは、FRBStudio_App配下と同じ相対パスで格納する。\n\n更新済みインシデント管理JSONは、必ず data/json/01_main/ に格納する。\n\nインシデントJSONには、AIが更新したファイル、変更理由、変更概要、確認ポイントを latest_ai_response / discussion_history / change_history へ残す。\n\nwwwroot/data と wwwroot/defs は公開用静的領域として扱い、明示依頼がない限り更新しない。\n\nProgram.cs など FRBStudio 本体側の更新が必要な場合は、返却前に配置方針と更新対象を明示する。\n\n理由:\n毎回ソースZIPを添付する運用では、依頼準備が重く、AIとの協働が作業単位ではなくファイル受け渡し単位になってしまう。\nGitHub main を基準ソースとし、インシデントJSONを作業台帳として使うことで、作業依頼、実装、返却、履歴記録を一つの運用契約として安定させるため。\n\n### GitHub取得URLの標準\n\nAIがGitHub上の基準ソースを取得する場合は、用途に応じて以下のURLを使い分ける。\n\n人間がブラウザで確認するためのtree/blob URL:\n\n- FRBStudio 本体: https://github.com/tamasub/FRB/tree/main/tools/FRBStudio\n- FRBStudio_App: https://github.com/tamasub/FRB/tree/main/tools/FRBStudio_App\n- Foundation Rules: https://github.com/tamasub/FRB/blob/main/tools/FRBStudio_App/data/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json\n\nAIやスクリプトが直接取得するためのraw/archive URL:\n\n- リポジトリ main ZIP: https://github.com/tamasub/FRB/archive/refs/heads/main.zip\n- FRBStudio_App raw base: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/\n- FRBStudio 本体 raw base: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio/\n- Foundation Rules raw: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/data/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json\n\nincident_file は FRBStudio_App からの相対パスとして扱う。\nたとえば `incident_file: data/json/01_main/studio_work_incident_data_xxx.json` が指定された場合、raw URL は以下の形式で解決する。\n\n`https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/{incident_file}`\n\n個別ファイルを直接取得できない場合、またはHTMLなど大きなファイルの完全取得が不安定な場合は、リポジトリ main ZIP を取得し、展開後の `FRB-main/tools/FRBStudio_App/` または `FRB-main/tools/FRBStudio/` を基準として作業する。\n\nGitHubのtree/blob URLは閲覧用であり、機械取得や完全ファイル取得にはraw URLまたはmain ZIPを優先する。\n\n---\n\n### ViewDef安定ファイル名契約\n\n既存Data JSONから参照されている ViewDef / DefView ファイルは、原則として同じファイル名のまま更新する。\n\nViewDefファイル名は単なる成果物名ではなく、以下をつなぐ接続キーである。\n\n- Data JSON の `view_def` 参照\n- URL起動リンク\n- GitHub Pages上の静的読込\n- GitDiffによる変更前後比較\n- 既存の作業履歴・記事リンク・説明文\n\nそのため、AIは通常のViewDef改善で `*_v0_5_*.json` のような新規ファイル名を勝手に作成しない。既存ViewDefを改修する場合は、同じ相対パス・同じファイル名で返却する。\n\n新しいViewDefファイル名を作成できるのは、ユーザーが明示的に新名を指定した場合、既存ViewDefとの互換性を意図的に切る場合、または旧ViewDefと新ViewDefを並行運用する明確な理由がある場合に限る。\n\nViewDefファイル名を変更する場合は、Data JSON側の `view_def` 参照更新、URL起動やGitHub Pagesへの影響、GitDiffで新規追加扱いになる理由を、該当インシデントの `decision_log` / `change_history` / `latest_ai_response` に記録する。\n\n---\n\n### Data JSON内ViewDef候補契約\n\nData JSON は、既定ViewDefとして top-level `view_def` を持つことができる。\n\n同じData JSONを複数のViewDefで確認したい場合は、追加で top-level `view_def_candidates` を持つ。\n\n推奨形は以下とする。\n\n```json\n{\n  \"view_def\": \"rules/main_view_def.json\",\n  \"view_def_candidates\": [\n    {\n      \"view_def\": \"rules/main_view_def.json\",\n      \"label\": \"標準表示\",\n      \"role\": \"default\",\n      \"status\": \"active\",\n      \"note\": \"通常利用するViewDef\"\n    },\n    {\n      \"view_def\": \"rules/relation_view_def.json\",\n      \"label\": \"リレーション確認\",\n      \"role\": \"relation\",\n      \"status\": \"active\",\n      \"note\": \"関連データ確認用\"\n    }\n  ]\n}\n```\n\nStudio の手動ViewDef切替UIは、Data JSONに `view_def` / `view_def_candidates` として明示されたViewDefだけを切替候補として扱う。\n\nこれにより、Data JSONから参照されていないViewDefを棚卸し対象として発見しやすくし、ViewDefの現役・旧版・診断用・削除候補の判断をData側の接続情報から追えるようにする。\n\n候補リストはViewDefファイル名変更の代替ではない。既存ViewDefの通常改修ではファイル名を変更せず、同名更新を原則とする。\n\n---\n\n### Data JSON内ViewDef候補の記述ルール\n\n`view_def_candidates` は ViewDef JSON 側の定義ではなく、Data JSON 側のメタ情報として扱う。\n\n`view_def_candidates[].view_def` は、`defs/` 配下からの相対パスで記述する。  \nそのため、値には `defs/` を付けない。\n\n例:\n\n```json\n{\n  \"view_def\": \"qa/qa_expected_checks_classified_view_def_v0_1.json\",\n  \"view_def_candidates\": [\n    {\n      \"view_def\": \"qa/qa_expected_checks_classified_view_def_v0_1.json\",\n      \"label\": \"標準表示\",\n      \"role\": \"default\",\n      \"status\": \"active\",\n      \"note\": \"通常利用するViewDef\"\n    },\n    {\n      \"view_def\": \"qa/qa_expected_checks_sample_view_def_v0_1.json\",\n      \"label\": \"リレーション確認用\",\n      \"role\": \"relation\",\n      \"status\": \"active\",\n      \"note\": \"関連データ確認用\"\n    }\n  ]\n}\n```\n\n`view_def` は既定ViewDefであり、通常読込時に最初に使用するViewDefを示す。\n\n`view_def_candidates` は、そのData JSONで手動切替を許可するViewDef候補を示す。\n\n`role` は候補ViewDefの用途を表す。まずは以下を標準候補とする。\n\n- `default`: 通常利用する標準表示\n- `relation`: 関連データ・リレーション確認用\n- `review`: レビュー用\n- `compare`: 比較用\n- `debug`: 診断・確認用\n\n`status` は候補ViewDefの利用状態を表す。まずは以下を標準候補とする。\n\n- `active`: 現役候補\n- `deprecated`: 旧版だが一時的に残す候補\n- `inactive`: 通常の手動切替候補には出さない候補\n\nStudio の手動ViewDef切替UIは、原則として `status: \"active\"` の候補を表示対象とする。\n\ntop-level `view_def` は、`view_def_candidates` 内の `role: \"default\"` または先頭候補と一致させることを推奨する。\n\nAIは、実体が存在しないViewDef、利用意図が不明な試作ViewDef、削除候補のViewDefを、ユーザー確認なしに `view_def_candidates` へ追加しない。\n\n`view_def_candidates` は、ViewDef棚卸しのための接続情報であり、Runtimeが全defsから自由に候補を探すための仕組みではない。\n",
+      "summary": "AI作業では、GitHub main またはユーザー添付ZIPを基準ソースとし、incident_file と phase を中心に行う。返却物は data / defs / wwwroot 階層のZIPとし、更新済みインシデントJSONを data/json/01_main に含める。共通化可能なものは共通化を優先し、旧パス・不要データは _archive/{削除日時}/ へ退避してactiveから除去する。ルール系ファイルおよびViewDefファイル名は原則維持する。 テスト証跡はdata/json/03_tests配下へ集約し、runtime生成物はtests/.runtimeへ隔離してZIPに含めない。",
+      "body": "FRB Studio / JSON Object Studio のAI作業では、原則として GitHub main の最新ソースを基準ソースとして扱う。\n\nユーザーは毎回ソースZIPを添付するのではなく、incident_file と phase を指定して作業を依頼できるようにする。\n\nAIは、指定された incident_file を読み、work_items[] から phase が一致する作業項目を探し、その objective / scope / user_request / latest_user_comment / decision_log / test_points を正として作業内容を判断する。\n\nphase が見つからない場合、または作業内容が特定できない場合は、推測で実装せず確認する。\n\n返却は原則ZIPとし、ZIP直下の基本階層は以下とする。\n\n- data/\n- defs/\n- wwwroot/\n\n修正したファイルは、FRBStudio_App配下と同じ相対パスで格納する。\n\n更新済みインシデント管理JSONは、必ず data/json/01_main/ に格納する。\n\nインシデントJSONには、AIが更新したファイル、変更理由、変更概要、確認ポイントを latest_ai_response / discussion_history / change_history へ残す。\n\nwwwroot/data と wwwroot/defs は公開用静的領域として扱い、明示依頼がない限り更新しない。\n\nProgram.cs など FRBStudio 本体側の更新が必要な場合は、返却前に配置方針と更新対象を明示する。\n\n理由:\n毎回ソースZIPを添付する運用では、依頼準備が重く、AIとの協働が作業単位ではなくファイル受け渡し単位になってしまう。\nGitHub main を基準ソースとし、インシデントJSONを作業台帳として使うことで、作業依頼、実装、返却、履歴記録を一つの運用契約として安定させるため。\n\n### GitHub取得URLの標準\n\nAIがGitHub上の基準ソースを取得する場合は、用途に応じて以下のURLを使い分ける。\n\n人間がブラウザで確認するためのtree/blob URL:\n\n- FRBStudio 本体: https://github.com/tamasub/FRB/tree/main/tools/FRBStudio\n- FRBStudio_App: https://github.com/tamasub/FRB/tree/main/tools/FRBStudio_App\n- Foundation Rules: https://github.com/tamasub/FRB/blob/main/tools/FRBStudio_App/data/json/00_rules/frb_foundation_rules_data_v0_1.json\n\nAIやスクリプトが直接取得するためのraw/archive URL:\n\n- リポジトリ main ZIP: https://github.com/tamasub/FRB/archive/refs/heads/main.zip\n- FRBStudio_App raw base: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/\n- FRBStudio 本体 raw base: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio/\n- Foundation Rules raw: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/data/json/00_rules/frb_foundation_rules_data_v0_1.json\n\nincident_file は FRBStudio_App からの相対パスとして扱う。\nたとえば `incident_file: data/json/01_main/studio_work_incident_data_xxx.json` が指定された場合、raw URL は以下の形式で解決する。\n\n`https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/{incident_file}`\n\n個別ファイルを直接取得できない場合、またはHTMLなど大きなファイルの完全取得が不安定な場合は、リポジトリ main ZIP を取得し、展開後の `FRB-main/tools/FRBStudio_App/` または `FRB-main/tools/FRBStudio/` を基準として作業する。\n\nGitHubのtree/blob URLは閲覧用であり、機械取得や完全ファイル取得にはraw URLまたはmain ZIPを優先する。\n\n---\n\n### ViewDef安定ファイル名契約\n\n既存Data JSONから参照されている ViewDef / DefView ファイルは、原則として同じファイル名のまま更新する。\n\nViewDefファイル名は単なる成果物名ではなく、以下をつなぐ接続キーである。\n\n- Data JSON の `view_def` 参照\n- URL起動リンク\n- GitHub Pages上の静的読込\n- GitDiffによる変更前後比較\n- 既存の作業履歴・記事リンク・説明文\n\nそのため、AIは通常のViewDef改善で `*_v0_5_*.json` のような新規ファイル名を勝手に作成しない。既存ViewDefを改修する場合は、同じ相対パス・同じファイル名で返却する。\n\n新しいViewDefファイル名を作成できるのは、ユーザーが明示的に新名を指定した場合、既存ViewDefとの互換性を意図的に切る場合、または旧ViewDefと新ViewDefを並行運用する明確な理由がある場合に限る。\n\nViewDefファイル名を変更する場合は、Data JSON側の `view_def` 参照更新、URL起動やGitHub Pagesへの影響、GitDiffで新規追加扱いになる理由を、該当インシデントの `decision_log` / `change_history` / `latest_ai_response` に記録する。\n\n---\n\n### Data JSON内ViewDef候補契約\n\nData JSON は、既定ViewDefとして top-level `view_def` を持つことができる。\n\n同じData JSONを複数のViewDefで確認したい場合は、追加で top-level `view_def_candidates` を持つ。\n\n推奨形は以下とする。\n\n```json\n{\n  \"view_def\": \"rules/main_view_def.json\",\n  \"view_def_candidates\": [\n    {\n      \"view_def\": \"rules/main_view_def.json\",\n      \"label\": \"標準表示\",\n      \"role\": \"default\",\n      \"status\": \"active\",\n      \"note\": \"通常利用するViewDef\"\n    },\n    {\n      \"view_def\": \"rules/relation_view_def.json\",\n      \"label\": \"リレーション確認\",\n      \"role\": \"relation\",\n      \"status\": \"active\",\n      \"note\": \"関連データ確認用\"\n    }\n  ]\n}\n```\n\nStudio の手動ViewDef切替UIは、Data JSONに `view_def` / `view_def_candidates` として明示されたViewDefだけを切替候補として扱う。\n\nこれにより、Data JSONから参照されていないViewDefを棚卸し対象として発見しやすくし、ViewDefの現役・旧版・診断用・削除候補の判断をData側の接続情報から追えるようにする。\n\n候補リストはViewDefファイル名変更の代替ではない。既存ViewDefの通常改修ではファイル名を変更せず、同名更新を原則とする。\n\n---\n\n### Data JSON内ViewDef候補の記述ルール\n\n`view_def_candidates` は ViewDef JSON 側の定義ではなく、Data JSON 側のメタ情報として扱う。\n\n`view_def_candidates[].view_def` は、`defs/` 配下からの相対パスで記述する。  \nそのため、値には `defs/` を付けない。\n\n例:\n\n```json\n{\n  \"view_def\": \"qa/qa_expected_checks_classified_view_def_v0_1.json\",\n  \"view_def_candidates\": [\n    {\n      \"view_def\": \"qa/qa_expected_checks_classified_view_def_v0_1.json\",\n      \"label\": \"標準表示\",\n      \"role\": \"default\",\n      \"status\": \"active\",\n      \"note\": \"通常利用するViewDef\"\n    },\n    {\n      \"view_def\": \"qa/qa_expected_checks_sample_view_def_v0_1.json\",\n      \"label\": \"リレーション確認用\",\n      \"role\": \"relation\",\n      \"status\": \"active\",\n      \"note\": \"関連データ確認用\"\n    }\n  ]\n}\n```\n\n`view_def` は既定ViewDefであり、通常読込時に最初に使用するViewDefを示す。\n\n`view_def_candidates` は、そのData JSONで手動切替を許可するViewDef候補を示す。\n\n`role` は候補ViewDefの用途を表す。まずは以下を標準候補とする。\n\n- `default`: 通常利用する標準表示\n- `relation`: 関連データ・リレーション確認用\n- `review`: レビュー用\n- `compare`: 比較用\n- `debug`: 診断・確認用\n\n`status` は候補ViewDefの利用状態を表す。まずは以下を標準候補とする。\n\n- `active`: 現役候補\n- `deprecated`: 旧版だが一時的に残す候補\n- `inactive`: 通常の手動切替候補には出さない候補\n\nStudio の手動ViewDef切替UIは、原則として `status: \"active\"` の候補を表示対象とする。\n\ntop-level `view_def` は、`view_def_candidates` 内の `role: \"default\"` または先頭候補と一致させることを推奨する。\n\nAIは、実体が存在しないViewDef、利用意図が不明な試作ViewDef、削除候補のViewDefを、ユーザー確認なしに `view_def_candidates` へ追加しない。\n\n`view_def_candidates` は、ViewDef棚卸しのための接続情報であり、Runtimeが全defsから自由に候補を探すための仕組みではない。\n\n\n---\n\n### v0.14.13 追記: 共通化・archive退避・安定ファイル名の返却契約\n\nAIは、構造・表示・検証・出力が共通化できるものについて、原則として共通化を優先する。\nただし、共通化により将来の拡張性、可読性、保守性、ドメイン固有の意味が苦しくなると判断される場合、AIは独断で進めず、人間へ相談する。\n\n古いデータ、旧パス、不要と思われるデータは、成果物ZIPのactive領域から削除して返却することを基本とする。\nただし、完全削除ではなく、ZIPルート直下の `_archive/{削除日時}/` 配下へ、元の相対パスが追える形で退避する。\n\n例:\n\n```text\n_archive/20260627_153000/data/json/03_tests/old_suite/...\n```\n\n旧パスをactive領域に残すと、存在するだけで正本と誤認される罠フォルダーになる。\nそのため、移行済み・不要・重複と判断したものは、activeから消し、archiveへ退避する。\n\nルール系ファイルおよびViewDefファイルは、参照元が多いため、原則として既存ファイル名を変更しない。\nルール本文やViewDef定義を修正する場合は、同じ相対パス・同じファイル名で更新する。\n新しい正本世代を作る、互換性を意図的に切る、旧版と並行運用するなど、ファイル名変更が必要な場合は、人間へ確認し、理由・影響範囲・参照更新をインシデントJSONへ記録する。\n\n---\n\n### v0.14.15 追記: Test Folder / Runtime生成物返却契約\n\nテスト証跡の正本は、原則として以下に集約する。\n\n```text\ndata/json/03_tests/{domain}/{suite_id}/\n├─ test_patterns/\n├─ expected/\n├─ actual/\n├─ diff/\n├─ relations/\n├─ summary/\n└─ notes/\n```\n\n`tests/` はテストを実行するコードの置き場であり、Expected / Actual / Diff などの証跡正本を置く場所ではない。\n\nPlaywright や Node test が実行時に生成する一時成果物は、root直下に生やさない。必要な場合は `tests/.runtime/` 配下へ隔離し、成果物ZIPには含めない。\n\n成果物ZIPには、原則として以下を含めない。\n\n```text\nnode_modules/\nplaywright-report/\ntest-results/\ntest_results/\ntests/.runtime/\ntests_screen_state/\n```\n\n旧パスや移行済みフォルダーはactive領域に残さず、必要に応じて `_archive/{削除日時}/` に退避する。runtime生成物は再生成可能な一時成果物であるため、原則としてarchive退避対象ではなく成果物から除外する。\n\nテストコードは、コード実行言語ごとに共通ランナーへ寄せることを基本とする。たとえば Node.js系は1つの共通 `.mjs`、Playwright系は1つの共通 `.spec.ts` で複数テストパターンを実行できる形を目指す。新しいテストケース追加時は、まずTest Pattern / Expected JSON の追加で対応し、テストコードファイルをケースごとに増やさない。過剰共通化により将来苦しくなる場合は、人間へ相談する。",
       "ceremony_phrase": "Foundation Rule 19「GitHub基準ソースとZIP返却契約」をレビューする。",
       "user_comment": "",
       "ai_response": "",
@@ -685,6 +656,22 @@
           "before": "Data JSON内ViewDef候補契約には、view_def_candidates の基本形は記載済みだったが、defs/配下相対パス、role/status、active候補、既定ViewDefとの一致条件などの実務記述が不足していた。",
           "after": "Data JSON内ViewDef候補の記述ルールを追記し、view_def_candidates はData JSON側メタ情報であること、defs/を付けない相対パスで書くこと、role/statusの標準候補、active候補の扱い、実体なしViewDefを候補に入れないことを明記。",
           "reason": "v0.14.1-data-viewdef-candidates の実運用確認で、候補パスや表示対象の判断ルールをFoundation Rulesに残す必要が見えたため。"
+        },
+        {
+          "history_id": "chg_foundation_rule_019_v01413_001",
+          "at": "2026-06-27",
+          "change_type": "body_append",
+          "before": "GitHub基準ソースとZIP返却契約には、共通化優先、不要データの_archive退避、ルール系ファイル名維持を統合した返却契約が明文化されていなかった。",
+          "after": "v0.14.13追記として、共通化できるものは共通化、過剰共通化は人間相談、旧パス・不要データはactiveから削除して_archive/{削除日時}/へ退避、ルール/ViewDefは原則同名更新とする契約を追加。",
+          "reason": "Step 4-A/4-Bで旧パス罠フォルダー、Actual/Diff契約、ViewDefファイル名変更の副作用が明確になったため。"
+        },
+        {
+          "history_id": "chg_foundation_rule_019_v01415_001",
+          "at": "2026-06-27",
+          "change_type": "body_append",
+          "before": "GitHub基準ソースとZIP返却契約には、03_tests正本階層、runtime生成物除外、コード実行言語ごとのテストコード共通化原則が明文化されていなかった。",
+          "after": "v0.14.15追記として、data/json/03_tests/{domain}/{suite_id}/ を証跡正本、tests/ を実行コード、tests/.runtime/ を一時生成物置き場とし、成果物ZIPからruntime生成物を除外する契約を追加。あわせて、テストコードは実行言語ごとに共通ランナーへ寄せる原則を追加。",
+          "reason": "旧パス罠フォルダー、Playwright生成物の混入、テストケースごとのコード増殖を防ぎ、Expected/Actual/Diff証跡を安定してStudioくんで確認できるようにするため。"
         }
       ],
       "decision_log": [
@@ -693,11 +680,177 @@
           "at": "2026-06-26",
           "decision": "view_def_candidates はData JSON側のメタ情報とし、候補ViewDefのパスは defs/ 配下からの相対パスで記述する。",
           "reason": "Data JSONとViewDefの接続関係をData側で明示しつつ、defs/付きパスとdefs/なしパスが混在して手動切替UIに重複表示される事故を避けるため。"
+        },
+        {
+          "decision_id": "dec_foundation_rule_019_v01413_001",
+          "at": "2026-06-27",
+          "decision": "旧パス・不要データはactiveに残さず、_archive/{削除日時}/へ退避する。",
+          "reason": "active領域に残る旧パスは、Studioのファイルツリーや人間確認で正本と誤認される罠フォルダーになるため。"
+        },
+        {
+          "decision_id": "dec_foundation_rule_019_v01415_001",
+          "at": "2026-06-27",
+          "decision": "テスト証跡はdata/json/03_tests配下、テストコードはtests配下、runtime生成物はtests/.runtime配下へ分離する。",
+          "reason": "証跡正本・実行コード・一時生成物を混ぜると、旧パス誤認やZIP混入事故が再発するため。"
+        }
+      ],
+      "updated_at": "2026-06-27"
+    },
+    {
+      "no": 20,
+      "rule_id": "foundation_rule_020",
+      "section_no": "20",
+      "source_heading": "## 20. 共通化・archive退避・ファイル名維持原則",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "運用",
+      "title": "共通化・archive退避・ファイル名維持原則",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "共通化できるものは原則共通化し、やりすぎで将来苦しくなる場合は人間へ相談する。古いデータ・不要データはactiveから削除して_archiveへ退避し、ルール系ファイルおよびViewDefは原則同じファイル名で更新する。",
+      "body": "共通化できるものは、原則として共通化する。\n\nただし、共通化によって将来の拡張性・可読性・保守性・ドメイン固有の意味が苦しくなると判断される場合、AIは独断で共通化を進めず、人間へ相談する。\n\n古いデータ・不要と思われるデータは、成果物のactive領域から削除して返却することを基本とする。\nただし、完全削除ではなく、ルートの `_archive` フォルダー配下に削除日時フォルダーを作成し、元の相対パスが追える形で退避する。\n\n例:\n\n```text\n_archive/20260627_153000/data/json/03_tests/old_path/...\n```\n\n旧パスや不要データをactive領域に残すと、存在するだけで正本と誤認される可能性がある。\nそのため、削除対象はactiveから外し、archiveへ退避したうえで、何を退避したかをインシデントJSONの `change_history` / `latest_ai_response` に残す。\n\nルール系統およびViewDefを修正する場合は、原則としてファイル名を変更しない。\nこれは、Data JSONの `view_def` 参照、URL起動、GitHub raw URL、GitDiff確認、作業履歴、記事リンクなど、参照元が多いためである。\n\n新しい正本世代を作る、互換性を切る、旧版と並行運用するなどの理由でファイル名変更が必要な場合は、人間に確認し、理由・影響範囲・参照更新をインシデントJSONへ記録する。",
+      "ceremony_phrase": "旧パスを残すな。だが、歴史は捨てるな。archiveへ送れ。",
+      "user_comment": "",
+      "ai_response": "v0.14.13-foundation-commonization-archive-filename-policy により追加。共通化優先、過剰共通化時の人間相談、不要データの_archive退避、ルール/ViewDefファイル名維持をFoundation Rulesの運用原則として定義。",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "",
+      "approved_at": "",
+      "notes": "今回、添付ZIP内のFoundation Rulesファイル名がGitHub raw契約上の安定名と異なっていたため、active側は安定名へ復元し、旧ファイル名は_archiveへ退避した。",
+      "source_line_start": "",
+      "source_md_file": "FRB_STUDIO_FOUNDATION_RULES_v0_1_draft.md",
+      "introduced_in": "v0.14.13-foundation-commonization-archive-filename-policy",
+      "change_history": [
+        {
+          "history_id": "chg_foundation_rule_020_v01413_001",
+          "at": "2026-06-27",
+          "change_type": "rule_added",
+          "before": "共通化優先、archive退避、ルール/ViewDefファイル名維持がFoundation Rules上で一つの作業原則としてまとまっていなかった。",
+          "after": "foundation_rule_020として、共通化・archive退避・ファイル名維持原則を追加。",
+          "reason": "今回のテスト証跡整理で、共通フォーマット化、旧パス罠フォルダー、ファイル名変更による参照元修正のリスクが明確になったため。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_foundation_rule_020_v01413_001",
+          "at": "2026-06-27",
+          "decision": "共通化できるものは共通化するが、やりすぎる前に人間へ相談する。",
+          "reason": "共通化は強力だが、ドメイン差分を消しすぎると将来の拡張性・可読性を損なうため。"
+        },
+        {
+          "decision_id": "dec_foundation_rule_020_v01413_002",
+          "at": "2026-06-27",
+          "decision": "不要データはactiveから削除し、_archive/{削除日時}/へ退避する。",
+          "reason": "削除履歴を残しつつ、active領域に罠フォルダーや旧正本候補を残さないため。"
+        }
+      ]
+    },
+    {
+      "no": 21,
+      "rule_id": "foundation_rule_021",
+      "section_no": "21",
+      "source_heading": "21. Test Evidence / Expected-Actual-Diff 責務分離契約",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "テスト証跡",
+      "title": "Test Evidence / Expected-Actual-Diff 責務分離契約",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "テスト証跡では、Expected JSONを期待値の正本、Actual JSONを観測値のみ、Diff JSONを比較結果、Test Codeを実行する仕掛けとして責務分離する。",
+      "body": "FRB Studio / JSON Object Studio のテスト証跡では、Expected / Actual / Diff / Test Code の責務を明確に分離する。\n\n```text\nExpected JSON = 期待値の正本\nActual JSON   = 実行時に観測した値のみ\nDiff JSON     = Expected と Actual の比較結果\nTest Code     = 実行する仕掛け\n```\n\nExpected JSONは、期待値の正本である。Test Codeは期待値を直書きせず、Expected JSONを読み込んで比較する。\n\nActual JSONは、実行時に観測した値のみを保持する。actual.jsonには、原則として expected / pass / resultLabel / summary / failedCount / failedCheckIds / firstFailure を持たせない。\n\nDiff JSONは、ExpectedとActualの比較結果を保持する。diff.jsonは、expected / actual / pass / resultLabel / summary / failedCount / failedCheckIds / firstFailure / checks[] を持ち、Studioくんで失敗内容を確認する正本になる。\n\nテストがfailする場合でも、assertより前に actual.json と diff.json を保存する。\n\n```text\nテストはfailしてよい。\nでもDiffは残れ。\n```\n\n詳細なテスト証跡ルールの正本は、以下のData JSONで管理する。\n\n```text\ndata/json/00_rules/frb_test_evidence_rules_data_v0_1.json\n```\n\nこの契約は、QA / Screen State / ViewDef静的検証など、Expected / Actual / Diff 構造を持つテスト証跡に適用する。\n過剰適用により将来苦しくなると判断される場合は、AIが独断で拡張せず、人間へ相談する。",
+      "ceremony_phrase": "Foundation Rule 21「Test Evidence / Expected-Actual-Diff 責務分離契約」をレビューする。",
+      "user_comment": "",
+      "ai_response": "v0.14.14-test-evidence-rules-contract により追加。Expected / Actual / Diff / Test Code の責務分離と、Diff出力後assertの原則をFoundation Rulesへ反映。",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "",
+      "approved_at": "",
+      "notes": "詳細ルールは frb_test_evidence_rules_data_v0_1.json を正本として管理する。",
+      "source_line_start": "",
+      "source_md_file": "FRB_STUDIO_FOUNDATION_RULES_v0_1_draft.md",
+      "introduced_in": "v0.14.14-test-evidence-rules-contract",
+      "change_history": [
+        {
+          "history_id": "chg_foundation_rule_021_v01414_001",
+          "at": "2026-06-27",
+          "change_type": "rule_added",
+          "before": "Expected / Actual / Diff / Test Code の責務分離がFoundation Rules上で明文化されていなかった。",
+          "after": "foundation_rule_021として、Test Evidence / Expected-Actual-Diff 責務分離契約を追加。",
+          "reason": "TP-IPC-001でactual.jsonにexpected/pass/summaryが混在し、diff.jsonの責務が曖昧になったため。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_foundation_rule_021_v01414_001",
+          "at": "2026-06-27",
+          "decision": "Expected / Actual / Diff / Test Code の責務をFoundation Rulesで固定する。",
+          "reason": "テスト証跡の名前と役割を揃え、AIと人間が失敗理由を追体験できる状態を作るため。"
+        },
+        {
+          "decision_id": "dec_foundation_rule_021_v01414_002",
+          "at": "2026-06-27",
+          "decision": "assertはactual/diff保存後に行う。",
+          "reason": "テストがfailした時にdiff.jsonが出力されないと、Studioくんで失敗理由を確認できないため。"
+        }
+      ]
+    },
+    {
+      "no": 22,
+      "rule_id": "foundation_rule_022",
+      "section_no": "22",
+      "source_heading": "Test Folder / Archive / Runtime生成物隔離契約",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "folder_policy",
+      "title": "Test Folder / Archive / Runtime生成物隔離契約",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "テスト証跡は data/json/03_tests/{domain}/{suite_id}/ を正本とし、テストコードは tests/、runtime一時生成物は tests/.runtime/ に分離する。旧パスはactiveから除去し、必要に応じて_archiveへ退避する。テストコードは実行言語ごとの共通ランナーへ寄せる。",
+      "body": "Test Folder / Archive / Runtime生成物の扱いは、以下を基本契約とする。\n\n```text\ndata/json/03_tests/ = Studioくんで見るテスト証跡の正本\ntests/              = テストを実行するコード\ntests/.runtime/     = Playwright / Node test などの一時生成物\n_archive/           = activeから外した旧データ・不要データの退避先\n```\n\n## 1. テスト証跡の正本\n\nExpected / Actual / Diff / Test Pattern / Relations / Summary / Notes は、原則として以下の構造へ集約する。\n\n```text\ndata/json/03_tests/{domain}/{suite_id}/\n├─ test_patterns/\n├─ expected/\n├─ actual/\n├─ diff/\n├─ relations/\n├─ summary/\n└─ notes/\n```\n\n例:\n\n```text\ndata/json/03_tests/qa/v0_14_2_incident_prompt_copy_action/\ndata/json/03_tests/screen_state/screen_state_smoke_001/\n```\n\n## 2. テストコードの置き場\n\nテストコードは `tests/` 配下へ置く。\n`tests/` は実行する仕掛けの置き場であり、Expected / Actual / Diff の正本置き場ではない。\n\nテストコードは、コード実行言語ごとに1つの共通ランナーへ寄せることを基本とする。\n\n例:\n\n```text\ntests/qa/static/incident_prompt_copy_action_viewdef_static.test.mjs\ntests/screen_state/ncjs-screen-state-compare.checks.spec.ts\n```\n\n新しいテストケースを追加する場合、まず Test Pattern / Expected JSON の追加で対応し、ケースごとにテストコードファイルを増やさない。\nただし、ドメイン差分や実行方式の違いを吸収しすぎて将来苦しくなる場合は、人間へ相談する。\n\n## 3. runtime一時生成物の隔離\n\nPlaywright や Node test が実行時に生成する一時ファイルは、root直下に出さない。\n必要な場合は `tests/.runtime/` 配下へ隔離する。\n\n成果物ZIPには、原則として以下を含めない。\n\n```text\nnode_modules/\nplaywright-report/\ntest-results/\ntest_results/\ntests/.runtime/\ntests_screen_state/\n```\n\nruntime生成物は再生成可能な一時成果物であり、原則として `_archive` 退避対象ではない。\n\n## 4. 旧パスの扱い\n\n移行済み旧パスや不要データは、active領域に残さない。\nただし、削除対象が人間またはAIの判断履歴として残すべきデータである場合は、完全削除せず `_archive/{削除日時}/` 配下へ元の相対パスが追える形で退避する。\n\n旧パスをactiveに残すと、ファイルが出ていないのではなく、別の旧フォルダーを見ていたという誤認が起きる。\n\n```text\n旧パスを残すな。\n旧パスは罠フォルダーになる。\n```\n\n## 5. cleanupスクリプト\n\nruntime生成物や旧runtimeフォルダーは、必要に応じて `tests/tools/cleanup_runtime_artifacts.ps1` で掃除する。\nこのスクリプトは再生成可能な一時生成物を削除するためのものであり、Expected / Actual / Diff などの証跡正本を削除してはいけない。",
+      "ceremony_phrase": "旧パスを残すな。旧パスは罠フォルダーになる。",
+      "user_comment": "",
+      "ai_response": "v0.14.15で、03_tests正本、tests実行コード、tests/.runtime一時生成物、_archive退避の責務分離を追加。あわせて、テストコードは実行言語ごとに共通ランナーへ寄せる方針を追加。",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "tamasub",
+      "approved_at": "2026-06-27",
+      "notes": "runtime生成物は再生成可能なため、成果物ZIPから除外し、原則としてarchive退避対象にはしない。",
+      "source_line_start": 0,
+      "source_md_file": "",
+      "introduced_in": "v0.14.15-test-folder-archive-runtime-policy",
+      "change_history": [
+        {
+          "history_id": "chg_foundation_rule_022_v01415_001",
+          "at": "2026-06-27",
+          "change_type": "rule_added",
+          "before": "03_tests正本、tests実行コード、tests/.runtime隔離、旧パスarchive退避、実行言語ごとのテストコード共通化がFoundation Rules上で一つの契約としてまとまっていなかった。",
+          "after": "foundation_rule_022として、Test Folder / Archive / Runtime生成物隔離契約を追加。",
+          "reason": "テスト証跡と実行コードと一時生成物を分離し、旧パス罠フォルダーとZIP混入事故を防ぐため。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_foundation_rule_022_v01415_001",
+          "at": "2026-06-27",
+          "decision": "テストコードは実行言語ごとの共通ランナーへ寄せることを基本とする。",
+          "reason": "テストケースごとにコードファイルを増やすと、Expected JSONを正本として育てる文化が弱まり、テストコード側へ期待値や分岐が肥大化するため。"
+        },
+        {
+          "decision_id": "dec_foundation_rule_022_v01415_002",
+          "at": "2026-06-27",
+          "decision": "runtime生成物は成果物ZIPに含めず、必要ならtests/.runtimeへ隔離する。",
+          "reason": "Playwrightレポートや添付ファイルは長いパス名・ノイズ・誤認の原因になるため。"
         }
       ]
     }
   ],
-  "updated_at": "2026-06-26",
+  "updated_at": "2026-06-27",
   "review_notes": [
     {
       "note_id": "note_v012_reporting_policy",
@@ -722,9 +875,31 @@
       "at": "2026-06-26",
       "title": "v0.14.1 Data JSON内ViewDef候補契約",
       "body": "Data JSONの top-level view_def を既定ViewDef、view_def_candidates を手動切替候補として扱う。候補パスは defs/ 配下からの相対パスで書き、defs/ は付けない。候補はDataとViewDefの接続情報として扱い、未参照ViewDefの棚卸しに使う。"
+    },
+    {
+      "note_id": "note_01413_001",
+      "title": "v0.14.13 共通化・archive退避・ファイル名維持原則",
+      "body": "共通化可能なものは共通化する。ただし過剰共通化で将来苦しくなる場合は人間へ相談する。古いデータ・不要データはactiveから削除し、_archive/{削除日時}/へ退避する。ルール系ファイルおよびViewDefは原則同じファイル名で更新する。"
+    },
+    {
+      "note_id": "note_01413_002",
+      "title": "Foundation Rulesファイル名をGitHub raw契約へ復元",
+      "body": "添付ZIP内ではFoundation Rulesが viewdef_candidates_rule_added 付きの派生名になっていた。foundation_rule_019のraw URL契約と今回のファイル名維持原則に合わせ、active側は frb_foundation_rules_data_v0_1.json へ復元し、派生名ファイルは_archiveへ退避した。"
+    },
+    {
+      "note_id": "note_foundation_v01414_001",
+      "at": "2026-06-27",
+      "title": "Test Evidence契約をFoundation Rulesへ追加",
+      "body": "Expected JSON / Actual JSON / Diff JSON / Test Code の責務分離を foundation_rule_021 として追加し、詳細ルールの正本を frb_test_evidence_rules_data_v0_1.json とした。"
+    },
+    {
+      "note_id": "note_foundation_v01415_001",
+      "at": "2026-06-27",
+      "topic": "Test Folder / Archive / Runtime生成物隔離契約",
+      "note": "v0.14.15で、03_tests正本、tests実行コード、tests/.runtime一時生成物、_archive退避、実行言語ごとのテストコード共通化をFoundation Rulesへ追加。"
     }
   ],
-  "review_revision": "v0.14.1-data-viewdef-candidates",
+  "review_revision": "v0.14.14-test-evidence-rules-contract",
   "view_def_candidates": [
     {
       "view_def": "rules/rule_review_common_view_def_v0_3.json",

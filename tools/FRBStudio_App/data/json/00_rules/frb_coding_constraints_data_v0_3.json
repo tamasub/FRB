@@ -711,8 +711,8 @@
       "approval_stamp": "",
       "approved_by": "",
       "approved_at": "",
-      "summary": "AI協働では、作業対象ファイル・確認種別・完了報告・ViewDef安定ファイル名をインシデントJSONに残す。",
-      "body": "AI が Studio のコードを変更する場合、AI は次を守る。\n\n1. まずこの文書を読む\n2. 関係する設計原則を確認する\n3. 変更意図を簡潔に説明する\n4. 無関係な変更をしない\n5. 差分を小さく保つ\n6. 既存動作を守る\n7. Data / ViewDef / Action の分離を優先する\n8. 不確実な点を報告する\n\n---\n\n---\n\n---\n\n### v0.12追記：AI作業対象ファイルとインシデント回答記録\n\nAIがコード、Data JSON、Defs JSON、Rules JSON、Incident JSON、Markdownプロンプト等を更新した場合、更新したファイル名、変更理由、変更概要、対応結果を該当インシデントJSONへ記録する。\n\n記録は、まず既存フィールドや自然文で扱える範囲を優先する。管理項目を増やしすぎず、必要に応じて `target_files`、`latest_ai_response`、`discussion_history`、`change_history` などへテキストとして残す。\n\nroot `data/` / `defs/` は一律変更禁止ではない。作業目的に必要な場合、AIは更新してよい。特に `data/json/01_main/studio_work_incident_data_*.json` のようなインシデント管理データは、作業結果を収録する対象になり得る。\n\nただし、AIが更新したファイル・変更理由・実施結果は、人間が後から追える形で開示する。\n\n一方、`wwwroot/data` / `wwwroot/defs` は GitHub Pages 等の公開用静的領域として扱うため、明示依頼がない限り更新しない。\n\nインシデント対応後のAI完了報告は、会話上だけに流さず、該当インシデントJSONの `latest_ai_response` 等にも残す。\n\n---\n\n### v0.14追記：判断ログ・確認種別・最新ソース・ViewDef安定ファイル名\n\nAIが判断ログを残す場合は、`decision` / `reason` だけで終わらせず、必要に応じて `applied_axes`、`conditions`、`exceptions`、`expected_behavior`、`acceptance_criteria`、`test_pattern_seed`、`discarded_options`、`remaining_risks`、`axis_update_candidate` を残す。\n\nAIが「確認した」と報告する場合は、確認種別を明示する。少なくとも、静的確認、JSON parse、ビルド確認、ローカル起動確認、スクショ確認、Playwright確認、推定確認、ユーザー実機確認待ちを混同しない。\n\nC# / .NET / Program.cs の修正では、AI側の `dotnet build` / `dotnet run` を必須にしない。ただし、実施したか、未実施か、未実施なら理由をインシデントJSONの作業記録へ残す。\n\nAIは、最新ソースを実ファイルとして確認できない場合、実装修正を行わない。会話文脈、前回チャットの記憶、過去のファイル名を、最新ソース確認の代替として扱わない。\n\n既存Data JSONから参照されている ViewDef / DefView ファイルは、原則として同じファイル名のまま更新する。ViewDefファイル名は、Data JSON の `view_def` 参照、URL起動、GitHub Pages、GitDiff確認の接続キーである。\n\nAIは、通常のViewDef改善・表示項目追加・Markdown出力設定変更などで、新しいViewDefファイル名を勝手に作成しない。新しいViewDef名を作成してよいのは、ユーザーが明示した場合、互換性を意図的に切る場合、または既存ViewDefと並行運用する明確な理由がある場合に限る。その場合も、Data JSON側の `view_def` 参照更新、影響範囲、GitDiff上の扱いをインシデントに記録する。\n",
+      "summary": "AI協働では、作業対象ファイル・確認種別・完了報告・ViewDef安定ファイル名をインシデントJSONに残す。共通化できるものは共通化を優先し、過剰共通化は人間へ相談する。不要データはactiveから削除し_archiveへ退避する。",
+      "body": "AI が Studio のコードを変更する場合、AI は次を守る。\n\n1. まずこの文書を読む\n2. 関係する設計原則を確認する\n3. 変更意図を簡潔に説明する\n4. 無関係な変更をしない\n5. 差分を小さく保つ\n6. 既存動作を守る\n7. Data / ViewDef / Action の分離を優先する\n8. 不確実な点を報告する\n\n---\n\n---\n\n---\n\n### v0.12追記：AI作業対象ファイルとインシデント回答記録\n\nAIがコード、Data JSON、Defs JSON、Rules JSON、Incident JSON、Markdownプロンプト等を更新した場合、更新したファイル名、変更理由、変更概要、対応結果を該当インシデントJSONへ記録する。\n\n記録は、まず既存フィールドや自然文で扱える範囲を優先する。管理項目を増やしすぎず、必要に応じて `target_files`、`latest_ai_response`、`discussion_history`、`change_history` などへテキストとして残す。\n\nroot `data/` / `defs/` は一律変更禁止ではない。作業目的に必要な場合、AIは更新してよい。特に `data/json/01_main/studio_work_incident_data_*.json` のようなインシデント管理データは、作業結果を収録する対象になり得る。\n\nただし、AIが更新したファイル・変更理由・実施結果は、人間が後から追える形で開示する。\n\n一方、`wwwroot/data` / `wwwroot/defs` は GitHub Pages 等の公開用静的領域として扱うため、明示依頼がない限り更新しない。\n\nインシデント対応後のAI完了報告は、会話上だけに流さず、該当インシデントJSONの `latest_ai_response` 等にも残す。\n\n---\n\n### v0.14追記：判断ログ・確認種別・最新ソース・ViewDef安定ファイル名\n\nAIが判断ログを残す場合は、`decision` / `reason` だけで終わらせず、必要に応じて `applied_axes`、`conditions`、`exceptions`、`expected_behavior`、`acceptance_criteria`、`test_pattern_seed`、`discarded_options`、`remaining_risks`、`axis_update_candidate` を残す。\n\nAIが「確認した」と報告する場合は、確認種別を明示する。少なくとも、静的確認、JSON parse、ビルド確認、ローカル起動確認、スクショ確認、Playwright確認、推定確認、ユーザー実機確認待ちを混同しない。\n\nC# / .NET / Program.cs の修正では、AI側の `dotnet build` / `dotnet run` を必須にしない。ただし、実施したか、未実施か、未実施なら理由をインシデントJSONの作業記録へ残す。\n\nAIは、最新ソースを実ファイルとして確認できない場合、実装修正を行わない。会話文脈、前回チャットの記憶、過去のファイル名を、最新ソース確認の代替として扱わない。\n\n既存Data JSONから参照されている ViewDef / DefView ファイルは、原則として同じファイル名のまま更新する。ViewDefファイル名は、Data JSON の `view_def` 参照、URL起動、GitHub Pages、GitDiff確認の接続キーである。\n\nAIは、通常のViewDef改善・表示項目追加・Markdown出力設定変更などで、新しいViewDefファイル名を勝手に作成しない。新しいViewDef名を作成してよいのは、ユーザーが明示した場合、互換性を意図的に切る場合、または既存ViewDefと並行運用する明確な理由がある場合に限る。その場合も、Data JSON側の `view_def` 参照更新、影響範囲、GitDiff上の扱いをインシデントに記録する。\n\n\n---\n\n### v0.14.13追記：共通化・archive退避・ファイル名維持\n\nAIは、構造・表示・検証・出力が共通化できるものについて、原則として共通化を優先する。\n\nただし、共通化によって将来の拡張性・可読性・保守性・ドメイン固有の意味が苦しくなると判断される場合、AIは独断で進めず、人間へ相談する。\n\n古いデータ・不要と思われるデータ・移行済み旧パスは、成果物のactive領域から削除して返却することを基本とする。\nただし、完全削除ではなく、ルートの `_archive/{削除日時}/` 配下へ、元の相対パスが追える形で退避する。\n\nルール系統およびViewDefを修正する場合は、原則としてファイル名を変更しない。\n既存参照、URL起動、GitHub raw URL、GitDiff確認、作業履歴を壊さないためである。\n\nファイル名変更が必要な場合は、人間へ確認し、理由・影響範囲・参照更新をインシデントJSONへ記録する。",
       "ceremony_phrase": "Studioくん憲法 第20条「AI協働ルール」を承認する。",
       "user_comment": "",
       "ai_response": "",
@@ -745,9 +745,17 @@
           "before": "判断ログ標準項目、AI確認種別、最新ソース確認、ViewDef安定ファイル名の運用ルールがAI協働ルールにまとまっていなかった。",
           "after": "v0.14追記として、判断ログ拡張、確認種別明示、C#実行確認非必須だが記録必須、最新ソース未確認時の実装修正禁止、ViewDefファイル名原則維持を追加。",
           "reason": "v0.14.0-decision-log-confirmation-governance により、AI作業の透明性とGitDiff/参照安定性を守るため。"
+        },
+        {
+          "history_id": "chg_constitution_20_v01413_001",
+          "at": "2026-06-27",
+          "change_type": "body_append",
+          "before": "共通化優先、過剰共通化時の人間相談、不要データの_archive退避、ルール/ViewDefファイル名維持がAI協働ルールにまとまっていなかった。",
+          "after": "v0.14.13追記として、共通化優先・人間相談・archive退避・ファイル名維持を追加。",
+          "reason": "Step 4-A/4-Bで、JSを広げるよりデータ契約を揃えること、旧パスを残す危険、ViewDef/Ruleファイル名変更の副作用が明確になったため。"
         }
       ],
-      "updated_at": "2026-06-26",
+      "updated_at": "2026-06-27",
       "section_no": "20",
       "parent_rule_id": "",
       "source_heading": "20. AI協働ルール",
@@ -755,7 +763,14 @@
       "source_line_start": 0,
       "source_md_file": "CODING_CONSTRAINTS_ja.md",
       "introduced_in": "0.1-draft",
-      "decision_log": []
+      "decision_log": [
+        {
+          "decision_id": "dec_constitution_20_v01413_001",
+          "at": "2026-06-27",
+          "decision": "共通化は原則優先するが、過剰共通化の疑いがある場合は人間へ相談する。",
+          "reason": "AIが一見きれいな共通化を進めすぎると、将来のドメイン差分や意味の違いを潰す可能性があるため。"
+        }
+      ]
     },
     {
       "no": 21,
@@ -809,7 +824,16 @@
       "user_reply": "",
       "ai_followup_response": "",
       "notes": "",
-      "change_history": [],
+      "change_history": [
+        {
+          "history_id": "chg_constitution_22_v01413_001",
+          "at": "2026-06-27",
+          "change_type": "constitution_principle_confirmed",
+          "before": "Studio憲法には、共通化・archive退避・ファイル名維持の具体運用が明文化されていなかった。",
+          "after": "constitution_20およびFoundation Rules側にv0.14.13原則として反映し、Studio憲法の運用原則として扱うことを確認。",
+          "reason": "この文書全体がStudioくんの憲法であり、AI協働ルール側の具体原則と整合させるため。"
+        }
+      ],
       "section_no": "22",
       "parent_rule_id": "",
       "source_heading": "22. Studio憲法",
@@ -881,10 +905,15 @@
       "note_id": "note_006",
       "title": "v0.12 AI更新ファイル記録とインシデント回答の保存",
       "body": "AIがコード、Data/Defs/Rules/Incident、Markdownプロンプト等を更新した場合、更新ファイル名・変更理由・実施結果を該当インシデントJSONへ記録する。まずは既存フィールドや自然文で扱える範囲を優先し、管理項目を増やしすぎない。root data/defs は必要時更新可、wwwroot/data・wwwroot/defs は公開用静的領域として明示依頼がない限り更新しない。"
+    },
+    {
+      "note_id": "note_01413_001",
+      "title": "v0.14.13 共通化・archive退避・ファイル名維持をAI協働ルールへ追加",
+      "body": "constitution_20へ、共通化優先、過剰共通化時の人間相談、不要データの_archive退避、ルール/ViewDefファイル名維持を追加した。"
     }
   ],
-  "review_revision": "v0.14.0-decision-log-confirmation-governance",
-  "updated": "2026-06-26",
+  "review_revision": "v0.14.13-foundation-commonization-archive-filename-policy",
+  "updated": "2026-06-27",
   "change_history_policy": "レビューで条文・仕様を変更した場合は、対象行の change_history に変更前・変更後・理由・会話を保存する。変更後だけを残さず、修正元を追体験できる状態にする。",
   "viewing_policy": {
     "data_json_role": "原本",

@@ -4,7 +4,7 @@
     "version": "0.3-draft-relation-generic-012"
   },
   "dataSources": {
-    "constraints": "00_rules/ai_constraint_spec_aggregated_v0_6_footer_chat.json",
+    "constraints": "00_rules/frb_constraint_spec_v0_6.json",
     "tests": "03_screen_state/screen_state_test_patterns_data_v0_2_chat.json",
     "diff": "03_screen_state/screen_state_smoke_001.diff.json",
     "relations": "03_screen_state/constraint_trace_relations_v0_1.json"

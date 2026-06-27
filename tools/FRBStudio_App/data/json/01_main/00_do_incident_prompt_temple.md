@@ -5,7 +5,7 @@
 作業ルール:
 
 AIやスクリプトが直接取得するためのraw/archive URL:
-- Foundation Rules raw: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/data/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json
+- Foundation Rules raw: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/data/json/00_rules/frb_foundation_rules_data_v0_1.json
 
 - リポジトリ main ZIP: https://github.com/tamasub/FRB/archive/refs/heads/main.zip
 - FRBStudio_App raw base: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/

@@ -990,7 +990,7 @@
             "aiPrompt": {
               "enabled": true,
               "title": "ルールレビュー コメント生成プロンプト",
-              "targetFile": "frb_viewdef_generation_rules_review_data_v0_1.json",
+              "targetFile": "frb_viewdef_generation_rules_data_v0_1.json",
               "rowSource": "filtered",
               "visibleOnly": true,
               "includeGridJson": true,

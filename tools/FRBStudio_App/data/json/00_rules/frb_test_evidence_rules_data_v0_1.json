@@ -1,0 +1,506 @@
+{
+  "view_def": "rules/rule_review_common_view_def_v0_3.json",
+  "schema_version": "rule_review_data_v0_1",
+  "document_type": "rule_review_data",
+  "domain": "test_evidence_rules",
+  "title": "FRB Studio Test Evidence Rules Review Data",
+  "target": "FRB Studio / JSON Object Studio / Test Evidence / Expected-Actual-Diff",
+  "source_document": "FRB_TEST_EVIDENCE_RULES_v0_1_draft",
+  "source_version": "v0.1",
+  "conversion_note": "Expected JSON / Actual JSON / Diff JSON / Test Code の責務分離を、共通ルールレビューViewDefで扱えるように rules 配列へ構造化したData JSON。Markdownは原本ではなく、このJSONの出力Viewとして扱う想定。",
+  "status": "",
+  "introduced_in": "v0.14.14-test-evidence-rules-contract",
+  "generated_at": "2026-06-27T00:00:00+09:00",
+  "updated_at": "2026-06-27",
+  "rule_count": 11,
+  "approved_count": 11,
+  "approval_policy": "Expected / Actual / Diff / Test Code の責務を1行ずつレビューし、AI駆動開発におけるテスト証跡契約として運用する。",
+  "preamble": "Test Evidence Rulesは、テスト失敗時にも人間とAIが失敗理由を追体験できるように、Expected / Actual / Diff / Test Code の責務境界を定義する。",
+  "change_history_policy": "ルールを変更した場合は、各rule.change_historyへ変更前後と理由を残す。",
+  "viewing_policy": "rule_review_common_view_def_v0_3.jsonでレビューし、必要に応じてMarkdown Exportする。",
+  "rules": [
+    {
+      "no": 1,
+      "rule_id": "test_evidence_rule_001",
+      "section_no": "1",
+      "source_heading": "1. Expected / Actual / Diff / Test Code の責務分離",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "",
+      "title": "Expected / Actual / Diff / Test Code の責務分離",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "Expected JSONは期待値の正本、Actual JSONは観測値のみ、Diff JSONは比較結果、Test Codeは実行する仕掛けとして扱う。",
+      "body": "Test Evidence では、以下の責務を混ぜない。\n\n```text\nExpected JSON = 期待値の正本\nActual JSON   = 実行時に観測した値のみ\nDiff JSON     = Expected と Actual の比較結果\nTest Code     = 実行する仕掛け\n```\n\nExpected / Actual / Diff / Test Code の責務を分けることで、テスト失敗時にも「何を期待し、何が観測され、どこが違ったのか」をStudioくんで追体験できるようにする。\n\nActual JSON に expected / pass / summary を混ぜない。Diff JSON に観測値だけを置いて終わらせない。Test Code に期待値を直書きしない。\n\nこの分離は、AI駆動開発における証跡文化の基本契約である。\n",
+      "ceremony_phrase": "Test Evidence Rule 1「Expected / Actual / Diff / Test Code の責務分離」をレビューする。",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "",
+      "approved_at": "",
+      "notes": "",
+      "source_line_start": 0,
+      "source_md_file": "FRB Test Evidence Rules",
+      "introduced_in": "v0.14.14-test-evidence-rules-contract",
+      "change_history": [
+        {
+          "history_id": "chg_test_evidence_rule_001_v01414_001",
+          "at": "2026-06-27",
+          "change_type": "rule_added",
+          "before": "テスト証跡ルールとして未定義。",
+          "after": "Expected / Actual / Diff / Test Code の責務分離 を Test Evidence Rules として定義。",
+          "reason": "Expected / Actual / Diff / Test Code の責務分離をAI作業の証跡契約として固定するため。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_test_evidence_rule_001_v01414_001",
+          "at": "2026-06-27",
+          "decision": "Expected / Actual / Diff / Test Code の責務を分離する。",
+          "reason": "actual.jsonに比較結果が混ざると、diff.jsonの意味が消え、失敗時の追体験性が落ちるため。"
+        }
+      ]
+    },
+    {
+      "no": 2,
+      "rule_id": "test_evidence_rule_002",
+      "section_no": "2",
+      "source_heading": "2. Expected JSON は期待値の正本",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "",
+      "title": "Expected JSON は期待値の正本",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "期待値はExpected JSONに置き、テストコードへ期待値を直書きしない。",
+      "body": "Expected JSON は、テストが守るべき期待値の正本である。\n\nテストコードは Expected JSON を読み込み、そこに記録された check_id / target / type / expected / expected_value などを使って比較する。\n\nAIは、テストコード側に期待値文字列を直書きしない。\n期待値を直書きすると、Expected JSONを育てる文化が死に、Studioくんで期待値をレビュー・編集・差分確認する意味が弱くなる。\n\n期待値を変える場合は、まずExpected JSONを変更する。\nTest Codeは、期待値の保存場所ではなく、期待値を実行・観測・比較へ渡す仕掛けである。\n",
+      "ceremony_phrase": "Test Evidence Rule 2「Expected JSON は期待値の正本」をレビューする。",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "",
+      "approved_at": "",
+      "notes": "",
+      "source_line_start": 0,
+      "source_md_file": "FRB Test Evidence Rules",
+      "introduced_in": "v0.14.14-test-evidence-rules-contract",
+      "change_history": [
+        {
+          "history_id": "chg_test_evidence_rule_002_v01414_001",
+          "at": "2026-06-27",
+          "change_type": "rule_added",
+          "before": "テスト証跡ルールとして未定義。",
+          "after": "Expected JSON は期待値の正本 を Test Evidence Rules として定義。",
+          "reason": "Expected / Actual / Diff / Test Code の責務分離をAI作業の証跡契約として固定するため。"
+        }
+      ],
+      "decision_log": []
+    },
+    {
+      "no": 3,
+      "rule_id": "test_evidence_rule_003",
+      "section_no": "3",
+      "source_heading": "3. Actual JSON は観測値のみ",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "",
+      "title": "Actual JSON は観測値のみ",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "actual.jsonには実行時に観測した事実だけを記録し、expected / pass / summary / failedCount を持たせない。",
+      "body": "Actual JSON は、実行時に観測した値だけを記録する。\n\nactual.json に入れてよいものは、たとえば以下である。\n\n```text\ntest_id\ncheck_id\nname\ntarget\nactual\nactual_display\nobserved_at\nsource\n```\n\nactual.json に原則として入れないものは以下である。\n\n```text\nexpected\npass\nresultLabel\nsummary\nfailedCount\nfailedCheckIds\nfirstFailure\n```\n\nこれらは比較結果であり、Diff JSONの責務である。\nActual JSONは「事実の記録」であり、「判定の記録」ではない。\n",
+      "ceremony_phrase": "Test Evidence Rule 3「Actual JSON は観測値のみ」をレビューする。",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "",
+      "approved_at": "",
+      "notes": "",
+      "source_line_start": 0,
+      "source_md_file": "FRB Test Evidence Rules",
+      "introduced_in": "v0.14.14-test-evidence-rules-contract",
+      "change_history": [
+        {
+          "history_id": "chg_test_evidence_rule_003_v01414_001",
+          "at": "2026-06-27",
+          "change_type": "rule_added",
+          "before": "テスト証跡ルールとして未定義。",
+          "after": "Actual JSON は観測値のみ を Test Evidence Rules として定義。",
+          "reason": "Expected / Actual / Diff / Test Code の責務分離をAI作業の証跡契約として固定するため。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_test_evidence_rule_003_v01414_001",
+          "at": "2026-06-27",
+          "decision": "actual.jsonには expected / pass / summary を持たせない。",
+          "reason": "観測値と判定結果を混ぜると、証跡の責務境界が崩れるため。"
+        }
+      ]
+    },
+    {
+      "no": 4,
+      "rule_id": "test_evidence_rule_004",
+      "section_no": "4",
+      "source_heading": "4. Diff JSON は比較結果を持つ",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "",
+      "title": "Diff JSON は比較結果を持つ",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "diff.jsonはExpectedとActualの比較結果を保持し、判定サマリと明細の正本になる。",
+      "body": "Diff JSON は、Expected JSON と Actual JSON を比較した結果を記録する。\n\nDiff JSON には、少なくとも以下の情報を持たせる。\n\n```text\ntest_id\nstatus\nresultLabel\nsummary\ntotal\npassCount\nfailCount\nfailedCount\nfailedCheckIds\nfirstFailure\nchecks[]\n```\n\nchecks[] には、少なくとも以下の情報を持たせる。\n\n```text\ncheck_id\nname\ntarget\ntype\nexpected\nactual\npass\nmessage\n```\n\nDiff JSONは、Studioくんで失敗内容・差分・初回失敗・明細判定を確認するための正本である。\n\nDiff Resultのより詳細な共通フォーマットは、別途 `v0.14.16-diff-result-common-format-rules` の対象とする。\n",
+      "ceremony_phrase": "Test Evidence Rule 4「Diff JSON は比較結果を持つ」をレビューする。",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "",
+      "approved_at": "",
+      "notes": "",
+      "source_line_start": 0,
+      "source_md_file": "FRB Test Evidence Rules",
+      "introduced_in": "v0.14.14-test-evidence-rules-contract",
+      "change_history": [
+        {
+          "history_id": "chg_test_evidence_rule_004_v01414_001",
+          "at": "2026-06-27",
+          "change_type": "rule_added",
+          "before": "テスト証跡ルールとして未定義。",
+          "after": "Diff JSON は比較結果を持つ を Test Evidence Rules として定義。",
+          "reason": "Expected / Actual / Diff / Test Code の責務分離をAI作業の証跡契約として固定するため。"
+        }
+      ],
+      "decision_log": []
+    },
+    {
+      "no": 5,
+      "rule_id": "test_evidence_rule_005",
+      "section_no": "5",
+      "source_heading": "5. 判定フィールドは checks[].pass を標準とする",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "",
+      "title": "判定フィールドは checks[].pass を標準とする",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "Diff明細の判定フィールドは checks[].pass に統一し、passed / ok / result などへ揺らさない。",
+      "body": "Diff JSON の明細判定フィールドは、原則として `checks[].pass` を標準とする。\n\n以下のような別名を新規標準として増やさない。\n\n```text\npassed\nok\nresult\nis_passed\n```\n\n判定フィールドを揺らすと、ViewDefの強調表示、テスト結果表示、AI差分物語生成がドメインごとに分岐してしまう。\n\nJS側で別名対応を広げるより、Data契約を `pass` に揃えることを優先する。\n",
+      "ceremony_phrase": "Test Evidence Rule 5「判定フィールドは checks[].pass を標準とする」をレビューする。",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "",
+      "approved_at": "",
+      "notes": "",
+      "source_line_start": 0,
+      "source_md_file": "FRB Test Evidence Rules",
+      "introduced_in": "v0.14.14-test-evidence-rules-contract",
+      "change_history": [
+        {
+          "history_id": "chg_test_evidence_rule_005_v01414_001",
+          "at": "2026-06-27",
+          "change_type": "rule_added",
+          "before": "テスト証跡ルールとして未定義。",
+          "after": "判定フィールドは checks[].pass を標準とする を Test Evidence Rules として定義。",
+          "reason": "Expected / Actual / Diff / Test Code の責務分離をAI作業の証跡契約として固定するため。"
+        }
+      ],
+      "decision_log": []
+    },
+    {
+      "no": 6,
+      "rule_id": "test_evidence_rule_006",
+      "section_no": "6",
+      "source_heading": "6. テスト失敗時もDiffを必ず残す",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "",
+      "title": "テスト失敗時もDiffを必ず残す",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "テストがfailする場合でも、assertより前にactual.jsonとdiff.jsonを保存する。",
+      "body": "テストがfailする場合でも、assertより前に Actual JSON と Diff JSON を保存する。\n\n推奨順序は以下である。\n\n```text\n1. Expected JSON を読む\n2. 実行対象を観測する\n3. Actual JSON を生成する\n4. Diff JSON を生成する\n5. actual.json を保存する\n6. diff.json を保存する\n7. 保存されたことを確認する\n8. 最後に failedCount などで assert する\n```\n\nこれにより、テストはfailしても、Studioくんで確認できる証跡は残る。\n\n```text\nテストはfailしてよい。\nでもDiffは残れ。\n```\n",
+      "ceremony_phrase": "Test Evidence Rule 6「テスト失敗時もDiffを必ず残す」をレビューする。",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "",
+      "approved_at": "",
+      "notes": "",
+      "source_line_start": 0,
+      "source_md_file": "FRB Test Evidence Rules",
+      "introduced_in": "v0.14.14-test-evidence-rules-contract",
+      "change_history": [
+        {
+          "history_id": "chg_test_evidence_rule_006_v01414_001",
+          "at": "2026-06-27",
+          "change_type": "rule_added",
+          "before": "テスト証跡ルールとして未定義。",
+          "after": "テスト失敗時もDiffを必ず残す を Test Evidence Rules として定義。",
+          "reason": "Expected / Actual / Diff / Test Code の責務分離をAI作業の証跡契約として固定するため。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_test_evidence_rule_006_v01414_001",
+          "at": "2026-06-27",
+          "decision": "assertは証跡保存後に行う。",
+          "reason": "失敗したのにdiff.jsonが残らないと、人間とAIが失敗理由を追体験できないため。"
+        }
+      ]
+    },
+    {
+      "no": 7,
+      "rule_id": "test_evidence_rule_007",
+      "section_no": "7",
+      "source_heading": "7. Test Code は期待値の保存場所ではない",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "",
+      "title": "Test Code は期待値の保存場所ではない",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "Test CodeはExpected JSONを読み、観測し、Actual/Diffを出力する仕掛けであり、期待値の正本ではない。",
+      "body": "Test Code は、期待値の保存場所ではない。\n\nTest Code の責務は以下である。\n\n```text\nExpected JSONを読む\n対象を実行・観測する\nActual JSONを作る\nExpectedとActualを比較する\nDiff JSONを作る\n証跡出力後にassertする\n```\n\nTest Codeに期待値を直書きすると、Expected JSONとTest Codeの二重管理になる。\n\nAIがテストコードを修正するときは、期待値をコードへ移動させていないか確認する。\n",
+      "ceremony_phrase": "Test Evidence Rule 7「Test Code は期待値の保存場所ではない」をレビューする。",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "",
+      "approved_at": "",
+      "notes": "",
+      "source_line_start": 0,
+      "source_md_file": "FRB Test Evidence Rules",
+      "introduced_in": "v0.14.14-test-evidence-rules-contract",
+      "change_history": [
+        {
+          "history_id": "chg_test_evidence_rule_007_v01414_001",
+          "at": "2026-06-27",
+          "change_type": "rule_added",
+          "before": "テスト証跡ルールとして未定義。",
+          "after": "Test Code は期待値の保存場所ではない を Test Evidence Rules として定義。",
+          "reason": "Expected / Actual / Diff / Test Code の責務分離をAI作業の証跡契約として固定するため。"
+        }
+      ],
+      "decision_log": []
+    },
+    {
+      "no": 8,
+      "rule_id": "test_evidence_rule_008",
+      "section_no": "8",
+      "source_heading": "8. 失敗は証跡で読む",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "",
+      "title": "失敗は証跡で読む",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "テスト失敗は単なる赤信号ではなく、Expected/Actual/Diffで読むレビュー対象として扱う。",
+      "body": "Test Evidence におけるテスト失敗は、単なる赤信号ではない。\n\n失敗は、Expected / Actual / Diff を通じて読むレビュー対象である。\n\n人間は diff.json を見て、以下を確認する。\n\n```text\n期待値が間違っているのか\n実装が間違っているのか\n観測対象が間違っているのか\nテストコードの取り方が間違っているのか\nViewDefや表示契約がズレているのか\n```\n\nAIは「テストがfailしました」だけで終わらせず、diff.json の出力先、failedCount、failedCheckIds、firstFailure を報告する。\n",
+      "ceremony_phrase": "Test Evidence Rule 8「失敗は証跡で読む」をレビューする。",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "",
+      "approved_at": "",
+      "notes": "",
+      "source_line_start": 0,
+      "source_md_file": "FRB Test Evidence Rules",
+      "introduced_in": "v0.14.14-test-evidence-rules-contract",
+      "change_history": [
+        {
+          "history_id": "chg_test_evidence_rule_008_v01414_001",
+          "at": "2026-06-27",
+          "change_type": "rule_added",
+          "before": "テスト証跡ルールとして未定義。",
+          "after": "失敗は証跡で読む を Test Evidence Rules として定義。",
+          "reason": "Expected / Actual / Diff / Test Code の責務分離をAI作業の証跡契約として固定するため。"
+        }
+      ],
+      "decision_log": []
+    },
+    {
+      "no": 9,
+      "rule_id": "test_evidence_rule_009",
+      "section_no": "9",
+      "source_heading": "9. Test Evidence Rules の適用範囲",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "運用",
+      "title": "Test Evidence Rules の適用範囲",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "このルールはQA、Screen State、ViewDef検証など、Expected/Actual/Diffを持つテスト証跡に適用する。",
+      "body": "Test Evidence Rules は、以下のようなテスト証跡に適用する。\n\n```text\nQA Expected / Actual / Diff\nScreen State Expected / Actual / Diff\nViewDef静的検証\nIncident Prompt Copy Action検証\n将来追加されるExpected/Actual/Diff型の検証\n```\n\n一方で、すべての一時ログや開発メモにこの構造を強制しない。\n\nExpected / Actual / Diff の三者が意味を持つ検証に対して、この契約を適用する。\n過剰に適用して将来苦しくなると判断される場合は、人間へ相談する。\n",
+      "ceremony_phrase": "Test Evidence Rule 9「Test Evidence Rules の適用範囲」をレビューする。",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "",
+      "approved_at": "",
+      "notes": "",
+      "source_line_start": 0,
+      "source_md_file": "FRB Test Evidence Rules",
+      "introduced_in": "v0.14.14-test-evidence-rules-contract",
+      "change_history": [
+        {
+          "history_id": "chg_test_evidence_rule_009_v01414_001",
+          "at": "2026-06-27",
+          "change_type": "rule_added",
+          "before": "テスト証跡ルールとして未定義。",
+          "after": "Test Evidence Rules の適用範囲 を Test Evidence Rules として定義。",
+          "reason": "Expected / Actual / Diff / Test Code の責務分離をAI作業の証跡契約として固定するため。"
+        }
+      ],
+      "decision_log": []
+    },
+    {
+      "no": 10,
+      "rule_id": "test_evidence_rule_010",
+      "section_no": "10",
+      "source_heading": "テスト証跡フォルダーは03_tests配下に集約する",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "folder_policy",
+      "title": "テスト証跡フォルダーは03_tests配下に集約する",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "Expected / Actual / Diff / Test Pattern / Relations / Summary / Notes は data/json/03_tests/{domain}/{suite_id}/ 配下を正本とする。",
+      "body": "Test Evidence の証跡正本は、原則として以下へ集約する。\n\n```text\ndata/json/03_tests/{domain}/{suite_id}/\n├─ test_patterns/\n├─ expected/\n├─ actual/\n├─ diff/\n├─ relations/\n├─ summary/\n└─ notes/\n```\n\n`data/json/03_tests/qa/...` や `data/json/03_tests/screen_state/...` のように、domain と suite_id で分ける。\n\n旧パス、空フォルダー、移行済みフォルダーをactive領域に残すと、正本と誤認される。\n移行済み旧データはactiveから除去し、必要に応じて `_archive/{削除日時}/` へ退避する。\n\nruntime一時生成物はこの正本フォルダーへ置かない。actual/diffとしてStudioくんで見る証跡だけを置く。",
+      "ceremony_phrase": "03_testsを正本にせよ。",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "tamasub",
+      "approved_at": "2026-06-27",
+      "notes": "",
+      "source_line_start": 0,
+      "source_md_file": "",
+      "introduced_in": "v0.14.15-test-folder-archive-runtime-policy",
+      "change_history": [
+        {
+          "history_id": "chg_test_evidence_rule_010_v01415_001",
+          "at": "2026-06-27",
+          "change_type": "rule_added",
+          "before": "該当ルールなし。",
+          "after": "test_evidence_rule_010 テスト証跡フォルダーは03_tests配下に集約する を追加。",
+          "reason": "テスト証跡の正本配置とテストコード共通化をTest Evidence Rules側にも明文化するため。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_test_evidence_rule_010_v01415_001",
+          "at": "2026-06-27",
+          "decision": "Expected / Actual / Diff / Test Pattern / Relations / Summary / Notes は data/json/03_tests/{domain}/{suite_id}/ 配下を正本とする。",
+          "reason": "Expected / Actual / Diff 証跡をData JSONで育て、テストコードの肥大化と旧パス誤認を防ぐため。"
+        }
+      ]
+    },
+    {
+      "no": 11,
+      "rule_id": "test_evidence_rule_011",
+      "section_no": "11",
+      "source_heading": "テストコードは実行言語ごとの共通ランナーへ寄せる",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "test_code_policy",
+      "title": "テストコードは実行言語ごとの共通ランナーへ寄せる",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "テストコードは、Node.js / Playwright などコード実行言語ごとに1つの共通ランナーへ寄せ、テストケース追加はTest Pattern / Expected JSONで行うことを基本とする。",
+      "body": "テストコードは、コード実行言語ごとに1つの共通ランナーへ寄せることを基本とする。\n\n例:\n\n```text\nNode.js系      → 1つの共通 .mjs ランナー\nPlaywright系  → 1つの共通 .spec.ts ランナー\n```\n\n新しいテストケースを追加する場合は、まず Test Pattern JSON / Expected JSON を追加・変更する。\nケースごとにテストコードファイルを増やすことを標準運用にしない。\n\nこの方針により、期待値はExpected JSON、観測値はActual JSON、比較結果はDiff JSON、実行処理は共通Test Codeという責務分離を保つ。\n\nただし、実行方式・ドメイン特性・依存ブラウザ・セットアップ条件が異なりすぎて共通ランナーへ押し込むと将来苦しくなる場合は、AIが独断で共通化せず、人間へ相談する。",
+      "ceremony_phrase": "テストケースを増やすな。Expectedを育てろ。",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "tamasub",
+      "approved_at": "2026-06-27",
+      "notes": "",
+      "source_line_start": 0,
+      "source_md_file": "",
+      "introduced_in": "v0.14.15-test-folder-archive-runtime-policy",
+      "change_history": [
+        {
+          "history_id": "chg_test_evidence_rule_011_v01415_001",
+          "at": "2026-06-27",
+          "change_type": "rule_added",
+          "before": "該当ルールなし。",
+          "after": "test_evidence_rule_011 テストコードは実行言語ごとの共通ランナーへ寄せる を追加。",
+          "reason": "テスト証跡の正本配置とテストコード共通化をTest Evidence Rules側にも明文化するため。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_test_evidence_rule_011_v01415_001",
+          "at": "2026-06-27",
+          "decision": "テストコードは、Node.js / Playwright などコード実行言語ごとに1つの共通ランナーへ寄せ、テストケース追加はTest Pattern / Expected JSONで行うことを基本とする。",
+          "reason": "Expected / Actual / Diff 証跡をData JSONで育て、テストコードの肥大化と旧パス誤認を防ぐため。"
+        }
+      ]
+    }
+  ],
+  "review_notes": [
+    {
+      "note_id": "note_test_evidence_001",
+      "at": "2026-06-27",
+      "title": "ActualとDiffの責務分離",
+      "body": "actual.jsonは観測値のみ、diff.jsonは比較結果と判定サマリを持つ。"
+    },
+    {
+      "note_id": "note_test_evidence_002",
+      "at": "2026-06-27",
+      "title": "Diff出力後assert",
+      "body": "テストがfailする場合でも、assertより前にactual.jsonとdiff.jsonを保存する。"
+    },
+    {
+      "note_id": "note_test_evidence_v01415_001",
+      "at": "2026-06-27",
+      "topic": "03_tests正本とテストコード共通化",
+      "note": "v0.14.15で、証跡正本フォルダーと実行言語ごとの共通テストランナー原則を追加。"
+    }
+  ],
+  "review_revision": "v0.14.14-test-evidence-rules-contract",
+  "view_def_candidates": [
+    {
+      "view_def": "rules/rule_review_common_view_def_v0_3.json",
+      "label": "標準ルールレビュー",
+      "role": "default",
+      "status": "active",
+      "note": "Test Evidence Rulesをレビューする標準ViewDef"
+    }
+  ]
+}
