@@ -12,7 +12,7 @@
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。",
-  "items_count": 62,
+  "items_count": 69,
   "work_items": [
     {
       "work_item_id": "studio_work_0001",
@@ -6503,6 +6503,721 @@
         }
       ],
       "actual_updated_files": "Program.cs / FRBStudio.csproj / appsettings.json / tools/git/Export-DiffToJson.ps1 / data/json/04_tools/git_diff_export_run_config_data_v0_1.json / defs/tools/git_diff_export_run_config_view_def_v0_1.json / wwwroot/js/actions/action_registry.js / wwwroot/index.html / wwwroot/js/runtime/GIT_DIFF_COMMAND_PROFILE_NOTES_v0_14_37.md / data/json/04_tools/GIT_DIFF_COMMAND_PROFILE_NOTES_v0_14_37.md / data/json/01_main/studio_work_incident_data_v0_62_git_diff_command_profile_added.json"
+    },
+    {
+      "work_item_id": "studio_work_0063",
+      "phase": "v0.14.38-test-runner-command-profile",
+      "title": "Studioくん Test Run / TestRunner.ps1 CommandProfile連携",
+      "incident_type": "feature",
+      "category": "test_runner_command_profile",
+      "priority": "high",
+      "status": "完了",
+      "verification_status": "確認済み",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-27",
+      "updated_at": "2026-06-27",
+      "target_files": "Program.cs / FRBStudio.csproj / appsettings.json / tools/test/TestRunner.ps1 / data/json/04_tools/test_runner_run_config_data_v0_1.json / defs/tools/test_runner_run_config_view_def_v0_1.json / wwwroot/js/actions/action_registry.js / wwwroot/index.html / runtime notes",
+      "target_rule_files": "",
+      "objective": "Studioくんから許可済みのテスト実行プリセットを選択し、Grid上部の Test Run ボタンで TestRunner.ps1 を起動できるようにする。コマンド入力が苦手な人間でも、意味の分かるCaption付きData JSON行を選ぶだけで、Playwright UI起動やNode標準テスト実行を再現可能にする。",
+      "background": "v0.14.37 Git Diff Run / CommandProfile連携により、CLIコマンドの引数やパスをData JSONプリセットとして画面化し、Program.cs側の許可済みCommandProfileだけを安全に実行する道筋が見えた。次の枝として、AI駆動開発の作業台に必要なTest RunnerをStudioくんから起動できるようにする。",
+      "scope": "TestRunner.ps1 を追加し、Data JSON側の test_runner_id / caption / run_mode / command_preview などから、許可済みテストだけを起動する。初期Data JSONは最低2行とし、playwright_ui は `npx playwright test --ui` を起動する launch 型、incident_prompt_copy_action_static は `node --test tests/qa/static/incident_prompt_copy_action_viewdef_static.test.mjs` を実行して終了を待つ wait 型とする。Program.cs側は test_runner CommandProfileまたは既存CommandProfile APIの拡張で TestRunner.ps1 のみを許可し、Data JSONから任意commandLine/scriptPath/test_fileを受け付けない。ViewDefにはGrid上部の `Test Run` executeButton を用意する。",
+      "out_of_scope": "任意コマンドランナー化、Data JSONに自由なcommandLine/args/scriptPath/test_fileを持たせること、全テストファイルの自由選択、テスト結果の詳細JSON化、Playwright UIプロセス管理画面、テスト履歴管理、Expected/Actual/Diffの自動生成まではこの初回スコープに含めない。",
+      "fixed_name_policy": "command_profile_id / test_runner_id / run_mode はCommandProfile/TestRunner実行契約上の識別子として扱う。Runtimeが特定テストファイル名や任意Dataフィールド名を固定参照するのではなく、ViewDefとData JSONで宣言された実行プリセットをActionContextとしてProgram.csへ渡す。",
+      "module_policy": "type=\"module\" 化は行わず、既存のActionRegistry / toolbar.executeButton / Program.cs Minimal API 構成を維持する。v0.14.37のCommandProfile Runner方針を踏襲し、必要最小限の追加で進める。",
+      "expected_outputs": "TestRunner.ps1、test_runner_run_config_data_v0_1.json、test_runner_run_config_view_def_v0_1.json、Program.cs CommandProfile拡張またはtest_runner profile追加、ActionRegistryのRunCommandProfile再利用またはTestRun Action追加、index.html cache buster更新、実装メモMD、更新済みインシデントJSON、ZIP返却。",
+      "risk": "Playwright UIは起動後に終了しない可能性が高く、wait型で扱うとAPIが返らずtimeoutになる。任意コマンド化するとコマンドインジェクションや任意ファイル実行のリスクがある。node --testはexit_codeで成否を返せるが、作業ディレクトリやnode/npxのPATH依存で実行失敗する可能性がある。静的ホスティングではサーバー側実行ができないため、ボタン実行不可または分かりやすいエラーが必要。",
+      "test_points": "Data JSONに最低2行のテスト実行プリセットが存在すること。Playwright UI行は run_mode=launch としてAPIが起動後に返ること。Node static test行は run_mode=wait として終了まで待ち、exit_code/stdout/stderr/duration_msを返すこと。Data JSONに自由commandLineを書いても実行されないこと。test_runner_idが許可値以外の場合は拒否されること。静的ホスティングではTest Runが実行不可になること。Grid上部のTest Runボタンから選択行の設定で実行できること。",
+      "user_request": "Git Diff Run の成功で、Studioくんがコマンド引数をData JSONプリセットとして画面化できる可能性が見えた。次はTest Runnerまで行きたい。TestRunnerというスクリプトを作り、パラメータでどちらのコマンドを実行するかを選ぶイメージ。JSONデータとしては最低2行で、`npx playwright test --ui` と `node --test tests/qa/static/incident_prompt_copy_action_viewdef_static.test.mjs` を扱いたい。まずは会話し、その後AI駆動開発の作業台を作り始めるため、インシデント追加を依頼。",
+      "ai_response": "方針合意。Test RunnerはGit Diff Runの次の自然な枝として、CommandProfile Runnerに test_runner profile を追加するのがよい。Playwright UIは起動しっぱなしになるため run_mode=launch、node --test は終了を待つ run_mode=wait として扱う。Data JSONには test_runner_id と表示用 command_preview を持たせるが、任意commandLineや自由test_fileは持たせない。TestRunner.ps1内部で許可済みIDだけを分岐実行する。",
+      "latest_user_comment": "最新資材添付。v0.14.38-test-runner-command-profile として、.cs関連は Program.cs フォルダー内で更新し、他と混ぜない方針で TestRunner.ps1 / Test Run CommandProfile連携の実装を依頼。\n\n# 2026-06-27 起動確認結果\nPlaywright UI行で Test Run を押すと「Actionエラー: TestRunnerの起動に失敗しました」と表示された。",
+      "latest_ai_response": "v0.14.38.1 launch mode 起動失敗修正完了。run_mode=launch では stdout/stderr をリダイレクトしないため、StandardOutputEncoding / StandardErrorEncoding を設定しないよう Program.cs を修正。run_mode=wait の時だけ出力をリダイレクトし、UTF-8 encoding を設定する。更新は .cs関連フォルダー内の Program.cs/Program.cs に限定。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0063_001",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "Test Runner構想",
+          "message": "TestRunnerというスクリプトを作り、パラメータで `npx playwright test --ui` と `node --test tests/qa/static/incident_prompt_copy_action_viewdef_static.test.mjs` のどちらを実行するか選ぶイメージを相談。Data JSONは最低2行を想定。"
+        },
+        {
+          "history_id": "disc_0063_002",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "Test Runner方針整理",
+          "message": "Playwright UIは起動後に待ち続ける可能性があるため run_mode=launch、node --test は終了を待つ run_mode=wait として扱う方針を提案。Data JSONには任意commandLineではなく test_runner_id と表示用command_previewを持たせ、Program.cs/TestRunner.ps1側で許可済みIDだけを実行する設計にする。"
+        },
+        {
+          "history_id": "disc_0063_003",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "インシデント追加依頼",
+          "message": "AI駆動開発の作業台を作りはじめる流れとして、Test Runner / CommandProfile連携のインシデント追加を依頼。"
+        },
+        {
+          "history_id": "disc_0063_004",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "インシデント登録",
+          "message": "studio_work_0063 v0.14.38-test-runner-command-profile として、Studioくん Test Run / TestRunner.ps1 CommandProfile連携を未着手インシデント登録。"
+        },
+        {
+          "history_id": "disc_0063_005",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "v0.14.38作業依頼",
+          "message": "incident_file と phase を指定し、Foundation Rules foundation_rule_019 に基づいて TestRunner.ps1 / Test Run CommandProfile連携の実装を依頼。.cs関連はProgram.csフォルダー内で更新し、他と混ぜないよう指定。"
+        },
+        {
+          "history_id": "disc_0063_006",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "v0.14.38作業結果",
+          "message": "test_runner CommandProfile、TestRunner.ps1、Test Runner実行設定Data/ViewDef、RunCommandProfile Action拡張、Program.cs launch/wait制御を実装。Playwright UIはlaunchで起動後すぐ返し、Node静的テストはwaitで終了まで待つ構成にした。"
+        },
+        {
+          "history_id": "disc_0063_005",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "v0.14.38 TestRunner launch mode 起動失敗報告",
+          "message": "Playwright UI行でTest Runを押すと、通知後に「Actionエラー: TestRunnerの起動に失敗しました」と表示された。TestRunner.ps1は tools/test 配下に存在する。"
+        },
+        {
+          "history_id": "disc_0063_006",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "v0.14.38.1 起動失敗修正結果",
+          "message": "launch modeではstdout/stderrをリダイレクトしないのにStandardOutputEncoding/StandardErrorEncodingを設定していたため、Process.Start失敗の原因になっていた可能性が高い。wait mode時だけencodingを設定するようProgram.csを修正。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0063_001",
+          "at": "2026-06-27",
+          "decision": "Test Runnerは任意コマンドランナーではなく、許可済みtest_runner_idだけを実行するCommandProfile連携として設計する。",
+          "reason": "画面から自由commandLineを実行できる設計にすると、コマンドインジェクションや任意ファイル実行のリスクが高くなるため。"
+        },
+        {
+          "decision_id": "dec_0063_002",
+          "at": "2026-06-27",
+          "decision": "Playwright UIはrun_mode=launch、node --testはrun_mode=waitとして扱う。",
+          "reason": "`npx playwright test --ui` はUI起動後に終了しない可能性が高く、通常のwait実行ではtimeoutや失敗扱いになりやすいため。"
+        },
+        {
+          "decision_id": "dec_0063_003",
+          "at": "2026-06-27",
+          "decision": "Data JSONのcommand_previewは表示専用とし、実行正本にはしない。",
+          "reason": "人間には実行されるコマンドのイメージを見せたいが、その文字列を実行すると任意コマンド実行に近づくため。"
+        },
+        {
+          "decision_id": "dec_0063_004",
+          "at": "2026-06-27",
+          "decision": "初期Data JSONは最低2行で開始する。",
+          "reason": "まずPlaywright UI起動とNode静的テスト実行の2パターンを通し、AI駆動開発の作業台としての勝ちパターンを小さく確認するため。"
+        },
+        {
+          "decision_id": "dec_0063_005",
+          "at": "2026-06-27",
+          "decision": ".cs関連ファイルはProgram.csフォルダー配下で更新する。",
+          "reason": "ユーザー指定により、Program.cs / csproj / appsettings / TestRunner.ps1 を他のルートファイルと混ぜず、Program.csフォルダー内で管理するため。"
+        },
+        {
+          "decision_id": "dec_0063_006",
+          "at": "2026-06-27",
+          "decision": "既存の /api/actions/command/run と RunCommandProfile を拡張し、test_runner profileを追加する。",
+          "reason": "Git Diff Runで作ったCommandProfile Runnerの導線を再利用し、テスト実行専用の任意コマンドランナーを別途増やさずに済ませるため。"
+        },
+        {
+          "decision_id": "dec_0063_007",
+          "at": "2026-06-27",
+          "decision": "TestRunner.ps1 は test_runner_id の許可値だけを分岐実行し、Data JSONのcommand_previewは表示専用とする。",
+          "reason": "コマンド入力を楽にしつつ、画面から任意commandLineや任意test_fileを実行できる状態にしないため。"
+        },
+        {
+          "decision_id": "dec_0063_006",
+          "at": "2026-06-27",
+          "decision": "run_mode=launch では StandardOutputEncoding / StandardErrorEncoding を設定しない。",
+          "reason": "stdout/stderrをリダイレクトしないProcessStartInfoにencodingを指定するとProcess.Start時に失敗する可能性があるため。launch系は起動して返すことを優先し、出力取得はwait系に限定する。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0063_001",
+          "at": "2026-06-27",
+          "change_type": "incident_added",
+          "before": "Studioくんからテスト実行コマンドをData JSONプリセットとして起動する作業項目がインシデント管理JSONに存在しなかった。",
+          "after": "studio_work_0063 v0.14.38-test-runner-command-profile として、Test Run / TestRunner.ps1 CommandProfile連携を未着手インシデント登録した。",
+          "reason": "Git Diff Runで見えたCommandProfile Runnerの可能性を、AI駆動開発の作業台としてTest Runnerへ展開するため。"
+        },
+        {
+          "history_id": "chg_0063_002",
+          "at": "2026-06-27",
+          "change_type": "test_runner_command_profile_runtime_added",
+          "before": "Studioくんからテスト実行プリセットを選択して安全に起動するCommandProfile / Data JSON / ViewDef / Actionが存在しなかった。",
+          "after": "test_runner CommandProfile、TestRunner.ps1、test_runner_run_config Data/ViewDef、RunCommandProfile拡張を追加し、選択行からTest Runを実行できる入口を作った。",
+          "reason": "AI駆動開発の作業台として、コマンドが苦手でもCaption付きプリセット行を選んでテストを起動・実行できるようにするため。"
+        },
+        {
+          "history_id": "chg_0063_003",
+          "at": "2026-06-27",
+          "change_type": "test_runner_launch_wait_policy_added",
+          "before": "Playwright UIのような起動しっぱなし系と、node --testのような終了待ち系を同じwait実行として扱うと、timeoutや失敗扱いになる可能性があった。",
+          "after": "playwright_ui は run_mode=launch として起動後すぐAPIを返し、incident_prompt_copy_action_static は run_mode=wait として exit_code/stdout/stderr/duration_ms を返す。",
+          "reason": "テスト種別ごとの実行特性に合わせて、APIの応答体験と安全性を両立するため。"
+        },
+        {
+          "history_id": "chg_0063_004",
+          "at": "2026-06-27",
+          "change_type": "test_runner_launch_encoding_fix",
+          "before": "run_mode=launch でも ProcessStartInfo.StandardOutputEncoding / StandardErrorEncoding を設定していた。",
+          "after": "redirectOutput=true、つまり run_mode=wait の時だけ stdout/stderr encoding を設定する。run_mode=launch ではencodingを設定しない。",
+          "reason": "Playwright UI起動時の TestRunnerの起動に失敗しました エラーを解消するため。",
+          "updated_files": "Program.cs/Program.cs"
+        }
+      ],
+      "actual_updated_files": "Program.cs/Program.cs / Program.cs/FRBStudio.csproj / Program.cs/appsettings.json / Program.cs/tools/test/TestRunner.ps1 / data/json/04_tools/test_runner_run_config_data_v0_1.json / defs/tools/test_runner_run_config_view_def_v0_1.json / data/json/04_tools/TEST_RUNNER_COMMAND_PROFILE_NOTES_v0_14_38.md / wwwroot/js/actions/action_registry.js / wwwroot/index.html / data/json/01_main/studio_work_incident_data_v0_63_test_runner_command_profile_added.json / data/json/01_main/studio_work_incident_data_v0_63_test_runner_command_profile_done.json / data/json/04_tools/TEST_RUNNER_COMMAND_PROFILE_REPORT_v0_14_38.md; v0.14.38.1追加修正: Program.cs/Program.cs"
+    },
+    {
+      "work_item_id": "studio_work_0064",
+      "phase": "v0.14.39-test-runner-result-classification",
+      "title": "Studioくん Test Runner 結果分類 / テスト失敗通知改善",
+      "incident_type": "improvement",
+      "category": "test_runner_result_ui",
+      "priority": "high",
+      "status": "完了",
+      "verification_status": "確認済み",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-27",
+      "updated_at": "2026-06-27",
+      "target_files": "Program.cs/Program.cs / wwwroot/js/actions/action_registry.js / data/json/04_tools/test_runner_run_config_data_v0_1.json / defs/tools/test_runner_run_config_view_def_v0_1.json / Program.cs/tools/test/TestRunner.ps1 if needed / data/json/01_main/studio_work_incident_data_v0_64_test_runner_result_classification_added.json",
+      "target_rule_files": "",
+      "objective": "TestRunner wait mode の exit_code=1 をAction起動エラーとして扱わず、ランチャー起動失敗・テスト成功・テスト失敗を result_kind で分類して返し、Studioくん画面上でもテスト失敗を専用通知として表示できるようにする。",
+      "background": "v0.14.38 Test Runner CommandProfile連携により、Studioくんから Playwright UI / node --test を起動できるようになった。一方、node --test が正常に起動してテスト本体がfailした場合でも、現状は「Actionエラー: TestRunner が失敗しました: exit_code=1」と表示され、TestRunnerの起動失敗とテスト失敗が混同される。AI駆動開発の作業台としては、コマンド起動失敗ではなくテスト結果としてfailを確認できる表示へ分離する必要がある。",
+      "scope": "Program.cs の /api/actions/command/run 応答に result_kind を追加する。result_kind は launcher_error / test_passed / test_failed を基本とする。wait mode でプロセス起動に成功し exit_code=0 の場合は test_passed、exit_code!=0 の場合は test_failed とし、Process.Start失敗・Profile不正・Script不在・timeoutなど実行基盤側の失敗は launcher_error として扱う。ActionRegistry側では result_kind に応じて通知文言とトースト種別を分け、test_failed はエラートーストではなく「テスト失敗」通知として表示する。stdout / stderr / output artifact path をユーザーが確認できる形で返す・表示する。",
+      "out_of_scope": "この作業ではテスト本体の期待値修正、Playwright specの合否改善、差分JSONの中身の判定ロジック変更、テストレポートViewerの本格実装、複数テストの一括実行管理、Playwright UI内の実行制御までは行わない。まず起動失敗とテスト失敗の表示分類を整える。",
+      "fixed_name_policy": "result_kind / exit_code / stdout / stderr / output_artifacts はCommandProfile実行結果の標準レスポンス候補として扱う。ただしRuntimeが特定テストファイル名や特定diffファイル名を決め打ちしない。artifact path はData JSONまたはTestRunner.ps1の許可済みtest_runner_idに紐づく表示・返却情報として扱う。",
+      "module_policy": "type=\"module\" 化は行わず、既存のActionRegistry / toolbar.executeButton / Program.cs Minimal API 構成を維持する。",
+      "expected_outputs": "Program.cs の result_kind 付きCommandProfileレスポンス、ActionRegistry の通知分類改善、test_failed時の専用通知、stdout/stderr/output artifact path表示、必要に応じたTestRunner Run Config Data/ViewDefのartifact表示項目追加、更新済みインシデントJSON。",
+      "risk": "exit_code=1 を常にテスト失敗と扱うと、Script内部の前提不足や環境不備までテスト失敗に見えるリスクがある。そのため Process.Start失敗、profile/script/arg検証失敗、timeout、PowerShell起動失敗などは launcher_error として分ける必要がある。stdout/stderrを長く表示しすぎると画面通知が読みにくくなるため、詳細表示と短い通知を分ける必要がある。",
+      "test_points": "node --test が pass した場合に result_kind=test_passed となり成功通知になること。node --test が fail した場合に result_kind=test_failed となり、Action起動エラーではなくテスト失敗通知になること。存在しないscript/profile不正/timeout等では result_kind=launcher_error となり、従来どおり起動・実行基盤のエラーとして表示されること。stdout/stderrとoutput artifact pathがAPIレスポンスまたは画面表示で確認できること。Playwright UI launch行の起動成功表示に悪影響がないこと。",
+      "user_request": "wait mode の exit_code=1 を「Action起動エラー」と呼ばない。result_kind として launcher_error / test_passed / test_failed を返す。テスト失敗時はエラートーストではなく「テスト失敗」通知にする。stdout / stderr / output artifact path を表示できるようにする。",
+      "ai_response": "TestRunner結果分類の改善インシデントとして登録する。v0.14.38でTestRunnerの起動とテスト実行は成立したため、次は起動基盤の失敗とテスト本体の失敗を分離し、AI駆動開発の作業台として人間が判断しやすい通知・証跡表示へ進める。",
+      "latest_user_comment": "v0.14.39-test-runner-result-classification として、綺麗状態を目指し、wait modeのテスト失敗とAction起動エラーを分離する実装を依頼。",
+      "latest_ai_response": "v0.14.39-test-runner-result-classification 対応完了。Program.cs は TestRunner APIレスポンスへ result_kind を追加し、wait modeでexit_code=0なら test_passed、exit_code!=0なら test_failed、起動・環境・timeout系は launcher_error として返すようにした。test_failed はHTTP 200で返すため、ActionToolbarのcatchへ落ちず、Action起動エラー扱いにならない。ActionRegistry は test_failed 時に「テスト失敗」通知を出し、stdout / stderr / output_artifacts を確認できる結果ダイアログを表示する。TestRunner Run Config Data/ViewDefには output_artifact_path を表示項目として追加した。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0064_001",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "TestRunner結果表示の違和感",
+          "message": "node --test 実行は動いたが、テスト本体がfailした場合に Actionエラー: TestRunner が失敗しました: exit_code=1 と表示される。"
+        },
+        {
+          "history_id": "disc_0064_002",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "改善方針",
+          "message": "Runner起動失敗ではなくテスト失敗を拾えている状態なので、wait mode の exit_code=1 をAction起動エラーと呼ばず、result_kindで launcher_error / test_passed / test_failed を分けるのがよい。"
+        },
+        {
+          "history_id": "disc_0064_003",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "インシデント追加依頼",
+          "message": "wait mode の exit_code=1 をAction起動エラーと呼ばない。result_kindを返す。テスト失敗時はテスト失敗通知にする。stdout/stderr/output artifact pathを表示できるようにする、という内容をインシデントに追加してほしい。"
+        },
+        {
+          "history_id": "disc_0064_004",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "v0.14.39作業依頼",
+          "message": "綺麗状態を目指し、v0.14.39-test-runner-result-classification の実装を依頼。Foundation Rules foundation_rule_019 のZIP返却契約を参照。"
+        },
+        {
+          "history_id": "disc_0064_005",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "v0.14.39作業結果",
+          "message": "Program.csでresult_kindを返すようにし、test_failedはHTTP 200で返却。ActionRegistry/ActionToolbarでtest_failed通知をwarn扱いにし、stdout/stderr/output_artifactsを結果ダイアログで確認可能にした。TestRunner Run Config Data/ViewDefへoutput_artifact_pathを追加。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0064_001",
+          "at": "2026-06-27",
+          "decision": "wait modeでプロセス起動に成功した後のexit_code!=0は、原則としてtest_failedとして扱う。",
+          "reason": "TestRunnerやActionの起動失敗と、テスト本体の失敗を混同すると、人間が見るべき対象が分かりにくくなるため。"
+        },
+        {
+          "decision_id": "dec_0064_002",
+          "at": "2026-06-27",
+          "decision": "Process.Start失敗、Profile不正、Script不在、timeoutなど実行基盤側の失敗はlauncher_errorとして扱う。",
+          "reason": "テスト本体のfailとは異なり、Studioくん・CommandProfile・環境設定側を確認すべきエラーだから。"
+        },
+        {
+          "decision_id": "dec_0064_003",
+          "at": "2026-06-27",
+          "decision": "test_failedはエラートーストではなく、テスト失敗通知として表示する。",
+          "reason": "テスト失敗はAI駆動開発の作業台では正常に観測された結果であり、ランチャー故障のように見せないため。"
+        },
+        {
+          "decision_id": "dec_0064_004",
+          "at": "2026-06-27",
+          "decision": "stdout / stderr / output artifact path をレスポンスまたは画面から確認できるようにする。",
+          "reason": "テスト失敗時に、diff JSONやログへすぐ辿れないと、次の判断・MetaDiff・差分物語へ進みにくいため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0064_001",
+          "at": "2026-06-27",
+          "change_type": "incident_added",
+          "before": "TestRunner wait mode の exit_code=1 が Action起動エラーとして表示され、テスト失敗とランチャー失敗の境界が曖昧だった。",
+          "after": "studio_work_0064 として、result_kindによるTestRunner結果分類と、テスト失敗通知・stdout/stderr/artifact path表示改善を登録。",
+          "reason": "AI駆動開発の作業台として、テスト結果を人間が判断しやすい形で観測できるようにするため。"
+        },
+        {
+          "history_id": "chg_0064_002",
+          "at": "2026-06-27",
+          "change_type": "test_runner_result_classification_backend",
+          "before": "TestRunner wait modeでexit_code!=0の場合、success=falseかつHTTP 500相当で返り、フロント側ではAction起動エラーと同じ経路で扱われていた。",
+          "after": "TestRunner wait modeでプロセス起動後にexit_code!=0となった場合は result_kind=test_failed としてHTTP 200で返す。exit_code=0はtest_passed、起動・設定・timeout系はlauncher_errorとして返す。",
+          "reason": "テスト本体のfailとランチャー・環境側の失敗を分離し、人間が見るべき対象を明確にするため。"
+        },
+        {
+          "history_id": "chg_0064_003",
+          "at": "2026-06-27",
+          "change_type": "test_runner_result_classification_frontend",
+          "before": "ActionToolbarはexecuteStudioActionの例外をすべて「Actionエラー」としてsetStatusしていた。ActionRegistryも非2xx応答を常にthrowしていた。",
+          "after": "ActionRegistryはresult_kind=test_failedを通常結果として扱い、テスト失敗通知と詳細ダイアログを返す。ActionToolbarはAction結果のstatusOptionsをsetStatusへ渡し、テスト失敗をerrorではなくwarn通知で表示する。",
+          "reason": "テスト失敗を「壊れた」ではなく、AI駆動開発の作業台で観測されたテスト結果として扱うため。"
+        },
+        {
+          "history_id": "chg_0064_004",
+          "at": "2026-06-27",
+          "change_type": "test_runner_artifact_path_display",
+          "before": "TestRunner Run Config上では、テストがどのdiff JSONを更新するかが画面から辿りにくかった。",
+          "after": "Data JSON/ViewDefにoutput_artifact_pathを追加し、APIレスポンスにもoutput_artifactsを含めることで、stdout/stderrとあわせて差分JSONへ辿れるようにした。",
+          "reason": "テスト失敗後にdiff JSON・MetaDiff・差分物語へ進みやすくするため。"
+        }
+      ],
+      "actual_updated_files": "Program.cs/Program.cs; wwwroot/js/actions/action_registry.js; wwwroot/js/actions/action_toolbar.js; data/json/04_tools/test_runner_run_config_data_v0_1.json; defs/tools/test_runner_run_config_view_def_v0_1.json; data/json/01_main/studio_work_incident_data_v0_64_test_runner_result_classification_done.json; TEST_RUNNER_RESULT_CLASSIFICATION_REPORT_v0_14_39.md"
+    },
+    {
+      "work_item_id": "studio_work_0065",
+      "phase": "v0.15.1-common-enums-definition",
+      "title": "common_enums_v0_1.json 追加 / Enumを値の正本として定義",
+      "incident_type": "data_design",
+      "category": "enum",
+      "priority": "high",
+      "status": "未着手",
+      "verification_status": "未確認",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-27",
+      "updated_at": "2026-06-27",
+      "target_files": "data/json/00_rules/common_enums_v0_1.json, data/json/00_rules/common_types_v0_1.json, related ViewDef/Rules if needed",
+      "target_rule_files": "",
+      "objective": "EnumをStudioくんの値語彙の最小管理単位として追加し、cd/name/description/sort_order/deprecatedなどを持てる共通定義ファイルを作る。",
+      "background": "common_types_v0_1.json は意味つきFieldTypeカタログとして成立しているが、select options がFieldType内に直書きされており、値候補そのものの正本管理がまだ分離されていない。context_read_timing、status、risk、severity、trustなどは複数FieldType・ViewDef・Data・AI文脈制御で共有されるため、Enumとして管理する必要がある。",
+      "scope": "common_enums_v0_1.json を追加し、namespaces / enums / items の基本構造を定義する。items は cd / name / description / sort_order / deprecated を基本候補とする。まずは器と契約を作り、既存optionsの全面移行は後続インシデントで扱う。",
+      "out_of_scope": "この作業では既存 common_types_v0_1.json 内のoptionsを一括移行しない。Studio Runtime側の enumRef 解決実装も次インシデントに分ける。まず値の正本ファイルの構造を定める。",
+      "fixed_name_policy": "Runtimeが特定Dataフィールド名を決め打ちしない方針を維持する。Enum / FieldType / ViewDef / Data の責務を分け、値の正本はEnum、画面項目としての使い方はFieldType、配置はViewDef、実値はDataとして扱う。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式と既存common_types運用を前提に、まずData/定義/解決ルールを段階的に追加する。",
+      "expected_outputs": "common_enums_v0_1.json、Enum構造説明、代表Enumサンプル、Rules/インシデント上の方針記録。",
+      "risk": "Enumを何でも入れる共通ごった煮にすると管理不能になる。namespaceを切り、値の意味単位を守る必要がある。risk.high / priority.high / confidence.high はcdが似ていても意味が違う可能性があるため、安易に統合しない。",
+      "test_points": "common_enums_v0_1.json がUTF-8日本語可読で保存されること。namespace.enums.items で複数Enumを表現できること。既存common_typesを壊さず、まだenumRef未対応でも既存画面が動くこと。",
+      "user_request": "Enumは管理の最小単位として必要。common_typesはFieldTypeの共通管理として使い、Enumは値の正本として分離したい。",
+      "ai_response": "common_enums追加を最初のインシデントとして登録する。ここではEnumの器と責務を定義し、既存options移行やRuntime解決は後続へ分ける。",
+      "latest_user_comment": "Enumの仕掛けを作った後、既存のOptionでだらだら書いているものを整理したい。まずインシデントとして追加したい。",
+      "latest_ai_response": "",
+      "discussion_history": [
+        {
+          "history_id": "disc_0065_001",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "Enum / FieldType / Context制御の設計相談",
+          "message": "common_types_v0_1.json の現状を確認し、FieldTypeとしてできていること、Enumとして未分離なことを整理した。context_read_timing などはEnumが管理の最小単位になると判断した。"
+        },
+        {
+          "history_id": "disc_0065_002",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "作業分割提案",
+          "message": "Enum定義追加、FieldType enumRef解決、context系Enum追加、既存optionsのEnum参照化、ViewDef文脈制御 read_contract対応の5件に分けてインシデント登録する方針を提案した。"
+        },
+        {
+          "history_id": "disc_0065_003",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "インシデント追加依頼",
+          "message": "Enumの仕掛けを作った後に、既存のOptionでだらだら書いているものを整理したい。インシデント追加と更新後JSON返却を依頼。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0065_001",
+          "at": "2026-06-27",
+          "decision": "Enumを値の正本として定義する。",
+          "reason": "FieldType内optionsだけでは、複数画面・複数Dataで共有される値語彙の重複や表記揺れを防げないため。"
+        },
+        {
+          "decision_id": "dec_0065_002",
+          "at": "2026-06-27",
+          "decision": "common_enums_v0_1.json を common_types とは別ファイルにする。",
+          "reason": "FieldTypeの見た目・編集・検索設定と、値候補そのものの管理責務を分離するため。"
+        },
+        {
+          "decision_id": "dec_0065_003",
+          "at": "2026-06-27",
+          "decision": "既存optionsの一括移行はこのインシデントでは行わない。",
+          "reason": "仕掛け追加と既存整理を混ぜると差分が大きくなり、回帰リスクが上がるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0065_001",
+          "at": "2026-06-27",
+          "change_type": "incident_added",
+          "before": "Enumを値の正本として管理する作業項目が存在しなかった。",
+          "after": "studio_work_0065 として common_enums_v0_1.json 追加を登録。",
+          "reason": "FieldType / Enum / ViewDef / Data の責務分離を進めるため。"
+        }
+      ],
+      "actual_updated_files": ""
+    },
+    {
+      "work_item_id": "studio_work_0066",
+      "phase": "v0.15.2-fieldtype-enumref-resolve",
+      "title": "common_types FieldType の enumRef / options解決対応",
+      "incident_type": "feature",
+      "category": "fieldtype_enumref",
+      "priority": "high",
+      "status": "未着手",
+      "verification_status": "未確認",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-27",
+      "updated_at": "2026-06-27",
+      "target_files": "data/json/00_rules/common_types_v0_1.json, data/json/00_rules/common_enums_v0_1.json, wwwroot/js/**/*.js related to ViewDef/commonTypes/options resolve, rules/schema if needed",
+      "target_rule_files": "",
+      "objective": "FieldTypeからEnumを参照できるようにし、baseType=select かつ enumRefありの場合に common_enums のitemsをoptionsとして解決できるようにする。",
+      "background": "既存のcommon_types_v0_1.jsonはFieldType内にoptionsを直持ちしている。今後は enumRef を追加し、Enumを値の正本、FieldTypeを画面項目としての使い方として分ける必要がある。既存方式との互換を保ちながら、段階的にenumRefへ寄せる。",
+      "scope": "common_types の fieldTypes に enumRef を持てるようにする。baseType=select かつ enumRef がある場合、common_enums の該当Enumを解決して選択肢として扱う。optionsのみの場合は従来どおりローカル選択肢として扱う。enumRef と options が両方ある場合は、enumRef側を正本とし、optionsは互換用・キャッシュ・展開結果として扱う方針を定義する。",
+      "out_of_scope": "この作業では既存FieldTypeのoptionsを大量にenumRef化しない。まず enumRef の解決ルールと互換方針を作る。既存options整理は v0.15.4 側で扱う。",
+      "fixed_name_policy": "Runtimeが特定Dataフィールド名を決め打ちしない方針を維持する。Enum / FieldType / ViewDef / Data の責務を分け、値の正本はEnum、画面項目としての使い方はFieldType、配置はViewDef、実値はDataとして扱う。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式と既存common_types運用を前提に、まずData/定義/解決ルールを段階的に追加する。",
+      "expected_outputs": "enumRef解決実装または解決ルール、common_types側のサンプルFieldType、options / enumRef 不一致時の扱いメモ、回帰確認結果。",
+      "risk": "enumRefとoptionsの両方が存在する場合の優先順位を曖昧にすると、画面表示とData validationがズレる。最初は警告扱い、将来的にはエラー扱いにできる余地を残す。",
+      "test_points": "既存options直書きFieldTypeが従来どおり表示・編集できること。enumRefのみのselect FieldTypeがEnumから選択肢を取得できること。enumRef+optionsの併用時にenumRef側を正として扱うこと。Enum未存在時に分かりやすくエラーまたは警告になること。",
+      "user_request": "Enumを定義した上で、FieldType側に enumRef を持たせ、options は enum 由来の展開結果として扱うイメージにしたい。",
+      "ai_response": "common_types のFieldTypeに enumRef を追加し、既存options直書き方式と互換を保ちながらEnum参照へ移行できる仕掛けとして登録する。",
+      "latest_user_comment": "enumRef が一番強い。Enumを定義した上で、FieldTypeでは baseType=select / enumRef / grid / edit / search を持たせたい。",
+      "latest_ai_response": "",
+      "discussion_history": [
+        {
+          "history_id": "disc_0066_001",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "Enum / FieldType / Context制御の設計相談",
+          "message": "common_types_v0_1.json の現状を確認し、FieldTypeとしてできていること、Enumとして未分離なことを整理した。context_read_timing などはEnumが管理の最小単位になると判断した。"
+        },
+        {
+          "history_id": "disc_0066_002",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "作業分割提案",
+          "message": "Enum定義追加、FieldType enumRef解決、context系Enum追加、既存optionsのEnum参照化、ViewDef文脈制御 read_contract対応の5件に分けてインシデント登録する方針を提案した。"
+        },
+        {
+          "history_id": "disc_0066_003",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "インシデント追加依頼",
+          "message": "Enumの仕掛けを作った後に、既存のOptionでだらだら書いているものを整理したい。インシデント追加と更新後JSON返却を依頼。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0066_001",
+          "at": "2026-06-27",
+          "decision": "FieldType側に enumRef を追加できるようにする。",
+          "reason": "Enumを値の正本、FieldTypeを画面項目としての使い方に分けるため。"
+        },
+        {
+          "decision_id": "dec_0066_002",
+          "at": "2026-06-27",
+          "decision": "optionsのみの場合は従来互換のローカル選択肢として扱う。",
+          "reason": "既存common_types_v0_1.jsonのselect項目を一気に壊さないため。"
+        },
+        {
+          "decision_id": "dec_0066_003",
+          "at": "2026-06-27",
+          "decision": "enumRefとoptionsが両方ある場合はenumRef側を正本とする。",
+          "reason": "値候補の正本を一つにしないと、差分管理とAI文脈制御で意味ズレが起きるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0066_001",
+          "at": "2026-06-27",
+          "change_type": "incident_added",
+          "before": "FieldTypeからEnumを参照する作業項目が存在しなかった。",
+          "after": "studio_work_0066 として common_types FieldType の enumRef / options解決対応を登録。",
+          "reason": "既存common_types運用を維持しながらEnumレイヤーへ移行するため。"
+        }
+      ],
+      "actual_updated_files": ""
+    },
+    {
+      "work_item_id": "studio_work_0067",
+      "phase": "v0.15.3-context-enums-added",
+      "title": "context系Enum / context_read_timing FieldType追加",
+      "incident_type": "feature",
+      "category": "context_enum",
+      "priority": "high",
+      "status": "未着手",
+      "verification_status": "未確認",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-27",
+      "updated_at": "2026-06-27",
+      "target_files": "data/json/00_rules/common_enums_v0_1.json, data/json/00_rules/common_types_v0_1.json, related context ViewDef samples",
+      "target_rule_files": "",
+      "objective": "AI文脈制御で利用する context_read_timing などのEnumを追加し、ViewDefやData行のcontext_refsで使える共通語彙を整える。",
+      "background": "ViewDefに文脈制御を持たせる場合、追加文脈は何を読むかだけでなく、いつ読むかが重要になる。before_load / on_row_select / before_review / before_code_update / before_zip_return などは複数ViewDef・複数Data・複数ルールで共通利用されるため、FieldType内のローカルoptionsではなくEnumとして管理する必要がある。",
+      "scope": "context.read_timing Enumを追加する。候補値は before_load / after_load / on_row_select / before_edit / before_save / before_review / before_diff_story / before_code_update / before_zip_return とする。必要に応じて context.purpose / context.failure_policy / context.trust も候補として整理する。common_types側には context.context_read_timing FieldTypeを追加し、enumRef=context.read_timing を参照する。",
+      "out_of_scope": "この作業ではViewDefの read_contract 本体実装やData行context_refsの実行制御までは行わない。まずAI文脈制御で使う語彙とFieldTypeを定義する。",
+      "fixed_name_policy": "Runtimeが特定Dataフィールド名を決め打ちしない方針を維持する。Enum / FieldType / ViewDef / Data の責務を分け、値の正本はEnum、画面項目としての使い方はFieldType、配置はViewDef、実値はDataとして扱う。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式と既存common_types運用を前提に、まずData/定義/解決ルールを段階的に追加する。",
+      "expected_outputs": "context.read_timing Enum、context_read_timing FieldType、候補Enumの整理メモ、代表ViewDef/データサンプル。",
+      "risk": "timing値をViewDefごとにベタ書きすると before_ai_review / before_review のような表記揺れが起きる。Enum正本を使って語彙を固定する必要がある。",
+      "test_points": "context.read_timing の全候補がEnumに定義されていること。context_read_timing FieldTypeがenumRefで参照できること。ViewDefでselect項目として使えること。descriptionに読みタイミングの意味が残っていること。",
+      "user_request": "before_load / after_load / on_row_select / before_edit / before_save / before_review / before_diff_story / before_code_update / before_zip_return のようなtimingを共通管理したい。",
+      "ai_response": "context_read_timing はEnum初回ユースケースとしてちょうどよい。AI文脈制御の共通語彙として追加するインシデントを登録する。",
+      "latest_user_comment": "追加文脈を読ませるタイミングが重要。ViewDef全体にかかるものとdata行単位にかかるものを分け、timingをEnumとして管理したい。",
+      "latest_ai_response": "",
+      "discussion_history": [
+        {
+          "history_id": "disc_0067_001",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "Enum / FieldType / Context制御の設計相談",
+          "message": "common_types_v0_1.json の現状を確認し、FieldTypeとしてできていること、Enumとして未分離なことを整理した。context_read_timing などはEnumが管理の最小単位になると判断した。"
+        },
+        {
+          "history_id": "disc_0067_002",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "作業分割提案",
+          "message": "Enum定義追加、FieldType enumRef解決、context系Enum追加、既存optionsのEnum参照化、ViewDef文脈制御 read_contract対応の5件に分けてインシデント登録する方針を提案した。"
+        },
+        {
+          "history_id": "disc_0067_003",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "インシデント追加依頼",
+          "message": "Enumの仕掛けを作った後に、既存のOptionでだらだら書いているものを整理したい。インシデント追加と更新後JSON返却を依頼。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0067_001",
+          "at": "2026-06-27",
+          "decision": "context.read_timing を共通Enumとして追加する。",
+          "reason": "AI文脈制御の読みタイミングは複数箇所で共有される制御語彙であり、FieldType内ローカルoptionsでは表記揺れを防ぎにくいため。"
+        },
+        {
+          "decision_id": "dec_0067_002",
+          "at": "2026-06-27",
+          "decision": "context_read_timing FieldTypeは common_types 側に追加する。",
+          "reason": "Enumを画面上のselect項目として使うためには、caption/grid/edit/searchを持つFieldTypeが必要なため。"
+        },
+        {
+          "decision_id": "dec_0067_003",
+          "at": "2026-06-27",
+          "decision": "ViewDef read_contractの本体実装は別インシデントに分ける。",
+          "reason": "語彙定義と文脈制御実行を混ぜると作業範囲が肥大化するため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0067_001",
+          "at": "2026-06-27",
+          "change_type": "incident_added",
+          "before": "context_read_timing などのAI文脈制御語彙が共通Enumとして登録されていなかった。",
+          "after": "studio_work_0067 として context系Enum / context_read_timing FieldType追加を登録。",
+          "reason": "ViewDef文脈制御の前提となる共通語彙を整えるため。"
+        }
+      ],
+      "actual_updated_files": ""
+    },
+    {
+      "work_item_id": "studio_work_0068",
+      "phase": "v0.15.4-common-types-options-to-enumref",
+      "title": "既存 common_types options のEnum参照化整理",
+      "incident_type": "refactoring",
+      "category": "common_types_cleanup",
+      "priority": "medium",
+      "status": "未着手",
+      "verification_status": "未確認",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-27",
+      "updated_at": "2026-06-27",
+      "target_files": "data/json/00_rules/common_types_v0_1.json, data/json/00_rules/common_enums_v0_1.json, representative ViewDefs/Data using commonTypes",
+      "target_rule_files": "",
+      "objective": "既存common_types_v0_1.jsonでFieldType内にだらだら直書きされているselect optionsを棚卸しし、共通Enumへ移せるものは enumRef 参照へ寄せる。",
+      "background": "common_types_v0_1.json には qa.risk / relation.status / relation.confidence / relation.priority / severity など、似た選択肢を持つFieldTypeが複数ある。現状は実用的だが、値の正本がFieldTypeごとに分散しているため、表記揺れ・意味ズレ・重複更新が起きやすい。",
+      "scope": "既存FieldTypeのoptionsを棚卸しし、Enum化候補を分類する。risk / severity / confidence / priority の high/medium/low 系は、同じEnumに統合できるか、意味別Enumに分けるかを判断する。relation.status、relation.coverage、node_type、relation_type、qa.feature_area、test_axis、quality_axis、check_axis、scenario_type、finding_type などを対象候補として確認する。移行する場合はFieldType側へ enumRef を追加し、optionsは削除またはキャッシュ扱いにする。",
+      "out_of_scope": "この作業では一気に全optionsを統合しない。意味が違う high/medium/low を雑に共通化しない。まず棚卸し、分類、段階的移行を行う。",
+      "fixed_name_policy": "Runtimeが特定Dataフィールド名を決め打ちしない方針を維持する。Enum / FieldType / ViewDef / Data の責務を分け、値の正本はEnum、画面項目としての使い方はFieldType、配置はViewDef、実値はDataとして扱う。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式と既存common_types運用を前提に、まずData/定義/解決ルールを段階的に追加する。",
+      "expected_outputs": "既存options棚卸し表、Enum化対象/保留対象の分類、common_enumsへの移行、common_typesへのenumRef追加、互換確認結果。",
+      "risk": "意味が似ているだけで同じEnumへ統合すると、risk.high と confidence.high のように意味の違う値が混ざる。逆に分けすぎるとEnumの再利用価値が下がる。判断ログを残す必要がある。",
+      "test_points": "既存FieldTypeのselect項目が移行後も表示・編集・検索できること。Enum化した選択肢がData既存値と一致すること。意味が違う値を無理に統合していないこと。options削除/残置の方針が記録されていること。",
+      "user_request": "enumの仕掛けを作った後に、既存のOptionでだらだら書いているやつを整理したい。",
+      "ai_response": "既存common_types optionsの整理は仕掛け追加後の専用インシデントとして登録する。棚卸しと段階的enumRef化を目的にする。",
+      "latest_user_comment": "common_typesの中にある既存Option群を、Enum正本に寄せていきたい。ただし意味の違いは丁寧に見る必要がある。",
+      "latest_ai_response": "",
+      "discussion_history": [
+        {
+          "history_id": "disc_0068_001",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "Enum / FieldType / Context制御の設計相談",
+          "message": "common_types_v0_1.json の現状を確認し、FieldTypeとしてできていること、Enumとして未分離なことを整理した。context_read_timing などはEnumが管理の最小単位になると判断した。"
+        },
+        {
+          "history_id": "disc_0068_002",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "作業分割提案",
+          "message": "Enum定義追加、FieldType enumRef解決、context系Enum追加、既存optionsのEnum参照化、ViewDef文脈制御 read_contract対応の5件に分けてインシデント登録する方針を提案した。"
+        },
+        {
+          "history_id": "disc_0068_003",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "インシデント追加依頼",
+          "message": "Enumの仕掛けを作った後に、既存のOptionでだらだら書いているものを整理したい。インシデント追加と更新後JSON返却を依頼。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0068_001",
+          "at": "2026-06-27",
+          "decision": "既存options整理は enumRef解決対応後に行う。",
+          "reason": "仕掛けがない状態でoptionsを消すと既存ViewDef/画面が壊れるため。"
+        },
+        {
+          "decision_id": "dec_0068_002",
+          "at": "2026-06-27",
+          "decision": "high/medium/low系は安易に一つのEnumへ統合しない。",
+          "reason": "risk、severity、confidence、priorityでは同じcdでも意味と判断軸が違う可能性があるため。"
+        },
+        {
+          "decision_id": "dec_0068_003",
+          "at": "2026-06-27",
+          "decision": "移行は棚卸し・分類・段階的enumRef化の順で進める。",
+          "reason": "共通化対象とローカル選択肢として残す対象を判断しやすくするため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0068_001",
+          "at": "2026-06-27",
+          "change_type": "incident_added",
+          "before": "既存common_types内optionsをEnum参照へ整理する作業項目が存在しなかった。",
+          "after": "studio_work_0068 として既存 common_types options のEnum参照化整理を登録。",
+          "reason": "値候補の重複・表記揺れ・意味ズレを減らし、Enum正本運用へ移行するため。"
+        }
+      ],
+      "actual_updated_files": ""
+    },
+    {
+      "work_item_id": "studio_work_0069",
+      "phase": "v0.15.5-viewdef-context-read-contract",
+      "title": "ViewDef文脈制御 read_contract / row context_refs 対応",
+      "incident_type": "architecture",
+      "category": "context_control",
+      "priority": "high",
+      "status": "未着手",
+      "verification_status": "未確認",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-27",
+      "updated_at": "2026-06-27",
+      "target_files": "ViewDef schema/rules, data/json/00_rules/common_enums_v0_1.json, data/json/00_rules/common_types_v0_1.json, relevant ViewDefs, runtime context resolver if needed",
+      "target_rule_files": "",
+      "objective": "ViewDefにAI作業前に読むべき追加文脈を定義できるようにし、ViewDef全体にかかる文脈とData行単位にかかる文脈を分離して扱えるようにする。",
+      "background": "ViewDefは人間向け表示定義だけでなく、AIにどの文脈を、どの重みで、どの目的・タイミングで渡すかを制御する定義へ進化し始めている。『このルールちゃんと読んでからやれよぉ』をJSON化するには、ViewDef全体のread_contractと、Data行単位のcontext_refsを分けて設計する必要がある。",
+      "scope": "ViewDefルート直下またはcontext配下に read_contract / preflight_rules / required_refs のような定義を持てるようにする。ViewDef全体にかかるルールは before_load / before_code_update / before_zip_return などで指定し、Data行単位の追加文脈は row_ref_field または context_refs で指定する。timing は context.read_timing Enumを使う。required=true の参照が読めない場合は failure_policy=stop_and_report などで作業停止・報告できる方針にする。",
+      "out_of_scope": "この作業では外部LLM連携や実際の自動読込実行までを必須にしない。まずViewDef/Rules/Data構造として、どの文脈をいつ読むかを記述できるようにする。Runtime実行が重い場合は定義と表示から始める。",
+      "fixed_name_policy": "Runtimeが特定Dataフィールド名を決め打ちしない方針を維持する。Enum / FieldType / ViewDef / Data の責務を分け、値の正本はEnum、画面項目としての使い方はFieldType、配置はViewDef、実値はDataとして扱う。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式と既存common_types運用を前提に、まずData/定義/解決ルールを段階的に追加する。",
+      "expected_outputs": "ViewDef context.read_contract案、row context_refs案、timing Enum利用、failure_policy/trust/purpose候補、Rules/Schema追記案、代表サンプル。",
+      "risk": "文脈を全部常時読ませるとAIに渡す情報が濁る。逆に分けすぎると運用が複雑になる。ViewDef全体、dataset、row、actionの粒度を整理し、必須文脈を読めない場合のfailure_policyを明確にする必要がある。",
+      "test_points": "ViewDef全体のread_contractにrequired_refsを定義できること。Data行単位のcontext_refsを参照できる方針があること。timingはcontext.read_timing Enumを使うこと。requiredルールが読めない場合のstop_and_report方針が定義されていること。既存ViewDefに未定義でも壊れないこと。",
+      "user_request": "ViewDefに文脈制御プロパティを持たせたい。ViewDef全体にかかるものとData行単位に指定するものを分け、追加文脈を読ませるタイミングを制御したい。",
+      "ai_response": "ViewDef文脈制御はEnum追加とは別インシデントにする。read_contract / row context_refs / timing / failure_policy を扱うAI協働オーケストレーター化の入口として登録する。",
+      "latest_user_comment": "ViewDef全体にかかる文脈と、data行単位にかかる文脈を分けて考える必要がある。追加文脈は何を読むかだけでなく、いつ読むかが重要。",
+      "latest_ai_response": "",
+      "discussion_history": [
+        {
+          "history_id": "disc_0069_001",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "Enum / FieldType / Context制御の設計相談",
+          "message": "common_types_v0_1.json の現状を確認し、FieldTypeとしてできていること、Enumとして未分離なことを整理した。context_read_timing などはEnumが管理の最小単位になると判断した。"
+        },
+        {
+          "history_id": "disc_0069_002",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "作業分割提案",
+          "message": "Enum定義追加、FieldType enumRef解決、context系Enum追加、既存optionsのEnum参照化、ViewDef文脈制御 read_contract対応の5件に分けてインシデント登録する方針を提案した。"
+        },
+        {
+          "history_id": "disc_0069_003",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "インシデント追加依頼",
+          "message": "Enumの仕掛けを作った後に、既存のOptionでだらだら書いているものを整理したい。インシデント追加と更新後JSON返却を依頼。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0069_001",
+          "at": "2026-06-27",
+          "decision": "ViewDef全体の文脈とData行単位の文脈を分離する。",
+          "reason": "全体ルールと特定行だけに必要な追加文脈を混ぜると、AIへ渡す情報が過剰になり文脈が濁るため。"
+        },
+        {
+          "decision_id": "dec_0069_002",
+          "at": "2026-06-27",
+          "decision": "timing は context.read_timing Enumを使う。",
+          "reason": "before_review / before_code_update などの制御語彙を共通化し、表記揺れを防ぐため。"
+        },
+        {
+          "decision_id": "dec_0069_003",
+          "at": "2026-06-27",
+          "decision": "requiredな文脈が読めない場合は stop_and_report を基本方針にする。",
+          "reason": "ルール未読のまま雰囲気で作業する事故を防ぐため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0069_001",
+          "at": "2026-06-27",
+          "change_type": "incident_added",
+          "before": "ViewDefがAI作業前に読むべき文脈を制御する作業項目が存在しなかった。",
+          "after": "studio_work_0069 として ViewDef文脈制御 read_contract / row context_refs 対応を登録。",
+          "reason": "Studioくんを画面定義ツールからAI作業の文脈ルーティング定義へ進化させるため。"
+        }
+      ],
+      "actual_updated_files": ""
     }
   ],
   "review_notes": [
@@ -6797,10 +7512,50 @@
       "at": "2026-06-27",
       "title": "v0.14.37 Git Diff Run / CommandProfile連携を実装",
       "body": "Git Diff実行設定Data JSONとViewDefを追加し、Grid上部のGit Diff RunボタンからProgram.csのCommandProfile APIを呼び出す構成にした。OutputPathはData JSONにも表示用として持つが、実行時の正本はProgram.cs側の F:\\FRB_Diff\\DiffToJson.json とし、不一致時は拒否する。任意commandLine/scriptPathはData JSONに持たせない。"
+    },
+    {
+      "note_id": "note_054",
+      "at": "2026-06-27",
+      "title": "Studioくん Test Run / TestRunner.ps1 CommandProfile連携をインシデント化",
+      "body": "Git Diff Runで見えたCommandProfile Runnerの次段として、Test Runnerを studio_work_0063 として追加した。Data JSONにはPlaywright UI起動とNode静的テスト実行の最低2行を持たせ、command_previewは表示専用、実行はProgram.cs/TestRunner.ps1側の許可済みtest_runner_idだけに限定する。Playwright UIはlaunch型、node --testはwait型として扱う。"
+    },
+    {
+      "note_id": "note_055",
+      "at": "2026-06-27",
+      "title": "v0.14.38 Test Runner CommandProfile実装",
+      "body": "Studioくん Test Run / TestRunner.ps1 CommandProfile連携を実装。Program.csフォルダー内で.cs関連を更新し、Playwright UI=launch、Node静的テスト=waitの2行Data JSONから開始する。"
+    },
+    {
+      "note_id": "note_055",
+      "at": "2026-06-27",
+      "title": "v0.14.38.1 TestRunner launch mode encoding fix",
+      "body": "Playwright UI launch modeで起動失敗。stdout/stderrをリダイレクトしないlaunch modeではStandardOutputEncoding/StandardErrorEncodingを設定しないよう修正。",
+      "related_work_item_id": "studio_work_0063"
+    },
+    {
+      "note_id": "note_056",
+      "at": "2026-06-27",
+      "title": "TestRunner結果分類 / テスト失敗通知改善をインシデント化",
+      "body": "wait mode の exit_code=1 を Action起動エラーとして扱わず、result_kind=launcher_error/test_passed/test_failed で起動失敗とテスト失敗を分ける改善を studio_work_0064 として追加した。テスト失敗時はテスト失敗通知とし、stdout/stderr/output artifact pathを確認できるようにする。",
+      "related_work_item_id": "studio_work_0064"
+    },
+    {
+      "note_id": "note_057",
+      "at": "2026-06-27",
+      "title": "v0.14.39 TestRunner結果分類を実装",
+      "body": "Program.csがTestRunner実行結果へ result_kind=launcher_error/test_passed/test_failed を返すようにし、wait modeのexit_code!=0はtest_failedとしてHTTP 200で返す。ActionRegistry/ActionToolbar側はtest_failedをエラートーストではなくテスト失敗通知として扱い、stdout/stderr/output artifact pathを結果ダイアログで確認できるようにした。",
+      "related_work_item_id": "studio_work_0064"
+    },
+    {
+      "note_id": "note_058",
+      "at": "2026-06-27",
+      "title": "Enum / FieldType / ViewDef文脈制御をインシデント化",
+      "body": "Enumを値の正本として追加し、common_typesのenumRef対応、context_read_timing等のcontext系Enum、既存optionsのEnum参照化、ViewDef read_contract / row context_refs対応を studio_work_0065〜0069 として追加した。",
+      "related_work_item_id": "studio_work_0065-0069"
     }
   ],
-  "work_revision": "v0.14.37-git-diff-export-command-profile-done",
-  "latest_planning_note": "v0.14.37 Git Diff Run / CommandProfile連携完了。次は実機確認でGit Diff Runの実行結果とOutputPath照合、必要ならGit Diff結果JSONをStudioくんで読み込むViewDef/導線を追加する。",
+  "work_revision": "v0.15.5-enum-and-viewdef-context-incidents-added",
+  "latest_planning_note": "Enumを値の最小管理単位として追加し、common_types enumRef、context系Enum、既存options整理、ViewDef read_contract/context_refs を5件のインシデントとして追加。",
   "view_def_candidates": [
     {
       "view_def": "rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",
