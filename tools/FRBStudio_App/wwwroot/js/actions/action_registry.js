@@ -285,3 +285,84 @@ registerStudioAction('CopyPromptFromTemplate', async (context={}) => {
 registerStudioAction('Noop', async (context={}) => {
   return { message: `${context.executeButton?.caption ?? 'Action'} はNoopとして実行されました` };
 });
+
+// v0.14.37-git-diff-export-command-profile:
+// ViewDefの toolbar.executeButton から、選択行のCommandProfile実行設定をProgram.csへ渡す。
+// Data JSONには任意commandLine/scriptPathを持たせず、Program.cs側の許可済みprofileだけを実行する。
+function commandProfileRowValue(row, ...keys) {
+  for (const key of keys) {
+    const value = getByPath(row, key);
+    if (value !== undefined && value !== null && String(value).trim() !== '') return value;
+  }
+  return '';
+}
+
+
+function commandProfileBooleanValue(value) {
+  if (value === true) return true;
+  if (value === false || value === null || value === undefined) return false;
+  const text = String(value).trim().toLowerCase();
+  return text === 'true' || text === '1' || text === 'yes' || text === 'on';
+}
+
+function buildCommandProfileRunRequest(row) {
+  const request = {
+    command_profile_id: String(commandProfileRowValue(row, 'command_profile_id', 'profile_id')).trim(),
+    mode: String(commandProfileRowValue(row, 'mode')).trim(),
+    range: String(commandProfileRowValue(row, 'range')).trim(),
+    from_ref: String(commandProfileRowValue(row, 'from_ref', 'from')).trim(),
+    to_ref: String(commandProfileRowValue(row, 'to_ref', 'to')).trim(),
+    output_path_display: String(commandProfileRowValue(row, 'output_path_display', 'output_path')).trim(),
+    unified: Number(commandProfileRowValue(row, 'unified')) || 3,
+    max_patch_chars: Number(commandProfileRowValue(row, 'max_patch_chars')) || 60000,
+    no_patch: commandProfileBooleanValue(commandProfileRowValue(row, 'no_patch'))
+  };
+
+  if (!request.command_profile_id) request.command_profile_id = 'git_diff_export';
+  return request;
+}
+
+async function postCommandProfileRun(request) {
+  const res = await fetch('/api/actions/command/run', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request)
+  });
+
+  let payload = null;
+  const text = await res.text();
+  if (text) {
+    try { payload = JSON.parse(text); }
+    catch { payload = { message: text }; }
+  }
+
+  if (!res.ok) {
+    const message = payload?.message || payload?.error || `CommandProfile API error: ${res.status}`;
+    const detail = payload?.stderr ? `\n${payload.stderr}` : '';
+    throw new Error(message + detail);
+  }
+
+  return payload || {};
+}
+
+registerStudioAction('RunCommandProfile', async (context={}) => {
+  if (typeof isStaticHostingMode === 'function' && isStaticHostingMode()) {
+    throw new Error('Git Diff Run はローカルFRBStudio実行時のみ使用できます');
+  }
+
+  const row = context.selectedRow || null;
+  if (!row) throw new Error('Git Diff Runする設定行を選択してください');
+
+  const request = buildCommandProfileRunRequest(row);
+  const caption = row.caption || row.run_config_id || request.mode || request.command_profile_id;
+
+  if (row.enabled === false) throw new Error(`このGit Diff設定は無効です: ${caption}`);
+
+  const result = await postCommandProfileRun(request);
+  console.log('RunCommandProfile result', result);
+
+  return {
+    message: result.message || `Git Diff Run完了: ${caption}`,
+    result
+  };
+}, ['RunGitDiffExport', 'GitDiffRun']);

@@ -1,5 +1,8 @@
 using System.Diagnostics;
+using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Drawing;
 using Microsoft.Extensions.Configuration;
@@ -70,6 +73,8 @@ internal static class Program
             root,
             "FrbStudio:DataFolders",
             new[] { "data/json" });
+
+        var commandProfiles = BuildCommandProfiles(builder.Configuration, root);
 
         // 旧構成 data/*.json から新構成 data/json/*.json へ、初回だけ安全に移行する。
         foreach (var oldJson in Directory.GetFiles(dataRootDir, "*.json"))
@@ -162,7 +167,364 @@ internal static class Program
             return Results.Ok(new { saved = req.Name });
         });
 
+        // v0.14.37-git-diff-export-command-profile:
+        // Data JSONから任意コマンドを実行させず、Program.cs側で許可したCommandProfileだけを実行する。
+        app.MapGet("/api/actions/command/profiles", () => Results.Json(commandProfiles.Values.Select(profile => new
+        {
+            command_profile_id = profile.Id,
+            display_name = profile.DisplayName,
+            output_path = profile.OutputPath,
+            working_directory = profile.WorkingDirectory,
+            timeout_seconds = profile.TimeoutSeconds,
+            allowed_modes = profile.AllowedModes
+        })));
+
+        app.MapPost("/api/actions/command/run", async (CommandRunRequest req) =>
+            await RunCommandProfileAsync(commandProfiles, req));
+
         return app;
+    }
+
+    private static IReadOnlyDictionary<string, CommandProfile> BuildCommandProfiles(IConfiguration config, string root)
+    {
+        var section = config.GetSection("FrbStudio:CommandProfiles:GitDiffExport");
+
+        var id = string.IsNullOrWhiteSpace(section["Id"])
+            ? "git_diff_export"
+            : section["Id"]!.Trim();
+
+        var displayName = string.IsNullOrWhiteSpace(section["DisplayName"])
+            ? "Export-DiffToJson.ps1 / Git Diff JSON Export"
+            : section["DisplayName"]!.Trim();
+
+        var scriptPath = ResolveCommandScriptPath(root, section["ScriptPath"] ?? "tools/git/Export-DiffToJson.ps1");
+        var outputPath = string.IsNullOrWhiteSpace(section["OutputPath"])
+            ? @"F:\FRB_Diff\DiffToJson.json"
+            : section["OutputPath"]!.Trim();
+
+        var configuredWorkingDirectory = section["WorkingDirectory"];
+        var workingDirectory = ResolveCommandWorkingDirectory(root, configuredWorkingDirectory);
+
+        var timeoutSeconds = 30;
+        if (int.TryParse(section["TimeoutSeconds"], out var configuredTimeout))
+        {
+            timeoutSeconds = Math.Clamp(configuredTimeout, 5, 300);
+        }
+
+        var powerShellExe = string.IsNullOrWhiteSpace(section["PowerShellExe"])
+            ? DefaultPowerShellExe()
+            : section["PowerShellExe"]!.Trim();
+
+        var profile = new CommandProfile(
+            id,
+            displayName,
+            scriptPath,
+            outputPath,
+            workingDirectory,
+            powerShellExe,
+            new[] { "WorkingTree", "Staged", "Head", "Range" },
+            timeoutSeconds);
+
+        return new Dictionary<string, CommandProfile>(StringComparer.OrdinalIgnoreCase)
+        {
+            [profile.Id] = profile
+        };
+    }
+
+    private static string DefaultPowerShellExe()
+    {
+        return OperatingSystem.IsWindows() ? "powershell.exe" : "pwsh";
+    }
+
+    private static string ResolveCommandScriptPath(string root, string rawPath)
+    {
+        var value = string.IsNullOrWhiteSpace(rawPath) ? "tools/git/Export-DiffToJson.ps1" : rawPath.Trim();
+        var full = Path.IsPathRooted(value)
+            ? Path.GetFullPath(value)
+            : Path.GetFullPath(Path.Combine(root, value.Replace('/', Path.DirectorySeparatorChar)));
+
+        // CommandProfileのscriptPathは、Studio配下の許可済みスクリプトに限定する。
+        var allowedRoot = EnsureTrailingSeparator(Path.GetFullPath(root));
+        if (!full.StartsWith(allowedRoot, StringComparison.OrdinalIgnoreCase))
+        {
+            return Path.GetFullPath(Path.Combine(root, "tools", "git", "Export-DiffToJson.ps1"));
+        }
+
+        return full;
+    }
+
+    private static string ResolveCommandWorkingDirectory(string root, string? rawPath)
+    {
+        if (!string.IsNullOrWhiteSpace(rawPath))
+        {
+            var value = rawPath.Trim();
+            var full = Path.IsPathRooted(value)
+                ? Path.GetFullPath(value)
+                : Path.GetFullPath(Path.Combine(root, value.Replace('/', Path.DirectorySeparatorChar)));
+
+            if (Directory.Exists(full)) return full;
+        }
+
+        return FindNearestGitRoot(root) ?? root;
+    }
+
+    private static string? FindNearestGitRoot(string startDir)
+    {
+        var dir = new DirectoryInfo(Path.GetFullPath(startDir));
+        while (dir is not null)
+        {
+            if (Directory.Exists(Path.Combine(dir.FullName, ".git"))) return dir.FullName;
+            dir = dir.Parent;
+        }
+        return null;
+    }
+
+    private static async Task<IResult> RunCommandProfileAsync(
+        IReadOnlyDictionary<string, CommandProfile> profiles,
+        CommandRunRequest req)
+    {
+        var profileId = FirstNonBlank(req.CommandProfileId, req.ProfileId);
+        if (string.IsNullOrWhiteSpace(profileId)) return Results.BadRequest("command_profile_id is required");
+        if (!profiles.TryGetValue(profileId, out var profile)) return Results.BadRequest($"unsupported command_profile_id: {profileId}");
+
+        if (!File.Exists(profile.ScriptPath))
+        {
+            return Results.Json(new
+            {
+                success = false,
+                profile_id = profile.Id,
+                message = "CommandProfileのscriptPathが見つかりません",
+                script_path = profile.ScriptPath
+            }, statusCode: 500);
+        }
+
+        if (!Directory.Exists(profile.WorkingDirectory))
+        {
+            return Results.Json(new
+            {
+                success = false,
+                profile_id = profile.Id,
+                message = "CommandProfileのworkingDirectoryが見つかりません",
+                working_directory = profile.WorkingDirectory
+            }, statusCode: 500);
+        }
+
+        var outputDisplay = FirstNonBlank(req.OutputPathDisplay, req.OutputPath);
+        if (!string.IsNullOrWhiteSpace(outputDisplay) && !IsSameCommandPath(outputDisplay, profile.OutputPath))
+        {
+            return Results.BadRequest("output_path_display does not match Program.cs CommandProfile output path");
+        }
+
+        var mode = (req.Mode ?? string.Empty).Trim();
+        var range = (req.Range ?? string.Empty).Trim();
+        var fromRef = (req.FromRef ?? string.Empty).Trim();
+        var toRef = (req.ToRef ?? string.Empty).Trim();
+
+        if (!ValidateGitDiffMode(mode, profile.AllowedModes))
+        {
+            return Results.BadRequest($"unsupported mode: {mode}");
+        }
+
+        if (mode.Equals("Range", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!IsSafeGitRef(fromRef) || !IsSafeGitRef(toRef))
+            {
+                return Results.BadRequest("Range mode requires safe from_ref and to_ref");
+            }
+            range = $"{fromRef}..{toRef}";
+            mode = string.Empty;
+        }
+        else if (string.IsNullOrWhiteSpace(range) && (!string.IsNullOrWhiteSpace(fromRef) || !string.IsNullOrWhiteSpace(toRef)))
+        {
+            if (!IsSafeGitRef(fromRef) || !IsSafeGitRef(toRef))
+            {
+                return Results.BadRequest("from_ref and to_ref must both be safe git refs");
+            }
+            range = $"{fromRef}..{toRef}";
+            mode = string.Empty;
+        }
+
+        if (!string.IsNullOrWhiteSpace(range) && !IsSafeGitRange(range))
+        {
+            return Results.BadRequest("range contains unsupported characters");
+        }
+
+        var unified = req.Unified is > 0 and <= 100 ? req.Unified.Value : 3;
+        var maxPatchChars = req.MaxPatchChars is > 0 and <= 2_000_000 ? req.MaxPatchChars.Value : 60000;
+
+        var outputDir = Path.GetDirectoryName(profile.OutputPath);
+        if (!string.IsNullOrWhiteSpace(outputDir)) Directory.CreateDirectory(outputDir);
+
+        var argsForReport = new List<string>();
+        var psi = new ProcessStartInfo
+        {
+            FileName = profile.PowerShellExe,
+            WorkingDirectory = profile.WorkingDirectory,
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true,
+            StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding = Encoding.UTF8
+        };
+
+        void AddArg(string value)
+        {
+            psi.ArgumentList.Add(value);
+            argsForReport.Add(value);
+        }
+
+        AddArg("-NoProfile");
+        AddArg("-ExecutionPolicy");
+        AddArg("Bypass");
+        AddArg("-File");
+        AddArg(profile.ScriptPath);
+
+        if (!string.IsNullOrWhiteSpace(mode))
+        {
+            AddArg("-Mode");
+            AddArg(mode);
+        }
+
+        if (!string.IsNullOrWhiteSpace(range))
+        {
+            AddArg("-Range");
+            AddArg(range);
+        }
+
+        AddArg("-OutputPath");
+        AddArg(profile.OutputPath);
+        AddArg("-Unified");
+        AddArg(unified.ToString());
+        AddArg("-MaxPatchChars");
+        AddArg(maxPatchChars.ToString());
+
+        if (req.NoPatch == true)
+        {
+            AddArg("-NoPatch");
+        }
+
+        var startedAt = DateTimeOffset.Now;
+        using var process = new Process { StartInfo = psi };
+
+        try
+        {
+            process.Start();
+        }
+        catch (Exception ex)
+        {
+            return Results.Json(new
+            {
+                success = false,
+                profile_id = profile.Id,
+                message = "CommandProfileの起動に失敗しました",
+                error = ex.Message
+            }, statusCode: 500);
+        }
+
+        var stdoutTask = process.StandardOutput.ReadToEndAsync();
+        var stderrTask = process.StandardError.ReadToEndAsync();
+        var waitTask = process.WaitForExitAsync();
+        var timeoutTask = Task.Delay(TimeSpan.FromSeconds(profile.TimeoutSeconds));
+
+        var completed = await Task.WhenAny(waitTask, timeoutTask);
+        var timedOut = completed == timeoutTask;
+        if (timedOut)
+        {
+            try { process.Kill(entireProcessTree: true); } catch { }
+        }
+        else
+        {
+            await waitTask;
+        }
+
+        var stdout = await stdoutTask;
+        var stderr = await stderrTask;
+        var finishedAt = DateTimeOffset.Now;
+        var exitCode = timedOut ? -1 : process.ExitCode;
+        var success = !timedOut && exitCode == 0;
+
+        var result = new
+        {
+            success,
+            timed_out = timedOut,
+            exit_code = exitCode,
+            profile_id = profile.Id,
+            display_name = profile.DisplayName,
+            mode = string.IsNullOrWhiteSpace(req.Mode) ? "(default)" : req.Mode,
+            range,
+            output_path = profile.OutputPath,
+            working_directory = profile.WorkingDirectory,
+            command = new
+            {
+                file = profile.PowerShellExe,
+                args = argsForReport
+            },
+            stdout = TruncateCommandOutput(stdout, 20000),
+            stderr = TruncateCommandOutput(stderr, 20000),
+            started_at = startedAt.ToString("yyyy-MM-dd HH:mm:ss zzz"),
+            finished_at = finishedAt.ToString("yyyy-MM-dd HH:mm:ss zzz"),
+            duration_ms = (long)(finishedAt - startedAt).TotalMilliseconds,
+            message = success
+                ? $"Git Diff JSONを出力しました: {profile.OutputPath}"
+                : (timedOut ? $"Git Diff Run がタイムアウトしました: {profile.TimeoutSeconds}s" : $"Git Diff Run が失敗しました: exit_code={exitCode}")
+        };
+
+        return success
+            ? Results.Json(result)
+            : Results.Json(result, statusCode: 500);
+    }
+
+    private static string? FirstNonBlank(params string?[] values)
+    {
+        foreach (var value in values)
+        {
+            if (!string.IsNullOrWhiteSpace(value)) return value.Trim();
+        }
+        return null;
+    }
+
+    private static bool ValidateGitDiffMode(string mode, IReadOnlyList<string> allowedModes)
+    {
+        if (string.IsNullOrWhiteSpace(mode)) return true;
+        return allowedModes.Any(x => x.Equals(mode, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static bool IsSafeGitRef(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return false;
+        if (value.Length > 160) return false;
+        return Regex.IsMatch(value, @"^[A-Za-z0-9._/\-~^]+$");
+    }
+
+    private static bool IsSafeGitRange(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return false;
+        if (value.Length > 340) return false;
+        if (!value.Contains("..", StringComparison.Ordinal)) return false;
+        return Regex.IsMatch(value, @"^[A-Za-z0-9._/\-~^]+\.\.[A-Za-z0-9._/\-~^]+$");
+    }
+
+    private static bool IsSameCommandPath(string left, string right)
+    {
+        static string Normalize(string value) => StringValue(value)
+            .Trim()
+            .Trim('"')
+            .Replace('/', '\\')
+            .TrimEnd('\\')
+            .ToUpperInvariant();
+
+        return Normalize(left) == Normalize(right);
+    }
+
+    private static string StringValue(string? value) => value ?? string.Empty;
+
+    private static string TruncateCommandOutput(string? value, int maxChars)
+    {
+        var text = value ?? string.Empty;
+        return text.Length <= maxChars
+            ? text
+            : text[..maxChars] + $"\n--- truncated: {text.Length - maxChars} chars omitted ---";
     }
 
     private static IReadOnlyList<DataFolder> ResolveDataFolders(
@@ -514,6 +876,52 @@ internal sealed class FrbStudioTrayContext : ApplicationContext
         base.Dispose(disposing);
     }
 }
+
+internal sealed class CommandRunRequest
+{
+    [JsonPropertyName("command_profile_id")]
+    public string? CommandProfileId { get; set; }
+
+    [JsonPropertyName("profile_id")]
+    public string? ProfileId { get; set; }
+
+    [JsonPropertyName("mode")]
+    public string? Mode { get; set; }
+
+    [JsonPropertyName("range")]
+    public string? Range { get; set; }
+
+    [JsonPropertyName("from_ref")]
+    public string? FromRef { get; set; }
+
+    [JsonPropertyName("to_ref")]
+    public string? ToRef { get; set; }
+
+    [JsonPropertyName("output_path_display")]
+    public string? OutputPathDisplay { get; set; }
+
+    [JsonPropertyName("output_path")]
+    public string? OutputPath { get; set; }
+
+    [JsonPropertyName("unified")]
+    public int? Unified { get; set; }
+
+    [JsonPropertyName("max_patch_chars")]
+    public int? MaxPatchChars { get; set; }
+
+    [JsonPropertyName("no_patch")]
+    public bool? NoPatch { get; set; }
+}
+
+internal sealed record CommandProfile(
+    string Id,
+    string DisplayName,
+    string ScriptPath,
+    string OutputPath,
+    string WorkingDirectory,
+    string PowerShellExe,
+    IReadOnlyList<string> AllowedModes,
+    int TimeoutSeconds);
 
 internal sealed record DataFolder(string RelativePath, string FullPath, bool IsPrimary)
 {
