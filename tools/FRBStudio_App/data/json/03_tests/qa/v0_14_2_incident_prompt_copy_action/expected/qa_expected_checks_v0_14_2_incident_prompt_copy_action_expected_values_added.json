@@ -1,0 +1,433 @@
+{
+  "view_def": "qa/qa_expected_checks_classified_view_def_v0_1.json",
+  "schema_version": "qa_expected_checks_v0_2_draft",
+  "document_type": "qa_expected_checks",
+  "title": "v0.14.2 incident prompt copy action Expected",
+  "description": "Expectedをテストコード内に閉じ込めず、期待値JSONに機械可読な expected / target / type として明記する版。テストコードはこのExpectedを読み込み、実際値取得と比較のみを行う。",
+  "source_incident": {
+    "incident_file": "data/json/01_main/studio_work_incident_data_v0_54_incident_prompt_copy_action_implemented.json",
+    "phase": "v0.14.2-incident-prompt-copy-action",
+    "work_item_id": "studio_work_0041"
+  },
+  "policy": {
+    "test_pattern_policy": "テストパターンはインシデントのtest_pointsとdecision_logを元にする。まず静的JSON検査と小さいguardテストを優先する。",
+    "classification_policy": "screen_stateで確認できるもの、unit/browser mockが必要なもの、手動/将来対応に分ける。"
+  },
+  "expected_checks": [
+    {
+      "check_id": "CHK-IPC-001",
+      "test_pattern_id": "TP-IPC-001",
+      "title": "ViewDefにAI依頼プロンプトコピーボタンcaptionがある",
+      "quality_axis_cd": "display",
+      "check_axis_cd": "structure",
+      "risk_cd": "high",
+      "source_check_name": "viewdef_execute_button_caption",
+      "expected_summary": "インシデント管理ViewDefの toolbar.executeButton.caption が「AI依頼プロンプトコピー」であること。",
+      "constraint_ids": [
+        "foundation_rule_015",
+        "foundation_rule_019",
+        "studio_work_0041",
+        "AC-IPC-008"
+      ],
+      "evidence_hint": "ViewDef JSONの views[].toolbar.executeButton.caption を静的確認する。",
+      "note": "画面状態JSONを追加すればボタン表示確認へ拡張可能。",
+      "name": "viewdef_execute_button_caption",
+      "target": "incident_prompt_copy_execute_button.caption",
+      "type": "equals",
+      "expected": "AI依頼プロンプトコピーZZ",
+      "machine_check_ready": true,
+      "expected_source": "expected_json"
+    },
+    {
+      "check_id": "CHK-IPC-002",
+      "test_pattern_id": "TP-IPC-001",
+      "title": "ViewDefのActionがCopyPromptFromTemplateである",
+      "quality_axis_cd": "structure",
+      "check_axis_cd": "structure",
+      "risk_cd": "high",
+      "source_check_name": "viewdef_execute_button_action",
+      "expected_summary": "toolbar.executeButton.action が CopyPromptFromTemplate であること。",
+      "constraint_ids": [
+        "foundation_rule_015",
+        "studio_work_0041",
+        "AC-IPC-008"
+      ],
+      "evidence_hint": "ViewDef JSONのaction値を静的確認する。",
+      "note": "",
+      "name": "viewdef_execute_button_action",
+      "target": "incident_prompt_copy_execute_button.action",
+      "type": "equals",
+      "expected": "CopyPromptFromTemplate",
+      "machine_check_ready": true,
+      "expected_source": "expected_json"
+    },
+    {
+      "check_id": "CHK-IPC-003",
+      "test_pattern_id": "TP-IPC-001",
+      "title": "ViewDefにpromptTemplateが定義されている",
+      "quality_axis_cd": "structure",
+      "check_axis_cd": "structure",
+      "risk_cd": "high",
+      "source_check_name": "viewdef_prompt_template_exists",
+      "expected_summary": "toolbar.executeButton.promptTemplate が空でなく、incident_file と phase のテンプレート変数を含むこと。",
+      "constraint_ids": [
+        "foundation_rule_015",
+        "foundation_rule_019",
+        "studio_work_0041",
+        "AC-IPC-001",
+        "AC-IPC-003"
+      ],
+      "evidence_hint": "promptTemplateに {{data.filePath}} と {{row.phase}} が含まれることを確認する。",
+      "note": "",
+      "name": "viewdef_prompt_template_required_variables",
+      "target": "incident_prompt_copy_execute_button.promptTemplate",
+      "type": "includesAll",
+      "expected": [
+        "{{data.filePath}}",
+        "{{row.phase}}"
+      ],
+      "machine_check_ready": true,
+      "expected_source": "expected_json"
+    },
+    {
+      "check_id": "CHK-IPC-004",
+      "test_pattern_id": "TP-IPC-001",
+      "title": "選択行必須契約がViewDefにある",
+      "quality_axis_cd": "safety",
+      "check_axis_cd": "structure",
+      "risk_cd": "high",
+      "source_check_name": "viewdef_require_selected_row",
+      "expected_summary": "toolbar.executeButton.requireSelectedRow が true であり、未選択コピーを抑制する契約が見えること。",
+      "constraint_ids": [
+        "studio_work_0041",
+        "AC-IPC-004"
+      ],
+      "evidence_hint": "ViewDef JSONの requireSelectedRow を確認する。",
+      "note": "現状JSはAction側でもselectedRow nullをguardしている。",
+      "name": "viewdef_require_selected_row",
+      "target": "incident_prompt_copy_execute_button.requireSelectedRow",
+      "type": "equals",
+      "expected": true,
+      "machine_check_ready": true,
+      "expected_source": "expected_json"
+    },
+    {
+      "check_id": "CHK-IPC-005",
+      "test_pattern_id": "TP-IPC-002",
+      "title": "生成プロンプトにincident_fileが埋め込まれる",
+      "quality_axis_cd": "function",
+      "check_axis_cd": "content",
+      "risk_cd": "high",
+      "source_check_name": "generated_prompt_contains_incident_file",
+      "expected_summary": "生成プロンプトに「- incident_file: data/json/01_main/studio_work_incident_data_v0_54_incident_prompt_copy_action_implemented.json」が含まれること。",
+      "constraint_ids": [
+        "foundation_rule_019",
+        "studio_work_0041",
+        "AC-IPC-001",
+        "AC-IPC-003"
+      ],
+      "evidence_hint": "navigator.clipboard.writeTextのmock引数、またはfallback textarea valueを確認する。",
+      "note": "既存screen_stateでは不可。",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    },
+    {
+      "check_id": "CHK-IPC-006",
+      "test_pattern_id": "TP-IPC-002",
+      "title": "生成プロンプトにphaseが埋め込まれる",
+      "quality_axis_cd": "function",
+      "check_axis_cd": "content",
+      "risk_cd": "high",
+      "source_check_name": "generated_prompt_contains_phase",
+      "expected_summary": "生成プロンプトに「- phase: v0.14.2-incident-prompt-copy-action」が含まれること。",
+      "constraint_ids": [
+        "foundation_rule_019",
+        "studio_work_0041",
+        "AC-IPC-001"
+      ],
+      "evidence_hint": "clipboard mock引数を確認する。",
+      "note": "",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    },
+    {
+      "check_id": "CHK-IPC-007",
+      "test_pattern_id": "TP-IPC-002",
+      "title": "生成プロンプトに作業ルールURL群が含まれる",
+      "quality_axis_cd": "function",
+      "check_axis_cd": "content",
+      "risk_cd": "medium",
+      "source_check_name": "generated_prompt_contains_rule_urls",
+      "expected_summary": "Foundation Rules raw、main ZIP、FRBStudio_App raw base、FRBStudio 本体 raw base が生成プロンプトに含まれること。",
+      "constraint_ids": [
+        "foundation_rule_019",
+        "studio_work_0041"
+      ],
+      "evidence_hint": "clipboard mock引数を文字列検索する。",
+      "note": "URL本文はViewDef由来。",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    },
+    {
+      "check_id": "CHK-IPC-008",
+      "test_pattern_id": "TP-IPC-002",
+      "title": "コピー成功時に成功メッセージが返る",
+      "quality_axis_cd": "operation",
+      "check_axis_cd": "message",
+      "risk_cd": "medium",
+      "source_check_name": "copy_success_message",
+      "expected_summary": "clipboard成功時、Action結果messageが「AI依頼プロンプトをコピーしました」を含み、phaseまたはwork_item_idを識別できること。",
+      "constraint_ids": [
+        "studio_work_0041",
+        "AC-IPC-001"
+      ],
+      "evidence_hint": "executeStudioActionの戻り値またはsetStatus表示を確認する。",
+      "note": "",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    },
+    {
+      "check_id": "CHK-IPC-009",
+      "test_pattern_id": "TP-IPC-003",
+      "title": "1回目はA行phaseで生成される",
+      "quality_axis_cd": "function",
+      "check_axis_cd": "content",
+      "risk_cd": "high",
+      "source_check_name": "selected_row_a_phase_used",
+      "expected_summary": "A行選択時の生成プロンプトにA行のphaseが含まれること。",
+      "constraint_ids": [
+        "studio_work_0041",
+        "AC-IPC-002"
+      ],
+      "evidence_hint": "selectedRowを差し替えてclipboard mock引数を確認する。",
+      "note": "",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    },
+    {
+      "check_id": "CHK-IPC-010",
+      "test_pattern_id": "TP-IPC-003",
+      "title": "2回目はB行phaseへ更新される",
+      "quality_axis_cd": "function",
+      "check_axis_cd": "content",
+      "risk_cd": "high",
+      "source_check_name": "selected_row_b_phase_used",
+      "expected_summary": "B行選択時の生成プロンプトにB行のphaseが含まれ、A行phaseが残らないこと。",
+      "constraint_ids": [
+        "studio_work_0041",
+        "AC-IPC-002"
+      ],
+      "evidence_hint": "2回連続実行し、2回目のclipboard mock引数を確認する。",
+      "note": "誤依頼防止。",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    },
+    {
+      "check_id": "CHK-IPC-011",
+      "test_pattern_id": "TP-IPC-004",
+      "title": "未選択時はclipboardに書き込まない",
+      "quality_axis_cd": "safety",
+      "check_axis_cd": "guard",
+      "risk_cd": "high",
+      "source_check_name": "no_selected_row_no_clipboard_write",
+      "expected_summary": "selectedRow=null の場合、navigator.clipboard.writeText が呼ばれないこと。",
+      "constraint_ids": [
+        "studio_work_0041",
+        "AC-IPC-004"
+      ],
+      "evidence_hint": "clipboard mock呼び出し回数を確認する。",
+      "note": "",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    },
+    {
+      "check_id": "CHK-IPC-012",
+      "test_pattern_id": "TP-IPC-004",
+      "title": "未選択時は作業行選択エラーになる",
+      "quality_axis_cd": "safety",
+      "check_axis_cd": "message",
+      "risk_cd": "high",
+      "source_check_name": "no_selected_row_error_message",
+      "expected_summary": "selectedRow=null の場合、「プロンプトを作成する作業行を選択してください」というエラーになること。",
+      "constraint_ids": [
+        "studio_work_0041",
+        "AC-IPC-004"
+      ],
+      "evidence_hint": "Action例外messageまたはsetStatus表示を確認する。",
+      "note": "",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    },
+    {
+      "check_id": "CHK-IPC-013",
+      "test_pattern_id": "TP-IPC-005",
+      "title": "promptTemplate未定義時は契約エラーになる",
+      "quality_axis_cd": "safety",
+      "check_axis_cd": "guard",
+      "risk_cd": "medium",
+      "source_check_name": "missing_prompt_template_error",
+      "expected_summary": "promptTemplateが空または未定義の場合、「promptTemplate がViewDefに定義されていません」というエラーになること。",
+      "constraint_ids": [
+        "studio_work_0041",
+        "AC-IPC-005"
+      ],
+      "evidence_hint": "executeButtonからpromptTemplateを外したcontextでActionを実行する。",
+      "note": "",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    },
+    {
+      "check_id": "CHK-IPC-014",
+      "test_pattern_id": "TP-IPC-005",
+      "title": "promptTemplate未定義時はclipboardに書き込まない",
+      "quality_axis_cd": "safety",
+      "check_axis_cd": "guard",
+      "risk_cd": "medium",
+      "source_check_name": "missing_prompt_template_no_clipboard_write",
+      "expected_summary": "promptTemplate未定義時、clipboard書き込みが発生しないこと。",
+      "constraint_ids": [
+        "studio_work_0041",
+        "AC-IPC-005"
+      ],
+      "evidence_hint": "clipboard mock呼び出し回数を確認する。",
+      "note": "",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    },
+    {
+      "check_id": "CHK-IPC-015",
+      "test_pattern_id": "TP-IPC-006",
+      "title": "clipboard失敗時にmanual copy overlayが表示される",
+      "quality_axis_cd": "error",
+      "check_axis_cd": "fallback",
+      "risk_cd": "high",
+      "source_check_name": "clipboard_fail_manual_copy_overlay",
+      "expected_summary": "navigator.clipboard.writeTextとexecCommandが失敗した場合、#manualCopyPromptOverlay がDOMに追加されること。",
+      "constraint_ids": [
+        "studio_work_0041",
+        "AC-IPC-006"
+      ],
+      "evidence_hint": "ブラウザDOMテストでoverlay存在を確認する。",
+      "note": "",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    },
+    {
+      "check_id": "CHK-IPC-016",
+      "test_pattern_id": "TP-IPC-006",
+      "title": "fallback textareaに生成プロンプトが保持される",
+      "quality_axis_cd": "error",
+      "check_axis_cd": "fallback",
+      "risk_cd": "high",
+      "source_check_name": "fallback_textarea_contains_prompt",
+      "expected_summary": "manual-copy-textarea のvalueに生成済みプロンプト全文が入ること。",
+      "constraint_ids": [
+        "studio_work_0041",
+        "AC-IPC-006"
+      ],
+      "evidence_hint": "textarea.valueを確認する。",
+      "note": "",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    },
+    {
+      "check_id": "CHK-IPC-017",
+      "test_pattern_id": "TP-IPC-006",
+      "title": "fallback時の案内メッセージが返る",
+      "quality_axis_cd": "operation",
+      "check_axis_cd": "message",
+      "risk_cd": "medium",
+      "source_check_name": "fallback_status_message",
+      "expected_summary": "fallback時、Action結果messageが「手動コピー欄からコピーしてください」を含むこと。",
+      "constraint_ids": [
+        "studio_work_0041",
+        "AC-IPC-006"
+      ],
+      "evidence_hint": "Action戻り値またはsetStatusを確認する。",
+      "note": "",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    },
+    {
+      "check_id": "CHK-IPC-018",
+      "test_pattern_id": "TP-IPC-007",
+      "title": "JS側はpromptTemplateを読む汎用Actionに留まる",
+      "quality_axis_cd": "architecture",
+      "check_axis_cd": "source",
+      "risk_cd": "medium",
+      "source_check_name": "js_reads_prompt_template_generic",
+      "expected_summary": "action_registry.js の CopyPromptFromTemplate は executeButton.promptTemplate を読み、renderPromptTemplateで展開する構造であること。",
+      "constraint_ids": [
+        "foundation_rule_014",
+        "foundation_rule_015",
+        "studio_work_0041",
+        "AC-IPC-008"
+      ],
+      "evidence_hint": "action_registry.jsを静的確認する。",
+      "note": "静的チェックの厳密化は後回しでもよい。",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    },
+    {
+      "check_id": "CHK-IPC-019",
+      "test_pattern_id": "TP-IPC-007",
+      "title": "今回固有の依頼本文はViewDef側にある",
+      "quality_axis_cd": "architecture",
+      "check_axis_cd": "source",
+      "risk_cd": "medium",
+      "source_check_name": "prompt_body_in_viewdef",
+      "expected_summary": "今回固有の依頼文テンプレートはViewDefのpromptTemplateにあり、JSへ固定された文言として実装されていないこと。",
+      "constraint_ids": [
+        "foundation_rule_015",
+        "studio_work_0041",
+        "AC-IPC-008",
+        "decision:dec_0041_001"
+      ],
+      "evidence_hint": "ViewDefとJSを比較する。",
+      "note": "",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    },
+    {
+      "check_id": "CHK-IPC-020",
+      "test_pattern_id": "TP-IPC-008",
+      "title": "既存ActionRegistryの登録/実行構造が維持される",
+      "quality_axis_cd": "regression",
+      "check_axis_cd": "smoke",
+      "risk_cd": "medium",
+      "source_check_name": "action_registry_regression_smoke",
+      "expected_summary": "CopyPromptFromTemplate追加後も既存Actionの登録・実行・未登録エラーの基本構造が維持されること。",
+      "constraint_ids": [
+        "studio_work_0041",
+        "AC-IPC-007"
+      ],
+      "evidence_hint": "ShowActionContext/Noop等の既存Actionまたは未登録Actionの挙動を確認する。",
+      "note": "初回小テストでは後回し可。",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    }
+  ],
+  "execution_contract": {
+    "test_id": "TP-IPC-001",
+    "target_file": "defs/rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",
+    "actual_result_file": "data/json/03_tests/qa/v0_14_2_incident_prompt_copy_action/actual/TP-IPC-001.actual.json",
+    "actual_result_view_def": "qa/qa_actual_result_view_def_v0_1.json",
+    "expected_file_role": "source_of_truth",
+    "policy": "期待値はExpected JSONを正とする。テストコードはExpected JSONを読み込み、expected値を変数に収録して利用する。",
+    "subject": {
+      "id": "incident_prompt_copy_execute_button",
+      "source_path": "views[].toolbar.executeButton",
+      "find": {
+        "action": "CopyPromptFromTemplate"
+      }
+    },
+    "include_test_pattern_ids": [
+      "TP-IPC-001"
+    ],
+    "expected_file": "data/json/03_tests/qa/v0_14_2_incident_prompt_copy_action/expected/qa_expected_checks_v0_14_2_incident_prompt_copy_action_expected_values_added.json",
+    "test_patterns_file": "data/json/03_tests/qa/v0_14_2_incident_prompt_copy_action/test_patterns/qa_test_patterns_v0_14_2_incident_prompt_copy_action_draft.json",
+    "relations_file": "data/json/03_tests/qa/v0_14_2_incident_prompt_copy_action/relations/constraint_trace_relations_v0_14_2_incident_prompt_copy_action_draft.json",
+    "diff_result_file": "data/json/03_tests/qa/v0_14_2_incident_prompt_copy_action/diff/TP-IPC-001.diff.json",
+    "folder_policy": "QAテスト成果物は data/json/03_tests/qa/{suite_id}/ 配下に集約する。"
+  }
+}

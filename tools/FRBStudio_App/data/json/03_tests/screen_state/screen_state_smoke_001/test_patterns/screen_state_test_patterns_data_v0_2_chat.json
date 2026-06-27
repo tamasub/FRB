@@ -1,0 +1,143 @@
+{
+  "schema_version": "0.2-draft",
+  "view_def": "screen_state/screen_state_test_patterns_view_def_v0_2_chat.json",
+  "suiteId": "screen_state_suite_v0_1",
+  "title": "画面状態JSONテストパターン一覧",
+  "targetApp": "No-Code JSON Studio v0.3-draft",
+  "baseUrl": "http://localhost:5055/",
+  "defaultExpectedDir": "data/json/03_tests/screen_state/screen_state_smoke_001/expected",
+  "defaultActualDir": "data/json/03_tests/screen_state/screen_state_smoke_001/actual",
+  "defaultDiffDir": "data/json/03_tests/screen_state/screen_state_smoke_001/diff",
+  "defaultExpectedViewDef": "screen_state/screen_state_expected_view_def_v0_1.json",
+  "defaultDiffViewDef": "screen_state/screen_state_diff_view_def_base_v0_2_checks.json",
+  "createdAt": "2026-06-19T13:20:00+09:00",
+  "memo": "v0.2-chat。テストパターン台帳にチャット欄と俺の確認状態を追加した初期版。",
+  "patterns": [
+    {
+      "enabled": true,
+      "patternId": "screen_state_smoke_001",
+      "title": "初期表示の画面状態JSONを検証する",
+      "category": "smoke",
+      "testKind": "screen_state",
+      "targetUrl": "/",
+      "expectedFile": "data/json/03_tests/screen_state/screen_state_smoke_001/expected/screen_state_smoke_001.expected.json",
+      "expectedViewDef": "screen_state/screen_state_expected_view_def_v0_1.json",
+      "diffViewDef": "screen_state/screen_state_diff_view_def_base_v0_2_checks.json",
+      "outputActualFile": "data/json/03_tests/screen_state/screen_state_smoke_001/actual/screen_state_smoke_001.actual.json",
+      "outputDiffFile": "data/json/03_tests/screen_state/screen_state_smoke_001/diff/screen_state_smoke_001.diff.json",
+      "status": "active",
+      "priority": "high",
+      "checksCount": 4,
+      "tags": [
+        "initial",
+        "smoke",
+        "screen_state"
+      ],
+      "notes": "No-Code JSON Studioの初期表示を確認する最小スモークテスト。",
+      "checks": [
+        {
+          "name": "appTitle",
+          "type": "equals",
+          "target": "appTitle",
+          "expected": "No-Code JSON Studio v0.3-draft",
+          "check_id": "screen_state_smoke_001.appTitle"
+        },
+        {
+          "name": "headerText",
+          "type": "equals",
+          "target": "headerText",
+          "expected": true,
+          "check_id": "screen_state_smoke_001.headerText"
+        },
+        {
+          "name": "requiredButtons",
+          "type": "includesAll",
+          "target": "buttons",
+          "expected": [
+            "読み込み",
+            "保存",
+            "新規",
+            "削除"
+          ],
+          "check_id": "screen_state_smoke_001.requiredButtons"
+        },
+        {
+          "name": "requiredInputs",
+          "type": "includesAll",
+          "target": "inputs.id",
+          "expected": [
+            "defNameInput",
+            "dataNameInput",
+            "defFile",
+            "dataFile"
+          ],
+          "check_id": "screen_state_smoke_001.requiredInputs"
+        }
+      ],
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "my_confirm_status": "未確認"
+    },
+    {
+      "enabled": false,
+      "patternId": "screen_state_expected_editor_001",
+      "title": "Expected定義JSONを画面で確認する",
+      "category": "smoke",
+      "testKind": "manual_seed",
+      "targetUrl": "/",
+      "expectedFile": "data/json/03_tests/screen_state/screen_state_smoke_001/expected/screen_state_smoke_001.expected.json",
+      "expectedViewDef": "screen_state/screen_state_expected_view_def_v0_1.json",
+      "diffViewDef": "screen_state/screen_state_diff_view_def_base_v0_2_checks.json",
+      "outputActualFile": "",
+      "outputDiffFile": "",
+      "status": "draft",
+      "priority": "normal",
+      "checksCount": 0,
+      "tags": [
+        "expected",
+        "editor",
+        "manual"
+      ],
+      "notes": "今後、自動テスト化する候補。まずはパターン台帳上の種として置く。",
+      "checks": [],
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "my_confirm_status": "未確認"
+    },
+    {
+      "enabled": false,
+      "patternId": "screen_state_diff_view_001",
+      "title": "Diff結果JSONを画面で確認する",
+      "category": "regression",
+      "testKind": "manual_seed",
+      "targetUrl": "/",
+      "expectedFile": "",
+      "expectedViewDef": "",
+      "diffViewDef": "screen_state/screen_state_diff_view_def_base_v0_2_checks.json",
+      "outputActualFile": "",
+      "outputDiffFile": "data/json/03_tests/screen_state/screen_state_smoke_001/diff/screen_state_smoke_001.diff.json",
+      "status": "draft",
+      "priority": "normal",
+      "checksCount": 0,
+      "tags": [
+        "diff",
+        "viewer",
+        "manual"
+      ],
+      "notes": "Diff JSON Viewer側の表示確認を将来テスト化する候補。",
+      "checks": [],
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "my_confirm_status": "未確認"
+    }
+  ],
+  "updatedAt": "2026-06-19T13:45:00+09:00",
+  "canonicalRoot": "data/json/03_tests/screen_state/screen_state_smoke_001",
+  "migration_note": "screen_state_smoke_001 の Expected/Actual/Diff/TestPattern/Relation を data/json/03_tests/screen_state/screen_state_smoke_001 配下へ集約。"
+}

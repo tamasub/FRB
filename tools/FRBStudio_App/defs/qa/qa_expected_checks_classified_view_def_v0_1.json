@@ -1,6 +1,7 @@
 {
   "app": {
-    "title": "QA Expected Checks Classified"
+    "title": "QA Expected Checks Classified",
+    "version": "v0.1-expected-driven-fields-added"
   },
   "fieldTypeSources": [
     "common/common_types_v0_1.json"
@@ -8,7 +9,7 @@
   "views": [
     {
       "id": "main",
-      "caption": "観点分類入りExpected定義",
+      "caption": "観点分類入りExpected定義（Expected駆動）",
       "sections": [
         {
           "id": "summary",
@@ -31,12 +32,14 @@
             {
               "field": "schema_version",
               "caption": "Schema",
-              "fieldType": "core.schema_version"
+              "fieldType": "core.schema_version",
+              "type": "text"
             },
             {
               "field": "document_type",
               "caption": "文書種別",
-              "fieldType": "core.document_type"
+              "fieldType": "core.document_type",
+              "type": "text"
             },
             {
               "field": "title",
@@ -45,7 +48,8 @@
               "grid": {
                 "visible": false,
                 "width": 360
-              }
+              },
+              "type": "text"
             },
             {
               "field": "description",
@@ -54,6 +58,43 @@
               "grid": {
                 "visible": false,
                 "width": 420
+              },
+              "type": "textarea"
+            },
+            {
+              "field": "source_incident.incident_file",
+              "caption": "Incident file",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 520
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "source_incident.phase",
+              "caption": "Phase",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 320
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "source_incident.work_item_id",
+              "caption": "Work item",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 180
+              },
+              "edit": {
+                "visible": true
               }
             }
           ]
@@ -67,12 +108,38 @@
             {
               "field": "check_id",
               "caption": "チェックID",
-              "fieldType": "qa.check_id"
+              "fieldType": "qa.check_id",
+              "type": "text"
+            },
+            {
+              "field": "machine_check_ready",
+              "caption": "機械実行",
+              "type": "boolean",
+              "grid": {
+                "visible": true,
+                "width": 90
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "expected_source",
+              "caption": "Expected由来",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 150
+              },
+              "edit": {
+                "visible": true
+              }
             },
             {
               "field": "test_pattern_id",
               "caption": "テストパターンID",
-              "fieldType": "qa.test_pattern_id"
+              "fieldType": "qa.test_pattern_id",
+              "type": "text"
             },
             {
               "field": "title",
@@ -80,42 +147,105 @@
               "fieldType": "core.title",
               "grid": {
                 "width": 360
-              }
+              },
+              "type": "text"
             },
             {
               "field": "quality_axis_cd",
               "caption": "品質観点",
-              "fieldType": "qa.quality_axis"
+              "fieldType": "qa.quality_axis",
+              "type": "text"
             },
             {
               "field": "check_axis_cd",
               "caption": "チェック観点",
-              "fieldType": "qa.check_axis"
+              "fieldType": "qa.check_axis",
+              "type": "text"
             },
             {
               "field": "risk_cd",
               "caption": "リスク",
-              "fieldType": "qa.risk"
+              "fieldType": "qa.risk",
+              "type": "text"
             },
             {
               "field": "source_check_name",
               "caption": "実チェック名",
-              "fieldType": "qa.source_check_name"
+              "fieldType": "qa.source_check_name",
+              "type": "text"
+            },
+            {
+              "field": "name",
+              "caption": "チェック名",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 220
+              },
+              "edit": {
+                "visible": true
+              }
             },
             {
               "field": "expected_summary",
               "caption": "期待値概要",
-              "fieldType": "qa.expected_summary"
+              "fieldType": "qa.expected_summary",
+              "grid": {
+                "width": 420
+              },
+              "type": "textarea"
+            },
+            {
+              "field": "target",
+              "caption": "Target",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 340
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "type",
+              "caption": "比較Type",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "expected",
+              "caption": "Expected",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 320
+              },
+              "edit": {
+                "visible": true,
+                "height": 120
+              }
             },
             {
               "field": "constraint_ids",
               "caption": "制約ID",
-              "fieldType": "qa.constraint_ids"
+              "fieldType": "qa.constraint_ids",
+              "type": "stringArray"
             },
             {
               "field": "evidence_hint",
               "caption": "証跡ヒント",
-              "fieldType": "qa.evidence_hint"
+              "fieldType": "qa.evidence_hint",
+              "grid": {
+                "width": 360
+              },
+              "type": "textarea"
             },
             {
               "field": "note",
@@ -123,7 +253,8 @@
               "fieldType": "core.note",
               "grid": {
                 "width": 260
-              }
+              },
+              "type": "textarea"
             }
           ]
         },
@@ -140,7 +271,8 @@
               "grid": {
                 "visible": false,
                 "width": 520
-              }
+              },
+              "type": "textarea"
             },
             {
               "field": "classification_policy",
@@ -149,7 +281,8 @@
               "grid": {
                 "visible": false,
                 "width": 520
-              }
+              },
+              "type": "textarea"
             },
             {
               "field": "caption_policy",
@@ -158,11 +291,142 @@
               "grid": {
                 "visible": false,
                 "width": 520
+              },
+              "type": "textarea"
+            }
+          ]
+        },
+        {
+          "id": "executionContract",
+          "type": "form",
+          "caption": "実行契約 / Expected駆動",
+          "dataPath": "$.execution_contract",
+          "fields": [
+            {
+              "field": "test_id",
+              "caption": "Test ID",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 180
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "target_file",
+              "caption": "Target file",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 560
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "actual_result_file",
+              "caption": "Actual result file",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 560
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "actual_result_view_def",
+              "caption": "Actual result ViewDef",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 360
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "expected_file_role",
+              "caption": "Expected role",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 200
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "policy",
+              "caption": "Execution policy",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 560
+              },
+              "edit": {
+                "visible": true,
+                "height": 100
+              }
+            },
+            {
+              "field": "subject.id",
+              "caption": "Subject ID",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 260
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "subject.source_path",
+              "caption": "Subject source path",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 360
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "subject.find.action",
+              "caption": "Subject find action",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 260
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "include_test_pattern_ids",
+              "caption": "Include test pattern IDs",
+              "type": "stringArray",
+              "grid": {
+                "visible": false,
+                "width": 320
+              },
+              "edit": {
+                "visible": true
               }
             }
           ]
         }
-      ]
+      ],
+      "layout": "header-search-grid-detail"
     }
   ]
 }

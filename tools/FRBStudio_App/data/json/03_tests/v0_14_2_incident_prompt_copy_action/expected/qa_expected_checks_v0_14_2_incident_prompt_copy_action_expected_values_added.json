@@ -1,0 +1,428 @@
+{
+  "view_def": "qa/qa_expected_checks_classified_view_def_v0_1.json",
+  "schema_version": "qa_expected_checks_v0_2_draft",
+  "document_type": "qa_expected_checks",
+  "title": "v0.14.2 incident prompt copy action Expected",
+  "description": "Expected\u3092\u30C6\u30B9\u30C8\u30B3\u30FC\u30C9\u5185\u306B\u9589\u3058\u8FBC\u3081\u305A\u3001\u671F\u5F85\u5024JSON\u306B\u6A5F\u68B0\u53EF\u8AAD\u306A expected / target / type \u3068\u3057\u3066\u660E\u8A18\u3059\u308B\u7248\u3002\u30C6\u30B9\u30C8\u30B3\u30FC\u30C9\u306F\u3053\u306EExpected\u3092\u8AAD\u307F\u8FBC\u307F\u3001\u5B9F\u969B\u5024\u53D6\u5F97\u3068\u6BD4\u8F03\u306E\u307F\u3092\u884C\u3046\u3002",
+  "source_incident": {
+    "incident_file": "data/json/01_main/studio_work_incident_data_v0_54_incident_prompt_copy_action_implemented.json",
+    "phase": "v0.14.2-incident-prompt-copy-action",
+    "work_item_id": "studio_work_0041"
+  },
+  "policy": {
+    "test_pattern_policy": "\u30C6\u30B9\u30C8\u30D1\u30BF\u30FC\u30F3\u306F\u30A4\u30F3\u30B7\u30C7\u30F3\u30C8\u306Etest_points\u3068decision_log\u3092\u5143\u306B\u3059\u308B\u3002\u307E\u305A\u9759\u7684JSON\u691C\u67FB\u3068\u5C0F\u3055\u3044guard\u30C6\u30B9\u30C8\u3092\u512A\u5148\u3059\u308B\u3002",
+    "classification_policy": "screen_state\u3067\u78BA\u8A8D\u3067\u304D\u308B\u3082\u306E\u3001unit/browser mock\u304C\u5FC5\u8981\u306A\u3082\u306E\u3001\u624B\u52D5/\u5C06\u6765\u5BFE\u5FDC\u306B\u5206\u3051\u308B\u3002"
+  },
+  "expected_checks": [
+    {
+      "check_id": "CHK-IPC-001",
+      "test_pattern_id": "TP-IPC-001",
+      "title": "ViewDef\u306BAI\u4F9D\u983C\u30D7\u30ED\u30F3\u30D7\u30C8\u30B3\u30D4\u30FC\u30DC\u30BF\u30F3caption\u304C\u3042\u308B",
+      "quality_axis_cd": "display",
+      "check_axis_cd": "structure",
+      "risk_cd": "high",
+      "source_check_name": "viewdef_execute_button_caption",
+      "expected_summary": "\u30A4\u30F3\u30B7\u30C7\u30F3\u30C8\u7BA1\u7406ViewDef\u306E toolbar.executeButton.caption \u304C\u300CAI\u4F9D\u983C\u30D7\u30ED\u30F3\u30D7\u30C8\u30B3\u30D4\u30FC\u300D\u3067\u3042\u308B\u3053\u3068\u3002",
+      "constraint_ids": [
+        "foundation_rule_015",
+        "foundation_rule_019",
+        "studio_work_0041",
+        "AC-IPC-008"
+      ],
+      "evidence_hint": "ViewDef JSON\u306E views[].toolbar.executeButton.caption \u3092\u9759\u7684\u78BA\u8A8D\u3059\u308B\u3002",
+      "note": "\u753B\u9762\u72B6\u614BJSON\u3092\u8FFD\u52A0\u3059\u308C\u3070\u30DC\u30BF\u30F3\u8868\u793A\u78BA\u8A8D\u3078\u62E1\u5F35\u53EF\u80FD\u3002",
+      "name": "viewdef_execute_button_caption",
+      "target": "incident_prompt_copy_execute_button.caption",
+      "type": "equals",
+      "expected": "AI\u4F9D\u983C\u30D7\u30ED\u30F3\u30D7\u30C8\u30B3\u30D4\u30FCZZ",
+      "machine_check_ready": true,
+      "expected_source": "expected_json"
+    },
+    {
+      "check_id": "CHK-IPC-002",
+      "test_pattern_id": "TP-IPC-001",
+      "title": "ViewDef\u306EAction\u304CCopyPromptFromTemplate\u3067\u3042\u308B",
+      "quality_axis_cd": "structure",
+      "check_axis_cd": "structure",
+      "risk_cd": "high",
+      "source_check_name": "viewdef_execute_button_action",
+      "expected_summary": "toolbar.executeButton.action \u304C CopyPromptFromTemplate \u3067\u3042\u308B\u3053\u3068\u3002",
+      "constraint_ids": [
+        "foundation_rule_015",
+        "studio_work_0041",
+        "AC-IPC-008"
+      ],
+      "evidence_hint": "ViewDef JSON\u306Eaction\u5024\u3092\u9759\u7684\u78BA\u8A8D\u3059\u308B\u3002",
+      "note": "",
+      "name": "viewdef_execute_button_action",
+      "target": "incident_prompt_copy_execute_button.action",
+      "type": "equals",
+      "expected": "CopyPromptFromTemplate",
+      "machine_check_ready": true,
+      "expected_source": "expected_json"
+    },
+    {
+      "check_id": "CHK-IPC-003",
+      "test_pattern_id": "TP-IPC-001",
+      "title": "ViewDef\u306BpromptTemplate\u304C\u5B9A\u7FA9\u3055\u308C\u3066\u3044\u308B",
+      "quality_axis_cd": "structure",
+      "check_axis_cd": "structure",
+      "risk_cd": "high",
+      "source_check_name": "viewdef_prompt_template_exists",
+      "expected_summary": "toolbar.executeButton.promptTemplate \u304C\u7A7A\u3067\u306A\u304F\u3001incident_file \u3068 phase \u306E\u30C6\u30F3\u30D7\u30EC\u30FC\u30C8\u5909\u6570\u3092\u542B\u3080\u3053\u3068\u3002",
+      "constraint_ids": [
+        "foundation_rule_015",
+        "foundation_rule_019",
+        "studio_work_0041",
+        "AC-IPC-001",
+        "AC-IPC-003"
+      ],
+      "evidence_hint": "promptTemplate\u306B {{data.filePath}} \u3068 {{row.phase}} \u304C\u542B\u307E\u308C\u308B\u3053\u3068\u3092\u78BA\u8A8D\u3059\u308B\u3002",
+      "note": "",
+      "name": "viewdef_prompt_template_required_variables",
+      "target": "incident_prompt_copy_execute_button.promptTemplate",
+      "type": "includesAll",
+      "expected": [
+        "{{data.filePath}}",
+        "{{row.phase}}"
+      ],
+      "machine_check_ready": true,
+      "expected_source": "expected_json"
+    },
+    {
+      "check_id": "CHK-IPC-004",
+      "test_pattern_id": "TP-IPC-001",
+      "title": "\u9078\u629E\u884C\u5FC5\u9808\u5951\u7D04\u304CViewDef\u306B\u3042\u308B",
+      "quality_axis_cd": "safety",
+      "check_axis_cd": "structure",
+      "risk_cd": "high",
+      "source_check_name": "viewdef_require_selected_row",
+      "expected_summary": "toolbar.executeButton.requireSelectedRow \u304C true \u3067\u3042\u308A\u3001\u672A\u9078\u629E\u30B3\u30D4\u30FC\u3092\u6291\u5236\u3059\u308B\u5951\u7D04\u304C\u898B\u3048\u308B\u3053\u3068\u3002",
+      "constraint_ids": [
+        "studio_work_0041",
+        "AC-IPC-004"
+      ],
+      "evidence_hint": "ViewDef JSON\u306E requireSelectedRow \u3092\u78BA\u8A8D\u3059\u308B\u3002",
+      "note": "\u73FE\u72B6JS\u306FAction\u5074\u3067\u3082selectedRow null\u3092guard\u3057\u3066\u3044\u308B\u3002",
+      "name": "viewdef_require_selected_row",
+      "target": "incident_prompt_copy_execute_button.requireSelectedRow",
+      "type": "equals",
+      "expected": true,
+      "machine_check_ready": true,
+      "expected_source": "expected_json"
+    },
+    {
+      "check_id": "CHK-IPC-005",
+      "test_pattern_id": "TP-IPC-002",
+      "title": "\u751F\u6210\u30D7\u30ED\u30F3\u30D7\u30C8\u306Bincident_file\u304C\u57CB\u3081\u8FBC\u307E\u308C\u308B",
+      "quality_axis_cd": "function",
+      "check_axis_cd": "content",
+      "risk_cd": "high",
+      "source_check_name": "generated_prompt_contains_incident_file",
+      "expected_summary": "\u751F\u6210\u30D7\u30ED\u30F3\u30D7\u30C8\u306B\u300C- incident_file: data/json/01_main/studio_work_incident_data_v0_54_incident_prompt_copy_action_implemented.json\u300D\u304C\u542B\u307E\u308C\u308B\u3053\u3068\u3002",
+      "constraint_ids": [
+        "foundation_rule_019",
+        "studio_work_0041",
+        "AC-IPC-001",
+        "AC-IPC-003"
+      ],
+      "evidence_hint": "navigator.clipboard.writeText\u306Emock\u5F15\u6570\u3001\u307E\u305F\u306Ffallback textarea value\u3092\u78BA\u8A8D\u3059\u308B\u3002",
+      "note": "\u65E2\u5B58screen_state\u3067\u306F\u4E0D\u53EF\u3002",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    },
+    {
+      "check_id": "CHK-IPC-006",
+      "test_pattern_id": "TP-IPC-002",
+      "title": "\u751F\u6210\u30D7\u30ED\u30F3\u30D7\u30C8\u306Bphase\u304C\u57CB\u3081\u8FBC\u307E\u308C\u308B",
+      "quality_axis_cd": "function",
+      "check_axis_cd": "content",
+      "risk_cd": "high",
+      "source_check_name": "generated_prompt_contains_phase",
+      "expected_summary": "\u751F\u6210\u30D7\u30ED\u30F3\u30D7\u30C8\u306B\u300C- phase: v0.14.2-incident-prompt-copy-action\u300D\u304C\u542B\u307E\u308C\u308B\u3053\u3068\u3002",
+      "constraint_ids": [
+        "foundation_rule_019",
+        "studio_work_0041",
+        "AC-IPC-001"
+      ],
+      "evidence_hint": "clipboard mock\u5F15\u6570\u3092\u78BA\u8A8D\u3059\u308B\u3002",
+      "note": "",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    },
+    {
+      "check_id": "CHK-IPC-007",
+      "test_pattern_id": "TP-IPC-002",
+      "title": "\u751F\u6210\u30D7\u30ED\u30F3\u30D7\u30C8\u306B\u4F5C\u696D\u30EB\u30FC\u30EBURL\u7FA4\u304C\u542B\u307E\u308C\u308B",
+      "quality_axis_cd": "function",
+      "check_axis_cd": "content",
+      "risk_cd": "medium",
+      "source_check_name": "generated_prompt_contains_rule_urls",
+      "expected_summary": "Foundation Rules raw\u3001main ZIP\u3001FRBStudio_App raw base\u3001FRBStudio \u672C\u4F53 raw base \u304C\u751F\u6210\u30D7\u30ED\u30F3\u30D7\u30C8\u306B\u542B\u307E\u308C\u308B\u3053\u3068\u3002",
+      "constraint_ids": [
+        "foundation_rule_019",
+        "studio_work_0041"
+      ],
+      "evidence_hint": "clipboard mock\u5F15\u6570\u3092\u6587\u5B57\u5217\u691C\u7D22\u3059\u308B\u3002",
+      "note": "URL\u672C\u6587\u306FViewDef\u7531\u6765\u3002",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    },
+    {
+      "check_id": "CHK-IPC-008",
+      "test_pattern_id": "TP-IPC-002",
+      "title": "\u30B3\u30D4\u30FC\u6210\u529F\u6642\u306B\u6210\u529F\u30E1\u30C3\u30BB\u30FC\u30B8\u304C\u8FD4\u308B",
+      "quality_axis_cd": "operation",
+      "check_axis_cd": "message",
+      "risk_cd": "medium",
+      "source_check_name": "copy_success_message",
+      "expected_summary": "clipboard\u6210\u529F\u6642\u3001Action\u7D50\u679Cmessage\u304C\u300CAI\u4F9D\u983C\u30D7\u30ED\u30F3\u30D7\u30C8\u3092\u30B3\u30D4\u30FC\u3057\u307E\u3057\u305F\u300D\u3092\u542B\u307F\u3001phase\u307E\u305F\u306Fwork_item_id\u3092\u8B58\u5225\u3067\u304D\u308B\u3053\u3068\u3002",
+      "constraint_ids": [
+        "studio_work_0041",
+        "AC-IPC-001"
+      ],
+      "evidence_hint": "executeStudioAction\u306E\u623B\u308A\u5024\u307E\u305F\u306FsetStatus\u8868\u793A\u3092\u78BA\u8A8D\u3059\u308B\u3002",
+      "note": "",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    },
+    {
+      "check_id": "CHK-IPC-009",
+      "test_pattern_id": "TP-IPC-003",
+      "title": "1\u56DE\u76EE\u306FA\u884Cphase\u3067\u751F\u6210\u3055\u308C\u308B",
+      "quality_axis_cd": "function",
+      "check_axis_cd": "content",
+      "risk_cd": "high",
+      "source_check_name": "selected_row_a_phase_used",
+      "expected_summary": "A\u884C\u9078\u629E\u6642\u306E\u751F\u6210\u30D7\u30ED\u30F3\u30D7\u30C8\u306BA\u884C\u306Ephase\u304C\u542B\u307E\u308C\u308B\u3053\u3068\u3002",
+      "constraint_ids": [
+        "studio_work_0041",
+        "AC-IPC-002"
+      ],
+      "evidence_hint": "selectedRow\u3092\u5DEE\u3057\u66FF\u3048\u3066clipboard mock\u5F15\u6570\u3092\u78BA\u8A8D\u3059\u308B\u3002",
+      "note": "",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    },
+    {
+      "check_id": "CHK-IPC-010",
+      "test_pattern_id": "TP-IPC-003",
+      "title": "2\u56DE\u76EE\u306FB\u884Cphase\u3078\u66F4\u65B0\u3055\u308C\u308B",
+      "quality_axis_cd": "function",
+      "check_axis_cd": "content",
+      "risk_cd": "high",
+      "source_check_name": "selected_row_b_phase_used",
+      "expected_summary": "B\u884C\u9078\u629E\u6642\u306E\u751F\u6210\u30D7\u30ED\u30F3\u30D7\u30C8\u306BB\u884C\u306Ephase\u304C\u542B\u307E\u308C\u3001A\u884Cphase\u304C\u6B8B\u3089\u306A\u3044\u3053\u3068\u3002",
+      "constraint_ids": [
+        "studio_work_0041",
+        "AC-IPC-002"
+      ],
+      "evidence_hint": "2\u56DE\u9023\u7D9A\u5B9F\u884C\u3057\u30012\u56DE\u76EE\u306Eclipboard mock\u5F15\u6570\u3092\u78BA\u8A8D\u3059\u308B\u3002",
+      "note": "\u8AA4\u4F9D\u983C\u9632\u6B62\u3002",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    },
+    {
+      "check_id": "CHK-IPC-011",
+      "test_pattern_id": "TP-IPC-004",
+      "title": "\u672A\u9078\u629E\u6642\u306Fclipboard\u306B\u66F8\u304D\u8FBC\u307E\u306A\u3044",
+      "quality_axis_cd": "safety",
+      "check_axis_cd": "guard",
+      "risk_cd": "high",
+      "source_check_name": "no_selected_row_no_clipboard_write",
+      "expected_summary": "selectedRow=null \u306E\u5834\u5408\u3001navigator.clipboard.writeText \u304C\u547C\u3070\u308C\u306A\u3044\u3053\u3068\u3002",
+      "constraint_ids": [
+        "studio_work_0041",
+        "AC-IPC-004"
+      ],
+      "evidence_hint": "clipboard mock\u547C\u3073\u51FA\u3057\u56DE\u6570\u3092\u78BA\u8A8D\u3059\u308B\u3002",
+      "note": "",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    },
+    {
+      "check_id": "CHK-IPC-012",
+      "test_pattern_id": "TP-IPC-004",
+      "title": "\u672A\u9078\u629E\u6642\u306F\u4F5C\u696D\u884C\u9078\u629E\u30A8\u30E9\u30FC\u306B\u306A\u308B",
+      "quality_axis_cd": "safety",
+      "check_axis_cd": "message",
+      "risk_cd": "high",
+      "source_check_name": "no_selected_row_error_message",
+      "expected_summary": "selectedRow=null \u306E\u5834\u5408\u3001\u300C\u30D7\u30ED\u30F3\u30D7\u30C8\u3092\u4F5C\u6210\u3059\u308B\u4F5C\u696D\u884C\u3092\u9078\u629E\u3057\u3066\u304F\u3060\u3055\u3044\u300D\u3068\u3044\u3046\u30A8\u30E9\u30FC\u306B\u306A\u308B\u3053\u3068\u3002",
+      "constraint_ids": [
+        "studio_work_0041",
+        "AC-IPC-004"
+      ],
+      "evidence_hint": "Action\u4F8B\u5916message\u307E\u305F\u306FsetStatus\u8868\u793A\u3092\u78BA\u8A8D\u3059\u308B\u3002",
+      "note": "",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    },
+    {
+      "check_id": "CHK-IPC-013",
+      "test_pattern_id": "TP-IPC-005",
+      "title": "promptTemplate\u672A\u5B9A\u7FA9\u6642\u306F\u5951\u7D04\u30A8\u30E9\u30FC\u306B\u306A\u308B",
+      "quality_axis_cd": "safety",
+      "check_axis_cd": "guard",
+      "risk_cd": "medium",
+      "source_check_name": "missing_prompt_template_error",
+      "expected_summary": "promptTemplate\u304C\u7A7A\u307E\u305F\u306F\u672A\u5B9A\u7FA9\u306E\u5834\u5408\u3001\u300CpromptTemplate \u304CViewDef\u306B\u5B9A\u7FA9\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u300D\u3068\u3044\u3046\u30A8\u30E9\u30FC\u306B\u306A\u308B\u3053\u3068\u3002",
+      "constraint_ids": [
+        "studio_work_0041",
+        "AC-IPC-005"
+      ],
+      "evidence_hint": "executeButton\u304B\u3089promptTemplate\u3092\u5916\u3057\u305Fcontext\u3067Action\u3092\u5B9F\u884C\u3059\u308B\u3002",
+      "note": "",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    },
+    {
+      "check_id": "CHK-IPC-014",
+      "test_pattern_id": "TP-IPC-005",
+      "title": "promptTemplate\u672A\u5B9A\u7FA9\u6642\u306Fclipboard\u306B\u66F8\u304D\u8FBC\u307E\u306A\u3044",
+      "quality_axis_cd": "safety",
+      "check_axis_cd": "guard",
+      "risk_cd": "medium",
+      "source_check_name": "missing_prompt_template_no_clipboard_write",
+      "expected_summary": "promptTemplate\u672A\u5B9A\u7FA9\u6642\u3001clipboard\u66F8\u304D\u8FBC\u307F\u304C\u767A\u751F\u3057\u306A\u3044\u3053\u3068\u3002",
+      "constraint_ids": [
+        "studio_work_0041",
+        "AC-IPC-005"
+      ],
+      "evidence_hint": "clipboard mock\u547C\u3073\u51FA\u3057\u56DE\u6570\u3092\u78BA\u8A8D\u3059\u308B\u3002",
+      "note": "",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    },
+    {
+      "check_id": "CHK-IPC-015",
+      "test_pattern_id": "TP-IPC-006",
+      "title": "clipboard\u5931\u6557\u6642\u306Bmanual copy overlay\u304C\u8868\u793A\u3055\u308C\u308B",
+      "quality_axis_cd": "error",
+      "check_axis_cd": "fallback",
+      "risk_cd": "high",
+      "source_check_name": "clipboard_fail_manual_copy_overlay",
+      "expected_summary": "navigator.clipboard.writeText\u3068execCommand\u304C\u5931\u6557\u3057\u305F\u5834\u5408\u3001#manualCopyPromptOverlay \u304CDOM\u306B\u8FFD\u52A0\u3055\u308C\u308B\u3053\u3068\u3002",
+      "constraint_ids": [
+        "studio_work_0041",
+        "AC-IPC-006"
+      ],
+      "evidence_hint": "\u30D6\u30E9\u30A6\u30B6DOM\u30C6\u30B9\u30C8\u3067overlay\u5B58\u5728\u3092\u78BA\u8A8D\u3059\u308B\u3002",
+      "note": "",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    },
+    {
+      "check_id": "CHK-IPC-016",
+      "test_pattern_id": "TP-IPC-006",
+      "title": "fallback textarea\u306B\u751F\u6210\u30D7\u30ED\u30F3\u30D7\u30C8\u304C\u4FDD\u6301\u3055\u308C\u308B",
+      "quality_axis_cd": "error",
+      "check_axis_cd": "fallback",
+      "risk_cd": "high",
+      "source_check_name": "fallback_textarea_contains_prompt",
+      "expected_summary": "manual-copy-textarea \u306Evalue\u306B\u751F\u6210\u6E08\u307F\u30D7\u30ED\u30F3\u30D7\u30C8\u5168\u6587\u304C\u5165\u308B\u3053\u3068\u3002",
+      "constraint_ids": [
+        "studio_work_0041",
+        "AC-IPC-006"
+      ],
+      "evidence_hint": "textarea.value\u3092\u78BA\u8A8D\u3059\u308B\u3002",
+      "note": "",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    },
+    {
+      "check_id": "CHK-IPC-017",
+      "test_pattern_id": "TP-IPC-006",
+      "title": "fallback\u6642\u306E\u6848\u5185\u30E1\u30C3\u30BB\u30FC\u30B8\u304C\u8FD4\u308B",
+      "quality_axis_cd": "operation",
+      "check_axis_cd": "message",
+      "risk_cd": "medium",
+      "source_check_name": "fallback_status_message",
+      "expected_summary": "fallback\u6642\u3001Action\u7D50\u679Cmessage\u304C\u300C\u624B\u52D5\u30B3\u30D4\u30FC\u6B04\u304B\u3089\u30B3\u30D4\u30FC\u3057\u3066\u304F\u3060\u3055\u3044\u300D\u3092\u542B\u3080\u3053\u3068\u3002",
+      "constraint_ids": [
+        "studio_work_0041",
+        "AC-IPC-006"
+      ],
+      "evidence_hint": "Action\u623B\u308A\u5024\u307E\u305F\u306FsetStatus\u3092\u78BA\u8A8D\u3059\u308B\u3002",
+      "note": "",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    },
+    {
+      "check_id": "CHK-IPC-018",
+      "test_pattern_id": "TP-IPC-007",
+      "title": "JS\u5074\u306FpromptTemplate\u3092\u8AAD\u3080\u6C4E\u7528Action\u306B\u7559\u307E\u308B",
+      "quality_axis_cd": "architecture",
+      "check_axis_cd": "source",
+      "risk_cd": "medium",
+      "source_check_name": "js_reads_prompt_template_generic",
+      "expected_summary": "action_registry.js \u306E CopyPromptFromTemplate \u306F executeButton.promptTemplate \u3092\u8AAD\u307F\u3001renderPromptTemplate\u3067\u5C55\u958B\u3059\u308B\u69CB\u9020\u3067\u3042\u308B\u3053\u3068\u3002",
+      "constraint_ids": [
+        "foundation_rule_014",
+        "foundation_rule_015",
+        "studio_work_0041",
+        "AC-IPC-008"
+      ],
+      "evidence_hint": "action_registry.js\u3092\u9759\u7684\u78BA\u8A8D\u3059\u308B\u3002",
+      "note": "\u9759\u7684\u30C1\u30A7\u30C3\u30AF\u306E\u53B3\u5BC6\u5316\u306F\u5F8C\u56DE\u3057\u3067\u3082\u3088\u3044\u3002",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    },
+    {
+      "check_id": "CHK-IPC-019",
+      "test_pattern_id": "TP-IPC-007",
+      "title": "\u4ECA\u56DE\u56FA\u6709\u306E\u4F9D\u983C\u672C\u6587\u306FViewDef\u5074\u306B\u3042\u308B",
+      "quality_axis_cd": "architecture",
+      "check_axis_cd": "source",
+      "risk_cd": "medium",
+      "source_check_name": "prompt_body_in_viewdef",
+      "expected_summary": "\u4ECA\u56DE\u56FA\u6709\u306E\u4F9D\u983C\u6587\u30C6\u30F3\u30D7\u30EC\u30FC\u30C8\u306FViewDef\u306EpromptTemplate\u306B\u3042\u308A\u3001JS\u3078\u56FA\u5B9A\u3055\u308C\u305F\u6587\u8A00\u3068\u3057\u3066\u5B9F\u88C5\u3055\u308C\u3066\u3044\u306A\u3044\u3053\u3068\u3002",
+      "constraint_ids": [
+        "foundation_rule_015",
+        "studio_work_0041",
+        "AC-IPC-008",
+        "decision:dec_0041_001"
+      ],
+      "evidence_hint": "ViewDef\u3068JS\u3092\u6BD4\u8F03\u3059\u308B\u3002",
+      "note": "",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    },
+    {
+      "check_id": "CHK-IPC-020",
+      "test_pattern_id": "TP-IPC-008",
+      "title": "\u65E2\u5B58ActionRegistry\u306E\u767B\u9332/\u5B9F\u884C\u69CB\u9020\u304C\u7DAD\u6301\u3055\u308C\u308B",
+      "quality_axis_cd": "regression",
+      "check_axis_cd": "smoke",
+      "risk_cd": "medium",
+      "source_check_name": "action_registry_regression_smoke",
+      "expected_summary": "CopyPromptFromTemplate\u8FFD\u52A0\u5F8C\u3082\u65E2\u5B58Action\u306E\u767B\u9332\u30FB\u5B9F\u884C\u30FB\u672A\u767B\u9332\u30A8\u30E9\u30FC\u306E\u57FA\u672C\u69CB\u9020\u304C\u7DAD\u6301\u3055\u308C\u308B\u3053\u3068\u3002",
+      "constraint_ids": [
+        "studio_work_0041",
+        "AC-IPC-007"
+      ],
+      "evidence_hint": "ShowActionContext/Noop\u7B49\u306E\u65E2\u5B58Action\u307E\u305F\u306F\u672A\u767B\u9332Action\u306E\u6319\u52D5\u3092\u78BA\u8A8D\u3059\u308B\u3002",
+      "note": "\u521D\u56DE\u5C0F\u30C6\u30B9\u30C8\u3067\u306F\u5F8C\u56DE\u3057\u53EF\u3002",
+      "machine_check_ready": false,
+      "expected_source": "expected_summary_only"
+    }
+  ],
+  "execution_contract": {
+    "test_id": "TP-IPC-001",
+    "target_file": "defs/rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",
+    "actual_result_file": "data/json/03_tests/v0_14_2_incident_prompt_copy_action/actual/TP-IPC-001.actual.json",
+    "actual_result_view_def": "qa/qa_actual_result_view_def_v0_1.json",
+    "expected_file_role": "source_of_truth",
+    "policy": "\u671F\u5F85\u5024\u306FExpected JSON\u3092\u6B63\u3068\u3059\u308B\u3002\u30C6\u30B9\u30C8\u30B3\u30FC\u30C9\u306FExpected JSON\u3092\u8AAD\u307F\u8FBC\u307F\u3001expected\u5024\u3092\u5909\u6570\u306B\u53CE\u9332\u3057\u3066\u5229\u7528\u3059\u308B\u3002",
+    "subject": {
+      "id": "incident_prompt_copy_execute_button",
+      "source_path": "views[].toolbar.executeButton",
+      "find": {
+        "action": "CopyPromptFromTemplate"
+      }
+    },
+    "include_test_pattern_ids": [
+      "TP-IPC-001"
+    ]
+  }
+}

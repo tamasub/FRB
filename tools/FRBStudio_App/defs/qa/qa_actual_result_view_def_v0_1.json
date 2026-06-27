@@ -1,0 +1,567 @@
+{
+  "$schema": "frb_view_def_schema_v0_9_chat_input_mapping.json",
+  "view_def": "qa/qa_actual_result_view_def_v0_1.json",
+  "app": {
+    "name": "FRBStudio",
+    "version": "qa_actual_result_view_def_v0_1"
+  },
+  "description": "QA Actual Result JSON を Studioくんで確認するためのViewDef。テスト実行結果のヘッダーと checks[] を表示する。",
+  "views": [
+    {
+      "id": "qa_actual_result",
+      "caption": "QA Actual Result / テスト実行結果",
+      "layout": "header-search-grid-detail",
+      "sections": [
+        {
+          "id": "result_header",
+          "caption": "テスト結果サマリ",
+          "type": "form",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "resultLabel",
+              "caption": "判定",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "summary",
+              "caption": "差分サマリ",
+              "type": "textarea",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 74
+              }
+            },
+            {
+              "field": "failedCount",
+              "caption": "失敗件数",
+              "type": "number",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "failedChecks",
+              "caption": "失敗チェッカー一覧",
+              "type": "stringArray",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "firstFailure.name",
+              "caption": "初回失敗 Check",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "firstFailure.expected",
+              "caption": "初回失敗 Expected",
+              "type": "textarea",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 84
+              }
+            },
+            {
+              "field": "firstFailure.actual",
+              "caption": "初回失敗 Actual",
+              "type": "textarea",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 84
+              }
+            },
+            {
+              "field": "test_id",
+              "caption": "Test ID",
+              "type": "text",
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "grid": {
+                "visible": true,
+                "width": 140
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "test_name",
+              "caption": "テスト名",
+              "type": "text",
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "grid": {
+                "visible": true,
+                "width": 260
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "generated_at",
+              "caption": "Generated At",
+              "type": "datetime",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 190
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "phase",
+              "caption": "Phase",
+              "type": "text",
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "grid": {
+                "visible": true,
+                "width": 260
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "status",
+              "caption": "Status(raw)",
+              "type": "select",
+              "readonly": true,
+              "options": [
+                "pass",
+                "fail",
+                "skip",
+                "todo"
+              ],
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              },
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "schema_version",
+              "caption": "Schema Version",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "document_type",
+              "caption": "Document Type",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "result_summary.total_count",
+              "caption": "Total",
+              "type": "number",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 70
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "result_summary.pass_count",
+              "caption": "Pass",
+              "type": "number",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 70
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "result_summary.fail_count",
+              "caption": "Fail",
+              "type": "number",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 70
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "incident_file",
+              "caption": "Incident File",
+              "type": "textarea",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 70
+              }
+            },
+            {
+              "field": "expected_file",
+              "caption": "Expected File",
+              "type": "textarea",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 70
+              }
+            },
+            {
+              "field": "target_file",
+              "caption": "Target File",
+              "type": "textarea",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 70
+              }
+            },
+            {
+              "field": "view_def",
+              "caption": "ViewDef",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "checks_grid",
+          "caption": "チェック一覧 / Checks",
+          "type": "grid",
+          "dataPath": "checks",
+          "keyField": "check_id",
+          "fields": [
+            {
+              "field": "pass",
+              "caption": "判定",
+              "type": "boolean",
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              },
+              "grid": {
+                "visible": true,
+                "width": 80
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "check_id",
+              "caption": "Check ID",
+              "type": "text",
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "title",
+              "caption": "Check Title",
+              "type": "textarea",
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "grid": {
+                "visible": true,
+                "width": 300
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 80
+              }
+            },
+            {
+              "field": "target",
+              "caption": "Target",
+              "type": "text",
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "grid": {
+                "visible": true,
+                "width": 280
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "type",
+              "caption": "Type",
+              "type": "select",
+              "readonly": true,
+              "options": [
+                "equals",
+                "includesAll",
+                "exists",
+                "notExists",
+                "contains"
+              ],
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              },
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "expected",
+              "caption": "Expected",
+              "type": "textarea",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 360
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 140
+              }
+            },
+            {
+              "field": "actual",
+              "caption": "Actual",
+              "type": "textarea",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 420
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 180
+              }
+            },
+            {
+              "field": "relation_refs",
+              "caption": "Relation Refs",
+              "type": "stringArray",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 260
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            }
+          ]
+        }
+      ],
+      "markdown": {
+        "enabled": true,
+        "type": "generic_sections",
+        "title": "QA Actual Result",
+        "sections": [
+          {
+            "title": "Summary",
+            "source": "root",
+            "format": "detailList",
+            "fields": [
+              {
+                "field": "test_id",
+                "caption": "Test ID"
+              },
+              {
+                "field": "test_name",
+                "caption": "Test Name"
+              },
+              {
+                "field": "phase",
+                "caption": "Phase"
+              },
+              {
+                "field": "status",
+                "caption": "Status"
+              },
+              {
+                "field": "generated_at",
+                "caption": "Generated At"
+              },
+              {
+                "field": "result_summary.total_count",
+                "caption": "Total"
+              },
+              {
+                "field": "result_summary.pass_count",
+                "caption": "Pass"
+              },
+              {
+                "field": "result_summary.fail_count",
+                "caption": "Fail"
+              }
+            ]
+          },
+          {
+            "title": "Checks",
+            "source": "rows",
+            "dataPath": "checks",
+            "format": "table",
+            "fields": [
+              {
+                "field": "pass",
+                "caption": "Pass"
+              },
+              {
+                "field": "check_id",
+                "caption": "Check ID"
+              },
+              {
+                "field": "title",
+                "caption": "Title"
+              },
+              {
+                "field": "target",
+                "caption": "Target"
+              },
+              {
+                "field": "type",
+                "caption": "Type"
+              },
+              {
+                "field": "expected",
+                "caption": "Expected"
+              },
+              {
+                "field": "actual",
+                "caption": "Actual"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

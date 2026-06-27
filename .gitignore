@@ -38,6 +38,8 @@ data/exports/tmp/
 # FRBStudio
 /tools/FRBStudio/bin/
 /tools/FRBStudio/obj/
+/tools/FRBStudio_App/playwright-report/
+/tools/FRBStudio_App/test-results/
 
 
 
