@@ -68,6 +68,17 @@ type DiffCheck = {
   message: string;
 };
 
+
+function removeEmptyLegacyTestsScreenStateDir(): void {
+  const legacyDir = path.join(process.cwd(), 'tests_screen_state');
+  if (!fs.existsSync(legacyDir)) return;
+
+  const entries = fs.readdirSync(legacyDir);
+  if (entries.length === 0) {
+    fs.rmdirSync(legacyDir);
+  }
+}
+
 function readJsonFile<T>(relativeFile: string): T {
   const filePath = path.join(process.cwd(), relativeFile);
   return JSON.parse(fs.readFileSync(filePath, 'utf8')) as T;
@@ -241,7 +252,8 @@ function evaluateCheck(check: CheckPattern, state: ScreenState): DiffCheck {
   };
 }
 
-test('画面状態JSONをExpectedと比較してDiffを保存できる', async ({ page }, testInfo) => {
+test('画面状態JSONをExpectedと比較してDiffを保存できる', async ({ page }) => {
+  removeEmptyLegacyTestsScreenStateDir();
   await page.goto(BASE_URL);
 
   const state = await page.evaluate(() => {
@@ -326,16 +338,10 @@ test('画面状態JSONをExpectedと比較してDiffを保存できる', async (
   }, null, 2), 'utf8');
 
   fs.writeFileSync(diffPath, JSON.stringify(emphasizedDiff, null, 2), 'utf8');
+  // actual/diff は data/json/03_tests 配下を正本とする。
+  // Playwright attachment は長い実行結果パスを生成するため、ここでは作成しない。
 
-  await testInfo.attach(`${TEST_ID}.actual.json`, {
-    path: actualPath,
-    contentType: 'application/json'
-  });
-
-  await testInfo.attach(`${TEST_ID}.diff.json`, {
-    path: diffPath,
-    contentType: 'application/json'
-  });
+  removeEmptyLegacyTestsScreenStateDir();
 
   expect(emphasizedDiff.status).toBe('pass');
 

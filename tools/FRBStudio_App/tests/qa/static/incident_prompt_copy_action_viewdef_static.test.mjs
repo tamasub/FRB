@@ -17,6 +17,13 @@ function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, "utf8"));
 }
 
+function writeJson(relativeFile, data) {
+  const filePath = path.join(repoRoot, relativeFile);
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, `${JSON.stringify(data, null, 2)}\n`, "utf8");
+  return filePath;
+}
+
 function getByPath(source, dotPath) {
   if (!dotPath) return source;
   return String(dotPath)
@@ -67,38 +74,92 @@ function getActualValue({ check, expectedSpec, targetJson }) {
   return getByPath(targetJson, target) ?? null;
 }
 
+function formatValue(value) {
+  if (value === undefined) return null;
+  return value;
+}
+
+function displayValue(value) {
+  if (value == null) return "";
+  if (typeof value === "string") return value;
+  return JSON.stringify(value);
+}
+
 function evaluateCheck(type, expected, actual) {
   if (type === "equals") {
-    return Object.is(actual, expected);
+    return {
+      pass: Object.is(actual, expected),
+      missing: [],
+    };
   }
 
   if (type === "includesAll") {
     const expectedItems = Array.isArray(expected) ? expected : [expected];
 
     if (typeof actual === "string") {
-      return expectedItems.every((item) => actual.includes(String(item)));
+      const missing = expectedItems.filter((item) => !actual.includes(String(item)));
+      return {
+        pass: missing.length === 0,
+        missing,
+      };
     }
 
     if (Array.isArray(actual)) {
-      return expectedItems.every((item) => actual.includes(item));
+      const missing = expectedItems.filter((item) => !actual.includes(item));
+      return {
+        pass: missing.length === 0,
+        missing,
+      };
     }
 
-    return false;
+    return {
+      pass: false,
+      missing: expectedItems,
+    };
   }
 
   throw new Error(`未対応のcheck typeです: ${type}`);
 }
 
-function makeActualCheck({ check, actual, pass }) {
+function getExpectedChecks(expectedSpec) {
+  const includeIds = expectedSpec.execution_contract?.include_test_pattern_ids;
+  const targetPatternIds = Array.isArray(includeIds) && includeIds.length > 0 ? includeIds : [TEST_ID];
+
+  return (expectedSpec.expected_checks ?? [])
+    .filter((check) => targetPatternIds.includes(check.test_pattern_id))
+    .filter((check) => check.machine_check_ready === true);
+}
+
+function makeActualObservationCheck({ check, actual }) {
   return {
     check_id: check.check_id,
     test_pattern_id: check.test_pattern_id,
     title: check.title,
+    name: check.name ?? check.source_check_name ?? check.check_id,
+    target: check.target,
+    actual: formatValue(actual),
+    actual_display: displayValue(actual),
+    source_check_name: check.source_check_name ?? null,
+  };
+}
+
+function makeDiffCheck({ check, actual, evaluation }) {
+  return {
+    check_id: check.check_id,
+    test_pattern_id: check.test_pattern_id,
+    title: check.title,
+    name: check.name ?? check.source_check_name ?? check.check_id,
     target: check.target,
     type: check.type,
-    expected: check.expected,
-    actual,
-    pass,
+    expected: formatValue(check.expected),
+    actual: formatValue(actual),
+    expected_display: displayValue(check.expected),
+    actual_display: displayValue(actual),
+    missing: evaluation.missing,
+    pass: evaluation.pass,
+    message: evaluation.pass
+      ? "OK"
+      : `${check.check_id} failed: expected ${displayValue(check.expected)}, actual ${displayValue(actual)}`,
     relation_refs: [
       check.test_pattern_id,
       ...(Array.isArray(check.constraint_ids) ? check.constraint_ids : []),
@@ -106,104 +167,131 @@ function makeActualCheck({ check, actual, pass }) {
   };
 }
 
-function buildSharedResultSummary(checks, status) {
-  const failedChecks = checks.filter((check) => check.pass === false);
-  const failedIds = failedChecks.map((check) => check.check_id ?? check.name).filter(Boolean);
-  const firstFailureCheck = failedChecks[0] ?? null;
+function buildDiffSummary(diffChecks, status) {
+  const failed = diffChecks.filter((check) => check.pass === false);
+  const failedCheckIds = failed.map((check) => check.check_id).filter(Boolean);
+  const failedChecks = failed.map((check) => check.name ?? check.check_id).filter(Boolean);
+  const firstFailure = failed[0] ?? null;
 
   return {
     resultLabel: status === "pass" ? "✅ PASS" : "🚨 FAIL",
-    failedCount: failedChecks.length,
-    failedChecks: failedIds,
-    summary: failedChecks.length === 0
+    failedCount: failed.length,
+    failedChecks,
+    failedCheckIds,
+    summary: failed.length === 0
       ? "✅ 差分は検出されませんでした。"
-      : `🚨 ${failedChecks.length}件の差分を検出しました: ${failedIds.join(", ")}`,
-    firstFailure: firstFailureCheck
+      : `🚨 ${failed.length}件の差分を検出しました: ${failedCheckIds.join(", ")}`,
+    firstFailure: firstFailure
       ? {
-          name: firstFailureCheck.check_id ?? firstFailureCheck.name ?? "",
-          type: firstFailureCheck.type ?? "",
-          target: firstFailureCheck.target ?? "",
-          expected: firstFailureCheck.expected ?? null,
-          actual: firstFailureCheck.actual ?? null,
-          missing: firstFailureCheck.missing ?? [],
+          check_id: firstFailure.check_id,
+          name: firstFailure.name,
+          type: firstFailure.type,
+          target: firstFailure.target,
+          expected: firstFailure.expected,
+          actual: firstFailure.actual,
+          missing: firstFailure.missing,
         }
       : null,
   };
 }
 
-function writeActualResult({ expectedSpec, targetFile, checks }) {
-  const passCount = checks.filter((check) => check.pass).length;
-  const failCount = checks.length - passCount;
-  const status = failCount === 0 ? "pass" : "fail";
-  const sharedSummary = buildSharedResultSummary(checks, status);
-  const resultFile = expectedSpec.execution_contract?.actual_result_file;
+function buildActualObservation({ expectedSpec, targetFile, targetJson, expectedChecks }) {
+  const capturedAt = new Date().toISOString();
+  const checks = expectedChecks.map((check) => {
+    const actual = getActualValue({ check, expectedSpec, targetJson });
+    return makeActualObservationCheck({ check, actual });
+  });
 
-  if (!resultFile) {
-    throw new Error("Expected JSONの execution_contract.actual_result_file が未定義です。");
-  }
-
-  const resultPath = path.join(repoRoot, resultFile);
-  const result = {
-    schema_version: "qa_actual_result_v0_1",
-    document_type: "qa_actual_result",
-    view_def: expectedSpec.execution_contract?.actual_result_view_def ?? "qa/qa_actual_result_view_def_v0_1.json",
-    test_id: TEST_ID,
+  return {
+    schema_version: "qa_actual_observation_v0_1",
+    document_type: "qa_actual_observation",
+    view_def: expectedSpec.execution_contract?.actual_view_def ?? "qa/qa_actual_observation_view_def_v0_1.json",
+    test_id: expectedSpec.execution_contract?.test_id ?? TEST_ID,
     test_name: "インシデント管理ViewDefにAI依頼プロンプトコピーボタンが宣言されている",
     phase: expectedSpec.source_incident?.phase ?? null,
     incident_file: expectedSpec.source_incident?.incident_file ?? null,
     expected_file: EXPECTED_FILE,
     target_file: targetFile,
-    status,
-    resultLabel: sharedSummary.resultLabel,
-    summary: sharedSummary.summary,
-    failedCount: sharedSummary.failedCount,
-    failedChecks: sharedSummary.failedChecks,
-    firstFailure: sharedSummary.firstFailure,
-    generated_at: new Date().toISOString(),
+    capturedAt,
     result_summary: {
       total_count: checks.length,
-      pass_count: passCount,
-      fail_count: failCount,
     },
     checks,
   };
-
-  fs.mkdirSync(path.dirname(resultPath), { recursive: true });
-  fs.writeFileSync(resultPath, `${JSON.stringify(result, null, 2)}
-`, "utf8");
-  return result;
 }
 
-test("TP-IPC-001: Expected JSONに記載された期待値でViewDef静的チェックを実行する", () => {
+function buildDiffResult({ expectedSpec, targetFile, actualObservation, expectedChecks }) {
+  const diffChecks = expectedChecks.map((check) => {
+    const actualCheck = actualObservation.checks.find((item) => item.check_id === check.check_id);
+    const actual = actualCheck?.actual ?? null;
+    const evaluation = evaluateCheck(check.type, check.expected, actual);
+    return makeDiffCheck({ check, actual, evaluation });
+  });
+
+  const passCount = diffChecks.filter((check) => check.pass).length;
+  const failCount = diffChecks.length - passCount;
+  const status = failCount === 0 ? "pass" : "fail";
+  const summary = buildDiffSummary(diffChecks, status);
+
+  return {
+    schema_version: "qa_diff_result_v0_1",
+    document_type: "qa_diff_result",
+    view_def: expectedSpec.execution_contract?.diff_view_def ?? "qa/qa_diff_result_view_def_v0_1.json",
+    test_id: expectedSpec.execution_contract?.test_id ?? TEST_ID,
+    test_name: actualObservation.test_name,
+    phase: expectedSpec.source_incident?.phase ?? null,
+    incident_file: expectedSpec.source_incident?.incident_file ?? null,
+    expected_file: EXPECTED_FILE,
+    actual_file: expectedSpec.execution_contract?.actual_file ?? expectedSpec.execution_contract?.actual_result_file,
+    target_file: targetFile,
+    status,
+    resultLabel: summary.resultLabel,
+    summary: summary.summary,
+    failedCount: summary.failedCount,
+    failedChecks: summary.failedChecks,
+    failedCheckIds: summary.failedCheckIds,
+    firstFailure: summary.firstFailure,
+    generated_at: new Date().toISOString(),
+    result_summary: {
+      total_count: diffChecks.length,
+      pass_count: passCount,
+      fail_count: failCount,
+    },
+    checks: diffChecks,
+  };
+}
+
+test("TP-IPC-001: Expected JSONからActual観測値とDiff結果を分離して出力する", () => {
   assert.ok(fs.existsSync(expectedPath), `Expected JSONが存在すること: ${EXPECTED_FILE}`);
 
   const expectedSpec = readJson(expectedPath);
   const targetFile = expectedSpec.execution_contract?.target_file;
+  const actualFile = expectedSpec.execution_contract?.actual_file ?? expectedSpec.execution_contract?.actual_result_file;
+  const diffFile = expectedSpec.execution_contract?.diff_file ?? expectedSpec.execution_contract?.diff_result_file;
 
   assert.ok(targetFile, "Expected JSONの execution_contract.target_file が定義されていること");
+  assert.ok(actualFile, "Expected JSONの execution_contract.actual_file が定義されていること");
+  assert.ok(diffFile, "Expected JSONの execution_contract.diff_file が定義されていること");
 
   const targetPath = path.join(repoRoot, targetFile);
   assert.ok(fs.existsSync(targetPath), `対象ViewDefが存在すること: ${targetFile}`);
 
   const targetJson = readJson(targetPath);
-  const expectedChecks = (expectedSpec.expected_checks ?? [])
-    .filter((check) => check.test_pattern_id === TEST_ID)
-    .filter((check) => check.machine_check_ready === true);
+  const expectedChecks = getExpectedChecks(expectedSpec);
 
   assert.ok(expectedChecks.length > 0, `${TEST_ID} の machine_check_ready=true のExpected Checkが存在すること`);
 
-  const checks = expectedChecks.map((check) => {
+  for (const check of expectedChecks) {
     assert.ok("expected" in check, `${check.check_id} に expected が明記されていること`);
     assert.ok(check.target, `${check.check_id} に target が明記されていること`);
     assert.ok(check.type, `${check.check_id} に type が明記されていること`);
+  }
 
-    const actual = getActualValue({ check, expectedSpec, targetJson });
-    const pass = evaluateCheck(check.type, check.expected, actual);
+  const actualObservation = buildActualObservation({ expectedSpec, targetFile, targetJson, expectedChecks });
+  const diffResult = buildDiffResult({ expectedSpec, targetFile, actualObservation, expectedChecks });
 
-    return makeActualCheck({ check, actual, pass });
-  });
+  writeJson(actualFile, actualObservation);
+  writeJson(diffFile, diffResult);
 
-  const actualResult = writeActualResult({ expectedSpec, targetFile, checks });
-
-  assert.equal(actualResult.status, "pass", `Actual Result JSONを確認してください: ${expectedSpec.execution_contract.actual_result_file}`);
+  assert.equal(diffResult.failedCount, 0, `Diff Result JSONを確認してください: ${diffFile}`);
 });

@@ -3,7 +3,7 @@
   "schema_version": "qa_expected_checks_v0_2_draft",
   "document_type": "qa_expected_checks",
   "title": "v0.14.2 incident prompt copy action Expected",
-  "description": "Expectedをテストコード内に閉じ込めず、期待値JSONに機械可読な expected / target / type として明記する版。テストコードはこのExpectedを読み込み、実際値取得と比較のみを行う。",
+  "description": "Expectedを正本とし、actual.jsonは観測値のみ、diff.jsonは比較結果として分離する版。",
   "source_incident": {
     "incident_file": "data/json/01_main/studio_work_incident_data_v0_54_incident_prompt_copy_action_implemented.json",
     "phase": "v0.14.2-incident-prompt-copy-action",
@@ -411,7 +411,7 @@
     "test_id": "TP-IPC-001",
     "target_file": "defs/rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",
     "actual_result_file": "data/json/03_tests/qa/v0_14_2_incident_prompt_copy_action/actual/TP-IPC-001.actual.json",
-    "actual_result_view_def": "qa/qa_actual_result_view_def_v0_1.json",
+    "actual_result_view_def": "qa/qa_actual_observation_view_def_v0_1.json",
     "expected_file_role": "source_of_truth",
     "policy": "期待値はExpected JSONを正とする。テストコードはExpected JSONを読み込み、expected値を変数に収録して利用する。",
     "subject": {
@@ -428,6 +428,12 @@
     "test_patterns_file": "data/json/03_tests/qa/v0_14_2_incident_prompt_copy_action/test_patterns/qa_test_patterns_v0_14_2_incident_prompt_copy_action_draft.json",
     "relations_file": "data/json/03_tests/qa/v0_14_2_incident_prompt_copy_action/relations/constraint_trace_relations_v0_14_2_incident_prompt_copy_action_draft.json",
     "diff_result_file": "data/json/03_tests/qa/v0_14_2_incident_prompt_copy_action/diff/TP-IPC-001.diff.json",
-    "folder_policy": "QAテスト成果物は data/json/03_tests/qa/{suite_id}/ 配下に集約する。"
+    "folder_policy": "QAテスト成果物は data/json/03_tests/qa/{suite_id}/ 配下に集約する。",
+    "actual_file": "data/json/03_tests/qa/v0_14_2_incident_prompt_copy_action/actual/TP-IPC-001.actual.json",
+    "diff_file": "data/json/03_tests/qa/v0_14_2_incident_prompt_copy_action/diff/TP-IPC-001.diff.json",
+    "actual_view_def": "qa/qa_actual_observation_view_def_v0_1.json",
+    "diff_view_def": "qa/qa_diff_result_view_def_v0_1.json",
+    "diff_result_view_def": "qa/qa_diff_result_view_def_v0_1.json",
+    "responsibility_policy": "actual.json は観測値のみを保持する。diff.json は expected / actual / pass / summary を保持する。node --test の成否は diff.failedCount を正とする。"
   }
 }

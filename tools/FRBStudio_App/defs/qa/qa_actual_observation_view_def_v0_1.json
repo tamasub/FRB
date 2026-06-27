@@ -1,0 +1,197 @@
+{
+  "$schema": "frb_view_def_schema_v0_9_chat_input_mapping.json",
+  "view_def": "qa/qa_actual_observation_view_def_v0_1.json",
+  "app": {
+    "name": "FRBStudio",
+    "version": "qa_actual_observation_view_def_v0_1"
+  },
+  "description": "QA Actual Observation JSON を Studioくんで確認するための暫定ViewDef。actual.jsonは観測値のみを持ち、expected/pass/summaryを持たない。",
+  "views": [
+    {
+      "id": "qa_actual_observation",
+      "caption": "QA Actual Observation / 観測値",
+      "layout": "header-search-grid-detail",
+      "sections": [
+        {
+          "id": "header",
+          "caption": "Actual概要",
+          "type": "form",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "test_id",
+              "caption": "Test ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "test_name",
+              "caption": "テスト名",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "phase",
+              "caption": "Phase",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "capturedAt",
+              "caption": "観測日時",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "expected_file",
+              "caption": "Expected",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "target_file",
+              "caption": "Target",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "checks",
+          "caption": "観測値一覧",
+          "type": "grid",
+          "dataPath": "$.checks",
+          "keyField": "check_id",
+          "fields": [
+            {
+              "field": "check_id",
+              "caption": "Check ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 130
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "test_pattern_id",
+              "caption": "TestPattern",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 130
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 320
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "target",
+              "caption": "Target",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 300
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "actual_display",
+              "caption": "Actual",
+              "type": "textarea",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 360
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 120
+              }
+            },
+            {
+              "field": "source_check_name",
+              "caption": "実チェック名",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

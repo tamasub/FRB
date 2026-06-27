@@ -1,0 +1,14 @@
+# Node / Playwright
+node_modules/
+playwright-report/
+test-results/
+test_results/
+tests/.runtime/
+
+# Legacy screen_state project folder. Do not use as a source folder.
+tests_screen_state/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/.ropeproject/
