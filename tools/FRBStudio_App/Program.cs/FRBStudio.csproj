@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWindowsForms>true</UseWindowsForms>
+    <OutputType>WinExe</OutputType>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <ApplicationIcon>FRB.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Update="FRB.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="FRB_tray.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="tools\git\Export-DiffToJson.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
