@@ -36,7 +36,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "height": 80
               }
             },
@@ -59,7 +59,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "height": 80
               }
             },
@@ -71,7 +71,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "height": 80
               }
             }
@@ -630,7 +630,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "height": 700
               }
             }

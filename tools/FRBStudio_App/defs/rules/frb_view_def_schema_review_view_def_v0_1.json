@@ -85,7 +85,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": true
               }
             },
@@ -133,7 +133,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": true
               }
             },
@@ -146,7 +146,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": true
               }
             },
@@ -159,7 +159,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": true
               }
             },
@@ -172,7 +172,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": true
               }
             },
@@ -185,7 +185,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": true
               }
             },
@@ -198,7 +198,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": true
               }
             },
@@ -224,7 +224,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": true
               }
             },
@@ -237,7 +237,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": true,
                 "height": 120
               }
@@ -251,7 +251,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": true,
                 "height": 100
               }
@@ -265,7 +265,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": true,
                 "height": 100
               }
@@ -279,7 +279,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": true
               }
             },
@@ -292,7 +292,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": true
               }
             },
@@ -305,7 +305,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": true
               }
             }
@@ -425,7 +425,7 @@
                 "readonly": true
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               }
             },
@@ -461,7 +461,7 @@
                 "readonly": true
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               }
             },
@@ -479,7 +479,7 @@
                 "readonly": true
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               }
             },
@@ -590,7 +590,7 @@
                 "height": 120
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               }
             },
@@ -608,7 +608,7 @@
                 "height": 300
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               }
             },
@@ -827,7 +827,7 @@
                 "height": 110
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "defaultValue": ""
@@ -847,7 +847,7 @@
                 "height": 130
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "defaultValue": ""
@@ -865,7 +865,7 @@
                 "height": 100
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "defaultValue": ""
@@ -885,7 +885,7 @@
                 "height": 130
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "defaultValue": ""
@@ -914,7 +914,7 @@
                 "height": 100
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "defaultValue": ""

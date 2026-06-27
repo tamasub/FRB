@@ -95,7 +95,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "height": 110
               }
             },
@@ -107,7 +107,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "height": 140
               }
             }
@@ -185,7 +185,7 @@
                 "height": 160
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               }
             },
@@ -323,7 +323,7 @@
                 "height": 160
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               }
             },
@@ -400,7 +400,7 @@
                 "height": 150
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               }
             },
@@ -555,7 +555,7 @@
                 "height": 120
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               }
             },
@@ -572,7 +572,7 @@
                 "height": 120
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               }
             }
@@ -637,7 +637,7 @@
                 "height": 120
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               }
             }
@@ -686,7 +686,7 @@
                 "height": 140
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               }
             },

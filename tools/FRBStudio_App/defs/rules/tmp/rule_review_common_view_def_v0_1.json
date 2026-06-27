@@ -1,12 +1,12 @@
 {
   "app": {
     "name": "FRB Studio / JSON Object Studio",
-    "version": "rule-review-common-v0.3-decision-log-change-history"
+    "version": "rule-review-common-v0.1"
   },
   "views": [
     {
-      "id": "rule_review_common_v0_3_decision_log",
-      "caption": "ルールレビュー（共通）/ 判断ログ・変更履歴対応",
+      "id": "rule_review_common_v0_1",
+      "caption": "ルールレビュー（共通）",
       "layout": {
         "detailDialog": "wide"
       },
@@ -547,40 +547,40 @@
               "field": "summary",
               "caption": "要約",
               "type": "textarea",
-              "readonly": false,
+              "readonly": true,
               "grid": {
                 "visible": true,
                 "width": 430
               },
               "edit": {
                 "visible": false,
-                "readonly": false,
-                "height": 120
+                "readonly": true,
+                "height": 90
               },
               "search": {
                 "visible": false,
                 "operator": "contains"
               },
-              "display_note": "詳細画面では __review_target_cards の要約カードとして編集可能に表示する。Markdownリンク/画像記法を許可する。"
+              "display_note": "詳細画面では __review_target_cards の要約カードとして表示する。"
             },
             {
               "field": "body",
               "caption": "ルール本文",
               "type": "textarea",
-              "readonly": false,
+              "readonly": true,
               "grid": {
                 "visible": false
               },
               "edit": {
                 "visible": false,
-                "readonly": false,
-                "height": 340
+                "readonly": true,
+                "height": 280
               },
               "search": {
                 "visible": false,
                 "operator": "contains"
               },
-              "display_note": "詳細画面では __review_target_cards の本文カードとして編集可能に表示する。Markdownリンク/画像記法を許可する。"
+              "display_note": "詳細画面では __review_target_cards の本文カードとして表示する。"
             },
             {
               "field": "source_heading",
@@ -593,14 +593,12 @@
               },
               "edit": {
                 "visible": false,
-                "readonly": false,
-                "height": 70
+                "readonly": true
               },
               "search": {
                 "visible": false,
                 "operator": "contains"
-              },
-              "display_note": "詳細画面では __review_target_cards の見出しカードとして編集可能に表示する。"
+              }
             },
             {
               "field": "source_line_start",
@@ -687,40 +685,32 @@
                     "role": "constraint",
                     "field": "source_heading",
                     "label": "見出し",
-                    "readonly": false,
-                    "height": 80,
-                    "markdown": {
-                      "inline": true,
-                      "allowLinks": true,
-                      "allowImages": false
-                    },
-                    "display_note": "見出しも必要に応じて編集可能。画像は通常不要なのでリンクのみ許可。"
+                    "readonly": true,
+                    "height": 70
                   },
                   {
                     "role": "constraint",
                     "field": "summary",
                     "label": "要約",
-                    "readonly": false,
-                    "height": 120,
+                    "readonly": true,
+                    "height": 90,
                     "markdown": {
                       "inline": true,
                       "allowLinks": true,
-                      "allowImages": true
-                    },
-                    "display_note": "要約をレビュー画面で直接編集可能。Markdownリンク/画像記法を許可。"
+                      "allowImages": false
+                    }
                   },
                   {
                     "role": "constraint",
                     "field": "body",
                     "label": "ルール本文",
-                    "readonly": false,
-                    "height": 360,
+                    "readonly": true,
+                    "height": 300,
                     "markdown": {
                       "inline": true,
                       "allowLinks": true,
                       "allowImages": true
-                    },
-                    "display_note": "ルール本文をレビュー画面で直接編集可能。Markdownリンク/画像記法を許可。"
+                    }
                   },
                   {
                     "role": "system",
@@ -769,7 +759,7 @@
                 "placement": "detailBody",
                 "order": 100
               },
-              "display_note": "レビュー対象カード。元見出し・要約・本文は編集可能。本文と要約ではMarkdownリンク/画像記法を許可し、確認メッセージは確認・承認操作用としてreadonly表示する。"
+              "display_note": "レビュー対象カード。元見出し・要約・本文・確認メッセージを詳細画面上部に表示する。"
             },
             {
               "field": "__review_chat",
@@ -932,19 +922,6 @@
               "defaultValue": ""
             },
             {
-              "field": "decision_log",
-              "caption": "判断ログ",
-              "type": "objectArray",
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": true
-              },
-              "defaultValue": [],
-              "display_note": "ルールレビュー時の判断を残すサブグリッド。まずは decision（判断内容）と reason（理由）を中心に記録する。必要に応じて decision_id / at / decision_type / conditions / exceptions / notes を補足する。"
-            },
-            {
               "field": "change_history",
               "caption": "変更履歴",
               "type": "objectArray",
@@ -1013,6 +990,7 @@
             "aiPrompt": {
               "enabled": true,
               "title": "ルールレビュー コメント生成プロンプト",
+              "targetFile": "frb_viewdef_generation_rules_data_v0_1.json",
               "rowSource": "filtered",
               "visibleOnly": true,
               "includeGridJson": true,
@@ -1028,8 +1006,7 @@
                 "- 出力はコメント候補だけにする",
                 "",
                 "TSV:"
-              ],
-              "notes": "共通ViewDefのため targetFile は固定しない。現在読込中Dataを対象として扱う。"
+              ]
             }
           }
         }
@@ -1037,8 +1014,8 @@
       "markdown": {
         "enabled": true,
         "type": "generic_sections",
-        "title": "ルールレビュー記録（判断ログ・変更履歴対応）",
-        "defaultFileName": "rule_review_decision_log_export.md",
+        "title": "ルールレビュー記録",
+        "defaultFileName": "rule_review_export.md",
         "sections": [
           {
             "title": "基本情報",
@@ -1277,46 +1254,6 @@
                 ]
               },
               {
-                "title": "判断ログ",
-                "arrayField": "decision_log",
-                "format": "table",
-                "showEmpty": true,
-                "fields": [
-                  {
-                    "field": "decision_id",
-                    "caption": "Decision ID"
-                  },
-                  {
-                    "field": "at",
-                    "caption": "日時"
-                  },
-                  {
-                    "field": "decision_type",
-                    "caption": "判断種別"
-                  },
-                  {
-                    "field": "decision",
-                    "caption": "判断内容"
-                  },
-                  {
-                    "field": "reason",
-                    "caption": "理由"
-                  },
-                  {
-                    "field": "conditions",
-                    "caption": "条件"
-                  },
-                  {
-                    "field": "exceptions",
-                    "caption": "例外"
-                  },
-                  {
-                    "field": "notes",
-                    "caption": "補足"
-                  }
-                ]
-              },
-              {
                 "title": "変更履歴",
                 "arrayField": "change_history",
                 "format": "table",
@@ -1363,9 +1300,8 @@
             ]
           }
         ]
-      },
-      "layout_note": "レビュー対象カード内の source_heading / summary / body を直接編集可能にした共通Rule Review ViewDef。Markdownリンク/画像記法は要約・本文で許可する。"
+      }
     }
   ],
-  "layout_note": "ルール・制約・憲法・運用原則を共通表示するためのViewDef。Data原本はドメイン別JSON、ViewDefは rules 配列構造に対して共有する。v0.3では判断ログ decision_log と変更履歴 change_history を同じレビュー体験内で扱う。判断ログはまず判断内容 decision と理由 reason を中心に、必要に応じて日時・判断種別・補足を残す。"
+  "layout_note": "ルール・制約・憲法・運用原則を共通表示するためのViewDef。データ原本はドメイン別JSON、ViewDefは rules 配列構造に対して共有する。"
 }

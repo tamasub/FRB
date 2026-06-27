@@ -102,7 +102,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true
+                "visible": false
               }
             },
             {
@@ -127,7 +127,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": true,
                 "height": 60
               }
@@ -141,7 +141,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": true,
                 "height": 60
               }
@@ -155,7 +155,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": true,
                 "height": 60
               }
@@ -580,7 +580,7 @@
                 "height": 70
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "display_note": "詳細画面では __work_summary_cards の「対象ファイル」カードとして横広に表示する。",
@@ -621,7 +621,7 @@
                 "height": 90
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "display_note": "詳細画面では __work_summary_cards の「目的」カードとして横広に表示する。",
@@ -643,7 +643,7 @@
                 "height": 120
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "display_note": "詳細画面では __work_summary_cards の「背景」カードとして横広に表示する。",
@@ -665,7 +665,7 @@
                 "height": 120
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "display_note": "詳細画面では __work_summary_cards の「対象範囲」カードとして横広に表示する。",
@@ -687,7 +687,7 @@
                 "height": 120
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "display_note": "詳細画面では __work_summary_cards の「対象外」カードとして横広に表示する。",
@@ -709,7 +709,7 @@
                 "height": 120
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "display_note": "詳細画面では __work_summary_cards の「固定名方針」カードとして横広に表示する。",
@@ -731,7 +731,7 @@
                 "height": 90
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "display_note": "詳細画面では __work_summary_cards の「module化方針」カードとして横広に表示する。",
@@ -753,7 +753,7 @@
                 "height": 90
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "display_note": "詳細画面では __work_summary_cards の「成果物」カードとして横広に表示する。",
@@ -775,7 +775,7 @@
                 "height": 110
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "display_note": "詳細画面では __work_summary_cards の「リスク」カードとして横広に表示する。",
@@ -797,7 +797,7 @@
                 "height": 110
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "display_note": "詳細画面では __work_summary_cards の「確認観点」カードとして横広に表示する。",
@@ -910,7 +910,7 @@
                 "height": 110
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "defaultValue": "",
@@ -934,7 +934,7 @@
                 "height": 120
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "defaultValue": "",
@@ -956,7 +956,7 @@
                 "height": 90
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "defaultValue": "",
@@ -980,7 +980,7 @@
                 "height": 110
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "defaultValue": "",

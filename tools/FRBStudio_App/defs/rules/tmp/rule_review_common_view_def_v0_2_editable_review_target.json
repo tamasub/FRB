@@ -1,12 +1,12 @@
 {
   "app": {
     "name": "FRB Studio / JSON Object Studio",
-    "version": "rule-review-common-v0.3-decision-log-change-history"
+    "version": "rule-review-common-v0.2-editable-review-target"
   },
   "views": [
     {
-      "id": "rule_review_common_v0_3_decision_log",
-      "caption": "ルールレビュー（共通）/ 判断ログ・変更履歴対応",
+      "id": "rule_review_common_v0_2_editable_review_target",
+      "caption": "ルールレビュー（共通）/ レビュー対象編集対応",
       "layout": {
         "detailDialog": "wide"
       },
@@ -932,19 +932,6 @@
               "defaultValue": ""
             },
             {
-              "field": "decision_log",
-              "caption": "判断ログ",
-              "type": "objectArray",
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": true
-              },
-              "defaultValue": [],
-              "display_note": "ルールレビュー時の判断を残すサブグリッド。まずは decision（判断内容）と reason（理由）を中心に記録する。必要に応じて decision_id / at / decision_type / conditions / exceptions / notes を補足する。"
-            },
-            {
               "field": "change_history",
               "caption": "変更履歴",
               "type": "objectArray",
@@ -1013,6 +1000,7 @@
             "aiPrompt": {
               "enabled": true,
               "title": "ルールレビュー コメント生成プロンプト",
+              "targetFile": "frb_viewdef_generation_rules_data_v0_1.json",
               "rowSource": "filtered",
               "visibleOnly": true,
               "includeGridJson": true,
@@ -1028,8 +1016,7 @@
                 "- 出力はコメント候補だけにする",
                 "",
                 "TSV:"
-              ],
-              "notes": "共通ViewDefのため targetFile は固定しない。現在読込中Dataを対象として扱う。"
+              ]
             }
           }
         }
@@ -1037,8 +1024,8 @@
       "markdown": {
         "enabled": true,
         "type": "generic_sections",
-        "title": "ルールレビュー記録（判断ログ・変更履歴対応）",
-        "defaultFileName": "rule_review_decision_log_export.md",
+        "title": "ルールレビュー記録",
+        "defaultFileName": "rule_review_export.md",
         "sections": [
           {
             "title": "基本情報",
@@ -1277,46 +1264,6 @@
                 ]
               },
               {
-                "title": "判断ログ",
-                "arrayField": "decision_log",
-                "format": "table",
-                "showEmpty": true,
-                "fields": [
-                  {
-                    "field": "decision_id",
-                    "caption": "Decision ID"
-                  },
-                  {
-                    "field": "at",
-                    "caption": "日時"
-                  },
-                  {
-                    "field": "decision_type",
-                    "caption": "判断種別"
-                  },
-                  {
-                    "field": "decision",
-                    "caption": "判断内容"
-                  },
-                  {
-                    "field": "reason",
-                    "caption": "理由"
-                  },
-                  {
-                    "field": "conditions",
-                    "caption": "条件"
-                  },
-                  {
-                    "field": "exceptions",
-                    "caption": "例外"
-                  },
-                  {
-                    "field": "notes",
-                    "caption": "補足"
-                  }
-                ]
-              },
-              {
                 "title": "変更履歴",
                 "arrayField": "change_history",
                 "format": "table",
@@ -1367,5 +1314,5 @@
       "layout_note": "レビュー対象カード内の source_heading / summary / body を直接編集可能にした共通Rule Review ViewDef。Markdownリンク/画像記法は要約・本文で許可する。"
     }
   ],
-  "layout_note": "ルール・制約・憲法・運用原則を共通表示するためのViewDef。Data原本はドメイン別JSON、ViewDefは rules 配列構造に対して共有する。v0.3では判断ログ decision_log と変更履歴 change_history を同じレビュー体験内で扱う。判断ログはまず判断内容 decision と理由 reason を中心に、必要に応じて日時・判断種別・補足を残す。"
+  "layout_note": "ルール・制約・憲法・運用原則を共通表示するためのViewDef。データ原本はドメイン別JSON、ViewDefは rules 配列構造に対して共有する。v0.2ではレビュー対象本文をカード内で直接編集可能にした。"
 }
