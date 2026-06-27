@@ -5106,7 +5106,7 @@
       "incident_type": "rules_review",
       "category": "viewdef_generation_rules",
       "priority": "high",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-06-27",
@@ -5124,8 +5124,8 @@
       "test_points": "既存Dataのview_def参照が壊れないこと。新規Diff系ViewDefでpassedではなくpassを使うこと。共通化判断で人間相談条件が明記されていること。",
       "user_request": "このチャットで見えてきた憲法・ルール系の改正概要を、作業単位ごとにインシデントへ追加する。追加原則として、共通化できるものは原則共通化し、やりすぎて将来苦しくなる場合は人間に相談する。古いデータ・不要データは削除して返却するが、削除データはルートの _archive/{削除日時}/ に退避する。ルール系統およびViewDefを修正する場合は、参照元修正を避けるため原則ファイル名を変更しない。",
       "ai_response": "ViewDef Generation Rules 共通ViewDef優先・既存ファイル名維持・pass標準化 を作業単位として追加する。実装・ルール本文修正は次工程で行い、今回のインシデント追加では対象ファイル・目的・範囲・判断ログを整理する。",
-      "latest_user_comment": "このチャットで見えてきた憲法・ルール系の改正概要を、作業単位ごとにインシデントへ追加する。追加原則として、共通化できるものは原則共通化し、やりすぎて将来苦しくなる場合は人間に相談する。古いデータ・不要データは削除して返却するが、削除データはルートの _archive/{削除日時}/ に退避する。ルール系統およびViewDefを修正する場合は、参照元修正を避けるため原則ファイル名を変更しない。",
-      "latest_ai_response": "作業項目としてインシデント管理JSONへ追加。まだルール本文・ViewDef本体の修正は未実施。",
+      "latest_user_comment": "最新資材に対して v0.14.17-viewdef-generation-common-viewdef-policy の対応を依頼。Foundation Rules raw URLは frb_foundation_rules_data_v0_1.json を参照し、foundation_rule_019 のZIP返却契約に従う。",
+      "latest_ai_response": "v0.14.17対応完了。frb_viewdef_generation_rules_data_v0_1.json に viewdef_rule_25 系として共通ViewDef優先・既存ViewDefファイル名維持・Diff系checks[].pass標準化を追加。_json_creation_prompt.md にAI実務チェックを追記。実際の共通Diff Result ViewDef作成はStep 5の対象として残した。",
       "discussion_history": [
         {
           "history_id": "disc_0047_001",
@@ -5140,6 +5140,20 @@
           "speaker": "assistant",
           "topic": "作業単位化方針",
           "message": "ViewDef Generation Rules 共通ViewDef優先・既存ファイル名維持・pass標準化 として、対象ルールファイル・目的・範囲・リスク・確認観点を整理してインシデントへ追加する。"
+        },
+        {
+          "history_id": "disc_0047_003",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "v0.14.17作業依頼",
+          "message": "最新資材を添付し、v0.14.17-viewdef-generation-common-viewdef-policy の対応を依頼。共通ViewDef優先・既存ファイル名維持・pass標準化をViewDef Generation Rulesへ反映する。"
+        },
+        {
+          "history_id": "disc_0047_004",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "v0.14.17対応結果",
+          "message": "ViewDef Generation Rulesにviewdef_rule_25系を追加し、共通ViewDef優先・過剰共通化時の人間相談・既存ViewDefファイル名維持・Diff系checks[].pass標準化を明文化。_json_creation_prompt.mdにも短い実務チェックを追記した。"
         }
       ],
       "decision_log": [
@@ -5166,6 +5180,24 @@
           "at": "2026-06-27",
           "decision": "Diff系ViewDefではchecks[].passを判定フィールドとして扱う。",
           "reason": "既存の強調表示・差分表示との互換性を優先するため。"
+        },
+        {
+          "decision_id": "dec_0047_005",
+          "at": "2026-06-27",
+          "decision": "ViewDef生成時は、個別ViewDefを増やす前に共通ViewDef化を検討する。",
+          "reason": "Diff Result / Actual Observation / Expected Checksなど、同じ構造を複数ドメインで読む可能性があるため。"
+        },
+        {
+          "decision_id": "dec_0047_006",
+          "at": "2026-06-27",
+          "decision": "既存ViewDefの修正では、原則として同じファイル名を維持する。",
+          "reason": "Data JSONのview_def参照、URL起動、インベントリ、過去インシデントの参照切れを防ぐため。"
+        },
+        {
+          "decision_id": "dec_0047_007",
+          "at": "2026-06-27",
+          "decision": "Diff系ViewDefの判定フィールドはchecks[].passを正本とする。",
+          "reason": "既存強調表示とDiff Result共通フォーマットを揃え、passed/ok/resultの乱立を防ぐため。"
         }
       ],
       "change_history": [
@@ -5176,9 +5208,26 @@
           "before": "ViewDef共通化・ファイル名維持・pass標準化が個別会話で見えていたが、ViewDef生成ルール作業として独立していなかった。",
           "after": "studio_work_0047 としてViewDef Generation Rules改正作業を追加。",
           "reason": "Step 5の共通Diff Result ViewDef化を安全に進めるため。"
+        },
+        {
+          "history_id": "chg_0047_002",
+          "at": "2026-06-27",
+          "change_type": "rules_update",
+          "before": "frb_viewdef_generation_rules_data_v0_1.json では、共通ViewDef優先・既存ViewDefファイル名維持・Diff系checks[].pass標準化が独立した生成ルールとして明文化されていなかった。",
+          "after": "viewdef_rule_25 / 25_01 / 25_02 / 25_03 / 25_04 を追加し、共通ViewDef判断基準・人間相談条件・同名更新原則・pass標準化を明文化した。",
+          "reason": "Step 5のDiff Result共通ViewDef化を、安全に進めるための生成ルールを先に整備するため。"
+        },
+        {
+          "history_id": "chg_0047_003",
+          "at": "2026-06-27",
+          "change_type": "prompt_update",
+          "before": "_json_creation_prompt.md に、ViewDef生成時の共通ViewDef優先・同名更新・checks[].pass標準化の短い実務指示がなかった。",
+          "after": "v0.14.17追加ルールとして、共通ViewDef化検討、過剰共通化時の人間相談、既存ViewDefファイル名維持、Diff系checks[].pass標準化を追記した。",
+          "reason": "AIへViewDef生成を依頼する際に、長いルール本文を読まなくても最低限の実務チェックを実行できるようにするため。"
         }
       ],
-      "verification_status": "未確認"
+      "verification_status": "確認済み",
+      "actual_updated_files": "data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json; data/json/00_rules/_json_creation_prompt.md; data/json/01_main/studio_work_incident_data_v0_59_future_incident_filename_aligned.json; data/json/00_rules/VIEWDEF_GENERATION_COMMON_VIEWDEF_POLICY_REPORT_v0_14_17.md"
     },
     {
       "work_item_id": "studio_work_0048",
@@ -5187,7 +5236,7 @@
       "incident_type": "rules_review",
       "category": "delivery_cleanup",
       "priority": "medium",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-06-27",
@@ -5205,8 +5254,8 @@
       "test_points": "ZIP内にnode_modulesやtest-resultsが含まれていないこと。旧パス罠フォルダーが含まれていないこと。Windows解凍でパス長エラーが出ないこと。正本Data/ViewDefは残っていること。",
       "user_request": "このチャットで見えてきた憲法・ルール系の改正概要を、作業単位ごとにインシデントへ追加する。追加原則として、共通化できるものは原則共通化し、やりすぎて将来苦しくなる場合は人間に相談する。古いデータ・不要データは削除して返却するが、削除データはルートの _archive/{削除日時}/ に退避する。ルール系統およびViewDefを修正する場合は、参照元修正を避けるため原則ファイル名を変更しない。",
       "ai_response": "Delivery / Cleanup Rules 成果物ZIP安全化・不要生成物除外 を作業単位として追加する。実装・ルール本文修正は次工程で行い、今回のインシデント追加では対象ファイル・目的・範囲・判断ログを整理する。",
-      "latest_user_comment": "このチャットで見えてきた憲法・ルール系の改正概要を、作業単位ごとにインシデントへ追加する。追加原則として、共通化できるものは原則共通化し、やりすぎて将来苦しくなる場合は人間に相談する。古いデータ・不要データは削除して返却するが、削除データはルートの _archive/{削除日時}/ に退避する。ルール系統およびViewDefを修正する場合は、参照元修正を避けるため原則ファイル名を変更しない。",
-      "latest_ai_response": "作業項目としてインシデント管理JSONへ追加。まだルール本文・ViewDef本体の修正は未実施。",
+      "latest_user_comment": "v0.14.18-delivery-cleanup-zip-safety-policy 対応依頼。既に一部ルール改正されている可能性を踏まえつつ、Foundation Rules foundation_rule_019 のZIP返却契約を参照し、成果物ZIP安全化・不要生成物除外ルールを反映する。",
+      "latest_ai_response": "v0.14.18対応完了。既存のv0.14.15 Test Folder / Runtime生成物隔離ルールを踏まえ、foundation_rule_019 と constitution_20、_json_creation_prompt.md にDelivery/Cleanup/ZIP安全返却チェックを補強。root .gitignoreを追加し、node_modules/Playwright生成物/tests/.runtime/tests_screen_stateを成果物ZIPへ含めない方針を明示。cleanup_runtime_artifacts.ps1もv0.14.18方針に合わせて更新し、証跡正本 data/json/03_tests は削除対象にしないことを明記した。",
       "discussion_history": [
         {
           "history_id": "disc_0048_001",
@@ -5221,6 +5270,20 @@
           "speaker": "assistant",
           "topic": "作業単位化方針",
           "message": "Delivery / Cleanup Rules 成果物ZIP安全化・不要生成物除外 として、対象ルールファイル・目的・範囲・リスク・確認観点を整理してインシデントへ追加する。"
+        },
+        {
+          "history_id": "disc_0048_002",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "v0.14.18 Delivery/Cleanup作業依頼",
+          "message": "最新資材を添付し、v0.14.18-delivery-cleanup-zip-safety-policy の対応を依頼。既に一部ルール改正されている気もするが、Foundation Rules foundation_rule_019を参照して進める。"
+        },
+        {
+          "history_id": "disc_0048_003",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "v0.14.18 Delivery/Cleanup対応結果",
+          "message": "既存のv0.14.15 runtime生成物隔離方針を重複させすぎないようにしつつ、返却前チェック・ZIP除外リスト・Windows長大パス安全性・cleanupスクリプト運用を明文化。Foundation Rules / Coding Constraints / _json_creation_prompt.md / .gitignore / cleanup script / report MD / incident JSONを更新した。"
         }
       ],
       "decision_log": [
@@ -5247,6 +5310,18 @@
           "at": "2026-06-27",
           "decision": "削除対象は必要に応じて_archiveへ退避する。",
           "reason": "完全削除ではなく追跡可能な削除にするため。"
+        },
+        {
+          "decision_id": "dec_0048_004",
+          "at": "2026-06-27",
+          "decision": "v0.14.18では新しい証跡構造を増やさず、成果物ZIP返却安全性とcleanup運用を補強する。",
+          "reason": "v0.14.15で03_tests正本・tests/.runtime隔離は既に定義済みのため、今回は重複した構造定義ではなく返却前チェックとZIP除外契約を明確化するのが安全なため。"
+        },
+        {
+          "decision_id": "dec_0048_005",
+          "at": "2026-06-27",
+          "decision": "runtime生成物はarchive退避ではなく、原則として削除・ZIP除外する。",
+          "reason": "node_modules、Playwright report/test-results、tests/.runtimeは再生成可能な一時生成物であり、archiveへ収録するとZIP肥大化・長大パス・誤参照の原因になるため。"
         }
       ],
       "change_history": [
@@ -5257,9 +5332,26 @@
           "before": "ZIP返却安全性とcleanup方針が個別事故対応に留まっていた。",
           "after": "studio_work_0048 としてDelivery/Cleanup Rules作業を追加。",
           "reason": "同じWindows解凍エラーや生成物混入を再発させないため。"
+        },
+        {
+          "history_id": "chg_0048_002",
+          "at": "2026-06-27",
+          "change_type": "rules_update",
+          "before": "成果物ZIP返却時の不要生成物除外はv0.14.15で一部定義済みだったが、返却前チェック・Windows長大パス確認・cleanupスクリプト運用が作業依頼用プロンプトと憲法に十分まとまっていなかった。",
+          "after": "foundation_rule_019、constitution_20、_json_creation_prompt.mdへv0.14.18のDelivery/Cleanup/ZIP安全返却チェックを追加。",
+          "reason": "成果物ZIPにruntime生成物や長大パスが混入する事故を再発させないため。"
+        },
+        {
+          "history_id": "chg_0048_003",
+          "at": "2026-06-27",
+          "change_type": "delivery_tooling_update",
+          "before": "root .gitignore がなく、cleanup_runtime_artifacts.ps1 は基本的な削除対象のみ定義していた。",
+          "after": "root .gitignoreを追加し、runtime生成物除外対象を明示。cleanup_runtime_artifacts.ps1にv0.14.18方針コメント、削除後確認、証跡正本を触らない注意を追加。",
+          "reason": "AIや人間が成果物ZIP作成時に不要生成物を混入させないため。"
         }
       ],
-      "verification_status": "未確認"
+      "verification_status": "確認済み",
+      "actual_updated_files": "data/json/00_rules/frb_foundation_rules_data_v0_1.json; data/json/00_rules/frb_coding_constraints_data_v0_3.json; data/json/00_rules/_json_creation_prompt.md; .gitignore; tests/tools/cleanup_runtime_artifacts.ps1; data/json/00_rules/DELIVERY_CLEANUP_ZIP_SAFETY_POLICY_REPORT_v0_14_18.md; data/json/01_main/studio_work_incident_data_v0_59_future_incident_filename_aligned.json"
     },
     {
       "work_item_id": "studio_work_0049",
@@ -5770,13 +5862,18 @@
     {
       "note_id": "note_046",
       "at": "2026-06-27",
-      "type": "diff_result_common_format_rules",
-      "topic": "diff_result_v0_1共通フォーマットのルール化",
-      "note": "frb_diff_result_format_rules_data_v0_1.jsonを新規追加し、Foundation Rules / Test Evidence Rules / _json_creation_prompt.md から参照できるようにした。判定フィールドはchecks[].passを正本とし、failedCount / failedCheckIds / firstFailure を共通サマリとして定義。"
+      "title": "v0.14.17 ViewDef Generation Rules共通ViewDef方針を反映",
+      "body": "共通化できるViewDefは原則共通化を検討する。ただし過剰共通化で将来苦しくなる場合は人間へ相談する。既存ViewDef修正時はファイル名を維持し、Diff系ViewDefの判定フィールドはchecks[].passへ寄せる。"
+    },
+    {
+      "note_id": "note_047",
+      "at": "2026-06-27",
+      "title": "v0.14.18 Delivery / Cleanup / ZIP Safetyを反映",
+      "body": "成果物ZIPには node_modules / playwright-report / test-results / test_results / tests/.runtime / tests_screen_state を含めない。runtime生成物は再生成可能なためarchive対象ではなく削除・除外を基本とする。返却前にJSON parse、不要生成物混入、長大パス、旧パス罠フォルダー、更新済みインシデントJSON収録を確認する。"
     }
   ],
-  "work_revision": "v0.14.16-diff-result-common-format-rules-done",
-  "latest_planning_note": "v0.14.16でDiff Result Common Format Rulesを追加完了。次工程は v0.14.17-viewdef-generation-common-viewdef-policy または Step 5 Diff Result共通ViewDef化へ進む。",
+  "work_revision": "v0.14.18-delivery-cleanup-zip-safety-policy-done",
+  "latest_planning_note": "v0.14.18でDelivery/Cleanup/ZIP安全返却チェックを補強。node_modulesやPlaywright生成物、tests/.runtime、tests_screen_stateを返却ZIPへ含めず、runtime生成物はarchiveせず削除・除外する方針を明確化。次はStep 5 Diff Result共通ViewDef化、または残インシデントの整理へ進める。",
   "view_def_candidates": [
     {
       "view_def": "rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",

@@ -85,3 +85,56 @@ Data JSONに `view_def_candidates` がある場合、AIはそのDataで利用可
 - 明細判定フィールドは `checks[].pass` を正本とし、`passed` / `ok` / `result` を新規標準化しない。
 - ドメイン固有情報は追加項目として保持してよいが、共通項目の意味を壊さない。過剰共通化で苦しくなる場合は人間へ相談する。
 - 詳細ルールは `frb_diff_result_format_rules_data_v0_1.json` を参照する。
+---
+
+## v0.14.17 追加ルール: 共通ViewDef優先・同名更新・pass標準化
+
+ViewDef JSONを生成・修正する場合は、次を守る。
+
+* 複数ドメインで同じ構造を持てるものは、個別ViewDefを増やす前に共通ViewDef化を検討する。
+* 共通化で読みづらくなる、ドメイン固有の意味が薄まる、将来苦しくなると判断される場合は、人間に相談する。
+* 既存ViewDefを修正する場合は、原則としてファイル名を変更しない。Data JSONの `view_def` 参照、URL起動、インベントリ、過去インシデントを壊さないため。
+* 新しい正本世代や非互換ViewDefを作る必要がある場合は、人間確認後に行い、影響範囲をインシデントJSONへ記録する。
+* Diff Result系ViewDefでは、明細判定フィールドは `checks[].pass` を標準とする。`passed` / `ok` / `result` を新規標準化しない。
+* 詳細な思想は `frb_viewdef_generation_rules_data_v0_1.json` の `viewdef_rule_25` 系を参照する。
+
+<!-- change_history: 2026-06-27 v0.14.17 / 共通ViewDef優先・既存ViewDefファイル名維持・Diff系checks[].pass標準化の実務指示を追加 -->
+
+
+---
+
+## v0.14.18 追加ルール: Delivery / Cleanup / ZIP安全返却チェック
+
+AIが成果物ZIPを返却する場合は、返却前に次を確認する。
+
+* `node_modules/`, `playwright-report/`, `test-results/`, `test_results/`, `tests/.runtime/`, `tests_screen_state/` をZIPへ含めない。
+* `tests/tools/cleanup_runtime_artifacts.ps1` がある場合は、必要に応じてruntime生成物の掃除に使う。
+* runtime生成物は再生成可能なため、原則として `_archive` へ退避せず、削除・除外する。
+* Expected / Actual / Diff / Test Patternなどの証跡正本は `data/json/03_tests/` に置き、runtime生成物と混同しない。
+* ZIP作成後、生成物除外リストが混入していないこと、Windowsで問題になりやすい長大パスがないことを確認する。
+* 更新済みインシデントJSONを `data/json/01_main/` に含め、`latest_ai_response` / `discussion_history` / `change_history` / `actual_updated_files` に作業結果を残す。
+
+ZIP作成時の除外例:
+
+```bash
+zip -qr OUT.zip . \
+  -x 'node_modules/*' 'playwright-report/*' 'test-results/*' 'test_results/*' 'tests/.runtime/*' 'tests_screen_state/*'
+```
+
+<!-- change_history: 2026-06-27 v0.14.18 / 成果物ZIP安全返却・runtime生成物除外・Windows長大パス確認の実務指示を追加 -->
+
+---
+
+## v0.14.32 追加ルール: ヘッダー基本情報・検索項目コンパクト表示チェック
+
+ViewDef JSONを生成・修正する場合は、次を守る。
+
+* ヘッダー部・基本情報は、1行に収まる範囲の短い識別情報・状態・分類項目に絞る。
+* ヘッダー部・基本情報のマルチテキストボックス、長文textarea、Markdown本文欄は、原則として画面表示オフにする。
+* `Owner` / `owner` 相当項目は、ヘッダー部・基本情報では表示オフを基本とする。ただしRuntime固定名として特別扱いしない。
+* 長文の目的・背景・対象範囲・リスク・確認観点・AI回答などは、必要に応じて `detailBody` readable card、Markdown表示、chat、objectArray 側へ寄せる。
+* 画面検索項目部分は、必要項目に絞り、縦マージンを調整して、Grid表示領域を過度に圧迫しない。
+* 詳細な思想は `frb_viewdef_generation_rules_data_v0_1.json` の `viewdef_rule_26` 系を参照する。
+
+<!-- change_history: 2026-06-27 v0.14.32 / ヘッダー基本情報を1行・短文中心にし、長文欄/Owner非表示、検索項目コンパクト表示の実務指示を追加 -->
+

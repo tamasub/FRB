@@ -12,7 +12,7 @@
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。",
-  "items_count": 50,
+  "items_count": 61,
   "work_items": [
     {
       "work_item_id": "studio_work_0001",
@@ -1266,16 +1266,16 @@
       "ai_owner": "ChatGPT",
       "created_at": "2026-06-22",
       "updated_at": "2026-06-22",
-      "target_files": "wwwroot/data/rules/frb_studio_foundation_review_data_v0_1.json, wwwroot/data/rules/frb_viewdef_generation_rules_review_data_v0_1.json, wwwroot/defs/rules/rule_review_common_view_def_v0_1.json, wwwroot/exports/rules/*.md",
+      "target_files": "wwwroot/data/rules/frb_foundation_rules_data_v0_1.json, wwwroot/data/rules/frb_viewdef_generation_rules_data_v0_1.json, wwwroot/defs/rules/rule_review_common_view_def_v0_1.json, wwwroot/exports/rules/*.md",
       "objective": "Markdownをルール原本にせず、ルール・制約・レビュー対象はドメイン別Data JSONを原本として管理し、共通ViewDefでレビューできるようにする。",
-      "background": "coding_constraints_review_data_v0_3.json が実は憲法レビューの原本であり、Markdown Exportは原本ではなく表示用Viewだったことを確認した。今後はFRB Studio FoundationやViewDef生成ルールも、MarkdownではなくData JSONを原本として扱う必要がある。",
-      "scope": "frb_studio_foundation_review_data_v0_1.json を追加し、Studio運用原則をrules配列として管理する。frb_viewdef_generation_rules_review_data_v0_1.json と同じ rule_review_data_v0_1 構造に寄せる。data/rules・defs/rules・exports/rules の配置方針を使う。MarkdownはData JSONからのExport Viewとして扱う。",
+      "background": "frb_coding_constraints_data_v0_3.json が実は憲法レビューの原本であり、Markdown Exportは原本ではなく表示用Viewだったことを確認した。今後はFRB Studio FoundationやViewDef生成ルールも、MarkdownではなくData JSONを原本として扱う必要がある。",
+      "scope": "frb_foundation_rules_data_v0_1.json を追加し、Studio運用原則をrules配列として管理する。frb_viewdef_generation_rules_data_v0_1.json と同じ rule_review_data_v0_1 構造に寄せる。data/rules・defs/rules・exports/rules の配置方針を使う。MarkdownはData JSONからのExport Viewとして扱う。",
       "out_of_scope": "この作業ではすべての既存Markdownを即Data JSONへ変換しない。まずFoundation RulesとViewDef生成Rulesを代表例として整える。",
       "fixed_name_policy": "rules配列はルールレビュー共通構造の契約として扱う。個別ドメインの意味はdomainとrule_idで分け、Runtimeが特定ドメイン名に依存しないようにする。",
       "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、Data/ViewDef/Markdown Exportの役割分離を徹底する。",
-      "expected_outputs": "frb_studio_foundation_review_data_v0_1.json、rulesフォルダー配置、Markdown Export方針、Foundation Rulesレビュー開始、必要に応じたViewDef項目追加候補。",
+      "expected_outputs": "frb_foundation_rules_data_v0_1.json、rulesフォルダー配置、Markdown Export方針、Foundation Rulesレビュー開始、必要に応じたViewDef項目追加候補。",
       "risk": "Markdownを原本として編集し続けると、承認状態・変更履歴・レビュー会話が分散する。逆にData JSON化しすぎると人間の初期確認が重くなるため、Markdown下書き→Data JSON原本化の流れを明確にする必要がある。",
-      "test_points": "frb_studio_foundation_review_data_v0_1.json が rule_review_common_view_def_v0_1.json で読み込めること。rules配列17件が表示されること。Markdown Exportは原本ではなく表示用であることが分かること。data/rules配下でURL起動できること。",
+      "test_points": "frb_foundation_rules_data_v0_1.json が rule_review_common_view_def_v0_1.json で読み込めること。rules配列17件が表示されること。Markdown Exportは原本ではなく表示用であることが分かること。data/rules配下でURL起動できること。",
       "user_request": "v0.4-r001の命名・Foundation・ルール管理まわりで見えている追加インシデントを、まとめられるものはまとめて studio_work_incident_data_v0_12_url_param_launch_load.json に追加したい。共通ViewDefのAI Prompt targetFile固定の件も、優先低でよいので漏れないように追加してほしい。",
       "ai_response": "Markdown原本化を避ける方針、Foundation Rules JSON追加、rulesフォルダー配置、ドメイン別Data JSON＋共通ViewDefを1つの作業項目にまとめる。",
       "latest_user_comment": "v0.4-r001の命名・Foundation・ルール管理まわりで見えている追加インシデントを、まとめられるものはまとめて studio_work_incident_data_v0_12_url_param_launch_load.json に追加したい。共通ViewDefのAI Prompt targetFile固定の件も、優先低でよいので漏れないように追加してほしい。",
@@ -1286,7 +1286,7 @@
           "at": "2026-06-22",
           "speaker": "user",
           "topic": "Markdown原本化への違和感",
-          "message": "Markdownを原本にするとまた分からなくなりそう。coding_constraints_review_data_v0_3.json が原本で、MarkdownはExportだった。"
+          "message": "Markdownを原本にするとまた分からなくなりそう。frb_coding_constraints_data_v0_3.json が原本で、MarkdownはExportだった。"
         },
         {
           "history_id": "disc_0016_002",
@@ -1300,7 +1300,7 @@
           "at": "2026-06-22",
           "speaker": "assistant",
           "topic": "Foundation Rules生成",
-          "message": "frb_studio_foundation_review_data_v0_1.json を、rule_review_common_view_def_v0_1.json 前提で生成する。"
+          "message": "frb_foundation_rules_data_v0_1.json を、rule_review_common_view_def_v0_1.json 前提で生成する。"
         }
       ],
       "decision_log": [
@@ -1343,14 +1343,14 @@
       "updated_at": "2026-06-22",
       "target_files": "wwwroot/defs/rules/rule_review_common_view_def_v0_1.json, related rule review data json, markdown export templates",
       "objective": "rule_review_common_view_def_v0_1.json を特定データ専用の匂いから切り離し、複数ドメインのルールレビューで安全に使える共通ViewDefへ整える。",
-      "background": "共通ViewDefとして使い始めたが、AI Prompt targetFile が frb_viewdef_generation_rules_review_data_v0_1.json 固定になっている。また、承認印など憲法レビュー由来のトーン、Foundation系カテゴリ未対応、Markdown Exportでsummary/body等が重複しやすい問題が見えている。",
+      "background": "共通ViewDefとして使い始めたが、AI Prompt targetFile が frb_viewdef_generation_rules_data_v0_1.json 固定になっている。また、承認印など憲法レビュー由来のトーン、Foundation系カテゴリ未対応、Markdown Exportでsummary/body等が重複しやすい問題が見えている。",
       "scope": "markdown.aiPrompt.targetFile固定をなくす、または現在Data名から動的に扱う方針を検討する。カテゴリ選択肢にFoundation系を含めるか、select固定ではなくtext/柔軟候補にする。approval_stampなど共通ViewDefに不要な専用項目を非表示または削除する。Markdown Exportでsource_heading/summary/bodyを出しすぎる問題を整理し、レビュー記録用と元Rules風出力の分離を検討する。",
       "out_of_scope": "この作業は優先低。現時点でStudio読込やレビューができる場合、v0.9高優先タスクを止めてまで実施しない。大規模なMarkdown Exportエンジン刷新は別作業に分ける。",
       "fixed_name_policy": "共通ViewDef内に特定Data JSONファイル名を固定しない。targetFile等が必要な場合も、現在読込中Data名・ViewDef設定・ActionContextから取得できる設計に寄せる。",
       "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、ViewDef定義とMarkdown出力設定の調整で対応する。",
       "expected_outputs": "rule_review_common_view_def_v0_2案、AI Prompt targetFile固定解消方針、カテゴリ候補整理、Markdown Export重複抑制方針、承認印など専用項目の扱い整理。",
       "risk": "共通ViewDefに特定ドメインの匂いが残ると、Foundation Rulesや他ドメインRulesで誤ったファイル名・カテゴリ・表示トーンが混入する。逆に柔軟にしすぎると入力補助が弱くなる。",
-      "test_points": "frb_viewdef_generation_rules_review_data と frb_studio_foundation_review_data の両方で同じViewDefを使えること。AI PromptのtargetFileが誤った固定名にならないこと。Markdown Exportで同じ説明が過剰に重複しないこと。承認印など不要項目が共通画面で目立たないこと。",
+      "test_points": "frb_viewdef_generation_rules_data と frb_foundation_rules_data の両方で同じViewDefを使えること。AI PromptのtargetFileが誤った固定名にならないこと。Markdown Exportで同じ説明が過剰に重複しないこと。承認印など不要項目が共通画面で目立たないこと。",
       "user_request": "v0.4-r001の命名・Foundation・ルール管理まわりで見えている追加インシデントを、まとめられるものはまとめて studio_work_incident_data_v0_12_url_param_launch_load.json に追加したい。共通ViewDefのAI Prompt targetFile固定の件も、優先低でよいので漏れないように追加してほしい。",
       "ai_response": "共通ViewDefのAI Prompt targetFile固定は優先低だが、共通ViewDefとしては危険なので漏れないように専用インシデントとして登録する。関連する汎用化仕上げも同じ低優先タスクにまとめる。",
       "latest_user_comment": "v0.4-r001の命名・Foundation・ルール管理まわりで見えている追加インシデントを、まとめられるものはまとめて studio_work_incident_data_v0_12_url_param_launch_load.json に追加したい。共通ViewDefのAI Prompt targetFile固定の件も、優先低でよいので漏れないように追加してほしい。",
@@ -1361,7 +1361,7 @@
           "at": "2026-06-22",
           "speaker": "assistant",
           "topic": "targetFile固定の発見",
-          "message": "共通ViewDefのAI Prompt targetFile が frb_viewdef_generation_rules_review_data_v0_1.json 固定っぽい。共通の顔をして、心に元カノの名前を刻んでいる状態。"
+          "message": "共通ViewDefのAI Prompt targetFile が frb_viewdef_generation_rules_data_v0_1.json 固定っぽい。共通の顔をして、心に元カノの名前を刻んでいる状態。"
         },
         {
           "history_id": "disc_0017_002",
@@ -1411,7 +1411,7 @@
       "updated_at": "2026-06-22",
       "target_files": "JSON generation scripts, Program.cs save API, wwwroot/js/core/file_api.js, any export/save utilities",
       "objective": "Data JSONを人間が直接読めるUTF-8日本語で保存し、\\uXXXX だらけの人間拒否モードを避ける。",
-      "background": "frb_viewdef_generation_rules_review_data_v0_1.json の日本語が Unicode escape で表示され、人間が直接読むにはつらい状態になった。JSONとしては正しいが、Studioくんの原本思想ではData JSONも人間が読める必要がある。",
+      "background": "frb_viewdef_generation_rules_data_v0_1.json の日本語が Unicode escape で表示され、人間が直接読むにはつらい状態になった。JSONとしては正しいが、Studioくんの原本思想ではData JSONも人間が読める必要がある。",
       "scope": "Python生成時はensure_ascii=false相当で保存する。.NETのSystem.Text.Json保存時は日本語を過剰にescapeしない設定を検討する。Studioくんの保存APIやExport処理でも、UTF-8で日本語がそのまま読めることを基本にする。",
       "out_of_scope": "この作業では既存の全JSONを一括変換しない。必要な代表Dataから順次UTF-8可読版へ置き換える。ファイル名文字化け問題はstudio_work_0008側の範囲とし、ここではJSON本文の可読性を扱う。",
       "fixed_name_policy": "エンコーディング設定はData構造ではなく保存処理の契約として扱う。特定Dataフィールド名をRuntimeが参照する作業ではない。",
@@ -4982,13 +4982,13 @@
       "incident_type": "rules_review",
       "category": "diff_result_format",
       "priority": "high",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-06-27",
       "updated_at": "2026-06-27",
-      "target_files": "新規候補: data/json/00_rules/frb_diff_result_format_rules_review_data_v0_1.json, data/json/03_tests/**/diff/*.diff.json, defs/**/diff*_view_def*.json",
-      "target_rule_files": "新規候補: frb_diff_result_format_rules_review_data_v0_1.json",
+      "target_files": "data/json/00_rules/frb_diff_result_format_rules_data_v0_1.json, data/json/00_rules/frb_foundation_rules_data_v0_1.json, data/json/00_rules/frb_test_evidence_rules_data_v0_1.json, data/json/00_rules/_json_creation_prompt.md, data/json/01_main/studio_work_incident_data_v0_59_future_incident_filename_aligned.json",
+      "target_rule_files": "frb_diff_result_format_rules_data_v0_1.json, frb_foundation_rules_data_v0_1.json, frb_test_evidence_rules_data_v0_1.json, _json_creation_prompt.md",
       "objective": "QA Diff と Screen State Diff を同じViewDefで見られる方向へ寄せるため、diff_result_v0_1 の共通サマリ・checks[]共通フィールドをルール化する。",
       "background": "Step 4-BでQA DiffとScreen State Diffのサマリ項目を揃えた。次のStep 5で共通ViewDef化する前に、Diff Resultの共通フォーマットをルールとして定義しておく必要がある。",
       "scope": "diff.jsonの上部サマリ項目として schema_version/document_type/domain/diff_kind/test_id/status/resultLabel/summary/total/passCount/failCount/failedCount/failedCheckIds/firstFailure を標準化する。checks[]は check_id/name/target/type/expected/actual/missing/pass/message を基本とする。",
@@ -5000,8 +5000,8 @@
       "test_points": "QA DiffとScreen State Diffの両方が共通サマリで読めること。checks[].passが判定フィールドとして使えること。firstFailureから初回失敗が読めること。",
       "user_request": "このチャットで見えてきた憲法・ルール系の改正概要を、作業単位ごとにインシデントへ追加する。追加原則として、共通化できるものは原則共通化し、やりすぎて将来苦しくなる場合は人間に相談する。古いデータ・不要データは削除して返却するが、削除データはルートの _archive/{削除日時}/ に退避する。ルール系統およびViewDefを修正する場合は、参照元修正を避けるため原則ファイル名を変更しない。",
       "ai_response": "Diff Result Common Format / diff_result_v0_1共通サマリ定義 を作業単位として追加する。実装・ルール本文修正は次工程で行い、今回のインシデント追加では対象ファイル・目的・範囲・判断ログを整理する。",
-      "latest_user_comment": "このチャットで見えてきた憲法・ルール系の改正概要を、作業単位ごとにインシデントへ追加する。追加原則として、共通化できるものは原則共通化し、やりすぎて将来苦しくなる場合は人間に相談する。古いデータ・不要データは削除して返却するが、削除データはルートの _archive/{削除日時}/ に退避する。ルール系統およびViewDefを修正する場合は、参照元修正を避けるため原則ファイル名を変更しない。",
-      "latest_ai_response": "作業項目としてインシデント管理JSONへ追加。まだルール本文・ViewDef本体の修正は未実施。",
+      "latest_user_comment": "最新資材を添付。v0.14.16-diff-result-common-format-rules として、Diff Result共通フォーマットをルール化する作業を依頼。Foundation Rules raw URLは frb_foundation_rules_data_v0_1.json を参照する。",
+      "latest_ai_response": "v0.14.16-diff-result-common-format-rules 対応完了。frb_diff_result_format_rules_data_v0_1.json を新規追加し、diff_result_v0_1の上部サマリ、checks[]標準項目、checks[].pass判定、互換項目とドメイン拡張の扱いを定義。Foundation Rulesへfoundation_rule_023、Test Evidence Rulesへtest_evidence_rule_012を追加し、_json_creation_prompt.mdにもDiff生成時チェックを追記した。actual.jsonは対象外のため修正なし。既存diff.json本体も今回はルール化のみで変更なし。",
       "discussion_history": [
         {
           "history_id": "disc_0046_001",
@@ -5016,6 +5016,20 @@
           "speaker": "assistant",
           "topic": "作業単位化方針",
           "message": "Diff Result Common Format / diff_result_v0_1共通サマリ定義 として、対象ルールファイル・目的・範囲・リスク・確認観点を整理してインシデントへ追加する。"
+        },
+        {
+          "history_id": "disc_0046_003",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "v0.14.16作業依頼",
+          "message": "最新資材を添付し、v0.14.16-diff-result-common-format-rules の対応を依頼。Diff Result Common Format / diff_result_v0_1共通サマリ定義をルール化する。"
+        },
+        {
+          "history_id": "disc_0046_004",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "v0.14.16作業結果",
+          "message": "frb_diff_result_format_rules_data_v0_1.jsonを新規追加し、Foundation Rules / Test Evidence Rules / _json_creation_prompt.md / インシデントJSONを更新。Diff Resultの正本項目、checks[].pass、failedCount/failedCheckIds/firstFailureをルール化した。"
         }
       ],
       "decision_log": [
@@ -5042,6 +5056,18 @@
           "at": "2026-06-27",
           "decision": "ドメイン固有情報は共通項目を壊さず拡張項目として持つ。",
           "reason": "共通化と将来拡張性を両立するため。"
+        },
+        {
+          "decision_id": "dec_0046_005",
+          "at": "2026-06-27",
+          "decision": "Diff Result Format Rulesは新規Data JSONとして frb_diff_result_format_rules_data_v0_1.json に分離する。",
+          "reason": "Test Evidence Rulesに埋め込みすぎると、Diff Resultのフォーマット規約が太り、Step 5の共通ViewDef化時に参照しづらくなるため。"
+        },
+        {
+          "decision_id": "dec_0046_006",
+          "at": "2026-06-27",
+          "decision": "既存diff.json本体は今回修正せず、ルール化と入口追加に限定する。",
+          "reason": "Step 4-Bで既にQA DiffとScreen State Diffの共通化は実施済みであり、今回はルール正本化が目的のため。"
         }
       ],
       "change_history": [
@@ -5052,9 +5078,26 @@
           "before": "diff_result_v0_1の共通フォーマットが実装成果物として存在するが、ルール作業として独立していなかった。",
           "after": "studio_work_0046 としてDiff Result Common Format Rules作業を追加。",
           "reason": "Step 5の共通ViewDef化へ進む前に、Data契約を明文化するため。"
+        },
+        {
+          "history_id": "chg_0046_002",
+          "at": "2026-06-27",
+          "change_type": "rules_data_added",
+          "before": "Diff Result共通フォーマットのルール正本が存在しなかった。",
+          "after": "data/json/00_rules/frb_diff_result_format_rules_data_v0_1.json を新規追加。diff_result_v0_1サマリ、checks[]標準項目、pass判定、互換項目、拡張方針を定義。",
+          "reason": "QA DiffとScreen State Diffを同じViewDefで見るためのData契約を明文化するため。"
+        },
+        {
+          "history_id": "chg_0046_003",
+          "at": "2026-06-27",
+          "change_type": "rules_link_added",
+          "before": "Foundation Rules / Test Evidence RulesからDiff Result Format Rulesへの入口がなかった。",
+          "after": "foundation_rule_023 と test_evidence_rule_012 を追加し、frb_diff_result_format_rules_data_v0_1.json を参照するようにした。",
+          "reason": "上位憲法とテスト証跡ルールから、Diff Result共通フォーマット正本へ辿れるようにするため。"
         }
       ],
-      "verification_status": "未確認"
+      "verification_status": "確認済み",
+      "actual_updated_files": "新規: data/json/00_rules/frb_diff_result_format_rules_data_v0_1.json。更新: data/json/00_rules/frb_foundation_rules_data_v0_1.json, data/json/00_rules/frb_test_evidence_rules_data_v0_1.json, data/json/00_rules/_json_creation_prompt.md, data/json/01_main/studio_work_incident_data_v0_59_future_incident_filename_aligned.json。"
     },
     {
       "work_item_id": "studio_work_0047",
@@ -5063,13 +5106,13 @@
       "incident_type": "rules_review",
       "category": "viewdef_generation_rules",
       "priority": "high",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-06-27",
       "updated_at": "2026-06-27",
-      "target_files": "data/json/00_rules/frb_viewdef_generation_rules_review_data_v0_1.json, FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md, defs/**/*.json",
-      "target_rule_files": "frb_viewdef_generation_rules_review_data_v0_1.json / FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
+      "target_files": "data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json, FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md, defs/**/*.json",
+      "target_rule_files": "frb_viewdef_generation_rules_data_v0_1.json / FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "objective": "ViewDef生成時に、共通化できるViewDefは共通化を検討し、既存ViewDef修正時は原則ファイル名を変えず、Diff系明細判定はchecks[].passへ寄せるルールを整理する。",
       "background": "Actual Resultの強調表示不一致で、JSを広げるのではなくData/ViewDef契約を揃えるべきという判断があった。また、ViewDefファイル名を変更するとData側view_def参照修正が連鎖することが明確になった。",
       "scope": "既存ViewDefを修正する場合はファイル名を変えない。Diff Result / Actual Observation / Expected Checksなど複数ドメインで同じ構造を持てるものは、個別ViewDefを増やす前に共通ViewDef化を検討する。やりすぎる場合は人間へ相談する。",
@@ -5081,8 +5124,8 @@
       "test_points": "既存Dataのview_def参照が壊れないこと。新規Diff系ViewDefでpassedではなくpassを使うこと。共通化判断で人間相談条件が明記されていること。",
       "user_request": "このチャットで見えてきた憲法・ルール系の改正概要を、作業単位ごとにインシデントへ追加する。追加原則として、共通化できるものは原則共通化し、やりすぎて将来苦しくなる場合は人間に相談する。古いデータ・不要データは削除して返却するが、削除データはルートの _archive/{削除日時}/ に退避する。ルール系統およびViewDefを修正する場合は、参照元修正を避けるため原則ファイル名を変更しない。",
       "ai_response": "ViewDef Generation Rules 共通ViewDef優先・既存ファイル名維持・pass標準化 を作業単位として追加する。実装・ルール本文修正は次工程で行い、今回のインシデント追加では対象ファイル・目的・範囲・判断ログを整理する。",
-      "latest_user_comment": "このチャットで見えてきた憲法・ルール系の改正概要を、作業単位ごとにインシデントへ追加する。追加原則として、共通化できるものは原則共通化し、やりすぎて将来苦しくなる場合は人間に相談する。古いデータ・不要データは削除して返却するが、削除データはルートの _archive/{削除日時}/ に退避する。ルール系統およびViewDefを修正する場合は、参照元修正を避けるため原則ファイル名を変更しない。",
-      "latest_ai_response": "作業項目としてインシデント管理JSONへ追加。まだルール本文・ViewDef本体の修正は未実施。",
+      "latest_user_comment": "最新資材に対して v0.14.17-viewdef-generation-common-viewdef-policy の対応を依頼。Foundation Rules raw URLは frb_foundation_rules_data_v0_1.json を参照し、foundation_rule_019 のZIP返却契約に従う。",
+      "latest_ai_response": "v0.14.17対応完了。frb_viewdef_generation_rules_data_v0_1.json に viewdef_rule_25 系として共通ViewDef優先・既存ViewDefファイル名維持・Diff系checks[].pass標準化を追加。_json_creation_prompt.md にAI実務チェックを追記。実際の共通Diff Result ViewDef作成はStep 5の対象として残した。",
       "discussion_history": [
         {
           "history_id": "disc_0047_001",
@@ -5097,6 +5140,20 @@
           "speaker": "assistant",
           "topic": "作業単位化方針",
           "message": "ViewDef Generation Rules 共通ViewDef優先・既存ファイル名維持・pass標準化 として、対象ルールファイル・目的・範囲・リスク・確認観点を整理してインシデントへ追加する。"
+        },
+        {
+          "history_id": "disc_0047_003",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "v0.14.17作業依頼",
+          "message": "最新資材を添付し、v0.14.17-viewdef-generation-common-viewdef-policy の対応を依頼。共通ViewDef優先・既存ファイル名維持・pass標準化をViewDef Generation Rulesへ反映する。"
+        },
+        {
+          "history_id": "disc_0047_004",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "v0.14.17対応結果",
+          "message": "ViewDef Generation Rulesにviewdef_rule_25系を追加し、共通ViewDef優先・過剰共通化時の人間相談・既存ViewDefファイル名維持・Diff系checks[].pass標準化を明文化。_json_creation_prompt.mdにも短い実務チェックを追記した。"
         }
       ],
       "decision_log": [
@@ -5123,6 +5180,24 @@
           "at": "2026-06-27",
           "decision": "Diff系ViewDefではchecks[].passを判定フィールドとして扱う。",
           "reason": "既存の強調表示・差分表示との互換性を優先するため。"
+        },
+        {
+          "decision_id": "dec_0047_005",
+          "at": "2026-06-27",
+          "decision": "ViewDef生成時は、個別ViewDefを増やす前に共通ViewDef化を検討する。",
+          "reason": "Diff Result / Actual Observation / Expected Checksなど、同じ構造を複数ドメインで読む可能性があるため。"
+        },
+        {
+          "decision_id": "dec_0047_006",
+          "at": "2026-06-27",
+          "decision": "既存ViewDefの修正では、原則として同じファイル名を維持する。",
+          "reason": "Data JSONのview_def参照、URL起動、インベントリ、過去インシデントの参照切れを防ぐため。"
+        },
+        {
+          "decision_id": "dec_0047_007",
+          "at": "2026-06-27",
+          "decision": "Diff系ViewDefの判定フィールドはchecks[].passを正本とする。",
+          "reason": "既存強調表示とDiff Result共通フォーマットを揃え、passed/ok/resultの乱立を防ぐため。"
         }
       ],
       "change_history": [
@@ -5133,9 +5208,26 @@
           "before": "ViewDef共通化・ファイル名維持・pass標準化が個別会話で見えていたが、ViewDef生成ルール作業として独立していなかった。",
           "after": "studio_work_0047 としてViewDef Generation Rules改正作業を追加。",
           "reason": "Step 5の共通Diff Result ViewDef化を安全に進めるため。"
+        },
+        {
+          "history_id": "chg_0047_002",
+          "at": "2026-06-27",
+          "change_type": "rules_update",
+          "before": "frb_viewdef_generation_rules_data_v0_1.json では、共通ViewDef優先・既存ViewDefファイル名維持・Diff系checks[].pass標準化が独立した生成ルールとして明文化されていなかった。",
+          "after": "viewdef_rule_25 / 25_01 / 25_02 / 25_03 / 25_04 を追加し、共通ViewDef判断基準・人間相談条件・同名更新原則・pass標準化を明文化した。",
+          "reason": "Step 5のDiff Result共通ViewDef化を、安全に進めるための生成ルールを先に整備するため。"
+        },
+        {
+          "history_id": "chg_0047_003",
+          "at": "2026-06-27",
+          "change_type": "prompt_update",
+          "before": "_json_creation_prompt.md に、ViewDef生成時の共通ViewDef優先・同名更新・checks[].pass標準化の短い実務指示がなかった。",
+          "after": "v0.14.17追加ルールとして、共通ViewDef化検討、過剰共通化時の人間相談、既存ViewDefファイル名維持、Diff系checks[].pass標準化を追記した。",
+          "reason": "AIへViewDef生成を依頼する際に、長いルール本文を読まなくても最低限の実務チェックを実行できるようにするため。"
         }
       ],
-      "verification_status": "未確認"
+      "verification_status": "確認済み",
+      "actual_updated_files": "data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json; data/json/00_rules/_json_creation_prompt.md; data/json/01_main/studio_work_incident_data_v0_59_future_incident_filename_aligned.json; data/json/00_rules/VIEWDEF_GENERATION_COMMON_VIEWDEF_POLICY_REPORT_v0_14_17.md"
     },
     {
       "work_item_id": "studio_work_0048",
@@ -5144,13 +5236,13 @@
       "incident_type": "rules_review",
       "category": "delivery_cleanup",
       "priority": "medium",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-06-27",
       "updated_at": "2026-06-27",
-      "target_files": "data/json/00_rules/frb_coding_constraints_review_data_v0_3.json, data/json/00_rules/_json_creation_prompt.md, .gitignore, tests/tools/cleanup_runtime_artifacts.ps1",
-      "target_rule_files": "frb_coding_constraints_review_data_v0_3.json / _json_creation_prompt.md",
+      "target_files": "data/json/00_rules/frb_coding_constraints_data_v0_3.json, data/json/00_rules/_json_creation_prompt.md, .gitignore, tests/tools/cleanup_runtime_artifacts.ps1",
+      "target_rule_files": "frb_coding_constraints_data_v0_3.json / _json_creation_prompt.md",
       "objective": "AIが成果物を返却する際に、node_modulesやPlaywright生成物、長大パスのテスト結果を混ぜず、Windowsで安全に解凍できるZIPを返すルールを整理する。",
       "background": "v0.14.8でPlaywrightのtest-resultsをZIPへ混ぜてしまい、Windows解凍時にパス長エラーが発生した。成果物とruntime生成物の分離を返却ルールとして固定する必要がある。",
       "scope": "成果物ZIPには node_modules / playwright-report / test-results / test_results / tests/.runtime / tests_screen_state を含めない。古いフォルダーや不要データは削除し、必要なら_archiveへ退避する。ZIP作成前に最長パスと不要生成物を確認する。",
@@ -5162,8 +5254,8 @@
       "test_points": "ZIP内にnode_modulesやtest-resultsが含まれていないこと。旧パス罠フォルダーが含まれていないこと。Windows解凍でパス長エラーが出ないこと。正本Data/ViewDefは残っていること。",
       "user_request": "このチャットで見えてきた憲法・ルール系の改正概要を、作業単位ごとにインシデントへ追加する。追加原則として、共通化できるものは原則共通化し、やりすぎて将来苦しくなる場合は人間に相談する。古いデータ・不要データは削除して返却するが、削除データはルートの _archive/{削除日時}/ に退避する。ルール系統およびViewDefを修正する場合は、参照元修正を避けるため原則ファイル名を変更しない。",
       "ai_response": "Delivery / Cleanup Rules 成果物ZIP安全化・不要生成物除外 を作業単位として追加する。実装・ルール本文修正は次工程で行い、今回のインシデント追加では対象ファイル・目的・範囲・判断ログを整理する。",
-      "latest_user_comment": "このチャットで見えてきた憲法・ルール系の改正概要を、作業単位ごとにインシデントへ追加する。追加原則として、共通化できるものは原則共通化し、やりすぎて将来苦しくなる場合は人間に相談する。古いデータ・不要データは削除して返却するが、削除データはルートの _archive/{削除日時}/ に退避する。ルール系統およびViewDefを修正する場合は、参照元修正を避けるため原則ファイル名を変更しない。",
-      "latest_ai_response": "作業項目としてインシデント管理JSONへ追加。まだルール本文・ViewDef本体の修正は未実施。",
+      "latest_user_comment": "v0.14.18-delivery-cleanup-zip-safety-policy 対応依頼。既に一部ルール改正されている可能性を踏まえつつ、Foundation Rules foundation_rule_019 のZIP返却契約を参照し、成果物ZIP安全化・不要生成物除外ルールを反映する。",
+      "latest_ai_response": "v0.14.18対応完了。既存のv0.14.15 Test Folder / Runtime生成物隔離ルールを踏まえ、foundation_rule_019 と constitution_20、_json_creation_prompt.md にDelivery/Cleanup/ZIP安全返却チェックを補強。root .gitignoreを追加し、node_modules/Playwright生成物/tests/.runtime/tests_screen_stateを成果物ZIPへ含めない方針を明示。cleanup_runtime_artifacts.ps1もv0.14.18方針に合わせて更新し、証跡正本 data/json/03_tests は削除対象にしないことを明記した。",
       "discussion_history": [
         {
           "history_id": "disc_0048_001",
@@ -5178,6 +5270,20 @@
           "speaker": "assistant",
           "topic": "作業単位化方針",
           "message": "Delivery / Cleanup Rules 成果物ZIP安全化・不要生成物除外 として、対象ルールファイル・目的・範囲・リスク・確認観点を整理してインシデントへ追加する。"
+        },
+        {
+          "history_id": "disc_0048_002",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "v0.14.18 Delivery/Cleanup作業依頼",
+          "message": "最新資材を添付し、v0.14.18-delivery-cleanup-zip-safety-policy の対応を依頼。既に一部ルール改正されている気もするが、Foundation Rules foundation_rule_019を参照して進める。"
+        },
+        {
+          "history_id": "disc_0048_003",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "v0.14.18 Delivery/Cleanup対応結果",
+          "message": "既存のv0.14.15 runtime生成物隔離方針を重複させすぎないようにしつつ、返却前チェック・ZIP除外リスト・Windows長大パス安全性・cleanupスクリプト運用を明文化。Foundation Rules / Coding Constraints / _json_creation_prompt.md / .gitignore / cleanup script / report MD / incident JSONを更新した。"
         }
       ],
       "decision_log": [
@@ -5204,6 +5310,18 @@
           "at": "2026-06-27",
           "decision": "削除対象は必要に応じて_archiveへ退避する。",
           "reason": "完全削除ではなく追跡可能な削除にするため。"
+        },
+        {
+          "decision_id": "dec_0048_004",
+          "at": "2026-06-27",
+          "decision": "v0.14.18では新しい証跡構造を増やさず、成果物ZIP返却安全性とcleanup運用を補強する。",
+          "reason": "v0.14.15で03_tests正本・tests/.runtime隔離は既に定義済みのため、今回は重複した構造定義ではなく返却前チェックとZIP除外契約を明確化するのが安全なため。"
+        },
+        {
+          "decision_id": "dec_0048_005",
+          "at": "2026-06-27",
+          "decision": "runtime生成物はarchive退避ではなく、原則として削除・ZIP除外する。",
+          "reason": "node_modules、Playwright report/test-results、tests/.runtimeは再生成可能な一時生成物であり、archiveへ収録するとZIP肥大化・長大パス・誤参照の原因になるため。"
         }
       ],
       "change_history": [
@@ -5214,9 +5332,26 @@
           "before": "ZIP返却安全性とcleanup方針が個別事故対応に留まっていた。",
           "after": "studio_work_0048 としてDelivery/Cleanup Rules作業を追加。",
           "reason": "同じWindows解凍エラーや生成物混入を再発させないため。"
+        },
+        {
+          "history_id": "chg_0048_002",
+          "at": "2026-06-27",
+          "change_type": "rules_update",
+          "before": "成果物ZIP返却時の不要生成物除外はv0.14.15で一部定義済みだったが、返却前チェック・Windows長大パス確認・cleanupスクリプト運用が作業依頼用プロンプトと憲法に十分まとまっていなかった。",
+          "after": "foundation_rule_019、constitution_20、_json_creation_prompt.mdへv0.14.18のDelivery/Cleanup/ZIP安全返却チェックを追加。",
+          "reason": "成果物ZIPにruntime生成物や長大パスが混入する事故を再発させないため。"
+        },
+        {
+          "history_id": "chg_0048_003",
+          "at": "2026-06-27",
+          "change_type": "delivery_tooling_update",
+          "before": "root .gitignore がなく、cleanup_runtime_artifacts.ps1 は基本的な削除対象のみ定義していた。",
+          "after": "root .gitignoreを追加し、runtime生成物除外対象を明示。cleanup_runtime_artifacts.ps1にv0.14.18方針コメント、削除後確認、証跡正本を触らない注意を追加。",
+          "reason": "AIや人間が成果物ZIP作成時に不要生成物を混入させないため。"
         }
       ],
-      "verification_status": "未確認"
+      "verification_status": "確認済み",
+      "actual_updated_files": "data/json/00_rules/frb_foundation_rules_data_v0_1.json; data/json/00_rules/frb_coding_constraints_data_v0_3.json; data/json/00_rules/_json_creation_prompt.md; .gitignore; tests/tools/cleanup_runtime_artifacts.ps1; data/json/00_rules/DELIVERY_CLEANUP_ZIP_SAFETY_POLICY_REPORT_v0_14_18.md; data/json/01_main/studio_work_incident_data_v0_59_future_incident_filename_aligned.json"
     },
     {
       "work_item_id": "studio_work_0049",
@@ -5230,8 +5365,8 @@
       "ai_owner": "ChatGPT",
       "created_at": "2026-06-27",
       "updated_at": "2026-06-27",
-      "target_files": "data/json/00_rules/*_review_data_*.json, data/json/00_rules/frb_test_evidence_rules_review_data_v0_1.json, data/json/00_rules/frb_coding_constraints_review_data_v0_3.json, data/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json, defs/rules/rule_review_common_view_def_*.json, rules/studio_work_incident_view_def_*.json",
-      "target_rule_files": "frb_coding_constraints_review_data_v0_3.json / frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json / frb_test_evidence_rules_review_data_v0_1.json / rule_review_common_view_def_*.json",
+      "target_files": "data/json/00_rules/frb_*_data_v*.json（frb_view_def_schema_review_data_v0_1.json は必要時のみ別扱い）, data/json/00_rules/frb_test_evidence_rules_data_v0_1.json, data/json/00_rules/frb_coding_constraints_data_v0_3.json, data/json/00_rules/frb_foundation_rules_data_v0_1.json, defs/rules/rule_review_common_view_def_*.json, rules/studio_work_incident_view_def_*.json",
+      "target_rule_files": "frb_coding_constraints_data_v0_3.json / frb_foundation_rules_data_v0_1.json / frb_test_evidence_rules_data_v0_1.json / rule_review_common_view_def_*.json",
       "objective": "Rule Review系データにおける review_status / verification_status / approval_decision の意味、単一正本、UI上の表示・操作責務、人間とAIの権限範囲を整理する。特に、AIがルール本文・章・要約・分類などを修正した場合に、その章またはルール行が未承認・未確認・未レビューへ戻るべきかを運用ルールとして定義する。",
       "background": "Test Evidence Rulesレビュー画面で、上部詳細欄・グリッド・確認メッセージカードに承認/確認状態が複数表示され、どれが正本か分かりにくい状態が見えた。現状は同じフィールドを複数UIで表示している可能性が高いが、運用として『AIが修正したものをAIが承認済みにしてよいのか』『確認状態と承認は二つ必要か』『人間が判断する欄とAIが更新する欄の境界はどこか』が未整理である。",
       "scope": "承認状態・確認状態・レビュー状態の意味を整理する。グリッド/上部詳細/確認メッセージカードが同じ正本フィールドを表示しているか確認する。AIがルール本文や章を修正した場合のステータスリセットルールを定義する。人間が最終承認する項目と、AIが作業都合で更新してよい項目を分離する。verification_status と approval_decision の両方が必要か、統合できるかを検討する。",
@@ -5332,8 +5467,8 @@
       "user_request": "ファイル名を変えたことで影響するツール・JSONを洗い出して、それを対応する為のインシデントを作成し、更新後インシデントJSONを返却してほしい。",
       "ai_response": "00_rulesファイル名変更に伴う旧ファイル名参照をZIP内から検索し、影響範囲を分類した。Foundation Rules raw URL、作業依頼テンプレート、_json_creation_prompt.md、Foundation Rules本文、インベントリ、ViewDef targetFile、relation系ViewDef、過去インシデント/証跡/Markdown Exportに旧名参照が見つかったため、studio_work_0050として参照更新インシデントを追加する。",
       "latest_user_comment": "最新資材を添付。phase v0.14.20-rules-filename-reference-migration として、00_rulesファイル名変更に伴う現行参照の更新を依頼。",
-      "latest_ai_response": "v0.14.20-rules-filename-reference-migration 対応完了。Foundation Rules raw URL契約、作業依頼テンプレート、_json_creation_prompt.md、Foundation Rules本文、Inventory、rules/relation系ViewDefの旧ファイル名参照を新ファイル名へ更新。追加で schema 旧派生名 frb_view_def_schema_v0_9_chat_input_mapping.json も現行ファイル frb_view_def_schema_v0_9.json へ補正。filename_updatelist.md、過去インシデント、生成済みExport、test evidence actual/diffは履歴・証跡として旧名を保持。更新レポート FILENAME_REFERENCE_MIGRATION_REPORT_v0_14_20.md を追加。",
-      "actual_updated_files": "data/json/00_rules/_json_creation_prompt.md; data/json/00_rules/frb_foundation_rules_data_v0_1.json; data/json/01_main/00_do_incident_prompt_temple.md; data/json/05_inventory/defs_data_link_inventory_v0_1.json; data/json/05_inventory/defs_data_link_inventory_v0_2_repaired.json; defs/rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json; defs/rules/tmp/rule_review_common_view_def_v0_1.json; defs/rules/tmp/rule_review_common_view_def_v0_2_editable_review_target.json; defs/relation/relation_axis_constraint_view_def_v0_1.json; defs/relation/relation_axis_test_pattern_view_def_v0_1.json; data/json/00_rules/FILENAME_REFERENCE_MIGRATION_REPORT_v0_14_20.md; data/json/01_main/studio_work_incident_data_v0_58_rules_filename_reference_migration_added.json; data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json; data/json/00_rules/frb_view_def_schema_review_data_v0_1.json; data/json/00_rules/frb_view_def_schema_v0_9.json; defs/rules/chatgpt/chatgpt_shared_context_view_def_v0_1.json",
+      "latest_ai_response": "v0.14.20-rules-filename-reference-migration 対応完了。Foundation Rules raw URL契約、作業依頼テンプレート、_json_creation_prompt.md、Foundation Rules本文、Inventory、rules/relation系ViewDefの旧ファイル名参照を新ファイル名へ更新。追加で schema 旧派生名 frb_view_def_schema_v0_9_chat_input_mapping.json も現行ファイル frb_view_def_schema_v0_9.json へ補正。filename_updatelist.md、過去インシデント、生成済みExport、test evidence actual/diffは履歴・証跡として旧名を保持。更新レポート FILENAME_REFERENCE_MIGRATION_REPORT_v0_14_20.md を追加。\n\nフォローアップとして、未着手インシデント内に残っていた旧ルールJSON名を新ファイル名へ補正。履歴・完了済みインシデントの旧名は証跡として残した。",
+      "actual_updated_files": "data/json/00_rules/_json_creation_prompt.md; data/json/00_rules/frb_foundation_rules_data_v0_1.json; data/json/01_main/00_do_incident_prompt_temple.md; data/json/05_inventory/defs_data_link_inventory_v0_1.json; data/json/05_inventory/defs_data_link_inventory_v0_2_repaired.json; defs/rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json; defs/rules/tmp/rule_review_common_view_def_v0_1.json; defs/rules/tmp/rule_review_common_view_def_v0_2_editable_review_target.json; defs/relation/relation_axis_constraint_view_def_v0_1.json; defs/relation/relation_axis_test_pattern_view_def_v0_1.json; data/json/00_rules/FILENAME_REFERENCE_MIGRATION_REPORT_v0_14_20.md; data/json/01_main/studio_work_incident_data_v0_58_rules_filename_reference_migration_added.json; data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json; data/json/00_rules/frb_view_def_schema_review_data_v0_1.json; data/json/00_rules/frb_view_def_schema_v0_9.json; defs/rules/chatgpt/chatgpt_shared_context_view_def_v0_1.json; data/json/01_main/studio_work_incident_data_v0_59_future_incident_filename_aligned.json",
       "discussion_history": [
         {
           "history_id": "disc_0050_001",
@@ -5362,6 +5497,20 @@
           "speaker": "assistant",
           "topic": "v0.14.20作業結果",
           "message": "現行参照を新ファイル名へ更新。履歴・証跡・filename_updatelist.mdは旧名を残し、更新対象ファイルと判断をレポートへ記録した。"
+        },
+        {
+          "history_id": "disc_0050_004",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "未着手インシデント内の旧名補正依頼",
+          "message": "これからやるインシデントデータの中に古い名前が残っているため、間違い防止として新ファイル名へ補正してほしい。"
+        },
+        {
+          "history_id": "disc_0050_005",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "未着手インシデント内の旧名補正結果",
+          "message": "未着手インシデントのみを対象に、00_rules旧ファイル名を新ファイル名へ補正。完了済みインシデント内の旧名は履歴として保持した。"
         }
       ],
       "decision_log": [
@@ -5443,9 +5592,760 @@
             "data/json/05_inventory/defs_data_link_inventory_v0_2_repaired.json",
             "defs/rules/chatgpt/chatgpt_shared_context_view_def_v0_1.json"
           ]
+        },
+        {
+          "history_id": "chg_0050_003",
+          "at": "2026-06-27",
+          "change_type": "future_incident_filename_alignment",
+          "before": "未着手インシデントのtarget_files / target_rule_files等に旧00_rulesファイル名が残っていた。",
+          "after": "未着手インシデント内の現行参照を新00_rulesファイル名へ補正。完了済みインシデントの旧名は履歴として保持。",
+          "reason": "次工程でAIや人間が旧ファイル名を参照して作業対象を誤らないようにするため。",
+          "updated_work_items": [
+            "studio_work_0016",
+            "studio_work_0017",
+            "studio_work_0018",
+            "studio_work_0046",
+            "studio_work_0047",
+            "studio_work_0048",
+            "studio_work_0049"
+          ]
         }
       ],
       "verification_status": "確認済み"
+    },
+    {
+      "work_item_id": "studio_work_0051",
+      "phase": "v0.14.21-human-ai-responsibility-rules",
+      "title": "新ルール候補：Human / AI Responsibility Rules 人間・AI責務境界ルール",
+      "incident_type": "rules_review",
+      "category": "",
+      "priority": "high",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-27",
+      "updated_at": "2026-06-27",
+      "target_files": "data/json/01_main/studio_work_incident_data_*.json, defs/rules/*review*.json, data/json/00_rules/*.json",
+      "target_rule_files": "data/json/00_rules/frb_foundation_rules_data_v0_1.json, data/json/00_rules/frb_coding_constraints_data_v0_3.json",
+      "objective": "人間が最終判断する項目、AIが更新してよい項目、AI更新後に未承認へ戻すべき状態項目を整理し、承認・確認・レビュー状態の責務境界を明確にする。",
+      "background": "Rule Review承認/確認状態の単一正本化懸案が出ており、AIがルール本文や章を修正した場合に approval_decision / verification_status / review_status をどう扱うかが未定義である。",
+      "scope": "人間のみが最終承認できる項目、AIが作業上更新してよい確認状態、AI修正時に未承認・未確認へ戻す条件、既存 studio_work_0049 との関係を整理する。",
+      "out_of_scope": "このインシデント追加時点では、承認UIやViewDefの実装修正、既存全データの状態変更は行わない。",
+      "fixed_name_policy": "approval_decision / verification_status / review_status はインシデント・ルールレビューDataの標準候補として扱うが、Runtime固定名として無条件に一般Dataへ要求しない。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。まずルール系Data JSON・インシデント管理Data・必要なViewDef方針として整理する。",
+      "expected_outputs": "責務境界ルール案、AI更新時の未承認戻し条件、review_status / verification_status / approval_decision の運用整理、studio_work_0049との統合方針。",
+      "risk": "AIが状態を勝手に承認済みにしてしまうと人間承認の意味が壊れる。逆に全変更で未承認へ戻しすぎると運用負荷が高くなる。",
+      "test_points": "AIが本文を変更した場合、要約だけ変更した場合、ViewDefだけ変更した場合の状態更新ルールが整理されていること。",
+      "user_request": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。",
+      "ai_response": "Human / AI Responsibility Rules 人間・AI責務境界ルール を将来対応インシデントとして追加。現時点では実装・ルール本文改正は行わず、必要を感じたタイミングで個別フェーズとして着手できるよう、目的・範囲・リスク・確認観点を整理した。",
+      "latest_user_comment": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。",
+      "latest_ai_response": "将来ルール候補をインシデント化。必要になった時点で個別にルール本文・ViewDef・テスト証跡へ反映する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0051_001",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "将来ルール候補のインシデント追加",
+          "message": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。"
+        },
+        {
+          "history_id": "disc_0051_002",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "将来ルール候補の整理",
+          "message": "Human / AI Responsibility Rules 人間・AI責務境界ルール はAI駆動開発を継続運用する上で必要になり得るため、未着手インシデントとして登録し、後で必要性が高まった時に実作業化する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0051_001",
+          "at": "2026-06-27",
+          "decision": "現時点ではルール本文へ即反映せず、将来対応インシデントとして残す。",
+          "reason": "今すぐ全ルールを増やすとStudioくんのルール体系が太りすぎるため。必要性を感じた段階で、対象ルールファイルごとに個別対応する。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0051_001",
+          "at": "2026-06-27",
+          "change_type": "incident_added",
+          "before": "AI駆動開発で今後必要になり得る追加ルール系統がインシデント管理上で未登録だった。",
+          "after": "studio_work_0051 v0.14.21-human-ai-responsibility-rules として、Human / AI Responsibility Rules 人間・AI責務境界ルール を未着手インシデントに追加。",
+          "reason": "必要を感じたタイミングで漏れなくルール化・実装化へ進めるようにするため。"
+        }
+      ],
+      "verification_status": "未確認"
+    },
+    {
+      "work_item_id": "studio_work_0052",
+      "phase": "v0.14.22-definition-of-done-rules",
+      "title": "新ルール候補：Definition of Done Rules 作業完了条件ルール",
+      "incident_type": "rules_review",
+      "category": "",
+      "priority": "high",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-27",
+      "updated_at": "2026-06-27",
+      "target_files": "data/json/00_rules/*.json, data/json/01_main/studio_work_incident_data_*.json, tests/tools/*",
+      "target_rule_files": "data/json/00_rules/frb_foundation_rules_data_v0_1.json, data/json/00_rules/frb_coding_constraints_data_v0_3.json, data/json/00_rules/_json_creation_prompt.md",
+      "objective": "AI作業における『完了』の条件を定義し、成果物・証跡・インシデント更新・返却安全性をそろえる。",
+      "background": "毎回、JSON parse、runtime生成物除外、ZIP長大パス確認、インシデント更新済み確認を行っているが、完了条件としての独立ルールはまだ薄い。",
+      "scope": "作業完了条件、failしていても完了扱いできる条件、返却前チェック、インシデント更新、証跡保存、未確認項目の明示を整理する。",
+      "out_of_scope": "この時点ではCI/CDや自動ゲート実装までは行わない。まず人間とAIが合意できるDone定義を作る。",
+      "fixed_name_policy": "Done判定用の項目をDataに追加する場合も、Runtimeが特定Data専用フィールドへ依存しないようViewDef側で表示する。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。まずルール系Data JSON・インシデント管理Data・必要なViewDef方針として整理する。",
+      "expected_outputs": "Definition of DoneルールData、返却前チェックリスト、完了/未完了/条件付き完了の判定基準。",
+      "risk": "Doneの定義が曖昧だと、AIが『できた』と言っても証跡やインシデント更新が不足する。逆にDone条件を重くしすぎると小作業が進まなくなる。",
+      "test_points": "小さな文言修正、ルール追加、テスト失敗を期待する作業、UI実装修正の各ケースでDone条件が説明できること。",
+      "user_request": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。",
+      "ai_response": "Definition of Done Rules 作業完了条件ルール を将来対応インシデントとして追加。現時点では実装・ルール本文改正は行わず、必要を感じたタイミングで個別フェーズとして着手できるよう、目的・範囲・リスク・確認観点を整理した。",
+      "latest_user_comment": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。",
+      "latest_ai_response": "将来ルール候補をインシデント化。必要になった時点で個別にルール本文・ViewDef・テスト証跡へ反映する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0052_001",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "将来ルール候補のインシデント追加",
+          "message": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。"
+        },
+        {
+          "history_id": "disc_0052_002",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "将来ルール候補の整理",
+          "message": "Definition of Done Rules 作業完了条件ルール はAI駆動開発を継続運用する上で必要になり得るため、未着手インシデントとして登録し、後で必要性が高まった時に実作業化する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0052_001",
+          "at": "2026-06-27",
+          "decision": "現時点ではルール本文へ即反映せず、将来対応インシデントとして残す。",
+          "reason": "今すぐ全ルールを増やすとStudioくんのルール体系が太りすぎるため。必要性を感じた段階で、対象ルールファイルごとに個別対応する。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0052_001",
+          "at": "2026-06-27",
+          "change_type": "incident_added",
+          "before": "AI駆動開発で今後必要になり得る追加ルール系統がインシデント管理上で未登録だった。",
+          "after": "studio_work_0052 v0.14.22-definition-of-done-rules として、Definition of Done Rules 作業完了条件ルール を未着手インシデントに追加。",
+          "reason": "必要を感じたタイミングで漏れなくルール化・実装化へ進めるようにするため。"
+        }
+      ],
+      "verification_status": "未確認"
+    },
+    {
+      "work_item_id": "studio_work_0053",
+      "phase": "v0.14.23-change-impact-risk-classification-rules",
+      "title": "新ルール候補：Change Impact / Risk Classification Rules 変更影響・リスク分類ルール",
+      "incident_type": "rules_review",
+      "category": "",
+      "priority": "medium",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-27",
+      "updated_at": "2026-06-27",
+      "target_files": "data/json/00_rules/*.json, data/json/01_main/studio_work_incident_data_*.json",
+      "target_rule_files": "data/json/00_rules/frb_foundation_rules_data_v0_1.json, data/json/00_rules/frb_coding_constraints_data_v0_3.json",
+      "objective": "変更内容を低・中・高・超高リスクに分類し、AI作業時の確認粒度・報告粒度・人間相談要否を切り替えられるようにする。",
+      "background": "ファイル名変更、テスト証跡構造変更、Diff責務分離、ZIP返却などで、変更の危険度によって必要な確認が大きく変わることが見えてきた。",
+      "scope": "変更種別ごとのリスク分類、必須確認、archive要否、人間相談条件、インシデント記録粒度を整理する。",
+      "out_of_scope": "この作業では実際の自動リスク判定エンジンやUIバッジ表示は行わない。",
+      "fixed_name_policy": "risk / priority 等はインシデント管理Dataでは使用しているが、一般DataのRuntime固定名として扱わない。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。まずルール系Data JSON・インシデント管理Data・必要なViewDef方針として整理する。",
+      "expected_outputs": "リスク分類表、変更種別ごとの確認観点、人間相談が必要な条件、インシデント記録テンプレート。",
+      "risk": "低リスク扱いした変更が実は参照切れを起こす可能性がある。高リスク扱いを乱用すると作業速度が落ちる。",
+      "test_points": "文言修正、ViewDef表示調整、Data構造変更、Runtime保存処理変更、ファイル名変更、承認状態自動更新のリスク分類が整理されていること。",
+      "user_request": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。",
+      "ai_response": "Change Impact / Risk Classification Rules 変更影響・リスク分類ルール を将来対応インシデントとして追加。現時点では実装・ルール本文改正は行わず、必要を感じたタイミングで個別フェーズとして着手できるよう、目的・範囲・リスク・確認観点を整理した。",
+      "latest_user_comment": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。",
+      "latest_ai_response": "将来ルール候補をインシデント化。必要になった時点で個別にルール本文・ViewDef・テスト証跡へ反映する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0053_001",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "将来ルール候補のインシデント追加",
+          "message": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。"
+        },
+        {
+          "history_id": "disc_0053_002",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "将来ルール候補の整理",
+          "message": "Change Impact / Risk Classification Rules 変更影響・リスク分類ルール はAI駆動開発を継続運用する上で必要になり得るため、未着手インシデントとして登録し、後で必要性が高まった時に実作業化する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0053_001",
+          "at": "2026-06-27",
+          "decision": "現時点ではルール本文へ即反映せず、将来対応インシデントとして残す。",
+          "reason": "今すぐ全ルールを増やすとStudioくんのルール体系が太りすぎるため。必要性を感じた段階で、対象ルールファイルごとに個別対応する。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0053_001",
+          "at": "2026-06-27",
+          "change_type": "incident_added",
+          "before": "AI駆動開発で今後必要になり得る追加ルール系統がインシデント管理上で未登録だった。",
+          "after": "studio_work_0053 v0.14.23-change-impact-risk-classification-rules として、Change Impact / Risk Classification Rules 変更影響・リスク分類ルール を未着手インシデントに追加。",
+          "reason": "必要を感じたタイミングで漏れなくルール化・実装化へ進めるようにするため。"
+        }
+      ],
+      "verification_status": "未確認"
+    },
+    {
+      "work_item_id": "studio_work_0054",
+      "phase": "v0.14.24-traceability-rules",
+      "title": "新ルール候補：Traceability Rules ルール・インシデント・証跡トレースルール",
+      "incident_type": "rules_review",
+      "category": "",
+      "priority": "high",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-27",
+      "updated_at": "2026-06-27",
+      "target_files": "data/json/03_tests/**, data/json/00_rules/*.json, data/json/01_main/studio_work_incident_data_*.json, defs/relation/*.json",
+      "target_rule_files": "data/json/00_rules/frb_test_evidence_rules_data_v0_1.json, data/json/00_rules/frb_diff_result_format_rules_data_v0_1.json, data/json/00_rules/frb_foundation_rules_data_v0_1.json",
+      "objective": "Rule / Incident / Expected / Actual / Diff / ViewDef / Release のつながりを辿れるようにするためのトレーサビリティ方針を整理する。",
+      "background": "Expected / Actual / Diff責務分離やDiff共通フォーマットにより証跡文化が育ってきたが、どのルールを根拠にどのテストやExpectedがあるかの接続ルールはまだ薄い。",
+      "scope": "rule_id、work_item_id、test_pattern_id、check_id、view_def、release/versionの関連をどう残すかを整理する。relation系Dataやtrace_relationsの正本位置も検討する。",
+      "out_of_scope": "この段階では全既存証跡へのID逆引き付与やGraph表示実装は行わない。",
+      "fixed_name_policy": "relation_refs / rule_id / check_id 等は証跡・ルールDataの契約として扱い、Runtimeが一般Dataへ無条件要求しない。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。まずルール系Data JSON・インシデント管理Data・必要なViewDef方針として整理する。",
+      "expected_outputs": "トレースID方針、relation_refs標準、ルール→テスト→Diff→インシデントの接続方針、将来Graph化候補。",
+      "risk": "IDを増やしすぎると入力負荷が上がる。逆にIDがないと、なぜこのExpectedが存在するのか後で追えなくなる。",
+      "test_points": "任意のDiff checkから、関連Expected、TestPattern、Incident、根拠Ruleを辿る方針が説明できること。",
+      "user_request": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。",
+      "ai_response": "Traceability Rules ルール・インシデント・証跡トレースルール を将来対応インシデントとして追加。現時点では実装・ルール本文改正は行わず、必要を感じたタイミングで個別フェーズとして着手できるよう、目的・範囲・リスク・確認観点を整理した。",
+      "latest_user_comment": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。",
+      "latest_ai_response": "将来ルール候補をインシデント化。必要になった時点で個別にルール本文・ViewDef・テスト証跡へ反映する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0054_001",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "将来ルール候補のインシデント追加",
+          "message": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。"
+        },
+        {
+          "history_id": "disc_0054_002",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "将来ルール候補の整理",
+          "message": "Traceability Rules ルール・インシデント・証跡トレースルール はAI駆動開発を継続運用する上で必要になり得るため、未着手インシデントとして登録し、後で必要性が高まった時に実作業化する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0054_001",
+          "at": "2026-06-27",
+          "decision": "現時点ではルール本文へ即反映せず、将来対応インシデントとして残す。",
+          "reason": "今すぐ全ルールを増やすとStudioくんのルール体系が太りすぎるため。必要性を感じた段階で、対象ルールファイルごとに個別対応する。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0054_001",
+          "at": "2026-06-27",
+          "change_type": "incident_added",
+          "before": "AI駆動開発で今後必要になり得る追加ルール系統がインシデント管理上で未登録だった。",
+          "after": "studio_work_0054 v0.14.24-traceability-rules として、Traceability Rules ルール・インシデント・証跡トレースルール を未着手インシデントに追加。",
+          "reason": "必要を感じたタイミングで漏れなくルール化・実装化へ進めるようにするため。"
+        }
+      ],
+      "verification_status": "未確認"
+    },
+    {
+      "work_item_id": "studio_work_0055",
+      "phase": "v0.14.25-test-runner-execution-rules",
+      "title": "新ルール候補：Test Runner / Execution Rules 共通テストランナー実行ルール",
+      "incident_type": "rules_review",
+      "category": "",
+      "priority": "high",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-27",
+      "updated_at": "2026-06-27",
+      "target_files": "tests/**/*.mjs, tests/**/*.spec.ts, data/json/03_tests/**, tests/tools/*",
+      "target_rule_files": "data/json/00_rules/frb_test_evidence_rules_data_v0_1.json, data/json/00_rules/frb_foundation_rules_data_v0_1.json",
+      "objective": "テストコードをケースごとに増やすのではなく、実行言語ごとの共通ランナーへ寄せ、Test Pattern / Expected JSONを増やす運用を整理する。",
+      "background": "すでに『テストコードは実行言語ごとに1ファイルへ共通化に努める』方針が出ているが、Node.js系・Playwright系・将来Python系の実行規約として独立整理する余地がある。",
+      "scope": "Node.js系共通 .mjs、Playwright系共通 .spec.ts、将来Python系ランナー、Expected直書き禁止、失敗時証跡出力、ランナー引数/対象TestPattern指定方式を整理する。",
+      "out_of_scope": "この作業では既存テストコードの全面統合や新しいテストランナー実装は行わない。",
+      "fixed_name_policy": "test_id / check_id / expected_file 等はTest Evidence契約の一部として扱い、一般Runtime固定名ではない。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。まずルール系Data JSON・インシデント管理Data・必要なViewDef方針として整理する。",
+      "expected_outputs": "テストランナー共通化ルール、実行言語別ランナー方針、TestPattern追加運用、Expected直書き禁止の再整理。",
+      "risk": "共通ランナーに寄せすぎると汎用化が過剰になり読みにくくなる。ケースごとのテストコードを増やしすぎると保守不能になる。",
+      "test_points": "新しいテストケースを追加する場合に、まずTest Pattern JSONを増やすべきか、新ランナーが必要か判断できること。",
+      "user_request": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。",
+      "ai_response": "Test Runner / Execution Rules 共通テストランナー実行ルール を将来対応インシデントとして追加。現時点では実装・ルール本文改正は行わず、必要を感じたタイミングで個別フェーズとして着手できるよう、目的・範囲・リスク・確認観点を整理した。",
+      "latest_user_comment": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。",
+      "latest_ai_response": "将来ルール候補をインシデント化。必要になった時点で個別にルール本文・ViewDef・テスト証跡へ反映する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0055_001",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "将来ルール候補のインシデント追加",
+          "message": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。"
+        },
+        {
+          "history_id": "disc_0055_002",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "将来ルール候補の整理",
+          "message": "Test Runner / Execution Rules 共通テストランナー実行ルール はAI駆動開発を継続運用する上で必要になり得るため、未着手インシデントとして登録し、後で必要性が高まった時に実作業化する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0055_001",
+          "at": "2026-06-27",
+          "decision": "現時点ではルール本文へ即反映せず、将来対応インシデントとして残す。",
+          "reason": "今すぐ全ルールを増やすとStudioくんのルール体系が太りすぎるため。必要性を感じた段階で、対象ルールファイルごとに個別対応する。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0055_001",
+          "at": "2026-06-27",
+          "change_type": "incident_added",
+          "before": "AI駆動開発で今後必要になり得る追加ルール系統がインシデント管理上で未登録だった。",
+          "after": "studio_work_0055 v0.14.25-test-runner-execution-rules として、Test Runner / Execution Rules 共通テストランナー実行ルール を未着手インシデントに追加。",
+          "reason": "必要を感じたタイミングで漏れなくルール化・実装化へ進めるようにするため。"
+        }
+      ],
+      "verification_status": "未確認"
+    },
+    {
+      "work_item_id": "studio_work_0056",
+      "phase": "v0.14.26-migration-backward-compatibility-rules",
+      "title": "新ルール候補：Migration / Backward Compatibility Rules 移行・互換・廃止ルール",
+      "incident_type": "rules_review",
+      "category": "",
+      "priority": "high",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-27",
+      "updated_at": "2026-06-27",
+      "target_files": "data/json/**/*.json, defs/**/*.json, _archive/**, filename_updatelist.md",
+      "target_rule_files": "data/json/00_rules/frb_foundation_rules_data_v0_1.json, data/json/00_rules/frb_diff_result_format_rules_data_v0_1.json",
+      "objective": "ファイル名変更・フォルダー移行・互換フィールド追加時に、旧名・旧パス・互換項目をどう扱うかを定義する。",
+      "background": "00_rulesファイル名変更や旧パス罠フォルダー、testId/test_id互換などで、移行と互換を明確に扱う必要が見えてきた。",
+      "scope": "旧パスarchive、旧名参照更新、互換項目の残し方、deprecated_since、remove_after_phase、履歴として旧名を残す範囲、現行参照として置換する範囲を整理する。",
+      "out_of_scope": "この作業では既存全データへのdeprecated項目追加や旧互換項目削除は行わない。",
+      "fixed_name_policy": "deprecated_since / remove_after_phase 等を導入する場合も、特定Data専用ではなく移行管理用メタ情報として扱う。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。まずルール系Data JSON・インシデント管理Data・必要なViewDef方針として整理する。",
+      "expected_outputs": "移行/互換/廃止ルール、旧名参照の扱い、archive方針、deprecated管理方針。",
+      "risk": "互換項目を残しすぎると正本が増える。旧項目を急に消すと既存ViewDefや証跡が壊れる。",
+      "test_points": "ファイル名変更、フォルダー移動、フィールド名変更、互換alias追加のケースで、何を更新し何を履歴として残すか説明できること。",
+      "user_request": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。",
+      "ai_response": "Migration / Backward Compatibility Rules 移行・互換・廃止ルール を将来対応インシデントとして追加。現時点では実装・ルール本文改正は行わず、必要を感じたタイミングで個別フェーズとして着手できるよう、目的・範囲・リスク・確認観点を整理した。",
+      "latest_user_comment": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。",
+      "latest_ai_response": "将来ルール候補をインシデント化。必要になった時点で個別にルール本文・ViewDef・テスト証跡へ反映する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0056_001",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "将来ルール候補のインシデント追加",
+          "message": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。"
+        },
+        {
+          "history_id": "disc_0056_002",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "将来ルール候補の整理",
+          "message": "Migration / Backward Compatibility Rules 移行・互換・廃止ルール はAI駆動開発を継続運用する上で必要になり得るため、未着手インシデントとして登録し、後で必要性が高まった時に実作業化する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0056_001",
+          "at": "2026-06-27",
+          "decision": "現時点ではルール本文へ即反映せず、将来対応インシデントとして残す。",
+          "reason": "今すぐ全ルールを増やすとStudioくんのルール体系が太りすぎるため。必要性を感じた段階で、対象ルールファイルごとに個別対応する。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0056_001",
+          "at": "2026-06-27",
+          "change_type": "incident_added",
+          "before": "AI駆動開発で今後必要になり得る追加ルール系統がインシデント管理上で未登録だった。",
+          "after": "studio_work_0056 v0.14.26-migration-backward-compatibility-rules として、Migration / Backward Compatibility Rules 移行・互換・廃止ルール を未着手インシデントに追加。",
+          "reason": "必要を感じたタイミングで漏れなくルール化・実装化へ進めるようにするため。"
+        }
+      ],
+      "verification_status": "未確認"
+    },
+    {
+      "work_item_id": "studio_work_0057",
+      "phase": "v0.14.27-ai-work-context-package-rules",
+      "title": "新ルール候補：AI Work Context Package Rules AI作業文脈パッケージルール",
+      "incident_type": "rules_review",
+      "category": "",
+      "priority": "medium",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-27",
+      "updated_at": "2026-06-27",
+      "target_files": "data/json/01_main/00_do_incident_prompt_temple.md, data/json/00_rules/_json_creation_prompt.md, data/json/01_main/studio_work_incident_data_*.json",
+      "target_rule_files": "data/json/00_rules/frb_foundation_rules_data_v0_1.json, data/json/00_rules/frb_coding_constraints_data_v0_3.json",
+      "objective": "AIに作業依頼するときの最小文脈セット、優先順位、添付ZIPとraw URLの扱いをルール化する。",
+      "background": "現在の作業依頼では incident_file / phase / Foundation raw URL / main ZIP / raw base / 最新添付ZIP を明示しており、かなり安定してきたが、独立した文脈パッケージルールはまだない。",
+      "scope": "AI作業依頼テンプレート、必須入力、任意入力、最新資材優先順位、raw URL参照、添付ZIP優先、ファイル名変更時の注意、コンテキスト不足時の確認方針を整理する。",
+      "out_of_scope": "この作業では自動テンプレート生成UIや外部LLM連携は行わない。",
+      "fixed_name_policy": "incident_file / phase / raw_url 等はAI作業依頼の外部契約であり、一般DataのRuntime固定名として扱わない。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。まずルール系Data JSON・インシデント管理Data・必要なViewDef方針として整理する。",
+      "expected_outputs": "AI作業文脈パッケージルール、依頼テンプレート、ファイル優先順位、文脈不足時の確認ルール。",
+      "risk": "依頼文が重くなりすぎると毎回の作業が面倒になる。軽すぎるとAIが旧ファイル名や旧パスを参照する。",
+      "test_points": "最新ZIPがある場合、raw URLとどちらを優先するか。incident_fileとphaseが食い違った場合にどう確認するかが整理されていること。",
+      "user_request": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。",
+      "ai_response": "AI Work Context Package Rules AI作業文脈パッケージルール を将来対応インシデントとして追加。現時点では実装・ルール本文改正は行わず、必要を感じたタイミングで個別フェーズとして着手できるよう、目的・範囲・リスク・確認観点を整理した。",
+      "latest_user_comment": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。",
+      "latest_ai_response": "将来ルール候補をインシデント化。必要になった時点で個別にルール本文・ViewDef・テスト証跡へ反映する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0057_001",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "将来ルール候補のインシデント追加",
+          "message": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。"
+        },
+        {
+          "history_id": "disc_0057_002",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "将来ルール候補の整理",
+          "message": "AI Work Context Package Rules AI作業文脈パッケージルール はAI駆動開発を継続運用する上で必要になり得るため、未着手インシデントとして登録し、後で必要性が高まった時に実作業化する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0057_001",
+          "at": "2026-06-27",
+          "decision": "現時点ではルール本文へ即反映せず、将来対応インシデントとして残す。",
+          "reason": "今すぐ全ルールを増やすとStudioくんのルール体系が太りすぎるため。必要性を感じた段階で、対象ルールファイルごとに個別対応する。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0057_001",
+          "at": "2026-06-27",
+          "change_type": "incident_added",
+          "before": "AI駆動開発で今後必要になり得る追加ルール系統がインシデント管理上で未登録だった。",
+          "after": "studio_work_0057 v0.14.27-ai-work-context-package-rules として、AI Work Context Package Rules AI作業文脈パッケージルール を未着手インシデントに追加。",
+          "reason": "必要を感じたタイミングで漏れなくルール化・実装化へ進めるようにするため。"
+        }
+      ],
+      "verification_status": "未確認"
+    },
+    {
+      "work_item_id": "studio_work_0058",
+      "phase": "v0.14.28-git-release-branch-rules",
+      "title": "新ルール候補：Git / Release / Branch Rules Git・リリース・ブランチ運用ルール",
+      "incident_type": "rules_review",
+      "category": "",
+      "priority": "medium",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-27",
+      "updated_at": "2026-06-27",
+      "target_files": "README, release_data.json if created, data/json/01_main/studio_work_incident_data_*.json, GitHub運用メモ",
+      "target_rule_files": "data/json/00_rules/frb_foundation_rules_data_v0_1.json, data/json/00_rules/frb_coding_constraints_data_v0_3.json",
+      "objective": "AI返却ZIP、GitHub main、release tag、GitHub Pages公開物、_archiveの関係を整理し、正本と成果物の位置づけを明確にする。",
+      "background": "現在はZIP返却中心だが、GitHub raw URLやGitHub Pages公開、main ZIP参照が作業ルールに入っており、将来的にリリース管理が必要になる。",
+      "scope": "AI返却ZIPの位置づけ、GitHub mainの正本性、release tag、公開用wwwroot、_archive、作業ブランチ/ローカル作業の扱いを整理する。",
+      "out_of_scope": "この時点ではGit操作の自動化、ブランチ作成、タグ作成、CIリリースは行わない。",
+      "fixed_name_policy": "version / revision / phase はStudioインシデント・リリース管理の候補語であり、全Dataに強制しない。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。まずルール系Data JSON・インシデント管理Data・必要なViewDef方針として整理する。",
+      "expected_outputs": "Git/Release/Branch運用ルール、正本/成果物/公開物/archiveの区別、将来リリースデータ構造候補。",
+      "risk": "ZIPを正本扱いするとGitHubとのズレが出る。GitHub mainを正本にする場合、AI返却物の取り込み手順が必要になる。",
+      "test_points": "AI返却ZIP、GitHub main、GitHub Pages、release tag、_archiveの関係を説明できること。",
+      "user_request": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。",
+      "ai_response": "Git / Release / Branch Rules Git・リリース・ブランチ運用ルール を将来対応インシデントとして追加。現時点では実装・ルール本文改正は行わず、必要を感じたタイミングで個別フェーズとして着手できるよう、目的・範囲・リスク・確認観点を整理した。",
+      "latest_user_comment": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。",
+      "latest_ai_response": "将来ルール候補をインシデント化。必要になった時点で個別にルール本文・ViewDef・テスト証跡へ反映する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0058_001",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "将来ルール候補のインシデント追加",
+          "message": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。"
+        },
+        {
+          "history_id": "disc_0058_002",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "将来ルール候補の整理",
+          "message": "Git / Release / Branch Rules Git・リリース・ブランチ運用ルール はAI駆動開発を継続運用する上で必要になり得るため、未着手インシデントとして登録し、後で必要性が高まった時に実作業化する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0058_001",
+          "at": "2026-06-27",
+          "decision": "現時点ではルール本文へ即反映せず、将来対応インシデントとして残す。",
+          "reason": "今すぐ全ルールを増やすとStudioくんのルール体系が太りすぎるため。必要性を感じた段階で、対象ルールファイルごとに個別対応する。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0058_001",
+          "at": "2026-06-27",
+          "change_type": "incident_added",
+          "before": "AI駆動開発で今後必要になり得る追加ルール系統がインシデント管理上で未登録だった。",
+          "after": "studio_work_0058 v0.14.28-git-release-branch-rules として、Git / Release / Branch Rules Git・リリース・ブランチ運用ルール を未着手インシデントに追加。",
+          "reason": "必要を感じたタイミングで漏れなくルール化・実装化へ進めるようにするため。"
+        }
+      ],
+      "verification_status": "未確認"
+    },
+    {
+      "work_item_id": "studio_work_0059",
+      "phase": "v0.14.29-security-public-data-rules",
+      "title": "新ルール候補：Security / Public Data Rules 公開データ・安全管理ルール",
+      "incident_type": "rules_review",
+      "category": "",
+      "priority": "high",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-27",
+      "updated_at": "2026-06-27",
+      "target_files": "wwwroot/data/**, wwwroot/defs/**, data/json/**, docs/articles, README",
+      "target_rule_files": "data/json/00_rules/frb_foundation_rules_data_v0_1.json, data/json/00_rules/frb_coding_constraints_data_v0_3.json",
+      "objective": "GitHub Pagesや記事連携で公開してよいData/Defsと、ローカル限定・非公開にすべき情報の境界を整理する。",
+      "background": "wwwroot/data・wwwroot/defsは公開用静的領域として扱う話があり、今後AI協働・社内情報・個人情報・実験メモが混ざるリスクがある。",
+      "scope": "公開可否分類、ローカル限定領域、GitHub Pages公開領域、個人情報・社内情報・秘密情報の扱い、AIが公開領域へ出してはいけない情報を整理する。",
+      "out_of_scope": "この作業ではセキュリティスキャン実装や秘密情報検出ツール作成までは行わない。",
+      "fixed_name_policy": "public/private 等の状態項目を導入する場合も、公開管理用契約として扱い、一般Runtime固定名にしない。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。まずルール系Data JSON・インシデント管理Data・必要なViewDef方針として整理する。",
+      "expected_outputs": "Public Data Rules、公開可否分類、公開前チェック、AI更新禁止/要確認領域、GitHub Pages公開基準。",
+      "risk": "公開してはいけない情報がGitHub Pagesに混入すると重大。厳しすぎると公開用サンプルや記事連携が進まない。",
+      "test_points": "公開用サンプル、個人メモ、社内情報、実験ログ、ルールData、ViewDefの公開可否判断が整理されていること。",
+      "user_request": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。",
+      "ai_response": "Security / Public Data Rules 公開データ・安全管理ルール を将来対応インシデントとして追加。現時点では実装・ルール本文改正は行わず、必要を感じたタイミングで個別フェーズとして着手できるよう、目的・範囲・リスク・確認観点を整理した。",
+      "latest_user_comment": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。",
+      "latest_ai_response": "将来ルール候補をインシデント化。必要になった時点で個別にルール本文・ViewDef・テスト証跡へ反映する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0059_001",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "将来ルール候補のインシデント追加",
+          "message": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。"
+        },
+        {
+          "history_id": "disc_0059_002",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "将来ルール候補の整理",
+          "message": "Security / Public Data Rules 公開データ・安全管理ルール はAI駆動開発を継続運用する上で必要になり得るため、未着手インシデントとして登録し、後で必要性が高まった時に実作業化する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0059_001",
+          "at": "2026-06-27",
+          "decision": "現時点ではルール本文へ即反映せず、将来対応インシデントとして残す。",
+          "reason": "今すぐ全ルールを増やすとStudioくんのルール体系が太りすぎるため。必要性を感じた段階で、対象ルールファイルごとに個別対応する。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0059_001",
+          "at": "2026-06-27",
+          "change_type": "incident_added",
+          "before": "AI駆動開発で今後必要になり得る追加ルール系統がインシデント管理上で未登録だった。",
+          "after": "studio_work_0059 v0.14.29-security-public-data-rules として、Security / Public Data Rules 公開データ・安全管理ルール を未着手インシデントに追加。",
+          "reason": "必要を感じたタイミングで漏れなくルール化・実装化へ進めるようにするため。"
+        }
+      ],
+      "verification_status": "未確認"
+    },
+    {
+      "work_item_id": "studio_work_0060",
+      "phase": "v0.14.30-error-incident-escalation-rules",
+      "title": "新ルール候補：Error / Incident Escalation Rules エラー・違和感・再発防止ルール",
+      "incident_type": "rules_review",
+      "category": "",
+      "priority": "medium",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-27",
+      "updated_at": "2026-06-27",
+      "target_files": "data/json/01_main/studio_work_incident_data_*.json, tests/**/*.spec.ts, tests/**/*.mjs, reports/*.md if created",
+      "target_rule_files": "data/json/00_rules/frb_foundation_rules_data_v0_1.json, data/json/00_rules/frb_coding_constraints_data_v0_3.json",
+      "objective": "AI作業中に発生したエラー、ユーザー環境のみの不具合、仕様未確定の違和感をどうインシデント化・エスカレーションするかを整理する。",
+      "background": "diffが出ない、旧パスを見ていた、runtimeフォルダーが生える、ZIP長大パスなど、作業中のエラーや違和感が改善ルールへつながった。",
+      "scope": "再現可/再現不可、ユーザー環境依存、AI作業ミス、仕様未確定、再発防止メモ、暫定対応/恒久対応の切り分けを整理する。",
+      "out_of_scope": "この作業ではエラー自動収集やログビューア実装は行わない。",
+      "fixed_name_policy": "error_type / recurrence / workaround 等を導入する場合も、インシデント管理Dataの候補として扱い、一般Runtime固定名にしない。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。まずルール系Data JSON・インシデント管理Data・必要なViewDef方針として整理する。",
+      "expected_outputs": "エラー分類、インシデント起票基準、暫定対応/恒久対応の切り分け、再発防止記録ルール。",
+      "risk": "何でもインシデント化すると管理が膨らむ。逆に違和感を流すと同じ事故が繰り返される。",
+      "test_points": "再現できるエラー、ユーザー環境だけのエラー、AIの作業ミス、仕様相談、運用懸案をどう分類するか説明できること。",
+      "user_request": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。",
+      "ai_response": "Error / Incident Escalation Rules エラー・違和感・再発防止ルール を将来対応インシデントとして追加。現時点では実装・ルール本文改正は行わず、必要を感じたタイミングで個別フェーズとして着手できるよう、目的・範囲・リスク・確認観点を整理した。",
+      "latest_user_comment": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。",
+      "latest_ai_response": "将来ルール候補をインシデント化。必要になった時点で個別にルール本文・ViewDef・テスト証跡へ反映する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0060_001",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "将来ルール候補のインシデント追加",
+          "message": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。"
+        },
+        {
+          "history_id": "disc_0060_002",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "将来ルール候補の整理",
+          "message": "Error / Incident Escalation Rules エラー・違和感・再発防止ルール はAI駆動開発を継続運用する上で必要になり得るため、未着手インシデントとして登録し、後で必要性が高まった時に実作業化する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0060_001",
+          "at": "2026-06-27",
+          "decision": "現時点ではルール本文へ即反映せず、将来対応インシデントとして残す。",
+          "reason": "今すぐ全ルールを増やすとStudioくんのルール体系が太りすぎるため。必要性を感じた段階で、対象ルールファイルごとに個別対応する。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0060_001",
+          "at": "2026-06-27",
+          "change_type": "incident_added",
+          "before": "AI駆動開発で今後必要になり得る追加ルール系統がインシデント管理上で未登録だった。",
+          "after": "studio_work_0060 v0.14.30-error-incident-escalation-rules として、Error / Incident Escalation Rules エラー・違和感・再発防止ルール を未着手インシデントに追加。",
+          "reason": "必要を感じたタイミングで漏れなくルール化・実装化へ進めるようにするため。"
+        }
+      ],
+      "verification_status": "未確認"
+    },
+    {
+      "work_item_id": "studio_work_0061",
+      "phase": "v0.14.32-viewdef-header-search-layout-rules",
+      "title": "ViewDef作成ルール：ヘッダー基本情報と検索項目のコンパクト表示方針",
+      "incident_type": "rules_review",
+      "category": "viewdef_generation_layout",
+      "priority": "medium",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-27",
+      "updated_at": "2026-06-27",
+      "target_files": "data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json, data/json/00_rules/_json_creation_prompt.md, defs/**/*.json, data/json/01_main/studio_work_incident_data_*.json",
+      "target_rule_files": "data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json, data/json/00_rules/_json_creation_prompt.md",
+      "objective": "ViewDef作成時に、ヘッダー部・基本情報・画面検索項目をコンパクトに見せるための表示方針をルール化する。ヘッダー基本情報は1行に収まる項目だけを表示し、長文・複数行項目を原則非表示にすることで、詳細本文やグリッドへ視線を早く移せる画面にする。",
+      "background": "StudioくんのViewDefが増えるにつれて、ヘッダー部・基本情報に多くの項目やマルチテキストボックスを出すと、画面上部が縦に太り、一覧・詳細・検索の初期視認性が落ちる。特にOwnerなど確認優先度の低い項目や長文欄は、基本情報の主役ではなく、必要な場合に詳細側で確認できればよい。",
+      "scope": "ViewDef生成ルールに、ヘッダー部・基本情報の表示項目選定方針を追加する。マルチテキストボックスはヘッダー基本情報では画面表示オフを基本とする。ヘッダー基本情報は1行に収まる範囲で表示オン項目を調整する。Ownerはヘッダー基本情報では表示オフを基本とする。画面検索項目部分は各項目の縦マージンを調整し、縦長になりすぎないコンパクト表示を基本とする。",
+      "out_of_scope": "このインシデント追加時点では既存ViewDefの一括修正やRuntime CSS修正は行わない。まずViewDef作成・生成時のルールとして登録し、必要を感じたタイミングで個別ViewDefまたはRuntime側の実装調整へ進む。",
+      "fixed_name_policy": "Ownerなどのフィールド名をRuntime固定名として特別扱いしない。ヘッダー基本情報に表示するかどうかはViewDefの表示設定で制御する。Ownerは運用上の基本方針としてヘッダー非表示を推奨するが、Data構造やRuntime仕様の固定名にはしない。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。ViewDef生成ルールとAI作業プロンプトのブラッシュアップを中心に扱う。",
+      "expected_outputs": "frb_viewdef_generation_rules_data_v0_1.json へのヘッダー基本情報・検索項目コンパクト表示方針の追加、必要に応じた _json_creation_prompt.md への短い実務指示追加、既存ViewDefへ適用する場合の優先順位整理。",
+      "risk": "ヘッダー部を絞りすぎると、一覧から最低限の文脈を掴みにくくなる。逆に表示項目を増やしすぎると、画面上部が縦に太り、Studioくんの一覧性と作業テンポが落ちる。検索項目の余白を詰めすぎると視認性が落ちる可能性があるため、コンパクトさと読みやすさのバランスが必要。",
+      "test_points": "新規ViewDef生成時に、ヘッダー基本情報の表示オン項目が1行に収まること。マルチテキストボックスがヘッダー基本情報に表示されていないこと。Ownerがヘッダー基本情報で表示オフになっていること。検索項目部分の縦マージンが過剰でなく、画面上部がコンパクトに見えること。",
+      "user_request": "ViewDef作成時のルールブラッシュアップとして、ヘッダー部・基本情報のマルチテキストボックスは画面表示オフを基本とする。ヘッダー部・基本情報は1行に収まる範囲に画面表示オン項目を調整する。ヘッダー部・基本情報 Ownerは表示オフ。画面検索項目部分は、各項目の縦マージンを調整し、縦長がコンパクトになるように調整する。",
+      "ai_response": "ViewDef作成ルールの将来ブラッシュアップ対象としてインシデント化する。現時点ではルール本文や既存ViewDefの改正は行わず、ヘッダー基本情報・Owner表示・検索項目マージンの方針を漏れないよう未着手項目として追加する。",
+      "latest_user_comment": "最新資材を基準に、v0.14.32-viewdef-header-search-layout-rules として、ヘッダー基本情報・検索項目のコンパクト表示方針をルール本文へ反映する作業を依頼。",
+      "latest_ai_response": "v0.14.32 対応完了。frb_viewdef_generation_rules_data_v0_1.json に viewdef_rule_26 系を追加し、ヘッダー基本情報は1行に収まる範囲、マルチテキストボックス/長文欄は表示オフ基本、Ownerは表示オフ基本、検索項目は縦マージン調整でコンパクト表示する方針を明文化した。_json_creation_prompt.md にも短い実務チェックを追加。既存ViewDefの一括修正とRuntime CSS修正は対象外。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0061_001",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "ViewDef作成ルールブラッシュアップ依頼",
+          "message": "ヘッダー部・基本情報のマルチテキストボックスは画面表示オフにすることを基本とする。ヘッダー部・基本情報は1行に収まる範囲に画面表示オン項目を調整することを基本とする。ヘッダー部・基本情報 Ownerは表示オフ。画面検索項目部分は、各項目の縦マージンは調整し、縦長がコンパクトになるように調整する。"
+        },
+        {
+          "history_id": "disc_0061_002",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "インシデント追加方針",
+          "message": "ViewDef生成時のUI設計ルールとして、ヘッダー基本情報は短く、長文欄は出さず、Ownerは基本非表示、検索項目は縦に太らせない方針を未着手インシデントとして登録する。"
+        },
+        {
+          "history_id": "disc_0061_003",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "v0.14.32ルール更新依頼",
+          "message": "最新資材を添付し、incident_file=data/json/01_main/studio_work_incident_data_v0_61_viewdef_header_search_layout_rules_added.json、phase=v0.14.32-viewdef-header-search-layout-rules としてルール更新を依頼。Foundation Rules foundation_rule_019 のZIP返却契約を参照する。"
+        },
+        {
+          "history_id": "disc_0061_004",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "v0.14.32ルール更新結果",
+          "message": "ViewDef Generation Rulesへ viewdef_rule_26 系を追加し、ヘッダー基本情報1行化、長文/マルチテキスト非表示、Owner非表示、検索項目コンパクト表示の方針を反映。_json_creation_prompt.mdにも実務指示を追加し、更新済みインシデントJSONへ結果を記録した。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0061_001",
+          "at": "2026-06-27",
+          "decision": "ヘッダー部・基本情報は、1行に収まる範囲の表示オン項目に絞ることを基本方針とする。",
+          "reason": "画面上部が縦に太ると、Grid一覧・詳細本文・検索結果へ到達する前に視線が詰まり、Studioくんの一覧性と作業テンポが落ちるため。"
+        },
+        {
+          "decision_id": "dec_0061_002",
+          "at": "2026-06-27",
+          "decision": "ヘッダー部・基本情報のマルチテキストボックスとOwnerは、原則として表示オフにする。",
+          "reason": "長文欄や所有者情報はヘッダーの初期視認性に対して情報量が重く、必要な場合は詳細側で確認すればよいため。"
+        },
+        {
+          "decision_id": "dec_0061_003",
+          "at": "2026-06-27",
+          "decision": "画面検索項目部分は、縦マージンを調整してコンパクト表示を基本とする。",
+          "reason": "検索項目は頻繁に使うが、縦に膨らみすぎると一覧の表示領域を圧迫するため。"
+        },
+        {
+          "decision_id": "dec_0061_004",
+          "at": "2026-06-27",
+          "decision": "今回のv0.14.32では、ルール本文とAI作業プロンプトの更新に限定し、既存ViewDefの一括修正やRuntime CSS修正は行わない。",
+          "reason": "まずViewDef生成時の設計方針として明文化し、既存画面への適用は必要性が出たタイミングで個別に扱う方が回帰リスクを抑えられるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0061_001",
+          "at": "2026-06-27",
+          "change_type": "incident_added",
+          "before": "ViewDef生成時のヘッダー基本情報・検索項目のコンパクト表示方針が作業項目として登録されていなかった。",
+          "after": "studio_work_0061 として、ViewDef作成ルール：ヘッダー基本情報と検索項目のコンパクト表示方針を追加。",
+          "reason": "今後ViewDefを生成・修正するときに、画面上部を太らせすぎないためのUI設計方針を漏らさず扱えるようにするため。"
+        },
+        {
+          "history_id": "chg_0061_002",
+          "at": "2026-06-27",
+          "change_type": "rules_update",
+          "before": "ViewDef生成ルール上で、ヘッダー基本情報・Owner・長文欄・検索項目マージンのコンパクト表示方針が明文化されていなかった。",
+          "after": "frb_viewdef_generation_rules_data_v0_1.json に viewdef_rule_26 系を追加し、_json_creation_prompt.md に v0.14.32 実務チェックを追加した。",
+          "reason": "新規ViewDef生成時に画面上部が縦に太りすぎることを防ぎ、Grid一覧・詳細本文・検索結果へ入りやすいStudio体験を維持するため。"
+        }
+      ],
+      "verification_status": "確認済み",
+      "actual_updated_files": "data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json; data/json/00_rules/_json_creation_prompt.md; data/json/00_rules/VIEWDEF_HEADER_SEARCH_LAYOUT_RULES_REPORT_v0_14_32.md; data/json/01_main/studio_work_incident_data_v0_61_viewdef_header_search_layout_rules_done.json"
     }
   ],
   "review_notes": [
@@ -5685,10 +6585,53 @@
       "at": "2026-06-27",
       "type": "filename_reference_migration",
       "message": "00_rulesファイル名変更に伴い、現行運用の参照を新ファイル名へ移行した。filename_updatelist.md・過去インシデント・生成済みExport・test evidence証跡は履歴として旧名を残す。"
+    },
+    {
+      "note_id": "note_045",
+      "at": "2026-06-27",
+      "type": "future_incident_filename_alignment",
+      "topic": "未着手インシデントの旧00_rulesファイル名補正",
+      "note": "これから実施する未着手インシデント内のtarget_files / target_rule_files等に残っていた旧ルールJSON名を新ファイル名へ補正。完了済みインシデント内の旧名は履歴・証跡として保持。対象: studio_work_0016, studio_work_0017, studio_work_0018, studio_work_0046, studio_work_0047, studio_work_0048, studio_work_0049"
+    },
+    {
+      "note_id": "note_046",
+      "at": "2026-06-27",
+      "title": "v0.14.17 ViewDef Generation Rules共通ViewDef方針を反映",
+      "body": "共通化できるViewDefは原則共通化を検討する。ただし過剰共通化で将来苦しくなる場合は人間へ相談する。既存ViewDef修正時はファイル名を維持し、Diff系ViewDefの判定フィールドはchecks[].passへ寄せる。"
+    },
+    {
+      "note_id": "note_047",
+      "at": "2026-06-27",
+      "title": "v0.14.18 Delivery / Cleanup / ZIP Safetyを反映",
+      "body": "成果物ZIPには node_modules / playwright-report / test-results / test_results / tests/.runtime / tests_screen_state を含めない。runtime生成物は再生成可能なためarchive対象ではなく削除・除外を基本とする。返却前にJSON parse、不要生成物混入、長大パス、旧パス罠フォルダー、更新済みインシデントJSON収録を確認する。"
+    },
+    {
+      "note_id": "note_048",
+      "at": "2026-06-27",
+      "title": "AI駆動開発向けの将来ルール候補をインシデント化",
+      "body": "今すぐルール本文へ反映せず、必要を感じたタイミングで段階的に対応できるよう、Human/AI責務境界、Definition of Done、変更影響・リスク分類、Traceability、Test Runner、Migration/Backward Compatibility、AI Work Context Package、Git/Release/Branch、Security/Public Data、Error/Incident Escalationを未着手インシデントとして追加した。"
+    },
+    {
+      "note_id": "note_049",
+      "at": "2026-06-27",
+      "title": "将来ルール追加時の運用方針",
+      "body": "追加した各インシデントは、現時点では実装・ルール本文改正を行わない。着手時は対象ルールファイル、対象ViewDef、必要なData構造、archive要否、Done条件を個別に確認して進める。"
+    },
+    {
+      "note_id": "note_050",
+      "at": "2026-06-27",
+      "title": "ViewDef作成時のヘッダー基本情報・検索項目コンパクト表示方針をインシデント化",
+      "body": "ヘッダー部・基本情報ではマルチテキストボックスを表示オフ基本、表示オン項目は1行に収まる範囲、Ownerは表示オフ基本とする。画面検索項目部分は縦マージンを調整し、縦長になりすぎないコンパクト表示を基本とする。現時点ではルール本文改正ではなく、studio_work_0061 の未着手インシデントとして登録した。"
+    },
+    {
+      "note_id": "note_051",
+      "at": "2026-06-27",
+      "title": "v0.14.32 ViewDefヘッダー基本情報・検索項目コンパクト表示ルールを反映",
+      "body": "studio_work_0061 を完了扱いとし、frb_viewdef_generation_rules_data_v0_1.json に viewdef_rule_26 系を追加した。_json_creation_prompt.md にも、ヘッダー基本情報は1行・短文中心、長文欄/Ownerは表示オフ基本、検索項目は縦マージン調整でコンパクト表示という実務チェックを追加した。"
     }
   ],
-  "work_revision": "v0.14.20-rules-filename-reference-migration-done",
-  "latest_planning_note": "00_rulesファイル名変更に伴う旧ファイル名参照を洗い出し、studio_work_0050として参照更新インシデントを追加。次工程は v0.14.20-rules-filename-reference-migration を実施し、Foundation raw URL・依頼テンプレート・ViewDef targetFile・Inventoryを新ファイル名へ更新する。その後 v0.14.16-diff-result-common-format-rules へ戻る。",
+  "work_revision": "v0.14.32-viewdef-header-search-layout-rules-done",
+  "latest_planning_note": "v0.14.32でViewDef生成ルールへヘッダー基本情報・検索項目コンパクト表示方針を反映済み。次は必要に応じて既存ViewDefへの個別適用またはRuntime検索欄CSS調整を行う。",
   "view_def_candidates": [
     {
       "view_def": "rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",

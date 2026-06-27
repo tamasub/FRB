@@ -1,11 +1,17 @@
-# FRBStudio generated/runtime artifacts
+# FRBStudio_App generated artifacts
 node_modules/
 playwright-report/
 test-results/
 test_results/
-tests_screen_state/
 tests/.runtime/
+tests_screen_state/
 
-# local editor / OS noise
+# Logs / caches
+*.log
+.cache/
 .DS_Store
 Thumbs.db
+
+# Local temporary outputs
+*.tmp
+*.temp

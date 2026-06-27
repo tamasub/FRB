@@ -711,8 +711,8 @@
       "approval_stamp": "",
       "approved_by": "",
       "approved_at": "",
-      "summary": "AI協働では、作業対象ファイル・確認種別・完了報告・ViewDef安定ファイル名をインシデントJSONに残す。共通化できるものは共通化を優先し、過剰共通化は人間へ相談する。不要データはactiveから削除し_archiveへ退避する。",
-      "body": "AI が Studio のコードを変更する場合、AI は次を守る。\n\n1. まずこの文書を読む\n2. 関係する設計原則を確認する\n3. 変更意図を簡潔に説明する\n4. 無関係な変更をしない\n5. 差分を小さく保つ\n6. 既存動作を守る\n7. Data / ViewDef / Action の分離を優先する\n8. 不確実な点を報告する\n\n---\n\n---\n\n---\n\n### v0.12追記：AI作業対象ファイルとインシデント回答記録\n\nAIがコード、Data JSON、Defs JSON、Rules JSON、Incident JSON、Markdownプロンプト等を更新した場合、更新したファイル名、変更理由、変更概要、対応結果を該当インシデントJSONへ記録する。\n\n記録は、まず既存フィールドや自然文で扱える範囲を優先する。管理項目を増やしすぎず、必要に応じて `target_files`、`latest_ai_response`、`discussion_history`、`change_history` などへテキストとして残す。\n\nroot `data/` / `defs/` は一律変更禁止ではない。作業目的に必要な場合、AIは更新してよい。特に `data/json/01_main/studio_work_incident_data_*.json` のようなインシデント管理データは、作業結果を収録する対象になり得る。\n\nただし、AIが更新したファイル・変更理由・実施結果は、人間が後から追える形で開示する。\n\n一方、`wwwroot/data` / `wwwroot/defs` は GitHub Pages 等の公開用静的領域として扱うため、明示依頼がない限り更新しない。\n\nインシデント対応後のAI完了報告は、会話上だけに流さず、該当インシデントJSONの `latest_ai_response` 等にも残す。\n\n---\n\n### v0.14追記：判断ログ・確認種別・最新ソース・ViewDef安定ファイル名\n\nAIが判断ログを残す場合は、`decision` / `reason` だけで終わらせず、必要に応じて `applied_axes`、`conditions`、`exceptions`、`expected_behavior`、`acceptance_criteria`、`test_pattern_seed`、`discarded_options`、`remaining_risks`、`axis_update_candidate` を残す。\n\nAIが「確認した」と報告する場合は、確認種別を明示する。少なくとも、静的確認、JSON parse、ビルド確認、ローカル起動確認、スクショ確認、Playwright確認、推定確認、ユーザー実機確認待ちを混同しない。\n\nC# / .NET / Program.cs の修正では、AI側の `dotnet build` / `dotnet run` を必須にしない。ただし、実施したか、未実施か、未実施なら理由をインシデントJSONの作業記録へ残す。\n\nAIは、最新ソースを実ファイルとして確認できない場合、実装修正を行わない。会話文脈、前回チャットの記憶、過去のファイル名を、最新ソース確認の代替として扱わない。\n\n既存Data JSONから参照されている ViewDef / DefView ファイルは、原則として同じファイル名のまま更新する。ViewDefファイル名は、Data JSON の `view_def` 参照、URL起動、GitHub Pages、GitDiff確認の接続キーである。\n\nAIは、通常のViewDef改善・表示項目追加・Markdown出力設定変更などで、新しいViewDefファイル名を勝手に作成しない。新しいViewDef名を作成してよいのは、ユーザーが明示した場合、互換性を意図的に切る場合、または既存ViewDefと並行運用する明確な理由がある場合に限る。その場合も、Data JSON側の `view_def` 参照更新、影響範囲、GitDiff上の扱いをインシデントに記録する。\n\n\n---\n\n### v0.14.13追記：共通化・archive退避・ファイル名維持\n\nAIは、構造・表示・検証・出力が共通化できるものについて、原則として共通化を優先する。\n\nただし、共通化によって将来の拡張性・可読性・保守性・ドメイン固有の意味が苦しくなると判断される場合、AIは独断で進めず、人間へ相談する。\n\n古いデータ・不要と思われるデータ・移行済み旧パスは、成果物のactive領域から削除して返却することを基本とする。\nただし、完全削除ではなく、ルートの `_archive/{削除日時}/` 配下へ、元の相対パスが追える形で退避する。\n\nルール系統およびViewDefを修正する場合は、原則としてファイル名を変更しない。\n既存参照、URL起動、GitHub raw URL、GitDiff確認、作業履歴を壊さないためである。\n\nファイル名変更が必要な場合は、人間へ確認し、理由・影響範囲・参照更新をインシデントJSONへ記録する。",
+      "summary": "AI協働では、作業対象ファイル・確認種別・完了報告・ViewDef安定ファイル名をインシデントJSONに残す。共通化できるものは共通化を優先し、過剰共通化は人間へ相談する。不要データはactiveから削除し_archiveへ退避する。 成果物ZIPではnode_modulesやruntime生成物を除外し、Windowsで安全に展開できる形で返却する。",
+      "body": "AI が Studio のコードを変更する場合、AI は次を守る。\n\n1. まずこの文書を読む\n2. 関係する設計原則を確認する\n3. 変更意図を簡潔に説明する\n4. 無関係な変更をしない\n5. 差分を小さく保つ\n6. 既存動作を守る\n7. Data / ViewDef / Action の分離を優先する\n8. 不確実な点を報告する\n\n---\n\n---\n\n---\n\n### v0.12追記：AI作業対象ファイルとインシデント回答記録\n\nAIがコード、Data JSON、Defs JSON、Rules JSON、Incident JSON、Markdownプロンプト等を更新した場合、更新したファイル名、変更理由、変更概要、対応結果を該当インシデントJSONへ記録する。\n\n記録は、まず既存フィールドや自然文で扱える範囲を優先する。管理項目を増やしすぎず、必要に応じて `target_files`、`latest_ai_response`、`discussion_history`、`change_history` などへテキストとして残す。\n\nroot `data/` / `defs/` は一律変更禁止ではない。作業目的に必要な場合、AIは更新してよい。特に `data/json/01_main/studio_work_incident_data_*.json` のようなインシデント管理データは、作業結果を収録する対象になり得る。\n\nただし、AIが更新したファイル・変更理由・実施結果は、人間が後から追える形で開示する。\n\n一方、`wwwroot/data` / `wwwroot/defs` は GitHub Pages 等の公開用静的領域として扱うため、明示依頼がない限り更新しない。\n\nインシデント対応後のAI完了報告は、会話上だけに流さず、該当インシデントJSONの `latest_ai_response` 等にも残す。\n\n---\n\n### v0.14追記：判断ログ・確認種別・最新ソース・ViewDef安定ファイル名\n\nAIが判断ログを残す場合は、`decision` / `reason` だけで終わらせず、必要に応じて `applied_axes`、`conditions`、`exceptions`、`expected_behavior`、`acceptance_criteria`、`test_pattern_seed`、`discarded_options`、`remaining_risks`、`axis_update_candidate` を残す。\n\nAIが「確認した」と報告する場合は、確認種別を明示する。少なくとも、静的確認、JSON parse、ビルド確認、ローカル起動確認、スクショ確認、Playwright確認、推定確認、ユーザー実機確認待ちを混同しない。\n\nC# / .NET / Program.cs の修正では、AI側の `dotnet build` / `dotnet run` を必須にしない。ただし、実施したか、未実施か、未実施なら理由をインシデントJSONの作業記録へ残す。\n\nAIは、最新ソースを実ファイルとして確認できない場合、実装修正を行わない。会話文脈、前回チャットの記憶、過去のファイル名を、最新ソース確認の代替として扱わない。\n\n既存Data JSONから参照されている ViewDef / DefView ファイルは、原則として同じファイル名のまま更新する。ViewDefファイル名は、Data JSON の `view_def` 参照、URL起動、GitHub Pages、GitDiff確認の接続キーである。\n\nAIは、通常のViewDef改善・表示項目追加・Markdown出力設定変更などで、新しいViewDefファイル名を勝手に作成しない。新しいViewDef名を作成してよいのは、ユーザーが明示した場合、互換性を意図的に切る場合、または既存ViewDefと並行運用する明確な理由がある場合に限る。その場合も、Data JSON側の `view_def` 参照更新、影響範囲、GitDiff上の扱いをインシデントに記録する。\n\n\n---\n\n### v0.14.13追記：共通化・archive退避・ファイル名維持\n\nAIは、構造・表示・検証・出力が共通化できるものについて、原則として共通化を優先する。\n\nただし、共通化によって将来の拡張性・可読性・保守性・ドメイン固有の意味が苦しくなると判断される場合、AIは独断で進めず、人間へ相談する。\n\n古いデータ・不要と思われるデータ・移行済み旧パスは、成果物のactive領域から削除して返却することを基本とする。\nただし、完全削除ではなく、ルートの `_archive/{削除日時}/` 配下へ、元の相対パスが追える形で退避する。\n\nルール系統およびViewDefを修正する場合は、原則としてファイル名を変更しない。\n既存参照、URL起動、GitHub raw URL、GitDiff確認、作業履歴を壊さないためである。\n\nファイル名変更が必要な場合は、人間へ確認し、理由・影響範囲・参照更新をインシデントJSONへ記録する。\n\n---\n\n### v0.14.18追記：成果物ZIP安全返却とcleanup\n\nAIが成果物ZIPを返却する場合、作業に必要なactiveファイルだけを含め、再生成可能なruntime生成物を混ぜない。\n\n成果物ZIPには、原則として以下を含めない。\n\n```text\nnode_modules/\nplaywright-report/\ntest-results/\ntest_results/\ntests/.runtime/\ntests_screen_state/\n```\n\n`node_modules/` は依存ライブラリであり、AIの返却成果物ではない。\nPlaywrightやNode testの実行結果フォルダーはruntime一時生成物であり、証跡正本ではない。\nExpected / Actual / Diff / Test Patternなどの証跡正本は `data/json/03_tests/` に置き、runtime生成物と混ぜない。\n\n返却前には、JSON parse、不要生成物混入有無、Windowsで問題になりやすい長大パス、旧パス罠フォルダーの残存、更新済みインシデントJSON収録を確認する。\n\n旧パス・不要データはactiveから外し、判断履歴として残すべきものは `_archive/{削除日時}/` へ退避する。\nただしruntime生成物は再生成可能なため、原則としてarchiveせず削除・除外する。\n",
       "ceremony_phrase": "Studioくん憲法 第20条「AI協働ルール」を承認する。",
       "user_comment": "",
       "ai_response": "",
@@ -753,6 +753,14 @@
           "before": "共通化優先、過剰共通化時の人間相談、不要データの_archive退避、ルール/ViewDefファイル名維持がAI協働ルールにまとまっていなかった。",
           "after": "v0.14.13追記として、共通化優先・人間相談・archive退避・ファイル名維持を追加。",
           "reason": "Step 4-A/4-Bで、JSを広げるよりデータ契約を揃えること、旧パスを残す危険、ViewDef/Ruleファイル名変更の副作用が明確になったため。"
+        },
+        {
+          "history_id": "chg_constitution_20_v01418_001",
+          "at": "2026-06-27",
+          "change_type": "body_append",
+          "before": "AI協働ルールには成果物ZIPの不要生成物除外とWindows解凍安全性のチェックが独立した実務ルールとしてまとまっていなかった。",
+          "after": "v0.14.18追記として、node_modules/Playwright生成物/tests/.runtime/tests_screen_stateをZIPへ含めない、JSON parse/長大パス/旧パス残存/更新済みインシデント収録を返却前に確認するルールを追加した。",
+          "reason": "成果物ZIPへruntime生成物や長大パスが混入すると、Windows解凍エラーや旧フォルダー誤参照を引き起こすため。"
         }
       ],
       "updated_at": "2026-06-27",
@@ -769,6 +777,12 @@
           "at": "2026-06-27",
           "decision": "共通化は原則優先するが、過剰共通化の疑いがある場合は人間へ相談する。",
           "reason": "AIが一見きれいな共通化を進めすぎると、将来のドメイン差分や意味の違いを潰す可能性があるため。"
+        },
+        {
+          "decision_id": "dec_constitution_20_v01418_001",
+          "at": "2026-06-27",
+          "decision": "成果物ZIPには再生成可能なruntime生成物を含めない。",
+          "reason": "AI返却物は作業成果と証跡正本に絞るべきであり、node_modulesやPlaywrightレポートは巨大化・長大パス・誤解凍の原因になるため。"
         }
       ]
     },
@@ -910,9 +924,15 @@
       "note_id": "note_01413_001",
       "title": "v0.14.13 共通化・archive退避・ファイル名維持をAI協働ルールへ追加",
       "body": "constitution_20へ、共通化優先、過剰共通化時の人間相談、不要データの_archive退避、ルール/ViewDefファイル名維持を追加した。"
+    },
+    {
+      "note_id": "note_v01418_delivery_cleanup_zip_safety",
+      "at": "2026-06-27",
+      "title": "v0.14.18 Delivery / Cleanup / ZIP Safety",
+      "body": "constitution_20に成果物ZIP安全返却ルールを追記。node_modules、Playwright生成物、tests/.runtime、tests_screen_stateを返却ZIPへ含めず、JSON parse・長大パス・旧パス罠フォルダー残存を返却前に確認する。"
     }
   ],
-  "review_revision": "v0.14.13-foundation-commonization-archive-filename-policy",
+  "review_revision": "v0.14.18-delivery-cleanup-zip-safety-policy",
   "updated": "2026-06-27",
   "change_history_policy": "レビューで条文・仕様を変更した場合は、対象行の change_history に変更前・変更後・理由・会話を保存する。変更後だけを残さず、修正元を追体験できる状態にする。",
   "viewing_policy": {

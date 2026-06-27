@@ -215,7 +215,9 @@ main { padding: 14px; }
 h2 { margin: 0 0 9px; font-size: 15px; letter-spacing: .01em; }
 .section-title-row,
 .grid-title-row { display:flex; align-items:center; justify-content:space-between; gap: 10px; }
-.grid-actions { display:flex; align-items:center; gap:8px; }
+.grid-title-row { margin-bottom: 10px; }
+.grid-title-row h2 { margin: 0; }
+.grid-actions { display:flex; align-items:center; gap:8px; min-height: 32px; }
 .ghost-button.danger { color:#9f1239; border-color:#fecdd3; background:#fff7f8; }
 .count { color: var(--muted); font-variant-numeric: tabular-nums; }
 .form-grid {
@@ -1476,3 +1478,80 @@ button.combo-clear-button:focus-visible {
   font: 12px/1.65 ui-monospace, SFMono-Regular, Consolas, monospace;
   white-space: pre;
 }
+
+/* ===== v0.14.33-search-form-compact-spacing: 検索項目部分の縦余白圧縮 ===== */
+#searchSection {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+#searchSection .section-title-row {
+  align-items: center;
+  margin-bottom: 6px;
+}
+#searchSection .section-title-row h2 {
+  margin: 0;
+}
+#searchSection #searchForm.search-grid {
+  gap: 5px 10px;
+  align-items: end;
+}
+#searchSection .field label {
+  margin-bottom: 2px;
+  line-height: 1.15;
+}
+#searchSection .field input,
+#searchSection .field select,
+#searchSection .field textarea {
+  min-height: 30px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  line-height: 1.25;
+}
+#searchSection #searchForm textarea,
+#searchSection .search-grid textarea,
+#searchForm .field textarea,
+.search-grid .field textarea {
+  min-height: 30px !important;
+  height: 30px !important;
+  max-height: 30px !important;
+  padding: 5px 8px !important;
+  line-height: 1.25 !important;
+}
+
+/* ===== v0.14.34-header-form-compact-spacing: 基本情報の縦余白圧縮 ===== */
+#headerSection {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+#headerSection #headerCaption {
+  margin: 0 0 6px;
+}
+#headerSection #headerForm.form-grid {
+  grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+  gap: 5px 10px;
+  align-items: end;
+}
+#headerSection .field label {
+  margin-bottom: 2px;
+  line-height: 1.15;
+}
+#headerSection .field input,
+#headerSection .field select,
+#headerSection .field textarea {
+  min-height: 30px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  line-height: 1.25;
+}
+#headerSection #headerForm textarea,
+#headerForm .field textarea {
+  min-height: 30px !important;
+  height: 30px !important;
+  max-height: 30px !important;
+  padding: 5px 8px !important;
+  line-height: 1.25 !important;
+  font-family: inherit !important;
+  resize: none !important;
+  overflow: auto !important;
+}
+
