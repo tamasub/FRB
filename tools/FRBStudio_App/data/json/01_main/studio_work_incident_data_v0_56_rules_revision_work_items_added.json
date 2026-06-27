@@ -1,18 +1,18 @@
 {
-  "view_def": "studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",
+  "view_def": "rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",
   "schema_version": "studio_work_incident_data_v0_1",
   "document_type": "studio_work_incident_management",
   "title": "FRB Studio / JSON Object Studio 改修インシデント管理",
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-06-26",
+  "updated_at": "2026-06-27",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。",
-  "items_count": 39,
+  "items_count": 48,
   "work_items": [
     {
       "work_item_id": "studio_work_0001",
@@ -3838,12 +3838,12 @@
       "incident_type": "rules_review",
       "category": "decision_log_governance",
       "priority": "high",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-06-26",
       "updated_at": "2026-06-26",
-      "target_files": "data/json/00_rules/frb_coding_constraints_review_data_v0_3.json\ndata/json/00_rules/frb_viewdef_generation_rules_review_data_v0_1.json\ndata/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json\nstudio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json\ncoding_constraints_review_view_def_v0_2_change_history.json\n関連するViewDef/Schema/Rules文書（存在する場合）",
+      "target_files": "data/json/00_rules/frb_coding_constraints_review_data_v0_3.json\ndata/json/00_rules/frb_viewdef_generation_rules_review_data_v0_1.json\ndata/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json\ndata/json/00_rules/_json_creation_prompt.md\ndefs/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json\ndata/json/01_main/studio_work_incident_data_v0_49_decision_log_confirmation_governance_added.json",
       "objective": "AI駆動開発における判断ログを、単なる作業説明ではなく、期待値・例外条件・受入条件・テストパターン生成の種として扱えるようにする。あわせて、AIが作業報告で『確認した』と言う場合の確認種別を明示し、最新ソース未確認による古いソース前提の修正事故を防ぐ。",
       "background": "このチャットで、思考ログ・判断ログ・文脈・判断軸の役割分担を整理した結果、インシデント管理に残す判断ログの粒度が不足していることが明確になった。特に、判断内容と理由だけでは、後続AIが例外条件・期待値・受入条件・テスト生成観点を再現しにくい。また、AI側の確認には静的確認・JSON parse・ビルド確認・ローカル起動確認・スクショ確認・Playwright確認・推定確認など複数種類があり、これらを混同すると『確認しました』の意味が曖昧になる。さらに、直前の別チャットで扱った最新ソースは、現在チャットの実ファイルとして自動的に存在するわけではなく、文脈記憶と実ソースを混同すると古いソースへ修正する事故が起きる。",
       "scope": "最低対象として、frb_coding_constraints_review_data_v0_3.json、frb_viewdef_generation_rules_review_data_v0_1.json、frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json の判断ログ系項目を見直す。判断ログには、decision/reason に加えて、applied_axes、conditions、exceptions、expected_behavior、acceptance_criteria、test_pattern_seed、discarded_options、remaining_risks、axis_update_candidate、source_reference、confirmation_level 等の追加を検討する。あわせて、インシデント管理ViewDefおよび憲法レビュー系ViewDefで、これらの項目を入力・表示・Markdown出力できるか確認する。AI作業報告では、静的確認、自動テスト、ビルド確認、ローカル起動確認、スクショ確認、Playwright確認、推定確認、ユーザー実機確認待ちを区別する方針をルール化する。",
@@ -3855,8 +3855,8 @@
       "test_points": "対象3ルールデータに判断ログ系項目見直しが作業対象として明記されていること。判断ログ標準項目に、判断内容・理由・適用判断軸・条件・例外・期待値・受入条件・テストパターン種・残リスク・判断軸更新候補が含まれていること。AI確認種別として、静的確認/JSON parse/ビルド確認/ローカル起動確認/スクショ確認/Playwright確認/推定確認/ユーザー実機確認待ちが区別されていること。C#実行確認は必須化せず、実施有無を記録すればよい方針になっていること。最新ソース未確認時は実装修正を行わず、base_source確認を求める方針になっていること。",
       "user_request": "インシデントにデータ追加をお願いします。ルール関係の判断ログ系の項目見直しは、最低次の3ファイルが対象。frb_coding_constraints_review_data_v0_3.json、frb_viewdef_generation_rules_review_data_v0_1.json、frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json。他にも追加すべきものがあれば提案ください。C#の修正時のAI側で実行確認する必要はなし。過去特に問題が発生しておらず、修正頻度も少ないので、それは要求しない。但し、実施有無が明確にインシデントに作業記録として残れば問題なし。",
       "ai_response": "判断ログ系項目見直しを v0.14.0-decision-log-confirmation-governance として新規インシデント化する。最低対象3ファイルに加えて、インシデント管理ViewDef、憲法レビューViewDef、関連するViewDef/Schema/Rules文書も見直し候補へ含める。C#実行確認は必須化せず、実施/未実施/未実施理由を確認ログとして残す方針を明記する。",
-      "latest_user_comment": "C#実行確認は要求しないが、AI側の確認実施有無が作業記録として明確に残ればよい。判断ログ系項目見直しの対象は最低3ファイルで、追加候補があれば提案してほしい。",
-      "latest_ai_response": "新規インシデントとして、判断ログ標準化、AI確認種別明示、最新ソース確認ルール、test_pattern_seedへの接続準備をまとめて登録する。追加候補として、studio_work_incident_view_def と coding_constraints_review_view_def、関連Schema/Rules文書を提案する。",
+      "latest_user_comment": "最新data/defs ZIPを基準に、v0.14.0-decision-log-confirmation-governanceを再対応。DefView / ViewDef のファイル名は原則変更しないルールを追加したい。C#実行確認は要求しないが、実施有無は作業記録へ明記する。",
+      "latest_ai_response": "v0.14.0-decision-log-confirmation-governance 再対応完了。最新data/defs ZIPを基準ソースとして、最低対象3ルールデータに判断ログ拡張・AI確認種別明示・最新ソース未確認時の実装修正禁止・C#実行確認非必須だが記録必須の方針を反映。追加で、ViewDef / DefView のファイル名は原則変更せず、同名更新を基本とするルールを追加した。ViewDefファイル名はData JSONのview_def参照、URL起動、GitHub Pages、GitDiffの接続キーとして扱う。前回のような新規ViewDef名作成は行わず、既存 studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json を同名更新した。",
       "discussion_history": [
         {
           "history_id": "disc_0039_001",
@@ -3913,6 +3913,20 @@
           "speaker": "user",
           "topic": "インシデント追加依頼",
           "message": "判断ログ系項目見直し、AI確認種別明示、最新ソース確認ルール、C#実行確認の扱いをインシデントへ追加したい。最低対象は3つのルールレビュー系データファイル。"
+        },
+        {
+          "history_id": "disc_0039_009",
+          "at": "2026-06-26",
+          "speaker": "user",
+          "topic": "v0.14.0再対応依頼",
+          "message": "最新data・defsのZIPを添付し、v0.14.0-decision-log-confirmation-governance の再対応を依頼。DefView / ViewDef のファイル名は原則変更しないルール追加を希望。"
+        },
+        {
+          "history_id": "disc_0039_010",
+          "at": "2026-06-26",
+          "speaker": "assistant",
+          "topic": "v0.14.0再対応結果",
+          "message": "最新ZIPを基準に、最低対象3ルールデータ、_json_creation_prompt.md、既存インシデントViewDef同名ファイル、更新済みインシデントJSONを修正。ViewDef新規名は作成せず、GitDiffとData側view_def参照を守る方針を反映。"
         }
       ],
       "decision_log": [
@@ -3971,6 +3985,32 @@
           "test_pattern_seed": "ソース修正インシデントでは、作業前に base_source.type / file_name / branch / commit / checked_files を確認する。",
           "remaining_risks": "GitHub main のような移動する参照だけでは、後から同じ差分を再現できない可能性がある。",
           "axis_update_candidate": "GitHub運用時はcommit hash指定を推奨ルールにする。"
+        },
+        {
+          "decision_id": "dec_0039_005",
+          "at": "2026-06-26",
+          "decision": "既存Data JSONから参照されているViewDef / DefViewファイルは、原則として同じファイル名のまま更新する。",
+          "reason": "ViewDefファイル名はData JSONのview_def参照、URL起動、GitHub Pages静的読込、GitDiffの差分観測点として機能しており、安易に新名化すると参照更新漏れや差分確認不能が起きるため。",
+          "applied_axes": "Diff First, ViewDef First, 再現性, GitDiff観測性, AI引継ぎ性",
+          "conditions": "既存ViewDefの表示項目追加、Markdown設定変更、確認ログ表示追加、軽微なViewDef改善に適用する。",
+          "exceptions": "ユーザーが明示的に新ViewDef名を指定した場合、互換性を意図的に切る場合、旧ViewDefと新ViewDefを並行運用する理由がある場合は例外。ただしData側view_def参照更新と理由記録を必須とする。",
+          "expected_behavior": "AIは通常改修で新規ViewDefファイル名を勝手に作らず、同名ファイルの差分として返却する。",
+          "acceptance_criteria": "今回の返却ZIPに v0_5 等の新規ViewDef名を作成せず、既存ViewDefファイルを同名更新していること。",
+          "test_pattern_seed": "ViewDef更新を含む作業では、返却ZIP内に既存ViewDef名と異なる新規ViewDefが作成されていないことを確認する。",
+          "remaining_risks": "大規模刷新時に同名更新だけでは旧画面との互換性が読みづらくなる可能性があるため、例外時の記録を厚くする。",
+          "axis_update_candidate": "ViewDef安定ファイル名をFoundation Rule 019とViewDef生成ルールの標準判断軸へ追加する。"
+        },
+        {
+          "decision_id": "dec_0039_006",
+          "at": "2026-06-26",
+          "decision": "今回の作業ではC#実行確認、Playwright、スクショ確認を実施しない。",
+          "reason": "ユーザー方針としてC#実行確認は要求されておらず、今回の作業対象はData/Rules/ViewDef更新であるため。未実施であることを確認ログへ明示すれば十分と判断した。",
+          "applied_axes": "リスク比例, 記録透明性, 現実運用性",
+          "conditions": "Data JSON / Rules JSON / ViewDef JSON の編集中心で、C#やUI動作変更を伴わない場合。",
+          "exceptions": "Program.csやwwwrootのUI挙動を変更する場合は、必要に応じてbuild/run/Playwright/スクショ確認を検討する。",
+          "expected_behavior": "未実施確認を未実施として明示し、実行確認済みと誤認させない。",
+          "acceptance_criteria": "verification_log にC#/.NET build/run未実施、Playwright/スクショ未実施と理由が記録されていること。",
+          "test_pattern_seed": "作業完了時に verification_log を確認し、実施/未実施が混同されていないことを検査する。"
         }
       ],
       "change_history": [
@@ -3981,12 +4021,1079 @@
           "before": "studio_work_incident_data_v0_48_index_studio_tool_dock_layout_added.json / items_count=38",
           "after": "studio_work_incident_data_v0_49_decision_log_confirmation_governance_added.json / items_count=39",
           "reason": "AI確認種別、判断ログ標準化、最新ソース確認、C#実行確認の扱いを、今後のAI駆動開発運用ルールとして作業項目化するため。"
+        },
+        {
+          "history_id": "chg_0039_002",
+          "at": "2026-06-26",
+          "change_type": "rules_and_viewdef_update",
+          "before": "v0.14.0はインシデントとして未着手で、判断ログ・確認種別・最新ソース確認・ViewDef安定ファイル名のルールが最低対象3ファイルへ反映されていなかった。前回対応では新しいViewDefファイル名を作成してしまい、Data側view_def参照とGitDiff運用に合わなかった。",
+          "after": "最低対象3ルールデータへv0.14ルールを反映し、_json_creation_prompt.mdへ短い実務チェックを追加。既存インシデントViewDefはファイル名を変更せず同名更新し、実更新ファイルと確認ログを表示候補へ追加。更新済みインシデントJSONをv0_50として作成。",
+          "reason": "判断ログ駆動テスト生成・AI確認透明化・最新ソース確認・ViewDef安定ファイル名を、StudioくんのAI作業事故防止ルールとして定着させるため。",
+          "updated_files": "data/json/00_rules/frb_coding_constraints_review_data_v0_3.json\ndata/json/00_rules/frb_viewdef_generation_rules_review_data_v0_1.json\ndata/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json\ndata/json/00_rules/_json_creation_prompt.md\ndefs/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json\ndata/json/01_main/studio_work_incident_data_v0_50_decision_log_confirmation_governance_done.json",
+          "verification_log": "JSON parse: 実施 OK。\nincident_file / phase 確認: 実施 OK。\n最新ソース確認: ユーザー添付の最新data/defs ZIPを展開し、対象ファイルの存在を確認。\nFoundation Rule 019確認: 実施。GitHub基準ソースとZIP返却契約、および添付ZIP基準で同階層返却する方針を確認。\nViewDefファイル名変更: 未実施。同名更新のみ。\nC#/.NET build/run: 未実施。今回のユーザー方針どおり必須化しない。\nPlaywright/スクショ確認: 未実施。今回の作業はData/Rules/ViewDef更新中心でUI実行確認は対象外。"
         }
       ],
-      "verification_status": "未確認",
+      "verification_status": "確認済み",
       "proposed_additional_targets": "studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json（インシデント管理のdecision_log入力・表示・Markdown出力拡張）\ncoding_constraints_review_view_def_v0_2_change_history.json（憲法レビューのchange_history/decision_log拡張）\nfrb_view_def_schema_*.json（判断ログ系フィールドをViewDefで扱う場合のSchema追従確認）\nFRB_VIEW_DEF_GENERATION_RULES_ALL_*.md（ViewDef生成ルールへ判断ログ・確認ログ項目を反映する場合）\n将来の test_pattern_seed / test_patterns 用スキーマまたはサンプルJSON",
       "verification_policy": "C# / .NET 実行確認は必須ではない。実施した場合はコマンド・結果を記録する。未実施の場合は、未実施であることと理由を記録する。HTML/CSS/JS/ViewDef/JSONについては、可能な範囲でJSON parse、静的確認、必要に応じてPlaywright/スクショ確認を行い、実施有無を明示する。",
-      "base_source_policy": "実装修正では、最新ソースを添付ZIPまたはGitHub commit/branch/pathとして確認してから作業する。会話文脈・過去チャット要約・過去ファイル名だけを最新ソース確認の代替にしない。"
+      "base_source_policy": "実装修正では、最新ソースを添付ZIPまたはGitHub commit/branch/pathとして確認してから作業する。会話文脈・過去チャット要約・過去ファイル名だけを最新ソース確認の代替にしない。",
+      "actual_updated_files": "data/json/00_rules/frb_coding_constraints_review_data_v0_3.json\ndata/json/00_rules/frb_viewdef_generation_rules_review_data_v0_1.json\ndata/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json\ndata/json/00_rules/_json_creation_prompt.md\ndefs/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json\ndata/json/01_main/studio_work_incident_data_v0_50_decision_log_confirmation_governance_done.json",
+      "verification_log": "JSON parse: 実施 OK。\nincident_file / phase 確認: 実施 OK。\n最新ソース確認: ユーザー添付の最新data/defs ZIPを展開し、対象ファイルの存在を確認。\nFoundation Rule 019確認: 実施。GitHub基準ソースとZIP返却契約、および添付ZIP基準で同階層返却する方針を確認。\nViewDefファイル名変更: 未実施。同名更新のみ。\nC#/.NET build/run: 未実施。今回のユーザー方針どおり必須化しない。\nPlaywright/スクショ確認: 未実施。今回の作業はData/Rules/ViewDef更新中心でUI実行確認は対象外。"
+    },
+    {
+      "work_item_id": "studio_work_0040",
+      "phase": "v0.14.1-data-viewdef-candidates",
+      "title": "Data JSON内ViewDef候補リスト / ViewDef生死確認導線",
+      "incident_type": "feature_design",
+      "category": "viewdef_management",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-26",
+      "updated_at": "2026-06-26",
+      "target_files": "wwwroot/js/core/viewdef_resolver.js, wwwroot/js/runtime/load_runtime.js, wwwroot/app.js, wwwroot/index.html, wwwroot/styles.css, data/json/**/*.json, defs/**/*.json, data/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json, data/json/00_rules/frb_viewdef_generation_rules_review_data_v0_1.json, data/json/00_rules/frb_coding_constraints_review_data_v0_3.json, data/json/00_rules/_json_creation_prompt.md",
+      "objective": "Data JSON側で、そのDataに対して利用可能なViewDef候補を複数指定できるようにし、Studio上ではData JSONに明示された候補だけを手動切替対象として扱う。これにより、DataとViewDefの紐づきを明確化し、未参照ViewDefを棚卸し・掃除しやすい状態を作る。",
+      "background": "ViewDefを短期間に多数作成した結果、どのViewDefが現役で、どれが不要・旧版・実験用なのか分かりにくくなっている。現在は1つのData JSONに対して1つのview_defを指定する運用が中心だが、実際にはリレーション系・レビュー系・診断系など複数のViewで同じDataを確認したい場合がある。一方で、全defsから自由に切替できると、DataとViewDefの関係が曖昧になり、死んでいるViewDefを特定しづらくなる。",
+      "scope": "既存の top-level view_def は互換性維持のため既定ViewDefとして残す。追加で view_def_candidates または同等の候補配列をData JSONに持てるようにする。StudioのViewDef切替UIは、Data JSONに定義された候補だけを表示する。候補未定義の既存Dataでは、従来どおり単一view_defのみを利用する。候補リストにはlabel/role/status/noteなどを持たせ、現役・旧版・診断用・削除候補を人間が判断できるようにする。",
+      "out_of_scope": "この作業ではViewDefファイルの自動削除、全Data JSONの一括正規化、dead ViewDef自動削除、ViewDef内容の妥当性判定、Git上の削除コミット生成までは行わない。まずはData JSONからViewDef候補を明示し、紐づき可視化と手動切替の土台を作る。",
+      "fixed_name_policy": "view_def はStudio標準の既定ViewDef指定キーとして維持する。view_def_candidates はDataとViewDefの関連を表す標準候補キーとして検討するが、Runtimeが特定ドメインのData構造へ依存してはいけない。ViewDefファイル名はDataとの接続キーであり、通常改修では勝手に変更しない。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、ViewDef解決・手動切替UI・候補表示を最小変更で追加する。",
+      "proposed_data_contract": "推奨案: top-level view_def は既定ViewDefとして残す。追加で view_def_candidates: [{ view_def, label, role, status, note }] を持つ。role は default / alternate / relation / diagnostic / legacy など、status は active / candidate / deprecated / remove_candidate などを想定。view_def_candidates 内に既定ViewDefを含めるかは実装時に判断するが、UIでは view_def を先頭候補として扱う。",
+      "expected_outputs": "インシデント追加、Data JSON複数ViewDef候補仕様、ViewDef切替UI方針、既存view_def互換維持、候補未定義時の従来動作維持、ViewDef棚卸し・死活確認につながる参照ルール案。",
+      "risk": "Data JSONに候補が増えることで、候補リストの更新漏れが発生する可能性がある。候補に含めるだけで現役扱いにすると古いViewDefが延命するリスクもある。逆に全defsから自由に切替できる設計にすると、DataとViewDefの接続関係が曖昧になり、死んでいるViewDefを特定できなくなる。",
+      "test_points": "view_defのみの既存Dataが従来どおり読み込めること。view_def_candidatesを持つDataでは候補リストだけが切替UIに出ること。候補を選ぶと同じDataに対してViewDefだけ切り替わること。存在しない候補ViewDefは警告表示されること。保存時に意図せず既定view_defを書き換えないこと。GitHub Pages静的読込でも候補ViewDefが相対パス解決できること。",
+      "user_request": "ViewDefを大量に作成した結果、どれが生きていてどれが死んでいるのか分からなくなっている。死んでいるViewDefを特定するため、Data JSON側にViewDefを複数指定できるようにしたい。手動で切り替えられるViewDefは、あらかじめData JSONに指定されているものだけにする。これによりDataとViewDefの紐づきを明確化し、ときどき掃除できる状態を作りたい。",
+      "ai_response": "方針OK。DataとViewDefの関係をData側で明示する設計は、ViewDef棚卸しにかなり有効。既存のview_defは既定ViewDefとして維持し、追加でview_def_candidatesのような候補配列を持たせるのが安全。UIでは候補に登録されたViewDefだけを切替可能にし、未参照ViewDefを死活確認しやすくする。",
+      "latest_user_comment": "最新ソースZIPを添付し、v0.14.1-data-viewdef-candidates の実装を依頼。最新ソースが取得できない時は中止する方針だったが、今回は添付ZIPを基準ソースとして作業。",
+      "latest_ai_response": "v0.14.1-data-viewdef-candidates 実装完了。Data JSONの top-level view_def を既定ViewDef、view_def_candidates を切替可能ViewDef候補として扱うRuntimeを追加。対象Dataに view_def / view_def_candidates がある場合、ViewDef手動切替UIはその候補だけを表示・選択可能にする。候補外ViewDefを明示選択した場合はエラーにし、手動切替しても保存時に既定 view_def を勝手に書き換えないようにした。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0040_001",
+          "at": "2026-06-26",
+          "speaker": "user",
+          "topic": "ViewDef棚卸し相談",
+          "message": "ViewDefを多数作成した結果、どれが生きていてどれが死んでいるか分からない。死んでいるViewDefを特定するために、Data JSON側に複数ViewDefを指定し、手動切替できる候補をData側で限定したい。"
+        },
+        {
+          "history_id": "disc_0040_002",
+          "at": "2026-06-26",
+          "speaker": "assistant",
+          "topic": "インシデント追加方針",
+          "message": "既存view_defは既定ViewDefとして残し、追加の候補配列をData JSONに持たせる方針が安全。ViewDef切替UIはDataに定義された候補のみを表示し、未参照ViewDefの棚卸しにつなげる。"
+        },
+        {
+          "history_id": "disc_0040_003",
+          "at": "2026-06-26",
+          "speaker": "user",
+          "topic": "v0.14.1実装依頼",
+          "message": "最新ソースZIPを添付し、Data JSON内ViewDef候補リスト対応の実装を依頼。"
+        },
+        {
+          "history_id": "disc_0040_004",
+          "at": "2026-06-26",
+          "speaker": "assistant",
+          "topic": "v0.14.1実装結果",
+          "message": "view_def / view_def_candidates をData側のViewDef接続契約として読み取り、ViewDefピッカーと明示選択を候補内へ制限するRuntimeを追加。既定view_defの勝手な上書きも抑止。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0040_001",
+          "at": "2026-06-26",
+          "decision": "既存の top-level view_def は既定ViewDefとして維持する。",
+          "reason": "既存Data JSONとの互換性を守り、Data読込時の標準ViewDefを引き続き一意に決められるようにするため。"
+        },
+        {
+          "decision_id": "dec_0040_002",
+          "at": "2026-06-26",
+          "decision": "複数ViewDef候補はData JSON側に明示する。",
+          "reason": "DataとViewDefの関係をData側の契約として残すことで、全defsからの自由切替よりも死活確認・GitDiff・掃除がしやすくなるため。"
+        },
+        {
+          "decision_id": "dec_0040_003",
+          "at": "2026-06-26",
+          "decision": "手動ViewDef切替UIは、Data JSONに指定された候補だけを表示する。",
+          "reason": "あらかじめ紐づけられたViewDefだけを切替対象にすることで、実験ViewDef・旧ViewDef・未参照ViewDefの境界を明確にするため。"
+        },
+        {
+          "decision_id": "dec_0040_004",
+          "at": "2026-06-26",
+          "decision": "未参照ViewDefの削除はこのインシデントでは行わない。",
+          "reason": "まず参照関係を明示する土台を作り、その後に棚卸しレポートや削除候補抽出を行う方が安全なため。"
+        },
+        {
+          "decision_id": "dec_0040_005",
+          "at": "2026-06-26",
+          "decision": "view_def のみを持つ既存Dataでは、view_defを単一候補として扱う。",
+          "reason": "Dataから明示されたViewDefだけを手動切替対象にする方針を徹底し、全defs自由選択による生死不明ViewDefの増殖を防ぐため。"
+        },
+        {
+          "decision_id": "dec_0040_006",
+          "at": "2026-06-26",
+          "decision": "手動切替しても既定view_defは保存時に自動上書きしない。",
+          "reason": "view_defはDataの既定ViewDef契約であり、一時的な候補切替で既定表示が勝手に変わるとGitDiffと運用意図が壊れるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0040_001",
+          "at": "2026-06-26",
+          "change_type": "incident_added",
+          "before": "Data JSONとViewDefの関係は基本的に単一view_def指定で、複数候補や棚卸し導線がインシデント管理に存在しなかった。",
+          "after": "studio_work_0040 として、Data JSON内ViewDef候補リストとViewDef生死確認導線を登録。",
+          "reason": "大量に作成されたViewDefの現役・旧版・削除候補を判断し、DataとViewDefの接続関係を明確にするため。"
+        },
+        {
+          "history_id": "chg_0040_002",
+          "at": "2026-06-26",
+          "change_type": "runtime_update",
+          "before": "ViewDef選択UIは基本的にserverDefNames全体から選択でき、Data JSON側の複数ViewDef候補契約は存在しなかった。",
+          "after": "Data JSONの view_def / view_def_candidates から候補リストを生成し、ViewDef選択UIと明示選択を候補内へ制限するようにした。",
+          "reason": "DataとViewDefの接続関係を明確化し、未参照ViewDefの棚卸しをしやすくするため。"
+        },
+        {
+          "history_id": "chg_0040_003",
+          "at": "2026-06-26",
+          "change_type": "data_contract_rule_update",
+          "before": "Foundation RulesにData JSON内ViewDef候補契約が明文化されていなかった。",
+          "after": "foundation_rule_019 と _json_creation_prompt.md に、view_def / view_def_candidates の扱いを追記。",
+          "reason": "AI作業時にもViewDef候補をData側の接続契約として扱えるようにするため。"
+        }
+      ],
+      "actual_updated_files": "wwwroot/js/core/state.js\nwwwroot/js/core/viewdef_resolver.js\nwwwroot/js/core/loaders.js\nwwwroot/js/runtime/load_runtime.js\nwwwroot/js/ui/file_tree_picker.js\nwwwroot/js/ui/page_setup.js\nwwwroot/app.js\nwwwroot/index.html\nwwwroot/js/runtime/DATA_VIEWDEF_CANDIDATES_NOTES_v0_14_1.md\ndata/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json\ndata/json/00_rules/_json_creation_prompt.md\ndata/json/01_main/studio_work_incident_data_v0_53_data_viewdef_candidates_implemented.json",
+      "verification_status": "確認済み"
+    },
+    {
+      "work_item_id": "studio_work_0041",
+      "phase": "v0.14.2-incident-prompt-copy-action",
+      "title": "インシデント依頼プロンプト自動生成コピーAction",
+      "incident_type": "feature",
+      "category": "",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-26",
+      "updated_at": "2026-06-27",
+      "target_files": "wwwroot/js/actions/action_registry.js, wwwroot/js/actions/action_toolbar.js, wwwroot/js/runtime/load_runtime.js, wwwroot/js/core/state.js, wwwroot/app.js, wwwroot/index.html, wwwroot/styles.css, defs/rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json, data/json/01_main/studio_work_incident_data_v0_52_incident_prompt_copy_action_added.json",
+      "objective": "インシデント管理画面のグリッド上部に、選択中作業項目からAI依頼プロンプトを自動生成してクリップボードへコピーするActionボタンを追加する。毎回incident_fileとphaseを手作業でコピーして依頼ひな形へ貼り付ける負荷とミスを減らし、AI作業依頼の入口品質を安定させる。",
+      "background": "インシデント管理JSONからChatGPTへ作業依頼する際、毎回データJSONファイル名とphaseをコピーし、定型プロンプトへ貼り付ける小さな手作業が発生している。作業としては地味だが、頻度が高く、phaseやincident_fileの貼り間違いが起きるとAI作業の前提がズレる。Studioくんには既にtoolbar.executeButtonとActionRegistryの戦略的設計パターンがあるため、ViewDefにプロンプトひな形を宣言し、JS側は汎用的にテンプレート展開してクリップボードへコピーするActionとして実装するのが自然。",
+      "scope": "インシデント管理ViewDefのグリッド上部または既存のexecuteButton領域に『AI依頼プロンプトコピー』ボタンを追加する。ボタン定義はViewDef側にcaption/action/promptTemplateを持たせる。Runtime/Action側では選択中行、現在読込中Data JSON相対パス、必要に応じてViewDef情報をActionContextへ渡す。CopyPromptFromTemplate Actionは、ViewDefに定義されたpromptTemplate内の {{data.filePath}} / {{data.fileName}} / {{row.phase}} / {{row.work_item_id}} / {{row.title}} などを展開し、navigator.clipboard.writeTextでコピーする。コピー成功時はtoast表示し、clipboard API失敗時は手動コピー用textareaまたはdialogへfallbackする。",
+      "out_of_scope": "この作業ではChatGPT API連携、外部LLMへの自動送信、Action実行によるGitHub取得、インシデント自動作成、選択行の自動ステータス変更、複数行一括依頼生成は行わない。まずは選択中1行の依頼プロンプトを生成してクリップボードへコピーするところまでを対象とする。",
+      "fixed_name_policy": "JS側にインシデント専用の依頼文を固定実装しない。プロンプト本文はViewDefのpromptTemplateへ置く。Action名 CopyPromptFromTemplate は汎用Action識別子として扱い、Data固有の文言やFoundation Rule URLなどはViewDef設定値として渡す。ViewDefファイル名はDataとの接続キーであるため、既存ViewDefファイル名を変更せず同名更新を基本とする。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式とActionRegistry構造を維持し、必要なActionとActionContext拡張だけを最小変更で追加する。",
+      "prompt_template_contract": "ViewDefのtoolbar.executeButtonまたは同等のAction定義に promptTemplate を持たせる。テンプレート変数の最小候補は {{data.filePath}}, {{data.fileName}}, {{row.phase}}, {{row.work_item_id}}, {{row.title}}。今回のインシデント管理では、incident_fileに現在読込中Data JSONのStudio相対パス、phaseに選択行のphaseを埋め込む。",
+      "expected_prompt_template": "今回の作業依頼:\n- incident_file: {{data.filePath}}\n- phase: {{row.phase}}\n\n作業ルール:\n\nAIやスクリプトが直接取得するためのraw/archive URL:\n- Foundation Rules raw: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/data/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json\n\n- リポジトリ main ZIP: https://github.com/tamasub/FRB/archive/refs/heads/main.zip\n- FRBStudio_App raw base: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/\n- FRBStudio 本体 raw base: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio/\n\nFRB Studio Foundation Rules の foundation_rule_019「GitHub基準ソースとZIP返却契約」を参照してください。",
+      "expected_outputs": "インシデント追加、CopyPromptFromTemplate Action実装方針、ViewDefへのAI依頼プロンプトコピーボタン定義、ActionContextへのcurrentDataFile情報とselectedRow受け渡し、クリップボードコピー処理、失敗時fallback、成功/失敗toast、既存executeButton互換維持。",
+      "risk": "ActionContextに現在Dataファイル名や選択行が渡らない場合、誤ったincident_fileやphaseで依頼文が生成されるリスクがある。clipboard APIはブラウザ権限や非HTTPS環境で失敗する場合がある。JS側へ依頼文を固定実装するとRuntimeがインシデント管理専用に太る。複数行選択や未選択時の扱いを曖昧にすると誤依頼につながる。",
+      "test_points": "インシデント管理JSONを読み込み、任意の作業行を選択した状態で『AI依頼プロンプトコピー』ボタンを押すと、クリップボードにincident_fileとphaseが埋め込まれた依頼文が入ること。選択行を変えるとphaseが変わること。現在読込中Data JSONの相対パスがincident_fileへ入ること。未選択時はコピーせず警告すること。promptTemplate未定義時は分かりやすいエラーになること。clipboard API失敗時に手動コピーできること。既存executeButton/ActionRegistry動作に回帰がないこと。",
+      "user_request": "毎回インシデントからChatGPTへお願いするときに、jsonファイル名とphase名を手作業でコピーして依頼ひな形へ貼り付けるのが地味に嫌。グリッド一覧の上部にアクションボタンを配置し、クリックしたらViewDefに仕込んだプロンプトひな形へデータJSONファイル名とphase名を埋め込み、クリップボードへコピーしてほしい。戦略的設計パターン対応で、ViewDefにボタン名を指定し、Action用FunctionをJS側に追加すれば機能するはず。まず会話で認識合わせし、OKならインシデントを追加したい。",
+      "ai_response": "方針OK。これは単なる便利機能ではなく、Studioくん自身を依頼発行装置にする改善。JS側は汎用Action CopyPromptFromTemplate として、ViewDefのpromptTemplateを読み、選択行と現在Dataファイル情報で変数展開してクリップボードへコピーする。依頼文そのものはJSへ固定せずViewDef側へ置くのが正しい。",
+      "latest_user_comment": "v0.14.2-incident-prompt-copy-action の対応依頼。作業ルールとして Foundation Rules raw / main ZIP / raw base URL を指定し、FRB Studio Foundation Rules の foundation_rule_019「GitHub基準ソースとZIP返却契約」を参照すること。最新ソース一式として wwwroot20260627_0007.zip と studio_work_incident_data_v0_53_data_viewdef_candidates_implemented.json を添付。",
+      "latest_ai_response": "v0.14.2-incident-prompt-copy-action 対応完了。CopyPromptFromTemplate Actionを追加し、ViewDefの toolbar.executeButton.promptTemplate からAI依頼プロンプトを生成するようにした。選択中行の phase / work_item_id / title と現在読込中Data JSONの data/json/... パスをテンプレート変数へ展開し、クリップボードへコピーする。clipboard APIが失敗した場合は手動コピー用ダイアログを表示する。プロンプト本文はJSに固定せず、インシデント管理ViewDef側に保持する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0041_001",
+          "at": "2026-06-26",
+          "speaker": "user",
+          "topic": "AI依頼プロンプトコピー相談",
+          "message": "毎回インシデントから依頼するときに、jsonファイル名とphase名をコピーしてひな形に貼り付ける作業が地味に嫌。グリッド一覧上部のアクションボタンで、ViewDefに仕込んだプロンプトひな形へ自動埋め込みし、クリップボードへコピーしたい。"
+        },
+        {
+          "history_id": "disc_0041_002",
+          "at": "2026-06-26",
+          "speaker": "assistant",
+          "topic": "設計方針確認",
+          "message": "既存のtoolbar.executeButton / ActionRegistry方針に乗せられる。JS側には汎用Action CopyPromptFromTemplate を追加し、依頼文はViewDefのpromptTemplateへ置くのが安全。"
+        },
+        {
+          "history_id": "disc_0041_003",
+          "at": "2026-06-26",
+          "speaker": "user",
+          "topic": "インシデント追加依頼",
+          "message": "できる認識でOK。インシデントを追加して返却してほしい。"
+        },
+        {
+          "history_id": "disc_0041_004",
+          "at": "2026-06-26",
+          "speaker": "assistant",
+          "topic": "インシデント追加結果",
+          "message": "studio_work_0041 / v0.14.2-incident-prompt-copy-action として、インシデント依頼プロンプト自動生成コピーActionを追加。"
+        },
+        {
+          "history_id": "disc_0041_005",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "v0.14.2-incident-prompt-copy-action作業依頼",
+          "message": "v0.14.2-incident-prompt-copy-action の対応依頼。作業ルールとして Foundation Rules raw / main ZIP / raw base URL を指定し、FRB Studio Foundation Rules の foundation_rule_019「GitHub基準ソースとZIP返却契約」を参照すること。最新ソース一式として wwwroot20260627_0007.zip と studio_work_incident_data_v0_53_data_viewdef_candidates_implemented.json を添付。"
+        },
+        {
+          "history_id": "disc_0041_006",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "v0.14.2-incident-prompt-copy-action作業結果",
+          "message": "v0.14.2-incident-prompt-copy-action 対応完了。CopyPromptFromTemplate Actionを追加し、ViewDefの toolbar.executeButton.promptTemplate からAI依頼プロンプトを生成するようにした。選択中行の phase / work_item_id / title と現在読込中Data JSONの data/json/... パスをテンプレート変数へ展開し、クリップボードへコピーする。clipboard APIが失敗した場合は手動コピー用ダイアログを表示する。プロンプト本文はJSに固定せず、インシデント管理ViewDef側に保持する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0041_001",
+          "at": "2026-06-26",
+          "decision": "プロンプト本文はJSではなくViewDefのpromptTemplateへ置く。",
+          "reason": "依頼文をJSへ固定するとRuntimeがインシデント管理専用に太るため。ViewDefが文章・ボタン名・Action指定を持ち、Runtimeは汎用的にテンプレート展開する方がStudioくんの設計思想に合う。"
+        },
+        {
+          "decision_id": "dec_0041_002",
+          "at": "2026-06-26",
+          "decision": "Action名は CopyPromptFromTemplate のような汎用Actionにする。",
+          "reason": "将来、インシデント依頼以外にもレビュー依頼、Markdown記事依頼、差分レビュー依頼などのテンプレートコピーへ使い回せるため。"
+        },
+        {
+          "decision_id": "dec_0041_003",
+          "at": "2026-06-26",
+          "decision": "テンプレート変数として現在Dataファイル情報と選択中行をActionContextへ渡す。",
+          "reason": "incident_fileとphaseを自動埋め込みするには、現在読込中のData JSON相対パスと選択行のphaseが必要になるため。"
+        },
+        {
+          "decision_id": "dec_0041_004",
+          "at": "2026-06-26",
+          "decision": "ViewDefファイル名は変更せず、既存のインシデント管理ViewDefを同名更新する。",
+          "reason": "ViewDefファイル名はData JSONとの接続キーであり、GitDiffの観測点でもあるため。通常改修で新しいViewDef名を勝手に作ると参照更新や差分確認が面倒になる。"
+        },
+        {
+          "decision_id": "dec_0041_005",
+          "at": "2026-06-27",
+          "decision": "クリップボード失敗時は手動コピー用ダイアログを表示する。",
+          "reason": "ブラウザ権限や非HTTPS環境で navigator.clipboard.writeText が失敗しても、生成済みプロンプトを失わず人間がコピーできるようにするため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0041_001",
+          "at": "2026-06-26",
+          "change_type": "incident_added",
+          "before": "インシデント管理画面からChatGPT依頼文を作る際、incident_fileとphaseを人間が手作業でコピーしていた。",
+          "after": "studio_work_0041 として、ViewDefのpromptTemplateとActionRegistryを使ったAI依頼プロンプト自動生成コピーActionを登録。",
+          "reason": "小さな定型作業をAction化し、AI依頼の入口品質を安定させるため。"
+        },
+        {
+          "history_id": "chg_0041_002",
+          "at": "2026-06-27",
+          "change_type": "incident_prompt_copy_action_implemented",
+          "before": "toolbar.executeButton からActionは実行できたが、インシデント依頼プロンプトをViewDefテンプレートから生成してコピーする汎用Actionは未実装だった。",
+          "after": "CopyPromptFromTemplate Actionを追加し、ViewDefのpromptTemplateを選択行と現在Dataファイル情報で展開してクリップボードへコピーできるようにした。",
+          "reason": "incident_file と phase の手作業コピーをなくし、AI作業依頼の入口品質を安定させるため。",
+          "updated_files": [
+            "wwwroot/js/actions/action_registry.js",
+            "wwwroot/index.html",
+            "wwwroot/styles.css",
+            "wwwroot/js/runtime/INCIDENT_PROMPT_COPY_ACTION_NOTES_v0_14_2.md",
+            "defs/rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",
+            "data/json/01_main/studio_work_incident_data_v0_54_incident_prompt_copy_action_implemented.json"
+          ]
+        }
+      ],
+      "actual_updated_files": "wwwroot/js/actions/action_registry.js\nwwwroot/index.html\nwwwroot/styles.css\nwwwroot/js/runtime/INCIDENT_PROMPT_COPY_ACTION_NOTES_v0_14_2.md\ndefs/rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json\ndata/json/01_main/studio_work_incident_data_v0_54_incident_prompt_copy_action_implemented.json",
+      "verification_status": "確認済み"
+    },
+    {
+      "work_item_id": "studio_work_0042",
+      "phase": "v0.14.3-v0.14.12-test-evidence-folder-and-diff-contract",
+      "title": "テスト証跡フォルダー整理 / Actual-Diff責務分離 / Diff共通フォーマット整理",
+      "incident_type": "architecture_data_contract",
+      "category": "test_evidence",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-27",
+      "updated_at": "2026-06-27",
+      "target_files": "data/json/03_tests/**, tests/screen_state/ncjs-screen-state-compare.checks.spec.ts, tests/qa/static/incident_prompt_copy_action_viewdef_static.test.mjs, playwright.config.ts, .gitignore, tests/tools/cleanup_runtime_artifacts.ps1",
+      "objective": "screen_state_smoke_001 と incident_prompt_copy_action のテスト証跡を data/json/03_tests 配下へ集約し、Expected / Actual / Diff / TestPattern / Relation の責務と配置を整理する。あわせて、Actual JSON と Diff JSON の責務を分離し、Diff Result を共通ViewDefで扱える方向へ寄せる。",
+      "background": "v0.14.2-incident-prompt-copy-action 実装後、Actual Result JSONの明細強調表示やサマリ表示を確認する中で、passed/pass のフィールド名不一致、ActualとDiffの責務混在、旧フォルダー残存、Playwright実行時生成物のroot直下発生などが連続して発覚した。これらはJS拡張ではなく、データ契約・フォルダー構造・証跡文化の問題として整理する必要があった。",
+      "scope": "Step 1としてscreen_state_smoke_001のテストデータを data/json/03_tests/screen_state/screen_state_smoke_001/ 配下へ集約。Step 2としてscreen_state actual/diff出力先を新階層へ変更。Step 3としてincident_prompt_copy_actionを data/json/03_tests/qa/v0_14_2_incident_prompt_copy_action/ 配下へ移動。Step 4-AとしてQAのactual.jsonを観測値のみ、diff.jsonを比較結果に責務分離。Step 4-BとしてQA DiffとScreen State Diffの上部サマリ項目とchecks[].passを共通化。さらにPlaywright/runtime生成フォルダーのroot直下発生抑止、旧パス罠フォルダー削除、diff出力パス確認を実施した。",
+      "out_of_scope": "Diff Result共通ViewDefの本格作成・既存screen_state/qa全データの完全移行・全テストスイートの自動実行統合・ViewDef共有化は次Stepへ残す。actual.jsonの共通ViewDef化もこの段階では対象外。",
+      "fixed_name_policy": "強調表示のためにRuntime JSをpass/passed両対応へ太らせるのではなく、データ契約を既存文化の checks[].pass に揃える。Actual Result JSONの判定フィールドに checks[].passed を標準化しない。Diff JSONの明細判定フィールドは checks[].pass を正とする。",
+      "module_policy": "type=\"module\" 化は行わない。既存のNode test / Playwright構成を維持し、出力先とデータ契約のみ整理する。",
+      "expected_outputs": "整理済みフォルダー構造、更新済みテストパターンJSON参照、QA actual.json / diff.json責務分離、QA Diff / Screen State Diff共通サマリ形式、Playwright runtime出力隔離、旧フォルダー削除、cleanupスクリプト、作業メモ。",
+      "risk": "旧パスが残ると、diffが出ているのに空フォルダーを見てしまう罠が残る。Expected差分でnode --testがfailする場合でも、diff.jsonが先に保存される必要がある。Windowsではtest-results配下の長いPlaywright添付ファイル名がZIP解凍エラーを起こすため、成果物ZIPにruntime生成物を混ぜない必要がある。",
+      "test_points": "screen_state_smoke_001のexpected/actual/diff/test_patternsが03_tests/screen_state配下にあること。QAのexpected/actual/diff/test_patterns/relationsが03_tests/qa配下にあること。QA actual.jsonにexpected/pass/resultLabel/summaryが入らないこと。QA diff.jsonにexpected/actual/pass/resultLabel/summary/failedCount/failedCheckIds/firstFailureが入ること。Expectedを意図的にズラした場合でもdiff.jsonが出力された後にtestがfailすること。root直下にplaywright-report/test-results/test_results/tests_screen_stateが生えないこと。旧 data/json/03_tests/v0_14_2_incident_prompt_copy_action/ が残っていないこと。",
+      "user_request": "Step 1〜Step 4-Bとして、screen_state_smoke_001 のデータ整理、actual/diff出力先変更、incident_prompt_copy_action の 03_tests/qa 配下移動、Actual/Diff責務分離、QA Diff と Screen State Diff の共通サマリフォーマット整理を依頼。途中で、空の tests_screen_state が生える問題、Playwright生成フォルダー問題、diff.jsonが出ていないように見える問題もあわせて解消したい。",
+      "ai_response": "テスト証跡を data/json/03_tests 配下へ整理し、Expected / Actual / Diff の責務を分離。Actualは観測値、Diffは比較結果と定義し直し、Diff Resultの上部サマリを共通化した。Playwright生成物は tests/.runtime へ隔離し、root直下の罠フォルダーと旧パスを削除する方針にした。",
+      "latest_user_comment": "OK!!解決！！次の１手は？？まず　インシデントにこのチャットでやったことを作業履歴として追加しようか？？更新後Json返却お願い",
+      "latest_ai_response": "このチャットで整理したテスト証跡フォルダー構造、Actual/Diff責務分離、Diff共通フォーマット、runtime生成物抑止、旧パス罠フォルダー削除までを studio_work_0042 として作業履歴に追加する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0042_001",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "Actual Result強調表示の違和感",
+          "message": "明細のfail強調は効いたが、左上の判定や差分サマリの強調にも対応したい。次のステップで共有フォーマットにしないといけない。"
+        },
+        {
+          "history_id": "disc_0042_002",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "データ契約への方針修正",
+          "message": "JSをpass/passed両対応に太らせるのではなく、Actual Result JSON側を既存文化の pass に合わせるべきと整理。checks[].passed は使わず checks[].pass を正とする方針へ修正した。"
+        },
+        {
+          "history_id": "disc_0042_003",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "フォルダー階層整理相談",
+          "message": "既にあるスモークテスト関係のデータのフォルダー階層を綺麗にする必要がある。テストパターンJSONなどは FRBStudio_App/data/json/03_tests 配下に置くほうが綺麗ではないかという違和感。"
+        },
+        {
+          "history_id": "disc_0042_004",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "Step 1 方針",
+          "message": "data/json/03_tests/{domain}/{suite_id}/ 配下に test_patterns / expected / actual / diff / relations / summary / notes を集約する案を提示。Step 1として screen_state_smoke_001 のデータだけを 03_tests/screen_state 配下へ整理した。"
+        },
+        {
+          "history_id": "disc_0042_005",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "tests_screen_state の存在確認",
+          "message": "tests_screen_state フォルダーに .github/.gitignore/setup.md があるが、これは必要なのか、想定は何かと確認。"
+        },
+        {
+          "history_id": "disc_0042_006",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "tests_screen_state の扱い",
+          "message": "tests_screen_state は旧構成の名残であり、正本フォルダーではないと整理。テストデータは data/json/03_tests、実行コードは tests、ViewDefは defs に分ける方針を確認した。"
+        },
+        {
+          "history_id": "disc_0042_007",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "Step 2依頼",
+          "message": "screen_state の actual / diff 出力先を新階層へ変更するStep 2を依頼。"
+        },
+        {
+          "history_id": "disc_0042_008",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "Step 2対応",
+          "message": "screen_stateのテストコードがテストパターンJSON内の expectedFile / outputActualFile / outputDiffFile を読んで、新しい data/json/03_tests/screen_state/screen_state_smoke_001 配下へ出力するように整理した。"
+        },
+        {
+          "history_id": "disc_0042_009",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "Step 3依頼",
+          "message": "incident_prompt_copy_action を 03_tests/qa 配下へ寄せるStep 3を依頼。"
+        },
+        {
+          "history_id": "disc_0042_010",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "Step 3対応",
+          "message": "incident_prompt_copy_action 系を data/json/03_tests/qa/v0_14_2_incident_prompt_copy_action/ 配下へ移動。patterns は test_patterns に揃え、Expected JSONのexecution_contractやテストコード参照も新パスへ更新した。"
+        },
+        {
+          "history_id": "disc_0042_011",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "actual.json と diff.json の責務相談",
+          "message": ".actual.json と diff.json の違いがよく分からなくなった。diff.json は actual.json があれば不要ではないかと相談。"
+        },
+        {
+          "history_id": "disc_0042_012",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "責務分離方針",
+          "message": "今のactual.jsonはactualではなくdiff/resultになっていると整理。本来は expected.json=期待値、actual.json=観測値、diff.json=比較結果 と分けるべきと提案した。"
+        },
+        {
+          "history_id": "disc_0042_013",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "Step 4-A依頼",
+          "message": "TP-IPC-001 の actual.json / diff.json の責務分離を依頼。actual.jsonは観測値のみ、diff.jsonはexpected/actual/pass/summaryを持ち、node --testの成否はdiff.failedCountをもとに判定する方針。あわせてスモークテストで空の tests_screen_state が生えるのも止めてほしい。"
+        },
+        {
+          "history_id": "disc_0042_014",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "Step 4-A対応",
+          "message": "QA actual.jsonを観測値のみへ分離し、diff.jsonを比較結果の正本に変更。テストコードはExpectedを読み、Actual Observation生成、Diff Result生成、diff.failedCountでfail/pass判定する流れに整理した。空のtests_screen_state対策も追加した。"
+        },
+        {
+          "history_id": "disc_0042_015",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "Windows ZIP解凍エラー",
+          "message": "ZIP解凍時にファイル名が長すぎるエラーが大量に発生した。"
+        },
+        {
+          "history_id": "disc_0042_016",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "runtime生成物除去",
+          "message": "原因はPlaywrightのtest-results/attachments等の長い生成物をZIPに混ぜたこと。test-results / playwright-report / test_results / tests_screen_state を成果物ZIPから除去し、Windows解凍安全版を作成した。"
+        },
+        {
+          "history_id": "disc_0042_017",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "runtimeフォルダー再発",
+          "message": "playwright-report / test_results / test-results / tests_screen_state などのフォルダーがまたroot直下に生えたと報告。"
+        },
+        {
+          "history_id": "disc_0042_018",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "Playwright runtime出力ポリシー",
+          "message": "playwright.config.ts を追加し、root直下へplaywright-report/test-resultsを作らないようにして、一時出力を tests/.runtime/playwright-output/ へ隔離。.gitignoreと cleanup_runtime_artifacts.ps1 も追加した。"
+        },
+        {
+          "history_id": "disc_0042_019",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "Step 4-B依頼",
+          "message": "QA Diff と Screen State Diff の共通サマリフォーマット整理を依頼。diff.jsonの上部サマリ項目、checks[].pass、failedCount/failedCheckIds/firstFailureを共通化し、同じViewDefで見られる方向に寄せたい。actual.jsonは対象外。"
+        },
+        {
+          "history_id": "disc_0042_020",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "Step 4-B対応",
+          "message": "QA Diff と Screen State Diff の schema_version/document_type/domain/diff_kind/status/resultLabel/summary/total/passCount/failCount/failedCount/failedCheckIds/firstFailure/checks[].pass を共通化するように生成側と既存diffを整理した。"
+        },
+        {
+          "history_id": "disc_0042_021",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "diff.json未出力エラー",
+          "message": "Expected比較はわざとエラーにしているが、TP-IPC-001.diff.json が出力されていないと報告。"
+        },
+        {
+          "history_id": "disc_0042_022",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "diff出力順序修正",
+          "message": "diff.jsonを保存し、存在確認した後に failedCount を見てtestをfailさせる順序へ修正した。Expected差分でfailしてもdiff.jsonは残る方針を明確化した。"
+        },
+        {
+          "history_id": "disc_0042_023",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "旧パス罠フォルダー発見",
+          "message": "diffフォルダーが空に見えると再報告。実際には data/json/03_tests/v0_14_2_incident_prompt_copy_action/diff という旧パスを見ていた。"
+        },
+        {
+          "history_id": "disc_0042_024",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "旧パス削除",
+          "message": "正本は data/json/03_tests/qa/v0_14_2_incident_prompt_copy_action/diff/TP-IPC-001.diff.json であり、旧フォルダー data/json/03_tests/v0_14_2_incident_prompt_copy_action/ が罠になっていたためZIPから削除し、cleanupにも旧パス削除を追加した。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0042_001",
+          "at": "2026-06-27",
+          "decision": "テスト証跡データは data/json/03_tests/{domain}/{suite_id}/ 配下へ集約する。",
+          "reason": "Expected / Actual / Diff / TestPattern / Relation が散在すると、Studioくんでの確認・AIへの引継ぎ・Git差分確認で迷子になるため。"
+        },
+        {
+          "decision_id": "dec_0042_002",
+          "at": "2026-06-27",
+          "decision": "テストコードは data/json に置かず tests/ 配下に置く。",
+          "reason": "data/json はStudioくんで見るテスト証跡・期待値・差分の置き場であり、実行する仕掛けは tests/ に分けるため。"
+        },
+        {
+          "decision_id": "dec_0042_003",
+          "at": "2026-06-27",
+          "decision": "ViewDefは data/json に置かず defs/ 配下に置く。",
+          "reason": "DataとViewを分離し、Data JSONの参照キーとしてViewDefを安定運用するため。"
+        },
+        {
+          "decision_id": "dec_0042_004",
+          "at": "2026-06-27",
+          "decision": "Diff明細の判定フィールドは checks[].pass を正とする。",
+          "reason": "既存のscreen_state diff表示・強調表示がpassを前提としており、passedを追加標準化すると契約が分裂するため。"
+        },
+        {
+          "decision_id": "dec_0042_005",
+          "at": "2026-06-27",
+          "decision": "actual.json は観測値のみを持つ。",
+          "reason": "actual.jsonにexpected/pass/summaryを入れるとdiff.jsonとの責務が崩れ、Diffという名前の意味が失われるため。"
+        },
+        {
+          "decision_id": "dec_0042_006",
+          "at": "2026-06-27",
+          "decision": "diff.json は expected と actual の比較結果を持つ。",
+          "reason": "Expected=期待値、Actual=観測値、Diff=比較結果という三層構造を明確にすることで、AI駆動開発の証跡文化として再利用しやすくなるため。"
+        },
+        {
+          "decision_id": "dec_0042_007",
+          "at": "2026-06-27",
+          "decision": "Expected差分でテストがfailしても、diff.jsonは必ず保存してからfailさせる。",
+          "reason": "テストfail時こそ差分証跡が必要であり、Diff Result JSONをStudioくんで確認できないとAI差分物語・承認判断に使えないため。"
+        },
+        {
+          "decision_id": "dec_0042_008",
+          "at": "2026-06-27",
+          "decision": "Playwrightのruntime生成物はroot直下に出さず tests/.runtime/ へ隔離する。",
+          "reason": "root直下にplaywright-report/test-results/test_results/tests_screen_stateが生えると、ソース正本と実行時生成物が混ざり、ZIP配布やGit管理で混乱するため。"
+        },
+        {
+          "decision_id": "dec_0042_009",
+          "at": "2026-06-27",
+          "decision": "旧パス data/json/03_tests/v0_14_2_incident_prompt_copy_action/ は残さない。",
+          "reason": "正本を data/json/03_tests/qa/v0_14_2_incident_prompt_copy_action/ に移した後、旧フォルダーが残るとdiff未出力と誤認する罠フォルダーになるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0042_001",
+          "at": "2026-06-27",
+          "change_type": "folder_structure",
+          "before": "screen_state_smoke_001 関連データが data/json/03_screen_state, test_patterns, tests_screen_state/test_results 等に散在。",
+          "after": "data/json/03_tests/screen_state/screen_state_smoke_001/test_patterns, expected, actual, diff, relations, summary, notes に集約。",
+          "reason": "スモークテスト証跡をテスト単位で追跡しやすくするため。"
+        },
+        {
+          "history_id": "chg_0042_002",
+          "at": "2026-06-27",
+          "change_type": "screen_state_output_path",
+          "before": "screen_state actual/diff の出力先が旧構成やテストコード側の固定パスに依存。",
+          "after": "テストパターンJSONの expectedFile / outputActualFile / outputDiffFile を読み、新しい03_tests配下へ出力。",
+          "reason": "出力先をテストコード固定ではなく、テストパターンデータ契約へ寄せるため。"
+        },
+        {
+          "history_id": "chg_0042_003",
+          "at": "2026-06-27",
+          "change_type": "qa_folder_structure",
+          "before": "data/json/03_tests/v0_14_2_incident_prompt_copy_action/ 配下にQAテスト証跡が配置され、domainが階層に含まれていなかった。",
+          "after": "data/json/03_tests/qa/v0_14_2_incident_prompt_copy_action/ 配下に test_patterns, expected, actual, diff, relations, summary, notes を配置。",
+          "reason": "今後qa以外のdomainが増えても整理できるようにするため。"
+        },
+        {
+          "history_id": "chg_0042_004",
+          "at": "2026-06-27",
+          "change_type": "actual_diff_responsibility_split",
+          "before": "TP-IPC-001.actual.json に expected / actual / pass / summary が混在し、実質diff/resultになっていた。",
+          "after": "TP-IPC-001.actual.json は観測値のみ、TP-IPC-001.diff.json は expected / actual / pass / summary / failedCount / firstFailure を持つ比較結果に分離。",
+          "reason": "ActualとDiffの責務を明確化し、Diffという名前に意味を戻すため。"
+        },
+        {
+          "history_id": "chg_0042_005",
+          "at": "2026-06-27",
+          "change_type": "diff_common_format",
+          "before": "QA Diff と Screen State Diff の上部サマリ項目や明細項目が揺れていた。",
+          "after": "schema_version=document_type=diff_result_v0_1系、status/resultLabel/summary/total/passCount/failCount/failedCount/failedCheckIds/firstFailure/checks[].pass を共通化。",
+          "reason": "将来的に同じDiff Result ViewDefで表示できる方向に寄せるため。"
+        },
+        {
+          "history_id": "chg_0042_006",
+          "at": "2026-06-27",
+          "change_type": "runtime_artifact_policy",
+          "before": "Playwright実行時にroot直下へplaywright-report, test-results, test_results, tests_screen_stateが生え、ZIPへ混入するとWindows長パスエラーも発生した。",
+          "after": "playwright.config.ts と .gitignore と cleanup_runtime_artifacts.ps1 を追加し、runtime生成物を tests/.runtime/ へ隔離。成果物ZIPからruntime生成物を除外。",
+          "reason": "ソース正本・証跡JSON・一時生成物を混ぜないため。"
+        },
+        {
+          "history_id": "chg_0042_007",
+          "at": "2026-06-27",
+          "change_type": "legacy_path_cleanup",
+          "before": "data/json/03_tests/v0_14_2_incident_prompt_copy_action/ 旧フォルダーが残り、ユーザーが空のdiffフォルダーを見て未出力と誤認した。",
+          "after": "旧フォルダーをZIPから削除し、cleanupスクリプトにも旧パス削除を追加。正本は data/json/03_tests/qa/v0_14_2_incident_prompt_copy_action/ に一本化。",
+          "reason": "旧パスを罠フォルダーとして残さないため。"
+        }
+      ],
+      "verification_status": "確認済み"
+    },
+    {
+      "work_item_id": "studio_work_0043",
+      "phase": "v0.14.13-foundation-commonization-archive-filename-policy",
+      "title": "Foundation / Coding Constraints 共通化・archive退避・ファイル名維持原則",
+      "incident_type": "rules_review",
+      "category": "foundation_policy",
+      "priority": "high",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-27",
+      "updated_at": "2026-06-27",
+      "target_files": "data/json/00_rules/frb_coding_constraints_review_data_v0_3.json, data/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json, data/json/00_rules/_json_creation_prompt.md",
+      "target_rule_files": "frb_coding_constraints_review_data_v0_3.json / frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json / _json_creation_prompt.md",
+      "objective": "Studioくん全体の作業原則として、共通化優先、人間相談、削除データの_archive退避、ルール/ViewDefファイル名維持を憲法・Foundation・AI作業プロンプトへ整理する。",
+      "background": "Step 4-A/4-Bの作業で、JSを増やすよりデータ契約を揃えること、旧パスを残すと罠フォルダーになること、ViewDef名を変えると参照元修正が連鎖することが明確になった。",
+      "scope": "共通化できるものは原則共通化する。ただし過剰共通化で将来苦しくなる場合はAIが独断せず人間に相談する。古いデータ・不要データは成果物から削除し、ルート_archive/{削除日時}/へ退避する。ルール系統およびViewDefは原則ファイル名を変更しない。",
+      "out_of_scope": "Expected/Actual/Diffの詳細フォーマットや個別ViewDef実装はこの作業では扱わない。まず最上位の作業原則として記録する。",
+      "fixed_name_policy": "ルール系ファイルおよびViewDefは、既存参照を壊さないため原則として同じファイル名のまま更新する。新しい正本世代を作る必要がある場合は、人間に確認してからファイル名変更する。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。ルールData / ルールMD / ViewDef / インシデント管理JSONの作業単位整理を対象とする。",
+      "expected_outputs": "対象ルールへの追記案、_archive退避例、ファイル名維持例外条件、_json_creation_prompt用の短い実務指示。",
+      "risk": "共通化原則を強く書きすぎると、ドメイン差分まで無理に潰す危険がある。archive退避を曖昧にすると削除したはずの旧パスが成果物に残り、再び罠フォルダーになる。",
+      "test_points": "共通化原則、人間相談条件、_archive/{削除日時}/退避、ルール/ViewDefファイル名維持が各対象ファイルの責務に応じて入っていること。",
+      "user_request": "このチャットで見えてきた憲法・ルール系の改正概要を、作業単位ごとにインシデントへ追加する。追加原則として、共通化できるものは原則共通化し、やりすぎて将来苦しくなる場合は人間に相談する。古いデータ・不要データは削除して返却するが、削除データはルートの _archive/{削除日時}/ に退避する。ルール系統およびViewDefを修正する場合は、参照元修正を避けるため原則ファイル名を変更しない。",
+      "ai_response": "Foundation / Coding Constraints 共通化・archive退避・ファイル名維持原則 を作業単位として追加する。実装・ルール本文修正は次工程で行い、今回のインシデント追加では対象ファイル・目的・範囲・判断ログを整理する。",
+      "latest_user_comment": "このチャットで見えてきた憲法・ルール系の改正概要を、作業単位ごとにインシデントへ追加する。追加原則として、共通化できるものは原則共通化し、やりすぎて将来苦しくなる場合は人間に相談する。古いデータ・不要データは削除して返却するが、削除データはルートの _archive/{削除日時}/ に退避する。ルール系統およびViewDefを修正する場合は、参照元修正を避けるため原則ファイル名を変更しない。",
+      "latest_ai_response": "作業項目としてインシデント管理JSONへ追加。まだルール本文・ViewDef本体の修正は未実施。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0043_001",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "憲法・ルール改正候補の作業単位化依頼",
+          "message": "このチャットで見えてきた憲法・ルール系の改正概要を、作業単位ごとにインシデントへ追加する。追加原則として、共通化できるものは原則共通化し、やりすぎて将来苦しくなる場合は人間に相談する。古いデータ・不要データは削除して返却するが、削除データはルートの _archive/{削除日時}/ に退避する。ルール系統およびViewDefを修正する場合は、参照元修正を避けるため原則ファイル名を変更しない。"
+        },
+        {
+          "history_id": "disc_0043_002",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "作業単位化方針",
+          "message": "Foundation / Coding Constraints 共通化・archive退避・ファイル名維持原則 として、対象ルールファイル・目的・範囲・リスク・確認観点を整理してインシデントへ追加する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0043_001",
+          "at": "2026-06-27",
+          "decision": "共通化できるものは原則共通化する。",
+          "reason": "今回のDiff/Actual/ViewDef整理で、構造が揃っているものは共有フォーマットへ寄せた方がStudioくんの表示・比較・AIレビューが安定するため。"
+        },
+        {
+          "decision_id": "dec_0043_002",
+          "at": "2026-06-27",
+          "decision": "共通化が将来の拡張性・可読性・保守性を苦しくすると判断した場合、AIは人間に相談する。",
+          "reason": "過剰共通化は別ドメインの意味を薄め、あとで逃げ場がなくなるため。"
+        },
+        {
+          "decision_id": "dec_0043_003",
+          "at": "2026-06-27",
+          "decision": "古いデータ・不要データは成果物から削除し、_archive/{削除日時}/へ退避する。",
+          "reason": "旧パスを残すと、存在するだけで正本と誤認される罠フォルダーになるため。"
+        },
+        {
+          "decision_id": "dec_0043_004",
+          "at": "2026-06-27",
+          "decision": "ルール系統およびViewDefは原則ファイル名を変更しない。",
+          "reason": "Data JSONのview_def参照、URL起動、GitHub Pages、AIプロンプトがファイル名に依存しており、変更時の連鎖修正を避けるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0043_001",
+          "at": "2026-06-27",
+          "change_type": "incident_added",
+          "before": "共通化・archive退避・ファイル名維持が作業項目として分離されていなかった。",
+          "after": "studio_work_0043 として最上位ルール改正作業を追加。",
+          "reason": "今回のチャットで憲法級の作業原則が複数見えたため。"
+        }
+      ],
+      "verification_status": "未確認"
+    },
+    {
+      "work_item_id": "studio_work_0044",
+      "phase": "v0.14.14-test-evidence-rules-contract",
+      "title": "Test Evidence Rules / Expected-Actual-Diff責務分離",
+      "incident_type": "rules_review",
+      "category": "test_evidence",
+      "priority": "high",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-27",
+      "updated_at": "2026-06-27",
+      "target_files": "新規候補: data/json/00_rules/frb_test_evidence_rules_review_data_v0_1.json, 既存反映候補: data/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json, tests/**/*.mjs, tests/**/*.spec.ts",
+      "target_rule_files": "新規候補: frb_test_evidence_rules_review_data_v0_1.json / 既存反映候補: frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json",
+      "objective": "Expected JSON / Actual JSON / Diff JSON / Test Code の責務をルールとして固定し、テスト失敗時にもDiff証跡が必ず残る文化を定義する。",
+      "background": "TP-IPC-001でactual.jsonにexpected/pass/summaryが混在し、diff.jsonの存在意義が曖昧になった。責務分離により、Diffという名前へ意味を戻す必要がある。",
+      "scope": "Expected JSONは期待値の正本、Actual JSONは観測値のみ、Diff JSONはExpectedとActualの比較結果、Test Codeは実行する仕掛けと定義する。actual.jsonにはexpected/pass/resultLabel/summary/failedCountを持たせない。Diff出力後にassertする。",
+      "out_of_scope": "個別テストコードの全面修正や既存全テストデータの移行はこの作業では必須にしない。まずルールとして正本化する。",
+      "fixed_name_policy": "ルール系ファイルおよびViewDefは、既存参照を壊さないため原則として同じファイル名のまま更新する。新しい正本世代を作る必要がある場合は、人間に確認してからファイル名変更する。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。ルールData / ルールMD / ViewDef / インシデント管理JSONの作業単位整理を対象とする。",
+      "expected_outputs": "Test Evidence Rules新規Data JSON案、責務分離ルール、Diff出力後assertルール、テストコードに期待値を直書きしないルール。",
+      "risk": "actual.jsonに比較結果を混ぜると、diff.jsonが不要に見え、証跡の名前と責務が崩れる。assert前にdiffを書かないと、失敗したのに確認材料が残らない。",
+      "test_points": "actual.jsonにexpected/pass/summaryがないこと、diff.jsonにexpected/actual/pass/summaryがあること、テストfail時もdiff.jsonが出ること、期待値がExpected JSON側にあること。",
+      "user_request": "このチャットで見えてきた憲法・ルール系の改正概要を、作業単位ごとにインシデントへ追加する。追加原則として、共通化できるものは原則共通化し、やりすぎて将来苦しくなる場合は人間に相談する。古いデータ・不要データは削除して返却するが、削除データはルートの _archive/{削除日時}/ に退避する。ルール系統およびViewDefを修正する場合は、参照元修正を避けるため原則ファイル名を変更しない。",
+      "ai_response": "Test Evidence Rules / Expected-Actual-Diff責務分離 を作業単位として追加する。実装・ルール本文修正は次工程で行い、今回のインシデント追加では対象ファイル・目的・範囲・判断ログを整理する。",
+      "latest_user_comment": "このチャットで見えてきた憲法・ルール系の改正概要を、作業単位ごとにインシデントへ追加する。追加原則として、共通化できるものは原則共通化し、やりすぎて将来苦しくなる場合は人間に相談する。古いデータ・不要データは削除して返却するが、削除データはルートの _archive/{削除日時}/ に退避する。ルール系統およびViewDefを修正する場合は、参照元修正を避けるため原則ファイル名を変更しない。",
+      "latest_ai_response": "作業項目としてインシデント管理JSONへ追加。まだルール本文・ViewDef本体の修正は未実施。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0044_001",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "憲法・ルール改正候補の作業単位化依頼",
+          "message": "このチャットで見えてきた憲法・ルール系の改正概要を、作業単位ごとにインシデントへ追加する。追加原則として、共通化できるものは原則共通化し、やりすぎて将来苦しくなる場合は人間に相談する。古いデータ・不要データは削除して返却するが、削除データはルートの _archive/{削除日時}/ に退避する。ルール系統およびViewDefを修正する場合は、参照元修正を避けるため原則ファイル名を変更しない。"
+        },
+        {
+          "history_id": "disc_0044_002",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "作業単位化方針",
+          "message": "Test Evidence Rules / Expected-Actual-Diff責務分離 として、対象ルールファイル・目的・範囲・リスク・確認観点を整理してインシデントへ追加する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0044_001",
+          "at": "2026-06-27",
+          "decision": "Expected JSONは期待値の正本とする。",
+          "reason": "テストコードへ期待値を直書きすると、Expected JSONを育てる文化が死ぬため。"
+        },
+        {
+          "decision_id": "dec_0044_002",
+          "at": "2026-06-27",
+          "decision": "Actual JSONは観測値のみを持つ。",
+          "reason": "実行時に観測した事実と比較結果を混ぜないため。"
+        },
+        {
+          "decision_id": "dec_0044_003",
+          "at": "2026-06-27",
+          "decision": "Diff JSONは比較結果を持つ。",
+          "reason": "Studioくんで判定・差分・失敗サマリを見る正本を明確にするため。"
+        },
+        {
+          "decision_id": "dec_0044_004",
+          "at": "2026-06-27",
+          "decision": "テストはfailしてよいが、Diffは必ず残す。",
+          "reason": "AI駆動開発では失敗そのものより、失敗を追体験できる証跡が重要なため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0044_001",
+          "at": "2026-06-27",
+          "change_type": "incident_added",
+          "before": "Expected/Actual/Diff責務分離が実装メモにはあるが、ルール改正作業として独立していなかった。",
+          "after": "studio_work_0044 としてTest Evidence Rules作業を追加。",
+          "reason": "今回のチャットでテスト証跡文化の中核ルールが確定したため。"
+        }
+      ],
+      "verification_status": "未確認"
+    },
+    {
+      "work_item_id": "studio_work_0045",
+      "phase": "v0.14.15-test-folder-archive-runtime-policy",
+      "title": "Folder / Archive Rules 03_tests正本・旧パス削除・Runtime生成物隔離",
+      "incident_type": "rules_review",
+      "category": "folder_policy",
+      "priority": "high",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-27",
+      "updated_at": "2026-06-27",
+      "target_files": "data/json/00_rules/frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json, data/json/00_rules/_json_creation_prompt.md, tests/tools/cleanup_runtime_artifacts.ps1",
+      "target_rule_files": "frb_studio_foundation_review_data_v0_1_github_fetch_urls_added.json / _json_creation_prompt.md",
+      "objective": "テスト証跡の正本フォルダー、旧パス削除、_archive退避、Playwright runtime生成物隔離、root直下に生成物を生やさない方針を整理する。",
+      "background": "screen_state_smoke_001 と incident_prompt_copy_action の整理で、data/json/03_tests 配下へ証跡を集約する方針が固まった。同時に tests_screen_state / test-results / playwright-report / 旧QAパスが混乱源になった。",
+      "scope": "Studioくんで見るテスト証跡は data/json/03_tests/{domain}/{suite_id}/ に集約する。test_patterns/expected/actual/diff/relations/summary/notes をテスト単位で持つ。テストコードは tests/ 配下、runtime一時生成物は tests/.runtime/ 配下へ隔離する。旧パスは成果物から削除し、必要なら_archiveへ退避する。",
+      "out_of_scope": "Diff Resultの詳細スキーマや共通ViewDef設計は別作業とする。ここでは置き場所と削除/隔離のルールに集中する。",
+      "fixed_name_policy": "ルール系ファイルおよびViewDefは、既存参照を壊さないため原則として同じファイル名のまま更新する。新しい正本世代を作る必要がある場合は、人間に確認してからファイル名変更する。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。ルールData / ルールMD / ViewDef / インシデント管理JSONの作業単位整理を対象とする。",
+      "expected_outputs": "Folder Rules追記案、03_tests標準階層、禁止/除外フォルダー一覧、cleanupスクリプト運用メモ。",
+      "risk": "旧パスを残すと、ファイルが出ていないのではなく別の旧フォルダーを見ていたという誤認が起きる。runtime生成物をZIPに混ぜるとWindowsパス長エラーやノイズが発生する。",
+      "test_points": "data/json/03_tests配下に証跡が集約されること。tests_screen_stateや旧QAパスが正本扱いされないこと。Playwright生成物がroot直下や成果物ZIPに入らないこと。",
+      "user_request": "このチャットで見えてきた憲法・ルール系の改正概要を、作業単位ごとにインシデントへ追加する。追加原則として、共通化できるものは原則共通化し、やりすぎて将来苦しくなる場合は人間に相談する。古いデータ・不要データは削除して返却するが、削除データはルートの _archive/{削除日時}/ に退避する。ルール系統およびViewDefを修正する場合は、参照元修正を避けるため原則ファイル名を変更しない。",
+      "ai_response": "Folder / Archive Rules 03_tests正本・旧パス削除・Runtime生成物隔離 を作業単位として追加する。実装・ルール本文修正は次工程で行い、今回のインシデント追加では対象ファイル・目的・範囲・判断ログを整理する。",
+      "latest_user_comment": "このチャットで見えてきた憲法・ルール系の改正概要を、作業単位ごとにインシデントへ追加する。追加原則として、共通化できるものは原則共通化し、やりすぎて将来苦しくなる場合は人間に相談する。古いデータ・不要データは削除して返却するが、削除データはルートの _archive/{削除日時}/ に退避する。ルール系統およびViewDefを修正する場合は、参照元修正を避けるため原則ファイル名を変更しない。",
+      "latest_ai_response": "作業項目としてインシデント管理JSONへ追加。まだルール本文・ViewDef本体の修正は未実施。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0045_001",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "憲法・ルール改正候補の作業単位化依頼",
+          "message": "このチャットで見えてきた憲法・ルール系の改正概要を、作業単位ごとにインシデントへ追加する。追加原則として、共通化できるものは原則共通化し、やりすぎて将来苦しくなる場合は人間に相談する。古いデータ・不要データは削除して返却するが、削除データはルートの _archive/{削除日時}/ に退避する。ルール系統およびViewDefを修正する場合は、参照元修正を避けるため原則ファイル名を変更しない。"
+        },
+        {
+          "history_id": "disc_0045_002",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "作業単位化方針",
+          "message": "Folder / Archive Rules 03_tests正本・旧パス削除・Runtime生成物隔離 として、対象ルールファイル・目的・範囲・リスク・確認観点を整理してインシデントへ追加する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0045_001",
+          "at": "2026-06-27",
+          "decision": "テスト証跡の正本は data/json/03_tests/{domain}/{suite_id}/ とする。",
+          "reason": "Expected/Actual/Diff/TestPattern/Relationsをテスト単位で追いやすくするため。"
+        },
+        {
+          "decision_id": "dec_0045_002",
+          "at": "2026-06-27",
+          "decision": "テストコードは tests/ 配下へ置く。",
+          "reason": "実行する仕掛けとStudioくんで見るData JSONを分離するため。"
+        },
+        {
+          "decision_id": "dec_0045_003",
+          "at": "2026-06-27",
+          "decision": "runtime生成物は tests/.runtime/ へ隔離し、成果物ZIPに含めない。",
+          "reason": "Playwright出力や添付ファイルがWindows解凍エラー・ノイズ・誤認の原因になるため。"
+        },
+        {
+          "decision_id": "dec_0045_004",
+          "at": "2026-06-27",
+          "decision": "旧パスフォルダーは成果物から削除し、必要なら_archiveへ退避する。",
+          "reason": "旧パスが存在すると空フォルダーでも正本に見えるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0045_001",
+          "at": "2026-06-27",
+          "change_type": "incident_added",
+          "before": "03_tests正本化、旧パス削除、runtime隔離が個別対応の履歴に留まっていた。",
+          "after": "studio_work_0045 としてFolder/Archive Rules作業を追加。",
+          "reason": "今後のテスト追加時に同じ混乱を繰り返さないため。"
+        }
+      ],
+      "verification_status": "未確認"
+    },
+    {
+      "work_item_id": "studio_work_0046",
+      "phase": "v0.14.16-diff-result-common-format-rules",
+      "title": "Diff Result Common Format / diff_result_v0_1共通サマリ定義",
+      "incident_type": "rules_review",
+      "category": "diff_result_format",
+      "priority": "high",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-27",
+      "updated_at": "2026-06-27",
+      "target_files": "新規候補: data/json/00_rules/frb_diff_result_format_rules_review_data_v0_1.json, data/json/03_tests/**/diff/*.diff.json, defs/**/diff*_view_def*.json",
+      "target_rule_files": "新規候補: frb_diff_result_format_rules_review_data_v0_1.json",
+      "objective": "QA Diff と Screen State Diff を同じViewDefで見られる方向へ寄せるため、diff_result_v0_1 の共通サマリ・checks[]共通フィールドをルール化する。",
+      "background": "Step 4-BでQA DiffとScreen State Diffのサマリ項目を揃えた。次のStep 5で共通ViewDef化する前に、Diff Resultの共通フォーマットをルールとして定義しておく必要がある。",
+      "scope": "diff.jsonの上部サマリ項目として schema_version/document_type/domain/diff_kind/test_id/status/resultLabel/summary/total/passCount/failCount/failedCount/failedCheckIds/firstFailure を標準化する。checks[]は check_id/name/target/type/expected/actual/missing/pass/message を基本とする。",
+      "out_of_scope": "Actual JSONやExpected JSONの詳細ルールは別作業。ここではdiff.jsonの比較結果フォーマットに限定する。",
+      "fixed_name_policy": "ルール系ファイルおよびViewDefは、既存参照を壊さないため原則として同じファイル名のまま更新する。新しい正本世代を作る必要がある場合は、人間に確認してからファイル名変更する。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。ルールData / ルールMD / ViewDef / インシデント管理JSONの作業単位整理を対象とする。",
+      "expected_outputs": "Diff Result Format Rules新規Data JSON案、diff_result_v0_1サンプル、checks[]標準項目、互換用項目の扱いメモ。",
+      "risk": "フォーマットを固定しすぎるとドメイン固有の差分情報を持ちにくくなる。一方で緩すぎると共通ViewDef化できないため、共通項目＋ドメイン拡張領域のバランスが必要。",
+      "test_points": "QA DiffとScreen State Diffの両方が共通サマリで読めること。checks[].passが判定フィールドとして使えること。firstFailureから初回失敗が読めること。",
+      "user_request": "このチャットで見えてきた憲法・ルール系の改正概要を、作業単位ごとにインシデントへ追加する。追加原則として、共通化できるものは原則共通化し、やりすぎて将来苦しくなる場合は人間に相談する。古いデータ・不要データは削除して返却するが、削除データはルートの _archive/{削除日時}/ に退避する。ルール系統およびViewDefを修正する場合は、参照元修正を避けるため原則ファイル名を変更しない。",
+      "ai_response": "Diff Result Common Format / diff_result_v0_1共通サマリ定義 を作業単位として追加する。実装・ルール本文修正は次工程で行い、今回のインシデント追加では対象ファイル・目的・範囲・判断ログを整理する。",
+      "latest_user_comment": "このチャットで見えてきた憲法・ルール系の改正概要を、作業単位ごとにインシデントへ追加する。追加原則として、共通化できるものは原則共通化し、やりすぎて将来苦しくなる場合は人間に相談する。古いデータ・不要データは削除して返却するが、削除データはルートの _archive/{削除日時}/ に退避する。ルール系統およびViewDefを修正する場合は、参照元修正を避けるため原則ファイル名を変更しない。",
+      "latest_ai_response": "作業項目としてインシデント管理JSONへ追加。まだルール本文・ViewDef本体の修正は未実施。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0046_001",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "憲法・ルール改正候補の作業単位化依頼",
+          "message": "このチャットで見えてきた憲法・ルール系の改正概要を、作業単位ごとにインシデントへ追加する。追加原則として、共通化できるものは原則共通化し、やりすぎて将来苦しくなる場合は人間に相談する。古いデータ・不要データは削除して返却するが、削除データはルートの _archive/{削除日時}/ に退避する。ルール系統およびViewDefを修正する場合は、参照元修正を避けるため原則ファイル名を変更しない。"
+        },
+        {
+          "history_id": "disc_0046_002",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "作業単位化方針",
+          "message": "Diff Result Common Format / diff_result_v0_1共通サマリ定義 として、対象ルールファイル・目的・範囲・リスク・確認観点を整理してインシデントへ追加する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0046_001",
+          "at": "2026-06-27",
+          "decision": "Diff Resultのdocument_typeは diff_result を標準とする。",
+          "reason": "QA/Screen Stateなどドメインを超えて同じ比較結果ViewDefで扱いやすくするため。"
+        },
+        {
+          "decision_id": "dec_0046_002",
+          "at": "2026-06-27",
+          "decision": "Diff明細の判定フィールドは checks[].pass とする。",
+          "reason": "passed/ok/resultなどの別名を増やすと強調表示・比較・ViewDefが分岐するため。"
+        },
+        {
+          "decision_id": "dec_0046_003",
+          "at": "2026-06-27",
+          "decision": "failedCount / failedCheckIds / firstFailure を共通サマリとして持つ。",
+          "reason": "失敗の有無と初回失敗を上部フォームで即確認できるようにするため。"
+        },
+        {
+          "decision_id": "dec_0046_004",
+          "at": "2026-06-27",
+          "decision": "ドメイン固有情報は共通項目を壊さず拡張項目として持つ。",
+          "reason": "共通化と将来拡張性を両立するため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0046_001",
+          "at": "2026-06-27",
+          "change_type": "incident_added",
+          "before": "diff_result_v0_1の共通フォーマットが実装成果物として存在するが、ルール作業として独立していなかった。",
+          "after": "studio_work_0046 としてDiff Result Common Format Rules作業を追加。",
+          "reason": "Step 5の共通ViewDef化へ進む前に、Data契約を明文化するため。"
+        }
+      ],
+      "verification_status": "未確認"
+    },
+    {
+      "work_item_id": "studio_work_0047",
+      "phase": "v0.14.17-viewdef-generation-common-viewdef-policy",
+      "title": "ViewDef Generation Rules 共通ViewDef優先・既存ファイル名維持・pass標準化",
+      "incident_type": "rules_review",
+      "category": "viewdef_generation_rules",
+      "priority": "high",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-27",
+      "updated_at": "2026-06-27",
+      "target_files": "data/json/00_rules/frb_viewdef_generation_rules_review_data_v0_1.json, FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md, defs/**/*.json",
+      "target_rule_files": "frb_viewdef_generation_rules_review_data_v0_1.json / FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
+      "objective": "ViewDef生成時に、共通化できるViewDefは共通化を検討し、既存ViewDef修正時は原則ファイル名を変えず、Diff系明細判定はchecks[].passへ寄せるルールを整理する。",
+      "background": "Actual Resultの強調表示不一致で、JSを広げるのではなくData/ViewDef契約を揃えるべきという判断があった。また、ViewDefファイル名を変更するとData側view_def参照修正が連鎖することが明確になった。",
+      "scope": "既存ViewDefを修正する場合はファイル名を変えない。Diff Result / Actual Observation / Expected Checksなど複数ドメインで同じ構造を持てるものは、個別ViewDefを増やす前に共通ViewDef化を検討する。やりすぎる場合は人間へ相談する。",
+      "out_of_scope": "実際の共通Diff Result ViewDef作成はStep 5で扱う。この作業は生成ルール・設計方針の整備に限定する。",
+      "fixed_name_policy": "ルール系ファイルおよびViewDefは、既存参照を壊さないため原則として同じファイル名のまま更新する。新しい正本世代を作る必要がある場合は、人間に確認してからファイル名変更する。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。ルールData / ルールMD / ViewDef / インシデント管理JSONの作業単位整理を対象とする。",
+      "expected_outputs": "ViewDef Generation Rules追記案、共通ViewDef判断基準、ファイル名維持例外条件、checks[].pass標準化メモ。",
+      "risk": "共通ViewDefを増やしすぎるとドメイン別の読みやすさが落ちる。逆に個別ViewDefを増やしすぎると同じ構造なのに保守箇所が分散する。",
+      "test_points": "既存Dataのview_def参照が壊れないこと。新規Diff系ViewDefでpassedではなくpassを使うこと。共通化判断で人間相談条件が明記されていること。",
+      "user_request": "このチャットで見えてきた憲法・ルール系の改正概要を、作業単位ごとにインシデントへ追加する。追加原則として、共通化できるものは原則共通化し、やりすぎて将来苦しくなる場合は人間に相談する。古いデータ・不要データは削除して返却するが、削除データはルートの _archive/{削除日時}/ に退避する。ルール系統およびViewDefを修正する場合は、参照元修正を避けるため原則ファイル名を変更しない。",
+      "ai_response": "ViewDef Generation Rules 共通ViewDef優先・既存ファイル名維持・pass標準化 を作業単位として追加する。実装・ルール本文修正は次工程で行い、今回のインシデント追加では対象ファイル・目的・範囲・判断ログを整理する。",
+      "latest_user_comment": "このチャットで見えてきた憲法・ルール系の改正概要を、作業単位ごとにインシデントへ追加する。追加原則として、共通化できるものは原則共通化し、やりすぎて将来苦しくなる場合は人間に相談する。古いデータ・不要データは削除して返却するが、削除データはルートの _archive/{削除日時}/ に退避する。ルール系統およびViewDefを修正する場合は、参照元修正を避けるため原則ファイル名を変更しない。",
+      "latest_ai_response": "作業項目としてインシデント管理JSONへ追加。まだルール本文・ViewDef本体の修正は未実施。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0047_001",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "憲法・ルール改正候補の作業単位化依頼",
+          "message": "このチャットで見えてきた憲法・ルール系の改正概要を、作業単位ごとにインシデントへ追加する。追加原則として、共通化できるものは原則共通化し、やりすぎて将来苦しくなる場合は人間に相談する。古いデータ・不要データは削除して返却するが、削除データはルートの _archive/{削除日時}/ に退避する。ルール系統およびViewDefを修正する場合は、参照元修正を避けるため原則ファイル名を変更しない。"
+        },
+        {
+          "history_id": "disc_0047_002",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "作業単位化方針",
+          "message": "ViewDef Generation Rules 共通ViewDef優先・既存ファイル名維持・pass標準化 として、対象ルールファイル・目的・範囲・リスク・確認観点を整理してインシデントへ追加する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0047_001",
+          "at": "2026-06-27",
+          "decision": "既存ViewDef修正時は原則ファイル名を変更しない。",
+          "reason": "Data JSON側view_def参照、URL起動、AIプロンプトの接続キーを壊さないため。"
+        },
+        {
+          "decision_id": "dec_0047_002",
+          "at": "2026-06-27",
+          "decision": "共通化できるViewDefは共通化を検討する。",
+          "reason": "同じ構造の表示をドメイン別に増やすと、修正・強調表示・AIレビューの保守が分散するため。"
+        },
+        {
+          "decision_id": "dec_0047_003",
+          "at": "2026-06-27",
+          "decision": "共通化で将来苦しくなる場合は人間に相談する。",
+          "reason": "表示項目の意味が薄まる共通化は、短期的には楽でも長期的に保守しづらくなるため。"
+        },
+        {
+          "decision_id": "dec_0047_004",
+          "at": "2026-06-27",
+          "decision": "Diff系ViewDefではchecks[].passを判定フィールドとして扱う。",
+          "reason": "既存の強調表示・差分表示との互換性を優先するため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0047_001",
+          "at": "2026-06-27",
+          "change_type": "incident_added",
+          "before": "ViewDef共通化・ファイル名維持・pass標準化が個別会話で見えていたが、ViewDef生成ルール作業として独立していなかった。",
+          "after": "studio_work_0047 としてViewDef Generation Rules改正作業を追加。",
+          "reason": "Step 5の共通Diff Result ViewDef化を安全に進めるため。"
+        }
+      ],
+      "verification_status": "未確認"
+    },
+    {
+      "work_item_id": "studio_work_0048",
+      "phase": "v0.14.18-delivery-cleanup-zip-safety-policy",
+      "title": "Delivery / Cleanup Rules 成果物ZIP安全化・不要生成物除外",
+      "incident_type": "rules_review",
+      "category": "delivery_cleanup",
+      "priority": "medium",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-27",
+      "updated_at": "2026-06-27",
+      "target_files": "data/json/00_rules/frb_coding_constraints_review_data_v0_3.json, data/json/00_rules/_json_creation_prompt.md, .gitignore, tests/tools/cleanup_runtime_artifacts.ps1",
+      "target_rule_files": "frb_coding_constraints_review_data_v0_3.json / _json_creation_prompt.md",
+      "objective": "AIが成果物を返却する際に、node_modulesやPlaywright生成物、長大パスのテスト結果を混ぜず、Windowsで安全に解凍できるZIPを返すルールを整理する。",
+      "background": "v0.14.8でPlaywrightのtest-resultsをZIPへ混ぜてしまい、Windows解凍時にパス長エラーが発生した。成果物とruntime生成物の分離を返却ルールとして固定する必要がある。",
+      "scope": "成果物ZIPには node_modules / playwright-report / test-results / test_results / tests/.runtime / tests_screen_state を含めない。古いフォルダーや不要データは削除し、必要なら_archiveへ退避する。ZIP作成前に最長パスと不要生成物を確認する。",
+      "out_of_scope": "アプリ実装やテスト仕様そのものは対象外。返却物の清掃・除外・安全性チェックに限定する。",
+      "fixed_name_policy": "ルール系ファイルおよびViewDefは、既存参照を壊さないため原則として同じファイル名のまま更新する。新しい正本世代を作る必要がある場合は、人間に確認してからファイル名変更する。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。ルールData / ルールMD / ViewDef / インシデント管理JSONの作業単位整理を対象とする。",
+      "expected_outputs": "Delivery Rules追記案、ZIP除外リスト、Windowsパス長安全確認、cleanupスクリプト運用、返却前チェックリスト。",
+      "risk": "除外しすぎると必要な正本Dataまで落とす危険がある。逆に除外が甘いと解凍エラー、巨大ZIP、旧パス混入、node_modules混入が再発する。",
+      "test_points": "ZIP内にnode_modulesやtest-resultsが含まれていないこと。旧パス罠フォルダーが含まれていないこと。Windows解凍でパス長エラーが出ないこと。正本Data/ViewDefは残っていること。",
+      "user_request": "このチャットで見えてきた憲法・ルール系の改正概要を、作業単位ごとにインシデントへ追加する。追加原則として、共通化できるものは原則共通化し、やりすぎて将来苦しくなる場合は人間に相談する。古いデータ・不要データは削除して返却するが、削除データはルートの _archive/{削除日時}/ に退避する。ルール系統およびViewDefを修正する場合は、参照元修正を避けるため原則ファイル名を変更しない。",
+      "ai_response": "Delivery / Cleanup Rules 成果物ZIP安全化・不要生成物除外 を作業単位として追加する。実装・ルール本文修正は次工程で行い、今回のインシデント追加では対象ファイル・目的・範囲・判断ログを整理する。",
+      "latest_user_comment": "このチャットで見えてきた憲法・ルール系の改正概要を、作業単位ごとにインシデントへ追加する。追加原則として、共通化できるものは原則共通化し、やりすぎて将来苦しくなる場合は人間に相談する。古いデータ・不要データは削除して返却するが、削除データはルートの _archive/{削除日時}/ に退避する。ルール系統およびViewDefを修正する場合は、参照元修正を避けるため原則ファイル名を変更しない。",
+      "latest_ai_response": "作業項目としてインシデント管理JSONへ追加。まだルール本文・ViewDef本体の修正は未実施。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0048_001",
+          "at": "2026-06-27",
+          "speaker": "user",
+          "topic": "憲法・ルール改正候補の作業単位化依頼",
+          "message": "このチャットで見えてきた憲法・ルール系の改正概要を、作業単位ごとにインシデントへ追加する。追加原則として、共通化できるものは原則共通化し、やりすぎて将来苦しくなる場合は人間に相談する。古いデータ・不要データは削除して返却するが、削除データはルートの _archive/{削除日時}/ に退避する。ルール系統およびViewDefを修正する場合は、参照元修正を避けるため原則ファイル名を変更しない。"
+        },
+        {
+          "history_id": "disc_0048_002",
+          "at": "2026-06-27",
+          "speaker": "assistant",
+          "topic": "作業単位化方針",
+          "message": "Delivery / Cleanup Rules 成果物ZIP安全化・不要生成物除外 として、対象ルールファイル・目的・範囲・リスク・確認観点を整理してインシデントへ追加する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0048_001",
+          "at": "2026-06-27",
+          "decision": "成果物ZIPにruntime生成物を含めない。",
+          "reason": "一時ファイルは再生成可能であり、成果物に混ぜるとノイズと解凍エラーの原因になるため。"
+        },
+        {
+          "decision_id": "dec_0048_002",
+          "at": "2026-06-27",
+          "decision": "ZIP返却前に不要生成物と旧パスを確認する。",
+          "reason": "旧パスや空フォルダーが残ると、正本誤認・未出力誤認が起きるため。"
+        },
+        {
+          "decision_id": "dec_0048_003",
+          "at": "2026-06-27",
+          "decision": "Windows解凍安全性を意識して長大パスを含めない。",
+          "reason": "ユーザー環境で解凍できない成果物は実用できないため。"
+        },
+        {
+          "decision_id": "dec_0048_004",
+          "at": "2026-06-27",
+          "decision": "削除対象は必要に応じて_archiveへ退避する。",
+          "reason": "完全削除ではなく追跡可能な削除にするため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0048_001",
+          "at": "2026-06-27",
+          "change_type": "incident_added",
+          "before": "ZIP返却安全性とcleanup方針が個別事故対応に留まっていた。",
+          "after": "studio_work_0048 としてDelivery/Cleanup Rules作業を追加。",
+          "reason": "同じWindows解凍エラーや生成物混入を再発させないため。"
+        }
+      ],
+      "verification_status": "未確認"
     }
   ],
   "review_notes": [
@@ -4149,8 +5256,59 @@
       "at": "2026-06-25",
       "title": "index.html Studioツールドック導線・レスポンシブ配置調整",
       "body": "Studioくん本体ヘッダーに Markdown Viewer / DiffJSON / MetaDiff のViewer導線を追加し、既存のMarkdown出力ボタンをOutput群として短い二段ボタンへ整理。通常Window幅では右端が隠れないよう折り返し、広幅時はOutput群もViewer群の右側へ流れるように調整した。"
+    },
+    {
+      "note_id": "note_032",
+      "at": "2026-06-26",
+      "title": "ViewDef安定ファイル名ルール",
+      "body": "既存Data JSONから参照されているViewDefは、原則として同じファイル名のまま更新する。ViewDefファイル名はData側view_def参照・URL起動・GitHub Pages・GitDiffの接続キーである。"
+    },
+    {
+      "note_id": "note_033",
+      "at": "2026-06-27",
+      "title": "Expected / Actual / Diff 責務分離",
+      "body": "Expected JSONは期待値の正本、Actual JSONは観測値、Diff JSONは比較結果とする。Actual JSONにexpected/pass/summaryを混在させない。Diff JSONの明細判定はchecks[].passを正とする。"
+    },
+    {
+      "note_id": "note_034",
+      "at": "2026-06-27",
+      "title": "テスト証跡フォルダー正本",
+      "body": "Studioくんで見るテスト証跡は data/json/03_tests/{domain}/{suite_id}/ 配下へ集約する。test_patterns / expected / actual / diff / relations / summary / notes をテスト単位で揃える。"
+    },
+    {
+      "note_id": "note_035",
+      "at": "2026-06-27",
+      "title": "Runtime生成物と旧パス罠フォルダー",
+      "body": "Playwrightの一時生成物は tests/.runtime/ へ隔離し、成果物ZIPに含めない。旧パスは残すと空フォルダーを見て未出力と誤認するため、正本移行後は削除する。"
+    },
+    {
+      "note_id": "note_036",
+      "at": "2026-06-27",
+      "title": "憲法・ルール改正候補を作業単位化",
+      "body": "共通化原則、過剰共通化時の人間相談、_archive退避、ルール/ViewDefファイル名維持、Expected/Actual/Diff責務分離、03_tests正本化、Diff Result共通フォーマット、ZIP安全化を v0.14.13〜v0.14.18 の作業項目として整理した。"
+    },
+    {
+      "note_id": "note_037",
+      "at": "2026-06-27",
+      "title": "ルール/ViewDefファイル名維持を再確認",
+      "body": "参照頻度の高いルール系ファイルおよびViewDefは、原則として同じファイル名のまま更新する。新しい正本世代を作る必要がある場合のみ、人間確認後にファイル名変更する。"
+    },
+    {
+      "note_id": "note_038",
+      "at": "2026-06-27",
+      "title": "削除はarchive退避とセットにする",
+      "body": "古いデータ・不要データは成果物から削除することを基本とする。ただし、削除対象はルートの _archive/{削除日時}/ に退避し、完全に行方不明にしない。"
     }
   ],
-  "work_revision": "v0.48-index-studio-tool-dock-layout-added",
-  "latest_planning_note": "v0.13.10-index-studio-tool-dock-layout を作業履歴として追加。Studioくん本体ヘッダーに Markdown Viewer / DiffJson Viewer / MetaDiff Hypothesis Viewer の導線を並べ、既存Markdown出力ボタンをOutput群として整理。通常幅では折り返し、広幅ではViewer右側へOutputも横流しするレスポンシブ配置に調整した。"
+  "work_revision": "v0.14.18-rules-revision-work-items-added",
+  "latest_planning_note": "憲法・ルール系の改正候補を v0.14.13〜v0.14.18 の作業単位として追加。次工程は、Foundation/Coding Constraintsから順にルール本文へ反映し、その後 Step 5 Diff Result共通ViewDef化へ進む。",
+  "view_def_candidates": [
+    {
+      "view_def": "rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",
+      "label": "インシデント標準表示",
+      "role": "default",
+      "status": "active",
+      "note": "FRB Studio改修インシデント管理の標準ViewDef"
+    }
+  ]
 }
