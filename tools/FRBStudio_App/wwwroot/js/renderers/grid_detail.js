@@ -351,6 +351,10 @@ function applyDetailInputsToRow(row) {
 
     setByPath(row, field.field, convertValue(field.type, getControlValue(inp)));
   });
+
+  if (typeof applyDetailSubGridEdits === 'function') {
+    applyDetailSubGridEdits(row, gd);
+  }
 }
 
 function applyDetailInputsToSelectedRow() {

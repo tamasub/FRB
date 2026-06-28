@@ -1,5 +1,5 @@
 {
-  "view_def": "rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",
+  "view_def": "rules/studio_work_incident_view_def_v0_5.json",
   "schema_version": "studio_work_incident_data_v0_1",
   "document_type": "studio_work_incident_management",
   "title": "FRB Studio / JSON Object Studio 改修インシデント管理",
@@ -12,7 +12,7 @@
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。",
-  "items_count": 79,
+  "items_count": 80,
   "work_items": [
     {
       "work_item_id": "studio_work_0001",
@@ -647,7 +647,77 @@
       ],
       "decision_log": [],
       "change_history": [],
-      "verification_status": "未確認"
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-06-28",
+      "context_def_draft": "# ContextDef素案: v0.7-markdown-export-contract\n\n## 読む目的\nMarkdown出力ボタンで何を出力できるべきかを、ViewDef生成ルール・Schema・Runtime仕様として整理する。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0006` / v0.7-chat-input-mapping: chat/Markdownリンク・画像・保存値はMarkdown原文保持の既存判断を確認する。\n- `studio_work_0019` / v0.10-markdown-preview-display-mode: 表示モードMarkdownプレビューとHTML混入防止の既存判断を確認する。\n- `studio_work_0020` / v0.11-mdviewer-blur-preview-mode: mdViewer/Editor側のblurプレビュー復帰方針を確認する。\n- `studio_work_0016` / v0.9-rules-json-source-of-truth: ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、MarkdownはExport Viewという分離を崩さない。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\nAI貼り付け用、TSV、Grid JSON、展開前ViewDef JSON、展開後ViewDef JSON、必要に応じたData JSON、Markdown内リンク/画像記法の扱いを定義する。\n\n## 注意すべきリスク\n出力内容を増やしすぎるとMarkdownが巨大化し、AI貼り付け用途で扱いづらくなるリスクがある。\n\n## 確認観点メモ\nmarkdown.aiPrompt、includeGridJson、rowSource、visibleOnly、source/resolved JSON出力、chat/textarea内Markdownリンク/画像記法が期待どおり出るか確認する。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0007_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0007",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.16.3で未完了作業向けに投入した文脈素案。"
+        },
+        {
+          "context_ref_id": "target_0007_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0007_030_studio_work_0006",
+          "title": "関連作業 studio_work_0006: ☆彡chat送信欄の保存先・末尾表示・Markdownリンク/画像対応",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0006",
+          "purpose": "chat/Markdownリンク・画像・保存値はMarkdown原文保持の既存判断を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0007_040_studio_work_0019",
+          "title": "関連作業 studio_work_0019: 表示モードのMarkdownプレビュー対応",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0019",
+          "purpose": "表示モードMarkdownプレビューとHTML混入防止の既存判断を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0007_050_studio_work_0020",
+          "title": "関連作業 studio_work_0020: Markdown Viewer / Editor のblur時プレビュー自動復帰",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0020",
+          "purpose": "mdViewer/Editor側のblurプレビュー復帰方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": ""
+        }
+      ]
     },
     {
       "work_item_id": "studio_work_0008",
@@ -707,7 +777,77 @@
         }
       ],
       "change_history": [],
-      "verification_status": "未確認"
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-06-28",
+      "context_def_draft": "# ContextDef素案: v0.7-filename-encoding-sanitize\n\n## 読む目的\nMarkdown出力やViewer連携で、Unicodeエスケープ/URLエンコード/HTMLエンティティ風の文字化けファイル名が大量発生する問題を解消する。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0006` / v0.7-chat-input-mapping: chat/Markdownリンク・画像・保存値はMarkdown原文保持の既存判断を確認する。\n- `studio_work_0019` / v0.10-markdown-preview-display-mode: 表示モードMarkdownプレビューとHTML混入防止の既存判断を確認する。\n- `studio_work_0020` / v0.11-mdviewer-blur-preview-mode: mdViewer/Editor側のblurプレビュー復帰方針を確認する。\n- `studio_work_0008` / v0.7-filename-encoding-sanitize: ファイル名sanitizeと新規発生抑止の文脈を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、MarkdownはExport Viewという分離を崩さない。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\nファイル名生成、URLエンコード/デコード、Markdown出力名、Viewer遷移URL、保存APIへの渡し方を確認し、ファイルシステム上で安全かつ人間が読める名前に正規化する。\n\n## 注意すべきリスク\n日本語ファイル名、記号、空白、Windows禁止文字、URL相対パス、GitHub Pages上のパス解決で回帰するリスクがある。\n\n## 確認観点メモ\n日本語タイトル、英数字タイトル、空白入り、記号入り、既存mdファイル、Viewer URL遷移、保存後のファイル一覧表示を確認する。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0008_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0008",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.16.3で未完了作業向けに投入した文脈素案。"
+        },
+        {
+          "context_ref_id": "target_0008_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0008_030_studio_work_0006",
+          "title": "関連作業 studio_work_0006: ☆彡chat送信欄の保存先・末尾表示・Markdownリンク/画像対応",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0006",
+          "purpose": "chat/Markdownリンク・画像・保存値はMarkdown原文保持の既存判断を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0008_040_studio_work_0019",
+          "title": "関連作業 studio_work_0019: 表示モードのMarkdownプレビュー対応",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0019",
+          "purpose": "表示モードMarkdownプレビューとHTML混入防止の既存判断を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0008_050_studio_work_0020",
+          "title": "関連作業 studio_work_0020: Markdown Viewer / Editor のblur時プレビュー自動復帰",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0020",
+          "purpose": "mdViewer/Editor側のblurプレビュー復帰方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": ""
+        }
+      ]
     },
     {
       "work_item_id": "studio_work_0009",
@@ -753,7 +893,77 @@
       ],
       "decision_log": [],
       "change_history": [],
-      "verification_status": "未確認"
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-06-28",
+      "context_def_draft": "# ContextDef素案: v0.7-viewdef-sample-fixtures\n\n## 読む目的\n今後の改修時に最低限確認する代表Data/ViewDefセットを整理し、回帰確認の基準を作る。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0006` / v0.7-chat-input-mapping: chat/Markdownリンク・画像・保存値はMarkdown原文保持の既存判断を確認する。\n- `studio_work_0019` / v0.10-markdown-preview-display-mode: 表示モードMarkdownプレビューとHTML混入防止の既存判断を確認する。\n- `studio_work_0020` / v0.11-mdviewer-blur-preview-mode: mdViewer/Editor側のblurプレビュー復帰方針を確認する。\n- `studio_work_0079` / v0.16.2-detail-subgrid-table-edit-core-mvp: Detail内objectArray/stringArray編集MVPの現状と制約を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、MarkdownはExport Viewという分離を崩さない。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\n代表サンプルの一覧、用途、確認観点、保存場所、最新版の見分け方を整理する。\n\n## 注意すべきリスク\nサンプルが増えすぎると管理不能になるリスクがある。代表性と最小構成を重視する。\n\n## 確認観点メモ\n通常Grid/Form、chat、objectArray、markdown.aiPrompt、toolbar.executeButton、relation系virtualData、憲法レビュー、インシデント管理を確認する。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0009_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0009",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.16.3で未完了作業向けに投入した文脈素案。"
+        },
+        {
+          "context_ref_id": "target_0009_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0009_030_studio_work_0006",
+          "title": "関連作業 studio_work_0006: ☆彡chat送信欄の保存先・末尾表示・Markdownリンク/画像対応",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0006",
+          "purpose": "chat/Markdownリンク・画像・保存値はMarkdown原文保持の既存判断を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0009_040_studio_work_0019",
+          "title": "関連作業 studio_work_0019: 表示モードのMarkdownプレビュー対応",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0019",
+          "purpose": "表示モードMarkdownプレビューとHTML混入防止の既存判断を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0009_050_studio_work_0020",
+          "title": "関連作業 studio_work_0020: Markdown Viewer / Editor のblur時プレビュー自動復帰",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0020",
+          "purpose": "mdViewer/Editor側のblurプレビュー復帰方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": ""
+        }
+      ]
     },
     {
       "work_item_id": "studio_work_0010",
@@ -799,7 +1009,77 @@
       ],
       "decision_log": [],
       "change_history": [],
-      "verification_status": "未確認"
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-06-28",
+      "context_def_draft": "# ContextDef素案: v0.7-fixed-name-audit\n\n## 読む目的\nRuntime内に残っている固定フィールド名・固定Action名・固定builder名を棚卸しし、骨格か脂肪かを分類する。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0001` / v0.4-split: Runtime内Data固定名は原則NG、固定名は分類して扱う方針を確認する。\n- `studio_work_0010` / v0.7-fixed-name-audit: 固定フィールド名監査の対象範囲と分類方針を確認する。\n- `studio_work_0011` / v0.7-standard-meta-fields: Studio標準メタフィールド化の例外条件を確認する。\n- `studio_work_0016` / v0.9-rules-json-source-of-truth: ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、MarkdownはExport Viewという分離を崩さない。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\nJS全体を対象に、固定文字列参照を抽出し、分類メモを作る。すぐ削除せず、v0.8以降の改善候補へつなげる。\n\n## 注意すべきリスク\n過剰に固定名を悪者扱いすると、DOM骨格やViewDef公用語まで壊すリスクがある。\n\n## 確認観点メモ\nrow.xxx / message.xxx / action名直書き / builder名分岐 / DOM ID / ViewDefキーの分類ができていることを確認する。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0010_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0010",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.16.3で未完了作業向けに投入した文脈素案。"
+        },
+        {
+          "context_ref_id": "target_0010_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0010_030_studio_work_0001",
+          "title": "関連作業 studio_work_0001: app.js ソース分割",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0001",
+          "purpose": "Runtime内Data固定名は原則NG、固定名は分類して扱う方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0010_040_studio_work_0010",
+          "title": "関連作業 studio_work_0010: Runtime内固定フィールド名監査",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0010",
+          "purpose": "固定フィールド名監査の対象範囲と分類方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0010_050_studio_work_0011",
+          "title": "関連作業 studio_work_0011: Studio標準メタフィールド定義",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0011",
+          "purpose": "Studio標準メタフィールド化の例外条件を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": ""
+        }
+      ]
     },
     {
       "work_item_id": "studio_work_0011",
@@ -845,7 +1125,77 @@
       ],
       "decision_log": [],
       "change_history": [],
-      "verification_status": "未確認"
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-06-28",
+      "context_def_draft": "# ContextDef素案: v0.7-standard-meta-fields\n\n## 読む目的\nRuntime内Data固定名禁止の例外として認めるStudio標準メタフィールド候補を整理し、採用ルールを定義する。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0001` / v0.4-split: Runtime内Data固定名は原則NG、固定名は分類して扱う方針を確認する。\n- `studio_work_0010` / v0.7-fixed-name-audit: 固定フィールド名監査の対象範囲と分類方針を確認する。\n- `studio_work_0011` / v0.7-standard-meta-fields: Studio標準メタフィールド化の例外条件を確認する。\n- `studio_work_0016` / v0.9-rules-json-source-of-truth: ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、MarkdownはExport Viewという分離を崩さない。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\n標準メタフィールド候補、用途、型、表示方針、保存方針、Runtimeが参照してよい範囲を整理する。\n\n## 注意すべきリスク\n便利だからという理由で標準フィールドを増やしすぎると、Studioくんが特定データ構造に太るリスクがある。\n\n## 確認観点メモ\ncreated_at / updated_at / created_by / updated_by / deleted / is_deleted / sort_order / status などの採用可否と扱いが整理されていることを確認する。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0011_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0011",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.16.3で未完了作業向けに投入した文脈素案。"
+        },
+        {
+          "context_ref_id": "target_0011_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0011_030_studio_work_0001",
+          "title": "関連作業 studio_work_0001: app.js ソース分割",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0001",
+          "purpose": "Runtime内Data固定名は原則NG、固定名は分類して扱う方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0011_040_studio_work_0010",
+          "title": "関連作業 studio_work_0010: Runtime内固定フィールド名監査",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0010",
+          "purpose": "固定フィールド名監査の対象範囲と分類方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0011_050_studio_work_0011",
+          "title": "関連作業 studio_work_0011: Studio標準メタフィールド定義",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0011",
+          "purpose": "Studio標準メタフィールド化の例外条件を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": ""
+        }
+      ]
     },
     {
       "work_item_id": "studio_work_0012",
@@ -1252,7 +1602,77 @@
           "reason": "Studioくんの変更履歴とインシデント管理を長期運用できるようにするため。"
         }
       ],
-      "verification_status": "未確認"
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-06-28",
+      "context_def_draft": "# ContextDef素案: v0.9-versioned-incident-management\n\n## 読む目的\nVersion / Revision / Phase の役割を分離し、IncidentがどのVersionで見つかり、どのVersionで対応され、どのVersion Detailに含まれたかを追跡できるようにする。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0015` / v0.9-versioned-incident-management: Version/Revision/Phaseを混ぜないデータモデル整理方針を確認する。\n- `studio_work_0079` / v0.16.2-detail-subgrid-table-edit-core-mvp: Detail内objectArray/stringArray編集MVPの現状と制約を確認する。\n- `studio_work_0071` / v0.15.7-objectarray-section-search: objectArray履歴セクション検索の対象範囲を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、MarkdownはExport Viewという分離を崩さない。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\nIncidentに found_in_version / target_version / fixed_in_version を追加する方針を定義する。Version Detailまたはrelease_data側に、どのwork_item_idを含むかを保持する。phaseは作業テーマとして残し、version/revisionとは混ぜない。\n\n## 注意すべきリスク\n既存phase値を一気に修正すると履歴追跡が難しくなる。Version DetailとIncidentの責務を混ぜると、なぜやるのか/何を入れたのかが再び曖昧になる。\n\n## 確認観点メモ\nwork_itemにfound_in_version/target_version/fixed_in_versionを追加しても既存画面が壊れないこと。phaseは作業テーマとして残ること。release_data側からwork_item_idを辿れること。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0015_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0015",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.16.3で未完了作業向けに投入した文脈素案。"
+        },
+        {
+          "context_ref_id": "target_0015_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0015_030_studio_work_0015",
+          "title": "関連作業 studio_work_0015: Version / Revision / Phase 分離とVersion De",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0015",
+          "purpose": "Version/Revision/Phaseを混ぜないデータモデル整理方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0015_040_studio_work_0079",
+          "title": "関連作業 studio_work_0079: Studio Table Edit Core / Detailサブグリッド編集M",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0079",
+          "purpose": "Detail内objectArray/stringArray編集MVPの現状と制約を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0015_050_studio_work_0071",
+          "title": "関連作業 studio_work_0071: objectArray / 履歴セクションのまとまり検索対応",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0071",
+          "purpose": "objectArray履歴セクション検索の対象範囲を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": ""
+        }
+      ]
     },
     {
       "work_item_id": "studio_work_0016",
@@ -1327,7 +1747,77 @@
           "reason": "Studioくん自身の原則をData JSON原本として管理するため。"
         }
       ],
-      "verification_status": "未確認"
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-06-28",
+      "context_def_draft": "# ContextDef素案: v0.9-rules-json-source-of-truth\n\n## 読む目的\nMarkdownをルール原本にせず、ルール・制約・レビュー対象はドメイン別Data JSONを原本として管理し、共通ViewDefでレビューできるようにする。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0006` / v0.7-chat-input-mapping: chat/Markdownリンク・画像・保存値はMarkdown原文保持の既存判断を確認する。\n- `studio_work_0019` / v0.10-markdown-preview-display-mode: 表示モードMarkdownプレビューとHTML混入防止の既存判断を確認する。\n- `studio_work_0020` / v0.11-mdviewer-blur-preview-mode: mdViewer/Editor側のblurプレビュー復帰方針を確認する。\n- `studio_work_0016` / v0.9-rules-json-source-of-truth: ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、MarkdownはExport Viewという分離を崩さない。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\nfrb_foundation_rules_data_v0_1.json を追加し、Studio運用原則をrules配列として管理する。frb_viewdef_generation_rules_data_v0_1.json と同じ rule_review_data_v0_1 構造に寄せる。data/rules・defs/rules・exports/rules の配置方針を使う。MarkdownはData JSONからのExport Viewとして扱う。\n\n## 注意すべきリスク\nMarkdownを原本として編集し続けると、承認状態・変更履歴・レビュー会話が分散する。逆にData JSON化しすぎると人間の初期確認が重くなるため、Markdown下書き→Data JSON原本化の流れを明確にする必要がある。\n\n## 確認観点メモ\nfrb_foundation_rules_data_v0_1.json が rule_review_common_view_def_v0_1.json で読み込めること。rules配列17件が表示されること。Markdown Exportは原本ではなく表示用であることが分かること。data/rules配下でURL起動できること。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0016_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0016",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.16.3で未完了作業向けに投入した文脈素案。"
+        },
+        {
+          "context_ref_id": "target_0016_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0016_030_studio_work_0006",
+          "title": "関連作業 studio_work_0006: ☆彡chat送信欄の保存先・末尾表示・Markdownリンク/画像対応",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0006",
+          "purpose": "chat/Markdownリンク・画像・保存値はMarkdown原文保持の既存判断を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0016_040_studio_work_0019",
+          "title": "関連作業 studio_work_0019: 表示モードのMarkdownプレビュー対応",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0019",
+          "purpose": "表示モードMarkdownプレビューとHTML混入防止の既存判断を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0016_050_studio_work_0020",
+          "title": "関連作業 studio_work_0020: Markdown Viewer / Editor のblur時プレビュー自動復帰",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0020",
+          "purpose": "mdViewer/Editor側のblurプレビュー復帰方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": ""
+        }
+      ]
     },
     {
       "work_item_id": "studio_work_0017",
@@ -1395,7 +1885,77 @@
           "reason": "優先は低いが、共通ViewDefの将来事故を防ぐため。"
         }
       ],
-      "verification_status": "未確認"
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-06-28",
+      "context_def_draft": "# ContextDef素案: v0.9-rule-review-common-viewdef-polish\n\n## 読む目的\nrule_review_common_view_def_v0_1.json を特定データ専用の匂いから切り離し、複数ドメインのルールレビューで安全に使える共通ViewDefへ整える。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0006` / v0.7-chat-input-mapping: chat/Markdownリンク・画像・保存値はMarkdown原文保持の既存判断を確認する。\n- `studio_work_0019` / v0.10-markdown-preview-display-mode: 表示モードMarkdownプレビューとHTML混入防止の既存判断を確認する。\n- `studio_work_0020` / v0.11-mdviewer-blur-preview-mode: mdViewer/Editor側のblurプレビュー復帰方針を確認する。\n- `studio_work_0016` / v0.9-rules-json-source-of-truth: ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、MarkdownはExport Viewという分離を崩さない。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\nmarkdown.aiPrompt.targetFile固定をなくす、または現在Data名から動的に扱う方針を検討する。カテゴリ選択肢にFoundation系を含めるか、select固定ではなくtext/柔軟候補にする。approval_stampなど共通ViewDefに不要な専用項目を非表示または削除する。Markdown Exportでsource_heading/summary/bodyを出しすぎる問題を整理し、レビュー記録用と元Rules風出力の分離を検討する。\n\n## 注意すべきリスク\n共通ViewDefに特定ドメインの匂いが残ると、Foundation Rulesや他ドメインRulesで誤ったファイル名・カテゴリ・表示トーンが混入する。逆に柔軟にしすぎると入力補助が弱くなる。\n\n## 確認観点メモ\nfrb_viewdef_generation_rules_data と frb_foundation_rules_data の両方で同じViewDefを使えること。AI PromptのtargetFileが誤った固定名にならないこと。Markdown Exportで同じ説明が過剰に重複しないこと。承認印など不要項目が共通画面で目立たないこと。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0017_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0017",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.16.3で未完了作業向けに投入した文脈素案。"
+        },
+        {
+          "context_ref_id": "target_0017_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0017_030_studio_work_0006",
+          "title": "関連作業 studio_work_0006: ☆彡chat送信欄の保存先・末尾表示・Markdownリンク/画像対応",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0006",
+          "purpose": "chat/Markdownリンク・画像・保存値はMarkdown原文保持の既存判断を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0017_040_studio_work_0019",
+          "title": "関連作業 studio_work_0019: 表示モードのMarkdownプレビュー対応",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0019",
+          "purpose": "表示モードMarkdownプレビューとHTML混入防止の既存判断を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0017_050_studio_work_0020",
+          "title": "関連作業 studio_work_0020: Markdown Viewer / Editor のblur時プレビュー自動復帰",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0020",
+          "purpose": "mdViewer/Editor側のblurプレビュー復帰方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": ""
+        }
+      ]
     },
     {
       "work_item_id": "studio_work_0018",
@@ -1463,7 +2023,77 @@
           "reason": "Data JSON原本化の思想を守るため。"
         }
       ],
-      "verification_status": "未確認"
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-06-28",
+      "context_def_draft": "# ContextDef素案: v0.9-json-utf8-human-readable-save\n\n## 読む目的\nData JSONを人間が直接読めるUTF-8日本語で保存し、\\uXXXX だらけの人間拒否モードを避ける。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0008` / v0.7-filename-encoding-sanitize: ファイル名sanitizeと新規発生抑止の文脈を確認する。\n- `studio_work_0018` / v0.9-json-utf8-human-readable-save: Data JSON本文のUTF-8日本語可読保存の文脈を確認する。\n- `studio_work_0016` / v0.9-rules-json-source-of-truth: ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。\n- `studio_work_0017` / v0.9-rule-review-common-viewdef-polish: 共通Rule Review ViewDefの汎用化・targetFile固定解消の方針を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、MarkdownはExport Viewという分離を崩さない。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\nPython生成時はensure_ascii=false相当で保存する。.NETのSystem.Text.Json保存時は日本語を過剰にescapeしない設定を検討する。Studioくんの保存APIやExport処理でも、UTF-8で日本語がそのまま読めることを基本にする。\n\n## 注意すべきリスク\nJSONとしては正常でも、人間が読めない状態が再発すると、Data JSON原本化の思想と矛盾する。過剰なUnsafeRelaxed設定はHTML/URL系エスケープとの境界に注意が必要。\n\n## 確認観点メモ\n日本語title/summary/bodyが\\uXXXXではなく日本語のまま保存されること。Studioで読み込んでも値が壊れないこと。保存→再読込→Git diffで可読性が保たれること。既存の文字化けファイル名対策と混同しないこと。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0018_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0018",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.16.3で未完了作業向けに投入した文脈素案。"
+        },
+        {
+          "context_ref_id": "target_0018_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0018_030_studio_work_0008",
+          "title": "関連作業 studio_work_0008: Markdown出力ファイル名の文字化け対策",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0008",
+          "purpose": "ファイル名sanitizeと新規発生抑止の文脈を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0018_040_studio_work_0018",
+          "title": "関連作業 studio_work_0018: Data JSONの日本語可読保存",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0018",
+          "purpose": "Data JSON本文のUTF-8日本語可読保存の文脈を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0018_050_studio_work_0016",
+          "title": "関連作業 studio_work_0016: ルール系Data JSON原本化 / Foundation Rules追加",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0016",
+          "purpose": "ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": ""
+        }
+      ]
     },
     {
       "work_item_id": "studio_work_0019",
@@ -5439,7 +6069,77 @@
           "reason": "ルール系DataをAIが更新する運用が始まったため、承認状態の信頼性と人間/AIの責務境界を明確にする必要がある。"
         }
       ],
-      "verification_status": "未確認"
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-06-28",
+      "context_def_draft": "# ContextDef素案: v0.14.19-rule-review-status-responsibility-issue\n\n## 読む目的\nRule Review系データにおける review_status / verification_status / approval_decision の意味、単一正本、UI上の表示・操作責務、人間とAIの権限範囲を整理する。特に、AIがルール本文・章・要約・分類などを修正した場合に、その章またはルール行が未承認・未確認・未レビューへ戻るべきかを運用ルールとして定義する。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0016` / v0.9-rules-json-source-of-truth: ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。\n- `studio_work_0017` / v0.9-rule-review-common-viewdef-polish: 共通Rule Review ViewDefの汎用化・targetFile固定解消の方針を確認する。\n- `studio_work_0049` / v0.14.19-rule-review-status-responsibility-issue: 承認/確認状態の責務整理と単一正本化の文脈を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、MarkdownはExport Viewという分離を崩さない。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\n承認状態・確認状態・レビュー状態の意味を整理する。グリッド/上部詳細/確認メッセージカードが同じ正本フィールドを表示しているか確認する。AIがルール本文や章を修正した場合のステータスリセットルールを定義する。人間が最終承認する項目と、AIが作業都合で更新してよい項目を分離する。verification_status と approval_decision の両方が必要か、統合できるかを検討する。\n\n## 注意すべきリスク\nAIが修正したルールを承認済みのまま残すと、人間未確認の内容が正本化されるリスクがある。逆に状態項目を増やしすぎると、未レビュー/未確認/未承認の違いが分からなくなり、レビュー運用が重くなる。UI上で同じ状態を複数箇所から編集できる場合、正しくても二重管理に見えて人間が不安になる。\n\n## 確認観点メモ\nAIがルール本文を修正した場合に承認/確認/レビュー状態がどう扱われるべきかを確認する。グリッド・上部詳細・確認メッセージカードが同じ正本フィールドを見ていることを確認する。人間だけが最終承認できる状態になっているか確認する。verification_statusとapproval_decisionが二つ必要か、一つに寄せられるかを確認する。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0049_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0049",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.16.3で未完了作業向けに投入した文脈素案。"
+        },
+        {
+          "context_ref_id": "target_0049_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0049_030_studio_work_0016",
+          "title": "関連作業 studio_work_0016: ルール系Data JSON原本化 / Foundation Rules追加",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0016",
+          "purpose": "ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0049_040_studio_work_0017",
+          "title": "関連作業 studio_work_0017: 共通Rule Review ViewDefの汎用化仕上げ",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0017",
+          "purpose": "共通Rule Review ViewDefの汎用化・targetFile固定解消の方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0049_050_studio_work_0049",
+          "title": "関連作業 studio_work_0049: Rule Review承認/確認状態の単一正本化と責務整理",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0049",
+          "purpose": "承認/確認状態の責務整理と単一正本化の文脈を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": ""
+        }
+      ]
     },
     {
       "work_item_id": "studio_work_0050",
@@ -5674,7 +6374,77 @@
           "reason": "必要を感じたタイミングで漏れなくルール化・実装化へ進めるようにするため。"
         }
       ],
-      "verification_status": "未確認"
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-06-28",
+      "context_def_draft": "# ContextDef素案: v0.14.21-human-ai-responsibility-rules\n\n## 読む目的\n人間が最終判断する項目、AIが更新してよい項目、AI更新後に未承認へ戻すべき状態項目を整理し、承認・確認・レビュー状態の責務境界を明確にする。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0016` / v0.9-rules-json-source-of-truth: ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。\n- `studio_work_0017` / v0.9-rule-review-common-viewdef-polish: 共通Rule Review ViewDefの汎用化・targetFile固定解消の方針を確認する。\n- `studio_work_0049` / v0.14.19-rule-review-status-responsibility-issue: 承認/確認状態の責務整理と単一正本化の文脈を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、MarkdownはExport Viewという分離を崩さない。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\n人間のみが最終承認できる項目、AIが作業上更新してよい確認状態、AI修正時に未承認・未確認へ戻す条件、既存 studio_work_0049 との関係を整理する。\n\n## 注意すべきリスク\nAIが状態を勝手に承認済みにしてしまうと人間承認の意味が壊れる。逆に全変更で未承認へ戻しすぎると運用負荷が高くなる。\n\n## 確認観点メモ\nAIが本文を変更した場合、要約だけ変更した場合、ViewDefだけ変更した場合の状態更新ルールが整理されていること。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0051_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0051",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.16.3で未完了作業向けに投入した文脈素案。"
+        },
+        {
+          "context_ref_id": "target_0051_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0051_030_studio_work_0016",
+          "title": "関連作業 studio_work_0016: ルール系Data JSON原本化 / Foundation Rules追加",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0016",
+          "purpose": "ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0051_040_studio_work_0017",
+          "title": "関連作業 studio_work_0017: 共通Rule Review ViewDefの汎用化仕上げ",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0017",
+          "purpose": "共通Rule Review ViewDefの汎用化・targetFile固定解消の方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0051_050_studio_work_0049",
+          "title": "関連作業 studio_work_0049: Rule Review承認/確認状態の単一正本化と責務整理",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0049",
+          "purpose": "承認/確認状態の責務整理と単一正本化の文脈を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": ""
+        }
+      ]
     },
     {
       "work_item_id": "studio_work_0052",
@@ -5737,7 +6507,77 @@
           "reason": "必要を感じたタイミングで漏れなくルール化・実装化へ進めるようにするため。"
         }
       ],
-      "verification_status": "未確認"
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-06-28",
+      "context_def_draft": "# ContextDef素案: v0.14.22-definition-of-done-rules\n\n## 読む目的\nAI作業における『完了』の条件を定義し、成果物・証跡・インシデント更新・返却安全性をそろえる。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0016` / v0.9-rules-json-source-of-truth: ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。\n- `studio_work_0017` / v0.9-rule-review-common-viewdef-polish: 共通Rule Review ViewDefの汎用化・targetFile固定解消の方針を確認する。\n- `studio_work_0049` / v0.14.19-rule-review-status-responsibility-issue: 承認/確認状態の責務整理と単一正本化の文脈を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、MarkdownはExport Viewという分離を崩さない。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\n作業完了条件、failしていても完了扱いできる条件、返却前チェック、インシデント更新、証跡保存、未確認項目の明示を整理する。\n\n## 注意すべきリスク\nDoneの定義が曖昧だと、AIが『できた』と言っても証跡やインシデント更新が不足する。逆にDone条件を重くしすぎると小作業が進まなくなる。\n\n## 確認観点メモ\n小さな文言修正、ルール追加、テスト失敗を期待する作業、UI実装修正の各ケースでDone条件が説明できること。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0052_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0052",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.16.3で未完了作業向けに投入した文脈素案。"
+        },
+        {
+          "context_ref_id": "target_0052_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0052_030_studio_work_0016",
+          "title": "関連作業 studio_work_0016: ルール系Data JSON原本化 / Foundation Rules追加",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0016",
+          "purpose": "ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0052_040_studio_work_0017",
+          "title": "関連作業 studio_work_0017: 共通Rule Review ViewDefの汎用化仕上げ",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0017",
+          "purpose": "共通Rule Review ViewDefの汎用化・targetFile固定解消の方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0052_050_studio_work_0049",
+          "title": "関連作業 studio_work_0049: Rule Review承認/確認状態の単一正本化と責務整理",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0049",
+          "purpose": "承認/確認状態の責務整理と単一正本化の文脈を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": ""
+        }
+      ]
     },
     {
       "work_item_id": "studio_work_0053",
@@ -5800,7 +6640,77 @@
           "reason": "必要を感じたタイミングで漏れなくルール化・実装化へ進めるようにするため。"
         }
       ],
-      "verification_status": "未確認"
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-06-28",
+      "context_def_draft": "# ContextDef素案: v0.14.23-change-impact-risk-classification-rules\n\n## 読む目的\n変更内容を低・中・高・超高リスクに分類し、AI作業時の確認粒度・報告粒度・人間相談要否を切り替えられるようにする。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0016` / v0.9-rules-json-source-of-truth: ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。\n- `studio_work_0017` / v0.9-rule-review-common-viewdef-polish: 共通Rule Review ViewDefの汎用化・targetFile固定解消の方針を確認する。\n- `studio_work_0049` / v0.14.19-rule-review-status-responsibility-issue: 承認/確認状態の責務整理と単一正本化の文脈を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、MarkdownはExport Viewという分離を崩さない。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\n変更種別ごとのリスク分類、必須確認、archive要否、人間相談条件、インシデント記録粒度を整理する。\n\n## 注意すべきリスク\n低リスク扱いした変更が実は参照切れを起こす可能性がある。高リスク扱いを乱用すると作業速度が落ちる。\n\n## 確認観点メモ\n文言修正、ViewDef表示調整、Data構造変更、Runtime保存処理変更、ファイル名変更、承認状態自動更新のリスク分類が整理されていること。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0053_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0053",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.16.3で未完了作業向けに投入した文脈素案。"
+        },
+        {
+          "context_ref_id": "target_0053_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0053_030_studio_work_0016",
+          "title": "関連作業 studio_work_0016: ルール系Data JSON原本化 / Foundation Rules追加",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0016",
+          "purpose": "ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0053_040_studio_work_0017",
+          "title": "関連作業 studio_work_0017: 共通Rule Review ViewDefの汎用化仕上げ",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0017",
+          "purpose": "共通Rule Review ViewDefの汎用化・targetFile固定解消の方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0053_050_studio_work_0049",
+          "title": "関連作業 studio_work_0049: Rule Review承認/確認状態の単一正本化と責務整理",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0049",
+          "purpose": "承認/確認状態の責務整理と単一正本化の文脈を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": ""
+        }
+      ]
     },
     {
       "work_item_id": "studio_work_0054",
@@ -5863,7 +6773,77 @@
           "reason": "必要を感じたタイミングで漏れなくルール化・実装化へ進めるようにするため。"
         }
       ],
-      "verification_status": "未確認"
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-06-28",
+      "context_def_draft": "# ContextDef素案: v0.14.24-traceability-rules\n\n## 読む目的\nRule / Incident / Expected / Actual / Diff / ViewDef / Release のつながりを辿れるようにするためのトレーサビリティ方針を整理する。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0016` / v0.9-rules-json-source-of-truth: ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。\n- `studio_work_0017` / v0.9-rule-review-common-viewdef-polish: 共通Rule Review ViewDefの汎用化・targetFile固定解消の方針を確認する。\n- `studio_work_0049` / v0.14.19-rule-review-status-responsibility-issue: 承認/確認状態の責務整理と単一正本化の文脈を確認する。\n- `studio_work_0015` / v0.9-versioned-incident-management: Version/Revision/Phaseを混ぜないデータモデル整理方針を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、MarkdownはExport Viewという分離を崩さない。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\nrule_id、work_item_id、test_pattern_id、check_id、view_def、release/versionの関連をどう残すかを整理する。relation系Dataやtrace_relationsの正本位置も検討する。\n\n## 注意すべきリスク\nIDを増やしすぎると入力負荷が上がる。逆にIDがないと、なぜこのExpectedが存在するのか後で追えなくなる。\n\n## 確認観点メモ\n任意のDiff checkから、関連Expected、TestPattern、Incident、根拠Ruleを辿る方針が説明できること。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0054_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0054",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.16.3で未完了作業向けに投入した文脈素案。"
+        },
+        {
+          "context_ref_id": "target_0054_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0054_030_studio_work_0016",
+          "title": "関連作業 studio_work_0016: ルール系Data JSON原本化 / Foundation Rules追加",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0016",
+          "purpose": "ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0054_040_studio_work_0017",
+          "title": "関連作業 studio_work_0017: 共通Rule Review ViewDefの汎用化仕上げ",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0017",
+          "purpose": "共通Rule Review ViewDefの汎用化・targetFile固定解消の方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0054_050_studio_work_0049",
+          "title": "関連作業 studio_work_0049: Rule Review承認/確認状態の単一正本化と責務整理",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0049",
+          "purpose": "承認/確認状態の責務整理と単一正本化の文脈を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": ""
+        }
+      ]
     },
     {
       "work_item_id": "studio_work_0055",
@@ -5926,7 +6906,77 @@
           "reason": "必要を感じたタイミングで漏れなくルール化・実装化へ進めるようにするため。"
         }
       ],
-      "verification_status": "未確認"
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-06-28",
+      "context_def_draft": "# ContextDef素案: v0.14.25-test-runner-execution-rules\n\n## 読む目的\nテストコードをケースごとに増やすのではなく、実行言語ごとの共通ランナーへ寄せ、Test Pattern / Expected JSONを増やす運用を整理する。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0016` / v0.9-rules-json-source-of-truth: ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。\n- `studio_work_0017` / v0.9-rule-review-common-viewdef-polish: 共通Rule Review ViewDefの汎用化・targetFile固定解消の方針を確認する。\n- `studio_work_0049` / v0.14.19-rule-review-status-responsibility-issue: 承認/確認状態の責務整理と単一正本化の文脈を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、MarkdownはExport Viewという分離を崩さない。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\nNode.js系共通 .mjs、Playwright系共通 .spec.ts、将来Python系ランナー、Expected直書き禁止、失敗時証跡出力、ランナー引数/対象TestPattern指定方式を整理する。\n\n## 注意すべきリスク\n共通ランナーに寄せすぎると汎用化が過剰になり読みにくくなる。ケースごとのテストコードを増やしすぎると保守不能になる。\n\n## 確認観点メモ\n新しいテストケースを追加する場合に、まずTest Pattern JSONを増やすべきか、新ランナーが必要か判断できること。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0055_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0055",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.16.3で未完了作業向けに投入した文脈素案。"
+        },
+        {
+          "context_ref_id": "target_0055_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0055_030_studio_work_0016",
+          "title": "関連作業 studio_work_0016: ルール系Data JSON原本化 / Foundation Rules追加",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0016",
+          "purpose": "ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0055_040_studio_work_0017",
+          "title": "関連作業 studio_work_0017: 共通Rule Review ViewDefの汎用化仕上げ",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0017",
+          "purpose": "共通Rule Review ViewDefの汎用化・targetFile固定解消の方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0055_050_studio_work_0049",
+          "title": "関連作業 studio_work_0049: Rule Review承認/確認状態の単一正本化と責務整理",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0049",
+          "purpose": "承認/確認状態の責務整理と単一正本化の文脈を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": ""
+        }
+      ]
     },
     {
       "work_item_id": "studio_work_0056",
@@ -5989,7 +7039,77 @@
           "reason": "必要を感じたタイミングで漏れなくルール化・実装化へ進めるようにするため。"
         }
       ],
-      "verification_status": "未確認"
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-06-28",
+      "context_def_draft": "# ContextDef素案: v0.14.26-migration-backward-compatibility-rules\n\n## 読む目的\nファイル名変更・フォルダー移行・互換フィールド追加時に、旧名・旧パス・互換項目をどう扱うかを定義する。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0016` / v0.9-rules-json-source-of-truth: ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。\n- `studio_work_0017` / v0.9-rule-review-common-viewdef-polish: 共通Rule Review ViewDefの汎用化・targetFile固定解消の方針を確認する。\n- `studio_work_0049` / v0.14.19-rule-review-status-responsibility-issue: 承認/確認状態の責務整理と単一正本化の文脈を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、MarkdownはExport Viewという分離を崩さない。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\n旧パスarchive、旧名参照更新、互換項目の残し方、deprecated_since、remove_after_phase、履歴として旧名を残す範囲、現行参照として置換する範囲を整理する。\n\n## 注意すべきリスク\n互換項目を残しすぎると正本が増える。旧項目を急に消すと既存ViewDefや証跡が壊れる。\n\n## 確認観点メモ\nファイル名変更、フォルダー移動、フィールド名変更、互換alias追加のケースで、何を更新し何を履歴として残すか説明できること。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0056_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0056",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.16.3で未完了作業向けに投入した文脈素案。"
+        },
+        {
+          "context_ref_id": "target_0056_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0056_030_studio_work_0016",
+          "title": "関連作業 studio_work_0016: ルール系Data JSON原本化 / Foundation Rules追加",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0016",
+          "purpose": "ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0056_040_studio_work_0017",
+          "title": "関連作業 studio_work_0017: 共通Rule Review ViewDefの汎用化仕上げ",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0017",
+          "purpose": "共通Rule Review ViewDefの汎用化・targetFile固定解消の方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0056_050_studio_work_0049",
+          "title": "関連作業 studio_work_0049: Rule Review承認/確認状態の単一正本化と責務整理",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0049",
+          "purpose": "承認/確認状態の責務整理と単一正本化の文脈を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": ""
+        }
+      ]
     },
     {
       "work_item_id": "studio_work_0057",
@@ -6052,7 +7172,77 @@
           "reason": "必要を感じたタイミングで漏れなくルール化・実装化へ進めるようにするため。"
         }
       ],
-      "verification_status": "未確認"
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-06-28",
+      "context_def_draft": "# ContextDef素案: v0.14.27-ai-work-context-package-rules\n\n## 読む目的\nAIに作業依頼するときの最小文脈セット、優先順位、添付ZIPとraw URLの扱いをルール化する。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0016` / v0.9-rules-json-source-of-truth: ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。\n- `studio_work_0017` / v0.9-rule-review-common-viewdef-polish: 共通Rule Review ViewDefの汎用化・targetFile固定解消の方針を確認する。\n- `studio_work_0049` / v0.14.19-rule-review-status-responsibility-issue: 承認/確認状態の責務整理と単一正本化の文脈を確認する。\n- `studio_work_0015` / v0.9-versioned-incident-management: Version/Revision/Phaseを混ぜないデータモデル整理方針を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、MarkdownはExport Viewという分離を崩さない。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\nAI作業依頼テンプレート、必須入力、任意入力、最新資材優先順位、raw URL参照、添付ZIP優先、ファイル名変更時の注意、コンテキスト不足時の確認方針を整理する。\n\n## 注意すべきリスク\n依頼文が重くなりすぎると毎回の作業が面倒になる。軽すぎるとAIが旧ファイル名や旧パスを参照する。\n\n## 確認観点メモ\n最新ZIPがある場合、raw URLとどちらを優先するか。incident_fileとphaseが食い違った場合にどう確認するかが整理されていること。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0057_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0057",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.16.3で未完了作業向けに投入した文脈素案。"
+        },
+        {
+          "context_ref_id": "target_0057_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0057_030_studio_work_0016",
+          "title": "関連作業 studio_work_0016: ルール系Data JSON原本化 / Foundation Rules追加",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0016",
+          "purpose": "ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0057_040_studio_work_0017",
+          "title": "関連作業 studio_work_0017: 共通Rule Review ViewDefの汎用化仕上げ",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0017",
+          "purpose": "共通Rule Review ViewDefの汎用化・targetFile固定解消の方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0057_050_studio_work_0049",
+          "title": "関連作業 studio_work_0049: Rule Review承認/確認状態の単一正本化と責務整理",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0049",
+          "purpose": "承認/確認状態の責務整理と単一正本化の文脈を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": ""
+        }
+      ]
     },
     {
       "work_item_id": "studio_work_0058",
@@ -6115,7 +7305,77 @@
           "reason": "必要を感じたタイミングで漏れなくルール化・実装化へ進めるようにするため。"
         }
       ],
-      "verification_status": "未確認"
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-06-28",
+      "context_def_draft": "# ContextDef素案: v0.14.28-git-release-branch-rules\n\n## 読む目的\nAI返却ZIP、GitHub main、release tag、GitHub Pages公開物、_archiveの関係を整理し、正本と成果物の位置づけを明確にする。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0016` / v0.9-rules-json-source-of-truth: ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。\n- `studio_work_0017` / v0.9-rule-review-common-viewdef-polish: 共通Rule Review ViewDefの汎用化・targetFile固定解消の方針を確認する。\n- `studio_work_0049` / v0.14.19-rule-review-status-responsibility-issue: 承認/確認状態の責務整理と単一正本化の文脈を確認する。\n- `studio_work_0015` / v0.9-versioned-incident-management: Version/Revision/Phaseを混ぜないデータモデル整理方針を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、MarkdownはExport Viewという分離を崩さない。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\nAI返却ZIPの位置づけ、GitHub mainの正本性、release tag、公開用wwwroot、_archive、作業ブランチ/ローカル作業の扱いを整理する。\n\n## 注意すべきリスク\nZIPを正本扱いするとGitHubとのズレが出る。GitHub mainを正本にする場合、AI返却物の取り込み手順が必要になる。\n\n## 確認観点メモ\nAI返却ZIP、GitHub main、GitHub Pages、release tag、_archiveの関係を説明できること。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0058_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0058",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.16.3で未完了作業向けに投入した文脈素案。"
+        },
+        {
+          "context_ref_id": "target_0058_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0058_030_studio_work_0016",
+          "title": "関連作業 studio_work_0016: ルール系Data JSON原本化 / Foundation Rules追加",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0016",
+          "purpose": "ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0058_040_studio_work_0017",
+          "title": "関連作業 studio_work_0017: 共通Rule Review ViewDefの汎用化仕上げ",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0017",
+          "purpose": "共通Rule Review ViewDefの汎用化・targetFile固定解消の方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0058_050_studio_work_0049",
+          "title": "関連作業 studio_work_0049: Rule Review承認/確認状態の単一正本化と責務整理",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0049",
+          "purpose": "承認/確認状態の責務整理と単一正本化の文脈を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": ""
+        }
+      ]
     },
     {
       "work_item_id": "studio_work_0059",
@@ -6178,7 +7438,77 @@
           "reason": "必要を感じたタイミングで漏れなくルール化・実装化へ進めるようにするため。"
         }
       ],
-      "verification_status": "未確認"
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-06-28",
+      "context_def_draft": "# ContextDef素案: v0.14.29-security-public-data-rules\n\n## 読む目的\nGitHub Pagesや記事連携で公開してよいData/Defsと、ローカル限定・非公開にすべき情報の境界を整理する。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0016` / v0.9-rules-json-source-of-truth: ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。\n- `studio_work_0017` / v0.9-rule-review-common-viewdef-polish: 共通Rule Review ViewDefの汎用化・targetFile固定解消の方針を確認する。\n- `studio_work_0049` / v0.14.19-rule-review-status-responsibility-issue: 承認/確認状態の責務整理と単一正本化の文脈を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、MarkdownはExport Viewという分離を崩さない。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\n公開可否分類、ローカル限定領域、GitHub Pages公開領域、個人情報・社内情報・秘密情報の扱い、AIが公開領域へ出してはいけない情報を整理する。\n\n## 注意すべきリスク\n公開してはいけない情報がGitHub Pagesに混入すると重大。厳しすぎると公開用サンプルや記事連携が進まない。\n\n## 確認観点メモ\n公開用サンプル、個人メモ、社内情報、実験ログ、ルールData、ViewDefの公開可否判断が整理されていること。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0059_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0059",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.16.3で未完了作業向けに投入した文脈素案。"
+        },
+        {
+          "context_ref_id": "target_0059_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0059_030_studio_work_0016",
+          "title": "関連作業 studio_work_0016: ルール系Data JSON原本化 / Foundation Rules追加",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0016",
+          "purpose": "ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0059_040_studio_work_0017",
+          "title": "関連作業 studio_work_0017: 共通Rule Review ViewDefの汎用化仕上げ",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0017",
+          "purpose": "共通Rule Review ViewDefの汎用化・targetFile固定解消の方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0059_050_studio_work_0049",
+          "title": "関連作業 studio_work_0049: Rule Review承認/確認状態の単一正本化と責務整理",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0049",
+          "purpose": "承認/確認状態の責務整理と単一正本化の文脈を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": ""
+        }
+      ]
     },
     {
       "work_item_id": "studio_work_0060",
@@ -6241,7 +7571,77 @@
           "reason": "必要を感じたタイミングで漏れなくルール化・実装化へ進めるようにするため。"
         }
       ],
-      "verification_status": "未確認"
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-06-28",
+      "context_def_draft": "# ContextDef素案: v0.14.30-error-incident-escalation-rules\n\n## 読む目的\nAI作業中に発生したエラー、ユーザー環境のみの不具合、仕様未確定の違和感をどうインシデント化・エスカレーションするかを整理する。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0016` / v0.9-rules-json-source-of-truth: ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。\n- `studio_work_0017` / v0.9-rule-review-common-viewdef-polish: 共通Rule Review ViewDefの汎用化・targetFile固定解消の方針を確認する。\n- `studio_work_0049` / v0.14.19-rule-review-status-responsibility-issue: 承認/確認状態の責務整理と単一正本化の文脈を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、MarkdownはExport Viewという分離を崩さない。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\n再現可/再現不可、ユーザー環境依存、AI作業ミス、仕様未確定、再発防止メモ、暫定対応/恒久対応の切り分けを整理する。\n\n## 注意すべきリスク\n何でもインシデント化すると管理が膨らむ。逆に違和感を流すと同じ事故が繰り返される。\n\n## 確認観点メモ\n再現できるエラー、ユーザー環境だけのエラー、AIの作業ミス、仕様相談、運用懸案をどう分類するか説明できること。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0060_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0060",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.16.3で未完了作業向けに投入した文脈素案。"
+        },
+        {
+          "context_ref_id": "target_0060_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0060_030_studio_work_0016",
+          "title": "関連作業 studio_work_0016: ルール系Data JSON原本化 / Foundation Rules追加",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0016",
+          "purpose": "ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0060_040_studio_work_0017",
+          "title": "関連作業 studio_work_0017: 共通Rule Review ViewDefの汎用化仕上げ",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0017",
+          "purpose": "共通Rule Review ViewDefの汎用化・targetFile固定解消の方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0060_050_studio_work_0049",
+          "title": "関連作業 studio_work_0049: Rule Review承認/確認状態の単一正本化と責務整理",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0049",
+          "purpose": "承認/確認状態の責務整理と単一正本化の文脈を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": ""
+        }
+      ]
     },
     {
       "work_item_id": "studio_work_0061",
@@ -7614,7 +9014,64 @@
           "reason": "グリッド列幅変更とViewDefへの明示保存機能を、将来実装前に作業項目として忘れず管理するため。"
         }
       ],
-      "actual_updated_files": "data/json/01_main/studio_work_incident_data_v0_70_grid_column_resize_viewdef_save_added.json"
+      "actual_updated_files": "data/json/01_main/studio_work_incident_data_v0_70_grid_column_resize_viewdef_save_added.json",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-06-28",
+      "context_def_draft": "# ContextDef素案: v0.15.6-grid-column-resize-viewdef-save\n\n## 読む目的\nグリッド表示中に列幅をドラッグ変更できるようにし、必要な場合のみ明示操作で現在のViewDefの fields[].grid.width へ反映できるようにする。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0079` / v0.16.2-detail-subgrid-table-edit-core-mvp: Detail内objectArray/stringArray編集MVPの現状と制約を確認する。\n- `studio_work_0071` / v0.15.7-objectarray-section-search: objectArray履歴セクション検索の対象範囲を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、MarkdownはExport Viewという分離を崩さない。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\nグリッド列幅のドラッグ変更を可能にする。変更直後はRuntime上の一時変更として扱い、ViewDefへは自動保存しない。ユーザーが明示的に『列幅をViewDefへ保存』を実行した場合のみ、現在読込中のViewDef source の fields[].grid.width へ反映する。必要に応じて未保存列幅変更ありの表示、minWidth/maxWidth、readOnly時の無効化、保存成功/失敗トーストを追加する。\n\n## 注意すべきリスク\n列幅変更を自動保存すると、閲覧中の偶発操作でViewDefが汚れる。個人の見やすさが共有ViewDefへ混入する。Git差分が width 数値変更だらけになり、本来の機能差分が見えにくくなる。resolved ViewDefやcommon_types由来の設定を誤って正本更新すると、共通型全体へ予期せぬ影響が出る。\n\n## 確認観点メモ\nグリッド列ヘッダー境界をドラッグして列幅が変わること。列幅変更だけではViewDefファイルが保存されないこと。明示保存実行時のみ対象ViewDefの fields[].grid.width が更新されること。保存後に再読込して列幅が維持されること。readOnly/静的ホスティング時にはViewDef保存操作が無効または非表示になること。hidden列・サブグリッド・横スクロール・既存ソート/選択操作が壊れないこと。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0070_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0070",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.16.3で未完了作業向けに投入した文脈素案。"
+        },
+        {
+          "context_ref_id": "target_0070_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0070_030_studio_work_0079",
+          "title": "関連作業 studio_work_0079: Studio Table Edit Core / Detailサブグリッド編集M",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0079",
+          "purpose": "Detail内objectArray/stringArray編集MVPの現状と制約を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0070_040_studio_work_0071",
+          "title": "関連作業 studio_work_0071: objectArray / 履歴セクションのまとまり検索対応",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0071",
+          "purpose": "objectArray履歴セクション検索の対象範囲を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        }
+      ]
     },
     {
       "work_item_id": "studio_work_0071",
@@ -7744,7 +9201,77 @@
           "reason": "会話履歴・変更履歴・判断ログなどの深い階層をStudio画面上で検索できるようにし、JSON生データ検索に頼っていた履歴探索をStudioくんの機能として扱うため。"
         }
       ],
-      "actual_updated_files": "data/json/01_main/studio_work_incident_data_v0_71_objectarray_section_search_added.json"
+      "actual_updated_files": "data/json/01_main/studio_work_incident_data_v0_71_objectarray_section_search_added.json",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-06-28",
+      "context_def_draft": "# ContextDef素案: v0.15.7-objectarray-section-search\n\n## 読む目的\ndiscussion_history / change_history / decision_log などの objectArray 形式の深い階層を、項目単位ではなく『会話履歴』『変更履歴』『判断ログ』『履歴全体』のようなセクション単位で検索できるようにする。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0016` / v0.9-rules-json-source-of-truth: ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。\n- `studio_work_0017` / v0.9-rule-review-common-viewdef-polish: 共通Rule Review ViewDefの汎用化・targetFile固定解消の方針を確認する。\n- `studio_work_0049` / v0.14.19-rule-review-status-responsibility-issue: 承認/確認状態の責務整理と単一正本化の文脈を確認する。\n- `studio_work_0079` / v0.16.2-detail-subgrid-table-edit-core-mvp: Detail内objectArray/stringArray編集MVPの現状と制約を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、MarkdownはExport Viewという分離を崩さない。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\nViewDefの objectArray / childArea / detailBody などのまとまり単位に search.visible を持たせ、そのセクション全体を検索対象にできるようにする。discussion_history は会話履歴、change_history は変更履歴、decision_log は判断ログとして検索対象化する。search.group=\"history\" のようなグループ指定により、会話履歴・変更履歴・判断ログを束ねた『履歴全体』串刺し検索もできるようにする。必要に応じて、従来のJSON生データ検索に相当する『JSON全体』検索もRuntime上の一時文字列化で提供する。\n\n## 注意すべきリスク\n検索スコープをViewDefとは別に手書き定義すると、表示定義と検索定義がズレて同じような定義が増える。逆に最初から全フィールド自動検索にすると、id・日付・status等のノイズが多くなり、検索結果が読みにくくなる。深い階層の値を検索用にData JSONへ保存するとJSONが太り、原本が検索キャッシュで汚れる。\n\n## 確認観点メモ\n会話履歴検索で discussion_history[].topic / message / speaker 等が検索対象になること。変更履歴検索で change_history[].change_type / before / after / reason / updated_files 等が検索対象になること。判断ログ検索で decision_log[].decision / reason が検索対象になること。履歴全体検索で上記3セクションが串刺し検索されること。検索ヒット時は親のwork_item行が絞り込まれること。検索用テキストがData JSONへ保存されないこと。既存の浅い項目検索やGrid表示に回帰がないこと。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0071_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0071",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.16.3で未完了作業向けに投入した文脈素案。"
+        },
+        {
+          "context_ref_id": "target_0071_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0071_030_studio_work_0016",
+          "title": "関連作業 studio_work_0016: ルール系Data JSON原本化 / Foundation Rules追加",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0016",
+          "purpose": "ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0071_040_studio_work_0017",
+          "title": "関連作業 studio_work_0017: 共通Rule Review ViewDefの汎用化仕上げ",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0017",
+          "purpose": "共通Rule Review ViewDefの汎用化・targetFile固定解消の方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0071_050_studio_work_0049",
+          "title": "関連作業 studio_work_0049: Rule Review承認/確認状態の単一正本化と責務整理",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0049",
+          "purpose": "承認/確認状態の責務整理と単一正本化の文脈を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": ""
+        }
+      ]
     },
     {
       "work_item_id": "studio_work_0072",
@@ -7889,7 +9416,64 @@
           "reason": "差分JSONをwwwroot配下に置けばブラウザが通常の静的ファイルとして読めるため、APIレスポンスを巨大JSON本文の運搬経路にする必要がない。"
         }
       ],
-      "actual_updated_files": "data/json/01_main/studio_work_incident_data_v0_73_gitdiff_viewer_large_handling_added.json"
+      "actual_updated_files": "data/json/01_main/studio_work_incident_data_v0_73_gitdiff_viewer_large_handling_added.json",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-06-28",
+      "context_def_draft": "# ContextDef素案: v0.15.8-gitdiff-result-viewer-launch\n\n## 読む目的\nStudioくんからGitDiffRunを起動した後、生成された差分JSONをwwwroot配下の一時公開フォルダーへ出力し、DiffJsonViewer.html?src=... で自動表示できるようにする。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0072` / v0.15.8-gitdiff-result-viewer-launch: GitDiffRun結果JSONとDiffJsonViewer起動連携の文脈を確認する。\n- `studio_work_0073` / v0.15.9-gitdiff-large-result-handling: 巨大差分JSONの表示上限・エラー表示の文脈を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、MarkdownはExport Viewという分離を崩さない。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\nGitDiffRun実行時の差分JSON出力先を、例: wwwroot/diff_runs/DiffToJson_*.json のようなViewerから参照可能な生成用フォルダーへ寄せる。この生成用フォルダーまたはDiffToJson_*.jsonだけを.gitignoreで除外し、リポジトリに一時成果物が混入しないようにする。GitDiffRun実行APIは、差分JSON本文ではなく ok / exit_code / viewer_url / diff_json_path / file_size_bytes / summary / warnings を返す。Studioくんはviewer_urlを受け取り、DiffJsonViewer.html?src=./diff_runs/DiffToJson_*.json のようなURLで自動表示する。DiffJsonViewer.htmlはsrcパラメータを同一アプリ配下の許可パスとして検証し、fetchして表示する。\n\n## 注意すべきリスク\nwwwroot配下に生成差分JSONを置くため、.gitignore設定を誤ると一時成果物がGit管理対象に混入するリスクがある。srcパラメータを無制限に許すと任意パス参照や意図しないファイル公開のリスクがある。古いDiffToJson_*.jsonが溜まり続けるとローカル容量が増えるため、将来的には掃除方針が必要になる。巨大JSONはDiffJsonViewer側の表示限界に達する可能性があるが、それはv0.15.9で安全にエラー扱いする。\n\n## 確認観点メモ\nGitDiffRun成功時に wwwroot/diff_runs/DiffToJson_*.json が生成されること。.gitignoreで対象フォルダー配下のDiffToJson_*.jsonだけがGit管理対象外になること。APIレスポンスにdiff_json本文ではなくviewer_url/diff_json_path/file_size_bytes/summaryが含まれること。DiffJsonViewer.html?src=./diff_runs/DiffToJson_*.json で差分JSONが表示されること。存在しないsrcや許可外srcでは分かりやすいエラーになること。既存のGitDiffRun起動のみの動作を壊さないこと。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0072_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0072",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.16.3で未完了作業向けに投入した文脈素案。"
+        },
+        {
+          "context_ref_id": "target_0072_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0072_030_studio_work_0072",
+          "title": "関連作業 studio_work_0072: GitDiffRun結果JSONのDiffJsonViewer自動表示",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0072",
+          "purpose": "GitDiffRun結果JSONとDiffJsonViewer起動連携の文脈を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0072_040_studio_work_0073",
+          "title": "関連作業 studio_work_0073: GitDiffRun巨大差分JSONのViewer表示上限 / エラー表示",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0073",
+          "purpose": "巨大差分JSONの表示上限・エラー表示の文脈を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        }
+      ]
     },
     {
       "work_item_id": "studio_work_0073",
@@ -8007,7 +9591,64 @@
           "reason": "差分JSON本文をAPIレスポンスで運ばない方針になったため、大容量問題の主戦場がAPIではなくViewer表示限界へ変わった。"
         }
       ],
-      "actual_updated_files": "data/json/01_main/studio_work_incident_data_v0_73_gitdiff_viewer_large_handling_added.json"
+      "actual_updated_files": "data/json/01_main/studio_work_incident_data_v0_73_gitdiff_viewer_large_handling_added.json",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-06-28",
+      "context_def_draft": "# ContextDef素案: v0.15.9-gitdiff-large-result-handling\n\n## 読む目的\nwwwroot配下に生成された差分JSONがDiffJsonViewer.htmlで扱えないほど大きい場合に、無理に表示せず、安全にサイズ上限エラーとして扱えるようにする。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0072` / v0.15.8-gitdiff-result-viewer-launch: GitDiffRun結果JSONとDiffJsonViewer起動連携の文脈を確認する。\n- `studio_work_0073` / v0.15.9-gitdiff-large-result-handling: 巨大差分JSONの表示上限・エラー表示の文脈を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、MarkdownはExport Viewという分離を崩さない。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\nDiffJsonViewer.htmlまたはGitDiffRun実行API側で差分JSONのfile_size_bytesを確認し、設定した表示上限を超える場合はViewer表示を止める。上限超過時は、too_large=true / file_size_bytes / max_viewer_size_bytes / diff_json_path / summary / warnings などを表示し、『差分JSONが大きすぎるためViewerでは表示できない』ことを明示する。通常サイズの場合はv0.15.8のsrc読込方式でそのまま表示する。\n\n## 注意すべきリスク\n巨大JSONを無理にfetch/parse/renderするとブラウザが固まる。サイズ上限を厳しすぎる値にすると一気通貫体験が途切れやすくなる。逆にゆるすぎる値にするとメモリ使用量が増え、Viewerが操作不能になる。Git管理やAPIレスポンス容量の問題と、Viewer表示限界の問題を混同しないようにする必要がある。\n\n## 確認観点メモ\n設定した上限以下のDiffToJson_*.jsonはDiffJsonViewer.html?src=...で表示できること。上限を超えるファイルはfetch/parse/renderへ進まず、too_largeまたは明確なエラーメッセージを表示すること。エラー表示にfile_size_bytes / max_viewer_size_bytes / diff_json_path / summaryが表示されること。Git管理対象外設定により、巨大なDiffToJson_*.jsonがGit差分に出ないこと。APIレスポンスに巨大JSON本文を含めないこと。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0073_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0073",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.16.3で未完了作業向けに投入した文脈素案。"
+        },
+        {
+          "context_ref_id": "target_0073_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0073_030_studio_work_0072",
+          "title": "関連作業 studio_work_0072: GitDiffRun結果JSONのDiffJsonViewer自動表示",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0072",
+          "purpose": "GitDiffRun結果JSONとDiffJsonViewer起動連携の文脈を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0073_040_studio_work_0073",
+          "title": "関連作業 studio_work_0073: GitDiffRun巨大差分JSONのViewer表示上限 / エラー表示",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0073",
+          "purpose": "巨大差分JSONの表示上限・エラー表示の文脈を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        }
+      ]
     },
     {
       "work_item_id": "studio_work_0074",
@@ -8109,7 +9750,77 @@
           "reason": "AI提案を起点にJobControl JSONへつなげ、AI差分物語・AIテスト物語・Artifact Manifest・Incident更新までを1つのJobFlowとして育てるため。"
         }
       ],
-      "actual_updated_files": "studio_work_incident_data_v0_74_proposal_driven_jobflow_added.json"
+      "actual_updated_files": "studio_work_incident_data_v0_74_proposal_driven_jobflow_added.json",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-06-28",
+      "context_def_draft": "# ContextDef素案: v0.16.0-proposal-driven-jobflow\n\n## 読む目的\nAI作業の開始点を、人間の明示依頼だけでなくAI改善提案JSONからも始められるようにする。Improvement Proposal JSON → 人間承認 → JobControl JSON → Job実行 → TestResult / GitDiff / AIテスト物語 / AI差分物語 / Incident更新 までを、AI協働可能なJobFlowとして定義する。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0072` / v0.15.8-gitdiff-result-viewer-launch: GitDiffRun結果JSONとDiffJsonViewer起動連携の文脈を確認する。\n- `studio_work_0073` / v0.15.9-gitdiff-large-result-handling: 巨大差分JSONの表示上限・エラー表示の文脈を確認する。\n- `studio_work_0074` / v0.16.0-proposal-driven-jobflow: AI提案駆動JobFlow / JobControl JSON構想の文脈を確認する。\n- `studio_work_0078` / v0.16.1-studio-context-engineer-wannabe-mission-draft: Studio Context Engineer WannabeとMission定義JSONの憲法・フォーマット文脈を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、MarkdownはExport Viewという分離を崩さない。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\nAI提案駆動JobFlowの最小データ構造と流れを整理する。対象は Proposal Context Pack、Improvement Proposal JSON、Proposal Evaluation / Approval JSON、JobControl JSON、JobRun Result JSON、Artifact Manifest、AIテスト物語、AI差分物語、Incident更新の関係定義とする。JobControl JSONには source_proposal_id / source_incident_id / inputs / required_rules / steps / stop_conditions / outputs / human_approval / artifact_manifest を持たせる方針を検討する。初期段階では完全自動実行ではなく、AI提案からJobControl JSONを生成し、Studioくんで人間が承認・確認できることを主目的とする。Jobの中では、TestPattern JSON / Expected JSON生成、汎用Test Runner実行、Result JSON生成、GitDiffRun、DiffJsonViewer用viewer_url生成、AIテスト物語生成、AI差分物語生成、Incident更新を標準ステップ候補として扱う。\n\n## 注意すべきリスク\nAI提案をそのまま作業命令として扱うと、不要・危険・重複・低優先の作業が連鎖するリスクがある。提案は必ず候補であり、人間承認または評価Jobを通して approved / rejected / deferred / converted を明示する必要がある。ループが長くなると目的逸脱や同じ提案の再発が起きるため、max_iterations、stop_if_no_approved_proposals、stop_if_same_proposal_repeated、stop_if_tests_fail、stop_if_unexpected_files_changed などの停止条件が重要になる。\n\n## 確認観点メモ\nImprovement Proposal JSONからJobControl JSON候補を生成できること。提案がcandidateのまま実行されず、human_approvalでapprovedになってから次Jobへ変換されること。JobControl JSONにsource_proposal_idとsource_incident_idを保持できること。Jobの標準出力としてAIテスト物語・AI差分物語・Artifact Manifest・Incident更新を表現できること。stop_conditionsにより、ルール未読、対象ファイル欠落、テスト失敗、想定外差分、未承認提案が安全に止まること。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0074_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0074",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.16.3で未完了作業向けに投入した文脈素案。"
+        },
+        {
+          "context_ref_id": "target_0074_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0074_030_studio_work_0072",
+          "title": "関連作業 studio_work_0072: GitDiffRun結果JSONのDiffJsonViewer自動表示",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0072",
+          "purpose": "GitDiffRun結果JSONとDiffJsonViewer起動連携の文脈を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0074_040_studio_work_0073",
+          "title": "関連作業 studio_work_0073: GitDiffRun巨大差分JSONのViewer表示上限 / エラー表示",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0073",
+          "purpose": "巨大差分JSONの表示上限・エラー表示の文脈を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0074_050_studio_work_0074",
+          "title": "関連作業 studio_work_0074: AI提案駆動JobFlow / JobControl JSON構想",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json#studio_work_0074",
+          "purpose": "AI提案駆動JobFlow / JobControl JSON構想の文脈を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": ""
+        }
+      ]
     },
     {
       "work_item_id": "studio_work_0075",
@@ -8970,6 +10681,127 @@
           "reason": "Mission Steps配下の長文・配列セルを、壊さず編集できる体験に寄せるため。"
         }
       ]
+    },
+    {
+      "work_item_id": "studio_work_0080",
+      "phase": "v0.16.3-incident-contextdef-open-work-draft",
+      "title": "Incident ContextDef / 未完了作業の文脈素案投入",
+      "incident_type": "",
+      "category": "",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-28",
+      "updated_at": "2026-06-28",
+      "target_files": "data/json/01_main/studio_work_incident_data_*.json, defs/rules/studio_work_incident_view_def_*.json, 必要に応じて frb_view_def_schema_v0_9.json / context_refs関連サンプル",
+      "objective": "インシデント管理DataにContextDef項目を追加し、未完了の作業項目だけを対象に、AIが作業前に読むべき文脈素案を入れられる状態にする。",
+      "background": "Studioくんでは主文脈・対象文脈・context_refsの入口が育ってきたが、インシデント管理Dataそのものには、未完了作業ごとに『AIが作業前に何を読むべきか』をまとめるContextDefがまだない。未完了作業が増えるほど、AIは対象インシデントだけでなく、関連Rules・Foundation・過去判断・注意点を見落としやすくなる。まず未完了作業に限定して文脈素案を入れることで、作業依頼時の文脈パッケージ化へ近づける。",
+      "scope": "work_itemsの各明細に context_def または context_def_draft 相当の項目を追加する。初期対象は status が未着手など未完了の作業項目のみとし、完了済み作業への一括追記は行わない。文脈素案には、作業前に読む目的、参照すべき関連インシデント、関連Rules、関連成果物、注意すべき制約、想定される読みタイミングを含める。まずはAIが作った素案として扱い、人間が後で編集・承認できる粒度に留める。",
+      "out_of_scope": "完了済み作業へのContextDef一括投入、外部ファイルの自動読込、LLMへの自動投入、MissionDefとの完全統合、ContextDefスキーマの完全確定、全ViewDefへの本格UI実装、多段ネストContextの実行制御は対象外とする。まずはインシデント管理Data上の文脈素案フィールド追加と未完了作業への初期投入に限定する。",
+      "fixed_name_policy": "context_def / context_def_draft はインシデント管理Data内の文脈素案フィールドとして扱う。ただしRuntimeが特定Data専用の固定名として直接処理するのではなく、ViewDefで表示・編集対象として宣言する。将来、Studio標準ContextDefへ昇格する場合はFoundation RulesまたはContext Engineer Wannabe憲法で明記する。",
+      "module_policy": "type=\"module\" 化は行わない。今回の主対象はData JSONとViewDefの項目追加であり、必要なJS修正がある場合も既存script方式を維持する。",
+      "expected_outputs": "ContextDef項目を追加したインシデント管理Data、未完了作業のみへのcontext_def_draft文脈素案、ContextDefを表示・編集できるViewDef更新案、対象件数と未投入理由の確認メモ、更新済みインシデントJSON。",
+      "risk": "未完了作業すべてへ過剰な文脈を入れるとDataが重くなり、作業前に読むべき文脈が逆に読みにくくなる。ContextDefが増えると、主文脈・対象文脈・context_refsとの責務境界が曖昧になるリスクがある。まず素案として最小項目に留め、完了済み作業には retroactive に入れない。",
+      "test_points": "未完了作業だけにContextDef素案が入ること。完了済み作業へ不要な追記をしないこと。Studioで読み込んだときに既存Grid/Detailが壊れないこと。ContextDefが通常の長文欄に埋もれず、対象作業の入口として見えること。F12反映・上書き保存後もcontext_def_draftが保持されること。",
+      "user_request": "インシデントデータにContextDefの項目を追加して、未完了の作業についてだけでよいので、文脈素案を入れるインシデントにしてほしい。",
+      "ai_response": "インシデント化方針として、まず v0.16.3-incident-contextdef-open-work-draft を登録する。作業の初手は、インシデント管理Dataにcontext_def/context_def_draft項目を追加し、status=未着手など未完了作業だけにAI作業前の文脈素案を入れること。完了済み作業への一括投入や自動読込実行は対象外とする。",
+      "latest_user_comment": "急ぎ対応として、インシデントデータにContextDef項目を追加し、未完了の作業だけに文脈素案を入れる作業をインシデント登録したい。\n\nstudio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json　は、更新して、\nstudio_work_incident_view_def_v0_5.json　としてください。",
+      "latest_ai_response": "v0.16.3対応完了。インシデント管理Dataの未完了作業25件へ context_def_status / context_def_updated_at / context_def_draft / context_refs を投入し、作業前に読む文脈素案を持てる状態にした。完了済み作業へのcontext_def_draft一括投入は行っていない。ViewDefは studio_work_incident_view_def_v0_5.json として更新し、ContextDef素案と対象文脈を表示・編集対象に追加した。",
+      "context_target_policy": "初期投入対象は status=未着手 の作業項目を基本とする。添付時点の未着手作業は25件。完了済み53件と完了（後続あり）1件は初回投入対象外。",
+      "context_def_draft_shape": "初期案: { context_title, context_purpose, read_timing, required_context_refs[], related_work_items[], related_rules[], risk_notes, ai_work_notes }。ただし初回はViewDefで扱いやすい最小構造にする。",
+      "open_work_item_baseline": "studio_work_0007, studio_work_0008, studio_work_0009, studio_work_0010, studio_work_0011, studio_work_0015, studio_work_0016, studio_work_0017, studio_work_0018, studio_work_0049, studio_work_0051, studio_work_0052, studio_work_0053, studio_work_0054, studio_work_0055, studio_work_0056, studio_work_0057, studio_work_0058, studio_work_0059, studio_work_0060, studio_work_0070, studio_work_0071, studio_work_0072, studio_work_0073, studio_work_0074",
+      "discussion_history": [
+        {
+          "history_id": "disc_0080_001",
+          "at": "2026-06-28",
+          "speaker": "user",
+          "topic": "ContextDef項目追加相談",
+          "message": "インシデントデータにContextDefの項目を追加して、未完了の作業についてだけでいいので、文脈素案を入れるインシデントにしてほしい。"
+        },
+        {
+          "history_id": "disc_0080_002",
+          "at": "2026-06-28",
+          "speaker": "assistant",
+          "topic": "インシデント登録方針",
+          "message": "完了済み作業へ一括投入せず、未完了作業だけを対象にContextDef素案を入れる作業として登録する。初期は文脈素案であり、ContextDefスキーマ確定や自動読込実行は後続に分ける。"
+        },
+        {
+          "history_id": "disc_0080_003",
+          "at": "2026-06-28",
+          "speaker": "user",
+          "topic": "v0.16.3作業依頼",
+          "message": "studio_work_incident_data_v0_78_incident_contextdef_open_work_draft_added.json を対象に、未完了作業へContextDef文脈素案を投入し、ViewDefを v0_5 へ更新する作業を依頼。"
+        },
+        {
+          "history_id": "disc_0080_004",
+          "at": "2026-06-28",
+          "speaker": "assistant",
+          "topic": "v0.16.3作業結果",
+          "message": "baseline未着手25件にcontext_def_draftとcontext_refsを投入。ViewDef v0.5を作成し、Data rootのview_defを rules/studio_work_incident_view_def_v0_5.json へ更新。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0080_001",
+          "at": "2026-06-28",
+          "decision": "ContextDef投入対象は未完了作業に限定する。",
+          "reason": "完了済み作業へ retroactive に文脈を入れると作業履歴が重くなり、初期対応範囲も大きくなりすぎるため。"
+        },
+        {
+          "decision_id": "dec_0080_002",
+          "at": "2026-06-28",
+          "decision": "初期ContextDefは確定仕様ではなく文脈素案として扱う。",
+          "reason": "ContextDefの最終スキーマを先に固めすぎると、主文脈・対象文脈・MissionDefとの関係整理が重くなるため。"
+        },
+        {
+          "decision_id": "dec_0080_003",
+          "at": "2026-06-28",
+          "decision": "自動読込・LLM投入・Mission連携は今回の対象外にする。",
+          "reason": "まずはインシデント管理Data上で文脈素案を持てる状態を作ることを優先し、実行制御と混ぜないため。"
+        },
+        {
+          "decision_id": "dec_0080_001",
+          "at": "2026-06-28",
+          "decision": "ContextDef初期投入は未完了作業25件に限定する。",
+          "reason": "完了済み作業へretroactiveに文脈素案を入れると、当時の作業文脈と後付け文脈が混ざるため。まず今後作業する入口だけを整える。"
+        },
+        {
+          "decision_id": "dec_0080_002",
+          "at": "2026-06-28",
+          "decision": "context_def_draftはMarkdown文字列、context_refsは構造化配列として併用する。",
+          "reason": "人間が読みやすい文脈素案と、Studio上で編集しやすい対象文脈配列の両方を小さく始めるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0080_001",
+          "at": "2026-06-28",
+          "change_type": "incident_added",
+          "before": "インシデント管理Dataには、未完了作業ごとにAIが作業前に読むべき文脈素案を保持するContextDef項目がなかった。",
+          "after": "studio_work_0080 として、ContextDef項目追加と未完了作業への文脈素案投入インシデントを登録した。",
+          "reason": "未完了作業をAIに渡す前の文脈パッケージ化を進めるため。"
+        },
+        {
+          "history_id": "chg_0080_001",
+          "at": "2026-06-28",
+          "change_type": "incident_contextdef_draft_added",
+          "before": "未完了作業には、作業前に読むべき文脈をまとめるContextDef項目がなかった。",
+          "after": "baseline未着手25件にcontext_def_status / context_def_updated_at / context_def_draft / context_refsを追加し、文脈素案と対象文脈の入口を持たせた。",
+          "reason": "未来のAIと人間が、作業に入る前の文脈を追体験できるようにするため。"
+        },
+        {
+          "history_id": "chg_0080_002",
+          "at": "2026-06-28",
+          "change_type": "viewdef_v0_5_contextdef_fields",
+          "before": "studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json が現行ViewDefだった。",
+          "after": "studio_work_incident_view_def_v0_5.json を追加し、ContextDef素案・文脈状態・対象文脈context_refsを表示対象にした。",
+          "reason": "ContextDef項目をDataに追加するだけでなく、Studio上で眺めて育てられるようにするため。"
+        }
+      ],
+      "verification_status": "確認済み",
+      "actual_updated_files": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json\ndefs/rules/studio_work_incident_view_def_v0_5.json\ndefs/studio_work_incident_view_def_v0_5.json",
+      "verification_log": "JSON parse確認: OK\nContextDef素案投入対象: baseline未着手25件\n完了済み作業へのcontext_def_draft新規投入: 0件\nViewDef v0.5 JSON parse確認: OK\nZIP内に更新後インシデントJSONとViewDef v0.5を収録"
     }
   ],
   "review_notes": [
@@ -9339,8 +11171,8 @@
       "body": "Mission定義JSONを実用的に育てるため、Detail内 objectArray / stringArray サブグリッド編集をv0.16.2として登録。外部Gridライブラリには寄せず、Studio標準のHTML table編集MVPとして始める。Markdown Editorで育ったテーブル編集体験は将来のStudio Table Edit Coreへ抽出し、文字列セルはMarkdown原文を保持できる前提で設計する。"
     }
   ],
-  "work_revision": "v0.16.2-detail-subgrid-table-edit-core-mvp-added",
-  "latest_planning_note": "v0.16.2-detail-subgrid-table-edit-core-mvp を追加。Detail内 objectArray / stringArray サブグリッド編集MVPを初手とし、Markdown文字列セル対応と将来のStudio Table Edit Core抽出を同一インシデント内の拡張方針として整理。",
+  "work_revision": "v0.16.3-incident-contextdef-open-work-draft-added",
+  "latest_planning_note": "v0.16.3-incident-contextdef-open-work-draft を追加。インシデント管理DataにContextDef項目を追加し、未完了作業だけに文脈素案を投入する作業として登録。完了済み作業への一括投入、自動読込、Mission連携は初期対象外。",
   "view_def_candidates": [
     {
       "view_def": "rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",

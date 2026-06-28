@@ -45,6 +45,15 @@ function renderChildArea(row, gd) {
   gd.fields.filter(f => (f.type === 'objectArray' || f.type === 'stringArray') && !(typeof isTargetContextField === 'function' && isTargetContextField(f))).forEach(field => {
     const data = getByPath(row, field.field);
     if (!Array.isArray(data)) return;
+
+    // v0.16.2-detail-subgrid-table-edit-core-mvp:
+    // objectArray / stringArray は、表示専用tableから編集可能なStudio標準サブグリッドMVPへ委譲する。
+    // Runtimeはoutputs/success_conditions等の固定フィールド名ではなく、ViewDefのfield.typeを見て扱う。
+    if (typeof createDetailSubGridCard === 'function') {
+      area.appendChild(createDetailSubGridCard({ field, row, gd, data }));
+      return;
+    }
+
     const card = document.createElement('div');
     card.className = 'child-card';
     const title = document.createElement('h3');
