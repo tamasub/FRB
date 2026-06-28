@@ -1,4 +1,4 @@
-// v0.15.5-v0.15.5.2: ViewDef context model recognizer + main context header panel
+// v0.15.5-v0.15.5.3: ViewDef context model recognizer + main/target context panels
 // ViewDef only declares where context data lives and how it is displayed.
 // Actual Main Context refs belong in Data JSON (for example $.main_context_refs).
 // Actual Target Context refs belong in each target row (for example context_refs[]).
@@ -137,6 +137,12 @@ function normalizeTargetContextConfig(raw, legacyRowContext=null) {
     failure_policy_field: contextContractString(cfg.failure_policy_field ?? cfg.failurePolicyField ?? legacyRowContext?.failure_policy_field, 'failure_policy'),
     trust_category_field: contextContractString(cfg.trust_category_field ?? cfg.trustCategoryField ?? legacyRowContext?.trust_field, 'trust_category'),
     purpose_field: contextContractString(cfg.purpose_field ?? cfg.purposeField ?? legacyRowContext?.purpose_field, 'purpose'),
+    required_field: contextContractString(cfg.required_field ?? cfg.requiredField, 'required'),
+    enabled_field: contextContractString(cfg.enabled_field ?? cfg.enabledField, 'enabled'),
+    sort_order_field: contextContractString(cfg.sort_order_field ?? cfg.sortOrderField, 'sort_order'),
+    note_field: contextContractString(cfg.note_field ?? cfg.noteField, 'note'),
+    grid_summary: contextContractBool(cfg.grid_summary ?? cfg.gridSummary, true),
+    detail_panel: (cfg.detail_panel ?? cfg.detailPanel ?? null),
     notes: contextContractString(cfg.notes ?? cfg.note)
   };
 }
@@ -378,3 +384,276 @@ function applyMainContextHeaderPanelEdits(options={}) {
   });
   if (!options.silent && typeof setStatus === 'function') setStatus('主文脈を反映しました');
 }
+
+function targetContextConfig() {
+  return currentViewDefContextModel?.target_context ?? normalizeTargetContextConfig(viewDef?.context?.target_context ?? viewDef?.context?.targetContext);
+}
+
+function targetContextFieldName(cfg=targetContextConfig()) {
+  const explicit = contextContractString(cfg?.field, '');
+  if (explicit) return explicit;
+  const path = contextContractString(cfg?.data_path, '$.context_refs');
+  const normalized = path.startsWith('$.') ? path.slice(2) : path;
+  return normalized.split('.').filter(Boolean).pop() || 'context_refs';
+}
+
+function isTargetContextField(field) {
+  const cfg = targetContextConfig();
+  if (!cfg?.enabled || !field) return false;
+  const configured = targetContextFieldName(cfg);
+  return field.field === configured || field.field === cfg.data_path || field.contextRole === 'targetContext' || field.context_role === 'targetContext';
+}
+
+function targetContextRefsFromRow(row, cfg=targetContextConfig(), create=false) {
+  if (!cfg?.enabled || !row) return [];
+  const path = contextContractString(cfg.data_path, '$.context_refs');
+  let refs = getByPath(row, path);
+  if (!Array.isArray(refs)) {
+    if (!create) return [];
+    refs = [];
+    setByPath(row, path, refs);
+  }
+  return refs;
+}
+
+function countContextRefs(refs, cfg) {
+  const rows = Array.isArray(refs) ? refs : [];
+  const enabledRefs = rows.filter(ref => contextContractBool(readContextRefValue(ref, cfg, 'enabled'), true));
+  const required = enabledRefs.filter(ref => contextContractBool(readContextRefValue(ref, cfg, 'required'), false));
+  const stopLike = enabledRefs.filter(ref => String(readContextRefValue(ref, cfg, 'failure_policy')).startsWith('stop'));
+  return { rows, enabledRefs, required, stopLike };
+}
+
+function formatTargetContextValue(value, field=null) {
+  if (!isTargetContextField(field) || !Array.isArray(value)) return null;
+  const cfg = targetContextConfig();
+  const counts = countContextRefs(value, cfg);
+  if (!counts.rows.length) return '対象文脈 0件';
+  const bits = [`${counts.enabledRefs.length}件`];
+  if (counts.required.length) bits.push(`必須${counts.required.length}`);
+  if (counts.stopLike.length) bits.push(`停止${counts.stopLike.length}`);
+  return bits.join(' / ');
+}
+
+function createTargetContextBadge(text) {
+  const span = document.createElement('span');
+  span.className = 'context-badge target-context-badge';
+  span.textContent = text;
+  return span;
+}
+
+function createTargetContextInput(index, field, value, type='text') {
+  const input = type === 'textarea' ? document.createElement('textarea') : document.createElement('input');
+  if (type === 'checkbox') {
+    input.type = 'checkbox';
+    input.checked = contextContractBool(value, false);
+  } else if (type === 'number') {
+    input.type = 'number';
+    input.value = value == null ? '' : String(value);
+  } else if (type === 'textarea') {
+    input.value = value == null ? '' : String(value);
+    input.rows = 2;
+  } else {
+    input.type = 'text';
+    input.value = value == null ? '' : String(value);
+  }
+  input.dataset.targetContextIndex = String(index);
+  input.dataset.targetContextField = field;
+  return input;
+}
+
+function targetContextColumnMetas(cfg) {
+  return [
+    { label: 'Context Ref ID', field: cfg.id_field, key: 'context_ref_id', type: 'text', className: 'target-context-id' },
+    { label: 'タイトル', field: cfg.title_field, key: 'title', type: 'text', className: 'target-context-title' },
+    { label: '読みタイミング', field: cfg.read_timing_field, key: 'read_timing', type: 'text', className: 'target-context-timing' },
+    { label: '対象パス', field: cfg.target_path_field, key: 'target_path', type: 'textarea', className: 'target-context-path' },
+    { label: '読む目的', field: cfg.purpose_field, key: 'purpose', type: 'textarea', className: 'target-context-purpose' },
+    { label: '失敗時方針', field: cfg.failure_policy_field, key: 'failure_policy', type: 'text', className: 'target-context-failure' },
+    { label: '信頼区分', field: cfg.trust_category_field, key: 'trust_category', type: 'text', className: 'target-context-trust' },
+    { label: '必須', field: cfg.required_field ?? 'required', key: 'required', type: 'checkbox', className: 'target-context-check' },
+    { label: '有効', field: cfg.enabled_field ?? 'enabled', key: 'enabled', type: 'checkbox', className: 'target-context-check' }
+  ];
+}
+
+function newTargetContextRef(row, refs, cfg) {
+  const baseId = String(getByPath(row, 'target_id') ?? getByPath(row, 'work_item_id') ?? getByPath(row, 'id') ?? 'target').trim() || 'target';
+  const n = (refs?.length ?? 0) + 1;
+  return {
+    [cfg.id_field]: `${baseId}_context_${String(n).padStart(3, '0')}`,
+    [cfg.title_field]: '対象文脈を追加',
+    [cfg.read_timing_field]: 'before_code_update',
+    [cfg.target_path_field]: '',
+    [cfg.purpose_field]: '',
+    [cfg.failure_policy_field]: 'stop_and_ask',
+    [cfg.trust_category_field]: 'canonical',
+    [cfg.required_field]: true,
+    [cfg.enabled_field]: true,
+    [cfg.sort_order_field]: n * 10,
+    [cfg.note_field]: ''
+  };
+}
+
+function addTargetContextRef(row) {
+  const cfg = targetContextConfig();
+  const refs = targetContextRefsFromRow(row, cfg, true);
+  refs.push(newTargetContextRef(row, refs, cfg));
+  targetContextDetailPanelExpanded = true;
+  renderDetailForRow(row);
+  if (typeof renderGrid === 'function') renderGrid();
+  if (typeof setStatus === 'function') setStatus('対象文脈を1件追加しました');
+}
+
+function removeTargetContextRef(row, index) {
+  const cfg = targetContextConfig();
+  const refs = targetContextRefsFromRow(row, cfg, true);
+  if (index < 0 || index >= refs.length) return;
+  refs.splice(index, 1);
+  targetContextDetailPanelExpanded = true;
+  renderDetailForRow(row);
+  if (typeof renderGrid === 'function') renderGrid();
+  if (typeof setStatus === 'function') setStatus('対象文脈を1件削除しました');
+}
+
+function renderTargetContextDetailPanel(row, gd, host) {
+  const cfg = targetContextConfig();
+  if (!cfg?.enabled || !row || !host) return;
+  const targetField = (gd?.fields ?? []).find(f => isTargetContextField(f));
+  if (!targetField) return;
+
+  const refs = targetContextRefsFromRow(row, cfg, false);
+  const counts = countContextRefs(refs, cfg);
+  const panel = document.createElement('div');
+  panel.id = 'targetContextDetailPanel';
+  panel.className = 'target-context-panel';
+
+  const summary = document.createElement('div');
+  summary.className = 'target-context-summary';
+  const title = document.createElement('div');
+  title.className = 'target-context-title';
+  title.textContent = cfg.display_name || targetField.caption || '対象文脈';
+  summary.appendChild(title);
+
+  const badges = document.createElement('div');
+  badges.className = 'target-context-badges';
+  badges.appendChild(createTargetContextBadge(`${counts.enabledRefs.length}件`));
+  badges.appendChild(createTargetContextBadge(`必須${counts.required.length}`));
+  badges.appendChild(createTargetContextBadge(`停止${counts.stopLike.length}`));
+  summary.appendChild(badges);
+
+  const actions = document.createElement('div');
+  actions.className = 'target-context-actions';
+  const toggle = document.createElement('button');
+  toggle.type = 'button';
+  toggle.className = 'ghost-button small';
+  toggle.textContent = targetContextDetailPanelExpanded ? '対象文脈を隠す' : '対象文脈を確認';
+  toggle.addEventListener('click', () => {
+    targetContextDetailPanelExpanded = !targetContextDetailPanelExpanded;
+    renderDetailForRow(row);
+  });
+  actions.appendChild(toggle);
+  if (targetContextDetailPanelExpanded) {
+    const addBtn = document.createElement('button');
+    addBtn.type = 'button';
+    addBtn.className = 'ghost-button small';
+    addBtn.textContent = '対象文脈を追加';
+    addBtn.addEventListener('click', () => addTargetContextRef(row));
+    actions.appendChild(addBtn);
+  }
+  summary.appendChild(actions);
+  panel.appendChild(summary);
+
+  const detail = document.createElement('div');
+  detail.className = 'target-context-detail' + (targetContextDetailPanelExpanded ? '' : ' hidden');
+  const wrap = document.createElement('div');
+  wrap.className = 'target-context-table-wrap';
+  const table = document.createElement('table');
+  table.className = 'target-context-table';
+  const metas = targetContextColumnMetas(cfg);
+  const thead = document.createElement('thead');
+  const trh = document.createElement('tr');
+  metas.forEach(meta => {
+    const th = document.createElement('th');
+    th.textContent = meta.label;
+    if (meta.className) th.classList.add(meta.className);
+    trh.appendChild(th);
+  });
+  const thAction = document.createElement('th');
+  thAction.textContent = '操作';
+  trh.appendChild(thAction);
+  thead.appendChild(trh);
+  table.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
+  refs.forEach((ref, index) => {
+    const tr = document.createElement('tr');
+    metas.forEach(meta => {
+      const td = document.createElement('td');
+      if (meta.className) td.classList.add(meta.className);
+      const value = ref?.[meta.field] ?? ref?.[meta.key];
+      td.appendChild(createTargetContextInput(index, meta.field, value, meta.type));
+      tr.appendChild(td);
+    });
+    const tdAction = document.createElement('td');
+    const del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'danger-button mini';
+    del.textContent = '削除';
+    del.addEventListener('click', () => removeTargetContextRef(row, index));
+    tdAction.appendChild(del);
+    tr.appendChild(tdAction);
+    tbody.appendChild(tr);
+  });
+  if (!refs.length) {
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.colSpan = metas.length + 1;
+    td.className = 'target-context-empty';
+    td.textContent = '対象文脈は未登録です。必要なら「対象文脈を追加」してください。';
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+  }
+  table.appendChild(tbody);
+  wrap.appendChild(table);
+  detail.appendChild(wrap);
+
+  const footer = document.createElement('div');
+  footer.className = 'target-context-footer';
+  const applyBtn = document.createElement('button');
+  applyBtn.type = 'button';
+  applyBtn.className = 'primary-button small';
+  applyBtn.textContent = '対象文脈を反映';
+  applyBtn.addEventListener('click', () => {
+    applyTargetContextDetailPanelEdits(row);
+    if (typeof renderGrid === 'function') renderGrid();
+    setStatus('対象文脈を反映しました');
+  });
+  footer.appendChild(applyBtn);
+  const hint = document.createElement('span');
+  hint.className = 'target-context-hint';
+  hint.textContent = 'この対象を扱う前に読む文脈です。Data明細の context_refs[] を編集します。';
+  footer.appendChild(hint);
+  detail.appendChild(footer);
+  panel.appendChild(detail);
+  host.appendChild(panel);
+}
+
+function applyTargetContextDetailPanelEdits(row) {
+  const cfg = targetContextConfig();
+  if (!cfg?.enabled || !row) return;
+  const panel = $('targetContextDetailPanel');
+  if (!panel) return;
+  const refs = targetContextRefsFromRow(row, cfg, true);
+  const controls = [...panel.querySelectorAll('[data-target-context-index][data-target-context-field]')];
+  controls.forEach(control => {
+    const index = Number(control.dataset.targetContextIndex);
+    const field = control.dataset.targetContextField;
+    if (!Number.isInteger(index) || index < 0 || !refs[index] || !field) return;
+    let value;
+    if (control.type === 'checkbox') value = control.checked;
+    else if (control.type === 'number') value = control.value === '' ? null : Number(control.value);
+    else value = control.value;
+    refs[index][field] = value;
+  });
+}
+

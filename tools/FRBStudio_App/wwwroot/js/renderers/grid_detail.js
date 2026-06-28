@@ -329,6 +329,7 @@ function updateDetailNavButtons() {
 function applyDetailInputsToRow(row) {
   if (!row) return;
   const gd = gridDef();
+  if (typeof applyTargetContextDetailPanelEdits === 'function') applyTargetContextDetailPanelEdits(row);
   const seenRadio = new Set();
 
   detailEditableControls().forEach(inp => {

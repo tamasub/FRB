@@ -25,6 +25,7 @@ let currentAppInfo = null;
 let currentViewDefReadContract = null; // v0.15.5 legacy ViewDef-level context.read_contract summary
 let currentViewDefContextModel = null; // v0.15.5.2 ViewDef context declaration model (no data refs in ViewDef)
 let mainContextPanelExpanded = false;
+let targetContextDetailPanelExpanded = false;
 
 // v0.14.1-data-viewdef-candidates:
 // Data JSON can declare which ViewDefs are valid manual switch candidates.

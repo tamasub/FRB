@@ -125,7 +125,8 @@
               "type": "objectArray",
               "grid": {
                 "visible": true,
-                "width": 140
+                "width": 170,
+                "format": "targetContextSummary"
               },
               "edit": {
                 "visible": true
@@ -265,7 +266,11 @@
                     "height": 80
                   }
                 }
-              ]
+              ],
+              "layout": {
+                "placement": "targetContextDetailTop"
+              },
+              "description": "対象文脈。Gridでは件数要約、Detailでは上部専用パネルで編集する。"
             },
             {
               "field": "objective",
@@ -338,7 +343,7 @@
       "parent_data_path": "$.sample_targets",
       "field": "context_refs",
       "data_path": "$.context_refs",
-      "description": "Data明細オブジェクト内の context_refs[] を対象文脈として扱う。Detail上部で要約・展開する想定。",
+      "description": "Data明細オブジェクト内の context_refs[] を対象文脈として扱う。Detail上部で要約・展開・編集する。",
       "id_field": "context_ref_id",
       "title_field": "title",
       "target_path_field": "target_path",
@@ -346,7 +351,23 @@
       "failure_policy_field": "failure_policy",
       "trust_category_field": "trust_category",
       "purpose_field": "purpose",
-      "notes": "v0.15.5.3でDetail上部表示を強化予定。v0.15.5.2では対象一覧Gridを主Gridに戻す。"
+      "notes": "v0.15.5.3: 対象文脈はDetail上部の専用パネルで表示・編集し、通常childAreaの末尾表示からは除外する。Gridでは件数要約を表示する。",
+      "required_field": "required",
+      "enabled_field": "enabled",
+      "sort_order_field": "sort_order",
+      "note_field": "note",
+      "grid_summary": true,
+      "detail_panel": {
+        "enabled": true,
+        "placement": "detailTop",
+        "default_expanded": true,
+        "editable": true,
+        "summary_badges": [
+          "count",
+          "required",
+          "stop_like"
+        ]
+      }
     },
     "read_contract": {
       "enabled": true,

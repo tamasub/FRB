@@ -8468,13 +8468,13 @@
       "incident_type": "feature",
       "category": "context_ui",
       "priority": "high",
-      "status": "未着手",
-      "verification_status": "未確認",
+      "status": "完了",
+      "verification_status": "確認済み",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-06-28",
       "updated_at": "2026-06-28",
-      "target_files": "wwwroot/js/renderers/grid_detail.js, wwwroot/js/renderers/field_controls.js, wwwroot/js/runtime/detail_save.js, wwwroot/styles.css, relevant ViewDefs, representative Data JSON",
+      "target_files": "wwwroot/js/core/state.js\nwwwroot/js/core/viewdef_context_contract.js\nwwwroot/js/renderers/field_controls.js\nwwwroot/js/renderers/grid_detail.js\nwwwroot/js/runtime/load_runtime.js\nwwwroot/js/runtime/detail_save.js\nwwwroot/index.html\nwwwroot/styles.css\ndefs/rules/context_refs_sample_view_def_v0_1.json\ndata/json/00_rules/context_refs_sample_data_v0_1.json\ndata/json/00_rules/frb_view_def_schema_v0_9.json\ndata/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json\ndata/json/00_rules/TARGET_CONTEXT_DETAIL_PANEL_REPORT_v0_15_5_3.md\ndata/json/01_main/studio_work_incident_data_v0_74_context_model_cleanup_incidents_added.json",
       "target_rule_files": "frb_view_def_schema_v0_9.json, frb_viewdef_generation_rules_data_v0_1.json",
       "objective": "Data明細オブジェクト内の context_refs[] を対象文脈として、Detail画面の上部に要約・確認・編集できる形で表示する。",
       "background": "対象文脈はインシデント1件、テストパターン1件、ルール1件などの個別対象を扱う前に読む追加文脈である。本文や変更履歴に埋もれるのではなく、明細詳細の入口に置く必要がある。",
@@ -8482,13 +8482,13 @@
       "out_of_scope": "主文脈ヘッダー表示はv0.15.5.2で扱う。対象文脈に基づく外部文脈ファイル自動読込・LLM投入・実行停止制御は後続とする。",
       "fixed_name_policy": "context_refsは標準候補として扱うが、ViewDef側で対象文脈フィールドを宣言できる余地を残す。Runtimeが特定業務フィールド名へ依存しないようにする。",
       "module_policy": "type=\"module\" 化は行わない。既存script方式を維持する。",
-      "expected_outputs": "対象文脈Detail上部セクション、対象文脈件数要約、context_refs[]のobjectArray編集、Gridでの件数表示方針、保存健全性確認。",
+      "expected_outputs": "対象文脈Detail上部セクション、対象文脈件数要約、context_refs[]の追加・削除・編集・反映、Gridでの件数表示、保存健全性確認。",
       "risk": "context_refs[]を通常Detail Formの入力欄として扱うと、配列が件数字符列で壊れるリスクがある。既存objectArray保存健全性ルールを守る必要がある。",
-      "test_points": "context_refs[]が明細オブジェクト内の先頭寄りにあるサンプルで表示できること。Detail上部に対象文脈が出ること。編集・保存後も配列として残ること。context_refs未定義行でも壊れないこと。Gridでは中身ではなく件数要約になること。",
+      "test_points": "context_refs[]が明細オブジェクト内にあるサンプルでDetail上部に表示されること。対象文脈を編集・追加・削除・反映できること。編集後もcontext_refs[]が配列として残ること。context_refs未定義行でも壊れないこと。Gridでは生JSONではなく件数要約になること。",
       "user_request": "v0.15.5の主文脈/対象文脈設計を、JS実装へ進む前にインシデント側で綺麗に整理したい。必要なら複数インシデントへ分割してよい。",
       "ai_response": "対象文脈は明細本文に混ざる普通の補足ではなく、その対象を扱う前に読む入口としてDetail上部へ出す。",
-      "latest_user_comment": "",
-      "latest_ai_response": "",
+      "latest_user_comment": "v0.15.5.3-target-context-detail-panel の追加UX補修依頼。対象文脈がある場合はDetail上部で横幅いっぱいを使う。主文脈と同様に対象文脈も普段は隠し、ボタンクリックで開く形にする。主文脈・対象文脈ともに余白を減らし、縦方向をコンパクトに調整する。",
+      "latest_ai_response": "# AI回答\n\n## 今回の更新\n- `wwwroot/js/core/state.js`\n- `wwwroot/js/core/viewdef_context_contract.js`\n- `wwwroot/js/runtime/load_runtime.js`\n- `wwwroot/index.html`\n- `wwwroot/styles.css`\n- `data/json/00_rules/TARGET_CONTEXT_DETAIL_PANEL_COMPACT_REPORT_v0_15_5_3_1.md`\n- `data/json/01_main/studio_work_incident_data_v0_74_context_model_cleanup_incidents_added.json`\n\n## やったこと\n- 対象文脈DetailパネルをDetail Form内で横幅いっぱい表示に変更。\n- `targetContextDetailPanelExpanded` の初期値を `false` にし、対象文脈も主文脈と同じく通常は要約表示に変更。\n- 「対象文脈を追加」ボタンは展開時のみ表示し、閉じている時の要約行をコンパクト化。\n- 主文脈・対象文脈のパネル、バッジ、テーブル、入力欄、フッターの余白を縮小し、縦方向をコンパクト化。\n- index.html のキャッシュバスターを更新。\n\n## 方針\n- 主文脈は画面全体の入口、対象文脈は明細の入口。\n- どちらも本文より前に置くが、明細は常時展開せず、必要な時だけ開く。\n- 対象文脈はDetail上部で横幅いっぱいを使い、横スクロール前提のContext Ref表を読みやすくする。\n\n## 確認結果\n- JSON parse：OK\n- JS `node --check`：OK\n- 対象文脈初期折りたたみ：OK\n- 対象文脈横幅いっぱい表示CSS：OK\n- 主文脈/対象文脈コンパクトCSS：OK\n- 更新済みIncident JSONのZIP内収録：OK\n- runtime生成物除外：OK\n",
       "discussion_history": [
         {
           "history_id": "disc_0077_001_assistant",
@@ -8496,6 +8496,34 @@
           "speaker": "assistant",
           "topic": "v0.15.5.3追加方針",
           "message": "対象文脈はData明細オブジェクト内のcontext_refs[]として扱い、Detail上部の入口セクションで要約・展開・編集できるUI実装インシデントとして追加。"
+        },
+        {
+          "history_id": "disc_0077_001_user_request_v01553",
+          "at": "2026-06-28",
+          "speaker": "user",
+          "topic": "v0.15.5.3作業依頼",
+          "message": "今回の作業依頼:\n- incident_file: data/json/01_main/studio_work_incident_data_v0_74_context_model_cleanup_incidents_added.json\n- phase: v0.15.5.3-target-context-detail-panel\n\n作業ルール:\nFoundation Rules raw を参照し、FRB Studio Foundation Rules の foundation_rule_019「GitHub基準ソースとZIP返却契約」に従って対応。"
+        },
+        {
+          "history_id": "disc_0077_002_ai_report_v01553",
+          "at": "2026-06-28",
+          "speaker": "assistant",
+          "topic": "v0.15.5.3作業結果",
+          "message": "# AI回答\n\n## 今回の更新\n- `wwwroot/js/core/state.js`\n- `wwwroot/js/core/viewdef_context_contract.js`\n- `wwwroot/js/renderers/field_controls.js`\n- `wwwroot/js/renderers/grid_detail.js`\n- `wwwroot/js/runtime/load_runtime.js`\n- `wwwroot/js/runtime/detail_save.js`\n- `wwwroot/index.html`\n- `wwwroot/styles.css`\n- `defs/rules/context_refs_sample_view_def_v0_1.json`\n- `data/json/00_rules/context_refs_sample_data_v0_1.json`\n- `data/json/00_rules/frb_view_def_schema_v0_9.json`\n- `data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json`\n- `data/json/00_rules/TARGET_CONTEXT_DETAIL_PANEL_REPORT_v0_15_5_3.md`\n- `data/json/01_main/studio_work_incident_data_v0_74_context_model_cleanup_incidents_added.json`\n\n## やったこと\n- Data明細側 `context_refs[]` を対象文脈としてDetail上部へ表示する専用パネルを追加。\n- 「対象文脈 n件 / 必須n / 停止n」の要約をDetail上部に表示。\n- 対象文脈を展開して、Context Ref明細を編集・追加・削除・反映できるようにした。\n- Gridでは `context_refs[]` の生JSONではなく件数要約を表示するようにした。\n- 対象文脈は通常childArea末尾のobjectArray表示から除外し、Detail上部パネルを正本表示にした。\n- Schema / Rules / Sample ViewDef / Sample Data に v0.15.5.3 の契約を反映。\n\n## 方針\n- 主文脈 = 画面全体の入口。Data root `main_context_refs[]`。\n- 対象文脈 = 個別対象の入口。Data明細 `context_refs[]`。\n- ViewDefは文脈の中身を持たず、Data上の場所と表示・編集方法だけを宣言する。\n- 対象文脈は本文や変更履歴に埋もれさせず、Detail画面の先頭寄りに置く。\n\n## 確認結果\n- JSON parse：OK\n- JS `node --check`：OK\n- 対象文脈Detail上部パネル：OK\n- Grid件数要約：OK\n- 通常childArea末尾表示から対象文脈を除外：OK\n- ViewDef内に文脈実データなし：OK\n- 更新済みIncident JSONのZIP内収録：OK\n- runtime生成物除外：OK\n"
+        },
+        {
+          "history_id": "disc_0077_003_user_compact_ux_request",
+          "at": "2026-06-28",
+          "speaker": "user",
+          "topic": "v0.15.5.3対象文脈UX補修依頼",
+          "message": "対象文脈がある場合は横幅いっぱいを使う。主文脈と同様に普段は隠れていてボタンクリックで開く形にする。主文脈・対象文脈ともに余白を減らし、縦方向をコンパクトに調整する。"
+        },
+        {
+          "history_id": "disc_0077_004_ai_report_v015531_compact",
+          "at": "2026-06-28",
+          "speaker": "assistant",
+          "topic": "v0.15.5.3対象文脈UX補修結果",
+          "message": "# AI回答\n\n## 今回の更新\n- `wwwroot/js/core/state.js`\n- `wwwroot/js/core/viewdef_context_contract.js`\n- `wwwroot/js/runtime/load_runtime.js`\n- `wwwroot/index.html`\n- `wwwroot/styles.css`\n- `data/json/00_rules/TARGET_CONTEXT_DETAIL_PANEL_COMPACT_REPORT_v0_15_5_3_1.md`\n- `data/json/01_main/studio_work_incident_data_v0_74_context_model_cleanup_incidents_added.json`\n\n## やったこと\n- 対象文脈DetailパネルをDetail Form内で横幅いっぱい表示に変更。\n- `targetContextDetailPanelExpanded` の初期値を `false` にし、対象文脈も主文脈と同じく通常は要約表示に変更。\n- 「対象文脈を追加」ボタンは展開時のみ表示し、閉じている時の要約行をコンパクト化。\n- 主文脈・対象文脈のパネル、バッジ、テーブル、入力欄、フッターの余白を縮小し、縦方向をコンパクト化。\n- index.html のキャッシュバスターを更新。\n\n## 方針\n- 主文脈は画面全体の入口、対象文脈は明細の入口。\n- どちらも本文より前に置くが、明細は常時展開せず、必要な時だけ開く。\n- 対象文脈はDetail上部で横幅いっぱいを使い、横スクロール前提のContext Ref表を読みやすくする。\n\n## 確認結果\n- JSON parse：OK\n- JS `node --check`：OK\n- 対象文脈初期折りたたみ：OK\n- 対象文脈横幅いっぱい表示CSS：OK\n- 主文脈/対象文脈コンパクトCSS：OK\n- 更新済みIncident JSONのZIP内収録：OK\n- runtime生成物除外：OK\n"
         }
       ],
       "decision_log": [
@@ -8510,6 +8538,30 @@
           "at": "2026-06-28",
           "decision": "Gridでは対象文脈の中身を出しすぎず、件数要約を基本にする。",
           "reason": "文脈明細を一覧に展開するとGridの主目的が濁るため。"
+        },
+        {
+          "decision_id": "dec_0077_v01553_001",
+          "at": "2026-06-28",
+          "decision": "対象文脈はDetail上部パネルを正本表示とし、通常childArea末尾のobjectArray表示から除外する。",
+          "reason": "対象文脈は対象を扱う前の入口であり、本文や変更履歴の後ろに埋もれると意味が弱くなるため。"
+        },
+        {
+          "decision_id": "dec_0077_v01553_002",
+          "at": "2026-06-28",
+          "decision": "Gridではcontext_refs[]の生JSONではなく件数要約を表示する。",
+          "reason": "一覧では対象文脈の有無と件数が分かればよく、JSON全文を表示すると読みにくくなるため。"
+        },
+        {
+          "decision_id": "dec_0077_v015531_001",
+          "at": "2026-06-28",
+          "decision": "対象文脈Detailパネルは通常折りたたみ、必要時にボタンで展開する。",
+          "reason": "対象文脈は明細の入口だが、常時展開するとDetail本文の視認性を下げるため。"
+        },
+        {
+          "decision_id": "dec_0077_v015531_002",
+          "at": "2026-06-28",
+          "decision": "対象文脈パネルはDetail Form内で横幅いっぱいを使う。",
+          "reason": "Context Ref表は対象パス・目的など横に長い情報を持つため、左カラムに閉じ込めると読みにくいため。"
         }
       ],
       "change_history": [
@@ -8520,8 +8572,33 @@
           "before": "context_refs[]が通常データ行一覧として見える可能性があった。",
           "after": "対象文脈としてDetail上部に表示・編集する後続インシデントを追加。",
           "reason": "対象文脈を個別対象の入口として扱い、本文や履歴に埋もれさせないため。"
+        },
+        {
+          "history_id": "chg_0077_v01553_001",
+          "at": "2026-06-28",
+          "change_type": "target_context_detail_panel",
+          "before": "context_refs[]は通常objectArrayとしてchildAreaに表示され、GridではJSON文字列として見えやすかった。",
+          "after": "context_refs[]を対象文脈としてDetail上部パネルに表示し、Gridでは件数要約を表示する。",
+          "reason": "対象文脈を個別対象の入口として扱うため。"
+        },
+        {
+          "history_id": "chg_0077_v015531_001",
+          "at": "2026-06-28",
+          "change_type": "target_context_compact_layout",
+          "before": "対象文脈Detailパネルは初期展開され、Detail Formの左カラム相当の幅で表示されていた。",
+          "after": "対象文脈Detailパネルを初期折りたたみにし、展開時はDetail Formの横幅いっぱいで表示する。",
+          "reason": "対象文脈を明細の入口として見せつつ、通常時のDetail画面をコンパクトに保つため。"
+        },
+        {
+          "history_id": "chg_0077_v015531_002",
+          "at": "2026-06-28",
+          "change_type": "context_panel_compact_spacing",
+          "before": "主文脈・対象文脈パネルのpadding/marginが大きく、縦方向の占有が大きかった。",
+          "after": "主文脈・対象文脈パネル、バッジ、テーブル、入力欄、フッターの余白を縮小した。",
+          "reason": "文脈入口として常時見える要約部分を軽くし、画面密度を上げるため。"
         }
-      ]
+      ],
+      "actual_updated_files": "wwwroot/js/core/state.js\nwwwroot/js/core/viewdef_context_contract.js\nwwwroot/js/runtime/load_runtime.js\nwwwroot/index.html\nwwwroot/styles.css\ndata/json/00_rules/TARGET_CONTEXT_DETAIL_PANEL_COMPACT_REPORT_v0_15_5_3_1.md\ndata/json/01_main/studio_work_incident_data_v0_74_context_model_cleanup_incidents_added.json"
     }
   ],
   "review_notes": [

@@ -70,8 +70,14 @@ function formatNumber(value, pattern) {
 
 function formatValue(value, field=null) {
   if (value == null) return '';
+  if (typeof formatTargetContextValue === 'function') {
+    const targetContextText = formatTargetContextValue(value, field);
+    if (targetContextText != null) return targetContextText;
+  }
   if (field?.type === 'select') return String(optionLabelForValue(value, field) ?? '');
   if (field?.type === 'number') return formatNumber(value, field.format ?? field.grid?.format ?? field.edit?.format);
+  if (field?.type === 'objectArray' && Array.isArray(value)) return `${value.length}件`;
+  if (field?.type === 'stringArray' && Array.isArray(value)) return `${value.length}件`;
   if (typeof value === 'object') return JSON.stringify(value);
   return String(value);
 }

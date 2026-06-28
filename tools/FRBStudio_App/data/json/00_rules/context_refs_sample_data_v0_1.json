@@ -2,87 +2,100 @@
   "view_def": "rules/context_refs_sample_view_def_v0_1.json",
   "schema_version": "context_refs_sample_data_v0_1",
   "document_type": "context_refs_sample",
-  "title": "Context Model Sample / 主文脈・対象文脈サンプル",
+  "title": "Context Model Sample / \u4E3B\u6587\u8108\u30FB\u5BFE\u8C61\u6587\u8108\u30B5\u30F3\u30D7\u30EB",
   "status": "active",
   "created_at": "2026-06-28",
   "updated_at": "2026-06-28",
   "owner": "tamasub",
-  "purpose": "主文脈はData rootの main_context_refs[]、対象文脈はData明細側 context_refs[] に置くことを確認するためのサンプル。v0.15.5.2では主文脈を通常Gridではなくヘッダー要約+確認パネルで表示し、主Gridは対象一覧を扱う。",
+  "purpose": "\u4E3B\u6587\u8108\u306FData root\u306E main_context_refs[]\u3001\u5BFE\u8C61\u6587\u8108\u306FData\u660E\u7D30\u5074 context_refs[] \u306B\u7F6E\u304F\u3053\u3068\u3092\u78BA\u8A8D\u3059\u308B\u305F\u3081\u306E\u30B5\u30F3\u30D7\u30EB\u3002v0.15.5.3\u3067\u306F\u5BFE\u8C61\u6587\u8108\u3092Detail\u4E0A\u90E8\u306E\u5C02\u7528\u30D1\u30CD\u30EB\u3067\u8868\u793A\u30FB\u7DE8\u96C6\u3057\u3001Grid\u3067\u306F\u4EF6\u6570\u8981\u7D04\u3068\u3057\u3066\u6271\u3046\u3002",
   "main_context_refs": [
     {
       "context_ref_id": "main_001_foundation_rule_019_zip_contract",
-      "title": "Foundation Rule 19 / ZIP返却契約",
+      "title": "Foundation Rule 19 / ZIP\u8FD4\u5374\u5951\u7D04",
       "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
       "read_timing": "before_load",
-      "purpose": "作業前に返却ZIP契約・更新済みIncident収録・runtime生成物除外を確認する。",
+      "purpose": "\u4F5C\u696D\u524D\u306B\u8FD4\u5374ZIP\u5951\u7D04\u30FB\u66F4\u65B0\u6E08\u307FIncident\u53CE\u9332\u30FBruntime\u751F\u6210\u7269\u9664\u5916\u3092\u78BA\u8A8D\u3059\u308B\u3002",
       "failure_policy": "stop_and_ask",
       "trust_category": "canonical",
       "required": true,
       "enabled": true,
       "sort_order": 10,
-      "note": "主文脈の実データはData側に置く。ViewDef側には置かない。"
+      "note": "\u4E3B\u6587\u8108\u306E\u5B9F\u30C7\u30FC\u30BF\u306FData\u5074\u306B\u7F6E\u304F\u3002ViewDef\u5074\u306B\u306F\u7F6E\u304B\u306A\u3044\u3002"
     },
     {
       "context_ref_id": "main_002_context_model_cleanup_incident",
-      "title": "v0.15.5.1 インシデント scope",
+      "title": "v0.15.5.1 \u30A4\u30F3\u30B7\u30C7\u30F3\u30C8 scope",
       "target_path": "data/json/01_main/studio_work_incident_data_v0_74_context_model_cleanup_incidents_added.json#studio_work_0075",
       "read_timing": "before_code_update",
-      "purpose": "主文脈/対象文脈モデル整理のscopeを確認する。",
+      "purpose": "\u4E3B\u6587\u8108/\u5BFE\u8C61\u6587\u8108\u30E2\u30C7\u30EB\u6574\u7406\u306Escope\u3092\u78BA\u8A8D\u3059\u308B\u3002",
       "failure_policy": "stop_and_ask",
       "trust_category": "canonical",
       "required": true,
       "enabled": true,
       "sort_order": 20,
-      "note": "JS実装へ踏み込みすぎないための契約。"
+      "note": "JS\u5B9F\u88C5\u3078\u8E0F\u307F\u8FBC\u307F\u3059\u304E\u306A\u3044\u305F\u3081\u306E\u5951\u7D04\u3002"
     }
   ],
   "sample_targets": [
     {
       "target_id": "incident_sample_001",
       "target_type": "incident",
-      "title": "インシデント1件を扱う前の対象文脈",
+      "title": "\u30A4\u30F3\u30B7\u30C7\u30F3\u30C81\u4EF6\u3092\u6271\u3046\u524D\u306E\u5BFE\u8C61\u6587\u8108",
       "context_refs": [
         {
           "context_ref_id": "target_incident_001_scope",
-          "title": "対象インシデントのscopeを読む",
+          "title": "\u5BFE\u8C61\u30A4\u30F3\u30B7\u30C7\u30F3\u30C8\u306Escope\u3092\u8AAD\u3080",
           "read_timing": "before_code_update",
           "target_path": "data/json/01_main/studio_work_incident_data_v0_74_context_model_cleanup_incidents_added.json#studio_work_0075",
-          "purpose": "対象インシデントの目的・scope・out_of_scopeを確認し、JS実装へ踏み込みすぎない。",
+          "purpose": "\u5BFE\u8C61\u30A4\u30F3\u30B7\u30C7\u30F3\u30C8\u306E\u76EE\u7684\u30FBscope\u30FBout_of_scope\u3092\u78BA\u8A8D\u3057\u3001JS\u5B9F\u88C5\u3078\u8E0F\u307F\u8FBC\u307F\u3059\u304E\u306A\u3044\u3002",
           "failure_policy": "stop_and_ask",
           "trust_category": "canonical",
           "required": true,
           "enabled": true,
           "sort_order": 10,
-          "note": "対象文脈は明細本文より前に置く。"
+          "note": "\u5BFE\u8C61\u6587\u8108\u306F\u660E\u7D30\u672C\u6587\u3088\u308A\u524D\u306B\u7F6E\u304F\u3002"
+        },
+        {
+          "context_ref_id": "incident_sample_001_context_002",
+          "title": "\u5BFE\u8C61\u6587\u8108\u3092\u8FFD\u52A0",
+          "read_timing": "before_code_update",
+          "target_path": "00",
+          "purpose": "00",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
         }
       ],
-      "objective": "主文脈/対象文脈モデル整理の作業対象を扱う。",
+      "objective": "\u4E3B\u6587\u8108/\u5BFE\u8C61\u6587\u8108\u30E2\u30C7\u30EB\u6574\u7406\u306E\u4F5C\u696D\u5BFE\u8C61\u3092\u6271\u3046\u3002",
       "status": "sample",
-      "note": "context_refs[]はこの対象を扱う前に読む入口。"
+      "note": "context_refs[]\u306F\u3053\u306E\u5BFE\u8C61\u3092\u6271\u3046\u524D\u306B\u8AAD\u3080\u5165\u53E3\u3002"
     },
     {
       "target_id": "test_pattern_sample_001",
       "target_type": "test_pattern",
-      "title": "テストパターン1件を扱う前の対象文脈",
+      "title": "\u30C6\u30B9\u30C8\u30D1\u30BF\u30FC\u30F31\u4EF6\u3092\u6271\u3046\u524D\u306E\u5BFE\u8C61\u6587\u8108",
       "context_refs": [
         {
           "context_ref_id": "target_test_001_expected",
-          "title": "Expected定義を読む",
+          "title": "Expected\u5B9A\u7FA9\u3092\u8AAD\u3080",
           "read_timing": "before_test_update",
           "target_path": "data/json/02_expected/sample_expected_checks.json",
-          "purpose": "このテストパターンで確認できるExpectedだけを追加する。",
+          "purpose": "\u3053\u306E\u30C6\u30B9\u30C8\u30D1\u30BF\u30FC\u30F3\u3067\u78BA\u8A8D\u3067\u304D\u308BExpected\u3060\u3051\u3092\u8FFD\u52A0\u3059\u308B\u3002",
           "failure_policy": "warn_and_continue",
           "trust_category": "working",
           "required": false,
           "enabled": true,
           "sort_order": 10,
-          "note": "存在しないサンプルパス。構造例として扱う。"
+          "note": "\u5B58\u5728\u3057\u306A\u3044\u30B5\u30F3\u30D7\u30EB\u30D1\u30B9\u3002\u69CB\u9020\u4F8B\u3068\u3057\u3066\u6271\u3046\u3002"
         }
       ],
-      "objective": "テストパターン単位の追加文脈を扱う。",
+      "objective": "\u30C6\u30B9\u30C8\u30D1\u30BF\u30FC\u30F3\u5358\u4F4D\u306E\u8FFD\u52A0\u6587\u8108\u3092\u6271\u3046\u3002",
       "status": "sample",
-      "note": "対象単位が行ではなくパターンでも同じ構造を使える。"
+      "note": "\u5BFE\u8C61\u5358\u4F4D\u304C\u884C\u3067\u306F\u306A\u304F\u30D1\u30BF\u30FC\u30F3\u3067\u3082\u540C\u3058\u69CB\u9020\u3092\u4F7F\u3048\u308B\u3002"
     }
   ],
-  "notes": "v0.15.5.2: 主文脈はヘッダー要約+確認パネル、対象一覧は主Grid、対象文脈は対象明細内context_refs[]として扱う。"
+  "notes": "v0.15.5.3: \u4E3B\u6587\u8108\u306F\u30D8\u30C3\u30C0\u30FC\u8981\u7D04\u002B\u78BA\u8A8D\u30D1\u30CD\u30EB\u3001\u5BFE\u8C61\u4E00\u89A7\u306F\u4E3BGrid\u3001\u5BFE\u8C61\u6587\u8108\u306F\u5BFE\u8C61Detail\u4E0A\u90E8\u30D1\u30CD\u30EB\u3068\u3057\u3066\u6271\u3046\u3002"
 }

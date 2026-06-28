@@ -8,6 +8,8 @@ function renderDetailForRow(row) {
   const form = $('detailForm');
   form.innerHTML = '';
 
+  if (typeof renderTargetContextDetailPanel === 'function') renderTargetContextDetailPanel(row, gd, form);
+
   detailVisibleFields(gd)
     .filter(field => !isDetailFooterField(field))
     .forEach(field => {
@@ -40,7 +42,7 @@ function openNewDetail(row, statusMessage='新規登録画面を開きました'
 function renderChildArea(row, gd) {
   const area = $('childArea');
   area.innerHTML = '';
-  gd.fields.filter(f => f.type === 'objectArray' || f.type === 'stringArray').forEach(field => {
+  gd.fields.filter(f => (f.type === 'objectArray' || f.type === 'stringArray') && !(typeof isTargetContextField === 'function' && isTargetContextField(f))).forEach(field => {
     const data = getByPath(row, field.field);
     if (!Array.isArray(data)) return;
     const card = document.createElement('div');
