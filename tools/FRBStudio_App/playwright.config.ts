@@ -7,6 +7,8 @@ import { defineConfig } from '@playwright/test';
 // Exclude it from Playwright discovery so `npx playwright test --ui`
 // does not also execute/update Node-test evidence or diff artifacts.
 export default defineConfig({
+  testDir: './tests/screen_state',
+  testMatch: '**/*.spec.ts',
   testIgnore: [
     '**/qa/static/**',
   ],

@@ -6,7 +6,7 @@
   "target": "TestRunner.ps1 / Studio Test Runner",
   "status": "active",
   "created_at": "2026-06-27",
-  "updated_at": "2026-06-27",
+  "updated_at": "2026-06-28",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "command_profile_id": "test_runner",
@@ -21,9 +21,9 @@
       "command_profile_id": "test_runner",
       "test_runner_id": "playwright_ui",
       "run_mode": "launch",
-      "command_preview": "npx playwright test --ui",
+      "command_preview": "npx playwright test --config=playwright.config.ts --ui",
       "enabled": "true",
-      "note": "Playwright UIを起動する。起動後に終了しない可能性が高いためlaunch扱い。Playwright側の対象はplaywright.config.tsに従う。",
+      "note": "Playwright UIを起動する。起動後に終了しない可能性が高いためlaunch扱い。Playwright側の対象はplaywright.config.tsの testDir/testMatch に従い、screen_state の .spec.ts だけに絞る。",
       "output_artifact_path": "data/json/03_tests/screen_state/screen_state_smoke_001/diff/screen_state_smoke_001.diff.json"
     },
     {

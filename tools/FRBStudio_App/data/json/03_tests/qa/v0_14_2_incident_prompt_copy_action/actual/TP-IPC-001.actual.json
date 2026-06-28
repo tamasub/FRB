@@ -8,7 +8,7 @@
   "incident_file": "data/json/01_main/studio_work_incident_data_v0_54_incident_prompt_copy_action_implemented.json",
   "expected_file": "data/json/03_tests/qa/v0_14_2_incident_prompt_copy_action/expected/qa_expected_checks_v0_14_2_incident_prompt_copy_action_expected_values_added.json",
   "target_file": "defs/rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",
-  "capturedAt": "2026-06-27T16:34:27.518Z",
+  "capturedAt": "2026-06-28T13:21:56.900Z",
   "result_summary": {
     "total_count": 4
   },

@@ -28,30 +28,67 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-function Resolve-RepositoryRoot {
-    param([string]$InputRoot)
+function Test-StudioAppRoot {
+    param([string]$Path)
 
-    if (-not [string]::IsNullOrWhiteSpace($InputRoot)) {
-        $candidate = [System.IO.Path]::GetFullPath($InputRoot)
-        if (Test-Path -LiteralPath $candidate -PathType Container) {
-            return $candidate
-        }
-        throw "RepositoryRoot does not exist: $candidate"
-    }
+    if ([string]::IsNullOrWhiteSpace($Path)) { return $false }
+    if (-not (Test-Path -LiteralPath $Path -PathType Container)) { return $false }
 
-    $dir = Get-Location
-    while ($null -ne $dir) {
-        $gitDir = Join-Path $dir.Path '.git'
-        if (Test-Path -LiteralPath $gitDir -PathType Container) {
-            return $dir.Path
-        }
-        $dir = $dir.Parent
-    }
+    $packageJson = Join-Path $Path 'package.json'
+    $playwrightConfig = Join-Path $Path 'playwright.config.ts'
+    $screenStateTests = Join-Path $Path 'tests/screen_state'
 
-    return (Get-Location).Path
+    return (
+        (Test-Path -LiteralPath $packageJson -PathType Leaf) -and
+        (Test-Path -LiteralPath $playwrightConfig -PathType Leaf) -and
+        (Test-Path -LiteralPath $screenStateTests -PathType Container)
+    )
 }
 
-$root = Resolve-RepositoryRoot -InputRoot $RepositoryRoot
+function Resolve-StudioAppRoot {
+    param([string]$InputRoot)
+
+    $candidates = New-Object System.Collections.Generic.List[string]
+
+    if (-not [string]::IsNullOrWhiteSpace($InputRoot)) {
+        $inputCandidate = [System.IO.Path]::GetFullPath($InputRoot)
+        if (-not (Test-Path -LiteralPath $inputCandidate -PathType Container)) {
+            throw "RepositoryRoot does not exist: $inputCandidate"
+        }
+
+        # Backward compatibility:
+        # Program.cs / CommandProfile may pass the Git repository root (e.g. F:\FRB).
+        # Playwright assets live under tools/FRBStudio_App, so normalize it here.
+        $candidates.Add($inputCandidate)
+        $candidates.Add((Join-Path $inputCandidate 'tools/FRBStudio_App'))
+    }
+
+    # TestRunner.ps1 is stored under tools/test, so ../.. is the FRBStudio_App root.
+    if (-not [string]::IsNullOrWhiteSpace($PSScriptRoot)) {
+        $candidates.Add((Join-Path $PSScriptRoot '../..'))
+    }
+
+    # Last fallback for manual execution from the FRBStudio_App directory.
+    $current = (Get-Location).Path
+    $candidates.Add($current)
+    $candidates.Add((Join-Path $current 'tools/FRBStudio_App'))
+
+    $seen = @{}
+    foreach ($candidate in $candidates) {
+        if ([string]::IsNullOrWhiteSpace($candidate)) { continue }
+        $fullPath = [System.IO.Path]::GetFullPath($candidate)
+        if ($seen.ContainsKey($fullPath)) { continue }
+        $seen[$fullPath] = $true
+
+        if (Test-StudioAppRoot -Path $fullPath) {
+            return $fullPath
+        }
+    }
+
+    throw "FRBStudio_App root could not be resolved. Run from tools/FRBStudio_App or pass that path as -RepositoryRoot."
+}
+
+$root = Resolve-StudioAppRoot -InputRoot $RepositoryRoot
 Set-Location -LiteralPath $root
 
 $runner = switch ($TestRunnerId) {
@@ -60,8 +97,8 @@ $runner = switch ($TestRunnerId) {
             Id = 'playwright_ui'
             ExpectedRunMode = 'launch'
             Command = 'npx'
-            Arguments = @('playwright', 'test', '--ui')
-            Preview = 'npx playwright test --ui'
+            Arguments = @('playwright', 'test', '--config=playwright.config.ts', '--ui')
+            Preview = 'npx playwright test --config=playwright.config.ts --ui'
         }
     }
     'incident_prompt_copy_action_static' {

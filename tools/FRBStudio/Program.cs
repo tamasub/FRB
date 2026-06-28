@@ -673,7 +673,7 @@ internal static class Program
             var result = new
             {
                 success = true,
-                result_kind = "test_passed",
+                result_kind = "command_launched",
                 profile_id = profile.Id,
                 display_name = profile.DisplayName,
                 test_runner_id = testRunnerId,

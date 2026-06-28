@@ -448,9 +448,24 @@ function showCommandProfileResultDialog(result, caption) {
   });
 }
 
+function isCommandProfileLaunchResult(result) {
+  return String(result?.run_mode || '').toLowerCase() === 'launch'
+    || result?.result_kind === 'command_launched';
+}
+
 function commandProfileStatusFromResult(result, caption) {
   const kind = result?.result_kind || '';
   const exitCode = result?.exit_code !== undefined && result?.exit_code !== null ? ` exit_code=${result.exit_code}` : '';
+
+  // v0.16.6-test-runner-launch-toast:
+  // launch mode は「テスト結果」ではなく「対話型UIの起動」として扱う。
+  // 画面を塞ぐ結果ダイアログではなく、短時間の軽いトーストだけにする。
+  if (isCommandProfileLaunchResult(result)) {
+    return {
+      message: result?.message || `${caption} を起動しました`,
+      options: { kind: 'success', title: '起動しました', duration: 3200, sticky: false }
+    };
+  }
 
   if (kind === 'test_failed') {
     return {
@@ -495,7 +510,7 @@ registerStudioAction('RunCommandProfile', async (context={}) => {
   const result = await postCommandProfileRun(request);
   console.log('RunCommandProfile result', result);
 
-  if (result?.result_kind === 'test_failed') {
+  if (result?.result_kind === 'test_failed' && !isCommandProfileLaunchResult(result)) {
     showCommandProfileResultDialog(result, caption);
   }
 
