@@ -1,0 +1,50 @@
+{
+  "view_def": "rules/context_refs_sample_view_def_v0_1.json",
+  "schema_version": "context_refs_sample_data_v0_1",
+  "document_type": "context_refs_sample",
+  "title": "Context Refs Sample / AI文脈制御サンプル",
+  "status": "active",
+  "created_at": "2026-06-28",
+  "updated_at": "2026-06-28",
+  "owner": "tamasub",
+  "purpose": "context.read_timing Enum と context.context_read_timing FieldType の利用例。Runtimeのread_contract実行制御は後続インシデントで扱う。",
+  "context_refs": [
+    {
+      "context_ref_id": "ctx_001_foundation_before_load",
+      "title": "憲法・Foundation Rulesを作業前に読む",
+      "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json",
+      "read_timing": "before_load",
+      "purpose": "作業開始前に返却契約・保護フォルダ・インシデント記録方針を確認する。",
+      "failure_policy": "stop_and_ask",
+      "trust": "canonical",
+      "note": "v0.15.3ではサンプル。実行制御はv0.15.5以降のread_contract側で扱う。"
+    },
+    {
+      "context_ref_id": "ctx_002_incident_before_code_update",
+      "title": "対象インシデントをコード更新前に読む",
+      "target_path": "data/json/01_main/studio_work_incident_data_v0_74_proposal_driven_jobflow_added.json",
+      "read_timing": "before_code_update",
+      "purpose": "phase / scope / out_of_scope / test_points を読み、推測実装を避ける。",
+      "failure_policy": "stop_and_ask",
+      "trust": "working",
+      "note": "Data行ごとの文脈参照にread_timingを持たせる例。"
+    },
+    {
+      "context_ref_id": "ctx_003_zip_contract_before_return",
+      "title": "ZIP返却契約を返却直前に読む",
+      "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+      "read_timing": "before_zip_return",
+      "purpose": "runtime生成物除外、更新済みIncident収録、JSON parse確認を返却直前に確認する。",
+      "failure_policy": "warn_and_stop",
+      "trust": "canonical",
+      "note": "before_zip_return の利用例。"
+    }
+  ],
+  "notes": [
+    {
+      "note_id": "note_context_sample_001",
+      "at": "2026-06-28",
+      "body": "context_refs は将来のread_contract実行制御の素材。v0.15.3ではEnum/FieldType/サンプルのみを追加する。"
+    }
+  ]
+}

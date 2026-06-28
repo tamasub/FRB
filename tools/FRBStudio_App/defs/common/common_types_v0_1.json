@@ -1434,6 +1434,34 @@
           "readonly": false
         }
       }
+    },
+    "context": {
+      "caption": "AI文脈制御",
+      "description": "context_refs / read_contract など、AI文脈参照制御で使う共通FieldType。",
+      "fieldTypes": {
+        "context_read_timing": {
+          "caption": "読みタイミング",
+          "baseType": "select",
+          "enumRef": "context.read_timing",
+          "valueField": "cd",
+          "labelField": "name",
+          "grid": {
+            "visible": true,
+            "width": 150
+          },
+          "edit": {
+            "visible": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "equals"
+          },
+          "notes": "v0.15.3: context.read_timing をEnum正本として参照するFieldType。v0.15.3.1でAPI相対パス補正と合わせて再収録。"
+        }
+      },
+      "fieldGroups": {},
+      "tableTypes": {},
+      "fileTypes": {}
     }
   },
   "change_history": [
@@ -1444,6 +1472,14 @@
       "before": "common_types は select FieldType に options を直持ちしており、enumRef の代表例がなかった。",
       "after": "qa.risk に enumRef=qa.risk_level を追加し、互換用optionsを保持。あわせて qa.risk_enumref_only_sample を追加し、enumRefのみでoptions解決できる確認用FieldTypeを用意。",
       "reason": "v0.15.2-fieldtype-enumref-resolve でEnumを値正本、FieldTypeを画面項目としての使い方へ責務分離するため。"
+    },
+    {
+      "history_id": "chg_common_types_v0_15_3_1_context_read_timing_path_fix",
+      "at": "2026-06-28",
+      "change_type": "field_type_context_enumref_fix",
+      "before": "context.context_read_timing が存在しない場合、context_refs_sample の読みタイミングselectに候補が出なかった。",
+      "after": "context.context_read_timing を追加し、enumRef=context.read_timing を参照する。",
+      "reason": "context_refs_sample_view_def_v0_1.json の fieldType 参照を解決し、読みタイミング候補をDetail selectに表示するため。"
     }
   ]
 }

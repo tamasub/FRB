@@ -300,6 +300,88 @@
           ]
         }
       ]
+    },
+    {
+      "namespace_id": "context",
+      "name": "AI文脈制御",
+      "description": "AI/Runtimeが文脈参照をいつ読むか、どのタイミングで扱うかを表す共通語彙。v0.15.3では語彙定義とFieldType参照のみを扱い、実行制御は後続read_contractで扱う。",
+      "sort_order": 40,
+      "deprecated": false,
+      "enums": [
+        {
+          "enum_id": "read_timing",
+          "enum_ref": "context.read_timing",
+          "name": "文脈読みタイミング",
+          "description": "AI作業やRuntime処理のどの時点でcontext_refsを読むかを表す。",
+          "sort_order": 10,
+          "deprecated": false,
+          "items": [
+            {
+              "cd": "before_load",
+              "name": "読込前",
+              "description": "対象Data/ViewDef/Rulesを読み込む前に参照する。",
+              "sort_order": 10,
+              "deprecated": false
+            },
+            {
+              "cd": "after_load",
+              "name": "読込後",
+              "description": "対象Data/ViewDefを読み込んだ後に参照する。",
+              "sort_order": 20,
+              "deprecated": false
+            },
+            {
+              "cd": "on_row_select",
+              "name": "行選択時",
+              "description": "行が選択された時に、その行に紐づく文脈を参照する。",
+              "sort_order": 30,
+              "deprecated": false
+            },
+            {
+              "cd": "before_edit",
+              "name": "編集前",
+              "description": "編集操作を始める前に参照する。",
+              "sort_order": 40,
+              "deprecated": false
+            },
+            {
+              "cd": "before_save",
+              "name": "保存前",
+              "description": "保存処理の前に参照する。",
+              "sort_order": 50,
+              "deprecated": false
+            },
+            {
+              "cd": "before_review",
+              "name": "レビュー前",
+              "description": "レビュー・確認の前に参照する。",
+              "sort_order": 60,
+              "deprecated": false
+            },
+            {
+              "cd": "before_diff_story",
+              "name": "差分物語生成前",
+              "description": "AI差分物語や差分レビューを生成する前に参照する。",
+              "sort_order": 70,
+              "deprecated": false
+            },
+            {
+              "cd": "before_code_update",
+              "name": "コード更新前",
+              "description": "コードや設定ファイルを更新する前に参照する。",
+              "sort_order": 80,
+              "deprecated": false
+            },
+            {
+              "cd": "before_zip_return",
+              "name": "ZIP返却前",
+              "description": "成果物ZIPを返す直前に参照する。",
+              "sort_order": 90,
+              "deprecated": false
+            }
+          ]
+        }
+      ]
     }
   ],
   "notes": [
@@ -332,6 +414,14 @@
       "before": "v0.15.1時点ではStudio Runtimeはcommon_enumsを自動解決しない方針だった。",
       "after": "v0.15.2でselect系FieldTypeのenumRefをcommon_enumsから解決する方針へ更新。enumRefが正本、optionsは互換用・キャッシュ・展開結果として扱う。",
       "reason": "FieldTypeとEnumの責務分離をRuntime解決へ接続するため。"
+    },
+    {
+      "history_id": "chg_common_enums_v0_15_3_1_context_path_fix",
+      "at": "2026-06-28",
+      "change_type": "context_enum_path_fix",
+      "before": "context.read_timing が添付ZIP側に存在しない、またはRuntime既定パスが json/00_rules/common_enums_v0_1.json で /api/data/json/00_rules へずれていた。",
+      "after": "context.read_timing を定義し、Runtime既定パスを 00_rules/common_enums_v0_1.json に補正。",
+      "reason": "/api/data は data/json 起点であるため、Enum正本を正しいAPI相対パスで読み込む必要があるため。"
     }
   ]
 }

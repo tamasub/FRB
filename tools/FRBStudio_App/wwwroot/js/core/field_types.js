@@ -17,17 +17,26 @@ function normalizeCommonTypeSourceItems(defObj) {
   return out;
 }
 
+function normalizeDataJsonApiPath(name) {
+  const n = safeJsonFileName(name);
+  if (!n) return null;
+  // /api/data は data/json を起点にするため、定義側で data/json/ や json/ を含めていてもAPI用相対パスへ正規化する。
+  if (n.startsWith('data/json/')) return n.slice('data/json/'.length);
+  if (n.startsWith('json/')) return n.slice('json/'.length);
+  return n;
+}
+
 function normalizeCommonEnumSourceItems(defObj) {
   const raw = defObj?.commonEnumSources ?? defObj?.common_enum_sources ?? defObj?.enumSources ?? defObj?.enum_sources ?? null;
   const out = [];
   const push = (value, explicit=true) => {
-    const n = safeJsonFileName(value);
+    const n = normalizeDataJsonApiPath(value);
     if (n) out.push({ name: n, explicit });
   };
   if (Array.isArray(raw)) raw.forEach(x => push(x, true));
   else if (typeof raw === 'string') push(raw, true);
 
-  // v0.15.2: Enum正本はroot data/json/00_rules配下を既定ソースとする。
+  // v0.15.3.1: Enum正本は /api/data の起点(data/json)からの相対パスで指定する。
   // 存在しない環境では警告に留め、既存options直書きViewDef/FieldTypeの互換性を保つ。
   if (!out.some(x => x.name === DEFAULT_COMMON_ENUMS_FILE)) out.push({ name: DEFAULT_COMMON_ENUMS_FILE, explicit: false });
   return out;

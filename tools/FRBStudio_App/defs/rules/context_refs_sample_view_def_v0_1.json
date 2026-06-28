@@ -1,0 +1,201 @@
+{
+  "app": {
+    "title": "Context Refs Sample"
+  },
+  "fieldTypeSources": [
+    "common/common_types_v0_1.json"
+  ],
+  "views": [
+    {
+      "id": "main",
+      "caption": "Context Refs / AI文脈制御サンプル",
+      "layout": {
+        "detailDialog": "wide"
+      },
+      "toolbar": {
+        "executeButton": {
+          "visible": true,
+          "caption": "Markdown出力",
+          "action": "ExportMarkdown"
+        }
+      },
+      "sections": [
+        {
+          "id": "summary",
+          "type": "form",
+          "caption": "概要",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "purpose",
+              "caption": "目的",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 90
+              }
+            },
+            {
+              "field": "updated_at",
+              "caption": "更新日",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "contextRefsGrid",
+          "type": "grid",
+          "caption": "Context Refs",
+          "dataPath": "$.context_refs",
+          "fields": [
+            {
+              "field": "context_ref_id",
+              "caption": "Context Ref ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 210
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 300
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "read_timing",
+              "caption": "読みタイミング",
+              "fieldType": "context.context_read_timing"
+            },
+            {
+              "field": "target_path",
+              "caption": "対象パス",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 360
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "purpose",
+              "caption": "読む目的",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 420
+              },
+              "edit": {
+                "visible": true,
+                "height": 90
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "failure_policy",
+              "caption": "失敗時方針",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 140
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "trust",
+              "caption": "信頼区分",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 110
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "note",
+              "caption": "メモ",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 360
+              },
+              "edit": {
+                "visible": true,
+                "height": 90
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "commonEnumSources": [
+    "00_rules/common_enums_v0_1.json"
+  ]
+}
