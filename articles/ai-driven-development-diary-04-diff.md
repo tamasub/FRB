@@ -447,6 +447,10 @@ AI駆動開発のための、文脈育成装置になり始めている。
 
 ![alt text](/images/ai-driven-development-diary-04_studio.png)
 
+[こちらから現在開発中 Studioくん のインシデント管理している画面見れます！現在進行中！！](https://tamasub.github.io/FRB/tools/FRBStudio_App/wwwroot/?data=data/json/01_main/studio_work_incident_data_v0_00.json&mode=readonly)
+
+
+
 ■ JSON 差分ビュアー
 ![alt text](/images/ai-driven-development-diary-04_json_diff_viewer.png)
 
