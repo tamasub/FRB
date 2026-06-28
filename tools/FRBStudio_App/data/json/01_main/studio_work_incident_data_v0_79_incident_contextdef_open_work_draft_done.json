@@ -12,7 +12,7 @@
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。",
-  "items_count": 80,
+  "items_count": 81,
   "work_items": [
     {
       "work_item_id": "studio_work_0001",
@@ -10802,6 +10802,84 @@
       "verification_status": "確認済み",
       "actual_updated_files": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json\ndefs/rules/studio_work_incident_view_def_v0_5.json\ndefs/studio_work_incident_view_def_v0_5.json",
       "verification_log": "JSON parse確認: OK\nContextDef素案投入対象: baseline未着手25件\n完了済み作業へのcontext_def_draft新規投入: 0件\nViewDef v0.5 JSON parse確認: OK\nZIP内に更新後インシデントJSONとViewDef v0.5を収録"
+    },
+    {
+      "work_item_id": "studio_work_0081",
+      "phase": "v0.16.4-context-grid-preview-and-main-context-draft",
+      "title": "主文脈素案設定 / グリッドプレビュー表示",
+      "incident_type": "feature_improvement",
+      "category": "context_preview",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-28",
+      "updated_at": "2026-06-28",
+      "target_files": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json, defs/rules/studio_work_incident_view_def_v0_5.json, wwwroot/js/runtime/detail_subgrid_edit.js, wwwroot/js/core/viewdef_context_contract.js, wwwroot/styles.css, wwwroot/index.html",
+      "objective": "インシデント管理Dataに主文脈の素案を設定し、Detail画面の各グリッドを横スクロールだけでなくカード型プレビューで読めるようにする。",
+      "background": "ContextDef / 対象文脈のグリッド編集は生まれたが、横スクロールとtextarea中心の表示では文脈を確認しづらい。主文脈もまだData root側に素案がなく、作業全体を扱う前に何を読むべきかの入口が弱い。まず主文脈素案をData rootに置き、各グリッドには読み物用プレビューを追加する。",
+      "scope": "Data rootへ main_context_draft / main_context_refs を追加し、ViewDef v0.5に main_context 設定を追加する。Detail内 objectArray / stringArray サブグリッドにプレビューボタンを追加し、現在編集中の未反映セルも含めてカード表示できるようにする。主文脈・対象文脈の専用グリッドにもプレビューボタンを追加する。",
+      "out_of_scope": "本格的な読み物モードテンプレート、カード内編集、Markdownセル編集の完全対応、多段ネストのプレビュー、外部DataGrid導入は今回対象外。まず読める入口を作る。",
+      "fixed_name_policy": "Runtimeは特定Dataフィールド名に依存してプレビュー対象を決めない。Detailサブグリッドはfield.typeがobjectArray/stringArrayであること、主文脈/対象文脈はViewDef context設定で宣言されたdata_path/fieldを使う。",
+      "module_policy": "type=\"module\"化は行わない。既存の従来script方式のまま、detail_subgrid_edit.jsとviewdef_context_contract.jsへ小さく追加する。",
+      "expected_outputs": "主文脈素案、ViewDef v0.5のmain_context設定、各グリッドのプレビューボタン、カード型プレビューOverlay、CSS、更新済みインシデントJSON、成果物ZIP。",
+      "risk": "編集中セルの値をプレビューするだけでDataへ反映したと誤解するリスクがある。プレビューは未反映値も読むための表示であり、保存はF12/反映/上書き保存の既存契約を維持する必要がある。",
+      "test_points": "主文脈パネルに主文脈Refsが表示されること。主文脈/対象文脈/Detailサブグリッドのプレビューボタンでカード表示が開くこと。未反映の編集中セルがプレビューに反映されること。F12反映と保存契約が壊れないこと。JS構文チェックが通ること。",
+      "user_request": "① 添付のインシデントの主文脈の素案設定。② エディター画面の各グリッドのプレビュー表示機能に対応。文脈を確認できないので対応してほしい。",
+      "ai_response": "主文脈素案をData rootに設定し、ViewDef v0.5へmain_context定義を追加。Detailサブグリッド、主文脈、対象文脈の各グリッドにプレビューボタンを追加し、横スクロールではなくカード表示で読める入口を実装した。",
+      "latest_user_comment": "ありがとぉーーーとりあえず読めないけどねっ笑　とりいそぎ、2点対応お願いします。\n①　添付のインシデントの主文脈の素案 設定をお願いします。\n②　エディター画面の各グリッドのプレビュー表示機能に対応してください。（文脈を確認できないので笑）\n以上よろしく！！",
+      "latest_ai_response": "v0.16.4-context-grid-preview-and-main-context-draft として対応。main_context_refs/main_context_draftをData rootへ追加し、ViewDef v0.5にmain_contextを追加。Detailサブグリッド、主文脈、対象文脈の各グリッドからカード型プレビューを開けるようにした。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0081_001",
+          "at": "2026-06-28",
+          "speaker": "user",
+          "topic": "主文脈素案とグリッドプレビュー依頼",
+          "message": "ありがとぉーーーとりあえず読めないけどねっ笑　とりいそぎ、2点対応お願いします。① 添付のインシデントの主文脈の素案設定。② エディター画面の各グリッドのプレビュー表示機能に対応。文脈を確認できないので対応してほしい。"
+        },
+        {
+          "history_id": "disc_0081_002",
+          "at": "2026-06-28",
+          "speaker": "assistant",
+          "topic": "v0.16.4対応結果",
+          "message": "AI回答\n\n## 今回の更新\n\n- Data rootへ主文脈素案を追加\n- ViewDef v0.5へmain_context設定を追加\n- Detailサブグリッドにプレビューボタンを追加\n- 主文脈/対象文脈の専用グリッドにもプレビューボタンを追加\n\n## 方針\n\nグリッドは編集用、プレビューは読むためのUIとして分離する。プレビューは未反映の編集中セルも読み取るが、親JSONへの同期は従来どおりF12/反映で行う。\n\n## 確認結果\n\n- JSON parse: OK\n- JS構文確認: OK\n- 成果物ZIP収録: OK"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0081_001",
+          "at": "2026-06-28",
+          "decision": "グリッドは編集用、プレビューは読むためのUIとして分離する。",
+          "reason": "objectArray/stringArrayを直接編集できるようになった一方、横スクロールのグリッドでは文脈を読む体験が弱いため。"
+        },
+        {
+          "decision_id": "dec_0081_002",
+          "at": "2026-06-28",
+          "decision": "プレビューは未反映の編集中セルも対象にするが、Data同期はF12/反映のまま維持する。",
+          "reason": "文脈確認には編集中の値を見たいが、保存境界を曖昧にするとStudioの安心ポイントが崩れるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0081_001",
+          "at": "2026-06-28",
+          "change_type": "main_context_draft_added",
+          "before": "インシデント管理Data rootに主文脈素案がなく、各作業項目の対象文脈だけが中心だった。",
+          "after": "Data rootに main_context_status / main_context_updated_at / main_context_draft / main_context_refs を追加し、ViewDef v0.5にmain_context設定を追加した。",
+          "reason": "インシデント管理Data全体を扱う前に読むべき文脈入口を作るため。"
+        },
+        {
+          "history_id": "chg_0081_002",
+          "at": "2026-06-28",
+          "change_type": "grid_preview_added",
+          "before": "objectArray/stringArrayやcontext_refsは編集グリッドで表示されるが、長文セルや横スクロールにより文脈を読みづらかった。",
+          "after": "各グリッドにプレビューボタンを追加し、行ごとのカード形式で読むOverlayを表示できるようにした。",
+          "reason": "編集できるだけでなく、文脈として読める状態にするため。"
+        }
+      ],
+      "verification_status": "確認済み",
+      "actual_updated_files": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json, defs/rules/studio_work_incident_view_def_v0_5.json, wwwroot/js/runtime/detail_subgrid_edit.js, wwwroot/js/core/viewdef_context_contract.js, wwwroot/styles.css, wwwroot/index.html",
+      "verification_log": "JSON parse OK。JS構文確認 OK。主文脈/対象文脈/Detailサブグリッドのプレビュー関数追加を確認。runtime生成物は成果物ZIPから除外。"
     }
   ],
   "review_notes": [
@@ -11180,6 +11258,63 @@
       "role": "default",
       "status": "active",
       "note": "FRB Studio改修インシデント管理の標準ViewDef"
+    }
+  ],
+  "main_context_status": "draft",
+  "main_context_updated_at": "2026-06-28",
+  "main_context_draft": "# 主文脈素案: インシデント管理Data\n\n## 読む目的\nこのインシデント管理Data全体を扱うAIが、作業前に読むべき正本・ViewDef・Foundation Rules・Runtime対象を確認できるようにする。\n\n## 基本方針\n- Data JSONを作業台帳の正本として扱う。\n- ViewDefは表示・編集体験の定義として扱う。\n- 主文脈はData全体を扱う前に読む入口、対象文脈は各作業項目を扱う前に読む入口として分ける。\n- グリッドは編集用、プレビューは読むためのUIとして分離する。\n\n## 注意\nFoundation Rule 19のZIP返却契約とdiscussion_history実発言契約を優先する。",
+  "main_context_refs": [
+    {
+      "context_ref_id": "main_incident_001_current_incident_data",
+      "title": "インシデント管理Data正本を読む",
+      "read_timing": "before_work",
+      "target_path": "data/json/01_main/studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json",
+      "purpose": "作業項目全体、未完了作業のContextDef素案、今回対象の作業履歴を確認する。",
+      "failure_policy": "stop_and_ask",
+      "trust_category": "canonical",
+      "required": true,
+      "enabled": true,
+      "sort_order": 10,
+      "note": "v0.16.4で主文脈素案として追加。"
+    },
+    {
+      "context_ref_id": "main_incident_002_foundation_rule_019",
+      "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+      "read_timing": "before_output",
+      "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+      "purpose": "更新対象ファイル、更新後インシデントJSON、成果物ZIP、discussion_historyの実発言契約を確認する。",
+      "failure_policy": "stop_and_ask",
+      "trust_category": "canonical",
+      "required": true,
+      "enabled": true,
+      "sort_order": 20,
+      "note": "AI作業返却時の必読ルール。"
+    },
+    {
+      "context_ref_id": "main_incident_003_viewdef_v0_5",
+      "title": "インシデントViewDef v0.5を読む",
+      "read_timing": "before_work",
+      "target_path": "defs/rules/studio_work_incident_view_def_v0_5.json",
+      "purpose": "ContextDef / 対象文脈、主文脈、作業内容カード、各objectArray表示の定義を確認する。",
+      "failure_policy": "warn_and_continue",
+      "trust_category": "canonical",
+      "required": false,
+      "enabled": true,
+      "sort_order": 30,
+      "note": "v0.16.4でmain_context設定とグリッドプレビュー導線を確認する対象。"
+    },
+    {
+      "context_ref_id": "main_incident_004_preview_runtime",
+      "title": "グリッドプレビューRuntimeの対象ファイルを読む",
+      "read_timing": "before_code_update",
+      "target_path": "wwwroot/js/runtime/detail_subgrid_edit.js; wwwroot/js/core/viewdef_context_contract.js; wwwroot/styles.css; wwwroot/index.html",
+      "purpose": "Detailサブグリッド、主文脈、対象文脈のプレビュー表示実装とCSSを確認する。",
+      "failure_policy": "warn_and_continue",
+      "trust_category": "reference",
+      "required": false,
+      "enabled": true,
+      "sort_order": 40,
+      "note": "各グリッドを横スクロールではなくカード表示で読めるようにする実装対象。"
     }
   ]
 }

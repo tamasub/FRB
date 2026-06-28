@@ -262,6 +262,87 @@ function createMainContextInput(refs, index, field, value, type='text') {
   return input;
 }
 
+
+function createContextPreviewButton(label, title, onClick) {
+  if (typeof createSubGridActionButton === 'function') return createSubGridActionButton(label, title, onClick);
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'ghost-button small';
+  btn.textContent = label;
+  btn.title = title;
+  btn.addEventListener('click', onClick);
+  return btn;
+}
+
+function mainContextColumnMetas(cfg) {
+  return [
+    { label: 'タイトル', field: cfg.title_field, key: 'title', type: 'text' },
+    { label: '読みタイミング', field: cfg.read_timing_field, key: 'read_timing', type: 'text' },
+    { label: '対象パス', field: cfg.target_path_field, key: 'target_path', type: 'textarea' },
+    { label: '読む目的', field: cfg.purpose_field, key: 'purpose', type: 'textarea' },
+    { label: '失敗時方針', field: cfg.failure_policy_field, key: 'failure_policy', type: 'text' },
+    { label: '信頼区分', field: cfg.trust_category_field, key: 'trust_category', type: 'text' },
+    { label: '必須', field: cfg.required_field, key: 'required', type: 'checkbox' },
+    { label: '有効', field: cfg.enabled_field, key: 'enabled', type: 'checkbox' },
+    { label: 'メモ', field: cfg.note_field, key: 'note', type: 'textarea' }
+  ];
+}
+
+function collectContextPreviewRowsFromPanel(panel, refs, indexAttr, fieldAttr) {
+  const rows = normalizeArray(refs).map(ref => ({ ...(ref ?? {}) }));
+  if (!panel) return rows;
+  [...panel.querySelectorAll(`[${indexAttr}][${fieldAttr}]`)].forEach(control => {
+    const index = Number(control.getAttribute(indexAttr));
+    const field = control.getAttribute(fieldAttr);
+    if (!Number.isInteger(index) || index < 0 || !field) return;
+    if (!rows[index]) rows[index] = {};
+    if (control.type === 'checkbox') rows[index][field] = control.checked;
+    else if (control.type === 'number') rows[index][field] = control.value === '' ? null : Number(control.value);
+    else rows[index][field] = control.value;
+  });
+  return rows;
+}
+
+function openContextRefsPreview({ title, refs, metas, panel, indexAttr, fieldAttr }) {
+  if (typeof showDetailSubGridPreview !== 'function') return;
+  const rows = collectContextPreviewRowsFromPanel(panel, refs, indexAttr, fieldAttr);
+  const columns = (metas ?? []).map(meta => ({
+    field: meta.field,
+    caption: meta.label,
+    type: meta.type === 'checkbox' ? 'boolean' : meta.type
+  }));
+  showDetailSubGridPreview({
+    title,
+    rows,
+    columns,
+    type: 'objectArray',
+    field: { type: 'objectArray', markdown: { enabled: true, allowLinks: true, allowImages: false } },
+    note: '未反映の編集中セルも含めて表示します'
+  });
+}
+
+function openMainContextPreview(panel, cfg) {
+  openContextRefsPreview({
+    title: `${cfg?.display_name || '主文脈'} プレビュー`,
+    refs: mainContextRefs(),
+    metas: mainContextColumnMetas(cfg),
+    panel,
+    indexAttr: 'data-main-context-index',
+    fieldAttr: 'data-main-context-field'
+  });
+}
+
+function openTargetContextPreview(panel, row, cfg) {
+  openContextRefsPreview({
+    title: `${cfg?.display_name || '対象文脈'} プレビュー`,
+    refs: targetContextRefsFromRow(row, cfg, false),
+    metas: targetContextColumnMetas(cfg),
+    panel,
+    indexAttr: 'data-target-context-index',
+    fieldAttr: 'data-target-context-field'
+  });
+}
+
 function renderMainContextHeaderPanel(host) {
   const section = host ?? $('headerSection');
   if (!section) return;
@@ -304,6 +385,9 @@ function renderMainContextHeaderPanel(host) {
     renderMainContextHeaderPanel(section);
   });
   actions.appendChild(toggle);
+  if (mainContextPanelExpanded && typeof showDetailSubGridPreview === 'function') {
+    actions.appendChild(createContextPreviewButton('プレビュー', '主文脈をカード表示で読む', () => openMainContextPreview(panel, cfg)));
+  }
   summary.appendChild(actions);
   panel.appendChild(summary);
 
@@ -313,21 +397,24 @@ function renderMainContextHeaderPanel(host) {
   tableWrap.className = 'main-context-table-wrap';
   const table = document.createElement('table');
   table.className = 'main-context-table';
-  table.innerHTML = '<thead><tr><th>#</th><th>タイトル</th><th>読みタイミング</th><th>対象パス</th><th>読む目的</th><th>失敗時方針</th><th>信頼区分</th><th>必須</th><th>有効</th></tr></thead>';
+  const mainMetas = mainContextColumnMetas(cfg);
+  const thead = document.createElement('thead');
+  const trh = document.createElement('tr');
+  const thNo = document.createElement('th');
+  thNo.textContent = '#';
+  trh.appendChild(thNo);
+  mainMetas.forEach(meta => {
+    const th = document.createElement('th');
+    th.textContent = meta.label;
+    trh.appendChild(th);
+  });
+  thead.appendChild(trh);
+  table.appendChild(thead);
   const tbody = document.createElement('tbody');
   refs.forEach((ref, index) => {
     const tr = document.createElement('tr');
     const order = readContextRefValue(ref, cfg, 'sort_order') || index + 1;
-    const fields = [
-      { field: cfg.title_field, key: 'title', type: 'text' },
-      { field: cfg.read_timing_field, key: 'read_timing', type: 'text' },
-      { field: cfg.target_path_field, key: 'target_path', type: 'textarea' },
-      { field: cfg.purpose_field, key: 'purpose', type: 'textarea' },
-      { field: cfg.failure_policy_field, key: 'failure_policy', type: 'text' },
-      { field: cfg.trust_category_field, key: 'trust_category', type: 'text' },
-      { field: cfg.required_field, key: 'required', type: 'checkbox' },
-      { field: cfg.enabled_field, key: 'enabled', type: 'checkbox' }
-    ];
+    const fields = mainMetas;
     const no = document.createElement('td');
     no.textContent = String(order);
     tr.appendChild(no);
@@ -553,6 +640,9 @@ function renderTargetContextDetailPanel(row, gd, host) {
   });
   actions.appendChild(toggle);
   if (targetContextDetailPanelExpanded) {
+    if (typeof showDetailSubGridPreview === 'function') {
+      actions.appendChild(createContextPreviewButton('プレビュー', '対象文脈をカード表示で読む', () => openTargetContextPreview(panel, row, cfg)));
+    }
     const addBtn = document.createElement('button');
     addBtn.type = 'button';
     addBtn.className = 'ghost-button small';

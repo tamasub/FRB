@@ -1407,6 +1407,25 @@
       "sort_order_field": "sort_order",
       "note_field": "note",
       "grid_summary": true
+    },
+    "main_context": {
+      "enabled": true,
+      "display_name": "主文脈",
+      "data_path": "$.main_context_refs",
+      "description": "インシデント管理Data全体を扱う前に読む主文脈。v0.16.4ではData rootに文脈素案として設定する。",
+      "id_field": "context_ref_id",
+      "title_field": "title",
+      "target_path_field": "target_path",
+      "read_timing_field": "read_timing",
+      "failure_policy_field": "failure_policy",
+      "trust_category_field": "trust_category",
+      "purpose_field": "purpose",
+      "required_field": "required",
+      "enabled_field": "enabled",
+      "sort_order_field": "sort_order",
+      "note_field": "note"
     }
-  }
+  },
+  "updated_at": "2026-06-28",
+  "description": "FRB Studio / JSON Object Studio インシデント管理ViewDef"
 }

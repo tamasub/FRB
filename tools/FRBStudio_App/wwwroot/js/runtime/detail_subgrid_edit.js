@@ -151,6 +151,148 @@ function createSubGridActionButton(label, title, onClick) {
   return btn;
 }
 
+
+function detailSubGridPreviewMarkdownConfig(field=null, column=null) {
+  const fallback = { enabled: true, allowLinks: true, allowImages: false };
+  if (typeof normalizeChatMarkdownConfig === 'function') {
+    const cfg = normalizeChatMarkdownConfig(
+      fallback,
+      field?.markdown,
+      field?.edit?.markdown,
+      column?.markdown,
+      column?.edit?.markdown
+    );
+    return { ...fallback, ...cfg, enabled: true };
+  }
+  return fallback;
+}
+
+function detailSubGridPreviewHtml(value, field=null, column=null) {
+  if (value == null || value === '') return '<span class="detail-subgrid-preview-empty">(空)</span>';
+  if (typeof value === 'boolean') return value ? 'true' : 'false';
+  if (typeof value === 'number') return String(value);
+  if (typeof value === 'object') {
+    const text = JSON.stringify(value, null, 2);
+    return `<pre><code>${typeof escapeHtmlText === 'function' ? escapeHtmlText(text) : text}</code></pre>`;
+  }
+  const text = String(value);
+  const cfg = detailSubGridPreviewMarkdownConfig(field, column);
+  if (typeof renderMarkdownContent === 'function') return renderMarkdownContent(text, cfg);
+  return typeof escapeHtmlText === 'function' ? escapeHtmlText(text) : text;
+}
+
+function normalizePreviewRows(rows, type) {
+  const arr = Array.isArray(rows) ? rows : [];
+  if (type === 'stringArray') return arr.map((value, i) => ({ __no: i + 1, value }));
+  return arr.map((row, i) => (row && typeof row === 'object' && !Array.isArray(row)) ? row : { __no: i + 1, value: row });
+}
+
+function showDetailSubGridPreview({ title='プレビュー', rows=[], columns=[], field=null, type='objectArray', note='' }={}) {
+  document.querySelector('.detail-subgrid-preview-overlay')?.remove();
+  const previewRows = normalizePreviewRows(rows, type);
+  const previewColumns = (columns && columns.length) ? columns : [{ field: 'value', caption: 'value', type: 'textarea' }];
+
+  const overlay = document.createElement('div');
+  overlay.className = 'detail-subgrid-preview-overlay';
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) overlay.remove();
+  });
+
+  const dialog = document.createElement('div');
+  dialog.className = 'detail-subgrid-preview-dialog';
+  dialog.setAttribute('role', 'dialog');
+  dialog.setAttribute('aria-modal', 'true');
+
+  const header = document.createElement('div');
+  header.className = 'detail-subgrid-preview-header';
+  const headingWrap = document.createElement('div');
+  const kicker = document.createElement('div');
+  kicker.className = 'detail-subgrid-preview-kicker';
+  kicker.textContent = 'Grid Preview';
+  const h2 = document.createElement('h2');
+  h2.textContent = title;
+  headingWrap.appendChild(kicker);
+  headingWrap.appendChild(h2);
+  header.appendChild(headingWrap);
+  const close = document.createElement('button');
+  close.type = 'button';
+  close.className = 'icon-button';
+  close.textContent = '×';
+  close.setAttribute('aria-label', '閉じる');
+  close.addEventListener('click', () => overlay.remove());
+  header.appendChild(close);
+  dialog.appendChild(header);
+
+  const summary = document.createElement('div');
+  summary.className = 'detail-subgrid-preview-summary';
+  summary.textContent = `${previewRows.length}件 / ${previewColumns.length}列` + (note ? ` — ${note}` : '');
+  dialog.appendChild(summary);
+
+  const body = document.createElement('div');
+  body.className = 'detail-subgrid-preview-body';
+  if (!previewRows.length) {
+    const empty = document.createElement('div');
+    empty.className = 'detail-subgrid-preview-empty-card';
+    empty.textContent = 'プレビュー対象の行がありません。';
+    body.appendChild(empty);
+  } else {
+    previewRows.forEach((row, index) => {
+      const card = document.createElement('section');
+      card.className = 'detail-subgrid-preview-card';
+      const cardTitle = document.createElement('div');
+      cardTitle.className = 'detail-subgrid-preview-card-title';
+      const idColumn = previewColumns.find(c => /(^|_)(id|no)$/.test(String(c.field)) || String(c.field).endsWith('_id'));
+      const idText = idColumn ? (row?.[idColumn.field] ?? '') : '';
+      cardTitle.textContent = idText ? `${index + 1}. ${idText}` : `${index + 1}件目`;
+      card.appendChild(cardTitle);
+
+      previewColumns.forEach(col => {
+        const item = document.createElement('div');
+        item.className = 'detail-subgrid-preview-field';
+        const label = document.createElement('div');
+        label.className = 'detail-subgrid-preview-label';
+        label.textContent = col.caption ?? col.field;
+        const value = document.createElement('div');
+        value.className = 'detail-subgrid-preview-value markdown-rendered';
+        value.innerHTML = detailSubGridPreviewHtml(row?.[col.field], field, col);
+        item.appendChild(label);
+        item.appendChild(value);
+        card.appendChild(item);
+      });
+      body.appendChild(card);
+    });
+  }
+  dialog.appendChild(body);
+  overlay.appendChild(dialog);
+  document.body.appendChild(overlay);
+  close.focus();
+}
+
+function detailSubGridColumnsFromCard(card) {
+  return [...card.querySelectorAll('thead th[data-column]')].map(th => ({
+    field: th.dataset.column,
+    caption: th.textContent,
+    type: th.dataset.cellType || 'text'
+  })).filter(c => c.field);
+}
+
+function openDetailSubGridPreview(card, field) {
+  if (!card) return;
+  const type = card.dataset.subgridType;
+  const rows = collectDetailSubGridValue(card);
+  const columns = type === 'stringArray'
+    ? [{ field: 'value', caption: 'value', type: 'textarea' }]
+    : detailSubGridColumnsFromCard(card);
+  showDetailSubGridPreview({
+    title: `${field?.caption ?? card.dataset.subgridField ?? 'Grid'} プレビュー`,
+    rows,
+    columns,
+    field,
+    type,
+    note: '未反映の編集中セルも含めて表示します'
+  });
+}
+
 function renumberDetailSubGridRows(card) {
   [...card.querySelectorAll('tbody tr')].forEach((tr, index) => {
     const no = tr.querySelector('.detail-subgrid-row-no');
@@ -260,6 +402,7 @@ function createDetailSubGridCard({ field, row, gd, data }) {
   dirty.className = 'detail-subgrid-dirty-badge';
   dirty.textContent = editable ? '編集可' : '読取専用';
   meta.appendChild(dirty);
+  meta.appendChild(createSubGridActionButton('プレビュー', 'このグリッドをカード表示で読む', () => openDetailSubGridPreview(card, field)));
   if (editable) {
     meta.appendChild(createSubGridActionButton('+行', '末尾に行を追加', () => insertDetailSubGridRow(card)));
   }
