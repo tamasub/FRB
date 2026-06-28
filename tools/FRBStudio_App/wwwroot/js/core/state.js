@@ -22,6 +22,7 @@ const fieldTypeRegistryCache = new Map();
 const enumRegistryCache = new Map();
 let launchRuntime = { fromUrl: false, mode: '', readonly: false, dataParam: '', viewParam: '', fileParam: '' };
 let currentAppInfo = null;
+let currentViewDefReadContract = null; // v0.15.5 ViewDef-level context.read_contract summary
 
 // v0.14.1-data-viewdef-candidates:
 // Data JSON can declare which ViewDefs are valid manual switch candidates.

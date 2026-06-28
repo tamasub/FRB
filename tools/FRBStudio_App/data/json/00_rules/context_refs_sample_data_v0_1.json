@@ -7,7 +7,7 @@
   "created_at": "2026-06-28",
   "updated_at": "2026-06-28",
   "owner": "tamasub",
-  "purpose": "context.read_timing Enum と context.context_read_timing FieldType の利用例。Runtimeのread_contract実行制御は後続インシデントで扱う。",
+  "purpose": "context.read_timing / context.failure_policy / context.trust_category Enum と、ViewDef read_contract の利用例。v0.15.5では定義・表示・Runtime認識までを扱い、文脈ファイルの自動読込実行は後続で扱う。",
   "context_refs": [
     {
       "context_ref_id": "ctx_001_foundation_before_load",
@@ -45,6 +45,11 @@
       "note_id": "note_context_sample_001",
       "at": "2026-06-28",
       "body": "context_refs は将来のread_contract実行制御の素材。v0.15.3ではEnum/FieldType/サンプルのみを追加する。"
+    },
+    {
+      "note_id": "note_context_sample_v0_15_5_read_contract",
+      "at": "2026-06-28",
+      "body": "v0.15.5で、ViewDef側のcontext.read_contractと、Data行側のcontext_refsを分離して表現するサンプルへ更新。failure_policy/trustもEnum参照FieldTypeで表示する。"
     }
   ]
 }

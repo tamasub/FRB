@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "frb_view_def_schema_v0_9.json",
   "title": "FRB Studio View Definition Schema v0.9 - Chat Input Mapping / Markdown Inline",
-  "description": "Schema for FRBStudio_App / No-Code JSON Studio view_def JSON files. Includes inheritance, common field types, Markdown export / AI Prompt, dataSources, virtualData registry builders, single-source writeBack, Relation status filters, and toolbar.executeButton action declarations. v0.9 adds chat edit.input.appendPosition/appendLabel and chat Markdown inline link/image permissions.",
+  "description": "Schema for FRBStudio_App / No-Code JSON Studio view_def JSON files. Includes inheritance, common field types, Markdown export / AI Prompt, dataSources, virtualData registry builders, single-source writeBack, Relation status filters, and toolbar.executeButton action declarations. v0.9 adds chat edit.input.appendPosition/appendLabel and chat Markdown inline link/image permissions. v0.15.5でViewDef context.read_contract定義を追加。",
   "type": "object",
   "additionalProperties": true,
   "properties": {
@@ -132,6 +132,41 @@
     },
     "toolbar": {
       "$ref": "#/$defs/toolbarOptions"
+    },
+    "context": {
+      "$ref": "#/$defs/viewDefContextOptions"
+    },
+    "read_contract": {
+      "$ref": "#/$defs/readContract"
+    },
+    "readContract": {
+      "$ref": "#/$defs/readContract"
+    },
+    "commonEnumSources": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "common_enum_sources": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
     }
   },
   "required": [
@@ -263,6 +298,41 @@
         "common_types": {
           "type": "object",
           "additionalProperties": true
+        },
+        "context": {
+          "$ref": "#/$defs/viewDefContextOptions"
+        },
+        "read_contract": {
+          "$ref": "#/$defs/readContract"
+        },
+        "readContract": {
+          "$ref": "#/$defs/readContract"
+        },
+        "commonEnumSources": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "common_enum_sources": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
         }
       },
       "required": [
@@ -428,6 +498,13 @@
           "type": "string"
         },
         "option_label_field": {
+          "type": "string"
+        },
+        "enumRef": {
+          "type": "string",
+          "description": "Reference to common enum registry, for example context.read_timing."
+        },
+        "enum_ref": {
           "type": "string"
         }
       },
@@ -1982,6 +2059,184 @@
         },
         "allow_images": {
           "type": "boolean"
+        }
+      }
+    },
+    "contextRef": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "A context reference that AI/Runtime should read at a declared timing. Used by ViewDef read_contract and row-level context_refs.",
+      "properties": {
+        "ref_id": {
+          "type": "string"
+        },
+        "context_ref_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "target_path": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "read_timing": {
+          "type": "string",
+          "description": "Use context.read_timing enum. Example: before_load / before_code_update / before_zip_return."
+        },
+        "timing": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "failure_policy": {
+          "type": "string",
+          "description": "Use context.failure_policy enum. Required refs should normally use stop_and_report."
+        },
+        "trust": {
+          "type": "string",
+          "description": "Use context.trust_category enum. Example: canonical / working / reference."
+        },
+        "purpose": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "rowContextContract": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "How this ViewDef finds row-level context references in Data JSON.",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "data_path": {
+          "type": "string",
+          "description": "JSONPath-like path to row-level context refs, for example $.context_refs."
+        },
+        "dataPath": {
+          "type": "string"
+        },
+        "row_ref_field": {
+          "type": "string"
+        },
+        "rowRefField": {
+          "type": "string"
+        },
+        "id_field": {
+          "type": "string"
+        },
+        "title_field": {
+          "type": "string"
+        },
+        "target_path_field": {
+          "type": "string"
+        },
+        "read_timing_field": {
+          "type": "string"
+        },
+        "failure_policy_field": {
+          "type": "string"
+        },
+        "trust_field": {
+          "type": "string"
+        },
+        "purpose_field": {
+          "type": "string"
+        }
+      }
+    },
+    "readContract": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "ViewDef-level AI context read contract. It declares which context must be read and when. It is a definition contract; actual external LLM execution may be handled by later phases.",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "contract_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "default_timing": {
+          "type": "string",
+          "description": "Default context.read_timing value."
+        },
+        "failure_policy": {
+          "type": "string",
+          "description": "Default context.failure_policy value."
+        },
+        "required_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/contextRef"
+          }
+        },
+        "requiredRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/contextRef"
+          }
+        },
+        "optional_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/contextRef"
+          }
+        },
+        "preflight_rules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/contextRef"
+          }
+        },
+        "row_context": {
+          "$ref": "#/$defs/rowContextContract"
+        },
+        "rowContext": {
+          "$ref": "#/$defs/rowContextContract"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "viewDefContextOptions": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "ViewDef context metadata. read_contract is for ViewDef-wide context. Data row context should be referenced via row_context or context_refs fields in Data JSON.",
+      "properties": {
+        "read_contract": {
+          "$ref": "#/$defs/readContract"
+        },
+        "readContract": {
+          "$ref": "#/$defs/readContract"
+        },
+        "context_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/contextRef"
+          }
+        },
+        "contextRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/contextRef"
+          }
         }
       }
     }

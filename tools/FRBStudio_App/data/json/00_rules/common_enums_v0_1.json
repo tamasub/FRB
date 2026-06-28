@@ -864,6 +864,103 @@
               "deprecated": false
             }
           ]
+        },
+        {
+          "enum_id": "failure_policy",
+          "enum_ref": "context.failure_policy",
+          "name": "文脈参照失敗時方針",
+          "description": "read_contract / context_refs で指定された文脈を読めなかった場合の扱い。required=true の参照では stop_and_report を基本とする。",
+          "sort_order": 20,
+          "deprecated": false,
+          "items": [
+            {
+              "cd": "stop_and_report",
+              "name": "停止して報告",
+              "description": "文脈を読めない場合は作業を止め、読めなかった参照と理由を報告する。",
+              "sort_order": 10,
+              "deprecated": false
+            },
+            {
+              "cd": "stop_and_ask",
+              "name": "停止して相談",
+              "description": "文脈を読めない場合は作業を止め、人間へ確認する。",
+              "sort_order": 20,
+              "deprecated": false
+            },
+            {
+              "cd": "warn_and_stop",
+              "name": "警告して停止",
+              "description": "警告を出したうえで作業を止める。既存サンプル互換用。",
+              "sort_order": 30,
+              "deprecated": false
+            },
+            {
+              "cd": "warn_and_continue",
+              "name": "警告して継続",
+              "description": "読めない文脈を警告として残し、必須ではない参照として作業を継続する。",
+              "sort_order": 40,
+              "deprecated": false
+            },
+            {
+              "cd": "skip",
+              "name": "読み飛ばす",
+              "description": "任意文脈として読み飛ばす。重要ルールには使用しない。",
+              "sort_order": 50,
+              "deprecated": false
+            }
+          ]
+        },
+        {
+          "enum_id": "trust_category",
+          "enum_ref": "context.trust_category",
+          "name": "文脈信頼区分",
+          "description": "AIが読む文脈の信頼度・位置づけを表す。canonical と working を混同しない。",
+          "sort_order": 30,
+          "deprecated": false,
+          "items": [
+            {
+              "cd": "canonical",
+              "name": "正本",
+              "description": "憲法・ルール・正式仕様など、判断の正本として扱う文脈。",
+              "sort_order": 10,
+              "deprecated": false
+            },
+            {
+              "cd": "working",
+              "name": "作業中",
+              "description": "現在作業中のインシデント・対象データなど、作業台帳として扱う文脈。",
+              "sort_order": 20,
+              "deprecated": false
+            },
+            {
+              "cd": "reference",
+              "name": "参照",
+              "description": "判断材料として読むが、正本ではない参考文脈。",
+              "sort_order": 30,
+              "deprecated": false
+            },
+            {
+              "cd": "supplemental",
+              "name": "補助",
+              "description": "補助情報。読めると便利だが、必須判断の正本にはしない。",
+              "sort_order": 40,
+              "deprecated": false
+            },
+            {
+              "cd": "draft",
+              "name": "草案",
+              "description": "草案・検討中の文脈。正本との矛盾時は正本を優先する。",
+              "sort_order": 50,
+              "deprecated": false
+            },
+            {
+              "cd": "deprecated",
+              "name": "非推奨",
+              "description": "旧版・参考保存用。通常の判断では優先しない。",
+              "sort_order": 90,
+              "deprecated": false
+            }
+          ]
         }
       ]
     }
@@ -913,6 +1010,13 @@
       "change_type": "enum_registry_expansion",
       "summary": "common_types既存optionsから、qa/relation系の代表FieldTypeをcommon_enumsへ移行候補として追加。",
       "reason": "選択肢の直書きを減らし、enumRefで値語彙正本を参照できるようにするため。"
+    },
+    {
+      "history_id": "chg_common_enums_v0_15_5_context_read_contract",
+      "at": "2026-06-28",
+      "change_type": "context_read_contract_enums",
+      "summary": "context.failure_policy / context.trust_category を追加し、read_contract / context_refs の失敗時方針と信頼区分をEnum正本化。",
+      "reason": "ViewDef文脈制御で required な参照が読めない場合の扱いと、正本/作業中/参照などの意味を表記揺れなく扱うため。"
     }
   ]
 }

@@ -3,6 +3,10 @@
 
 async function loadFromObjects(defObj, dataObj, label='読み込み完了', dataApiUrl=null) {
   defObj = await resolveFieldTypesForViewDef(defObj);
+  currentViewDefReadContract = (typeof extractViewDefReadContract === 'function')
+    ? extractViewDefReadContract(defObj)
+    : null;
+  if (typeof logViewDefReadContract === 'function') logViewDefReadContract(currentViewDefReadContract);
   viewDef = defObj;
   currentDataSources = {};
   currentDataSourceSpecs = {};

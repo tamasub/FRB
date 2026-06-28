@@ -144,7 +144,6 @@
             {
               "field": "failure_policy",
               "caption": "失敗時方針",
-              "type": "text",
               "grid": {
                 "visible": true,
                 "width": 140
@@ -155,12 +154,12 @@
               "search": {
                 "visible": true,
                 "operator": "contains"
-              }
+              },
+              "fieldType": "context.failure_policy"
             },
             {
               "field": "trust",
               "caption": "信頼区分",
-              "type": "text",
               "grid": {
                 "visible": true,
                 "width": 110
@@ -171,7 +170,8 @@
               "search": {
                 "visible": true,
                 "operator": "contains"
-              }
+              },
+              "fieldType": "context.trust_category"
             },
             {
               "field": "note",
@@ -197,5 +197,48 @@
   ],
   "commonEnumSources": [
     "00_rules/common_enums_v0_1.json"
-  ]
+  ],
+  "context": {
+    "read_contract": {
+      "enabled": true,
+      "contract_id": "viewdef_context_refs_sample_contract_v0_1",
+      "description": "このViewDefをAI作業で扱う前に読むべきViewDef全体文脈。Data行ごとの文脈は $.context_refs を参照する。",
+      "default_timing": "before_load",
+      "failure_policy": "stop_and_report",
+      "required_refs": [
+        {
+          "ref_id": "foundation_rule_019_zip_contract",
+          "title": "Foundation Rule 19 / ZIP返却契約",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "read_timing": "before_load",
+          "required": true,
+          "failure_policy": "stop_and_report",
+          "trust": "canonical",
+          "purpose": "作業前に返却ZIP契約・更新済みIncident収録・runtime生成物除外を確認する。"
+        },
+        {
+          "ref_id": "context_refs_sample_data",
+          "title": "Data行単位のcontext_refs",
+          "target_path": "data/json/00_rules/context_refs_sample_data_v0_1.json#context_refs",
+          "read_timing": "after_load",
+          "required": false,
+          "failure_policy": "warn_and_continue",
+          "trust": "working",
+          "purpose": "行ごとの追加文脈参照例を確認する。"
+        }
+      ],
+      "row_context": {
+        "enabled": true,
+        "data_path": "$.context_refs",
+        "id_field": "context_ref_id",
+        "title_field": "title",
+        "target_path_field": "target_path",
+        "read_timing_field": "read_timing",
+        "failure_policy_field": "failure_policy",
+        "trust_field": "trust",
+        "purpose_field": "purpose"
+      },
+      "notes": "v0.15.5: ViewDef全体のread_contractとData行側context_refsを分ける契約サンプル。Runtimeは契約を認識するが、自動読込実行は後続。"
+    }
+  }
 }

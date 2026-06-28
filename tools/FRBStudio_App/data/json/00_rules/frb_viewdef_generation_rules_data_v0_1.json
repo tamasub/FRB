@@ -13,8 +13,8 @@
   "status": "converted_draft",
   "introduced_in": "v0.4-r001",
   "generated_at": "2026-06-26T00:00:00+09:00",
-  "rule_count": 74,
-  "approved_count": 0,
+  "rule_count": 75,
+  "approved_count": 1,
   "approval_policy": "各ルールは人間が内容確認し、verification_status を確認済みにしたうえで approval_decision を承認する。AIはレビューコメント案を出せるが、承認判断は人間が行う。",
   "preamble": "対象: `FRBStudio_App` / No-Code JSON Studio v0.6+ 系  \n対応Schema: `frb_view_def_schema_v0_8_action_registry_toolbar.json`\n\nこの文書は、AIに **Data JSON から ViewDef JSON を作成させる** ときの作成ルールである。\n\nStudioくんにおける ViewDef は、単なる画面定義ではない。\n\n```text\nData JSON + ViewDef JSON + Runtime + Action = Experience\n```\n\nViewDef は、データの見え方・編集の仕方・Markdown化・AIへの渡し方・仮想データの作り方・主役Actionを宣言する **体験設計書** である。\n\n---",
   "change_history_policy": "ルール本文、要約、カテゴリ、優先度、承認判断を変更した場合は、各 rule.change_history に変更前後・理由・会話を残す。",
@@ -2350,10 +2350,56 @@
         }
       ],
       "decision_log": []
+    },
+    {
+      "no": 75,
+      "rule_id": "viewdef_rule_27",
+      "section_no": "27",
+      "source_heading": "27. ViewDef文脈制御 read_contract / row context_refs 契約",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "context_engineering",
+      "title": "ViewDef文脈制御 read_contract / row context_refs 契約",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "AI作業前に読むべき文脈は、ViewDef全体の read_contract と、Data行単位の context_refs を分けて定義する。",
+      "body": "ViewDefは人間向け表示定義だけでなく、AIが作業前・更新前・返却前に読むべき文脈を宣言できる。\n\nViewDef全体にかかる文脈は、top-level `context.read_contract` または `read_contract` として定義する。ここには `required_refs`、`preflight_rules`、`default_timing`、`failure_policy` を持たせる。\n\nData行単位にかかる追加文脈は、Data側の `context_refs` などの配列として持たせ、ViewDefの `read_contract.row_context` で、どのDataPath・どのフィールドを文脈参照として読むかを示す。\n\n`read_timing` は `context.read_timing` Enumを使う。`failure_policy` は `context.failure_policy` Enumを使い、必須参照では `stop_and_report` を基本とする。`trust` は `context.trust_category` Enumを使い、canonical / working / reference などを混同しない。\n\nこの契約は、外部LLM実行や自動読込そのものを必須にするものではない。まず、AIとRuntimeが「何を、いつ、どの重要度で読むべきか」を構造化して共有するためのViewDef契約である。",
+      "ceremony_phrase": "ViewDefは、画面だけでなくAIが読むべき文脈も宣言できる。",
+      "user_comment": "",
+      "ai_response": "v0.15.5-viewdef-context-read-contract により追加。ViewDef全体の read_contract と Data行単位の context_refs を分離し、read_timing / failure_policy / trust をEnumで扱うルールを追加。",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "",
+      "approved_at": "",
+      "approval_stamp": "",
+      "notes": "Runtimeはv0.15.5では契約認識まで。自動読込・LLM投入は後続read_contract実行制御で扱う。",
+      "source_line_start": "",
+      "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL",
+      "introduced_in": "v0.15.5-viewdef-context-read-contract",
+      "change_history": [
+        {
+          "history_id": "chg_viewdef_rule_27_v0_15_5_001",
+          "at": "2026-06-28",
+          "change_type": "rule_added",
+          "before": "ViewDef生成ルールには、AI文脈制御としてread_contract / row context_refsを分ける契約がなかった。",
+          "after": "viewdef_rule_27として、ViewDef全体read_contractとData行単位context_refsの分離、read_timing/failure_policy/trustのEnum利用を追加。",
+          "reason": "AI作業前に読むべき文脈を、画面定義と同じJSON契約として管理するため。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_viewdef_rule_27_v0_15_5_001",
+          "at": "2026-06-28",
+          "decision": "ViewDef全体文脈はread_contract、Data行文脈はcontext_refsとして分離する。",
+          "reason": "全体ルールと行固有の追加文脈を混ぜると、AIに渡す情報が過剰になり文脈が濁るため。"
+        }
+      ]
     }
   ],
-  "updated_at": "2026-06-27",
-  "review_revision": "v0.14.32-viewdef-header-search-layout-rules-done",
+  "updated_at": "2026-06-28",
+  "review_revision": "v0.15.5-viewdef-context-read-contract",
   "review_notes": [
     {
       "note_id": "note_v012_scope_correction",
@@ -2372,6 +2418,12 @@
       "at": "2026-06-27",
       "title": "v0.14.32 ヘッダー基本情報・検索項目コンパクト表示方針を追加",
       "body": "ViewDef生成時は、ヘッダー部・基本情報を1行に収まる短い名札として扱い、マルチテキストボックスや長文欄は表示オフを基本とする。Ownerはヘッダー表示オフを基本とし、検索項目部分は縦マージンを調整してコンパクトにする。"
+    },
+    {
+      "note_id": "note_v0155_viewdef_context_read_contract",
+      "at": "2026-06-28",
+      "title": "v0.15.5 ViewDef文脈制御 read_contract契約",
+      "body": "ViewDef全体のcontext.read_contractとData行単位のcontext_refsを分離する契約を追加。Runtimeは契約認識まで、自動読込実行は後続で扱う。"
     }
   ],
   "view_def_candidates": [

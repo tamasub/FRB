@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-06-28",
+  "updated_at": "2026-06-27",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。",
-  "items_count": 74,
+  "items_count": 69,
   "work_items": [
     {
       "work_item_id": "studio_work_0001",
@@ -6811,13 +6811,13 @@
       "incident_type": "data_design",
       "category": "enum",
       "priority": "high",
-      "status": "完了",
-      "verification_status": "確認済み",
+      "status": "未着手",
+      "verification_status": "未確認",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-06-27",
-      "updated_at": "2026-06-28",
-      "target_files": "data/json/00_rules/common_enums_v0_1.json, defs/common/common_enums_view_def_v0_1.json, data/json/00_rules/COMMON_ENUMS_DEFINITION_REPORT_v0_15_1.md, data/json/01_main/studio_work_incident_data_v0_74_proposal_driven_jobflow_added.json",
+      "updated_at": "2026-06-27",
+      "target_files": "data/json/00_rules/common_enums_v0_1.json, data/json/00_rules/common_types_v0_1.json, related ViewDef/Rules if needed",
       "target_rule_files": "",
       "objective": "EnumをStudioくんの値語彙の最小管理単位として追加し、cd/name/description/sort_order/deprecatedなどを持てる共通定義ファイルを作る。",
       "background": "common_types_v0_1.json は意味つきFieldTypeカタログとして成立しているが、select options がFieldType内に直書きされており、値候補そのものの正本管理がまだ分離されていない。context_read_timing、status、risk、severity、trustなどは複数FieldType・ViewDef・Data・AI文脈制御で共有されるため、Enumとして管理する必要がある。",
@@ -6829,9 +6829,9 @@
       "risk": "Enumを何でも入れる共通ごった煮にすると管理不能になる。namespaceを切り、値の意味単位を守る必要がある。risk.high / priority.high / confidence.high はcdが似ていても意味が違う可能性があるため、安易に統合しない。",
       "test_points": "common_enums_v0_1.json がUTF-8日本語可読で保存されること。namespace.enums.items で複数Enumを表現できること。既存common_typesを壊さず、まだenumRef未対応でも既存画面が動くこと。",
       "user_request": "Enumは管理の最小単位として必要。common_typesはFieldTypeの共通管理として使い、Enumは値の正本として分離したい。",
-      "ai_response": "common_enums_v0_1.json を追加し、Enumを値語彙の正本として扱うための namespaces / enums / items 構造と enumRef形式を定義した。既存common_types optionsの移行とRuntime enumRef解決は後続インシデントへ分離した。",
+      "ai_response": "common_enums追加を最初のインシデントとして登録する。ここではEnumの器と責務を定義し、既存options移行やRuntime解決は後続へ分ける。",
       "latest_user_comment": "Enumの仕掛けを作った後、既存のOptionでだらだら書いているものを整理したい。まずインシデントとして追加したい。",
-      "latest_ai_response": "v0.15.1-common-enums-definition として、data/json/00_rules/common_enums_v0_1.json を追加。Enum参照形式を {namespace_id}.{enum_id} とし、item標準項目を cd/name/description/sort_order/deprecated として定義。代表Enumとして studio.lifecycle_status、qa.risk_level、qa.severity_level、relation.status、relation.confidence、relation.priority を収録した。既存 common_types_v0_1.json は壊さず未変更とし、enumRef解決・既存options移行・context.read_timing本追加は後続インシデントへ残した。",
+      "latest_ai_response": "",
       "discussion_history": [
         {
           "history_id": "disc_0065_001",
@@ -6853,20 +6853,6 @@
           "speaker": "user",
           "topic": "インシデント追加依頼",
           "message": "Enumの仕掛けを作った後に、既存のOptionでだらだら書いているものを整理したい。インシデント追加と更新後JSON返却を依頼。"
-        },
-        {
-          "history_id": "disc_0065_004",
-          "at": "2026-06-28",
-          "speaker": "user",
-          "topic": "作業依頼",
-          "message": "v0.15.1-common-enums-definition として、憲法を参照し、戦略的設計パターンを目指して common_enums_v0_1.json 追加作業を依頼。"
-        },
-        {
-          "history_id": "disc_0065_005",
-          "at": "2026-06-28",
-          "speaker": "assistant",
-          "topic": "作業結果",
-          "message": "Foundation Rule 19を参照し、phaseを studio_work_0065 として特定。common_enums_v0_1.json と common_enums_view_def_v0_1.json、設計レポートを追加し、既存common_types options移行とRuntime enumRef解決はスコープ外として温存した。"
         }
       ],
       "decision_log": [
@@ -6887,24 +6873,6 @@
           "at": "2026-06-27",
           "decision": "既存optionsの一括移行はこのインシデントでは行わない。",
           "reason": "仕掛け追加と既存整理を混ぜると差分が大きくなり、回帰リスクが上がるため。"
-        },
-        {
-          "decision_id": "dec_0065_004",
-          "at": "2026-06-28",
-          "decision": "Enum参照形式は {namespace_id}.{enum_id} とする。",
-          "reason": "FieldTypeやViewDefから参照する際に、意味領域とEnum本体を明確に分け、同名Enumの衝突を避けるため。"
-        },
-        {
-          "decision_id": "dec_0065_005",
-          "at": "2026-06-28",
-          "decision": "v0.15.1ではcommon_types_v0_1.jsonを変更しない。",
-          "reason": "既存select optionsを壊さず、値正本の器追加と既存移行を分離して回帰リスクを抑えるため。"
-        },
-        {
-          "decision_id": "dec_0065_006",
-          "at": "2026-06-28",
-          "decision": "代表Enumはサンプル兼移行候補として収録し、既存FieldTypeの正本切替は行わない。",
-          "reason": "common_enumsの構造確認に必要な実例を持たせつつ、enumRef解決前に画面表示を壊さないため。"
         }
       ],
       "change_history": [
@@ -6915,22 +6883,6 @@
           "before": "Enumを値の正本として管理する作業項目が存在しなかった。",
           "after": "studio_work_0065 として common_enums_v0_1.json 追加を登録。",
           "reason": "FieldType / Enum / ViewDef / Data の責務分離を進めるため。"
-        },
-        {
-          "history_id": "chg_0065_002",
-          "at": "2026-06-28",
-          "change_type": "viewdef_added",
-          "before": "common_enums専用の表示・編集ViewDefなし。",
-          "after": "defs/common/common_enums_view_def_v0_1.json を追加し、Namespace一覧、Notes、Change HistoryをStudio上で確認できるようにした。",
-          "reason": "Enum正本をData JSONとして扱い、人間がStudioくんで確認・編集できる入口を用意するため。"
-        },
-        {
-          "history_id": "chg_0065_003",
-          "at": "2026-06-28",
-          "change_type": "scope_guard",
-          "before": "common_types内optionsの移行やRuntime enumRef解決も同時に行う可能性があった。",
-          "after": "v0.15.1ではcommon_typesを変更せず、既存options移行・Runtime解決・context系Enum本追加を後続インシデントへ分離。",
-          "reason": "仕掛け追加と既存整理を混ぜると差分が大きくなり、回帰リスクが上がるため。"
         }
       ],
       "actual_updated_files": ""
@@ -6940,15 +6892,15 @@
       "phase": "v0.15.2-fieldtype-enumref-resolve",
       "title": "common_types FieldType の enumRef / options解決対応",
       "incident_type": "feature",
-      "category": "",
+      "category": "fieldtype_enumref",
       "priority": "high",
-      "status": "完了",
-      "verification_status": "確認済み",
+      "status": "未着手",
+      "verification_status": "未確認",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-06-27",
-      "updated_at": "2026-06-28",
-      "target_files": "wwwroot/js/core/state.js, wwwroot/js/core/field_types.js, wwwroot/index.html, defs/common/common_types_v0_1.json, data/json/00_rules/common_enums_v0_1.json, data/json/00_rules/FIELDTYPE_ENUMREF_RESOLVE_REPORT_v0_15_2.md, data/json/01_main/studio_work_incident_data_v0_74_proposal_driven_jobflow_added.json",
+      "updated_at": "2026-06-27",
+      "target_files": "data/json/00_rules/common_types_v0_1.json, data/json/00_rules/common_enums_v0_1.json, wwwroot/js/**/*.js related to ViewDef/commonTypes/options resolve, rules/schema if needed",
       "target_rule_files": "",
       "objective": "FieldTypeからEnumを参照できるようにし、baseType=select かつ enumRefありの場合に common_enums のitemsをoptionsとして解決できるようにする。",
       "background": "既存のcommon_types_v0_1.jsonはFieldType内にoptionsを直持ちしている。今後は enumRef を追加し、Enumを値の正本、FieldTypeを画面項目としての使い方として分ける必要がある。既存方式との互換を保ちながら、段階的にenumRefへ寄せる。",
@@ -6961,8 +6913,8 @@
       "test_points": "既存options直書きFieldTypeが従来どおり表示・編集できること。enumRefのみのselect FieldTypeがEnumから選択肢を取得できること。enumRef+optionsの併用時にenumRef側を正として扱うこと。Enum未存在時に分かりやすくエラーまたは警告になること。",
       "user_request": "Enumを定義した上で、FieldType側に enumRef を持たせ、options は enum 由来の展開結果として扱うイメージにしたい。",
       "ai_response": "common_types のFieldTypeに enumRef を追加し、既存options直書き方式と互換を保ちながらEnum参照へ移行できる仕掛けとして登録する。",
-      "latest_user_comment": "v0.15.2-fieldtype-enumref-resolve の作業依頼。常に憲法(frb_coding_constraints)をまず参照し、constitution_03 戦略的設計パターンを目指して作業する。FieldTypeからEnumを参照できるようにし、baseType=select かつ enumRefありの場合に common_enums のitemsをoptionsとして解決できるようにする。",
-      "latest_ai_response": "v0.15.2-fieldtype-enumref-resolve 対応完了。FieldType Resolverへ共通Enum解決を追加し、common_enums_v0_1.json を値語彙正本として読み込めるようにした。select/radio系FieldTypeが enumRef を持つ場合、Enum items を options として展開する。enumRef と options が併存する場合は enumRef 側を正本として優先し、既存optionsは互換用・キャッシュ・展開結果として扱う。Enum未存在時は console.warn で警告し、既存optionsがあれば互換表示を継続する。既存optionsの全面移行は行わず、qa.risk に enumRef=qa.risk_level を追加し、enumRefのみ確認用の qa.risk_enumref_only_sample を追加した。JSON parse、wwwroot配下JS node --check、enumRef機能確認を実施済み。",
+      "latest_user_comment": "enumRef が一番強い。Enumを定義した上で、FieldTypeでは baseType=select / enumRef / grid / edit / search を持たせたい。",
+      "latest_ai_response": "",
       "discussion_history": [
         {
           "history_id": "disc_0066_001",
@@ -6984,20 +6936,6 @@
           "speaker": "user",
           "topic": "インシデント追加依頼",
           "message": "Enumの仕掛けを作った後に、既存のOptionでだらだら書いているものを整理したい。インシデント追加と更新後JSON返却を依頼。"
-        },
-        {
-          "history_id": "disc_0066_20260628_user_v0152",
-          "at": "2026-06-28",
-          "speaker": "user",
-          "topic": "v0.15.2-fieldtype-enumref-resolve作業依頼",
-          "message": "常に憲法(frb_coding_constraints)をまず参照し、constitution_03 戦略的設計パターンを目指して作業する。phase v0.15.2-fieldtype-enumref-resolve として、FieldType enumRef 解決対応を依頼。困ることがあれば推測で進めず中止して相談する。"
-        },
-        {
-          "history_id": "disc_0066_20260628_ai_v0152",
-          "at": "2026-06-28",
-          "speaker": "assistant",
-          "topic": "v0.15.2-fieldtype-enumref-resolve作業結果",
-          "message": "constitution_03の戦略的設計パターンに従い、個別Dataフィールド名分岐ではなくFieldType ResolverへEnum解決を統合。common_enumsを値正本、FieldTypeを画面項目の使い方として分離し、enumRefをselect/radio系optionsへ解決するRuntimeを追加した。"
         }
       ],
       "decision_log": [
@@ -7018,24 +6956,6 @@
           "at": "2026-06-27",
           "decision": "enumRefとoptionsが両方ある場合はenumRef側を正本とする。",
           "reason": "値候補の正本を一つにしないと、差分管理とAI文脈制御で意味ズレが起きるため。"
-        },
-        {
-          "decision_id": "dec_0066_20260628_enumref_priority",
-          "at": "2026-06-28",
-          "decision": "enumRef と options が併存する場合は enumRef 側を正本として優先する。",
-          "reason": "Enumを値候補の正本、optionsを互換用・キャッシュ・展開結果として扱い、画面表示と値語彙の正本を分離するため。"
-        },
-        {
-          "decision_id": "dec_0066_20260628_compat_warn",
-          "at": "2026-06-28",
-          "decision": "Enum未存在時は警告扱いとし、既存optionsがあれば互換表示を継続する。",
-          "reason": "v0.15.2は移行途中の段階であり、既存ViewDef/FieldTypeを壊さず後続v0.15.4の整理へ接続するため。"
-        },
-        {
-          "decision_id": "dec_0066_20260628_no_mass_migration",
-          "at": "2026-06-28",
-          "decision": "既存FieldType optionsの全面enumRef化は行わず、代表例とサンプルのみ追加する。",
-          "reason": "今回のスコープは解決ルールと互換方針の実装であり、既存options整理はv0.15.4側で扱うため。"
         }
       ],
       "change_history": [
@@ -7046,30 +6966,6 @@
           "before": "FieldTypeからEnumを参照する作業項目が存在しなかった。",
           "after": "studio_work_0066 として common_types FieldType の enumRef / options解決対応を登録。",
           "reason": "既存common_types運用を維持しながらEnumレイヤーへ移行するため。"
-        },
-        {
-          "history_id": "chg_0066_20260628_runtime_enumref",
-          "at": "2026-06-28",
-          "change_type": "runtime_enumref_resolve",
-          "before": "FieldType Resolverはcommon_types options直書き解決のみで、common_enumsを値正本として参照しなかった。",
-          "after": "common_enums_v0_1.jsonを読み込み、select/radio系FieldTypeのenumRefをEnum itemsからoptionsへ展開するRuntimeを追加。",
-          "reason": "Enum / FieldType / ViewDef / Data の責務分離をRuntimeへ接続するため。"
-        },
-        {
-          "history_id": "chg_0066_20260628_common_types_sample",
-          "at": "2026-06-28",
-          "change_type": "common_types_sample_update",
-          "before": "common_types_v0_1.jsonにenumRef確認用FieldTypeがなく、既存options直書きだけだった。",
-          "after": "qa.riskへenumRef=qa.risk_levelを追加し、互換用optionsを保持。qa.risk_enumref_only_sampleを追加。",
-          "reason": "enumRef+options併用とenumRefのみの両方を確認可能にするため。"
-        },
-        {
-          "history_id": "chg_0066_20260628_common_enums_policy",
-          "at": "2026-06-28",
-          "change_type": "common_enums_runtime_policy_update",
-          "before": "common_enums_v0_1.json の runtime_policy は「自動解決しない」だった。",
-          "after": "v0.15.2でRuntimeがenumRef解決する方針へ更新。",
-          "reason": "v0.15.1で作ったEnum正本をFieldType Resolverへ接続したため。"
         }
       ],
       "actual_updated_files": ""
@@ -7081,12 +6977,12 @@
       "incident_type": "feature",
       "category": "context_enum",
       "priority": "high",
-      "status": "完了",
-      "verification_status": "確認済み",
+      "status": "未着手",
+      "verification_status": "未確認",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-06-27",
-      "updated_at": "2026-06-28",
+      "updated_at": "2026-06-27",
       "target_files": "data/json/00_rules/common_enums_v0_1.json, data/json/00_rules/common_types_v0_1.json, related context ViewDef samples",
       "target_rule_files": "",
       "objective": "AI文脈制御で利用する context_read_timing などのEnumを追加し、ViewDefやData行のcontext_refsで使える共通語彙を整える。",
@@ -7100,8 +6996,8 @@
       "test_points": "context.read_timing の全候補がEnumに定義されていること。context_read_timing FieldTypeがenumRefで参照できること。ViewDefでselect項目として使えること。descriptionに読みタイミングの意味が残っていること。",
       "user_request": "before_load / after_load / on_row_select / before_edit / before_save / before_review / before_diff_story / before_code_update / before_zip_return のようなtimingを共通管理したい。",
       "ai_response": "context_read_timing はEnum初回ユースケースとしてちょうどよい。AI文脈制御の共通語彙として追加するインシデントを登録する。",
-      "latest_user_comment": "v0.15.3確認中、context_refs_sample の読みタイミングselectで共通Enum定義JSON json/00_rules/common_enums_v0_1.json の404が発生。/api/data の起点に合わせたパス補正を依頼。",
-      "latest_ai_response": "v0.15.3.1補修として、DEFAULT_COMMON_ENUMS_FILE を 00_rules/common_enums_v0_1.json に修正し、commonEnumSources の data/json・json prefix をAPI相対パスへ正規化。context.read_timing と context.context_read_timing も再収録し、context_refs_sample_view_def に正しい commonEnumSources を明示した。",
+      "latest_user_comment": "追加文脈を読ませるタイミングが重要。ViewDef全体にかかるものとdata行単位にかかるものを分け、timingをEnumとして管理したい。",
+      "latest_ai_response": "",
       "discussion_history": [
         {
           "history_id": "disc_0067_001",
@@ -7123,20 +7019,6 @@
           "speaker": "user",
           "topic": "インシデント追加依頼",
           "message": "Enumの仕掛けを作った後に、既存のOptionでだらだら書いているものを整理したい。インシデント追加と更新後JSON返却を依頼。"
-        },
-        {
-          "history_id": "disc_0067_20260628_001_context_enum_api_path_404",
-          "at": "2026-06-28",
-          "speaker": "user",
-          "topic": "context.read_timing select 404報告",
-          "message": "context_refs_sample の読みタイミングselect確認時に、共通Enum定義JSON[json/00_rules/common_enums_v0_1.json] の /api/data/json/00_rules/common_enums_v0_1.json 読込が404になった。"
-        },
-        {
-          "history_id": "disc_0067_20260628_002_context_enum_api_path_fix",
-          "at": "2026-06-28",
-          "speaker": "assistant",
-          "topic": "context.read_timing select 404補修結果",
-          "message": "/api/data は data/json 起点であるため、Runtime既定Enumパスを 00_rules/common_enums_v0_1.json へ補正。data/json/ または json/ prefix が混入してもAPI相対パスへ正規化する処理を追加した。"
         }
       ],
       "decision_log": [
@@ -7157,12 +7039,6 @@
           "at": "2026-06-27",
           "decision": "ViewDef read_contractの本体実装は別インシデントに分ける。",
           "reason": "語彙定義と文脈制御実行を混ぜると作業範囲が肥大化するため。"
-        },
-        {
-          "decision_id": "dec_0067_20260628_001_common_enum_api_relative_path",
-          "at": "2026-06-28",
-          "decision": "commonEnumSources / DEFAULT_COMMON_ENUMS_FILE は /api/data の起点(data/json)からの相対パスで統一する。",
-          "reason": "json/00_rules を渡すと /api/data/json/00_rules となり、実ファイル data/json/00_rules/common_enums_v0_1.json と対応しないため。"
         }
       ],
       "change_history": [
@@ -7173,14 +7049,6 @@
           "before": "context_read_timing などのAI文脈制御語彙が共通Enumとして登録されていなかった。",
           "after": "studio_work_0067 として context系Enum / context_read_timing FieldType追加を登録。",
           "reason": "ViewDef文脈制御の前提となる共通語彙を整えるため。"
-        },
-        {
-          "history_id": "chg_0067_20260628_001_common_enum_api_path_fix",
-          "at": "2026-06-28",
-          "change_type": "bugfix",
-          "before": "DEFAULT_COMMON_ENUMS_FILE が json/00_rules/common_enums_v0_1.json で、API呼び出しが /api/data/json/00_rules/common_enums_v0_1.json となり404。",
-          "after": "DEFAULT_COMMON_ENUMS_FILE を 00_rules/common_enums_v0_1.json に補正し、normalizeDataJsonApiPath で data/json/・json/ prefix を除去。",
-          "reason": "context.read_timing の選択肢をDetail selectへ表示できるようにするため。"
         }
       ],
       "actual_updated_files": ""
@@ -7192,13 +7060,13 @@
       "incident_type": "refactoring",
       "category": "common_types_cleanup",
       "priority": "medium",
-      "status": "完了",
-      "verification_status": "確認済み",
+      "status": "未着手",
+      "verification_status": "未確認",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-06-27",
-      "updated_at": "2026-06-28",
-      "target_files": "defs/common/common_types_v0_1.json, data/json/00_rules/common_enums_v0_1.json, data/json/00_rules/COMMON_TYPES_OPTIONS_TO_ENUMREF_REPORT_v0_15_4.md",
+      "updated_at": "2026-06-27",
+      "target_files": "data/json/00_rules/common_types_v0_1.json, data/json/00_rules/common_enums_v0_1.json, representative ViewDefs/Data using commonTypes",
       "target_rule_files": "",
       "objective": "既存common_types_v0_1.jsonでFieldType内にだらだら直書きされているselect optionsを棚卸しし、共通Enumへ移せるものは enumRef 参照へ寄せる。",
       "background": "common_types_v0_1.json には qa.risk / relation.status / relation.confidence / relation.priority / severity など、似た選択肢を持つFieldTypeが複数ある。現状は実用的だが、値の正本がFieldTypeごとに分散しているため、表記揺れ・意味ズレ・重複更新が起きやすい。",
@@ -7210,9 +7078,9 @@
       "risk": "意味が似ているだけで同じEnumへ統合すると、risk.high と confidence.high のように意味の違う値が混ざる。逆に分けすぎるとEnumの再利用価値が下がる。判断ログを残す必要がある。",
       "test_points": "既存FieldTypeのselect項目が移行後も表示・編集・検索できること。Enum化した選択肢がData既存値と一致すること。意味が違う値を無理に統合していないこと。options削除/残置の方針が記録されていること。",
       "user_request": "enumの仕掛けを作った後に、既存のOptionでだらだら書いているやつを整理したい。",
-      "ai_response": "common_types既存select optionsを棚卸しし、qa/relation系の代表FieldTypeへenumRefを追加。common_enumsへ対応Enumを追加し、既存optionsは互換用スナップショットとして残置した。risk/confidence/priority/severityなど意味の違うhigh/medium/low系は統合せず、意味別Enumとして分離。",
+      "ai_response": "既存common_types optionsの整理は仕掛け追加後の専用インシデントとして登録する。棚卸しと段階的enumRef化を目的にする。",
       "latest_user_comment": "common_typesの中にある既存Option群を、Enum正本に寄せていきたい。ただし意味の違いは丁寧に見る必要がある。",
-      "latest_ai_response": "common_types既存select optionsを棚卸しし、qa/relation系の代表FieldTypeへenumRefを追加。common_enumsへ対応Enumを追加し、既存optionsは互換用スナップショットとして残置した。risk/confidence/priority/severityなど意味の違うhigh/medium/low系は統合せず、意味別Enumとして分離。",
+      "latest_ai_response": "",
       "discussion_history": [
         {
           "history_id": "disc_0068_001",
@@ -7234,20 +7102,6 @@
           "speaker": "user",
           "topic": "インシデント追加依頼",
           "message": "Enumの仕掛けを作った後に、既存のOptionでだらだら書いているものを整理したい。インシデント追加と更新後JSON返却を依頼。"
-        },
-        {
-          "history_id": "disc_0068_001",
-          "at": "2026-06-28",
-          "speaker": "user",
-          "topic": "作業依頼",
-          "message": "v0.15.4-common-types-options-to-enumref として、common_typesの既存Option群をEnum正本に寄せる作業を依頼。00_rules/common_enums_v0_1.json は参照が多いため移動せず戻した。"
-        },
-        {
-          "history_id": "disc_0068_002",
-          "at": "2026-06-28",
-          "speaker": "assistant",
-          "topic": "作業結果",
-          "message": "common_typesのselect FieldTypeを棚卸しし、qa/relation系の代表FieldTypeにenumRefを追加。common_enumsへ対応Enumを追加し、既存optionsは互換用スナップショットとして残した。"
         }
       ],
       "decision_log": [
@@ -7268,24 +7122,6 @@
           "at": "2026-06-27",
           "decision": "移行は棚卸し・分類・段階的enumRef化の順で進める。",
           "reason": "共通化対象とローカル選択肢として残す対象を判断しやすくするため。"
-        },
-        {
-          "decision_id": "dec_0068_001",
-          "at": "2026-06-28",
-          "decision": "common_enums_v0_1.json の配置は data/json/00_rules/common_enums_v0_1.json のまま維持する。",
-          "reason": "既存参照が多く、配置変更は影響範囲が広いため。v0.15.4の主目的はoptionsのenumRef化であり、パス移動は別作業に分離する。"
-        },
-        {
-          "decision_id": "dec_0068_002",
-          "at": "2026-06-28",
-          "decision": "既存optionsは削除せず互換用スナップショットとして残す。",
-          "reason": "RuntimeのenumRef解決は導入済みだが、既存ViewDefや静的確認、enum読み込み失敗時の互換性を守るため。"
-        },
-        {
-          "decision_id": "dec_0068_003",
-          "at": "2026-06-28",
-          "decision": "risk / severity / confidence / priority は同じ high/medium/low でも統合しない。",
-          "reason": "リスク・重要度・確信度・優先度は判断軸が異なり、同一Enumにすると意味の混線が起きるため。"
         }
       ],
       "change_history": [
@@ -7296,30 +7132,6 @@
           "before": "既存common_types内optionsをEnum参照へ整理する作業項目が存在しなかった。",
           "after": "studio_work_0068 として既存 common_types options のEnum参照化整理を登録。",
           "reason": "値候補の重複・表記揺れ・意味ズレを減らし、Enum正本運用へ移行するため。"
-        },
-        {
-          "history_id": "chg_0068_001",
-          "at": "2026-06-28",
-          "change_type": "common_enums_expansion",
-          "before": "common_enumsには一部のqa/relation Enumのみが登録されていた。",
-          "after": "qa.feature_area/test_axis/quality_axis/check_axis/scenario_type/finding_type、relation.coverage/node_type/relation_typeなどを追加。",
-          "reason": "common_types内のselect options直書きを値語彙正本へ寄せるため。"
-        },
-        {
-          "history_id": "chg_0068_002",
-          "at": "2026-06-28",
-          "change_type": "common_types_enumref_added",
-          "before": "複数のselect FieldTypeがoptions直書きのみだった。",
-          "after": "対象FieldTypeにenumRefを追加し、optionsは互換用スナップショットとして残置。",
-          "reason": "FieldTypeは使い方、Enumは値語彙正本という責務分離を進めるため。"
-        },
-        {
-          "history_id": "chg_0068_003",
-          "at": "2026-06-28",
-          "change_type": "report_added",
-          "before": "v0.15.4の棚卸し結果レポートがなかった。",
-          "after": "COMMON_TYPES_OPTIONS_TO_ENUMREF_REPORT_v0_15_4.md を追加。",
-          "reason": "移行対象、保留方針、意味別Enum分離判断を後続AI/人間が追えるようにするため。"
         }
       ],
       "actual_updated_files": ""
@@ -7406,590 +7218,6 @@
         }
       ],
       "actual_updated_files": ""
-    },
-    {
-      "work_item_id": "studio_work_0070",
-      "phase": "v0.15.6-grid-column-resize-viewdef-save",
-      "title": "グリッド列幅変更 / ViewDef明示保存",
-      "incident_type": "feature",
-      "category": "grid_viewdef",
-      "priority": "medium",
-      "status": "未着手",
-      "verification_status": "未確認",
-      "owner": "tamasub",
-      "ai_owner": "ChatGPT",
-      "created_at": "2026-06-27",
-      "updated_at": "2026-06-27",
-      "target_files": "wwwroot/js/renderers/grid_renderer.js, wwwroot/js/renderers/grid_detail.js, wwwroot/js/runtime/load_runtime.js, wwwroot/js/core/viewdef_resolver.js, wwwroot/js/core/file_api.js, wwwroot/styles.css, related ViewDef schema/rules if needed",
-      "target_rule_files": "",
-      "objective": "グリッド表示中に列幅をドラッグ変更できるようにし、必要な場合のみ明示操作で現在のViewDefの fields[].grid.width へ反映できるようにする。",
-      "background": "実データをStudioくんで確認していると、列幅をその場で調整したくなる。列幅は人間が『この項目をちゃんと見たい』と判断した痕跡でもあり、ViewDefを人間が育てる体験に直結する。一方で、列幅変更を常時ViewDefへ自動保存すると、ちょっと触っただけでViewDefが汚れ、Git差分が width 変更だらけになるリスクがある。",
-      "scope": "グリッド列幅のドラッグ変更を可能にする。変更直後はRuntime上の一時変更として扱い、ViewDefへは自動保存しない。ユーザーが明示的に『列幅をViewDefへ保存』を実行した場合のみ、現在読込中のViewDef source の fields[].grid.width へ反映する。必要に応じて未保存列幅変更ありの表示、minWidth/maxWidth、readOnly時の無効化、保存成功/失敗トーストを追加する。",
-      "out_of_scope": "列幅変更の常時自動ViewDef保存は行わない。localStorageによる個人列幅保存、列順変更、列表示/非表示の保存、複数ユーザー向けの個人プロファイル管理、共通FieldType/common_types側の幅更新はこの作業では必須にしない。",
-      "fixed_name_policy": "Runtimeは特定Dataフィールド名に依存しない。列幅保存対象はViewDefの fields[] 内で宣言された field と grid.width に限定する。common_types や resolved ViewDef 由来の幅を直接正本として更新せず、必要な場合は現在のViewDef source へ grid.width の明示overrideとして保存する。",
-      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、グリッド描画・列幅ドラッグ・ViewDef保存処理へ安全に追加する。",
-      "expected_outputs": "グリッド列幅ドラッグ対応、Runtime上の一時列幅変更保持、明示的なViewDef保存ボタンまたはAction、fields[].grid.widthへの反映、readOnly/静的表示時の安全制御、CSS調整、更新済みインシデントJSON。",
-      "risk": "列幅変更を自動保存すると、閲覧中の偶発操作でViewDefが汚れる。個人の見やすさが共有ViewDefへ混入する。Git差分が width 数値変更だらけになり、本来の機能差分が見えにくくなる。resolved ViewDefやcommon_types由来の設定を誤って正本更新すると、共通型全体へ予期せぬ影響が出る。",
-      "test_points": "グリッド列ヘッダー境界をドラッグして列幅が変わること。列幅変更だけではViewDefファイルが保存されないこと。明示保存実行時のみ対象ViewDefの fields[].grid.width が更新されること。保存後に再読込して列幅が維持されること。readOnly/静的ホスティング時にはViewDef保存操作が無効または非表示になること。hidden列・サブグリッド・横スクロール・既存ソート/選択操作が壊れないこと。",
-      "user_request": "データをグリッドで表示している状態で、グリッドの列の幅を変えたくて、しかも、その変えた幅をViewDefに保存する機能がほしい。列幅変更を常に許可していると面倒な話になるのか、まず会話したい。",
-      "ai_response": "列幅変更は実用上かなり重要。ただし、ドラッグした瞬間にViewDefへ自動保存すると、偶発操作でViewDefが汚れ、Git差分が列幅変更だらけになる。まずはRuntime上の一時変更として扱い、ユーザーが明示的に『列幅をViewDefへ保存』した場合のみ fields[].grid.width へ反映する方針が安全。",
-      "latest_user_comment": "うぃーーー。ではインシデント追加して更新後JSON返却お願いします。",
-      "latest_ai_response": "studio_work_0070 として、グリッド列幅変更 / ViewDef明示保存インシデントを追加。列幅変更はまずRuntime一時変更とし、ViewDef保存は明示操作必須、常時自動保存は禁止方針として登録した。",
-      "discussion_history": [
-        {
-          "history_id": "disc_0070_001",
-          "at": "2026-06-27",
-          "speaker": "user",
-          "topic": "グリッド列幅変更相談",
-          "message": "データをグリッドで表示している状態で、グリッドの列の幅を変えたくて、しかも、その変えた幅をViewDefに保存する機能がほしい。列幅変更を常に許可していると面倒な話になるのか、まず会話したい。"
-        },
-        {
-          "history_id": "disc_0070_002",
-          "at": "2026-06-27",
-          "speaker": "assistant",
-          "topic": "列幅保存方針整理",
-          "message": "列幅変更は『画面上の一時的な見やすさ調整』であり、ViewDef保存は『画面定義そのものの変更』。ドラッグ直後にViewDefへ自動保存せず、Runtime一時変更、必要なら個人設定保存、明示操作でViewDef反映、という段階分けが安全と整理した。"
-        },
-        {
-          "history_id": "disc_0070_003",
-          "at": "2026-06-27",
-          "speaker": "user",
-          "topic": "インシデント追加依頼",
-          "message": "インシデント追加して更新後JSON返却を依頼。"
-        }
-      ],
-      "decision_log": [
-        {
-          "decision_id": "dec_0070_001",
-          "at": "2026-06-27",
-          "decision": "列幅ドラッグ変更はまずRuntime上の一時変更として扱う。",
-          "reason": "単に見やすくするための操作を、即座にViewDef設計変更として扱うと、偶発操作で定義が汚れるため。"
-        },
-        {
-          "decision_id": "dec_0070_002",
-          "at": "2026-06-27",
-          "decision": "ViewDefへの列幅保存は明示操作必須とする。",
-          "reason": "ViewDefは共有される画面定義であり、個人の一時的な列幅調整を自動で正本化しないため。"
-        },
-        {
-          "decision_id": "dec_0070_003",
-          "at": "2026-06-27",
-          "decision": "保存先は fields[].grid.width を基本とする。",
-          "reason": "既存ViewDefの列幅定義と自然に接続でき、列幅変更をViewDefの明示的な設計差分として管理できるため。"
-        },
-        {
-          "decision_id": "dec_0070_004",
-          "at": "2026-06-27",
-          "decision": "localStorageによる個人列幅保存は将来検討とする。",
-          "reason": "個人の見やすさと共有ViewDefの設計変更を分離する選択肢として有効だが、初回実装に含めるとスコープが膨らむため。"
-        }
-      ],
-      "change_history": [
-        {
-          "history_id": "chg_0070_001",
-          "at": "2026-06-27",
-          "change_type": "incident_added",
-          "before": "studio_work_incident_data_v0_69_enum_context_incidents_added.json / items_count=69",
-          "after": "studio_work_incident_data_v0_70_grid_column_resize_viewdef_save_added.json / items_count=70",
-          "reason": "グリッド列幅変更とViewDefへの明示保存機能を、将来実装前に作業項目として忘れず管理するため。"
-        }
-      ],
-      "actual_updated_files": "data/json/01_main/studio_work_incident_data_v0_70_grid_column_resize_viewdef_save_added.json"
-    },
-    {
-      "work_item_id": "studio_work_0071",
-      "phase": "v0.15.7-objectarray-section-search",
-      "title": "objectArray / 履歴セクションのまとまり検索対応",
-      "incident_type": "feature",
-      "category": "",
-      "priority": "high",
-      "status": "未着手",
-      "verification_status": "未確認",
-      "owner": "tamasub",
-      "ai_owner": "ChatGPT",
-      "created_at": "2026-06-27",
-      "updated_at": "2026-06-27",
-      "target_files": "wwwroot/js/runtime/search_runtime.js, wwwroot/js/renderers/grid_renderer.js, wwwroot/js/renderers/grid_detail.js, wwwroot/js/core/viewdef_resolver.js, wwwroot/app.js, wwwroot/styles.css, relevant ViewDefs such as studio_work_incident_view_def_*.json, frb_view_def_schema_*.json / rules if needed",
-      "target_rule_files": "",
-      "objective": "discussion_history / change_history / decision_log などの objectArray 形式の深い階層を、項目単位ではなく『会話履歴』『変更履歴』『判断ログ』『履歴全体』のようなセクション単位で検索できるようにする。",
-      "background": "ルール改定後に最新JSONを開いても、変更があった箇所や過去会話をStudio画面上から探しにくく、JSON生データを直接検索する運用になっていた。ルールJSONの名前固定化やGitDiffRunによりファイル名指定の差分比較土台はできたが、『どのインシデントの会話・判断・変更履歴にその話があったか』を掘り当てる導線が不足している。Studioくんのインシデント管理JSONが育つほど、深い階層の履歴検索が必要になる。",
-      "scope": "ViewDefの objectArray / childArea / detailBody などのまとまり単位に search.visible を持たせ、そのセクション全体を検索対象にできるようにする。discussion_history は会話履歴、change_history は変更履歴、decision_log は判断ログとして検索対象化する。search.group=\"history\" のようなグループ指定により、会話履歴・変更履歴・判断ログを束ねた『履歴全体』串刺し検索もできるようにする。必要に応じて、従来のJSON生データ検索に相当する『JSON全体』検索もRuntime上の一時文字列化で提供する。",
-      "out_of_scope": "初期対応では、全JSON階層の完全全文検索、全文字列フィールドの自動検索、ヒット箇所のカード単位ハイライト、検索結果からGitDiffRunを直接起動する連携、厳密な検索インデックス永続化、外部全文検索エンジン導入は行わない。まずは履歴セクション単位の集約検索と、必要最低限のJSON全体検索に限定する。",
-      "fixed_name_policy": "Runtimeが discussion_history / change_history / decision_log という特定Data名を無条件に固定検索するのではなく、ViewDef上で search.visible=true とされたセクションを検索対象とする。インシデント管理ViewDefでは結果として discussion_history / change_history / decision_log を対象化する。検索用テキストはData JSONへ保存せず、Runtime上の一時インデックスとして扱う。",
-      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、検索処理・ViewDef解釈・検索UIへ段階的に追加する。",
-      "expected_outputs": "objectArrayセクション検索対応、search.visible のセクション単位検索、search.group による履歴全体串刺し検索、検索対象コンボまたはUI表示、JSON全体検索の初期対応案、検索用一時文字列化処理、更新済みインシデントJSON。",
-      "risk": "検索スコープをViewDefとは別に手書き定義すると、表示定義と検索定義がズレて同じような定義が増える。逆に最初から全フィールド自動検索にすると、id・日付・status等のノイズが多くなり、検索結果が読みにくくなる。深い階層の値を検索用にData JSONへ保存するとJSONが太り、原本が検索キャッシュで汚れる。",
-      "test_points": "会話履歴検索で discussion_history[].topic / message / speaker 等が検索対象になること。変更履歴検索で change_history[].change_type / before / after / reason / updated_files 等が検索対象になること。判断ログ検索で decision_log[].decision / reason が検索対象になること。履歴全体検索で上記3セクションが串刺し検索されること。検索ヒット時は親のwork_item行が絞り込まれること。検索用テキストがData JSONへ保存されないこと。既存の浅い項目検索やGrid表示に回帰がないこと。",
-      "user_request": "会話履歴や変更履歴や判断ログのようなJSONの一つ深い階層の明細についても検索できるようにしたい。項目を指定した検索ではなく、会話履歴全体、変更履歴全体、判断ログ全体のような検索がよい。最初は会話履歴・変更履歴・判断ログごとに検索できればよく、将来的には文字列フィールドなら何でも検索、さらに会話履歴・変更履歴・判断ログの串刺し検索やJSON全体検索も欲しい。",
-      "ai_response": "検索スコープを別定義で大量に持つより、ViewDef上のobjectArrayやchildAreaなどの表示セクションに search.visible を持たせ、その表示定義から検索対象を自動生成する方針が自然。最初は会話履歴・変更履歴・判断ログのセクション単位検索、次にsearch.groupによる履歴全体の串刺し検索、必要に応じてJSON全体検索を用意する。検索用文字列はData JSONへ保存せずRuntime上で一時生成する。",
-      "latest_user_comment": "",
-      "latest_ai_response": "studio_work_0071 として、objectArray / 履歴セクションのまとまり検索対応インシデントを追加。ViewDefの表示セクションに search.visible を持たせ、会話履歴・変更履歴・判断ログ・履歴全体・JSON全体検索を段階的に実現する方針として登録した。",
-      "discussion_history": [
-        {
-          "history_id": "disc_0071_001",
-          "at": "2026-06-27",
-          "speaker": "user",
-          "topic": "深い階層検索の相談",
-          "message": "ルール改定後に最新JSONを読んでも、変更があったところをどう検索するのか分からない。会話履歴や変更履歴や判断ログのような、JSONの一つ深い階層の明細についても検索できるようにしたい。"
-        },
-        {
-          "history_id": "disc_0071_002",
-          "at": "2026-06-27",
-          "speaker": "assistant",
-          "topic": "検索スコープ初期案",
-          "message": "当初はViewDef全体に search.scopes を持たせる案を提示したが、表示定義と検索定義が二重になり、同じような定義が増えるリスクがある。"
-        },
-        {
-          "history_id": "disc_0071_003",
-          "at": "2026-06-27",
-          "speaker": "user",
-          "topic": "セクションsearch案",
-          "message": "searchScopesのような別定義ではなく、レビュー会話などのセクション自体に search.visible を持たせればよいのではないかと指摘。"
-        },
-        {
-          "history_id": "disc_0071_004",
-          "at": "2026-06-27",
-          "speaker": "assistant",
-          "topic": "セクション検索方針",
-          "message": "objectArray / childArea / detailBody などのまとまり単位に search.visible を持たせ、表示セクションから検索対象を自動生成する方針へ整理。子fields[]は親セクションの検索対象として集約し、除外したい子項目だけ search.visible=false とする。"
-        },
-        {
-          "history_id": "disc_0071_005",
-          "at": "2026-06-27",
-          "speaker": "user",
-          "topic": "段階的検索の夢",
-          "message": "最初は会話履歴・変更履歴・判断ログごとの検索でよい。将来的には文字列フィールドなら何でも検索できるようにしたい。その前に会話履歴・変更履歴・判断ログの串刺し検索もあるとよい。"
-        },
-        {
-          "history_id": "disc_0071_006",
-          "at": "2026-06-27",
-          "speaker": "assistant",
-          "topic": "段階的実装方針",
-          "message": "Step1は会話履歴・変更履歴・判断ログの個別検索、Step2はsearch.group=historyによる履歴全体検索、Step3はsearch.visible=trueのまとまり全部、Step4は文字列系フィールド自動検索という進化順で整理。"
-        },
-        {
-          "history_id": "disc_0071_007",
-          "at": "2026-06-27",
-          "speaker": "user",
-          "topic": "JSON生データ検索からの昇格",
-          "message": "今は検索機能がないためJSON生データで検索している。ルールJSONの名前固定化でGitDiffは見やすくなり、GitDiffRunでファイル名指定比較の土台もできたが、Studio画面上で履歴を探したい。"
-        },
-        {
-          "history_id": "disc_0071_008",
-          "at": "2026-06-27",
-          "speaker": "assistant",
-          "topic": "記憶から差分への導線",
-          "message": "今回の検索機能はJSON生データ検索をStudio画面操作へ昇格させるもの。将来的には検索で会話履歴を探し、判断を読み、変更履歴を確認し、対象ファイルのGitDiffRunへ降りる導線につながる。"
-        }
-      ],
-      "decision_log": [
-        {
-          "decision_id": "dec_0071_001",
-          "at": "2026-06-27",
-          "decision": "検索対象は別途 searchScopes を大量に手書きせず、ViewDef上の表示セクションに search.visible を持たせる。",
-          "reason": "表示定義と検索定義を二重に持つとズレや重複が発生するため。表示のまとまりを検索のまとまりとしても使う方がStudioくんのViewDef思想に合う。"
-        },
-        {
-          "decision_id": "dec_0071_002",
-          "at": "2026-06-27",
-          "decision": "初期対応は会話履歴・変更履歴・判断ログのセクション単位検索に限定する。",
-          "reason": "最初から全JSON階層の全文検索にするとノイズが増えやすいが、現状のJSON生データ検索よりはセクション単位検索だけでも大幅に使いやすくなるため。"
-        },
-        {
-          "decision_id": "dec_0071_003",
-          "at": "2026-06-27",
-          "decision": "search.group により、会話履歴・変更履歴・判断ログを束ねた履歴全体検索を扱う。",
-          "reason": "個別セクション検索だけでなく、過去会話・判断・変更のどこかに書いた情報を一括で掘り当てたい場面が多いため。"
-        },
-        {
-          "decision_id": "dec_0071_004",
-          "at": "2026-06-27",
-          "decision": "検索用テキストはData JSONへ保存しない。",
-          "reason": "検索キャッシュを原本Dataへ混ぜるとJSONが太り、Git差分や原本性が汚れるため。検索用の集約文字列はRuntime上で一時生成する。"
-        },
-        {
-          "decision_id": "dec_0071_005",
-          "at": "2026-06-27",
-          "decision": "将来的にJSON全体検索と文字列系フィールド自動検索を検討する。",
-          "reason": "現状はJSON生データ検索で探しているため、最低限の『全部探す』逃げ道も有用。段階的にStudio画面上の検索体験へ置き換えるため。"
-        }
-      ],
-      "change_history": [
-        {
-          "history_id": "chg_0071_001",
-          "at": "2026-06-27",
-          "change_type": "incident_added",
-          "before": "studio_work_incident_data_v0_70_grid_column_resize_viewdef_save_added.json / items_count=70",
-          "after": "studio_work_incident_data_v0_71_objectarray_section_search_added.json / items_count=71",
-          "reason": "会話履歴・変更履歴・判断ログなどの深い階層をStudio画面上で検索できるようにし、JSON生データ検索に頼っていた履歴探索をStudioくんの機能として扱うため。"
-        }
-      ],
-      "actual_updated_files": "data/json/01_main/studio_work_incident_data_v0_71_objectarray_section_search_added.json"
-    },
-    {
-      "work_item_id": "studio_work_0072",
-      "phase": "v0.15.8-gitdiff-result-viewer-launch",
-      "title": "GitDiffRun結果JSONのDiffJsonViewer自動表示",
-      "incident_type": "feature",
-      "category": "gitdiff_viewer",
-      "priority": "high",
-      "status": "未着手",
-      "verification_status": "未確認",
-      "owner": "tamasub",
-      "ai_owner": "ChatGPT",
-      "created_at": "2026-06-27",
-      "updated_at": "2026-06-27",
-      "target_files": "Program.cs, wwwroot/js/actions/action_registry.js, wwwroot/js/actions/action_toolbar.js, wwwroot/js/core/file_api.js, wwwroot/DiffJsonViewer.html, wwwroot/js/renderers/diff_json_viewer*.js, wwwroot/styles.css, related GitDiffRun action/runtime files",
-      "target_rule_files": "",
-      "objective": "StudioくんからGitDiffRunを起動した後、生成された差分JSONをwwwroot配下の一時公開フォルダーへ出力し、DiffJsonViewer.html?src=... で自動表示できるようにする。",
-      "background": "StudioくんからGitDiffRunを起動できる土台ができたことで、『差分を作る』だけでなく『差分をその場で見る』まで一気通貫したい。当初はF:\\FRB_Diffなど管理外フォルダーの差分JSONをProgram.cs側で読み込んでAPIレスポンスにdiff_json本文を含める案だったが、差分JSONをwwwroot配下の生成用フォルダーへ出力し、そのフォルダーを.gitignoreでGit管理対象外にすれば、DiffJsonViewer.htmlが通常の静的ファイルとして読み込める。この場合、APIレスポンスの主役はJSON本文ではなく、viewer_url / diff_json_path / file_size_bytes / summary などの案内情報になる。",
-      "scope": "GitDiffRun実行時の差分JSON出力先を、例: wwwroot/diff_runs/DiffToJson_*.json のようなViewerから参照可能な生成用フォルダーへ寄せる。この生成用フォルダーまたはDiffToJson_*.jsonだけを.gitignoreで除外し、リポジトリに一時成果物が混入しないようにする。GitDiffRun実行APIは、差分JSON本文ではなく ok / exit_code / viewer_url / diff_json_path / file_size_bytes / summary / warnings を返す。Studioくんはviewer_urlを受け取り、DiffJsonViewer.html?src=./diff_runs/DiffToJson_*.json のようなURLで自動表示する。DiffJsonViewer.htmlはsrcパラメータを同一アプリ配下の許可パスとして検証し、fetchして表示する。",
-      "out_of_scope": "差分JSON本文をAPIレスポンスに丸ごと含める方式は初期方針から外す。大量差分JSONのページング、ストリーミング、diff_id方式、部分読み込み、圧縮転送、差分検索インデックス化、AI差分物語の自動生成、Viewerの高度な差分分類UIは本インシデントでは扱わない。大量データの扱いは v0.15.9-gitdiff-large-result-handling として分離する。",
-      "fixed_name_policy": "ブラウザ側が F:\\FRB_Diff などのローカル絶対パスを直接読む設計にはしない。Runtimeが任意パスを指定して読み込める構造も避ける。GitDiffRunが生成した出力ファイル、かつProgram.cs側で許可された出力フォルダー配下の差分JSONだけを読み取り対象にする。",
-      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、GitDiffRun Action/APIレスポンスとDiffJsonViewer表示導線を段階的に追加する。",
-      "expected_outputs": "GitDiffRun結果JSONのwwwroot/diff_runs等への出力、生成用差分JSONの.gitignore除外方針、APIレスポンスでのviewer_url/diff_json_path/file_size_bytes/summary/warnings返却、DiffJsonViewer.html?src=... への自動遷移または表示連携、srcパラメータの許可パス検証、存在しないsrcやJSON parse失敗時のエラー表示、更新済みインシデントJSON。",
-      "risk": "wwwroot配下に生成差分JSONを置くため、.gitignore設定を誤ると一時成果物がGit管理対象に混入するリスクがある。srcパラメータを無制限に許すと任意パス参照や意図しないファイル公開のリスクがある。古いDiffToJson_*.jsonが溜まり続けるとローカル容量が増えるため、将来的には掃除方針が必要になる。巨大JSONはDiffJsonViewer側の表示限界に達する可能性があるが、それはv0.15.9で安全にエラー扱いする。",
-      "test_points": "GitDiffRun成功時に wwwroot/diff_runs/DiffToJson_*.json が生成されること。.gitignoreで対象フォルダー配下のDiffToJson_*.jsonだけがGit管理対象外になること。APIレスポンスにdiff_json本文ではなくviewer_url/diff_json_path/file_size_bytes/summaryが含まれること。DiffJsonViewer.html?src=./diff_runs/DiffToJson_*.json で差分JSONが表示されること。存在しないsrcや許可外srcでは分かりやすいエラーになること。既存のGitDiffRun起動のみの動作を壊さないこと。",
-      "user_request": "StudioくんからGitDiffが起動できるようになったので、差分JSONの出力が終わったらDiffJsonViewer.htmlで表示するところまで将来候補としてやりたい。当初は差分JSONの中身をそのままレスポンスで受け取る感覚があったが、改めて考えると、差分データをwwwroot配下に入れ、.gitignoreでGit管理対象外にすれば、DiffJsonViewer.htmlがsrc指定で直接読めるため、APIレスポンスで巨大JSON本文を運ぶ必要は基本ない。",
-      "ai_response": "方針を修正。GitDiffRun結果JSONは、APIレスポンス本文で運ぶのではなく、wwwroot配下の生成用フォルダーへ出力し、.gitignoreでGit管理対象外にする。APIはviewer_url / diff_json_path / file_size_bytes / summary等を返し、StudioくんはDiffJsonViewer.html?src=... を開く。差分JSON本文の運搬役をAPIに背負わせず、Viewerが静的ファイルとして読む構成にする。",
-      "latest_user_comment": "差分データをwwwrootの中に入れられるなら、APIレスポンスでJSON本文を返す話ではなく、DiffJsonViewer.htmlがsrcで読めばよい。大容量の場合も、単にDiffJsonViewer.htmlで扱えない容量としてエラーにすればよいのではないか、という方針修正。",
-      "latest_ai_response": "v0.15.8の方針を修正。差分JSONはwwwroot配下のgitignore対象フォルダーへ出力し、APIレスポンスではJSON本文ではなくviewer_url/path/size/summaryを返す。DiffJsonViewer.htmlはsrcパラメータで差分JSONを静的取得して表示する方針へ更新した。",
-      "discussion_history": [
-        {
-          "history_id": "disc_0072_001",
-          "at": "2026-06-27",
-          "speaker": "user",
-          "topic": "GitDiffRun後のViewer表示相談",
-          "message": "StudioくんからGitDiffが起動できるようになったので、差分JSONの出力が終わったらDiffJsonViewer.htmlで表示するところまでいけるのではないか。差分JSONの中身をそのままレスポンスで受け取ってもよいのではないか。"
-        },
-        {
-          "history_id": "disc_0072_002",
-          "at": "2026-06-27",
-          "speaker": "assistant",
-          "topic": "実装方針整理",
-          "message": "差分JSONが F:\\FRB_Diff など管理外フォルダーに出る場合、ブラウザから直接読むのではなく、Program.cs側が許可された出力先から差分JSONを読み込み、APIレスポンスとして返すのが自然。Studioくんはdiff_jsonを受け取り、DiffJsonViewer.htmlまたは画面内Viewerへ渡して表示する。"
-        },
-        {
-          "history_id": "disc_0072_003",
-          "at": "2026-06-27",
-          "speaker": "user",
-          "topic": "体験価値",
-          "message": "これが一気通貫できたら他の人もびびる体験になる。GitDiffRun → 差分JSON → Viewer表示までつながると、KPI至上主義者にも刺さるのではないか。"
-        },
-        {
-          "history_id": "disc_0072_004",
-          "at": "2026-06-27",
-          "speaker": "assistant",
-          "topic": "体験価値整理",
-          "message": "GitDiffRun起動、差分JSON生成、DiffJsonViewer自動表示、差分分類・強調、AI差分物語、人間承認までの導線は、承認準備時間短縮・確認漏れ低減・AI作業結果の追跡性向上に直結する体験になる。"
-        },
-        {
-          "history_id": "disc_0072_005",
-          "at": "2026-06-27",
-          "speaker": "user",
-          "topic": "インシデント追加依頼",
-          "message": "まずはインシデント追加。大量データの取り扱いは2件のインシデントに最初から分けておきたい。"
-        },
-        {
-          "history_id": "disc_0072_006",
-          "at": "2026-06-27",
-          "speaker": "user",
-          "topic": "wwwroot配下出力への方針転換",
-          "message": "DiffToJson_*.jsonを全部Git管理対象外にするのではなく、差分データをwwwroot配下の生成フォルダーへ出力し、そのフォルダーだけ.gitignoreで除外すればよいと整理。"
-        },
-        {
-          "history_id": "disc_0072_007",
-          "at": "2026-06-27",
-          "speaker": "assistant",
-          "topic": "APIレスポンス方針の修正",
-          "message": "APIレスポンスでdiff_json本文を返す方針から、viewer_url / diff_json_path / file_size_bytes / summary を返し、DiffJsonViewer.htmlがsrcで静的取得する方針へ修正。"
-        },
-        {
-          "history_id": "disc_0072_008",
-          "at": "2026-06-27",
-          "speaker": "user",
-          "topic": "大容量問題の再整理",
-          "message": "wwwroot配下に置けるならAPIレスポンス容量の問題ではなく、DiffJsonViewer.htmlで扱えるサイズかどうかの問題として整理できる。扱えないサイズならエラーでよい。"
-        },
-        {
-          "history_id": "disc_0072_009",
-          "at": "2026-06-27",
-          "speaker": "assistant",
-          "topic": "方針更新完了",
-          "message": "v0.15.8を、差分JSON本文レスポンス方式ではなく、wwwroot生成フォルダー + .gitignore + DiffJsonViewer src読込方式へ更新する。"
-        }
-      ],
-      "decision_log": [
-        {
-          "decision_id": "dec_0072_001",
-          "at": "2026-06-27",
-          "decision": "差分JSON本文は基本的にAPIレスポンスへ含めず、wwwroot配下の生成用フォルダーへ出力する。",
-          "reason": "wwwroot配下であればDiffJsonViewer.htmlが通常の静的ファイルとして読み込めるため、APIレスポンスを巨大JSON運搬経路にする必要がない。"
-        },
-        {
-          "decision_id": "dec_0072_002",
-          "at": "2026-06-27",
-          "decision": "生成されたDiffToJson_*.jsonは、フォルダー指定の.gitignoreでGit管理対象外にする。",
-          "reason": "DiffToJson_*.json全体を無視すると保存したい差分JSONまで対象外になるため、例: /tools/FRBStudio_App/wwwroot/diff_runs/DiffToJson_*.json のように生成用フォルダー配下だけ除外する。"
-        },
-        {
-          "decision_id": "dec_0072_003",
-          "at": "2026-06-27",
-          "decision": "GitDiffRun実行APIはviewer_url / diff_json_path / file_size_bytes / summary / warningsを返す。",
-          "reason": "APIの役割は差分JSON本文の運搬ではなく、Viewerへ渡す場所・サイズ・概要・警告を案内することに寄せる。"
-        },
-        {
-          "decision_id": "dec_0072_004",
-          "at": "2026-06-27",
-          "decision": "DiffJsonViewer.htmlはsrcパラメータで同一アプリ配下の許可された差分JSONだけを読み込む。",
-          "reason": "src指定による表示体験を実現しつつ、任意パス参照や意図しないファイル読込を避けるため。"
-        },
-        {
-          "decision_id": "dec_0072_005",
-          "at": "2026-06-27",
-          "decision": "大量差分JSONの扱いはv0.15.9に分離し、v0.15.8では通常サイズの一気通貫表示を優先する。",
-          "reason": "GitDiffRunからViewer表示までの体験を先に作り、巨大JSONの表示限界・エラー表示・将来の分割表示は別スコープで扱う方が安全なため。"
-        }
-      ],
-      "change_history": [
-        {
-          "history_id": "chg_0072_001",
-          "at": "2026-06-27",
-          "change_type": "incident_added",
-          "before": "items_count=71 / latest=studio_work_0071",
-          "after": "items_count=73 / added studio_work_0072 and studio_work_0073",
-          "reason": "GitDiffRun結果JSONのDiffJsonViewer自動表示と、大量差分JSONの取り扱いを別インシデントとして管理するため。"
-        },
-        {
-          "history_id": "chg_0072_002",
-          "at": "2026-06-27",
-          "change_type": "incident_policy_update",
-          "before": "GitDiffRun実行後、Program.cs側で差分JSON本文を読み込み、APIレスポンスにdiff_jsonとして含めてViewerへ渡す方針。",
-          "after": "GitDiffRun実行後、差分JSONをwwwroot配下のgitignore対象生成フォルダーへ出力し、APIはviewer_url/path/size/summaryを返す。DiffJsonViewer.htmlはsrcで差分JSONを静的取得する。",
-          "reason": "差分JSONをwwwroot配下に置けばブラウザが通常の静的ファイルとして読めるため、APIレスポンスを巨大JSON本文の運搬経路にする必要がない。"
-        }
-      ],
-      "actual_updated_files": "data/json/01_main/studio_work_incident_data_v0_73_gitdiff_viewer_large_handling_added.json"
-    },
-    {
-      "work_item_id": "studio_work_0073",
-      "phase": "v0.15.9-gitdiff-large-result-handling",
-      "title": "GitDiffRun巨大差分JSONのViewer表示上限 / エラー表示",
-      "incident_type": "feature",
-      "category": "gitdiff_large_data",
-      "priority": "medium",
-      "status": "未着手",
-      "verification_status": "未確認",
-      "owner": "tamasub",
-      "ai_owner": "ChatGPT",
-      "created_at": "2026-06-27",
-      "updated_at": "2026-06-27",
-      "target_files": "Program.cs, wwwroot/js/actions/action_registry.js, wwwroot/js/core/file_api.js, wwwroot/DiffJsonViewer.html, wwwroot/js/renderers/diff_json_viewer*.js, wwwroot/styles.css, related GitDiffRun API/runtime files",
-      "target_rule_files": "",
-      "objective": "wwwroot配下に生成された差分JSONがDiffJsonViewer.htmlで扱えないほど大きい場合に、無理に表示せず、安全にサイズ上限エラーとして扱えるようにする。",
-      "background": "v0.15.8の方針を、APIレスポンスでdiff_json本文を返す方式から、wwwroot配下の生成用フォルダーへ差分JSONを出力し、DiffJsonViewer.htmlがsrcで読む方式へ修正した。これによりGit管理の大容量問題は.gitignoreで解消し、APIレスポンス肥大化も基本的には回避できる。残る大容量問題は、DiffJsonViewer.htmlがその差分JSONをfetch/parse/renderできるかどうかである。初期段階では、Viewer表示限界を超えるファイルは安全にエラー表示すればよい。",
-      "scope": "DiffJsonViewer.htmlまたはGitDiffRun実行API側で差分JSONのfile_size_bytesを確認し、設定した表示上限を超える場合はViewer表示を止める。上限超過時は、too_large=true / file_size_bytes / max_viewer_size_bytes / diff_json_path / summary / warnings などを表示し、『差分JSONが大きすぎるためViewerでは表示できない』ことを明示する。通常サイズの場合はv0.15.8のsrc読込方式でそのまま表示する。",
-      "out_of_scope": "初期段階では、diff_id方式、部分読み込み、ページング、ストリーミング、WebSocket配信、巨大diffのsummary-first高度表示、外部DB化、全文検索エンジン化は行わない。まずはViewerで扱えない巨大JSONを安全に止める・分かりやすくエラー表示することに限定する。",
-      "fixed_name_policy": "diff_idは内部一時IDであり、任意のローカルパスをブラウザに読ませるための抜け道にしない。output_pathを表示する場合も、読み取りAPIは許可フォルダー配下かつGitDiffRunが生成した差分JSONに限定する。",
-      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、API応答・Viewer表示・大容量時の分岐を段階的に追加する。",
-      "expected_outputs": "DiffJsonViewer表示上限ポリシー、file_size_bytes確認、too_largeエラー表示、上限超過時にJSON parse/renderへ進まないガード、通常サイズ時のsrc読込表示維持、必要に応じたsummary/path/警告表示、更新済みインシデントJSON。",
-      "risk": "巨大JSONを無理にfetch/parse/renderするとブラウザが固まる。サイズ上限を厳しすぎる値にすると一気通貫体験が途切れやすくなる。逆にゆるすぎる値にするとメモリ使用量が増え、Viewerが操作不能になる。Git管理やAPIレスポンス容量の問題と、Viewer表示限界の問題を混同しないようにする必要がある。",
-      "test_points": "設定した上限以下のDiffToJson_*.jsonはDiffJsonViewer.html?src=...で表示できること。上限を超えるファイルはfetch/parse/renderへ進まず、too_largeまたは明確なエラーメッセージを表示すること。エラー表示にfile_size_bytes / max_viewer_size_bytes / diff_json_path / summaryが表示されること。Git管理対象外設定により、巨大なDiffToJson_*.jsonがGit差分に出ないこと。APIレスポンスに巨大JSON本文を含めないこと。",
-      "user_request": "大量データなら、その時はエラーで返してもよい。ただし、wwwroot配下の生成フォルダーに差分JSONを置き、.gitignoreで除外するなら、大容量問題はAPIレスポンスではなくDiffJsonViewer.htmlで扱える容量かどうかの問題になる。扱えない容量ならエラーでよい、という整理へ修正したい。",
-      "ai_response": "v0.15.9の位置づけを修正。大量差分JSON対策は、APIレスポンスやdiff_id方式を前提にした段階化ではなく、まずDiffJsonViewer.htmlの表示上限・安全なエラー表示として扱う。Git管理の肥大化は.gitignoreで回避し、APIレスポンスには巨大JSON本文を含めない。残る問題はViewerで表示できるサイズかどうかであり、初期段階では上限超過時にエラーでよい。",
-      "latest_user_comment": "wwwroot配下に差分JSONを置けるなら、APIレスポンスで巨大JSONを返す話ではない。大容量の場合はDiffJsonViewer.htmlが扱えない容量としてエラーにすればよい、という整理にしたい。",
-      "latest_ai_response": "v0.15.9を、diff_id/部分読み込み中心の大容量対策から、DiffJsonViewerの表示上限・too_largeエラー表示中心のインシデントへ更新した。diff_idや部分読み込みは初期スコープ外の将来候補とし、まずは安全に止める方針へ整理した。",
-      "discussion_history": [
-        {
-          "history_id": "disc_0073_001",
-          "at": "2026-06-27",
-          "speaker": "user",
-          "topic": "大量データ時の扱い",
-          "message": "大量データなら、その時はエラーで返してもよい。エラーにしない方向にはがんばりたいが、ステップは分けてよい。"
-        },
-        {
-          "history_id": "disc_0073_002",
-          "at": "2026-06-27",
-          "speaker": "assistant",
-          "topic": "インシデント分離方針",
-          "message": "GitDiffRun結果JSONのDiffJsonViewer自動表示はv0.15.8として一気通貫体験を優先し、大量差分JSONのレスポンス肥大化・描画停止・diff_id方式・部分読み込みはv0.15.9として分離するのが安全。"
-        },
-        {
-          "history_id": "disc_0073_003",
-          "at": "2026-06-27",
-          "speaker": "user",
-          "topic": "インシデント追加依頼",
-          "message": "大量データの取り扱いは2件のインシデントに最初から分けておこう。更新後JSON返却を依頼。"
-        },
-        {
-          "history_id": "disc_0073_004",
-          "at": "2026-06-27",
-          "speaker": "user",
-          "topic": "Git管理対象外による大容量問題の再整理",
-          "message": "DiffToJson_*.jsonをwwwroot配下の生成フォルダーへ置き、そのフォルダーだけ.gitignoreで除外すれば、Git管理上の大容量問題は解消できると整理。"
-        },
-        {
-          "history_id": "disc_0073_005",
-          "at": "2026-06-27",
-          "speaker": "user",
-          "topic": "Viewer表示限界への整理",
-          "message": "大容量の場合は、APIレスポンスで返せない問題ではなく、DiffJsonViewer.htmlで扱えない容量であるという整理でよい。扱えないならエラーでよい。"
-        },
-        {
-          "history_id": "disc_0073_006",
-          "at": "2026-06-27",
-          "speaker": "assistant",
-          "topic": "v0.15.9方針修正",
-          "message": "v0.15.9を、diff_id方式中心ではなく、DiffJsonViewerの表示上限・too_largeエラー表示中心に修正する。"
-        }
-      ],
-      "decision_log": [
-        {
-          "decision_id": "dec_0073_001",
-          "at": "2026-06-27",
-          "decision": "大量差分JSON問題は、まずDiffJsonViewer.htmlの表示限界問題として扱う。",
-          "reason": "差分JSONはwwwroot配下のgitignore対象フォルダーから静的取得するため、APIレスポンス肥大化ではなく、Viewerがfetch/parse/renderできるかが主問題になるため。"
-        },
-        {
-          "decision_id": "dec_0073_002",
-          "at": "2026-06-27",
-          "decision": "Viewer表示上限を超えた場合は、初期段階ではエラーでよい。",
-          "reason": "巨大JSONを無理に表示してブラウザを固めるより、サイズ・パス・概要を示して安全に止める方が実用的であるため。"
-        },
-        {
-          "decision_id": "dec_0073_003",
-          "at": "2026-06-27",
-          "decision": "diff_id方式・部分読み込み・ストリーミングは初期スコープ外の将来候補とする。",
-          "reason": "まずはGitDiffRunからViewer表示までの通常サイズ体験を安定させ、大容量時は安全なエラー表示で十分に運用できるため。"
-        },
-        {
-          "decision_id": "dec_0073_004",
-          "at": "2026-06-27",
-          "decision": "Git管理の大容量問題は、生成用フォルダーの.gitignore除外で解消する。",
-          "reason": "一時成果物のDiffToJson_*.jsonをGitに入れなければ、リポジトリ肥大化やGit差分ノイズは避けられるため。"
-        }
-      ],
-      "change_history": [
-        {
-          "history_id": "chg_0073_001",
-          "at": "2026-06-27",
-          "change_type": "incident_added",
-          "before": "GitDiffRun結果JSONのDiffJsonViewer自動表示のみを1件で扱う案",
-          "after": "v0.15.8で通常サイズの直接返却・Viewer表示、v0.15.9で大量データの段階的取り扱いを分離",
-          "reason": "通常ケースの体験実装と、大量データの堅牢化・安全停止・部分読み込みを分けることで、実装スコープとリスクを管理しやすくするため。"
-        },
-        {
-          "history_id": "chg_0073_002",
-          "at": "2026-06-27",
-          "change_type": "incident_policy_update",
-          "before": "v0.15.9は、APIレスポンス肥大化対策としてsummary-only / diff_id / 部分読み込みを段階的に扱うインシデントだった。",
-          "after": "v0.15.9は、wwwroot配下のgitignore対象差分JSONをDiffJsonViewer.htmlが扱えるかどうかの表示上限・エラー表示インシデントへ整理した。diff_idや部分読み込みは将来候補へ後退。",
-          "reason": "差分JSON本文をAPIレスポンスで運ばない方針になったため、大容量問題の主戦場がAPIではなくViewer表示限界へ変わった。"
-        }
-      ],
-      "actual_updated_files": "data/json/01_main/studio_work_incident_data_v0_73_gitdiff_viewer_large_handling_added.json"
-    },
-    {
-      "work_item_id": "studio_work_0074",
-      "phase": "v0.16.0-proposal-driven-jobflow",
-      "title": "AI提案駆動JobFlow / JobControl JSON構想",
-      "incident_type": "architecture",
-      "category": "",
-      "priority": "high",
-      "status": "未着手",
-      "verification_status": "未確認",
-      "owner": "tamasub",
-      "ai_owner": "ChatGPT",
-      "created_at": "2026-06-28",
-      "updated_at": "2026-06-28",
-      "target_files": "data/json/01_main/studio_work_incident_data_*.json, future: data/json/02_job/job_control_data_v0_1.json, data/json/02_job/improvement_proposal_data_v0_1.json, data/json/02_job/job_approval_data_v0_1.json, data/json/02_job/job_run_result_data_v0_1.json, defs/job/job_control_view_def_v0_1.json, defs/job/improvement_proposal_view_def_v0_1.json",
-      "target_rule_files": "",
-      "objective": "AI作業の開始点を、人間の明示依頼だけでなくAI改善提案JSONからも始められるようにする。Improvement Proposal JSON → 人間承認 → JobControl JSON → Job実行 → TestResult / GitDiff / AIテスト物語 / AI差分物語 / Incident更新 までを、AI協働可能なJobFlowとして定義する。",
-      "background": "Studioくんでは、Incident JSON、GitDiffRun、DiffJsonViewer、AI差分物語、AIテスト物語、AI協働可能なノーコードテスト、JobControl JSON構想がつながり始めている。特に肝は、作業のスタートを『人間が毎回チャットで依頼する』だけにせず、AIが前回作業や現在Contextから出した改善提案を、次のJob候補として扱えるかどうかである。これが成立すると、AIが作業し、改善提案を出し、人間が承認し、次Jobが生成されるという、観察可能で承認可能な自律型AI協働フローへ進める。",
-      "scope": "AI提案駆動JobFlowの最小データ構造と流れを整理する。対象は Proposal Context Pack、Improvement Proposal JSON、Proposal Evaluation / Approval JSON、JobControl JSON、JobRun Result JSON、Artifact Manifest、AIテスト物語、AI差分物語、Incident更新の関係定義とする。JobControl JSONには source_proposal_id / source_incident_id / inputs / required_rules / steps / stop_conditions / outputs / human_approval / artifact_manifest を持たせる方針を検討する。初期段階では完全自動実行ではなく、AI提案からJobControl JSONを生成し、Studioくんで人間が承認・確認できることを主目的とする。Jobの中では、TestPattern JSON / Expected JSON生成、汎用Test Runner実行、Result JSON生成、GitDiffRun、DiffJsonViewer用viewer_url生成、AIテスト物語生成、AI差分物語生成、Incident更新を標準ステップ候補として扱う。",
-      "out_of_scope": "完全自律実行、外部AIエージェント常駐、バックグラウンド監視、無承認のコード変更、無承認の次Job連鎖、AIが提案を即実行する挙動は対象外とする。初期段階では、自動実行基盤そのものよりも、AI提案をJob候補に変換し、人間が承認してから次Jobとして扱えるデータ構造を育てることを優先する。汎用Test Runner本体、DiffJsonViewer高度化、AI差分物語/AIテスト物語の詳細生成エンジンは、必要に応じて別インシデントで扱う。",
-      "fixed_name_policy": "JobFlow系の job_id / proposal_id / source_proposal_id / source_incident_id / approval_status / stop_conditions / outputs などは、JobFlowデータの標準フィールド候補として扱う。ただしRuntimeが任意Dataの特定フィールド名に依存する実装は避ける。JobFlow用Data/ViewDef/Actionの契約として定義された範囲で使用する。",
-      "module_policy": "type=\"module\" 化は今回の主目的ではない。まずはData JSON / ViewDef / Action / Prompt生成の構造設計として扱い、既存の従来script方式・既存Studio運用と矛盾しない形で育てる。",
-      "expected_outputs": "AI提案駆動JobFlowの概念整理、JobControl JSON最小構造案、Improvement Proposal JSON最小構造案、Approval JSON最小構造案、JobRun Result / Artifact Manifest案、Studioくんで表示・承認するViewDef候補、AI提案から次Jobを生成するための初期プロンプト方針、更新済みインシデントJSON。",
-      "risk": "AI提案をそのまま作業命令として扱うと、不要・危険・重複・低優先の作業が連鎖するリスクがある。提案は必ず候補であり、人間承認または評価Jobを通して approved / rejected / deferred / converted を明示する必要がある。ループが長くなると目的逸脱や同じ提案の再発が起きるため、max_iterations、stop_if_no_approved_proposals、stop_if_same_proposal_repeated、stop_if_tests_fail、stop_if_unexpected_files_changed などの停止条件が重要になる。",
-      "test_points": "Improvement Proposal JSONからJobControl JSON候補を生成できること。提案がcandidateのまま実行されず、human_approvalでapprovedになってから次Jobへ変換されること。JobControl JSONにsource_proposal_idとsource_incident_idを保持できること。Jobの標準出力としてAIテスト物語・AI差分物語・Artifact Manifest・Incident更新を表現できること。stop_conditionsにより、ルール未読、対象ファイル欠落、テスト失敗、想定外差分、未承認提案が安全に止まること。",
-      "user_request": "自律型AIエージェント構想というかJOBフローの話もインシデントに追加して育てたい。JOBフローが実現できたら、AI差分物語やAIテスト物語の生成まで1つのJOBの中でできるはず。特に、このインシデントの肝は、スタートがAI提案から始められるか否かである。まずはインシデントに追加してほしい。",
-      "ai_response": "AI提案駆動JobFlowとしてインシデント化する。中心は、AIの改善提案を単なるメモで終わらせず、Improvement Proposal JSONとして構造化し、人間承認を経てJobControl JSONへ変換できるようにすること。JobControl JSONが実行手順・停止条件・成果物・承認対象を持てば、1つのJobの中でTestPattern生成、汎用Test Runner実行、GitDiffRun、AIテスト物語、AI差分物語、Incident更新まで標準出力として扱える。",
-      "latest_user_comment": "初期JobFlowでは、完全なパラレル実行は対象外とする。\nAI提案生成や影響範囲分析などのread-only jobは将来並列化候補とするが、\nsource / incident / ViewDef / Expected などを書き換えるwrite jobは直列実行を基本とする。\n\n理由:\nAI作業では、並列実装よりも、入力・差分・成果物・承認状態を確実に追跡できることを優先する。\nまずは1 Jobを安全に最後まで実行し、AI差分物語 / AIテスト物語 / Artifact Manifest / Incident更新まで一気通貫させる。",
-      "latest_ai_response": "studio_work_0074 として AI提案駆動JobFlow / JobControl JSON構想を追加。AI改善提案JSONを次Jobの候補として扱い、人間承認後にJobControl JSONへ変換する流れを中心に整理した。Jobの標準出力としてTestResult、GitDiff、AIテスト物語、AI差分物語、Artifact Manifest、Incident更新を扱う方針を記録した。",
-      "discussion_history": [
-        {
-          "history_id": "disc_0074_001",
-          "at": "2026-06-28",
-          "speaker": "user",
-          "topic": "JobFlow構想の整理相談",
-          "message": "自律型AIエージェント構想というか、JOBフローの話もインシデントに追加して育てたい。JOBフローが実現できたら、AI差分物語やAIテスト物語の生成まで1つのJOBの中でできるのではないかと相談。"
-        },
-        {
-          "history_id": "disc_0074_002",
-          "at": "2026-06-28",
-          "speaker": "assistant",
-          "topic": "JobFlow構想整理",
-          "message": "JobControl JSONは、入力、参照ルール、実行手順、停止条件、成果物、承認対象を持つAI作業定義として整理できる。1つのJob内でTestPattern生成、汎用Test Runner実行、GitDiffRun、AIテスト物語、AI差分物語、Incident更新まで標準ステップ化できると整理。"
-        },
-        {
-          "history_id": "disc_0074_003",
-          "at": "2026-06-28",
-          "speaker": "user",
-          "topic": "肝の明確化",
-          "message": "このインシデントの肝は、スタートがAI提案から始められるか否かである。まずはインシデントに追加してほしい。"
-        },
-        {
-          "history_id": "disc_0074_004",
-          "at": "2026-06-28",
-          "speaker": "assistant",
-          "topic": "インシデント追加",
-          "message": "AI提案駆動JobFlowとして、Improvement Proposal JSONから人間承認を経てJobControl JSONへ変換し、Job実行結果としてAIテスト物語・AI差分物語・Artifact Manifest・Incident更新へつなげるインシデントを追加した。"
-        }
-      ],
-      "decision_log": [
-        {
-          "decision_id": "dec_0074_001",
-          "at": "2026-06-28",
-          "decision": "JobFlowの開始点は、人間の明示依頼だけでなくAI改善提案JSONも許容する。",
-          "reason": "AIの出力を次のAI入力にできる形で残すことが、観察可能な自律型AI協働フローの入口になるため。"
-        },
-        {
-          "decision_id": "dec_0074_002",
-          "at": "2026-06-28",
-          "decision": "AI提案は命令ではなくcandidateとして扱い、人間承認または評価Jobを通してからJobControl JSONへ変換する。",
-          "reason": "AI提案を即実行すると、不要・危険・重複・低優先の作業が連鎖するリスクがあるため。"
-        },
-        {
-          "decision_id": "dec_0074_003",
-          "at": "2026-06-28",
-          "decision": "Jobの標準出力候補にAIテスト物語とAI差分物語を含める。",
-          "reason": "人間が承認するためには、TestResultやGitDiffそのものだけでなく、なぜ承認できるかを説明する物語化された判断材料が必要なため。"
-        },
-        {
-          "decision_id": "dec_0074_004",
-          "at": "2026-06-28",
-          "decision": "テストはテストコード増殖ではなく、TestPattern JSON / Expected JSON / Result JSON をJobFlowの成果物として扱う。",
-          "reason": "AI協働可能なノーコードテストでは、テストコードは汎用Runnerとして奥に下げ、テスト内容をJSON定義として育てるため。"
-        },
-        {
-          "decision_id": "dec_0074_005",
-          "at": "2026-06-28",
-          "decision": "初期段階では完全自動実行ではなく、JobControl JSONの生成・表示・承認・AI依頼プロンプト化を優先する。",
-          "reason": "いきなり外部エージェント化すると危険と実装範囲が大きいため、まずはStudioくん上で見えるJobFlowとして育てるため。"
-        }
-      ],
-      "change_history": [
-        {
-          "history_id": "chg_0074_001",
-          "at": "2026-06-28",
-          "change_type": "incident_added",
-          "before": "studio_work_incident_data_v0_73_gitdiff_viewer_wwwroot_src_policy_updated.json / items_count=73",
-          "after": "studio_work_incident_data_v0_74_proposal_driven_jobflow_added.json / items_count=74",
-          "reason": "AI提案を起点にJobControl JSONへつなげ、AI差分物語・AIテスト物語・Artifact Manifest・Incident更新までを1つのJobFlowとして育てるため。"
-        }
-      ],
-      "actual_updated_files": "studio_work_incident_data_v0_74_proposal_driven_jobflow_added.json"
     }
   ],
   "review_notes": [
@@ -8324,15 +7552,10 @@
       "title": "Enum / FieldType / ViewDef文脈制御をインシデント化",
       "body": "Enumを値の正本として追加し、common_typesのenumRef対応、context_read_timing等のcontext系Enum、既存optionsのEnum参照化、ViewDef read_contract / row context_refs対応を studio_work_0065〜0069 として追加した。",
       "related_work_item_id": "studio_work_0065-0069"
-    },
-    {
-      "note_id": "note_0073_gitdiff_viewer",
-      "title": "GitDiffRun結果表示の一気通貫",
-      "body": "GitDiffRunで差分JSONを作るだけでなく、Program.cs側で差分JSONを読み取り、DiffJsonViewerへ渡して表示する導線を追加候補化した。大量差分JSONの扱いは別インシデントへ分離する。"
     }
   ],
-  "work_revision": "v0.15.9-gitdiff-viewer-wwwroot-src-policy-updated",
-  "latest_planning_note": "GitDiffRun結果JSONはAPIレスポンス本文で運ぶのではなく、wwwroot配下の生成用フォルダーへ出力し、.gitignoreでGit管理対象外にする。APIはviewer_url / diff_json_path / file_size_bytes / summary等を返し、DiffJsonViewer.html は src パラメータで差分JSONを静的取得する。大量データ問題は、APIレスポンス問題ではなくDiffJsonViewerで扱える表示容量の問題として整理し、上限超過時は安全なエラー表示でよい。",
+  "work_revision": "v0.15.5-enum-and-viewdef-context-incidents-added",
+  "latest_planning_note": "Enumを値の最小管理単位として追加し、common_types enumRef、context系Enum、既存options整理、ViewDef read_contract/context_refs を5件のインシデントとして追加。",
   "view_def_candidates": [
     {
       "view_def": "rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",

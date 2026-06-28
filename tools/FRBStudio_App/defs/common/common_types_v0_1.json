@@ -1,6 +1,6 @@
 {
   "version": "0.1",
-  "description": "No-Code JSON Studio 共通FieldType定義。cd/name選択肢と、意味のある通常項目FieldTypeを管理する。 不足検出VirtualData用FieldTypeを追加。 v0.15.2でFieldType enumRef解決のサンプルを追加。 v0.15.4で既存select optionsをenumRef正本へ段階移行。",
+  "description": "No-Code JSON Studio 共通FieldType定義。cd/name選択肢と、意味のある通常項目FieldTypeを管理する。 不足検出VirtualData用FieldTypeを追加。 v0.15.2でFieldType enumRef解決のサンプルを追加。 v0.15.4で既存select optionsをenumRef正本へ段階移行。 v0.15.5でread_contract用のfailure_policy/trust_category FieldTypeを追加。",
   "namespaces": {
     "qa": {
       "fieldTypes": {
@@ -1483,6 +1483,44 @@
             "operator": "equals"
           },
           "notes": "v0.15.3: context.read_timing をEnum正本として参照するFieldType。v0.15.3.1でAPI相対パス補正と合わせて再収録。"
+        },
+        "failure_policy": {
+          "caption": "失敗時方針",
+          "baseType": "select",
+          "enumRef": "context.failure_policy",
+          "valueField": "cd",
+          "labelField": "name",
+          "grid": {
+            "visible": true,
+            "width": 150
+          },
+          "edit": {
+            "visible": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "equals"
+          },
+          "notes": "v0.15.5: read_contract / context_refs の文脈参照失敗時方針。required=true では stop_and_report を基本とする。"
+        },
+        "trust_category": {
+          "caption": "信頼区分",
+          "baseType": "select",
+          "enumRef": "context.trust_category",
+          "valueField": "cd",
+          "labelField": "name",
+          "grid": {
+            "visible": true,
+            "width": 120
+          },
+          "edit": {
+            "visible": true
+          },
+          "search": {
+            "visible": true,
+            "operator": "equals"
+          },
+          "notes": "v0.15.5: 文脈参照の正本/作業中/参照/補助などの位置づけ。"
         }
       },
       "fieldGroups": {},
@@ -1513,6 +1551,13 @@
       "change_type": "fieldtype_enumref_migration",
       "summary": "qa/relation系select FieldTypeへenumRefを追加し、既存optionsは互換用スナップショットとして残置。",
       "reason": "FieldTypeが選択肢を直書きし続けると値語彙の正本が分散するため。"
+    },
+    {
+      "history_id": "chg_common_types_v0_15_5_context_read_contract",
+      "at": "2026-06-28",
+      "change_type": "context_fieldtypes_added",
+      "summary": "context.failure_policy / context.trust_category FieldTypeを追加。",
+      "reason": "context_refs_sample と ViewDef read_contract で、失敗時方針・信頼区分を文字列ではなくEnum参照selectとして扱うため。"
     }
   ]
 }
