@@ -1,12 +1,12 @@
 ---
-title: "AI駆動開発研究日誌 #2 — Studioくん、画面定義まで食べ始める"
+title: "AI駆動開発研究日誌 #2 — Studioくん、画面定義を飲み込む"
 emoji: "🧬"
 type: "idea"
 topics: ["ai", "json", "nocode", "markdown", "開発"]
 published: true
 ---
 
-# AI駆動開発研究日誌 #2 — Studioくん、画面定義まで食べ始める
+# AI駆動開発研究日誌 #2 — Studioくん、画面定義を飲み込む
 
 前回、JSON Editorを作ろうとしていたら、気が付けば **Studioくん** が爆誕していた。
 
