@@ -102,7 +102,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true
+                "visible": false
               }
             },
             {
@@ -116,48 +116,6 @@
               "edit": {
                 "visible": true,
                 "readonly": true
-              }
-            },
-            {
-              "field": "purpose",
-              "caption": "目的",
-              "type": "textarea",
-              "readonly": true,
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": true,
-                "readonly": true,
-                "height": 60
-              }
-            },
-            {
-              "field": "operation_policy",
-              "caption": "運用方針",
-              "type": "textarea",
-              "readonly": true,
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": true,
-                "readonly": true,
-                "height": 60
-              }
-            },
-            {
-              "field": "standard_field_policy",
-              "caption": "標準メタフィールド方針",
-              "type": "textarea",
-              "readonly": true,
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": true,
-                "readonly": true,
-                "height": 60
               }
             }
           ]
@@ -431,6 +389,17 @@
                   },
                   {
                     "role": "constraint",
+                    "field": "actual_updated_files",
+                    "label": "実更新ファイル",
+                    "height": 90,
+                    "markdown": {
+                      "enabled": true,
+                      "allowLinks": true,
+                      "allowImages": false
+                    }
+                  },
+                  {
+                    "role": "constraint",
                     "field": "objective",
                     "label": "目的",
                     "height": 120,
@@ -527,6 +496,17 @@
                       "allowLinks": true,
                       "allowImages": true
                     }
+                  },
+                  {
+                    "role": "constraint",
+                    "field": "verification_log",
+                    "label": "確認ログ",
+                    "height": 110,
+                    "markdown": {
+                      "enabled": true,
+                      "allowLinks": true,
+                      "allowImages": false
+                    }
                   }
                 ],
                 "input": {
@@ -539,7 +519,7 @@
               "create": {
                 "include": false
               },
-              "display_note": "長文フィールドをtextareaの羅列ではなく、詳細画面上部の横広カードとして表示する。 Markdownプレビュー表示に対応。表示時はHTML、編集時はMarkdown原文。",
+              "display_note": "v0.14.0: 実更新ファイルと確認ログを、既存ViewDefファイル名を変更せず同名更新で表示対象へ追加。",
               "layout": {
                 "placement": "detailBody",
                 "order": 120
@@ -558,7 +538,7 @@
                 "height": 70
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "display_note": "詳細画面では __work_summary_cards の「対象ファイル」カードとして横広に表示する。",
@@ -566,6 +546,24 @@
                 "enabled": true,
                 "allowLinks": true,
                 "allowImages": true
+              }
+            },
+            {
+              "field": "actual_updated_files",
+              "caption": "実更新ファイル",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 260
+              },
+              "edit": {
+                "visible": false,
+                "height": 90
+              },
+              "markdown": {
+                "enabled": true,
+                "allowLinks": true,
+                "allowImages": false
               }
             },
             {
@@ -581,7 +579,7 @@
                 "height": 90
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "display_note": "詳細画面では __work_summary_cards の「目的」カードとして横広に表示する。",
@@ -603,7 +601,7 @@
                 "height": 120
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "display_note": "詳細画面では __work_summary_cards の「背景」カードとして横広に表示する。",
@@ -625,7 +623,7 @@
                 "height": 120
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "display_note": "詳細画面では __work_summary_cards の「対象範囲」カードとして横広に表示する。",
@@ -647,7 +645,7 @@
                 "height": 120
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "display_note": "詳細画面では __work_summary_cards の「対象外」カードとして横広に表示する。",
@@ -669,7 +667,7 @@
                 "height": 120
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "display_note": "詳細画面では __work_summary_cards の「固定名方針」カードとして横広に表示する。",
@@ -691,7 +689,7 @@
                 "height": 90
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "display_note": "詳細画面では __work_summary_cards の「module化方針」カードとして横広に表示する。",
@@ -713,7 +711,7 @@
                 "height": 90
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "display_note": "詳細画面では __work_summary_cards の「成果物」カードとして横広に表示する。",
@@ -735,7 +733,7 @@
                 "height": 110
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "display_note": "詳細画面では __work_summary_cards の「リスク」カードとして横広に表示する。",
@@ -757,7 +755,7 @@
                 "height": 110
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "display_note": "詳細画面では __work_summary_cards の「確認観点」カードとして横広に表示する。",
@@ -765,6 +763,24 @@
                 "enabled": true,
                 "allowLinks": true,
                 "allowImages": true
+              }
+            },
+            {
+              "field": "verification_log",
+              "caption": "確認ログ",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 280
+              },
+              "edit": {
+                "visible": false,
+                "height": 120
+              },
+              "markdown": {
+                "enabled": true,
+                "allowLinks": true,
+                "allowImages": false
               }
             },
             {
@@ -852,7 +868,7 @@
                 "height": 110
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "defaultValue": "",
@@ -876,7 +892,7 @@
                 "height": 120
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "defaultValue": "",
@@ -898,7 +914,7 @@
                 "height": 90
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "defaultValue": "",
@@ -922,7 +938,7 @@
                 "height": 110
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "defaultValue": "",
@@ -956,7 +972,7 @@
                 "visible": false
               },
               "defaultValue": [],
-              "display_note": "詳細画面では入力欄化せず、objectArrayの子グリッドとして表示する。表示用の「n items」を保存値にしないため。"
+              "display_note": "判断ログは decision/reason だけでなく、applied_axes / conditions / exceptions / expected_behavior / acceptance_criteria / test_pattern_seed / remaining_risks などを必要に応じて保持する。表示用の件数文字列を保存値にしない。"
             },
             {
               "field": "change_history",
@@ -1271,8 +1287,17 @@
           }
         ]
       },
-      "layout_note": "長文の作業説明はtextareaを並べず、detailBodyのchat型カードで横広に表示する。配列履歴はobjectArrayとして保持し、入力欄化しない。"
+      "layout_note": "長文の作業説明はtextareaを並べず、detailBodyのchat型カードで横広に表示する。配列履歴はobjectArrayとして保持し、入力欄化しない。",
+      "toolbar": {
+        "executeButton": {
+          "caption": "AI依頼プロンプトコピー",
+          "action": "CopyPromptFromTemplate",
+          "promptTemplate": "今回の作業依頼:\n- incident_file: {{data.filePath}}\n- phase: {{row.phase}}\n\n作業ルール:\n\nAIやスクリプトが直接取得するためのraw/archive URL:\n          - Foundation Rules raw: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/data/json/00_rules/frb_foundation_rules_data_v0_1.json\n\n          FRB Studio Foundation Rules の foundation_rule_019「GitHub基準ソースとZIP返却契約」を参照してください。",
+          "requireSelectedRow": true,
+          "description": "選択中の作業項目と現在のData JSONファイル名から、ChatGPT依頼用プロンプトを生成してクリップボードへコピーする。"
+        }
+      }
     }
   ],
-  "layout_note": "作業項目ごとに discussion_history / decision_log / change_history を objectArray として保持する。長文の作業説明は __work_summary_cards のchat型カードでdetailBodyに表示し、会話サマリは __work_chat でdetailFooterに表示する。 v0.10.1で、Markdown許可欄は見出し・箇条書き・コードブロックを含む表示モードプレビューに対応。"
+  "layout_note": "作業項目ごとに discussion_history / decision_log / change_history を objectArray として保持する。長文の作業説明は __work_summary_cards のchat型カードでdetailBodyに表示し、会話サマリは __work_chat でdetailFooterに表示する。 v0.10.1で、Markdown許可欄は見出し・箇条書き・コードブロックを含む表示モードプレビューに対応。\n\nv0.14.0: ViewDefファイル名安定ルールに従い、このViewDefは新規名を作らず同名更新する。actual_updated_files / verification_log を表示候補に追加。\n\nv0.14.2: toolbar.executeButton に CopyPromptFromTemplate を追加。プロンプト本文はViewDef側の promptTemplate に保持し、JS側へ固定文言を置かない。"
 }

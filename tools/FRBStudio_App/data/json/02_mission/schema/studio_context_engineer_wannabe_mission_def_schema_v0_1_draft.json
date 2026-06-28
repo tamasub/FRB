@@ -1,0 +1,755 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "studio_context_engineer_wannabe_mission_def_schema_v0_1_draft.json",
+  "title": "Studio Context Engineer Wannabe Mission Definition Schema v0.1 draft",
+  "description": "Schema for actual Mission Definition data JSON passed to AI. This validates the mission package, not the explanatory format document.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "document_type",
+    "title",
+    "concept_name",
+    "concept_subtitle",
+    "status",
+    "mission"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "enum": [
+        "studio_context_engineer_wannabe_mission_def_data_v0_1",
+        "studio_context_engineer_wannabe_mission_def_data_v0_1_draft"
+      ]
+    },
+    "document_type": {
+      "type": "string",
+      "const": "studio_context_engineer_wannabe_mission_def"
+    },
+    "view_def": {
+      "type": "string"
+    },
+    "view_definition": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "concept_name": {
+      "type": "string",
+      "const": "Studio Context Engineer Wannabe"
+    },
+    "concept_subtitle": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "ready",
+        "requested",
+        "running_by_ai",
+        "completed",
+        "failed",
+        "blocked",
+        "cancelled"
+      ]
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "introduced_in": {
+      "type": "string"
+    },
+    "foundation_ref": {
+      "$ref": "#/$defs/foundationRef"
+    },
+    "format_contract": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "mission": {
+      "$ref": "#/$defs/mission"
+    },
+    "change_history": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/changeHistoryItem"
+      }
+    }
+  },
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stringArray": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "foundationRef": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "file": {
+          "type": "string"
+        },
+        "rule_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "changeHistoryItem": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "history_id": {
+          "type": "string"
+        },
+        "at": {
+          "type": "string"
+        },
+        "change_type": {
+          "type": "string"
+        },
+        "before": {},
+        "after": {},
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+    "outputRefObject": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "output_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "output_id",
+        "type"
+      ]
+    },
+    "refStringOrObject": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "$ref": "#/$defs/outputRefObject"
+        }
+      ]
+    },
+    "missionStatus": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "ready",
+        "requested",
+        "running_by_ai",
+        "completed",
+        "failed",
+        "blocked",
+        "cancelled"
+      ]
+    },
+    "missionMode": {
+      "type": "string",
+      "enum": [
+        "serial",
+        "dag_future",
+        "parallel_read_future"
+      ]
+    },
+    "incidentRef": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "incident_file",
+        "phase"
+      ],
+      "properties": {
+        "incident_file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "work_item_id": {
+          "type": "string"
+        },
+        "phase": {
+          "type": "string",
+          "minLength": 1
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "contextRef": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "context_ref_id": {
+          "type": "string"
+        },
+        "ref_id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "target_path": {
+          "type": "string"
+        },
+        "read_timing": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "failure_policy": {
+          "type": "string"
+        },
+        "trust_category": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "executionPolicy": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "runtime_monitoring",
+        "stop_on_failure"
+      ],
+      "properties": {
+        "runtime_monitoring": {
+          "type": "boolean",
+          "const": false
+        },
+        "stop_on_failure": {
+          "type": "boolean"
+        },
+        "default_next_condition": {
+          "type": "string"
+        },
+        "parallel_write_jobs": {
+          "type": "string"
+        },
+        "human_approval_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "inputRef": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "input_id",
+        "type"
+      ],
+      "properties": {
+        "input_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "stepInputRef": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "$ref": "#/$defs/inputRef"
+        },
+        {
+          "$ref": "#/$defs/outputRefObject"
+        }
+      ]
+    },
+    "successCondition": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "condition_id",
+        "type",
+        "expected"
+      ],
+      "properties": {
+        "condition_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target": {
+          "type": "string"
+        },
+        "expected": {},
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "transition": {
+      "type": "object",
+      "additionalProperties": true,
+      "minProperties": 1,
+      "properties": {
+        "next_step_id": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string"
+        },
+        "result_status": {
+          "type": "string"
+        }
+      }
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "step_id",
+        "title",
+        "depends_on",
+        "instruction",
+        "inputs",
+        "outputs",
+        "success_conditions",
+        "on_success",
+        "on_failure"
+      ],
+      "properties": {
+        "step_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "depends_on": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "instruction": {
+          "type": "string",
+          "minLength": 1
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/stepInputRef"
+          }
+        },
+        "outputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/outputRefObject"
+          }
+        },
+        "success_conditions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/successCondition"
+          }
+        },
+        "on_success": {
+          "$ref": "#/$defs/transition"
+        },
+        "on_failure": {
+          "$ref": "#/$defs/transition"
+        }
+      }
+    },
+    "reviewPolicy": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "human_review_required": {
+          "type": "boolean"
+        },
+        "review_focus": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "mission": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "mission_id",
+        "title",
+        "status",
+        "mode",
+        "incident_ref",
+        "execution_policy",
+        "inputs",
+        "steps",
+        "final_outputs"
+      ],
+      "properties": {
+        "mission_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "$ref": "#/$defs/missionStatus"
+        },
+        "mode": {
+          "$ref": "#/$defs/missionMode"
+        },
+        "incident_ref": {
+          "$ref": "#/$defs/incidentRef"
+        },
+        "context_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/contextRef"
+          }
+        },
+        "execution_policy": {
+          "$ref": "#/$defs/executionPolicy"
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/inputRef"
+          }
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/step"
+          }
+        },
+        "success_conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/successCondition"
+          }
+        },
+        "final_outputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/refStringOrObject"
+          }
+        },
+        "review_policy": {
+          "$ref": "#/$defs/reviewPolicy"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "schema_version": "studio_context_engineer_wannabe_mission_def_data_v0_1_draft",
+      "document_type": "studio_context_engineer_wannabe_mission_def",
+      "view_def": "mission/studio_context_engineer_wannabe_mission_def_view_def_v0_1.json",
+      "title": "Studio Context Engineer Wannabe v0.1ドラフト作成",
+      "concept_name": "Studio Context Engineer Wannabe",
+      "concept_subtitle": "文脈設計者になりたいStudioくん",
+      "status": "draft",
+      "generated_at": "2026-06-28T00:00:00+09:00",
+      "introduced_in": "v0.16.1-studio-context-engineer-wannabe-mission-draft",
+      "foundation_ref": {
+        "file": "data/json/00_rules/studio_context_engineer_wannabe_foundation_rules_data_v0_1_draft.json",
+        "rule_ids": [
+          "scew_rule_003",
+          "scew_rule_004",
+          "scew_rule_006",
+          "scew_rule_007",
+          "scew_rule_008"
+        ]
+      },
+      "format_contract": {
+        "canonical_root": "mission",
+        "mvp_mode": "serial",
+        "runtime_monitoring": false,
+        "execution_engine_included": false,
+        "parallel_write_jobs_in_v0_1": "not_allowed",
+        "details_history_policy": "詳細履歴はインシデント・成果物・差分・テスト結果側に残す。Missionは参照と成功条件を持つ。"
+      },
+      "mission": {
+        "mission_id": "mission_scew_v0_1_draft_001",
+        "title": "Studio Context Engineer Wannabe v0.1ドラフト作成",
+        "status": "ready",
+        "mode": "serial",
+        "incident_ref": {
+          "incident_file": "data/json/01_main/studio_work_incident_data_v0_75_studio_context_engineer_wannabe_mission_draft_added.json",
+          "work_item_id": "studio_work_0078",
+          "phase": "v0.16.1-studio-context-engineer-wannabe-mission-draft"
+        },
+        "context_refs": [
+          {
+            "type": "foundation_rules",
+            "path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json",
+            "note": "Data JSON原本・AI作業記録・ZIP返却契約の前提"
+          }
+        ],
+        "execution_policy": {
+          "runtime_monitoring": false,
+          "stop_on_failure": true,
+          "default_next_condition": "all_success_conditions_passed",
+          "parallel_write_jobs": "not_allowed_in_v0_1",
+          "human_approval_required": true
+        },
+        "inputs": [
+          {
+            "input_id": "in_001",
+            "type": "incident_json",
+            "path": "data/json/01_main/studio_work_incident_data_v0_75_studio_context_engineer_wannabe_mission_draft_added.json",
+            "required": true
+          },
+          {
+            "input_id": "in_002",
+            "type": "conversation_context",
+            "description": "Wannabe命名、高目標設置型、Mission定義、結果サマリーの会話文脈",
+            "required": true
+          }
+        ],
+        "steps": [
+          {
+            "step_id": "step_001",
+            "title": "憲法データ作成",
+            "depends_on": [],
+            "instruction": "Studio Context Engineer Wannabe憲法 v0.1 draftをData JSON原本として作成する。",
+            "inputs": [
+              "in_001",
+              "in_002"
+            ],
+            "outputs": [
+              {
+                "output_id": "out_001",
+                "type": "rule_review_data_json",
+                "path": "data/json/00_rules/studio_context_engineer_wannabe_foundation_rules_data_v0_1_draft.json",
+                "required": true
+              }
+            ],
+            "success_conditions": [
+              {
+                "condition_id": "sc_001_001",
+                "type": "json_parse",
+                "target": "out_001",
+                "expected": "valid_json"
+              },
+              {
+                "condition_id": "sc_001_002",
+                "type": "content",
+                "target": "out_001",
+                "expected": "Wannabe / Mission / Result Summaryの判断軸を含む"
+              }
+            ],
+            "on_success": {
+              "next_step_id": "step_002"
+            },
+            "on_failure": {
+              "action": "stop",
+              "result_status": "blocked"
+            }
+          },
+          {
+            "step_id": "step_002",
+            "title": "Mission定義フォーマット作成",
+            "depends_on": [
+              "step_001"
+            ],
+            "instruction": "AIに渡すMission定義JSONフォーマット v0.1 draftを作成する。",
+            "inputs": [
+              "out_001"
+            ],
+            "outputs": [
+              {
+                "output_id": "out_002",
+                "type": "mission_def_format_json",
+                "path": "data/json/02_mission/studio_context_engineer_wannabe_mission_def_data_v0_1_draft.json",
+                "required": true
+              }
+            ],
+            "success_conditions": [
+              {
+                "condition_id": "sc_002_001",
+                "type": "json_parse",
+                "target": "out_002",
+                "expected": "valid_json"
+              },
+              {
+                "condition_id": "sc_002_002",
+                "type": "fields",
+                "target": "out_002",
+                "expected": "mission_id / incident_ref / steps / depends_on / inputs / outputs / success_conditions を含む"
+              }
+            ],
+            "on_success": {
+              "next_step_id": "step_003"
+            },
+            "on_failure": {
+              "action": "stop",
+              "result_status": "blocked"
+            }
+          },
+          {
+            "step_id": "step_003",
+            "title": "Mission実行結果サマリーフォーマット作成",
+            "depends_on": [
+              "step_002"
+            ],
+            "instruction": "AIから完了時に受け取るMission実行結果サマリーJSONフォーマット v0.1 draftを作成する。",
+            "inputs": [
+              "out_001",
+              "out_002"
+            ],
+            "outputs": [
+              {
+                "output_id": "out_003",
+                "type": "mission_result_summary_format_json",
+                "path": "data/json/02_mission/studio_context_engineer_wannabe_mission_result_summary_data_v0_1_draft.json",
+                "required": true
+              }
+            ],
+            "success_conditions": [
+              {
+                "condition_id": "sc_003_001",
+                "type": "json_parse",
+                "target": "out_003",
+                "expected": "valid_json"
+              },
+              {
+                "condition_id": "sc_003_002",
+                "type": "content",
+                "target": "out_003",
+                "expected": "途中監視ではなく完了時結果サマリーとして定義されている"
+              }
+            ],
+            "on_success": {
+              "next_step_id": "step_004"
+            },
+            "on_failure": {
+              "action": "stop",
+              "result_status": "blocked"
+            }
+          },
+          {
+            "step_id": "step_004",
+            "title": "インシデント完了記録",
+            "depends_on": [
+              "step_003"
+            ],
+            "instruction": "実更新ファイル、変更理由、対応結果をインシデントJSONに記録する。",
+            "inputs": [
+              "out_001",
+              "out_002",
+              "out_003"
+            ],
+            "outputs": [
+              {
+                "output_id": "out_004",
+                "type": "updated_incident_json",
+                "path": "data/json/01_main/studio_work_incident_data_v0_76_studio_context_engineer_wannabe_mission_draft_done.json",
+                "required": true
+              }
+            ],
+            "success_conditions": [
+              {
+                "condition_id": "sc_004_001",
+                "type": "json_parse",
+                "target": "out_004",
+                "expected": "valid_json"
+              },
+              {
+                "condition_id": "sc_004_002",
+                "type": "incident_status",
+                "target": "studio_work_0078",
+                "expected": "完了"
+              }
+            ],
+            "on_success": {
+              "next_step_id": "mission_complete"
+            },
+            "on_failure": {
+              "action": "stop",
+              "result_status": "blocked"
+            }
+          }
+        ],
+        "final_outputs": [
+          "out_001",
+          "out_002",
+          "out_003",
+          "out_004"
+        ],
+        "review_policy": {
+          "human_review_required": true,
+          "review_focus": [
+            "憲法の思想が強すぎず弱すぎないか",
+            "Mission定義が実行エンジンに踏み込みすぎていないか",
+            "Result Summaryが途中監視に見えないか"
+          ]
+        }
+      },
+      "change_history": []
+    }
+  ]
+}

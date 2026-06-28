@@ -1,0 +1,866 @@
+{
+  "app": {
+    "name": "FRB Studio / Studio Context Engineer Wannabe",
+    "version": "v0.1-draft"
+  },
+  "views": [
+    {
+      "id": "studio_context_engineer_wannabe_mission_def",
+      "caption": "Studio Context Engineer Wannabe Mission定義",
+      "layout": {
+        "detailDialog": "wide"
+      },
+      "sections": [
+        {
+          "id": "header",
+          "caption": "Mission基本情報",
+          "type": "form",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "schema_version",
+              "caption": "Schema Version",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 260
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              },
+              "readonly": true
+            },
+            {
+              "field": "document_type",
+              "caption": "Document Type",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 260
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              },
+              "readonly": true
+            },
+            {
+              "field": "view_def",
+              "caption": "ViewDef",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 260
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              },
+              "readonly": true
+            },
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 320
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "concept_name",
+              "caption": "Concept",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 260
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "concept_subtitle",
+              "caption": "Subtitle",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 260
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "status",
+              "caption": "Data Status",
+              "type": "select",
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "control": "combobox"
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "options": [
+                "draft",
+                "ready",
+                "requested",
+                "running_by_ai",
+                "completed",
+                "failed",
+                "blocked",
+                "cancelled"
+              ],
+              "control": "combobox"
+            },
+            {
+              "field": "generated_at",
+              "caption": "Generated At",
+              "type": "datetime",
+              "grid": {
+                "visible": false,
+                "width": 180
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              },
+              "readonly": true
+            },
+            {
+              "field": "introduced_in",
+              "caption": "Introduced In",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 320
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "foundation_ref.file",
+              "caption": "Foundation File",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 360
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "readonly": true
+            },
+            {
+              "field": "foundation_ref.rule_ids",
+              "caption": "Foundation Rule IDs",
+              "type": "stringArray",
+              "grid": {
+                "visible": false,
+                "width": 220
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              },
+              "readonly": true
+            },
+            {
+              "field": "format_contract.canonical_root",
+              "caption": "Canonical Root",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 160
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              },
+              "readonly": true
+            },
+            {
+              "field": "format_contract.mvp_mode",
+              "caption": "MVP Mode",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 140
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              },
+              "readonly": true
+            },
+            {
+              "field": "format_contract.runtime_monitoring",
+              "caption": "Runtime Monitoring",
+              "type": "boolean",
+              "grid": {
+                "visible": false,
+                "width": 140
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              },
+              "readonly": true
+            },
+            {
+              "field": "format_contract.execution_engine_included",
+              "caption": "Execution Engine Included",
+              "type": "boolean",
+              "grid": {
+                "visible": false,
+                "width": 180
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              },
+              "readonly": true
+            },
+            {
+              "field": "format_contract.parallel_write_jobs_in_v0_1",
+              "caption": "Parallel Write Jobs",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 180
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              },
+              "readonly": true
+            },
+            {
+              "field": "format_contract.details_history_policy",
+              "caption": "Details History Policy",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 160
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 90
+              },
+              "search": {
+                "visible": false
+              },
+              "readonly": true
+            },
+            {
+              "field": "mission.mission_id",
+              "caption": "Mission ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 260
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "mission.title",
+              "caption": "Missionタイトル",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 360
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "mission.status",
+              "caption": "Mission状態",
+              "type": "select",
+              "grid": {
+                "visible": true,
+                "width": 140
+              },
+              "edit": {
+                "visible": true,
+                "control": "combobox"
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "options": [
+                "draft",
+                "ready",
+                "requested",
+                "running_by_ai",
+                "completed",
+                "failed",
+                "blocked",
+                "cancelled"
+              ],
+              "control": "combobox"
+            },
+            {
+              "field": "mission.mode",
+              "caption": "Mode",
+              "type": "select",
+              "grid": {
+                "visible": true,
+                "width": 160
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              },
+              "options": [
+                "serial",
+                "dag_future",
+                "parallel_read_future"
+              ]
+            },
+            {
+              "field": "mission.incident_ref.incident_file",
+              "caption": "Incident File",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 420
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "mission.incident_ref.work_item_id",
+              "caption": "Work Item ID",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 180
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "mission.incident_ref.phase",
+              "caption": "Phase",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 360
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "mission.execution_policy.runtime_monitoring",
+              "caption": "途中監視",
+              "type": "boolean",
+              "grid": {
+                "visible": false,
+                "width": 120
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "mission.execution_policy.stop_on_failure",
+              "caption": "失敗時停止",
+              "type": "boolean",
+              "grid": {
+                "visible": false,
+                "width": 120
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "mission.execution_policy.default_next_condition",
+              "caption": "Default Next Condition",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 260
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "mission.execution_policy.parallel_write_jobs",
+              "caption": "Parallel Write Jobs",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 220
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "mission.execution_policy.human_approval_required",
+              "caption": "Human Approval Required",
+              "type": "boolean",
+              "grid": {
+                "visible": false,
+                "width": 160
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "mission.context_refs",
+              "caption": "Context Refs",
+              "type": "objectArray",
+              "grid": {
+                "visible": false,
+                "width": 180
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "mission.inputs",
+              "caption": "Mission Inputs",
+              "type": "objectArray",
+              "grid": {
+                "visible": false,
+                "width": 180
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "mission.final_outputs",
+              "caption": "Final Outputs",
+              "type": "stringArray",
+              "grid": {
+                "visible": false,
+                "width": 160
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "mission.review_policy.human_review_required",
+              "caption": "Review Required",
+              "type": "boolean",
+              "grid": {
+                "visible": false,
+                "width": 140
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "mission.review_policy.review_focus",
+              "caption": "Review Focus",
+              "type": "stringArray",
+              "grid": {
+                "visible": false,
+                "width": 180
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "change_history",
+              "caption": "Change History",
+              "type": "objectArray",
+              "grid": {
+                "visible": false,
+                "width": 180
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            }
+          ]
+        },
+        {
+          "id": "steps",
+          "caption": "Mission Steps",
+          "type": "grid",
+          "dataPath": "$.mission.steps",
+          "keyField": "step_id",
+          "fields": [
+            {
+              "field": "step_id",
+              "caption": "Step ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "title",
+              "caption": "Step Title",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 240
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "depends_on",
+              "caption": "Depends On",
+              "type": "stringArray",
+              "grid": {
+                "visible": true,
+                "width": 140
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "instruction",
+              "caption": "Instruction",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 420
+              },
+              "edit": {
+                "visible": true,
+                "height": 140
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "inputs",
+              "caption": "Inputs",
+              "type": "stringArray",
+              "grid": {
+                "visible": true,
+                "width": 140
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "outputs",
+              "caption": "Outputs",
+              "type": "objectArray",
+              "grid": {
+                "visible": true,
+                "width": 150
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "success_conditions",
+              "caption": "Success Conditions",
+              "type": "objectArray",
+              "grid": {
+                "visible": true,
+                "width": 180
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "on_success.next_step_id",
+              "caption": "On Success",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 140
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "on_failure.action",
+              "caption": "On Failure Action",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 140
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "on_failure.result_status",
+              "caption": "On Failure Status",
+              "type": "select",
+              "grid": {
+                "visible": true,
+                "width": 140
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              },
+              "options": [
+                "blocked",
+                "failed",
+                "partial",
+                "cancelled"
+              ]
+            }
+          ],
+          "markdown": {
+            "aiPrompt": {
+              "enabled": true,
+              "title": "Mission Step AI依頼プロンプト",
+              "targetFile": "studio_context_engineer_wannabe_mission_def_sample_v0_1_draft.json",
+              "rowSource": "filtered",
+              "visibleOnly": true,
+              "includeGridJson": true,
+              "template": [
+                "以下はStudio Context Engineer WannabeのMission Stepです。",
+                "このStep定義をもとに、AIへ渡す作業依頼を整理してください。",
+                "",
+                "条件:",
+                "- Mission定義のsuccess_conditionsを尊重する",
+                "- 出力成果物と停止条件を混同しない",
+                "- 実行エンジン化せず、AIへの依頼文として整理する",
+                "",
+                "Grid JSON:"
+              ]
+            }
+          }
+        }
+      ],
+      "markdown": {
+        "enabled": true,
+        "type": "generic_sections",
+        "title": "Studio Context Engineer Wannabe Mission定義",
+        "defaultFileName": "studio_context_engineer_wannabe_mission_def.md",
+        "sections": [
+          {
+            "title": "Mission概要",
+            "source": "header",
+            "format": "detail",
+            "fields": [
+              {
+                "field": "mission.mission_id",
+                "caption": "Mission ID"
+              },
+              {
+                "field": "mission.title",
+                "caption": "Missionタイトル",
+                "format": "paragraph"
+              },
+              {
+                "field": "mission.status",
+                "caption": "状態"
+              },
+              {
+                "field": "mission.mode",
+                "caption": "Mode"
+              },
+              {
+                "field": "format_contract.details_history_policy",
+                "caption": "履歴方針",
+                "format": "paragraph"
+              }
+            ]
+          },
+          {
+            "title": "Steps",
+            "source": "grid",
+            "format": "table",
+            "fields": [
+              {
+                "field": "step_id",
+                "caption": "Step ID"
+              },
+              {
+                "field": "title",
+                "caption": "Title"
+              },
+              {
+                "field": "depends_on",
+                "caption": "Depends On"
+              },
+              {
+                "field": "instruction",
+                "caption": "Instruction"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

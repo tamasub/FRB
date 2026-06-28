@@ -1,0 +1,247 @@
+{
+  "schema_version": "studio_context_engineer_wannabe_mission_def_data_v0_1_draft",
+  "document_type": "studio_context_engineer_wannabe_mission_def",
+  "view_def": "mission/studio_context_engineer_wannabe_mission_def_view_def_v0_1.json",
+  "title": "Studio Context Engineer Wannabe v0.1ドラフト作成",
+  "concept_name": "Studio Context Engineer Wannabe",
+  "concept_subtitle": "文脈設計者になりたいStudioくん",
+  "status": "draft",
+  "generated_at": "2026-06-28T00:00:00+09:00",
+  "introduced_in": "v0.16.1-studio-context-engineer-wannabe-mission-draft",
+  "foundation_ref": {
+    "file": "data/json/00_rules/studio_context_engineer_wannabe_foundation_rules_data_v0_1_draft.json",
+    "rule_ids": [
+      "scew_rule_003",
+      "scew_rule_004",
+      "scew_rule_006",
+      "scew_rule_007",
+      "scew_rule_008"
+    ]
+  },
+  "format_contract": {
+    "canonical_root": "mission",
+    "mvp_mode": "serial",
+    "runtime_monitoring": false,
+    "execution_engine_included": false,
+    "parallel_write_jobs_in_v0_1": "not_allowed",
+    "details_history_policy": "詳細履歴はインシデント・成果物・差分・テスト結果側に残す。Missionは参照と成功条件を持つ。"
+  },
+  "mission": {
+    "mission_id": "mission_scew_v0_1_draft_001",
+    "title": "Studio Context Engineer Wannabe v0.1ドラフト作成",
+    "status": "ready",
+    "mode": "serial",
+    "incident_ref": {
+      "incident_file": "data/json/01_main/studio_work_incident_data_v0_75_studio_context_engineer_wannabe_mission_draft_added.json",
+      "work_item_id": "studio_work_0078",
+      "phase": "v0.16.1-studio-context-engineer-wannabe-mission-draft"
+    },
+    "context_refs": [
+      {
+        "type": "foundation_rules",
+        "path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json",
+        "note": "Data JSON原本・AI作業記録・ZIP返却契約の前提"
+      }
+    ],
+    "execution_policy": {
+      "runtime_monitoring": false,
+      "stop_on_failure": true,
+      "default_next_condition": "all_success_conditions_passed",
+      "parallel_write_jobs": "not_allowed_in_v0_1",
+      "human_approval_required": true
+    },
+    "inputs": [
+      {
+        "input_id": "in_001",
+        "type": "incident_json",
+        "path": "data/json/01_main/studio_work_incident_data_v0_75_studio_context_engineer_wannabe_mission_draft_added.json",
+        "required": true
+      },
+      {
+        "input_id": "in_002",
+        "type": "conversation_context",
+        "description": "Wannabe命名、高目標設置型、Mission定義、結果サマリーの会話文脈",
+        "required": true
+      }
+    ],
+    "steps": [
+      {
+        "step_id": "step_001",
+        "title": "憲法データ作成",
+        "depends_on": [],
+        "instruction": "Studio Context Engineer Wannabe憲法 v0.1 draftをData JSON原本として作成する。",
+        "inputs": [
+          "in_001",
+          "in_002"
+        ],
+        "outputs": [
+          {
+            "output_id": "out_001",
+            "type": "rule_review_data_json",
+            "path": "data/json/00_rules/studio_context_engineer_wannabe_foundation_rules_data_v0_1_draft.json",
+            "required": true
+          }
+        ],
+        "success_conditions": [
+          {
+            "condition_id": "sc_001_001",
+            "type": "json_parse",
+            "target": "out_001",
+            "expected": "valid_json"
+          },
+          {
+            "condition_id": "sc_001_002",
+            "type": "content",
+            "target": "out_001",
+            "expected": "Wannabe / Mission / Result Summaryの判断軸を含む"
+          }
+        ],
+        "on_success": {
+          "next_step_id": "step_002"
+        },
+        "on_failure": {
+          "action": "stop",
+          "result_status": "blocked"
+        }
+      },
+      {
+        "step_id": "step_002",
+        "title": "Mission定義フォーマット作成",
+        "depends_on": [
+          "step_001"
+        ],
+        "instruction": "AIに渡すMission定義JSONフォーマット v0.1 draftを作成する。",
+        "inputs": [
+          "out_001"
+        ],
+        "outputs": [
+          {
+            "output_id": "out_002",
+            "type": "mission_def_format_json",
+            "path": "data/json/02_mission/studio_context_engineer_wannabe_mission_def_data_v0_1_draft.json",
+            "required": true
+          }
+        ],
+        "success_conditions": [
+          {
+            "condition_id": "sc_002_001",
+            "type": "json_parse",
+            "target": "out_002",
+            "expected": "valid_json"
+          },
+          {
+            "condition_id": "sc_002_002",
+            "type": "fields",
+            "target": "out_002",
+            "expected": "mission_id / incident_ref / steps / depends_on / inputs / outputs / success_conditions を含む"
+          }
+        ],
+        "on_success": {
+          "next_step_id": "step_003"
+        },
+        "on_failure": {
+          "action": "stop",
+          "result_status": "blocked"
+        }
+      },
+      {
+        "step_id": "step_003",
+        "title": "Mission実行結果サマリーフォーマット作成",
+        "depends_on": [
+          "step_002"
+        ],
+        "instruction": "AIから完了時に受け取るMission実行結果サマリーJSONフォーマット v0.1 draftを作成する。",
+        "inputs": [
+          "out_001",
+          "out_002"
+        ],
+        "outputs": [
+          {
+            "output_id": "out_003",
+            "type": "mission_result_summary_format_json",
+            "path": "data/json/02_mission/studio_context_engineer_wannabe_mission_result_summary_data_v0_1_draft.json",
+            "required": true
+          }
+        ],
+        "success_conditions": [
+          {
+            "condition_id": "sc_003_001",
+            "type": "json_parse",
+            "target": "out_003",
+            "expected": "valid_json"
+          },
+          {
+            "condition_id": "sc_003_002",
+            "type": "content",
+            "target": "out_003",
+            "expected": "途中監視ではなく完了時結果サマリーとして定義されている"
+          }
+        ],
+        "on_success": {
+          "next_step_id": "step_004"
+        },
+        "on_failure": {
+          "action": "stop",
+          "result_status": "blocked"
+        }
+      },
+      {
+        "step_id": "step_004",
+        "title": "インシデント完了記録",
+        "depends_on": [
+          "step_003"
+        ],
+        "instruction": "実更新ファイル、変更理由、対応結果をインシデントJSONに記録する。",
+        "inputs": [
+          "out_001",
+          "out_002",
+          "out_003"
+        ],
+        "outputs": [
+          {
+            "output_id": "out_004",
+            "type": "updated_incident_json",
+            "path": "data/json/01_main/studio_work_incident_data_v0_76_studio_context_engineer_wannabe_mission_draft_done.json",
+            "required": true
+          }
+        ],
+        "success_conditions": [
+          {
+            "condition_id": "sc_004_001",
+            "type": "json_parse",
+            "target": "out_004",
+            "expected": "valid_json"
+          },
+          {
+            "condition_id": "sc_004_002",
+            "type": "incident_status",
+            "target": "studio_work_0078",
+            "expected": "完了"
+          }
+        ],
+        "on_success": {
+          "next_step_id": "mission_complete"
+        },
+        "on_failure": {
+          "action": "stop",
+          "result_status": "blocked"
+        }
+      }
+    ],
+    "final_outputs": [
+      "out_001",
+      "out_002",
+      "out_003",
+      "out_004"
+    ],
+    "review_policy": {
+      "human_review_required": true,
+      "review_focus": [
+        "憲法の思想が強すぎず弱すぎないか",
+        "Mission定義が実行エンジンに踏み込みすぎていないか",
+        "Result Summaryが途中監視に見えないか"
+      ]
+    }
+  },
+  "change_history": []
+}

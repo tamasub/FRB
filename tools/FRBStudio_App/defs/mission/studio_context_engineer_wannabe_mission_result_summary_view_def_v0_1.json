@@ -1,0 +1,691 @@
+{
+  "app": {
+    "name": "FRB Studio / Studio Context Engineer Wannabe",
+    "version": "v0.1-draft"
+  },
+  "views": [
+    {
+      "id": "studio_context_engineer_wannabe_mission_result_summary",
+      "caption": "Studio Context Engineer Wannabe Mission実行結果サマリー",
+      "layout": {
+        "detailDialog": "wide"
+      },
+      "sections": [
+        {
+          "id": "header",
+          "caption": "Result Summary基本情報",
+          "type": "form",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "schema_version",
+              "caption": "Schema Version",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 260
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              },
+              "readonly": true
+            },
+            {
+              "field": "document_type",
+              "caption": "Document Type",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 260
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              },
+              "readonly": true
+            },
+            {
+              "field": "view_definition",
+              "caption": "ViewDef",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 260
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              },
+              "readonly": true
+            },
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 420
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "concept_name",
+              "caption": "Concept",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 260
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "concept_subtitle",
+              "caption": "Subtitle",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 260
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "status",
+              "caption": "Data Status",
+              "type": "select",
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "control": "combobox"
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "options": [
+                "success",
+                "partial",
+                "failed",
+                "blocked",
+                "cancelled"
+              ],
+              "control": "combobox"
+            },
+            {
+              "field": "generated_at",
+              "caption": "Generated At",
+              "type": "datetime",
+              "grid": {
+                "visible": false,
+                "width": 180
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              },
+              "readonly": true
+            },
+            {
+              "field": "introduced_in",
+              "caption": "Introduced In",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 320
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "foundation_ref.file",
+              "caption": "Foundation File",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 360
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "readonly": true
+            },
+            {
+              "field": "foundation_ref.rule_ids",
+              "caption": "Foundation Rule IDs",
+              "type": "stringArray",
+              "grid": {
+                "visible": false,
+                "width": 220
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              },
+              "readonly": true
+            },
+            {
+              "field": "format_contract.canonical_root",
+              "caption": "Canonical Root",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 160
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              },
+              "readonly": true
+            },
+            {
+              "field": "format_contract.runtime_monitoring",
+              "caption": "Runtime Monitoring",
+              "type": "boolean",
+              "grid": {
+                "visible": false,
+                "width": 140
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              },
+              "readonly": true
+            },
+            {
+              "field": "format_contract.completion_report",
+              "caption": "Completion Report",
+              "type": "boolean",
+              "grid": {
+                "visible": false,
+                "width": 140
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              },
+              "readonly": true
+            },
+            {
+              "field": "format_contract.detail_history_policy",
+              "caption": "Detail History Policy",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 160
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 90
+              },
+              "search": {
+                "visible": false
+              },
+              "readonly": true
+            },
+            {
+              "field": "mission_result_summary.mission_result_summary_id",
+              "caption": "Result Summary ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 260
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "readonly": true
+            },
+            {
+              "field": "mission_result_summary.mission_id",
+              "caption": "Mission ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 260
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "readonly": true
+            },
+            {
+              "field": "mission_result_summary.status",
+              "caption": "Mission結果",
+              "type": "select",
+              "grid": {
+                "visible": true,
+                "width": 140
+              },
+              "edit": {
+                "visible": true,
+                "control": "combobox"
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "options": [
+                "success",
+                "partial",
+                "failed",
+                "blocked",
+                "cancelled"
+              ],
+              "control": "combobox"
+            },
+            {
+              "field": "mission_result_summary.result_summary",
+              "caption": "結果要約",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 520
+              },
+              "edit": {
+                "visible": true,
+                "height": 140
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "mission_result_summary.runtime_monitoring_note",
+              "caption": "途中監視メモ",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 360
+              },
+              "edit": {
+                "visible": true,
+                "height": 90
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "mission_result_summary.output_refs",
+              "caption": "Output Refs",
+              "type": "objectArray",
+              "grid": {
+                "visible": false,
+                "width": 180
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "mission_result_summary.review_points",
+              "caption": "Review Points",
+              "type": "stringArray",
+              "grid": {
+                "visible": false,
+                "width": 180
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "mission_result_summary.next_actions",
+              "caption": "Next Actions",
+              "type": "objectArray",
+              "grid": {
+                "visible": false,
+                "width": 180
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "mission_result_summary.human_review.required",
+              "caption": "Human Review Required",
+              "type": "boolean",
+              "grid": {
+                "visible": false,
+                "width": 160
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "mission_result_summary.human_review.status",
+              "caption": "Human Review Status",
+              "type": "select",
+              "grid": {
+                "visible": false,
+                "width": 160
+              },
+              "edit": {
+                "visible": true,
+                "control": "combobox"
+              },
+              "search": {
+                "visible": false
+              },
+              "options": [
+                "pending",
+                "approved",
+                "rejected",
+                "not_required"
+              ],
+              "control": "combobox"
+            },
+            {
+              "field": "mission_result_summary.human_review.reviewer",
+              "caption": "Reviewer",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 160
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "change_history",
+              "caption": "Change History",
+              "type": "objectArray",
+              "grid": {
+                "visible": false,
+                "width": 180
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            }
+          ]
+        },
+        {
+          "id": "step_results",
+          "caption": "Step Results",
+          "type": "grid",
+          "dataPath": "$.mission_result_summary.step_results",
+          "keyField": "step_id",
+          "fields": [
+            {
+              "field": "step_id",
+              "caption": "Step ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "readonly": true
+            },
+            {
+              "field": "status",
+              "caption": "Status",
+              "type": "select",
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "control": "combobox"
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "options": [
+                "success",
+                "partial",
+                "failed",
+                "blocked",
+                "skipped"
+              ],
+              "control": "combobox"
+            },
+            {
+              "field": "result_summary",
+              "caption": "Result Summary",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 520
+              },
+              "edit": {
+                "visible": true,
+                "height": 140
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "success_condition_results",
+              "caption": "Success Condition Results",
+              "type": "objectArray",
+              "grid": {
+                "visible": true,
+                "width": 220
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "output_refs",
+              "caption": "Output Refs",
+              "type": "stringArray",
+              "grid": {
+                "visible": true,
+                "width": 160
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "notes",
+              "caption": "Notes",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 360
+              },
+              "edit": {
+                "visible": true,
+                "height": 100
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            }
+          ],
+          "markdown": {
+            "aiPrompt": {
+              "enabled": true,
+              "title": "Mission Result Reviewプロンプト",
+              "targetFile": "studio_context_engineer_wannabe_mission_result_summary_sample_v0_1_draft.json",
+              "rowSource": "filtered",
+              "visibleOnly": true,
+              "includeGridJson": true,
+              "template": [
+                "以下はStudio Context Engineer WannabeのMission実行結果サマリーです。",
+                "Step別の結果・成功条件・成果物参照を確認し、レビュー観点を整理してください。",
+                "",
+                "条件:",
+                "- 途中監視ではなく完了時サマリーとして読む",
+                "- 成果物参照と詳細履歴を混同しない",
+                "- 人間レビューが必要な点を抽出する",
+                "",
+                "Grid JSON:"
+              ]
+            }
+          }
+        }
+      ],
+      "markdown": {
+        "enabled": true,
+        "type": "generic_sections",
+        "title": "Studio Context Engineer Wannabe Mission実行結果サマリー",
+        "defaultFileName": "studio_context_engineer_wannabe_mission_result_summary.md",
+        "sections": [
+          {
+            "title": "結果概要",
+            "source": "header",
+            "format": "detail",
+            "fields": [
+              {
+                "field": "mission_result_summary.mission_result_summary_id",
+                "caption": "Result Summary ID"
+              },
+              {
+                "field": "mission_result_summary.mission_id",
+                "caption": "Mission ID"
+              },
+              {
+                "field": "mission_result_summary.status",
+                "caption": "状態"
+              },
+              {
+                "field": "mission_result_summary.result_summary",
+                "caption": "結果要約",
+                "format": "paragraph"
+              },
+              {
+                "field": "mission_result_summary.runtime_monitoring_note",
+                "caption": "途中監視メモ",
+                "format": "paragraph"
+              }
+            ]
+          },
+          {
+            "title": "Step Results",
+            "source": "grid",
+            "format": "table",
+            "fields": [
+              {
+                "field": "step_id",
+                "caption": "Step ID"
+              },
+              {
+                "field": "status",
+                "caption": "Status"
+              },
+              {
+                "field": "result_summary",
+                "caption": "Result Summary"
+              },
+              {
+                "field": "notes",
+                "caption": "Notes"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

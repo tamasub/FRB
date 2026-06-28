@@ -12,7 +12,7 @@
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。",
-  "items_count": 77,
+  "items_count": 79,
   "work_items": [
     {
       "work_item_id": "studio_work_0001",
@@ -8599,6 +8599,321 @@
         }
       ],
       "actual_updated_files": "wwwroot/js/core/state.js\nwwwroot/js/core/viewdef_context_contract.js\nwwwroot/js/runtime/load_runtime.js\nwwwroot/index.html\nwwwroot/styles.css\ndata/json/00_rules/TARGET_CONTEXT_DETAIL_PANEL_COMPACT_REPORT_v0_15_5_3_1.md\ndata/json/01_main/studio_work_incident_data_v0_74_context_model_cleanup_incidents_added.json"
+    },
+    {
+      "work_item_id": "studio_work_0078",
+      "phase": "v0.16.1-studio-context-engineer-wannabe-mission-draft",
+      "title": "Studio Context Engineer Wannabe / Mission定義ドラフト",
+      "incident_type": "data_design",
+      "category": "mission_context_design",
+      "priority": "high",
+      "status": "完了",
+      "verification_status": "確認済み",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-28",
+      "updated_at": "2026-06-28",
+      "target_files": "data/json/00_rules/studio_context_engineer_wannabe_foundation_rules_data_v0_1_draft.json\ndata/json/02_mission/studio_context_engineer_wannabe_mission_def_data_v0_1_draft.json\ndata/json/02_mission/studio_context_engineer_wannabe_mission_result_summary_data_v0_1_draft.json\ndata/json/01_main/studio_work_incident_data_v0_76_studio_context_engineer_wannabe_mission_draft_done.json\nfuture: defs/mission/studio_context_engineer_wannabe_mission_view_def_v0_1_draft.json\nfuture: defs/mission/studio_context_engineer_wannabe_mission_result_summary_view_def_v0_1_draft.json",
+      "target_rule_files": "",
+      "actual_updated_files": "今回AIが実際に作成・更新したファイル:\n- data/json/00_rules/studio_context_engineer_wannabe_foundation_rules_data_v0_1_draft.json\n- data/json/02_mission/studio_context_engineer_wannabe_mission_def_data_v0_1_draft.json\n- data/json/02_mission/studio_context_engineer_wannabe_mission_result_summary_data_v0_1_draft.json\n- data/json/01_main/studio_work_incident_data_v0_76_studio_context_engineer_wannabe_mission_draft_done.json",
+      "objective": "Studio Context Engineer Wannabe — 文脈設計者になりたいStudioくん構想の初期ドラフトとして、AIへ複数StepのMissionを依頼するためのMission定義JSONと、AIから作業完了時に受け取るMission実行結果サマリーJSONを作成する。",
+      "background": "当初はJOB制御JSONとして相談を始めたが、JOB Controlという名前はJP1的・業務システム的でStudioくんの物語性に合わない。会話の中で Studio Agent Wannabe — AIエージェントになりたいStudioくん が生まれ、さらに上位概念として Studio Context Engineer Wannabe — 文脈設計者になりたいStudioくん が採用された。Wannabeは『まだできてない』を弱点にせず、物語の入口に変える命名であり、高目標設置型を名前に埋め込む技法でもある。今回やることは大きな看板に対する小さな初手として、Mission定義JSONとMission実行結果サマリーJSONのドラフト作成に限定する。",
+      "scope": "Mission定義JSONのMVPスキーマを作成する。候補項目は mission_id / title / incident_ref / context_refs / mode / jobs / steps / depends_on / inputs / outputs / success_conditions / on_success / on_failure とする。Mission実行結果サマリーJSONのMVPスキーマを作成する。候補項目は mission_result_summary_id / mission_id / status / result_summary / step_results / output_refs / review_points / next_action とする。初期は直列方式とし、前Step成功時に次Stepへ進む単純な構造を基本にする。ただし将来の並列化・DAG化を見据え、depends_onは配列として設計する。ユーザー向けの表札はMission / Mission実行結果サマリーとし、内部構造ではjob / stepなどの実務キー名を許容する。",
+      "out_of_scope": "完全なAIエージェント、自動実行エンジン、バックグラウンド監視、途中状態のリアルタイム制御、スケジューラ、外部AI常駐、無承認のコード変更、並列write job実行、UI組み込み、Mission ViewDefの本格実装は対象外とする。今回は、AIに渡すMission定義と、AIから最後に受け取るMission実行結果サマリーのデータ構造ドラフトを作る段階とする。",
+      "fixed_name_policy": "mission_id / mission_result_summary_id / step_id / depends_on / inputs / outputs / success_conditions などはMission系Dataの標準フィールド候補として扱う。ただしRuntimeが任意Dataの特定フィールド名に依存する実装は避ける。job / step などの実務的な内部キーは、Studio Context Engineer Wannabeという外側の概念名の配下で、Mission構造を表現するために使用可能とする。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。まずはData JSONドラフト・サンプル・インシデント記録として扱い、既存の従来script方式や既存Studio運用と矛盾しない形で育てる。",
+      "expected_outputs": "Studio Context Engineer Wannabe憲法 v0.1 draft、Mission定義JSONフォーマット v0.1 draft、Mission実行結果サマリーJSONフォーマット v0.1 draft、更新済みインシデントJSON、ZIP返却。Markdownは作成しない。",
+      "risk": "名前が強くなりすぎることで、実行エンジン・自動監視・本物のAIエージェント化まで一気に作りたくなるスコープ肥大リスクがある。Wannabeは未完成・試作・成長途中を明示する安全装置として扱う。Mission実行結果サマリーに詳細履歴を詰め込みすぎると、個々の成果物に残す履歴との責務が混ざるため、結果の大筋と成果物参照に留める。",
+      "test_points": "Mission定義JSONが、複数Stepの直列依頼、入力、出力、成功条件、depends_on、on_success/on_failureを表現できること。Mission実行結果サマリーJSONが、Mission全体の結果、各Stepの要約、成果物参照、レビュー観点、次アクションを表現できること。Mission実行結果サマリーが途中監視ではなく完了時の結果報告として読めること。内部にjob/stepが出ても、ユーザー向け概念がStudio Context Engineer Wannabe / Missionとして成立すること。",
+      "user_request": "簡単にJOB制御JSONを作りたい。最初は前のJOBSTEPが正常終了した時に次へ進む単純な直列方式でよい。ただし並列化は視野に入れたい。ステップ毎にインプットとアウトプットを定義し、依頼内容はインシデントに紐づけたい。その後、JOB Controlという名称はJP1風で面白くないため、FRB版のミニチュアAIエージェント感が伝わる名前を練りたい。最終的に Studio Context Engineer Wannabe — 文脈設計者になりたいStudioくん を大きな看板として採用し、インシデント登録したい。",
+      "ai_response": "1インシデントとして登録する方針が妥当。今回は実行エンジンではなく、Studio Context Engineer Wannabe構想の初期ドラフトとして、Mission定義JSONとMission実行結果サマリーJSONの2本を作る作業に絞る。JobFlow本体より上位の文脈設計者Wannabeとして、入力・出力・成功条件・結果サマリー・成果物参照を設計する。",
+      "latest_user_comment": "今回の作業依頼: incident_file=data/json/01_main/studio_work_incident_data_v0_75_studio_context_engineer_wannabe_mission_draft_added.json、phase=v0.16.1-studio-context-engineer-wannabe-mission-draft。mdはStudioくんから作るため不要。Foundation Rules rawを参照し、foundation_rule_019『GitHub基準ソースとZIP返却契約』を前提に、Studio Context Engineer Wannabe憲法的なData JSON、Mission定義フォーマット、Mission実行結果サマリーフォーマットを作成する。",
+      "latest_ai_response": "v0.16.1-studio-context-engineer-wannabe-mission-draft 対応完了。Markdownは作成せず、Data JSON原本として 1) Studio Context Engineer Wannabe Foundation Rules v0.1 draft、2) Mission Definition Format v0.1 draft、3) Mission Result Summary Format v0.1 draft を作成。あわせて本インシデントを完了扱いに更新し、実更新ファイルをactual_updated_filesへテキスト記録した。JSON parse確認済み。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0078_001",
+          "at": "2026-06-28",
+          "speaker": "user",
+          "topic": "Mission構想の入口相談",
+          "message": "簡単にJOB制御JSONを作りたい。最初は前のJOBSTEPが正常終了した時に次へ進む単純な直列方式でよい。ただし並列化は視野に入れたい。ステップ毎にインプットとアウトプットを定義し、依頼内容はインシデントに紐づけたい。"
+        },
+        {
+          "history_id": "disc_0078_002",
+          "at": "2026-06-28",
+          "speaker": "assistant",
+          "topic": "JobDef / JobRun整理",
+          "message": "JobDefは作業手順書、JobRunは作業実績ログとして整理。ただしユーザーが結果という言葉がないと分かりにくいと指摘し、JobRunはJOB実行結果サマリーという理解へ修正。"
+        },
+        {
+          "history_id": "disc_0078_003",
+          "at": "2026-06-28",
+          "speaker": "user",
+          "topic": "結果サマリーの位置づけ",
+          "message": "JOB実行結果サマリーは、個々の作業詳細ログではなく、JOB依頼したものが大筋でどういう結果だったかをぱっと分かるようにするものと整理。現状では途中で見られないため、最後に結果として受け取るもの。"
+        },
+        {
+          "history_id": "disc_0078_004",
+          "at": "2026-06-28",
+          "speaker": "user",
+          "topic": "名称違和感",
+          "message": "JOBコントロール的なキーワードはJP1みたいで面白くない。FRB版のミニチュアAIエージェント感が伝わるワードがよい。"
+        },
+        {
+          "history_id": "disc_0078_005",
+          "at": "2026-06-28",
+          "speaker": "assistant",
+          "topic": "Studio Agent Wannabe発見",
+          "message": "AIエージェントもどきの英語候補として Wannabe AI Agent を提案。そこから Studio Agent Wannabe — AIエージェントになりたいStudioくん が生まれた。"
+        },
+        {
+          "history_id": "disc_0078_006",
+          "at": "2026-06-28",
+          "speaker": "user",
+          "topic": "Studio Context Engineer Wannabe採用",
+          "message": "Studio Context Engineer Wannabe — 文脈設計者になりたいStudioくん が刺さった。Studio Agent Wannabeを食う上位概念として、文脈設計者になりたいStudioくんを採用する流れになった。"
+        },
+        {
+          "history_id": "disc_0078_007",
+          "at": "2026-06-28",
+          "speaker": "assistant",
+          "topic": "Wannabe命名の意味",
+          "message": "Wannabeは『まだできてない』を弱点にせず、物語の入口に変える。高すぎる目標を未完成なまま今日の一歩に接続する命名技法として整理。"
+        },
+        {
+          "history_id": "disc_0078_008",
+          "at": "2026-06-28",
+          "speaker": "user",
+          "topic": "高目標設置型との接続",
+          "message": "思考拡張の設計理論にあるパターン6：高目標設置型と接続。高い目標を置くことで、人間とAIの探索行動を起動する。Wannabeはそのネーミング版として見えてきた。"
+        },
+        {
+          "history_id": "disc_0078_009",
+          "at": "2026-06-28",
+          "speaker": "user",
+          "topic": "インシデント登録依頼",
+          "message": "小さい看板を大きく掲げる。Studio Context Engineer Wannabe — 文脈設計者になりたいStudioくんのインシデント登録を依頼。更新後JSON返却を希望。"
+        },
+        {
+          "history_id": "disc_0078_010",
+          "at": "2026-06-28",
+          "speaker": "user",
+          "topic": "v0.16.1作業依頼",
+          "message": "本日のメインイベントとして、Studio Context Engineer Wannabe憲法的なData JSON、Mission定義JSONフォーマット、Mission実行結果サマリーJSONフォーマットの作成を依頼。MarkdownはStudioくんから作るため不要。"
+        },
+        {
+          "history_id": "disc_0078_011",
+          "at": "2026-06-28",
+          "speaker": "assistant",
+          "topic": "v0.16.1作業結果",
+          "message": "Data JSON原本として、Studio Context Engineer Wannabe Foundation Rules、Mission Definition Format、Mission Result Summary Formatを作成。更新済みインシデントJSONとZIPを返却する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0078_001",
+          "at": "2026-06-28",
+          "decision": "概念名は Studio Context Engineer Wannabe — 文脈設計者になりたいStudioくん とする。",
+          "reason": "単なるJOB制御ではなく、Studioくんが文脈設計者へ向かう成長物語として扱うため。"
+        },
+        {
+          "decision_id": "dec_0078_002",
+          "at": "2026-06-28",
+          "decision": "ユーザー向けの表札は Mission / Mission実行結果サマリー とする。",
+          "reason": "JobControlやJobRunだけでは業務システム臭が強く、結果サマリーの意味も初見では伝わりにくいため。"
+        },
+        {
+          "decision_id": "dec_0078_003",
+          "at": "2026-06-28",
+          "decision": "内部構造では job / step / depends_on などの実務キー名を許容する。",
+          "reason": "外側の概念名がStudioくんの物語性を担保するため、内部は実務的で分かりやすいキー名を使ってよい。表札は物語、内部は実務と分離する。"
+        },
+        {
+          "decision_id": "dec_0078_004",
+          "at": "2026-06-28",
+          "decision": "Mission実行結果サマリーは途中監視用ではなく、作業完了時にAIから受け取る結果報告とする。",
+          "reason": "現状のチャット依頼ではAIの内部途中状態は外から見られないため、まずは結果受領時の説明書・索引として定義するのが現実的なため。"
+        },
+        {
+          "decision_id": "dec_0078_005",
+          "at": "2026-06-28",
+          "decision": "初期MVPは直列方式とし、depends_on配列だけ将来の並列化を見据えて採用する。",
+          "reason": "最初から並列制御や排他制御に踏み込むと重くなるが、depends_on配列なら直列にも将来のDAGにも自然に拡張できるため。"
+        },
+        {
+          "decision_id": "dec_0078_006",
+          "at": "2026-06-28",
+          "decision": "Wannabeは未完成を明示するスコープ制御ワードとして扱う。",
+          "reason": "『文脈設計者になりたい』という高目標を掲げつつ、今回はMission定義JSONと結果サマリーJSONの小さな初手に留めるため。"
+        },
+        {
+          "decision_id": "dec_0078_007",
+          "at": "2026-06-28",
+          "decision": "Mission定義とMission実行結果サマリーは別ファイルに分ける。",
+          "reason": "AIに渡すものとAIから受け取るものを混ぜると、依頼構造と結果報告の責務が曖昧になるため。"
+        },
+        {
+          "decision_id": "dec_0078_008",
+          "at": "2026-06-28",
+          "decision": "Markdownは作成せず、Data JSON原本だけを作成する。",
+          "reason": "MarkdownはStudioくんからExportする表示用Viewであり、今回の作業依頼で明示的に不要と指定されたため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0078_001",
+          "at": "2026-06-28",
+          "change_type": "incident_added",
+          "before": "studio_work_incident_data_v0_74_context_model_cleanup_incidents_added.json / items_count=77",
+          "after": "studio_work_incident_data_v0_75_studio_context_engineer_wannabe_mission_draft_added.json / items_count=78",
+          "reason": "Studio Context Engineer Wannabe — 文脈設計者になりたいStudioくん構想の初期ドラフトとして、Mission定義JSONとMission実行結果サマリーJSON作成をインシデント管理へ登録するため。"
+        },
+        {
+          "history_id": "chg_0078_002",
+          "at": "2026-06-28",
+          "change_type": "studio_context_engineer_wannabe_foundation_added",
+          "before": "Studio Context Engineer Wannabe構想はインシデントとして登録済みだが、憲法的なData JSON原本は未作成だった。",
+          "after": "studio_context_engineer_wannabe_foundation_rules_data_v0_1_draft.json を作成し、Wannabe、Mission、Step、success_conditions、Result Summary、Data JSON原本などの基本原則を15ルールとして定義した。",
+          "reason": "Mission定義フォーマットの前提となる判断軸を構造化するため。",
+          "updated_files": [
+            "data/json/00_rules/studio_context_engineer_wannabe_foundation_rules_data_v0_1_draft.json"
+          ]
+        },
+        {
+          "history_id": "chg_0078_003",
+          "at": "2026-06-28",
+          "change_type": "mission_format_added",
+          "before": "Mission定義JSONとMission実行結果サマリーJSONのフォーマットは会話上の案に留まっていた。",
+          "after": "Mission定義フォーマットとMission実行結果サマリーフォーマットをそれぞれData JSONとして作成した。",
+          "reason": "AIに渡す文脈パッケージと、AIから受け取る完了時結果サマリーを分離して扱うため。",
+          "updated_files": [
+            "data/json/02_mission/studio_context_engineer_wannabe_mission_def_data_v0_1_draft.json",
+            "data/json/02_mission/studio_context_engineer_wannabe_mission_result_summary_data_v0_1_draft.json"
+          ]
+        },
+        {
+          "history_id": "chg_0078_004",
+          "at": "2026-06-28",
+          "change_type": "incident_done_update",
+          "before": "studio_work_0078 は未着手で、actual_updated_filesは初期登録JSONのみだった。",
+          "after": "studio_work_0078 を完了・確認済みに更新し、今回の実更新ファイル4件をactual_updated_filesへテキスト記録した。",
+          "reason": "Foundation RulesのAI作業ファイル記録方針に従い、未来の人間とAIが成果物を追えるようにするため。",
+          "updated_files": [
+            "data/json/00_rules/studio_context_engineer_wannabe_foundation_rules_data_v0_1_draft.json",
+            "data/json/02_mission/studio_context_engineer_wannabe_mission_def_data_v0_1_draft.json",
+            "data/json/02_mission/studio_context_engineer_wannabe_mission_result_summary_data_v0_1_draft.json",
+            "data/json/01_main/studio_work_incident_data_v0_76_studio_context_engineer_wannabe_mission_draft_done.json"
+          ]
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0079",
+      "phase": "v0.16.2-detail-subgrid-table-edit-core-mvp",
+      "title": "Studio Table Edit Core / Detailサブグリッド編集MVP",
+      "incident_type": "feature",
+      "category": "table_edit_core",
+      "priority": "high",
+      "status": "未着手",
+      "verification_status": "未確認",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-28",
+      "updated_at": "2026-06-28",
+      "target_files": "wwwroot/js/runtime/detail_save.js, wwwroot/js/renderers/field_controls.js, wwwroot/js/renderers/grid_detail.js, wwwroot/styles.css, future candidate: wwwroot/js/runtime/detail_subgrid_edit.js, future candidate: wwwroot/js/core/table_edit_core.js, mdViewer.html refactoring candidate",
+      "target_rule_files": "",
+      "actual_updated_files": "data/json/01_main/studio_work_incident_data_v0_77_detail_subgrid_table_edit_core_mvp_added.json（本インシデント登録により更新）",
+      "objective": "Detail画面内の objectArray / stringArray サブグリッドを汎用的に編集できるStudio標準テーブル編集MVPを作る。Mission定義JSONの steps.outputs / success_conditions / inputs / depends_on などを、Studio上で直接育てられる状態にする。",
+      "background": "Studio Context Engineer Wannabe のMission定義JSONを眺めた結果、Mission Steps配下の outputs / success_conditions / inputs / depends_on をグリッド表示するだけでは足りず、セル編集・行追加・行削除が必要になった。既存の対象文脈パネルは context_refs 専用編集として先行実装されているが、今回必要なのは field.type === objectArray / stringArray に基づく汎用サブグリッド編集である。また、Markdown Editorではテーブル編集体験が育ち始めているため、将来的には操作体系を共通化し、Studio Table Edit Coreとして抽出する。",
+      "scope": "MVPでは、Detail内の objectArray / stringArray サブグリッドを対象に、セル編集、行追加、行削除、変更中フラグ、反映(F12)時の親JSON同期を行う。stringArrayは value 列として扱い、objectArrayは先頭行またはViewDef定義から列を生成する。Runtimeは outputs / success_conditions などの固定フィールド名ではなく、ViewDefの field.type と field定義に基づいて汎用制御する。Markdown Editor由来の +上 / +下 / 削除 / 反映 の操作感に寄せるが、初期実装はDetailサブグリッド側に閉じてもよい。文字列セルは将来的なMarkdown表示・Markdown編集に対応できる前提で設計し、保存値はMarkdown原文を保持する。",
+      "out_of_scope": "外部DataGridライブラリ導入、Excel風の完全セル操作、コピー&ペースト大量編集、ドラッグ並び替え、多段ネスト編集、objectArray読み物表示モード、子行専用ダイアログ、Markdownセルの本格プレビュー、Markdown Editor側の即時リファクタリングは今回のMVP対象外とする。ただし、将来のStudio Table Edit Core抽出とMarkdown Editorへの逆輸入を前提に、重複実装を負債ではなく試作として扱う。",
+      "fixed_name_policy": "Runtimeが context_refs / outputs / success_conditions / inputs / depends_on などの特定フィールド名を決め打ちしない。編集対象はViewDefの field.type === objectArray / stringArray と、必要に応じて edit.subGrid / itemFields / columns の宣言から判断する。フィールド名ごとの専用UIが必要な場合は、汎用編集コアの上にAdapterとして分離する。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を維持し、必要であれば detail_subgrid_edit.js などのscript追加で段階的に実装する。将来的な TableEditCore 抽出時に責務分離を検討する。",
+      "expected_outputs": "Detail内サブグリッド編集MVP、stringArray/objectArrayのセル編集、行追加、行削除、反映(F12)同期、ViewDef型ベースの汎用制御、Markdown対応予定の文字列セル設計メモ、実装メモ、更新済みインシデントJSON。",
+      "risk": "配列編集の反映処理を誤ると親JSONのobjectArray/stringArrayを破壊する。contenteditableやtextarea編集でHTMLがJSONへ混入するリスクがある。既存の対象文脈専用パネルやMarkdown Editorのテーブル編集と似た機能が一時的に重複する。最初から共通化しすぎると実装が肥大化し、逆に専用実装に寄せすぎると将来のTable Edit Core抽出が難しくなる。",
+      "test_points": "Mission定義JSONの steps[].depends_on / inputs / outputs / success_conditions をDetailサブグリッド上で編集できること。stringArrayのvalue編集・行追加・削除が親JSONへ反映されること。objectArrayの各列編集・行追加・削除が親JSONへ反映されること。F12反映→上書き保存→再読込で配列構造が壊れないこと。HTMLがJSONへ混入しないこと。既存context_refs専用編集、Markdownプレビュー、通常Detail編集が壊れないこと。",
+      "user_request": "Mission定義JSONを眺める中で、本格的にグリッドを編集したいタイミングになってきた。外部グリッドライブラリではなく、Markdown Editorで育ったテーブル編集体験を参考にしつつ、Detail内の判断ログ・会話履歴・Mission Steps配下のサブグリッドを育てたい。最初は重複してもよいが、将来的にはStudio Table Edit Coreとして抽出し、Markdown Editor側へ戻すリファクタリングができるとよい。各セル編集を基本とし、文字列セルは将来的にMarkdown書式へ対応できる前提で計画に入れてほしい。ステップが多くならないように配慮しながらインシデント登録を依頼。",
+      "ai_response": "外部グリッドライブラリに寄せず、Studio標準の汎用テーブル編集コアを育てる方針とする。初手はDetail内 objectArray / stringArray サブグリッド編集MVPに絞り、セル編集・行追加・行削除・F12反映同期を実装候補とする。Markdown Editorで育った +上 / +下 / 削除 / 反映 の操作感は参考にしつつ、最初から共通化しすぎず、後続で Studio Table Edit Core へ抽出する。文字列セルはMarkdown原文を保存値として保持し、将来的なMarkdown表示・編集に対応できる設計原則を残す。",
+      "latest_user_comment": "そろそろ意識あってきたかなぁ～。あまりステップが多くならないように配慮しながら、インシデント登録お願いします。更新後JSON返却お願いします。",
+      "latest_ai_response": "インシデント登録完了。v0.16.2-detail-subgrid-table-edit-core-mvp として、Detail内サブグリッド編集MVPを1件に集約。編集MVP、Markdown文字列セルの将来対応、Markdown Editorとの将来共通化を同一インシデント内の小さな初手として整理した。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0079_001",
+          "at": "2026-06-28",
+          "speaker": "user",
+          "topic": "Detailサブグリッド編集相談",
+          "message": "Mission定義JSONのDetail内サブグリッドを見て、本格的にグリッドを編集したいタイミングになってきたと相談。"
+        },
+        {
+          "history_id": "disc_0079_002",
+          "at": "2026-06-28",
+          "speaker": "assistant",
+          "topic": "実装方針整理",
+          "message": "外部Grid標準機能ではなく、HTML table + input/select/textarea によるStudio標準グリッド編集MVPとして育てる方針を提案。"
+        },
+        {
+          "history_id": "disc_0079_003",
+          "at": "2026-06-28",
+          "speaker": "user",
+          "topic": "Markdown Editorとの関係整理",
+          "message": "Markdown Editorで育ったテーブル編集体験を、JSON側の判断ログ・会話履歴・objectArray編集へ活かし、最終的には共通コアとしてMarkdown側へ戻すリファクタリングができるとよいと整理。"
+        },
+        {
+          "history_id": "disc_0079_004",
+          "at": "2026-06-28",
+          "speaker": "user",
+          "topic": "Markdown文字列セル方針",
+          "message": "各セル編集を基本とし、文字列セルはMarkdown書式に対応することを計画に入れてほしい。最初から実装しなくてよいが、設計原則として扱いたい。"
+        },
+        {
+          "history_id": "disc_0079_005",
+          "at": "2026-06-28",
+          "speaker": "assistant",
+          "topic": "インシデント登録方針",
+          "message": "Detailサブグリッド編集MVPを小さな初手として登録し、Markdown文字列セル対応とStudio Table Edit Core抽出は将来拡張ポイントとして同じインシデント内に残す方針で整理。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0079_001",
+          "at": "2026-06-28",
+          "decision": "外部DataGridライブラリは導入せず、Studio標準テーブル編集MVPとして育てる。",
+          "reason": "現状のメイングリッド・サブグリッドは自前HTML table描画であり、外部ライブラリ標準機能に乗るより、Data JSON / ViewDef / F12反映契約に合わせて育てる方が安全なため。"
+        },
+        {
+          "decision_id": "dec_0079_002",
+          "at": "2026-06-28",
+          "decision": "初手はDetail内 objectArray / stringArray サブグリッド編集に限定する。",
+          "reason": "Mission定義JSONで実際に困っている編集対象が steps 配下の配列であり、ここを編集できれば実用価値が大きい一方、メイングリッド全体編集やMarkdown Editor共通化まで同時に行うと肥大化するため。"
+        },
+        {
+          "decision_id": "dec_0079_003",
+          "at": "2026-06-28",
+          "decision": "Runtimeは特定フィールド名ではなくViewDefのtype宣言で編集対象を判断する。",
+          "reason": "outputs / success_conditions / context_refs などの名前ごとに専用実装するとStudioくんが特定Data構造に太るため。"
+        },
+        {
+          "decision_id": "dec_0079_004",
+          "at": "2026-06-28",
+          "decision": "文字列セルは将来的にMarkdownを宿せる前提で扱う。",
+          "reason": "判断ログ・会話履歴・依頼方針・メモなどの文字列セルは、単なる値ではなく文脈の入口であり、保存値はMarkdown原文、表示はView側でMarkdownレンダリングという分離が必要になるため。"
+        },
+        {
+          "decision_id": "dec_0079_005",
+          "at": "2026-06-28",
+          "decision": "Markdown Editorとの重複実装は初期段階では許容し、後続でStudio Table Edit Coreへ抽出する。",
+          "reason": "最初から完全共通化を狙うと実装が重くなるため、まずJSON側で実用MVPを育て、共通操作が見えた段階でTable Edit Coreとして抽出する方が安全なため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0079_001",
+          "at": "2026-06-28",
+          "change_type": "incident_added",
+          "before": "studio_work_incident_data_v0_76_studio_context_engineer_wannabe_mission_draft_done.json / items_count=78",
+          "after": "studio_work_incident_data_v0_77_detail_subgrid_table_edit_core_mvp_added.json / items_count=79",
+          "reason": "Mission定義JSONをStudio上で育てるため、Detail内サブグリッド編集MVPと将来のStudio Table Edit Core抽出方針を作業項目として登録するため。"
+        }
+      ]
     }
   ],
   "review_notes": [
@@ -8954,10 +9269,22 @@
       "note_id": "note_v01552_main_context_header_panel_done",
       "at": "2026-06-28",
       "note": "v0.15.5.2で主文脈ヘッダーパネルを追加。主文脈実データはData root、ViewDefはdata_path宣言のみ。対象文脈Detail上部表示はv0.15.5.3へ継続。"
+    },
+    {
+      "note_id": "note_0078_studio_context_engineer_wannabe",
+      "at": "2026-06-28",
+      "title": "Studio Context Engineer Wannabe の採用",
+      "body": "JOB制御JSONという業務システム的名称ではなく、Studio Context Engineer Wannabe — 文脈設計者になりたいStudioくん を上位概念として採用。Wannabeは『まだできてない』を弱点にせず、物語の入口に変える命名であり、高目標設置型のネーミング版として扱う。初手はMission定義JSONとMission実行結果サマリーJSONのドラフト作成に限定する。"
+    },
+    {
+      "note_id": "note_0079_detail_subgrid_table_edit_core_mvp",
+      "at": "2026-06-28",
+      "title": "Detailサブグリッド編集MVP / Studio Table Edit Core方針",
+      "body": "Mission定義JSONを実用的に育てるため、Detail内 objectArray / stringArray サブグリッド編集をv0.16.2として登録。外部Gridライブラリには寄せず、Studio標準のHTML table編集MVPとして始める。Markdown Editorで育ったテーブル編集体験は将来のStudio Table Edit Coreへ抽出し、文字列セルはMarkdown原文を保持できる前提で設計する。"
     }
   ],
-  "work_revision": "v0.15.5.1-context-model-cleanup-done",
-  "latest_planning_note": "v0.15.5.2-main-context-header-panel 完了。主文脈は通常GridではなくData root main_context_refs[] をヘッダー要約+展開パネルで扱う。次は v0.15.5.3-target-context-detail-panel で対象文脈をDetail上部に出す。",
+  "work_revision": "v0.16.2-detail-subgrid-table-edit-core-mvp-added",
+  "latest_planning_note": "v0.16.2-detail-subgrid-table-edit-core-mvp を追加。Detail内 objectArray / stringArray サブグリッド編集MVPを初手とし、Markdown文字列セル対応と将来のStudio Table Edit Core抽出を同一インシデント内の拡張方針として整理。",
   "view_def_candidates": [
     {
       "view_def": "rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",

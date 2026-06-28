@@ -1,0 +1,175 @@
+{
+  "schema_version": "studio_context_engineer_wannabe_mission_result_summary_data_v0_1_draft",
+  "document_type": "studio_context_engineer_wannabe_mission_result_summary",
+  "view_def": "mission/studio_context_engineer_wannabe_mission_result_summary_view_def_v0_1.json",
+  "title": "Studio Context Engineer Wannabe v0.1の初期ドラフトとして、憲法データ、Mission定義フォーマット、Mission実行結果",
+  "concept_name": "Studio Context Engineer Wannabe",
+  "concept_subtitle": "文脈設計者になりたいStudioくん",
+  "status": "success",
+  "generated_at": "2026-06-28T00:00:00+09:00",
+  "introduced_in": "v0.16.1-studio-context-engineer-wannabe-mission-draft",
+  "foundation_ref": {
+    "file": "data/json/00_rules/studio_context_engineer_wannabe_foundation_rules_data_v0_1_draft.json",
+    "rule_ids": [
+      "scew_rule_009",
+      "scew_rule_010",
+      "scew_rule_011",
+      "scew_rule_012"
+    ]
+  },
+  "format_contract": {
+    "canonical_root": "mission_result_summary",
+    "runtime_monitoring": false,
+    "completion_report": true,
+    "detail_history_policy": "詳細履歴はインシデント・成果物・差分・テスト結果側に残し、本サマリーは参照と要約に徹する。"
+  },
+  "mission_result_summary": {
+    "mission_result_summary_id": "mrs_scew_v0_1_draft_001",
+    "mission_id": "mission_scew_v0_1_draft_001",
+    "status": "success",
+    "result_summary": "Studio Context Engineer Wannabe v0.1の初期ドラフトとして、憲法データ、Mission定義フォーマット、Mission実行結果サマリーフォーマットをData JSON原本として作成した。",
+    "runtime_monitoring_note": "本サマリーは途中監視ではなく、AI作業完了時に受け取る結果サマリーである。",
+    "step_results": [
+      {
+        "step_id": "step_001",
+        "status": "success",
+        "result_summary": "Studio Context Engineer Wannabe憲法 v0.1 draftをrule_review_data構造で作成した。",
+        "success_condition_results": [
+          {
+            "condition_id": "sc_001_001",
+            "status": "success",
+            "note": "JSON parse確認済み"
+          },
+          {
+            "condition_id": "sc_001_002",
+            "status": "success",
+            "note": "Wannabe / Mission / Result Summaryの判断軸を含む"
+          }
+        ],
+        "output_refs": [
+          "out_001"
+        ],
+        "notes": "Markdownは作成していない。StudioからExportする前提。"
+      },
+      {
+        "step_id": "step_002",
+        "status": "success",
+        "result_summary": "Mission定義JSONフォーマット v0.1 draftを作成し、直列Step、depends_on配列、input/output、success_conditionsを定義した。",
+        "success_condition_results": [
+          {
+            "condition_id": "sc_002_001",
+            "status": "success",
+            "note": "JSON parse確認済み"
+          },
+          {
+            "condition_id": "sc_002_002",
+            "status": "success",
+            "note": "主要フィールドを含む"
+          }
+        ],
+        "output_refs": [
+          "out_002"
+        ],
+        "notes": "v0.1では実行エンジンではなくMission定義フォーマットとして扱う。"
+      },
+      {
+        "step_id": "step_003",
+        "status": "success",
+        "result_summary": "Mission実行結果サマリーJSONフォーマット v0.1 draftを作成した。",
+        "success_condition_results": [
+          {
+            "condition_id": "sc_003_001",
+            "status": "success",
+            "note": "JSON parse確認済み"
+          },
+          {
+            "condition_id": "sc_003_002",
+            "status": "success",
+            "note": "途中監視ではなく完了時結果サマリーとして定義"
+          }
+        ],
+        "output_refs": [
+          "out_003"
+        ],
+        "notes": "詳細履歴ではなく参照と要約に徹する方針。"
+      },
+      {
+        "step_id": "step_004",
+        "status": "success",
+        "result_summary": "インシデントJSONへ実更新ファイルと対応結果を記録した。",
+        "success_condition_results": [
+          {
+            "condition_id": "sc_004_001",
+            "status": "success",
+            "note": "JSON parse確認済み"
+          },
+          {
+            "condition_id": "sc_004_002",
+            "status": "success",
+            "note": "studio_work_0078を完了扱いに更新"
+          }
+        ],
+        "output_refs": [
+          "out_004"
+        ],
+        "notes": "Foundation Rule 18のAI作業ファイル記録方針に沿って記録。"
+      }
+    ],
+    "output_refs": [
+      {
+        "output_id": "out_001",
+        "type": "rule_review_data_json",
+        "path": "data/json/00_rules/studio_context_engineer_wannabe_foundation_rules_data_v0_1_draft.json",
+        "required": true
+      },
+      {
+        "output_id": "out_002",
+        "type": "mission_def_format_json",
+        "path": "data/json/02_mission/studio_context_engineer_wannabe_mission_def_data_v0_1_draft.json",
+        "required": true
+      },
+      {
+        "output_id": "out_003",
+        "type": "mission_result_summary_format_json",
+        "path": "data/json/02_mission/studio_context_engineer_wannabe_mission_result_summary_data_v0_1_draft.json",
+        "required": true
+      },
+      {
+        "output_id": "out_004",
+        "type": "updated_incident_json",
+        "path": "data/json/01_main/studio_work_incident_data_v0_76_studio_context_engineer_wannabe_mission_draft_done.json",
+        "required": true
+      }
+    ],
+    "review_points": [
+      "憲法のルール数・粒度が重すぎないか",
+      "Mission定義が実行エンジンに踏み込みすぎていないか",
+      "Mission実行結果サマリーが途中監視ではなく完了報告として読めるか",
+      "ファイルパス配置 data/json/00_rules と data/json/02_mission がStudio運用上自然か",
+      "次にViewDefを作る場合、どのフィールドをGrid/Detail/Markdown表示するか"
+    ],
+    "next_actions": [
+      {
+        "action_id": "next_001",
+        "title": "Studio上で憲法Dataをレビューする",
+        "priority": "high"
+      },
+      {
+        "action_id": "next_002",
+        "title": "Mission定義JSON / Result Summary JSONのViewDefを作る",
+        "priority": "medium"
+      },
+      {
+        "action_id": "next_003",
+        "title": "実作業依頼にMission定義フォーマットを試験適用する",
+        "priority": "medium"
+      }
+    ],
+    "human_review": {
+      "required": true,
+      "status": "pending",
+      "reviewer": "tamasub"
+    }
+  },
+  "change_history": []
+}
