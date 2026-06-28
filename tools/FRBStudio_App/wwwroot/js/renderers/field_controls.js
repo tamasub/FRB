@@ -957,6 +957,9 @@ function renderHeader() {
     form.appendChild(createInput(field, getByPath(sourceData, (def.dataPath === '$' ? '$.' : def.dataPath + '.') + field.field), 'header'));
   });
   $('headerSection').classList.remove('hidden');
+  // v0.15.5.2: Main Context is Data-side information. Show it as a header panel,
+  // not as the main Grid. The ViewDef only declares data_path/display contract.
+  if (typeof renderMainContextHeaderPanel === 'function') renderMainContextHeaderPanel($('headerSection'));
 }
 
 function renderSearch() {

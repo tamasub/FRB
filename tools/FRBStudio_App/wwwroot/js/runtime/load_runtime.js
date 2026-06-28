@@ -6,7 +6,12 @@ async function loadFromObjects(defObj, dataObj, label='読み込み完了', data
   currentViewDefReadContract = (typeof extractViewDefReadContract === 'function')
     ? extractViewDefReadContract(defObj)
     : null;
+  currentViewDefContextModel = (typeof extractViewDefContextModel === 'function')
+    ? extractViewDefContextModel(defObj)
+    : null;
+  mainContextPanelExpanded = false;
   if (typeof logViewDefReadContract === 'function') logViewDefReadContract(currentViewDefReadContract);
+  if (typeof logViewDefContextModel === 'function') logViewDefContextModel(currentViewDefContextModel);
   viewDef = defObj;
   currentDataSources = {};
   currentDataSourceSpecs = {};

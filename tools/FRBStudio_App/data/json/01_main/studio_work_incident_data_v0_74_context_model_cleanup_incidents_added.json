@@ -12,7 +12,7 @@
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。",
-  "items_count": 74,
+  "items_count": 77,
   "work_items": [
     {
       "work_item_id": "studio_work_0001",
@@ -7327,31 +7327,46 @@
     {
       "work_item_id": "studio_work_0069",
       "phase": "v0.15.5-viewdef-context-read-contract",
-      "title": "ViewDef文脈制御 read_contract / row context_refs 対応",
+      "title": "ViewDef文脈制御 read_contract 初期実装 / 主文脈・対象文脈モデル見直しへ移行",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0069_001_context_model_review",
+          "title": "v0.15.5 初期実装の違和感と設計見直し会話",
+          "read_timing": "before_review",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_74_proposal_driven_jobflow_added.json",
+          "purpose": "ViewDef全体文脈とData明細単位文脈の表示位置・管理項目を再確認し、v0.15.5.1以降へ分割する判断を追体験する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "このv0.15.5は初期入口として残し、主文脈/対象文脈の正規モデル化は後続インシデントへ分離する。"
+        }
+      ],
       "incident_type": "architecture",
-      "category": "context_control",
+      "category": "",
       "priority": "high",
-      "status": "完了",
-      "verification_status": "確認済み",
+      "status": "完了（後続あり）",
+      "verification_status": "見直し反映済み",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-06-27",
       "updated_at": "2026-06-28",
       "target_files": "ViewDef schema/rules, data/json/00_rules/common_enums_v0_1.json, data/json/00_rules/common_types_v0_1.json, relevant ViewDefs, runtime context resolver if needed",
       "target_rule_files": "",
-      "objective": "ViewDefにAI作業前に読むべき追加文脈を定義できるようにし、ViewDef全体にかかる文脈とData行単位にかかる文脈を分離して扱えるようにする。",
-      "background": "ViewDefは人間向け表示定義だけでなく、AIにどの文脈を、どの重みで、どの目的・タイミングで渡すかを制御する定義へ進化し始めている。『このルールちゃんと読んでからやれよぉ』をJSON化するには、ViewDef全体のread_contractと、Data行単位のcontext_refsを分けて設計する必要がある。",
-      "scope": "ViewDefルート直下またはcontext配下に read_contract / preflight_rules / required_refs のような定義を持てるようにする。ViewDef全体にかかるルールは before_load / before_code_update / before_zip_return などで指定し、Data行単位の追加文脈は row_ref_field または context_refs で指定する。timing は context.read_timing Enumを使う。required=true の参照が読めない場合は failure_policy=stop_and_report などで作業停止・報告できる方針にする。",
-      "out_of_scope": "この作業では外部LLM連携や実際の自動読込実行までを必須にしない。まずViewDef/Rules/Data構造として、どの文脈をいつ読むかを記述できるようにする。Runtime実行が重い場合は定義と表示から始める。",
+      "objective": "ViewDefにAI作業前に読むべき追加文脈を定義できるようにする初期入口を作った上で、画面全体の主文脈と個別明細の対象文脈を分ける正式モデルへ移行する。",
+      "background": "v0.15.5初期実装では context.read_contract と context_refs の入口を作ったが、画面体験としてはcontext_refsサンプルが主役に見え、ViewDef全体にかかる文脈契約がヘッダー/概要に見えない違和感が出た。会話により、全体は『主文脈』、個別明細は『対象文脈』として整理し直す方針になった。",
+      "scope": "この作業項目は初期実装と違和感検出までを記録する。正式なモデル整理は v0.15.5.1-context-model-cleanup、主文脈のヘッダー表示は v0.15.5.2-main-context-header-panel、対象文脈のDetail上部表示は v0.15.5.3-target-context-detail-panel に分離する。",
+      "out_of_scope": "この作業項目では、主文脈/対象文脈の最終UI実装を完了扱いにしない。既存の context.read_contract は互換入口として扱い、正式な context.main_context.refs[] への整理は後続で行う。",
       "fixed_name_policy": "Runtimeが特定Dataフィールド名を決め打ちしない方針を維持する。Enum / FieldType / ViewDef / Data の責務を分け、値の正本はEnum、画面項目としての使い方はFieldType、配置はViewDef、実値はDataとして扱う。",
       "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式と既存common_types運用を前提に、まずData/定義/解決ルールを段階的に追加する。",
-      "expected_outputs": "ViewDef context.read_contract案、row context_refs案、timing Enum利用、failure_policy/trust/purpose候補、Rules/Schema追記案、代表サンプル。",
-      "risk": "文脈を全部常時読ませるとAIに渡す情報が濁る。逆に分けすぎると運用が複雑になる。ViewDef全体、dataset、row、actionの粒度を整理し、必須文脈を読めない場合のfailure_policyを明確にする必要がある。",
-      "test_points": "ViewDef全体のread_contractにrequired_refsを定義できること。Data行単位のcontext_refsを参照できる方針があること。timingはcontext.read_timing Enumを使うこと。requiredルールが読めない場合のstop_and_report方針が定義されていること。既存ViewDefに未定義でも壊れないこと。",
-      "user_request": "ViewDefに文脈制御プロパティを持たせたい。ViewDef全体にかかるものとData行単位に指定するものを分け、追加文脈を読ませるタイミングを制御したい。",
+      "expected_outputs": "v0.15.5初期実装の記録、主文脈/対象文脈への用語変更判断、後続インシデント v0.15.5.1 / v0.15.5.2 / v0.15.5.3 への分割。",
+      "risk": "context_refsを通常Gridデータとして見せると、ViewDef全体にかかる文脈契約と個別明細にかかる対象文脈が混同される。JS実装へ先に進むと、動作はしても思想と画面体験がズレるリスクが高い。",
+      "test_points": "v0.15.5を完了品として固定せず、後続インシデントへ分割されていること。主文脈はViewDef側、対象文脈はData明細側という整理がdecision_logとchange_historyに残っていること。",
+      "user_request": "ViewDefに文脈制御プロパティを持たせたい。ViewDef全体にかかるものとData行単位に指定するものを分け、追加文脈を読ませるタイミングを制御したい。ViewDef全体にかかる文脈と、data行単位にかかる文脈を分けて考える必要がある。追加文脈は何を読むかだけでなく、いつ読むかが重要。",
       "ai_response": "ViewDef文脈制御はEnum追加とは別インシデントにする。read_contract / row context_refs / timing / failure_policy を扱うAI協働オーケストレーター化の入口として登録する。",
-      "latest_user_comment": "ViewDef全体にかかる文脈と、data行単位にかかる文脈を分けて考える必要がある。追加文脈は何を読むかだけでなく、いつ読むかが重要。",
-      "latest_ai_response": "# AI回答\n\n## 今回の更新\n\n- `wwwroot/js/core/viewdef_context_contract.js`\n- `wwwroot/js/core/state.js`\n- `wwwroot/js/runtime/load_runtime.js`\n- `wwwroot/index.html`\n- `data/json/00_rules/frb_view_def_schema_v0_9.json`\n- `data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json`\n- `data/json/00_rules/common_enums_v0_1.json`\n- `defs/common/common_types_v0_1.json`\n- `data/json/00_rules/context_refs_sample_data_v0_1.json`\n- `defs/rules/context_refs_sample_view_def_v0_1.json`\n- `data/json/00_rules/VIEWDEF_CONTEXT_READ_CONTRACT_REPORT_v0_15_5.md`\n- `data/json/01_main/studio_work_incident_data_v0_74_proposal_driven_jobflow_added.json`\n\n## やったこと\n\nViewDef全体にかかる文脈契約として `context.read_contract` を追加し、Data行単位の文脈参照 `context_refs` と分離して扱えるようにした。\n\n- ViewDef schema に `context` / `read_contract` / `contextRef` / `rowContextContract` を追加\n- ViewDef生成ルールに `viewdef_rule_27` を追加\n- `context.failure_policy` / `context.trust_category` をEnum正本へ追加\n- `context.failure_policy` / `context.trust_category` FieldTypeを追加\n- `context_refs_sample_view_def_v0_1.json` に read_contract サンプルを追加\n- Runtimeに `viewdef_context_contract.js` を追加し、ViewDef読込時に契約を正規化して `currentViewDefReadContract` へ保持\n\n## 方針\n\nv0.15.5では、外部ファイル自動読込やLLM投入までは行わない。  \n今回は「ViewDefが、AIに読ませる文脈を宣言できる」契約と、Runtimeがその契約を認識できる入口までに限定した。\n\n必須文脈が読めない場合は、`failure_policy=stop_and_report` を基本方針とする。  \nただし実際の停止・報告ワークフロー実装は後続フェーズで扱う。\n\n## 確認結果\n\n- JSON parse：OK\n- `wwwroot` 配下 JS `node --check`：OK\n- `context.read_timing`：OK\n- `context.failure_policy`：OK\n- `context.trust_category`：OK\n- `context.failure_policy -> enumRef=context.failure_policy`：OK\n- `context.trust_category -> enumRef=context.trust_category`：OK\n- `context_refs_sample_view_def_v0_1.json` の `context.read_contract`：OK\n- runtime生成物除外：OK\n",
+      "latest_user_comment": "v0.15.5はこのままJS実装へ進む前に、主文脈/対象文脈の概念とインシデント構造を先に綺麗に整理したい。必要なら現行インシデントを没にして新規複数インシデントを起こしてよい。\n\n## 返却ファイル\n\n* [更新後Incident JSON](sandbox:/mnt/data/studio_work_incident_data_v0_74_context_model_cleanup_incidents_added.json)\n\n## 今回の整理\n\n`studio_work_0069 / v0.15.5-viewdef-context-read-contract` は、完了品として固定せず、\n\n```text\n完了（後続あり）\n```\n\nに変更しました。\n\n理由は、初期実装としては意味があるけど、\n**主文脈 / 対象文脈の画面体験がまだズレている**ためです。\n\n## 新規追加したインシデント\n\n```text\nstudio_work_0075\nv0.15.5.1-context-model-cleanup\n主文脈 / 対象文脈モデル整理\n```\n\n```text\nstudio_work_0076\nv0.15.5.2-main-context-header-panel\n主文脈ヘッダー表示 / 展開編集パネル\n```\n\n```text\nstudio_work_0077\nv0.15.5.3-target-context-detail-panel\n対象文脈Detail上部表示 / context_refs編集\n```\n\n## 反映した思想\n\n* 全体文脈 = **主文脈**\n* 個別明細文脈 = **対象文脈**\n* 主文脈は ViewDef 側\n\n  * `context.main_context.refs[]`\n* 対象文脈は Data明細側\n\n  * `context_refs[]`\n* `context_refs[]` は明細オブジェクト内の先頭寄りに配置\n\n  * `work_item_id / phase / title` の直後\n* 旧 `context.read_contract` は互換扱い\n* JS実装はまだ触らず、まずインシデント・Rules・Schema・サンプル整理を先にする\n\n## 確認結果\n\n* JSON parse：OK\n* `items_count`: 74 → 77\n* `work_item_id` 重複なし\n* `0069 / 0075 / 0076 / 0077` に `context_refs` を先頭寄りで追加済み",
+      "latest_ai_response": "# AI回答\n\n## 結論\n\nv0.15.5 は初期入口としては有効だが、画面体験としては未完成扱いにする。  \n`context_refs` のサンプルが通常Gridデータとして前面に出てしまい、ViewDef全体にかかる文脈契約が「画面の入口」として見えていなかった。\n\n## 方針変更\n\n- 全体文脈は **主文脈**\n- 個別明細の文脈は **対象文脈**\n- 主文脈は ViewDef JSON 側で管理する\n- 対象文脈は Data JSON の明細オブジェクト側で管理する\n- `context.read_contract` は旧互換として扱い、正式モデルは `context.main_context.refs[]` へ寄せる\n- `context_refs[]` は対象文脈として、明細本文より前に置く\n\n## 後続インシデント\n\n- `v0.15.5.1-context-model-cleanup`\n- `v0.15.5.2-main-context-header-panel`\n- `v0.15.5.3-target-context-detail-panel`\n\n## 確認結果\n\n- v0.15.5を完了品として固定しない方針に変更\n- 主文脈/対象文脈の用語を確定\n- JS実装前にインシデント・Rules・Schema・サンプルを整える進め方に変更\n",
       "discussion_history": [
         {
           "history_id": "disc_0069_001",
@@ -7394,6 +7409,20 @@
           "speaker": "assistant",
           "topic": "v0.15.5 AI完了報告表示補修",
           "message": "# AI回答\n\n## 今回の更新\n\n- `wwwroot/js/core/viewdef_context_contract.js`\n- `wwwroot/js/core/state.js`\n- `wwwroot/js/runtime/load_runtime.js`\n- `wwwroot/index.html`\n- `data/json/00_rules/frb_view_def_schema_v0_9.json`\n- `data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json`\n- `data/json/00_rules/common_enums_v0_1.json`\n- `defs/common/common_types_v0_1.json`\n- `data/json/00_rules/context_refs_sample_data_v0_1.json`\n- `defs/rules/context_refs_sample_view_def_v0_1.json`\n- `data/json/00_rules/VIEWDEF_CONTEXT_READ_CONTRACT_REPORT_v0_15_5.md`\n- `data/json/01_main/studio_work_incident_data_v0_74_proposal_driven_jobflow_added.json`\n\n## やったこと\n\nViewDef全体にかかる文脈契約として `context.read_contract` を追加し、Data行単位の文脈参照 `context_refs` と分離して扱えるようにした。\n\n- ViewDef schema に `context` / `read_contract` / `contextRef` / `rowContextContract` を追加\n- ViewDef生成ルールに `viewdef_rule_27` を追加\n- `context.failure_policy` / `context.trust_category` をEnum正本へ追加\n- `context.failure_policy` / `context.trust_category` FieldTypeを追加\n- `context_refs_sample_view_def_v0_1.json` に read_contract サンプルを追加\n- Runtimeに `viewdef_context_contract.js` を追加し、ViewDef読込時に契約を正規化して `currentViewDefReadContract` へ保持\n\n## 方針\n\nv0.15.5では、外部ファイル自動読込やLLM投入までは行わない。  \n今回は「ViewDefが、AIに読ませる文脈を宣言できる」契約と、Runtimeがその契約を認識できる入口までに限定した。\n\n必須文脈が読めない場合は、`failure_policy=stop_and_report` を基本方針とする。  \nただし実際の停止・報告ワークフロー実装は後続フェーズで扱う。\n\n## 確認結果\n\n- JSON parse：OK\n- `wwwroot` 配下 JS `node --check`：OK\n- `context.read_timing`：OK\n- `context.failure_policy`：OK\n- `context.trust_category`：OK\n- `context.failure_policy -> enumRef=context.failure_policy`：OK\n- `context.trust_category -> enumRef=context.trust_category`：OK\n- `context_refs_sample_view_def_v0_1.json` の `context.read_contract`：OK\n- runtime生成物除外：OK\n\n\n---\n\n補足: 画面の「AI追加回答」で読み返せるよう、同じ完了報告Markdownを `latest_ai_response` にも反映した。"
+        },
+        {
+          "history_id": "disc_0069_v0155_review_001_user",
+          "at": "2026-06-28",
+          "speaker": "user",
+          "topic": "主文脈 / 対象文脈の設計見直し",
+          "message": "context_refsにはメインと行単位の話があり、全体は画面ヘッダーに表示する主文脈、個別明細は対象文脈として扱うイメージ。JSへ進む前にインシデント側を綺麗にしたい。"
+        },
+        {
+          "history_id": "disc_0069_v0155_review_002_assistant",
+          "at": "2026-06-28",
+          "speaker": "assistant",
+          "topic": "v0.15.5系分割方針",
+          "message": "v0.15.5は初期入口として残し、主文脈/対象文脈モデル整理、主文脈ヘッダー表示、対象文脈Detail表示の3段階へ分割する方針に整理。"
         }
       ],
       "decision_log": [
@@ -7426,6 +7455,24 @@
           "at": "2026-06-28",
           "decision": "v0.15.5では自動読込実行ではなく、ViewDef契約定義とRuntime認識入口までに限定する。",
           "reason": "外部LLM投入や作業停止制御まで同時に実装すると責務が膨らむため、まず契約をData/ViewDef/Rules/Runtimeで共有できる状態にする。"
+        },
+        {
+          "decision_id": "dec_0069_v0155_review_006",
+          "at": "2026-06-28",
+          "decision": "全体文脈の表示名を『主文脈』、個別明細側の文脈表示名を『対象文脈』とする。",
+          "reason": "行文脈ではインシデント番号単位・テストパターン単位・ルール単位などに広がる概念を表しきれないため。"
+        },
+        {
+          "decision_id": "dec_0069_v0155_review_007",
+          "at": "2026-06-28",
+          "decision": "主文脈は ViewDef 側の context.main_context.refs[]、対象文脈は Data明細側の context_refs[] として整理する。",
+          "reason": "ViewDef全体にかかる前提文脈と、個別対象を扱う時だけ必要な追加文脈を混同しないため。"
+        },
+        {
+          "decision_id": "dec_0069_v0155_review_008",
+          "at": "2026-06-28",
+          "decision": "対象文脈 context_refs[] は明細オブジェクト内の先頭寄り、id/phase/title の直後に置くことを推奨する。",
+          "reason": "対象文脈は本文に混ざる補足ではなく、その明細を扱う前に読む入口だから。"
         }
       ],
       "change_history": [
@@ -7468,6 +7515,14 @@
           "before": "AI完了報告Markdownは discussion_history には存在したが、画面上の「AI追加回答」に表示される latest_ai_response は短い要約のままだった。",
           "after": "latest_ai_response にも # AI回答 / 今回の更新 / やったこと / 方針 / 確認結果 のMarkdown完了報告を反映し、Studio画面の会話カードで読み返せるようにした。",
           "reason": "ユーザーが作業詳細報告をStudio画面上の会話履歴として読み返せるようにするため。"
+        },
+        {
+          "history_id": "chg_0069_v0155_review_005",
+          "at": "2026-06-28",
+          "change_type": "incident_reclassification",
+          "before": "v0.15.5 を ViewDef context.read_contract / row context_refs 対応の完了項目として扱っていた。",
+          "after": "v0.15.5 は初期入口と違和感検出の記録に変更し、正式モデル整理とUI実装は v0.15.5.1〜v0.15.5.3 へ分割。",
+          "reason": "context_refsサンプルが主役に見える表示では、主文脈と対象文脈の思想が画面体験に反映されないため。"
         }
       ],
       "actual_updated_files": "wwwroot/js/core/viewdef_context_contract.js\nwwwroot/js/core/state.js\nwwwroot/js/runtime/load_runtime.js\nwwwroot/index.html\ndata/json/00_rules/frb_view_def_schema_v0_9.json\ndata/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json\ndata/json/00_rules/common_enums_v0_1.json\ndefs/common/common_types_v0_1.json\ndata/json/00_rules/context_refs_sample_data_v0_1.json\ndefs/rules/context_refs_sample_view_def_v0_1.json\ndata/json/00_rules/VIEWDEF_CONTEXT_READ_CONTRACT_REPORT_v0_15_5.md\ndata/json/01_main/studio_work_incident_data_v0_74_proposal_driven_jobflow_added.json"
@@ -8055,6 +8110,418 @@
         }
       ],
       "actual_updated_files": "studio_work_incident_data_v0_74_proposal_driven_jobflow_added.json"
+    },
+    {
+      "work_item_id": "studio_work_0075",
+      "phase": "v0.15.5.1-context-model-cleanup",
+      "title": "主文脈 / 対象文脈モデル整理",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0075_001_v0155_review",
+          "title": "v0.15.5の違和感と分割判断を読む",
+          "read_timing": "before_review",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_74_context_model_cleanup_incidents_added.json",
+          "purpose": "初期実装のズレを確認し、主文脈/対象文脈モデルの整理範囲を誤らない。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0075_002_incident_scope",
+          "title": "このインシデントのscopeを作業前に読む",
+          "read_timing": "before_code_update",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_74_context_model_cleanup_incidents_added.json",
+          "purpose": "Rules/Schema/Data整理に留め、JS実装へ踏み込みすぎない。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        }
+      ],
+      "incident_type": "architecture_cleanup",
+      "category": "context_model",
+      "priority": "high",
+      "status": "完了",
+      "verification_status": "確認済み",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-28",
+      "updated_at": "2026-06-28",
+      "target_files": "data/json/00_rules/frb_view_def_schema_v0_9.json, data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json, data/json/00_rules/context_refs_sample_data_v0_1.json, defs/rules/context_refs_sample_view_def_v0_1.json, data/json/00_rules/VIEWDEF_CONTEXT_MODEL_CLEANUP_REPORT_v0_15_5_1.md, data/json/01_main/studio_work_incident_data_v0_74_context_model_cleanup_incidents_added.json",
+      "target_rule_files": "frb_view_def_schema_v0_9.json, frb_viewdef_generation_rules_data_v0_1.json",
+      "objective": "v0.15.5初期実装で見えたズレを踏まえ、主文脈と対象文脈の用語・JSON配置・明細構造・表示方針を確定する。",
+      "background": "context_refsにはViewDef全体にかかる文脈と、個別明細にかかる文脈が混在し得る。全体は主文脈として画面の入口に、個別明細は対象文脈としてDetail上部に置く整理が必要になった。",
+      "scope": "主文脈はData root main_context_refs[]、対象文脈はData明細context_refs[]として整理する。ViewDefは文脈実データを持たず、context.main_context.data_path / context.target_context.field / data_path で場所と表示・編集方法だけを宣言する。旧context.read_contractは互換宣言として残すが、具体的なrequired_refs[]は埋め込まない。",
+      "out_of_scope": "この作業ではJSのヘッダー表示・Detail表示・自動読込実行までは行わない。まずインシデント、Rules、Schema、サンプルData/ViewDefの地ならしに限定する。",
+      "fixed_name_policy": "Runtimeが特定Data名に依存しないよう、主文脈はViewDef側の契約、対象文脈はViewDefで宣言された明細フィールドとして扱う。context_refsは標準メタ候補として扱うが、使用ルールを明記する。",
+      "module_policy": "type=\"module\" 化は行わない。v0.15.5.1ではJS実装を主目的にしない。",
+      "expected_outputs": "主文脈/対象文脈の用語定義、JSON配置ルール、Context Ref共通明細構造、旧context.read_contract互換方針、サンプルViewDef/Data整理、インシデント更新。",
+      "risk": "概念整理前にUI実装へ進むと、context_refsが普通のGridデータに見え、文脈契約という思想が画面体験に反映されない。",
+      "test_points": "主文脈がViewDef側 context.main_context.refs[]、対象文脈がData明細側 context_refs[] としてSchema/Rules/Sample/Incidentに明記されていること。Context Ref明細項目が共通化されていること。旧read_contract互換方針があること。JS実装に踏み込んでいないこと。JSON parseが通ること。",
+      "user_request": "v0.15.5の主文脈/対象文脈設計を、JS実装へ進む前にインシデント側で綺麗に整理したい。必要なら複数インシデントへ分割してよい。",
+      "ai_response": "v0.15.5をそのまま進めず、主文脈/対象文脈モデルを先にインシデント側へ焼き込む。これにより後続JS実装のズレを防ぐ。",
+      "latest_user_comment": "最新資材 wwwroot281038.zip と更新済みIncident JSONを添付し、phase v0.15.5.1-context-model-cleanup の作業を依頼。Foundation Rule 19のZIP返却契約に従う。",
+      "latest_ai_response": "# AI回答\n\n## 今回の補修\n\n- `defs/rules/context_refs_sample_view_def_v0_1.json`\n- `data/json/00_rules/context_refs_sample_data_v0_1.json`\n- `data/json/00_rules/frb_view_def_schema_v0_9.json`\n- `data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json`\n- `data/json/00_rules/VIEWDEF_CONTEXT_MODEL_CLEANUP_REPORT_v0_15_5_1.md`\n- `data/json/01_main/studio_work_incident_data_v0_74_context_model_cleanup_incidents_added.json`\n\n## 直したこと\n\nv0.15.5.1初回整理で、主文脈の実データをViewDef側 `context.main_context.refs[]` に置いてしまっていた点を修正した。\n\n## 確定モデル\n\n- ViewDefは画面定義だけを持つ。\n- 主文脈の実データはData root `main_context_refs[]` に置く。\n- ViewDefは `context.main_context.data_path` で主文脈のDataパスを宣言する。\n- 対象文脈の実データはData明細オブジェクト内 `context_refs[]` に置く。\n- ViewDefは `context.target_context.field` / `data_path` で対象文脈の場所を宣言する。\n- 旧 `context.read_contract` は互換宣言として残すが、具体的な `required_refs[]` は埋め込まない。\n\n## 確認結果\n\n- JSON parse：OK\n- `items_count`: 77 維持\n- `work_item_id` 重複なし\n- JSファイルは未変更\n- 更新済みIncident JSONはZIP内 `data/json/01_main/` に収録\n- runtime生成物除外：OK\n",
+      "discussion_history": [
+        {
+          "history_id": "disc_0075_001_user",
+          "at": "2026-06-28",
+          "speaker": "user",
+          "topic": "インシデント側の地ならし依頼",
+          "message": "v0.15.5の主文脈/対象文脈設計を、JS実装へ進む前にインシデント側で綺麗に整理したい。必要なら複数インシデントへ分割してよい。"
+        },
+        {
+          "history_id": "disc_0075_002_assistant",
+          "at": "2026-06-28",
+          "speaker": "assistant",
+          "topic": "v0.15.5.1追加方針",
+          "message": "JS実装前に、主文脈/対象文脈の用語、JSON配置、共通明細構造、旧read_contract互換方針を整理するインシデントとして追加。"
+        },
+        {
+          "history_id": "disc_0075_003_user_request_v01551",
+          "at": "2026-06-28",
+          "speaker": "user",
+          "topic": "v0.15.5.1-context-model-cleanup 作業依頼",
+          "message": "最新資材を添付し、v0.15.5.1-context-model-cleanup として主文脈/対象文脈モデル整理を依頼。"
+        },
+        {
+          "history_id": "disc_0075_004_assistant_completion_report",
+          "at": "2026-06-28",
+          "speaker": "assistant",
+          "topic": "v0.15.5.1-context-model-cleanup 作業結果",
+          "message": "# AI回答\n\n## 今回の更新\n\n- `data/json/00_rules/frb_view_def_schema_v0_9.json`\n- `data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json`\n- `data/json/00_rules/context_refs_sample_data_v0_1.json`\n- `defs/rules/context_refs_sample_view_def_v0_1.json`\n- `data/json/00_rules/VIEWDEF_CONTEXT_MODEL_CLEANUP_REPORT_v0_15_5_1.md`\n- `data/json/01_main/studio_work_incident_data_v0_74_context_model_cleanup_incidents_added.json`\n\n## やったこと\n\nv0.15.5 初期実装の `context.read_contract` / `context_refs` を、JS実装へ進む前にモデル整理した。\n\n## 確定したモデル\n\n- 主文脈\n  - ViewDef / 画面全体にかかる文脈\n  - 正本: `context.main_context.refs[]`\n  - 表示方針: ヘッダー要約 + ボタン展開\n\n- 対象文脈\n  - インシデント1件、テストパターン1件、ルール1件など個別対象にかかる文脈\n  - 正本: Data明細オブジェクト内の `context_refs[]`\n  - 表示方針: Detail上部の入口セクション\n\n## Context Ref共通明細\n\n主文脈でも対象文脈でも、明細1件の構造は共通とする。\n\n- `context_ref_id`\n- `title`\n- `read_timing`\n- `target_path`\n- `purpose`\n- `failure_policy`\n- `trust_category`\n- `required`\n- `enabled`\n- `sort_order`\n- `note`\n\n## 互換方針\n\n旧 `context.read_contract` は削除せず、互換入口として残す。新規ViewDefでは `context.main_context.refs[]` を優先する。\n\n## 確認結果\n\n- JSON parse：OK\n- `items_count`: 77 維持\n- `work_item_id` 重複なし\n- v0.15.5.1 は完了扱いへ更新\n- JSファイルは未変更\n- 更新済みIncident JSONはZIP内 `data/json/01_main/` に収録\n- runtime生成物除外：OK\n"
+        },
+        {
+          "history_id": "disc_0075_v0155_1_fix_user_001",
+          "at": "2026-06-28",
+          "speaker": "user",
+          "topic": "主文脈データ配置の指摘",
+          "message": "たぶん、ズレている気がする。なんで、ViewDef側に文脈の内容となるデータがいる？？ ViewDefは画面定義だけ。最新資材添付します。再度お願いします。"
+        },
+        {
+          "history_id": "disc_0075_v0155_1_fix_assistant_001",
+          "at": "2026-06-28",
+          "speaker": "assistant",
+          "topic": "v0.15.5.1補修結果",
+          "message": "# AI回答\n\n## 今回の補修\n\n- `defs/rules/context_refs_sample_view_def_v0_1.json`\n- `data/json/00_rules/context_refs_sample_data_v0_1.json`\n- `data/json/00_rules/frb_view_def_schema_v0_9.json`\n- `data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json`\n- `data/json/00_rules/VIEWDEF_CONTEXT_MODEL_CLEANUP_REPORT_v0_15_5_1.md`\n- `data/json/01_main/studio_work_incident_data_v0_74_context_model_cleanup_incidents_added.json`\n\n## 直したこと\n\nv0.15.5.1初回整理で、主文脈の実データをViewDef側 `context.main_context.refs[]` に置いてしまっていた点を修正した。\n\n## 確定モデル\n\n- ViewDefは画面定義だけを持つ。\n- 主文脈の実データはData root `main_context_refs[]` に置く。\n- ViewDefは `context.main_context.data_path` で主文脈のDataパスを宣言する。\n- 対象文脈の実データはData明細オブジェクト内 `context_refs[]` に置く。\n- ViewDefは `context.target_context.field` / `data_path` で対象文脈の場所を宣言する。\n- 旧 `context.read_contract` は互換宣言として残すが、具体的な `required_refs[]` は埋め込まない。\n\n## 確認結果\n\n- JSON parse：OK\n- `items_count`: 77 維持\n- `work_item_id` 重複なし\n- JSファイルは未変更\n- 更新済みIncident JSONはZIP内 `data/json/01_main/` に収録\n- runtime生成物除外：OK\n"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0075_001",
+          "at": "2026-06-28",
+          "decision": "全体文脈は『主文脈』、個別明細文脈は『対象文脈』と呼ぶ。",
+          "reason": "行文脈よりも、インシデント・テストパターン・ルールなどの対象単位に自然に適用できるため。"
+        },
+        {
+          "decision_id": "dec_0075_002",
+          "at": "2026-06-28",
+          "decision": "主文脈は context.main_context.refs[]、対象文脈は context_refs[] を基本配置とする。",
+          "reason": "ViewDef全体の前提と、明細単位の追加前提を分離するため。"
+        },
+        {
+          "decision_id": "dec_0075_003",
+          "at": "2026-06-28",
+          "decision": "旧 context.read_contract は互換扱いとし、削除ではなく main_context.refs への移行候補とする。",
+          "reason": "既存v0.15.5実装とサンプルを壊さず、段階的に整理するため。"
+        },
+        {
+          "decision_id": "dec_0075_004",
+          "at": "2026-06-28",
+          "decision": "主文脈は context.main_context.refs[] を正本とする。",
+          "reason": "ViewDef全体にかかる文脈をData行と混ぜず、画面の入口として扱うため。"
+        },
+        {
+          "decision_id": "dec_0075_005",
+          "at": "2026-06-28",
+          "decision": "対象文脈はData明細オブジェクト内の context_refs[] を正本とする。",
+          "reason": "インシデント1件、テストパターン1件、ルール1件など個別対象にかかる追加文脈を、対象本文の前提として管理するため。"
+        },
+        {
+          "decision_id": "dec_0075_006",
+          "at": "2026-06-28",
+          "decision": "主文脈と対象文脈のContext Ref明細構造は共通化する。",
+          "reason": "同じ『読むべき文脈』であり、スコープだけが違うため。"
+        },
+        {
+          "decision_id": "dec_0075_007",
+          "at": "2026-06-28",
+          "decision": "旧 context.read_contract は互換入口として残す。",
+          "reason": "v0.15.5初期実装や既存サンプルを壊さず、段階的にmain_contextへ移行するため。"
+        },
+        {
+          "decision_id": "dec_0075_008",
+          "at": "2026-06-28",
+          "decision": "v0.15.5.1ではJS実装に踏み込まない。",
+          "reason": "画面ヘッダー表示とDetail上部表示は後続フェーズへ分け、設計整理と実装を混ぜないため。"
+        },
+        {
+          "decision_id": "dec_0075_v0155_1_fix_001",
+          "at": "2026-06-28",
+          "decision": "ViewDefには主文脈/対象文脈の実データを置かない。ViewDefはDataパスと表示・編集定義だけを持つ。",
+          "reason": "ViewDefは画面定義であり、文脈の内容データを持つとData/ViewDef分離が崩れるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0075_001",
+          "at": "2026-06-28",
+          "change_type": "incident_added",
+          "before": "v0.15.5に主文脈/対象文脈整理とUI実装の意図が混在していた。",
+          "after": "v0.15.5.1として、用語・JSON配置・Rules/Schema/Data整理を独立インシデント化。",
+          "reason": "JS実装前に設計モデルを固定し、後続UI実装のズレを防ぐため。"
+        },
+        {
+          "history_id": "chg_0075_002",
+          "at": "2026-06-28",
+          "change_type": "viewdef_generation_rule_update",
+          "before": "viewdef_rule_27 は read_contract / row context_refs 分離の説明が中心。",
+          "after": "viewdef_rule_27 を主文脈/対象文脈モデルへ更新し、viewdef_rule_27_01を追加。",
+          "reason": "画面全体文脈と個別対象文脈の表示体験をJS実装前に明文化するため。"
+        },
+        {
+          "history_id": "chg_0075_003",
+          "at": "2026-06-28",
+          "change_type": "sample_restructure",
+          "before": "context_refs_sample_data は context_refs 自体が主Gridデータに見える構成。",
+          "after": "sample_targets[] の各明細内に context_refs[] を置く構成へ変更。",
+          "reason": "対象文脈はData明細にぶら下がる入口であり、context_refs自体を通常業務データとして見せないため。"
+        },
+        {
+          "history_id": "chg_0075_004",
+          "at": "2026-06-28",
+          "change_type": "sample_viewdef_context_model",
+          "before": "context_refs_sample_view_def は context.read_contract のみを主契約としていた。",
+          "after": "context.main_context / context.target_context を追加し、read_contract は互換入口として残した。",
+          "reason": "新規ViewDefではmain_contextを正本とし、旧実装互換も保つため。"
+        },
+        {
+          "history_id": "chg_0075_005",
+          "at": "2026-06-28",
+          "change_type": "report_added",
+          "before": "v0.15.5.1の設計整理レポートがなかった。",
+          "after": "VIEWDEF_CONTEXT_MODEL_CLEANUP_REPORT_v0_15_5_1.md を追加。",
+          "reason": "後続v0.15.5.2/.3の前提を人間とAIが読み返せるようにするため。"
+        },
+        {
+          "history_id": "chg_0075_v0155_1_fix_001",
+          "at": "2026-06-28",
+          "change_type": "context_model_correction",
+          "before": "主文脈の実データをViewDef側 context.main_context.refs[] / read_contract.required_refs[] に置いていた。",
+          "after": "主文脈の実データをData root main_context_refs[] に移し、ViewDef側は context.main_context.data_path などの宣言だけにした。",
+          "reason": "ViewDefは画面定義だけであり、文脈内容データを保持すべきではないため。"
+        }
+      ],
+      "actual_updated_files": "data/json/00_rules/frb_view_def_schema_v0_9.json, data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json, data/json/00_rules/context_refs_sample_data_v0_1.json, defs/rules/context_refs_sample_view_def_v0_1.json, data/json/00_rules/VIEWDEF_CONTEXT_MODEL_CLEANUP_REPORT_v0_15_5_1.md, data/json/01_main/studio_work_incident_data_v0_74_context_model_cleanup_incidents_added.json"
+    },
+    {
+      "work_item_id": "studio_work_0076",
+      "phase": "v0.15.5.2-main-context-header-panel",
+      "title": "主文脈ヘッダー表示 / 展開編集パネル",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0076_001_model_cleanup",
+          "title": "v0.15.5.1の主文脈モデル整理結果を読む",
+          "read_timing": "before_code_update",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_74_context_model_cleanup_incidents_added.json",
+          "purpose": "主文脈のJSON配置と表示方針を確認してからヘッダーUIを実装する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": ""
+        }
+      ],
+      "incident_type": "feature",
+      "category": "context_ui",
+      "priority": "high",
+      "status": "完了",
+      "verification_status": "確認済み",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-28",
+      "updated_at": "2026-06-28",
+      "target_files": "wwwroot/js/core/state.js, wwwroot/js/core/viewdef_context_contract.js, wwwroot/js/runtime/load_runtime.js, wwwroot/js/renderers/*, wwwroot/styles.css, wwwroot/index.html, relevant ViewDefs",
+      "target_rule_files": "frb_view_def_schema_v0_9.json, frb_viewdef_generation_rules_data_v0_1.json",
+      "objective": "ViewDef全体にかかる主文脈を、画面ヘッダー/概要部分に要約表示し、ボタン押下で明細を確認・必要に応じて編集できるようにする。",
+      "background": "v0.15.5初期表示ではcontext_refsサンプルが通常Gridとして見え、主文脈が画面の入口として見えなかった。主文脈はData行ではなく、画面全体の前提としてヘッダーに出すべきである。",
+      "scope": "ViewDefの context.main_context.data_path からData rootの主文脈refs配列を取得し、ヘッダーに件数・必須件数・停止系失敗方針・読みタイミングを要約表示する。ボタンで主文脈明細を展開し、Data側へ編集反映できるようにする。主文脈を通常Gridの主役にしない。旧read_contractは互換宣言として限定的に扱う。",
+      "out_of_scope": "対象文脈context_refs[]のDetail上部表示はv0.15.5.3で扱う。外部文脈ファイルの自動読込やLLM投入はこの段階では行わない。",
+      "fixed_name_policy": "Runtimeは特定ViewDef名や特定Data名ではなく、ViewDefに宣言された context.main_context.data_path を読み、Data root上の主文脈refsを扱う。ViewDef内に具体的な文脈refs実データを置かない。",
+      "module_policy": "type=\"module\" 化は行わない。既存script方式を維持する。",
+      "expected_outputs": "主文脈ヘッダー要約、主文脈確認ボタン、主文脈明細展開/編集パネル、Data root main_context_refs[] 反映、主Gridの対象一覧復帰、旧read_contract互換宣言維持、CSS調整。",
+      "risk": "ヘッダーへ出しすぎると画面が重くなる。常時表示は要約に留め、明細はボタンで確認する。",
+      "test_points": "主文脈0件/1件/複数件で表示が壊れないこと。必須件数や停止系失敗方針が要約に出ること。ViewDefにcontext未定義でも壊れないこと。主文脈が通常Gridの主役にならず、対象一覧が主Gridとして表示されること。更新済みIncident JSONがZIP内data/json/01_main/に収録されること。",
+      "user_request": "v0.15.5の主文脈/対象文脈設計を、JS実装へ進む前にインシデント側で綺麗に整理したい。必要なら複数インシデントへ分割してよい。",
+      "ai_response": "主文脈は普通のGridデータではなく画面全体の入口なので、ヘッダー要約と展開明細として扱う。",
+      "latest_user_comment": "今回の作業依頼: incident_file=data/json/01_main/studio_work_incident_data_v0_74_context_model_cleanup_incidents_added.json / phase=v0.15.5.2-main-context-header-panel。Foundation Rule 19「GitHub基準ソースとZIP返却契約」を参照して対応。",
+      "latest_ai_response": "# AI回答\n\n## 今回の更新\n- `wwwroot/js/core/state.js`\n- `wwwroot/js/core/viewdef_context_contract.js`\n- `wwwroot/js/renderers/field_controls.js`\n- `wwwroot/js/runtime/load_runtime.js`\n- `wwwroot/js/runtime/detail_save.js`\n- `wwwroot/index.html`\n- `wwwroot/styles.css`\n- `defs/rules/context_refs_sample_view_def_v0_1.json`\n- `data/json/00_rules/context_refs_sample_data_v0_1.json`\n- `data/json/00_rules/frb_view_def_schema_v0_9.json`\n- `data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json`\n- `data/json/00_rules/MAIN_CONTEXT_HEADER_PANEL_REPORT_v0_15_5_2.md`\n- `data/json/01_main/studio_work_incident_data_v0_74_context_model_cleanup_incidents_added.json`\n\n## やったこと\n- 主文脈を通常Gridの主役にせず、概要ヘッダー上の要約 + 「主文脈を確認」ボタンで扱うRuntimeを追加。\n- ViewDefは `context.main_context.data_path` などの表示・参照宣言だけを持ち、主文脈の実データはData root `main_context_refs[]` から読むように整理。\n- 展開パネル内で主文脈明細を確認・編集し、「主文脈を反映」でData側へ反映できるようにした。\n- `context_refs_sample_view_def_v0_1.json` から主文脈Gridを外し、主Gridを `sample_targets[]` に戻した。\n- Schema/Rulesへ「主文脈は通常Gridではなくヘッダー要約+展開パネルで扱う」契約を追加。\n\n## 方針\n- 主文脈 = 画面全体の入口。Data root `main_context_refs[]`。\n- 対象文脈 = 個別対象の入口。Data明細 `context_refs[]`。\n- ViewDefは文脈データを持たず、Data上の場所と表示方法だけを宣言する。\n- 対象文脈Detail上部表示は `v0.15.5.3-target-context-detail-panel` に残す。\n\n## 確認結果\n- JSON parse：OK\n- JS `node --check`：OK\n- 主文脈Grid撤去：OK\n- 主Grid = `sample_targets[]`：OK\n- ViewDef内に主文脈実データなし：OK\n- 更新済みIncident JSONのZIP内収録：OK\n- runtime生成物除外：OK",
+      "discussion_history": [
+        {
+          "history_id": "disc_0076_001_assistant",
+          "at": "2026-06-28",
+          "speaker": "assistant",
+          "topic": "v0.15.5.2追加方針",
+          "message": "主文脈はViewDef全体にかかるため、ヘッダー/概要エリアへ要約表示し、ボタンで明細を開くUI実装インシデントとして追加。"
+        },
+        {
+          "history_id": "disc_0076_002_user_actual_request",
+          "at": "2026-06-28",
+          "speaker": "user",
+          "topic": "v0.15.5.2作業依頼",
+          "message": "あぁーーjs側が対応できてない事実があるってことやね？？ まぁ、意識が一致しているか、じゃっかん不安あるけどしかたないね。次にまず進もう。v0.15.5.2-main-context-header-panel の作業を依頼。"
+        },
+        {
+          "history_id": "disc_0076_003_assistant_completion_report",
+          "at": "2026-06-28",
+          "speaker": "assistant",
+          "topic": "v0.15.5.2完了報告",
+          "message": "# AI回答\n\n## 今回の更新\n- `wwwroot/js/core/state.js`\n- `wwwroot/js/core/viewdef_context_contract.js`\n- `wwwroot/js/renderers/field_controls.js`\n- `wwwroot/js/runtime/load_runtime.js`\n- `wwwroot/js/runtime/detail_save.js`\n- `wwwroot/index.html`\n- `wwwroot/styles.css`\n- `defs/rules/context_refs_sample_view_def_v0_1.json`\n- `data/json/00_rules/context_refs_sample_data_v0_1.json`\n- `data/json/00_rules/frb_view_def_schema_v0_9.json`\n- `data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json`\n- `data/json/00_rules/MAIN_CONTEXT_HEADER_PANEL_REPORT_v0_15_5_2.md`\n- `data/json/01_main/studio_work_incident_data_v0_74_context_model_cleanup_incidents_added.json`\n\n## やったこと\n- 主文脈を通常Gridの主役にせず、概要ヘッダー上の要約 + 「主文脈を確認」ボタンで扱うRuntimeを追加。\n- ViewDefは `context.main_context.data_path` などの表示・参照宣言だけを持ち、主文脈の実データはData root `main_context_refs[]` から読むように整理。\n- 展開パネル内で主文脈明細を確認・編集し、「主文脈を反映」でData側へ反映できるようにした。\n- `context_refs_sample_view_def_v0_1.json` から主文脈Gridを外し、主Gridを `sample_targets[]` に戻した。\n- Schema/Rulesへ「主文脈は通常Gridではなくヘッダー要約+展開パネルで扱う」契約を追加。\n\n## 方針\n- 主文脈 = 画面全体の入口。Data root `main_context_refs[]`。\n- 対象文脈 = 個別対象の入口。Data明細 `context_refs[]`。\n- ViewDefは文脈データを持たず、Data上の場所と表示方法だけを宣言する。\n- 対象文脈Detail上部表示は `v0.15.5.3-target-context-detail-panel` に残す。\n\n## 確認結果\n- JSON parse：OK\n- JS `node --check`：OK\n- 主文脈Grid撤去：OK\n- 主Grid = `sample_targets[]`：OK\n- ViewDef内に主文脈実データなし：OK\n- 更新済みIncident JSONのZIP内収録：OK\n- runtime生成物除外：OK"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0076_001",
+          "at": "2026-06-28",
+          "decision": "主文脈は常時明細表示せず、ヘッダー要約 + 確認ボタンで扱う。",
+          "reason": "画面の前提として重要だが、常時明細表示すると通常作業の邪魔になるため。"
+        },
+        {
+          "decision_id": "dec_0076_002",
+          "at": "2026-06-28",
+          "decision": "主文脈はViewDef内refsではなくData root main_context_refs[]を読む。",
+          "reason": "ViewDefは画面定義であり、文脈の実データを持つとData/ViewDef分離が崩れるため。"
+        },
+        {
+          "decision_id": "dec_0076_003",
+          "at": "2026-06-28",
+          "decision": "主文脈GridをサンプルViewDefから外し、対象一覧を主Gridに戻す。",
+          "reason": "主文脈を通常Gridの主役にすると、対象一覧と対象文脈の確認導線が消えるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0076_001",
+          "at": "2026-06-28",
+          "change_type": "incident_added",
+          "before": "主文脈が通常Gridデータまたはサンプルとして見える状態だった。",
+          "after": "主文脈をヘッダー要約と展開明細として表示する後続インシデントを追加。",
+          "reason": "主文脈を画面全体の入口として扱うUI体験へ寄せるため。"
+        },
+        {
+          "history_id": "chg_0076_002",
+          "at": "2026-06-28",
+          "change_type": "runtime_header_panel",
+          "before": "主文脈を通常Gridとして表示するしかなく、対象一覧が主Gridとして見えにくかった。",
+          "after": "Data root main_context_refs[] を概要ヘッダー上の要約+展開パネルとして表示し、通常Gridは対象一覧へ戻した。",
+          "reason": "主文脈は画面全体の入口であり、Gridの主役ではないため。"
+        },
+        {
+          "history_id": "chg_0076_003",
+          "at": "2026-06-28",
+          "change_type": "viewdef_sample_cleanup",
+          "before": "context_refs_sample_view_def_v0_1.json に mainContextGrid と targetsGrid が並び、Runtimeの最初のGrid選択で主文脈Gridが主役になった。",
+          "after": "mainContextGrid を撤去し、targetsGrid を唯一の主Gridにした。主文脈は context.main_context.data_path をもとにRuntimeヘッダーパネルで表示する。",
+          "reason": "現行Runtimeの主Grid処理に合わせ、対象一覧と対象文脈の導線を維持するため。"
+        }
+      ],
+      "actual_updated_files": "wwwroot/js/core/state.js\nwwwroot/js/core/viewdef_context_contract.js\nwwwroot/js/renderers/field_controls.js\nwwwroot/js/runtime/load_runtime.js\nwwwroot/js/runtime/detail_save.js\nwwwroot/index.html\nwwwroot/styles.css\ndefs/rules/context_refs_sample_view_def_v0_1.json\ndata/json/00_rules/context_refs_sample_data_v0_1.json\ndata/json/00_rules/frb_view_def_schema_v0_9.json\ndata/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json\ndata/json/00_rules/MAIN_CONTEXT_HEADER_PANEL_REPORT_v0_15_5_2.md\ndata/json/01_main/studio_work_incident_data_v0_74_context_model_cleanup_incidents_added.json"
+    },
+    {
+      "work_item_id": "studio_work_0077",
+      "phase": "v0.15.5.3-target-context-detail-panel",
+      "title": "対象文脈Detail上部表示 / context_refs編集",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0077_001_model_cleanup",
+          "title": "v0.15.5.1の対象文脈モデル整理結果を読む",
+          "read_timing": "before_code_update",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_74_context_model_cleanup_incidents_added.json",
+          "purpose": "対象文脈の配置ルールと共通明細構造を確認してからDetail表示を実装する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0077_002_objectarray_integrity",
+          "title": "objectArray保存健全性の既存方針を読む",
+          "read_timing": "before_code_update",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_74_context_model_cleanup_incidents_added.json",
+          "purpose": "context_refs[]をobjectArrayとして編集しても配列保存を壊さないようにする。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": "v0.7-objectarray-save-integrityの考え方を参照。"
+        }
+      ],
+      "incident_type": "feature",
+      "category": "context_ui",
+      "priority": "high",
+      "status": "未着手",
+      "verification_status": "未確認",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-28",
+      "updated_at": "2026-06-28",
+      "target_files": "wwwroot/js/renderers/grid_detail.js, wwwroot/js/renderers/field_controls.js, wwwroot/js/runtime/detail_save.js, wwwroot/styles.css, relevant ViewDefs, representative Data JSON",
+      "target_rule_files": "frb_view_def_schema_v0_9.json, frb_viewdef_generation_rules_data_v0_1.json",
+      "objective": "Data明細オブジェクト内の context_refs[] を対象文脈として、Detail画面の上部に要約・確認・編集できる形で表示する。",
+      "background": "対象文脈はインシデント1件、テストパターン1件、ルール1件などの個別対象を扱う前に読む追加文脈である。本文や変更履歴に埋もれるのではなく、明細詳細の入口に置く必要がある。",
+      "scope": "ViewDefで対象文脈フィールドを宣言し、既定ではcontext_refs[]を対象文脈として扱う。Detail上部に『対象文脈 n件』の要約を表示し、展開時にContext Ref明細をobjectArrayとして確認・編集できるようにする。Grid列には中身を出しすぎず件数要約を基本にする。",
+      "out_of_scope": "主文脈ヘッダー表示はv0.15.5.2で扱う。対象文脈に基づく外部文脈ファイル自動読込・LLM投入・実行停止制御は後続とする。",
+      "fixed_name_policy": "context_refsは標準候補として扱うが、ViewDef側で対象文脈フィールドを宣言できる余地を残す。Runtimeが特定業務フィールド名へ依存しないようにする。",
+      "module_policy": "type=\"module\" 化は行わない。既存script方式を維持する。",
+      "expected_outputs": "対象文脈Detail上部セクション、対象文脈件数要約、context_refs[]のobjectArray編集、Gridでの件数表示方針、保存健全性確認。",
+      "risk": "context_refs[]を通常Detail Formの入力欄として扱うと、配列が件数字符列で壊れるリスクがある。既存objectArray保存健全性ルールを守る必要がある。",
+      "test_points": "context_refs[]が明細オブジェクト内の先頭寄りにあるサンプルで表示できること。Detail上部に対象文脈が出ること。編集・保存後も配列として残ること。context_refs未定義行でも壊れないこと。Gridでは中身ではなく件数要約になること。",
+      "user_request": "v0.15.5の主文脈/対象文脈設計を、JS実装へ進む前にインシデント側で綺麗に整理したい。必要なら複数インシデントへ分割してよい。",
+      "ai_response": "対象文脈は明細本文に混ざる普通の補足ではなく、その対象を扱う前に読む入口としてDetail上部へ出す。",
+      "latest_user_comment": "",
+      "latest_ai_response": "",
+      "discussion_history": [
+        {
+          "history_id": "disc_0077_001_assistant",
+          "at": "2026-06-28",
+          "speaker": "assistant",
+          "topic": "v0.15.5.3追加方針",
+          "message": "対象文脈はData明細オブジェクト内のcontext_refs[]として扱い、Detail上部の入口セクションで要約・展開・編集できるUI実装インシデントとして追加。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0077_001",
+          "at": "2026-06-28",
+          "decision": "対象文脈はDetail上部に表示し、変更履歴や会話履歴より前に置く。",
+          "reason": "対象文脈はその明細を扱う前提であり、作業本文に入る前に確認する入口だから。"
+        },
+        {
+          "decision_id": "dec_0077_002",
+          "at": "2026-06-28",
+          "decision": "Gridでは対象文脈の中身を出しすぎず、件数要約を基本にする。",
+          "reason": "文脈明細を一覧に展開するとGridの主目的が濁るため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0077_001",
+          "at": "2026-06-28",
+          "change_type": "incident_added",
+          "before": "context_refs[]が通常データ行一覧として見える可能性があった。",
+          "after": "対象文脈としてDetail上部に表示・編集する後続インシデントを追加。",
+          "reason": "対象文脈を個別対象の入口として扱い、本文や履歴に埋もれさせないため。"
+        }
+      ]
     }
   ],
   "review_notes": [
@@ -8394,10 +8861,26 @@
       "note_id": "note_0073_gitdiff_viewer",
       "title": "GitDiffRun結果表示の一気通貫",
       "body": "GitDiffRunで差分JSONを作るだけでなく、Program.cs側で差分JSONを読み取り、DiffJsonViewerへ渡して表示する導線を追加候補化した。大量差分JSONの扱いは別インシデントへ分離する。"
+    },
+    {
+      "note_id": "note_0075_context_model_cleanup",
+      "title": "主文脈 / 対象文脈モデル整理への分割",
+      "body": "v0.15.5は初期入口として残し、画面全体の主文脈と個別明細の対象文脈を明確に分ける。主文脈はViewDef側、対象文脈はData明細側。JS実装前にインシデント・Rules・Schema・サンプルを整理する。"
+    },
+    {
+      "note_id": "note_v0155_1_context_model_cleanup_done",
+      "at": "2026-06-28",
+      "title": "v0.15.5.1 主文脈 / 対象文脈モデル整理完了",
+      "body": "Schema、ViewDef生成ルール、context_refsサンプルData/ViewDef、設計整理レポートを更新。主文脈はViewDef側、対象文脈はData明細側に置く方針を確定し、JS実装は後続へ分離。"
+    },
+    {
+      "note_id": "note_v01552_main_context_header_panel_done",
+      "at": "2026-06-28",
+      "note": "v0.15.5.2で主文脈ヘッダーパネルを追加。主文脈実データはData root、ViewDefはdata_path宣言のみ。対象文脈Detail上部表示はv0.15.5.3へ継続。"
     }
   ],
-  "work_revision": "v0.15.9-gitdiff-viewer-wwwroot-src-policy-updated",
-  "latest_planning_note": "GitDiffRun結果JSONはAPIレスポンス本文で運ぶのではなく、wwwroot配下の生成用フォルダーへ出力し、.gitignoreでGit管理対象外にする。APIはviewer_url / diff_json_path / file_size_bytes / summary等を返し、DiffJsonViewer.html は src パラメータで差分JSONを静的取得する。大量データ問題は、APIレスポンス問題ではなくDiffJsonViewerで扱える表示容量の問題として整理し、上限超過時は安全なエラー表示でよい。",
+  "work_revision": "v0.15.5.1-context-model-cleanup-done",
+  "latest_planning_note": "v0.15.5.2-main-context-header-panel 完了。主文脈は通常GridではなくData root main_context_refs[] をヘッダー要約+展開パネルで扱う。次は v0.15.5.3-target-context-detail-panel で対象文脈をDetail上部に出す。",
   "view_def_candidates": [
     {
       "view_def": "rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",

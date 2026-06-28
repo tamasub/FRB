@@ -1555,3 +1555,114 @@ button.combo-clear-button:focus-visible {
   overflow: auto !important;
 }
 
+
+/* v0.15.5.2-main-context-header-panel */
+.main-context-panel {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(129, 140, 248, .34);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(238,242,255,.72), rgba(240,249,255,.68));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.72);
+}
+.main-context-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.main-context-title {
+  font-weight: 800;
+  color: #1e293b;
+  letter-spacing: .02em;
+}
+.main-context-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex: 1 1 auto;
+}
+.context-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(99,102,241,.28);
+  background: rgba(255,255,255,.78);
+  color: #334155;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.main-context-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+.main-context-detail {
+  margin-top: 12px;
+  border-top: 1px solid rgba(99,102,241,.18);
+  padding-top: 12px;
+}
+.main-context-table-wrap {
+  overflow: auto;
+  max-height: 320px;
+  border: 1px solid rgba(148,163,184,.32);
+  border-radius: 12px;
+  background: rgba(255,255,255,.86);
+}
+.main-context-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1080px;
+}
+.main-context-table th,
+.main-context-table td {
+  padding: 8px;
+  border-bottom: 1px solid rgba(226,232,240,.9);
+  vertical-align: top;
+  font-size: 12px;
+}
+.main-context-table th {
+  position: sticky;
+  top: 0;
+  background: #eef2ff;
+  color: #334155;
+  text-align: left;
+  z-index: 1;
+}
+.main-context-table input[type="text"],
+.main-context-table input[type="number"],
+.main-context-table textarea {
+  width: 100%;
+  min-width: 110px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 6px 8px;
+  background: #fff;
+  font: inherit;
+  color: #0f172a;
+}
+.main-context-table textarea {
+  min-width: 220px;
+  resize: vertical;
+}
+.main-context-table input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+}
+.main-context-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.main-context-hint {
+  color: #64748b;
+  font-size: 12px;
+}

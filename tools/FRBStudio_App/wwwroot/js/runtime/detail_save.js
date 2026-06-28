@@ -108,13 +108,19 @@ function applyDetail(e) {
 }
 function applyHeaderEdits() {
   const def = headerDef();
-  if (!def) return;
-  [...$('headerForm').querySelectorAll('input, select, textarea')].forEach(inp => {
-    const field = def.fields.find(f => f.field === inp.dataset.field);
-    if (!field || field.edit?.readonly || field.readonly || inp.disabled) return;
-    const fullPath = (def.dataPath === '$' ? '$.' : def.dataPath + '.') + field.field;
-    setByPath(sourceData, fullPath, convertValue(field.type, inp.value));
-  });
+  if (def) {
+    [...$('headerForm').querySelectorAll('input, select, textarea')].forEach(inp => {
+      const field = def.fields.find(f => f.field === inp.dataset.field);
+      if (!field || field.edit?.readonly || field.readonly || inp.disabled) return;
+      const fullPath = (def.dataPath === '$' ? '$.' : def.dataPath + '.') + field.field;
+      setByPath(sourceData, fullPath, convertValue(field.type, inp.value));
+    });
+  }
+  // v0.15.5.2: header-level Main Context panel edits belong to Data root,
+  // not to ViewDef. Persist them whenever header edits are collected.
+  if (typeof applyMainContextHeaderPanelEdits === 'function') {
+    applyMainContextHeaderPanelEdits({ silent: true });
+  }
 }
 
 function saveAsJson() {

@@ -13,7 +13,7 @@
   "status": "converted_draft",
   "introduced_in": "v0.4-r001",
   "generated_at": "2026-06-26T00:00:00+09:00",
-  "rule_count": 75,
+  "rule_count": 77,
   "approved_count": 1,
   "approval_policy": "各ルールは人間が内容確認し、verification_status を確認済みにしたうえで approval_decision を承認する。AIはレビューコメント案を出せるが、承認判断は人間が行う。",
   "preamble": "対象: `FRBStudio_App` / No-Code JSON Studio v0.6+ 系  \n対応Schema: `frb_view_def_schema_v0_8_action_registry_toolbar.json`\n\nこの文書は、AIに **Data JSON から ViewDef JSON を作成させる** ときの作成ルールである。\n\nStudioくんにおける ViewDef は、単なる画面定義ではない。\n\n```text\nData JSON + ViewDef JSON + Runtime + Action = Experience\n```\n\nViewDef は、データの見え方・編集の仕方・Markdown化・AIへの渡し方・仮想データの作り方・主役Actionを宣言する **体験設計書** である。\n\n---",
@@ -2355,20 +2355,20 @@
       "no": 75,
       "rule_id": "viewdef_rule_27",
       "section_no": "27",
-      "source_heading": "27. ViewDef文脈制御 read_contract / row context_refs 契約",
+      "source_heading": "27. ViewDef文脈制御 / 主文脈・対象文脈契約",
       "source_heading_level": 2,
       "parent_rule_id": "",
       "category": "context_engineering",
-      "title": "ViewDef文脈制御 read_contract / row context_refs 契約",
+      "title": "ViewDef文脈制御 / 主文脈・対象文脈契約",
       "priority": "high",
       "review_status": "未レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
-      "summary": "AI作業前に読むべき文脈は、ViewDef全体の read_contract と、Data行単位の context_refs を分けて定義する。",
-      "body": "ViewDefは人間向け表示定義だけでなく、AIが作業前・更新前・返却前に読むべき文脈を宣言できる。\n\nViewDef全体にかかる文脈は、top-level `context.read_contract` または `read_contract` として定義する。ここには `required_refs`、`preflight_rules`、`default_timing`、`failure_policy` を持たせる。\n\nData行単位にかかる追加文脈は、Data側の `context_refs` などの配列として持たせ、ViewDefの `read_contract.row_context` で、どのDataPath・どのフィールドを文脈参照として読むかを示す。\n\n`read_timing` は `context.read_timing` Enumを使う。`failure_policy` は `context.failure_policy` Enumを使い、必須参照では `stop_and_report` を基本とする。`trust` は `context.trust_category` Enumを使い、canonical / working / reference などを混同しない。\n\nこの契約は、外部LLM実行や自動読込そのものを必須にするものではない。まず、AIとRuntimeが「何を、いつ、どの重要度で読むべきか」を構造化して共有するためのViewDef契約である。",
+      "summary": "AI作業前に読むべき文脈は、Data rootの主文脈とData明細単位の対象文脈に分けて管理する。ViewDefは文脈データを持たず、表示・編集・参照先パスだけを宣言する。旧read_contractは互換扱いとする。",
+      "body": "ViewDefは、AIが作業前・更新前・返却前に読むべき文脈を扱うための表示・編集・参照先パスを宣言できる。ただし、ViewDefは画面定義であり、文脈の実データを持たない。\n\nv0.15.5.1補修後の正本モデルでは、文脈を次の2種類に分ける。\n\n- 主文脈: ViewDef / 画面全体にかかる文脈。実データはData rootの `main_context_refs[]` などに置く。ViewDef側は `context.main_context.data_path` でその場所を宣言する。\n- 対象文脈: インシデント1件、テストパターン1件、ルール1件など個別対象にかかる文脈。実データはData明細オブジェクト側の `context_refs[]` に置く。ViewDef側は `context.target_context.field` / `data_path` でその場所を宣言する。\n\n`main_context_refs[]` と `context_refs[]` は、どちらもContext Ref明細として同じ構造を使う。代表項目は `context_ref_id`、`title`、`read_timing`、`target_path`、`purpose`、`failure_policy`、`trust_category`、`required`、`enabled`、`sort_order`、`note` とする。\n\n対象文脈 `context_refs[]` は、その明細を扱う前に読む入口であるため、Data明細オブジェクト内では id / phase / title などの識別項目の直後、本文項目より前に置くことを推奨する。\n\n旧 `context.read_contract` / `read_contract` は v0.15.5 初期実装との互換入口として残す。ただし、新規ViewDefでは実データとしての `required_refs[]` を埋め込まず、Data側の主文脈配列へのパス宣言だけに留める。\n\nこの契約は、外部LLM実行や自動読込そのものを必須にするものではない。まず、AIとRuntimeが「どのDataに、何を、いつ、どの重要度で読むべき文脈があるか」を構造化して共有するためのViewDef契約である。",
       "ceremony_phrase": "ViewDefは、画面だけでなくAIが読むべき文脈も宣言できる。",
       "user_comment": "",
-      "ai_response": "v0.15.5-viewdef-context-read-contract により追加。ViewDef全体の read_contract と Data行単位の context_refs を分離し、read_timing / failure_policy / trust をEnumで扱うルールを追加。",
+      "ai_response": "v0.15.5.1-context-model-cleanup により更新。read_contract中心の初期説明から、主文脈=context.main_context.refs[]、対象文脈=Data明細context_refs[]を正本とする説明へ整理。",
       "user_reply": "",
       "ai_followup_response": "",
       "approved_by": "",
@@ -2386,6 +2386,22 @@
           "before": "ViewDef生成ルールには、AI文脈制御としてread_contract / row context_refsを分ける契約がなかった。",
           "after": "viewdef_rule_27として、ViewDef全体read_contractとData行単位context_refsの分離、read_timing/failure_policy/trustのEnum利用を追加。",
           "reason": "AI作業前に読むべき文脈を、画面定義と同じJSON契約として管理するため。"
+        },
+        {
+          "history_id": "chg_viewdef_rule_27_v0_15_5_1_001",
+          "at": "2026-06-28",
+          "change_type": "rule_model_cleanup",
+          "before": "ViewDef全体read_contractとData行単位context_refsの分離を説明していたが、主文脈/対象文脈という表示名と正本配置は未整理だった。",
+          "after": "主文脈=context.main_context.refs[]、対象文脈=Data明細context_refs[]を正本モデルとして明記し、旧read_contractは互換扱いへ整理。",
+          "reason": "v0.15.5初期画面でcontext_refsサンプルが主役に見え、ViewDef全体の文脈契約が画面の入口として見えない違和感が出たため。"
+        },
+        {
+          "history_id": "chg_viewdef_rule_27_v0_15_5_1_fix_001",
+          "at": "2026-06-28",
+          "change_type": "rule_model_correction",
+          "before": "主文脈の実データをViewDef側 context.main_context.refs[] に置く説明になっていた。",
+          "after": "主文脈の実データはData root main_context_refs[] に置き、ViewDefは context.main_context.data_path で場所を宣言する説明へ修正。",
+          "reason": "ViewDefは画面定義であり、文脈内容データを持つべきではないため。"
         }
       ],
       "decision_log": [
@@ -2394,12 +2410,104 @@
           "at": "2026-06-28",
           "decision": "ViewDef全体文脈はread_contract、Data行文脈はcontext_refsとして分離する。",
           "reason": "全体ルールと行固有の追加文脈を混ぜると、AIに渡す情報が過剰になり文脈が濁るため。"
+        },
+        {
+          "decision_id": "dec_viewdef_rule_27_v0_15_5_1_001",
+          "at": "2026-06-28",
+          "decision": "新規ViewDefでは context.main_context.refs[] を主文脈の正本とし、context.read_contract は互換扱いにする。",
+          "reason": "初期read_contract名だけでは画面全体の文脈と対象単位の文脈の表示体験を整理しきれなかったため。"
+        },
+        {
+          "decision_id": "dec_viewdef_rule_27_v0_15_5_1_fix_001",
+          "at": "2026-06-28",
+          "decision": "ViewDefは主文脈/対象文脈の実データを保持しない。主文脈はData root、対象文脈はData明細に置く。",
+          "reason": "ViewDefに文脈内容を置くと、画面定義とデータが混ざり、StudioくんのData/ViewDef分離原則に反するため。"
         }
       ]
+    },
+    {
+      "no": 76,
+      "rule_id": "viewdef_rule_27_01",
+      "section_no": "27.1",
+      "source_heading": "27.1 主文脈 / 対象文脈モデル整理",
+      "source_heading_level": 3,
+      "parent_rule_id": "viewdef_rule_27",
+      "category": "context_engineering",
+      "title": "主文脈 / 対象文脈モデル整理",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "主文脈は画面全体の入口、対象文脈は個別対象の入口として扱う。ただし実データはいずれもData側に置き、ViewDefは場所と表示方法だけを宣言する。",
+      "body": "主文脈と対象文脈は、Context Ref明細としては同じ構造を使うが、スコープと置き場所が違う。\n\n主文脈は、ViewDef / 画面全体にかかる前提文脈である。普段はヘッダーまたは概要エリアに件数・必須件数などの要約だけを出し、ボタン押下で明細を確認・編集できる形を目指す。ただし、実データはViewDefではなくData rootの `main_context_refs[]` などに置く。ViewDefは `context.main_context.data_path` でそのDataパスを宣言する。\n\n対象文脈は、Data明細オブジェクトの個別対象にかかる追加文脈である。インシデントならインシデント1件、テストパターンならパターン1件、ルールならルール1件を扱う前に読む文脈である。実データは各明細オブジェクト内の `context_refs[]` に置く。ViewDefは `context.target_context.field` / `data_path` で、その明細内のどの項目を対象文脈として扱うかを宣言する。\n\n対象文脈 `context_refs[]` は、本文の補足ではなく、その対象を扱う前の入口である。そのため、明細オブジェクト内では識別項目の直後、目的・背景・scopeなどの本文項目より前に置くことを推奨する。\n\n旧 `context.read_contract` は削除しないが、新規ViewDefでは具体的な `required_refs[]` を埋め込まない。互換目的で使う場合も、Data側主文脈配列へのパス宣言に留める。",
+      "ceremony_phrase": "主文脈は画面の入口、対象文脈は明細の入口として扱う。",
+      "user_comment": "",
+      "ai_response": "v0.15.5.1-context-model-cleanup で追加。主文脈/対象文脈の用語・配置・表示方針を整理。",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "",
+      "approved_at": "",
+      "approval_stamp": "",
+      "notes": "JSのヘッダー表示・Detail上部表示は後続 v0.15.5.2 / v0.15.5.3 で扱う。",
+      "source_line_start": "",
+      "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL",
+      "introduced_in": "v0.15.5.1-context-model-cleanup",
+      "change_history": [
+        {
+          "history_id": "chg_viewdef_rule_27_01_v0_15_5_1_001",
+          "at": "2026-06-28",
+          "change_type": "rule_added",
+          "before": "主文脈/対象文脈の用語と配置ルールが独立したルールとして存在しなかった。",
+          "after": "viewdef_rule_27_01として、主文脈/対象文脈のスコープ、JSON配置、表示方針、旧read_contract互換を追加。",
+          "reason": "v0.15.5初期実装の違和感をJS実装前に整理するため。"
+        },
+        {
+          "history_id": "chg_viewdef_rule_27_01_v0_15_5_1_fix_001",
+          "at": "2026-06-28",
+          "change_type": "rule_model_correction",
+          "before": "主文脈のJSON上の正本を context.main_context.refs[] としていた。",
+          "after": "主文脈の実データはData root main_context_refs[]、ViewDefは context.main_context.data_path で宣言する方針へ修正。",
+          "reason": "ViewDefを画面定義に留め、文脈内容データはData側に分離するため。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_viewdef_rule_27_01_v0_15_5_1_001",
+          "at": "2026-06-28",
+          "decision": "主文脈と対象文脈は同じContext Ref明細構造を使うが、ViewDef側とData明細側で配置を分ける。",
+          "reason": "文脈の構造は共通化しつつ、画面全体の前提と個別対象の追加文脈を混同しないため。"
+        },
+        {
+          "decision_id": "dec_viewdef_rule_27_01_v0_15_5_1_fix_001",
+          "at": "2026-06-28",
+          "decision": "主文脈の名称は残すが、実データ配置はViewDef側ではなくData root側にする。",
+          "reason": "主文脈はViewDef/画面全体にかかるが、内容そのものはDataであり、ViewDefではないため。"
+        }
+      ]
+    },
+    {
+      "no": 77,
+      "rule_id": "viewdef_rule_27_02",
+      "section_no": "27.02",
+      "source_heading": "主文脈ヘッダーパネル契約",
+      "source_heading_level": 3,
+      "parent_rule_id": "viewdef_rule_27",
+      "category": "context_model",
+      "title": "主文脈は通常Gridではなくヘッダー要約＋展開パネルで扱う",
+      "priority": "high",
+      "review_status": "レビュー済み",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "主文脈はData rootのmain_context_refs[]に実データを置き、ViewDefはcontext.main_context.data_path等を宣言する。Runtimeはこれを概要ヘッダー上の件数/必須数/失敗時方針/読みタイミング要約と、確認・編集用の展開パネルとして表示する。主文脈だけを通常Gridの主役にしない。",
+      "body": "主文脈は画面全体の入口であり、業務データ・作業対象データそのものではない。したがって、ViewDefに主文脈の実データを埋め込まず、Data rootのmain_context_refs[]などに置く。ViewDefはcontext.main_context.data_path、表示名、各フィールド名、header_panel表示方針だけを宣言する。Runtimeは主文脈を通常Gridの主役として表示せず、概要ヘッダー上に「主文脈: n件 / 必須m件 / 停止k件 / 読込前x件」などの要約と、押下時に明細確認・編集できるパネルを表示する。対象一覧やインシデント一覧など本来の主Gridを奪わないことを優先する。",
+      "reason": "前段v0.15.5.1で主文脈をData側に分離したが、主文脈を通常Gridにすると対象一覧・対象文脈が見えなくなるため。主文脈は画面の入口、対象文脈は明細の入口として分けて見せる必要がある。",
+      "introduced_in": "v0.15.5.2-main-context-header-panel",
+      "change_history": [],
+      "decision_log": []
     }
   ],
   "updated_at": "2026-06-28",
-  "review_revision": "v0.15.5-viewdef-context-read-contract",
+  "review_revision": "v0.15.5.2-main-context-header-panel",
   "review_notes": [
     {
       "note_id": "note_v012_scope_correction",
@@ -2424,6 +2532,22 @@
       "at": "2026-06-28",
       "title": "v0.15.5 ViewDef文脈制御 read_contract契約",
       "body": "ViewDef全体のcontext.read_contractとData行単位のcontext_refsを分離する契約を追加。Runtimeは契約認識まで、自動読込実行は後続で扱う。"
+    },
+    {
+      "note_id": "note_v0155_1_context_model_cleanup",
+      "at": "2026-06-28",
+      "title": "v0.15.5.1 主文脈 / 対象文脈モデル整理",
+      "body": "v0.15.5初期実装のread_contract中心モデルを見直し、主文脈=context.main_context.refs[]、対象文脈=Data明細context_refs[]を正本として整理。旧context.read_contractは互換扱いとした。"
+    },
+    {
+      "note_id": "note_v01551_context_model_data_viewdef_split_fix",
+      "at": "2026-06-28",
+      "note": "v0.15.5.1補修: 主文脈の実データをViewDefに置かず、Data root main_context_refs[] に置く方針へ修正。ViewDefは data_path / field / 表示編集定義のみを持つ。"
+    },
+    {
+      "note_id": "note_v01552_main_context_header_panel",
+      "at": "2026-06-28",
+      "note": "主文脈はData rootのmain_context_refs[]をヘッダー要約+展開パネルで扱い、通常Gridの主役にしない契約を追加。"
     }
   ],
   "view_def_candidates": [

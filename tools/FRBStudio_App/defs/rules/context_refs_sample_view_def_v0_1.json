@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Context Refs Sample"
+    "title": "Context Model Sample"
   },
   "fieldTypeSources": [
     "common/common_types_v0_1.json"
@@ -8,7 +8,7 @@
   "views": [
     {
       "id": "main",
-      "caption": "Context Refs / AI文脈制御サンプル",
+      "caption": "主文脈 / 対象文脈サンプル",
       "layout": {
         "detailDialog": "wide"
       },
@@ -66,18 +66,34 @@
           ]
         },
         {
-          "id": "contextRefsGrid",
+          "id": "targetsGrid",
           "type": "grid",
-          "caption": "Context Refs",
-          "dataPath": "$.context_refs",
+          "caption": "対象一覧 / Target Samples",
+          "dataPath": "$.sample_targets",
           "fields": [
             {
-              "field": "context_ref_id",
-              "caption": "Context Ref ID",
+              "field": "target_id",
+              "caption": "対象ID",
               "type": "text",
               "grid": {
                 "visible": true,
-                "width": 210
+                "width": 190
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "target_type",
+              "caption": "対象種別",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 130
               },
               "edit": {
                 "visible": true
@@ -104,46 +120,9 @@
               }
             },
             {
-              "field": "read_timing",
-              "caption": "読みタイミング",
-              "fieldType": "context.context_read_timing"
-            },
-            {
-              "field": "target_path",
-              "caption": "対象パス",
-              "type": "text",
-              "grid": {
-                "visible": true,
-                "width": 360
-              },
-              "edit": {
-                "visible": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "contains"
-              }
-            },
-            {
-              "field": "purpose",
-              "caption": "読む目的",
-              "type": "textarea",
-              "grid": {
-                "visible": true,
-                "width": 420
-              },
-              "edit": {
-                "visible": true,
-                "height": 90
-              },
-              "search": {
-                "visible": true,
-                "operator": "contains"
-              }
-            },
-            {
-              "field": "failure_policy",
-              "caption": "失敗時方針",
+              "field": "context_refs",
+              "caption": "対象文脈",
+              "type": "objectArray",
               "grid": {
                 "visible": true,
                 "width": 140
@@ -151,31 +130,146 @@
               "edit": {
                 "visible": true
               },
-              "search": {
-                "visible": true,
-                "operator": "contains"
-              },
-              "fieldType": "context.failure_policy"
+              "itemFields": [
+                {
+                  "field": "context_ref_id",
+                  "caption": "Context Ref ID",
+                  "type": "text",
+                  "grid": {
+                    "visible": true,
+                    "width": 210
+                  },
+                  "edit": {
+                    "visible": true
+                  }
+                },
+                {
+                  "field": "title",
+                  "caption": "タイトル",
+                  "type": "text",
+                  "grid": {
+                    "visible": true,
+                    "width": 260
+                  },
+                  "edit": {
+                    "visible": true
+                  }
+                },
+                {
+                  "field": "read_timing",
+                  "caption": "読みタイミング",
+                  "fieldType": "context.context_read_timing",
+                  "grid": {
+                    "visible": true,
+                    "width": 150
+                  },
+                  "edit": {
+                    "visible": true
+                  }
+                },
+                {
+                  "field": "target_path",
+                  "caption": "対象パス",
+                  "type": "text",
+                  "grid": {
+                    "visible": true,
+                    "width": 360
+                  },
+                  "edit": {
+                    "visible": true
+                  }
+                },
+                {
+                  "field": "purpose",
+                  "caption": "読む目的",
+                  "type": "textarea",
+                  "grid": {
+                    "visible": true,
+                    "width": 420
+                  },
+                  "edit": {
+                    "visible": true,
+                    "height": 90
+                  }
+                },
+                {
+                  "field": "failure_policy",
+                  "caption": "失敗時方針",
+                  "fieldType": "context.failure_policy",
+                  "grid": {
+                    "visible": true,
+                    "width": 150
+                  },
+                  "edit": {
+                    "visible": true
+                  }
+                },
+                {
+                  "field": "trust_category",
+                  "caption": "信頼区分",
+                  "fieldType": "context.trust_category",
+                  "grid": {
+                    "visible": true,
+                    "width": 120
+                  },
+                  "edit": {
+                    "visible": true
+                  }
+                },
+                {
+                  "field": "required",
+                  "caption": "必須",
+                  "type": "checkbox",
+                  "grid": {
+                    "visible": true,
+                    "width": 80
+                  },
+                  "edit": {
+                    "visible": true
+                  }
+                },
+                {
+                  "field": "enabled",
+                  "caption": "有効",
+                  "type": "checkbox",
+                  "grid": {
+                    "visible": true,
+                    "width": 80
+                  },
+                  "edit": {
+                    "visible": true
+                  }
+                },
+                {
+                  "field": "sort_order",
+                  "caption": "並び順",
+                  "type": "number",
+                  "grid": {
+                    "visible": true,
+                    "width": 90
+                  },
+                  "edit": {
+                    "visible": true
+                  }
+                },
+                {
+                  "field": "note",
+                  "caption": "メモ",
+                  "type": "textarea",
+                  "grid": {
+                    "visible": true,
+                    "width": 280
+                  },
+                  "edit": {
+                    "visible": true,
+                    "height": 80
+                  }
+                }
+              ]
             },
             {
-              "field": "trust",
-              "caption": "信頼区分",
-              "grid": {
-                "visible": true,
-                "width": 110
-              },
-              "edit": {
-                "visible": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "contains"
-              },
-              "fieldType": "context.trust_category"
-            },
-            {
-              "field": "note",
-              "caption": "メモ",
+              "field": "objective",
+              "caption": "目的",
               "type": "textarea",
               "grid": {
                 "visible": true,
@@ -188,6 +282,31 @@
               "search": {
                 "visible": true,
                 "operator": "contains"
+              }
+            },
+            {
+              "field": "status",
+              "caption": "状態",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 90
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "note",
+              "caption": "メモ",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 260
+              },
+              "edit": {
+                "visible": true,
+                "height": 80
               }
             }
           ]
@@ -199,34 +318,43 @@
     "00_rules/common_enums_v0_1.json"
   ],
   "context": {
+    "main_context": {
+      "enabled": true,
+      "display_name": "主文脈",
+      "data_path": "$.main_context_refs",
+      "description": "Data rootの main_context_refs[] を、このViewDef / 画面全体にかかる主文脈として扱う。ViewDefは文脈の実データを持たない。",
+      "id_field": "context_ref_id",
+      "title_field": "title",
+      "target_path_field": "target_path",
+      "read_timing_field": "read_timing",
+      "failure_policy_field": "failure_policy",
+      "trust_category_field": "trust_category",
+      "purpose_field": "purpose",
+      "notes": "v0.15.5.2: 主文脈はData root main_context_refs[] をヘッダー要約+確認パネルで表示する。通常Gridとしては表示しない。"
+    },
+    "target_context": {
+      "enabled": true,
+      "display_name": "対象文脈",
+      "parent_data_path": "$.sample_targets",
+      "field": "context_refs",
+      "data_path": "$.context_refs",
+      "description": "Data明細オブジェクト内の context_refs[] を対象文脈として扱う。Detail上部で要約・展開する想定。",
+      "id_field": "context_ref_id",
+      "title_field": "title",
+      "target_path_field": "target_path",
+      "read_timing_field": "read_timing",
+      "failure_policy_field": "failure_policy",
+      "trust_category_field": "trust_category",
+      "purpose_field": "purpose",
+      "notes": "v0.15.5.3でDetail上部表示を強化予定。v0.15.5.2では対象一覧Gridを主Gridに戻す。"
+    },
     "read_contract": {
       "enabled": true,
-      "contract_id": "viewdef_context_refs_sample_contract_v0_1",
-      "description": "このViewDefをAI作業で扱う前に読むべきViewDef全体文脈。Data行ごとの文脈は $.context_refs を参照する。",
+      "contract_id": "legacy_viewdef_context_refs_sample_contract_v0_15_5",
+      "description": "旧v0.15.5互換入口。ViewDefは具体的なrequired_refsを持たず、Data上の主文脈パスだけを宣言する。",
+      "main_context_data_path": "$.main_context_refs",
       "default_timing": "before_load",
-      "failure_policy": "stop_and_report",
-      "required_refs": [
-        {
-          "ref_id": "foundation_rule_019_zip_contract",
-          "title": "Foundation Rule 19 / ZIP返却契約",
-          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
-          "read_timing": "before_load",
-          "required": true,
-          "failure_policy": "stop_and_report",
-          "trust": "canonical",
-          "purpose": "作業前に返却ZIP契約・更新済みIncident収録・runtime生成物除外を確認する。"
-        },
-        {
-          "ref_id": "context_refs_sample_data",
-          "title": "Data行単位のcontext_refs",
-          "target_path": "data/json/00_rules/context_refs_sample_data_v0_1.json#context_refs",
-          "read_timing": "after_load",
-          "required": false,
-          "failure_policy": "warn_and_continue",
-          "trust": "working",
-          "purpose": "行ごとの追加文脈参照例を確認する。"
-        }
-      ],
+      "failure_policy": "stop_and_ask",
       "row_context": {
         "enabled": true,
         "data_path": "$.context_refs",
@@ -235,10 +363,10 @@
         "target_path_field": "target_path",
         "read_timing_field": "read_timing",
         "failure_policy_field": "failure_policy",
-        "trust_field": "trust",
+        "trust_field": "trust_category",
         "purpose_field": "purpose"
       },
-      "notes": "v0.15.5: ViewDef全体のread_contractとData行側context_refsを分ける契約サンプル。Runtimeは契約を認識するが、自動読込実行は後続。"
+      "notes": "互換宣言のみ。主文脈の実データはData root main_context_refs[] に置く。"
     }
   }
 }

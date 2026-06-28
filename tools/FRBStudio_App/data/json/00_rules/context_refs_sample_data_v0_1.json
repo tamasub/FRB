@@ -2,54 +2,87 @@
   "view_def": "rules/context_refs_sample_view_def_v0_1.json",
   "schema_version": "context_refs_sample_data_v0_1",
   "document_type": "context_refs_sample",
-  "title": "Context Refs Sample / AI文脈制御サンプル",
+  "title": "Context Model Sample / 主文脈・対象文脈サンプル",
   "status": "active",
   "created_at": "2026-06-28",
   "updated_at": "2026-06-28",
   "owner": "tamasub",
-  "purpose": "context.read_timing / context.failure_policy / context.trust_category Enum と、ViewDef read_contract の利用例。v0.15.5では定義・表示・Runtime認識までを扱い、文脈ファイルの自動読込実行は後続で扱う。",
-  "context_refs": [
+  "purpose": "主文脈はData rootの main_context_refs[]、対象文脈はData明細側 context_refs[] に置くことを確認するためのサンプル。v0.15.5.2では主文脈を通常Gridではなくヘッダー要約+確認パネルで表示し、主Gridは対象一覧を扱う。",
+  "main_context_refs": [
     {
-      "context_ref_id": "ctx_001_foundation_before_load",
-      "title": "憲法・Foundation Rulesを作業前に読む",
-      "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json",
-      "read_timing": "before_load",
-      "purpose": "作業開始前に返却契約・保護フォルダ・インシデント記録方針を確認する。",
-      "failure_policy": "stop_and_ask",
-      "trust": "canonical",
-      "note": "v0.15.3ではサンプル。実行制御はv0.15.5以降のread_contract側で扱う。"
-    },
-    {
-      "context_ref_id": "ctx_002_incident_before_code_update",
-      "title": "対象インシデントをコード更新前に読む",
-      "target_path": "data/json/01_main/studio_work_incident_data_v0_74_proposal_driven_jobflow_added.json",
-      "read_timing": "before_code_update",
-      "purpose": "phase / scope / out_of_scope / test_points を読み、推測実装を避ける。",
-      "failure_policy": "stop_and_ask",
-      "trust": "working",
-      "note": "Data行ごとの文脈参照にread_timingを持たせる例。"
-    },
-    {
-      "context_ref_id": "ctx_003_zip_contract_before_return",
-      "title": "ZIP返却契約を返却直前に読む",
+      "context_ref_id": "main_001_foundation_rule_019_zip_contract",
+      "title": "Foundation Rule 19 / ZIP返却契約",
       "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
-      "read_timing": "before_zip_return",
-      "purpose": "runtime生成物除外、更新済みIncident収録、JSON parse確認を返却直前に確認する。",
-      "failure_policy": "warn_and_stop",
-      "trust": "canonical",
-      "note": "before_zip_return の利用例。"
+      "read_timing": "before_load",
+      "purpose": "作業前に返却ZIP契約・更新済みIncident収録・runtime生成物除外を確認する。",
+      "failure_policy": "stop_and_ask",
+      "trust_category": "canonical",
+      "required": true,
+      "enabled": true,
+      "sort_order": 10,
+      "note": "主文脈の実データはData側に置く。ViewDef側には置かない。"
+    },
+    {
+      "context_ref_id": "main_002_context_model_cleanup_incident",
+      "title": "v0.15.5.1 インシデント scope",
+      "target_path": "data/json/01_main/studio_work_incident_data_v0_74_context_model_cleanup_incidents_added.json#studio_work_0075",
+      "read_timing": "before_code_update",
+      "purpose": "主文脈/対象文脈モデル整理のscopeを確認する。",
+      "failure_policy": "stop_and_ask",
+      "trust_category": "canonical",
+      "required": true,
+      "enabled": true,
+      "sort_order": 20,
+      "note": "JS実装へ踏み込みすぎないための契約。"
     }
   ],
-  "notes": [
+  "sample_targets": [
     {
-      "note_id": "note_context_sample_001",
-      "at": "2026-06-28",
-      "body": "context_refs は将来のread_contract実行制御の素材。v0.15.3ではEnum/FieldType/サンプルのみを追加する。"
+      "target_id": "incident_sample_001",
+      "target_type": "incident",
+      "title": "インシデント1件を扱う前の対象文脈",
+      "context_refs": [
+        {
+          "context_ref_id": "target_incident_001_scope",
+          "title": "対象インシデントのscopeを読む",
+          "read_timing": "before_code_update",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_74_context_model_cleanup_incidents_added.json#studio_work_0075",
+          "purpose": "対象インシデントの目的・scope・out_of_scopeを確認し、JS実装へ踏み込みすぎない。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "対象文脈は明細本文より前に置く。"
+        }
+      ],
+      "objective": "主文脈/対象文脈モデル整理の作業対象を扱う。",
+      "status": "sample",
+      "note": "context_refs[]はこの対象を扱う前に読む入口。"
     },
     {
-      "note_id": "note_context_sample_v0_15_5_read_contract",
-      "at": "2026-06-28",
-      "body": "v0.15.5で、ViewDef側のcontext.read_contractと、Data行側のcontext_refsを分離して表現するサンプルへ更新。failure_policy/trustもEnum参照FieldTypeで表示する。"
+      "target_id": "test_pattern_sample_001",
+      "target_type": "test_pattern",
+      "title": "テストパターン1件を扱う前の対象文脈",
+      "context_refs": [
+        {
+          "context_ref_id": "target_test_001_expected",
+          "title": "Expected定義を読む",
+          "read_timing": "before_test_update",
+          "target_path": "data/json/02_expected/sample_expected_checks.json",
+          "purpose": "このテストパターンで確認できるExpectedだけを追加する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "working",
+          "required": false,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "存在しないサンプルパス。構造例として扱う。"
+        }
+      ],
+      "objective": "テストパターン単位の追加文脈を扱う。",
+      "status": "sample",
+      "note": "対象単位が行ではなくパターンでも同じ構造を使える。"
     }
-  ]
+  ],
+  "notes": "v0.15.5.2: 主文脈はヘッダー要約+確認パネル、対象一覧は主Grid、対象文脈は対象明細内context_refs[]として扱う。"
 }
