@@ -146,28 +146,353 @@
             {
               "cd": "high",
               "name": "高",
-              "description": "優先的に確認・対応する重要度。",
+              "description": "重要度 の候補値: 高",
               "sort_order": 10,
               "deprecated": false
             },
             {
               "cd": "medium",
               "name": "中",
-              "description": "通常確認対象の重要度。",
+              "description": "重要度 の候補値: 中",
               "sort_order": 20,
               "deprecated": false
             },
             {
               "cd": "low",
               "name": "低",
-              "description": "低めの重要度。",
+              "description": "重要度 の候補値: 低",
               "sort_order": 30,
               "deprecated": false
             },
             {
               "cd": "info",
               "name": "情報",
-              "description": "判断材料としての情報提示。",
+              "description": "重要度 の候補値: 情報",
+              "sort_order": 40,
+              "deprecated": false
+            }
+          ]
+        },
+        {
+          "enum_id": "feature_area",
+          "enum_ref": "qa.feature_area",
+          "name": "機能領域",
+          "description": "QA/テスト/レビューで対象機能領域を表す値語彙。",
+          "sort_order": 30,
+          "deprecated": false,
+          "source": "defs/common/common_types_v0_1.json qa.feature_area options snapshot",
+          "items": [
+            {
+              "cd": "viewdef",
+              "name": "ViewDef",
+              "description": "機能領域 の候補値: ViewDef",
+              "sort_order": 10,
+              "deprecated": false
+            },
+            {
+              "cd": "relation",
+              "name": "Relation",
+              "description": "機能領域 の候補値: Relation",
+              "sort_order": 20,
+              "deprecated": false
+            },
+            {
+              "cd": "virtual_data",
+              "name": "VirtualData",
+              "description": "機能領域 の候補値: VirtualData",
+              "sort_order": 30,
+              "deprecated": false
+            },
+            {
+              "cd": "writeback",
+              "name": "WriteBack",
+              "description": "機能領域 の候補値: WriteBack",
+              "sort_order": 40,
+              "deprecated": false
+            },
+            {
+              "cd": "markdown",
+              "name": "Markdown",
+              "description": "機能領域 の候補値: Markdown",
+              "sort_order": 50,
+              "deprecated": false
+            },
+            {
+              "cd": "save",
+              "name": "保存",
+              "description": "機能領域 の候補値: 保存",
+              "sort_order": 60,
+              "deprecated": false
+            },
+            {
+              "cd": "drop",
+              "name": "Drop",
+              "description": "機能領域 の候補値: Drop",
+              "sort_order": 70,
+              "deprecated": false
+            }
+          ]
+        },
+        {
+          "enum_id": "test_axis",
+          "enum_ref": "qa.test_axis",
+          "name": "テスト観点",
+          "description": "テストパターンやExpectedで使うテスト観点の値語彙。",
+          "sort_order": 40,
+          "deprecated": false,
+          "source": "defs/common/common_types_v0_1.json qa.test_axis options snapshot",
+          "items": [
+            {
+              "cd": "initial_display",
+              "name": "初期表示",
+              "description": "テスト観点 の候補値: 初期表示",
+              "sort_order": 10,
+              "deprecated": false
+            },
+            {
+              "cd": "load",
+              "name": "読込",
+              "description": "テスト観点 の候補値: 読込",
+              "sort_order": 20,
+              "deprecated": false
+            },
+            {
+              "cd": "status_filter",
+              "name": "statusFilter",
+              "description": "テスト観点 の候補値: statusFilter",
+              "sort_order": 30,
+              "deprecated": false
+            },
+            {
+              "cd": "inheritance",
+              "name": "継承",
+              "description": "テスト観点 の候補値: 継承",
+              "sort_order": 40,
+              "deprecated": false
+            },
+            {
+              "cd": "writeback",
+              "name": "WriteBack",
+              "description": "テスト観点 の候補値: WriteBack",
+              "sort_order": 50,
+              "deprecated": false
+            },
+            {
+              "cd": "markdown_export",
+              "name": "Markdown出力",
+              "description": "テスト観点 の候補値: Markdown出力",
+              "sort_order": 60,
+              "deprecated": false
+            },
+            {
+              "cd": "save_reload",
+              "name": "保存後再読込",
+              "description": "テスト観点 の候補値: 保存後再読込",
+              "sort_order": 70,
+              "deprecated": false
+            }
+          ]
+        },
+        {
+          "enum_id": "quality_axis",
+          "enum_ref": "qa.quality_axis",
+          "name": "品質観点",
+          "description": "品質リスクや確認観点を分類する値語彙。",
+          "sort_order": 50,
+          "deprecated": false,
+          "source": "defs/common/common_types_v0_1.json qa.quality_axis options snapshot",
+          "items": [
+            {
+              "cd": "display",
+              "name": "表示",
+              "description": "品質観点 の候補値: 表示",
+              "sort_order": 10,
+              "deprecated": false
+            },
+            {
+              "cd": "operation",
+              "name": "操作",
+              "description": "品質観点 の候補値: 操作",
+              "sort_order": 20,
+              "deprecated": false
+            },
+            {
+              "cd": "save",
+              "name": "保存",
+              "description": "品質観点 の候補値: 保存",
+              "sort_order": 30,
+              "deprecated": false
+            },
+            {
+              "cd": "evidence",
+              "name": "証跡",
+              "description": "品質観点 の候補値: 証跡",
+              "sort_order": 40,
+              "deprecated": false
+            },
+            {
+              "cd": "safety",
+              "name": "安全性",
+              "description": "品質観点 の候補値: 安全性",
+              "sort_order": 50,
+              "deprecated": false
+            },
+            {
+              "cd": "error",
+              "name": "エラー処理",
+              "description": "品質観点 の候補値: エラー処理",
+              "sort_order": 60,
+              "deprecated": false
+            }
+          ]
+        },
+        {
+          "enum_id": "check_axis",
+          "enum_ref": "qa.check_axis",
+          "name": "チェック観点",
+          "description": "Expected Checkや確認項目の性質を分類する値語彙。",
+          "sort_order": 60,
+          "deprecated": false,
+          "source": "defs/common/common_types_v0_1.json qa.check_axis options snapshot",
+          "items": [
+            {
+              "cd": "include",
+              "name": "採用確認",
+              "description": "チェック観点 の候補値: 採用確認",
+              "sort_order": 10,
+              "deprecated": false
+            },
+            {
+              "cd": "exclude",
+              "name": "除外確認",
+              "description": "チェック観点 の候補値: 除外確認",
+              "sort_order": 20,
+              "deprecated": false
+            },
+            {
+              "cd": "structure",
+              "name": "構造線確認",
+              "description": "チェック観点 の候補値: 構造線確認",
+              "sort_order": 30,
+              "deprecated": false
+            },
+            {
+              "cd": "display",
+              "name": "表示確認",
+              "description": "チェック観点 の候補値: 表示確認",
+              "sort_order": 40,
+              "deprecated": false
+            },
+            {
+              "cd": "write",
+              "name": "書込確認",
+              "description": "チェック観点 の候補値: 書込確認",
+              "sort_order": 50,
+              "deprecated": false
+            },
+            {
+              "cd": "not_write",
+              "name": "非書込確認",
+              "description": "チェック観点 の候補値: 非書込確認",
+              "sort_order": 60,
+              "deprecated": false
+            },
+            {
+              "cd": "error",
+              "name": "エラー確認",
+              "description": "チェック観点 の候補値: エラー確認",
+              "sort_order": 70,
+              "deprecated": false
+            }
+          ]
+        },
+        {
+          "enum_id": "scenario_type",
+          "enum_ref": "qa.scenario_type",
+          "name": "シナリオ種別",
+          "description": "テストシナリオの種類を表す値語彙。",
+          "sort_order": 70,
+          "deprecated": false,
+          "source": "defs/common/common_types_v0_1.json qa.scenario_type options snapshot",
+          "items": [
+            {
+              "cd": "normal",
+              "name": "正常系",
+              "description": "シナリオ種別 の候補値: 正常系",
+              "sort_order": 10,
+              "deprecated": false
+            },
+            {
+              "cd": "error",
+              "name": "異常系",
+              "description": "シナリオ種別 の候補値: 異常系",
+              "sort_order": 20,
+              "deprecated": false
+            },
+            {
+              "cd": "boundary",
+              "name": "境界値",
+              "description": "シナリオ種別 の候補値: 境界値",
+              "sort_order": 30,
+              "deprecated": false
+            },
+            {
+              "cd": "missing",
+              "name": "未指定",
+              "description": "シナリオ種別 の候補値: 未指定",
+              "sort_order": 40,
+              "deprecated": false
+            },
+            {
+              "cd": "reload",
+              "name": "再読込",
+              "description": "シナリオ種別 の候補値: 再読込",
+              "sort_order": 50,
+              "deprecated": false
+            },
+            {
+              "cd": "diff",
+              "name": "差分",
+              "description": "シナリオ種別 の候補値: 差分",
+              "sort_order": 60,
+              "deprecated": false
+            }
+          ]
+        },
+        {
+          "enum_id": "finding_type",
+          "enum_ref": "qa.finding_type",
+          "name": "検出種別",
+          "description": "不足検出・QA指摘の種類を表す値語彙。",
+          "sort_order": 80,
+          "deprecated": false,
+          "source": "defs/common/common_types_v0_1.json qa.finding_type options snapshot",
+          "items": [
+            {
+              "cd": "axis_risk_shortage",
+              "name": "観点×リスク不足",
+              "description": "検出種別 の候補値: 観点×リスク不足",
+              "sort_order": 10,
+              "deprecated": false
+            },
+            {
+              "cd": "constraint_thin_coverage",
+              "name": "制約Expected薄い",
+              "description": "検出種別 の候補値: 制約Expected薄い",
+              "sort_order": 20,
+              "deprecated": false
+            },
+            {
+              "cd": "test_pattern_thin_coverage",
+              "name": "TP Expected薄い",
+              "description": "検出種別 の候補値: TP Expected薄い",
+              "sort_order": 30,
+              "deprecated": false
+            },
+            {
+              "cd": "required_field_missing",
+              "name": "必須項目未設定",
+              "description": "検出種別 の候補値: 必須項目未設定",
               "sort_order": 40,
               "deprecated": false
             }
@@ -194,43 +519,43 @@
             {
               "cd": "candidate",
               "name": "候補",
-              "description": "関連候補として提示された状態。",
+              "description": "Relation状態 の候補値: 候補",
               "sort_order": 10,
               "deprecated": false
             },
             {
               "cd": "approved",
               "name": "承認済み",
-              "description": "人間または運用上、採用された関連。",
+              "description": "Relation状態 の候補値: 承認済み",
               "sort_order": 20,
               "deprecated": false
             },
             {
               "cd": "rejected",
               "name": "却下",
-              "description": "採用しないと判断された関連。",
+              "description": "Relation状態 の候補値: 却下",
               "sort_order": 30,
               "deprecated": false
             },
             {
               "cd": "derived",
               "name": "自動生成",
-              "description": "規則・変換・AI補助により生成された関連。",
+              "description": "Relation状態 の候補値: 自動生成",
               "sort_order": 40,
               "deprecated": false
             },
             {
               "cd": "needs_review",
               "name": "要確認",
-              "description": "人間確認が必要な関連。",
+              "description": "Relation状態 の候補値: 要確認",
               "sort_order": 50,
               "deprecated": false
             },
             {
               "cd": "deprecated",
               "name": "廃止",
-              "description": "過去互換・履歴確認用に残す関連。",
-              "sort_order": 90,
+              "description": "Relation状態 の候補値: 廃止",
+              "sort_order": 60,
               "deprecated": false
             }
           ]
@@ -247,22 +572,121 @@
             {
               "cd": "high",
               "name": "高",
-              "description": "関連の確度が高い。",
+              "description": "確信度 の候補値: 高",
               "sort_order": 10,
               "deprecated": false
             },
             {
               "cd": "medium",
               "name": "中",
-              "description": "関連の確度が中程度。",
+              "description": "確信度 の候補値: 中",
               "sort_order": 20,
               "deprecated": false
             },
             {
               "cd": "low",
               "name": "低",
-              "description": "関連の確度が低い、または仮説寄り。",
+              "description": "確信度 の候補値: 低",
               "sort_order": 30,
+              "deprecated": false
+            }
+          ]
+        },
+        {
+          "enum_id": "coverage",
+          "enum_ref": "relation.coverage",
+          "name": "Coverage区分",
+          "description": "RelationやTrace上のカバレッジ性質を表す値語彙。",
+          "sort_order": 20,
+          "deprecated": false,
+          "source": "defs/common/common_types_v0_1.json relation.coverage options snapshot",
+          "items": [
+            {
+              "cd": "primary",
+              "name": "主証拠",
+              "description": "Coverage区分 の候補値: 主証拠",
+              "sort_order": 10,
+              "deprecated": false
+            },
+            {
+              "cd": "secondary",
+              "name": "補助",
+              "description": "Coverage区分 の候補値: 補助",
+              "sort_order": 20,
+              "deprecated": false
+            },
+            {
+              "cd": "structure",
+              "name": "構造線",
+              "description": "Coverage区分 の候補値: 構造線",
+              "sort_order": 30,
+              "deprecated": false
+            }
+          ]
+        },
+        {
+          "enum_id": "node_type",
+          "enum_ref": "relation.node_type",
+          "name": "Node種別",
+          "description": "Relationグラフ上のノード種別を表す値語彙。",
+          "sort_order": 30,
+          "deprecated": false,
+          "source": "defs/common/common_types_v0_1.json relation.node_type options snapshot",
+          "items": [
+            {
+              "cd": "constraint",
+              "name": "制約",
+              "description": "Node種別 の候補値: 制約",
+              "sort_order": 10,
+              "deprecated": false
+            },
+            {
+              "cd": "test_pattern",
+              "name": "テストパターン",
+              "description": "Node種別 の候補値: テストパターン",
+              "sort_order": 20,
+              "deprecated": false
+            },
+            {
+              "cd": "check",
+              "name": "チェック",
+              "description": "Node種別 の候補値: チェック",
+              "sort_order": 30,
+              "deprecated": false
+            },
+            {
+              "cd": "diff",
+              "name": "Diff",
+              "description": "Node種別 の候補値: Diff",
+              "sort_order": 40,
+              "deprecated": false
+            },
+            {
+              "cd": "customer",
+              "name": "顧客",
+              "description": "Node種別 の候補値: 顧客",
+              "sort_order": 50,
+              "deprecated": false
+            },
+            {
+              "cd": "project",
+              "name": "案件",
+              "description": "Node種別 の候補値: 案件",
+              "sort_order": 60,
+              "deprecated": false
+            },
+            {
+              "cd": "task",
+              "name": "タスク",
+              "description": "Node種別 の候補値: タスク",
+              "sort_order": 70,
+              "deprecated": false
+            },
+            {
+              "cd": "employee",
+              "name": "担当者",
+              "description": "Node種別 の候補値: 担当者",
+              "sort_order": 80,
               "deprecated": false
             }
           ]
@@ -279,22 +703,82 @@
             {
               "cd": "high",
               "name": "高",
-              "description": "優先的に確認・表示したい関連。",
+              "description": "優先度 の候補値: 高",
               "sort_order": 10,
               "deprecated": false
             },
             {
               "cd": "medium",
               "name": "中",
-              "description": "通常優先度の関連。",
+              "description": "優先度 の候補値: 中",
               "sort_order": 20,
               "deprecated": false
             },
             {
               "cd": "low",
               "name": "低",
-              "description": "低優先度の関連。",
+              "description": "優先度 の候補値: 低",
               "sort_order": 30,
+              "deprecated": false
+            }
+          ]
+        },
+        {
+          "enum_id": "relation_type",
+          "enum_ref": "relation.relation_type",
+          "name": "Relation種別",
+          "description": "ノード間の関係種別を表す値語彙。",
+          "sort_order": 40,
+          "deprecated": false,
+          "source": "defs/common/common_types_v0_1.json relation.relation_type options snapshot",
+          "items": [
+            {
+              "cd": "verified_by",
+              "name": "verified_by",
+              "description": "Relation種別 の候補値: verified_by",
+              "sort_order": 10,
+              "deprecated": false
+            },
+            {
+              "cd": "contains_check",
+              "name": "contains_check",
+              "description": "Relation種別 の候補値: contains_check",
+              "sort_order": 20,
+              "deprecated": false
+            },
+            {
+              "cd": "has_project",
+              "name": "has_project",
+              "description": "Relation種別 の候補値: has_project",
+              "sort_order": 30,
+              "deprecated": false
+            },
+            {
+              "cd": "has_task",
+              "name": "has_task",
+              "description": "Relation種別 の候補値: has_task",
+              "sort_order": 40,
+              "deprecated": false
+            },
+            {
+              "cd": "assigned_to",
+              "name": "assigned_to",
+              "description": "Relation種別 の候補値: assigned_to",
+              "sort_order": 50,
+              "deprecated": false
+            },
+            {
+              "cd": "related_to",
+              "name": "related_to",
+              "description": "Relation種別 の候補値: related_to",
+              "sort_order": 60,
+              "deprecated": false
+            },
+            {
+              "cd": "depends_on",
+              "name": "depends_on",
+              "description": "Relation種別 の候補値: depends_on",
+              "sort_order": 70,
               "deprecated": false
             }
           ]
@@ -422,6 +906,13 @@
       "before": "context.read_timing が添付ZIP側に存在しない、またはRuntime既定パスが json/00_rules/common_enums_v0_1.json で /api/data/json/00_rules へずれていた。",
       "after": "context.read_timing を定義し、Runtime既定パスを 00_rules/common_enums_v0_1.json に補正。",
       "reason": "/api/data は data/json 起点であるため、Enum正本を正しいAPI相対パスで読み込む必要があるため。"
+    },
+    {
+      "history_id": "chg_common_enums_v0_15_4_options_to_enumref",
+      "at": "2026-06-28",
+      "change_type": "enum_registry_expansion",
+      "summary": "common_types既存optionsから、qa/relation系の代表FieldTypeをcommon_enumsへ移行候補として追加。",
+      "reason": "選択肢の直書きを減らし、enumRefで値語彙正本を参照できるようにするため。"
     }
   ]
 }

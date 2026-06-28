@@ -1,6 +1,6 @@
 {
   "version": "0.1",
-  "description": "No-Code JSON Studio 共通FieldType定義。cd/name選択肢と、意味のある通常項目FieldTypeを管理する。 不足検出VirtualData用FieldTypeを追加。 v0.15.2でFieldType enumRef解決のサンプルを追加。",
+  "description": "No-Code JSON Studio 共通FieldType定義。cd/name選択肢と、意味のある通常項目FieldTypeを管理する。 不足検出VirtualData用FieldTypeを追加。 v0.15.2でFieldType enumRef解決のサンプルを追加。 v0.15.4で既存select optionsをenumRef正本へ段階移行。",
   "namespaces": {
     "qa": {
       "fieldTypes": {
@@ -49,7 +49,9 @@
           "search": {
             "visible": true,
             "operator": "equals"
-          }
+          },
+          "enumRef": "qa.feature_area",
+          "enum_ref_note": "v0.15.4: enumRefを正本とし、既存optionsは互換用スナップショットとして残す。v0.15.xで安定後に削除可否を判断する。"
         },
         "test_axis": {
           "caption": "テスト観点",
@@ -96,7 +98,9 @@
           "search": {
             "visible": true,
             "operator": "equals"
-          }
+          },
+          "enumRef": "qa.test_axis",
+          "enum_ref_note": "v0.15.4: enumRefを正本とし、既存optionsは互換用スナップショットとして残す。v0.15.xで安定後に削除可否を判断する。"
         },
         "quality_axis": {
           "caption": "品質観点",
@@ -139,7 +143,9 @@
           "search": {
             "visible": true,
             "operator": "equals"
-          }
+          },
+          "enumRef": "qa.quality_axis",
+          "enum_ref_note": "v0.15.4: enumRefを正本とし、既存optionsは互換用スナップショットとして残す。v0.15.xで安定後に削除可否を判断する。"
         },
         "check_axis": {
           "caption": "チェック観点",
@@ -186,7 +192,9 @@
           "search": {
             "visible": true,
             "operator": "equals"
-          }
+          },
+          "enumRef": "qa.check_axis",
+          "enum_ref_note": "v0.15.4: enumRefを正本とし、既存optionsは互換用スナップショットとして残す。v0.15.xで安定後に削除可否を判断する。"
         },
         "scenario_type": {
           "caption": "シナリオ種別",
@@ -229,7 +237,9 @@
           "search": {
             "visible": true,
             "operator": "equals"
-          }
+          },
+          "enumRef": "qa.scenario_type",
+          "enum_ref_note": "v0.15.4: enumRefを正本とし、既存optionsは互換用スナップショットとして残す。v0.15.xで安定後に削除可否を判断する。"
         },
         "risk": {
           "caption": "リスク",
@@ -585,7 +595,9 @@
           "search": {
             "visible": true,
             "operator": "equals"
-          }
+          },
+          "enumRef": "qa.finding_type",
+          "enum_ref_note": "v0.15.4: enumRefを正本とし、既存optionsは互換用スナップショットとして残す。v0.15.xで安定後に削除可否を判断する。"
         },
         "finding_type_name": {
           "caption": "検出種別名",
@@ -636,7 +648,9 @@
           "search": {
             "visible": true,
             "operator": "equals"
-          }
+          },
+          "enumRef": "qa.severity_level",
+          "enum_ref_note": "v0.15.4: enumRefを正本とし、既存optionsは互換用スナップショットとして残す。v0.15.xで安定後に削除可否を判断する。"
         },
         "severity_name": {
           "caption": "重要度名",
@@ -831,7 +845,9 @@
             "visible": true,
             "operator": "equals"
           },
-          "defaultValue": "candidate"
+          "defaultValue": "candidate",
+          "enumRef": "relation.status",
+          "enum_ref_note": "v0.15.4: enumRefを正本とし、既存optionsは互換用スナップショットとして残す。v0.15.xで安定後に削除可否を判断する。"
         },
         "coverage": {
           "caption": "Coverage",
@@ -864,7 +880,9 @@
             "visible": true,
             "operator": "equals"
           },
-          "readonly": false
+          "readonly": false,
+          "enumRef": "relation.coverage",
+          "enum_ref_note": "v0.15.4: enumRefを正本とし、既存optionsは互換用スナップショットとして残す。v0.15.xで安定後に削除可否を判断する。"
         },
         "relation_id": {
           "caption": "Relation ID",
@@ -968,7 +986,9 @@
             "visible": true,
             "operator": "equals"
           },
-          "readonly": false
+          "readonly": false,
+          "enumRef": "relation.node_type",
+          "enum_ref_note": "v0.15.4: enumRefを正本とし、既存optionsは互換用スナップショットとして残す。v0.15.xで安定後に削除可否を判断する。"
         },
         "relation_type": {
           "caption": "Relation",
@@ -1017,7 +1037,9 @@
             "visible": true,
             "operator": "equals"
           },
-          "readonly": false
+          "readonly": false,
+          "enumRef": "relation.relation_type",
+          "enum_ref_note": "v0.15.4: enumRefを正本とし、既存optionsは互換用スナップショットとして残す。v0.15.xで安定後に削除可否を判断する。"
         },
         "confidence": {
           "caption": "Confidence",
@@ -1050,7 +1072,9 @@
             "visible": true,
             "operator": "equals"
           },
-          "readonly": false
+          "readonly": false,
+          "enumRef": "relation.confidence",
+          "enum_ref_note": "v0.15.4: enumRefを正本とし、既存optionsは互換用スナップショットとして残す。v0.15.xで安定後に削除可否を判断する。"
         },
         "priority": {
           "caption": "Priority",
@@ -1083,7 +1107,9 @@
             "visible": true,
             "operator": "equals"
           },
-          "readonly": false
+          "readonly": false,
+          "enumRef": "relation.priority",
+          "enum_ref_note": "v0.15.4: enumRefを正本とし、既存optionsは互換用スナップショットとして残す。v0.15.xで安定後に削除可否を判断する。"
         },
         "approved_by": {
           "caption": "承認者",
@@ -1480,6 +1506,13 @@
       "before": "context.context_read_timing が存在しない場合、context_refs_sample の読みタイミングselectに候補が出なかった。",
       "after": "context.context_read_timing を追加し、enumRef=context.read_timing を参照する。",
       "reason": "context_refs_sample_view_def_v0_1.json の fieldType 参照を解決し、読みタイミング候補をDetail selectに表示するため。"
+    },
+    {
+      "history_id": "chg_common_types_v0_15_4_options_to_enumref",
+      "at": "2026-06-28",
+      "change_type": "fieldtype_enumref_migration",
+      "summary": "qa/relation系select FieldTypeへenumRefを追加し、既存optionsは互換用スナップショットとして残置。",
+      "reason": "FieldTypeが選択肢を直書きし続けると値語彙の正本が分散するため。"
     }
   ]
 }

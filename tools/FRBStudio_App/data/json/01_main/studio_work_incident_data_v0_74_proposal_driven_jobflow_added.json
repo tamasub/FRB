@@ -7192,13 +7192,13 @@
       "incident_type": "refactoring",
       "category": "common_types_cleanup",
       "priority": "medium",
-      "status": "未着手",
-      "verification_status": "未確認",
+      "status": "完了",
+      "verification_status": "確認済み",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-06-27",
-      "updated_at": "2026-06-27",
-      "target_files": "data/json/00_rules/common_types_v0_1.json, data/json/00_rules/common_enums_v0_1.json, representative ViewDefs/Data using commonTypes",
+      "updated_at": "2026-06-28",
+      "target_files": "defs/common/common_types_v0_1.json, data/json/00_rules/common_enums_v0_1.json, data/json/00_rules/COMMON_TYPES_OPTIONS_TO_ENUMREF_REPORT_v0_15_4.md",
       "target_rule_files": "",
       "objective": "既存common_types_v0_1.jsonでFieldType内にだらだら直書きされているselect optionsを棚卸しし、共通Enumへ移せるものは enumRef 参照へ寄せる。",
       "background": "common_types_v0_1.json には qa.risk / relation.status / relation.confidence / relation.priority / severity など、似た選択肢を持つFieldTypeが複数ある。現状は実用的だが、値の正本がFieldTypeごとに分散しているため、表記揺れ・意味ズレ・重複更新が起きやすい。",
@@ -7210,9 +7210,9 @@
       "risk": "意味が似ているだけで同じEnumへ統合すると、risk.high と confidence.high のように意味の違う値が混ざる。逆に分けすぎるとEnumの再利用価値が下がる。判断ログを残す必要がある。",
       "test_points": "既存FieldTypeのselect項目が移行後も表示・編集・検索できること。Enum化した選択肢がData既存値と一致すること。意味が違う値を無理に統合していないこと。options削除/残置の方針が記録されていること。",
       "user_request": "enumの仕掛けを作った後に、既存のOptionでだらだら書いているやつを整理したい。",
-      "ai_response": "既存common_types optionsの整理は仕掛け追加後の専用インシデントとして登録する。棚卸しと段階的enumRef化を目的にする。",
+      "ai_response": "common_types既存select optionsを棚卸しし、qa/relation系の代表FieldTypeへenumRefを追加。common_enumsへ対応Enumを追加し、既存optionsは互換用スナップショットとして残置した。risk/confidence/priority/severityなど意味の違うhigh/medium/low系は統合せず、意味別Enumとして分離。",
       "latest_user_comment": "common_typesの中にある既存Option群を、Enum正本に寄せていきたい。ただし意味の違いは丁寧に見る必要がある。",
-      "latest_ai_response": "",
+      "latest_ai_response": "common_types既存select optionsを棚卸しし、qa/relation系の代表FieldTypeへenumRefを追加。common_enumsへ対応Enumを追加し、既存optionsは互換用スナップショットとして残置した。risk/confidence/priority/severityなど意味の違うhigh/medium/low系は統合せず、意味別Enumとして分離。",
       "discussion_history": [
         {
           "history_id": "disc_0068_001",
@@ -7234,6 +7234,20 @@
           "speaker": "user",
           "topic": "インシデント追加依頼",
           "message": "Enumの仕掛けを作った後に、既存のOptionでだらだら書いているものを整理したい。インシデント追加と更新後JSON返却を依頼。"
+        },
+        {
+          "history_id": "disc_0068_001",
+          "at": "2026-06-28",
+          "speaker": "user",
+          "topic": "作業依頼",
+          "message": "v0.15.4-common-types-options-to-enumref として、common_typesの既存Option群をEnum正本に寄せる作業を依頼。00_rules/common_enums_v0_1.json は参照が多いため移動せず戻した。"
+        },
+        {
+          "history_id": "disc_0068_002",
+          "at": "2026-06-28",
+          "speaker": "assistant",
+          "topic": "作業結果",
+          "message": "common_typesのselect FieldTypeを棚卸しし、qa/relation系の代表FieldTypeにenumRefを追加。common_enumsへ対応Enumを追加し、既存optionsは互換用スナップショットとして残した。"
         }
       ],
       "decision_log": [
@@ -7254,6 +7268,24 @@
           "at": "2026-06-27",
           "decision": "移行は棚卸し・分類・段階的enumRef化の順で進める。",
           "reason": "共通化対象とローカル選択肢として残す対象を判断しやすくするため。"
+        },
+        {
+          "decision_id": "dec_0068_001",
+          "at": "2026-06-28",
+          "decision": "common_enums_v0_1.json の配置は data/json/00_rules/common_enums_v0_1.json のまま維持する。",
+          "reason": "既存参照が多く、配置変更は影響範囲が広いため。v0.15.4の主目的はoptionsのenumRef化であり、パス移動は別作業に分離する。"
+        },
+        {
+          "decision_id": "dec_0068_002",
+          "at": "2026-06-28",
+          "decision": "既存optionsは削除せず互換用スナップショットとして残す。",
+          "reason": "RuntimeのenumRef解決は導入済みだが、既存ViewDefや静的確認、enum読み込み失敗時の互換性を守るため。"
+        },
+        {
+          "decision_id": "dec_0068_003",
+          "at": "2026-06-28",
+          "decision": "risk / severity / confidence / priority は同じ high/medium/low でも統合しない。",
+          "reason": "リスク・重要度・確信度・優先度は判断軸が異なり、同一Enumにすると意味の混線が起きるため。"
         }
       ],
       "change_history": [
@@ -7264,6 +7296,30 @@
           "before": "既存common_types内optionsをEnum参照へ整理する作業項目が存在しなかった。",
           "after": "studio_work_0068 として既存 common_types options のEnum参照化整理を登録。",
           "reason": "値候補の重複・表記揺れ・意味ズレを減らし、Enum正本運用へ移行するため。"
+        },
+        {
+          "history_id": "chg_0068_001",
+          "at": "2026-06-28",
+          "change_type": "common_enums_expansion",
+          "before": "common_enumsには一部のqa/relation Enumのみが登録されていた。",
+          "after": "qa.feature_area/test_axis/quality_axis/check_axis/scenario_type/finding_type、relation.coverage/node_type/relation_typeなどを追加。",
+          "reason": "common_types内のselect options直書きを値語彙正本へ寄せるため。"
+        },
+        {
+          "history_id": "chg_0068_002",
+          "at": "2026-06-28",
+          "change_type": "common_types_enumref_added",
+          "before": "複数のselect FieldTypeがoptions直書きのみだった。",
+          "after": "対象FieldTypeにenumRefを追加し、optionsは互換用スナップショットとして残置。",
+          "reason": "FieldTypeは使い方、Enumは値語彙正本という責務分離を進めるため。"
+        },
+        {
+          "history_id": "chg_0068_003",
+          "at": "2026-06-28",
+          "change_type": "report_added",
+          "before": "v0.15.4の棚卸し結果レポートがなかった。",
+          "after": "COMMON_TYPES_OPTIONS_TO_ENUMREF_REPORT_v0_15_4.md を追加。",
+          "reason": "移行対象、保留方針、意味別Enum分離判断を後続AI/人間が追えるようにするため。"
         }
       ],
       "actual_updated_files": ""
