@@ -9,13 +9,61 @@ function loadRows() {
   applySortToFilteredRows();
 }
 
-function renderGrid() {
-  const gd = gridDef();
+function gridRendererMode(gd=gridDef()) {
+  const raw =
+    gd?.grid?.renderer ?? gd?.grid?.displayStyle ?? gd?.grid?.display_style ?? gd?.grid?.style ??
+    gd?.renderer ?? gd?.displayStyle ?? gd?.display_style ?? gd?.style ??
+    'table';
+  const mode = String(raw ?? '').trim().toLowerCase();
+  if (['card', 'cards', 'document', 'doc', 'document-card', 'document_grid', 'document-grid', 'card_grid', 'card-grid'].includes(mode)) return 'document';
+  return 'table';
+}
+
+function wantsDocumentGrid(gd=gridDef()) {
+  return gridRendererMode(gd) === 'document';
+}
+
+function ensureGridHostElement(tagName) {
+  const expected = String(tagName ?? 'table').toUpperCase();
+  let host = $('dataGrid');
+  if (!host) return null;
+  if (host.tagName === expected) return host;
+  const replacement = document.createElement(tagName);
+  replacement.id = 'dataGrid';
+  host.replaceWith(replacement);
+  return replacement;
+}
+
+function setGridWrapMode(mode) {
+  const wrap = document.querySelector('.table-wrap');
+  if (!wrap) return;
+  wrap.classList.toggle('document-grid-wrap', mode === 'document');
+  wrap.classList.toggle('table-grid-wrap', mode !== 'document');
+}
+
+function renderGridFrame(gd) {
   $('gridCaption').textContent = gd.caption ?? 'Grid';
   $('gridCount').textContent = `${selectedDisplayPosition()} / ${currentRows.length}行目　表示 ${filteredRows.length} / 全 ${currentRows.length}件`;
-  const table = $('dataGrid');
+  $('gridSection').classList.remove('hidden');
+}
+
+function renderGrid() {
+  const gd = gridDef();
+  if (wantsDocumentGrid(gd)) return renderByKey('gridDocument', gd);
+  return renderByKey('gridTable', gd);
+}
+
+function tableGridVisibleFields(gd) {
+  return (gd?.fields ?? []).filter(f => f.grid?.visible !== false);
+}
+
+function renderCompactGrid(gd=gridDef()) {
+  renderGridFrame(gd);
+  setGridWrapMode('table');
+  const table = ensureGridHostElement('table');
+  table.className = '';
   table.innerHTML = '';
-  const visibleFields = gd.fields.filter(f => f.grid?.visible !== false);
+  const visibleFields = tableGridVisibleFields(gd);
   const thead = document.createElement('thead');
   const trh = document.createElement('tr');
   visibleFields.forEach(f => {
@@ -60,8 +108,401 @@ function renderGrid() {
     tbody.appendChild(tr);
   });
   table.appendChild(tbody);
-  $('gridSection').classList.remove('hidden');
 }
+
+function documentGridConfig(gd) {
+  return {
+    ...(gd?.document ?? {}),
+    ...(gd?.card ?? {}),
+    ...(gd?.grid?.document ?? {}),
+    ...(gd?.grid?.card ?? {})
+  };
+}
+
+function fieldByName(gd, fieldName) {
+  return (gd?.fields ?? []).find(f => f.field === fieldName) ?? null;
+}
+
+function normalizeDocumentFieldSpec(gd, raw) {
+  if (typeof raw === 'string') {
+    const field = fieldByName(gd, raw);
+    return field ? { field, options: {} } : null;
+  }
+  if (!raw || typeof raw !== 'object') return null;
+  const name = raw.field ?? raw.name ?? raw.key;
+  if (!name) return null;
+  const base = fieldByName(gd, name) ?? { field: String(name), type: raw.type ?? 'text', caption: raw.caption ?? raw.label ?? String(name) };
+  return { field: { ...base, ...raw, field: base.field }, options: raw };
+}
+
+function documentGridFieldSpecs(gd, cfg=documentGridConfig(gd)) {
+  const explicit = cfg.fields ?? cfg.itemFields ?? cfg.item_fields ?? gd?.grid?.documentFields ?? gd?.grid?.document_fields ?? gd?.grid?.cardFields ?? gd?.grid?.card_fields;
+  if (Array.isArray(explicit) && explicit.length) {
+    return explicit.map(item => normalizeDocumentFieldSpec(gd, item)).filter(Boolean);
+  }
+  return (gd?.fields ?? [])
+    .filter(f => f.grid?.visible !== false)
+    .filter(f => f.type !== 'chat' && f.type !== 'objectArray' && f.type !== 'stringArray')
+    .map(field => ({ field, options: field.document ?? field.card ?? {} }));
+}
+
+function documentGridMetaFieldNames(gd, cfg=documentGridConfig(gd)) {
+  const raw = cfg.metaFields ?? cfg.meta_fields ?? cfg.badgeFields ?? cfg.badge_fields ?? [];
+  return normalizeArray(raw).map(x => typeof x === 'string' ? x : (x?.field ?? x?.name)).filter(Boolean);
+}
+
+function documentGridTitleFieldName(gd, cfg=documentGridConfig(gd)) {
+  return cfg.titleField ?? cfg.title_field ?? gd?.keyField ?? 'title';
+}
+
+function documentGridEmptyHtml() {
+  const span = document.createElement('span');
+  span.className = 'document-grid-empty-value';
+  span.textContent = '(空)';
+  return span;
+}
+
+function documentGridMarkdownConfig(field, options={}) {
+  if (typeof normalizeChatMarkdownConfig === 'function') {
+    return normalizeChatMarkdownConfig(
+      { enabled: false, allowLinks: true, allowImages: false },
+      field?.markdown,
+      field?.edit?.markdown,
+      field?.display?.markdown,
+      field?.document?.markdown,
+      field?.card?.markdown,
+      options?.markdown
+    );
+  }
+  return field?.markdown ?? options?.markdown ?? { enabled: false };
+}
+
+function renderDocumentGridValue(value, field, options={}) {
+  const box = document.createElement('div');
+  box.className = 'document-grid-value-body';
+  if (value == null || value === '') {
+    box.appendChild(documentGridEmptyHtml());
+    return box;
+  }
+  if (Array.isArray(value)) {
+    box.textContent = `${value.length}件`;
+    return box;
+  }
+  if (typeof value === 'object') {
+    const pre = document.createElement('pre');
+    pre.textContent = JSON.stringify(value, null, 2);
+    box.appendChild(pre);
+    return box;
+  }
+  const text = String(value);
+  const mdCfg = documentGridMarkdownConfig(field, options);
+  const displayAsMarkdown = Boolean(mdCfg?.enabled && (field?.type === 'textarea' || options?.markdown || field?.markdown));
+  if (displayAsMarkdown && typeof renderMarkdownContent === 'function') {
+    box.classList.add('markdown-rendered');
+    box.innerHTML = renderMarkdownContent(text, mdCfg);
+  } else {
+    box.textContent = formatValue(value, field);
+  }
+  return box;
+}
+
+function isDocumentGridReadonly(field, options={}) {
+  if (launchRuntime?.readonly) return true;
+  return Boolean(options.readonly ?? field?.document?.readonly ?? field?.card?.readonly ?? field?.readonly ?? field?.edit?.readonly);
+}
+
+function createDocumentGridEditor(field, value) {
+  let input;
+  const control = field?.control ?? field?.edit?.control;
+  if (field.type === 'select' || control === 'select' || Array.isArray(field.options)) {
+    input = document.createElement('select');
+    const blank = document.createElement('option');
+    blank.value = '';
+    blank.textContent = '';
+    input.appendChild(blank);
+    (field.options ?? []).forEach(opt => {
+      const o = document.createElement('option');
+      o.value = optionValue(opt, field);
+      o.textContent = optionLabel(opt, field);
+      input.appendChild(o);
+    });
+    input.value = value ?? '';
+  } else if (field.type === 'boolean') {
+    input = document.createElement('select');
+    ['', 'true', 'false'].forEach(v => {
+      const o = document.createElement('option');
+      o.value = v;
+      o.textContent = v;
+      input.appendChild(o);
+    });
+    input.value = value === true ? 'true' : value === false ? 'false' : '';
+  } else if (field.type === 'number') {
+    input = document.createElement('input');
+    input.type = 'number';
+    input.value = value ?? '';
+  } else if (field.type === 'textarea' || control === 'textarea' || String(value ?? '').length > 80 || String(value ?? '').includes('\n')) {
+    input = document.createElement('textarea');
+    input.value = value == null ? '' : String(value);
+    input.rows = Math.min(14, Math.max(3, String(value ?? '').split('\n').length + 1));
+  } else {
+    input = document.createElement('input');
+    input.type = 'text';
+    input.value = value ?? '';
+  }
+  input.className = 'document-grid-editor';
+  input.dataset.field = field.field;
+  input.dataset.type = field.type ?? 'text';
+  return input;
+}
+
+function readDocumentGridEditorValue(field, input) {
+  const raw = input?.value ?? '';
+  return convertValue(field?.type, raw);
+}
+
+function enterDocumentGridFieldEditMode({ card, row, index, field, options, valueCell }) {
+  if (!card || !row || !field || !valueCell) return;
+  if (isDocumentGridReadonly(field, options)) return;
+  if (valueCell.dataset.editing === 'true') return;
+  selectedIndex = index;
+  document.querySelectorAll('.document-grid-card.is-editing').forEach(el => el.classList.remove('is-editing'));
+  card.classList.add('selected', 'is-editing');
+  valueCell.dataset.editing = 'true';
+
+  const originalValue = getByPath(row, field.field);
+  const editor = createDocumentGridEditor(field, originalValue);
+  valueCell.innerHTML = '';
+  valueCell.appendChild(editor);
+
+  let done = false;
+  const commit = (message='カード編集を反映しました') => {
+    if (done) return;
+    done = true;
+    const nextValue = readDocumentGridEditorValue(field, editor);
+    setByPath(row, field.field, nextValue);
+    applySearch();
+    renderGrid();
+    setStatus(`${message}: ${field.caption ?? field.field}`);
+  };
+  const cancel = () => {
+    if (done) return;
+    done = true;
+    renderGrid();
+    setStatus('カード編集をキャンセルしました');
+  };
+
+  editor.addEventListener('blur', () => commit(), { once: true });
+  editor.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      cancel();
+      return;
+    }
+    if (e.key === 'F12' || ((e.ctrlKey || e.metaKey) && e.key === 'Enter') || (e.key === 'Enter' && editor.tagName !== 'TEXTAREA')) {
+      e.preventDefault();
+      commit('カード編集を反映しました');
+    }
+  });
+  if (editor.tagName === 'SELECT') editor.addEventListener('change', () => commit(), { once: true });
+
+  requestAnimationFrame(() => {
+    editor.focus();
+    if (editor.select && editor.tagName !== 'SELECT') editor.select();
+  });
+}
+
+function createDocumentGridField({ card, row, index, field, options }) {
+  const item = document.createElement('div');
+  item.className = 'document-grid-field';
+  const label = document.createElement('div');
+  label.className = 'document-grid-label';
+  label.textContent = options.label ?? options.caption ?? field.caption ?? field.field;
+  const valueCell = document.createElement('div');
+  valueCell.className = 'document-grid-value';
+  valueCell.appendChild(renderDocumentGridValue(getByPath(row, field.field), field, options));
+
+  if (!isDocumentGridReadonly(field, options)) {
+    valueCell.tabIndex = 0;
+    valueCell.title = 'クリックすると編集できます';
+    valueCell.classList.add('is-editable');
+    valueCell.addEventListener('click', (e) => {
+      if (e.target.closest?.('a') && (e.ctrlKey || e.metaKey)) return;
+      e.preventDefault();
+      enterDocumentGridFieldEditMode({ card, row, index, field, options, valueCell });
+    });
+    valueCell.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        enterDocumentGridFieldEditMode({ card, row, index, field, options, valueCell });
+      }
+    });
+  } else {
+    valueCell.classList.add('readonly');
+  }
+
+  item.appendChild(label);
+  item.appendChild(valueCell);
+  return item;
+}
+
+function makeDocumentGridButton(label, title, onClick, className='ghost-button small') {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = `document-grid-action ${className}`;
+  btn.textContent = label;
+  btn.title = title;
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onClick();
+  });
+  return btn;
+}
+
+function refreshAfterDocumentGridRowMutation(message) {
+  applySearch();
+  renderGrid();
+  setStatus(message);
+}
+
+function insertDocumentGridRow(index=null, position='end', sourceRow=null) {
+  if (!Array.isArray(currentRows)) return;
+  applyHeaderEdits();
+  const row = sourceRow ? createRowFromSourceRow(sourceRow) : createDefaultRow();
+  let insertAt = currentRows.length;
+  if (Number.isInteger(index) && index >= 0) insertAt = position === 'before' ? index : index + 1;
+  insertAt = Math.max(0, Math.min(currentRows.length, insertAt));
+  currentRows.splice(insertAt, 0, row);
+  selectedIndex = insertAt;
+  refreshAfterDocumentGridRowMutation(`カード行を追加しました: ${insertAt + 1}行目`);
+}
+
+function addDocumentGridRowAtEnd() {
+  insertDocumentGridRow(null, 'end');
+}
+
+function deleteDocumentGridRow(index) {
+  if (!Array.isArray(currentRows) || index < 0 || !currentRows[index]) return;
+  if (!confirm(`このカード行を削除します。よろしいですか？\nindex: ${index}`)) return;
+  currentRows.splice(index, 1);
+  selectedIndex = -1;
+  refreshAfterDocumentGridRowMutation('カード行を削除しました');
+}
+
+function duplicateDocumentGridRow(index) {
+  if (!Array.isArray(currentRows) || index < 0 || !currentRows[index]) return;
+  insertDocumentGridRow(index, 'after', currentRows[index]);
+}
+
+function moveDocumentGridRow(index, delta) {
+  if (!Array.isArray(currentRows) || index < 0) return;
+  const next = index + delta;
+  if (next < 0 || next >= currentRows.length) return;
+  const [row] = currentRows.splice(index, 1);
+  currentRows.splice(next, 0, row);
+  selectedIndex = next;
+  refreshAfterDocumentGridRowMutation('カード行を移動しました');
+}
+
+function createDocumentGridCard(row, index, gd, cfg, fieldSpecs) {
+  const card = document.createElement('section');
+  card.className = 'document-grid-card';
+  applyGridRowEmphasis(card, row);
+  if (index === selectedIndex) card.classList.add('selected');
+  card.addEventListener('click', () => {
+    if (selectedIndex !== index) {
+      selectedIndex = index;
+      renderGrid();
+    }
+  });
+  card.addEventListener('dblclick', (e) => {
+    if (e.target.closest?.('button, input, select, textarea, a')) return;
+    openDetail(index);
+  });
+
+  const header = document.createElement('div');
+  header.className = 'document-grid-card-header';
+  const titleWrap = document.createElement('div');
+  titleWrap.className = 'document-grid-card-title-wrap';
+  const kicker = document.createElement('div');
+  kicker.className = 'document-grid-card-kicker';
+  kicker.textContent = `${filteredRows.findIndex(x => x.index === index) + 1} / ${filteredRows.length}`;
+  const h3 = document.createElement('h3');
+  const titleField = fieldByName(gd, documentGridTitleFieldName(gd, cfg));
+  h3.textContent = titleField ? (formatValue(getByPath(row, titleField.field), titleField) || '(no title)') : `行 ${index + 1}`;
+  titleWrap.appendChild(kicker);
+  titleWrap.appendChild(h3);
+
+  const meta = document.createElement('div');
+  meta.className = 'document-grid-card-meta';
+  documentGridMetaFieldNames(gd, cfg).forEach(name => {
+    const f = fieldByName(gd, name);
+    if (!f) return;
+    const chip = document.createElement('span');
+    chip.className = 'document-grid-chip';
+    chip.textContent = `${f.caption ?? f.field}: ${formatValue(getByPath(row, f.field), f)}`;
+    meta.appendChild(chip);
+  });
+  titleWrap.appendChild(meta);
+  header.appendChild(titleWrap);
+
+  const actions = document.createElement('div');
+  actions.className = 'document-grid-card-actions';
+  actions.appendChild(makeDocumentGridButton('詳細', '従来の詳細ダイアログを開く', () => openDetail(index)));
+  if (!launchRuntime?.readonly) {
+    actions.appendChild(makeDocumentGridButton('＋上', 'このカードの上に空行を追加', () => insertDocumentGridRow(index, 'before')));
+    actions.appendChild(makeDocumentGridButton('＋下', 'このカードの下に空行を追加', () => insertDocumentGridRow(index, 'after')));
+    actions.appendChild(makeDocumentGridButton('複製', 'このカードを複製して下に追加', () => duplicateDocumentGridRow(index)));
+    actions.appendChild(makeDocumentGridButton('↑', 'このカードを上へ移動', () => moveDocumentGridRow(index, -1)));
+    actions.appendChild(makeDocumentGridButton('↓', 'このカードを下へ移動', () => moveDocumentGridRow(index, 1)));
+    actions.appendChild(makeDocumentGridButton('削除', 'このカードを削除', () => deleteDocumentGridRow(index), 'ghost-button small danger'));
+  }
+  header.appendChild(actions);
+  card.appendChild(header);
+
+  const body = document.createElement('div');
+  body.className = 'document-grid-card-body';
+  fieldSpecs.forEach(({ field, options }) => {
+    if (!field?.field) return;
+    body.appendChild(createDocumentGridField({ card, row, index, field, options }));
+  });
+  card.appendChild(body);
+  return card;
+}
+
+function renderDocumentGrid(gd=gridDef()) {
+  renderGridFrame(gd);
+  setGridWrapMode('document');
+  const host = ensureGridHostElement('div');
+  host.className = 'document-grid-host';
+  host.innerHTML = '';
+  const cfg = documentGridConfig(gd);
+  const fieldSpecs = documentGridFieldSpecs(gd, cfg);
+
+  const toolbar = document.createElement('div');
+  toolbar.className = 'document-grid-toolbar';
+  const note = document.createElement('div');
+  note.className = 'document-grid-note';
+  note.textContent = 'Card(Document) Grid: 値をクリックするとその場で編集できます。F12 / Ctrl+Enter / blur で反映、保存値はJSON原文です。';
+  toolbar.appendChild(note);
+  if (!launchRuntime?.readonly) {
+    toolbar.appendChild(makeDocumentGridButton('＋末尾に追加', '末尾に空カードを追加', addDocumentGridRowAtEnd, 'primary-button small'));
+  }
+  host.appendChild(toolbar);
+
+  if (!filteredRows.length) {
+    const empty = document.createElement('div');
+    empty.className = 'document-grid-empty-card';
+    empty.textContent = '表示対象の行がありません。検索条件を見直すか、新規行を追加してください。';
+    host.appendChild(empty);
+    return;
+  }
+
+  filteredRows.forEach(({ row, index }) => {
+    host.appendChild(createDocumentGridCard(row, index, gd, cfg, fieldSpecs));
+  });
+}
+
 
 
 function applySearch() {
@@ -116,6 +557,10 @@ function createDefaultRow() {
 }
 function addGridRow() {
   if (!Array.isArray(currentRows)) return;
+  if (wantsDocumentGrid()) {
+    addDocumentGridRowAtEnd();
+    return;
+  }
   applyHeaderEdits();
   const row = createDefaultRow();
   openNewDetail(row, '新規登録画面を開きました（反映するまで行は追加されません）');
@@ -372,6 +817,8 @@ function moveDetail(delta) {
   openDetail(selectedIndex, true);
 }
 
-// v0.5-registry: high-level renderer registrations.
+// v0.5-registry / v0.16.5-grid-card-document-renderer: high-level renderer registrations.
+registerRenderer('gridTable', renderCompactGrid, ['table', 'compact', 'tableGrid', 'compactGrid']);
+registerRenderer('gridDocument', renderDocumentGrid, ['document', 'card', 'cards', 'documentGrid', 'cardGrid']);
 registerRenderer('grid', renderGrid);
 

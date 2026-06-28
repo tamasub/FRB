@@ -13,8 +13,8 @@
   "status": "converted_draft",
   "introduced_in": "v0.4-r001",
   "generated_at": "2026-06-26T00:00:00+09:00",
-  "rule_count": 78,
-  "approved_count": 2,
+  "rule_count": 79,
+  "approved_count": 79,
   "approval_policy": "各ルールは人間が内容確認し、verification_status を確認済みにしたうえで approval_decision を承認する。AIはレビューコメント案を出せるが、承認判断は人間が行う。",
   "preamble": "対象: `FRBStudio_App` / No-Code JSON Studio v0.6+ 系  \n対応Schema: `frb_view_def_schema_v0_8_action_registry_toolbar.json`\n\nこの文書は、AIに **Data JSON から ViewDef JSON を作成させる** ときの作成ルールである。\n\nStudioくんにおける ViewDef は、単なる画面定義ではない。\n\n```text\nData JSON + ViewDef JSON + Runtime + Action = Experience\n```\n\nViewDef は、データの見え方・編集の仕方・Markdown化・AIへの渡し方・仮想データの作り方・主役Actionを宣言する **体験設計書** である。\n\n---",
   "change_history_policy": "ルール本文、要約、カテゴリ、優先度、承認判断を変更した場合は、各 rule.change_history に変更前後・理由・会話を残す。",
@@ -2524,10 +2524,56 @@
       "introduced_in": "v0.15.5.3-target-context-detail-panel",
       "change_history": [],
       "decision_log": []
+    },
+    {
+      "no": 79,
+      "rule_id": "viewdef_rule_28",
+      "section_no": "28",
+      "source_heading": "28. Grid Renderer二系統化 / Card(Document) Grid指定契約",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "Grid Renderer",
+      "title": "Grid Renderer二系統化 / Card(Document) Grid指定契約",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "短文・一覧編集向けの従来Table/Compact Gridを標準とし、長文レビュー向けにはViewDefのgrid.renderer/displayStyleでCard(Document) Gridを選択できる。",
+      "body": "Grid sectionでは、既定の表示は従来どおりTable/Compact Gridとする。長文・レビュー・文脈確認を主目的にするGridでは、section.grid.renderer または section.grid.displayStyle に document/card 系の値を指定して Card(Document) Grid を選択できる。\n\n推奨例:\n```json\n{\n  \"type\": \"grid\",\n  \"dataPath\": \"work_items\",\n  \"grid\": {\n    \"renderer\": \"document\",\n    \"displayStyle\": \"card\",\n    \"document\": {\n      \"titleField\": \"title\",\n      \"metaFields\": [\"phase\", \"status\"],\n      \"fields\": [\n        \"phase\",\n        \"title\",\n        { \"field\": \"objective\", \"markdown\": { \"enabled\": true, \"allowLinks\": true, \"allowImages\": true } }\n      ]\n    }\n  }\n}\n```\n\nCard(Document) Gridでは、カード内フィールドをクリックして原文編集へ入り、blur / F12 / Ctrl+Enter でData JSONへ反映する。Markdown対象欄は表示時にMarkdownとして読むが、編集時は原文を扱い、保存値へHTMLを混入させない。行操作は末尾追加・上挿入・下挿入・削除・必要に応じた複製/上下移動を扱う。\n\nTable/Compact Gridは短文・一覧編集向けとして維持し、全GridをCard化しない。",
+      "ceremony_phrase": "このルールをレビューし、採用可否を判断する。",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "",
+      "approved_at": "",
+      "approval_stamp": "",
+      "notes": "v0.16.5-grid-card-document-rendererで追加。sectionはadditionalProperties=trueのためSchema変更なしで運用可能。",
+      "source_line_start": 0,
+      "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL.md",
+      "introduced_in": "v0.16.5-grid-card-document-renderer",
+      "change_history": [
+        {
+          "history_id": "chg_viewdef_rule_28_001",
+          "at": "2026-06-28",
+          "change_type": "rule_added",
+          "before": "Gridは実質Table/Compact前提で、長文レビュー向けCard(Document) GridのViewDef指定契約がなかった。",
+          "after": "section.grid.renderer/displayStyleで document/card を指定し、Card(Document) Gridを選択できる契約を追加。",
+          "reason": "長文を含むインシデント・ContextDef・会話履歴レビューでは従来Tableセル編集だけでは読みにくいため。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_viewdef_rule_28_001",
+          "at": "2026-06-28",
+          "decision": "Table/Compact Gridを既定として維持し、Card(Document) GridはViewDef指定時のみ有効にする。",
+          "reason": "短文一覧編集では従来Gridが便利であり、全GridのCard化は既存操作性を壊すため。"
+        }
+      ]
     }
   ],
   "updated_at": "2026-06-28",
-  "review_revision": "v0.15.5.3-target-context-detail-panel",
+  "review_revision": "v0.16.5-grid-card-document-renderer",
   "review_notes": [
     {
       "note_id": "note_v012_scope_correction",

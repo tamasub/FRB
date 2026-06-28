@@ -303,43 +303,260 @@ function collectContextPreviewRowsFromPanel(panel, refs, indexAttr, fieldAttr) {
   return rows;
 }
 
-function openContextRefsPreview({ title, refs, metas, panel, indexAttr, fieldAttr }) {
-  if (typeof showDetailSubGridPreview !== 'function') return;
-  const rows = collectContextPreviewRowsFromPanel(panel, refs, indexAttr, fieldAttr);
-  const columns = (metas ?? []).map(meta => ({
+function contextPreviewEditColumnsFromMetas(metas) {
+  return (metas ?? []).map(meta => ({
     field: meta.field,
     caption: meta.label,
-    type: meta.type === 'checkbox' ? 'boolean' : meta.type
-  }));
-  showDetailSubGridPreview({
+    type: meta.type === 'checkbox' ? 'boolean' : meta.type,
+    // checkbox由来のbooleanは、空select化ではなくcheckboxとして扱う。
+    // select/options由来の項目は従来通りコンボとして生かす。
+    control: meta.type === 'checkbox' ? 'checkbox' : meta.control,
+    options: meta.options,
+    edit: meta.edit,
+    grid: meta.grid
+  })).filter(col => col.field);
+}
+
+function replaceContextRefsArray(refs, rows) {
+  if (!Array.isArray(refs)) return;
+  refs.splice(0, refs.length, ...((rows ?? []).map(row => (
+    row && typeof row === 'object' && !Array.isArray(row) ? { ...row } : {}
+  ))));
+}
+
+function emptyContextPreviewEditRow(columns) {
+  if (typeof emptyObjectForColumns === 'function') return emptyObjectForColumns(columns);
+  const obj = {};
+  (columns ?? []).forEach(col => { if (col?.field) obj[col.field] = ''; });
+  return obj;
+}
+
+function contextPreviewEditRowTitle(row, index, columns=[]) {
+  if (typeof detailSubGridEditorRowTitle === 'function') return detailSubGridEditorRowTitle(row, index, columns);
+  return `${index + 1}件目`;
+}
+
+function showContextRefsPreviewEdit({ title='文脈', rows=[], columns=[], onApply=null, onClose=null }={}) {
+  if (typeof createDetailSubGridPreviewEditValue !== 'function') {
+    if (typeof showDetailSubGridPreview === 'function') {
+      showDetailSubGridPreview({
+        title: `${title} プレビュー`,
+        rows,
+        columns,
+        type: 'objectArray',
+        field: { type: 'objectArray', markdown: { enabled: true, allowLinks: true, allowImages: false } },
+        note: 'プレビュー編集機能を利用できないため、読み取りプレビューで表示しています'
+      });
+    }
+    return;
+  }
+
+  const editorField = { type: 'objectArray', markdown: { enabled: true, allowLinks: true, allowImages: false } };
+  const editRows = (typeof normalizeRowsForDetailSubGridEditor === 'function')
+    ? normalizeRowsForDetailSubGridEditor(rows, 'objectArray')
+    : (Array.isArray(rows) ? rows.map(row => ({ ...(row ?? {}) })) : []);
+
+  document.querySelectorAll('.context-preview-edit-overlay').forEach(el => {
+    try { if (typeof el.close === 'function' && el.open) el.close(); } catch { /* ignore */ }
+    el.remove();
+  });
+
+  const overlay = document.createElement('dialog');
+  overlay.className = 'detail-subgrid-preview-overlay detail-subgrid-card-editor-overlay context-preview-edit-overlay';
+  const closeEditor = () => {
+    try { if (typeof overlay.close === 'function' && overlay.open) overlay.close(); } catch { /* ignore */ }
+    overlay.remove();
+    if (typeof onClose === 'function') onClose();
+  };
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeEditor(); });
+  overlay.addEventListener('cancel', (e) => { e.preventDefault(); closeEditor(); });
+
+  const dialog = document.createElement('div');
+  dialog.className = 'detail-subgrid-preview-dialog detail-subgrid-card-editor-dialog context-preview-edit-dialog';
+  dialog.setAttribute('role', 'document');
+
+  const header = document.createElement('div');
+  header.className = 'detail-subgrid-preview-header detail-subgrid-card-editor-header';
+  const headingWrap = document.createElement('div');
+  const kicker = document.createElement('div');
+  kicker.className = 'detail-subgrid-preview-kicker';
+  kicker.textContent = 'Context Preview Edit';
+  const h2 = document.createElement('h2');
+  h2.textContent = `${title} プレビュー編集`;
+  headingWrap.appendChild(kicker);
+  headingWrap.appendChild(h2);
+  header.appendChild(headingWrap);
+
+  const headerActions = document.createElement('div');
+  headerActions.className = 'detail-subgrid-card-editor-header-actions';
+  const applyBtn = createContextPreviewButton('一覧へ反映', 'プレビュー編集内容を文脈一覧へ反映して閉じる', () => {
+    if (typeof onApply === 'function') onApply(editRows);
+    closeEditor();
+  });
+  applyBtn.classList.add('primary');
+  const close = document.createElement('button');
+  close.type = 'button';
+  close.className = 'icon-button';
+  close.textContent = '×';
+  close.setAttribute('aria-label', '閉じる');
+  close.addEventListener('click', closeEditor);
+  headerActions.appendChild(applyBtn);
+  headerActions.appendChild(close);
+  header.appendChild(headerActions);
+  dialog.appendChild(header);
+
+  const summary = document.createElement('div');
+  summary.className = 'detail-subgrid-preview-summary detail-subgrid-card-editor-summary';
+  dialog.appendChild(summary);
+
+  const body = document.createElement('div');
+  body.className = 'detail-subgrid-preview-body detail-subgrid-card-editor-body context-preview-edit-body';
+  dialog.appendChild(body);
+
+  const setRowValue = (rowIndex, column, input) => {
+    if (!editRows[rowIndex]) editRows[rowIndex] = {};
+    if (typeof readSubGridControlValue === 'function') {
+      editRows[rowIndex][column.field] = readSubGridControlValue(input);
+    } else if (input?.type === 'checkbox') {
+      editRows[rowIndex][column.field] = Boolean(input.checked);
+    } else if (column?.type === 'boolean') {
+      editRows[rowIndex][column.field] = input?.value === 'true';
+    } else {
+      editRows[rowIndex][column.field] = input?.value;
+    }
+  };
+
+  const rerender = () => {
+    summary.textContent = `${editRows.length}件 / ${columns.length}列 — 長文はクリックで原文編集、blurでMarkdownプレビューへ戻ります。最後に「一覧へ反映」してください`;
+    body.innerHTML = '';
+
+    const toolbar = document.createElement('div');
+    toolbar.className = 'detail-subgrid-card-editor-toolbar';
+    toolbar.appendChild(createContextPreviewButton('＋末尾に追加', '末尾に空カードを追加', () => {
+      editRows.push(emptyContextPreviewEditRow(columns));
+      rerender();
+    }));
+    body.appendChild(toolbar);
+
+    if (!editRows.length) {
+      const empty = document.createElement('div');
+      empty.className = 'detail-subgrid-preview-empty-card';
+      empty.textContent = '文脈行がありません。＋末尾に追加で行を作成できます。';
+      body.appendChild(empty);
+      return;
+    }
+
+    editRows.forEach((row, index) => {
+      const itemRow = row && typeof row === 'object' ? row : {};
+      const section = document.createElement('section');
+      section.className = 'detail-subgrid-preview-card detail-subgrid-card-editor-card context-preview-edit-card';
+
+      const titleLine = document.createElement('div');
+      titleLine.className = 'detail-subgrid-preview-card-title detail-subgrid-card-editor-card-title';
+      const titleText = document.createElement('span');
+      titleText.textContent = contextPreviewEditRowTitle(itemRow, index, columns);
+      titleLine.appendChild(titleText);
+
+      const actions = document.createElement('div');
+      actions.className = 'detail-subgrid-card-editor-row-actions';
+      actions.appendChild(createContextPreviewButton('＋上', 'このカードの上に追加', () => { editRows.splice(index, 0, emptyContextPreviewEditRow(columns)); rerender(); }));
+      actions.appendChild(createContextPreviewButton('＋下', 'このカードの下に追加', () => { editRows.splice(index + 1, 0, emptyContextPreviewEditRow(columns)); rerender(); }));
+      actions.appendChild(createContextPreviewButton('複製', 'このカードを複製して下に追加', () => { editRows.splice(index + 1, 0, JSON.parse(JSON.stringify(itemRow))); rerender(); }));
+      actions.appendChild(createContextPreviewButton('↑', 'このカードを上へ移動', () => {
+        if (index <= 0) return;
+        const [moved] = editRows.splice(index, 1);
+        editRows.splice(index - 1, 0, moved);
+        rerender();
+      }));
+      actions.appendChild(createContextPreviewButton('↓', 'このカードを下へ移動', () => {
+        if (index >= editRows.length - 1) return;
+        const [moved] = editRows.splice(index, 1);
+        editRows.splice(index + 1, 0, moved);
+        rerender();
+      }));
+      actions.appendChild(createContextPreviewButton('削除', 'このカードを削除', () => { editRows.splice(index, 1); rerender(); }));
+      titleLine.appendChild(actions);
+      section.appendChild(titleLine);
+
+      columns.forEach(col => {
+        const fieldLine = document.createElement('div');
+        fieldLine.className = 'detail-subgrid-preview-field detail-subgrid-card-editor-field';
+        const label = document.createElement('div');
+        label.className = 'detail-subgrid-preview-label';
+        label.textContent = col.caption ?? col.field;
+        const value = document.createElement('div');
+        value.className = 'detail-subgrid-card-editor-value';
+        const editorColumn = { ...col, field: col.field, type: col.type ?? 'text' };
+        value.appendChild(createDetailSubGridPreviewEditValue({
+          rowIndex: index,
+          column: editorColumn,
+          itemRow,
+          field: editorField,
+          onValueChange: setRowValue
+        }));
+        fieldLine.appendChild(label);
+        fieldLine.appendChild(value);
+        section.appendChild(fieldLine);
+      });
+
+      body.appendChild(section);
+    });
+  };
+
+  rerender();
+  overlay.appendChild(dialog);
+  document.body.appendChild(overlay);
+  if (typeof overlay.showModal === 'function') overlay.showModal();
+  else overlay.setAttribute('open', '');
+  applyBtn.focus();
+}
+
+function openContextRefsPreviewEdit({ title, refs, metas, panel, indexAttr, fieldAttr, onApply }) {
+  const rows = collectContextPreviewRowsFromPanel(panel, refs, indexAttr, fieldAttr);
+  const columns = contextPreviewEditColumnsFromMetas(metas);
+  showContextRefsPreviewEdit({
     title,
     rows,
     columns,
-    type: 'objectArray',
-    field: { type: 'objectArray', markdown: { enabled: true, allowLinks: true, allowImages: false } },
-    note: '未反映の編集中セルも含めて表示します'
+    onApply: (nextRows) => {
+      if (typeof onApply === 'function') onApply(nextRows);
+    }
   });
 }
 
 function openMainContextPreview(panel, cfg) {
-  openContextRefsPreview({
-    title: `${cfg?.display_name || '主文脈'} プレビュー`,
-    refs: mainContextRefs(),
+  const refs = mainContextRefs();
+  openContextRefsPreviewEdit({
+    title: `${cfg?.display_name || '主文脈'}`,
+    refs,
     metas: mainContextColumnMetas(cfg),
     panel,
     indexAttr: 'data-main-context-index',
-    fieldAttr: 'data-main-context-field'
+    fieldAttr: 'data-main-context-field',
+    onApply: (nextRows) => {
+      replaceContextRefsArray(refs, nextRows);
+      renderMainContextHeaderPanel($('headerSection'));
+      if (typeof setStatus === 'function') setStatus('主文脈のプレビュー編集内容を一覧へ反映しました。F12または反映ボタンで親JSONへ同期してください。');
+    }
   });
 }
 
 function openTargetContextPreview(panel, row, cfg) {
-  openContextRefsPreview({
-    title: `${cfg?.display_name || '対象文脈'} プレビュー`,
-    refs: targetContextRefsFromRow(row, cfg, false),
+  const refs = targetContextRefsFromRow(row, cfg, true);
+  openContextRefsPreviewEdit({
+    title: `${cfg?.display_name || '対象文脈'}`,
+    refs,
     metas: targetContextColumnMetas(cfg),
     panel,
     indexAttr: 'data-target-context-index',
-    fieldAttr: 'data-target-context-field'
+    fieldAttr: 'data-target-context-field',
+    onApply: (nextRows) => {
+      replaceContextRefsArray(refs, nextRows);
+      targetContextDetailPanelExpanded = true;
+      renderDetailForRow(row);
+      if (typeof renderGrid === 'function') renderGrid();
+      if (typeof setStatus === 'function') setStatus('対象文脈のプレビュー編集内容を一覧へ反映しました。F12または反映ボタンで親JSONへ同期してください。');
+    }
   });
 }
 
@@ -386,7 +603,7 @@ function renderMainContextHeaderPanel(host) {
   });
   actions.appendChild(toggle);
   if (mainContextPanelExpanded && typeof showDetailSubGridPreview === 'function') {
-    actions.appendChild(createContextPreviewButton('プレビュー', '主文脈をカード表示で読む', () => openMainContextPreview(panel, cfg)));
+    actions.appendChild(createContextPreviewButton('プレビュー編集', '主文脈を読み物兼編集画面で開く', () => openMainContextPreview(panel, cfg)));
   }
   summary.appendChild(actions);
   panel.appendChild(summary);
@@ -641,7 +858,7 @@ function renderTargetContextDetailPanel(row, gd, host) {
   actions.appendChild(toggle);
   if (targetContextDetailPanelExpanded) {
     if (typeof showDetailSubGridPreview === 'function') {
-      actions.appendChild(createContextPreviewButton('プレビュー', '対象文脈をカード表示で読む', () => openTargetContextPreview(panel, row, cfg)));
+      actions.appendChild(createContextPreviewButton('プレビュー編集', '対象文脈を読み物兼編集画面で開く', () => openTargetContextPreview(panel, row, cfg)));
     }
     const addBtn = document.createElement('button');
     addBtn.type = 'button';

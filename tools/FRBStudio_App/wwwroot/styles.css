@@ -1989,13 +1989,21 @@ button.combo-clear-button:focus-visible {
   text-overflow: clip;
   vertical-align: top;
 }
+.detail-subgrid-table th[data-subgrid-kind],
+.detail-subgrid-table td[data-subgrid-kind] {
+  box-sizing: border-box;
+}
+.detail-subgrid-table th[data-subgrid-kind=longText],
+.detail-subgrid-table td[data-subgrid-kind=longText] {
+  white-space: normal;
+}
 .detail-subgrid-action-th,
 .detail-subgrid-row-actions {
   position: sticky;
   left: 0;
   z-index: 2;
-  min-width: 116px;
-  width: 116px;
+  min-width: 88px;
+  width: 88px;
   background: #f8fbff;
 }
 .detail-subgrid-table th.detail-subgrid-action-th { z-index: 3; }
@@ -2180,4 +2188,477 @@ textarea.detail-subgrid-cell-input {
     grid-template-columns: 1fr;
     gap: 4px;
   }
+}
+
+/* v0.16.5-grid-card-document-renderer: main Grid二系統化 / Card(Document) Grid */
+.table-wrap.document-grid-wrap {
+  max-height: calc(100vh - 320px);
+  background: linear-gradient(180deg, #f8fbff, #eef6ff);
+  padding: 10px;
+}
+.document-grid-host {
+  display: grid;
+  gap: 12px;
+  min-width: min(880px, 100%);
+}
+.document-grid-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid rgba(191, 219, 254, .88);
+  border-radius: 12px;
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 10px 22px rgba(15, 23, 42, .06);
+}
+.document-grid-note {
+  color: #475569;
+  font-size: 12px;
+  line-height: 1.55;
+}
+.document-grid-card,
+.document-grid-empty-card {
+  border: 1px solid rgba(191, 219, 254, .95);
+  border-radius: 16px;
+  background: rgba(255,255,255,.97);
+  box-shadow: 0 12px 32px rgba(59, 130, 246, .08);
+  overflow: hidden;
+}
+.document-grid-card.selected {
+  border-color: rgba(99, 102, 241, .72);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, .12), 0 14px 34px rgba(59, 130, 246, .10);
+}
+.document-grid-card.row-fail { border-color: rgba(248, 113, 113, .70); }
+.document-grid-card.row-pass { border-color: rgba(74, 222, 128, .62); }
+.document-grid-card.row-missing { border-color: rgba(251, 191, 36, .72); }
+.document-grid-card-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  padding: 13px 14px 11px;
+  border-bottom: 1px solid rgba(226, 232, 240, .92);
+  background: linear-gradient(180deg, rgba(248,250,252,.98), rgba(255,255,255,.96));
+}
+.document-grid-card-kicker {
+  color: #2563eb;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.document-grid-card-title-wrap h3 {
+  margin: 3px 0 8px;
+  color: #0f172a;
+  font-size: 16px;
+  line-height: 1.35;
+}
+.document-grid-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.document-grid-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border: 1px solid rgba(191, 219, 254, .9);
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1e3a8a;
+  font-size: 11px;
+  font-weight: 900;
+}
+.document-grid-card-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 5px;
+  flex-wrap: wrap;
+  max-width: 420px;
+}
+.document-grid-action.small {
+  padding: 5px 9px;
+  font-size: 11px;
+}
+.document-grid-card-body {
+  display: grid;
+  gap: 0;
+  padding: 4px 14px 12px;
+}
+.document-grid-field {
+  display: grid;
+  grid-template-columns: minmax(132px, 190px) minmax(0, 1fr);
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px dashed rgba(203, 213, 225, .86);
+}
+.document-grid-field:first-child { border-top: 0; }
+.document-grid-label {
+  color: #475569;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.55;
+}
+.document-grid-value {
+  min-height: 34px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  padding: 7px 9px;
+  color: #0f172a;
+  font-size: 13px;
+  line-height: 1.65;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.document-grid-value.is-editable {
+  cursor: text;
+  background: rgba(248, 250, 252, .78);
+  border-color: rgba(226, 232, 240, .86);
+}
+.document-grid-value.is-editable:hover,
+.document-grid-value.is-editable:focus {
+  outline: none;
+  border-color: rgba(59, 130, 246, .42);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, .08);
+  background: #ffffff;
+}
+.document-grid-value.readonly {
+  background: rgba(248, 250, 252, .66);
+  color: #64748b;
+}
+.document-grid-value-body p { margin: 0 0 8px; }
+.document-grid-value-body p:last-child { margin-bottom: 0; }
+.document-grid-value-body pre {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #0f172a;
+  color: #e2e8f0;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+.document-grid-empty-value {
+  color: #94a3b8;
+  font-style: italic;
+}
+.document-grid-editor {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgba(59, 130, 246, .55);
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: #fff;
+  color: #0f172a;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.55;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, .10);
+}
+textarea.document-grid-editor {
+  min-height: 120px;
+  resize: vertical;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.document-grid-empty-card {
+  padding: 18px;
+  color: #64748b;
+  font-weight: 800;
+}
+@media (max-width: 820px) {
+  .document-grid-card-header { grid-template-columns: 1fr; }
+  .document-grid-card-actions { justify-content: flex-start; max-width: none; }
+  .document-grid-field { grid-template-columns: 1fr; gap: 5px; }
+  .document-grid-toolbar { align-items: stretch; flex-direction: column; }
+}
+
+/* v0.16.5: Previewを編集ダイアログの背面に隠さないため、Preview overlay自体をdialog化する */
+dialog.detail-subgrid-preview-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  border: 0;
+  padding: 20px;
+  background: rgba(15, 23, 42, .35);
+  backdrop-filter: blur(3px);
+  color: inherit;
+}
+dialog.detail-subgrid-preview-overlay::backdrop {
+  background: rgba(15, 23, 42, .42);
+  backdrop-filter: blur(2px);
+}
+dialog.detail-subgrid-preview-overlay .detail-subgrid-preview-dialog {
+  margin: auto;
+}
+
+/* v0.16.5.1-child-subgrid-card-editor: サブグリッド一覧はTable維持、編集/プレビューだけCard化 */
+.detail-subgrid-card-editor-dialog {
+  width: min(1160px, calc(100vw - 32px));
+}
+.detail-subgrid-card-editor-header {
+  align-items: center;
+}
+.detail-subgrid-card-editor-header-actions,
+.detail-subgrid-card-editor-row-actions,
+.detail-subgrid-card-editor-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.detail-subgrid-card-editor-body {
+  gap: 12px;
+}
+.detail-subgrid-card-editor-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 8px 10px;
+  border: 1px solid rgba(191, 219, 254, .88);
+  border-radius: 12px;
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 10px 22px rgba(15, 23, 42, .06);
+}
+.detail-subgrid-card-editor-card-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.detail-subgrid-card-editor-row-actions {
+  max-width: 520px;
+}
+.detail-subgrid-card-editor-field {
+  align-items: start;
+}
+.detail-subgrid-card-editor-value .document-grid-editor,
+.detail-subgrid-card-editor-value .detail-subgrid-cell-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+.detail-subgrid-card-editor-value textarea.document-grid-editor,
+.detail-subgrid-card-editor-value textarea.detail-subgrid-cell-input {
+  min-height: 110px;
+  resize: vertical;
+}
+.detail-subgrid-action-btn.primary {
+  border-color: rgba(99, 102, 241, .35);
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(79, 70, 229, .22);
+}
+.detail-subgrid-action-btn.primary:hover {
+  filter: brightness(1.05);
+}
+@media (max-width: 760px) {
+  .detail-subgrid-card-editor-card-title {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .detail-subgrid-card-editor-row-actions,
+  .detail-subgrid-card-editor-header-actions {
+    justify-content: flex-start;
+  }
+}
+
+/* v0.16.5.2-detail-subgrid-compact-row-actions: sub grid 操作列の低身長化 */
+.detail-subgrid-table th,
+.detail-subgrid-table td {
+  padding: 2px 4px;
+  vertical-align: middle;
+}
+.detail-subgrid-action-th,
+.detail-subgrid-row-actions {
+  min-width: 96px;
+  width: 96px;
+}
+.detail-subgrid-row-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 3px;
+  padding: 2px 4px;
+  white-space: nowrap;
+}
+.detail-subgrid-row-no {
+  min-width: 14px;
+  font-size: 10px;
+  line-height: 1;
+}
+.detail-subgrid-action-btn {
+  padding: 1px 5px;
+  min-height: 22px;
+  border-radius: 999px;
+  font-size: 10px;
+  line-height: 1;
+  white-space: nowrap;
+}
+.detail-subgrid-cell-input {
+  margin: 0;
+  padding: 2px 5px;
+  min-height: 24px;
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 1.25;
+}
+textarea.detail-subgrid-cell-input {
+  height: 26px;
+  min-height: 24px;
+  resize: vertical;
+}
+.detail-subgrid-table tbody tr {
+  height: 30px;
+}
+
+/* v0.16.5.3-child-subgrid-preview-edit: プレビュー編集は読み物兼編集画面 */
+.detail-subgrid-card-preview-edit-value {
+  width: 100%;
+  min-height: 42px;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid rgba(191, 219, 254, .9);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .92);
+  color: #0f172a;
+  cursor: text;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.detail-subgrid-card-preview-edit-value:hover,
+.detail-subgrid-card-preview-edit-value:focus {
+  border-color: rgba(79, 70, 229, .45);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, .10);
+  outline: none;
+}
+.detail-subgrid-card-preview-edit-value[data-editing="true"] {
+  padding: 0;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+.detail-subgrid-card-preview-rendered {
+  line-height: 1.55;
+  font-size: 13px;
+}
+.detail-subgrid-card-preview-rendered p:first-child { margin-top: 0; }
+.detail-subgrid-card-preview-rendered p:last-child { margin-bottom: 0; }
+.detail-subgrid-card-preview-editor {
+  width: 100%;
+  min-height: 132px;
+  box-sizing: border-box;
+}
+.detail-subgrid-card-live-control {
+  width: 100%;
+  box-sizing: border-box;
+}
+.detail-subgrid-card-editor-value select.detail-subgrid-card-live-control,
+.detail-subgrid-card-editor-value input.detail-subgrid-card-live-control {
+  min-height: 30px;
+}
+
+/* v0.16.5.4-subgrid-preview-edit-textarea-enter-compact: preview edit dialog vertical compaction */
+.detail-subgrid-card-editor-dialog .detail-subgrid-preview-header {
+  padding: 10px 14px 7px;
+}
+.detail-subgrid-card-editor-dialog .detail-subgrid-preview-header h2 {
+  margin-top: 0;
+  font-size: 16px;
+  line-height: 1.2;
+}
+.detail-subgrid-card-editor-dialog .detail-subgrid-preview-summary {
+  padding: 5px 14px;
+  font-size: 11px;
+  line-height: 1.25;
+}
+.detail-subgrid-card-editor-dialog .detail-subgrid-preview-body,
+.detail-subgrid-card-editor-body {
+  padding: 8px 12px 12px;
+  gap: 6px;
+}
+.detail-subgrid-card-editor-toolbar {
+  padding: 4px 6px;
+  border-radius: 9px;
+  box-shadow: none;
+}
+.detail-subgrid-card-editor-card.detail-subgrid-preview-card {
+  padding: 7px 10px;
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(59, 130, 246, .045);
+}
+.detail-subgrid-card-editor-card-title {
+  margin-bottom: 4px;
+  gap: 6px;
+  align-items: center;
+  font-size: 12px;
+  line-height: 1.15;
+}
+.detail-subgrid-card-editor-row-actions {
+  gap: 3px;
+}
+.detail-subgrid-card-editor-field.detail-subgrid-preview-field {
+  grid-template-columns: minmax(92px, 150px) minmax(0, 1fr);
+  gap: 5px;
+  padding: 3px 0;
+  align-items: start;
+}
+.detail-subgrid-card-editor-field .detail-subgrid-preview-label {
+  font-size: 11px;
+  line-height: 1.15;
+  padding-top: 4px;
+}
+.detail-subgrid-card-editor-value .detail-subgrid-cell-input,
+.detail-subgrid-card-editor-value .document-grid-editor,
+.detail-subgrid-card-live-control {
+  margin: 0;
+  padding: 2px 5px;
+  min-height: 24px;
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 1.25;
+}
+.detail-subgrid-card-editor-value textarea.detail-subgrid-cell-input,
+.detail-subgrid-card-editor-value textarea.document-grid-editor,
+.detail-subgrid-card-preview-editor {
+  margin: 0;
+  padding: 4px 6px;
+  min-height: 72px;
+  height: 72px;
+  border-radius: 7px;
+  font-size: 12px;
+  line-height: 1.35;
+  resize: vertical;
+}
+.detail-subgrid-card-preview-edit-value {
+  min-height: 26px;
+  padding: 4px 6px;
+  border-radius: 7px;
+  font-size: 12px;
+  line-height: 1.35;
+}
+.detail-subgrid-card-preview-edit-value[data-editing="true"] {
+  padding: 0;
+}
+.detail-subgrid-card-preview-rendered {
+  font-size: 12px;
+  line-height: 1.35;
+}
+.detail-subgrid-card-preview-rendered p {
+  margin: 0 0 4px;
+}
+.detail-subgrid-card-preview-rendered p:last-child {
+  margin-bottom: 0;
+}
+.detail-subgrid-card-editor-value select.detail-subgrid-card-live-control,
+.detail-subgrid-card-editor-value input.detail-subgrid-card-live-control {
+  min-height: 24px;
 }
