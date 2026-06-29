@@ -121,7 +121,18 @@ internal static class Program
 
         app.MapGet("/api/markdown", () => Results.Json(ListMarkdownFiles(markdownDir)));
 
-        app.MapGet("/api/markdown/{name}", async (string name) =>
+        app.MapPost("/api/markdown/drop", async (MarkdownSaveRequest req) =>
+        {
+            var dropName = SafeMarkdownRootFileName(req.Name);
+            var path = dropName is null ? null : SafeMarkdownPath(markdownDir, dropName);
+            if (path is null || dropName is null) return Results.BadRequest("invalid file name");
+
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            await File.WriteAllTextAsync(path, req.Content ?? string.Empty);
+            return Results.Ok(new { saved = dropName });
+        });
+
+        app.MapGet("/api/markdown/{**name}", async (string name) =>
         {
             var path = SafeMarkdownPath(markdownDir, name);
             if (path is null || !File.Exists(path)) return Results.NotFound();
@@ -133,22 +144,14 @@ internal static class Program
             return Results.Text(await File.ReadAllTextAsync(path), contentType);
         });
 
-        app.MapPost("/api/markdown/{name}", async (string name, MarkdownSaveRequest req) =>
+        app.MapPost("/api/markdown/{**name}", async (string name, MarkdownSaveRequest req) =>
         {
             var path = SafeMarkdownPath(markdownDir, name);
             if (path is null) return Results.BadRequest("invalid file name");
 
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             await File.WriteAllTextAsync(path, req.Content ?? string.Empty);
-            return Results.Ok(new { saved = name });
-        });
-
-        app.MapPost("/api/markdown/drop", async (MarkdownSaveRequest req) =>
-        {
-            var path = SafeMarkdownPath(markdownDir, req.Name);
-            if (path is null) return Results.BadRequest("invalid file name");
-
-            await File.WriteAllTextAsync(path, req.Content ?? string.Empty);
-            return Results.Ok(new { saved = req.Name });
+            return Results.Ok(new { saved = ToRelativeApiPath(markdownDir, path) });
         });
 
         app.MapGet("/api/defs/{**name}", async (string name) =>
@@ -935,9 +938,9 @@ internal static class Program
     private static string[] ListMarkdownFiles(string dir)
     {
         Directory.CreateDirectory(dir);
-        return Directory.GetFiles(dir, "*.md")
-            .Concat(Directory.GetFiles(dir, "*.markdown"))
-            .Select(Path.GetFileName)
+        return Directory.EnumerateFiles(dir, "*", SearchOption.AllDirectories)
+            .Where(path => IsManagedMarkdownFileName(Path.GetFileName(path)))
+            .Select(path => ToRelativeApiPath(dir, path))
             .Where(x => !string.IsNullOrWhiteSpace(x))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
@@ -1047,22 +1050,36 @@ internal static class Program
         if (string.IsNullOrWhiteSpace(normalized)) return null;
         if (normalized.Contains("://", StringComparison.OrdinalIgnoreCase)) return null;
         if (Path.IsPathRooted(normalized)) return null;
-        if (normalized.Split('/', StringSplitOptions.RemoveEmptyEntries).Any(part => part is "." or "..")) return null;
 
-        // v0.13.3.1:
-        // Markdown本文の管理APIで、本文に紐づくSidecarコメントJSONも保存できるようにする。
-        // 例: article.md.comments.json / article.markdown.comments.json
-        // ただし任意JSON保存口にはしない。Markdown本文に紐づく .comments.json のみ許可する。
-        if (normalized.Contains('/')) return null;
-        if (!IsManagedMarkdownFileName(normalized) && !IsMarkdownCommentSidecarName(normalized)) return null;
+        var parts = normalized.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0) return null;
+        if (parts.Any(part => part is "." or "..")) return null;
+        if (parts.Any(part => part.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)) return null;
 
-        var full = Path.GetFullPath(Path.Combine(baseDir, normalized));
+        // v0.16.10:
+        // Markdown本文は data/markdown 配下のサブフォルダ管理を許可する。
+        // ただし任意ファイル保存口にはしない。末尾ファイル名が .md/.markdown、
+        // または本文に紐づく .comments.json の場合だけ許可する。
+        var fileName = parts[^1];
+        if (!IsManagedMarkdownFileName(fileName) && !IsMarkdownCommentSidecarName(fileName)) return null;
+
+        var full = Path.GetFullPath(Path.Combine(baseDir, Path.Combine(parts)));
         var allowed = EnsureTrailingSeparator(Path.GetFullPath(baseDir));
 
-        return EnsureTrailingSeparator(Path.GetDirectoryName(full) ?? string.Empty)
-            .StartsWith(allowed, StringComparison.OrdinalIgnoreCase)
+        return full.StartsWith(allowed, StringComparison.OrdinalIgnoreCase)
             ? full
             : null;
+    }
+
+    private static string? SafeMarkdownRootFileName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return null;
+        var normalized = Uri.UnescapeDataString(name).Replace('\\', '/').Trim('/');
+        var fileName = normalized.Split('/', StringSplitOptions.RemoveEmptyEntries).LastOrDefault();
+        if (string.IsNullOrWhiteSpace(fileName)) return null;
+        if (fileName is "." or "..") return null;
+        if (fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) return null;
+        return IsManagedMarkdownFileName(fileName) ? fileName : null;
     }
 
     private static bool IsManagedMarkdownFileName(string name)

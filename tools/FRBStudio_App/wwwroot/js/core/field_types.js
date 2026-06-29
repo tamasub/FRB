@@ -429,3 +429,33 @@ function optionLabelForValue(value, field=null) {
   const found = options.find(opt => String(optionValue(opt, field)) === String(value ?? ''));
   return found ? optionLabel(found, field) : value;
 }
+
+// v0.16.8-detail-select-preserve-unknown-value:
+// Grid表示は候補外の既存値も文字列として表示できるが、HTML select は options に存在しない値を
+// value にセットしても空表示になる。既存Dataに候補外値がある場合でも、Detail Editor /
+// Document Grid / SubGrid Editor が空表示にならないよう、現在値を一時optionとして保持する。
+function selectHasOptionValue(input, value) {
+  const normalized = String(value ?? '');
+  return Array.from(input?.options ?? []).some(opt => String(opt.value) === normalized);
+}
+
+function ensureSelectCurrentValueOption(input, field, value, options={}) {
+  if (!input) return;
+  const normalized = String(value ?? '');
+  if (!normalized) return;
+  if (selectHasOptionValue(input, normalized)) return;
+
+  const opt = document.createElement('option');
+  opt.value = normalized;
+  opt.textContent = String(options.label ?? optionLabelForValue(normalized, field) ?? normalized);
+  opt.dataset.runtimeAddedCurrentValue = 'true';
+  opt.dataset.reason = 'value-not-in-viewdef-options';
+  opt.title = 'ViewDef options に存在しない既存値です';
+  input.appendChild(opt);
+}
+
+function setSelectValuePreservingUnknown(input, field, value) {
+  const normalized = String(value ?? '');
+  ensureSelectCurrentValueOption(input, field, normalized);
+  input.value = normalized;
+}

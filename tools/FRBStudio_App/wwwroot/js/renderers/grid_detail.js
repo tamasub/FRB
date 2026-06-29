@@ -226,7 +226,7 @@ function createDocumentGridEditor(field, value) {
       o.textContent = optionLabel(opt, field);
       input.appendChild(o);
     });
-    input.value = value ?? '';
+    setSelectValuePreservingUnknown(input, field, value);
   } else if (field.type === 'boolean') {
     input = document.createElement('select');
     ['', 'true', 'false'].forEach(v => {

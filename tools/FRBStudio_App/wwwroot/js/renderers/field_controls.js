@@ -796,7 +796,7 @@ function createSelectControlElement({ field, value }) {
     input.appendChild(o);
   });
   applySelectDisplayMode(input, field);
-  input.value = value ?? '';
+  setSelectValuePreservingUnknown(input, field, value);
   return input;
 }
 

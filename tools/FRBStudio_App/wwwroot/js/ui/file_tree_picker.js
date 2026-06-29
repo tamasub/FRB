@@ -106,6 +106,22 @@ function showFileTreePicker(state) {
   }
   state.picker.classList.remove('hidden');
   renderFileTreePicker(state);
+  ensureFileTreePickerServerList(state);
+}
+
+function ensureFileTreePickerServerList(state) {
+  if (!state || typeof refreshServerLists !== 'function') return;
+  const names = uniqueNames(state.config.names());
+  if (names.length) return;
+  if (refreshServerLists.isRefreshing) return;
+  if (refreshServerLists.hasCompleted) return;
+
+  refreshServerLists({ status: false, toast: false })
+    .then(() => renderFileTreePicker(state))
+    .catch((err) => {
+      console.warn('ファイル選択一覧の再取得に失敗しました', err);
+      renderFileTreePicker(state);
+    });
 }
 
 function hideFileTreePicker(state) {
@@ -134,9 +150,13 @@ function renderFileTreePicker(state) {
   if (!names.length) {
     const empty = document.createElement('div');
     empty.className = 'file-tree-empty';
-    empty.textContent = state.config.inputId === 'defNameInput' && currentDataViewDefCandidateMode
-      ? 'このData JSONにViewDef候補がありません'
-      : '管理対象JSONが見つかりません';
+    if (typeof refreshServerLists === 'function' && !refreshServerLists.hasCompleted) {
+      empty.textContent = '管理対象JSON一覧を読み込み中です...';
+    } else {
+      empty.textContent = state.config.inputId === 'defNameInput' && currentDataViewDefCandidateMode
+        ? 'このData JSONにViewDef候補がありません'
+        : '管理対象JSONが見つかりません';
+    }
     state.list.appendChild(empty);
     return;
   }

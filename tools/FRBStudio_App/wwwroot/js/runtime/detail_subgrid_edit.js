@@ -237,7 +237,7 @@ function createSubGridCellControl({ value, column, editable, field }) {
       o.textContent = optionLabel(opt, column);
       input.appendChild(o);
     });
-    input.value = value ?? '';
+    setSelectValuePreservingUnknown(input, column, value);
   } else if (type === 'number') {
     input = document.createElement('input');
     input.type = 'number';

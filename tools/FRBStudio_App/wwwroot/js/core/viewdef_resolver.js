@@ -204,23 +204,55 @@ function normalizeComboInput(input, serverNames, label) {
   return resolved;
 }
 
-async function refreshServerLists() {
-  try {
-    const [defs, data] = await Promise.all([
+async function refreshServerLists(options = {}) {
+  if (refreshServerLists._promise) return refreshServerLists._promise;
+
+  refreshServerLists.isRefreshing = true;
+  refreshServerLists._promise = (async () => {
+    const [defsResult, dataResult] = await Promise.allSettled([
       fetchJson('/api/defs'),
       fetchJson('/api/data')
     ]);
-    serverDefNames = normalizeServerNames(defs);
-    serverDataNames = normalizeServerNames(data);
+
+    if (defsResult.status === 'fulfilled') {
+      serverDefNames = normalizeServerNames(defsResult.value);
+    } else {
+      console.warn('/api/defs 一覧取得に失敗しました', defsResult.reason);
+    }
+
+    if (dataResult.status === 'fulfilled') {
+      serverDataNames = normalizeServerNames(dataResult.value);
+    } else {
+      console.warn('/api/data 一覧取得に失敗しました', dataResult.reason);
+    }
+
     setDatalist('defNameList', viewDefSelectionNames());
     setDatalist('dataNameList', serverDataNames);
     if (typeof refreshFileTreePickers === 'function') refreshFileTreePickers();
-    setStatus(`一覧を更新しました: defs ${serverDefNames.length}件 / data ${serverDataNames.length}件`);
-  } catch (err) {
-    console.warn(err);
-    setStatus('一覧API未使用: DropまたはURL指定で読み込めます');
+
+    const hasAnyList = defsResult.status === 'fulfilled' || dataResult.status === 'fulfilled';
+    if (options.status !== false) {
+      if (hasAnyList) {
+        setStatus(`一覧を更新しました: defs ${serverDefNames.length}件 / data ${serverDataNames.length}件`, { toast: options.toast !== false });
+      } else {
+        setStatus('一覧API未使用: DropまたはURL指定で読み込めます', { toast: options.toast !== false });
+      }
+    }
+
+    return { defs: serverDefNames, data: serverDataNames };
+  })();
+
+  try {
+    return await refreshServerLists._promise;
+  } finally {
+    refreshServerLists.hasCompleted = true;
+    refreshServerLists.isRefreshing = false;
+    refreshServerLists._promise = null;
   }
 }
+refreshServerLists.hasCompleted = false;
+refreshServerLists.isRefreshing = false;
+refreshServerLists._promise = null;
 
 function viewDefSelectionNames() {
   if (currentDataViewDefCandidateMode) {

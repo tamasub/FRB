@@ -319,7 +319,113 @@
 
     .control-group.import-flow { flex: 0 1 auto; }
     .urlbox { display: flex; align-items: center; width: clamp(160px, 18vw, 260px); min-width:0; }
-    #managedMdSelect { width: clamp(220px, 28vw, 380px) !important; min-width: 180px; }
+    .md-managed-picker-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      width: clamp(220px, 28vw, 380px);
+      min-width: 180px;
+    }
+    #managedMdSelect {
+      width: 100% !important;
+      min-width: 0;
+      padding-right: 78px;
+    }
+    #btnClearManagedMd,
+    #btnManagedMdTree {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      min-width: 30px;
+      padding: 0;
+      border-radius: 10px;
+      background: rgba(105,120,160,.12);
+      color: var(--text);
+      box-shadow: none;
+      z-index: 2;
+    }
+    #btnClearManagedMd {
+      right: 42px;
+      font-size: 18px;
+      line-height: 30px;
+    }
+    #btnClearManagedMd[hidden] { display: none; }
+    #btnClearManagedMd:hover,
+    #btnManagedMdTree:hover {
+      transform: none;
+      background: rgba(105,120,160,.20);
+      box-shadow: none;
+    }
+    #btnManagedMdTree { right: 6px; }
+    .md-file-tree-picker {
+      position: absolute;
+      left: 0;
+      top: calc(100% + 8px);
+      width: min(720px, calc(100vw - 42px));
+      max-height: min(68vh, 560px);
+      overflow: auto;
+      z-index: 2147481000;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255,255,255,.98);
+      color: var(--text);
+      box-shadow: 0 18px 48px rgba(15,23,42,.22);
+    }
+    [data-theme="dark"] .md-file-tree-picker {
+      background: rgba(15,23,42,.98);
+    }
+    .md-file-tree-picker.hidden { display: none; }
+    .md-file-tree-hint {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 4px 6px 8px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      border-bottom: 1px solid rgba(105,120,160,.16);
+      margin-bottom: 6px;
+    }
+    .md-file-tree-list { display: grid; gap: 2px; }
+    .md-file-tree-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      width: 100%;
+      padding: 7px 8px 7px calc(8px + var(--depth, 0) * 18px);
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--text);
+      box-shadow: none;
+      text-align: left;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .md-file-tree-row:hover,
+    .md-file-tree-row:focus {
+      background: rgba(63,124,255,.10);
+      transform: none;
+      outline: none;
+    }
+    .md-file-tree-folder { color: #334155; }
+    [data-theme="dark"] .md-file-tree-folder { color: #dbeafe; }
+    .md-file-tree-file { font-weight: 650; }
+    .md-file-tree-icon { width: 18px; text-align: center; opacity: .78; flex: 0 0 18px; }
+    .md-file-tree-spacer { opacity: 0; pointer-events: none; }
+    .md-file-tree-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .md-file-tree-empty {
+      padding: 14px 10px;
+      padding-left: 22px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
     #themeSelect { width: 170px; }
     .compact-icon-btn { min-width:42px; padding:10px 12px; }
     .compact-text-btn { padding:10px 14px; }
@@ -327,7 +433,7 @@
       .topbar { grid-template-columns: 1fr; }
       .controls { justify-content:flex-start; }
       .control-group.primary-flow { justify-content:flex-start; flex-basis:100%; }
-      #managedMdSelect { width: min(100%, 420px) !important; }
+      .md-managed-picker-wrap { width: min(100%, 420px) !important; }
     }
     
     input, select {
@@ -1758,9 +1864,18 @@
         <div class="control-group primary-flow">
           <button class="ghost-btn compact-text-btn" id="localFileBtn">ローカル</button>
           
-          <select id="managedMdSelect" title="data/markdown 管理Markdown。選択すると即読み込みます。">
-            <option value="">管理Markdownなし</option>
-          </select>
+          <div class="md-managed-picker-wrap">
+            <input id="managedMdSelect" type="text" value="" title="data/markdown 管理Markdown。フォルダー階層で選択できます。" placeholder="管理Markdownを選択..." autocomplete="off" />
+            <button id="btnClearManagedMd" type="button" title="Markdownファイル名/検索文字をクリア" hidden>×</button>
+            <button id="btnManagedMdTree" type="button" title="フォルダー階層でMarkdownを選択">▾</button>
+            <div id="managedMdTreePicker" class="md-file-tree-picker hidden" role="listbox" aria-label="管理Markdown フォルダー階層選択">
+              <div class="md-file-tree-hint">
+                <span>フォルダー階層で選択</span>
+                <span>文字入力で相対パス検索</span>
+              </div>
+              <div id="managedMdTreeList" class="md-file-tree-list"></div>
+            </div>
+          </div>
           <button id="btnRefreshManagedMd" class="ghost-btn compact-icon-btn" title="管理Markdown一覧を再取得">↻</button>
           <button id="btnOverwriteManagedMd" class="compact-text-btn" title="data/markdownへ上書き保存">上書き</button>
           <button id="btnMarkdownSaveSafety" class="ghost-btn compact-text-btn" title="保存前にMarkdown本文・表・Sidecarコメントの安全性を検査">保存検査</button>
@@ -1879,13 +1994,15 @@
   </div>
 
 <script>
-const mdUrlEl=document.getElementById("mdUrl"),previewEl=document.getElementById("preview"),editorInlineHost=document.getElementById("editorInlineHost"),tocEl=document.getElementById("toc"),charCountEl=document.getElementById("charCount"),readTimeEl=document.getElementById("readTime"),blockModelMeta=document.getElementById("blockModelMeta"),localFileBtn=document.getElementById("localFileBtn"),localFileInput=document.getElementById("localFileInput"),tocDepthBtns=[...document.querySelectorAll(".toc-depth-btn")],themeSelect=document.getElementById("themeSelect"),editorEl=document.getElementById("editor"),btnViewerMode=document.getElementById("btnViewerMode"),btnEditorMode=document.getElementById("btnEditorMode"),articleCard=document.getElementById("articleCard"),metaFileName=document.getElementById("metaFileName"),editorFileName=document.getElementById("editorFileName"),slashMenu=document.getElementById("slashMenu"),managedMdSelect=document.getElementById("managedMdSelect"),btnRefreshManagedMd=document.getElementById("btnRefreshManagedMd"),btnOverwriteManagedMd=document.getElementById("btnOverwriteManagedMd");
+const mdUrlEl=document.getElementById("mdUrl"),previewEl=document.getElementById("preview"),editorInlineHost=document.getElementById("editorInlineHost"),tocEl=document.getElementById("toc"),charCountEl=document.getElementById("charCount"),readTimeEl=document.getElementById("readTime"),blockModelMeta=document.getElementById("blockModelMeta"),localFileBtn=document.getElementById("localFileBtn"),localFileInput=document.getElementById("localFileInput"),tocDepthBtns=[...document.querySelectorAll(".toc-depth-btn")],themeSelect=document.getElementById("themeSelect"),editorEl=document.getElementById("editor"),btnViewerMode=document.getElementById("btnViewerMode"),btnEditorMode=document.getElementById("btnEditorMode"),articleCard=document.getElementById("articleCard"),metaFileName=document.getElementById("metaFileName"),editorFileName=document.getElementById("editorFileName"),slashMenu=document.getElementById("slashMenu"),managedMdSelect=document.getElementById("managedMdSelect"),btnClearManagedMd=document.getElementById("btnClearManagedMd"),btnManagedMdTree=document.getElementById("btnManagedMdTree"),managedMdTreePicker=document.getElementById("managedMdTreePicker"),managedMdTreeList=document.getElementById("managedMdTreeList"),btnRefreshManagedMd=document.getElementById("btnRefreshManagedMd"),btnOverwriteManagedMd=document.getElementById("btnOverwriteManagedMd");
 
 const fmPanel=document.getElementById("fmPanel"),fmHeader=document.getElementById("fmHeader"),fmBody=document.getElementById("fmBody"),fmToggleIcon=document.getElementById("fmToggleIcon"),fmSuggestArea=document.getElementById("fmSuggestArea");
 const fmTitle=document.getElementById("fmTitle"),fmSlug=document.getElementById("fmSlug"),fmEmoji=document.getElementById("fmEmoji"),fmType=document.getElementById("fmType"),fmTopics=document.getElementById("fmTopics"),fmPublished=document.getElementById("fmPublished");
 
 let tocDepth="all";
 let currentManagedMarkdownName = "";
+let managedMarkdownFiles = [];
+let managedMarkdownTreeExpanded = new Set();
 let isManagedMarkdownDirty = false;
 let launchMarkdownRuntime = { fromUrl: false, readonly: false, fileParam: "" };
 let markdownEditorRuntime = {
@@ -3250,7 +3367,7 @@ async function loadMarkdownCommentSidecar(targetName) {
   mdCommentSidecarRuntime.lastSaveError = "";
   let raw = "";
   try {
-    const res = await fetch(`/api/markdown/${encodeURIComponent(sidecarName)}`, { cache: "no-store" });
+    const res = await fetch(markdownApiUrl(sidecarName), { cache: "no-store" });
     if (res.ok) raw = await res.text();
     else if (res.status !== 404) throw new Error(`HTTP ${res.status}`);
   } catch (err) {
@@ -3269,7 +3386,7 @@ async function saveMarkdownCommentSidecar({ quiet = true } = {}) {
   const content = JSON.stringify(buildMarkdownCommentSidecarDocument(), null, 2);
   localStorage.setItem(markdownCommentSidecarStorageKey(sidecarName), content);
   try {
-    const res = await fetch(`/api/markdown/${encodeURIComponent(sidecarName)}`, {
+    const res = await fetch(markdownApiUrl(sidecarName), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: sidecarName, content })
@@ -4858,7 +4975,7 @@ async function runMarkdownSaveSafetyBeforeSave(fileName, content) {
   return true;
 }
 async function verifySavedManagedMarkdown(fileName, expectedContent) {
-  const res = await fetch(`/api/markdown/${encodeURIComponent(fileName)}`, { cache: "no-store" });
+  const res = await fetch(markdownApiUrl(fileName), { cache: "no-store" });
   if (!res.ok) throw new Error(`保存後RoundTrip確認のGETに失敗しました: HTTP ${res.status}`);
   const actual = await res.text();
   if (actual !== String(expectedContent ?? "")) {
@@ -4881,41 +4998,205 @@ async function runManualMarkdownSaveSafetyCheck() {
 }
 
 function normalizeMarkdownFileName(name) {
-  let n = (name || "").trim();
+  let n = String(name || "").trim();
   if (!n) n = "frb_thought.md";
-  n = n.replace(/[\\/:*?"<>|]/g, "_");
-  if (!/\.(md|markdown)$/i.test(n)) n += ".md";
-  return n;
+  n = n.replace(/\\/g, "/").replace(/^\/+/, "");
+  if (n.startsWith("data/markdown/")) n = n.slice("data/markdown/".length);
+  if (n.startsWith("markdown/")) n = n.slice("markdown/".length);
+  if (!n) n = "frb_thought.md";
+  if (n.includes("://") || n.startsWith("//") || /^[a-zA-Z]:/.test(n)) n = n.split("/").pop() || "frb_thought.md";
+  const rawParts = n.split("/").filter(Boolean);
+  const parts = rawParts
+    .filter(part => part !== "." && part !== "..")
+    .map(part => part.replace(/[:*?"<>|]/g, "_").trim())
+    .filter(Boolean);
+  if (!parts.length) parts.push("frb_thought.md");
+  let last = parts[parts.length - 1];
+  if (!/\.(md|markdown)$/i.test(last)) last += ".md";
+  parts[parts.length - 1] = last;
+  return parts.join("/");
+}
+
+function normalizeMarkdownRootFileName(name) {
+  const raw = String(name || "").replace(/\\/g, "/").split("/").pop() || "frb_thought.md";
+  return normalizeMarkdownFileName(raw).split("/").pop();
+}
+
+function encodeMarkdownPath(name) {
+  return normalizeMarkdownFileName(name).split("/").map(encodeURIComponent).join("/");
+}
+
+function markdownApiUrl(name) {
+  return `/api/markdown/${encodeMarkdownPath(name)}`;
+}
+
+function markdownDisplayName(name) {
+  return String(name || "").replace(/\\/g, "/").trim();
+}
+
+function buildManagedMarkdownTree(paths) {
+  const root = { name: "", path: "", folders: new Map(), files: [] };
+  uniqueMarkdownNames(paths).forEach(raw => {
+    const path = normalizeMarkdownFileName(raw);
+    const parts = path.split("/");
+    let node = root;
+    let currentPath = "";
+    parts.forEach((part, index) => {
+      const isFile = index === parts.length - 1;
+      currentPath = currentPath ? `${currentPath}/${part}` : part;
+      if (isFile) {
+        node.files.push({ name: part, path });
+      } else {
+        if (!node.folders.has(part)) {
+          node.folders.set(part, { name: part, path: currentPath, folders: new Map(), files: [] });
+        }
+        node = node.folders.get(part);
+      }
+    });
+  });
+  return root;
+}
+
+function uniqueMarkdownNames(names) {
+  const seen = new Set();
+  const out = [];
+  (Array.isArray(names) ? names : []).forEach(name => {
+    const n = normalizeMarkdownFileName(name);
+    if (!n || seen.has(n.toLowerCase())) return;
+    seen.add(n.toLowerCase());
+    out.push(n);
+  });
+  return out.sort((a, b) => a.localeCompare(b));
+}
+
+function filteredManagedMarkdownFiles() {
+  const query = String(managedMdSelect.value || "").trim().toLowerCase();
+  const names = uniqueMarkdownNames(managedMarkdownFiles);
+  if (!query) return names;
+  const tokens = query.split(/\s+/).filter(Boolean);
+  return names.filter(name => {
+    const haystack = name.toLowerCase();
+    return tokens.every(token => haystack.includes(token));
+  });
+}
+
+function updateManagedMarkdownClearButton() {
+  if (!btnClearManagedMd || !managedMdSelect) return;
+  btnClearManagedMd.hidden = !String(managedMdSelect.value || "").trim();
+}
+
+function clearManagedMarkdownPickerText({ keepPickerOpen = true } = {}) {
+  if (!managedMdSelect) return;
+  managedMdSelect.value = "";
+  updateManagedMarkdownClearButton();
+  if (keepPickerOpen) showManagedMarkdownTreePicker();
+  else hideManagedMarkdownTreePicker();
+  renderManagedMarkdownTreePicker();
+}
+
+function showManagedMarkdownTreePicker() {
+  managedMdTreePicker?.classList.remove("hidden");
+  renderManagedMarkdownTreePicker();
+}
+
+function hideManagedMarkdownTreePicker() {
+  managedMdTreePicker?.classList.add("hidden");
+}
+
+function renderManagedMarkdownTreePicker() {
+  if (!managedMdTreeList) return;
+  const names = uniqueMarkdownNames(managedMarkdownFiles);
+  const filtered = filteredManagedMarkdownFiles();
+  const isFiltering = String(managedMdSelect.value || "").trim().length > 0;
+  managedMdTreeList.innerHTML = "";
+
+  if (!names.length) {
+    const empty = document.createElement("div");
+    empty.className = "md-file-tree-empty";
+    empty.textContent = "管理Markdownが見つかりません";
+    managedMdTreeList.appendChild(empty);
+    return;
+  }
+
+  if (!filtered.length) {
+    const empty = document.createElement("div");
+    empty.className = "md-file-tree-empty";
+    empty.textContent = `一致するMarkdownがありません: ${managedMdSelect.value}`;
+    managedMdTreeList.appendChild(empty);
+    return;
+  }
+
+  const root = buildManagedMarkdownTree(filtered);
+  renderManagedMarkdownTreeNode(root, managedMdTreeList, 0, isFiltering);
+}
+
+function renderManagedMarkdownTreeNode(node, parentEl, depth, isFiltering) {
+  const folders = [...node.folders.values()].sort((a, b) => a.name.localeCompare(b.name));
+  folders.forEach(folder => {
+    const expanded = isFiltering || depth === 0 || managedMarkdownTreeExpanded.has(folder.path);
+    const row = document.createElement("button");
+    row.type = "button";
+    row.className = "md-file-tree-row md-file-tree-folder";
+    row.style.setProperty("--depth", depth);
+    row.innerHTML = `<span class="md-file-tree-icon">${expanded ? "▾" : "▸"}</span><span class="md-file-tree-icon">📁</span><span class="md-file-tree-label"></span>`;
+    row.querySelector(".md-file-tree-label").textContent = folder.name;
+    row.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (managedMarkdownTreeExpanded.has(folder.path)) managedMarkdownTreeExpanded.delete(folder.path);
+      else managedMarkdownTreeExpanded.add(folder.path);
+      renderManagedMarkdownTreePicker();
+    });
+    parentEl.appendChild(row);
+    if (expanded) renderManagedMarkdownTreeNode(folder, parentEl, depth + 1, isFiltering);
+  });
+
+  node.files.sort((a, b) => a.name.localeCompare(b.name)).forEach(file => {
+    const row = document.createElement("button");
+    row.type = "button";
+    row.className = "md-file-tree-row md-file-tree-file";
+    row.style.setProperty("--depth", depth);
+    row.dataset.path = file.path;
+    row.innerHTML = `<span class="md-file-tree-icon md-file-tree-spacer" aria-hidden="true"></span><span class="md-file-tree-icon">📄</span><span class="md-file-tree-label"></span>`;
+    row.querySelector(".md-file-tree-label").textContent = file.name;
+    row.title = file.path;
+    row.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      managedMdSelect.value = file.path;
+      updateManagedMarkdownClearButton();
+      hideManagedMarkdownTreePicker();
+      loadManagedMarkdown(file.path);
+    });
+    parentEl.appendChild(row);
+  });
 }
 
 async function refreshManagedMarkdownList(selectName = "") {
   try {
     const res = await fetch("/api/markdown", { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const files = await res.json();
-    managedMdSelect.innerHTML = "";
-    const emptyOpt = document.createElement("option");
-    emptyOpt.value = "";
-    emptyOpt.textContent = files.length ? "管理Markdownを選択..." : "管理Markdownなし";
-    managedMdSelect.appendChild(emptyOpt);
-    files.forEach(name => {
-      const opt = document.createElement("option");
-      opt.value = name;
-      opt.textContent = name;
-      managedMdSelect.appendChild(opt);
-    });
-    const target = selectName || currentManagedMarkdownName || "";
+    const files = uniqueMarkdownNames(await res.json());
+    managedMarkdownFiles = files;
+    const target = normalizeMarkdownFileName(selectName || currentManagedMarkdownName || managedMdSelect.value || "");
+    managedMdSelect.placeholder = files.length ? "管理Markdownを選択..." : "管理Markdownなし";
     managedMdSelect.value = files.includes(target) ? target : "";
+    updateManagedMarkdownClearButton();
+    renderManagedMarkdownTreePicker();
     return files;
   } catch (err) {
     console.warn("管理Markdown一覧の取得に失敗", err);
-    managedMdSelect.innerHTML = `<option value="">一覧取得失敗</option>`;
+    managedMarkdownFiles = [];
+    managedMdSelect.placeholder = "一覧取得失敗";
+    updateManagedMarkdownClearButton();
+    renderManagedMarkdownTreePicker();
     showMarkdownWarn("管理Markdown一覧の取得に失敗しました。", 4200);
     return [];
   }
 }
 
 async function loadManagedMarkdown(name) {
+  name = normalizeMarkdownFileName(name);
   if (!name) return;
   if (isManagedMarkdownDirty && currentManagedMarkdownName && currentManagedMarkdownName !== name) {
     const ok = confirm("未保存の編集があります。保存せずに別のMarkdownを読み込みますか？");
@@ -4927,10 +5208,12 @@ async function loadManagedMarkdown(name) {
 
   previewEl.innerHTML = '<div class="status-shimmer">data/markdown から容赦なくMarkdown読み込み中...</div>';
   try {
-    const res = await fetch(`/api/markdown/${encodeURIComponent(name)}`, { cache: "no-store" });
+    const res = await fetch(markdownApiUrl(name), { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const md = await res.text();
     currentManagedMarkdownName = name;
+    managedMdSelect.value = name;
+    updateManagedMarkdownClearButton();
     isManagedMarkdownDirty = false;
     editorEl.value = md;
     recordMarkdownLoadedSnapshot(name, md);
@@ -4947,7 +5230,7 @@ async function saveManagedMarkdown(name, content, quiet = false) {
   const fileName = normalizeMarkdownFileName(name);
   const safetyOk = await runMarkdownSaveSafetyBeforeSave(fileName, content);
   if (!safetyOk) throw new Error("Save Safety 検査により保存を中止しました。");
-  const res = await fetch(`/api/markdown/${encodeURIComponent(fileName)}`, {
+  const res = await fetch(markdownApiUrl(fileName), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name: fileName, content })
@@ -4971,7 +5254,7 @@ Backup: ${mdSaveSafetyRuntime.lastBackupKey || "-"}` : "";
 }
 
 async function askRegisterAsManagedMarkdown(fileName, content) {
-  const safeName = normalizeMarkdownFileName(fileName || metaFileName.value || editorFileName.value);
+  const safeName = normalizeMarkdownRootFileName(fileName || metaFileName.value || editorFileName.value);
   syncFileNameUI(safeName);
   const ok = confirm(`${safeName} を data/markdown の管理対象にしますか？\n\nOK: data/markdown に保存して管理対象にする\nキャンセル: 画面上で開くだけ`);
   if (!ok) {
@@ -5051,7 +5334,46 @@ btnRefreshManagedMd.addEventListener("click", async () => {
   showMarkdownInfo(files.length ? `管理Markdown一覧を更新しました（${files.length}件）。` : "管理Markdownはまだありません。", 2600);
 });
 
-managedMdSelect.addEventListener("change", () => loadManagedMarkdown(managedMdSelect.value));
+btnClearManagedMd?.addEventListener("click", (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+  clearManagedMarkdownPickerText({ keepPickerOpen: true });
+  managedMdSelect.focus({ preventScroll: true });
+});
+
+btnManagedMdTree?.addEventListener("click", (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+  showManagedMarkdownTreePicker();
+});
+managedMdSelect.addEventListener("focus", () => showManagedMarkdownTreePicker());
+managedMdSelect.addEventListener("input", () => {
+  updateManagedMarkdownClearButton();
+  showManagedMarkdownTreePicker();
+  renderManagedMarkdownTreePicker();
+});
+managedMdSelect.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    const exact = uniqueMarkdownNames(managedMarkdownFiles).find(name => name.toLowerCase() === normalizeMarkdownFileName(managedMdSelect.value).toLowerCase());
+    const first = exact || filteredManagedMarkdownFiles()[0];
+    if (first) {
+      managedMdSelect.value = first;
+      updateManagedMarkdownClearButton();
+      hideManagedMarkdownTreePicker();
+      loadManagedMarkdown(first);
+    }
+  }
+  if (event.key === "Escape") hideManagedMarkdownTreePicker();
+});
+managedMdSelect.addEventListener("change", () => {
+  const name = normalizeMarkdownFileName(managedMdSelect.value);
+  if (uniqueMarkdownNames(managedMarkdownFiles).includes(name)) loadManagedMarkdown(name);
+});
+document.addEventListener("click", (event) => {
+  const wrap = managedMdSelect?.closest(".md-managed-picker-wrap");
+  if (wrap && !wrap.contains(event.target)) hideManagedMarkdownTreePicker();
+});
 const btnMarkdownSaveSafety = document.getElementById("btnMarkdownSaveSafety");
 if (btnMarkdownSaveSafety) btnMarkdownSaveSafety.addEventListener("click", () => runManualMarkdownSaveSafetyCheck());
 
@@ -5118,6 +5440,7 @@ tocDepthBtns.forEach(btn=>btn.addEventListener("click",()=>{
     } else {
       currentManagedMarkdownName = "";
       managedMdSelect.value = "";
+      updateManagedMarkdownClearButton();
       resetMarkdownCommentSidecarForLocal("empty.md");
       showMarkdownInitialGuide("Markdownを選択、URL読込、ローカルファイルDrop、またはRaw Markdown編集から開始してください。初期表示では自動ロードしません。");
       applyMarkdownReadonlyLaunchControls();
