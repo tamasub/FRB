@@ -4,8 +4,208 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FRB Studio - Markdown Viewer & Editor</title>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.5/dist/purify.min.js"></script>
+  <script src="./js/lib/marked.min.js"></script>
+  <script src="./js/lib/purify.min.js"></script>
+  <script type="module">
+    function escapeText(value) {
+      return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+    }
+
+    function parseMermaidErDiagram(source) {
+      const raw = String(source || '').replace(/\r\n?/g, '\n');
+      const lines = raw.split('\n');
+      const entities = new Map();
+      const relations = [];
+      let current = null;
+
+      const ensureEntity = (name) => {
+        const key = String(name || '').trim();
+        if (!key) return null;
+        if (!entities.has(key)) entities.set(key, { name: key, fields: [] });
+        return entities.get(key);
+      };
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed === 'erDiagram') continue;
+        const blockStart = trimmed.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*\{\s*$/);
+        if (blockStart) {
+          current = ensureEntity(blockStart[1]);
+          continue;
+        }
+        if (trimmed === '}') {
+          current = null;
+          continue;
+        }
+        if (current) {
+          const parts = trimmed.split(/\s+/);
+          if (parts.length >= 2) current.fields.push({ type: parts[0], name: parts.slice(1).join(' ') });
+          else current.fields.push({ type: '', name: trimmed });
+          continue;
+        }
+        const rel = trimmed.match(/^([A-Za-z_][A-Za-z0-9_]*)\s+(.+?)\s+([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(.+)$/);
+        if (rel) {
+          ensureEntity(rel[1]);
+          ensureEntity(rel[3]);
+          relations.push({ from: rel[1], token: rel[2].trim(), to: rel[3], label: rel[4].trim() });
+        }
+      }
+
+      return { entities: Array.from(entities.values()), relations };
+    }
+
+    function renderErDiagramFallback(source) {
+      const { entities, relations } = parseMermaidErDiagram(source);
+      if (!entities.length) return '';
+
+      const cols = Math.min(3, Math.max(1, Math.ceil(Math.sqrt(entities.length))));
+      const cardW = 250;
+      const gapX = 60;
+      const gapY = 92;
+      const headerH = 34;
+      const fieldH = 22;
+      const minCardH = 78;
+      const rowHeights = [];
+      const positions = new Map();
+
+      entities.forEach((entity, i) => {
+        const row = Math.floor(i / cols);
+        const col = i % cols;
+        const h = Math.max(minCardH, headerH + 18 + entity.fields.length * fieldH);
+        rowHeights[row] = Math.max(rowHeights[row] || 0, h);
+        positions.set(entity.name, { row, col, h });
+      });
+
+      const rowY = [];
+      let y = 28;
+      for (let r = 0; r < rowHeights.length; r++) {
+        rowY[r] = y;
+        y += rowHeights[r] + gapY;
+      }
+      const width = cols * cardW + (cols - 1) * gapX + 56;
+      const height = Math.max(240, y + 16);
+
+      positions.forEach((pos) => {
+        pos.x = 28 + pos.col * (cardW + gapX);
+        pos.y = rowY[pos.row];
+      });
+
+      const relationLines = relations.map((r, idx) => {
+        const a = positions.get(r.from);
+        const b = positions.get(r.to);
+        if (!a || !b) return '';
+        const x1 = a.x + cardW / 2;
+        const y1 = a.y + a.h / 2;
+        const x2 = b.x + cardW / 2;
+        const y2 = b.y + b.h / 2;
+        const mx = (x1 + x2) / 2;
+        const my = (y1 + y2) / 2 - 8 + (idx % 3) * 14;
+        return `
+          <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="frb-mermaid-er-line" />
+          <text x="${mx}" y="${my}" class="frb-mermaid-er-label">${escapeText(r.label)}</text>`;
+      }).join('');
+
+      const entityBoxes = entities.map(entity => {
+        const pos = positions.get(entity.name);
+        const fields = entity.fields.slice(0, 10).map((f, idx) => {
+          const fy = pos.y + headerH + 22 + idx * fieldH;
+          return `
+            <text x="${pos.x + 14}" y="${fy}" class="frb-mermaid-er-field-type">${escapeText(f.type)}</text>
+            <text x="${pos.x + 82}" y="${fy}" class="frb-mermaid-er-field-name">${escapeText(f.name)}</text>`;
+        }).join('');
+        const more = entity.fields.length > 10
+          ? `<text x="${pos.x + 14}" y="${pos.y + headerH + 22 + 10 * fieldH}" class="frb-mermaid-er-field-name">… ${entity.fields.length - 10} more</text>`
+          : '';
+        return `
+          <g class="frb-mermaid-er-entity">
+            <rect x="${pos.x}" y="${pos.y}" width="${cardW}" height="${pos.h}" rx="12" class="frb-mermaid-er-card" />
+            <rect x="${pos.x}" y="${pos.y}" width="${cardW}" height="${headerH}" rx="12" class="frb-mermaid-er-header" />
+            <text x="${pos.x + cardW / 2}" y="${pos.y + 22}" text-anchor="middle" class="frb-mermaid-er-title">${escapeText(entity.name)}</text>
+            ${fields}${more}
+          </g>`;
+      }).join('');
+
+      const relationList = relations.map(r => `<li><code>${escapeText(r.from)}</code> <span>${escapeText(r.token)}</span> <code>${escapeText(r.to)}</code> ： ${escapeText(r.label)}</li>`).join('');
+
+      return `
+        <div class="frb-mermaid-fallback" data-renderer="frb-er-fallback">
+          <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="ER Diagram" class="frb-mermaid-er-svg">
+            <defs>
+              <filter id="frbMermaidSoftShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="8" stdDeviation="10" flood-opacity="0.10"/>
+              </filter>
+            </defs>
+            ${relationLines}
+            ${entityBoxes}
+          </svg>
+          <details class="frb-mermaid-relation-details">
+            <summary>Relations</summary>
+            <ul>${relationList}</ul>
+          </details>
+        </div>`;
+    }
+
+    function renderMermaidFallback(root = document) {
+      const target = root || document;
+      const nodes = Array.from(target.querySelectorAll('.mermaid'))
+        .filter(node => !node.dataset.frbFallbackRendered && !node.querySelector('svg'));
+
+      nodes.forEach(node => {
+        const source = (node.dataset.mermaidSource || node.textContent || '').trim();
+        if (/^erDiagram\b/i.test(source)) {
+          const html = renderErDiagramFallback(source);
+          if (html) {
+            node.innerHTML = html;
+            node.dataset.frbFallbackRendered = '1';
+            node.classList.add('frb-mermaid-fallback-host');
+            return;
+          }
+        }
+        node.classList.add('mermaid-render-error');
+        node.dataset.frbFallbackRendered = '1';
+      });
+    }
+
+    async function setupMermaidRenderer() {
+      try {
+        const { default: mermaid } = await import('./js/lib/mermaid/mermaid.esm.min.mjs');
+        // const { default: mermaid } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+        
+        mermaid.initialize({
+          startOnLoad: false,
+          securityLevel: 'loose',
+          theme: 'default'
+        });
+
+        window.FRBMermaid = {
+          async render(root = document) {
+            const target = root || document;
+            const nodes = Array.from(target.querySelectorAll('.mermaid'))
+              .filter(node => !node.querySelector('svg'));
+            if (!nodes.length) return;
+
+            nodes.forEach(node => node.removeAttribute('data-processed'));
+
+            try {
+              await mermaid.run({ nodes });
+              renderMermaidFallback(root);
+            } catch (err) {
+              console.error('Mermaid render failed. Falling back to FRB renderer.', err);
+              renderMermaidFallback(root);
+            }
+          }
+        };
+      } catch (err) {
+        console.warn('Mermaid library load failed. Falling back to FRB lightweight renderer.', err);
+        window.FRBMermaid = { render: renderMermaidFallback };
+      }
+
+      window.dispatchEvent(new CustomEvent('frb-mermaid-ready'));
+    }
+
+    setupMermaidRenderer();
+  </script>
+
   <style>
     /* --- 極上の3大テーマ定義 --- */
     :root, [data-theme="qiita"] {
@@ -1020,6 +1220,111 @@
     .markdown-body blockquote { margin: 24px 0; padding: 14px 22px; border-left: 5px solid var(--brand-color); border-radius: 12px; background: rgba(105,120,160,.05); color: var(--muted); }
     .markdown-body code:not(pre code) { padding: 3px 8px; border-radius: 8px; background: rgba(105,120,160,.12); color: var(--brand-color); font-size: .9em; font-family: monospace; }
     .markdown-body pre { margin: 24px 0; padding: 20px; border-radius: 18px; background: var(--code-bg); color: var(--code-text); overflow-x: auto; font-family: monospace; }
+    .markdown-body .mermaid {
+      background: rgba(255, 255, 255, 0.72);
+      color: var(--text);
+      border: 1px solid var(--line);
+      text-align: center;
+      white-space: pre;
+    }
+    .markdown-body .mermaid svg {
+      max-width: 100%;
+      height: auto;
+    }
+    .markdown-body .mermaid-render-error {
+      text-align: left;
+      white-space: pre-wrap;
+      color: #b91c1c;
+      background: rgba(254, 226, 226, 0.76);
+    }
+    .markdown-body .frb-mermaid-fallback-host {
+      background: rgba(255,255,255,.82);
+      color: var(--text);
+      border: 1px solid var(--line);
+      white-space: normal;
+      overflow-x: auto;
+    }
+    [data-theme="dark"] .markdown-body .frb-mermaid-fallback-host {
+      background: rgba(15,23,42,.66);
+    }
+    .frb-mermaid-fallback {
+      display: grid;
+      gap: 10px;
+      min-width: 720px;
+      text-align: left;
+    }
+    .frb-mermaid-er-svg {
+      width: 100%;
+      height: auto;
+      min-height: 260px;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP", sans-serif;
+    }
+    .frb-mermaid-er-line {
+      stroke: rgba(75, 85, 99, .42);
+      stroke-width: 1.6;
+      stroke-dasharray: 5 5;
+    }
+    [data-theme="dark"] .frb-mermaid-er-line { stroke: rgba(226,232,240,.36); }
+    .frb-mermaid-er-label {
+      font-size: 11px;
+      font-weight: 850;
+      fill: var(--muted);
+      paint-order: stroke;
+      stroke: rgba(255,255,255,.86);
+      stroke-width: 4px;
+      stroke-linejoin: round;
+    }
+    [data-theme="dark"] .frb-mermaid-er-label { stroke: rgba(15,23,42,.92); }
+    .frb-mermaid-er-card {
+      fill: rgba(255,255,255,.94);
+      stroke: var(--line);
+      stroke-width: 1.3;
+      filter: url(#frbMermaidSoftShadow);
+    }
+    [data-theme="dark"] .frb-mermaid-er-card { fill: rgba(30,41,59,.95); }
+    .frb-mermaid-er-header {
+      fill: rgba(85,197,0,.13);
+      stroke: transparent;
+    }
+    [data-theme="zenn"] .frb-mermaid-er-header { fill: rgba(62,168,255,.14); }
+    [data-theme="dark"] .frb-mermaid-er-header { fill: rgba(0,240,255,.12); }
+    .frb-mermaid-er-title {
+      fill: var(--text);
+      font-size: 12px;
+      font-weight: 950;
+      letter-spacing: .01em;
+    }
+    .frb-mermaid-er-field-type {
+      fill: var(--muted);
+      font-size: 11px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+    .frb-mermaid-er-field-name {
+      fill: var(--text);
+      font-size: 11.5px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+    .frb-mermaid-relation-details {
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(105,120,160,.08);
+      font-size: 12px;
+    }
+    .frb-mermaid-relation-details summary {
+      cursor: pointer;
+      font-weight: 900;
+      color: var(--muted);
+    }
+    .frb-mermaid-relation-details ul {
+      margin: 8px 0 0 18px;
+      padding: 0;
+    }
+    .frb-mermaid-relation-details code {
+      padding: 1px 5px;
+      border-radius: 7px;
+      background: rgba(105,120,160,.12);
+      color: var(--text);
+    }
     
     .qiita-note { position: relative; margin: 18px 0; padding: 10px 20px 10px 52px; border-radius: 18px; border: 1px solid var(--line); font-size: 14.5px; }
     .qiita-note:before { position: absolute; left: 22px; top: 14px; font-weight: 900; font-size: 18px; }
@@ -1656,6 +1961,35 @@ let markdownBlockModelRuntime = {
 
 // 最新のmarked.js仕様に合わせてグローバル設定を適用
 marked.use({ gfm: true, breaks: true });
+
+function normalizeMermaidCodeBlocks(root) {
+  if (!root) return;
+  root.querySelectorAll('pre > code.language-mermaid, pre > code.lang-mermaid, pre > code.mermaid').forEach(code => {
+    const pre = code.closest('pre');
+    if (!pre) return;
+    pre.className = 'mermaid';
+    pre.dataset.mermaidSource = code.textContent || '';
+    pre.textContent = code.textContent || '';
+  });
+
+  root.querySelectorAll('pre.mermaid:not([data-mermaid-source])').forEach(pre => {
+    if (!pre.querySelector('svg')) pre.dataset.mermaidSource = pre.textContent || '';
+  });
+}
+
+function renderMermaidBlocks(root) {
+  normalizeMermaidCodeBlocks(root);
+
+  const run = () => {
+    if (!window.FRBMermaid?.render) return false;
+    window.FRBMermaid.render(root);
+    return true;
+  };
+
+  if (!run()) {
+    window.addEventListener('frb-mermaid-ready', run, { once: true });
+  }
+}
 
 // mdViewer v0.13.9: OKだけの情報ダイアログを止め、流れを止めないtoastへ寄せる。
 function ensureMarkdownToastArea() {
@@ -4251,6 +4585,7 @@ function renderMarkdown(rawMd, sourceUrl, sourceLabel){
       ? '<p class="md-empty-document-placeholder md-empty-document-block">空のMarkdownです。＋上 / ＋下、右クリックメニュー、またはRaw Markdown編集から最初の行を挿入できます。</p>'
       : marked.parse(preprocessFrbComments(preprocessQiita(renderContent)));
     previewEl.innerHTML = DOMPurify.sanitize(html, { ADD_ATTR: ["target", "data-md-line", "data-md-block-id", "data-md-block-type", "data-md-table-id", "data-md-cell-id", "data-md-cell-row-index", "data-md-cell-column-index", "data-md-cell-line", "data-frb-comment-id", "data-frb-comment-status"] });
+    normalizeMermaidCodeBlocks(previewEl);
     previewEl.querySelectorAll('a[href^="http"]').forEach(a => { a.target = "_blank"; a.rel = "noreferrer"; });
     applyMarkdownIndentClasses(constraintReport);
     hideMdBlockActionMenu();
@@ -4258,6 +4593,7 @@ function renderMarkdown(rawMd, sourceUrl, sourceLabel){
     annotatePreviewBlocks(rawMd);
     annotateMarkdownTableCells();
     applyMarkdownSidecarComments();
+    renderMermaidBlocks(previewEl);
     
     buildToc();
     updateMeta(rawMd, content);

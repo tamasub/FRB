@@ -41,6 +41,7 @@ data/exports/tmp/
 /tools/FRBStudio_App/playwright-report/
 /tools/FRBStudio_App/test-results/
 /tools/FRBStudio_App/_archive/
+/tools/FRBStudio_App/wwwroot/js/lib/mermaid
 
 
 # GitDiffRun generated temporary diff json for viewer
