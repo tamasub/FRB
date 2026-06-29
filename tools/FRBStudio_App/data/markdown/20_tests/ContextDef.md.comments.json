@@ -1,0 +1,49 @@
+{
+  "schema_version": "md_comment_sidecar_v0_1",
+  "document_type": "markdown_comment_sidecar",
+  "target_file": "20_tests/ContextDef.md",
+  "sidecar_name": "20_tests/ContextDef.md.comments.json",
+  "updated_at": "2026-06-29T22:53:26.803Z",
+  "comments": [
+    {
+      "comment_id": "mdc_20260629224543_qm55",
+      "target_type": "block",
+      "status": "OK",
+      "body": "了解。この方針でOK。",
+      "author": "tamasub",
+      "created_at": "2026-06-29T22:45:43.988Z",
+      "updated_at": "2026-06-29T22:45:43.988Z",
+      "resolved": false,
+      "block_id": "mdblk_0014_paragraph_120",
+      "block_type": "paragraph",
+      "table_id": "",
+      "cell_id": "",
+      "row_index": 0,
+      "column_index": 0,
+      "line": 120,
+      "start_line": 120,
+      "end_line": 120,
+      "target_excerpt": "つまり、**解決策が複数ある**。"
+    },
+    {
+      "comment_id": "mdc_20260629225326_foix",
+      "status": "OK",
+      "body": "了解。この方針でOK。",
+      "author": "tamasub",
+      "created_at": "2026-06-29T22:53:26.802Z",
+      "updated_at": "2026-06-29T22:53:26.802Z",
+      "resolved": false,
+      "target_type": "block",
+      "block_id": "mdblk_0007_paragraph_111",
+      "block_type": "paragraph",
+      "table_id": "",
+      "cell_id": "",
+      "row_index": null,
+      "column_index": null,
+      "line": 111,
+      "start_line": 111,
+      "end_line": 111,
+      "target_excerpt": "これだけだと、AIはたぶんこういう案を出しうる。"
+    }
+  ]
+}

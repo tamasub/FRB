@@ -1104,8 +1104,38 @@
       border: 1px solid var(--line);
     }
     [data-theme="dark"] .fm-field .fm-val { background: rgba(15,23,42,0.5); }
-    .fm-topics { display: flex; flex-wrap: wrap; gap: 6px; }
+    .fm-edit-input,
+    .fm-edit-select {
+      width: 100%;
+      min-width: 0;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(255,255,255,0.72);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 750;
+      line-height: 1.35;
+    }
+    [data-theme="dark"] .fm-edit-input,
+    [data-theme="dark"] .fm-edit-select { background: rgba(15,23,42,0.58); }
+    .fm-edit-input:disabled,
+    .fm-edit-select:disabled { opacity: .62; cursor: not-allowed; }
+    .fm-topics { display: flex; flex-wrap: wrap; gap: 6px; min-height: 24px; align-items: center; }
     .fm-tag { padding: 3px 8px; background: var(--brand-gradient); color: white; border-radius: 8px; font-size: 11px; font-weight: 800; }
+    .fm-edit-actions {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      padding-top: 6px;
+      border-top: 1px solid rgba(105,120,160,.14);
+      flex-wrap: wrap;
+    }
+    .fm-edit-actions button { font-size: 12px; padding: 7px 12px; border-radius: 11px; }
+    .fm-edit-status { margin-right: auto; color: var(--muted); font-size: 11.5px; font-weight: 800; }
+    .fm-help { color: var(--muted); font-size: 10.5px; font-weight: 750; line-height: 1.35; }
     
     /* フロントマター提案エリア */
     .fm-suggest-card {
@@ -1934,6 +1964,7 @@
           <button id="btnRefreshManagedMd" class="ghost-btn compact-icon-btn" title="管理Markdown一覧を再取得">↻</button>
           <button id="btnOverwriteManagedMd" class="compact-text-btn" title="data/markdownへ上書き保存">上書き</button>
           <button id="btnMarkdownSaveSafety" class="ghost-btn compact-text-btn" title="保存前にMarkdown本文・表・Sidecarコメントの安全性を検査">保存検査</button>
+          <button id="btnSaveFile" class="ghost-btn compact-text-btn" title="FRBStudio.exe起動時はOSの名前を付けて保存ダイアログを開きます。静的表示時はダウンロード保存になります。">名前保存</button>
         </div>
 
 
@@ -1998,7 +2029,7 @@
           <button id="btnInsertTable" class="ghost-btn" style="font-size:12px; padding:8px 14px;">▦ Table</button>
           <div style="margin-left:auto; display:flex; align-items:center; gap:8px;">
             <input id="editorFileName" type="text" value="" style="font-size:12px; padding:6px 10px; width:180px;" placeholder="ファイル名"/>
-            <button id="btnSaveFile" style="font-size:12px; padding:8px 14px;">💾 ダウンロード保存</button>
+            <button id="btnDownloadSaveFileLegacy" style="font-size:12px; padding:8px 14px;" type="button" hidden>💾 ダウンロード保存</button>
           </div>
         </div>
       </section>
@@ -2013,28 +2044,41 @@
           </div>
           <div class="fm-body" id="fmBody">
             <div class="fm-field">
-              <label>タイトル</label>
-              <div class="fm-val" id="fmTitle">-</div>
+              <label for="fmTitleInput">タイトル</label>
+              <input class="fm-edit-input" id="fmTitleInput" type="text" value="" placeholder="記事タイトル" />
             </div>
             <div class="fm-field">
               <label>Slug (ファイル名候補)</label>
               <div class="fm-val" id="fmSlug" style="font-family:monospace;">-</div>
             </div>
-            <div class="fm-field" style="max-width:100px;">
-              <label>Emoji</label>
-              <div class="fm-val" id="fmEmoji" style="text-align:center; font-size:18px;">-</div>
-            </div>
             <div class="fm-field" style="max-width:120px;">
-              <label>Type</label>
-              <div class="fm-val" id="fmType">-</div>
+              <label for="fmEmojiInput">Emoji</label>
+              <input class="fm-edit-input" id="fmEmojiInput" type="text" value="" maxlength="8" placeholder="📖" style="text-align:center; font-size:18px;" />
+            </div>
+            <div class="fm-field" style="max-width:150px;">
+              <label for="fmTypeInput">Type</label>
+              <select class="fm-edit-select" id="fmTypeInput">
+                <option value="idea">idea</option>
+                <option value="tech">tech</option>
+              </select>
             </div>
             <div class="fm-field">
-              <label>Topics</label>
+              <label for="fmTopicsInput">Topics</label>
+              <input class="fm-edit-input" id="fmTopicsInput" type="text" value="" placeholder="ai, development, thought" />
+              <div class="fm-help">カンマ区切り、または ["ai","json"] 形式で入力できます。</div>
               <div class="fm-topics" id="fmTopics">-</div>
             </div>
-            <div class="fm-field" style="max-width:100px;">
-              <label>Published</label>
-              <div class="fm-val" id="fmPublished">-</div>
+            <div class="fm-field" style="max-width:140px;">
+              <label for="fmPublishedInput">Published</label>
+              <select class="fm-edit-select" id="fmPublishedInput">
+                <option value="false">false</option>
+                <option value="true">true</option>
+              </select>
+            </div>
+            <div class="fm-edit-actions">
+              <span class="fm-edit-status" id="fmEditStatus">フロントマターを編集できます。</span>
+              <button id="btnResetFrontMatter" type="button" class="ghost-btn">読み直し</button>
+              <button id="btnApplyFrontMatter" type="button">本文へ反映</button>
             </div>
           </div>
         </div>
@@ -2052,7 +2096,7 @@
 const mdUrlEl=document.getElementById("mdUrl"),previewEl=document.getElementById("preview"),editorInlineHost=document.getElementById("editorInlineHost"),tocEl=document.getElementById("toc"),charCountEl=document.getElementById("charCount"),readTimeEl=document.getElementById("readTime"),blockModelMeta=document.getElementById("blockModelMeta"),localFileBtn=document.getElementById("localFileBtn"),localFileInput=document.getElementById("localFileInput"),tocDepthBtns=[...document.querySelectorAll(".toc-depth-btn")],themeSelect=document.getElementById("themeSelect"),editorEl=document.getElementById("editor"),btnViewerMode=document.getElementById("btnViewerMode"),btnEditorMode=document.getElementById("btnEditorMode"),articleCard=document.getElementById("articleCard"),metaFileName=document.getElementById("metaFileName"),editorFileName=document.getElementById("editorFileName"),slashMenu=document.getElementById("slashMenu"),managedMdSelect=document.getElementById("managedMdSelect"),btnClearManagedMd=document.getElementById("btnClearManagedMd"),btnManagedMdTree=document.getElementById("btnManagedMdTree"),managedMdTreePicker=document.getElementById("managedMdTreePicker"),managedMdTreeList=document.getElementById("managedMdTreeList"),btnRefreshManagedMd=document.getElementById("btnRefreshManagedMd"),btnOverwriteManagedMd=document.getElementById("btnOverwriteManagedMd");
 
 const fmPanel=document.getElementById("fmPanel"),fmHeader=document.getElementById("fmHeader"),fmBody=document.getElementById("fmBody"),fmToggleIcon=document.getElementById("fmToggleIcon"),fmSuggestArea=document.getElementById("fmSuggestArea");
-const fmTitle=document.getElementById("fmTitle"),fmSlug=document.getElementById("fmSlug"),fmEmoji=document.getElementById("fmEmoji"),fmType=document.getElementById("fmType"),fmTopics=document.getElementById("fmTopics"),fmPublished=document.getElementById("fmPublished");
+const fmSlug=document.getElementById("fmSlug"),fmTopics=document.getElementById("fmTopics"),fmTitleInput=document.getElementById("fmTitleInput"),fmEmojiInput=document.getElementById("fmEmojiInput"),fmTypeInput=document.getElementById("fmTypeInput"),fmTopicsInput=document.getElementById("fmTopicsInput"),fmPublishedInput=document.getElementById("fmPublishedInput"),btnApplyFrontMatter=document.getElementById("btnApplyFrontMatter"),btnResetFrontMatter=document.getElementById("btnResetFrontMatter"),fmEditStatus=document.getElementById("fmEditStatus");
 
 let tocDepth="all";
 let currentManagedMarkdownName = "";
@@ -2266,6 +2310,123 @@ function parseFrontMatter(md) {
   return { data, content };
 }
 
+function stripFrontMatter(rawMd) {
+  const text = String(rawMd ?? "");
+  const match = text.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/);
+  return match ? text.substring(match[0].length) : text;
+}
+
+function frontMatterSlugFromTitle(title) {
+  const slug = String(title || "article")
+    .toLowerCase()
+    .replace(/[^a-z0-9ー-龠ぁ-んァ-ヶ]/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .substring(0, 30);
+  return (slug || "article") + ".md";
+}
+
+function parseFrontMatterTopicsInput(value) {
+  const raw = String(value ?? "").trim();
+  if (!raw) return [];
+  if (raw.startsWith("[") && raw.endsWith("]")) {
+    try {
+      const parsed = JSON.parse(raw.replace(/'/g, '"'));
+      if (Array.isArray(parsed)) return parsed.map(v => String(v).trim()).filter(Boolean);
+    } catch (err) {
+      // カンマ区切りとして救済する
+    }
+  }
+  return raw.split(",").map(v => v.trim().replace(/^[\'"]|[\'"]$/g, "")).filter(Boolean);
+}
+
+function renderFrontMatterTopicTags(topics) {
+  const values = Array.isArray(topics) ? topics : parseFrontMatterTopicsInput(topics);
+  fmTopics.innerHTML = "";
+  if (!values.length) {
+    fmTopics.textContent = "-";
+    return;
+  }
+  values.forEach(t => {
+    const span = document.createElement("span");
+    span.className = "fm-tag";
+    span.textContent = t;
+    fmTopics.appendChild(span);
+  });
+}
+
+function yamlScalar(value) {
+  if (typeof value === "boolean") return value ? "true" : "false";
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  return JSON.stringify(String(value ?? ""));
+}
+
+function yamlArray(values) {
+  return `[${(Array.isArray(values) ? values : []).map(v => JSON.stringify(String(v))).join(", ")}]`;
+}
+
+function buildFrontMatterText(data) {
+  const normalized = data || {};
+  const order = ["title", "emoji", "type", "topics", "published"];
+  const keys = [...order, ...Object.keys(normalized).filter(k => !order.includes(k))];
+  const lines = ["---"];
+  keys.forEach(key => {
+    if (normalized[key] === undefined || normalized[key] === null) return;
+    if (Array.isArray(normalized[key])) lines.push(`${key}: ${yamlArray(normalized[key])}`);
+    else lines.push(`${key}: ${yamlScalar(normalized[key])}`);
+  });
+  lines.push("---");
+  return lines.join("\n");
+}
+
+function replaceFrontMatter(rawMd, data) {
+  const body = stripFrontMatter(rawMd).replace(/^\s*\n/, "");
+  return `${buildFrontMatterText(data)}\n\n${body}`;
+}
+
+function frontMatterDataFromEditor(baseData = {}) {
+  const next = { ...(baseData || {}) };
+  next.title = fmTitleInput.value.trim() || "article";
+  next.emoji = fmEmojiInput.value.trim() || "📖";
+  next.type = fmTypeInput.value || "idea";
+  next.topics = parseFrontMatterTopicsInput(fmTopicsInput.value);
+  next.published = fmPublishedInput.value === "true";
+  return next;
+}
+
+function setFrontMatterEditorEnabled(enabled) {
+  [fmTitleInput, fmEmojiInput, fmTypeInput, fmTopicsInput, fmPublishedInput, btnApplyFrontMatter, btnResetFrontMatter]
+    .forEach(el => { if (el) el.disabled = !enabled; });
+}
+
+function syncFrontMatterEditor(data) {
+  const source = data || {};
+  fmTitleInput.value = source.title || "";
+  fmSlug.textContent = frontMatterSlugFromTitle(source.title);
+  fmEmojiInput.value = source.emoji || "📖";
+  fmTypeInput.value = source.type || "idea";
+  const topics = Array.isArray(source.topics) ? source.topics : parseFrontMatterTopicsInput(source.topics);
+  fmTopicsInput.value = topics.join(", ");
+  renderFrontMatterTopicTags(topics);
+  fmPublishedInput.value = String(source.published ?? false) === "true" ? "true" : "false";
+  setFrontMatterEditorEnabled(!launchMarkdownRuntime.readonly);
+  fmEditStatus.textContent = launchMarkdownRuntime.readonly ? "readonlyモードのため編集できません。" : "フロントマターを編集できます。";
+}
+
+function applyFrontMatterEdits() {
+  if (launchMarkdownRuntime.readonly) {
+    showMarkdownWarn("readonlyモードではフロントマターを編集できません。");
+    return;
+  }
+  const current = parseFrontMatter(editorEl.value).data || {};
+  const next = frontMatterDataFromEditor(current);
+  editorEl.value = replaceFrontMatter(editorEl.value, next);
+  isManagedMarkdownDirty = true;
+  markdownEditorRuntime.pendingPreviewRestoreLine = getContentLineOffset(editorEl.value) + 1;
+  renderMarkdown(editorEl.value, "#", "Front Matter Edited");
+  showMarkdownSuccess("フロントマターを本文へ反映しました。上書き保存で保存できます。", 3600);
+}
+
 // 保存ファイル名の入力欄同期
 function syncFileNameUI(name) {
   metaFileName.value = name;
@@ -2327,6 +2488,24 @@ fmHeader.addEventListener("click", () => {
   const isCollapsed = fmBody.classList.toggle("collapsed");
   fmToggleIcon.textContent = isCollapsed ? "▼" : "▲";
 });
+btnApplyFrontMatter?.addEventListener("click", applyFrontMatterEdits);
+btnResetFrontMatter?.addEventListener("click", () => {
+  const data = parseFrontMatter(editorEl.value).data;
+  if (!data) {
+    showMarkdownWarn("現在のMarkdownにはフロントマターがありません。自動生成してから編集してください。");
+    return;
+  }
+  syncFrontMatterEditor(data);
+  showMarkdownInfo("本文のフロントマターを読み直しました。", 2200);
+});
+[fmTitleInput, fmEmojiInput, fmTypeInput, fmTopicsInput, fmPublishedInput].forEach(el => {
+  el?.addEventListener("input", () => {
+    const previewData = frontMatterDataFromEditor(parseFrontMatter(editorEl.value).data || {});
+    fmSlug.textContent = frontMatterSlugFromTitle(previewData.title);
+    renderFrontMatterTopicTags(previewData.topics);
+    fmEditStatus.textContent = "未反映の変更があります。";
+  });
+});
 
 // フロントマターの自動挿入
 window.insertSuggestedFrontMatter = function() {
@@ -2338,7 +2517,9 @@ window.insertSuggestedFrontMatter = function() {
   }
   const generatedFM = `---\ntitle: "${detectedTitle}"\nemoji: "📖"\ntype: "idea"\ntopics: ["ai", "development", "thought"]\npublished: false\n---\n\n`;
   editorEl.value = generatedFM + rawText;
+  isManagedMarkdownDirty = true;
   renderMarkdown(editorEl.value, "#", "Front Matter Generated");
+  showMarkdownSuccess("フロントマターを自動生成しました。必要に応じて編集して本文へ反映してください。", 3600);
 };
 
 
@@ -3500,6 +3681,22 @@ function normalizeMarkdownCommentSidecarDocument(raw, targetName) {
       target_excerpt: c.target_excerpt || ""
     }))
   };
+}
+function applyMarkdownCommentSidecarDocumentFromRaw(raw, targetName, sidecarName = "") {
+  const doc = normalizeMarkdownCommentSidecarDocument(raw, targetName);
+  mdCommentSidecarRuntime.schemaVersion = doc.schema_version || mdCommentSidecarRuntime.schemaVersion;
+  mdCommentSidecarRuntime.targetFile = doc.target_file || targetName || "";
+  mdCommentSidecarRuntime.sidecarName = doc.sidecar_name || sidecarName || markdownCommentSidecarName(targetName);
+  mdCommentSidecarRuntime.comments = Array.isArray(doc.comments) ? doc.comments : [];
+  mdCommentSidecarRuntime.dirty = false;
+  mdCommentSidecarRuntime.lastSaveError = "";
+  mdCommentReviewRuntime.lastFocusedCommentId = "";
+  renderMarkdownCommentReviewUI();
+  updateBlockModelMeta();
+}
+function clearMarkdownCommentSidecarStateForTarget(targetName = "local.md") {
+  resetMarkdownCommentSidecarForLocal(targetName);
+  applyMarkdownSidecarComments();
 }
 async function loadMarkdownCommentSidecar(targetName) {
   const sidecarName = markdownCommentSidecarName(targetName);
@@ -4818,27 +5015,12 @@ function renderMarkdown(rawMd, sourceUrl, sourceLabel){
       fmSuggestArea.style.display = "none";
       fmPanel.style.display = "block";
       
-      fmTitle.textContent = data.title || "-";
-      const baseName = data.title ? data.title.toLowerCase().replace(/[^a-z0-9ー-龠ぁ-んァ-ヶ]/g, "_").substring(0, 30) : "article";
-      fmSlug.textContent = baseName + ".md";
+      syncFrontMatterEditor(data);
+      const baseName = frontMatterSlugFromTitle(data.title).replace(/\.md$/i, "");
       
       if (!metaFileName.value || ["Front Matter Generated", "Clipboard Paste", "Local file"].includes(sourceLabel)) {
         syncFileNameUI(baseName + ".md");
       }
-      
-      fmEmoji.textContent = data.emoji || "💡";
-      fmType.textContent = data.type || "tech";
-      fmPublished.textContent = data.published !== undefined ? String(data.published) : "false";
-      
-      fmTopics.innerHTML = "";
-      if (Array.isArray(data.topics)) {
-        data.topics.forEach(t => {
-          const span = document.createElement("span");
-          span.className = "fm-tag";
-          span.textContent = t;
-          fmTopics.appendChild(span);
-        });
-      } else { fmTopics.textContent = "-"; }
       
     } else {
       fmPanel.style.display = "none";
@@ -5456,6 +5638,36 @@ async function loadMarkdown(rawUrl){
   }
 }
 
+async function loadLocalMarkdownWithNativeDialog() {
+  previewEl.innerHTML = '<div class="status-shimmer">ローカルMarkdownをOSダイアログから展開中...</div>';
+  const res = await fetch("/api/markdown/open-dialog", { method: "POST" });
+  if (!res.ok) throw new Error(await res.text());
+  const result = await res.json();
+  if (result?.cancelled) {
+    showMarkdownInfo("ローカルMarkdown読み込みをキャンセルしました。", 2200);
+    return true;
+  }
+
+  const name = String(result.file_name || "local.md");
+  const md = String(result.content || "");
+  currentManagedMarkdownName = "";
+  isManagedMarkdownDirty = true;
+  editorEl.value = md;
+  recordMarkdownLoadedSnapshot(name, md);
+  syncFileNameUI(normalizeMarkdownFileName(name));
+
+  if (result.sidecar_content) {
+    applyMarkdownCommentSidecarDocumentFromRaw(String(result.sidecar_content), name, String(result.sidecar_file || `${name}.comments.json`));
+  } else {
+    resetMarkdownCommentSidecarForLocal(name);
+  }
+
+  renderMarkdown(md, "#", "Local file");
+  const sidecarText = result.sidecar_content ? `\nコメントSidecarも読み込みました: ${result.sidecar_file || `${name}.comments.json`}` : "";
+  showMarkdownSuccess(`ローカルMarkdownを読み込みました: ${result.path || name}${sidecarText}`, 5200);
+  return true;
+}
+
 function loadLocalFile(file){
   if(!file)return;
   previewEl.innerHTML='<div class="status-shimmer">ローカルの思考コアを展開中...</div>';
@@ -5464,25 +5676,91 @@ function loadLocalFile(file){
     const md=String(reader.result||"");
     currentManagedMarkdownName = "";
     isManagedMarkdownDirty = true;
+    // ブラウザのFile inputではセキュリティ制約により、同じフォルダの *.comments.json を自動取得できない。
+    // FRBStudio.exe起動時は上のOS OpenFileDialog経由でSidecarも読み込む。
     resetMarkdownCommentSidecarForLocal(file.name);
     editorEl.value = md;
     recordMarkdownLoadedSnapshot(file.name, md);
     syncFileNameUI(normalizeMarkdownFileName(file.name));
     renderMarkdown(md, "#", "Local file");
+    showMarkdownWarn("ブラウザのローカル読込では、同じフォルダのコメントSidecarを自動読込できません。FRBStudio.exe起動時は上部のローカルボタンからOSダイアログで開いてください。", 6500);
     await askRegisterAsManagedMarkdown(file.name, md);
   };
   reader.readAsText(file,"UTF-8");
 }
 
-// ファイルダイアログ連動保存
-document.getElementById("btnSaveFile").addEventListener("click", () => {
-  const blob = new Blob([editorEl.value], { type: "text/markdown;charset=utf-8;" });
+function downloadRawNamedFile(saveName, content, contentType = "text/plain;charset=utf-8;") {
+  const blob = new Blob([content], { type: contentType });
   const a = document.createElement("a");
-  const saveName = metaFileName.value || "frb_expanded_thought.md";
   a.href = URL.createObjectURL(blob);
-  a.download = saveName;
+  const rawName = String(saveName || "download.txt").replace(/\\/g, "/").split("/").pop() || "download.txt";
+  a.download = rawName.replace(/[<>:"/\\|?*\x00-\x1F]/g, "_");
   a.click();
-});
+  setTimeout(() => URL.revokeObjectURL(a.href), 1200);
+}
+
+function downloadMarkdownFile(saveName, content) {
+  downloadRawNamedFile(normalizeMarkdownRootFileName(saveName || "frb_expanded_thought.md"), content, "text/markdown;charset=utf-8;");
+}
+
+function buildMarkdownSaveAsSidecarPayload(sourceName) {
+  const comments = Array.isArray(mdCommentSidecarRuntime.comments) ? mdCommentSidecarRuntime.comments : [];
+  if (!comments.length) return {};
+
+  const normalizedSourceName = normalizeMarkdownFileName(sourceName || currentManagedMarkdownName || metaFileName.value || editorFileName.value || "frb_expanded_thought.md");
+  const sidecarName = mdCommentSidecarRuntime.sidecarName || markdownCommentSidecarName(normalizedSourceName);
+  let sidecarContent = "";
+
+  try {
+    sidecarContent = JSON.stringify(buildMarkdownCommentSidecarDocument(), null, 2);
+  } catch (err) {
+    console.warn("failed to build markdown sidecar payload for save-as", err);
+  }
+
+  return {
+    sourceName: normalizedSourceName,
+    sidecarName,
+    sidecarContent
+  };
+}
+
+async function saveMarkdownWithNativeDialog() {
+  const sourceName = normalizeMarkdownFileName(currentManagedMarkdownName || metaFileName.value || editorFileName.value || "frb_expanded_thought.md");
+  const saveName = normalizeMarkdownRootFileName(sourceName);
+  const content = editorEl.value || "";
+  const sidecarPayload = buildMarkdownSaveAsSidecarPayload(sourceName);
+  try {
+    const res = await fetch("/api/markdown/save-as-dialog", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: saveName, content, sourceName, ...sidecarPayload })
+    });
+
+    if (!res.ok) throw new Error(await res.text());
+    const result = await res.json();
+    if (result?.cancelled) {
+      showMarkdownInfo("名前を付けて保存をキャンセルしました。", 2200);
+      return;
+    }
+
+    const savedName = result?.saved || saveName;
+    syncFileNameUI(normalizeMarkdownRootFileName(savedName));
+    const sidecarNote = result?.sidecar_saved
+      ? `\nコメントSidecarも保存しました: ${result.sidecar_path || result.sidecar_file || "*.comments.json"}`
+      : (sidecarPayload.sidecarContent ? "\n※コメントSidecarの保存は確認できませんでした。" : "");
+    showMarkdownSuccess((result?.path ? `保存しました: ${result.path}` : `保存しました: ${savedName}`) + sidecarNote, 6500);
+  } catch (err) {
+    console.warn("native save-as dialog is unavailable. falling back to browser download.", err);
+    downloadMarkdownFile(saveName, content);
+    if (sidecarPayload.sidecarContent) {
+      downloadRawNamedFile(`${saveName}.comments.json`, sidecarPayload.sidecarContent, "application/json;charset=utf-8;");
+    }
+    showMarkdownWarn("FRBStudio.exe の名前を付けて保存APIが使えなかったため、ブラウザのダウンロード保存に切り替えました。", 5200);
+  }
+}
+
+// mdViewer v0.16.14.1: 上部バーの見える位置から、FRBStudio.exe経由ならOSの「名前を付けて保存」ダイアログ、静的表示ならダウンロード保存。
+document.getElementById("btnSaveFile")?.addEventListener("click", () => saveMarkdownWithNativeDialog());
 
 // 超速クリップボード流し込み
 document.getElementById("btnPasteClip").addEventListener("click", async () => {
@@ -5561,7 +5839,15 @@ btnOverwriteManagedMd.addEventListener("click", async () => {
 });
 
 document.getElementById("loadBtn").addEventListener("click",()=>loadMarkdown(mdUrlEl.value));
-localFileBtn.addEventListener("click",()=>localFileInput.click());
+localFileBtn.addEventListener("click", async () => {
+  try {
+    const handled = await loadLocalMarkdownWithNativeDialog();
+    if (handled) return;
+  } catch (err) {
+    console.warn("native markdown open dialog unavailable. falling back to browser file input.", err);
+  }
+  localFileInput.click();
+});
 localFileInput.addEventListener("change",e=>loadLocalFile(e.target.files&&e.target.files[0]));
 
 // 強固な全画面ドラッグ＆ドロップ検知

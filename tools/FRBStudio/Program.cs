@@ -1,10 +1,13 @@
 using System.Diagnostics;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Drawing;
+using System.Runtime.InteropServices;
 using Microsoft.Extensions.Configuration;
 
 namespace FRBStudio;
@@ -130,6 +133,44 @@ internal static class Program
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             await File.WriteAllTextAsync(path, req.Content ?? string.Empty);
             return Results.Ok(new { saved = dropName });
+        });
+
+        // mdViewer v0.16.14.2: ブラウザでは取得できない「名前を付けて保存」先を、
+        // FRBStudio.exe 側の WinForms SaveFileDialog でユーザー選択して保存する。
+        // data/markdown の管理対象保存とは別口にし、任意パス文字列をHTTPから受け取らない。
+        app.MapPost("/api/markdown/save-as-dialog", (MarkdownSaveRequest req) =>
+        {
+            var result = ShowMarkdownSaveAsDialog(markdownDir, req);
+            if (!string.IsNullOrWhiteSpace(result.Error)) return Results.Problem(result.Error, statusCode: 500);
+            if (result.Cancelled) return Results.Ok(new { cancelled = true });
+            return Results.Ok(new
+            {
+                cancelled = false,
+                saved = result.FileName,
+                path = result.SavedPath,
+                sidecar_saved = result.SidecarSaved,
+                sidecar_file = result.SidecarFileName,
+                sidecar_path = result.SidecarSavedPath,
+                sidecar_error = result.SidecarError
+            });
+        });
+
+        app.MapPost("/api/markdown/open-dialog", () =>
+        {
+            var result = ShowMarkdownOpenDialog();
+            if (!string.IsNullOrWhiteSpace(result.Error)) return Results.Problem(result.Error, statusCode: 500);
+            if (result.Cancelled) return Results.Ok(new { cancelled = true });
+            return Results.Ok(new
+            {
+                cancelled = false,
+                file_name = result.FileName,
+                path = result.Path,
+                content = result.Content,
+                sidecar_file = result.SidecarFileName,
+                sidecar_path = result.SidecarPath,
+                sidecar_content = result.SidecarContent,
+                sidecar_found = !string.IsNullOrWhiteSpace(result.SidecarContent)
+            });
         });
 
         app.MapGet("/api/markdown/{**name}", async (string name) =>
@@ -1082,6 +1123,357 @@ internal static class Program
         return IsManagedMarkdownFileName(fileName) ? fileName : null;
     }
 
+    private static MarkdownOpenDialogResult ShowMarkdownOpenDialog()
+    {
+        MarkdownOpenDialogResult? result = null;
+        Exception? error = null;
+
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                using var dialog = new OpenFileDialog
+                {
+                    Title = "Markdown を開く",
+                    DefaultExt = "md",
+                    CheckFileExists = true,
+                    RestoreDirectory = true,
+                    Filter = "Markdown files (*.md;*.markdown)|*.md;*.markdown|Text files (*.txt)|*.txt|All files (*.*)|*.*"
+                };
+
+                var documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                if (!string.IsNullOrWhiteSpace(documents) && Directory.Exists(documents))
+                {
+                    dialog.InitialDirectory = documents;
+                }
+
+                if (ShowMarkdownOpenFileDialogForeground(dialog) != DialogResult.OK)
+                {
+                    result = new MarkdownOpenDialogResult(true, null, null, null, null, null, null, null);
+                    return;
+                }
+
+                var selectedPath = dialog.FileName;
+                var content = File.ReadAllText(selectedPath, Encoding.UTF8);
+                var sidecarPath = selectedPath + ".comments.json";
+                var sidecarContent = File.Exists(sidecarPath)
+                    ? NormalizeReadableJsonContent(File.ReadAllText(sidecarPath, Encoding.UTF8))
+                    : null;
+
+                result = new MarkdownOpenDialogResult(
+                    false,
+                    selectedPath,
+                    Path.GetFileName(selectedPath),
+                    content,
+                    File.Exists(sidecarPath) ? sidecarPath : null,
+                    File.Exists(sidecarPath) ? Path.GetFileName(sidecarPath) : null,
+                    sidecarContent,
+                    null);
+            }
+            catch (Exception ex)
+            {
+                error = ex;
+            }
+        });
+
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        thread.Join();
+
+        if (error is not null)
+        {
+            return new MarkdownOpenDialogResult(false, null, null, null, null, null, null, error.Message);
+        }
+
+        return result ?? new MarkdownOpenDialogResult(true, null, null, null, null, null, null, null);
+    }
+
+    private static MarkdownSaveAsDialogResult ShowMarkdownSaveAsDialog(string markdownDir, MarkdownSaveRequest req)
+    {
+        MarkdownSaveAsDialogResult? result = null;
+        Exception? error = null;
+
+        var suggestedName = req.Name;
+        var content = req.Content ?? string.Empty;
+
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                using var dialog = new SaveFileDialog
+                {
+                    Title = "Markdown に名前を付けて保存",
+                    FileName = SafeMarkdownSaveDialogFileName(suggestedName),
+                    DefaultExt = "md",
+                    AddExtension = true,
+                    OverwritePrompt = true,
+                    RestoreDirectory = true,
+                    Filter = "Markdown files (*.md;*.markdown)|*.md;*.markdown|Text files (*.txt)|*.txt|All files (*.*)|*.*"
+                };
+
+                var documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                if (!string.IsNullOrWhiteSpace(documents) && Directory.Exists(documents))
+                {
+                    dialog.InitialDirectory = documents;
+                }
+
+                // mdViewer v0.16.14.2: APサーバスレッドから出したSaveFileDialogは、親ウィンドウが無いと
+                // Chrome/Edgeの背面に回ることがある。現在前面にいるブラウザHWNDを
+                // ownerとして渡し、ダイアログをブラウザの前面に固定する。
+                if (ShowMarkdownSaveFileDialogForeground(dialog) != DialogResult.OK)
+                {
+                    result = new MarkdownSaveAsDialogResult(true, null, null, null);
+                    return;
+                }
+
+                var selectedPath = dialog.FileName;
+                Directory.CreateDirectory(Path.GetDirectoryName(selectedPath)!);
+                File.WriteAllText(selectedPath, content, new UTF8Encoding(false));
+
+                // mdViewer v0.16.14.3: 「名前を付けて保存」はMarkdown本体だけではなく、
+                // コメントSidecar JSONも同じフォルダへ並べて保存する。
+                // 保存先: xxx.md -> xxx.md.comments.json
+                // Sidecar本文はフロントから渡された最新内容を優先し、無い場合は data/markdown 側の既存Sidecarをコピーする。
+                var sidecar = SaveMarkdownCommentSidecarAlongside(markdownDir, req, selectedPath);
+
+                result = new MarkdownSaveAsDialogResult(
+                    false,
+                    selectedPath,
+                    Path.GetFileName(selectedPath),
+                    null,
+                    sidecar.Saved,
+                    sidecar.SavedPath,
+                    sidecar.FileName,
+                    sidecar.Error);
+            }
+            catch (Exception ex)
+            {
+                error = ex;
+            }
+        });
+
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        thread.Join();
+
+        if (error is not null)
+        {
+            return new MarkdownSaveAsDialogResult(false, null, null, error.Message);
+        }
+
+        return result ?? new MarkdownSaveAsDialogResult(true, null, null, null);
+    }
+
+    private static MarkdownSidecarSaveResult SaveMarkdownCommentSidecarAlongside(string markdownDir, MarkdownSaveRequest req, string selectedMarkdownPath)
+    {
+        try
+        {
+            var sidecarContent = FirstNonBlank(req.SidecarContent, ReadManagedMarkdownSidecarContent(markdownDir, req));
+            if (string.IsNullOrWhiteSpace(sidecarContent)) return MarkdownSidecarSaveResult.NotFound;
+
+            var sidecarPath = selectedMarkdownPath + ".comments.json";
+            var sidecarFileName = Path.GetFileName(sidecarPath);
+            var targetFileName = Path.GetFileName(selectedMarkdownPath);
+            var exportContent = NormalizeExportedMarkdownCommentSidecarContent(sidecarContent, targetFileName, sidecarFileName);
+
+            Directory.CreateDirectory(Path.GetDirectoryName(sidecarPath)!);
+            File.WriteAllText(sidecarPath, exportContent, new UTF8Encoding(false));
+            return new MarkdownSidecarSaveResult(true, sidecarPath, sidecarFileName, null);
+        }
+        catch (Exception ex)
+        {
+            return new MarkdownSidecarSaveResult(false, null, null, ex.Message);
+        }
+    }
+
+    private static string? ReadManagedMarkdownSidecarContent(string markdownDir, MarkdownSaveRequest req)
+    {
+        foreach (var candidateName in EnumerateMarkdownSidecarCandidateNames(req))
+        {
+            var path = SafeMarkdownPath(markdownDir, candidateName);
+            if (path is not null && File.Exists(path)) return File.ReadAllText(path);
+        }
+
+        return null;
+    }
+
+    private static IEnumerable<string> EnumerateMarkdownSidecarCandidateNames(MarkdownSaveRequest req)
+    {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var value in AddIterator(req.SidecarName)) yield return value;
+        foreach (var value in AddIterator(req.SourceName)) yield return value;
+        foreach (var value in AddIterator(req.Name)) yield return value;
+
+        IEnumerable<string> AddIterator(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) yield break;
+            var normalized = Uri.UnescapeDataString(value).Replace('\\', '/').Trim('/');
+            if (string.IsNullOrWhiteSpace(normalized)) yield break;
+            if (normalized.StartsWith("data/markdown/", StringComparison.OrdinalIgnoreCase)) normalized = normalized["data/markdown/".Length..];
+            if (normalized.StartsWith("markdown/", StringComparison.OrdinalIgnoreCase)) normalized = normalized["markdown/".Length..];
+            if (normalized.Contains("://", StringComparison.OrdinalIgnoreCase) || normalized.StartsWith("//") || Path.IsPathRooted(normalized)) yield break;
+            if (!normalized.EndsWith(".comments.json", StringComparison.OrdinalIgnoreCase)) normalized += ".comments.json";
+            if (seen.Add(normalized)) yield return normalized;
+        }
+    }
+
+    private static readonly JsonSerializerOptions HumanReadableJsonOptions = new()
+    {
+        WriteIndented = true,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+    };
+
+    private static string NormalizeReadableJsonContent(string rawContent)
+    {
+        try
+        {
+            var node = JsonNode.Parse(rawContent);
+            return node is null ? rawContent : node.ToJsonString(HumanReadableJsonOptions);
+        }
+        catch
+        {
+            return rawContent;
+        }
+    }
+
+    private static string NormalizeExportedMarkdownCommentSidecarContent(string rawContent, string targetFileName, string sidecarFileName)
+    {
+        try
+        {
+            var node = JsonNode.Parse(rawContent) as JsonObject;
+            if (node is null) return rawContent;
+
+            node["target_file"] = targetFileName;
+            node["sidecar_name"] = sidecarFileName;
+            node["updated_at"] = DateTimeOffset.Now.ToString("O");
+
+            return node.ToJsonString(HumanReadableJsonOptions);
+        }
+        catch
+        {
+            return rawContent;
+        }
+    }
+
+
+    private static DialogResult ShowMarkdownOpenFileDialogForeground(OpenFileDialog dialog)
+    {
+        var foregroundHandle = GetForegroundWindow();
+        if (foregroundHandle != IntPtr.Zero)
+        {
+            ForceWindowToForeground(foregroundHandle);
+            return dialog.ShowDialog(new ExternalWin32Window(foregroundHandle));
+        }
+
+        using var owner = new Form
+        {
+            ShowInTaskbar = false,
+            TopMost = true,
+            StartPosition = FormStartPosition.Manual,
+            Size = new Size(1, 1),
+            Location = new Point(-32000, -32000)
+        };
+        owner.Load += (_, _) =>
+        {
+            owner.BeginInvoke(new Action(() =>
+            {
+                owner.Activate();
+                owner.BringToFront();
+            }));
+        };
+        owner.Show();
+        owner.Activate();
+        return dialog.ShowDialog(owner);
+    }
+
+    private static DialogResult ShowMarkdownSaveFileDialogForeground(SaveFileDialog dialog)
+    {
+        var foregroundHandle = GetForegroundWindow();
+        if (foregroundHandle != IntPtr.Zero)
+        {
+            ForceWindowToForeground(foregroundHandle);
+            return dialog.ShowDialog(new ExternalWin32Window(foregroundHandle));
+        }
+
+        using var owner = new Form
+        {
+            Text = "FRB Studio - Save As",
+            ShowInTaskbar = false,
+            TopMost = true,
+            StartPosition = FormStartPosition.CenterScreen,
+            Size = new Size(1, 1),
+            FormBorderStyle = FormBorderStyle.None,
+            Opacity = 0.01
+        };
+
+        owner.Show();
+        ForceWindowToForeground(owner.Handle);
+        owner.Activate();
+
+        return dialog.ShowDialog(owner);
+    }
+
+    private static void ForceWindowToForeground(IntPtr handle)
+    {
+        if (handle == IntPtr.Zero) return;
+        try
+        {
+            ShowWindow(handle, SW_SHOWNORMAL);
+            SetWindowPos(handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+            SetForegroundWindow(handle);
+            SetWindowPos(handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+        }
+        catch
+        {
+            // 前面化はOSのフォーカス制御に拒否されることがある。
+            // その場合もShowDialog自体は継続する。
+        }
+    }
+
+    private sealed class ExternalWin32Window : IWin32Window
+    {
+        public ExternalWin32Window(IntPtr handle)
+        {
+            Handle = handle;
+        }
+
+        public IntPtr Handle { get; }
+    }
+
+    private static readonly IntPtr HWND_TOPMOST = new(-1);
+    private static readonly IntPtr HWND_NOTOPMOST = new(-2);
+    private const int SW_SHOWNORMAL = 1;
+    private const uint SWP_NOMOVE = 0x0002;
+    private const uint SWP_NOSIZE = 0x0001;
+    private const uint SWP_SHOWWINDOW = 0x0040;
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetForegroundWindow();
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint flags);
+
+    private static string SafeMarkdownSaveDialogFileName(string? suggestedName)
+    {
+        var name = string.IsNullOrWhiteSpace(suggestedName) ? "frb_thought.md" : suggestedName;
+        name = Uri.UnescapeDataString(name).Replace('\\', '/').Split('/', StringSplitOptions.RemoveEmptyEntries).LastOrDefault() ?? "frb_thought.md";
+        foreach (var ch in Path.GetInvalidFileNameChars()) name = name.Replace(ch, '_');
+        name = name.Trim();
+        if (string.IsNullOrWhiteSpace(name)) name = "frb_thought.md";
+        if (!IsManagedMarkdownFileName(name) && !name.EndsWith(".txt", StringComparison.OrdinalIgnoreCase)) name += ".md";
+        return name;
+    }
+
     private static bool IsManagedMarkdownFileName(string name)
     {
         return name.EndsWith(".md", StringComparison.OrdinalIgnoreCase) ||
@@ -1291,4 +1683,29 @@ internal sealed record DataFolder(string RelativePath, string FullPath, bool IsP
 }
 
 public sealed record DropJsonRequest(string Name, JsonElement Json);
-public sealed record MarkdownSaveRequest(string Name, string? Content);
+public sealed record MarkdownSaveRequest(string Name, string? Content, string? SourceName, string? SidecarName, string? SidecarContent);
+
+public sealed record MarkdownOpenDialogResult(
+    bool Cancelled,
+    string? Path,
+    string? FileName,
+    string? Content,
+    string? SidecarPath,
+    string? SidecarFileName,
+    string? SidecarContent,
+    string? Error);
+
+public sealed record MarkdownSaveAsDialogResult(
+    bool Cancelled,
+    string? SavedPath,
+    string? FileName,
+    string? Error,
+    bool SidecarSaved = false,
+    string? SidecarSavedPath = null,
+    string? SidecarFileName = null,
+    string? SidecarError = null);
+
+internal sealed record MarkdownSidecarSaveResult(bool Saved, string? SavedPath, string? FileName, string? Error)
+{
+    public static MarkdownSidecarSaveResult NotFound { get; } = new(false, null, null, null);
+}

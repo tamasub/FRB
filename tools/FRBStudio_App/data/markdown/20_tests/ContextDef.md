@@ -1,3 +1,10 @@
+---
+title: "たぶんこういう関係"
+emoji: "📖"
+type: "idea"
+topics: ["ai", "development", "thought"]
+published: false
+---
 
 ```mermaid
 flowchart TD
