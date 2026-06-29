@@ -1,0 +1,1181 @@
+フォルダー パスの一覧:  ボリューム Samsung980_Pro
+ボリューム シリアル番号は 000000E7 5007:08D7 です
+F:.
+|   .gitignore
+|   appsettings.Development.json
+|   appsettings.json
+|   aspnetcorev2_inprocess.dll
+|   file_list_Tree.bat
+|   file_list_Tree.txt
+|   FRB.ico
+|   FRBStudio.exe
+|   FRBStudio.pdb
+|   FRBStudio.staticwebassets.endpoints.json
+|   FRB_tray.ico
+|   make_wwwroot_zip_v2.bat
+|   make_wwwroot_zip_v2.ps1
+|   package-lock.json
+|   package.json
+|   playwright.config.ts
+|   web.config
+|   wwwroot20260628_225259.zip
+|   wwwroot20260628_232141.zip
+|   
++---data
+|   +---json
+|   |   +---00_rules
+|   |   |   |   common_enums_v0_1.json
+|   |   |   |   context_refs_sample_data_v0_1.json
+|   |   |   |   frb_coding_constraints_data_v0_3.json
+|   |   |   |   frb_constraint_spec_v0_6.json
+|   |   |   |   frb_diff_result_format_rules_data_v0_1.json
+|   |   |   |   frb_foundation_rules_data_v0_1.json
+|   |   |   |   frb_test_evidence_rules_data_v0_1.json
+|   |   |   |   frb_viewdef_generation_rules_data_v0_1.json
+|   |   |   |   frb_view_def_schema_review_data_v0_1.json
+|   |   |   |   frb_view_def_schema_v0_9.json
+|   |   |   |   studio_context_engineer_wannabe_foundation_rules_data_v0_1_draft.json
+|   |   |   |   _json_creation_prompt.md
+|   |   |   |   _my_most_important_context.md
+|   |   |   |   
+|   |   |   \---md
+|   |   |           COMMON_ENUMS_DEFINITION_REPORT_v0_15_1.md
+|   |   |           COMMON_TYPES_OPTIONS_TO_ENUMREF_REPORT_v0_15_4.md
+|   |   |           CONTEXT_ENUMS_ADDED_REPORT_v0_15_3.md
+|   |   |           DELIVERY_CLEANUP_ZIP_SAFETY_POLICY_REPORT_v0_14_18.md
+|   |   |           FIELDTYPE_ENUMREF_RESOLVE_REPORT_v0_15_2.md
+|   |   |           FILENAME_REFERENCE_MIGRATION_REPORT_v0_14_20.md
+|   |   |           filename_updatelist.md
+|   |   |           MAIN_CONTEXT_HEADER_PANEL_REPORT_v0_15_5_2.md
+|   |   |           TARGET_CONTEXT_DETAIL_PANEL_COMPACT_REPORT_v0_15_5_3_1.md
+|   |   |           TARGET_CONTEXT_DETAIL_PANEL_REPORT_v0_15_5_3.md
+|   |   |           VIEWDEF_CONTEXT_MODEL_CLEANUP_REPORT_v0_15_5_1.md
+|   |   |           VIEWDEF_CONTEXT_READ_CONTRACT_REPORT_v0_15_5.md
+|   |   |           VIEWDEF_GENERATION_COMMON_VIEWDEF_POLICY_REPORT_v0_14_17.md
+|   |   |           VIEWDEF_HEADER_SEARCH_LAYOUT_RULES_REPORT_v0_14_32.md
+|   |   |           VIEWDEF_RULES_VISIBLE_ADJUSTMENT_REPORT_v0_14_35.md
+|   |   |           
+|   |   +---01_main
+|   |   |       00_do_incident_prompt_temple.md
+|   |   |       01_create_testpatern_prompt_temple.md
+|   |   |       chatgpt_context_relation_graph_data_v0_1.json
+|   |   |       chatgpt_raw_keyword_activation_data_v0_1.json
+|   |   |       chatgpt_sentence_prime_map_data_v0_1.json
+|   |   |       chatgpt_shared_context_data_v0_1.json
+|   |   |       qa_expected_checks_add_candidates_v0_1.json
+|   |   |       qa_expected_checks_classified_v0_1.json
+|   |   |       qa_expected_checks_sample_v0_1.json
+|   |   |       qa_test_patterns_sample_v0_1.json
+|   |   |       studio_work_incident_data_v0_77_detail_subgrid_table_edit_core_mvp_added.json
+|   |   |       studio_work_incident_data_v0_78_incident_contextdef_open_work_draft_added.json
+|   |   |       studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json
+|   |   |       studio_work_incident_data_v0_80_grid_card_document_renderer_history_added_done.json
+|   |   |       studio_work_incident_data_v0_81_test_runner_launch_toast_added.json
+|   |   |       studio_work_incident_data_v0_82_test_runner_launch_toast_done.json
+|   |   |       
+|   |   +---02_mission
+|   |   |   +---sample
+|   |   |   |       studio_context_engineer_wannabe_mission_def_sample_v0_1_draft_xx.json
+|   |   |   |       studio_context_engineer_wannabe_mission_result_summary_sample_v0_1_draft.json
+|   |   |   |       
+|   |   |   \---schema
+|   |   |           studio_context_engineer_wannabe_mission_def_schema_v0_1_draft.json
+|   |   |           studio_context_engineer_wannabe_mission_result_summary_schema_v0_1_draft.json
+|   |   |           
+|   |   +---03_tests
+|   |   |   |   ai_constraint_spec_aggregated_v0_6_footer_chat.json
+|   |   |   |   
+|   |   |   +---notes
+|   |   |   |       DIFF_OUTPUT_BEFORE_ASSERT_NOTES_v0_1.md
+|   |   |   |       DIFF_RESULT_COMMON_FORMAT_NOTES_v0_1.md
+|   |   |   |       TEST_FOLDER_ARCHIVE_RUNTIME_POLICY_NOTES_v0_1.md
+|   |   |   |       
+|   |   |   +---qa
+|   |   |   |   \---v0_14_2_incident_prompt_copy_action
+|   |   |   |       +---actual
+|   |   |   |       |       TP-IPC-001.actual.json
+|   |   |   |       |       
+|   |   |   |       +---diff
+|   |   |   |       |       .gitkeep
+|   |   |   |       |       TP-IPC-001.diff.json
+|   |   |   |       |       
+|   |   |   |       +---expected
+|   |   |   |       |       qa_expected_checks_v0_14_2_incident_prompt_copy_action_expected_values_added.json
+|   |   |   |       |       
+|   |   |   |       +---notes
+|   |   |   |       |       INCIDENT_PROMPT_COPY_ACTION_FOLDER_STRUCTURE_NOTES_v0_1.md
+|   |   |   |       |       QA_ACTUAL_DIFF_RESPONSIBILITY_SPLIT_NOTES_v0_1.md
+|   |   |   |       |       QA_ACTUAL_RESULT_FIELD_POLICY_v0_1.md
+|   |   |   |       |       
+|   |   |   |       +---relations
+|   |   |   |       |       constraint_trace_relations_v0_14_2_incident_prompt_copy_action_draft.json
+|   |   |   |       |       
+|   |   |   |       +---summary
+|   |   |   |       |       .gitkeep
+|   |   |   |       |       
+|   |   |   |       \---test_patterns
+|   |   |   |               qa_test_patterns_v0_14_2_incident_prompt_copy_action_draft.json
+|   |   |   |               
+|   |   |   \---screen_state
+|   |   |       \---screen_state_smoke_001
+|   |   |           +---actual
+|   |   |           |       screen_state_smoke_001.actual.json
+|   |   |           |       
+|   |   |           +---diff
+|   |   |           |       screen_state_smoke_001.diff.json
+|   |   |           |       
+|   |   |           +---expected
+|   |   |           |       screen_state_smoke_001.expected.json
+|   |   |           |       
+|   |   |           +---notes
+|   |   |           |       expected_request_prompt.md
+|   |   |           |       PLAYWRIGHT_RUNTIME_FOLDER_POLICY_v0_1.md
+|   |   |           |       README_screen_state_expected_checkid_031.md
+|   |   |           |       SCREEN_STATE_SMOKE_001_FOLDER_STRUCTURE_NOTES_v0_1.md
+|   |   |           |       SCREEN_STATE_SMOKE_001_OUTPUT_PATH_NOTES_v0_1.md
+|   |   |           |       
+|   |   |           +---relations
+|   |   |           |       constraint_trace_relations_v0_1.json
+|   |   |           |       
+|   |   |           +---summary
+|   |   |           |       .gitkeep
+|   |   |           |       
+|   |   |           \---test_patterns
+|   |   |                   screen_state_test_patterns_data_v0_2_chat.json
+|   |   |                   
+|   |   +---04_qa
+|   |   |       qa_expected_checks_classified_v0_1.json
+|   |   |       
+|   |   +---04_tools
+|   |   |       GIT_DIFF_COMMAND_PROFILE_NOTES_v0_14_37.md
+|   |   |       git_diff_export_run_config_data_v0_1.json
+|   |   |       TEST_RUNNER_COMMAND_PROFILE_NOTES_v0_14_38.md
+|   |   |       TEST_RUNNER_COMMAND_PROFILE_REPORT_v0_14_38.md
+|   |   |       test_runner_run_config_data_v0_1.json
+|   |   |       
+|   |   +---05_inventory
+|   |   |       defs_data_link_inventory_v0_1.json
+|   |   |       defs_data_link_inventory_v0_2_repaired.json
+|   |   |       
+|   |   +---80_frb
+|   |   |       fft_log_sample.json
+|   |   |       fft_log_view_def_v0_2.json
+|   |   |       
+|   |   \---90_business
+|   |           business_customers_v0_1.json
+|   |           business_employees_v0_1.json
+|   |           business_projects_v0_1.json
+|   |           business_relations_v0_1.json
+|   |           business_tasks_v0_1.json
+|   |           
+|   \---markdown
+|           ai-driven-development-approval-cost-and-granularity.md
+|           ai_constraint_grouped_view_def_v0_6_footer_chat_viewdef.md
+|           ai_constraint_spec_aggregated_v0_1.md
+|           ai_constraint_spec_v0_1xxx.md
+|           ai_constraint_spec_v0_5_verification_radio.md
+|           approval-cost-and-granularity.md
+|           chatgpt_sentence_prime_map_data_v0_1.md
+|           chatgpt_sentence_prime_map_preview_v0_1.md
+|           coding_constraints_review_export.md
+|           coding_constraints_review_view_def_v0_2_change_history_viewdef.md
+|           constraint_trace_cards_virtual_view_def_v0_1_viewdef.md
+|           constraint_trace_relations_report.md
+|           copilot_table_review_fixture_v0_13_6.md
+|           copilot_table_review_fixture_v0_13_6.md.comments.json
+|           fft_log_sample.md
+|           filename_updatelist.md
+|           FRB_Lab_Notes_Qiita.md
+|           FRB_VIEW_DEF_GENERATION_RULES_v0_15_action_registry_current.md
+|           frb_view_def_schema_review_export.md
+|           invisible-visualization-structuring-culture.md
+|           json_studio_export_2026-06-17T11-10-43-232Z.md
+|           metadiff_ai_hypothesis_frb_20260523_v0_2_1.md
+|           my-ai-driven-development-08-thinking-as-class.md
+|           No-Code JSON Studiov0.3-draft.md
+|           qa_cross_check_risk_view_def_v0_1_viewdef.md
+|           qa_expected_checks_classified_view_def_v0_1_viewdef.md
+|           qa_expected_checks_sample_v0_1.md
+|           qa_expected_checks_sample_view_def_v0_1_viewdef.md
+|           qa_shortage_expected_findings_view_def_v0_1_viewdef.md
+|           qa_test_patterns_sample_v0_1.md
+|           relation_axis_business_customer_view_def_v0_1_viewdef.md
+|           relation_edit_view_def_v0_1_viewdef.md
+|           rule_review_decision_log_export.md
+|           rule_review_export.md
+|           screen_state_diff_base_export.md
+|           screen_state_diff_view_def_base_v0_2_checks_viewdef.md
+|           screen_state_diff_view_def_child_v0_3_failure_focus_viewdef.md
+|           screen_state_expected_export.md
+|           studio_context_engineer_wannabe_mission_result_summary.md
+|           studio_work_incident_export.md
+|           studio_work_incident_view_def_v0_1_viewdef.md
+|           takeyari-shokyaku-noroshi.md
+|           test.md
+|           To_AI_Comment_MyComment.md
+|           Zenn_Blog_All.md
+|           Zenn_Blog_All_merged.md
+|           Zenn_GitHub_merged.md
+|           
++---defs
+|   |   studio_work_incident_view_def_v0_5.json
+|   |   
+|   +---common
+|   |       common_enums_view_def_v0_1.json
+|   |       common_types_v0_1.json
+|   |       view_def_maint_fields_v0_2.json
+|   |       
+|   +---frb
+|   |       fft_log_view_def_v0_2.json
+|   |       
+|   +---inventory
+|   |       defs_data_link_inventory_view_def_v0_1.json
+|   |       
+|   +---mission
+|   |       studio_context_engineer_wannabe_mission_def_view_def_v0_1.json
+|   |       studio_context_engineer_wannabe_mission_result_summary_view_def_v0_1.json
+|   |       
+|   +---qa
+|   |       qa_actual_observation_view_def_v0_1.json
+|   |       qa_actual_result_view_def_v0_1.json
+|   |       qa_cross_check_risk_view_def_v0_1.json
+|   |       qa_cross_constraint_view_def_v0_1.json
+|   |       qa_cross_quality_risk_view_def_v0_1.json
+|   |       qa_cross_test_pattern_view_def_v0_1.json
+|   |       qa_diff_result_view_def_v0_1.json
+|   |       qa_expected_checks_candidate_review_view_def_v0_1.json
+|   |       qa_expected_checks_candidate_review_wrapped_view_def_v0_1.json
+|   |       qa_expected_checks_classified_view_def_v0_1.json
+|   |       qa_expected_checks_sample_view_def_v0_1.json
+|   |       qa_shortage_expected_findings_view_def_v0_1.json
+|   |       qa_test_patterns_sample_view_def_v0_1.json
+|   |       
+|   +---relation
+|   |       relation_approval_view_def_v0_1.json
+|   |       relation_axis_business_customer_view_def_v0_1.json
+|   |       relation_axis_business_employee_view_def_v0_1.json
+|   |       relation_axis_business_project_view_def_v0_1.json
+|   |       relation_axis_constraint_view_def_v0_1.json
+|   |       relation_axis_diff_check_view_def_v0_1.json
+|   |       relation_axis_test_pattern_view_def_v0_1.json
+|   |       relation_edit_view_def_v0_1.json
+|   |       
+|   +---rules
+|   |   |   ai_constraint_grouped_view_def_v0_6_footer_chat.json
+|   |   |   context_refs_sample_view_def_v0_1.json
+|   |   |   frb_view_def_schema_review_view_def_v0_1.json
+|   |   |   rule_review_common_view_def_v0_3.json
+|   |   |   studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json
+|   |   |   studio_work_incident_view_def_v0_5.json
+|   |   |   
+|   |   +---chatgpt
+|   |   |       chatgpt_context_relation_graph_view_def_v0_1.json
+|   |   |       chatgpt_raw_keyword_activation_view_def_v0_1.json
+|   |   |       chatgpt_sentence_prime_map_view_def_v0_1.json
+|   |   |       chatgpt_shared_context_view_def_v0_1.json
+|   |   |       
+|   |   \---tmp
+|   |           rule_review_common_view_def_v0_1.json
+|   |           rule_review_common_view_def_v0_2_editable_review_target.json
+|   |           
+|   +---screen_state
+|   |       screen_state_diff_view_def_base_v0_2_checks.json
+|   |       screen_state_diff_view_def_child_v0_3_failure_focus.json
+|   |       screen_state_diff_view_def_child_v0_3_summary.json
+|   |       screen_state_expected_view_def_v0_1.json
+|   |       screen_state_test_patterns_view_def_v0_2_chat.json
+|   |       
+|   \---tools
+|           git_diff_export_run_config_view_def_v0_1 - コピー.json
+|           git_diff_export_run_config_view_def_v0_1 - ｴ｢ｦｴ｢｢ｪｴ｢ｦｴ｢･豢｢ｦｴ｢ﾑﾞ・ｴ｢ﾑｴ･｣ｴ｢ｦｴ｢・ｴ｢ｦｴ｢ﾑﾞｦ｢｢ｪｴ｢ｦｴ｢･豢｢ｦｴ｢ﾑﾞ・ｴ｢ﾑｴ･｣ｴ｢ｦｴ｢・+ｴ｢ｦｴ｢｢ｪｴ｢ｦｴ｢･豢｢ｦｴ｢ﾑﾞ・ｴ｢ﾑｴ･蟠･ﾆﾒ・.json
+|           git_diff_export_run_config_view_def_v0_1 - ｴ｢ｦｴ｢ﾑｴ･蟠･ﾜｴ｢+ｴ･豢｢ｦｴ｢ﾑｴ･蟠･ﾜｴ｢++ｴ｢ｦｴ｢ﾑｴ･蟠･ﾆﾒ・.json
+|           git_diff_export_run_config_view_def_v0_1 - ｴ･ﾆﾚｼﾑｴ･ﾆﾚｼ+ｴ･ﾆﾒ・.json
+|           git_diff_export_run_config_view_def_v0_1 - ﾒ鬥ﾒ鬻ﾒ・.json
+|           git_diff_export_run_config_view_def_v0_1.json
+|           test_runner_run_config_view_def_v0_1.json
+|           
++---node_modules
+|   |   .package-lock.json
+|   |   
+|   +---.bin
+|   |       playwright
+|   |       playwright-core
+|   |       playwright-core.cmd
+|   |       playwright-core.ps1
+|   |       playwright.cmd
+|   |       playwright.ps1
+|   |       
+|   +---@playwright
+|   |   \---test
+|   |           cli.js
+|   |           index.d.ts
+|   |           index.js
+|   |           index.mjs
+|   |           LICENSE
+|   |           NOTICE
+|   |           package.json
+|   |           README.md
+|   |           reporter.d.ts
+|   |           reporter.js
+|   |           reporter.mjs
+|   |           
+|   +---@types
+|   |   \---node
+|   |       |   assert.d.ts
+|   |       |   async_hooks.d.ts
+|   |       |   buffer.buffer.d.ts
+|   |       |   buffer.d.ts
+|   |       |   child_process.d.ts
+|   |       |   cluster.d.ts
+|   |       |   console.d.ts
+|   |       |   constants.d.ts
+|   |       |   crypto.d.ts
+|   |       |   dgram.d.ts
+|   |       |   diagnostics_channel.d.ts
+|   |       |   dns.d.ts
+|   |       |   domain.d.ts
+|   |       |   events.d.ts
+|   |       |   fs.d.ts
+|   |       |   globals.d.ts
+|   |       |   globals.typedarray.d.ts
+|   |       |   http.d.ts
+|   |       |   http2.d.ts
+|   |       |   https.d.ts
+|   |       |   index.d.ts
+|   |       |   inspector.d.ts
+|   |       |   inspector.generated.d.ts
+|   |       |   LICENSE
+|   |       |   module.d.ts
+|   |       |   net.d.ts
+|   |       |   os.d.ts
+|   |       |   package.json
+|   |       |   path.d.ts
+|   |       |   perf_hooks.d.ts
+|   |       |   process.d.ts
+|   |       |   punycode.d.ts
+|   |       |   querystring.d.ts
+|   |       |   quic.d.ts
+|   |       |   readline.d.ts
+|   |       |   README.md
+|   |       |   repl.d.ts
+|   |       |   sea.d.ts
+|   |       |   sqlite.d.ts
+|   |       |   stream.d.ts
+|   |       |   string_decoder.d.ts
+|   |       |   test.d.ts
+|   |       |   timers.d.ts
+|   |       |   tls.d.ts
+|   |       |   trace_events.d.ts
+|   |       |   tty.d.ts
+|   |       |   url.d.ts
+|   |       |   util.d.ts
+|   |       |   v8.d.ts
+|   |       |   vm.d.ts
+|   |       |   wasi.d.ts
+|   |       |   worker_threads.d.ts
+|   |       |   zlib.d.ts
+|   |       |   
+|   |       +---assert
+|   |       |       strict.d.ts
+|   |       |       
+|   |       +---dns
+|   |       |       promises.d.ts
+|   |       |       
+|   |       +---fs
+|   |       |       promises.d.ts
+|   |       |       
+|   |       +---inspector
+|   |       |       promises.d.ts
+|   |       |       
+|   |       +---path
+|   |       |       posix.d.ts
+|   |       |       win32.d.ts
+|   |       |       
+|   |       +---readline
+|   |       |       promises.d.ts
+|   |       |       
+|   |       +---stream
+|   |       |       consumers.d.ts
+|   |       |       iter.d.ts
+|   |       |       promises.d.ts
+|   |       |       web.d.ts
+|   |       |       
+|   |       +---test
+|   |       |       reporters.d.ts
+|   |       |       
+|   |       +---timers
+|   |       |       promises.d.ts
+|   |       |       
+|   |       +---ts5.6
+|   |       |   |   buffer.buffer.d.ts
+|   |       |   |   globals.typedarray.d.ts
+|   |       |   |   index.d.ts
+|   |       |   |   
+|   |       |   \---compatibility
+|   |       |           float16array.d.ts
+|   |       |           
+|   |       +---ts5.7
+|   |       |   |   index.d.ts
+|   |       |   |   
+|   |       |   \---compatibility
+|   |       |           float16array.d.ts
+|   |       |           
+|   |       +---util
+|   |       |       types.d.ts
+|   |       |       
+|   |       +---web-globals
+|   |       |       abortcontroller.d.ts
+|   |       |       blob.d.ts
+|   |       |       console.d.ts
+|   |       |       crypto.d.ts
+|   |       |       domexception.d.ts
+|   |       |       encoding.d.ts
+|   |       |       events.d.ts
+|   |       |       fetch.d.ts
+|   |       |       importmeta.d.ts
+|   |       |       messaging.d.ts
+|   |       |       navigator.d.ts
+|   |       |       performance.d.ts
+|   |       |       storage.d.ts
+|   |       |       streams.d.ts
+|   |       |       timers.d.ts
+|   |       |       url.d.ts
+|   |       |       
+|   |       \---zlib
+|   |               iter.d.ts
+|   |               
+|   +---playwright
+|   |   |   cli.js
+|   |   |   index.d.ts
+|   |   |   index.js
+|   |   |   index.mjs
+|   |   |   jsx-runtime.js
+|   |   |   jsx-runtime.mjs
+|   |   |   LICENSE
+|   |   |   NOTICE
+|   |   |   package.json
+|   |   |   README.md
+|   |   |   test.d.ts
+|   |   |   test.js
+|   |   |   test.mjs
+|   |   |   ThirdPartyNotices.txt
+|   |   |   
+|   |   +---lib
+|   |   |   |   errorContext.js
+|   |   |   |   globals.js
+|   |   |   |   index.js
+|   |   |   |   isomorphic.js
+|   |   |   |   isomorphic.js.txt
+|   |   |   |   package.js
+|   |   |   |   program.js
+|   |   |   |   util.js
+|   |   |   |   
+|   |   |   +---agents
+|   |   |   |       agentParser.js
+|   |   |   |       copilot-setup-steps.yml
+|   |   |   |       generateAgents.js
+|   |   |   |       playwright-test-coverage.prompt.md
+|   |   |   |       playwright-test-generate.prompt.md
+|   |   |   |       playwright-test-generator.agent.md
+|   |   |   |       playwright-test-heal.prompt.md
+|   |   |   |       playwright-test-healer.agent.md
+|   |   |   |       playwright-test-plan.prompt.md
+|   |   |   |       playwright-test-planner.agent.md
+|   |   |   |       
+|   |   |   +---cli
+|   |   |   |       reportActions.js
+|   |   |   |       testActions.js
+|   |   |   |       
+|   |   |   +---common
+|   |   |   |       index.js
+|   |   |   |       index.js.txt
+|   |   |   |       
+|   |   |   +---loader
+|   |   |   |       loaderProcessEntry.js
+|   |   |   |       loaderProcessEntry.js.txt
+|   |   |   |       
+|   |   |   +---matchers
+|   |   |   |       expect.js
+|   |   |   |       expect.js.LICENSE
+|   |   |   |       expect.js.txt
+|   |   |   |       
+|   |   |   +---mcp
+|   |   |   |   \---test
+|   |   |   |           browserBackend.js
+|   |   |   |           generatorTools.js
+|   |   |   |           plannerTools.js
+|   |   |   |           seed.js
+|   |   |   |           streams.js
+|   |   |   |           testBackend.js
+|   |   |   |           testContext.js
+|   |   |   |           testTool.js
+|   |   |   |           testTools.js
+|   |   |   |           
+|   |   |   +---runner
+|   |   |   |       index.js
+|   |   |   |       index.js.txt
+|   |   |   |       
+|   |   |   +---transform
+|   |   |   |       babelBundle.js
+|   |   |   |       babelBundle.js.LICENSE
+|   |   |   |       babelBundle.js.txt
+|   |   |   |       esmLoader.js
+|   |   |   |       esmLoader.js.LICENSE
+|   |   |   |       esmLoader.js.txt
+|   |   |   |       
+|   |   |   \---worker
+|   |   |           workerProcessEntry.js
+|   |   |           workerProcessEntry.js.txt
+|   |   |           
+|   |   \---types
+|   |           test.d.ts
+|   |           testReporter.d.ts
+|   |           
+|   +---playwright-core
+|   |   |   browsers.json
+|   |   |   cli.js
+|   |   |   index.d.ts
+|   |   |   index.js
+|   |   |   index.mjs
+|   |   |   LICENSE
+|   |   |   NOTICE
+|   |   |   package.json
+|   |   |   README.md
+|   |   |   ThirdPartyNotices.txt
+|   |   |   
+|   |   +---bin
+|   |   |       install_media_pack.ps1
+|   |   |       install_webkit_wsl.ps1
+|   |   |       reinstall_chrome_beta_linux.sh
+|   |   |       reinstall_chrome_beta_mac.sh
+|   |   |       reinstall_chrome_beta_win.ps1
+|   |   |       reinstall_chrome_stable_linux.sh
+|   |   |       reinstall_chrome_stable_mac.sh
+|   |   |       reinstall_chrome_stable_win.ps1
+|   |   |       reinstall_msedge_beta_linux.sh
+|   |   |       reinstall_msedge_beta_mac.sh
+|   |   |       reinstall_msedge_beta_win.ps1
+|   |   |       reinstall_msedge_dev_linux.sh
+|   |   |       reinstall_msedge_dev_mac.sh
+|   |   |       reinstall_msedge_dev_win.ps1
+|   |   |       reinstall_msedge_stable_linux.sh
+|   |   |       reinstall_msedge_stable_mac.sh
+|   |   |       reinstall_msedge_stable_win.ps1
+|   |   |       
+|   |   +---lib
+|   |   |   |   bootstrap.js
+|   |   |   |   coreBundle.js
+|   |   |   |   package.js
+|   |   |   |   serverRegistry.js
+|   |   |   |   serverRegistry.js.LICENSE
+|   |   |   |   utilsBundle.js
+|   |   |   |   utilsBundle.js.LICENSE
+|   |   |   |   xdg-open
+|   |   |   |   
+|   |   |   +---entry
+|   |   |   |       cliDaemon.js
+|   |   |   |       dashboardApp.js
+|   |   |   |       mcp.js
+|   |   |   |       oopBrowserDownload.js
+|   |   |   |       
+|   |   |   +---server
+|   |   |   |   |   deviceDescriptorsSource.json
+|   |   |   |   |   
+|   |   |   |   +---chromium
+|   |   |   |   |       appIcon.png
+|   |   |   |   |       
+|   |   |   |   \---electron
+|   |   |   |           loader.js
+|   |   |   |           
+|   |   |   +---tools
+|   |   |   |   +---cli-client
+|   |   |   |   |   |   channelSessions.js
+|   |   |   |   |   |   cli.js
+|   |   |   |   |   |   help.json
+|   |   |   |   |   |   minimist.js
+|   |   |   |   |   |   output.js
+|   |   |   |   |   |   program.js
+|   |   |   |   |   |   registry.js
+|   |   |   |   |   |   session.js
+|   |   |   |   |   |   
+|   |   |   |   |   \---skill
+|   |   |   |   |       |   SKILL.md
+|   |   |   |   |       |   
+|   |   |   |   |       \---references
+|   |   |   |   |               element-attributes.md
+|   |   |   |   |               playwright-tests.md
+|   |   |   |   |               request-mocking.md
+|   |   |   |   |               running-code.md
+|   |   |   |   |               session-management.md
+|   |   |   |   |               spec-driven-testing.md
+|   |   |   |   |               storage-state.md
+|   |   |   |   |               test-generation.md
+|   |   |   |   |               tracing.md
+|   |   |   |   |               video-recording.md
+|   |   |   |   |               
+|   |   |   |   +---dashboard
+|   |   |   |   |       appIcon.png
+|   |   |   |   |       
+|   |   |   |   +---trace
+|   |   |   |   |       SKILL.md
+|   |   |   |   |       
+|   |   |   |   \---utils
+|   |   |   |           extension.js
+|   |   |   |           socketConnection.js
+|   |   |   |           
+|   |   |   \---vite
+|   |   |       +---dashboard
+|   |   |       |   |   index.html
+|   |   |       |   |   playwright-logo.svg
+|   |   |       |   |   
+|   |   |       |   \---assets
+|   |   |       |           codicon-DCmgc-ay.ttf
+|   |   |       |           firefox-1bWoP6pv.svg
+|   |   |       |           firefox-beta-k3eOH_eK.svg
+|   |   |       |           firefox-nightly-Cp5nfeDT.svg
+|   |   |       |           index-BY2S1tHT.css
+|   |   |       |           index-C_5TMfeg.js
+|   |   |       |           safari-na3_-uQk.svg
+|   |   |       |           
+|   |   |       +---htmlReport
+|   |   |       |       index.html
+|   |   |       |       report.css
+|   |   |       |       report.js
+|   |   |       |       
+|   |   |       +---recorder
+|   |   |       |   |   index.html
+|   |   |       |   |   playwright-logo.svg
+|   |   |       |   |   
+|   |   |       |   \---assets
+|   |   |       |           codeMirrorModule-DeBYQozu.js
+|   |   |       |           codeMirrorModule-DYBRYzYX.css
+|   |   |       |           codicon-DCmgc-ay.ttf
+|   |   |       |           index-4ZiSSCmn.css
+|   |   |       |           index-Bq-mQf8S.js
+|   |   |       |           
+|   |   |       \---traceViewer
+|   |   |           |   codeMirrorModule.DYBRYzYX.css
+|   |   |           |   codicon.DCmgc-ay.ttf
+|   |   |           |   defaultSettingsView.CjdS-WJx.css
+|   |   |           |   index.CzXZzn5A.css
+|   |   |           |   index.DEBl1tfz.js
+|   |   |           |   index.html
+|   |   |           |   manifest.webmanifest
+|   |   |           |   playwright-logo.svg
+|   |   |           |   snapshot.html
+|   |   |           |   snapshot.v8KI4P3m.js
+|   |   |           |   sw.bundle.js
+|   |   |           |   uiMode.BZQ54Kgt.css
+|   |   |           |   uiMode.html
+|   |   |           |   uiMode.Ut8wwJNp.js
+|   |   |           |   xtermModule.DYP7pi_n.css
+|   |   |           |   
+|   |   |           \---assets
+|   |   |                   codeMirrorModule-LEHpjmcn.js
+|   |   |                   defaultSettingsView-BNmKHKpQ.js
+|   |   |                   urlMatch-BYQrIQwR.js
+|   |   |                   xtermModule-CsJ4vdCR.js
+|   |   |                   
+|   |   \---types
+|   |           protocol.d.ts
+|   |           structs.d.ts
+|   |           types.d.ts
+|   |           
+|   \---undici-types
+|           agent.d.ts
+|           api.d.ts
+|           balanced-pool.d.ts
+|           cache-interceptor.d.ts
+|           cache.d.ts
+|           client-stats.d.ts
+|           client.d.ts
+|           connector.d.ts
+|           content-type.d.ts
+|           cookies.d.ts
+|           diagnostics-channel.d.ts
+|           dispatcher.d.ts
+|           dispatcher1-wrapper.d.ts
+|           env-http-proxy-agent.d.ts
+|           errors.d.ts
+|           eventsource.d.ts
+|           fetch.d.ts
+|           formdata.d.ts
+|           global-dispatcher.d.ts
+|           global-origin.d.ts
+|           h2c-client.d.ts
+|           handlers.d.ts
+|           header.d.ts
+|           index.d.ts
+|           interceptors.d.ts
+|           LICENSE
+|           mock-agent.d.ts
+|           mock-call-history.d.ts
+|           mock-client.d.ts
+|           mock-errors.d.ts
+|           mock-interceptor.d.ts
+|           mock-pool.d.ts
+|           package.json
+|           patch.d.ts
+|           pool-stats.d.ts
+|           pool.d.ts
+|           proxy-agent.d.ts
+|           readable.d.ts
+|           README.md
+|           retry-agent.d.ts
+|           retry-handler.d.ts
+|           round-robin-pool.d.ts
+|           snapshot-agent.d.ts
+|           socks5-proxy-agent.d.ts
+|           util.d.ts
+|           utility.d.ts
+|           webidl.d.ts
+|           websocket.d.ts
+|           
++---Program.cs
+|   |   appsettings.Development.json
+|   |   appsettings.json
+|   |   FRBStudio.csproj
+|   |   Program.cs
+|   |   
+|   +---bin
+|   |   \---Debug
+|   |       \---net9.0-windows
+|   \---obj
+|       |   FRBStudio.csproj.nuget.dgspec.json
+|       |   FRBStudio.csproj.nuget.g.props
+|       |   FRBStudio.csproj.nuget.g.targets
+|       |   project.assets.json
+|       |   project.nuget.cache
+|       |   
+|       \---Debug
+|           \---net9.0-windows
+|               |   .NETCoreApp,Version=v9.0.AssemblyAttributes.cs
+|               |   FRBStudio.AssemblyInfo.cs
+|               |   FRBStudio.AssemblyInfoInputs.cache
+|               |   FRBStudio.assets.cache
+|               |   FRBStudio.GeneratedMSBuildEditorConfig.editorconfig
+|               |   FRBStudio.GlobalUsings.g.cs
+|               |   
+|               +---ref
+|               \---refint
++---reports
+|       incident_contextdef_open_work_draft_v0_16_3_validation_report.json
+|       
++---tests
+|   |   prompt.md
+|   |   setup.md
+|   |   
+|   +---.runtime
+|   |   \---playwright-output
+|   |       \---ncjs-screen-state-compare.-84498-SONをExpectedと比較してDiffを保存できる
+|   |               error-context.md
+|   |               trace.zip
+|   |               
+|   +---qa
+|   |   \---static
+|   |           incident_prompt_copy_action_viewdef_static.test.mjs
+|   |           
+|   +---screen_state
+|   |       ncjs-screen-state-compare.checks.spec.ts
+|   |       
+|   \---tools
+|           cleanup_runtime_artifacts.ps1
+|           
++---tests_screen_state
++---test_results
+|   \---diff
++---tools
+|   +---git
+|   |       Export-DiffToJson.ps1
+|   |       
+|   \---test
+|           TestRunner.ps1
+|           
++---wwwroot
+|   |   app.js
+|   |   count_js_steps.py
+|   |   DiffJsonViewer.html
+|   |   index.html
+|   |   mdViewer.html
+|   |   MetaDiff_HypothesisViewer.html
+|   |   styles.css
+|   |   
+|   +---config
+|   |       app_info.json
+|   |       app_settings.json
+|   |       
+|   +---data
+|   |   +---json
+|   |   |   \---01_main
+|   |   |           frb_coding_constraints_review_data_v0_3.json
+|   |   |           studio_work_incident_data_v0_00.json
+|   |   |           studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json
+|   |   |           studio_work_incident_data_v0_80_grid_card_document_renderer_scope_fixed_done.json
+|   |   |           
+|   |   \---markdown
+|   |           ai_constraint_grouped_view_def_v0_6_footer_chat_viewdef.md
+|   |           copilot_table_review_fixture_v0_13_6.md
+|   |           copilot_table_review_fixture_v0_13_6.md.comments.json
+|   |           
+|   +---defs
+|   |   |   coding_constraints_review_view_def_v0_2_change_history.json
+|   |   |   studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json
+|   |   |   studio_work_incident_view_def_v0_5.json
+|   |   |   
+|   |   \---rules
+|   |           studio_work_incident_view_def_v0_5.json
+|   |           
+|   +---diff
+|   |       DiffToJson_20260628_082303.json
+|   |       DiffToJson_20260628_233158.json
+|   |       
+|   +---images
+|   |   \---chat
+|   |           tamasub.png
+|   |           v0.7-json-select-folder-hierarchy_tree.png
+|   |           
+|   +---js
+|   |   |   REGISTRY_NOTES_v0_5.md
+|   |   |   SPLIT_NOTES_v0_4.md
+|   |   |   
+|   |   +---actions
+|   |   |       ACTION_EXECUTE_BUTTON_NOTES_v0_6.md
+|   |   |       action_registry.js
+|   |   |       action_toolbar.js
+|   |   |       
+|   |   +---core
+|   |   |       data_utils.js
+|   |   |       field_types.js
+|   |   |       file_api.js
+|   |   |       loaders.js
+|   |   |       registry.js
+|   |   |       state.js
+|   |   |       viewdef_context_contract.js
+|   |   |       viewdef_resolver.js
+|   |   |       
+|   |   +---markdown
+|   |   |       data_markdown.js
+|   |   |       markdown_registry.js
+|   |   |       viewdef_markdown.js
+|   |   |       
+|   |   +---renderers
+|   |   |       field_controls.js
+|   |   |       field_control_registry.js
+|   |   |       grid_detail.js
+|   |   |       renderer_registry.js
+|   |   |       
+|   |   +---runtime
+|   |   |       APP_INFO_BRANDING_NOTES_v0_9.md
+|   |   |       BLOCK_MODEL_NOTES_v0_13.md
+|   |   |       CHAT_INPUT_MAPPING_NOTES_v0_7.md
+|   |   |       CHAT_MARKDOWN_EDITABLE_FIX_NOTES_v0_9_1.md
+|   |   |       CHAT_MARKDOWN_PREVIEW_FIX_NOTES_v0_8_1.md
+|   |   |       CHILD_SUBGRID_CARD_EDITOR_NOTES_v0_16_5_1.md
+|   |   |       CHILD_SUBGRID_PREVIEW_EDIT_NOTES_v0_16_5_3.md
+|   |   |       DATA_VIEWDEF_CANDIDATES_NOTES_v0_14_1.md
+|   |   |       detail_save.js
+|   |   |       detail_subgrid_edit.js
+|   |   |       DETAIL_SUBGRID_TABLE_EDIT_CORE_NOTES_v0_16_2.md
+|   |   |       GIT_DIFF_COMMAND_PROFILE_NOTES_v0_14_37.md
+|   |   |       GRID_CARD_DOCUMENT_RENDERER_NOTES_v0_16_5.md
+|   |   |       INCIDENT_PROMPT_COPY_ACTION_NOTES_v0_14_2.md
+|   |   |       load_runtime.js
+|   |   |       MARKDOWN_BLOCK_PREVIEW_FIX_NOTES_v0_10_1.md
+|   |   |       MARKDOWN_BLUR_PREVIEW_FIX_NOTES_v0_10_2.md
+|   |   |       MARKDOWN_COMMENT_REVIEW_SIDEBAR__v0_13_4_1.md
+|   |   |       MARKDOWN_COMMENT_REVIEW_UI_NOTES_v0_13_4.md
+|   |   |       MARKDOWN_COMMENT_SIDECAR_JSON_NOTES_v0_13_3.md
+|   |   |       MARKDOWN_COPILOT_TABLE_REVIEW_FIXTURE_NOTES_v0_13_6.md
+|   |   |       MARKDOWN_PREVIEW_DISPLAY_MODE_NOTES_v0_10.md
+|   |   |       MARKDOWN_RAW_BLOCK_DIALOG_EDITOR_NOTES_v0_13_7.md
+|   |   |       MARKDOWN_ROUNDTRIP_SAVE_SAFETY_NOTES_v0_13_5.md
+|   |   |       MARKDOWN_TABLE_CELL_EDITOR_NOTES_v0_13_2.md
+|   |   |       MDVIEWER_ANCHOR_CARET_RESTORE_NOTES_v0_11_3.md
+|   |   |       MDVIEWER_BLOCK_HIGHLIGHT_CONTEXT_MENU_NOTES_v0_11_6.md
+|   |   |       MDVIEWER_BLUR_PREVIEW_MODE_NOTES_v0_11.md
+|   |   |       MDVIEWER_DIRTY_BLOCK_COMMENT_NOTES_v0_11_7.md
+|   |   |       MDVIEWER_EDITOR_LAYOUT_CLICK_TO_LINE_NOTES_v0_11_2.md
+|   |   |       MDVIEWER_HEADING_RELATIVE_CARET_SCROLL_NOTES_v0_11_5.md
+|   |   |       MD_EDITOR_WORKPLACE_SAFE_NOTES_v0_13_8.md
+|   |   |       OBJECTARRAY_SAVE_INTEGRITY_NOTES_v0_7.md
+|   |   |       SENTENCE_INSERT_DELETE_NOTES_v0_13_1.md
+|   |   |       SENTENCE_TOOLBAR_ROW_ANCHOR_FIX_NOTES_v0_13_1_2.md
+|   |   |       URL_LAUNCH_LOAD_NOTES_v0_8.md
+|   |   |       
+|   |   +---ui
+|   |   |       file_tree_picker.js
+|   |   |       FILE_TREE_PICKER_NAME_FIX_NOTES_v0_10_1.md
+|   |   |       page_setup.js
+|   |   |       
+|   |   \---virtualData
+|   |           expected_builders.js
+|   |           relation_builders.js
+|   |           virtual_data_registry.js
+|   |           
+|   \---reports
+|           incident_contextdef_open_work_draft_v0_16_3_validation_report.json
+|           
+\---_archive
+    |   studio_work_incident_data_v0_42_md_editor_workplace_safe_done.json
+    |   studio_work_incident_data_v0_43_md_editor_nonblocking_ux_added.json
+    |   studio_work_incident_data_v0_44_md_editor_nonblocking_ux_implemented.json
+    |   studio_work_incident_data_v0_45_main_json_select_reset_toast_ux_added.json
+    |   studio_work_incident_data_v0_46_main_json_select_reset_toast_ux_implemented.json
+    |   studio_work_incident_data_v0_47_main_json_select_reset_toast_ux_picker_suppressed.json
+    |   studio_work_incident_data_v0_48_index_studio_tool_dock_layout_added.json
+    |   studio_work_incident_data_v0_49_decision_log_confirmation_governance_added.json
+    |   studio_work_incident_data_v0_50_decision_log_confirmation_governance_done.json
+    |   studio_work_incident_data_v0_51_data_viewdef_candidates_added.json
+    |   studio_work_incident_data_v0_52_incident_prompt_copy_action_added.json
+    |   studio_work_incident_data_v0_53_data_viewdef_candidates_implemented.json
+    |   studio_work_incident_data_v0_54_incident_prompt_copy_action_implemented.json
+    |   studio_work_incident_data_v0_55_test_evidence_diff_contract_added.json
+    |   studio_work_incident_data_v0_56_rules_revision_work_items_added.json
+    |   studio_work_incident_data_v0_57_rule_review_status_responsibility_issue_added.json
+    |   studio_work_incident_data_v0_58_rules_filename_reference_migration_added.json
+    |   studio_work_incident_data_v0_59_future_incident_filename_aligned.json
+    |   studio_work_incident_data_v0_60_future_ai_driven_rules_incidents_added.json
+    |   studio_work_incident_data_v0_61_viewdef_header_search_layout_rules_done.json
+    |   studio_work_incident_data_v0_62_git_diff_command_profile_added.json
+    |   studio_work_incident_data_v0_62_git_diff_command_profile_done.json
+    |   studio_work_incident_data_v0_63_test_runner_command_profile_added.json
+    |   studio_work_incident_data_v0_63_test_runner_command_profile_done.json
+    |   studio_work_incident_data_v0_63_test_runner_command_profile_done_r2.json
+    |   studio_work_incident_data_v0_64_test_runner_result_classification_done.json
+    |   studio_work_incident_data_v0_69_enum_context_incidents_added.json
+    |   studio_work_incident_data_v0_70_grid_column_resize_viewdef_save_added.json
+    |   studio_work_incident_data_v0_71_objectarray_section_search_added.json
+    |   studio_work_incident_data_v0_73_gitdiff_viewer_wwwroot_src_policy_updated.json
+    |   studio_work_incident_data_v0_74_context_model_cleanup_incidents_added.json
+    |   studio_work_incident_data_v0_75_studio_context_engineer_wannabe_mission_draft_added.json
+    |   studio_work_incident_data_v0_76_studio_context_engineer_wannabe_mission_draft_done.json
+    |   studio_work_incident_data_v0_80_grid_card_document_renderer_added.json
+    |   studio_work_incident_data_v0_80_grid_card_document_renderer_scope_fixed_done.json
+    |   
+    +---20260627_150837
+    |   |   frb_studio_foundation_review_data_v0_1_github_fetch_urls_added_viewdef_candidates_rule_added.json
+    |   |   
+    |   +---data
+    |   |   \---json
+    |   |       \---00_rules
+    |   |               frb_studio_foundation_review_data_v0_1_github_fetch_urls_added_viewdef_candidates_rule_added.json
+    |   |               
+    |   \---removed_data
+    |           foundation_rules_removed_row_copy_1.json
+    |           
+    \---20260627_1745
+        +---data
+        |   +---json
+        |   |   +---00_rules
+        |   |   |       filename_updatelist.md
+        |   |   |       frb_coding_constraints_data_v0_3.json
+        |   |   |       frb_constraint_spec_v0_6.json
+        |   |   |       frb_foundation_rules_data_v0_1.json
+        |   |   |       frb_test_evidence_rules_data_v0_1.json
+        |   |   |       frb_viewdef_generation_rules_data_v0_1.json
+        |   |   |       frb_view_def_schema_review_data_v0_1.json
+        |   |   |       frb_view_def_schema_v0_9.json
+        |   |   |       _json_creation_prompt.md
+        |   |   |       
+        |   |   +---01_main
+        |   |   |       00_do_incident_prompt_temple.md
+        |   |   |       01_create_testpatern_prompt_temple.md
+        |   |   |       chatgpt_context_relation_graph_data_v0_1.json
+        |   |   |       chatgpt_raw_keyword_activation_data_v0_1.json
+        |   |   |       chatgpt_sentence_prime_map_data_v0_1.json
+        |   |   |       chatgpt_shared_context_data_v0_1.json
+        |   |   |       qa_expected_checks_add_candidates_v0_1.json
+        |   |   |       qa_expected_checks_classified_v0_1.json
+        |   |   |       qa_expected_checks_sample_v0_1.json
+        |   |   |       qa_test_patterns_sample_v0_1.json
+        |   |   |       studio_work_incident_data_v0_55_test_evidence_diff_contract_added.json
+        |   |   |       studio_work_incident_data_v0_56_rules_revision_work_items_added.json
+        |   |   |       studio_work_incident_data_v0_57_rule_review_status_responsibility_issue_added.json
+        |   |   |       studio_work_incident_data_v0_58_rules_filename_reference_migration_added.json
+        |   |   |       
+        |   |   +---02_business
+        |   |   |       business_customers_v0_1.json
+        |   |   |       business_employees_v0_1.json
+        |   |   |       business_projects_v0_1.json
+        |   |   |       business_relations_v0_1.json
+        |   |   |       business_tasks_v0_1.json
+        |   |   |       
+        |   |   +---03_tests
+        |   |   |   |   ai_constraint_spec_aggregated_v0_6_footer_chat.json
+        |   |   |   |   
+        |   |   |   +---notes
+        |   |   |   |       DIFF_OUTPUT_BEFORE_ASSERT_NOTES_v0_1.md
+        |   |   |   |       DIFF_RESULT_COMMON_FORMAT_NOTES_v0_1.md
+        |   |   |   |       TEST_FOLDER_ARCHIVE_RUNTIME_POLICY_NOTES_v0_1.md
+        |   |   |   |       
+        |   |   |   +---qa
+        |   |   |   |   \---v0_14_2_incident_prompt_copy_action
+        |   |   |   |       +---actual
+        |   |   |   |       |       TP-IPC-001.actual.json
+        |   |   |   |       |       
+        |   |   |   |       +---diff
+        |   |   |   |       |       .gitkeep
+        |   |   |   |       |       TP-IPC-001.diff.json
+        |   |   |   |       |       
+        |   |   |   |       +---expected
+        |   |   |   |       |       qa_expected_checks_v0_14_2_incident_prompt_copy_action_expected_values_added.json
+        |   |   |   |       |       
+        |   |   |   |       +---notes
+        |   |   |   |       |       INCIDENT_PROMPT_COPY_ACTION_FOLDER_STRUCTURE_NOTES_v0_1.md
+        |   |   |   |       |       QA_ACTUAL_DIFF_RESPONSIBILITY_SPLIT_NOTES_v0_1.md
+        |   |   |   |       |       QA_ACTUAL_RESULT_FIELD_POLICY_v0_1.md
+        |   |   |   |       |       
+        |   |   |   |       +---relations
+        |   |   |   |       |       constraint_trace_relations_v0_14_2_incident_prompt_copy_action_draft.json
+        |   |   |   |       |       
+        |   |   |   |       +---summary
+        |   |   |   |       |       .gitkeep
+        |   |   |   |       |       
+        |   |   |   |       \---test_patterns
+        |   |   |   |               qa_test_patterns_v0_14_2_incident_prompt_copy_action_draft.json
+        |   |   |   |               
+        |   |   |   \---screen_state
+        |   |   |       \---screen_state_smoke_001
+        |   |   |           +---actual
+        |   |   |           |       screen_state_smoke_001.actual.json
+        |   |   |           |       
+        |   |   |           +---diff
+        |   |   |           |       screen_state_smoke_001.diff.json
+        |   |   |           |       
+        |   |   |           +---expected
+        |   |   |           |       screen_state_smoke_001.expected.json
+        |   |   |           |       
+        |   |   |           +---notes
+        |   |   |           |       expected_request_prompt.md
+        |   |   |           |       PLAYWRIGHT_RUNTIME_FOLDER_POLICY_v0_1.md
+        |   |   |           |       README_screen_state_expected_checkid_031.md
+        |   |   |           |       SCREEN_STATE_SMOKE_001_FOLDER_STRUCTURE_NOTES_v0_1.md
+        |   |   |           |       SCREEN_STATE_SMOKE_001_OUTPUT_PATH_NOTES_v0_1.md
+        |   |   |           |       
+        |   |   |           +---relations
+        |   |   |           |       constraint_trace_relations_v0_1.json
+        |   |   |           |       
+        |   |   |           +---summary
+        |   |   |           |       .gitkeep
+        |   |   |           |       
+        |   |   |           \---test_patterns
+        |   |   |                   screen_state_test_patterns_data_v0_2_chat.json
+        |   |   |                   
+        |   |   +---04_qa
+        |   |   |       qa_expected_checks_classified_v0_1.json
+        |   |   |       
+        |   |   +---05_inventory
+        |   |   |       defs_data_link_inventory_v0_1.json
+        |   |   |       defs_data_link_inventory_v0_2_repaired.json
+        |   |   |       
+        |   |   \---80_frb
+        |   |           fft_log_sample.json
+        |   |           fft_log_view_def_v0_2.json
+        |   |           
+        |   \---markdown
+        |           #U2605FRB_VIEW_DEF_GENERATION_RULES_v0_15_action_registry_current.md
+        |           ai-driven-development-approval-cost-and-granularity.md
+        |           ai_constraint_grouped_view_def_v0_6_footer_chat_viewdef.md
+        |           ai_constraint_spec_aggregated_v0_1.md
+        |           ai_constraint_spec_v0_1xxx.md
+        |           ai_constraint_spec_v0_5_verification_radio.md
+        |           approval-cost-and-granularity.md
+        |           chatgpt_sentence_prime_map_data_v0_1.md
+        |           chatgpt_sentence_prime_map_preview_v0_1.md
+        |           coding_constraints_review_export.md
+        |           coding_constraints_review_view_def_v0_2_change_history_viewdef.md
+        |           constraint_trace_cards_virtual_view_def_v0_1_viewdef.md
+        |           constraint_trace_relations_report.md
+        |           copilot_table_review_fixture_v0_13_6.md
+        |           copilot_table_review_fixture_v0_13_6.md.comments.json
+        |           fft_log_sample.md
+        |           filename_updatelist.md
+        |           FRB_Lab_Notes_Qiita.md
+        |           frb_view_def_schema_review_export.md
+        |           invisible-visualization-structuring-culture.md
+        |           json_studio_export_2026-06-17T11-10-43-232Z.md
+        |           metadiff_ai_hypothesis_frb_20260523_v0_2_1.md
+        |           my-ai-driven-development-08-thinking-as-class.md
+        |           No-Code JSON Studiov0.3-draft.md
+        |           qa_cross_check_risk_view_def_v0_1_viewdef.md
+        |           qa_expected_checks_classified_view_def_v0_1_viewdef.md
+        |           qa_expected_checks_sample_v0_1.md
+        |           qa_expected_checks_sample_view_def_v0_1_viewdef.md
+        |           qa_shortage_expected_findings_view_def_v0_1_viewdef.md
+        |           qa_test_patterns_sample_v0_1.md
+        |           relation_axis_business_customer_view_def_v0_1_viewdef.md
+        |           relation_edit_view_def_v0_1_viewdef.md
+        |           rule_review_decision_log_export.md
+        |           rule_review_export.md
+        |           screen_state_diff_base_export.md
+        |           screen_state_diff_view_def_base_v0_2_checks_viewdef.md
+        |           screen_state_diff_view_def_child_v0_3_failure_focus_viewdef.md
+        |           screen_state_expected_export.md
+        |           studio_work_incident_export.md
+        |           studio_work_incident_view_def_v0_1_viewdef.md
+        |           takeyari-shokyaku-noroshi.md
+        |           test.md
+        |           To_AI_Comment_MyComment.md
+        |           Zenn_Blog_All.md
+        |           Zenn_Blog_All_merged.md
+        |           Zenn_GitHub_merged.md
+        |           
+        \---defs
+            +---common
+            |       common_types_v0_1.json
+            |       view_def_maint_fields_v0_2.json
+            |       
+            +---frb
+            |       fft_log_view_def_v0_2.json
+            |       
+            +---inventory
+            |       defs_data_link_inventory_view_def_v0_1.json
+            |       
+            +---qa
+            |       qa_actual_observation_view_def_v0_1.json
+            |       qa_actual_result_view_def_v0_1.json
+            |       qa_cross_check_risk_view_def_v0_1.json
+            |       qa_cross_constraint_view_def_v0_1.json
+            |       qa_cross_quality_risk_view_def_v0_1.json
+            |       qa_cross_test_pattern_view_def_v0_1.json
+            |       qa_diff_result_view_def_v0_1.json
+            |       qa_expected_checks_candidate_review_view_def_v0_1.json
+            |       qa_expected_checks_candidate_review_wrapped_view_def_v0_1.json
+            |       qa_expected_checks_classified_view_def_v0_1.json
+            |       qa_expected_checks_sample_view_def_v0_1.json
+            |       qa_shortage_expected_findings_view_def_v0_1.json
+            |       qa_test_patterns_sample_view_def_v0_1.json
+            |       
+            +---relation
+            |       relation_approval_view_def_v0_1.json
+            |       relation_axis_business_customer_view_def_v0_1.json
+            |       relation_axis_business_employee_view_def_v0_1.json
+            |       relation_axis_business_project_view_def_v0_1.json
+            |       relation_axis_constraint_view_def_v0_1.json
+            |       relation_axis_diff_check_view_def_v0_1.json
+            |       relation_axis_test_pattern_view_def_v0_1.json
+            |       relation_edit_view_def_v0_1.json
+            |       
+            +---rules
+            |   |   ai_constraint_grouped_view_def_v0_6_footer_chat.json
+            |   |   frb_view_def_schema_review_view_def_v0_1.json
+            |   |   rule_review_common_view_def_v0_3.json
+            |   |   studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json
+            |   |   
+            |   +---chatgpt
+            |   |       chatgpt_context_relation_graph_view_def_v0_1.json
+            |   |       chatgpt_raw_keyword_activation_view_def_v0_1.json
+            |   |       chatgpt_sentence_prime_map_view_def_v0_1.json
+            |   |       chatgpt_shared_context_view_def_v0_1.json
+            |   |       
+            |   \---tmp
+            |           rule_review_common_view_def_v0_1.json
+            |           rule_review_common_view_def_v0_2_editable_review_target.json
+            |           
+            \---screen_state
+                    screen_state_diff_view_def_base_v0_2_checks.json
+                    screen_state_diff_view_def_child_v0_3_failure_focus.json
+                    screen_state_diff_view_def_child_v0_3_summary.json
+                    screen_state_expected_view_def_v0_1.json
+                    screen_state_test_patterns_view_def_v0_2_chat.json
+                    

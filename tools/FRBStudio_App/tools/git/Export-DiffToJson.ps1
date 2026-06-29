@@ -34,7 +34,7 @@ param(
 
     [string]$Range = "",
 
-    [string]$OutputPath = "F:\FRB_Diff\DiffToJson.json",
+    [string]$OutputPath = "F:\FRB\tools\FRBStudio_App\wwwroot\diff\DiffToJson.json",
 
     [int]$Unified = 3,
 
