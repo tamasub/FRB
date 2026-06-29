@@ -5,7 +5,8 @@
 $ErrorActionPreference = "Stop"
 
 # この ps1 を置いたフォルダを基準にする
-$root = Split-Path -Parent $MyInvocation.MyCommand.Path
+#$root = Split-Path -Parent $MyInvocation.MyCommand.Path
+$root = "F:\FRB\tools\FRBStudio_App"
 
 # ZIP に含めるフォルダ
 $targetDirs = @(

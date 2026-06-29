@@ -1,5 +1,5 @@
 フォルダー パスの一覧:  ボリューム Samsung980_Pro
-ボリューム シリアル番号は 000000E7 5007:08D7 です
+ボリューム シリアル番号は 0000007E 5007:08D7 です
 F:.
 |   .gitignore
 |   appsettings.Development.json
@@ -13,13 +13,16 @@ F:.
 |   FRBStudio.staticwebassets.endpoints.json
 |   FRB_tray.ico
 |   make_wwwroot_zip_v2.bat
-|   make_wwwroot_zip_v2.ps1
 |   package-lock.json
 |   package.json
 |   playwright.config.ts
 |   web.config
-|   wwwroot20260628_225259.zip
-|   wwwroot20260628_232141.zip
+|   wwwroot20260629_194334.zip
+|   wwwroot20260629_204543.zip
+|   wwwroot20260629_205749.zip
+|   wwwroot20260629_211230.zip
+|   wwwroot20260629_213318.zip
+|   wwwroot20260629_231732.zip
 |   
 +---data
 |   +---json
@@ -66,12 +69,9 @@ F:.
 |   |   |       qa_expected_checks_classified_v0_1.json
 |   |   |       qa_expected_checks_sample_v0_1.json
 |   |   |       qa_test_patterns_sample_v0_1.json
-|   |   |       studio_work_incident_data_v0_77_detail_subgrid_table_edit_core_mvp_added.json
-|   |   |       studio_work_incident_data_v0_78_incident_contextdef_open_work_draft_added.json
-|   |   |       studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json
-|   |   |       studio_work_incident_data_v0_80_grid_card_document_renderer_history_added_done.json
-|   |   |       studio_work_incident_data_v0_81_test_runner_launch_toast_added.json
-|   |   |       studio_work_incident_data_v0_82_test_runner_launch_toast_done.json
+|   |   |       studio_work_incident_data_v0_85_file_picker_list_refresh_safety_done.json
+|   |   |       studio_work_incident_data_v0_86_markdown_folder_tree_picker_done.json
+|   |   |       studio_work_incident_data_v0_87_md_comment_sidecar_anchor_integrity_added.json
 |   |   |       
 |   |   +---02_mission
 |   |   |   +---sample
@@ -169,54 +169,16 @@ F:.
 |   |           business_tasks_v0_1.json
 |   |           
 |   \---markdown
-|           ai-driven-development-approval-cost-and-granularity.md
-|           ai_constraint_grouped_view_def_v0_6_footer_chat_viewdef.md
-|           ai_constraint_spec_aggregated_v0_1.md
-|           ai_constraint_spec_v0_1xxx.md
-|           ai_constraint_spec_v0_5_verification_radio.md
-|           approval-cost-and-granularity.md
-|           chatgpt_sentence_prime_map_data_v0_1.md
-|           chatgpt_sentence_prime_map_preview_v0_1.md
-|           coding_constraints_review_export.md
-|           coding_constraints_review_view_def_v0_2_change_history_viewdef.md
-|           constraint_trace_cards_virtual_view_def_v0_1_viewdef.md
-|           constraint_trace_relations_report.md
-|           copilot_table_review_fixture_v0_13_6.md
-|           copilot_table_review_fixture_v0_13_6.md.comments.json
-|           fft_log_sample.md
-|           filename_updatelist.md
-|           FRB_Lab_Notes_Qiita.md
-|           FRB_VIEW_DEF_GENERATION_RULES_v0_15_action_registry_current.md
-|           frb_view_def_schema_review_export.md
-|           invisible-visualization-structuring-culture.md
-|           json_studio_export_2026-06-17T11-10-43-232Z.md
-|           metadiff_ai_hypothesis_frb_20260523_v0_2_1.md
-|           my-ai-driven-development-08-thinking-as-class.md
-|           No-Code JSON Studiov0.3-draft.md
-|           qa_cross_check_risk_view_def_v0_1_viewdef.md
-|           qa_expected_checks_classified_view_def_v0_1_viewdef.md
-|           qa_expected_checks_sample_v0_1.md
-|           qa_expected_checks_sample_view_def_v0_1_viewdef.md
-|           qa_shortage_expected_findings_view_def_v0_1_viewdef.md
-|           qa_test_patterns_sample_v0_1.md
-|           relation_axis_business_customer_view_def_v0_1_viewdef.md
-|           relation_edit_view_def_v0_1_viewdef.md
-|           rule_review_decision_log_export.md
-|           rule_review_export.md
-|           screen_state_diff_base_export.md
-|           screen_state_diff_view_def_base_v0_2_checks_viewdef.md
-|           screen_state_diff_view_def_child_v0_3_failure_focus_viewdef.md
-|           screen_state_expected_export.md
-|           studio_context_engineer_wannabe_mission_result_summary.md
-|           studio_work_incident_export.md
-|           studio_work_incident_view_def_v0_1_viewdef.md
-|           takeyari-shokyaku-noroshi.md
-|           test.md
-|           To_AI_Comment_MyComment.md
-|           Zenn_Blog_All.md
-|           Zenn_Blog_All_merged.md
-|           Zenn_GitHub_merged.md
-|           
+|       +---10_Zenn
+|       |       Zenn_Blog_All.md
+|       |       Zenn_Blog_All_merged.md
+|       |       Zenn_GitHub_merged.md
+|       |       
+|       +---20_tests
+|       |       ContextDef.md
+|       |       erDiagram.md
+|       |       
+|       \---99_temp
 +---defs
 |   |   studio_work_incident_view_def_v0_5.json
 |   |   
@@ -286,11 +248,6 @@ F:.
 |   |       screen_state_test_patterns_view_def_v0_2_chat.json
 |   |       
 |   \---tools
-|           git_diff_export_run_config_view_def_v0_1 - コピー.json
-|           git_diff_export_run_config_view_def_v0_1 - ｴ｢ｦｴ｢｢ｪｴ｢ｦｴ｢･豢｢ｦｴ｢ﾑﾞ・ｴ｢ﾑｴ･｣ｴ｢ｦｴ｢・ｴ｢ｦｴ｢ﾑﾞｦ｢｢ｪｴ｢ｦｴ｢･豢｢ｦｴ｢ﾑﾞ・ｴ｢ﾑｴ･｣ｴ｢ｦｴ｢・+ｴ｢ｦｴ｢｢ｪｴ｢ｦｴ｢･豢｢ｦｴ｢ﾑﾞ・ｴ｢ﾑｴ･蟠･ﾆﾒ・.json
-|           git_diff_export_run_config_view_def_v0_1 - ｴ｢ｦｴ｢ﾑｴ･蟠･ﾜｴ｢+ｴ･豢｢ｦｴ｢ﾑｴ･蟠･ﾜｴ｢++ｴ｢ｦｴ｢ﾑｴ･蟠･ﾆﾒ・.json
-|           git_diff_export_run_config_view_def_v0_1 - ｴ･ﾆﾚｼﾑｴ･ﾆﾚｼ+ｴ･ﾆﾒ・.json
-|           git_diff_export_run_config_view_def_v0_1 - ﾒ鬥ﾒ鬻ﾒ・.json
 |           git_diff_export_run_config_view_def_v0_1.json
 |           test_runner_run_config_view_def_v0_1.json
 |           
@@ -762,6 +719,7 @@ F:.
 |       incident_contextdef_open_work_draft_v0_16_3_validation_report.json
 |       
 +---tests
+|   |   erDiagram.md
 |   |   prompt.md
 |   |   setup.md
 |   |   
@@ -785,11 +743,18 @@ F:.
 +---test_results
 |   \---diff
 +---tools
+|   +---FileTree
+|   |       file_list_Tree.bat
+|   |       
 |   +---git
 |   |       Export-DiffToJson.ps1
 |   |       
-|   \---test
-|           TestRunner.ps1
+|   +---test
+|   |       TestRunner.ps1
+|   |       
+|   \---zip
+|           make_wwwroot_zip_v2.bat
+|           make_wwwroot_zip_v2.ps1
 |           
 +---wwwroot
 |   |   app.js
@@ -797,6 +762,7 @@ F:.
 |   |   DiffJsonViewer.html
 |   |   index.html
 |   |   mdViewer.html
+|   |   mdviewer.json
 |   |   MetaDiff_HypothesisViewer.html
 |   |   styles.css
 |   |   
@@ -853,11 +819,1325 @@ F:.
 |   |   |       viewdef_context_contract.js
 |   |   |       viewdef_resolver.js
 |   |   |       
-|   |   +---markdown
-|   |   |       data_markdown.js
-|   |   |       markdown_registry.js
-|   |   |       viewdef_markdown.js
-|   |   |       
+|   |   +---lib
+|   |   |   |   marked.min.js
+|   |   |   |   purify.min.js
+|   |   |   |   
+|   |   |   \---mermaid
+|   |   |       |   accessibility.d.ts
+|   |   |       |   accessibility.spec.d.ts
+|   |   |       |   assignWithDepth.d.ts
+|   |   |       |   config.d.ts
+|   |   |       |   config.spec.d.ts
+|   |   |       |   config.type.d.ts
+|   |   |       |   defaultConfig.d.ts
+|   |   |       |   Diagram.d.ts
+|   |   |       |   diagram.spec.d.ts
+|   |   |       |   errors.d.ts
+|   |   |       |   interactionDb.d.ts
+|   |   |       |   internals.d.ts
+|   |   |       |   logger.d.ts
+|   |   |       |   mermaid.core.mjs
+|   |   |       |   mermaid.core.mjs.map
+|   |   |       |   mermaid.d.ts
+|   |   |       |   mermaid.esm.min.mjs
+|   |   |       |   mermaid.esm.min.mjs.map
+|   |   |       |   mermaid.esm.mjs
+|   |   |       |   mermaid.esm.mjs.map
+|   |   |       |   mermaid.js
+|   |   |       |   mermaid.js.map
+|   |   |       |   mermaid.min.js
+|   |   |       |   mermaid.min.js.map
+|   |   |       |   mermaid.spec.d.ts
+|   |   |       |   mermaidAPI.d.ts
+|   |   |       |   mermaidAPI.spec.d.ts
+|   |   |       |   preprocess.d.ts
+|   |   |       |   setupGraphViewbox.d.ts
+|   |   |       |   styles.d.ts
+|   |   |       |   styles.spec.d.ts
+|   |   |       |   types.d.ts
+|   |   |       |   utils.d.ts
+|   |   |       |   utils.spec.d.ts
+|   |   |       |   
+|   |   |       +---chunks
+|   |   |       |   +---mermaid.core
+|   |   |       |   |       abnfDiagram-VRR7QNED.mjs
+|   |   |       |   |       abnfDiagram-VRR7QNED.mjs.map
+|   |   |       |   |       architectureDiagram-ZJ3FMSHR.mjs
+|   |   |       |   |       architectureDiagram-ZJ3FMSHR.mjs.map
+|   |   |       |   |       blockDiagram-677ZJIJ3.mjs
+|   |   |       |   |       blockDiagram-677ZJIJ3.mjs.map
+|   |   |       |   |       c4Diagram-LMCZKHZV.mjs
+|   |   |       |   |       c4Diagram-LMCZKHZV.mjs.map
+|   |   |       |   |       chunk-2Q5K7J3B.mjs
+|   |   |       |   |       chunk-2Q5K7J3B.mjs.map
+|   |   |       |   |       chunk-32BRIVSS.mjs
+|   |   |       |   |       chunk-32BRIVSS.mjs.map
+|   |   |       |   |       chunk-52WLFC77.mjs
+|   |   |       |   |       chunk-52WLFC77.mjs.map
+|   |   |       |   |       chunk-5VM5RSS4.mjs
+|   |   |       |   |       chunk-5VM5RSS4.mjs.map
+|   |   |       |   |       chunk-7BUUIJ7U.mjs
+|   |   |       |   |       chunk-7BUUIJ7U.mjs.map
+|   |   |       |   |       chunk-C7G6YPKG.mjs
+|   |   |       |   |       chunk-C7G6YPKG.mjs.map
+|   |   |       |   |       chunk-EX3LRPZG.mjs
+|   |   |       |   |       chunk-EX3LRPZG.mjs.map
+|   |   |       |   |       chunk-FWX5IMBZ.mjs
+|   |   |       |   |       chunk-FWX5IMBZ.mjs.map
+|   |   |       |   |       chunk-HOUHSVGY.mjs
+|   |   |       |   |       chunk-HOUHSVGY.mjs.map
+|   |   |       |   |       chunk-ICXQ74PX.mjs
+|   |   |       |   |       chunk-ICXQ74PX.mjs.map
+|   |   |       |   |       chunk-JWPE2WC7.mjs
+|   |   |       |   |       chunk-JWPE2WC7.mjs.map
+|   |   |       |   |       chunk-MOJQB5TN.mjs
+|   |   |       |   |       chunk-MOJQB5TN.mjs.map
+|   |   |       |   |       chunk-OGEWGWER.mjs
+|   |   |       |   |       chunk-OGEWGWER.mjs.map
+|   |   |       |   |       chunk-PUDLZKDR.mjs
+|   |   |       |   |       chunk-PUDLZKDR.mjs.map
+|   |   |       |   |       chunk-Q4XR5HBZ.mjs
+|   |   |       |   |       chunk-Q4XR5HBZ.mjs.map
+|   |   |       |   |       chunk-RYQCIY6F.mjs
+|   |   |       |   |       chunk-RYQCIY6F.mjs.map
+|   |   |       |   |       chunk-V7JOEXUC.mjs
+|   |   |       |   |       chunk-V7JOEXUC.mjs.map
+|   |   |       |   |       chunk-VAUOI2AC.mjs
+|   |   |       |   |       chunk-VAUOI2AC.mjs.map
+|   |   |       |   |       chunk-VR4S4FIN.mjs
+|   |   |       |   |       chunk-VR4S4FIN.mjs.map
+|   |   |       |   |       chunk-WYO6CB5R.mjs
+|   |   |       |   |       chunk-WYO6CB5R.mjs.map
+|   |   |       |   |       chunk-X3CZISLH.mjs
+|   |   |       |   |       chunk-X3CZISLH.mjs.map
+|   |   |       |   |       chunk-XXDRQBXY.mjs
+|   |   |       |   |       chunk-XXDRQBXY.mjs.map
+|   |   |       |   |       chunk-Y2CYZVJY.mjs
+|   |   |       |   |       chunk-Y2CYZVJY.mjs.map
+|   |   |       |   |       chunk-ZGVPDNZ5.mjs
+|   |   |       |   |       chunk-ZGVPDNZ5.mjs.map
+|   |   |       |   |       chunk-ZIRB5QZD.mjs
+|   |   |       |   |       chunk-ZIRB5QZD.mjs.map
+|   |   |       |   |       classDiagram-OUVF2IWQ.mjs
+|   |   |       |   |       classDiagram-OUVF2IWQ.mjs.map
+|   |   |       |   |       classDiagram-v2-EOCWNBFH.mjs
+|   |   |       |   |       classDiagram-v2-EOCWNBFH.mjs.map
+|   |   |       |   |       cose-bilkent-JH36ORCC.mjs
+|   |   |       |   |       cose-bilkent-JH36ORCC.mjs.map
+|   |   |       |   |       cynefinDiagram-TSTJHNR4.mjs
+|   |   |       |   |       cynefinDiagram-TSTJHNR4.mjs.map
+|   |   |       |   |       dagre-VKFMJZFB.mjs
+|   |   |       |   |       dagre-VKFMJZFB.mjs.map
+|   |   |       |   |       diagram-FQU43EPY.mjs
+|   |   |       |   |       diagram-FQU43EPY.mjs.map
+|   |   |       |   |       diagram-G47NLZAW.mjs
+|   |   |       |   |       diagram-G47NLZAW.mjs.map
+|   |   |       |   |       diagram-NH7WQ7WH.mjs
+|   |   |       |   |       diagram-NH7WQ7WH.mjs.map
+|   |   |       |   |       diagram-OA4YK3LP.mjs
+|   |   |       |   |       diagram-OA4YK3LP.mjs.map
+|   |   |       |   |       diagram-WEI45ONY.mjs
+|   |   |       |   |       diagram-WEI45ONY.mjs.map
+|   |   |       |   |       ebnfDiagram-CCIWWBDH.mjs
+|   |   |       |   |       ebnfDiagram-CCIWWBDH.mjs.map
+|   |   |       |   |       erDiagram-Q63AITRT.mjs
+|   |   |       |   |       erDiagram-Q63AITRT.mjs.map
+|   |   |       |   |       flowDiagram-23GEKE2U.mjs
+|   |   |       |   |       flowDiagram-23GEKE2U.mjs.map
+|   |   |       |   |       ganttDiagram-NO4QXBWP.mjs
+|   |   |       |   |       ganttDiagram-NO4QXBWP.mjs.map
+|   |   |       |   |       gitGraphDiagram-IHSO6WYX.mjs
+|   |   |       |   |       gitGraphDiagram-IHSO6WYX.mjs.map
+|   |   |       |   |       infoDiagram-FWYZ7A6U.mjs
+|   |   |       |   |       infoDiagram-FWYZ7A6U.mjs.map
+|   |   |       |   |       ishikawaDiagram-FXEZZL3T.mjs
+|   |   |       |   |       ishikawaDiagram-FXEZZL3T.mjs.map
+|   |   |       |   |       journeyDiagram-5HDEW3XC.mjs
+|   |   |       |   |       journeyDiagram-5HDEW3XC.mjs.map
+|   |   |       |   |       kanban-definition-HUTT4EX6.mjs
+|   |   |       |   |       kanban-definition-HUTT4EX6.mjs.map
+|   |   |       |   |       mindmap-definition-LN4V7U3C.mjs
+|   |   |       |   |       mindmap-definition-LN4V7U3C.mjs.map
+|   |   |       |   |       pegDiagram-2B236MQR.mjs
+|   |   |       |   |       pegDiagram-2B236MQR.mjs.map
+|   |   |       |   |       pieDiagram-ENE6RG2P.mjs
+|   |   |       |   |       pieDiagram-ENE6RG2P.mjs.map
+|   |   |       |   |       quadrantDiagram-ABIIQ3AL.mjs
+|   |   |       |   |       quadrantDiagram-ABIIQ3AL.mjs.map
+|   |   |       |   |       railroadDiagram-RFXS5EU6.mjs
+|   |   |       |   |       railroadDiagram-RFXS5EU6.mjs.map
+|   |   |       |   |       requirementDiagram-TGXJPOKE.mjs
+|   |   |       |   |       requirementDiagram-TGXJPOKE.mjs.map
+|   |   |       |   |       sankeyDiagram-HTMAVEWB.mjs
+|   |   |       |   |       sankeyDiagram-HTMAVEWB.mjs.map
+|   |   |       |   |       sequenceDiagram-DBY2YBRQ.mjs
+|   |   |       |   |       sequenceDiagram-DBY2YBRQ.mjs.map
+|   |   |       |   |       sizeCapture-X5ZJPWSS.mjs
+|   |   |       |   |       sizeCapture-X5ZJPWSS.mjs.map
+|   |   |       |   |       stateDiagram-2N3HPSRC.mjs
+|   |   |       |   |       stateDiagram-2N3HPSRC.mjs.map
+|   |   |       |   |       stateDiagram-v2-6OUMAXLB.mjs
+|   |   |       |   |       stateDiagram-v2-6OUMAXLB.mjs.map
+|   |   |       |   |       swimlanes-5IMT3BWC.mjs
+|   |   |       |   |       swimlanes-5IMT3BWC.mjs.map
+|   |   |       |   |       swimlanesDiagram-G3AALYLV.mjs
+|   |   |       |   |       swimlanesDiagram-G3AALYLV.mjs.map
+|   |   |       |   |       timeline-definition-FHXFAJF6.mjs
+|   |   |       |   |       timeline-definition-FHXFAJF6.mjs.map
+|   |   |       |   |       vennDiagram-L72KCM5P.mjs
+|   |   |       |   |       vennDiagram-L72KCM5P.mjs.map
+|   |   |       |   |       wardleyDiagram-EHGQE667.mjs
+|   |   |       |   |       wardleyDiagram-EHGQE667.mjs.map
+|   |   |       |   |       xychartDiagram-FW5EYKEG.mjs
+|   |   |       |   |       xychartDiagram-FW5EYKEG.mjs.map
+|   |   |       |   |       
+|   |   |       |   +---mermaid.esm
+|   |   |       |   |       abnfDiagram-VMKWAZYT.mjs
+|   |   |       |   |       abnfDiagram-VMKWAZYT.mjs.map
+|   |   |       |   |       architecture-TIHT7OUA-BWQ77455.mjs
+|   |   |       |   |       architecture-TIHT7OUA-BWQ77455.mjs.map
+|   |   |       |   |       architectureDiagram-FW2JMN5B.mjs
+|   |   |       |   |       architectureDiagram-FW2JMN5B.mjs.map
+|   |   |       |   |       blockDiagram-T2JWLICG.mjs
+|   |   |       |   |       blockDiagram-T2JWLICG.mjs.map
+|   |   |       |   |       c4Diagram-OL75R3QW.mjs
+|   |   |       |   |       c4Diagram-OL75R3QW.mjs.map
+|   |   |       |   |       chunk-3UJ2IBUM.mjs
+|   |   |       |   |       chunk-3UJ2IBUM.mjs.map
+|   |   |       |   |       chunk-43ACQNTO.mjs
+|   |   |       |   |       chunk-43ACQNTO.mjs.map
+|   |   |       |   |       chunk-4F4KDU6L.mjs
+|   |   |       |   |       chunk-4F4KDU6L.mjs.map
+|   |   |       |   |       chunk-4KMQCWFH.mjs
+|   |   |       |   |       chunk-4KMQCWFH.mjs.map
+|   |   |       |   |       chunk-4PNYCQBS.mjs
+|   |   |       |   |       chunk-4PNYCQBS.mjs.map
+|   |   |       |   |       chunk-5J66UF2J.mjs
+|   |   |       |   |       chunk-5J66UF2J.mjs.map
+|   |   |       |   |       chunk-65BZPYT2.mjs
+|   |   |       |   |       chunk-65BZPYT2.mjs.map
+|   |   |       |   |       chunk-6OZ7KPF7.mjs
+|   |   |       |   |       chunk-6OZ7KPF7.mjs.map
+|   |   |       |   |       chunk-6QIBY7DQ.mjs
+|   |   |       |   |       chunk-6QIBY7DQ.mjs.map
+|   |   |       |   |       chunk-6ZKBGPIT.mjs
+|   |   |       |   |       chunk-6ZKBGPIT.mjs.map
+|   |   |       |   |       chunk-A7G5T7E5.mjs
+|   |   |       |   |       chunk-A7G5T7E5.mjs.map
+|   |   |       |   |       chunk-BNCO5QFQ.mjs
+|   |   |       |   |       chunk-BNCO5QFQ.mjs.map
+|   |   |       |   |       chunk-BQKPLVCE.mjs
+|   |   |       |   |       chunk-BQKPLVCE.mjs.map
+|   |   |       |   |       chunk-CHAKFXHA.mjs
+|   |   |       |   |       chunk-CHAKFXHA.mjs.map
+|   |   |       |   |       chunk-DRARJEGU.mjs
+|   |   |       |   |       chunk-DRARJEGU.mjs.map
+|   |   |       |   |       chunk-EMKVYAI2.mjs
+|   |   |       |   |       chunk-EMKVYAI2.mjs.map
+|   |   |       |   |       chunk-FO5PYUIK.mjs
+|   |   |       |   |       chunk-FO5PYUIK.mjs.map
+|   |   |       |   |       chunk-FW7PRHBN.mjs
+|   |   |       |   |       chunk-FW7PRHBN.mjs.map
+|   |   |       |   |       chunk-FXRKSSP6.mjs
+|   |   |       |   |       chunk-FXRKSSP6.mjs.map
+|   |   |       |   |       chunk-GMJQP6DO.mjs
+|   |   |       |   |       chunk-GMJQP6DO.mjs.map
+|   |   |       |   |       chunk-GUDDZZ3A.mjs
+|   |   |       |   |       chunk-GUDDZZ3A.mjs.map
+|   |   |       |   |       chunk-HPLX5OYV.mjs
+|   |   |       |   |       chunk-HPLX5OYV.mjs.map
+|   |   |       |   |       chunk-IALYP65X.mjs
+|   |   |       |   |       chunk-IALYP65X.mjs.map
+|   |   |       |   |       chunk-ICPQ7HTI.mjs
+|   |   |       |   |       chunk-ICPQ7HTI.mjs.map
+|   |   |       |   |       chunk-IIWGMRJM.mjs
+|   |   |       |   |       chunk-IIWGMRJM.mjs.map
+|   |   |       |   |       chunk-IPM4HZQ6.mjs
+|   |   |       |   |       chunk-IPM4HZQ6.mjs.map
+|   |   |       |   |       chunk-IT6C5QXO.mjs
+|   |   |       |   |       chunk-IT6C5QXO.mjs.map
+|   |   |       |   |       chunk-JCJHR2HC.mjs
+|   |   |       |   |       chunk-JCJHR2HC.mjs.map
+|   |   |       |   |       chunk-LD7AWGHJ.mjs
+|   |   |       |   |       chunk-LD7AWGHJ.mjs.map
+|   |   |       |   |       chunk-LJTN6OYE.mjs
+|   |   |       |   |       chunk-LJTN6OYE.mjs.map
+|   |   |       |   |       chunk-MMGVDTGO.mjs
+|   |   |       |   |       chunk-MMGVDTGO.mjs.map
+|   |   |       |   |       chunk-NYCIP5HP.mjs
+|   |   |       |   |       chunk-NYCIP5HP.mjs.map
+|   |   |       |   |       chunk-ODPFZSHR.mjs
+|   |   |       |   |       chunk-ODPFZSHR.mjs.map
+|   |   |       |   |       chunk-PJCWW7M6.mjs
+|   |   |       |   |       chunk-PJCWW7M6.mjs.map
+|   |   |       |   |       chunk-PLCLPJVV.mjs
+|   |   |       |   |       chunk-PLCLPJVV.mjs.map
+|   |   |       |   |       chunk-PTVI3W5X.mjs
+|   |   |       |   |       chunk-PTVI3W5X.mjs.map
+|   |   |       |   |       chunk-PWCFYZI5.mjs
+|   |   |       |   |       chunk-PWCFYZI5.mjs.map
+|   |   |       |   |       chunk-QVUG6NDL.mjs
+|   |   |       |   |       chunk-QVUG6NDL.mjs.map
+|   |   |       |   |       chunk-RRYK4PFG.mjs
+|   |   |       |   |       chunk-RRYK4PFG.mjs.map
+|   |   |       |   |       chunk-RTBOCTTP.mjs
+|   |   |       |   |       chunk-RTBOCTTP.mjs.map
+|   |   |       |   |       chunk-RTI7CJYH.mjs
+|   |   |       |   |       chunk-RTI7CJYH.mjs.map
+|   |   |       |   |       chunk-S7Q6ZHN2.mjs
+|   |   |       |   |       chunk-S7Q6ZHN2.mjs.map
+|   |   |       |   |       chunk-SLCUJWJ3.mjs
+|   |   |       |   |       chunk-SLCUJWJ3.mjs.map
+|   |   |       |   |       chunk-T5XCKZAJ.mjs
+|   |   |       |   |       chunk-T5XCKZAJ.mjs.map
+|   |   |       |   |       chunk-XAKTCX7R.mjs
+|   |   |       |   |       chunk-XAKTCX7R.mjs.map
+|   |   |       |   |       chunk-YI7H2ERT.mjs
+|   |   |       |   |       chunk-YI7H2ERT.mjs.map
+|   |   |       |   |       chunk-Z6Q54H3S.mjs
+|   |   |       |   |       chunk-Z6Q54H3S.mjs.map
+|   |   |       |   |       classDiagram-JMA32NGW.mjs
+|   |   |       |   |       classDiagram-JMA32NGW.mjs.map
+|   |   |       |   |       classDiagram-v2-WIYTNKZI.mjs
+|   |   |       |   |       classDiagram-v2-WIYTNKZI.mjs.map
+|   |   |       |   |       cose-bilkent-UCWTYXWA.mjs
+|   |   |       |   |       cose-bilkent-UCWTYXWA.mjs.map
+|   |   |       |   |       cynefin-VYW2F7L2-VU6BHR45.mjs
+|   |   |       |   |       cynefin-VYW2F7L2-VU6BHR45.mjs.map
+|   |   |       |   |       cynefinDiagram-OLL5OKSX.mjs
+|   |   |       |   |       cynefinDiagram-OLL5OKSX.mjs.map
+|   |   |       |   |       dagre-MTHZVICP.mjs
+|   |   |       |   |       dagre-MTHZVICP.mjs.map
+|   |   |       |   |       diagram-DSDODEYW.mjs
+|   |   |       |   |       diagram-DSDODEYW.mjs.map
+|   |   |       |   |       diagram-FRZYSN44.mjs
+|   |   |       |   |       diagram-FRZYSN44.mjs.map
+|   |   |       |   |       diagram-L2TKVKAN.mjs
+|   |   |       |   |       diagram-L2TKVKAN.mjs.map
+|   |   |       |   |       diagram-MPNEUAEF.mjs
+|   |   |       |   |       diagram-MPNEUAEF.mjs.map
+|   |   |       |   |       diagram-X4YHHYUO.mjs
+|   |   |       |   |       diagram-X4YHHYUO.mjs.map
+|   |   |       |   |       ebnfDiagram-G6P3SIUA.mjs
+|   |   |       |   |       ebnfDiagram-G6P3SIUA.mjs.map
+|   |   |       |   |       erDiagram-X3L2UJSS.mjs
+|   |   |       |   |       erDiagram-X3L2UJSS.mjs.map
+|   |   |       |   |       eventmodeling-45OFAUF4-3WKU7OSU.mjs
+|   |   |       |   |       eventmodeling-45OFAUF4-3WKU7OSU.mjs.map
+|   |   |       |   |       flowDiagram-QQNUYIFB.mjs
+|   |   |       |   |       flowDiagram-QQNUYIFB.mjs.map
+|   |   |       |   |       ganttDiagram-VWBR5VES.mjs
+|   |   |       |   |       ganttDiagram-VWBR5VES.mjs.map
+|   |   |       |   |       gitGraph-TEB2WS4Q-EIY3NVGF.mjs
+|   |   |       |   |       gitGraph-TEB2WS4Q-EIY3NVGF.mjs.map
+|   |   |       |   |       gitGraphDiagram-K6KCKE34.mjs
+|   |   |       |   |       gitGraphDiagram-K6KCKE34.mjs.map
+|   |   |       |   |       info-DKCQHKI2-33YBBPSM.mjs
+|   |   |       |   |       info-DKCQHKI2-33YBBPSM.mjs.map
+|   |   |       |   |       infoDiagram-OFQXFIQZ.mjs
+|   |   |       |   |       infoDiagram-OFQXFIQZ.mjs.map
+|   |   |       |   |       ishikawaDiagram-EUVD52U2.mjs
+|   |   |       |   |       ishikawaDiagram-EUVD52U2.mjs.map
+|   |   |       |   |       journeyDiagram-YFPJT4EK.mjs
+|   |   |       |   |       journeyDiagram-YFPJT4EK.mjs.map
+|   |   |       |   |       kanban-definition-353KVIO4.mjs
+|   |   |       |   |       kanban-definition-353KVIO4.mjs.map
+|   |   |       |   |       katex-FWVWKTT3.mjs
+|   |   |       |   |       katex-FWVWKTT3.mjs.map
+|   |   |       |   |       mindmap-definition-CKRMFO7I.mjs
+|   |   |       |   |       mindmap-definition-CKRMFO7I.mjs.map
+|   |   |       |   |       packet-7NZHBO7P-4S63VQ2U.mjs
+|   |   |       |   |       packet-7NZHBO7P-4S63VQ2U.mjs.map
+|   |   |       |   |       pegDiagram-S433AU4E.mjs
+|   |   |       |   |       pegDiagram-S433AU4E.mjs.map
+|   |   |       |   |       pie-RZYD4A2V-Z4KIYNQL.mjs
+|   |   |       |   |       pie-RZYD4A2V-Z4KIYNQL.mjs.map
+|   |   |       |   |       pieDiagram-EOHFZCZ6.mjs
+|   |   |       |   |       pieDiagram-EOHFZCZ6.mjs.map
+|   |   |       |   |       quadrantDiagram-V42A3WTH.mjs
+|   |   |       |   |       quadrantDiagram-V42A3WTH.mjs.map
+|   |   |       |   |       radar-I7S5WNFK-UWZYMAIF.mjs
+|   |   |       |   |       radar-I7S5WNFK-UWZYMAIF.mjs.map
+|   |   |       |   |       railroad-3IZDKUUU-NPR2B6A7.mjs
+|   |   |       |   |       railroad-3IZDKUUU-NPR2B6A7.mjs.map
+|   |   |       |   |       railroad-abnf-AHOZXSZD-ZQ2ZTVQN.mjs
+|   |   |       |   |       railroad-abnf-AHOZXSZD-ZQ2ZTVQN.mjs.map
+|   |   |       |   |       railroad-ebnf-EBAXGLYW-KNIRPJJ3.mjs
+|   |   |       |   |       railroad-ebnf-EBAXGLYW-KNIRPJJ3.mjs.map
+|   |   |       |   |       railroad-peg-LSFZ7HO6-HLXQPOFZ.mjs
+|   |   |       |   |       railroad-peg-LSFZ7HO6-HLXQPOFZ.mjs.map
+|   |   |       |   |       railroadDiagram-HQNCXZT7.mjs
+|   |   |       |   |       railroadDiagram-HQNCXZT7.mjs.map
+|   |   |       |   |       requirementDiagram-R3ZQC5DG.mjs
+|   |   |       |   |       requirementDiagram-R3ZQC5DG.mjs.map
+|   |   |       |   |       sankeyDiagram-LY72P3AX.mjs
+|   |   |       |   |       sankeyDiagram-LY72P3AX.mjs.map
+|   |   |       |   |       sequenceDiagram-DXCB7GA4.mjs
+|   |   |       |   |       sequenceDiagram-DXCB7GA4.mjs.map
+|   |   |       |   |       sizeCapture-XSFMG7G3.mjs
+|   |   |       |   |       sizeCapture-XSFMG7G3.mjs.map
+|   |   |       |   |       stateDiagram-RKBS6WVP.mjs
+|   |   |       |   |       stateDiagram-RKBS6WVP.mjs.map
+|   |   |       |   |       stateDiagram-v2-66XI6PKQ.mjs
+|   |   |       |   |       stateDiagram-v2-66XI6PKQ.mjs.map
+|   |   |       |   |       swimlanes-YAP2ZHFU.mjs
+|   |   |       |   |       swimlanes-YAP2ZHFU.mjs.map
+|   |   |       |   |       swimlanesDiagram-7S2UDSDB.mjs
+|   |   |       |   |       swimlanesDiagram-7S2UDSDB.mjs.map
+|   |   |       |   |       timeline-definition-7PXO7M73.mjs
+|   |   |       |   |       timeline-definition-7PXO7M73.mjs.map
+|   |   |       |   |       treemap-6X3UGDF4-KSRZGEBQ.mjs
+|   |   |       |   |       treemap-6X3UGDF4-KSRZGEBQ.mjs.map
+|   |   |       |   |       treeView-QDETBFTQ-LXWSYSUM.mjs
+|   |   |       |   |       treeView-QDETBFTQ-LXWSYSUM.mjs.map
+|   |   |       |   |       vennDiagram-GZOJKRXC.mjs
+|   |   |       |   |       vennDiagram-GZOJKRXC.mjs.map
+|   |   |       |   |       wardley-OPB4EBWU-NNLCSONB.mjs
+|   |   |       |   |       wardley-OPB4EBWU-NNLCSONB.mjs.map
+|   |   |       |   |       wardleyDiagram-NBP37UBZ.mjs
+|   |   |       |   |       wardleyDiagram-NBP37UBZ.mjs.map
+|   |   |       |   |       xychartDiagram-3DBDKXFU.mjs
+|   |   |       |   |       xychartDiagram-3DBDKXFU.mjs.map
+|   |   |       |   |       
+|   |   |       |   \---mermaid.esm.min
+|   |   |       |           abnfDiagram-U6D7WRMF.mjs
+|   |   |       |           abnfDiagram-U6D7WRMF.mjs.map
+|   |   |       |           architecture-TIHT7OUA-V6N4J3SY.mjs
+|   |   |       |           architecture-TIHT7OUA-V6N4J3SY.mjs.map
+|   |   |       |           architectureDiagram-CXLCLZGG.mjs
+|   |   |       |           architectureDiagram-CXLCLZGG.mjs.map
+|   |   |       |           blockDiagram-BDH3CYR7.mjs
+|   |   |       |           blockDiagram-BDH3CYR7.mjs.map
+|   |   |       |           c4Diagram-6Y6SKSDM.mjs
+|   |   |       |           c4Diagram-6Y6SKSDM.mjs.map
+|   |   |       |           chunk-224SPVON.mjs
+|   |   |       |           chunk-224SPVON.mjs.map
+|   |   |       |           chunk-4RFN2BYJ.mjs
+|   |   |       |           chunk-4RFN2BYJ.mjs.map
+|   |   |       |           chunk-4S3VB3X6.mjs
+|   |   |       |           chunk-4S3VB3X6.mjs.map
+|   |   |       |           chunk-5IMINLNL.mjs
+|   |   |       |           chunk-5IMINLNL.mjs.map
+|   |   |       |           chunk-5VCL7Z4A.mjs
+|   |   |       |           chunk-5VCL7Z4A.mjs.map
+|   |   |       |           chunk-66DQ2XMT.mjs
+|   |   |       |           chunk-66DQ2XMT.mjs.map
+|   |   |       |           chunk-6C3L5S6U.mjs
+|   |   |       |           chunk-6C3L5S6U.mjs.map
+|   |   |       |           chunk-7FYTHRHK.mjs
+|   |   |       |           chunk-7FYTHRHK.mjs.map
+|   |   |       |           chunk-AQ6EADP3.mjs
+|   |   |       |           chunk-AQ6EADP3.mjs.map
+|   |   |       |           chunk-AX4YENZL.mjs
+|   |   |       |           chunk-AX4YENZL.mjs.map
+|   |   |       |           chunk-AZZRMDJM.mjs
+|   |   |       |           chunk-AZZRMDJM.mjs.map
+|   |   |       |           chunk-BI6VK774.mjs
+|   |   |       |           chunk-BI6VK774.mjs.map
+|   |   |       |           chunk-D6VWDJW2.mjs
+|   |   |       |           chunk-D6VWDJW2.mjs.map
+|   |   |       |           chunk-DMV4VAQV.mjs
+|   |   |       |           chunk-DMV4VAQV.mjs.map
+|   |   |       |           chunk-E5QJAATJ.mjs
+|   |   |       |           chunk-E5QJAATJ.mjs.map
+|   |   |       |           chunk-ENMKPL7Y.mjs
+|   |   |       |           chunk-ENMKPL7Y.mjs.map
+|   |   |       |           chunk-EQFTRU2I.mjs
+|   |   |       |           chunk-EQFTRU2I.mjs.map
+|   |   |       |           chunk-FWYVLQTC.mjs
+|   |   |       |           chunk-FWYVLQTC.mjs.map
+|   |   |       |           chunk-HCQLZPVX.mjs
+|   |   |       |           chunk-HCQLZPVX.mjs.map
+|   |   |       |           chunk-HNC4WDU7.mjs
+|   |   |       |           chunk-HNC4WDU7.mjs.map
+|   |   |       |           chunk-JQRUD6KW.mjs
+|   |   |       |           chunk-JQRUD6KW.mjs.map
+|   |   |       |           chunk-KEUXMURM.mjs
+|   |   |       |           chunk-KEUXMURM.mjs.map
+|   |   |       |           chunk-KRXBNO2N.mjs
+|   |   |       |           chunk-KRXBNO2N.mjs.map
+|   |   |       |           chunk-KTKOSTGQ.mjs
+|   |   |       |           chunk-KTKOSTGQ.mjs.map
+|   |   |       |           chunk-L5GCOVLC.mjs
+|   |   |       |           chunk-L5GCOVLC.mjs.map
+|   |   |       |           chunk-LAHSG3N2.mjs
+|   |   |       |           chunk-LAHSG3N2.mjs.map
+|   |   |       |           chunk-LIEV3EAG.mjs
+|   |   |       |           chunk-LIEV3EAG.mjs.map
+|   |   |       |           chunk-LUNKGL7L.mjs
+|   |   |       |           chunk-LUNKGL7L.mjs.map
+|   |   |       |           chunk-MXWVPPQS.mjs
+|   |   |       |           chunk-MXWVPPQS.mjs.map
+|   |   |       |           chunk-NV3KIAZN.mjs
+|   |   |       |           chunk-NV3KIAZN.mjs.map
+|   |   |       |           chunk-OIYT25JQ.mjs
+|   |   |       |           chunk-OIYT25JQ.mjs.map
+|   |   |       |           chunk-QU2NO3GS.mjs
+|   |   |       |           chunk-QU2NO3GS.mjs.map
+|   |   |       |           chunk-RRFMTAIC.mjs
+|   |   |       |           chunk-RRFMTAIC.mjs.map
+|   |   |       |           chunk-SATU7PGQ.mjs
+|   |   |       |           chunk-SATU7PGQ.mjs.map
+|   |   |       |           chunk-STADKHD7.mjs
+|   |   |       |           chunk-STADKHD7.mjs.map
+|   |   |       |           chunk-STOV2HOB.mjs
+|   |   |       |           chunk-STOV2HOB.mjs.map
+|   |   |       |           chunk-SXFNDEX5.mjs
+|   |   |       |           chunk-SXFNDEX5.mjs.map
+|   |   |       |           chunk-SZQNAPRP.mjs
+|   |   |       |           chunk-SZQNAPRP.mjs.map
+|   |   |       |           chunk-T5OCTHI4.mjs
+|   |   |       |           chunk-T5OCTHI4.mjs.map
+|   |   |       |           chunk-TZUXEDM2.mjs
+|   |   |       |           chunk-TZUXEDM2.mjs.map
+|   |   |       |           chunk-UITSOMYB.mjs
+|   |   |       |           chunk-UITSOMYB.mjs.map
+|   |   |       |           chunk-VE5CLXGZ.mjs
+|   |   |       |           chunk-VE5CLXGZ.mjs.map
+|   |   |       |           chunk-VIJNA47K.mjs
+|   |   |       |           chunk-VIJNA47K.mjs.map
+|   |   |       |           chunk-VY5UBI4V.mjs
+|   |   |       |           chunk-VY5UBI4V.mjs.map
+|   |   |       |           chunk-W44A43WB.mjs
+|   |   |       |           chunk-W44A43WB.mjs.map
+|   |   |       |           chunk-XNMVGMAZ.mjs
+|   |   |       |           chunk-XNMVGMAZ.mjs.map
+|   |   |       |           chunk-Y3FQM624.mjs
+|   |   |       |           chunk-Y3FQM624.mjs.map
+|   |   |       |           classDiagram-GTSBOMN5.mjs
+|   |   |       |           classDiagram-GTSBOMN5.mjs.map
+|   |   |       |           classDiagram-v2-4NET3KXY.mjs
+|   |   |       |           classDiagram-v2-4NET3KXY.mjs.map
+|   |   |       |           cose-bilkent-RZA4XIPR.mjs
+|   |   |       |           cose-bilkent-RZA4XIPR.mjs.map
+|   |   |       |           cynefin-VYW2F7L2-2VAHYKR6.mjs
+|   |   |       |           cynefin-VYW2F7L2-2VAHYKR6.mjs.map
+|   |   |       |           cynefinDiagram-N5GTLAMU.mjs
+|   |   |       |           cynefinDiagram-N5GTLAMU.mjs.map
+|   |   |       |           dagre-QGBC2H2C.mjs
+|   |   |       |           dagre-QGBC2H2C.mjs.map
+|   |   |       |           diagram-5YXONRP5.mjs
+|   |   |       |           diagram-5YXONRP5.mjs.map
+|   |   |       |           diagram-EERCSO4V.mjs
+|   |   |       |           diagram-EERCSO4V.mjs.map
+|   |   |       |           diagram-EYB2CBB5.mjs
+|   |   |       |           diagram-EYB2CBB5.mjs.map
+|   |   |       |           diagram-G5KYCVHS.mjs
+|   |   |       |           diagram-G5KYCVHS.mjs.map
+|   |   |       |           diagram-JDTM4OSO.mjs
+|   |   |       |           diagram-JDTM4OSO.mjs.map
+|   |   |       |           ebnfDiagram-7D6ZXF7D.mjs
+|   |   |       |           ebnfDiagram-7D6ZXF7D.mjs.map
+|   |   |       |           erDiagram-OQMWT43X.mjs
+|   |   |       |           erDiagram-OQMWT43X.mjs.map
+|   |   |       |           eventmodeling-45OFAUF4-AOUJWSLX.mjs
+|   |   |       |           eventmodeling-45OFAUF4-AOUJWSLX.mjs.map
+|   |   |       |           flowDiagram-ZACVJCCL.mjs
+|   |   |       |           flowDiagram-ZACVJCCL.mjs.map
+|   |   |       |           ganttDiagram-65O4CIDK.mjs
+|   |   |       |           ganttDiagram-65O4CIDK.mjs.map
+|   |   |       |           gitGraph-TEB2WS4Q-U5VWYIBC.mjs
+|   |   |       |           gitGraph-TEB2WS4Q-U5VWYIBC.mjs.map
+|   |   |       |           gitGraphDiagram-7AKFKS3M.mjs
+|   |   |       |           gitGraphDiagram-7AKFKS3M.mjs.map
+|   |   |       |           info-DKCQHKI2-DX6KST54.mjs
+|   |   |       |           info-DKCQHKI2-DX6KST54.mjs.map
+|   |   |       |           infoDiagram-VANWJNXV.mjs
+|   |   |       |           infoDiagram-VANWJNXV.mjs.map
+|   |   |       |           ishikawaDiagram-5Q2OBY3B.mjs
+|   |   |       |           ishikawaDiagram-5Q2OBY3B.mjs.map
+|   |   |       |           journeyDiagram-WII6DRMM.mjs
+|   |   |       |           journeyDiagram-WII6DRMM.mjs.map
+|   |   |       |           kanban-definition-B52SFAVG.mjs
+|   |   |       |           kanban-definition-B52SFAVG.mjs.map
+|   |   |       |           katex-C5OPUE3Q.mjs
+|   |   |       |           katex-C5OPUE3Q.mjs.map
+|   |   |       |           mindmap-definition-GVBGAMR2.mjs
+|   |   |       |           mindmap-definition-GVBGAMR2.mjs.map
+|   |   |       |           packet-7NZHBO7P-5WG45QPS.mjs
+|   |   |       |           packet-7NZHBO7P-5WG45QPS.mjs.map
+|   |   |       |           pegDiagram-ZGJ7CXPE.mjs
+|   |   |       |           pegDiagram-ZGJ7CXPE.mjs.map
+|   |   |       |           pie-RZYD4A2V-2OCZ2VTD.mjs
+|   |   |       |           pie-RZYD4A2V-2OCZ2VTD.mjs.map
+|   |   |       |           pieDiagram-OG5FZAAG.mjs
+|   |   |       |           pieDiagram-OG5FZAAG.mjs.map
+|   |   |       |           quadrantDiagram-QALJNKXI.mjs
+|   |   |       |           quadrantDiagram-QALJNKXI.mjs.map
+|   |   |       |           radar-I7S5WNFK-EPLSA35B.mjs
+|   |   |       |           radar-I7S5WNFK-EPLSA35B.mjs.map
+|   |   |       |           railroad-3IZDKUUU-PWFQV6Y6.mjs
+|   |   |       |           railroad-3IZDKUUU-PWFQV6Y6.mjs.map
+|   |   |       |           railroad-abnf-AHOZXSZD-JYYJX3BS.mjs
+|   |   |       |           railroad-abnf-AHOZXSZD-JYYJX3BS.mjs.map
+|   |   |       |           railroad-ebnf-EBAXGLYW-RBZ4ONAP.mjs
+|   |   |       |           railroad-ebnf-EBAXGLYW-RBZ4ONAP.mjs.map
+|   |   |       |           railroad-peg-LSFZ7HO6-KHNPXGPG.mjs
+|   |   |       |           railroad-peg-LSFZ7HO6-KHNPXGPG.mjs.map
+|   |   |       |           railroadDiagram-KTWOLP6L.mjs
+|   |   |       |           railroadDiagram-KTWOLP6L.mjs.map
+|   |   |       |           requirementDiagram-4WCXXUE4.mjs
+|   |   |       |           requirementDiagram-4WCXXUE4.mjs.map
+|   |   |       |           sankeyDiagram-H77HJZDF.mjs
+|   |   |       |           sankeyDiagram-H77HJZDF.mjs.map
+|   |   |       |           sequenceDiagram-ESAOAU5S.mjs
+|   |   |       |           sequenceDiagram-ESAOAU5S.mjs.map
+|   |   |       |           sizeCapture-5GORAGP4.mjs
+|   |   |       |           sizeCapture-5GORAGP4.mjs.map
+|   |   |       |           stateDiagram-CSZEIB5N.mjs
+|   |   |       |           stateDiagram-CSZEIB5N.mjs.map
+|   |   |       |           stateDiagram-v2-HCNZSXAK.mjs
+|   |   |       |           stateDiagram-v2-HCNZSXAK.mjs.map
+|   |   |       |           swimlanes-SIZDLOB3.mjs
+|   |   |       |           swimlanes-SIZDLOB3.mjs.map
+|   |   |       |           swimlanesDiagram-OX7UBUGT.mjs
+|   |   |       |           swimlanesDiagram-OX7UBUGT.mjs.map
+|   |   |       |           timeline-definition-MJJPMYOD.mjs
+|   |   |       |           timeline-definition-MJJPMYOD.mjs.map
+|   |   |       |           treemap-6X3UGDF4-CCWCF7EK.mjs
+|   |   |       |           treemap-6X3UGDF4-CCWCF7EK.mjs.map
+|   |   |       |           treeView-QDETBFTQ-EHYTSQNO.mjs
+|   |   |       |           treeView-QDETBFTQ-EHYTSQNO.mjs.map
+|   |   |       |           vennDiagram-VSB6UTAL.mjs
+|   |   |       |           vennDiagram-VSB6UTAL.mjs.map
+|   |   |       |           wardley-OPB4EBWU-6OWERDVT.mjs
+|   |   |       |           wardley-OPB4EBWU-6OWERDVT.mjs.map
+|   |   |       |           wardleyDiagram-EUEZMDUE.mjs
+|   |   |       |           wardleyDiagram-EUEZMDUE.mjs.map
+|   |   |       |           xychartDiagram-R6JRNRHN.mjs
+|   |   |       |           xychartDiagram-R6JRNRHN.mjs.map
+|   |   |       |           
+|   |   |       +---dagre-wrapper
+|   |   |       |   |   blockArrowHelper.d.ts
+|   |   |       |   |   clusters.d.ts
+|   |   |       |   |   createLabel.d.ts
+|   |   |       |   |   edgeMarker.d.ts
+|   |   |       |   |   edgeMarker.spec.d.ts
+|   |   |       |   |   edges.d.ts
+|   |   |       |   |   index.d.ts
+|   |   |       |   |   markers.d.ts
+|   |   |       |   |   mermaid-graphlib.d.ts
+|   |   |       |   |   nodes.d.ts
+|   |   |       |   |   
+|   |   |       |   +---intersect
+|   |   |       |   |       index.d.ts
+|   |   |       |   |       intersect-circle.d.ts
+|   |   |       |   |       intersect-ellipse.d.ts
+|   |   |       |   |       intersect-line.d.ts
+|   |   |       |   |       intersect-node.d.ts
+|   |   |       |   |       intersect-polygon.d.ts
+|   |   |       |   |       intersect-rect.d.ts
+|   |   |       |   |       
+|   |   |       |   \---shapes
+|   |   |       |           note.d.ts
+|   |   |       |           util.d.ts
+|   |   |       |           
+|   |   |       +---diagram-api
+|   |   |       |       comments.d.ts
+|   |   |       |       comments.spec.d.ts
+|   |   |       |       detectType.d.ts
+|   |   |       |       diagram-beta-policy.spec.d.ts
+|   |   |       |       diagram-orchestration.d.ts
+|   |   |       |       diagram-orchestration.spec.d.ts
+|   |   |       |       diagramAPI.d.ts
+|   |   |       |       diagramAPI.spec.d.ts
+|   |   |       |       frontmatter.d.ts
+|   |   |       |       frontmatter.spec.d.ts
+|   |   |       |       loadDiagram.d.ts
+|   |   |       |       regexes.d.ts
+|   |   |       |       types.d.ts
+|   |   |       |       
+|   |   |       +---diagrams
+|   |   |       |   |   globalStyles.d.ts
+|   |   |       |   |   
+|   |   |       |   +---architecture
+|   |   |       |   |       architecture.spec.d.ts
+|   |   |       |   |       architectureDb.d.ts
+|   |   |       |   |       architectureDetector.d.ts
+|   |   |       |   |       architectureDiagram.d.ts
+|   |   |       |   |       architectureIcons.d.ts
+|   |   |       |   |       architectureParser.d.ts
+|   |   |       |   |       architectureRenderer.d.ts
+|   |   |       |   |       architectureSeed.d.ts
+|   |   |       |   |       architectureSeed.spec.d.ts
+|   |   |       |   |       architectureStyles.d.ts
+|   |   |       |   |       architectureTypes.d.ts
+|   |   |       |   |       svgDraw.d.ts
+|   |   |       |   |       svgDraw.spec.d.ts
+|   |   |       |   |       
+|   |   |       |   +---block
+|   |   |       |   |   |   blockDB.d.ts
+|   |   |       |   |   |   blockDB.spec.d.ts
+|   |   |       |   |   |   blockDetector.d.ts
+|   |   |       |   |   |   blockDiagram.d.ts
+|   |   |       |   |   |   blockRenderer.d.ts
+|   |   |       |   |   |   blockTypes.d.ts
+|   |   |       |   |   |   blockUtils.d.ts
+|   |   |       |   |   |   layout.d.ts
+|   |   |       |   |   |   layout.spec.d.ts
+|   |   |       |   |   |   renderHelpers.d.ts
+|   |   |       |   |   |   styles.d.ts
+|   |   |       |   |   |   
+|   |   |       |   |   \---parser
+|   |   |       |   |           block.spec.d.ts
+|   |   |       |   |           
+|   |   |       |   +---c4
+|   |   |       |   |       c4Db.d.ts
+|   |   |       |   |       c4Detector.d.ts
+|   |   |       |   |       c4Diagram.d.ts
+|   |   |       |   |       c4Renderer.d.ts
+|   |   |       |   |       styles.d.ts
+|   |   |       |   |       svgDraw.d.ts
+|   |   |       |   |       
+|   |   |       |   +---class
+|   |   |       |   |       classDb.d.ts
+|   |   |       |   |       classDetector-V2.d.ts
+|   |   |       |   |       classDetector.d.ts
+|   |   |       |   |       classDiagram-v2.d.ts
+|   |   |       |   |       classDiagram.d.ts
+|   |   |       |   |       classDiagram.spec.d.ts
+|   |   |       |   |       classRenderer-v2.d.ts
+|   |   |       |   |       classRenderer-v3-unified.d.ts
+|   |   |       |   |       classRenderer.d.ts
+|   |   |       |   |       classTypes.d.ts
+|   |   |       |   |       classTypes.spec.d.ts
+|   |   |       |   |       shapeUtil.d.ts
+|   |   |       |   |       styles.d.ts
+|   |   |       |   |       svgDraw.d.ts
+|   |   |       |   |       
+|   |   |       |   +---common
+|   |   |       |   |       common.d.ts
+|   |   |       |   |       common.spec.d.ts
+|   |   |       |   |       commonDb.d.ts
+|   |   |       |   |       commonTypes.d.ts
+|   |   |       |   |       populateCommonDb.d.ts
+|   |   |       |   |       svgDrawCommon.d.ts
+|   |   |       |   |       
+|   |   |       |   +---cynefin
+|   |   |       |   |       cynefin.integration.spec.d.ts
+|   |   |       |   |       cynefin.spec.d.ts
+|   |   |       |   |       cynefinBoundaries.d.ts
+|   |   |       |   |       cynefinDb.d.ts
+|   |   |       |   |       cynefinDetector.d.ts
+|   |   |       |   |       cynefinDiagram.d.ts
+|   |   |       |   |       cynefinParser.d.ts
+|   |   |       |   |       cynefinRenderer.d.ts
+|   |   |       |   |       styles.d.ts
+|   |   |       |   |       types.d.ts
+|   |   |       |   |       
+|   |   |       |   +---er
+|   |   |       |   |       erDb.d.ts
+|   |   |       |   |       erDetector.d.ts
+|   |   |       |   |       erDiagram.d.ts
+|   |   |       |   |       erMarkers.d.ts
+|   |   |       |   |       erRenderer-unified.d.ts
+|   |   |       |   |       erRenderer.d.ts
+|   |   |       |   |       erRenderer.spec.d.ts
+|   |   |       |   |       erTypes.d.ts
+|   |   |       |   |       styles.d.ts
+|   |   |       |   |       
+|   |   |       |   +---error
+|   |   |       |   |       errorDiagram.d.ts
+|   |   |       |   |       errorRenderer.d.ts
+|   |   |       |   |       
+|   |   |       |   +---eventmodeling
+|   |   |       |   |       db.d.ts
+|   |   |       |   |       detector.d.ts
+|   |   |       |   |       diagram.d.ts
+|   |   |       |   |       eventmodeling.spec.d.ts
+|   |   |       |   |       parser.d.ts
+|   |   |       |   |       renderer.d.ts
+|   |   |       |   |       styles.d.ts
+|   |   |       |   |       types.d.ts
+|   |   |       |   |       
+|   |   |       |   +---flowchart
+|   |   |       |   |   |   flowDb.d.ts
+|   |   |       |   |   |   flowDb.spec.d.ts
+|   |   |       |   |   |   flowDetector-v2.d.ts
+|   |   |       |   |   |   flowDetector.d.ts
+|   |   |       |   |   |   flowDiagram.d.ts
+|   |   |       |   |   |   flowDiagram.spec.d.ts
+|   |   |       |   |   |   flowRenderer-v3-unified.d.ts
+|   |   |       |   |   |   flowRenderer-v3-unified.spec.d.ts
+|   |   |       |   |   |   styles.d.ts
+|   |   |       |   |   |   types.d.ts
+|   |   |       |   |   |   
+|   |   |       |   |   +---elk
+|   |   |       |   |   |       detector.d.ts
+|   |   |       |   |   |       
+|   |   |       |   |   \---parser
+|   |   |       |   |           flowParser.d.ts
+|   |   |       |   |           
+|   |   |       |   +---gantt
+|   |   |       |   |       ganttDb.d.ts
+|   |   |       |   |       ganttDb.spec.d.ts
+|   |   |       |   |       ganttDetector.d.ts
+|   |   |       |   |       ganttDiagram.d.ts
+|   |   |       |   |       ganttRenderer.d.ts
+|   |   |       |   |       styles.d.ts
+|   |   |       |   |       
+|   |   |       |   +---git
+|   |   |       |   |       gitGraph.spec.d.ts
+|   |   |       |   |       gitGraphAst.d.ts
+|   |   |       |   |       gitGraphDetector.d.ts
+|   |   |       |   |       gitGraphDiagram.d.ts
+|   |   |       |   |       gitGraphParser.d.ts
+|   |   |       |   |       gitGraphRenderer.d.ts
+|   |   |       |   |       gitGraphTypes.d.ts
+|   |   |       |   |       styles.d.ts
+|   |   |       |   |       
+|   |   |       |   +---info
+|   |   |       |   |       info.spec.d.ts
+|   |   |       |   |       infoDb.d.ts
+|   |   |       |   |       infoDetector.d.ts
+|   |   |       |   |       infoDiagram.d.ts
+|   |   |       |   |       infoParser.d.ts
+|   |   |       |   |       infoRenderer.d.ts
+|   |   |       |   |       infoTypes.d.ts
+|   |   |       |   |       
+|   |   |       |   +---ishikawa
+|   |   |       |   |       ishikawa.spec.d.ts
+|   |   |       |   |       ishikawaDb.d.ts
+|   |   |       |   |       ishikawaDetector.d.ts
+|   |   |       |   |       ishikawaDiagram.d.ts
+|   |   |       |   |       ishikawaRenderer.d.ts
+|   |   |       |   |       ishikawaStyles.d.ts
+|   |   |       |   |       ishikawaTypes.d.ts
+|   |   |       |   |       
+|   |   |       |   +---kanban
+|   |   |       |   |       detector.d.ts
+|   |   |       |   |       kanban-definition.d.ts
+|   |   |       |   |       kanban.spec.d.ts
+|   |   |       |   |       kanbanDb.d.ts
+|   |   |       |   |       kanbanRenderer.d.ts
+|   |   |       |   |       kanbanTypes.d.ts
+|   |   |       |   |       styles.d.ts
+|   |   |       |   |       
+|   |   |       |   +---mindmap
+|   |   |       |   |       detector.d.ts
+|   |   |       |   |       mindmap-definition.d.ts
+|   |   |       |   |       mindmap.spec.d.ts
+|   |   |       |   |       mindmapDb.d.ts
+|   |   |       |   |       mindmapDb.getData.test.d.ts
+|   |   |       |   |       mindmapRenderer.d.ts
+|   |   |       |   |       mindmapTypes.d.ts
+|   |   |       |   |       styles.d.ts
+|   |   |       |   |       svgDraw.d.ts
+|   |   |       |   |       
+|   |   |       |   +---packet
+|   |   |       |   |       db.d.ts
+|   |   |       |   |       detector.d.ts
+|   |   |       |   |       diagram.d.ts
+|   |   |       |   |       packet.spec.d.ts
+|   |   |       |   |       parser.d.ts
+|   |   |       |   |       renderer.d.ts
+|   |   |       |   |       styles.d.ts
+|   |   |       |   |       types.d.ts
+|   |   |       |   |       
+|   |   |       |   +---pie
+|   |   |       |   |       pie.spec.d.ts
+|   |   |       |   |       pieDb.d.ts
+|   |   |       |   |       pieDetector.d.ts
+|   |   |       |   |       pieDiagram.d.ts
+|   |   |       |   |       pieParser.d.ts
+|   |   |       |   |       pieRenderer.d.ts
+|   |   |       |   |       pieRenderer.spec.d.ts
+|   |   |       |   |       pieStyles.d.ts
+|   |   |       |   |       pieTypes.d.ts
+|   |   |       |   |       
+|   |   |       |   +---quadrant-chart
+|   |   |       |   |   |   quadrantBuilder.d.ts
+|   |   |       |   |   |   quadrantDb.d.ts
+|   |   |       |   |   |   quadrantDb.spec.d.ts
+|   |   |       |   |   |   quadrantDetector.d.ts
+|   |   |       |   |   |   quadrantDiagram.d.ts
+|   |   |       |   |   |   quadrantRenderer.d.ts
+|   |   |       |   |   |   utils.d.ts
+|   |   |       |   |   |   
+|   |   |       |   |   \---parser
+|   |   |       |   |           quadrant.jison.spec.d.ts
+|   |   |       |   |           
+|   |   |       |   +---radar
+|   |   |       |   |       db.d.ts
+|   |   |       |   |       detector.d.ts
+|   |   |       |   |       diagram.d.ts
+|   |   |       |   |       parser.d.ts
+|   |   |       |   |       radar.spec.d.ts
+|   |   |       |   |       renderer.d.ts
+|   |   |       |   |       styles.d.ts
+|   |   |       |   |       types.d.ts
+|   |   |       |   |       
+|   |   |       |   +---railroad
+|   |   |       |   |   |   abnfDetector.d.ts
+|   |   |       |   |   |   abnfDetector.spec.d.ts
+|   |   |       |   |   |   abnfDiagram.d.ts
+|   |   |       |   |   |   ebnfDetector.d.ts
+|   |   |       |   |   |   ebnfDetector.spec.d.ts
+|   |   |       |   |   |   ebnfDiagram.d.ts
+|   |   |       |   |   |   pegDetector.d.ts
+|   |   |       |   |   |   pegDetector.spec.d.ts
+|   |   |       |   |   |   pegDiagram.d.ts
+|   |   |       |   |   |   railroadDb.d.ts
+|   |   |       |   |   |   railroadDb.spec.d.ts
+|   |   |       |   |   |   railroadDetector.d.ts
+|   |   |       |   |   |   railroadDetector.spec.d.ts
+|   |   |       |   |   |   railroadDiagram.d.ts
+|   |   |       |   |   |   railroadRenderer.d.ts
+|   |   |       |   |   |   railroadRenderer.spec.d.ts
+|   |   |       |   |   |   railroadTypes.d.ts
+|   |   |       |   |   |   styles.d.ts
+|   |   |       |   |   |   styles.spec.d.ts
+|   |   |       |   |   |   
+|   |   |       |   |   \---parser
+|   |   |       |   |           abnfDiagram.spec.d.ts
+|   |   |       |   |           abnfParser.d.ts
+|   |   |       |   |           ebnfDiagram.spec.d.ts
+|   |   |       |   |           ebnfParser.d.ts
+|   |   |       |   |           pegDiagram.spec.d.ts
+|   |   |       |   |           pegParser.d.ts
+|   |   |       |   |           railroadDiagram.spec.d.ts
+|   |   |       |   |           railroadParser.d.ts
+|   |   |       |   |           
+|   |   |       |   +---requirement
+|   |   |       |   |       requirementDb.d.ts
+|   |   |       |   |       requirementDb.spec.d.ts
+|   |   |       |   |       requirementDetector.d.ts
+|   |   |       |   |       requirementDiagram.d.ts
+|   |   |       |   |       requirementRenderer.d.ts
+|   |   |       |   |       styles.d.ts
+|   |   |       |   |       types.d.ts
+|   |   |       |   |       
+|   |   |       |   +---sankey
+|   |   |       |   |   |   sankeyDB.d.ts
+|   |   |       |   |   |   sankeyDetector.d.ts
+|   |   |       |   |   |   sankeyDiagram.d.ts
+|   |   |       |   |   |   sankeyRenderer.d.ts
+|   |   |       |   |   |   sankeyUtils.d.ts
+|   |   |       |   |   |   styles.d.ts
+|   |   |       |   |   |   
+|   |   |       |   |   \---parser
+|   |   |       |   |           sankey.spec.d.ts
+|   |   |       |   |           
+|   |   |       |   +---sequence
+|   |   |       |   |       sequenceDb.d.ts
+|   |   |       |   |       sequenceDetector.d.ts
+|   |   |       |   |       sequenceDiagram.d.ts
+|   |   |       |   |       sequenceRenderer.d.ts
+|   |   |       |   |       styles.d.ts
+|   |   |       |   |       svgDraw.d.ts
+|   |   |       |   |       types.d.ts
+|   |   |       |   |       
+|   |   |       |   +---state
+|   |   |       |   |       dataFetcher.d.ts
+|   |   |       |   |       shapes.d.ts
+|   |   |       |   |       stateCommon.d.ts
+|   |   |       |   |       stateDb.d.ts
+|   |   |       |   |       stateDetector-V2.d.ts
+|   |   |       |   |       stateDetector.d.ts
+|   |   |       |   |       stateDiagram-v2.d.ts
+|   |   |       |   |       stateDiagram.d.ts
+|   |   |       |   |       stateRenderer-v3-unified.d.ts
+|   |   |       |   |       stateRenderer.d.ts
+|   |   |       |   |       styles.d.ts
+|   |   |       |   |       
+|   |   |       |   +---swimlanes
+|   |   |       |   |       detector.d.ts
+|   |   |       |   |       styles.d.ts
+|   |   |       |   |       swimlanesDiagram.d.ts
+|   |   |       |   |       swimlanesDiagram.spec.d.ts
+|   |   |       |   |       
+|   |   |       |   +---timeline
+|   |   |       |   |       detector.d.ts
+|   |   |       |   |       styles.d.ts
+|   |   |       |   |       svgDraw.d.ts
+|   |   |       |   |       timeline-definition.d.ts
+|   |   |       |   |       timelineDb.d.ts
+|   |   |       |   |       timelineRenderer.d.ts
+|   |   |       |   |       timelineRendererVertical.d.ts
+|   |   |       |   |       
+|   |   |       |   +---treemap
+|   |   |       |   |       db.d.ts
+|   |   |       |   |       detector.d.ts
+|   |   |       |   |       diagram.d.ts
+|   |   |       |   |       parser.d.ts
+|   |   |       |   |       renderer.d.ts
+|   |   |       |   |       styles.d.ts
+|   |   |       |   |       types.d.ts
+|   |   |       |   |       utils.d.ts
+|   |   |       |   |       utils.test.d.ts
+|   |   |       |   |       
+|   |   |       |   +---treeView
+|   |   |       |   |       boxDrawingPreprocessor.d.ts
+|   |   |       |   |       boxDrawingPreprocessor.spec.d.ts
+|   |   |       |   |       db.d.ts
+|   |   |       |   |       db.spec.d.ts
+|   |   |       |   |       detector.d.ts
+|   |   |       |   |       diagram.d.ts
+|   |   |       |   |       icons.d.ts
+|   |   |       |   |       icons.spec.d.ts
+|   |   |       |   |       parser.d.ts
+|   |   |       |   |       parser.spec.d.ts
+|   |   |       |   |       renderer.d.ts
+|   |   |       |   |       styles.d.ts
+|   |   |       |   |       types.d.ts
+|   |   |       |   |       
+|   |   |       |   +---user-journey
+|   |   |       |   |       journeyDb.d.ts
+|   |   |       |   |       journeyDetector.d.ts
+|   |   |       |   |       journeyDiagram.d.ts
+|   |   |       |   |       journeyRenderer.d.ts
+|   |   |       |   |       styles.d.ts
+|   |   |       |   |       svgDraw.d.ts
+|   |   |       |   |       
+|   |   |       |   +---venn
+|   |   |       |   |   |   styles.d.ts
+|   |   |       |   |   |   vennDB.d.ts
+|   |   |       |   |   |   vennDetector.d.ts
+|   |   |       |   |   |   vennDiagram.d.ts
+|   |   |       |   |   |   vennRenderer.d.ts
+|   |   |       |   |   |   vennRenderer.spec.d.ts
+|   |   |       |   |   |   vennTypes.d.ts
+|   |   |       |   |   |   
+|   |   |       |   |   \---parser
+|   |   |       |   |           venn.spec.d.ts
+|   |   |       |   |           
+|   |   |       |   +---wardley
+|   |   |       |   |       styles.d.ts
+|   |   |       |   |       wardleyBuilder.d.ts
+|   |   |       |   |       wardleyBuilder.spec.d.ts
+|   |   |       |   |       wardleyDb.d.ts
+|   |   |       |   |       wardleyDetector.d.ts
+|   |   |       |   |       wardleyDiagram.d.ts
+|   |   |       |   |       wardleyParser.d.ts
+|   |   |       |   |       wardleyParser.spec.d.ts
+|   |   |       |   |       wardleyRenderer.d.ts
+|   |   |       |   |       wardleyTypes.d.ts
+|   |   |       |   |       
+|   |   |       |   \---xychart
+|   |   |       |       |   xychartDb.d.ts
+|   |   |       |       |   xychartDb.spec.d.ts
+|   |   |       |       |   xychartDetector.d.ts
+|   |   |       |       |   xychartDiagram.d.ts
+|   |   |       |       |   xychartRenderer.d.ts
+|   |   |       |       |   
+|   |   |       |       +---chartBuilder
+|   |   |       |       |   |   index.d.ts
+|   |   |       |       |   |   interfaces.d.ts
+|   |   |       |       |   |   orchestrator.d.ts
+|   |   |       |       |   |   textDimensionCalculator.d.ts
+|   |   |       |       |   |   
+|   |   |       |       |   \---components
+|   |   |       |       |       |   chartTitle.d.ts
+|   |   |       |       |       |   
+|   |   |       |       |       +---axis
+|   |   |       |       |       |       bandAxis.d.ts
+|   |   |       |       |       |       baseAxis.d.ts
+|   |   |       |       |       |       index.d.ts
+|   |   |       |       |       |       linearAxis.d.ts
+|   |   |       |       |       |       
+|   |   |       |       |       \---plot
+|   |   |       |       |               barPlot.d.ts
+|   |   |       |       |               index.d.ts
+|   |   |       |       |               linePlot.d.ts
+|   |   |       |       |               
+|   |   |       |       \---parser
+|   |   |       |               xychart.jison.spec.d.ts
+|   |   |       |               
+|   |   |       +---docs
+|   |   |       |       vite.config.d.ts
+|   |   |       |       
+|   |   |       +---rendering-util
+|   |   |       |   |   cloneLayoutDataForMeasure.d.ts
+|   |   |       |   |   createGraph.d.ts
+|   |   |       |   |   createText.d.ts
+|   |   |       |   |   createText.spec.d.ts
+|   |   |       |   |   handle-markdown-text.d.ts
+|   |   |       |   |   handle-markdown-text.spec.d.ts
+|   |   |       |   |   icons.d.ts
+|   |   |       |   |   insertElementsForSize.d.ts
+|   |   |       |   |   labelTransform.d.ts
+|   |   |       |   |   multi-diagram-id-uniqueness.spec.d.ts
+|   |   |       |   |   render.d.ts
+|   |   |       |   |   selectSvgElement.d.ts
+|   |   |       |   |   setupViewPortForSVG.d.ts
+|   |   |       |   |   splitText.d.ts
+|   |   |       |   |   splitText.spec.d.ts
+|   |   |       |   |   types.d.ts
+|   |   |       |   |   uid.d.ts
+|   |   |       |   |   unique-dom-ids.spec.d.ts
+|   |   |       |   |   
+|   |   |       |   +---layout-algorithms
+|   |   |       |   |   +---cose-bilkent
+|   |   |       |   |   |       cytoscape-setup.d.ts
+|   |   |       |   |   |       cytoscape-setup.test.d.ts
+|   |   |       |   |   |       index.d.ts
+|   |   |       |   |   |       layout.d.ts
+|   |   |       |   |   |       layout.test.d.ts
+|   |   |       |   |   |       render.d.ts
+|   |   |       |   |   |       types.d.ts
+|   |   |       |   |   |       
+|   |   |       |   |   +---dagre
+|   |   |       |   |   |       index.d.ts
+|   |   |       |   |   |       mermaid-graphlib.d.ts
+|   |   |       |   |   |       
+|   |   |       |   |   +---ddlt
+|   |   |       |   |   |       aggregateValidate.d.ts
+|   |   |       |   |   |       aggregateValidate.spec.d.ts
+|   |   |       |   |   |       backends.d.ts
+|   |   |       |   |   |       baselineDdltSpec.d.ts
+|   |   |       |   |   |       captureContract.d.ts
+|   |   |       |   |   |       discoverFixtures.d.ts
+|   |   |       |   |   |       domusEdgeLabelInject.d.ts
+|   |   |       |   |   |       fixtureFreshness.d.ts
+|   |   |       |   |   |       fixtureFreshness.spec.d.ts
+|   |   |       |   |   |       fixtureMetadata.spec.d.ts
+|   |   |       |   |   |       fixtureSizes.d.ts
+|   |   |       |   |   |       fixtureSizes.spec.d.ts
+|   |   |       |   |   |       index.d.ts
+|   |   |       |   |   |       layout-fixtures.ddlt.spec.d.ts
+|   |   |       |   |   |       loadDdltFixture.d.ts
+|   |   |       |   |   |       parseToLayoutData.d.ts
+|   |   |       |   |   |       paths.d.ts
+|   |   |       |   |   |       sizeCapture.d.ts
+|   |   |       |   |   |       types.d.ts
+|   |   |       |   |   |       
+|   |   |       |   |   +---layout-utils
+|   |   |       |   |   |       debug.d.ts
+|   |   |       |   |   |       geometry.d.ts
+|   |   |       |   |   |       helpers.d.ts
+|   |   |       |   |   |       helpers.spec.d.ts
+|   |   |       |   |   |       scoreLayout.d.ts
+|   |   |       |   |   |       scoreLayout.spec.d.ts
+|   |   |       |   |   |       types.d.ts
+|   |   |       |   |   |       validateLayout.d.ts
+|   |   |       |   |   |       validateLayout.spec.d.ts
+|   |   |       |   |   |       
+|   |   |       |   |   \---swimlanes
+|   |   |       |   |       |   10-node-placement.ddlt.spec.d.ts
+|   |   |       |   |       |   14-messy-layout.ddlt.spec.d.ts
+|   |   |       |   |       |   15-border-hugging-compare.ddlt.spec.d.ts
+|   |   |       |   |       |   15-border-hugging-lr.ddlt.spec.d.ts
+|   |   |       |   |       |   4-car-fun-sales-tb.ddlt.spec.d.ts
+|   |   |       |   |       |   5-car-fun-sales-wide-tb.ddlt.spec.d.ts
+|   |   |       |   |       |   6-legal-constr-sales.ddlt.spec.d.ts
+|   |   |       |   |       |   7-car-sales-constr.ddlt.spec.d.ts
+|   |   |       |   |       |   8-query-process-2.ddlt.spec.d.ts
+|   |   |       |   |       |   adjustLayout.d.ts
+|   |   |       |   |       |   config.d.ts
+|   |   |       |   |       |   driving-tree.d.ts
+|   |   |       |   |       |   edgeLabelNodes.d.ts
+|   |   |       |   |       |   helpers.d.ts
+|   |   |       |   |       |   index.d.ts
+|   |   |       |   |       |   laneOrdering.d.ts
+|   |   |       |   |       |   layoutCore.d.ts
+|   |   |       |   |       |   mermaid-work.ddlt.spec.d.ts
+|   |   |       |   |       |   pebr-3-process-too-wide-in-lane.ddlt.spec.d.ts
+|   |   |       |   |       |   phase0.helpers.d.ts
+|   |   |       |   |       |   phase1.cycles.d.ts
+|   |   |       |   |       |   phase2.crossCounts.d.ts
+|   |   |       |   |       |   phase2.crossLaneAdjust.d.ts
+|   |   |       |   |       |   phase2.crossOptimization.d.ts
+|   |   |       |   |       |   phase2.dummies.d.ts
+|   |   |       |   |       |   phase2.gravity.d.ts
+|   |   |       |   |       |   phase2.laneAwareCompact.d.ts
+|   |   |       |   |       |   phase2.layering.spec.d.ts
+|   |   |       |   |       |   phase2.longestPath.d.ts
+|   |   |       |   |       |   phase2.multitree.core.d.ts
+|   |   |       |   |       |   phase2.multitree.order.d.ts
+|   |   |       |   |       |   phase2.options.d.ts
+|   |   |       |   |       |   phase3.ordering.d.ts
+|   |   |       |   |       |   phase4.coordinates.d.ts
+|   |   |       |   |       |   pipeline.d.ts
+|   |   |       |   |       |   postProcessing.d.ts
+|   |   |       |   |       |   query-process.ddlt.spec.d.ts
+|   |   |       |   |       |   simple-2.ddlt.spec.d.ts
+|   |   |       |   |       |   
+|   |   |       |   |       +---direction
+|   |   |       |   |       |       detourSimplification.d.ts
+|   |   |       |   |       |       endpointClip.d.ts
+|   |   |       |   |       |       geometry.d.ts
+|   |   |       |   |       |       geometry.spec.d.ts
+|   |   |       |   |       |       labelAnchoring.d.ts
+|   |   |       |   |       |       lrTransform.d.ts
+|   |   |       |   |       |       materializedGeometry.d.ts
+|   |   |       |   |       |       portSwap.d.ts
+|   |   |       |   |       |       sharedTrackNudging.d.ts
+|   |   |       |   |       |       siblingSharedFaceRouting.d.ts
+|   |   |       |   |       |       terminalStub.d.ts
+|   |   |       |   |       |       validation.d.ts
+|   |   |       |   |       |       
+|   |   |       |   |       +---orthogonalRouter
+|   |   |       |   |       |   |   router.d.ts
+|   |   |       |   |       |   |   
+|   |   |       |   |       |   \---__tests__
+|   |   |       |   |       |           raykov.crossing.spec.d.ts
+|   |   |       |   |       |           raykov.detour.spec.d.ts
+|   |   |       |   |       |           raykov.issues.spec.d.ts
+|   |   |       |   |       |           raykov.repro_crossing.spec.d.ts
+|   |   |       |   |       |           raykov.router.spec.d.ts
+|   |   |       |   |       |           raykov.wide_node.spec.d.ts
+|   |   |       |   |       |           
+|   |   |       |   |       \---__tests__
+|   |   |       |   |               direction.endpointClip.spec.d.ts
+|   |   |       |   |               direction.geometry.spec.d.ts
+|   |   |       |   |               direction.lr.transform.spec.d.ts
+|   |   |       |   |               direction.materializedGeometry.spec.d.ts
+|   |   |       |   |               direction.portSwap.spec.d.ts
+|   |   |       |   |               direction.sharedTrackNudging.spec.d.ts
+|   |   |       |   |               direction.terminalStub.spec.d.ts
+|   |   |       |   |               edgeLabelNodes.spec.d.ts
+|   |   |       |   |               helpers.laneHeights.spec.d.ts
+|   |   |       |   |               helpers.prepareLayout.spec.d.ts
+|   |   |       |   |               laneOrdering.spec.d.ts
+|   |   |       |   |               phase0.helpers.spec.d.ts
+|   |   |       |   |               phase1.cycles.spec.d.ts
+|   |   |       |   |               phase2.compact.lanes.spec.d.ts
+|   |   |       |   |               phase2.compact.spec.d.ts
+|   |   |       |   |               phase2.layering.spec.d.ts
+|   |   |       |   |               phase3.ordering.spec.d.ts
+|   |   |       |   |               phase4.coordinates.spec.d.ts
+|   |   |       |   |               phase4.lanes.columns.spec.d.ts
+|   |   |       |   |               phase4.lanes.spec.d.ts
+|   |   |       |   |               phase5.pipeline.spec.d.ts
+|   |   |       |   |               pipeline.hoe.lr.spec.d.ts
+|   |   |       |   |               pipeline.knsv3.lr.spec.d.ts
+|   |   |       |   |               pipeline.lr.e2e.spec.d.ts
+|   |   |       |   |               postProcessing.spec.d.ts
+|   |   |       |   |               
+|   |   |       |   \---rendering-elements
+|   |   |       |       |   clusters.d.ts
+|   |   |       |       |   createLabel.d.ts
+|   |   |       |       |   edgeMarker.d.ts
+|   |   |       |       |   edgeMarker.spec.d.ts
+|   |   |       |       |   edges.d.ts
+|   |   |       |       |   lineJump.d.ts
+|   |   |       |       |   lineJump.integration.spec.d.ts
+|   |   |       |       |   lineJump.spec.d.ts
+|   |   |       |       |   markers.d.ts
+|   |   |       |       |   nodes.d.ts
+|   |   |       |       |   nodes.spec.d.ts
+|   |   |       |       |   shapes.d.ts
+|   |   |       |       |   
+|   |   |       |       +---clusters
+|   |   |       |       |       swimlane.d.ts
+|   |   |       |       |       
+|   |   |       |       +---intersect
+|   |   |       |       |       index.d.ts
+|   |   |       |       |       intersect-circle.d.ts
+|   |   |       |       |       intersect-ellipse.d.ts
+|   |   |       |       |       intersect-line.d.ts
+|   |   |       |       |       intersect-node.d.ts
+|   |   |       |       |       intersect-polygon.d.ts
+|   |   |       |       |       intersect-rect.d.ts
+|   |   |       |       |       
+|   |   |       |       \---shapes
+|   |   |       |               anchor.d.ts
+|   |   |       |               bang.d.ts
+|   |   |       |               bowTieRect.d.ts
+|   |   |       |               card.d.ts
+|   |   |       |               choice.d.ts
+|   |   |       |               circle.d.ts
+|   |   |       |               classBox.d.ts
+|   |   |       |               cloud.d.ts
+|   |   |       |               crossedCircle.d.ts
+|   |   |       |               curlyBraceLeft.d.ts
+|   |   |       |               curlyBraceRight.d.ts
+|   |   |       |               curlyBraces.d.ts
+|   |   |       |               curvedTrapezoid.d.ts
+|   |   |       |               cylinder.d.ts
+|   |   |       |               datastore.d.ts
+|   |   |       |               defaultMindmapNode.d.ts
+|   |   |       |               defaultMindmapNode.spec.d.ts
+|   |   |       |               dividedRect.d.ts
+|   |   |       |               document.d.ts
+|   |   |       |               doubleCircle.d.ts
+|   |   |       |               drawRect.d.ts
+|   |   |       |               erBox.d.ts
+|   |   |       |               filledCircle.d.ts
+|   |   |       |               flippedTriangle.d.ts
+|   |   |       |               forkJoin.d.ts
+|   |   |       |               halfRoundedRectangle.d.ts
+|   |   |       |               handDrawnShapeStyles.d.ts
+|   |   |       |               hexagon.d.ts
+|   |   |       |               hourglass.d.ts
+|   |   |       |               icon.d.ts
+|   |   |       |               iconCircle.d.ts
+|   |   |       |               iconRounded.d.ts
+|   |   |       |               iconSquare.d.ts
+|   |   |       |               imageSquare.d.ts
+|   |   |       |               insertPolygonShape.d.ts
+|   |   |       |               invertedTrapezoid.d.ts
+|   |   |       |               kanbanItem.d.ts
+|   |   |       |               labelImageUtils.d.ts
+|   |   |       |               labelRect.d.ts
+|   |   |       |               leanLeft.d.ts
+|   |   |       |               leanRight.d.ts
+|   |   |       |               lightningBolt.d.ts
+|   |   |       |               linedCylinder.d.ts
+|   |   |       |               linedWaveEdgedRect.d.ts
+|   |   |       |               mindmapCircle.d.ts
+|   |   |       |               multiRect.d.ts
+|   |   |       |               multiWaveEdgedRectangle.d.ts
+|   |   |       |               note.d.ts
+|   |   |       |               question.d.ts
+|   |   |       |               rectLeftInvArrow.d.ts
+|   |   |       |               rectWithTitle.d.ts
+|   |   |       |               requirementBox.d.ts
+|   |   |       |               roundedRect.d.ts
+|   |   |       |               roundedRectPath.d.ts
+|   |   |       |               shadedProcess.d.ts
+|   |   |       |               slopedRect.d.ts
+|   |   |       |               squareRect.d.ts
+|   |   |       |               stadium.d.ts
+|   |   |       |               state.d.ts
+|   |   |       |               stateEnd.d.ts
+|   |   |       |               stateStart.d.ts
+|   |   |       |               subroutine.d.ts
+|   |   |       |               taggedRect.d.ts
+|   |   |       |               taggedWaveEdgedRectangle.d.ts
+|   |   |       |               text.d.ts
+|   |   |       |               tiltedCylinder.d.ts
+|   |   |       |               trapezoid.d.ts
+|   |   |       |               trapezoidalPentagon.d.ts
+|   |   |       |               triangle.d.ts
+|   |   |       |               util.d.ts
+|   |   |       |               waveEdgedRectangle.d.ts
+|   |   |       |               waveRectangle.d.ts
+|   |   |       |               windowPane.d.ts
+|   |   |       |               
+|   |   |       +---tests
+|   |   |       |       util.d.ts
+|   |   |       |       
+|   |   |       +---themes
+|   |   |       |       erDiagram-oldHardcodedValues.d.ts
+|   |   |       |       index.d.ts
+|   |   |       |       theme-base.d.ts
+|   |   |       |       theme-dark.d.ts
+|   |   |       |       theme-default.d.ts
+|   |   |       |       theme-forest.d.ts
+|   |   |       |       theme-helpers.d.ts
+|   |   |       |       theme-neo-dark.d.ts
+|   |   |       |       theme-neo.d.ts
+|   |   |       |       theme-neutral.d.ts
+|   |   |       |       theme-redux-color.d.ts
+|   |   |       |       theme-redux-dark-color.d.ts
+|   |   |       |       theme-redux-dark.d.ts
+|   |   |       |       theme-redux.d.ts
+|   |   |       |       
+|   |   |       +---utils
+|   |   |       |       base64.d.ts
+|   |   |       |       imperativeState.d.ts
+|   |   |       |       imperativeState.spec.d.ts
+|   |   |       |       lineWithOffset.d.ts
+|   |   |       |       sanitizeDirective.d.ts
+|   |   |       |       sanitizeDirective.spec.d.ts
+|   |   |       |       subGraphTitleMargins.d.ts
+|   |   |       |       subGraphTitleMargins.spec.d.ts
+|   |   |       |       
+|   |   |       \---__mocks__
+|   |   |               mermaidAPI.d.ts
+|   |   |               
 |   |   +---renderers
 |   |   |       field_controls.js
 |   |   |       field_control_registry.js
@@ -949,8 +2229,16 @@ F:.
     |   studio_work_incident_data_v0_74_context_model_cleanup_incidents_added.json
     |   studio_work_incident_data_v0_75_studio_context_engineer_wannabe_mission_draft_added.json
     |   studio_work_incident_data_v0_76_studio_context_engineer_wannabe_mission_draft_done.json
+    |   studio_work_incident_data_v0_77_detail_subgrid_table_edit_core_mvp_added.json
+    |   studio_work_incident_data_v0_78_incident_contextdef_open_work_draft_added.json
+    |   studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json
     |   studio_work_incident_data_v0_80_grid_card_document_renderer_added.json
+    |   studio_work_incident_data_v0_80_grid_card_document_renderer_history_added_done.json
     |   studio_work_incident_data_v0_80_grid_card_document_renderer_scope_fixed_done.json
+    |   studio_work_incident_data_v0_81_test_runner_launch_toast_added.json
+    |   studio_work_incident_data_v0_82_test_runner_launch_toast_done.json
+    |   studio_work_incident_data_v0_83_test_runner_adapter_strategy_added.json
+    |   studio_work_incident_data_v0_84_detail_select_unknown_value_done.json
     |   
     +---20260627_150837
     |   |   frb_studio_foundation_review_data_v0_1_github_fetch_urls_added_viewdef_candidates_rule_added.json
@@ -963,219 +2251,273 @@ F:.
     |   \---removed_data
     |           foundation_rules_removed_row_copy_1.json
     |           
-    \---20260627_1745
-        +---data
-        |   +---json
-        |   |   +---00_rules
-        |   |   |       filename_updatelist.md
-        |   |   |       frb_coding_constraints_data_v0_3.json
-        |   |   |       frb_constraint_spec_v0_6.json
-        |   |   |       frb_foundation_rules_data_v0_1.json
-        |   |   |       frb_test_evidence_rules_data_v0_1.json
-        |   |   |       frb_viewdef_generation_rules_data_v0_1.json
-        |   |   |       frb_view_def_schema_review_data_v0_1.json
-        |   |   |       frb_view_def_schema_v0_9.json
-        |   |   |       _json_creation_prompt.md
-        |   |   |       
-        |   |   +---01_main
-        |   |   |       00_do_incident_prompt_temple.md
-        |   |   |       01_create_testpatern_prompt_temple.md
-        |   |   |       chatgpt_context_relation_graph_data_v0_1.json
-        |   |   |       chatgpt_raw_keyword_activation_data_v0_1.json
-        |   |   |       chatgpt_sentence_prime_map_data_v0_1.json
-        |   |   |       chatgpt_shared_context_data_v0_1.json
-        |   |   |       qa_expected_checks_add_candidates_v0_1.json
-        |   |   |       qa_expected_checks_classified_v0_1.json
-        |   |   |       qa_expected_checks_sample_v0_1.json
-        |   |   |       qa_test_patterns_sample_v0_1.json
-        |   |   |       studio_work_incident_data_v0_55_test_evidence_diff_contract_added.json
-        |   |   |       studio_work_incident_data_v0_56_rules_revision_work_items_added.json
-        |   |   |       studio_work_incident_data_v0_57_rule_review_status_responsibility_issue_added.json
-        |   |   |       studio_work_incident_data_v0_58_rules_filename_reference_migration_added.json
-        |   |   |       
-        |   |   +---02_business
-        |   |   |       business_customers_v0_1.json
-        |   |   |       business_employees_v0_1.json
-        |   |   |       business_projects_v0_1.json
-        |   |   |       business_relations_v0_1.json
-        |   |   |       business_tasks_v0_1.json
-        |   |   |       
-        |   |   +---03_tests
-        |   |   |   |   ai_constraint_spec_aggregated_v0_6_footer_chat.json
-        |   |   |   |   
-        |   |   |   +---notes
-        |   |   |   |       DIFF_OUTPUT_BEFORE_ASSERT_NOTES_v0_1.md
-        |   |   |   |       DIFF_RESULT_COMMON_FORMAT_NOTES_v0_1.md
-        |   |   |   |       TEST_FOLDER_ARCHIVE_RUNTIME_POLICY_NOTES_v0_1.md
-        |   |   |   |       
-        |   |   |   +---qa
-        |   |   |   |   \---v0_14_2_incident_prompt_copy_action
-        |   |   |   |       +---actual
-        |   |   |   |       |       TP-IPC-001.actual.json
-        |   |   |   |       |       
-        |   |   |   |       +---diff
-        |   |   |   |       |       .gitkeep
-        |   |   |   |       |       TP-IPC-001.diff.json
-        |   |   |   |       |       
-        |   |   |   |       +---expected
-        |   |   |   |       |       qa_expected_checks_v0_14_2_incident_prompt_copy_action_expected_values_added.json
-        |   |   |   |       |       
-        |   |   |   |       +---notes
-        |   |   |   |       |       INCIDENT_PROMPT_COPY_ACTION_FOLDER_STRUCTURE_NOTES_v0_1.md
-        |   |   |   |       |       QA_ACTUAL_DIFF_RESPONSIBILITY_SPLIT_NOTES_v0_1.md
-        |   |   |   |       |       QA_ACTUAL_RESULT_FIELD_POLICY_v0_1.md
-        |   |   |   |       |       
-        |   |   |   |       +---relations
-        |   |   |   |       |       constraint_trace_relations_v0_14_2_incident_prompt_copy_action_draft.json
-        |   |   |   |       |       
-        |   |   |   |       +---summary
-        |   |   |   |       |       .gitkeep
-        |   |   |   |       |       
-        |   |   |   |       \---test_patterns
-        |   |   |   |               qa_test_patterns_v0_14_2_incident_prompt_copy_action_draft.json
-        |   |   |   |               
-        |   |   |   \---screen_state
-        |   |   |       \---screen_state_smoke_001
-        |   |   |           +---actual
-        |   |   |           |       screen_state_smoke_001.actual.json
-        |   |   |           |       
-        |   |   |           +---diff
-        |   |   |           |       screen_state_smoke_001.diff.json
-        |   |   |           |       
-        |   |   |           +---expected
-        |   |   |           |       screen_state_smoke_001.expected.json
-        |   |   |           |       
-        |   |   |           +---notes
-        |   |   |           |       expected_request_prompt.md
-        |   |   |           |       PLAYWRIGHT_RUNTIME_FOLDER_POLICY_v0_1.md
-        |   |   |           |       README_screen_state_expected_checkid_031.md
-        |   |   |           |       SCREEN_STATE_SMOKE_001_FOLDER_STRUCTURE_NOTES_v0_1.md
-        |   |   |           |       SCREEN_STATE_SMOKE_001_OUTPUT_PATH_NOTES_v0_1.md
-        |   |   |           |       
-        |   |   |           +---relations
-        |   |   |           |       constraint_trace_relations_v0_1.json
-        |   |   |           |       
-        |   |   |           +---summary
-        |   |   |           |       .gitkeep
-        |   |   |           |       
-        |   |   |           \---test_patterns
-        |   |   |                   screen_state_test_patterns_data_v0_2_chat.json
-        |   |   |                   
-        |   |   +---04_qa
-        |   |   |       qa_expected_checks_classified_v0_1.json
-        |   |   |       
-        |   |   +---05_inventory
-        |   |   |       defs_data_link_inventory_v0_1.json
-        |   |   |       defs_data_link_inventory_v0_2_repaired.json
-        |   |   |       
-        |   |   \---80_frb
-        |   |           fft_log_sample.json
-        |   |           fft_log_view_def_v0_2.json
-        |   |           
-        |   \---markdown
-        |           #U2605FRB_VIEW_DEF_GENERATION_RULES_v0_15_action_registry_current.md
-        |           ai-driven-development-approval-cost-and-granularity.md
-        |           ai_constraint_grouped_view_def_v0_6_footer_chat_viewdef.md
-        |           ai_constraint_spec_aggregated_v0_1.md
-        |           ai_constraint_spec_v0_1xxx.md
-        |           ai_constraint_spec_v0_5_verification_radio.md
-        |           approval-cost-and-granularity.md
-        |           chatgpt_sentence_prime_map_data_v0_1.md
-        |           chatgpt_sentence_prime_map_preview_v0_1.md
-        |           coding_constraints_review_export.md
-        |           coding_constraints_review_view_def_v0_2_change_history_viewdef.md
-        |           constraint_trace_cards_virtual_view_def_v0_1_viewdef.md
-        |           constraint_trace_relations_report.md
-        |           copilot_table_review_fixture_v0_13_6.md
-        |           copilot_table_review_fixture_v0_13_6.md.comments.json
-        |           fft_log_sample.md
-        |           filename_updatelist.md
-        |           FRB_Lab_Notes_Qiita.md
-        |           frb_view_def_schema_review_export.md
-        |           invisible-visualization-structuring-culture.md
-        |           json_studio_export_2026-06-17T11-10-43-232Z.md
-        |           metadiff_ai_hypothesis_frb_20260523_v0_2_1.md
-        |           my-ai-driven-development-08-thinking-as-class.md
-        |           No-Code JSON Studiov0.3-draft.md
-        |           qa_cross_check_risk_view_def_v0_1_viewdef.md
-        |           qa_expected_checks_classified_view_def_v0_1_viewdef.md
-        |           qa_expected_checks_sample_v0_1.md
-        |           qa_expected_checks_sample_view_def_v0_1_viewdef.md
-        |           qa_shortage_expected_findings_view_def_v0_1_viewdef.md
-        |           qa_test_patterns_sample_v0_1.md
-        |           relation_axis_business_customer_view_def_v0_1_viewdef.md
-        |           relation_edit_view_def_v0_1_viewdef.md
-        |           rule_review_decision_log_export.md
-        |           rule_review_export.md
-        |           screen_state_diff_base_export.md
-        |           screen_state_diff_view_def_base_v0_2_checks_viewdef.md
-        |           screen_state_diff_view_def_child_v0_3_failure_focus_viewdef.md
-        |           screen_state_expected_export.md
-        |           studio_work_incident_export.md
-        |           studio_work_incident_view_def_v0_1_viewdef.md
-        |           takeyari-shokyaku-noroshi.md
-        |           test.md
-        |           To_AI_Comment_MyComment.md
-        |           Zenn_Blog_All.md
-        |           Zenn_Blog_All_merged.md
-        |           Zenn_GitHub_merged.md
-        |           
-        \---defs
-            +---common
-            |       common_types_v0_1.json
-            |       view_def_maint_fields_v0_2.json
-            |       
-            +---frb
-            |       fft_log_view_def_v0_2.json
-            |       
-            +---inventory
-            |       defs_data_link_inventory_view_def_v0_1.json
-            |       
-            +---qa
-            |       qa_actual_observation_view_def_v0_1.json
-            |       qa_actual_result_view_def_v0_1.json
-            |       qa_cross_check_risk_view_def_v0_1.json
-            |       qa_cross_constraint_view_def_v0_1.json
-            |       qa_cross_quality_risk_view_def_v0_1.json
-            |       qa_cross_test_pattern_view_def_v0_1.json
-            |       qa_diff_result_view_def_v0_1.json
-            |       qa_expected_checks_candidate_review_view_def_v0_1.json
-            |       qa_expected_checks_candidate_review_wrapped_view_def_v0_1.json
-            |       qa_expected_checks_classified_view_def_v0_1.json
-            |       qa_expected_checks_sample_view_def_v0_1.json
-            |       qa_shortage_expected_findings_view_def_v0_1.json
-            |       qa_test_patterns_sample_view_def_v0_1.json
-            |       
-            +---relation
-            |       relation_approval_view_def_v0_1.json
-            |       relation_axis_business_customer_view_def_v0_1.json
-            |       relation_axis_business_employee_view_def_v0_1.json
-            |       relation_axis_business_project_view_def_v0_1.json
-            |       relation_axis_constraint_view_def_v0_1.json
-            |       relation_axis_diff_check_view_def_v0_1.json
-            |       relation_axis_test_pattern_view_def_v0_1.json
-            |       relation_edit_view_def_v0_1.json
-            |       
-            +---rules
-            |   |   ai_constraint_grouped_view_def_v0_6_footer_chat.json
-            |   |   frb_view_def_schema_review_view_def_v0_1.json
-            |   |   rule_review_common_view_def_v0_3.json
-            |   |   studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json
-            |   |   
-            |   +---chatgpt
-            |   |       chatgpt_context_relation_graph_view_def_v0_1.json
-            |   |       chatgpt_raw_keyword_activation_view_def_v0_1.json
-            |   |       chatgpt_sentence_prime_map_view_def_v0_1.json
-            |   |       chatgpt_shared_context_view_def_v0_1.json
-            |   |       
-            |   \---tmp
-            |           rule_review_common_view_def_v0_1.json
-            |           rule_review_common_view_def_v0_2_editable_review_target.json
-            |           
-            \---screen_state
-                    screen_state_diff_view_def_base_v0_2_checks.json
-                    screen_state_diff_view_def_child_v0_3_failure_focus.json
-                    screen_state_diff_view_def_child_v0_3_summary.json
-                    screen_state_expected_view_def_v0_1.json
-                    screen_state_test_patterns_view_def_v0_2_chat.json
-                    
+    +---20260627_1745
+    |   +---data
+    |   |   +---json
+    |   |   |   +---00_rules
+    |   |   |   |       filename_updatelist.md
+    |   |   |   |       frb_coding_constraints_data_v0_3.json
+    |   |   |   |       frb_constraint_spec_v0_6.json
+    |   |   |   |       frb_foundation_rules_data_v0_1.json
+    |   |   |   |       frb_test_evidence_rules_data_v0_1.json
+    |   |   |   |       frb_viewdef_generation_rules_data_v0_1.json
+    |   |   |   |       frb_view_def_schema_review_data_v0_1.json
+    |   |   |   |       frb_view_def_schema_v0_9.json
+    |   |   |   |       _json_creation_prompt.md
+    |   |   |   |       
+    |   |   |   +---01_main
+    |   |   |   |       00_do_incident_prompt_temple.md
+    |   |   |   |       01_create_testpatern_prompt_temple.md
+    |   |   |   |       chatgpt_context_relation_graph_data_v0_1.json
+    |   |   |   |       chatgpt_raw_keyword_activation_data_v0_1.json
+    |   |   |   |       chatgpt_sentence_prime_map_data_v0_1.json
+    |   |   |   |       chatgpt_shared_context_data_v0_1.json
+    |   |   |   |       qa_expected_checks_add_candidates_v0_1.json
+    |   |   |   |       qa_expected_checks_classified_v0_1.json
+    |   |   |   |       qa_expected_checks_sample_v0_1.json
+    |   |   |   |       qa_test_patterns_sample_v0_1.json
+    |   |   |   |       studio_work_incident_data_v0_55_test_evidence_diff_contract_added.json
+    |   |   |   |       studio_work_incident_data_v0_56_rules_revision_work_items_added.json
+    |   |   |   |       studio_work_incident_data_v0_57_rule_review_status_responsibility_issue_added.json
+    |   |   |   |       studio_work_incident_data_v0_58_rules_filename_reference_migration_added.json
+    |   |   |   |       
+    |   |   |   +---02_business
+    |   |   |   |       business_customers_v0_1.json
+    |   |   |   |       business_employees_v0_1.json
+    |   |   |   |       business_projects_v0_1.json
+    |   |   |   |       business_relations_v0_1.json
+    |   |   |   |       business_tasks_v0_1.json
+    |   |   |   |       
+    |   |   |   +---03_tests
+    |   |   |   |   |   ai_constraint_spec_aggregated_v0_6_footer_chat.json
+    |   |   |   |   |   
+    |   |   |   |   +---notes
+    |   |   |   |   |       DIFF_OUTPUT_BEFORE_ASSERT_NOTES_v0_1.md
+    |   |   |   |   |       DIFF_RESULT_COMMON_FORMAT_NOTES_v0_1.md
+    |   |   |   |   |       TEST_FOLDER_ARCHIVE_RUNTIME_POLICY_NOTES_v0_1.md
+    |   |   |   |   |       
+    |   |   |   |   +---qa
+    |   |   |   |   |   \---v0_14_2_incident_prompt_copy_action
+    |   |   |   |   |       +---actual
+    |   |   |   |   |       |       TP-IPC-001.actual.json
+    |   |   |   |   |       |       
+    |   |   |   |   |       +---diff
+    |   |   |   |   |       |       .gitkeep
+    |   |   |   |   |       |       TP-IPC-001.diff.json
+    |   |   |   |   |       |       
+    |   |   |   |   |       +---expected
+    |   |   |   |   |       |       qa_expected_checks_v0_14_2_incident_prompt_copy_action_expected_values_added.json
+    |   |   |   |   |       |       
+    |   |   |   |   |       +---notes
+    |   |   |   |   |       |       INCIDENT_PROMPT_COPY_ACTION_FOLDER_STRUCTURE_NOTES_v0_1.md
+    |   |   |   |   |       |       QA_ACTUAL_DIFF_RESPONSIBILITY_SPLIT_NOTES_v0_1.md
+    |   |   |   |   |       |       QA_ACTUAL_RESULT_FIELD_POLICY_v0_1.md
+    |   |   |   |   |       |       
+    |   |   |   |   |       +---relations
+    |   |   |   |   |       |       constraint_trace_relations_v0_14_2_incident_prompt_copy_action_draft.json
+    |   |   |   |   |       |       
+    |   |   |   |   |       +---summary
+    |   |   |   |   |       |       .gitkeep
+    |   |   |   |   |       |       
+    |   |   |   |   |       \---test_patterns
+    |   |   |   |   |               qa_test_patterns_v0_14_2_incident_prompt_copy_action_draft.json
+    |   |   |   |   |               
+    |   |   |   |   \---screen_state
+    |   |   |   |       \---screen_state_smoke_001
+    |   |   |   |           +---actual
+    |   |   |   |           |       screen_state_smoke_001.actual.json
+    |   |   |   |           |       
+    |   |   |   |           +---diff
+    |   |   |   |           |       screen_state_smoke_001.diff.json
+    |   |   |   |           |       
+    |   |   |   |           +---expected
+    |   |   |   |           |       screen_state_smoke_001.expected.json
+    |   |   |   |           |       
+    |   |   |   |           +---notes
+    |   |   |   |           |       expected_request_prompt.md
+    |   |   |   |           |       PLAYWRIGHT_RUNTIME_FOLDER_POLICY_v0_1.md
+    |   |   |   |           |       README_screen_state_expected_checkid_031.md
+    |   |   |   |           |       SCREEN_STATE_SMOKE_001_FOLDER_STRUCTURE_NOTES_v0_1.md
+    |   |   |   |           |       SCREEN_STATE_SMOKE_001_OUTPUT_PATH_NOTES_v0_1.md
+    |   |   |   |           |       
+    |   |   |   |           +---relations
+    |   |   |   |           |       constraint_trace_relations_v0_1.json
+    |   |   |   |           |       
+    |   |   |   |           +---summary
+    |   |   |   |           |       .gitkeep
+    |   |   |   |           |       
+    |   |   |   |           \---test_patterns
+    |   |   |   |                   screen_state_test_patterns_data_v0_2_chat.json
+    |   |   |   |                   
+    |   |   |   +---04_qa
+    |   |   |   |       qa_expected_checks_classified_v0_1.json
+    |   |   |   |       
+    |   |   |   +---05_inventory
+    |   |   |   |       defs_data_link_inventory_v0_1.json
+    |   |   |   |       defs_data_link_inventory_v0_2_repaired.json
+    |   |   |   |       
+    |   |   |   \---80_frb
+    |   |   |           fft_log_sample.json
+    |   |   |           fft_log_view_def_v0_2.json
+    |   |   |           
+    |   |   \---markdown
+    |   |           #U2605FRB_VIEW_DEF_GENERATION_RULES_v0_15_action_registry_current.md
+    |   |           ai-driven-development-approval-cost-and-granularity.md
+    |   |           ai_constraint_grouped_view_def_v0_6_footer_chat_viewdef.md
+    |   |           ai_constraint_spec_aggregated_v0_1.md
+    |   |           ai_constraint_spec_v0_1xxx.md
+    |   |           ai_constraint_spec_v0_5_verification_radio.md
+    |   |           approval-cost-and-granularity.md
+    |   |           chatgpt_sentence_prime_map_data_v0_1.md
+    |   |           chatgpt_sentence_prime_map_preview_v0_1.md
+    |   |           coding_constraints_review_export.md
+    |   |           coding_constraints_review_view_def_v0_2_change_history_viewdef.md
+    |   |           constraint_trace_cards_virtual_view_def_v0_1_viewdef.md
+    |   |           constraint_trace_relations_report.md
+    |   |           copilot_table_review_fixture_v0_13_6.md
+    |   |           copilot_table_review_fixture_v0_13_6.md.comments.json
+    |   |           fft_log_sample.md
+    |   |           filename_updatelist.md
+    |   |           FRB_Lab_Notes_Qiita.md
+    |   |           frb_view_def_schema_review_export.md
+    |   |           invisible-visualization-structuring-culture.md
+    |   |           json_studio_export_2026-06-17T11-10-43-232Z.md
+    |   |           metadiff_ai_hypothesis_frb_20260523_v0_2_1.md
+    |   |           my-ai-driven-development-08-thinking-as-class.md
+    |   |           No-Code JSON Studiov0.3-draft.md
+    |   |           qa_cross_check_risk_view_def_v0_1_viewdef.md
+    |   |           qa_expected_checks_classified_view_def_v0_1_viewdef.md
+    |   |           qa_expected_checks_sample_v0_1.md
+    |   |           qa_expected_checks_sample_view_def_v0_1_viewdef.md
+    |   |           qa_shortage_expected_findings_view_def_v0_1_viewdef.md
+    |   |           qa_test_patterns_sample_v0_1.md
+    |   |           relation_axis_business_customer_view_def_v0_1_viewdef.md
+    |   |           relation_edit_view_def_v0_1_viewdef.md
+    |   |           rule_review_decision_log_export.md
+    |   |           rule_review_export.md
+    |   |           screen_state_diff_base_export.md
+    |   |           screen_state_diff_view_def_base_v0_2_checks_viewdef.md
+    |   |           screen_state_diff_view_def_child_v0_3_failure_focus_viewdef.md
+    |   |           screen_state_expected_export.md
+    |   |           studio_work_incident_export.md
+    |   |           studio_work_incident_view_def_v0_1_viewdef.md
+    |   |           takeyari-shokyaku-noroshi.md
+    |   |           test.md
+    |   |           To_AI_Comment_MyComment.md
+    |   |           Zenn_Blog_All.md
+    |   |           Zenn_Blog_All_merged.md
+    |   |           Zenn_GitHub_merged.md
+    |   |           
+    |   \---defs
+    |       +---common
+    |       |       common_types_v0_1.json
+    |       |       view_def_maint_fields_v0_2.json
+    |       |       
+    |       +---frb
+    |       |       fft_log_view_def_v0_2.json
+    |       |       
+    |       +---inventory
+    |       |       defs_data_link_inventory_view_def_v0_1.json
+    |       |       
+    |       +---qa
+    |       |       qa_actual_observation_view_def_v0_1.json
+    |       |       qa_actual_result_view_def_v0_1.json
+    |       |       qa_cross_check_risk_view_def_v0_1.json
+    |       |       qa_cross_constraint_view_def_v0_1.json
+    |       |       qa_cross_quality_risk_view_def_v0_1.json
+    |       |       qa_cross_test_pattern_view_def_v0_1.json
+    |       |       qa_diff_result_view_def_v0_1.json
+    |       |       qa_expected_checks_candidate_review_view_def_v0_1.json
+    |       |       qa_expected_checks_candidate_review_wrapped_view_def_v0_1.json
+    |       |       qa_expected_checks_classified_view_def_v0_1.json
+    |       |       qa_expected_checks_sample_view_def_v0_1.json
+    |       |       qa_shortage_expected_findings_view_def_v0_1.json
+    |       |       qa_test_patterns_sample_view_def_v0_1.json
+    |       |       
+    |       +---relation
+    |       |       relation_approval_view_def_v0_1.json
+    |       |       relation_axis_business_customer_view_def_v0_1.json
+    |       |       relation_axis_business_employee_view_def_v0_1.json
+    |       |       relation_axis_business_project_view_def_v0_1.json
+    |       |       relation_axis_constraint_view_def_v0_1.json
+    |       |       relation_axis_diff_check_view_def_v0_1.json
+    |       |       relation_axis_test_pattern_view_def_v0_1.json
+    |       |       relation_edit_view_def_v0_1.json
+    |       |       
+    |       +---rules
+    |       |   |   ai_constraint_grouped_view_def_v0_6_footer_chat.json
+    |       |   |   frb_view_def_schema_review_view_def_v0_1.json
+    |       |   |   rule_review_common_view_def_v0_3.json
+    |       |   |   studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json
+    |       |   |   
+    |       |   +---chatgpt
+    |       |   |       chatgpt_context_relation_graph_view_def_v0_1.json
+    |       |   |       chatgpt_raw_keyword_activation_view_def_v0_1.json
+    |       |   |       chatgpt_sentence_prime_map_view_def_v0_1.json
+    |       |   |       chatgpt_shared_context_view_def_v0_1.json
+    |       |   |       
+    |       |   \---tmp
+    |       |           rule_review_common_view_def_v0_1.json
+    |       |           rule_review_common_view_def_v0_2_editable_review_target.json
+    |       |           
+    |       \---screen_state
+    |               screen_state_diff_view_def_base_v0_2_checks.json
+    |               screen_state_diff_view_def_child_v0_3_failure_focus.json
+    |               screen_state_diff_view_def_child_v0_3_summary.json
+    |               screen_state_expected_view_def_v0_1.json
+    |               screen_state_test_patterns_view_def_v0_2_chat.json
+    |               
+    +---markdown
+    |   |   data_markdown.js
+    |   |   markdown_registry.js
+    |   |   viewdef_markdown.js
+    |   |   
+    |   \---99_temp
+    |           ai-driven-development-approval-cost-and-granularity.md
+    |           ai_constraint_grouped_view_def_v0_6_footer_chat_viewdef.md
+    |           ai_constraint_spec_aggregated_v0_1.md
+    |           ai_constraint_spec_v0_1xxx.md
+    |           ai_constraint_spec_v0_5_verification_radio.md
+    |           approval-cost-and-granularity.md
+    |           chatgpt_sentence_prime_map_data_v0_1.md
+    |           chatgpt_sentence_prime_map_preview_v0_1.md
+    |           coding_constraints_review_export.md
+    |           coding_constraints_review_view_def_v0_2_change_history_viewdef.md
+    |           constraint_trace_cards_virtual_view_def_v0_1_viewdef.md
+    |           constraint_trace_relations_report.md
+    |           copilot_table_review_fixture_v0_13_6.md
+    |           copilot_table_review_fixture_v0_13_6.md.comments.json
+    |           fft_log_sample.md
+    |           filename_updatelist.md
+    |           FRB_Lab_Notes_Qiita.md
+    |           FRB_VIEW_DEF_GENERATION_RULES_v0_15_action_registry_current.md
+    |           frb_view_def_schema_review_export.md
+    |           invisible-visualization-structuring-culture.md
+    |           json_studio_export_2026-06-17T11-10-43-232Z.md
+    |           metadiff_ai_hypothesis_frb_20260523_v0_2_1.md
+    |           my-ai-driven-development-08-thinking-as-class.md
+    |           No-Code JSON Studiov0.3-draft.md
+    |           qa_cross_check_risk_view_def_v0_1_viewdef.md
+    |           qa_expected_checks_classified_view_def_v0_1_viewdef.md
+    |           qa_expected_checks_sample_v0_1.md
+    |           qa_expected_checks_sample_view_def_v0_1_viewdef.md
+    |           qa_shortage_expected_findings_view_def_v0_1_viewdef.md
+    |           qa_test_patterns_sample_v0_1.md
+    |           relation_axis_business_customer_view_def_v0_1_viewdef.md
+    |           relation_edit_view_def_v0_1_viewdef.md
+    |           rule_review_decision_log_export.md
+    |           rule_review_export.md
+    |           screen_state_diff_base_export.md
+    |           screen_state_diff_view_def_base_v0_2_checks_viewdef.md
+    |           screen_state_diff_view_def_child_v0_3_failure_focus_viewdef.md
+    |           screen_state_expected_export.md
+    |           studio_context_engineer_wannabe_mission_result_summary.md
+    |           studio_work_incident_export.md
+    |           studio_work_incident_view_def_v0_1_viewdef.md
+    |           takeyari-shokyaku-noroshi.md
+    |           test.md
+    |           To_AI_Comment_MyComment.md
+    |           
+    \---mermaid_download
+            mermaid-11.16.0.tgz
+            
