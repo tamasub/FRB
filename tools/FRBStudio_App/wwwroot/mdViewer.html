@@ -1887,7 +1887,7 @@
           <input id="localFileInput" style="display: none;" type="file" accept=".md,.markdown,.txt" />
 
           <div class="urlbox">
-            <input id="mdUrl" type="text" value="https://tamasub.github.io/FRB/" style="width:100%;" />
+            <input id="mdUrl" type="text" value="" placeholder="Markdown URLを入力..." title="mdviewer.json の default_remote_markdown_url で初期値を設定できます。" style="width:100%;" />
           </div>
           <button id="loadBtn" class="compact-text-btn">URL読込</button>
 
@@ -2005,6 +2005,43 @@ let managedMarkdownFiles = [];
 let managedMarkdownTreeExpanded = new Set();
 let isManagedMarkdownDirty = false;
 let launchMarkdownRuntime = { fromUrl: false, readonly: false, fileParam: "" };
+let mdViewerConfigRuntime = {
+  schema_version: "mdviewer_config_v0_1",
+  default_remote_markdown_url: "",
+  default_sidecar_author: "user"
+};
+
+function normalizeMdViewerConfig(raw) {
+  const cfg = raw && typeof raw === "object" ? raw : {};
+  return {
+    schema_version: String(cfg.schema_version || cfg.schemaVersion || "mdviewer_config_v0_1"),
+    default_remote_markdown_url: String(cfg.default_remote_markdown_url || cfg.defaultRemoteMarkdownUrl || cfg.default_url || cfg.defaultUrl || ""),
+    default_sidecar_author: String(cfg.default_sidecar_author || cfg.defaultSidecarAuthor || cfg.author || "user")
+  };
+}
+
+async function loadMdViewerConfig() {
+  try {
+    const res = await fetch("./mdviewer.json", { cache: "no-store" });
+    if (res.ok) {
+      mdViewerConfigRuntime = normalizeMdViewerConfig(await res.json());
+    } else if (res.status !== 404) {
+      console.warn("mdviewer.json load skipped.", `HTTP ${res.status}`);
+    }
+  } catch (err) {
+    console.warn("mdviewer.json load failed. Using built-in defaults.", err);
+  }
+
+  if (mdUrlEl && !String(mdUrlEl.value || "").trim() && mdViewerConfigRuntime.default_remote_markdown_url) {
+    mdUrlEl.value = mdViewerConfigRuntime.default_remote_markdown_url;
+  }
+
+  return mdViewerConfigRuntime;
+}
+
+function markdownDefaultAuthor() {
+  return String(mdViewerConfigRuntime.default_sidecar_author || "user").trim() || "user";
+}
 let markdownEditorRuntime = {
   editing: false,
   lastActiveLine: 1,
@@ -3316,6 +3353,57 @@ function markdownCommentSidecarName(markdownName) {
 function markdownCommentSidecarStorageKey(name) {
   return `frb-md-comment-sidecar:${String(name || "local").trim() || "local"}`;
 }
+function isMarkdownSidecarFileName(name) {
+  const n = String(name || "").replace(/\\/g, "/").trim().toLowerCase();
+  return /\.comments\.json(?:\.(md|markdown))?$/.test(n);
+}
+function normalizeMarkdownAssetPath(name, fallback = "article.md.comments.json") {
+  let n = String(name || "").trim();
+  if (!n) n = fallback;
+  n = n.replace(/\\/g, "/").replace(/^\/+/, "");
+  if (n.startsWith("data/markdown/")) n = n.slice("data/markdown/".length);
+  if (n.startsWith("markdown/")) n = n.slice("markdown/".length);
+  if (!n) n = fallback;
+  if (n.includes("://") || n.startsWith("//") || /^[a-zA-Z]:/.test(n)) n = n.split("/").pop() || fallback;
+  const rawParts = n.split("/").filter(Boolean);
+  const parts = rawParts
+    .filter(part => part !== "." && part !== "..")
+    .map(part => part.replace(/[:*?"<>|]/g, "_").trim())
+    .filter(Boolean);
+  if (!parts.length) parts.push(fallback);
+  return parts.join("/");
+}
+function encodeMarkdownAssetPath(name) {
+  return normalizeMarkdownAssetPath(name).split("/").map(encodeURIComponent).join("/");
+}
+function markdownSidecarApiUrl(name) {
+  return `/api/markdown/${encodeMarkdownAssetPath(name)}`;
+}
+function withMarkdownSidecarNoCache(url) {
+  const sep = String(url || "").includes("?") ? "&" : "?";
+  return `${url}${sep}frb_sidecar_nocache=${Date.now()}`;
+}
+function legacyMarkdownSidecarApiUrl(name) {
+  // v0.16.11以前はMarkdown用normalizeで .comments.json.md 化していたため、読み込みだけ救済する。
+  return markdownApiUrl(name);
+}
+function clearMarkdownCommentSidecarLocalCache(...names) {
+  names
+    .map(name => String(name || "").trim())
+    .filter(Boolean)
+    .forEach(name => {
+      try { localStorage.removeItem(markdownCommentSidecarStorageKey(name)); } catch (_) {}
+    });
+}
+function applyEmptyMarkdownCommentSidecarState({ clearLocalCache = false, cacheNames = [] } = {}) {
+  mdCommentSidecarRuntime.comments = [];
+  mdCommentSidecarRuntime.dirty = false;
+  if (clearLocalCache) clearMarkdownCommentSidecarLocalCache(...cacheNames);
+  mdCommentReviewRuntime.lastFocusedCommentId = "";
+  clearMarkdownSidecarBadges();
+  renderMarkdownCommentReviewUI();
+  updateBlockModelMeta();
+}
 function buildMarkdownCommentSidecarDocument() {
   return {
     schema_version: mdCommentSidecarRuntime.schemaVersion,
@@ -3341,7 +3429,7 @@ function normalizeMarkdownCommentSidecarDocument(raw, targetName) {
       target_type: c.target_type || "block",
       status: String(c.status || "COMMENT").toUpperCase(),
       body: String(c.body || ""),
-      author: c.author || "tamasub",
+      author: c.author || markdownDefaultAuthor(),
       created_at: c.created_at || new Date().toISOString(),
       updated_at: c.updated_at || c.created_at || new Date().toISOString(),
       resolved: Boolean(c.resolved),
@@ -3365,28 +3453,45 @@ async function loadMarkdownCommentSidecar(targetName) {
   mdCommentSidecarRuntime.comments = [];
   mdCommentSidecarRuntime.dirty = false;
   mdCommentSidecarRuntime.lastSaveError = "";
+  const legacySidecarName = normalizeMarkdownFileName(`${sidecarName}.md`);
+  const cacheNames = [sidecarName, legacySidecarName];
   let raw = "";
   try {
-    const res = await fetch(markdownApiUrl(sidecarName), { cache: "no-store" });
-    if (res.ok) raw = await res.text();
-    else if (res.status !== 404) throw new Error(`HTTP ${res.status}`);
+    let res = await fetch(withMarkdownSidecarNoCache(markdownSidecarApiUrl(sidecarName)), { cache: "no-store" });
+    if (!res.ok && res.status === 404) {
+      // 旧版で作られた erDiagram.md.comments.json.md を読むための互換フォールバック。
+      res = await fetch(withMarkdownSidecarNoCache(legacyMarkdownSidecarApiUrl(sidecarName)), { cache: "no-store" });
+    }
+    if (res.ok) {
+      raw = await res.text();
+    } else if (res.status === 404) {
+      // Sidecar JSONが存在しないならコメントは存在しない扱いにする。
+      // localStorageの退避データは表示に使わない。削除済みJSONの亡霊コメントを防ぐ。
+      applyEmptyMarkdownCommentSidecarState({ clearLocalCache: true, cacheNames });
+      return;
+    } else {
+      throw new Error(`HTTP ${res.status}`);
+    }
   } catch (err) {
-    console.warn("sidecar JSON load failed. fallback to localStorage", err);
+    // 読込エラー時も、嘘コメントを避けるためlocalStorageへフォールバックしない。
+    console.warn("sidecar JSON load failed. comments cleared to avoid stale localStorage display.", err);
     mdCommentSidecarRuntime.lastSaveError = String(err.message || err);
+    applyEmptyMarkdownCommentSidecarState({ clearLocalCache: false, cacheNames });
+    return;
   }
-  if (!raw) raw = localStorage.getItem(markdownCommentSidecarStorageKey(sidecarName)) || "";
   const doc = normalizeMarkdownCommentSidecarDocument(raw, targetName);
   mdCommentSidecarRuntime.comments = doc.comments;
   mdCommentSidecarRuntime.dirty = false;
+  mdCommentReviewRuntime.lastFocusedCommentId = "";
   renderMarkdownCommentReviewUI();
 }
 async function saveMarkdownCommentSidecar({ quiet = true } = {}) {
   const sidecarName = mdCommentSidecarRuntime.sidecarName || markdownCommentSidecarName(mdCommentSidecarRuntime.targetFile);
   mdCommentSidecarRuntime.sidecarName = sidecarName;
   const content = JSON.stringify(buildMarkdownCommentSidecarDocument(), null, 2);
-  localStorage.setItem(markdownCommentSidecarStorageKey(sidecarName), content);
+  try { localStorage.setItem(markdownCommentSidecarStorageKey(sidecarName), content); } catch (_) {}
   try {
-    const res = await fetch(markdownApiUrl(sidecarName), {
+    const res = await fetch(markdownSidecarApiUrl(sidecarName), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: sidecarName, content })
@@ -3399,8 +3504,8 @@ async function saveMarkdownCommentSidecar({ quiet = true } = {}) {
   } catch (err) {
     mdCommentSidecarRuntime.dirty = true;
     mdCommentSidecarRuntime.lastSaveError = String(err.message || err);
-    console.warn("sidecar JSON save failed. kept in localStorage", err);
-    if (!quiet) showMarkdownError(`Sidecar JSONのAPI保存に失敗しました。ブラウザ内には保持しました。\n${mdCommentSidecarRuntime.lastSaveError}`);
+    console.warn("sidecar JSON save failed. kept as emergency local backup only; load remains JSON-first.", err);
+    if (!quiet) showMarkdownError(`Sidecar JSONのAPI保存に失敗しました。再読込時はJSONファイルが存在する場合だけ表示します。\n${mdCommentSidecarRuntime.lastSaveError}`);
     return false;
   }
 }
@@ -3645,7 +3750,7 @@ async function applyMarkdownSidecarCommentEditor() {
     comment_id: `mdc_${now.replace(/[-:.TZ]/g, "").slice(0, 14)}_${Math.random().toString(36).slice(2, 6)}`,
     status: key,
     body,
-    author: "tamasub",
+    author: markdownDefaultAuthor(),
     created_at: now,
     updated_at: now,
     resolved: false,
@@ -5061,8 +5166,11 @@ function uniqueMarkdownNames(names) {
   const seen = new Set();
   const out = [];
   (Array.isArray(names) ? names : []).forEach(name => {
+    // SidecarコメントJSONはMarkdown本文ではないため、管理Markdown選択ツリーには出さない。
+    // 旧不具合で .comments.json.md 化したファイルもここで隠す。
+    if (isMarkdownSidecarFileName(name)) return;
     const n = normalizeMarkdownFileName(name);
-    if (!n || seen.has(n.toLowerCase())) return;
+    if (!n || isMarkdownSidecarFileName(n) || seen.has(n.toLowerCase())) return;
     seen.add(n.toLowerCase());
     out.push(n);
   });
@@ -5180,7 +5288,7 @@ async function refreshManagedMarkdownList(selectName = "") {
     managedMarkdownFiles = files;
     const target = normalizeMarkdownFileName(selectName || currentManagedMarkdownName || managedMdSelect.value || "");
     managedMdSelect.placeholder = files.length ? "管理Markdownを選択..." : "管理Markdownなし";
-    managedMdSelect.value = files.includes(target) ? target : "";
+    managedMdSelect.value = !isMarkdownSidecarFileName(target) && files.includes(target) ? target : "";
     updateManagedMarkdownClearButton();
     renderManagedMarkdownTreePicker();
     return files;
@@ -5198,6 +5306,13 @@ async function refreshManagedMarkdownList(selectName = "") {
 async function loadManagedMarkdown(name) {
   name = normalizeMarkdownFileName(name);
   if (!name) return;
+  if (isMarkdownSidecarFileName(name)) {
+    showMarkdownWarn("SidecarコメントJSONはMarkdown本文として開けません。対象の .md ファイルを選択してください。");
+    managedMdSelect.value = currentManagedMarkdownName || "";
+    updateManagedMarkdownClearButton();
+    renderManagedMarkdownTreePicker();
+    return;
+  }
   if (isManagedMarkdownDirty && currentManagedMarkdownName && currentManagedMarkdownName !== name) {
     const ok = confirm("未保存の編集があります。保存せずに別のMarkdownを読み込みますか？");
     if (!ok) {
@@ -5422,6 +5537,8 @@ tocDepthBtns.forEach(btn=>btn.addEventListener("click",()=>{
 // 初期ロード: ?file=xxx.md / ?md=xxx.md の明示指定がある場合だけ読む。
 // v0.13.9: 初期表示で先頭ファイルを勝手にプレロードしない。人に見せた時の事故を防ぐ。
 (async () => {
+  await loadMdViewerConfig();
+
   const params = new URLSearchParams(location.search);
   const requestedFileRaw = params.get('file') || params.get('md');
   const mode = params.get('mode') || '';

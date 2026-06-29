@@ -12,7 +12,6 @@ erDiagram
 
 ```
 
-
 # Test Context ER
 
 ```mermaid

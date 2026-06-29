@@ -1,0 +1,5 @@
+{
+  "schema_version": "mdviewer_config_v0_1",
+  "default_remote_markdown_url": "https://tamasub.github.io/FRB/",
+  "default_sidecar_author": "tamasub"
+}
