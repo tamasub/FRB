@@ -1,0 +1,139 @@
+{
+  "schema_version": "value_set_def_v0_1",
+  "document_type": "studio_overlay_value_sets",
+  "title": "Company ValueSets / default Overlay",
+  "overlay_id": "default",
+  "status": "active",
+  "updated_at": "2026-06-30",
+  "purpose": "会社固有のコード・名称・ランク順をCore common_enumsから分離して管理する。",
+  "namespaces": [
+    {
+      "namespace_id": "company",
+      "caption": "会社共通",
+      "enums": [
+        {
+          "enum_id": "business_area",
+          "caption": "業務分野",
+          "kind": "code_list",
+          "value_type": "string",
+          "items": [
+            {
+              "cd": "WATER",
+              "name": "水道",
+              "sort_order": 10,
+              "deprecated": false
+            },
+            {
+              "cd": "SEWER",
+              "name": "下水道",
+              "sort_order": 20,
+              "deprecated": false
+            },
+            {
+              "cd": "ACCOUNTING",
+              "name": "会計",
+              "sort_order": 30,
+              "deprecated": false
+            },
+            {
+              "cd": "GENERAL",
+              "name": "共通",
+              "sort_order": 90,
+              "deprecated": false
+            }
+          ]
+        },
+        {
+          "enum_id": "skill_category",
+          "caption": "スキルカテゴリ",
+          "kind": "code_list",
+          "value_type": "string",
+          "items": [
+            {
+              "cd": "BUSINESS_KNOWLEDGE",
+              "name": "業務知識",
+              "sort_order": 10,
+              "deprecated": false
+            },
+            {
+              "cd": "QUALIFICATION",
+              "name": "資格",
+              "sort_order": 20,
+              "deprecated": false
+            },
+            {
+              "cd": "ROLE_EXPERIENCE",
+              "name": "ロール経験",
+              "sort_order": 30,
+              "deprecated": false
+            }
+          ]
+        },
+        {
+          "enum_id": "skill_rank",
+          "caption": "スキルランク",
+          "kind": "ordered_enum",
+          "value_type": "string",
+          "order": [
+            "C",
+            "B",
+            "A",
+            "S"
+          ],
+          "items": [
+            {
+              "cd": "S",
+              "name": "Sクラス",
+              "sort_order": 10,
+              "deprecated": false
+            },
+            {
+              "cd": "A",
+              "name": "Aクラス",
+              "sort_order": 20,
+              "deprecated": false
+            },
+            {
+              "cd": "B",
+              "name": "Bクラス",
+              "sort_order": 30,
+              "deprecated": false
+            },
+            {
+              "cd": "C",
+              "name": "Cクラス",
+              "sort_order": 40,
+              "deprecated": false
+            }
+          ]
+        },
+        {
+          "enum_id": "qualification",
+          "caption": "資格",
+          "kind": "code_list",
+          "value_type": "string",
+          "items": [
+            {
+              "cd": "PM",
+              "name": "プロジェクトマネージャ",
+              "sort_order": 10,
+              "deprecated": false
+            },
+            {
+              "cd": "DB",
+              "name": "データベース",
+              "sort_order": 20,
+              "deprecated": false
+            },
+            {
+              "cd": "NW",
+              "name": "ネットワーク",
+              "sort_order": 30,
+              "deprecated": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

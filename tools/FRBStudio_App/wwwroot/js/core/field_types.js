@@ -39,6 +39,13 @@ function normalizeCommonEnumSourceItems(defObj) {
   // v0.15.3.1: Enum正本は /api/data の起点(data/json)からの相対パスで指定する。
   // 存在しない環境では警告に留め、既存options直書きViewDef/FieldTypeの互換性を保つ。
   if (!out.some(x => x.name === DEFAULT_COMMON_ENUMS_FILE)) out.push({ name: DEFAULT_COMMON_ENUMS_FILE, explicit: false });
+
+  // v0.17.0: 会社/勇者Overlay側のValueSetDefは common_enums を直接変更せず、manifest経由で追加する。
+  if (typeof studioOverlayValueSetSourceItems === 'function') {
+    studioOverlayValueSetSourceItems().forEach(item => {
+      if (item?.name && !out.some(x => x.name === item.name)) out.push(item);
+    });
+  }
   return out;
 }
 
@@ -221,6 +228,14 @@ async function loadFieldTypeRegistryForViewDef(defObj) {
 }
 
 async function loadEnumRegistryForViewDef(defObj) {
+  if (typeof loadStudioOverlayRuntime === 'function') {
+    try {
+      await loadStudioOverlayRuntime({ status: false });
+    } catch (err) {
+      console.warn('Studio Overlay manifest の読み込みに失敗しました', err);
+    }
+  }
+
   const sourceItems = normalizeCommonEnumSourceItems(defObj);
   const cacheKey = sourceItems.map(x => `${x.name}:${x.explicit ? '1' : '0'}`).join('|');
   if (enumRegistryCache.has(cacheKey)) return cloneData(enumRegistryCache.get(cacheKey));
@@ -299,7 +314,14 @@ function normalizeFieldTypeObject(typeObj) {
 }
 
 function fieldEnumRef(field) {
-  return String(field?.enumRef ?? field?.enum_ref ?? field?.edit?.enumRef ?? field?.edit?.enum_ref ?? '').trim();
+  // enumRef は既存互換。valueSet / value_set は ValueSetDef の上位概念名として許容する。
+  return String(
+    field?.valueSet ?? field?.value_set ??
+    field?.enumRef ?? field?.enum_ref ??
+    field?.edit?.valueSet ?? field?.edit?.value_set ??
+    field?.edit?.enumRef ?? field?.edit?.enum_ref ??
+    ''
+  ).trim();
 }
 
 function fieldEffectiveType(field) {
@@ -327,6 +349,7 @@ function resolveEnumRefForField(field, enumRegistry) {
 
   const out = cloneData(field);
   if (out.enumRef == null) out.enumRef = enumRef;
+  if (out.valueSet == null && (field?.valueSet != null || field?.value_set != null)) out.valueSet = enumRef;
 
   if (!isSelectFieldLike(out)) {
     console.warn(`enumRef「${enumRef}」はselect系FieldTypeでのみoptions解決対象です`, out);

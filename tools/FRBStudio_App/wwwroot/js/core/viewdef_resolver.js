@@ -226,6 +226,20 @@ async function refreshServerLists(options = {}) {
       console.warn('/api/data 一覧取得に失敗しました', dataResult.reason);
     }
 
+    // v0.17.0: Core一覧にOverlay manifestで宣言された追加Data/ViewDefを合成する。
+    // 物理ファイルは studio_overlays/default/ 配下のまま保持し、wwwroot/Coreは変更しない。
+    if (typeof loadStudioOverlayRuntime === 'function') {
+      try {
+        const overlay = await loadStudioOverlayRuntime({ status: false });
+        if (overlay?.available) {
+          serverDefNames = uniqueNames([...(serverDefNames ?? []), ...studioOverlayViewDefNames()]).sort((a, b) => a.localeCompare(b));
+          serverDataNames = uniqueNames([...(serverDataNames ?? []), ...studioOverlayDataNames()]).sort((a, b) => a.localeCompare(b));
+        }
+      } catch (err) {
+        console.warn('Studio Overlay manifest の読み込みに失敗しました', err);
+      }
+    }
+
     setDatalist('defNameList', viewDefSelectionNames());
     setDatalist('dataNameList', serverDataNames);
     if (typeof refreshFileTreePickers === 'function') refreshFileTreePickers();

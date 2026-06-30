@@ -1,28 +1,12 @@
-# v0.14.37 Git Diff Run / CommandProfile連携メモ
+# v0.17.2 Git Diff Run / AppRoot Path Contract
 
-Studioくんから `Export-DiffToJson.ps1` を直接任意コマンドとして実行するのではなく、Program.cs側の許可済み `CommandProfile` として `git_diff_export` だけを実行する。
+`toolbar.executeButton.action = RunCommandProfile` から、選択行の Git Diff 実行設定を Program.cs の `/api/actions/command/run` へ渡す。
 
-## 責務分離
-
-```text
-Data JSON:
-  Mode / From / To / Unified / MaxPatchChars / NoPatch / output_path_display
-
-Program.cs:
-  scriptPath / OutputPath / workingDirectory / allowed mode / timeout / 引数検証
-
-Export-DiffToJson.ps1:
-  Git DiffをDiffToJson.jsonへ変換する実体
-```
-
-## OutputPath方針
-
-`DiffToJson.json` をGit管理配下へ出力すると、差分出力ファイル自身がGit差分になり、差分が差分を生む再帰事故が起きる。
-
-そのため、初期値は Git管理外の以下とする。
-
-```text
-F:\FRB_Diff\DiffToJson.json
-```
-
-Data JSONにも `output_path_display` として保持するが、実行時の正本はProgram.cs側のCommandProfile設定とし、不一致時は実行を拒否する。
+- Data JSONには任意の `commandLine` / `scriptPath` を持たせない
+- Program.cs側の `git_diff_export` CommandProfileだけを実行する
+- 実行パス正本は `Program.cs/appsettings.json` の CommandProfile とし、FRBStudio_App root からの相対パスで定義する
+- `OutputPath` は `wwwroot/diff/DiffToJson.json` を標準とし、実出力は日時付き `DiffToJson_yyyyMMdd_HHmmss.json` になる
+- Run Config明細には `output_path_display` を持たせない
+- 出力先は基本情報メモまたは `/api/actions/command/profiles` / `/api/actions/command/diagnostics` 由来の参考表示で確認する
+- `F:\FRB\...` や `F:\FRB_Diff\...` など、FRBStudio_Appより上位のPC固有絶対パスへ依存しない
+- 静的ホスティングでは実行しない

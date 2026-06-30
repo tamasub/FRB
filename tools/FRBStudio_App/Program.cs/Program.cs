@@ -15,6 +15,14 @@ namespace FRBStudio;
 internal static class Program
 {
     private const string AppUrl = "http://localhost:5055";
+    private const string DefaultDataJsonFolder = "data/json";
+    private const string DefaultGitDiffProfileId = "git_diff_export";
+    private const string DefaultGitDiffDisplayName = "Export-DiffToJson.ps1 / Git Diff JSON Export";
+    private const string DefaultGitDiffScriptPath = "tools/git/Export-DiffToJson.ps1";
+    private const string DefaultGitDiffOutputPath = "wwwroot/diff/DiffToJson.json";
+    private const string DefaultTestRunnerProfileId = "test_runner";
+    private const string DefaultTestRunnerDisplayName = "TestRunner.ps1 / Studio Test Runner";
+    private const string DefaultTestRunnerScriptPath = "tools/test/TestRunner.ps1";
 
     [STAThread]
     private static async Task Main(string[] args)
@@ -26,7 +34,8 @@ internal static class Program
 
         try
         {
-            app = CreateWebApplication(args);
+            var appRoot = ResolveStudioAppRoot();
+            app = CreateWebApplication(args, appRoot);
             await app.StartAsync();
             OpenBrowser(AppUrl);
 
@@ -51,31 +60,33 @@ internal static class Program
         }
     }
 
-    private static WebApplication CreateWebApplication(string[] args)
+    private static WebApplication CreateWebApplication(string[] args, string appRoot)
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
             Args = args,
-            ContentRootPath = AppContext.BaseDirectory
+            ContentRootPath = appRoot
         });
         builder.WebHost.UseUrls(AppUrl);
 
-        var root = AppContext.BaseDirectory;
+        var root = appRoot;
         var dataRootDir = Path.Combine(root, "data");
         var dataDir = Path.Combine(dataRootDir, "json");
         var markdownDir = Path.Combine(dataRootDir, "markdown");
         var defsDir = Path.Combine(root, "defs");
+        var overlaysDir = Path.Combine(root, "studio_overlays");
 
         Directory.CreateDirectory(dataRootDir);
         Directory.CreateDirectory(dataDir);
         Directory.CreateDirectory(markdownDir);
         Directory.CreateDirectory(defsDir);
+        Directory.CreateDirectory(overlaysDir);
 
         var dataFolders = ResolveDataFolders(
             builder.Configuration,
             root,
             "FrbStudio:DataFolders",
-            new[] { "data/json" });
+            new[] { DefaultDataJsonFolder });
 
         var commandProfiles = BuildCommandProfiles(builder.Configuration, root);
 
@@ -94,6 +105,33 @@ internal static class Program
         app.MapGet("/api/data", () => Results.Json(ListJsonFiles(dataFolders)));
 
         app.MapGet("/api/defs", () => Results.Json(ListJsonFiles(defsDir)));
+
+        // v0.17.0-studio-overlay-manifest-separation:
+        // OverlayはCore(wwwroot/defs/data)を変更せず、studio_overlays/{overlayId} 配下で管理する。
+        // CoreとOverlayの共通言語は studio_manifest.json。
+        app.MapGet("/api/overlays", () => Results.Json(ListOverlayIds(overlaysDir)));
+
+        app.MapGet("/api/overlays/{overlayId}/manifest", async (string overlayId) =>
+        {
+            var path = SafeOverlayPath(overlaysDir, overlayId, "studio_manifest.json", new[] { ".json" });
+            if (path is null || !File.Exists(path)) return Results.NotFound();
+            return Results.Text(await File.ReadAllTextAsync(path), "application/json; charset=utf-8");
+        });
+
+        app.MapGet("/api/overlays/{overlayId}/{**name}", async (string overlayId, string name) =>
+        {
+            var path = SafeOverlayPath(overlaysDir, overlayId, name, new[] { ".json", ".js", ".md" });
+            if (path is null || !File.Exists(path)) return Results.NotFound();
+
+            var ext = Path.GetExtension(path).ToLowerInvariant();
+            var contentType = ext switch
+            {
+                ".js" => "application/javascript; charset=utf-8",
+                ".md" => "text/markdown; charset=utf-8",
+                _ => "application/json; charset=utf-8"
+            };
+            return Results.Text(await File.ReadAllTextAsync(path), contentType);
+        });
 
         app.MapPost("/api/data/drop", async (DropJsonRequest req) =>
         {
@@ -217,18 +255,83 @@ internal static class Program
         {
             command_profile_id = profile.Id,
             display_name = profile.DisplayName,
+            app_root = profile.AppRoot,
+            script_path = profile.ScriptPath,
+            script_path_relative = ToAppRootRelative(profile.AppRoot, profile.ScriptPath),
             output_path = profile.OutputPath,
+            output_path_relative = ToAppRootRelative(profile.AppRoot, profile.OutputPath),
             working_directory = profile.WorkingDirectory,
+            working_directory_relative = ToAppRootRelative(profile.AppRoot, profile.WorkingDirectory),
             timeout_seconds = profile.TimeoutSeconds,
             kind = profile.Kind,
             allowed_modes = profile.AllowedModes,
             allowed_test_runner_ids = profile.AllowedTestRunnerIds
         })));
 
+        app.MapGet("/api/actions/command/diagnostics", () => Results.Json(new
+        {
+            app_root = root,
+            app_context_base_directory = AppContext.BaseDirectory,
+            current_directory = Directory.GetCurrentDirectory(),
+            profiles = commandProfiles.Values.Select(BuildCommandProfileDiagnostic)
+        }));
+
         app.MapPost("/api/actions/command/run", async (CommandRunRequest req) =>
             await RunCommandProfileAsync(commandProfiles, req));
 
         return app;
+    }
+
+    private static string ResolveStudioAppRoot()
+    {
+        var candidates = new List<string>();
+        AddCandidateWithParents(candidates, AppContext.BaseDirectory);
+        AddCandidateWithParents(candidates, Directory.GetCurrentDirectory());
+
+        foreach (var candidate in candidates.Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            if (IsStudioAppRoot(candidate)) return Path.GetFullPath(candidate);
+        }
+
+        // Last resort: keep historical behavior, but normal deployments should be resolved by markers.
+        return Path.GetFullPath(AppContext.BaseDirectory);
+    }
+
+    private static void AddCandidateWithParents(List<string> candidates, string? startPath)
+    {
+        if (string.IsNullOrWhiteSpace(startPath)) return;
+
+        DirectoryInfo? dir;
+        try
+        {
+            var full = Path.GetFullPath(startPath);
+            dir = Directory.Exists(full) ? new DirectoryInfo(full) : new FileInfo(full).Directory;
+        }
+        catch
+        {
+            return;
+        }
+
+        while (dir is not null)
+        {
+            candidates.Add(dir.FullName);
+            dir = dir.Parent;
+        }
+    }
+
+    private static bool IsStudioAppRoot(string path)
+    {
+        try
+        {
+            return File.Exists(Path.Combine(path, "wwwroot", "index.html"))
+                && Directory.Exists(Path.Combine(path, "data", "json"))
+                && Directory.Exists(Path.Combine(path, "defs"))
+                && Directory.Exists(Path.Combine(path, "tools"));
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private static IReadOnlyDictionary<string, CommandProfile> BuildCommandProfiles(IConfiguration config, string root)
@@ -239,12 +342,12 @@ internal static class Program
         var gitProfile = BuildCommandProfile(
             gitSection,
             root,
-            defaultId: "git_diff_export",
-            defaultDisplayName: "Export-DiffToJson.ps1 / Git Diff JSON Export",
-            defaultScriptPath: "tools/git/Export-DiffToJson.ps1",
-            defaultOutputPath: @"F:\FRB_Diff\DiffToJson.json",
+            defaultId: DefaultGitDiffProfileId,
+            defaultDisplayName: DefaultGitDiffDisplayName,
+            defaultScriptPath: DefaultGitDiffScriptPath,
+            defaultOutputPath: DefaultGitDiffOutputPath,
             kind: "git_diff_export",
-            allowedModes: new[] { "WorkingTree", "Staged", "Head", "Range" },
+            allowedModes: new[] { "WorkingTree", "Staged", "Head", "Range", "FilePair" },
             allowedTestRunnerIds: Array.Empty<string>(),
             defaultTimeoutSeconds: 30);
         profiles[gitProfile.Id] = gitProfile;
@@ -253,9 +356,9 @@ internal static class Program
         var testProfile = BuildCommandProfile(
             testSection,
             root,
-            defaultId: "test_runner",
-            defaultDisplayName: "TestRunner.ps1 / Studio Test Runner",
-            defaultScriptPath: "tools/test/TestRunner.ps1",
+            defaultId: DefaultTestRunnerProfileId,
+            defaultDisplayName: DefaultTestRunnerDisplayName,
+            defaultScriptPath: DefaultTestRunnerScriptPath,
             defaultOutputPath: string.Empty,
             kind: "test_runner",
             allowedModes: Array.Empty<string>(),
@@ -287,9 +390,7 @@ internal static class Program
             : section["DisplayName"]!.Trim();
 
         var scriptPath = ResolveCommandScriptPath(root, section["ScriptPath"] ?? defaultScriptPath, defaultScriptPath);
-        var outputPath = string.IsNullOrWhiteSpace(section["OutputPath"])
-            ? defaultOutputPath
-            : section["OutputPath"]!.Trim();
+        var outputPath = ResolveCommandOutputPath(root, section["OutputPath"], defaultOutputPath);
 
         var configuredWorkingDirectory = section["WorkingDirectory"];
         var workingDirectory = ResolveCommandWorkingDirectory(root, configuredWorkingDirectory);
@@ -307,6 +408,7 @@ internal static class Program
         return new CommandProfile(
             id,
             displayName,
+            root,
             scriptPath,
             outputPath,
             workingDirectory,
@@ -343,15 +445,54 @@ internal static class Program
     {
         if (!string.IsNullOrWhiteSpace(rawPath))
         {
-            var value = rawPath.Trim();
-            var full = Path.IsPathRooted(value)
-                ? Path.GetFullPath(value)
-                : Path.GetFullPath(Path.Combine(root, value.Replace('/', Path.DirectorySeparatorChar)));
-
-            if (Directory.Exists(full)) return full;
+            var full = ResolvePathUnderAppRoot(root, rawPath.Trim());
+            if (!string.IsNullOrWhiteSpace(full) && Directory.Exists(full)) return full;
         }
 
-        return FindNearestGitRoot(root) ?? root;
+        // CommandProfileはFRBStudio_App rootを基準に実行する。
+        // Gitはサブディレクトリ実行でも親の.gitを探索できるため、repo上位パスへ移動しない。
+        return Path.GetFullPath(root);
+    }
+
+    private static string ResolveCommandOutputPath(string root, string? rawPath, string defaultRelativePath)
+    {
+        if (string.IsNullOrWhiteSpace(defaultRelativePath) && string.IsNullOrWhiteSpace(rawPath)) return string.Empty;
+
+        var raw = string.IsNullOrWhiteSpace(rawPath) ? defaultRelativePath : rawPath!.Trim();
+        var full = ResolvePathUnderAppRoot(root, raw);
+        if (!string.IsNullOrWhiteSpace(full)) return full;
+
+        var fallback = ResolvePathUnderAppRoot(root, defaultRelativePath);
+        return fallback ?? string.Empty;
+    }
+
+    private static string? ResolvePathUnderAppRoot(string root, string rawPath)
+    {
+        if (string.IsNullOrWhiteSpace(rawPath)) return null;
+
+        try
+        {
+            var normalized = rawPath.Trim().Trim('"').Replace('/', Path.DirectorySeparatorChar);
+            var full = Path.IsPathRooted(normalized)
+                ? Path.GetFullPath(normalized)
+                : Path.GetFullPath(Path.Combine(root, normalized));
+
+            var rootFull = EnsureTrailingSeparator(Path.GetFullPath(root));
+            return EnsureTrailingSeparatorForCompare(full).StartsWith(rootFull, StringComparison.OrdinalIgnoreCase)
+                ? full
+                : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static string EnsureTrailingSeparatorForCompare(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return string.Empty;
+        if (File.Exists(path)) return path;
+        return EnsureTrailingSeparator(path);
     }
 
     private static string? FindNearestGitRoot(string startDir)
@@ -378,6 +519,18 @@ internal static class Program
             : await RunGitDiffCommandProfileAsync(profile, req);
     }
 
+    private static IResult CommandProfileBadRequest(CommandProfile profile, string message)
+    {
+        return Results.Json(new
+        {
+            success = false,
+            result_kind = "launcher_error",
+            profile_id = profile.Id,
+            message,
+            diagnostics = BuildCommandProfileDiagnostic(profile)
+        }, statusCode: 400);
+    }
+
     private static async Task<IResult> RunGitDiffCommandProfileAsync(CommandProfile profile, CommandRunRequest req)
     {
         if (!File.Exists(profile.ScriptPath))
@@ -402,27 +555,40 @@ internal static class Program
             }, statusCode: 500);
         }
 
-        var outputDisplay = FirstNonBlank(req.OutputPathDisplay, req.OutputPath);
-        if (!string.IsNullOrWhiteSpace(outputDisplay) && !IsSameCommandPath(outputDisplay, profile.OutputPath))
-        {
-            return Results.BadRequest("output_path_display does not match Program.cs CommandProfile output path");
-        }
+        // output_path_display / output_path は表示・参考情報としてのみ扱う。
+        // 実行出力先の正本はCommandProfile側のOutputPathであり、Run Config明細値で照合・上書きしない。
 
         var mode = (req.Mode ?? string.Empty).Trim();
         var range = (req.Range ?? string.Empty).Trim();
         var fromRef = (req.FromRef ?? string.Empty).Trim();
         var toRef = (req.ToRef ?? string.Empty).Trim();
+        var fromFile = (req.FromFile ?? string.Empty).Trim();
+        var toFile = (req.ToFile ?? string.Empty).Trim();
+        var fromFilePath = string.Empty;
+        var toFilePath = string.Empty;
 
         if (!ValidateGitDiffMode(mode, profile.AllowedModes))
         {
-            return Results.BadRequest($"unsupported mode: {mode}");
+            return CommandProfileBadRequest(profile, $"unsupported mode: {mode}");
         }
 
-        if (mode.Equals("Range", StringComparison.OrdinalIgnoreCase))
+        if (mode.Equals("FilePair", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!TryResolveDiffInputFilePath(profile.WorkingDirectory, fromFile, out fromFilePath, out var fromFileError))
+            {
+                return CommandProfileBadRequest(profile, $"from_file is invalid: {fromFileError}");
+            }
+            if (!TryResolveDiffInputFilePath(profile.WorkingDirectory, toFile, out toFilePath, out var toFileError))
+            {
+                return CommandProfileBadRequest(profile, $"to_file is invalid: {toFileError}");
+            }
+            range = string.Empty;
+        }
+        else if (mode.Equals("Range", StringComparison.OrdinalIgnoreCase))
         {
             if (!IsSafeGitRef(fromRef) || !IsSafeGitRef(toRef))
             {
-                return Results.BadRequest("Range mode requires safe from_ref and to_ref");
+                return CommandProfileBadRequest(profile, "Range mode requires safe from_ref and to_ref");
             }
             range = $"{fromRef}..{toRef}";
             mode = string.Empty;
@@ -431,7 +597,7 @@ internal static class Program
         {
             if (!IsSafeGitRef(fromRef) || !IsSafeGitRef(toRef))
             {
-                return Results.BadRequest("from_ref and to_ref must both be safe git refs");
+                return CommandProfileBadRequest(profile, "from_ref and to_ref must both be safe git refs");
             }
             range = $"{fromRef}..{toRef}";
             mode = string.Empty;
@@ -439,7 +605,7 @@ internal static class Program
 
         if (!string.IsNullOrWhiteSpace(range) && !IsSafeGitRange(range))
         {
-            return Results.BadRequest("range contains unsupported characters");
+            return CommandProfileBadRequest(profile, "range contains unsupported characters");
         }
 
         var unified = req.Unified is > 0 and <= 100 ? req.Unified.Value : 3;
@@ -483,6 +649,14 @@ internal static class Program
         {
             AddArg("-Range");
             AddArg(range);
+        }
+
+        if (mode.Equals("FilePair", StringComparison.OrdinalIgnoreCase))
+        {
+            AddArg("-FromFile");
+            AddArg(fromFilePath);
+            AddArg("-ToFile");
+            AddArg(toFilePath);
         }
 
         AddArg("-OutputPath");
@@ -546,6 +720,8 @@ internal static class Program
             display_name = profile.DisplayName,
             mode = string.IsNullOrWhiteSpace(req.Mode) ? "(default)" : req.Mode,
             range,
+            from_file = fromFilePath,
+            to_file = toFilePath,
             output_path = profile.OutputPath,
             working_directory = profile.WorkingDirectory,
             command = new
@@ -876,16 +1052,104 @@ internal static class Program
         return Regex.IsMatch(value, @"^[A-Za-z0-9._/\-~^]+\.\.[A-Za-z0-9._/\-~^]+$");
     }
 
-    private static bool IsSameCommandPath(string left, string right)
+    private static bool TryResolveDiffInputFilePath(string workingDirectory, string value, out string resolvedPath, out string error)
     {
-        static string Normalize(string value) => StringValue(value)
-            .Trim()
-            .Trim('"')
-            .Replace('/', '\\')
-            .TrimEnd('\\')
-            .ToUpperInvariant();
+        resolvedPath = string.Empty;
+        error = string.Empty;
 
-        return Normalize(left) == Normalize(right);
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            error = "file path is required";
+            return false;
+        }
+        if (value.Length > 500)
+        {
+            error = "file path is too long";
+            return false;
+        }
+        if (value.Any(char.IsControl))
+        {
+            error = "file path contains control characters";
+            return false;
+        }
+        if (value.IndexOfAny(new[] { '*', '?' }) >= 0)
+        {
+            error = "wildcards are not supported";
+            return false;
+        }
+
+        try
+        {
+            var trimmed = value.Trim().Trim('"');
+            resolvedPath = Path.IsPathRooted(trimmed)
+                ? Path.GetFullPath(trimmed)
+                : Path.GetFullPath(Path.Combine(workingDirectory, trimmed));
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+            return false;
+        }
+
+        // FilePair は git diff --no-index による「任意2ファイル比較」なので、
+        // 入力ファイルは FRBStudio_App root 配下に限定しない。
+        // ただし、出力先は CommandProfile/Export-DiffToJson.ps1 側で FRBStudio_App root 配下に制限する。
+        // ここでは「実在するローカルファイルか」「危険なワイルドカード/制御文字を含まないか」だけを確認する。
+
+        if (!File.Exists(resolvedPath))
+        {
+            error = $"file not found: {resolvedPath}";
+            return false;
+        }
+        if (Directory.Exists(resolvedPath))
+        {
+            error = $"directory path is not supported: {resolvedPath}";
+            return false;
+        }
+
+        return true;
+    }
+
+    private static string ToAppRootRelative(string appRoot, string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return string.Empty;
+        try
+        {
+            var full = Path.GetFullPath(path);
+            var rootFull = EnsureTrailingSeparator(Path.GetFullPath(appRoot));
+            if (!EnsureTrailingSeparatorForCompare(full).StartsWith(rootFull, StringComparison.OrdinalIgnoreCase)) return full;
+            return Path.GetRelativePath(appRoot, full).Replace('\\', '/');
+        }
+        catch
+        {
+            return path ?? string.Empty;
+        }
+    }
+
+    private static object BuildCommandProfileDiagnostic(CommandProfile profile)
+    {
+        var outputDir = string.IsNullOrWhiteSpace(profile.OutputPath) ? string.Empty : (Path.GetDirectoryName(profile.OutputPath) ?? string.Empty);
+        return new
+        {
+            app_root = profile.AppRoot,
+            app_root_exists = Directory.Exists(profile.AppRoot),
+            app_context_base_directory = AppContext.BaseDirectory,
+            current_directory = Directory.GetCurrentDirectory(),
+            profile_id = profile.Id,
+            kind = profile.Kind,
+            script_path = profile.ScriptPath,
+            script_path_relative = ToAppRootRelative(profile.AppRoot, profile.ScriptPath),
+            script_exists = File.Exists(profile.ScriptPath),
+            working_directory = profile.WorkingDirectory,
+            working_directory_relative = ToAppRootRelative(profile.AppRoot, profile.WorkingDirectory),
+            working_directory_exists = Directory.Exists(profile.WorkingDirectory),
+            output_path = profile.OutputPath,
+            output_path_relative = ToAppRootRelative(profile.AppRoot, profile.OutputPath),
+            output_directory = outputDir,
+            output_directory_relative = ToAppRootRelative(profile.AppRoot, outputDir),
+            output_directory_exists = string.IsNullOrWhiteSpace(outputDir) ? (bool?)null : Directory.Exists(outputDir),
+            timeout_seconds = profile.TimeoutSeconds
+        };
     }
 
     private static string StringValue(string? value) => value ?? string.Empty;
@@ -936,6 +1200,53 @@ internal static class Program
         }
 
         return result;
+    }
+
+    private static string[] ListOverlayIds(string overlaysDir)
+    {
+        Directory.CreateDirectory(overlaysDir);
+        return Directory.GetDirectories(overlaysDir)
+            .Select(Path.GetFileName)
+            .Where(id => SafeOverlayId(id) is not null)
+            .Select(id => id!)
+            .OrderBy(id => id, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+    }
+
+    private static string? SafeOverlayId(string? overlayId)
+    {
+        if (string.IsNullOrWhiteSpace(overlayId)) return null;
+        var id = overlayId.Trim();
+        return Regex.IsMatch(id, "^[A-Za-z0-9_-]+$") ? id : null;
+    }
+
+    private static string? SafeOverlayPath(string overlaysDir, string overlayId, string name, string[] allowedExtensions)
+    {
+        var id = SafeOverlayId(overlayId);
+        if (id is null || string.IsNullOrWhiteSpace(name)) return null;
+
+        var normalized = Uri.UnescapeDataString(name).Replace('\\', '/').Trim('/');
+        if (string.IsNullOrWhiteSpace(normalized)) return null;
+        if (normalized.Contains("://", StringComparison.OrdinalIgnoreCase)) return null;
+        if (Path.IsPathRooted(normalized)) return null;
+
+        var parts = normalized.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0) return null;
+        if (parts.Any(part => part is "." or "..")) return null;
+        if (parts.Any(part => part.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)) return null;
+
+        var fileName = parts[^1];
+        var ext = Path.GetExtension(fileName);
+        if (string.IsNullOrWhiteSpace(ext)) return null;
+        if (!allowedExtensions.Any(x => ext.Equals(x, StringComparison.OrdinalIgnoreCase))) return null;
+
+        var overlayRoot = Path.GetFullPath(Path.Combine(overlaysDir, id));
+        var full = Path.GetFullPath(Path.Combine(overlayRoot, Path.Combine(parts)));
+        var allowed = EnsureTrailingSeparator(overlayRoot);
+
+        return full.StartsWith(allowed, StringComparison.OrdinalIgnoreCase)
+            ? full
+            : null;
     }
 
     private static string[] ListJsonFiles(IReadOnlyList<DataFolder> folders)
@@ -1631,6 +1942,12 @@ internal sealed class CommandRunRequest
     [JsonPropertyName("to_ref")]
     public string? ToRef { get; set; }
 
+    [JsonPropertyName("from_file")]
+    public string? FromFile { get; set; }
+
+    [JsonPropertyName("to_file")]
+    public string? ToFile { get; set; }
+
     [JsonPropertyName("output_path_display")]
     public string? OutputPathDisplay { get; set; }
 
@@ -1668,6 +1985,7 @@ internal sealed record CommandOutputArtifact(
 internal sealed record CommandProfile(
     string Id,
     string DisplayName,
+    string AppRoot,
     string ScriptPath,
     string OutputPath,
     string WorkingDirectory,

@@ -1,0 +1,209 @@
+{
+  "app": {
+    "name": "FRB Studio / JSON Object Studio",
+    "version": "employee-skill-overlay-view-def-v0.1"
+  },
+  "commonEnumSources": [
+    "overlay/default/value_sets/company_value_sets.json"
+  ],
+  "views": [
+    {
+      "id": "employee_skill_inventory",
+      "caption": "社員スキル台帳 / Overlay Sample",
+      "layout": "header-search-grid-detail",
+      "sections": [
+        {
+          "id": "header",
+          "caption": "Overlay Sample / 基本情報",
+          "type": "form",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "overlay_id",
+              "caption": "Overlay",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "updated_at",
+              "caption": "更新日",
+              "type": "date",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              }
+            }
+          ]
+        },
+        {
+          "id": "search",
+          "caption": "検索",
+          "type": "form",
+          "dataPath": "employees",
+          "fields": [
+            {
+              "field": "employee_name",
+              "caption": "社員名",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "department",
+              "caption": "部署",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "primary_business_area_cd",
+              "caption": "主業務分野",
+              "type": "select",
+              "valueSet": "company.business_area",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            }
+          ]
+        },
+        {
+          "id": "mainGrid",
+          "caption": "社員一覧",
+          "type": "grid",
+          "dataPath": "employees",
+          "fields": [
+            {
+              "field": "employee_id",
+              "caption": "社員ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 90
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "employee_name",
+              "caption": "社員名",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "department",
+              "caption": "部署",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "primary_business_area_cd",
+              "caption": "主業務分野",
+              "type": "select",
+              "valueSet": "company.business_area",
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "attributes",
+              "caption": "属性/スキル",
+              "type": "objectArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": false
+              },
+              "defaultValue": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

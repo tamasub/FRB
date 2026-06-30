@@ -1,12 +1,12 @@
 {
   "app": {
     "name": "FRB Studio / JSON Object Studio",
-    "version": "git-diff-export-run-config-view-def-v0.1"
+    "version": "git-diff-export-run-config-view-def-v0.3"
   },
   "views": [
     {
       "id": "git_diff_export_run_config_v0_1",
-      "caption": "Git Diff Export Run Config / CommandProfile",
+      "caption": "Git Diff Export Run Config / CommandProfile / FilePair / AppRoot Path Contract",
       "layout": "header-search-grid-detail",
       "toolbar": {
         "executeButton": {
@@ -123,16 +123,17 @@
               }
             },
             {
-              "field": "output_path_display",
-              "caption": "OutputPath",
-              "type": "text",
+              "field": "output_path_note",
+              "caption": "Output Note",
+              "type": "textarea",
               "readonly": true,
               "grid": {
                 "visible": false
               },
               "edit": {
                 "visible": true,
-                "readonly": true
+                "readonly": true,
+                "height": 72
               },
               "search": {
                 "visible": false
@@ -201,6 +202,7 @@
                 "Staged",
                 "Head",
                 "Range",
+                "FilePair",
                 "WorkingTree"
               ],
               "readonly": false,
@@ -236,6 +238,38 @@
               "readonly": false,
               "grid": {
                 "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "from_file",
+              "caption": "From File",
+              "type": "text",
+              "readonly": false,
+              "grid": {
+                "visible": false,
+                "width": 260
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "to_file",
+              "caption": "To File",
+              "type": "text",
+              "readonly": false,
+              "grid": {
+                "visible": false,
+                "width": 260
               },
               "edit": {
                 "visible": true
@@ -325,6 +359,7 @@
                 "Staged",
                 "Head",
                 "Range",
+                "FilePair",
                 "WorkingTree"
               ],
               "readonly": false,
@@ -372,17 +407,32 @@
               }
             },
             {
-              "field": "output_path_display",
-              "caption": "OutputPath",
+              "field": "from_file",
+              "caption": "From File",
               "type": "text",
-              "readonly": true,
+              "readonly": false,
               "grid": {
                 "visible": true,
-                "width": 260
+                "width": 300
               },
               "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "to_file",
+              "caption": "To File",
+              "type": "text",
+              "readonly": false,
+              "grid": {
                 "visible": true,
-                "readonly": true
+                "width": 300
+              },
+              "edit": {
+                "visible": true
               },
               "search": {
                 "visible": true
@@ -469,8 +519,9 @@
             }
           ]
         }
-      ]
+      ],
+      "layout_note": "v0.14.37: Git Diff Runボタンは toolbar.executeButton/action=RunCommandProfile で表示する。v0.17.0: FilePairモードでは from_file/to_file をProgram.cs経由で -Mode FilePair に渡す。v0.17.2: Run Config明細にはoutput_path_displayを持たせず、出力先は基本情報メモまたはCommandProfile API由来の参考表示として扱う。v0.17.3: FilePairのfrom_file/to_fileはFRBStudio_App root基準の相対パスを推奨し、enabled=falseの行は実行対象外とする。v0.17.4: FilePair入力ファイルは任意2ファイル比較用途のため、既存ローカルファイルであればFRBStudio_App外の絶対パスも許可する。出力先は引き続きCommandProfile側のFRBStudio_App配下に制限する。"
     }
   ],
-  "layout_note": "v0.14.37: Git Diff Runボタンは toolbar.executeButton/action=RunCommandProfile で表示する。Data JSONのoutput_path_displayは画面表示・照合用で、実行時の正本OutputPathはProgram.cs側CommandProfile設定とする。"
+  "layout_note": "v0.14.37: Git Diff Runボタンは toolbar.executeButton/action=RunCommandProfile で表示する。v0.17.0: FilePairモードでは from_file/to_file をProgram.cs経由で -Mode FilePair に渡す。v0.17.2: Run Config明細にはoutput_path_displayを持たせず、出力先は基本情報メモまたはCommandProfile API由来の参考表示として扱う。v0.17.3: FilePairのfrom_file/to_fileはFRBStudio_App root基準の相対パスを推奨し、enabled=falseの行は実行対象外とする。v0.17.4: FilePair入力ファイルは任意2ファイル比較用途のため、既存ローカルファイルであればFRBStudio_App外の絶対パスも許可する。出力先は引き続きCommandProfile側のFRBStudio_App配下に制限する。"
 }

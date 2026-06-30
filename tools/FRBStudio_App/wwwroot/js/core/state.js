@@ -34,5 +34,20 @@ let currentDataViewDefCandidates = [];
 let currentDataViewDefCandidateMode = false;
 let currentDataViewDefCandidateDataName = '';
 
+// v0.17.0-studio-overlay-manifest-separation:
+// Core(wwwroot) と Overlay(studio_overlays/default) を物理分離し、manifestで追加定義だけを読む。
+const DEFAULT_STUDIO_OVERLAY_ID = 'default';
+let studioOverlayRuntime = {
+  overlayId: DEFAULT_STUDIO_OVERLAY_ID,
+  available: false,
+  manifest: null,
+  valueSetApiNames: [],
+  viewDefApiNames: [],
+  dataApiNames: [],
+  searchPatternApiNames: [],
+  pluginIndexApiNames: []
+};
+let studioOverlayLoadPromise = null;
+
 const $ = (id) => document.getElementById(id);
 

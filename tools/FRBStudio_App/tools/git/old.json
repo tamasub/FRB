@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-06-29",
+  "updated_at": "2026-06-30",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。",
-  "items_count": 87,
+  "items_count": 89,
   "work_items": [
     {
       "work_item_id": "studio_work_0001",
@@ -11995,6 +11995,426 @@
       "verification_status": "確認済み",
       "actual_updated_files": "wwwroot/mdViewer.html, Program.cs/Program.cs, data/json/01_main/studio_work_incident_data_v0_86_markdown_folder_tree_picker_done.json",
       "verification_log": "mdViewer.html内scriptをnode --checkで構文確認済み。dotnet CLIは環境に無いためProgram.csのビルド確認は未実施。"
+    },
+    {
+      "work_item_id": "studio_work_0088",
+      "phase": "v0.16.11-md-comment-sidecar-line-anchor-integrity",
+      "title": "MarkdownコメントSidecarの行位置ズレ対策 / 編集整合性制約",
+      "incident_type": "constraint_design",
+      "category": "markdown_comment_sidecar",
+      "priority": "low",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-29",
+      "updated_at": "2026-06-29",
+      "target_files": "wwwroot/mdViewer.html, wwwroot/js/markdown/* if split later, MarkdownコメントSidecar JSON, related Markdown editor rules/docs if needed",
+      "objective": "MarkdownコメントSidecar JSONが存在する状態でMarkdown本文の行数やBlock構造を変更した場合に、コメント位置がズレて嘘の位置に表示される問題を防ぎ、コメントと本文の整合性を担保する。",
+      "background": "コメントSidecar JSONはMarkdown本文を汚さずレビューコメントを保持できる一方、現状のコメント紐づけは行番号・Block位置・TableCell位置など本文構造に依存する。本文Markdownの行追加・削除・構造変更を行うと、Sidecarコメントが本来の対象からズレて表示され、レビュー上の嘘情報に見えるリスクがある。",
+      "scope": "まず制約条件として、Sidecarコメントが存在する場合のMarkdown本文編集制限・警告・整合性チェック方針を整理する。候補として、未解決コメントがある場合は本文編集を禁止する、Sidecar JSONがある場合は編集前に警告/確認を出す、編集時にSidecarを無効化/再生成扱いにする、本文hash/line_count/block_hashをSidecarへ保存してズレ検知する、コメント解決後のみ本文編集を許可する、などを検討する。",
+      "out_of_scope": "この登録時点では即時実装修正は行わない。高度な自動リベース、差分追跡によるコメント移動、複数人同時編集、GitHub PRコメント連携、AIによるコメント位置再推定は将来候補として扱う。",
+      "fixed_name_policy": "Runtimeが特定のMarkdown本文ファイル名やコメント本文フィールド名を決め打ちしない。Sidecarコメントの整合性制御は、Sidecar JSONの存在・コメント件数・status・本文メタ情報など、mdViewerのコメント機構として汎用的に扱う。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存mdViewer.html単体構成を前提に、必要なら後続でMarkdownコメント管理処理を分離する。",
+      "expected_outputs": "Sidecarコメント存在時の本文編集制限仕様、警告/禁止/確認のUX方針、本文hash/line_count/block_hash等のズレ検知案、必要に応じたmdViewer.html修正、既存コメントSidecar JSONとの互換方針、確認観点メモ。",
+      "risk": "Sidecarコメントが本文変更後も古い位置に表示されると、レビューコメントが対象外の文章に紐づき、嘘のレビュー情報として見える。逆に本文編集を強く禁止しすぎるとMarkdown Editorとしての使い勝手が落ちるため、未解決コメント・解決済コメント・コメント0件で制御を分ける必要がある。",
+      "test_points": "未解決コメントがあるMarkdownで本文行を追加/削除しようとした時に、想定どおり禁止または警告されること。Sidecar JSONが存在しないMarkdownでは従来どおり編集できること。コメント0件または全件解決済の場合の扱いが仕様どおりであること。本文変更後に古いコメントがズレた位置へ黙って表示されないこと。保存値にHTMLや不要な補助情報が混入しないこと。",
+      "user_request": "マークダウンエディターのコメントサイドカーのコメントがある場合に、本体のマークダウンの行数を変化させると、コメント位置がズレる。これはコメントサイドカーのコメントの制約条件であるが、コメントサイドカーJSONがある場合は、本体マークダウンの編集をできなくする等の整合性を担保する為の対策が必要かもしれない。ってことで、インシデントに登録して、優先を落として対応しよう。更新後JSON返却お願いします。",
+      "ai_response": "コメントSidecarは本文を汚さない代わりに、本文構造が変わるとコメント位置がズレる制約を持つ。優先度は落としつつ、本文編集禁止・警告・hash/line_countによるズレ検知などの整合性対策を検討するインシデントとして登録する。",
+      "latest_user_comment": "マークダウンエディターのコメントサイドカーのコメントがある場合に、本体のマークダウンの行数を変化させると、コメント位置がズレる。これはコメントサイドカーのコメントの制約条件であるが、コメントサイドカーJSONがある場合は、本体マークダウンの編集をできなくする等の整合性を担保する為の対策が必要かもしれない。ってことで、インシデントに登録して、優先を落として対応しよう。更新後JSON返却お願いします。",
+      "latest_ai_response": "インシデントとして登録。MarkdownコメントSidecar JSONがある場合の本文編集整合性を、低優先の後続対応として管理する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0088_001",
+          "at": "2026-06-29",
+          "speaker": "user",
+          "topic": "MarkdownコメントSidecarの制約条件",
+          "message": "コメントSidecarのコメントがある状態でMarkdown本文の行数を変えると、コメント位置がズレる。Sidecar JSONがある場合は本文編集をできなくする等、整合性を担保する対策が必要かもしれない。優先を落としてインシデント登録したい。"
+        },
+        {
+          "history_id": "disc_0088_002",
+          "at": "2026-06-29",
+          "speaker": "assistant",
+          "topic": "作業項目化方針",
+          "message": "Sidecarコメントは本文構造に依存するため、本文行数変更時にコメント位置がズレる制約を明示する。未解決コメントがある場合の編集禁止、警告、Sidecar無効化、本文hash/line_countによるズレ検知を候補として低優先インシデント化する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0088_001",
+          "at": "2026-06-29",
+          "decision": "MarkdownコメントSidecarの位置ズレ問題は、Sidecar方式の制約条件として明示し、低優先の後続インシデントとして管理する。",
+          "reason": "現時点では致命的な実装バグというより、コメントSidecar方式の運用制約・整合性設計の問題であり、優先度を落としても管理から漏らさないことが重要なため。"
+        },
+        {
+          "decision_id": "dec_0088_002",
+          "at": "2026-06-29",
+          "decision": "Sidecarコメントが存在する状態でのMarkdown本文編集には、禁止・警告・確認・ズレ検知のいずれかの安全策を入れる方向で検討する。",
+          "reason": "古いコメントがズレた位置に表示されると、レビューUIが嘘の情報を出しているように見えるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0088_001",
+          "at": "2026-06-29",
+          "change_type": "incident_added",
+          "before": "MarkdownコメントSidecar JSONが存在する状態で本文行数変更を行うとコメント位置がズレる制約が、作業項目として明示管理されていなかった。",
+          "after": "studio_work_0088 v0.16.11-md-comment-sidecar-line-anchor-integrity として、コメントSidecarの行位置ズレ対策・本文編集整合性制約を登録した。",
+          "reason": "コメント位置のズレが黙って表示されると、レビューコメントが嘘の位置に出ているように見えるため。"
+        }
+      ],
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-06-29",
+      "context_def_draft": "# ContextDef素案: v0.16.11-md-comment-sidecar-line-anchor-integrity\n\n## 読む目的\nMarkdownコメントSidecar JSONが存在する状態でMarkdown本文の行数やBlock構造を変更した場合に、コメント位置がズレて嘘の位置に表示される問題を防ぎ、コメントと本文の整合性を担保する。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- 既存のMarkdownコメントSidecar関連インシデントを読み、Sidecar方式の前提と既知リスクを確認する。\n- Foundation Rules、とくにGitHub基準ソースとZIP返却契約を確認する。\n\n## 関連文脈候補\n- `studio_work_0024` / v0.13-md-block-model-foundation: Markdown Block Modelとblock_idの前提を確認する。\n- `studio_work_0027` / v0.13.3-md-comment-sidecar-json: Sidecar JSON方式と既知のblock_id/row_indexズレリスクを確認する。\n- `studio_work_0028` / v0.13.4-md-comment-review-ui: コメント一覧UI・解決/再開・対象ジャンプの仕様を確認する。\n- `studio_work_0031` / v0.13.3.1-md-comment-sidecar-api-save-fix: Sidecar JSONを実ファイルへ保存する既存仕様を確認する。\n- `studio_work_0029` / v0.13.5-md-roundtrip-save-safety: Markdown本文再生成・RoundTrip保存安全性の文脈を確認する。\n\n## AI作業メモ\n- コメント位置のズレを単なる表示バグではなく、Sidecar方式の整合性制約として扱う。\n- 本文編集を完全禁止するか、未解決コメント時のみ禁止するか、警告/確認に留めるかをUXとして比較する。\n- 本文hash/line_count/block_hash等によるズレ検知を入れる場合、既存Sidecar JSONとの互換性を壊さない。\n\n## 対象範囲メモ\nSidecarコメントが存在する場合のMarkdown本文編集制限・警告・整合性チェック方針を整理する。必要に応じてmdViewer.htmlへ後続実装する。\n\n## 注意すべきリスク\n古いコメントが本文変更後も黙って表示されると、レビューコメントが対象外の文章に紐づき、嘘のレビュー情報として見える。逆に本文編集を強く禁止しすぎるとMarkdown Editorとして使いづらくなる。\n\n## 確認観点メモ\n未解決コメントあり、全件解決済、コメント0件、Sidecar JSONなしの各状態で本文編集の扱いが仕様どおりになることを確認する。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0088_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_87_md_comment_sidecar_anchor_integrity_added.json#studio_work_0088",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "Sidecarコメント位置ズレ対策の低優先インシデント。"
+        },
+        {
+          "context_ref_id": "target_0088_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0088_030_studio_work_0024",
+          "title": "関連作業 studio_work_0024: Markdown Block Model基盤 / SentenceBlock化",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_87_md_comment_sidecar_anchor_integrity_added.json#studio_work_0024",
+          "purpose": "Markdown Block Modelとblock_idの前提を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0088_040_studio_work_0027",
+          "title": "関連作業 studio_work_0027: SentenceBlock / TableCell コメント sidecar JSON",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_87_md_comment_sidecar_anchor_integrity_added.json#studio_work_0027",
+          "purpose": "Sidecar JSON方式と既知のblock_id/row_indexズレリスクを確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0088_050_studio_work_0028",
+          "title": "関連作業 studio_work_0028: Markdownコメント表示 / 解決 / コメント一覧UI",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_87_md_comment_sidecar_anchor_integrity_added.json#studio_work_0028",
+          "purpose": "コメント一覧UI・解決/再開・対象ジャンプの仕様を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": ""
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0089",
+      "phase": "v0.16.12-md-editor-frontmatter-saveas-sidecar",
+      "title": "Markdown Editor フロントマター編集・名前保存・Sidecar同時保存/読込対応",
+      "incident_type": "enhancement_history",
+      "category": "markdown_editor",
+      "priority": "medium",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-30",
+      "updated_at": "2026-06-30",
+      "target_files": "wwwroot/mdViewer.html, Program.cs/Program.cs, data/json/01_main/studio_work_incident_data_v0_88_md_editor_saveas_sidecar_history_added.json",
+      "objective": "Markdown Editorで実施したフロントマター編集、名前を付けて保存、SaveFileDialog前面化、コメントSidecar同時保存、任意ローカルMarkdown読込時のSidecar追従、日本語可読JSON保存の一連対応を、判断ログ込みで作業履歴として残す。",
+      "background": "Markdown Editorは、記事本文の閲覧・編集だけでなく、Zenn/Qiita向けフロントマター、コメントSidecar、任意ローカル保存、Git diffで読めるレビュー素材を扱う入口になっている。ユーザーが会社や外部へMarkdownを渡しやすくするため、管理Markdownだけでなく任意ローカルパスへの保存と、コメントSidecarを含めた持ち出し・再読込の整合性が必要になった。",
+      "scope": "フロントマター項目をパネル上で編集し本文へ反映できるようにする。Markdownの名前を付けて保存は、ブラウザ単体のダウンロードではなくFRBStudio.exe/APサーバ経由のOS SaveFileDialogで任意ローカルパスへ保存する。UI上は常時見える上部バーに名前保存ボタンを配置する。SaveFileDialogがブラウザ裏に回る問題は前面ウィンドウをownerとして渡す方式で対策する。名前保存時はMarkdown本体と同じフォルダへ .md.comments.json を同時保存する。任意ローカルMarkdownを開く時は、FRBStudio.exe側のOpenFileDialog APIで同階層Sidecarも読み込む。Sidecar JSONはGit diffで人間が読めるよう日本語をUnicodeエスケープしない形式で保存する。",
+      "out_of_scope": "コメントSidecarの行番号/Block位置ズレ対策そのものは studio_work_0088 の別インシデントで扱う。ローカルファイルinput単体で任意同階層Sidecarを自動読込することはブラウザ制約上対象外とする。任意パス文字列をHTTP APIへ直接渡して保存する方式は安全上採用しない。dotnet build確認はこの作業環境では未実施。",
+      "fixed_name_policy": "保存先の任意ローカルパスはユーザーがOSダイアログで明示選択したものだけを扱う。HTTPリクエストで任意パス文字列を直接受け取る方式は採用しない。Sidecar名はMarkdown保存ファイル名に対する `${markdownFileName}.comments.json` を基本形とし、Markdown本体と同じフォルダに置く。",
+      "module_policy": "mdViewer.html内の既存単体script構成を維持し、機能追加は既存関数群への差分追加で実施する。Program.csはMinimal API + WinForms Dialog呼び出しの既存構成に合わせる。",
+      "expected_outputs": "Markdown Editor上部に名前保存ボタンが表示される。名前保存で任意ローカルパスへMarkdown本体が保存される。同時に同階層へコメントSidecar JSONが保存される。ローカルボタンから任意ローカルMarkdownを開いた場合、同階層のSidecarも読み込まれる。Sidecar JSONの日本語本文は `\\uXXXX` ではなく可読な日本語として保存される。",
+      "risk": "WinForms SaveFileDialog/OpenFileDialogはFRBStudio.exeが動くWindowsローカル環境前提であり、GitHub Pages等の静的環境ではブラウザダウンロードにフォールバックする。前面化はブラウザ/OSのフォーカス制御に依存するため、環境によっては完全保証ではない。日本語可読JSONは人間に優しい一方、JSONとしては引き続き構造文字のエスケープが必要である。Sidecar同時保存はコメント位置の正しさまでは保証しないため、位置ズレ対策は0088で継続する。",
+      "test_points": "1. 管理Markdownを開き、フロントマターを編集して本文へ反映できること。2. 上部バーに名前保存ボタンが表示されること。3. 名前保存クリックでSaveFileDialogがブラウザ前面に表示されること。4. 任意フォルダへ xxx.md を保存した時、同じフォルダに xxx.md.comments.json も保存されること。5. Sidecar JSON内のbody/target_excerpt等の日本語がGit diffで読めること。6. ローカルボタンから任意フォルダの xxx.md を開くと同階層のSidecarコメントがレビューUIへ表示されること。7. GitHub Pages等APIなし環境では従来のダウンロード保存にフォールバックすること。",
+      "user_request": "Markdown Editorのフロントマター編集、名前を付けて保存、コメントSidecar同時保存、任意ローカルMarkdown読込時のSidecar追従、日本語可読保存について、実装後の経緯をインシデントに作業履歴として登録し、特に判断ログを明確に残して今後に繋げたい。",
+      "ai_response": "一連のMarkdown Editor対応を、単なる修正履歴ではなく判断ログ中心のインシデントとして登録する方針にした。ブラウザ制約、APサーバ経由の任意パス保存、UI表示位置、SaveFileDialog前面化、Sidecar同時保存、任意ローカル読込時のSidecar追従、日本語可読JSON保存の判断をdecision_logに整理した。",
+      "latest_user_comment": "ありがとぉーー。もともろマークダウンエディターの対応してくれたこと、インシデントに作業履歴として登録しておいてくれる。特に判断ログを明確に残して今後に繋げていきたい。よろしく。更新後JSON返却お願いします。",
+      "latest_ai_response": "Markdown Editorまわりの一連対応を、studio_work_0089として判断ログ込みで登録。更新後JSONを返却する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0089_001",
+          "at": "2026-06-30",
+          "speaker": "user",
+          "topic": "フロントマター編集要望",
+          "message": "Markdown EditorでZenn/Qiita向けのフロントマターをエディター上から直せるようにしたい。"
+        },
+        {
+          "history_id": "disc_0089_002",
+          "at": "2026-06-30",
+          "speaker": "assistant",
+          "topic": "フロントマター編集対応",
+          "message": "title/emoji/type/topics/publishedをパネル上で編集し、本文先頭の --- ... --- へ反映する方式で対応。slugはタイトルから候補表示し、本文反映後に通常保存へ繋げる方針にした。"
+        },
+        {
+          "history_id": "disc_0089_003",
+          "at": "2026-06-30",
+          "speaker": "user",
+          "topic": "名前を付けて保存とローカルパス制約の確認",
+          "message": "Markdown Editorで名前を付けて保存ダイアログを出せるのか、APサーバ経由なら保存できるローカルパス制約はないのかを確認した。"
+        },
+        {
+          "history_id": "disc_0089_004",
+          "at": "2026-06-30",
+          "speaker": "assistant",
+          "topic": "SaveFileDialog方式の採用",
+          "message": "ブラウザ単体では任意ローカルパス保存はできずダウンロード扱いになるため、FRBStudio.exe/APサーバ側でWinForms SaveFileDialogを開く方式を採用。任意パス文字列をAPIに渡す方式は安全上避ける判断をした。"
+        },
+        {
+          "history_id": "disc_0089_005",
+          "at": "2026-06-30",
+          "speaker": "user",
+          "topic": "名前保存ボタンが見えない",
+          "message": "画面上に名前保存ボタンが表示されていないと指摘。"
+        },
+        {
+          "history_id": "disc_0089_006",
+          "at": "2026-06-30",
+          "speaker": "assistant",
+          "topic": "上部バーへのボタン移動",
+          "message": "旧エディター下部ツールバーが現在の画面構成で非表示だったため、名前保存ボタンを上書き/保存検査の右側に移動し、常時見える操作として扱う判断にした。"
+        },
+        {
+          "history_id": "disc_0089_007",
+          "at": "2026-06-30",
+          "speaker": "user",
+          "topic": "SaveFileDialogが裏に出る",
+          "message": "名前保存のOSダイアログがブラウザの裏側に表示される問題を報告。"
+        },
+        {
+          "history_id": "disc_0089_008",
+          "at": "2026-06-30",
+          "speaker": "assistant",
+          "topic": "ダイアログ前面化方針",
+          "message": "SaveFileDialogがFRBStudio.exe側のダイアログとして開くためブラウザ前面権限に負けていた。現在前面のChrome/Edge等のウィンドウハンドルをownerとしてSaveFileDialogに渡す方向で対応した。"
+        },
+        {
+          "history_id": "disc_0089_009",
+          "at": "2026-06-30",
+          "speaker": "user",
+          "topic": "コメントSidecarが保存されない",
+          "message": "名前保存でMarkdown本体は任意ローカルに保存できるが、コメントSidecarが一緒に保存されていないと指摘。"
+        },
+        {
+          "history_id": "disc_0089_010",
+          "at": "2026-06-30",
+          "speaker": "assistant",
+          "topic": "Sidecar同時保存対応",
+          "message": "名前保存時にMarkdown本体だけでなく、最新Sidecar内容も同じフォルダへ `${保存Markdown名}.comments.json` として保存する方式を追加。サーバ側でも既存Sidecar探索コピーの保険を入れた。"
+        },
+        {
+          "history_id": "disc_0089_011",
+          "at": "2026-06-30",
+          "speaker": "user",
+          "topic": "任意ローカル読込時のSidecar未読込と日本語文字化け",
+          "message": "任意ローカルに保存したmdファイルを読み込んでもコメントSidecarがロードされない。またSidecar JSONの日本語が\\uXXXX形式で保存され、Git diffで人間が読めないと指摘。"
+        },
+        {
+          "history_id": "disc_0089_012",
+          "at": "2026-06-30",
+          "speaker": "assistant",
+          "topic": "ローカル読込APIと日本語可読JSON対応",
+          "message": "ブラウザのFile inputでは選択ファイルの同階層Sidecarを自動読込できないため、FRBStudio.exe側のOpenFileDialog APIを追加し、選択mdと同階層の `.comments.json` を同時読込する方式を採用。C#側のJSON保存はJavaScriptEncoder.UnsafeRelaxedJsonEscapingを使い、日本語を可読保存するようにした。"
+        },
+        {
+          "history_id": "disc_0089_013",
+          "at": "2026-06-30",
+          "speaker": "user",
+          "topic": "作業履歴登録依頼",
+          "message": "マークダウンエディターの一連対応を、今後に繋げるため判断ログを明確にした作業履歴としてインシデントJSONへ登録したい。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0089_001",
+          "at": "2026-06-30",
+          "decision": "ブラウザ単体の保存は任意ローカルパス保存ではなく、ダウンロード扱いとして位置づける。",
+          "reason": "ブラウザのセキュリティ制約上、Webページからユーザーの任意ローカルパスへ直接保存することはできないため。"
+        },
+        {
+          "decision_id": "dec_0089_002",
+          "at": "2026-06-30",
+          "decision": "任意ローカルパスへの保存はFRBStudio.exe/APサーバ側のOS SaveFileDialogで実現する。",
+          "reason": "ローカルで動くFRBStudio.exeならユーザーがOSダイアログで選んだ場所へ保存でき、ブラウザ制約を回避できるため。"
+        },
+        {
+          "decision_id": "dec_0089_003",
+          "at": "2026-06-30",
+          "decision": "任意パス文字列をHTTP APIに直接渡す方式は採用しない。",
+          "reason": "任意パス書き込みAPIは安全境界が曖昧になりやすい。必ずユーザー操作のOSダイアログを通すことで、保存先選択を人間の明示操作に限定するため。"
+        },
+        {
+          "decision_id": "dec_0089_004",
+          "at": "2026-06-30",
+          "decision": "名前保存ボタンは旧エディター下部ツールバーではなく、上部バーへ配置する。",
+          "reason": "現在のMarkdown Editorは右側プレビュー/インライン編集中心で、旧エディター下部ツールバーが非表示になる場面がある。ユーザーが見つけられない保存操作は機能として成立しないため。"
+        },
+        {
+          "decision_id": "dec_0089_005",
+          "at": "2026-06-30",
+          "decision": "SaveFileDialogは前面ウィンドウをownerとして渡す方式で前面化する。",
+          "reason": "APサーバ側で開いたOSダイアログはブラウザの子ウィンドウではないため裏に回る。ユーザー操作直後の前面ブラウザウィンドウをownerにすることで、自然なモーダル表示に近づけるため。"
+        },
+        {
+          "decision_id": "dec_0089_006",
+          "at": "2026-06-30",
+          "decision": "名前保存時はMarkdown本体だけでなく、コメントSidecar JSONも同じフォルダへ同時保存する。",
+          "reason": "Markdown本文とレビューコメントはセットで意味を持つ。Markdownだけ外部保存すると、コメントレビューの文脈が失われ、Git diff/共有時に重要な判断情報が欠落するため。"
+        },
+        {
+          "decision_id": "dec_0089_007",
+          "at": "2026-06-30",
+          "decision": "Sidecarファイル名は保存したMarkdownファイル名に `.comments.json` を付ける。",
+          "reason": "同じフォルダに置いた時、Markdown本文とSidecarの関係がファイル名だけで分かり、持ち出し・再読込・Git diffが扱いやすくなるため。"
+        },
+        {
+          "decision_id": "dec_0089_008",
+          "at": "2026-06-30",
+          "decision": "任意ローカルMarkdownの読込も、FRBStudio.exe側のOS OpenFileDialog APIを使う方向に寄せる。",
+          "reason": "ブラウザのFile inputでは選択したmdファイル以外の同階層ファイルを自動的に読めず、Sidecar追従ができないため。APサーバ側で開けば同階層Sidecarを安全に探せるため。"
+        },
+        {
+          "decision_id": "dec_0089_009",
+          "at": "2026-06-30",
+          "decision": "Sidecar JSONは日本語をUnicodeエスケープせず、人間が読める形式で保存する。",
+          "reason": "コメントSidecarはGit diffで判断ログとして読む対象でもある。`\\uXXXX` 形式では人間レビューしづらく、差分文化の価値が落ちるため。"
+        },
+        {
+          "decision_id": "dec_0089_010",
+          "at": "2026-06-30",
+          "decision": "Sidecarの位置ズレ整合性対策は、この作業ではなくstudio_work_0088へ分離して継続管理する。",
+          "reason": "今回の主眼は保存・読込・可読性であり、コメントの対象位置が本文編集でズレる問題は別の制約設計として扱う方が判断軸が混ざらないため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0089_001",
+          "at": "2026-06-30",
+          "change_type": "frontmatter_editor",
+          "before": "フロントマターは表示中心で、Markdown Editor上でtitle/emoji/type/topics/publishedを編集して本文へ反映する導線が弱かった。",
+          "after": "フロントマターパネルで主要項目を編集し、本文先頭のYAML front matterへ反映できるようにした。",
+          "reason": "Zenn/Qiita記事設定をMarkdown本文と一体で管理し、記事編集時の往復を減らすため。"
+        },
+        {
+          "history_id": "chg_0089_002",
+          "at": "2026-06-30",
+          "change_type": "save_as_dialog_api",
+          "before": "ローカル保存はブラウザダウンロード中心で、ユーザーが任意ローカルパスをOSダイアログで選ぶ導線がなかった。",
+          "after": "FRBStudio.exe/APサーバ側にSaveFileDialog APIを追加し、Markdownを任意ローカルパスへ保存できるようにした。",
+          "reason": "会社や外部へ渡すMarkdownを、ユーザーが選んだ任意フォルダに保存できるようにするため。"
+        },
+        {
+          "history_id": "chg_0089_003",
+          "at": "2026-06-30",
+          "change_type": "save_as_button_visibility",
+          "before": "名前保存ボタンが旧エディター下部ツールバー側にあり、現在の画面構成では表示されない場合があった。",
+          "after": "名前保存ボタンを上部バーの上書き/保存検査付近へ移動し、常時見える操作にした。",
+          "reason": "保存操作はユーザーがすぐ見つけられる場所に置く必要があるため。"
+        },
+        {
+          "history_id": "chg_0089_004",
+          "at": "2026-06-30",
+          "change_type": "save_dialog_foreground",
+          "before": "OS SaveFileDialogがFRBStudio.exe側のダイアログとして開き、ブラウザの裏に回ることがあった。",
+          "after": "前面ブラウザウィンドウのハンドルをownerとしてSaveFileDialogへ渡す方式で前面化を試みるようにした。",
+          "reason": "ユーザーが保存ダイアログを見失うと、保存処理が停止しているように見えるため。"
+        },
+        {
+          "history_id": "chg_0089_005",
+          "at": "2026-06-30",
+          "change_type": "sidecar_save_as",
+          "before": "名前保存ではMarkdown本体のみ保存され、コメントSidecar JSONが同じ保存先へ追従しなかった。",
+          "after": "名前保存時にMarkdown本体と同じフォルダへ `${markdownFileName}.comments.json` を同時保存するようにした。",
+          "reason": "Markdown本文とレビューコメントをセットで持ち出せるようにするため。"
+        },
+        {
+          "history_id": "chg_0089_006",
+          "at": "2026-06-30",
+          "change_type": "local_open_with_sidecar",
+          "before": "任意ローカルに保存したMarkdownを再読込しても、同階層のSidecar JSONはロードされなかった。",
+          "after": "FRBStudio.exe側のOpenFileDialog APIでMarkdownを開き、同階層Sidecarも同時読込できるようにした。",
+          "reason": "任意ローカル保存したMarkdown/Sidecarペアを、後からStudioくんでレビュー状態ごと再開できるようにするため。"
+        },
+        {
+          "history_id": "chg_0089_007",
+          "at": "2026-06-30",
+          "change_type": "readable_sidecar_json",
+          "before": "C#側のSidecar JSON再保存で日本語が `\\uXXXX` 形式にエスケープされ、人間がGit diffで読みにくかった。",
+          "after": "JSON保存時に日本語を可読なまま出力するようにした。",
+          "reason": "Sidecarコメントは機械用データであると同時に、人間が判断ログとして読むレビュー資産であるため。"
+        },
+        {
+          "history_id": "chg_0089_008",
+          "at": "2026-06-30",
+          "change_type": "incident_history_registration",
+          "before": "Markdown Editorまわりの一連対応が、実装差分としては存在していたが、判断ログを中心にした作業履歴としてインシデント管理にまとまっていなかった。",
+          "after": "studio_work_0089として、フロントマター編集・名前保存・Sidecar保存/読込・可読JSON保存の一連対応を判断ログ込みで登録した。",
+          "reason": "今後のAI作業で、ブラウザ制約・OSダイアログ・Sidecar連携・Git diff可読性の判断を再利用できるようにするため。"
+        }
+      ],
+      "verification_status": "実装作業は前段パッチでJS構文チェック済み。dotnet CLIが作業環境に無いためProgram.csのビルド確認は未実施。本作業ではインシデントJSON更新を実施し、JSON構文をPythonで検証済み。",
+      "actual_updated_files": "data/json/01_main/studio_work_incident_data_v0_88_md_editor_saveas_sidecar_history_added.json",
+      "verification_log": "更新後JSONをPython json.loadsで再読込し、items_countとwork_items件数の一致を確認する。",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-06-30",
+      "context_def_draft": "# ContextDef素案: v0.16.12-md-editor-frontmatter-saveas-sidecar\n\n## 読む目的\nMarkdown Editorのフロントマター編集、任意ローカル保存、OS SaveFileDialog、コメントSidecar同時保存/読込、日本語可読JSON保存の判断を再利用する。\n\n## 作業前に読む入口\n- この作業項目の `decision_log` を先に読む。\n- ブラウザ単体でできることと、FRBStudio.exe/APサーバ経由でできることの境界を確認する。\n- コメントSidecarの位置ズレ対策は studio_work_0088 を読む。\n\n## 判断の核\n- ブラウザは任意ローカルパス保存・同階層ファイル自動読込に制約がある。\n- 任意ローカル保存/読込はOSダイアログを通したユーザー明示操作として扱う。\n- Markdown本文とSidecarコメントは、外部共有・Git diff・レビュー再開のためセットで扱う。\n- Sidecar JSONは機械可読だけでなく人間可読である必要がある。\n\n## 次回注意\n- Sidecar同時保存はコメント対象位置の正しさまでは保証しない。本文編集時のズレ検知・編集制限は0088の整合性制約として進める。\n- GitHub PagesなどAPIなし環境ではOSダイアログは使えないため、ブラウザダウンロードフォールバックが必要。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0089_001_incident_scope",
+          "title": "対象インシデントの判断ログを読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_88_md_editor_saveas_sidecar_history_added.json#studio_work_0089",
+          "purpose": "Markdown EditorのOSダイアログ保存・Sidecar同時保存/読込・日本語可読保存の判断を把握してから関連修正を行う。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "今回の一連対応の判断ログ本体。"
+        },
+        {
+          "context_ref_id": "target_0089_002_sidecar_integrity",
+          "title": "関連作業 studio_work_0088: Sidecar位置ズレ整合性制約",
+          "read_timing": "before_design",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_88_md_editor_saveas_sidecar_history_added.json#studio_work_0088",
+          "purpose": "Sidecar保存/読込と、コメント対象位置の整合性問題を混同しないため。",
+          "failure_policy": "continue_with_warning",
+          "trust_category": "internal_context",
+          "required": false,
+          "enabled": true,
+          "sort_order": 20,
+          "note": "本文編集時のズレ対策は別インシデントで継続管理する。"
+        }
+      ]
     }
   ],
   "review_notes": [
@@ -12368,10 +12788,16 @@
       "at": "2026-06-29",
       "title": "TestRunner Adapter Strategy 登録",
       "body": "テストコードを言語別に1本の共通Runnerとして育て、Expected JSONを直接インプットにする方針を登録。Test Pattern JSONは将来のTestRun起動用カタログ、AdapterはExpected JSONのexpected_kindからAdapter Catalogを介して解決する。"
+    },
+    {
+      "note_id": "note_0089_md_editor_saveas_sidecar_judgment_log",
+      "at": "2026-06-30",
+      "title": "Markdown Editor 名前保存 / Sidecar連携 判断ログ登録",
+      "body": "Markdown Editorの一連対応をstudio_work_0089として登録。ブラウザ単体では任意ローカルパス保存や同階層Sidecar自動読込に制約があるため、FRBStudio.exe/APサーバ側のOSダイアログを採用。Markdown本体とSidecarコメントをセットで保存/読込し、Sidecar JSONはGit diffで人間が読めるよう日本語可読保存とする判断を明文化した。"
     }
   ],
-  "work_revision": "v0_86",
-  "latest_planning_note": "v0.16.7-test-runner-adapter-strategy を追加。テストコードは言語別に1本を原則とし、Expected JSONを直接インプット、Test Pattern JSONを将来のTestRun起動用カタログ、expected_kindをAdapter Catalog解決キーとして扱う将来設計を登録。",
+  "work_revision": "v0_88",
+  "latest_planning_note": "v0.16.12-md-editor-frontmatter-saveas-sidecar を追加。Markdown Editorのフロントマター編集、名前保存、SaveFileDialog前面化、コメントSidecar同時保存/読込、日本語可読JSON保存の一連対応を、判断ログ中心の完了インシデントとして登録。",
   "view_def_candidates": [
     {
       "view_def": "rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",

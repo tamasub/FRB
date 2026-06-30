@@ -10,6 +10,7 @@ $root = "F:\FRB\tools\FRBStudio_App"
 
 # ZIP に含めるフォルダ
 $targetDirs = @(
+   "_archive_eternal",
     "data",
     "defs",
     "Program.cs",
@@ -27,7 +28,10 @@ $targetRootFiles = @(
     "package.json",
     "package-lock.json",
     "playwright.config.ts",
-    "web.config"
+    "web.config",
+    "cmd_copy_frbstudio_publish_root_to_app.bat",
+    "cmd_file_list_Tree.bat",
+    "cmd_make_FRBStudio_App_zip_v2.bat"
 )
 
 # ZIP に含めないパス
@@ -40,7 +44,7 @@ $excludePaths = @(
 
 # 出力 ZIP 名
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-$zipName = "wwwroot$timestamp.zip"
+$zipName = "FRBStudio_App$timestamp.zip"
 $zipPath = Join-Path $root $zipName
 
 # 一時ステージングフォルダ

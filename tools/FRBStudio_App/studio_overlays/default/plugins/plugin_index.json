@@ -1,0 +1,15 @@
+{
+  "schema_version": "studio_plugin_index_v0_1",
+  "document_type": "studio_overlay_plugin_index",
+  "overlay_id": "default",
+  "plugins": [
+    {
+      "id": "multi_select_combo",
+      "name": "複数選択コンボ",
+      "enabled": false,
+      "manifest": "plugins/multi_select_combo/plugin.json",
+      "scope": "field_editor",
+      "note": "CoreにPluginHostが入った後に有効化する。現時点では会社Copilotへ渡すサンプル。"
+    }
+  ]
+}

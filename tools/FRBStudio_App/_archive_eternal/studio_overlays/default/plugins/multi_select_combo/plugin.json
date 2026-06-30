@@ -1,0 +1,27 @@
+{
+  "id": "multi_select_combo",
+  "name": "複数選択コンボ",
+  "version": "0.1.0",
+  "api_version": "0.1",
+  "entry": "plugin.js",
+  "extension_points": [
+    "field_editor"
+  ],
+  "contributes": {
+    "field_editors": [
+      {
+        "id": "plugin:multi_select_combo",
+        "caption": "複数選択コンボ",
+        "supports": {
+          "type": "array",
+          "itemType": "string"
+        }
+      }
+    ]
+  },
+  "permissions": [
+    "read_field_def",
+    "write_field_value"
+  ],
+  "note": "このPluginはoptionsを表示するだけ。会社マスタはValueSetDefに持たせる。"
+}

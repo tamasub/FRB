@@ -1,0 +1,77 @@
+{
+  "view_def": "overlay/default/view_defs/employee_skill_inventory_view_def.json",
+  "schema_version": "employee_skill_inventory_sample_v0_1",
+  "document_type": "employee_skill_inventory",
+  "title": "社員スキル台帳サンプル / Overlay default",
+  "status": "sample",
+  "updated_at": "2026-06-30",
+  "overlay_id": "default",
+  "employees": [
+    {
+      "employee_id": "E001",
+      "employee_name": "玉井",
+      "department": "開発部",
+      "primary_business_area_cd": "WATER",
+      "attributes": [
+        {
+          "category_cd": "BUSINESS_KNOWLEDGE",
+          "skill_cd": "WATER",
+          "skill_name": "水道",
+          "rank": "S",
+          "note": "水道業務の主担当経験あり"
+        },
+        {
+          "category_cd": "QUALIFICATION",
+          "skill_cd": "PM",
+          "skill_name": "PM",
+          "rank": "S",
+          "note": "PM資格相当"
+        }
+      ]
+    },
+    {
+      "employee_id": "E002",
+      "employee_name": "佐藤",
+      "department": "業務部",
+      "primary_business_area_cd": "ACCOUNTING",
+      "attributes": [
+        {
+          "category_cd": "BUSINESS_KNOWLEDGE",
+          "skill_cd": "ACCOUNTING",
+          "skill_name": "会計",
+          "rank": "A",
+          "note": "会計領域の設計経験あり"
+        },
+        {
+          "category_cd": "BUSINESS_KNOWLEDGE",
+          "skill_cd": "WATER",
+          "skill_name": "水道",
+          "rank": "B",
+          "note": "水道は補助経験"
+        }
+      ]
+    },
+    {
+      "employee_id": "E003",
+      "employee_name": "鈴木",
+      "department": "基盤部",
+      "primary_business_area_cd": "GENERAL",
+      "attributes": [
+        {
+          "category_cd": "ROLE_EXPERIENCE",
+          "skill_cd": "TECH_LEAD",
+          "skill_name": "テックリード",
+          "rank": "A",
+          "note": "横断支援"
+        },
+        {
+          "category_cd": "QUALIFICATION",
+          "skill_cd": "DB",
+          "skill_name": "DB",
+          "rank": "A",
+          "note": "DB設計レビュー担当"
+        }
+      ]
+    }
+  ]
+}

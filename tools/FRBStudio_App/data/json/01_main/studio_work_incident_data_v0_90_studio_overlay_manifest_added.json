@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-06-29",
+  "updated_at": "2026-06-30",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。",
-  "items_count": 86,
+  "items_count": 90,
   "work_items": [
     {
       "work_item_id": "studio_work_0001",
@@ -11911,6 +11911,698 @@
         }
       ],
       "verification_status": "確認済み"
+    },
+    {
+      "work_item_id": "studio_work_0087",
+      "phase": "v0.16.10-markdown-folder-tree-picker",
+      "title": "Markdown管理ファイル選択のフォルダー階層ピッカー対応",
+      "incident_type": "feature",
+      "category": "markdown_file_picker",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-29",
+      "updated_at": "2026-06-29",
+      "target_files": "wwwroot/mdViewer.html, Program.cs/Program.cs, data/json/01_main/studio_work_incident_data_v0_86_markdown_folder_tree_picker_done.json",
+      "objective": "Markdown Viewer/Editorの管理Markdown選択を、JSON選択と同じ考え方でフォルダー階層から選べるようにし、大事なMarkdownと一時Markdownをdata/markdown配下のフォルダーで整理できるようにする。",
+      "background": "従来の管理Markdownコンボはdata/markdown直下のファイルをフラット表示していたため、大事なファイルと一時的なファイルを区別しづらかった。JSON選択ではフォルダー階層ピッカーが有効に機能しているため、Markdown側にも同様のファイル選択体験を導入する。",
+      "scope": "mdViewer.htmlの管理Markdown選択を入力欄＋フォルダー階層ピッカー化する。/api/markdownの一覧取得を再帰対応し、サブフォルダー内のmd/markdownを相対パスで返す。既存フォルダー内のMarkdownを開いた場合、上書き保存は同じ相対パスへ保存する。ローカルファイルDrop/ローカル読込から管理対象化する場合は、従来通りdata/markdown直下へ保存する。",
+      "out_of_scope": "Markdownフォルダー作成UI、ファイル移動UI、削除UI、複数ファイル一括整理、Markdown以外の任意ファイル管理は対象外。",
+      "fixed_name_policy": "Markdownファイル名はdata/markdown配下の相対パスとして扱う。絶対パス、ドライブパス、URL、..を含むパスは拒否する。Runtime側で特定フォルダー名を固定せず、人間が作成したフォルダー構造を相対パスとして保持する。",
+      "module_policy": "mdViewer.html内の既存script構成を維持する。ES module化や外部JS分割は行わない。",
+      "expected_outputs": "フォルダー階層対応の管理Markdownピッカー、再帰的な/api/markdown一覧、サブフォルダー内Markdownの読み込み・同一パス上書き保存、Drop時は直下保存を維持、更新ファイルのみZIP。",
+      "risk": "Markdown保存名のsanitizeを強めすぎるとフォルダー相対パスが失われる。逆に緩めすぎるとdata/markdown外への保存リスクが生じる。SidecarコメントJSONも対象Markdownと同じフォルダーに保存されるため、SafeMarkdownPathの許可条件を本文MarkdownとSidecarに限定する必要がある。",
+      "test_points": "data/markdown直下のmdが一覧表示されること。data/markdown配下のサブフォルダー内mdがツリー表示されること。サブフォルダー内mdを選択して読み込めること。上書き保存時に同じ相対パスへ保存されること。ローカルmdをDrop/ローカル読込で管理対象化する場合は直下へ保存されること。../や絶対パス、URL指定がMarkdown管理APIで拒否されること。",
+      "user_request": "Markdownエディターのファイル選択comboを改善し、JSONの選択と同様のフォルダー階層でのファイル選択を可能としてほしい。mdファイルをDropして管理対象とする場合のコピー先は従来通りmarkdownフォルダー直下でよい。フォルダーの中のmdを上書き更新した場合は、そのフォルダー内での上書き保存にしてほしい。",
+      "ai_response": "Markdown管理ファイル選択をinput＋フォルダー階層ピッカーへ変更し、/api/markdownをサブフォルダー再帰一覧・サブフォルダー読み書き対応に更新。Drop/ローカル読込からの管理対象化はファイル名のみへ正規化して直下保存を維持した。",
+      "latest_user_comment": "大事なファイルと一時的なファイルを区別したいため、Markdownエディターの管理Markdown選択をフォルダー階層で選べるようにしたい。",
+      "latest_ai_response": "v0.16.10-markdown-folder-tree-pickerとして対応完了。mdViewer.htmlとProgram.cs/Program.csのみを更新し、インシデント登録を追加。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0087_001",
+          "at": "2026-06-29",
+          "speaker": "user",
+          "topic": "Markdown管理ファイル選択改善",
+          "message": "Markdownエディターのファイル選択のcomboを改善したい。大事なファイルと一時的なファイルを区別したく、jsonの選択と同様のフォルダー階層でファイル選択を可能にしたい。Drop時はmarkdown直下保存、フォルダー内mdの上書きは同じフォルダー内保存にしたい。"
+        },
+        {
+          "history_id": "disc_0087_002",
+          "at": "2026-06-29",
+          "speaker": "assistant",
+          "topic": "対応方針",
+          "message": "Markdown側にもフォルダー階層ピッカーを追加し、管理Markdown一覧は再帰取得、読み書きはdata/markdown相対パスを保持する方針で対応。Drop/ローカル読込からの管理対象化は従来通り直下保存にする。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0087_001",
+          "at": "2026-06-29",
+          "decision": "管理Markdown選択はselectではなくinput＋ツリーピッカーへ変更する。",
+          "reason": "ネイティブselectではフォルダー階層を自然に表示できず、JSON選択と同様の体験を作るにはカスタムツリーピッカーが必要なため。"
+        },
+        {
+          "decision_id": "dec_0087_002",
+          "at": "2026-06-29",
+          "decision": "Markdown保存名はdata/markdown配下の相対パスを許可する。",
+          "reason": "フォルダー内Markdownを開いた場合、上書き保存先を同じフォルダーへ維持する必要があるため。"
+        },
+        {
+          "decision_id": "dec_0087_003",
+          "at": "2026-06-29",
+          "decision": "Drop/ローカル読込からの管理対象化はファイル名のみへ正規化し、data/markdown直下へ保存する。",
+          "reason": "ユーザー指定通り、外部から取り込んだMarkdownは一時的な受け皿として従来と同じ直下保存にするため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0087_001",
+          "at": "2026-06-29",
+          "change_type": "markdown_picker_tree_ui",
+          "before": "管理Markdownコンボはselectで、data/markdown直下のMarkdownをフラット一覧表示していた。",
+          "after": "管理Markdown選択をinput＋フォルダー階層ピッカーへ変更し、サブフォルダー内Markdownも相対パスで選択可能にした。",
+          "reason": "大事なMarkdownと一時Markdownをフォルダーで整理できるようにするため。"
+        },
+        {
+          "history_id": "chg_0087_002",
+          "at": "2026-06-29",
+          "change_type": "markdown_api_recursive_paths",
+          "before": "/api/markdownは直下の.md/.markdownだけを返し、SafeMarkdownPathはスラッシュを含む相対パスを拒否していた。",
+          "after": "/api/markdownはdata/markdown配下を再帰的に列挙し、SafeMarkdownPathは安全な相対パスの.md/.markdownとSidecar .comments.jsonを許可するようにした。",
+          "reason": "フォルダー内Markdownの読み込み・同一パス上書き保存を可能にするため。"
+        }
+      ],
+      "verification_status": "確認済み",
+      "actual_updated_files": "wwwroot/mdViewer.html, Program.cs/Program.cs, data/json/01_main/studio_work_incident_data_v0_86_markdown_folder_tree_picker_done.json",
+      "verification_log": "mdViewer.html内scriptをnode --checkで構文確認済み。dotnet CLIは環境に無いためProgram.csのビルド確認は未実施。"
+    },
+    {
+      "work_item_id": "studio_work_0088",
+      "phase": "v0.16.11-md-comment-sidecar-line-anchor-integrity",
+      "title": "MarkdownコメントSidecarの行位置ズレ対策 / 編集整合性制約",
+      "incident_type": "constraint_design",
+      "category": "markdown_comment_sidecar",
+      "priority": "low",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-29",
+      "updated_at": "2026-06-29",
+      "target_files": "wwwroot/mdViewer.html, wwwroot/js/markdown/* if split later, MarkdownコメントSidecar JSON, related Markdown editor rules/docs if needed",
+      "objective": "MarkdownコメントSidecar JSONが存在する状態でMarkdown本文の行数やBlock構造を変更した場合に、コメント位置がズレて嘘の位置に表示される問題を防ぎ、コメントと本文の整合性を担保する。",
+      "background": "コメントSidecar JSONはMarkdown本文を汚さずレビューコメントを保持できる一方、現状のコメント紐づけは行番号・Block位置・TableCell位置など本文構造に依存する。本文Markdownの行追加・削除・構造変更を行うと、Sidecarコメントが本来の対象からズレて表示され、レビュー上の嘘情報に見えるリスクがある。",
+      "scope": "まず制約条件として、Sidecarコメントが存在する場合のMarkdown本文編集制限・警告・整合性チェック方針を整理する。候補として、未解決コメントがある場合は本文編集を禁止する、Sidecar JSONがある場合は編集前に警告/確認を出す、編集時にSidecarを無効化/再生成扱いにする、本文hash/line_count/block_hashをSidecarへ保存してズレ検知する、コメント解決後のみ本文編集を許可する、などを検討する。",
+      "out_of_scope": "この登録時点では即時実装修正は行わない。高度な自動リベース、差分追跡によるコメント移動、複数人同時編集、GitHub PRコメント連携、AIによるコメント位置再推定は将来候補として扱う。",
+      "fixed_name_policy": "Runtimeが特定のMarkdown本文ファイル名やコメント本文フィールド名を決め打ちしない。Sidecarコメントの整合性制御は、Sidecar JSONの存在・コメント件数・status・本文メタ情報など、mdViewerのコメント機構として汎用的に扱う。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存mdViewer.html単体構成を前提に、必要なら後続でMarkdownコメント管理処理を分離する。",
+      "expected_outputs": "Sidecarコメント存在時の本文編集制限仕様、警告/禁止/確認のUX方針、本文hash/line_count/block_hash等のズレ検知案、必要に応じたmdViewer.html修正、既存コメントSidecar JSONとの互換方針、確認観点メモ。",
+      "risk": "Sidecarコメントが本文変更後も古い位置に表示されると、レビューコメントが対象外の文章に紐づき、嘘のレビュー情報として見える。逆に本文編集を強く禁止しすぎるとMarkdown Editorとしての使い勝手が落ちるため、未解決コメント・解決済コメント・コメント0件で制御を分ける必要がある。",
+      "test_points": "未解決コメントがあるMarkdownで本文行を追加/削除しようとした時に、想定どおり禁止または警告されること。Sidecar JSONが存在しないMarkdownでは従来どおり編集できること。コメント0件または全件解決済の場合の扱いが仕様どおりであること。本文変更後に古いコメントがズレた位置へ黙って表示されないこと。保存値にHTMLや不要な補助情報が混入しないこと。",
+      "user_request": "マークダウンエディターのコメントサイドカーのコメントがある場合に、本体のマークダウンの行数を変化させると、コメント位置がズレる。これはコメントサイドカーのコメントの制約条件であるが、コメントサイドカーJSONがある場合は、本体マークダウンの編集をできなくする等の整合性を担保する為の対策が必要かもしれない。ってことで、インシデントに登録して、優先を落として対応しよう。更新後JSON返却お願いします。",
+      "ai_response": "コメントSidecarは本文を汚さない代わりに、本文構造が変わるとコメント位置がズレる制約を持つ。優先度は落としつつ、本文編集禁止・警告・hash/line_countによるズレ検知などの整合性対策を検討するインシデントとして登録する。",
+      "latest_user_comment": "マークダウンエディターのコメントサイドカーのコメントがある場合に、本体のマークダウンの行数を変化させると、コメント位置がズレる。これはコメントサイドカーのコメントの制約条件であるが、コメントサイドカーJSONがある場合は、本体マークダウンの編集をできなくする等の整合性を担保する為の対策が必要かもしれない。ってことで、インシデントに登録して、優先を落として対応しよう。更新後JSON返却お願いします。",
+      "latest_ai_response": "インシデントとして登録。MarkdownコメントSidecar JSONがある場合の本文編集整合性を、低優先の後続対応として管理する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0088_001",
+          "at": "2026-06-29",
+          "speaker": "user",
+          "topic": "MarkdownコメントSidecarの制約条件",
+          "message": "コメントSidecarのコメントがある状態でMarkdown本文の行数を変えると、コメント位置がズレる。Sidecar JSONがある場合は本文編集をできなくする等、整合性を担保する対策が必要かもしれない。優先を落としてインシデント登録したい。"
+        },
+        {
+          "history_id": "disc_0088_002",
+          "at": "2026-06-29",
+          "speaker": "assistant",
+          "topic": "作業項目化方針",
+          "message": "Sidecarコメントは本文構造に依存するため、本文行数変更時にコメント位置がズレる制約を明示する。未解決コメントがある場合の編集禁止、警告、Sidecar無効化、本文hash/line_countによるズレ検知を候補として低優先インシデント化する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0088_001",
+          "at": "2026-06-29",
+          "decision": "MarkdownコメントSidecarの位置ズレ問題は、Sidecar方式の制約条件として明示し、低優先の後続インシデントとして管理する。",
+          "reason": "現時点では致命的な実装バグというより、コメントSidecar方式の運用制約・整合性設計の問題であり、優先度を落としても管理から漏らさないことが重要なため。"
+        },
+        {
+          "decision_id": "dec_0088_002",
+          "at": "2026-06-29",
+          "decision": "Sidecarコメントが存在する状態でのMarkdown本文編集には、禁止・警告・確認・ズレ検知のいずれかの安全策を入れる方向で検討する。",
+          "reason": "古いコメントがズレた位置に表示されると、レビューUIが嘘の情報を出しているように見えるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0088_001",
+          "at": "2026-06-29",
+          "change_type": "incident_added",
+          "before": "MarkdownコメントSidecar JSONが存在する状態で本文行数変更を行うとコメント位置がズレる制約が、作業項目として明示管理されていなかった。",
+          "after": "studio_work_0088 v0.16.11-md-comment-sidecar-line-anchor-integrity として、コメントSidecarの行位置ズレ対策・本文編集整合性制約を登録した。",
+          "reason": "コメント位置のズレが黙って表示されると、レビューコメントが嘘の位置に出ているように見えるため。"
+        }
+      ],
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-06-29",
+      "context_def_draft": "# ContextDef素案: v0.16.11-md-comment-sidecar-line-anchor-integrity\n\n## 読む目的\nMarkdownコメントSidecar JSONが存在する状態でMarkdown本文の行数やBlock構造を変更した場合に、コメント位置がズレて嘘の位置に表示される問題を防ぎ、コメントと本文の整合性を担保する。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- 既存のMarkdownコメントSidecar関連インシデントを読み、Sidecar方式の前提と既知リスクを確認する。\n- Foundation Rules、とくにGitHub基準ソースとZIP返却契約を確認する。\n\n## 関連文脈候補\n- `studio_work_0024` / v0.13-md-block-model-foundation: Markdown Block Modelとblock_idの前提を確認する。\n- `studio_work_0027` / v0.13.3-md-comment-sidecar-json: Sidecar JSON方式と既知のblock_id/row_indexズレリスクを確認する。\n- `studio_work_0028` / v0.13.4-md-comment-review-ui: コメント一覧UI・解決/再開・対象ジャンプの仕様を確認する。\n- `studio_work_0031` / v0.13.3.1-md-comment-sidecar-api-save-fix: Sidecar JSONを実ファイルへ保存する既存仕様を確認する。\n- `studio_work_0029` / v0.13.5-md-roundtrip-save-safety: Markdown本文再生成・RoundTrip保存安全性の文脈を確認する。\n\n## AI作業メモ\n- コメント位置のズレを単なる表示バグではなく、Sidecar方式の整合性制約として扱う。\n- 本文編集を完全禁止するか、未解決コメント時のみ禁止するか、警告/確認に留めるかをUXとして比較する。\n- 本文hash/line_count/block_hash等によるズレ検知を入れる場合、既存Sidecar JSONとの互換性を壊さない。\n\n## 対象範囲メモ\nSidecarコメントが存在する場合のMarkdown本文編集制限・警告・整合性チェック方針を整理する。必要に応じてmdViewer.htmlへ後続実装する。\n\n## 注意すべきリスク\n古いコメントが本文変更後も黙って表示されると、レビューコメントが対象外の文章に紐づき、嘘のレビュー情報として見える。逆に本文編集を強く禁止しすぎるとMarkdown Editorとして使いづらくなる。\n\n## 確認観点メモ\n未解決コメントあり、全件解決済、コメント0件、Sidecar JSONなしの各状態で本文編集の扱いが仕様どおりになることを確認する。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0088_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_87_md_comment_sidecar_anchor_integrity_added.json#studio_work_0088",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "Sidecarコメント位置ズレ対策の低優先インシデント。"
+        },
+        {
+          "context_ref_id": "target_0088_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0088_030_studio_work_0024",
+          "title": "関連作業 studio_work_0024: Markdown Block Model基盤 / SentenceBlock化",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_87_md_comment_sidecar_anchor_integrity_added.json#studio_work_0024",
+          "purpose": "Markdown Block Modelとblock_idの前提を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0088_040_studio_work_0027",
+          "title": "関連作業 studio_work_0027: SentenceBlock / TableCell コメント sidecar JSON",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_87_md_comment_sidecar_anchor_integrity_added.json#studio_work_0027",
+          "purpose": "Sidecar JSON方式と既知のblock_id/row_indexズレリスクを確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0088_050_studio_work_0028",
+          "title": "関連作業 studio_work_0028: Markdownコメント表示 / 解決 / コメント一覧UI",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_87_md_comment_sidecar_anchor_integrity_added.json#studio_work_0028",
+          "purpose": "コメント一覧UI・解決/再開・対象ジャンプの仕様を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": ""
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0089",
+      "phase": "v0.16.12-md-editor-frontmatter-saveas-sidecar",
+      "title": "Markdown Editor フロントマター編集・名前保存・Sidecar同時保存/読込対応",
+      "incident_type": "enhancement_history",
+      "category": "markdown_editor",
+      "priority": "medium",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-30",
+      "updated_at": "2026-06-30",
+      "target_files": "wwwroot/mdViewer.html, Program.cs/Program.cs, data/json/01_main/studio_work_incident_data_v0_88_md_editor_saveas_sidecar_history_added.json",
+      "objective": "Markdown Editorで実施したフロントマター編集、名前を付けて保存、SaveFileDialog前面化、コメントSidecar同時保存、任意ローカルMarkdown読込時のSidecar追従、日本語可読JSON保存の一連対応を、判断ログ込みで作業履歴として残す。",
+      "background": "Markdown Editorは、記事本文の閲覧・編集だけでなく、Zenn/Qiita向けフロントマター、コメントSidecar、任意ローカル保存、Git diffで読めるレビュー素材を扱う入口になっている。ユーザーが会社や外部へMarkdownを渡しやすくするため、管理Markdownだけでなく任意ローカルパスへの保存と、コメントSidecarを含めた持ち出し・再読込の整合性が必要になった。",
+      "scope": "フロントマター項目をパネル上で編集し本文へ反映できるようにする。Markdownの名前を付けて保存は、ブラウザ単体のダウンロードではなくFRBStudio.exe/APサーバ経由のOS SaveFileDialogで任意ローカルパスへ保存する。UI上は常時見える上部バーに名前保存ボタンを配置する。SaveFileDialogがブラウザ裏に回る問題は前面ウィンドウをownerとして渡す方式で対策する。名前保存時はMarkdown本体と同じフォルダへ .md.comments.json を同時保存する。任意ローカルMarkdownを開く時は、FRBStudio.exe側のOpenFileDialog APIで同階層Sidecarも読み込む。Sidecar JSONはGit diffで人間が読めるよう日本語をUnicodeエスケープしない形式で保存する。",
+      "out_of_scope": "コメントSidecarの行番号/Block位置ズレ対策そのものは studio_work_0088 の別インシデントで扱う。ローカルファイルinput単体で任意同階層Sidecarを自動読込することはブラウザ制約上対象外とする。任意パス文字列をHTTP APIへ直接渡して保存する方式は安全上採用しない。dotnet build確認はこの作業環境では未実施。",
+      "fixed_name_policy": "保存先の任意ローカルパスはユーザーがOSダイアログで明示選択したものだけを扱う。HTTPリクエストで任意パス文字列を直接受け取る方式は採用しない。Sidecar名はMarkdown保存ファイル名に対する `${markdownFileName}.comments.json` を基本形とし、Markdown本体と同じフォルダに置く。",
+      "module_policy": "mdViewer.html内の既存単体script構成を維持し、機能追加は既存関数群への差分追加で実施する。Program.csはMinimal API + WinForms Dialog呼び出しの既存構成に合わせる。",
+      "expected_outputs": "Markdown Editor上部に名前保存ボタンが表示される。名前保存で任意ローカルパスへMarkdown本体が保存される。同時に同階層へコメントSidecar JSONが保存される。ローカルボタンから任意ローカルMarkdownを開いた場合、同階層のSidecarも読み込まれる。Sidecar JSONの日本語本文は `\\uXXXX` ではなく可読な日本語として保存される。",
+      "risk": "WinForms SaveFileDialog/OpenFileDialogはFRBStudio.exeが動くWindowsローカル環境前提であり、GitHub Pages等の静的環境ではブラウザダウンロードにフォールバックする。前面化はブラウザ/OSのフォーカス制御に依存するため、環境によっては完全保証ではない。日本語可読JSONは人間に優しい一方、JSONとしては引き続き構造文字のエスケープが必要である。Sidecar同時保存はコメント位置の正しさまでは保証しないため、位置ズレ対策は0088で継続する。",
+      "test_points": "1. 管理Markdownを開き、フロントマターを編集して本文へ反映できること。2. 上部バーに名前保存ボタンが表示されること。3. 名前保存クリックでSaveFileDialogがブラウザ前面に表示されること。4. 任意フォルダへ xxx.md を保存した時、同じフォルダに xxx.md.comments.json も保存されること。5. Sidecar JSON内のbody/target_excerpt等の日本語がGit diffで読めること。6. ローカルボタンから任意フォルダの xxx.md を開くと同階層のSidecarコメントがレビューUIへ表示されること。7. GitHub Pages等APIなし環境では従来のダウンロード保存にフォールバックすること。",
+      "user_request": "Markdown Editorのフロントマター編集、名前を付けて保存、コメントSidecar同時保存、任意ローカルMarkdown読込時のSidecar追従、日本語可読保存について、実装後の経緯をインシデントに作業履歴として登録し、特に判断ログを明確に残して今後に繋げたい。",
+      "ai_response": "一連のMarkdown Editor対応を、単なる修正履歴ではなく判断ログ中心のインシデントとして登録する方針にした。ブラウザ制約、APサーバ経由の任意パス保存、UI表示位置、SaveFileDialog前面化、Sidecar同時保存、任意ローカル読込時のSidecar追従、日本語可読JSON保存の判断をdecision_logに整理した。",
+      "latest_user_comment": "ありがとぉーー。もともろマークダウンエディターの対応してくれたこと、インシデントに作業履歴として登録しておいてくれる。特に判断ログを明確に残して今後に繋げていきたい。よろしく。更新後JSON返却お願いします。",
+      "latest_ai_response": "Markdown Editorまわりの一連対応を、studio_work_0089として判断ログ込みで登録。更新後JSONを返却する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0089_001",
+          "at": "2026-06-30",
+          "speaker": "user",
+          "topic": "フロントマター編集要望",
+          "message": "Markdown EditorでZenn/Qiita向けのフロントマターをエディター上から直せるようにしたい。"
+        },
+        {
+          "history_id": "disc_0089_002",
+          "at": "2026-06-30",
+          "speaker": "assistant",
+          "topic": "フロントマター編集対応",
+          "message": "title/emoji/type/topics/publishedをパネル上で編集し、本文先頭の --- ... --- へ反映する方式で対応。slugはタイトルから候補表示し、本文反映後に通常保存へ繋げる方針にした。"
+        },
+        {
+          "history_id": "disc_0089_003",
+          "at": "2026-06-30",
+          "speaker": "user",
+          "topic": "名前を付けて保存とローカルパス制約の確認",
+          "message": "Markdown Editorで名前を付けて保存ダイアログを出せるのか、APサーバ経由なら保存できるローカルパス制約はないのかを確認した。"
+        },
+        {
+          "history_id": "disc_0089_004",
+          "at": "2026-06-30",
+          "speaker": "assistant",
+          "topic": "SaveFileDialog方式の採用",
+          "message": "ブラウザ単体では任意ローカルパス保存はできずダウンロード扱いになるため、FRBStudio.exe/APサーバ側でWinForms SaveFileDialogを開く方式を採用。任意パス文字列をAPIに渡す方式は安全上避ける判断をした。"
+        },
+        {
+          "history_id": "disc_0089_005",
+          "at": "2026-06-30",
+          "speaker": "user",
+          "topic": "名前保存ボタンが見えない",
+          "message": "画面上に名前保存ボタンが表示されていないと指摘。"
+        },
+        {
+          "history_id": "disc_0089_006",
+          "at": "2026-06-30",
+          "speaker": "assistant",
+          "topic": "上部バーへのボタン移動",
+          "message": "旧エディター下部ツールバーが現在の画面構成で非表示だったため、名前保存ボタンを上書き/保存検査の右側に移動し、常時見える操作として扱う判断にした。"
+        },
+        {
+          "history_id": "disc_0089_007",
+          "at": "2026-06-30",
+          "speaker": "user",
+          "topic": "SaveFileDialogが裏に出る",
+          "message": "名前保存のOSダイアログがブラウザの裏側に表示される問題を報告。"
+        },
+        {
+          "history_id": "disc_0089_008",
+          "at": "2026-06-30",
+          "speaker": "assistant",
+          "topic": "ダイアログ前面化方針",
+          "message": "SaveFileDialogがFRBStudio.exe側のダイアログとして開くためブラウザ前面権限に負けていた。現在前面のChrome/Edge等のウィンドウハンドルをownerとしてSaveFileDialogに渡す方向で対応した。"
+        },
+        {
+          "history_id": "disc_0089_009",
+          "at": "2026-06-30",
+          "speaker": "user",
+          "topic": "コメントSidecarが保存されない",
+          "message": "名前保存でMarkdown本体は任意ローカルに保存できるが、コメントSidecarが一緒に保存されていないと指摘。"
+        },
+        {
+          "history_id": "disc_0089_010",
+          "at": "2026-06-30",
+          "speaker": "assistant",
+          "topic": "Sidecar同時保存対応",
+          "message": "名前保存時にMarkdown本体だけでなく、最新Sidecar内容も同じフォルダへ `${保存Markdown名}.comments.json` として保存する方式を追加。サーバ側でも既存Sidecar探索コピーの保険を入れた。"
+        },
+        {
+          "history_id": "disc_0089_011",
+          "at": "2026-06-30",
+          "speaker": "user",
+          "topic": "任意ローカル読込時のSidecar未読込と日本語文字化け",
+          "message": "任意ローカルに保存したmdファイルを読み込んでもコメントSidecarがロードされない。またSidecar JSONの日本語が\\uXXXX形式で保存され、Git diffで人間が読めないと指摘。"
+        },
+        {
+          "history_id": "disc_0089_012",
+          "at": "2026-06-30",
+          "speaker": "assistant",
+          "topic": "ローカル読込APIと日本語可読JSON対応",
+          "message": "ブラウザのFile inputでは選択ファイルの同階層Sidecarを自動読込できないため、FRBStudio.exe側のOpenFileDialog APIを追加し、選択mdと同階層の `.comments.json` を同時読込する方式を採用。C#側のJSON保存はJavaScriptEncoder.UnsafeRelaxedJsonEscapingを使い、日本語を可読保存するようにした。"
+        },
+        {
+          "history_id": "disc_0089_013",
+          "at": "2026-06-30",
+          "speaker": "user",
+          "topic": "作業履歴登録依頼",
+          "message": "マークダウンエディターの一連対応を、今後に繋げるため判断ログを明確にした作業履歴としてインシデントJSONへ登録したい。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0089_001",
+          "at": "2026-06-30",
+          "decision": "ブラウザ単体の保存は任意ローカルパス保存ではなく、ダウンロード扱いとして位置づける。",
+          "reason": "ブラウザのセキュリティ制約上、Webページからユーザーの任意ローカルパスへ直接保存することはできないため。"
+        },
+        {
+          "decision_id": "dec_0089_002",
+          "at": "2026-06-30",
+          "decision": "任意ローカルパスへの保存はFRBStudio.exe/APサーバ側のOS SaveFileDialogで実現する。",
+          "reason": "ローカルで動くFRBStudio.exeならユーザーがOSダイアログで選んだ場所へ保存でき、ブラウザ制約を回避できるため。"
+        },
+        {
+          "decision_id": "dec_0089_003",
+          "at": "2026-06-30",
+          "decision": "任意パス文字列をHTTP APIに直接渡す方式は採用しない。",
+          "reason": "任意パス書き込みAPIは安全境界が曖昧になりやすい。必ずユーザー操作のOSダイアログを通すことで、保存先選択を人間の明示操作に限定するため。"
+        },
+        {
+          "decision_id": "dec_0089_004",
+          "at": "2026-06-30",
+          "decision": "名前保存ボタンは旧エディター下部ツールバーではなく、上部バーへ配置する。",
+          "reason": "現在のMarkdown Editorは右側プレビュー/インライン編集中心で、旧エディター下部ツールバーが非表示になる場面がある。ユーザーが見つけられない保存操作は機能として成立しないため。"
+        },
+        {
+          "decision_id": "dec_0089_005",
+          "at": "2026-06-30",
+          "decision": "SaveFileDialogは前面ウィンドウをownerとして渡す方式で前面化する。",
+          "reason": "APサーバ側で開いたOSダイアログはブラウザの子ウィンドウではないため裏に回る。ユーザー操作直後の前面ブラウザウィンドウをownerにすることで、自然なモーダル表示に近づけるため。"
+        },
+        {
+          "decision_id": "dec_0089_006",
+          "at": "2026-06-30",
+          "decision": "名前保存時はMarkdown本体だけでなく、コメントSidecar JSONも同じフォルダへ同時保存する。",
+          "reason": "Markdown本文とレビューコメントはセットで意味を持つ。Markdownだけ外部保存すると、コメントレビューの文脈が失われ、Git diff/共有時に重要な判断情報が欠落するため。"
+        },
+        {
+          "decision_id": "dec_0089_007",
+          "at": "2026-06-30",
+          "decision": "Sidecarファイル名は保存したMarkdownファイル名に `.comments.json` を付ける。",
+          "reason": "同じフォルダに置いた時、Markdown本文とSidecarの関係がファイル名だけで分かり、持ち出し・再読込・Git diffが扱いやすくなるため。"
+        },
+        {
+          "decision_id": "dec_0089_008",
+          "at": "2026-06-30",
+          "decision": "任意ローカルMarkdownの読込も、FRBStudio.exe側のOS OpenFileDialog APIを使う方向に寄せる。",
+          "reason": "ブラウザのFile inputでは選択したmdファイル以外の同階層ファイルを自動的に読めず、Sidecar追従ができないため。APサーバ側で開けば同階層Sidecarを安全に探せるため。"
+        },
+        {
+          "decision_id": "dec_0089_009",
+          "at": "2026-06-30",
+          "decision": "Sidecar JSONは日本語をUnicodeエスケープせず、人間が読める形式で保存する。",
+          "reason": "コメントSidecarはGit diffで判断ログとして読む対象でもある。`\\uXXXX` 形式では人間レビューしづらく、差分文化の価値が落ちるため。"
+        },
+        {
+          "decision_id": "dec_0089_010",
+          "at": "2026-06-30",
+          "decision": "Sidecarの位置ズレ整合性対策は、この作業ではなくstudio_work_0088へ分離して継続管理する。",
+          "reason": "今回の主眼は保存・読込・可読性であり、コメントの対象位置が本文編集でズレる問題は別の制約設計として扱う方が判断軸が混ざらないため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0089_001",
+          "at": "2026-06-30",
+          "change_type": "frontmatter_editor",
+          "before": "フロントマターは表示中心で、Markdown Editor上でtitle/emoji/type/topics/publishedを編集して本文へ反映する導線が弱かった。",
+          "after": "フロントマターパネルで主要項目を編集し、本文先頭のYAML front matterへ反映できるようにした。",
+          "reason": "Zenn/Qiita記事設定をMarkdown本文と一体で管理し、記事編集時の往復を減らすため。"
+        },
+        {
+          "history_id": "chg_0089_002",
+          "at": "2026-06-30",
+          "change_type": "save_as_dialog_api",
+          "before": "ローカル保存はブラウザダウンロード中心で、ユーザーが任意ローカルパスをOSダイアログで選ぶ導線がなかった。",
+          "after": "FRBStudio.exe/APサーバ側にSaveFileDialog APIを追加し、Markdownを任意ローカルパスへ保存できるようにした。",
+          "reason": "会社や外部へ渡すMarkdownを、ユーザーが選んだ任意フォルダに保存できるようにするため。"
+        },
+        {
+          "history_id": "chg_0089_003",
+          "at": "2026-06-30",
+          "change_type": "save_as_button_visibility",
+          "before": "名前保存ボタンが旧エディター下部ツールバー側にあり、現在の画面構成では表示されない場合があった。",
+          "after": "名前保存ボタンを上部バーの上書き/保存検査付近へ移動し、常時見える操作にした。",
+          "reason": "保存操作はユーザーがすぐ見つけられる場所に置く必要があるため。"
+        },
+        {
+          "history_id": "chg_0089_004",
+          "at": "2026-06-30",
+          "change_type": "save_dialog_foreground",
+          "before": "OS SaveFileDialogがFRBStudio.exe側のダイアログとして開き、ブラウザの裏に回ることがあった。",
+          "after": "前面ブラウザウィンドウのハンドルをownerとしてSaveFileDialogへ渡す方式で前面化を試みるようにした。",
+          "reason": "ユーザーが保存ダイアログを見失うと、保存処理が停止しているように見えるため。"
+        },
+        {
+          "history_id": "chg_0089_005",
+          "at": "2026-06-30",
+          "change_type": "sidecar_save_as",
+          "before": "名前保存ではMarkdown本体のみ保存され、コメントSidecar JSONが同じ保存先へ追従しなかった。",
+          "after": "名前保存時にMarkdown本体と同じフォルダへ `${markdownFileName}.comments.json` を同時保存するようにした。",
+          "reason": "Markdown本文とレビューコメントをセットで持ち出せるようにするため。"
+        },
+        {
+          "history_id": "chg_0089_006",
+          "at": "2026-06-30",
+          "change_type": "local_open_with_sidecar",
+          "before": "任意ローカルに保存したMarkdownを再読込しても、同階層のSidecar JSONはロードされなかった。",
+          "after": "FRBStudio.exe側のOpenFileDialog APIでMarkdownを開き、同階層Sidecarも同時読込できるようにした。",
+          "reason": "任意ローカル保存したMarkdown/Sidecarペアを、後からStudioくんでレビュー状態ごと再開できるようにするため。"
+        },
+        {
+          "history_id": "chg_0089_007",
+          "at": "2026-06-30",
+          "change_type": "readable_sidecar_json",
+          "before": "C#側のSidecar JSON再保存で日本語が `\\uXXXX` 形式にエスケープされ、人間がGit diffで読みにくかった。",
+          "after": "JSON保存時に日本語を可読なまま出力するようにした。",
+          "reason": "Sidecarコメントは機械用データであると同時に、人間が判断ログとして読むレビュー資産であるため。"
+        },
+        {
+          "history_id": "chg_0089_008",
+          "at": "2026-06-30",
+          "change_type": "incident_history_registration",
+          "before": "Markdown Editorまわりの一連対応が、実装差分としては存在していたが、判断ログを中心にした作業履歴としてインシデント管理にまとまっていなかった。",
+          "after": "studio_work_0089として、フロントマター編集・名前保存・Sidecar保存/読込・可読JSON保存の一連対応を判断ログ込みで登録した。",
+          "reason": "今後のAI作業で、ブラウザ制約・OSダイアログ・Sidecar連携・Git diff可読性の判断を再利用できるようにするため。"
+        }
+      ],
+      "verification_status": "実装作業は前段パッチでJS構文チェック済み。dotnet CLIが作業環境に無いためProgram.csのビルド確認は未実施。本作業ではインシデントJSON更新を実施し、JSON構文をPythonで検証済み。",
+      "actual_updated_files": "data/json/01_main/studio_work_incident_data_v0_88_md_editor_saveas_sidecar_history_added.json",
+      "verification_log": "更新後JSONをPython json.loadsで再読込し、items_countとwork_items件数の一致を確認する。",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-06-30",
+      "context_def_draft": "# ContextDef素案: v0.16.12-md-editor-frontmatter-saveas-sidecar\n\n## 読む目的\nMarkdown Editorのフロントマター編集、任意ローカル保存、OS SaveFileDialog、コメントSidecar同時保存/読込、日本語可読JSON保存の判断を再利用する。\n\n## 作業前に読む入口\n- この作業項目の `decision_log` を先に読む。\n- ブラウザ単体でできることと、FRBStudio.exe/APサーバ経由でできることの境界を確認する。\n- コメントSidecarの位置ズレ対策は studio_work_0088 を読む。\n\n## 判断の核\n- ブラウザは任意ローカルパス保存・同階層ファイル自動読込に制約がある。\n- 任意ローカル保存/読込はOSダイアログを通したユーザー明示操作として扱う。\n- Markdown本文とSidecarコメントは、外部共有・Git diff・レビュー再開のためセットで扱う。\n- Sidecar JSONは機械可読だけでなく人間可読である必要がある。\n\n## 次回注意\n- Sidecar同時保存はコメント対象位置の正しさまでは保証しない。本文編集時のズレ検知・編集制限は0088の整合性制約として進める。\n- GitHub PagesなどAPIなし環境ではOSダイアログは使えないため、ブラウザダウンロードフォールバックが必要。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0089_001_incident_scope",
+          "title": "対象インシデントの判断ログを読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_88_md_editor_saveas_sidecar_history_added.json#studio_work_0089",
+          "purpose": "Markdown EditorのOSダイアログ保存・Sidecar同時保存/読込・日本語可読保存の判断を把握してから関連修正を行う。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "今回の一連対応の判断ログ本体。"
+        },
+        {
+          "context_ref_id": "target_0089_002_sidecar_integrity",
+          "title": "関連作業 studio_work_0088: Sidecar位置ズレ整合性制約",
+          "read_timing": "before_design",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_88_md_editor_saveas_sidecar_history_added.json#studio_work_0088",
+          "purpose": "Sidecar保存/読込と、コメント対象位置の整合性問題を混同しないため。",
+          "failure_policy": "continue_with_warning",
+          "trust_category": "internal_context",
+          "required": false,
+          "enabled": true,
+          "sort_order": 20,
+          "note": "本文編集時のズレ対策は別インシデントで継続管理する。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0090",
+      "phase": "v0.17.0-studio-overlay-manifest-separation",
+      "title": "Studio Overlay / Manifest によるCore-Copilot完全分離設計",
+      "incident_type": "architecture_design",
+      "category": "overlay_manifest",
+      "priority": "high",
+      "status": "設計整理済み",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-06-30",
+      "updated_at": "2026-06-30",
+      "target_files": "studio_overlays/default/studio_manifest.json, studio_overlays/default/value_sets/*.json, studio_overlays/default/plugins/**, studio_overlays/default/search_patterns/*.json, studio_overlays/default/view_defs/*.json, wwwroot/js/core/* overlay loader candidates, wwwroot/data/json/00_rules/common_enums_v0_1.json (Core側・編集禁止対象)",
+      "objective": "Studio Coreと会社Copilotが触る拡張領域を物理ファイル単位で完全分離し、GitHubから上書きするCoreを守りながら、会社側のValueSet・Plugin・SearchDef・ViewDefをOverlayとして追加できる設計を確立する。",
+      "background": "ユーザーはChatGPTが更新したFRBStudio CoreをGitHubへ上げ、会社ではそれをダウンロードして上書きする運用を想定している。そのため、会社Copilotが common_enums_v0_1.json や wwwroot/js/core などのCore正本を触ると、次回Core更新で差分が衝突または消失する。会社Copilotに機能追加を依頼する場合は、本体を触らせず、別領域だけを編集させる契約が必要になった。",
+      "scope": "Core領域は wwwroot/ を基本とし、GitHub配布・ChatGPT管理・上書き更新対象とする。Overlay領域は studio_overlays/default/ とし、会社Copilot管理・上書き禁止・勇者領域として扱う。CoreとOverlayの共通言語は studio_overlays/default/studio_manifest.json とし、Coreはmanifestに宣言されたvalue_sets/plugins/search_patterns/view_defsだけを追加読み込みする。既存 common_enums_v0_1.json はCore標準のCommonEnum/ValueSet正本として維持し、会社固有の区分・資格・ランク・業務知識はOverlay側のcompany_value_sets.json等へ分離する。",
+      "out_of_scope": "このインシデントでは実装パッチやサンプルデータZIPの作成までは行わない。複数Overlay切替UI、Overlay間の優先順位、Hard sandbox化、iframe分離、Plugin API本実装、社員スキル検索Pluginの完成版は後続作業とする。まずは設計思想・責任境界・ファイル配置・判断ログをインシデントに固定する。",
+      "fixed_name_policy": "wwwroot/ はStudio Coreの標準領域、studio_overlays/default/ は初期Overlay領域としてStudio標準配置名にする。default は現在の単一勇者領域を表すが、将来は studio_overlays/{overlay_id}/ へ拡張可能とする。common_enums_v0_1.json はCore標準値語彙として会社Copilot編集禁止。会社固有IDは company.* や company_skill.* などCoreと衝突しないnamespaceを使う。",
+      "module_policy": "type=\"module\" 化はこの設計整理の主目的ではない。まず従来script方式のCoreに、manifest読込・Overlay追加読込・衝突チェックを段階導入できるようにする。",
+      "expected_outputs": "Overlay設計方針、studio_overlays/default/studio_manifest.json の最小仕様、会社Copilotに渡す編集禁止/許可ルール、ValueSetDefのCore/Overlay分離方針、Plugin/SearchDef/ViewDefのOverlay配置方針、社員スキル検索・複数選択コンボ・集計Pluginに向けたサンプルデータ作成方針。",
+      "risk": "OverlayがCoreを上書き可能になると、会社CopilotがCore標準値語彙やRuntimeを破壊するリスクがある。逆にOverlayを厳格にしすぎると会社側拡張が進まない。manifestに書かれていないファイルを暗黙読込すると責任境界が崩れる。ID衝突を自動上書きするとCoreの意味が壊れるため、衝突時はエラーまたは明示承認が必要。",
+      "test_points": "1. wwwroot/をGitHub最新版で上書きしても studio_overlays/default/ が残ること。2. Core標準 common_enums_v0_1.json を会社Copilotが触らない運用になっていること。3. Core起動時に studio_overlays/default/studio_manifest.json が存在すれば追加定義を読み込めること。4. company.* namespaceのValueSetがCore標準と衝突せず追加されること。5. Core側IDとOverlay側IDが衝突した場合に自動上書きされないこと。6. Copilotへの依頼文で編集対象が studio_overlays/default/ 配下に限定されること。",
+      "user_request": "Studioくんの格がかなり上がった。明日、会社Copilotくんに渡す為の情報整理及びサンプルデータ含むところまで辿りつきたい。まずは設計整理して、インシデント登録し、更新後JSONを返却してほしい。",
+      "ai_response": "Studio Coreと会社Copilot管理領域を物理ファイル単位で分離する設計として、wwwroot/をCore、studio_overlays/default/をOverlay、studio_manifest.jsonを共通言語とする方針を登録する。common_enums_v0_1.jsonはCore側の正本として会社Copilot編集禁止とし、会社固有ValueSet/Plugin/SearchPattern/ViewDefはOverlay側へ追加する。",
+      "latest_user_comment": "いやいや、もうこれはStudioくんの格がかなり上がったよぉ～笑 明日、会社Copilotくんに渡す為の情報整理及びサンプルデータ含むところまで、なんとか今日辿りつくかな？？まずは、設計整理して、インシデント登録お願いします。更新後JSON返却お願いします。",
+      "latest_ai_response": "v0.17.0-studio-overlay-manifest-separation として、Studio Overlay / Manifest によるCore-Copilot完全分離設計をインシデント登録。更新後JSONを返却する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0090_001",
+          "at": "2026-06-30",
+          "speaker": "user",
+          "topic": "会社CopilotとChatGPTの編集領域分離",
+          "message": "会社CopilotくんがさわるファイルとChatGPTがさわるファイルは完全分離したい。common_enums_v0_1.jsonを会社Copilotくんには絶対さわらせない。ChatGPT更新のCoreをGitHubへ上げ、会社ではダウンロードして上書きする運用だから、Copilotがさわるファイルは絶対に分けたい。"
+        },
+        {
+          "history_id": "disc_0090_002",
+          "at": "2026-06-30",
+          "speaker": "assistant",
+          "topic": "CoreとOverlayの分離案",
+          "message": "wwwroot/をChatGPT管理・GitHub上書き対象のCore、会社側の追加定義を別領域に置くOverlayとして分ける案を提示。common_enums_v0_1.jsonはCore標準、会社固有のValueSetは別ファイルへ分離する方針を整理した。"
+        },
+        {
+          "history_id": "disc_0090_003",
+          "at": "2026-06-30",
+          "speaker": "user",
+          "topic": "共通言語としてのmanifest",
+          "message": "共通言語＝local_company/studio_company_manifest.json、このファイルで会話するというルールが良い。ただし local_company という名前が気に入らない。将来Studioくんが出世したら勇者ごとに作られる可能性がある。"
+        },
+        {
+          "history_id": "disc_0090_004",
+          "at": "2026-06-30",
+          "speaker": "assistant",
+          "topic": "studio_overlays/default 命名案",
+          "message": "local_companyではなく studio_overlays/ を提案。Coreに重ねる追加定義という意味を持ち、将来の複数勇者領域にも拡張できる。最初のOverlay名として default/ を候補にした。"
+        },
+        {
+          "history_id": "disc_0090_005",
+          "at": "2026-06-30",
+          "speaker": "user",
+          "topic": "default採用",
+          "message": "default/ これやっ笑"
+        },
+        {
+          "history_id": "disc_0090_006",
+          "at": "2026-06-30",
+          "speaker": "assistant",
+          "topic": "採用ルール整理",
+          "message": "studio_overlays/default/ を採用。wwwroot/ はCore、studio_overlays/default/ はOverlay、studio_overlays/default/studio_manifest.json はCoreとOverlayの共通言語というルールを整理した。"
+        },
+        {
+          "history_id": "disc_0090_007",
+          "at": "2026-06-30",
+          "speaker": "user",
+          "topic": "インシデント登録依頼",
+          "message": "明日、会社Copilotくんに渡す為の情報整理及びサンプルデータまで辿りつきたい。まずは設計整理してインシデント登録し、更新後JSONを返却してほしい。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0090_001",
+          "at": "2026-06-30",
+          "decision": "Studio Core領域は wwwroot/ とし、ChatGPT管理・GitHub上書き対象として扱う。",
+          "reason": "ユーザーはChatGPTが更新したCoreをGitHubから会社へ持ち込み、会社側では上書き更新する運用を想定しているため。"
+        },
+        {
+          "decision_id": "dec_0090_002",
+          "at": "2026-06-30",
+          "decision": "会社Copilotが触る領域は studio_overlays/default/ 配下に限定する。",
+          "reason": "会社Copilotの変更がCore更新で消えたり、逆にCore正本を汚したりしないよう、物理ファイル単位で編集境界を保証するため。"
+        },
+        {
+          "decision_id": "dec_0090_003",
+          "at": "2026-06-30",
+          "decision": "CoreとOverlayの共通言語は studio_overlays/default/studio_manifest.json とする。",
+          "reason": "CoreはOverlayの中身を暗黙探索せず、manifestに宣言された定義だけを読み込むことで、責任境界とレビュー対象を明確にできるため。"
+        },
+        {
+          "decision_id": "dec_0090_004",
+          "at": "2026-06-30",
+          "decision": "common_enums_v0_1.json はCore側の標準CommonEnum/ValueSet正本として維持し、会社Copilot編集禁止とする。",
+          "reason": "会社固有のenumやコードをCore標準値語彙に混ぜると、GitHub配布物と会社ローカル拡張が衝突し、将来のCore更新で破綻するため。"
+        },
+        {
+          "decision_id": "dec_0090_005",
+          "at": "2026-06-30",
+          "decision": "会社固有のValueSetDefは studio_overlays/default/value_sets/ 配下に置く。",
+          "reason": "会社の資格・業務知識・ランク・区分などはCoreではなくOverlayに属する値語彙であり、EditorやPluginにも持たせないため。"
+        },
+        {
+          "decision_id": "dec_0090_006",
+          "at": "2026-06-30",
+          "decision": "OverlayはCoreを上書きせず、原則として追加合成のみを行う。",
+          "reason": "上書きを許すと、OverlayがCoreの意味を変えてしまい、GitHub配布物の再現性と安全性が失われるため。"
+        },
+        {
+          "decision_id": "dec_0090_007",
+          "at": "2026-06-30",
+          "decision": "Core IDとOverlay IDが衝突した場合は自動上書きせず、エラーまたは明示承認対象とする。",
+          "reason": "company側の定義がstudio.*やcontext.*などのCore標準IDを上書きすると、既存ViewDefやRuntimeの意味が壊れるため。"
+        },
+        {
+          "decision_id": "dec_0090_008",
+          "at": "2026-06-30",
+          "decision": "local_company ではなく studio_overlays/default/ を採用する。",
+          "reason": "companyという名前は会社用途に狭く、将来の複数勇者領域に拡張しにくい。overlayはCoreに重ねる追加定義という設計意図を表せるため。"
+        },
+        {
+          "decision_id": "dec_0090_009",
+          "at": "2026-06-30",
+          "decision": "最初のOverlay IDは default とする。",
+          "reason": "現時点では複数Overlayを想定せず、単一の会社/利用者拡張領域として扱える。将来 studio_overlays/{overlay_id}/ に自然拡張できるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0090_001",
+          "at": "2026-06-30",
+          "change_type": "incident_added",
+          "before": "会社Copilotが触るファイルとChatGPT/Coreが触るファイルを完全分離する設計判断が、インシデント管理JSONに登録されていなかった。",
+          "after": "studio_work_0090 として、Studio Overlay / Manifest によるCore-Copilot完全分離設計を登録した。",
+          "reason": "明日以降、会社Copilotへ渡す情報整理・サンプルデータ・依頼文を作る前提として、責任境界と判断ログを先に固定するため。"
+        }
+      ],
+      "verification_status": "インシデント登録のみ実施。JSON構文はPythonで検証済み。実装・サンプルデータ作成・Core読込対応は後続作業。",
+      "actual_updated_files": [
+        "studio_work_incident_data_v0_90_studio_overlay_manifest_added.json"
+      ],
+      "verification_log": [
+        {
+          "verification_id": "vrf_0090_001",
+          "at": "2026-06-30",
+          "method": "python json.load",
+          "result": "OK",
+          "note": "更新後JSONの構文検証を実施。"
+        }
+      ],
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-06-30",
+      "context_def_draft": "# ContextDef素案: v0.17.0-studio-overlay-manifest-separation\n\n## 読む目的\nStudio Coreと会社Copilot管理領域を物理ファイル単位で完全分離し、Core更新で会社拡張を壊さず、会社CopilotにもCoreを触らせないためのOverlay/Manifest設計を理解する。\n\n## 作業前に読む入口\n- studio_work_0090 の objective / background / scope / decision_log を最優先で読む。\n- common_enums_v0_1.json はCore側標準値語彙であり、会社Copilot編集禁止であることを確認する。\n- Overlay側の共通言語は studio_overlays/default/studio_manifest.json である。\n\n## 中心ルール\n- wwwroot/ はCore。ChatGPT管理。GitHubから上書きする。\n- studio_overlays/default/ はOverlay。会社Copilot管理。Core更新で上書きしない。\n- CoreとOverlayの会話は studio_manifest.json で行う。\n- OverlayはCoreを上書きせず、追加合成を基本とする。\n- ID衝突は自動上書き禁止。エラーまたは明示承認対象とする。\n\n## Copilot依頼時の禁止事項\n- wwwroot/ 配下を編集しない。\n- wwwroot/data/json/00_rules/common_enums_v0_1.json を編集しない。\n- wwwroot/js/core/ 配下を編集しない。\n- Core標準ID studio.* / context.* / relation.* / qa.* を上書きしない。\n\n## Copilot依頼時の許可事項\n- studio_overlays/default/value_sets/ 配下へ会社ValueSetを追加する。\n- studio_overlays/default/plugins/ 配下へPluginを追加する。\n- studio_overlays/default/search_patterns/ 配下へ検索パターンを追加する。\n- studio_overlays/default/view_defs/ 配下へ会社ViewDefを追加する。\n- studio_overlays/default/studio_manifest.json に追加ファイルを宣言する。\n\n## 次の成果物候補\n- studio_overlays/default/studio_manifest.json のサンプル。\n- company_value_sets.json のサンプル。\n- employee_skill_sample_data.json のサンプル。\n- employee_skill_view_def.json のサンプル。\n- 会社Copilot向け依頼テンプレート。\n",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0090_001_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "Core配布物と返却ZIP/JSONの契約を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "canonical",
+          "required": false,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "Overlay設計はGitHub上書き運用と密接に関係する。"
+        },
+        {
+          "context_ref_id": "target_0090_002_common_enums",
+          "title": "Core標準CommonEnum正本を確認する",
+          "read_timing": "before_work",
+          "target_path": "wwwroot/data/json/00_rules/common_enums_v0_1.json",
+          "purpose": "会社Copilot編集禁止のCore標準値語彙として扱う前提を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "canonical",
+          "required": false,
+          "enabled": true,
+          "sort_order": 20,
+          "note": "会社固有ValueSetはOverlay側へ分離する。"
+        }
+      ]
     }
   ],
   "review_notes": [
@@ -12284,10 +12976,16 @@
       "at": "2026-06-29",
       "title": "TestRunner Adapter Strategy 登録",
       "body": "テストコードを言語別に1本の共通Runnerとして育て、Expected JSONを直接インプットにする方針を登録。Test Pattern JSONは将来のTestRun起動用カタログ、AdapterはExpected JSONのexpected_kindからAdapter Catalogを介して解決する。"
+    },
+    {
+      "note_id": "note_0089_md_editor_saveas_sidecar_judgment_log",
+      "at": "2026-06-30",
+      "title": "Markdown Editor 名前保存 / Sidecar連携 判断ログ登録",
+      "body": "Markdown Editorの一連対応をstudio_work_0089として登録。ブラウザ単体では任意ローカルパス保存や同階層Sidecar自動読込に制約があるため、FRBStudio.exe/APサーバ側のOSダイアログを採用。Markdown本体とSidecarコメントをセットで保存/読込し、Sidecar JSONはGit diffで人間が読めるよう日本語可読保存とする判断を明文化した。"
     }
   ],
-  "work_revision": "v0.16.7-test-runner-adapter-strategy-added",
-  "latest_planning_note": "v0.16.7-test-runner-adapter-strategy を追加。テストコードは言語別に1本を原則とし、Expected JSONを直接インプット、Test Pattern JSONを将来のTestRun起動用カタログ、expected_kindをAdapter Catalog解決キーとして扱う将来設計を登録。",
+  "work_revision": "v0_88",
+  "latest_planning_note": "v0.16.12-md-editor-frontmatter-saveas-sidecar を追加。Markdown Editorのフロントマター編集、名前保存、SaveFileDialog前面化、コメントSidecar同時保存/読込、日本語可読JSON保存の一連対応を、判断ログ中心の完了インシデントとして登録。",
   "view_def_candidates": [
     {
       "view_def": "rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",

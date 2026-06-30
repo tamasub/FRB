@@ -1,0 +1,39 @@
+{
+  "schema_version": "studio_overlay_search_patterns_v0_1",
+  "document_type": "search_pattern_registry",
+  "overlay_id": "default",
+  "title": "社員スキル検索パターンサンプル",
+  "search_patterns": [
+    {
+      "id": "company_skill.water_rank_a_or_higher",
+      "caption": "水道 A以上",
+      "target_data": "overlay/default/data/employee_skill_inventory_sample.json",
+      "target_view_def": "overlay/default/view_defs/employee_skill_inventory_view_def.json",
+      "condition": {
+        "type": "child_array_any",
+        "path": "attributes",
+        "where": [
+          {
+            "field": "category_cd",
+            "op": "=",
+            "value": "BUSINESS_KNOWLEDGE",
+            "valueSet": "company.skill_category"
+          },
+          {
+            "field": "skill_cd",
+            "op": "=",
+            "value": "WATER",
+            "valueSet": "company.business_area"
+          },
+          {
+            "field": "rank",
+            "op": ">=",
+            "value": "A",
+            "valueSet": "company.skill_rank"
+          }
+        ]
+      },
+      "note": "Core検索エンジンがchild_array_any/ordered_enum比較を持った後に有効化する想定。今はCopilotへ渡す仕様サンプル。"
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "schema_version": "studio_overlay_manifest_v0_1",
+  "document_type": "studio_overlay_manifest",
+  "overlay_id": "default",
+  "title": "Studio Overlay default / 勇者領域",
+  "status": "active",
+  "owner": "company_copilot",
+  "managed_by": "company_copilot",
+  "created_at": "2026-06-30",
+  "updated_at": "2026-06-30",
+  "purpose": "Studio Core(wwwroot)を変更せず、会社・勇者側のValueSet/ViewDef/SearchPattern/Plugin/Dataを追加するためのOverlay共通言語。",
+  "core_boundary_policy": {
+    "core_root": "wwwroot/",
+    "overlay_root": "studio_overlays/default/",
+    "rule": "会社Copilotは studio_overlays/default/ 配下のみ編集する。wwwroot/ と data/json/00_rules/common_enums_v0_1.json は編集禁止。"
+  },
+  "namespace_policy": {
+    "allowed_overlay_prefixes": [
+      "company",
+      "company_hr",
+      "company_skill"
+    ],
+    "collision_policy": "Core側のstudio/context/relation/qa等のIDをOverlay側で上書きしない。衝突時はCore側が警告または停止する。"
+  },
+  "value_set_files": [
+    "value_sets/company_value_sets.json"
+  ],
+  "data_files": [
+    "data/employee_skill_inventory_sample.json"
+  ],
+  "view_def_files": [
+    "view_defs/employee_skill_inventory_view_def.json"
+  ],
+  "search_pattern_files": [
+    "search_patterns/employee_skill_search_patterns.json"
+  ],
+  "plugin_index_files": [
+    "plugins/plugin_index.json"
+  ],
+  "copilot_edit_policy": {
+    "allowed": [
+      "studio_overlays/default/value_sets/**/*.json",
+      "studio_overlays/default/data/**/*.json",
+      "studio_overlays/default/view_defs/**/*.json",
+      "studio_overlays/default/search_patterns/**/*.json",
+      "studio_overlays/default/plugins/**/*"
+    ],
+    "forbidden": [
+      "wwwroot/**",
+      "data/json/00_rules/common_enums_v0_1.json",
+      "defs/**",
+      "Program.cs/**"
+    ]
+  },
+  "notes": "今はdefaultだけを使う。将来、勇者ごとに studio_overlays/{overlay_id}/studio_manifest.json を増やせる。"
+}

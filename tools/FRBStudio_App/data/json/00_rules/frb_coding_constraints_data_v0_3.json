@@ -440,8 +440,8 @@
       "approval_stamp": "",
       "approved_by": "",
       "approved_at": "",
-      "summary": "固定フィールド名の使用は Chat View に限らず原則禁止し、例外は仕様根拠と協議承認を必要とする。",
-      "body": "Studio は、特定のフィールド名、固定パス（固定のフォルダーパス・ファイル名）を前提にした実装を原則禁止する。\n\n- 固定のフォルダーパス・ファイル名を使う場合は、フォルダーパス・ファイル名定義を一か所に集中させる設計とすること。\n- バッチ処理を行う場合、ログファイルを出力しない処理を作ってはならない。\n\nGrid、Form、Chat、Replay、Diff、Markdown 出力、Action 実行など、すべての表示・操作において、データ構造の差異は ViewDef によって吸収することを原則とする。\n\n固定フィールド名、固定パス（固定のフォルダーパス・ファイル名）は、Studio が汎用プラットフォームとして育つか、専用処理だらけに肥満化するかの瀬戸際にある重要事項である。\n\n悪い例：\n\n```js\nrow.message\nrow.user\nrow.status\nrow.result\n```\n\n良い例：\n\n```js\nconst value = getValueByPath(row, fieldDef.field);\n```\n\nChat View の場合も、固定フィールド名を前提にしてはならない。\n\n悪い例：\n\n```js\nmessage.role\nmessage.text\n```\n\n良い例：\n\n```json\n{\n  \"chat\": {\n    \"roleField\": \"speaker\",\n    \"textField\": \"message\",\n    \"timeField\": \"timestamp\"\n  }\n}\n```\n\nただし、Studio の仕様、ViewDef スキーマ、生成ルール、または明示された予約語として定義されているものは例外とする。\n\n例外の根拠となる仕様ファイル例：\n\n```text\nFRB_VIEW_DEF_GENERATION_RULES_*_markdown_ai_prompt.md\nfrb_view_def_schema_*_relation_status_filter.json\n```\n\n固定フィールド名、固定パス（固定のフォルダーパス・ファイル名）を使いたい場合は、必ず tamasub と協議し、承認を得ること。\n\n固定フィールド名、固定パス（固定のフォルダーパス・ファイル名）を使う場合は、少なくとも次を説明すること。\n\n1. なぜ ViewDef では吸収できないのか\n2. その固定フィールド名の影響範囲はどこまでか\n3. 根拠となる仕様ファイル、スキーマ、生成ルールは何か\n4. 固定フィールド名、固定パス（固定のフォルダーパス・ファイル名）を使わない場合の代替案とコストは何か\n\n固定フィールド名、固定パス（固定のフォルダーパス・ファイル名）は、便利だから使うものではない。\n\nStudio 全体の互換性と再利用性を守るため、固定フィールド名、固定パス（固定のフォルダーパス・ファイル名）は仕様として定義され、協議によって承認された場合にのみ使用する。\n\n---",
+      "summary": "固定フィールド名・固定パスの使用は原則禁止し、FRBStudio_App上位の絶対パス依存も禁止する。PowerShellバッチ処理は共通ログ部品を使用する。",
+      "body": "Studio は、特定のフィールド名、固定パス（固定のフォルダーパス・ファイル名）を前提にした実装を原則禁止する。\n\n- 固定のフォルダーパス・ファイル名を使う場合は、フォルダーパス・ファイル名定義を一か所に集中させる設計とすること。\n- バッチ処理を行う場合、ログファイルを出力しない処理を作ってはならない。\n\nGrid、Form、Chat、Replay、Diff、Markdown 出力、Action 実行など、すべての表示・操作において、データ構造の差異は ViewDef によって吸収することを原則とする。\n\n固定フィールド名、固定パス（固定のフォルダーパス・ファイル名）は、Studio が汎用プラットフォームとして育つか、専用処理だらけに肥満化するかの瀬戸際にある重要事項である。\n\n悪い例：\n\n```js\nrow.message\nrow.user\nrow.status\nrow.result\n```\n\n良い例：\n\n```js\nconst value = getValueByPath(row, fieldDef.field);\n```\n\nChat View の場合も、固定フィールド名を前提にしてはならない。\n\n悪い例：\n\n```js\nmessage.role\nmessage.text\n```\n\n良い例：\n\n```json\n{\n  \"chat\": {\n    \"roleField\": \"speaker\",\n    \"textField\": \"message\",\n    \"timeField\": \"timestamp\"\n  }\n}\n```\n\nただし、Studio の仕様、ViewDef スキーマ、生成ルール、または明示された予約語として定義されているものは例外とする。\n\n例外の根拠となる仕様ファイル例：\n\n```text\nFRB_VIEW_DEF_GENERATION_RULES_*_markdown_ai_prompt.md\nfrb_view_def_schema_*_relation_status_filter.json\n```\n\n固定フィールド名、固定パス（固定のフォルダーパス・ファイル名）を使いたい場合は、必ず tamasub と協議し、承認を得ること。\n\n固定フィールド名、固定パス（固定のフォルダーパス・ファイル名）を使う場合は、少なくとも次を説明すること。\n\n1. なぜ ViewDef では吸収できないのか\n2. その固定フィールド名の影響範囲はどこまでか\n3. 根拠となる仕様ファイル、スキーマ、生成ルールは何か\n4. 固定フィールド名、固定パス（固定のフォルダーパス・ファイル名）を使わない場合の代替案とコストは何か\n\n固定フィールド名、固定パス（固定のフォルダーパス・ファイル名）は、便利だから使うものではない。\n\nStudio 全体の互換性と再利用性を守るため、固定フィールド名、固定パス（固定のフォルダーパス・ファイル名）は仕様として定義され、協議によって承認された場合にのみ使用する。\n\n---\n\n## v0.17.2 追記: FRBStudio_App上位パス依存の禁止\n\nStudio は、FRBStudio_App より上位のパス構造に依存してはならない。\n\n禁止例:\n\n```text\nF:\\FRB\\tools\\FRBStudio_App\\...\nF:\\FRB_Diff\\...\nC:\\Users\\...\n../tools/FRBStudio_App を前提にした探索\n```\n\n許可する基本形:\n\n```text\nFRBStudio_App root\n  + data/json/...\n  + defs/...\n  + tools/git/...\n  + tools/test/...\n  + wwwroot/diff/...\n```\n\n- C# / JavaScript / PowerShell / Data JSON に、個人PC固有の絶対パスを埋め込んではならない。\n- `Program.cs` などのプログラム本文にパスやファイル名を直接散在させてはならない。必要な場合は、ファイル上部の定数、CommandProfile設定、またはManifest/Configへ集約すること。\n- `appsettings.json` などの設定へパスを書く場合も、原則として FRBStudio_App root からの相対パスを使うこと。\n- 実行設定Data JSONの明細行に、環境依存の出力先絶対パスを持たせてはならない。出力先を画面に見せたい場合は、基本情報メモまたはAPI由来の参考表示として扱うこと。\n- バッチやスクリプトは、自分自身の位置またはFRBStudio_App root markerからルートを解決し、`tools/FRBStudio_App` のような上位リポジトリ配置を前提にしてはならない。\n\nこの条項は、Studioくんを会社PC・別フォルダー・ZIP展開先へ持ち運べるようにするための移植性制約である。\n\n---\n\n## v0.17.5 追記: PowerShellバッチ共通ログ部品の使用必須\n\nStudio の PowerShell バッチ処理を作成または改修する場合は、共通ログ部品 `tools/common/StudioLog.ps1` を使用すること。\n\n対象例:\n\n```text\ntools/test/TestRunner.ps1\ntools/git/Export-DiffToJson.ps1\n将来追加する tools/**/*.ps1 のバッチ処理\n```\n\n- バッチごとに独自のログ出力ロジックを複製してはならない。\n- ログ出力先は FRBStudio_App root 基準の `Log/Log_yyyyMMdd.log` を基本とする。\n- ログには開始、終了、主要パラメータ、解決済みFRBStudio_App root、実行コマンド概要、出力先、終了コード、エラー要約を記録する。\n- 巨大なDiff本文、テスト結果本文、機密値、環境依存の個人情報をログへ丸ごと出してはならない。\n- ログ出力に失敗しても、原則として本処理を止めてはならない。ただし共通ログ部品そのものが存在しない場合は、バッチ実装ルール違反として検出できるようにする。\n- 新しい `.ps1` バッチを追加する場合は、まず `tools/common/StudioLog.ps1` を dot-source し、独自ログではなく共通関数を使うこと。\n\nこの条項は、過去にログ不足で Git Diff Run / TestRunner / CommandProfile の原因調査が難しくなった経緯を踏まえ、バッチ処理の観測可能性をStudio標準として確保するための制約である。\n",
       "ceremony_phrase": "Studioくん憲法 第12条「固定フィールド名の原則禁止」を承認する。",
       "user_comment": "固定フィールド名の使用は原則禁止（Chat View に限らず）。ただし、以下に記載のあるものは除く。\n- FRB_VIEW_DEF_GENERATION_RULES_*_markdown_ai_prompt.md\n- frb_view_def_schema_*_relation_status_filter.json\n\n厳しすぎるなら、なにかうまく逃げれる言葉を調整したい。\n\n特に固定フィールド名を使いたい場合は、必ず協議するという制約を入れたい。Studioくんが肥満になるかどうかの瀬戸際になる話なので、肥満を許容するかどうかは判断させてほしい。",
       "ai_response": "Chat View 限定ではなく、Studio 全体の原則として固定フィールド名を扱うべき。固定フィールド名は、短期的には便利だが、長期的には Studio の汎用性を削り、専用処理を増やす原因になる。したがって、禁止ではなく『例外申請制』とし、仕様ファイル・スキーマ・生成ルールに根拠があるものだけを例外にするのがよい。さらに、固定フィールド名を使う場合は必ず tamasub と協議し、肥満を許容するかどうかを人間が判断する制約を入れるべき。",
@@ -470,6 +470,28 @@
           "source_user_comment": "固定フィールド名の使用は原則禁止（Chat View に限らず）。ただし、以下に記載のあるものは除く。\n- FRB_VIEW_DEF_GENERATION_RULES_*_markdown_ai_prompt.md\n- frb_view_def_schema_*_relation_status_filter.json\n\n厳しすぎるなら、なにかうまく逃げれる言葉を調整したい。\n\n特に固定フィールド名を使いたい場合は、必ず協議するという制約を入れたい。Studioくんが肥満になるかどうかの瀬戸際になる話なので、肥満を許容するかどうかは判断させてほしい。",
           "ai_comment": "Chat View 限定ではなく、Studio 全体の原則として固定フィールド名を扱うべき。固定フィールド名は、短期的には便利だが、長期的には Studio の汎用性を削り、専用処理を増やす原因になる。したがって、禁止ではなく『例外申請制』とし、仕様ファイル・スキーマ・生成ルールに根拠があるものだけを例外にするのがよい。さらに、固定フィールド名を使う場合は必ず tamasub と協議し、肥満を許容するかどうかを人間が判断する制約を入れるべき。",
           "notes": "固定フィールド名は例外申請制とし、使用する場合は tamasub との協議承認を必要とする。"
+        },
+        {
+          "history_id": "hist_20260630_012_002",
+          "revision": "v0.17.2",
+          "changed_at": "2026-06-30",
+          "changed_by": "tamasub + ChatGPT",
+          "change_type": "spec_revision",
+          "target_fields": "summary,body,change_history",
+          "before_summary": "固定フィールド名の使用は Chat View に限らず原則禁止し、例外は仕様根拠と協議承認を必要とする。",
+          "after_summary": "固定フィールド名・固定パスの使用は原則禁止し、FRBStudio_App上位の絶対パス依存も禁止する。例外は仕様根拠と協議承認を必要とする。",
+          "reason": "CommandProfile / Git Diff Run / TestRunnerで、FRBStudio_Appより上位のF:\\FRBやF:\\FRB_Diff等へ依存すると会社PCや任意フォルダー配置で動作しないため。"
+        },
+        {
+          "history_id": "hist_20260630_012_003",
+          "revision": "v0.17.5",
+          "changed_at": "2026-06-30",
+          "changed_by": "tamasub + ChatGPT",
+          "change_type": "spec_revision",
+          "target_fields": "summary,body,change_history",
+          "before_summary": "固定フィールド名・固定パスの使用は原則禁止し、FRBStudio_App上位の絶対パス依存も禁止する。例外は仕様根拠と協議承認を必要とする。",
+          "after_summary": "固定フィールド名・固定パスの使用は原則禁止し、FRBStudio_App上位の絶対パス依存も禁止する。PowerShellバッチ処理は共通ログ部品を使用する。",
+          "reason": "TestRunner.ps1 / Export-DiffToJson.ps1 などのPowerShellバッチでログ出力が見過ごされてきたため、新規バッチ作成時に使うべき共通部品として tools/common/StudioLog.ps1 の使用必須を明記する。"
         }
       ],
       "section_no": "12",
@@ -479,7 +501,8 @@
       "source_line_start": 0,
       "source_md_file": "CODING_CONSTRAINTS_ja.md",
       "introduced_in": "0.1-draft",
-      "decision_log": []
+      "decision_log": [],
+      "updated_at": "2026-06-30"
     },
     {
       "no": 13,
@@ -1005,10 +1028,16 @@
       "at": "2026-06-29",
       "title": "テストコード一言語一Runner / Adapter方式を追加",
       "body": "constitution_24を追加。テストコードは言語別に1本を原則とし、テストコードの直接インプットはExpected JSONとする。Test Pattern JSONは将来のTestRun起動用の上位カタログとし、Adapter種別はExpected JSONのexpected_kindからAdapter Catalogを介して解決する。"
+    },
+    {
+      "note_id": "note_v0175_batch_ps1_common_daily_log",
+      "at": "2026-06-30",
+      "title": "PowerShellバッチ共通ログ部品の使用必須を追加",
+      "body": "constitution_12に、tools/common/StudioLog.ps1をPowerShellバッチ処理の共通ログ部品として使用するルールを追記した。ログ出力先はFRBStudio_App/Log/Log_yyyyMMdd.logを基本とし、TestRunner.ps1とExport-DiffToJson.ps1を初期対象とする。"
     }
   ],
-  "review_revision": "v0.16.7-test-runner-adapter-strategy-rule-added",
-  "updated": "2026-06-29",
+  "review_revision": "v0.17.5-batch-ps1-common-daily-log-rule-added",
+  "updated": "2026-06-30",
   "change_history_policy": "レビューで条文・仕様を変更した場合は、対象行の change_history に変更前・変更後・理由・会話を保存する。変更後だけを残さず、修正元を追体験できる状態にする。",
   "viewing_policy": {
     "data_json_role": "原本",

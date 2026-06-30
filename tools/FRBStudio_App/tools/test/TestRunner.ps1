@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   FRB Studio / JSON Object Studio Test Runner.
 
@@ -56,11 +56,9 @@ function Resolve-StudioAppRoot {
             throw "RepositoryRoot does not exist: $inputCandidate"
         }
 
-        # Backward compatibility:
-        # Program.cs / CommandProfile may pass the Git repository root (e.g. F:\FRB).
-        # Playwright assets live under tools/FRBStudio_App, so normalize it here.
+        # CommandProfile must pass the FRBStudio_App root itself.
+        # Do not assume a parent repository path such as tools/FRBStudio_App exists.
         $candidates.Add($inputCandidate)
-        $candidates.Add((Join-Path $inputCandidate 'tools/FRBStudio_App'))
     }
 
     # TestRunner.ps1 is stored under tools/test, so ../.. is the FRBStudio_App root.
@@ -71,7 +69,6 @@ function Resolve-StudioAppRoot {
     # Last fallback for manual execution from the FRBStudio_App directory.
     $current = (Get-Location).Path
     $candidates.Add($current)
-    $candidates.Add((Join-Path $current 'tools/FRBStudio_App'))
 
     $seen = @{}
     foreach ($candidate in $candidates) {
@@ -85,11 +82,31 @@ function Resolve-StudioAppRoot {
         }
     }
 
-    throw "FRBStudio_App root could not be resolved. Run from tools/FRBStudio_App or pass that path as -RepositoryRoot."
+    throw "FRBStudio_App root could not be resolved. Run from FRBStudio_App or pass that path as -RepositoryRoot."
 }
 
 $root = Resolve-StudioAppRoot -InputRoot $RepositoryRoot
 Set-Location -LiteralPath $root
+
+$studioLogScript = Join-Path $root 'tools/common/StudioLog.ps1'
+if (-not (Test-Path -LiteralPath $studioLogScript -PathType Leaf)) {
+    throw "StudioLog.ps1 is required for batch processing: $studioLogScript"
+}
+. $studioLogScript
+Initialize-StudioLog -StudioAppRoot $root -BatchName 'TestRunner.ps1' -Context @{
+    test_runner_id = $TestRunnerId
+    requested_run_mode = $RunMode
+    repository_root_argument = $RepositoryRoot
+    resolved_root = $root
+}
+
+trap {
+    try {
+        Write-StudioLog -Level 'ERROR' -Message 'Unhandled error' -Data (Get-StudioLogExceptionData -ErrorRecord $_)
+        Complete-StudioLog -Status 'FAILED' -Data @{ test_runner_id = $TestRunnerId; run_mode = $RunMode }
+    } catch {}
+    break
+}
 
 $runner = switch ($TestRunnerId) {
     'playwright_ui' {
@@ -129,6 +146,17 @@ Write-Host "  RunMode      : $RunMode"
 Write-Host "  Repository   : $root"
 Write-Host "  Command      : $($runner.Preview)"
 
+Write-StudioLog -Level 'INFO' -Message 'Runner resolved' -Data @{
+    test_runner_id = $runner.Id
+    run_mode = $RunMode
+    repository = $root
+    command_preview = $runner.Preview
+}
+
+Write-StudioLog -Level 'INFO' -Message 'Command start' -Data @{ command = $runner.Command; arguments = $runner.Arguments }
 & $runner.Command @($runner.Arguments)
 $exitCode = if ($LASTEXITCODE -is [int]) { $LASTEXITCODE } else { 0 }
+$logLevel = if ($exitCode -eq 0) { 'INFO' } else { 'WARN' }
+Write-StudioLog -Level $logLevel -Message 'Command end' -Data @{ exit_code = $exitCode; command_preview = $runner.Preview }
+Complete-StudioLog -Status $(if ($exitCode -eq 0) { 'SUCCESS' } else { 'FAILED' }) -Data @{ exit_code = $exitCode; test_runner_id = $runner.Id; run_mode = $RunMode }
 exit $exitCode

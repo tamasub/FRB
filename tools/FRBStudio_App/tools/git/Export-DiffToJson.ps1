@@ -1,6 +1,6 @@
 ﻿<# 
 Export-DiffToJson.ps1
-MetaDiff v0.1.2-draft
+MetaDiff v0.1.3-draft
 
 Git差分を、AIに渡しやすい DiffToJson.json に変換するPowerShellスクリプト。
 
@@ -19,6 +19,9 @@ Git差分を、AIに渡しやすい DiffToJson.json に変換するPowerShellス
 
   powershell -ExecutionPolicy Bypass -File .\Export-DiffToJson.ps1 -Range "aa8e0169abda0fbcf09b2ab34ff9f6abf547f83a..HEAD"
 
+  # 任意の2ファイルを個別指定して差分を出す（git diff --no-index）
+  powershell -ExecutionPolicy Bypass -File .\Export-DiffToJson.ps1 -Mode FilePair -FromFile "old.json" -ToFile "new.json"
+
   # パッチ本文を長めに入れる
   powershell -ExecutionPolicy Bypass -File .\Export-DiffToJson.ps1 -MaxPatchChars 200000
 
@@ -29,12 +32,16 @@ Git差分を、AIに渡しやすい DiffToJson.json に変換するPowerShellス
 #>
 
 param(
-    [ValidateSet("WorkingTree", "Staged", "Head")]
+    [ValidateSet("WorkingTree", "Staged", "Head", "FilePair")]
     [string]$Mode = "WorkingTree",
 
     [string]$Range = "",
 
-    [string]$OutputPath = "F:\FRB\tools\FRBStudio_App\wwwroot\diff\DiffToJson.json",
+    [string]$FromFile = "",
+
+    [string]$ToFile = "",
+
+    [string]$OutputPath = "",
 
     [int]$Unified = 3,
 
@@ -60,6 +67,104 @@ try {
     Write-Warning "UTF-8 encoding setup failed: $($_.Exception.Message)"
 }
 
+function Test-FRBStudioAppRoot {
+    param([string]$Path)
+
+    if ([string]::IsNullOrWhiteSpace($Path)) { return $false }
+    if (-not (Test-Path -LiteralPath $Path -PathType Container)) { return $false }
+
+    return (
+        (Test-Path -LiteralPath (Join-Path $Path 'wwwroot/index.html') -PathType Leaf) -and
+        (Test-Path -LiteralPath (Join-Path $Path 'data/json') -PathType Container) -and
+        (Test-Path -LiteralPath (Join-Path $Path 'defs') -PathType Container) -and
+        (Test-Path -LiteralPath (Join-Path $Path 'tools') -PathType Container)
+    )
+}
+
+function Resolve-FRBStudioAppRoot {
+    $candidates = New-Object System.Collections.Generic.List[string]
+
+    if (-not [string]::IsNullOrWhiteSpace($PSScriptRoot)) {
+        # Export-DiffToJson.ps1 is stored under tools/git, so ../.. is the FRBStudio_App root.
+        $candidates.Add((Join-Path $PSScriptRoot '../..'))
+        $candidates.Add($PSScriptRoot)
+    }
+
+    $current = (Get-Location).Path
+    $candidates.Add($current)
+
+    $seen = @{}
+    foreach ($candidate in $candidates) {
+        if ([string]::IsNullOrWhiteSpace($candidate)) { continue }
+        $fullPath = [System.IO.Path]::GetFullPath($candidate)
+        while (-not [string]::IsNullOrWhiteSpace($fullPath)) {
+            if (-not $seen.ContainsKey($fullPath)) {
+                $seen[$fullPath] = $true
+                if (Test-FRBStudioAppRoot -Path $fullPath) { return $fullPath }
+            }
+
+            $parent = [System.IO.Directory]::GetParent($fullPath)
+            if ($null -eq $parent) { break }
+            $fullPath = $parent.FullName
+        }
+    }
+
+    throw "FRBStudio_App root could not be resolved. Run from FRBStudio_App or keep this script under tools/git."
+}
+
+function Resolve-AppRootOutputPath {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$StudioAppRoot,
+        [string]$OutputPath
+    )
+
+    $relativeDefault = 'wwwroot/diff/DiffToJson.json'
+    $raw = if ([string]::IsNullOrWhiteSpace($OutputPath)) { $relativeDefault } else { $OutputPath.Trim() }
+
+    if ([System.IO.Path]::IsPathRooted($raw)) {
+        $fullPath = [System.IO.Path]::GetFullPath($raw)
+    }
+    else {
+        $fullPath = [System.IO.Path]::GetFullPath((Join-Path $StudioAppRoot $raw))
+    }
+
+    $rootPrefix = [System.IO.Path]::GetFullPath($StudioAppRoot).TrimEnd([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar) + [System.IO.Path]::DirectorySeparatorChar
+    $fullCompare = $fullPath
+    if (-not $fullCompare.StartsWith($rootPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "OutputPath must be under FRBStudio_App root. OutputPath=$fullPath Root=$StudioAppRoot"
+    }
+
+    return $fullPath
+}
+
+$studioAppRoot = Resolve-FRBStudioAppRoot
+
+$studioLogScript = Join-Path $studioAppRoot 'tools/common/StudioLog.ps1'
+if (-not (Test-Path -LiteralPath $studioLogScript -PathType Leaf)) {
+    throw "StudioLog.ps1 is required for batch processing: $studioLogScript"
+}
+. $studioLogScript
+Initialize-StudioLog -StudioAppRoot $studioAppRoot -BatchName 'Export-DiffToJson.ps1' -Context @{
+    mode = $Mode
+    range = $Range
+    from_file = $FromFile
+    to_file = $ToFile
+    output_path = $OutputPath
+    unified = $Unified
+    max_patch_chars = $MaxPatchChars
+    no_patch = $NoPatch.IsPresent
+    resolved_studio_app_root = $studioAppRoot
+}
+
+trap {
+    try {
+        Write-StudioLog -Level 'ERROR' -Message 'Unhandled error' -Data (Get-StudioLogExceptionData -ErrorRecord $_)
+        Complete-StudioLog -Status 'FAILED' -Data @{ mode = $Mode; range = $Range; from_file = $FromFile; to_file = $ToFile }
+    } catch {}
+    break
+}
+
 # Gitがstderrへwarningを出しても、exit code が0なら処理を継続する。
 # PowerShellは native command の stderr を NativeCommandError として扱うことがあるため、
 # ErrorActionPreference を一時的に Continue にして捕捉する。
@@ -68,7 +173,9 @@ $script:GitWarnings = @()
 function Invoke-Git {
     param(
         [Parameter(Mandatory=$true)]
-        [string[]]$GitArgs
+        [string[]]$GitArgs,
+
+        [int[]]$AllowedExitCodes = @(0)
     )
 
     $oldEap = $ErrorActionPreference
@@ -106,7 +213,7 @@ function Invoke-Git {
         }
     }
 
-    if ($exit -ne 0) {
+    if ($AllowedExitCodes -notcontains $exit) {
         $message = ($rawOutput -join "`n")
         throw "git $($GitArgs -join ' ') failed. exit_code=$exit`n$message"
     }
@@ -117,23 +224,62 @@ function Invoke-Git {
 function Get-DiffArgs {
     param(
         [string]$Mode,
-        [string]$Range
+        [string]$Range,
+        [string]$FromFile,
+        [string]$ToFile,
+        [string[]]$Options = @(),
+        [string]$Path = ""
     )
 
-    $args = @("diff", "--find-renames")
+    if ($Mode -eq "FilePair") {
+        # git diff --no-index は、Git管理外の任意2ファイル比較に使える。
+        # ファイルパスは必ず最後に -- 以降へ置き、オプションとして解釈されないようにする。
+        return @("diff", "--no-index", "--find-renames") + $Options + @("--", $FromFile, $ToFile)
+    }
+
+    $args = @("diff", "--find-renames") + $Options
 
     if ($Range -and $Range.Trim().Length -gt 0) {
         $args += $Range
-        return $args
+    }
+    else {
+        switch ($Mode) {
+            "WorkingTree" { }
+            "Staged" { $args += "--cached" }
+            "Head" { $args += "HEAD" }
+        }
     }
 
-    switch ($Mode) {
-        "WorkingTree" { }
-        "Staged" { $args += "--cached" }
-        "Head" { $args += "HEAD" }
+    if ($Path -and $Path.Trim().Length -gt 0) {
+        $args += @("--", $Path)
     }
 
     return $args
+}
+
+function Resolve-RequiredFilePath {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$Path,
+        [Parameter(Mandatory=$true)]
+        [string]$Label
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Path)) {
+        throw "$Label is required when -Mode FilePair is used."
+    }
+
+    $resolved = Resolve-Path -LiteralPath $Path -ErrorAction Stop
+    if ($resolved.Count -ne 1) {
+        throw "$Label must resolve to exactly one file: $Path"
+    }
+
+    $filePath = $resolved.Path
+    if (-not [System.IO.File]::Exists($filePath)) {
+        throw "$Label is not a file: $filePath"
+    }
+
+    return $filePath
 }
 
 function Parse-NameStatus {
@@ -220,8 +366,10 @@ function Truncate-Text {
 }
 
 # Gitリポジトリ確認
+Write-StudioLog -Level 'INFO' -Message 'Resolving git repository' -Data @{ studio_app_root = $studioAppRoot }
 $repoRoot = (Invoke-Git @("rev-parse", "--show-toplevel")).Trim()
 Set-Location $repoRoot
+Write-StudioLog -Level 'INFO' -Message 'Git repository resolved' -Data @{ repository_root = $repoRoot }
 
 $branch = ""
 try { $branch = (Invoke-Git @("branch", "--show-current")).Trim() } catch { $branch = "" }
@@ -229,11 +377,25 @@ try { $branch = (Invoke-Git @("branch", "--show-current")).Trim() } catch { $bra
 $head = ""
 try { $head = (Invoke-Git @("rev-parse", "--short", "HEAD")).Trim() } catch { $head = "" }
 
-$diffArgs = Get-DiffArgs -Mode $Mode -Range $Range
+$resolvedFromFile = ""
+$resolvedToFile = ""
+$gitDiffAllowedExitCodes = @(0)
 
-$nameStatusLines = Invoke-Git ($diffArgs + @("--name-status"))
-$numStatLines = Invoke-Git ($diffArgs + @("--numstat"))
-$statusShort = Invoke-Git @("status", "--short")
+if ($Mode -eq "FilePair") {
+    $resolvedFromFile = Resolve-RequiredFilePath -Path $FromFile -Label "FromFile"
+    $resolvedToFile = Resolve-RequiredFilePath -Path $ToFile -Label "ToFile"
+    $FromFile = $resolvedFromFile
+    $ToFile = $resolvedToFile
+
+    # git diff --no-index は「差分あり」を exit_code=1 で返す。これは正常系として扱う。
+    $gitDiffAllowedExitCodes = @(0, 1)
+}
+
+$diffArgs = Get-DiffArgs -Mode $Mode -Range $Range -FromFile $FromFile -ToFile $ToFile
+
+$nameStatusLines = Invoke-Git (Get-DiffArgs -Mode $Mode -Range $Range -FromFile $FromFile -ToFile $ToFile -Options @("--name-status")) -AllowedExitCodes $gitDiffAllowedExitCodes
+$numStatLines = Invoke-Git (Get-DiffArgs -Mode $Mode -Range $Range -FromFile $FromFile -ToFile $ToFile -Options @("--numstat")) -AllowedExitCodes $gitDiffAllowedExitCodes
+$statusShort = if ($Mode -eq "FilePair") { @() } else { Invoke-Git @("status", "--short") }
 
 $files = Parse-NameStatus $nameStatusLines
 $numStat = Parse-NumStat $numStatLines
@@ -268,16 +430,14 @@ foreach ($file in $files) {
     if (-not $NoPatch) {
         try {
             $fileDiffArgs = @()
-            if ($Range -and $Range.Trim().Length -gt 0) {
-                $fileDiffArgs = @("diff", "--find-renames", "--unified=$Unified", $Range, "--", $file.path)
-            } else {
-                switch ($Mode) {
-                    "WorkingTree" { $fileDiffArgs = @("diff", "--find-renames", "--unified=$Unified", "--", $file.path) }
-                    "Staged" { $fileDiffArgs = @("diff", "--find-renames", "--cached", "--unified=$Unified", "--", $file.path) }
-                    "Head" { $fileDiffArgs = @("diff", "--find-renames", "--unified=$Unified", "HEAD", "--", $file.path) }
-                }
+            if ($Mode -eq "FilePair") {
+                $fileDiffArgs = Get-DiffArgs -Mode $Mode -Range $Range -FromFile $FromFile -ToFile $ToFile -Options @("--unified=$Unified")
+                $patchText = (Invoke-Git $fileDiffArgs -AllowedExitCodes $gitDiffAllowedExitCodes) -join "`n"
             }
-            $patchText = (Invoke-Git $fileDiffArgs) -join "`n"
+            else {
+                $fileDiffArgs = Get-DiffArgs -Mode $Mode -Range $Range -FromFile $FromFile -ToFile $ToFile -Options @("--unified=$Unified") -Path $file.path
+                $patchText = (Invoke-Git $fileDiffArgs) -join "`n"
+            }
             $patchText = Truncate-Text -Text $patchText -MaxChars $MaxPatchChars
         } catch {
             $patchText = "PATCH_UNAVAILABLE: $($_.Exception.Message)"
@@ -307,11 +467,11 @@ foreach ($line in $statusShort) {
 }
 
 $result = [ordered]@{
-    schema_version = "0.1.2-draft"
+    schema_version = "0.1.3-draft"
     generated_at = (Get-Date).ToString("o")
     tool = [ordered]@{
         name = "MetaDiff Export-DiffToJson.ps1"
-        version = "0.1.2-draft"
+        version = "0.1.3-draft"
     }
     repository = [ordered]@{
         root = $repoRoot
@@ -321,9 +481,11 @@ $result = [ordered]@{
     diff_source = [ordered]@{
         mode = $Mode
         range = $Range
+        from_file = $resolvedFromFile
+        to_file = $resolvedToFile
         command = "git " + ($diffArgs -join " ")
         unified_context_lines = $Unified
-        patch_included = (-not $NoPatch).IsPresent
+        patch_included = (-not $NoPatch.IsPresent)
         max_patch_chars_per_file = $MaxPatchChars
     }
     git_warnings = $script:GitWarnings
@@ -371,13 +533,9 @@ $result = [ordered]@{
 $json = $result | ConvertTo-Json -Depth 30
 
 
-# OutputPath が絶対パスならそのまま使う
-# 相対パスなら repoRoot からの相対パスとして扱う
-if ([System.IO.Path]::IsPathRooted($OutputPath)) {
-    $baseOutputPath = $OutputPath
-} else {
-    $baseOutputPath = Join-Path $repoRoot $OutputPath
-}
+# OutputPath は FRBStudio_App root 基準で解決する。
+# FRBStudio_App より上位の絶対パスへは出力しない。
+$baseOutputPath = Resolve-AppRootOutputPath -StudioAppRoot $studioAppRoot -OutputPath $OutputPath
 
 # 日時付きファイル名にする
 # 例: DiffToJson_20260523_213045.json
@@ -404,12 +562,24 @@ if (-not [string]::IsNullOrWhiteSpace($outputDir)) {
     [System.Text.UTF8Encoding]::new($false)
 )
 
+Write-StudioLog -Level 'INFO' -Message 'Diff JSON written' -Data @{ output_path = $resolvedOutputPath; files_changed = $changedFiles.Count; total_added = $totalAdded; total_deleted = $totalDeleted }
 Write-Host "Created: $resolvedOutputPath"
 
 
+Write-Host "StudioAppRoot: $studioAppRoot"
 Write-Host "Repository: $repoRoot"
 Write-Host "Files changed: $($changedFiles.Count)"
 Write-Host "Added: $totalAdded / Deleted: $totalDeleted"
 if ($untracked.Count -gt 0) {
     Write-Host "Untracked files are listed, but not included as diff patches: $($untracked.Count)"
+}
+
+Complete-StudioLog -Status 'SUCCESS' -Data @{
+    mode = $Mode
+    repository = $repoRoot
+    output_path = $resolvedOutputPath
+    files_changed = $changedFiles.Count
+    total_added = $totalAdded
+    total_deleted = $totalDeleted
+    untracked_files_count = $untracked.Count
 }

@@ -32,7 +32,9 @@ async function loadFromServerNames(defName, dataName) {
   const autoMsg = resolved.previousDefName
     ? ` / 画面定義を自動補正: ${resolved.previousDefName} → ${defName}`
     : (resolved.autoChanged ? ` / 画面定義を自動選択: ${defName}` : '');
-  await loadFromObjects(defObj, dataObj, `API管理ファイルを読み込みました: ${dataName}${autoMsg}`, loadedData.url);
+  const writableDataUrl = loadedData.readonly ? null : loadedData.url;
+  const sourceLabel = loadedData.readonly ? 'Overlay読込' : 'API管理ファイル';
+  await loadFromObjects(defObj, dataObj, `${sourceLabel}を読み込みました: ${dataName}${autoMsg}`, writableDataUrl);
 }
 
 

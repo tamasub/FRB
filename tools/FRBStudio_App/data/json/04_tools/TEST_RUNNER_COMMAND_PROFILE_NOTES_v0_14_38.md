@@ -1,32 +1,9 @@
-# v0.14.38 Test Run / CommandProfile連携メモ
+# v0.17.2 Test Runner / AppRoot Path Contract
 
-Studioくんからテストコマンドを直接任意commandLineとして実行するのではなく、Program.cs側の許可済み `test_runner` CommandProfile と `TestRunner.ps1` 内の許可済み `test_runner_id` だけを実行する。
+`TestRunner.ps1` は、FRBStudio_App root を基準に実行する。
 
-## 実行できる初期プリセット
-
-| test_runner_id | run_mode | command_preview |
-|---|---|---|
-| `playwright_ui` | `launch` | `npx playwright test --ui` |
-| `incident_prompt_copy_action_static` | `wait` | `node --test tests/qa/static/incident_prompt_copy_action_viewdef_static.test.mjs` |
-
-## 責務分離
-
-```text
-Data JSON:
-  人間が選ぶプリセット
-  test_runner_id / run_mode / command_preview
-
-Program.cs:
-  許可済みCommandProfileの解決
-  TestRunner.ps1の実体パス管理
-  run_modeごとのlaunch/wait制御
-  timeout / stdout / stderr / exit_code返却
-
-TestRunner.ps1:
-  許可済みtest_runner_idだけを分岐実行
-```
-
-## セキュリティ方針
-
-Data JSONには任意の `commandLine` / `scriptPath` / `test_file` を持たせない。
-`command_preview` は画面表示専用であり、実行正本ではない。
+- Program.cs の CommandProfile は `tools/test/TestRunner.ps1` を FRBStudio_App root 相対パスとして解決する
+- `WorkingDirectory` は `.` を標準とし、FRBStudio_App root を意味する
+- `TestRunner.ps1` は自分自身の位置 `tools/test/../..` または渡された `-RepositoryRoot` から FRBStudio_App root を解決する
+- `tools/FRBStudio_App` のような上位リポジトリ構造を前提にしない
+- 会社PCやZIP展開先で、FRBStudio_Appより上位のフォルダー名が変わっても動作することを目指す

@@ -144,6 +144,12 @@ async function fetchApiJsonWithUrl(kind, name) {
   const n = safeJsonFileName(name);
   if (!n) throw new Error(`${kind} JSONファイル名が不正です`);
 
+  // v0.17.0: Overlay定義は /api/data や /api/defs の実体ではなく、
+  // studio_overlays/{overlayId} 配下の追加定義として読む。
+  if (typeof isStudioOverlayApiName === 'function' && isStudioOverlayApiName(n)) {
+    return fetchStudioOverlayJsonWithUrl(n);
+  }
+
   // v0.8.1: GitHub Pages などの静的ホスティングでは /api が存在しないため、
   // Data内 view_def やURL指定ViewDefを wwwroot 配下の静的ファイルとして読む。
   if (isStaticHostingMode()) {

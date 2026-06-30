@@ -304,6 +304,13 @@ function commandProfileBooleanValue(value) {
   return text === 'true' || text === '1' || text === 'yes' || text === 'on';
 }
 
+function commandProfilePathValue(row, ...keys) {
+  const raw = String(commandProfileRowValue(row, ...keys)).trim();
+  // v0.17.3: FilePair入力時にセルへ "C:\\..." のように貼り付けても、
+  // Program.csへは中身だけを渡す。Data JSON上はFRBStudio_App root基準の相対パスを推奨する。
+  return raw.replace(/^([\"'])(.*)\1$/, '$2').trim();
+}
+
 function buildCommandProfileRunRequest(row) {
   const request = {
     command_profile_id: String(commandProfileRowValue(row, 'command_profile_id', 'profile_id')).trim(),
@@ -311,7 +318,8 @@ function buildCommandProfileRunRequest(row) {
     range: String(commandProfileRowValue(row, 'range')).trim(),
     from_ref: String(commandProfileRowValue(row, 'from_ref', 'from')).trim(),
     to_ref: String(commandProfileRowValue(row, 'to_ref', 'to')).trim(),
-    output_path_display: String(commandProfileRowValue(row, 'output_path_display', 'output_path')).trim(),
+    from_file: commandProfilePathValue(row, 'from_file', 'from_path', 'old_file'),
+    to_file: commandProfilePathValue(row, 'to_file', 'to_path', 'new_file'),
     unified: Number(commandProfileRowValue(row, 'unified')) || 3,
     max_patch_chars: Number(commandProfileRowValue(row, 'max_patch_chars')) || 60000,
     no_patch: commandProfileBooleanValue(commandProfileRowValue(row, 'no_patch')),
@@ -505,7 +513,7 @@ registerStudioAction('RunCommandProfile', async (context={}) => {
   const request = buildCommandProfileRunRequest(row);
   const caption = row.caption || row.run_config_id || request.test_runner_id || request.mode || request.command_profile_id;
 
-  if (row.enabled === false) throw new Error(`この実行設定は無効です: ${caption}`);
+  if (row.enabled === false) throw new Error(`この実行設定は無効です: ${caption}（enabled=true にしてから実行してください）`);
 
   const result = await postCommandProfileRun(request);
   console.log('RunCommandProfile result', result);
