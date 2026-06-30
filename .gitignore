@@ -58,7 +58,7 @@ data/exports/tmp/
 
 # ======
 
-mymemo.md
+mymemo*.md
 OhMyClaude.md
 README_V0_mermaid.md
 ./BlogStory
