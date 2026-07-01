@@ -711,9 +711,20 @@ internal static class Program
         var exitCode = timedOut ? -1 : process.ExitCode;
         var success = !timedOut && exitCode == 0;
 
+        var createdOutputPath = success
+            ? ResolveGitDiffCreatedOutputPath(profile, stdout, startedAt)
+            : string.Empty;
+        var createdOutputRelativePath = ToAppRootRelative(profile.AppRoot, createdOutputPath);
+        var createdStaticUrl = BuildStaticUrlForAppRootPath(profile.AppRoot, createdOutputPath);
+        var viewerUrl = string.IsNullOrWhiteSpace(createdStaticUrl)
+            ? string.Empty
+            : BuildDiffJsonViewerUrl(createdStaticUrl);
+        var outputArtifacts = BuildGitDiffOutputArtifacts(profile, createdOutputPath);
+
         var result = new
         {
             success,
+            result_kind = success ? "git_diff_exported" : "launcher_error",
             timed_out = timedOut,
             exit_code = exitCode,
             profile_id = profile.Id,
@@ -722,7 +733,14 @@ internal static class Program
             range,
             from_file = fromFilePath,
             to_file = toFilePath,
-            output_path = profile.OutputPath,
+            output_path = string.IsNullOrWhiteSpace(createdOutputPath) ? profile.OutputPath : createdOutputPath,
+            output_path_relative = string.IsNullOrWhiteSpace(createdOutputPath) ? ToAppRootRelative(profile.AppRoot, profile.OutputPath) : createdOutputRelativePath,
+            output_path_configured = profile.OutputPath,
+            output_path_configured_relative = ToAppRootRelative(profile.AppRoot, profile.OutputPath),
+            diff_json_path = createdOutputRelativePath,
+            diff_json_url = createdStaticUrl,
+            viewer_url = viewerUrl,
+            output_artifacts = outputArtifacts,
             working_directory = profile.WorkingDirectory,
             command = new
             {
@@ -735,7 +753,7 @@ internal static class Program
             finished_at = finishedAt.ToString("yyyy-MM-dd HH:mm:ss zzz"),
             duration_ms = (long)(finishedAt - startedAt).TotalMilliseconds,
             message = success
-                ? $"Git Diff JSONを出力しました: {profile.OutputPath}"
+                ? $"Git Diff JSONを出力しました: {createdOutputRelativePath}"
                 : (timedOut ? $"Git Diff Run がタイムアウトしました: {profile.TimeoutSeconds}s" : $"Git Diff Run が失敗しました: exit_code={exitCode}")
         };
 
@@ -1050,6 +1068,89 @@ internal static class Program
         if (value.Length > 340) return false;
         if (!value.Contains("..", StringComparison.Ordinal)) return false;
         return Regex.IsMatch(value, @"^[A-Za-z0-9._/\-~^]+\.\.[A-Za-z0-9._/\-~^]+$");
+    }
+
+    private static string ResolveGitDiffCreatedOutputPath(CommandProfile profile, string stdout, DateTimeOffset startedAt)
+    {
+        var fromStdout = TryExtractCreatedPathFromStdout(stdout);
+        if (!string.IsNullOrWhiteSpace(fromStdout) && File.Exists(fromStdout)) return fromStdout;
+
+        var outputDir = Path.GetDirectoryName(profile.OutputPath);
+        if (string.IsNullOrWhiteSpace(outputDir) || !Directory.Exists(outputDir)) return string.Empty;
+
+        var baseName = Path.GetFileNameWithoutExtension(profile.OutputPath);
+        var ext = Path.GetExtension(profile.OutputPath);
+        if (string.IsNullOrWhiteSpace(baseName)) baseName = "DiffToJson";
+        if (string.IsNullOrWhiteSpace(ext)) ext = ".json";
+
+        var threshold = startedAt.LocalDateTime.AddSeconds(-3);
+        return Directory.GetFiles(outputDir, $"{baseName}_*{ext}")
+            .Select(path => new FileInfo(path))
+            .Where(info => info.Exists && info.LastWriteTime >= threshold)
+            .OrderByDescending(info => info.LastWriteTimeUtc)
+            .Select(info => info.FullName)
+            .FirstOrDefault() ?? string.Empty;
+    }
+
+    private static string TryExtractCreatedPathFromStdout(string stdout)
+    {
+        if (string.IsNullOrWhiteSpace(stdout)) return string.Empty;
+
+        var match = Regex.Match(stdout, @"(?im)^\s*Created:\s*(?<path>.+?)\s*$");
+        if (!match.Success) return string.Empty;
+
+        var raw = match.Groups["path"].Value.Trim().Trim('"');
+        if (string.IsNullOrWhiteSpace(raw)) return string.Empty;
+
+        try
+        {
+            return Path.GetFullPath(raw);
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
+    private static IReadOnlyList<CommandOutputArtifact> BuildGitDiffOutputArtifacts(CommandProfile profile, string createdOutputPath)
+    {
+        if (string.IsNullOrWhiteSpace(createdOutputPath)) return Array.Empty<CommandOutputArtifact>();
+
+        return new[]
+        {
+            new CommandOutputArtifact(
+                Path: ToAppRootRelative(profile.AppRoot, createdOutputPath),
+                FullPath: createdOutputPath,
+                Exists: File.Exists(createdOutputPath),
+                Kind: "diff_json")
+        };
+    }
+
+    private static string BuildStaticUrlForAppRootPath(string appRoot, string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return string.Empty;
+
+        try
+        {
+            var relative = ToAppRootRelative(appRoot, path);
+            if (string.IsNullOrWhiteSpace(relative)) return string.Empty;
+            relative = relative.Replace('\\', '/').TrimStart('/');
+            const string wwwrootPrefix = "wwwroot/";
+            if (!relative.StartsWith(wwwrootPrefix, StringComparison.OrdinalIgnoreCase)) return string.Empty;
+            var staticPath = relative[wwwrootPrefix.Length..];
+            if (string.IsNullOrWhiteSpace(staticPath)) return string.Empty;
+            return AppUrl.TrimEnd('/') + "/" + string.Join("/", staticPath.Split('/', StringSplitOptions.RemoveEmptyEntries).Select(Uri.EscapeDataString));
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
+    private static string BuildDiffJsonViewerUrl(string diffJsonUrl)
+    {
+        if (string.IsNullOrWhiteSpace(diffJsonUrl)) return string.Empty;
+        return AppUrl.TrimEnd('/') + "/DiffJsonViewer.html?path=" + Uri.EscapeDataString(diffJsonUrl);
     }
 
     private static bool TryResolveDiffInputFilePath(string workingDirectory, string value, out string resolvedPath, out string error)

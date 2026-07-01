@@ -477,30 +477,78 @@ function prefix(type){
   return " ";
 }
 
+function applyDiffJson(data, label){
+  diffJson = data;
+  files = normalizeFiles(diffJson);
+  selectedIndex = files.length ? 0 : -1;
+
+  $("loadStatus").textContent = label || "読み込み済み";
+  $("rawJson").textContent = JSON.stringify(diffJson, null, 2);
+
+  renderSummary();
+  renderFileList();
+  renderDetail();
+}
+
+function showLoadError(err){
+  diffJson = null;
+  files = [];
+  selectedIndex = -1;
+  $("loadStatus").textContent = "読み込み失敗";
+  $("summaryArea").innerHTML = `<div class="warn">DiffToJson.json の読み込みに失敗しました: ${escapeHtml(err.message)}</div>`;
+  $("fileList").innerHTML = "";
+  $("selectedInfo").innerHTML = `<div class="empty">読み込みエラー</div>`;
+  $("hunkList").innerHTML = "";
+  $("rawJson").textContent = String(err && err.stack ? err.stack : err);
+}
+
 async function loadJsonFile(file){
   if(!file) return;
   try{
     const text = await readFileTextWithEncoding(file, $("jsonEncoding").value);
-    diffJson = JSON.parse(text);
-    files = normalizeFiles(diffJson);
-    selectedIndex = files.length ? 0 : -1;
-
-    $("loadStatus").textContent = file.name;
-    $("rawJson").textContent = JSON.stringify(diffJson, null, 2);
-
-    renderSummary();
-    renderFileList();
-    renderDetail();
+    applyDiffJson(JSON.parse(text), file.name);
   }catch(err){
-    diffJson = null;
-    files = [];
-    selectedIndex = -1;
-    $("loadStatus").textContent = "読み込み失敗";
-    $("summaryArea").innerHTML = `<div class="warn">DiffToJson.json の読み込みに失敗しました: ${escapeHtml(err.message)}</div>`;
-    $("fileList").innerHTML = "";
-    $("selectedInfo").innerHTML = `<div class="empty">読み込みエラー</div>`;
-    $("hunkList").innerHTML = "";
-    $("rawJson").textContent = String(err && err.stack ? err.stack : err);
+    showLoadError(err);
+  }
+}
+
+function resolveAutoLoadUrl(raw){
+  const value = String(raw || "").trim();
+  if(!value) return "";
+
+  const url = new URL(value, location.href);
+  if(url.protocol !== "http:" && url.protocol !== "https:"){
+    throw new Error("URL指定読み込みは http/https のみ対応です");
+  }
+  if(url.origin !== location.origin){
+    throw new Error("URL指定読み込みは同一オリジンのみ対応です");
+  }
+  return url.href;
+}
+
+async function loadJsonUrl(url, label){
+  if(!url) return;
+  try{
+    $("loadStatus").textContent = "URL読み込み中";
+    const res = await fetch(url, { cache: "no-store" });
+    if(!res.ok) throw new Error(`HTTP ${res.status}: ${url}`);
+    const text = await res.text();
+    applyDiffJson(JSON.parse(text), label || new URL(url).pathname.split("/").pop() || url);
+  }catch(err){
+    showLoadError(err);
+  }
+}
+
+function autoLoadFromQuery(){
+  const params = new URLSearchParams(location.search);
+  const raw = params.get("path") || params.get("url") || params.get("src") || "";
+  if(!raw) return;
+
+  try{
+    const url = resolveAutoLoadUrl(raw);
+    loadJsonUrl(url, new URL(url).pathname.split("/").pop());
+  }catch(err){
+    showLoadError(err);
   }
 }
 
@@ -533,6 +581,8 @@ dropZone.addEventListener("drop", async e => {
   const file = e.dataTransfer && e.dataTransfer.files ? e.dataTransfer.files[0] : null;
   await loadJsonFile(file);
 });
+
+autoLoadFromQuery();
 </script>
 </body>
 </html>

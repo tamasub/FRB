@@ -472,6 +472,62 @@ function isCommandProfileLaunchResult(result) {
     || result?.result_kind === 'command_launched';
 }
 
+// v0.17.8-git-diff-run-open-viewer:
+// GitDiffRunは日時付きDiffToJsonを生成するため、APIが返すviewer_urlをDiffJsonViewerへ渡して開く。
+function isGitDiffExportRequest(request) {
+  return String(request?.command_profile_id || '').trim().toLowerCase() === 'git_diff_export'
+    && !String(request?.test_runner_id || '').trim();
+}
+
+function escapeCommandProfileHtml(value) {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
+}
+
+function openPendingDiffJsonViewerWindow(request, caption) {
+  if (!isGitDiffExportRequest(request)) return null;
+
+  const win = window.open('', '_blank');
+  if (!win) return null;
+
+  try {
+    win.document.title = 'DiffJson Viewer 起動待ち';
+    win.document.body.innerHTML = `
+      <div style="font-family:system-ui,sans-serif;padding:24px;line-height:1.7;color:#0f172a">
+        <h1 style="font-size:18px;margin:0 0 8px">DiffJson Viewer 起動待ち</h1>
+        <p>${escapeCommandProfileHtml(caption || 'Git Diff Run')} を実行しています。DiffToJson作成後に自動で開きます。</p>
+      </div>`;
+  } catch {}
+
+  return win;
+}
+
+function closePendingDiffJsonViewerWindow(win) {
+  if (!win) return;
+  try { win.close(); } catch {}
+}
+
+function openDiffJsonViewerFromResult(result, pendingWindow) {
+  const viewerUrl = String(result?.viewer_url || result?.diff_json_viewer_url || '').trim();
+  if (!viewerUrl) {
+    closePendingDiffJsonViewerWindow(pendingWindow);
+    return false;
+  }
+
+  try {
+    if (pendingWindow && !pendingWindow.closed) {
+      pendingWindow.location.href = viewerUrl;
+      return true;
+    }
+  } catch {}
+
+  const opened = window.open(viewerUrl, '_blank');
+  return !!opened;
+}
+
 function commandProfileStatusFromResult(result, caption) {
   const kind = result?.result_kind || '';
   const exitCode = result?.exit_code !== undefined && result?.exit_code !== null ? ` exit_code=${result.exit_code}` : '';
@@ -526,16 +582,27 @@ registerStudioAction('RunCommandProfile', async (context={}) => {
 
   if (row.enabled === false) throw new Error(`この実行設定は無効です: ${caption}（enabled=true にしてから実行してください）`);
 
-  const result = await postCommandProfileRun(request);
+  const pendingViewerWindow = openPendingDiffJsonViewerWindow(request, caption);
+  let result;
+  try {
+    result = await postCommandProfileRun(request);
+  } catch (err) {
+    closePendingDiffJsonViewerWindow(pendingViewerWindow);
+    throw err;
+  }
   console.log('RunCommandProfile result', result);
+
+  const viewerOpened = openDiffJsonViewerFromResult(result, pendingViewerWindow);
 
   if (result?.result_kind === 'test_failed' && !isCommandProfileLaunchResult(result)) {
     showCommandProfileResultDialog(result, caption);
   }
 
   const status = commandProfileStatusFromResult(result, caption);
+  const message = viewerOpened ? `${status.message}
+DiffJsonViewerを開きました。` : status.message;
   return {
-    message: status.message,
+    message,
     statusOptions: status.options,
     status_kind: status.options?.kind,
     status_title: status.options?.title,
