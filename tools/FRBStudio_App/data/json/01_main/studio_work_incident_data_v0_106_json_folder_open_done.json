@@ -12,7 +12,7 @@
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。",
-  "items_count": 41,
+  "items_count": 46,
   "work_items": [
     {
       "work_item_id": "studio_work_0007",
@@ -3015,27 +3015,27 @@
       "incident_type": "feature",
       "category": "gitdiff_viewer",
       "priority": "high",
-      "status": "未着手",
-      "verification_status": "未確認",
+      "status": "完了",
+      "verification_status": "ユーザー実機確認済み / 前段パッチでJS構文チェック済み / dotnet CLIが作業環境に無いためProgram.csのビルド確認は未実施",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-06-27",
-      "updated_at": "2026-06-27",
+      "updated_at": "2026-07-01",
       "target_files": "Program.cs, wwwroot/js/actions/action_registry.js, wwwroot/js/actions/action_toolbar.js, wwwroot/js/core/file_api.js, wwwroot/DiffJsonViewer.html, wwwroot/js/renderers/diff_json_viewer*.js, wwwroot/styles.css, related GitDiffRun action/runtime files",
       "target_rule_files": "",
-      "objective": "StudioくんからGitDiffRunを起動した後、生成された差分JSONをwwwroot配下の一時公開フォルダーへ出力し、DiffJsonViewer.html?src=... で自動表示できるようにする。",
+      "objective": "StudioくんからGitDiffRunを起動した後、生成された日時付き差分JSONをhttp URLで参照可能にし、DiffJsonViewer.html?path=... で自動表示できるようにする。",
       "background": "StudioくんからGitDiffRunを起動できる土台ができたことで、『差分を作る』だけでなく『差分をその場で見る』まで一気通貫したい。当初はF:\\FRB_Diffなど管理外フォルダーの差分JSONをProgram.cs側で読み込んでAPIレスポンスにdiff_json本文を含める案だったが、差分JSONをwwwroot配下の生成用フォルダーへ出力し、そのフォルダーを.gitignoreでGit管理対象外にすれば、DiffJsonViewer.htmlが通常の静的ファイルとして読み込める。この場合、APIレスポンスの主役はJSON本文ではなく、viewer_url / diff_json_path / file_size_bytes / summary などの案内情報になる。",
-      "scope": "GitDiffRun実行時の差分JSON出力先を、例: wwwroot/diff_runs/DiffToJson_*.json のようなViewerから参照可能な生成用フォルダーへ寄せる。この生成用フォルダーまたはDiffToJson_*.jsonだけを.gitignoreで除外し、リポジトリに一時成果物が混入しないようにする。GitDiffRun実行APIは、差分JSON本文ではなく ok / exit_code / viewer_url / diff_json_path / file_size_bytes / summary / warnings を返す。Studioくんはviewer_urlを受け取り、DiffJsonViewer.html?src=./diff_runs/DiffToJson_*.json のようなURLで自動表示する。DiffJsonViewer.htmlはsrcパラメータを同一アプリ配下の許可パスとして検証し、fetchして表示する。",
+      "scope": "GitDiffRun実行時に生成されたDiffToJson_*.jsonの作成ファイル名/出力パスをProgram.cs側で特定し、静的参照URLとDiffJsonViewer.html起動URLをAPIレスポンスへ返す。Studioくん側はレスポンスのviewer_urlを受け取り、DiffJsonViewer.html?path=http%3A%2F%2Flocalhost... の形式で自動起動する。DiffJsonViewer.htmlは既存のファイル選択/Drop読込に加えて、pathクエリ指定のhttp URLから差分JSONを読めるようにする。",
       "out_of_scope": "差分JSON本文をAPIレスポンスに丸ごと含める方式は初期方針から外す。大量差分JSONのページング、ストリーミング、diff_id方式、部分読み込み、圧縮転送、差分検索インデックス化、AI差分物語の自動生成、Viewerの高度な差分分類UIは本インシデントでは扱わない。大量データの扱いは v0.15.9-gitdiff-large-result-handling として分離する。",
       "fixed_name_policy": "ブラウザ側が F:\\FRB_Diff などのローカル絶対パスを直接読む設計にはしない。Runtimeが任意パスを指定して読み込める構造も避ける。GitDiffRunが生成した出力ファイル、かつProgram.cs側で許可された出力フォルダー配下の差分JSONだけを読み取り対象にする。",
       "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、GitDiffRun Action/APIレスポンスとDiffJsonViewer表示導線を段階的に追加する。",
-      "expected_outputs": "GitDiffRun結果JSONのwwwroot/diff_runs等への出力、生成用差分JSONの.gitignore除外方針、APIレスポンスでのviewer_url/diff_json_path/file_size_bytes/summary/warnings返却、DiffJsonViewer.html?src=... への自動遷移または表示連携、srcパラメータの許可パス検証、存在しないsrcやJSON parse失敗時のエラー表示、更新済みインシデントJSON。",
+      "expected_outputs": "GitDiffRun実行後のDiffToJson_yyyyMMdd_HHmmss.json生成、作成ファイル名/静的URL/viewer_urlの返却、DiffJsonViewer.html?path=... の自動起動、path指定時の差分JSON自動読込、Git warningsやsummaryを含む差分レビュー画面表示、更新済みインシデントJSON。",
       "risk": "wwwroot配下に生成差分JSONを置くため、.gitignore設定を誤ると一時成果物がGit管理対象に混入するリスクがある。srcパラメータを無制限に許すと任意パス参照や意図しないファイル公開のリスクがある。古いDiffToJson_*.jsonが溜まり続けるとローカル容量が増えるため、将来的には掃除方針が必要になる。巨大JSONはDiffJsonViewer側の表示限界に達する可能性があるが、それはv0.15.9で安全にエラー扱いする。",
-      "test_points": "GitDiffRun成功時に wwwroot/diff_runs/DiffToJson_*.json が生成されること。.gitignoreで対象フォルダー配下のDiffToJson_*.jsonだけがGit管理対象外になること。APIレスポンスにdiff_json本文ではなくviewer_url/diff_json_path/file_size_bytes/summaryが含まれること。DiffJsonViewer.html?src=./diff_runs/DiffToJson_*.json で差分JSONが表示されること。存在しないsrcや許可外srcでは分かりやすいエラーになること。既存のGitDiffRun起動のみの動作を壊さないこと。",
+      "test_points": "GitDiff Runボタン実行後にDiffToJson_*.jsonが生成されること。日時付きファイル名がAPIレスポンスに含まれること。DiffJsonViewer.html?path=http%3A%2F%2Flocalhost...%2Fdiff%2FDiffToJson_*.json が自動起動すること。Viewer側で差分JSONが自動読込され、Summary/Files/Added/Deleted/差分詳細が表示されること。存在しないpathやJSON parse失敗時にViewerが落ちずにエラー表示できること。",
       "user_request": "StudioくんからGitDiffが起動できるようになったので、差分JSONの出力が終わったらDiffJsonViewer.htmlで表示するところまで将来候補としてやりたい。当初は差分JSONの中身をそのままレスポンスで受け取る感覚があったが、改めて考えると、差分データをwwwroot配下に入れ、.gitignoreでGit管理対象外にすれば、DiffJsonViewer.htmlがsrc指定で直接読めるため、APIレスポンスで巨大JSON本文を運ぶ必要は基本ない。",
       "ai_response": "方針を修正。GitDiffRun結果JSONは、APIレスポンス本文で運ぶのではなく、wwwroot配下の生成用フォルダーへ出力し、.gitignoreでGit管理対象外にする。APIはviewer_url / diff_json_path / file_size_bytes / summary等を返し、StudioくんはDiffJsonViewer.html?src=... を開く。差分JSON本文の運搬役をAPIに背負わせず、Viewerが静的ファイルとして読む構成にする。",
-      "latest_user_comment": "差分データをwwwrootの中に入れられるなら、APIレスポンスでJSON本文を返す話ではなく、DiffJsonViewer.htmlがsrcで読めばよい。大容量の場合も、単にDiffJsonViewer.htmlで扱えない容量としてエラーにすればよいのではないか、という方針修正。",
-      "latest_ai_response": "v0.15.8の方針を修正。差分JSONはwwwroot配下のgitignore対象フォルダーへ出力し、APIレスポンスではJSON本文ではなくviewer_url/path/size/summaryを返す。DiffJsonViewer.htmlはsrcパラメータで差分JSONを静的取得して表示する方針へ更新した。",
+      "latest_user_comment": "GitDiffRun実行して、json作成後、DiffJsonViewer.htmlにパスを指定して起動するところまで実装してほしい。httpURL前提。DiffToJson_20260701_222609.jsonなど日時が入っているので、作成したファイル名をリターンさせないといけない。実機確認後、GitDiffRun→DiffToJson_20260701_224757.json→DiffJsonViewer.html?path=... まで通り、人生観が変わった記念としてインシデント更新を依頼。",
+      "latest_ai_response": "既存インシデント studio_work_0072 / v0.15.8-gitdiff-result-viewer-launch を確認し、実装完了・ユーザー実機確認済みとして更新。GitDiffRun後に生成ファイル名/URL/viewer_urlを返し、DiffJsonViewer.html?path=... で自動表示する導線を判断ログ・変更履歴へ記録した。",
       "discussion_history": [
         {
           "history_id": "disc_0072_001",
@@ -3099,6 +3099,34 @@
           "speaker": "assistant",
           "topic": "方針更新完了",
           "message": "v0.15.8を、差分JSON本文レスポンス方式ではなく、wwwroot生成フォルダー + .gitignore + DiffJsonViewer src読込方式へ更新する。"
+        },
+        {
+          "history_id": "disc_0072_010",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "GitDiffRunからViewer自動起動までの実装依頼",
+          "message": "GitDiffRun実行して、json作成後、DiffJsonViewer.htmlにパスを指定して起動するところまで実装してほしい。httpURL前提。DiffToJson_20260701_222609.jsonなど日時が入っているので、作成したファイル名をリターンさせないといけない。"
+        },
+        {
+          "history_id": "disc_0072_011",
+          "at": "2026-07-01",
+          "speaker": "assistant",
+          "topic": "実装完了報告",
+          "message": "GitDiffRun後に、日時付きで生成されたDiffToJson_yyyyMMdd_HHmmss.jsonを拾って、DiffJsonViewer.html?path=... で自動起動する流れとして実装した。更新ファイルは Program.cs, wwwroot/js/actions/action_registry.js, wwwroot/DiffJsonViewer.html。"
+        },
+        {
+          "history_id": "disc_0072_012",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "ユーザー実機確認と体験価値",
+          "message": "DiffJsonViewer.html?path=http%3A%2F%2Flocalhost%3A5055%2Fdiff%2FDiffToJson_20260701_224757.json でViewerが起動し、GitDiffRun結果の差分Summaryと差分詳細が表示された。これは人生観が変わる体験であり、記念としてインシデント更新したい。"
+        },
+        {
+          "history_id": "disc_0072_013",
+          "at": "2026-07-01",
+          "speaker": "assistant",
+          "topic": "体験価値整理",
+          "message": "差分JSONを作る作業が、レビュー画面を開く操作へ変わった。Studioくんが差分を作るだけでなく、差分を見せに来る導線になったため、AI差分物語・人間承認・レビュー体験の入口として重要な転換点である。"
         }
       ],
       "decision_log": [
@@ -3131,6 +3159,24 @@
           "at": "2026-06-27",
           "decision": "大量差分JSONの扱いはv0.15.9に分離し、v0.15.8では通常サイズの一気通貫表示を優先する。",
           "reason": "GitDiffRunからViewer表示までの体験を先に作り、巨大JSONの表示限界・エラー表示・将来の分割表示は別スコープで扱う方が安全なため。"
+        },
+        {
+          "decision_id": "dec_0072_006",
+          "at": "2026-07-01",
+          "decision": "GitDiffRunのAPIレスポンスには、生成された日時付きDiffToJsonファイル名・静的URL・viewer_urlを含める。",
+          "reason": "DiffToJson_*.jsonは実行ごとに日時付きで変わるため、ブラウザ側が固定名を推測できない。作成したファイル名をサーバー側で特定して返す必要がある。"
+        },
+        {
+          "decision_id": "dec_0072_007",
+          "at": "2026-07-01",
+          "decision": "DiffJsonViewer.htmlの自動読込パラメータは、実装上 path=http URL 形式に対応する。",
+          "reason": "Studio本体からViewerへ、localhost配下の差分JSONを明示的に渡す導線として分かりやすく、ユーザー環境で実機確認できたため。"
+        },
+        {
+          "decision_id": "dec_0072_008",
+          "at": "2026-07-01",
+          "decision": "GitDiffRun成功時は、差分JSON生成を終点にせず、Viewer起動までを一つの体験として扱う。",
+          "reason": "AI駆動開発において重要なのは差分ファイルの生成そのものではなく、人間が即レビューできる状態へ到達することであるため。"
         }
       ],
       "change_history": [
@@ -3149,12 +3195,52 @@
           "before": "GitDiffRun実行後、Program.cs側で差分JSON本文を読み込み、APIレスポンスにdiff_jsonとして含めてViewerへ渡す方針。",
           "after": "GitDiffRun実行後、差分JSONをwwwroot配下のgitignore対象生成フォルダーへ出力し、APIはviewer_url/path/size/summaryを返す。DiffJsonViewer.htmlはsrcで差分JSONを静的取得する。",
           "reason": "差分JSONをwwwroot配下に置けばブラウザが通常の静的ファイルとして読めるため、APIレスポンスを巨大JSON本文の運搬経路にする必要がない。"
+        },
+        {
+          "history_id": "chg_0072_003",
+          "at": "2026-07-01",
+          "change_type": "backend_update",
+          "before": "GitDiffRun実行結果から、生成された日時付きDiffToJsonファイルをViewer起動用に確定して返す導線が未実装だった。",
+          "after": "Program.cs側でGitDiffRun成功時に作成出力パスを解決し、app-root相対パス・静的URL・DiffJsonViewer起動URL・output_artifactsをレスポンスへ含めるようにした。",
+          "reason": "DiffToJson_*.jsonは日時付きファイル名で生成されるため、作成ファイル名をサーバー側で特定して返す必要があった。"
+        },
+        {
+          "history_id": "chg_0072_004",
+          "at": "2026-07-01",
+          "change_type": "frontend_action_update",
+          "before": "GitDiffRun Actionは、差分JSON生成後にDiffJsonViewer.htmlを自動起動するところまでの導線が弱かった。",
+          "after": "wwwroot/js/actions/action_registry.jsでviewer_urlまたは生成成果物URLを受け取り、DiffJsonViewer.htmlを自動起動できるようにした。",
+          "reason": "人間が生成ファイルを探してViewerへ手入力する手間をなくし、レビュー導線を一気通貫にするため。"
+        },
+        {
+          "history_id": "chg_0072_005",
+          "at": "2026-07-01",
+          "change_type": "viewer_update",
+          "before": "DiffJsonViewer.htmlはファイル選択・Drop読込が中心で、外部からhttp URLをpath指定して自動読込する導線が不足していた。",
+          "after": "DiffJsonViewer.htmlでpathクエリのhttp URLを受け取り、指定されたDiffToJson_*.jsonを自動読込して表示できるようにした。",
+          "reason": "GitDiffRun Actionから生成済み差分JSONを直接Viewerへ渡すため。"
+        },
+        {
+          "history_id": "chg_0072_006",
+          "at": "2026-07-01",
+          "change_type": "user_verified",
+          "before": "v0.15.8は未着手・未確認の将来候補だった。",
+          "after": "ユーザー実機環境で、GitDiffRun→DiffToJson_20260701_224757.json生成→DiffJsonViewer.html?path=...表示まで確認できたため、status=完了へ更新した。",
+          "reason": "スクリーンショットで差分SummaryとDifference detailsが表示され、一気通貫導線の成立を確認できたため。"
+        },
+        {
+          "history_id": "chg_0072_007",
+          "at": "2026-07-01",
+          "change_type": "incident_updated",
+          "before": "実装後の判断ログ・変更履歴・ユーザー確認結果がインシデントに未反映だった。",
+          "after": "studio_work_0072に、path=http URL方式、生成ファイル名返却、Viewer自動起動、ユーザー実機確認、体験価値を追記した。",
+          "reason": "GitDiffRunが差分を作るだけでなく、差分を見せに来る導線になったことを、今後のAI差分物語・レビュー導線設計の判断根拠として残すため。"
         }
       ],
-      "actual_updated_files": "data/json/01_main/studio_work_incident_data_v0_73_gitdiff_viewer_large_handling_added.json",
+      "actual_updated_files": "Program.cs, wwwroot/js/actions/action_registry.js, wwwroot/DiffJsonViewer.html",
       "context_def_status": "draft",
-      "context_def_updated_at": "2026-06-28",
-      "context_def_draft": "# ContextDef素案: v0.15.8-gitdiff-result-viewer-launch\n\n## 読む目的\nStudioくんからGitDiffRunを起動した後、生成された差分JSONをwwwroot配下の一時公開フォルダーへ出力し、DiffJsonViewer.html?src=... で自動表示できるようにする。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0072` / v0.15.8-gitdiff-result-viewer-launch: GitDiffRun結果JSONとDiffJsonViewer起動連携の文脈を確認する。\n- `studio_work_0073` / v0.15.9-gitdiff-large-result-handling: 巨大差分JSONの表示上限・エラー表示の文脈を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、MarkdownはExport Viewという分離を崩さない。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\nGitDiffRun実行時の差分JSON出力先を、例: wwwroot/diff_runs/DiffToJson_*.json のようなViewerから参照可能な生成用フォルダーへ寄せる。この生成用フォルダーまたはDiffToJson_*.jsonだけを.gitignoreで除外し、リポジトリに一時成果物が混入しないようにする。GitDiffRun実行APIは、差分JSON本文ではなく ok / exit_code / viewer_url / diff_json_path / file_size_bytes / summary / warnings を返す。Studioくんはviewer_urlを受け取り、DiffJsonViewer.html?src=./diff_runs/DiffToJson_*.json のようなURLで自動表示する。DiffJsonViewer.htmlはsrcパラメータを同一アプリ配下の許可パスとして検証し、fetchして表示する。\n\n## 注意すべきリスク\nwwwroot配下に生成差分JSONを置くため、.gitignore設定を誤ると一時成果物がGit管理対象に混入するリスクがある。srcパラメータを無制限に許すと任意パス参照や意図しないファイル公開のリスクがある。古いDiffToJson_*.jsonが溜まり続けるとローカル容量が増えるため、将来的には掃除方針が必要になる。巨大JSONはDiffJsonViewer側の表示限界に達する可能性があるが、それはv0.15.9で安全にエラー扱いする。\n\n## 確認観点メモ\nGitDiffRun成功時に wwwroot/diff_runs/DiffToJson_*.json が生成されること。.gitignoreで対象フォルダー配下のDiffToJson_*.jsonだけがGit管理対象外になること。APIレスポンスにdiff_json本文ではなくviewer_url/diff_json_path/file_size_bytes/summaryが含まれること。DiffJsonViewer.html?src=./diff_runs/DiffToJson_*.json で差分JSONが表示されること。存在しないsrcや許可外srcでは分かりやすいエラーになること。既存のGitDiffRun起動のみの動作を壊さないこと。",
+      "context_def_updated_at": "2026-07-01",
+      "context_def_draft": "# ContextDef素案: v0.15.8-gitdiff-result-viewer-launch\n\n## 読む目的\nStudioくんからGitDiffRunを起動した後、生成された差分JSONをwwwroot配下の一時公開フォルダーへ出力し、DiffJsonViewer.html?src=... で自動表示できるようにする。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0072` / v0.15.8-gitdiff-result-viewer-launch: GitDiffRun結果JSONとDiffJsonViewer起動連携の文脈を確認する。\n- `studio_work_0073` / v0.15.9-gitdiff-large-result-handling: 巨大差分JSONの表示上限・エラー表示の文脈を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、MarkdownはExport Viewという分離を崩さない。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\nGitDiffRun実行時の差分JSON出力先を、例: wwwroot/diff_runs/DiffToJson_*.json のようなViewerから参照可能な生成用フォルダーへ寄せる。この生成用フォルダーまたはDiffToJson_*.jsonだけを.gitignoreで除外し、リポジトリに一時成果物が混入しないようにする。GitDiffRun実行APIは、差分JSON本文ではなく ok / exit_code / viewer_url / diff_json_path / file_size_bytes / summary / warnings を返す。Studioくんはviewer_urlを受け取り、DiffJsonViewer.html?src=./diff_runs/DiffToJson_*.json のようなURLで自動表示する。DiffJsonViewer.htmlはsrcパラメータを同一アプリ配下の許可パスとして検証し、fetchして表示する。\n\n## 注意すべきリスク\nwwwroot配下に生成差分JSONを置くため、.gitignore設定を誤ると一時成果物がGit管理対象に混入するリスクがある。srcパラメータを無制限に許すと任意パス参照や意図しないファイル公開のリスクがある。古いDiffToJson_*.jsonが溜まり続けるとローカル容量が増えるため、将来的には掃除方針が必要になる。巨大JSONはDiffJsonViewer側の表示限界に達する可能性があるが、それはv0.15.9で安全にエラー扱いする。\n\n## 確認観点メモ\nGitDiffRun成功時に wwwroot/diff_runs/DiffToJson_*.json が生成されること。.gitignoreで対象フォルダー配下のDiffToJson_*.jsonだけがGit管理対象外になること。APIレスポンスにdiff_json本文ではなくviewer_url/diff_json_path/file_size_bytes/summaryが含まれること。DiffJsonViewer.html?src=./diff_runs/DiffToJson_*.json で差分JSONが表示されること。存在しないsrcや許可外srcでは分かりやすいエラーになること。既存のGitDiffRun起動のみの動作を壊さないこと。\n\n## 実装完了メモ（2026-07-01）\n- GitDiffRun実行後、日時付き `DiffToJson_*.json` の作成結果をサーバー側で解決し、ブラウザへ返す。\n- Viewer起動は `DiffJsonViewer.html?path=<http URL>` を基本導線として確認した。\n- 差分JSONを作る作業ではなく、差分レビュー画面を開く操作として体験を再定義する。\n- ユーザー実機確認により、`DiffToJson_20260701_224757.json` がViewerで自動表示された。\n",
       "context_refs": [
         {
           "context_ref_id": "target_0072_001_incident_scope",
@@ -3208,7 +3294,9 @@
           "sort_order": 40,
           "note": ""
         }
-      ]
+      ],
+      "actual_output_zip": "frbstudio_gitdiff_run_open_viewer_patch.zip",
+      "actual_result_summary": "GitDiffRun実行後に作成されたDiffToJson_*.jsonのURLを受け取り、DiffJsonViewer.html?path=... を新規タブで開くところまで実現。ユーザー環境のスクリーンショットで、localhost:5055/DiffJsonViewer.html?path=http%3A%2F%2Flocalhost%3A5055%2Fdiff%2FDiffToJson_20260701_224757.json が表示され、差分SummaryとProgram.cs等の差分詳細が読めることを確認。"
     },
     {
       "work_item_id": "studio_work_0073",
@@ -6751,6 +6839,850 @@
           "note": ""
         }
       ]
+    },
+    {
+      "work_item_id": "studio_work_0096",
+      "phase": "v0.17.9-toast-noise-reduction",
+      "title": "Toast Noise Reduction / 成功・途中経過通知の抑制",
+      "incident_type": "ux_polish",
+      "category": "toast_notification",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-01",
+      "updated_at": "2026-07-01",
+      "target_files": "wwwroot/app.js, wwwroot/js/core/loaders.js, wwwroot/js/runtime/load_runtime.js, wwwroot/js/ui/page_setup.js, data/json/01_main/studio_work_incident_data_v0_101_toast_noise_reduction_done.json",
+      "target_rule_files": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+      "objective": "Studioくんの右下トースト通知が、対象JSON選択・ViewDef再解決・API読み込みなどの内部処理ごとに大量表示される問題を抑制する。成功時は上部ヘッダーの現在Data表示へ吸収し、ユーザー判断が必要なwarning/errorだけをトーストで通知する。",
+      "background": "v0.17.8で対象JSON選択時の自動読み込みと現在Data JSONパス表示が成立した結果、成功通知や途中経過通知を右下トーストで出し続ける必要が薄くなった。一方で、対象JSON選択時に『対象JSONの選択をクリア』『画面定義を再解決』『画面定義を再表示』『API管理ファイルを読み込み中』などが連続表示され、人に使わせるには驚きや邪魔が大きい状態になっていた。",
+      "scope": "info系トーストを原則出さない。自動読み込みフロー中の途中通知を抑制する。成功通知はヘッダーのData表示へ吸収する。warning/errorだけトースト表示する。debug用途の途中情報はconsole.log/console.warnへ逃がす。対象はMain画面のsetStatus/showStudioToast、Data選択時ViewDef再解決、API読み込み開始、URL読み込み開始、コンボクリア通知とする。",
+      "out_of_scope": "保存失敗・読込失敗・選択エラーなど、人間の判断や対処が必要なwarning/error通知の抑制は対象外。Markdown Viewer側の独自通知基盤、全confirm監査、全UIメッセージ文言再設計、通知設定画面の追加は対象外。",
+      "fixed_name_policy": "通知抑制はUI状態管理の方針であり、Data JSON本文の固定フィールド名には依存しない。現在Data表示は読み込み元パスを表示するだけで、Data内title等の業務フィールドを参照しない。",
+      "module_policy": "type=\"module\" 化は行わない。既存script構成を維持し、setStatus/showStudioToastの通知ポリシーと呼び出し箇所の最小差分で対応する。",
+      "expected_outputs": "app.jsの通知ポリシー更新、途中経過setStatusのconsole.log化、API/URL読み込み開始通知のconsole.log化、コンボクリア通知のconsole.log化、選択/URL読込エラーのerror toast維持、更新後インシデントJSON。",
+      "risk": "成功通知まで完全に消すと、処理が終わったことに気づきにくくなる可能性がある。ただし現在Dataパスがヘッダーに常時表示されるため、通常成功の証跡はヘッダーへ寄せる。warning/errorまで抑制すると事故に気づけなくなるため、警告・エラーはトーストを維持する。",
+      "test_points": "対象JSONを選択して自動読み込みしたとき、途中経過トーストが連続表示されないこと。読み込み成功時はヘッダーのData表示で現在ファイルが分かること。読込失敗・URL読込失敗・選択エラーはトースト表示されること。showStudioToastを直接呼ぶsuccess/infoも原則consoleへ抑制されること。",
+      "user_request": "v0.17.9-toast-noise-reduction: info系トーストを原則出さない。自動読み込みフロー中の途中通知を抑制。成功通知はヘッダー表示へ吸収。warning/errorだけトースト表示。debug用途はconsole.logへ逃がす。実作業まで行い、完了後にインシデント更新後JSONを返却してほしい。",
+      "ai_response": "Main画面の通知基盤をwarning/error中心へ変更し、成功/途中経過はヘッダー表示またはconsole.logへ逃がす。対象JSON自動読み込み時のぱふん祭りを止め、失敗時だけ強く知らせる方向で実装する。",
+      "latest_user_comment": "途中経過情報はいらない。失敗した時だけがっつり知らせてくれたらいい。成功していたら上部にファイル名が表示されるので、成功通知はヘッダーへ吸収したい。",
+      "latest_ai_response": "setStatus/showStudioToastの既定表示をwarning/errorに限定し、info/successはconsole.logへ抑制。Data選択・ViewDef再解決・API/URL読み込み開始・コンボクリアの途中通知をconsoleへ逃がした。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0096_001",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "トースト過多への違和感",
+          "message": "右下のぱふんメッセージが出すぎる。人に使わせられない。JSON一個選んだだけなのに山ほど通知が出るのはびっくりする。"
+        },
+        {
+          "history_id": "disc_0096_002",
+          "at": "2026-07-01",
+          "speaker": "assistant",
+          "topic": "通知ポリシー案",
+          "message": "通知は報告ではなく介入要求に使う。info/success/途中経過は原則トーストに出さず、warning/errorだけ出す方針を提案。成功はヘッダーのData表示へ吸収し、debugはconsole.logへ逃がす。"
+        },
+        {
+          "history_id": "disc_0096_003",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "実装依頼",
+          "message": "途中経過情報はいらない。失敗した時だけがっつり知らせてくれたらいい。v0.17.9-toast-noise-reductionとして実作業までお願い。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0096_001",
+          "at": "2026-07-01",
+          "decision": "info系トーストは原則表示しない。",
+          "reason": "内部処理の報告はユーザーの判断を必要とせず、連続表示されると操作の邪魔になるため。"
+        },
+        {
+          "decision_id": "dec_0096_002",
+          "at": "2026-07-01",
+          "decision": "success系トーストも通常は表示せず、成功状態はヘッダーのDataパス表示へ吸収する。",
+          "reason": "v0.17.8で現在Data JSONパスを常時表示するようになり、成功通知の役割をヘッダーで代替できるため。"
+        },
+        {
+          "decision_id": "dec_0096_003",
+          "at": "2026-07-01",
+          "decision": "warning/errorはトースト表示を維持する。",
+          "reason": "失敗・警告・ユーザー対処が必要な状態は、気づけないことの方がリスクが大きいため。"
+        },
+        {
+          "decision_id": "dec_0096_004",
+          "at": "2026-07-01",
+          "decision": "Data選択時のViewDef再解決・API読み込み開始・URL読み込み開始・コンボクリアはconsole.logへ逃がす。",
+          "reason": "これらは自動読み込みフローの途中経過であり、ユーザーへの介入要求ではないため。"
+        },
+        {
+          "decision_id": "dec_0096_005",
+          "at": "2026-07-01",
+          "decision": "showStudioToastを直接呼ぶ場合も、forceToast指定がない限りinfo/successは抑制する。",
+          "reason": "setStatus経由だけを抑制しても、PluginHostやActionなどから直接成功通知が出ると通知ポリシーが一貫しないため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0096_001",
+          "at": "2026-07-01",
+          "change_type": "code_update",
+          "before": "setStatusはtoast:false指定がない限り、info/success/warn/errorを右下トースト表示していた。",
+          "after": "setStatusは既定でwarning/errorのみトースト表示し、info/successはconsole.logへ抑制する。forceToast指定時のみ明示的に表示可能とした。",
+          "reason": "途中経過通知・成功通知の過剰表示を抑え、失敗時だけ強く知らせるため。"
+        },
+        {
+          "history_id": "chg_0096_002",
+          "at": "2026-07-01",
+          "change_type": "code_update",
+          "before": "対象JSON変更時に、ViewDef選択クリア・ViewDef反映・ViewDef自動探索などがsetStatusで表示されていた。",
+          "after": "対象JSON変更時の内部再解決メッセージはconsole.log/console.warnへ変更した。",
+          "reason": "自動読み込み中の途中経過を右下トーストに出さないため。"
+        },
+        {
+          "history_id": "chg_0096_003",
+          "at": "2026-07-01",
+          "change_type": "code_update",
+          "before": "API管理ファイル読み込み中、URLパラメータ読み込み中、コンボクリアがsetStatusで通知されていた。",
+          "after": "読み込み開始・コンボクリアはconsole.logへ変更し、URL読込エラー・選択エラーはerror toastを明示した。",
+          "reason": "通常処理は黙って進め、失敗時だけユーザーに知らせるため。"
+        },
+        {
+          "history_id": "chg_0096_004",
+          "at": "2026-07-01",
+          "change_type": "incident_updated",
+          "before": "v0.17.9-toast-noise-reductionの作業記録がインシデントに存在しなかった。",
+          "after": "studio_work_0096として、目的・判断ログ・変更履歴・検証観点を記録した。",
+          "reason": "細かいUX改善でも、通知ポリシーの判断は今後のUI設計に影響するため。"
+        }
+      ],
+      "verification_status": "node --check済み / JSON parse済み / 返却ZIP整合性確認予定",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-07-01",
+      "context_def_draft": "# ContextDef素案: v0.17.9-toast-noise-reduction\n\n## 読む目的\nStudioくんのトースト通知を、途中経過報告ではなく、人間の判断が必要なwarning/error中心へ寄せる。\n\n## 背景\n対象JSON自動読み込みと現在Data表示が成立したことで、成功時の通知はヘッダー表示で代替できるようになった。右下トーストが内部処理ごとに連続表示されると、人に使わせる道具として驚きやストレスになる。\n\n## 判断軸\n- 通知は報告ではなく介入要求に使う。\n- 成功はヘッダー表示へ吸収する。\n- 途中経過はconsole.logへ逃がす。\n- warning/errorだけトースト表示する。\n\n## 対象\n- Main画面 setStatus/showStudioToast\n- Data選択時ViewDef再解決\n- API/URL読み込み開始\n- コンボクリア通知\n\n## 確認観点\n- 自動読み込みでぱふん祭りが起きないこと。\n- エラーは見逃さないこと。\n- Dataパスはヘッダーに残ること。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0096_001_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "更新対象ファイルと返却ZIPの契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "返却ZIPは更新ファイルのみ。"
+        },
+        {
+          "context_ref_id": "target_0096_020_studio_work_0095",
+          "title": "関連作業 studio_work_0095: 日次UX小改善まとめ",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_100_daily_ux_polish_done.json#studio_work_0095",
+          "purpose": "対象JSON自動読み込み・現在Data表示の直前文脈を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 20,
+          "note": "成功通知をヘッダーへ吸収できる前提になった作業。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0097",
+      "phase": "v0.17.10-current-data-status-layer",
+      "title": "Current Data Status Layer / 現在Data表示の固定レイヤー化",
+      "incident_type": "ux_polish",
+      "category": "header_status_layout",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-01",
+      "updated_at": "2026-07-01",
+      "target_files": "wwwroot/index.html, wwwroot/styles.css, data/json/01_main/studio_work_incident_data_v0_102_current_data_status_layer_done.json",
+      "target_rule_files": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+      "objective": "v0.17.9で成功/途中経過トーストを抑制した後、現在表示中Data JSONパスの表示位置がボタン群の折り返しに引きずられて変動する問題を解消する。Data表示を専用レイヤーへ移動し、常に同じ場所で現在地を確認できるようにする。",
+      "background": "トースト通知を抑制したことで、成功時の証跡はヘッダーのData表示が主役になった。しかし、Data表示がloader-panel内のボタン群と同じflex flowに混在しており、画面幅やボタン折り返しによって右端・下段など位置が変わった。ユーザーから『ファイル名の出力位置が変わるのはまずい。脳がパニックになる。ファイル名出力の為だけの行レイヤーがあってもいい』と相談があった。",
+      "scope": "ヘッダー内に current-data-layer を追加し、status表示をloader-panelから独立させる。Data表示はボタン群のflex折り返しに混ぜず、app-header直下の専用行として固定する。長いパスは省略表示し、title属性でフルパスを確認できる既存挙動を維持する。CSSキャッシュ回避のためstyles.cssのクエリバージョンも更新する。",
+      "out_of_scope": "Data/ViewDefの2行表示、通知設定画面、ヘッダー全体の大規模再設計、スマホ専用レイアウトの全面調整、ステータス文言体系の再設計は対象外。",
+      "fixed_name_policy": "現在Data表示は読み込み元パスを表示するUI状態であり、Data JSON本文のtitle等の固定フィールド名には依存しない。status要素IDは既存Runtime/UI契約として継続利用するが、業務Data固定名ではない。",
+      "module_policy": "type=\"module\" 化は行わない。既存script構成を維持し、HTML配置とCSSだけの最小差分で対応する。",
+      "expected_outputs": "index.htmlのstatus表示移動、styles.cssのcurrent-data-layer追加、ヘッダー内Data表示の固定行化、更新後インシデントJSON。",
+      "risk": "専用行を追加するとヘッダーの縦幅が少し増える。逆にボタン群に混ぜたままだと、画面幅・折り返し・Output/Viewerボタン構成によりData表示位置が変わり、ぱふん削減後の現在地表示として信頼できなくなる。",
+      "test_points": "広い画面・狭い画面・ボタン折り返し時でもData表示がボタン群の右端やOutput横へ移動せず、専用行に表示されること。Data未読込時は未読み込み表示が出ること。Data読込後にData: pathが同じ場所に表示されること。長いパスが省略表示され、titleでフルパス確認できること。",
+      "user_request": "ファイル名の出力位置が変わるのはまずい。脳がパニックになる。ファイル名出力の為だけの行レイヤーがあってもいいので、専用レイヤー化してほしい。完了後、更新後JSONを返却してほしい。",
+      "ai_response": "Data表示は状態表示ではなく現在地表示であり、現在地表示は場所が動いてはいけないと判断。status表示をloader-panelから出し、app-header内のcurrent-data-layer専用行へ移動する。",
+      "latest_user_comment": "ファイル名の出力位置が変わるのはまずい。脳がパニックになる。ファイル名出力の為だけの行レイヤーがあってもいい。",
+      "latest_ai_response": "現在Data表示をボタン群のflex折り返しから独立した専用行へ移動し、常に同じ場所で確認できるようにした。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0097_001",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "ぱふん削減後の違和感",
+          "message": "ぱふんがなくなるともの足らんのは冗談として、ファイル名の出力位置が変わるのはまずい。脳がパニックになる。ファイル名出力の為だけの行レイヤーがあってもいい。"
+        },
+        {
+          "history_id": "disc_0097_002",
+          "at": "2026-07-01",
+          "speaker": "assistant",
+          "topic": "専用行レイヤー方針",
+          "message": "Data表示はボタン群の流れに混ぜず、現在地表示として専用レイヤー化するのがよい。トーストを消した後は、今どこにいるかを固定位置で表示する必要がある。"
+        },
+        {
+          "history_id": "disc_0097_003",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "実装依頼",
+          "message": "では、よろしくお願いします。完了後、更新後JSON返却お願いします。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0097_001",
+          "at": "2026-07-01",
+          "decision": "現在Data表示はloader-panelのボタン群から独立した専用行に移動する。",
+          "reason": "ボタン群の折り返しにData表示が混ざると、画面幅やボタン構成で表示位置が変わり、現在地表示としての信頼性が下がるため。"
+        },
+        {
+          "decision_id": "dec_0097_002",
+          "at": "2026-07-01",
+          "decision": "Data表示は通知ではなく現在地表示として扱う。",
+          "reason": "v0.17.9で成功通知を抑制したため、成功確認の主役は右下トーストではなく上部のData表示になったため。"
+        },
+        {
+          "decision_id": "dec_0097_003",
+          "at": "2026-07-01",
+          "decision": "status要素IDは維持し、配置だけを変更する。",
+          "reason": "既存JSのsetStatus/currentLoadedDataStatusText/updateCurrentDataStatusがstatus IDを参照しているため、JS改修なしの最小差分で安定化できるため。"
+        },
+        {
+          "decision_id": "dec_0097_004",
+          "at": "2026-07-01",
+          "decision": "長いパスの省略表示とtitleによるフルパス確認は維持する。",
+          "reason": "Dataパスは長くなりやすく、ヘッダー幅を壊さずに現在地を確認できる必要があるため。"
+        },
+        {
+          "decision_id": "dec_0097_005",
+          "at": "2026-07-01",
+          "decision": "Data/ViewDef両方の状態表示など、追加情報の拡張は今回は行わない。",
+          "reason": "今回の目的は位置ブレ解消であり、情報量を増やすとヘッダー再設計に広がるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0097_001",
+          "at": "2026-07-01",
+          "change_type": "html_update",
+          "before": "status表示がloader-panel内にあり、Viewer/Outputボタン群やflex折り返しと同じ流れに混ざっていた。",
+          "after": "status表示をapp-header直下のcurrent-data-layerへ移動し、Data表示専用行として独立させた。",
+          "reason": "現在Data表示の位置を固定し、視線記憶を壊さないため。"
+        },
+        {
+          "history_id": "chg_0097_002",
+          "at": "2026-07-01",
+          "change_type": "css_update",
+          "before": "Data表示は.loader-panel .status のflex/order指定で制御され、画面幅やボタン折り返しの影響を受けていた。",
+          "after": ".current-data-layer と .current-data-layer .status を追加し、app-header全幅の専用行として表示するようにした。",
+          "reason": "ボタン群のレイアウト変動からData表示を分離するため。"
+        },
+        {
+          "history_id": "chg_0097_003",
+          "at": "2026-07-01",
+          "change_type": "cache_bust",
+          "before": "styles.cssのクエリが過去作業のままだった。",
+          "after": "styles.css?v=current-data-layer-01710 に更新した。",
+          "reason": "CSS更新がブラウザキャッシュで反映されないリスクを下げるため。"
+        },
+        {
+          "history_id": "chg_0097_004",
+          "at": "2026-07-01",
+          "change_type": "incident_updated",
+          "before": "v0.17.10-current-data-status-layerの作業記録がインシデントに存在しなかった。",
+          "after": "studio_work_0097として、目的・判断ログ・変更履歴・検証観点を記録した。",
+          "reason": "トースト削減後の現在地表示設計は、今後のUX設計判断に影響するため。"
+        }
+      ],
+      "verification_status": "HTML配置確認済み / JSON parse済み / 返却ZIP整合性確認予定",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-07-01",
+      "context_def_draft": "# ContextDef素案: v0.17.10-current-data-status-layer\n\n## 読む目的\n現在表示中Data JSONパスを、ボタン群の折り返しに左右されない固定レイヤーへ移動する。\n\n## 背景\nv0.17.9で成功通知を抑制したため、ヘッダーのData表示が成功確認・現在地確認の主役になった。現在地表示は場所が動くと脳の視線記憶を壊すため、ボタン群から独立させる。\n\n## 判断軸\n- Data表示は通知ではなく現在地表示である。\n- 現在地表示は場所が動いてはいけない。\n- ボタン群の折り返しに混ぜない。\n- status IDは維持して既存JSを壊さない。\n\n## 対象\n- wwwroot/index.html\n- wwwroot/styles.css\n\n## 確認観点\n- Data表示が専用行に固定されること。\n- 長いパスが省略表示されること。\n- titleでフルパス確認できること。\n- warning/error表示との関係が壊れないこと。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0097_001_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "更新対象ファイルと返却ZIPの契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "返却ZIPは更新ファイルのみ。"
+        },
+        {
+          "context_ref_id": "target_0097_020_studio_work_0096",
+          "title": "関連作業 studio_work_0096: Toast Noise Reduction",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_101_toast_noise_reduction_done.json#studio_work_0096",
+          "purpose": "成功通知を抑制し、ヘッダーData表示へ吸収する前提を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 20,
+          "note": "現在Data表示が成功確認の主役になった直前作業。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0098",
+      "phase": "v0.17.11-current-data-title-display",
+      "title": "Current Data Title Display / 現在Dataタイトル表示",
+      "incident_type": "ux_schema_improvement",
+      "category": "header_status_layout",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-01",
+      "updated_at": "2026-07-01",
+      "target_files": "wwwroot/index.html, wwwroot/styles.css, wwwroot/js/core/state.js, wwwroot/js/core/file_api.js, wwwroot/js/runtime/load_runtime.js, data/json/00_rules/frb_view_def_schema_v0_9.json, data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json, defs/rules/rule_review_common_view_def_v0_3.json, defs/rules/studio_work_incident_view_def_v0_5.json, data/json/01_main/studio_work_incident_data_v0_103_current_data_title_display_done.json",
+      "target_rule_files": "data/json/00_rules/frb_view_def_schema_v0_9.json, data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json, data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+      "objective": "現在表示中Data JSONについて、ファイルパスだけでなくData本文のタイトルを人間向けの看板として美しく表示する。タイトル表示に使う項目はRuntime固定名にせず、ViewDefのcurrentDataDisplay.titlePathで指定できるようにする。",
+      "background": "v0.17.10でDataパス表示を専用レイヤー化したが、パスだけでは「今どの文書を開いているか」の人間向け認識が弱い。ユーザーから「Studio Context Engineer Wannabe Foundation Rules の部分はパスとはスタイルをかえてかっこよくしてほしい」と依頼があった。トースト抑制後の静かな現在地表示として、Dataタイトルを看板、Dataパスを住所として分離する必要がある。",
+      "scope": "current-data-layerに currentDataTitle / currentDataSubtitle / status(path) を配置する。ViewDefトップレベルに currentDataDisplay を追加し、titlePath / subtitlePath / showDataPath をサポートする。スキーマ frb_view_def_schema_v0_9.json と ViewDef生成ルール frb_viewdef_generation_rules_data_v0_1.json に契約を記載する。既存互換として currentDataDisplay未指定時は $.title fallback を許容する。",
+      "out_of_scope": "ヘッダー全体の大規模デザイン刷新、通知設定UI、Data本文のtitle強制追加、全ViewDefへの一括currentDataDisplay追加、スマホ専用最適化、ViewDef候補選択UIの変更は対象外。",
+      "fixed_name_policy": "RuntimeはData JSONのtitle固定名を正式契約として強制しない。正式にはViewDefのcurrentDataDisplay.titlePathでタイトル項目を指定する。互換fallbackとして $.title は許容するが、固定フィールド名肥満を避けるためスキーマと生成ルールに currentDataDisplay を明記する。",
+      "module_policy": "type=\"module\" 化は行わない。既存script構成を維持し、HTML/CSS/既存グローバル関数への最小追加で対応する。",
+      "expected_outputs": "現在Dataタイトル表示UI、currentDataDisplay schema追加、ViewDef生成ルール追加、代表ViewDefへのcurrentDataDisplay追加、更新後インシデントJSON、変更ファイルのみの差分ZIP。",
+      "risk": "タイトル表示をRuntimeがtitle固定名として強く依存すると、Data構造固定化のリスクがある。逆にViewDef契約なしでfallbackだけにすると設計意図が残らない。ヘッダーにタイトル・補助タイトル・パスを詰め込みすぎると縦幅が増えすぎる。",
+      "test_points": "Data JSONにtitleがある場合、現在Dataタイトルとして大きく表示されること。Dataパスは小さく控えめな住所として表示されること。currentDataDisplay.titlePathを指定したViewDefではそのパスが優先されること。未指定ViewDefでは $.title fallback が効くこと。Dataパスのtitle属性・省略表示が維持されること。",
+      "user_request": "Studio Context Engineer Wannabe Foundation Rules の部分はパスとはスタイルをかえてかっこよくしてほしい。これは大切な話なので、スキーマと frb_viewdef_generation_rules_data_v0_1.json にも記載してほしい。作業完了後、インシデント更新後JSONを返却してほしい。",
+      "ai_response": "現在Dataタイトルは看板、パスは住所として分ける。ViewDef currentDataDisplay.titlePathでタイトル項目を指定し、SchemaとViewDef生成ルールへ契約を追加したうえで、Runtime表示も実装する。",
+      "latest_user_comment": "スキーマと frb_viewdef_generation_rules_data_v0_1.json に現在Dataタイトル表示の考え方を記載し、実装まで対応してほしい。",
+      "latest_ai_response": "v0.17.11-current-data-title-displayとして、タイトル表示UI・currentDataDisplay契約・スキーマ・ViewDef生成ルール・代表ViewDef・インシデントを更新した。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0098_001",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "Dataタイトル表示相談",
+          "message": "ファイル名の左側にタイトル属性をもっているデータは、タイトルを少しフォントサイズを上げて、かっこよく表示したい。ViewDefに情報追加しないといけないかもしれない。"
+        },
+        {
+          "history_id": "disc_0098_002",
+          "at": "2026-07-01",
+          "speaker": "assistant",
+          "topic": "看板と住所の分離",
+          "message": "Dataパスは現在地の住所、Dataタイトルは人間向けの看板として分ける。Runtime固定名を避けるため、ViewDef currentDataDisplay.titlePathで指定するのがよい。"
+        },
+        {
+          "history_id": "disc_0098_003",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "スタイル要望",
+          "message": "Studio Context Engineer Wannabe Foundation Rules の部分はパスとはスタイルをかえてかっこよくしてほしい。"
+        },
+        {
+          "history_id": "disc_0098_004",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "実装依頼",
+          "message": "実作業お願いします。これは結構大切な話なので、スキーマと frb_viewdef_generation_rules_data_v0_1.json にも記載をお願いします。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0098_001",
+          "at": "2026-07-01",
+          "decision": "現在Data表示を、タイトル(看板)とDataパス(住所)の二層表示として扱う。",
+          "reason": "Dataパスだけでは人間が開いている文書を即座に認識しづらく、成功通知を抑制した後の主表示として弱いため。"
+        },
+        {
+          "decision_id": "dec_0098_002",
+          "at": "2026-07-01",
+          "decision": "タイトル表示に使うData項目はViewDefのcurrentDataDisplay.titlePathで指定する。",
+          "reason": "RuntimeがtitleなどのData固定名を正式契約として強制すると、Data構造固定化・固定名肥満につながるため。"
+        },
+        {
+          "decision_id": "dec_0098_003",
+          "at": "2026-07-01",
+          "decision": "既存互換として $.title fallback は許容する。",
+          "reason": "既存Dataの多くはtitleを持っており、ViewDef改修前でも効果を出せるため。ただし正式契約はcurrentDataDisplayに置く。"
+        },
+        {
+          "decision_id": "dec_0098_004",
+          "at": "2026-07-01",
+          "decision": "スキーマとViewDef生成ルールへcurrentDataDisplay契約を追加する。",
+          "reason": "UI実装だけでは後続AI/人間が意図を忘れるため、ViewDef設計ルールとして残す必要がある。"
+        },
+        {
+          "decision_id": "dec_0098_005",
+          "at": "2026-07-01",
+          "decision": "Dataタイトルはパスとは異なるスタイルで、大きく太く表示する。",
+          "reason": "タイトルは現在開いている文書の看板であり、住所であるDataパスと同じ見た目にすると役割差が伝わらないため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0098_001",
+          "at": "2026-07-01",
+          "change_type": "html_update",
+          "before": "current-data-layerにはstatus要素だけがあり、Dataパスのみを表示していた。",
+          "after": "currentDataTitle / currentDataSubtitle / status(current-data-path) の三要素へ分けた。",
+          "reason": "タイトルとパスを別スタイルで表示するため。"
+        },
+        {
+          "history_id": "chg_0098_002",
+          "at": "2026-07-01",
+          "change_type": "css_update",
+          "before": "Data表示はstatusと同じ小さな文字で表示されていた。",
+          "after": "current-data-titleを大きく太く白く表示し、パスはmonospace寄りの控えめな表示にした。",
+          "reason": "タイトルは看板、パスは住所として視覚階層を分けるため。"
+        },
+        {
+          "history_id": "chg_0098_003",
+          "at": "2026-07-01",
+          "change_type": "runtime_update",
+          "before": "Runtimeは現在Dataパスだけをstatusに表示していた。",
+          "after": "ViewDef currentDataDisplayからtitlePath/subtitlePath/showDataPathを解決し、Dataタイトルを表示するようにした。",
+          "reason": "Dataごとの人間向けタイトル表示をViewDef契約で制御するため。"
+        },
+        {
+          "history_id": "chg_0098_004",
+          "at": "2026-07-01",
+          "change_type": "schema_update",
+          "before": "frb_view_def_schema_v0_9.jsonにcurrentDataDisplay契約がなかった。",
+          "after": "currentDataDisplay/current_data_display と $defs.currentDataDisplay を追加した。",
+          "reason": "ViewDefで現在Dataタイトル表示設定を正式に記述できるようにするため。"
+        },
+        {
+          "history_id": "chg_0098_005",
+          "at": "2026-07-01",
+          "change_type": "rules_update",
+          "before": "ViewDef生成ルールに現在Dataタイトル表示の判断基準がなかった。",
+          "after": "frb_viewdef_generation_rules_data_v0_1.jsonへviewdef_rule_29を追加した。",
+          "reason": "後続AIが同じ判断でViewDefを生成できるようにするため。"
+        },
+        {
+          "history_id": "chg_0098_006",
+          "at": "2026-07-01",
+          "change_type": "viewdef_update",
+          "before": "代表ViewDefにcurrentDataDisplayがなかった。",
+          "after": "rule_review_common_view_def_v0_3 と studio_work_incident_view_def_v0_5 に titlePath=$.title / subtitlePath=$.target / showDataPath=true を追加した。",
+          "reason": "代表的なRules/Incident表示で新契約を明示的に使うため。"
+        }
+      ],
+      "verification_status": "JSON parse確認済み / JS構文確認済み / ZIP整合性確認済み / ブラウザ実機確認は未実施",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-07-01",
+      "context_def_draft": "# ContextDef素案: v0.17.11-current-data-title-display\n\n## 読む目的\n現在表示中Dataの人間向けタイトルを、Dataパスとは別スタイルで表示するためのViewDef契約・Runtime実装・Schema/Rules更新の文脈を確認する。\n\n## 基本方針\n- タイトルは看板。パスは住所。\n- Runtimeはtitle固定名を正式契約にしない。\n- ViewDef currentDataDisplay.titlePathでタイトル項目を指定する。\n- 既存互換として $.title fallback は許容する。\n\n## 確認観点\nDataタイトルが大きく表示され、Dataパスが小さく控えめに表示されること。SchemaとViewDef生成ルールに契約が残っていること。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0098_001_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "更新対象ファイルと返却ZIPの契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "返却ZIPは更新ファイルのみ。"
+        },
+        {
+          "context_ref_id": "target_0098_010_viewdef_schema",
+          "title": "ViewDef Schema currentDataDisplay契約を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/00_rules/frb_view_def_schema_v0_9.json#$defs.currentDataDisplay",
+          "purpose": "現在Dataタイトル表示のスキーマ契約を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "canonical",
+          "required": false,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0098_020_viewdef_generation_rule_29",
+          "title": "ViewDef生成ルール viewdef_rule_29を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json#viewdef_rule_29",
+          "purpose": "タイトルは看板、パスは住所という判断ログを確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "canonical",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0099",
+      "phase": "v0.17.12-current-data-title-card-style",
+      "title": "Current Data Title Card Style / 現在Dataタイトル看板カード化",
+      "incident_type": "ux_polish",
+      "category": "header_status_layout",
+      "priority": "medium",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-01",
+      "updated_at": "2026-07-01",
+      "target_files": "wwwroot/styles.css, wwwroot/index.html, data/json/01_main/studio_work_incident_data_v0_104_current_data_title_card_style_done.json",
+      "target_rule_files": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+      "objective": "現在Dataタイトル表示のフォントサイズ感は維持しつつ、JSON Object Studioのシステム名称ヘッダーと視覚的にダブって見える問題を解消する。Dataタイトル領域を背景付き・角丸・控えめな光沢のある看板カードとして表示し、タイトルとパスをひと目で文書看板として認識できるようにする。",
+      "background": "v0.17.11で現在Dataタイトル表示を追加したが、タイトル文字がシステム名ヘッダーと同じ濃紺背景の地続きに置かれており、ユーザーから「JSON Object Studioのシステム名称とダブって見えちゃうので、データのタイトル部分の背景色をかっちょよくするとか、ちょっと丸みのある枠線で囲むとか、ちょい工夫してほしい」と要望があった。",
+      "scope": "current-data-layer の背景・枠線・角丸・余白・影を調整し、現在Dataタイトル領域を独立した看板カードに見せる。フォントサイズ感覚は維持し、タイトル/補助タイトル/パスの階層は壊さない。styles.cssのキャッシュ回避クエリを更新する。",
+      "out_of_scope": "ヘッダー全体の全面再デザイン、タイトル文言ロジック変更、currentDataDisplay契約変更、スマホ専用最適化、別テーマ対応は対象外。",
+      "fixed_name_policy": "今回の変更は純粋にスタイル変更であり、Data固定名・ViewDef固定名の追加は行わない。currentDataDisplay と status/currentDataTitle/currentDataSubtitle の既存UI契約を維持する。",
+      "module_policy": "type=\"module\" 化は行わない。既存HTML/CSS構成のまま、CSS中心の最小差分で対応する。",
+      "expected_outputs": "現在Dataタイトル領域の看板カード化スタイル、キャッシュ回避更新済みindex.html、更新後インシデントJSON、変更ファイルのみの差分ZIP。",
+      "risk": "強い背景や装飾にしすぎるとヘッダー全体が騒がしくなる。逆に何もしないとシステム名ヘッダーと視覚的に連続し、どちらが文書名か分かりにくい。",
+      "test_points": "現在Dataタイトル領域が背景付き・角丸カードとして見えること。JSON Object Studioのロゴ領域と視覚的に分離されること。タイトル・補助タイトル・Dataパスの視覚階層が維持されること。長いDataパスの省略表示が維持されること。",
+      "user_request": "JSON Object Studioのシステム名称とダブっているように見えちゃうので、データのタイトル部分の背景色をかっこよくするか、少し丸みのある枠線で囲むなど、ちょい工夫してほしい。",
+      "ai_response": "フォントサイズ感は維持しつつ、current-data-layer自体を独立した看板カードへ変更する。背景の濃淡、角丸、淡い枠線、控えめなシャドウを加え、タイトルは主役のまま、パスは住所として脇役に置く。",
+      "latest_user_comment": "データのタイトル部分の背景色をかっちょよくするか、ちょっと丸みのある枠線で囲むなど、ちょい工夫してほしい。",
+      "latest_ai_response": "Current Data Title表示を背景付き・角丸の看板カードに変更し、システム名ヘッダーと視覚的に分離した。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0099_001",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "視覚分離要望",
+          "message": "フォントサイズ感覚はOK。JSON Object Studioのシステム名称とダブっているように見えちゃうので、データのタイトル部分の背景色をかっこよくするか、少し丸みのある枠線で囲むなど工夫してほしい。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0099_001",
+          "at": "2026-07-01",
+          "decision": "current-data-layer全体を独立した看板カードとしてスタイリングする。",
+          "reason": "同じ濃紺背景の地続きに置くと、システム名ヘッダーとDataタイトルが一体に見えてしまうため。"
+        },
+        {
+          "decision_id": "dec_0099_002",
+          "at": "2026-07-01",
+          "decision": "タイトル文字のフォントサイズ・太さは大きく変えず、背景・枠線・余白で差別化する。",
+          "reason": "ユーザーからフォントサイズ感覚はOKとの評価があり、問題は視覚分離にあったため。"
+        },
+        {
+          "decision_id": "dec_0099_003",
+          "at": "2026-07-01",
+          "decision": "スタイル変更はCSS中心の最小差分とし、index.htmlはキャッシュ回避クエリ更新のみ行う。",
+          "reason": "UI契約やRuntimeを触らずに効果を出せるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0099_001",
+          "at": "2026-07-01",
+          "change_type": "css_update",
+          "before": "current-data-layerは背景なし・枠線なしで、ヘッダー背景の上に直接文字が載っていた。",
+          "after": "current-data-layerに角丸、淡い枠線、濃淡グラデーション背景、控えめな影、内側ハイライトを追加し、独立した看板カードとして表示するようにした。",
+          "reason": "システム名ヘッダーと視覚的に分離し、文書タイトルの主役感を高めるため。"
+        },
+        {
+          "history_id": "chg_0099_002",
+          "at": "2026-07-01",
+          "change_type": "cache_bust",
+          "before": "index.html の styles.css クエリは current-data-title-01711 だった。",
+          "after": "styles.css?v=current-data-title-card-01712 に更新した。",
+          "reason": "CSS変更がブラウザキャッシュで反映されないリスクを下げるため。"
+        },
+        {
+          "history_id": "chg_0099_003",
+          "at": "2026-07-01",
+          "change_type": "incident_updated",
+          "before": "看板カード化の判断ログがインシデントに存在しなかった。",
+          "after": "studio_work_0099 として目的・判断ログ・変更履歴を記録した。",
+          "reason": "今後ヘッダーUIを育てる際の判断根拠として残すため。"
+        }
+      ],
+      "verification_status": "CSS更新確認済み / index.html クエリ更新確認済み / JSON parse済み / ZIP整合性確認予定",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-07-01",
+      "context_def_draft": "# ContextDef素案: v0.17.12-current-data-title-card-style\n\n## 読む目的\n現在Dataタイトルをシステム名ヘッダーから視覚的に分離し、文書看板として認識しやすくする。\n\n## 基本方針\n- タイトルは看板。パスは住所。\n- フォントサイズは維持し、背景・枠線・余白で独立感を出す。\n- 騒がしくしすぎず、控えめに高級感を足す。\n\n## 対象\n- wwwroot/styles.css\n- wwwroot/index.html\n\n## 確認観点\n- タイトル領域が看板カードとして見えること。\n- JSON Object Studioロゴ領域と視覚的に分かれること。\n- Dataパス省略表示が壊れないこと。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0099_001_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "返却ZIPを更新ファイルのみに制限する契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "返却ZIPは更新ファイルのみ。"
+        },
+        {
+          "context_ref_id": "target_0099_010_studio_work_0098",
+          "title": "関連作業 studio_work_0098: Current Data Title Display",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_103_current_data_title_display_done.json#studio_work_0098",
+          "purpose": "タイトルは看板・パスは住所という直前判断を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0100",
+      "phase": "v0.17.13-json-select-folder-open-buttons",
+      "title": "JSON選択欄フォルダーOpen / ViewDef・対象JSON場所をExplorerで開く",
+      "incident_type": "ux_polish",
+      "category": "file_picker_shell",
+      "priority": "medium",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-01",
+      "updated_at": "2026-07-01",
+      "target_files": "Program.cs/Program.cs, wwwroot/app.js, wwwroot/index.html",
+      "target_rule_files": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+      "objective": "画面定義JSON・対象JSONの選択欄から、現在選択されているJSONファイルの配置フォルダーをすぐ開けるようにし、返却JSONやOverlay資材のコピー・確認作業の摩擦を下げる。",
+      "background": "インシデントJSONやViewDef/対象JSONを受け取った後、Windows Explorerで該当フォルダーを掘ってコピー・確認する作業が頻繁に発生しており、ユーザーから『しょうもないけど、頻度が多いから地味にきく』改善として依頼があった。さらにOverlay default配下では通常の data/json / defs 配下ではなく studio_overlays/default 側に実体があるため、通常パス解決だけでは file or folder not found になった。",
+      "scope": "画面定義JSON欄と対象JSON欄に小さなフォルダーアイコンを追加する。選択値がある場合だけ活性化する。クリック時にFRBStudio.exe側API経由でExplorerを起動し、対象ファイルを選択状態にする。通常のdata/json・defsに加えて overlay/default/data と overlay/default/view_defs を studio_overlays/default 側へ解決する。Explorerが裏に隠れにくいように新規ウィンドウ寄りで開き、起動後に対象Explorerを前面化する。",
+      "out_of_scope": "Windows 11右クリックメニューの送る項目昇格、SendToショートカット作成、汎用ファイルマネージャー機能、任意コマンド実行機能、Overlay全般の設計変更は対象外。",
+      "fixed_name_policy": "data / viewdef / overlay/default は、ファイル選択欄とOverlay配置契約のパス種別として扱う。Runtimeが一般Dataのフィールド名へ依存する変更ではない。API側では基準フォルダー外へ脱出しない安全パス解決を維持する。",
+      "module_policy": "type=\"module\" 化は行わない。既存の従来script構成のまま、app.js / index.html / Program.cs の最小差分で対応する。",
+      "expected_outputs": "画面定義JSON・対象JSONそれぞれのフォルダーOpenボタン、選択値に応じた活性/非活性制御、通常パス・Overlayパスの安全解決、Explorerで対象ファイル選択表示、前面化処理、更新後インシデントJSON。",
+      "risk": "ローカルExplorer起動APIは便利だが、任意パス実行に見える実装にすると危険。Overlayパスは通常のdata/jsonやdefsとは配置が異なるため、解決規則を誤ると存在するファイルでもnot foundになる。Explorer前面化はWindows側の挙動に左右される可能性がある。",
+      "test_points": "通常の対象JSONでフォルダーアイコンからExplorerが開くこと。通常の画面定義JSONでExplorerが開くこと。対象JSONからview_defが自動反映された場合もViewDef側フォルダーアイコンが活性化すること。overlay/default/data/*.json と overlay/default/view_defs/*.json が studio_overlays/default 配下で開けること。Explorerが前面に表示され、対象JSON/ViewDefが選択状態になること。dotnet publishでC#構文エラーが出ないこと。",
+      "user_request": "画面定義JSONと対象JSONの選択欄に小さなアイコンを付けて、指定されているJSONがあるフォルダーを開けるようにしたい。ViewDefボタンが活性化しない件と、overlay/default配下でfile or folder not foundになる特殊ケース、Explorerが裏に隠れる問題も対応したい。",
+      "ai_response": "画面定義JSON・対象JSONの横にフォルダーOpenボタンを追加し、FRBStudio.exe側APIでExplorerを起動する実装にした。対象JSONからview_defを自動反映した場合も活性状態を再判定するよう修正。Overlay defaultのdata/view_defsはstudio_overlays/default配下へ解決し、Explorerを新規ウィンドウ寄りで開いて前面化する処理を追加した。C#のエスケープミスは Replace('\\\\', '/') に修正した。",
+      "latest_user_comment": "Overlay defaultのViewDef/対象JSONフォルダーがExplorerで開けることを実機確認。インシデント更新後JSON返却依頼。",
+      "latest_ai_response": "JSON選択欄フォルダーOpen対応を完了インシデントとして記録し、Overlay特殊ケース、ViewDef活性化、Explorer前面化、compile fix、ユーザー実機確認を履歴に残す。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0100_001",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "JSON選択欄から場所を開きたい",
+          "message": "画面定義JSONと対象JSONそれぞれに小さなアイコンを付けて、指定されているjsonがあるフォルダーを開けないか相談。頻度が多く、地味に効く改善として実装依頼。"
+        },
+        {
+          "history_id": "disc_0100_002",
+          "at": "2026-07-01",
+          "speaker": "assistant",
+          "topic": "実装方針",
+          "message": "ブラウザ単体ではローカルフォルダーを開けないため、FRBStudio.exe側にExplorerでフォルダーを開くAPIを追加し、画面定義JSON/対象JSON欄の小ボタンから呼び出す方針を提案。"
+        },
+        {
+          "history_id": "disc_0100_003",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "ViewDefボタン非活性",
+          "message": "対象JSON側はフォルダーOpenできるが、ViewDef側のボタンが活性化しないと報告。最新資材添付。"
+        },
+        {
+          "history_id": "disc_0100_004",
+          "at": "2026-07-01",
+          "speaker": "assistant",
+          "topic": "ViewDef活性化修正",
+          "message": "対象JSONからview_defを自動反映した場合に、ViewDef入力欄の値は入るがフォルダーOpenボタン状態を再判定していなかったため、状態更新処理を追加。"
+        },
+        {
+          "history_id": "disc_0100_005",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "Overlay特殊ケースとExplorer前面化",
+          "message": "overlay/default配下で対象JSONの場所を開けません: file or folder not found になった。加えてExplorerが裏に隠れるため最前面にしたいと依頼。"
+        },
+        {
+          "history_id": "disc_0100_006",
+          "at": "2026-07-01",
+          "speaker": "assistant",
+          "topic": "Overlayパス解決と前面化",
+          "message": "overlay/default/data と overlay/default/view_defs は通常のdata/json・defs配下ではなく studio_overlays/default 側に実体があるため、Program.cs側のパス解決を追加。Explorer起動を /n,/select 寄りに変更し、対象Explorerウィンドウを探して前面化する処理を追加。"
+        },
+        {
+          "history_id": "disc_0100_007",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "dotnet publishエラー",
+          "message": "Program.cs(1467,63)付近で CS1012 文字リテラルに文字が多すぎます等のC#コンパイルエラーが発生したと報告。"
+        },
+        {
+          "history_id": "disc_0100_008",
+          "at": "2026-07-01",
+          "speaker": "assistant",
+          "topic": "compile fix",
+          "message": "C#でバックスラッシュ文字を Replace('\\\\', '/') と書くべきところを誤っていたため修正し、コンパイル修正版ZIPを返却。"
+        },
+        {
+          "history_id": "disc_0100_009",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "ユーザー実機確認",
+          "message": "Overlay defaultのview_defsフォルダーがExplorerで前面表示され、employee_skill_inventory_view_def.jsonが選択状態で開くことをスクリーンショット付きで確認。インシデント更新後JSON返却を依頼。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0100_001",
+          "at": "2026-07-01",
+          "decision": "フォルダーOpenはブラウザ側だけで完結させず、FRBStudio.exe側のローカルAPI経由でExplorerを起動する。",
+          "reason": "ブラウザのセキュリティ制約上、ローカルフォルダーを直接開く処理はサーバー側のローカルアプリ責務に寄せる必要があるため。"
+        },
+        {
+          "decision_id": "dec_0100_002",
+          "at": "2026-07-01",
+          "decision": "Explorerでは単にフォルダーを開くのではなく、対象ファイルを/selectで選択状態にする。",
+          "reason": "ユーザーが『どのJSONか』をすぐ確認でき、コピー・差し替え・確認作業の摩擦を最小化できるため。"
+        },
+        {
+          "decision_id": "dec_0100_003",
+          "at": "2026-07-01",
+          "decision": "overlay/default/* は通常のdata/json・defsではなく studio_overlays/default の実体パスへ解決する。",
+          "reason": "Overlay資材はCore資材と配置責務が異なり、通常パス解決では存在するファイルを見失うため。"
+        },
+        {
+          "decision_id": "dec_0100_004",
+          "at": "2026-07-01",
+          "decision": "フォルダーOpenボタンの活性状態は、ユーザー入力時だけでなく、プログラムがview_def値を自動反映した後にも再判定する。",
+          "reason": "対象JSONにview_defが指定されている場合、ViewDef選択欄は手入力されないが実体値は存在するため。"
+        },
+        {
+          "decision_id": "dec_0100_005",
+          "at": "2026-07-01",
+          "decision": "Explorer前面化は補助機能として実装し、Windows側挙動に左右される可能性を前提にする。",
+          "reason": "起動直後に裏に隠れるとUXが悪いが、OSのフォーカス制御は完全保証しにくいため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0100_001",
+          "at": "2026-07-01",
+          "change_type": "ui_added",
+          "before": "画面定義JSON・対象JSONの選択欄から、そのJSONの配置フォルダーを直接開けなかった。",
+          "after": "各選択欄に小さなフォルダーOpenボタンを追加し、選択値がある場合にExplorerで対象ファイルを選択表示できるようにした。",
+          "reason": "受領JSONやViewDefのコピー・確認作業が頻繁で、フォルダー探索の手間が地味に大きかったため。"
+        },
+        {
+          "history_id": "chg_0100_002",
+          "at": "2026-07-01",
+          "change_type": "state_fix",
+          "before": "対象JSONからview_defを自動反映した場合、ViewDef欄のフォルダーOpenボタンが活性化しないことがあった。",
+          "after": "プログラム側でViewDef値を設定した後も、フォルダーOpenボタンの状態を再判定するよう修正した。",
+          "reason": "ユーザー操作ではなく自動反映でも、選択値があるなら開けるべきため。"
+        },
+        {
+          "history_id": "chg_0100_003",
+          "at": "2026-07-01",
+          "change_type": "path_resolution_fixed",
+          "before": "overlay/default/data や overlay/default/view_defs の選択時に、通常パス解決のため file or folder not found になるケースがあった。",
+          "after": "overlay/default/* を studio_overlays/default/* 側へ解決し、Overlay資材の実体フォルダーをExplorerで開けるようにした。",
+          "reason": "Overlay資材はCoreとは別配置で管理されるため。"
+        },
+        {
+          "history_id": "chg_0100_004",
+          "at": "2026-07-01",
+          "change_type": "ux_polish",
+          "before": "Explorerを起動してもFRBStudioブラウザの裏に隠れることがあった。",
+          "after": "Explorer起動後に対象フォルダーのExplorerウィンドウを探して前面化する処理を追加した。",
+          "reason": "フォルダーを開いたことがユーザーに即座に伝わるようにするため。"
+        },
+        {
+          "history_id": "chg_0100_005",
+          "at": "2026-07-01",
+          "change_type": "compile_fix",
+          "before": "Program.csのバックスラッシュ文字指定が不正で、CS1012 / CS1010 / CS1026 / CS1002 のC#コンパイルエラーが発生した。",
+          "after": "C#の文字リテラルを Replace('\\\\', '/') のように正しくエスケープして修正した。",
+          "reason": "Windowsパス区切り文字を文字リテラルとして扱うにはバックスラッシュのエスケープが必要なため。"
+        },
+        {
+          "history_id": "chg_0100_006",
+          "at": "2026-07-01",
+          "change_type": "user_verified",
+          "before": "Overlay default配下のViewDefフォルダーOpenが実機確認前だった。",
+          "after": "ユーザー実機で studio_overlays/default/view_defs がExplorer前面表示され、employee_skill_inventory_view_def.json が選択状態になることを確認した。",
+          "reason": "実際のWindows環境でExplorer起動・Overlayパス解決・前面表示が成立することを確認するため。"
+        }
+      ],
+      "verification_status": "ユーザー実機確認済み / Overlay default view_defs Explorer前面表示確認済み / 対象ファイル選択表示確認済み / compile fix返却済み",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-07-01",
+      "context_def_draft": "# ContextDef素案: v0.17.13-json-select-folder-open-buttons\n\n## 読む目的\n画面定義JSON・対象JSONの選択欄から、現在選択されているJSONファイルの配置フォルダーをすぐ開けるようにし、返却JSONやOverlay資材のコピー・確認作業の摩擦を下げる。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0086` / v0.16.9-file-picker-list-refresh-safety: 対象JSON/画面定義JSONファイル選択ピッカーの一覧取得安全化の文脈を確認する。\n- `studio_work_0090` / v0.17.0-studio-overlay-manifest-separation: Overlay / Manifest によるCore-Copilot分離とOverlay配置契約を確認する。\n- `studio_work_0091` / v0.17.2-frbstudio-app-root-path-contract: FRBStudio_App Root Path Contract と固定パス禁止方針を確認する。\n- `studio_work_0100` / v0.17.13-json-select-folder-open-buttons: JSON選択欄フォルダーOpen対応の実装履歴とOverlay特殊ケースを確認する。\n\n## AI作業メモ\n- ローカルフォルダーOpenはブラウザ単体ではなくFRBStudio.exe側API責務とする。\n- 任意パス実行にならないよう、基準フォルダー外への脱出を防ぐ。\n- Overlay資材はCore側のdata/json・defsではなく `studio_overlays/default` の実体パスへ解決する必要がある。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\n画面定義JSON欄と対象JSON欄に小さなフォルダーアイコンを追加する。選択値がある場合だけ活性化する。クリック時にFRBStudio.exe側API経由でExplorerを起動し、対象ファイルを選択状態にする。通常のdata/json・defsに加えて overlay/default/data と overlay/default/view_defs を studio_overlays/default 側へ解決する。Explorerが裏に隠れにくいように新規ウィンドウ寄りで開き、起動後に対象Explorerを前面化する。\n\n## 注意すべきリスク\nローカルExplorer起動APIは便利だが、任意パス実行に見える実装にすると危険。Overlayパスは通常のdata/jsonやdefsとは配置が異なるため、解決規則を誤ると存在するファイルでもnot foundになる。Explorer前面化はWindows側の挙動に左右される可能性がある。\n\n## 確認観点メモ\n通常の対象JSONでフォルダーアイコンからExplorerが開くこと。通常の画面定義JSONでExplorerが開くこと。対象JSONからview_defが自動反映された場合もViewDef側フォルダーアイコンが活性化すること。overlay/default/data/*.json と overlay/default/view_defs/*.json が studio_overlays/default 配下で開けること。Explorerが前面に表示され、対象JSON/ViewDefが選択状態になること。dotnet publishでC#構文エラーが出ないこと。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0100_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_106_json_folder_open_done.json#studio_work_0100",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.17.13で追加したJSON選択欄フォルダーOpen対応の完了インシデント。"
+        },
+        {
+          "context_ref_id": "target_0100_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0100_030_studio_work_0086",
+          "title": "関連作業 studio_work_0086: 対象JSON/画面定義JSONファイル選択ピッカーの一覧取得安全化",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_106_json_folder_open_done.json#studio_work_0086",
+          "purpose": "ファイル選択欄の一覧取得と安全化の既存判断を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0100_040_studio_work_0090",
+          "title": "関連作業 studio_work_0090: Studio Overlay / Manifest によるCore-Copilot完全分離設計",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_106_json_folder_open_done.json#studio_work_0090",
+          "purpose": "Overlay default配下の配置契約とCore分離方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0100_050_studio_work_0091",
+          "title": "関連作業 studio_work_0091: CommandProfile / FRBStudio_App Root Path Contract と固定パス禁止ルール強化",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_106_json_folder_open_done.json#studio_work_0091",
+          "purpose": "App Root Path契約と固定パス禁止の既存判断を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": ""
+        }
+      ]
     }
   ],
   "review_notes": [
@@ -7153,10 +8085,42 @@
       "at": "2026-07-01",
       "title": "v0.17.8 日次UX小改善まとめ 完了",
       "body": "overlay/default配下の初期展開、対象JSON選択時の自動読み込み、現在Data JSONパス表示、MarkdownエディターSentenceBlock削除の画面内ダイアログ化を、studio_work_0095として判断ログ中心に記録した。各修正は小さいが、会社で大量JSONを開く運用における反復摩擦を下げるための現場道具化として扱う。"
+    },
+    {
+      "note_id": "note_v0179_toast_noise_reduction_done",
+      "at": "2026-07-01",
+      "title": "v0.17.9 Toast Noise Reduction 完了",
+      "body": "右下トースト通知をwarning/error中心へ寄せた。対象JSON選択・ViewDef再解決・API/URL読み込み開始・コンボクリアなどの途中経過/成功通知はconsole.logまたはヘッダー表示へ吸収し、失敗時だけ強く知らせる方針をstudio_work_0096として記録した。"
+    },
+    {
+      "note_id": "note_v01710_current_data_status_layer_done",
+      "at": "2026-07-01",
+      "title": "v0.17.10 Current Data Status Layer 完了",
+      "body": "成功通知を抑制した後の現在地表示として、Data JSONパスをボタン群のflex flowから独立した専用行へ移動した。status IDは維持し、既存JSを壊さずHTML/CSSの最小差分で位置ブレを解消した。"
+    },
+    {
+      "note_id": "note_v01711_current_data_title_display_done",
+      "at": "2026-07-01",
+      "title": "v0.17.11 Current Data Title Display 完了",
+      "body": "現在Data表示をタイトル(看板)とパス(住所)に分離した。ViewDef currentDataDisplay.titlePathでDataタイトルを指定し、SchemaとViewDef生成ルールへ契約を追加した。"
+    },
+    {
+      "note_id": "review_note_0074",
+      "at": "2026-07-01",
+      "author": "ChatGPT",
+      "category": "ux_polish",
+      "message": "current-data-layer を看板カード化し、JSON Object Studioロゴ領域と視覚的に分離した。タイトル文字のサイズ感は維持し、背景・角丸・枠線で文書看板らしさを強化した。"
+    },
+    {
+      "note_id": "review_note_0072_gitdiff_viewer_launch_done",
+      "at": "2026-07-01",
+      "author": "ChatGPT",
+      "category": "gitdiff_viewer",
+      "message": "GitDiffRun実行後に生成された日時付きDiffToJson JSONを、http URLのpathパラメータでDiffJsonViewer.htmlへ渡して自動表示する導線を完了扱いに更新した。ユーザー実機確認により、差分JSON生成からViewer表示まで一気通貫したことを記録した。"
     }
   ],
-  "work_revision": "v0_100",
-  "latest_planning_note": "v0.17.8-daily-ux-polish-after-pluginhost 完了。ファイルツリー初期展開、対象JSON自動読み込み、現在Dataパス表示、Markdown削除確認ダイアログ化の小改善を判断ログ中心に作業記録化した。",
+  "work_revision": "v0_105",
+  "latest_planning_note": "v0.15.8-gitdiff-result-viewer-launch を実装完了として更新。GitDiffRun実行後に日時付きDiffToJson_*.jsonを生成し、http URLをpathパラメータでDiffJsonViewer.htmlへ渡して自動起動する導線を記録した。ユーザー実機確認により、GitDiffRun→差分JSON生成→Viewer表示まで一気通貫したことを確認。",
   "view_def_candidates": [
     {
       "view_def": "rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",
