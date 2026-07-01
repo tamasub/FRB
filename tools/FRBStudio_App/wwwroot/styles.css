@@ -942,6 +942,57 @@ button.combo-clear-button:focus-visible {
     inset 0 1px 0 rgba(255,255,255,.24);
 }
 
+/* v0.17.9-json-folder-open: コンボ欄から選択中JSONの場所を開く小ボタン */
+.combo-field.has-clear input {
+  padding-right: 78px;
+}
+.combo-input-wrap::after {
+  right: 56px;
+}
+button.combo-folder-button {
+  position: absolute;
+  top: 50%;
+  right: 30px;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
+  padding: 0;
+  margin: 0;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, .30);
+  border-radius: 999px;
+  color: #eff6ff;
+  background: linear-gradient(135deg, rgba(14,165,233,.82), rgba(37,99,235,.82));
+  box-shadow: 0 3px 10px rgba(14,165,233,.18), inset 0 1px 0 rgba(255,255,255,.22);
+  font-size: 12px;
+  line-height: 20px;
+  cursor: pointer;
+  opacity: .88;
+  white-space: nowrap;
+  z-index: 3;
+}
+button.combo-folder-button:hover:not(:disabled),
+button.combo-folder-button:active {
+  transform: translateY(-50%);
+  filter: brightness(1.1);
+}
+button.combo-folder-button:disabled {
+  opacity: .32;
+  cursor: default;
+  filter: grayscale(.4);
+}
+button.combo-folder-button:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(147,197,253,.28),
+    0 3px 10px rgba(14,165,233,.18),
+    inset 0 1px 0 rgba(255,255,255,.22);
+}
+
 
 
 /* v0.6-action-execute-button: ViewDef-driven primary action button */

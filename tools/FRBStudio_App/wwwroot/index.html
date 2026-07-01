@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>FRB Studio - JSON Object Studio v0.4-r001</title>
-  <link rel="stylesheet" href="styles.css?v=current-data-title-card-017101" />
+  <link rel="stylesheet" href="styles.css?v=json-folder-open-0180" />
   <script>
   (function () {
     if (location.hostname === "localhost" || location.hostname === "127.0.0.1") return;
@@ -159,6 +159,7 @@
         <span class="drop-label">画面定義JSON</span>
         <span class="combo-input-wrap">
           <input id="defNameInput" name="frb_def_combo_009" list="defNameList" placeholder="defs から検索・選択" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+          <button id="openDefFolderBtn" class="combo-folder-button" type="button" aria-label="画面定義JSONの場所をExplorerで開く" title="画面定義JSONの場所をExplorerで開く" disabled>📁</button>
           <button id="clearDefNameBtn" class="combo-clear-button" type="button" aria-label="画面定義JSONの選択をクリア" title="画面定義JSONの選択をクリア">×</button>
         </span>
         <datalist id="defNameList"></datalist>
@@ -167,6 +168,7 @@
         <span class="drop-label">対象JSON</span>
         <span class="combo-input-wrap">
           <input id="dataNameInput" name="frb_data_combo_009" list="dataNameList" placeholder="data から検索・選択" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+          <button id="openDataFolderBtn" class="combo-folder-button" type="button" aria-label="対象JSONの場所をExplorerで開く" title="対象JSONの場所をExplorerで開く" disabled>📁</button>
           <button id="clearDataNameBtn" class="combo-clear-button" type="button" aria-label="対象JSONの選択をクリア" title="対象JSONの選択をクリア">×</button>
         </span>
         <datalist id="dataNameList"></datalist>
@@ -303,6 +305,6 @@
   <script src="js/actions/action_registry.js?v=test-runner-command-profile-01438"></script>
   <script src="js/core/plugin_host.js?v=pluginhost-mvp-0176"></script>
   <script src="js/actions/action_toolbar.js?v=test-runner-command-profile-01438"></script>
-  <script src="app.js?v=current-data-status-0178"></script>
+  <script src="app.js?v=json-folder-open-0180"></script>
 </body>
 </html>

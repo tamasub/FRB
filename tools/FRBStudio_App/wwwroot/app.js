@@ -190,6 +190,9 @@ function hideAllFileTreePickersSoon() {
 function setComboValueSilently(input, value) {
   if (!input) return;
   input.value = value || '';
+  if (typeof updateSelectedJsonFolderButtonStates === 'function') {
+    updateSelectedJsonFolderButtonStates();
+  }
   hideAllFileTreePickersSoon();
 }
 
@@ -273,10 +276,96 @@ function setupDataSelectionViewDefReset() {
   dataInput.addEventListener('change', handleDataSelectionChanged);
 }
 
+
+function selectedJsonFolderButtonConfigs() {
+  return [
+    {
+      kind: 'viewdef',
+      inputId: 'defNameInput',
+      buttonId: 'openDefFolderBtn',
+      label: '画面定義JSON',
+      getName: () => selectedDefName()
+    },
+    {
+      kind: 'data',
+      inputId: 'dataNameInput',
+      buttonId: 'openDataFolderBtn',
+      label: '対象JSON',
+      getName: () => selectedDataName()
+    }
+  ];
+}
+
+function updateSelectedJsonFolderButtonStates() {
+  selectedJsonFolderButtonConfigs().forEach(({ inputId, buttonId }) => {
+    const input = $(inputId);
+    const button = $(buttonId);
+    if (!input || !button) return;
+    button.disabled = !safeJsonFileName(input.value);
+  });
+}
+
+function setupSelectedJsonFolderButtons() {
+  const configs = selectedJsonFolderButtonConfigs();
+  updateSelectedJsonFolderButtonStates();
+
+  configs.forEach(({ kind, inputId, buttonId, label, getName }) => {
+    const input = $(inputId);
+    const button = $(buttonId);
+    if (!input || !button) return;
+    if (button.dataset.folderOpenInstalled === '1') {
+      updateSelectedJsonFolderButtonStates();
+      return;
+    }
+    button.dataset.folderOpenInstalled = '1';
+
+    const sync = () => updateSelectedJsonFolderButtonStates();
+    input.addEventListener('input', sync);
+    input.addEventListener('change', sync);
+    sync();
+
+    button.addEventListener('click', async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      let jsonName = null;
+      try {
+        jsonName = getName();
+      } catch (err) {
+        console.warn(err);
+        setStatus(`${label}の場所を開けません: ${err.message}`, { kind: 'error', title: 'フォルダーを開けません' });
+        return;
+      }
+
+      if (!jsonName) {
+        setStatus(`${label}が選択されていません`, { kind: 'warn', title: 'JSON未選択' });
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/shell/open-json-folder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ kind, path: jsonName, select_file: true })
+        });
+        const text = await res.text();
+        let payload = null;
+        try { payload = text ? JSON.parse(text) : null; } catch { /* ignore */ }
+        if (!res.ok) throw new Error(payload?.error || text || `HTTP ${res.status}`);
+        setStatus(`${label}の場所を開きました: ${jsonName}`, { kind: 'success', title: 'Explorer起動', toast: false });
+      } catch (err) {
+        console.error(err);
+        setStatus(`${label}の場所を開けません: ${err.message}`, { kind: 'error', title: 'フォルダーを開けません' });
+      }
+    });
+  });
+}
+
 installMainStatusToast();
 loadAndApplyAppInfo();
 setupPageDrop();
 setupComboClearButtons();
+setupSelectedJsonFolderButtons();
 setupFileTreePickers();
 setupDataSelectionViewDefReset();
 setupViewDefMarkdownButtonState();
@@ -329,6 +418,7 @@ refreshServerLists().finally(async () => {
   }
   await autoLoadFromQuery();
   updateViewDefMarkdownButtonState();
+  setupSelectedJsonFolderButtons();
 });
 
 window.__NCJS_exportScreenState = function () {

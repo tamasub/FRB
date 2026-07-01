@@ -249,6 +249,35 @@ internal static class Program
             return Results.Ok(new { saved = req.Name });
         });
 
+        // v0.17.9-json-folder-open:
+        // ブラウザからはローカルフォルダーを直接開けないため、FRBStudio.exe側で選択中JSONをExplorer表示する。
+        // kind=data は dataFolders 契約、kind=viewdef は defs 契約に限定して解決し、任意パス実行を防ぐ。
+        app.MapPost("/api/shell/open-json-folder", (OpenJsonFolderRequest req) =>
+        {
+            var kind = (req.Kind ?? string.Empty).Trim().ToLowerInvariant();
+            if (string.IsNullOrWhiteSpace(req.Path)) return Results.BadRequest(new { error = "path is required" });
+
+            var fullPath = ResolveOpenJsonPath(kind, req.Path, dataFolders, defsDir, overlaysDir);
+
+            if (fullPath is null) return Results.BadRequest(new { error = "invalid kind or path" });
+            if (!File.Exists(fullPath) && !Directory.Exists(fullPath)) return Results.NotFound(new { error = "file or folder not found" });
+
+            var isFile = File.Exists(fullPath);
+            var folder = isFile ? Path.GetDirectoryName(fullPath) : fullPath;
+            if (string.IsNullOrWhiteSpace(folder) || !Directory.Exists(folder)) return Results.NotFound(new { error = "folder not found" });
+
+            var selectFile = req.SelectFile ?? req.select_file ?? true;
+            OpenExplorerAndBringToFront(folder, isFile && selectFile ? fullPath : null);
+
+            return Results.Ok(new
+            {
+                opened = folder,
+                selected = isFile && selectFile ? fullPath : null,
+                kind,
+                path = req.Path
+            });
+        });
+
         // v0.14.37-git-diff-export-command-profile:
         // Data JSONから任意コマンドを実行させず、Program.cs側で許可したCommandProfileだけを実行する。
         app.MapGet("/api/actions/command/profiles", () => Results.Json(commandProfiles.Values.Select(profile => new
@@ -1409,6 +1438,47 @@ internal static class Program
         await File.WriteAllTextAsync(path, formatted);
     }
 
+    private static string? ResolveOpenJsonPath(
+        string kind,
+        string name,
+        IReadOnlyList<DataFolder> dataFolders,
+        string defsDir,
+        string overlaysDir)
+    {
+        // v0.17.9.1-json-folder-open-overlay:
+        // Overlay選択値は datalist 上では overlay/{id}/data/foo.json や overlay/{id}/view_defs/foo.json として流れる。
+        // /api/data や /api/defs の管理フォルダーではなく studio_overlays/{id}/... が実体なので、
+        // フォルダーOpen時も Overlay API名として安全に解決する。
+        var overlayPath = SafeStudioOverlayApiJsonPath(overlaysDir, name);
+        if (overlayPath is not null) return overlayPath;
+
+        return kind switch
+        {
+            "data" => SafeDataPath(dataFolders, name, preferExisting: true),
+            "viewdef" or "def" or "defs" => SafeJsonPath(defsDir, name),
+            _ => null
+        };
+    }
+
+    private static string? SafeStudioOverlayApiJsonPath(string overlaysDir, string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return null;
+
+        var normalized = Uri.UnescapeDataString(name).Replace('\\', '/').Trim('/');
+        if (string.IsNullOrWhiteSpace(normalized)) return null;
+        if (!normalized.StartsWith("overlay/", StringComparison.OrdinalIgnoreCase)) return null;
+        if (normalized.Contains("://", StringComparison.OrdinalIgnoreCase)) return null;
+        if (Path.IsPathRooted(normalized)) return null;
+
+        var parts = normalized.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length < 4) return null;
+        if (!parts[0].Equals("overlay", StringComparison.OrdinalIgnoreCase)) return null;
+
+        var overlayId = parts[1];
+        var relative = string.Join('/', parts.Skip(2));
+        return SafeOverlayPath(overlaysDir, overlayId, relative, new[] { ".json" });
+    }
+
     private static string? SafeDataPath(IReadOnlyList<DataFolder> folders, string name, bool preferExisting)
     {
         if (string.IsNullOrWhiteSpace(name)) return null;
@@ -1769,6 +1839,137 @@ internal static class Program
     }
 
 
+    private static void OpenExplorerAndBringToFront(string folder, string? selectedPath)
+    {
+        var arguments = !string.IsNullOrWhiteSpace(selectedPath)
+            ? $"/n,/select,\"{selectedPath}\""
+            : $"/n,\"{folder}\"";
+
+        Process? process = null;
+        try
+        {
+            process = Process.Start(new ProcessStartInfo
+            {
+                FileName = "explorer.exe",
+                Arguments = arguments,
+                UseShellExecute = true
+            });
+        }
+        catch
+        {
+            // Explorer起動失敗時は呼び出し元で例外にしない。
+            // フォルダーOpenは補助操作なので、既存処理の安定性を優先する。
+        }
+
+        // Windows 11ではExplorerが既存プロセス/既存ウィンドウを再利用し、裏に隠れることがある。
+        // まずProcessのMainWindowHandleを試し、だめならShell.Applicationで対象フォルダーのExplorerウィンドウを探して前面化する。
+        try
+        {
+            if (process is not null)
+            {
+                try { process.WaitForInputIdle(800); } catch { }
+                process.Refresh();
+                if (process.MainWindowHandle != IntPtr.Zero)
+                {
+                    ForceWindowToForeground(process.MainWindowHandle);
+                    return;
+                }
+            }
+        }
+        catch
+        {
+            // COM探索へフォールバックする。
+        }
+
+        for (var i = 0; i < 8; i++)
+        {
+            Thread.Sleep(150);
+            if (TryBringExplorerWindowForFolderToForeground(folder)) return;
+        }
+    }
+
+    private static bool TryBringExplorerWindowForFolderToForeground(string folder)
+    {
+        object? shellObject = null;
+        try
+        {
+            var shellType = Type.GetTypeFromProgID("Shell.Application");
+            if (shellType is null) return false;
+
+            shellObject = Activator.CreateInstance(shellType);
+            if (shellObject is null) return false;
+
+            var targetFolder = NormalizeComparablePath(folder);
+            if (string.IsNullOrWhiteSpace(targetFolder)) return false;
+
+            dynamic shell = shellObject;
+            foreach (var window in shell.Windows())
+            {
+                try
+                {
+                    var fullName = Convert.ToString(window.FullName) ?? string.Empty;
+                    if (!fullName.EndsWith("explorer.exe", StringComparison.OrdinalIgnoreCase)) continue;
+
+                    var locationUrl = Convert.ToString(window.LocationURL) ?? string.Empty;
+                    var windowFolder = ExplorerLocationUrlToLocalPath(locationUrl);
+                    if (string.IsNullOrWhiteSpace(windowFolder)) continue;
+                    if (!PathsEqual(windowFolder, targetFolder)) continue;
+
+                    var handle = new IntPtr(Convert.ToInt64(window.HWND));
+                    ForceWindowToForeground(handle);
+                    return true;
+                }
+                catch
+                {
+                    // 対象外のExplorer/特殊フォルダーは無視する。
+                }
+            }
+        }
+        catch
+        {
+            return false;
+        }
+        finally
+        {
+            try
+            {
+                if (shellObject is not null && Marshal.IsComObject(shellObject)) Marshal.FinalReleaseComObject(shellObject);
+            }
+            catch { }
+        }
+
+        return false;
+    }
+
+    private static string? ExplorerLocationUrlToLocalPath(string locationUrl)
+    {
+        if (string.IsNullOrWhiteSpace(locationUrl)) return null;
+        if (!Uri.TryCreate(locationUrl, UriKind.Absolute, out var uri) || !uri.IsFile) return null;
+        return NormalizeComparablePath(uri.LocalPath);
+    }
+
+    private static string? NormalizeComparablePath(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return null;
+        try
+        {
+            return Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static bool PathsEqual(string? left, string? right)
+    {
+        var a = NormalizeComparablePath(left);
+        var b = NormalizeComparablePath(right);
+        return !string.IsNullOrWhiteSpace(a)
+            && !string.IsNullOrWhiteSpace(b)
+            && string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
+    }
+
     private static DialogResult ShowMarkdownOpenFileDialogForeground(OpenFileDialog dialog)
     {
         var foregroundHandle = GetForegroundWindow();
@@ -2101,6 +2302,7 @@ internal sealed record DataFolder(string RelativePath, string FullPath, bool IsP
     public string ApiPrefix => RelativePath.Replace('\\', '/').Trim('/');
 }
 
+public sealed record OpenJsonFolderRequest(string? Kind, string? Path, bool? SelectFile, bool? select_file);
 public sealed record DropJsonRequest(string Name, JsonElement Json);
 public sealed record MarkdownSaveRequest(string Name, string? Content, string? SourceName, string? SidecarName, string? SidecarContent);
 
