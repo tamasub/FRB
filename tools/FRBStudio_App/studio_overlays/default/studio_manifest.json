@@ -7,7 +7,7 @@
   "owner": "company_copilot",
   "managed_by": "company_copilot",
   "created_at": "2026-06-30",
-  "updated_at": "2026-06-30",
+  "updated_at": "2026-07-01",
   "purpose": "Studio Core(wwwroot)を変更せず、会社・勇者側のValueSet/ViewDef/SearchPattern/Plugin/Dataを追加するためのOverlay共通言語。",
   "core_boundary_policy": {
     "core_root": "wwwroot/",
@@ -52,5 +52,14 @@
       "Program.cs/**"
     ]
   },
-  "notes": "今はdefaultだけを使う。将来、勇者ごとに studio_overlays/{overlay_id}/studio_manifest.json を増やせる。"
+  "notes": "今はdefaultだけを使う。将来、勇者ごとに studio_overlays/{overlay_id}/studio_manifest.json を増やせる。",
+  "plugin_host_mvp": "v0.17.6-pluginhost-mvp",
+  "value_vocabulary_registry_policy": {
+    "logical_schema_name": "Value Vocabulary Registry Schema",
+    "value_set_files_role": "value_set_files は互換名。指す先のJSONは registry_scope=overlay の Value Vocabulary Registry として扱う。",
+    "core_scope_registry": "data/json/00_rules/common_enums_v0_1.json",
+    "overlay_scope_registry": "studio_overlays/default/value_sets/company_value_sets.json",
+    "runtime_resolution": "enumRef と valueSet は同じ options 解決系へ入る。Pluginは解決済み field.options を見る。",
+    "company_copilot_rule": "会社Copilotは company.* 語彙を Overlay側 Registry に追加し、Core common_enums へ会社語彙を追加しない。"
+  }
 }

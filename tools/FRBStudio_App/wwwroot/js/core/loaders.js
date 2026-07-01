@@ -11,7 +11,7 @@ async function loadFromServerNames(defName, dataName) {
   $('dataNameInput').value = dataName;
   $('defFileName').textContent = 'Drop';
   $('dataFileName').textContent = 'Drop';
-  setStatus('API管理ファイルを読み込み中...');
+  console.log('[FRBStudio load] API管理ファイルを読み込み中...');
 
   const loadedData = await fetchApiJsonWithUrl('data', dataName);
   const actualDataName = loadedData.correctedName || jsonNameFromUrl(loadedData.url, 'data');
@@ -34,7 +34,7 @@ async function loadFromServerNames(defName, dataName) {
     : (resolved.autoChanged ? ` / 画面定義を自動選択: ${defName}` : '');
   const writableDataUrl = loadedData.readonly ? null : loadedData.url;
   const sourceLabel = loadedData.readonly ? 'Overlay読込' : 'API管理ファイル';
-  await loadFromObjects(defObj, dataObj, `${sourceLabel}を読み込みました: ${dataName}${autoMsg}`, writableDataUrl);
+  await loadFromObjects(defObj, dataObj, `${sourceLabel}を読み込みました: ${dataName}${autoMsg}`, writableDataUrl, dataName);
 }
 
 
@@ -153,10 +153,10 @@ async function loadFromDroppedFilesOrServer() {
     const copiedLabel = droppedDefName
       ? `管理対象にコピーして読み込みました: ${droppedDefName} / ${droppedDataName}`
       : `管理対象にコピーして読み込みました: ${droppedDataName}`;
-    await loadFromObjects(defObj, dataObj, copiedLabel, dataApiUrl);
+    await loadFromObjects(defObj, dataObj, copiedLabel, dataApiUrl, droppedDataName);
   } else {
     if (droppedDefName) $('defNameInput').value = '';
     $('dataNameInput').value = '';
-    await loadFromObjects(defObj, dataObj, `見るだけで読み込みました: ${droppedDataName}`, null);
+    await loadFromObjects(defObj, dataObj, `見るだけで読み込みました: ${droppedDataName}`, null, droppedDataName);
   }
 }

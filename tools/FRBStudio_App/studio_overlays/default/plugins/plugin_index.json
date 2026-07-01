@@ -6,10 +6,19 @@
     {
       "id": "multi_select_combo",
       "name": "複数選択コンボ",
-      "enabled": false,
+      "enabled": true,
       "manifest": "plugins/multi_select_combo/plugin.json",
-      "scope": "field_editor",
-      "note": "CoreにPluginHostが入った後に有効化する。現時点では会社Copilotへ渡すサンプル。"
+      "scope": "field_editor/search_filter",
+      "note": "v0.17.6 PluginHost MVPで有効化。ValueSetDefのoptionsを受け取り、配列値を複数選択で編集・検索する。"
+    },
+    {
+      "id": "skill_summary",
+      "name": "表示行集計Action",
+      "enabled": true,
+      "manifest": "plugins/skill_summary/plugin.json",
+      "scope": "action",
+      "note": "v0.17.6 PluginHost MVPで有効化。表示中行を集計し、toolbar.executeButtonから実行できるサンプル。"
     }
-  ]
+  ],
+  "updated_at": "2026-07-01"
 }

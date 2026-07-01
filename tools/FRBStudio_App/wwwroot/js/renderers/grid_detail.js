@@ -510,11 +510,19 @@ function applySearch() {
   const inputs = [...$('searchForm').querySelectorAll('input, select, textarea')];
   filteredRows = currentRows.map((row, index) => ({row, index})).filter(({row}) => {
     return inputs.every(inp => {
-      const raw = inp.value;
+      const raw = inp.multiple
+        ? [...inp.selectedOptions].map(opt => opt.value).filter(Boolean)
+        : inp.value;
+      if (Array.isArray(raw) && raw.length === 0) return true;
       if (raw === '') return true;
       const field = gd.fields.find(f => f.field === inp.dataset.field);
+      if (!field) return true;
       const val = getByPath(row, field.field);
-      const op = field.search?.operator ?? (field.type === 'number' ? 'gte' : 'contains');
+      const op = field.search?.operator ?? field.search?.match ?? (field.type === 'number' ? 'gte' : 'contains');
+      if (Array.isArray(raw)) {
+        const values = Array.isArray(val) ? val.map(v => String(v)) : [String(val ?? '')];
+        return raw.some(x => values.includes(String(x)));
+      }
       if (field.type === 'number') {
         const n = Number(raw);
         if (op === 'gte') return Number(val) >= n;
@@ -526,6 +534,11 @@ function applySearch() {
       return String(val ?? '').toLowerCase().includes(raw.toLowerCase());
     });
   });
+
+  if (typeof applyStudioPluginSearchFilters === 'function') {
+    filteredRows = applyStudioPluginSearchFilters(filteredRows, { gd, inputs });
+  }
+
   applySortToFilteredRows();
   renderGrid();
 }
@@ -541,7 +554,7 @@ function defaultForField(field) {
   if ('defaultValue' in field) return cloneDefaultValue(field.defaultValue);
   if (field.type === 'number') return 0;
   if (field.type === 'boolean') return false;
-  if (field.type === 'objectArray' || field.type === 'stringArray') return [];
+  if (field.type === 'objectArray' || field.type === 'stringArray' || field.type === 'array') return [];
   if (field.type === 'select') return field.options?.length ? optionValue(field.options[0], field) : '';
   return '';
 }
@@ -671,6 +684,9 @@ function detailEditableControls() {
 
 function getControlValue(el) {
   if (el.hasAttribute('contenteditable')) return el.innerText ?? '';
+  if (el instanceof HTMLSelectElement && el.multiple) {
+    return [...el.selectedOptions].map(option => option.value).filter(value => value !== '');
+  }
   return el.value;
 }
 

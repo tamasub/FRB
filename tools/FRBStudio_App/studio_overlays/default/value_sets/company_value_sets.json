@@ -1,19 +1,17 @@
 {
-  "schema_version": "value_set_def_v0_1",
-  "document_type": "studio_overlay_value_sets",
-  "title": "Company ValueSets / default Overlay",
+  "schema_version": "value_vocabulary_registry_v0_1",
+  "document_type": "value_vocabulary_registry",
+  "title": "Company Value Vocabulary Registry / default Overlay",
   "overlay_id": "default",
   "status": "active",
-  "updated_at": "2026-06-30",
-  "purpose": "会社固有のコード・名称・ランク順をCore common_enumsから分離して管理する。",
+  "updated_at": "2026-07-01",
+  "purpose": "会社固有のコード・名称・ランク順を、Value Vocabulary Registry Schema の overlay scope 実体として管理する。Core common_enums と別スキーマとして肥大化させない。",
   "namespaces": [
     {
       "namespace_id": "company",
-      "caption": "会社共通",
       "enums": [
         {
           "enum_id": "business_area",
-          "caption": "業務分野",
           "kind": "code_list",
           "value_type": "string",
           "items": [
@@ -41,11 +39,13 @@
               "sort_order": 90,
               "deprecated": false
             }
-          ]
+          ],
+          "name": "業務分野",
+          "enum_ref": "company.business_area",
+          "deprecated": false
         },
         {
           "enum_id": "skill_category",
-          "caption": "スキルカテゴリ",
           "kind": "code_list",
           "value_type": "string",
           "items": [
@@ -67,11 +67,13 @@
               "sort_order": 30,
               "deprecated": false
             }
-          ]
+          ],
+          "name": "スキルカテゴリ",
+          "enum_ref": "company.skill_category",
+          "deprecated": false
         },
         {
           "enum_id": "skill_rank",
-          "caption": "スキルランク",
           "kind": "ordered_enum",
           "value_type": "string",
           "order": [
@@ -105,11 +107,13 @@
               "sort_order": 40,
               "deprecated": false
             }
-          ]
+          ],
+          "name": "スキルランク",
+          "enum_ref": "company.skill_rank",
+          "deprecated": false
         },
         {
           "enum_id": "qualification",
-          "caption": "資格",
           "kind": "code_list",
           "value_type": "string",
           "items": [
@@ -131,9 +135,29 @@
               "sort_order": 30,
               "deprecated": false
             }
-          ]
+          ],
+          "name": "資格",
+          "enum_ref": "company.qualification",
+          "deprecated": false
         }
-      ]
+      ],
+      "name": "会社共通",
+      "registry_scope": "overlay"
     }
-  ]
+  ],
+  "registry_id": "overlay.default.company_value_sets",
+  "registry_scope": "overlay",
+  "registry_scope_name": "Overlay業務語彙",
+  "legacy_schema_version": "value_set_def_v0_1",
+  "legacy_document_type": "studio_overlay_value_sets",
+  "contract": {
+    "logical_schema_name": "Value Vocabulary Registry Schema",
+    "logical_schema_version": "value_vocabulary_registry_v0_1",
+    "registry_scope": "overlay",
+    "viewdef_reference": "valueSet",
+    "viewdef_reference_role": "valueSet は Overlay語彙を参照する互換alias。Runtime内部では enumRef と同じ Value Vocabulary Ref として field.options へ解決する。",
+    "display_name_policy": "name を正本表示名とする。caption は旧互換aliasとして読み取りのみ許容する。",
+    "plugin_policy": "Pluginは会社マスタを内蔵しない。Runtimeが解決した field.options だけを表示・編集・検索する。",
+    "core_dependency_policy": "Overlay語彙は Core common_enums を変更しない。Coreは構造語彙と解決処理だけを持ち、company.* の中身は所有しない。"
+  }
 }

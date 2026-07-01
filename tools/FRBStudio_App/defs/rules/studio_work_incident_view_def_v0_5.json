@@ -1427,5 +1427,10 @@
     }
   },
   "updated_at": "2026-06-28",
-  "description": "FRB Studio / JSON Object Studio インシデント管理ViewDef"
+  "description": "FRB Studio / JSON Object Studio インシデント管理ViewDef",
+  "currentDataDisplay": {
+    "titlePath": "$.title",
+    "subtitlePath": "$.target",
+    "showDataPath": true
+  }
 }

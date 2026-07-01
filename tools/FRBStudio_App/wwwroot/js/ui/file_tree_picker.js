@@ -1,7 +1,24 @@
-// v0.10-folder-hierarchy: Tree style JSON file picker for data/defs lists.
+// v0.10.3-data-tree-select-auto-load: Tree style JSON file picker for data/defs lists.
 // The server still returns a flat list of relative JSON paths; this UI builds the tree in the browser.
 
 const fileTreePickerStates = new Map();
+
+function defaultExpandedFileTreePaths() {
+  return [
+    'overlay/default',
+    'overlay/default/data',
+    'overlay/default/plugins',
+    'overlay/default/search_patterns',
+    'overlay/default/value_sets',
+    'overlay/default/view_defs',
+    'studio_overlays/default',
+    'studio_overlays/default/data',
+    'studio_overlays/default/plugins',
+    'studio_overlays/default/search_patterns',
+    'studio_overlays/default/value_sets',
+    'studio_overlays/default/view_defs'
+  ];
+}
 
 function fileTreePickerConfigs() {
   return [
@@ -66,7 +83,7 @@ function setupFileTreePicker(config) {
     wrap,
     picker,
     list: picker.querySelector('.file-tree-list'),
-    expanded: new Set()
+    expanded: new Set(defaultExpandedFileTreePaths())
   };
   fileTreePickerStates.set(config.inputId, state);
 
@@ -136,6 +153,21 @@ function selectFileTreePath(state, path) {
   state.input.dispatchEvent(new Event('change', { bubbles: true }));
   hideFileTreePicker(state);
   updateViewDefMarkdownButtonState();
+  autoLoadDataJsonAfterTreeSelection(state, safe);
+}
+
+function autoLoadDataJsonAfterTreeSelection(state, selectedPath) {
+  if (state?.config?.kind !== 'data') return;
+
+  const loadButton = $('loadBtn');
+  if (!loadButton) return;
+
+  window.clearTimeout(state.autoLoadTimer);
+  state.autoLoadTimer = window.setTimeout(() => {
+    if (safeJsonFileName(state.input?.value) !== selectedPath) return;
+    if (loadButton.disabled) return;
+    loadButton.click();
+  }, 40);
 }
 
 function renderFileTreePicker(state) {

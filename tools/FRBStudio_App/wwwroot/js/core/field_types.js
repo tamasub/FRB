@@ -1,5 +1,6 @@
 // v0.4-split: Common field type registry and resolver
 // v0.15.2: FieldType enumRef resolver added. Enum is the canonical value vocabulary.
+// v0.17.7: common_enums / value_sets are unified as Value Vocabulary Registry instances.
 
 function normalizeCommonTypeSourceItems(defObj) {
   const raw = defObj?.fieldTypeSources ?? defObj?.field_type_sources ?? defObj?.typeSources ?? defObj?.type_sources ?? null;
@@ -27,7 +28,12 @@ function normalizeDataJsonApiPath(name) {
 }
 
 function normalizeCommonEnumSourceItems(defObj) {
-  const raw = defObj?.commonEnumSources ?? defObj?.common_enum_sources ?? defObj?.enumSources ?? defObj?.enum_sources ?? null;
+  // v0.17.7-value-vocabulary-registry-diet:
+  // valueVocabularySources is the canonical logical name.
+  // commonEnumSources / enumSources remain compatible aliases for Core-era ViewDefs.
+  const raw = defObj?.valueVocabularySources ?? defObj?.value_vocabulary_sources ??
+    defObj?.commonEnumSources ?? defObj?.common_enum_sources ??
+    defObj?.enumSources ?? defObj?.enum_sources ?? null;
   const out = [];
   const push = (value, explicit=true) => {
     const n = normalizeDataJsonApiPath(value);
@@ -40,7 +46,8 @@ function normalizeCommonEnumSourceItems(defObj) {
   // 存在しない環境では警告に留め、既存options直書きViewDef/FieldTypeの互換性を保つ。
   if (!out.some(x => x.name === DEFAULT_COMMON_ENUMS_FILE)) out.push({ name: DEFAULT_COMMON_ENUMS_FILE, explicit: false });
 
-  // v0.17.0: 会社/勇者Overlay側のValueSetDefは common_enums を直接変更せず、manifest経由で追加する。
+  // v0.17.7: Overlay側 value_sets は別スキーマではなく、Value Vocabulary Registry の overlay scope 実体。
+  // manifest経由で読み込み、Core側 common_enums と同じEnumRegistryへマージする。
   if (typeof studioOverlayValueSetSourceItems === 'function') {
     studioOverlayValueSetSourceItems().forEach(item => {
       if (item?.name && !out.some(x => x.name === item.name)) out.push(item);
@@ -121,8 +128,10 @@ function normalizeEnumItems(items) {
         const out = cloneData(item);
         if (out.cd == null && out.value != null) out.cd = out.value;
         if (out.name == null && out.label != null) out.name = out.label;
+        if (out.name == null && out.caption != null) out.name = out.caption;
         if (out.sort_order == null && out.sortOrder != null) out.sort_order = out.sortOrder;
         if (out.sort_order == null) out.sort_order = (index + 1) * 10;
+        if (out.deprecated == null) out.deprecated = false;
         return out;
       }
       return { cd: String(item), name: String(item), sort_order: (index + 1) * 10, deprecated: false };
@@ -139,6 +148,10 @@ function registerEnum(target, nsId, enumObj, fallbackEnumId=null) {
   const normalized = cloneData(enumObj);
   normalized.enum_id = eid;
   normalized.enum_ref = ref;
+  if (normalized.name == null && normalized.caption != null) normalized.name = normalized.caption;
+  if (normalized.kind == null) normalized.kind = 'code_list';
+  if (normalized.value_type == null && normalized.valueType != null) normalized.value_type = normalized.valueType;
+  if (normalized.value_type == null) normalized.value_type = 'string';
   normalized.items = normalizeEnumItems(enumObj.items ?? enumObj.options ?? []);
 
   if (!target.namespaces[nsId]) target.namespaces[nsId] = { enums: {} };
@@ -314,14 +327,27 @@ function normalizeFieldTypeObject(typeObj) {
 }
 
 function fieldEnumRef(field) {
-  // enumRef は既存互換。valueSet / value_set は ValueSetDef の上位概念名として許容する。
+  // v0.17.7: enumRef / valueSet are compatible ViewDef aliases.
+  // Runtime treats both as Value Vocabulary Ref and resolves them through one options pipeline.
   return String(
+    field?.valueVocabularyRef ?? field?.value_vocabulary_ref ??
     field?.valueSet ?? field?.value_set ??
     field?.enumRef ?? field?.enum_ref ??
+    field?.edit?.valueVocabularyRef ?? field?.edit?.value_vocabulary_ref ??
     field?.edit?.valueSet ?? field?.edit?.value_set ??
     field?.edit?.enumRef ?? field?.edit?.enum_ref ??
     ''
   ).trim();
+}
+
+function fieldVocabularyRefSource(field) {
+  if (field?.valueVocabularyRef != null || field?.value_vocabulary_ref != null ||
+      field?.edit?.valueVocabularyRef != null || field?.edit?.value_vocabulary_ref != null) return 'valueVocabularyRef';
+  if (field?.valueSet != null || field?.value_set != null ||
+      field?.edit?.valueSet != null || field?.edit?.value_set != null) return 'valueSet';
+  if (field?.enumRef != null || field?.enum_ref != null ||
+      field?.edit?.enumRef != null || field?.edit?.enum_ref != null) return 'enumRef';
+  return '';
 }
 
 function fieldEffectiveType(field) {
@@ -330,7 +356,18 @@ function fieldEffectiveType(field) {
 
 function isSelectFieldLike(field) {
   const t = fieldEffectiveType(field);
-  return t === 'select' || t === 'radio' || field?.edit?.control === 'radio' || field?.control === 'radio';
+  const explicitEditor = String(field?.editor ?? field?.edit?.editor ?? field?.control ?? field?.edit?.control ?? '').trim();
+
+  // v0.17.6-pluginhost-mvp:
+  // Plugin Editorや配列Fieldでも valueSet / enumRef を解決できるようにする。
+  // これにより、複数選択コンボは会社マスタをPlugin内蔵せず、ValueSetDefからoptionsを受け取れる。
+  return t === 'select'
+    || t === 'radio'
+    || t === 'array'
+    || t === 'stringArray'
+    || explicitEditor.startsWith('plugin:')
+    || field?.edit?.control === 'radio'
+    || field?.control === 'radio';
 }
 
 function enumItemsToOptions(enumObj) {
@@ -346,10 +383,12 @@ function resolveEnumRefForField(field, enumRegistry) {
   if (!field || typeof field !== 'object' || Array.isArray(field)) return field;
   const enumRef = fieldEnumRef(field);
   if (!enumRef) return field;
+  const refSource = fieldVocabularyRefSource(field);
 
   const out = cloneData(field);
-  if (out.enumRef == null) out.enumRef = enumRef;
-  if (out.valueSet == null && (field?.valueSet != null || field?.value_set != null)) out.valueSet = enumRef;
+  if (out.enumRef == null && refSource === 'enumRef') out.enumRef = enumRef;
+  if (out.valueSet == null && refSource === 'valueSet') out.valueSet = enumRef;
+  if (out.valueVocabularyRef == null) out.valueVocabularyRef = enumRef;
 
   if (!isSelectFieldLike(out)) {
     console.warn(`enumRef「${enumRef}」はselect系FieldTypeでのみoptions解決対象です`, out);
@@ -370,13 +409,16 @@ function resolveEnumRefForField(field, enumRegistry) {
 
   if (Array.isArray(out.options) && out.options.length) {
     out._local_options_count = out.options.length;
-    out._options_source = 'enumRef';
   }
+  out._options_source = refSource || 'valueVocabularyRef';
   out.options = enumOptions;
   out.valueField = out.valueField ?? out.value_field ?? 'cd';
   out.labelField = out.labelField ?? out.label_field ?? 'name';
-  out.enumRef = enumRef;
+  if (refSource === 'enumRef') out.enumRef = enumRef;
+  if (refSource === 'valueSet') out.valueSet = enumRef;
+  out.valueVocabularyRef = enumRef;
   out._resolved_enum_ref = enumRef;
+  out._resolved_value_vocabulary_ref = enumRef;
   return out;
 }
 
@@ -427,6 +469,7 @@ async function resolveFieldTypesForViewDef(defObj) {
   const resolved = resolveFieldTypesDeep(cloneData(defObj), registry, enumRegistry);
   resolved._resolved_common_types = Object.keys(registry.namespaces ?? {});
   resolved._resolved_common_enums = Object.keys(enumRegistry.enumsByRef ?? {});
+  resolved._resolved_value_vocabulary_refs = Object.keys(enumRegistry.enumsByRef ?? {});
   return resolved;
 }
 

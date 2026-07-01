@@ -10,8 +10,8 @@
   "conversion_note": "Studioくん憲法レビュー記録を共通ルールレビューViewDef v0.3で扱えるように、constitution_sections を rules へ正規化し、各行に rule_id と decision_log を追加した。section_id は旧IDとして残す。",
   "created": "2026-06-21",
   "status": "",
-  "section_count": 24,
-  "rule_count": 24,
+  "section_count": 25,
+  "rule_count": 25,
   "approved_count": 24,
   "approval_policy": "第1条〜第23条を1行ずつレビューし、approval_decision を「承認する」に変更することでStudioくん憲法の建国承認記録とする。",
   "preamble_title": "この文書の目的",
@@ -979,6 +979,87 @@
           "reason": "Adapterはテストシナリオではなく、Expected JSONを評価するための内部実行方式であるため。"
         }
       ]
+    },
+    {
+      "no": 25,
+      "rule_id": "constitution_25",
+      "section_id": "constitution_25",
+      "category": "Value Vocabulary",
+      "title": "Value Vocabulary Registryは唯一スキーマとする",
+      "priority": "high",
+      "review_status": "追加レビュー",
+      "verification_status": "確認済み",
+      "approval_decision": "承認待ち",
+      "approval_stamp": "",
+      "approved_by": "",
+      "approved_at": "",
+      "summary": "値候補マスタの論理スキーマは1つにし、common_enumsはCoreスコープ、value_setsはOverlayスコープの同一Registry実体として扱う。",
+      "body": "値候補マスタを、common_enums と value_sets の別スキーマとして育てない。\n\n唯一の論理スキーマを Value Vocabulary Registry Schema と呼ぶ。\n\n```text\nValue Vocabulary Registry Schema\n  ├─ common_enums : registry_scope = core\n  └─ value_sets   : registry_scope = overlay\n```\n\ncommon_enums は Studio Core が所有する標準語彙である。qa.risk_level / relation.status / studio.lifecycle_status など、Studio本体の運用・QA・Relation・文脈制御に使う語彙を置く。\n\nvalue_sets は Overlay が所有する業務語彙である。company.qualification / company.business_area / company.skill_rank など、会社・業務・勇者Overlayごとに変化する語彙を置く。\n\n両者は所有者と配置場所を分けるが、namespaces / enums / items の構造は共有する。\n\nViewDef上の enumRef は Core語彙参照、valueSet は Overlay語彙参照の互換aliasとして扱う。Runtime内部ではどちらも Value Vocabulary Ref として同じ解決系に入り、最終的に field.options へ展開する。\n\n表示名の正本項目は name とする。caption / label は互換aliasとして読み取り可能に留め、新規定義では name を優先する。\n\nvalue_sets側で育った kind / value_type / order などの便利属性は、必要に応じて Value Vocabulary Registry Schema 側へ回収する。Overlay側だけで独自進化させない。\n\nPluginは候補値を定義しない。Pluginは Runtime が解決した field.options を表示・編集・検索するだけとする。\n\nCoreは company.* の中身を知らない。Coreが知ってよいのは、Value Vocabulary Registry の構造語彙と解決処理だけである。\n\n```text\nCoreは構造を知る。\nOverlayは語彙を持つ。\nPluginは語彙を触る。\n```\n\n---",
+      "ceremony_phrase": "Studioくん憲法 第25条「Value Vocabulary Registryは唯一スキーマとする」を承認する。",
+      "user_comment": "common_enums と value_sets が別系統で各々太ると手がつけられなくなるため、今のうちにダイエットできるところはやっておきたい。frb_coding_constraints_data_v0_3.json に新章を立てて考え方を整理したい。",
+      "ai_response": "Value Vocabulary Registry Schemaを唯一の論理スキーマとし、common_enumsはcore scope、value_setsはoverlay scopeの実体として整理する。enumRef/valueSetは同じoptions解決系へ入るaliasとし、Pluginはfield.optionsだけを見る制約として明記する。",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "notes": "v0.17.6 PluginHost MVPでOverlay value_setsが実用化されたため、会社側データが増える前にスキーマと責務境界を固定するためのダイエット章。",
+      "change_history": [
+        {
+          "history_id": "hist_20260701_025_001",
+          "revision": "v0.17.7",
+          "changed_at": "2026-07-01",
+          "changed_by": "tamasub + ChatGPT",
+          "change_type": "rule_addition",
+          "target_fields": "rules",
+          "before_title": "",
+          "after_title": "Value Vocabulary Registryは唯一スキーマとする",
+          "before_category": "",
+          "after_category": "Value Vocabulary",
+          "before_summary": "",
+          "after_summary": "値候補マスタの論理スキーマは1つにし、common_enumsはCoreスコープ、value_setsはOverlayスコープの同一Registry実体として扱う。",
+          "reason": "common_enums と value_sets が別系統で肥大化する前に、値語彙レジストリの単一スキーマ・責務分離・Runtime解決方針を憲法として明文化するため。",
+          "source_user_comment": "別系統で各々がでぶでぶと太ってしまったら、もう手がつけられなくなるから、今のうちにダイエットできるところはやっておこう。",
+          "ai_comment": "既存のRuntimeはすでに enumRef/valueSet を統合気味に扱っているため、今回は設計語彙・データ形・表示名の統一を優先した。",
+          "notes": "captionは互換alias、nameを正本とする。kind/value_typeは共通スキーマ属性へ回収する。"
+        }
+      ],
+      "section_no": "25",
+      "parent_rule_id": "",
+      "source_heading": "25. Value Vocabulary Registryは唯一スキーマとする",
+      "source_heading_level": 2,
+      "source_line_start": 0,
+      "source_md_file": "CODING_CONSTRAINTS_ja.md",
+      "introduced_in": "v0.17.7",
+      "decision_log": [
+        {
+          "decision_id": "dec_20260701_025_001",
+          "at": "2026-07-01",
+          "decision": "値候補マスタの論理スキーマは Value Vocabulary Registry Schema 1つとする。",
+          "reason": "common_enums と value_sets を別スキーマとして育てると、構造・命名・解決ロジックが二重化するため。"
+        },
+        {
+          "decision_id": "dec_20260701_025_002",
+          "at": "2026-07-01",
+          "decision": "common_enums は registry_scope=core、value_sets は registry_scope=overlay として扱う。",
+          "reason": "Studio標準語彙と会社業務語彙の所有者を分けながら、同じ構造で扱うため。"
+        },
+        {
+          "decision_id": "dec_20260701_025_003",
+          "at": "2026-07-01",
+          "decision": "enumRef と valueSet は Runtime内部で同じ options 解決系へ入る参照aliasとする。",
+          "reason": "ViewDef上の読みやすさと互換性を保ちつつ、意味解決ロジックを一本化するため。"
+        },
+        {
+          "decision_id": "dec_20260701_025_004",
+          "at": "2026-07-01",
+          "decision": "name を正本表示名、caption を互換aliasとする。",
+          "reason": "同じ意味の表示名が name/caption に分裂すると、スキーマ統一の妨げになるため。"
+        },
+        {
+          "decision_id": "dec_20260701_025_005",
+          "at": "2026-07-01",
+          "decision": "Pluginは候補値を持たず、field.optionsだけを見る。",
+          "reason": "Pluginに業務語彙を内蔵するとCore/Overlay/Pluginの責務境界が崩れるため。"
+        }
+      ]
     }
   ],
   "review_notes": [
@@ -1034,10 +1115,16 @@
       "at": "2026-06-30",
       "title": "PowerShellバッチ共通ログ部品の使用必須を追加",
       "body": "constitution_12に、tools/common/StudioLog.ps1をPowerShellバッチ処理の共通ログ部品として使用するルールを追記した。ログ出力先はFRBStudio_App/Log/Log_yyyyMMdd.logを基本とし、TestRunner.ps1とExport-DiffToJson.ps1を初期対象とする。"
+    },
+    {
+      "note_id": "note_v0177_value_vocabulary_registry_diet",
+      "at": "2026-07-01",
+      "title": "Value Vocabulary Registry単一スキーマ方針を追加",
+      "body": "constitution_25を追加。common_enums と value_sets を別スキーマとして育てず、Value Vocabulary Registry Schemaのcore/overlayスコープ実体として扱う。enumRef/valueSetは同じoptions解決系へ入るalias、nameを正本、captionを互換alias、Pluginはfield.optionsのみを見る方針を明記した。"
     }
   ],
-  "review_revision": "v0.17.5-batch-ps1-common-daily-log-rule-added",
-  "updated": "2026-06-30",
+  "review_revision": "v0.17.7-value-vocabulary-registry-diet-rule-added",
+  "updated": "2026-07-01",
   "change_history_policy": "レビューで条文・仕様を変更した場合は、対象行の change_history に変更前・変更後・理由・会話を保存する。変更後だけを残さず、修正元を追体験できる状態にする。",
   "viewing_policy": {
     "data_json_role": "原本",

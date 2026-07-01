@@ -24,6 +24,17 @@ function currentStudioActionContext(extra={}) {
     currentDataApiUrl,
     setStatus,
     renderByKey,
+    showToast: window.showStudioToast,
+    getViewDef: () => viewDef,
+    getSourceData: () => sourceData,
+    getRows: () => currentRows,
+    getFilteredRowEntries: () => filteredRows,
+    getFilteredRows: () => (filteredRows ?? []).map(x => x?.row ?? x),
+    getSelectedIndex: () => selectedIndex,
+    getSelectedRow: () => selectedIndex >= 0 ? currentRows?.[selectedIndex] ?? null : null,
+    getGridDef: () => typeof gridDef === 'function' ? gridDef() : null,
+    getByPath,
+    setByPath,
     ...extra
   };
 }

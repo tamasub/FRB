@@ -3,9 +3,6 @@
     "name": "FRB Studio / JSON Object Studio",
     "version": "employee-skill-overlay-view-def-v0.1"
   },
-  "commonEnumSources": [
-    "overlay/default/value_sets/company_value_sets.json"
-  ],
   "views": [
     {
       "id": "employee_skill_inventory",
@@ -118,7 +115,8 @@
               "search": {
                 "visible": true,
                 "operator": "equals"
-              }
+              },
+              "valueVocabularyRef": "company.business_area"
             }
           ]
         },
@@ -187,7 +185,31 @@
               },
               "search": {
                 "visible": true
-              }
+              },
+              "valueVocabularyRef": "company.business_area"
+            },
+            {
+              "field": "qualification_cds",
+              "caption": "保有資格",
+              "type": "stringArray",
+              "valueSet": "company.qualification",
+              "editor": "plugin:multi_select_combo",
+              "defaultValue": [],
+              "grid": {
+                "visible": true,
+                "width": 180,
+                "format": "labels"
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false,
+                "pluginFilter": true,
+                "match": "includesAny",
+                "caption": "保有資格"
+              },
+              "valueVocabularyRef": "company.qualification"
             },
             {
               "field": "attributes",
@@ -203,7 +225,18 @@
             }
           ]
         }
-      ]
+      ],
+      "toolbar": {
+        "executeButton": {
+          "visible": true,
+          "caption": "表示行を集計",
+          "action": "company.skill_summary.aggregate"
+        }
+      }
     }
-  ]
+  ],
+  "valueVocabularySources": [
+    "overlay/default/value_sets/company_value_sets.json"
+  ],
+  "value_vocabulary_note": "valueVocabularySources は Value Vocabulary Registry の読み込み元。valueSet は Overlay語彙参照の互換alias。Runtimeで field.options へ解決される。"
 }

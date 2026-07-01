@@ -93,9 +93,26 @@ function installMainStatusToast() {
   }
 
   function defaultStatusText() {
+    if (typeof currentLoadedDataStatusText === 'function') {
+      const loadedDataText = currentLoadedDataStatusText();
+      if (loadedDataText) return loadedDataText;
+    }
     if (viewDef && sourceData) return '準備OK';
     if (viewDef) return '画面定義読み込み済み';
     return '未読み込み';
+  }
+
+  function studioDebugStatus(message, options = {}) {
+    const text = String(message ?? '').trim();
+    if (!text) return;
+    const source = options.source ? `[${options.source}] ` : '';
+    console.log(`[FRBStudio status] ${source}${text}`);
+  }
+
+  function shouldShowStatusToast(kind, options = {}) {
+    if (options.toast === false) return false;
+    if (options.forceToast === true) return true;
+    return kind === 'warn' || kind === 'error';
   }
 
   let statusTimer = null;
@@ -103,8 +120,12 @@ function installMainStatusToast() {
   window.showStudioToast = function showStudioToast(message, options = {}) {
     const text = String(message ?? '').trim();
     if (!text) return null;
-    const stack = ensureStack();
     const kind = options.kind || classifyStatusMessage(text);
+    if (!shouldShowStatusToast(kind, options)) {
+      studioDebugStatus(text, { ...options, source: options.source || 'toast-suppressed' });
+      return null;
+    }
+    const stack = ensureStack();
     const toast = document.createElement('div');
     toast.className = `studio-toast ${kind}`;
     const title = options.title || (kind === 'error' ? 'エラー' : kind === 'warn' ? '確認' : kind === 'success' ? '完了' : '通知');
@@ -128,18 +149,24 @@ function installMainStatusToast() {
     const statusEl = $('status');
     if (statusEl) {
       statusEl.textContent = text;
+      statusEl.title = text;
       statusEl.classList.add('status-transient');
       statusEl.classList.toggle('status-error', classifyStatusMessage(text) === 'error');
     }
-    if (text.trim() && options.toast !== false) {
-      window.showStudioToast(text, options);
+    const kind = options.kind || classifyStatusMessage(text);
+    if (text.trim() && shouldShowStatusToast(kind, options)) {
+      window.showStudioToast(text, { ...options, kind });
+    } else if (text.trim()) {
+      studioDebugStatus(text, { ...options, source: options.source || 'status-suppressed' });
     }
     window.clearTimeout(statusTimer);
     if (statusEl && !options.sticky) {
       const duration = Number(options.duration ?? 4200);
       statusTimer = window.setTimeout(() => {
         if (statusEl.textContent === text) {
-          statusEl.textContent = defaultStatusText();
+          const fallbackText = defaultStatusText();
+          statusEl.textContent = fallbackText;
+          statusEl.title = fallbackText;
           statusEl.classList.remove('status-error');
         }
       }, Math.max(1200, duration));
@@ -189,7 +216,7 @@ function setupDataSelectionViewDefReset() {
     updateViewDefMarkdownButtonState();
 
     if (hadDef && reason) {
-      setStatus(reason, { title: '画面定義を再解決します', duration: 2600 });
+      console.log('[FRBStudio viewdef] ' + reason);
     }
   }
 
@@ -210,16 +237,16 @@ function setupDataSelectionViewDefReset() {
         const candidateMsg = currentDataViewDefCandidateMode
           ? ` / 候補 ${candidates.length}件`
           : '';
-        setStatus(`対象JSONの view_def を反映しました: ${embeddedDef}${candidateMsg}`, { title: '画面定義を再表示', duration: 3200 });
+        console.log(`[FRBStudio viewdef] 対象JSONの view_def を反映: ${embeddedDef}${candidateMsg}`);
       } else {
         clearCurrentDataViewDefCandidates();
-        setStatus('対象JSONに view_def がないため、読み込み時に互換ViewDefを自動探索します', { title: '画面定義を自動探索', duration: 3200 });
+        console.log('[FRBStudio viewdef] 対象JSONに view_def がないため、読み込み時に互換ViewDefを自動探索します');
       }
     } catch (err) {
       if (seq !== resolveSeq) return;
       console.warn('対象JSONの view_def 事前解決をスキップ:', err);
       clearCurrentDataViewDefCandidates();
-      setStatus('対象JSONの view_def 事前解決をスキップしました: ' + err.message, { title: '確認', duration: 4200 });
+      console.warn('対象JSONの view_def 事前解決をスキップしました:', err);
     }
   }
 
@@ -268,7 +295,11 @@ $('searchBtn').addEventListener('click', applySearch);
 $('addRowBtn').addEventListener('click', addGridRow);
 $('deleteRowBtn').addEventListener('click', deleteSelectedRow);
 $('clearSearchBtn').addEventListener('click', () => {
-  [...$('searchForm').querySelectorAll('input, select, textarea')].forEach(i => i.value = '');
+  [...$('searchForm').querySelectorAll('input, select, textarea')].forEach(i => {
+    if (i instanceof HTMLSelectElement && i.multiple) [...i.options].forEach(opt => { opt.selected = false; });
+    else i.value = '';
+  });
+  if (typeof resetStudioPluginSearchFilters === 'function') resetStudioPluginSearchFilters();
   filteredRows = currentRows.map((row, index) => ({row, index}));
   applySortToFilteredRows();
   renderGrid();
@@ -289,6 +320,13 @@ $('saveBtn').addEventListener('click', async () => {
 });
 
 refreshServerLists().finally(async () => {
+  if (typeof loadStudioOverlayPlugins === 'function') {
+    const results = await loadStudioOverlayPlugins();
+    const activated = results.filter(x => x?.activated).map(x => x.id);
+    if (activated.length) {
+      console.log(`[FRBStudio PluginHost] Overlay Pluginを読み込みました: ${activated.join(' / ')}`);
+    }
+  }
   await autoLoadFromQuery();
   updateViewDefMarkdownButtonState();
 });

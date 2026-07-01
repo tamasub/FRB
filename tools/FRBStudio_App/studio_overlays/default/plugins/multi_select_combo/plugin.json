@@ -1,11 +1,12 @@
 {
   "id": "multi_select_combo",
   "name": "複数選択コンボ",
-  "version": "0.1.0",
+  "version": "0.17.6-mvp",
   "api_version": "0.1",
   "entry": "plugin.js",
   "extension_points": [
-    "field_editor"
+    "field_editor",
+    "search_filter"
   ],
   "contributes": {
     "field_editors": [
@@ -17,11 +18,17 @@
           "itemType": "string"
         }
       }
+    ],
+    "search_filters": [
+      {
+        "id": "company.multi_select_combo.search",
+        "caption": "複数選択検索"
+      }
     ]
   },
   "permissions": [
     "read_field_def",
     "write_field_value"
   ],
-  "note": "このPluginはoptionsを表示するだけ。会社マスタはValueSetDefに持たせる。"
+  "note": "このPluginはValueSetDefで解決されたoptionsを表示するだけ。会社マスタはPlugin内蔵しない。v0.17.6でFieldEditor/SearchFilterとして有効化。"
 }

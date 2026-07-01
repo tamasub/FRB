@@ -14,6 +14,7 @@ $targetDirs = @(
     "data",
     "defs",
     "Program.cs",
+    "studio_overlays",
     "tests",
     "tools",
     "wwwroot"
@@ -29,7 +30,7 @@ $targetRootFiles = @(
     "package-lock.json",
     "playwright.config.ts",
     "web.config",
-    "cmd_copy_frbstudio_publish_root_to_app.bat",
+    "cmd_copy_frbstudio_publish.bat",
     "cmd_file_list_Tree.bat",
     "cmd_make_FRBStudio_App_zip_v2.bat"
 )

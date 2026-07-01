@@ -1897,6 +1897,74 @@
     .md-toast.error { border-color: rgba(239,68,68,.42); }
     .md-toast.leaving { opacity: 0; transform: translateY(8px); transition: opacity .18s ease, transform .18s ease; }
     @keyframes mdToastIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+    /* mdViewer v0.13.9.1: SentenceBlock削除確認をブラウザ標準confirmから画面内ダイアログへ置換 */
+    .md-confirm-dialog {
+      --md-dialog-width: min(520px, calc(100vw - 24px));
+      --md-dialog-height: auto;
+      --md-dialog-min-width: min(340px, calc(100vw - 24px));
+      --md-dialog-min-height: 0;
+      position: fixed;
+      z-index: 520;
+      width: var(--md-dialog-width);
+      min-width: var(--md-dialog-min-width);
+      max-width: calc(100vw - 24px);
+      padding: 14px;
+      border: 1px solid rgba(239,68,68,.26);
+      border-radius: 18px;
+      background: var(--panel);
+      color: var(--text);
+      box-shadow: 0 24px 68px rgba(15,23,42,.30);
+      backdrop-filter: blur(20px);
+      display: none;
+      gap: 10px;
+    }
+    .md-confirm-dialog.show { display: grid; }
+    .md-confirm-dialog-title {
+      font-size: 14px;
+      font-weight: 950;
+      line-height: 1.45;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .md-confirm-dialog-title::before { content: "⚠"; color: #ef4444; }
+    .md-confirm-dialog-body {
+      white-space: pre-wrap;
+      line-height: 1.62;
+      font-size: 12.5px;
+      font-weight: 780;
+      color: var(--text);
+      max-height: min(220px, 36vh);
+      overflow: auto;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(248,250,252,.72);
+    }
+    [data-theme="dark"] .md-confirm-dialog-body { background: rgba(15,23,42,.72); }
+    .md-confirm-dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 8px;
+    }
+    .md-confirm-dialog-actions button {
+      padding: 8px 14px;
+      border-radius: 12px;
+      font-size: 12px;
+      box-shadow: none;
+    }
+    .md-confirm-dialog-actions button[data-action="cancel"] {
+      background: rgba(105,120,160,.12);
+      color: var(--text);
+    }
+    .md-confirm-dialog-actions button[data-action="ok"] {
+      background: linear-gradient(135deg, #ef4444, #f97316);
+      color: #fff;
+    }
+    body.md-confirm-dialog-open .md-block-inline-actions { display: none !important; }
+
     .md-sidecar-comment-editor {
       --md-dialog-width: min(680px, calc(100vw - 24px));
       --md-dialog-height: min(44vh, 460px);
@@ -3148,18 +3216,121 @@ function wireMarkdownDialogPanel(panel, applyFn, cancelFn) {
     }
   }, true);
 }
+const mdConfirmDialogRuntime = {
+  panel: null,
+  resolver: null,
+  anchorElement: null,
+  previousFocus: null
+};
+function positionMarkdownConfirmDialog(anchor, panel) {
+  const rect = anchor?.getBoundingClientRect?.() || { left: window.innerWidth / 2 - 260, right: window.innerWidth / 2 + 260, top: window.innerHeight / 2 - 80, bottom: window.innerHeight / 2 + 80, width: 520 };
+  panel.style.left = "0px";
+  panel.style.top = "0px";
+  panel.classList.add("show");
+  const panelRect = panel.getBoundingClientRect();
+  const preferredLeft = rect.left + Math.min(24, Math.max(0, (rect.width || 0) - panelRect.width));
+  const left = Math.min(Math.max(8, preferredLeft), window.innerWidth - panelRect.width - 8);
+  const belowTop = rect.bottom + 8;
+  const aboveTop = rect.top - panelRect.height - 8;
+  const topCandidate = belowTop + panelRect.height < window.innerHeight - 8 ? belowTop : Math.max(8, aboveTop);
+  const top = clampMarkdownFloatingTop(topCandidate, panelRect.height, false);
+  panel.style.left = `${left}px`;
+  panel.style.top = `${top}px`;
+}
+function ensureMarkdownConfirmDialog() {
+  if (mdConfirmDialogRuntime.panel) return mdConfirmDialogRuntime.panel;
+  const panel = document.createElement("div");
+  panel.id = "mdConfirmDialog";
+  panel.className = "md-confirm-dialog";
+  panel.setAttribute("role", "dialog");
+  panel.setAttribute("aria-modal", "true");
+  panel.setAttribute("aria-label", "Markdown confirmation dialog");
+  panel.innerHTML = `
+    <div class="md-confirm-dialog-title" data-role="title"></div>
+    <div class="md-confirm-dialog-body" data-role="message"></div>
+    <div class="md-confirm-dialog-actions">
+      <button type="button" data-action="cancel">キャンセル</button>
+      <button type="button" data-action="ok">削除する</button>
+    </div>
+  `;
+  const finish = (ok) => {
+    const resolver = mdConfirmDialogRuntime.resolver;
+    hideMarkdownConfirmDialog();
+    if (resolver) resolver(!!ok);
+  };
+  ["pointerdown", "click", "mousedown", "mouseup"].forEach(type => {
+    panel.addEventListener(type, e => {
+      const btn = e.target.closest("button[data-action]");
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      if (type === "pointerdown" && btn && panel.contains(btn)) finish(btn.dataset.action === "ok");
+    }, true);
+  });
+  panel.addEventListener("keydown", e => {
+    if (e.key === "Escape" || e.key === "Esc") {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      finish(false);
+    }
+    if (e.key === "Enter") {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      finish(true);
+    }
+  }, true);
+  document.body.appendChild(panel);
+  mdConfirmDialogRuntime.panel = panel;
+  return panel;
+}
+function hideMarkdownConfirmDialog() {
+  const panel = mdConfirmDialogRuntime.panel;
+  if (panel) panel.classList.remove("show");
+  document.body.classList.remove("md-confirm-dialog-open");
+  mdConfirmDialogRuntime.resolver = null;
+  mdConfirmDialogRuntime.anchorElement = null;
+  const focusTarget = mdConfirmDialogRuntime.previousFocus;
+  mdConfirmDialogRuntime.previousFocus = null;
+  if (focusTarget && typeof focusTarget.focus === "function") {
+    requestAnimationFrame(() => focusTarget.focus({ preventScroll: true }));
+  }
+}
+function showMarkdownConfirmDialog(options = {}) {
+  if (launchMarkdownRuntime.readonly) return Promise.resolve(false);
+  if (mdConfirmDialogRuntime.resolver) hideMarkdownConfirmDialog();
+  hideMdBlockActionMenu();
+  hideMdBlockInlineActions();
+  hideMarkdownTableCellEditor();
+  hideMarkdownRawBlockEditor();
+  hideMarkdownSentenceInsertEditor();
+  hideMarkdownSidecarCommentEditor();
+  const panel = ensureMarkdownConfirmDialog();
+  panel.querySelector('[data-role="title"]').textContent = String(options.title || "確認");
+  panel.querySelector('[data-role="message"]').textContent = String(options.message || "実行しますか？");
+  const okButton = panel.querySelector('button[data-action="ok"]');
+  if (okButton) okButton.textContent = String(options.okLabel || "OK");
+  const cancelButton = panel.querySelector('button[data-action="cancel"]');
+  if (cancelButton) cancelButton.textContent = String(options.cancelLabel || "キャンセル");
+  mdConfirmDialogRuntime.anchorElement = options.anchor || null;
+  mdConfirmDialogRuntime.previousFocus = document.activeElement;
+  document.body.classList.add("md-confirm-dialog-open");
+  positionMarkdownConfirmDialog(mdConfirmDialogRuntime.anchorElement, panel);
+  requestAnimationFrame(() => okButton?.focus({ preventScroll: true }));
+  return new Promise(resolve => { mdConfirmDialogRuntime.resolver = resolve; });
+}
 function hideAllMarkdownEditDialogs() {
   hideMarkdownTableCellEditor();
   hideMarkdownRawBlockEditor();
   hideMarkdownSentenceInsertEditor();
   hideMarkdownSidecarCommentEditor();
+  hideMarkdownConfirmDialog();
 }
 function isAnyMarkdownDialogOpen() {
   return !!(
     (mdTableCellRuntime.panel && mdTableCellRuntime.panel.classList.contains("show")) ||
     (mdRawBlockRuntime.panel && mdRawBlockRuntime.panel.classList.contains("show")) ||
     (mdSentenceInsertRuntime.panel && mdSentenceInsertRuntime.panel.classList.contains("show")) ||
-    (mdSidecarCommentEditorRuntime.panel && mdSidecarCommentEditorRuntime.panel.classList.contains("show"))
+    (mdSidecarCommentEditorRuntime.panel && mdSidecarCommentEditorRuntime.panel.classList.contains("show")) ||
+    (mdConfirmDialogRuntime.panel && mdConfirmDialogRuntime.panel.classList.contains("show"))
   );
 }
 if (!window.__mdViewerDialogEscapeCaptureV01382) {
@@ -3184,6 +3355,9 @@ function repositionMarkdownOpenDialogs() {
   }
   if (mdSidecarCommentEditorRuntime.panel?.classList.contains("show") && mdSidecarCommentEditorRuntime.targetElement) {
     positionMarkdownSidecarCommentEditor(mdSidecarCommentEditorRuntime.targetElement, mdSidecarCommentEditorRuntime.panel);
+  }
+  if (mdConfirmDialogRuntime.panel?.classList.contains("show")) {
+    positionMarkdownConfirmDialog(mdConfirmDialogRuntime.anchorElement, mdConfirmDialogRuntime.panel);
   }
 }
 
@@ -4278,13 +4452,20 @@ function applyMarkdownSentenceInsertEdit() {
 function insertSentenceAroundBlock(block, position) {
   showMarkdownSentenceInsertEditor(block, position);
 }
-function deleteSentenceBlock(block) {
+async function deleteSentenceBlock(block) {
   if (!block || launchMarkdownRuntime.readonly) return;
   const info = getMarkdownBlockInfoFromPreview(block);
   if (!info) return;
   const label = `${info.block_id || "SentenceBlock"} / ${info.type || "block"} / L${info.start_line}-${info.end_line}`;
   const sample = String(info.text || info.source || "").replace(/\s+/g, " ").slice(0, 80);
-  if (!confirm(`このSentenceBlockを削除しますか？\n\n${label}${sample ? `\n${sample}` : ""}`)) return;
+  const ok = await showMarkdownConfirmDialog({
+    title: "このSentenceBlockを削除しますか？",
+    message: `${label}${sample ? `\n${sample}` : ""}`,
+    okLabel: "削除する",
+    cancelLabel: "キャンセル",
+    anchor: block
+  });
+  if (!ok) return;
   captureMarkdownMutationBackup("delete_block", info);
   editorEl.value = deleteMarkdownLineRange(editorEl.value, info.start_line, info.end_line);
   renderAfterMarkdownBlockMutation(info.start_line, "SentenceBlock Deleted");

@@ -124,7 +124,8 @@ function applyHeaderEdits() {
       const field = def.fields.find(f => f.field === inp.dataset.field);
       if (!field || field.edit?.readonly || field.readonly || inp.disabled) return;
       const fullPath = (def.dataPath === '$' ? '$.' : def.dataPath + '.') + field.field;
-      setByPath(sourceData, fullPath, convertValue(field.type, inp.value));
+      const rawValue = typeof getControlValue === 'function' ? getControlValue(inp) : inp.value;
+      setByPath(sourceData, fullPath, convertValue(field.type, rawValue));
     });
   }
   // v0.15.5.2: header-level Main Context panel edits belong to Data root,

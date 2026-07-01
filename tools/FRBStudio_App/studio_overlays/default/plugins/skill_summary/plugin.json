@@ -1,0 +1,22 @@
+{
+  "id": "skill_summary",
+  "name": "表示行集計Action",
+  "version": "0.1.0",
+  "api_version": "0.1",
+  "entry": "plugin.js",
+  "extension_points": [
+    "action"
+  ],
+  "contributes": {
+    "actions": [
+      {
+        "id": "company.skill_summary.aggregate",
+        "caption": "表示行を集計"
+      }
+    ]
+  },
+  "permissions": [
+    "read_filtered_rows"
+  ],
+  "note": "表示中行を対象に、qualification_cds と attributes を集計するサンプルAction。"
+}

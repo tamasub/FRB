@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-06-30",
+  "updated_at": "2026-07-01",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。",
-  "items_count": 38,
+  "items_count": 41,
   "work_items": [
     {
       "work_item_id": "studio_work_0007",
@@ -5948,6 +5948,809 @@
           "note": "JSON parse確認済み。PowerShell構文チェックはこの環境にpwshが無いため未実行。"
         }
       ]
+    },
+    {
+      "work_item_id": "studio_work_0093",
+      "phase": "v0.17.6-pluginhost-mvp",
+      "title": "Studio PluginHost MVP / Overlay Plugin登録・FieldEditor・SearchFilter・Action接続",
+      "incident_type": "architecture_implementation",
+      "category": "plugin_host",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-01",
+      "updated_at": "2026-07-01",
+      "target_files": "data/json/00_rules/studio-overlay-manifest_rules_data_v0_1.json, wwwroot/js/core/plugin_host.js, wwwroot/js/core/overlay_manager.js, wwwroot/js/renderers/field_control_registry.js, wwwroot/js/actions/action_registry.js, wwwroot/js/search/*.js or equivalent, wwwroot/index.html, wwwroot/app.js, studio_overlays/default/plugins/plugin_index.json, studio_overlays/default/plugins/**",
+      "target_rule_files": "data/json/00_rules/studio-overlay-manifest_rules_data_v0_1.json, data/json/00_rules/frb_foundation_rules_data_v0_1.json, data/json/00_rules/frb_coding_constraints_data_v0_3.json",
+      "objective": "Core側に最小PluginHostを導入し、会社CopilotがCoreを触らずにOverlay側Pluginを追加できる状態を作る。MVPでは、複数選択コンボボックス、選択値を使った検索、表示中データに対する集計ボタン実行を成立させるため、FieldEditor / SearchFilter / Action の3種類の登録口を提供する。",
+      "background": "既にPluginサンプルは作成済みだが、Core側にPluginHostがないため、会社Copilotへ『プラグインを作って』と依頼すると、Core・PluginHostを先に作る必要があるのではないかという指摘が出た。v0.17.0でCoreとOverlayを物理分離し、studio-overlay-manifest_rules_data_v0_1.jsonでOverlay/Manifest設計を管理し始めたため、次の段階としてPluginHost設計章を同ルールDataへ追加し、その契約に基づく最小実装を行う。",
+      "scope": "studio-overlay-manifest_rules_data_v0_1.json に PluginHost MVP 設計章を追加し、CoreとOverlay Pluginの責務境界、Plugin読込、PluginHost API、FieldEditor登録、SearchFilter登録、Action登録、会社Copilotが編集してよい範囲を定義する。実装側では、Overlay manifestまたはplugin_index.jsonから有効Pluginを読み込み、plugin.js の activate(studio) へ最小APIを渡し、既存の FieldControlRegistry / ActionRegistry / 検索処理へ安全に接続する。初期利用シナリオは、複数選択コンボボックス、選択値検索、集計ボタン実行とする。",
+      "out_of_scope": "このMVPでは、Pluginのアンロード、Pluginごとの詳細権限管理、外部URLからの動的Plugin読込、NPM/package管理、複雑な依存関係解決、Plugin同士の通信、汎用Plugin設定画面、Sandbox実行、署名検証、リモート配布、Plugin Marketplace化は行わない。Core外部から任意コードを自由実行する仕組みにはしない。",
+      "fixed_name_policy": "Coreは個別Plugin名や会社固有フィールド名を知らない。Coreが知る固定名は PluginHost API の公用語に限定する。例: registerFieldEditor / registerSearchFilter / registerAction / activate(studio)。個別の資格コード、部署コード、社員データ項目などはOverlay側のvalue_sets / view_defs / pluginsが扱い、Runtime固定Data名としてCoreへ持ち込まない。",
+      "module_policy": "初期実装は既存script方式との互換を優先する。plugin.jsの読込方式は既存構成に合わせて通常script読込または動的script挿入を採用し、type=\"module\" 化やESM import化は今回の主目的にしない。将来的にPluginHostが安定した段階でmodule化を別インシデントとして検討する。",
+      "expected_outputs": "studio-overlay-manifest_rules_data_v0_1.json への PluginHost設計章追加、PluginHost MVP実装、PluginHost API定義、Overlay plugin_index.json 読込、activate(studio) 呼び出し、registerFieldEditor/registerSearchFilter/registerAction の接続、複数選択コンボ・検索・集計Actionの最小サンプルまたは接続確認、更新後インシデントJSON。",
+      "risk": "PluginHostを大きく作りすぎるとCoreが肥大化し、v0.17.0のCore/Overlay分離思想が崩れる。逆に口が弱すぎると会社Copilotが結局Coreを触る必要が出る。PluginにCore内部オブジェクトを渡しすぎると責務境界が壊れ、任意Pluginが保存処理やRuntime状態を壊すリスクがある。既存ActionRegistryやFieldControlRegistryとの接続で既存動作を壊さないよう、未使用時は完全に無影響である必要がある。",
+      "test_points": "1. PluginHost未使用時に既存画面・既存Action・既存Field表示が変わらないこと。2. Overlayのplugin_index.jsonで enabled=true のPluginだけが読み込まれること。3. Pluginの activate(studio) が呼ばれること。4. registerFieldEditorで複数選択コンボ用Editorを登録できること。5. ViewDefで editor: plugin:multi_select_combo のような指定からPlugin Editorを使えること。6. registerSearchFilterで選択値に基づく検索条件を追加できること。7. registerActionで集計Actionを追加し、toolbar.executeButton等から実行できること。8. Plugin側の例外がCore全体を停止させないこと。9. 会社Copilot向け依頼で studio_overlays/default/ 配下のみ編集すればPlugin追加できること。10. studio-overlay-manifest_rules_data_v0_1.jsonのPluginHost章と実装APIの用語が一致していること。",
+      "user_request": "Pluginのサンプルは既に作ってくれている。Core側のPluginHost設計をやろうか。まずはミニマムで設計・実装して、最低限Copilotくんにプラグイン作ってとお願いできる状態にしたい。会社でのターゲットは、複数選択コンボボックス、それを使った検索、集計ボタン実行。情報量的に studio-overlay-manifest_rules_data_v0_1.json に PluginHost設計の章を追加して管理するのが良さそう。まずはインシデント登録をお願い。設計書更新と実作業を一つのインシデントでいってもいい感じか、分けるほうが良ければ分けてほしい。",
+      "ai_response": "設計書更新と実作業は v0.17.6-pluginhost-mvp の1インシデントとして登録する。理由は、studio-overlay-manifest_rules_data_v0_1.json へ追加するPluginHost設計章が、実装前の契約・責務境界・会社Copilot向け作業範囲そのものであり、MVP実装と同じ判断ログで追跡した方がよいため。ただし、権限管理、Plugin設定画面、外部配布、Sandbox化などMVP外の論点は、肥大化した時点で後続インシデントへ分割する。",
+      "latest_user_comment": "ではでは、いっきに作業お願いします！！ phase: v0.17.6-pluginhost-mvp。Foundation Rules の foundation_rule_019 を参照し、更新後JSONと差分ZIPを返却してほしい。",
+      "latest_ai_response": "PluginHost MVPを実装。studio-overlay-manifest_rules_data_v0_1.jsonへPluginHost設計章を追加し、Core側にPluginHost、Overlay plugin_index読込、FieldEditor/SearchFilter/Action登録口を実装。active studio_overlays/default サンプルを追加し、複数選択コンボ、保有資格検索、表示行集計Actionのサンプルを有効化した。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0093_001",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "PluginHost MVP相談",
+          "message": "Pluginのサンプルは既に作ってくれているでーー。Core側のPluginHost設計をやろうかぁ？まずはミニマムで設計・実装して、最低限Copilotくんにプラグイン作ってってお願いできる状態にしたい。会社でのターゲットは、複数選択コンボボックス、それを使った検索、集計ボタン実行。"
+        },
+        {
+          "history_id": "disc_0093_002",
+          "at": "2026-07-01",
+          "speaker": "assistant",
+          "topic": "MVP構成整理",
+          "message": "PluginHost MVPはActionだけでなく、FieldEditor / SearchFilter / Action の3種類の登録口に分けるのが自然と整理した。複数選択コンボはFieldEditor Plugin、検索はSearchFilter Plugin、集計ボタンはAction Pluginとして扱う。"
+        },
+        {
+          "history_id": "disc_0093_003",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "インシデント登録依頼",
+          "message": "情報量的に studio-overlay-manifest_rules_data_v0_1.json に PluginHost設計の章を追加して管理するので良さそう。まずはインシデント登録をお願い。設計書更新と、実作業を一つのインシデントでいってもいい感じかな？分けるほうがよければ分けてください。"
+        },
+        {
+          "history_id": "disc_0093_004",
+          "at": "2026-07-01",
+          "speaker": "assistant",
+          "topic": "インシデント分割判断",
+          "message": "設計書更新と実作業は1インシデントで登録する。PluginHost設計章は実装前の契約であり、実装と分けると判断ログが分散するため。ただし、権限管理やPlugin設定画面などMVP外の論点は後続インシデントへ分割する。"
+        },
+        {
+          "history_id": "disc_0093_003",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "実作業依頼",
+          "message": "phase v0.17.6-pluginhost-mvp として、設計書更新とPluginHost MVP実装を一気に進める依頼。Foundation Rules の GitHub基準ソースとZIP返却契約を参照。"
+        },
+        {
+          "history_id": "disc_0093_004",
+          "at": "2026-07-01",
+          "speaker": "assistant",
+          "topic": "実装方針",
+          "message": "既存のActionRegistry、FieldControlRegistry、Overlay manifest、plugin_index_filesを活かし、CoreへPluginHost接続層を追加する方針で実装。CoreはPluginの中身を知らず、Overlay PluginがFieldEditor/SearchFilter/Actionを登録する形にした。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0093_001",
+          "at": "2026-07-01",
+          "decision": "PluginHost MVPは、設計書更新と実作業を1インシデントで扱う。",
+          "reason": "studio-overlay-manifest_rules_data_v0_1.json に追加するPluginHost設計章が、CoreとOverlay Pluginの責務境界・API契約・会社Copilot向け編集範囲を定めるものであり、MVP実装と同じフェーズで追跡した方が判断ログを追いやすいため。"
+        },
+        {
+          "decision_id": "dec_0093_002",
+          "at": "2026-07-01",
+          "decision": "PluginHost MVPの登録口は FieldEditor / SearchFilter / Action の3種類に限定する。",
+          "reason": "会社での初期ターゲットである複数選択コンボボックス、選択値検索、集計ボタン実行を満たす最小単位であり、過剰なPlugin基盤化を避けられるため。"
+        },
+        {
+          "decision_id": "dec_0093_003",
+          "at": "2026-07-01",
+          "decision": "CoreはPluginを直接知らず、PluginHost APIだけを知る。",
+          "reason": "個別Plugin名や会社固有データをCoreへ持ち込むと、v0.17.0のCore/Overlay分離思想と固定Data名禁止方針が崩れるため。"
+        },
+        {
+          "decision_id": "dec_0093_004",
+          "at": "2026-07-01",
+          "decision": "会社Copilotが編集する初期範囲は studio_overlays/default/ 配下に限定する。",
+          "reason": "CoreをGitHubから上書き更新できる状態を守りながら、会社固有のPlugin・value_sets・search_patterns・view_defsを安全に育てるため。"
+        },
+        {
+          "decision_id": "dec_0093_005",
+          "at": "2026-07-01",
+          "decision": "MVPではPluginの詳細権限管理、外部URL読込、Sandbox化、Plugin設定画面は扱わない。",
+          "reason": "初期目的は『Copilotくんにプラグイン作ってと頼める最小状態』を作ることであり、基盤を大きくしすぎると実装リスクと設計負荷が跳ね上がるため。"
+        },
+        {
+          "decision_id": "dec_0093_006",
+          "at": "2026-07-01",
+          "decision": "FieldEditor指定は type ではなく editor を優先する。",
+          "reason": "type=値の形、valueSet=候補の意味、editor=触り方という責務分離を守るため。"
+        },
+        {
+          "decision_id": "dec_0093_007",
+          "at": "2026-07-01",
+          "decision": "active な studio_overlays/default サンプルを追加し、plugin_index enabled=true でPluginHost検証対象にする。",
+          "reason": "既存サンプルは_archive_eternal内にあり、実行時Coreが読むactive Overlayが未配置だったため。"
+        },
+        {
+          "decision_id": "dec_0093_008",
+          "at": "2026-07-01",
+          "decision": "PluginHost詳細権限管理、外部URL読込、Plugin設定画面、Plugin間通信はMVP外とする。",
+          "reason": "最初からPlugin基盤を肥大化させず、会社Copilotへ依頼可能な最小接続口を優先するため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0093_001",
+          "at": "2026-07-01",
+          "change_type": "incident_added",
+          "before": "Pluginサンプルは存在していたが、Core側PluginHostの設計・実装作業がインシデント管理に未登録だった。",
+          "after": "studio_work_0093 v0.17.6-pluginhost-mvp として、studio-overlay-manifest_rules_data_v0_1.json へのPluginHost設計章追加と、Core側PluginHost MVP実装を1インシデントとして登録した。",
+          "reason": "会社CopilotがCoreを触らずにOverlay側Pluginを追加できる状態を作り、複数選択コンボ・検索・集計Actionの初期ユースケースを安全に成立させるため。"
+        },
+        {
+          "history_id": "chg_0093_002",
+          "at": "2026-07-01",
+          "change_type": "rules_updated",
+          "before": "PluginHost設計章がstudio-overlay-manifest_rules_data_v0_1.jsonに未記載だった。",
+          "after": "PluginHost設計章 8.1〜8.6 を追加し、FieldEditor/SearchFilter/Action契約を明文化。",
+          "reason": "実装APIと設計書の用語を一致させるため。"
+        },
+        {
+          "history_id": "chg_0093_003",
+          "at": "2026-07-01",
+          "change_type": "core_added",
+          "before": "Core側にPluginHost実体がなかった。",
+          "after": "wwwroot/js/core/plugin_host.js を追加し、Overlay plugin_index読込、Plugin script読込、activate(studio)、登録APIを実装。",
+          "reason": "会社CopilotがCoreを触らずOverlay Plugin追加できる接続口を作るため。"
+        },
+        {
+          "history_id": "chg_0093_004",
+          "at": "2026-07-01",
+          "change_type": "core_updated",
+          "before": "FieldControlRegistryはtype中心でEditor指定を優先できなかった。",
+          "after": "field_control_registry.jsでeditor/edit.editorを優先し、field_types.jsでPlugin/array fieldのvalueSet options解決を許可。",
+          "reason": "type/valueSet/editor責務分離をRuntimeに反映するため。"
+        },
+        {
+          "history_id": "chg_0093_005",
+          "at": "2026-07-01",
+          "change_type": "search_action_updated",
+          "before": "検索とActionContextにPlugin用の接続口がなかった。",
+          "after": "renderSearch/applySearchへPlugin SearchFilter連携を追加し、ActionContextへgetFilteredRows等のGetterを追加。",
+          "reason": "複数選択検索と表示行集計ActionをPluginから扱えるようにするため。"
+        },
+        {
+          "history_id": "chg_0093_006",
+          "at": "2026-07-01",
+          "change_type": "overlay_sample_added",
+          "before": "実行時に読むactive Overlayサンプルが未配置だった。",
+          "after": "studio_overlays/default/ を追加し、multi_select_combo と skill_summary Pluginを enabled=true で有効化。社員スキル台帳サンプルに保有資格配列、検索、集計ボタンを追加。",
+          "reason": "MVPの動作確認対象と会社Copilotへ渡す標本を用意するため。"
+        },
+        {
+          "history_id": "chg_0093_007",
+          "at": "2026-07-01",
+          "change_type": "save_runtime_updated",
+          "before": "Header保存側はselect multiple等の配列値をgetControlValue経由で受け取れなかった。",
+          "after": "detail_save.jsのapplyHeaderEditsでgetControlValueを経由し、Plugin FieldEditorがHeader側に来ても配列値を扱えるようにした。",
+          "reason": "FieldEditor PluginをDetailだけでなく将来Headerにも安全に広げられるようにするため。"
+        }
+      ],
+      "verification_status": "確認済み（静的検証）",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-07-01",
+      "context_def_draft": "# ContextDef素案: v0.17.6-pluginhost-mvp\n\n## 読む目的\nCore側に最小PluginHostを導入し、会社CopilotがCoreを触らずにOverlay側Pluginを追加できる状態を作る。MVPでは、複数選択コンボボックス、選択値を使った検索、表示中データに対する集計ボタン実行を成立させるため、FieldEditor / SearchFilter / Action の3種類の登録口を提供する。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- `studio_work_0090` の Core-Overlay分離設計を確認する。\n- `data/json/00_rules/studio-overlay-manifest_rules_data_v0_1.json` を確認し、PluginHost章はこのData JSONへ追加する。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の `ActionRegistry` / `FieldControlRegistry` / `overlay_manager.js` の責務を確認し、Coreを不要に太らせない。\n\n## 関連文脈候補\n- `studio_work_0090` / v0.17.0-studio-overlay-manifest-separation: CoreとOverlayを物理ファイル単位で分離し、会社CopilotはOverlay側を編集する方針を確認する。\n- `studio_overlay_manifest_rules_data_v0_1`: Overlay/Manifest設計ルールの正本候補。PluginHost章の追加先。\n- `ActionRegistry`: 集計ボタン実行の接続先。既存executeButtonの仕組みを壊さず、Plugin Action登録口を追加する。\n- `FieldControlRegistry`: 複数選択コンボなどFieldEditor Pluginの接続先。\n- `overlay_manager.js`: Overlay manifest / plugin_index.json の読込候補。\n\n## AI作業メモ\n- まず設計章をData JSONへ追加し、その用語に合わせて実装する。\n- Coreは個別Pluginを知らない。CoreはPluginHost APIだけを知る。\n- PluginはCore内部を直接触らない。PluginHost API経由で FieldEditor / SearchFilter / Action を登録する。\n- 会社Copilotへ渡す作業範囲は studio_overlays/default/ 配下に限定できる状態を目指す。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\nstudio-overlay-manifest_rules_data_v0_1.json に PluginHost MVP 設計章を追加し、CoreとOverlay Pluginの責務境界、Plugin読込、PluginHost API、FieldEditor登録、SearchFilter登録、Action登録、会社Copilotが編集してよい範囲を定義する。実装側では、Overlay manifestまたはplugin_index.jsonから有効Pluginを読み込み、plugin.js の activate(studio) へ最小APIを渡し、既存の FieldControlRegistry / ActionRegistry / 検索処理へ安全に接続する。\n\n## 注意すべきリスク\nPluginHostを大きく作りすぎるとCoreが肥大化し、v0.17.0のCore/Overlay分離思想が崩れる。PluginにCore内部オブジェクトを渡しすぎると責務境界が壊れ、任意Pluginが保存処理やRuntime状態を壊すリスクがある。未使用時は既存動作へ完全に無影響である必要がある。\n\n## 確認観点メモ\nPluginHost未使用時の既存動作無影響、enabled=true Pluginのみ読込、activate(studio) 呼び出し、registerFieldEditor/registerSearchFilter/registerAction の接続、複数選択コンボ・検索・集計Actionの成立、Plugin例外時のCore保護、設計章と実装API用語の一致を確認する。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0093_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_96_pluginhost_mvp_registered.json#studio_work_0093",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.17.6で追加したPluginHost MVP作業の入口。"
+        },
+        {
+          "context_ref_id": "target_0093_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0093_030_studio_work_0090",
+          "title": "関連作業 studio_work_0090: Studio Overlay / Manifest によるCore-Copilot完全分離設計",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_95_batch_ps1_common_daily_log_done.json#studio_work_0090",
+          "purpose": "CoreとOverlayを物理分離し、会社CopilotがOverlay側だけを触るという前提を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0093_040_overlay_manifest_rules",
+          "title": "関連Rules: studio-overlay-manifest_rules_data_v0_1",
+          "read_timing": "before_work",
+          "target_path": "data/json/00_rules/studio-overlay-manifest_rules_data_v0_1.json",
+          "purpose": "PluginHost設計章の追加先。既存Overlay/Manifestルールとの用語・責務境界を合わせる。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0093_050_existing_registries",
+          "title": "既存Registry: FieldControlRegistry / ActionRegistry / overlay_manager",
+          "read_timing": "before_work",
+          "target_path": "wwwroot/js/renderers/field_control_registry.js, wwwroot/js/actions/action_registry.js, wwwroot/js/core/overlay_manager.js",
+          "purpose": "既存の登録口とOverlay読込責務を確認し、PluginHostがCoreを太らせず薄い橋として接続できるようにする。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": ""
+        }
+      ],
+      "done_summary": "PluginHost MVPとして、設計書更新・Core接続層・Overlayサンプルを同一フェーズで完了。CoreはPluginの中身を知らず、Overlay PluginがFieldEditor/SearchFilter/Actionを登録する形を確立した。",
+      "changed_files": [
+        "data/json/00_rules/studio-overlay-manifest_rules_data_v0_1.json",
+        "wwwroot/index.html",
+        "wwwroot/js/core/plugin_host.js",
+        "wwwroot/js/core/field_types.js",
+        "wwwroot/js/renderers/field_control_registry.js",
+        "wwwroot/js/renderers/field_controls.js",
+        "wwwroot/js/renderers/grid_detail.js",
+        "wwwroot/js/runtime/detail_save.js",
+        "wwwroot/js/actions/action_registry.js",
+        "wwwroot/app.js",
+        "studio_overlays/default/studio_manifest.json",
+        "studio_overlays/default/plugins/plugin_index.json",
+        "studio_overlays/default/plugins/multi_select_combo/plugin.json",
+        "studio_overlays/default/plugins/multi_select_combo/plugin.js",
+        "studio_overlays/default/plugins/skill_summary/plugin.json",
+        "studio_overlays/default/plugins/skill_summary/plugin.js",
+        "studio_overlays/default/view_defs/employee_skill_inventory_view_def.json",
+        "studio_overlays/default/data/employee_skill_inventory_sample.json",
+        "studio_overlays/default/value_sets/company_value_sets.json",
+        "studio_overlays/default/search_patterns/employee_skill_search_patterns.json",
+        "studio_overlays/default/README.md"
+      ],
+      "verification_notes": "JSON parse確認、Node.js構文チェック（plugin_host.js、変更JS、Overlay plugin.js）を実施。ZIP整合性検査（unzip -t）も実施。ブラウザ実機操作は未実行。"
+    },
+    {
+      "work_item_id": "studio_work_0094",
+      "phase": "v0.17.7-value-vocabulary-registry-diet",
+      "title": "Value Vocabulary Registry統一 / common_enums・value_sets肥大化防止ルール",
+      "incident_type": "architecture_rules_review",
+      "category": "value_vocabulary_registry",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-01",
+      "updated_at": "2026-07-01",
+      "target_files": "data/json/00_rules/frb_coding_constraints_data_v0_3.json, data/json/00_rules/common_enums_v0_1.json, studio_overlays/default/value_sets/company_value_sets.json, wwwroot/js/core/field_types.js, wwwroot/js/core/overlay_manager.js or value vocabulary resolver equivalent, studio_overlays/default/view_defs/*.json",
+      "target_rule_files": "data/json/00_rules/frb_coding_constraints_data_v0_3.json, data/json/00_rules/common_enums_v0_1.json, data/json/00_rules/studio-overlay-manifest_rules_data_v0_1.json",
+      "objective": "common_enums と value_sets が別系統で肥大化する前に、値語彙レジストリの考え方を単一スキーマへ整理し、frb_coding_constraints_data_v0_3.json に新章として残す。Core標準語彙とOverlay業務語彙を分けつつ、データの意味を特定するロジック・構造・命名を無駄に二重化しない方針を定義する。",
+      "background": "v0.17.6 PluginHost MVPでOverlay側 value_sets / company_value_sets.json を使った複数選択コンボ・検索・集計Actionが動いた。一方で、既に data/json/00_rules/common_enums_v0_1.json には Studio共通語彙の正本として namespaces / enums / items / enumRef / cd/name などの契約が存在する。value_sets 側にも namespaces / enums / items があり、さらに kind / value_type など業務マスタ向け属性があるため、このまま放置すると common_enums 系と value_sets 系が別々に太り、将来統合困難になる懸念が出た。",
+      "scope": "Value Vocabulary Registry Schema を唯一の論理スキーマとして定義する。common_enums は registry_scope=core のインスタンス、value_sets は registry_scope=overlay のインスタンスとして扱う方針を整理する。enumRef と valueSet は同じ語彙解決系へ入るスコープ別参照aliasとして扱い、Runtimeはどちらも field.options へ解決する。name/caption、enum_ref/valueSet、kind/value_type、cd/name/sort_order/deprecated などの項目揺れを整理し、互換aliasと正本項目を決める。Pluginは候補値を持たず、解決済み field.options だけを見る原則も明文化する。",
+      "out_of_scope": "この作業項目追加時点では、common_enums_v0_1.json や company_value_sets.json の全面移行、ファイル名変更、既存ViewDefの一括置換、Runtime Resolverの大規模改修は行わない。まず frb_coding_constraints_data_v0_3.json に設計原則・ダイエット方針・移行方針を残す。既存の enumRef / valueSet / caption 互換を即削除しない。",
+      "fixed_name_policy": "Runtimeが知ってよい固定名は Value Vocabulary Registry の構造語彙に限定する。例: registry_scope, registry_id, namespaces, namespace_id, enums, enum_id, enum_ref, items, cd, name, description, sort_order, deprecated, kind, value_type。会社固有の qualification / business_area / skill_rank / WATER / PM などはOverlay語彙であり、Core固定名として扱わない。caption は互換alias候補とし、正本表示名は name へ寄せる方向で検討する。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。設計ルールとData Schema方針を先に整理し、Runtime実装が必要な場合も既存script方式との互換を優先する。",
+      "expected_outputs": "完了: frb_coding_constraints_data_v0_3.json新章追加、common_enums/value_setsのValue Vocabulary Registry化、Runtime解決alias追加、Grid表示ラベル化、サンプルViewDef更新、レポートMD、更新後インシデントJSON。",
+      "risk": "common_enums と value_sets を別スキーマとして育て続けると、同じ値語彙を特定するための構造・命名・Runtime解決ロジックが二重化し、後からの統合が困難になる。逆に一気に統一しすぎると、既存のPluginHost MVPサンプルやViewDef、enumRef互換、valueSet互換を壊すリスクがある。共通化しすぎてCoreに業務語彙を持ち込むことも避ける必要がある。",
+      "test_points": "1. common_enums と value_sets を同じ Value Vocabulary Registry Schema のインスタンスとして説明できること。2. Core標準語彙は common_enums/core scope、Overlay業務語彙は value_sets/overlay scope として分離できること。3. name を正本、caption を互換aliasとして扱う方針が明確であること。4. enumRef/valueSet が同じ options 解決系へ入ることを説明できること。5. Runtimeに業務語彙固定名を増やさないこと。6. Pluginは field.options だけを見ること。7. 既存 value_sets の kind/value_type など便利属性を共通スキーマへ吸い上げるか判断できること。8. 既存データを即破壊せず移行段階を説明できること。\n9. node --checkで変更JSが構文エラーにならないこと。10. 変更JSONがparseできること。11. 返却ZIPが更新ファイルのみで構成されること。12. ブラウザ実機では社員スキル台帳サンプルで保有資格がラベル表示されることを確認する。",
+      "user_request": "common_enums と value_sets が別系統で各々デブデブと太る前に、今のうちにダイエットできるところはやっておきたい。この話は frb_coding_constraints_data_v0_3.json にも新しい章を立ち上げて考え方を整理して残したい。まずはインシデントに作業項目を整理して追加してほしい。",
+      "ai_response": "common_enums/value_sets の違和感を、Value Vocabulary Registry統一・肥大化防止の設計課題として登録する。最初の作業は実装ではなく、frb_coding_constraints_data_v0_3.json へ新章を立て、スキーマは1つ、レジストリはスコープ別、Runtime解決は1系統、Pluginはoptionsを見るだけ、という考え方を明文化する。",
+      "latest_user_comment": "studio_overlays は明日から会社で育ち始めるため、家に持ち帰れないデータが増える前に、今あるサンプルデータの段階で可能な限り実装レベルでも修正したい。",
+      "latest_ai_response": "Value Vocabulary Registry Schemaの単一化方針をfrb_coding_constraintsへ追加し、common_enums/value_setsをcore/overlayスコープの同一Registry実体へ寄せた。RuntimeはvalueVocabularySourcesを読み、enumRef/valueSet/valueVocabularyRefを同じoptions解決系に寄せ、配列値のGrid表示もoptionsから表示名へ変換できるようにした。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0094_001",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "enumとvalue_setsの違和感",
+          "message": "common_enums と value_sets は似た構造なのに name/caption など言葉が違っており、似たようなものを複数作っているように見える。極論スキーマは一つ、同じと言われると納得しやすい。"
+        },
+        {
+          "history_id": "disc_0094_002",
+          "at": "2026-07-01",
+          "speaker": "assistant",
+          "topic": "Value Vocabulary Registryとしての統一整理",
+          "message": "common_enums と value_sets は別スキーマではなく、同じ Value Vocabulary Registry Schema の別インスタンスとして整理するのがよい。common_enums はCoreスコープ、value_sets はOverlayスコープ。enumRef/valueSetは参照口のaliasであり、Runtime上は同じ options 解決系へ統合する。"
+        },
+        {
+          "history_id": "disc_0094_003",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "ロジック二重化の事実確認",
+          "message": "本来データの意味を特定するロジックが1つで済むところを2つ作ってしまっているという話ではないか、という事実確認。"
+        },
+        {
+          "history_id": "disc_0094_004",
+          "at": "2026-07-01",
+          "speaker": "assistant",
+          "topic": "二重化の整理",
+          "message": "Runtimeは統合されつつあるが、設計語彙とスキーマ名が common_enums / value_sets として二重化して見えている。破綻ではないが、今ここで Value Vocabulary Registry の単一スキーマへ回収するのがよいと整理した。"
+        },
+        {
+          "history_id": "disc_0094_005",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "肥大化防止インシデント追加依頼",
+          "message": "別系統で各々がでぶでぶと太ってしまったら、もう手がつけられなくなるから、今のうちにダイエットできるところはやっておこう。この話は frb_coding_constraints_data_v0_3.json にも、新しい章を立ち上げて考え方を整理して残そう。まずはインシデントに作業項目を整理して追加お願いします。"
+        },
+        {
+          "history_id": "disc_0094_006",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "会社Overlay育成前の実装修正依頼",
+          "message": "studio_overlays が明日から会社で育ち始め、家に持ち帰れないデータになるため、今のサンプル段階で可能な限り実装レベルでも修正したい。"
+        },
+        {
+          "history_id": "disc_0094_007",
+          "at": "2026-07-01",
+          "speaker": "assistant",
+          "topic": "v0.17.7実装方針",
+          "message": "破壊的な全面移行ではなく、スキーマ語彙・既存サンプル・Runtime解決を同じ方向へ寄せるダイエット対応として実施する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0094_001",
+          "at": "2026-07-01",
+          "decision": "値語彙候補を扱う論理スキーマは Value Vocabulary Registry Schema 1つとして整理する。",
+          "reason": "common_enums と value_sets を別スキーマとして成長させると、構造・命名・解決ロジックが二重化し、将来の統合コストが高くなるため。"
+        },
+        {
+          "decision_id": "dec_0094_002",
+          "at": "2026-07-01",
+          "decision": "common_enums は Coreスコープ、value_sets は Overlayスコープの Value Vocabulary Registry インスタンスとして扱う。",
+          "reason": "Studio標準語彙と会社/業務語彙の所有者を分けつつ、同じ構造で扱えるようにするため。"
+        },
+        {
+          "decision_id": "dec_0094_003",
+          "at": "2026-07-01",
+          "decision": "enumRef と valueSet は別機構ではなく、同じ語彙解決系へ入るスコープ別参照aliasとして整理する。",
+          "reason": "ViewDef上の読みやすさと互換性を保ちつつ、Runtimeの意味解決ロジックを1本化するため。"
+        },
+        {
+          "decision_id": "dec_0094_004",
+          "at": "2026-07-01",
+          "decision": "name を正本の表示名、caption を互換alias候補として扱う方向で整理する。",
+          "reason": "common_enums と value_sets で同じ意味の表示名が name/caption に割れており、単一スキーマ化の障害になるため。"
+        },
+        {
+          "decision_id": "dec_0094_005",
+          "at": "2026-07-01",
+          "decision": "value_sets側で育った kind / value_type など便利属性は、必要なら共通スキーマへ吸い上げる。",
+          "reason": "value_setsを独自進化させるのではなく、有用な属性をValue Vocabulary Registry Schema側へ回収することで、二重進化を避けるため。"
+        },
+        {
+          "decision_id": "dec_0094_006",
+          "at": "2026-07-01",
+          "decision": "PluginはEnum/ValueSet候補を定義せず、Runtimeが解決した field.options の表示・編集・検索だけを担当する。",
+          "reason": "Pluginが業務マスタを内蔵すると再利用性が下がり、Core/Overlay/Pluginの責務境界が崩れるため。"
+        },
+        {
+          "decision_id": "dec_0094_007",
+          "at": "2026-07-01",
+          "decision": "company_value_sets.json は registry_scope=overlay の Value Vocabulary Registry 実体へ寄せる。",
+          "reason": "会社側でvalue_setsが増える前に、Overlay語彙を別スキーマとして増殖させないため。"
+        },
+        {
+          "decision_id": "dec_0094_008",
+          "at": "2026-07-01",
+          "decision": "ViewDefの読み込み元名として valueVocabularySources を追加する。",
+          "reason": "commonEnumSources というCore寄りの名前でOverlay value_setsを読むと、設計意図が混乱するため。"
+        },
+        {
+          "decision_id": "dec_0094_009",
+          "at": "2026-07-01",
+          "decision": "配列のGrid表示は options がある場合、保存値ではなく表示名へ変換する。",
+          "reason": "valueSetで意味を特定できるなら、Grid上も [\"PM\"] ではなく人間向け名称を表示する方がValue Vocabularyの効果を確認しやすいため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0094_001",
+          "at": "2026-07-01",
+          "change_type": "incident_added",
+          "before": "common_enums と value_sets の構造重複・命名揺れ・Runtime解決二重化リスクが作業項目として管理されていなかった。",
+          "after": "studio_work_0094 として、Value Vocabulary Registry統一 / common_enums・value_sets肥大化防止ルールを登録。",
+          "reason": "PluginHost MVP後、Overlay value_sets が実用化されたため、Core側 common_enums と別系統で肥大化する前に制約章として考え方を固定する必要がある。"
+        },
+        {
+          "history_id": "chg_0094_002",
+          "at": "2026-07-01",
+          "change_type": "implementation_done",
+          "before": "common_enums と value_sets の構造・命名・Runtime表示がまだ二系統に見えていた。",
+          "after": "frb_coding_constraintsへconstitution_25を追加し、common_enums/value_setsをValue Vocabulary Registryのcore/overlay scope実体へ寄せ、Runtime・ViewDef・サンプル表示を更新した。",
+          "reason": "会社Overlayが実データで増える前に、サンプル段階で単一スキーマ方針と互換解決を固めるため。"
+        }
+      ],
+      "verification_status": "静的確認済み / ブラウザ実機未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-07-01",
+      "context_def_draft": "# ContextDef素案: v0.17.7-value-vocabulary-registry-diet\n\n## 読む目的\ncommon_enums と value_sets が別系統で肥大化する前に、値語彙レジストリの単一スキーマ方針を整理し、frb_coding_constraints_data_v0_3.json に新章として残す。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- `data/json/00_rules/frb_coding_constraints_data_v0_3.json` を確認し、新章の追加位置と既存制約との関係を確認する。\n- `data/json/00_rules/common_enums_v0_1.json` を確認し、既存の contract / enumRef / cd/name / deprecated方針を読む。\n- `studio_overlays/default/value_sets/company_value_sets.json` を確認し、value_sets側で育った kind / value_type / caption などの差分を読む。\n- `studio_work_0093` / v0.17.6-pluginhost-mvp を確認し、PluginHost / valueSet / field.options / Plugin責務の現状を確認する。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n\n## 関連文脈候補\n- `common_enums_v0_1.json`: Studio共通語彙の正本。Value Vocabulary Registry Schema原本候補。\n- `company_value_sets.json`: Overlay会社語彙の実用サンプル。kind/value_typeなど業務属性の回収候補。\n- `studio_work_0093`: PluginHost MVP。Pluginは候補を持たずfield.optionsを見るだけという責務境界を確認する。\n- `studio_work_0056`: Migration / Backward Compatibility Rules。name/captionやenumRef/valueSet互換移行方針と接続する。\n- `frb_coding_constraints_data_v0_3.json`: 新章追加先。RuntimeやAIがスキーマ重複を増やさないための制約として残す。\n\n## AI作業メモ\n- まず「似ているから統合」ではなく、「同じ抽象を別名で育てない」ことを目的にする。\n- Core語彙とOverlay語彙の所有者は分ける。ただし構造と解決系は1本化する。\n- 互換破壊を急がない。caption / valueSet / enumRef は移行期間のaliasとして扱う。\n- 作業結果は更新後インシデントJSONと、実作業時は差分ZIPに残す。\n\n## 対象範囲メモ\nValue Vocabulary Registry Schema、common_enums/value_setsの責務分離、enumRef/valueSet参照、name/caption統一、field.options解決、Plugin責務、kind/value_typeの共通化要否、移行方針。\n\n## 注意すべきリスク\n別系統のまま各々が太ると手がつけられなくなる。逆に一気に統一しすぎると既存PluginHost MVPサンプルやViewDef互換を壊す。Coreに会社語彙を入れない。\n\n## 確認観点メモ\ncommon_enums と value_sets を1つの論理スキーマで説明できること。Runtime解決が1本化されること。Pluginが候補値を持たないこと。既存互換を壊さない移行方針になっていること。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0094_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_98_value_vocabulary_registry_diet_registered.json#studio_work_0094",
+          "purpose": "Value Vocabulary Registry統一作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0094_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0094_030_coding_constraints",
+          "title": "frb_coding_constraints_data_v0_3.json / 新章追加先",
+          "read_timing": "before_work",
+          "target_path": "data/json/00_rules/frb_coding_constraints_data_v0_3.json",
+          "purpose": "Value Vocabulary Registry統一・肥大化防止の考え方を新章として追加するため、既存章構成と制約語彙を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0094_040_common_enums",
+          "title": "common_enums_v0_1.json / Coreスコープ語彙レジストリ",
+          "read_timing": "before_work",
+          "target_path": "data/json/00_rules/common_enums_v0_1.json",
+          "purpose": "既存のEnum正本契約、enumRef、cd/name、deprecated方針、runtime_policyを確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0094_050_overlay_value_sets",
+          "title": "company_value_sets.json / Overlayスコープ語彙レジストリ",
+          "read_timing": "before_work",
+          "target_path": "studio_overlays/default/value_sets/company_value_sets.json",
+          "purpose": "value_sets側で育った caption / kind / value_type などの属性と、会社語彙の責務範囲を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0094_060_studio_work_0093",
+          "title": "関連作業 studio_work_0093: PluginHost MVP",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_97_pluginhost_mvp_done.json#studio_work_0093",
+          "purpose": "PluginHost MVPで導入した valueSet / field.options / Plugin責務境界を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 60,
+          "note": ""
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0095",
+      "phase": "v0.17.8-daily-ux-polish-after-pluginhost",
+      "title": "日次UX小改善まとめ / ファイル選択・自動読込・現在Data表示・Markdown削除確認",
+      "incident_type": "ux_polish_worklog",
+      "category": "daily_ux_polish",
+      "priority": "medium",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-01",
+      "updated_at": "2026-07-01",
+      "target_files": "wwwroot/js/ui/file_tree_picker.js, wwwroot/app.js, wwwroot/index.html, wwwroot/styles.css, wwwroot/js/core/state.js, wwwroot/js/core/file_api.js, wwwroot/js/core/loaders.js, wwwroot/js/runtime/load_runtime.js, wwwroot/mdViewer.html",
+      "target_rule_files": "data/json/01_main/studio_work_incident_data_v0_99_value_vocabulary_registry_diet_done.json, data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+      "objective": "v0.17.6 PluginHost MVPおよびv0.17.7 Value Vocabulary Registry Diet後に、会社で大量にJSONを開きながら見えた日常操作の摩擦を小さくする。ファイルツリー下部のクリック失敗、対象JSON選択後の読込クリック、現在表示中Dataの不明瞭さ、Markdownエディター削除時のブラウザ標準confirm残存を解消し、Studioくんを現場で使いやすい道具へ寄せる。",
+      "background": "会社で大量のJSONを開きまくる運用が始まり、overlay/default配下がツリー最下部で閉じていること、対象JSONを選ぶたびに読み込みボタンを押すこと、ヘッダーに『準備OK』だけ出て現在表示中ファイルが分かりにくいこと、MarkdownエディターのSentenceBlock削除だけブラウザ標準confirmが残って視線が上に飛ぶことが、実操作上のストレスとして表面化した。",
+      "scope": "対象JSONファイルツリーのoverlay/defaultおよびdata/plugins/search_patterns/value_sets/view_defs初期展開、対象JSON選択時の自動読み込み、現在Data JSONパスのヘッダー常時表示、MarkdownエディターSentenceBlock削除confirmの画面内ダイアログ化を対象とする。今回の作業記録では実装修正済みの小差分をまとめ、判断ログを残す。",
+      "out_of_scope": "新しい大規模UI設計、ファイルツリーの検索・仮想スクロール刷新、全ダイアログ基盤の再設計、インシデントViewDefの大幅変更、既存全confirmの一括監査は対象外とする。今回は実施済みの小改善を、後から追える作業履歴として残す。",
+      "fixed_name_policy": "今回のUX改善でData構造や業務フィールド名への固定依存は増やさない。ファイルツリーの初期展開対象はStudio標準のOverlayフォルダー構造として扱い、業務データ名・会社マスタ名・個別JSON名へ依存しない。現在Data表示は読み込み中のAPI名/パスを表示するだけで、Data本文の固定フィールド名を参照しない。",
+      "module_policy": "type=\"module\" 化は行わない。既存の従来script方式と既存Runtime構成を維持し、最小差分でUX摩擦だけを下げる。",
+      "expected_outputs": "完了: file_tree_picker.jsでoverlay/default配下の初期展開、対象JSON選択時の自動読み込み、現在Data JSONパス表示、mdViewer.htmlのSentenceBlock削除画面内確認ダイアログ化、各パッチZIP返却、ユーザー実機確認、更新後インシデントJSON。",
+      "risk": "自動読み込みは便利だが、対象外のpickerまで自動実行すると誤読込のリスクがある。ファイルツリー初期展開を広げすぎると表示が重くなる可能性がある。現在Data表示は長いパスがヘッダーを圧迫するリスクがある。削除確認ダイアログの差し替えは、削除処理のキャンセル/実行分岐を壊さないようにする必要がある。",
+      "test_points": "1. overlay/defaultが初期表示で開くこと。2. overlay/default/data等の主要配下も初期表示で開くこと。3. 対象JSONファイルを選択すると読み込みボタンを押さなくても読み込まれること。4. 画面定義JSON pickerでは自動読み込みしないこと。5. 読み込み後に『準備OK』だけでなくDataパスが表示されること。6. 長いDataパスでもヘッダーが破綻しないこと。7. MarkdownエディターのSentenceBlock削除でブラウザ標準confirmが出ないこと。8. 画面内確認ダイアログで削除/キャンセルが判断できること。9. 返却ZIPが変更ファイルのみであること。10. まとめ記録として判断ログが残っていること。",
+      "user_request": "雑多な対応をこまごまとやってもらったので、一応インシデントに作業記録として残しておきたい。特に判断ログが大事。更新後JSON返却をお願いしたい。",
+      "ai_response": "日次UX小改善を1つの作業履歴インシデントとしてまとめる。小修正ごとに個別インシデント化すると運用が重くなるため、今回は『現場操作摩擦の削減』という共通テーマで、判断ログ中心に完了記録として追加する。",
+      "latest_user_comment": "雑多な対応をこまごまとやってもらったので、一応インシデントに作業記録として残しておきたい。特に判断ログが大事だよねぇ～。更新後JSON返却お願いします。",
+      "latest_ai_response": "v0.17.8-daily-ux-polish-after-pluginhost として、ファイルツリー初期展開、自動読み込み、現在Data表示、Markdown削除確認ダイアログ化をまとめて完了記録化した。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0095_001",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "Overlayフォルダー初期展開",
+          "message": "対象JSON選択ツリーの最下部にある default フォルダーが閉じており、手動で広げに行くのが非常に面倒。最初から開けておいてほしい。"
+        },
+        {
+          "history_id": "disc_0095_002",
+          "at": "2026-07-01",
+          "speaker": "assistant",
+          "topic": "Overlayフォルダー初期展開",
+          "message": "file_tree_picker.jsを修正し、overlay/default と studio_overlays/default を初期展開対象に追加した。返却ZIPは frbstudio_file_tree_overlay_default_open_patch.zip。"
+        },
+        {
+          "history_id": "disc_0095_003",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "Overlay配下の深い初期展開",
+          "message": "overlay/default は開いたが、もうひと展開必要。これは1クリック削減ではなく、最下部クリック失敗を含む5〜6クリック削減の話。"
+        },
+        {
+          "history_id": "disc_0095_004",
+          "at": "2026-07-01",
+          "speaker": "assistant",
+          "topic": "Overlay配下の深い初期展開",
+          "message": "overlay/default/data, plugins, search_patterns, value_sets, view_defs と studio_overlays/default配下を初期展開対象に追加した。返却ZIPは frbstudio_file_tree_overlay_default_deep_open_patch.zip。"
+        },
+        {
+          "history_id": "disc_0095_005",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "対象JSON選択後の自動読み込み",
+          "message": "データJSONを選択したら『読み込み』ボタンクリックまで一気にやってほしい。会社でJSONを大量に開き、毎回読み込みクリックがストレスになった。"
+        },
+        {
+          "history_id": "disc_0095_006",
+          "at": "2026-07-01",
+          "speaker": "assistant",
+          "topic": "対象JSON選択後の自動読み込み",
+          "message": "対象JSON pickerでファイル選択後に input/change を発火し、ツリーを閉じたうえで読み込みボタンclickを自動実行するよう修正。画面定義JSON pickerは自動読込対象外とした。返却ZIPは frbstudio_file_tree_data_select_auto_load_patch.zip。"
+        },
+        {
+          "history_id": "disc_0095_007",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "自動読み込みの実機確認",
+          "message": "快適ぃーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー"
+        },
+        {
+          "history_id": "disc_0095_008",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "現在Data JSON表示",
+          "message": "準備OKの場所に、読み込みました等のメッセージではなく、読み込んだファイル名（パス名）をバッチリ記載してほしい。今表示されているのが何のファイルか分からなくなる。"
+        },
+        {
+          "history_id": "disc_0095_009",
+          "at": "2026-07-01",
+          "speaker": "assistant",
+          "topic": "現在Data JSON表示",
+          "message": "ヘッダーのステータスに現在Data JSONパスを表示するよう修正。『準備OK』へ戻さず、Data: path 形式で常時表示し、長いパスは省略表示・titleで確認できるようにした。返却ZIPは frbstudio_current_data_status_patch.zip。"
+        },
+        {
+          "history_id": "disc_0095_010",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "現在Data JSON表示の実機確認",
+          "message": "完璧っす！！"
+        },
+        {
+          "history_id": "disc_0095_011",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "Markdownエディター削除確認ダイアログ",
+          "message": "Markdownエディターで行削除時にブラウザ標準ダイアログが残っていた。画面上部に出るため目線が行かず、固まったように見える。既に対応している新タイプのダイアログへ変更してほしい。"
+        },
+        {
+          "history_id": "disc_0095_012",
+          "at": "2026-07-01",
+          "speaker": "assistant",
+          "topic": "Markdownエディター削除確認ダイアログ",
+          "message": "mdViewer.html の SentenceBlock削除確認をブラウザ標準 confirm() から画面内確認ダイアログへ差し替えた。返却ZIPは frbstudio_mdviewer_sentence_delete_confirm_dialog_patch.zip。"
+        },
+        {
+          "history_id": "disc_0095_013",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "Markdown削除確認の実機確認",
+          "message": "画面内ダイアログが削除対象ブロック近くに表示されることを確認。『うぃーーー。』"
+        },
+        {
+          "history_id": "disc_0095_014",
+          "at": "2026-07-01",
+          "speaker": "user",
+          "topic": "作業履歴登録依頼",
+          "message": "雑多な対応をこまごまとやってもらったので、一応インシデントに作業記録として残しておきたい。特に判断ログが大事。更新後JSON返却をお願いしたい。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0095_001",
+          "at": "2026-07-01",
+          "decision": "今回の複数小修正は、個別インシデントではなく『日次UX小改善』として1つの完了作業履歴にまとめる。",
+          "reason": "各修正は独立ファイル差分だが、目的は共通して『現場でJSONを大量に開くときの操作摩擦削減』であり、個別に分けるとインシデント管理が過剰に太るため。"
+        },
+        {
+          "decision_id": "dec_0095_002",
+          "at": "2026-07-01",
+          "decision": "file tree pickerでは overlay/default と主要配下を初期展開する。",
+          "reason": "Overlay配下は画面下部にあり、クリック対象が小さくスクロール位置も悪いため、単なる1クリック削減ではなくクリック失敗・視線移動・探索負荷をまとめて減らす効果があるため。"
+        },
+        {
+          "decision_id": "dec_0095_003",
+          "at": "2026-07-01",
+          "decision": "初期展開対象は overlay/default, data, plugins, search_patterns, value_sets, view_defs などStudio標準Overlay構造に限定する。",
+          "reason": "会社固有の個別フォルダー名や業務データ名をCore側に固定しないため。標準構造だけを開き、Overlay内の業務語彙には依存しない。"
+        },
+        {
+          "decision_id": "dec_0095_004",
+          "at": "2026-07-01",
+          "decision": "対象JSONファイルを選択した場合は自動で読み込みまで実行する。",
+          "reason": "対象JSON選択後に読み込みボタンを押す操作は、会社で大量JSONを開く運用では高頻度の反復摩擦になるため。"
+        },
+        {
+          "decision_id": "dec_0095_005",
+          "at": "2026-07-01",
+          "decision": "自動読み込みは対象JSON pickerに限定し、画面定義JSON pickerでは実行しない。",
+          "reason": "ViewDef選択は対象Dataとの組み合わせ判断が残るため、選択した瞬間に読み込むと意図しない表示切替や誤読込を誘発する可能性があるため。"
+        },
+        {
+          "decision_id": "dec_0095_006",
+          "at": "2026-07-01",
+          "decision": "読み込み後ステータスは『準備OK』や『読み込みました』ではなく、現在Data JSONパスを表示する。",
+          "reason": "ユーザーの困りごとは完了通知ではなく『今表示しているのが何のファイルか分からない』ことであり、状態メッセージより正本ファイル識別情報の方が価値が高いため。"
+        },
+        {
+          "decision_id": "dec_0095_007",
+          "at": "2026-07-01",
+          "decision": "現在Data表示はData本文のtitle等ではなく、読み込み元のファイル名/パスを表示する。",
+          "reason": "Data本文のフィールド名に依存すると固定名肥満になる。読み込み元パスはRuntime状態として既に存在する情報であり、Data構造を汚さず現在表示対象を示せるため。"
+        },
+        {
+          "decision_id": "dec_0095_008",
+          "at": "2026-07-01",
+          "decision": "MarkdownエディターのSentenceBlock削除ではブラウザ標準confirmを使わず、画面内ダイアログを使う。",
+          "reason": "標準confirmはブラウザ上端に出て操作位置と視線がズレるため、ユーザーには画面が固まったように見える。削除対象の近くで確認できる方が操作文脈を保てるため。"
+        },
+        {
+          "decision_id": "dec_0095_009",
+          "at": "2026-07-01",
+          "decision": "SentenceBlock削除確認は削除対象のID/種別/行番号/本文断片を表示する。",
+          "reason": "削除操作は不可逆に近い操作なので、対象を人間が確認できる情報を近くに出す必要があるため。"
+        },
+        {
+          "decision_id": "dec_0095_010",
+          "at": "2026-07-01",
+          "decision": "小修正ごとのZIP返却時にはインシデントJSONを都度更新せず、まとまったタイミングで判断ログ中心に後追い記録する。",
+          "reason": "高頻度のUI微調整で毎回インシデントを更新すると作業速度が落ちる。だが判断ログは将来のUX方針に効くため、後でまとめて記録する運用が適切と判断したため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0095_001",
+          "at": "2026-07-01",
+          "change_type": "ux_patch_applied",
+          "before": "対象JSONツリーで overlay/default 配下が閉じており、最下部で手動展開が必要だった。",
+          "after": "overlay/default および data/plugins/search_patterns/value_sets/view_defs など主要配下を初期展開対象にした。",
+          "reason": "会社でOverlay配下JSONを頻繁に開く運用に備え、探索・クリック失敗・スクロール負荷を減らすため。"
+        },
+        {
+          "history_id": "chg_0095_002",
+          "at": "2026-07-01",
+          "change_type": "ux_patch_applied",
+          "before": "対象JSONを選択しても、さらに読み込みボタンを押す必要があった。",
+          "after": "対象JSON選択時に自動で読み込みボタン相当の処理を実行するようにした。",
+          "reason": "大量JSON閲覧時の反復操作を減らし、選択即表示に近づけるため。"
+        },
+        {
+          "history_id": "chg_0095_003",
+          "at": "2026-07-01",
+          "change_type": "ux_patch_applied",
+          "before": "ヘッダーの状態表示が『準備OK』などで、現在表示中のData JSONが分かりにくかった。",
+          "after": "読み込み元Data JSONパスをヘッダーに常時表示するようにした。",
+          "reason": "複数JSONを開く運用では、現在ファイルの識別が最重要の安心材料になるため。"
+        },
+        {
+          "history_id": "chg_0095_004",
+          "at": "2026-07-01",
+          "change_type": "ux_patch_applied",
+          "before": "MarkdownエディターのSentenceBlock削除でブラウザ標準confirmが残っていた。",
+          "after": "SentenceBlock削除確認を画面内ダイアログへ差し替えた。",
+          "reason": "標準confirmによる視線ズレ・固まった感をなくし、削除対象の近くで確認できるようにするため。"
+        },
+        {
+          "history_id": "chg_0095_005",
+          "at": "2026-07-01",
+          "change_type": "incident_record_added",
+          "before": "上記の小改善は個別パッチとしては返却済みだが、インシデント上のまとまった作業記録・判断ログが未登録だった。",
+          "after": "studio_work_0095 として、日次UX小改善まとめを完了記録として追加。",
+          "reason": "未来の人間/AIが、なぜこのUX挙動になったのかを判断ログから追えるようにするため。"
+        }
+      ],
+      "verification_status": "ユーザー実機確認済み / 静的確認は各パッチ返却時に実施",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-07-01",
+      "context_def_draft": "# ContextDef素案: v0.17.8-daily-ux-polish-after-pluginhost\n\n## 読む目的\nv0.17.6 PluginHost MVPおよびv0.17.7 Value Vocabulary Registry Diet後に発生した、現場操作上の細かな摩擦削減の判断経緯を確認する。\n\n## 作業前に読む入口\n- この作業項目の `decision_log` を最優先で読む。\n- 小さなUX修正でも、なぜその挙動にしたかを確認する。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n\n## 関連文脈候補\n- `studio_work_0090` / Studio Overlay Manifest分離: Overlay配下を会社側で育てる前提を確認する。\n- `studio_work_0093` / PluginHost MVP: Overlay PluginとValueSetを現場で触る前提を確認する。\n- `studio_work_0094` / Value Vocabulary Registry Diet: value_setsが会社で増える前に整理した背景を確認する。\n\n## AI作業メモ\n- 便利機能追加でもData構造や業務フィールド名へ固定依存を増やさない。\n- 自動化は対象範囲を絞り、誤操作リスクを判断ログに残す。\n- ブラウザ標準confirmは視線ズレを起こすため、Studio内ダイアログへ寄せる。\n\n## 確認観点メモ\n- overlay/default配下が最初から開くこと。\n- 対象JSON選択で自動読込されること。\n- 現在表示中Dataパスが分かること。\n- Markdown削除確認が画面内ダイアログで出ること。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0095_001_incident_scope",
+          "title": "対象インシデントの目的・判断ログを読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_100_daily_ux_polish_done.json#studio_work_0095",
+          "purpose": "日次UX小改善の背景・対象範囲・判断ログを確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "小修正まとめは判断ログが主成果物。"
+        },
+        {
+          "context_ref_id": "target_0095_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "返却成果物は更新後インシデントJSONのみでよいか、ZIP返却契約に反しないか確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0095_030_studio_work_0093",
+          "title": "関連作業 studio_work_0093: PluginHost MVP",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_99_value_vocabulary_registry_diet_done.json#studio_work_0093",
+          "purpose": "Overlay Pluginを現場で触る前提になった背景を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0095_040_studio_work_0094",
+          "title": "関連作業 studio_work_0094: Value Vocabulary Registry Diet",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_99_value_vocabulary_registry_diet_done.json#studio_work_0094",
+          "purpose": "会社でvalue_setsが増える前に、Overlay配下操作が増える背景を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        }
+      ]
     }
   ],
   "review_notes": [
@@ -6327,10 +7130,33 @@
       "at": "2026-06-30",
       "title": "Markdown Editor 名前保存 / Sidecar連携 判断ログ登録",
       "body": "Markdown Editorの一連対応をstudio_work_0089として登録。ブラウザ単体では任意ローカルパス保存や同階層Sidecar自動読込に制約があるため、FRBStudio.exe/APサーバ側のOSダイアログを採用。Markdown本体とSidecarコメントをセットで保存/読込し、Sidecar JSONはGit diffで人間が読めるよう日本語可読保存とする判断を明文化した。"
+    },
+    {
+      "note_id": "note_090",
+      "title": "v0.17.6 PluginHost MVP登録",
+      "body": "Pluginサンプルは既に存在するため、次段階としてCore側に最小PluginHostを用意する作業を追加した。設計章は studio-overlay-manifest_rules_data_v0_1.json に追加し、MVP実装と同一インシデントで管理する。初期対象は FieldEditor / SearchFilter / Action の3登録口。"
+    },
+    {
+      "note_id": "note_091",
+      "at": "2026-07-01",
+      "title": "Value Vocabulary Registry統一 / 肥大化防止インシデント登録",
+      "body": "common_enums と value_sets が別系統で太る前に、値語彙レジストリを単一スキーマとして整理する作業を studio_work_0094 として登録。common_enumsはCoreスコープ、value_setsはOverlayスコープの同一Value Vocabulary Registryインスタンスとし、enumRef/valueSetは同じoptions解決系へ入るスコープ別aliasとして整理する。"
+    },
+    {
+      "note_id": "note_v0177_value_vocabulary_registry_diet_done",
+      "at": "2026-07-01",
+      "title": "v0.17.7 Value Vocabulary Registry Diet 完了",
+      "body": "common_enums/value_setsをValue Vocabulary Registry Schemaのcore/overlay scope実体として整理し、frb_coding_constraintsのconstitution_25、common_enums契約、company_value_sets、Runtime解決、サンプルViewDef、Grid配列表示を更新した。"
+    },
+    {
+      "note_id": "note_v0178_daily_ux_polish_done",
+      "at": "2026-07-01",
+      "title": "v0.17.8 日次UX小改善まとめ 完了",
+      "body": "overlay/default配下の初期展開、対象JSON選択時の自動読み込み、現在Data JSONパス表示、MarkdownエディターSentenceBlock削除の画面内ダイアログ化を、studio_work_0095として判断ログ中心に記録した。各修正は小さいが、会社で大量JSONを開く運用における反復摩擦を下げるための現場道具化として扱う。"
     }
   ],
-  "work_revision": "v0_88",
-  "latest_planning_note": "v0.16.12-md-editor-frontmatter-saveas-sidecar を追加。Markdown Editorのフロントマター編集、名前保存、SaveFileDialog前面化、コメントSidecar同時保存/読込、日本語可読JSON保存の一連対応を、判断ログ中心の完了インシデントとして登録。",
+  "work_revision": "v0_100",
+  "latest_planning_note": "v0.17.8-daily-ux-polish-after-pluginhost 完了。ファイルツリー初期展開、対象JSON自動読み込み、現在Dataパス表示、Markdown削除確認ダイアログ化の小改善を判断ログ中心に作業記録化した。",
   "view_def_candidates": [
     {
       "view_def": "rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",

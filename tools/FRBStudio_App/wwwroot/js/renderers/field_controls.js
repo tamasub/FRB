@@ -52,8 +52,13 @@ function headerDef() { return mainView().sections.find(s => s.type === 'form' &&
 function gridDef() { return mainView().sections.find(s => s.type === 'grid'); }
 
 function convertValue(type, value) {
+  if (Array.isArray(value)) return value;
   if (type === 'number') return value === '' ? null : Number(value);
   if (type === 'boolean') return value === 'true' || value === true;
+  if (type === 'array') {
+    if (value == null || value === '') return [];
+    return String(value).split(',').map(x => x.trim()).filter(Boolean);
+  }
   return value;
 }
 
@@ -68,6 +73,16 @@ function formatNumber(value, pattern) {
   return n.toFixed(m[1].length);
 }
 
+
+function formatArrayValueWithOptions(value, field=null) {
+  const values = Array.isArray(value)
+    ? value
+    : (value == null || value === '' ? [] : String(value).split(',').map(x => x.trim()).filter(Boolean));
+  if (!values.length) return '';
+  if (!Array.isArray(field?.options) || !field.options.length) return values.join(' / ');
+  return values.map(v => optionLabelForValue(v, field) ?? v).join(' / ');
+}
+
 function formatValue(value, field=null) {
   if (value == null) return '';
   if (typeof formatTargetContextValue === 'function') {
@@ -76,8 +91,10 @@ function formatValue(value, field=null) {
   }
   if (field?.type === 'select') return String(optionLabelForValue(value, field) ?? '');
   if (field?.type === 'number') return formatNumber(value, field.format ?? field.grid?.format ?? field.edit?.format);
+  if ((field?.type === 'array' || field?.type === 'stringArray') && (Array.isArray(value) || Array.isArray(field?.options))) {
+    return formatArrayValueWithOptions(value, field);
+  }
   if (field?.type === 'objectArray' && Array.isArray(value)) return `${value.length}件`;
-  if (field?.type === 'stringArray' && Array.isArray(value)) return `${value.length}件`;
   if (typeof value === 'object') return JSON.stringify(value);
   return String(value);
 }
@@ -980,6 +997,12 @@ function renderSearch() {
       form.appendChild(createInput(searchField, '', 'search'));
     }
   });
+
+  // v0.17.6-pluginhost-mvp: Plugin SearchFilterは通常検索欄の後ろに追加する。
+  if (typeof renderStudioPluginSearchFilters === 'function') {
+    renderStudioPluginSearchFilters(form, { gd, viewDef, sourceData, currentRows });
+  }
+
   $('searchSection').classList.remove('hidden');
 }
 

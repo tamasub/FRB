@@ -190,7 +190,79 @@ main { padding: 14px; }
   overflow:hidden;
   text-overflow: ellipsis;
 }
-.status { color: #dbeafe; font-size:12px; white-space: nowrap; }
+.status { color: #dbeafe; font-size:12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+
+/* ===== v0.17.12-current-data-title-card-style: データタイトルを看板カード化 ===== */
+.current-data-layer {
+  grid-column: 1 / -1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  min-height: 42px;
+  margin: 4px 0 8px;
+  padding: 9px 14px 10px;
+
+  border-radius: 8px;
+    border: 1px solid rgba(96, 165, 250, 0.42);
+
+  background:
+    radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.18), transparent 46%),
+  linear-gradient(180deg, #07172f 0%, #0a2347 52%, #1d4f9ad0 100%);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.06),
+    inset 0 -1px 0 rgba(96,165,250,0.18),
+    0 10px 26px rgba(0,0,0,0.28);
+
+}
+
+.current-data-title {
+  display: block;
+  max-width: 100%;
+  color: #ffffff;
+  font-size: 17px;
+  line-height: 1.25;
+  font-weight: 880;
+  letter-spacing: .02em;
+  text-shadow:
+    0 0 14px rgba(147,197,253,.34),
+    0 1px 0 rgba(0,0,0,.28);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.current-data-title:empty { display: none; }
+.current-data-subtitle {
+  display: block;
+  max-width: 100%;
+  color: rgba(219,234,254,.80);
+  font-size: 11px;
+  line-height: 1.25;
+  font-weight: 650;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.current-data-subtitle:empty { display: none; }
+.current-data-layer .status,
+.current-data-path {
+  display: block;
+  width: 100%;
+  color: rgba(219,234,254,.92);
+  font-size: 12px;
+  line-height: 1.35;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.current-data-layer .status.status-error {
+  color: #fecaca;
+  font-weight: 700;
+}
 
 /* Header actions: ViewDef Markdownボタン追加後も、導線とステータスを2段目に逃がす */
 .loader-panel .studio-nav-link {

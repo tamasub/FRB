@@ -167,6 +167,12 @@
           }
         }
       ]
+    },
+    "currentDataDisplay": {
+      "$ref": "#/$defs/currentDataDisplay"
+    },
+    "current_data_display": {
+      "$ref": "#/$defs/currentDataDisplay"
     }
   },
   "required": [
@@ -2481,6 +2487,51 @@
               }
             }
           }
+        }
+      }
+    },
+    "currentDataDisplay": {
+      "type": "object",
+      "description": "現在読み込み中Dataの人間向けタイトル表示設定。Dataパスは住所、タイトルは看板として扱う。",
+      "additionalProperties": false,
+      "properties": {
+        "titlePath": {
+          "type": "string",
+          "description": "Data JSONから現在Dataタイトルとして表示する値のJSON path。例: $.title"
+        },
+        "title_path": {
+          "type": "string",
+          "description": "titlePath のsnake_case互換。例: $.title"
+        },
+        "subtitlePath": {
+          "type": "string",
+          "description": "Data JSONから補助タイトルとして表示する値のJSON path。例: $.target"
+        },
+        "subtitle_path": {
+          "type": "string",
+          "description": "subtitlePath のsnake_case互換。例: $.target"
+        },
+        "titleFallbackPaths": {
+          "type": "array",
+          "description": "titlePathで値が取れない場合のfallback候補。例: [\"$.name\", \"$.document_title\"]",
+          "items": {
+            "type": "string"
+          }
+        },
+        "title_fallback_paths": {
+          "type": "array",
+          "description": "titleFallbackPaths のsnake_case互換。",
+          "items": {
+            "type": "string"
+          }
+        },
+        "showDataPath": {
+          "type": "boolean",
+          "description": "読み込み元Dataパスを住所として表示するか。原則true。"
+        },
+        "show_data_path": {
+          "type": "boolean",
+          "description": "showDataPath のsnake_case互換。"
         }
       }
     }

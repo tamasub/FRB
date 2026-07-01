@@ -13,7 +13,7 @@
   "status": "converted_draft",
   "introduced_in": "v0.4-r001",
   "generated_at": "2026-06-26T00:00:00+09:00",
-  "rule_count": 79,
+  "rule_count": 80,
   "approved_count": 79,
   "approval_policy": "各ルールは人間が内容確認し、verification_status を確認済みにしたうえで approval_decision を承認する。AIはレビューコメント案を出せるが、承認判断は人間が行う。",
   "preamble": "対象: `FRBStudio_App` / No-Code JSON Studio v0.6+ 系  \n対応Schema: `frb_view_def_schema_v0_8_action_registry_toolbar.json`\n\nこの文書は、AIに **Data JSON から ViewDef JSON を作成させる** ときの作成ルールである。\n\nStudioくんにおける ViewDef は、単なる画面定義ではない。\n\n```text\nData JSON + ViewDef JSON + Runtime + Action = Experience\n```\n\nViewDef は、データの見え方・編集の仕方・Markdown化・AIへの渡し方・仮想データの作り方・主役Actionを宣言する **体験設計書** である。\n\n---",
@@ -2570,10 +2570,52 @@
           "reason": "短文一覧編集では従来Gridが便利であり、全GridのCard化は既存操作性を壊すため。"
         }
       ]
+    },
+    {
+      "no": 80,
+      "rule_id": "viewdef_rule_29",
+      "section_no": "29",
+      "source_heading": "現在Dataタイトル表示 / currentDataDisplay契約",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "header_status_layout",
+      "title": "現在DataタイトルはViewDefのcurrentDataDisplayで指定する",
+      "priority": "high",
+      "review_status": "draft",
+      "verification_status": "未確認",
+      "approval_decision": "未承認",
+      "summary": "Dataパスは現在地の住所であり、Dataタイトルは人間向けの看板である。タイトル表示に使うData項目はRuntime固定名にせず、ViewDefのcurrentDataDisplay.titlePathで指定する。",
+      "body": "ヘッダーの現在Data表示では、読み込み元Dataパスだけでなく、人間が文書を認識するためのタイトルを別スタイルで表示できる。ViewDefはトップレベルに currentDataDisplay を持てる。titlePath は Data JSONからタイトルとして表示する値のJSON pathであり、例として $.title を指定する。subtitlePath は必要に応じて補助表示に使う。showDataPath はDataパスを住所として表示するかを示す。Runtimeは currentDataDisplay.titlePath を優先し、未指定の場合は互換fallbackとして $.title を参照してよい。ただし、正式にはViewDef側でタイトル項目を指定し、Runtimeが業務Data固定名を強く要求しないようにする。表示上はタイトルを大きく太く、Dataパスを小さく控えめに分け、タイトルは看板、パスは住所として扱う。",
+      "reason": "トースト抑制後、現在地表示の主役はヘッダーになった。Dataパスだけでは人間が開いている文書を即座に認識しづらいため、Data本文のタイトルを美しく表示する必要がある。一方でRuntimeがtitle等の固定名を直接要求すると固定フィールド名肥満につながるため、ViewDefでタイトルパスを定義する契約にする。",
+      "introduced_in": "v0.17.11-current-data-title-display",
+      "change_history": [
+        {
+          "history_id": "chg_viewdef_rule_29_001",
+          "at": "2026-07-01",
+          "change_type": "rule_added",
+          "before": "現在Data表示はDataパス中心で、Dataタイトルの表示契約がViewDef生成ルールに存在しなかった。",
+          "after": "currentDataDisplay.titlePath / subtitlePath / showDataPath による現在Dataタイトル表示契約を追加した。",
+          "reason": "タイトルは看板、パスは住所として分け、現在開いている文書の人間向け認識性を上げるため。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_viewdef_rule_29_001",
+          "at": "2026-07-01",
+          "decision": "現在DataタイトルはData固定名の直接参照ではなく、ViewDefのcurrentDataDisplay.titlePathで指定する。",
+          "reason": "Dataごとにタイトル項目が異なり得るため、Runtimeへtitle固定名を強制しないため。"
+        },
+        {
+          "decision_id": "dec_viewdef_rule_29_002",
+          "at": "2026-07-01",
+          "decision": "未指定ViewDef互換として $.title fallback は許容する。",
+          "reason": "既存Dataの多くがtitleを持っており、スキーマ対応前でも効果を得られるため。ただし正式契約はcurrentDataDisplayに置く。"
+        }
+      ]
     }
   ],
-  "updated_at": "2026-06-28",
-  "review_revision": "v0.16.5-grid-card-document-renderer",
+  "updated_at": "2026-07-01",
+  "review_revision": "v0.17.11-current-data-title-display",
   "review_notes": [
     {
       "note_id": "note_v012_scope_correction",
@@ -2619,6 +2661,12 @@
       "note_id": "note_v01553_target_context_detail_panel",
       "at": "2026-06-28",
       "note": "対象文脈 context_refs[] はDetail上部パネルで扱い、Gridは件数要約、通常childArea末尾表示からは除外するルールを追加。"
+    },
+    {
+      "note_id": "note_v01711_current_data_title_display",
+      "at": "2026-07-01",
+      "title": "v0.17.11 現在Dataタイトル表示契約 追加",
+      "body": "Dataパスを現在地の住所、Dataタイトルを人間向けの看板として分離するため、ViewDefトップレベルにcurrentDataDisplay契約を追加した。titlePathは正式指定、$.titleは互換fallbackとして扱う。"
     }
   ],
   "view_def_candidates": [

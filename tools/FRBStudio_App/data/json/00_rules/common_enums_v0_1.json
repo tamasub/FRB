@@ -38,7 +38,34 @@
     ],
     "deprecated_policy": "値を廃止する場合も即削除せず、deprecated=true とし、必要に応じてdescription/noteへ移行理由を残す。",
     "migration_policy": "v0.15.2でFieldType enumRef解決を追加する。既存common_types optionsの全面移行は行わず、enumRefを持つselect系FieldTypeだけcommon_enumsのitemsを正本としてoptionsへ展開する。既存options直書きFieldTypeは従来互換のまま維持する。",
-    "runtime_policy": "Studio RuntimeはViewDef解決時にcommon_enumsを読み込み、select系FieldTypeのenumRefを解決する。enumRefとoptionsが両方ある場合はenumRef側を正本とし、optionsは互換用・キャッシュ・展開結果として扱う。Enum未存在時は警告し、既存optionsがあれば互換表示を継続する。"
+    "runtime_policy": "Studio RuntimeはViewDef解決時にcommon_enumsを読み込み、select系FieldTypeのenumRefを解決する。enumRefとoptionsが両方ある場合はenumRef側を正本とし、optionsは互換用・キャッシュ・展開結果として扱う。Enum未存在時は警告し、既存optionsがあれば互換表示を継続する。",
+    "logical_schema_name": "Value Vocabulary Registry Schema",
+    "logical_schema_version": "value_vocabulary_registry_v0_1",
+    "schema_unification_policy": "値候補マスタの論理スキーマは Value Vocabulary Registry Schema 1つとする。common_enums は Coreスコープ、value_sets は Overlayスコープの同一スキーマ実体として扱う。",
+    "registry_scope_policy": "registry_scope=core は Studio標準語彙、registry_scope=overlay は会社・業務・勇者Overlay語彙を表す。所有者は分けるが、namespaces/enums/items の構造は共有する。",
+    "viewdef_reference_policy": "enumRef は Core語彙参照の互換名、valueSet は Overlay語彙参照の互換名として扱う。Runtime内部ではどちらも Value Vocabulary Ref として field.options へ解決する。",
+    "display_name_policy": "表示名の正本項目は name とする。caption / label は互換aliasとして読み取り可能に留め、新規定義では name を優先する。",
+    "enum_standard_fields": [
+      "enum_id",
+      "enum_ref",
+      "name",
+      "description",
+      "kind",
+      "value_type",
+      "sort_order",
+      "deprecated",
+      "items"
+    ],
+    "enum_optional_fields": [
+      "source",
+      "note",
+      "aliases",
+      "order"
+    ],
+    "enum_kind_policy": "kind は code_list / ordered_enum / status_enum / flag_enum / category_tree など、値語彙の性格を表す共通属性とする。Core/Overlayのどちらでも使用可能。",
+    "value_type_policy": "value_type は cd/value の保存型を表す。原則 string。必要に応じて number / boolean を許容する。",
+    "value_sets_compatibility_policy": "既存の studio_overlays/*/value_sets/*.json は、Value Vocabulary Registry Schema の overlay scope 実体として扱う。旧 schema_version/value_set_def_v0_1 や caption は段階的互換aliasとする。",
+    "plugin_policy": "Pluginは候補値を定義しない。Runtimeが enumRef/valueSet/options を解決した field.options を表示・編集・検索するだけとする。"
   },
   "namespaces": [
     {
@@ -91,9 +118,12 @@
               "sort_order": 90,
               "deprecated": false
             }
-          ]
+          ],
+          "kind": "code_list",
+          "value_type": "string"
         }
-      ]
+      ],
+      "registry_scope": "core"
     },
     {
       "namespace_id": "qa",
@@ -132,7 +162,9 @@
               "sort_order": 30,
               "deprecated": false
             }
-          ]
+          ],
+          "kind": "code_list",
+          "value_type": "string"
         },
         {
           "enum_id": "severity_level",
@@ -171,7 +203,9 @@
               "sort_order": 40,
               "deprecated": false
             }
-          ]
+          ],
+          "kind": "code_list",
+          "value_type": "string"
         },
         {
           "enum_id": "feature_area",
@@ -231,7 +265,9 @@
               "sort_order": 70,
               "deprecated": false
             }
-          ]
+          ],
+          "kind": "code_list",
+          "value_type": "string"
         },
         {
           "enum_id": "test_axis",
@@ -291,7 +327,9 @@
               "sort_order": 70,
               "deprecated": false
             }
-          ]
+          ],
+          "kind": "code_list",
+          "value_type": "string"
         },
         {
           "enum_id": "quality_axis",
@@ -344,7 +382,9 @@
               "sort_order": 60,
               "deprecated": false
             }
-          ]
+          ],
+          "kind": "code_list",
+          "value_type": "string"
         },
         {
           "enum_id": "check_axis",
@@ -404,7 +444,9 @@
               "sort_order": 70,
               "deprecated": false
             }
-          ]
+          ],
+          "kind": "code_list",
+          "value_type": "string"
         },
         {
           "enum_id": "scenario_type",
@@ -457,7 +499,9 @@
               "sort_order": 60,
               "deprecated": false
             }
-          ]
+          ],
+          "kind": "code_list",
+          "value_type": "string"
         },
         {
           "enum_id": "finding_type",
@@ -496,9 +540,12 @@
               "sort_order": 40,
               "deprecated": false
             }
-          ]
+          ],
+          "kind": "code_list",
+          "value_type": "string"
         }
-      ]
+      ],
+      "registry_scope": "core"
     },
     {
       "namespace_id": "relation",
@@ -558,7 +605,9 @@
               "sort_order": 60,
               "deprecated": false
             }
-          ]
+          ],
+          "kind": "code_list",
+          "value_type": "string"
         },
         {
           "enum_id": "confidence",
@@ -590,7 +639,9 @@
               "sort_order": 30,
               "deprecated": false
             }
-          ]
+          ],
+          "kind": "code_list",
+          "value_type": "string"
         },
         {
           "enum_id": "coverage",
@@ -622,7 +673,9 @@
               "sort_order": 30,
               "deprecated": false
             }
-          ]
+          ],
+          "kind": "code_list",
+          "value_type": "string"
         },
         {
           "enum_id": "node_type",
@@ -689,7 +742,9 @@
               "sort_order": 80,
               "deprecated": false
             }
-          ]
+          ],
+          "kind": "code_list",
+          "value_type": "string"
         },
         {
           "enum_id": "priority",
@@ -721,7 +776,9 @@
               "sort_order": 30,
               "deprecated": false
             }
-          ]
+          ],
+          "kind": "code_list",
+          "value_type": "string"
         },
         {
           "enum_id": "relation_type",
@@ -781,9 +838,12 @@
               "sort_order": 70,
               "deprecated": false
             }
-          ]
+          ],
+          "kind": "code_list",
+          "value_type": "string"
         }
-      ]
+      ],
+      "registry_scope": "core"
     },
     {
       "namespace_id": "context",
@@ -863,7 +923,9 @@
               "sort_order": 90,
               "deprecated": false
             }
-          ]
+          ],
+          "kind": "code_list",
+          "value_type": "string"
         },
         {
           "enum_id": "failure_policy",
@@ -908,7 +970,9 @@
               "sort_order": 50,
               "deprecated": false
             }
-          ]
+          ],
+          "kind": "code_list",
+          "value_type": "string"
         },
         {
           "enum_id": "trust_category",
@@ -960,9 +1024,12 @@
               "sort_order": 90,
               "deprecated": false
             }
-          ]
+          ],
+          "kind": "code_list",
+          "value_type": "string"
         }
-      ]
+      ],
+      "registry_scope": "core"
     }
   ],
   "notes": [
@@ -1018,5 +1085,10 @@
       "summary": "context.failure_policy / context.trust_category を追加し、read_contract / context_refs の失敗時方針と信頼区分をEnum正本化。",
       "reason": "ViewDef文脈制御で required な参照が読めない場合の扱いと、正本/作業中/参照などの意味を表記揺れなく扱うため。"
     }
-  ]
+  ],
+  "logical_schema_version": "value_vocabulary_registry_v0_1",
+  "registry_id": "core.common_enums",
+  "registry_scope": "core",
+  "registry_scope_name": "Core標準語彙",
+  "schema_unification_note": "common_enums は Value Vocabulary Registry Schema の Coreスコープ実体である。Overlay側 value_sets と別スキーマとして育てない。"
 }

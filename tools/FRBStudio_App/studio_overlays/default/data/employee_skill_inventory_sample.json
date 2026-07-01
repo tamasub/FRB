@@ -4,7 +4,7 @@
   "document_type": "employee_skill_inventory",
   "title": "社員スキル台帳サンプル / Overlay default",
   "status": "sample",
-  "updated_at": "2026-06-30",
+  "updated_at": "2026-07-01",
   "overlay_id": "default",
   "employees": [
     {
@@ -27,6 +27,9 @@
           "rank": "S",
           "note": "PM資格相当"
         }
+      ],
+      "qualification_cds": [
+        "PM"
       ]
     },
     {
@@ -49,7 +52,8 @@
           "rank": "B",
           "note": "水道は補助経験"
         }
-      ]
+      ],
+      "qualification_cds": []
     },
     {
       "employee_id": "E003",
@@ -71,6 +75,9 @@
           "rank": "A",
           "note": "DB設計レビュー担当"
         }
+      ],
+      "qualification_cds": [
+        "DB"
       ]
     }
   ]

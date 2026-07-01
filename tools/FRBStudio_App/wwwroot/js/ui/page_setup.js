@@ -120,7 +120,7 @@ function setupComboClearButtons() {
         normalizeComboInput(input, names(), label);
       } catch (err) {
         console.warn(err);
-        setStatus('選択エラー: ' + err.message);
+        setStatus('選択エラー: ' + err.message, { kind: 'error', title: '選択エラー' });
       }
       sync();
     });
@@ -131,7 +131,7 @@ function setupComboClearButtons() {
       input.dispatchEvent(new Event('input', { bubbles: true }));
       updateViewDefMarkdownButtonState();
       input.focus();
-      setStatus(`${label}の選択をクリアしました`);
+      console.log(`[FRBStudio combo] ${label}の選択をクリアしました`);
     });
     sync();
   });
