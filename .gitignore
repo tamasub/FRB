@@ -19,6 +19,11 @@ compile_commands.json
 *.suo
 *.cache
 
+**/Release/
+*.AssemblyInfo.cs
+*.AssemblyInfoInputs.cache
+*.GeneratedMSBuildEditorConfig.editorconfig
+
 
 # settings.json は共有したいなら残してOK
 # .vscode/settings.json
