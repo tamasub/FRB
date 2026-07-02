@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FRBStudio")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ddeaea6c7deab5c48d1d17f70e4cb4a98463f3c7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+11f8892cc13f0358549f48b50145fa43395d2aa7")]
 [assembly: System.Reflection.AssemblyProductAttribute("FRBStudio")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FRBStudio")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

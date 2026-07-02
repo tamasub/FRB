@@ -9,6 +9,12 @@ compile_commands.json
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 
+**/bin/
+**/obj/
+.vs/
+*.user
+*.suo
+
 # settings.json は共有したいなら残してOK
 # .vscode/settings.json
 
