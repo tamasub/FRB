@@ -123,6 +123,7 @@ FRB treats all bite sensations as:
 - No special equipment required  
 - Comparable under consistent conditions  
 
+
 ---
 
 ### 2. Simplicity
