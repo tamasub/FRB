@@ -1,4 +1,4 @@
-// v0.17.6-pluginhost-mvp
+// v0.17.14-search-state-bridge
 // Overlay PluginをCoreへ接続する最小PluginHost。
 // CoreはPluginの中身を知らず、FieldEditor / SearchFilter / Action の登録口だけを提供する。
 
@@ -142,6 +142,53 @@ const StudioPluginHost = (() => {
     if (Array.isArray(value)) return value.map(v => String(v));
     if (value == null || value === '') return [];
     return String(value).split(',').map(x => x.trim()).filter(Boolean);
+  }
+
+
+  function clonePluginStateValue(value) {
+    if (value == null) return value;
+    try {
+      return typeof structuredClone === 'function' ? structuredClone(value) : JSON.parse(JSON.stringify(value));
+    } catch {
+      return Array.isArray(value) ? [...value] : { ...value };
+    }
+  }
+
+  function replaceObjectContents(target, value) {
+    const dest = target && typeof target === 'object' && !Array.isArray(target) ? target : {};
+    Object.keys(dest).forEach(key => { delete dest[key]; });
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      Object.entries(value).forEach(([key, item]) => { dest[key] = clonePluginStateValue(item); });
+    }
+    return dest;
+  }
+
+  function setPluginControlValue(control, value) {
+    if (!control) return;
+    if (control instanceof HTMLSelectElement && control.multiple) {
+      const selected = new Set(normalizeControlValue(value).map(String));
+      [...control.options].forEach(option => { option.selected = selected.has(String(option.value)); });
+      return;
+    }
+    if (control instanceof HTMLInputElement && control.type === 'checkbox') {
+      const selected = new Set(normalizeControlValue(value).map(String));
+      control.checked = selected.has(String(control.value));
+      return;
+    }
+    if (control instanceof HTMLInputElement && control.type === 'radio') {
+      control.checked = String(control.value) === String(value ?? '');
+      return;
+    }
+    control.value = value == null ? '' : String(value);
+  }
+
+  function syncSearchFilterControls(filter) {
+    const state = filter?.state ?? {};
+    filter?.host?.querySelectorAll?.('input, select, textarea')?.forEach(control => {
+      const fieldName = control.dataset.pluginSearchField || control.dataset.field;
+      if (!fieldName) return;
+      setPluginControlValue(control, state[fieldName]);
+    });
   }
 
   function preparePluginControl(control, context) {
@@ -353,13 +400,47 @@ const StudioPluginHost = (() => {
     return entries;
   }
 
+  function getSearchFilterStates() {
+    const result = {};
+    for (const filter of searchFilters.values()) {
+      try {
+        const raw = typeof filter.getState === 'function'
+          ? filter.getState(filter.state, filter)
+          : filter.state;
+        result[filter.id] = clonePluginStateValue(raw ?? {});
+      } catch (err) {
+        pluginWarn(`SearchFilter getState failed: ${filter.id}`, err);
+      }
+    }
+    return result;
+  }
+
+  function applySearchFilterStates(states = {}, options = {}) {
+    const source = states && typeof states === 'object' ? states : {};
+    for (const filter of searchFilters.values()) {
+      if (!Object.prototype.hasOwnProperty.call(source, filter.id)) continue;
+      try {
+        const nextState = source[filter.id] ?? {};
+        if (typeof filter.setState === 'function') {
+          filter.setState(filter.state, clonePluginStateValue(nextState), filter);
+        } else {
+          filter.state = replaceObjectContents(filter.state, nextState);
+        }
+        if (options.syncControls !== false) syncSearchFilterControls(filter);
+      } catch (err) {
+        pluginWarn(`SearchFilter setState failed: ${filter.id}`, err);
+      }
+    }
+  }
+
   function resetSearchFilters() {
     for (const filter of searchFilters.values()) {
       try {
         if (typeof filter.reset === 'function') filter.reset(filter.state, filter);
-        else filter.state = {};
+        else filter.state = replaceObjectContents(filter.state, {});
         filter.host?.querySelectorAll('input, select, textarea').forEach(el => {
           if (el instanceof HTMLSelectElement && el.multiple) [...el.options].forEach(opt => { opt.selected = false; });
+          else if (el instanceof HTMLInputElement && (el.type === 'checkbox' || el.type === 'radio')) el.checked = false;
           else el.value = '';
         });
       } catch (err) {
@@ -376,6 +457,8 @@ const StudioPluginHost = (() => {
     loadOverlayPlugins,
     renderSearchFilters,
     applySearchFilters,
+    getSearchFilterStates,
+    applySearchFilterStates,
     resetSearchFilters,
     createPluginApi,
     _debug: { registeredPlugins, activatedPlugins, loadedScripts, searchFilters }
@@ -395,6 +478,14 @@ function renderStudioPluginSearchFilters(container, context = {}) {
 
 function applyStudioPluginSearchFilters(rowEntries, context = {}) {
   return StudioPluginHost.applySearchFilters(rowEntries, context);
+}
+
+function getStudioPluginSearchFilterStates() {
+  return StudioPluginHost.getSearchFilterStates();
+}
+
+function applyStudioPluginSearchFilterStates(states = {}, options = {}) {
+  return StudioPluginHost.applySearchFilterStates(states, options);
 }
 
 function resetStudioPluginSearchFilters() {

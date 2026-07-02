@@ -1004,6 +1004,7 @@ function renderSearch() {
   }
 
   $('searchSection').classList.remove('hidden');
+  if (typeof refreshStudioSearchPatternSelect === 'function') refreshStudioSearchPatternSelect();
 }
 
 
