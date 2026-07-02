@@ -11,9 +11,14 @@ compile_commands.json
 
 **/bin/
 **/obj/
+**/Debug/
+
+
 .vs/
 *.user
 *.suo
+*.cache
+
 
 # settings.json は共有したいなら残してOK
 # .vscode/settings.json
