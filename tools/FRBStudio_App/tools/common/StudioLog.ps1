@@ -45,6 +45,45 @@ function Initialize-StudioLog {
     }
 }
 
+
+function ConvertTo-StudioReadableJson {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [object]$InputObject,
+
+        [int]$Depth = 12,
+
+        [switch]$Compress
+    )
+
+    begin {
+        $items = New-Object 'System.Collections.Generic.List[object]'
+    }
+
+    process {
+        [void]$items.Add($InputObject)
+    }
+
+    end {
+        $target = if ($items.Count -eq 1) { $items[0] } else { $items.ToArray() }
+        $json = if ($Compress) {
+            $target | ConvertTo-Json -Depth $Depth -Compress
+        } else {
+            $target | ConvertTo-Json -Depth $Depth
+        }
+
+        # v0.9-json-utf8-human-readable-save:
+        # Windows PowerShell 5.1 can emit Japanese as \uXXXX.
+        # Decode only real JSON unicode escapes, and keep literal "\\uXXXX" text untouched.
+        return [System.Text.RegularExpressions.Regex]::Replace(
+            $json,
+            '(?<!\\)\\u([0-9a-fA-F]{4})',
+            { param($m) [string][char]([Convert]::ToInt32($m.Groups[1].Value, 16)) }
+        )
+    }
+}
+
 function Write-StudioLog {
     [CmdletBinding()]
     param(
@@ -67,7 +106,7 @@ function Write-StudioLog {
 
         if ($null -ne $Data) {
             try {
-                $dataJson = $Data | ConvertTo-Json -Depth 12 -Compress
+                $dataJson = $Data | ConvertTo-StudioReadableJson -Depth 12 -Compress
                 $line = $line + "`t" + $dataJson
             }
             catch {

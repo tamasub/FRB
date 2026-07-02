@@ -10,9 +10,9 @@
   "conversion_note": "Studioくん憲法レビュー記録を共通ルールレビューViewDef v0.3で扱えるように、constitution_sections を rules へ正規化し、各行に rule_id と decision_log を追加した。section_id は旧IDとして残す。",
   "created": "2026-06-21",
   "status": "",
-  "section_count": 25,
-  "rule_count": 25,
-  "approved_count": 24,
+  "section_count": 26,
+  "rule_count": 26,
+  "approved_count": 25,
   "approval_policy": "第1条〜第23条を1行ずつレビューし、approval_decision を「承認する」に変更することでStudioくん憲法の建国承認記録とする。",
   "preamble_title": "この文書の目的",
   "preamble": "この文書は、Studio を今後も育て続けるための恒久的なコーディング制約である。\n\nただし、これは単なる「コーディング規約」ではない。\n\nこれは、Studioくんという国の憲法である。\n\nStudio は、ただの JSON エディターではない。\n\nStudio は、JSON を「体験」に変換するためのプラットフォームである。\n\nこの文書の目的は、人間と AI が同じ思想を共有しながら、Studio を壊さず、育て続けるための共通原則を定義することである。\n\n今後、Studio のコードを変更する人間および AI は、まずこの文書を読むこと。\n\n---",
@@ -1060,6 +1060,75 @@
           "reason": "Pluginに業務語彙を内蔵するとCore/Overlay/Pluginの責務境界が崩れるため。"
         }
       ]
+    },
+    {
+      "no": 26,
+      "rule_id": "constitution_26",
+      "section_id": "constitution_26",
+      "category": "Encoding / Diff",
+      "title": "UTF-8・非ASCII可読保存",
+      "priority": "high",
+      "review_status": "追加レビュー",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "approval_stamp": "",
+      "approved_by": "tamasub",
+      "approved_at": "2026/7/2",
+      "summary": "JSON / Markdown は UTF-8 で保存し、日本語などの非ASCII文字を Unicode escape に変換してはならない。",
+      "body": "JSON / Markdown は、人間とAIが差分レビューできる可読テキストとして保存する。\n\n保存時は UTF-8 を原則とする。\n\n日本語、絵文字、全角記号など、人間が読むための非ASCII文字を `\\uXXXX` 形式の Unicode escape へ変換してはならない。\n\n悪い例：\n\n```json\n{\n  \"note\": \"1\\u884C\\u76EE\\u3002Mode\\u3092\\u7A7A\\u6B04\\u306B\\u3057\\u3066\\u3001Export-DiffToJson.ps1 \\u306E\\u65E2\\u5B9A\\u5024 WorkingTree \\u3092\\u4F7F\\u3046\\u3002\"\n}\n```\n\n良い例：\n\n```json\n{\n  \"note\": \"1行目。Modeを空欄にして、Export-DiffToJson.ps1 の既定値 WorkingTree を使う。\"\n}\n```\n\nこの条文は、単なる見た目の好みではない。\n\nStudio における JSON / Markdown は、GitDiff、AI差分物語、インシデント記録、判断ログ、レビュー会話の正本になり得る。\n\nそのため、人間が GitDiff 上で読めない保存形式は、AI協働の再現性を壊す。\n\n### 実装上の注意\n\nC# / System.Text.Json で保存する場合は、非ASCII文字が Unicode escape へ変換されない設定を確認する。\n\n例：\n\n```csharp\nvar options = new JsonSerializerOptions\n{\n    WriteIndented = true,\n    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping\n};\n```\n\nPython で保存する場合は、`ensure_ascii=false` 相当を必須とする。\n\n例：\n\n```python\njson.dumps(data, ensure_ascii=False, indent=2)\n```\n\nPowerShell で保存する場合は、UTF-8 で書き出す。\n\n例：\n\n```powershell\n$json | Set-Content -Encoding utf8\n```\n\nただし、JSON構文上必要なエスケープ（`\\n`, `\\r`, `\\t`, `\\\"`, `\\\\` など）は禁止しない。\n\nBOM の有無は既存ファイルの形式維持を優先する。新規ファイルは UTF-8 no BOM を推奨する。\n\n### 返却前確認\n\nAIが JSON / Markdown を返却する場合は、少なくとも次を確認する。\n\n- `.json` / `.md` に、人間可読であるべき日本語の `\\uXXXX` 化が残っていないこと\n- 文字化け疑い文字（`�`、`ã`、`縺` など）が混入していないこと\n- GitDiff上で判断ログ・note・body・summary が読めること\n\nUnicode escape や文字化け疑いを検出した場合は、返却前に抽出し、必要に応じて一括変換する。\n\n---",
+      "ceremony_phrase": "Studioくん憲法 第26条「UTF-8・非ASCII可読保存」を承認する。",
+      "user_comment": "JSONとしては合法でも、人間が差分レビューするJSONとしては、Unicode escape化された日本語は許容できない。これは死活問題なので憲法に追加したい。",
+      "ai_response": "Unicode escapeは文字化けではないが、GitDiffやインシデントレビューで人間が読む用途では、実質的に文字化けと同等の障害になる。Diff First / AI協働 / 判断ログの正本性を守るため、独立条文として追加するのが妥当。",
+      "user_reply": "ありがとう。そうやね。憲法に追加しておこうか。死活問題やからねぇ笑。",
+      "ai_followup_response": "第26条として、JSON / Markdown の UTF-8 保存、非ASCII可読文字のUnicode escape禁止、返却前検出、実装上の注意を追加した。",
+      "notes": "JSON保存時の ensure_ascii=true や System.Text.Json の既定Encoderにより、日本語が \\uXXXX 化される事故を防ぐための条文。差分レビュー不能化を防ぐ目的。",
+      "change_history": [
+        {
+          "history_id": "hist_20260702_026_001",
+          "revision": "v0.17.8",
+          "changed_at": "2026-07-02",
+          "changed_by": "tamasub + ChatGPT",
+          "change_type": "rule_addition",
+          "target_fields": "rules",
+          "before_title": "",
+          "after_title": "UTF-8・非ASCII可読保存",
+          "before_category": "",
+          "after_category": "Encoding / Diff",
+          "before_summary": "",
+          "after_summary": "JSON / Markdown は UTF-8 で保存し、日本語などの非ASCII文字を Unicode escape に変換してはならない。",
+          "reason": "Unicode escape化された日本語はJSONとしては合法でも、GitDiff・インシデントJSON・判断ログを人間が読めなくし、AI協働の再現性を壊すため。",
+          "source_user_comment": "ありがとう。そうやね。憲法に追加しておこうか。死活問題やからねぇ笑。修正お願いします。それから、全ファイルjson,mdを一括検索して、文字化けを抽出して、いっかつ変換するスクリプトの提供もお願いします。",
+          "ai_comment": "第12条へ追記するより、保存形式と差分可読性の条文として独立させる方が、将来の実装・レビュー・返却前確認に効くと判断した。",
+          "notes": "JSON構文上必要なエスケープは許可。対象は人間可読であるべき非ASCII文字のUnicode escape化。"
+        }
+      ],
+      "section_no": "26",
+      "parent_rule_id": "",
+      "source_heading": "26. UTF-8・非ASCII可読保存",
+      "source_heading_level": 2,
+      "source_line_start": 0,
+      "source_md_file": "CODING_CONSTRAINTS_ja.md",
+      "introduced_in": "v0.17.8",
+      "decision_log": [
+        {
+          "decision_id": "dec_20260702_026_001",
+          "at": "2026-07-02",
+          "decision": "JSON / Markdown は UTF-8 で保存し、日本語などの非ASCII文字をUnicode escapeへ変換しない。",
+          "reason": "人間がGitDiff上で判断ログ・note・bodyを読めないと、AI協働の承認判断が成立しないため。"
+        },
+        {
+          "decision_id": "dec_20260702_026_002",
+          "at": "2026-07-02",
+          "decision": "Unicode escapeや文字化け疑いは返却前に抽出し、必要に応じて一括変換する。",
+          "reason": "保存処理の実装差やAI生成物により、同じ問題が再発しやすいため。"
+        },
+        {
+          "decision_id": "dec_20260702_026_003",
+          "at": "2026-07-02",
+          "decision": "JSON構文上必要なエスケープは許可する。",
+          "reason": "改行・引用符・バックスラッシュなどの構文上必要なエスケープまで禁止すると、JSONとしての安全性を損なうため。"
+        }
+      ]
     }
   ],
   "review_notes": [
@@ -1121,10 +1190,16 @@
       "at": "2026-07-01",
       "title": "Value Vocabulary Registry単一スキーマ方針を追加",
       "body": "constitution_25を追加。common_enums と value_sets を別スキーマとして育てず、Value Vocabulary Registry Schemaのcore/overlayスコープ実体として扱う。enumRef/valueSetは同じoptions解決系へ入るalias、nameを正本、captionを互換alias、Pluginはfield.optionsのみを見る方針を明記した。"
+    },
+    {
+      "note_id": "note_v0178_utf8_readable_save",
+      "at": "2026-07-02",
+      "title": "UTF-8・非ASCII可読保存ルールを追加",
+      "body": "constitution_26を追加。JSON / Markdown はUTF-8で保存し、日本語などの非ASCII文字をUnicode escapeへ変換しない。GitDiff・インシデントJSON・判断ログを人間が読める状態で残すことをAI協働の必須制約とした。"
     }
   ],
-  "review_revision": "v0.17.7-value-vocabulary-registry-diet-rule-added",
-  "updated": "2026-07-01",
+  "review_revision": "v0.17.8-utf8-readable-save-rule-added",
+  "updated": "2026-07-02",
   "change_history_policy": "レビューで条文・仕様を変更した場合は、対象行の change_history に変更前・変更後・理由・会話を保存する。変更後だけを残さず、修正元を追体験できる状態にする。",
   "viewing_policy": {
     "data_json_role": "原本",

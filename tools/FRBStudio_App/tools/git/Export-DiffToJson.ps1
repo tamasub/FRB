@@ -530,7 +530,7 @@ $result = [ordered]@{
     }
 }
 
-$json = $result | ConvertTo-Json -Depth 30
+$json = $result | ConvertTo-StudioReadableJson -Depth 30
 
 
 # OutputPath は FRBStudio_App root 基準で解決する。

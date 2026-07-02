@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using System.Text.Unicode;
 using System.Windows.Forms;
 using System.Drawing;
 using System.Runtime.InteropServices;
@@ -147,7 +148,7 @@ internal static class Program
         {
             var path = SafeDataPath(dataFolders, name, preferExisting: true);
             if (path is null || !File.Exists(path)) return Results.NotFound();
-            return Results.Text(await File.ReadAllTextAsync(path), "application/json");
+            return Results.Text(await File.ReadAllTextAsync(path, Encoding.UTF8), "application/json; charset=utf-8");
         });
 
         app.MapPost("/api/data/{**name}", async (string name, JsonElement json) =>
@@ -237,7 +238,7 @@ internal static class Program
         {
             var path = SafeJsonPath(defsDir, name);
             if (path is null || !File.Exists(path)) return Results.NotFound();
-            return Results.Text(await File.ReadAllTextAsync(path), "application/json");
+            return Results.Text(await File.ReadAllTextAsync(path, Encoding.UTF8), "application/json; charset=utf-8");
         });
 
         app.MapPost("/api/defs/drop", async (DropJsonRequest req) =>
@@ -1431,11 +1432,11 @@ internal static class Program
 
     private static async Task WriteJsonAsync(string path, JsonElement json)
     {
-        var formatted = JsonSerializer.Serialize(json, new JsonSerializerOptions
-        {
-            WriteIndented = true
-        });
-        await File.WriteAllTextAsync(path, formatted);
+        // v0.9-json-utf8-human-readable-save:
+        // Data JSON is the human/AI collaboration source of truth, so Japanese text must remain directly readable.
+        // UnicodeRanges.All avoids the default non-ASCII \uXXXX escaping while keeping the JSON encoder boundary explicit.
+        var formatted = JsonSerializer.Serialize(json, HumanReadableJsonOptions);
+        await File.WriteAllTextAsync(path, formatted, new UTF8Encoding(false));
     }
 
     private static string? ResolveOpenJsonPath(
@@ -1803,7 +1804,7 @@ internal static class Program
     private static readonly JsonSerializerOptions HumanReadableJsonOptions = new()
     {
         WriteIndented = true,
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
     };
 
     private static string NormalizeReadableJsonContent(string rawContent)
