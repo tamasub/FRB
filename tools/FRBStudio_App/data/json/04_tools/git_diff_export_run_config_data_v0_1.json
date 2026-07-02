@@ -12,11 +12,11 @@
   "command_profile_caption": "Export-DiffToJson.ps1",
   "script_display_name": "tools/git/Export-DiffToJson.ps1",
   "output_path_display": "wwwroot/diff/DiffToJson.json",
-  "security_policy": "\u4EFB\u610FcommandLine/scriptPath\u306FData JSON\u306B\u6301\u305F\u305B\u306A\u3044\u3002\u5B9F\u884C\u6B63\u672C\u306FProgram.cs\u5074\u306E\u8A31\u53EF\u6E08\u307FCommandProfile\u3068\u3059\u308B\u3002Run Config\u660E\u7D30\u306B\u306F\u51FA\u529B\u5148\u30D1\u30B9\u3092\u6301\u305F\u305B\u305A\u3001\u51FA\u529B\u5148\u306F\u57FA\u672C\u60C5\u5831\u306E\u53C2\u8003\u30E1\u30E2\u307E\u305F\u306FCommandProfile API\u7531\u6765\u306E\u8868\u793A\u3068\u3057\u3066\u6271\u3046\u3002DiffToJson_*.json\u306FFRBStudio_App/wwwroot/diff\u914D\u4E0B\u3078\u51FA\u529B\u3057\u3001Git\u7BA1\u7406\u5916\u306B\u3059\u308B\u3002FilePair\u30E2\u30FC\u30C9\u3067\u306F\u4EFB\u610FcommandLine/scriptPath\u3067\u306F\u306A\u304F\u3001from_file/to_file \u306E2\u30D5\u30A1\u30A4\u30EB\u30D1\u30B9\u3060\u3051\u3092Program.cs\u7D4C\u7531\u3067\u691C\u8A3C\u3057\u3001Export-DiffToJson.ps1 \u306E -Mode FilePair \u306B\u6E21\u3059\u3002 FilePair\u306Efrom_file/to_file \u306F\u3001\u4EFB\u610F2\u30D5\u30A1\u30A4\u30EB\u6BD4\u8F03\u7528\u9014\u306E\u305F\u3081\u65E2\u5B58\u30ED\u30FC\u30AB\u30EB\u30D5\u30A1\u30A4\u30EB\u3067\u3042\u308C\u3070FRBStudio_App\u5916\u306E\u7D76\u5BFE\u30D1\u30B9\u3082\u8A31\u53EF\u3059\u308B\u3002\u76F8\u5BFE\u30D1\u30B9\u306FFRBStudio_App root\u57FA\u6E96\u3068\u3057\u3066\u6271\u3046\u3002\u5024\u5168\u4F53\u3092\u56F2\u3080\u4F59\u5206\u306A\u5F15\u7528\u7B26\u306FAction/API\u5074\u3067\u5438\u53CE\u3059\u308B\u304C\u3001Data JSON\u3078\u4FDD\u5B58\u3059\u308B\u5834\u5408\u306F\u5F15\u7528\u7B26\u306A\u3057\u3092\u63A8\u5968\u3059\u308B\u3002\u51FA\u529B\u5148\u306FCommandProfile\u5074\u3067FRBStudio_App/wwwroot/diff\u914D\u4E0B\u3078\u5236\u9650\u3059\u308B\u3002",
+  "security_policy": "任意commandLine/scriptPathはData JSONに持たせない。実行正本はProgram.cs側の許可済みCommandProfileとする。Run Config明細には出力先パスを持たせず、出力先は基本情報の参考メモまたはCommandProfile API由来の表示として扱う。DiffToJson_*.jsonはFRBStudio_App/wwwroot/diff配下へ出力し、Git管理外にする。FilePairモードでは任意commandLine/scriptPathではなく、from_file/to_file の2ファイルパスだけをProgram.cs経由で検証し、Export-DiffToJson.ps1 の -Mode FilePair に渡す。 FilePairのfrom_file/to_file は、任意2ファイル比較用途のため既存ローカルファイルであればFRBStudio_App外の絶対パスも許可する。相対パスはFRBStudio_App root基準として扱う。値全体を囲む余分な引用符はAction/API側で吸収するが、Data JSONへ保存する場合は引用符なしを推奨する。出力先はCommandProfile側でFRBStudio_App/wwwroot/diff配下へ制限する。",
   "run_configs": [
     {
       "run_config_id": "gitdiff_001_default_working_tree",
-      "caption": "WorkingTree\u5DEE\u5206\uFF08\u65E2\u5B9A / -Mode\u306A\u3057\uFF09",
+      "caption": "WorkingTree差分（既定 / -Modeなし）",
       "command_profile_id": "git_diff_export",
       "mode": "",
       "from_ref": "",
@@ -26,13 +26,13 @@
       "max_patch_chars": 60000,
       "no_patch": false,
       "enabled": true,
-      "note": "1\u884C\u76EE\u3002Mode\u3092\u7A7A\u6B04\u306B\u3057\u3066\u3001Export-DiffToJson.ps1 \u306E\u65E2\u5B9A\u5024 WorkingTree \u3092\u4F7F\u3046\u3002",
+      "note": "1行目。Modeを空欄にして、Export-DiffToJson.ps1 の既定値 WorkingTree を使う。",
       "from_file": "",
       "to_file": ""
     },
     {
       "run_config_id": "gitdiff_002_staged",
-      "caption": "Staged\u5DEE\u5206\uFF08-Mode Staged\uFF09",
+      "caption": "Staged差分（-Mode Staged）",
       "command_profile_id": "git_diff_export",
       "mode": "Staged",
       "from_ref": "",
@@ -42,13 +42,13 @@
       "max_patch_chars": 60000,
       "no_patch": false,
       "enabled": true,
-      "note": "2\u884C\u76EE\u3002git diff --cached \u76F8\u5F53\u3002",
+      "note": "2行目。git diff --cached 相当。",
       "from_file": "",
       "to_file": ""
     },
     {
       "run_config_id": "gitdiff_003_head",
-      "caption": "HEAD\u5DEE\u5206\uFF08-Mode Head\uFF09",
+      "caption": "HEAD差分（-Mode Head）",
       "command_profile_id": "git_diff_export",
       "mode": "Head",
       "from_ref": "",
@@ -58,13 +58,13 @@
       "max_patch_chars": 60000,
       "no_patch": false,
       "enabled": true,
-      "note": "3\u884C\u76EE\u3002HEAD\u3068\u306E\u5DEE\u5206\u3002",
+      "note": "3行目。HEADとの差分。",
       "from_file": "",
       "to_file": ""
     },
     {
       "run_config_id": "gitdiff_004_range_main_head",
-      "caption": "Range\u5DEE\u5206\uFF08From..To\uFF09",
+      "caption": "Range差分（From..To）",
       "command_profile_id": "git_diff_export",
       "mode": "Range",
       "from_ref": "main",
@@ -74,26 +74,26 @@
       "max_patch_chars": 60000,
       "no_patch": false,
       "enabled": true,
-      "note": "4\u884C\u76EE\u3002Program.cs\u5074\u3067 from_ref \u3068 to_ref \u304B\u3089 main..HEAD \u306E\u3088\u3046\u306A -Range \u3092\u7D44\u307F\u7ACB\u3066\u308B\u3002",
+      "note": "4行目。Program.cs側で from_ref と to_ref から main..HEAD のような -Range を組み立てる。",
       "from_file": "",
       "to_file": ""
     },
     {
       "run_config_id": "gitdiff_005_file_pair",
-      "caption": "FilePair\u5DEE\u5206\uFF08\u4EFB\u610F2\u30D5\u30A1\u30A4\u30EB / -Mode FilePair\uFF09",
+      "caption": "FilePair差分（任意2ファイル / -Mode FilePair）",
       "command_profile_id": "git_diff_export",
       "mode": "FilePair",
       "from_ref": "",
       "to_ref": "",
       "range": "",
-      "from_file": "\u0022C:\\Users\\tsub-\\Downloads\\studio_work_incident_data_v0_92_frbstudio_app_root_path_contract_added - \u30B3\u30D4\u30FC.json\u0022",
+      "from_file": "\u0022C:\\Users\\tsub-\\Downloads\\studio_work_incident_data_v0_92_frbstudio_app_root_path_contract_added - コピー.json\u0022",
       "to_file": "\u0022C:\\Users\\tsub-\\Downloads\\studio_work_incident_data_v0_94_batch_ps1_common_daily_log_added.json\u0022",
       "unified": 3,
       "max_patch_chars": 60000,
       "no_patch": false,
       "enabled": true,
-      "note": "5\u884C\u76EE\u3002\u4EFB\u610F\u306E2\u30D5\u30A1\u30A4\u30EB\u3092\u500B\u5225\u6307\u5B9A\u3057\u3066 git diff --no-index \u76F8\u5F53\u306E\u5DEE\u5206JSON\u3092\u51FA\u3059\u3002from_file/to_file \u306F FRBStudio_App root \u57FA\u6E96\u306E\u76F8\u5BFE\u30D1\u30B9\u307E\u305F\u306F\u4EFB\u610F\u306E\u65E2\u5B58\u30ED\u30FC\u30AB\u30EB\u30D5\u30A1\u30A4\u30EB\u7D76\u5BFE\u30D1\u30B9\u3092\u6307\u5B9A\u3067\u304D\u308B\u3002\u30B5\u30F3\u30D7\u30EB\u306F wwwroot/diff \u914D\u4E0B\u306E\u65E2\u5B58Diff JSON\u540C\u58EB\u3092\u6BD4\u8F03\u3059\u308B\u3002"
+      "note": "5行目。任意の2ファイルを個別指定して git diff --no-index 相当の差分JSONを出す。from_file/to_file は FRBStudio_App root 基準の相対パスまたは任意の既存ローカルファイル絶対パスを指定できる。サンプルは wwwroot/diff 配下の既存Diff JSON同士を比較する。"
     }
   ],
-  "output_path_note": "\u51FA\u529B\u5148: FRBStudio_App/wwwroot/diff/DiffToJson_yyyyMMdd_HHmmss.json\uFF08\u6B63\u672C\u306FCommandProfile API\u306E output_path / output_path_relative\u3002Run Config\u660E\u7D30\u306B\u306F\u5B9F\u884C\u51FA\u529B\u30D1\u30B9\u3092\u6301\u305F\u305B\u306A\u3044\u3002FilePair\u306EFrom/To\u306FFRBStudio_App root\u57FA\u6E96\u306E\u76F8\u5BFE\u30D1\u30B9\u3092\u63A8\u5968\u3002\uFF09"
+  "output_path_note": "出力先: FRBStudio_App/wwwroot/diff/DiffToJson_yyyyMMdd_HHmmss.json（正本はCommandProfile APIの output_path / output_path_relative。Run Config明細には実行出力パスを持たせない。FilePairのFrom/ToはFRBStudio_App root基準の相対パスを推奨。）"
 }

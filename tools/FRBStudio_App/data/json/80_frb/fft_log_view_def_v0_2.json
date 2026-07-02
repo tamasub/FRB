@@ -12,7 +12,7 @@
       "sections": [
         {
           "id": "header",
-          "caption": "FFT\u30ED\u30B0\u60C5\u5831",
+          "caption": "FFTログ情報",
           "type": "form",
           "dataPath": "$",
           "fields": [
@@ -31,7 +31,7 @@
             },
             {
               "field": "savedAt",
-              "caption": "\u4FDD\u5B58\u65E5\u6642",
+              "caption": "保存日時",
               "type": "datetime",
               "readonly": true,
               "edit": {
@@ -41,7 +41,7 @@
             },
             {
               "field": "experiment.memo",
-              "caption": "\u5B9F\u9A13\u30E1\u30E2",
+              "caption": "実験メモ",
               "type": "textarea",
               "readonly": false,
               "edit": {
@@ -54,7 +54,7 @@
         },
         {
           "id": "tsBuf",
-          "caption": "\u6642\u7CFB\u5217\u30ED\u30B0 tsBuf",
+          "caption": "時系列ログ tsBuf",
           "type": "grid",
           "dataPath": "$.tsBuf",
           "keyField": "t",

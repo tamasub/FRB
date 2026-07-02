@@ -3707,7 +3707,7 @@
       "test_points": "未完了作業だけにContextDef素案が入ること。完了済み作業へ不要な追記をしないこと。Studioで読み込んだときに既存Grid/Detailが壊れないこと。ContextDefが通常の長文欄に埋もれず、対象作業の入口として見えること。F12反映・上書き保存後もcontext_def_draftが保持されること。",
       "user_request": "インシデントデータにContextDefの項目を追加して、未完了の作業についてだけでよいので、文脈素案を入れるインシデントにしてほしい。",
       "ai_response": "インシデント化方針として、まず v0.16.3-incident-contextdef-open-work-draft を登録する。作業の初手は、インシデント管理Dataにcontext_def/context_def_draft項目を追加し、status=未着手など未完了作業だけにAI作業前の文脈素案を入れること。完了済み作業への一括投入や自動読込実行は対象外とする。",
-      "latest_user_comment": "急ぎ対応として、インシデントデータにContextDef項目を追加し、未完了の作業だけに文脈素案を入れる作業をインシデント登録したい。\n\nstudio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json\u3000は、更新して、\nstudio_work_incident_view_def_v0_5.json\u3000としてください。",
+      "latest_user_comment": "急ぎ対応として、インシデントデータにContextDef項目を追加し、未完了の作業だけに文脈素案を入れる作業をインシデント登録したい。\n\nstudio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json　は、更新して、\nstudio_work_incident_view_def_v0_5.json　としてください。",
       "latest_ai_response": "v0.16.3対応完了。インシデント管理Dataの未完了作業25件へ context_def_status / context_def_updated_at / context_def_draft / context_refs を投入し、作業前に読む文脈素案を持てる状態にした。完了済み作業へのcontext_def_draft一括投入は行っていない。ViewDefは studio_work_incident_view_def_v0_5.json として更新し、ContextDef素案と対象文脈を表示・編集対象に追加した。",
       "context_target_policy": "初期投入対象は status=未着手 の作業項目を基本とする。添付時点の未着手作業は25件。完了済み53件と完了（後続あり）1件は初回投入対象外。",
       "context_def_draft_shape": "初期案: { context_title, context_purpose, read_timing, required_context_refs[], related_work_items[], related_rules[], risk_notes, ai_work_notes }。ただし初回はViewDefで扱いやすい最小構造にする。",
@@ -3828,7 +3828,7 @@
       "test_points": "主文脈パネルに主文脈Refsが表示されること。主文脈/対象文脈/Detailサブグリッドのプレビューボタンでカード表示が開くこと。未反映の編集中セルがプレビューに反映されること。F12反映と保存契約が壊れないこと。JS構文チェックが通ること。",
       "user_request": "① 添付のインシデントの主文脈の素案設定。② エディター画面の各グリッドのプレビュー表示機能に対応。文脈を確認できないので対応してほしい。",
       "ai_response": "主文脈素案をData rootに設定し、ViewDef v0.5へmain_context定義を追加。Detailサブグリッド、主文脈、対象文脈の各グリッドにプレビューボタンを追加し、横スクロールではなくカード表示で読める入口を実装した。",
-      "latest_user_comment": "ありがとぉーーーとりあえず読めないけどねっ笑\u3000とりいそぎ、2点対応お願いします。\n①\u3000添付のインシデントの主文脈の素案 設定をお願いします。\n②\u3000エディター画面の各グリッドのプレビュー表示機能に対応してください。（文脈を確認できないので笑）\n以上よろしく！！",
+      "latest_user_comment": "ありがとぉーーーとりあえず読めないけどねっ笑　とりいそぎ、2点対応お願いします。\n①　添付のインシデントの主文脈の素案 設定をお願いします。\n②　エディター画面の各グリッドのプレビュー表示機能に対応してください。（文脈を確認できないので笑）\n以上よろしく！！",
       "latest_ai_response": "v0.16.4-context-grid-preview-and-main-context-draft として対応。main_context_refs/main_context_draftをData rootへ追加し、ViewDef v0.5にmain_contextを追加。Detailサブグリッド、主文脈、対象文脈の各グリッドからカード型プレビューを開けるようにした。",
       "discussion_history": [
         {
@@ -3836,7 +3836,7 @@
           "at": "2026-06-28",
           "speaker": "user",
           "topic": "主文脈素案とグリッドプレビュー依頼",
-          "message": "ありがとぉーーーとりあえず読めないけどねっ笑\u3000とりいそぎ、2点対応お願いします。① 添付のインシデントの主文脈の素案設定。② エディター画面の各グリッドのプレビュー表示機能に対応。文脈を確認できないので対応してほしい。"
+          "message": "ありがとぉーーーとりあえず読めないけどねっ笑　とりいそぎ、2点対応お願いします。① 添付のインシデントの主文脈の素案設定。② エディター画面の各グリッドのプレビュー表示機能に対応。文脈を確認できないので対応してほしい。"
         },
         {
           "history_id": "disc_0081_002",
@@ -8601,7 +8601,7 @@
   "main_context_refs": [
     {
       "context_ref_id": "main_incident_001_current_incident_data",
-      "title": "-  開発責任者の主文脈 ／\u3000Studioくん憲法必読 ／ インシデント管理Data正本を読む\u3000----  重要禁止事項：固定フィールド名・固定のフォルダーパス・ファイル名 禁止： 使う場合は、フォルダーパス・ファイル名などの定義を一か所に集中させる設計とすること。",
+      "title": "-  開発責任者の主文脈 ／　Studioくん憲法必読 ／ インシデント管理Data正本を読む　----  重要禁止事項：固定フィールド名・固定のフォルダーパス・ファイル名 禁止： 使う場合は、フォルダーパス・ファイル名などの定義を一か所に集中させる設計とすること。",
       "read_timing": "before_work",
       "target_path": "- data/json/00_rules/_json_creation_prompt.md\n- data/json/00_rules/frb_coding_constraints_data_v*.json\n- data/json/01_main/studio_work_incident_data_v*.json",
       "purpose": "- Studioくん憲法（コーディングルール）必読。～戦略設計パターン優先・安易なIF文分岐処理は控える・汎用的な共通化ロジック検討を最優先～\n- 作業項目全体、未完了作業のContextDef素案、今回対象の作業履歴を確認する。",
@@ -8627,7 +8627,7 @@
     },
     {
       "context_ref_id": "main_incident_003_viewdef_v0_5",
-      "title": "- ViewDef 新規作成・修正時に必ず読む\u3000～viewdef_generation_rules\u3000／\u3000view_def_schema\u3000～",
+      "title": "- ViewDef 新規作成・修正時に必ず読む　～viewdef_generation_rules　／　view_def_schema　～",
       "read_timing": "before_work",
       "target_path": "- data/json/00_rules/frb_viewdef_generation_rules_data_v*.json\n- data/json/00_rules/frb_view_def_schema_v*.json\n ",
       "purpose": "ContextDef / 対象文脈、主文脈、作業内容カード、各objectArray表示の定義を確認する。",
