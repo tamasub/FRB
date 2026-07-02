@@ -1,9 +1,12 @@
-// v0.17.14-search-state-save-load
+// v0.17.16-search-state-standard-ui-hidden
 // 検索条件の保存・呼出・画面復元を担当する最小ブリッジ。
 // Core検索欄とPlugin SearchFilter stateを同じ ui_state として扱う。
+// v0.17.16: 標準UIは方針整理まで非表示。Core API / Plugin state bridge のみ残す。
 
 const STUDIO_SEARCH_PATTERN_STORAGE_KEY = 'frbStudio.searchPatterns.v0_17_14';
+const STUDIO_SEARCH_PATTERN_STANDARD_UI_ENABLED = false;
 let studioOverlaySearchPatternCache = null;
+let studioSearchPatternPanelOpen = false;
 
 function studioSearchStateClone(value) {
   if (value == null) return value;
@@ -21,6 +24,10 @@ function normalizeStudioSearchUiState(value) {
     core: raw.core && typeof raw.core === 'object' ? studioSearchStateClone(raw.core) : {},
     plugins: raw.plugins && typeof raw.plugins === 'object' ? studioSearchStateClone(raw.plugins) : {}
   };
+}
+
+function hasStudioSearchUiState(pattern) {
+  return Boolean(pattern?.ui_state || pattern?.uiState || pattern?.search_state || pattern?.searchState);
 }
 
 function studioCoreSearchControls() {
@@ -137,10 +144,42 @@ function saveLocalStudioSearchPatterns(patterns) {
 }
 
 function currentStudioSearchPatternTarget() {
+  const dataPath = (typeof currentLoadedDataDisplayPath !== 'undefined' && currentLoadedDataDisplayPath)
+    ? currentLoadedDataDisplayPath
+    : ((typeof currentDataApiUrl !== 'undefined' && currentDataApiUrl) ? currentDataApiUrl : '');
+  const viewDefPath = (typeof lastLoadedDefName !== 'undefined' && lastLoadedDefName) ? lastLoadedDefName : '';
   return {
-    target_data: currentLoadedDataDisplayPath || currentDataApiUrl || '',
-    target_view_def: lastLoadedDefName || ''
+    target_data: dataPath,
+    target_view_def: viewDefPath
   };
+}
+
+function normalizeStudioTargetPath(value) {
+  return String(value ?? '')
+    .trim()
+    .replace(/\\/g, '/')
+    .replace(/^https?:\/\/[^/]+\//i, '')
+    .replace(/^\/+/, '')
+    .replace(/^wwwroot\//i, '')
+    .replace(/\?.*$/, '')
+    .toLowerCase();
+}
+
+function studioTargetMatches(patternTarget, currentTarget, options = {}) {
+  const allowUntargeted = options.allowUntargeted === true;
+  const saved = normalizeStudioTargetPath(patternTarget);
+  const current = normalizeStudioTargetPath(currentTarget);
+  if (!saved) return allowUntargeted;
+  if (!current) return false;
+  return saved === current || saved.endsWith(`/${current}`) || current.endsWith(`/${saved}`);
+}
+
+function isStudioSearchPatternTargetCompatible(pattern, options = {}) {
+  const current = currentStudioSearchPatternTarget();
+  const allowUntargeted = options.allowUntargeted === true;
+  const dataOk = studioTargetMatches(pattern?.target_data ?? pattern?.targetData, current.target_data, { allowUntargeted });
+  const viewOk = studioTargetMatches(pattern?.target_view_def ?? pattern?.targetViewDef, current.target_view_def, { allowUntargeted });
+  return dataOk && viewOk;
 }
 
 function isEmptyStudioSearchState(state) {
@@ -162,6 +201,29 @@ function makeSearchPatternId(caption) {
   return `local.${base}.${Date.now()}`;
 }
 
+function setStudioSearchPatternControlsOpen(open) {
+  studioSearchPatternPanelOpen = Boolean(open);
+  const controls = $('searchPatternControls');
+  const toggle = $('toggleSearchPatternBtn');
+  if (controls) controls.classList.toggle('hidden', !studioSearchPatternPanelOpen);
+  if (toggle) {
+    toggle.textContent = studioSearchPatternPanelOpen ? '検索条件▲' : '検索条件';
+    toggle.title = studioSearchPatternPanelOpen ? '検索条件の保存・呼出メニューを閉じる' : '検索条件の保存・呼出メニューを開く';
+  }
+}
+
+function updateStudioSearchPatternControlState(optionCount = 0) {
+  const select = $('searchPatternSelect');
+  const loadBtn = $('loadSearchPatternBtn');
+  const deleteBtn = $('deleteSearchPatternBtn');
+  const selectedOption = select?.selectedOptions?.[0];
+  if (loadBtn) loadBtn.disabled = !selectedOption || !selectedOption.dataset.source;
+  if (deleteBtn) deleteBtn.disabled = !selectedOption || selectedOption.dataset.source !== 'local';
+  if (select) select.title = optionCount > 0
+    ? `保存済み検索条件 / Overlay検索パターン: ${optionCount}件`
+    : '保存済み検索条件はまだありません。保存ボタンで現在の検索条件を保存できます。';
+}
+
 function saveCurrentStudioSearchPattern() {
   const state = getStudioSearchState();
   if (isEmptyStudioSearchState(state) && !confirm('検索条件が空です。この状態を保存しますか？')) return null;
@@ -171,11 +233,14 @@ function saveCurrentStudioSearchPattern() {
   if (!caption) return null;
 
   const patterns = loadLocalStudioSearchPatterns();
-  const existingIndex = patterns.findIndex(p => String(p.caption ?? '') === String(caption));
+  const target = currentStudioSearchPatternTarget();
+  const existingIndex = patterns.findIndex(p =>
+    String(p.caption ?? '') === String(caption) &&
+    isStudioSearchPatternTargetCompatible(p, { allowUntargeted: true })
+  );
   if (existingIndex >= 0 && !confirm(`「${caption}」を上書きしますか？`)) return null;
 
   const now = new Date().toISOString();
-  const target = currentStudioSearchPatternTarget();
   const pattern = {
     schema_version: 'studio_saved_search_pattern_v0_1',
     id: existingIndex >= 0 ? patterns[existingIndex].id : makeSearchPatternId(caption),
@@ -188,7 +253,8 @@ function saveCurrentStudioSearchPattern() {
   if (existingIndex >= 0) patterns[existingIndex] = pattern;
   else patterns.push(pattern);
   saveLocalStudioSearchPatterns(patterns);
-  refreshStudioSearchPatternSelect();
+  setStudioSearchPatternControlsOpen(true);
+  refreshStudioSearchPatternSelect(pattern.id);
   if (typeof setStatus === 'function') setStatus(`検索条件を保存しました: ${caption}`, { kind: 'success', title: '検索条件保存' });
   return pattern;
 }
@@ -217,15 +283,20 @@ async function loadOverlayStudioSearchPatterns() {
 }
 
 async function studioSearchPatternOptions() {
-  const localItems = loadLocalStudioSearchPatterns().map(pattern => ({ ...pattern, __source: 'local' }));
-  const overlayItems = await loadOverlayStudioSearchPatterns();
+  const localItems = loadLocalStudioSearchPatterns()
+    .filter(pattern => isStudioSearchPatternTargetCompatible(pattern, { allowUntargeted: true }))
+    .map(pattern => ({ ...pattern, __source: 'local' }));
+  const overlayItems = (await loadOverlayStudioSearchPatterns())
+    .filter(pattern => hasStudioSearchUiState(pattern))
+    .filter(pattern => isStudioSearchPatternTargetCompatible(pattern, { allowUntargeted: false }))
+    .map(pattern => ({ ...pattern, __source: 'overlay' }));
   return [...localItems, ...overlayItems];
 }
 
-async function refreshStudioSearchPatternSelect() {
+async function refreshStudioSearchPatternSelect(selectId = null) {
   const select = $('searchPatternSelect');
   if (!select) return;
-  const current = select.value;
+  const current = selectId ? '' : select.value;
   select.innerHTML = '';
   const blank = document.createElement('option');
   blank.value = '';
@@ -238,11 +309,17 @@ async function refreshStudioSearchPatternSelect() {
     option.value = `${pattern.__source}:${pattern.id ?? pattern.__apiName ?? index}`;
     option.dataset.source = pattern.__source;
     option.dataset.index = String(index);
+    option.dataset.patternId = String(pattern.id ?? '');
     option.textContent = `${pattern.__source === 'overlay' ? 'Overlay' : '保存済み'}: ${pattern.caption ?? pattern.id ?? '(no name)'}`;
-    if (!pattern.ui_state && !pattern.uiState) option.textContent += '（画面復元なし）';
     select.appendChild(option);
   });
-  if ([...select.options].some(option => option.value === current)) select.value = current;
+  if (selectId) {
+    const byId = [...select.options].find(option => option.dataset.patternId === String(selectId));
+    if (byId) select.value = byId.value;
+  } else if ([...select.options].some(option => option.value === current)) {
+    select.value = current;
+  }
+  updateStudioSearchPatternControlState(options.length);
 }
 
 async function selectedStudioSearchPattern() {
@@ -259,7 +336,7 @@ async function loadSelectedStudioSearchPattern(options = {}) {
     if (typeof setStatus === 'function') setStatus('呼び出す検索条件を選択してください', { kind: 'warn', title: '検索条件未選択' });
     return null;
   }
-  if (!pattern.ui_state && !pattern.uiState && !pattern.search_state && !pattern.searchState) {
+  if (!hasStudioSearchUiState(pattern)) {
     if (typeof setStatus === 'function') setStatus(`この検索パターンには画面復元用 ui_state がありません: ${pattern.caption ?? pattern.id}`, { kind: 'warn', title: 'ui_stateなし' });
     return null;
   }
@@ -268,31 +345,42 @@ async function loadSelectedStudioSearchPattern(options = {}) {
   return pattern;
 }
 
-function deleteSelectedLocalStudioSearchPattern() {
-  const select = $('searchPatternSelect');
-  const option = select?.selectedOptions?.[0];
-  if (!select || !option || option.dataset.source !== 'local') {
+async function deleteSelectedLocalStudioSearchPattern() {
+  const pattern = await selectedStudioSearchPattern();
+  if (!pattern || pattern.__source !== 'local') {
     if (typeof setStatus === 'function') setStatus('削除できるのは保存済み検索条件だけです', { kind: 'warn', title: '検索条件削除' });
     return false;
   }
-  const index = Number(option.dataset.index ?? -1);
-  const allOptions = [...select.options].filter(o => o.dataset.source);
-  const localOrder = allOptions.slice(0, allOptions.findIndex(o => o.dataset.source === 'overlay') >= 0 ? allOptions.findIndex(o => o.dataset.source === 'overlay') : allOptions.length);
-  const localIndex = localOrder.indexOf(option);
   const patterns = loadLocalStudioSearchPatterns();
-  const pattern = patterns[localIndex];
-  if (!pattern) return false;
+  const index = patterns.findIndex(p => String(p.id ?? '') === String(pattern.id ?? ''));
+  if (index < 0) return false;
   if (!confirm(`保存済み検索条件「${pattern.caption ?? pattern.id}」を削除しますか？`)) return false;
-  patterns.splice(localIndex, 1);
+  patterns.splice(index, 1);
   saveLocalStudioSearchPatterns(patterns);
   refreshStudioSearchPatternSelect();
   if (typeof setStatus === 'function') setStatus('検索条件を削除しました', { kind: 'success', title: '検索条件削除' });
   return true;
 }
 
+function hideStudioSearchPatternStandardUi() {
+  ['toggleSearchPatternBtn', 'searchPatternControls'].forEach(id => {
+    const el = $(id);
+    if (!el) return;
+    el.classList.add('hidden');
+    el.setAttribute('hidden', 'hidden');
+    el.style.display = 'none';
+  });
+}
+
 function setupStudioSearchPatternButtons() {
+  hideStudioSearchPatternStandardUi();
+  if (!STUDIO_SEARCH_PATTERN_STANDARD_UI_ENABLED) return;
+
+  $('toggleSearchPatternBtn')?.addEventListener('click', () => setStudioSearchPatternControlsOpen(!studioSearchPatternPanelOpen));
   $('saveSearchPatternBtn')?.addEventListener('click', saveCurrentStudioSearchPattern);
   $('loadSearchPatternBtn')?.addEventListener('click', () => loadSelectedStudioSearchPattern({ runSearch: true }));
   $('deleteSearchPatternBtn')?.addEventListener('click', deleteSelectedLocalStudioSearchPattern);
+  $('searchPatternSelect')?.addEventListener('change', () => updateStudioSearchPatternControlState());
+  setStudioSearchPatternControlsOpen(false);
   refreshStudioSearchPatternSelect();
 }
