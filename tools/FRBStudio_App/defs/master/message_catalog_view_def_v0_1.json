@@ -1,0 +1,863 @@
+{
+  "app": {
+    "name": "FRB Studio / JSON Object Studio",
+    "version": "message-catalog-view-def-v0.1"
+  },
+  "fieldTypeSources": [
+    "common/common_types_v0_1.json"
+  ],
+  "views": [
+    {
+      "id": "message_catalog_v0_1",
+      "caption": "MessageCatalog / メッセージID正本 v0.1",
+      "layout": "header-search-grid-detail",
+      "toolbar": {
+        "executeButton": {
+          "visible": true,
+          "caption": "Markdown出力",
+          "action": "ExportMarkdown"
+        }
+      },
+      "sections": [
+        {
+          "id": "header",
+          "caption": "MessageCatalog 基本情報",
+          "type": "form",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 360
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "schema_version",
+              "caption": "Schema",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 180
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "document_type",
+              "caption": "Document Type",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 220
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "status",
+              "caption": "状態",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 220
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "purpose",
+              "caption": "目的",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 420
+              },
+              "edit": {
+                "visible": true,
+                "height": 120
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "scope_policy",
+              "caption": "Scope Policy",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 420
+              },
+              "edit": {
+                "visible": true,
+                "height": 120
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "catalog_policy.test_design_intent",
+              "caption": "テスト設計意図",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 420
+              },
+              "edit": {
+                "visible": true,
+                "height": 100
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "updated_at",
+              "caption": "更新日",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "extraction_summary.catalog_message_count",
+              "caption": "Catalog件数",
+              "type": "number",
+              "grid": {
+                "visible": false,
+                "width": 100
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": false,
+                "operator": "equals"
+              }
+            }
+          ]
+        },
+        {
+          "id": "messages",
+          "caption": "Messages / メッセージ一覧",
+          "type": "grid",
+          "dataPath": "$.messages",
+          "keyField": "message_id",
+          "fields": [
+            {
+              "field": "message_id",
+              "caption": "Message ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 130
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "message_key",
+              "caption": "Message Key",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 280
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "category",
+              "caption": "Category",
+              "type": "select",
+              "options": [
+                "action",
+                "api",
+                "context",
+                "encoding",
+                "file_io",
+                "general",
+                "git_diff",
+                "load_runtime",
+                "markdown",
+                "plugin",
+                "search",
+                "test_runner",
+                "ui",
+                "viewdef",
+                "zip"
+              ],
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "severity",
+              "caption": "Severity",
+              "type": "select",
+              "options": [
+                "info",
+                "success",
+                "warning",
+                "error"
+              ],
+              "grid": {
+                "visible": true,
+                "width": 90
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "message_type",
+              "caption": "Type",
+              "type": "select",
+              "options": [
+                "alert",
+                "cli_output",
+                "confirm",
+                "error",
+                "error_log",
+                "html_static",
+                "html_static_or_script",
+                "source_message_candidate",
+                "status_toast",
+                "ui_label",
+                "warning_log"
+              ],
+              "grid": {
+                "visible": true,
+                "width": 130
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "language",
+              "caption": "Lang",
+              "type": "select",
+              "options": [
+                "ja",
+                "en"
+              ],
+              "grid": {
+                "visible": true,
+                "width": 70
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "default_message",
+              "caption": "Default Message",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 520
+              },
+              "edit": {
+                "visible": true,
+                "height": 120
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "description",
+              "caption": "説明",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 380
+              },
+              "edit": {
+                "visible": true,
+                "height": 100
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "usage_context",
+              "caption": "Usage Context",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 180
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "source_area",
+              "caption": "Source Area",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 300
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "source_locations",
+              "caption": "Source Locations",
+              "type": "objectArray",
+              "grid": {
+                "visible": false,
+                "width": 180
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": false,
+                "operator": "equals"
+              },
+              "defaultValue": [],
+              "itemFields": [
+                {
+                  "field": "source_file",
+                  "caption": "Source File",
+                  "type": "text",
+                  "grid": {
+                    "visible": true,
+                    "width": 280
+                  },
+                  "edit": {
+                    "visible": true,
+                    "readonly": true
+                  },
+                  "readonly": true,
+                  "search": {
+                    "visible": true,
+                    "operator": "contains"
+                  }
+                },
+                {
+                  "field": "line",
+                  "caption": "Line",
+                  "type": "number",
+                  "grid": {
+                    "visible": true,
+                    "width": 70
+                  },
+                  "edit": {
+                    "visible": true,
+                    "readonly": true
+                  },
+                  "readonly": true,
+                  "search": {
+                    "visible": false,
+                    "operator": "equals"
+                  }
+                },
+                {
+                  "field": "line_context",
+                  "caption": "Line Context",
+                  "type": "textarea",
+                  "grid": {
+                    "visible": true,
+                    "width": 420
+                  },
+                  "edit": {
+                    "visible": true,
+                    "readonly": true,
+                    "height": 80
+                  },
+                  "readonly": true,
+                  "search": {
+                    "visible": true,
+                    "operator": "contains"
+                  }
+                }
+              ]
+            },
+            {
+              "field": "placeholders",
+              "caption": "Placeholders",
+              "type": "objectArray",
+              "grid": {
+                "visible": false,
+                "width": 160
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "equals"
+              },
+              "defaultValue": [],
+              "itemFields": [
+                {
+                  "field": "placeholder",
+                  "caption": "Placeholder",
+                  "type": "text",
+                  "grid": {
+                    "visible": true,
+                    "width": 170
+                  },
+                  "edit": {
+                    "visible": true
+                  },
+                  "search": {
+                    "visible": true,
+                    "operator": "contains"
+                  }
+                },
+                {
+                  "field": "placeholder_key",
+                  "caption": "Key",
+                  "type": "text",
+                  "grid": {
+                    "visible": true,
+                    "width": 160
+                  },
+                  "edit": {
+                    "visible": true
+                  },
+                  "search": {
+                    "visible": true,
+                    "operator": "contains"
+                  }
+                },
+                {
+                  "field": "style",
+                  "caption": "Style",
+                  "type": "select",
+                  "options": [
+                    "js_template",
+                    "powershell_variable",
+                    "dotnet_format",
+                    "batch_variable"
+                  ],
+                  "grid": {
+                    "visible": true,
+                    "width": 140
+                  },
+                  "edit": {
+                    "visible": true
+                  },
+                  "search": {
+                    "visible": true,
+                    "operator": "equals"
+                  }
+                },
+                {
+                  "field": "description",
+                  "caption": "説明",
+                  "type": "textarea",
+                  "grid": {
+                    "visible": false,
+                    "width": 240
+                  },
+                  "edit": {
+                    "visible": true,
+                    "height": 70
+                  },
+                  "search": {
+                    "visible": true,
+                    "operator": "contains"
+                  }
+                }
+              ]
+            },
+            {
+              "field": "placeholder_count",
+              "caption": "PH数",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 70
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": false,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "migration_status",
+              "caption": "Migration",
+              "type": "select",
+              "options": [
+                "candidate",
+                "cataloged_not_bound",
+                "bound_to_runtime",
+                "deprecated",
+                "rejected"
+              ],
+              "grid": {
+                "visible": true,
+                "width": 160
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "runtime_binding_status",
+              "caption": "Runtime Binding",
+              "type": "select",
+              "options": [
+                "not_bound_yet",
+                "bound",
+                "fallback_only",
+                "not_required"
+              ],
+              "grid": {
+                "visible": true,
+                "width": 160
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "test_priority",
+              "caption": "Test Priority",
+              "type": "select",
+              "options": [
+                "low",
+                "medium",
+                "high",
+                "critical"
+              ],
+              "grid": {
+                "visible": true,
+                "width": 110
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "expected_assertion_policy",
+              "caption": "Expected方針",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 420
+              },
+              "edit": {
+                "visible": true,
+                "height": 100
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "enabled",
+              "caption": "有効",
+              "type": "boolean",
+              "grid": {
+                "visible": true,
+                "width": 70
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "sort_order",
+              "caption": "Sort",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 70
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "note",
+              "caption": "Note",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 360
+              },
+              "edit": {
+                "visible": true,
+                "height": 90
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "itemFieldHints": {
+    "messages.source_locations": [
+      {
+        "field": "source_file",
+        "caption": "Source File",
+        "type": "text",
+        "grid": {
+          "visible": true,
+          "width": 280
+        },
+        "edit": {
+          "visible": true,
+          "readonly": true
+        },
+        "readonly": true,
+        "search": {
+          "visible": true,
+          "operator": "contains"
+        }
+      },
+      {
+        "field": "line",
+        "caption": "Line",
+        "type": "number",
+        "grid": {
+          "visible": true,
+          "width": 70
+        },
+        "edit": {
+          "visible": true,
+          "readonly": true
+        },
+        "readonly": true,
+        "search": {
+          "visible": false,
+          "operator": "equals"
+        }
+      },
+      {
+        "field": "line_context",
+        "caption": "Line Context",
+        "type": "textarea",
+        "grid": {
+          "visible": true,
+          "width": 420
+        },
+        "edit": {
+          "visible": true,
+          "readonly": true,
+          "height": 80
+        },
+        "readonly": true,
+        "search": {
+          "visible": true,
+          "operator": "contains"
+        }
+      }
+    ],
+    "messages.placeholders": [
+      {
+        "field": "placeholder",
+        "caption": "Placeholder",
+        "type": "text",
+        "grid": {
+          "visible": true,
+          "width": 170
+        },
+        "edit": {
+          "visible": true
+        },
+        "search": {
+          "visible": true,
+          "operator": "contains"
+        }
+      },
+      {
+        "field": "placeholder_key",
+        "caption": "Key",
+        "type": "text",
+        "grid": {
+          "visible": true,
+          "width": 160
+        },
+        "edit": {
+          "visible": true
+        },
+        "search": {
+          "visible": true,
+          "operator": "contains"
+        }
+      },
+      {
+        "field": "style",
+        "caption": "Style",
+        "type": "select",
+        "options": [
+          "js_template",
+          "powershell_variable",
+          "dotnet_format",
+          "batch_variable"
+        ],
+        "grid": {
+          "visible": true,
+          "width": 140
+        },
+        "edit": {
+          "visible": true
+        },
+        "search": {
+          "visible": true,
+          "operator": "equals"
+        }
+      },
+      {
+        "field": "description",
+        "caption": "説明",
+        "type": "textarea",
+        "grid": {
+          "visible": false,
+          "width": 240
+        },
+        "edit": {
+          "visible": true,
+          "height": 70
+        },
+        "search": {
+          "visible": true,
+          "operator": "contains"
+        }
+      }
+    ]
+  },
+  "markdown": {
+    "aiPrompt": {
+      "enabled": true,
+      "title": "MessageCatalogレビュー用プロンプト",
+      "instructions": "message_idの安定性、category/severity、placeholder、runtime_binding_status、ExpectedDefで使えるかを中心にレビューする。"
+    }
+  }
+}

@@ -404,3 +404,71 @@ AI Diff Story = 人間が判断するための差分物語
 もう一つ:
 
 > **保存するのはCD。人間には名称 + 説明で見せる。**
+
+
+----
+
+うん、雰囲気ながめた感じ、結論はこれ。
+
+**`target_name` と `input_value` だけでは、MVPとしては足りる。でもExpectedDefの土台としては少し足りない。**
+
+MessageCatalog自体も、今はプレースホルダーを機械抽出して、次段階で正規名へ整理する前提になってる。
+
+見えてるパターンはだいたい4つ。
+
+```text
+1. 対象 + 値
+例: ${label} に絶対パスは指定できません: ${value}
+→ target_name / input_value で足りる
+
+2. 対象 + 実値 + 期待値
+例: RunMode mismatch: expected X, got Y
+→ target_name / expected_value / actual_value が欲しい
+
+3. 件数・状態
+例: Copied: X, Skipped: Y
+→ count系なので input_value では苦しい
+
+4. 原因・詳細エラー
+例: 読み込み失敗: err.message
+→ error_detail / reason_code が欲しい
+```
+
+なので、最小の型はこれがよさそう。
+
+```json
+{
+  "message_id": "ERR_ABSOLUTE_PATH_NOT_ALLOWED",
+  "args": {
+    "target_name": "対象外フォルダー",
+    "input_value": "F:\\FRB\\tools\\FRBStudio_App\\wwwroot\\js\\lib\\mermaid"
+  },
+  "compare_fields": {
+    "reason_code": "absolute_path_not_allowed",
+    "value_kind": "absolute_path"
+  }
+}
+```
+
+ただ、ExpectedDef共通の受け皿としては、最初からこれくらい見ておくと強い。
+
+```json
+{
+  "message_id": "",
+  "target_name": "",
+  "input_value": "",
+  "expected_value": "",
+  "actual_value": "",
+  "reason_code": "",
+  "value_kind": "",
+  "count_values": {}
+}
+```
+
+つまり判断はこう。
+
+**`target_name` / `input_value` は第一軍。
+でも `expected_value` / `actual_value` / `reason_code` は最初から席だけ用意した方がいい。**
+
+このへん、まさにExpectedDefの腕の見せどころやね笑
+

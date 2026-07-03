@@ -12,6 +12,8 @@
 #   python count_js_steps.py wwwroot
 #   python count_js_steps.py wwwroot --csv js_steps.csv
 #   python count_js_steps.py wwwroot --json js_steps.json
+#   python count_js_steps.py wwwroot --exclude-dir js/lib/mermaid
+#   python count_js_steps.py wwwroot --exclude-dir F:\\FRB\\tools\\FRBStudio_App\\wwwroot\\js\\lib\\mermaid
 #
 # 注意:
 #   JSの構文を完全解析するものではありません。
@@ -35,6 +37,7 @@ DEFAULT_EXCLUDE_DIRS = {
     "obj",
     "dist",
     "build",
+    "mermaid"
 }
 
 
@@ -171,13 +174,77 @@ def count_js_file(path: Path, root: Path) -> FileCount:
     )
 
 
-def iter_js_files(root: Path, include_minified: bool, exclude_dirs: set[str]) -> list[Path]:
+@dataclass(frozen=True)
+class ExcludeRules:
+    dir_names: set[str]
+    dir_paths: list[Path]
+
+
+def split_exclude_dir_specs(specs: list[str]) -> list[str]:
+    """
+    --exclude-dir の指定値を扱いやすい単位に分解する。
+
+    通常は --exclude-dir を複数回指定すればよいが、
+    念のためカンマ区切り・セミコロン区切りも受け付ける。
+    Windows の C:\\... 形式を壊さないため、コロンは区切り文字にしない。
+    """
+    result: list[str] = []
+    for spec in specs:
+        for item in spec.replace(";", ",").split(","):
+            item = item.strip().strip('\"').strip("'")
+            if item:
+                result.append(item)
+    return result
+
+
+def build_exclude_rules(root: Path, exclude_dir_specs: list[str]) -> ExcludeRules:
+    """
+    除外ルールを作る。
+
+    指定方法は3種類。
+      1. フォルダー名:        --exclude-dir mermaid
+      2. rootからの相対パス:  --exclude-dir js/lib/mermaid
+      3. 絶対パス:            --exclude-dir F:\\FRB\\...\\wwwroot\\js\\lib\\mermaid
+    """
+    dir_names = set(DEFAULT_EXCLUDE_DIRS)
+    dir_paths: list[Path] = []
+
+    for spec in split_exclude_dir_specs(exclude_dir_specs):
+        is_path_like = any(sep in spec for sep in ("/", "\\"))
+        spec_path = Path(spec)
+
+        if spec_path.is_absolute():
+            dir_paths.append(spec_path.resolve())
+        elif is_path_like:
+            dir_paths.append((root / spec_path).resolve())
+        else:
+            dir_names.add(spec)
+
+    return ExcludeRules(dir_names=dir_names, dir_paths=dir_paths)
+
+
+def is_under_dir(path: Path, directory: Path) -> bool:
+    try:
+        path.resolve().relative_to(directory.resolve())
+        return True
+    except ValueError:
+        return False
+
+
+def should_exclude_path(path: Path, root: Path, exclude_rules: ExcludeRules) -> bool:
+    rel_parts = set(path.relative_to(root).parts)
+
+    if rel_parts & exclude_rules.dir_names:
+        return True
+
+    return any(is_under_dir(path, excluded_dir) for excluded_dir in exclude_rules.dir_paths)
+
+
+def iter_js_files(root: Path, include_minified: bool, exclude_rules: ExcludeRules) -> list[Path]:
     files: list[Path] = []
 
     for path in root.rglob("*.js"):
-        parts = set(path.relative_to(root).parts)
-
-        if parts & exclude_dirs:
+        if should_exclude_path(path, root, exclude_rules):
             continue
 
         if not include_minified and path.name.endswith(".min.js"):
@@ -241,6 +308,16 @@ def main() -> int:
         help="node_modules も対象に含める。",
     )
     parser.add_argument(
+        "--exclude-dir",
+        action="append",
+        default=[],
+        help=(
+            "対象外にするフォルダー。複数指定可。"
+            "フォルダー名、rootからの相対パス、絶対パスを指定できます。"
+            "例: --exclude-dir mermaid / --exclude-dir js/lib/mermaid"
+        ),
+    )
+    parser.add_argument(
         "--csv",
         type=str,
         default="",
@@ -259,11 +336,11 @@ def main() -> int:
     if not root.exists() or not root.is_dir():
         raise SystemExit(f"対象フォルダーが存在しません: {root}")
 
-    exclude_dirs = set(DEFAULT_EXCLUDE_DIRS)
+    exclude_rules = build_exclude_rules(root, args.exclude_dir)
     if args.include_node_modules:
-        exclude_dirs.discard("node_modules")
+        exclude_rules.dir_names.discard("node_modules")
 
-    files = iter_js_files(root, args.include_minified, exclude_dirs)
+    files = iter_js_files(root, args.include_minified, exclude_rules)
     rows = [count_js_file(path, root) for path in files]
 
     print_table(rows)
@@ -289,6 +366,8 @@ def main() -> int:
             "total_blank_lines": sum(r.blank_lines for r in rows),
             "total_comment_only_lines": sum(r.comment_only_lines for r in rows),
             "total_lines": sum(r.total_lines for r in rows),
+            "excluded_dir_names": sorted(exclude_rules.dir_names),
+            "excluded_dir_paths": [str(path) for path in exclude_rules.dir_paths],
             "files": [asdict(r) for r in rows],
         }
         json_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")

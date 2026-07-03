@@ -12,7 +12,7 @@
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。",
-  "items_count": 52,
+  "items_count": 53,
   "work_items": [
     {
       "work_item_id": "studio_work_0007",
@@ -8828,6 +8828,193 @@
       "publication_hold_message_candidate": "現在、ソースコード公開範囲の見直し中のため、一部ページ・機能を一時停止しています。FRB / Studioくんの開発・検証は継続中です。",
       "public_source_status": "withheld_for_now",
       "source_publication_next_action": "公開候補コード台帳を作り、origin_type / license / risk_level / action / review_note を整理する。"
+    },
+    {
+      "work_item_id": "studio_work_0107",
+      "phase": "v0.18.3-message-catalog-data-and-message-id-runtime-policy",
+      "title": "MessageCatalog / メッセージID管理と表示箇所ID指定対応",
+      "incident_type": "data_design_implementation_plan",
+      "category": "message_catalog",
+      "priority": "high",
+      "status": "一部完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-03",
+      "updated_at": "2026-07-03",
+      "target_files": "future data/json/00_master/message_catalog_data_v0_1.json, future defs/master/message_catalog_view_def_v0_1.json, wwwroot/js/**/*.js, Program.cs, tools/**/*.ps1, tools/**/*.bat, data/json/00_rules/*.json if rules are needed",
+      "objective": "Studioくん内で表示している固定メッセージをMessageCatalogとしてData JSON化し、将来的にメッセージ本文・分類・重要度・表示用途・プレースホルダーを一元管理できるようにする。あわせて、既存のメッセージ表示箇所を段階的にmessage_id指定へ移行し、コード内に日本語メッセージ本文が散在する状態を減らす。",
+      "background": "lookup/code-name表示より先に、実行時メッセージのID管理が必要という判断が出た。エラー、警告、トースト、確認ダイアログ、処理完了メッセージ、テスト結果表示などは、AI差分・ExpectedDef・ログコンペア・将来の多言語化において比較アンカーになり得る。本文文字列を直接コードに書くより、message_idを安定IDとして持ち、本文や説明はMessageCatalog側で管理する方が、変更理由・利用箇所・テスト期待値を追いやすい。",
+      "scope": "第1段階として、MessageCatalog用のJSONデータ構造を整備する。message_id、category、severity、title、message、description、placeholders、usage_context、source_area、status、sort_order、note等の初期項目を検討する。必要ならMessageCatalog用ViewDefも作成する。第2段階として、既存のメッセージ表示箇所にmessage_idを指定する変更作業を行う。toast、alert/confirm、エラー表示、完了メッセージ、テスト結果メッセージなどを優先し、表示関数はmessage_idから本文を引き、プレースホルダーへ値を埋め込む形へ寄せる。",
+      "out_of_scope": "このインシデント登録時点では、lookup複数列コンボの実装、多言語化の本格導入、全メッセージの一括置換、外部翻訳ファイル、i18nライブラリ導入、既存すべてのエラー文言の完全棚卸しは行わない。まずMessageCatalogのデータ正本と、代表的な表示箇所のmessage_id指定対応を段階的に進める。",
+      "fixed_name_policy": "message_id はMessageCatalogおよびログ/テスト/表示メッセージ連携の安定IDとして扱う。ただし一般Dataに無条件で要求するRuntime固定名にはしない。コード側は本文文字列ではなくmessage_idを参照し、MessageCatalogが存在しない場合は安全なfallbackを持つ。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存の従来script方式を前提に、MessageCatalogロード、message_id解決、表示関数の薄いラッパー化、既存呼び出し箇所の段階的置換で対応する。",
+      "expected_outputs": "MessageCatalog Data JSON初期版、MessageCatalog ViewDef初期版、message_id命名規則、表示関数またはMessageResolver方針、代表メッセージのカタログ登録、既存表示箇所へのmessage_id指定パッチ、fallback方針、テスト/確認観点。",
+      "risk": "MessageCatalogを重く作りすぎると、単純なメッセージ修正まで面倒になる。逆に本文直書きを放置すると、同じ意味のメッセージが増殖し、ExpectedDefやログコンペアで安定比較できなくなる。message_idだけが増えて本文や用途が分からない状態になると、人間フレンドリーではなくなる。初期段階では対象範囲を代表メッセージに絞る必要がある。",
+      "test_points": "MessageCatalog JSONをStudioくんで読めること。message_idが一意であること。代表的なtoast/confirm/error/completeメッセージがmessage_id経由で表示できること。プレースホルダー付きメッセージで値が正しく埋め込まれること。MessageCatalog未読込またはmessage_id未定義時に安全なfallbackが表示されること。既存メッセージ本文の見た目が大きく崩れないこと。ログやテスト証跡にmessage_idを残せる設計になっていること。",
+      "user_request": "lookupはまだいいとして、MessageCatalogを先に作ってほしい。MessageCatalogとしてのJSONデータの整備と、そのメッセージを出しているところに、そのIDを指定する変更作業の2段階だと思うがどうか、という相談とインシデント登録依頼。",
+      "ai_response": "MessageCatalogはlookupより先に進める価値がある。第1段階はMessageCatalog Data JSONと必要なViewDefの整備、第2段階は既存表示箇所をmessage_id指定へ移行する作業とする。必要なら第1.5段階として命名規則・severity/category・placeholder・fallback方針を定義し、初期MVPはtoast/confirm/error/completeなど代表メッセージから着手する。",
+      "latest_user_comment": "MessageCatalog Data JSONに加えて message_catalog_view_def_v0_1.json も作成したい。テストコード作成後にメッセージIDや期待値アンカー不足で詰まることを防ぐ目的で、先にデータとViewDefを整備する。",
+      "latest_ai_response": "MessageCatalog第1段階として、*.js / *.cs / *.ps1 / *.bat / *.html の表示メッセージ候補を抽出し、message_catalog_data_v0_1.json と message_catalog_view_def_v0_1.json を作成。Runtimeのmessage_id指定移行は次段階へ残す。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0107_001",
+          "at": "2026-07-03",
+          "speaker": "user",
+          "topic": "MessageCatalog先行対応の相談",
+          "message": "lookupはまだいいとして、MessageCatalogを先に作ってほしい。MessageCatalogとしてのJSONデータの整備と、そのメッセージを出しているところに、そのIDを指定する変更作業の2段階だと思うがどうか、と相談。"
+        },
+        {
+          "history_id": "disc_0107_002",
+          "at": "2026-07-03",
+          "speaker": "assistant",
+          "topic": "2段階方針の整理",
+          "message": "第1段階はMessageCatalog Data JSONとViewDefの整備、第2段階は既存表示箇所のmessage_id指定化。追加で命名規則、severity/category、placeholder、fallback、初期対象範囲を先に定義すると安全と整理した。"
+        },
+        {
+          "history_id": "disc_0107_003",
+          "at": "2026-07-03",
+          "speaker": "user",
+          "topic": "MessageCatalog Data/ViewDef作成依頼",
+          "message": "message_catalog_view_def_v0_1.json も作成し、テストコードを作り出してからメッセージ管理不足に気づく状況を防ぎたい、と依頼。"
+        },
+        {
+          "history_id": "disc_0107_004",
+          "at": "2026-07-03",
+          "speaker": "assistant",
+          "topic": "MessageCatalog第1段階対応",
+          "message": "ソース内の人間表示メッセージ候補を抽出し、MessageCatalog Data JSONとViewDefを追加。コード側置換は第2段階として未実施にした。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0107_001",
+          "at": "2026-07-03",
+          "decision": "lookup複数列コンボより先にMessageCatalogを優先する。",
+          "reason": "メッセージIDはログ、テスト、ExpectedDef、AI差分、エラー確認のアンカーになり、Studioくんの比較可能性と人間可読性を高めるため。"
+        },
+        {
+          "decision_id": "dec_0107_002",
+          "at": "2026-07-03",
+          "decision": "MessageCatalog対応は、JSONデータ整備と表示箇所message_id指定の2段階で進める。",
+          "reason": "先に正本データと命名・分類・placeholder方針を決めないと、コード側のID指定が場当たり的になり、後で整理し直す負荷が高くなるため。"
+        },
+        {
+          "decision_id": "dec_0107_003",
+          "at": "2026-07-03",
+          "decision": "初期MVPでは全メッセージ一括置換を目指さず、toast/confirm/error/completeなど代表メッセージから移行する。",
+          "reason": "一括置換は差分が大きくなりすぎるため。代表パターンでMessageResolverとCatalog形式を確認してから広げる方が安全。"
+        },
+        {
+          "decision_id": "dec_0107_004",
+          "at": "2026-07-03",
+          "decision": "message_id未定義またはCatalog未読込時はfallback表示を必須とする。",
+          "reason": "MessageCatalog導入によって、メッセージ表示そのものが壊れる回帰を避けるため。"
+        },
+        {
+          "decision_id": "dec_0107_004",
+          "at": "2026-07-03",
+          "decision": "v0.18.3ではMessageCatalog Data JSONとViewDefの整備を第1段階として完了扱いにし、コード側message_idバインドは次段階に分離する。",
+          "reason": "テストコード作成前に期待値アンカーとなるmessage_idと表示用ViewDefを先に用意しつつ、Runtime置換による回帰リスクを今回に持ち込まないため。"
+        },
+        {
+          "decision_id": "dec_0107_005",
+          "at": "2026-07-03",
+          "decision": "初期カタログはソーススキャン候補として登録し、migration_status=cataloged_not_bound / runtime_binding_status=not_bound_yet を明示する。",
+          "reason": "まだコード側でmessage_id参照へ置換していないため、カタログ登録済みとRuntimeバインド済みを混同しないため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0107_001",
+          "at": "2026-07-03",
+          "change_type": "incident_added",
+          "before": "MessageCatalogの先行整備とmessage_id指定移行が独立した作業項目として登録されていなかった。",
+          "after": "studio_work_0107 として、MessageCatalog / メッセージID管理と表示箇所ID指定対応を登録。",
+          "reason": "lookupより先にメッセージIDを安定化し、ログ・テスト・表示メッセージの比較アンカーとして育てるため。"
+        },
+        {
+          "history_id": "chg_0107_002",
+          "at": "2026-07-03",
+          "change_type": "message_catalog_data_viewdef_added",
+          "before": "MessageCatalogのデータ正本とViewDefが存在しなかった。",
+          "after": "data/json/00_master/message_catalog_data_v0_1.json と defs/master/message_catalog_view_def_v0_1.json を追加し、初期候補メッセージを登録した。",
+          "reason": "ExpectedDef、ログコンペア、AI差分、将来のメッセージID指定移行の土台を作るため。"
+        }
+      ],
+      "verification_status": "一部確認済み",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-07-03",
+      "context_def_draft": "# ContextDef素案: v0.18.3-message-catalog-data-and-message-id-runtime-policy\n\n## 読む目的\nStudioくん内で表示している固定メッセージをMessageCatalogとしてData JSON化し、表示箇所をmessage_id指定へ段階移行するための目的・範囲・リスク・確認観点を把握する。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- AIコード生成時の暫定安全柵を確認し、外部の既存実装をそのまま下敷きにしない。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0104` / v0.18.0-expecteddef-log-compare-lookup-design-seed: message_idがExpectedDef・ログコンペア・lookup構想と接続する文脈を確認する。\n- `studio_work_0054` / v0.14.24-traceability-rules: message_idを証跡トレースのアンカーとして使う可能性を確認する。\n- `studio_work_0051` / v0.14.21-human-ai-responsibility-rules: メッセージ修正時の人間/AI責務境界を確認する。\n- `studio_work_0106` / v0.18.2-source-publication-hold-and-license-review: AIコード生成・公開境界・安全柵の文脈を確認する。\n\n## AI作業メモ\n- まずMessageCatalog Data JSONとViewDefの責務境界を確認してから変更する。\n- message_idは安定ID、message本文はCatalog側のDataとして扱う。\n- コード側はmessage_idとplaceholder値を渡し、本文直書きを減らす。\n- Catalog未読込・未定義ID時のfallbackを必ず用意する。\n\n## 対象範囲メモ\n第1段階はMessageCatalog用JSONデータ構造の整備。第2段階はtoast/confirm/error/complete等の表示箇所へmessage_idを指定する変更。全メッセージ一括置換ではなく代表メッセージからMVP化する。\n\n## 注意すべきリスク\nMessageCatalogを重く作りすぎると小さな文言変更が面倒になる。本文直書きを放置するとログ・ExpectedDef・AI差分で安定比較しにくい。message_idだけでは人間が意味を理解しにくいため、Catalog側にtitle/description/usage_contextを持たせる。\n\n## 確認観点メモ\nMessageCatalog JSONがStudioで読めること、message_idが一意であること、代表メッセージがID経由で表示できること、placeholder展開が正しいこと、fallbackが効くこと、既存表示の見た目が大きく壊れないことを確認する。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0107_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_115_message_catalog_incident_added.json#studio_work_0107",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "MessageCatalog対応の入口。"
+        },
+        {
+          "context_ref_id": "target_0107_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0107_030_studio_work_0104",
+          "title": "関連作業 studio_work_0104: ExpectedDef / ログコンペア / lookup複数列コンボ構想",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_115_message_catalog_incident_added.json#studio_work_0104",
+          "purpose": "message_idがExpectedDef・ログコンペア・lookup構想と接続する文脈を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0107_040_studio_work_0054",
+          "title": "関連作業 studio_work_0054: Traceability Rules",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_115_message_catalog_incident_added.json#studio_work_0054",
+          "purpose": "message_idを証跡トレースのアンカーとして使う可能性を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0107_050_studio_work_0106",
+          "title": "関連作業 studio_work_0106: Source Publication Hold / ソース公開保留とライセンス・出所確認",
+          "read_timing": "before_code_update",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_115_message_catalog_incident_added.json#studio_work_0106",
+          "purpose": "AIコード生成・公開境界・安全柵の文脈を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": "外部既存実装をそのまま下敷きにしない暫定安全柵と接続する。"
+        }
+      ],
+      "actual_updated_files": "data/json/00_master/message_catalog_data_v0_1.json\ndefs/master/message_catalog_view_def_v0_1.json\ndata/json/01_main/studio_work_incident_data_v0_116_message_catalog_data_viewdef_added.json",
+      "completion_summary": "MessageCatalogの初期Data正本とViewDefを追加。ソーススキャン候補をmessage_id付きで登録し、category/severity/message_type/source_locations/placeholders/migration_status/test_priorityを持たせた。",
+      "test_result": "JSON parse確認OK。MessageCatalogは初期候補データであり、コード側のmessage_idバインド・Runtime動作確認は未実施。"
     }
   ],
   "review_notes": [
@@ -9274,10 +9461,24 @@
       "at": "2026-07-03",
       "title": "v0.18.2 ソース公開保留とライセンス・出所確認を追加",
       "body": "現時点では公開よりAI駆動開発体験を優先する方針として、.js/.cs実装ソース公開を保留するインシデントを追加。将来再公開する場合は公開候補コード台帳・ライセンス確認・出所確認・公開用ミニ版切り出しを行う。公開URLが動かない場合の最小メッセージ案も判断ログへ残した。"
+    },
+    {
+      "note_id": "note_v0183_message_catalog_incident_added",
+      "at": "2026-07-03",
+      "title": "v0.18.3 MessageCatalog整備とmessage_id指定対応を追加",
+      "body": "lookup複数列コンボより先にMessageCatalogを整備する方針として、MessageCatalog Data JSON作成と表示箇所message_id指定化の2段階作業をインシデント登録した。初期MVPではtoast/confirm/error/completeなど代表メッセージから着手し、message_id命名規則・severity/category・placeholder・fallback方針を含めて整理する。"
+    },
+    {
+      "note_id": "note_v0183_message_catalog_data_viewdef_added",
+      "at": "2026-07-03",
+      "author": "ChatGPT",
+      "summary": "MessageCatalog第1段階として、Data JSONとViewDefを追加。ソーススキャンから抽出した表示メッセージ候補をstable message_id付きで登録し、次段階のRuntime message_id指定移行に備えた。",
+      "related_phase": "v0.18.3-message-catalog-data-and-message-id-runtime-policy",
+      "related_work_item_id": "studio_work_0107"
     }
   ],
-  "work_revision": "v0_114_source_publication_hold_added",
-  "latest_planning_note": "v0.18.2-source-publication-hold-and-license-review を追加。AI駆動開発体験を優先し、.js/.cs の実装ソース公開は保留。将来の公開候補コード台帳、ライセンス・出所確認、公開用ミニ版、公開保留メッセージ案を低優先インシデントとして記録した。",
+  "work_revision": "v0_116_message_catalog_data_viewdef_added",
+  "latest_planning_note": "v0.18.3 MessageCatalog 第1段階として、ソーススキャンに基づく message_catalog_data_v0_1.json と message_catalog_view_def_v0_1.json を追加。コード側message_idバインドは次段階へ残した。",
   "view_def_candidates": [
     {
       "view_def": "rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",
@@ -9343,19 +9544,19 @@
       "sort_order": 40,
       "note": ""
     },
-{
-  "context_ref_id": "main_incident_005_ai_code_generation_source_policy",
-  "title": "AIコード生成時は、著作権・ライセンス上問題になり得る既存実装を下敷きにせず、ユーザー要件・制約・設計意図から生成すること。",
-  "read_timing": "before_code_update",
-  "target_path": "- tools/FRBStudio_App/wwwroot/**/*.js\n- tools/FRBStudio/**/*.cs\n- tools/**/*.ps1\n- tools/**/*.bat",
-  "purpose": "AIがソースコードを生成・修正する際に、既存OSS、ブログ記事、Stack Overflow、製品コード、出所不明コード等の具体的実装をそのまま材料にしない。実装は、ユーザーが提示した要件、制約、命名、設計思想、既存プロジェクト内の文脈に基づいて生成する。外部コードを参考にする必要がある場合は、出所、ライセンス、利用範囲を明示し、未確認の場合は採用しない。",
-  "failure_policy": "warn_and_continue",
-  "trust_category": "constraint",
-  "required": false,
-  "enabled": true,
-  "sort_order": 50,
-  "note": "これは法的判断ではなく、AIコード生成時の安全柵である。著作権侵害の最終判断をAIに委ねるものではない。公開前には必要に応じて出所確認・ライセンス確認・人間レビューを行う。"
-}
+    {
+      "context_ref_id": "main_incident_005_ai_code_generation_source_policy",
+      "title": "AIコード生成時は、著作権・ライセンス上問題になり得る既存実装を下敷きにせず、ユーザー要件・制約・設計意図から生成すること。",
+      "read_timing": "before_code_update",
+      "target_path": "- tools/FRBStudio_App/wwwroot/**/*.js\n- tools/FRBStudio/**/*.cs\n- tools/**/*.ps1\n- tools/**/*.bat",
+      "purpose": "AIがソースコードを生成・修正する際に、既存OSS、ブログ記事、Stack Overflow、製品コード、出所不明コード等の具体的実装をそのまま材料にしない。実装は、ユーザーが提示した要件、制約、命名、設計思想、既存プロジェクト内の文脈に基づいて生成する。外部コードを参考にする必要がある場合は、出所、ライセンス、利用範囲を明示し、未確認の場合は採用しない。",
+      "failure_policy": "warn_and_continue",
+      "trust_category": "constraint",
+      "required": false,
+      "enabled": true,
+      "sort_order": 50,
+      "note": "これは法的判断ではなく、AIコード生成時の安全柵である。著作権侵害の最終判断をAIに委ねるものではない。公開前には必要に応じて出所確認・ライセンス確認・人間レビューを行う。"
+    }
   ],
   "archive_policy": "studio_work_0079以前の完了系作業は archive JSON へ分離し、メインJSONには未着手・進行中・直近完了分を残す。",
   "archives": [

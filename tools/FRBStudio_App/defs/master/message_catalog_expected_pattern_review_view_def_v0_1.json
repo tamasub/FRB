@@ -1,0 +1,1116 @@
+{
+  "app": {
+    "name": "FRB Studio / JSON Object Studio",
+    "version": "message-catalog-expected-pattern-review-viewdef-v0.1"
+  },
+  "fieldTypeSources": [
+    "common/common_types_v0_1.json"
+  ],
+  "layout_note": "MessageCatalog ExpectedDef Pattern Review 用ViewDef。まず out_of_scope / triage / assertion を見分け、unclassified と low confidence を優先レビューする。review_note だけ人間メモ用に編集可。",
+  "views": [
+    {
+      "id": "message_catalog_expected_pattern_review_v0_1",
+      "caption": "MessageCatalog ExpectedDef Pattern Review v0.1",
+      "layout": "header-search-grid-detail",
+      "sections": [
+        {
+          "id": "header",
+          "caption": "基本情報",
+          "type": "form",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "view_def",
+              "caption": "ViewDef",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 340
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true
+            },
+            {
+              "field": "title",
+              "caption": "Title",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 360
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "schema_version",
+              "caption": "Schema",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true
+            },
+            {
+              "field": "document_type",
+              "caption": "Document Type",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 260
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true
+            },
+            {
+              "field": "status",
+              "caption": "Status",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 120
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "created_at",
+              "caption": "Created",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true
+            },
+            {
+              "field": "updated_at",
+              "caption": "Updated",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true
+            },
+            {
+              "field": "introduced_in",
+              "caption": "Introduced In",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 260
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "source_catalog.path",
+              "caption": "Source Catalog",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 460
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "source_catalog.message_count",
+              "caption": "Source Messages",
+              "type": "number",
+              "grid": {
+                "visible": false,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true
+            },
+            {
+              "field": "purpose",
+              "caption": "Purpose",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 520
+              },
+              "edit": {
+                "visible": true,
+                "height": 120
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "design_note",
+              "caption": "Design Note",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 520
+              },
+              "edit": {
+                "visible": true,
+                "height": 120
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            }
+          ]
+        },
+        {
+          "id": "summary",
+          "caption": "分類サマリ",
+          "type": "form",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "classification_summary.total_messages",
+              "caption": "Total",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 80
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true
+            },
+            {
+              "field": "classification_summary.by_expected_scope.assertion",
+              "caption": "Assertion",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 100
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true
+            },
+            {
+              "field": "classification_summary.by_expected_scope.out_of_scope",
+              "caption": "Out Of Scope",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true
+            },
+            {
+              "field": "classification_summary.by_expected_scope.triage",
+              "caption": "Triage",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 90
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true
+            },
+            {
+              "field": "classification_summary.by_expected_pattern.none",
+              "caption": "none",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 80
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true
+            },
+            {
+              "field": "classification_summary.by_expected_pattern.target_input",
+              "caption": "target_input",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 110
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true
+            },
+            {
+              "field": "classification_summary.by_expected_pattern.required_missing",
+              "caption": "required_missing",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 140
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true
+            },
+            {
+              "field": "classification_summary.by_expected_pattern.expected_actual",
+              "caption": "expected_actual",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 130
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true
+            },
+            {
+              "field": "classification_summary.by_expected_pattern.count_summary",
+              "caption": "count_summary",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 130
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true
+            },
+            {
+              "field": "classification_summary.by_expected_pattern.reason_detail",
+              "caption": "reason_detail",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true
+            },
+            {
+              "field": "classification_summary.by_expected_pattern.state_flag",
+              "caption": "state_flag",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 110
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true
+            },
+            {
+              "field": "classification_summary.by_expected_pattern.unclassified",
+              "caption": "unclassified",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true
+            },
+            {
+              "field": "classification_summary.by_classification_confidence.high",
+              "caption": "High",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 80
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true
+            },
+            {
+              "field": "classification_summary.by_classification_confidence.medium",
+              "caption": "Medium",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 90
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true
+            },
+            {
+              "field": "classification_summary.by_classification_confidence.low",
+              "caption": "Low",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 80
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true
+            }
+          ]
+        },
+        {
+          "id": "review_items",
+          "caption": "レビュー対象一覧",
+          "type": "grid",
+          "dataPath": "$.review_items",
+          "keyField": "message_id",
+          "fields": [
+            {
+              "field": "review_status",
+              "caption": "Review",
+              "type": "select",
+              "options": [
+                "auto_classified",
+                "auto_classified_low_confidence",
+                "needs_human_review",
+                "ignored_by_policy"
+              ],
+              "grid": {
+                "visible": true,
+                "width": 170
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "expected_scope",
+              "caption": "Scope",
+              "type": "select",
+              "options": [
+                "assertion",
+                "out_of_scope",
+                "triage"
+              ],
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "expected_pattern",
+              "caption": "Pattern",
+              "type": "select",
+              "options": [
+                "none",
+                "target_input",
+                "required_missing",
+                "expected_actual",
+                "count_summary",
+                "reason_detail",
+                "state_flag",
+                "unclassified"
+              ],
+              "grid": {
+                "visible": true,
+                "width": 160
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "classification_confidence",
+              "caption": "Confidence",
+              "type": "select",
+              "options": [
+                "high",
+                "medium",
+                "low"
+              ],
+              "grid": {
+                "visible": true,
+                "width": 110
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "message_id",
+              "caption": "Message ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 130
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "category",
+              "caption": "Category",
+              "type": "select",
+              "options": [
+                "action",
+                "api",
+                "encoding",
+                "file_io",
+                "general",
+                "git_diff",
+                "load_runtime",
+                "markdown",
+                "plugin",
+                "search",
+                "test_runner",
+                "ui",
+                "viewdef",
+                "zip"
+              ],
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "severity",
+              "caption": "Severity",
+              "type": "select",
+              "options": [
+                "error",
+                "info",
+                "success",
+                "warning"
+              ],
+              "grid": {
+                "visible": true,
+                "width": 90
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "message_type",
+              "caption": "Type",
+              "type": "select",
+              "options": [
+                "cli_output",
+                "confirm",
+                "error",
+                "error_log",
+                "html_static",
+                "html_static_or_script",
+                "source_message_candidate",
+                "status_toast",
+                "ui_label",
+                "warning_log"
+              ],
+              "grid": {
+                "visible": true,
+                "width": 150
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "language",
+              "caption": "Lang",
+              "type": "select",
+              "options": [
+                "en",
+                "ja"
+              ],
+              "grid": {
+                "visible": true,
+                "width": 70
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "default_message",
+              "caption": "Default Message",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 540
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 130
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "review_note",
+              "caption": "Review Note",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 360
+              },
+              "edit": {
+                "visible": true,
+                "height": 110
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "classification_reason",
+              "caption": "Classification Reason",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 420
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 110
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "quality_flags",
+              "caption": "Quality Flags",
+              "type": "stringArray",
+              "grid": {
+                "visible": true,
+                "width": 180
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "expected_slots",
+              "caption": "Expected Slots",
+              "type": "stringArray",
+              "grid": {
+                "visible": true,
+                "width": 210
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "placeholder_count",
+              "caption": "PH数",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 70
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": false,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "placeholder_keys",
+              "caption": "Placeholder Keys",
+              "type": "stringArray",
+              "grid": {
+                "visible": false,
+                "width": 260
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "message_key",
+              "caption": "Message Key",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 300
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "sort_order",
+              "caption": "Sort",
+              "type": "number",
+              "grid": {
+                "visible": false,
+                "width": 70
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": false,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "source_area",
+              "caption": "Source Area",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 340
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "source_locations",
+              "caption": "Source Locations",
+              "type": "objectArray",
+              "grid": {
+                "visible": false,
+                "width": 220
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": false,
+                "operator": "equals"
+              },
+              "defaultValue": [],
+              "itemFields": [
+                {
+                  "field": "source_file",
+                  "caption": "Source File",
+                  "type": "text",
+                  "grid": {
+                    "visible": true,
+                    "width": 320
+                  },
+                  "edit": {
+                    "visible": true,
+                    "readonly": true
+                  },
+                  "readonly": true,
+                  "search": {
+                    "visible": true,
+                    "operator": "contains"
+                  }
+                },
+                {
+                  "field": "line",
+                  "caption": "Line",
+                  "type": "number",
+                  "grid": {
+                    "visible": true,
+                    "width": 70
+                  },
+                  "edit": {
+                    "visible": true,
+                    "readonly": true
+                  },
+                  "readonly": true,
+                  "search": {
+                    "visible": false,
+                    "operator": "equals"
+                  }
+                },
+                {
+                  "field": "line_context",
+                  "caption": "Line Context",
+                  "type": "textarea",
+                  "grid": {
+                    "visible": true,
+                    "width": 520
+                  },
+                  "edit": {
+                    "visible": true,
+                    "readonly": true,
+                    "height": 90
+                  },
+                  "readonly": true,
+                  "search": {
+                    "visible": true,
+                    "operator": "contains"
+                  }
+                }
+              ]
+            },
+            {
+              "field": "original_test_priority",
+              "caption": "Original Test Priority",
+              "type": "select",
+              "options": [
+                "low",
+                "medium",
+                "high",
+                "critical"
+              ],
+              "grid": {
+                "visible": false,
+                "width": 150
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "original_expected_assertion_policy",
+              "caption": "Original Expected Policy",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 460
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 120
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            }
+          ]
+        },
+        {
+          "id": "expected_scope_values",
+          "caption": "Expected Scope 定義",
+          "type": "grid",
+          "dataPath": "$.classification_policy.expected_scope_values",
+          "keyField": "expected_scope",
+          "fields": [
+            {
+              "field": "expected_scope",
+              "caption": "Scope",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 150
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "description",
+              "caption": "Description",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 620
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 100
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            }
+          ]
+        },
+        {
+          "id": "expected_pattern_values",
+          "caption": "Expected Pattern 定義",
+          "type": "grid",
+          "dataPath": "$.classification_policy.expected_pattern_values",
+          "keyField": "expected_pattern",
+          "fields": [
+            {
+              "field": "expected_pattern",
+              "caption": "Pattern",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 170
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "description",
+              "caption": "Description",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 620
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 100
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "expected_slots",
+              "caption": "Slots",
+              "type": "stringArray",
+              "grid": {
+                "visible": true,
+                "width": 220
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            }
+          ]
+        },
+        {
+          "id": "review_status_values",
+          "caption": "Review Status 定義",
+          "type": "grid",
+          "dataPath": "$.classification_policy.review_status_values",
+          "keyField": "review_status",
+          "fields": [
+            {
+              "field": "review_status",
+              "caption": "Review Status",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 210
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "description",
+              "caption": "Description",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 640
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 100
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
