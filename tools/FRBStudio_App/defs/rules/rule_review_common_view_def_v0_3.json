@@ -1123,7 +1123,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "height": 360
               },
               "markdown": {
