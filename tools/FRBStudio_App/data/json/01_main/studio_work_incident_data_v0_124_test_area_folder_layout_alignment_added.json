@@ -12,7 +12,7 @@
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。",
-  "items_count": 57,
+  "items_count": 59,
   "work_items": [
     {
       "work_item_id": "studio_work_0007",
@@ -9796,7 +9796,7 @@
       "test_points": "既存Grid表示が壊れないこと。検索フィルター結果が既存と一致すること。CSV出力が表示行・表示列・key列必須・UTF-8 BOM付きの既存契約を維持すること。新しい責務Interface単体で、入力ViewDef/rowsから期待されるcolumns/filteredRows/csvTextを検証できること。Git Diff RunやMarkdown Export Mode等の既存ボタン挙動を巻き込まないこと。",
       "user_request": "ぼちぼちテストができる構造に変えていきたい。まずは、責務単位の構造改革のファーストステップを実施するインシデントとして登録してほしい。",
       "ai_response": "構造改革の第一歩として、いきなり全体を作り直さず、責務単位Interfaceに切り出しやすい grid_column_build / search_filter / csv_export から進めるインシデントを登録する。現状APPは機能別分割は進んでいるが、ResponsibilityDef単位の公開Interfaceはまだ弱いため、既存挙動維持を前提に小さく切り出す。",
-      "latest_user_comment": "会社Copilotくんの成果物である studio_overlays が死なないように、既存互換を守ったままResponsibilityDef構造改革ファーストステップを実施したい。",
+      "latest_user_comment": "会社Copilotくんの成果物である studio_overlays が死なないように、既存互換を守ったままResponsibilityDef構造改革ファーストステップを実施したい。\n\nやっちゃったーー笑\n**会社Copilotくんの `studio_overlays` が死なない構造改革ファーストステップ**対応版です。\n\nFoundation Rule 19 の「基準ソース / incident_file / phase / 更新ファイルのみZIP / 更新後インシデントJSON収録」方針を確認し、今回添付の `studio_work_0111` インシデントに基づいて作業しました。([GitHub][1]) \n\n## 返却ファイル\n\n[差分ZIPをダウンロード](sandbox:/mnt/data/frbstudio_v0_18_7_responsibility_refactor_first_step_patch.zip)\n\n[更新後Incident JSON](sandbox:/mnt/data/studio_work_incident_data_v0_122_responsibility_refactor_first_step_done.json)\n\n## 今回やったこと\n\n追加した責務Interfaceはこの3つです。\n\n```text\nGridColumnBuilder.build\nSearchFilter.apply\nCsvExporter.export\n```\n\n既存の呼び出し口は残しています。\n\n```text\ntableGridVisibleFields()\napplySearch()\ngridCsvExportFields()\nbuildVisibleGridCsv()\nexportVisibleGridCsv()\n```\n\nつまり、既存処理をぶっ壊して置き換えたのではなく、\n\n```text\n既存関数\n  ↓\n新しい責務Interfaceへ薄く委譲\n  ↓\n既存の画面・Overlay・Toolbar挙動は維持\n```\n\nの形にしています。\n\n## studio_overlays 保護ポイント\n\n`applySearch()` の後段にあるこれを維持しています。\n\n```js\napplyStudioPluginSearchFilters(filteredRows, { gd, inputs })\n```\n\nなので、会社Copilotくん側の `studio_overlays` / Plugin SearchFilter が検索結果に重なる既存構造は残しています。\n今回の構造改革でそこは殺してません。えらい。笑\n\n## 更新ファイル\n\n```text\nwwwroot/js/responsibilities/grid_column_builder.js\nwwwroot/js/responsibilities/search_filter.js\nwwwroot/js/responsibilities/csv_exporter.js\nwwwroot/js/renderers/grid_detail.js\nwwwroot/myindex.html\ntests/responsibilities/responsibility_refactor_first_step_smoke.mjs\ndata/json/00_rules/md/RESPONSIBILITY_REFACTOR_FIRST_STEP_REPORT_v0_18_7.md\ndata/json/01_main/studio_work_incident_data_v0_122_responsibility_refactor_first_step_done.json\n```\n\n## 確認結果\n\n```text\nJSON parse: OK\nJS構文確認: OK\n責務Interface smoke test: OK\nブラウザ実機クリック確認: 未実施\n```\n\nZIPには更新したファイルだけ入れています。\n\n[1]: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/data/json/00_rules/frb_foundation_rules_data_v0_1.json \"raw.githubusercontent.com\"",
       "latest_ai_response": "対応完了。既存 studio_overlays / Plugin SearchFilter を壊さない方針で、GridColumnBuilder / SearchFilter / CsvExporter を新規追加し、既存関数から薄く委譲する実装にした。既存の関数名・DOM構造・Toolbar/Overlayの前提は変えず、責務Interfaceを横に生やす形でテスト可能性を上げた。",
       "discussion_history": [
         {
@@ -9988,6 +9988,315 @@
       "actual_updated_files": "wwwroot/js/responsibilities/grid_column_builder.js\nwwwroot/js/responsibilities/search_filter.js\nwwwroot/js/responsibilities/csv_exporter.js\nwwwroot/js/renderers/grid_detail.js\nwwwroot/myindex.html\ntests/responsibilities/responsibility_refactor_first_step_smoke.mjs\ndata/json/00_rules/md/RESPONSIBILITY_REFACTOR_FIRST_STEP_REPORT_v0_18_7.md\ndata/json/01_main/studio_work_incident_data_v0_122_responsibility_refactor_first_step_done.json",
       "completion_summary": "ResponsibilityDef構造改革の第一歩として、grid_column_build / search_filter / csv_export の薄い責務Interfaceを新規追加し、既存Grid描画・検索・CSV出力から委譲する形へ寄せた。既存関数名と画面フローは維持し、studio_overlays / Plugin SearchFilter は既存後段適用のまま温存した。",
       "test_result": "JSON parse確認OK。新規責務JSとgrid_detail.jsのnode --check OK。tests/responsibilities/responsibility_refactor_first_step_smoke.mjs 実行OK。ブラウザ実機クリック確認は未実施。"
+    },
+    {
+      "work_item_id": "studio_work_0112",
+      "phase": "v0.18.8-responsibility-expected-tests-first-set",
+      "title": "Responsibility Expected Tests First Set / 責務単位Expectedテスト初期セット",
+      "incident_type": "test_implementation",
+      "category": "responsibility_test",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-04",
+      "updated_at": "2026-07-04",
+      "target_files": "data/json/03_tests/responsibilities/responsibility_expected_tests_first_set_data_v0_1.json, tests/responsibilities/run_responsibility_expected_tests.mjs, data/json/00_rules/md/RESPONSIBILITY_EXPECTED_TESTS_FIRST_SET_REPORT_v0_18_8.md",
+      "objective": "v0.18.7で追加した責務Interfaceに対して、小さく動くJSON駆動のTestPattern / ExpectedDefテストを作り、責務単位で期待値確認できる第一歩を作る。",
+      "background": "Responsibility Refactor First Stepで GridColumnBuilder / SearchFilter / CsvExporter の公開Interfaceが生えた。次の一手として、責務をさらに増やす前に、既存3責務を対象に小さく動くExpectedテストを作る必要がある。",
+      "scope": "grid_column_build / search_filter / csv_export の3責務だけを対象にする。TestPattern相当のJSONデータを作成し、Node.jsの共通runnerで責務Interfaceを呼び出し、expectedとactualを比較する。",
+      "out_of_scope": "Playwright、DOM描画、Visual Evidence、Renderer表示責務、SearchState管理責務、studio_overlaysの直接テスト、巨大なExpectedDefスキーマ整備は今回対象外。",
+      "fixed_name_policy": "responsibility_cd / test_pattern_id / expected_def_type はテスト証跡Dataの契約として扱う。一般Runtimeが任意Dataへ無条件要求する固定名にはしない。",
+      "module_policy": "APP本体のtype=module化は行わない。既存の従来script責務ファイルをNode.jsのvmで読み込む方式を維持し、ブラウザ側の読み込み契約を壊さない。",
+      "expected_outputs": "責務テストデータJSON、責務Expectedテストrunner、実行結果レポート、更新後インシデントJSON、差分ZIP。",
+      "risk": "初回からExpectedDefやRunnerを大きく作りすぎると、構造改革ではなくテスト基盤沼になる。逆にコード直書きテストだけにすると、TestPattern / ExpectedDef文化へ接続しにくくなる。",
+      "test_points": "grid.visible=false除外、fields未指定時の安全性、文字列contains検索、数値gte検索とindex保持、CSV key列注入、CSV escape、UTF-8 BOMオプションを確認する。既存v0.18.7 smoke testが壊れないことも確認する。",
+      "user_request": "さくっと、小さく動くテストを作ってみる話として、インシデント登録から実施まで一気に小さく進めたい。",
+      "ai_response": "studio_work_0112として、責務単位Expectedテスト初期セットを登録し、grid_column_build/search_filter/csv_exportの3責務だけを対象にしたJSON駆動runnerとテストデータを追加する。",
+      "latest_user_comment": "じゃぁーーさくっと、小さく動くテストを作ってみるって話でインシデント登録から実施まで一気に小さくいってみますか？？よろしく",
+      "latest_ai_response": "対応完了。6件の小さな責務ExpectedテストをJSONデータ化し、Node runnerで6/6 PASSを確認した。既存v0.18.7 smoke testもOK。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0112_001",
+          "at": "2026-07-04",
+          "speaker": "user",
+          "topic": "責務テストの次の一手",
+          "message": "責務のテストパターンを作る方向に行くのがよいか相談。小さく動くテストを作りたい。"
+        },
+        {
+          "history_id": "disc_0112_002",
+          "at": "2026-07-04",
+          "speaker": "assistant",
+          "topic": "小さく動くExpectedテスト方針",
+          "message": "v0.18.7で生えた3責務だけを対象にし、TestPattern/ExpectedDefに接続できる小さなJSON駆動テストを作る方針を提案。"
+        },
+        {
+          "history_id": "disc_0112_003",
+          "at": "2026-07-04",
+          "speaker": "user",
+          "topic": "実作業依頼",
+          "message": "インシデント登録から実施まで一気に小さく進めたい。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0112_001",
+          "at": "2026-07-04",
+          "decision": "対象責務は grid_column_build / search_filter / csv_export の3つに限定する。",
+          "reason": "v0.18.7で追加した責務Interfaceの第一検証として十分であり、Renderer/DOM/VisualEvidenceに進むと範囲が重くなるため。"
+        },
+        {
+          "decision_id": "dec_0112_002",
+          "at": "2026-07-04",
+          "decision": "Expected値は専用JSONに置き、runnerはそのJSONを読む方式にする。",
+          "reason": "テストコードへの期待値直書きを減らし、将来のTestPattern / ExpectedDef文化へ接続しやすくするため。"
+        },
+        {
+          "decision_id": "dec_0112_003",
+          "at": "2026-07-04",
+          "decision": "studio_overlaysは今回の直接テスト対象にしない。",
+          "reason": "会社Copilotくん成果物の互換維持を優先し、今回の目的を責務Interfaceの入力→出力確認に限定するため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0112_001",
+          "at": "2026-07-04",
+          "change_type": "incident_added",
+          "before": "責務Interfaceは生えたが、TestPattern/ExpectedDefに接続する小さな動作テストは未整備だった。",
+          "after": "studio_work_0112として、責務単位Expectedテスト初期セットを登録。",
+          "reason": "構造改革を、テスト可能な責務境界へ実際に接続するため。"
+        },
+        {
+          "history_id": "chg_0112_002",
+          "at": "2026-07-04",
+          "change_type": "responsibility_expected_tests_added",
+          "before": "v0.18.7のsmoke testはコード内assert中心で、TestPattern/ExpectedDefデータ化の入口が薄かった。",
+          "after": "responsibility_expected_tests_first_set_data_v0_1.json と run_responsibility_expected_tests.mjs を追加し、6件のJSON駆動Expectedテストを実行可能にした。",
+          "reason": "Expectedをデータ側へ寄せ、今後の責務テスト追加を小さく回せるようにするため。"
+        }
+      ],
+      "verification_status": "確認済み",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-07-04",
+      "context_def_draft": "# ContextDef素案: v0.18.8-responsibility-expected-tests-first-set\n\n## 読む目的\nv0.18.7で追加した責務Interfaceに対して、小さく動くJSON駆動のTestPattern / ExpectedDefテストを作り、責務単位で期待値確認できる第一歩を作る。\n\n## 作業前に読む入口\n- 対象責務は grid_column_build / search_filter / csv_export に限定する。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- v0.18.7で追加した責務Interfaceを前提とし、既存APP構造やstudio_overlays互換を壊さない。\n\n## 対象範囲メモ\nTestPattern相当のJSONデータを作成し、Node.js runnerで責務Interfaceを呼び出してExpectedとActualを比較する。\n\n## 対象外メモ\nDOM、Renderer、Playwright、VisualEvidence、studio_overlays直接テストは対象外。\n\n## 確認観点\ngrid.visible=false除外、fields未指定時安全性、contains検索、number gte、CSV key列注入、CSV escape、BOM optionを確認する。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0112_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_123_responsibility_expected_tests_first_set_done.json#studio_work_0112",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "小さく動く責務Expectedテストの初期セット。"
+        },
+        {
+          "context_ref_id": "target_0112_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0112_030_studio_work_0111",
+          "title": "関連作業 studio_work_0111: Responsibility Refactor First Step",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_122_responsibility_refactor_first_step_done.json#studio_work_0111",
+          "purpose": "今回テスト対象にする責務Interfaceの追加経緯とstudio_overlays互換維持方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        }
+      ],
+      "fixed_in_version": "v0.18.8-responsibility-expected-tests-first-set",
+      "actual_updated_files": "data/json/03_tests/responsibilities/responsibility_expected_tests_first_set_data_v0_1.json\ntests/responsibilities/run_responsibility_expected_tests.mjs\ndata/json/00_rules/md/RESPONSIBILITY_EXPECTED_TESTS_FIRST_SET_REPORT_v0_18_8.md\ndata/json/01_main/studio_work_incident_data_v0_123_responsibility_expected_tests_first_set_done.json",
+      "completion_summary": "grid_column_build / search_filter / csv_export の3責務を対象に、JSON駆動のExpectedテスト初期セットを追加した。",
+      "test_result": "node tests/responsibilities/run_responsibility_expected_tests.mjs: 6/6 passed。node tests/responsibilities/responsibility_refactor_first_step_smoke.mjs: OK。JSON parse確認OK。ブラウザ実機確認は未実施。"
+    },
+    {
+      "work_item_id": "studio_work_0113",
+      "phase": "v0.18.9-test-area-folder-layout-alignment",
+      "title": "Test Area Folder Layout Alignment / 03_tests配置ルールへの責務Expected移行第一歩",
+      "incident_type": "test_data_reorganization",
+      "category": "test_evidence_layout",
+      "priority": "high",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-04",
+      "updated_at": "2026-07-04",
+      "target_files": "data/json/00_rules/frb_test_evidence_rules_data_v0_2.json, data/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/responsibility_expected_tests_first_set_data_v0_1.json, tests/responsibilities/run_responsibility_expected_tests.mjs, defs/qa/responsibility/responsibility_expected_tests_view_def_v0_1.json, data/json/01_main/studio_work_incident_data_*.json",
+      "target_rule_files": "data/json/00_rules/frb_test_evidence_rules_data_v0_2.json",
+      "objective": "Test Evidence Rules v0.2で整理した test_area / suite_id / artifact_kind の03_tests配置ルールを、責務Expectedテスト初期セットへ小さく適用し、今後の責務テスト追加でフォルダー名・ファイル名が散らからない状態を作る。",
+      "background": "v0.18.8で responsibility_expected_tests_first_set_data_v0_1.json とNode runnerが動いたが、初回MVPでは責務Expectedデータの置き場・runner既定パス・view_def参照が標準フォルダー契約としてまだ固定されていなかった。さらにTest Evidence Rules v0.2で、03_tests配下は domain ではなく test_area / suite_id / artifact_kind として整理し、qaは既存互換の旧・広義QA領域として扱う方針に更新した。",
+      "scope": "responsibilities test_area配下に responsibility_expected_first_set suite を置き、test_patterns / expected / actual / diff / relations / summary / notes の標準フォルダー構造へ寄せる。Node runnerの既定読込パスを標準配置へ更新し、必要なら旧MVP直置きパスを互換fallbackとして扱う。Data JSON内の view_def パスは原則としてスラッシュ区切りへ寄せる。既存 qa 配下や screen_state 配下の大規模移動は行わない。",
+      "out_of_scope": "この作業では既存 qa フォルダーのリネーム、screen_state_smoke_001 の再配置、全Expected資材の一括移行、Visual Evidence、Playwright証跡、actual/diffの本格保存、過去Expectedの削除は行わない。",
+      "fixed_name_policy": "test_area / suite_id / artifact_kind はテスト証跡フォルダー設計の言葉として扱う。一般Runtimeが任意Dataへ無条件要求する固定Dataフィールド名にはしない。view_def パスはWindowsローカル都合ではなく、Studio/GitHub Pages/URL参照で扱いやすいスラッシュ区切りを基本にする。",
+      "module_policy": "APP本体のtype=module化は行わない。既存Node runnerとブラウザ従来script方式を維持し、読み込みパスとテスト証跡配置を小さく整える。",
+      "expected_outputs": "03_tests/responsibilities/responsibility_expected_first_set/ 配下の標準配置、runner既定パス更新、view_defパス表記整理、旧MVP配置の扱いメモ、更新後インシデントJSON、必要に応じた差分ZIP。",
+      "risk": "フォルダー構成やファイル名ルールが曖昧なまま責務Expectedを増やすと、Expected/Actual/Diff/relations/notesが散らばり、Studioくんのテスト証跡が雑草農園化する。逆に既存qaやscreen_stateを一気に動かすと参照切れ・会社適用事故が起きる。",
+      "test_points": "node tests/responsibilities/run_responsibility_expected_tests.mjs が引数なしで標準配置の責務Expectedデータを読み6/6 PASSすること。必要なら旧MVPパス指定でも動くこと。Studioで responsibility_expected_tests_first_set_data_v0_1.json を開いたときViewDef参照が壊れないこと。既存 screen_state / qa 配下には影響しないこと。",
+      "user_request": "Test Evidence Rulesを test_area / suite_id / artifact_kind ベースへ改定したので、この意識合わせを次のステップへ進めるため、インシデント登録して更新後JSONを返却してほしい。",
+      "ai_response": "studio_work_0113として、03_tests配置ルールへの責務Expected移行第一歩を登録する。既存qaは動かさず、responsibilities配下の初期セットだけを小さく標準フォルダーへ寄せ、runner/view_def参照のズレを次作業で確認・修正する。",
+      "latest_user_comment": "ほい、では、次のステップのインシデント登録をお願いします。更新後JSON返却お願いします。",
+      "latest_ai_response": "studio_work_0113を追加。Test Evidence Rules v0.2のtest_area方針に合わせ、責務Expected初期セットのフォルダー配置・runner既定パス・view_defパス表記を小さく整える作業として登録した。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0113_001",
+          "at": "2026-07-04",
+          "speaker": "user",
+          "topic": "03_tests大分類の言葉整理",
+          "message": "qaという言葉が広すぎて分かりにくい。既存ファイルは動かさないが、今後の大分類を想定してフォルダー名を置いておくと後手後手にならないのではないかと相談した。"
+        },
+        {
+          "history_id": "disc_0113_002",
+          "at": "2026-07-04",
+          "speaker": "assistant",
+          "topic": "test_area方針",
+          "message": "03_tests配下は domain ではなく test_area / suite_id / artifact_kind で考える方針を提案。qaは既存互換の旧・広義QA領域として残し、新規標準置き場にはしないと整理した。"
+        },
+        {
+          "history_id": "disc_0113_003",
+          "at": "2026-07-04",
+          "speaker": "user",
+          "topic": "Test Evidence Rules改定依頼",
+          "message": "テストエビデンスルールを改定し、test_area方針で意識合わせしたいと依頼した。"
+        },
+        {
+          "history_id": "disc_0113_004",
+          "at": "2026-07-04",
+          "speaker": "assistant",
+          "topic": "Test Evidence Rules v0.2化",
+          "message": "frb_test_evidence_rules_data_v0_2として、test_area / suite_id / artifact_kind、qa legacy扱い、responsibility_expected標準レイアウト候補を追加した。"
+        },
+        {
+          "history_id": "disc_0113_005",
+          "at": "2026-07-04",
+          "speaker": "user",
+          "topic": "次ステップ登録",
+          "message": "次のステップのインシデント登録と更新後JSON返却を依頼した。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0113_001",
+          "at": "2026-07-04",
+          "decision": "03_tests配下の新規テスト証跡は test_area / suite_id / artifact_kind で考える。",
+          "reason": "domain という言葉は広く、qaも含めて何を置く場所か曖昧になりやすいため。"
+        },
+        {
+          "decision_id": "dec_0113_002",
+          "at": "2026-07-04",
+          "decision": "qaは既存互換の旧・広義QA領域として残し、新規の標準置き場にはしない。",
+          "reason": "既存資材への影響を避けつつ、今後の新規資材がqaへ流入して意味不明になることを防ぐため。"
+        },
+        {
+          "decision_id": "dec_0113_003",
+          "at": "2026-07-04",
+          "decision": "責務Expectedの初期セットは responsibilities/responsibility_expected_first_set/test_patterns 配下を標準配置候補として扱う。",
+          "reason": "責務Interface単位のUT Expectedテストであり、screen_stateやactionsやcontractsとは別のtest_areaとして育てるのが自然なため。"
+        },
+        {
+          "decision_id": "dec_0113_004",
+          "at": "2026-07-04",
+          "decision": "次作業では既存qaやscreen_stateの大規模移動は行わず、責務Expected初期セットの配置・参照だけを小さく整える。",
+          "reason": "フォルダー整理を急に広げると参照切れや会社適用事故が起きるため。まず新規標準の一例を安全に固定する。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0113_001",
+          "at": "2026-07-04",
+          "change_type": "incident_added",
+          "before": "Test Evidence Rules v0.2でtest_area方針は整理したが、責務Expected初期セットの配置・runner既定パス・view_def参照を標準化する作業項目は未登録だった。",
+          "after": "studio_work_0113として、Test Area Folder Layout Alignment / 03_tests配置ルールへの責務Expected移行第一歩を登録。",
+          "reason": "ルールだけでなく、最初の実データを標準フォルダーへ寄せることで、今後の責務Expected追加時の迷子を防ぐため。"
+        }
+      ],
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-07-04",
+      "context_def_draft": "# ContextDef素案: v0.18.9-test-area-folder-layout-alignment\n\n## 読む目的\nTest Evidence Rules v0.2で整理した test_area / suite_id / artifact_kind の03_tests配置ルールを、責務Expectedテスト初期セットへ小さく適用し、今後の責務テスト追加でフォルダー名・ファイル名が散らからない状態を作る。\n\n## 作業前に読む入口\n- Test Evidence Rules v0.2 の test_area / suite_id / artifact_kind 方針を確認する。\n- v0.18.8 の responsibility_expected_tests_first_set と Node runner の現状を確認する。\n- 既存 qa / screen_state 配下は大規模移動しない。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n\n## 対象範囲メモ\nresponsibilities/responsibility_expected_first_set/test_patterns 配下を責務Expected初期セットの標準配置候補とし、runner既定パスとData内view_defパス表記を整える。\n\n## 対象外メモ\n既存qaのリネーム、screen_state一括整理、VisualEvidence、actual/diff本格出力、過去Expected削除は対象外。\n\n## 確認観点\nNode runnerが標準配置のデータを引数なしで読み、既存6件がPASSすること。StudioでViewDef参照が壊れないこと。既存qa/screen_stateに影響しないこと。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0113_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_124_test_area_folder_layout_alignment_added.json#studio_work_0113",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "Test Evidence Rules v0.2のtest_area方針を実データへ小さく適用する次ステップ。"
+        },
+        {
+          "context_ref_id": "target_0113_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0113_030_test_evidence_rules_v0_2",
+          "title": "関連ルール: Test Evidence Rules v0.2 / test_area方針",
+          "read_timing": "before_work",
+          "target_path": "data/json/00_rules/frb_test_evidence_rules_data_v0_2.json",
+          "purpose": "03_tests配下の test_area / suite_id / artifact_kind、qa legacy扱い、責務Expected標準配置候補を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "canonical",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0113_040_studio_work_0112",
+          "title": "関連作業 studio_work_0112: Responsibility Expected Tests First Set",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_123_responsibility_expected_tests_first_set_done.json#studio_work_0112",
+          "purpose": "小さく動いた責務Expectedテスト初期セットの対象責務・runner・確認結果を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0113_050_studio_work_0111",
+          "title": "関連作業 studio_work_0111: Responsibility Refactor First Step",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_122_responsibility_refactor_first_step_done.json#studio_work_0111",
+          "purpose": "責務Interface追加経緯とstudio_overlays互換維持方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": ""
+        }
+      ]
     }
   ],
   "review_notes": [
@@ -10458,11 +10767,11 @@
       "related_work_item_id": "studio_work_0110"
     }
   ],
-  "work_revision": "v0_120_markdown_export_mode_rules_added",
+  "work_revision": "v0_124_test_area_folder_layout_alignment_added",
   "latest_planning_note": {
     "at": "2026-07-04",
-    "phase": "v0.18.6-markdown-export-mode-exportdef-rules",
-    "summary": "Markdown出力を出力モード主導で整理する方針をインシデント登録。full_dump / review_report / document_rebuild の責務、rawField原文保持不採用、field.markdown.export=falseの適用範囲、Generation Rules/Schema見直しを対象化した。"
+    "phase": "v0.18.9-test-area-folder-layout-alignment",
+    "summary": "Test Evidence Rules v0.2で整理した test_area / suite_id / artifact_kind 方針を、責務Expected初期セットへ小さく適用する次ステップをインシデント登録。qaは既存互換として残し、新規責務UTは responsibilities 配下へ寄せる。"
   },
   "view_def_candidates": [
     {

@@ -6,14 +6,14 @@
   "title": "FRB Studio Test Evidence Rules Review Data",
   "target": "FRB Studio / JSON Object Studio / Test Evidence / Expected-Actual-Diff",
   "source_document": "FRB_TEST_EVIDENCE_RULES_v0_1_draft",
-  "source_version": "v0.1",
-  "conversion_note": "Expected JSON / Actual JSON / Diff JSON / Test Code の責務分離を、共通ルールレビューViewDefで扱えるように rules 配列へ構造化したData JSON。Markdownは原本ではなく、このJSONの出力Viewとして扱う想定。",
-  "status": "",
+  "source_version": "v0.2",
+  "conversion_note": "Expected JSON / Actual JSON / Diff JSON / Test Code の責務分離に加え、03_tests配下の test_area / suite_id / artifact_kind フォルダー分類を、共通ルールレビューViewDefで扱えるように rules 配列へ構造化したData JSON。Markdownは原本ではなく、このJSONの出力Viewとして扱う想定。",
+  "status": "updated_draft",
   "introduced_in": "v0.14.14-test-evidence-rules-contract",
   "generated_at": "2026-06-27T00:00:00+09:00",
-  "updated_at": "2026-06-27",
-  "rule_count": 12,
-  "approved_count": 12,
+  "updated_at": "2026-07-04",
+  "rule_count": 16,
+  "approved_count": 16,
   "approval_policy": "Expected / Actual / Diff / Test Code の責務を1行ずつレビューし、AI駆動開発におけるテスト証跡契約として運用する。",
   "preamble": "Test Evidence Rulesは、テスト失敗時にも人間とAIが失敗理由を追体験できるように、Expected / Actual / Diff / Test Code の責務境界を定義する。",
   "change_history_policy": "ルールを変更した場合は、各rule.change_historyへ変更前後と理由を残す。",
@@ -357,8 +357,8 @@
       "review_status": "未レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
-      "summary": "このルールはQA、Screen State、ViewDef検証など、Expected/Actual/Diffを持つテスト証跡に適用する。",
-      "body": "Test Evidence Rules は、以下のようなテスト証跡に適用する。\n\n```text\nQA Expected / Actual / Diff\nScreen State Expected / Actual / Diff\nViewDef静的検証\nIncident Prompt Copy Action検証\n将来追加されるExpected/Actual/Diff型の検証\n```\n\n一方で、すべての一時ログや開発メモにこの構造を強制しない。\n\nExpected / Actual / Diff の三者が意味を持つ検証に対して、この契約を適用する。\n過剰に適用して将来苦しくなると判断される場合は、人間へ相談する。\n",
+      "summary": "このルールはScreen State、Responsibilities、Actions、Contracts、Visual Evidenceなど、Expected/Actual/Diffを持つテスト証跡に適用する。qaは既存互換の旧領域として扱う。",
+      "body": "Test Evidence Rules は、Expected / Actual / Diff の三者が意味を持つ検証に適用する。\n\n適用対象の代表例:\n\n```text\nscreen_state      = 画面状態・DOM状態・UI状態の検証\nresponsibilities  = 責務Interface単位のUT検証\nactions           = ActionRegistry / toolbar / ボタン操作系の検証\ncontracts         = Schema / JSON / CSV / Markdown など形式契約の検証\nvisual_evidence   = スクショ証跡・画像差分・人間確認系の検証\n```\n\n既存の `qa` 配下にある資材は、広義QAの旧配置・既存互換領域として扱う。\n新規の標準配置先として `qa` を優先しない。\n\n一方で、すべての一時ログや開発メモにこの構造を強制しない。\n過剰に適用して将来苦しくなると判断される場合は、人間へ相談する。\n",
       "ceremony_phrase": "Test Evidence Rule 9「Test Evidence Rules の適用範囲」をレビューする。",
       "user_comment": "",
       "ai_response": "",
@@ -378,25 +378,40 @@
           "before": "テスト証跡ルールとして未定義。",
           "after": "Test Evidence Rules の適用範囲 を Test Evidence Rules として定義。",
           "reason": "Expected / Actual / Diff / Test Code の責務分離をAI作業の証跡契約として固定するため。"
+        },
+        {
+          "history_id": "chg_test_evidence_rule_009_v0189_001",
+          "at": "2026-07-04",
+          "change_type": "body_refine",
+          "before": "このルールはQA、Screen State、ViewDef検証など、Expected/Actual/Diffを持つテスト証跡に適用する。",
+          "after": "このルールはScreen State、Responsibilities、Actions、Contracts、Visual Evidenceなど、Expected/Actual/Diffを持つテスト証跡に適用する。qaは既存互換の旧領域として扱う。",
+          "reason": "qaを未来の標準分類として扱うと screen_state / responsibilities と意味が重なり、配置判断が曖昧になるため。"
         }
       ],
-      "decision_log": []
+      "decision_log": [
+        {
+          "decision_id": "dec_test_evidence_rule_009_v0189_001",
+          "at": "2026-07-04",
+          "decision": "qaは既存互換の旧領域とし、新規の標準test_areaは screen_state / responsibilities / actions / contracts / visual_evidence 等へ分ける。",
+          "reason": "大分類の言葉が散らばると、Expected / Actual / Diff / Test Pattern の置き場が後手後手になるため。"
+        }
+      ]
     },
     {
       "no": 10,
       "rule_id": "test_evidence_rule_010",
       "section_no": "10",
-      "source_heading": "テスト証跡フォルダーは03_tests配下に集約する",
+      "source_heading": "テスト証跡フォルダーは03_tests配下に test_area / suite_id / artifact_kind で集約する",
       "source_heading_level": 2,
       "parent_rule_id": "",
       "category": "folder_policy",
-      "title": "テスト証跡フォルダーは03_tests配下に集約する",
+      "title": "テスト証跡フォルダーは03_tests配下に test_area / suite_id / artifact_kind で集約する",
       "priority": "high",
       "review_status": "未レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
-      "summary": "Expected / Actual / Diff / Test Pattern / Relations / Summary / Notes は data/json/03_tests/{domain}/{suite_id}/ 配下を正本とする。",
-      "body": "Test Evidence の証跡正本は、原則として以下へ集約する。\n\n```text\ndata/json/03_tests/{domain}/{suite_id}/\n├─ test_patterns/\n├─ expected/\n├─ actual/\n├─ diff/\n├─ relations/\n├─ summary/\n└─ notes/\n```\n\n`data/json/03_tests/qa/...` や `data/json/03_tests/screen_state/...` のように、domain と suite_id で分ける。\n\n旧パス、空フォルダー、移行済みフォルダーをactive領域に残すと、正本と誤認される。\n移行済み旧データはactiveから除去し、必要に応じて `_archive/{削除日時}/` へ退避する。\n\nruntime一時生成物はこの正本フォルダーへ置かない。actual/diffとしてStudioくんで見る証跡だけを置く。",
+      "summary": "Expected / Actual / Diff / Test Pattern / Relations / Summary / Notes は data/json/03_tests/{test_area}/{suite_id}/{artifact_kind}/ 配下を正本とする。",
+      "body": "Test Evidence の証跡正本は、原則として以下へ集約する。\n\n```text\ndata/json/03_tests/{test_area}/{suite_id}/{artifact_kind}/\n├─ test_patterns/\n├─ expected/\n├─ actual/\n├─ diff/\n├─ relations/\n├─ summary/\n└─ notes/\n```\n\n用語は以下で固定する。\n\n```text\ntest_area      = 何をテストする領域か\nsuite_id       = 具体的なテストセット名\nartifact_kind  = test_patterns / expected / actual / diff / relations / summary / notes\n```\n\n`domain` という語は、既存資材の文脈では読んでよいが、新規のフォルダー設計説明では `test_area` を優先する。\n\n例:\n\n```text\ndata/json/03_tests/screen_state/screen_state_smoke_001/expected/\ndata/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/\ndata/json/03_tests/actions/incident_prompt_copy_action/diff/\ndata/json/03_tests/contracts/csv_export_format/expected/\n```\n\n旧パス、空フォルダー、移行済みフォルダーをactive領域に残すと、正本と誤認される。\n移行済み旧データはactiveから除去し、必要に応じて `_archive/{削除日時}/` へ退避する。\n\nruntime一時生成物はこの正本フォルダーへ置かない。\nactual/diffとしてStudioくんで見る証跡だけを置く。\n",
       "ceremony_phrase": "03_testsを正本にせよ。",
       "user_comment": "",
       "ai_response": "",
@@ -416,6 +431,14 @@
           "before": "該当ルールなし。",
           "after": "test_evidence_rule_010 テスト証跡フォルダーは03_tests配下に集約する を追加。",
           "reason": "テスト証跡の正本配置とテストコード共通化をTest Evidence Rules側にも明文化するため。"
+        },
+        {
+          "history_id": "chg_test_evidence_rule_010_v0189_001",
+          "at": "2026-07-04",
+          "change_type": "body_refine",
+          "before": "Expected / Actual / Diff / Test Pattern / Relations / Summary / Notes は data/json/03_tests/{domain}/{suite_id}/ 配下を正本とする。",
+          "after": "Expected / Actual / Diff / Test Pattern / Relations / Summary / Notes は data/json/03_tests/{test_area}/{suite_id}/{artifact_kind}/ 配下を正本とする。",
+          "reason": "domainという語が広く曖昧なため、03_tests配下では test_area / suite_id / artifact_kind の3語へ整理する。"
         }
       ],
       "decision_log": [
@@ -424,6 +447,12 @@
           "at": "2026-06-27",
           "decision": "Expected / Actual / Diff / Test Pattern / Relations / Summary / Notes は data/json/03_tests/{domain}/{suite_id}/ 配下を正本とする。",
           "reason": "Expected / Actual / Diff 証跡をData JSONで育て、テストコードの肥大化と旧パス誤認を防ぐため。"
+        },
+        {
+          "decision_id": "dec_test_evidence_rule_010_v0189_001",
+          "at": "2026-07-04",
+          "decision": "03_tests配下の標準パスを data/json/03_tests/{test_area}/{suite_id}/{artifact_kind}/ とする。",
+          "reason": "フォルダー名とファイル名のルールが揺れると、Expected / Actual / Diff / Test Pattern の正本が判別できなくなるため。"
         }
       ]
     },
@@ -516,6 +545,186 @@
           "reason": "QA Diff と Screen State Diff を同じViewDefで読める方向へ寄せるため。"
         }
       ]
+    },
+    {
+      "no": 13,
+      "rule_id": "test_evidence_rule_013",
+      "section_no": "13",
+      "source_heading": "03_tests配下の大分類はtest_areaとして予約する",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "folder_policy",
+      "title": "03_tests配下の大分類はtest_areaとして予約する",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "03_tests配下の大分類は test_area と呼び、definitions / responsibilities / screen_state / actions / contracts / visual_evidence / notes / qa を予約語として扱う。",
+      "body": "03_tests配下の第一階層は、`test_area` と呼ぶ。\n\n予約する test_area は以下とする。\n\n```text\ndefinitions      = テスト世界のマスタ・定義・分類表\nresponsibilities = 責務Interface単位のUT Expectedテスト\nscreen_state     = 画面状態・DOM状態・UI状態の検証\nactions          = ActionRegistry / toolbar / ボタン操作系の検証\ncontracts        = Schema / JSON / CSV / Markdown など形式契約の検証\nvisual_evidence  = スクショ証跡・画像差分・人間確認系\nnotes            = 03_tests全体の設計メモ\nqa               = 既存互換の旧・広義QA領域\n```\n\n新規に test_area を増やす前に、上記のどれかへ入らないか確認する。\n名前が増えすぎると、Expected / Actual / Diff / Test Pattern の置き場が曖昧になる。\n\n物理フォルダーは必要になったタイミングで作成してよい。\nただし、言葉としては上記を先に予約し、AIが勝手に別分類を増やさない。\n",
+      "ceremony_phrase": "03_tests配下のtest_area予約語をレビューする。",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "",
+      "approved_at": "",
+      "notes": "",
+      "source_line_start": 0,
+      "source_md_file": "",
+      "introduced_in": "v0.18.9-test-area-folder-policy-alignment",
+      "change_history": [
+        {
+          "history_id": "chg_test_evidence_rule_013_v0189_001",
+          "at": "2026-07-04",
+          "change_type": "rule_added",
+          "before": "該当ルールなし。",
+          "after": "test_evidence_rule_013 03_tests配下の大分類はtest_areaとして予約する を追加。",
+          "reason": "03_tests配下の大分類・命名・新規追加先の判断を前倒しで固定し、後手後手のフォルダー増殖を防ぐため。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_test_evidence_rule_013_v0189_001",
+          "at": "2026-07-04",
+          "decision": "03_tests配下の大分類は test_area と呼び、definitions / responsibilities / screen_state / actions / contracts / visual_evidence / notes / qa を予約語として扱う。",
+          "reason": "テスト証跡の置き場を人間とAIが同じ言葉で判断できるようにするため。"
+        }
+      ]
+    },
+    {
+      "no": 14,
+      "rule_id": "test_evidence_rule_014",
+      "section_no": "14",
+      "source_heading": "qaは既存互換の旧・広義QA領域として扱う",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "folder_policy",
+      "title": "qaは既存互換の旧・広義QA領域として扱う",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "qaは正式な未来分類ではなく、既存互換の旧・広義QA領域として扱い、新規標準配置先にはしない。",
+      "body": "`qa` は、既存互換の旧・広義QA領域として扱う。\n\n`qa` は Quality Assurance の略だが、Studioくんの 03_tests では広すぎる。\n`screen_state` も `responsibilities` も広い意味ではQAであり、`qa` を未来の標準分類にすると配置判断が曖昧になる。\n\n方針:\n\n```text\n既存の qa 配下資材:\n  すぐには移動しない。参照切れを避けるため既存互換として残す。\n\n新規の責務UT:\n  responsibilities へ置く。\n\n新規の画面状態テスト:\n  screen_state へ置く。\n\n新規のAction/ボタン操作系テスト:\n  actions へ置く。\n\n新規のSchema/形式契約テスト:\n  contracts へ置く。\n```\n\n既存 `qa` 配下の資材を移動する場合は、別インシデントで影響範囲・参照更新・移行理由を記録する。\nAIが独断で `qa` をリネーム・移動・削除してはいけない。\n",
+      "ceremony_phrase": "qaをlegacy領域として扱うルールをレビューする。",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "",
+      "approved_at": "",
+      "notes": "",
+      "source_line_start": 0,
+      "source_md_file": "",
+      "introduced_in": "v0.18.9-test-area-folder-policy-alignment",
+      "change_history": [
+        {
+          "history_id": "chg_test_evidence_rule_014_v0189_001",
+          "at": "2026-07-04",
+          "change_type": "rule_added",
+          "before": "該当ルールなし。",
+          "after": "test_evidence_rule_014 qaは既存互換の旧・広義QA領域として扱う を追加。",
+          "reason": "03_tests配下の大分類・命名・新規追加先の判断を前倒しで固定し、後手後手のフォルダー増殖を防ぐため。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_test_evidence_rule_014_v0189_001",
+          "at": "2026-07-04",
+          "decision": "qaは正式な未来分類ではなく、既存互換の旧・広義QA領域として扱い、新規標準配置先にはしない。",
+          "reason": "テスト証跡の置き場を人間とAIが同じ言葉で判断できるようにするため。"
+        }
+      ]
+    },
+    {
+      "no": 15,
+      "rule_id": "test_evidence_rule_015",
+      "section_no": "15",
+      "source_heading": "responsibility_expectedは責務UTの標準レイアウト候補として育てる",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "responsibility_expected",
+      "title": "responsibility_expectedは責務UTの標準レイアウト候補として育てる",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "responsibility_expected系は responsibilities 配下で育て、1つのtest_patterns行に responsibility_cd / input / expected を持つ小さなUTレイアウトを標準候補とする。",
+      "body": "responsibility_expected系は、責務Interface単位のUT Expectedテストとして `responsibilities` 配下で育てる。\n\n基本レイアウト:\n\n```json\n{\n  \"test_pattern_id\": \"...\",\n  \"responsibility_cd\": \"...\",\n  \"title\": \"...\",\n  \"test_level\": \"UT\",\n  \"expected_def_type\": \"RuleExpectedDef\",\n  \"enabled\": true,\n  \"input\": {},\n  \"expected\": {}\n}\n```\n\n小さな責務UTでは、`input` と `expected` を `test_patterns[]` の各行にインライン保持してよい。\nこれにより、最初のテストセットをStudioくんで読みやすくし、Expected JSONを育てる流れを優先する。\n\nただし、大きくなった場合は以下の分離を検討する。\n\n```text\ntest_patterns/ = テストパターン定義\nexpected/      = 大きな期待値の外部正本\nactual/        = 実行時観測値\ndiff/          = 比較結果\nrelations/     = 責務・Expected・テストの対応関係\nsummary/       = 実行サマリ\nnotes/         = 判断ログ・移行メモ\n```\n\n責務UTの新規資材を `qa` 直下へ増やさない。\n",
+      "ceremony_phrase": "responsibility_expectedの標準レイアウト候補をレビューする。",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "",
+      "approved_at": "",
+      "notes": "",
+      "source_line_start": 0,
+      "source_md_file": "",
+      "introduced_in": "v0.18.9-test-area-folder-policy-alignment",
+      "change_history": [
+        {
+          "history_id": "chg_test_evidence_rule_015_v0189_001",
+          "at": "2026-07-04",
+          "change_type": "rule_added",
+          "before": "該当ルールなし。",
+          "after": "test_evidence_rule_015 responsibility_expectedは責務UTの標準レイアウト候補として育てる を追加。",
+          "reason": "03_tests配下の大分類・命名・新規追加先の判断を前倒しで固定し、後手後手のフォルダー増殖を防ぐため。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_test_evidence_rule_015_v0189_001",
+          "at": "2026-07-04",
+          "decision": "responsibility_expected系は responsibilities 配下で育て、1つのtest_patterns行に responsibility_cd / input / expected を持つ小さなUTレイアウトを標準候補とする。",
+          "reason": "テスト証跡の置き場を人間とAIが同じ言葉で判断できるようにするため。"
+        }
+      ]
+    },
+    {
+      "no": 16,
+      "rule_id": "test_evidence_rule_016",
+      "section_no": "16",
+      "source_heading": "新規テスト証跡の置き場判定はtest_areaで行う",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "folder_policy",
+      "title": "新規テスト証跡の置き場判定はtest_areaで行う",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "新規テスト証跡を作る場合は、まず responsibilities / screen_state / actions / contracts / visual_evidence / definitions のどれに該当するかを判定し、qaへ安易に追加しない。",
+      "body": "新規テスト証跡を作る場合は、まず test_area を判定する。\n\n判定基準:\n\n```text\n責務Interfaceを直接叩く？\n  → responsibilities\n\n画面/DOM/Playwright状態を見る？\n  → screen_state\n\nActionRegistry / toolbar / ボタン操作を見る？\n  → actions\n\nSchema / JSON / CSV / Markdown など形式契約を見る？\n  → contracts\n\nスクショ / 画像差分 / 人間目視証跡？\n  → visual_evidence\n\n責務定義 / ExpectedDef種別 / TestLevel / EvidenceType などのマスタ？\n  → definitions\n\n既存互換・未分化の旧品質資材？\n  → qa\n```\n\n迷った場合は、AIが独断で新フォルダーを作らず、人間へ相談する。\n",
+      "ceremony_phrase": "新規テスト証跡の置き場判定ルールをレビューする。",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "",
+      "approved_at": "",
+      "notes": "",
+      "source_line_start": 0,
+      "source_md_file": "",
+      "introduced_in": "v0.18.9-test-area-folder-policy-alignment",
+      "change_history": [
+        {
+          "history_id": "chg_test_evidence_rule_016_v0189_001",
+          "at": "2026-07-04",
+          "change_type": "rule_added",
+          "before": "該当ルールなし。",
+          "after": "test_evidence_rule_016 新規テスト証跡の置き場判定はtest_areaで行う を追加。",
+          "reason": "03_tests配下の大分類・命名・新規追加先の判断を前倒しで固定し、後手後手のフォルダー増殖を防ぐため。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_test_evidence_rule_016_v0189_001",
+          "at": "2026-07-04",
+          "decision": "新規テスト証跡を作る場合は、まず responsibilities / screen_state / actions / contracts / visual_evidence / definitions のどれに該当するかを判定し、qaへ安易に追加しない。",
+          "reason": "テスト証跡の置き場を人間とAIが同じ言葉で判断できるようにするため。"
+        }
+      ]
     }
   ],
   "review_notes": [
@@ -542,9 +751,15 @@
       "at": "2026-06-27",
       "topic": "Diff Result共通フォーマット",
       "note": "v0.14.16で、diff.jsonをdiff_result_v0_1共通フォーマットへ寄せ、checks[].passを判定正本とするルールを追加。"
+    },
+    {
+      "note_id": "note_test_evidence_v0189_001",
+      "at": "2026-07-04",
+      "topic": "03_tests test_area分類整理",
+      "note": "v0.18.9で、03_tests配下の大分類を domain ではなく test_area と呼び、definitions / responsibilities / screen_state / actions / contracts / visual_evidence / notes / qa を予約語として整理。qaは既存互換の旧・広義QA領域として扱う。"
     }
   ],
-  "review_revision": "v0.14.16-diff-result-common-format-rules",
+  "review_revision": "v0.18.9-test-area-folder-policy-alignment",
   "view_def_candidates": [
     {
       "view_def": "rules/rule_review_common_view_def_v0_3.json",

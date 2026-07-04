@@ -1,0 +1,144 @@
+{
+  "schema_version": "responsibility_expected_tests_data_v0_1",
+  "document_type": "responsibility_expected_tests",
+  "view_def":"qa\\responsibility\\responsibility_expected_tests_view_def_v0_1.json",
+  "title": "Responsibility Expected Tests First Set / 責務単位Expectedテスト初期セット",
+  "work_item_id": "studio_work_0112",
+  "phase": "v0.18.8-responsibility-expected-tests-first-set",
+  "target_responsibilities": [
+    "grid_column_build",
+    "search_filter",
+    "csv_export"
+  ],
+  "policy": "v0.18.7で追加した責務Interfaceを対象に、まず小さく動くJSON駆動テストを作る。UI/DOM/VisualEvidence/studio_overlays直接テストは対象外とし、責務Interfaceの入力→出力だけを確認する。",
+  "test_patterns": [
+    {
+      "test_pattern_id": "grid_column_build_visible_fields_basic",
+      "responsibility_cd": "grid_column_build",
+      "title": "grid.visible=false のfieldをGrid列から除外する",
+      "test_level": "UT",
+      "expected_def_type": "RuleExpectedDef",
+      "enabled": true,
+      "input": {
+        "view_def": {
+          "fields": [
+            { "field": "id", "caption": "ID", "type": "text", "grid": { "visible": false } },
+            { "field": "title", "caption": "タイトル", "type": "text", "grid": { "visible": true } },
+            { "field": "score", "caption": "Score", "type": "number" }
+          ]
+        }
+      },
+      "expected": {
+        "field_names": ["title", "score"]
+      }
+    },
+    {
+      "test_pattern_id": "grid_column_build_empty_fields_safe",
+      "responsibility_cd": "grid_column_build",
+      "title": "fields未指定でも空配列を返し落ちない",
+      "test_level": "UT",
+      "expected_def_type": "ErrorExpectedDef",
+      "enabled": true,
+      "input": {
+        "view_def": {}
+      },
+      "expected": {
+        "field_names": []
+      }
+    },
+    {
+      "test_pattern_id": "search_filter_contains_case_insensitive",
+      "responsibility_cd": "search_filter",
+      "title": "文字列contains検索は大文字小文字を無視して絞り込む",
+      "test_level": "UT",
+      "expected_def_type": "RuleExpectedDef",
+      "enabled": true,
+      "input": {
+        "rows": [
+          { "id": "a", "title": "Alpha", "score": 3 },
+          { "id": "b", "title": "Beta", "score": 10 },
+          { "id": "c", "title": "Gamma", "score": 7 }
+        ],
+        "criteria": [
+          { "field": "title", "raw": "GA", "type": "text", "operator": "contains" }
+        ]
+      },
+      "expected": {
+        "row_ids": ["c"],
+        "indexes": [2]
+      }
+    },
+    {
+      "test_pattern_id": "search_filter_number_gte_preserves_indexes",
+      "responsibility_cd": "search_filter",
+      "title": "数値gte検索で条件一致行だけを返し元indexを保持する",
+      "test_level": "UT",
+      "expected_def_type": "StateExpectedDef",
+      "enabled": true,
+      "input": {
+        "rows": [
+          { "id": "a", "title": "Alpha", "score": 3 },
+          { "id": "b", "title": "Beta", "score": 10 },
+          { "id": "c", "title": "Gamma", "score": 7 }
+        ],
+        "criteria": [
+          { "field": "score", "raw": "7", "type": "number", "operator": "gte" }
+        ]
+      },
+      "expected": {
+        "row_ids": ["b", "c"],
+        "indexes": [1, 2]
+      }
+    },
+    {
+      "test_pattern_id": "csv_export_visible_fields_with_key_and_escape",
+      "responsibility_cd": "csv_export",
+      "title": "表示列にkey列を追加し、カンマとダブルクォートをCSV escapeする",
+      "test_level": "UT",
+      "expected_def_type": "RuleExpectedDef",
+      "enabled": true,
+      "input": {
+        "resolve_fields": true,
+        "key_field_name": "id",
+        "base_fields": [
+          { "field": "title", "caption": "title", "type": "text" },
+          { "field": "score", "caption": "score", "type": "number" }
+        ],
+        "all_fields": [
+          { "field": "id", "caption": "id", "type": "text" },
+          { "field": "title", "caption": "title", "type": "text" },
+          { "field": "score", "caption": "score", "type": "number" }
+        ],
+        "rows": [
+          { "row": { "id": "a", "title": "A, quote \"here\"", "score": 3 }, "index": 0 }
+        ]
+      },
+      "expected": {
+        "field_names": ["id", "title", "score"],
+        "has_bom": false,
+        "csv_text": "id,title,score\r\na,\"A, quote \"\"here\"\"\",3\r\n"
+      }
+    },
+    {
+      "test_pattern_id": "csv_export_utf8_bom_option",
+      "responsibility_cd": "csv_export",
+      "title": "includeBom=true の場合はUTF-8 BOM付きCSV文字列を返す",
+      "test_level": "UT",
+      "expected_def_type": "RuleExpectedDef",
+      "enabled": true,
+      "input": {
+        "fields": [
+          { "field": "id", "caption": "id", "type": "text" }
+        ],
+        "rows": [
+          { "row": { "id": "a" }, "index": 0 }
+        ],
+        "include_bom": true
+      },
+      "expected": {
+        "has_bom": true,
+        "csv_without_bom": "id\r\na\r\n"
+      }
+    }
+  ]
+}

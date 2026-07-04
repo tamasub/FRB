@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
 
-const BASE_URL = 'http://localhost:5055/';
+const BASE_URL = 'http://localhost:5055/myindex.html';
 const TEST_ID = 'screen_state_smoke_001';
 const DIFF_VIEW_DEF = 'screen_state/screen_state_diff_view_def_base_v0_2_checks.json';
 const SCREEN_STATE_TEST_ROOT = path.join('data', 'json', '03_tests', 'screen_state', TEST_ID);
