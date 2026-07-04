@@ -4,7 +4,7 @@
   "test_area": "responsibilities",
   "suite_id": "responsibility_expected_first_set",
   "artifact_kind": "test_patterns",
-  "canonical_path": "data/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/responsibility_expected_test_patterns_view_def_v0_1.json",
+  "canonical_path": "data/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/responsibility_expected_test_patterns_data_v0_1.json",
   "view_def": "qa/responsibility/responsibility_expected_test_patterns_view_def_v0_1.json",
   "title": "Responsibility Expected Tests First Set / 責務単位Expectedテスト初期セット",
   "work_item_id": "studio_work_0112",
@@ -52,7 +52,7 @@
       },
       "expected": {
         "field_names": [
-          "title",
+          "title zzz",
           "score"
         ]
       }

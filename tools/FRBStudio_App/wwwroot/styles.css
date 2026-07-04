@@ -2135,10 +2135,10 @@ button.combo-folder-button:focus-visible {
 }
 .detail-subgrid-table th,
 .detail-subgrid-table td {
-  white-space: normal;
-  overflow: visible;
+  white-space: nowrap;
+  overflow: hidden;
   text-overflow: clip;
-  vertical-align: top;
+  vertical-align: middle;
 }
 .detail-subgrid-table th[data-subgrid-kind],
 .detail-subgrid-table td[data-subgrid-kind] {
@@ -2146,7 +2146,8 @@ button.combo-folder-button:focus-visible {
 }
 .detail-subgrid-table th[data-subgrid-kind=longText],
 .detail-subgrid-table td[data-subgrid-kind=longText] {
-  white-space: normal;
+  white-space: nowrap;
+  overflow: hidden;
 }
 .detail-subgrid-action-th,
 .detail-subgrid-row-actions {
@@ -2192,6 +2193,22 @@ button.combo-folder-button:focus-visible {
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
+}
+
+/* v0.18.12-rework-subgrid-readonly-action-hidden:
+   読取専用サブグリッドでは操作そのものが不要なため、操作列は表示しない。
+   Runtime側でも列を生成しないが、旧DOMが残った場合の保険としてCSSでも隠す。 */
+.detail-subgrid-edit.is-readonly .detail-subgrid-action-th,
+.detail-subgrid-edit.is-readonly .detail-subgrid-row-actions {
+  display: none;
+}
+.detail-subgrid-cell-input {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+}
+.detail-subgrid-cell-input[data-single-line-long-value="true"] {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 .detail-subgrid-cell-input {
   width: 100%;
@@ -2799,6 +2816,11 @@ textarea.detail-subgrid-cell-input {
 .detail-subgrid-card-preview-edit-value[data-editing="true"] {
   padding: 0;
 }
+.detail-subgrid-card-preview-edit-value.is-readonly-preview {
+  cursor: default;
+  background: #f8fafc;
+  color: #334155;
+}
 .detail-subgrid-card-preview-rendered {
   font-size: 12px;
   line-height: 1.35;
@@ -2812,4 +2834,40 @@ textarea.detail-subgrid-cell-input {
 .detail-subgrid-card-editor-value select.detail-subgrid-card-live-control,
 .detail-subgrid-card-editor-value input.detail-subgrid-card-live-control {
   min-height: 24px;
+}
+
+/* v0.18.11-subgrid-single-line-motivation-ui:
+   SubGrid一覧のtextarea地獄を廃止し、長文/JSONは1行・折り返し禁止・右端clip表示に寄せる。 */
+.detail-subgrid-table-wrap {
+  width: 100%;
+}
+.detail-subgrid-table {
+  width: 100%;
+  min-width: 720px;
+}
+.detail-subgrid-table th,
+.detail-subgrid-table td,
+.detail-subgrid-table th[data-subgrid-kind=longText],
+.detail-subgrid-table td[data-subgrid-kind=longText] {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+  vertical-align: middle;
+}
+.detail-subgrid-cell-input,
+.detail-subgrid-cell-input[data-single-line-long-value="true"] {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+}
+.detail-subgrid-cell-input[data-single-line-long-value="true"] {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  letter-spacing: -.01em;
+}
+.grid-cell-inline-json {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
 }

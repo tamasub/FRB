@@ -320,7 +320,7 @@
     }
   ],
   "commonEnumSources": [
-    "00_rules/common_enums_v0_1.json"
+    "config/common_enums_v0_1.json"
   ],
   "context": {
     "main_context": {

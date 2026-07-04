@@ -6,7 +6,7 @@
   "target": "Studioくんの値語彙を、FieldTypeから分離して管理するための共通Enum正本",
   "status": "active",
   "created_at": "2026-06-28",
-  "updated_at": "2026-06-28",
+  "updated_at": "2026-07-04",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "introduced_in": "v0.15.1-common-enums-definition",
@@ -1084,11 +1084,38 @@
       "change_type": "context_read_contract_enums",
       "summary": "context.failure_policy / context.trust_category を追加し、read_contract / context_refs の失敗時方針と信頼区分をEnum正本化。",
       "reason": "ViewDef文脈制御で required な参照が読めない場合の扱いと、正本/作業中/参照などの意味を表記揺れなく扱うため。"
+    },
+    {
+      "history_id": "chg_common_enums_v0_18_13_config_path_migration",
+      "at": "2026-07-04",
+      "change_type": "config_path_migration",
+      "before": "common_enums_v0_1.json は過去に data/json/00_rules 配下の参照を前提としていた。",
+      "after": "正本位置を data/json/config/common_enums_v0_1.json と明記し、API相対パス config/common_enums_v0_1.json と旧パスAliasを記録した。",
+      "reason": "共通Enum/Value Vocabulary Registryはルール本文ではなく、Studio Core設定・値語彙Configとして扱うため。"
     }
   ],
   "logical_schema_version": "value_vocabulary_registry_v0_1",
   "registry_id": "core.common_enums",
   "registry_scope": "core",
   "registry_scope_name": "Core標準語彙",
-  "schema_unification_note": "common_enums は Value Vocabulary Registry Schema の Coreスコープ実体である。Overlay側 value_sets と別スキーマとして育てない。"
+  "schema_unification_note": "common_enums は Value Vocabulary Registry Schema の Coreスコープ実体である。Overlay側 value_sets と別スキーマとして育てない。",
+  "canonical_path": "data/json/config/common_enums_v0_1.json",
+  "api_data_path": "config/common_enums_v0_1.json",
+  "legacy_path_aliases": [
+    {
+      "legacy_path": "data/json/00_rules/common_enums_v0_1.json",
+      "api_alias": "00_rules/common_enums_v0_1.json",
+      "current_path": "data/json/config/common_enums_v0_1.json",
+      "current_api_path": "config/common_enums_v0_1.json",
+      "status": "migrated_alias"
+    },
+    {
+      "legacy_path": "json/00_rules/common_enums_v0_1.json",
+      "api_alias": "json/00_rules/common_enums_v0_1.json",
+      "current_path": "data/json/config/common_enums_v0_1.json",
+      "current_api_path": "config/common_enums_v0_1.json",
+      "status": "migrated_alias"
+    }
+  ],
+  "config_migration_note": "v0.18.13で common_enums_v0_1.json は Rules ではなく Studio Core の値語彙Configとして data/json/config 配下を正本位置にした。Runtimeは旧 00_rules 指定を互換Aliasとして config/common_enums_v0_1.json へ正規化する。"
 }

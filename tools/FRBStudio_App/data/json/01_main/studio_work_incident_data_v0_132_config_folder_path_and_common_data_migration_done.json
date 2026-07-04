@@ -12,7 +12,7 @@
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。",
-  "items_count": 59,
+  "items_count": 66,
   "work_items": [
     {
       "work_item_id": "studio_work_0007",
@@ -10329,6 +10329,764 @@
       "actual_updated_files": "tests/responsibilities/run_responsibility_expected_tests.mjs\ndata/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/responsibility_expected_tests_first_set_data_v0_1.json\ndefs/qa/responsibility/responsibility_expected_tests_view_def_v0_1.json\ndata/json/03_tests/responsibilities/responsibility_expected_first_set/expected/.gitkeep\ndata/json/03_tests/responsibilities/responsibility_expected_first_set/actual/.gitkeep\ndata/json/03_tests/responsibilities/responsibility_expected_first_set/diff/.gitkeep\ndata/json/03_tests/responsibilities/responsibility_expected_first_set/relations/.gitkeep\ndata/json/03_tests/responsibilities/responsibility_expected_first_set/summary/.gitkeep\ndata/json/03_tests/responsibilities/responsibility_expected_first_set/notes/RESPONSIBILITY_EXPECTED_FIRST_SET_FOLDER_LAYOUT_NOTES_v0_18_9.md\ndata/json/00_rules/md/TEST_AREA_FOLDER_LAYOUT_ALIGNMENT_REPORT_v0_18_9.md\ndata/json/01_main/studio_work_incident_data_v0_124_test_area_folder_layout_alignment_done.json",
       "completion_summary": "Test Evidence Rules v0.2 の `test_area / suite_id / artifact_kind` 方針を、責務Expected初期セットへ小さく適用した。今後の responsibility_expected 追加では、`data/json/03_tests/responsibilities/{suite_id}/{artifact_kind}/` を標準配置として使う起点を作った。",
       "test_result": "JSON parse確認OK。JS構文確認OK。\n`node tests/responsibilities/run_responsibility_expected_tests.mjs` は 6/6 PASS。\n旧MVP直置きパス指定 `data/json/03_tests/responsibilities/responsibility_expected_tests_first_set_data_v0_1.json` でもfallbackにより 6/6 PASS。\nブラウザ実機でのViewDef読込確認は未実施。"
+    },
+    {
+      "work_item_id": "studio_work_0114",
+      "phase": "v0.18.10-responsibility-expected-diff-evidence-output",
+      "title": "Responsibility Expected Diff Evidence Output / 責務Expected Diff証跡出力",
+      "incident_type": "test_evidence_improvement",
+      "category": "responsibility_expected_tests",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-04",
+      "updated_at": "2026-07-04",
+      "target_files": "tests/responsibilities/run_responsibility_expected_tests.mjs, data/json/03_tests/responsibilities/responsibility_expected_first_set/actual/*.json, data/json/03_tests/responsibilities/responsibility_expected_first_set/diff/*.json, defs/qa/responsibility/*_view_def_v0_1.json",
+      "objective": "責務ExpectedテストをPASS/FAILコンソール出力だけで終わらせず、Studioくんで読めるActual JSONとDiff JSONを生成し、差分画面で判断できる状態へ進める。",
+      "background": "responsibility_expected_test_patterns_data_v0_1.json はテストパターン定義として読めるが、パターン画面だけでは何が実際に観測され、ExpectedとActualがどう一致したかを判断できない。ユーザーから「diffの画面をみるところにたどり着かないとなにも判断できない」と指摘があった。",
+      "scope": "Node runnerが実行時にActual JSONとdiff_result_v0_1形式のDiff JSONを出力する。Diff用ViewDefとActual用ViewDefを追加し、Diff checks[] をStudioくんで確認できるようにする。既存6件の責務Expectedテストは引き続き6/6 PASSすることを確認する。",
+      "out_of_scope": "Playwright/DOM/Visual Evidence/スクショ差分は対象外。Expectedの外部ファイル分割や旧qa/screen_stateの移動も対象外。",
+      "fixed_name_policy": "出力先は03_testsのtest_area/suite_id/artifact_kind契約に従う。diff.jsonはdiff_result_v0_1とchecks[].passを標準とする。一般Runtimeへ責務Expected専用フィールド名を要求しない。",
+      "module_policy": "既存のNode .mjs runnerを継続し、ブラウザRuntimeのmodule方式変更は行わない。",
+      "expected_outputs": "Actual JSON、Diff JSON、Diff ViewDef、Actual ViewDef、runnerの証跡出力対応、作業レポート、更新後インシデントJSON。",
+      "risk": "Actualに判定結果を混ぜるとTest Evidence Rulesの責務分離が崩れる。Diff出力を追加してもViewDefで読めなければ証跡として使えない。",
+      "test_points": "node tests/responsibilities/run_responsibility_expected_tests.mjs が6/6 PASSし、actual/diffファイルのパスを表示すること。Diff JSONがStudioくんで開けるview_defを持つこと。actualには観測値、diffには判定結果を置くこと。",
+      "user_request": "パターン画面だけでは判断できないため、diffの画面を見られるところまで一気に進めてほしい。",
+      "ai_response": "runnerにActual/Diff証跡出力を追加し、責務Expected Diff用ViewDefとActual用ViewDefを作成した。実行後にactual/diffの出力パスを表示し、Diff JSONをStudioくんで開けるようにした。",
+      "latest_user_comment": "これは通っている。とりあえず、diffの画面をみるところにたどり着かないとなにも判断できない状態。パターンだとなにもみえないし、いっきにDiffを画面で見れるところまで行ってほしい。",
+      "latest_ai_response": "v0.18.10としてActual/Diff JSON生成とDiff表示ViewDefを追加。Node実行で6/6 PASS、actual/diff出力を確認。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0114_001",
+          "at": "2026-07-04",
+          "speaker": "user",
+          "topic": "Diff画面到達の必要性",
+          "message": "テストパターン画面だけでは判断できない。Diffの画面を見られるところまで進めたい。"
+        },
+        {
+          "history_id": "disc_0114_002",
+          "at": "2026-07-04",
+          "speaker": "assistant",
+          "topic": "対応方針",
+          "message": "責務Expected runnerがActualとdiff_result_v0_1形式のDiffを出力し、Diff ViewDefでchecks[]を確認できるようにする。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0114_001",
+          "at": "2026-07-04",
+          "decision": "responsibility_expectedのテストパターンファイルはtest_patterns配置のまま、runnerがactual/diff証跡を生成する。",
+          "reason": "テストパターン定義と実行証跡を分離し、画面上ではDiffをレビュー対象にするため。"
+        },
+        {
+          "decision_id": "dec_0114_002",
+          "at": "2026-07-04",
+          "decision": "Actual JSONには観測値を置き、判定結果はDiff JSONへ置く。",
+          "reason": "Test Evidence RulesのExpected/Actual/Diff責務分離を守るため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0114_001",
+          "at": "2026-07-04",
+          "change_type": "diff_evidence_output_added",
+          "before": "runnerはコンソールにPASS/FAILを出すだけで、Studioくんで読むActual/Diff証跡を生成していなかった。",
+          "after": "runnerがactual/responsibility_expected_first_set_actual_data_v0_1.json と diff/responsibility_expected_first_set_diff_data_v0_1.json を出力するようになった。",
+          "reason": "人間とAIがStudioくん上でExpected/Actual/Diffを追体験できるようにするため。"
+        }
+      ],
+      "verification_status": "確認済み",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-07-04",
+      "context_def_draft": "# ContextDef素案: v0.18.10-responsibility-expected-diff-evidence-output\n\n## 読む目的\n責務Expectedテストをコンソール出力だけでなく、Studioくんで読めるActual/Diff証跡へ接続する。\n\n## 作業前に読む入口\n- Test Evidence Rules の Expected / Actual / Diff 責務分離を確認する。\n- v0.18.9 の test_area/suite_id/artifact_kind配置ルールを確認する。\n\n## 注意\nActual JSONに判定結果を混ぜない。Diff JSONはdiff_result_v0_1へ寄せ、checks[].passを判定正本にする。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0114_001_test_evidence_rules",
+          "title": "Test Evidence Rulesを確認する",
+          "read_timing": "before_work",
+          "target_path": "data/json/00_rules/frb_test_evidence_rules_data_v0_2.json",
+          "purpose": "Expected/Actual/Diff/Test Codeの責務分離と03_tests配置ルールを確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0114_002_previous_incident",
+          "title": "前段 studio_work_0113 を確認する",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_124_test_area_folder_layout_alignment_done.json#studio_work_0113",
+          "purpose": "responsibility_expected_first_set の標準配置への移行内容を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        }
+      ],
+      "actual_updated_files": "tests/responsibilities/run_responsibility_expected_tests.mjs\ndefs/qa/responsibility/responsibility_expected_diff_view_def_v0_1.json\ndefs/qa/responsibility/responsibility_expected_actual_view_def_v0_1.json\ndata/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/responsibility_expected_test_patterns_data_v0_1.json\ndata/json/03_tests/responsibilities/responsibility_expected_first_set/actual/responsibility_expected_first_set_actual_data_v0_1.json\ndata/json/03_tests/responsibilities/responsibility_expected_first_set/diff/responsibility_expected_first_set_diff_data_v0_1.json\ndata/json/00_rules/md/RESPONSIBILITY_EXPECTED_DIFF_EVIDENCE_OUTPUT_REPORT_v0_18_10.md\ndata/json/01_main/studio_work_incident_data_v0_125_responsibility_expected_diff_evidence_output_done.json",
+      "completion_summary": "責務Expected runnerからActual/Diff証跡を出力し、DiffをStudioくんで確認できるViewDefを追加した。",
+      "test_result": "node tests/responsibilities/run_responsibility_expected_tests.mjs 実行で6/6 PASS。Actual/Diff JSON出力を確認。JSON parse確認OK。ブラウザ実機でのDiff画面読込は未実施。"
+    },
+    {
+      "work_item_id": "studio_work_0126",
+      "phase": "v0.18.11-subgrid-single-line-test-pattern-viewdef",
+      "title": "サブグリッドtextarea廃止・1行JSON表示・テストパターンViewDefレビュー列表示",
+      "incident_type": "ui_improvement",
+      "category": "FRBStudio_App / Detail SubGrid / Responsibility Expected Test ViewDef",
+      "priority": "high",
+      "status": "done",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-04",
+      "updated_at": "2026-07-04",
+      "target_files": [
+        "wwwroot/js/runtime/detail_subgrid_edit.js",
+        "wwwroot/js/renderers/field_controls.js",
+        "wwwroot/js/renderers/grid_detail.js",
+        "wwwroot/styles.css",
+        "defs/qa/responsibility/responsibility_expected_test_patterns_view_def_v0_1.json",
+        "data/json/00_rules/md/SUBGRID_SINGLE_LINE_TEST_PATTERN_VIEWDEF_REPORT_v0_18_11.md",
+        "data/json/01_main/studio_work_incident_data_v0_126_subgrid_single_line_test_pattern_viewdef_done.json"
+      ],
+      "objective": "サブグリッド内の長文・JSON textarea が低身長セル内で潰れて読めない問題を解消し、一覧グリッドをレビュー可能な情報表示へ戻す。あわせて責務ExpectedテストパターンViewDefで input / expected のサブグリッド・JSON系情報をグリッドに出し、テスト設計書として読める入口を作る。",
+      "background": "ユーザーから「サブグリッドのテキストボックスは廃止」「一行表示にして、長いやつは右端が隠れるだけなら耐えられる」「右に余白がある場合はgrid欄をめいっぱい広くしたい」と指摘があった。Preview Editは深掘り編集として有効だが、通常一覧で毎回開くのは重い。",
+      "scope": "Detail SubGrid一覧のtextarea生成を廃止し、object/array/json/長文も1行input表示へ変更。改行は表示上collapseし、Preview Editでは従来どおり詳細表示・編集する。SubGridの長文列は右余白を自動吸収する。責務ExpectedテストパターンViewDefでは input.view_def.fields / input.rows / input.criteria / input.base_fields / input.all_fields / expected系をグリッド表示し、inline JSON表示を指定する。",
+      "out_of_scope": "Preview Edit自体の全面再設計、SubViewDef専用エディタ化、Runnerの期待値仕様変更、テストパターンデータ内容の修正は対象外。",
+      "fixed_name_policy": "既存関数名・既存ViewDef名を維持し、今回の表示方針はv0.18.11コメントとして追記する。",
+      "module_policy": "SubGridの表示改善はdetail_subgrid_edit.jsに閉じる。通常グリッドのinline JSON表示はformatValue/grid_detail側の汎用表示オプションとして追加する。",
+      "expected_outputs": "サブグリッド一覧の長文セルがtextareaにならず、折り返さない1行表示になる。右余白がある場合、longText/json列が余白を吸収する。テストパターン画面で input / expected の主要情報がグリッド上に表示される。",
+      "risk": "1行inputで直接編集した場合、表示上collapseされた改行をそのまま保存すると改行情報が失われる可能性がある。複数行の本格編集はPreview Editを使う前提とし、今回の主目的は一覧レビュー性の改善とする。",
+      "test_points": [
+        "ViewDef Fieldsのgrid列がtextareaではなく1行inputで表示されること",
+        "JSON object値が {\"visible\":true} 形式の1行で表示され、セル高さが増えないこと",
+        "右側に余白がある場合、longText/json列が可能な範囲で広がること",
+        "Preview Editボタンは従来どおり動作すること",
+        "responsibility_expected_test_patterns_view_def_v0_1.json の主要 input/expected フィールドがgrid.visible=trueになっていること"
+      ],
+      "user_request": "「サブグリッドのUIみただけでモチベーションあがっちゃいました対応」と「テストパターンViewDefにこのサブグリッド情報出す対応」を実施し、作業履歴としてインシデント登録する。",
+      "ai_response": "SubGrid一覧textarea廃止、1行JSON表示、余白吸収、TestPattern ViewDefのinline JSON列表示を実装した。",
+      "latest_user_comment": "textarea は廃止をすればいいだけ。一行表示で長い値は右端が隠れ、折れ曲がらなければ耐えられる。右余白はgrid欄へ寄せたい。",
+      "latest_ai_response": "サブグリッド一覧をレビュー用1行セルへ寄せ、深掘り編集はPreview Editへ残す方針で対応。",
+      "discussion_history": [
+        {
+          "at": "2026-07-04",
+          "speaker": "user",
+          "summary": "サブグリッドのtextareaが潰れて読めず、UIとして限界と指摘。"
+        },
+        {
+          "at": "2026-07-04",
+          "speaker": "user",
+          "summary": "1行表示で右端が隠れるだけなら許容できる、折り返しを禁止したいと整理。"
+        },
+        {
+          "at": "2026-07-04",
+          "speaker": "user",
+          "summary": "右側に余白がある時は長文列・grid列へ自動配分してほしいと要望。"
+        },
+        {
+          "at": "2026-07-04",
+          "speaker": "assistant",
+          "summary": "textarea廃止、nowrap/clip、longText列の余白吸収、TestPattern ViewDefへの主要input/expected列表示を実装する方針を採用。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision": "SubGrid一覧のtextareaは廃止する",
+          "reason": "低身長セル内のtextareaは内容が読めず、セル高さも崩しやすいため。"
+        },
+        {
+          "decision": "長文・JSONは1行input表示にする",
+          "reason": "軽い修正可能性を残しつつ、折り返しによる崩壊を防ぐため。"
+        },
+        {
+          "decision": "本格編集はPreview Editに寄せる",
+          "reason": "複数行・Markdown・JSONの意味ある編集は既存のカード型編集画面の方が安全なため。"
+        },
+        {
+          "decision": "TestPattern ViewDefではinput/expectedをgrid表示する",
+          "reason": "TestPatternを実行データではなくレビューできる設計書へ育てるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "file": "wwwroot/js/runtime/detail_subgrid_edit.js",
+          "summary": "subGridCellTextを1行JSON寄せにし、createSubGridCellControlのtextarea生成を廃止。longText/json列の右余白吸収処理を追加。"
+        },
+        {
+          "file": "wwwroot/js/renderers/field_controls.js",
+          "summary": "grid.display=json / inlineJson指定時にobject/arrayを1行JSON表示する分岐を追加。"
+        },
+        {
+          "file": "wwwroot/js/renderers/grid_detail.js",
+          "summary": "inline JSONセルへ専用classとtitleを付与。"
+        },
+        {
+          "file": "wwwroot/styles.css",
+          "summary": "SubGrid一覧のnowrap/clip、single-line long value、grid-cell-inline-jsonのCSSを追加。"
+        },
+        {
+          "file": "defs/qa/responsibility/responsibility_expected_test_patterns_view_def_v0_1.json",
+          "summary": "主要input/expectedフィールドをグリッド表示化し、inline JSON表示を指定。input.view_def.fieldsのSubGrid columnsにgrid/edit json列を明示。"
+        }
+      ],
+      "verification_status": "partial",
+      "context_def_status": "not_required",
+      "context_def_updated_at": "2026-07-04",
+      "context_def_draft": "",
+      "context_refs": [],
+      "actual_updated_files": "wwwroot/js/runtime/detail_subgrid_edit.js\nwwwroot/js/renderers/field_controls.js\nwwwroot/js/renderers/grid_detail.js\nwwwroot/styles.css\ndefs/qa/responsibility/responsibility_expected_test_patterns_view_def_v0_1.json\ndata/json/00_rules/md/SUBGRID_SINGLE_LINE_TEST_PATTERN_VIEWDEF_REPORT_v0_18_11.md\ndata/json/01_main/studio_work_incident_data_v0_126_subgrid_single_line_test_pattern_viewdef_done.json",
+      "completion_summary": "SubGrid一覧のtextareaを廃止し、長文/JSONを1行・折り返し禁止・右端clip表示へ変更した。右余白はlongText/json列へ寄せる自動調整を追加。責務ExpectedテストパターンViewDefでは、Input/Expectedの主要情報をグリッド上に出し、レビュー入口を強化した。",
+      "test_result": "node tests/responsibilities/run_responsibility_expected_tests.mjs は、ユーザーが意図的に赤くした grid_column_build_visible_fields_basic の期待値(title zzz)により 5/6。今回修正対象のUI/ViewDef変更とは別要因。"
+    },
+    {
+      "work_item_id": "studio_work_0127",
+      "phase": "v0.18.12-subgrid-preview-edit-action-column-polish",
+      "title": "サブグリッド1行表示の追撃改善 / Preview Edit空欄化修正 / 操作列コンパクト化 / 文書Markdown復帰",
+      "incident_type": "bugfix",
+      "category": "subgrid_ui",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-04",
+      "updated_at": "2026-07-04",
+      "target_files": "wwwroot/js/runtime/detail_subgrid_edit.js, wwwroot/js/markdown/data_markdown.js, wwwroot/styles.css, defs/qa/responsibility/responsibility_expected_test_patterns_view_def_v0_1.json, data/json/00_rules/md/SUBGRID_PREVIEW_EDIT_ACTION_COLUMN_POLISH_REPORT_v0_18_12.md",
+      "objective": "v0.18.12の再依頼として、文書Markdownがタイトルだけになる問題を直し、読取専用サブグリッドの操作列を圧縮ではなく非表示へ改める。",
+      "background": "前回はPreview Edit空欄化と文書Markdownモード復帰までは対応したが、document_rebuildはsource未指定時に$.rulesを見に行くため責務ExpectedテストDataでは本文が出なかった。また、読取専用サブグリッドの操作列を34pxへ圧縮する判断は、操作不要という本来意図に合っていなかった。",
+      "scope": "document_rebuildのsource未指定時にViewDef sectionsを文書化するfallbackを追加し、grid/form/objectArrayサブグリッドをMarkdown出力する。読取専用サブグリッドでは操作列をDOM生成せず、Previewも表示専用へ寄せる。",
+      "out_of_scope": "文書Markdownの完全なテンプレートエンジン化、サブグリッド専用ViewDefエディタ化、テストパターンDataの内容修正は対象外。",
+      "user_request": "文書Markdownボタンをクリックしてもタイトルしか出ないので、サブグリッド含めて文章が出るようにしたい。サブグリッド左端の列はReadOnly起因の見た目の悪さと思われるため、ReadOnlyなら操作列を圧縮ではなく非表示にしたい。",
+      "ai_response": "document_rebuildのsource未指定時にViewDef sectionsから文書を再構成するfallbackを実装し、form/grid/objectArrayサブグリッドをMarkdown化する。読取専用サブグリッドでは操作列を生成せず、旧DOM保険としてCSSでも非表示にする。読取専用Previewでは追加・移動・削除・一覧反映を出さない。",
+      "decision_log": [
+        {
+          "at": "2026-07-04",
+          "decision": "SubGridの値収集は .detail-subgrid-cell-input[data-column=...] から読む。td[data-column]はレイアウト用であり値取得対象にしない。"
+        },
+        {
+          "at": "2026-07-04",
+          "decision": "読取専用サブグリッドでは操作列を空見出し＋34px固定にし、余白をデータ列へ渡す。"
+        },
+        {
+          "at": "2026-07-04",
+          "decision": "責務ExpectedテストパターンViewDefのMarkdown modesへ document_rebuild / 文書Markdown出力 を明示追加する。"
+        },
+        {
+          "at": "2026-07-04",
+          "decision": "前回の「読取専用サブグリッド操作列を34px固定にする」判断を撤回する。",
+          "reason": "ReadOnlyの本質は操作不要であり、空の操作列を残すと意味のない左端余白として見えてしまうため。"
+        },
+        {
+          "at": "2026-07-04",
+          "decision": "読取専用サブグリッドでは操作列をDOM生成しない。旧DOM対策としてCSSでも非表示にする。",
+          "reason": "操作しない列はUI上も存在しない方が自然で、余白をデータ列へ渡せるため。"
+        },
+        {
+          "at": "2026-07-04",
+          "decision": "document_rebuildのsource未指定時はViewDef sectionsを文書化するfallbackを使う。",
+          "reason": "Dataごとに$.rulesのような固定配列名を持つとは限らず、ViewDefがすでにDataの読み方を持っているため。"
+        }
+      ],
+      "change_history": [
+        {
+          "at": "2026-07-04",
+          "file": "wwwroot/js/runtime/detail_subgrid_edit.js",
+          "change": "collectDetailSubGridValueを入力コントロール限定取得へ変更。読取専用時の操作列見出しを空に変更。"
+        },
+        {
+          "at": "2026-07-04",
+          "file": "wwwroot/styles.css",
+          "change": "サブグリッドセルをnowrap/hidden化し、読取専用操作列を34pxへコンパクト化。"
+        },
+        {
+          "at": "2026-07-04",
+          "file": "defs/qa/responsibility/responsibility_expected_test_patterns_view_def_v0_1.json",
+          "change": "Markdown modesに文書Markdown出力(document_rebuild)を追加。"
+        },
+        {
+          "at": "2026-07-04",
+          "file": "wwwroot/js/markdown/data_markdown.js",
+          "change": "document_rebuildでsource未指定の場合、ViewDef sectionsからform/grid/objectArrayサブグリッドをMarkdown化するfallbackを追加。"
+        },
+        {
+          "at": "2026-07-04",
+          "file": "wwwroot/js/runtime/detail_subgrid_edit.js",
+          "change": "ReadOnly時は操作列th/tdを生成しない。Previewボタンをプレビュー表記にし、Preview内の追加・移動・削除・一覧反映を非表示化。"
+        },
+        {
+          "at": "2026-07-04",
+          "file": "wwwroot/styles.css",
+          "change": "ReadOnly操作列の34px固定CSSを非表示CSSへ変更し、ReadOnly Previewの表示スタイルを追加。"
+        },
+        {
+          "at": "2026-07-04",
+          "file": "data/json/00_rules/md/SUBGRID_PREVIEW_EDIT_ACTION_COLUMN_POLISH_REPORT_v0_18_12.md",
+          "change": "再依頼分の判断撤回・文書Markdown fallback・ReadOnly操作列非表示を追記。"
+        }
+      ],
+      "test_points": "文書Markdown出力でタイトルだけでなく、基本情報・テストパターン・Input/Expectedサブグリッドが出ること。ReadOnlyサブグリッドの左端操作列が表示されないこと。ReadOnly Previewで追加・移動・削除・一覧反映が出ないこと。編集可能サブグリッドでは従来の操作が残ること。",
+      "result": "再依頼対応完了。node --check OK。文書Markdown簡易生成確認で、責務Expectedテストパターンの基本情報・行詳細・サブグリッド表が出ることを確認。",
+      "latest_user_comment": "「読取専用サブグリッドでは操作列を空見出し＋34px固定にし、余白をデータ列へ渡す。」→この判断はない。ReadOnlyの時は操作不要なので列を非表示にしたい。文書Markdownもタイトルだけでなくサブグリッド含めて出したい。",
+      "latest_ai_response": "34px固定判断を撤回し、ReadOnly操作列はDOM生成しない/ CSS保険で非表示にする方針へ変更。文書MarkdownはViewDef sections fallbackでサブグリッドまで出すよう修正。",
+      "discussion_history": [
+        {
+          "at": "2026-07-04",
+          "speaker": "user",
+          "topic": "v0.18.12再依頼",
+          "message": "文書Markdownがタイトルしか出ない。サブグリッド含めて文章を出したい。読取専用サブグリッドの操作列を34px固定にする判断はなく、操作不要なら列を非表示にしたい。"
+        },
+        {
+          "at": "2026-07-04",
+          "speaker": "assistant",
+          "topic": "v0.18.12再対応方針",
+          "message": "document_rebuildのsource未指定時はViewDef sectionsから文書化する。ReadOnlyサブグリッドは操作列を生成せず、Previewも表示専用へ寄せる。"
+        }
+      ],
+      "actual_updated_files": [
+        "wwwroot/js/markdown/data_markdown.js",
+        "wwwroot/js/runtime/detail_subgrid_edit.js",
+        "wwwroot/styles.css",
+        "data/json/00_rules/md/SUBGRID_PREVIEW_EDIT_ACTION_COLUMN_POLISH_REPORT_v0_18_12.md",
+        "data/json/01_main/studio_work_incident_data_v0_127_subgrid_preview_edit_action_column_polish_done.json"
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0128",
+      "phase": "v0.18.13-config-folder-path-and-common-data-migration",
+      "title": "Configフォルダーパス設計 / 共通設定データ移行前整理",
+      "incident_type": "architecture_design",
+      "category": "config_folder",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-04",
+      "updated_at": "2026-07-04",
+      "target_files": "defs/config/config_folder_policy_v0_1.json, data/json/config/common_enums_v0_1.json, wwwroot/js/core/state.js, wwwroot/js/core/field_types.js, defs/rules/context_refs_sample_view_def_v0_1.json, data/json/00_rules/studio-overlay-manifest_rules_data_v0_1.json, data/json/00_rules/md/CONFIG_FOLDER_PATH_AND_COMMON_DATA_MIGRATION_REPORT_v0_18_13.md",
+      "objective": "FieldGroupType実装の前に、Studio Core拡張設定を置くConfigフォルダーパスを設計し、既存の共通設定系JSONをどこへ移すべきか整理する。",
+      "background": "FieldGroupTypeはExpected専用でもテスト専用でもなく、ViewDefを動的拡張するStudio Core機能である。そのため、設定置き場をdataではなくdefs/config配下にする案が出た。加えて、00_rules/common_enums_v0_1.json のような共通列挙・共通設定データが、ルール正本なのかCore設定なのか整理されていない。",
+      "scope": "defs/config の位置付け、命名、読み込みパス、既存defs/dataとの責務分離、common_enums_v0_1.json等の移行候補棚卸し、旧パス互換、ViewDef/Runtimeからの参照方法を整理する。",
+      "out_of_scope": "この作業ではFieldGroupType本体のStrategy実装やExpectedDef表示生成は行わない。まずConfig配置・移行方針・参照方針を決める。",
+      "fixed_name_policy": "config配下のファイル名はStudio Core設定の契約として扱う。ただしRuntimeが個別Dataの業務フィールド名に依存しない方針は維持する。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存script構成を前提に、必要なConfig Loaderまたはパス解決方針を整理する。",
+      "expected_outputs": "defs/config 配置設計、移行候補一覧、common_enums_v0_1.json の扱い判断、旧パス互換方針、FieldGroupType導入前の地ならしメモ。",
+      "risk": "ConfigとDataとRulesの境界が曖昧なままFieldGroupTypeを入れると、Studio Core設定がdata/json/00_rulesへ混ざり続け、後から移行コストが増える。",
+      "test_points": "defs/config配下に置くべきものとdata/json/00_rulesに残すべきものが説明できること。common_enums_v0_1.jsonの移行可否が判断されていること。旧パス参照がある場合の扱いが整理されていること。",
+      "user_request": "FieldGroupTypeの前に、Configフォルダーパスの設計と、00_rules/common_enums_v0_1.json などを整理してデータ移行する話をまず片付けたい。それも含めてインシデントへ登録したい。",
+      "ai_response": "FieldGroupType実装前の先行タスクとして、Configフォルダーパス設計と共通設定データ移行整理をインシデント化する。",
+      "latest_user_comment": "configフォルダーの作成とそこへのデータ移行（移動+パス修正）対応を依頼。incident_file と phase を指定し、Foundation Rules foundation_rule_019 を参照するよう指示。",
+      "latest_ai_response": "v0.18.13対応完了。common_enums_v0_1.json は既に data/json/config 配下に実体があったため、これを正本位置として明記し、Runtime既定パスを config/common_enums_v0_1.json へ変更した。旧 00_rules/common_enums_v0_1.json 指定は normalizeDataJsonApiPath で config/common_enums_v0_1.json へ互換Alias解決する。defs/config/config_folder_policy_v0_1.json を追加し、defs/config はFieldGroupType/FieldType等のViewDef拡張Config、data/json/config はRuntimeがDataとして読む値語彙Config、data/json/00_rules は承認対象Rulesとして役割分離した。context_refs_sample_view_def と studio-overlay-manifest_rules_data の参照も新パスへ修正した。FieldGroupType本体・ExpectedDef表示生成・FieldType Strategy化は後続フェーズとして未実装。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0128_001",
+          "at": "2026-07-04",
+          "speaker": "user",
+          "topic": "Configフォルダーパス設計の先行化",
+          "message": "FieldGroupTypeの前に、Configフォルダーパスの設計と、00_rules/common_enums_v0_1.json などの整理・データ移行をまず片付けたい。"
+        },
+        {
+          "history_id": "disc_0128_002",
+          "at": "2026-07-04",
+          "speaker": "assistant",
+          "topic": "先行インシデント化",
+          "message": "FieldGroupTypeはStudio Core拡張機構なので、dataではなくdefs/config管理が自然。まずConfig配置と既存共通設定データの移行候補整理を先行作業として登録する。"
+        },
+        {
+          "history_id": "disc_0128_003",
+          "at": "2026-07-04",
+          "speaker": "user",
+          "topic": "v0.18.13 configフォルダー作成・データ移行依頼",
+          "message": "configフォルダーの作成とそこへのデータ移行（移動+パス修正）対応を依頼。incident_file と phase を指定し、Foundation Rules foundation_rule_019 を参照するよう指示。"
+        },
+        {
+          "history_id": "disc_0128_004",
+          "at": "2026-07-04",
+          "speaker": "assistant",
+          "topic": "v0.18.13 configフォルダー作成・データ移行対応結果",
+          "message": "common_enums_v0_1.json の正本位置を data/json/config とし、Runtime既定パス・旧パス互換Alias・ViewDef参照・Overlayルール参照を修正。defs/config にConfigフォルダー責務方針ファイルを追加した。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0128_001",
+          "at": "2026-07-04",
+          "decision": "FieldGroupType実装前に、Configフォルダーパス設計と共通設定データ移行整理を先行する。",
+          "reason": "拡張設定の置き場が曖昧なまま実装すると、ViewDef拡張機構・Rules・Dataの責務境界が崩れるため。"
+        },
+        {
+          "decision_id": "dec_0128_002",
+          "at": "2026-07-04",
+          "decision": "defs/config をStudio Core拡張設定の有力候補として扱う。",
+          "reason": "FieldGroupTypeは業務データではなく、ViewDefを拡張するシステム共通機能であるため。"
+        },
+        {
+          "decision_id": "dec_0128_003",
+          "at": "2026-07-04",
+          "decision": "common_enums_v0_1.json は data/json/config/common_enums_v0_1.json を正本位置とする。",
+          "reason": "common_enumsはルール本文ではなく、FieldType/ValueSet解決に使うStudio Core値語彙Configであるため。"
+        },
+        {
+          "decision_id": "dec_0128_004",
+          "at": "2026-07-04",
+          "decision": "defs/config はViewDef拡張Config、data/json/config はRuntime値語彙Configとして分ける。",
+          "reason": "FieldGroupType/FieldType Strategy設定と、RuntimeでDataとして読むValue Vocabulary Registryを同じ置き場にすると責務が混ざるため。"
+        },
+        {
+          "decision_id": "dec_0128_005",
+          "at": "2026-07-04",
+          "decision": "旧 00_rules/common_enums_v0_1.json 指定はRuntime互換Aliasで新パスへ解決する。",
+          "reason": "既存ViewDefや履歴に旧パスが残っても即座に壊れないようにするため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0128_001",
+          "at": "2026-07-04",
+          "change_type": "incident_added",
+          "before": "FieldGroupType導入前のConfig配置・共通設定移行が作業項目化されていなかった。",
+          "after": "studio_work_0128 として、Configフォルダーパス設計 / 共通設定データ移行前整理を追加。",
+          "reason": "ExpectedDefのViewDef化やFieldGroupType動的切替の前提となる配置設計を先に片付けるため。"
+        },
+        {
+          "history_id": "chg_0128_002",
+          "at": "2026-07-04",
+          "change_type": "config_folder_path_and_common_data_migration_done",
+          "before": "Runtime既定Enumパスが 00_rules/common_enums_v0_1.json のままで、共通EnumがRulesなのかConfigなのか曖昧だった。defs/config の役割ファイルも未作成だった。",
+          "after": "Runtime既定Enumパスを config/common_enums_v0_1.json へ変更し、旧パスAliasを追加。common_enumsに正本パス情報を追加し、defs/config/config_folder_policy_v0_1.json と移行レポートを追加した。",
+          "reason": "FieldGroupType導入前にConfig/Data/Rulesの責務境界を整理するため。"
+        }
+      ],
+      "verification_status": "確認済み",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-07-04",
+      "context_def_draft": "# ContextDef素案: v0.18.13-config-folder-path-and-common-data-migration\n\n## 読む目的\nFieldGroupType実装の前に、Studio Core拡張設定を置くConfigフォルダーパスを設計し、既存の共通設定系JSONをどこへ移すべきか整理する。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0127` / v0.18.12-subgrid-preview-edit-action-column-polish: サブグリッドUI改善とテストパターンViewDef理解の直前文脈を確認する。\n- `studio_work_0109` / v0.18.5-test-design-document-responsibility-scope: ExpectedDef・責務境界・テスト仕様の整理文脈を確認する。\n- `studio_work_0016` / v0.9-rules-json-source-of-truth: ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、ConfigはStudio Core拡張設定として分離する。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\ndefs/config の位置付け、命名、読み込みパス、既存defs/dataとの責務分離、common_enums_v0_1.json等の移行候補棚卸し、旧パス互換、ViewDef/Runtimeからの参照方法を整理する。\n\n## 注意すべきリスク\nConfigとDataとRulesの境界が曖昧なままFieldGroupTypeを入れると、Studio Core設定がdata/json/00_rulesへ混ざり続け、後から移行コストが増える。\n\n## 確認観点メモ\ndefs/config配下に置くべきものとdata/json/00_rulesに残すべきものが説明できること。common_enums_v0_1.jsonの移行可否が判断されていること。旧パス参照がある場合の扱いが整理されていること。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0128_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_latest.json#studio_work_0128",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.18.13以降のFieldGroupType/FieldType設計前提として追加。"
+        },
+        {
+          "context_ref_id": "target_0128_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        }
+      ],
+      "fixed_in_version": "v0.18.13-config-folder-path-and-common-data-migration",
+      "actual_updated_files": "wwwroot/js/core/state.js\nwwwroot/js/core/field_types.js\ndefs/rules/context_refs_sample_view_def_v0_1.json\ndefs/config/config_folder_policy_v0_1.json\ndata/json/config/common_enums_v0_1.json\ndata/json/00_rules/studio-overlay-manifest_rules_data_v0_1.json\ndata/json/00_rules/md/CONFIG_FOLDER_PATH_AND_COMMON_DATA_MIGRATION_REPORT_v0_18_13.md\ndata/json/01_main/studio_work_incident_data_v0_132_config_folder_path_and_common_data_migration_done.json",
+      "completion_summary": "Configフォルダー責務を defs/config と data/json/config に分け、common_enums_v0_1.json の正本位置とRuntime参照パスを config 配下へ整理した。",
+      "test_result": "JSON parse確認OK。wwwroot/js/core/state.js / field_types.js の node --check OK。旧 00_rules/common_enums_v0_1.json 指定は互換Aliasで config/common_enums_v0_1.json へ寄せる設計にした。"
+    },
+    {
+      "work_item_id": "studio_work_0129",
+      "phase": "v0.18.14-fieldgroup-type-dynamic-switch-expecteddef-viewdef",
+      "title": "FieldGroupType動的切替対応 / ExpectedDefのViewDef化",
+      "incident_type": "feature_design",
+      "category": "field_group_type",
+      "priority": "high",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-04",
+      "updated_at": "2026-07-04",
+      "target_files": "defs/config/field_group_types*.json, defs/**/*.json, wwwroot/js/**/*renderer*.js, test pattern ViewDef/Data files",
+      "objective": "テストパターンの種類やData側の指定に応じてFieldGroupTypeを動的切替し、ExpectedDef系の期待値入力エリアをViewDef拡張として表示できるようにする。",
+      "background": "ExpectedDefは比較アルゴリズムではなく、期待値入力エリアの表示パターンであると整理した。さらにExpectedDefはExpected専用の概念ではなく、複数項目の意味あるまとまりであるFieldGroupTypeの一実装と捉えることになった。",
+      "scope": "FieldGroupTypeの静的指定と動的指定、Data側のFileGroupType/TestPatternType等による解決、ExpectedDefのViewDef化、RuleExpectedDef/StateExpectedDef/CsvExpectedDefなどの表示切替を整理する。",
+      "out_of_scope": "FieldTypeのStrategy化、lookup等のCustom FieldType対応、FieldGroupType Registryの完全汎用化は別インシデントで扱う。",
+      "fixed_name_policy": "FieldGroupType名はViewDef拡張契約として扱う。Data側の業務フィールド固定名に依存せず、解決対象フィールドはViewDefまたはConfigで宣言する。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存Runtimeに最小追加で動的解決を入れる。",
+      "expected_outputs": "FieldGroupType静的/動的指定案、ExpectedDef ViewDef化案、テストパターンViewDefへの適用、RuleExpectedDef/StateExpectedDef等の初期対応。",
+      "risk": "ExpectedDef専用実装として作ると、将来のTriggerDef/LookupDef/SearchConditionDef等へ広がらない。逆に最初から汎用化しすぎると実装が止まる。",
+      "test_points": "テストパターンの種類に応じて期待値欄が切り替わること。静的にExpectedDefを指定した場合も動くこと。ViewDef本体に期待値項目を大量直書きしないこと。",
+      "user_request": "FieldGroupTypeやってて、まずはFieldGroupTypeの動的切り替えをサポートして、ExpectedDefとかのViewDef化を先にしたい。",
+      "ai_response": "FieldGroupType動的切替とExpectedDefのViewDef化を次実装候補として登録する。ただし、その前にConfig配置整理を先行する。",
+      "latest_user_comment": "もとにもどって、さきに、FieldGroupTypeの動的切り替えをサポートして、ExpectedDefとかのViewDef化をまずしましょう？って話やったっけかな？",
+      "latest_ai_response": "順番はConfig配置整理の後、FieldGroupType動的切替とExpectedDefのViewDef化を優先する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0129_001",
+          "at": "2026-07-04",
+          "speaker": "user",
+          "topic": "ExpectedDefの再定義",
+          "message": "ExpectedDefは比較アルゴリズムではなく、期待値入力エリアの表示パターンであり、ViewDefを拡張する部品として扱いたい。"
+        },
+        {
+          "history_id": "disc_0129_002",
+          "at": "2026-07-04",
+          "speaker": "assistant",
+          "topic": "FieldGroupTypeへの一般化",
+          "message": "ExpectedDefはFieldGroupTypeの一実装。テストパターンではData側指定で動的に切り替え、通常画面ではViewDef側に静的指定できる。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0129_001",
+          "at": "2026-07-04",
+          "decision": "ExpectedDefはFieldGroupTypeの一実装として扱う。",
+          "reason": "ExpectedDef専用概念に閉じると、ViewDef拡張機構として再利用できないため。"
+        },
+        {
+          "decision_id": "dec_0129_002",
+          "at": "2026-07-04",
+          "decision": "FieldGroupTypeは静的指定と動的指定の両方をサポートする方向で検討する。",
+          "reason": "通常画面では固定表示、テストパターンではData種別に応じた期待値欄切替が必要なため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0129_001",
+          "at": "2026-07-04",
+          "change_type": "incident_added",
+          "before": "ExpectedDefのViewDef化とFieldGroupType動的切替が作業項目化されていなかった。",
+          "after": "studio_work_0129 として、FieldGroupType動的切替対応 / ExpectedDefのViewDef化を追加。",
+          "reason": "テストパターンを画面だけで理解できる状態へ進めるため。"
+        }
+      ],
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-07-04",
+      "context_def_draft": "# ContextDef素案: v0.18.14-fieldgroup-type-dynamic-switch-expecteddef-viewdef\n\n## 読む目的\nテストパターンの種類やData側の指定に応じてFieldGroupTypeを動的切替し、ExpectedDef系の期待値入力エリアをViewDef拡張として表示できるようにする。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0127` / v0.18.12-subgrid-preview-edit-action-column-polish: サブグリッドUI改善とテストパターンViewDef理解の直前文脈を確認する。\n- `studio_work_0109` / v0.18.5-test-design-document-responsibility-scope: ExpectedDef・責務境界・テスト仕様の整理文脈を確認する。\n- `studio_work_0016` / v0.9-rules-json-source-of-truth: ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。\n- `studio_work_0128` / v0.18.13-config-folder-path-and-common-data-migration: Config配置と共通設定移行の先行設計を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、ConfigはStudio Core拡張設定として分離する。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\nFieldGroupTypeの静的指定と動的指定、Data側のFileGroupType/TestPatternType等による解決、ExpectedDefのViewDef化、RuleExpectedDef/StateExpectedDef/CsvExpectedDefなどの表示切替を整理する。\n\n## 注意すべきリスク\nExpectedDef専用実装として作ると、将来のTriggerDef/LookupDef/SearchConditionDef等へ広がらない。逆に最初から汎用化しすぎると実装が止まる。\n\n## 確認観点メモ\nテストパターンの種類に応じて期待値欄が切り替わること。静的にExpectedDefを指定した場合も動くこと。ViewDef本体に期待値項目を大量直書きしないこと。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0129_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_latest.json#studio_work_0129",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.18.13以降のFieldGroupType/FieldType設計前提として追加。"
+        },
+        {
+          "context_ref_id": "target_0129_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0130",
+      "phase": "v0.18.15-fieldgroup-type-strategy-pattern",
+      "title": "FieldGroupType Strategy Pattern設計 / Registry・Resolver・Renderer責務整理",
+      "incident_type": "architecture_design",
+      "category": "strategy_pattern",
+      "priority": "medium",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-04",
+      "updated_at": "2026-07-04",
+      "target_files": "defs/config/field_group_types*.json, wwwroot/js/**/*field*group*.js, wwwroot/js/**/*renderer*.js, schema/rules if needed",
+      "objective": "FieldGroupTypeをViewDef拡張のStrategy Patternとして設計し、Registry・Resolver・Rendererの責務境界を整理する。",
+      "background": "FieldGroupTypeは複数項目の意味あるまとまりを生成・表示する仕組みであり、ViewDef本体を太らせないための拡張ポイントになる。Studioくん本体は具体的な表示内容を知らず、Registry/Strategyに聞く構造が望ましい。",
+      "scope": "FieldGroupTypeRegistry、FieldGroupTypeResolver、StrategyFactory、Renderer呼び出し、Config登録方式、静的/動的指定の責務境界を整理する。",
+      "out_of_scope": "初回のExpectedDef動的切替MVPはstudio_work_0129で扱う。この作業では汎用設計の整理を主目的とし、必要以上の実装拡大はしない。",
+      "fixed_name_policy": "Strategy名やFieldGroupType名はConfig契約として扱う。Renderer内にRuleExpectedDef等の個別名if分岐を増やしすぎない。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。将来module化しやすい責務分離を意識する。",
+      "expected_outputs": "FieldGroupType Strategy設計メモ、Registry/Resolver/Renderer責務表、Config登録サンプル、拡張時の追加手順。",
+      "risk": "FieldGroupTypeだけStrategy化してFieldTypeがif/switchのままだと設計の対称性が崩れる。ただし同時にやりすぎるとスコープ過大になる。",
+      "test_points": "新しいFieldGroupTypeを追加する時に、ViewDef本体とRenderer本体の修正を最小化できる設計になっていること。",
+      "user_request": "FieldGroupTypeとFieldTypeのStrategy Patternの話もインシデントに残したい。",
+      "ai_response": "FieldGroupType Strategy Pattern設計は、動的切替MVPとは別に中期設計インシデントとして残す。",
+      "latest_user_comment": "FieldGroupTypeと、FieldTypeの Strategy Patternの話。",
+      "latest_ai_response": "FieldGroupType Strategy Pattern設計をインシデント化し、Registry・Resolver・Renderer責務整理として残す。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0130_001",
+          "at": "2026-07-04",
+          "speaker": "user",
+          "topic": "ViewDefを太らせない戦略",
+          "message": "ViewDef本体を太らせない戦略。画面表示側は内容を知らず、FieldGroupTypeをキーにStrategyが走るようにしたい。"
+        },
+        {
+          "history_id": "disc_0130_002",
+          "at": "2026-07-04",
+          "speaker": "assistant",
+          "topic": "Strategy Pattern化",
+          "message": "FieldGroupTypeは完全にStrategy Pattern案件。Registry/Resolver/Strategy/Rendererの責務分離で、Studioくん本体は知らん、Registryに聞いて、に寄せる。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0130_001",
+          "at": "2026-07-04",
+          "decision": "FieldGroupTypeはStrategy Patternとして設計する。",
+          "reason": "ViewDef本体とRenderer本体を太らせず、ExpectedDef以外の拡張にも対応するため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0130_001",
+          "at": "2026-07-04",
+          "change_type": "incident_added",
+          "before": "FieldGroupTypeのStrategy Pattern設計が作業項目化されていなかった。",
+          "after": "studio_work_0130 として、FieldGroupType Strategy Pattern設計を追加。",
+          "reason": "ExpectedDef対応後に拡張機構として破綻しないよう、設計課題を残すため。"
+        }
+      ],
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-07-04",
+      "context_def_draft": "# ContextDef素案: v0.18.15-fieldgroup-type-strategy-pattern\n\n## 読む目的\nFieldGroupTypeをViewDef拡張のStrategy Patternとして設計し、Registry・Resolver・Rendererの責務境界を整理する。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0127` / v0.18.12-subgrid-preview-edit-action-column-polish: サブグリッドUI改善とテストパターンViewDef理解の直前文脈を確認する。\n- `studio_work_0109` / v0.18.5-test-design-document-responsibility-scope: ExpectedDef・責務境界・テスト仕様の整理文脈を確認する。\n- `studio_work_0016` / v0.9-rules-json-source-of-truth: ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。\n- `studio_work_0129` / v0.18.14-fieldgroup-type-dynamic-switch-expecteddef-viewdef: FieldGroupType動的切替MVPの文脈を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、ConfigはStudio Core拡張設定として分離する。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\nFieldGroupTypeRegistry、FieldGroupTypeResolver、StrategyFactory、Renderer呼び出し、Config登録方式、静的/動的指定の責務境界を整理する。\n\n## 注意すべきリスク\nFieldGroupTypeだけStrategy化してFieldTypeがif/switchのままだと設計の対称性が崩れる。ただし同時にやりすぎるとスコープ過大になる。\n\n## 確認観点メモ\n新しいFieldGroupTypeを追加する時に、ViewDef本体とRenderer本体の修正を最小化できる設計になっていること。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0130_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_latest.json#studio_work_0130",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.18.13以降のFieldGroupType/FieldType設計前提として追加。"
+        },
+        {
+          "context_ref_id": "target_0130_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0131",
+      "phase": "v0.18.16-fieldtype-strategy-pattern-custom-type",
+      "title": "FieldType Strategy Pattern対応 / Custom FieldType・lookup・chat拡張前整理",
+      "incident_type": "architecture_design",
+      "category": "field_type",
+      "priority": "medium",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-04",
+      "updated_at": "2026-07-04",
+      "target_files": "wwwroot/js/**/*field*type*.js, wwwroot/js/**/*renderer*.js, defs/config/field_types*.json, ViewDef schema/rules",
+      "objective": "text/number/select/textarea以外のCustom FieldTypeを安全に増やせるよう、FieldTypeもStrategy Pattern化する設計課題として整理する。",
+      "background": "FieldGroupTypeをStrategy化するなら、単項目であるFieldTypeも同じ思想で扱わないと設計の対称性が崩れる。chatやlookup（複数列コンボ）など、今後Custom FieldTypeを増やす前に掃除が必要。",
+      "scope": "FieldTypeRegistry、FieldTypeStrategy、renderEditor/parseValue/formatDisplay/validate/getOptionsの責務、chat/lookup/multiColumnLookup/markdown/json/diff/filePath等の候補整理、既存if/switch分岐の棚卸しを行う。",
+      "out_of_scope": "この作業ではlookup本実装や全FieldTypeの即時リファクタリングは行わない。lookup対応前までに掃除するための設計・棚卸しを残す。",
+      "fixed_name_policy": "FieldType名はViewDef契約として扱う。Renderer本体にCustom FieldType名のif分岐を増やし続けない。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。将来module化しやすいRegistry/Strategy境界を意識する。",
+      "expected_outputs": "FieldType Strategy設計メモ、Custom FieldType候補一覧、lookup対応前のリファクタリング方針、既存type分岐棚卸し。",
+      "risk": "lookupやchatをselect/textareaの延長で足すと、Renderer本体が肥大化し、FieldGroupTypeだけ綺麗でもソースを見られた時に恥ずかしい状態になる。",
+      "test_points": "新しいCustom FieldTypeを追加する場合に、Renderer本体の修正を最小化できる設計になっていること。lookupの表示値/保存値/検索値/候補列の責務が分離されていること。",
+      "user_request": "FieldGroupTypeやっててFieldTypeやってなかったらソースを人に見られた時はずかしい。chatやlookupなどCustom FieldTypeを増やす前に掃除が必要。",
+      "ai_response": "FieldType Strategy Pattern対応を将来対応インシデントとして追加し、lookup実装前までに掃除する課題として残す。",
+      "latest_user_comment": "FieldGroupTypeやってて、FieldTypeやってなかったら、ソースを人にみられた時はずかしい。chatやlookupもCustom FieldTypeとして増やしたい。",
+      "latest_ai_response": "FieldTypeも単項目Strategyとして整理し、Custom FieldType対応前の掃除案件としてインシデント化する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0131_001",
+          "at": "2026-07-04",
+          "speaker": "user",
+          "topic": "Custom FieldType増加への懸念",
+          "message": "type === text/number/select/textarea 以外に chat とかなかったか。lookup（複数列コンボ）もカスタムタイプになると思うので、対応時に掃除が必要。"
+        },
+        {
+          "history_id": "disc_0131_002",
+          "at": "2026-07-04",
+          "speaker": "assistant",
+          "topic": "FieldType Strategy化",
+          "message": "FieldTypeは単一フィールドの表示・入力・変換Strategy。FieldGroupTypeが複数項目Strategyなら、FieldTypeもRegistry/Strategy化して対称性を揃えるべき。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0131_001",
+          "at": "2026-07-04",
+          "decision": "FieldTypeもStrategy Pattern化の設計課題として残す。",
+          "reason": "Custom FieldTypeをif/switch追加で増やすとRenderer本体が肥大化し、拡張前提の設計と矛盾するため。"
+        },
+        {
+          "decision_id": "dec_0131_002",
+          "at": "2026-07-04",
+          "decision": "lookup本実装前までにFieldType責務を掃除する。",
+          "reason": "lookupは表示値・保存値・検索値・候補リスト・複数列表示が絡み、selectの延長では破綻しやすいため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0131_001",
+          "at": "2026-07-04",
+          "change_type": "incident_added",
+          "before": "FieldTypeのCustom Type対応とStrategy Pattern化が作業項目化されていなかった。",
+          "after": "studio_work_0131 として、FieldType Strategy Pattern対応 / Custom FieldType・lookup・chat拡張前整理を追加。",
+          "reason": "FieldGroupType設計とFieldType設計の対称性を保ち、将来のlookup/chat拡張に備えるため。"
+        }
+      ],
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-07-04",
+      "context_def_draft": "# ContextDef素案: v0.18.16-fieldtype-strategy-pattern-custom-type\n\n## 読む目的\ntext/number/select/textarea以外のCustom FieldTypeを安全に増やせるよう、FieldTypeもStrategy Pattern化する設計課題として整理する。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0127` / v0.18.12-subgrid-preview-edit-action-column-polish: サブグリッドUI改善とテストパターンViewDef理解の直前文脈を確認する。\n- `studio_work_0109` / v0.18.5-test-design-document-responsibility-scope: ExpectedDef・責務境界・テスト仕様の整理文脈を確認する。\n- `studio_work_0016` / v0.9-rules-json-source-of-truth: ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。\n- `studio_work_0130` / v0.18.15-fieldgroup-type-strategy-pattern: FieldGroupType側のStrategy Pattern設計を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、ConfigはStudio Core拡張設定として分離する。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\nFieldTypeRegistry、FieldTypeStrategy、renderEditor/parseValue/formatDisplay/validate/getOptionsの責務、chat/lookup/multiColumnLookup/markdown/json/diff/filePath等の候補整理、既存if/switch分岐の棚卸しを行う。\n\n## 注意すべきリスク\nlookupやchatをselect/textareaの延長で足すと、Renderer本体が肥大化し、FieldGroupTypeだけ綺麗でもソースを見られた時に恥ずかしい状態になる。\n\n## 確認観点メモ\n新しいCustom FieldTypeを追加する場合に、Renderer本体の修正を最小化できる設計になっていること。lookupの表示値/保存値/検索値/候補列の責務が分離されていること。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0131_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_latest.json#studio_work_0131",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "v0.18.13以降のFieldGroupType/FieldType設計前提として追加。"
+        },
+        {
+          "context_ref_id": "target_0131_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        }
+      ]
     }
   ],
   "review_notes": [
@@ -10797,13 +11555,21 @@
       "summary": "Markdown出力ボタンをExport Mode選択へ拡張する設計課題を登録。field単位のMarkdown出力有無は主制御ではなく、review_report用の補助制御と整理した。rawField/markdown_export_bodyによる原文全文保持は採用しない。",
       "related_phase": "v0.18.6-markdown-export-mode-exportdef-rules",
       "related_work_item_id": "studio_work_0110"
+    },
+    {
+      "note_id": "review_note_20260704_126",
+      "at": "2026-07-04",
+      "author": "ChatGPT",
+      "summary": "サブグリッドの「読めないtextarea」を廃止し、長文/JSONを1行表示＋Preview Edit深掘りへ役割分担した。TestPatternはレビューできる設計書へ寄せるため、input/expectedの主要列をグリッドに表示する。",
+      "related_phase": "v0.18.11-subgrid-single-line-test-pattern-viewdef",
+      "related_work_item_id": "studio_work_0126"
     }
   ],
-  "work_revision": "v0_124_test_area_folder_layout_alignment_added",
+  "work_revision": "v0_127_subgrid_preview_edit_action_column_polish_rework_done",
   "latest_planning_note": {
     "at": "2026-07-04",
-    "phase": "v0.18.9-test-area-folder-layout-alignment",
-    "summary": "Test Evidence Rules v0.2で整理した test_area / suite_id / artifact_kind 方針を、責務Expected初期セットへ小さく適用する次ステップをインシデント登録。qaは既存互換として残し、新規責務UTは responsibilities 配下へ寄せる。"
+    "phase": "v0.18.12-subgrid-preview-edit-action-column-polish-rework",
+    "summary": "文書Markdownのタイトルのみ問題をViewDef sections fallbackで修正し、ReadOnlyサブグリッドの操作列34px判断を撤回して非表示化した。"
   },
   "view_def_candidates": [
     {

@@ -1,0 +1,256 @@
+{
+  "view_def": "qa/responsibility/responsibility_expected_diff_view_def_v0_1.json",
+  "schema_version": "diff_result_v0_1",
+  "document_type": "diff_result",
+  "domain": "responsibilities",
+  "test_area": "responsibilities",
+  "suite_id": "responsibility_expected_first_set",
+  "artifact_kind": "diff",
+  "diff_kind": "responsibility_expected",
+  "test_id": "responsibility_expected_first_set",
+  "title": "Responsibility Expected Tests First Set / 責務単位Expectedテスト初期セット Diff",
+  "generated_at": "2026-07-04T10:49:40.967Z",
+  "status": "fail",
+  "resultLabel": "🚨 FAIL",
+  "summary": "🚨 2件の差分を検出しました: grid_column_build_visible_fields_basic.field_names, grid_column_build_visible_fields_basic.__runner_error",
+  "total": 12,
+  "passCount": 10,
+  "failCount": 2,
+  "failedCount": 2,
+  "failedCheckIds": [
+    "grid_column_build_visible_fields_basic.field_names",
+    "grid_column_build_visible_fields_basic.__runner_error"
+  ],
+  "firstFailure": {
+    "check_id": "grid_column_build_visible_fields_basic.field_names",
+    "name": "field_names",
+    "target": "field_names",
+    "type": "deepEqual",
+    "responsibility_cd": "grid_column_build",
+    "test_pattern_id": "grid_column_build_visible_fields_basic",
+    "expected": "[\"title zzz\",\"score\"]",
+    "actual": "[\"title\",\"score\"]",
+    "expected_raw": [
+      "title zzz",
+      "score"
+    ],
+    "actual_raw": [
+      "title",
+      "score"
+    ],
+    "pass": false,
+    "message": "field_names failed: expected [\"title zzz\",\"score\"], actual [\"title\",\"score\"]"
+  },
+  "sourceFiles": {
+    "testPatternFile": "data/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/responsibility_expected_test_patterns_data_v0_1.json",
+    "actualFile": "data/json/03_tests/responsibilities/responsibility_expected_first_set/actual/responsibility_expected_first_set_actual_data_v0_1.json",
+    "diffFile": "data/json/03_tests/responsibilities/responsibility_expected_first_set/diff/responsibility_expected_first_set_diff_data_v0_1.json"
+  },
+  "checks": [
+    {
+      "check_id": "grid_column_build_visible_fields_basic.field_names",
+      "name": "field_names",
+      "target": "field_names",
+      "type": "deepEqual",
+      "responsibility_cd": "grid_column_build",
+      "test_pattern_id": "grid_column_build_visible_fields_basic",
+      "expected": "[\"title zzz\",\"score\"]",
+      "actual": "[\"title\",\"score\"]",
+      "expected_raw": [
+        "title zzz",
+        "score"
+      ],
+      "actual_raw": [
+        "title",
+        "score"
+      ],
+      "pass": false,
+      "message": "field_names failed: expected [\"title zzz\",\"score\"], actual [\"title\",\"score\"]"
+    },
+    {
+      "check_id": "grid_column_build_visible_fields_basic.__runner_error",
+      "name": "runner_error",
+      "target": "grid_column_build_visible_fields_basic",
+      "type": "runnerError",
+      "responsibility_cd": "grid_column_build",
+      "test_pattern_id": "grid_column_build_visible_fields_basic",
+      "expected": "no error",
+      "actual": "grid_column_build_visible_fields_basic: expected field_names\n\u001b[32m+ actual\u001b[39m \u001b[31m- expected\u001b[39m\n\n\u001b[39m  [\n\u001b[32m+\u001b[39m   'title',\n\u001b[31m-\u001b[39m   'title zzz',\n\u001b[39m    'score'\n\u001b[39m  ]\n",
+      "expected_raw": "no error",
+      "actual_raw": {
+        "error_name": "AssertionError",
+        "error_message": "grid_column_build_visible_fields_basic: expected field_names\n\u001b[32m+ actual\u001b[39m \u001b[31m- expected\u001b[39m\n\n\u001b[39m  [\n\u001b[32m+\u001b[39m   'title',\n\u001b[31m-\u001b[39m   'title zzz',\n\u001b[39m    'score'\n\u001b[39m  ]\n"
+      },
+      "pass": false,
+      "message": "grid_column_build_visible_fields_basic: expected field_names\n\u001b[32m+ actual\u001b[39m \u001b[31m- expected\u001b[39m\n\n\u001b[39m  [\n\u001b[32m+\u001b[39m   'title',\n\u001b[31m-\u001b[39m   'title zzz',\n\u001b[39m    'score'\n\u001b[39m  ]\n"
+    },
+    {
+      "check_id": "grid_column_build_empty_fields_safe.field_names",
+      "name": "field_names",
+      "target": "field_names",
+      "type": "deepEqual",
+      "responsibility_cd": "grid_column_build",
+      "test_pattern_id": "grid_column_build_empty_fields_safe",
+      "expected": "[]",
+      "actual": "[]",
+      "expected_raw": [],
+      "actual_raw": [],
+      "pass": true,
+      "message": "OK"
+    },
+    {
+      "check_id": "search_filter_contains_case_insensitive.row_ids",
+      "name": "row_ids",
+      "target": "row_ids",
+      "type": "deepEqual",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_contains_case_insensitive",
+      "expected": "[\"c\"]",
+      "actual": "[\"c\"]",
+      "expected_raw": [
+        "c"
+      ],
+      "actual_raw": [
+        "c"
+      ],
+      "pass": true,
+      "message": "OK"
+    },
+    {
+      "check_id": "search_filter_contains_case_insensitive.indexes",
+      "name": "indexes",
+      "target": "indexes",
+      "type": "deepEqual",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_contains_case_insensitive",
+      "expected": "[2]",
+      "actual": "[2]",
+      "expected_raw": [
+        2
+      ],
+      "actual_raw": [
+        2
+      ],
+      "pass": true,
+      "message": "OK"
+    },
+    {
+      "check_id": "search_filter_number_gte_preserves_indexes.row_ids",
+      "name": "row_ids",
+      "target": "row_ids",
+      "type": "deepEqual",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_number_gte_preserves_indexes",
+      "expected": "[\"b\",\"c\"]",
+      "actual": "[\"b\",\"c\"]",
+      "expected_raw": [
+        "b",
+        "c"
+      ],
+      "actual_raw": [
+        "b",
+        "c"
+      ],
+      "pass": true,
+      "message": "OK"
+    },
+    {
+      "check_id": "search_filter_number_gte_preserves_indexes.indexes",
+      "name": "indexes",
+      "target": "indexes",
+      "type": "deepEqual",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_number_gte_preserves_indexes",
+      "expected": "[1,2]",
+      "actual": "[1,2]",
+      "expected_raw": [
+        1,
+        2
+      ],
+      "actual_raw": [
+        1,
+        2
+      ],
+      "pass": true,
+      "message": "OK"
+    },
+    {
+      "check_id": "csv_export_visible_fields_with_key_and_escape.field_names",
+      "name": "field_names",
+      "target": "field_names",
+      "type": "deepEqual",
+      "responsibility_cd": "csv_export",
+      "test_pattern_id": "csv_export_visible_fields_with_key_and_escape",
+      "expected": "[\"id\",\"title\",\"score\"]",
+      "actual": "[\"id\",\"title\",\"score\"]",
+      "expected_raw": [
+        "id",
+        "title",
+        "score"
+      ],
+      "actual_raw": [
+        "id",
+        "title",
+        "score"
+      ],
+      "pass": true,
+      "message": "OK"
+    },
+    {
+      "check_id": "csv_export_visible_fields_with_key_and_escape.has_bom",
+      "name": "has_bom",
+      "target": "has_bom",
+      "type": "deepEqual",
+      "responsibility_cd": "csv_export",
+      "test_pattern_id": "csv_export_visible_fields_with_key_and_escape",
+      "expected": "false",
+      "actual": "false",
+      "expected_raw": false,
+      "actual_raw": false,
+      "pass": true,
+      "message": "OK"
+    },
+    {
+      "check_id": "csv_export_visible_fields_with_key_and_escape.csv_text",
+      "name": "csv_text",
+      "target": "csv_text",
+      "type": "deepEqual",
+      "responsibility_cd": "csv_export",
+      "test_pattern_id": "csv_export_visible_fields_with_key_and_escape",
+      "expected": "id,title,score\r\na,\"A, quote \"\"here\"\"\",3\r\n",
+      "actual": "id,title,score\r\na,\"A, quote \"\"here\"\"\",3\r\n",
+      "expected_raw": "id,title,score\r\na,\"A, quote \"\"here\"\"\",3\r\n",
+      "actual_raw": "id,title,score\r\na,\"A, quote \"\"here\"\"\",3\r\n",
+      "pass": true,
+      "message": "OK"
+    },
+    {
+      "check_id": "csv_export_utf8_bom_option.has_bom",
+      "name": "has_bom",
+      "target": "has_bom",
+      "type": "deepEqual",
+      "responsibility_cd": "csv_export",
+      "test_pattern_id": "csv_export_utf8_bom_option",
+      "expected": "true",
+      "actual": "true",
+      "expected_raw": true,
+      "actual_raw": true,
+      "pass": true,
+      "message": "OK"
+    },
+    {
+      "check_id": "csv_export_utf8_bom_option.csv_without_bom",
+      "name": "csv_without_bom",
+      "target": "csv_without_bom",
+      "type": "deepEqual",
+      "responsibility_cd": "csv_export",
+      "test_pattern_id": "csv_export_utf8_bom_option",
+      "expected": "id\r\na\r\n",
+      "actual": "id\r\na\r\n",
+      "expected_raw": "id\r\na\r\n",
+      "actual_raw": "id\r\na\r\n",
+      "pass": true,
+      "message": "OK"
+    }
+  ]
+}

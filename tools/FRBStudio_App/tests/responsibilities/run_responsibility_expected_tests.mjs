@@ -8,6 +8,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
+import { isDeepStrictEqual } from 'node:util';
 
 const root = process.cwd();
 const standardTestDataPath = 'data/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/responsibility_expected_test_patterns_data_v0_1.json';
@@ -51,6 +52,10 @@ function resolveTestDataPath(requestedPath) {
 }
 
 const testDataPath = resolveTestDataPath(process.argv[2]);
+const suiteBasePath = 'data/json/03_tests/responsibilities/responsibility_expected_first_set';
+const actualOutputPath = `${suiteBasePath}/actual/responsibility_expected_first_set_actual_data_v0_1.json`;
+const diffOutputPath = `${suiteBasePath}/diff/responsibility_expected_first_set_diff_data_v0_1.json`;
+
 
 function readJson(relOrAbsPath) {
   return JSON.parse(fs.readFileSync(rootPath(relOrAbsPath), 'utf8'));
@@ -136,6 +141,43 @@ function runPattern(pattern, api) {
   }
 }
 
+function toDisplayValue(value) {
+  if (typeof value === 'string') return value;
+  return JSON.stringify(value);
+}
+
+function ensureDirFor(relOrAbsPath) {
+  fs.mkdirSync(path.dirname(rootPath(relOrAbsPath)), { recursive: true });
+}
+
+function writeJson(relOrAbsPath, value) {
+  ensureDirFor(relOrAbsPath);
+  fs.writeFileSync(rootPath(relOrAbsPath), `${JSON.stringify(value, null, 2)}
+`, 'utf8');
+}
+
+function buildChecks(pattern, actual) {
+  const expected = pattern.expected ?? {};
+  return Object.entries(expected).map(([key, expectedValue]) => {
+    const actualValue = actual?.[key];
+    const pass = isDeepStrictEqual(actualValue, expectedValue);
+    return {
+      check_id: `${pattern.test_pattern_id}.${key}`,
+      name: key,
+      target: key,
+      type: 'deepEqual',
+      responsibility_cd: pattern.responsibility_cd,
+      test_pattern_id: pattern.test_pattern_id,
+      expected: toDisplayValue(expectedValue),
+      actual: toDisplayValue(actualValue),
+      expected_raw: expectedValue,
+      actual_raw: actualValue,
+      pass,
+      message: pass ? 'OK' : `${key} failed: expected ${toDisplayValue(expectedValue)}, actual ${toDisplayValue(actualValue)}`
+    };
+  });
+}
+
 function assertExpected(pattern, actual) {
   const expected = pattern.expected ?? {};
   for (const [key, expectedValue] of Object.entries(expected)) {
@@ -151,28 +193,125 @@ function main() {
   const data = readJson(testDataPath);
   const api = loadResponsibilities();
   const patterns = (data.test_patterns ?? []).filter(pattern => pattern.enabled !== false);
+  const generatedAt = new Date().toISOString();
 
   let passed = 0;
   const failures = [];
+  const observations = [];
+  const checks = [];
 
   for (const pattern of patterns) {
     try {
       const actual = runPattern(pattern, api);
+      observations.push({
+        test_pattern_id: pattern.test_pattern_id,
+        responsibility_cd: pattern.responsibility_cd,
+        title: pattern.title,
+        actual,
+        actual_display: toDisplayValue(actual),
+        observed_at: generatedAt,
+        source: 'tests/responsibilities/run_responsibility_expected_tests.mjs'
+      });
+
+      const patternChecks = buildChecks(pattern, actual);
+      checks.push(...patternChecks);
       assertExpected(pattern, actual);
       passed += 1;
       console.log(`PASS ${pattern.test_pattern_id}`);
     } catch (err) {
+      const errorActual = {
+        error_name: err?.name ?? 'Error',
+        error_message: err?.message ?? String(err)
+      };
+      observations.push({
+        test_pattern_id: pattern.test_pattern_id,
+        responsibility_cd: pattern.responsibility_cd,
+        title: pattern.title,
+        actual: errorActual,
+        actual_display: toDisplayValue(errorActual),
+        observed_at: generatedAt,
+        source: 'tests/responsibilities/run_responsibility_expected_tests.mjs'
+      });
+      checks.push({
+        check_id: `${pattern.test_pattern_id}.__runner_error`,
+        name: 'runner_error',
+        target: pattern.test_pattern_id,
+        type: 'runnerError',
+        responsibility_cd: pattern.responsibility_cd,
+        test_pattern_id: pattern.test_pattern_id,
+        expected: 'no error',
+        actual: errorActual.error_message,
+        expected_raw: 'no error',
+        actual_raw: errorActual,
+        pass: false,
+        message: errorActual.error_message
+      });
       failures.push({ pattern, error: err });
       console.error(`FAIL ${pattern.test_pattern_id}`);
       console.error(err?.stack || err);
     }
   }
 
+  const failedChecks = checks.filter(check => check.pass !== true);
+  const firstFailure = failedChecks[0] ?? null;
+  const status = failedChecks.length ? 'fail' : 'pass';
+  const resultLabel = failedChecks.length ? '🚨 FAIL' : '✅ PASS';
+
+  const actualDoc = {
+    view_def: 'qa/responsibility/responsibility_expected_actual_view_def_v0_1.json',
+    schema_version: 'responsibility_expected_actual_v0_1',
+    document_type: 'responsibility_expected_actual',
+    test_area: data.test_area ?? 'responsibilities',
+    suite_id: data.suite_id ?? 'responsibility_expected_first_set',
+    artifact_kind: 'actual',
+    test_id: data.suite_id ?? 'responsibility_expected_first_set',
+    title: `${data.title ?? 'Responsibility Expected Tests'} Actual`,
+    generated_at: generatedAt,
+    source_test_patterns_file: testDataPath,
+    runner: 'tests/responsibilities/run_responsibility_expected_tests.mjs',
+    observations
+  };
+
+  const diffDoc = {
+    view_def: 'qa/responsibility/responsibility_expected_diff_view_def_v0_1.json',
+    schema_version: 'diff_result_v0_1',
+    document_type: 'diff_result',
+    domain: 'responsibilities',
+    test_area: data.test_area ?? 'responsibilities',
+    suite_id: data.suite_id ?? 'responsibility_expected_first_set',
+    artifact_kind: 'diff',
+    diff_kind: 'responsibility_expected',
+    test_id: data.suite_id ?? 'responsibility_expected_first_set',
+    title: `${data.title ?? 'Responsibility Expected Tests'} Diff`,
+    generated_at: generatedAt,
+    status,
+    resultLabel,
+    summary: failedChecks.length
+      ? `🚨 ${failedChecks.length}件の差分を検出しました: ${failedChecks.map(check => check.check_id).join(', ')}`
+      : `✅ ${checks.length}件すべてPASSしました`,
+    total: checks.length,
+    passCount: checks.length - failedChecks.length,
+    failCount: failedChecks.length,
+    failedCount: failedChecks.length,
+    failedCheckIds: failedChecks.map(check => check.check_id),
+    firstFailure,
+    sourceFiles: {
+      testPatternFile: testDataPath,
+      actualFile: actualOutputPath,
+      diffFile: diffOutputPath
+    },
+    checks
+  };
+
+  writeJson(actualOutputPath, actualDoc);
+  writeJson(diffOutputPath, diffDoc);
+
   console.log(`\nresponsibility_expected_tests: ${passed}/${patterns.length} passed`);
+  console.log(`actual: ${actualOutputPath}`);
+  console.log(`diff:   ${diffOutputPath}`);
 
   if (failures.length) {
     process.exitCode = 1;
   }
 }
-
 main();

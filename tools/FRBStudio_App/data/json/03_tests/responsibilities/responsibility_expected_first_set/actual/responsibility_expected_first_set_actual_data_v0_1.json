@@ -1,0 +1,124 @@
+{
+  "view_def": "qa/responsibility/responsibility_expected_actual_view_def_v0_1.json",
+  "schema_version": "responsibility_expected_actual_v0_1",
+  "document_type": "responsibility_expected_actual",
+  "test_area": "responsibilities",
+  "suite_id": "responsibility_expected_first_set",
+  "artifact_kind": "actual",
+  "test_id": "responsibility_expected_first_set",
+  "title": "Responsibility Expected Tests First Set / 責務単位Expectedテスト初期セット Actual",
+  "generated_at": "2026-07-04T10:49:40.967Z",
+  "source_test_patterns_file": "data/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/responsibility_expected_test_patterns_data_v0_1.json",
+  "runner": "tests/responsibilities/run_responsibility_expected_tests.mjs",
+  "observations": [
+    {
+      "test_pattern_id": "grid_column_build_visible_fields_basic",
+      "responsibility_cd": "grid_column_build",
+      "title": "grid.visible=false のfieldをGrid列から除外する",
+      "actual": {
+        "field_names": [
+          "title",
+          "score"
+        ],
+        "count": 2
+      },
+      "actual_display": "{\"field_names\":[\"title\",\"score\"],\"count\":2}",
+      "observed_at": "2026-07-04T10:49:40.967Z",
+      "source": "tests/responsibilities/run_responsibility_expected_tests.mjs"
+    },
+    {
+      "test_pattern_id": "grid_column_build_visible_fields_basic",
+      "responsibility_cd": "grid_column_build",
+      "title": "grid.visible=false のfieldをGrid列から除外する",
+      "actual": {
+        "error_name": "AssertionError",
+        "error_message": "grid_column_build_visible_fields_basic: expected field_names\n\u001b[32m+ actual\u001b[39m \u001b[31m- expected\u001b[39m\n\n\u001b[39m  [\n\u001b[32m+\u001b[39m   'title',\n\u001b[31m-\u001b[39m   'title zzz',\n\u001b[39m    'score'\n\u001b[39m  ]\n"
+      },
+      "actual_display": "{\"error_name\":\"AssertionError\",\"error_message\":\"grid_column_build_visible_fields_basic: expected field_names\\n\\u001b[32m+ actual\\u001b[39m \\u001b[31m- expected\\u001b[39m\\n\\n\\u001b[39m  [\\n\\u001b[32m+\\u001b[39m   'title',\\n\\u001b[31m-\\u001b[39m   'title zzz',\\n\\u001b[39m    'score'\\n\\u001b[39m  ]\\n\"}",
+      "observed_at": "2026-07-04T10:49:40.967Z",
+      "source": "tests/responsibilities/run_responsibility_expected_tests.mjs"
+    },
+    {
+      "test_pattern_id": "grid_column_build_empty_fields_safe",
+      "responsibility_cd": "grid_column_build",
+      "title": "fields未指定でも空配列を返し落ちない",
+      "actual": {
+        "field_names": [],
+        "count": 0
+      },
+      "actual_display": "{\"field_names\":[],\"count\":0}",
+      "observed_at": "2026-07-04T10:49:40.967Z",
+      "source": "tests/responsibilities/run_responsibility_expected_tests.mjs"
+    },
+    {
+      "test_pattern_id": "search_filter_contains_case_insensitive",
+      "responsibility_cd": "search_filter",
+      "title": "文字列contains検索は大文字小文字を無視して絞り込む",
+      "actual": {
+        "row_ids": [
+          "c"
+        ],
+        "indexes": [
+          2
+        ],
+        "count": 1
+      },
+      "actual_display": "{\"row_ids\":[\"c\"],\"indexes\":[2],\"count\":1}",
+      "observed_at": "2026-07-04T10:49:40.967Z",
+      "source": "tests/responsibilities/run_responsibility_expected_tests.mjs"
+    },
+    {
+      "test_pattern_id": "search_filter_number_gte_preserves_indexes",
+      "responsibility_cd": "search_filter",
+      "title": "数値gte検索で条件一致行だけを返し元indexを保持する",
+      "actual": {
+        "row_ids": [
+          "b",
+          "c"
+        ],
+        "indexes": [
+          1,
+          2
+        ],
+        "count": 2
+      },
+      "actual_display": "{\"row_ids\":[\"b\",\"c\"],\"indexes\":[1,2],\"count\":2}",
+      "observed_at": "2026-07-04T10:49:40.967Z",
+      "source": "tests/responsibilities/run_responsibility_expected_tests.mjs"
+    },
+    {
+      "test_pattern_id": "csv_export_visible_fields_with_key_and_escape",
+      "responsibility_cd": "csv_export",
+      "title": "表示列にkey列を追加し、カンマとダブルクォートをCSV escapeする",
+      "actual": {
+        "field_names": [
+          "id",
+          "title",
+          "score"
+        ],
+        "has_bom": false,
+        "csv_text": "id,title,score\r\na,\"A, quote \"\"here\"\"\",3\r\n",
+        "csv_without_bom": "id,title,score\r\na,\"A, quote \"\"here\"\"\",3\r\n"
+      },
+      "actual_display": "{\"field_names\":[\"id\",\"title\",\"score\"],\"has_bom\":false,\"csv_text\":\"id,title,score\\r\\na,\\\"A, quote \\\"\\\"here\\\"\\\"\\\",3\\r\\n\",\"csv_without_bom\":\"id,title,score\\r\\na,\\\"A, quote \\\"\\\"here\\\"\\\"\\\",3\\r\\n\"}",
+      "observed_at": "2026-07-04T10:49:40.967Z",
+      "source": "tests/responsibilities/run_responsibility_expected_tests.mjs"
+    },
+    {
+      "test_pattern_id": "csv_export_utf8_bom_option",
+      "responsibility_cd": "csv_export",
+      "title": "includeBom=true の場合はUTF-8 BOM付きCSV文字列を返す",
+      "actual": {
+        "field_names": [
+          "id"
+        ],
+        "has_bom": true,
+        "csv_text": "﻿id\r\na\r\n",
+        "csv_without_bom": "id\r\na\r\n"
+      },
+      "actual_display": "{\"field_names\":[\"id\"],\"has_bom\":true,\"csv_text\":\"﻿id\\r\\na\\r\\n\",\"csv_without_bom\":\"id\\r\\na\\r\\n\"}",
+      "observed_at": "2026-07-04T10:49:40.967Z",
+      "source": "tests/responsibilities/run_responsibility_expected_tests.mjs"
+    }
+  ]
+}

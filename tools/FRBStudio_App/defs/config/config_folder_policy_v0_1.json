@@ -1,0 +1,65 @@
+{
+  "schema_version": "studio_config_folder_policy_v0_1",
+  "document_type": "studio_core_config_folder_policy",
+  "title": "FRB Studio Config Folder Path Policy",
+  "status": "active",
+  "created_at": "2026-07-04",
+  "updated_at": "2026-07-04",
+  "introduced_in": "v0.18.13-config-folder-path-and-common-data-migration",
+  "purpose": "FieldGroupType導入前に、Studio Core拡張設定・値語彙Config・Rules/Data/ViewDefの置き場を分離する。",
+  "folder_policy": [
+    {
+      "path": "defs/config/",
+      "role": "Studio Coreの画面拡張・Renderer/Strategy登録など、ViewDefを拡張する設定を置く場所。",
+      "examples": [
+        "field_group_types_v0_1.json",
+        "field_types_v0_1.json",
+        "renderer_registry_v0_1.json"
+      ],
+      "load_base": "defs-relative",
+      "note": "FieldGroupType / FieldType Strategy Pattern の設定候補。Data JSON原本ではなく、ViewDef拡張Configとして扱う。"
+    },
+    {
+      "path": "data/json/config/",
+      "role": "Studio CoreがRuntimeで参照する値語彙・共通設定データを置く場所。",
+      "examples": [
+        "common_enums_v0_1.json"
+      ],
+      "load_base": "/api/data relative path = config/{file}",
+      "note": "Value Vocabulary Registry のように Data JSONとして読まれるが、00_rulesではない共通設定を置く。"
+    },
+    {
+      "path": "data/json/00_rules/",
+      "role": "ルール本文・制約・レビュー対象など、Rulesとして人間が承認するData JSONを置く場所。",
+      "examples": [
+        "frb_foundation_rules_data_v0_1.json",
+        "frb_coding_constraints_data_v0_3.json"
+      ],
+      "load_base": "/api/data relative path = 00_rules/{file}",
+      "note": "common_enums_v0_1.json のようなRuntime値語彙Configは、今後ここへ戻さない。"
+    }
+  ],
+  "migration_policy": [
+    {
+      "target": "common_enums_v0_1.json",
+      "before": "data/json/00_rules/common_enums_v0_1.json または 00_rules/common_enums_v0_1.json 参照",
+      "after": "data/json/config/common_enums_v0_1.json / config/common_enums_v0_1.json",
+      "reason": "共通Enum/Value Vocabulary Registryはルール正本ではなく、Runtime参照されるStudio Core値語彙Configであるため。",
+      "compatibility": "Runtime normalizeDataJsonApiPath で旧 00_rules/common_enums_v0_1.json を config/common_enums_v0_1.json へAlias解決する。"
+    }
+  ],
+  "decision_log": [
+    {
+      "decision_id": "dec_config_policy_001",
+      "at": "2026-07-04",
+      "decision": "defs/config と data/json/config を役割分離する。",
+      "reason": "FieldGroupTypeなどViewDef拡張Configはdefs/config、RuntimeがDataとして読む値語彙Configはdata/json/configに置く方が、Data/ViewDef/Rulesの責務が混ざらないため。"
+    },
+    {
+      "decision_id": "dec_config_policy_002",
+      "at": "2026-07-04",
+      "decision": "common_enums_v0_1.json は data/json/config を正本位置とする。",
+      "reason": "common_enumsは承認対象Rulesではなく、FieldType/ValueSet解決に使う共通値語彙Configであるため。"
+    }
+  ]
+}

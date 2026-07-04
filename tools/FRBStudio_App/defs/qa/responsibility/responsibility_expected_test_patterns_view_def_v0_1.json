@@ -25,6 +25,13 @@
             "caption": "全項目Markdown出力",
             "type": "full_dump",
             "fieldPolicy": "all"
+          },
+          {
+            "id": "document_rebuild",
+            "caption": "文書Markdown出力",
+            "type": "document_rebuild",
+            "fieldPolicy": "respect_markdown_export",
+            "description": "現在のData/ViewDefを文書として読み直すためのMarkdownを出力する。"
           }
         ],
         "defaultFileName": "responsibility_expected_tests_first_set_report.md"
@@ -198,7 +205,7 @@
               "readonly": true,
               "grid": {
                 "visible": true,
-                "width": 260
+                "width": 220
               },
               "edit": {
                 "visible": true,
@@ -248,7 +255,7 @@
               "readonly": true,
               "grid": {
                 "visible": true,
-                "width": 360
+                "width": 300
               },
               "edit": {
                 "visible": true,
@@ -329,11 +336,46 @@
               "type": "objectArray",
               "readonly": true,
               "grid": {
-                "visible": false
+                "visible": true,
+                "width": 360,
+                "display": "json"
               },
               "edit": {
                 "visible": true,
-                "readonly": true
+                "readonly": true,
+                "subGrid": {
+                  "readonly": true,
+                  "columns": [
+                    {
+                      "field": "field",
+                      "caption": "field",
+                      "type": "text",
+                      "width": 90
+                    },
+                    {
+                      "field": "caption",
+                      "caption": "caption",
+                      "type": "text",
+                      "width": 110
+                    },
+                    {
+                      "field": "type",
+                      "caption": "type",
+                      "type": "text",
+                      "width": 90
+                    },
+                    {
+                      "field": "grid",
+                      "caption": "grid",
+                      "type": "json"
+                    },
+                    {
+                      "field": "edit",
+                      "caption": "edit",
+                      "type": "json"
+                    }
+                  ]
+                }
               }
             },
             {
@@ -342,7 +384,9 @@
               "type": "objectArray",
               "readonly": true,
               "grid": {
-                "visible": false
+                "visible": true,
+                "width": 320,
+                "display": "json"
               },
               "edit": {
                 "visible": true,
@@ -355,7 +399,9 @@
               "type": "objectArray",
               "readonly": true,
               "grid": {
-                "visible": false
+                "visible": true,
+                "width": 300,
+                "display": "json"
               },
               "edit": {
                 "visible": true,
@@ -381,7 +427,9 @@
               "type": "objectArray",
               "readonly": true,
               "grid": {
-                "visible": false
+                "visible": true,
+                "width": 300,
+                "display": "json"
               },
               "edit": {
                 "visible": true,
@@ -394,7 +442,9 @@
               "type": "objectArray",
               "readonly": true,
               "grid": {
-                "visible": false
+                "visible": true,
+                "width": 320,
+                "display": "json"
               },
               "edit": {
                 "visible": true,
@@ -446,7 +496,9 @@
               "type": "textarea",
               "readonly": true,
               "grid": {
-                "visible": false
+                "visible": true,
+                "width": 260,
+                "display": "json"
               },
               "edit": {
                 "visible": true,
@@ -460,7 +512,9 @@
               "type": "textarea",
               "readonly": true,
               "grid": {
-                "visible": false
+                "visible": true,
+                "width": 220,
+                "display": "json"
               },
               "edit": {
                 "visible": true,
@@ -474,7 +528,9 @@
               "type": "textarea",
               "readonly": true,
               "grid": {
-                "visible": false
+                "visible": true,
+                "width": 180,
+                "display": "json"
               },
               "edit": {
                 "visible": true,
@@ -511,11 +567,13 @@
             },
             {
               "field": "expected.csv_without_bom",
-              "caption": "Expected: CSV Without BOM",
+              "caption": "Expected: CSV Preview",
               "type": "textarea",
               "readonly": true,
               "grid": {
-                "visible": false
+                "visible": true,
+                "width": 340,
+                "display": "json"
               },
               "edit": {
                 "visible": true,

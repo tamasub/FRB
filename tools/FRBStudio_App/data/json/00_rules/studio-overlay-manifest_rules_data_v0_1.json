@@ -49,7 +49,7 @@
   },
   "copilot_request_template": {
     "summary": "会社Copilotへ依頼する時の基本制約文。",
-    "text": "あなたは `studio_overlays/default/` 配下のみを編集してください。\n\n禁止:\n- `wwwroot/` 配下の編集\n- `wwwroot/js/core/` 配下の編集\n- `wwwroot/data/json/00_rules/common_enums_v0_1.json` の編集\n- Core標準ID `studio.*`, `context.*`, `relation.*`, `qa.*` の上書き\n\n許可:\n- `studio_overlays/default/studio_manifest.json` への宣言追加\n- `studio_overlays/default/value_sets/` への会社ValueSet追加\n- `studio_overlays/default/plugins/` へのPlugin追加\n- `studio_overlays/default/search_patterns/` への検索パターン追加\n- `studio_overlays/default/view_defs/` への会社ViewDef追加\n- `studio_overlays/default/data/` への会社サンプルData追加\n\nCore変更が必要に見える場合は、直接修正せず、人間に相談してください。"
+    "text": "あなたは `studio_overlays/default/` 配下のみを編集してください。\n\n禁止:\n- `wwwroot/` 配下の編集\n- `wwwroot/js/core/` 配下の編集\n- `data/json/config/common_enums_v0_1.json` の編集\n- Core標準ID `studio.*`, `context.*`, `relation.*`, `qa.*` の上書き\n\n許可:\n- `studio_overlays/default/studio_manifest.json` への宣言追加\n- `studio_overlays/default/value_sets/` への会社ValueSet追加\n- `studio_overlays/default/plugins/` へのPlugin追加\n- `studio_overlays/default/search_patterns/` への検索パターン追加\n- `studio_overlays/default/view_defs/` への会社ViewDef追加\n- `studio_overlays/default/data/` への会社サンプルData追加\n\nCore変更が必要に見える場合は、直接修正せず、人間に相談してください。"
   },
   "rules": [
     {
@@ -380,13 +380,13 @@
       "section_no": "3.1",
       "parent_rule_id": "",
       "category": "DataSources",
-      "title": "Core標準ValueSetは common_enums_v0_1.json に残す",
+      "title": "Core標準ValueSetは common_enums_v0_1.json を config に置く",
       "priority": "high",
       "review_status": "確認済み",
       "verification_status": "確認済み",
       "approval_decision": "未承認",
       "summary": "`common_enums_v0_1.json` はCore標準値語彙として維持し、会社Copilot編集禁止とする。",
-      "body": "`wwwroot/data/json/00_rules/common_enums_v0_1.json` は、\nStudio Core側の標準CommonEnum / ValueSet正本として扱う。\n\n会社Copilotはこのファイルを編集してはならない。\n\nこのファイルに会社固有の資格、業務区分、ランク、部署コードなどを混ぜない。\nCore標準値語彙と会社固有値語彙を同一ファイルに混在させると、\nGitHub配布物と会社ローカル拡張の責任境界が壊れる。",
+      "body": "`data/json/config/common_enums_v0_1.json` は、\nStudio Core側の標準CommonEnum / ValueSet正本として扱う。\n\n会社Copilotはこのファイルを編集してはならない。\n\nこのファイルに会社固有の資格、業務区分、ランク、部署コードなどを混ぜない。\nCore標準値語彙と会社固有値語彙を同一ファイルに混在させると、\nGitHub配布物と会社ローカル拡張の責任境界が壊れる。",
       "source_heading": "studio_work_0090",
       "source_line_start": null,
       "source_md_file": "studio_work_incident_data_v0_91_studio_overlay_manifest_done_archived.json#studio_work_0090",
@@ -529,7 +529,7 @@
       "verification_status": "確認済み",
       "approval_decision": "未承認",
       "summary": "wwwroot/、common_enums_v0_1.json、js/core/ は会社Copilot編集禁止とする。",
-      "body": "会社Copilotへ作業を依頼する場合、以下を明示的に禁止する。\n\n禁止:\n\n- `wwwroot/` 配下の編集\n- `wwwroot/js/core/` 配下の編集\n- `wwwroot/data/json/00_rules/common_enums_v0_1.json` の編集\n- Core標準ID `studio.*`, `context.*`, `relation.*`, `qa.*` の上書き\n- Coreの既存ファイルを変更して会社機能を追加すること\n\nCore変更が必要に見える場合は、Copilotが直接修正せず、人間に相談する。",
+      "body": "会社Copilotへ作業を依頼する場合、以下を明示的に禁止する。\n\n禁止:\n\n- `wwwroot/` 配下の編集\n- `wwwroot/js/core/` 配下の編集\n- `data/json/config/common_enums_v0_1.json` の編集\n- Core標準ID `studio.*`, `context.*`, `relation.*`, `qa.*` の上書き\n- Coreの既存ファイルを変更して会社機能を追加すること\n\nCore変更が必要に見える場合は、Copilotが直接修正せず、人間に相談する。",
       "source_heading": "studio_work_0090",
       "source_line_start": null,
       "source_md_file": "studio_work_incident_data_v0_91_studio_overlay_manifest_done_archived.json#studio_work_0090",
@@ -982,5 +982,16 @@
       "Marketplace化"
     ],
     "design_phrase": "Coreは口を作る。中身はOverlayがしゃべる。"
-  }
+  },
+  "updated_at": "2026-07-04",
+  "change_history": [
+    {
+      "history_id": "chg_overlay_manifest_v0_18_13_config_common_enums_path",
+      "at": "2026-07-04",
+      "change_type": "config_path_migration",
+      "before": "Core標準 common_enums_v0_1.json の参照先が data/json/00_rules または 00_rules 配下として記載されていた。",
+      "after": "Core標準 common_enums_v0_1.json の参照先を data/json/config/common_enums_v0_1.json / config/common_enums_v0_1.json へ更新。",
+      "reason": "common_enums はルール正本ではなく Studio Core の値語彙Configとして扱うため。"
+    }
+  ]
 }
