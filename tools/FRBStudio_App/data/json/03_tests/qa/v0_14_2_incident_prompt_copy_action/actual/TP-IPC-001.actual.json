@@ -1,7 +1,7 @@
 {
   "schema_version": "qa_actual_observation_v0_1",
   "document_type": "qa_actual_observation",
-  "view_def": "qa/qa_actual_observation_view_def_v0_1.json",
+  "view_def": "qa/tests/qa_actual_observation_view_def_v0_1.json",
   "test_id": "TP-IPC-001",
   "test_name": "インシデント管理ViewDefにAI依頼プロンプトコピーボタンが宣言されている",
   "phase": "v0.14.2-incident-prompt-copy-action",

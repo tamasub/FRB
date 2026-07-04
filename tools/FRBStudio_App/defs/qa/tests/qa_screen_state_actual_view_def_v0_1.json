@@ -1,0 +1,381 @@
+{
+  "$schema": "frb_view_def_schema_v0_9.json",
+  "view_def": "screen_state/screen_state_actual_view_def_v0_1.json",
+  "app": {
+    "name": "FRBStudio",
+    "version": "screen_state_actual_view_def_v0_1"
+  },
+  "description": "screen_state_actual_v0_1 の生キャプチャJSONをStudioくんで確認するための専用ViewDef。QA Actual Result(checks[])用ではなく、state.inputs をMain Grid、root/state/sourceFilesをHeaderで確認する。",
+  "views": [
+    {
+      "id": "screen_state_actual",
+      "caption": "Screen State Actual / 画面状態キャプチャ",
+      "layout": "header-search-grid-detail",
+      "markdown": {
+        "enabled": true,
+        "type": "generic_sections",
+        "title": "Screen State Actual Report",
+        "defaultFileName": "screen_state_actual_report.md",
+        "defaultMode": "review_report",
+        "modes": [
+          {
+            "id": "review_report",
+            "caption": "レビュー用",
+            "type": "review_report",
+            "fieldPolicy": "respect_markdown_export"
+          },
+          {
+            "id": "full_dump",
+            "caption": "全文Dump",
+            "type": "full_dump",
+            "fieldPolicy": "all"
+          }
+        ],
+        "sections": [
+          {
+            "title": "概要",
+            "source": "header",
+            "format": "table",
+            "fields": [
+              {
+                "field": "testId",
+                "caption": "Test ID"
+              },
+              {
+                "field": "title",
+                "caption": "タイトル"
+              },
+              {
+                "field": "capturedAt",
+                "caption": "取得日時"
+              },
+              {
+                "field": "state.appTitle",
+                "caption": "App Title"
+              },
+              {
+                "field": "state.url",
+                "caption": "URL"
+              },
+              {
+                "field": "state.headerText",
+                "caption": "Header Text"
+              }
+            ]
+          },
+          {
+            "title": "Input Controls",
+            "source": "grid",
+            "format": "table",
+            "fields": [
+              {
+                "field": "id",
+                "caption": "ID"
+              },
+              {
+                "field": "type",
+                "caption": "Type"
+              },
+              {
+                "field": "value",
+                "caption": "Value"
+              }
+            ]
+          },
+          {
+            "title": "Captured State JSON",
+            "source": "root",
+            "format": "json",
+            "fields": [
+              {
+                "field": "state",
+                "caption": "state"
+              }
+            ],
+            "export": false
+          }
+        ]
+      },
+      "sections": [
+        {
+          "id": "header",
+          "caption": "キャプチャ概要",
+          "type": "form",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "view_def",
+              "caption": "ViewDef",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "schema_version",
+              "caption": "Schema Version",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "document_type",
+              "caption": "Document Type",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "testId",
+              "caption": "Test ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "capturedAt",
+              "caption": "取得日時",
+              "type": "datetime",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "state.appTitle",
+              "caption": "App Title",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "state.url",
+              "caption": "URL",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "state.headerText",
+              "caption": "Header Textあり",
+              "type": "boolean",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "sourceFiles.testPatternFile",
+              "caption": "Test Pattern File",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "sourceFiles.expectedFile",
+              "caption": "Expected File",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "sourceFiles.outputActualFile",
+              "caption": "Actual File",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "sourceFiles.outputDiffFile",
+              "caption": "Diff File",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "state.buttons",
+              "caption": "Buttons / 表示テキスト一覧",
+              "type": "stringArray",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "state.selects",
+              "caption": "Selects JSON",
+              "type": "textarea",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 110
+              },
+              "markdown": {
+                "export": false
+              }
+            }
+          ]
+        },
+        {
+          "id": "inputs",
+          "caption": "Input Controls / 入力要素一覧",
+          "type": "grid",
+          "dataPath": "$.state.inputs",
+          "keyField": "id",
+          "fields": [
+            {
+              "field": "id",
+              "caption": "ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 220
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "type",
+              "caption": "Type",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 90
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "value",
+              "caption": "Value",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 260
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

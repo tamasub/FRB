@@ -1,6 +1,6 @@
 {
   "$schema": "frb_view_def_schema_v0_9_chat_input_mapping.json",
-  "view_def": "qa/qa_actual_result_view_def_v0_1.json",
+  "view_def": "qa/tests/qa_actual_result_view_def_v0_1.json",
   "app": {
     "name": "FRBStudio",
     "version": "qa_actual_result_view_def_v0_1"

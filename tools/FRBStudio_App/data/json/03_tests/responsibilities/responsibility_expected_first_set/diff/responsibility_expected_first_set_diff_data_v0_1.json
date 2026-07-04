@@ -1,5 +1,5 @@
 {
-  "view_def": "qa/responsibility/responsibility_expected_diff_view_def_v0_1.json",
+  "view_def": "qa/responsibilities/responsibility_expected_diff_view_def_v0_1.json",
   "schema_version": "diff_result_v0_1",
   "document_type": "diff_result",
   "domain": "responsibilities",

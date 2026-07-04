@@ -3,7 +3,7 @@
   "document_type": "diff_result",
   "domain": "qa",
   "diff_kind": "qa_static_viewdef",
-  "view_def": "qa/qa_diff_result_view_def_v0_1.json",
+  "view_def": "qa/tests/qa_diff_result_view_def_v0_1.json",
   "test_id": "TP-IPC-001",
   "testId": "TP-IPC-001",
   "test_name": "インシデント管理ViewDefにAI依頼プロンプトコピーボタンが宣言されている",

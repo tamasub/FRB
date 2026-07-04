@@ -1,7 +1,7 @@
 {
   "schema_version": "responsibility_def_master_draft_v0_1",
   "document_type": "qa_responsibility_def_master",
-  "view_def": "qa\\responsibility\\responsibility_def_master_view_def_v0_1.json",
+  "view_def": "qa/responsibility_def/responsibility_def_master_view_def_v0_1.json",
   "title": "FRB Studio ResponsibilityDef Master Draft",
   "phase": "v0.18.5-test-design-document-responsibility-scope",
   "created_at": "2026-07-04",

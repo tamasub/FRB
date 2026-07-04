@@ -1,5 +1,5 @@
 {
-  "view_def": "  qa/responsibility/expected_def_type_master_view_def_v0_1.json",
+  "view_def": "qa/responsibility_def/expected_def_type_master_view_def_v0_1.json",
   "schema_version": "expected_def_type_master_data_v0_1",
   "document_type": "qa_expected_def_type_master",
   "title": "ExpectedDef Type Master",

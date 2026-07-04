@@ -1,12 +1,12 @@
 {
-  "view_def": "screen_state/screen_state_expected_view_def_v0_1.json",
+  "view_def": "qa/tests/qa_screen_state_actual_view_def_v0_1.json",
   "schema_version": "screen_state_actual_v0_1",
   "document_type": "screen_state_actual",
   "testId": "screen_state_smoke_001",
   "title": "初期表示の画面状態JSONを検証する",
   "capturedAt": "2026-07-04T07:47:55.759Z",
   "sourceFiles": {
-    "testPatternFile": "data\\json\\03_tests\\screen_state\\screen_state_smoke_001\\test_patterns\\screen_state_test_patterns_data_v0_2_chat.json",
+    "testPatternFile": "data/json/03_tests/screen_state/screen_state_smoke_001/test_patterns/screen_state_test_patterns_data_v0_2_chat.json",
     "expectedFile": "data/json/03_tests/screen_state/screen_state_smoke_001/expected/screen_state_smoke_001.expected.json",
     "outputActualFile": "data/json/03_tests/screen_state/screen_state_smoke_001/actual/screen_state_smoke_001.actual.json",
     "outputDiffFile": "data/json/03_tests/screen_state/screen_state_smoke_001/diff/screen_state_smoke_001.diff.json"

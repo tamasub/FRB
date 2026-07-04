@@ -1,7 +1,7 @@
 {
   "schema_version": "performance_limit_policy_draft_v0_1",
   "document_type": "qa_performance_limit_policy",
-  "view_def": "qa\\responsibility\\performance_limit_policy_view_def_v0_1.json",
+  "view_def": "qa/responsibility_def/performance_limit_policy_view_def_v0_1.json",
   "title": "FRB Studio Performance Limit Policy Draft",
   "phase": "v0.18.5-test-design-document-responsibility-scope",
   "created_at": "2026-07-04",

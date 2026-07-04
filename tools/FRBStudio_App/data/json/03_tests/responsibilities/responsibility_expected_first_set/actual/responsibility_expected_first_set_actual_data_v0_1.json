@@ -1,5 +1,5 @@
 {
-  "view_def": "qa/responsibility/responsibility_expected_actual_view_def_v0_1.json",
+  "view_def": "qa/responsibilities/responsibility_expected_actual_view_def_v0_1.json",
   "schema_version": "responsibility_expected_actual_v0_1",
   "document_type": "responsibility_expected_actual",
   "test_area": "responsibilities",

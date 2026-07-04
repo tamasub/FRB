@@ -149,7 +149,7 @@
     },
     {
       "no": 5,
-      "def_path": "qa/qa_cross_check_risk_view_def_v0_1.json",
+      "def_path": "qa/review/qa_cross_check_risk_view_def_v0_1.json",
       "def_file": "qa_cross_check_risk_view_def_v0_1.json",
       "folder": "qa",
       "def_kind": "view_def",
@@ -169,7 +169,7 @@
       "linked_data_jsons": [
         {
           "reference_type": "view_def_candidates",
-          "raw_ref": "qa/qa_cross_check_risk_view_def_v0_1.json",
+          "raw_ref": "qa/review/qa_cross_check_risk_view_def_v0_1.json",
           "role": "relation",
           "label": "チェック観点×リスク",
           "status": "active",
@@ -180,7 +180,7 @@
         },
         {
           "reference_type": "view_def_candidates",
-          "raw_ref": "qa/qa_cross_check_risk_view_def_v0_1.json",
+          "raw_ref": "qa/review/qa_cross_check_risk_view_def_v0_1.json",
           "role": "relation",
           "label": "チェック観点×リスク",
           "status": "active",
@@ -195,7 +195,7 @@
     },
     {
       "no": 6,
-      "def_path": "qa/qa_cross_constraint_view_def_v0_1.json",
+      "def_path": "qa/review/qa_cross_constraint_view_def_v0_1.json",
       "def_file": "qa_cross_constraint_view_def_v0_1.json",
       "folder": "qa",
       "def_kind": "view_def",
@@ -215,7 +215,7 @@
       "linked_data_jsons": [
         {
           "reference_type": "view_def_candidates",
-          "raw_ref": "qa/qa_cross_constraint_view_def_v0_1.json",
+          "raw_ref": "qa/review/qa_cross_constraint_view_def_v0_1.json",
           "role": "relation",
           "label": "制約ID別Expected件数",
           "status": "active",
@@ -226,7 +226,7 @@
         },
         {
           "reference_type": "view_def_candidates",
-          "raw_ref": "qa/qa_cross_constraint_view_def_v0_1.json",
+          "raw_ref": "qa/review/qa_cross_constraint_view_def_v0_1.json",
           "role": "relation",
           "label": "制約ID別Expected件数",
           "status": "active",
@@ -241,7 +241,7 @@
     },
     {
       "no": 7,
-      "def_path": "qa/qa_cross_quality_risk_view_def_v0_1.json",
+      "def_path": "qa/review/qa_cross_quality_risk_view_def_v0_1.json",
       "def_file": "qa_cross_quality_risk_view_def_v0_1.json",
       "folder": "qa",
       "def_kind": "view_def",
@@ -261,7 +261,7 @@
       "linked_data_jsons": [
         {
           "reference_type": "view_def_candidates",
-          "raw_ref": "qa/qa_cross_quality_risk_view_def_v0_1.json",
+          "raw_ref": "qa/review/qa_cross_quality_risk_view_def_v0_1.json",
           "role": "relation",
           "label": "品質観点×リスク",
           "status": "active",
@@ -272,7 +272,7 @@
         },
         {
           "reference_type": "view_def_candidates",
-          "raw_ref": "qa/qa_cross_quality_risk_view_def_v0_1.json",
+          "raw_ref": "qa/review/qa_cross_quality_risk_view_def_v0_1.json",
           "role": "relation",
           "label": "品質観点×リスク",
           "status": "active",
@@ -287,7 +287,7 @@
     },
     {
       "no": 8,
-      "def_path": "qa/qa_cross_test_pattern_view_def_v0_1.json",
+      "def_path": "qa/review/qa_cross_test_pattern_view_def_v0_1.json",
       "def_file": "qa_cross_test_pattern_view_def_v0_1.json",
       "folder": "qa",
       "def_kind": "view_def",
@@ -307,7 +307,7 @@
       "linked_data_jsons": [
         {
           "reference_type": "view_def_candidates",
-          "raw_ref": "qa/qa_cross_test_pattern_view_def_v0_1.json",
+          "raw_ref": "qa/review/qa_cross_test_pattern_view_def_v0_1.json",
           "role": "relation",
           "label": "テストパターン別Expected件数",
           "status": "active",
@@ -318,7 +318,7 @@
         },
         {
           "reference_type": "view_def_candidates",
-          "raw_ref": "qa/qa_cross_test_pattern_view_def_v0_1.json",
+          "raw_ref": "qa/review/qa_cross_test_pattern_view_def_v0_1.json",
           "role": "relation",
           "label": "テストパターン別Expected件数",
           "status": "active",
@@ -333,7 +333,7 @@
     },
     {
       "no": 9,
-      "def_path": "qa/qa_expected_checks_candidate_review_view_def_v0_1.json",
+      "def_path": "qa/review/qa_expected_checks_candidate_review_view_def_v0_1.json",
       "def_file": "qa_expected_checks_candidate_review_view_def_v0_1.json",
       "folder": "qa",
       "def_kind": "view_def",
@@ -356,7 +356,7 @@
     },
     {
       "no": 10,
-      "def_path": "qa/qa_expected_checks_candidate_review_wrapped_view_def_v0_1.json",
+      "def_path": "qa/review/qa_expected_checks_candidate_review_wrapped_view_def_v0_1.json",
       "def_file": "qa_expected_checks_candidate_review_wrapped_view_def_v0_1.json",
       "folder": "qa",
       "def_kind": "view_def",
@@ -376,7 +376,7 @@
       "linked_data_jsons": [
         {
           "reference_type": "view_def",
-          "raw_ref": "qa/qa_expected_checks_candidate_review_wrapped_view_def_v0_1.json",
+          "raw_ref": "qa/review/qa_expected_checks_candidate_review_wrapped_view_def_v0_1.json",
           "role": "default",
           "label": "既定ViewDef",
           "status": "active",
@@ -387,7 +387,7 @@
         },
         {
           "reference_type": "view_def_candidates",
-          "raw_ref": "qa/qa_expected_checks_candidate_review_wrapped_view_def_v0_1.json",
+          "raw_ref": "qa/review/qa_expected_checks_candidate_review_wrapped_view_def_v0_1.json",
           "role": "default",
           "label": "追加候補レビュー",
           "status": "active",
@@ -402,7 +402,7 @@
     },
     {
       "no": 11,
-      "def_path": "qa/qa_expected_checks_classified_view_def_v0_1.json",
+      "def_path": "qa/review/qa_expected_checks_classified_view_def_v0_1.json",
       "def_file": "qa_expected_checks_classified_view_def_v0_1.json",
       "folder": "qa",
       "def_kind": "view_def",
@@ -422,7 +422,7 @@
       "linked_data_jsons": [
         {
           "reference_type": "view_def_candidates",
-          "raw_ref": "qa/qa_expected_checks_classified_view_def_v0_1.json",
+          "raw_ref": "qa/review/qa_expected_checks_classified_view_def_v0_1.json",
           "role": "review",
           "label": "観点分類表示",
           "status": "active",
@@ -433,7 +433,7 @@
         },
         {
           "reference_type": "view_def",
-          "raw_ref": "qa/qa_expected_checks_classified_view_def_v0_1.json",
+          "raw_ref": "qa/review/qa_expected_checks_classified_view_def_v0_1.json",
           "role": "default",
           "label": "既定ViewDef",
           "status": "active",
@@ -444,7 +444,7 @@
         },
         {
           "reference_type": "view_def_candidates",
-          "raw_ref": "qa/qa_expected_checks_classified_view_def_v0_1.json",
+          "raw_ref": "qa/review/qa_expected_checks_classified_view_def_v0_1.json",
           "role": "default",
           "label": "標準表示",
           "status": "active",
@@ -459,7 +459,7 @@
     },
     {
       "no": 12,
-      "def_path": "qa/qa_expected_checks_sample_view_def_v0_1.json",
+      "def_path": "qa/review/qa_expected_checks_sample_view_def_v0_1.json",
       "def_file": "qa_expected_checks_sample_view_def_v0_1.json",
       "folder": "qa",
       "def_kind": "view_def",
@@ -479,7 +479,7 @@
       "linked_data_jsons": [
         {
           "reference_type": "view_def",
-          "raw_ref": "qa/qa_expected_checks_sample_view_def_v0_1.json",
+          "raw_ref": "qa/review/qa_expected_checks_sample_view_def_v0_1.json",
           "role": "default",
           "label": "既定ViewDef",
           "status": "active",
@@ -490,7 +490,7 @@
         },
         {
           "reference_type": "view_def_candidates",
-          "raw_ref": "qa/qa_expected_checks_sample_view_def_v0_1.json",
+          "raw_ref": "qa/review/qa_expected_checks_sample_view_def_v0_1.json",
           "role": "default",
           "label": "Expected標準表示",
           "status": "active",
@@ -501,7 +501,7 @@
         },
         {
           "reference_type": "view_def_candidates",
-          "raw_ref": "qa/qa_expected_checks_sample_view_def_v0_1.json",
+          "raw_ref": "qa/review/qa_expected_checks_sample_view_def_v0_1.json",
           "role": "review",
           "label": "サンプル形式表示",
           "status": "active",
@@ -516,7 +516,7 @@
     },
     {
       "no": 13,
-      "def_path": "qa/qa_shortage_expected_findings_view_def_v0_1.json",
+      "def_path": "qa/review/qa_shortage_expected_findings_view_def_v0_1.json",
       "def_file": "qa_shortage_expected_findings_view_def_v0_1.json",
       "folder": "qa",
       "def_kind": "view_def",
@@ -536,7 +536,7 @@
       "linked_data_jsons": [
         {
           "reference_type": "view_def_candidates",
-          "raw_ref": "qa/qa_shortage_expected_findings_view_def_v0_1.json",
+          "raw_ref": "qa/review/qa_shortage_expected_findings_view_def_v0_1.json",
           "role": "diagnostic",
           "label": "Expected不足検出",
           "status": "active",
@@ -547,7 +547,7 @@
         },
         {
           "reference_type": "view_def_candidates",
-          "raw_ref": "qa/qa_shortage_expected_findings_view_def_v0_1.json",
+          "raw_ref": "qa/review/qa_shortage_expected_findings_view_def_v0_1.json",
           "role": "diagnostic",
           "label": "Expected不足検出",
           "status": "active",
@@ -562,7 +562,7 @@
     },
     {
       "no": 14,
-      "def_path": "qa/qa_test_patterns_sample_view_def_v0_1.json",
+      "def_path": "qa/tests/qa_test_patterns_sample_view_def_v0_1.json",
       "def_file": "qa_test_patterns_sample_view_def_v0_1.json",
       "folder": "qa",
       "def_kind": "view_def",
@@ -582,7 +582,7 @@
       "linked_data_jsons": [
         {
           "reference_type": "view_def",
-          "raw_ref": "qa/qa_test_patterns_sample_view_def_v0_1.json",
+          "raw_ref": "qa/tests/qa_test_patterns_sample_view_def_v0_1.json",
           "role": "default",
           "label": "既定ViewDef",
           "status": "active",
@@ -1912,7 +1912,7 @@
       "document_type": "",
       "schema_version": "",
       "title": "",
-      "view_def": "qa/qa_expected_checks_candidate_review_wrapped_view_def_v0_1.json",
+      "view_def": "qa/review/qa_expected_checks_candidate_review_wrapped_view_def_v0_1.json",
       "view_def_candidates_count": 1,
       "reference_count": 2,
       "missing_reference_count": 0
@@ -1938,7 +1938,7 @@
       "document_type": "",
       "schema_version": "",
       "title": "",
-      "view_def": "qa/qa_expected_checks_sample_view_def_v0_1.json",
+      "view_def": "qa/review/qa_expected_checks_sample_view_def_v0_1.json",
       "view_def_candidates_count": 7,
       "reference_count": 8,
       "missing_reference_count": 0
@@ -1951,7 +1951,7 @@
       "document_type": "",
       "schema_version": "",
       "title": "",
-      "view_def": "qa/qa_test_patterns_sample_view_def_v0_1.json",
+      "view_def": "qa/tests/qa_test_patterns_sample_view_def_v0_1.json",
       "view_def_candidates_count": 0,
       "reference_count": 1,
       "missing_reference_count": 0
@@ -2237,7 +2237,7 @@
       "document_type": "qa_expected_checks_classified",
       "schema_version": "0.1",
       "title": "観点分類入りExpected定義 v0.1",
-      "view_def": "qa/qa_expected_checks_classified_view_def_v0_1.json",
+      "view_def": "qa/review/qa_expected_checks_classified_view_def_v0_1.json",
       "view_def_candidates_count": 7,
       "reference_count": 8,
       "missing_reference_count": 0
@@ -2392,7 +2392,7 @@
   "not_linked_or_error_candidates": [
     {
       "data_path": "data/json/01_main/qa_expected_checks_classified_v0_1.json",
-      "view_def": "qa/qa_expected_checks_candidate_review_view_def_v0_1.json",
+      "view_def": "qa/review/qa_expected_checks_candidate_review_view_def_v0_1.json",
       "status": "not_changed",
       "reason": "top-levelが配列。view_def/view_def_candidatesを埋め込むにはobjectへwrapする必要あり。既存のwrapped系データを使うか、別インシデントで構造移行推奨。"
     }
@@ -2442,31 +2442,31 @@
     ],
     "rescued_defs": [
       {
-        "def_path": "qa/qa_cross_check_risk_view_def_v0_1.json",
+        "def_path": "qa/review/qa_cross_check_risk_view_def_v0_1.json",
         "previous_usage_status": "defs_only",
         "data_reference_count": 2,
         "view_caption": "チェック観点 × リスク"
       },
       {
-        "def_path": "qa/qa_cross_constraint_view_def_v0_1.json",
+        "def_path": "qa/review/qa_cross_constraint_view_def_v0_1.json",
         "previous_usage_status": "defs_only",
         "data_reference_count": 2,
         "view_caption": "制約ID別 Expected 件数"
       },
       {
-        "def_path": "qa/qa_cross_quality_risk_view_def_v0_1.json",
+        "def_path": "qa/review/qa_cross_quality_risk_view_def_v0_1.json",
         "previous_usage_status": "defs_only",
         "data_reference_count": 2,
         "view_caption": "品質観点 × リスク"
       },
       {
-        "def_path": "qa/qa_cross_test_pattern_view_def_v0_1.json",
+        "def_path": "qa/review/qa_cross_test_pattern_view_def_v0_1.json",
         "previous_usage_status": "defs_only",
         "data_reference_count": 2,
         "view_caption": "テストパターン別 Expected 件数"
       },
       {
-        "def_path": "qa/qa_shortage_expected_findings_view_def_v0_1.json",
+        "def_path": "qa/review/qa_shortage_expected_findings_view_def_v0_1.json",
         "previous_usage_status": "defs_only",
         "data_reference_count": 2,
         "view_caption": "Expected 不足検出"
@@ -2552,7 +2552,7 @@
         "reason": ""
       },
       {
-        "def_path": "qa/qa_expected_checks_candidate_review_view_def_v0_1.json",
+        "def_path": "qa/review/qa_expected_checks_candidate_review_view_def_v0_1.json",
         "def_kind": "view_def",
         "view_caption": "Expected追加候補レビュー（トップレベル配列）",
         "reason": ""

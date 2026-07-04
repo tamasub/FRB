@@ -1,6 +1,6 @@
 {
   "$schema": "frb_view_def_schema_v0_9.json",
-  "view_def": "qa/responsibility/responsibility_expected_actual_view_def_v0_1.json",
+  "view_def": "qa/responsibilities/responsibility_expected_actual_view_def_v0_1.json",
   "app": { "name": "FRBStudio", "version": "responsibility_expected_actual_view_def_v0_1" },
   "description": "Responsibility Expected runner が出力する Actual観測値を確認するためのViewDef。判定は持たず、observations[] の actual だけを見る。",
   "views": [

@@ -1,5 +1,5 @@
 {
-  "view_def": "qa/qa_test_patterns_sample_view_def_v0_1.json",
+  "view_def": "qa/tests/qa_test_patterns_sample_view_def_v0_1.json",
   "test_patterns": [
     {
       "test_pattern_id": "TP-REL-STATUS-001",

@@ -10428,7 +10428,7 @@
           "note": ""
         }
       ],
-      "actual_updated_files": "tests/responsibilities/run_responsibility_expected_tests.mjs\ndefs/qa/responsibility/responsibility_expected_diff_view_def_v0_1.json\ndefs/qa/responsibility/responsibility_expected_actual_view_def_v0_1.json\ndata/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/responsibility_expected_test_patterns_data_v0_1.json\ndata/json/03_tests/responsibilities/responsibility_expected_first_set/actual/responsibility_expected_first_set_actual_data_v0_1.json\ndata/json/03_tests/responsibilities/responsibility_expected_first_set/diff/responsibility_expected_first_set_diff_data_v0_1.json\ndata/json/00_rules/md/RESPONSIBILITY_EXPECTED_DIFF_EVIDENCE_OUTPUT_REPORT_v0_18_10.md\ndata/json/01_main/studio_work_incident_data_v0_125_responsibility_expected_diff_evidence_output_done.json",
+      "actual_updated_files": "tests/responsibilities/run_responsibility_expected_tests.mjs\ndefs/qa/responsibilities/responsibility_expected_diff_view_def_v0_1.json\ndefs/qa/responsibilities/responsibility_expected_actual_view_def_v0_1.json\ndata/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/responsibility_expected_test_patterns_data_v0_1.json\ndata/json/03_tests/responsibilities/responsibility_expected_first_set/actual/responsibility_expected_first_set_actual_data_v0_1.json\ndata/json/03_tests/responsibilities/responsibility_expected_first_set/diff/responsibility_expected_first_set_diff_data_v0_1.json\ndata/json/00_rules/md/RESPONSIBILITY_EXPECTED_DIFF_EVIDENCE_OUTPUT_REPORT_v0_18_10.md\ndata/json/01_main/studio_work_incident_data_v0_125_responsibility_expected_diff_evidence_output_done.json",
       "completion_summary": "責務Expected runnerからActual/Diff証跡を出力し、DiffをStudioくんで確認できるViewDefを追加した。",
       "test_result": "node tests/responsibilities/run_responsibility_expected_tests.mjs 実行で6/6 PASS。Actual/Diff JSON出力を確認。JSON parse確認OK。ブラウザ実機でのDiff画面読込は未実施。"
     },
@@ -10449,7 +10449,7 @@
         "wwwroot/js/renderers/field_controls.js",
         "wwwroot/js/renderers/grid_detail.js",
         "wwwroot/styles.css",
-        "defs/qa/responsibility/responsibility_expected_test_patterns_view_def_v0_1.json",
+        "defs/qa/responsibilities/responsibility_expected_test_patterns_view_def_v0_1.json",
         "data/json/00_rules/md/SUBGRID_SINGLE_LINE_TEST_PATTERN_VIEWDEF_REPORT_v0_18_11.md",
         "data/json/01_main/studio_work_incident_data_v0_126_subgrid_single_line_test_pattern_viewdef_done.json"
       ],
@@ -10530,7 +10530,7 @@
           "summary": "SubGrid一覧のnowrap/clip、single-line long value、grid-cell-inline-jsonのCSSを追加。"
         },
         {
-          "file": "defs/qa/responsibility/responsibility_expected_test_patterns_view_def_v0_1.json",
+          "file": "defs/qa/responsibilities/responsibility_expected_test_patterns_view_def_v0_1.json",
           "summary": "主要input/expectedフィールドをグリッド表示化し、inline JSON表示を指定。input.view_def.fieldsのSubGrid columnsにgrid/edit json列を明示。"
         }
       ],
@@ -10539,7 +10539,7 @@
       "context_def_updated_at": "2026-07-04",
       "context_def_draft": "",
       "context_refs": [],
-      "actual_updated_files": "wwwroot/js/runtime/detail_subgrid_edit.js\nwwwroot/js/renderers/field_controls.js\nwwwroot/js/renderers/grid_detail.js\nwwwroot/styles.css\ndefs/qa/responsibility/responsibility_expected_test_patterns_view_def_v0_1.json\ndata/json/00_rules/md/SUBGRID_SINGLE_LINE_TEST_PATTERN_VIEWDEF_REPORT_v0_18_11.md\ndata/json/01_main/studio_work_incident_data_v0_126_subgrid_single_line_test_pattern_viewdef_done.json",
+      "actual_updated_files": "wwwroot/js/runtime/detail_subgrid_edit.js\nwwwroot/js/renderers/field_controls.js\nwwwroot/js/renderers/grid_detail.js\nwwwroot/styles.css\ndefs/qa/responsibilities/responsibility_expected_test_patterns_view_def_v0_1.json\ndata/json/00_rules/md/SUBGRID_SINGLE_LINE_TEST_PATTERN_VIEWDEF_REPORT_v0_18_11.md\ndata/json/01_main/studio_work_incident_data_v0_126_subgrid_single_line_test_pattern_viewdef_done.json",
       "completion_summary": "SubGrid一覧のtextareaを廃止し、長文/JSONを1行・折り返し禁止・右端clip表示へ変更した。右余白はlongText/json列へ寄せる自動調整を追加。責務ExpectedテストパターンViewDefでは、Input/Expectedの主要情報をグリッド上に出し、レビュー入口を強化した。",
       "test_result": "node tests/responsibilities/run_responsibility_expected_tests.mjs は、ユーザーが意図的に赤くした grid_column_build_visible_fields_basic の期待値(title zzz)により 5/6。今回修正対象のUI/ViewDef変更とは別要因。"
     },
@@ -10555,7 +10555,7 @@
       "ai_owner": "ChatGPT",
       "created_at": "2026-07-04",
       "updated_at": "2026-07-04",
-      "target_files": "wwwroot/js/runtime/detail_subgrid_edit.js, wwwroot/js/markdown/data_markdown.js, wwwroot/styles.css, defs/qa/responsibility/responsibility_expected_test_patterns_view_def_v0_1.json, data/json/00_rules/md/SUBGRID_PREVIEW_EDIT_ACTION_COLUMN_POLISH_REPORT_v0_18_12.md",
+      "target_files": "wwwroot/js/runtime/detail_subgrid_edit.js, wwwroot/js/markdown/data_markdown.js, wwwroot/styles.css, defs/qa/responsibilities/responsibility_expected_test_patterns_view_def_v0_1.json, data/json/00_rules/md/SUBGRID_PREVIEW_EDIT_ACTION_COLUMN_POLISH_REPORT_v0_18_12.md",
       "objective": "v0.18.12の再依頼として、文書Markdownがタイトルだけになる問題を直し、読取専用サブグリッドの操作列を圧縮ではなく非表示へ改める。",
       "background": "前回はPreview Edit空欄化と文書Markdownモード復帰までは対応したが、document_rebuildはsource未指定時に$.rulesを見に行くため責務ExpectedテストDataでは本文が出なかった。また、読取専用サブグリッドの操作列を34pxへ圧縮する判断は、操作不要という本来意図に合っていなかった。",
       "scope": "document_rebuildのsource未指定時にViewDef sectionsを文書化するfallbackを追加し、grid/form/objectArrayサブグリッドをMarkdown出力する。読取専用サブグリッドでは操作列をDOM生成せず、Previewも表示専用へ寄せる。",
@@ -10604,7 +10604,7 @@
         },
         {
           "at": "2026-07-04",
-          "file": "defs/qa/responsibility/responsibility_expected_test_patterns_view_def_v0_1.json",
+          "file": "defs/qa/responsibilities/responsibility_expected_test_patterns_view_def_v0_1.json",
           "change": "Markdown modesに文書Markdown出力(document_rebuild)を追加。"
         },
         {

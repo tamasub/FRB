@@ -99,10 +99,10 @@
       "review_status": "approved"
     }
   ],
-  "view_def": "qa/qa_expected_checks_candidate_review_wrapped_view_def_v0_1.json",
+  "view_def": "qa/review/qa_expected_checks_candidate_review_wrapped_view_def_v0_1.json",
   "view_def_candidates": [
     {
-      "view_def": "qa/qa_expected_checks_candidate_review_wrapped_view_def_v0_1.json",
+      "view_def": "qa/review/qa_expected_checks_candidate_review_wrapped_view_def_v0_1.json",
       "label": "追加候補レビュー",
       "role": "default",
       "status": "active",

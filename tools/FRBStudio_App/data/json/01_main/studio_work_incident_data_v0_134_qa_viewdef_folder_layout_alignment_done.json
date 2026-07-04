@@ -11095,7 +11095,7 @@
       "incident_type": "folder_layout_refactor",
       "category": "viewdef_folder_layout",
       "priority": "high",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-07-04",
@@ -11112,8 +11112,8 @@
       "test_points": "JSON parseが通ること。移動後ViewDefファイルが存在すること。activeなData JSONの view_def / view_def_candidates が新パスを指すこと。defs側に数字フォルダーが作成されていないこと。旧 defs/qa 直下混在が解消されていること。未修正旧パスがある場合は作業レポートで理由と影響が分かること。",
       "user_request": "defs/qa は残すのがよい。defs側のフォルダー名に数字は入れない方針でやっている。defs側は基本画面で選択することが無いので、表示順序は気にせず、かっこ良さだけを気にする。ややこしいやつがエラーで見れなくなってもよいので、フォルダーが綺麗に整理されることを最優先したい。一応インシデント登録し、更新後JSONを返却してほしい。",
       "ai_response": "QA系ViewDefフォルダー階層整理を、FieldGroupType動的切替前の地ならしインシデントとして追加する。defs側No Number方針、defs/qaを意味的ルートとして残す判断、active参照パス修正、旧履歴パスは必要に応じて残す方針を明記する。",
-      "latest_user_comment": "defs側は数字フォルダー禁止。defs/qaは残し、画面選択順よりフォルダーのかっこ良さを優先。ややこしい古い参照が一部壊れても、綺麗に整理されることを最優先したい。",
-      "latest_ai_response": "QA系ViewDefフォルダー階層整理 / defs側No Number方針としてインシデント登録する。",
+      "latest_user_comment": "defs/qa はQA系ViewDefのルートとして残しつつ、defs側のフォルダー名には数字プレフィックスを使わない方針で、Data JSON側の意味に合わせてフォルダー階層を整理したい。フォルダー移動を伴うため、今回はroot/dataとroot/defsを全件返却する。",
+      "latest_ai_response": "対応完了。defs/qa直下に混在していたQA系ViewDefを review / tests / responsibility_def / responsibilities へ整理し、data/defs配下JSONのactive参照を新パスへ更新した。旧defs/qa直下のViewDefと旧defs/qa/responsibilityフォルダーは残さず、フォルダーの綺麗さを優先した。返却ZIPはユーザー明示依頼によりdata/とdefs/を全件収録する。",
       "discussion_history": [
         {
           "history_id": "disc_0132_001",
@@ -11135,6 +11135,20 @@
           "speaker": "user",
           "topic": "defs側No Number方針",
           "message": "defs/qa は残すのがよい。defs側のフォルダー名に数字は入れない方針。defs側は画面で選択することが無いので、表示順序ではなくかっこ良さだけを気にする。ややこしいものがエラーで見れなくなってもよいので、フォルダーが綺麗に整理されることを最優先したい。"
+        },
+        {
+          "history_id": "disc_0132_003",
+          "at": "2026-07-04",
+          "speaker": "user",
+          "topic": "実作業依頼",
+          "message": "フォルダー移動を伴うため、root/data と root/defs を整理して全件返却してほしい。差分返却不可。"
+        },
+        {
+          "history_id": "disc_0132_004",
+          "at": "2026-07-04",
+          "speaker": "assistant",
+          "topic": "作業結果",
+          "message": "defs/qa をQA系ViewDefの意味的ルートとして残し、review / tests / responsibility_def / responsibilities に整理。Data/defs配下JSONのactive参照を新パスへ更新し、data/defsを全件返却対象にした。"
         }
       ],
       "decision_log": [
@@ -11161,6 +11175,18 @@
           "at": "2026-07-04",
           "decision": "ややこしい古いQA画面が一部一時的に見られなくなるリスクより、フォルダー構造を綺麗に整理することを優先する。",
           "reason": "FieldGroupTypeやExpectedDefのViewDef化へ進む前に、配置構造そのものの見通しを良くする方が重要であるため。"
+        },
+        {
+          "decision_id": "dec_0132_005",
+          "at": "2026-07-04",
+          "decision": "defs側では数字プレフィックスを使わず、defs/qa配下の意味別フォルダーで整理する。",
+          "reason": "defs側は基本的に画面選択対象ではなく、表示順序よりもフォルダー構造の美しさと意味の見通しを優先するため。"
+        },
+        {
+          "decision_id": "dec_0132_006",
+          "at": "2026-07-04",
+          "decision": "旧defs/qa直下ViewDefおよび旧defs/qa/responsibilityフォルダーの互換コピーは残さない。",
+          "reason": "旧パス互換を残しすぎるとフォルダー整理の意味が薄れるため。今回は一部古い参照が壊れる可能性よりも、構造整理を優先する。"
         }
       ],
       "change_history": [
@@ -11171,6 +11197,14 @@
           "before": "defs/qa配下のViewDef階層整理とdefs側No Number方針が、FieldGroupType前の地ならし作業としてインシデント管理上に登録されていなかった。",
           "after": "studio_work_0132 として、QA系ViewDefフォルダー階層整理 / defs側No Number方針を追加。",
           "reason": "Configフォルダー整理の次に、FieldGroupType動的切替・ExpectedDefのViewDef化へ進む前の配置整理として必要になったため。"
+        },
+        {
+          "history_id": "chg_0132_002",
+          "at": "2026-07-04",
+          "change_type": "qa_viewdef_folder_layout_done",
+          "before": "defs/qa直下にQAレビュー系・テスト証跡系ViewDefが混在し、defs/qa/responsibility配下に責務定義系と責務Expected証跡系が同居していた。",
+          "after": "defs/qa/review, defs/qa/tests, defs/qa/responsibility_def, defs/qa/responsibilities に整理し、data/defs配下JSONのactive参照を新パスへ更新した。",
+          "reason": "FieldGroupType動的切替やExpectedDef ViewDef化の前に、QA/Test/ViewDef配置の見通しをよくするため。"
         }
       ],
       "verification_status": "未確認",
@@ -11256,7 +11290,11 @@
           "sort_order": 60,
           "note": ""
         }
-      ]
+      ],
+      "actual_updated_files": "data/**（全件返却対象。主な更新: data/json/00_rules/md/QA_VIEWDEF_FOLDER_LAYOUT_ALIGNMENT_REPORT_v0_18_17.md, data/json/01_main/studio_work_incident_data_v0_134_qa_viewdef_folder_layout_alignment_done.json, QA/Test/Inventory/Incident系JSONのViewDef参照）\ndefs/**（全件返却対象。主な更新: defs/qa/review/*, defs/qa/tests/*, defs/qa/responsibility_def/*, defs/qa/responsibilities/*）",
+      "completion_summary": "QA系ViewDefの配置を、defs側No Number方針を守りながら意味別フォルダーへ整理した。",
+      "test_result": "data/defs配下JSON parse確認OK。移動後ViewDef 19件の存在確認OK。旧defs/qa直下ViewDef混在なし。旧defs/qa/responsibilityフォルダーなし。",
+      "fixed_in_version": "v0.18.17-qa-viewdef-folder-layout-alignment"
     }
   ],
   "review_notes": [

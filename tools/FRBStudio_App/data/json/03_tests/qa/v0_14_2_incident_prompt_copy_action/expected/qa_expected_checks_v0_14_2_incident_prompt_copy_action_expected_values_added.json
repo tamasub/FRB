@@ -1,5 +1,5 @@
 {
-  "view_def": "qa/qa_expected_checks_classified_view_def_v0_1.json",
+  "view_def": "qa/review/qa_expected_checks_classified_view_def_v0_1.json",
   "schema_version": "qa_expected_checks_v0_2_draft",
   "document_type": "qa_expected_checks",
   "title": "v0.14.2 incident prompt copy action Expected",
@@ -411,7 +411,7 @@
     "test_id": "TP-IPC-001",
     "target_file": "defs/rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",
     "actual_result_file": "data/json/03_tests/qa/v0_14_2_incident_prompt_copy_action/actual/TP-IPC-001.actual.json",
-    "actual_result_view_def": "qa/qa_actual_observation_view_def_v0_1.json",
+    "actual_result_view_def": "qa/tests/qa_actual_observation_view_def_v0_1.json",
     "expected_file_role": "source_of_truth",
     "policy": "期待値はExpected JSONを正とする。テストコードはExpected JSONを読み込み、expected値を変数に収録して利用する。",
     "subject": {
@@ -431,9 +431,9 @@
     "folder_policy": "QAテスト成果物は data/json/03_tests/qa/{suite_id}/ 配下に集約する。",
     "actual_file": "data/json/03_tests/qa/v0_14_2_incident_prompt_copy_action/actual/TP-IPC-001.actual.json",
     "diff_file": "data/json/03_tests/qa/v0_14_2_incident_prompt_copy_action/diff/TP-IPC-001.diff.json",
-    "actual_view_def": "qa/qa_actual_observation_view_def_v0_1.json",
-    "diff_view_def": "qa/qa_diff_result_view_def_v0_1.json",
-    "diff_result_view_def": "qa/qa_diff_result_view_def_v0_1.json",
+    "actual_view_def": "qa/tests/qa_actual_observation_view_def_v0_1.json",
+    "diff_view_def": "qa/tests/qa_diff_result_view_def_v0_1.json",
+    "diff_result_view_def": "qa/tests/qa_diff_result_view_def_v0_1.json",
     "responsibility_policy": "actual.json は観測値のみを保持する。diff.json は expected / actual / pass / summary を保持する。node --test の成否は diff.failedCount を正とする。"
   }
 }

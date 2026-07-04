@@ -1,52 +1,52 @@
 {
   "schema_version": "0.1",
   "document_type": "qa_expected_checks_classified",
-  "view_def": "qa/qa_expected_checks_classified_view_def_v0_1.json",
+  "view_def": "qa/review/qa_expected_checks_classified_view_def_v0_1.json",
   "view_def_candidates": [
     {
-      "view_def": "qa/qa_expected_checks_classified_view_def_v0_1.json",
+      "view_def": "qa/review/qa_expected_checks_classified_view_def_v0_1.json",
       "label": "標準表示",
       "role": "default",
       "status": "active",
       "note": "通常利用するViewDef"
     },
     {
-      "view_def": "qa/qa_expected_checks_sample_view_def_v0_1.json",
+      "view_def": "qa/review/qa_expected_checks_sample_view_def_v0_1.json",
       "label": "サンプル形式表示",
       "role": "review",
       "status": "active",
       "note": "同じexpected_checks配列を別表示で確認"
     },
     {
-      "view_def": "qa/qa_cross_quality_risk_view_def_v0_1.json",
+      "view_def": "qa/review/qa_cross_quality_risk_view_def_v0_1.json",
       "label": "品質観点×リスク",
       "role": "relation",
       "status": "active",
       "note": "expected_checksから品質観点×リスクを集計"
     },
     {
-      "view_def": "qa/qa_cross_check_risk_view_def_v0_1.json",
+      "view_def": "qa/review/qa_cross_check_risk_view_def_v0_1.json",
       "label": "チェック観点×リスク",
       "role": "relation",
       "status": "active",
       "note": "expected_checksからチェック観点×リスクを集計"
     },
     {
-      "view_def": "qa/qa_cross_constraint_view_def_v0_1.json",
+      "view_def": "qa/review/qa_cross_constraint_view_def_v0_1.json",
       "label": "制約ID別Expected件数",
       "role": "relation",
       "status": "active",
       "note": "expected_checks.constraint_idsを集計"
     },
     {
-      "view_def": "qa/qa_cross_test_pattern_view_def_v0_1.json",
+      "view_def": "qa/review/qa_cross_test_pattern_view_def_v0_1.json",
       "label": "テストパターン別Expected件数",
       "role": "relation",
       "status": "active",
       "note": "expected_checks.test_pattern_idを集計"
     },
     {
-      "view_def": "qa/qa_shortage_expected_findings_view_def_v0_1.json",
+      "view_def": "qa/review/qa_shortage_expected_findings_view_def_v0_1.json",
       "label": "Expected不足検出",
       "role": "diagnostic",
       "status": "active",
