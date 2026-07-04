@@ -1,7 +1,8 @@
-// v0.18.8-responsibility-expected-tests-first-set
+// v0.18.9.1-test-area-folder-layout-runner-path-guard
 // JSON-driven minimal Expected tests for ResponsibilityDef interfaces.
 // Run from FRBStudio_App root:
 //   node tests/responsibilities/run_responsibility_expected_tests.mjs
+// Optional: pass a test data JSON path explicitly as argv[2].
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -9,11 +10,50 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
 const root = process.cwd();
-const defaultTestDataPath = 'data/json/03_tests/responsibilities/responsibility_expected_tests_first_set_data_v0_1.json';
-const testDataPath = process.argv[2] || defaultTestDataPath;
+const standardTestDataPath = 'data/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/responsibility_expected_test_patterns_data_v0_1.json';
+const legacyTestDataPath = 'data/json/03_tests/responsibilities/responsibility_expected_tests_first_set_data_v0_1.json';
 
-function readJson(relPath) {
-  return JSON.parse(fs.readFileSync(path.join(root, relPath), 'utf8'));
+function rootPath(relOrAbsPath) {
+  return path.isAbsolute(relOrAbsPath) ? relOrAbsPath : path.join(root, relOrAbsPath);
+}
+
+function exists(relOrAbsPath) {
+  return fs.existsSync(rootPath(relOrAbsPath));
+}
+
+function resolveTestDataPath(requestedPath) {
+  if (requestedPath) {
+    if (exists(requestedPath)) return requestedPath;
+
+    // Compatibility: if old MVP path was passed after v0.18.9 migration,
+    // run against the new standard test_area/suite_id/artifact_kind path.
+    if (requestedPath === legacyTestDataPath && exists(standardTestDataPath)) {
+      console.warn(`[compat] ${legacyTestDataPath} was not found. Using ${standardTestDataPath}`);
+      return standardTestDataPath;
+    }
+
+    throw new Error(`Test data JSON not found: ${requestedPath}`);
+  }
+
+  // Default run should prefer the v0.18.9 standard layout, but also tolerate
+  // a workspace where only the v0.18.8 MVP file exists.
+  if (exists(standardTestDataPath)) return standardTestDataPath;
+  if (exists(legacyTestDataPath)) {
+    console.warn(`[compat] ${standardTestDataPath} was not found. Using legacy ${legacyTestDataPath}`);
+    return legacyTestDataPath;
+  }
+
+  throw new Error([
+    'Test data JSON not found.',
+    `  standard: ${standardTestDataPath}`,
+    `  legacy:   ${legacyTestDataPath}`
+  ].join('\n'));
+}
+
+const testDataPath = resolveTestDataPath(process.argv[2]);
+
+function readJson(relOrAbsPath) {
+  return JSON.parse(fs.readFileSync(rootPath(relOrAbsPath), 'utf8'));
 }
 
 function loadResponsibilities() {

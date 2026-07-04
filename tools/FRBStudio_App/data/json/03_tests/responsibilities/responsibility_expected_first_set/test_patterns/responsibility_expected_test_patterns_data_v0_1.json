@@ -1,7 +1,11 @@
 {
   "schema_version": "responsibility_expected_tests_data_v0_1",
   "document_type": "responsibility_expected_tests",
-  "view_def":"qa\\responsibility\\responsibility_expected_tests_view_def_v0_1.json",
+  "test_area": "responsibilities",
+  "suite_id": "responsibility_expected_first_set",
+  "artifact_kind": "test_patterns",
+  "canonical_path": "data/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/responsibility_expected_test_patterns_view_def_v0_1.json",
+  "view_def": "qa/responsibility/responsibility_expected_test_patterns_view_def_v0_1.json",
   "title": "Responsibility Expected Tests First Set / 責務単位Expectedテスト初期セット",
   "work_item_id": "studio_work_0112",
   "phase": "v0.18.8-responsibility-expected-tests-first-set",
@@ -22,14 +26,35 @@
       "input": {
         "view_def": {
           "fields": [
-            { "field": "id", "caption": "ID", "type": "text", "grid": { "visible": false } },
-            { "field": "title", "caption": "タイトル", "type": "text", "grid": { "visible": true } },
-            { "field": "score", "caption": "Score", "type": "number" }
+            {
+              "field": "id",
+              "caption": "ID",
+              "type": "text",
+              "grid": {
+                "visible": false
+              }
+            },
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "type": "text",
+              "grid": {
+                "visible": true
+              }
+            },
+            {
+              "field": "score",
+              "caption": "Score",
+              "type": "number"
+            }
           ]
         }
       },
       "expected": {
-        "field_names": ["title", "score"]
+        "field_names": [
+          "title",
+          "score"
+        ]
       }
     },
     {
@@ -55,17 +80,38 @@
       "enabled": true,
       "input": {
         "rows": [
-          { "id": "a", "title": "Alpha", "score": 3 },
-          { "id": "b", "title": "Beta", "score": 10 },
-          { "id": "c", "title": "Gamma", "score": 7 }
+          {
+            "id": "a",
+            "title": "Alpha",
+            "score": 3
+          },
+          {
+            "id": "b",
+            "title": "Beta",
+            "score": 10
+          },
+          {
+            "id": "c",
+            "title": "Gamma",
+            "score": 7
+          }
         ],
         "criteria": [
-          { "field": "title", "raw": "GA", "type": "text", "operator": "contains" }
+          {
+            "field": "title",
+            "raw": "GA",
+            "type": "text",
+            "operator": "contains"
+          }
         ]
       },
       "expected": {
-        "row_ids": ["c"],
-        "indexes": [2]
+        "row_ids": [
+          "c"
+        ],
+        "indexes": [
+          2
+        ]
       }
     },
     {
@@ -77,17 +123,40 @@
       "enabled": true,
       "input": {
         "rows": [
-          { "id": "a", "title": "Alpha", "score": 3 },
-          { "id": "b", "title": "Beta", "score": 10 },
-          { "id": "c", "title": "Gamma", "score": 7 }
+          {
+            "id": "a",
+            "title": "Alpha",
+            "score": 3
+          },
+          {
+            "id": "b",
+            "title": "Beta",
+            "score": 10
+          },
+          {
+            "id": "c",
+            "title": "Gamma",
+            "score": 7
+          }
         ],
         "criteria": [
-          { "field": "score", "raw": "7", "type": "number", "operator": "gte" }
+          {
+            "field": "score",
+            "raw": "7",
+            "type": "number",
+            "operator": "gte"
+          }
         ]
       },
       "expected": {
-        "row_ids": ["b", "c"],
-        "indexes": [1, 2]
+        "row_ids": [
+          "b",
+          "c"
+        ],
+        "indexes": [
+          1,
+          2
+        ]
       }
     },
     {
@@ -101,20 +170,51 @@
         "resolve_fields": true,
         "key_field_name": "id",
         "base_fields": [
-          { "field": "title", "caption": "title", "type": "text" },
-          { "field": "score", "caption": "score", "type": "number" }
+          {
+            "field": "title",
+            "caption": "title",
+            "type": "text"
+          },
+          {
+            "field": "score",
+            "caption": "score",
+            "type": "number"
+          }
         ],
         "all_fields": [
-          { "field": "id", "caption": "id", "type": "text" },
-          { "field": "title", "caption": "title", "type": "text" },
-          { "field": "score", "caption": "score", "type": "number" }
+          {
+            "field": "id",
+            "caption": "id",
+            "type": "text"
+          },
+          {
+            "field": "title",
+            "caption": "title",
+            "type": "text"
+          },
+          {
+            "field": "score",
+            "caption": "score",
+            "type": "number"
+          }
         ],
         "rows": [
-          { "row": { "id": "a", "title": "A, quote \"here\"", "score": 3 }, "index": 0 }
+          {
+            "row": {
+              "id": "a",
+              "title": "A, quote \"here\"",
+              "score": 3
+            },
+            "index": 0
+          }
         ]
       },
       "expected": {
-        "field_names": ["id", "title", "score"],
+        "field_names": [
+          "id",
+          "title",
+          "score"
+        ],
         "has_bom": false,
         "csv_text": "id,title,score\r\na,\"A, quote \"\"here\"\"\",3\r\n"
       }
@@ -128,10 +228,19 @@
       "enabled": true,
       "input": {
         "fields": [
-          { "field": "id", "caption": "id", "type": "text" }
+          {
+            "field": "id",
+            "caption": "id",
+            "type": "text"
+          }
         ],
         "rows": [
-          { "row": { "id": "a" }, "index": 0 }
+          {
+            "row": {
+              "id": "a"
+            },
+            "index": 0
+          }
         ],
         "include_bom": true
       },
