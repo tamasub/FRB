@@ -1,5 +1,5 @@
 {
-  "view_def": "qa/responsibility_def/expected_def_type_master_view_def_v0_1.json",
+  "view_def": "qa/tests/responsibility_def/expected_def_type_master_view_def_v0_1.json",
   "schema_version": "expected_def_type_master_data_v0_1",
   "document_type": "qa_expected_def_type_master",
   "title": "ExpectedDef Type Master",
@@ -20,6 +20,13 @@
       "purpose": "操作後の状態が期待どおりであることを確認する",
       "main_usage": "検索後Grid状態、Editor状態、current_row更新などの確認",
       "sort_order": 20
+    },
+    {
+      "expected_type_cd": "CsvExpectedDef",
+      "name": "CSV期待値",
+      "purpose": "CSV出力結果・BOM・列順・CSV本文が期待どおりであることを確認する",
+      "main_usage": "CSV出力責務、Grid CSV Export、UTF-8 BOM有無、エスケープ確認",
+      "sort_order": 25
     },
     {
       "expected_type_cd": "EventExpectedDef",

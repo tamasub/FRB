@@ -11,10 +11,16 @@
 
 .EXAMPLE
   powershell -ExecutionPolicy Bypass -File .\TestRunner.ps1 -TestRunnerId incident_prompt_copy_action_static -RunMode wait
+
+.EXAMPLE
+  powershell -ExecutionPolicy Bypass -File .\TestRunner.ps1 -TestRunnerId responsibility_expected_tests -RunMode wait
+
+.EXAMPLE
+  powershell -ExecutionPolicy Bypass -File .\TestRunner.ps1 -TestRunnerId responsibility_refactor_first_step_smoke -RunMode wait
 #>
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateSet('playwright_ui', 'incident_prompt_copy_action_static')]
+    [ValidateSet('playwright_ui', 'incident_prompt_copy_action_static', 'responsibility_expected_tests', 'responsibility_refactor_first_step_smoke')]
     [string]$TestRunnerId,
 
     [Parameter(Mandatory = $false)]
@@ -125,6 +131,25 @@ $runner = switch ($TestRunnerId) {
             Command = 'node'
             Arguments = @('--test', 'tests/qa/static/incident_prompt_copy_action_viewdef_static.test.mjs')
             Preview = 'node --test tests/qa/static/incident_prompt_copy_action_viewdef_static.test.mjs'
+        }
+    }
+
+    'responsibility_expected_tests' {
+        [pscustomobject]@{
+            Id = 'responsibility_expected_tests'
+            ExpectedRunMode = 'wait'
+            Command = 'node'
+            Arguments = @('tests/responsibilities/responsibility_expected_tests.mjs')
+            Preview = 'node tests/responsibilities/responsibility_expected_tests.mjs'
+        }
+    }
+    'responsibility_refactor_first_step_smoke' {
+        [pscustomobject]@{
+            Id = 'responsibility_refactor_first_step_smoke'
+            ExpectedRunMode = 'wait'
+            Command = 'node'
+            Arguments = @('tests/responsibilities/responsibility_refactor_first_step_smoke.mjs')
+            Preview = 'node tests/responsibilities/responsibility_refactor_first_step_smoke.mjs'
         }
     }
     default {

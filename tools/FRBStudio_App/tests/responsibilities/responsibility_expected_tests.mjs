@@ -1,7 +1,7 @@
-// v0.18.9.1-test-area-folder-layout-runner-path-guard
+// v0.18.14.3-test-runner-responsibility-run-config
 // JSON-driven minimal Expected tests for ResponsibilityDef interfaces.
 // Run from FRBStudio_App root:
-//   node tests/responsibilities/run_responsibility_expected_tests.mjs
+//   node tests/responsibilities/responsibility_expected_tests.mjs
 // Optional: pass a test data JSON path explicitly as argv[2].
 
 import fs from 'node:fs';
@@ -210,7 +210,7 @@ function main() {
         actual,
         actual_display: toDisplayValue(actual),
         observed_at: generatedAt,
-        source: 'tests/responsibilities/run_responsibility_expected_tests.mjs'
+        source: 'tests/responsibilities/responsibility_expected_tests.mjs'
       });
 
       const patternChecks = buildChecks(pattern, actual);
@@ -230,7 +230,7 @@ function main() {
         actual: errorActual,
         actual_display: toDisplayValue(errorActual),
         observed_at: generatedAt,
-        source: 'tests/responsibilities/run_responsibility_expected_tests.mjs'
+        source: 'tests/responsibilities/responsibility_expected_tests.mjs'
       });
       checks.push({
         check_id: `${pattern.test_pattern_id}.__runner_error`,
@@ -258,7 +258,7 @@ function main() {
   const resultLabel = failedChecks.length ? '🚨 FAIL' : '✅ PASS';
 
   const actualDoc = {
-    view_def: 'qa/responsibility/responsibility_expected_actual_view_def_v0_1.json',
+    view_def: 'qa/tests/responsibilities/responsibility_expected_actual_view_def_v0_1.json',
     schema_version: 'responsibility_expected_actual_v0_1',
     document_type: 'responsibility_expected_actual',
     test_area: data.test_area ?? 'responsibilities',
@@ -268,12 +268,12 @@ function main() {
     title: `${data.title ?? 'Responsibility Expected Tests'} Actual`,
     generated_at: generatedAt,
     source_test_patterns_file: testDataPath,
-    runner: 'tests/responsibilities/run_responsibility_expected_tests.mjs',
+    runner: 'tests/responsibilities/responsibility_expected_tests.mjs',
     observations
   };
 
   const diffDoc = {
-    view_def: 'qa/responsibility/responsibility_expected_diff_view_def_v0_1.json',
+    view_def: 'qa/tests/responsibilities/responsibility_expected_diff_view_def_v0_1.json',
     schema_version: 'diff_result_v0_1',
     document_type: 'diff_result',
     domain: 'responsibilities',

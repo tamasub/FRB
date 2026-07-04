@@ -5,7 +5,7 @@
   "suite_id": "responsibility_expected_first_set",
   "artifact_kind": "test_patterns",
   "canonical_path": "data/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/responsibility_expected_test_patterns_data_v0_1.json",
-  "view_def": "qa/responsibilities/responsibility_expected_test_patterns_view_def_v0_1.json",
+  "view_def": "qa/tests/responsibilities/responsibility_expected_test_patterns_view_def_v0_1.json",
   "title": "Responsibility Expected Tests First Set / 責務単位Expectedテスト初期セット",
   "work_item_id": "studio_work_0112",
   "phase": "v0.18.8-responsibility-expected-tests-first-set",
@@ -76,7 +76,7 @@
       "responsibility_cd": "search_filter",
       "title": "文字列contains検索は大文字小文字を無視して絞り込む",
       "test_level": "UT",
-      "expected_def_type": "RuleExpectedDef",
+      "expected_def_type": "StateExpectedDef",
       "enabled": true,
       "input": {
         "rows": [
@@ -164,7 +164,7 @@
       "responsibility_cd": "csv_export",
       "title": "表示列にkey列を追加し、カンマとダブルクォートをCSV escapeする",
       "test_level": "UT",
-      "expected_def_type": "RuleExpectedDef",
+      "expected_def_type": "CsvExpectedDef",
       "enabled": true,
       "input": {
         "resolve_fields": true,
@@ -224,7 +224,7 @@
       "responsibility_cd": "csv_export",
       "title": "includeBom=true の場合はUTF-8 BOM付きCSV文字列を返す",
       "test_level": "UT",
-      "expected_def_type": "RuleExpectedDef",
+      "expected_def_type": "CsvExpectedDef",
       "enabled": true,
       "input": {
         "fields": [

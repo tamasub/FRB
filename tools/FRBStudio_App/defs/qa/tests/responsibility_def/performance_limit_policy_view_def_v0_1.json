@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "ExpectedDef Type Master"
+    "title": "Performance Limit Policy Draft"
   },
   "fieldTypeSources": [
     "common/common_types_v0_1.json"
@@ -8,38 +8,21 @@
   "views": [
     {
       "id": "main",
-      "caption": "ExpectedDef Type Master",
+      "caption": "Performance Limit Policy",
       "sections": [
         {
           "id": "summary",
           "type": "form",
-          "caption": "概要",
+          "caption": "概要 / 性能方針",
           "dataPath": "$",
           "fields": [
-            {
-              "field": "view_def",
-              "caption": "view_def",
-              "type": "text",
-              "grid": {
-                "visible": false,
-                "width": 300
-              },
-              "edit": {
-                "visible": true,
-                "readonly": true
-              },
-              "search": {
-                "visible": false,
-                "operator": "contains"
-              }
-            },
             {
               "field": "schema_version",
               "caption": "schema_version",
               "type": "text",
               "grid": {
                 "visible": false,
-                "width": 220
+                "width": 200
               },
               "edit": {
                 "visible": true,
@@ -56,7 +39,7 @@
               "type": "text",
               "grid": {
                 "visible": false,
-                "width": 220
+                "width": 240
               },
               "edit": {
                 "visible": true,
@@ -73,7 +56,7 @@
               "type": "text",
               "grid": {
                 "visible": true,
-                "width": 300
+                "width": 320
               },
               "edit": {
                 "visible": true,
@@ -124,12 +107,30 @@
               "type": "textarea",
               "grid": {
                 "visible": false,
-                "width": 520
+                "width": 540
               },
               "edit": {
                 "visible": true,
                 "readonly": false,
-                "height": 100
+                "height": 110
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "policy_summary",
+              "caption": "方針サマリ",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 540
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 90
               },
               "search": {
                 "visible": true,
@@ -139,19 +140,19 @@
           ]
         },
         {
-          "id": "expected_def_types",
+          "id": "limits",
           "type": "grid",
-          "caption": "ExpectedDef種別",
-          "dataPath": "$.expected_def_types",
-          "keyField": "expected_type_cd",
+          "caption": "性能上限 / Limit Policy",
+          "dataPath": "$.limits",
+          "keyField": "limit_cd",
           "fields": [
             {
-              "field": "expected_type_cd",
-              "caption": "ExpectedDef種別CD",
+              "field": "limit_cd",
+              "caption": "上限CD",
               "type": "text",
               "grid": {
                 "visible": true,
-                "width": 230
+                "width": 210
               },
               "edit": {
                 "visible": true,
@@ -168,7 +169,7 @@
               "type": "text",
               "grid": {
                 "visible": true,
-                "width": 180
+                "width": 220
               },
               "edit": {
                 "visible": true,
@@ -180,30 +181,126 @@
               }
             },
             {
-              "field": "purpose",
-              "caption": "目的",
-              "type": "textarea",
+              "field": "normal_limit",
+              "caption": "通常上限",
+              "type": "number",
               "grid": {
                 "visible": true,
-                "width": 420
+                "width": 110
               },
               "edit": {
                 "visible": true,
-                "readonly": false,
-                "height": 80
+                "readonly": false
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               }
             },
             {
-              "field": "main_usage",
-              "caption": "主な利用場面",
+              "field": "warning_limit",
+              "caption": "警告上限",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 110
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "standard_max",
+              "caption": "標準最大",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 110
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "hard_limit",
+              "caption": "Hard上限",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 110
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "on_warning",
+              "caption": "警告時動作",
+              "type": "select",
+              "grid": {
+                "visible": true,
+                "width": 200
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "options": [
+                "show_warning",
+                "truncate_or_show_warning",
+                "show_warning_or_sectioning"
+              ]
+            },
+            {
+              "field": "on_hard_limit",
+              "caption": "Hard時動作",
+              "type": "select",
+              "grid": {
+                "visible": true,
+                "width": 240
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "options": [
+                "reject_or_require_override",
+                "render_as_preview_only",
+                "require_sectioning",
+                "require_paging_or_filter",
+                "require_scope_split"
+              ]
+            },
+            {
+              "field": "reason",
+              "caption": "理由",
               "type": "textarea",
               "grid": {
                 "visible": true,
-                "width": 440
+                "width": 460
               },
               "edit": {
                 "visible": true,
@@ -212,23 +309,6 @@
               },
               "search": {
                 "visible": true,
-                "operator": "contains"
-              }
-            },
-            {
-              "field": "sort_order",
-              "caption": "並び順",
-              "type": "number",
-              "grid": {
-                "visible": true,
-                "width": 90
-              },
-              "edit": {
-                "visible": true,
-                "readonly": false
-              },
-              "search": {
-                "visible": false,
                 "operator": "contains"
               }
             }

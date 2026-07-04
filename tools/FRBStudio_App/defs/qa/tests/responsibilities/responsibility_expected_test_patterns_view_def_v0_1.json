@@ -296,6 +296,8 @@
               "options": [
                 "RuleExpectedDef",
                 "StateExpectedDef",
+                "CsvExpectedDef",
+                "EventExpectedDef",
                 "ErrorExpectedDef",
                 "InterfaceExpectedDef",
                 "PerformanceExpectedDef",
@@ -491,58 +493,15 @@
               }
             },
             {
-              "field": "expected.field_names",
-              "caption": "Expected: Field Names",
-              "type": "textarea",
-              "readonly": true,
-              "grid": {
-                "visible": true,
-                "width": 260,
-                "display": "json"
+              "field": "__expected_def_fields",
+              "caption": "ExpectedDef Fields / 期待値表示パターン",
+              "type": "fieldGroup",
+              "fieldGroupType": "studio.ExpectedDef",
+              "fieldGroup": {
+                "mode": "dynamic",
+                "sourceField": "expected_def_type",
+                "note": "Data行のexpected_def_typeを見て、ExpectedDef用FieldGroupTypeを動的に展開する。Rendererは展開後fieldsだけを見る。"
               },
-              "edit": {
-                "visible": true,
-                "readonly": true,
-                "height": 50
-              }
-            },
-            {
-              "field": "expected.row_ids",
-              "caption": "Expected: Row IDs",
-              "type": "textarea",
-              "readonly": true,
-              "grid": {
-                "visible": true,
-                "width": 220,
-                "display": "json"
-              },
-              "edit": {
-                "visible": true,
-                "readonly": true,
-                "height": 50
-              }
-            },
-            {
-              "field": "expected.indexes",
-              "caption": "Expected: Indexes",
-              "type": "textarea",
-              "readonly": true,
-              "grid": {
-                "visible": true,
-                "width": 180,
-                "display": "json"
-              },
-              "edit": {
-                "visible": true,
-                "readonly": true,
-                "height": 50
-              }
-            },
-            {
-              "field": "expected.has_bom",
-              "caption": "Expected: Has BOM",
-              "type": "boolean",
-              "readonly": true,
               "grid": {
                 "visible": false
               },
@@ -550,40 +509,16 @@
                 "visible": true,
                 "readonly": true
               }
-            },
-            {
-              "field": "expected.csv_text",
-              "caption": "Expected: CSV Text",
-              "type": "textarea",
-              "readonly": true,
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": true,
-                "readonly": true,
-                "height": 120
-              }
-            },
-            {
-              "field": "expected.csv_without_bom",
-              "caption": "Expected: CSV Preview",
-              "type": "textarea",
-              "readonly": true,
-              "grid": {
-                "visible": true,
-                "width": 340,
-                "display": "json"
-              },
-              "edit": {
-                "visible": true,
-                "readonly": true,
-                "height": 90
-              }
             }
           ]
         }
+      ],
+      "fieldGroupSources": [
+        "config/field_group_types_config_data_v0_1.json"
       ]
     }
+  ],
+  "fieldGroupSources": [
+    "config/field_group_types_config_data_v0_1.json"
   ]
 }
