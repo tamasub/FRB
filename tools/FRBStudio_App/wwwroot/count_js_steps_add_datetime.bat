@@ -36,9 +36,7 @@ set "TIME_PART=%TIME_PART:~0,6%"
 
 set "TS=%DATE_PART%_%TIME_PART%"
 set "OUT_DIR=%ROOT%\countstep"
-
-@rem set "OUT_FILE=%OUT_DIR%\countstep_%TS%.txt"
-set "OUT_FILE=%OUT_DIR%\countstep.txt"
+set "OUT_FILE=%OUT_DIR%\countstep_%TS%.txt"
 
 if not exist "%OUT_DIR%\" mkdir "%OUT_DIR%"
 
@@ -48,7 +46,7 @@ if not exist "%OUT_DIR%\" mkdir "%OUT_DIR%"
 >> "%OUT_FILE%" echo script: %SCRIPT%
 >> "%OUT_FILE%" echo.
 
-python "%SCRIPT%" "%ROOT%" --exclude-dir "%EXCLUDE_DIR%" >> "%OUT_FILE%" 
+python "%SCRIPT%" "%ROOT%" --exclude-dir "%EXCLUDE_DIR%" >> "%OUT_FILE%" 2>&1
 
 
 if errorlevel 1 (

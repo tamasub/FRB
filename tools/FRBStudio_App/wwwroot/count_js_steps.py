@@ -260,31 +260,68 @@ def print_table(rows: list[FileCount]) -> None:
         print("対象の .js ファイルがありません。")
         return
 
-    path_width = max(len("file"), *(len(r.path) for r in rows))
-    header = (
-        f"{'file'.ljust(path_width)}  "
-        f"{'code':>6}  {'blank':>6}  {'comment':>7}  {'total':>6}"
-    )
-    print(header)
-    print("-" * len(header))
-
-    for r in rows:
-        print(
-            f"{r.path.ljust(path_width)}  "
-            f"{r.code_lines:>6}  {r.blank_lines:>6}  "
-            f"{r.comment_only_lines:>7}  {r.total_lines:>6}"
-        )
-
     total_code = sum(r.code_lines for r in rows)
     total_blank = sum(r.blank_lines for r in rows)
     total_comment = sum(r.comment_only_lines for r in rows)
     total_lines = sum(r.total_lines for r in rows)
 
-    print("-" * len(header))
-    print(
-        f"{'TOTAL'.ljust(path_width)}  "
-        f"{total_code:>6}  {total_blank:>6}  {total_comment:>7}  {total_lines:>6}"
-    )
+    # 数字列が縦にきれいに揃うよう、固定値ではなく実データから列幅を決める。
+    # 例: 999 -> 4桁、11457 -> 5桁のように件数が増えても右寄せを維持する。
+    table_rows = [
+        {
+            "file": r.path,
+            "code": str(r.code_lines),
+            "blank": str(r.blank_lines),
+            "comment": str(r.comment_only_lines),
+            "total": str(r.total_lines),
+        }
+        for r in rows
+    ]
+
+    total_row = {
+        "file": "TOTAL",
+        "code": str(total_code),
+        "blank": str(total_blank),
+        "comment": str(total_comment),
+        "total": str(total_lines),
+    }
+
+    all_rows = table_rows + [total_row]
+    headers = {
+        "file": "file",
+        "code": "code",
+        "blank": "blank",
+        "comment": "comment",
+        "total": "total",
+    }
+
+    widths = {
+        key: max(len(headers[key]), *(len(row[key]) for row in all_rows))
+        for key in headers
+    }
+
+    gap = "  "
+
+    def format_row(row: dict[str, str]) -> str:
+        return gap.join([
+            f"{row['file']:<{widths['file']}}",
+            f"{row['code']:>{widths['code']}}",
+            f"{row['blank']:>{widths['blank']}}",
+            f"{row['comment']:>{widths['comment']}}",
+            f"{row['total']:>{widths['total']}}",
+        ])
+
+    header = format_row(headers)
+    separator = "-" * len(header)
+
+    print(header)
+    print(separator)
+
+    for row in table_rows:
+        print(format_row(row))
+
+    print(separator)
+    print(format_row(total_row))
 
 
 def main() -> int:
