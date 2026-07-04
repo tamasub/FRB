@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>FRB Studio - JSON Object Studio v0.4-r001</title>
-  <link rel="stylesheet" href="styles.css?v=json-folder-open-01801" />
+  <link rel="stylesheet" href="styles.css?v=markdown-export-mode-0186" />
   <script>
   (function () {
     if (location.hostname === "localhost" || location.hostname === "127.0.0.1") return;
@@ -206,10 +206,16 @@
       <div class="studio-tool-dock studio-output-dock" aria-label="Markdown出力">
         <div class="studio-tool-group" aria-label="Markdown出力">
           <span class="studio-tool-label">Output</span>
-          <button id="exportMarkdownBtn" class="ghost-button studio-mini-button" disabled title="Markdownを出力してViewerで開く">
-            <span class="tool-main">MD</span>
-            <span class="tool-sub">出力→Viewer</span>
-          </button>
+          <div class="markdown-export-control" aria-label="Markdown出力モード">
+            <button id="exportMarkdownBtn" class="ghost-button studio-mini-button" disabled title="選択したモードでMarkdownを出力してViewerで開く">
+              <span class="tool-main">MD</span>
+              <span class="tool-sub">出力→Viewer</span>
+            </button>
+            <select id="exportMarkdownModeSelect" class="markdown-export-mode-select" disabled title="Markdown出力モード">
+              <option value="review_report">レビュー用</option>
+              <option value="full_dump">全項目</option>
+            </select>
+          </div>
           <button id="exportViewDefMarkdownBtn" class="ghost-button studio-mini-button" disabled title="ViewDef Markdownを出力してViewerで開く">
             <span class="tool-main">ViewDef</span>
             <span class="tool-sub">出力→Viewer</span>
@@ -296,17 +302,17 @@
   <script src="js/virtualData/expected_builders.js?v=action-execute-006"></script>
   <script src="js/renderers/field_controls.js?v=detail-select-0168"></script>
   <script src="js/renderers/grid_detail.js?v=grid-csv-export-0184"></script>
-  <script src="js/markdown/markdown_registry.js?v=action-execute-006"></script>
-  <script src="js/markdown/data_markdown.js?v=json-object-studio-009"></script>
+  <script src="js/markdown/markdown_registry.js?v=markdown-export-mode-0186"></script>
+  <script src="js/markdown/data_markdown.js?v=markdown-export-mode-0186"></script>
   <script src="js/markdown/viewdef_markdown.js?v=action-execute-006"></script>
   <script src="js/runtime/detail_subgrid_edit.js?v=detail-select-0168"></script>
   <script src="js/runtime/detail_save.js?v=context-grid-preview-0164"></script>
   <script src="js/core/viewdef_context_contract.js?v=context-grid-preview-0165-6"></script>
-  <script src="js/runtime/load_runtime.js?v=current-data-status-0178"></script>
+  <script src="js/runtime/load_runtime.js?v=markdown-export-mode-0186"></script>
   <script src="js/actions/action_registry.js?v=test-runner-command-profile-01438"></script>
   <script src="js/core/plugin_host.js?v=search-state-01714"></script>
   <script src="js/runtime/search_state.js?v=search-state-01715"></script>
   <script src="js/actions/action_toolbar.js?v=test-runner-command-profile-01438"></script>
-  <script src="app.js?v=search-state-01714"></script>
+  <script src="app.js?v=markdown-export-mode-0186"></script>
 </body>
 </html>

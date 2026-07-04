@@ -13,8 +13,8 @@
   "status": "converted_draft",
   "introduced_in": "v0.4-r001",
   "generated_at": "2026-06-26T00:00:00+09:00",
-  "rule_count": 80,
-  "approved_count": 79,
+  "rule_count": 84,
+  "approved_count": 83,
   "approval_policy": "各ルールは人間が内容確認し、verification_status を確認済みにしたうえで approval_decision を承認する。AIはレビューコメント案を出せるが、承認判断は人間が行う。",
   "preamble": "対象: `FRBStudio_App` / No-Code JSON Studio v0.6+ 系  \n対応Schema: `frb_view_def_schema_v0_8_action_registry_toolbar.json`\n\nこの文書は、AIに **Data JSON から ViewDef JSON を作成させる** ときの作成ルールである。\n\nStudioくんにおける ViewDef は、単なる画面定義ではない。\n\n```text\nData JSON + ViewDef JSON + Runtime + Action = Experience\n```\n\nViewDef は、データの見え方・編集の仕方・Markdown化・AIへの渡し方・仮想データの作り方・主役Actionを宣言する **体験設計書** である。\n\n---",
   "change_history_policy": "ルール本文、要約、カテゴリ、優先度、承認判断を変更した場合は、各 rule.change_history に変更前後・理由・会話を残す。",
@@ -2612,10 +2612,139 @@
           "reason": "既存Dataの多くがtitleを持っており、スキーマ対応前でも効果を得られるため。ただし正式契約はcurrentDataDisplayに置く。"
         }
       ]
+    },
+    {
+      "no": 81,
+      "rule_id": "viewdef_rule_30",
+      "section_no": "30",
+      "source_heading": "30. Markdown Export Mode / ExportDef契約",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "Markdown ExportDef",
+      "title": "Markdown出力はExport Modeとして定義する",
+      "priority": "high",
+      "review_status": "レビュー済み",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "Markdown出力は単一処理ではなく、full_dump / review_report / document_rebuild などのモードをViewDefの markdown.modes[] で定義する。",
+      "body": "Markdown出力は、Grid表示でもDetail編集でもなく、独立したExport Viewである。\n\nViewDefは markdown.defaultMode と markdown.modes[] を持てる。modes[] の各要素は id / caption / type / fieldPolicy を持ち、必要に応じて source / headingField / headingLevelField / bodyField などを宣言する。\n\n推奨する標準モードは以下とする。\n\n```json\n{\n  \"markdown\": {\n    \"enabled\": true,\n    \"defaultMode\": \"document_rebuild\",\n    \"modes\": [\n      {\n        \"id\": \"document_rebuild\",\n        \"caption\": \"文書Markdown出力\",\n        \"type\": \"document_sections\",\n        \"fieldPolicy\": \"explicit_fields\",\n        \"source\": \"$.rules\",\n        \"headingField\": \"source_heading\",\n        \"headingLevelField\": \"source_heading_level\",\n        \"bodyField\": \"body\"\n      },\n      {\n        \"id\": \"review_report\",\n        \"caption\": \"レビュー用Markdown出力\",\n        \"type\": \"review_report\",\n        \"fieldPolicy\": \"respect_markdown_export\"\n      },\n      {\n        \"id\": \"full_dump\",\n        \"caption\": \"全項目Markdown出力\",\n        \"type\": \"full_dump\",\n        \"fieldPolicy\": \"all\"\n      }\n    ]\n  }\n}\n```\n\n理由:\n単一のMarkdown出力仕様で、読み物型文書、レビュー証跡、デバッグ用全項目出力を兼ねると責務が混ざるため。",
+      "reason": "Markdown出力にもViewDefが必要であり、ExportDefとしてモードを持たせることで用途ごとの責務を分離できるため。",
+      "introduced_in": "v0.18.6-markdown-export-mode-exportdef-rules",
+      "change_history": [
+        {
+          "history_id": "chg_viewdef_rule_30_001",
+          "at": "2026-07-04",
+          "change_type": "rule_added",
+          "before": "Markdown出力は単一のレビュー報告書型出力として扱われ、全項目ダンプ・レビュー報告・文書再構成の責務が分離されていなかった。",
+          "after": "Markdown出力をExport Mode / Export Profileとして扱い、full_dump / review_report / document_rebuild の責務を分離した。",
+          "reason": "TEST_PLAN_RESPONSIBILITY_SCOPE_v0_18_5.md のJSON化で、レビュー用出力と読み物型Markdown再構成の出力体験が異なることが明確になったため。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_viewdef_rule_30_001",
+          "at": "2026-07-04",
+          "decision": "Markdown出力の主制御はfieldではなくmodeに置く。",
+          "reason": "全項目出力、レビュー報告、文書再構成では目的が異なるため。"
+        },
+        {
+          "decision_id": "dec_viewdef_rule_30_002",
+          "at": "2026-07-04",
+          "decision": "rawField / markdown_export_body による原文全文保持方式は推奨しない。",
+          "reason": "Data JSON内に正本が増え、同期不整合とデータ腐敗の原因になるため。"
+        }
+      ]
+    },
+    {
+      "no": 82,
+      "rule_id": "viewdef_rule_30_01",
+      "section_no": "30.01",
+      "source_heading": "30.01. full_dump / review_report / document_rebuild の責務を分ける",
+      "source_heading_level": 3,
+      "parent_rule_id": "viewdef_rule_30",
+      "category": "Markdown ExportDef",
+      "title": "full_dump / review_report / document_rebuild の責務を分ける",
+      "priority": "high",
+      "review_status": "レビュー済み",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "full_dumpは除外フラグを無視して全体を出し、review_reportはmarkdown.export=falseを尊重し、document_rebuildは指定フィールドだけで文書を再構成する。",
+      "body": "Markdown Export Modeの責務は以下のように分ける。\n\n| mode | 目的 | field/section markdown.export=false の扱い |\n|---|---|---|\n| full_dump | JSON全体確認・AI共有・デバッグ | 無視する。全項目出力であるため。 |\n| review_report | レビュー証跡・確認状態・コメント共有 | 尊重する。ノイズ除外のため。 |\n| document_rebuild | Qiita/Zenn/設計書/テスト計画などの読み物型Markdown再構成 | 主制御にしない。source/heading/bodyなど明示指定項目だけを使う。 |\n\nfield.markdown.export=false は、主制御ではなく review_report 用の補助フラグとして扱う。\n\n理由:\nfieldごとに出す/出さないを主制御にすると、ViewDef全体に除外フラグを撒きすぎて盆栽化する。",
+      "reason": "出力目的が異なるモードごとに、field除外フラグの意味が変わるため。",
+      "introduced_in": "v0.18.6-markdown-export-mode-exportdef-rules",
+      "change_history": [
+        {
+          "history_id": "chg_viewdef_rule_30_01_001",
+          "at": "2026-07-04",
+          "change_type": "rule_added",
+          "before": "Markdown出力は単一のレビュー報告書型出力として扱われ、全項目ダンプ・レビュー報告・文書再構成の責務が分離されていなかった。",
+          "after": "Markdown出力をExport Mode / Export Profileとして扱い、full_dump / review_report / document_rebuild の責務を分離した。",
+          "reason": "TEST_PLAN_RESPONSIBILITY_SCOPE_v0_18_5.md のJSON化で、レビュー用出力と読み物型Markdown再構成の出力体験が異なることが明確になったため。"
+        }
+      ],
+      "decision_log": []
+    },
+    {
+      "no": 83,
+      "rule_id": "viewdef_rule_30_02",
+      "section_no": "30.02",
+      "source_heading": "30.02. rawField / markdown_export_body 原文全文保持は推奨しない",
+      "source_heading_level": 3,
+      "parent_rule_id": "viewdef_rule_30",
+      "category": "Markdown ExportDef",
+      "title": "原文Markdown全文をData JSONへ保持しない",
+      "priority": "high",
+      "review_status": "レビュー済み",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "Markdown原文全文を rawField / markdown_export_body としてData JSONに抱え込む方式は、正本増殖と同期不整合を招くため推奨しない。",
+      "body": "Data JSONには、構造化された意味だけを保持する。\n\n元Markdown全文を root.markdown_export_body などへ保持し、そのままraw出力する方式は採用しない。特に、rules[].body を編集しても markdown_export_body が更新されない場合、どちらが正本か分からなくなる。\n\nMarkdown再出力が必要な場合は、document_rebuild / document_sections mode で source / headingField / headingLevelField / bodyField などを指定し、構造化データから再構成する。\n\n例:\n```json\n{\n  \"id\": \"document_rebuild\",\n  \"type\": \"document_sections\",\n  \"source\": \"$.rules\",\n  \"headingField\": \"source_heading\",\n  \"headingLevelField\": \"source_heading_level\",\n  \"bodyField\": \"body\"\n}\n```\n\n理由:\nJSONが原文保管庫になると、構造化データと原文全文の同期責任が増え、データが腐りやすくなるため。",
+      "reason": "Data JSON原本化の思想を守り、Markdownは構造化データから生成されるExport Viewとして扱うため。",
+      "introduced_in": "v0.18.6-markdown-export-mode-exportdef-rules",
+      "change_history": [
+        {
+          "history_id": "chg_viewdef_rule_30_02_001",
+          "at": "2026-07-04",
+          "change_type": "rule_added",
+          "before": "Markdown出力は単一のレビュー報告書型出力として扱われ、全項目ダンプ・レビュー報告・文書再構成の責務が分離されていなかった。",
+          "after": "Markdown出力をExport Mode / Export Profileとして扱い、full_dump / review_report / document_rebuild の責務を分離した。",
+          "reason": "TEST_PLAN_RESPONSIBILITY_SCOPE_v0_18_5.md のJSON化で、レビュー用出力と読み物型Markdown再構成の出力体験が異なることが明確になったため。"
+        }
+      ],
+      "decision_log": []
+    },
+    {
+      "no": 84,
+      "rule_id": "viewdef_rule_30_03",
+      "section_no": "30.03",
+      "source_heading": "30.03. Markdown出力ボタンはモード選択UIを持つ",
+      "source_heading_level": 3,
+      "parent_rule_id": "viewdef_rule_30",
+      "category": "Markdown ExportDef",
+      "title": "Markdown出力ボタンはExport Profile選択になる",
+      "priority": "high",
+      "review_status": "レビュー済み",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "Markdown出力ボタンは、単純な単機能ボタンではなく、ViewDefの markdown.modes[] から出力モードを選ぶUIを持つ。",
+      "body": "画面上のMarkdown出力は、単一の処理ではなく、Export Profile選択として扱う。\n\nUIはボタン単体でもよいが、少なくとも以下の操作ができる必要がある。\n\n- 既定モードでMarkdown出力する\n- full_dump / review_report / document_rebuild を選択できる\n- ViewDefの markdown.defaultMode を初期選択に使う\n- ViewDefに modes[] がない場合は互換fallbackとして review_report / full_dump を提供する\n\n理由:\nユーザーは、同じData JSONから「全部見たい」「レビュー証跡が欲しい」「読み物型文書に戻したい」という異なる目的でMarkdownを出力するため。",
+      "reason": "出力ボタンにモード選択がないと、用途ごとの出力責務をUI上で切り替えられないため。",
+      "introduced_in": "v0.18.6-markdown-export-mode-exportdef-rules",
+      "change_history": [
+        {
+          "history_id": "chg_viewdef_rule_30_03_001",
+          "at": "2026-07-04",
+          "change_type": "rule_added",
+          "before": "Markdown出力は単一のレビュー報告書型出力として扱われ、全項目ダンプ・レビュー報告・文書再構成の責務が分離されていなかった。",
+          "after": "Markdown出力をExport Mode / Export Profileとして扱い、full_dump / review_report / document_rebuild の責務を分離した。",
+          "reason": "TEST_PLAN_RESPONSIBILITY_SCOPE_v0_18_5.md のJSON化で、レビュー用出力と読み物型Markdown再構成の出力体験が異なることが明確になったため。"
+        }
+      ],
+      "decision_log": []
     }
   ],
-  "updated_at": "2026-07-01",
-  "review_revision": "v0.17.11-current-data-title-display",
+  "updated_at": "2026-07-04",
+  "review_revision": "v0.18.6-markdown-export-mode-exportdef-rules",
   "review_notes": [
     {
       "note_id": "note_v012_scope_correction",
@@ -2667,7 +2796,8 @@
       "at": "2026-07-01",
       "title": "v0.17.11 現在Dataタイトル表示契約 追加",
       "body": "Dataパスを現在地の住所、Dataタイトルを人間向けの看板として分離するため、ViewDefトップレベルにcurrentDataDisplay契約を追加した。titlePathは正式指定、$.titleは互換fallbackとして扱う。"
-    }
+    },
+    "v0.18.6でMarkdown Export Mode / ExportDef契約を追加。full_dump / review_report / document_rebuild の責務分離、rawField非推奨、モード選択UIをViewDef生成ルールへ反映。"
   ],
   "view_def_candidates": [
     {

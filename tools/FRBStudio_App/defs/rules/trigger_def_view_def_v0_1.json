@@ -1,0 +1,495 @@
+{
+  "app": {
+    "name": "No-Code JSON Studio",
+    "version": "trigger-def-view-v0.1"
+  },
+  "views": [
+    {
+      "id": "trigger_def_view",
+      "caption": "TriggerDef 一覧",
+      "layout": {
+        "detailDialog": "wide"
+      },
+      "toolbar": {
+        "executeButton": {
+          "visible": true,
+          "caption": "表示行をMD出力",
+          "action": "ExportMarkdown"
+        }
+      },
+      "markdown": {
+        "enabled": true,
+        "type": "generic_sections",
+        "title": "TriggerDef Review Report",
+        "defaultFileName": "trigger_def_review_report.md",
+        "sections": [
+          {
+            "title": "概要",
+            "source": "header",
+            "format": "detailList",
+            "fields": [
+              {
+                "field": "title",
+                "caption": "タイトル"
+              },
+              {
+                "field": "description",
+                "caption": "説明",
+                "format": "paragraph"
+              },
+              {
+                "field": "design_note",
+                "caption": "設計メモ",
+                "format": "paragraph"
+              },
+              {
+                "field": "summary.core_definition",
+                "caption": "中核定義",
+                "format": "paragraph"
+              },
+              {
+                "field": "summary.short_definition",
+                "caption": "短縮定義"
+              }
+            ]
+          },
+          {
+            "title": "TriggerDef一覧",
+            "source": "grid",
+            "format": "table",
+            "fields": [
+              {
+                "field": "trigger_id",
+                "caption": "Trigger ID"
+              },
+              {
+                "field": "trigger_name",
+                "caption": "Trigger名"
+              },
+              {
+                "field": "category",
+                "caption": "区分"
+              },
+              {
+                "field": "ai_reading_mode",
+                "caption": "AI読み方"
+              },
+              {
+                "field": "strategy_id",
+                "caption": "Strategy ID"
+              },
+              {
+                "field": "status",
+                "caption": "状態"
+              }
+            ],
+            "aiPrompt": {
+              "enabled": true,
+              "title": "TriggerDefレビュー用プロンプト",
+              "targetFile": "trigger_def_data_v0_1.json",
+              "rowSource": "filtered",
+              "visibleOnly": true,
+              "includeGridJson": true,
+              "template": [
+                "以下はTriggerDefの現在表示中の行です。",
+                "各TriggerDefについて、発動条件・AI読み方・Prompt Strategy・出力項目が整合しているかレビューしてください。",
+                "",
+                "観点:",
+                "- activation_phrases が自然なユーザー発話として妥当か",
+                "- ai_reading_mode と prompt_strategy が一致しているか",
+                "- output_sections が人間の判断に十分か",
+                "- do_not がAIの誤動作防止として有効か",
+                "",
+                "TSV:"
+              ]
+            }
+          }
+        ]
+      },
+      "sections": [
+        {
+          "id": "header",
+          "caption": "基本情報",
+          "type": "form",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "schema_version",
+              "caption": "Schema Version",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "data_type",
+              "caption": "Data Type",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "description",
+              "caption": "説明",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 120
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "design_note",
+              "caption": "設計メモ",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 120
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "related_concepts",
+              "caption": "関連概念",
+              "type": "stringArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "summary.core_definition",
+              "caption": "中核定義",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 120
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "summary.short_definition",
+              "caption": "短縮定義",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "summary.initial_trigger_count",
+              "caption": "初期Trigger数",
+              "type": "number",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "triggers",
+          "caption": "TriggerDef一覧",
+          "type": "grid",
+          "dataPath": "$.triggers",
+          "keyField": "trigger_id",
+          "fields": [
+            {
+              "field": "trigger_id",
+              "caption": "Trigger ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 220
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "validation": {
+                "required": true
+              }
+            },
+            {
+              "field": "trigger_name",
+              "caption": "Trigger名",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 190
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "validation": {
+                "required": true
+              }
+            },
+            {
+              "field": "category",
+              "caption": "区分",
+              "type": "select",
+              "control": "combobox",
+              "options": [
+                "UI違和感",
+                "テスト設計",
+                "作業",
+                "判断",
+                "制約",
+                "差分",
+                "文脈保守",
+                "文脈引継ぎ",
+                "未整理思考",
+                "発信",
+                "言葉",
+                "記録更新",
+                "違和感"
+              ],
+              "grid": {
+                "visible": true,
+                "width": 130
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              },
+              "validation": {
+                "required": true
+              }
+            },
+            {
+              "field": "ai_reading_mode",
+              "caption": "AI解釈モード",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 260
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "strategy_id",
+              "caption": "Strategy ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 300
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "prompt_strategy",
+              "caption": "Prompt Strategy",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 420
+              },
+              "edit": {
+                "visible": true,
+                "height": 150
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "status",
+              "caption": "状態",
+              "type": "select",
+              "control": "select",
+              "options": [
+                {
+                  "cd": "draft",
+                  "name": "下書き"
+                },
+                {
+                  "cd": "active",
+                  "name": "運用中"
+                },
+                {
+                  "cd": "deprecated",
+                  "name": "廃止候補"
+                }
+              ],
+              "grid": {
+                "visible": true,
+                "width": 100
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "activation_phrases",
+              "caption": "発動フレーズ",
+              "type": "stringArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "output_sections",
+              "caption": "出力セクション",
+              "type": "stringArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "default_artifacts",
+              "caption": "標準成果物",
+              "type": "stringArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "review_points",
+              "caption": "レビュー観点",
+              "type": "stringArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "do_not",
+              "caption": "禁止・注意",
+              "type": "stringArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              }
+            }
+          ],
+          "markdown": {
+            "aiPrompt": {
+              "enabled": true,
+              "title": "TriggerDef改善プロンプト",
+              "targetFile": "trigger_def_data_v0_1.json",
+              "rowSource": "selected",
+              "visibleOnly": false,
+              "includeGridJson": true,
+              "template": [
+                "以下のTriggerDef 1件をレビューし、改善案を出してください。",
+                "",
+                "観点:",
+                "- trigger_name / category / activation_phrases の一貫性",
+                "- ai_reading_mode と prompt_strategy の対応",
+                "- output_sections / default_artifacts / review_points の過不足",
+                "- do_not がAI誤動作の防止に効いているか",
+                "",
+                "出力:",
+                "- 良い点",
+                "- 変更候補",
+                "- 追加すべきactivation_phrases",
+                "- 削ってよい項目",
+                "",
+                "TSV:"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

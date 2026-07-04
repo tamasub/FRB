@@ -1,0 +1,60 @@
+{
+  "view_def": "  qa/responsibility/expected_def_type_master_view_def_v0_1.json",
+  "schema_version": "expected_def_type_master_data_v0_1",
+  "document_type": "qa_expected_def_type_master",
+  "title": "ExpectedDef Type Master",
+  "phase": "v0.18.5-test-design-document-responsibility-scope",
+  "created_at": "2026-07-04",
+  "purpose": "ExpectedDefの種別と目的を整理し、TestPattern / ResponsibilityDefから参照できるようにするための初期マスター。",
+  "expected_def_types": [
+    {
+      "expected_type_cd": "RuleExpectedDef",
+      "name": "ルール期待値",
+      "purpose": "ルールが満たされていることを確認する",
+      "main_usage": "ViewDef解釈ルール、列生成ルール、CSV出力ルールなどの確認",
+      "sort_order": 10
+    },
+    {
+      "expected_type_cd": "StateExpectedDef",
+      "name": "状態期待値",
+      "purpose": "操作後の状態が期待どおりであることを確認する",
+      "main_usage": "検索後Grid状態、Editor状態、current_row更新などの確認",
+      "sort_order": 20
+    },
+    {
+      "expected_type_cd": "EventExpectedDef",
+      "name": "イベント期待値",
+      "purpose": "意味のある出来事が発生したことを確認する",
+      "main_usage": "保存イベント、Toast表示、Action起動、証跡生成イベントなどの確認",
+      "sort_order": 30
+    },
+    {
+      "expected_type_cd": "InterfaceExpectedDef",
+      "name": "インターフェース期待値",
+      "purpose": "責務間の受け渡し契約を確認する",
+      "main_usage": "Parser出力→Builder入力、SearchResult→GridStateなどの接続確認",
+      "sort_order": 40
+    },
+    {
+      "expected_type_cd": "ErrorExpectedDef",
+      "name": "エラー期待値",
+      "purpose": "不正入力を期待どおり拒否することを確認する",
+      "main_usage": "責務入口の入力契約違反、ContractError、path/message付きエラー確認",
+      "sort_order": 50
+    },
+    {
+      "expected_type_cd": "PerformanceExpectedDef",
+      "name": "性能契約期待値",
+      "purpose": "上限・警告・拒否などの性能契約を確認する",
+      "main_usage": "Grid列数、行数、検索対象数、Diffサイズなどの上限確認",
+      "sort_order": 60
+    },
+    {
+      "expected_type_cd": "VisualEvidenceExpectedDef",
+      "name": "画面証跡期待値",
+      "purpose": "スクショなどの人間確認用証跡が保存されることを確認する",
+      "main_usage": "代表画面のスクショ保存、将来のスクショ差分物語への入力確認",
+      "sort_order": 70
+    }
+  ]
+}

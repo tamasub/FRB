@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "frb_view_def_schema_v0_9.json",
-  "title": "FRB Studio View Definition Schema v0.9 - Chat Input Mapping / Markdown Inline",
-  "description": "Schema for FRBStudio_App / No-Code JSON Studio view_def JSON files. Includes inheritance, common field types, Markdown export / AI Prompt, dataSources, virtualData registry builders, single-source writeBack, Relation status filters, and toolbar.executeButton action declarations. v0.9 adds chat edit.input.appendPosition/appendLabel and chat Markdown inline link/image permissions. v0.15.5でViewDef context.read_contract定義を追加。 v0.15.5.1で主文脈 Data root main_context_refs[] と対象文脈 Data明細 context_refs[] の正本モデルを追加し、ViewDefは context.main_context.data_path / context.target_context で場所と表示方法だけを宣言する形へ整理。 v0.15.5.3 adds target context Detail-top panel declaration.",
+  "title": "FRB Studio View Definition Schema v0.9 - Markdown Export Mode / Context / Chat Input Mapping",
+  "description": "Schema for FRBStudio_App / No-Code JSON Studio view_def JSON files. Includes inheritance, common field types, Markdown export / AI Prompt, dataSources, virtualData registry builders, single-source writeBack, Relation status filters, and toolbar.executeButton action declarations. v0.9 adds chat edit.input.appendPosition/appendLabel and chat Markdown inline link/image permissions. v0.15.5でViewDef context.read_contract定義を追加。 v0.15.5.1で主文脈 Data root main_context_refs[] と対象文脈 Data明細 context_refs[] の正本モデルを追加し、ViewDefは context.main_context.data_path / context.target_context で場所と表示方法だけを宣言する形へ整理。 v0.15.5.3 adds target context Detail-top panel declaration. v0.18.6 adds Markdown Export Mode / ExportDef options: markdown.defaultMode, markdown.modes[], full_dump/review_report/document_sections, fieldPolicy, and field/section markdown.export.",
   "type": "object",
   "additionalProperties": true,
   "properties": {
@@ -512,6 +512,9 @@
         },
         "enum_ref": {
           "type": "string"
+        },
+        "markdown": {
+          "$ref": "#/$defs/markdownFieldControlOptions"
         }
       },
       "required": [
@@ -794,7 +797,7 @@
     "markdownOptions": {
       "type": "object",
       "additionalProperties": true,
-      "description": "Data JSON export configuration used by Markdown出力→Viewer. Not used for ViewDef Markdown→Viewer.",
+      "description": "Data JSON export configuration used by Markdown出力→Viewer. v0.18.6 treats Markdown output as selectable Export Modes / Export Profiles.",
       "properties": {
         "enabled": {
           "type": "boolean"
@@ -806,7 +809,11 @@
             "generic_sections",
             "screen_state_expected",
             "screen_state_diff",
-            "screen_state_test_patterns"
+            "screen_state_test_patterns",
+            "full_dump",
+            "review_report",
+            "document_sections",
+            "document_rebuild"
           ],
           "description": "MarkdownExportRegistry key. Current registered values: auto, generic_sections, screen_state_expected, screen_state_diff, screen_state_test_patterns."
         },
@@ -830,6 +837,36 @@
           "items": {
             "$ref": "#/$defs/markdownSectionOptions"
           }
+        },
+        "defaultMode": {
+          "type": "string",
+          "description": "Default markdown.modes[].id used by the Markdown出力 button."
+        },
+        "default_mode": {
+          "type": "string"
+        },
+        "modes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/markdownModeOptions"
+          },
+          "description": "Selectable Markdown export modes. Recommended ids: full_dump, review_report, document_rebuild."
+        },
+        "fieldPolicy": {
+          "type": "string",
+          "enum": [
+            "all",
+            "respect_markdown_export",
+            "explicit_fields"
+          ]
+        },
+        "field_policy": {
+          "type": "string",
+          "enum": [
+            "all",
+            "respect_markdown_export",
+            "explicit_fields"
+          ]
         }
       }
     },
@@ -877,7 +914,10 @@
             "heading",
             "constraintList",
             "detailList",
-            "detail"
+            "detail",
+            "document_sections",
+            "review_report",
+            "full_dump"
           ]
         },
         "fields": {
@@ -906,6 +946,10 @@
           "items": {
             "$ref": "#/$defs/markdownSectionOptions"
           }
+        },
+        "export": {
+          "type": "boolean",
+          "description": "When false, review_report mode excludes this markdown section. full_dump ignores it; document_rebuild uses explicit mode fields."
         }
       }
     },
@@ -937,7 +981,10 @@
             "heading",
             "constraintList",
             "detailList",
-            "detail"
+            "detail",
+            "document_sections",
+            "review_report",
+            "full_dump"
           ]
         },
         "visible": {
@@ -969,7 +1016,10 @@
             "heading",
             "constraintList",
             "detailList",
-            "detail"
+            "detail",
+            "document_sections",
+            "review_report",
+            "full_dump"
           ]
         },
         "showEmpty": {
@@ -977,6 +1027,10 @@
         },
         "label": {
           "type": "string"
+        },
+        "export": {
+          "type": "boolean",
+          "description": "When false, review_report mode excludes this field. full_dump ignores it; document_rebuild uses explicit mode fields."
         }
       },
       "required": [
@@ -2532,6 +2586,250 @@
         "show_data_path": {
           "type": "boolean",
           "description": "showDataPath のsnake_case互換。"
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "markdownModeOptions": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "One selectable Markdown Export Mode / Export Profile. Main control is mode-based, not field-based.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "caption": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "full_dump",
+            "review_report",
+            "document_sections",
+            "document_rebuild",
+            "generic_sections",
+            "auto"
+          ]
+        },
+        "fieldPolicy": {
+          "type": "string",
+          "enum": [
+            "all",
+            "respect_markdown_export",
+            "explicit_fields"
+          ]
+        },
+        "field_policy": {
+          "type": "string",
+          "enum": [
+            "all",
+            "respect_markdown_export",
+            "explicit_fields"
+          ]
+        },
+        "source": {
+          "type": "string",
+          "description": "JSON path or symbolic row source. Example: $.rules, rows, currentRows."
+        },
+        "dataPath": {
+          "type": "string"
+        },
+        "rowPath": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "titleField": {
+          "type": "string"
+        },
+        "title_field": {
+          "type": "string"
+        },
+        "preambleField": {
+          "type": "string"
+        },
+        "preamble_field": {
+          "type": "string"
+        },
+        "headingField": {
+          "type": "string"
+        },
+        "heading_field": {
+          "type": "string"
+        },
+        "headingMarkdownField": {
+          "type": "string"
+        },
+        "heading_markdown_field": {
+          "type": "string"
+        },
+        "headingLevelField": {
+          "type": "string"
+        },
+        "heading_level_field": {
+          "type": "string"
+        },
+        "headingLevel": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 6
+        },
+        "heading_level": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 6
+        },
+        "bodyField": {
+          "type": "string"
+        },
+        "body_field": {
+          "type": "string"
+        },
+        "sortField": {
+          "type": "string"
+        },
+        "orderField": {
+          "type": "string"
+        },
+        "includeTitle": {
+          "type": "boolean"
+        },
+        "include_title": {
+          "type": "boolean"
+        },
+        "includePreamble": {
+          "type": "boolean"
+        },
+        "include_preamble": {
+          "type": "boolean"
+        },
+        "includeGeneratedComment": {
+          "type": "boolean"
+        },
+        "includeHeaderMetadata": {
+          "type": "boolean"
+        },
+        "includeReviewTables": {
+          "type": "boolean"
+        },
+        "skipEmptyBody": {
+          "type": "boolean"
+        },
+        "suppressEmptyBody": {
+          "type": "boolean"
+        },
+        "showEmpty": {
+          "type": "boolean"
+        },
+        "defaultFileName": {
+          "type": "string"
+        },
+        "fileName": {
+          "type": "string"
+        },
+        "filename": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "sections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/markdownSectionOptions"
+          }
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/markdownFieldOptions"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "type"
+      ]
+    },
+    "markdownFieldControlOptions": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Field-level Markdown behavior for normal ViewDef fields. Used mainly by review_report mode; full_dump ignores it and document_rebuild uses explicit mode fields.",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "export": {
+          "type": "boolean",
+          "description": "When false, review_report mode excludes the field."
+        },
+        "format": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "text",
+            "paragraph",
+            "textarea",
+            "blockquote",
+            "code",
+            "json",
+            "note",
+            "table",
+            "list",
+            "cards",
+            "chat",
+            "heading",
+            "constraintList",
+            "detailList",
+            "detail",
+            "document_sections",
+            "review_report",
+            "full_dump"
+          ]
+        },
+        "markdownFormat": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "text",
+            "paragraph",
+            "textarea",
+            "blockquote",
+            "code",
+            "json",
+            "note",
+            "table",
+            "list",
+            "cards",
+            "chat",
+            "heading",
+            "constraintList",
+            "detailList",
+            "detail",
+            "document_sections",
+            "review_report",
+            "full_dump"
+          ]
+        },
+        "showEmpty": {
+          "type": "boolean"
+        },
+        "allowLinks": {
+          "type": "boolean"
+        },
+        "allowImages": {
+          "type": "boolean"
         }
       }
     }

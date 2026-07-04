@@ -67,7 +67,7 @@
       "caption": "Range差分（From..To）",
       "command_profile_id": "git_diff_export",
       "mode": "Range",
-      "from_ref": "main",
+      "from_ref": "237984f39dda16bd6d9cb1117a2400ea9dd203c9",
       "to_ref": "HEAD",
       "range": "",
       "unified": 3,

@@ -1,0 +1,700 @@
+{
+  "app": {
+    "title": "ResponsibilityDef Master Draft"
+  },
+  "fieldTypeSources": [
+    "common/common_types_v0_1.json"
+  ],
+  "views": [
+    {
+      "id": "main",
+      "caption": "ResponsibilityDef Master",
+      "sections": [
+        {
+          "id": "summary",
+          "type": "form",
+          "caption": "概要 / 方針",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "schema_version",
+              "caption": "schema_version",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 180
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "document_type",
+              "caption": "document_type",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 200
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 320
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "phase",
+              "caption": "Phase",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 260
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "created_at",
+              "caption": "作成日",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "purpose",
+              "caption": "目的",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 520
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 110
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "policy.unit_test_unit",
+              "caption": "UT単位方針",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 520
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 90
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "policy.boundary_defense",
+              "caption": "責務境界防衛方針",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 520
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 100
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "policy.motto",
+              "caption": "合言葉",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 520
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 70
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            }
+          ]
+        },
+        {
+          "id": "responsibilities",
+          "type": "grid",
+          "caption": "責務定義 / ResponsibilityDef",
+          "dataPath": "$.responsibilities",
+          "keyField": "responsibility_cd",
+          "fields": [
+            {
+              "field": "responsibility_cd",
+              "caption": "責務CD",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 190
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "name",
+              "caption": "責務名",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 220
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "test_level",
+              "caption": "テストレベル",
+              "type": "select",
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "options": [
+                "UT",
+                "UT/CT",
+                "CT",
+                "CT/E2E",
+                "E2E"
+              ]
+            },
+            {
+              "field": "summary",
+              "caption": "概要",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 420
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 90
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "public_interface.interface_name",
+              "caption": "公開Interface",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 240
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "public_interface.input_name",
+              "caption": "入力名",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 220
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "public_interface.output_name",
+              "caption": "出力名",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 220
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "input_contract.required",
+              "caption": "必須入力",
+              "type": "stringArray",
+              "grid": {
+                "visible": false,
+                "width": 360
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "input_contract.shape_rules",
+              "caption": "入力形状ルール",
+              "type": "stringArray",
+              "grid": {
+                "visible": false,
+                "width": 420
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "input_contract.field_rules",
+              "caption": "入力フィールドルール",
+              "type": "stringArray",
+              "grid": {
+                "visible": false,
+                "width": 420
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "output_contract.required",
+              "caption": "必須出力",
+              "type": "stringArray",
+              "grid": {
+                "visible": false,
+                "width": 360
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "output_contract.rules",
+              "caption": "出力契約ルール",
+              "type": "stringArray",
+              "grid": {
+                "visible": false,
+                "width": 440
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "error_contract.error_type",
+              "caption": "Error種別",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 160
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "error_contract.must_include",
+              "caption": "Error必須項目",
+              "type": "stringArray",
+              "grid": {
+                "visible": false,
+                "width": 360
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "defensive_policy.validate_input_at_boundary",
+              "caption": "入口検証",
+              "type": "boolean",
+              "grid": {
+                "visible": false,
+                "width": 110
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "defensive_policy.do_not_mutate_input",
+              "caption": "入力非破壊",
+              "type": "boolean",
+              "grid": {
+                "visible": false,
+                "width": 110
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "defensive_policy.reject_unknown_critical_shape",
+              "caption": "危険形状拒否",
+              "type": "boolean",
+              "grid": {
+                "visible": false,
+                "width": 130
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "defensive_policy.return_warnings_for_non_fatal_issues",
+              "caption": "警告返却",
+              "type": "boolean",
+              "grid": {
+                "visible": false,
+                "width": 110
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "performance_contract.warning_visible_grid_columns",
+              "caption": "警告列数",
+              "type": "number",
+              "grid": {
+                "visible": false,
+                "width": 100
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "performance_contract.max_visible_grid_columns",
+              "caption": "標準最大列数",
+              "type": "number",
+              "grid": {
+                "visible": false,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "performance_contract.hard_visible_grid_columns",
+              "caption": "Hard列数",
+              "type": "number",
+              "grid": {
+                "visible": false,
+                "width": 100
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "performance_contract.warning_rows",
+              "caption": "警告行数",
+              "type": "number",
+              "grid": {
+                "visible": false,
+                "width": 100
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "performance_contract.max_rows_standard_grid",
+              "caption": "標準最大行数",
+              "type": "number",
+              "grid": {
+                "visible": false,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "performance_contract.on_warning",
+              "caption": "警告時",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 180
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "performance_contract.on_hard_limit",
+              "caption": "Hard時",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 220
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "in_scope",
+              "caption": "In Scope",
+              "type": "stringArray",
+              "grid": {
+                "visible": false,
+                "width": 420
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "out_of_scope",
+              "caption": "Out of Scope",
+              "type": "stringArray",
+              "grid": {
+                "visible": false,
+                "width": 420
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "expected_types",
+              "caption": "ExpectedDef種別",
+              "type": "stringArray",
+              "grid": {
+                "visible": true,
+                "width": 360
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "options": [
+                "RuleExpectedDef",
+                "StateExpectedDef",
+                "EventExpectedDef",
+                "InterfaceExpectedDef",
+                "ErrorExpectedDef",
+                "PerformanceExpectedDef",
+                "VisualEvidenceExpectedDef"
+              ]
+            },
+            {
+              "field": "representative_test_patterns",
+              "caption": "代表TestPattern",
+              "type": "stringArray",
+              "grid": {
+                "visible": false,
+                "width": 420
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

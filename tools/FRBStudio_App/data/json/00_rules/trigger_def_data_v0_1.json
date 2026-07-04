@@ -1,0 +1,565 @@
+{
+  "schema_version": "0.1-draft",
+  "data_type": "TriggerDef",
+  "view_def": "rules/trigger_def_view_def_v0_1.json",
+  "title": "AI協働 TriggerDef 初代候補",
+  "description": "人間とAIのあいだで共有された言葉・区分・状態をきっかけに、あらかじめ定義されたAI協働パターンを発動するための定義。",
+  "design_note": "TriggerDefは、単なるプロンプト短縮ではなく、AIが入力をどの文脈として読むべきかを切り替えるための発動条件定義である。",
+  "related_concepts": [
+    "Ubiquitous Language",
+    "Strategy Pattern",
+    "PromptDef",
+    "ContextDef",
+    "ViewDef",
+    "AI差分物語",
+    "思考拡張",
+    "違和感回収",
+    "制約設計"
+  ],
+  "triggers": [
+    {
+      "trigger_id": "trigger_thought_dump",
+      "trigger_name": "思考ぶん投げ原則",
+      "category": "未整理思考",
+      "activation_phrases": [
+        "思考ぶん投げ原則発動",
+        "意味不明な投げかけ",
+        "うまく言えないけど",
+        "なんか気になる",
+        "雑に投げる",
+        "ちょっと整理して"
+      ],
+      "ai_reading_mode": "未整理思考の構造化モード",
+      "strategy_id": "strategy_context_philosophy_constraint_decomposition",
+      "prompt_strategy": "ユーザーの未整理な思考を、文脈・思想・制約・問い・成果物候補に分解する。",
+      "output_sections": [
+        "何が起きているか",
+        "既存文脈との接続",
+        "文脈",
+        "思想",
+        "制約",
+        "新しい問い",
+        "命名候補",
+        "成果物化候補"
+      ],
+      "default_artifacts": [
+        "文脈メモ",
+        "概念定義案",
+        "記事ネタ",
+        "ContextDef追記候補"
+      ],
+      "review_points": [
+        "既存概念の更新か、新概念として分けるべきか",
+        "名前を付ける価値があるか",
+        "成果物化するほど育っているか"
+      ],
+      "do_not": [
+        "雑談として流さない",
+        "すぐ結論だけに圧縮しない",
+        "ユーザーの違和感を勝手に解決済みにしない"
+      ],
+      "status": "draft"
+    },
+    {
+      "trigger_id": "trigger_iwakan_recovery",
+      "trigger_name": "違和感回収",
+      "category": "違和感",
+      "activation_phrases": [
+        "おん？",
+        "なんか違う",
+        "もやっとする",
+        "しっくりこない",
+        "違和感ある",
+        "これ変じゃない？"
+      ],
+      "ai_reading_mode": "違和感探索モード",
+      "strategy_id": "strategy_iwakan_to_question",
+      "prompt_strategy": "違和感の正体を探し、既存文脈との差分・問い・制約候補へ変換する。",
+      "output_sections": [
+        "違和感の正体候補",
+        "引っかかっている前提",
+        "既存文脈との差分",
+        "問いへの変換",
+        "制約候補",
+        "次に見るべき観点"
+      ],
+      "default_artifacts": [
+        "違和感ログ",
+        "判断ログ候補",
+        "制約候補",
+        "問いリスト"
+      ],
+      "review_points": [
+        "違和感が一時的な感情か、構造的なズレか",
+        "既存ルールの不足か",
+        "新しい設計パターンの入口か"
+      ],
+      "do_not": [
+        "安心させるだけで終わらない",
+        "違和感を否定しない",
+        "原因を一つに決め打ちしない"
+      ],
+      "status": "draft"
+    },
+    {
+      "trigger_id": "trigger_ai_diff_story",
+      "trigger_name": "AI差分物語",
+      "category": "差分",
+      "activation_phrases": [
+        "差分物語",
+        "AI差分物語",
+        "差分を説明して",
+        "何が変わったか整理して",
+        "差分ください",
+        "更新内容まとめて"
+      ],
+      "ai_reading_mode": "差分解釈モード",
+      "strategy_id": "strategy_diff_to_story",
+      "prompt_strategy": "変更差分を、人間が承認判断できる物語・判断材料へ圧縮する。",
+      "output_sections": [
+        "変更概要",
+        "変更理由",
+        "対応した制約",
+        "変わっていないこと",
+        "副作用候補",
+        "人間が確認すべき差分",
+        "次の確認観点"
+      ],
+      "default_artifacts": [
+        "AI差分物語",
+        "作業履歴",
+        "レビュー観点",
+        "インシデント追記候補"
+      ],
+      "review_points": [
+        "意図した変更だけか",
+        "不要な副作用が混ざっていないか",
+        "制約に対応しているか",
+        "人間が承認できる粒度か"
+      ],
+      "do_not": [
+        "単なるファイル一覧にしない",
+        "変更理由を曖昧にしない",
+        "副作用候補を省略しない"
+      ],
+      "status": "draft"
+    },
+    {
+      "trigger_id": "trigger_constraint_extract",
+      "trigger_name": "制約抽出",
+      "category": "制約",
+      "activation_phrases": [
+        "制約として整理",
+        "これは制約？",
+        "守るべきこと",
+        "安全柵",
+        "ルール化したい",
+        "今後のために残したい"
+      ],
+      "ai_reading_mode": "制約抽出モード",
+      "strategy_id": "strategy_constraint_extraction",
+      "prompt_strategy": "会話や作業内容から、今後守るべき境界・禁止事項・判断条件を抽出する。",
+      "output_sections": [
+        "制約候補",
+        "制約が必要な理由",
+        "守らない場合のリスク",
+        "適用範囲",
+        "例外条件",
+        "テスト観点",
+        "追記先候補"
+      ],
+      "default_artifacts": [
+        "制約JSON",
+        "Foundation Rules追記候補",
+        "ContextDef追記候補",
+        "テスト観点"
+      ],
+      "review_points": [
+        "一時的な好みではなく継続的に守るべきか",
+        "適用範囲が広すぎないか",
+        "AIが誤解しない表現になっているか"
+      ],
+      "do_not": [
+        "何でもルール化しない",
+        "実装詳細と制約を混同しない",
+        "例外条件を無視しない"
+      ],
+      "status": "draft"
+    },
+    {
+      "trigger_id": "trigger_decision_log",
+      "trigger_name": "判断ログ",
+      "category": "判断",
+      "activation_phrases": [
+        "判断ログ",
+        "なぜそうしたか残す",
+        "決めた理由",
+        "作業履歴として残す",
+        "インシデントに登録",
+        "今後に繋げる"
+      ],
+      "ai_reading_mode": "判断記録モード",
+      "strategy_id": "strategy_decision_logging",
+      "prompt_strategy": "決定内容だけでなく、背景・迷い・採用理由・不採用理由を記録する。",
+      "output_sections": [
+        "判断したこと",
+        "判断の背景",
+        "採用した理由",
+        "採用しなかった案",
+        "守った制約",
+        "今後の影響",
+        "次回参照ポイント"
+      ],
+      "default_artifacts": [
+        "判断ログ",
+        "インシデント追記",
+        "ContextDef追記候補"
+      ],
+      "review_points": [
+        "後から読んで理由が分かるか",
+        "単なる結果報告になっていないか",
+        "不採用案や迷いが残っているか"
+      ],
+      "do_not": [
+        "結果だけを書く",
+        "判断者の迷いを消しすぎる",
+        "未来のAIが読めない粒度にする"
+      ],
+      "status": "draft"
+    },
+    {
+      "trigger_id": "trigger_work_request",
+      "trigger_name": "作業依頼",
+      "category": "作業",
+      "activation_phrases": [
+        "作業依頼",
+        "対応お願いします",
+        "修正お願いします",
+        "よろしく",
+        "差分zipでください",
+        "更新後JSON返却"
+      ],
+      "ai_reading_mode": "作業依頼分解モード",
+      "strategy_id": "strategy_work_request_decomposition",
+      "prompt_strategy": "依頼内容を、対象・目的・制約・成果物・確認観点に分解する。",
+      "output_sections": [
+        "依頼目的",
+        "対象ファイル",
+        "変更方針",
+        "守るべき制約",
+        "成果物",
+        "確認観点",
+        "リスク"
+      ],
+      "default_artifacts": [
+        "変更方針",
+        "差分説明",
+        "返却ZIP",
+        "更新後JSON"
+      ],
+      "review_points": [
+        "更新対象が明確か",
+        "返却物の形式が明確か",
+        "既存ルールに抵触しないか"
+      ],
+      "do_not": [
+        "依頼文にない大改造を勝手にしない",
+        "返却ルールを無視しない",
+        "確認観点なしで作業完了にしない"
+      ],
+      "status": "draft"
+    },
+    {
+      "trigger_id": "trigger_incident_update",
+      "trigger_name": "インシデント更新",
+      "category": "記録更新",
+      "activation_phrases": [
+        "インシデントに登録",
+        "作業履歴として残して",
+        "更新後JSON返却",
+        "判断ログを明確に残して",
+        "未記載の対応を要約して"
+      ],
+      "ai_reading_mode": "インシデント記録更新モード",
+      "strategy_id": "strategy_incident_record_update",
+      "prompt_strategy": "作業内容・判断・制約・今後の注意点をインシデントJSONへ追記する前提で整理する。",
+      "output_sections": [
+        "追記対象",
+        "作業概要",
+        "判断ログ",
+        "対応した制約",
+        "残課題",
+        "次回確認ポイント"
+      ],
+      "default_artifacts": [
+        "更新後インシデントJSON",
+        "作業履歴",
+        "判断ログ"
+      ],
+      "review_points": [
+        "作業事実と判断が分かれているか",
+        "次回のAIが読んで引き継げるか",
+        "過剰に美化していないか"
+      ],
+      "do_not": [
+        "履歴を短くしすぎない",
+        "判断ログを消さない",
+        "作業していないことを書かない"
+      ],
+      "status": "draft"
+    },
+    {
+      "trigger_id": "trigger_article_seed",
+      "trigger_name": "記事ネタ",
+      "category": "発信",
+      "activation_phrases": [
+        "記事ネタ",
+        "Zenn記事",
+        "Qiita記事",
+        "はてなブログ",
+        "タイトルもお願い",
+        "記事ヘッダーもお願い"
+      ],
+      "ai_reading_mode": "記事化構成モード",
+      "strategy_id": "strategy_article_structuring",
+      "prompt_strategy": "会話で生まれた概念や体験を、読者向けの記事構成へ変換する。",
+      "output_sections": [
+        "タイトル案",
+        "ファイル名案",
+        "記事ヘッダー案",
+        "導入",
+        "本文構成",
+        "毒ポイント",
+        "読者に残す問い",
+        "関連記事導線"
+      ],
+      "default_artifacts": [
+        "Zenn記事ドラフト",
+        "Qiita記事ドラフト",
+        "はてなブログ案",
+        "記事ヘッダー"
+      ],
+      "review_points": [
+        "誰に向けた記事か",
+        "技術記事か物語か",
+        "毒の量は適切か",
+        "既存記事との重複はないか"
+      ],
+      "do_not": [
+        "説明だけで終わらせない",
+        "読者導線を忘れない",
+        "毒を抜きすぎない"
+      ],
+      "status": "draft"
+    },
+    {
+      "trigger_id": "trigger_quote_candidate",
+      "trigger_name": "名言候補",
+      "category": "言葉",
+      "activation_phrases": [
+        "名言候補",
+        "これ名言",
+        "刺さる",
+        "この言葉いい",
+        "残しておきたい",
+        "客寄せパンダワード"
+      ],
+      "ai_reading_mode": "言葉の保存・磨き上げモード",
+      "strategy_id": "strategy_quote_capture",
+      "prompt_strategy": "会話で生まれた強い言葉を、名言・見出し・記事導入・文脈定義として再利用できる形に整える。",
+      "output_sections": [
+        "原文",
+        "磨いた表現",
+        "意味",
+        "使いどころ",
+        "関連文脈",
+        "保存先候補"
+      ],
+      "default_artifacts": [
+        "名言集追記候補",
+        "記事見出し",
+        "ContextDef追記候補"
+      ],
+      "review_points": [
+        "単なるノリか、概念を代表する言葉か",
+        "他者にも伝わるか",
+        "記事タイトルに耐えるか"
+      ],
+      "do_not": [
+        "言葉の勢いを殺さない",
+        "説明しすぎて名言性を失わせない",
+        "保存先を曖昧にしない"
+      ],
+      "status": "draft"
+    },
+    {
+      "trigger_id": "trigger_studio_ui_discomfort",
+      "trigger_name": "StudioくんUI違和感",
+      "category": "UI違和感",
+      "activation_phrases": [
+        "なんかUI変",
+        "使う気になれん",
+        "ダサい",
+        "しっくりこない",
+        "かっちょよく",
+        "余白が気になる",
+        "縦位置が合わない"
+      ],
+      "ai_reading_mode": "UI違和感から設計思想へ戻すモード",
+      "strategy_id": "strategy_ui_discomfort_to_design",
+      "prompt_strategy": "見た目や操作感の違和感を、UI修正点だけでなく、設計思想・制約・今後の共通部品候補へ変換する。",
+      "output_sections": [
+        "違和感の箇所",
+        "ユーザー体験上の問題",
+        "設計思想とのズレ",
+        "最小修正案",
+        "共通化候補",
+        "CSS/実装上の確認点"
+      ],
+      "default_artifacts": [
+        "UI修正方針",
+        "CSS修正案",
+        "ViewDef改善候補",
+        "共通部品候補"
+      ],
+      "review_points": [
+        "一画面だけの問題か",
+        "共通部品にすべきか",
+        "今すぐ直すか、後で設計するか"
+      ],
+      "do_not": [
+        "見た目だけで場当たり修正しない",
+        "既存UI方針を無視しない",
+        "大改造にしすぎない"
+      ],
+      "status": "draft"
+    },
+    {
+      "trigger_id": "trigger_expected_def_design",
+      "trigger_name": "ExpectedDef設計",
+      "category": "テスト設計",
+      "activation_phrases": [
+        "ExpectedDef",
+        "期待値JSON",
+        "テストコード",
+        "テスト観点",
+        "画面状態JSON",
+        "失敗させる為に"
+      ],
+      "ai_reading_mode": "期待値・制約・テスト観点整理モード",
+      "strategy_id": "strategy_expected_def_design",
+      "prompt_strategy": "期待値データを、単なる比較値ではなく、守りたい制約・テスト観点・承認判断材料として整理する。",
+      "output_sections": [
+        "期待値の目的",
+        "守りたい制約",
+        "比較対象",
+        "許容差分",
+        "失敗時に分かること",
+        "AIテスト物語への接続"
+      ],
+      "default_artifacts": [
+        "ExpectedDef案",
+        "テスト観点",
+        "AIテスト物語",
+        "制約候補"
+      ],
+      "review_points": [
+        "期待値が仕様を表しているか",
+        "失敗したときに意味があるか",
+        "過剰に固定しすぎていないか"
+      ],
+      "do_not": [
+        "単なるスナップショット比較にしない",
+        "なぜその期待値かを省略しない",
+        "テスト不能な制約を書かない"
+      ],
+      "status": "draft"
+    },
+    {
+      "trigger_id": "trigger_context_handoff",
+      "trigger_name": "引継ぎ要約",
+      "category": "文脈引継ぎ",
+      "activation_phrases": [
+        "引継ぎ要約",
+        "新しいチャットへの引継ぎ",
+        "チャットが重い",
+        "続きできるように",
+        "文脈まとめて"
+      ],
+      "ai_reading_mode": "文脈圧縮・再起動モード",
+      "strategy_id": "strategy_context_handoff",
+      "prompt_strategy": "長い会話の文脈を、次のAI協働で再利用できるように、目的・判断・未決事項・次アクションへ圧縮する。",
+      "output_sections": [
+        "現在の目的",
+        "ここまでの決定",
+        "重要な判断ログ",
+        "未解決事項",
+        "次にやること",
+        "参照すべきファイル",
+        "注意すべき制約"
+      ],
+      "default_artifacts": [
+        "引継ぎ要約",
+        "ContextDef追記候補",
+        "次回プロンプト"
+      ],
+      "review_points": [
+        "次のチャットで再開できるか",
+        "作業対象が明確か",
+        "判断の背景が残っているか"
+      ],
+      "do_not": [
+        "単なる時系列要約にしない",
+        "重要な制約を落とさない",
+        "次アクションを曖昧にしない"
+      ],
+      "status": "draft"
+    },
+    {
+      "trigger_id": "trigger_contextdef_update",
+      "trigger_name": "ContextDef更新候補",
+      "category": "文脈保守",
+      "activation_phrases": [
+        "文脈に追加",
+        "ContextDef",
+        "共有文脈に入れる",
+        "今後も使う",
+        "これ大事",
+        "覚えておきたい概念"
+      ],
+      "ai_reading_mode": "文脈保守モード",
+      "strategy_id": "strategy_contextdef_update",
+      "prompt_strategy": "新しく生まれた概念・判断軸・制約・言葉を、既存文脈へどう追加するか整理する。",
+      "output_sections": [
+        "追加候補",
+        "既存文脈との関係",
+        "更新か新規か",
+        "追加理由",
+        "追記文案",
+        "保存先候補"
+      ],
+      "default_artifacts": [
+        "ContextDef追記案",
+        "共有文脈.md追記案",
+        "用語定義"
+      ],
+      "review_points": [
+        "長期的に使う概念か",
+        "既存概念と重複しないか",
+        "AIが読んで誤解しないか"
+      ],
+      "do_not": [
+        "一時的な雑談を過剰に保存しない",
+        "似た概念を乱立させない",
+        "定義なしで言葉だけ追加しない"
+      ],
+      "status": "draft"
+    }
+  ],
+  "summary": {
+    "core_definition": "TriggerDefとは、AIに何をしてほしいかを毎回説明するためのものではなく、人間が育てた言葉をAI協働の発動条件に変えるための定義である。",
+    "short_definition": "TriggerDef = 文脈トリガー定義",
+    "initial_trigger_count": 12
+  }
+}
+

@@ -15,7 +15,7 @@
       "toolbar": {
         "executeButton": {
           "visible": true,
-          "caption": "Markdown出力",
+          "caption": "表示行をMD出力",
           "action": "ExportMarkdown"
         }
       },

@@ -1,0 +1,240 @@
+{
+  "app": {
+    "title": "ExpectedDef Type Master"
+  },
+  "fieldTypeSources": [
+    "common/common_types_v0_1.json"
+  ],
+  "views": [
+    {
+      "id": "main",
+      "caption": "ExpectedDef Type Master",
+      "sections": [
+        {
+          "id": "summary",
+          "type": "form",
+          "caption": "概要",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "view_def",
+              "caption": "view_def",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 300
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "schema_version",
+              "caption": "schema_version",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 220
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "document_type",
+              "caption": "document_type",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 220
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 300
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "phase",
+              "caption": "Phase",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 260
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "created_at",
+              "caption": "作成日",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "purpose",
+              "caption": "目的",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 520
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 100
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            }
+          ]
+        },
+        {
+          "id": "expected_def_types",
+          "type": "grid",
+          "caption": "ExpectedDef種別",
+          "dataPath": "$.expected_def_types",
+          "keyField": "expected_type_cd",
+          "fields": [
+            {
+              "field": "expected_type_cd",
+              "caption": "ExpectedDef種別CD",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 230
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "name",
+              "caption": "名称",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 180
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "purpose",
+              "caption": "目的",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 420
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 80
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "main_usage",
+              "caption": "主な利用場面",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 440
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 90
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "sort_order",
+              "caption": "並び順",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 90
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

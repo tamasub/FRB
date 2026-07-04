@@ -444,6 +444,34 @@ th.sortable:hover { background: linear-gradient(180deg, #eef6ff, #ddecfb); }
 .context-menu button:disabled { color: #98a2b3; }
 
 
+
+/* v0.18.6 Markdown Export Mode */
+.markdown-export-control {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 6px;
+}
+.markdown-export-mode-select {
+  min-width: 96px;
+  min-height: 40px;
+  padding: 6px 8px;
+  border-radius: 13px;
+  border: 1px solid rgba(14, 165, 233, 0.35);
+  background: rgba(255,255,255,.13);
+  color: #e0f2fe;
+  font-size: 11px;
+  font-weight: 850;
+  outline: none;
+}
+.markdown-export-mode-select option {
+  color: #0f172a;
+  background: #ffffff;
+}
+.markdown-export-mode-select:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 /* AI制約設計書レビュー支援 */
 #exportMarkdownBtn {
   border-color: rgba(14, 165, 233, 0.35);
@@ -460,7 +488,7 @@ th.sortable:hover { background: linear-gradient(180deg, #eef6ff, #ddecfb); }
 #prevDetailBtn, #nextDetailBtn {
   min-width: 78px;
 }
-#prevDetailBtn:disabled, #nextDetailBtn:disabled, #exportMarkdownBtn:disabled, #exportViewDefMarkdownBtn:disabled {
+#prevDetailBtn:disabled, #nextDetailBtn:disabled, #exportMarkdownBtn:disabled, #exportMarkdownModeSelect:disabled, #exportViewDefMarkdownBtn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }

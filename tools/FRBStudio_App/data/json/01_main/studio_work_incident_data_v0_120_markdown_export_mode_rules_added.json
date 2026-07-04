@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-07-03",
+  "updated_at": "2026-07-04",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。",
-  "items_count": 54,
+  "items_count": 56,
   "work_items": [
     {
       "work_item_id": "studio_work_0007",
@@ -9204,6 +9204,538 @@
       "actual_updated_files": "wwwroot/myindex.html\nwwwroot/app.js\nwwwroot/js/runtime/load_runtime.js\nwwwroot/js/renderers/grid_detail.js\ndata/json/01_main/studio_work_incident_data_v0_117_grid_csv_export_added.json",
       "completion_summary": "Grid右上にCSV出力ボタンを追加し、現在Gridに表示されている行・列だけをCSV出力できるようにした。keyFieldは非表示でもCSVに必ず含め、UTF-8 BOM付き、Data名+timestampファイル名、filteredRows順での出力を実装した。",
       "test_result": "JS構文チェックとして node --check を実施しOK。ユーザー画面確認でCSV出力ボタンがコンパクトに表示されることを確認。CSV実ファイルの中身確認・Excel確認は未実施。"
+    },
+    {
+      "work_item_id": "studio_work_0109",
+      "phase": "v0.18.5-test-design-document-responsibility-scope",
+      "title": "Test Design Document / 責務境界・UT/CT・ExpectedDef整理",
+      "incident_type": "design_document",
+      "category": "test_design",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-04",
+      "updated_at": "2026-07-04",
+      "target_files": "data/json/01_main/md/TEST_PLAN_RESPONSIBILITY_SCOPE_v0_18_5.md\ndata/json/01_main/md/STUDIO_STORY_TEST_DESIGN_GUARDIAN_SPIRIT_NOTES_v0_18_5.md\ndata/json/03_tests/qa/responsibility_def/responsibility_def_master_draft_v0_1.json\ndata/json/03_tests/qa/responsibility_def/performance_limit_policy_draft_v0_1.json\ndata/json/01_main/studio_work_incident_data_v0_119_test_plan_responsibility_scope_done.json",
+      "objective": "Studioくんのテスト設計書を作成し、実装上のFunction/Class構造ではなく、UTとして守る責務境界、CTとして守るインターフェース契約、ExpectedDefの粒度を整理する。",
+      "background": "ViewDef切替、Grid一覧、Editor描画、検索結果状態などのテストを考える中で、ViewDefの具体データに期待値を密結合させるのではなく、ViewDef解釈ルール・責務境界・状態遷移・インターフェース契約をテスト対象にする必要が見えた。また、巨大機能をまとめてテストすると条件組み合わせが爆発するため、責務分割によりUTの期待値を小さくし、CTでは責務間の接続・契約を確認する方針を整理する必要がある。",
+      "scope": "テスト設計書を主成果物として作成する。責務境界、UT/CT/E2Eの役割分担、TestScopeDef、ResponsibilityDef、RuleExpectedDef、StateExpectedDef、EventExpectedDef、InterfaceExpectedDef、Domain Event JSON化、ViewDef非依存の期待値設計を整理する。メッセージカタログ、ViewDef、ExpectedDef、TestPattern、Actual、Diff、Incidentとの関係をMermaidで可視化する。",
+      "out_of_scope": "この作業ではテストランナー実装、既存テストコードの修正、ViewDef/Runtimeの実装修正、ExpectedDefスキーマの確定までは行わない。まずテスト設計書として責務境界と概念関係を整理する。",
+      "fixed_name_policy": "message_catalog や ViewDef など特定Dataを例示に使う場合も、Runtime固定名として扱わない。テスト設計では、具体Data名ではなく責務・契約・抽象期待値を主語にする。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。テスト設計書と概念整理を先行し、実装方式は後続インシデントで扱う。",
+      "expected_outputs": "テスト設計書Markdown、UT/CT/E2E責務分担表、ExpectedDef種別整理、ViewDef切替・Grid/Editor描画・検索結果状態のテスト観点、メッセージカタログ等との関係を示すMermaid図、後続インシデント候補。",
+      "risk": "実装上のFunction名や既存コード構造に引きずられると、テスト設計が責務境界ではなく現状コード確認表になってしまう。逆に抽象化しすぎると、実際のExpected JSONやテストデータへ落とせなくなる。",
+      "test_points": "ViewDefの具体列名に依存しないGrid/Editor描画期待値が説明できること。検索ロジックのUTとUI→Search→Grid接続のCTを分離できること。Domain Event / State / Rule / Interface のExpectedDef種別を使い分けられること。メッセージカタログなどの具体Dataとの関係をMermaidで説明できること。",
+      "user_request": "一先ず、インシデント登録してから、テスト設計書作成に入る。メインのアウトプットはテスト設計書で、その中でメッセージカタログなどとの関係性をMermaidでまとめてほしい。まずはインシデント登録したい。",
+      "ai_response": "テスト設計書作成を新規インシデントとして登録する。実装修正ではなく、責務境界・UT/CT・ExpectedDef・ViewDef非依存テスト・Domain Event JSON化を整理する設計ドキュメント作成フェーズとして扱う。",
+      "latest_user_comment": "ここまでの流れでテスト計画を作成する。あわせて、Studioくん物語につなげるネタ情報的な記事メモも作成する。テスト方針から性能上限の話にもつなげ、グリッドに100列を出さないなど、人間承認性と性能を守る上限契約を整理する。",
+      "latest_ai_response": "テスト計画Markdown、Studioくん物語ネタメモ、ResponsibilityDef Master JSONドラフト、Performance Limit Policy JSONドラフトを作成。実装修正は行わず、責務境界・UT/CT/E2E・ExpectedDef・スクショ証跡・性能上限契約を次工程へ渡せる設計成果物として整理した。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0109_001",
+          "at": "2026-07-04",
+          "speaker": "user",
+          "topic": "Domain EventとExpectedDef",
+          "message": "テストを考えるときに、何が起きたか・何が期待値かを明示するため、Domain EventをJSON化して単純比較できるのではないかと相談。画面描画クラスは渡されたデータをそのまま表示する考え方にすると、テストで守る境界がはっきりするのではないかと整理した。"
+        },
+        {
+          "history_id": "disc_0109_002",
+          "at": "2026-07-04",
+          "speaker": "assistant",
+          "topic": "Domain Event JSON化",
+          "message": "Domain Eventは『何が起きたか』を表すテスト対象として有効。Rendererは判断せず、渡されたViewModel/State/EventResultを表示する責務にすると、テスト境界が明確になると整理した。"
+        },
+        {
+          "history_id": "disc_0109_003",
+          "at": "2026-07-04",
+          "speaker": "user",
+          "topic": "ViewDef非依存テスト",
+          "message": "ViewDefが切り替わったときのGrid一覧・Editor描画、検索結果状態が期待どおりかを、ViewDefの具体データに依存させないようにしたいと相談した。"
+        },
+        {
+          "history_id": "disc_0109_004",
+          "at": "2026-07-04",
+          "speaker": "assistant",
+          "topic": "RuleExpectedとFixture ViewDef",
+          "message": "本番ViewDefの具体列名ではなく、ViewDef解釈ルールや人工Fixture ViewDefを使って、Grid/Editor/Searchの責務をテストする方向を整理した。"
+        },
+        {
+          "history_id": "disc_0109_005",
+          "at": "2026-07-04",
+          "speaker": "user",
+          "topic": "責務分割とテストパターン削減",
+          "message": "ウォーターフォール風に言えば、10KSのバッチ1本ではテストパターンが膨大になるが、1KS×10本に分けると責務が明確になり、全体としてチェック項目数が減る理論だと説明した。"
+        },
+        {
+          "history_id": "disc_0109_006",
+          "at": "2026-07-04",
+          "speaker": "assistant",
+          "topic": "期待値縮小理論",
+          "message": "責務を分割するとテストパターンが足し算になり、巨大化すると掛け算になる。テストパターン削減はテストをサボることではなく、責務を分けて期待値を小さくすることだと整理した。"
+        },
+        {
+          "history_id": "disc_0109_007",
+          "at": "2026-07-04",
+          "speaker": "user",
+          "topic": "UTとCTの分担",
+          "message": "細かいテストはUTで行い、CTではシステム全体のインプット/アウトプットや、インターフェースに依存するテストを中心に考えると整理した。"
+        },
+        {
+          "history_id": "disc_0109_008",
+          "at": "2026-07-04",
+          "speaker": "assistant",
+          "topic": "InterfaceExpectedDef",
+          "message": "UTは責務の中身を守り、CTは責務どうしの接続を守る。CTは全部を再テストするのではなく、インターフェース契約や状態受け渡しを確認するものとしてInterfaceExpectedDefの考え方を整理した。"
+        },
+        {
+          "history_id": "disc_0109_009",
+          "at": "2026-07-04",
+          "speaker": "user",
+          "topic": "テスト設計の本質",
+          "message": "実態としてのFunctionやClassは一旦置いておき、UTとしてテストする責務の範囲を綺麗に整理することが大事で、それがテスト設計ではないかと整理した。"
+        },
+        {
+          "history_id": "disc_0109_010",
+          "at": "2026-07-04",
+          "speaker": "assistant",
+          "topic": "TestScopeDef",
+          "message": "UT設計とはFunction一覧を作ることではなく、責務をテスト可能な粒度に分解すること。TestScopeDefとして、in_scope/out_of_scope/input/expectedを定義する案を整理した。"
+        },
+        {
+          "history_id": "disc_0109_011",
+          "at": "2026-07-04",
+          "speaker": "user",
+          "topic": "インシデント登録依頼",
+          "message": "メインアウトプットをテスト設計書とし、メッセージカタログなどとの関係性をMermaidでまとめる前提で、まずインシデント登録を依頼した。"
+        },
+        {
+          "history_id": "disc_0109_010",
+          "at": "2026-07-04",
+          "speaker": "user",
+          "topic": "テスト計画作成依頼",
+          "message": "頭が飽和してきたため、ここまでの流れでテスト計画を作成したい。Studioくん物語につなげるネタ情報的な記事もおまけに作成したい。"
+        },
+        {
+          "history_id": "disc_0109_011",
+          "at": "2026-07-04",
+          "speaker": "assistant",
+          "topic": "成果物作成方針",
+          "message": "実装修正ではなく、テスト計画Markdown、物語ネタMarkdown、ResponsibilityDef Master JSONドラフト、Performance Limit Policy JSONドラフト、更新後インシデントJSONを作成する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0109_001",
+          "at": "2026-07-04",
+          "decision": "テスト設計書作成を、実装修正とは別の新規インシデントとして登録する。",
+          "reason": "ExpectedDefやテストコード実装へ進む前に、UT/CTの責務境界と期待値粒度を整理する必要があるため。"
+        },
+        {
+          "decision_id": "dec_0109_002",
+          "at": "2026-07-04",
+          "decision": "テスト設計はFunction/Class一覧ではなく、責務境界・入力・期待値・対象外を先に整理する方針とする。",
+          "reason": "既存実装構造に引きずられると、テストが守りたい責務ではなく現在のコード形状へ密結合するため。"
+        },
+        {
+          "decision_id": "dec_0109_003",
+          "at": "2026-07-04",
+          "decision": "ViewDef切替や検索結果状態のテストでは、本番ViewDefの具体データではなく、ViewDef解釈ルール・Fixture ViewDef・抽象期待値を中心に扱う。",
+          "reason": "本番ViewDefの変更でテストが壊れる状態を避け、Studioエンジンのルールをテストするため。"
+        },
+        {
+          "decision_id": "dec_0109_004",
+          "at": "2026-07-04",
+          "decision": "UTは責務内部、CTは責務間インターフェース、E2Eは代表ユーザーシナリオを確認する役割として整理する。",
+          "reason": "CTで細かい分岐条件を再テストすると、巨大バッチ一括テストと同じ組み合わせ爆発に戻るため。"
+        },
+        {
+          "decision_id": "dec_0109_005",
+          "at": "2026-07-04",
+          "decision": "テスト設計書には、メッセージカタログ、ViewDef、ExpectedDef、TestPattern、Actual、Diff、Incidentの関係をMermaidで含める。",
+          "reason": "具体Dataとテスト設計概念の関係を人間とAIが同じ絵で共有できるようにするため。"
+        },
+        {
+          "decision_id": "dec_0109_010",
+          "at": "2026-07-04",
+          "decision": "テスト計画はテストケース一覧ではなく、AI生成物を人間が承認できる構造を作るための設計書とする。",
+          "reason": "400KS/人月級のAI生成量では、人間承認時間がボトルネックになるため。"
+        },
+        {
+          "decision_id": "dec_0109_011",
+          "at": "2026-07-04",
+          "decision": "UTの単位はFunction/Classではなく責務単位とする。巨大関数は責務に分解し、小関数群は意味のある責務単位へ束ねる。",
+          "reason": "実装詳細に張り付いた壊れやすいテストではなく、責務境界ごとの約束を守るため。"
+        },
+        {
+          "decision_id": "dec_0109_012",
+          "at": "2026-07-04",
+          "decision": "ResponsibilityDefを責務単位インターフェース契約として扱い、入力契約・出力契約・エラー契約・防衛方針・性能上限契約を持たせる。",
+          "reason": "小Function全てへの完全自己防衛は現実的でないため、責務入口を防衛境界にする。"
+        },
+        {
+          "decision_id": "dec_0109_013",
+          "at": "2026-07-04",
+          "decision": "TestPatternにはresponsibility_cdとexpected_type_cdを持たせ、何の責務を確認するパターンかを明示する。",
+          "reason": "テストパターンをケースの山ではなく責務ごとの証跡へ変えるため。"
+        },
+        {
+          "decision_id": "dec_0109_014",
+          "at": "2026-07-04",
+          "decision": "本番ViewDefは仕様そのものではなく題材として扱い、UTではFixture ViewDefを中心にする。",
+          "reason": "本番ViewDefの具体データ変更でテストが壊れる密結合を避けるため。"
+        },
+        {
+          "decision_id": "dec_0109_015",
+          "at": "2026-07-04",
+          "decision": "スクショは初期段階ではFAIL判定の主軸ではなく、人間確認用Visual Evidenceとして保存する。",
+          "reason": "見た目テストを壊れやすいピクセル完全一致から始めず、将来のスクショ差分物語へ育てるため。"
+        },
+        {
+          "decision_id": "dec_0109_016",
+          "at": "2026-07-04",
+          "decision": "性能も責務境界防衛の一部として扱い、Grid表示列数・行数・文字量などの上限契約を定義する。",
+          "reason": "100列Gridのような構造は性能だけでなく、人間承認性・ExpectedDef可読性・差分説明性を壊すため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0109_001",
+          "at": "2026-07-04",
+          "change_type": "incident_added",
+          "before": "責務境界・UT/CT・ExpectedDefを整理するテスト設計書作成が作業項目として登録されていなかった。",
+          "after": "studio_work_0109 として、Test Design Document / 責務境界・UT/CT・ExpectedDef整理を登録。",
+          "reason": "テストコードやExpectedDefの具体化へ進む前に、責務境界とテスト粒度を設計するため。"
+        },
+        {
+          "history_id": "chg_0109_010",
+          "at": "2026-07-04",
+          "change_type": "test_plan_documents_added",
+          "before": "責務境界・UT/CT・ExpectedDef・スクショ証跡・性能上限契約が会話上の整理に留まっていた。",
+          "after": "テスト計画Markdown、Studioくん物語ネタMarkdown、ResponsibilityDef Master JSONドラフト、Performance Limit Policy JSONドラフトとして成果物化した。",
+          "reason": "次工程でTestPattern/ExpectedDef/Fixture作成へ進むための設計入力にするため。"
+        }
+      ],
+      "verification_status": "確認済み",
+      "context_def_status": "draft_updated",
+      "context_def_updated_at": "2026-07-04",
+      "context_def_draft": "# ContextDef素案: v0.18.5-test-design-document-responsibility-scope\n\n## 読む目的\nStudioくんのテスト設計書を作成し、実装上のFunction/Class構造ではなく、UTとして守る責務境界、CTとして守るインターフェース契約、ExpectedDefの粒度を整理する。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0104` / v0.18.0-expecteddef-log-compare-lookup-design-seed: ExpectedDef / ログコンペア / lookup複数列コンボ構想の入口を確認する。\n- `studio_work_0107` / v0.18.3-message-catalog-data-and-message-id-runtime-policy: メッセージカタログとRuntime表示箇所IDの文脈を確認する。\n- `studio_work_0055` / v0.14.25-test-runner-execution-rules: 共通テストランナー実行ルールの将来候補を確認する。\n- `studio_work_0054` / v0.14.24-traceability-rules: Rule / Incident / Expected / Actual / Diff / ViewDef のトレース方針を確認する。\n\n## AI作業メモ\n- まずテスト設計書を作る。実装・テストコード・ExpectedDefスキーマ確定へ急がない。\n- Function/Class名ではなく、責務境界・入力・期待値・対象外を主語にする。\n- ViewDefの具体データに密結合した期待値ではなく、ViewDef解釈ルール・Fixture ViewDef・抽象期待値で整理する。\n- メッセージカタログなど具体Dataとの関係は、Mermaidで見える形にする。\n\n## 対象範囲メモ\nテスト設計書を主成果物として作成する。責務境界、UT/CT/E2Eの役割分担、TestScopeDef、ResponsibilityDef、RuleExpectedDef、StateExpectedDef、EventExpectedDef、InterfaceExpectedDef、Domain Event JSON化、ViewDef非依存の期待値設計を整理する。\n\n## 注意すべきリスク\n実装上のFunction名や既存コード構造に引きずられると、テスト設計が責務境界ではなく現状コード確認表になってしまう。逆に抽象化しすぎると、実際のExpected JSONやテストデータへ落とせなくなる。\n\n## 確認観点メモ\nViewDefの具体列名に依存しないGrid/Editor描画期待値が説明できること。検索ロジックのUTとUI→Search→Grid接続のCTを分離できること。Domain Event / State / Rule / Interface のExpectedDef種別を使い分けられること。メッセージカタログなどの具体Dataとの関係をMermaidで説明できること.\n\n## v0.18.5追加整理\n- テスト計画は、AI生成物を人間が短時間で承認するための構造設計として扱う。\n- ResponsibilityDefは、単なる責務一覧ではなく、責務単位インターフェース契約・入力契約・出力契約・エラー契約・防衛方針・性能上限契約を持つ。\n- TestPatternはresponsibility_cdとexpected_type_cdで、何の責務を守るパターンかを明示する。\n- スクショは初期段階では人間確認用Visual Evidenceとして保存し、将来のスクショ差分物語へ接続する。\n- 性能も責務境界防衛の一部として扱い、100列Gridのような人間承認性を壊す構造を避ける。\n",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0109_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_118_test_design_document_added.json#studio_work_0109",
+          "purpose": "この作業の目的・背景・対象範囲・対象外・リスク・確認観点を把握してからテスト設計書作成へ進む。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "テスト設計書作成フェーズの入口インシデント。"
+        },
+        {
+          "context_ref_id": "target_0109_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0109_030_studio_work_0104",
+          "title": "関連作業 studio_work_0104: ExpectedDef / ログコンペア / lookup複数列コンボ構想",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_118_test_design_document_added.json#studio_work_0104",
+          "purpose": "ExpectedDef設計の入口文脈を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0109_040_studio_work_0107",
+          "title": "関連作業 studio_work_0107: MessageCatalog / メッセージID管理",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_118_test_design_document_added.json#studio_work_0107",
+          "purpose": "メッセージカタログと表示箇所ID指定の関係を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0109_050_studio_work_0055",
+          "title": "関連作業 studio_work_0055: Test Runner / Execution Rules",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_118_test_design_document_added.json#studio_work_0055",
+          "purpose": "テスト設計後に実行ルールへつなぐ将来文脈を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": ""
+        }
+      ],
+      "actual_updated_files": "data/json/01_main/studio_work_incident_data_v0_119_test_plan_responsibility_scope_done.json\ndata/json/01_main/md/TEST_PLAN_RESPONSIBILITY_SCOPE_v0_18_5.md\ndata/json/01_main/md/STUDIO_STORY_TEST_DESIGN_GUARDIAN_SPIRIT_NOTES_v0_18_5.md\ndata/json/03_tests/qa/responsibility_def/responsibility_def_master_draft_v0_1.json\ndata/json/03_tests/qa/responsibility_def/performance_limit_policy_draft_v0_1.json",
+      "completion_summary": "AI生成物を人間が短時間で承認するためのテスト計画として、責務境界、ResponsibilityDef、ExpectedDef、TestPattern責務識別、スクショ証跡、性能上限契約、Studioくん物語ネタを文書化した。",
+      "test_result": "文書/JSON作成のみ。JSON parse確認済み。実装・ランナー実行・画面確認は未実施。"
+    },
+    {
+      "work_item_id": "studio_work_0110",
+      "phase": "v0.18.6-markdown-export-mode-exportdef-rules",
+      "title": "Markdown Export Mode / ExportDef・Generation Rules・Schema見直し",
+      "incident_type": "specification_design",
+      "category": "markdown_export",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-04",
+      "updated_at": "2026-07-04",
+      "target_files": "wwwroot/js/markdown/*.js, wwwroot/js/**/markdown*.js, wwwroot/js/**/*.js, defs/**/*.json, data/json/00_rules/frb_viewdef_generation_rules_data_v*.json, data/json/00_rules/frb_foundation_rules_data_v0_1.json, frb_view_def_schema_*.json, defs/rules/rule_review_common_view_def_v0_3.json, docs/notes/*.md",
+      "target_rule_files": "data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json, frb_view_def_schema_*.json, rule_review_common_view_def_v0_3.json",
+      "objective": "Markdown出力を単一ボタンの単一処理ではなく、出力モード/Export Profileとして整理し、full_dump / review_report / document_rebuild を用途別に切り替えられるようにする。あわせて、この設計をViewDef Generation RulesとSchemaへ反映する。",
+      "background": "TEST_PLAN_RESPONSIBILITY_SCOPE_v0_18_5.md をJSON化してStudioでレビューした結果、現状のMarkdown出力はレビュー用レポートとしては正しいが、元の読み物型Markdown文書とは出力体験がズレることが分かった。さらに、単純にJSONの中身を全部Markdownへ吐きたい場面もあり、文書再構成・レビュー報告・全項目ダンプを1つの出力仕様で混ぜると責務が壊れる。原文Markdown全文をData JSONへ保持するrawField方式は、データ内に原文ゴミが溜まる印象が強く、採用しない方針になった。",
+      "scope": "Markdown出力ボタンのモード選択UI、ViewDefの markdown.defaultMode / markdown.modes[] / mode.type / mode.fieldPolicy の設計、full_dump / review_report / document_sections(document_rebuild) の責務分離、field/section markdown.export=false の適用範囲、ViewDef Generation Rulesへの追記、Schema項目追加、テスト観点整理を対象とする。",
+      "out_of_scope": "原文Markdown全文を root.markdown_export_body 等で保持してraw出力する方式は採用しない。既存の全Markdown出力エンジンの大規模刷新、完全なWYSIWYG Markdown編集、既存データからの原文復元はこの作業の主目的にしない。",
+      "fixed_name_policy": "document_rebuildで使用する source / headingField / headingLevelField / bodyField はViewDef/ExportDef上の設定値として扱い、Runtimeが rules や body など特定Data固定名へ無条件依存しないようにする。full_dump はData構造を再帰的に出力し、review_report はViewDefのfield/section定義を参照する。",
+      "module_policy": "type=\"module\" 化は今回の主目的ではない。既存script構成を前提に、Markdown Exportの責務分離、ViewDef/Schema/Generation Rulesの定義追加を優先する。",
+      "expected_outputs": "Markdown Export Mode仕様、ViewDef markdown.modes[] Schema追記案、ViewDef Generation Rules追記、full_dump/review_report/document_rebuildの責務表、field/section markdown.export=falseの適用ルール、Split Buttonまたはモード選択UI案、必要に応じたRuntime実装方針。",
+      "risk": "field.markdown.export=false を主制御にするとViewDefに除外フラグを撒きすぎて盆栽化する。full_dumpで除外フラグを尊重すると全項目出力ではなくなる。document_rebuildで汎用field走査に寄せると、美しいMarkdownではなくレビュー報告書に戻る。原文Markdown全文をDataに保持すると、正本がbodyなのか原文なのか曖昧になり、JSONが腐る。",
+      "test_points": "Markdown出力ボタンでモードを選べること。full_dump は markdown.export=false を無視してJSON全体をMarkdown化すること。review_report は field/section markdown.export=false を尊重すること。document_rebuild は source / headingField / headingLevelField / bodyField など明示指定された項目から読み物型Markdownを再構成し、review_status 等を最初から走査しないこと。rawField / markdown_export_body を前提にしないこと。Generation RulesとSchemaがこの責務分離を説明できること。",
+      "user_request": "Markdown出力ボタンにモード選択の概念がほしくなる。単純にJSONの中身を全部MDに吐き出したい時もある。原文Markdown全文はData内に持ちたくない。モードを整理すると、fieldごとのMarkdown出力有無制御が必要なのかも再整理したい。最終的に、出力モード主導 + field制御はreview_report用の例外としてルール化できたので、generation_rulesとスキーマ見直しも含むインシデントとして登録してほしい。",
+      "ai_response": "Markdown出力はモード主導で整理する。full_dumpは全項目出力としてfield除外を無視、review_reportは既存レポート系としてfield/section markdown.export=falseを尊重、document_rebuildは明示指定されたheading/body等だけを使うためfield除外を主制御にしない。rawField原文保持は採用しない。この方針をインシデント化する。",
+      "latest_user_comment": "了解。ルールとして整理できたねぇ。ではまずこれをインシデント登録してもらえる？generation_rulesとスキーマの見直しも含むインシデントとしてお願いします。",
+      "latest_ai_response": "対応完了。Markdown出力ボタンにモード選択を追加し、Export Mode主導で full_dump / review_report / document_rebuild を切り替えられるようにした。full_dump は markdown.export=false を無視してJSON全体を出力、review_report は field/section markdown.export=false を尊重、document_rebuild は source/heading/body 等の明示指定項目だけで読み物型Markdownを再構成する。rawField / markdown_export_body 原文保持方式は推奨しない方針をSchemaとGeneration Rulesへ反映した。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0110_001",
+          "at": "2026-07-04",
+          "speaker": "user",
+          "topic": "Markdown出力ボタンのモード選択",
+          "message": "Markdown出力ボタンにモード選択の概念がほしくなる。単純にJSONの中身を全部MDに吐き出したい時もある。"
+        },
+        {
+          "history_id": "disc_0110_002",
+          "at": "2026-07-04",
+          "speaker": "assistant",
+          "topic": "出力モード案",
+          "message": "Markdown出力は、全項目Markdown出力、レビュー用Markdown出力、文書Markdown出力に分けるとよい。ボタンは単なる実行ではなくExport Profile選択になる。"
+        },
+        {
+          "history_id": "disc_0110_003",
+          "at": "2026-07-04",
+          "speaker": "user",
+          "topic": "原文保持方式の否定",
+          "message": "原文は持ちたくない。データの中にゴミがたまるイメージになる。raw_original / rawField / markdown_export_body は避けたい。"
+        },
+        {
+          "history_id": "disc_0110_004",
+          "at": "2026-07-04",
+          "speaker": "assistant",
+          "topic": "構造再構成方針",
+          "message": "原文保持型ではなく構造再構成型に寄せる。JSONには構造化された意味だけを持ち、Markdownは構造化データから再生成する。"
+        },
+        {
+          "history_id": "disc_0110_005",
+          "at": "2026-07-04",
+          "speaker": "user",
+          "topic": "fieldごとのMarkdown出力制御の再整理",
+          "message": "モードを整理すると、フィールドごとにMarkdown出力有無を持つ制御がどうなるのか、必要なのかと思った。"
+        },
+        {
+          "history_id": "disc_0110_006",
+          "at": "2026-07-04",
+          "speaker": "assistant",
+          "topic": "モード主導とfield制御の責務分担",
+          "message": "主制御は出力モードに持たせる。field.markdown.export=false は主役ではなく、review_reportのノイズ除去用の補助フラグにする。full_dumpでは無視し、document_rebuildではそもそも指定フィールドだけを使う。"
+        },
+        {
+          "history_id": "disc_0110_007",
+          "at": "2026-07-04",
+          "speaker": "user",
+          "topic": "インシデント登録依頼",
+          "message": "ルールとして整理できた。generation_rulesとスキーマの見直しも含むインシデントとして登録してほしい。"
+        },
+        {
+          "history_id": "disc_0110_008",
+          "at": "2026-07-04",
+          "speaker": "assistant",
+          "topic": "v0.18.6 Markdown Export Mode 作業完了報告",
+          "message": "AI回答\n\n## 今回の更新\n\n- `wwwroot/myindex.html`\n- `wwwroot/styles.css`\n- `wwwroot/app.js`\n- `wwwroot/js/runtime/load_runtime.js`\n- `wwwroot/js/actions/action_registry.js`\n- `wwwroot/js/markdown/data_markdown.js`\n- `defs/rules/rule_review_common_view_def_v0_3.json`\n- `data/json/00_rules/frb_view_def_schema_v0_9.json`\n- `data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json`\n- `data/json/00_rules/md/MARKDOWN_EXPORT_MODE_REPORT_v0_18_6.md`\n- `data/json/01_main/studio_work_incident_data_v0_120_markdown_export_mode_rules_added.json`\n\n## やったこと\n\nMarkdown出力を `full_dump` / `review_report` / `document_rebuild` の3モードで切り替えられるようにした。\n\n- 画面にMarkdown出力モード選択セレクトを追加\n- `view.markdown.modes[]` と `defaultMode` を読む実装を追加\n- `full_dump` はJSON全体をMarkdown code fenceで出力\n- `review_report` は既存レビュー報告書型を維持しつつ、field/section `markdown.export=false` を尊重\n- `document_rebuild` は `source` / `headingField` / `headingLevelField` / `bodyField` から読み物型Markdownを再構成\n- `rawField` / `markdown_export_body` 原文保持方式は推奨から外した\n- ViewDef Schemaへ `markdown.modes[]` / `markdownModeOptions` / `field.markdown.export` を追加\n- ViewDef Generation Rulesへ `viewdef_rule_30` 系を追加\n\n## 方針\n\n今回の主判断は、`field.markdown.export=false` をMarkdown出力全体の主制御にしないこと。\n\n主制御はExport Modeに置く。\n\n```text\nfull_dump       = 全部見る。除外フラグは無視。\nreview_report   = レビュー証跡。除外フラグを尊重。\ndocument_rebuild = 読み物再構成。指定フィールドだけ使う。\n```\n\nこれで、ViewDefに除外フラグを撒きすぎる盆栽化を避けながら、レビュー用Markdownのノイズ除去も可能にした。\n\n## 確認結果\n\n- JSON parse：OK\n- JSON Schema self check：OK\n- `rule_review_common_view_def_v0_3.json` schema validation：OK\n- JS構文確認：OK\n- Node VMによるMarkdown生成確認：OK\n  - `document_rebuild` は `review_status` / `Rule ID` を出さず、見出しと本文から再構成\n  - `full_dump` は `markdown_export_body` も含むJSON全体を出力\n  - `review_report` は `markdown.export=false` 指定のraw系項目を除外\n\n## スコープ外\n\n- `markdown_export_body` を既存Data JSONから削除する作業は未実施\n- 完全なWYSIWYG Markdown編集は未実施\n- ブラウザ実機でのクリック確認は未実施\n"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0110_001",
+          "at": "2026-07-04",
+          "decision": "Markdown出力の主制御はfield単位ではなく、出力モード/Export Profile単位に置く。",
+          "reason": "全項目出力、レビュー報告、文書再構成では目的が異なり、同じfield除外フラグで制御すると責務が混ざるため。"
+        },
+        {
+          "decision_id": "dec_0110_002",
+          "at": "2026-07-04",
+          "decision": "full_dump mode は field/section markdown.export=false を無視し、JSONの中身をできるだけ全部Markdown化する。",
+          "reason": "デバッグ・AI共有・構造確認用途では、除外フラグによって見えない項目が出ると『全項目出力』として信頼できなくなるため。"
+        },
+        {
+          "decision_id": "dec_0110_003",
+          "at": "2026-07-04",
+          "decision": "review_report mode は field/section markdown.export=false を尊重する。",
+          "reason": "既存のレビュー用Markdownでは、管理用メタやレビュー補助項目を出し分ける必要があるため。"
+        },
+        {
+          "decision_id": "dec_0110_004",
+          "at": "2026-07-04",
+          "decision": "document_rebuild mode は明示指定された source / headingField / headingLevelField / bodyField 等からMarkdownを再構成し、field.markdown.export=false を主制御にしない。",
+          "reason": "読み物型Markdownでは出力対象が限定されており、不要項目を除外するより、必要項目だけを使う方が正しいため。"
+        },
+        {
+          "decision_id": "dec_0110_005",
+          "at": "2026-07-04",
+          "decision": "rawField / markdown_export_body による原文Markdown全文保持・再出力方式は採用しない。",
+          "reason": "Data JSON内に原文全文を持つと正本が増え、本文編集と原文保持の同期不整合が起き、データが腐るリスクが高いため。"
+        },
+        {
+          "decision_id": "dec_0110_006",
+          "at": "2026-07-04",
+          "decision": "ViewDef Generation RulesとSchemaに、markdown.modes[] / defaultMode / mode.type / fieldPolicy / document_sections系設定を追加検討する。",
+          "reason": "APP実装だけでなく、AIがViewDefを生成する時点で正しいMarkdown ExportDefを作れるようにするため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0110_001",
+          "at": "2026-07-04",
+          "change_type": "incident_added",
+          "before": "Markdown出力モード、ExportDef、field.markdown.export=false の責務、rawField不採用、Generation Rules/Schema見直しが作業項目として未登録だった。",
+          "after": "studio_work_0110 として、Markdown Export Mode / ExportDef・Generation Rules・Schema見直しを未着手インシデントに追加。",
+          "reason": "Markdown出力をレビュー報告・全項目ダンプ・文書再構成で使い分け、StudioくんのData/View/Export責務分離を保つため。"
+        },
+        {
+          "history_id": "chg_0110_002",
+          "at": "2026-07-04",
+          "change_type": "runtime_markdown_export_mode_added",
+          "before": "Markdown出力は既存のレビュー報告書型buildDataMarkdown/exportMarkdownが単一実装として動いていた。",
+          "after": "exportMarkdown(modeId) が full_dump / review_report / document_rebuild を切り替える実装になり、画面からモード選択できるようになった。",
+          "reason": "全項目確認、レビュー証跡、読み物型文書再構成の出力責務を分離するため。"
+        },
+        {
+          "history_id": "chg_0110_003",
+          "at": "2026-07-04",
+          "change_type": "schema_generation_rules_updated",
+          "before": "ViewDef SchemaとGeneration Rulesに markdown.modes[] / Export Mode / fieldPolicy / rawField非推奨の契約が不足していた。",
+          "after": "Schemaに markdownModeOptions と field.markdown.export を追加し、Generation Rulesに viewdef_rule_30 系を追加した。",
+          "reason": "AIがViewDef生成時点でMarkdown Export Modeの責務分離を守れるようにするため。"
+        },
+        {
+          "history_id": "chg_0110_004",
+          "at": "2026-07-04",
+          "change_type": "rule_review_common_viewdef_updated",
+          "before": "rule_review_common_view_def_v0_3.json は markdown_export_body を優先する旧raw原文再出力寄りの設定を持っていた。",
+          "after": "同名維持のまま markdown.defaultMode / modes[] を持つExport Mode対応に更新し、raw系フィールドには review_report 用の markdown.export=false を付与した。",
+          "reason": "ViewDefファイル名安定契約を守りつつ、原文全文保持方式から構造再構成方式へ寄せるため。"
+        }
+      ],
+      "verification_status": "確認済み",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-07-04",
+      "context_def_draft": "# ContextDef素案: v0.18.6-markdown-export-mode-exportdef-rules\n\n## 読む目的\nMarkdown出力を単一処理ではなく、full_dump / review_report / document_rebuild の出力モードとして整理し、ViewDef Generation RulesとSchemaへ反映する。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- `studio_work_0007` のMarkdown出力契約、`studio_work_0016` のData JSON原本化、`studio_work_0017` の共通Rule Review ViewDef汎用化、`studio_work_0109` のテスト計画文書化を関連文脈として確認する。\n\n## 中核判断\n- Markdown出力の主制御はfieldではなくmodeに置く。\n- full_dumpは全項目出力なので除外フラグを無視する。\n- review_reportはfield/section markdown.export=falseを尊重する。\n- document_rebuildは明示指定されたheading/body等だけを使う。\n- rawField / markdown_export_body による原文全文保持は採用しない。\n\n## AI作業メモ\n- Data JSON原本、ViewDefは表示・編集定義、MarkdownはExport Viewという分離を崩さない。\n- field.markdown.export=false を撒きすぎる設計にしない。\n- Generation RulesとSchemaを同時に見直し、AIが生成するViewDefにもExport Modeの思想を反映する。\n\n## 確認観点メモ\nfull_dump / review_report / document_rebuild の3モードで、field/section export制御の扱いがそれぞれ説明できること。Schemaがmarkdown.modes[]を受けられること。Generation Rulesが rawField 原文保持を推奨しないこと。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0110_001_incident_scope",
+          "title": "対象インシデントの目的・範囲・確認観点を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_120_markdown_export_mode_rules_added.json#studio_work_0110",
+          "purpose": "Markdown Export Mode / ExportDef・Generation Rules・Schema見直しの目的・背景・対象範囲・対象外・リスク・確認観点を把握してから着手する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0110_002_foundation_rule_019",
+          "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "AI更新対象ファイル、更新後インシデントJSON、成果物ZIPの返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0110_030_studio_work_0007",
+          "title": "関連作業 studio_work_0007: Markdown出力契約 / JSON展開情報 / AI貼り付け用",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_120_markdown_export_mode_rules_added.json#studio_work_0007",
+          "purpose": "既存のMarkdown出力契約とAI貼り付け用出力の文脈を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0110_040_studio_work_0016",
+          "title": "関連作業 studio_work_0016: ルール系Data JSON原本化 / Foundation Rules追加",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_120_markdown_export_mode_rules_added.json#studio_work_0016",
+          "purpose": "Markdownは原本ではなくExport Viewであるという方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0110_050_studio_work_0017",
+          "title": "関連作業 studio_work_0017: 共通Rule Review ViewDefの汎用化仕上げ",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_120_markdown_export_mode_rules_added.json#studio_work_0017",
+          "purpose": "review_report系Markdown出力と共通Rule Review ViewDefの汎用化方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 50,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0110_060_studio_work_0109",
+          "title": "関連作業 studio_work_0109: Test Design Document / 責務境界・UT/CT・ExpectedDef整理",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v0_120_markdown_export_mode_rules_added.json#studio_work_0109",
+          "purpose": "テスト計画MarkdownをJSON化し、読み物型Markdownへ再構成したい背景を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 60,
+          "note": ""
+        }
+      ],
+      "fixed_in_version": "v0.18.6-markdown-export-mode-exportdef-rules",
+      "actual_updated_files": "wwwroot/myindex.html\nwwwroot/styles.css\nwwwroot/app.js\nwwwroot/js/runtime/load_runtime.js\nwwwroot/js/actions/action_registry.js\nwwwroot/js/markdown/data_markdown.js\ndefs/rules/rule_review_common_view_def_v0_3.json\ndata/json/00_rules/frb_view_def_schema_v0_9.json\ndata/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json\ndata/json/00_rules/md/MARKDOWN_EXPORT_MODE_REPORT_v0_18_6.md\ndata/json/01_main/studio_work_incident_data_v0_120_markdown_export_mode_rules_added.json",
+      "completion_summary": "Markdown出力をExport Mode主導へ整理し、full_dump / review_report / document_rebuild の3モード、モード選択UI、Schema/Generation Rules反映を実施した。",
+      "test_result": "JSON parse OK。JSON Schema self check OK。rule_review_common_view_def_v0_3.json のschema validation OK。JS構文確認OK。Node VMで document_rebuild/full_dump/review_report の生成確認OK。ブラウザ実機クリック確認は未実施。"
     }
   ],
   "review_notes": [
@@ -9664,10 +10196,22 @@
       "summary": "MessageCatalog第1段階として、Data JSONとViewDefを追加。ソーススキャンから抽出した表示メッセージ候補をstable message_id付きで登録し、次段階のRuntime message_id指定移行に備えた。",
       "related_phase": "v0.18.3-message-catalog-data-and-message-id-runtime-policy",
       "related_work_item_id": "studio_work_0107"
+    },
+    {
+      "note_id": "note_v0186_markdown_export_mode_rules_added",
+      "at": "2026-07-04",
+      "author": "ChatGPT",
+      "summary": "Markdown出力ボタンをExport Mode選択へ拡張する設計課題を登録。field単位のMarkdown出力有無は主制御ではなく、review_report用の補助制御と整理した。rawField/markdown_export_bodyによる原文全文保持は採用しない。",
+      "related_phase": "v0.18.6-markdown-export-mode-exportdef-rules",
+      "related_work_item_id": "studio_work_0110"
     }
   ],
-  "work_revision": "v0_116_message_catalog_data_viewdef_added",
-  "latest_planning_note": "v0.18.3 MessageCatalog 第1段階として、ソーススキャンに基づく message_catalog_data_v0_1.json と message_catalog_view_def_v0_1.json を追加。コード側message_idバインドは次段階へ残した。",
+  "work_revision": "v0_120_markdown_export_mode_rules_added",
+  "latest_planning_note": {
+    "at": "2026-07-04",
+    "phase": "v0.18.6-markdown-export-mode-exportdef-rules",
+    "summary": "Markdown出力を出力モード主導で整理する方針をインシデント登録。full_dump / review_report / document_rebuild の責務、rawField原文保持不採用、field.markdown.export=falseの適用範囲、Generation Rules/Schema見直しを対象化した。"
+  },
   "view_def_candidates": [
     {
       "view_def": "rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",

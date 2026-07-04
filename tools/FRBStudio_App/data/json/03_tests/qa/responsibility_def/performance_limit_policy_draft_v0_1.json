@@ -1,0 +1,100 @@
+{
+  "schema_version": "performance_limit_policy_draft_v0_1",
+  "document_type": "qa_performance_limit_policy",
+  "view_def": "qa\\responsibility\\performance_limit_policy_view_def_v0_1.json",
+  "title": "FRB Studio Performance Limit Policy Draft",
+  "phase": "v0.18.5-test-design-document-responsibility-scope",
+  "created_at": "2026-07-04",
+  "purpose": "性能を実装後の努力だけで担保せず、ViewDef/Data/ResponsibilityDefの入力契約として上限を定義するためのドラフト。",
+  "policy_summary": "性能もまた責務境界防衛の一部である。Gridは全項目表示の場所ではなく、人間が一覧判断するための入口である。",
+  "limits": [
+    {
+      "limit_cd": "visible_grid_columns",
+      "name": "Grid表示列数",
+      "normal_limit": 12,
+      "warning_limit": 20,
+      "standard_max": 30,
+      "hard_limit": 50,
+      "on_warning": "show_warning",
+      "on_hard_limit": "reject_or_require_override",
+      "reason": "100列Gridは性能だけでなく、人間承認性・ExpectedDef可読性・スクショ証跡性を壊すため。"
+    },
+    {
+      "limit_cd": "grid_rows_standard",
+      "name": "標準Grid表示行数",
+      "normal_limit": 1000,
+      "warning_limit": 3000,
+      "standard_max": 5000,
+      "hard_limit": 10000,
+      "on_warning": "show_warning",
+      "on_hard_limit": "reject_or_require_override",
+      "reason": "大量行は検索・仮想化・ページングなど別責務で扱うべきため。"
+    },
+    {
+      "limit_cd": "grid_cell_text_length",
+      "name": "Gridセル表示文字数",
+      "normal_limit": 80,
+      "warning_limit": 200,
+      "standard_max": 500,
+      "hard_limit": 1000,
+      "on_warning": "truncate_or_show_warning",
+      "on_hard_limit": "render_as_preview_only",
+      "reason": "長文はGridではなくEditor/Markdown/Detailで読むべきため。"
+    },
+    {
+      "limit_cd": "search_target_fields",
+      "name": "検索対象フィールド数",
+      "normal_limit": 10,
+      "warning_limit": 20,
+      "standard_max": 50,
+      "hard_limit": 80,
+      "on_warning": "show_warning",
+      "on_hard_limit": "reject_or_require_override",
+      "reason": "検索対象を増やしすぎると性能と検索意味が崩れるため。"
+    },
+    {
+      "limit_cd": "editor_fields",
+      "name": "Editor表示項目数",
+      "normal_limit": 20,
+      "warning_limit": 30,
+      "standard_max": 60,
+      "hard_limit": 100,
+      "on_warning": "show_warning_or_sectioning",
+      "on_hard_limit": "require_sectioning",
+      "reason": "Editor項目が多すぎる場合はSection分割・折りたたみが必要なため。"
+    },
+    {
+      "limit_cd": "object_array_rows",
+      "name": "objectArray表示行数",
+      "normal_limit": 50,
+      "warning_limit": 200,
+      "standard_max": 1000,
+      "hard_limit": 5000,
+      "on_warning": "show_warning",
+      "on_hard_limit": "require_paging_or_filter",
+      "reason": "履歴・明細は代表表示や検索で扱うべきため。"
+    },
+    {
+      "limit_cd": "json_diff_size",
+      "name": "Diff対象JSONサイズ",
+      "normal_limit": 1000000,
+      "warning_limit": 5000000,
+      "standard_max": 10000000,
+      "hard_limit": 30000000,
+      "on_warning": "show_warning",
+      "on_hard_limit": "require_scope_split",
+      "reason": "巨大Diffは人間承認とAI差分物語に向かないため。"
+    },
+    {
+      "limit_cd": "visual_evidence_screenshots",
+      "name": "1回の実行で保存するスクショ数",
+      "normal_limit": 10,
+      "warning_limit": 20,
+      "standard_max": 30,
+      "hard_limit": 50,
+      "on_warning": "show_warning",
+      "on_hard_limit": "reject_or_require_override",
+      "reason": "スクショ証跡が多すぎると人間確認が破綻するため。"
+    }
+  ]
+}

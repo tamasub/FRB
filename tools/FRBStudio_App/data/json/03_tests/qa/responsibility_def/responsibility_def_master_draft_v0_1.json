@@ -1,0 +1,560 @@
+{
+  "schema_version": "responsibility_def_master_draft_v0_1",
+  "document_type": "qa_responsibility_def_master",
+  "view_def": "qa\\responsibility\\responsibility_def_master_view_def_v0_1.json",
+  "title": "FRB Studio ResponsibilityDef Master Draft",
+  "phase": "v0.18.5-test-design-document-responsibility-scope",
+  "created_at": "2026-07-04",
+  "purpose": "UTとして守るべき責務単位と、責務単位インターフェース契約・入力契約・出力契約・エラー契約・防衛方針・性能上限契約を定義するためのドラフト。",
+  "policy": {
+    "unit_test_unit": "UTの単位はFunction/Classではなく責務単位とする。巨大関数は責務に分解し、小関数群は意味のある責務単位へ束ねる。",
+    "boundary_defense": "小Functionすべてに完全な自己防衛を求めず、責務単位の公開インターフェースを防衛境界として入力チェック・出力契約・エラー契約を集中管理する。",
+    "motto": "責務境界の外は疑う。責務境界の内は信じる。"
+  },
+  "responsibilities": [
+    {
+      "responsibility_cd": "viewdef_parse",
+      "name": "ViewDef解釈責務",
+      "test_level": "UT",
+      "summary": "Active ViewDefを読み取り、Grid/Editor/Search/Toolbar等の後続責務が利用できる解釈済みViewDefへ変換する責務。",
+      "public_interface": {
+        "interface_name": "ViewDefParser.parse",
+        "input_name": "ViewDefParseRequest",
+        "output_name": "ViewDefParseResult"
+      },
+      "input_contract": {
+        "required": [
+          "active_view_def",
+          "active_view_def.views"
+        ],
+        "shape_rules": [
+          "active_view_def は object",
+          "views は array",
+          "sections は array または未定義"
+        ]
+      },
+      "output_contract": {
+        "required": [
+          "resolved_view_def",
+          "warnings"
+        ],
+        "rules": [
+          "後続責務が参照するsections/fieldsが正規化されている",
+          "元ViewDefを破壊しない"
+        ]
+      },
+      "error_contract": {
+        "error_type": "ContractError",
+        "must_include": [
+          "responsibility_cd",
+          "error_code",
+          "path",
+          "message"
+        ]
+      },
+      "defensive_policy": {
+        "validate_input_at_boundary": true,
+        "do_not_mutate_input": true,
+        "reject_unknown_critical_shape": true
+      },
+      "performance_contract": {
+        "max_views": 20,
+        "max_sections_per_view": 30,
+        "max_total_fields": 200,
+        "on_hard_limit": "throw_contract_error"
+      },
+      "in_scope": [
+        "ViewDef構造の基本検証",
+        "sections/fieldsの正規化",
+        "後続責務向けの解釈済み構造生成"
+      ],
+      "out_of_scope": [
+        "DOM描画",
+        "本番ViewDefの内容妥当性レビュー",
+        "検索条件評価"
+      ],
+      "expected_types": [
+        "RuleExpectedDef",
+        "ErrorExpectedDef",
+        "PerformanceExpectedDef"
+      ]
+    },
+    {
+      "responsibility_cd": "grid_column_build",
+      "name": "Grid列生成責務",
+      "test_level": "UT",
+      "summary": "ViewDef fields定義からGrid表示に必要な列定義を生成する責務。",
+      "public_interface": {
+        "interface_name": "GridColumnBuilder.build",
+        "input_name": "GridColumnBuildRequest",
+        "output_name": "GridColumnBuildResult"
+      },
+      "input_contract": {
+        "required": [
+          "resolved_view_def",
+          "section.fields"
+        ],
+        "field_rules": [
+          "fields[].field は required_non_empty_string",
+          "grid.visible は boolean_or_undefined",
+          "grid.width は positive_number_or_undefined"
+        ]
+      },
+      "output_contract": {
+        "required": [
+          "columns",
+          "warnings"
+        ],
+        "rules": [
+          "columns は配列",
+          "columns[].field は一意",
+          "列順はViewDef fields順を維持",
+          "key列は識別子として利用可能"
+        ]
+      },
+      "error_contract": {
+        "error_type": "ContractError",
+        "must_include": [
+          "responsibility_cd",
+          "error_code",
+          "path",
+          "message"
+        ]
+      },
+      "defensive_policy": {
+        "validate_input_at_boundary": true,
+        "do_not_mutate_input": true,
+        "return_warnings_for_non_fatal_issues": true
+      },
+      "performance_contract": {
+        "warning_visible_grid_columns": 20,
+        "max_visible_grid_columns": 30,
+        "hard_visible_grid_columns": 50,
+        "on_warning": "show_warning",
+        "on_hard_limit": "throw_contract_error"
+      },
+      "in_scope": [
+        "grid.visibleの解釈",
+        "key列の扱い",
+        "列順維持",
+        "caption/width/formatの反映",
+        "列数上限の警告/拒否"
+      ],
+      "out_of_scope": [
+        "DOMへの描画",
+        "検索条件評価",
+        "CSV出力",
+        "本番ViewDefデータそのものの妥当性"
+      ],
+      "expected_types": [
+        "RuleExpectedDef",
+        "StateExpectedDef",
+        "ErrorExpectedDef",
+        "PerformanceExpectedDef"
+      ],
+      "representative_test_patterns": [
+        "grid_columns_small",
+        "grid_columns_medium",
+        "grid_columns_large",
+        "grid_columns_over_limit"
+      ]
+    },
+    {
+      "responsibility_cd": "editor_field_build",
+      "name": "Editor項目生成責務",
+      "test_level": "UT",
+      "summary": "ViewDef fields定義からEditor表示・編集に必要な項目定義を生成する責務。",
+      "public_interface": {
+        "interface_name": "EditorFieldBuilder.build",
+        "input_name": "EditorFieldBuildRequest",
+        "output_name": "EditorFieldBuildResult"
+      },
+      "input_contract": {
+        "required": [
+          "resolved_view_def",
+          "section.fields"
+        ],
+        "field_rules": [
+          "edit.visible は boolean_or_undefined",
+          "readonly は boolean_or_undefined",
+          "options は array_or_reference_or_undefined"
+        ]
+      },
+      "output_contract": {
+        "required": [
+          "fields",
+          "warnings"
+        ],
+        "rules": [
+          "edit.visible=false はEditorに出さない",
+          "readonly/required/optionsを反映する",
+          "元ViewDefを破壊しない"
+        ]
+      },
+      "error_contract": {
+        "error_type": "ContractError",
+        "must_include": [
+          "responsibility_cd",
+          "error_code",
+          "path",
+          "message"
+        ]
+      },
+      "defensive_policy": {
+        "validate_input_at_boundary": true,
+        "do_not_mutate_input": true
+      },
+      "performance_contract": {
+        "warning_editor_fields": 30,
+        "max_editor_fields": 60,
+        "on_warning": "show_warning"
+      },
+      "in_scope": [
+        "edit.visibleの解釈",
+        "readonly/required/optionsの反映",
+        "textarea height等の編集メタ情報反映"
+      ],
+      "out_of_scope": [
+        "DOM描画",
+        "保存処理",
+        "ViewDefレビュー"
+      ],
+      "expected_types": [
+        "RuleExpectedDef",
+        "StateExpectedDef",
+        "ErrorExpectedDef"
+      ]
+    },
+    {
+      "responsibility_cd": "search_filter",
+      "name": "検索条件評価責務",
+      "test_level": "UT",
+      "summary": "検索条件と対象データから、条件に一致する行だけを返す責務。",
+      "public_interface": {
+        "interface_name": "SearchFilter.apply",
+        "input_name": "SearchFilterRequest",
+        "output_name": "SearchFilterResult"
+      },
+      "input_contract": {
+        "required": [
+          "rows",
+          "search_condition",
+          "searchable_fields"
+        ],
+        "shape_rules": [
+          "rows は array",
+          "search_condition は object",
+          "searchable_fields は array"
+        ]
+      },
+      "output_contract": {
+        "required": [
+          "rows",
+          "total_count"
+        ],
+        "rules": [
+          "結果行は元データのsubset",
+          "元データを破壊しない",
+          "件数が結果行数と一致する"
+        ]
+      },
+      "error_contract": {
+        "error_type": "ContractError",
+        "must_include": [
+          "responsibility_cd",
+          "error_code",
+          "path",
+          "message"
+        ]
+      },
+      "defensive_policy": {
+        "validate_input_at_boundary": true,
+        "do_not_mutate_input": true
+      },
+      "performance_contract": {
+        "warning_rows": 1000,
+        "max_rows_standard_grid": 5000,
+        "warning_search_fields": 20,
+        "max_search_fields": 50,
+        "on_warning": "show_warning"
+      },
+      "in_scope": [
+        "検索条件評価",
+        "元データsubset保証",
+        "大きすぎる検索対象への警告"
+      ],
+      "out_of_scope": [
+        "検索UI入力",
+        "Grid描画",
+        "検索状態の保存"
+      ],
+      "expected_types": [
+        "RuleExpectedDef",
+        "StateExpectedDef",
+        "ErrorExpectedDef",
+        "PerformanceExpectedDef"
+      ]
+    },
+    {
+      "responsibility_cd": "search_state",
+      "name": "検索状態管理責務",
+      "test_level": "UT/CT",
+      "summary": "検索条件・検索結果・現在行・フィルタ状態を一貫して管理する責務。",
+      "public_interface": {
+        "interface_name": "SearchStateManager.update",
+        "input_name": "SearchStateUpdateRequest",
+        "output_name": "SearchStateUpdateResult"
+      },
+      "input_contract": {
+        "required": [
+          "previous_state",
+          "search_request",
+          "search_result"
+        ],
+        "shape_rules": [
+          "previous_state は object",
+          "search_result.rows は array"
+        ]
+      },
+      "output_contract": {
+        "required": [
+          "next_state"
+        ],
+        "rules": [
+          "検索後は表示行が検索結果へ置き換わる",
+          "必要に応じてcurrent_rowをリセットする",
+          "検索条件を状態として保持する"
+        ]
+      },
+      "error_contract": {
+        "error_type": "ContractError",
+        "must_include": [
+          "responsibility_cd",
+          "error_code",
+          "path",
+          "message"
+        ]
+      },
+      "defensive_policy": {
+        "validate_input_at_boundary": true,
+        "do_not_mutate_input": true
+      },
+      "performance_contract": {
+        "max_state_rows": 5000,
+        "on_hard_limit": "throw_contract_error"
+      },
+      "in_scope": [
+        "検索状態更新",
+        "current row reset",
+        "検索条件保持"
+      ],
+      "out_of_scope": [
+        "検索ロジックそのもの",
+        "DOM描画"
+      ],
+      "expected_types": [
+        "StateExpectedDef",
+        "InterfaceExpectedDef",
+        "ErrorExpectedDef"
+      ]
+    },
+    {
+      "responsibility_cd": "renderer_display",
+      "name": "Renderer表示責務",
+      "test_level": "UT/CT",
+      "summary": "渡されたViewModel/Stateを、判断せずそのままDOMへ反映する責務。",
+      "public_interface": {
+        "interface_name": "Renderer.render",
+        "input_name": "RenderRequest",
+        "output_name": "RenderResult"
+      },
+      "input_contract": {
+        "required": [
+          "view_model"
+        ],
+        "shape_rules": [
+          "view_model は object",
+          "grid.columns は array_or_undefined",
+          "grid.rows は array_or_undefined"
+        ]
+      },
+      "output_contract": {
+        "required": [
+          "dom_contract",
+          "warnings"
+        ],
+        "rules": [
+          "Rendererは業務判断しない",
+          "渡された列/行/項目を契約通り表示する",
+          "状態classを付与する"
+        ]
+      },
+      "error_contract": {
+        "error_type": "ContractError",
+        "must_include": [
+          "responsibility_cd",
+          "error_code",
+          "path",
+          "message"
+        ]
+      },
+      "defensive_policy": {
+        "validate_input_at_boundary": true,
+        "do_not_mutate_input": true
+      },
+      "performance_contract": {
+        "warning_dom_nodes": 3000,
+        "max_dom_nodes": 10000,
+        "on_warning": "show_warning"
+      },
+      "in_scope": [
+        "DOM構造契約",
+        "CSS class契約",
+        "表示/非表示契約"
+      ],
+      "out_of_scope": [
+        "ViewDef解釈",
+        "検索条件評価",
+        "保存処理"
+      ],
+      "expected_types": [
+        "RuleExpectedDef",
+        "StateExpectedDef",
+        "VisualEvidenceExpectedDef",
+        "PerformanceExpectedDef"
+      ]
+    },
+    {
+      "responsibility_cd": "csv_export",
+      "name": "CSV出力責務",
+      "test_level": "UT/CT",
+      "summary": "現在Gridに表示されている行・列から、UTF-8 BOM付きCSVを生成する責務。",
+      "public_interface": {
+        "interface_name": "CsvExporter.export",
+        "input_name": "CsvExportRequest",
+        "output_name": "CsvExportResult"
+      },
+      "input_contract": {
+        "required": [
+          "grid_state.columns",
+          "grid_state.rows"
+        ],
+        "shape_rules": [
+          "columns は array",
+          "rows は array"
+        ]
+      },
+      "output_contract": {
+        "required": [
+          "file_name",
+          "content",
+          "encoding"
+        ],
+        "rules": [
+          "現在Gridに表示中の行だけ出力",
+          "現在Gridに表示中の列だけ出力",
+          "key列は必ず含める",
+          "UTF-8 BOM付きCSV"
+        ]
+      },
+      "error_contract": {
+        "error_type": "ContractError",
+        "must_include": [
+          "responsibility_cd",
+          "error_code",
+          "path",
+          "message"
+        ]
+      },
+      "defensive_policy": {
+        "validate_input_at_boundary": true,
+        "do_not_mutate_input": true
+      },
+      "performance_contract": {
+        "warning_export_rows": 5000,
+        "max_export_rows": 50000,
+        "warning_export_columns": 30,
+        "max_export_columns": 80,
+        "on_warning": "show_warning"
+      },
+      "in_scope": [
+        "Grid表示状態からのCSV生成",
+        "key列必須",
+        "UTF-8 BOM",
+        "ファイル名規則"
+      ],
+      "out_of_scope": [
+        "Grid列生成",
+        "検索条件評価",
+        "ファイルダウンロードUI"
+      ],
+      "expected_types": [
+        "RuleExpectedDef",
+        "StateExpectedDef",
+        "ErrorExpectedDef",
+        "PerformanceExpectedDef"
+      ]
+    },
+    {
+      "responsibility_cd": "visual_evidence",
+      "name": "Visual Evidence / スクショ証跡責務",
+      "test_level": "CT/E2E",
+      "summary": "代表画面状態のスクショを人間確認用証跡として保存し、将来のスクショ差分物語へ接続する責務。",
+      "public_interface": {
+        "interface_name": "VisualEvidence.capture",
+        "input_name": "VisualEvidenceRequest",
+        "output_name": "VisualEvidenceResult"
+      },
+      "input_contract": {
+        "required": [
+          "target_id",
+          "page_state"
+        ],
+        "shape_rules": [
+          "target_id は non_empty_string",
+          "page_state は object"
+        ]
+      },
+      "output_contract": {
+        "required": [
+          "screenshot_path",
+          "captured_at"
+        ],
+        "rules": [
+          "代表状態のスクショを保存する",
+          "初期段階ではFAIL判定ではなく人間確認用証跡とする"
+        ]
+      },
+      "error_contract": {
+        "error_type": "ContractError",
+        "must_include": [
+          "responsibility_cd",
+          "error_code",
+          "path",
+          "message"
+        ]
+      },
+      "defensive_policy": {
+        "validate_input_at_boundary": true,
+        "do_not_mutate_input": true
+      },
+      "performance_contract": {
+        "max_screenshots_per_run": 20,
+        "on_hard_limit": "throw_contract_error"
+      },
+      "in_scope": [
+        "スクショ保存",
+        "baseline/actual/diff/storyへの将来拡張",
+        "人間確認用証跡"
+      ],
+      "out_of_scope": [
+        "初期段階でのピクセル完全一致FAIL",
+        "デザイン美しさの自動判定"
+      ],
+      "expected_types": [
+        "VisualEvidenceExpectedDef",
+        "InterfaceExpectedDef"
+      ]
+    }
+  ]
+}
