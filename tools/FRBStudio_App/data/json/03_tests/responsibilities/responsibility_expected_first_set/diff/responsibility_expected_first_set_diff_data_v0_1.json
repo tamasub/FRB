@@ -9,7 +9,7 @@
   "diff_kind": "responsibility_expected",
   "test_id": "responsibility_expected_first_set",
   "title": "Responsibility Expected Tests First Set / 責務単位Expectedテスト初期セット Diff",
-  "generated_at": "2026-07-05T00:26:17.591Z",
+  "generated_at": "2026-07-05_10:20:48",
   "status": "fail",
   "resultLabel": "🚨 FAIL",
   "summary": "🚨 1件の差分を検出しました: grid_column_build_visible_fields_basic.field_names",

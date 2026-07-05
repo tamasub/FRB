@@ -7,7 +7,7 @@
   "artifact_kind": "actual",
   "test_id": "responsibility_expected_first_set",
   "title": "Responsibility Expected Tests First Set / 責務単位Expectedテスト初期セット Actual",
-  "generated_at": "2026-07-05T00:26:17.591Z",
+  "generated_at": "2026-07-05_10:20:48",
   "source_test_patterns_file": "data/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/responsibility_expected_test_patterns_data_v0_1.json",
   "runner": "tests/responsibilities/responsibility_expected_tests.mjs",
   "observations": [
@@ -23,7 +23,7 @@
         "count": 2
       },
       "actual_display": "{\"field_names\":[\"title\",\"score\"],\"count\":2}",
-      "observed_at": "2026-07-05T00:26:17.591Z",
+      "observed_at": "2026-07-05_10:20:48",
       "source": "tests/responsibilities/responsibility_expected_tests.mjs"
     },
     {
@@ -35,7 +35,7 @@
         "count": 0
       },
       "actual_display": "{\"field_names\":[],\"count\":0}",
-      "observed_at": "2026-07-05T00:26:17.591Z",
+      "observed_at": "2026-07-05_10:20:48",
       "source": "tests/responsibilities/responsibility_expected_tests.mjs"
     },
     {
@@ -52,7 +52,7 @@
         "count": 1
       },
       "actual_display": "{\"row_ids\":[\"c\"],\"indexes\":[2],\"count\":1}",
-      "observed_at": "2026-07-05T00:26:17.591Z",
+      "observed_at": "2026-07-05_10:20:48",
       "source": "tests/responsibilities/responsibility_expected_tests.mjs"
     },
     {
@@ -71,7 +71,7 @@
         "count": 2
       },
       "actual_display": "{\"row_ids\":[\"b\",\"c\"],\"indexes\":[1,2],\"count\":2}",
-      "observed_at": "2026-07-05T00:26:17.591Z",
+      "observed_at": "2026-07-05_10:20:48",
       "source": "tests/responsibilities/responsibility_expected_tests.mjs"
     },
     {
@@ -89,7 +89,7 @@
         "csv_without_bom": "id,title,score\r\na,\"A, quote \"\"here\"\"\",3\r\n"
       },
       "actual_display": "{\"field_names\":[\"id\",\"title\",\"score\"],\"has_bom\":false,\"csv_text\":\"id,title,score\\r\\na,\\\"A, quote \\\"\\\"here\\\"\\\"\\\",3\\r\\n\",\"csv_without_bom\":\"id,title,score\\r\\na,\\\"A, quote \\\"\\\"here\\\"\\\"\\\",3\\r\\n\"}",
-      "observed_at": "2026-07-05T00:26:17.591Z",
+      "observed_at": "2026-07-05_10:20:48",
       "source": "tests/responsibilities/responsibility_expected_tests.mjs"
     },
     {
@@ -105,7 +105,7 @@
         "csv_without_bom": "id\r\na\r\n"
       },
       "actual_display": "{\"field_names\":[\"id\"],\"has_bom\":true,\"csv_text\":\"﻿id\\r\\na\\r\\n\",\"csv_without_bom\":\"id\\r\\na\\r\\n\"}",
-      "observed_at": "2026-07-05T00:26:17.591Z",
+      "observed_at": "2026-07-05_10:20:48",
       "source": "tests/responsibilities/responsibility_expected_tests.mjs"
     }
   ]

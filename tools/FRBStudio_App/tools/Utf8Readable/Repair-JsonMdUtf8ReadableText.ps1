@@ -32,6 +32,11 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
+$studioLogScript = Join-Path (Split-Path -Parent $PSScriptRoot) 'common/StudioLog.ps1'
+if (Test-Path -LiteralPath $studioLogScript -PathType Leaf) {
+    . $studioLogScript
+}
+
 try {
     [System.Text.Encoding]::RegisterProvider([System.Text.CodePagesEncodingProvider]::Instance)
 }
@@ -39,8 +44,8 @@ catch {
     # Windows PowerShell 5.1 では不要。PowerShell 7 では存在する場合のみ登録する。
 }
 
-$ScriptStartedAt = Get-Date
-$Timestamp = $ScriptStartedAt.ToString("yyyyMMdd_HHmmss")
+$ScriptStartedAt = if (Get-Command Get-StudioNow -ErrorAction SilentlyContinue) { Get-StudioNow } else { Get-Date }
+$Timestamp = if (Get-Command Format-StudioFileTimestamp -ErrorAction SilentlyContinue) { Format-StudioFileTimestamp -DateTime $ScriptStartedAt } else { $ScriptStartedAt.ToString("yyyyMMdd_HHmmss") }
 $Utf8NoBomStrict = New-Object System.Text.UTF8Encoding($false, $true)
 $Utf8NoBomWrite = New-Object System.Text.UTF8Encoding($false)
 
@@ -383,8 +388,8 @@ foreach ($file in $targetFiles) {
 
 $summary = [pscustomobject]@{
     tool = "Repair-JsonMdUtf8ReadableText.ps1"
-    started_at = $ScriptStartedAt.ToString("s")
-    finished_at = (Get-Date).ToString("s")
+    started_at = if (Get-Command Format-StudioDateTime -ErrorAction SilentlyContinue) { Format-StudioDateTime -DateTime $ScriptStartedAt } else { $ScriptStartedAt.ToString("s") }
+    finished_at = if (Get-Command Format-StudioDateTime -ErrorAction SilentlyContinue) { Format-StudioDateTime } else { (Get-Date).ToString("s") }
     root = $ResolvedRoot
     extensions = $Extensions
     fix = [bool]$Fix

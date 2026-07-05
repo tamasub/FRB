@@ -158,7 +158,7 @@
       <label class="combo-field has-clear">
         <span class="drop-label">画面定義JSON</span>
         <span class="combo-input-wrap">
-          <input id="defNameInput" name="frb_def_combo_009" list="defNameList" placeholder="defs から検索・選択" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+          <input id="defNameInput" name="frb_def_combo_009" list="defNameList" placeholder="defs から検索・選択" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="latin" enterkeyhint="search" data-studio-ime-policy="latin-filename" style="ime-mode: inactive;" />
           <button id="openDefFolderBtn" class="combo-folder-button" type="button" aria-label="画面定義JSONの場所をExplorerで開く" title="画面定義JSONの場所をExplorerで開く" disabled>📁</button>
           <button id="clearDefNameBtn" class="combo-clear-button" type="button" aria-label="画面定義JSONの選択をクリア" title="画面定義JSONの選択をクリア">×</button>
         </span>
@@ -167,7 +167,7 @@
       <label class="combo-field has-clear">
         <span class="drop-label">対象JSON</span>
         <span class="combo-input-wrap">
-          <input id="dataNameInput" name="frb_data_combo_009" list="dataNameList" placeholder="data から検索・選択" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+          <input id="dataNameInput" name="frb_data_combo_009" list="dataNameList" placeholder="data から検索・選択" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="latin" enterkeyhint="search" data-studio-ime-policy="latin-filename" style="ime-mode: inactive;" />
           <button id="openDataFolderBtn" class="combo-folder-button" type="button" aria-label="対象JSONの場所をExplorerで開く" title="対象JSONの場所をExplorerで開く" disabled>📁</button>
           <button id="clearDataNameBtn" class="combo-clear-button" type="button" aria-label="対象JSONの選択をクリア" title="対象JSONの選択をクリア">×</button>
         </span>
@@ -285,6 +285,7 @@
 
   <div id="rowContextMenu" class="context-menu hidden"></div>
 
+  <script src="js/core/studio_datetime.js?v=studio-datetime-01819"></script>
   <script src="js/core/state.js?v=fieldtype-enumref-0152"></script>
   <script src="js/core/registry.js?v=action-execute-006"></script>
   <script src="js/core/file_api.js?v=current-data-status-0178"></script>

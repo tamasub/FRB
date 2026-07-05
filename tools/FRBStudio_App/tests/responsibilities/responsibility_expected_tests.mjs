@@ -8,6 +8,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { buildExpectedChecks, toDisplayValue } from './lib/responsibility_expected_compare_strategies.mjs';
+import { toStudioDateTime } from './lib/responsibility_datetime_utils.mjs';
 
 const root = process.cwd();
 const standardTestDataPath = 'data/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/responsibility_expected_test_patterns_data_v0_1.json';
@@ -155,7 +156,7 @@ function main() {
   const data = readJson(testDataPath);
   const api = loadResponsibilities();
   const patterns = (data.test_patterns ?? []).filter(pattern => pattern.enabled !== false);
-  const generatedAt = new Date().toISOString();
+  const generatedAt = toStudioDateTime();
 
   let passed = 0;
   const failures = [];

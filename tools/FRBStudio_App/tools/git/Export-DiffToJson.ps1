@@ -468,7 +468,7 @@ foreach ($line in $statusShort) {
 
 $result = [ordered]@{
     schema_version = "0.1.3-draft"
-    generated_at = (Get-Date).ToString("o")
+    generated_at = (Format-StudioDateTime)
     tool = [ordered]@{
         name = "MetaDiff Export-DiffToJson.ps1"
         version = "0.1.3-draft"
@@ -539,7 +539,7 @@ $baseOutputPath = Resolve-AppRootOutputPath -StudioAppRoot $studioAppRoot -Outpu
 
 # 日時付きファイル名にする
 # 例: DiffToJson_20260523_213045.json
-$timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+$timestamp = Format-StudioFileTimestamp
 
 $outputDir = Split-Path -Parent $baseOutputPath
 $outputFileName = [System.IO.Path]::GetFileNameWithoutExtension($baseOutputPath)

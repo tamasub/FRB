@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { toStudioDateTime } from "../../responsibilities/lib/responsibility_datetime_utils.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -196,7 +197,7 @@ function buildDiffSummary(diffChecks, status) {
 }
 
 function buildActualObservation({ expectedSpec, targetFile, targetJson, expectedChecks }) {
-  const capturedAt = new Date().toISOString();
+  const capturedAt = toStudioDateTime();
   const checks = expectedChecks.map((check) => {
     const actual = getActualValue({ check, expectedSpec, targetJson });
     return makeActualObservationCheck({ check, actual });
@@ -233,7 +234,7 @@ function buildDiffResult({ expectedSpec, targetFile, actualObservation, expected
   const failCount = total - passCount;
   const status = failCount === 0 ? "pass" : "fail";
   const summary = buildDiffSummary(diffChecks, status);
-  const generatedAt = new Date().toISOString();
+  const generatedAt = toStudioDateTime();
   const actualFile = expectedSpec.execution_contract?.actual_file ?? expectedSpec.execution_contract?.actual_result_file;
   const diffFile = expectedSpec.execution_contract?.diff_file ?? expectedSpec.execution_contract?.diff_result_file;
 

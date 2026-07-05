@@ -6,6 +6,7 @@
   <title>FRB Studio - Markdown Viewer & Editor</title>
   <script src="./js/lib/marked.min.js"></script>
   <script src="./js/lib/purify.min.js"></script>
+  <script src="./js/core/studio_datetime.js?v=studio-datetime-01819"></script>
   <script type="module">
     function escapeText(value) {
       return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
@@ -2161,6 +2162,12 @@
   </div>
 
 <script>
+function mdStudioDateTime(options = {}) {
+  return typeof studioFormatDateTime === "function" ? studioFormatDateTime(new Date(), options) : new Date().toLocaleString('sv-SE').replace(' ', '_');
+}
+function mdStudioFileTimestamp() {
+  return typeof studioFormatFileTimestamp === "function" ? studioFormatFileTimestamp() : new Date().toLocaleString("sv-SE").replace(/[-: ]/g, "").slice(0, 15);
+}
 const mdUrlEl=document.getElementById("mdUrl"),previewEl=document.getElementById("preview"),editorInlineHost=document.getElementById("editorInlineHost"),tocEl=document.getElementById("toc"),charCountEl=document.getElementById("charCount"),readTimeEl=document.getElementById("readTime"),blockModelMeta=document.getElementById("blockModelMeta"),localFileBtn=document.getElementById("localFileBtn"),localFileInput=document.getElementById("localFileInput"),tocDepthBtns=[...document.querySelectorAll(".toc-depth-btn")],themeSelect=document.getElementById("themeSelect"),editorEl=document.getElementById("editor"),btnViewerMode=document.getElementById("btnViewerMode"),btnEditorMode=document.getElementById("btnEditorMode"),articleCard=document.getElementById("articleCard"),metaFileName=document.getElementById("metaFileName"),editorFileName=document.getElementById("editorFileName"),slashMenu=document.getElementById("slashMenu"),managedMdSelect=document.getElementById("managedMdSelect"),btnClearManagedMd=document.getElementById("btnClearManagedMd"),btnManagedMdTree=document.getElementById("btnManagedMdTree"),managedMdTreePicker=document.getElementById("managedMdTreePicker"),managedMdTreeList=document.getElementById("managedMdTreeList"),btnRefreshManagedMd=document.getElementById("btnRefreshManagedMd"),btnOverwriteManagedMd=document.getElementById("btnOverwriteManagedMd");
 
 const fmPanel=document.getElementById("fmPanel"),fmHeader=document.getElementById("fmHeader"),fmBody=document.getElementById("fmBody"),fmToggleIcon=document.getElementById("fmToggleIcon"),fmSuggestArea=document.getElementById("fmSuggestArea");
@@ -3742,7 +3749,7 @@ async function toggleMarkdownSidecarCommentResolved(commentId) {
   const c = findSidecarCommentById(commentId);
   if (!c) return;
   c.resolved = !c.resolved;
-  c.updated_at = new Date().toISOString();
+  c.updated_at = mdStudioDateTime();
   await persistMarkdownCommentReviewMutation({ quiet: true });
 }
 async function editMarkdownSidecarComment(commentId) {
@@ -3820,7 +3827,7 @@ function buildMarkdownCommentSidecarDocument() {
     document_type: "markdown_comment_sidecar",
     target_file: mdCommentSidecarRuntime.targetFile || currentManagedMarkdownName || metaFileName.value || "",
     sidecar_name: mdCommentSidecarRuntime.sidecarName || markdownCommentSidecarName(mdCommentSidecarRuntime.targetFile),
-    updated_at: new Date().toISOString(),
+    updated_at: mdStudioDateTime(),
     comments: mdCommentSidecarRuntime.comments || []
   };
 }
@@ -3840,8 +3847,8 @@ function normalizeMarkdownCommentSidecarDocument(raw, targetName) {
       status: String(c.status || "COMMENT").toUpperCase(),
       body: String(c.body || ""),
       author: c.author || markdownDefaultAuthor(),
-      created_at: c.created_at || new Date().toISOString(),
-      updated_at: c.updated_at || c.created_at || new Date().toISOString(),
+      created_at: c.created_at || mdStudioDateTime(),
+      updated_at: c.updated_at || c.created_at || mdStudioDateTime(),
       resolved: Boolean(c.resolved),
       block_id: c.block_id || "",
       block_type: c.block_type || "",
@@ -4158,7 +4165,7 @@ async function applyMarkdownSidecarCommentEditor() {
   if (!panel || launchMarkdownRuntime.readonly) return;
   const textarea = panel.querySelector('textarea[data-role="value"]');
   const body = String(textarea ? textarea.value : "").trim() || "（コメント本文なし）";
-  const now = new Date().toISOString();
+  const now = mdStudioDateTime();
   if (mdSidecarCommentEditorRuntime.mode === "edit") {
     const c = findSidecarCommentById(mdSidecarCommentEditorRuntime.commentId);
     if (!c) return;
@@ -4173,7 +4180,7 @@ async function applyMarkdownSidecarCommentEditor() {
   if (!target) return;
   const key = String(mdSidecarCommentEditorRuntime.status || "COMMENT").toUpperCase();
   const comment = {
-    comment_id: `mdc_${now.replace(/[-:.TZ]/g, "").slice(0, 14)}_${Math.random().toString(36).slice(2, 6)}`,
+    comment_id: `mdc_${mdStudioFileTimestamp()}_${Math.random().toString(36).slice(2, 6)}`,
     status: key,
     body,
     author: markdownDefaultAuthor(),
@@ -4245,9 +4252,7 @@ function preprocessFrbComments(md) {
   });
 }
 function createFrbCommentId() {
-  const d = new Date();
-  const pad = n => String(n).padStart(2, "0");
-  const stamp = `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+  const stamp = mdStudioFileTimestamp();
   return `frbcmt_${stamp}_${Math.random().toString(36).slice(2, 6)}`;
 }
 function createFrbCommentMarkdown(status, commentText) {
@@ -4329,7 +4334,7 @@ function defaultSentenceInsertText(info, position) {
 function captureMarkdownMutationBackup(action, info) {
   markdownEditorRuntime.lastMutationBackup = {
     action: action || "sentence_block_mutation",
-    at: new Date().toISOString(),
+    at: mdStudioDateTime(),
     text: editorEl.value || "",
     line: Number(info?.start_line || markdownEditorRuntime.lastActiveLine || 1),
     block_id: info?.block_id || "",
@@ -5390,7 +5395,7 @@ function buildMarkdownSaveSafetyResult(fileName, content) {
   const result = {
     ok: true,
     fileName: normalizeMarkdownFileName(fileName || currentManagedMarkdownName || metaFileName.value || editorFileName.value),
-    at: new Date().toISOString(),
+    at: mdStudioDateTime(),
     errors: [],
     warnings: [],
     info: [],
@@ -5467,7 +5472,7 @@ function createMarkdownSaveSafetyBackup(fileName, content, result) {
   const backup = {
     document_type: "markdown_save_backup",
     schema_version: "md_save_safety_backup_v0_1",
-    created_at: new Date().toISOString(),
+    created_at: mdStudioDateTime(),
     file_name: safeName,
     sidecar_name: mdCommentSidecarRuntime.sidecarName || markdownCommentSidecarName(safeName),
     safety: result,

@@ -10,6 +10,58 @@
 
 $script:StudioLogState = $null
 
+function Get-StudioNow {
+    [CmdletBinding()]
+    param()
+
+    try {
+        return [System.TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([System.DateTimeOffset]::UtcNow, 'Tokyo Standard Time')
+    }
+    catch {
+        try { return [System.TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([System.DateTimeOffset]::UtcNow, 'Asia/Tokyo') }
+        catch { return [System.DateTimeOffset]::Now }
+    }
+}
+
+function Format-StudioDateTime {
+    [CmdletBinding()]
+    param(
+        [System.DateTimeOffset]$DateTime = (Get-StudioNow),
+        [switch]$IncludeMilliseconds
+    )
+
+    if ($IncludeMilliseconds) {
+        return $DateTime.ToString('yyyy-MM-dd_HH:mm:ss.fff')
+    }
+    return $DateTime.ToString('yyyy-MM-dd_HH:mm:ss')
+}
+
+function Format-StudioFileTimestamp {
+    [CmdletBinding()]
+    param(
+        [System.DateTimeOffset]$DateTime = (Get-StudioNow),
+        [switch]$IncludeMilliseconds
+    )
+
+    if ($IncludeMilliseconds) {
+        return $DateTime.ToString('yyyyMMdd_HHmmss_fff')
+    }
+    return $DateTime.ToString('yyyyMMdd_HHmmss')
+}
+
+function Format-StudioIsoJst {
+    [CmdletBinding()]
+    param(
+        [System.DateTimeOffset]$DateTime = (Get-StudioNow),
+        [switch]$IncludeMilliseconds
+    )
+
+    if ($IncludeMilliseconds) {
+        return $DateTime.ToString("yyyy-MM-dd'T'HH:mm:ss.fffzzz")
+    }
+    return $DateTime.ToString("yyyy-MM-dd'T'HH:mm:sszzz")
+}
+
 function Initialize-StudioLog {
     [CmdletBinding()]
     param(
@@ -34,7 +86,7 @@ function Initialize-StudioLog {
             StudioAppRoot = $root
             BatchName = $BatchName
             LogDir = $logDir
-            StartedAt = Get-Date
+            StartedAt = Get-StudioNow
         }
 
         Write-StudioLog -Level 'INFO' -Message 'START' -Data $Context
@@ -98,11 +150,11 @@ function Write-StudioLog {
     try {
         if ($null -eq $script:StudioLogState) { return }
 
-        $date = Get-Date
+        $date = Get-StudioNow
         $logPath = Join-Path $script:StudioLogState.LogDir ("Log_{0}.log" -f $date.ToString('yyyyMMdd'))
         $safeMessage = if ($null -eq $Message) { '' } else { ($Message -replace "`r|`n", ' ') }
 
-        $line = "{0}`t{1}`t{2}`t{3}" -f $date.ToString('yyyy-MM-dd HH:mm:ss.fff'), $Level, $script:StudioLogState.BatchName, $safeMessage
+        $line = "{0}`t{1}`t{2}`t{3}" -f (Format-StudioDateTime -DateTime $date), $Level, $script:StudioLogState.BatchName, $safeMessage
 
         if ($null -ne $Data) {
             try {
@@ -135,7 +187,7 @@ function Complete-StudioLog {
         }
 
         if ($null -ne $script:StudioLogState -and $null -ne $script:StudioLogState.StartedAt) {
-            $payload.duration_ms = [int]((Get-Date) - $script:StudioLogState.StartedAt).TotalMilliseconds
+            $payload.duration_ms = [int]((Get-StudioNow) - $script:StudioLogState.StartedAt).TotalMilliseconds
         }
 
         if ($null -ne $Data) {
