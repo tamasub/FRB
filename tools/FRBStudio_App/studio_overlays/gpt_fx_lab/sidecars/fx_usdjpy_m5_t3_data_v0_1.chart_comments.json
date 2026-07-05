@@ -87,8 +87,7 @@
         "hsiAnchorIndex": 479,
         "hsiAnchorPanel": "M5"
       },
-      "note": "Created from fx_chart_viewer comment mode.",
-      "is_draft": true
+      "note": "Created from fx_chart_viewer comment mode."
     },
     {
       "id": "comment_20260706_001837_ivsnq",
@@ -106,7 +105,7 @@
       "tags": [],
       "display": {
         "pinned": false,
-        "open": false,
+        "open": true,
         "editing": false
       },
       "chart_state": {
@@ -125,13 +124,12 @@
         "hsiAnchorIndex": 479,
         "hsiAnchorPanel": "M5"
       },
-      "note": "Created from fx_chart_viewer comment mode.",
-      "is_draft": true
+      "note": "Created from fx_chart_viewer comment mode."
     },
     {
       "id": "comment_20260706_002059_3h3h8",
       "created_at": "2026-07-06T00:20:59",
-      "updated_at": "2026-07-06T00:21:11",
+      "updated_at": "2026-07-06T00:56:32",
       "source_type": "human_comment",
       "panel": "H1",
       "timeframe": "H1",
@@ -163,8 +161,7 @@
         "hsiAnchorIndex": null,
         "hsiAnchorPanel": null
       },
-      "note": "Created from fx_chart_viewer comment mode.",
-      "is_draft": true
+      "note": "Created from fx_chart_viewer comment mode."
     },
     {
       "id": "comment_20260706_002159_jgu79",
@@ -201,8 +198,7 @@
         "hsiAnchorIndex": null,
         "hsiAnchorPanel": null
       },
-      "note": "Created from fx_chart_viewer comment mode.",
-      "is_draft": true
+      "note": "Created from fx_chart_viewer comment mode."
     },
     {
       "id": "comment_20260706_002240_oepmm",
@@ -239,8 +235,7 @@
         "hsiAnchorIndex": null,
         "hsiAnchorPanel": null
       },
-      "note": "Created from fx_chart_viewer comment mode.",
-      "is_draft": true
+      "note": "Created from fx_chart_viewer comment mode."
     },
     {
       "id": "comment_20260706_002440_r5u58",
@@ -277,8 +272,7 @@
         "hsiAnchorIndex": null,
         "hsiAnchorPanel": null
       },
-      "note": "Created from fx_chart_viewer comment mode.",
-      "is_draft": true
+      "note": "Created from fx_chart_viewer comment mode."
     },
     {
       "id": "comment_20260706_002505_khztv",
@@ -315,8 +309,7 @@
         "hsiAnchorIndex": null,
         "hsiAnchorPanel": null
       },
-      "note": "Created from fx_chart_viewer comment mode.",
-      "is_draft": true
+      "note": "Created from fx_chart_viewer comment mode."
     }
   ],
   "hsi_annotations": [
@@ -415,16 +408,16 @@
       "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click."
     },
     {
-      "id": "hsi_20260706_002405_ddurc",
-      "created_at": "2026-07-06T00:24:05",
-      "updated_at": "2026-07-06T00:24:05",
+      "id": "hsi_20260706_004944_fwn6b",
+      "created_at": "2026-07-06T00:49:44",
+      "updated_at": "2026-07-06T00:49:44",
       "source_type": "human_hsi",
       "event_type": "hsi_anchor",
       "panel": "M5",
       "timeframe": "M5",
-      "time": "2026-01-21 14:55",
-      "price": 157.7473844564789,
-      "x_index_hint": 738,
+      "time": "2026-01-21 15:00",
+      "price": 157.7690521853397,
+      "x_index_hint": 739,
       "title": "保存HSI ×6",
       "hsi": {
         "values": [
@@ -455,59 +448,12 @@
         "hsi": "55,89,144,188",
         "hsiScale": 6,
         "hsiDir": "up",
-        "hsiAnchorPrice": 157.7473844564789,
-        "hsiAnchorIndex": 738,
-        "hsiAnchorPanel": "M5"
-      },
-      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click."
-    },
-    {
-      "id": "hsi_20260706_002410_lhez9",
-      "created_at": "2026-07-06T00:24:10",
-      "updated_at": "2026-07-06T00:24:10",
-      "source_type": "human_hsi",
-      "event_type": "hsi_anchor",
-      "panel": "M5",
-      "timeframe": "M5",
-      "time": "2026-01-21 14:55",
-      "price": 157.7473844564789,
-      "x_index_hint": 738,
-      "title": "保存HSI ×6",
-      "hsi": {
-        "values": [
-          55,
-          89,
-          144,
-          188
-        ],
-        "values_text": "55,89,144,188",
-        "scale": 6,
-        "direction": "up",
-        "point_size": 0.001
-      },
-      "display": {
-        "visible": true,
-        "pinned": true,
-        "style": "saved_hsi"
-      },
-      "chart_state": {
-        "windowStart": 16292,
-        "windowSize": 1000,
-        "upperTf": "H1",
-        "upperConfirmBars": 7,
-        "confirmBars": 20,
-        "viewMode": "all",
-        "hlRange": 1,
-        "bb": 0,
-        "hsi": "55,89,144,188",
-        "hsiScale": 6,
-        "hsiDir": "up",
-        "hsiAnchorPrice": 157.7473844564789,
-        "hsiAnchorIndex": 738,
+        "hsiAnchorPrice": 157.7690521853397,
+        "hsiAnchorIndex": 739,
         "hsiAnchorPanel": "M5"
       },
       "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click."
     }
   ],
-  "updated_at": "2026-07-06T00:25:15"
+  "updated_at": "2026-07-06T00:56:42"
 }
