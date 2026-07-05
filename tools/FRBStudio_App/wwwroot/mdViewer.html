@@ -3291,7 +3291,11 @@ function ensureMarkdownConfirmDialog() {
 }
 function hideMarkdownConfirmDialog() {
   const panel = mdConfirmDialogRuntime.panel;
-  if (panel) panel.classList.remove("show");
+  if (panel) {
+    panel.classList.remove("show");
+    const promptWrap = panel.querySelector('[data-role="prompt-input-wrap"]');
+    if (promptWrap) promptWrap.remove();
+  }
   document.body.classList.remove("md-confirm-dialog-open");
   mdConfirmDialogRuntime.resolver = null;
   mdConfirmDialogRuntime.anchorElement = null;
@@ -3323,6 +3327,59 @@ function showMarkdownConfirmDialog(options = {}) {
   positionMarkdownConfirmDialog(mdConfirmDialogRuntime.anchorElement, panel);
   requestAnimationFrame(() => okButton?.focus({ preventScroll: true }));
   return new Promise(resolve => { mdConfirmDialogRuntime.resolver = resolve; });
+}
+function showMarkdownPromptDialog(options = {}) {
+  if (launchMarkdownRuntime.readonly) return Promise.resolve(null);
+  if (mdConfirmDialogRuntime.resolver) hideMarkdownConfirmDialog();
+  hideMdBlockActionMenu();
+  hideMdBlockInlineActions();
+  hideMarkdownTableCellEditor();
+  hideMarkdownRawBlockEditor();
+  hideMarkdownSentenceInsertEditor();
+  hideMarkdownSidecarCommentEditor();
+  const panel = ensureMarkdownConfirmDialog();
+  panel.querySelector('[data-role="title"]').textContent = String(options.title || "入力");
+  const body = panel.querySelector('[data-role="message"]');
+  body.textContent = String(options.message || "入力してください。");
+  const oldInput = panel.querySelector('[data-role="prompt-input-wrap"]');
+  if (oldInput) oldInput.remove();
+  const wrap = document.createElement("div");
+  wrap.setAttribute("data-role", "prompt-input-wrap");
+  wrap.style.marginTop = "10px";
+  const input = document.createElement(options.multiline ? "textarea" : "input");
+  if (!options.multiline) input.type = "text";
+  input.value = String(options.defaultValue ?? "");
+  input.style.width = "100%";
+  input.style.minHeight = options.multiline ? "150px" : "38px";
+  input.style.padding = "9px 11px";
+  input.style.border = "1px solid rgba(148,163,184,.55)";
+  input.style.borderRadius = "10px";
+  input.style.font = options.multiline ? "12px/1.65 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" : "inherit";
+  input.setAttribute("autocomplete", "off");
+  input.setAttribute("autocapitalize", "none");
+  input.setAttribute("spellcheck", "false");
+  wrap.appendChild(input);
+  body.after(wrap);
+  const okButton = panel.querySelector('button[data-action="ok"]');
+  if (okButton) okButton.textContent = String(options.okLabel || "OK");
+  const cancelButton = panel.querySelector('button[data-action="cancel"]');
+  if (cancelButton) cancelButton.textContent = String(options.cancelLabel || "キャンセル");
+  mdConfirmDialogRuntime.anchorElement = options.anchor || null;
+  mdConfirmDialogRuntime.previousFocus = document.activeElement;
+  document.body.classList.add("md-confirm-dialog-open");
+  positionMarkdownConfirmDialog(mdConfirmDialogRuntime.anchorElement, panel);
+  requestAnimationFrame(() => {
+    input.focus({ preventScroll: true });
+    if (!options.multiline) input.select();
+  });
+  return new Promise(resolve => {
+    mdConfirmDialogRuntime.resolver = (ok) => {
+      const value = ok ? String(input.value ?? "") : null;
+      const cleanup = panel.querySelector('[data-role="prompt-input-wrap"]');
+      if (cleanup) cleanup.remove();
+      resolve(value);
+    };
+  });
 }
 function hideAllMarkdownEditDialogs() {
   hideMarkdownTableCellEditor();
@@ -3581,14 +3638,21 @@ function hideMarkdownRawBlockEditor() {
   mdRawBlockRuntime.targetBlock = null;
   mdRawBlockRuntime.targetInfo = null;
 }
-function applyMarkdownRawBlockEdit() {
+async function applyMarkdownRawBlockEdit() {
   const panel = mdRawBlockRuntime.panel;
   const info = mdRawBlockRuntime.targetInfo;
   if (!panel || !info || launchMarkdownRuntime.readonly) return;
   const textarea = panel.querySelector('textarea[data-role="value"]');
   const newSource = textarea ? textarea.value : "";
   if (!String(newSource || "").trim()) {
-    if (!confirm("空のRaw Markdownで置換すると、このBlockは実質的に消えます。反映しますか？")) return;
+    const ok = await showMarkdownConfirmDialog({
+      title: "空のRaw Markdownで反映しますか？",
+      message: "空のRaw Markdownで置換すると、このBlockは実質的に消えます。反映しますか？",
+      okLabel: "反映する",
+      cancelLabel: "キャンセル",
+      anchor: mdRawBlockRuntime.targetBlock
+    });
+    if (!ok) return;
   }
   captureMarkdownMutationBackup("edit_raw_block", info);
   if (info.type === "empty_document" || !String(editorEl.value || "").trim()) {
@@ -3758,7 +3822,14 @@ async function editMarkdownSidecarComment(commentId) {
 async function deleteMarkdownSidecarComment(commentId) {
   const c = findSidecarCommentById(commentId);
   if (!c) return;
-  if (!confirm(`このSidecarコメントを削除しますか？\n\n${c.body || "（コメント本文なし）"}`)) return;
+  const ok = await showMarkdownConfirmDialog({
+    title: "このSidecarコメントを削除しますか？",
+    message: c.body || "（コメント本文なし）",
+    okLabel: "削除する",
+    cancelLabel: "キャンセル",
+    anchor: findPreviewElementForSidecarComment(c)
+  });
+  if (!ok) return;
   mdCommentSidecarRuntime.comments = (mdCommentSidecarRuntime.comments || []).filter(x => x.comment_id !== commentId);
   if (mdCommentReviewRuntime.lastFocusedCommentId === commentId) mdCommentReviewRuntime.lastFocusedCommentId = "";
   await persistMarkdownCommentReviewMutation({ quiet: true });
@@ -4206,7 +4277,13 @@ async function copyMarkdownCommentSidecarToClipboard() {
     await navigator.clipboard.writeText(content);
     showMarkdownSuccess("コメントSidecar JSONをクリップボードにコピーしました。");
   } catch (err) {
-    prompt("コピーできない場合は、このJSONをコピーしてください", content);
+    await showMarkdownPromptDialog({
+      title: "手動コピー",
+      message: "コピーできない場合は、このJSONをコピーしてください。",
+      defaultValue: content,
+      multiline: true,
+      okLabel: "閉じる"
+    });
   }
 }
 function resetMarkdownCommentSidecarForLocal(targetName = "") {
@@ -4341,13 +4418,19 @@ function captureMarkdownMutationBackup(action, info) {
     block_type: info?.type || ""
   };
 }
-function restoreLastSentenceBlockMutation() {
+async function restoreLastSentenceBlockMutation() {
   const backup = markdownEditorRuntime.lastMutationBackup;
   if (!backup || typeof backup.text !== "string") {
     showMarkdownWarn("戻せるSentenceBlock操作はありません。");
     return;
   }
-  if (!confirm(`直前のSentenceBlock操作を戻しますか？\n\n${backup.action || "mutation"} / ${backup.block_id || "block"}`)) return;
+  const ok = await showMarkdownConfirmDialog({
+    title: "直前のSentenceBlock操作を戻しますか？",
+    message: `${backup.action || "mutation"} / ${backup.block_id || "block"}`,
+    okLabel: "戻す",
+    cancelLabel: "キャンセル"
+  });
+  if (!ok) return;
   editorEl.value = backup.text;
   markdownEditorRuntime.lastMutationBackup = null;
   renderAfterMarkdownBlockMutation(backup.line || 1, "SentenceBlock Undo");
@@ -4475,7 +4558,7 @@ async function deleteSentenceBlock(block) {
   editorEl.value = deleteMarkdownLineRange(editorEl.value, info.start_line, info.end_line);
   renderAfterMarkdownBlockMutation(info.start_line, "SentenceBlock Deleted");
 }
-function addFrbCommentToBlock(block, status) {
+async function addFrbCommentToBlock(block, status) {
   if (!block || launchMarkdownRuntime.readonly) return;
   const key = String(status || "COMMENT").toUpperCase();
   const label = frbCommentLabel(key);
@@ -4487,7 +4570,14 @@ function addFrbCommentToBlock(block, status) {
     MEMO: "メモ。",
     COMMENT: "コメント。"
   };
-  const text = prompt(`${label.emoji} FRBコメント：${label.label} を入力`, defaults[key] || defaults.COMMENT);
+  const text = await showMarkdownPromptDialog({
+    title: `${label.emoji} FRBコメント：${label.label}`,
+    message: "FRBコメントを入力してください。",
+    defaultValue: defaults[key] || defaults.COMMENT,
+    okLabel: "挿入する",
+    cancelLabel: "キャンセル",
+    anchor: block
+  });
   if (text === null) return;
   const endLine = Number(block.dataset.mdEndLine || block.dataset.mdLine || markdownEditorRuntime.lastActiveLine || 1);
   const commentMd = createFrbCommentMarkdown(key, text);
@@ -4507,7 +4597,13 @@ async function copyDirtyMarkdownToClipboard() {
     showMarkdownSuccess("コメント付きMarkdownをクリップボードにコピーしました。レビュー会話へペコっと貼れます。");
   } catch (err) {
     console.warn("clipboard write failed", err);
-    prompt("コピーできない場合は、この内容をコピーしてください", text);
+    await showMarkdownPromptDialog({
+      title: "手動コピー",
+      message: "コピーできない場合は、この内容をコピーしてください。",
+      defaultValue: text,
+      multiline: true,
+      okLabel: "閉じる"
+    });
   }
 }
 function ensureMdBlockActionMenu() {
@@ -5498,7 +5594,12 @@ async function runMarkdownSaveSafetyBeforeSave(fileName, content) {
     return false;
   }
   if (result.warnings.length) {
-    return confirm(markdownSaveSafetySummary(result) + "\n\n警告があります。このまま保存しますか？\n直前バックアップはlocalStorageに残しています。");
+    return await showMarkdownConfirmDialog({
+      title: "警告があります。このまま保存しますか？",
+      message: markdownSaveSafetySummary(result) + "\n\n直前バックアップはlocalStorageに残しています。",
+      okLabel: "保存する",
+      cancelLabel: "キャンセル"
+    });
   }
   return true;
 }
@@ -5737,7 +5838,12 @@ async function loadManagedMarkdown(name) {
     return;
   }
   if (isManagedMarkdownDirty && currentManagedMarkdownName && currentManagedMarkdownName !== name) {
-    const ok = confirm("未保存の編集があります。保存せずに別のMarkdownを読み込みますか？");
+    const ok = await showMarkdownConfirmDialog({
+      title: "未保存の編集があります",
+      message: "保存せずに別のMarkdownを読み込みますか？",
+      okLabel: "読み込む",
+      cancelLabel: "キャンセル"
+    });
     if (!ok) {
       managedMdSelect.value = currentManagedMarkdownName;
       return;
@@ -5794,7 +5900,12 @@ Backup: ${mdSaveSafetyRuntime.lastBackupKey || "-"}` : "";
 async function askRegisterAsManagedMarkdown(fileName, content) {
   const safeName = normalizeMarkdownRootFileName(fileName || metaFileName.value || editorFileName.value);
   syncFileNameUI(safeName);
-  const ok = confirm(`${safeName} を data/markdown の管理対象にしますか？\n\nOK: data/markdown に保存して管理対象にする\nキャンセル: 画面上で開くだけ`);
+  const ok = await showMarkdownConfirmDialog({
+    title: `${safeName} を管理対象にしますか？`,
+    message: "data/markdown に保存して管理対象にします。キャンセルすると画面上で開くだけになります。",
+    okLabel: "管理対象にする",
+    cancelLabel: "見るだけ"
+  });
   if (!ok) {
     currentManagedMarkdownName = "";
     isManagedMarkdownDirty = true;
@@ -6015,7 +6126,12 @@ btnOverwriteManagedMd.addEventListener("click", async () => {
   try {
     const saveName = normalizeMarkdownFileName(currentManagedMarkdownName || metaFileName.value || editorFileName.value);
     if (!currentManagedMarkdownName) {
-      const ok = confirm(`${saveName} を data/markdown の管理対象として保存しますか？`);
+      const ok = await showMarkdownConfirmDialog({
+        title: `${saveName} を管理対象として保存しますか？`,
+        message: "data/markdown の管理対象として保存します。",
+        okLabel: "保存する",
+        cancelLabel: "キャンセル"
+      });
       if (!ok) return;
     }
     await saveManagedMarkdown(saveName, editorEl.value);

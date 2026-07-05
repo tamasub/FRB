@@ -1,0 +1,29 @@
+{
+  "schema_version": "md_comment_sidecar_v0_1",
+  "document_type": "markdown_comment_sidecar",
+  "target_file": "00_Common/frb_coding_constraints_data_v0_3_20260701_221707.md",
+  "sidecar_name": "00_Common/frb_coding_constraints_data_v0_3_20260701_221707.md.comments.json",
+  "updated_at": "2026-07-06_00:30:34",
+  "comments": [
+    {
+      "comment_id": "mdc_20260706_003034_74fv",
+      "status": "COMMENT",
+      "body": "コメント。",
+      "author": "tamasub",
+      "created_at": "2026-07-06_00:30:34",
+      "updated_at": "2026-07-06_00:30:34",
+      "resolved": false,
+      "target_type": "block",
+      "block_id": "mdblk_0005_list_item_7",
+      "block_type": "list_item",
+      "table_id": "",
+      "cell_id": "",
+      "row_index": null,
+      "column_index": null,
+      "line": 7,
+      "start_line": 7,
+      "end_line": 7,
+      "target_excerpt": "Exported At: 2026-07-01T13:17:07.234Z"
+    }
+  ]
+}

@@ -10,9 +10,9 @@
   "conversion_note": "Studioくん憲法レビュー記録を共通ルールレビューViewDef v0.3で扱えるように、constitution_sections を rules へ正規化し、各行に rule_id と decision_log を追加した。section_id は旧IDとして残す。",
   "created": "2026-06-21",
   "status": "",
-  "section_count": 27,
-  "rule_count": 27,
-  "approved_count": 26,
+  "section_count": 28,
+  "rule_count": 28,
+  "approved_count": 27,
   "approval_policy": "第1条〜第23条を1行ずつレビューし、approval_decision を「承認する」に変更することでStudioくん憲法の建国承認記録とする。",
   "preamble_title": "この文書の目的",
   "preamble": "この文書は、Studio を今後も育て続けるための恒久的なコーディング制約である。\n\nただし、これは単なる「コーディング規約」ではない。\n\nこれは、Studioくんという国の憲法である。\n\nStudio は、ただの JSON エディターではない。\n\nStudio は、JSON を「体験」に変換するためのプラットフォームである。\n\nこの文書の目的は、人間と AI が同じ思想を共有しながら、Studio を壊さず、育て続けるための共通原則を定義することである。\n\n今後、Studio のコードを変更する人間および AI は、まずこの文書を読むこと。\n\n---",
@@ -1199,6 +1199,59 @@
         }
       ],
       "updated_at": "2026-07-05_09:58:20"
+    },
+    {
+      "no": 28,
+      "rule_id": "constitution_28",
+      "section_id": "constitution_28",
+      "category": "UI / Dialog",
+      "title": "ブラウザ標準ダイアログ使用禁止",
+      "priority": "high",
+      "review_status": "追加レビュー",
+      "verification_status": "実装済み",
+      "approval_decision": "承認する",
+      "approval_stamp": "",
+      "approved_by": "tamasub",
+      "approved_at": "2026/7/5",
+      "summary": "FRB Studioでは alert / confirm / prompt を使用せず、画面内の共通カスタムダイアログまたはtoastを使用する。",
+      "body": "FRB Studioでは、ブラウザ標準ダイアログである alert() / confirm() / prompt() を新規実装で使用してはならない。\n\nユーザー確認・危険操作の確認・入力要求・手動コピー導線は、Studio共通の画面内カスタムダイアログを使用する。\n\n判断を必要としない成功通知・情報通知は、toastまたは画面内メッセージで表示する。\n\n理由は、ブラウザ標準ダイアログが表示位置・見た目・フォーカス復帰・文脈表示を制御しにくく、ユーザーの視線と思考の連続性を壊すためである。\n\n```text\n禁止:\n  alert()\n  confirm()\n  prompt()\n\n使用するもの:\n  showStudioConfirmDialog()\n  showStudioPromptDialog()\n  showStudioManualCopyDialog()\n  showStudioToast() / setStatus()\n```\n\nMarkdown Editor等の個別画面では、その画面の既存カスタムダイアログ作法に合わせた専用関数を使ってよい。ただし、ブラウザ標準ダイアログへ戻してはならない。",
+      "ceremony_phrase": "Studioくん憲法 第28条「ブラウザ標準ダイアログ使用禁止」を承認する。",
+      "user_comment": "標準ダイヤログは画面上の方に出て視線がズレるため、思考が止まる。Markdown Editorのようなオリジナルダイヤログへ統一したい。",
+      "ai_response": "標準ダイアログ全面禁止をUI制約として追加。思考の連続性を守るため、画面内カスタムダイアログへ統一する。",
+      "user_reply": "対応依頼。規則に無ければルール追加。",
+      "ai_followup_response": "v0.18.13で共通Studioダイアログを追加し、Main/Markdown Editor内の残存 alert/confirm/prompt 呼び出しを置換した。",
+      "notes": "既存コードレビュー時は grep で alert( / confirm( / prompt( の残存を確認する。",
+      "change_history": [
+        {
+          "changed_at": "2026/7/5",
+          "change_type": "rule_added",
+          "message": "標準ブラウザダイアログ禁止ルールを追加。"
+        }
+      ],
+      "section_no": 28,
+      "parent_rule_id": "",
+      "source_heading": "ブラウザ標準ダイアログ使用禁止",
+      "source_heading_level": 2,
+      "source_line_start": null,
+      "source_md_file": "frb_coding_constraints_data_v0_3.json",
+      "introduced_in": "v0.18.13-studio-dialog-no-browser-standard",
+      "decision_log": [
+        {
+          "decision": "標準ブラウザダイアログを使用禁止にする。",
+          "reason": "表示位置・フォーカス・文脈表示を制御できず、ユーザーの視線と思考の連続性を壊すため。",
+          "applied_axes": [
+            "UI",
+            "思考継続性",
+            "操作安全性"
+          ],
+          "conditions": "ユーザー確認、削除確認、上書き確認、入力、手動コピーなど。",
+          "exceptions": "原則なし。どうしても代替不能な場合はインシデントに理由と恒久対策を残す。",
+          "expected_behavior": "確認・入力は画面内中央または対象近傍のカスタムダイアログで行い、操作後は元の文脈へ戻る。",
+          "acceptance_criteria": "wwwroot配下の実行JS/HTMLに alert( / confirm( / prompt( の直接呼び出しが残っていないこと。",
+          "confirmation_level": "静的確認"
+        }
+      ],
+      "updated_at": "2026-07-05"
     }
   ],
   "review_notes": [

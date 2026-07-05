@@ -10,7 +10,6 @@ $root = "F:\FRB\tools\FRBStudio_App"
 
 # ZIP に含めるフォルダ
 $targetDirs = @(
-   "_archive_eternal",
     "data",
     "defs",
     "Program.cs",
@@ -40,7 +39,8 @@ $targetRootFiles = @(
 # 例: "wwwroot\js\lib\mermaid"
 # 例: "F:\FRB\tools\FRBStudio_App\wwwroot\js\lib\mermaid"
 $excludePaths = @(
-    "wwwroot\js\lib\mermaid"
+    "wwwroot\js\lib\mermaid",
+    "studio_overlays\gpt_fx_lab\data"
 )
 
 # 出力 ZIP 名

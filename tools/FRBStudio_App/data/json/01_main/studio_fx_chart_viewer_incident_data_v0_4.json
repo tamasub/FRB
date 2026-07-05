@@ -12,7 +12,91 @@
   "purpose": "GPT FX Lab の fx_chart_viewer が、単なるチャート表示から、M5/H1/H4同期観測、HSI仮説可視化、コメント/判断ログ共有へ育っていくため、Studio本体インシデントとは別枠で改修履歴・判断ログ・将来要望を管理する。",
   "operation_policy": "ViewDefは既存の studio_work_incident_view_def_v0_5.json を共通利用する。fx_chart_viewer固有の作業はこの専用インシデントファイルへ登録し、Studio本体汎用機能とドメイン専用Overlay機能を混ぜない。実装パッチでは、更新ファイルのみZIP返却し、未更新ファイルや.bakを含めない。",
   "standard_field_policy": "このファイルは既存インシデント管理Dataの構造を踏襲する。work_item_id / phase / status / discussion_history / decision_log / change_history 等は、インシデント管理Dataの契約として扱う。",
-  "items_count": 3,
+  "items_count": 5,
+   "main_context_status": "draft",
+  "main_context_updated_at": "2026-06-28",
+  "main_context_draft": "# 主文脈素案: インシデント管理Data\n\n## 読む目的\nこのインシデント管理Data全体を扱うAIが、作業前に読むべき正本・ViewDef・Foundation Rules・Runtime対象を確認できるようにする。\n\n## 基本方針\n- Data JSONを作業台帳の正本として扱う。\n- ViewDefは表示・編集体験の定義として扱う。\n- 主文脈はData全体を扱う前に読む入口、対象文脈は各作業項目を扱う前に読む入口として分ける。\n- グリッドは編集用、プレビューは読むためのUIとして分離する。\n\n## 注意\nFoundation Rule 19のZIP返却契約とdiscussion_history実発言契約を優先する。",
+  "main_context_refs": [
+    {
+      "context_ref_id": "main_incident_001_current_incident_data",
+      "title": "-  開発責任者の主文脈 ／　Studioくん憲法必読 ／ インシデント管理Data正本を読む　----  重要禁止事項：固定フィールド名・固定のフォルダーパス・ファイル名 禁止： 使う場合は、フォルダーパス・ファイル名などの定義を一か所に集中させる設計とすること。",
+      "read_timing": "before_work",
+      "target_path": "- data/json/00_rules/_json_creation_prompt.md\n- data/json/00_rules/frb_coding_constraints_data_v*.json\n- data/json/01_main/studio_work_incident_data_v*.json",
+      "purpose": "- Studioくん憲法（コーディングルール）必読。～戦略設計パターン優先・安易なIF文分岐処理は控える・汎用的な共通化ロジック検討を最優先～\n- 作業項目全体、未完了作業のContextDef素案、今回対象の作業履歴を確認する。",
+      "failure_policy": "stop_and_ask",
+      "trust_category": "canonical",
+      "required": true,
+      "enabled": true,
+      "sort_order": 10,
+      "note": ""
+    },
+    {
+      "context_ref_id": "main_incident_002_foundation_rule_019",
+      "title": "Foundation Rules / GitHub基準ソースとZIP返却契約を読む",
+      "read_timing": "before_output",
+      "target_path": "data/json/00_rules/frb_foundation_rules_data_v*.json#foundation_rule_019\n\n",
+      "purpose": "更新対象ファイル、更新後インシデントJSON、成果物ZIP、discussion_historyの実発言契約を確認する。",
+      "failure_policy": "stop_and_ask",
+      "trust_category": "canonical",
+      "required": true,
+      "enabled": true,
+      "sort_order": 20,
+      "note": "AI作業返却時の必読ルール。"
+    },
+    {
+      "context_ref_id": "main_incident_003_viewdef_v0_5",
+      "title": "- ViewDef 新規作成・修正時に必ず読む　～viewdef_generation_rules　／　view_def_schema　～",
+      "read_timing": "before_work",
+      "target_path": "- data/json/00_rules/frb_viewdef_generation_rules_data_v*.json\n- data/json/00_rules/frb_view_def_schema_v*.json\n ",
+      "purpose": "ContextDef / 対象文脈、主文脈、作業内容カード、各objectArray表示の定義を確認する。",
+      "failure_policy": "warn_and_continue",
+      "trust_category": "canonical",
+      "required": false,
+      "enabled": true,
+      "sort_order": 30,
+      "note": ""
+    },
+    {
+      "context_ref_id": "main_incident_004_preview_runtime",
+      "title": "他各種ルールを読むこと。～enums、constraint_spec、diff_result_format_rules、test_evidence_rules、studio_context_engineer_wannabe_foundation_rules～",
+      "read_timing": "before_code_update",
+      "target_path": "- data/json/00_rules/common_enums_v*.json\n- data/json/00_rules/frb_constraint_spec_v*.json\n- data/json/00_rules/frb_diff_result_format_rules_data_v*.json\n- data/json/00_rules/frb_test_evidence_rules_data_v*.json\n- data/json/00_rules/studio_context_engineer_wannabe_foundation_rules_data_v*.json",
+      "purpose": "Detailサブグリッド、主文脈、対象文脈のプレビュー表示実装とCSSを確認する。",
+      "failure_policy": "warn_and_continue",
+      "trust_category": "reference",
+      "required": false,
+      "enabled": true,
+      "sort_order": 40,
+      "note": ""
+    },
+    {
+      "context_ref_id": "main_incident_005_ai_code_generation_source_policy",
+      "title": "AIコード生成時は、著作権・ライセンス上問題になり得る既存実装を下敷きにせず、ユーザー要件・制約・設計意図から生成すること。",
+      "read_timing": "before_code_update",
+      "target_path": "- tools/FRBStudio_App/wwwroot/**/*.js\n- tools/FRBStudio/**/*.cs\n- tools/**/*.ps1\n- tools/**/*.bat",
+      "purpose": "AIがソースコードを生成・修正する際に、既存OSS、ブログ記事、Stack Overflow、製品コード、出所不明コード等の具体的実装をそのまま材料にしない。実装は、ユーザーが提示した要件、制約、命名、設計思想、既存プロジェクト内の文脈に基づいて生成する。外部コードを参考にする必要がある場合は、出所、ライセンス、利用範囲を明示し、未確認の場合は採用しない。",
+      "failure_policy": "warn_and_continue",
+      "trust_category": "constraint",
+      "required": false,
+      "enabled": true,
+      "sort_order": 50,
+      "note": "これは法的判断ではなく、AIコード生成時の安全柵である。著作権侵害の最終判断をAIに委ねるものではない。公開前には必要に応じて出所確認・ライセンス確認・人間レビューを行う。"
+    }
+  ],
+  "archive_policy": "studio_work_0079以前の完了系作業は archive JSON へ分離し、メインJSONには未着手・進行中・直近完了分を残す。",
+  "archives": [
+    {
+      "archive_id": "studio_work_completed_to_0079_v0_1",
+      "archive_file": "archive/studio_work_incident_archive_completed_to_0079_v0_1.json",
+      "archived_at": "2026-06-30",
+      "archived_status_rule": "work_item_id <= studio_work_0079 and status startswith '完了'",
+      "archived_items_count": 54,
+      "first_work_item_id": "studio_work_0001",
+      "last_work_item_id": "studio_work_0079",
+      "note": "完了履歴を別ファイルへ分け、メインインシデントJSONの肥大化を抑える。"
+    },
+  ],
+   
   "work_items": [
     {
       "work_item_id": "fx_chart_viewer_work_0001",
@@ -442,6 +526,292 @@
       "context_def_status": "draft",
       "context_def_updated_at": "2026-07-05",
       "context_def_draft": "# ContextDef素案: v0.8.1-chart-annotation-layer-simulation-result-sidecar\n\n## 読む目的\n人間コメント、Simulation結果、AIレビューを別ファイルで保存しつつ、表示上はChart Annotation Layerとして統合する設計思想を把握する。\n\n## 作業前に読む入口\n- fx_chart_viewer_work_0002 の Chart Comment Sidecar を先に読む。\n- この作業項目の objective / background / scope / out_of_scope / decision_log を読む。\n- Simulation結果は売買指示ではなく、ルール検証ログとして扱う先生ガードを確認する。\n\n## Annotation共通構造メモ\n- source_type: human_comment / simulation / ai_review\n- event_type: note / hypothesis / anchor / entry / exit / win / loss / invalidated / question\n- identity: id / run_id / trade_id / rule_id / rule_version\n- anchor: panel / time / price / x_index_hint\n- display: icon / open / pinned / layer\n- chart_state: windowStart / windowSize / upperTf / confirmBars / hsiScale / hsiAnchor など\n\n## 注意すべきリスク\n- 保存ファイルを混ぜると出所が分からなくなる。\n- 表示を分けすぎるとチャート上で比較できない。\n- Simulation結果が売買シグナルに見えないよう、検証ログとして表示する。\n"
+    },
+    {
+      "work_item_id": "fx_chart_viewer_work_0004",
+      "phase": "v0.8.2-saved-hsi-annotation-sidecar",
+      "title": "Saved HSI Annotation Sidecar：HSI仮説線の右クリック保存・削除",
+      "incident_type": "feature_design",
+      "category": "gpt_fx_lab_fx_chart_viewer",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-05",
+      "updated_at": "2026-07-05",
+      "target_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/studio_manifest.json\nstudio_overlays/gpt_fx_lab/CHANGELOG.md\nstudio_overlays/gpt_fx_lab/sidecars/*.chart_comments.json\nstudio_overlays/gpt_fx_lab/sidecars/*.chart_annotations.json",
+      "objective": "現在の一時HSI線を、残したい時だけ右クリック操作で保存できるようにする。通常のHSI線は作業線として自動的に置き換わるが、保存したHSI仮説線はSidecar JSONへ残り、別のHSI起点を引いても消えない。保存済みHSI起点を右クリックした場合は削除・表示/非表示などの操作ができるようにする。",
+      "background": "現状のHSIは hsiAnchor / hsiDirection / hsiScale / hsiValues を1セットだけ持つ一時レイヤーであり、複数のHSI仮説を残すことができない。しかし、HSI線はコメントと同じく人間の仮説であり、コメントが言葉の仮説なら、保存HSIは図形の仮説である。右クリックで『これは残す』を明示できる操作は、作業線と仮説ログの境界を自然に分けられる。",
+      "scope": "一時HSIと保存HSIの責務分離、HSI起点右クリックメニュー、現在HSIの保存、保存済みHSIの削除、保存HSI表示ON/OFF、保存HSIと一時HSIの見た目分離、Sidecar JSONへのhsi_annotations保存、chart_state / hsi values / scale / direction / point_size / anchor time / price / x_index_hint の保存設計を扱う。初期実装では既存の chart_comments.json に hsi_annotations を追加し、将来 chart_annotations.json へ統合整理する余地を残す。",
+      "out_of_scope": "このインシデントではEntry/Exit判定、Dow trend判定、Simulation、勝敗判定、損益計算は行わない。保存HSIは売買シグナルではなく、人間が残した図形仮説として扱う。初期実装では複雑な編集UI、ドラッグによる起点移動、保存HSIの高度な分類・集計は対象外とする。",
+      "fixed_name_policy": "hsi_annotations / source_type=human_hsi / event_type=hsi_anchor / hsi.values / hsi.scale / hsi.direction は、fx_chart_viewerのChart Annotation系Sidecar契約として扱う。Studio本体の一般Runtime固定名として広げない。",
+      "module_policy": "Chart Comment SidecarとChart Annotation Layerの流れを継承する。まずはfx_chart_viewer Overlay Plugin内で、右クリックメニューとSidecar保存を実装する。将来、Human Comment / Saved HSI / Simulation Result / AI Reviewを共通Chart Annotationへ統合する。",
+      "expected_outputs": "HSI起点右クリックメニュー、現在HSI仮説の保存、保存済みHSIの表示、保存済みHSIの削除、保存HSI表示ON/OFF、Sidecar JSONへの hsi_annotations 保存、一時HSIと保存HSIの見た目区別、先生ガード付きの仮説線保存UI。",
+      "risk": "保存HSIと一時HSIの見た目が同じだと、今見ている作業線なのか過去の仮説ログなのか分からなくなる。保存HSIが増えすぎるとチャートが読みにくくなる。右クリックメニューが通常クリックのHSI起点操作やコメント操作と衝突する可能性がある。保存HSIが売買シグナルのように見えると先生ガードが崩れる。",
+      "test_points": "通常クリックではこれまで通り一時HSI起点が置き換わること。未保存の一時HSI起点を右クリックすると保存できること。保存後、別のHSI起点をクリックしても保存HSIが残ること。保存済みHSI起点を右クリックすると削除できること。保存HSIはSidecar JSONへ保存され、再読込で復元されること。一時HSIと保存HSIが見た目で区別できること。保存HSI表示ON/OFFで仮説線ログを隠せること。保存HSIには hsi values / scale / direction / anchor price / time / chart_state が残ること。",
+      "user_request": "HSIの線を複数残せない現状に気づいた。できれば起点を右クリックして保存できる操作がありがたい。基本は自動削除だが、一度保存しているやつの場合は削除もできる、という操作感がよい。これはかなり肝だと感じている。",
+      "ai_response": "その操作感が自然。一時HSIは作業線、保存HSIは仮説ログとして分ける。未保存の現在HSI起点を右クリックすると保存でき、保存済みHSI起点を右クリックすると削除できる仕様がよい。保存先はSidecar JSONとし、保存HSIはChart Annotation Layerへ統合していく。",
+      "latest_user_comment": "incident_file=data/json/01_main/studio_fx_chart_viewer_incident_data_v0_3.json / phase=v0.8.2-saved-hsi-annotation-sidecar を指定して、HSI仮説線の右クリック保存・削除対応を依頼。Foundation Rules foundation_rule_019 のZIP返却契約を参照。",
+      "latest_ai_response": "v0.8.2として、未保存の現在HSI起点を右クリックしてSidecarへ保存、保存済みHSI起点を右クリックして削除、保存HSI表示ON/OFF、保存HSIの点線表示、hsi_annotations[]保存を追加。保存HSIは人間の図形仮説であり、Trend/Entry/Simulation判定は追加していない。",
+      "discussion_history": [
+        {
+          "history_id": "disc_fx_chart_viewer_0004_001",
+          "at": "2026-07-05",
+          "speaker": "user",
+          "topic": "HSI線を複数残せない違和感",
+          "message": "HSIの線を引いたやつは、複数残すことが今できないのではないかと気づいた。"
+        },
+        {
+          "history_id": "disc_fx_chart_viewer_0004_002",
+          "at": "2026-07-05",
+          "speaker": "assistant",
+          "topic": "一時HSIと保存HSIの責務分離",
+          "message": "現状のHSIは hsiAnchor / hsiDirection / hsiScale / hsiValues が1セットだけの一時レイヤーであり、複数残せない。コメントが言葉の仮説なら、保存HSIは図形の仮説としてSidecarへ保存するのがよいと整理した。"
+        },
+        {
+          "history_id": "disc_fx_chart_viewer_0004_003",
+          "at": "2026-07-05",
+          "speaker": "user",
+          "topic": "右クリック保存・削除操作",
+          "message": "起点を右クリックして保存できるとありがたい。基本は自動削除だが、一度保存しているやつの場合は削除もできるという操作感がよい。"
+        },
+        {
+          "history_id": "disc_fx_chart_viewer_0004_004",
+          "at": "2026-07-05",
+          "speaker": "assistant",
+          "topic": "Saved HSI Annotation Sidecar案",
+          "message": "一時HSIは作業線、保存HSIは仮説ログとして分ける。未保存HSI起点の右クリックでは保存、保存済みHSI起点の右クリックでは削除を出す仕様が自然だと整理した。"
+        },
+        {
+          "history_id": "disc_fx_chart_viewer_0004_005",
+          "at": "2026-07-05",
+          "speaker": "user",
+          "topic": "v0.8.2 Saved HSI Annotation Sidecar 実装依頼",
+          "message": "incident_file=data/json/01_main/studio_fx_chart_viewer_incident_data_v0_3.json / phase=v0.8.2-saved-hsi-annotation-sidecar を指定して、HSI仮説線の右クリック保存・削除対応を依頼。Foundation Rules foundation_rule_019のZIP返却契約を参照。"
+        },
+        {
+          "history_id": "disc_fx_chart_viewer_0004_006",
+          "at": "2026-07-05",
+          "speaker": "assistant",
+          "topic": "v0.8.2 Saved HSI Annotation Sidecar 実装結果",
+          "message": "未保存の現在HSI起点右クリックで保存、保存済みHSI起点右クリックで削除、保存HSI表示ON/OFF、hsi_annotations[]保存、保存HSIの点線表示を追加。コメントSidecarと同じ実ファイル保存経路を利用し、保存HSIをChart Annotation基盤へ接続した。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_fx_chart_viewer_0004_001",
+          "at": "2026-07-05",
+          "decision": "HSIは通常時は一時作業線として扱い、クリックで置き換わる仕様を維持する。",
+          "reason": "毎回の試行錯誤で大量の線が残るとチャートが読みにくくなるため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0004_002",
+          "at": "2026-07-05",
+          "decision": "残したいHSIだけ右クリック操作で保存する。",
+          "reason": "人間が『これは仮説ログとして残す』と判断したものだけSidecarへ昇格させるため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0004_003",
+          "at": "2026-07-05",
+          "decision": "保存済みHSIは右クリックから削除できるようにする。",
+          "reason": "保存済みの仮説ログは自動置換されないため、人間が明示的に消せる必要がある。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0004_004",
+          "at": "2026-07-05",
+          "decision": "一時HSIと保存HSIは見た目を分ける。",
+          "reason": "今作業中の線と過去に保存した仮説線を混同しないため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0004_005",
+          "at": "2026-07-05",
+          "decision": "保存HSIはコメントと同じSidecar系に保存し、将来的にはChart Annotation Layerへ統合する。",
+          "reason": "保存HSIは図形の仮説であり、コメント・Simulation結果・AIレビューと同じチャート注釈レイヤーで扱うのが自然なため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0004_006",
+          "at": "2026-07-05",
+          "decision": "保存HSIは売買シグナルではなく、人間の図形仮説として扱う。",
+          "reason": "先生ガードとして、仮説保存とEntry/Simulation判定を混同しないため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0004_007",
+          "at": "2026-07-05",
+          "decision": "初期実装では保存HSIを既存 chart_comments.json の hsi_annotations[] に保存する。",
+          "reason": "コメントSidecar保存APIをそのまま使い、Human CommentとSaved HSIを同じSidecar内で管理しつつ、将来 chart_annotations.json へ整理できる構造にするため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0004_008",
+          "at": "2026-07-05",
+          "decision": "一時HSIは従来の強い赤ライン、保存HSIは黄色の点線 + ◆/S マーカーで表示する。",
+          "reason": "今作業中の仮説線と過去に保存した図形仮説を混同しないようにするため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_fx_chart_viewer_0004_001",
+          "at": "2026-07-05",
+          "change_type": "incident_added",
+          "before": "HSI線は一時表示のみで、複数のHSI仮説を保存する作業項目がなかった。",
+          "after": "fx_chart_viewer_work_0004 として、Saved HSI Annotation Sidecarを未着手インシデントへ登録。",
+          "reason": "コメント機能の次に、図形仮説としてのHSI線も保存・削除・再表示できる必要が見えてきたため。"
+        },
+        {
+          "history_id": "chg_fx_chart_viewer_0004_002",
+          "at": "2026-07-05",
+          "change_type": "saved_hsi_annotation_sidecar_added",
+          "before": "HSI線は現在の一時起点1セットだけで、別の起点をクリックすると前の仮説線は残らなかった。",
+          "after": "現在HSI起点を右クリックしてSidecarへ保存できるようにし、保存済みHSIは別の起点をクリックしても残る。保存済みHSI起点の右クリックから削除できる。",
+          "reason": "HSI線を言葉のコメントと同じく、図形の仮説ログとして残せるようにするため。"
+        }
+      ],
+      "verification_status": "静的確認済み",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-07-05",
+      "context_def_draft": "# ContextDef素案: v0.8.2-saved-hsi-annotation-sidecar\n\n## 読む目的\n一時HSI線と保存HSI仮説線の責務を分け、右クリック保存・削除できるChart Annotation拡張として扱う設計を把握する。\n\n## 作業前に読む入口\n- fx_chart_viewer_work_0002 の Chart Comment Sidecar を先に読む。\n- fx_chart_viewer_work_0003 の Chart Annotation Layer 方針を読む。\n- この作業項目の objective / background / scope / decision_log を読む。\n\n## 操作方針メモ\n- 通常クリック: 一時HSI起点を置き換える。\n- 未保存HSI起点を右クリック: 現在HSI仮説を保存する。\n- 保存済みHSI起点を右クリック: 削除、表示/非表示などを選ぶ。\n- HSIクリア: 一時HSIのみ消す。保存HSIは消さない。\n\n## 保存構造メモ\n- hsi_annotations[] をSidecar JSONへ追加する案を初期候補にする。\n- source_type: human_hsi\n- event_type: hsi_anchor\n- hsi: values / scale / direction / point_size\n- anchor: panel / time / price / x_index_hint\n- display: visible / pinned / style\n- chart_state: windowStart / windowSize / upperTf / confirmBars / hsiScale / hsiAnchor など\n\n## 注意すべきリスク\n- 一時HSIと保存HSIが同じ見た目だと混乱する。\n- 保存HSIが多すぎるとチャートが読みにくくなる。\n- 保存HSIを売買シグナルとして扱わない。\n",
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/studio_manifest.json\nstudio_overlays/gpt_fx_lab/CHANGELOG.md\nstudio_overlays/gpt_fx_lab/sidecars/fx_usdjpy_m5_t3_data_v0_1.chart_comments.json\ndata/json/01_main/studio_fx_chart_viewer_incident_data_v0_3.json",
+      "completion_summary": "Saved HSI Annotation Sidecarを追加。現在HSI起点の右クリック保存、保存済みHSI起点の右クリック削除、保存HSI表示ON/OFF、hsi_annotations[]保存、保存HSIの点線表示に対応。売買判定・Simulationは未実装。",
+      "test_result": "node --check plugin.js OK。plugin.json / studio_manifest.json / sidecar JSON / incident JSON parse OK。"
+    },
+    {
+      "work_item_id": "fx_chart_viewer_work_0005",
+      "phase": "v0.8.3-upper-context-warmup-bars",
+      "title": "Upper Context Warmup Bars：上位足文脈バー追加とシミュレーション開始可能領域の拡張",
+      "incident_type": "feature_design",
+      "category": "gpt_fx_lab_fx_chart_viewer",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-05",
+      "updated_at": "2026-07-05",
+      "target_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/studio_manifest.json\nstudio_overlays/gpt_fx_lab/CHANGELOG.md\ndata/json/01_main/studio_fx_chart_viewer_incident_data_v0_4.json",
+      "objective": "M5表示窓の前半で上位足トレンド文脈が不足し、将来のシミュレーション開始可能領域が狭くなる問題を解消する。M5側の表示窓は維持しつつ、H1/H4などの上位足パネルだけを過去側へ拡張し、上位足のトレンド材料・Dow材料点・Confirm bars判定に必要なウォームアップ区間を確保する。",
+      "background": "現状の上位足パネルは、M5表示窓に対応する範囲を中心に表示しているため、右側のH1/H4パネル左端付近では上位足の過去文脈が不足する。その結果、上位窓でトレンド確定できない期間が生まれ、画像例では約1/3のM5データが将来のシミュレーション対象として使いづらい状態になっている。上位足文脈は表示のためだけではなく、下位M5でSimulationを開始可能にするためのウォームアップ条件でもある。",
+      "scope": "upperWarmupBars もしくは upperContextBarsBefore に相当する設定を導入し、H1/H4パネルだけM5表示開始時刻より過去側へ固定数または設定値ぶん拡張表示する。初期候補は 0 / 30 / 60 / 100 本のプリセットとし、デフォルトは30本を検討する。URLコピー/URL起動時には upperWarmupBars を保存・復元できるようにする。同期縦線は時刻ベースで各パネルへ投影し、対象時刻が上位足表示範囲外の場合は描画せずエラーにしない。上位足バー数増加に伴う描画密度低下は、右パネル側だけ幅内に圧縮して表示する方針とする。",
+      "out_of_scope": "このインシデントでは実際のSimulationエンジン、Entry/Exit判定、勝敗判定、損益計算は実装しない。また、未来側へ上位足範囲を広げてシミュレーション条件に混ぜることは行わない。目的はあくまで上位足の過去文脈を確保し、将来のシミュレーション基盤を壊さない表示・状態管理を作ること。",
+      "fixed_name_policy": "upperWarmupBars / upperContextBarsBefore は fx_chart_viewer の上位足文脈表示契約として扱う。Studio本体Runtimeの一般固定名として広げない。URLパラメータとして保存する場合も、Chart Viewer固有の状態として扱う。",
+      "module_policy": "M5本体データはこれまで通り1つのDataとして扱い、H1/H4はM5から内部生成する。上位足パネルの表示レンジだけを過去側へ広げ、M5パネルの表示レンジやwindowStart/windowSizeは変更しない。上位足Dow材料点は拡張後の上位足OHLCに対して再抽出し、M5の材料点をコピーしない。",
+      "expected_outputs": "上位文脈バー設定UI、0/30/60/100プリセット、upperWarmupBarsのURL保存/復元、H1/H4パネルの過去側拡張表示、同期縦線の範囲外安全処理、上位足側の材料点再抽出、シミュレーション未実装の先生ガード。",
+      "risk": "上位足バーを増やすほど右パネルの1本あたり横幅が狭くなり、視認性が落ちる。同期縦線をx座標で合わせようとすると、M5/H1/H4の異なる密度でズレやエラーが起きる。未来側のバーを文脈として混ぜると、将来のSimulationでlookaheadに近い危険が出る。上位足文脈不足を表示上だけで隠すと、Simulation開始可能/不可の境界が曖昧になる。",
+      "test_points": "M5表示窓が従来通り変わらないこと。upperWarmupBars=0では従来相当の表示になること。upperWarmupBars=30/60/100でH1/H4パネルだけ過去側にバーが増えること。上位足の材料点が拡張後のH1/H4 OHLCから再抽出されること。同期縦線が時刻ベースで描画され、範囲外の場合はエラーなく非表示になること。URLコピーに upperWarmupBars が含まれ、再表示時に復元されること。未来側の上位足バーをSimulation文脈に混ぜない方針が維持されること。",
+      "user_request": "上位窓の方にもう少しバーを増やせないか相談。上位窓でトレンドが確定できないと下位窓でシミュレーションが開始できない問題があり、画像例では約1/3のM5データがシミュレーションに使えない状態になっている。上位窓にバーを固定数で増やすか、動的に追加できるようにするか検討したい。バーを増やすと幅描画を狭くする必要があり、縦の時間軸同期でエラーが起きない対処も必要。",
+      "ai_response": "上位窓には表示範囲とは別に過去文脈取得用の余白バーを持たせる方針がよい。M5窓は変えず、H1/H4パネルだけM5表示開始より過去側へ upperWarmupBars 分拡張する。同期縦線は時刻ベースで各パネルに投影し、範囲外なら描画しない。未来側には広げず、Simulationのlookaheadを避ける。",
+      "latest_user_comment": "incident_file=data/json/01_main/studio_fx_chart_viewer_incident_data_v0_4.json / phase=v0.8.3-upper-context-warmup-bars を指定して、Upper Context Warmup Bars の実装を依頼。Foundation Rules foundation_rule_019 のZIP返却契約を参照。",
+      "latest_ai_response": "v0.8.3として upperWarmupBars を追加。H1/H4上位足パネルだけ過去側へ余白バーを追加し、M5窓は変更しない。UIは上位余白入力と0/30/60/100プリセット。URLコピー/URL起動で復元し、同期縦線は時刻ベースで範囲外なら描画しない。Trend/Entry/Simulation判定は追加していない。",
+      "discussion_history": [
+        {
+          "history_id": "disc_fx_chart_viewer_0005_001",
+          "at": "2026-07-05",
+          "speaker": "user",
+          "topic": "上位足バー不足によるSimulation開始不可",
+          "message": "上位窓でトレンドが確定できないと下位窓でシミュレーションが開始できない。画像例だと約1/3のM5データが使えない状態になっている。"
+        },
+        {
+          "history_id": "disc_fx_chart_viewer_0005_002",
+          "at": "2026-07-05",
+          "speaker": "assistant",
+          "topic": "Upper Context Warmup Bars案",
+          "message": "M5表示窓はそのままに、H1/H4上位足パネルだけ過去側へupperWarmupBars分の文脈バーを追加表示する方針がよいと整理した。"
+        },
+        {
+          "history_id": "disc_fx_chart_viewer_0005_003",
+          "at": "2026-07-05",
+          "speaker": "assistant",
+          "topic": "同期縦線とlookahead対策",
+          "message": "同期縦線はx座標ではなく時刻ベースで各パネルへ投影し、範囲外なら描画せず無視する。未来側へ拡張してSimulation文脈に混ぜない方針を明記した。"
+        },
+        {
+          "history_id": "disc_fx_chart_viewer_0005_004",
+          "at": "2026-07-05",
+          "speaker": "user",
+          "topic": "インシデント登録依頼",
+          "message": "Upper Context Warmup Bars の内容をまずインシデント登録したい。"
+        },
+        {
+          "history_id": "disc_fx_chart_viewer_0005_005",
+          "at": "2026-07-05",
+          "speaker": "user",
+          "topic": "v0.8.3 Upper Context Warmup Bars 実装依頼",
+          "message": "incident_file=data/json/01_main/studio_fx_chart_viewer_incident_data_v0_4.json / phase=v0.8.3-upper-context-warmup-bars を指定して、Upper Context Warmup Barsの実装を依頼。Foundation Rules foundation_rule_019のZIP返却契約を参照。"
+        },
+        {
+          "history_id": "disc_fx_chart_viewer_0005_006",
+          "at": "2026-07-05",
+          "speaker": "assistant",
+          "topic": "v0.8.3 Upper Context Warmup Bars 実装結果",
+          "message": "upperWarmupBarsを追加し、H1/H4などの上位足パネルだけM5表示開始より過去側へ余白バーを追加表示できるようにした。M5窓は変えず、URLへupperWarmupBarsを保存し、同期縦線は範囲外なら描画しない方針を維持した。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_fx_chart_viewer_0005_001",
+          "at": "2026-07-05",
+          "decision": "上位足パネルに upperWarmupBars を導入する方向で検討する。",
+          "reason": "M5表示窓前半でも上位足トレンド文脈を確保し、将来のSimulation開始可能領域を広げるため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0005_002",
+          "at": "2026-07-05",
+          "decision": "M5表示窓は変更せず、H1/H4など上位足パネルだけを過去側へ拡張する。",
+          "reason": "下位M5の観測窓を壊さず、上位足文脈だけを補うため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0005_003",
+          "at": "2026-07-05",
+          "decision": "初期候補は upperWarmupBars = 0 / 30 / 60 / 100 とし、デフォルト30を検討する。",
+          "reason": "固定数の分かりやすさと、状況に応じた文脈量の調整を両立するため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0005_004",
+          "at": "2026-07-05",
+          "decision": "同期縦線は時刻ベースで投影し、上位足表示範囲外なら描画しない。",
+          "reason": "M5/H1/H4のバー密度差によるx座標ズレや範囲外エラーを避けるため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0005_005",
+          "at": "2026-07-05",
+          "decision": "上位足の拡張は過去側だけにする。",
+          "reason": "将来のSimulationで未来バーを文脈として混ぜるlookaheadリスクを避けるため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0005_006",
+          "at": "2026-07-05",
+          "decision": "upperWarmupBars はURL状態として保存・復元できるようにする。",
+          "reason": "先生相談用スクショ/URL再現時に、どれだけ上位文脈を足して観測していたかを再現するため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0005_007",
+          "at": "2026-07-05",
+          "decision": "v0.8.3では上位足文脈追加を表示機能として実装し、Simulation/Entry判定には踏み込まない。",
+          "reason": "まずはM5前半で上位足文脈が不足する観測・将来検証基盤上の問題を解消し、売買判断ロジックとは分離するため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_fx_chart_viewer_0005_001",
+          "at": "2026-07-05",
+          "change_type": "incident_added",
+          "before": "上位足パネルはM5表示窓に対応する範囲中心で、M5前半のSimulation開始に必要な上位足文脈が不足する問題が未登録だった。",
+          "after": "fx_chart_viewer_work_0005 として、Upper Context Warmup Barsを未着手インシデントへ登録。",
+          "reason": "将来のSimulation基盤として、上位足文脈不足によるM5データ使用不能領域を減らす必要があるため。"
+        },
+        {
+          "history_id": "chg_fx_chart_viewer_0005_002",
+          "at": "2026-07-05",
+          "change_type": "upper_context_warmup_bars_added",
+          "before": "H1/H4上位足パネルはM5表示窓に対応する範囲中心で、M5窓前半の上位足文脈が不足しやすかった。",
+          "after": "upperWarmupBarsを追加し、上位足パネルだけ過去側へ0/30/60/100本の余白バーを追加表示できるようにした。URL再現にも対応。",
+          "reason": "将来のSimulation開始可能領域を広げるための上位足文脈ウォームアップを確保するため。"
+        }
+      ],
+      "verification_status": "静的確認済み",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-07-05",
+      "context_def_draft": "# ContextDef素案: v0.8.3-upper-context-warmup-bars\n\n## 読む目的\n上位足H1/H4パネルに過去文脈バーを追加し、M5前半でも上位足トレンド文脈を確保する設計を把握する。\n\n## 作業前に読む入口\n- fx_chart_viewer_work_0001 の M5/H1同期観測方針を読む。\n- fx_chart_viewer_work_0003 の Simulation Result Sidecar 方針を読む。\n- この作業項目の objective / background / scope / risk / decision_log を読む。\n\n## 操作・状態方針メモ\n- upperWarmupBars を導入する。\n- 初期候補: 0 / 30 / 60 / 100。\n- M5表示窓は変えない。\n- H1/H4パネルだけM5表示開始時刻より過去側へ拡張する。\n- URLコピー/URL起動で upperWarmupBars を保持する。\n\n## 同期縦線メモ\n- x座標同期ではなく時刻同期を維持する。\n- 対象時刻が上位足表示範囲内なら描画する。\n- 範囲外なら描画せず、エラーにしない。\n\n## 先生ガード\n- 未来側には拡張しない。\n- Simulation判定/Entry判定はまだ実装しない。\n- upperWarmupBars は表示と将来の文脈確保であり、売買シグナルではない。\n",
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/studio_manifest.json\nstudio_overlays/gpt_fx_lab/CHANGELOG.md\ndata/json/01_main/studio_fx_chart_viewer_incident_data_v0_4.json",
+      "completion_summary": "Upper Context Warmup Barsを追加。上位足パネルのみ過去側へupperWarmupBars分の文脈バーを追加表示し、0/30/60/100プリセット、URL保存/復元、時刻同期の範囲外安全処理方針を実装。M5窓は不変。売買判定・Simulationは未実装。",
+      "test_result": "node --check plugin.js OK。plugin.json / studio_manifest.json / incident JSON parse OK。"
     }
   ]
 }

@@ -9,8 +9,8 @@
   ],
   "scope": "gpt_fx_lab overlay only",
   "core_change": false,
-  "description": "USDJPY M5チャートViewer。チャートコメントSidecarの実ファイル保存API連携と、コメント時刻NaN表示を修正。",
-  "version": "v0.8.0.1-chart-comment-sidecar-save-fix",
+  "description": "USDJPY M5チャートViewer。M5/上位足の両パネルで手動HSI起点、保存HSIの保存・削除、Sidecar保存を利用できる。",
+  "version": "v0.8.3.2-upper-hsi-save-delete",
   "signal_policy": {
     "visible_marker": "candidate_basis_retired_circle_marker",
     "removed_marker": "dow_structure_decision_arrow_marker",
@@ -43,7 +43,21 @@
     "url_chart_state_support": true,
     "url_chart_state_copy_support": true,
     "manual_hsi_lines_support": true,
-    "manual_hsi_lines_used_for_basis_point_extraction": false
+    "manual_hsi_lines_used_for_basis_point_extraction": false,
+    "saved_hsi_annotations_support": true,
+    "saved_hsi_annotations_used_for_entry_decision": false,
+    "upper_warmup_bars_support": true,
+    "upper_warmup_bars_default": 30,
+    "upper_warmup_bars_presets": [
+      0,
+      30,
+      60,
+      100
+    ],
+    "upper_warmup_bars_future_extension": false,
+    "manual_hsi_lines_upper_panel_support": true,
+    "saved_hsi_annotations_upper_panel_support": true,
+    "saved_hsi_annotations_save_delete_support": true
   },
   "display_policy": {
     "high_low_range_style": {
@@ -71,7 +85,8 @@
       "bb": "1/0",
       "wide": "1/0",
       "data": "overlay/gpt_fx_lab/data/fx_usdjpy_m5_t3_data_v0_1.json",
-      "view": "overlay/gpt_fx_lab/view_defs/fx_usdjpy_t3_view_def_v0_1.json"
+      "view": "overlay/gpt_fx_lab/view_defs/fx_usdjpy_t3_view_def_v0_1.json",
+      "upperWarmupBars": "0 / 30 / 60 / 100 etc. Upper panel past context bars only."
     },
     "url_chart_state_copy": {
       "button_caption": "URLコピー",
@@ -84,7 +99,8 @@
         "viewMode",
         "hlRange",
         "bb",
-        "wide"
+        "wide",
+        "upperWarmupBars"
       ],
       "purpose": "現在の観測状態をブックマーク・共有しやすくする"
     },
@@ -172,7 +188,16 @@
       "right_panel": "Upper timeframe context observation",
       "sync_policy": "shared vertical line by timestamp, not by x coordinate",
       "basis_points": "Candidate / Active Basis / Retired Basis are recalculated on aggregated upper timeframe rows",
-      "teacher_guard": "Trend / Entry / Simulation are not judged in this version"
+      "teacher_guard": "Trend / Entry / Simulation are not judged in this version",
+      "upper_warmup_bars_support": true,
+      "upper_warmup_bars_default": 30,
+      "upper_warmup_bars_presets": [
+        0,
+        30,
+        60,
+        100
+      ],
+      "upper_warmup_policy": "Only the upper timeframe panel is expanded to the past side. The M5 window is unchanged."
     },
     "wide_upper_panel_fix": {
       "enabled": true,
@@ -236,6 +261,35 @@
       "fallback": "localStorage is used only when the overlay sidecar save API fails",
       "time_fix": "Comment time uses rowTimeMs(row) before formatRowDateTime to avoid NaN labels.",
       "teacher_guard": "observation memo only; no trend/entry/simulation logic added."
+    },
+    "saved_hsi_annotation_sidecar": {
+      "enabled": true,
+      "storage": "hsi_annotations array in chart comment sidecar JSON for the initial implementation",
+      "right_click_current_anchor": "save current manual HSI as a saved HSI annotation",
+      "right_click_saved_anchor": "delete saved HSI annotation",
+      "toggle_button": "保存HSI表示ON/OFF",
+      "temporary_hsi_policy": "normal click still replaces the current temporary HSI anchor",
+      "clear_policy": "HSIクリア clears only the temporary HSI, not saved HSI annotations",
+      "visual_policy": "temporary HSI uses strong red lines; saved HSI uses dashed amber lines with ◆/S anchor marker",
+      "teacher_guard": "saved HSI is a human visual hypothesis only; no trend/entry/simulation logic added."
+    },
+    "upper_context_warmup_bars": {
+      "enabled": true,
+      "state_key": "upperWarmupBars",
+      "default": 30,
+      "presets": [
+        0,
+        30,
+        60,
+        100
+      ],
+      "ui_label": "上位余白",
+      "scope": "upper timeframe panel only",
+      "lower_panel_policy": "Do not change M5 windowStart/windowSize.",
+      "direction": "past only; do not extend future side for simulation context.",
+      "sync_policy": "Shared vertical line remains timestamp-based; if timestamp is outside a panel range, skip drawing without error.",
+      "purpose": "Reduce upper timeframe context shortage at the beginning of the M5 window and prepare future simulation warmup.",
+      "teacher_guard": "Display/context warmup only; no trend/entry/simulation logic added."
     }
   }
 }

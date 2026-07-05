@@ -1,5 +1,41 @@
 # gpt_fx_lab CHANGELOG
 
+## v0.8.3 - 2026-07-05
+
+- Upper Context Warmup Bars / 上位足文脈バー追加に対応。
+  - `upperWarmupBars` を追加。
+  - H1/H4などの上位足パネルだけ、M5表示開始時刻より過去側へ余白バーを追加表示できる。
+  - M5表示窓の `windowStart` / `windowSize` は変更しない。
+- UIを追加。
+  - `上位余白` 入力欄。
+  - `余白0` / `余白30` / `余白60` / `余白100` プリセット。
+- URL再現に対応。
+  - `upperWarmupBars` をURLコピーへ含める。
+  - URL起動時に `upperWarmupBars` を復元する。
+- 同期縦線の方針を維持。
+  - x座標同期ではなく時刻同期。
+  - 対象時刻がパネル表示範囲外の場合は、描画せずエラーにしない。
+- 先生ガード:
+  - 今回は上位足文脈表示のウォームアップのみ。
+  - Dow trend / Entry / Simulation の自動判定はまだ行わない。
+  - 未来側には拡張しない。
+
+## v0.8.2 - 2026-07-05
+
+- Saved HSI Annotation Sidecar / HSI仮説線保存を追加。
+  - 未保存の現在HSI起点を右クリックすると、現在のHSI仮説をSidecar JSONへ保存できる。
+  - 保存済みHSI起点を右クリックすると、保存HSIを削除できる。
+  - `保存HSI表示ON/OFF` ボタンを追加。
+- 保存先は既存のコメントSidecar JSON内の `hsi_annotations[]`。
+  - 初期段階では `fx_usdjpy_m5_t3_data_v0_1.chart_comments.json` にコメントと言葉の仮説、保存HSIという図形の仮説を同居させる。
+  - 将来は `chart_annotations.json` へ整理可能な構造に寄せる。
+- 一時HSIと保存HSIの見た目を分離。
+  - 一時HSI: 従来どおり強めの赤ライン。
+  - 保存HSI: 薄めの黄色点線 + ◆/S マーカー。
+- 先生ガード:
+  - 保存HSIは人間が残した図形の仮説。
+  - Dow trend / Entry / Simulation の自動判定はまだ行わない。
+
 ## v0.8.0.1 - 2026-07-05
 
 - コメントSidecar JSONの実ファイル保存API連携を修正。
