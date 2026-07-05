@@ -1,0 +1,23 @@
+{
+  "schema_version": "studio_plugin_manifest_v0_1",
+  "id": "gpt_fx_lab.fx_chart_viewer",
+  "caption": "GPT FX Lab / T3 + Dow Structure Decision Static Chart Viewer",
+  "kind": "action_plugin",
+  "entry": "plugin.js",
+  "actions": [
+    "OpenFxT3Chart"
+  ],
+  "scope": "gpt_fx_lab overlay only",
+  "core_change": false,
+  "description": "USDJPY M5最新1000件ProjectionからClose/MA20/T3を静的Canvasチャートで表示する。T3クロス▲▼は表示せず、Dow判定の▲▼表示にフィボナッチ閾値(例:89pt)を使わない。未来を見ないHH+HL/LL+LH連続構造マーカーと横幅拡大・横スクロールに対応する。",
+  "version": "v0.5-dow-structure-marker-scroll",
+  "signal_policy": {
+    "visible_marker": "dow_structure_decision_marker",
+    "hidden_marker": "t3_cross",
+    "no_lookahead": true,
+    "fibonacci_threshold_used_for_dow_marker": false,
+    "confirmation_bars_default": 3,
+    "scroll_support": true,
+    "wide_mode_support": true
+  }
+}

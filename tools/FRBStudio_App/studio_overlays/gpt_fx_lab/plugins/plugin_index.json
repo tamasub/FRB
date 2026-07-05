@@ -1,0 +1,11 @@
+{
+  "schema_version": "studio_plugin_index_v0_1",
+  "plugins": [
+    {
+      "id": "gpt_fx_lab.fx_chart_viewer",
+      "caption": "GPT FX Lab / T3 Static Chart Viewer",
+      "enabled": true,
+      "manifest": "plugins/fx_chart_viewer/plugin.json"
+    }
+  ]
+}

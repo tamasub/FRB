@@ -1,0 +1,930 @@
+{
+  "app": {
+    "name": "No-Code JSON Studio",
+    "version": "fx-usdjpy-m5-t3-view-v0.5-dow-structure-marker-scroll"
+  },
+  "currentDataDisplay": {
+    "titlePath": "$.title",
+    "subtitlePath": "$.timeframe_label",
+    "showDataPath": true
+  },
+  "views": [
+    {
+      "id": "fx_usdjpy_m5_t3_view",
+      "caption": "USDJPY M5 / GPT FX Lab View with T3（最新1000件 + チャート）",
+      "layout": "header-search-grid-detail",
+      "toolbar": {
+        "executeButton": {
+          "visible": true,
+          "caption": "Dow判断チャート表示",
+          "action": "OpenFxT3Chart"
+        }
+      },
+      "markdown": {
+        "enabled": true,
+        "type": "generic_sections",
+        "title": "USDJPY M5 FX Demo Report with T3（latest 1000 projection）",
+        "defaultFileName": "fx_usdjpy_m5_t3_report.md",
+        "sections": [
+          {
+            "title": "基本情報",
+            "source": "header",
+            "format": "detailList",
+            "fields": [
+              {
+                "field": "title",
+                "caption": "タイトル"
+              },
+              {
+                "field": "symbol",
+                "caption": "通貨ペア"
+              },
+              {
+                "field": "timeframe_label",
+                "caption": "時間足"
+              },
+              {
+                "field": "row_count",
+                "caption": "全件数"
+              },
+              {
+                "field": "display_row_count",
+                "caption": "表示件数"
+              },
+              {
+                "field": "display_date_from",
+                "caption": "表示開始"
+              },
+              {
+                "field": "display_date_to",
+                "caption": "表示終了"
+              },
+              {
+                "field": "display_policy_label",
+                "caption": "表示方針"
+              },
+              {
+                "field": "date_from",
+                "caption": "開始日"
+              },
+              {
+                "field": "date_to",
+                "caption": "終了日"
+              },
+              {
+                "field": "conversion_note",
+                "caption": "変換メモ",
+                "format": "paragraph"
+              }
+            ]
+          },
+          {
+            "title": "表示中バー（最新1000件）",
+            "source": "grid",
+            "format": "table",
+            "fields": [
+              {
+                "field": "date",
+                "caption": "日付"
+              },
+              {
+                "field": "open",
+                "caption": "始値"
+              },
+              {
+                "field": "high",
+                "caption": "高値"
+              },
+              {
+                "field": "low",
+                "caption": "安値"
+              },
+              {
+                "field": "close",
+                "caption": "終値"
+              },
+              {
+                "field": "ma5",
+                "caption": "MA5"
+              },
+              {
+                "field": "ma20",
+                "caption": "MA20"
+              },
+              {
+                "field": "direction",
+                "caption": "方向"
+              },
+              {
+                "field": "time",
+                "caption": "時刻"
+              },
+              {
+                "field": "t3_20_0_2",
+                "caption": "T3(20,0.2)"
+              },
+              {
+                "field": "t3_direction",
+                "caption": "T3方向"
+              },
+              {
+                "field": "close_t3_diff",
+                "caption": "Close-T3"
+              },
+              {
+                "field": "close_t3_position",
+                "caption": "Close位置"
+              },
+              {
+                "field": "t3_cross",
+                "caption": "T3クロス"
+              }
+            ]
+          }
+        ]
+      },
+      "sections": [
+        {
+          "id": "header",
+          "caption": "基本情報",
+          "type": "form",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 240
+              },
+              "readonly": true,
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "overlay_id",
+              "caption": "Overlay",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 120
+              },
+              "readonly": true,
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "symbol",
+              "caption": "通貨ペア",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 100
+              },
+              "readonly": true,
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "timeframe_label",
+              "caption": "時間足",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 160
+              },
+              "readonly": true,
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "row_count",
+              "caption": "全件数",
+              "type": "number",
+              "grid": {
+                "visible": false,
+                "width": 90,
+                "format": "#,##0"
+              },
+              "readonly": true,
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "format": "#,##0"
+              },
+              "format": "#,##0"
+            },
+            {
+              "field": "display_row_count",
+              "caption": "表示件数",
+              "type": "number",
+              "grid": {
+                "visible": false,
+                "width": 90,
+                "format": "#,##0"
+              },
+              "readonly": true,
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "format": "#,##0"
+              },
+              "format": "#,##0"
+            },
+            {
+              "field": "display_date_from",
+              "caption": "表示開始",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 160
+              },
+              "readonly": true,
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "display_date_to",
+              "caption": "表示終了",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 160
+              },
+              "readonly": true,
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "display_policy_label",
+              "caption": "表示方針",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 260
+              },
+              "readonly": true,
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "date_from",
+              "caption": "開始日",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 110
+              },
+              "readonly": true,
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "date_to",
+              "caption": "終了日",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 110
+              },
+              "readonly": true,
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "source_file",
+              "caption": "元CSV",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 180
+              },
+              "readonly": true,
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "conversion_note",
+              "caption": "変換メモ",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 360
+              },
+              "readonly": true,
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 150
+              }
+            },
+            {
+              "field": "display_policy_note",
+              "caption": "表示方針メモ",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 460
+              },
+              "readonly": true,
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 90
+              }
+            },
+            {
+              "field": "chart_profiles",
+              "caption": "チャート候補",
+              "type": "objectArray",
+              "grid": {
+                "visible": false,
+                "width": 160
+              },
+              "readonly": true,
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "bars",
+          "caption": "M5 OHLCVバー一覧 + T3（最新1000件）",
+          "type": "grid",
+          "dataPath": "$.display_sets.grid_latest_1000",
+          "keyField": "row_no",
+          "markdown": {
+            "aiPrompt": {
+              "enabled": true,
+              "title": "FX M5 T3チャートView検討プロンプト（最新1000件）",
+              "targetFile": "fx_usdjpy_m5_t3_data_v0_1.json",
+              "rowSource": "filtered",
+              "visibleOnly": true,
+              "includeGridJson": true,
+              "template": [
+                "以下はStudioくんで表示中のUSDJPY M5 OHLCVバーです。",
+                "表示対象は gpt_fx_lab Overlay側Projectionの最新1000件です（全件JSONは $.bars に保持）。",
+                "このデータをもとに、人間フレンドリーな静的チャート/オーバーレイ表示案を提案してください。",
+                "",
+                "観点:",
+                "- JSON Dataを壊さずViewDef/PluginPanelDefで見方を変える",
+                "- close / ma5 / ma20 / T3(20,0.2) のオーバーレイを優先する",
+                "- T3方向・CloseとT3の位置関係・クロス候補を売買ルール検討の入口として見る",
+                "- FX専用Runtimeではなく汎用Chart Plugin候補として考える",
+                "",
+                "TSV:"
+              ]
+            }
+          },
+          "fields": [
+            {
+              "field": "row_no",
+              "caption": "No",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 70,
+                "format": "#,##0"
+              },
+              "readonly": true,
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "format": "#,##0"
+              },
+              "format": "#,##0"
+            },
+            {
+              "field": "date",
+              "caption": "日付",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 105
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "time",
+              "caption": "時刻",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 70
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "datetime",
+              "caption": "日時",
+              "type": "datetime",
+              "grid": {
+                "visible": false,
+                "width": 160
+              },
+              "readonly": true,
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "open",
+              "caption": "始値",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 90,
+                "format": "0.000"
+              },
+              "edit": {
+                "visible": true,
+                "format": "0.000"
+              },
+              "format": "0.000"
+            },
+            {
+              "field": "high",
+              "caption": "高値",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 90,
+                "format": "0.000"
+              },
+              "edit": {
+                "visible": true,
+                "format": "0.000"
+              },
+              "format": "0.000"
+            },
+            {
+              "field": "low",
+              "caption": "安値",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 90,
+                "format": "0.000"
+              },
+              "edit": {
+                "visible": true,
+                "format": "0.000"
+              },
+              "format": "0.000"
+            },
+            {
+              "field": "close",
+              "caption": "終値",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 90,
+                "format": "0.000"
+              },
+              "edit": {
+                "visible": true,
+                "format": "0.000"
+              },
+              "search": {
+                "visible": true,
+                "operator": "gte"
+              },
+              "format": "0.000"
+            },
+            {
+              "field": "volume",
+              "caption": "出来高",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 100,
+                "format": "#,##0"
+              },
+              "edit": {
+                "visible": true,
+                "format": "#,##0"
+              },
+              "format": "#,##0"
+            },
+            {
+              "field": "change",
+              "caption": "変化幅",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 90,
+                "format": "0.000"
+              },
+              "readonly": true,
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "format": "0.000"
+              },
+              "format": "0.000"
+            },
+            {
+              "field": "change_pct",
+              "caption": "変化率%",
+              "type": "number",
+              "grid": {
+                "visible": false,
+                "width": 90,
+                "format": "0.0000"
+              },
+              "readonly": true,
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "format": "0.0000"
+              },
+              "format": "0.0000"
+            },
+            {
+              "field": "range",
+              "caption": "値幅",
+              "type": "number",
+              "grid": {
+                "visible": false,
+                "width": 90,
+                "format": "0.000"
+              },
+              "readonly": true,
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "format": "0.000"
+              },
+              "format": "0.000"
+            },
+            {
+              "field": "body",
+              "caption": "実体幅",
+              "type": "number",
+              "grid": {
+                "visible": false,
+                "width": 90,
+                "format": "0.000"
+              },
+              "readonly": true,
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "format": "0.000"
+              },
+              "format": "0.000"
+            },
+            {
+              "field": "direction",
+              "caption": "方向",
+              "type": "select",
+              "grid": {
+                "visible": true,
+                "width": 80
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              },
+              "options": [
+                {
+                  "cd": "up",
+                  "name": "上昇"
+                },
+                {
+                  "cd": "down",
+                  "name": "下落"
+                },
+                {
+                  "cd": "flat",
+                  "name": "横ばい"
+                }
+              ]
+            },
+            {
+              "field": "ma5",
+              "caption": "MA5",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 90,
+                "format": "0.000"
+              },
+              "readonly": true,
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "format": "0.000"
+              },
+              "format": "0.000"
+            },
+            {
+              "field": "ma20",
+              "caption": "MA20",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 90,
+                "format": "0.000"
+              },
+              "readonly": true,
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "format": "0.000"
+              },
+              "format": "0.000"
+            },
+            {
+              "field": "t3_20_0_2",
+              "caption": "T3(20,0.2)",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 115,
+                "format": "0.000"
+              },
+              "readonly": true,
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "format": "0.000"
+              },
+              "format": "0.000"
+            },
+            {
+              "field": "t3_slope",
+              "caption": "T3傾き",
+              "type": "number",
+              "grid": {
+                "visible": false,
+                "width": 90,
+                "format": "0.0000"
+              },
+              "readonly": true,
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "format": "0.0000"
+              },
+              "format": "0.0000"
+            },
+            {
+              "field": "t3_direction",
+              "caption": "T3方向",
+              "type": "select",
+              "grid": {
+                "visible": true,
+                "width": 90
+              },
+              "readonly": true,
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              },
+              "options": [
+                {
+                  "cd": "",
+                  "name": "未判定"
+                },
+                {
+                  "cd": "up",
+                  "name": "上向き"
+                },
+                {
+                  "cd": "down",
+                  "name": "下向き"
+                },
+                {
+                  "cd": "flat",
+                  "name": "横ばい"
+                }
+              ]
+            },
+            {
+              "field": "close_t3_diff",
+              "caption": "Close-T3",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 95,
+                "format": "0.000"
+              },
+              "readonly": true,
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "format": "0.000"
+              },
+              "format": "0.000"
+            },
+            {
+              "field": "close_t3_position",
+              "caption": "Close位置",
+              "type": "select",
+              "grid": {
+                "visible": true,
+                "width": 95
+              },
+              "readonly": true,
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              },
+              "options": [
+                {
+                  "cd": "",
+                  "name": "未判定"
+                },
+                {
+                  "cd": "above",
+                  "name": "T3上"
+                },
+                {
+                  "cd": "below",
+                  "name": "T3下"
+                },
+                {
+                  "cd": "on",
+                  "name": "T3同値"
+                }
+              ]
+            },
+            {
+              "field": "t3_cross",
+              "caption": "T3クロス",
+              "type": "select",
+              "grid": {
+                "visible": true,
+                "width": 100
+              },
+              "readonly": true,
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              },
+              "options": [
+                {
+                  "cd": "",
+                  "name": "なし"
+                },
+                {
+                  "cd": "cross_up",
+                  "name": "上抜け"
+                },
+                {
+                  "cd": "cross_down",
+                  "name": "下抜け"
+                }
+              ]
+            },
+            {
+              "field": "t3_ready",
+              "caption": "T3有効",
+              "type": "boolean",
+              "grid": {
+                "visible": false,
+                "width": 80
+              },
+              "readonly": true,
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            }
+          ]
+        }
+      ],
+      "chartPanels": [
+        {
+          "panel_id": "fx_close_ma_t3_overlay",
+          "caption": "Close + MA5 + MA20 + T3",
+          "type": "plugin_panel",
+          "plugin": "gpt_fx_lab.fx_chart_viewer",
+          "data_path": "$.display_sets.chart_latest_1000",
+          "x": "datetime",
+          "layers": [
+            {
+              "layer_id": "close",
+              "type": "line",
+              "field": "close",
+              "caption": "Close"
+            },
+            {
+              "layer_id": "ma5",
+              "type": "line",
+              "field": "ma5",
+              "caption": "MA5"
+            },
+            {
+              "layer_id": "ma20",
+              "type": "line",
+              "field": "ma20",
+              "caption": "MA20"
+            },
+            {
+              "layer_id": "t3_20_0_2",
+              "type": "line",
+              "field": "t3_20_0_2",
+              "caption": "T3(20,0.2)"
+            }
+          ],
+          "status": "implemented_v0_5_overlay_action_modal",
+          "projection": "chart_latest_1000",
+          "note": "v0.5: OpenFxT3Chart Actionで、Overlay Plugin内の静的Canvasチャートとして表示する。Core本体は変更しない。横幅拡大・横スクロールに対応。"
+        },
+        {
+          "panel_id": "fx_t3_cross_marker",
+          "caption": "T3 Cross Marker Candidate",
+          "type": "plugin_panel",
+          "plugin": "gpt_fx_lab.fx_chart_viewer",
+          "data_path": "$.display_sets.chart_latest_1000",
+          "x": "datetime",
+          "price": "close",
+          "signal": "t3_cross",
+          "status": "implemented_v0_5_overlay_action_modal",
+          "projection": "chart_latest_1000",
+          "note": "v0.5: T3クロス▲▼は表示しない。Dow判定の▲▼には89pt等のFib閾値を使わず、未来を見ないHH+HL/LL+LH連続構造マーカーだけを表示する。"
+        }
+      ],
+      "context": {
+        "overlay_id": "gpt_fx_lab",
+        "display_projection": {
+          "enabled": true,
+          "raw_data_path": "$.bars",
+          "grid_data_path": "$.display_sets.grid_latest_1000",
+          "chart_data_path": "$.display_sets.chart_latest_1000",
+          "core_change": false
+        },
+        "chart_viewer": {
+          "enabled": true,
+          "action_id": "OpenFxT3Chart",
+          "plugin": "gpt_fx_lab.fx_chart_viewer",
+          "data_path": "$.display_sets.chart_latest_1000",
+          "series": [
+            "close",
+            "ma20",
+            "t3_20_0_2"
+          ],
+          "signal": "t3_cross",
+          "core_change": false
+        }
+      }
+    }
+  ]
+}
