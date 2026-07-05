@@ -7,8 +7,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
-import assert from 'node:assert/strict';
-import { isDeepStrictEqual } from 'node:util';
+import { buildExpectedChecks, toDisplayValue } from './lib/responsibility_expected_compare_strategies.mjs';
 
 const root = process.cwd();
 const standardTestDataPath = 'data/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/responsibility_expected_test_patterns_data_v0_1.json';
@@ -141,10 +140,6 @@ function runPattern(pattern, api) {
   }
 }
 
-function toDisplayValue(value) {
-  if (typeof value === 'string') return value;
-  return JSON.stringify(value);
-}
 
 function ensureDirFor(relOrAbsPath) {
   fs.mkdirSync(path.dirname(rootPath(relOrAbsPath)), { recursive: true });
@@ -154,39 +149,6 @@ function writeJson(relOrAbsPath, value) {
   ensureDirFor(relOrAbsPath);
   fs.writeFileSync(rootPath(relOrAbsPath), `${JSON.stringify(value, null, 2)}
 `, 'utf8');
-}
-
-function buildChecks(pattern, actual) {
-  const expected = pattern.expected ?? {};
-  return Object.entries(expected).map(([key, expectedValue]) => {
-    const actualValue = actual?.[key];
-    const pass = isDeepStrictEqual(actualValue, expectedValue);
-    return {
-      check_id: `${pattern.test_pattern_id}.${key}`,
-      name: key,
-      target: key,
-      type: 'deepEqual',
-      responsibility_cd: pattern.responsibility_cd,
-      test_pattern_id: pattern.test_pattern_id,
-      expected: toDisplayValue(expectedValue),
-      actual: toDisplayValue(actualValue),
-      expected_raw: expectedValue,
-      actual_raw: actualValue,
-      pass,
-      message: pass ? 'OK' : `${key} failed: expected ${toDisplayValue(expectedValue)}, actual ${toDisplayValue(actualValue)}`
-    };
-  });
-}
-
-function assertExpected(pattern, actual) {
-  const expected = pattern.expected ?? {};
-  for (const [key, expectedValue] of Object.entries(expected)) {
-    assert.deepEqual(
-      actual[key],
-      expectedValue,
-      `${pattern.test_pattern_id}: expected ${key}`
-    );
-  }
 }
 
 function main() {
@@ -213,11 +175,20 @@ function main() {
         source: 'tests/responsibilities/responsibility_expected_tests.mjs'
       });
 
-      const patternChecks = buildChecks(pattern, actual);
+      const patternChecks = buildExpectedChecks(pattern, actual);
       checks.push(...patternChecks);
-      assertExpected(pattern, actual);
-      passed += 1;
-      console.log(`PASS ${pattern.test_pattern_id}`);
+
+      const failedPatternChecks = patternChecks.filter(check => check.pass !== true);
+      if (failedPatternChecks.length) {
+        failures.push({ pattern, failedChecks: failedPatternChecks });
+        console.error(`FAIL ${pattern.test_pattern_id}`);
+        for (const check of failedPatternChecks) {
+          console.error(`  - ${check.check_id}: ${check.message}`);
+        }
+      } else {
+        passed += 1;
+        console.log(`PASS ${pattern.test_pattern_id}`);
+      }
     } catch (err) {
       const errorActual = {
         error_name: err?.name ?? 'Error',
@@ -310,7 +281,7 @@ function main() {
   console.log(`actual: ${actualOutputPath}`);
   console.log(`diff:   ${diffOutputPath}`);
 
-  if (failures.length) {
+  if (failedChecks.length) {
     process.exitCode = 1;
   }
 }
