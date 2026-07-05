@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "No-Code JSON Studio",
-    "version": "fx-usdjpy-m5-t3-view-v0.5-dow-structure-marker-scroll"
+    "version": "fx-usdjpy-m5-t3-view-v0.6-dow-basis-point-adjustable"
   },
   "currentDataDisplay": {
     "titlePath": "$.title",
@@ -11,12 +11,12 @@
   "views": [
     {
       "id": "fx_usdjpy_m5_t3_view",
-      "caption": "USDJPY M5 / GPT FX Lab View with T3（最新1000件 + チャート）",
+      "caption": "USDJPY M5 / GPT FX Lab View with T3（最新1000件 + Dow基準点チャート）",
       "layout": "header-search-grid-detail",
       "toolbar": {
         "executeButton": {
           "visible": true,
-          "caption": "Dow判断チャート表示",
+          "caption": "Dow基準点チャート表示",
           "action": "OpenFxT3Chart"
         }
       },
@@ -385,15 +385,14 @@
               "visibleOnly": true,
               "includeGridJson": true,
               "template": [
-                "以下はStudioくんで表示中のUSDJPY M5 OHLCVバーです。",
-                "表示対象は gpt_fx_lab Overlay側Projectionの最新1000件です（全件JSONは $.bars に保持）。",
-                "このデータをもとに、人間フレンドリーな静的チャート/オーバーレイ表示案を提案してください。",
+                "以下はStudioくんで表示中のUSDJPY M5 OHLCVバー最新1000件Projectionです。",
+                "このデータをもとに、ダウ理論の前提材料となる基準点(高値/安値候補)の抽出条件を検討してください。",
                 "",
                 "観点:",
-                "- JSON Dataを壊さずViewDef/PluginPanelDefで見方を変える",
-                "- close / ma5 / ma20 / T3(20,0.2) のオーバーレイを優先する",
-                "- T3方向・CloseとT3の位置関係・クロス候補を売買ルール検討の入口として見る",
-                "- FX専用Runtimeではなく汎用Chart Plugin候補として考える",
+                "- 未来を見ない: 古い足から順に走査し、その時点で確定できた材料点だけを扱う",
+                "- 一度確定した点は削除・移動・上書きしない",
+                "- Fib/point閾値(55/89/144...)はEntry候補用であり、基準点抽出には使わない",
+                "- Confirm barsを変えたときに、点が敏感すぎる/鈍すぎるかを観察する",
                 "",
                 "TSV:"
               ]

@@ -1,7 +1,6 @@
 {
-  "view_def": "fx/fx_usdjpy_1440_view_def_v0_1.json",
+  "view_def": "overlay/gpt_fx_lab/view_defs/fx_usdjpy_t3_view_def_v0_1.json",
   "schema_version": "fx_ohlcv_data_v0_1",
-  "view_def":"studio_overlays/gpt_fx_lab/view_defs/fx_usdjpy_t3_view_def_v0_1.json",
   "document_type": "fx_ohlcv_data",
   "domain": "fx_demo",
   "title": "USDJPY 1440 OHLCV Demo Data",

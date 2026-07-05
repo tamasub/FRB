@@ -33,7 +33,7 @@
   "plugin_index_files": [
     "plugins/plugin_index.json"
   ],
-  "notes": "v0.5: Core本体は変更せず、gpt_fx_lab Overlay Plugin内でT3クロス▲▼を非表示化。Dow判定の▲▼には89pt等のFib閾値を使わず、未来を見ないHH+HL/LL+LH連続構造マーカーを表示。横幅拡大・横スクロール対応。",
+  "notes": "v0.8.0.1: コメントSidecarの実ファイル保存API連携と、コメント時刻NaN表示を修正。",
   "display_projection_policy": {
     "enabled": true,
     "scope": "gpt_fx_lab overlay only",
@@ -50,20 +50,189 @@
     "series": [
       "close",
       "ma20",
-      "t3_20_0_2"
+      "t3_20_0_2",
+      "bollinger_upper",
+      "bollinger_lower"
     ],
-    "signal": "dow_structure_decision_marker",
+    "signal": "candidate_basis_retired_circle_marker",
     "core_change": false,
     "hidden_signal": "t3_cross",
     "no_lookahead": true,
-    "dow_decision_settings": {
-      "method": "no_lookahead_consecutive_hh_hl_ll_lh",
-      "confirmation_bars_default": 3,
-      "threshold_enabled": false,
-      "description": "後から確定するZigZag線ではなく、その足時点で判断できた構造変化点だけを▲▼表示する。89pt等のFib/point閾値はEntryシミュレーション用であり、Dow判定マーカー表示には使わない。"
-    },
     "fibonacci_threshold_used_for_dow_marker": false,
     "scroll_support": true,
-    "wide_mode_support": true
-  }
+    "wide_mode_support": true,
+    "removed_signal": "dow_structure_decision_arrow_marker",
+    "fibonacci_threshold_used_for_dow_basis_point": false,
+    "basis_point_settings": {
+      "method": "no_lookahead_center_window_extreme_locked_points",
+      "confirm_bars_default": 10,
+      "confirm_bars_user_editable": true,
+      "threshold_enabled": false,
+      "locked_point_policy": "confirmed_points_are_never_modified_within_one_extraction_run",
+      "description": "過去から現在へ一方向に走査し、直近confirm_bars本の中央付近がwindow内の一意な高値/安値であればCandidateとする。CandidateからActive basis / Retired basisを構成し、判断履歴を消さずに観測できるようにする。Highはhigh、Lowはlowで判定し、Closeは表示系列として扱う。v0.7.3では判定ロジックに触れず、High/Lowレンジ表示で点の根拠を見やすくする。",
+      "confirm_bars_presets": [
+        10,
+        15,
+        20,
+        30
+      ],
+      "price_source_for_high": "high",
+      "price_source_for_low": "low",
+      "close_used_for_basis_point_extraction": false,
+      "candidate_basis_retired_layers": true,
+      "high_low_range_support": true,
+      "trend_decision_enabled": false,
+      "entry_simulation_enabled": false
+    },
+    "trend_decision_enabled": false,
+    "entry_simulation_enabled": false,
+    "high_color_family": "green",
+    "low_color_family": "red",
+    "price_source_for_high": "high",
+    "price_source_for_low": "low",
+    "close_used_for_basis_point_extraction": false,
+    "confirm_bars_presets": [
+      10,
+      15,
+      20,
+      30
+    ],
+    "high_low_range_support": true,
+    "high_low_range_default_visible": true,
+    "bollinger_bands_support": true,
+    "bollinger_bands_settings": {
+      "period": 20,
+      "deviations": 2.0,
+      "shift": 0,
+      "source": "close",
+      "default_visible": false,
+      "used_for_basis_point_extraction": false
+    },
+    "url_chart_state_support": true,
+    "url_chart_state_params": {
+      "action": "fx_chart",
+      "confirmBars": "10 / 15 / 20 / 30 etc.",
+      "viewMode": "basis_only / basis_history / all",
+      "hlRange": "1/0",
+      "bb": "1/0",
+      "wide": "1/0"
+    },
+    "url_chart_state_copy_support": true,
+    "url_chart_state_copy_params": [
+      "action",
+      "confirmBars",
+      "viewMode",
+      "hlRange",
+      "bb",
+      "wide"
+    ],
+    "fixed_maximize_button": {
+      "caption": "□",
+      "position": "chart modal top-right",
+      "action": "toggle-wide"
+    },
+    "manual_hsi_lines_support": true,
+    "manual_hsi_lines": {
+      "default_values": "55,89,144,188",
+      "default_scale": 1,
+      "used_for_basis_point_extraction": false,
+      "used_for_entry_decision": false,
+      "purpose": "Manual anchor hypothesis visualization",
+      "scale_step": 1,
+      "json_default_support": true,
+      "scale_input_size": {
+        "width_px": 86,
+        "min_height_px": 26
+      },
+      "scale_step_buttons": {
+        "enabled": true,
+        "uses_scale_step": true
+      }
+    },
+    "confirm_bars_default": 20,
+    "confirm_bars_url_param_guard": "When confirmBars is absent/blank, use JSON default instead of 3.",
+    "window_navigation": {
+      "enabled": true,
+      "default_size": 1000,
+      "min_size": 100,
+      "url_params": [
+        "windowStart",
+        "windowSize"
+      ],
+      "hsi_anchor_policy": "clear_on_window_change"
+    },
+    "upper_timeframe_panel": {
+      "enabled": true,
+      "default_timeframe": "H1",
+      "switchable_timeframes": [
+        "H1",
+        "H4"
+      ],
+      "default_confirm_bars": 7,
+      "source": "aggregate_from_m5",
+      "sync_policy": "timestamp_shared_vertical_line",
+      "basis_points": "recalculate_on_upper_timeframe",
+      "teacher_guard": "observation_only_no_entry_signal"
+    },
+    "wide_upper_panel_fix": {
+      "enabled": true,
+      "draw_width_policy": "visible_width",
+      "reason": "left and right panels must be visible together for upper timeframe context observation",
+      "teacher_guard": "layout_only_no_entry_signal"
+    },
+    "url_launch_fix": {
+      "enabled": true,
+      "copy_includes": [
+        "data",
+        "view",
+        "action",
+        "chart_state"
+      ],
+      "default_data": "overlay/gpt_fx_lab/data/fx_usdjpy_m5_t3_data_v0_1.json",
+      "default_view": "overlay/gpt_fx_lab/view_defs/fx_usdjpy_t3_view_def_v0_1.json",
+      "action_aliases": [
+        "fx_chart",
+        "OpenFxT3Chart",
+        "OpenFxChartViewer",
+        "FxT3Chart",
+        "gpt_fx_lab.fx_chart"
+      ],
+      "fallback_for_old_urls_without_data": true,
+      "teacher_guard": "url_replay_only_no_entry_signal"
+    },
+    "hsi_anchor_scale_label": {
+      "enabled": true,
+      "label": "倍率: X",
+      "reason": "HSI scale is an important observation condition for future review and AI communication.",
+      "teacher_guard": "layout_label_only_no_entry_signal"
+    },
+    "hsi_anchor_label_direction": {
+      "enabled": true,
+      "up_direction": "below_anchor",
+      "down_direction": "above_anchor",
+      "reason": "The anchor label should not hide the HSI line direction being evaluated.",
+      "teacher_guard": "layout_label_only_no_entry_signal"
+    },
+    "chart_comment_sidecar": {
+      "enabled": true,
+      "file": "sidecars/fx_usdjpy_m5_t3_data_v0_1.chart_comments.json",
+      "storage_policy": "sidecar_json_not_data_json",
+      "ui": "comment mode + marker + tooltip/popover edit",
+      "chart_state_saved": true,
+      "identity_policy": "time_price_symbol_timeframe_with_x_index_hint",
+      "teacher_guard": "observation_only_no_entry_signal"
+    },
+    "chart_comment_sidecar_save_fix": {
+      "enabled": true,
+      "api_path": "/api/overlays/{overlayId}/sidecars/{file}",
+      "save_target": "studio_overlays/gpt_fx_lab/sidecars/*.chart_comments.json",
+      "reason": "OverlayのSidecar JSONはdata/jsonではなくstudio_overlays配下へ保存する必要があるため。",
+      "teacher_guard": "comment sidecar storage only; no entry signal."
+    }
+  },
+  "changelog_file": "CHANGELOG.md",
+  "current_fx_chart_viewer_version": "v0.8.0.1-chart-comment-sidecar-save-fix",
+  "sidecar_files": [
+    "sidecars/fx_usdjpy_m5_t3_data_v0_1.chart_comments.json"
+  ]
 }

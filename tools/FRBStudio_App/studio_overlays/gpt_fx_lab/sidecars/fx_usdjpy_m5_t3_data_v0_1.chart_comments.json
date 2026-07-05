@@ -1,0 +1,19 @@
+{
+  "schema_version": "0.1",
+  "kind": "fx_chart_comment_sidecar",
+  "target": {
+    "symbol": "USDJPY",
+    "timeframe": "M5",
+    "data_path_hint": "overlay/gpt_fx_lab/data/fx_usdjpy_m5_t3_data_v0_1.json",
+    "sidecar_path_hint": "studio_overlays/gpt_fx_lab/sidecars/fx_usdjpy_m5_t3_data_v0_1.chart_comments.json"
+  },
+  "display_policy": {
+    "default_visible": true,
+    "default_open": false,
+    "interaction": "comment mode click adds a comment; marker click opens tooltip/popover; edit is inline in popover",
+    "teacher_guard": "observation memo only; no trend/entry/simulation logic"
+  },
+  "comments": [],
+  "_loaded_from": "localStorage",
+  "updated_at": "2026-07-05T22:30:03"
+}

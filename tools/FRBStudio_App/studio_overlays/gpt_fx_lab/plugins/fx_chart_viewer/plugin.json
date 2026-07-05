@@ -1,7 +1,7 @@
 {
   "schema_version": "studio_plugin_manifest_v0_1",
   "id": "gpt_fx_lab.fx_chart_viewer",
-  "caption": "GPT FX Lab / T3 + Dow Structure Decision Static Chart Viewer",
+  "caption": "GPT FX Lab / Dow Candidate-Basis-History Static Chart Viewer",
   "kind": "action_plugin",
   "entry": "plugin.js",
   "actions": [
@@ -9,15 +9,233 @@
   ],
   "scope": "gpt_fx_lab overlay only",
   "core_change": false,
-  "description": "USDJPY M5最新1000件ProjectionからClose/MA20/T3を静的Canvasチャートで表示する。T3クロス▲▼は表示せず、Dow判定の▲▼表示にフィボナッチ閾値(例:89pt)を使わない。未来を見ないHH+HL/LL+LH連続構造マーカーと横幅拡大・横スクロールに対応する。",
-  "version": "v0.5-dow-structure-marker-scroll",
+  "description": "USDJPY M5チャートViewer。チャートコメントSidecarの実ファイル保存API連携と、コメント時刻NaN表示を修正。",
+  "version": "v0.8.0.1-chart-comment-sidecar-save-fix",
   "signal_policy": {
-    "visible_marker": "dow_structure_decision_marker",
+    "visible_marker": "candidate_basis_retired_circle_marker",
+    "removed_marker": "dow_structure_decision_arrow_marker",
     "hidden_marker": "t3_cross",
     "no_lookahead": true,
-    "fibonacci_threshold_used_for_dow_marker": false,
-    "confirmation_bars_default": 3,
+    "fibonacci_threshold_used_for_dow_basis_point": false,
+    "confirm_bars_default": 20,
+    "confirm_bars_user_editable": true,
+    "locked_point_policy": "confirmed_points_are_never_modified_within_one_extraction_run",
     "scroll_support": true,
-    "wide_mode_support": true
+    "wide_mode_support": true,
+    "high_color_family": "green",
+    "low_color_family": "red",
+    "price_source_for_high": "high",
+    "price_source_for_low": "low",
+    "close_used_for_basis_point_extraction": false,
+    "confirm_bars_presets": [
+      10,
+      15,
+      20,
+      30
+    ],
+    "high_low_range_support": true,
+    "high_low_range_default_visible": true,
+    "trend_decision_enabled": false,
+    "entry_simulation_enabled": false,
+    "bollinger_bands_support": true,
+    "bollinger_bands_default_visible": false,
+    "bollinger_bands_used_for_basis_point_extraction": false,
+    "url_chart_state_support": true,
+    "url_chart_state_copy_support": true,
+    "manual_hsi_lines_support": true,
+    "manual_hsi_lines_used_for_basis_point_extraction": false
+  },
+  "display_policy": {
+    "high_low_range_style": {
+      "stroke": "rgba(248,250,252,0.82)",
+      "line_dash": [
+        1.5,
+        2.0
+      ],
+      "line_width": 1.35,
+      "purpose": "Close線とBasis点の邪魔をしない範囲で、high/low判定根拠を見やすくする"
+    },
+    "bollinger_bands_style": {
+      "period": 20,
+      "deviations": 2.0,
+      "shift": 0,
+      "source": "close",
+      "default_visible": false,
+      "purpose": "観測補助表示。Dow材料点抽出には使わない"
+    },
+    "url_chart_state_params": {
+      "action": "fx_chart",
+      "confirmBars": "10 / 15 / 20 / 30 etc.",
+      "viewMode": "basis_only / basis_history / all",
+      "hlRange": "1/0",
+      "bb": "1/0",
+      "wide": "1/0",
+      "data": "overlay/gpt_fx_lab/data/fx_usdjpy_m5_t3_data_v0_1.json",
+      "view": "overlay/gpt_fx_lab/view_defs/fx_usdjpy_t3_view_def_v0_1.json"
+    },
+    "url_chart_state_copy": {
+      "button_caption": "URLコピー",
+      "copied_caption": "URLコピー済",
+      "params": [
+        "view",
+        "data",
+        "action",
+        "confirmBars",
+        "viewMode",
+        "hlRange",
+        "bb",
+        "wide"
+      ],
+      "purpose": "現在の観測状態をブックマーク・共有しやすくする"
+    },
+    "fixed_maximize_button": {
+      "caption": "□",
+      "position": "chart modal top-right",
+      "action": "toggle-wide",
+      "purpose": "横幅拡大が実質的な画面最大化操作になったため、人間フレンドリーなウィンドウ操作として右上固定にする"
+    },
+    "manual_hsi_lines": {
+      "default_values": "55,89,144,188",
+      "default_scale": 6,
+      "direction": "up",
+      "point_size_policy": "JPY pairs default to 0.001, otherwise 0.0001 unless source.point_size is provided",
+      "interaction": "click chart plot area to set anchor price, draw short horizontal lines at anchor +/- value*scale*point_size",
+      "url_params": [
+        "hsi",
+        "hsiScale",
+        "hsiDir",
+        "hsiAnchorPrice",
+        "hsiAnchorIndex"
+      ],
+      "purpose": "人間が置いた仮説起点から任意距離を可視化する観測補助。売買判定には使わない",
+      "scale_step": 1,
+      "json_default_support": true,
+      "json_default_paths": [
+        "plugin.json display_policy.manual_hsi_lines",
+        "source JSON hsi_settings",
+        "source JSON hsi_settings.manual_lines",
+        "source JSON strategy_settings.hsi"
+      ],
+      "scale_input_size": {
+        "width_px": 68,
+        "height_px": 30,
+        "step_button_width_px": 30,
+        "step_button_height_px": 18
+      },
+      "scale_step_buttons": {
+        "enabled": true,
+        "up_button": "▲",
+        "down_button": "▼",
+        "uses_scale_step": true,
+        "purpose": "ブラウザ標準numberスピナーが押しづらいため、倍率調整を人間フレンドリーにする"
+      }
+    },
+    "confirm_bars_default_support": {
+      "default": 20,
+      "json_paths": [
+        "plugin.json signal_policy.confirm_bars_default",
+        "source JSON dow_basis_point_settings.confirm_bars_default",
+        "source JSON chart_viewer_settings.confirm_bars_default"
+      ]
+    },
+    "confirm_bars_url_param_guard": {
+      "fixed": true,
+      "description": "confirmBars URLパラメータが未指定/空の場合はJSON初期値を使用する。未指定を3扱いしない。"
+    },
+    "window_navigation": {
+      "enabled": true,
+      "default_size": 1000,
+      "min_size": 100,
+      "buttons": [
+        "古い窓",
+        "新しい窓",
+        "ランダム窓",
+        "最新窓"
+      ],
+      "url_params": [
+        "windowStart",
+        "windowSize"
+      ],
+      "hsi_anchor_policy": "window change clears HSI anchor",
+      "purpose": "見たい相場だけを見る錯覚を避け、外れパターンを観測する"
+    },
+    "upper_timeframe_panel": {
+      "enabled": true,
+      "default_timeframe": "H1",
+      "switchable_timeframes": [
+        "H1",
+        "H4"
+      ],
+      "default_confirm_bars": 7,
+      "source": "M5 bars are aggregated internally",
+      "left_panel": "M5 lower timeframe observation",
+      "right_panel": "Upper timeframe context observation",
+      "sync_policy": "shared vertical line by timestamp, not by x coordinate",
+      "basis_points": "Candidate / Active Basis / Retired Basis are recalculated on aggregated upper timeframe rows",
+      "teacher_guard": "Trend / Entry / Simulation are not judged in this version"
+    },
+    "wide_upper_panel_fix": {
+      "enabled": true,
+      "reason": "In two-pane mode, upper timeframe panel must remain visible when the modal is maximized.",
+      "policy": "Use visible scroll area width for split panel drawing; do not multiply canvas width by widthMultiplier.",
+      "scroll_policy": "Reset horizontal scroll to 0 after redraw because the split layout no longer needs virtual horizontal expansion.",
+      "teacher_guard": "UI layout fix only; no trend/entry/simulation logic added."
+    },
+    "url_launch_fix": {
+      "enabled": true,
+      "reason": "Previously copied chart URLs stored chart state but did not include data/view, and Core did not execute action query parameters.",
+      "data_param_default": "overlay/gpt_fx_lab/data/fx_usdjpy_m5_t3_data_v0_1.json",
+      "view_param_default": "overlay/gpt_fx_lab/view_defs/fx_usdjpy_t3_view_def_v0_1.json",
+      "action_aliases": [
+        "fx_chart",
+        "OpenFxT3Chart",
+        "OpenFxChartViewer",
+        "FxT3Chart",
+        "gpt_fx_lab.fx_chart"
+      ],
+      "policy": "Plugin performs guarded URL launch after Studio data loading, and falls back to FX Lab default data for old URLs without data/view.",
+      "teacher_guard": "URL replay fix only; no trend/entry/simulation logic added."
+    },
+    "hsi_anchor_scale_label": {
+      "enabled": true,
+      "label": "倍率: X",
+      "purpose": "HSI値だけでなく、何倍の倍率で評価したかをスクショと観測ログ上で残す",
+      "note": "HSI values are constants; scale is the observation scale applied to the current market/timeframe context.",
+      "teacher_guard": "UI label only; no trend/entry/simulation logic added."
+    },
+    "hsi_anchor_label_direction": {
+      "enabled": true,
+      "up_direction": "Show HSI anchor label below the clicked anchor point.",
+      "down_direction": "Show HSI anchor label above the clicked anchor point.",
+      "purpose": "Keep the label from covering the HSI lines and future price area that the user is evaluating.",
+      "teacher_guard": "UI label position only; no trend/entry/simulation logic added."
+    },
+    "chart_comment_sidecar": {
+      "enabled": true,
+      "default_file": "fx_usdjpy_m5_t3_data_v0_1.chart_comments.json",
+      "directory": "studio_overlays/gpt_fx_lab/sidecars/",
+      "storage_policy": "separate sidecar JSON; do not write comments into the price data JSON",
+      "ui": [
+        "コメント追加ON/OFF",
+        "コメント表示ON/OFF",
+        "コメント全表示",
+        "コメント全閉じ",
+        "コメント保存"
+      ],
+      "annotation_marker": "small human comment icon on chart",
+      "popover": "click marker to show tooltip/popover; edit inline in popover",
+      "identity_policy": "time/price/symbol/timeframe are primary context; x_index_hint is only a display hint",
+      "chart_state_saved": true,
+      "save_policy": "try overlay/api/data save endpoints; fallback to localStorage when file save API is unavailable",
+      "teacher_guard": "observation memo only; no trend/entry/simulation logic added"
+    },
+    "chart_comment_sidecar_save_fix": {
+      "enabled": true,
+      "api_path": "/api/overlays/gpt_fx_lab/sidecars/{file}",
+      "save_target": "studio_overlays/gpt_fx_lab/sidecars/*.chart_comments.json",
+      "fallback": "localStorage is used only when the overlay sidecar save API fails",
+      "time_fix": "Comment time uses rowTimeMs(row) before formatRowDateTime to avoid NaN labels.",
+      "teacher_guard": "observation memo only; no trend/entry/simulation logic added."
+    }
   }
 }
