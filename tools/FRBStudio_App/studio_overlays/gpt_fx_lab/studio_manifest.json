@@ -134,7 +134,7 @@
     },
     "manual_hsi_lines_support": true,
     "manual_hsi_lines": {
-      "default_values": "55,89,144,188",
+      "default_values": "55,89,144,188,233,305,377",
       "default_scale": 1,
       "used_for_basis_point_extraction": false,
       "used_for_entry_decision": false,

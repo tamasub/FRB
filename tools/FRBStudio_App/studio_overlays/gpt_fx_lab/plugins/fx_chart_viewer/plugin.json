@@ -9,8 +9,8 @@
   ],
   "scope": "gpt_fx_lab overlay only",
   "core_change": false,
-  "description": "USDJPY M5チャートViewer。M5/上位足の両パネルで手動HSI起点、保存HSIの保存・削除、Sidecar保存を利用できる。",
-  "version": "v0.8.3.2-upper-hsi-save-delete",
+  "description": "USDJPY M5チャートViewer。M5/上位足の両パネルで手動HSI起点、保存HSI、R23_M=117観測線、左右同期の番号付き保存縦線を利用できる。右クリックメニューの操作ボタンはクリック後に自動で閉じる。上部メニューに近いコメントエディターは下方向へ逃がして入力欄を隠さない。",
+  "version": "v0.8.3.7-saved-vertical-marker",
   "signal_policy": {
     "visible_marker": "candidate_basis_retired_circle_marker",
     "removed_marker": "dow_structure_decision_arrow_marker",
@@ -57,7 +57,15 @@
     "upper_warmup_bars_future_extension": false,
     "manual_hsi_lines_upper_panel_support": true,
     "saved_hsi_annotations_upper_panel_support": true,
-    "saved_hsi_annotations_save_delete_support": true
+    "saved_hsi_annotations_save_delete_support": true,
+    "r23_mid_observation_line_support": true,
+    "r23_mid_observation_used_for_entry_decision": false,
+    "context_menu_action_auto_close": true,
+    "comment_popover_top_avoidance": true,
+    "saved_vertical_marker_support": true,
+    "saved_vertical_marker_left_right_sync": true,
+    "saved_vertical_marker_save_delete_support": true,
+    "saved_vertical_marker_used_for_entry_decision": false
   },
   "display_policy": {
     "high_low_range_style": {
@@ -111,11 +119,11 @@
       "purpose": "横幅拡大が実質的な画面最大化操作になったため、人間フレンドリーなウィンドウ操作として右上固定にする"
     },
     "manual_hsi_lines": {
-      "default_values": "55,89,144,188",
+      "default_values": "55,89,144,188,233,305,377",
       "default_scale": 6,
       "direction": "up",
       "point_size_policy": "JPY pairs default to 0.001, otherwise 0.0001 unless source.point_size is provided",
-      "interaction": "click chart plot area to set anchor price, draw short horizontal lines at anchor +/- value*scale*point_size",
+      "interaction": "right-click chart point to choose HSI anchor/comment; action menu auto-closes after operation; draw short horizontal lines at anchor +/- value*scale*point_size",
       "url_params": [
         "hsi",
         "hsiScale",
@@ -144,6 +152,22 @@
         "down_button": "▼",
         "uses_scale_step": true,
         "purpose": "ブラウザ標準numberスピナーが押しづらいため、倍率調整を人間フレンドリーにする"
+      },
+      "r23_mid_observation": {
+        "enabled": true,
+        "value": 117,
+        "label": "R23_M",
+        "definition": "R2=89 と R3=144 の中間観測点。89 + (144-89) * 0.5 = 116.5 ≒ 117。",
+        "style": {
+          "stroke": "rgba(248,250,252,0.82)",
+          "line_width": 0.9,
+          "line_dash": [
+            2,
+            4
+          ],
+          "label_color": "rgba(248,250,252,0.88)"
+        },
+        "purpose": "R2/R3の間に、売買判断ではなく人間の単一点観測用の薄い補助線を置く。"
       }
     },
     "confirm_bars_default_support": {
@@ -248,7 +272,7 @@
         "コメント保存"
       ],
       "annotation_marker": "small human comment icon on chart",
-      "popover": "click marker to show tooltip/popover; edit inline in popover",
+      "popover": "click marker to show tooltip/popover; edit inline in popover; near the top menu, the editor is placed below the marker to avoid overlap",
       "identity_policy": "time/price/symbol/timeframe are primary context; x_index_hint is only a display hint",
       "chart_state_saved": true,
       "save_policy": "try overlay/api/data save endpoints; fallback to localStorage when file save API is unavailable",
@@ -290,6 +314,20 @@
       "sync_policy": "Shared vertical line remains timestamp-based; if timestamp is outside a panel range, skip drawing without error.",
       "purpose": "Reduce upper timeframe context shortage at the beginning of the M5 window and prepare future simulation warmup.",
       "teacher_guard": "Display/context warmup only; no trend/entry/simulation logic added."
+    },
+    "saved_vertical_markers": {
+      "storage": "chart_comments.json vertical_annotations",
+      "interaction": "right-click chart point/current sync vertical position to save; right-click saved vertical marker to delete",
+      "style": {
+        "stroke": "rgba(250,204,21,0.48)",
+        "line_width": 1.05,
+        "line_dash": [
+          3,
+          5
+        ],
+        "label": "circled marker number such as ① / ② displayed on both panels"
+      },
+      "purpose": "左右パネルの同一時刻観測点を保存するための観測補助。売買判定・トレンド判定・シミュレーションには使わない"
     }
   }
 }
