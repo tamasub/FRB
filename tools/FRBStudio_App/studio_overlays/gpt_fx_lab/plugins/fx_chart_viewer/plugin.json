@@ -9,8 +9,8 @@
   ],
   "scope": "gpt_fx_lab overlay only",
   "core_change": false,
-  "description": "USDJPY M5チャートViewer。M5/上位足の両パネルで手動HSI起点、保存HSI、R23_M=117観測線、左右同期の番号付き保存縦線を利用できる。右クリックメニューの操作ボタンはクリック後に自動で閉じる。上部メニューに近いコメントエディターは下方向へ逃がして入力欄を隠さない。",
-  "version": "v0.8.3.7-saved-vertical-marker",
+  "description": "USDJPY M5チャートViewer。M5/H1/H4の3ペイン表示、手動HSI起点、保存HSI、コメント、保存縦線に加え、任意ペインのダブルクリック時刻を全ペイン中央へ寄せる時刻同期補正を利用できる。",
+  "version": "v0.8.3.19-time-sync-center-dblclick",
   "signal_policy": {
     "visible_marker": "candidate_basis_retired_circle_marker",
     "removed_marker": "dow_structure_decision_arrow_marker",
@@ -65,7 +65,14 @@
     "saved_vertical_marker_support": true,
     "saved_vertical_marker_left_right_sync": true,
     "saved_vertical_marker_save_delete_support": true,
-    "saved_vertical_marker_used_for_entry_decision": false
+    "saved_vertical_marker_used_for_entry_decision": false,
+    "cycle_vertical_marker_support": true,
+    "cycle_vertical_marker_left_right_sync": true,
+    "cycle_vertical_marker_save_delete_support": true,
+    "cycle_vertical_marker_independent_numbering": true,
+    "cycle_vertical_marker_used_for_entry_decision": false,
+    "time_sync_center_dblclick_support": true,
+    "time_sync_center_dblclick_used_for_entry_decision": false
   },
   "display_policy": {
     "high_low_range_style": {
@@ -156,8 +163,8 @@
       "r23_mid_observation": {
         "enabled": true,
         "value": 117,
-        "label": "R23_M",
-        "definition": "R2=89 と R3=144 の中間観測点。89 + (144-89) * 0.5 = 116.5 ≒ 117。",
+        "label": "R2.5",
+        "definition": "R2=89 と R3=144 の中間観測点。画面上は会話しやすいRange表記として R2.5 と表示する。",
         "style": {
           "stroke": "rgba(248,250,252,0.82)",
           "line_width": 0.9,
@@ -167,7 +174,7 @@
           ],
           "label_color": "rgba(248,250,252,0.88)"
         },
-        "purpose": "R2/R3の間に、売買判断ではなく人間の単一点観測用の薄い補助線を置く。"
+        "purpose": "R2/R3の間に、売買判断ではなく人間の単一点観測用の薄い補助線を置く。チャート上はpt数値ではなくR2.5のようなRange名だけを表示する。"
       }
     },
     "confirm_bars_default_support": {
@@ -294,7 +301,7 @@
       "toggle_button": "保存HSI表示ON/OFF",
       "temporary_hsi_policy": "normal click still replaces the current temporary HSI anchor",
       "clear_policy": "HSIクリア clears only the temporary HSI, not saved HSI annotations",
-      "visual_policy": "temporary HSI uses strong red lines; saved HSI uses dashed amber lines with ◆/S anchor marker",
+      "visual_policy": "temporary HSI uses strong red lines; saved HSI uses dashed amber lines with ◆ anchor marker; HSI labels show Range names only, not pt values",
       "teacher_guard": "saved HSI is a human visual hypothesis only; no trend/entry/simulation logic added."
     },
     "upper_context_warmup_bars": {
@@ -319,15 +326,58 @@
       "storage": "chart_comments.json vertical_annotations",
       "interaction": "right-click chart point/current sync vertical position to save; right-click saved vertical marker to delete",
       "style": {
-        "stroke": "rgba(250,204,21,0.48)",
-        "line_width": 1.05,
+        "stroke": "rgba(241,245,249,0.62)",
+        "line_width": 0.9,
         "line_dash": [
-          3,
-          5
+          2.5,
+          4.5
         ],
-        "label": "circled marker number such as ① / ② displayed on both panels"
+        "label": "circled marker number such as ① / ② displayed on both panels; white-family label styling to distinguish from yellow cycle markers"
       },
       "purpose": "左右パネルの同一時刻観測点を保存するための観測補助。売買判定・トレンド判定・シミュレーションには使わない"
+    },
+    "saved_cycle_vertical_markers": {
+      "storage": "chart_comments.json cycle_vertical_annotations",
+      "interaction": "right-click chart point and choose サイクル縦線追加; right-click cycle marker number label to delete",
+      "numbering": "independent sequence from saved_vertical_markers",
+      "style": {
+        "stroke": "rgba(253,224,71,0.82)",
+        "line_width": 2.15,
+        "line_dash": [
+          8,
+          4
+        ],
+        "label": "circled marker number such as ① / ② displayed one step lower than saved vertical marker labels on both panels"
+      },
+      "purpose": "サイクル確認用の別系統縦線。通常の保存縦線とは混ぜず、売買判定・トレンド判定・シミュレーションには使わない"
+    },
+    "current_sync_vertical_line": {
+      "style": {
+        "stroke": "rgba(255,255,255,0.92)",
+        "line_width": 1.05,
+        "line_dash": [],
+        "purpose": "マウス位置/カレント時刻の左右同期縦線。サイクル縦線の黄色太線と区別するため白系の細い実線にする。"
+      },
+      "teacher_guard": "current observation guide only; no trend/entry/simulation logic added."
+    },
+    "chart_comment_edit_draft": {
+      "enabled": true,
+      "description": "Comment edit form values are kept in state.commentEditDrafts while editing, so select changes such as exit are not lost by chart redraw/hover redraw before pressing 保存.",
+      "fixed_issue": "exit option selected in comment type select could be lost and fallback to note before save.",
+      "teacher_guard": "comment editor state fix only; no trend/entry/simulation logic added."
+    },
+    "time_sync_center_dblclick": {
+      "enabled": true,
+      "interaction": "double-click any chart panel (M5/H1/H4) to center that timestamp in the M5 window and the visible upper timeframe panels",
+      "target_panels": [
+        "M5",
+        "H1",
+        "H4"
+      ],
+      "sync_policy": "timestamp-based; not x-coordinate-based. Upper panels are re-sliced around the selected timestamp only while sync center is active.",
+      "window_policy": "M5 windowStart is recalculated so the selected M5 row is near the center of the current windowSize.",
+      "clear_policy": "manual window navigation or window size change clears the sync center lock; hover continues to behave as a temporary guide.",
+      "teacher_guard": "observation alignment only; no trend/entry/simulation logic added."
     }
   }
 }
