@@ -7,7 +7,7 @@
   "owner": "chatgpt",
   "managed_by": "chatgpt",
   "created_at": "2026-07-05",
-  "updated_at": "2026-07-05",
+  "updated_at": "2026-07-08",
   "purpose": "Studioくんの「JSONを人間フレンドリーにする」コンセプトを、FX M5データ + T3オーバーレイ候補で試すための勇者Overlay。",
   "core_boundary_policy": {
     "core_root": "wwwroot/",
@@ -33,7 +33,7 @@
   "plugin_index_files": [
     "plugins/plugin_index.json"
   ],
-  "notes": "v0.8.3: 上位足パネルにupperWarmupBarsを追加し、M5窓を変えずにH1/H4過去文脈バーを増やせるようにする。",
+  "notes": "v0.8.5: HSI R5.5以上など遠いターゲット線を描いても、縦価格スケールはチャート本体（価格/MA/T3/BB/High-Low）基準のままにする。",
   "display_projection_policy": {
     "enabled": true,
     "scope": "gpt_fx_lab overlay only",
@@ -134,11 +134,13 @@
     },
     "manual_hsi_lines_support": true,
     "manual_hsi_lines": {
-      "default_values": "55,89,144,188,233,305,377",
+      "default_values": "55,89,144,188,233,305,377,493,610,798,987",
       "default_scale": 1,
       "used_for_basis_point_extraction": false,
       "used_for_entry_decision": false,
+      "used_for_y_axis_scale": false,
       "purpose": "Manual anchor hypothesis visualization",
+      "y_axis_scale_policy": "HSI target lines do not affect vertical price scale; chart body scale is based on actual price/MA/T3/BB/high-low data.",
       "scale_step": 1,
       "json_default_support": true,
       "scale_input_size": {
@@ -258,7 +260,7 @@
     }
   },
   "changelog_file": "CHANGELOG.md",
-  "current_fx_chart_viewer_version": "v0.8.2-saved-hsi-annotation-sidecar",
+  "current_fx_chart_viewer_version": "v0.8.3.22-hsi-targets-no-y-scale",
   "sidecar_files": [
     "sidecars/fx_usdjpy_m5_t3_data_v0_1.chart_comments.json"
   ]

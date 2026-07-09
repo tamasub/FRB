@@ -9,8 +9,8 @@
   ],
   "scope": "gpt_fx_lab overlay only",
   "core_change": false,
-  "description": "USDJPY M5チャートViewer。M5/H1/H4の3ペイン表示、手動HSI起点、保存HSI、コメント、保存縦線に加え、任意ペインのダブルクリック時刻を全ペイン中央へ寄せる時刻同期補正を利用できる。",
-  "version": "v0.8.3.19-time-sync-center-dblclick",
+  "description": "USDJPY M5/H1/H4/DAY Expansion Review + Entry Observation. DAY UpperMap settings are canonicalized under plugin.json display_policy.day_upper_map_settings and DAY Confirm stride vertical dotted lines are visible for macro-cycle readability.",
+  "version": "v0.8.3.31-day-uppermap-confirm-stride-lines",
   "signal_policy": {
     "visible_marker": "candidate_basis_retired_circle_marker",
     "removed_marker": "dow_structure_decision_arrow_marker",
@@ -44,6 +44,7 @@
     "url_chart_state_copy_support": true,
     "manual_hsi_lines_support": true,
     "manual_hsi_lines_used_for_basis_point_extraction": false,
+    "manual_hsi_lines_used_for_y_axis_scale": false,
     "saved_hsi_annotations_support": true,
     "saved_hsi_annotations_used_for_entry_decision": false,
     "upper_warmup_bars_support": true,
@@ -72,7 +73,27 @@
     "cycle_vertical_marker_independent_numbering": true,
     "cycle_vertical_marker_used_for_entry_decision": false,
     "time_sync_center_dblclick_support": true,
-    "time_sync_center_dblclick_used_for_entry_decision": false
+    "time_sync_center_dblclick_used_for_entry_decision": false,
+    "day_timeframe_panel_support": true,
+    "expansion_review_layout_support": true,
+    "time_sync_center_dblclick_target_panels": [
+      "M5",
+      "H1",
+      "H4",
+      "DAY"
+    ],
+    "upper_map_data_source_support": true,
+    "url_hsi_params_write_policy": "do_not_emit; chart_comments.json is canonical for saved HSI annotations; legacy hsi params are still readable",
+    "day_panel_minor_vertical_marker_visible": false,
+    "day_panel_cycle_vertical_marker_visible": false,
+    "day_panel_high_low_range_visible": false,
+    "day_panel_confirm_stride_vertical_visible": false,
+    "day_upper_map_point_markers": "active_basis_high_low_visible",
+    "day_upper_map_sync_marker": "H1/H4/M5 hover/double click sync is kept as hover/sync guide when applicable; DAY UpperMap remains a broad D1 map.",
+    "day_confirm_bars_support": true,
+    "day_upper_map_settings_owner": "display_policy.day_upper_map_settings",
+    "day_confirm_bars_user_editable": "plugin_json_default_plus_url_override",
+    "day_upper_map_data_source_default_owner": "display_policy.day_upper_map_settings.default_data_path"
   },
   "display_policy": {
     "high_low_range_style": {
@@ -101,7 +122,10 @@
       "wide": "1/0",
       "data": "overlay/gpt_fx_lab/data/fx_usdjpy_m5_t3_data_v0_1.json",
       "view": "overlay/gpt_fx_lab/view_defs/fx_usdjpy_t3_view_def_v0_1.json",
-      "upperWarmupBars": "0 / 30 / 60 / 100 etc. Upper panel past context bars only."
+      "upperWarmupBars": "0 / 30 / 60 / 100 etc. Upper panel past context bars only.",
+      "chartLayout": "EXPANSION_REVIEW / M5_ENTRY",
+      "dayData": "DAY UpperMap data path. Default is display_policy.day_upper_map_settings.default_data_path; URL value is a temporary override.",
+      "dayConfirmBars": "DAY UpperMap Dow material extraction confirm bars. Default is display_policy.day_upper_map_settings.confirm_bars_default; URL value is a temporary override."
     },
     "url_chart_state_copy": {
       "button_caption": "URLコピー",
@@ -115,7 +139,10 @@
         "hlRange",
         "bb",
         "wide",
-        "upperWarmupBars"
+        "upperWarmupBars",
+        "chartLayout",
+        "dayData",
+        "dayConfirmBars"
       ],
       "purpose": "現在の観測状態をブックマーク・共有しやすくする"
     },
@@ -126,7 +153,7 @@
       "purpose": "横幅拡大が実質的な画面最大化操作になったため、人間フレンドリーなウィンドウ操作として右上固定にする"
     },
     "manual_hsi_lines": {
-      "default_values": "55,89,144,188,233,305,377",
+      "default_values": "55,89,144,188,233,305,377,493,610,798,987",
       "default_scale": 6,
       "direction": "up",
       "point_size_policy": "JPY pairs default to 0.001, otherwise 0.0001 unless source.point_size is provided",
@@ -139,6 +166,7 @@
         "hsiAnchorIndex"
       ],
       "purpose": "人間が置いた仮説起点から任意距離を可視化する観測補助。売買判定には使わない",
+      "y_axis_scale_policy": "HSI target lines do not affect vertical price scale; chart body scale is based on actual price/MA/T3/BB/high-low data.",
       "scale_step": 1,
       "json_default_support": true,
       "json_default_paths": [
@@ -211,7 +239,8 @@
       "default_timeframe": "H1",
       "switchable_timeframes": [
         "H1",
-        "H4"
+        "H4",
+        "DAY"
       ],
       "default_confirm_bars": 7,
       "source": "M5 bars are aggregated internally",
@@ -228,7 +257,8 @@
         60,
         100
       ],
-      "upper_warmup_policy": "Only the upper timeframe panel is expanded to the past side. The M5 window is unchanged."
+      "upper_warmup_policy": "Only the upper timeframe panel is expanded to the past side. The M5 window is unchanged.",
+      "day_source": "M5_ENTRY layout: DAY may be aggregated internally from M5. EXPANSION_REVIEW layout: DAY UpperMap uses display_policy.day_upper_map_settings.default_data_path as external D1 DataSource."
     },
     "wide_upper_panel_fix": {
       "enabled": true,
@@ -368,16 +398,60 @@
     },
     "time_sync_center_dblclick": {
       "enabled": true,
-      "interaction": "double-click any chart panel (M5/H1/H4) to center that timestamp in the M5 window and the visible upper timeframe panels",
+      "interaction": "double-click any visible chart panel (M5/H1/H4/DAY) to center that timestamp in the M5 window and re-slice all visible context panels around that timestamp",
       "target_panels": [
         "M5",
         "H1",
-        "H4"
+        "H4",
+        "DAY"
       ],
       "sync_policy": "timestamp-based; not x-coordinate-based. Upper panels are re-sliced around the selected timestamp only while sync center is active.",
       "window_policy": "M5 windowStart is recalculated so the selected M5 row is near the center of the current windowSize.",
       "clear_policy": "manual window navigation or window size change clears the sync center lock; hover continues to behave as a temporary guide.",
-      "teacher_guard": "observation alignment only; no trend/entry/simulation logic added."
+      "teacher_guard": "observation alignment only; no trend/entry/simulation logic added.",
+      "layout_guard": "Existing M5/H1/H4 sync behavior is preserved; Expansion Review adds DAY/H4-main as additional panels using the same timestamp-based mechanism."
+    },
+    "chart_layout": {
+      "enabled": true,
+      "default_layout": "EXPANSION_REVIEW",
+      "layouts": {
+        "EXPANSION_REVIEW": {
+          "left_panel": "H4 main / Expansion review",
+          "right_top_panel": "DAY / upper map from external D1 DataSource",
+          "right_bottom_panel": "H1 / permission check",
+          "purpose": "Expansion候補を、日足の格付け・H4本体・H1押し戻り確認で検討する。",
+          "day_panel_policy": "DAY UpperMapは広域D1地図として扱う。細かい縦線・サイクル縦線は出さず、D1スケールのActive basis high/lowのみ表示する。Confirm bars / marker policy / default data path は display_policy.day_upper_map_settings を正本とする。"
+        },
+        "M5_ENTRY": {
+          "left_panel": "M5 lower / entry observation",
+          "right_panel": "Upper timeframe context observation (H1/H4/H1+H4)",
+          "purpose": "既存のM5実行足観測UIを維持する。"
+        }
+      },
+      "sync_policy": "All visible panels use timestamp-based hover/double-click sync. Layout changes do not alter syncWindowToTimeMs behavior.",
+      "teacher_guard": "UI layout/context observation only; no trend/entry/simulation logic added."
+    },
+    "url_chart_state_policy": "URL stores view/open state. Saved HSI/comments/cycle lines are canonical in chart_comments.json. Legacy HSI URL params remain readable but are not emitted by URL copy.",
+    "day_upper_map_settings": {
+      "owner": "plugin.json",
+      "role": "upper_map_ui_policy",
+      "confirm_bars_default": 45,
+      "confirm_bars_presets": [
+        7,
+        20,
+        30,
+        45,
+        60,
+        90
+      ],
+      "point_marker_mode": "active_basis_only",
+      "visible_point_markers": "active_basis_high_low_only",
+      "url_override_param": "dayConfirmBars",
+      "data_json_policy": "D1 Data JSON is swappable market data. Do not store DAY UpperMap UI settings in D1 JSON.",
+      "purpose": "Expansion候補が日足構造として妥当かを確認しやすくするため、DAY上にはD1スケールのActive high/lowとDAY Confirm bars単位の縦点線を表示する。設定値はデータではなくPluginの資産として管理する。",
+      "default_data_path": "overlay/gpt_fx_lab/data/fx_usdjpy_d1_t3_data_v0_1.json",
+      "show_confirm_stride_lines": true,
+      "confirm_stride_line_policy": "DAY UpperMap also shows vertical dotted lines every DAY Confirm bars. These are macro scale guide lines, not saved cycle/normal vertical lines."
     }
   }
 }

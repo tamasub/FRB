@@ -1,5 +1,118 @@
 # gpt_fx_lab CHANGELOG
 
+## v0.8.3.31 - 2026-07-09
+
+- DAY UpperMapにDAY Confirm bars単位の縦点線を表示。
+  - DAY Confirm=45 のような日足大局確認幅を、画面上でも縦点線として読めるようにした。
+  - これは保存サイクル縦線や通常保存縦線ではなく、DAY Confirm barsに基づく表示補助線。
+  - DAY UpperMapでは引き続き通常保存縦線・サイクル縦線・H/Lレンジ縦線は非表示。
+- DAY UpperMap設定を追記。
+  - `display_policy.day_upper_map_settings.show_confirm_stride_lines = true` を追加。
+  - `confirm_bars_presets` を `[7, 20, 30, 45, 60, 90]` に整理。
+- 先生ガード:
+  - 今回はDAY UpperMapの視認性改善のみ。
+  - Dow trend / Entry / Simulation の自動判定はまだ行わない。
+
+## v0.8.3.30 - 2026-07-09
+
+- D1 UpperMap用データを最新CSVで更新。
+  - `USDJPY1440.csv` 最新版を取り込み、`fx_usdjpy_d1_t3_data_v0_1.json` を再生成。
+  - 既存D1 JSONの2017-11-21〜2018-08-24は保持し、2018-08-27以降の重複期間は最新CSVで置換。
+  - 最新日付は 2026-07-09 00:00 まで拡張。
+  - MA5 / MA20 / T3(20,0.2) / T3 cross / display_sets を再計算。
+- 先生ガード:
+  - 今回はD1相場データ更新のみ。
+  - DAY Confirm bars / marker policy は引き続き `plugin.json display_policy.day_upper_map_settings` が正本。
+  - Dow trend / Entry / Simulation の自動判定はまだ行わない。
+
+## v0.8.3.29 - 2026-07-09
+
+- DAY UpperMap設定のゴミ掃除。
+  - DAY Confirm bars / marker mode / default D1 data path の正本を `plugin.json display_policy.day_upper_map_settings` に一本化。
+  - `chart_layout.layouts.EXPANSION_REVIEW` から重複していた `day_confirm_bars_default` / `day_point_marker_mode` / `upper_map_data_source` を削除。
+  - `signal_policy` から設定値扱いになっていたDAY Confirm bars / point marker / data source defaultを削除し、機能宣言だけに戻した。
+  - `plugin.js` はDAY設定値を `display_policy.day_upper_map_settings` から読む。`chart_layout` / `signal_policy` は設定正本として読まない。
+- DAY UpperMapの責務を再整理。
+  - `chart_layout` = どこに何を置くか。
+  - `day_upper_map_settings` = DAY地図の動作設定。
+  - `url_chart_state_policy` = URLとsidecarの責務説明。
+  - D1 Data JSON = 差し替え可能な相場データ。
+- 先生ガード:
+  - 今回は設定正本の整理のみ。
+  - Dow trend / Entry / Simulation の自動判定はまだ行わない。
+
+## v0.8.3.28 - 2026-07-09
+
+- DAY UpperMapのConfirm bars / marker設定の所有者を修正。
+  - 誤って `fx_usdjpy_d1_t3_data_v0_1.json` 側へ持たせていたDAY用Confirm bars設定を、`plugin.json` 側へ移動。
+  - D1 JSONはぽこぽこ差し替える相場データであり、UI改善の資産設定は持たせない方針に戻した。
+  - `plugin.json display_policy.day_upper_map_settings` をDAY UpperMap設定の正本とする。※v0.8.3.29でsignal_policy側の重複設定は削除。
+  - URLパラメータ `dayConfirmBars` による一時上書きは継続。
+- D1 JSONから `chart_viewer_settings` / `dow_basis_point_settings` を削除。
+  - データJSONはデータ、Plugin JSONは観測UIポリシーという責務分離を明確化。
+- 先生ガード:
+  - 今回は設定所有者の修正のみ。
+  - Dow trend / Entry / Simulation の自動判定はまだ行わない。
+
+## v0.8.3.27 - 2026-07-09
+
+- DAY UpperMapに日足スケールのDow材料点を復活。
+  - DAYは広域地図として扱う方針は維持しつつ、Expansion格付けに必要なActive basis high/lowだけを赤丸・緑丸で表示する。
+  - Candidate / Retired 点はDAYでは表示しない。
+  - 通常保存縦線、Confirm stride縦線、H/Lレンジ縦線、サイクル縦線は引き続きDAYでは非表示。
+- DAY専用Confirm barsをJSON設定化。
+  - 当初は `fx_usdjpy_d1_t3_data_v0_1.json` 側に設定を置いたが、v0.8.3.28以降はplugin.json側へ移動。
+  - URLパラメータ `dayConfirmBars` でも一時上書き可能。
+  - 既定値は 7。
+- 先生ガード:
+  - 今回はDAY UpperMapの観測補助表示のみ。
+  - Dow trend / Entry / Simulation の自動判定はまだ行わない。
+
+## v0.8.3.26 - 2026-07-09
+
+- DAY UpperMapの広域地図方針に合わせて表示をさらに整理。
+  - DAYパネルでは保存サイクル縦線も描画しないようにした。
+  - DAYは全体の大きな流れを見る地図として扱い、サイクル縦線はH4/H1/M5側の観測レイヤーに寄せる。
+- 既存方針は維持。
+  - DAYではDow材料点、通常保存縦線、Confirm stride縦線、H/Lレンジ縦線を描画しない。
+  - H4/H1/M5側のサイクル縦線表示は維持。
+- 先生ガード:
+  - 今回はDAY UpperMapの表示整理のみ。
+  - Dow trend / Entry / Simulation の自動判定はまだ行わない。
+
+## v0.8.3.25 - 2026-07-09
+
+- DAY UpperMapの表示整理。
+  - 外部D1データ側のDow Candidate / Active Basis / Retired Basis 点をDAYでは描画しないようにした。
+  - DAYは「上位地図」として、価格・MA/T3/BB・サイクル縦線・同期位置を中心に見る方針へ寄せた。
+- H1/H4/M5ダブルクリック同期のDAY側表示を改善。
+  - Primary(M5)側に該当時刻がある場合は従来どおりM5窓を同期。
+  - M5側に該当時刻がない場合でも `syncCenterTimeMs` を保持し、DAY側に同期位置を表示できるようにした。
+  - DAYパネルでは同期位置を `SYNC` ラベル付きの強調縦線で描画する。
+- 先生ガード:
+  - 今回はDAY UpperMapの表示整理と同期表示改善のみ。
+  - Dow trend / Entry / Simulation の自動判定はまだ行わない。
+
+## v0.8.3.24 - 2026-07-09
+
+- Expansion検討レイアウトのDAYパネルを、M5内部生成ではなく外部D1 DataSourceで表示できるようにした。
+  - 既定: `overlay/gpt_fx_lab/data/fx_usdjpy_d1_t3_data_v0_1.json`。
+  - URLパラメータ `dayData` / `upperMapData` で差し替え可能。
+  - H4/H1/M5は既存どおりPrimary(M5)から生成し、DAYだけUpperMap DataSourceとして扱う。
+- DAYパネルの表示範囲を広域化。
+  - 通常時はM5表示窓の中央時刻、ダブルクリック同期時は同期時刻を中心にD1データを表示する。
+  - これにより、Expansion検討時に日足の大きな流れを見やすくする。
+- DAYパネルの細かい縦線を抑制。
+  - 通常保存縦線、Confirm stride縦線、H/Lレンジ縦線はDAYでは描画しない。
+  - サイクル縦線は要望どおりDAYにも残す。
+- URLコピーの整理。
+  - `hsi` / `hsiScale` / `hsiDir` / `hsiAnchor...` はURLコピーに出力しない。
+  - 保存済みHSI・コメント・サイクル縦線は `chart_comments.json` を正本とする。
+  - 旧URL互換として、URL読込側のHSIパラメータ解釈は残す。
+- 先生ガード:
+  - 今回はDataSource参照・表示範囲・URL整理のみ。
+  - Dow trend / Entry / Simulation の自動判定はまだ行わない。
+
 ## v0.8.3.7 - 2026-07-06
 
 - コメントエディターの上部かぶりを改善。
