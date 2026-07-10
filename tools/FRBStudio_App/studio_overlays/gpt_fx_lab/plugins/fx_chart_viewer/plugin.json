@@ -9,8 +9,8 @@
   ],
   "scope": "gpt_fx_lab overlay only",
   "core_change": false,
-  "description": "USDJPY M5/H1/H4/DAY/WEEK Expansion Review + Entry Observation. Expansion Review lower-right context uses broader WEEK history, and WEEK confirm bars remain manually editable in plugin.json.",
-  "version": "v0.8.3.33-expansion-week-context-tuned",
+  "description": "USDJPY Multi-Timeframe observation with Human Comment and Simulation Trace Annotation layers. Simulation trace is a read-only fixture/explanation layer; trend/entry simulation engine is not implemented in this phase.",
+  "version": "v0.9.0.01-simulation-trace-annotation-ui-foundation",
   "signal_policy": {
     "visible_marker": "candidate_basis_retired_circle_marker",
     "removed_marker": "dow_structure_decision_arrow_marker",
@@ -97,7 +97,11 @@
     "day_upper_map_data_source_default_owner": "display_policy.day_upper_map_settings.default_data_path",
     "week_timeframe_panel_support": true,
     "week_confirm_bars_support": true,
-    "week_confirm_bars_user_editable": "plugin_json_default"
+    "week_confirm_bars_user_editable": "plugin_json_default",
+    "simulation_trace_annotation_ui_support": true,
+    "simulation_trace_engine_enabled": false,
+    "human_comment_and_simulation_trace_separate_storage": true,
+    "human_comment_and_simulation_trace_independent_visibility": true
   },
   "display_policy": {
     "high_low_range_style": {
@@ -306,18 +310,19 @@
       "directory": "studio_overlays/gpt_fx_lab/sidecars/",
       "storage_policy": "separate sidecar JSON; do not write comments into the price data JSON",
       "ui": [
-        "コメント追加ON/OFF",
-        "コメント表示ON/OFF",
-        "コメント全表示",
-        "コメント全閉じ",
-        "コメント保存"
+        "UserコメントOFF/ON",
+        "SimulationコメントOFF/ON",
+        "User全表示",
+        "Simulation全表示",
+        "注釈全閉じ",
+        "Userコメント保存"
       ],
-      "annotation_marker": "small human comment icon on chart",
+      "annotation_marker": "human comment uses speech-bubble icon; simulation trace uses cyan diamond S badge",
       "popover": "click marker to show tooltip/popover; edit inline in popover; near the top menu, the editor is placed below the marker to avoid overlap",
       "identity_policy": "time/price/symbol/timeframe are primary context; x_index_hint is only a display hint",
       "chart_state_saved": true,
       "save_policy": "try overlay/api/data save endpoints; fallback to localStorage when file save API is unavailable",
-      "teacher_guard": "observation memo only; no trend/entry/simulation logic added"
+      "teacher_guard": "Human Comment is editable observation memo. Simulation Trace is read-only fixture/rule-execution explanation. No trend/entry/simulation engine is added in this phase."
     },
     "chart_comment_sidecar_save_fix": {
       "enabled": true,
@@ -469,6 +474,32 @@
       "window_bars_default": 260,
       "show_saved_vertical_markers": false,
       "show_cycle_vertical_markers": false
+    },
+    "simulation_trace_sidecar": {
+      "enabled": true,
+      "default_file": "fx_usdjpy_m5_t3_data_v0_1.simulation_trace.json",
+      "directory": "studio_overlays/gpt_fx_lab/sidecars/",
+      "storage_policy": "separate read-only Simulation Trace JSON; do not write trace events into chart_comments.json",
+      "source_type": "simulation_trace",
+      "ui": [
+        "SimulationコメントOFF/ON",
+        "Simulation全表示",
+        "注釈全閉じ"
+      ],
+      "annotation_marker": "cyan diamond with S badge; visually distinct from editable Human Comment speech bubble",
+      "popover": "read-only summary, reason_codes, rule_ids, cause_event_ids, upper_state_summary, state_before, state_after",
+      "initial_event_types": [
+        "swing_confirmed",
+        "trend_changed",
+        "cycle_phase_changed",
+        "anchor_adopted",
+        "entry_blocked",
+        "exit_armed",
+        "entry",
+        "partial_close",
+        "close"
+      ],
+      "teacher_guard": "fixture and trace explanation only; not a live trading signal and no execution logic is implemented"
     }
   }
 }

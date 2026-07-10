@@ -1,0 +1,242 @@
+{
+  "schema_version": "fx_simulation_trace_sidecar_v0_1",
+  "kind": "fx_simulation_trace_sidecar",
+  "title": "USDJPY M5 / Simulation Trace Annotation UI Fixture",
+  "status": "fixture",
+  "created_at": "2026-07-10T23:28:13+09:00",
+  "updated_at": "2026-07-10T23:28:13+09:00",
+  "run": {
+    "run_id": "fixture_trace_ui_v0_9_0_01",
+    "status": "fixture_only",
+    "rule_version": "simulation_rule_v0_4_draft",
+    "phase": "v0.9.0.01-simulation-trace-annotation-ui-foundation",
+    "generated_at": "2026-07-10T23:28:13+09:00",
+    "engine_enabled": false,
+    "note": "UI contract fixture. Values are explanatory samples and are not calculated by a simulator."
+  },
+  "target": {
+    "symbol": "USDJPY",
+    "primary_timeframe": "M5",
+    "data_path_hint": "studio_overlays/gpt_fx_lab/data/fx_usdjpy_m5_t3_data_v0_1.json",
+    "sidecar_path_hint": "studio_overlays/gpt_fx_lab/sidecars/fx_usdjpy_m5_t3_data_v0_1.simulation_trace.json"
+  },
+  "display_policy": {
+    "default_visible": true,
+    "default_open": false,
+    "source_type": "simulation_trace",
+    "marker_style": "cyan_diamond_s_badge",
+    "teacher_guard": "Fixture only. Not a trading signal. No trend/entry/close engine is implemented."
+  },
+  "events": [
+    {
+      "event_id": "trace_fixture_0001",
+      "source_type": "simulation_trace",
+      "event_type": "cycle_phase_changed",
+      "simulation_time": "2026-07-01 08:00",
+      "timeframe": "WEEK",
+      "panel": "WEEK",
+      "price": 162.757,
+      "summary": "WEEK CycleがMiddleからLateへ移行。Expansion Entry Seasonを閉じ、H1早期Close許可を有効化。",
+      "reason_codes": [
+        "WEEK_CYCLE_LATE",
+        "EXPANSION_SEASON_CLOSED"
+      ],
+      "rule_ids": [
+        "rule_week_cycle_phase",
+        "rule_week_late_entry_guard",
+        "rule_week_late_h1_exit_permission"
+      ],
+      "cause_event_ids": [],
+      "upper_state_summary": {
+        "WEEK": "LATE / Expansion Season CLOSED",
+        "DAY": "WARNING",
+        "H4": "EXPANSION_CONFIRMED / MIDDLE",
+        "H1": "UP"
+      },
+      "state_before": {
+        "week_cycle_phase": "MIDDLE",
+        "expansion_entry_allowed": true,
+        "h1_exit_trigger_enabled": false
+      },
+      "state_after": {
+        "week_cycle_phase": "LATE",
+        "expansion_entry_allowed": false,
+        "add_on_allowed": false,
+        "h1_exit_trigger_enabled": true
+      },
+      "display": {
+        "visible": true,
+        "open": false,
+        "pinned": false,
+        "style": "simulation_trace"
+      }
+    },
+    {
+      "event_id": "trace_fixture_0002",
+      "source_type": "simulation_trace",
+      "event_type": "entry_blocked",
+      "simulation_time": "2026-07-01 12:00",
+      "timeframe": "DAY",
+      "panel": "DAY",
+      "price": 162.671,
+      "summary": "DAY Expansion GradeはWarning。WEEK Lateと組み合わせ、新規Expansion Entryを禁止。",
+      "reason_codes": [
+        "DAY_CYCLE_WARNING",
+        "WEEK_CYCLE_LATE",
+        "EXPANSION_ENTRY_BLOCKED"
+      ],
+      "rule_ids": [
+        "rule_day_expansion_age_warning",
+        "rule_upper_context_expansion_entry"
+      ],
+      "cause_event_ids": [
+        "trace_fixture_0001"
+      ],
+      "upper_state_summary": {
+        "WEEK": "LATE",
+        "DAY": "GRADE_WARNING",
+        "H4": "EXPANSION_CONFIRMED",
+        "H1": "UP"
+      },
+      "state_before": {
+        "entry_policy": "EXPANSION_CANDIDATE"
+      },
+      "state_after": {
+        "entry_policy": "NO_NEW_EXPANSION",
+        "hold_core": true
+      },
+      "display": {
+        "visible": true,
+        "open": false,
+        "pinned": false,
+        "style": "simulation_trace"
+      }
+    },
+    {
+      "event_id": "trace_fixture_0003",
+      "source_type": "simulation_trace",
+      "event_type": "exit_armed",
+      "simulation_time": "2026-07-02 08:00",
+      "timeframe": "H4",
+      "panel": "H4",
+      "price": 162.416,
+      "summary": "H4 Cycle Late + BB収縮 + HSI Confluenceを確認。利益確定判断をExit Armedへ変更。",
+      "reason_codes": [
+        "H4_CYCLE_LATE",
+        "H4_BB_CONTRACTING",
+        "HSI_CONFLUENCE_RANK_A"
+      ],
+      "rule_ids": [
+        "rule_h4_profit_take_armed"
+      ],
+      "cause_event_ids": [
+        "trace_fixture_0001",
+        "trace_fixture_0002"
+      ],
+      "upper_state_summary": {
+        "WEEK": "LATE / H1 exit permission ON",
+        "DAY": "WARNING",
+        "H4": "EXIT_ARMED",
+        "H1": "WAIT_FOR_BREAK"
+      },
+      "state_before": {
+        "profit_take_state": "HOLD"
+      },
+      "state_after": {
+        "profit_take_state": "EXIT_ARMED",
+        "exit_trigger_timeframe": "H1"
+      },
+      "display": {
+        "visible": true,
+        "open": false,
+        "pinned": false,
+        "style": "simulation_trace"
+      }
+    },
+    {
+      "event_id": "trace_fixture_0004",
+      "source_type": "simulation_trace",
+      "event_type": "trend_changed",
+      "simulation_time": "2026-07-02 09:00",
+      "timeframe": "H1",
+      "panel": "H1",
+      "price": 162.264,
+      "summary": "H1押し安値割れによりUpからDownへ変更。Exit Triggerを成立。",
+      "reason_codes": [
+        "H1_CONFIRMED_LOW_BREAK",
+        "H1_DOW_DOWN",
+        "EXIT_TRIGGER_CONFIRMED"
+      ],
+      "rule_ids": [
+        "rule_h1_dow_state",
+        "rule_h1_exit_trigger"
+      ],
+      "cause_event_ids": [
+        "trace_fixture_0003"
+      ],
+      "upper_state_summary": {
+        "WEEK": "LATE",
+        "DAY": "WARNING",
+        "H4": "EXIT_ARMED",
+        "H1": "DOWN / EXIT_TRIGGER"
+      },
+      "state_before": {
+        "h1_trend_state": "UP",
+        "exit_trigger": "NONE"
+      },
+      "state_after": {
+        "h1_trend_state": "DOWN",
+        "exit_trigger": "STRUCTURE_BREAK"
+      },
+      "display": {
+        "visible": true,
+        "open": false,
+        "pinned": false,
+        "style": "simulation_trace"
+      }
+    },
+    {
+      "event_id": "trace_fixture_0005",
+      "source_type": "simulation_trace",
+      "event_type": "close",
+      "simulation_time": "2026-07-02 09:15",
+      "timeframe": "M5",
+      "panel": "M5",
+      "price": 162.242,
+      "summary": "H1 Exit Triggerを受け、M5でCore PositionをCloseしたFixture。",
+      "reason_codes": [
+        "UPPER_EXIT_ARMED",
+        "H1_EXIT_TRIGGER_CONFIRMED",
+        "M5_CLOSE_EXECUTED"
+      ],
+      "rule_ids": [
+        "rule_m5_close_execution_fixture"
+      ],
+      "cause_event_ids": [
+        "trace_fixture_0004"
+      ],
+      "trade_id": "fixture_trade_001",
+      "upper_state_summary": {
+        "WEEK": "LATE",
+        "DAY": "WARNING",
+        "H4": "EXIT_ARMED",
+        "H1": "EXIT_TRIGGER",
+        "M5": "CLOSE_EXECUTED"
+      },
+      "state_before": {
+        "position_state": "CORE_OPEN",
+        "exit_trigger": "STRUCTURE_BREAK"
+      },
+      "state_after": {
+        "position_state": "CLOSED",
+        "close_reason": "WEEK_LATE_H1_EARLY_EXIT"
+      },
+      "display": {
+        "visible": true,
+        "open": false,
+        "pinned": false,
+        "style": "simulation_trace"
+      }
+    }
+  ]
+}

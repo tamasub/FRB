@@ -1,3 +1,14 @@
+# v0.9.0.01 — Simulation Trace Annotation UI Foundation (2026-07-10)
+
+- UserコメントとSimulationコメントを、独立した表示レイヤーとしてON/OFFできるUIを追加。
+- Human Commentは既存 `*.chart_comments.json`、Simulation Traceは新規 `*.simulation_trace.json` を正本とし、保存ファイルを分離。
+- Simulation Traceはチャート上でシアンの菱形 `S` バッジとして表示し、Human Commentの吹き出しアイコンと視覚的に区別。
+- Traceクリック時に、summary / reason_codes / rule_ids / cause_event_ids / upper_state_summary / state_before / state_after を読み取り専用Popoverで表示。
+- 実シミュレーター実装前にUI契約を確認するため、5件のFixture Traceを追加。Fixtureは説明用であり、売買判定・実行ロジックは未実装。
+- `User全表示` / `Simulation全表示` / `注釈全閉じ` を追加し、画面だけで状態概要を確認できる基盤を整備。
+
+---
+
 # v0.8.3.32 — Expansion Review WEEK context / JSON confirmBars
 
 - Expansion検討モードの右下窓を H1 から WEEK へ変更。
