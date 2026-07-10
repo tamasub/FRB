@@ -9,8 +9,8 @@
   ],
   "scope": "gpt_fx_lab overlay only",
   "core_change": false,
-  "description": "USDJPY M5/H1/H4/DAY Expansion Review + Entry Observation. DAY UpperMap settings are canonicalized under plugin.json display_policy.day_upper_map_settings and DAY Confirm stride vertical dotted lines are visible for macro-cycle readability.",
-  "version": "v0.8.3.31-day-uppermap-confirm-stride-lines",
+  "description": "USDJPY M5/H1/H4/DAY/WEEK Expansion Review + Entry Observation. Expansion Review lower-right context uses broader WEEK history, and WEEK confirm bars remain manually editable in plugin.json.",
+  "version": "v0.8.3.33-expansion-week-context-tuned",
   "signal_policy": {
     "visible_marker": "candidate_basis_retired_circle_marker",
     "removed_marker": "dow_structure_decision_arrow_marker",
@@ -80,7 +80,8 @@
       "M5",
       "H1",
       "H4",
-      "DAY"
+      "DAY",
+      "WEEK"
     ],
     "upper_map_data_source_support": true,
     "url_hsi_params_write_policy": "do_not_emit; chart_comments.json is canonical for saved HSI annotations; legacy hsi params are still readable",
@@ -93,7 +94,10 @@
     "day_confirm_bars_support": true,
     "day_upper_map_settings_owner": "display_policy.day_upper_map_settings",
     "day_confirm_bars_user_editable": "plugin_json_default_plus_url_override",
-    "day_upper_map_data_source_default_owner": "display_policy.day_upper_map_settings.default_data_path"
+    "day_upper_map_data_source_default_owner": "display_policy.day_upper_map_settings.default_data_path",
+    "week_timeframe_panel_support": true,
+    "week_confirm_bars_support": true,
+    "week_confirm_bars_user_editable": "plugin_json_default"
   },
   "display_policy": {
     "high_low_range_style": {
@@ -452,6 +456,19 @@
       "default_data_path": "overlay/gpt_fx_lab/data/fx_usdjpy_d1_t3_data_v0_1.json",
       "show_confirm_stride_lines": true,
       "confirm_stride_line_policy": "DAY UpperMap also shows vertical dotted lines every DAY Confirm bars. These are macro scale guide lines, not saved cycle/normal vertical lines."
+    },
+    "week_context_settings": {
+      "owner": "plugin.json",
+      "role": "expansion_macro_context_ui_policy",
+      "confirm_bars_default": 20,
+      "point_marker_mode": "active_basis_only",
+      "visible_point_markers": "active_basis_high_low_only",
+      "source_policy": "aggregate WEEK bars from the external DAY UpperMap DataSource",
+      "purpose": "Expansion検討モードの右下WEEK窓で、大局の高値・安値構造を観測する。WEEKはDAYより広い履歴を優先表示し、保存縦線/サイクル縦線は出さない。confirm_bars_defaultを手動変更して週足材料点の粒度を調整する。",
+      "window_mode": "all_history",
+      "window_bars_default": 260,
+      "show_saved_vertical_markers": false,
+      "show_cycle_vertical_markers": false
     }
   }
 }

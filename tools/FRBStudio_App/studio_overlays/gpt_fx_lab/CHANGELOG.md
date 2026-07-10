@@ -1,3 +1,12 @@
+# v0.8.3.32 — Expansion Review WEEK context / JSON confirmBars
+
+- Expansion検討モードの右下窓を H1 から WEEK へ変更。
+- WEEK足は外部DAY UpperMap DataSourceから週足へ集約。週の開始は月曜日。
+- `plugins/fx_chart_viewer/plugin.json` の `display_policy.week_context_settings.confirm_bars_default` を追加。
+- WEEK材料点はActive basis high/lowのみ表示し、値はJSONを手動変更して調整可能。
+
+---
+
 # gpt_fx_lab CHANGELOG
 
 ## v0.8.3.31 - 2026-07-09
@@ -432,3 +441,7 @@
 - メタ表示に `H/L range=on/off` を追加。
 - 先生ガード: 今回は Dow trend / Entry / Simulation へ進まない。材料点の根拠を見やすくするだけ。
 
+## 2026-07-10 v0.8.3.33 — WEEK文脈見直し
+- Expansion検討モードの右下WEEK窓を、DAYに近すぎる窓切り出しから見直し、週足の広域履歴を優先表示するよう調整。
+- WEEK窓では保存縦線・サイクル縦線を非表示化。DAY/H4/M5側の既存観測導線は維持。
+- WEEK Confirm bars は引き続き plugin.json `display_policy.week_context_settings.confirm_bars_default` を正本として手動調整可能。
