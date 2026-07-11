@@ -9,8 +9,8 @@
   ],
   "scope": "gpt_fx_lab overlay only",
   "core_change": false,
-  "description": "USDJPYマルチ時間足シミュレーション研究画面。判断ポップアップにHSI起点Stop、Close目安、初期リスク、仮想確定利益、累積利益、初期リスク比/R換算を表示する。1単位=1,000通貨。",
-  "version": "v0.9.0.19-risk-reward-jpy-display",
+  "description": "通常M5 Entry v0.6.1実験版。H4 T3方向 + H1/M5 Dow一致 + H4/H1 Cycle Late Guardを維持し、HSI最小距離だけR2からR1へ緩和。営業日切替線・Scale-out・Stop・円損益表示は維持。",
+  "version": "v0.9.0.21-normal-entry-v061-r1-experiment",
   "signal_policy": {
     "visible_marker": "candidate_basis_retired_circle_marker",
     "removed_marker": "dow_structure_decision_arrow_marker",
@@ -139,7 +139,7 @@
     "m5_execution_position_lifecycle_support": true,
     "m5_execution_engine_id": "shared_m5_execution_position_lifecycle_v0_1",
     "m5_execution_mode": "reference_point_step",
-    "m5_execution_upper_decision_reimplementation_allowed": false,
+    "m5_execution_upper_decision_reimplementation_allowed": "normal_entry_v0_6_explicit_exception_only",
     "m5_execution_actions": [
       "ENTRY",
       "REENTRY",
@@ -199,7 +199,25 @@
     "simulation_virtual_pnl_display": true,
     "simulation_virtual_pnl_unit_base_currency_amount": 1000,
     "simulation_virtual_pnl_currency": "JPY",
-    "simulation_virtual_pnl_fee_slippage_tax_included": false
+    "simulation_virtual_pnl_fee_slippage_tax_included": false,
+    "normal_entry_rule_version": "v0.6.1",
+    "normal_entry_h4_dow_required": false,
+    "normal_entry_h4_t3_direction_required": true,
+    "normal_entry_h1_m5_dow_match_required": true,
+    "normal_entry_cycle_late_guard_timeframes": [
+      "H4",
+      "H1"
+    ],
+    "normal_entry_week_filter_required": false,
+    "normal_entry_day_expansion_grade_required": false,
+    "normal_entry_hsi_min": "R1",
+    "business_day_boundary_lines_support": true,
+    "business_day_boundary_lines_timeframes": [
+      "M5",
+      "H1",
+      "H4"
+    ],
+    "normal_entry_frequency_experiment": "relax_hsi_min_only_R2_to_R1"
   },
   "display_policy": {
     "high_low_range_style": {
@@ -922,6 +940,20 @@
       "schema_version": "fx_simulation_reason_rule_catalog_v0_1",
       "management_policy": "理由コード・ルールIDと日本語内容をJSONテーブルで管理し、コード追加時はこのカタログへ日本語説明を追記する。",
       "popover_policy": "日本語判断を最上部へ表示し、その下にコードと日本語内容の対応表を表示する。未登録コードは明示してコード自体を隠さない。"
+    },
+    "business_day_boundary_lines": {
+      "enabled": true,
+      "timeframes": [
+        "M5",
+        "H1",
+        "H4"
+      ],
+      "boundary_definition": "row.date changes; fallback to datetime local calendar date",
+      "stroke": "rgba(241,245,249,0.62)",
+      "line_width": 2.1,
+      "line_dash": [],
+      "confirm_stride_line_width": 1.1,
+      "purpose": "営業日の切れ目をConfirm縦線より一段太く表示し、日単位のEntry頻度と相場の流れを見やすくする。"
     }
   }
 }

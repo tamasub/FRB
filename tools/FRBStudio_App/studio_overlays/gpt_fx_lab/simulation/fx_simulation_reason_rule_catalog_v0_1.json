@@ -5,7 +5,7 @@
   "title": "FX Simulation 理由コード・使用ルール 日本語カタログ",
   "status": "draft_growing_catalog",
   "created_at": "2026-07-11T15:50:00+09:00",
-  "updated_at": "2026-07-11T16:40:00+09:00",
+  "updated_at": "2026-07-11T19:10:00+09:00",
   "display_policy": {
     "language": "ja",
     "show_judgment_summary_first": true,
@@ -244,8 +244,28 @@
       "category": "判断理由"
     },
     {
+      "code": "H1_CYCLE_LATE_ENTRY_BLOCKED",
+      "ja": "H1 Cycle Lateのため新規Entry禁止。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H1_CYCLE_NOT_LATE",
+      "ja": "H1 CycleはLateではありません。",
+      "category": "判断理由"
+    },
+    {
       "code": "H1_EXIT_TRIGGER_CONFIRMED",
       "ja": "H1で保有根拠の崩れを確認。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H1_M5_DOW_ALIGNED",
+      "ja": "H1とM5のDow Trendが同方向で一致。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H1_M5_DOW_NOT_ALIGNED",
+      "ja": "H1とM5のDow Trendが一致していません。",
       "category": "判断理由"
     },
     {
@@ -269,6 +289,16 @@
       "category": "判断理由"
     },
     {
+      "code": "H4_CLOSE_NOT_ABOVE_T3",
+      "ja": "H4終値がT3より上ではありません。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H4_CLOSE_NOT_BELOW_T3",
+      "ja": "H4終値がT3より下ではありません。",
+      "category": "判断理由"
+    },
+    {
       "code": "H4_CYCLE_EARLY",
       "ja": "H4サイクルは前半で、利益保護より波を育てる判断を優先しやすい段階です。",
       "category": "判断理由"
@@ -276,6 +306,16 @@
     {
       "code": "H4_CYCLE_LATE",
       "ja": "H4サイクルが後半に入っているため、新規追加より利益保護を優先します。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H4_CYCLE_LATE_ENTRY_BLOCKED",
+      "ja": "H4 Cycle Lateのため新規Entry禁止。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H4_CYCLE_NOT_LATE",
+      "ja": "H4 CycleはLateではありません。",
       "category": "判断理由"
     },
     {
@@ -321,6 +361,16 @@
     {
       "code": "H4_REVERSAL_WATCH",
       "ja": "H4は反転監視中のため、新規Entryを急がず様子見します。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H4_T3_DIRECTION_ALLOWED",
+      "ja": "H4 T3方向と終値位置がEntry方向で一致。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H4_T3_NOT_READY",
+      "ja": "H4 T3方向を判定できません。",
       "category": "判断理由"
     },
     {
@@ -396,6 +446,11 @@
     {
       "code": "LATEST_ACTIVE_ALIGNED_ANCHOR",
       "ja": "方向が一致する有効起点のうち、最新のものを選択しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "LEGACY_UPPER_NO_TRADE_IGNORED_FOR_NORMAL_ENTRY_V06",
+      "ja": "旧Upper NoTrade判定は通常Entry v0.6では直接使用しません。",
       "category": "判断理由"
     },
     {
@@ -617,6 +672,16 @@
       "code": "WEEK_EXPANSION_SEASON_OPEN",
       "ja": "WEEK上でExpansion Entryを検討してよい期間です。",
       "category": "判断理由"
+    },
+    {
+      "code": "HSI_R1_NOT_REACHED",
+      "ja": "R1未到達",
+      "category": "判断理由"
+    },
+    {
+      "code": "HSI_R1_REACHED",
+      "ja": "R1到達",
+      "category": "判断理由"
     }
   ],
   "rule_ids": [
@@ -751,6 +816,21 @@
       "category": "使用ルール"
     },
     {
+      "code": "rule_normal_entry_v06_cycle_late_guard",
+      "ja": "H4またはH1がCycle LateならEntry・ReEntry・Add-onを禁止。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_normal_entry_v06_h1_m5_dow_match",
+      "ja": "H1とM5のDow Trendが同方向に一致した場合だけEntryを許可。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_normal_entry_v06_h4_t3_direction",
+      "ja": "H4 Dowは使わず、H4 T3の傾きと終値のT3上下位置でEntry方向を許可。",
+      "category": "使用ルール"
+    },
+    {
       "code": "rule_position_role_split_core_runner",
       "ja": "新規Entry時に建玉をCoreとRunnerへ分割し、それぞれ別の保有役割を持たせます。",
       "category": "使用ルール"
@@ -838,6 +918,11 @@
     {
       "code": "rule_week_late_expansion_defensive_mode",
       "ja": "WEEKサイクル後半ではExpansion Entry・ReEntry・Add-onを禁止し、既存建玉はH1の崩れで早めに守ります。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_m5_trigger_hsi_r1",
+      "ja": "確定HSI起点からR1到達でEntry許可",
       "category": "使用ルール"
     }
   ]

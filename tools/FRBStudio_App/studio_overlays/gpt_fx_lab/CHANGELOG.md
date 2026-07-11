@@ -1,3 +1,29 @@
+## v0.9.0.21 - 2026-07-11
+
+- 最新1000足の診断で `HSI_R2_NOT_REACHED = 1000件` となり、Entry条件の最大ボトルネックがHSI距離であることを確認。
+- 通常M5 Entryをv0.6.1実験版へ更新。
+  - H4 T3方向、H1/M5 Dow一致、H4/H1 Cycle Late Guardは維持。
+  - HSI最小Entry距離だけを `R2` から `R1` へ緩和。
+  - H4 Dow、WEEK Season、DAY Expansion Grade、Expansion Confirmedは引き続き通常Entryに使用しない。
+- HSI最小距離の理由コード・Rule IDを設定値から動的生成し、R1/R2切替時に表示文言が食い違わないよう修正。
+- 既存の営業日境界線、COMMON_SCALE_OUT、HSI起点Stop、円損益、R換算、Simulation HSI描画は維持。
+
+## v0.9.0.20 - 2026-07-11
+
+- 通常M5 EntryルールをSimulation Rule v0.6へ改定。
+  - H4 Dow判定を通常Entry条件から除外。
+  - H4はT3の傾きと、確定足終値がT3のどちら側にあるかだけで方向を許可。
+  - H1 DowとM5 Dowが同方向に一致した場合だけEntry / ReEntry / Add-onを許可。
+  - H4またはH1がCycle LateならEntry / ReEntry / Add-onを禁止。
+  - 確定済みM5 HSI起点からR2以上を必須条件として維持。
+  - WEEK Season、DAY Expansion Grade、Expansion Confirmedは通常Entry条件に使用しない。
+- H4/H1/M5の判定内容をTrigger Eventへ保存し、H4 T3方向、H1/M5 Dow、H4/H1 Cycle Phaseを理由表示で確認可能にした。
+- M5 / H1 / H4チャートへ営業日切替縦線を追加。
+  - `row.date`の変化点を営業日境界とし、datetimeの日付をフォールバックに使用。
+  - Confirm stride線（1.1px）より一段太い2.1pxの白実線で表示。
+  - サイクル縦線、保存縦線とは別の自動表示として扱う。
+- 既存のCOMMON_SCALE_OUT、HSI起点Stop、円損益、R換算、Simulation HSI描画は維持。
+
 ## v0.9.0.16 - 2026-07-11
 
 - Simulation判断ポップオーバーを完全ダーク表示へ固定し、白背景・白スクロール領域・横スクロールを抑制。
