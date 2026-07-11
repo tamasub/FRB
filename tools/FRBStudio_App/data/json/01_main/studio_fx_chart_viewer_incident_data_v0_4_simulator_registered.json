@@ -6,7 +6,7 @@
   "target": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer",
   "status": "active",
   "created_at": "2026-07-05",
-  "updated_at": "2026-07-10T23:28:13+09:00",
+  "updated_at": "2026-07-11T12:33:31+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "GPT FX Lab の fx_chart_viewer が、単なるチャート表示から、M5/H1/H4同期観測、HSI仮説可視化、コメント/判断ログ共有へ育っていくため、Studio本体インシデントとは別枠で改修履歴・判断ログ・将来要望を管理する。",
@@ -14,7 +14,7 @@
   "standard_field_policy": "このファイルは既存インシデント管理Dataの構造を踏襲する。work_item_id / phase / status / discussion_history / decision_log / change_history 等は、インシデント管理Dataの契約として扱う。",
   "items_count": 22,
   "main_context_status": "draft",
-  "main_context_updated_at": "2026-07-10T23:35:00+09:00",
+  "main_context_updated_at": "2026-07-11T03:00:00+09:00",
   "main_context_draft": "# 主文脈素案: インシデント管理Data\n\n## 読む目的\nこのインシデント管理Data全体を扱うAIが、作業前に読むべき正本・ViewDef・Foundation Rules・Runtime対象を確認できるようにする。\n\n## 基本方針\n- Data JSONを作業台帳の正本として扱う。\n- ViewDefは表示・編集体験の定義として扱う。\n- 主文脈はData全体を扱う前に読む入口、対象文脈は各作業項目を扱う前に読む入口として分ける。\n- グリッドは編集用、プレビューは読むためのUIとして分離する。\n\n## 注意\nFoundation Rule 19のZIP返却契約とdiscussion_history実発言契約を優先する。",
   "main_context_refs": [
     {
@@ -1392,11 +1392,11 @@
       "incident_type": "parent_feature_plan",
       "category": "GPT FX Lab / Multi-Timeframe State Trace Simulator",
       "priority": "high",
-      "status": "未着手",
+      "status": "進行中",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-07-10",
-      "updated_at": "2026-07-10T23:35:00+09:00",
+      "updated_at": "2026-07-11T00:57:00+09:00",
       "target_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/sidecars/*.chart_comments.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_results.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/シュミレーションルール仮.md\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4.json",
       "objective": "M5シミュレーション開始前に、WEEK / DAY / H4 / H1 の赤丸・緑丸、Dow状態、サイクル位置、複数HSI起点、BB Phase等を状態JSONとして算出し、上位足判断を統合してM5へ許可・禁止を渡す。さらに、Entry / Hold / Closeを含むすべての重要判断を原因イベントまで逆方向へ追跡でき、チャートUI上のSimulation Traceコメントを見るだけでも、その時点の状態と判断理由を把握できるシミュレーターを段階的に構築する。",
       "background": "Entry条件を先に実装するのではなく、まず各時間足が現在どの状態かを求める必要があることが明確になった。各時間足では、Confirm barsに基づく赤丸・緑丸、Dow状態、サイクル上の位置、役割別の複数HSI起点を求める。時間足ごとの専用クラス増殖は避け、時間足はデータ、判定方法は共通Engine / Strategy / Policy、判定結果はStateとして扱う。また、最終結果だけを出すシミュレーターでは「なぜこうなったか」を毎回AIへ聞く必要があるため、Simulation Trace JSONとUI上の説明可能性を本体機能として先に設計する。",
@@ -1410,7 +1410,7 @@
       "user_request": "シミュレーターを作るためのインシデント登録を進めたい。UIにシミュレーショントレース用のJSONコメントを早い段階で追加し、SimulationコメントOFF/ONとUserコメントOFF/ONを分けたい。UI上のコメントを見るだけでシミュレーション状態が分かることを理想とする。Confirm barsは時間足ごとに独立値を持ち、計算で求めない。シミュレーション経過はすべて逆戻りで追えるようにする。",
       "ai_response": "親1件と段階別子インシデントを登録する。UI Trace Annotationを最初の子工程に置き、状態算出・判断統合・Trace/ReplayをM5 Executionより先に完成させる。",
       "latest_user_comment": "UIにシミュレーショントレース用のJsonコメントを追加する話も最初の方で入れてほしい。SimulationコメントOFF・ONとUserコメントOFF・ONで、手動コメントとの違いをUIで見られると尚よい。",
-      "latest_ai_response": "Simulation Trace Annotation UIをStep 0として先行登録し、人間コメントとは保存を分離、表示は統合、各レイヤーを独立ON/OFF可能にする計画へ整理する。",
+      "latest_ai_response": "Step 0〜4としてSimulation Trace UI、Run Profile、Confirmed Candle Sync、Shared Swing Point Detector、Dow Trend Evaluatorまで完了。次工程のCycle Position Evaluatorへ進める状態になった。",
       "discussion_history": [
         {
           "history_id": "disc_fx_chart_viewer_0011_001",
@@ -1566,6 +1566,12 @@
           "at": "2026-07-10T23:28:13+09:00",
           "decision": "Fixture Traceは実データ内の時刻・価格へ配置するが、判定値は説明用サンプルとして明示する。",
           "reason": "実シミュレーター未実装の段階で、UI表示・逆参照項目・レイヤー切替を実際のチャート上で確認できるようにするため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0012_008",
+          "at": "2026-07-10T23:55:00+09:00",
+          "decision": "Simulation Traceの機械生成Event本文は引き続き読み取り専用とするが、Run Profile検証結果のrun_snapshotメタデータだけはRun設定UIからSidecarへ保存可能にする。",
+          "reason": "Event編集責務は将来のTrace Generatorへ残しつつ、実行条件の再現性だけはシミュレーション開始前に確保するため。"
         }
       ],
       "change_history": [
@@ -1637,11 +1643,11 @@
       "incident_type": "feature_design",
       "category": "GPT FX Lab / Multi-Timeframe State Trace Simulator",
       "priority": "high",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-07-10",
-      "updated_at": "2026-07-10T23:35:00+09:00",
+      "updated_at": "2026-07-10T23:55:00+09:00",
       "target_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4.json",
       "objective": "シミュレーション再現条件をRun設定として固定し、WEEK / DAY / H4 / H1 / M5それぞれのConfirm barsを独立した必須明示値として保持する。",
       "background": "Confirm barsは赤丸・緑丸から全下流判断へ影響する最上流設定であり、時間足比率からの計算や未設定Fallbackでは理由を再現できない。",
@@ -1672,6 +1678,30 @@
           "at": "2026-07-10",
           "decision": "実行時の設定をRun Snapshotへコピーする。",
           "reason": "後から設定ファイルが変わっても過去Runを再現できるようにするため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0013_004",
+          "at": "2026-07-10T23:55:00+09:00",
+          "decision": "観測UIのConfirm barsとSimulation Run ProfileのConfirm barsは別責務として扱い、Run Profile値を画面表示値から暗黙取得しない。",
+          "reason": "画面で一時的に試した値と、再現対象Runの正式条件を混同しないため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0013_005",
+          "at": "2026-07-10T23:55:00+09:00",
+          "decision": "Run Snapshotの保存先は既存Simulation Trace Sidecarのrun_snapshotとする。",
+          "reason": "人間コメントへ混ぜず、将来のTrace Event群と同じRun ID・Rule Version・Dataset条件を一か所から逆追跡できるようにするため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0013_006",
+          "at": "2026-07-10T23:55:00+09:00",
+          "decision": "Snapshot作成時の対象期間は現在のM5表示窓を明示保存する。",
+          "reason": "同じProfileでも検証期間が違えば結果が変わるため、windowStart/windowSizeだけでなく先頭・末尾時刻を残す必要があるため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0013_007",
+          "at": "2026-07-10T23:55:00+09:00",
+          "decision": "Primary M5とUpperMap DAYのData JSON SHA-256をProfileへ保持する。",
+          "reason": "同名ファイルが後日差し替えられても、どのデータ内容を前提にしたRunかを識別できるようにするため。"
         }
       ],
       "change_history": [
@@ -1682,12 +1712,41 @@
           "before": "親シミュレーター構想の一部として会話上に存在していたが、独立した作業単位・完了条件・判断ログがなかった。",
           "after": "v0.9.0.02-simulation-run-timeframe-profile を未着手子インシデントとして登録した。",
           "reason": "上流から段階的に検証し、M5 Executionへ進む前に説明可能性と再現性を確保するため。"
+        },
+        {
+          "history_id": "chg_fx_chart_viewer_0013_002",
+          "at": "2026-07-10T23:55:00+09:00",
+          "change_type": "simulation_run_timeframe_profile_implemented",
+          "before": "Simulation Trace表示UIは存在したが、全時間足Confirm bars・Dataset hash・Rule Version・対象期間をRun条件として固定し、開始前ValidationとSnapshot保存を行う仕組みはなかった。",
+          "after": "Run設定ダイアログ、5時間足独立Confirm bars Profile、設定Validation、現在表示期間付きRun Snapshot、Simulation Trace Sidecar保存を追加。",
+          "reason": "状態判定やM5 Executionへ進む前に、すべての結果を再現・説明できる実行条件の正本を確立するため。"
         }
       ],
-      "verification_status": "未確認",
+      "verification_status": "静的確認済み",
       "context_def_status": "draft",
-      "context_def_updated_at": "2026-07-10",
-      "context_def_draft": "# ContextDef素案: Simulation Run / Timeframe Profile：全時間足Confirm bars独立必須設定と実行Snapshot\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n"
+      "context_def_updated_at": "2026-07-10T23:55:00+09:00",
+      "context_def_draft": "# ContextDef素案: Simulation Run / Timeframe Profile：全時間足Confirm bars独立必須設定と実行Snapshot\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n",
+      "latest_user_comment": "まずはいい感じのUIができている。incident_file=data/json/01_main/studio_fx_chart_viewer_incident_data_v0_4_simulator_registered.json / phase=v0.9.0.02-simulation-run-timeframe-profile を指定し、一歩ずつ理解と納得を深めながら次の作業を進めたい。",
+      "latest_ai_response": "Simulation Run / Timeframe Profileを実装。Run設定ダイアログでWEEK / DAY / H4 / H1 / M5のConfirm barsを独立必須値として表示・編集し、欠落・重複・範囲外・継承/計算/Fallback許可をValidationで拒否する。Validation通過時のみ、dataset hash・rule version・現在表示期間・全時間足Profile・chart_stateをRun SnapshotとしてSimulation Trace Sidecarのrun_snapshotへ保存する。Dow/Cycle/HSI/Entry/Closeエンジンは未実装。",
+      "discussion_history": [
+        {
+          "history_id": "disc_fx_chart_viewer_0013_001",
+          "at": "2026-07-10T23:55:00+09:00",
+          "speaker": "user",
+          "topic": "v0.9.0.02 Simulation Run / Timeframe Profile実装依頼",
+          "message": "まずはいい感じのUIができている。次もM5売買へ急がず、一歩ずつ理解と納得を深めながら進めたい。指定phaseをFoundation Rule 019に従って作業してほしい。"
+        },
+        {
+          "history_id": "disc_fx_chart_viewer_0013_002",
+          "at": "2026-07-10T23:55:00+09:00",
+          "speaker": "assistant",
+          "topic": "Simulation Run / Timeframe Profile実装結果",
+          "message": "5時間足のConfirm bars独立必須設定、Profile JSON、Validation、現在表示窓を含むRun Snapshot、Trace Sidecar保存を実装。売買・状態判定エンジンは追加せず、再現条件の固定だけに限定した。"
+        }
+      ],
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_v0_1.json\nstudio_overlays/gpt_fx_lab/sidecars/fx_usdjpy_m5_t3_data_v0_1.simulation_trace.json\nstudio_overlays/gpt_fx_lab/CHANGELOG.md\ndata/json/01_main/studio_fx_chart_viewer_incident_data_v0_4_simulator_registered.json",
+      "completion_summary": "Simulation Run / Timeframe Profile基盤を追加。WEEK=20 / DAY=45 / H4=20 / H1=7 / M5=20を初期の独立明示値としてProfile JSONへ定義し、UI上で個別編集・Validation可能にした。欠落時はSnapshot作成不可。Run SnapshotにはDataset SHA-256、Rule Version、現在のM5表示期間、全時間足Profile、chart_stateを保存し、Simulation Trace Sidecarのrun_snapshotへPOST保存する。",
+      "test_result": "plugin.js node --check OK。plugin.json / simulation profile JSON / simulation trace JSON / incident JSON parse OK。Profile必須5時間足・Confirm bars整数範囲・継承/計算/Fallback禁止を静的検証。Primary/UpperMap SHA-256が実ファイルと一致。ブラウザ実機でのRun設定ダイアログ操作・POST保存確認は未実施。"
     },
     {
       "work_item_id": "fx_chart_viewer_work_0014",
@@ -1696,11 +1755,11 @@
       "incident_type": "feature_design",
       "category": "GPT FX Lab / Multi-Timeframe State Trace Simulator",
       "priority": "high",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-07-10",
-      "updated_at": "2026-07-10T23:35:00+09:00",
+      "updated_at": "2026-07-11T00:13:54+09:00",
       "target_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4.json",
       "objective": "M5シミュレーション時刻ごとに、その時点までに確定済みのWEEK / DAY / H4 / H1足だけを取得・更新する。",
       "background": "上位足状態が正しくても未確定足や未来側のOHLCを使うと、当時知り得なかった情報によるLookaheadになる。",
@@ -1731,6 +1790,30 @@
           "at": "2026-07-10",
           "decision": "上位足の過去Warmupは許可し、未来側拡張は禁止する。",
           "reason": "状態算出に必要な文脈を確保しつつLookaheadを防ぐため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0014_004",
+          "at": "2026-07-11",
+          "decision": "Simulation同期の参照軸はM5バーのClose境界とする。",
+          "reason": "M5シミュレーションを1足ずつ進めた時点で、当時確定していた情報集合を再現するため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0014_005",
+          "at": "2026-07-11",
+          "decision": "DAYは外部D1 DataSource、WEEKはそのDAYから集約し、M5由来DAY fallbackをSimulation同期では使わない。",
+          "reason": "Run Profileで固定したDataSource契約を守り、表示fallbackを検証正本へ混ぜないため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0014_006",
+          "at": "2026-07-11",
+          "decision": "Run設定UIへ同期結果を表示し、Lookaheadまたは必須時間足欠落時はRun Snapshot作成を拒否する。",
+          "reason": "結果JSONだけでなくUI上でも、何が確定済みで何が除外されたかを人間が理解できるようにするため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0014_007",
+          "at": "2026-07-11",
+          "decision": "Run設定ダイアログは黒背景・白系文字へ統一し、table行の外部zebra styleを強制上書きする。",
+          "reason": "白い交互背景で視認負荷が高く、長時間の検証UIとして不適切だったため。"
         }
       ],
       "change_history": [
@@ -1741,12 +1824,41 @@
           "before": "親シミュレーター構想の一部として会話上に存在していたが、独立した作業単位・完了条件・判断ログがなかった。",
           "after": "v0.9.0.03-multi-timeframe-candle-synchronizer を未着手子インシデントとして登録した。",
           "reason": "上流から段階的に検証し、M5 Executionへ進む前に説明可能性と再現性を確保するため。"
+        },
+        {
+          "history_id": "chg_fx_chart_viewer_0014_002",
+          "at": "2026-07-11T00:13:54+09:00",
+          "change_type": "multi_timeframe_candle_synchronizer_added",
+          "before": "Run ProfileとSnapshot条件は固定できたが、M5時点でどの上位足が確定済みかを同期・表示・検査する処理はなかった。Run設定tableには外部CSS由来の白い交互背景が出ていた。",
+          "after": "M5 Close以下の確定足だけをWEEK/DAY/H4/H1/M5で同期し、未確定/未来足除外、Lookahead検査、UI同期表、Snapshot保存を追加。Run設定UIを黒背景・白系文字へ統一。",
+          "reason": "上位足状態判定へ進む前に、当時知り得た確定足だけを再現し、ユーザーがUIで理解できる土台を作るため。"
         }
       ],
-      "verification_status": "未確認",
+      "verification_status": "静的確認済み",
       "context_def_status": "draft",
       "context_def_updated_at": "2026-07-10",
-      "context_def_draft": "# ContextDef素案: Multi-Timeframe Candle Synchronizer：確定足同期とLookahead防止\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n"
+      "context_def_draft": "# ContextDef素案: Multi-Timeframe Candle Synchronizer：確定足同期とLookahead防止\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n",
+      "latest_user_comment": "Run設定画面の白い交互背景が目に痛いため、黒背景と白系文字へ統一する。続いてMulti-Timeframe Candle Synchronizerを実装し、M5売買へ進まず一歩ずつ理解・納得を深める。",
+      "latest_ai_response": "M5 Closeを参照軸として、WEEK/DAY/H4/H1/M5の確定済み足だけを同期する基盤を実装。H1/H4はM5集約、DAYは外部D1、WEEKはDAY集約。未確定足・未来足を除外し、Lookahead時はRun Snapshotを拒否する。Run設定画面へ同期表を追加し、黒背景・白系文字へ統一した。Dow/Cycle/HSI/Entry/Closeは未実装。",
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_v0_1.json\nstudio_overlays/gpt_fx_lab/sidecars/fx_usdjpy_m5_t3_data_v0_1.simulation_trace.json\nstudio_overlays/gpt_fx_lab/CHANGELOG.md\ndata/json/01_main/studio_fx_chart_viewer_incident_data_v0_4_simulator_registered.json",
+      "completion_summary": "Multi-Timeframe Candle Synchronizer基盤を追加。参照M5 Close以下で確定した各時間足の最新足だけを同期し、未確定/未来足を除外。Run設定画面に同期状態を表示し、Lookahead検出時はSnapshot作成を拒否する。UIの白い縞も黒背景・白系文字へ修正。",
+      "test_result": "plugin.js node --check OK。plugin.json / Run Profile / Simulation Trace / incident JSON parse OK。items_count=22とwork_items件数一致。合成M5/DAYデータでH4境界直前/直後、H1/DAY/WEEK latest confirmed切替、current unconfirmed、全時間足Lookahead=falseを確認。Run設定tableの黒背景・白系文字overrideを静的確認。ブラウザ実表示とTrace Sidecar POST保存はユーザー環境確認。",
+      "discussion_history": [
+        {
+          "history_id": "disc_fx_chart_viewer_0014_002",
+          "at": "2026-07-11T00:13:54+09:00",
+          "speaker": "user",
+          "topic": "Run設定UI配色と次段階",
+          "message": "Run設定画面の白い行が目に痛いので、全部黒背景の白っぽい文字へ修正し、次にMulti-Timeframe Candle Synchronizerを進めたい。"
+        },
+        {
+          "history_id": "disc_fx_chart_viewer_0014_003",
+          "at": "2026-07-11T00:13:54+09:00",
+          "speaker": "assistant",
+          "topic": "確定足同期実装方針",
+          "message": "M5 Closeを参照軸にし、上位足はend_msが参照時刻以下の確定足だけを使用する。H1/H4はM5、DAYは外部D1、WEEKはDAYから生成し、Lookaheadを検出したらSnapshotを拒否する。"
+        }
+      ]
     },
     {
       "work_item_id": "fx_chart_viewer_work_0015",
@@ -1755,11 +1867,11 @@
       "incident_type": "feature_design",
       "category": "GPT FX Lab / Multi-Timeframe State Trace Simulator",
       "priority": "high",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-07-10",
-      "updated_at": "2026-07-10T23:35:00+09:00",
+      "updated_at": "2026-07-11T00:44:22+09:00",
       "target_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4.json",
       "objective": "candles / timeframe / explicit confirm_barsを入力として、全時間足の赤丸・緑丸Candidate / Confirmed / Retiredを共通Detectorで算出する。",
       "background": "赤丸・緑丸はDow、Cycle、HSI起点の最上流だが、時間足別クラスを作ると同一ロジックが分裂する。",
@@ -1790,6 +1902,30 @@
           "at": "2026-07-10",
           "decision": "Swing確定自体をObservation EventとしてTraceへ出す。",
           "reason": "後続Dow判断の根拠を逆追跡するため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0015_004",
+          "at": "2026-07-11T00:44:22+09:00",
+          "decision": "Chart UIとSimulation Snapshotは buildCandidatePoints / buildPointLayers の共通Coreを使用する。",
+          "reason": "観測画面とシミュレーターで赤丸・緑丸ロジックが分裂すると、同じConfirm barsでも結果がずれるため。時間足差は入力DataとProfile値で表現する。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0015_005",
+          "at": "2026-07-11T00:44:22+09:00",
+          "decision": "Candidateは後続判断に使用せず、ConfirmedかつActiveの点だけを将来の起点候補として扱う。",
+          "reason": "確認窓が完成していない点や、確定してもActive Basisへ採用されなかった点をDow/HSI根拠へ混ぜないため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0015_006",
+          "at": "2026-07-11T00:44:22+09:00",
+          "decision": "全Lifecycle EventはRun Snapshotへ保存し、チャートには各時間足の最新Active high/lowだけを投影する。",
+          "reason": "逆追跡性を保ちながら、数百件のSwing Eventでチャートを埋め尽くさないため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0015_007",
+          "at": "2026-07-11T00:44:22+09:00",
+          "decision": "Swing解析範囲はcurrent chart period + Profile明示warmupとし、all_history指定のDAY/WEEKは確定済み全履歴を使用する。",
+          "reason": "M5/H1/H4の出力量を抑えつつ、Run Profileで決めた文脈量を尊重し、DAY/WEEKの大局材料点を欠落させないため。"
         }
       ],
       "change_history": [
@@ -1800,12 +1936,41 @@
           "before": "親シミュレーター構想の一部として会話上に存在していたが、独立した作業単位・完了条件・判断ログがなかった。",
           "after": "v0.9.0.04-shared-swing-point-detector を未着手子インシデントとして登録した。",
           "reason": "上流から段階的に検証し、M5 Executionへ進む前に説明可能性と再現性を確保するため。"
+        },
+        {
+          "history_id": "chg_fx_chart_viewer_0015_002",
+          "at": "2026-07-11T00:44:22+09:00",
+          "change_type": "shared_swing_point_detector_implemented",
+          "before": "確定足同期までは存在したが、Run Profileの時間足別Confirm barsを使って赤丸・緑丸Lifecycleを共通算出し、JSON/Trace/UIへ出す処理はなかった。",
+          "after": "全時間足共通Detector、Candidate/Confirmed/Retired、安定Point/Event ID、cause_event_ids、Run設定UIサマリ、Run Snapshot保存、最新Active PointのSimulationコメント投影を追加。",
+          "reason": "Dow/Cycle/HSIへ進む前に、最上流材料点を再現可能・説明可能・逆追跡可能にするため。"
         }
       ],
-      "verification_status": "未確認",
+      "verification_status": "静的確認済み",
       "context_def_status": "draft",
-      "context_def_updated_at": "2026-07-10",
-      "context_def_draft": "# ContextDef素案: Shared Swing Point Detector：各時間足の赤丸・緑丸を共通ロジックで算出\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n"
+      "context_def_updated_at": "2026-07-11T00:44:22+09:00",
+      "context_def_draft": "# ContextDef素案: Shared Swing Point Detector：各時間足の赤丸・緑丸を共通ロジックで算出\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n\n## 実装後の契約\n- Shared detector ID: shared_center_window_unique_extreme_v0_1\n- Chart UIとSimulation Snapshotは同じCoreを使う。\n- Candidateは未確定であり後続根拠に使わない。\n- Confirmedかつbasis_activeだけが後続起点候補。\n- Retiredは履歴として残すが現在起点に使わない。\n- 全Observation Eventはrun_snapshot.swing_point_detectionへ保存し、チャート投影は最新Active high/lowに限定する。\n",
+      "latest_user_comment": "目が痛いのなおりましたぁーーー笑 次お願いします。phase=v0.9.0.04-shared-swing-point-detector として作業を依頼。",
+      "latest_ai_response": "全時間足へ共通のShared Swing Point Detectorを適用し、各Timeframe Profileの独立Confirm barsを直接使用してCandidate / Confirmed / Retiredを算出する基盤を実装。確定足同期済みデータだけを入力し、Run設定UIで時間足別件数・最新確定点・No Lookahead状態を確認可能にした。Run Snapshotには全PointとObservation Eventを保存し、チャートには各時間足の最新Active high/lowだけをSimulationコメントとして投影する。Dow/Cycle/HSI/Entry/Closeは未実装。",
+      "discussion_history": [
+        {
+          "history_id": "disc_fx_chart_viewer_0015_001",
+          "at": "2026-07-11T00:44:22+09:00",
+          "speaker": "user",
+          "topic": "Shared Swing Point Detector実装依頼",
+          "message": "目が痛いのなおりましたぁーーー笑 次お願いします。今回の作業依頼: phase: v0.9.0.04-shared-swing-point-detector"
+        },
+        {
+          "history_id": "disc_fx_chart_viewer_0015_002",
+          "at": "2026-07-11T00:44:22+09:00",
+          "speaker": "assistant",
+          "topic": "Shared Detector実装結果",
+          "message": "WEEK / DAY / H4 / H1 / M5へ同一Detector Coreを適用し、明示Confirm bars、Candidate / Confirmed / Retired、Observation Event、Run設定UIサマリ、Trace逆参照を実装した。"
+        }
+      ],
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_v0_1.json\nstudio_overlays/gpt_fx_lab/sidecars/fx_usdjpy_m5_t3_data_v0_1.simulation_trace.json\nstudio_overlays/gpt_fx_lab/CHANGELOG.md\ndata/json/01_main/studio_fx_chart_viewer_incident_data_v0_4_simulator_registered.json",
+      "completion_summary": "Shared Swing Point Detectorを実装。確定足同期済みWEEK/DAY/H4/H1/M5へ同じ中心窓・一意高安ロジックを適用し、各Profileの独立Confirm barsでCandidate / Confirmed / Retiredを算出。全LifecycleをRun SnapshotのObservation Eventとして保持し、最新Active high/lowだけをSimulationコメントへ投影する。",
+      "test_result": "plugin.js node --check OK。plugin.json / Run Profile / Simulation Trace / Incident JSON parse OK。合成M5/DAYデータによる5時間足テストで、独立Confirm bars反映、未確定Candidateのusable_as_basis=false、全Confirmed時刻<=M5 reference close、Event ID重複なし、cause_event_ids参照完全性を確認。ブラウザ実表示・POST保存はユーザー環境確認待ち。"
     },
     {
       "work_item_id": "fx_chart_viewer_work_0016",
@@ -1814,11 +1979,11 @@
       "incident_type": "feature_design",
       "category": "GPT FX Lab / Multi-Timeframe State Trace Simulator",
       "priority": "high",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-07-10",
-      "updated_at": "2026-07-10T23:35:00+09:00",
+      "updated_at": "2026-07-11T00:57:00+09:00",
       "target_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4.json",
       "objective": "確定済みSwing Pointの並びと価格関係から、UP / DOWN / UNDETERMINED / NO_TREND / REVERSAL_WATCH等のTrendStateを共通Evaluatorで算出する。",
       "background": "H4 Dow確定は即EntryではなくWatch許可、H1 DowはEntry/Exit Triggerの一部になるため、判定結果と利用Policyを分離する必要がある。",
@@ -1849,6 +2014,30 @@
           "at": "2026-07-10",
           "decision": "TrendState変更時だけState Change Eventを出す。",
           "reason": "冗長ログを抑えつつ転換点を追跡するため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0016_004",
+          "at": "2026-07-11T00:57:00+09:00",
+          "decision": "UPはHigher High + Higher Low、DOWNはLower High + Lower Lowが揃った場合だけ確定する。",
+          "reason": "曖昧な構造を無理に方向へ丸めず、根拠となるSwing比較を明示するため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0016_005",
+          "at": "2026-07-11T00:57:00+09:00",
+          "decision": "高値・安値の方向が不一致の場合、直前の方向確定があればREVERSAL_WATCH、なければNO_TRENDとする。",
+          "reason": "反転候補と単なる方向不明を区別しつつ、Entry判断を先取りしないため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0016_006",
+          "at": "2026-07-11T00:57:00+09:00",
+          "decision": "同種Swingが連続した場合は、より極端な確定点だけで構造を置換する。",
+          "reason": "確定済みでも構造を更新しない弱い同種点をDow比較へ混ぜず、Shared Swing Point DetectorのActive/Retired思想を時系列再生するため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0016_007",
+          "at": "2026-07-11T00:57:00+09:00",
+          "decision": "TrendState Eventは各時間足の最新変更だけをチャートへ投影し、全履歴はRun Snapshotへ保持する。",
+          "reason": "UIをTrace Markerで埋めず、現在状態を画面で理解しながら逆追跡可能性を維持するため。"
         }
       ],
       "change_history": [
@@ -1859,12 +2048,41 @@
           "before": "親シミュレーター構想の一部として会話上に存在していたが、独立した作業単位・完了条件・判断ログがなかった。",
           "after": "v0.9.0.05-dow-trend-evaluator を未着手子インシデントとして登録した。",
           "reason": "上流から段階的に検証し、M5 Executionへ進む前に説明可能性と再現性を確保するため。"
+        },
+        {
+          "history_id": "chg_fx_chart_viewer_0016_002",
+          "at": "2026-07-11T00:57:00+09:00",
+          "change_type": "dow_trend_evaluator_implemented",
+          "before": "Shared Swing Pointまでは算出できたが、確定高値・安値の並びからTrendStateを求める処理は未実装だった。",
+          "after": "全時間足共通のDow Trend Evaluatorを追加し、5状態、比較Swing参照、State Change Event、Run設定UI、Run Snapshot保存に対応した。",
+          "reason": "M5売買へ進む前に、各時間足の現在状態とその根拠を説明可能にするため。"
         }
       ],
-      "verification_status": "未確認",
+      "verification_status": "静的確認済み",
       "context_def_status": "draft",
       "context_def_updated_at": "2026-07-10",
-      "context_def_draft": "# ContextDef素案: Dow Trend Evaluator：確定赤丸・緑丸から時間足TrendStateを算出\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n"
+      "context_def_draft": "# ContextDef素案: Dow Trend Evaluator：確定赤丸・緑丸から時間足TrendStateを算出\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n",
+      "latest_user_comment": "よくまだ理解がおいついてないけど、なんかかっこいいぃ～w 次よろしく！！ phase=v0.9.0.05-dow-trend-evaluator として作業を依頼。",
+      "latest_ai_response": "確定済みSwing Pointの時系列構造から、全時間足共通のDow Trend EvaluatorでUP / DOWN / REVERSAL_WATCH / NO_TREND / UNDETERMINEDを算出する基盤を実装。未確定Candidateを使用せず、TrendState変更時だけTrace Eventを生成し、使用Swing PointとSwing Confirm Eventへ逆追跡可能にした。Run設定UIで高値・安値比較と現在Stateを確認できる。TrendStateとEntry Permissionは分離し、Cycle/HSI/Entry/Closeは未実装。",
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_v0_1.json\nstudio_overlays/gpt_fx_lab/sidecars/fx_usdjpy_m5_t3_data_v0_1.simulation_trace.json\nstudio_overlays/gpt_fx_lab/CHANGELOG.md\ndata/json/01_main/studio_fx_chart_viewer_incident_data_v0_4_simulator_registered.json",
+      "completion_summary": "Dow Trend Evaluatorを実装。確定Swing Pointを確認時刻順に再生し、同種点はより極端な点だけを構造採用。直近2高値・2安値から5種類のTrendStateを算出し、状態変更EventだけをTraceへ保存する。各Eventは比較Swing PointとSwing Confirm Eventへ逆参照できる。",
+      "test_result": "plugin.js node --check OK。plugin.json / Run Profile / Simulation Trace / Incident JSON parse OK。合成Swing列でUP / DOWN / REVERSAL_WATCH / NO_TREND / UNDETERMINED、State Change Eventのみ出力、未確定Candidate除外、Lookahead検出、Entry Permission未出力を確認。実データ5時間足Run SnapshotでWEEK/DAY/H4/H1/M5のTrendState算出、全Dow Event ID重複なし、cause_event_idsがSwing Confirm Eventへ完全参照、全時間足No Lookaheadを確認。ブラウザ実表示・POST保存はユーザー環境確認待ち。",
+      "discussion_history": [
+        {
+          "history_id": "disc_fx_chart_viewer_0016_001",
+          "at": "2026-07-11T00:57:00+09:00",
+          "speaker": "user",
+          "topic": "Dow Trend Evaluator実装依頼",
+          "message": "よくまだ理解がおいついてないけど、なんかかっこいいぃ～w 次よろしく！！ phase=v0.9.0.05-dow-trend-evaluator として作業を依頼。"
+        },
+        {
+          "history_id": "disc_fx_chart_viewer_0016_002",
+          "at": "2026-07-11T00:57:00+09:00",
+          "speaker": "assistant",
+          "topic": "TrendStateと行動判断の分離",
+          "message": "確定Swing構造からDow TrendStateだけを算出し、Entry Permissionや売買判断は後段へ分離する方針で実装した。"
+        }
+      ]
     },
     {
       "work_item_id": "fx_chart_viewer_work_0017",
@@ -1873,11 +2091,11 @@
       "incident_type": "feature_design",
       "category": "GPT FX Lab / Multi-Timeframe State Trace Simulator",
       "priority": "high",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-07-10",
-      "updated_at": "2026-07-10T23:35:00+09:00",
+      "updated_at": "2026-07-11T02:00:00+09:00",
       "target_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4.json",
       "objective": "各時間足でサイクル判断起点を特定し、現在位置、経過バー、到達R、ミニサイクル等からCycle Stateを算出する。",
       "background": "WEEK LateはExpansion Entry禁止とH1早期Close許可、H4 Lateは利益保護とAdd-on禁止へつながるため、単なるバー数ではなく起点選択理由も必要。",
@@ -1908,6 +2126,30 @@
           "at": "2026-07-10",
           "decision": "CycleStateとAction Permissionは分ける。",
           "reason": "Lateという観測とEntry禁止/Exit感度上昇という判断を分離するため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0017_004",
+          "at": "2026-07-11",
+          "decision": "時間足差は専用クラスではなくtimeframe_profiles[].cycle設定として渡す。",
+          "reason": "WEEK/DAY/H4/H1/M5ごとのクラス増殖を避けつつ、閾値と文脈役割の違いを明示するため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0017_005",
+          "at": "2026-07-11",
+          "decision": "現在Cycle originは最新のConfirmed + usable Active Swingとし、Candidate/Retiredは使用しない。",
+          "reason": "現在位置の起点根拠を明確にし、未確定点や失効点への依存を防ぐため。過去Retired点は履歴再生にのみ利用する。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0017_006",
+          "at": "2026-07-11",
+          "decision": "Cycle Phase閾値は各時間足Profileへ明示し、Confirm barsや別時間足から算出しない。",
+          "reason": "なぜLateになったかを設定値まで逆追跡し、暗黙換算を避けるため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0017_007",
+          "at": "2026-07-11",
+          "decision": "WEEK/DAY/H4のContext Stateは出力するが、Entry/Add-on/Exit Permissionは出力しない。",
+          "reason": "サイクル位置という観測と、上位足統合後の行動判断を分離するため。"
         }
       ],
       "change_history": [
@@ -1918,12 +2160,41 @@
           "before": "親シミュレーター構想の一部として会話上に存在していたが、独立した作業単位・完了条件・判断ログがなかった。",
           "after": "v0.9.0.06-cycle-position-evaluator を未着手子インシデントとして登録した。",
           "reason": "上流から段階的に検証し、M5 Executionへ進む前に説明可能性と再現性を確保するため。"
+        },
+        {
+          "history_id": "chg_fx_chart_viewer_0017_002",
+          "at": "2026-07-11",
+          "change_type": "cycle_position_evaluator_implemented",
+          "before": "Swing PointとDow TrendStateまでは算出できたが、各時間足のサイクル起点・経過本数・EARLY/MIDDLE/LATEを機械的に求める処理がなかった。",
+          "after": "共通Cycle Position Evaluatorを追加し、Profile明示閾値、Context State、origin/phase Trace Event、Run UI、Snapshot v0.5へ接続した。",
+          "reason": "上位足状態を統合する前に、各時間足がサイクル上のどこにいるかを説明可能にするため。"
         }
       ],
-      "verification_status": "未確認",
+      "verification_status": "静的確認済み",
       "context_def_status": "draft",
-      "context_def_updated_at": "2026-07-10",
-      "context_def_draft": "# ContextDef素案: Cycle Position Evaluator：直近有効Swing起点からEARLY / MIDDLE / LATEを算出\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n"
+      "context_def_updated_at": "2026-07-11",
+      "context_def_draft": "# ContextDef素案: Cycle Position Evaluator：直近有効Swing起点からEARLY / MIDDLE / LATEを算出\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n\n## 実装結果\n- Evaluator: shared_latest_usable_swing_origin_v0_1\n- Current origin: latest Confirmed + usable Active Swing\n- Candidate/Retired current origin禁止\n- Phase thresholds: timeframe_profiles[].cycle.phase_thresholds の明示値\n- Trace: cycle_origin_changed / cycle_phase_changed\n- Cycle StateはAction Permissionではない。\n",
+      "latest_user_comment": "なんか追加されてます(笑) 次いってみますか？ phase=v0.9.0.06-cycle-position-evaluator の作業をお願いします。",
+      "latest_ai_response": "Cycle Position Evaluatorを実装。全時間足で共通Evaluatorを使用し、最新の確定・利用可能Swingを起点として、各時間足Profileに明示した閾値からEARLY/MIDDLE/LATEを算出する。起点変更・Phase変更をTrace Event化し、Run設定UIとRun Snapshotへ追加。Cycle StateとAction Permissionは分離し、HSI/Entry/Close/M5売買は未実装のまま維持した。",
+      "discussion_history": [
+        {
+          "history_id": "disc_fx_chart_viewer_0017_002",
+          "at": "2026-07-11",
+          "speaker": "user",
+          "topic": "Cycle Position Evaluator実装依頼",
+          "message": "なんか追加されてます(笑) 次いってみますか？よろしく！！ phase=v0.9.0.06-cycle-position-evaluator の作業を依頼。"
+        },
+        {
+          "history_id": "disc_fx_chart_viewer_0017_003",
+          "at": "2026-07-11",
+          "speaker": "assistant",
+          "topic": "Cycle Position Evaluator実装結果",
+          "message": "共通Cycle Position Evaluator、時間足別明示閾値、起点変更/Phase変更Trace、Run設定UI、Run Snapshot v0.5を追加。Cycle StateはAction Permissionではなく、売買判断は未実装として分離した。"
+        }
+      ],
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_v0_1.json\nstudio_overlays/gpt_fx_lab/sidecars/fx_usdjpy_m5_t3_data_v0_1.simulation_trace.json\nstudio_overlays/gpt_fx_lab/CHANGELOG.md\ndata/json/01_main/studio_fx_chart_viewer_incident_data_v0_4_simulator_registered.json",
+      "completion_summary": "Cycle Position Evaluatorを実装。最新のConfirmed + usable Swingを現在起点とし、確定済みバーだけを数えて、各時間足Profileに明示した独立閾値からEARLY / MIDDLE / LATEとContext Stateを算出する。CandidateやRetiredを現在起点にせず、過去のRetired起点は履歴再生にのみ利用する。起点変更・Phase変更をTraceへ保存し、Run設定UIとRun Snapshotへ追加した。Cycle StateはAction Permissionへ変換しない。",
+      "test_result": "plugin.js node --check OK。plugin.json / Run Profile / Simulation Trace / Incident JSON parse OK。items_count=22整合。合成データでEARLY→MIDDLE(3本)→LATE(5本)、新起点採用時のEARLY/0本リセット、現在起点・方向・経過本数、Event ID重複なし、cycle cause_event_ids逆参照、Action Permission未評価、Lookaheadなしを確認。実データ5時間足でWEEK=LATE/CLOSED、DAY=EARLY/OK、H1=EARLY、M5=MIDDLEを算出し、H4は利用可能な確定Swing不足のためUNDETERMINEDを正しく返却。Cycle Event 181件、表示対象4件、未来起点混入なし、現在起点はActiveのみを確認。ブラウザ上の実表示・操作は未確認。"
     },
     {
       "work_item_id": "fx_chart_viewer_work_0018",
@@ -1932,11 +2203,11 @@
       "incident_type": "feature_design",
       "category": "GPT FX Lab / Multi-Timeframe State Trace Simulator",
       "priority": "high",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-07-10",
-      "updated_at": "2026-07-10T23:35:00+09:00",
+      "updated_at": "2026-07-11T03:00:00+09:00",
       "target_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4.json",
       "objective": "一つの時間足で複数のHSI起点をCandidate / Confirmed / Adopted / Retiredとして保持し、Entry / Hold / Target / Thesis / Confluence用途ごとに解決する。",
       "background": "Expansion Detection Anchor、Entry Trigger Anchor、Target Anchor等は同一ではなく、current_hsi_anchor一個では判断根拠を表現できない。",
@@ -1967,6 +2238,30 @@
           "at": "2026-07-10",
           "decision": "Human HSIとSimulation HSIはsource_typeを分ける。",
           "reason": "人間仮説とRule Engine判断を区別するため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0018_004",
+          "at": "2026-07-11",
+          "decision": "Lifecycle status、adoption status、rolesを別フィールドで管理する。",
+          "reason": "Confirmedだが未採用、Adoptedだが複数Role、Retiredだが履歴保持などを混同せず表現するため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0018_005",
+          "at": "2026-07-11",
+          "decision": "Purpose ResolverはEntry/Hold/Target/Thesis/Confluenceの構造参照候補だけを返し、Action Permissionを出力しない。",
+          "reason": "HSI起点選択と売買判断を分離し、後続Upper Context Decision Engineの責務を先取りしないため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0018_006",
+          "at": "2026-07-11",
+          "decision": "M5上の一点観測は右クリックの「この時点の状態を見る」からRun画面へ入れる。トップRun設定はRun全体の入口として残す。",
+          "reason": "一点観測とRun全体設定では操作の文脈が異なり、二つの入口を分ける方が直観的なため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0018_007",
+          "at": "2026-07-11",
+          "decision": "Simulation Trace Popoverは右・左を優先し、収まらない場合に下・上へ配置する。",
+          "reason": "点の上固定ではチャート上端からヘッダーへはみ出すため。チャートBody内へ収めて説明情報を読めるようにする。"
         }
       ],
       "change_history": [
@@ -1977,12 +2272,56 @@
           "before": "親シミュレーター構想の一部として会話上に存在していたが、独立した作業単位・完了条件・判断ログがなかった。",
           "after": "v0.9.0.07-hsi-anchor-registry-resolver を未着手子インシデントとして登録した。",
           "reason": "上流から段階的に検証し、M5 Executionへ進む前に説明可能性と再現性を確保するため。"
+        },
+        {
+          "history_id": "chg_fx_chart_viewer_0018_002",
+          "at": "2026-07-11",
+          "change_type": "hsi_anchor_registry_resolver_added",
+          "before": "SimulationはSwing / Dow / Cycleまで算出できたが、同一時間足の複数HSI起点と用途別参照候補を管理できなかった。",
+          "after": "全時間足共通のHSI Anchor Registry / Resolverを追加し、Candidate / Confirmed / Retired、AVAILABLE / ADOPTED、Purpose Roleを分離管理した。",
+          "reason": "Entry起点、Hold/Thesis起点、Target/Confluence起点が同一とは限らず、単一current_hsi_anchorでは判断根拠を表せないため。"
+        },
+        {
+          "history_id": "chg_fx_chart_viewer_0018_003",
+          "at": "2026-07-11",
+          "change_type": "reference_context_menu_and_popover_placement",
+          "before": "一点状態を見るにはトップRun設定から同期位置を参照する必要があり、Simulation Popoverは点の上/下配置で上端にはみ出す場合があった。",
+          "after": "M5右クリックに一点状態表示入口を追加し、Simulation Popoverを左右優先のChart Body内自動配置へ変更した。",
+          "reason": "一点観測の操作を直観化し、説明Popoverがトップメニューに隠れる問題を減らすため。"
         }
       ],
-      "verification_status": "未確認",
+      "verification_status": "静的確認済み",
       "context_def_status": "draft",
       "context_def_updated_at": "2026-07-10",
-      "context_def_draft": "# ContextDef素案: HSI Anchor Registry / Resolver：時間足内の複数起点と役割Lifecycle管理\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n"
+      "context_def_draft": "# ContextDef素案: HSI Anchor Registry / Resolver：時間足内の複数起点と役割Lifecycle管理\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n",
+      "latest_user_comment": "右クリックで操作した方が直観的になる機能はそちらの検討をお願いしたい。Simulation Traceのポップアップがトップメニューに隠れる場合は、S点の上だけでなく左右配置も候補にしてほしい。",
+      "latest_ai_response": "v0.9.0.07として、全時間足共通のHSI Anchor Registry / Resolverを追加。Swing由来AnchorをCandidate / Confirmed / RetiredのLifecycle、AVAILABLE / ADOPTED等の採用状態、Entry/Hold/Target/Thesis/Confluence用途候補Roleで分離管理した。Human Saved HSIはhuman_hsi、Simulation Anchorはsimulation_hsi_anchorとして保存責務を分離し、Human HSIは比較参照だけで自動採用しない。M5右クリックへ「この時点の状態を見る」を追加し、Reference Point AnalysisとしてRun設定画面を開けるようにした。Simulation Trace Popoverは左右優先、入らない場合に上下へ逃がす自動配置へ変更した。Entry/Close/Action Permissionは未実装。",
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_v0_1.json\nstudio_overlays/gpt_fx_lab/sidecars/fx_usdjpy_m5_t3_data_v0_1.simulation_trace.json\nstudio_overlays/gpt_fx_lab/CHANGELOG.md\ndata/json/01_main/studio_fx_chart_viewer_incident_data_v0_4_simulator_registered.json",
+      "completion_summary": "複数HSI Anchorを時間足別Registryへ保持し、Lifecycle・Adoption・Roleを分離。Purpose別ResolverでEntry/Hold/Target/Thesis/Confluenceの構造参照候補を返す。M5右クリックReference Point入口とSimulation Popover左右優先配置を追加。売買判断は未実装。",
+      "test_result": "plugin.js node --check OK。plugin.json / Run Profile / Simulation Trace / Incident JSON parse OK。専用時間足クラスなし、Candidate非Resolver、Retired保持、source_type分離、Action Permission未出力を静的確認。ブラウザ実操作は未確認。",
+      "discussion_history": [
+        {
+          "history_id": "disc_fx_chart_viewer_0018_002",
+          "at": "2026-07-11",
+          "speaker": "user",
+          "topic": "一点観測の右クリック入口",
+          "message": "RUN設定ボタンは将来のRun全体設定としてトップに残しつつ、現時点の一点観測はM5上の点を右クリックして開く方が直観的ではないかと相談した。"
+        },
+        {
+          "history_id": "disc_fx_chart_viewer_0018_003",
+          "at": "2026-07-11",
+          "speaker": "user",
+          "topic": "Simulation Popover配置改善",
+          "message": "Simulation Traceのポップアップがトップメニューに隠れる場合、S点の上だけでなく左右へ出すことも候補にすると隠れにくいのではないかと提案した。"
+        },
+        {
+          "history_id": "disc_fx_chart_viewer_0018_004",
+          "at": "2026-07-11",
+          "speaker": "assistant",
+          "topic": "v0.9.0.07実装結果",
+          "message": "HSI Anchor Registry / Resolver、M5右クリックReference Point入口、Simulation Trace Popoverの左右優先自動配置を実装した。Human Saved HSIとSimulation Anchorはsource_typeを分離し、Purpose Resolverは売買許可を出さない。"
+        }
+      ]
     },
     {
       "work_item_id": "fx_chart_viewer_work_0019",
@@ -1991,11 +2330,11 @@
       "incident_type": "feature_design",
       "category": "GPT FX Lab / Multi-Timeframe State Trace Simulator",
       "priority": "high",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-07-10",
-      "updated_at": "2026-07-10T23:35:00+09:00",
+      "updated_at": "2026-07-11T08:30:00+09:00",
       "target_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4.json",
       "objective": "各判定コンポーネントの出力を、WEEK / DAY / H4 / H1ごとのTimeframeState Snapshotへ統合する。",
       "background": "M5開始前に上位足の現在状態を機械可読かつ人間可読にすることが最初の大きなマイルストーン。",
@@ -2026,6 +2365,30 @@
           "at": "2026-07-10",
           "decision": "不足データをUNKNOWNではなくdata_sufficiencyとして別管理する。",
           "reason": "相場が不明なのか、履歴不足なのかを区別するため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0019_004",
+          "at": "2026-07-11",
+          "decision": "TimeframeStateはWEEK / DAY / H4 / H1 / M5へ同じBuilderを適用し、時間足差は入力StateとProfile値で表現する。",
+          "reason": "時間足ごとの専用Stateクラスを作らず、観測契約を統一するため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0019_005",
+          "at": "2026-07-11",
+          "decision": "BB Phaseは確定済みCloseだけから共通計算し、SQUEEZE / OPENING / EXPANSION / MATURE / CONTRACTING / STABLE / UNDETERMINEDを観測値として保持する。",
+          "reason": "StateへBB観測を含めつつ、未確定足参照と売買Policy先取りを避けるため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0019_006",
+          "at": "2026-07-11",
+          "decision": "data_sufficiencyをTrend/Cycle等の市場状態と分離し、履歴不足と相場の未判定を別に読めるようにする。",
+          "reason": "UNDETERMINEDの原因が相場構造なのか入力不足なのかを説明可能にするため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0019_007",
+          "at": "2026-07-11",
+          "decision": "保存済み前回Snapshotがある場合、時間足Stateの主要項目差分をcomparison_to_previous_snapshotへ残す。",
+          "reason": "同一地点または別地点で、何が変化したかをJSONだけで確認できるようにするため。"
         }
       ],
       "change_history": [
@@ -2036,12 +2399,41 @@
           "before": "親シミュレーター構想の一部として会話上に存在していたが、独立した作業単位・完了条件・判断ログがなかった。",
           "after": "v0.9.0.08-timeframe-state-builder を未着手子インシデントとして登録した。",
           "reason": "上流から段階的に検証し、M5 Executionへ進む前に説明可能性と再現性を確保するため。"
+        },
+        {
+          "history_id": "chg_fx_chart_viewer_0019_002",
+          "at": "2026-07-11",
+          "change_type": "timeframe_state_builder_added",
+          "before": "Swing / Dow / Cycle / HSIは個別Snapshotとして存在したが、任意時点の時間足状態を一つのJSONとして読めず、BB観測・data sufficiency・source Event・前回差分が分散していた。",
+          "after": "全5時間足へ共通Timeframe State Builderを適用し、確定足・Swing・Dow・Cycle・HSI・BB・data sufficiency・source refs・前回Snapshot差分を一つのStateへ統合した。",
+          "reason": "M5シミュレーション開始前に、その時点の上位足状態を機械可読かつUIで一望可能にするため。"
         }
       ],
-      "verification_status": "未確認",
+      "verification_status": "静的確認済み",
       "context_def_status": "draft",
       "context_def_updated_at": "2026-07-10",
-      "context_def_draft": "# ContextDef素案: Timeframe State Builder：Swing / Dow / Cycle / HSI / BBを時間足状態JSONへ統合\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n"
+      "context_def_draft": "# ContextDef素案: Timeframe State Builder：Swing / Dow / Cycle / HSI / BBを時間足状態JSONへ統合\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n",
+      "latest_user_comment": "右クリック操作が直観的になったことを確認し、次のv0.9.0.08-timeframe-state-builder作業を依頼した。",
+      "latest_ai_response": "v0.9.0.08として、WEEK / DAY / H4 / H1 / M5の確定足・Swing・Dow・Cycle・HSI Anchor・BB観測を一つのTimeframeState JSONへ統合した。全Stateは同一M5 Reference Closeをstate_as_ofとして持ち、state_id、latest_confirmed_bar、data_sufficiency、source_event_ids、source_bar_keys、前回保存Snapshotとの差分を保持する。Run設定画面へ時間足別State表を追加し、Snapshot保存後は各時間足の現在State要約をSimulation Traceコメントとして投影する。TimeframeStateは観測結果であり、Entry/Hold/Close Permissionは未評価。",
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_v0_1.json\nstudio_overlays/gpt_fx_lab/sidecars/fx_usdjpy_m5_t3_data_v0_1.simulation_trace.json\nstudio_overlays/gpt_fx_lab/CHANGELOG.md\ndata/json/01_main/studio_fx_chart_viewer_incident_data_v0_4_simulator_registered.json",
+      "completion_summary": "確定足・Swing・Dow・Cycle・HSI・BBを時間足別Stateへ統合。data_sufficiencyと相場状態を分離し、安定state_id、source_event_ids、前回Snapshot差分、UI要約Traceを追加。Action PermissionとM5売買は未実装。",
+      "test_result": "plugin.js node --check OK。plugin.json / Run Profile / Simulation Trace / Incident JSON parse OK。TimeframeState Builder共通化、全5時間足State、同一state_as_of、source_event_ids逆参照検査、Lookahead検査、Action Permission未出力を静的確認。ブラウザ実操作は未確認。",
+      "discussion_history": [
+        {
+          "history_id": "disc_fx_chart_viewer_0019_001",
+          "at": "2026-07-11",
+          "speaker": "user",
+          "topic": "v0.9.0.08作業開始",
+          "message": "M5右クリックの一点状態表示が直観的になったことを確認し、Timeframe State Builderの実装を依頼した。"
+        },
+        {
+          "history_id": "disc_fx_chart_viewer_0019_002",
+          "at": "2026-07-11",
+          "speaker": "assistant",
+          "topic": "v0.9.0.08実装結果",
+          "message": "確定足・Swing・Dow・Cycle・HSI・BBを時間足別Stateへ統合し、data_sufficiency、state_id、source_event_ids、前回Snapshot差分、UI状態表、Simulation Trace要約を追加した。Action Permissionは未評価のまま維持した。"
+        }
+      ]
     },
     {
       "work_item_id": "fx_chart_viewer_work_0020",
@@ -2050,11 +2442,11 @@
       "incident_type": "feature_design",
       "category": "GPT FX Lab / Multi-Timeframe State Trace Simulator",
       "priority": "high",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-07-10",
-      "updated_at": "2026-07-10T23:35:00+09:00",
+      "updated_at": "2026-07-11T09:30:00+09:00",
       "target_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4.json",
       "objective": "WEEK / DAY / H4 / H1 TimeframeStateを統合し、方向Bias、Expansion Entry可否、Add-on可否、Hold、Profit Take Armed、H1 Exit Trigger有効化等のDecision Contextを生成する。",
       "background": "各時間足の状態だけでは行動は決まらず、組み合わせに対して何を許可・禁止するかを明示する必要がある。",
@@ -2085,6 +2477,30 @@
           "at": "2026-07-10",
           "decision": "WEEKは直接Closeせず、Entry SeasonとH1 Exit Permissionへ影響する。",
           "reason": "WEEKを管理時間足ではなく季節・権限層として扱うため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0020_004",
+          "at": "2026-07-11",
+          "decision": "Permission出力はALLOW_SEARCH / CONDITIONAL / WAIT / BLOCKEDとして、売買Executionと分離する。",
+          "reason": "上位足はM5で何を探してよいかを決める責務であり、Trigger成立や注文実行を先取りしないため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0020_005",
+          "at": "2026-07-11",
+          "decision": "H4 Late + BB Contracting + HSI ConfluenceをProfit Take Armedとし、Close実行ではなくH1 Exit Trigger監視を有効化する。",
+          "reason": "利益確定の季節はH4で大きく判断し、実際に降りる契機はH1で早めに捉える責務分離を反映するため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0020_006",
+          "at": "2026-07-11",
+          "decision": "WEEK LateはExpansion Entry / ReEntry / Add-onを禁止し、WEEK自身は直接Closeしない。",
+          "reason": "WEEKを管理時間足ではなく季節・権限層として扱い、既存Positionの処分はH1 Triggerへ委譲するため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0020_007",
+          "at": "2026-07-11",
+          "decision": "Rule評価はpriority_ordered_specification_registryとし、NoTrade/Blockを許可Ruleより先に適用・lockする。",
+          "reason": "巨大if文化と、後段の許可Ruleが危険条件を上書きする事故を防ぐため。"
         }
       ],
       "change_history": [
@@ -2095,12 +2511,41 @@
           "before": "親シミュレーター構想の一部として会話上に存在していたが、独立した作業単位・完了条件・判断ログがなかった。",
           "after": "v0.9.0.09-upper-context-decision-engine を未着手子インシデントとして登録した。",
           "reason": "上流から段階的に検証し、M5 Executionへ進む前に説明可能性と再現性を確保するため。"
+        },
+        {
+          "history_id": "chg_fx_chart_viewer_0020_002",
+          "at": "2026-07-11",
+          "change_type": "upper_context_decision_engine_added",
+          "before": "各時間足のTimeframeStateは生成できたが、組み合わせからM5へ何を許可・禁止するか、WEEK LateやH4 Profit Take Armedを一つのDecision Contextとして説明できなかった。",
+          "after": "WEEK/DAY/H4/H1 Stateを優先Rule Registryで統合し、Permission Matrix、方向Bias、NoTrade、Hold、Profit Take Armed、H1 Exit監視、reason/rule/input State参照、Decision Change Traceを追加した。",
+          "reason": "M5売買へ進む前に、上位足の組み合わせ判断を人間がUIとJSONで理解・納得できる状態にするため。"
         }
       ],
-      "verification_status": "未確認",
+      "verification_status": "静的確認済み",
       "context_def_status": "draft",
       "context_def_updated_at": "2026-07-10",
-      "context_def_draft": "# ContextDef素案: Upper Context Decision Engine：上位足状態からM5への許可・禁止を生成\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n"
+      "context_def_draft": "# ContextDef素案: Upper Context Decision Engine：上位足状態からM5への許可・禁止を生成\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n",
+      "latest_user_comment": "Timeframe State Builderの表示を確認し、次段階としてv0.9.0.09-upper-context-decision-engineの実装を依頼した。",
+      "latest_ai_response": "v0.9.0.09として、WEEK / DAY / H4 / H1 TimeframeStateを優先順位付きSpecification / Rule Registryで統合するUpper Context Decision Engineを追加した。NoTrade/Data不足/H4未判定を許可Ruleより先に評価し、方向Bias、Normal/Expansion Entry探索、ReEntry、Add-on、Core Hold、Profit Take Armed、H1 Exit Trigger監視をDecision Context JSONへ出力する。WEEK LateではExpansion Entry・ReEntry・Add-onを禁止し、WEEK自身は直接CloseせずH1 Exit監視を有効化する。H4 Late + BB Contracting + HSI ConfluenceでProfit Take Armedとし、実際のM5 Trigger判定・Position前提評価・Entry/Close実行は未実装のまま分離した。",
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_v0_1.json\nstudio_overlays/gpt_fx_lab/sidecars/fx_usdjpy_m5_t3_data_v0_1.simulation_trace.json\nstudio_overlays/gpt_fx_lab/CHANGELOG.md\ndata/json/01_main/studio_fx_chart_viewer_incident_data_v0_4_simulator_registered.json",
+      "completion_summary": "上位足StateをRule Registryで統合し、NoTrade優先のPermission Matrix、方向Bias、Entry探索可否、Core Hold、Profit Take Armed、H1 Exit監視、M5へのInstructionを生成。reason_codes / rule_ids / input_state_ids / Decision Change Traceで逆追跡可能にした。M5 Triggerと売買実行は未実装。",
+      "test_result": "plugin.js node --check OK。plugin.json / Run Profile / Simulation Trace / Incident JSON parse OK。合成StateでWEEK LateによるExpansion/ReEntry/Add-on禁止とH1 Exit監視、H4 Late + BB Contracting + HSI ConfluenceによるProfit Take Armed、H4/H1整合時のM5 Entry探索許可、NoTrade優先、WEEK direct close禁止、M5 execution未評価を確認。ブラウザ実操作は未確認。",
+      "discussion_history": [
+        {
+          "history_id": "disc_fx_chart_viewer_0020_001",
+          "at": "2026-07-11",
+          "speaker": "user",
+          "topic": "v0.9.0.09作業開始",
+          "message": "Timeframe State Builderの表示を確認し、次段階としてUpper Context Decision Engineの実装を依頼した。"
+        },
+        {
+          "history_id": "disc_fx_chart_viewer_0020_002",
+          "at": "2026-07-11",
+          "speaker": "assistant",
+          "topic": "v0.9.0.09実装結果",
+          "message": "上位足StateをNoTrade優先のRule Registryで統合し、M5への探索許可・禁止、Core Hold、Profit Take Armed、H1 Exit監視をDecision Contextとして出力した。M5 Triggerと売買実行は未実装のまま分離した。"
+        }
+      ]
     },
     {
       "work_item_id": "fx_chart_viewer_work_0021",
@@ -2109,11 +2554,11 @@
       "incident_type": "feature_design",
       "category": "GPT FX Lab / Multi-Timeframe State Trace Simulator",
       "priority": "high",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-07-10",
-      "updated_at": "2026-07-10T23:35:00+09:00",
+      "updated_at": "2026-07-11T10:30:00+09:00",
       "target_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4.json",
       "objective": "Observation / State Change / Decision / Executionを追記型Eventとして記録し、任意結果からConfirm bars・起点・使用Ruleまで逆方向へ追跡・再生できるようにする。",
       "background": "ユーザーが「なんでこうなったか」をAIへ毎回質問せず、自分でログとUIから理解できることがシミュレーター成立条件。",
@@ -2150,6 +2595,36 @@
           "at": "2026-07-10",
           "decision": "Traceは実装後付けではなく各Stepの出力契約に組み込む。",
           "reason": "後からでは根拠情報を復元できないため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0021_005",
+          "at": "2026-07-11",
+          "decision": "Event分類は観測・状態変化・判断・実行の4区分とし、区分名はUIで日本語表示する。",
+          "reason": "人間がログを見ただけで、事実・状態・方針・実行の違いを理解できるようにするため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0021_006",
+          "at": "2026-07-11",
+          "decision": "各Eventへ全Stateを複製せず、差分replay_patchと50EventごとのCheckpoint、最終Checkpointを保存する。",
+          "reason": "ログ肥大化を抑えつつ、任意地点の状態復元を可能にするため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0021_007",
+          "at": "2026-07-11",
+          "decision": "cause_event_idsをDAGとして検査し、原因欠落・循環・結果より未来の原因参照をエラーにする。",
+          "reason": "「なんでこうなった」を逆方向へ安全に追える因果連鎖を保証するため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0021_008",
+          "at": "2026-07-11",
+          "decision": "Run設定・上位判断・Simulation Popoverの主要ラベルは日本語中心とし、Rule IDやEvent ID等の機械参照IDは英語のまま維持する。",
+          "reason": "人間の理解負荷を下げながら、JSONとTraceの安定参照を壊さないため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0021_009",
+          "at": "2026-07-11",
+          "decision": "Replay LogはM5 Triggerや売買実行を生成せず、run_resultへNO_EXECUTION_YETを明示する。",
+          "reason": "説明可能性と再現性を完成させてからM5 Executionへ進む段階開発を守るため。"
         }
       ],
       "change_history": [
@@ -2160,12 +2635,41 @@
           "before": "親シミュレーター構想の一部として会話上に存在していたが、独立した作業単位・完了条件・判断ログがなかった。",
           "after": "v0.9.0.10-simulation-trace-replay-log を未着手子インシデントとして登録した。",
           "reason": "上流から段階的に検証し、M5 Executionへ進む前に説明可能性と再現性を確保するため。"
+        },
+        {
+          "history_id": "chg_fx_chart_viewer_0021_002",
+          "at": "2026-07-11",
+          "change_type": "simulation_trace_replay_log_added",
+          "before": "個別StepのEventは存在したが、Event区分、追記順、差分Patch、Checkpoint、因果DAG検査、任意時点復元、原因連鎖UIが一つのReplay契約として統合されていなかった。",
+          "after": "全上流Eventを4区分の追記型Traceへ統合し、差分Patch、定期/最終Checkpoint、DAG検査、任意sequence復元、原因逆追跡、日本語中心UI、Run/Event/Result分離を追加した。",
+          "reason": "M5売買へ進む前に、すべての判断経過を人間が自力で理解・再現できる状態を作るため。"
         }
       ],
-      "verification_status": "未確認",
+      "verification_status": "静的確認済み",
       "context_def_status": "draft",
       "context_def_updated_at": "2026-07-10",
-      "context_def_draft": "# ContextDef素案: Simulation Trace / Replay Log：判断連鎖・差分Event・Snapshot・逆追跡\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n"
+      "context_def_draft": "# ContextDef素案: Simulation Trace / Replay Log：判断連鎖・差分Event・Snapshot・逆追跡\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n",
+      "latest_user_comment": "上位足Decision表示を確認し、英語表示を控えめにしながら、判断連鎖を逆追跡・再生できるv0.9.0.10-simulation-trace-replay-logの実装を依頼した。",
+      "latest_ai_response": "v0.9.0.10として、Swing観測、Dow/Cycle/HSI/Timeframe Stateの状態変化、Upper Context DecisionをOBSERVATION / STATE_CHANGE / DECISION / EXECUTIONへ分類し、追記型Trace Eventへ統合した。各Eventはsequence、event_class、domain、cause_event_ids、差分replay_patchを持ち、50EventごとのCheckpointと最終Checkpointを保存する。任意sequenceは最寄りCheckpointから差分を適用して復元でき、選択Eventから原因EventをDAGとして逆追跡できる。Run設定画面へ日本語中心の「判断履歴・再生ログ」、前後移動・スライダー・復元State・原因連鎖・Event一覧を追加し、上位判断表とSimulation Popoverの主要表示も日本語化した。M5 Trigger判定とEntry/Close実行は未実装。",
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_v0_1.json\nstudio_overlays/gpt_fx_lab/sidecars/fx_usdjpy_m5_t3_data_v0_1.simulation_trace.json\nstudio_overlays/gpt_fx_lab/CHANGELOG.md\ndata/json/01_main/studio_fx_chart_viewer_incident_data_v0_4_simulator_registered.json",
+      "completion_summary": "観測・状態変化・判断・実行を区分した追記型Trace、原因DAG、差分Patch、定期/最終Checkpoint、任意時点Replay、原因逆追跡UIを追加。UIは日本語中心へ整理し、安定した内部IDは維持。Run/Event/Resultを分離し、M5売買実行は無効のまま。",
+      "test_result": "plugin.js node --check OK。plugin.json / Run Profile / Simulation Trace / Incident JSON parse OK。合成Eventで4区分、Checkpoint生成、任意sequence復元、DecisionからSwing候補までの原因逆追跡、原因欠落・循環・未来原因の拒否、Execution 0件を確認。ZIPは更新6ファイルのみ。ブラウザ実操作は未確認。",
+      "discussion_history": [
+        {
+          "history_id": "disc_fx_chart_viewer_0021_001",
+          "at": "2026-07-11",
+          "speaker": "user",
+          "topic": "v0.9.0.10作業開始",
+          "message": "Upper Context Decision画面の英語量にカオス感があるため日本語を増やしつつ、Simulation Trace / Replay Logの実装を依頼した。"
+        },
+        {
+          "history_id": "disc_fx_chart_viewer_0021_002",
+          "at": "2026-07-11",
+          "speaker": "assistant",
+          "topic": "v0.9.0.10実装結果",
+          "message": "観測・状態変化・判断・実行を追記型Eventへ統合し、差分Patch、Checkpoint、因果DAG検査、任意時点Replay、原因逆追跡UIを追加した。M5売買実行は未実装のまま維持した。"
+        }
+      ]
     },
     {
       "work_item_id": "fx_chart_viewer_work_0022",
@@ -2174,11 +2678,11 @@
       "incident_type": "feature_design",
       "category": "GPT FX Lab / Multi-Timeframe State Trace Simulator",
       "priority": "high",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-07-10",
-      "updated_at": "2026-07-10T23:35:00+09:00",
+      "updated_at": "2026-07-11T12:33:31+09:00",
       "target_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4.json",
       "objective": "上位足Decision ContextとH1 Triggerに従い、M5でEntry / ReEntry / Add-on / Partial Close / Full Close / StopCloseを実行し、Core / Add-on / Runnerを管理する。",
       "background": "M5は上位足状態やWEEK季節を独自判断せず、許可されたTrigger探索と実行に責務を限定する。",
@@ -2209,6 +2713,54 @@
           "at": "2026-07-10",
           "decision": "Management Timeframe Promotionは上位波接続時のみ許可し、上限DAY、WEEK昇格は禁止する。",
           "reason": "損失先送りを防ぎ、WEEKを季節層として維持するため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0022_004",
+          "at": "2026-07-11",
+          "decision": "初期M5 ExecutionはReference Pointを1点ずつ進めるstep方式とし、同じM5確定足を二重実行しない。",
+          "reason": "現在のRun設定画面が一点観測Snapshotを正本としているため、理解可能な最小単位でPosition Lifecycleを開始するため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0022_005",
+          "at": "2026-07-11",
+          "decision": "新規Entryは上位足の通常探索許可、M5 Dow方向整合、確定済みHSI Entry起点、起点からR2以上を初期必須条件とする。",
+          "reason": "M5単独Entryを防ぎ、既存ルールの「H1/H4文脈 + M5 Dow + 確定起点R2」を実行契約へ落とすため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0022_006",
+          "at": "2026-07-11",
+          "decision": "Expansion探索が許可されても、明示的なExpansion確定状態が未実装の間は通常Entryへ丸めずWAITする。",
+          "reason": "R4到達や探索許可だけでExpansion Entryを実行し、未確定ルールを既成事実化しないため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0022_007",
+          "at": "2026-07-11",
+          "decision": "初期10単位をCore 9 + Runner 1へ分離し、Add-onは別Positionとして保持する。",
+          "reason": "Core / Add-on / Runnerを別Lifecycleとして追跡できる最小構造を作り、部分決済と大波保有を分離するため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0022_008",
+          "at": "2026-07-11",
+          "decision": "実行優先度を構造Stop、H1全決済、一部利確、買い増し、再Entry、新規Entryの順に固定する。",
+          "reason": "既存建玉の保護と決済を、新規リスク追加より先に評価するため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0022_009",
+          "at": "2026-07-11",
+          "decision": "通常CoreはH1、RunnerはH4を初期管理時間足とし、上限DAY、WEEK昇格禁止、損失先送り目的の昇格禁止をProfile制約とする。",
+          "reason": "Entry時間足と管理時間足を分離しながら、WEEKを季節層として維持し、含み損の時間足変更を防ぐため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0022_010",
+          "at": "2026-07-11",
+          "decision": "Run設定は全画面モーダルではなく、チャートBody内のモデルレス・フローティングパネルとして表示する。",
+          "reason": "状態表だけではなく、同じ時点のチャート形状を見ながら比較することが思考・理解に必須であり、画面を覆うモーダルでは観測行為を止めてしまうため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0022_011",
+          "at": "2026-07-11",
+          "decision": "パネルはヘッダー移動、左端の横幅変更、位置戻すを提供し、パネル外のチャート操作を許可する。",
+          "reason": "一点観測・Trace確認・M5右クリックを往復しながら、利用者自身がチャートと情報量の見やすい配置を調整できるようにするため。"
         }
       ],
       "change_history": [
@@ -2219,16 +2771,67 @@
           "before": "親シミュレーター構想の一部として会話上に存在していたが、独立した作業単位・完了条件・判断ログがなかった。",
           "after": "v0.9.0.11-m5-execution-position-lifecycle を未着手子インシデントとして登録した。",
           "reason": "上流から段階的に検証し、M5 Executionへ進む前に説明可能性と再現性を確保するため。"
+        },
+        {
+          "history_id": "chg_fx_chart_viewer_0022_002",
+          "at": "2026-07-11",
+          "change_type": "m5_execution_position_lifecycle_added",
+          "before": "Upper Context DecisionとTrace Replayまでは実装済みだったが、M5 Trigger評価、Position identity、Core/Add-on/Runner、Entry/Close Execution、Trade Resultは未実装だった。",
+          "after": "Reference Point step方式のM5 Execution Engine、Position Lifecycle、仮想Execution Event、Run Result、日本語UI、Trace逆参照を追加した。",
+          "reason": "上位足状態と判断履歴を理解できる土台が完成したため、責務をM5実行へ限定して最終Stepを実装するため。"
+        },
+        {
+          "history_id": "chg_fx_chart_viewer_0022_003",
+          "at": "2026-07-11",
+          "change_type": "run_dialog_modeless_resizable_followup",
+          "before": "Run設定はチャート全体を暗転して覆うモーダルであり、表示中はチャートを見ながら操作できず、横幅も固定だった。",
+          "after": "Run設定をチャートBody上のモデルレスパネルへ変更し、チャート操作継続、ヘッダー移動、左端横幅変更、位置戻すへ対応した。",
+          "reason": "チャートを見ながらでないと思考が動かず、現在の一点観測・仮想実行の使い方を理解しにくいという実画面確認を反映するため。"
         }
       ],
-      "verification_status": "未確認",
+      "verification_status": "静的確認済み",
       "context_def_status": "draft",
       "context_def_updated_at": "2026-07-10",
-      "context_def_draft": "# ContextDef素案: M5 Execution / Position Lifecycle：上位足Decisionに従うEntry・Hold・Close実行\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n"
+      "context_def_draft": "# ContextDef素案: M5 Execution / Position Lifecycle：上位足Decisionに従うEntry・Hold・Close実行\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n",
+      "latest_user_comment": "Run設定画面はチャートを見ながらでないと思考が動かないため、チャートグラフ上のフローティング表示にし、表示中もチャートを操作可能にしてほしい。加えて、ダイアログの横幅をユーザーが変更できるようにしてほしい。現時点では使い方を理解しながら進めたい。",
+      "latest_ai_response": "v0.9.0.11.1追補として、Run設定 / 状態確認をチャート全体を覆うモーダルから、チャートBody内のモデルレス・フローティングパネルへ変更した。パネル外はpointer-eventsを透過し、表示中もチャートのスクロール・右クリック・同期操作を継続できる。ヘッダーをドラッグして移動、左端ハンドルを左右へドラッグして横幅変更、位置戻すボタンで初期位置へ復帰できる。M5仮想実行・建玉Lifecycle・Trace判定内容は変更していない。",
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/CHANGELOG.md\ndata/json/01_main/studio_fx_chart_viewer_incident_data_v0_4_simulator_registered.json",
+      "completion_summary": "M5 Execution / Position Lifecycle実装後のUI追補として、Run設定をチャートBody上のモデルレス・移動可能・横幅変更可能なフローティングパネルへ変更した。パネル外ではチャート操作を継続でき、ヘッダードラッグ、左端リサイズ、位置戻すに対応した。シミュレーション判定・建玉Lifecycle・Traceデータ構造は変更していない。",
+      "test_result": "plugin.js node --check OK。plugin.json / Incident JSON parse OK。Runパネルがchart body内へ配置され、aria-modal=false、背景暗転なし、overlay pointer-events:none、dialog pointer-events:autoであることを静的確認。ヘッダー移動・左端横幅変更・位置戻すのPointer Event処理と、Geometryのチャート範囲Clampを確認。ブラウザ実操作は未確認。",
+      "discussion_history": [
+        {
+          "history_id": "disc_fx_chart_viewer_0022_001",
+          "at": "2026-07-11",
+          "speaker": "user",
+          "topic": "v0.9.0.11作業開始",
+          "message": "判断履歴が日本語表示され理解しやすくなったことを確認し、M5 Execution / Position Lifecycleの実装を依頼した。"
+        },
+        {
+          "history_id": "disc_fx_chart_viewer_0022_002",
+          "at": "2026-07-11",
+          "speaker": "assistant",
+          "topic": "v0.9.0.11実装結果",
+          "message": "上位足Decisionに従うM5仮想実行、Core/Add-on/Runnerの建玉Lifecycle、Entry/決済Event、原因Trace、日本語UIを追加した。Expansion確定・リアル注文・資金管理は対象外として残した。"
+        },
+        {
+          "history_id": "disc_fx_chart_viewer_0022_003",
+          "at": "2026-07-11",
+          "speaker": "user",
+          "topic": "Run設定画面のモデルレス化",
+          "message": "Run設定画面をチャートグラフ上に表示し、表示中もチャートを操作できる状態にしたい。ダイアログの横幅もユーザー操作で変更したい。"
+        },
+        {
+          "history_id": "disc_fx_chart_viewer_0022_004",
+          "at": "2026-07-11",
+          "speaker": "assistant",
+          "topic": "モデルレス・移動・横幅変更対応",
+          "message": "Run設定をチャートBody内のフローティングパネルへ変更し、チャート操作を止めないpointer-events分離、ヘッダードラッグ、左端リサイズ、位置戻すを追加した。"
+        }
+      ]
     }
   ],
   "decision_log_policy": "fx_chart_viewerのUI改善・Overlay拡張では、実装差分だけでなく、違和感、採用判断、捨てた案、リスク、結果をwork_items[].decision_log / discussion_history / change_historyへ残す。この判断ログは、Studio Context Engineer Wannabe / 将来の自律的AIが、なぜそのUI・DataSource・URL責務にしたのかを学ぶための判例データとして扱う。",
-  "simulation_plan_status": "parent_and_children_registered",
-  "simulation_plan_updated_at": "2026-07-10T23:35:00+09:00",
-  "simulation_plan_summary": "fx_chart_viewer_work_0011を親とし、0012〜0022を段階子インシデントとして登録。Simulation Trace Annotation UIを先頭に置き、Simulation/Userコメント独立ON/OFF、全時間足Confirm bars独立必須値、上位足State、Decision Context、Trace逆追跡をM5 Executionより先に実装する。"
+  "simulation_plan_status": "m5_execution_position_lifecycle_implemented",
+  "simulation_plan_updated_at": "2026-07-11T12:00:00+09:00",
+  "simulation_plan_summary": "fx_chart_viewer_work_0011を親とし、0012〜0022を段階子インシデントとして登録。Simulation Trace Annotation UIを先頭に置き、Simulation/Userコメント独立ON/OFF、全時間足Confirm bars独立必須値、上位足State、Decision Context、Trace逆追跡をM5 Executionより先に実装する。\nWEEK/DAY/H4/H1 TimeframeStateを優先Rule Registryで統合し、M5への探索許可・禁止、Hold、Profit Take Armed、H1 Exit監視を説明可能なDecision Contextとして出力する段階まで完了。M5 Trigger/売買実行は未着手。"
 }

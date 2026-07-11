@@ -1,0 +1,623 @@
+{
+  "schema_version": "fx_simulation_run_profile_v0_1",
+  "kind": "fx_simulation_run_profile",
+  "profile_id": "usdjpy_multi_tf_state_trace_default_v0_1",
+  "title": "USDJPY Multi-Timeframe State Trace / M5実行・建玉Lifecycle Profile",
+  "status": "draft_m5_execution_position_lifecycle",
+  "created_at": "2026-07-10T23:55:00+09:00",
+  "updated_at": "2026-07-11T12:00:00+09:00",
+  "phase": "v0.9.0.11-m5-execution-position-lifecycle",
+  "rule_version": "simulation_rule_v0_4_draft",
+  "dataset": {
+    "primary": {
+      "dataset_id": "fx_usdjpy_m5_t3_data_v0_1",
+      "path": "studio_overlays/gpt_fx_lab/data/fx_usdjpy_m5_t3_data_v0_1.json",
+      "sha256": "bb8a61a16622e4b72edf8b78dff7c1339df29c2e1e630cfac05bfd8da34fb24d",
+      "symbol": "USDJPY",
+      "timeframe": "M5",
+      "row_count": 50314,
+      "date_from": "2025-10-28 06:10",
+      "date_to": "2026-07-03 23:50"
+    },
+    "upper_map": {
+      "dataset_id": "fx_usdjpy_d1_t3_data_v0_1",
+      "path": "studio_overlays/gpt_fx_lab/data/fx_usdjpy_d1_t3_data_v0_1.json",
+      "sha256": "b94b31d93e822ab72db68ca862d46883f8fe37d5ae62acbccb67402f19bdae8d",
+      "symbol": "USDJPY",
+      "timeframe": "D1",
+      "row_count": 2246,
+      "date_from": "2017-11-21 00:00",
+      "date_to": "2026-07-09 00:00"
+    }
+  },
+  "period_policy": {
+    "mode": "current_chart_window",
+    "description": "Run Snapshot作成時点のM5表示窓の先頭・末尾時刻を明示保存する。未来側の未確定足は含めない。"
+  },
+  "timeframe_profiles": [
+    {
+      "timeframe": "WEEK",
+      "confirm_bars": 20,
+      "required": true,
+      "source_mapping": {
+        "kind": "aggregate",
+        "source_timeframe": "DAY",
+        "source_dataset_role": "upper_map"
+      },
+      "warmup": {
+        "mode": "all_history",
+        "bars": 0
+      },
+      "note": "WEEK Confirm barsは独立明示値。DAY/H4等から計算しない。",
+      "cycle": {
+        "origin_policy": "latest_confirmed_usable_swing",
+        "phase_thresholds": {
+          "early_max_bars": 20,
+          "middle_max_bars": 30,
+          "late_from_bars": 31
+        },
+        "context_role": "week_expansion_season",
+        "context_state_map": {
+          "EARLY": "OPEN",
+          "MIDDLE": "CAUTION",
+          "LATE": "CLOSED",
+          "UNDETERMINED": "UNKNOWN"
+        },
+        "note": "WEEKは高値づかみ回避を優先し、Expansion Seasonを保守的に早めに閉じる初期Draft。閾値は明示設定でありConfirm barsから計算しない。"
+      }
+    },
+    {
+      "timeframe": "DAY",
+      "confirm_bars": 45,
+      "required": true,
+      "source_mapping": {
+        "kind": "external_dataset",
+        "source_timeframe": "DAY",
+        "source_dataset_role": "upper_map"
+      },
+      "warmup": {
+        "mode": "all_history",
+        "bars": 0
+      },
+      "note": "DAY Confirm barsは独立明示値。plugin.json表示値の暗黙継承はしない。",
+      "cycle": {
+        "origin_policy": "latest_confirmed_usable_swing",
+        "phase_thresholds": {
+          "early_max_bars": 45,
+          "middle_max_bars": 60,
+          "late_from_bars": 61
+        },
+        "context_role": "day_expansion_age",
+        "context_state_map": {
+          "EARLY": "OK",
+          "MIDDLE": "WARNING",
+          "LATE": "NOT_EXPANSION",
+          "UNDETERMINED": "UNKNOWN"
+        },
+        "note": "DAY 45本以内/45本超Warning/60本超Not Expansionの仮説をCycle Stateへ写像。"
+      }
+    },
+    {
+      "timeframe": "H4",
+      "confirm_bars": 20,
+      "required": true,
+      "source_mapping": {
+        "kind": "aggregate",
+        "source_timeframe": "M5",
+        "source_dataset_role": "primary"
+      },
+      "warmup": {
+        "mode": "past_bars",
+        "bars": 100
+      },
+      "note": "H4 Confirm barsは独立明示値。M5値から計算しない。",
+      "cycle": {
+        "origin_policy": "latest_confirmed_usable_swing",
+        "phase_thresholds": {
+          "early_max_bars": 20,
+          "middle_max_bars": 40,
+          "late_from_bars": 41
+        },
+        "context_role": "h4_cycle_maturity",
+        "context_state_map": {
+          "EARLY": "GROW",
+          "MIDDLE": "MANAGE",
+          "LATE": "PROTECT",
+          "UNDETERMINED": "UNKNOWN"
+        },
+        "note": "H4 Cycle Maturityの初期Draft。利益確定やAdd-on禁止はこのStateだけでは決定しない。"
+      }
+    },
+    {
+      "timeframe": "H1",
+      "confirm_bars": 7,
+      "required": true,
+      "source_mapping": {
+        "kind": "aggregate",
+        "source_timeframe": "M5",
+        "source_dataset_role": "primary"
+      },
+      "warmup": {
+        "mode": "past_bars",
+        "bars": 100
+      },
+      "note": "H1 Confirm barsは独立明示値。H4/M5値から計算しない。",
+      "cycle": {
+        "origin_policy": "latest_confirmed_usable_swing",
+        "phase_thresholds": {
+          "early_max_bars": 7,
+          "middle_max_bars": 14,
+          "late_from_bars": 15
+        },
+        "context_role": "h1_cycle_position",
+        "context_state_map": {
+          "EARLY": "EARLY",
+          "MIDDLE": "MIDDLE",
+          "LATE": "LATE",
+          "UNDETERMINED": "UNKNOWN"
+        },
+        "note": "H1 Cycle Positionの初期Draft。Exit Trigger判定は後続Phase。"
+      }
+    },
+    {
+      "timeframe": "M5",
+      "confirm_bars": 20,
+      "required": true,
+      "source_mapping": {
+        "kind": "primary_dataset",
+        "source_timeframe": "M5",
+        "source_dataset_role": "primary"
+      },
+      "warmup": {
+        "mode": "none",
+        "bars": 0
+      },
+      "note": "M5 Confirm barsは独立明示値。画面上の観測値とは別にRun Profileで固定する。",
+      "cycle": {
+        "origin_policy": "latest_confirmed_usable_swing",
+        "phase_thresholds": {
+          "early_max_bars": 20,
+          "middle_max_bars": 40,
+          "late_from_bars": 41
+        },
+        "context_role": "m5_cycle_position",
+        "context_state_map": {
+          "EARLY": "EARLY",
+          "MIDDLE": "MIDDLE",
+          "LATE": "LATE",
+          "UNDETERMINED": "UNKNOWN"
+        },
+        "note": "M5 Cycle Positionの初期Draft。Entry/Close Executionは後続Phase。"
+      }
+    }
+  ],
+  "validation_policy": {
+    "required_timeframes": [
+      "WEEK",
+      "DAY",
+      "H4",
+      "H1",
+      "M5"
+    ],
+    "confirm_bars_min": 3,
+    "confirm_bars_max": 101,
+    "confirm_bars_integer_only": true,
+    "missing_value": "reject_run_snapshot",
+    "inheritance": "forbidden",
+    "calculation_from_other_timeframes": "forbidden",
+    "implicit_default": "forbidden",
+    "implicit_fallback": "forbidden"
+  },
+  "snapshot_policy": {
+    "storage": "simulation_trace_sidecar.run_snapshot",
+    "copy_profile_values": true,
+    "copy_dataset_hashes": true,
+    "copy_visible_period": true,
+    "engine_enabled": true,
+    "status_after_validation": "validated_m5_execution_position_lifecycle",
+    "copy_confirmed_candle_sync": true,
+    "copy_shared_swing_point_snapshot": true,
+    "copy_swing_observation_events": true,
+    "swing_point_detector_enabled": true,
+    "dow_engine_enabled": true,
+    "copy_dow_trend_evaluation": true,
+    "copy_dow_state_change_events": true,
+    "dow_trend_evaluator_enabled": true,
+    "dow_entry_permission_enabled": false,
+    "cycle_position_evaluator_enabled": true,
+    "copy_cycle_position_evaluation": true,
+    "copy_cycle_state_change_events": true,
+    "cycle_action_permission_enabled": false,
+    "hsi_anchor_registry_enabled": true,
+    "copy_hsi_anchor_registry": true,
+    "copy_hsi_anchor_lifecycle_events": true,
+    "hsi_action_permission_enabled": false,
+    "human_saved_hsi_auto_adoption": false,
+    "timeframe_state_builder_enabled": true,
+    "copy_timeframe_states": true,
+    "copy_timeframe_state_events": true,
+    "timeframe_state_action_permission_enabled": false,
+    "bb_observation_enabled": true,
+    "upper_context_decision_engine_enabled": true,
+    "copy_upper_context_decision": true,
+    "copy_upper_context_decision_events": true,
+    "m5_trigger_evaluator_enabled": true,
+    "trade_execution_enabled": true,
+    "decision_engine_enabled": true,
+    "m5_trigger_engine_enabled": true,
+    "trace_replay_engine_enabled": true,
+    "copy_trace_replay_events": true,
+    "copy_trace_checkpoints": true,
+    "run_result_enabled": true,
+    "copy_position_lifecycle": true,
+    "copy_m5_trigger_decisions": true,
+    "copy_execution_events": true
+  },
+  "teacher_guard": "上位足Decisionを再判定せず、M5確定足・M5 Dow・確定HSI起点・R2距離・H1離脱監視で仮想建玉を一地点ずつ更新する。リアル注文、売買推奨、資金管理、Expansion確定は対象外。",
+  "time_sync_policy": {
+    "reference_axis": "M5_CLOSE",
+    "bar_timestamp_role": "open_time",
+    "confirmation_rule": "bar_end_ms <= reference_close_ms",
+    "week_start": "MONDAY_00:00",
+    "dataset_timezone": "UNSPECIFIED_LOCAL_WALL_CLOCK",
+    "runtime_interpretation": "browser_local_time",
+    "future_rows": "exclude",
+    "missing_bars": "do_not_fill",
+    "state_rebuild": "only_when_latest_confirmed_bar_changes",
+    "reference_ui_policy": "M5 context-menu point when explicitly selected; otherwise chart sync center; otherwise current window last M5"
+  },
+  "swing_point_policy": {
+    "detector_id": "shared_center_window_unique_extreme_v0_1",
+    "algorithm": "center_window_unique_extreme",
+    "confirm_bars_source": "timeframe_profiles[].confirm_bars",
+    "timeframe_specific_class": "forbidden",
+    "no_lookahead": true,
+    "candidate_policy": "left_window_unique_extreme_pending_until_full_window",
+    "confirmation_policy": "full_window_unique_extreme",
+    "retirement_policy": "same_type_replaced_by_more_extreme_confirmed_point",
+    "candidate_usable_as_basis": false,
+    "confirmed_active_usable_as_basis": true,
+    "candidate_only_usable_as_basis": false,
+    "retired_usable_as_basis": false,
+    "event_output": "run_snapshot.swing_point_detection.observation_events",
+    "chart_event_projection": "latest_active_high_low_per_timeframe",
+    "analysis_scope_policy": "current chart period plus explicit warmup; all_history profiles use all confirmed history"
+  },
+  "dow_trend_policy": {
+    "evaluator_id": "shared_confirmed_swing_structure_v0_1",
+    "input_source": "run_snapshot.swing_point_detection.timeframes[].points",
+    "confirmed_points_only": true,
+    "pending_candidate_usage": "forbidden",
+    "timeframe_specific_class": "forbidden",
+    "comparison_rule": "last_two_structure_highs_and_last_two_structure_lows",
+    "same_type_policy": "replace_only_when_more_extreme",
+    "equal_price_policy": "NO_TREND",
+    "mixed_structure_policy": "REVERSAL_WATCH_when_prior_direction_exists_else_NO_TREND",
+    "insufficient_structure_policy": "UNDETERMINED",
+    "state_change_event_only": true,
+    "entry_permission_output": "forbidden",
+    "no_lookahead": true,
+    "event_output": "run_snapshot.dow_trend_evaluation.state_change_events",
+    "chart_event_projection": "latest_state_change_per_timeframe",
+    "states": [
+      "UP",
+      "DOWN",
+      "REVERSAL_WATCH",
+      "NO_TREND",
+      "UNDETERMINED"
+    ]
+  },
+  "cycle_position_policy": {
+    "evaluator_id": "shared_latest_usable_swing_origin_v0_1",
+    "input_source": "run_snapshot.swing_point_detection.timeframes[].points + candle_sync confirmed rows",
+    "origin_selection": "latest_confirmed_usable_swing",
+    "candidate_usage": "forbidden",
+    "retired_usage_for_current_origin": "forbidden",
+    "historical_retired_origin_replay": true,
+    "timeframe_specific_class": "forbidden",
+    "phase_threshold_source": "timeframe_profiles[].cycle.phase_thresholds",
+    "context_mapping_source": "timeframe_profiles[].cycle.context_state_map",
+    "elapsed_bar_rule": "confirmed_bars_after_origin_pivot_excluding_origin_bar",
+    "origin_change_event": true,
+    "phase_change_event": true,
+    "action_permission_output": "forbidden",
+    "no_lookahead": true,
+    "event_output": "run_snapshot.cycle_position_evaluation.state_change_events",
+    "chart_event_projection": "latest_cycle_state_event_per_timeframe",
+    "states": [
+      "EARLY",
+      "MIDDLE",
+      "LATE",
+      "UNDETERMINED"
+    ]
+  },
+  "hsi_anchor_policy": {
+    "registry_id": "shared_multi_role_hsi_anchor_registry_v0_1",
+    "resolver_id": "purpose_ranked_hsi_anchor_resolver_v0_1",
+    "input_source": "run_snapshot.swing_point_detection + dow_trend_evaluation + cycle_position_evaluation",
+    "source_type": "simulation_hsi_anchor",
+    "human_saved_hsi_source_type": "human_hsi",
+    "timeframe_specific_class": "forbidden",
+    "lifecycle_statuses": [
+      "CANDIDATE",
+      "CONFIRMED",
+      "RETIRED"
+    ],
+    "adoption_statuses": [
+      "NOT_ELIGIBLE",
+      "AVAILABLE",
+      "ADOPTED",
+      "RETIRED"
+    ],
+    "candidate_usage": "registry_only_not_resolvable",
+    "confirmed_active_eligibility": true,
+    "retired_retention": true,
+    "status_role_separation": true,
+    "direction_rule": "swing_low_is_up_anchor_swing_high_is_down_anchor",
+    "direction_context_rule": "dow_direction_else_cycle_direction_else_unresolved",
+    "role_assignment": "structure_all_cycle_origin_plus_purpose_candidates",
+    "purpose_resolvers": {
+      "entry": "latest_active_aligned_anchor",
+      "hold": "oldest_active_aligned_anchor_in_analysis_scope",
+      "target": "oldest_active_aligned_anchor_in_analysis_scope",
+      "thesis": "oldest_active_aligned_anchor_in_analysis_scope",
+      "confluence": "all_active_aligned_anchors"
+    },
+    "human_saved_hsi_comparison": "same_timeframe_nearest_time_then_price_reference_only",
+    "action_permission_output": "forbidden",
+    "no_lookahead": true,
+    "event_output": "run_snapshot.hsi_anchor_registry.lifecycle_events",
+    "chart_event_projection": "latest_adopted_anchor_per_timeframe"
+  },
+  "timeframe_state_policy": {
+    "builder_id": "shared_timeframe_state_builder_v0_1",
+    "input_source": "candle_sync + swing_point_detection + dow_trend_evaluation + cycle_position_evaluation + hsi_anchor_registry + confirmed_close_bb",
+    "timeframe_specific_class": "forbidden",
+    "state_as_of_source": "candle_sync.reference.reference_close_time",
+    "state_id_policy": "stable_reference_plus_observation_signature",
+    "source_event_ids_required": true,
+    "data_sufficiency_separate_from_market_state": true,
+    "action_permission_output": "forbidden",
+    "no_lookahead": true,
+    "state_fields": [
+      "state_id",
+      "timeframe",
+      "state_as_of",
+      "latest_confirmed_bar",
+      "data_sufficiency",
+      "swing_state",
+      "trend_state",
+      "trend_detail",
+      "cycle_state",
+      "hsi_anchor_state",
+      "bb_state",
+      "source_event_ids",
+      "source_bar_keys",
+      "comparison_to_previous_snapshot",
+      "action_permission"
+    ],
+    "bb_phase": {
+      "period": 20,
+      "deviations": 2,
+      "source": "close",
+      "lookback_bands": 20,
+      "width_change_threshold_ratio": 0.03,
+      "states": [
+        "SQUEEZE",
+        "OPENING",
+        "EXPANSION",
+        "MATURE",
+        "CONTRACTING",
+        "STABLE",
+        "UNDETERMINED"
+      ],
+      "note": "確定済みCloseだけから共通BBを計算し、直近幅変化と直近分布で観測Phaseを付ける初期Draft。売買判断には使用しない。"
+    },
+    "event_output": "run_snapshot.timeframe_states.state_events",
+    "chart_event_projection": "one_current_state_summary_per_timeframe"
+  },
+  "upper_context_decision_policy": {
+    "engine_id": "priority_specification_upper_context_v0_1",
+    "input_source": "run_snapshot.timeframe_states.timeframes",
+    "required_timeframes": [
+      "WEEK",
+      "DAY",
+      "H4",
+      "H1"
+    ],
+    "timeframe_specific_class": "forbidden",
+    "rule_evaluation": "priority_ordered_specification_registry",
+    "no_trade_priority": true,
+    "data_sufficiency_required_for_new_entry": "READY",
+    "permission_states": [
+      "ALLOW_SEARCH",
+      "CONDITIONAL",
+      "WAIT",
+      "BLOCKED",
+      "NOT_EVALUATED"
+    ],
+    "direction_bias_rule": "h4_direction_plus_h1_alignment",
+    "week_direct_close": false,
+    "week_late_policy": {
+      "expansion_entry": "BLOCKED",
+      "reentry": "BLOCKED",
+      "add_on": "BLOCKED",
+      "h1_exit_trigger_enabled": true,
+      "exit_policy": "ACCELERATED"
+    },
+    "profit_take_arm_rule": {
+      "h4_cycle_phase": "LATE",
+      "h4_bb_phase": "CONTRACTING",
+      "minimum_hsi_confluence_anchors": 2
+    },
+    "h1_exit_trigger_rule": {
+      "enabled_by": [
+        "WEEK_LATE",
+        "PROFIT_TAKE_ARMED"
+      ],
+      "confirmed_by": "h1_opposes_h4_direction",
+      "watch_by": [
+        "REVERSAL_WATCH",
+        "NO_TREND"
+      ],
+      "direct_close": false
+    },
+    "action_execution_output": "forbidden",
+    "no_lookahead": true,
+    "event_output": "run_snapshot.upper_context_decision.decision_events",
+    "chart_event_projection": "one_current_decision_summary"
+  },
+  "trace_replay_policy": {
+    "engine_id": "append_only_causal_trace_replay_v0_1",
+    "input_sources": [
+      "run_snapshot.swing_point_detection.observation_events",
+      "run_snapshot.dow_trend_evaluation.state_change_events",
+      "run_snapshot.cycle_position_evaluation.state_change_events",
+      "run_snapshot.hsi_anchor_registry.lifecycle_events",
+      "run_snapshot.timeframe_states.state_events",
+      "run_snapshot.upper_context_decision.decision_events"
+    ],
+    "event_classes": [
+      "OBSERVATION",
+      "STATE_CHANGE",
+      "DECISION",
+      "EXECUTION"
+    ],
+    "event_class_labels": {
+      "OBSERVATION": "観測",
+      "STATE_CHANGE": "状態変化",
+      "DECISION": "判断",
+      "EXECUTION": "実行"
+    },
+    "append_only": true,
+    "full_state_per_event": false,
+    "delta_patch_required": true,
+    "cause_event_ids_required_for": [
+      "STATE_CHANGE",
+      "DECISION",
+      "EXECUTION"
+    ],
+    "root_event_types": [
+      "swing_candidate",
+      "timeframe_state_snapshot",
+      "timeframe_state_changed"
+    ],
+    "checkpoint_interval_events": 50,
+    "final_checkpoint_required": true,
+    "replay_method": "nearest_checkpoint_then_apply_delta_patches",
+    "dag_validation": true,
+    "missing_cause_reference": "error",
+    "circular_cause_reference": "forbidden",
+    "future_cause_reference": "error",
+    "ui_language": "ja",
+    "action_execution_output": "forbidden",
+    "no_lookahead": true,
+    "event_output": "run_snapshot.trace_replay.events",
+    "checkpoint_output": "run_snapshot.trace_replay.checkpoints"
+  },
+  "m5_execution_policy": {
+    "engine_id": "shared_m5_execution_position_lifecycle_v0_1",
+    "mode": "reference_point_step",
+    "input_source": "upper_context_decision + M5 timeframe_state + confirmed HSI entry anchor + previous position_lifecycle",
+    "execution_timeframe": "M5",
+    "upper_decision_reimplementation": "forbidden",
+    "allowed_actions": [
+      "ENTRY",
+      "REENTRY",
+      "ADD_ON",
+      "PARTIAL_CLOSE",
+      "FULL_CLOSE",
+      "STOP_CLOSE"
+    ],
+    "hsi_distance": {
+      "point_size": 0.001,
+      "scale": 6,
+      "entry_min_raw": 89,
+      "entry_min_label": "R2",
+      "levels": [
+        {
+          "raw": 55,
+          "label": "R1"
+        },
+        {
+          "raw": 89,
+          "label": "R2"
+        },
+        {
+          "raw": 117,
+          "label": "R2.5"
+        },
+        {
+          "raw": 144,
+          "label": "R3"
+        },
+        {
+          "raw": 188,
+          "label": "R3.5"
+        },
+        {
+          "raw": 233,
+          "label": "R4"
+        },
+        {
+          "raw": 305,
+          "label": "R4.5"
+        },
+        {
+          "raw": 377,
+          "label": "R5"
+        },
+        {
+          "raw": 493,
+          "label": "R5.5"
+        },
+        {
+          "raw": 610,
+          "label": "R6"
+        },
+        {
+          "raw": 798,
+          "label": "R6.5"
+        },
+        {
+          "raw": 987,
+          "label": "R7"
+        }
+      ]
+    },
+    "position_sizing": {
+      "initial_units": 10,
+      "core_units": 9,
+      "runner_units": 1,
+      "add_on_units": 2,
+      "partial_close_units": 2
+    },
+    "management_timeframe": {
+      "normal_core_initial": "H1",
+      "expansion_core_initial": "H4",
+      "add_on_initial": "H1",
+      "runner_initial": "H4",
+      "cap": "DAY",
+      "week_forbidden": true,
+      "loss_avoidance_promotion": "forbidden",
+      "promotion_requires_higher_wave_connection": true
+    },
+    "execution_priority": [
+      "STOP_CLOSE",
+      "FULL_CLOSE",
+      "PARTIAL_CLOSE",
+      "ADD_ON",
+      "REENTRY",
+      "ENTRY"
+    ],
+    "expansion_confirmation_required": true,
+    "expansion_confirmation_source": "future_expansion_state_not_yet_available",
+    "real_order_output": "forbidden",
+    "money_management_output": "forbidden",
+    "no_lookahead": true,
+    "event_output": "run_snapshot.position_lifecycle.execution_events",
+    "decision_event_output": "run_snapshot.position_lifecycle.decision_events",
+    "chart_event_projection": "execution_events_only",
+    "teacher_guard": "初期実装はM5右クリック等のReference Pointを1点ずつ進めるstep方式。Expansion確定条件は未実装のため通常Entryへ丸めない。"
+  }
+}

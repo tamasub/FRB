@@ -9,8 +9,8 @@
   ],
   "scope": "gpt_fx_lab overlay only",
   "core_change": false,
-  "description": "USDJPY Multi-Timeframe observation with Human Comment and Simulation Trace Annotation layers. Simulation trace is a read-only fixture/explanation layer; trend/entry simulation engine is not implemented in this phase.",
-  "version": "v0.9.0.01-simulation-trace-annotation-ui-foundation",
+  "description": "USDJPYマルチ時間足シミュレーション研究画面。表示範囲Simulation中の現在位置を▽付き縦線でライブ表示し、Entry / CloseOK / CloseMissを発生直後からチャートへ逐次投影する。完了・0件結果と未成立理由の可視化も維持する。",
+  "version": "v0.9.0.14-live-range-playback",
   "signal_policy": {
     "visible_marker": "candidate_basis_retired_circle_marker",
     "removed_marker": "dow_structure_decision_arrow_marker",
@@ -36,7 +36,7 @@
     "high_low_range_support": true,
     "high_low_range_default_visible": true,
     "trend_decision_enabled": false,
-    "entry_simulation_enabled": false,
+    "entry_simulation_enabled": true,
     "bollinger_bands_support": true,
     "bollinger_bands_default_visible": false,
     "bollinger_bands_used_for_basis_point_extraction": false,
@@ -101,7 +101,87 @@
     "simulation_trace_annotation_ui_support": true,
     "simulation_trace_engine_enabled": false,
     "human_comment_and_simulation_trace_separate_storage": true,
-    "human_comment_and_simulation_trace_independent_visibility": true
+    "human_comment_and_simulation_trace_independent_visibility": true,
+    "simulation_run_profile_support": true,
+    "simulation_run_profile_confirm_bars_independent": true,
+    "simulation_run_profile_inheritance_allowed": false,
+    "simulation_run_profile_calculation_allowed": false,
+    "simulation_run_profile_implicit_fallback_allowed": false,
+    "simulation_run_snapshot_support": true,
+    "simulation_run_snapshot_storage": "simulation_trace_sidecar.run_snapshot",
+    "multi_timeframe_candle_synchronizer_support": true,
+    "confirmed_candle_only": true,
+    "future_candle_exclusion": true,
+    "unconfirmed_upper_candle_exclusion": true,
+    "shared_swing_point_detector_support": true,
+    "shared_swing_point_detector_id": "shared_center_window_unique_extreme_v0_1",
+    "timeframe_specific_swing_detector_class_allowed": false,
+    "swing_candidate_used_for_later_decision": false,
+    "swing_confirmed_active_used_as_later_basis_candidate": true,
+    "swing_observation_event_output": true,
+    "dow_trend_engine_enabled": false,
+    "cycle_position_evaluator_support": true,
+    "cycle_position_evaluator_id": "shared_latest_usable_swing_origin_v0_1",
+    "timeframe_specific_cycle_evaluator_class_allowed": false,
+    "cycle_candidate_used_as_origin": false,
+    "cycle_retired_used_as_current_origin": false,
+    "cycle_origin_and_phase_event_output": true,
+    "cycle_action_permission_enabled": false,
+    "simulation_trace_replay_log_support": true,
+    "simulation_trace_replay_engine_id": "append_only_causal_trace_replay_v0_1",
+    "simulation_trace_append_only": true,
+    "simulation_trace_full_state_per_event": false,
+    "simulation_trace_delta_patch_required": true,
+    "simulation_trace_periodic_checkpoint": true,
+    "simulation_trace_causal_dag_validation": true,
+    "simulation_trace_replay_ui_language": "ja",
+    "simulation_trace_action_execution_enabled": true,
+    "m5_execution_position_lifecycle_support": true,
+    "m5_execution_engine_id": "shared_m5_execution_position_lifecycle_v0_1",
+    "m5_execution_mode": "reference_point_step",
+    "m5_execution_upper_decision_reimplementation_allowed": false,
+    "m5_execution_actions": [
+      "ENTRY",
+      "REENTRY",
+      "ADD_ON",
+      "PARTIAL_CLOSE",
+      "FULL_CLOSE",
+      "STOP_CLOSE"
+    ],
+    "position_roles": [
+      "CORE",
+      "ADD_ON",
+      "RUNNER"
+    ],
+    "position_management_timeframe_cap": "DAY",
+    "position_management_week_allowed": false,
+    "position_management_loss_avoidance_promotion_allowed": false,
+    "real_order_output_enabled": false,
+    "money_management_output_enabled": false,
+    "simulation_run_dialog_modeless": true,
+    "simulation_run_dialog_chart_interaction_enabled": true,
+    "simulation_run_dialog_draggable": true,
+    "simulation_run_dialog_resizable_width": true,
+    "simulation_run_dialog_modal_backdrop": false,
+    "visible_range_simulation_support": true,
+    "visible_range_simulation_runner_id": "visible_m5_window_reference_step_runner_v0_1",
+    "visible_range_simulation_scope": "current_chart_window",
+    "visible_range_simulation_initial_position": "flat_at_visible_range_start",
+    "visible_range_simulation_execution_projection": [
+      "Entry",
+      "ReEntry",
+      "Add-on",
+      "CloseOK",
+      "CloseMiss"
+    ],
+    "visible_range_simulation_reuses_reference_point_step": true,
+    "simulation_execution_marker_labels_always_visible": true,
+    "visible_range_simulation_result_feedback": true,
+    "visible_range_simulation_zero_event_feedback": "chart_overlay_with_evaluated_step_count_and_top_block_reasons",
+    "visible_range_simulation_decision_diagnostics": true,
+    "visible_range_simulation_live_cursor": "vertical_dashed_line_with_down_triangle",
+    "visible_range_simulation_live_event_projection": true,
+    "visible_range_simulation_live_event_flash": "NEW_glow_until_next_progress_render"
   },
   "display_policy": {
     "high_low_range_style": {
@@ -487,7 +567,7 @@
         "注釈全閉じ"
       ],
       "annotation_marker": "cyan diamond with S badge; visually distinct from editable Human Comment speech bubble",
-      "popover": "read-only summary, reason_codes, rule_ids, cause_event_ids, upper_state_summary, state_before, state_after",
+      "popover": "読み取り専用。要約、理由コード、使用ルール、原因Event、上位足状態、変更前後を日本語中心で表示し、保存済み判断履歴へ移動できる。",
       "initial_event_types": [
         "swing_confirmed",
         "trend_changed",
@@ -497,9 +577,325 @@
         "exit_armed",
         "entry",
         "partial_close",
-        "close"
+        "close",
+        "upper_context_decision_changed"
       ],
-      "teacher_guard": "fixture and trace explanation only; not a live trading signal and no execution logic is implemented"
+      "teacher_guard": "Simulation Traceは観測・状態変化・判断・説明用Fixture実行を区分する。判断許可は売買実行ではなく、M5 TriggerとEntry/Close Engineは無効。",
+      "visible_range_run": {
+        "enabled": true,
+        "runner_id": "visible_m5_window_reference_step_runner_v0_1",
+        "period": "current_chart_window",
+        "order": "oldest_to_newest",
+        "initial_position_policy": "FLAT_AT_VISIBLE_RANGE_START",
+        "chart_projection": "execution_events_only",
+        "marker_labels": {
+          "entry": "Entry",
+          "reentry": "ReEntry",
+          "add_on": "Add-on",
+          "partial_close": "CloseOK",
+          "close": "CloseOK",
+          "stop_close": "CloseMiss"
+        },
+        "detail_interaction": "click marker to open existing Simulation Trace popover",
+        "teacher_guard": "過去チャート検証用の仮想表示。リアル注文・資金管理・売買推奨ではない。"
+      }
+    },
+    "simulation_run_profile": {
+      "enabled": true,
+      "default_file": "fx_simulation_run_profile_v0_1.json",
+      "directory": "studio_overlays/gpt_fx_lab/simulation/",
+      "required_timeframes": [
+        "WEEK",
+        "DAY",
+        "H4",
+        "H1",
+        "M5"
+      ],
+      "confirm_bars_policy": {
+        "independent_required_values": true,
+        "inheritance": "forbidden",
+        "calculation_from_other_timeframes": "forbidden",
+        "implicit_default": "forbidden",
+        "implicit_fallback": "forbidden",
+        "min": 3,
+        "max": 101
+      },
+      "ui": [
+        "Run設定",
+        "WEEK/DAY/H4/H1/M5 Confirm bars",
+        "確定足同期",
+        "Lookahead検査",
+        "現在地点を保存",
+        "Swing Point",
+        "ダウ状態",
+        "サイクル位置",
+        "HSI起点Registry",
+        "時間足状態",
+        "上位足の統合判断",
+        "判断履歴・再生ログ"
+      ],
+      "snapshot_storage": "simulation_trace_sidecar.run_snapshot: candle_sync + swing + dow + cycle + hsi_anchor + timeframe_states + upper_context_decision + trace_replay + run_result",
+      "snapshot_period_policy": "current_chart_window",
+      "dataset_hash_required": true,
+      "engine_enabled": true,
+      "teacher_guard": "上位判断と判断履歴は、探索・待機・保有・防御・H1離脱監視を説明する。M5 Trigger成立やEntry/Close実行はまだ行わない。",
+      "multi_timeframe_candle_sync": {
+        "enabled": true,
+        "reference_axis": "M5_CLOSE",
+        "timeframes": [
+          "WEEK",
+          "DAY",
+          "H4",
+          "H1",
+          "M5"
+        ],
+        "confirmation_rule": "bar_end_ms <= reference_close_ms",
+        "week_start": "MONDAY_00:00",
+        "future_rows": "exclude",
+        "missing_bars": "do_not_fill",
+        "timezone_recording": "dataset timezone declaration + browser runtime timezone/offset",
+        "ui_reference": "chart sync center M5 when present; otherwise current chart window last M5",
+        "teacher_guard": "Confirmed candle synchronization only. No Dow/Cycle/HSI/Entry/Close decision."
+      },
+      "dow_trend_evaluator": {
+        "enabled": true,
+        "evaluator_id": "shared_confirmed_swing_structure_v0_1",
+        "timeframe_specific_class": "forbidden",
+        "states": [
+          "UP",
+          "DOWN",
+          "REVERSAL_WATCH",
+          "NO_TREND",
+          "UNDETERMINED"
+        ],
+        "comparison_rule": "last two confirmed structure highs + last two confirmed structure lows",
+        "state_change_event_only": true,
+        "entry_permission_output": "forbidden",
+        "chart_projection": "latest trend_changed event per timeframe",
+        "teacher_guard": "TrendState observation only; H4/H1/M5 policy and Entry/Close decisions are later phases."
+      },
+      "cycle_position_evaluator": {
+        "enabled": true,
+        "evaluator_id": "shared_latest_usable_swing_origin_v0_1",
+        "timeframe_specific_class": "forbidden",
+        "origin_selection": "latest confirmed usable Swing from per-timeframe profile",
+        "phase_threshold_source": "timeframe_profiles[].cycle.phase_thresholds",
+        "states": [
+          "EARLY",
+          "MIDDLE",
+          "LATE",
+          "UNDETERMINED"
+        ],
+        "events": [
+          "cycle_origin_changed",
+          "cycle_phase_changed"
+        ],
+        "action_permission_output": "forbidden",
+        "chart_projection": "latest cycle state event per timeframe",
+        "teacher_guard": "Cycle Position observation only; Entry/Add-on/Exit permissions are later phases."
+      },
+      "hsi_anchor_registry_resolver": {
+        "enabled": true,
+        "registry_id": "shared_multi_role_hsi_anchor_registry_v0_1",
+        "resolver_id": "purpose_ranked_hsi_anchor_resolver_v0_1",
+        "timeframe_specific_class": "forbidden",
+        "simulation_source_type": "simulation_hsi_anchor",
+        "human_saved_hsi_source_type": "human_hsi",
+        "lifecycle_statuses": [
+          "CANDIDATE",
+          "CONFIRMED",
+          "RETIRED"
+        ],
+        "adoption_statuses": [
+          "NOT_ELIGIBLE",
+          "AVAILABLE",
+          "ADOPTED",
+          "RETIRED"
+        ],
+        "roles": [
+          "STRUCTURE_REFERENCE",
+          "CYCLE_ORIGIN",
+          "ENTRY_REFERENCE_CANDIDATE",
+          "HOLD_REFERENCE_CANDIDATE",
+          "TARGET_REFERENCE_CANDIDATE",
+          "THESIS_REFERENCE_CANDIDATE",
+          "CONFLUENCE_REFERENCE_CANDIDATE"
+        ],
+        "purpose_resolvers": [
+          "entry",
+          "hold",
+          "target",
+          "thesis",
+          "confluence"
+        ],
+        "action_permission_output": "forbidden",
+        "human_saved_hsi_auto_adoption": false,
+        "chart_projection": "latest adopted anchor per timeframe",
+        "teacher_guard": "Purpose reference candidates only; no Entry/Hold/Target permission or trading signal is emitted."
+      },
+      "timeframe_state_builder": {
+        "enabled": true,
+        "builder_id": "shared_timeframe_state_builder_v0_1",
+        "timeframe_specific_class": "forbidden",
+        "inputs": [
+          "confirmed_candle",
+          "swing_state",
+          "dow_trend_state",
+          "cycle_state",
+          "hsi_anchor_state",
+          "bb_state"
+        ],
+        "state_as_of": "single M5 reference close shared by all timeframes",
+        "data_sufficiency": "separate_from_market_state",
+        "source_event_ids_required": true,
+        "comparison": "previous persisted snapshot when available",
+        "chart_projection": "one current state summary per timeframe",
+        "action_permission_output": "forbidden",
+        "teacher_guard": "Observation aggregation only; no Entry/Hold/Close permission or trade execution."
+      },
+      "m5_trigger_evaluator_enabled": false,
+      "trade_execution_enabled": false,
+      "upper_context_decision_engine": {
+        "enabled": true,
+        "engine_id": "priority_specification_upper_context_v0_1",
+        "input": "WEEK/DAY/H4/H1 TimeframeState",
+        "rule_model": "priority ordered Specification / Rule Registry",
+        "no_trade_priority": true,
+        "direction_bias": "H4 direction + H1 alignment",
+        "week_role": "season and permission layer; never direct close",
+        "profit_take_arm": "H4 Late + BB Contracting + HSI Confluence",
+        "exit_trigger": "H1 monitoring; execution delegated to later M5 phase",
+        "permission_outputs": [
+          "normal_entry_search",
+          "expansion_entry_search",
+          "reentry",
+          "add_on",
+          "hold_core",
+          "profit_take_armed",
+          "h1_exit_trigger"
+        ],
+        "action_execution_output": "forbidden",
+        "chart_projection": "one current upper-context decision summary"
+      },
+      "decision_engine_enabled": true,
+      "m5_trigger_engine_enabled": false,
+      "trace_replay_log": {
+        "enabled": true,
+        "engine_id": "append_only_causal_trace_replay_v0_1",
+        "event_classes": [
+          "OBSERVATION",
+          "STATE_CHANGE",
+          "DECISION",
+          "EXECUTION"
+        ],
+        "event_class_labels": [
+          "観測",
+          "状態変化",
+          "判断",
+          "実行"
+        ],
+        "storage_model": "append_only_delta_events_plus_periodic_checkpoints",
+        "full_state_per_event": false,
+        "delta_patch_required": true,
+        "checkpoint_interval_events": 50,
+        "final_checkpoint_required": true,
+        "replay_method": "nearest_checkpoint_then_apply_delta_patches",
+        "causal_reference": "cause_event_ids",
+        "dag_validation": true,
+        "missing_cause_reference": "error",
+        "circular_cause_reference": "forbidden",
+        "future_cause_reference": "error",
+        "ui_language": "ja",
+        "ui": [
+          "観測/状態変化/判断/実行の件数",
+          "前へ/次へ/スライダー",
+          "復元した状態",
+          "なぜこうなった？原因連鎖",
+          "Event一覧から追う"
+        ],
+        "execution_output": "forbidden"
+      },
+      "m5_execution_position_lifecycle": {
+        "enabled": true,
+        "ui_language": "ja",
+        "mode": "reference_point_step",
+        "section_caption": "M5実行・建玉ライフサイクル",
+        "position_roles": [
+          "本玉",
+          "追撃玉",
+          "Runner"
+        ],
+        "chart_projection": "execution_events_only",
+        "teacher_guard": "仮想売買の検証表示。リアル注文・資金管理・売買推奨ではない。"
+      }
+    },
+    "simulation_swing_point_detector": {
+      "enabled": true,
+      "detector_id": "shared_center_window_unique_extreme_v0_1",
+      "algorithm": "center_window_unique_extreme",
+      "confirm_bars_source": "simulation/fx_simulation_run_profile_v0_1.json timeframe_profiles[].confirm_bars",
+      "timeframe_specific_class": "forbidden",
+      "lifecycle": [
+        "candidate",
+        "confirmed",
+        "retired"
+      ],
+      "usable_basis_policy": "only confirmed active basis points are eligible for later phases; pending candidates, candidate-only points, and retired points are not eligible",
+      "snapshot_path": "simulation_trace_sidecar.run_snapshot.swing_point_detection",
+      "observation_event_path": "simulation_trace_sidecar.run_snapshot.swing_point_detection.observation_events",
+      "chart_projection": "latest active high and low per timeframe are projected as Simulation Trace comments after Run Snapshot save",
+      "fixture_visibility_after_snapshot": "hide fixture trace markers when real shared swing projection is saved",
+      "teacher_guard": "Swing point observation only. Dow/Cycle/HSI/Entry/Close decisions remain disabled."
+    },
+    "simulation_trace_popover_placement": {
+      "policy": "adaptive_horizontal_first",
+      "candidates": [
+        "right",
+        "left",
+        "below",
+        "above"
+      ],
+      "safe_boundary": "chart body",
+      "purpose": "Simulation Trace Popoverが画面上部メニューへはみ出さないよう、左右を優先し、入らない場合だけ上下へ配置する。"
+    },
+    "run_reference_context_menu": {
+      "enabled": true,
+      "target_timeframe": "M5",
+      "caption": "この時点の状態を見る",
+      "reference_source": "m5_context_menu_reference",
+      "top_run_button_policy": "clear explicit context-menu reference and use sync center/window end",
+      "purpose": "一点観測はM5右クリック、Run全体設定は画面トップという2入口を分ける。"
+    },
+    "simulation_trace_replay_log": {
+      "primary_caption": "判断履歴・再生ログ",
+      "primary_language": "ja",
+      "stable_internal_ids": "English identifiers remain unchanged for machine references",
+      "event_labels": {
+        "OBSERVATION": "観測",
+        "STATE_CHANGE": "状態変化",
+        "DECISION": "判断",
+        "EXECUTION": "実行"
+      },
+      "inspector": [
+        "選択Event",
+        "使用Checkpoint",
+        "その時点の復元State",
+        "原因Event連鎖"
+      ],
+      "teacher_guard": "履歴の再生は説明・検証用。M5売買を実行しない。"
+    },
+    "simulation_run_dialog": {
+      "mode": "modeless_floating_panel",
+      "mount": "inside_chart_body",
+      "chart_interaction_while_open": true,
+      "default_position": "chart_right_top",
+      "drag_handle": "header",
+      "resize_handle": "left_edge",
+      "resize_axis": "horizontal",
+      "reset_button_caption": "位置戻す",
+      "purpose": "表示範囲のEntry / CloseOK / CloseMissを先にチャートで眺め、必要な地点だけ一点診断で掘る。",
+      "primary_action": "表示範囲を実行",
+      "secondary_action": "現在地点を保存"
     }
   }
 }

@@ -78,6 +78,7 @@ data/exports/tmp/
 *.pdb
 
 # ======
+./idea
 
 *mymemo*.md
 OhMyClaude.md

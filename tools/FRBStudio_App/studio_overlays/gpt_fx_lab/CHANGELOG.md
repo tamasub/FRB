@@ -1,3 +1,187 @@
+# v0.9.0.14 — 表示範囲Simulation ライブ再生・ワクワク可視化 (2026-07-11)
+
+- Simulation実行中の現在評価地点を、M5チャート上へ黄色の点線縦線と下向き▽カーソルで表示する。
+- カーソル横へ `SIM 現在足 / 全足 / Event件数` を表示し、処理がどこまで進んでいるかをチャートだけで追えるようにする。
+- 同じ基準時刻をH1/H4等の上位足パネルにも細い同期線として表示し、現在評価中の上位文脈を見渡せるようにする。
+- Entry / ReEntry / Add-on / CloseOK / CloseMissが発生した時点で、Range完了を待たずにチャートへ逐次投影する。
+- 新しく発生した実行Eventは `NEW` と発光表示し、次の進捗描画まで強調する。
+- 大きな表示窓では10足ごと、小さな表示窓では5足ごとにライブ再描画し、Event発生時は即時再描画する。
+- 実行開始時は前回のSimulationマーカーをいったん外し、今回生まれたEventだけをライブ表示する。完了時は正式なRange結果へ置き換える。
+- Entry / Close判定、上位足Decision、HSI起点、R距離、建玉Lifecycleのルールは変更していない。今回の目的は「待ち時間を観測体験へ変える」こと。
+
+---
+
+# v0.9.0.13 — 表示範囲Simulation 0件結果の可視化 (2026-07-11)
+
+- `表示範囲Simulation` 実行時、チャート上部へモデルレス結果パネルを表示する。実行中・成功・0件完了・例外を明確に区別する。
+- 実行Eventが0件でも「何も起きなかった」ように見せず、評価済みM5足数と `Entry / Close` 0件を明示する。
+- 各M5足のTrigger判定から、Action件数、未成立Reason Code、通常Entry Permission、上位足Entry禁止理由を集計する。
+- 0件完了時は、`M5方向不一致`、`R2未到達`、`通常Entry禁止`、`H4反転監視` などの主因を件数付きで表示する。
+- トップボタンの完了表示を `E0 / OK0 / Miss0` から `評価足数 / 実行Event件数` へ変更し、実行自体が完了したことを判別しやすくする。
+- Entry / ReEntry / Add-on / CloseOK / CloseMiss が成立した場合のチャート直描画ロジックは変更しない。
+- 判定ルールは緩和していない。今回の変更は「0件も検証結果である」ことを見える化する診断・UI追補。
+
+---
+
+# v0.9.0.12 — 表示範囲Simulation / Entry・CloseOK・CloseMiss直描画 (2026-07-11)
+
+- トップメニューへ `表示範囲Simulation` ボタンを追加。現在表示中のM5窓だけを対象にする。
+- 表示範囲の古い足から新しい足へ、既存の `reference_point_step` を自動で順番に実行するRange Runnerを追加。上位足DecisionやM5 Executionロジックは二重実装せず、既存一点診断を再利用する。
+- 表示範囲開始時点は建玉なし（Flat）として開始し、Core / Add-on / RunnerのLifecycleを範囲内で前方向へ引き継ぐ。
+- 実行Eventだけをチャートへ投影し、`Entry` / `ReEntry` / `Add-on` / `CloseOK` / `CloseMiss` の文字ラベルを常時表示する。
+- `partial_close` と `close` は `CloseOK`、`stop_close` は `CloseMiss` として人間向け表示する。内部Event Typeと原因Traceは維持する。
+- マーカーをクリックすると、既存Simulation Trace Popoverで判断理由・Rule ID・原因Eventを確認できる。
+- Run設定パネルにも `表示範囲を実行` を追加し、一点保存は補助機能として残す。
+- 実行進捗、Entry件数、CloseOK件数、CloseMiss件数をボタンとRun状態パネルに表示する。
+- 結果はTrace Sidecarの `range_run` と最終 `run_snapshot` へ保存する。全地点の巨大Snapshotは保存せず、範囲実行Eventと最終状態だけを保持する。
+- Range実行中は各足ごとのTrace Replay全再構築を省略し、実行EventとLifecycle継続に必要な状態だけを引き継ぐ。一点診断時のReplayは従来どおり維持する。
+- M5基準足の再正規化をCandle Source Cacheへ統合し、Cycle経過本数計算を二分探索化。判定ルールを変えずに連続実行を軽量化する。
+- 先生ガード: 過去チャート検証用の仮想表示であり、リアル注文、資金管理、手数料、スリッページ、売買推奨は対象外。
+
+---
+
+# v0.9.0.11.1 — Run設定モデルレス・可変幅化 (2026-07-11)
+
+- Run設定 / 状態確認を、チャート全体を覆うモーダルから、チャート本体上に浮くモデルレスパネルへ変更。
+- パネル表示中も、パネル外のチャートをスクロール・右クリック・同期操作できるようにした。
+- パネル上部をドラッグすると位置を移動できる。
+- パネル左端のシアン色ハンドルを左右へドラッグすると横幅を変更できる。
+- `位置戻す` ボタンで右上の初期位置・初期幅へ戻せる。
+- パネルはチャートBody内へ配置し、トップメニューや画面全体を暗転させない。
+- M5仮想実行・建玉Lifecycle・Trace内容そのものは変更していない。UI操作性だけの追補修正。
+
+---
+
+# v0.9.0.11 — M5 Execution / Position Lifecycle (2026-07-11)
+
+- Upper Context Decisionを入力にし、M5側ではWEEK / DAY / H4 / H1判断を再実装しない共通Execution Engineを追加。
+- 初期実装は`reference_point_step`。M5右クリック等で選んだ基準地点を1点ずつ保存し、同じM5確定足の重複実行を防止する。
+- 仮想実行Actionとして、新規Entry / 再Entry / 買い増し / 一部決済 / 全決済 / 損切り決済を定義。優先順位はStop → Full Close → Partial Close → Add-on → ReEntry → Entry。
+- Entry初期条件は、上位足の通常探索許可、M5 Dow方向整合、確定済みHSI Entry起点、起点からR2以上。Expansion探索は明示的なExpansion確定条件が未実装のため通常Entryへ丸めずWAITとする。
+- 10単位をCore 9 + Runner 1へ分離。Add-onは別Positionとして保持し、各PositionにEntry時間足、管理時間足、管理上限DAY、構造無効化価格、次HSI境界Target、Promotion Historyを保存する。
+- 損失先送り目的の管理時間足昇格とWEEK昇格を禁止。通常CoreはH1、Expansion CoreはH4、RunnerはH4を初期管理時間足とする。
+- Execution EventをTrace Replayへ統合し、M5 Trigger判断 → 上位Decision → Timeframe State → Swing / HSI起点まで逆追跡可能にした。過去SnapshotのTraceは基準時刻が前進する場合のみ引き継ぐ。
+- Run設定画面へ「M5実行・建玉ライフサイクル」を追加し、現在の実行判断、Core/Add-on/Runner、残数、Entry価格、管理足、次Target、無効化価格、実行履歴を日本語表示。
+- チャートには実行EventだけをSimulationコメントとして投影。Entry系は緑、決済系は青、Stopは赤で区別。
+- 先生ガード: 過去チャート検証用の仮想売買であり、リアル注文、資金管理、手数料、スリッページ、売買推奨は対象外。
+
+---
+
+# v0.9.0.10 — Simulation Trace / Replay Log (2026-07-11)
+
+- Swing観測、Dow / Cycle / HSI / Timeframe Stateの状態変化、Upper Context Decisionを、`観測 / 状態変化 / 判断 / 実行`の4区分へ統合。
+- Eventを追記型で保持し、`sequence / event_class / domain / cause_event_ids / replay_patch`を追加。各Eventへの全State複製は行わない。
+- 50Eventごとの定期Checkpointと最終Checkpointを生成し、任意sequenceを「最寄りCheckpoint + 後続差分」で復元可能にした。
+- 原因参照をDAG検査し、Event ID重複、原因欠落、循環参照、結果より未来の原因参照を拒否。
+- Run設定画面へ「判断履歴・再生ログ」を追加。前後移動、スライダー、復元State、選択Eventからの原因逆追跡、Event一覧を日本語中心で表示。
+- Upper Context Decision表、Run設定タイトル、Simulation Trace Popoverの主要ラベルを日本語化。Rule ID / Event ID等の安定内部IDは維持。
+- Run Snapshot schemaをv0.9へ更新し、`trace_replay`と`run_result`を保存。Run / Event / Resultを論理分離。
+- M5 Trigger判定、Entry / Close実行は未実装。実Runの`execution_event_count`は0件を期待し、`NO_EXECUTION_YET`を明示。
+
+---
+
+# v0.9.0.09 — Upper Context Decision Engine (2026-07-11)
+
+- WEEK / DAY / H4 / H1 TimeframeStateを、優先順位付きSpecification / Rule Registryで統合。
+- NoTrade・Data不足・H4未判定を許可Ruleより先に評価し、後段Ruleによる危険条件の上書きを防止。
+- Direction Bias、Normal / Expansion Entry探索、ReEntry、Add-on、Core Hold、Profit Take Armed、H1 Exit Trigger監視をDecision Context JSONへ追加。
+- WEEK LateではExpansion Entry / ReEntry / Add-onを禁止し、WEEK自身は直接CloseせずH1 Exit監視を有効化。
+- H4 Late + BB Contracting + HSI ConfluenceでProfit Take Armed。利益確定判断=H4、Exit Trigger=H1、Execution=M5の責務を明示。
+- reason_codes / rule_ids / input_state_ids / Decision Change Traceを保持し、UIへDecision MatrixとMatched Rule表を追加。
+- M5 Trigger判定、Position前提評価、Entry / Close実行は未実装。
+
+---
+
+# v0.9.0.08 — Timeframe State Builder (2026-07-11)
+
+- WEEK / DAY / H4 / H1 / M5へ同一のTimeframe State Builderを適用。時間足別Stateクラスは作らず、時間足はデータとして扱う。
+- 同一M5 Reference Closeを`state_as_of`として、確定足・Swing・Dow TrendState・Cycle Position・HSI Anchor・BB観測を時間足別State JSONへ統合。
+- 各Stateに安定`state_id`、`latest_confirmed_bar`、`source_event_ids`、`source_bar_keys`を持たせ、元のSwing/Dow/Cycle/HSI Traceへ逆参照可能にした。
+- `data_sufficiency`を市場状態と分離。履歴不足・起点不足・方向未解決と、相場自体の`UNDETERMINED`を別に読めるようにした。
+- BBは確定済みCloseだけから共通計算し、`SQUEEZE / OPENING / EXPANSION / MATURE / CONTRACTING / STABLE / UNDETERMINED`を観測Phaseとして保持。売買判断には使用しない。
+- 保存済み前回Snapshotがある場合、Trend / Cycle / BB / HSI起点 / Data Sufficiency / 最新確定足の差分を`comparison_to_previous_snapshot`へ記録。
+- Run設定画面へ時間足別State表を追加。Snapshot保存後は、各時間足の現在State要約をSimulation Traceコメントとしてチャートへ投影。
+- Run Snapshot schemaをv0.7へ更新し、`timeframe_states`を保存。
+- 先生ガード: TimeframeStateは観測結果の集合であり、Entry / Add-on / Hold / Close PermissionやM5売買は未実装。
+
+---
+
+# v0.9.0.06 — Cycle Position Evaluator (2026-07-11)
+## v0.9.0.07-hsi-anchor-registry-resolver — 2026-07-11
+
+- 全時間足共通の HSI Anchor Registry / Resolver を追加。時間足別専用クラスは作らず、Swing Point / Dow / Cycle Snapshotを入力として使用。
+- HSI Anchorを `CANDIDATE / CONFIRMED / RETIRED` のLifecycle、`NOT_ELIGIBLE / AVAILABLE / ADOPTED / RETIRED` の採用状態、複数Roleへ分離。
+- Purpose Resolverとして Entry / Hold / Target / Thesis / Confluence の**構造参照候補**を生成。Action Permission・売買Signalは出力しない。
+- Human Saved HSI (`human_hsi`) と Simulation Anchor (`simulation_hsi_anchor`) を分離し、Human HSIは比較導線のみで自動採用しない。
+- M5右クリックメニューへ「この時点の状態を見る」を追加し、一点観測のReference Pointを固定してRun設定画面を開けるようにした。
+- Simulation Trace Popoverを左右優先、収まらない場合は下/上へ逃がす自動配置へ変更し、トップメニューへのはみ出しを抑制。
+- Entry / Close / Action Permissionは未実装。
+
+
+- WEEK / DAY / H4 / H1 / M5へ同一のCycle Position Evaluatorを適用。時間足別Evaluatorクラスは作らず、時間足ごとの閾値・役割・状態マッピングをRun Profileから渡す。
+- Cycle originは、各時間足の最新「Confirmed + usable Active Swing」とする。未確定Candidateと現在Retiredの点は現在起点に使用しない。過去にActiveだったRetired点は履歴再生のため保持する。
+- 起点がSwing LowならUP_CYCLE、Swing HighならDOWN_CYCLEとして、起点足を0本目とし、その後に確定した足数をelapsed_barsとして算出。
+- EARLY / MIDDLE / LATEの閾値は各時間足Profileへ明示。Confirm barsや他時間足から暗黙計算・継承しない。
+- WEEKはOPEN / CAUTION / CLOSED、DAYはOK / WARNING / NOT_EXPANSION、H4はGROW / MANAGE / PROTECTへ状態を写像するが、Entry禁止・Add-on禁止・Exit許可はまだ出力しない。
+- `cycle_origin_changed` / `cycle_phase_changed` Eventを生成し、origin Swing Confirm Event、明示閾値、経過本数、Before/Afterへ逆追跡可能にした。
+- Run設定画面へ時間足別Cycle表を追加し、Origin、方向、経過本数、Phase、Context State、閾値、変更数を確認可能にした。
+- Run Snapshot schemaをv0.5へ更新し、`cycle_position_evaluation`を保存。チャートには各時間足の最新Cycle State EventだけをSimulation Traceとして投影。
+- 先生ガード: 今回はCycle Positionの観測まで。Cycle StateはAction Permissionではなく、HSI Anchor / Entry / Add-on / Hold / Close / M5売買は未実装。
+
+---
+
+# v0.9.0.05 — Dow Trend Evaluator (2026-07-11)
+
+- Shared Swing Point Detectorの確定点を時系列で再生し、WEEK / DAY / H4 / H1 / M5へ同じDow Trend Evaluatorを適用。時間足別Evaluatorクラスは作らない。
+- 構造上の直近2高値・直近2安値を比較し、`UP / DOWN / REVERSAL_WATCH / NO_TREND / UNDETERMINED` を算出。
+- `UP = Higher High + Higher Low`、`DOWN = Lower High + Lower Low`。比較ペア不足はUNDETERMINED、同値はNO_TREND、方向不一致は過去方向があればREVERSAL_WATCH、なければNO_TRENDとする。
+- 未確定CandidateはDow判定に使用しない。同種Swingが連続した場合は、より極端な確定点だけで構造を置換し、弱い同種点は無視する。
+- TrendStateとEntry Permissionを分離。Dow Evaluatorは状態だけを返し、H4 Dow確定を発射ボタンにしない。
+- TrendStateが変化した時だけ`trend_changed` Eventを生成し、使用したSwing Point ID / Swing Confirm Event / reason_codes / before-afterへ逆追跡可能にした。
+- Run設定画面へ時間足別Dow表を追加し、現在State、前回State、高値/安値比較、使用Swing数、State Change数を確認可能にした。
+- Run Snapshot schemaをv0.4へ更新し、`dow_trend_evaluation`を保存。チャートには各時間足の最新TrendState変更だけをSimulation Traceとして投影。
+- 先生ガード: 今回はDow TrendStateの観測まで。Cycle / HSI Anchor / Entry Permission / Hold / Close / M5売買は未実装。
+
+---
+
+# v0.9.0.04 — Shared Swing Point Detector (2026-07-11)
+
+- WEEK / DAY / H4 / H1 / M5へ、時間足別クラスを作らず同一のShared Swing Point Detector Coreを適用。
+- Confirm barsはRun Profileの各時間足独立値を直接使用し、他時間足からの計算・継承・暗黙Fallbackは行わない。
+- 確定足同期済みデータだけを入力し、中心窓の一意High/LowからSwing Pointを算出。確認窓未完成の点はCandidateとして保持し、後続根拠には使わない。
+- Lifecycleを `Candidate → Confirmed → Retired` として記録。ConfirmedかつActive Basisの点だけを将来のDow/HSI起点候補にできる契約を追加。
+- Point ID / Event IDを時刻・時間足・High/Low・Confirm barsから安定生成し、Candidate / Confirmed / Retired Eventを `cause_event_ids` で逆追跡可能にした。
+- Run設定画面へSwing Point表を追加し、時間足別のInput bars / Pending / Confirmed / Active / Retired / 最新確定時刻 / Statusを確認可能にした。
+- Run Snapshot schemaをv0.3へ更新し、`swing_point_detection.timeframes` と全 `observation_events` を保存。Previewでは大量配列を件数表示へ圧縮。
+- チャート上には全Eventを出さず、各時間足の最新Active high/lowだけをSimulation Traceコメントへ投影。実データ保存後は説明用Fixture Markerを非表示化。
+- 先生ガード: 今回は赤丸・緑丸材料点の観測まで。Dow / Cycle / HSI Anchor / Entry / Close / M5売買エンジンは未実装。
+
+---
+
+# v0.9.0.03 — Multi-Timeframe Candle Synchronizer (2026-07-11)
+
+- M5の確定Close時刻を基準に、WEEK / DAY / H4 / H1 / M5 の `latest confirmed candle` を同期する基盤を追加。
+- H1/H4はPrimary M5から集約、DAYは外部UpperMap D1、WEEKはDAYから集約するSource MappingをRun Profileどおりに使用。
+- 判定条件を `bar_end_ms <= reference_close_ms` に固定し、未確定上位足・未来足は同期結果から除外。Lookaheadが見つかった場合はRun Snapshot作成を拒否する。
+- `Run設定` 画面にConfirmed Candle Synchronizer表を追加し、各時間足の最新確定足、現在未確定足、除外件数、同期状態を確認可能にした。
+- 参照M5は、チャート同期位置があればそのM5、なければ現在表示窓の最終M5を使用。Runtime timezone / UTC offsetと、Data timezone未宣言状態もSnapshotへ記録する。
+- Run Snapshot schemaをv0.2へ更新し、`time_sync_policy` と `candle_sync` を保存。
+- Run設定ダイアログの表・入力欄を黒背景 + 白系文字へ統一し、ブラウザ/共通CSS由来の白い縞表示を上書き。
+- 先生ガード: 今回は確定足同期とLookahead防止のみ。Dow / Cycle / HSI Anchor / Entry / Close / M5売買エンジンは未実装。
+
+---
+
+# v0.9.0.02 — Simulation Run / Timeframe Profile (2026-07-10)
+
+- `Run設定` ダイアログを追加し、WEEK / DAY / H4 / H1 / M5 のConfirm barsを独立した必須値として表示・編集可能にした。
+- Confirm barsは他時間足から計算・継承せず、未設定・範囲外・重複がある場合はRun Snapshot作成を拒否する。暗黙default / fallbackも禁止。
+- `simulation/fx_simulation_run_profile_v0_1.json` を追加し、Primary / UpperMap DataSource、SHA-256、Rule Version、時間足ごとのSource Mapping / Warmupを明示。
+- 現在のM5表示窓をRun Periodとして取り込み、Validation通過時のみ `*.simulation_trace.json` の `run_snapshot` へ再現条件を保存できるようにした。
+- Run Snapshotには profile_id / rule_version / dataset hash / period / 全時間足Confirm bars / chart_state を保存する。
+- 先生ガード: 今回はRun条件の検証・Snapshot保存のみ。Dow / Cycle / HSI Anchor / Entry / Close / M5売買エンジンは未実装。
+
+---
+
 # v0.9.0.01 — Simulation Trace Annotation UI Foundation (2026-07-10)
 
 - UserコメントとSimulationコメントを、独立した表示レイヤーとしてON/OFFできるUIを追加。
