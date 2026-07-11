@@ -1,0 +1,844 @@
+{
+  "schema_version": "fx_simulation_reason_rule_catalog_v0_1",
+  "kind": "fx_simulation_reason_rule_catalog",
+  "catalog_id": "gpt_fx_lab_simulation_reason_rule_ja_v0_1",
+  "title": "FX Simulation 理由コード・使用ルール 日本語カタログ",
+  "status": "draft_growing_catalog",
+  "created_at": "2026-07-11T15:50:00+09:00",
+  "updated_at": "2026-07-11T16:40:00+09:00",
+  "display_policy": {
+    "language": "ja",
+    "show_judgment_summary_first": true,
+    "show_code_table": true,
+    "unmapped_text": "日本語説明未登録。コードは保持し、カタログへ追加してください。"
+  },
+  "judgment_templates": {
+    "entry": {
+      "title": "新規Entryを実行しました。",
+      "body": "上位足で通常Entry探索が許可され、M5の方向一致・確定HSI起点・R2到達がそろったため、新しいTradeを開始しました。"
+    },
+    "reentry": {
+      "title": "ReEntryを実行しました。",
+      "body": "直前Tradeが利益確定で終了した後も上位文脈が継続し、M5のEntry条件が再成立したため、同方向へ再Entryしました。"
+    },
+    "add_on": {
+      "title": "買い増しを実行しました。",
+      "body": "既存Coreが含み益で、上位方向とM5条件が一致したため、勝っている波へAdd-onを追加しました。"
+    },
+    "partial_close": {
+      "title": "{reached_target_label}到達：{role}を{units}単位利確",
+      "body": "残りは{next_target_label}を次目標とし保有。"
+    },
+    "close": {
+      "title": "H1決済トリガー確定：全決済",
+      "body": "残り建玉をM5で全決済。"
+    },
+    "stop_close": {
+      "title": "構造起点割れ：損切り全決済",
+      "body": "保有根拠消失のため残り建玉を決済。"
+    },
+    "default": {
+      "title": "シミュレーション判断を記録しました。",
+      "body": "下の日本語理由と使用ルールを確認してください。"
+    }
+  },
+  "reason_codes": [
+    {
+      "code": "ADD_ON_POSITION_OPENED",
+      "ja": "既存Tradeへ追撃用のAdd-onポジションを追加しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "ALL_ACTIVE_ALIGNED_ANCHORS",
+      "ja": "方向が一致する有効起点をすべて参照対象にしました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "BASIS_ACTIVE",
+      "ja": "現在有効な材料点です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "BASIS_RETIRED",
+      "ja": "現在の判断には使わない履歴材料点です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "BB_CONTRACTING",
+      "ja": "ボリンジャーバンドは収縮局面です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "BB_MATURE",
+      "ja": "ボリンジャーバンド拡大は成熟局面です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "BB_OPENING",
+      "ja": "ボリンジャーバンドは拡大開始局面です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "BB_STABLE",
+      "ja": "ボリンジャーバンド幅は安定しています。",
+      "category": "判断理由"
+    },
+    {
+      "code": "BB_WIDTH_DECREASING",
+      "ja": "ボリンジャーバンド幅が縮小しています。",
+      "category": "判断理由"
+    },
+    {
+      "code": "BB_WIDTH_HIGH_QUARTILE_FLAT",
+      "ja": "ボリンジャーバンド幅は高水準ですが、拡大は止まっています。",
+      "category": "判断理由"
+    },
+    {
+      "code": "BB_WIDTH_INCREASING_FROM_LOWER_HALF",
+      "ja": "ボリンジャーバンド幅が低位から拡大し始めています。",
+      "category": "判断理由"
+    },
+    {
+      "code": "BB_WIDTH_STABLE_MID_RANGE",
+      "ja": "ボリンジャーバンド幅は中間水準で安定しています。",
+      "category": "判断理由"
+    },
+    {
+      "code": "CANDIDATE",
+      "ja": "まだ確定前の候補状態です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "CANDIDATE_NOT_RESOLVABLE",
+      "ja": "候補状態のため、Entryなどの実行起点としては選択できません。",
+      "category": "判断理由"
+    },
+    {
+      "code": "CLOSE_OK",
+      "ja": "利益確定として扱う決済が成立しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "CORE_PARTIAL_TAKE_PROFIT",
+      "ja": "COREを設定単位だけ利確。",
+      "category": "判断理由"
+    },
+    {
+      "code": "CORE_PROFITABLE",
+      "ja": "既存のCoreポジションが含み益のため、買い増し検討の前提を満たしています。",
+      "category": "判断理由"
+    },
+    {
+      "code": "CYCLE_EARLY",
+      "ja": "サイクルは前半です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "CYCLE_LATE",
+      "ja": "サイクルは後半です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "CYCLE_ORIGIN_NEWER_USABLE_SWING",
+      "ja": "より新しい確定材料点を、現在のサイクル起点として採用しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "CYCLE_PHASE_EARLY",
+      "ja": "サイクルは前半です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "CYCLE_PHASE_LATE",
+      "ja": "サイクルは後半です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "CYCLE_PHASE_MIDDLE",
+      "ja": "サイクルは中盤です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "CYCLE_PHASE_THRESHOLD_REACHED",
+      "ja": "起点からの経過本数が、次のサイクル段階の閾値へ到達しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "DATA_READY",
+      "ja": "この時間足の判断に必要なデータはそろっています。",
+      "category": "判断理由"
+    },
+    {
+      "code": "DAY_EXPANSION_AGE_EXPIRED",
+      "ja": "DAY起点からの経過本数が上限を超え、Expansionとして扱う時期を過ぎています。",
+      "category": "判断理由"
+    },
+    {
+      "code": "DAY_EXPANSION_GRADE_OK",
+      "ja": "DAYサイクル年齢が許容範囲内で、Expansion候補として検討できます。",
+      "category": "判断理由"
+    },
+    {
+      "code": "DAY_EXPANSION_GRADE_WARNING",
+      "ja": "DAYサイクル年齢が進んでいるため、Expansion候補としては警戒が必要です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "DAY_NOT_EXPANSION",
+      "ja": "DAY格付けではExpansionとして扱いません。",
+      "category": "判断理由"
+    },
+    {
+      "code": "DIRECTION_FROM_CYCLE_DIRECTION",
+      "ja": "方向はサイクル起点の向きから補助的に決定しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "DIRECTION_FROM_DOW_TREND",
+      "ja": "方向はダウトレンドから決定しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "DOW_NO_TREND",
+      "ja": "高値・安値構造から明確なトレンドを確定できません。",
+      "category": "判断理由"
+    },
+    {
+      "code": "DOW_REVERSAL_WATCH",
+      "ja": "確定済み構造が崩れ始めており、反転監視状態です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "DOW_TREND_DOWN_CONFIRMED",
+      "ja": "確定済み高値・安値の構造から、ダウ下降トレンドを確認しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "DOW_TREND_UP_CONFIRMED",
+      "ja": "確定済み高値・安値の構造から、ダウ上昇トレンドを確認しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "DOW_UNDETERMINED",
+      "ja": "確定済み材料点が不足し、ダウ状態を判定できません。",
+      "category": "判断理由"
+    },
+    {
+      "code": "EQUAL_SWING_PRICE",
+      "ja": "比較対象の材料点が同値で、方向確定には使えません。",
+      "category": "判断理由"
+    },
+    {
+      "code": "EXPANSION_CONFIRMATION_NOT_IMPLEMENTED",
+      "ja": "Expansion確定ロジックが未実装のため、Expansion Entryは実行しません。",
+      "category": "判断理由"
+    },
+    {
+      "code": "FROM_DOWN",
+      "ja": "直前状態は下方向でした。",
+      "category": "判断理由"
+    },
+    {
+      "code": "FROM_UP",
+      "ja": "直前状態は上方向でした。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H1_EXIT_TRIGGER_CONFIRMED",
+      "ja": "H1で保有根拠の崩れを確認。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H1_REVERSAL_WATCH",
+      "ja": "H1は反転監視状態です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H1_TREND_REVERSAL_WATCH",
+      "ja": "H1のトレンドは反転監視状態です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H4_BB_CONTRACTING",
+      "ja": "H4のボリンジャーバンドが収縮方向にあり、波の勢い鈍化を示しています。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H4_BB_STABLE",
+      "ja": "H4のボリンジャーバンド幅は安定しており、拡大・収縮どちらにも強く傾いていません。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H4_CYCLE_EARLY",
+      "ja": "H4サイクルは前半で、利益保護より波を育てる判断を優先しやすい段階です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H4_CYCLE_LATE",
+      "ja": "H4サイクルが後半に入っているため、新規追加より利益保護を優先します。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H4_DIRECTION_CONTINUATION",
+      "ja": "H4の方向継続が確認され、保有または同方向探索を優先します。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H4_H1_DIRECTION_ALIGNED",
+      "ja": "H4とH1の方向が一致しています。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H4_H1_DIRECTION_CONFLICT",
+      "ja": "H4とH1の方向が食い違っているため、Entryを見送ります。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H4_H1_WATCH",
+      "ja": "H4とH1の関係を監視し、即Entryせず待機します。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H4_HSI_CONFLUENCE",
+      "ja": "H4で複数のHSI目標が重なる利確候補帯へ近づいています。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H4_HSI_ENTRY_REFERENCE_RESOLVED",
+      "ja": "H4文脈で参照すべきHSI起点を特定できました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H4_PROFIT_TAKE_ARMED",
+      "ja": "H4で利益確定準備条件がそろい、H1の決済トリガーを監視します。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H4_PROTECT_MODE",
+      "ja": "H4の状態から、建玉を育てる段階ではなく利益を守る段階と判定しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H4_REVERSAL_WATCH",
+      "ja": "H4は反転監視中のため、新規Entryを急がず様子見します。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H4_TREND_UP",
+      "ja": "H4は上昇トレンドです。",
+      "category": "判断理由"
+    },
+    {
+      "code": "HIGHER_HIGH",
+      "ja": "直近の確定高値が、その前の確定高値を上回りました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "HIGHER_LOW",
+      "ja": "直近の確定安値が、その前の確定安値を上回りました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "HIGH_HIGHER",
+      "ja": "高値は前回より上です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "HIGH_LOWER",
+      "ja": "高値は前回より下です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "HSI_ANCHOR_FROM_CONFIRMED_ACTIVE_SWING",
+      "ja": "現在有効な確定材料点からHSI起点を作成しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "HSI_ANCHOR_FROM_CONFIRMED_NON_ACTIVE_SWING",
+      "ja": "確定済みですが現在の主材料点ではないSwingからHSI起点を保持しています。",
+      "category": "判断理由"
+    },
+    {
+      "code": "HSI_ANCHOR_FROM_PENDING_SWING",
+      "ja": "未確定材料点由来のため、HSI起点候補として記録だけ行います。",
+      "category": "判断理由"
+    },
+    {
+      "code": "HSI_ANCHOR_FROM_RETIRED_SWING",
+      "ja": "履歴材料点由来のHSI起点を、説明用Traceとして保持しています。",
+      "category": "判断理由"
+    },
+    {
+      "code": "HSI_ENTRY_ANCHOR_RESOLVED",
+      "ja": "Entry距離を測るための確定済みHSI起点を特定できました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "HSI_ENTRY_ANCHOR_UNRESOLVED",
+      "ja": "Entry距離を測るための確定済みHSI起点を特定できませんでした。",
+      "category": "判断理由"
+    },
+    {
+      "code": "HSI_R2_NOT_REACHED",
+      "ja": "確定済みHSI起点からR2まで届いていないため、Entry条件は未成立です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "HSI_R2_REACHED",
+      "ja": "確定済みHSI起点からR2以上の距離へ到達しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "INSUFFICIENT_CONFIRMED_SWING_PAIRS",
+      "ja": "ダウ判定に必要な確定高値・安値の組が不足しています。",
+      "category": "判断理由"
+    },
+    {
+      "code": "LATEST_ACTIVE_ALIGNED_ANCHOR",
+      "ja": "方向が一致する有効起点のうち、最新のものを選択しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "LOWER_HIGH",
+      "ja": "直近の確定高値が、その前の確定高値を下回りました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "LOWER_LOW",
+      "ja": "直近の確定安値が、その前の確定安値を下回りました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "LOW_HIGHER",
+      "ja": "安値は前回より上です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "LOW_LOWER",
+      "ja": "安値は前回より下です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "M5_CLOSE_EXECUTION",
+      "ja": "M5確定足で決済実行。",
+      "category": "判断理由"
+    },
+    {
+      "code": "M5_DOW_ALIGNED",
+      "ja": "M5のダウ方向が、Entryしようとしている方向と一致しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "M5_DOW_NOT_ALIGNED",
+      "ja": "M5のダウ方向が、想定しているEntry方向と一致していません。",
+      "category": "判断理由"
+    },
+    {
+      "code": "M5_EXECUTION_INPUT_INVALID",
+      "ja": "M5実行に必要な入力情報が不足または不正です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "MIXED_STRUCTURE_WITHOUT_PRIOR_DIRECTION",
+      "ja": "高値と安値の関係が混在し、直前方向もないためトレンド未確定です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "NEXT_HSI_BOUNDARY_REACHED",
+      "ja": "設定済みHSI目標へ到達。",
+      "category": "判断理由"
+    },
+    {
+      "code": "NORMAL_ENTRY_WAIT",
+      "ja": "通常Entryの条件がまだすべてそろっていないため待機します。",
+      "category": "判断理由"
+    },
+    {
+      "code": "NOT_RESOLVER_ELIGIBLE",
+      "ja": "現在の目的には使えないHSI起点です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "OLDEST_ACTIVE_ALIGNED_ANCHOR_IN_ANALYSIS_SCOPE",
+      "ja": "方向が一致する有効起点のうち、分析範囲内で最も古いものを選択しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "ORIGIN_SWING_HIGH",
+      "ja": "確定高値をサイクル起点として採用しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "ORIGIN_SWING_LOW",
+      "ja": "確定安値をサイクル起点として採用しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "POSITION_ALREADY_OPEN",
+      "ja": "すでに建玉を保有しているため、新規Entryは行いません。",
+      "category": "判断理由"
+    },
+    {
+      "code": "POSITION_LIFECYCLE_OPENED",
+      "ja": "新しいTrade Lifecycleを開始し、CoreとRunnerの建玉を作成しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "POSITION_STRUCTURAL_ANCHOR_BROKEN",
+      "ja": "建玉の根拠となる構造起点を価格が破ったため、保有根拠が無効になりました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "POSITION_UNITS_REDUCED",
+      "ja": "利確後の残り建玉を保有。",
+      "category": "判断理由"
+    },
+    {
+      "code": "PREVIOUS_TRADE_CLOSE_OK",
+      "ja": "直前のTradeが利益確定で終了しているため、ReEntry候補として扱えます。",
+      "category": "判断理由"
+    },
+    {
+      "code": "PURPOSE_ROLE_ASSIGNED",
+      "ja": "HSI起点へEntry・Hold・Targetなどの用途を割り当てました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "REFERENCE_POINT_ALREADY_EVALUATED",
+      "ja": "同じ基準地点はすでに評価済みのため、二重実行を防止しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "REPLACED_BY_HIGHER_HIGH_CANDIDATE",
+      "ja": "より高い高値候補が現れたため置き換えました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "REPLACED_BY_LOWER_LOW_CANDIDATE",
+      "ja": "より低い安値候補が現れたため置き換えました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "RESOLVER_ELIGIBLE",
+      "ja": "現在の目的に使えるHSI起点候補です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "RETAINED_FOR_TRACE",
+      "ja": "現在の判断には使いませんが、判断履歴を追えるよう記録を残しています。",
+      "category": "判断理由"
+    },
+    {
+      "code": "SWING_CANDIDATE_CREATED",
+      "ja": "高値または安値の材料点候補を新しく作成しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "SWING_CANDIDATE_PENDING",
+      "ja": "材料点候補ですが、右側の確認本数がそろうまで未確定です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "SWING_CONFIRMED",
+      "ja": "左右の確認本数がそろい、材料点を確定しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "SWING_RETIRED",
+      "ja": "より有効な材料点へ置き換わったため、この材料点を履歴扱いにしました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "TREND_REVERSAL_WATCH",
+      "ja": "トレンド反転を監視している状態です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "TREND_UP",
+      "ja": "上昇トレンド状態です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "UNIQUE_HIGH_FULL_WINDOW",
+      "ja": "左右すべての確認範囲で一意の高値です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "UNIQUE_HIGH_LEFT_WINDOW",
+      "ja": "左側確認範囲で一意の高値です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "UNIQUE_LOW_FULL_WINDOW",
+      "ja": "左右すべての確認範囲で一意の安値です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "UNIQUE_LOW_LEFT_WINDOW",
+      "ja": "左側確認範囲で一意の安値です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "UPPER_NORMAL_ENTRY_SEARCH_ALLOWED",
+      "ja": "上位足の統合判断で、通常Entryを探してよい状態と判定されました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "UPPER_NO_TRADE",
+      "ja": "上位足の統合判断がNoTradeのため、M5条件を満たしてもEntryしません。",
+      "category": "判断理由"
+    },
+    {
+      "code": "UPPER_STATE_DATA_NOT_READY",
+      "ja": "WEEK・DAY・H4・H1のいずれかで、判断に必要な確定データが不足しています。",
+      "category": "判断理由"
+    },
+    {
+      "code": "UPPER_STATE_READY",
+      "ja": "上位足の判断に必要なデータがそろっています。",
+      "category": "判断理由"
+    },
+    {
+      "code": "WEEK_CYCLE_LATE",
+      "ja": "WEEKサイクルが後半に入り、高値づかみ回避を優先する時期です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "WEEK_EXPANSION_SEASON_CAUTION",
+      "ja": "WEEK上のExpansion Entry可能期間は警戒段階です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "WEEK_EXPANSION_SEASON_CLOSED",
+      "ja": "WEEK上のExpansion Entry可能期間は終了しています。",
+      "category": "判断理由"
+    },
+    {
+      "code": "WEEK_EXPANSION_SEASON_OPEN",
+      "ja": "WEEK上でExpansion Entryを検討してよい期間です。",
+      "category": "判断理由"
+    }
+  ],
+  "rule_ids": [
+    {
+      "code": "rule_add_on_only_when_core_profitable",
+      "ja": "買い増しはCoreが含み益のときだけ許可し、含み損へのナンピンを禁止します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_core_next_hsi_partial_close",
+      "ja": "HSI目標到達時にCOREを部分利確し、残りを次目標まで保有。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_cycle_elapsed_confirmed_bars",
+      "ja": "サイクル経過本数は、起点足を除いた確定済み足数で数えます。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_cycle_explicit_phase_thresholds",
+      "ja": "Early・Middle・Lateは時間足ごとに明示設定した本数閾値で判定します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_cycle_latest_confirmed_usable_swing_origin",
+      "ja": "現在利用可能な最新の確定Swingをサイクル起点にします。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_cycle_state_not_action_permission",
+      "ja": "サイクル状態は観測情報であり、それ単独ではEntryやCloseを実行しません。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_day_not_expansion_guard",
+      "ja": "DAYサイクル年齢が上限を超えた波はExpansionとして扱いません。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_day_warning_expansion_wait",
+      "ja": "DAYサイクル年齢が警戒帯の場合、Expansion候補の格付けを下げて待機します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_dow_confirmed_swing_structure",
+      "ja": "確定済みの直近2組の高値・安値関係からダウトレンドを判定します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_dow_state_not_entry_permission",
+      "ja": "ダウ状態は相場観測結果であり、それ単独ではEntry許可にしません。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_expansion_entry_requires_explicit_confirmation",
+      "ja": "Expansion Entryは専用の確定条件が実装・成立した場合だけ許可し、通常Entryへ自動変換しません。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_explicit_timeframe_confirm_bars",
+      "ja": "Confirm barsは各時間足で独立した明示値を使用し、他時間足から継承・計算しません。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_h1_exit_confirmed_m5_full_close",
+      "ja": "H1決済トリガー確定後、M5で残り建玉を全決済。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_h4_late_protect_mode",
+      "ja": "H4サイクル後半では新規追加より、既存利益の保護を優先します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_h4_profit_take_armed",
+      "ja": "H4 Cycle Late・BB収縮・HSI重なりがそろった場合、利益確定準備をONにします。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_hsi_anchor_from_swing_identity",
+      "ja": "HSI起点は元になったSwingの識別子とLifecycleを引き継いで管理します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_hsi_anchor_no_action_permission",
+      "ja": "HSI起点の存在だけではEntryやCloseを実行しません。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_hsi_anchor_status_role_separation",
+      "ja": "HSI起点の確定状態と、Entry・Hold・Targetなどの用途を別項目で管理します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_m5_execution_input_valid",
+      "ja": "M5実行に必要な上位足判断・現在価格・方向・建玉状態が有効な場合だけ処理します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_m5_execution_prerequisites",
+      "ja": "M5の実行前に、確定足・上位足Decision・HSI起点・前回建玉状態など必須入力を確認します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_m5_reference_once_only",
+      "ja": "同一のM5基準地点は一度だけ評価し、同じ足での二重実行を防止します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_m5_trigger_hsi_r2",
+      "ja": "M5方向一致・確定HSI起点の存在・起点からR2到達を、Entryまたは買い増しの実行条件とします。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_no_lookahead_confirm_window",
+      "ja": "材料点の確定には現在地点より未来の未確定足を使用しません。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_no_lookahead_confirmed_inputs",
+      "ja": "各判断には、その基準時刻までに確定した入力だけを使用します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_no_lookahead_confirmed_swings",
+      "ja": "ダウ・サイクル・HSI判断には確定済みSwingだけを使用します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_normal_entry_upper_permission",
+      "ja": "上位足の統合判断が通常Entry探索を許可した場合だけ、M5のEntry条件を評価します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_position_role_split_core_runner",
+      "ja": "新規Entry時に建玉をCoreとRunnerへ分割し、それぞれ別の保有役割を持たせます。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_position_structural_anchor_break",
+      "ja": "建玉の根拠となる構造起点を破った場合、保有根拠無効としてStop Closeします。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_reentry_after_close_ok",
+      "ja": "直前Tradeが利益確定で終了し、上位文脈とM5条件が継続している場合だけReEntryを許可します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_shared_swing_candidate",
+      "ja": "左側確認範囲で一意の高値・安値を材料点候補として作成します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_shared_swing_confirm",
+      "ja": "左右の確認範囲がそろい、一意性を保った材料点だけを確定します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_shared_swing_retirement",
+      "ja": "同種のより極端な材料点が現れた場合、古い材料点を履歴化します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_state_data_sufficiency_separation",
+      "ja": "データ不足と相場状態を分離し、データ不足をNoTrendと誤認しません。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_state_not_action_permission",
+      "ja": "時間足Stateは観測結果であり、それ単独では売買アクションを実行しません。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_timeframe_state_observation_aggregation",
+      "ja": "確定足・Swing・Dow・Cycle・HSI・BBを、時間足ごとの一つの状態へ集約します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_upper_context_core_hold_bias",
+      "ja": "大波継続条件が残る間は、M5の小崩れだけでCoreを閉じずHoldを優先します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_upper_context_expansion_search_allowed",
+      "ja": "WEEK・DAY・H4のExpansion条件がそろった場合だけ、Expansion候補探索を許可します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_upper_context_h4_h1_direction_conflict",
+      "ja": "H4とH1の方向が不一致の場合、新規Entryを禁止します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_upper_context_h4_no_trade",
+      "ja": "H4がNoTrendまたは判定不能の場合、新規Entryを禁止します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_upper_context_h4_reversal_watch",
+      "ja": "H4が反転監視中の場合、新規EntryではなくWatchへ倒します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_upper_context_normal_entry_search_allowed",
+      "ja": "上位足が通常Entry探索可能と判断した場合、M5へ探索許可を渡します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_upper_context_required_state_ready",
+      "ja": "WEEK・DAY・H4・H1の必要状態がすべてREADYの場合だけ上位足Decisionを確定します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_week_caution_expansion_wait",
+      "ja": "WEEKが警戒段階の場合、Expansion Entryを急がず待機します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_week_late_expansion_defensive_mode",
+      "ja": "WEEKサイクル後半ではExpansion Entry・ReEntry・Add-onを禁止し、既存建玉はH1の崩れで早めに守ります。",
+      "category": "使用ルール"
+    }
+  ]
+}

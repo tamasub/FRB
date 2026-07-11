@@ -9,8 +9,8 @@
   ],
   "scope": "gpt_fx_lab overlay only",
   "core_change": false,
-  "description": "USDJPYマルチ時間足シミュレーション研究画面。表示範囲Simulation中の現在位置を▽付き縦線でライブ表示し、Entry / CloseOK / CloseMissを発生直後からチャートへ逐次投影する。完了・0件結果と未成立理由の可視化も維持する。",
-  "version": "v0.9.0.14-live-range-playback",
+  "description": "USDJPYマルチ時間足シミュレーション研究画面。判断ポップアップにHSI起点Stop、Close目安、初期リスク、仮想確定利益、累積利益、初期リスク比/R換算を表示する。1単位=1,000通貨。",
+  "version": "v0.9.0.19-risk-reward-jpy-display",
   "signal_policy": {
     "visible_marker": "candidate_basis_retired_circle_marker",
     "removed_marker": "dow_structure_decision_arrow_marker",
@@ -181,7 +181,25 @@
     "visible_range_simulation_decision_diagnostics": true,
     "visible_range_simulation_live_cursor": "vertical_dashed_line_with_down_triangle",
     "visible_range_simulation_live_event_projection": true,
-    "visible_range_simulation_live_event_flash": "NEW_glow_until_next_progress_render"
+    "visible_range_simulation_live_event_flash": "NEW_glow_until_next_progress_render",
+    "simulation_reason_rule_catalog_support": true,
+    "simulation_reason_rule_catalog_external_json": true,
+    "simulation_reason_rule_catalog_ui": "japanese_judgment_first_plus_code_translation_tables",
+    "simulation_trace_popover_dark_only": true,
+    "simulation_trace_popover_top_right_close": true,
+    "simulation_trace_popover_auto_open_during_range_run": false,
+    "human_hsi_and_simulation_hsi_separate_render_state": true,
+    "visible_range_simulation_auto_hide_human_hsi": true,
+    "visible_range_simulation_auto_hide_user_comments": true,
+    "visible_range_simulation_hsi_anchor_live_projection": true,
+    "visible_range_simulation_hsi_range_lines_live_projection": true,
+    "chart_meta_status_default_collapsed": true,
+    "chart_meta_status_toggle_support": true,
+    "simulation_stop_basis_display": "HSI_ENTRY_ANCHOR",
+    "simulation_virtual_pnl_display": true,
+    "simulation_virtual_pnl_unit_base_currency_amount": 1000,
+    "simulation_virtual_pnl_currency": "JPY",
+    "simulation_virtual_pnl_fee_slippage_tax_included": false
   },
   "display_policy": {
     "high_low_range_style": {
@@ -567,7 +585,7 @@
         "注釈全閉じ"
       ],
       "annotation_marker": "cyan diamond with S badge; visually distinct from editable Human Comment speech bubble",
-      "popover": "読み取り専用。要約、理由コード、使用ルール、原因Event、上位足状態、変更前後を日本語中心で表示し、保存済み判断履歴へ移動できる。",
+      "popover": "読み取り専用。日本語判断を最上部に表示し、理由コード・使用ルールIDを外部カタログの日本語内容と対応表で表示する。原因Event、上位足状態、変更前後、判断履歴も確認できる。",
       "initial_event_types": [
         "swing_confirmed",
         "trend_changed",
@@ -896,6 +914,14 @@
       "purpose": "表示範囲のEntry / CloseOK / CloseMissを先にチャートで眺め、必要な地点だけ一点診断で掘る。",
       "primary_action": "表示範囲を実行",
       "secondary_action": "現在地点を保存"
+    },
+    "simulation_reason_rule_catalog": {
+      "enabled": true,
+      "default_file": "fx_simulation_reason_rule_catalog_v0_1.json",
+      "directory": "studio_overlays/gpt_fx_lab/simulation/",
+      "schema_version": "fx_simulation_reason_rule_catalog_v0_1",
+      "management_policy": "理由コード・ルールIDと日本語内容をJSONテーブルで管理し、コード追加時はこのカタログへ日本語説明を追記する。",
+      "popover_policy": "日本語判断を最上部へ表示し、その下にコードと日本語内容の対応表を表示する。未登録コードは明示してコード自体を隠さない。"
     }
   }
 }

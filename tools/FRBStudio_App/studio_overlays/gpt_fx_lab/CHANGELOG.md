@@ -1,3 +1,26 @@
+## v0.9.0.16 - 2026-07-11
+
+- Simulation判断ポップオーバーを完全ダーク表示へ固定し、白背景・白スクロール領域・横スクロールを抑制。
+- 判断ポップオーバー右上へ常時表示の `×` を追加。下部の閉じるボタンも維持。
+- 表示範囲Simulation開始時に既存の判断ポップオーバーを閉じ、ライブ中継中の自動起動を禁止。
+- Human HSI（現在HSI / 保存HSI）とSimulation HSIを別state・別source_typeとして完全分離。
+- Simulation開始時にHuman HSIとUserコメントを自動OFF。サイクル縦線は維持。
+- Range Runnerが各時点で採用したM5 Entry用HSI起点を収集し、認定された瞬間に `SIM HSI NEW` とR1〜R7横線をライブ描画。
+- Simulation HSI一覧をTrace Sidecarの `simulation_hsi_annotations` と `range_run.simulation_hsi_annotations` へ保存。
+- 上部の設定値・状態Pill群をデフォルト非表示にし、`状態表示` ボタンで折りたたみを切り替え可能にした。
+- Entry / Close / HSI認定ロジック自体は変更せず、表示責務とHuman/Simulation境界を整理。
+
+## v0.9.0.15 - 2026-07-11
+
+- Simulation Traceポップオーバーの「理由・使用ルール」を日本語中心へ変更。
+  - Eventごとの日本語判断を最上部へ大きく表示。
+  - 理由コードと日本語内容を対応表で表示。
+  - ルールIDと日本語内容を対応表で表示。
+- `simulation/fx_simulation_reason_rule_catalog_v0_1.json` を追加。
+  - 理由コード、ルールID、日本語内容、Event別の判断文テンプレートを外部JSONで管理。
+  - 未登録コードは隠さず「日本語説明未登録」と明示し、カタログへ追加できる。
+- Entry / Close / Simulation判定ロジックは変更していない。表示と説明責務だけを追加。
+
 # v0.9.0.14 — 表示範囲Simulation ライブ再生・ワクワク可視化 (2026-07-11)
 
 - Simulation実行中の現在評価地点を、M5チャート上へ黄色の点線縦線と下向き▽カーソルで表示する。

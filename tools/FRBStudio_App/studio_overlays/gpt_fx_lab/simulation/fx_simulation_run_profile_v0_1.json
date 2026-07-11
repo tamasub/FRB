@@ -618,6 +618,15 @@
     "event_output": "run_snapshot.position_lifecycle.execution_events",
     "decision_event_output": "run_snapshot.position_lifecycle.decision_events",
     "chart_event_projection": "execution_events_only",
-    "teacher_guard": "初期実装はM5右クリック等のReference Pointを1点ずつ進めるstep方式。Expansion確定条件は未実装のため通常Entryへ丸めない。"
+    "teacher_guard": "初期実装はM5右クリック等のReference Pointを1点ずつ進めるstep方式。Expansion確定条件は未実装のため通常Entryへ丸めない。",
+    "valuation_policy": {
+      "unit_base_currency_amount": 1000,
+      "display_currency": "JPY",
+      "quote_currency": "JPY",
+      "pnl_formula": "USDJPY_DIRECT_QUOTE",
+      "stop_basis": "HSI_ENTRY_ANCHOR",
+      "fee_and_slippage_included": false,
+      "note": "仮想損益表示用。1単位=1,000通貨。手数料・スリッページ・税は含めない。"
+    }
   }
 }
