@@ -3,11 +3,11 @@
   "kind": "fx_simulation_run_profile",
   "profile_id": "usdjpy_multi_tf_state_trace_default_v0_1",
   "title": "USDJPY Multi-Timeframe State Trace / M5実行・建玉Lifecycle Profile",
-  "status": "draft_normal_entry_v0_6_with_position_lifecycle",
+  "status": "draft_normal_entry_v0_7_single_close",
   "created_at": "2026-07-10T23:55:00+09:00",
-  "updated_at": "2026-07-11T19:10:00+09:00",
-  "phase": "v0.9.0.11-m5-execution-position-lifecycle",
-  "rule_version": "simulation_rule_v0_6_1_r1_experiment_draft",
+  "updated_at": "2026-07-11T20:45:00+09:00",
+  "phase": "v0.9.0.22-single-close-hsi-anchor-stop",
+  "rule_version": "simulation_rule_v0_8_h1_t3_single_close_run_cumulative_draft",
   "dataset": {
     "primary": {
       "dataset_id": "fx_usdjpy_m5_t3_data_v0_1",
@@ -518,22 +518,21 @@
   "m5_execution_policy": {
     "engine_id": "shared_m5_execution_position_lifecycle_v0_1",
     "mode": "reference_point_step",
-    "input_source": "H4 T3 state + H1/M5 Dow state + H4/H1 cycle state + confirmed M5 HSI entry anchor + previous position_lifecycle",
+    "input_source": "H4/H1 T3 state + M5 Dow state + H4/H1 cycle state + confirmed M5 HSI entry anchor + previous position_lifecycle",
     "execution_timeframe": "M5",
-    "upper_decision_reimplementation": "normal_entry_v0_6_explicit_exception",
+    "upper_decision_reimplementation": "normal_entry_v0_8_explicit_exception",
     "allowed_actions": [
       "ENTRY",
       "REENTRY",
       "ADD_ON",
-      "PARTIAL_CLOSE",
       "FULL_CLOSE",
       "STOP_CLOSE"
     ],
     "hsi_distance": {
       "point_size": 0.001,
       "scale": 6,
-      "entry_min_raw": 55,
-      "entry_min_label": "R1",
+      "entry_min_raw": 89,
+      "entry_min_label": "R2",
       "levels": [
         {
           "raw": 55,
@@ -587,10 +586,14 @@
     },
     "position_sizing": {
       "initial_units": 10,
-      "core_units": 9,
-      "runner_units": 1,
+      "core_units": 10,
+      "runner_units": 0,
       "add_on_units": 2,
-      "partial_close_units": 2
+      "partial_close_units": 0,
+      "close_policy": "SINGLE_CLOSE",
+      "max_active_normal_positions": 1,
+      "normal_add_on_allowed": false,
+      "expansion_add_on_allowed": true
     },
     "management_timeframe": {
       "normal_core_initial": "H1",
@@ -605,7 +608,6 @@
     "execution_priority": [
       "STOP_CLOSE",
       "FULL_CLOSE",
-      "PARTIAL_CLOSE",
       "ADD_ON",
       "REENTRY",
       "ENTRY"
@@ -618,7 +620,7 @@
     "event_output": "run_snapshot.position_lifecycle.execution_events",
     "decision_event_output": "run_snapshot.position_lifecycle.decision_events",
     "chart_event_projection": "execution_events_only",
-    "teacher_guard": "通常Entry v0.6.1は、H4 T3方向・H1/M5 Dow一致・H4/H1 Cycle Late Guardを維持し、検証頻度確保のため確定済みM5 HSI起点からR1到達でEntry判定する。H4 Dow、WEEK/DAY Expansion条件は通常Entryに使用しない。",
+    "teacher_guard": "通常Entry v0.8はH4/H1 T3方向とM5 Dowで判定し、H1 Dowは使用しない。1 Entry / 1 Position / 1 Stop / 1 Target / 1回全Close。累積確定損益は同一Simulation Run内の全終了Tradeを合算する。",
     "valuation_policy": {
       "unit_base_currency_amount": 1000,
       "display_currency": "JPY",
@@ -629,22 +631,24 @@
       "note": "仮想損益表示用。1単位=1,000通貨。手数料・スリッページ・税は含めない。"
     },
     "normal_entry_policy": {
-      "rule_version": "v0.6.1",
-      "direction_permission": "H4_T3_SLOPE_AND_CLOSE_SIDE",
+      "rule_version": "v0.8",
+      "direction_permission": "H4_H1_T3_SLOPE_AND_CLOSE_SIDE_PLUS_M5_DOW",
       "long_permission": [
         "H4_T3_UP",
         "H4_CLOSE_ABOVE_T3",
-        "H1_DOW_UP",
+        "H1_T3_UP",
+        "H1_CLOSE_ABOVE_T3",
         "M5_DOW_UP"
       ],
       "short_permission": [
         "H4_T3_DOWN",
         "H4_CLOSE_BELOW_T3",
-        "H1_DOW_DOWN",
+        "H1_T3_DOWN",
+        "H1_CLOSE_BELOW_T3",
         "M5_DOW_DOWN"
       ],
       "h4_dow_required": false,
-      "h1_m5_dow_match_required": true,
+      "h1_m5_dow_match_required": false,
       "cycle_late_guard_timeframes": [
         "H4",
         "H1"
@@ -654,12 +658,23 @@
       "day_expansion_grade_required": false,
       "expansion_confirmation_required": false,
       "hsi_entry_anchor_required": true,
-      "hsi_entry_min_label": "R1",
+      "hsi_entry_min_label": "R2",
       "applies_to": [
         "ENTRY",
-        "REENTRY",
-        "ADD_ON"
-      ]
+        "REENTRY"
+      ],
+      "h1_dow_required": false,
+      "h1_t3_required": true,
+      "m5_dow_required": true,
+      "pnl_accumulation": "RUN_CUMULATIVE_REALIZED_JPY",
+      "risk_ratio_basis": "CURRENT_ENTRY_INITIAL_RISK_VS_CURRENT_TRADE_REALIZED"
+    },
+    "close_execution_policy": {
+      "close_policy": "SINGLE_CLOSE",
+      "touch_source": "M5_HIGH_LOW",
+      "stop_basis": "ENTRY_HSI_ANCHOR_FIXED_AT_ENTRY",
+      "target_basis": "NEXT_HSI_BOUNDARY_FIXED_AT_ENTRY",
+      "ambiguous_same_bar_policy": "STOP_FIRST_CONSERVATIVE"
     }
   }
 }

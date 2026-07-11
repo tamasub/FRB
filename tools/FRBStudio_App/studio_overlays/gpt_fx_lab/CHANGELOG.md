@@ -1,3 +1,42 @@
+## v0.9.0.25 - 2026-07-11
+
+- ページ上部を「操作系ボタンだけ」の1段ツールバーへ再編。
+  - 古い窓 / 新しい窓 / ランダム窓 / 最新窓
+  - Expansion検討 / M5実行
+  - URLコピー / 表示範囲Simulation / Run設定
+  - 注釈操作 / 保存 / 100本移動 / 再抽出 / 閉じる
+- Confirm bars、表示窓件数、上位足Confirm・余白、上位足表示、Basis表示、H/L・BB、HSI、注釈表示をモデルレスの「表示・解析設定」パネルへ移動。
+- 設定パネル外のチャート操作を継続できるモデルレス表示とし、設定変更は即時再描画する。
+- H4営業日境界線を白実線から細い点線へ変更。
+  - Confirm stride線より太く・濃くして区別可能にする。
+  - H4大局チャートを支配しない存在感へ抑制。
+- Simulation Rule v0.8、Single Close、HSI起点Stop、Run累積損益ロジックは変更なし。
+
+## v0.9.0.23 - 2026-07-11
+
+- 通常M5 EntryをSimulation Rule v0.8へ緩和。
+  - H1 Dow Trendを通常Entry条件から除外。
+  - H1はH4と同様に、T3の傾きと確定足終値のT3上下位置だけで方向判定。
+  - H4 T3とH1 T3が同方向で、M5 Dowが同方向へ確定した場合にEntry候補とする。
+  - H4/H1 Cycle Late Guard、確定済みHSI起点、R2距離条件は維持。
+- 「累積確定」をTrade単位ではなく、同一Simulation Run内の全終了Trade合算へ修正。
+  - 既存Traceでも画面表示時にClose/Stop Eventを先頭から再集計して補正。
+  - 「初期リスク比 / R」は従来どおり、現在Entryの初期リスクに対する現在Tradeの確定損益で計算。
+- v0.8へRule Versionを更新し、旧v0.7建玉状態は引き継がずFlatから再評価。
+
+## v0.9.0.22 - 2026-07-11
+
+- Simulation Rule v0.7へ建玉管理を変更。
+  - 1 Entry = 1 Position = 1 Stop = 1 Target = 1回の全Close。
+  - 通常Entryは10単位を一括保有し、Partial Close / Scale-out / Runnerを廃止。
+  - 通常Add-onを禁止。ReEntryは前Trade終了後に新しいTrade IDとして作成。
+- StopをEntry時に使用したHSI起点へ固定。Entry後に新しいHSI起点が確定しても既存Stopを差し替えない。
+- TargetをEntry位置の次HSI境界へ固定し、M5 High / LowがTargetへ到達した時点で全単位CloseOK。
+- Stop判定もM5 High / Lowで行い、HSI起点へ到達した時点で全単位StopClose。
+- 同一M5足でStopとTargetの両方へ到達した場合は `AMBIGUOUS_STOP_TARGET` を記録し、保守的にStopを優先。
+- 通常Entry最小HSI距離を従来ルールのR2へ戻した。
+- 円損益、初期リスク、R換算、Simulation HSI、営業日境界線は維持。
+
 ## v0.9.0.21 - 2026-07-11
 
 - 最新1000足の診断で `HSI_R2_NOT_REACHED = 1000件` となり、Entry条件の最大ボトルネックがHSI距離であることを確認。

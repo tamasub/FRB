@@ -5,7 +5,7 @@
   "title": "FX Simulation 理由コード・使用ルール 日本語カタログ",
   "status": "draft_growing_catalog",
   "created_at": "2026-07-11T15:50:00+09:00",
-  "updated_at": "2026-07-11T19:10:00+09:00",
+  "updated_at": "2026-07-11T20:45:00+09:00",
   "display_policy": {
     "language": "ja",
     "show_judgment_summary_first": true,
@@ -15,27 +15,27 @@
   "judgment_templates": {
     "entry": {
       "title": "新規Entryを実行しました。",
-      "body": "上位足で通常Entry探索が許可され、M5の方向一致・確定HSI起点・R2到達がそろったため、新しいTradeを開始しました。"
+      "body": "10単位の通常Positionを作成。StopはEntry時のHSI起点、Targetは次HSI境界へ固定。"
     },
     "reentry": {
       "title": "ReEntryを実行しました。",
-      "body": "直前Tradeが利益確定で終了した後も上位文脈が継続し、M5のEntry条件が再成立したため、同方向へ再Entryしました。"
+      "body": "前Trade終了後に条件が再成立したため、新しいTrade IDで10単位をEntry。"
     },
     "add_on": {
-      "title": "買い増しを実行しました。",
-      "body": "既存Coreが含み益で、上位方向とM5条件が一致したため、勝っている波へAdd-onを追加しました。"
+      "title": "Expansion Add-onを実行しました。",
+      "body": "Expansion Core保有中の追撃Entry。通常PositionではAdd-onしません。"
     },
     "partial_close": {
       "title": "{reached_target_label}到達：{role}を{units}単位利確",
       "body": "残りは{next_target_label}を次目標とし保有。"
     },
     "close": {
-      "title": "H1決済トリガー確定：全決済",
-      "body": "残り建玉をM5で全決済。"
+      "title": "{reached_target_label}到達：{units}単位全決済",
+      "body": "1 Entry / 1 CloseでTrade終了。"
     },
     "stop_close": {
-      "title": "構造起点割れ：損切り全決済",
-      "body": "保有根拠消失のため残り建玉を決済。"
+      "title": "HSI起点Stop：{units}単位全決済",
+      "body": "Entry時に固定したHSI起点へ到達したためTrade終了。"
     },
     "default": {
       "title": "シミュレーション判断を記録しました。",
@@ -682,6 +682,66 @@
       "code": "HSI_R1_REACHED",
       "ja": "R1到達",
       "category": "判断理由"
+    },
+    {
+      "code": "CLOSE_OK_NEXT_HSI_TARGET",
+      "ja": "Entry時に固定した次HSI境界へ到達しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "STOP_CLOSE_ENTRY_HSI_ANCHOR",
+      "ja": "Entry時に使用したHSI起点へ到達しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "SINGLE_CLOSE_ALL_UNITS",
+      "ja": "保有している全単位を1回で決済しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "AMBIGUOUS_STOP_TARGET",
+      "ja": "同一M5足でStopとTargetの両方へ到達しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "NORMAL_ADD_ON_DISABLED",
+      "ja": "通常PositionではAdd-onを行いません。",
+      "category": "判断理由"
+    },
+    {
+      "code": "PREVIOUS_TRADE_CLOSED",
+      "ja": "直前TradeはTerminal Close済みです。",
+      "category": "判断理由"
+    },
+    {
+      "code": "EXPANSION_ADD_ON_NOT_IMPLEMENTED",
+      "ja": "Expansion Add-onは許可対象ですが、Expansion Core確定処理は未実装です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H1_T3_DIRECTION_ALLOWED",
+      "ja": "H1 T3方向と終値位置がEntry方向で一致。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H1_T3_NOT_READY",
+      "ja": "H1 T3方向を判定できません。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H1_CLOSE_NOT_ABOVE_T3",
+      "ja": "H1終値がH1 T3より上にありません。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H1_CLOSE_NOT_BELOW_T3",
+      "ja": "H1終値がH1 T3より下にありません。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H4_H1_T3_NOT_ALIGNED",
+      "ja": "H4 T3とH1 T3の方向が一致していません。",
+      "category": "判断理由"
     }
   ],
   "rule_ids": [
@@ -923,6 +983,56 @@
     {
       "code": "rule_m5_trigger_hsi_r1",
       "ja": "確定HSI起点からR1到達でEntry許可",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_single_close_next_hsi_target",
+      "ja": "次HSI境界へ到達したら、そのEntryの全単位を1回でCloseOKします。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_entry_hsi_anchor_stop_fixed",
+      "ja": "Entry時に使用したHSI起点を、そのEntry専用Stopとして固定します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_single_position_single_close",
+      "ja": "1 Entryを1 Positionとして管理し、Terminal Close Eventは1回だけ発生させます。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_normal_add_on_forbidden",
+      "ja": "通常Position保有中のAdd-onを禁止します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_single_close_ambiguous_stop_first",
+      "ja": "同一M5足でStopとTargetへ到達した場合、利益側へ都合よく判定せずStopを優先します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_reentry_as_new_trade",
+      "ja": "ReEntryは前Tradeの継続建玉ではなく、新しいTrade IDとして作成します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_expansion_add_on_requires_confirmed_core",
+      "ja": "Add-onはExpansion Coreが明示的に確定した場合だけ許可します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_normal_entry_v08_h4_h1_t3_direction",
+      "ja": "H4とH1はDowを使わず、T3の傾きと終値のT3上下位置が同方向の場合だけ通常Entry方向を許可。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_normal_entry_v08_m5_dow_trigger",
+      "ja": "H4/H1 T3方向と同じM5 Dow確定を通常Entryの実行トリガーにする。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_normal_entry_v08_cycle_late_guard",
+      "ja": "H4またはH1がCycle Lateなら通常Entry・ReEntry・Expansion Add-onを禁止。",
       "category": "使用ルール"
     }
   ]

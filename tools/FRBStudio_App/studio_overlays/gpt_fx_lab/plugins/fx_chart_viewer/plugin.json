@@ -9,8 +9,8 @@
   ],
   "scope": "gpt_fx_lab overlay only",
   "core_change": false,
-  "description": "通常M5 Entry v0.6.1実験版。H4 T3方向 + H1/M5 Dow一致 + H4/H1 Cycle Late Guardを維持し、HSI最小距離だけR2からR1へ緩和。営業日切替線・Scale-out・Stop・円損益表示は維持。",
-  "version": "v0.9.0.21-normal-entry-v061-r1-experiment",
+  "description": "上部を操作ボタン中心の1段ツールバーへ整理し、Confirm・窓・上位足・描画レイヤー・HSI・注釈表示をモデルレス設定パネルへ移動。H4営業日境界線はConfirm線より強い細点線として表示。Simulation Rule v0.8は維持。",
+  "version": "v0.9.0.25-operation-toolbar-settings-panel",
   "signal_policy": {
     "visible_marker": "candidate_basis_retired_circle_marker",
     "removed_marker": "dow_structure_decision_arrow_marker",
@@ -139,19 +139,18 @@
     "m5_execution_position_lifecycle_support": true,
     "m5_execution_engine_id": "shared_m5_execution_position_lifecycle_v0_1",
     "m5_execution_mode": "reference_point_step",
-    "m5_execution_upper_decision_reimplementation_allowed": "normal_entry_v0_6_explicit_exception_only",
+    "m5_execution_upper_decision_reimplementation_allowed": "normal_entry_v0_7_explicit_exception_only",
     "m5_execution_actions": [
       "ENTRY",
       "REENTRY",
       "ADD_ON",
-      "PARTIAL_CLOSE",
       "FULL_CLOSE",
       "STOP_CLOSE"
     ],
     "position_roles": [
-      "CORE",
-      "ADD_ON",
-      "RUNNER"
+      "NORMAL",
+      "EXPANSION_CORE",
+      "EXPANSION_ADD_ON"
     ],
     "position_management_timeframe_cap": "DAY",
     "position_management_week_allowed": false,
@@ -200,7 +199,7 @@
     "simulation_virtual_pnl_unit_base_currency_amount": 1000,
     "simulation_virtual_pnl_currency": "JPY",
     "simulation_virtual_pnl_fee_slippage_tax_included": false,
-    "normal_entry_rule_version": "v0.6.1",
+    "normal_entry_rule_version": "v0.7",
     "normal_entry_h4_dow_required": false,
     "normal_entry_h4_t3_direction_required": true,
     "normal_entry_h1_m5_dow_match_required": true,
@@ -210,14 +209,23 @@
     ],
     "normal_entry_week_filter_required": false,
     "normal_entry_day_expansion_grade_required": false,
-    "normal_entry_hsi_min": "R1",
+    "normal_entry_hsi_min": "R2",
     "business_day_boundary_lines_support": true,
     "business_day_boundary_lines_timeframes": [
       "M5",
       "H1",
       "H4"
     ],
-    "normal_entry_frequency_experiment": "relax_hsi_min_only_R2_to_R1"
+    "single_close_policy": "SINGLE_CLOSE",
+    "single_entry_single_position": true,
+    "normal_partial_close_enabled": false,
+    "normal_runner_enabled": false,
+    "normal_add_on_enabled": false,
+    "expansion_add_on_only": true,
+    "entry_stop_basis": "ENTRY_HSI_ANCHOR_FIXED_AT_ENTRY",
+    "entry_target_basis": "NEXT_HSI_BOUNDARY_FIXED_AT_ENTRY",
+    "stop_target_touch_source": "M5_HIGH_LOW",
+    "ambiguous_stop_target_policy": "STOP_FIRST_CONSERVATIVE"
   },
   "display_policy": {
     "high_low_range_style": {
