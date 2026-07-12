@@ -1,3 +1,16 @@
+## v0.9.0.48 — Expansion-Lite v0.18 独立Rule Lane実装（2026-07-12）
+
+- `EXPANSION_LITE` を `NORMAL` / `EXPANSION` から完全分離した独立Rule Laneとして実装。
+- Entry: H4/H1終値がT3方向側、H1 CycleがConfirm基準の前半50%、M5 Dow確定、採用HSI起点からR3タッチ。
+- Entry成立順は「Dow確定時にR3到達済み」と「Dow確定後のR3初回タッチ」の両方に対応。
+- Add-on: R3.5 / R4 / R4.5の境界タッチごとに各1回。
+- Exit: R5タッチ、M5 T3逆抜け、M5 Dow構造破綻、採用HSI起点逆抜けで全建玉Close。
+- T3 Exitは Long=`M5 Low < M5 T3`、Short=`M5 High > M5 T3`。Anchor ExitもHigh/Lowタッチ判定。
+- チャート表示を `Expansion-Lite Entry` / `Expansion-Lite Add-on` / `R5 Exit` / `T3 Exit` / `Structural Exit` / `Anchor Exit` として理由別に分離。
+- Expansion-Lite Entry / Add-onマーカーを通常Entryと異なる紫系で表示。
+- Day Cycle PositionはEntry条件へ使用せず、他Rule LaneへのFallbackを禁止。
+- plugin versionを0.9.0.48へ更新。
+
 ## v0.9.0.47 — 実行コメントのチャート重なり回避（2026-07-12）
 
 - Entry / CloseOK / CloseMiss ラベルの横幅に重なる範囲から、High / Low / Close / MA5 / MA20 / T3 / 表示中BBのローカル価格帯を算出。

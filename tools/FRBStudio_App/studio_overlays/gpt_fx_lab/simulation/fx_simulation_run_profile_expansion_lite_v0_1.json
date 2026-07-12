@@ -1,13 +1,13 @@
 {
   "schema_version": "fx_simulation_run_profile_v0_1",
   "kind": "fx_simulation_run_profile",
-  "profile_id": "usdjpy_multi_tf_state_trace_default_v0_1",
-  "title": "USDJPY Multi-Timeframe State Trace / M5実行・建玉Lifecycle Profile",
-  "status": "draft_dow_breakout_threshold_entry_price",
+  "profile_id": "usdjpy_expansion_lite_v0_18",
+  "title": "USDJPY Expansion-Lite v0.18 — R3 Entry / R3.5-R4.5 Add-on / R5 Target",
+  "status": "draft_expansion_lite_independent_rule_lane",
   "created_at": "2026-07-10T23:55:00+09:00",
   "updated_at": "2026-07-12",
-  "phase": "v0.9.0.42-normal-anchor-retire-on-close",
-  "rule_version": "simulation_rule_v0_17_normal_anchor_trade_scoped_draft",
+  "phase": "v0.9.0.48-expansion-lite-v0.18",
+  "rule_version": "simulation_rule_v0_18_expansion_lite_independent_lane_draft",
   "dataset": {
     "primary": {
       "dataset_id": "fx_usdjpy_m5_t3_data_v0_1",
@@ -253,7 +253,7 @@
     "copy_m5_trigger_decisions": true,
     "copy_execution_events": true
   },
-  "teacher_guard": "NORMAL Rule Laneでは、新しいM5 Dow Confirmation Eventごとに独立した通常Entryを判定する。過去に通常Tradeが存在してもReEntryとは呼ばない。前Trade終了後の次回通常Entryには新しいDow確認Eventが必要。ReEntry / Add-onはExpansion系Rule Lane専用語として予約し、NORMAL判定・表示・集計へ混ぜない。",
+  "teacher_guard": "EXPANSION_LITE Rule Lane専用Profile。NORMAL / EXPANSIONのEntry・Add-on・Exit・Anchor Lifecycleを混ぜない。共通観測Stateだけを入力とし、Dayサイクル位置は使用しない。",
   "time_sync_policy": {
     "reference_axis": "M5_CLOSE",
     "bar_timestamp_role": "open_time",
@@ -545,15 +545,13 @@
   "m5_execution_policy": {
     "engine_id": "m5_rule_lane_execution_orchestrator_v0_2",
     "mode": "reference_point_step",
-    "input_source": "TIMEFRAME_STATE_SNAPSHOT shared facts -> selected Entry Rule Lane evaluator / open Trade Rule Lane Close evaluator",
+    "input_source": "TIMEFRAME_STATE_SNAPSHOT shared facts -> EXPANSION_LITE Entry/Close Evaluator only",
     "execution_timeframe": "M5",
-    "upper_decision_reimplementation": "normal_entry_v0_17_trade_scoped_hsi_anchor_explicit_exception",
+    "upper_decision_reimplementation": "forbidden",
     "allowed_actions": [
       "ENTRY",
-      "REENTRY",
       "ADD_ON",
-      "FULL_CLOSE",
-      "STOP_CLOSE"
+      "FULL_CLOSE"
     ],
     "hsi_distance": {
       "point_size": 0.001,
@@ -618,14 +616,15 @@
       "add_on_units": 2,
       "partial_close_units": 0,
       "close_policy": "SINGLE_CLOSE",
-      "max_active_normal_positions": 1,
+      "max_active_normal_positions": 0,
       "normal_add_on_allowed": false,
-      "expansion_add_on_allowed": true
+      "expansion_add_on_allowed": false,
+      "expansion_lite_add_on_allowed": true
     },
     "management_timeframe": {
-      "normal_core_initial": "H1",
-      "expansion_core_initial": "H4",
-      "add_on_initial": "H1",
+      "normal_core_initial": "M5",
+      "expansion_core_initial": "M5",
+      "add_on_initial": "M5",
       "runner_initial": "H4",
       "cap": "DAY",
       "week_forbidden": true,
@@ -633,21 +632,19 @@
       "promotion_requires_higher_wave_connection": true
     },
     "execution_priority": [
-      "STOP_CLOSE",
       "FULL_CLOSE",
       "ADD_ON",
-      "REENTRY",
       "ENTRY"
     ],
-    "expansion_confirmation_required": true,
-    "expansion_confirmation_source": "future_expansion_state_not_yet_available",
+    "expansion_confirmation_required": false,
+    "expansion_confirmation_source": "not_used_by_expansion_lite",
     "real_order_output": "forbidden",
     "money_management_output": "forbidden",
     "no_lookahead": true,
     "event_output": "run_snapshot.position_lifecycle.execution_events",
     "decision_event_output": "run_snapshot.position_lifecycle.decision_events",
     "chart_event_projection": "execution_events_only",
-    "teacher_guard": "通常Entry v0.17はNORMAL Rule Laneだけで評価する。通常HSI起点はDow Confirmationから当該Normal TradeのCloseまで有効とし、CloseOK / CloseMissで即破棄する。次回通常EntryはClose後の新しいM5 Dow Confirmationと、その根拠となる新しいprevious Swingから新起点を採用する。Expansionの起点維持は参照しない。",
+    "teacher_guard": "EXPANSION_LITE専用。H4/H1 CloseのT3側、H1 Cycle前半、M5 Dow Confirmation、R3タッチだけでEntryを評価する。R3.5/R4/R4.5タッチで各1回Add-on。R5/T3/Dow構造/採用HSI起点で全Close。NORMAL / EXPANSIONへFallbackしない。",
     "valuation_policy": {
       "unit_base_currency_amount": 1000,
       "display_currency": "JPY",
@@ -727,35 +724,39 @@
       "same_direction_reconfirmation_before_close_for_next_trade": "IGNORE_FOR_NEXT_NORMAL_ENTRY"
     },
     "close_execution_policy": {
-      "close_policy": "SINGLE_CLOSE",
+      "close_policy": "EXPANSION_LITE_ALL_CLOSE",
       "touch_source": "M5_HIGH_LOW",
-      "stop_basis": "ENTRY_HSI_ANCHOR_FIXED_AT_ENTRY",
-      "target_basis": "NEXT_HSI_BOUNDARY_AHEAD_OF_ACTUAL_ENTRY_DISTANCE",
-      "ambiguous_same_bar_policy": "STOP_FIRST_CONSERVATIVE",
+      "stop_basis": "EXPANSION_LITE_DEFINED_EXIT_RULES",
+      "target_basis": "R5_FROM_ADOPTED_DOW_HSI_ANCHOR",
+      "ambiguous_same_bar_policy": "ANCHOR_THEN_T3_THEN_STRUCTURAL_THEN_TARGET_CONSERVATIVE",
       "normal_entry_target_policy": "NEXT_HSI_BOUNDARY",
       "rule_lane_source": "OPEN_TRADE_RULE_LANE",
       "normal_close_evaluator_id": "normal_m5_close_evaluator_v0_1",
       "expansion_close_evaluator_id": "expansion_close_evaluator_placeholder_v0_1",
       "expansion_lite_close_evaluator_id": "expansion_lite_close_evaluator_v0_1",
-      "normal_close_retires_entry_anchor": true,
-      "normal_close_next_state": "AWAIT_NEW_M5_DOW_CONFIRMATION"
+      "normal_close_retires_entry_anchor": false,
+      "normal_close_next_state": "NOT_APPLICABLE",
+      "expansion_lite_close_reasons": [
+        "R5_EXIT",
+        "T3_EXIT",
+        "STRUCTURAL_EXIT",
+        "ANCHOR_EXIT"
+      ]
     },
     "rule_lane_policy": {
-      "active_entry_rule_lane": "NORMAL",
+      "active_entry_rule_lane": "EXPANSION_LITE",
       "allowed_entry_rule_lanes": [
-        "NORMAL",
-        "EXPANSION",
         "EXPANSION_LITE"
       ],
       "shared_fact_source": "TIMEFRAME_STATE_SNAPSHOT",
       "close_lane_source": "OPEN_TRADE_RULE_LANE",
       "arbitration": [
         "ACTIVE_TRADE_CLOSE_LANE",
-        "SELECTED_ENTRY_RULE_LANE"
+        "EXPANSION_LITE_ENTRY_RULE_LANE"
       ],
       "lanes": {
         "NORMAL": {
-          "enabled": true,
+          "enabled": false,
           "entry_evaluator_id": "normal_m5_entry_evaluator_v0_1",
           "close_evaluator_id": "normal_m5_close_evaluator_v0_1",
           "allowed_actions": [
@@ -777,18 +778,78 @@
           ]
         },
         "EXPANSION_LITE": {
-          "enabled": false,
+          "enabled": true,
           "entry_evaluator_id": "expansion_lite_entry_evaluator_v0_1",
           "close_evaluator_id": "expansion_lite_close_evaluator_v0_1",
           "allowed_actions": [
             "ENTRY",
-            "REENTRY",
             "ADD_ON",
-            "FULL_CLOSE",
-            "STOP_CLOSE"
-          ]
+            "FULL_CLOSE"
+          ],
+          "other_rule_lane_fallback": "FORBIDDEN"
         }
-      }
+      },
+      "other_rule_lane_fallback": "FORBIDDEN"
+    },
+    "expansion_lite_policy": {
+      "rule_version": "v0.18",
+      "rule_lane": "EXPANSION_LITE",
+      "direction_support": [
+        "LONG",
+        "SHORT"
+      ],
+      "day_cycle_position_required": false,
+      "h4_close_t3_side_required": true,
+      "h1_close_t3_side_required": true,
+      "h1_cycle_front_half_required": true,
+      "h1_cycle_front_half_ratio": 0.5,
+      "m5_dow_confirmation_required": true,
+      "hsi_anchor_source": "M5_DOW_CONFIRMATION_ADOPTED_ANCHOR",
+      "entry_touch_source": "M5_HIGH_LOW",
+      "entry_raw": 144,
+      "entry_label": "R3",
+      "entry_modes": [
+        "DOW_CONFIRMATION_R3_READY",
+        "FIRST_R3_TOUCH_AFTER_DOW_CONFIRMATION"
+      ],
+      "one_entry_opportunity_per_dow_confirmation": true,
+      "add_on_touch_source": "M5_HIGH_LOW",
+      "add_on_levels": [
+        {
+          "raw": 188,
+          "label": "R3.5",
+          "max_count": 1
+        },
+        {
+          "raw": 233,
+          "label": "R4",
+          "max_count": 1
+        },
+        {
+          "raw": 305,
+          "label": "R4.5",
+          "max_count": 1
+        }
+      ],
+      "add_on_upper_limit_label": "R4.5",
+      "target_touch_source": "M5_HIGH_LOW",
+      "target_raw": 377,
+      "target_label": "R5",
+      "t3_exit_touch_source": "M5_HIGH_LOW",
+      "t3_exit_long": "M5_LOW_LT_M5_T3",
+      "t3_exit_short": "M5_HIGH_GT_M5_T3",
+      "anchor_exit_touch_source": "M5_HIGH_LOW",
+      "anchor_exit_long": "M5_LOW_LT_ADOPTED_HSI_ANCHOR",
+      "anchor_exit_short": "M5_HIGH_GT_ADOPTED_HSI_ANCHOR",
+      "structural_exit": "NEW_M5_DOW_POINT_CONFIRMS_PRIOR_STRUCTURE_BREAK",
+      "all_exit_actions": "FULL_CLOSE_ALL_EXPANSION_LITE_POSITIONS",
+      "same_bar_exit_priority": [
+        "ANCHOR_EXIT",
+        "T3_EXIT",
+        "STRUCTURAL_EXIT",
+        "TARGET_EXIT"
+      ],
+      "other_rule_lane_fallback": "FORBIDDEN"
     }
   }
 }

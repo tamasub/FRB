@@ -10,7 +10,7 @@
   "scope": "gpt_fx_lab overlay only",
   "core_change": false,
   "description": "HSI起点リングを横バー色へ統一し、十字カーソルを全表示パネルへ同期。Entry / CloseOK / CloseMissへ短い指示線と小型終点ドットを追加。売買判定ロジックは変更しない。",
-  "version": "0.9.0.47",
+  "version": "0.9.0.48",
   "signal_policy": {
     "visible_marker": "candidate_basis_retired_circle_marker",
     "removed_marker": "dow_structure_decision_arrow_marker",
@@ -253,8 +253,8 @@
     "expansion_rule_lane_enabled": false,
     "expansion_entry_evaluator_id": "expansion_entry_evaluator_placeholder_v0_1",
     "expansion_close_evaluator_id": "expansion_close_evaluator_placeholder_v0_1",
-    "expansion_lite_rule_lane_reserved": true,
-    "expansion_lite_rule_lane_enabled": false,
+    "expansion_lite_rule_lane_reserved": false,
+    "expansion_lite_rule_lane_enabled": true,
     "hsi_compact_state_preserves_dow_confirmation_id": true,
     "hsi_line_color_rotation": {
       "enabled": true,
@@ -310,7 +310,31 @@
       "bollinger_when_visible"
     ],
     "simulation_execution_marker_chart_clearance_px": 10,
-    "simulation_execution_marker_side_fallback": "preferred_side_then_opposite_side_when_local_chart_clearance_is_insufficient"
+    "simulation_execution_marker_side_fallback": "preferred_side_then_opposite_side_when_local_chart_clearance_is_insufficient",
+    "active_entry_rule_lane": "EXPANSION_LITE",
+    "expansion_lite_entry_evaluator_id": "expansion_lite_entry_evaluator_v0_1",
+    "expansion_lite_close_evaluator_id": "expansion_lite_close_evaluator_v0_1",
+    "expansion_lite_rule_version": "v0.18",
+    "expansion_lite_other_rule_lane_fallback": "FORBIDDEN",
+    "expansion_lite_day_cycle_position_required": false,
+    "expansion_lite_entry": "R3_TOUCH_AFTER_OR_AT_M5_DOW_CONFIRMATION",
+    "expansion_lite_add_on_levels": [
+      "R3.5",
+      "R4",
+      "R4.5"
+    ],
+    "expansion_lite_target": "R5_TOUCH_FULL_CLOSE",
+    "expansion_lite_t3_exit": "LONG_M5_LOW_LT_T3__SHORT_M5_HIGH_GT_T3",
+    "expansion_lite_anchor_exit": "LONG_M5_LOW_LT_ANCHOR__SHORT_M5_HIGH_GT_ANCHOR",
+    "expansion_lite_structural_exit": "NEW_M5_DOW_POINT_CONFIRMS_PRIOR_STRUCTURE_BREAK",
+    "expansion_lite_exit_comment_labels": [
+      "R5 Exit",
+      "T3 Exit",
+      "Structural Exit",
+      "Anchor Exit"
+    ],
+    "expansion_lite_entry_comment_label": "Expansion-Lite Entry",
+    "expansion_lite_add_on_comment_label": "Expansion-Lite Add-on"
   },
   "display_policy": {
     "high_low_range_style": {
@@ -731,7 +755,7 @@
     },
     "simulation_run_profile": {
       "enabled": true,
-      "default_file": "fx_simulation_run_profile_v0_1.json",
+      "default_file": "fx_simulation_run_profile_expansion_lite_v0_1.json",
       "directory": "studio_overlays/gpt_fx_lab/simulation/",
       "required_timeframes": [
         "WEEK",
@@ -767,7 +791,7 @@
       "snapshot_period_policy": "current_chart_window",
       "dataset_hash_required": true,
       "engine_enabled": true,
-      "teacher_guard": "上位判断と判断履歴は、探索・待機・保有・防御・H1離脱監視を説明する。M5 Trigger成立やEntry/Close実行はまだ行わない。",
+      "teacher_guard": "EXPANSION_LITE Rule Lane専用Profileを既定読込。NORMAL / EXPANSIONの判定を混ぜず、共通観測Stateだけを使用する。",
       "multi_timeframe_candle_sync": {
         "enabled": true,
         "reference_axis": "M5_CLOSE",

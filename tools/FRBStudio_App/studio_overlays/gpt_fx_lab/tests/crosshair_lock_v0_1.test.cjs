@@ -16,7 +16,7 @@ const manifestPath = artifactPath('studio_overlays', 'gpt_fx_lab', 'plugins', 'f
 const source = fs.readFileSync(pluginPath, 'utf8');
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 
-assert.equal(manifest.version, '0.9.0.47');
+assert.equal(manifest.version, '0.9.0.48');
 assert.equal(manifest.signal_policy.panel_local_crosshair_support, true);
 assert.equal(manifest.signal_policy.crosshair_click_lock_support, true);
 assert.equal(manifest.signal_policy.crosshair_cross_panel_sync, true);
