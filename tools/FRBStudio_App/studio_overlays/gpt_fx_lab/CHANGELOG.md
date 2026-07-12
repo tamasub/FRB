@@ -1,4 +1,163 @@
+## v0.9.0.47 — 実行コメントのチャート重なり回避（2026-07-12）
+
+- Entry / CloseOK / CloseMiss ラベルの横幅に重なる範囲から、High / Low / Close / MA5 / MA20 / T3 / 表示中BBのローカル価格帯を算出。
+- ラベルをその価格帯の外側へ配置し、価格チャート本体の上にラベルが乗る状態を回避。
+- 基本は CloseOK=上、Entry / CloseMiss=下を維持し、余白不足時だけ反対側へ退避。
+- 小型終点ドットと斜めの直線は維持。
+- plugin version を 0.9.0.47 に更新。
+
+## v0.9.0.46 — 実行コメントを近づけて角度調整（2026-07-12）
+
+- Entry / CloseOK / CloseMiss ラベルを、上下端ベタ置きから **チャート近傍の退避位置** へ変更。
+- 斜め線は維持しつつ、**遠すぎない距離** と **やや強めの角度** に再調整。
+- CloseOK は点の少し上、Entry / CloseMiss は点の少し下を基準にし、近接ラベルのみ段積み回避。
+- plugin version を 0.9.0.46 に更新。
+
+## v0.9.0.45 — 実行コメントを斜め線へ変更（2026-07-12）
+
+- Entry / CloseOK / CloseMiss ラベルの指示線を、折れ線から **斜めの直線** に変更。
+- ラベルを少し横へずらし、縦線・横線と違う見た目で対象点を追いやすくした。
+- 上下レーン配置と終点ドットは維持。
+- plugin version を 0.9.0.45 に更新。
+
+## v0.9.0.44 — 実行コメント退避レーン + 指示線整理（2026-07-12）
+
+- Entry / CloseOK / CloseMiss の常時表示ラベルを、チャート内ベタ置きから上下の退避レーン配置へ変更。
+- Entry / ReEntry / Add-on / CloseMiss は下側レーン、CloseOK は上側レーンへ寄せ、価格点からラベルまで折れ線の指示線で接続。
+- ラベル同士が横に重なる場合はレーンを段積みして、なるべくチャート本体にかぶらないようにした。
+- 終点ドットは継続して表示し、どの点を指しているかを維持。
+- plugin version を 0.9.0.44 に更新。
+
+## v0.9.0.43 — HSI起点色・十字同期・Entry/Close指示点（2026-07-12）
+
+- HSI起点マーカーの白い外周リングを廃止し、同一起点のR横バー色へ統一。
+- 十字カーソルの時刻・価格を、M5 / H1 / H4 / DAY / WEEKの全表示パネルへ同期表示。
+- 同期先では時刻に対応する包含足・最寄り足へ縦線を合わせ、価格が表示範囲内なら横線も同期。
+- Entry / CloseOK / CloseMissラベルから実際の価格・時刻点へ短い指示線を追加。
+- 指示線の先端にDow丸より小さい終点ドットを置き、「どの点のコメントか」を明示。
+- Simulation売買判定、HSI計算、Entry / Close Lifecycleは変更しないUI専用パッチ。
+
+## v0.9.0.42 — Normal HSI起点をTrade Closeで破棄（2026-07-12）
+
+- NORMAL TradeのCloseOK / CloseMiss時に、Entryで使用した通常HSI起点を即時破棄。
+- 次回Normal Entryは、Close後の新しいM5 Dow Confirmationと新しいprevious Swingを必須化。
+- `normal_anchor_lifecycle` をPortfolioへ追加し、ACTIVE → AWAITING_NEW_DOW_CONFIRMATIONをTraceへ記録。
+- Simulation HSI線をClose時刻で終了させ、どのTradeまで有効だった起点かを可視化。
+- HSI境界ちょうどのEntryでTargetが同一境界になる浮動小数点誤差を補正。
+- Expansionの起点維持ルールは変更せず、NORMAL Laneから参照しない。
+
+## v0.9.0.41 — Dow突破閾値での通常Entry価格修正（2026-07-12）
+
+- M5 Dow突破確認時にR2到達済みの場合、確認足Closeではなく「Dow突破閾値とR2の双方を満たす最初の価格」で通常Entryするよう修正。
+- LONGは `max(Dow突破閾値, R2)`、SHORTは `min(Dow突破閾値, R2)` を基本約定価格とし、ギャップ時だけ最初の利用可能Openを採用。
+- Dow Trend Snapshotに存在していた `breakout_threshold_price` がM5 Executionへ渡る途中で欠落していたため、Confirmation Contextへ保持。
+- Entry地点が早まることで、Targetも実Entry地点より先の次HSI境界へ再計算される。
+- NORMAL Rule Lane分離、ReEntry/Add-on禁止、Normal Close Evaluator分離は維持。
+
+## v0.9.0.40 — MT4風 十字カーソル＋クリック固定（2026-07-12）
+
+- 既存のカレント縦線を、縦線＋横線の十字カーソルへ拡張。
+- 十字カーソルは現在操作中のパネルだけに表示し、他時間足への同期表示は行わない。
+- 現在日時をパネル下端、現在価格をパネル右端へ背景付きラベルで表示。
+- 左クリックで十字カーソルを固定し、再クリックで解除。固定中はシアン強調と「固定」表示。
+- 右クリック注釈、既存Tooltip、ダブルクリック時間同期、HSI/Simulation判定ロジックは変更しない。
+
+## v0.9.0.39 — HSI起点別カラーローテーション（2026-07-12）
+
+- HSI横線へ8色パレット（cyan / amber / violet / lime / rose / sky / orange / teal）を追加。
+- 同一 `anchor_id` から描画されるR1〜R7・中間線・起点マーカーを同色で統一。
+- HSI起点を時系列順に色ローテーションし、隣接する別起点が同色で重なり続けないよう改善。
+- R2.5 / R3.5 / R4.5などの中間観測線も白固定をやめ、起点色を継承した薄色破線へ変更。
+- Human Saved HSIとSimulation HSIを同じ色割当対象として扱い、表示範囲を移動しても色スロットが安定するよう全Annotationへ割当を保持。
+- HSI色ローテーション回帰テストを追加し、8色・同一起点同色・隣接起点別色・9本目以降の安全な循環を確認。
+
+## v0.9.0.38 — NORMAL Rule LaneからReEntry / Add-on語彙を分離（2026-07-12）
+
+- NORMAL Rule Laneでは `ReEntry` を定義しない。前回Trade終了後に新しいM5 Dow Confirmation Eventで成立したTradeも、独立した `Normal Entry` として記録する。
+- NORMAL Rule LaneのActionを `ENTRY / FULL_CLOSE / STOP_CLOSE` に限定し、`REENTRY / ADD_ON` を許可Actionから除外。
+- 通常Entry Eventをすべて `event_type=entry / execution.action=ENTRY / entry_mode=NORMAL` に統一し、画面マーカー・Run集計もすべて `Entry` として表示。
+- 各通常Entryに `normal_entry_sequence_no` を付与。回数識別はReEntryではなく `Entry #1 / #2 ...` で行う。
+- 次の通常Entryには前回Trade終了後の新しいDow確認Eventを必須とする制約を、ReEntryルールではなくNormal Entry Lifecycleとして再定義。
+- ReEntry / Add-onは将来のExpansion / Expansion-Lite Rule Lane専用語として予約。既存の古いNORMAL ReEntry Traceも表示・集計時にはEntryとして正規化。
+- Normal Entry / Close EvaluatorのWEEK・DAY・Expansion非依存、㉘Entry、通常Close、Normal ReEntry 0件を実データ回帰テストで確認。
+
+## v0.9.0.37 — Rule Lane別Entry / Close分離（2026-07-12）
+
+- 共通観測処理（確定足、Swing、Dow、T3、Cycle、BB、HSI候補）と、売買ルール固有の判定を分離。
+- 通常ルールを `NORMAL` Rule Laneとして独立し、`normal_m5_entry_evaluator_v0_1` と `normal_m5_close_evaluator_v0_1` を追加。
+- Normal Entry EvaluatorはH4/H1 T3、H4/H1 Cycle、M5 Dow Confirmation、Normal HSI Anchorだけを使用し、WEEK / DAY / Expansion判定を参照しない。
+- Normal Close Evaluatorは、Entry時に固定したStop / TargetとM5 High / Lowだけで判定し、Entry Rule Laneと同じLaneのClose Policyを適用。
+- Expansion / Expansion-Liteは独立したRule Laneとして予約し、現時点では無効・未実装。Normal Laneへ条件が混入しない構造に変更。
+- HSI ResolutionをTimeframeStateへ圧縮する際に `dow_confirmation_id` が欠落し、㉘のDow突破Entryが `HSI_ANCHOR_CONFIRMATION_MISMATCH` で止まる不具合を修正。
+- 実データの表示範囲Simulationで、2025-10-30 09:44にNormal Entry 153.498、11:09にNormal Close 153.562が発生することを回帰テスト化。
+- Expansion設定やWEEK / DAYの上位DecisionがBLOCKEDでも、Normal Entry / Close結果が変わらない分離テストを追加。
+
+## v0.9.0.36 — Simulation Profile契約不一致修正（2026-07-12）
+
+- `fx_simulation_run_profile_v0_1.json` の `upper_decision_reimplementation` と、Plugin側の許可値が別名になっていたため、表示範囲Simulationが開始前検証で停止する不具合を修正。
+- 正式値を `normal_entry_v0_14_m5_dow_breakout_next_hsi_boundary_explicit_exception` に統一。
+- Plugin内の初期値と許可リストを単一の定数から参照し、同一ファイル内で名称が再び分岐しにくい構造へ変更。
+- 実際の `validateSimulationRunDraft` をNode上で呼び出し、同梱Run Profileが `valid=true / errors=0` になる回帰テストを追加。
+- M5 Dow突破確認、R2以上で即Entry、次HSI境界Target、同一Confirmation ID再利用禁止のv0.14売買ロジックは変更しない。
+
+## v0.9.0.35 — M5 Dow突破確認 / 次HSI境界Target（2026-07-12）
+
+- M5 Dow Confirmation Eventを、High/Low比較ペア完成時ではなく、確定済み押し安値/戻り高値の後に直前構造高値/安値をM5確定足で突破した時点へ変更。
+- Dow確認時点ですでにR2以上なら、その確認足の利用可能価格で即Entry。
+- 新しいDow確認でEntryする場合、R2.5を通過済みでも見送りにせず、実Entry地点より先の次HSI境界をTargetとして固定。
+- 1 Confirmation IDにつき最大1 Entry、同じ確認IDを使う階段ReEntry禁止、ReEntryは前Trade終了後の新しいDow突破確認Event必須を維持。
+- Expansion Detection AnchorのLifecycleは変更しない。
+
+## 2026-07-12 v0.9.0.34
+
+- 通常Entryの判定順を修正。M5 Dow Confirmation Event成立時点でR2到達済みかを先に判定する。
+- Dow確認時点でR2以上かつR2.5未到達なら、R2境界へ遡らず確認時点の利用可能価格で即Entryする。
+- Dow確認時点でR2未到達なら、確認後のR2初回到達を待ってEntryする。
+- Dow確認またはR2初回到達を確認したM5足でR2.5へ到達済みの場合は、Target消化済みとしてMISSEDにする。
+- 1 Dow Confirmation IDにつき最大1 Entry、R2.5全Close、同一確認IDの階段ReEntry禁止、ReEntryには前Trade終了後の新Dow確認必須というv0.12の骨格は維持する。
+- Simulation Rule v0.13、Run Profile、plugin.json、理由コード・ルールIDカタログを同期した。
+
+## 2026-07-12 v0.9.0.33
+- 通常M5 Entryを、`1 M5 Dow Confirmation ID = 最大1回のEntry機会`へ変更。
+- High側・Low側の比較ペアが両方とも前回確認から進んだ完全な新Dow構造ごとに、方向Stateとは別の`dow_confirmation` Eventを発行。片側だけの更新ではReEntry切符を発行しない。
+- 通常Entryは、Confirmationに紐づくprevious Low / previous High起点から`R2初回到達`した瞬間だけ許可。
+- R2初回到達時にH4/H1 T3・Cycle・建玉条件が揃わない場合は`MISSED`とし、R2.5 / R3帯から遅れてEntryしない。
+- 通常Targetを常に`R2.5`へ固定し、10単位を1回で全Close。
+- 同じDow Confirmation IDを使った階段ReEntryを禁止。ReEntryには前Trade終了後に発生した新しいDow Confirmation Eventを必須化。
+- Simulation Rule v0.12のEntry Opportunity状態（WAITING_R2 / USED / MISSED / EXPIRED）をPosition Lifecycleへ追加。
+
+## 2026-07-11 v0.9.0.32
+- `fx_simulation_run_profile_v0_1.json` と `plugin.json` の HSI Anchor Resolver契約を `normal_dow_reset_plus_expansion_detection_retain_resolver_v0_3` へ同期。
+- 通常Laneは `REVERSAL_WATCH / NO_TREND / UNDETERMINED` で起点解除し、同方向Dow再成立時も新しい previous Swing を採用する契約へ統一。
+- Expansion Detection Laneだけは非方向状態を挟んでも旧大起点を維持し、Entry用の押し戻り起点とは分離。
+- 既知の旧Resolver `dow_regime_fixed_plus_expansion_dual_anchor_resolver_v0_2` を読込時にv0_3へ安全移行し、Profile更新漏れによるRange Simulation停止の再発を防止。
+
+## 2026-07-11 v0.9.0.30
+- 通常Dow起点をREVERSAL_WATCH / NO_TREND / UNDETERMINEDで解除。
+- 同方向Dow再成立でも新しいprevious Swingを採用。
+- Expansion Detection Anchorだけは非方向状態を挟んでも旧大起点を維持。
+- Simulation Ruleをv0.11へ更新。
+
+## v0.9.0.28 - 2026-07-11
+
+- M5 Dow成立時に採用する通常HSI起点の選択を修正。
+  - Dow UP: 比較した2つのLowのうち、波の始点側 `previous Low` を採用。
+  - Dow DOWN: 比較した2つのHighのうち、波の始点側 `previous High` を採用。
+- 従来の `current Low / current High`（成立直前のHigher Low / Lower High）採用を廃止。
+- 同方向Dow継続中は採用起点を維持し、反対方向Dow成立時だけ再採用するv0.9の固定契約は維持。
+- Expansionは元Dow起点をDetection Anchorとして保持し、Entry用の押し戻り起点を別管理する二重起点方式を維持。
+- Simulation Ruleをv0.10へ更新し、旧v0.9 Trace/建玉はFlatから再評価。
+
 ## v0.9.0.25 - 2026-07-11
+
+## v0.9.0.27 - 2026-07-11
+
+- 通常HSI起点を「最新の有効Swing」から「M5 Dow directional regime成立時の構造起点」へ変更。
+- 同方向Dow継続中は、後続の赤丸・緑丸が確定しても通常Entry用HSI起点を変更しない。
+- 反対方向Dow成立時のみ、通常Entry用HSI起点を新しい方向の構造起点へ更新。
+- Expansionでは元Dow起点をDetection Anchorとして残し、押し戻り起点をExpansion Entry Anchorとして別管理する二重起点構造を追加。
+- Simulation Rule v0.9を同梱。
+
 
 - ページ上部を「操作系ボタンだけ」の1段ツールバーへ再編。
   - 古い窓 / 新しい窓 / ランダム窓 / 最新窓

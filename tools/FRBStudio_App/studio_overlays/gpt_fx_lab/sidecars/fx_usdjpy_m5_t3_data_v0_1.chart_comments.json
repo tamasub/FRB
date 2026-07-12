@@ -2196,7 +2196,8 @@
       "display": {
         "visible": true,
         "pinned": true,
-        "style": "saved_hsi"
+        "style": "saved_hsi",
+        "hsi_color_slot": 0
       },
       "chart_state": {
         "windowStart": 16292,
@@ -2214,7 +2215,8 @@
         "hsiAnchorIndex": 311,
         "hsiAnchorPanel": "M5"
       },
-      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click."
+      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click.",
+      "hsi_color_slot": 0
     },
     {
       "id": "hsi_20260706_001121_78yhg",
@@ -2246,7 +2248,8 @@
       "display": {
         "visible": true,
         "pinned": true,
-        "style": "saved_hsi"
+        "style": "saved_hsi",
+        "hsi_color_slot": 1
       },
       "chart_state": {
         "windowStart": 16292,
@@ -2264,7 +2267,8 @@
         "hsiAnchorIndex": 311,
         "hsiAnchorPanel": "M5"
       },
-      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click."
+      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click.",
+      "hsi_color_slot": 1
     },
     {
       "id": "hsi_20260706_004944_fwn6b",
@@ -2296,7 +2300,8 @@
       "display": {
         "visible": true,
         "pinned": true,
-        "style": "saved_hsi"
+        "style": "saved_hsi",
+        "hsi_color_slot": 2
       },
       "chart_state": {
         "windowStart": 16292,
@@ -2314,207 +2319,8 @@
         "hsiAnchorIndex": 739,
         "hsiAnchorPanel": "M5"
       },
-      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click."
-    },
-    {
-      "id": "hsi_20260706_181413_mteqj",
-      "created_at": "2026-07-06T18:14:13",
-      "updated_at": "2026-07-06T18:14:13",
-      "source_type": "human_hsi",
-      "event_type": "hsi_anchor",
-      "panel": "M5",
-      "timeframe": "M5",
-      "time": "2025-10-29 03:00",
-      "price": 151.53437844199638,
-      "x_index_hint": 247,
-      "title": "保存HSI ×6",
-      "hsi": {
-        "values": [
-          55,
-          89,
-          144,
-          188,
-          233,
-          305,
-          377
-        ],
-        "values_text": "55,89,144,188,233,305,377,493,610,798,987",
-        "scale": 6,
-        "direction": "up",
-        "point_size": 0.001
-      },
-      "display": {
-        "visible": true,
-        "pinned": true,
-        "style": "saved_hsi"
-      },
-      "chart_state": {
-        "windowStart": 0,
-        "windowSize": 1000,
-        "upperTf": "H1",
-        "upperConfirmBars": 7,
-        "confirmBars": 20,
-        "viewMode": "all",
-        "hlRange": 1,
-        "bb": 0,
-        "hsi": "55,89,144,188,233,305,377",
-        "hsiScale": 6,
-        "hsiDir": "up",
-        "hsiAnchorPrice": 151.53437844199638,
-        "hsiAnchorIndex": 247,
-        "hsiAnchorPanel": "M5"
-      },
-      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click."
-    },
-    {
-      "id": "hsi_20260706_181423_l7gmv",
-      "created_at": "2026-07-06T18:14:23",
-      "updated_at": "2026-07-06T18:14:23",
-      "source_type": "human_hsi",
-      "event_type": "hsi_anchor",
-      "panel": "H1",
-      "timeframe": "H1",
-      "time": "2025-10-29 03:00",
-      "price": 151.53437844199638,
-      "x_index_hint": 21,
-      "title": "保存HSI ×6",
-      "hsi": {
-        "values": [
-          55,
-          89,
-          144,
-          188,
-          233,
-          305,
-          377
-        ],
-        "values_text": "55,89,144,188,233,305,377,493,610,798,987",
-        "scale": 6,
-        "direction": "up",
-        "point_size": 0.001
-      },
-      "display": {
-        "visible": true,
-        "pinned": true,
-        "style": "saved_hsi"
-      },
-      "chart_state": {
-        "windowStart": 0,
-        "windowSize": 1000,
-        "upperTf": "H1",
-        "upperConfirmBars": 7,
-        "confirmBars": 20,
-        "viewMode": "all",
-        "hlRange": 1,
-        "bb": 0,
-        "hsi": "55,89,144,188,233,305,377",
-        "hsiScale": 6,
-        "hsiDir": "up",
-        "hsiAnchorPrice": 151.53437844199638,
-        "hsiAnchorIndex": 21,
-        "hsiAnchorPanel": "H1"
-      },
-      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click."
-    },
-    {
-      "id": "hsi_20260706_181609_2aokz",
-      "created_at": "2026-07-06T18:16:09",
-      "updated_at": "2026-07-06T18:16:09",
-      "source_type": "human_hsi",
-      "event_type": "hsi_anchor",
-      "panel": "M5",
-      "timeframe": "M5",
-      "time": "2025-10-29 16:25",
-      "price": 151.85744027434643,
-      "x_index_hint": 408,
-      "title": "保存HSI ×6",
-      "hsi": {
-        "values": [
-          55,
-          89,
-          144,
-          188,
-          233,
-          305,
-          377
-        ],
-        "values_text": "55,89,144,188,233,305,377,493,610,798,987",
-        "scale": 6,
-        "direction": "up",
-        "point_size": 0.001
-      },
-      "display": {
-        "visible": true,
-        "pinned": true,
-        "style": "saved_hsi"
-      },
-      "chart_state": {
-        "windowStart": 0,
-        "windowSize": 1000,
-        "upperTf": "H1",
-        "upperConfirmBars": 7,
-        "confirmBars": 20,
-        "viewMode": "all",
-        "hlRange": 1,
-        "bb": 0,
-        "hsi": "55,89,144,188,233,305,377",
-        "hsiScale": 6,
-        "hsiDir": "up",
-        "hsiAnchorPrice": 151.85744027434643,
-        "hsiAnchorIndex": 408,
-        "hsiAnchorPanel": "M5"
-      },
-      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click."
-    },
-    {
-      "id": "hsi_20260706_181619_a56x3",
-      "created_at": "2026-07-06T18:16:19",
-      "updated_at": "2026-07-06T18:16:19",
-      "source_type": "human_hsi",
-      "event_type": "hsi_anchor",
-      "panel": "H1",
-      "timeframe": "H1",
-      "time": "2025-10-29 18:00",
-      "price": 151.85744027434643,
-      "x_index_hint": 36,
-      "title": "保存HSI ×6",
-      "hsi": {
-        "values": [
-          55,
-          89,
-          144,
-          188,
-          233,
-          305,
-          377
-        ],
-        "values_text": "55,89,144,188,233,305,377,493,610,798,987",
-        "scale": 6,
-        "direction": "up",
-        "point_size": 0.001
-      },
-      "display": {
-        "visible": true,
-        "pinned": true,
-        "style": "saved_hsi"
-      },
-      "chart_state": {
-        "windowStart": 0,
-        "windowSize": 1000,
-        "upperTf": "H1",
-        "upperConfirmBars": 7,
-        "confirmBars": 20,
-        "viewMode": "all",
-        "hlRange": 1,
-        "bb": 0,
-        "hsi": "55,89,144,188,233,305,377",
-        "hsiScale": 6,
-        "hsiDir": "up",
-        "hsiAnchorPrice": 151.85744027434643,
-        "hsiAnchorIndex": 36,
-        "hsiAnchorPanel": "H1"
-      },
-      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click."
+      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click.",
+      "hsi_color_slot": 2
     },
     {
       "id": "hsi_20260706_181746_7466n",
@@ -2546,7 +2352,8 @@
       "display": {
         "visible": true,
         "pinned": true,
-        "style": "saved_hsi"
+        "style": "saved_hsi",
+        "hsi_color_slot": 0
       },
       "chart_state": {
         "windowStart": 0,
@@ -2564,57 +2371,8 @@
         "hsiAnchorIndex": 567,
         "hsiAnchorPanel": "M5"
       },
-      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click."
-    },
-    {
-      "id": "hsi_20260706_182340_sd8wk",
-      "created_at": "2026-07-06T18:23:40",
-      "updated_at": "2026-07-06T18:23:40",
-      "source_type": "human_hsi",
-      "event_type": "hsi_anchor",
-      "panel": "M5",
-      "timeframe": "M5",
-      "time": "2025-10-30 10:40",
-      "price": 153.28666559092542,
-      "x_index_hint": 624,
-      "title": "保存HSI ×6",
-      "hsi": {
-        "values": [
-          55,
-          89,
-          144,
-          188,
-          233,
-          305,
-          377
-        ],
-        "values_text": "55,89,144,188,233,305,377,493,610,798,987",
-        "scale": 6,
-        "direction": "up",
-        "point_size": 0.001
-      },
-      "display": {
-        "visible": true,
-        "pinned": true,
-        "style": "saved_hsi"
-      },
-      "chart_state": {
-        "windowStart": 0,
-        "windowSize": 1000,
-        "upperTf": "H1",
-        "upperConfirmBars": 7,
-        "confirmBars": 20,
-        "viewMode": "all",
-        "hlRange": 1,
-        "bb": 0,
-        "hsi": "55,89,144,188,233,305,377",
-        "hsiScale": 6,
-        "hsiDir": "up",
-        "hsiAnchorPrice": 153.28666559092542,
-        "hsiAnchorIndex": 624,
-        "hsiAnchorPanel": "M5"
-      },
-      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click."
+      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click.",
+      "hsi_color_slot": 0
     },
     {
       "id": "hsi_20260706_184103_4d47y",
@@ -2646,7 +2404,8 @@
       "display": {
         "visible": true,
         "pinned": true,
-        "style": "saved_hsi"
+        "style": "saved_hsi",
+        "hsi_color_slot": 2
       },
       "chart_state": {
         "windowStart": 0,
@@ -2664,7 +2423,8 @@
         "hsiAnchorIndex": 771,
         "hsiAnchorPanel": "M5"
       },
-      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click."
+      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click.",
+      "hsi_color_slot": 2
     },
     {
       "id": "hsi_20260706_184319_lt2to",
@@ -2696,7 +2456,8 @@
       "display": {
         "visible": true,
         "pinned": true,
-        "style": "saved_hsi"
+        "style": "saved_hsi",
+        "hsi_color_slot": 4
       },
       "chart_state": {
         "windowStart": 1000,
@@ -2714,7 +2475,8 @@
         "hsiAnchorIndex": 1,
         "hsiAnchorPanel": "M5"
       },
-      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click."
+      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click.",
+      "hsi_color_slot": 4
     },
     {
       "id": "hsi_20260706_184405_wji7p",
@@ -2746,7 +2508,8 @@
       "display": {
         "visible": true,
         "pinned": true,
-        "style": "saved_hsi"
+        "style": "saved_hsi",
+        "hsi_color_slot": 3
       },
       "chart_state": {
         "windowStart": 1000,
@@ -2764,7 +2527,8 @@
         "hsiAnchorIndex": 81,
         "hsiAnchorPanel": "H1"
       },
-      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click."
+      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click.",
+      "hsi_color_slot": 3
     },
     {
       "id": "hsi_20260706_192227_wdbmm",
@@ -2796,7 +2560,8 @@
       "display": {
         "visible": true,
         "pinned": true,
-        "style": "saved_hsi"
+        "style": "saved_hsi",
+        "hsi_color_slot": 5
       },
       "chart_state": {
         "windowStart": 1000,
@@ -2814,7 +2579,8 @@
         "hsiAnchorIndex": 392,
         "hsiAnchorPanel": "M5"
       },
-      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click."
+      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click.",
+      "hsi_color_slot": 5
     },
     {
       "id": "hsi_20260706_201156_d311a",
@@ -2843,7 +2609,8 @@
       "display": {
         "visible": true,
         "pinned": true,
-        "style": "saved_hsi"
+        "style": "saved_hsi",
+        "hsi_color_slot": 6
       },
       "chart_state": {
         "windowStart": 1900,
@@ -2861,7 +2628,8 @@
         "hsiAnchorIndex": 108,
         "hsiAnchorPanel": "M5"
       },
-      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click."
+      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click.",
+      "hsi_color_slot": 6
     },
     {
       "id": "hsi_20260706_220330_44erw",
@@ -2890,7 +2658,8 @@
       "display": {
         "visible": true,
         "pinned": true,
-        "style": "saved_hsi"
+        "style": "saved_hsi",
+        "hsi_color_slot": 7
       },
       "chart_state": {
         "windowStart": 1900,
@@ -2908,7 +2677,8 @@
         "hsiAnchorIndex": 535,
         "hsiAnchorPanel": "M5"
       },
-      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click."
+      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click.",
+      "hsi_color_slot": 7
     },
     {
       "id": "hsi_20260707_200346_13816",
@@ -2937,7 +2707,8 @@
       "display": {
         "visible": true,
         "pinned": true,
-        "style": "saved_hsi"
+        "style": "saved_hsi",
+        "hsi_color_slot": 4
       },
       "chart_state": {
         "windowStart": 3900,
@@ -2955,7 +2726,8 @@
         "hsiAnchorIndex": 48,
         "hsiAnchorPanel": "M5"
       },
-      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click."
+      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click.",
+      "hsi_color_slot": 4
     },
     {
       "id": "hsi_20260708_200329_jh3tb",
@@ -2987,7 +2759,8 @@
       "display": {
         "visible": true,
         "pinned": true,
-        "style": "saved_hsi"
+        "style": "saved_hsi",
+        "hsi_color_slot": 2
       },
       "chart_state": {
         "windowStart": 2271,
@@ -3005,7 +2778,8 @@
         "hsiAnchorIndex": 53,
         "hsiAnchorPanel": "H1"
       },
-      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click."
+      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click.",
+      "hsi_color_slot": 2
     },
     {
       "id": "hsi_20260708_211320_3q8ow",
@@ -3041,7 +2815,8 @@
       "display": {
         "visible": true,
         "pinned": true,
-        "style": "saved_hsi"
+        "style": "saved_hsi",
+        "hsi_color_slot": 3
       },
       "chart_state": {
         "windowStart": 3947,
@@ -3059,7 +2834,8 @@
         "hsiAnchorIndex": 38,
         "hsiAnchorPanel": "H4"
       },
-      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click."
+      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click.",
+      "hsi_color_slot": 3
     },
     {
       "id": "hsi_20260708_221801_8ph73",
@@ -3095,7 +2871,8 @@
       "display": {
         "visible": true,
         "pinned": true,
-        "style": "saved_hsi"
+        "style": "saved_hsi",
+        "hsi_color_slot": 5
       },
       "chart_state": {
         "windowStart": 6276,
@@ -3113,7 +2890,8 @@
         "hsiAnchorIndex": 516,
         "hsiAnchorPanel": "M5"
       },
-      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click."
+      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click.",
+      "hsi_color_slot": 5
     },
     {
       "id": "hsi_20260708_221943_trhjq",
@@ -3149,7 +2927,8 @@
       "display": {
         "visible": true,
         "pinned": true,
-        "style": "saved_hsi"
+        "style": "saved_hsi",
+        "hsi_color_slot": 6
       },
       "chart_state": {
         "windowStart": 6276,
@@ -3167,7 +2946,8 @@
         "hsiAnchorIndex": 86,
         "hsiAnchorPanel": "H4"
       },
-      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click."
+      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click.",
+      "hsi_color_slot": 6
     },
     {
       "id": "hsi_20260708_223901_e6v66",
@@ -3203,7 +2983,8 @@
       "display": {
         "visible": true,
         "pinned": true,
-        "style": "saved_hsi"
+        "style": "saved_hsi",
+        "hsi_color_slot": 7
       },
       "chart_state": {
         "windowStart": 12832,
@@ -3221,7 +3002,8 @@
         "hsiAnchorIndex": 68,
         "hsiAnchorPanel": "H4"
       },
-      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click."
+      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click.",
+      "hsi_color_slot": 7
     },
     {
       "id": "hsi_20260711_141358_cfkch",
@@ -3257,7 +3039,8 @@
       "display": {
         "visible": true,
         "pinned": true,
-        "style": "saved_hsi"
+        "style": "saved_hsi",
+        "hsi_color_slot": 3
       },
       "chart_state": {
         "windowStart": 26627,
@@ -3278,7 +3061,8 @@
         "hsiAnchorIndex": 307,
         "hsiAnchorPanel": "M5"
       },
-      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click."
+      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click.",
+      "hsi_color_slot": 3
     },
     {
       "id": "hsi_20260711_202723_zk3zm",
@@ -3314,7 +3098,8 @@
       "display": {
         "visible": true,
         "pinned": true,
-        "style": "saved_hsi"
+        "style": "saved_hsi",
+        "hsi_color_slot": 1
       },
       "chart_state": {
         "windowStart": 2076,
@@ -3335,7 +3120,8 @@
         "hsiAnchorIndex": 404,
         "hsiAnchorPanel": "M5"
       },
-      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click."
+      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click.",
+      "hsi_color_slot": 1
     },
     {
       "id": "hsi_20260711_203101_z5qio",
@@ -3371,7 +3157,8 @@
       "display": {
         "visible": true,
         "pinned": true,
-        "style": "saved_hsi"
+        "style": "saved_hsi",
+        "hsi_color_slot": 0
       },
       "chart_state": {
         "windowStart": 2076,
@@ -3392,7 +3179,67 @@
         "hsiAnchorIndex": 371,
         "hsiAnchorPanel": "M5"
       },
-      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click."
+      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click.",
+      "hsi_color_slot": 0
+    },
+    {
+      "id": "hsi_20260712_085634_sgw6j",
+      "created_at": "2026-07-12T08:56:34",
+      "updated_at": "2026-07-12T08:56:34",
+      "source_type": "human_hsi",
+      "event_type": "hsi_anchor",
+      "panel": "M5",
+      "timeframe": "M5",
+      "time": "2025-10-30 08:40",
+      "price": 152.91384916129135,
+      "x_index_hint": 600,
+      "title": "保存HSI ×6",
+      "hsi": {
+        "values": [
+          55,
+          89,
+          144,
+          188,
+          233,
+          305,
+          377,
+          493,
+          610,
+          798,
+          987
+        ],
+        "values_text": "55,89,144,188,233,305,377,493,610,798,987",
+        "scale": 6,
+        "direction": "up",
+        "point_size": 0.001
+      },
+      "display": {
+        "visible": true,
+        "pinned": true,
+        "style": "saved_hsi",
+        "hsi_color_slot": 1
+      },
+      "chart_state": {
+        "windowStart": 0,
+        "windowSize": 1000,
+        "chartLayout": "M5_ENTRY",
+        "upperTf": "BOTH",
+        "upperConfirmBars": 7,
+        "confirmBars": 20,
+        "viewMode": "all",
+        "hlRange": 1,
+        "bb": 1,
+        "dayData": "overlay/gpt_fx_lab/data/fx_usdjpy_d1_t3_data_v0_1.json",
+        "dayConfirmBars": 45,
+        "hsi": "55,89,144,188,233,305,377,493,610,798,987",
+        "hsiScale": 6,
+        "hsiDir": "up",
+        "hsiAnchorPrice": 152.91384916129135,
+        "hsiAnchorIndex": 600,
+        "hsiAnchorPanel": "M5"
+      },
+      "note": "Saved from fx_chart_viewer current manual HSI anchor by right-click.",
+      "hsi_color_slot": 1
     }
   ],
   "vertical_annotations": [
@@ -4169,6 +4016,111 @@
         "hsiAnchorPanel": null
       },
       "note": "Saved from fx_chart_viewer synchronized vertical cursor by right-click."
+    },
+    {
+      "id": "vertical_20260711_230526_pihxj",
+      "no": 26,
+      "created_at": "2026-07-11T23:05:26",
+      "updated_at": "2026-07-11T23:05:26",
+      "source_type": "human_vertical_marker",
+      "event_type": "vertical_marker",
+      "time": "2025-10-30 03:05",
+      "time_ms": 1761761100000,
+      "label": "(26)",
+      "display": {
+        "visible": true,
+        "style": "saved_vertical_marker"
+      },
+      "chart_state": {
+        "windowStart": 0,
+        "windowSize": 1000,
+        "chartLayout": "M5_ENTRY",
+        "upperTf": "BOTH",
+        "upperConfirmBars": 7,
+        "confirmBars": 20,
+        "viewMode": "all",
+        "hlRange": 1,
+        "bb": 1,
+        "dayData": "overlay/gpt_fx_lab/data/fx_usdjpy_d1_t3_data_v0_1.json",
+        "dayConfirmBars": 45,
+        "hsi": "55,89,144,188,233,305,377,493,610,798,987",
+        "hsiScale": 6,
+        "hsiDir": "up",
+        "hsiAnchorPrice": null,
+        "hsiAnchorIndex": null,
+        "hsiAnchorPanel": null
+      },
+      "note": "Saved from fx_chart_viewer synchronized vertical cursor by right-click."
+    },
+    {
+      "id": "vertical_20260711_235201_tmkz6",
+      "no": 27,
+      "created_at": "2026-07-11T23:52:01",
+      "updated_at": "2026-07-11T23:52:01",
+      "source_type": "human_vertical_marker",
+      "event_type": "vertical_marker",
+      "time": "2025-10-30 06:05",
+      "time_ms": 1761771900000,
+      "label": "(27)",
+      "display": {
+        "visible": true,
+        "style": "saved_vertical_marker"
+      },
+      "chart_state": {
+        "windowStart": 0,
+        "windowSize": 1000,
+        "chartLayout": "M5_ENTRY",
+        "upperTf": "BOTH",
+        "upperConfirmBars": 7,
+        "confirmBars": 20,
+        "viewMode": "all",
+        "hlRange": 1,
+        "bb": 1,
+        "dayData": "overlay/gpt_fx_lab/data/fx_usdjpy_d1_t3_data_v0_1.json",
+        "dayConfirmBars": 45,
+        "hsi": "55,89,144,188,233,305,377,493,610,798,987",
+        "hsiScale": 6,
+        "hsiDir": "up",
+        "hsiAnchorPrice": null,
+        "hsiAnchorIndex": null,
+        "hsiAnchorPanel": null
+      },
+      "note": "Saved from fx_chart_viewer synchronized vertical cursor by right-click."
+    },
+    {
+      "id": "vertical_20260712_121521_uj87v",
+      "no": 29,
+      "created_at": "2026-07-12T12:15:21",
+      "updated_at": "2026-07-12T12:15:21",
+      "source_type": "human_vertical_marker",
+      "event_type": "vertical_marker",
+      "time": "2025-10-30 17:25",
+      "time_ms": 1761812700000,
+      "label": "(29)",
+      "display": {
+        "visible": true,
+        "style": "saved_vertical_marker"
+      },
+      "chart_state": {
+        "windowStart": 0,
+        "windowSize": 1000,
+        "chartLayout": "M5_ENTRY",
+        "upperTf": "BOTH",
+        "upperConfirmBars": 7,
+        "confirmBars": 20,
+        "viewMode": "all",
+        "hlRange": 1,
+        "bb": 1,
+        "dayData": "overlay/gpt_fx_lab/data/fx_usdjpy_d1_t3_data_v0_1.json",
+        "dayConfirmBars": 45,
+        "hsi": "55,89,144,188,233,305,377,493,610,798,987",
+        "hsiScale": 6,
+        "hsiDir": "up",
+        "hsiAnchorPrice": null,
+        "hsiAnchorIndex": null,
+        "hsiAnchorPanel": null
+      },
+      "note": "Saved from fx_chart_viewer synchronized vertical cursor by right-click."
     }
   ],
   "cycle_vertical_annotations": [
@@ -4587,6 +4539,41 @@
         "hsiAnchorPanel": null
       },
       "note": "Saved from fx_chart_viewer cycle vertical marker by right-click."
+    },
+    {
+      "id": "cycle_vertical_20260712_094448_pg7k9",
+      "no": 20,
+      "created_at": "2026-07-12T09:44:48",
+      "updated_at": "2026-07-12T09:44:48",
+      "source_type": "human_cycle_vertical_marker",
+      "event_type": "cycle_vertical_marker",
+      "time": "2025-10-30 13:20",
+      "time_ms": 1761798000000,
+      "label": "⑳",
+      "display": {
+        "visible": true,
+        "style": "saved_cycle_vertical_marker"
+      },
+      "chart_state": {
+        "windowStart": 0,
+        "windowSize": 1000,
+        "chartLayout": "M5_ENTRY",
+        "upperTf": "BOTH",
+        "upperConfirmBars": 7,
+        "confirmBars": 20,
+        "viewMode": "all",
+        "hlRange": 1,
+        "bb": 1,
+        "dayData": "overlay/gpt_fx_lab/data/fx_usdjpy_d1_t3_data_v0_1.json",
+        "dayConfirmBars": 45,
+        "hsi": "55,89,144,188,233,305,377,493,610,798,987",
+        "hsiScale": 6,
+        "hsiDir": "up",
+        "hsiAnchorPrice": null,
+        "hsiAnchorIndex": null,
+        "hsiAnchorPanel": null
+      },
+      "note": "Saved from fx_chart_viewer cycle vertical marker by right-click."
     }
   ],
   "text_annotations": [
@@ -4935,5 +4922,5 @@
       "note": "Created from fx_chart_viewer text label mode."
     }
   ],
-  "updated_at": "2026-07-11T20:31:01"
+  "updated_at": "2026-07-12T12:15:27"
 }

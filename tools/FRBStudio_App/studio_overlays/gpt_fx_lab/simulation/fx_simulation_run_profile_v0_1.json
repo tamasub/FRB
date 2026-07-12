@@ -3,11 +3,11 @@
   "kind": "fx_simulation_run_profile",
   "profile_id": "usdjpy_multi_tf_state_trace_default_v0_1",
   "title": "USDJPY Multi-Timeframe State Trace / M5実行・建玉Lifecycle Profile",
-  "status": "draft_normal_entry_v0_7_single_close",
+  "status": "draft_dow_breakout_threshold_entry_price",
   "created_at": "2026-07-10T23:55:00+09:00",
-  "updated_at": "2026-07-11T20:45:00+09:00",
-  "phase": "v0.9.0.22-single-close-hsi-anchor-stop",
-  "rule_version": "simulation_rule_v0_8_h1_t3_single_close_run_cumulative_draft",
+  "updated_at": "2026-07-12T08:55:00+09:00",
+  "phase": "v0.9.0.42-normal-anchor-retire-on-close",
+  "rule_version": "simulation_rule_v0_17_normal_anchor_trade_scoped_draft",
   "dataset": {
     "primary": {
       "dataset_id": "fx_usdjpy_m5_t3_data_v0_1",
@@ -253,7 +253,7 @@
     "copy_m5_trigger_decisions": true,
     "copy_execution_events": true
   },
-  "teacher_guard": "上位足Decisionを再判定せず、M5確定足・M5 Dow・確定HSI起点・R2距離・H1離脱監視で仮想建玉を一地点ずつ更新する。リアル注文、売買推奨、資金管理、Expansion確定は対象外。",
+  "teacher_guard": "NORMAL Rule Laneでは、新しいM5 Dow Confirmation Eventごとに独立した通常Entryを判定する。過去に通常Tradeが存在してもReEntryとは呼ばない。前Trade終了後の次回通常Entryには新しいDow確認Eventが必要。ReEntry / Add-onはExpansion系Rule Lane専用語として予約し、NORMAL判定・表示・集計へ混ぜない。",
   "time_sync_policy": {
     "reference_axis": "M5_CLOSE",
     "bar_timestamp_role": "open_time",
@@ -285,7 +285,7 @@
   },
   "dow_trend_policy": {
     "evaluator_id": "shared_confirmed_swing_structure_v0_1",
-    "input_source": "run_snapshot.swing_point_detection.timeframes[].points",
+    "input_source": "run_snapshot.swing_point_detection.timeframes[].points + M5 confirmed bars for breakout detection",
     "confirmed_points_only": true,
     "pending_candidate_usage": "forbidden",
     "timeframe_specific_class": "forbidden",
@@ -305,7 +305,11 @@
       "REVERSAL_WATCH",
       "NO_TREND",
       "UNDETERMINED"
-    ]
+    ],
+    "confirmation_event_enabled": true,
+    "confirmation_event_policy": "M5: confirmed pullback/return then prior structure high/low breakout on confirmed bar; other timeframes: complete directional structure pair advance",
+    "confirmation_event_output": "run_snapshot.dow_trend_evaluation.confirmation_events",
+    "normal_entry_opportunity_source": "latest_m5_dow_breakout_confirmation_event"
   },
   "cycle_position_policy": {
     "evaluator_id": "shared_latest_usable_swing_origin_v0_1",
@@ -333,8 +337,8 @@
   },
   "hsi_anchor_policy": {
     "registry_id": "shared_multi_role_hsi_anchor_registry_v0_1",
-    "resolver_id": "purpose_ranked_hsi_anchor_resolver_v0_1",
-    "input_source": "run_snapshot.swing_point_detection + dow_trend_evaluation + cycle_position_evaluation",
+    "resolver_id": "normal_dow_confirmation_opportunity_plus_expansion_detection_retain_resolver_v0_4",
+    "input_source": "run_snapshot.swing_point_detection + dow_trend_evaluation confirmation_events + cycle_position_evaluation",
     "source_type": "simulation_hsi_anchor",
     "human_saved_hsi_source_type": "human_hsi",
     "timeframe_specific_class": "forbidden",
@@ -354,10 +358,13 @@
     "retired_retention": true,
     "status_role_separation": true,
     "direction_rule": "swing_low_is_up_anchor_swing_high_is_down_anchor",
-    "direction_context_rule": "dow_direction_else_cycle_direction_else_unresolved",
-    "role_assignment": "structure_all_cycle_origin_plus_purpose_candidates",
+    "direction_context_rule": "latest_normal_dow_confirmation_for_normal_entry_and_expansion_detection_regime_for_expansion",
+    "role_assignment": "normal_dow_confirmation_entry_opportunity_plus_expansion_detection_retain_and_entry_dual_anchor",
     "purpose_resolvers": {
-      "entry": "latest_active_aligned_anchor",
+      "entry": "latest_m5_dow_confirmation_previous_swing_anchor",
+      "normal_entry": "latest_m5_dow_confirmation_previous_swing_anchor",
+      "expansion_detection": "original_dow_anchor_retained_across_non_directional_state_until_opposite_dow",
+      "expansion_entry": "latest_active_aligned_pullback_anchor_separate_from_detection_anchor",
       "hold": "oldest_active_aligned_anchor_in_analysis_scope",
       "target": "oldest_active_aligned_anchor_in_analysis_scope",
       "thesis": "oldest_active_aligned_anchor_in_analysis_scope",
@@ -367,7 +374,25 @@
     "action_permission_output": "forbidden",
     "no_lookahead": true,
     "event_output": "run_snapshot.hsi_anchor_registry.lifecycle_events",
-    "chart_event_projection": "latest_adopted_anchor_per_timeframe"
+    "chart_event_projection": "latest_adopted_anchor_per_timeframe",
+    "normal_anchor_reset_policy": "new_confirmation_replaces_candidate_anchor; non_directional_state_unresolves_normal_anchor",
+    "same_direction_reconfirmation_policy": "new_confirmation_event_creates_new_entry_opportunity",
+    "new_swing_during_same_dow_policy": "candidate_only_until_new_dow_confirmation_event",
+    "expansion_dual_anchor_policy": {
+      "detection_anchor": "original_dow_adopted_anchor",
+      "entry_anchor": "latest_confirmed_pullback_or_retracement_anchor",
+      "replace_detection_anchor": false,
+      "non_directional_state_policy": "retain_detection_anchor"
+    },
+    "normal_entry_opportunity_policy": {
+      "one_opportunity_per_dow_confirmation": true,
+      "entry_trigger": "DOW_CONFIRMATION_IF_R2_READY_ELSE_FIRST_R2_TOUCH",
+      "late_entry_after_r2": "FORBIDDEN_EXCEPT_R2_ALREADY_READY_AT_CONFIRMATION",
+      "same_confirmation_reuse_for_reentry": false,
+      "reentry_requires_confirmation_after_previous_trade_close": true,
+      "r2_ready_at_confirmation": "IMMEDIATE_ENTRY_BEFORE_R2_5",
+      "target_already_reached_at_confirmation": "MISSED"
+    }
   },
   "timeframe_state_policy": {
     "builder_id": "shared_timeframe_state_builder_v0_1",
@@ -472,6 +497,7 @@
     "input_sources": [
       "run_snapshot.swing_point_detection.observation_events",
       "run_snapshot.dow_trend_evaluation.state_change_events",
+      "run_snapshot.dow_trend_evaluation.confirmation_events",
       "run_snapshot.cycle_position_evaluation.state_change_events",
       "run_snapshot.hsi_anchor_registry.lifecycle_events",
       "run_snapshot.timeframe_states.state_events",
@@ -499,6 +525,7 @@
     ],
     "root_event_types": [
       "swing_candidate",
+      "dow_confirmation",
       "timeframe_state_snapshot",
       "timeframe_state_changed"
     ],
@@ -516,11 +543,11 @@
     "checkpoint_output": "run_snapshot.trace_replay.checkpoints"
   },
   "m5_execution_policy": {
-    "engine_id": "shared_m5_execution_position_lifecycle_v0_1",
+    "engine_id": "m5_rule_lane_execution_orchestrator_v0_2",
     "mode": "reference_point_step",
-    "input_source": "H4/H1 T3 state + M5 Dow state + H4/H1 cycle state + confirmed M5 HSI entry anchor + previous position_lifecycle",
+    "input_source": "TIMEFRAME_STATE_SNAPSHOT shared facts -> selected Entry Rule Lane evaluator / open Trade Rule Lane Close evaluator",
     "execution_timeframe": "M5",
-    "upper_decision_reimplementation": "normal_entry_v0_8_explicit_exception",
+    "upper_decision_reimplementation": "normal_entry_v0_17_trade_scoped_hsi_anchor_explicit_exception",
     "allowed_actions": [
       "ENTRY",
       "REENTRY",
@@ -620,7 +647,7 @@
     "event_output": "run_snapshot.position_lifecycle.execution_events",
     "decision_event_output": "run_snapshot.position_lifecycle.decision_events",
     "chart_event_projection": "execution_events_only",
-    "teacher_guard": "通常Entry v0.8はH4/H1 T3方向とM5 Dowで判定し、H1 Dowは使用しない。1 Entry / 1 Position / 1 Stop / 1 Target / 1回全Close。累積確定損益は同一Simulation Run内の全終了Tradeを合算する。",
+    "teacher_guard": "通常Entry v0.17はNORMAL Rule Laneだけで評価する。通常HSI起点はDow Confirmationから当該Normal TradeのCloseまで有効とし、CloseOK / CloseMissで即破棄する。次回通常EntryはClose後の新しいM5 Dow Confirmationと、その根拠となる新しいprevious Swingから新起点を採用する。Expansionの起点維持は参照しない。",
     "valuation_policy": {
       "unit_base_currency_amount": 1000,
       "display_currency": "JPY",
@@ -631,7 +658,7 @@
       "note": "仮想損益表示用。1単位=1,000通貨。手数料・スリッページ・税は含めない。"
     },
     "normal_entry_policy": {
-      "rule_version": "v0.8",
+      "rule_version": "v0.17",
       "direction_permission": "H4_H1_T3_SLOPE_AND_CLOSE_SIDE_PLUS_M5_DOW",
       "long_permission": [
         "H4_T3_UP",
@@ -660,21 +687,108 @@
       "hsi_entry_anchor_required": true,
       "hsi_entry_min_label": "R2",
       "applies_to": [
-        "ENTRY",
-        "REENTRY"
+        "ENTRY"
       ],
       "h1_dow_required": false,
       "h1_t3_required": true,
       "m5_dow_required": true,
       "pnl_accumulation": "RUN_CUMULATIVE_REALIZED_JPY",
-      "risk_ratio_basis": "CURRENT_ENTRY_INITIAL_RISK_VS_CURRENT_TRADE_REALIZED"
+      "risk_ratio_basis": "CURRENT_ENTRY_INITIAL_RISK_VS_CURRENT_TRADE_REALIZED",
+      "hsi_anchor_policy": "LATEST_M5_DOW_BREAKOUT_CONFIRMATION_PREVIOUS_SWING",
+      "new_swing_replaces_anchor": false,
+      "same_direction_dow_reconfirmation_replaces_anchor": true,
+      "opposite_direction_dow_replaces_anchor": true,
+      "expansion_uses_separate_entry_anchor": true,
+      "normal_hsi_anchor_reset_states": [
+        "REVERSAL_WATCH",
+        "NO_TREND",
+        "UNDETERMINED"
+      ],
+      "same_direction_reconfirmation_policy": "NEW_BREAKOUT_CONFIRMATION_EVENT_CREATES_NEW_OPPORTUNITY",
+      "expansion_detection_anchor_non_directional_policy": "KEEP",
+      "entry_trigger": "DOW_BREAKOUT_CONFIRMATION_IF_R2_READY_ELSE_FIRST_R2_TOUCH",
+      "entry_raw": 89,
+      "entry_label": "R2",
+      "one_entry_opportunity_per_dow_confirmation": true,
+      "late_entry_after_r2": "ALLOWED_ONLY_AT_NEW_DOW_BREAKOUT_CONFIRMATION",
+      "r2_ready_at_confirmation": "IMMEDIATE_ENTRY_AT_FIRST_PRICE_SATISFYING_DOW_BREAKOUT_AND_R2",
+      "target_already_reached_at_confirmation": "SELECT_NEXT_BOUNDARY_AHEAD",
+      "entry_execution_price_policy": "DOW_BREAKOUT_THRESHOLD_OR_R2_WHICHEVER_IS_FARTHER_FROM_ANCHOR_ELSE_FIRST_AVAILABLE_GAP_PRICE",
+      "target_policy": "NEXT_HSI_BOUNDARY_FROM_ENTRY_DISTANCE",
+      "target_selection_at_confirmation": "NEXT_HSI_BOUNDARY_AHEAD",
+      "next_normal_entry_requires_new_dow_confirmation_after_previous_close": true,
+      "same_confirmation_reuse_for_next_normal_entry": false,
+      "normal_reentry_concept": "NOT_DEFINED",
+      "normal_add_on_concept": "FORBIDDEN",
+      "normal_hsi_anchor_lifecycle": "DOW_CONFIRMATION_TO_TRADE_CLOSE",
+      "normal_hsi_anchor_retired_on_close": true,
+      "normal_hsi_anchor_reuse_after_close": false,
+      "next_normal_hsi_anchor_source": "FIRST_NEW_M5_DOW_CONFIRMATION_AFTER_CLOSE_PREVIOUS_SWING",
+      "same_direction_reconfirmation_before_close_for_next_trade": "IGNORE_FOR_NEXT_NORMAL_ENTRY"
     },
     "close_execution_policy": {
       "close_policy": "SINGLE_CLOSE",
       "touch_source": "M5_HIGH_LOW",
       "stop_basis": "ENTRY_HSI_ANCHOR_FIXED_AT_ENTRY",
-      "target_basis": "NEXT_HSI_BOUNDARY_FIXED_AT_ENTRY",
-      "ambiguous_same_bar_policy": "STOP_FIRST_CONSERVATIVE"
+      "target_basis": "NEXT_HSI_BOUNDARY_AHEAD_OF_ACTUAL_ENTRY_DISTANCE",
+      "ambiguous_same_bar_policy": "STOP_FIRST_CONSERVATIVE",
+      "normal_entry_target_policy": "NEXT_HSI_BOUNDARY",
+      "rule_lane_source": "OPEN_TRADE_RULE_LANE",
+      "normal_close_evaluator_id": "normal_m5_close_evaluator_v0_1",
+      "expansion_close_evaluator_id": "expansion_close_evaluator_placeholder_v0_1",
+      "expansion_lite_close_evaluator_id": "expansion_lite_close_evaluator_placeholder_v0_1",
+      "normal_close_retires_entry_anchor": true,
+      "normal_close_next_state": "AWAIT_NEW_M5_DOW_CONFIRMATION"
+    },
+    "rule_lane_policy": {
+      "active_entry_rule_lane": "NORMAL",
+      "allowed_entry_rule_lanes": [
+        "NORMAL",
+        "EXPANSION",
+        "EXPANSION_LITE"
+      ],
+      "shared_fact_source": "TIMEFRAME_STATE_SNAPSHOT",
+      "close_lane_source": "OPEN_TRADE_RULE_LANE",
+      "arbitration": [
+        "ACTIVE_TRADE_CLOSE_LANE",
+        "SELECTED_ENTRY_RULE_LANE"
+      ],
+      "lanes": {
+        "NORMAL": {
+          "enabled": true,
+          "entry_evaluator_id": "normal_m5_entry_evaluator_v0_1",
+          "close_evaluator_id": "normal_m5_close_evaluator_v0_1",
+          "allowed_actions": [
+            "ENTRY",
+            "FULL_CLOSE",
+            "STOP_CLOSE"
+          ]
+        },
+        "EXPANSION": {
+          "enabled": false,
+          "entry_evaluator_id": "expansion_entry_evaluator_placeholder_v0_1",
+          "close_evaluator_id": "expansion_close_evaluator_placeholder_v0_1",
+          "allowed_actions": [
+            "ENTRY",
+            "REENTRY",
+            "ADD_ON",
+            "FULL_CLOSE",
+            "STOP_CLOSE"
+          ]
+        },
+        "EXPANSION_LITE": {
+          "enabled": false,
+          "entry_evaluator_id": "expansion_lite_entry_evaluator_placeholder_v0_1",
+          "close_evaluator_id": "expansion_lite_close_evaluator_placeholder_v0_1",
+          "allowed_actions": [
+            "ENTRY",
+            "REENTRY",
+            "ADD_ON",
+            "FULL_CLOSE",
+            "STOP_CLOSE"
+          ]
+        }
+      }
     }
   }
 }
