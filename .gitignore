@@ -62,6 +62,8 @@ data/exports/tmp/
 /tools/FRBStudio_App/_archive/
 /tools/FRBStudio_App/wwwroot/js/lib/mermaid
 
+/tools/FRBStudio_App/studio_overlays/gpt_fx_lab/simulation
+/tools/FRBStudio_App/studio_overlays/gpt_fx_lab/simulattion_集計
 
 # GitDiffRun generated temporary diff json for viewer
 /tools/FRBStudio_App/wwwroot/diff/DiffToJson_*.json
