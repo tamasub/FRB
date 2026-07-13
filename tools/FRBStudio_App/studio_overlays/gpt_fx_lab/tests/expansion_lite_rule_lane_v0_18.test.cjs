@@ -19,8 +19,8 @@ const source = fs.readFileSync(pluginPath, 'utf8');
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 const profile = JSON.parse(fs.readFileSync(profilePath, 'utf8'));
 
-assert.equal(manifest.version, '0.9.0.48');
-assert.equal(manifest.display_policy.simulation_run_profile.default_file, 'fx_simulation_run_profile_expansion_lite_v0_1.json');
+assert.equal(manifest.version, '0.9.1.01');
+assert.equal(manifest.display_policy.simulation_run_profile.default_file, 'fx_simulation_run_profile_normal_plus_expansion_lite_v0_1.json');
 assert.equal(profile.m5_execution_policy.rule_lane_policy.active_entry_rule_lane, 'EXPANSION_LITE');
 assert.equal(profile.m5_execution_policy.rule_lane_policy.lanes.NORMAL.enabled, false);
 assert.equal(profile.m5_execution_policy.rule_lane_policy.lanes.EXPANSION.enabled, false);
@@ -81,9 +81,47 @@ const snapshotLong = {
 };
 const factsLong = api.m5ExecutionExpansionLiteFacts(snapshotLong, normalized, dowUp);
 assert.equal(factsLong.direction, 'LONG');
+assert.equal(factsLong.h1_cycle_entry_allowed, true);
+assert.equal(factsLong.h1_cycle_entry_allowed_max_bars, 14);
 assert.equal(factsLong.h1_cycle_front_half, true);
-assert.equal(factsLong.h1_cycle_front_half_limit, 3.5);
+assert.equal(factsLong.h1_cycle_front_half_limit, 14);
 assert.equal(factsLong.day_cycle_position_used, false);
+
+// ㉗→㉙ target regression: generic CycleがMIDDLE/DOWN_CYCLEでも、
+// Longは最新H1安値候補からH1 ProfileのEntry許可14本以内ならExpansion-Lite Entry Window内と判定する。
+const targetDirectionalCandidateSnapshot = {
+  timeframes: {
+    H4: { latest_confirmed_bar: { close: 152.767, t3_20_0_2: 151.920 } },
+    H1: {
+      latest_confirmed_bar: { index: 50, close: 153.037, t3_20_0_2: 152.227 },
+      swing_state: {
+        latest_pending_low: {
+          point_id: 'swing_h1_low_target_27', type: 'swing_low', source_index: 48,
+          pivot_time: '2025-10-30 06:00', pivot_price: 152.164,
+          confirm_bars: 7, lifecycle_status: 'candidate', basis_role: 'candidate_pending'
+        },
+        latest_active_low: {
+          point_id: 'swing_h1_low_old', type: 'swing_low', source_index: 34,
+          pivot_time: '2025-10-29 16:00', pivot_price: 151.857,
+          confirm_bars: 7, lifecycle_status: 'confirmed', basis_role: 'basis_active'
+        }
+      },
+      cycle_state: {
+        phase: 'MIDDLE', direction: 'DOWN_CYCLE', elapsed_bars: 10,
+        origin: { point_id: 'old_high', type: 'swing_high', source_index: 40, confirm_bars: 7 }
+      }
+    },
+    M5: { trend_state: 'UP', trend_detail: { high_relation: 'HIGHER', low_relation: 'HIGHER' } }
+  }
+};
+const targetDirectionalFacts = api.m5ExecutionExpansionLiteFacts(targetDirectionalCandidateSnapshot, normalized, dowUp);
+assert.equal(targetDirectionalFacts.direction, 'LONG');
+assert.equal(targetDirectionalFacts.h1_cycle_entry_allowed, true);
+assert.equal(targetDirectionalFacts.h1_cycle_elapsed_bars, 2);
+assert.equal(targetDirectionalFacts.h1_cycle_entry_allowed_max_bars, 14);
+assert.equal(targetDirectionalFacts.h1_cycle_front_half_limit, 14);
+assert.equal(targetDirectionalFacts.h1_cycle_origin_source, 'DIRECTIONAL_PENDING_SWING');
+assert.equal(targetDirectionalFacts.h1_cycle_origin.point_id, 'swing_h1_low_target_27');
 
 const resolutionLong = api.m5ExecutionExpansionLiteAnchorResolution(dowUp);
 assert.equal(resolutionLong.status, 'RESOLVED_REFERENCE');
@@ -129,10 +167,10 @@ assert.equal(entryAfterConfirmation.entry_opportunity.entry_execution_mode, 'FIR
 
 const activeTradeLong = {
   trade_id: 'trade_lite_long', rule_lane: 'EXPANSION_LITE', side: 'LONG',
-  entry_anchor_id: resolutionLong.anchor_id, entry_anchor_price: 150,
+  entry_anchor_id: resolutionLong.anchor_id, entry_anchor_price: 150, entry_price: 150.900,
   target_price: 152.262, consumed_add_on_levels: []
 };
-const activePositionLong = { position_id: 'pos_lite_long', trade_id: 'trade_lite_long', side: 'LONG', units_open: 10, entry_anchor_price: 150 };
+const activePositionLong = { position_id: 'pos_lite_long', trade_id: 'trade_lite_long', side: 'LONG', units_open: 10, entry_anchor_price: 150, entry_price: 150.900 };
 const addOn = api.expansionLiteRuleLaneCloseDecision({
   activeTrade: structuredClone(activeTradeLong), activePosition: structuredClone(activePositionLong),
   currentBar: { open: 150.900, high: 151.450, low: 150.800, close: 151.300, t3_20_0_2: 150.600 },

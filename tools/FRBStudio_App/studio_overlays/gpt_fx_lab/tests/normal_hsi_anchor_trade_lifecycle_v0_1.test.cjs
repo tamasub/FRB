@@ -16,7 +16,7 @@ const m5Path = artifactPath('studio_overlays','gpt_fx_lab','data','fx_usdjpy_m5_
 const d1Path = artifactPath('studio_overlays','gpt_fx_lab','data','fx_usdjpy_d1_t3_data_v0_1.json');
 const source = fs.readFileSync(pluginPath,'utf8');
 const profile = JSON.parse(fs.readFileSync(profilePath,'utf8'));
-assert.equal(profile.m5_execution_policy.normal_entry_policy.rule_version,'v0.17');
+assert.equal(profile.m5_execution_policy.normal_entry_policy.rule_version,'v0.17.1');
 assert.equal(profile.m5_execution_policy.normal_entry_policy.normal_hsi_anchor_retired_on_close,true);
 assert.equal(profile.m5_execution_policy.normal_entry_policy.normal_hsi_anchor_reuse_after_close,false);
 assert.match(source,/function m5ExecutionRetireNormalAnchor\(/);

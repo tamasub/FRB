@@ -1,0 +1,2 @@
+﻿"case_id","status","dataset","period_from","period_to","entry_count","add_on_count","close_ok_count","close_miss_count","realized_profit_jpy","normal_profit_jpy","expansion_profit_jpy","expansion_lite_profit_jpy","result_hash"
+"batch_20260712_200928_case_001_15273a07","stopped","studio_overlays/gpt_fx_lab/data/fx_usdjpy_m5_t3_data_v0_1.json","2025-10-28 06:10","2026-07-03 23:50","80","17","74","5","-4562.000000001426","25540.00000000145","0","-30102.00000000287","520f7248"

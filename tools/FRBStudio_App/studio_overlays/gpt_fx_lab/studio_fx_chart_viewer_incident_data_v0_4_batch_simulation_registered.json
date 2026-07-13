@@ -6,15 +6,15 @@
   "target": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer",
   "status": "active",
   "created_at": "2026-07-05",
-  "updated_at": "2026-07-10T23:28:13+09:00",
+  "updated_at": "2026-07-12T19:38:58+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "GPT FX Lab の fx_chart_viewer が、単なるチャート表示から、M5/H1/H4同期観測、HSI仮説可視化、コメント/判断ログ共有へ育っていくため、Studio本体インシデントとは別枠で改修履歴・判断ログ・将来要望を管理する。",
   "operation_policy": "ViewDefは既存の studio_work_incident_view_def_v0_5.json を共通利用する。fx_chart_viewer固有の作業はこの専用インシデントファイルへ登録し、Studio本体汎用機能とドメイン専用Overlay機能を混ぜない。実装パッチでは、更新ファイルのみZIP返却し、未更新ファイルや.bakを含めない。",
   "standard_field_policy": "このファイルは既存インシデント管理Dataの構造を踏襲する。work_item_id / phase / status / discussion_history / decision_log / change_history 等は、インシデント管理Dataの契約として扱う。",
-  "items_count": 22,
+  "items_count": 27,
   "main_context_status": "draft",
-  "main_context_updated_at": "2026-07-10T23:35:00+09:00",
+  "main_context_updated_at": "2026-07-12T19:38:58+09:00",
   "main_context_draft": "# 主文脈素案: インシデント管理Data\n\n## 読む目的\nこのインシデント管理Data全体を扱うAIが、作業前に読むべき正本・ViewDef・Foundation Rules・Runtime対象を確認できるようにする。\n\n## 基本方針\n- Data JSONを作業台帳の正本として扱う。\n- ViewDefは表示・編集体験の定義として扱う。\n- 主文脈はData全体を扱う前に読む入口、対象文脈は各作業項目を扱う前に読む入口として分ける。\n- グリッドは編集用、プレビューは読むためのUIとして分離する。\n\n## 注意\nFoundation Rule 19のZIP返却契約とdiscussion_history実発言契約を優先する。",
   "main_context_refs": [
     {
@@ -1392,11 +1392,11 @@
       "incident_type": "parent_feature_plan",
       "category": "GPT FX Lab / Multi-Timeframe State Trace Simulator",
       "priority": "high",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-07-10",
-      "updated_at": "2026-07-10T23:35:00+09:00",
+      "updated_at": "2026-07-12T19:38:58+09:00",
       "target_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/sidecars/*.chart_comments.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_results.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/シュミレーションルール仮.md\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4.json",
       "objective": "M5シミュレーション開始前に、WEEK / DAY / H4 / H1 の赤丸・緑丸、Dow状態、サイクル位置、複数HSI起点、BB Phase等を状態JSONとして算出し、上位足判断を統合してM5へ許可・禁止を渡す。さらに、Entry / Hold / Closeを含むすべての重要判断を原因イベントまで逆方向へ追跡でき、チャートUI上のSimulation Traceコメントを見るだけでも、その時点の状態と判断理由を把握できるシミュレーターを段階的に構築する。",
       "background": "Entry条件を先に実装するのではなく、まず各時間足が現在どの状態かを求める必要があることが明確になった。各時間足では、Confirm barsに基づく赤丸・緑丸、Dow状態、サイクル上の位置、役割別の複数HSI起点を求める。時間足ごとの専用クラス増殖は避け、時間足はデータ、判定方法は共通Engine / Strategy / Policy、判定結果はStateとして扱う。また、最終結果だけを出すシミュレーターでは「なぜこうなったか」を毎回AIへ聞く必要があるため、Simulation Trace JSONとUI上の説明可能性を本体機能として先に設計する。",
@@ -1493,12 +1493,23 @@
           "before": "Simulation Result Sidecarの将来構想は存在したが、上位足状態算出からM5 Execution、Trace逆追跡、UI表示までの全体実装順が親子インシデントとして整理されていなかった。",
           "after": "fx_chart_viewer_work_0011を親とし、UI Trace Annotationを先頭に置いた段階別子インシデント群を登録した。",
           "reason": "M5売買ロジックを急がず、説明可能な状態判定シミュレーターとして順序立てて構築するため。"
+        },
+        {
+          "history_id": "chg_fx_chart_viewer_work_0011_retrospective_20260712",
+          "at": "2026-07-12T19:38:58+09:00",
+          "change_type": "retrospective_completion_registered",
+          "before": "計画インシデント上は未着手または進行状態のままだった。",
+          "after": "最新資材とCHANGELOGを基に、実装済みとして完了概要・対象資材・確認状況を後追い登録した。",
+          "reason": "Simulator実装が先行し、インシデント管理Dataの更新が追いついていなかったため。"
         }
       ],
-      "verification_status": "インシデント登録のみ",
+      "verification_status": "最新資材・CHANGELOG確認済み",
       "context_def_status": "draft",
       "context_def_updated_at": "2026-07-10",
-      "context_def_draft": "# ContextDef素案: Multi-Timeframe State Trace Simulator\n\n## 読む目的\nWEEK / DAY / H4 / H1の状態を先に算出し、Decision Contextを介してM5を動かすシミュレーター全体の実装順と、判断逆追跡を最優先する設計思想を把握する。\n\n## 必読の先行作業\n- fx_chart_viewer_work_0002: Human Chart Comment Sidecar\n- fx_chart_viewer_work_0003: Chart Annotation Layer / Simulation Result Sidecar\n- fx_chart_viewer_work_0004: Saved HSI Annotation Sidecar\n- fx_chart_viewer_work_0005: Upper Context Warmup Bars\n\n## 固定する制約\n- 時間足ごとの専用クラスを作らない。\n- Confirm barsはWEEK / DAY / H4 / H1 / M5で独立必須値。\n- 計算・継承・暗黙Fallbackは禁止。\n- Human CommentとSimulation Traceの保存元は分ける。\n- すべての重要判断は原因Eventへ逆追跡可能にする。\n- M5 Executionは最後に実装する。\n- Future bar / 未確定上位足を参照しない。\n\n## 実装順\nUI Trace Annotation → Run/Profile → Candle Sync → Swing → Dow → Cycle → HSI Anchor → Timeframe State → Upper Decision → Trace/Replay → M5 Execution\n"
+      "context_def_draft": "# ContextDef素案: Multi-Timeframe State Trace Simulator\n\n## 読む目的\nWEEK / DAY / H4 / H1の状態を先に算出し、Decision Contextを介してM5を動かすシミュレーター全体の実装順と、判断逆追跡を最優先する設計思想を把握する。\n\n## 必読の先行作業\n- fx_chart_viewer_work_0002: Human Chart Comment Sidecar\n- fx_chart_viewer_work_0003: Chart Annotation Layer / Simulation Result Sidecar\n- fx_chart_viewer_work_0004: Saved HSI Annotation Sidecar\n- fx_chart_viewer_work_0005: Upper Context Warmup Bars\n\n## 固定する制約\n- 時間足ごとの専用クラスを作らない。\n- Confirm barsはWEEK / DAY / H4 / H1 / M5で独立必須値。\n- 計算・継承・暗黙Fallbackは禁止。\n- Human CommentとSimulation Traceの保存元は分ける。\n- すべての重要判断は原因Eventへ逆追跡可能にする。\n- M5 Executionは最後に実装する。\n- Future bar / 未確定上位足を参照しない。\n\n## 実装順\nUI Trace Annotation → Run/Profile → Candle Sync → Swing → Dow → Cycle → HSI Anchor → Timeframe State → Upper Decision → Trace/Replay → M5 Execution\n",
+      "completion_summary": "親インシデントで計画したStep 0〜10を実装完了。Simulation Trace Annotation UI、全時間足Run Profile、確定足同期、Swing/Dow/Cycle/HSI/TimeframeState、Upper Context Decision、Trace Replay、M5 Executionまで到達し、その後表示範囲SimulationとRule Lane分離へ発展した。",
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/CHANGELOG.md",
+      "test_result": "今回の後追い登録では実機再実行なし。最新ZIP内のCHANGELOG、plugin version、simulation JSON、回帰テスト群の存在を確認。"
     },
     {
       "work_item_id": "fx_chart_viewer_work_0012",
@@ -1637,11 +1648,11 @@
       "incident_type": "feature_design",
       "category": "GPT FX Lab / Multi-Timeframe State Trace Simulator",
       "priority": "high",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-07-10",
-      "updated_at": "2026-07-10T23:35:00+09:00",
+      "updated_at": "2026-07-12T19:38:58+09:00",
       "target_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4.json",
       "objective": "シミュレーション再現条件をRun設定として固定し、WEEK / DAY / H4 / H1 / M5それぞれのConfirm barsを独立した必須明示値として保持する。",
       "background": "Confirm barsは赤丸・緑丸から全下流判断へ影響する最上流設定であり、時間足比率からの計算や未設定Fallbackでは理由を再現できない。",
@@ -1682,12 +1693,23 @@
           "before": "親シミュレーター構想の一部として会話上に存在していたが、独立した作業単位・完了条件・判断ログがなかった。",
           "after": "v0.9.0.02-simulation-run-timeframe-profile を未着手子インシデントとして登録した。",
           "reason": "上流から段階的に検証し、M5 Executionへ進む前に説明可能性と再現性を確保するため。"
+        },
+        {
+          "history_id": "chg_fx_chart_viewer_work_0013_retrospective_20260712",
+          "at": "2026-07-12T19:38:58+09:00",
+          "change_type": "retrospective_completion_registered",
+          "before": "計画インシデント上は未着手または進行状態のままだった。",
+          "after": "最新資材とCHANGELOGを基に、実装済みとして完了概要・対象資材・確認状況を後追い登録した。",
+          "reason": "Simulator実装が先行し、インシデント管理Dataの更新が追いついていなかったため。"
         }
       ],
-      "verification_status": "未確認",
+      "verification_status": "最新資材・CHANGELOG確認済み",
       "context_def_status": "draft",
       "context_def_updated_at": "2026-07-10",
-      "context_def_draft": "# ContextDef素案: Simulation Run / Timeframe Profile：全時間足Confirm bars独立必須設定と実行Snapshot\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n"
+      "context_def_draft": "# ContextDef素案: Simulation Run / Timeframe Profile：全時間足Confirm bars独立必須設定と実行Snapshot\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n",
+      "completion_summary": "Run設定ダイアログとSimulation Run Profileを実装。WEEK/DAY/H4/H1/M5のConfirm barsを独立必須値としてValidationし、Data Hash・Rule Version・期間・Source Mapping・WarmupをRun Snapshotへ保存。",
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/CHANGELOG.md",
+      "test_result": "今回の後追い登録では実機再実行なし。最新ZIP内のCHANGELOG・実装資材・関連回帰テストを確認。"
     },
     {
       "work_item_id": "fx_chart_viewer_work_0014",
@@ -1696,11 +1718,11 @@
       "incident_type": "feature_design",
       "category": "GPT FX Lab / Multi-Timeframe State Trace Simulator",
       "priority": "high",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-07-10",
-      "updated_at": "2026-07-10T23:35:00+09:00",
+      "updated_at": "2026-07-12T19:38:58+09:00",
       "target_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4.json",
       "objective": "M5シミュレーション時刻ごとに、その時点までに確定済みのWEEK / DAY / H4 / H1足だけを取得・更新する。",
       "background": "上位足状態が正しくても未確定足や未来側のOHLCを使うと、当時知り得なかった情報によるLookaheadになる。",
@@ -1741,12 +1763,23 @@
           "before": "親シミュレーター構想の一部として会話上に存在していたが、独立した作業単位・完了条件・判断ログがなかった。",
           "after": "v0.9.0.03-multi-timeframe-candle-synchronizer を未着手子インシデントとして登録した。",
           "reason": "上流から段階的に検証し、M5 Executionへ進む前に説明可能性と再現性を確保するため。"
+        },
+        {
+          "history_id": "chg_fx_chart_viewer_work_0014_retrospective_20260712",
+          "at": "2026-07-12T19:38:58+09:00",
+          "change_type": "retrospective_completion_registered",
+          "before": "計画インシデント上は未着手または進行状態のままだった。",
+          "after": "最新資材とCHANGELOGを基に、実装済みとして完了概要・対象資材・確認状況を後追い登録した。",
+          "reason": "Simulator実装が先行し、インシデント管理Dataの更新が追いついていなかったため。"
         }
       ],
-      "verification_status": "未確認",
+      "verification_status": "最新資材・CHANGELOG確認済み",
       "context_def_status": "draft",
       "context_def_updated_at": "2026-07-10",
-      "context_def_draft": "# ContextDef素案: Multi-Timeframe Candle Synchronizer：確定足同期とLookahead防止\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n"
+      "context_def_draft": "# ContextDef素案: Multi-Timeframe Candle Synchronizer：確定足同期とLookahead防止\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n",
+      "completion_summary": "M5確定Close時刻を基準に各時間足のlatest confirmed candleを同期。bar_end_ms <= reference_close_msを固定し、未確定上位足・未来足を除外するLookahead防止を実装。",
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/CHANGELOG.md",
+      "test_result": "今回の後追い登録では実機再実行なし。最新ZIP内のCHANGELOG・実装資材・関連回帰テストを確認。"
     },
     {
       "work_item_id": "fx_chart_viewer_work_0015",
@@ -1755,11 +1788,11 @@
       "incident_type": "feature_design",
       "category": "GPT FX Lab / Multi-Timeframe State Trace Simulator",
       "priority": "high",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-07-10",
-      "updated_at": "2026-07-10T23:35:00+09:00",
+      "updated_at": "2026-07-12T19:38:58+09:00",
       "target_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4.json",
       "objective": "candles / timeframe / explicit confirm_barsを入力として、全時間足の赤丸・緑丸Candidate / Confirmed / Retiredを共通Detectorで算出する。",
       "background": "赤丸・緑丸はDow、Cycle、HSI起点の最上流だが、時間足別クラスを作ると同一ロジックが分裂する。",
@@ -1800,12 +1833,23 @@
           "before": "親シミュレーター構想の一部として会話上に存在していたが、独立した作業単位・完了条件・判断ログがなかった。",
           "after": "v0.9.0.04-shared-swing-point-detector を未着手子インシデントとして登録した。",
           "reason": "上流から段階的に検証し、M5 Executionへ進む前に説明可能性と再現性を確保するため。"
+        },
+        {
+          "history_id": "chg_fx_chart_viewer_work_0015_retrospective_20260712",
+          "at": "2026-07-12T19:38:58+09:00",
+          "change_type": "retrospective_completion_registered",
+          "before": "計画インシデント上は未着手または進行状態のままだった。",
+          "after": "最新資材とCHANGELOGを基に、実装済みとして完了概要・対象資材・確認状況を後追い登録した。",
+          "reason": "Simulator実装が先行し、インシデント管理Dataの更新が追いついていなかったため。"
         }
       ],
-      "verification_status": "未確認",
+      "verification_status": "最新資材・CHANGELOG確認済み",
       "context_def_status": "draft",
       "context_def_updated_at": "2026-07-10",
-      "context_def_draft": "# ContextDef素案: Shared Swing Point Detector：各時間足の赤丸・緑丸を共通ロジックで算出\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n"
+      "context_def_draft": "# ContextDef素案: Shared Swing Point Detector：各時間足の赤丸・緑丸を共通ロジックで算出\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n",
+      "completion_summary": "全時間足へ共通Swing Point Detectorを適用。Candidate / Confirmed / Retired Lifecycle、安定Point ID/Event ID、確定根拠Trace、UI照合を実装。",
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/CHANGELOG.md",
+      "test_result": "今回の後追い登録では実機再実行なし。最新ZIP内のCHANGELOG・実装資材・関連回帰テストを確認。"
     },
     {
       "work_item_id": "fx_chart_viewer_work_0016",
@@ -1814,11 +1858,11 @@
       "incident_type": "feature_design",
       "category": "GPT FX Lab / Multi-Timeframe State Trace Simulator",
       "priority": "high",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-07-10",
-      "updated_at": "2026-07-10T23:35:00+09:00",
+      "updated_at": "2026-07-12T19:38:58+09:00",
       "target_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4.json",
       "objective": "確定済みSwing Pointの並びと価格関係から、UP / DOWN / UNDETERMINED / NO_TREND / REVERSAL_WATCH等のTrendStateを共通Evaluatorで算出する。",
       "background": "H4 Dow確定は即EntryではなくWatch許可、H1 DowはEntry/Exit Triggerの一部になるため、判定結果と利用Policyを分離する必要がある。",
@@ -1859,12 +1903,23 @@
           "before": "親シミュレーター構想の一部として会話上に存在していたが、独立した作業単位・完了条件・判断ログがなかった。",
           "after": "v0.9.0.05-dow-trend-evaluator を未着手子インシデントとして登録した。",
           "reason": "上流から段階的に検証し、M5 Executionへ進む前に説明可能性と再現性を確保するため。"
+        },
+        {
+          "history_id": "chg_fx_chart_viewer_work_0016_retrospective_20260712",
+          "at": "2026-07-12T19:38:58+09:00",
+          "change_type": "retrospective_completion_registered",
+          "before": "計画インシデント上は未着手または進行状態のままだった。",
+          "after": "最新資材とCHANGELOGを基に、実装済みとして完了概要・対象資材・確認状況を後追い登録した。",
+          "reason": "Simulator実装が先行し、インシデント管理Dataの更新が追いついていなかったため。"
         }
       ],
-      "verification_status": "未確認",
+      "verification_status": "最新資材・CHANGELOG確認済み",
       "context_def_status": "draft",
       "context_def_updated_at": "2026-07-10",
-      "context_def_draft": "# ContextDef素案: Dow Trend Evaluator：確定赤丸・緑丸から時間足TrendStateを算出\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n"
+      "context_def_draft": "# ContextDef素案: Dow Trend Evaluator：確定赤丸・緑丸から時間足TrendStateを算出\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n",
+      "completion_summary": "確定Swing列から共通Dow Trend EvaluatorでUP / DOWN / REVERSAL_WATCH / NO_TREND / UNDETERMINEDを算出。TrendStateとEntry Permissionを分離し、状態変更EventをTrace化。",
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/CHANGELOG.md",
+      "test_result": "今回の後追い登録では実機再実行なし。最新ZIP内のCHANGELOG・実装資材・関連回帰テストを確認。"
     },
     {
       "work_item_id": "fx_chart_viewer_work_0017",
@@ -1873,11 +1928,11 @@
       "incident_type": "feature_design",
       "category": "GPT FX Lab / Multi-Timeframe State Trace Simulator",
       "priority": "high",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-07-10",
-      "updated_at": "2026-07-10T23:35:00+09:00",
+      "updated_at": "2026-07-12T19:38:58+09:00",
       "target_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4.json",
       "objective": "各時間足でサイクル判断起点を特定し、現在位置、経過バー、到達R、ミニサイクル等からCycle Stateを算出する。",
       "background": "WEEK LateはExpansion Entry禁止とH1早期Close許可、H4 Lateは利益保護とAdd-on禁止へつながるため、単なるバー数ではなく起点選択理由も必要。",
@@ -1918,12 +1973,23 @@
           "before": "親シミュレーター構想の一部として会話上に存在していたが、独立した作業単位・完了条件・判断ログがなかった。",
           "after": "v0.9.0.06-cycle-position-evaluator を未着手子インシデントとして登録した。",
           "reason": "上流から段階的に検証し、M5 Executionへ進む前に説明可能性と再現性を確保するため。"
+        },
+        {
+          "history_id": "chg_fx_chart_viewer_work_0017_retrospective_20260712",
+          "at": "2026-07-12T19:38:58+09:00",
+          "change_type": "retrospective_completion_registered",
+          "before": "計画インシデント上は未着手または進行状態のままだった。",
+          "after": "最新資材とCHANGELOGを基に、実装済みとして完了概要・対象資材・確認状況を後追い登録した。",
+          "reason": "Simulator実装が先行し、インシデント管理Dataの更新が追いついていなかったため。"
         }
       ],
-      "verification_status": "未確認",
+      "verification_status": "最新資材・CHANGELOG確認済み",
       "context_def_status": "draft",
       "context_def_updated_at": "2026-07-10",
-      "context_def_draft": "# ContextDef素案: Cycle Position Evaluator：直近有効Swing起点からEARLY / MIDDLE / LATEを算出\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n"
+      "context_def_draft": "# ContextDef素案: Cycle Position Evaluator：直近有効Swing起点からEARLY / MIDDLE / LATEを算出\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n",
+      "completion_summary": "全時間足へ共通Cycle Position Evaluatorを適用。Cycle origin、elapsed bars、EARLY / MIDDLE / LATE、時間足別派生状態をProfileから算出し、Action Permissionとは分離。",
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/CHANGELOG.md",
+      "test_result": "今回の後追い登録では実機再実行なし。最新ZIP内のCHANGELOG・実装資材・関連回帰テストを確認。"
     },
     {
       "work_item_id": "fx_chart_viewer_work_0018",
@@ -1932,11 +1998,11 @@
       "incident_type": "feature_design",
       "category": "GPT FX Lab / Multi-Timeframe State Trace Simulator",
       "priority": "high",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-07-10",
-      "updated_at": "2026-07-10T23:35:00+09:00",
+      "updated_at": "2026-07-12T19:38:58+09:00",
       "target_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4.json",
       "objective": "一つの時間足で複数のHSI起点をCandidate / Confirmed / Adopted / Retiredとして保持し、Entry / Hold / Target / Thesis / Confluence用途ごとに解決する。",
       "background": "Expansion Detection Anchor、Entry Trigger Anchor、Target Anchor等は同一ではなく、current_hsi_anchor一個では判断根拠を表現できない。",
@@ -1977,12 +2043,23 @@
           "before": "親シミュレーター構想の一部として会話上に存在していたが、独立した作業単位・完了条件・判断ログがなかった。",
           "after": "v0.9.0.07-hsi-anchor-registry-resolver を未着手子インシデントとして登録した。",
           "reason": "上流から段階的に検証し、M5 Executionへ進む前に説明可能性と再現性を確保するため。"
+        },
+        {
+          "history_id": "chg_fx_chart_viewer_work_0018_retrospective_20260712",
+          "at": "2026-07-12T19:38:58+09:00",
+          "change_type": "retrospective_completion_registered",
+          "before": "計画インシデント上は未着手または進行状態のままだった。",
+          "after": "最新資材とCHANGELOGを基に、実装済みとして完了概要・対象資材・確認状況を後追い登録した。",
+          "reason": "Simulator実装が先行し、インシデント管理Dataの更新が追いついていなかったため。"
         }
       ],
-      "verification_status": "未確認",
+      "verification_status": "最新資材・CHANGELOG確認済み",
       "context_def_status": "draft",
       "context_def_updated_at": "2026-07-10",
-      "context_def_draft": "# ContextDef素案: HSI Anchor Registry / Resolver：時間足内の複数起点と役割Lifecycle管理\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n"
+      "context_def_draft": "# ContextDef素案: HSI Anchor Registry / Resolver：時間足内の複数起点と役割Lifecycle管理\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n",
+      "completion_summary": "共通HSI Anchor Registry / Resolverを実装。Anchor Lifecycle・採用状態・役割を分離し、Entry/Hold/Target/Thesis/Confluence用途の構造参照候補とTraceを生成。",
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/CHANGELOG.md",
+      "test_result": "今回の後追い登録では実機再実行なし。最新ZIP内のCHANGELOG・実装資材・関連回帰テストを確認。"
     },
     {
       "work_item_id": "fx_chart_viewer_work_0019",
@@ -1991,11 +2068,11 @@
       "incident_type": "feature_design",
       "category": "GPT FX Lab / Multi-Timeframe State Trace Simulator",
       "priority": "high",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-07-10",
-      "updated_at": "2026-07-10T23:35:00+09:00",
+      "updated_at": "2026-07-12T19:38:58+09:00",
       "target_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4.json",
       "objective": "各判定コンポーネントの出力を、WEEK / DAY / H4 / H1ごとのTimeframeState Snapshotへ統合する。",
       "background": "M5開始前に上位足の現在状態を機械可読かつ人間可読にすることが最初の大きなマイルストーン。",
@@ -2036,12 +2113,23 @@
           "before": "親シミュレーター構想の一部として会話上に存在していたが、独立した作業単位・完了条件・判断ログがなかった。",
           "after": "v0.9.0.08-timeframe-state-builder を未着手子インシデントとして登録した。",
           "reason": "上流から段階的に検証し、M5 Executionへ進む前に説明可能性と再現性を確保するため。"
+        },
+        {
+          "history_id": "chg_fx_chart_viewer_work_0019_retrospective_20260712",
+          "at": "2026-07-12T19:38:58+09:00",
+          "change_type": "retrospective_completion_registered",
+          "before": "計画インシデント上は未着手または進行状態のままだった。",
+          "after": "最新資材とCHANGELOGを基に、実装済みとして完了概要・対象資材・確認状況を後追い登録した。",
+          "reason": "Simulator実装が先行し、インシデント管理Dataの更新が追いついていなかったため。"
         }
       ],
-      "verification_status": "未確認",
+      "verification_status": "最新資材・CHANGELOG確認済み",
       "context_def_status": "draft",
       "context_def_updated_at": "2026-07-10",
-      "context_def_draft": "# ContextDef素案: Timeframe State Builder：Swing / Dow / Cycle / HSI / BBを時間足状態JSONへ統合\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n"
+      "context_def_draft": "# ContextDef素案: Timeframe State Builder：Swing / Dow / Cycle / HSI / BBを時間足状態JSONへ統合\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n",
+      "completion_summary": "Swing / Dow / Cycle / HSI / BB / Data Sufficiencyを同一as_of時点のTimeframeState JSONへ統合。安定state_idとsource_event_idsで逆参照可能にした。",
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/CHANGELOG.md",
+      "test_result": "今回の後追い登録では実機再実行なし。最新ZIP内のCHANGELOG・実装資材・関連回帰テストを確認。"
     },
     {
       "work_item_id": "fx_chart_viewer_work_0020",
@@ -2050,11 +2138,11 @@
       "incident_type": "feature_design",
       "category": "GPT FX Lab / Multi-Timeframe State Trace Simulator",
       "priority": "high",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-07-10",
-      "updated_at": "2026-07-10T23:35:00+09:00",
+      "updated_at": "2026-07-12T19:38:58+09:00",
       "target_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4.json",
       "objective": "WEEK / DAY / H4 / H1 TimeframeStateを統合し、方向Bias、Expansion Entry可否、Add-on可否、Hold、Profit Take Armed、H1 Exit Trigger有効化等のDecision Contextを生成する。",
       "background": "各時間足の状態だけでは行動は決まらず、組み合わせに対して何を許可・禁止するかを明示する必要がある。",
@@ -2095,12 +2183,23 @@
           "before": "親シミュレーター構想の一部として会話上に存在していたが、独立した作業単位・完了条件・判断ログがなかった。",
           "after": "v0.9.0.09-upper-context-decision-engine を未着手子インシデントとして登録した。",
           "reason": "上流から段階的に検証し、M5 Executionへ進む前に説明可能性と再現性を確保するため。"
+        },
+        {
+          "history_id": "chg_fx_chart_viewer_work_0020_retrospective_20260712",
+          "at": "2026-07-12T19:38:58+09:00",
+          "change_type": "retrospective_completion_registered",
+          "before": "計画インシデント上は未着手または進行状態のままだった。",
+          "after": "最新資材とCHANGELOGを基に、実装済みとして完了概要・対象資材・確認状況を後追い登録した。",
+          "reason": "Simulator実装が先行し、インシデント管理Dataの更新が追いついていなかったため。"
         }
       ],
-      "verification_status": "未確認",
+      "verification_status": "最新資材・CHANGELOG確認済み",
       "context_def_status": "draft",
       "context_def_updated_at": "2026-07-10",
-      "context_def_draft": "# ContextDef素案: Upper Context Decision Engine：上位足状態からM5への許可・禁止を生成\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n"
+      "context_def_draft": "# ContextDef素案: Upper Context Decision Engine：上位足状態からM5への許可・禁止を生成\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n",
+      "completion_summary": "WEEK / DAY / H4 / H1 Stateを優先順位付きRule Registryで統合し、Normal/Expansion探索、Hold、Profit Take Armed、H1 Exit監視等をDecision Contextとして生成。",
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/CHANGELOG.md",
+      "test_result": "今回の後追い登録では実機再実行なし。最新ZIP内のCHANGELOG・実装資材・関連回帰テストを確認。"
     },
     {
       "work_item_id": "fx_chart_viewer_work_0021",
@@ -2109,11 +2208,11 @@
       "incident_type": "feature_design",
       "category": "GPT FX Lab / Multi-Timeframe State Trace Simulator",
       "priority": "high",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-07-10",
-      "updated_at": "2026-07-10T23:35:00+09:00",
+      "updated_at": "2026-07-12T19:38:58+09:00",
       "target_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4.json",
       "objective": "Observation / State Change / Decision / Executionを追記型Eventとして記録し、任意結果からConfirm bars・起点・使用Ruleまで逆方向へ追跡・再生できるようにする。",
       "background": "ユーザーが「なんでこうなったか」をAIへ毎回質問せず、自分でログとUIから理解できることがシミュレーター成立条件。",
@@ -2160,12 +2259,23 @@
           "before": "親シミュレーター構想の一部として会話上に存在していたが、独立した作業単位・完了条件・判断ログがなかった。",
           "after": "v0.9.0.10-simulation-trace-replay-log を未着手子インシデントとして登録した。",
           "reason": "上流から段階的に検証し、M5 Executionへ進む前に説明可能性と再現性を確保するため。"
+        },
+        {
+          "history_id": "chg_fx_chart_viewer_work_0021_retrospective_20260712",
+          "at": "2026-07-12T19:38:58+09:00",
+          "change_type": "retrospective_completion_registered",
+          "before": "計画インシデント上は未着手または進行状態のままだった。",
+          "after": "最新資材とCHANGELOGを基に、実装済みとして完了概要・対象資材・確認状況を後追い登録した。",
+          "reason": "Simulator実装が先行し、インシデント管理Dataの更新が追いついていなかったため。"
         }
       ],
-      "verification_status": "未確認",
+      "verification_status": "最新資材・CHANGELOG確認済み",
       "context_def_status": "draft",
       "context_def_updated_at": "2026-07-10",
-      "context_def_draft": "# ContextDef素案: Simulation Trace / Replay Log：判断連鎖・差分Event・Snapshot・逆追跡\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n"
+      "context_def_draft": "# ContextDef素案: Simulation Trace / Replay Log：判断連鎖・差分Event・Snapshot・逆追跡\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n",
+      "completion_summary": "観測・状態変化・判断・実行Eventを追記型Traceへ統合。Checkpoint + replay_patchで任意sequenceを復元し、cause_event_idsのDAG検査と日本語Replay Viewerを実装。",
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/CHANGELOG.md",
+      "test_result": "今回の後追い登録では実機再実行なし。最新ZIP内のCHANGELOG・実装資材・関連回帰テストを確認。"
     },
     {
       "work_item_id": "fx_chart_viewer_work_0022",
@@ -2174,11 +2284,11 @@
       "incident_type": "feature_design",
       "category": "GPT FX Lab / Multi-Timeframe State Trace Simulator",
       "priority": "high",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-07-10",
-      "updated_at": "2026-07-10T23:35:00+09:00",
+      "updated_at": "2026-07-12T19:38:58+09:00",
       "target_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4.json",
       "objective": "上位足Decision ContextとH1 Triggerに従い、M5でEntry / ReEntry / Add-on / Partial Close / Full Close / StopCloseを実行し、Core / Add-on / Runnerを管理する。",
       "background": "M5は上位足状態やWEEK季節を独自判断せず、許可されたTrigger探索と実行に責務を限定する。",
@@ -2219,16 +2329,394 @@
           "before": "親シミュレーター構想の一部として会話上に存在していたが、独立した作業単位・完了条件・判断ログがなかった。",
           "after": "v0.9.0.11-m5-execution-position-lifecycle を未着手子インシデントとして登録した。",
           "reason": "上流から段階的に検証し、M5 Executionへ進む前に説明可能性と再現性を確保するため。"
+        },
+        {
+          "history_id": "chg_fx_chart_viewer_work_0022_retrospective_20260712",
+          "at": "2026-07-12T19:38:58+09:00",
+          "change_type": "retrospective_completion_registered",
+          "before": "計画インシデント上は未着手または進行状態のままだった。",
+          "after": "最新資材とCHANGELOGを基に、実装済みとして完了概要・対象資材・確認状況を後追い登録した。",
+          "reason": "Simulator実装が先行し、インシデント管理Dataの更新が追いついていなかったため。"
         }
       ],
-      "verification_status": "未確認",
+      "verification_status": "最新資材・CHANGELOG確認済み",
       "context_def_status": "draft",
       "context_def_updated_at": "2026-07-10",
-      "context_def_draft": "# ContextDef素案: M5 Execution / Position Lifecycle：上位足Decisionに従うEntry・Hold・Close実行\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n"
+      "context_def_draft": "# ContextDef素案: M5 Execution / Position Lifecycle：上位足Decisionに従うEntry・Hold・Close実行\n\n## 親インシデント\n- fx_chart_viewer_work_0011 Multi-Timeframe State Trace Simulator\n\n## 作業原則\n- 時間足はデータとして扱う。\n- Confirm barsは独立明示値。\n- 重要出力はTrace Eventへ接続する。\n- Future dataを参照しない。\n- 前段の出力契約を壊さず、後段責務を先取りしない。\n",
+      "completion_summary": "Upper Context Decisionを入力とするM5 Execution / Position Lifecycleを実装。Action Event、Position管理、Trace逆追跡、モデルレスRun設定UIへ接続し、後続Range Runnerの基盤とした。",
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/CHANGELOG.md",
+      "test_result": "今回の後追い登録では実機再実行なし。最新ZIP内のCHANGELOG・実装資材・関連回帰テストを確認。"
+    },
+    {
+      "work_item_id": "fx_chart_viewer_work_0023",
+      "phase": "v0.9.0.12-to-v0.9.0.17-range-simulation-live-trace-retrospective",
+      "title": "表示範囲Simulation：Range Runner・0件診断・ライブ再生・日本語判断表示の後追い記録",
+      "incident_type": "retrospective_feature_growth_record",
+      "category": "GPT FX Lab / Range Simulation / Trace UI",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-12",
+      "updated_at": "2026-07-12T19:38:58+09:00",
+      "target_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/tests/*.test.cjs\nstudio_overlays/gpt_fx_lab/シュミレーションルール仮*.md\nstudio_overlays/gpt_fx_lab/CHANGELOG.md",
+      "objective": "一点診断を二重実装せず、現在表示中のM5範囲を古い足から順に再生し、実行Event・0件理由・採用HSI・判断理由をチャートとTraceで確認できるRange Simulationへ発展させる。",
+      "background": "M5一点診断まで完成した後、表示範囲全体を順番に実行し、Entry/Closeがどこで発生したかをチャート上で確認したい要望が生まれた。処理待ちを観測体験へ変えるライブ再生、0件も検証結果として読む診断、理由コードの日本語化が追加された。",
+      "scope": "v0.9.0.12〜v0.9.0.17の表示範囲Simulation、0件診断、ライブ進捗、実行Event逐次描画、日本語理由カタログ、Simulation HSI、Human/Simulation表示分離を後追い登録する。",
+      "out_of_scope": "一括Simulation、複数Dataset、複数Profile総当たり、パラメータ最適化、リアル注文は対象外。",
+      "fixed_name_policy": "表示範囲はUI windowの検証単位であり、Dataset全期間のBatch Caseとは分ける。Human Comment / Human HSIとSimulation Trace / Simulation HSIは正本を分離する。",
+      "module_policy": "既存reference_point_stepと同一判定EngineをRange Runnerから再利用し、Entry/Closeロジックを別実装しない。",
+      "expected_outputs": "表示範囲Simulationボタン、進捗、0件診断、ライブEvent描画、日本語理由、range_run、最終run_snapshot、Simulation HSI Annotation。",
+      "risk": "Range用に判定ロジックを複製すると一点診断と結果が分岐する。UI window境界をTrade状態の自然な開始点と誤認しやすい。",
+      "test_points": "古い足から時系列実行されること。Range内でPosition状態を引き継ぐこと。0件時も評価足数と主因が表示されること。実行EventからTraceへ到達できること。",
+      "user_request": "表示範囲を一括でシミュレーションし、Entry / Closeをチャート上へ直接表示し、0件の場合も理由を見たい。",
+      "ai_response": "一点診断Engineを再利用したRange Runner、0件診断、ライブ再生、理由カタログ、Simulation HSI表示を段階追加した。",
+      "decision_log": [
+        {
+          "decision_id": "dec_fx_chart_viewer_0023_001",
+          "at": "2026-07-12T19:38:58+09:00",
+          "decision": "Range Runnerは一点診断Engineを再利用し、売買判定を二重実装しない。",
+          "reason": "一点実行と範囲実行の結果分岐を防ぐため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0023_002",
+          "at": "2026-07-12T19:38:58+09:00",
+          "decision": "実行Eventが0件でも正常完了として、未成立理由を件数表示する。",
+          "reason": "何も起きないこと自体がRule Gateの検証結果だから。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0023_003",
+          "at": "2026-07-12T19:38:58+09:00",
+          "decision": "Human HSI / CommentとSimulation HSI / Traceは保存状態を分ける。",
+          "reason": "人間仮説とEngine判断の出所を混ぜないため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_fx_chart_viewer_0023_001",
+          "at": "2026-07-12T19:38:58+09:00",
+          "change_type": "retrospective_incident_added",
+          "before": "v0.9.0.12〜v0.9.0.17のRange Simulation成長が主にCHANGELOGと会話へ残っていた。",
+          "after": "Range Runner・診断・ライブ表示・Trace表示を一つの完了インシデントとして登録。",
+          "reason": "一括Simulation設計前に、既存Range実行の責務と限界を明確にするため。"
+        }
+      ],
+      "verification_status": "最新資材・CHANGELOG確認済み / 今回実機再実行なし",
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/tests/*.test.cjs\nstudio_overlays/gpt_fx_lab/シュミレーションルール仮*.md\nstudio_overlays/gpt_fx_lab/CHANGELOG.md",
+      "completion_summary": "表示範囲の時系列再生、実行Event直描画、0件診断、ライブ進捗、日本語理由、Simulation HSI表示まで実装済み。",
+      "test_result": "最新ZIPにRange/Rule/UI関連テストを確認。今回のインシデント後追い登録ではブラウザ実機再実行なし。",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-07-12T19:38:58+09:00",
+      "context_def_draft": "# ContextDef素案: 表示範囲Simulation\n\n- UI表示窓を古い足から順に再生する。\n- 一点診断Engineを再利用し、判定ロジックを複製しない。\n- 0件も検証結果として理由を残す。\n- HumanとSimulationの保存元を混ぜない。\n- Batch SimulationのCase実行単位とは別責務。"
+    },
+    {
+      "work_item_id": "fx_chart_viewer_work_0024",
+      "phase": "v0.9.0.20-to-v0.9.0.42-normal-rule-lane-lifecycle-retrospective",
+      "title": "NORMAL Rule Lane再設計：Entry Gate・Dow Confirmation・HSI Anchor・Close Lifecycleの収束記録",
+      "incident_type": "retrospective_rule_decision_log",
+      "category": "GPT FX Lab / NORMAL Rule Lane",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-12",
+      "updated_at": "2026-07-12T19:38:58+09:00",
+      "target_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/tests/*.test.cjs\nstudio_overlays/gpt_fx_lab/シュミレーションルール仮*.md\nstudio_overlays/gpt_fx_lab/CHANGELOG.md",
+      "objective": "通常EntryをExpansion系から完全分離し、M5 Dow Confirmation、通常HSI起点、R2、次HSI境界Target、HSI起点Stop、Close後Anchor破棄という独立Trade Lifecycleへ収束させる。",
+      "background": "初期M5 ExecutionではReEntry/Add-on/部分決済や上位足条件が混在し、通常Entryの責務が読みづらかった。シミュレーションを重ねながらEntry価格、Target、Stop、Confirmation ID、Anchor Lifecycleを段階的に再定義した。",
+      "scope": "v0.9.0.20〜v0.9.0.42の通常Entry条件試行、Single Close、Dow突破確認、Rule Lane分離、NORMAL語彙整理、Entry価格契約、Close時Anchor破棄を後追い登録する。v0.9.0.52のH1-only Cycle Guardは別インシデントで最終反映する。",
+      "out_of_scope": "Expansion / Expansion-LiteのEntry・Add-on・Exit契約、Batch Simulation、最適化は対象外。",
+      "fixed_name_policy": "NORMALではENTRY / FULL_CLOSE / STOP_CLOSEだけを使用し、REENTRY / ADD_ONを使わない。1 Dow Confirmation IDは最大1 Normal Entry。",
+      "module_policy": "観測事実は共通Engineから受け取るが、NORMAL専用Entry/Close Evaluator・Anchor Lifecycle・Positionを所有する。",
+      "expected_outputs": "Normal Entry Evaluator、Normal Close Evaluator、Dow Confirmation Event、Normal HSI Anchor Lifecycle、次HSI境界Target、Anchor Stop、理由Trace。",
+      "risk": "他Laneの条件や起点をFallbackすると、通常Entryの成立理由と損益が再現できなくなる。",
+      "test_points": "新Dow Confirmationごとに最大1 Entryであること。R2以上でEntryすること。実Entry地点より先の次HSI境界で全Closeすること。HSI起点でStopし、Close時にAnchorを破棄すること。",
+      "user_request": "通常EntryとExpansion系の条件を混ぜず、通常EntryのHSI起点・Entry・Close・次Entryを独立Lifecycleとして整理したい。",
+      "ai_response": "NORMAL Rule Laneを独立化し、Dow突破確認、R2、次HSI境界Target、HSI起点Stop、Close後の新Dow確認待ちへ段階的に収束させた。",
+      "decision_log": [
+        {
+          "decision_id": "dec_fx_chart_viewer_0024_001",
+          "at": "2026-07-12T19:38:58+09:00",
+          "decision": "NORMAL Rule LaneではReEntry/Add-on語彙を使用しない。",
+          "reason": "前Trade終了後の新しいDow Confirmationは新しい独立Normal Entryであり、Expansion系語彙と混ぜないため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0024_002",
+          "at": "2026-07-12T19:38:58+09:00",
+          "decision": "通常Targetは実Entry地点より先の次HSI境界、StopはEntryに使用した通常HSI起点とする。",
+          "reason": "Entry位置に応じた一貫した1 Position / 1 Target / 1 Stop契約にするため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0024_003",
+          "at": "2026-07-12T19:38:58+09:00",
+          "decision": "Normal Close時に使用Anchorを破棄し、次EntryはClose後の新Dow Confirmationを必須とする。",
+          "reason": "Expansionの大波起点維持をNORMALへ混ぜないため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_fx_chart_viewer_0024_001",
+          "at": "2026-07-12T19:38:58+09:00",
+          "change_type": "retrospective_incident_added",
+          "before": "通常Entryルールの多数の試行がCHANGELOG・Rule md・テストへ分散していた。",
+          "after": "NORMAL Rule Laneの収束点と責務境界を完了インシデントとして登録。",
+          "reason": "Expansion-LiteおよびBatch集計と混線しない基準を残すため。"
+        }
+      ],
+      "verification_status": "最新資材・CHANGELOG・Rule md確認済み / 今回実機再実行なし",
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/tests/*.test.cjs\nstudio_overlays/gpt_fx_lab/シュミレーションルール仮*.md\nstudio_overlays/gpt_fx_lab/CHANGELOG.md",
+      "completion_summary": "NORMAL Rule Laneを独立化し、Dow Confirmation→R2 Entry→次境界Target/Anchor Stop→Close時Anchor破棄→新Dow待ちへ整理。",
+      "test_result": "normal_rule_lane_separation / normal_hsi_anchor_trade_lifecycle / dow_breakout_threshold_entry_price 等の同梱テストを確認。今回再実行なし。",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-07-12T19:38:58+09:00",
+      "context_def_draft": "# ContextDef素案: NORMAL Rule Lane\n\n- 他LaneのEntry/Close/Anchorを参照しない。\n- 1 Dow Confirmation ID = 最大1 Normal Entry。\n- Targetは次HSI境界、Stopは採用通常HSI起点。\n- Close時にAnchorを破棄し、新しいDow Confirmationを待つ。\n- ReEntry/Add-on語彙を使わない。"
+    },
+    {
+      "work_item_id": "fx_chart_viewer_work_0025",
+      "phase": "v0.9.0.43-to-v0.9.0.47-execution-annotation-crosshair-ui-retrospective",
+      "title": "Execution Annotation UI：HSI起点色・全窓十字同期・斜め指示線・チャート重なり回避",
+      "incident_type": "retrospective_ui_improvement_log",
+      "category": "GPT FX Lab / Simulation Annotation UI",
+      "priority": "medium",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-12",
+      "updated_at": "2026-07-12T19:38:58+09:00",
+      "target_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/tests/crosshair_lock_v0_1.test.cjs\nstudio_overlays/gpt_fx_lab/tests/hsi_line_color_rotation_v0_1.test.cjs\nstudio_overlays/gpt_fx_lab/tests/simulation_execution_marker_pointer_v0_1.test.cjs\nstudio_overlays/gpt_fx_lab/CHANGELOG.md",
+      "objective": "Simulation Entry/Closeコメントが実際の価格点を明確に指し、複数時間足の同一時刻を追え、HSI起点を色で識別できる観測UIへ改善する。",
+      "background": "Entry/Closeラベルがどの点を指すか分かりにくく、線・ラベルがチャート本体へ重なる問題があった。十字カーソルも操作窓だけで、上位足との同時観測に不足があった。",
+      "scope": "HSI起点リング色統一、M5/H1/H4/DAY/WEEK十字同期、Executionラベル指示点、小型終点ドット、斜め線、近傍配置、ローカル価格帯を避けるラベル配置を登録する。",
+      "out_of_scope": "Entry/Close判定、損益計算、Rule Lane条件変更は対象外。",
+      "fixed_name_policy": "Annotationは表示責務であり、マーカー位置・ラベル退避位置を売買価格へ逆流させない。",
+      "module_policy": "Eventのtime/priceを正本とし、描画時だけラベル・指示線・退避位置を計算する。",
+      "expected_outputs": "色分けHSI、同期十字、斜め指示線、終点ドット、チャート重なり回避ラベル。",
+      "risk": "ラベル退避位置を約定価格と誤認する。表示改善が売買ロジックへ混入する。",
+      "test_points": "指示線終点がEvent価格を指すこと。ラベル移動でEvent値が変わらないこと。全窓で同一時刻へ十字が同期すること。",
+      "user_request": "Entry/Closeコメントがどの点か分かるようにし、他窓にも十字を同期し、ラベルはチャート本体へ重ならないようにしたい。",
+      "ai_response": "v0.9.0.43〜47で色・同期・指示線・斜め配置・重なり回避を段階調整した。",
+      "decision_log": [
+        {
+          "decision_id": "dec_fx_chart_viewer_0025_001",
+          "at": "2026-07-12T19:38:58+09:00",
+          "decision": "ExecutionラベルはEvent点へ斜め線と小型終点ドットで接続する。",
+          "reason": "縦横線と区別し、実際の価格点を追いやすくするため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0025_002",
+          "at": "2026-07-12T19:38:58+09:00",
+          "decision": "ラベル幅に重なるローカル価格帯を算出し、その外側へ配置する。",
+          "reason": "価格チャート本体を隠さず、ラベル同士の衝突も抑えるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_fx_chart_viewer_0025_001",
+          "at": "2026-07-12T19:38:58+09:00",
+          "change_type": "retrospective_incident_added",
+          "before": "表示調整が複数パッチと会話へ分散していた。",
+          "after": "v0.9.0.43〜47のExecution Annotation UI改善を一件に集約登録。",
+          "reason": "表示位置と売買価格の責務分離を判断ログとして残すため。"
+        }
+      ],
+      "verification_status": "最新資材・CHANGELOG確認済み / 画面はユーザー確認済み",
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/CHANGELOG.md",
+      "completion_summary": "Executionラベルの点指示、全窓十字同期、HSI色統一、斜め線、チャート重なり回避まで完了。",
+      "test_result": "crosshair_lock / hsi_line_color_rotation / simulation_execution_marker_pointer の同梱テストを確認。今回再実行なし。"
+    },
+    {
+      "work_item_id": "fx_chart_viewer_work_0026",
+      "phase": "v0.9.0.48-to-v0.9.0.53-expansion-lite-parallel-rule-lanes-retrospective",
+      "title": "Expansion-Lite：R3→R5波取り・Add-on・独立Portfolio・Cycle Entry Windowの確定",
+      "incident_type": "retrospective_rule_and_implementation_log",
+      "category": "GPT FX Lab / EXPANSION_LITE Rule Lane",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-12",
+      "updated_at": "2026-07-12T19:38:58+09:00",
+      "target_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/tests/*.test.cjs\nstudio_overlays/gpt_fx_lab/シュミレーションルール仮*.md\nstudio_overlays/gpt_fx_lab/CHANGELOG.md",
+      "objective": "Day Cycle条件を使わず、H4/H1 T3方向とH1 Cycle Entry Window、M5 Dow、R3タッチからEntryし、R3.5/R4/R4.5でAdd-on、R5または専用Exitで全CloseするExpansion-Liteを独立Rule Laneとして実装する。",
+      "background": "㉗→㉙のExpansion波を、通常Entryの細かい利確と並行して取り切るためのLiteルールが考案された。当初はRule Lane分離を排他実行と誤解し、NORMAL停止や同時Entry抑制が発生したが、『条件は混ぜない、実行はパラレル』へ修正した。",
+      "scope": "v0.9.0.48〜53のExpansion-Lite Entry/Add-on/Exit、専用色・理由表示、NORMAL復旧、方向別H1 Cycle起点、Rule Lane並列Portfolio、NORMAL H1-only Cycle Guard、Confirm barsから独立したH1 14本Entry Windowを登録する。",
+      "out_of_scope": "EXPANSION本体の具体的Entry条件、WEEK/DAY/H4/M5 Entry Windowの実ルール接続、資金配分最適化は対象外。",
+      "fixed_name_policy": "NORMAL / EXPANSION / EXPANSION_LITEはEntry Gate、HSI起点、Position、Add-on履歴、Close Evaluator、Exit理由を独立所有する。完全分離は排他実行を意味しない。",
+      "module_policy": "同一M5足で各Rule Laneを独立評価し、成立したEntryをすべて実行する。各建玉はEntryしたLane専用Close Evaluatorだけで終了する。",
+      "expected_outputs": "Expansion-Lite Entry、R3.5/R4/R4.5 Add-on、R5/T3/Structural/Anchor Exit、Lane別Position、同時Entry、H1 14本Entry Window。",
+      "risk": "他Laneの条件Fallback、単一active_trade_id、同時Entryの優先順位処理、Confirm barsとEntry Windowの再結合によりルールが混線する。",
+      "test_points": "NORMALとLiteが同一足でEntry可能なこと。各LaneのCloseが独立すること。R3.5/R4/R4.5各1回Add-onであること。R5等でLite全建玉Closeすること。H1経過14本以内でEntry可能なこと。",
+      "user_request": "通常Entry、Lite、Expansionは同時にEntryできる。三つの条件を混ぜず、パラレル走行させたい。H1 Cycle Entry許可はConfirm barsではなく14本までとしたい。",
+      "ai_response": "Expansion-Liteを独立実装し、排他誤解を修正してLane別Portfolioへ移行。H1 Entry WindowをConfirm barsから切り離し14本へ固定した。",
+      "decision_log": [
+        {
+          "decision_id": "dec_fx_chart_viewer_0026_001",
+          "at": "2026-07-12T19:38:58+09:00",
+          "decision": "Rule Lane完全分離とRule Lane排他実行を明確に区別する。",
+          "reason": "NORMAL / EXPANSION / EXPANSION_LITEは条件を混ぜず、同時に成立・保有・Closeできる必要があるため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0026_002",
+          "at": "2026-07-12T19:38:58+09:00",
+          "decision": "Expansion-LiteのH1 Entry許可は方向別Cycle起点から14本以内とし、Confirm barsから独立させる。",
+          "reason": "Confirm barsはSwing確定本数であり、Entry可能期間を表す値ではないため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0026_003",
+          "at": "2026-07-12T19:38:58+09:00",
+          "decision": "Expansion-LiteはR3 Entry、R3.5/R4/R4.5 Add-on、R5 Targetを基本Lifecycleとする。",
+          "reason": "㉗→㉙のExpansion波を段階的に積み増してR5まで取る目的を明確にするため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0026_004",
+          "at": "2026-07-12T19:38:58+09:00",
+          "decision": "NORMALのCycle Late GuardはH1だけとし、H4 Cycle Lateでは通常Entryを禁止しない。",
+          "reason": "H4まで禁止すると通常Entry機会が過度に失われるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_fx_chart_viewer_0026_001",
+          "at": "2026-07-12T19:38:58+09:00",
+          "change_type": "retrospective_incident_added",
+          "before": "Expansion-Lite実装と同時Entry修正がv0.9.0.48〜53の複数パッチへ分散していた。",
+          "after": "最終ルール、パラレルPortfolio、Cycle Entry Windowの判断を完了インシデントへ統合。",
+          "reason": "Batch SimulationでLane別結果を正しく扱う前提を固定するため。"
+        }
+      ],
+      "verification_status": "最新資材・CHANGELOG・Rule v0.20・回帰テスト群確認済み / 今回実機再実行なし",
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/*.json\nstudio_overlays/gpt_fx_lab/sidecars/*.simulation_trace.json\nstudio_overlays/gpt_fx_lab/tests/*.test.cjs\nstudio_overlays/gpt_fx_lab/シュミレーションルール仮*.md\nstudio_overlays/gpt_fx_lab/CHANGELOG.md",
+      "completion_summary": "Expansion-LiteとNORMALを独立Portfolioとして同時走行可能にし、R3→R5 Add-on LifecycleとH1 14本Entry Windowを確定。",
+      "test_result": "expansion_lite_rule_lane / target_27_29_range_smoke / normal_plus_expansion_lite_orchestration / cycle_entry_window_independent 等の同梱テストを確認。今回再実行なし。",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-07-12T19:38:58+09:00",
+      "context_def_draft": "# ContextDef素案: Expansion-Lite / Parallel Rule Lanes\n\n- 条件・起点・Position・CloseはLaneごとに分離。\n- 分離は排他ではない。同一足で複数Lane Entry可能。\n- LiteはR3 Entry、R3.5/R4/R4.5 Add-on、R5 Target。\n- H1 Cycle Entry Windowは方向別起点から14本以内。\n- Confirm barsはSwing確定用でありEntry Windowへ使わない。\n- Expansion本体の未定義部分を他Laneで補完しない。"
+    },
+    {
+      "work_item_id": "fx_chart_viewer_work_0027",
+      "phase": "v0.9.1.00-batch-simulation-runner-execution-unit-parent",
+      "title": "Batch Simulation Runner：Case実行単位・状態継続・Lane別集計の親インシデント",
+      "incident_type": "parent_feature_plan",
+      "category": "GPT FX Lab / Batch Simulation",
+      "priority": "high",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-12",
+      "updated_at": "2026-07-12T19:38:58+09:00",
+      "target_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/batch/*.json\nstudio_overlays/gpt_fx_lab/simulation/results/**/*\nstudio_overlays/gpt_fx_lab/tests/batch_*.test.cjs\nstudio_overlays/gpt_fx_lab/CHANGELOG.md\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4*.json",
+      "objective": "複数Dataset・期間を同一Rule/Profileで再現可能に一括実行し、Case単位とRule Lane単位で結果を保存・比較し、異常Caseからチャートへ戻れるBatch Simulation基盤を作る。",
+      "background": "表示範囲Simulationで1窓の前方向再生は可能になったが、全期間・複数データを同じ条件で繰り返し検証するには手作業が多い。UIの1000足窓を繰り返す方式では、窓境界でHSI起点・Dow Confirmation・Position・Add-on履歴が切れ、正しいTrade Lifecycleを再現できない。",
+      "scope": "Batch Run / Simulation Caseの実行単位、複数Dataset選択、期間指定、1 Run Profile Snapshot、逐次Case実行、停止、失敗Case再実行、Case内の連続状態保持、Lane別/Combined集計、JSON/CSV成果物、結果行から該当チャートを開く導線を設計・実装する。",
+      "out_of_scope": "複数Profile総当たり、パラメータ最適化、ランキングによる自動採用、機械学習、Case並列実行、リアル注文、手数料・スリッページの高度モデルはv0.1対象外。",
+      "fixed_name_policy": "BatchRunはCase集合、SimulationCaseは再現可能な最小実行単位とする。UI window、内部chunk、Rule LaneをCase単位と混同しない。",
+      "module_policy": "既存Simulation Engineを表示から分離して再利用する。Case内部ではNORMAL / EXPANSION / EXPANSION_LITEを独立Portfolioとしてパラレル評価し、Case同士はv0.1では直列実行する。",
+      "execution_unit_contract": {
+        "batch_run": "1回の一括実行。複数Simulation Caseと共通Batch設定・進捗・集計を所有する。",
+        "simulation_case": "1 Primary Dataset + 1 UpperMap/Source Mapping Snapshot + 1対象期間 + 1 Run Profile Snapshot + 1 Rule Version/App Versionで構成する再現可能な最小実行単位。",
+        "rule_lane": "Case内部の独立Portfolio。NORMAL / EXPANSION / EXPANSION_LITEを同一時系列でパラレル評価するが、条件・起点・Position・Closeを共有しない。",
+        "chunk": "メモリ・描画都合の内部処理単位。Chunk境界ではDow/HSI/Opportunity/Trade/Position/Add-on/Trace状態を初期化しない。",
+        "ui_window": "人間が見る表示範囲。Batch Caseの対象期間・開始状態・終了状態を決める正本にはしない。"
+      },
+      "case_initialization_policy": "Case同士は状態を共有しない。各Caseは指定期間より前のWarmupを読み、対象期間開始時点の観測Stateを構築する。集計対象は指定期間内Eventとする。UI窓の先頭を無条件Flat起点にしない。",
+      "parallel_policy": "Case内部のRule Laneはパラレル走行。Case間はv0.1では逐次実行。将来のCase並列化でも結果順序・再現性・資材競合を壊さない契約を先に持つ。",
+      "result_policy": "結果はCase別、Rule Lane別、COMBINED集計を保存する。COMBINEDは損益・件数等の集計だけを合算し、Rule条件・HSI起点・Position Lifecycleを合成しない。",
+      "expected_outputs": "batch_run_manifest.json\nbatch_summary.json\nbatch_summary.csv\ncases/<case_id>/case_manifest.json\ncases/<case_id>/run_result.json\ncases/<case_id>/events.json\ncases/<case_id>/trace.json",
+      "risk": "1000足ごとの再実行で状態を初期化する、Case間で状態が漏れる、Lane集計とLane条件を混ぜる、Dataset/Rule/Profile Hashを残さず再現不能になる、長時間実行の停止・再開で二重Eventが生じる。",
+      "test_points": "同じCase入力で同じ結果Hashになること。Chunkサイズを変えても結果が変わらないこと。Case間でStateが漏れないこと。Lane同時Entry・独立Closeが維持されること。表示窓外を含む全期間で状態継続すること。停止後に完了Caseを再実行せず再開できること。",
+      "user_request": "そろそろ、一括でシュミレーションできる機能がほしい。最新資材を基に、実行単位前提をインシデント登録したい。",
+      "ai_response": "BatchRun > SimulationCase > RuleLane > Chunk/UI Windowの責務を分け、Dataset×期間×Profile Snapshot×Rule VersionをCase単位とする親インシデントを登録する。",
+      "discussion_history": [
+        {
+          "history_id": "disc_fx_chart_viewer_0027_001",
+          "at": "2026-07-12T19:38:58+09:00",
+          "speaker": "user",
+          "topic": "一括Simulation要望",
+          "message": "そろそろ、一括でシュミレーションできる機能がほしい。どんな感じで実装しようか。"
+        },
+        {
+          "history_id": "disc_fx_chart_viewer_0027_002",
+          "at": "2026-07-12T19:38:58+09:00",
+          "speaker": "assistant",
+          "topic": "Batch Case実行単位案",
+          "message": "表示1000足を何度も回すのではなく、1 Primary Dataset×1期間×1Profile Snapshot×1Rule Versionを1 Caseとし、Case内部の状態を全期間で引き継ぐ案を提示した。"
+        },
+        {
+          "history_id": "disc_fx_chart_viewer_0027_003",
+          "at": "2026-07-12T19:38:58+09:00",
+          "speaker": "user",
+          "topic": "インシデント登録依頼",
+          "message": "最新資材を添付するので、過去の修正概要と一括シュミレーションの実行単位前提をインシデント登録してほしい。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_fx_chart_viewer_0027_001",
+          "at": "2026-07-12T19:38:58+09:00",
+          "decision": "Simulation Caseを『1 Primary Dataset + Source Mapping Snapshot + 1期間 + 1 Run Profile Snapshot + Rule/App Version』と定義する。",
+          "reason": "再現可能な最小単位を、画面窓や内部Chunkから分離するため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0027_002",
+          "at": "2026-07-12T19:38:58+09:00",
+          "decision": "Case内部では全Rule Laneを独立Portfolioとしてパラレル評価する。",
+          "reason": "NORMAL / EXPANSION / EXPANSION_LITEは条件を混ぜず、同時Entry・同時保有できる契約だから。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0027_003",
+          "at": "2026-07-12T19:38:58+09:00",
+          "decision": "内部Chunk境界でSimulation Stateを初期化しない。",
+          "reason": "HSI起点、Dow Confirmation、Entry Opportunity、Position、Add-on履歴がChunkをまたぐため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0027_004",
+          "at": "2026-07-12T19:38:58+09:00",
+          "decision": "v0.1ではCase同士を逐次実行する。",
+          "reason": "同一資材への書込み競合とデバッグ複雑化を避け、まず再現性を優先するため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0027_005",
+          "at": "2026-07-12T19:38:58+09:00",
+          "decision": "COMBINEDは集計結果だけを合算し、Rule Laneの条件・起点・Lifecycleは統合しない。",
+          "reason": "最高益観測は行いたいが、ルール混線を再発させないため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0027_006",
+          "at": "2026-07-12T19:38:58+09:00",
+          "decision": "Batch成果物へDataset Hash、Profile Hash、Rule Version、App Version、期間、Timezone、Source Mappingを保存する。",
+          "reason": "後から同じRunを再現し、結果差分の原因を追えるようにするため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_fx_chart_viewer_0027_001",
+          "at": "2026-07-12T19:38:58+09:00",
+          "change_type": "batch_simulation_parent_registered",
+          "before": "表示範囲Simulationは存在するが、複数Dataset/期間を再現可能なCase単位で連続実行する計画が未登録だった。",
+          "after": "BatchRun / SimulationCase / RuleLane / Chunk / UI Windowの責務を定義した親インシデントを登録。",
+          "reason": "一括実装前に、状態初期化境界と結果集計境界を固定するため。"
+        }
+      ],
+      "verification_status": "設計登録のみ",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-07-12T19:38:58+09:00",
+      "context_def_draft": "# ContextDef素案: Batch Simulation Runner\n\n## 実行単位\n- BatchRun = 複数Caseの集合。\n- Case = Dataset + Source Mapping + Period + Profile Snapshot + Rule/App Version。\n- Rule Lane = Case内部の独立Portfolio。\n- Chunk = 内部処理単位。状態初期化禁止。\n- UI Window = 観測表示。Case正本ではない。\n\n## 絶対条件\n- Case内部は全期間を時系列実行する。\n- NORMAL / EXPANSION / EXPANSION_LITEはパラレル、条件は混ぜない。\n- Case間は状態分離。\n- Dataset/Profile/Rule/App/Timezone/期間のHash・Snapshotを保存。\n- COMBINEDは集計のみ。Lifecycleを合成しない。\n- v0.1は逐次Case実行。"
     }
   ],
   "decision_log_policy": "fx_chart_viewerのUI改善・Overlay拡張では、実装差分だけでなく、違和感、採用判断、捨てた案、リスク、結果をwork_items[].decision_log / discussion_history / change_historyへ残す。この判断ログは、Studio Context Engineer Wannabe / 将来の自律的AIが、なぜそのUI・DataSource・URL責務にしたのかを学ぶための判例データとして扱う。",
-  "simulation_plan_status": "parent_and_children_registered",
-  "simulation_plan_updated_at": "2026-07-10T23:35:00+09:00",
-  "simulation_plan_summary": "fx_chart_viewer_work_0011を親とし、0012〜0022を段階子インシデントとして登録。Simulation Trace Annotation UIを先頭に置き、Simulation/Userコメント独立ON/OFF、全時間足Confirm bars独立必須値、上位足State、Decision Context、Trace逆追跡をM5 Executionより先に実装する。"
+  "simulation_plan_status": "core_simulator_completed_batch_extension_registered",
+  "simulation_plan_updated_at": "2026-07-12T19:38:58+09:00",
+  "simulation_plan_summary": "fx_chart_viewer_work_0011配下の0012〜0022を最新資材・CHANGELOGに基づき実装完了として後追い更新。0023〜0026へ表示範囲Simulation、NORMAL Rule Lane、Execution Annotation UI、Expansion-Lite/Parallel Rule Lanesの修正概要を登録。0027をBatch Simulation Runner親インシデントとして追加し、BatchRun > SimulationCase > RuleLane > Chunk/UI Windowの実行単位、Case内部状態継続、Lane別独立評価、Case逐次実行、結果保存契約を定義した。",
+  "batch_simulation_plan_status": "parent_registered",
+  "batch_simulation_plan_updated_at": "2026-07-12T19:38:58+09:00",
+  "batch_simulation_plan_summary": "Simulation Case = Primary Dataset + Source Mapping Snapshot + Period + Run Profile Snapshot + Rule/App Version。Case内部はNORMAL/EXPANSION/EXPANSION_LITEを独立Portfolioとしてパラレル評価し、Chunk境界で状態を初期化しない。v0.1はCase逐次実行、Lane別およびCOMBINED集計、JSON/CSV成果物、結果からチャートへ戻る導線を対象とする。",
+  "source_materials_snapshot": {
+    "registered_at": "2026-07-12T19:38:58+09:00",
+    "incident_source_file": "studio_fx_chart_viewer_incident_data_v0_4_simulator_registered(13).json",
+    "incident_source_sha256": "74b7a4891fe4c2d75433cac5673eac5aecfac62bb873cc862697cb95191b8f73",
+    "overlay_source_file": "studio_overlays20260712_193233.zip",
+    "overlay_source_sha256": "db345cd4b896b8620320802cf15e8db5c74603c8e5fb272d2e0eb8900939a127",
+    "overlay_plugin_version": "0.9.0.53",
+    "note": "今回の後追い登録は、添付インシデントJSON、最新Overlay ZIP内CHANGELOG、plugin version、Rule/Profile/Test資材を根拠に作成。実機再実行は行っていない。"
+  }
 }

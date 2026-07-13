@@ -1,3 +1,68 @@
+# Changelog
+
+## v0.9.1.01 — Batch Safety / Real-time Event Metrics / Complete JSON Persistence
+
+- Batch処理中のsticky表示を、評価損益合計・実現損益・含み損益・NORMAL評価・EXPANSION-LITE評価へ拡張。
+- 実行Event、Entry、Add-on、決済、Exit、利益Close、損失Close、勝率、未決済数をリアルタイム表示。NORMAL / EXPANSION-LITEのLane別内訳とTarget/T3/Structural/Anchor/Stopの決済理由も表示。
+- `CloseOK`集計を「すべてのclose Event」から「利益決済」に修正し、損失・建値決済、決済理由を別項目へ分離。
+- 停止・完了時の自動保存を、ネスト6ファイル保存から完全版JSON単一ファイル保存へ変更。`simulation/results`を第一経路、`simulation`直下をfallbackとし、保存再試行とエラー詳細表示を追加。手動の結果JSON/CSVダウンロードは継続。
+- Expansion-Lite Entry時に、Long Target > Entry / Short Target < Entryを必須化。利益方向にR5 Targetが存在しないEntryを拒否。
+- Target / Stop / T3 / Anchorの約定判定へOHLC安全柵を追加。足内到達または寄付きGapとして説明可能な価格だけを約定し、足のHigh-Low外価格を損益へ混入させない。
+- 各M5足後に増大していた`evaluated_reference_keys`履歴を、最終Key＋件数へ圧縮。Lane別の二重履歴保持も最終Keyへ限定。
+- 進捗描画を「新Event発生時または50足ごと」へ間引き、最初のEvent後に毎足ダイアログを再描画していた性能劣化候補を解消。
+- 将来作業として、軽量Mid-Case Checkpoint/真の途中再開、Web Worker化・性能計測、保存API対応後の成果物分割Indexをインシデントへ登録。
+
+## v0.9.1.00 — Batch Simulation Runner / 累計実現損益の常時表示
+
+- Dataset × 期間 × Run Profile Snapshot × Rule/App Version を1 Simulation Caseとして一括実行するBatch Runnerを追加。
+- Case間は逐次実行、Case内部では NORMAL / EXPANSION / EXPANSION_LITE を独立Portfolioとしてパラレル評価。条件・HSI起点・建玉・Close条件は相互流用しない。
+- CUSTOM期間ではH4/H1の必要文脈分を過去側Warmupとして処理し、集計は指定期間内Eventだけを対象化。Chunk/進捗更新境界でSimulation Stateを初期化しない。
+- 処理中ダイアログ上部へ、COMBINED累計実現損益とRule Lane別損益をsticky表示。スクロール中も常時見えるため、途中停止の判断に利用可能。
+- 停止要求、Case進捗、M5足進捗、処理フェーズ(WARMUP/TARGET)、実行Event件数を表示。
+- Batch結果JSON、Case別集計CSVのダウンロード、Case結果から該当チャートを開く導線を追加。
+- Overlay保存APIが利用可能な場合、batch_run_manifest / batch_summary / case_manifest / run_result / events / trace をsimulation/results配下へbest-effort保存。
+- 累計損益は1単位=1,000通貨の表示用試算で、手数料・スリッページ・税・資金管理は含めない。
+
+## v0.9.0.53 — Cycle Entry WindowをConfirm barsから分離
+
+- Expansion-LiteのH1 Entry許可条件を、Confirm barsの50%から方向別H1 Cycle起点14本以内へ変更。
+- 各時間足Profileへ `cycle.entry_allowed_max_bars` を追加。初期値は WEEK=20 / DAY=45 / H4=14 / H1=14 / M5=20。
+- 現時点でExpansion-Liteが参照するのはH1=14だけ。H4/WEEK/DAY/M5は未確定のExpansion仕様へ自動適用しない。
+- Confirm bars変更でEntry Windowが変化しない回帰テストを追加。
+
+## v0.9.0.52 — NORMAL H1-only Cycle Late Guard
+
+- NORMAL Rule Laneの新規Entry禁止条件からH4 Cycle Lateを除外。
+- NORMALのCycle Late GuardをH1だけへ限定。
+- H4 Cycle Lateは観測情報・Expansion判断用として保持し、通常Entry判定には使用しない。
+- EXPANSION / EXPANSION_LITEの条件とLifecycleは変更しない。
+- NORMAL / EXPANSION / EXPANSION_LITEのパラレル走行契約を維持。
+
+
+## v0.9.0.51 — Parallel Rule Lane Portfolios
+
+- NORMAL / EXPANSION / EXPANSION_LITEを排他的な選択肢ではなく、独立Portfolioとしてパラレル評価。
+- 同一M5足で複数Rule LaneのEntry成立を許可。優先順位による片方の破棄を廃止。
+- 各LaneのEntry Opportunity、HSI起点、Trade、Position、Close Evaluator、Exit理由を完全分離。
+- 既存の単一`active_trade_id`依存をLane別`active_trade_ids_by_lane`へ拡張。
+- EXPANSIONは条件未実装のためWAITを維持するが、並列Portfolio契約の対象として扱う。
+# v0.9.0.50 — Expansion-Lite H1方向別サイクル前半判定（2026-07-12）
+
+- ㉗→㉙の対象波で、Expansion-LiteがH1の古い反対方向Cycle起点を参照し、`H1_CYCLE_NOT_FRONT_HALF`でEntryを落としていた不具合を修正。
+- Expansion-Lite専用のH1 Cycle Gateとして、Longは最新H1安値候補、Shortは最新H1高値候補を方向別に参照。候補がなければ同方向の最新確定Swingを使用。
+- H1サイクル前半を「方向別起点からの経過本数 <= H1 confirm_bars × 50%」で判定。
+- H1未確定候補の利用範囲を `EXPANSION_LITE_H1_CYCLE_GATE_ONLY` に限定し、NORMAL / EXPANSIONのDow・HSI起点・Entry判定へ流用しない。
+- 実データの㉗→㉙範囲で、2025-10-30 09:44に `Expansion-Lite Entry LONG / R3 153.135`、09:49にR3.5 Add-onが発生する回帰テストを追加。
+- NORMALとEXPANSION_LITEの独立評価、同一足のExpansion-Lite優先、建玉Lane専用Closeの契約は維持。
+
+# v0.9.0.49 — NORMAL + Expansion-Lite Independent Rule Lanes
+
+- Expansion-Lite既定ProfileでNORMAL Rule Laneまで無効化されていた不具合を修正。
+- NORMALとEXPANSION_LITEを同じRange Simulation内で独立評価。
+- 条件・HSI起点・Entry Opportunity・Close Evaluatorの相互流用は禁止。
+- 同一足で両Entryが成立した場合のみExpansion-Liteを優先。
+- 建玉後はOPEN_TRADE_RULE_LANEのClose条件だけを使用。
+
 ## v0.9.0.48 — Expansion-Lite v0.18 独立Rule Lane実装（2026-07-12）
 
 - `EXPANSION_LITE` を `NORMAL` / `EXPANSION` から完全分離した独立Rule Laneとして実装。

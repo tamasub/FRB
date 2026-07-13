@@ -9,8 +9,8 @@
   ],
   "scope": "gpt_fx_lab overlay only",
   "core_change": false,
-  "description": "HSI起点リングを横バー色へ統一し、十字カーソルを全表示パネルへ同期。Entry / CloseOK / CloseMissへ短い指示線と小型終点ドットを追加。売買判定ロジックは変更しない。",
-  "version": "0.9.0.48",
+  "description": "Batch Simulation Runner安全化・可観測性改善。完全版JSON単一ファイル保存（fallback/再試行）、約定価格の方向・OHLC安全柵、利益/損失Close・勝率・決済理由・実現/含み/評価損益のリアルタイム表示、進捗描画間引き、評価済みキー履歴の圧縮を追加する。",
+  "version": "0.9.1.01",
   "signal_policy": {
     "visible_marker": "candidate_basis_retired_circle_marker",
     "removed_marker": "dow_structure_decision_arrow_marker",
@@ -199,12 +199,11 @@
     "simulation_virtual_pnl_unit_base_currency_amount": 1000,
     "simulation_virtual_pnl_currency": "JPY",
     "simulation_virtual_pnl_fee_slippage_tax_included": false,
-    "normal_entry_rule_version": "v0.17",
+    "normal_entry_rule_version": "v0.17.1",
     "normal_entry_h4_dow_required": false,
     "normal_entry_h4_t3_direction_required": true,
     "normal_entry_h1_m5_dow_match_required": true,
     "normal_entry_cycle_late_guard_timeframes": [
-      "H4",
       "H1"
     ],
     "normal_entry_week_filter_required": false,
@@ -334,7 +333,18 @@
       "Anchor Exit"
     ],
     "expansion_lite_entry_comment_label": "Expansion-Lite Entry",
-    "expansion_lite_add_on_comment_label": "Expansion-Lite Add-on"
+    "expansion_lite_add_on_comment_label": "Expansion-Lite Add-on",
+    "cycle_entry_window_independent_from_confirm_bars": true,
+    "cycle_entry_window_source": "timeframe_profiles[].cycle.entry_allowed_max_bars",
+    "cycle_entry_window_initial_values": {
+      "WEEK": 20,
+      "DAY": 45,
+      "H4": 14,
+      "H1": 14,
+      "M5": 20
+    },
+    "expansion_lite_h1_cycle_entry_allowed_max_bars": 14,
+    "expansion_lite_h4_cycle_entry_allowed_max_bars_reserved": 14
   },
   "display_policy": {
     "high_low_range_style": {
@@ -755,7 +765,7 @@
     },
     "simulation_run_profile": {
       "enabled": true,
-      "default_file": "fx_simulation_run_profile_expansion_lite_v0_1.json",
+      "default_file": "fx_simulation_run_profile_normal_plus_expansion_lite_v0_1.json",
       "directory": "studio_overlays/gpt_fx_lab/simulation/",
       "required_timeframes": [
         "WEEK",
@@ -791,7 +801,7 @@
       "snapshot_period_policy": "current_chart_window",
       "dataset_hash_required": true,
       "engine_enabled": true,
-      "teacher_guard": "EXPANSION_LITE Rule Lane専用Profileを既定読込。NORMAL / EXPANSIONの判定を混ぜず、共通観測Stateだけを使用する。",
+      "teacher_guard": "NORMALとEXPANSION_LITEを独立Rule Laneとして同時評価する既定Profile。Expansion-LiteのH1 Entry Windowは方向別の最新H1候補安値/高値から14本以内で判定し、候補点を他Laneの起点へ流用しない。",
       "multi_timeframe_candle_sync": {
         "enabled": true,
         "reference_axis": "M5_CLOSE",
@@ -1097,6 +1107,93 @@
       "expansion_lane": "UNCHANGED_NOT_IMPLEMENTED",
       "r2_ready_at_confirmation": "IMMEDIATE_ENTRY_BEFORE_R2_5",
       "target_already_reached_at_confirmation": "MISSED"
+    },
+    "parallel_rule_lane_positions_support": true,
+    "simultaneous_multi_lane_entry_support": true,
+    "cross_lane_condition_sharing": "FORBIDDEN",
+    "normal_entry_rule_version": "v0.17.1",
+    "normal_entry_cycle_late_guard_timeframes": [
+      "H1"
+    ],
+    "batch_simulation_runner": {
+      "enabled": true,
+      "runner_id": "batch_simulation_case_sequential_runner_v0_1",
+      "manifest_path": "studio_overlays/gpt_fx_lab/studio_manifest.json",
+      "execution_mode": "SEQUENTIAL_CASES",
+      "case_unit": "PRIMARY_DATASET_X_PERIOD_X_PROFILE_SNAPSHOT_X_RULE_APP_VERSION",
+      "case_internal_rule_lane_mode": "PARALLEL_INDEPENDENT_PORTFOLIOS",
+      "case_state_sharing": "FORBIDDEN",
+      "chunk_state_reset": "FORBIDDEN",
+      "default_period_mode": "FULL_DATASET",
+      "progress_yield_every_bars": 50,
+      "stop_check_every_bars": 1,
+      "show_cumulative_realized_profit": true,
+      "progress_profit_display": [
+        "COMBINED",
+        "NORMAL",
+        "EXPANSION",
+        "EXPANSION_LITE"
+      ],
+      "progress_profit_metric": "REALIZED_UNREALIZED_TOTAL_PROFIT_JPY",
+      "progress_profit_position": "STICKY_TOP_IN_BATCH_PROCESS_DIALOG",
+      "result_api_root": "gpt_fx_lab/simulation/results",
+      "result_download_formats": [
+        "JSON",
+        "CSV"
+      ],
+      "teacher_guard": "損益は1単位=1,000通貨の表示用試算。評価損益=実現+含み。手数料・スリッページ・税・資金管理・リアル注文は対象外。約定価格が方向不正または足OHLC外の場合は損益へ反映しない。",
+      "stop_resume_policy": "CASE_BOUNDARY_RESTART_REPLACE_RESULT",
+      "resume_skips_completed_cases": true,
+      "retry_failed_cases": true,
+      "mid_case_checkpoint_resume": false,
+      "show_unrealized_profit": true,
+      "show_total_valuation_profit": true,
+      "progress_event_metrics": [
+        "execution_event_count",
+        "entry_count",
+        "add_on_count",
+        "close_event_count",
+        "exit_count",
+        "profit_close_count",
+        "loss_close_count",
+        "win_rate_pct",
+        "open_position_count"
+      ],
+      "progress_close_reason_metrics": [
+        "target_exit_count",
+        "t3_exit_count",
+        "structural_exit_count",
+        "anchor_exit_count",
+        "stop_exit_count"
+      ],
+      "result_persistence_mode": "FULL_JSON_SINGLE_FILE_WITH_FALLBACK",
+      "fallback_result_api_root": "gpt_fx_lab/simulation",
+      "result_save_retry_support": true,
+      "result_save_error_detail_support": true,
+      "target_direction_guard": true,
+      "ohlc_execution_price_guard": true,
+      "evaluated_reference_tracking": "LAST_KEY_PLUS_COUNT",
+      "future_work": [
+        "LIGHTWEIGHT_MID_CASE_CHECKPOINT_AND_TRUE_RESUME",
+        "WEB_WORKER_OR_BACKGROUND_EXECUTION_AND_PERFORMANCE_PROFILE",
+        "ARTIFACT_SPLIT_INDEX_AFTER_NESTED_DIRECTORY_SAVE_API_IS_AVAILABLE"
+      ]
     }
+  },
+  "chart_viewer_policy": {
+    "batch_simulation_support": true,
+    "batch_simulation_runner_id": "batch_simulation_case_sequential_runner_v0_1",
+    "batch_simulation_case_execution": "SEQUENTIAL",
+    "batch_simulation_rule_lane_execution": "PARALLEL_INDEPENDENT_PORTFOLIOS",
+    "batch_simulation_cumulative_realized_profit_always_visible": true,
+    "batch_simulation_stop_support": true,
+    "batch_simulation_result_json_csv_download": true,
+    "batch_simulation_result_api_persistence_best_effort": true,
+    "batch_simulation_unrealized_total_profit_always_visible": true,
+    "batch_simulation_event_metrics_always_visible": true,
+    "batch_simulation_close_semantics": "PROFIT_LOSS_BREAKEVEN_AND_EXIT_REASON_SPLIT",
+    "batch_simulation_target_ohlc_execution_guard": true,
+    "batch_simulation_compact_reference_tracking": true,
+    "batch_simulation_result_persistence": "FULL_JSON_SINGLE_FILE_PRIMARY_FALLBACK_RETRY"
   }
 }

@@ -1,13 +1,13 @@
 {
   "schema_version": "fx_simulation_run_profile_v0_1",
   "kind": "fx_simulation_run_profile",
-  "profile_id": "usdjpy_expansion_lite_v0_19",
-  "title": "USDJPY Expansion-Lite v0.18 — R3 Entry / R3.5-R4.5 Add-on / R5 Target",
-  "status": "draft_expansion_lite_directional_h1_cycle",
+  "profile_id": "usdjpy_parallel_rule_lanes_v0_23",
+  "title": "USDJPY Parallel Rule Lanes — NORMAL / Expansion / Expansion-Lite",
+  "status": "draft_parallel_independent_rule_lane_portfolios",
   "created_at": "2026-07-10T23:55:00+09:00",
   "updated_at": "2026-07-12",
   "phase": "v0.9.0.53-cycle-entry-window-independent-from-confirm",
-  "rule_version": "simulation_rule_v0_18_expansion_lite_cycle_entry_window_v0_20",
+  "rule_version": "simulation_rule_v0_17_1_normal_plus_v0_18_expansion_lite_cycle_entry_window_v0_20",
   "dataset": {
     "primary": {
       "dataset_id": "fx_usdjpy_m5_t3_data_v0_1",
@@ -268,7 +268,7 @@
     "copy_m5_trigger_decisions": true,
     "copy_execution_events": true
   },
-  "teacher_guard": "EXPANSION_LITE Rule Lane専用Profile。NORMAL / EXPANSIONのEntry・Add-on・Exit・Anchor Lifecycleを混ぜない。共通観測Stateだけを入力とし、Dayサイクル位置は使用しない。",
+  "teacher_guard": "NORMAL / EXPANSION / EXPANSION_LITEは独立Rule Lane・独立Tradeとしてパラレル走行する。同一M5足で複数LaneのEntry成立を許可し、条件・起点・Entry Opportunity・建玉・Close条件を相互流用しない。EXPANSIONはEntry条件未実装のため現在はWAITだが、並列Portfolio契約の対象に含める。",
   "time_sync_policy": {
     "reference_axis": "M5_CLOSE",
     "bar_timestamp_role": "open_time",
@@ -659,7 +659,7 @@
     "event_output": "run_snapshot.position_lifecycle.execution_events",
     "decision_event_output": "run_snapshot.position_lifecycle.decision_events",
     "chart_event_projection": "execution_events_only",
-    "teacher_guard": "Expansion-Lite専用。H1 Entry Windowは方向別の最新H1候補安値/高値から14本以内で判定する。候補点はCycle Gateだけに使い、他Rule LaneやHSI起点へ流用しない。",
+    "teacher_guard": "Rule Laneは独立してパラレル走行する。NORMALのCycle Late GuardはH1だけに適用し、H4 Cycle Lateは通常Entryを禁止しない。Expansion-Liteは専用のH1 Entry Window（14本以内）を使用し、NORMAL条件を流用しない。",
     "valuation_policy": {
       "unit_base_currency_amount": 1000,
       "display_currency": "JPY",
@@ -738,7 +738,7 @@
       "same_direction_reconfirmation_before_close_for_next_trade": "IGNORE_FOR_NEXT_NORMAL_ENTRY"
     },
     "close_execution_policy": {
-      "close_policy": "EXPANSION_LITE_ALL_CLOSE",
+      "close_policy": "OPEN_TRADE_RULE_LANE_SPECIFIC",
       "touch_source": "M5_HIGH_LOW",
       "stop_basis": "EXPANSION_LITE_DEFINED_EXIT_RULES",
       "target_basis": "R5_FROM_ADOPTED_DOW_HSI_ANCHOR",
@@ -748,7 +748,7 @@
       "normal_close_evaluator_id": "normal_m5_close_evaluator_v0_1",
       "expansion_close_evaluator_id": "expansion_close_evaluator_placeholder_v0_1",
       "expansion_lite_close_evaluator_id": "expansion_lite_close_evaluator_v0_1",
-      "normal_close_retires_entry_anchor": false,
+      "normal_close_retires_entry_anchor": true,
       "normal_close_next_state": "NOT_APPLICABLE",
       "expansion_lite_close_reasons": [
         "R5_EXIT",
@@ -758,19 +758,21 @@
       ]
     },
     "rule_lane_policy": {
-      "active_entry_rule_lane": "EXPANSION_LITE",
+      "active_entry_rule_lane": "PARALLEL_RULE_LANES",
       "allowed_entry_rule_lanes": [
+        "NORMAL",
+        "EXPANSION",
         "EXPANSION_LITE"
       ],
       "shared_fact_source": "TIMEFRAME_STATE_SNAPSHOT",
       "close_lane_source": "OPEN_TRADE_RULE_LANE",
       "arbitration": [
-        "ACTIVE_TRADE_CLOSE_LANE",
-        "EXPANSION_LITE_ENTRY_RULE_LANE"
+        "EVALUATE_EACH_RULE_LANE_INDEPENDENTLY",
+        "ALLOW_ALL_MATCHED_LANES_ON_SAME_BAR"
       ],
       "lanes": {
         "NORMAL": {
-          "enabled": false,
+          "enabled": true,
           "entry_evaluator_id": "normal_m5_entry_evaluator_v0_1",
           "close_evaluator_id": "normal_m5_close_evaluator_v0_1",
           "allowed_actions": [
@@ -803,7 +805,19 @@
           "other_rule_lane_fallback": "FORBIDDEN"
         }
       },
-      "other_rule_lane_fallback": "FORBIDDEN"
+      "other_rule_lane_fallback": "FORBIDDEN",
+      "enabled_entry_rule_lanes": [
+        "NORMAL",
+        "EXPANSION_LITE"
+      ],
+      "cross_lane_condition_sharing": "FORBIDDEN",
+      "parallel_entry_enabled": true,
+      "simultaneous_entry_policy": "ALLOW_ALL_MATCHED_LANES",
+      "parallel_capable_rule_lanes": [
+        "NORMAL",
+        "EXPANSION",
+        "EXPANSION_LITE"
+      ]
     },
     "expansion_lite_policy": {
       "rule_version": "v0.18",

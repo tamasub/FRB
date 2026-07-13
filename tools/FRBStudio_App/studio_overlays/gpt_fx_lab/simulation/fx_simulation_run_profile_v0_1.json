@@ -6,8 +6,8 @@
   "status": "draft_dow_breakout_threshold_entry_price",
   "created_at": "2026-07-10T23:55:00+09:00",
   "updated_at": "2026-07-12",
-  "phase": "v0.9.0.42-normal-anchor-retire-on-close",
-  "rule_version": "simulation_rule_v0_17_normal_anchor_trade_scoped_draft",
+  "phase": "v0.9.0.53-cycle-entry-window-independent-from-confirm",
+  "rule_version": "simulation_rule_v0_17_1_normal_h1_cycle_guard_plus_cycle_entry_window_v0_20",
   "dataset": {
     "primary": {
       "dataset_id": "fx_usdjpy_m5_t3_data_v0_1",
@@ -63,7 +63,10 @@
           "LATE": "CLOSED",
           "UNDETERMINED": "UNKNOWN"
         },
-        "note": "WEEKは高値づかみ回避を優先し、Expansion Seasonを保守的に早めに閉じる初期Draft。閾値は明示設定でありConfirm barsから計算しない。"
+        "note": "WEEKは高値づかみ回避を優先し、Expansion Seasonを保守的に早めに閉じる初期Draft。閾値は明示設定でありConfirm barsから計算しない。 Entry許可窓の初期値=20本。Swing Confirm barsとは独立し、Rule Laneが明示的に参照した場合だけ使用する。",
+        "entry_allowed_max_bars": 20,
+        "entry_allowed_max_bars_status": "INITIAL_DRAFT",
+        "entry_allowed_usage": "RULE_LANE_SPECIFIC_ONLY"
       }
     },
     {
@@ -94,7 +97,10 @@
           "LATE": "NOT_EXPANSION",
           "UNDETERMINED": "UNKNOWN"
         },
-        "note": "DAY 45本以内/45本超Warning/60本超Not Expansionの仮説をCycle Stateへ写像。"
+        "note": "DAY 45本以内/45本超Warning/60本超Not Expansionの仮説をCycle Stateへ写像。 Entry許可窓の初期値=45本。Swing Confirm barsとは独立し、Rule Laneが明示的に参照した場合だけ使用する。",
+        "entry_allowed_max_bars": 45,
+        "entry_allowed_max_bars_status": "INITIAL_DRAFT",
+        "entry_allowed_usage": "RULE_LANE_SPECIFIC_ONLY"
       }
     },
     {
@@ -125,7 +131,10 @@
           "LATE": "PROTECT",
           "UNDETERMINED": "UNKNOWN"
         },
-        "note": "H4 Cycle Maturityの初期Draft。利益確定やAdd-on禁止はこのStateだけでは決定しない。"
+        "note": "H4 Cycle Maturityの初期Draft。利益確定やAdd-on禁止はこのStateだけでは決定しない。 Entry許可窓の初期値=14本。Swing Confirm barsとは独立し、Rule Laneが明示的に参照した場合だけ使用する。",
+        "entry_allowed_max_bars": 14,
+        "entry_allowed_max_bars_status": "INITIAL_DRAFT",
+        "entry_allowed_usage": "RULE_LANE_SPECIFIC_ONLY"
       }
     },
     {
@@ -156,7 +165,10 @@
           "LATE": "LATE",
           "UNDETERMINED": "UNKNOWN"
         },
-        "note": "H1 Cycle Positionの初期Draft。Exit Trigger判定は後続Phase。"
+        "note": "H1 Cycle Positionの初期Draft。Exit Trigger判定は後続Phase。 Entry許可窓の初期値=14本。Swing Confirm barsとは独立し、Rule Laneが明示的に参照した場合だけ使用する。",
+        "entry_allowed_max_bars": 14,
+        "entry_allowed_max_bars_status": "INITIAL_DRAFT",
+        "entry_allowed_usage": "RULE_LANE_SPECIFIC_ONLY"
       }
     },
     {
@@ -187,7 +199,10 @@
           "LATE": "LATE",
           "UNDETERMINED": "UNKNOWN"
         },
-        "note": "M5 Cycle Positionの初期Draft。Entry/Close Executionは後続Phase。"
+        "note": "M5 Cycle Positionの初期Draft。Entry/Close Executionは後続Phase。 Entry許可窓の初期値=20本。Swing Confirm barsとは独立し、Rule Laneが明示的に参照した場合だけ使用する。",
+        "entry_allowed_max_bars": 20,
+        "entry_allowed_max_bars_status": "INITIAL_DRAFT",
+        "entry_allowed_usage": "RULE_LANE_SPECIFIC_ONLY"
       }
     }
   ],
@@ -647,7 +662,7 @@
     "event_output": "run_snapshot.position_lifecycle.execution_events",
     "decision_event_output": "run_snapshot.position_lifecycle.decision_events",
     "chart_event_projection": "execution_events_only",
-    "teacher_guard": "通常Entry v0.17はNORMAL Rule Laneだけで評価する。通常HSI起点はDow Confirmationから当該Normal TradeのCloseまで有効とし、CloseOK / CloseMissで即破棄する。次回通常EntryはClose後の新しいM5 Dow Confirmationと、その根拠となる新しいprevious Swingから新起点を採用する。Expansionの起点維持は参照しない。",
+    "teacher_guard": "通常Entry v0.17.1はNORMAL Rule Laneだけで評価する。Cycle Late GuardはH1だけに適用し、H4 Cycle Lateは通常Entryを禁止しない。通常HSI起点はDow Confirmationから当該Normal TradeのCloseまで有効とし、Close時に即破棄する。Expansionの条件・起点・Exitは参照しない。",
     "valuation_policy": {
       "unit_base_currency_amount": 1000,
       "display_currency": "JPY",
@@ -658,7 +673,7 @@
       "note": "仮想損益表示用。1単位=1,000通貨。手数料・スリッページ・税は含めない。"
     },
     "normal_entry_policy": {
-      "rule_version": "v0.17",
+      "rule_version": "v0.17.1",
       "direction_permission": "H4_H1_T3_SLOPE_AND_CLOSE_SIDE_PLUS_M5_DOW",
       "long_permission": [
         "H4_T3_UP",
@@ -677,7 +692,6 @@
       "h4_dow_required": false,
       "h1_m5_dow_match_required": false,
       "cycle_late_guard_timeframes": [
-        "H4",
         "H1"
       ],
       "cycle_late_entry_allowed": false,

@@ -230,7 +230,8 @@ async function runActualRangeScenario() {
 
   assert.ok(firstClose, '㉘Entryに対応する通常Closeが発生していません。');
   assert.equal(firstClose.simulation_time, '2025-10-30 09:49');
-  assert.ok(Math.abs(Number(firstClose.price) - 153.292) < 1e-9, `通常Close価格が不一致です: ${firstClose.price}`);
+  assert.ok(Math.abs(Number(firstClose.price) - 153.497) < 1e-9, `通常Close価格が不一致です: ${firstClose.price}`);
+  assert.equal(firstClose.execution?.target_fill_mode, 'OPEN_GAP_TARGET');
   assert.equal(firstClose.rule_lane, 'NORMAL');
   assert.equal(firstClose.evaluator_id, 'normal_m5_close_evaluator_v0_1');
   assert.equal(firstClose.execution?.rule_lane, 'NORMAL');

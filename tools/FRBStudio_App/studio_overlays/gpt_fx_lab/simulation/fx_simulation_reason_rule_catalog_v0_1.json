@@ -1000,8 +1000,8 @@
       "category": "Expansion-Lite"
     },
     {
-      "code": "EXPANSION_LITE_H1_CYCLE_FRONT_HALF",
-      "ja": "H1サイクルはConfirm基準本数の前半50%以内です。",
+      "code": "EXPANSION_LITE_H1_CYCLE_ENTRY_WINDOW_OK",
+      "ja": "H1の方向別Cycle起点からの経過本数が、H1 Entry許可上限14本以内です。",
       "category": "Expansion-Lite"
     },
     {
@@ -1030,8 +1030,8 @@
       "category": "Expansion-Lite"
     },
     {
-      "code": "EXPANSION_LITE_H1_CYCLE_NOT_FRONT_HALF",
-      "ja": "H1サイクルがConfirm基準本数の前半50%以内ではありません。",
+      "code": "EXPANSION_LITE_H1_CYCLE_ENTRY_WINDOW_EXCEEDED",
+      "ja": "H1の方向別Cycle起点からの経過本数が、H1 Entry許可上限14本を超えています。",
       "category": "Expansion-Lite"
     },
     {
@@ -1083,6 +1083,11 @@
       "code": "EXPANSION_LITE_ALL_POSITIONS_CLOSE",
       "ja": "Expansion-Lite本玉とすべての追撃玉を同時に全決済しました。",
       "category": "Expansion-Lite"
+    },
+    {
+      "code": "rule_normal_entry_v17_1_h1_cycle_late_guard",
+      "ja": "通常EntryのCycle Late GuardはH1だけに適用します。H4 Cycle Lateは観測情報として保持しますが、通常Entryを禁止しません。",
+      "category": "使用ルール"
     }
   ],
   "rule_ids": [
@@ -1600,8 +1605,8 @@
       "category": "Expansion-Lite"
     },
     {
-      "id": "rule_expansion_lite_h1_cycle_front_half",
-      "ja": "H1サイクルはConfirm基準本数の前半50%以内をEntry条件とする。",
+      "id": "rule_expansion_lite_h1_cycle_entry_window",
+      "ja": "Expansion-Liteは、H1方向別Cycle起点から14本以内だけEntryを許可する。Confirm barsはEntry許可本数の計算に使用しない。",
       "category": "Expansion-Lite"
     },
     {
