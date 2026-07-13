@@ -260,11 +260,41 @@
       "m5_window_unchanged": true,
       "sync_policy": "timestamp-based vertical guide; skip when outside panel range",
       "teacher_guard": "context display warmup only; no trend/entry/simulation logic added"
+    },
+    "entry_result_chart_navigation": {
+      "target": "new_tab",
+      "initial_layout": "M5_ENTRY",
+      "initial_upper_timeframe": "BOTH",
+      "reason": "Entry成績表とチャートを同時に見ながら検証し、遷移直後からM5実行EventとH1/H4文脈を表示する。"
     }
   },
   "changelog_file": "CHANGELOG.md",
-  "current_fx_chart_viewer_version": "v0.8.3.22-hsi-targets-no-y-scale",
+  "current_fx_chart_viewer_version": "v0.9.1.05-entry-result-new-tab-m5-h1-h4",
   "sidecar_files": [
     "sidecars/fx_usdjpy_m5_t3_data_v0_1.chart_comments.json"
-  ]
+  ],
+  "entry_result_chart_navigation": {
+    "enabled": true,
+    "source_data_pattern": "simulattion_集計/batch_*_entry_results.json",
+    "source_view_def": "view_defs/fx_batch_entry_results_view_def_v0_1.json",
+    "execute_action_id": "OpenFxEntryChartUrl",
+    "target_data": "data/fx_usdjpy_m5_t3_data_v0_1.json",
+    "target_view_def": "view_defs/fx_usdjpy_t3_view_def_v0_1.json",
+    "focus_fields": {
+      "time": "entry_time",
+      "price": "entry_price",
+      "trade_id": "trade_id",
+      "rule_lane": "rule_lane"
+    },
+    "url_focus_params": [
+      "focusTime",
+      "focusPrice",
+      "focusTradeId",
+      "focusLane",
+      "windowSize"
+    ],
+    "navigation_target": "same_tab",
+    "focus_behavior": "selected entry time centered + entry price locked crosshair",
+    "core_change": false
+  }
 }

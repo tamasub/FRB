@@ -17,7 +17,7 @@ const manifestPath = artifactPath('studio_overlays','gpt_fx_lab','plugins','fx_c
 const source = fs.readFileSync(pluginPath, 'utf8');
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 
-assert.equal(manifest.version, '0.9.1.01');
+assert.equal(manifest.version, '0.9.1.05');
 assert.equal(manifest.display_policy.batch_simulation_runner.enabled, true);
 assert.equal(manifest.display_policy.batch_simulation_runner.execution_mode, 'SEQUENTIAL_CASES');
 assert.equal(manifest.display_policy.batch_simulation_runner.show_cumulative_realized_profit, true);

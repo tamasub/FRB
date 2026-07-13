@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "FRB Studio / JSON Object Studio",
-    "version": "fx-batch-entry-results-view-v0.1"
+    "version": "fx-batch-entry-results-view-v0.1.3-new-tab-m5-h1-h4"
   },
   "currentDataDisplay": {
     "titlePath": "$.source_batch_run_id",
@@ -22,8 +22,28 @@
       "toolbar": {
         "executeButton": {
           "visible": true,
-          "caption": "表示中の成績表をMarkdown出力",
-          "action": "ExportMarkdown"
+          "caption": "▶ 選択Entryをチャートで開く",
+          "action": "OpenFxEntryChartUrl",
+          "chartNavigation": {
+            "data": "overlay/gpt_fx_lab/data/fx_usdjpy_m5_t3_data_v0_1.json",
+            "view": "overlay/gpt_fx_lab/view_defs/fx_usdjpy_t3_view_def_v0_1.json",
+            "action": "fx_chart",
+            "timeField": "entry_time",
+            "priceField": "entry_price",
+            "tradeIdField": "trade_id",
+            "laneField": "rule_lane",
+            "windowSize": 1000,
+            "wide": true,
+            "target": "new_tab",
+            "sideField": "side",
+            "rowIdField": "row_id",
+            "entryEventIdField": "entry_event_id",
+            "exitEventIdField": "exit_event_id",
+            "batchFileField": "source_batch_file",
+            "batchDataDirectory": "overlay/gpt_fx_lab/simulattion_集計/",
+            "chartLayout": "M5_ENTRY",
+            "upperTimeframe": "BOTH"
+          }
         }
       },
       "markdown": {

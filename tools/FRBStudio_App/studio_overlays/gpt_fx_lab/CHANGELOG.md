@@ -1,3 +1,35 @@
+## v0.9.1.05 - 2026-07-13
+
+- Entry成績表の「選択Entryをチャートで開く」を同一タブ遷移から新しいタブ起動へ変更。
+  - 成績表を残したまま、チャートを別タブまたはユーザー操作で別ウィンドウ化できる。
+- 遷移URLへ `chartLayout=M5_ENTRY` と `upperTf=BOTH` を明示。
+  - 初期表示を「M5実行」+「H1+H4」に固定し、選択TradeのEntry/Add-on/Closeマーカーをモード切替なしで確認できる。
+- `window.open(..., '_blank')` 後に `opener=null` とし、遷移元との不要な参照を切断。
+- Simulation判定・Batch結果・Entry/Exit Event内容は変更していない。表示導線のみの改善。
+
+# v0.9.1.04 — Entry成績表から選択Tradeの実行Eventをチャート投影
+
+- Entry成績表の遷移URLへ、元Batch JSON・Entry Event ID・Exit Event ID・Row ID・売買方向を追加。
+- 元 `batch_*.json` の `cases[].execution_events[]` から、選択した `trade_id + rule_lane` のEntry / Add-on / Close / Stop Closeを抽出。
+- 抽出Eventを既存Simulation Trace表示へ合流し、Entry/Close実行ラベル・指示線・小型終点ドットをチャートへ表示。
+- 選択Entryは黄色グローと「選択」表示で強調。Entry価格の固定十字も維持。
+- Batch JSONを読めない場合でも、URLのEntry時刻・価格から最低限のEntryマーカーを生成するfallbackを追加。
+- 同一 `trade_id` が別Laneに存在する場合の誤結合を防ぐため、Popover損益集計も `trade_id + rule_lane` で照合。
+- 固定Simulation Trace Sidecarは従来どおり読み込み、選択Trade Eventだけを重ねる。
+
+---
+
+# v0.9.1.03 — Entry成績表から該当チャートへURL遷移
+
+- `fx_batch_entry_results_view_def_v0_1.json` の主役ボタンを `OpenFxEntryChartUrl` へ変更。
+- 選択行の `entry_time` / `entry_price` / `trade_id` / `rule_lane` をURLへ渡す。
+- URL起動時にEntry時刻をM5 Window中央へ寄せ、Entry価格へ固定十字を表示。
+- 遷移先Data/ViewDef・field mappingはViewDefの `chartNavigation` 宣言で管理。
+- 選択行なし、Entry日時/価格なしは明示エラー。
+- `entry_result_chart_url_navigation_v0_1.test.cjs` を追加。
+
+---
+
 # Changelog
 
 ## 2026-07-13 — Entry Results ViewDef v0.1

@@ -5,12 +5,13 @@
   "kind": "action_plugin",
   "entry": "plugin.js",
   "actions": [
-    "OpenFxT3Chart"
+    "OpenFxT3Chart",
+    "OpenFxEntryChartUrl"
   ],
   "scope": "gpt_fx_lab overlay only",
   "core_change": false,
-  "description": "Batch Simulation Runner安全化・可観測性改善。完全版JSON単一ファイル保存（fallback/再試行）、約定価格の方向・OHLC安全柵、利益/損失Close・勝率・決済理由・実現/含み/評価損益のリアルタイム表示、進捗描画間引き、評価済みキー履歴の圧縮を追加する。",
-  "version": "0.9.1.01",
+  "description": "Entry成績表の選択行から新しいタブでM5実行 + H1+H4レイアウトを開き、元Batch JSONの選択Trade Entry/Add-on/Close Eventを実行マーカーとして投影する。固定十字と既存Simulation判断ポップオーバーも維持する。",
+  "version": "0.9.1.05",
   "signal_policy": {
     "visible_marker": "candidate_basis_retired_circle_marker",
     "removed_marker": "dow_structure_decision_arrow_marker",
@@ -344,7 +345,20 @@
       "M5": 20
     },
     "expansion_lite_h1_cycle_entry_allowed_max_bars": 14,
-    "expansion_lite_h4_cycle_entry_allowed_max_bars_reserved": 14
+    "expansion_lite_h4_cycle_entry_allowed_max_bars_reserved": 14,
+    "entry_result_chart_batch_trade_projection_support": true,
+    "entry_result_chart_batch_source": "source_batch_file -> cases[].execution_events[]",
+    "entry_result_chart_selected_trade_projection": [
+      "Entry",
+      "ReEntry",
+      "Add-on",
+      "CloseOK",
+      "CloseMiss"
+    ],
+    "entry_result_chart_focus_fallback_marker": true,
+    "entry_result_chart_navigation_target": "new_tab",
+    "entry_result_chart_initial_layout": "M5_ENTRY",
+    "entry_result_chart_initial_upper_timeframe": "BOTH"
   },
   "display_policy": {
     "high_low_range_style": {
@@ -1195,5 +1209,22 @@
     "batch_simulation_target_ohlc_execution_guard": true,
     "batch_simulation_compact_reference_tracking": true,
     "batch_simulation_result_persistence": "FULL_JSON_SINGLE_FILE_PRIMARY_FALLBACK_RETRY"
+  },
+  "entry_result_chart_navigation": {
+    "enabled": true,
+    "action_id": "OpenFxEntryChartUrl",
+    "source_view_def": "view_defs/fx_batch_entry_results_view_def_v0_1.json",
+    "target_data": "data/fx_usdjpy_m5_t3_data_v0_1.json",
+    "target_view_def": "view_defs/fx_usdjpy_t3_view_def_v0_1.json",
+    "focus_url_params": [
+      "focusTime",
+      "focusPrice",
+      "focusTradeId",
+      "focusLane",
+      "windowSize"
+    ],
+    "focus_behavior": "center_entry_time_and_lock_crosshair_at_entry_price",
+    "selected_row_required": true,
+    "teacher_guard": "navigation and observation only; no entry or exit decision changes"
   }
 }

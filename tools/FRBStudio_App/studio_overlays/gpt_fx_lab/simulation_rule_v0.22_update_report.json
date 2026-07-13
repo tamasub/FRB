@@ -1,0 +1,25 @@
+{
+  "version": "v0.22",
+  "updated_at": "2026-07-13",
+  "scope": "rule documents only",
+  "app_change": false,
+  "decision": {
+    "rule_lane": "NORMAL",
+    "guard": "H4 same-direction wave R4 entry guard",
+    "long": "LONG and H4 wave UP and H4 HSI progress >= R4 => block new NORMAL Long entry",
+    "short": "SHORT and H4 wave DOWN and H4 HSI progress >= R4 => block new NORMAL Short entry",
+    "day_trend_required": false,
+    "r4_exact_boundary": "BLOCK",
+    "reason_code": "NORMAL_H4_SAME_DIRECTION_R4_ENTRY_BLOCKED"
+  },
+  "unchanged": [
+    "EXPANSION_LITE v0.21 Day Up / H4 Down / R5 Short guard",
+    "future EXPANSION v0.21 Day Up / H4 Down / R5 Short guard",
+    "existing position hold/close/stop/target",
+    "Fibonacci retracement 0.382 remains future candidate"
+  ],
+  "files": [
+    "シュミレーションルール仮_v0.22.md",
+    "シュミレーションルール要約_v0.22.md"
+  ]
+}

@@ -1,4 +1,4 @@
-// gpt_fx_lab.fx_chart_viewer v0.9.1.01-batch-simulation-safety-observability
+// gpt_fx_lab.fx_chart_viewer v0.9.1.05-entry-result-new-tab-m5-h1-h4
 // Coreを変更せず、Overlay Plugin ActionとしてUSDJPY M5 + T3 + Dow candidate/basis/history静的チャートを表示する。
 // 上位足Decisionを入力にM5確定足で仮想Entry/保有/決済を実行し、1 Entry / 1 Position / 1 Stop / 1 TargetのLifecycleを原因Traceへ接続する。
 // Confirm bars を変えながら、Candidate / Active Basis / Retired Basis の違いを見える化する。
@@ -80,6 +80,9 @@
 // v0.9.0.53: Cycle Entry許可本数をConfirm barsから完全分離。時間足Profileのcycle.entry_allowed_max_barsを明示値として使用し、Expansion-Lite H1 Entry Windowは14本までとする。
 // v0.9.1.00: Batch Simulation Runnerを追加。Dataset×期間×Profile SnapshotをCase単位として逐次実行し、Case内Rule Laneは独立Portfolioでパラレル評価する。処理中画面には累計実現損益とLane別損益を常時表示し、中断判断を可能にする。
 // v0.9.1.01: Batch安全化。停止/完了結果を完全版JSON 1本で保存・再試行可能化し、Entry/決済/利益/損失/勝率/含み損益をリアルタイム表示。Target方向・OHLC約定安全柵、Close集計意味修正、進捗描画間引き、評価済みキー圧縮を追加。
+// v0.9.1.03: Entry成績表の選択行から、Entry時刻・価格をURLへ渡して該当M5付近を中央表示し、Entry位置へ固定十字を置くチャート遷移Actionを追加。
+// v0.9.1.04: Entry Resultsの元Batch JSONから選択TradeのEntry/Add-on/Close Eventを読み込み、該当チャートへ実行マーカーとして投影する。
+// v0.9.1.05: Entry成績表からのチャート遷移を新しいタブへ変更し、初期レイアウトをM5実行 + H1+H4へ固定する。
 // v0.9.0.33: 通常Entryを「1 Dow Confirmation ID = 最大1回のR2初回到達Entry = R2.5全Close」へ変更。同じ確認IDによる階段ReEntryを禁止。
 // v0.9.0.34: Dow確認時点ですでにR2へ到達済みなら、その確認EventをEntry Triggerとして即Entryする。R2.5到達済みなら見送り、未到達なら従来どおりR2初回到達を待つ。
 // v0.9.0.35: M5 Dow確認を「確定済み押し安値/戻り高値の後、直前構造高値/安値をM5確定足で突破した瞬間」へ変更。新しいDow確認Eventごとに1回だけEntryし、Entry地点より先の次HSI境界で全Closeする。
@@ -94,6 +97,7 @@
   // v0.8.3.31: DAY UpperMapにもDAY Confirm bars単位の縦点線を表示。設定はplugin.json day_upper_map_settings.show_confirm_stride_linesを正本にする。
   const PLUGIN_ID = 'gpt_fx_lab.fx_chart_viewer';
   const ACTION_ID = 'OpenFxT3Chart';
+  const ENTRY_CHART_URL_ACTION_ID = 'OpenFxEntryChartUrl';
   const URL_ACTION_ALIASES = ['fx_chart', 'openfxt3chart', 'openfxchartviewer', 'fxt3chart', 'gpt_fx_lab.fx_chart'];
   const DEFAULT_URL_DATA = 'overlay/gpt_fx_lab/data/fx_usdjpy_m5_t3_data_v0_1.json';
   const DEFAULT_URL_VIEW = 'overlay/gpt_fx_lab/view_defs/fx_usdjpy_t3_view_def_v0_1.json';
@@ -1924,12 +1928,134 @@
         panelKind: String(paramValue(params, ['hsiAnchorPanel', 'hsi_anchor_panel']) || 'M5').toUpperCase() === 'M5' ? 'm5' : 'upper'
       };
     }
+    const focusTimeRaw = paramValue(params, ['focusTime', 'focus_time', 'entryTime', 'entry_time']);
+    if (focusTimeRaw != null && String(focusTimeRaw).trim()) opts.focusTime = String(focusTimeRaw).trim();
+    const focusPriceRaw = paramValue(params, ['focusPrice', 'focus_price', 'entryPrice', 'entry_price']);
+    const focusPrice = numberOrNull(focusPriceRaw);
+    if (focusPrice != null) opts.focusPrice = focusPrice;
+    const focusTradeIdRaw = paramValue(params, ['focusTradeId', 'focus_trade_id', 'tradeId', 'trade_id']);
+    if (focusTradeIdRaw != null && String(focusTradeIdRaw).trim()) opts.focusTradeId = String(focusTradeIdRaw).trim();
+    const focusLaneRaw = paramValue(params, ['focusLane', 'focus_lane', 'ruleLane', 'rule_lane']);
+    if (focusLaneRaw != null && String(focusLaneRaw).trim()) opts.focusLane = String(focusLaneRaw).trim();
+    const focusBatchDataRaw = paramValue(params, ['focusBatchData', 'focus_batch_data', 'batchData', 'batch_data']);
+    const focusBatchData = validJsonParam(focusBatchDataRaw);
+    if (focusBatchData) opts.focusBatchData = focusBatchData;
+    const focusEntryEventIdRaw = paramValue(params, ['focusEntryEventId', 'focus_entry_event_id', 'entryEventId', 'entry_event_id']);
+    if (focusEntryEventIdRaw != null && String(focusEntryEventIdRaw).trim()) opts.focusEntryEventId = String(focusEntryEventIdRaw).trim();
+    const focusExitEventIdRaw = paramValue(params, ['focusExitEventId', 'focus_exit_event_id', 'exitEventId', 'exit_event_id']);
+    if (focusExitEventIdRaw != null && String(focusExitEventIdRaw).trim()) opts.focusExitEventId = String(focusExitEventIdRaw).trim();
+    const focusRowIdRaw = paramValue(params, ['focusRowId', 'focus_row_id', 'rowId', 'row_id']);
+    if (focusRowIdRaw != null && String(focusRowIdRaw).trim()) opts.focusRowId = String(focusRowIdRaw).trim();
+    const focusSideRaw = paramValue(params, ['focusSide', 'focus_side', 'side']);
+    if (focusSideRaw != null && String(focusSideRaw).trim()) opts.focusSide = String(focusSideRaw).trim().toUpperCase();
     return opts;
   }
 
   function chartOptionsFromContext(context = {}) {
     const raw = context.launchParams || context.urlParams || {};
     return { ...chartOptionsFromLocation(), ...chartOptionsFromParams(raw), ...(context.chartOptions || {}) };
+  }
+
+  function entryChartNavigationConfig(context = {}) {
+    const executeButton = context.executeButton || {};
+    const raw = executeButton.chartNavigation || executeButton.chart_navigation || {};
+    return {
+      data: String(raw.data || raw.targetData || raw.target_data || DEFAULT_URL_DATA).trim(),
+      view: String(raw.view || raw.targetView || raw.target_view || DEFAULT_URL_VIEW).trim(),
+      action: String(raw.action || raw.urlAction || raw.url_action || 'fx_chart').trim(),
+      timeField: String(raw.timeField || raw.time_field || 'entry_time').trim(),
+      priceField: String(raw.priceField || raw.price_field || 'entry_price').trim(),
+      tradeIdField: String(raw.tradeIdField || raw.trade_id_field || 'trade_id').trim(),
+      laneField: String(raw.laneField || raw.lane_field || 'rule_lane').trim(),
+      sideField: String(raw.sideField || raw.side_field || 'side').trim(),
+      rowIdField: String(raw.rowIdField || raw.row_id_field || 'row_id').trim(),
+      entryEventIdField: String(raw.entryEventIdField || raw.entry_event_id_field || 'entry_event_id').trim(),
+      exitEventIdField: String(raw.exitEventIdField || raw.exit_event_id_field || 'exit_event_id').trim(),
+      batchFileField: String(raw.batchFileField || raw.batch_file_field || 'source_batch_file').trim(),
+      batchDataDirectory: String(raw.batchDataDirectory || raw.batch_data_directory || 'overlay/gpt_fx_lab/simulattion_集計/').trim(),
+      windowSize: Math.max(10, Math.floor(numberOrNull(raw.windowSize ?? raw.window_size) ?? 1000)),
+      wide: raw.wide === true,
+      chartLayout: normalizeChartLayout(raw.chartLayout || raw.chart_layout || 'M5_ENTRY'),
+      upperTimeframe: normalizeUpperDisplayMode(raw.upperTimeframe || raw.upper_timeframe || raw.upperTf || raw.upper_tf || 'BOTH'),
+      target: String(raw.target || raw.openTarget || raw.open_target || 'new_tab').trim().toLowerCase()
+    };
+  }
+
+  function entryChartRowValue(row, field) {
+    if (!row || !field) return null;
+    return getPath(row, field);
+  }
+
+  function entryChartSourceData(context = {}) {
+    return context.sourceData
+      || context.getSourceData?.()
+      || (typeof window !== 'undefined' ? window.sourceData : null)
+      || null;
+  }
+
+  function joinEntryChartJsonPath(directory, fileName) {
+    const file = String(fileName || '').trim().replace(/\\/g, '/').replace(/^\/+/, '');
+    if (!file || !file.toLowerCase().endsWith('.json')) return '';
+    if (file.includes('/')) return validJsonParam(file);
+    const dir = String(directory || '').trim().replace(/\\/g, '/').replace(/\/+$/, '');
+    return validJsonParam(`${dir}/${file}`);
+  }
+
+  function entryChartBatchDataPath(context, config) {
+    const sourceData = entryChartSourceData(context);
+    const sourceBatchFile = String(getPath(sourceData, config.batchFileField) || '').trim();
+    return joinEntryChartJsonPath(config.batchDataDirectory, sourceBatchFile);
+  }
+
+  function buildEntryChartNavigationUrl(row, context = {}) {
+    if (!row || typeof row !== 'object') throw new Error('先にEntry成績表の行を選択してください。');
+    const config = entryChartNavigationConfig(context);
+    const entryTime = String(entryChartRowValue(row, config.timeField) ?? '').trim();
+    const entryPrice = numberOrNull(entryChartRowValue(row, config.priceField));
+    if (!entryTime) throw new Error(`選択行にEntry日時がありません: ${config.timeField}`);
+    if (entryPrice == null) throw new Error(`選択行にEntry価格がありません: ${config.priceField}`);
+
+    const url = new URL(location.href);
+    const versionParam = url.searchParams.get('ver');
+    url.search = '';
+    if (versionParam) url.searchParams.set('ver', versionParam);
+    url.searchParams.set('data', config.data);
+    url.searchParams.set('view', config.view);
+    url.searchParams.set('action', config.action);
+    url.searchParams.set('focusTime', entryTime);
+    url.searchParams.set('focusPrice', String(entryPrice));
+    url.searchParams.set('windowSize', String(config.windowSize));
+    url.searchParams.set('chartLayout', config.chartLayout);
+    url.searchParams.set('upperTf', config.upperTimeframe);
+    if (config.wide) url.searchParams.set('wide', '1');
+
+    const tradeId = String(entryChartRowValue(row, config.tradeIdField) ?? '').trim();
+    const lane = String(entryChartRowValue(row, config.laneField) ?? '').trim();
+    const side = String(entryChartRowValue(row, config.sideField) ?? '').trim().toUpperCase();
+    const rowId = String(entryChartRowValue(row, config.rowIdField) ?? '').trim();
+    const entryEventId = String(entryChartRowValue(row, config.entryEventIdField) ?? '').trim();
+    const exitEventId = String(entryChartRowValue(row, config.exitEventIdField) ?? '').trim();
+    const batchData = entryChartBatchDataPath(context, config);
+    if (tradeId) url.searchParams.set('focusTradeId', tradeId);
+    if (lane) url.searchParams.set('focusLane', lane);
+    if (side) url.searchParams.set('focusSide', side);
+    if (rowId) url.searchParams.set('focusRowId', rowId);
+    if (entryEventId) url.searchParams.set('focusEntryEventId', entryEventId);
+    if (exitEventId) url.searchParams.set('focusExitEventId', exitEventId);
+    if (batchData) url.searchParams.set('focusBatchData', batchData);
+    return { url, config, entryTime, entryPrice, tradeId, lane, side, rowId, entryEventId, exitEventId, batchData };
+  }
+
+  function navigateToEntryChart(row, context = {}) {
+    const navigation = buildEntryChartNavigationUrl(row, context);
+    if (navigation.config.target === 'new_tab' || navigation.config.target === '_blank') {
+      const opened = window.open(navigation.url.toString(), '_blank');
+      if (!opened) throw new Error('チャート画面を開けませんでした。ブラウザのポップアップ設定を確認してください。');
+      try { opened.opener = null; } catch { /* browser security policy */ }
+    } else {
+      location.href = navigation.url.toString();
+    }
+    return navigation;
   }
 
   function normalizeHsiDirection(value) {
@@ -2441,6 +2567,127 @@
     const trace = normalizeSimulationTrace(data, source);
     trace._loaded_from = from;
     return trace;
+  }
+
+  function batchSimulationExecutionEvents(batchRun) {
+    return (Array.isArray(batchRun?.cases) ? batchRun.cases : [])
+      .flatMap(item => Array.isArray(item?.execution_events) ? item.execution_events : []);
+  }
+
+  function focusedTradeExecutionEvents(batchRun, focus) {
+    const tradeId = String(focus?.trade_id || '').trim();
+    const lane = String(focus?.rule_lane || '').trim().toUpperCase();
+    const entryEventId = String(focus?.entry_event_id || '').trim();
+    const allEvents = batchSimulationExecutionEvents(batchRun);
+    let selected = allEvents.filter(event => {
+      if (tradeId && String(event?.trade_id || '') !== tradeId) return false;
+      const eventLane = String(event?.rule_lane || event?.execution?.rule_lane || '').trim().toUpperCase();
+      if (lane && eventLane !== lane) return false;
+      return Boolean(tradeId || (entryEventId && String(event?.event_id || '') === entryEventId));
+    });
+    if (!selected.length && entryEventId) {
+      const entryEvent = allEvents.find(event => String(event?.event_id || '') === entryEventId);
+      if (entryEvent) {
+        const resolvedTradeId = String(entryEvent.trade_id || '').trim();
+        const resolvedLane = String(entryEvent.rule_lane || entryEvent.execution?.rule_lane || '').trim().toUpperCase();
+        selected = allEvents.filter(event => String(event?.trade_id || '') === resolvedTradeId
+          && String(event?.rule_lane || event?.execution?.rule_lane || '').trim().toUpperCase() === resolvedLane);
+      }
+    }
+    return selected.sort((a, b) => {
+      const timeDiff = (parseDateTimeMs(a?.simulation_time) ?? 0) - (parseDateTimeMs(b?.simulation_time) ?? 0);
+      if (timeDiff !== 0) return timeDiff;
+      return (numberOrNull(a?.case_step_no) ?? 0) - (numberOrNull(b?.case_step_no) ?? 0);
+    });
+  }
+
+  function focusedEntryFallbackEvent(focus) {
+    if (!focus?.time || numberOrNull(focus?.price) == null) return null;
+    const lane = String(focus.rule_lane || 'NORMAL').toUpperCase();
+    const side = String(focus.side || '').toUpperCase();
+    const label = lane === RULE_LANE_EXPANSION_LITE
+      ? `Expansion-Lite Entry${side ? ` ${side}` : ''}`
+      : `Entry${side ? ` ${side}` : ''}`;
+    return {
+      event_id: focus.entry_event_id || `focused_entry_${focus.time_ms || compactTimestamp()}`,
+      source_type: SIMULATION_TRACE_SOURCE_TYPE,
+      generated_by: M5_EXECUTION_GENERATOR,
+      event_type: 'entry',
+      event_class: 'EXECUTION',
+      simulation_time: focus.time,
+      timeframe: 'M5',
+      panel: 'M5',
+      price: numberOrNull(focus.price),
+      trade_id: focus.trade_id || '',
+      rule_lane: lane,
+      summary: `選択Entry${side ? ` ${side}` : ''} / ${round3(focus.price)}`,
+      reason_codes: ['ENTRY_RESULT_CHART_FOCUS_FALLBACK'],
+      rule_ids: [],
+      execution: {
+        action: 'ENTRY',
+        rule_lane: lane,
+        side,
+        price: numberOrNull(focus.price),
+        entry_price: numberOrNull(focus.price),
+        chart_marker_label: label
+      },
+      display: { visible: true, open: false, pinned: true, focused: true, style: 'execution_entry_focus_fallback' }
+    };
+  }
+
+  function mergeFocusedTradeProjection(state, source, rawEvents, loadedFrom) {
+    const focus = state?.entryFocus;
+    const normalized = normalizeSimulationTrace({ events: rawEvents || [] }, source).events.map(event => {
+      const eventType = simulationRuleAwareEventType(event);
+      const isFocusedEntry = String(event.event_id || '') === String(focus?.entry_event_id || '')
+        || (!focus?.entry_event_id && ['entry', 'reentry'].includes(eventType));
+      const side = String(event?.execution?.side || focus?.side || '').toUpperCase();
+      const lane = String(event?.rule_lane || event?.execution?.rule_lane || focus?.rule_lane || '').toUpperCase();
+      const currentLabel = String(event?.execution?.chart_marker_label || '').trim();
+      event.execution = { ...(event.execution || {}) };
+      if (isFocusedEntry && !currentLabel) {
+        event.execution.chart_marker_label = lane === RULE_LANE_EXPANSION_LITE
+          ? `Expansion-Lite Entry${side ? ` ${side}` : ''}`
+          : `Entry${side ? ` ${side}` : ''}`;
+      }
+      event.display = {
+        ...(event.display || {}),
+        visible: true,
+        open: false,
+        pinned: true,
+        focused: isFocusedEntry,
+        batch_focus: true
+      };
+      return event;
+    });
+    const fallback = normalized.length ? null : focusedEntryFallbackEvent(focus);
+    const additions = fallback ? normalizeSimulationTrace({ events: [fallback] }, source).events.map(event => ({
+      ...event,
+      display: { ...(event.display || {}), visible: true, pinned: true, focused: true, batch_focus: true }
+    })) : normalized;
+    const byId = new Map((state.simulationTraceEvents || []).map(event => [String(event.event_id || ''), event]));
+    additions.forEach(event => byId.set(String(event.event_id || ''), event));
+    state.simulationTraceEvents = [...byId.values()];
+    state.entryFocusProjectionStatus = additions.length
+      ? `loaded:${loadedFrom} / Trade Event ${additions.length}件`
+      : 'focus projection unavailable';
+    return additions;
+  }
+
+  async function loadEntryFocusBatchProjection(state, source) {
+    const focus = state?.entryFocus;
+    if (!focus) return [];
+    const batchDataPath = validJsonParam(focus.batch_data_path);
+    if (!batchDataPath) return mergeFocusedTradeProjection(state, source, [], 'URL fallback');
+    try {
+      const loaded = await loadUpperMapDataSource(batchDataPath);
+      const events = focusedTradeExecutionEvents(loaded.source, focus);
+      return mergeFocusedTradeProjection(state, source, events, `${loaded.from}:${batchDataPath}`);
+    } catch (err) {
+      console.warn('[GPT FX Lab] focused batch trade projection load failed', err);
+      state.entryFocusProjectionStatus = `batch load failed:${batchDataPath}`;
+      return mergeFocusedTradeProjection(state, source, [], 'URL fallback');
+    }
   }
 
   function getSimulationRunProfileFileName() {
@@ -11929,6 +12176,7 @@
     const isEntry = ['entry', 'reentry', 'add_on'].includes(type);
     const isMiss = type === 'stop_close';
     const liveFlash = event?.display?.live_flash === true;
+    const focused = event?.display?.focused === true;
     const preferredSide = simulationExecutionMarkerPlacementSide(event);
     const leaderColor = isExpansionLiteEntry
       ? 'rgba(196, 181, 253, 0.98)'
@@ -11938,9 +12186,9 @@
           ? 'rgba(74,222,128,0.96)'
           : 'rgba(96,165,250,0.96)';
     ctx.save();
-    if (liveFlash) {
-      ctx.shadowColor = leaderColor;
-      ctx.shadowBlur = 18;
+    if (liveFlash || focused) {
+      ctx.shadowColor = focused ? 'rgba(250, 204, 21, 0.96)' : leaderColor;
+      ctx.shadowBlur = focused ? 22 : 18;
     }
     ctx.font = '900 11px system-ui, sans-serif';
     const width = Math.max(46, Math.ceil(ctx.measureText(label).width + 18));
@@ -12060,11 +12308,11 @@
     ctx.fill();
     ctx.stroke();
 
-    if (liveFlash) {
+    if (focused || liveFlash) {
       ctx.font = '900 9px system-ui, sans-serif';
       ctx.textBaseline = 'bottom';
       ctx.fillStyle = 'rgba(254, 249, 195, 0.99)';
-      ctx.fillText('NEW', x0 + width / 2, Math.max(pad.top + 10, y0 - 3));
+      ctx.fillText(focused ? '選択' : 'NEW', x0 + width / 2, Math.max(pad.top + 10, y0 - 3));
     }
     ctx.restore();
     return {
@@ -13031,8 +13279,14 @@
 
   function simulationTradeEntryEvent(traceEvent, state) {
     const tradeId = String(traceEvent?.trade_id || '');
+    const lane = String(traceEvent?.rule_lane || traceEvent?.execution?.rule_lane || '').toUpperCase();
     if (!tradeId) return null;
-    return (state?.simulationTraceEvents || []).find(event => String(event?.trade_id || '') === tradeId && ['entry', 'reentry'].includes(String(event?.event_type || '').toLowerCase())) || null;
+    return (state?.simulationTraceEvents || []).find(event => {
+      const eventLane = String(event?.rule_lane || event?.execution?.rule_lane || '').toUpperCase();
+      return String(event?.trade_id || '') === tradeId
+        && (!lane || eventLane === lane)
+        && ['entry', 'reentry'].includes(String(event?.event_type || '').toLowerCase());
+    }) || null;
   }
 
   function simulationTradeStopAnnotation(entryEvent, state) {
@@ -13062,7 +13316,12 @@
       if (currentRunId && String(event?.run_id || '') && String(event?.run_id || '') !== currentRunId) return false;
       return true;
     });
-    const sameTradeEvents = throughCurrent.filter(event => String(event?.trade_id || '') === String(traceEvent?.trade_id || ''));
+    const traceLane = String(traceEvent?.rule_lane || traceEvent?.execution?.rule_lane || '').toUpperCase();
+    const sameTradeEvents = throughCurrent.filter(event => {
+      const eventLane = String(event?.rule_lane || event?.execution?.rule_lane || '').toUpperCase();
+      return String(event?.trade_id || '') === String(traceEvent?.trade_id || '')
+        && (!traceLane || eventLane === traceLane);
+    });
     const eventRealizedJpy = event => {
       const explicit = numberOrNull(event?.execution?.realized_profit_jpy);
       if (explicit != null) return explicit;
@@ -13132,7 +13391,7 @@
       return;
     }
     const body = backdrop.querySelector('[data-role="body"]');
-    const runId = state.simulationTrace?.run?.run_id || traceEvent.run_id || '-';
+    const runId = traceEvent.batch_run_id || traceEvent.run_id || state.simulationTrace?.run?.run_id || '-';
     const catalog = state.simulationReasonRuleCatalog || buildEmptySimulationReasonRuleCatalog();
     const judgment = simulationJapaneseJudgment(traceEvent, catalog);
     const reasonRows = simulationCatalogRows(traceEvent.reason_codes, catalog, 'reason', traceEvent);
@@ -13330,7 +13589,9 @@
   }
 
   function currentJsonParam(inputId, fallback) {
-    const value = typeof document !== 'undefined' ? document.getElementById(inputId)?.value : '';
+    const value = typeof document !== 'undefined' && typeof document.getElementById === 'function'
+      ? document.getElementById(inputId)?.value
+      : '';
     return validJsonParam(value) || fallback;
   }
 
@@ -14460,6 +14721,7 @@
       `Cycle VLine=${(state.cycleVerticalAnnotations || []).length}`,
       `User Comments=${(state.comments || []).length} / ${state.showUserComments === false ? 'hidden' : (state.showAllComments ? 'all open' : 'icons')} / ${state.commentSaveStatus || 'sidecar loading'}`,
       `Simulation Trace=${(state.simulationTraceEvents || []).length} / ${state.showSimulationComments === false ? 'hidden' : (state.showAllSimulationComments ? 'all labels' : 'icons')} / ${state.simulationTraceLoadStatus || 'trace loading'}`,
+      ...(state.entryFocus ? [`Entry Focus=${state.entryFocus.trade_id || '-'} / ${state.entryFocus.rule_lane || '-'} / ${state.entryFocusProjectionStatus || 'loading'}`] : []),
       `Run Profile=${state.simulationRunValidation?.valid === true ? 'READY' : 'NOT READY'} / ${state.simulationRunProfileLoadStatus || 'loading'} / Snapshot=${state.simulationRunSnapshot?.run_id || 'none'}`,
       `Visible Range Simulation=${state.simulationRangeRunInProgress ? 'RUNNING' : (state.simulationRangeRunSnapshot?.run_id || 'none')} / ${state.simulationRangeRunStatus || '未実行'}`,
       `Dow State=${REQUIRED_SIMULATION_TIMEFRAMES.map(tf => `${tf}:${state.simulationDowTrendSnapshot?.timeframes?.[tf]?.trend_state || '-'}`).join(' / ')}`,
@@ -15837,14 +16099,23 @@
     const upperSettings = getUpperTimeframeSettings(source);
     const layoutSettings = getChartLayoutSettings(source);
     const launchOptions = { ...chartOptionsFromLocation(), ...(options || {}) };
+    const initialWindowSize = Math.max(windowSettings.min_size, Math.floor(numberOrNull(launchOptions.windowSize) ?? windowSettings.default_size));
+    const focusTimeMs = parseDateTimeMs(launchOptions.focusTime);
+    const focusPrice = numberOrNull(launchOptions.focusPrice);
+    let initialWindowStart = numberOrNull(launchOptions.windowStart);
+    if (initialWindowStart == null && focusTimeMs != null && allRows.length) {
+      const focusIndex = nearestIndexForTime(allRows, focusTimeMs);
+      if (focusIndex != null) initialWindowStart = clampWindowStart(focusIndex - Math.floor(initialWindowSize / 2), initialWindowSize, allRows.length);
+    }
+    const hasEntryFocus = focusTimeMs != null && focusPrice != null;
     const state = {
       widthMultiplier: launchOptions.widthMultiplier || 1,
       confirmBars: Math.max(3, Math.floor(numberOrNull(launchOptions.confirmBars) ?? initialSettings.confirm_bars)),
       viewMode: viewModeFromParam(launchOptions.viewMode, 'all'),
       showHighLowRange: launchOptions.showHighLowRange ?? true,
       showBollinger: launchOptions.showBollinger ?? false,
-      windowSize: Math.max(windowSettings.min_size, Math.floor(numberOrNull(launchOptions.windowSize) ?? windowSettings.default_size)),
-      windowStart: numberOrNull(launchOptions.windowStart),
+      windowSize: initialWindowSize,
+      windowStart: initialWindowStart,
       chartLayout: normalizeChartLayout(launchOptions.chartLayout ?? layoutSettings.default_layout),
       upperTimeframe: normalizeUpperDisplayMode(launchOptions.upperTimeframe ?? upperSettings.default_timeframe),
       upperConfirmBars: Math.max(3, Math.floor(numberOrNull(launchOptions.upperConfirmBars) ?? upperSettings.confirm_bars)),
@@ -15856,10 +16127,25 @@
       upperMapSource: null,
       upperMapAllRows: [],
       upperMapLoadStatus: 'loading',
-      hoverTimeMs: null,
-      crosshair: { visible: false, locked: false, panelKind: '', timeMs: null, rowIndex: null, price: null },
-      syncCenterTimeMs: null,
-      syncCenterSourcePanel: '',
+      hoverTimeMs: hasEntryFocus ? focusTimeMs : null,
+      crosshair: hasEntryFocus
+        ? { visible: true, locked: true, panelKind: 'm5', timeMs: focusTimeMs, rowIndex: null, price: focusPrice }
+        : { visible: false, locked: false, panelKind: '', timeMs: null, rowIndex: null, price: null },
+      syncCenterTimeMs: focusTimeMs,
+      syncCenterSourcePanel: hasEntryFocus ? 'm5' : '',
+      entryFocus: hasEntryFocus ? {
+        time: String(launchOptions.focusTime || ''),
+        time_ms: focusTimeMs,
+        price: focusPrice,
+        trade_id: String(launchOptions.focusTradeId || ''),
+        rule_lane: String(launchOptions.focusLane || ''),
+        side: String(launchOptions.focusSide || '').toUpperCase(),
+        row_id: String(launchOptions.focusRowId || ''),
+        entry_event_id: String(launchOptions.focusEntryEventId || ''),
+        exit_event_id: String(launchOptions.focusExitEventId || ''),
+        batch_data_path: String(launchOptions.focusBatchData || '')
+      } : null,
+      entryFocusProjectionStatus: hasEntryFocus ? 'batch trade projection loading' : 'not requested',
       syncWindowToTimeMs: null,
       hsiValuesText: normalizeHsiValuesText(launchOptions.hsiValuesText ?? hsiSettings.valuesText),
       hsiScale: numberOrNull(launchOptions.hsiScale) ?? hsiSettings.scale,
@@ -16295,7 +16581,7 @@
       redraw();
     });
 
-    loadSimulationTraceSidecar(source).then(trace => {
+    loadSimulationTraceSidecar(source).then(async trace => {
       state.simulationTrace = trace;
       state.simulationTraceEvents = trace.events || [];
       state.simulationHsiAnnotations = cloneJsonValue((trace.simulation_hsi_annotations || []).length ? trace.simulation_hsi_annotations : (trace.range_run?.simulation_hsi_annotations || []));
@@ -16309,6 +16595,7 @@
         const summary = trace.range_run.summary || {};
         state.simulationRangeRunStatus = `読込済: Entry ${summary.entry_count || 0} / CloseOK ${summary.close_ok_count || 0} / CloseMiss ${summary.close_miss_count || 0}`;
       }
+      await loadEntryFocusBatchProjection(state, source);
       renderSimulationRunDialog(backdrop, state);
       redraw();
     }).catch(err => {
@@ -16317,7 +16604,7 @@
       state.simulationTraceEvents = [];
       state.simulationHsiAnnotations = [];
       state.simulationTraceLoadStatus = 'trace load failed';
-      redraw();
+      loadEntryFocusBatchProjection(state, source).finally(() => redraw());
     });
 
     loadSimulationReasonRuleCatalog().then(catalog => {
@@ -16945,6 +17232,16 @@
     id: PLUGIN_ID,
     activate(studio) {
       pluginManifest = studio?.plugin?.manifest || studio?.plugin?.indexItem || null;
+      studio.registerAction(ENTRY_CHART_URL_ACTION_ID, async (context = {}) => {
+        const row = context.selectedRow || context.getSelectedRow?.() || null;
+        const sourceData = context.getSourceData?.() || studio.getSourceData?.() || (typeof window !== 'undefined' ? window.sourceData : null);
+        const navigation = navigateToEntryChart(row, { ...context, sourceData });
+        return {
+          message: `新しいタブでEntryチャートを開きます: ${navigation.entryTime} / ${navigation.lane || '-'} / ${navigation.entryPrice}`,
+          status_kind: 'success',
+          status_title: 'GPT FX Lab'
+        };
+      }, ['OpenSelectedFxEntryChart', 'OpenEntryChartUrl']);
       studio.registerAction(ACTION_ID, async (context = {}) => {
         const source = context.getSourceData?.() || studio.getSourceData?.() || window.sourceData;
         if (!source || typeof source !== 'object') {

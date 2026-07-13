@@ -6,13 +6,13 @@
   "target": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer",
   "status": "active",
   "created_at": "2026-07-05",
-  "updated_at": "2026-07-13T20:50:00+09:00",
+  "updated_at": "2026-07-13T22:30:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "GPT FX Lab の fx_chart_viewer が、単なるチャート表示から、M5/H1/H4同期観測、HSI仮説可視化、コメント/判断ログ共有へ育っていくため、Studio本体インシデントとは別枠で改修履歴・判断ログ・将来要望を管理する。",
   "operation_policy": "ViewDefは既存の studio_work_incident_view_def_v0_5.json を共通利用する。fx_chart_viewer固有の作業はこの専用インシデントファイルへ登録し、Studio本体汎用機能とドメイン専用Overlay機能を混ぜない。実装パッチでは、更新ファイルのみZIP返却し、未更新ファイルや.bakを含めない。",
   "standard_field_policy": "このファイルは既存インシデント管理Dataの構造を踏襲する。work_item_id / phase / status / discussion_history / decision_log / change_history 等は、インシデント管理Dataの契約として扱う。",
-  "items_count": 29,
+  "items_count": 32,
   "main_context_status": "draft",
   "main_context_updated_at": "2026-07-12T19:38:58+09:00",
   "main_context_draft": "# 主文脈素案: インシデント管理Data\n\n## 読む目的\nこのインシデント管理Data全体を扱うAIが、作業前に読むべき正本・ViewDef・Foundation Rules・Runtime対象を確認できるようにする。\n\n## 基本方針\n- Data JSONを作業台帳の正本として扱う。\n- ViewDefは表示・編集体験の定義として扱う。\n- 主文脈はData全体を扱う前に読む入口、対象文脈は各作業項目を扱う前に読む入口として分ける。\n- グリッドは編集用、プレビューは読むためのUIとして分離する。\n\n## 注意\nFoundation Rule 19のZIP返却契約とdiscussion_history実発言契約を優先する。",
@@ -2825,6 +2825,180 @@
       "actual_updated_files": "studio_overlays/gpt_fx_lab/view_defs/fx_batch_entry_results_view_def_v0_1.json\nstudio_overlays/gpt_fx_lab/studio_manifest.json\nstudio_overlays/gpt_fx_lab/simulation/tools/build_entry_result_rows_v0_1.cjs\nstudio_overlays/gpt_fx_lab/simulation/tools/README_entry_result_rows_v0_1.md\nstudio_overlays/gpt_fx_lab/simulattion_集計/batch_20260712_200928_entry_results.json\nstudio_overlays/gpt_fx_lab/simulattion_集計/batch_20260712_230503_entry_results.json\nstudio_overlays/gpt_fx_lab/tests/entry_result_rows_builder_v0_1.test.cjs\nstudio_overlays/gpt_fx_lab/CHANGELOG.md\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4_batch_simulation_registered.json",
       "completion_summary": "Entry Result RowsをStudioくんで結果・損益・Entry理由・終了理由まで確認できるreadonly成績表Viewへ接続。",
       "test_result": "Schema/field contract/entry_result_rows_builder_v0_1 PASS。"
+    },
+    {
+      "work_item_id": "fx_chart_viewer_work_0030",
+      "parent_work_item_id": "fx_chart_viewer_work_0027",
+      "phase": "v0.9.1.03-entry-result-chart-url-navigation",
+      "title": "Entry成績表→該当チャートURL遷移：選択Entry時刻を中央表示して固定十字で指す",
+      "incident_type": "batch_result_chart_navigation",
+      "category": "GPT FX Lab / Batch Simulation / Result Review / Chart Navigation",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-13",
+      "updated_at": "2026-07-13T21:55:00+09:00",
+      "target_files": "studio_overlays/gpt_fx_lab/view_defs/fx_batch_entry_results_view_def_v0_1.json\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/studio_manifest.json\nstudio_overlays/gpt_fx_lab/tests/entry_result_chart_url_navigation_v0_1.test.cjs\nstudio_overlays/gpt_fx_lab/CHANGELOG.md",
+      "objective": "Entry成績表で選択した1 TradeのEntry地点へ、チャート画面を探し直さずURL遷移できるようにする。",
+      "background": "Entry成績表で結果・理由・損益は読めるようになったが、そのEntryがチャート上のどの局面だったかを確認するには日時を手作業で探す必要があった。",
+      "scope": "ViewDef主役ボタンをチャート遷移Actionへ変更し、選択行のEntry日時・価格・Trade ID・LaneをURLへ渡す。チャート起動時はEntry時刻を1000本Window中央へ寄せ、Entry価格に固定十字を表示する。",
+      "out_of_scope": "売買ルール変更、Simulation再実行、Entry/Exit判定変更、Core Runtime変更、Entry結果JSONの構造変更は対象外。",
+      "fixed_name_policy": "行フィールド名と遷移先Data/ViewDefはViewDefのchartNavigation宣言で指定し、Plugin Runtimeへ個別Data固定名を増やさない。",
+      "module_policy": "URL生成とFocus解釈はgpt_fx_lab.fx_chart_viewer Plugin内へ閉じ、Core ActionRegistryは既存selectedRow Contextをそのまま利用する。",
+      "expected_outputs": "選択Entryをチャートで開くボタン\nfocusTime/focusPrice付きURL\nEntry時刻中央Window\nEntry価格固定十字\n選択行なし時の明示エラー\n回帰テスト",
+      "risk": "未選択行で誤ったEntryへ飛ぶこと、Entry時刻がWindow外になること、Entry Results JSONをチャートDataとして直接開こうとして失敗すること。",
+      "test_points": "selectedRow必須。ViewDef宣言のtimeField/priceFieldを読むこと。target Data/Viewへ遷移すること。focusTime/Price/Trade/LaneをURLへ保持すること。Focus時刻を中央化し固定十字を表示すること。",
+      "user_request": "Entry成績表の主役ボタンを、該当エントリー付近のチャートへURL遷移するボタンにしたい。",
+      "ai_response": "選択Entryの日時・価格をURLへ埋め込み、FXチャートをEntry付近へ中央表示して固定十字を置くActionへ変更した。",
+      "decision_log": [
+        {
+          "decision_id": "dec_fx_chart_viewer_0030_001",
+          "at": "2026-07-13T21:55:00+09:00",
+          "decision": "同一タブでURL遷移し、ブラウザの戻る操作で成績表へ戻れるようにする。",
+          "reason": "ユーザー要望がURL遷移であり、ポップアップ制限を受けず確実に開くため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0030_002",
+          "at": "2026-07-13T21:55:00+09:00",
+          "decision": "Entry時刻だけでなくEntry価格もURLへ渡し、初期表示時に固定十字を出す。",
+          "reason": "付近へ移動するだけでなく、対象Entry地点を一目で特定できるようにするため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0030_003",
+          "at": "2026-07-13T21:55:00+09:00",
+          "decision": "Field mappingと遷移先はViewDefのchartNavigationへ宣言する。",
+          "reason": "Runtimeへentry_time等のData固定名を埋め込まず、ViewDefを体験設計書として保つため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_fx_chart_viewer_0030_001",
+          "at": "2026-07-13T21:55:00+09:00",
+          "change_type": "entry_result_chart_navigation_added",
+          "before": "成績表からチャート局面を確認するにはEntry日時を手動で探す必要があった。",
+          "after": "行選択→主役ボタンでEntry時刻中央・Entry価格固定十字のチャートへ遷移できる。",
+          "reason": "結果表とチャート検証を1クリックで往復するため。"
+        }
+      ],
+      "verification_status": "ViewDef Schema v0.9 PASS / Plugin構文PASS / URL Action回帰テストPASS / 全NodeテストPASS",
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/view_defs/fx_batch_entry_results_view_def_v0_1.json\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/studio_manifest.json\nstudio_overlays/gpt_fx_lab/tests/entry_result_chart_url_navigation_v0_1.test.cjs\nstudio_overlays/gpt_fx_lab/tests/*.test.cjs（version期待値更新）\nstudio_overlays/gpt_fx_lab/CHANGELOG.md\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4_batch_simulation_registered.json",
+      "completion_summary": "Entry成績表の選択行から、該当EntryのM5チャートへURL遷移。Entry日時をWindow中央へ寄せ、Entry価格に固定十字を表示する。",
+      "test_result": "PASS entry_result_chart_url_navigation_v0_1 / Plugin syntax PASS / existing regression tests PASS。"
+    },
+    {
+      "work_item_id": "fx_chart_viewer_work_0031",
+      "parent_work_item_id": "fx_chart_viewer_work_0027",
+      "phase": "v0.9.1.04-entry-result-batch-trade-projection",
+      "title": "Entry成績表→チャート：元Batchの選択Trade実行EventをEntry/Add-on/Closeマーカーとして投影",
+      "incident_type": "batch_result_chart_execution_projection",
+      "category": "GPT FX Lab / Batch Simulation / Result Review / Chart Projection",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-13",
+      "updated_at": "2026-07-13T21:14:41+09:00",
+      "target_files": "studio_overlays/gpt_fx_lab/view_defs/fx_batch_entry_results_view_def_v0_1.json\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/studio_manifest.json\nstudio_overlays/gpt_fx_lab/tests/entry_result_chart_url_navigation_v0_1.test.cjs\nstudio_overlays/gpt_fx_lab/CHANGELOG.md",
+      "objective": "Entry成績表から開いたチャート上で、選択Entryの場所だけでなく、そのTradeのEntry・Add-on・決済Eventを既存Simulation実行マーカーとして一目で確認できるようにする。",
+      "background": "work_0030ではEntry日時中央表示と固定十字まで実装したが、チャートが読むSimulation Trace Sidecarは過去の表示範囲Run 4 Eventだけで、Batch Runの263 Eventは読み込んでいなかった。そのため選択Entryの実行ラベルが表示されなかった。",
+      "scope": "遷移元Entry Resultsのsource_batch_fileから元Batch JSONパスをURLへ渡し、entry_event_id/trade_id/rule_laneで選択Tradeのexecution_eventsを抽出する。既存Simulation Traceへ合流し、Entry/Add-on/Close/Stop Closeラベルを表示する。Batch読込失敗時はURL値からEntryマーカーをfallback生成する。",
+      "out_of_scope": "Simulationルール変更、Batch再実行、損益再計算、全Batch Eventの常時表示、Core Runtime変更は対象外。",
+      "fixed_name_policy": "Field mappingとBatch格納ディレクトリはViewDef chartNavigationで宣言し、Pluginは宣言値を読む。Trade照合はtrade_id単独ではなくrule_laneを併用する。",
+      "module_policy": "Batch JSONの読込・Event抽出・Trace合流はgpt_fx_lab.fx_chart_viewer Plugin内へ閉じる。固定Simulation Trace Sidecarは変更せず、選択Tradeだけを一時Projectionする。",
+      "expected_outputs": "選択Entryマーカー\n選択TradeのAdd-on/Close/CloseMissマーカー\nEntry固定十字\n理由/ルールPopover\nBatch読込失敗時fallback\nURL再現可能なBatch/Event参照",
+      "risk": "固定SidecarのRun IDをBatch Eventへ誤表示すること、別Laneの同一trade_idを混ぜること、Batch JSON読込失敗でEntry位置が再び見えなくなること。",
+      "test_points": "URLにfocusBatchData/focusEntryEventId/focusExitEventId/focusRowId/focusSideを保持すること。元Batchからtrade_id+rule_laneでLifecycle Eventを抽出すること。Entryを既存実行マーカーとして描画すること。Batch読込失敗時もEntryマーカーを表示すること。全既存Nodeテストを維持すること。",
+      "user_request": "チャートへ遷移できたが、どこでEntryしたかを示すSimulation Entryコメント/マーカーが表示されていない。記録していたEventをチャートへ出したい。",
+      "ai_response": "原因はBatch Eventと固定Simulation Trace Sidecarが別資材だったこと。元Batch JSONから選択Tradeの実行Eventを読んでチャートへ一時投影するよう修正した。",
+      "decision_log": [
+        {
+          "decision_id": "dec_fx_chart_viewer_0031_001",
+          "at": "2026-07-13T21:14:41+09:00",
+          "decision": "選択行の元Batch JSONをURLで明示し、チャート側がexecution_eventsを再読込する。",
+          "reason": "理由コード・ルール・Entry/Close価格をURLへ大量埋込みせず、記録済み正本Eventをそのまま利用するため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0031_002",
+          "at": "2026-07-13T21:14:41+09:00",
+          "decision": "選択Tradeの全Lifecycle Eventをtrade_id + rule_laneで抽出する。",
+          "reason": "Entry地点だけでなくAdd-on/決済まで同じチャートで追い、別Laneの同一trade_id混線を防ぐため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0031_003",
+          "at": "2026-07-13T21:14:41+09:00",
+          "decision": "Batch読込失敗時はURLのEntry時刻・価格からfocused Entry Eventを生成する。",
+          "reason": "正本読込失敗でも、ユーザーが最も必要とするEntry地点を消さないため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_fx_chart_viewer_0031_001",
+          "at": "2026-07-13T21:14:41+09:00",
+          "change_type": "batch_trade_execution_projection_added",
+          "before": "Entry成績表からの遷移は固定十字だけで、Batch execution_eventsはチャートへ渡されなかった。",
+          "after": "元Batchから選択TradeのEntry/Add-on/Close Eventを抽出し、既存Simulation実行マーカーとして表示する。",
+          "reason": "結果表とチャート上の実行証跡を直接接続するため。"
+        }
+      ],
+      "verification_status": "Plugin構文PASS / URL Action回帰テストPASS / 全Node回帰テストPASS",
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/view_defs/fx_batch_entry_results_view_def_v0_1.json\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/studio_manifest.json\nstudio_overlays/gpt_fx_lab/tests/*.test.cjs\nstudio_overlays/gpt_fx_lab/CHANGELOG.md\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4_batch_simulation_registered.json",
+      "completion_summary": "Entry成績表の選択Tradeについて、元Batchの実行EventをEntry/Add-on/Closeマーカーとして該当チャートへ投影。固定十字と理由Popoverを接続した。",
+      "test_result": "PASS entry_result_chart_url_navigation_v0_1 / Plugin syntax PASS / existing regression tests PASS。"
+    },
+    {
+      "work_item_id": "fx_chart_viewer_work_0032",
+      "parent_work_item_id": "fx_chart_viewer_work_0030",
+      "phase": "v0.9.1.05-entry-result-new-tab-m5-h1-h4",
+      "title": "Entry成績表→チャート：新しいタブ + M5実行 / H1+H4 初期表示",
+      "incident_type": "batch_result_chart_navigation_ux_refinement",
+      "category": "GPT FX Lab / Batch Simulation / Result Review / Chart Navigation",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-13",
+      "updated_at": "2026-07-13T22:30:00+09:00",
+      "target_files": "studio_overlays/gpt_fx_lab/view_defs/fx_batch_entry_results_view_def_v0_1.json\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/studio_manifest.json\nstudio_overlays/gpt_fx_lab/tests/entry_result_chart_url_navigation_v0_1.test.cjs\nstudio_overlays/gpt_fx_lab/CHANGELOG.md",
+      "objective": "Entry成績表を残したまま選択Tradeのチャートを確認し、遷移直後からEntry/Add-on/CloseマーカーとH1/H4文脈を同時に見られるようにする。",
+      "background": "同一タブ遷移ではGridを見ながらチャートを比較できず、既定のExpansion検討レイアウトではM5実行マーカーを見るために手動でM5実行・H1+H4へ切り替える必要があった。",
+      "scope": "Entry成績表のchartNavigation targetをnew_tabへ変更し、URLへchartLayout=M5_ENTRYとupperTf=BOTHを付与する。",
+      "out_of_scope": "Simulationルール、Batch結果、Entry/Exit Event、チャート描画ロジック、Core Runtimeの変更は対象外。",
+      "fixed_name_policy": "遷移先レイアウトと上位足表示はViewDef chartNavigationで宣言し、Pluginは汎用設定としてURLへ反映する。",
+      "module_policy": "新規タブ起動とURL初期状態生成はgpt_fx_lab.fx_chart_viewer Plugin内へ閉じる。",
+      "expected_outputs": "新しいタブでのチャート起動\nM5実行レイアウト初期表示\nH1+H4同時表示\n成績表タブ維持\n既存Trade Event投影維持",
+      "risk": "ブラウザのポップアップ制限で新規タブが開かないこと、URLパラメータ不足でExpansion検討へ戻ること。",
+      "test_points": "window.openのtargetが_blankであること。遷移元URLが変化しないこと。chartLayout=M5_ENTRY / upperTf=BOTHがURLに含まれること。既存focus情報とBatch Event参照が維持されること。",
+      "user_request": "URL遷移直後はM5実行 + H1+H4で初期表示し、成績表を見ながらチャート確認できるよう新しいタブで開いてほしい。",
+      "ai_response": "ViewDef宣言とURL生成を更新し、新しいタブでM5実行 + H1+H4を初期表示するよう変更した。",
+      "decision_log": [
+        {
+          "decision_id": "dec_fx_chart_viewer_0032_001",
+          "at": "2026-07-13T22:30:00+09:00",
+          "decision": "Entry成績表からのチャート遷移は新しいタブを既定とする。",
+          "reason": "Gridとチャートを並べて比較でき、ユーザーが必要に応じてタブを別ウィンドウ化できるため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0032_002",
+          "at": "2026-07-13T22:30:00+09:00",
+          "decision": "遷移URLへM5_ENTRYとBOTHを明示する。",
+          "reason": "選択Tradeの実行マーカーとH1/H4文脈をモード切替なしで初期表示するため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_fx_chart_viewer_0032_001",
+          "at": "2026-07-13T22:30:00+09:00",
+          "change_type": "entry_chart_navigation_ux_refined",
+          "before": "同一タブかつExpansion検討モードで開き、Gridが消え、M5実行マーカーを見るため手動切替が必要だった。",
+          "after": "新しいタブでM5実行 + H1+H4を初期表示し、成績表を残したまま選択Tradeを確認できる。",
+          "reason": "結果一覧とチャートの往復・比較を速くするため。"
+        }
+      ],
+      "verification_status": "Plugin構文PASS / ViewDef Schema v0.9 PASS / URL Action回帰テストPASS / 全Node回帰テストPASS",
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/view_defs/fx_batch_entry_results_view_def_v0_1.json\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/studio_manifest.json\nstudio_overlays/gpt_fx_lab/tests/*.test.cjs\nstudio_overlays/gpt_fx_lab/CHANGELOG.md\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4_batch_simulation_registered.json",
+      "completion_summary": "Entry成績表を残したまま、新しいタブでM5実行 + H1+H4の選択Tradeチャートを開けるようにした。",
+      "test_result": "PASS entry_result_chart_url_navigation_v0_1 / Plugin syntax PASS / existing regression tests PASS。"
     }
   ],
   "decision_log_policy": "fx_chart_viewerのUI改善・Overlay拡張では、実装差分だけでなく、違和感、採用判断、捨てた案、リスク、結果をwork_items[].decision_log / discussion_history / change_historyへ残す。この判断ログは、Studio Context Engineer Wannabe / 将来の自律的AIが、なぜそのUI・DataSource・URL責務にしたのかを学ぶための判例データとして扱う。",
