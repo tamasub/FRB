@@ -4,21 +4,21 @@
   "overlay_id": "default",
   "title": "Studio Overlay default / 勇者領域",
   "status": "active",
-  "owner": "company_copilot",
-  "managed_by": "company_copilot",
+  "owner": "copilot",
+  "managed_by": "copilot",
   "created_at": "2026-06-30",
   "updated_at": "2026-07-01",
   "purpose": "Studio Core(wwwroot)を変更せず、会社・勇者側のValueSet/ViewDef/SearchPattern/Plugin/Dataを追加するためのOverlay共通言語。",
   "core_boundary_policy": {
     "core_root": "wwwroot/",
     "overlay_root": "studio_overlays/default/",
-    "rule": "会社Copilotは studio_overlays/default/ 配下のみ編集する。wwwroot/ と data/json/00_rules/common_enums_v0_1.json は編集禁止。"
+    "rule": "Copilotは studio_overlays/default/ 配下のみ編集する。wwwroot/ と data/json/00_rules/common_enums_v0_1.json は編集禁止。"
   },
   "namespace_policy": {
     "allowed_overlay_prefixes": [
-      "company",
-      "company_hr",
-      "company_skill"
+      "sample",
+      "sample_hr",
+      "sample_skill"
     ],
     "collision_policy": "Core側のstudio/context/relation/qa等のIDをOverlay側で上書きしない。衝突時はCore側が警告または停止する。"
   },
@@ -60,6 +60,6 @@
     "core_scope_registry": "data/json/00_rules/common_enums_v0_1.json",
     "overlay_scope_registry": "studio_overlays/default/value_sets/company_value_sets.json",
     "runtime_resolution": "enumRef と valueSet は同じ options 解決系へ入る。Pluginは解決済み field.options を見る。",
-    "company_copilot_rule": "会社Copilotは company.* 語彙を Overlay側 Registry に追加し、Core common_enums へ会社語彙を追加しない。"
+    "copilot_rule": "Copilotは sample.* 語彙を Overlay側 Registry に追加し、Core common_enums へ会社語彙を追加しない。"
   }
 }

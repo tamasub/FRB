@@ -8,7 +8,7 @@
   "purpose": "会社固有のコード・名称・ランク順を、Value Vocabulary Registry Schema の overlay scope 実体として管理する。Core common_enums と別スキーマとして肥大化させない。",
   "namespaces": [
     {
-      "namespace_id": "company",
+      "namespace_id": "sample",
       "enums": [
         {
           "enum_id": "business_area",
@@ -41,7 +41,7 @@
             }
           ],
           "name": "業務分野",
-          "enum_ref": "company.business_area",
+          "enum_ref": "sample.business_area",
           "deprecated": false
         },
         {
@@ -69,7 +69,7 @@
             }
           ],
           "name": "スキルカテゴリ",
-          "enum_ref": "company.skill_category",
+          "enum_ref": "sample.skill_category",
           "deprecated": false
         },
         {
@@ -109,7 +109,7 @@
             }
           ],
           "name": "スキルランク",
-          "enum_ref": "company.skill_rank",
+          "enum_ref": "sample.skill_rank",
           "deprecated": false
         },
         {
@@ -137,7 +137,7 @@
             }
           ],
           "name": "資格",
-          "enum_ref": "company.qualification",
+          "enum_ref": "sample.qualification",
           "deprecated": false
         }
       ],

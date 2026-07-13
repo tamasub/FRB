@@ -22,13 +22,13 @@
     "view_def_role": "添付 rule_review_common_view_def_v0_3.json を使用し、rules配列をレビュー・承認・追記できるようにする。",
     "markdown_role": "Markdownは必要に応じたExport View。原本はこのData JSON。"
   },
-  "purpose": "Studio CoreとOverlayを物理ファイル単位で分離し、CoreをGitHub上書きで更新しながら、会社CopilotがOverlay側だけを編集して安全に拡張できるようにするためのルールを定義する。",
+  "purpose": "Studio CoreとOverlayを物理ファイル単位で分離し、CoreをGitHub上書きで更新しながら、CopilotがOverlay側だけを編集して安全に拡張できるようにするためのルールを定義する。",
   "core_overlay_summary": {
     "core_root": "wwwroot/",
     "overlay_root": "studio_overlays/default/",
     "manifest_path": "studio_overlays/default/studio_manifest.json",
     "core_owner": "ChatGPT",
-    "overlay_owner": "company_copilot",
+    "overlay_owner": "copilot",
     "core_update_policy": "GitHubから上書き更新する",
     "overlay_update_policy": "Core更新では上書きしない",
     "primary_slogan": "Coreは触るな。defaultに重ねろ。会話はmanifestでやれ。",
@@ -39,16 +39,16 @@
     "phase": "v0.17.0-studio-overlay-manifest-separation",
     "title": "Studio Overlay / Manifest によるCore-Copilot完全分離設計",
     "status": "完了",
-    "objective": "Studio Coreと会社Copilotが触る拡張領域を物理ファイル単位で完全分離し、GitHubから上書きするCoreを守りながら、会社側のValueSet・Plugin・SearchDef・ViewDefをOverlayとして追加できる設計を確立する。",
-    "background": "ユーザーはChatGPTが更新したFRBStudio CoreをGitHubへ上げ、会社ではそれをダウンロードして上書きする運用を想定している。そのため、会社Copilotが common_enums_v0_1.json や wwwroot/js/core などのCore正本を触ると、次回Core更新で差分が衝突または消失する。会社Copilotに機能追加を依頼する場合は、本体を触らせず、別領域だけを編集させる契約が必要になった。",
-    "scope": "Core領域は wwwroot/ を基本とし、GitHub配布・ChatGPT管理・上書き更新対象とする。Overlay領域は studio_overlays/default/ とし、会社Copilot管理・上書き禁止・勇者領域として扱う。CoreとOverlayの共通言語は studio_overlays/default/studio_manifest.json とし、Coreはmanifestに宣言されたvalue_sets/plugins/search_patterns/view_defsだけを追加読み込みする。既存 common_enums_v0_1.json はCore標準のCommonEnum/ValueSet正本として維持し、会社固有の区分・資格・ランク・業務知識はOverlay側のcompany_value_sets.json等へ分離する。",
-    "fixed_name_policy": "wwwroot/ はStudio Coreの標準領域、studio_overlays/default/ は初期Overlay領域としてStudio標準配置名にする。default は現在の単一勇者領域を表すが、将来は studio_overlays/{overlay_id}/ へ拡張可能とする。common_enums_v0_1.json はCore標準値語彙として会社Copilot編集禁止。会社固有IDは company.* や company_skill.* などCoreと衝突しないnamespaceを使う。",
-    "expected_outputs": "Overlay設計方針、studio_overlays/default/studio_manifest.json の最小仕様、会社Copilotに渡す編集禁止/許可ルール、ValueSetDefのCore/Overlay分離方針、Plugin/SearchDef/ViewDefのOverlay配置方針、社員スキル検索・複数選択コンボ・集計Pluginに向けたサンプルデータ作成方針。",
-    "risk": "OverlayがCoreを上書き可能になると、会社CopilotがCore標準値語彙やRuntimeを破壊するリスクがある。逆にOverlayを厳格にしすぎると会社側拡張が進まない。manifestに書かれていないファイルを暗黙読込すると責任境界が崩れる。ID衝突を自動上書きするとCoreの意味が壊れるため、衝突時はエラーまたは明示承認が必要。",
-    "test_points": "1. wwwroot/をGitHub最新版で上書きしても studio_overlays/default/ が残ること。2. Core標準 common_enums_v0_1.json を会社Copilotが触らない運用になっていること。3. Core起動時に studio_overlays/default/studio_manifest.json が存在すれば追加定義を読み込めること。4. company.* namespaceのValueSetがCore標準と衝突せず追加されること。5. Core側IDとOverlay側IDが衝突した場合に自動上書きされないこと。6. Copilotへの依頼文で編集対象が studio_overlays/default/ 配下に限定されること。"
+    "objective": "Studio CoreとCopilotが触る拡張領域を物理ファイル単位で完全分離し、GitHubから上書きするCoreを守りながら、会社側のValueSet・Plugin・SearchDef・ViewDefをOverlayとして追加できる設計を確立する。",
+    "background": "ユーザーはChatGPTが更新したFRBStudio CoreをGitHubへ上げ、会社ではそれをダウンロードして上書きする運用を想定している。そのため、Copilotが common_enums_v0_1.json や wwwroot/js/core などのCore正本を触ると、次回Core更新で差分が衝突または消失する。Copilotに機能追加を依頼する場合は、本体を触らせず、別領域だけを編集させる契約が必要になった。",
+    "scope": "Core領域は wwwroot/ を基本とし、GitHub配布・ChatGPT管理・上書き更新対象とする。Overlay領域は studio_overlays/default/ とし、Copilot管理・上書き禁止・勇者領域として扱う。CoreとOverlayの共通言語は studio_overlays/default/studio_manifest.json とし、Coreはmanifestに宣言されたvalue_sets/plugins/search_patterns/view_defsだけを追加読み込みする。既存 common_enums_v0_1.json はCore標準のCommonEnum/ValueSet正本として維持し、会社固有の区分・資格・ランク・業務知識はOverlay側のcompany_value_sets.json等へ分離する。",
+    "fixed_name_policy": "wwwroot/ はStudio Coreの標準領域、studio_overlays/default/ は初期Overlay領域としてStudio標準配置名にする。default は現在の単一勇者領域を表すが、将来は studio_overlays/{overlay_id}/ へ拡張可能とする。common_enums_v0_1.json はCore標準値語彙としてCopilot編集禁止。会社固有IDは sample.* や sample_skill.* などCoreと衝突しないnamespaceを使う。",
+    "expected_outputs": "Overlay設計方針、studio_overlays/default/studio_manifest.json の最小仕様、Copilotに渡す編集禁止/許可ルール、ValueSetDefのCore/Overlay分離方針、Plugin/SearchDef/ViewDefのOverlay配置方針、社員スキル検索・複数選択コンボ・集計Pluginに向けたサンプルデータ作成方針。",
+    "risk": "OverlayがCoreを上書き可能になると、CopilotがCore標準値語彙やRuntimeを破壊するリスクがある。逆にOverlayを厳格にしすぎると会社側拡張が進まない。manifestに書かれていないファイルを暗黙読込すると責任境界が崩れる。ID衝突を自動上書きするとCoreの意味が壊れるため、衝突時はエラーまたは明示承認が必要。",
+    "test_points": "1. wwwroot/をGitHub最新版で上書きしても studio_overlays/default/ が残ること。2. Core標準 common_enums_v0_1.json をCopilotが触らない運用になっていること。3. Core起動時に studio_overlays/default/studio_manifest.json が存在すれば追加定義を読み込めること。4. sample.* namespaceのValueSetがCore標準と衝突せず追加されること。5. Core側IDとOverlay側IDが衝突した場合に自動上書きされないこと。6. Copilotへの依頼文で編集対象が studio_overlays/default/ 配下に限定されること。"
   },
   "copilot_request_template": {
-    "summary": "会社Copilotへ依頼する時の基本制約文。",
+    "summary": "Copilotへ依頼する時の基本制約文。",
     "text": "あなたは `studio_overlays/default/` 配下のみを編集してください。\n\n禁止:\n- `wwwroot/` 配下の編集\n- `wwwroot/js/core/` 配下の編集\n- `data/json/config/common_enums_v0_1.json` の編集\n- Core標準ID `studio.*`, `context.*`, `relation.*`, `qa.*` の上書き\n\n許可:\n- `studio_overlays/default/studio_manifest.json` への宣言追加\n- `studio_overlays/default/value_sets/` への会社ValueSet追加\n- `studio_overlays/default/plugins/` へのPlugin追加\n- `studio_overlays/default/search_patterns/` への検索パターン追加\n- `studio_overlays/default/view_defs/` への会社ViewDef追加\n- `studio_overlays/default/data/` への会社サンプルData追加\n\nCore変更が必要に見える場合は、直接修正せず、人間に相談してください。"
   },
   "rules": [
@@ -63,8 +63,8 @@
       "review_status": "確認済み",
       "verification_status": "確認済み",
       "approval_decision": "未承認",
-      "summary": "GitHubから上書きされるCore領域と、会社Copilotが編集するOverlay領域を同一ファイルに混ぜない。",
-      "body": "Studio Core と Overlay は、物理ファイル単位で完全に分離する。\n\n- Core は ChatGPT が育て、GitHubから配布・上書きされる領域とする。\n- Overlay は会社Copilotまたは利用者側AIが育てる追加定義領域とする。\n- Core更新でOverlayを消さない。\n- Overlay編集でCore正本を汚さない。\n\nこの分離は思想ではなく、ファイルシステム上の境界として守る。",
+      "summary": "GitHubから上書きされるCore領域と、Copilotが編集するOverlay領域を同一ファイルに混ぜない。",
+      "body": "Studio Core と Overlay は、物理ファイル単位で完全に分離する。\n\n- Core は ChatGPT が育て、GitHubから配布・上書きされる領域とする。\n- Overlay はCopilotまたは利用者側AIが育てる追加定義領域とする。\n- Core更新でOverlayを消さない。\n- Overlay編集でCore正本を汚さない。\n\nこの分離は思想ではなく、ファイルシステム上の境界として守る。",
       "source_heading": "studio_work_0090",
       "source_line_start": null,
       "source_md_file": "studio_work_incident_data_v0_91_studio_overlay_manifest_done_archived.json#studio_work_0090",
@@ -86,8 +86,8 @@
         {
           "decision_id": "dec_0090_002",
           "at": "2026-06-30",
-          "decision": "会社Copilotが触る領域は studio_overlays/default/ 配下に限定する。",
-          "reason": "会社Copilotの変更がCore更新で消えたり、逆にCore正本を汚したりしないよう、物理ファイル単位で編集境界を保証するため。"
+          "decision": "Copilotが触る領域は studio_overlays/default/ 配下に限定する。",
+          "reason": "Copilotの変更がCore更新で消えたり、逆にCore正本を汚したりしないよう、物理ファイル単位で編集境界を保証するため。"
         }
       ],
       "change_history": [
@@ -95,9 +95,9 @@
           "history_id": "chg_0090_001",
           "at": "2026-06-30",
           "change_type": "incident_added",
-          "before": "会社Copilotが触るファイルとChatGPT/Coreが触るファイルを完全分離する設計判断が、インシデント管理JSONに登録されていなかった。",
+          "before": "Copilotが触るファイルとChatGPT/Coreが触るファイルを完全分離する設計判断が、インシデント管理JSONに登録されていなかった。",
           "after": "studio_work_0090 として、Studio Overlay / Manifest によるCore-Copilot完全分離設計を登録した。",
-          "reason": "明日以降、会社Copilotへ渡す情報整理・サンプルデータ・依頼文を作る前提として、責任境界と判断ログを先に固定するため。"
+          "reason": "明日以降、Copilotへ渡す情報整理・サンプルデータ・依頼文を作る前提として、責任境界と判断ログを先に固定するため。"
         }
       ],
       "approved_by": "",
@@ -116,7 +116,7 @@
       "verification_status": "確認済み",
       "approval_decision": "未承認",
       "summary": "wwwroot/ はChatGPT管理・GitHub配布・会社での上書き更新対象とする。",
-      "body": "`wwwroot/` は Studio Core の標準領域とする。\n\n`wwwroot/` 配下には、Studio本体のHTML、JS、Core標準Data、Core標準ViewDef、Core標準ValueSetを置く。\n\n会社環境では、GitHubから取得した最新版Coreで `wwwroot/` を上書きしてよい。\nその代わり、会社Copilotは `wwwroot/` を編集してはならない。",
+      "body": "`wwwroot/` は Studio Core の標準領域とする。\n\n`wwwroot/` 配下には、Studio本体のHTML、JS、Core標準Data、Core標準ViewDef、Core標準ValueSetを置く。\n\n会社環境では、GitHubから取得した最新版Coreで `wwwroot/` を上書きしてよい。\nその代わり、Copilotは `wwwroot/` を編集してはならない。",
       "source_heading": "studio_work_0090",
       "source_line_start": null,
       "source_md_file": "studio_work_incident_data_v0_91_studio_overlay_manifest_done_archived.json#studio_work_0090",
@@ -182,7 +182,7 @@
           "decision_id": "dec_0090_008",
           "at": "2026-06-30",
           "decision": "common_enums_v0_1.json は編集せず、会社固有ValueSetは company_value_sets.json としてOverlay側に配置する。",
-          "reason": "Core標準値語彙を会社Copilot編集対象から外し、GitHub配布物と会社固有拡張の差分を物理的に分けるため。"
+          "reason": "Core標準値語彙をCopilot編集対象から外し、GitHub配布物と会社固有拡張の差分を物理的に分けるため。"
         },
         {
           "decision_id": "dec_0090_009",
@@ -254,7 +254,7 @@
       "verification_status": "確認済み",
       "approval_decision": "未承認",
       "summary": "manifestはValueSet、Data、ViewDef、SearchPattern、Plugin IndexをCoreへ接続する宣言ファイルである。",
-      "body": "`studio_manifest.json` は、OverlayがCoreへ接続したいファイルを宣言する。\n\n最小項目例:\n\n```json\n{\n  \"schema_version\": \"studio_overlay_manifest_v0_1\",\n  \"overlay_id\": \"default\",\n  \"owner\": \"company_copilot\",\n  \"value_set_files\": [\n    \"value_sets/company_value_sets.json\"\n  ],\n  \"data_files\": [\n    \"data/employee_skill_inventory_sample.json\"\n  ],\n  \"view_def_files\": [\n    \"view_defs/employee_skill_inventory_view_def.json\"\n  ],\n  \"search_pattern_files\": [\n    \"search_patterns/employee_skill_search_patterns.json\"\n  ],\n  \"plugin_index_files\": [\n    \"plugins/plugin_index.json\"\n  ]\n}\n```\n\nmanifestに書かれていないOverlayファイルは、原則としてCoreへ自動接続しない。",
+      "body": "`studio_manifest.json` は、OverlayがCoreへ接続したいファイルを宣言する。\n\n最小項目例:\n\n```json\n{\n  \"schema_version\": \"studio_overlay_manifest_v0_1\",\n  \"overlay_id\": \"default\",\n  \"owner\": \"copilot\",\n  \"value_set_files\": [\n    \"value_sets/company_value_sets.json\"\n  ],\n  \"data_files\": [\n    \"data/employee_skill_inventory_sample.json\"\n  ],\n  \"view_def_files\": [\n    \"view_defs/employee_skill_inventory_view_def.json\"\n  ],\n  \"search_pattern_files\": [\n    \"search_patterns/employee_skill_search_patterns.json\"\n  ],\n  \"plugin_index_files\": [\n    \"plugins/plugin_index.json\"\n  ]\n}\n```\n\nmanifestに書かれていないOverlayファイルは、原則としてCoreへ自動接続しない。",
       "source_heading": "studio_work_0090",
       "source_line_start": null,
       "source_md_file": "studio_work_incident_data_v0_91_studio_overlay_manifest_done_archived.json#studio_work_0090",
@@ -323,7 +323,7 @@
           "decision_id": "dec_0090_006",
           "at": "2026-06-30",
           "decision": "Overlayファイルの物理ルートは studio_overlays/default/ とする。",
-          "reason": "会社Copilotが触る領域を wwwroot/Core と完全分離し、GitHubからCoreを上書きしてもOverlayを残せるようにするため。"
+          "reason": "Copilotが触る領域を wwwroot/Core と完全分離し、GitHubからCoreを上書きしてもOverlayを残せるようにするため。"
         }
       ],
       "change_history": [],
@@ -343,7 +343,7 @@
       "verification_status": "確認済み",
       "approval_decision": "未承認",
       "summary": "Core IDとOverlay IDが衝突した場合は、エラーまたは明示承認対象とする。",
-      "body": "Core側IDとOverlay側IDが衝突した場合、Coreは自動上書きしてはならない。\n\n衝突例:\n\n- Core側: `studio.lifecycle_status`\n- Overlay側: `studio.lifecycle_status`\n\nこの場合、Overlay側を優先して上書きするのではなく、\nエラー、警告停止、または人間の明示承認対象にする。\n\n会社固有IDは `company.*`, `company_skill.*`, `company_hr.*` など、\nCore標準namespaceと衝突しない名前空間を使う。",
+      "body": "Core側IDとOverlay側IDが衝突した場合、Coreは自動上書きしてはならない。\n\n衝突例:\n\n- Core側: `studio.lifecycle_status`\n- Overlay側: `studio.lifecycle_status`\n\nこの場合、Overlay側を優先して上書きするのではなく、\nエラー、警告停止、または人間の明示承認対象にする。\n\n会社固有IDは `sample.*`, `sample_skill.*`, `sample_hr.*` など、\nCore標準namespaceと衝突しない名前空間を使う。",
       "source_heading": "studio_work_0090",
       "source_line_start": null,
       "source_md_file": "studio_work_incident_data_v0_91_studio_overlay_manifest_done_archived.json#studio_work_0090",
@@ -385,8 +385,8 @@
       "review_status": "確認済み",
       "verification_status": "確認済み",
       "approval_decision": "未承認",
-      "summary": "`common_enums_v0_1.json` はCore標準値語彙として維持し、会社Copilot編集禁止とする。",
-      "body": "`data/json/config/common_enums_v0_1.json` は、\nStudio Core側の標準CommonEnum / ValueSet正本として扱う。\n\n会社Copilotはこのファイルを編集してはならない。\n\nこのファイルに会社固有の資格、業務区分、ランク、部署コードなどを混ぜない。\nCore標準値語彙と会社固有値語彙を同一ファイルに混在させると、\nGitHub配布物と会社ローカル拡張の責任境界が壊れる。",
+      "summary": "`common_enums_v0_1.json` はCore標準値語彙として維持し、Copilot編集禁止とする。",
+      "body": "`data/json/config/common_enums_v0_1.json` は、\nStudio Core側の標準CommonEnum / ValueSet正本として扱う。\n\nCopilotはこのファイルを編集してはならない。\n\nこのファイルに会社固有の資格、業務区分、ランク、部署コードなどを混ぜない。\nCore標準値語彙と会社固有値語彙を同一ファイルに混在させると、\nGitHub配布物と会社ローカル拡張の責任境界が壊れる。",
       "source_heading": "studio_work_0090",
       "source_line_start": null,
       "source_md_file": "studio_work_incident_data_v0_91_studio_overlay_manifest_done_archived.json#studio_work_0090",
@@ -402,7 +402,7 @@
         {
           "decision_id": "dec_0090_004",
           "at": "2026-06-30",
-          "decision": "common_enums_v0_1.json はCore側の標準CommonEnum/ValueSet正本として維持し、会社Copilot編集禁止とする。",
+          "decision": "common_enums_v0_1.json はCore側の標準CommonEnum/ValueSet正本として維持し、Copilot編集禁止とする。",
           "reason": "会社固有のenumやコードをCore標準値語彙に混ぜると、GitHub配布物と会社ローカル拡張が衝突し、将来のCore更新で破綻するため。"
         }
       ],
@@ -448,9 +448,9 @@
           "history_id": "chg_0090_004",
           "at": "2026-06-30",
           "change_type": "overlay_samples_added",
-          "before": "会社Copilotへ渡すOverlayサンプルがなかった。",
+          "before": "Copilotへ渡すOverlayサンプルがなかった。",
           "after": "default overlayとして、studio_manifest、company_value_sets、社員スキル台帳サンプルData/ViewDef、検索パターン、複数選択コンボPlugin雛形、READMEを追加した。",
-          "reason": "翌日会社CopilotへCore非改変ルールと編集対象を具体物として渡せるようにするため。"
+          "reason": "翌日CopilotへCore非改変ルールと編集対象を具体物として渡せるようにするため。"
         }
       ],
       "approved_by": "",
@@ -469,7 +469,7 @@
       "verification_status": "確認済み",
       "approval_decision": "未承認",
       "summary": "Typeは値の形、ValueSetは値の意味、Editorは値の触り方として分離する。",
-      "body": "Studioの項目定義では、Type・ValueSet・Editorの責務を分離する。\n\n- `type` は値の形を表す\n- `valueSet` は値の意味・候補・順序・比較ルールを表す\n- `editor` は値の入力UIを表す\n\n例:\n\n```json\n{\n  \"field\": \"qualification_cds\",\n  \"caption\": \"保有資格\",\n  \"type\": \"array\",\n  \"itemType\": \"string\",\n  \"valueSet\": \"company.qualification\",\n  \"editor\": \"plugin:multi_select_combo\"\n}\n```\n\n`type: \"multi_select_combo\"` のように、UI部品名を型へ混ぜない。",
+      "body": "Studioの項目定義では、Type・ValueSet・Editorの責務を分離する。\n\n- `type` は値の形を表す\n- `valueSet` は値の意味・候補・順序・比較ルールを表す\n- `editor` は値の入力UIを表す\n\n例:\n\n```json\n{\n  \"field\": \"qualification_cds\",\n  \"caption\": \"保有資格\",\n  \"type\": \"array\",\n  \"itemType\": \"string\",\n  \"valueSet\": \"sample.qualification\",\n  \"editor\": \"plugin:multi_select_combo\"\n}\n```\n\n`type: \"multi_select_combo\"` のように、UI部品名を型へ混ぜない。",
       "source_heading": "studio_work_0090",
       "source_line_start": null,
       "source_md_file": "studio_work_incident_data_v0_91_studio_overlay_manifest_done_archived.json#studio_work_0090",
@@ -493,13 +493,13 @@
       "section_no": "4.1",
       "parent_rule_id": "",
       "category": "AI依頼",
-      "title": "会社Copilotは studio_overlays/default/ 配下のみ編集できる",
+      "title": "Copilotは studio_overlays/default/ 配下のみ編集できる",
       "priority": "high",
       "review_status": "確認済み",
       "verification_status": "確認済み",
       "approval_decision": "未承認",
-      "summary": "会社Copilotへの依頼では、編集対象を studio_overlays/default/ 配下に限定する。",
-      "body": "会社Copilotへ作業を依頼する場合、編集可能領域を明示する。\n\n許可:\n\n- `studio_overlays/default/studio_manifest.json`\n- `studio_overlays/default/value_sets/`\n- `studio_overlays/default/plugins/`\n- `studio_overlays/default/search_patterns/`\n- `studio_overlays/default/view_defs/`\n- `studio_overlays/default/data/`\n\nCopilotは、上記Overlay配下に新規ファイルを追加・編集してよい。\nただし、manifestへ接続宣言を追加すること。",
+      "summary": "Copilotへの依頼では、編集対象を studio_overlays/default/ 配下に限定する。",
+      "body": "Copilotへ作業を依頼する場合、編集可能領域を明示する。\n\n許可:\n\n- `studio_overlays/default/studio_manifest.json`\n- `studio_overlays/default/value_sets/`\n- `studio_overlays/default/plugins/`\n- `studio_overlays/default/search_patterns/`\n- `studio_overlays/default/view_defs/`\n- `studio_overlays/default/data/`\n\nCopilotは、上記Overlay配下に新規ファイルを追加・編集してよい。\nただし、manifestへ接続宣言を追加すること。",
       "source_heading": "studio_work_0090",
       "source_line_start": null,
       "source_md_file": "studio_work_incident_data_v0_91_studio_overlay_manifest_done_archived.json#studio_work_0090",
@@ -523,13 +523,13 @@
       "section_no": "4.2",
       "parent_rule_id": "",
       "category": "AI依頼",
-      "title": "会社CopilotにはCore編集禁止を明示する",
+      "title": "CopilotにはCore編集禁止を明示する",
       "priority": "high",
       "review_status": "確認済み",
       "verification_status": "確認済み",
       "approval_decision": "未承認",
-      "summary": "wwwroot/、common_enums_v0_1.json、js/core/ は会社Copilot編集禁止とする。",
-      "body": "会社Copilotへ作業を依頼する場合、以下を明示的に禁止する。\n\n禁止:\n\n- `wwwroot/` 配下の編集\n- `wwwroot/js/core/` 配下の編集\n- `data/json/config/common_enums_v0_1.json` の編集\n- Core標準ID `studio.*`, `context.*`, `relation.*`, `qa.*` の上書き\n- Coreの既存ファイルを変更して会社機能を追加すること\n\nCore変更が必要に見える場合は、Copilotが直接修正せず、人間に相談する。",
+      "summary": "wwwroot/、common_enums_v0_1.json、js/core/ はCopilot編集禁止とする。",
+      "body": "Copilotへ作業を依頼する場合、以下を明示的に禁止する。\n\n禁止:\n\n- `wwwroot/` 配下の編集\n- `wwwroot/js/core/` 配下の編集\n- `data/json/config/common_enums_v0_1.json` の編集\n- Core標準ID `studio.*`, `context.*`, `relation.*`, `qa.*` の上書き\n- Coreの既存ファイルを変更して会社機能を追加すること\n\nCore変更が必要に見える場合は、Copilotが直接修正せず、人間に相談する。",
       "source_heading": "studio_work_0090",
       "source_line_start": null,
       "source_md_file": "studio_work_incident_data_v0_91_studio_overlay_manifest_done_archived.json#studio_work_0090",
@@ -545,13 +545,13 @@
         {
           "decision_id": "dec_0090_002",
           "at": "2026-06-30",
-          "decision": "会社Copilotが触る領域は studio_overlays/default/ 配下に限定する。",
-          "reason": "会社Copilotの変更がCore更新で消えたり、逆にCore正本を汚したりしないよう、物理ファイル単位で編集境界を保証するため。"
+          "decision": "Copilotが触る領域は studio_overlays/default/ 配下に限定する。",
+          "reason": "Copilotの変更がCore更新で消えたり、逆にCore正本を汚したりしないよう、物理ファイル単位で編集境界を保証するため。"
         },
         {
           "decision_id": "dec_0090_004",
           "at": "2026-06-30",
-          "decision": "common_enums_v0_1.json はCore側の標準CommonEnum/ValueSet正本として維持し、会社Copilot編集禁止とする。",
+          "decision": "common_enums_v0_1.json はCore側の標準CommonEnum/ValueSet正本として維持し、Copilot編集禁止とする。",
           "reason": "会社固有のenumやコードをCore標準値語彙に混ぜると、GitHub配布物と会社ローカル拡張が衝突し、将来のCore更新で破綻するため。"
         }
       ],
@@ -590,9 +590,9 @@
           "history_id": "chg_0090_004",
           "at": "2026-06-30",
           "change_type": "overlay_samples_added",
-          "before": "会社Copilotへ渡すOverlayサンプルがなかった。",
+          "before": "Copilotへ渡すOverlayサンプルがなかった。",
           "after": "default overlayとして、studio_manifest、company_value_sets、社員スキル台帳サンプルData/ViewDef、検索パターン、複数選択コンボPlugin雛形、READMEを追加した。",
-          "reason": "翌日会社CopilotへCore非改変ルールと編集対象を具体物として渡せるようにするため。"
+          "reason": "翌日CopilotへCore非改変ルールと編集対象を具体物として渡せるようにするため。"
         }
       ],
       "approved_by": "",
@@ -629,9 +629,9 @@
           "history_id": "chg_0090_004",
           "at": "2026-06-30",
           "change_type": "overlay_samples_added",
-          "before": "会社Copilotへ渡すOverlayサンプルがなかった。",
+          "before": "Copilotへ渡すOverlayサンプルがなかった。",
           "after": "default overlayとして、studio_manifest、company_value_sets、社員スキル台帳サンプルData/ViewDef、検索パターン、複数選択コンボPlugin雛形、READMEを追加した。",
-          "reason": "翌日会社CopilotへCore非改変ルールと編集対象を具体物として渡せるようにするため。"
+          "reason": "翌日CopilotへCore非改変ルールと編集対象を具体物として渡せるようにするため。"
         }
       ],
       "approved_by": "",
@@ -650,7 +650,7 @@
       "verification_status": "確認済み",
       "approval_decision": "未承認",
       "summary": "Overlay経由で読んだDataはCore通常Dataの上書き保存対象と混同しない。",
-      "body": "Overlay経由で読み込んだDataは、Core通常Data保存契約と混ぜない。\n\nRuntimeでは、Overlay Dataをreadonly寄りに扱い、\n上書き保存対象ではなく、必要に応じて別名保存扱いにする。\n\n目的は、会社Copilot管理ファイルをCore更新・通常Data保存と混同しないことである。",
+      "body": "Overlay経由で読み込んだDataは、Core通常Data保存契約と混ぜない。\n\nRuntimeでは、Overlay Dataをreadonly寄りに扱い、\n上書き保存対象ではなく、必要に応じて別名保存扱いにする。\n\n目的は、Copilot管理ファイルをCore更新・通常Data保存と混同しないことである。",
       "source_heading": "studio_work_0090",
       "source_line_start": null,
       "source_md_file": "studio_work_incident_data_v0_91_studio_overlay_manifest_done_archived.json#studio_work_0090",
@@ -670,7 +670,7 @@
           "change_type": "overlay_readonly_load",
           "before": "Overlay Dataを通常API管理ファイルと同じ保存URLとして扱うと、Core側の上書き保存契約と混ざる可能性があった。",
           "after": "Overlay API読込結果にreadonlyフラグを付与し、loadFromServerNamesではOverlay Dataを上書き保存対象にせず別名保存扱いにした。",
-          "reason": "会社Copilot管理領域をCore更新・通常Data保存と混同せず、manifest経由の参照用Overlayとして安全に扱うため。"
+          "reason": "Copilot管理領域をCore更新・通常Data保存と混同せず、manifest経由の参照用Overlayとして安全に扱うため。"
         }
       ],
       "approved_by": "",
@@ -689,7 +689,7 @@
       "verification_status": "確認済み",
       "approval_decision": "未承認",
       "summary": "会社環境でCoreを更新する場合、studio_overlays/default/ を残したまま wwwroot/ を上書きする。",
-      "body": "会社環境でChatGPT更新済みCoreを取り込む場合、\n`wwwroot/` はGitHub最新版で上書きしてよい。\n\nただし、`studio_overlays/default/` は上書き・削除しない。\n\nこの運用により、会社Copilotが作った会社固有ValueSet、Plugin、SearchPattern、ViewDef、Dataは、\nCore更新後も保持される。",
+      "body": "会社環境でChatGPT更新済みCoreを取り込む場合、\n`wwwroot/` はGitHub最新版で上書きしてよい。\n\nただし、`studio_overlays/default/` は上書き・削除しない。\n\nこの運用により、Copilotが作った会社固有ValueSet、Plugin、SearchPattern、ViewDef、Dataは、\nCore更新後も保持される。",
       "source_heading": "studio_work_0090",
       "source_line_start": null,
       "source_md_file": "studio_work_incident_data_v0_91_studio_overlay_manifest_done_archived.json#studio_work_0090",
@@ -711,8 +711,8 @@
         {
           "decision_id": "dec_0090_002",
           "at": "2026-06-30",
-          "decision": "会社Copilotが触る領域は studio_overlays/default/ 配下に限定する。",
-          "reason": "会社Copilotの変更がCore更新で消えたり、逆にCore正本を汚したりしないよう、物理ファイル単位で編集境界を保証するため。"
+          "decision": "Copilotが触る領域は studio_overlays/default/ 配下に限定する。",
+          "reason": "Copilotの変更がCore更新で消えたり、逆にCore正本を汚したりしないよう、物理ファイル単位で編集境界を保証するため。"
         }
       ],
       "change_history": [],
@@ -768,8 +768,8 @@
       "review_status": "確認済み",
       "verification_status": "確認済み",
       "approval_decision": "未承認",
-      "summary": "Studio Overlay / Manifest は、会社Copilotを拒否するためではなく、Coreを壊さず拡張させるための設計である。",
-      "body": "Studio Overlay / Manifest 設計の目的は、会社Copilotを制限して不自由にすることではない。\n\n目的は、Coreを守りながら、会社側が自由に拡張できる場所を与えることである。\n\n```text\nCoreは配布物。\nOverlayは差し込み物。\nManifestは握手ファイル。\n```\n\nこの構造により、Studioくんは本体の再現性を保ちながら、\n会社・部署・勇者ごとの拡張を受け入れられる。",
+      "summary": "Studio Overlay / Manifest は、Copilotを拒否するためではなく、Coreを壊さず拡張させるための設計である。",
+      "body": "Studio Overlay / Manifest 設計の目的は、Copilotを制限して不自由にすることではない。\n\n目的は、Coreを守りながら、会社側が自由に拡張できる場所を与えることである。\n\n```text\nCoreは配布物。\nOverlayは差し込み物。\nManifestは握手ファイル。\n```\n\nこの構造により、Studioくんは本体の再現性を保ちながら、\n会社・部署・勇者ごとの拡張を受け入れられる。",
       "source_heading": "studio_work_0090",
       "source_line_start": null,
       "source_md_file": "studio_work_incident_data_v0_91_studio_overlay_manifest_done_archived.json#studio_work_0090",
@@ -898,7 +898,7 @@
       "category": "FieldEditor Plugin",
       "title": "FieldEditor Pluginは editor 指定で選択し、typeを汚さない",
       "summary": "typeは値の形、valueSetは候補の意味、editorは触り方として分離する。",
-      "body": "Plugin FieldEditorは、ViewDefの `editor` で指定する。\n\n例:\n\n```json\n{\n  \"field\": \"qualification_cds\",\n  \"caption\": \"保有資格\",\n  \"type\": \"array\",\n  \"itemType\": \"string\",\n  \"valueSet\": \"company.qualification\",\n  \"editor\": \"plugin:multi_select_combo\"\n}\n```\n\n`type: \"multi_select_combo\"` のように、値の形と触り方を混ぜてはいけない。\n\n- `type` = 値の形\n- `valueSet` = 候補の意味\n- `editor` = 値の触り方\n\nPluginは会社マスタを内蔵せず、CoreがValueSetDefから解決した `options` を受け取って表示する。",
+      "body": "Plugin FieldEditorは、ViewDefの `editor` で指定する。\n\n例:\n\n```json\n{\n  \"field\": \"qualification_cds\",\n  \"caption\": \"保有資格\",\n  \"type\": \"array\",\n  \"itemType\": \"string\",\n  \"valueSet\": \"sample.qualification\",\n  \"editor\": \"plugin:multi_select_combo\"\n}\n```\n\n`type: \"multi_select_combo\"` のように、値の形と触り方を混ぜてはいけない。\n\n- `type` = 値の形\n- `valueSet` = 候補の意味\n- `editor` = 値の触り方\n\nPluginは会社マスタを内蔵せず、CoreがValueSetDefから解決した `options` を受け取って表示する。",
       "ceremony_phrase": "typeは形。editorは触り方。",
       "no": 22,
       "rule_id": "studio_overlay_manifest_rule_022"
@@ -927,7 +927,7 @@
       "category": "SearchFilter Plugin",
       "title": "SearchFilter Pluginは表示中の検索条件を追加するだけでDataを変更しない",
       "summary": "Plugin検索はrenderとpredicateで構成し、検索中にData正本を書き換えない。",
-      "body": "SearchFilter Pluginは、検索UIとpredicateを提供する。\n\n```js\nstudio.registerSearchFilter(\"company.multi_select_combo.search\", {\n  render(host, context) {},\n  predicate(row, state, context) {}\n});\n```\n\nSearchFilterの責務は、現在の検索条件に基づいて表示行を絞り込むことに限る。\nData JSON本体、ViewDef、ValueSetDefを書き換えてはいけない。\n\n検索状態は一時状態として扱い、保存正本に混ぜない。",
+      "body": "SearchFilter Pluginは、検索UIとpredicateを提供する。\n\n```js\nstudio.registerSearchFilter(\"sample.multi_select_combo.search\", {\n  render(host, context) {},\n  predicate(row, state, context) {}\n});\n```\n\nSearchFilterの責務は、現在の検索条件に基づいて表示行を絞り込むことに限る。\nData JSON本体、ViewDef、ValueSetDefを書き換えてはいけない。\n\n検索状態は一時状態として扱い、保存正本に混ぜない。",
       "ceremony_phrase": "検索は絞るだけ。正本を触るな。",
       "no": 23,
       "rule_id": "studio_overlay_manifest_rule_023"
@@ -956,7 +956,7 @@
       "category": "Action Plugin",
       "title": "Action PluginはActionRegistryへ登録し、toolbar.executeButtonから実行できる",
       "summary": "集計などの会社固有ActionはOverlay Pluginに置き、CoreのActionRegistryへ名前で登録する。",
-      "body": "Action Pluginは、PluginHost経由でActionRegistryに登録する。\n\n```js\nstudio.registerAction(\"company.skill_summary.aggregate\", async (context) => {\n  const rows = context.getFilteredRows();\n  return { message: `${rows.length}件を集計しました` };\n});\n```\n\nViewDefは `toolbar.executeButton.action` でAction IDだけを指定する。\nCoreはAction IDを解決して実行するだけで、集計ロジックの中身は知らない。\n\nこれにより、会社CopilotはCoreを触らずに、Overlay側Pluginだけで集計ボタンを追加できる。",
+      "body": "Action Pluginは、PluginHost経由でActionRegistryに登録する。\n\n```js\nstudio.registerAction(\"sample.skill_summary.aggregate\", async (context) => {\n  const rows = context.getFilteredRows();\n  return { message: `${rows.length}件を集計しました` };\n});\n```\n\nViewDefは `toolbar.executeButton.action` でAction IDだけを指定する。\nCoreはAction IDを解決して実行するだけで、集計ロジックの中身は知らない。\n\nこれにより、CopilotはCoreを触らずに、Overlay側Pluginだけで集計ボタンを追加できる。",
       "ceremony_phrase": "ボタンはCore。意味はPlugin。",
       "no": 24,
       "rule_id": "studio_overlay_manifest_rule_024"

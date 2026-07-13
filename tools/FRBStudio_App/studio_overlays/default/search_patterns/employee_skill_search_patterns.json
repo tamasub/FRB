@@ -5,7 +5,7 @@
   "title": "社員スキル検索パターンサンプル",
   "search_patterns": [
     {
-      "id": "company_skill.water_rank_a_or_higher",
+      "id": "sample_skill.water_rank_a_or_higher",
       "caption": "水道 A以上",
       "target_data": "overlay/default/data/employee_skill_inventory_sample.json",
       "target_view_def": "overlay/default/view_defs/employee_skill_inventory_view_def.json",
@@ -17,19 +17,19 @@
             "field": "category_cd",
             "op": "=",
             "value": "BUSINESS_KNOWLEDGE",
-            "valueSet": "company.skill_category"
+            "valueSet": "sample.skill_category"
           },
           {
             "field": "skill_cd",
             "op": "=",
             "value": "WATER",
-            "valueSet": "company.business_area"
+            "valueSet": "sample.business_area"
           },
           {
             "field": "rank",
             "op": ">=",
             "value": "A",
-            "valueSet": "company.skill_rank"
+            "valueSet": "sample.skill_rank"
           }
         ]
       },

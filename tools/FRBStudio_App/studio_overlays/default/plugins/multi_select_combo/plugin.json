@@ -21,7 +21,7 @@
     ],
     "search_filters": [
       {
-        "id": "company.multi_select_combo.search",
+        "id": "sample.multi_select_combo.search",
         "caption": "複数選択検索"
       }
     ]

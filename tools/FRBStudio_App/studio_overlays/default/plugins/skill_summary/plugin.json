@@ -10,7 +10,7 @@
   "contributes": {
     "actions": [
       {
-        "id": "company.skill_summary.aggregate",
+        "id": "sample.skill_summary.aggregate",
         "caption": "表示行を集計"
       }
     ]

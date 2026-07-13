@@ -105,7 +105,7 @@
               "field": "primary_business_area_cd",
               "caption": "主業務分野",
               "type": "select",
-              "valueSet": "company.business_area",
+              "valueSet": "sample.business_area",
               "grid": {
                 "visible": false
               },
@@ -116,7 +116,7 @@
                 "visible": true,
                 "operator": "equals"
               },
-              "valueVocabularyRef": "company.business_area"
+              "valueVocabularyRef": "sample.business_area"
             }
           ]
         },
@@ -175,7 +175,7 @@
               "field": "primary_business_area_cd",
               "caption": "主業務分野",
               "type": "select",
-              "valueSet": "company.business_area",
+              "valueSet": "sample.business_area",
               "grid": {
                 "visible": true,
                 "width": 120
@@ -186,13 +186,13 @@
               "search": {
                 "visible": true
               },
-              "valueVocabularyRef": "company.business_area"
+              "valueVocabularyRef": "sample.business_area"
             },
             {
               "field": "qualification_cds",
               "caption": "保有資格",
               "type": "stringArray",
-              "valueSet": "company.qualification",
+              "valueSet": "sample.qualification",
               "editor": "plugin:multi_select_combo",
               "defaultValue": [],
               "grid": {
@@ -209,7 +209,7 @@
                 "match": "includesAny",
                 "caption": "保有資格"
               },
-              "valueVocabularyRef": "company.qualification"
+              "valueVocabularyRef": "sample.qualification"
             },
             {
               "field": "attributes",
@@ -230,7 +230,7 @@
         "executeButton": {
           "visible": true,
           "caption": "表示行を集計",
-          "action": "company.skill_summary.aggregate"
+          "action": "sample.skill_summary.aggregate"
         }
       }
     }
