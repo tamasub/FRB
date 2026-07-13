@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-13 — Entry Results ViewDef v0.1
+
+- `batch_*_entry_results.json` を1 Trade 1行で確認する `fx_batch_entry_results_view_def_v0_1.json` を追加。
+- 一覧で結果、利益/損失、Lane、LONG/SHORT、Entry日時・価格・理由、終了種別・理由、損益、Add-on、保有時間を表示。
+- Detailはwide表示とし、Entry/Exit理由を読み物カード、理由・ルール・Add-on履歴をobjectArrayで表示。
+- 成功/失敗、Lane、売買方向、終了種別、Entry日時・Entry理由・終了理由で検索可能。
+- 表示中のEntry成績をMarkdown出力し、AI分析用Prompt/Grid JSONを含められる。
+- Sidecar生成スクリプトへ `view_def` 参照を追加し、今後生成する `*_entry_results.json` が本ViewDefを自動参照するようにした。
+- ViewDef Schema v0.9検証、実データfield照合、Entry Result Rows Builder回帰テストを実行。
+
 ## 2026-07-13 — Entry Result Rows Builder v0.1
 
 - Batch結果の `execution_events[]` を、Entry起点で1 Trade 1行へ再構成するNode.jsスクリプトを追加。

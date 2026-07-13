@@ -7,7 +7,7 @@
   "owner": "chatgpt",
   "managed_by": "chatgpt",
   "created_at": "2026-07-05",
-  "updated_at": "2026-07-08",
+  "updated_at": "2026-07-13",
   "purpose": "Studioくんの「JSONを人間フレンドリーにする」コンセプトを、FX M5データ + T3オーバーレイ候補で試すための勇者Overlay。",
   "core_boundary_policy": {
     "core_root": "wwwroot/",
@@ -23,10 +23,13 @@
     "collision_policy": "default overlay や Core のIDを上書きしない。FXは実運用目的ではなく、JSON表示実験として扱う。"
   },
   "data_files": [
-    "data/fx_usdjpy_m5_t3_data_v0_1.json"
+    "data/fx_usdjpy_m5_t3_data_v0_1.json",
+    "simulattion_集計/batch_20260712_200928_entry_results.json",
+    "simulattion_集計/batch_20260712_230503_entry_results.json"
   ],
   "view_def_files": [
-    "view_defs/fx_usdjpy_t3_view_def_v0_1.json"
+    "view_defs/fx_usdjpy_t3_view_def_v0_1.json",
+    "view_defs/fx_batch_entry_results_view_def_v0_1.json"
   ],
   "value_set_files": [],
   "search_pattern_files": [],

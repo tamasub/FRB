@@ -1,8 +1,9 @@
 {
   "schema_version": "fx_batch_entry_result_rows_v0_1",
+  "view_def": "overlay/gpt_fx_lab/view_defs/fx_batch_entry_results_view_def_v0_1.json",
   "kind": "fx_batch_entry_result_rows",
   "generator_id": "build_entry_result_rows_v0_1",
-  "generated_at": "2026-07-13T11:29:46.293Z",
+  "generated_at": "2026-07-13T11:39:54.430Z",
   "source_batch_file": "batch_20260712_230503.json",
   "source_batch_run_id": "batch_20260712_230503",
   "source_status": "stopped",

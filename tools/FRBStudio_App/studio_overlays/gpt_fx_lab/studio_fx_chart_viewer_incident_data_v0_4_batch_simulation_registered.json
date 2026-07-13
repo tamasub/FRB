@@ -6,13 +6,13 @@
   "target": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer",
   "status": "active",
   "created_at": "2026-07-05",
-  "updated_at": "2026-07-13T20:30:01+09:00",
+  "updated_at": "2026-07-13T20:50:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "GPT FX Lab の fx_chart_viewer が、単なるチャート表示から、M5/H1/H4同期観測、HSI仮説可視化、コメント/判断ログ共有へ育っていくため、Studio本体インシデントとは別枠で改修履歴・判断ログ・将来要望を管理する。",
   "operation_policy": "ViewDefは既存の studio_work_incident_view_def_v0_5.json を共通利用する。fx_chart_viewer固有の作業はこの専用インシデントファイルへ登録し、Studio本体汎用機能とドメイン専用Overlay機能を混ぜない。実装パッチでは、更新ファイルのみZIP返却し、未更新ファイルや.bakを含めない。",
   "standard_field_policy": "このファイルは既存インシデント管理Dataの構造を踏襲する。work_item_id / phase / status / discussion_history / decision_log / change_history 等は、インシデント管理Dataの契約として扱う。",
-  "items_count": 28,
+  "items_count": 29,
   "main_context_status": "draft",
   "main_context_updated_at": "2026-07-12T19:38:58+09:00",
   "main_context_draft": "# 主文脈素案: インシデント管理Data\n\n## 読む目的\nこのインシデント管理Data全体を扱うAIが、作業前に読むべき正本・ViewDef・Foundation Rules・Runtime対象を確認できるようにする。\n\n## 基本方針\n- Data JSONを作業台帳の正本として扱う。\n- ViewDefは表示・編集体験の定義として扱う。\n- 主文脈はData全体を扱う前に読む入口、対象文脈は各作業項目を扱う前に読む入口として分ける。\n- グリッドは編集用、プレビューは読むためのUIとして分離する。\n\n## 注意\nFoundation Rule 19のZIP返却契約とdiscussion_history実発言契約を優先する。",
@@ -2765,6 +2765,66 @@
       "context_def_status": "draft",
       "context_def_updated_at": "2026-07-13T20:30:01+09:00",
       "context_def_draft": "# ContextDef素案: Batch Entry Result Projection\n\n- Simulation正本と表示Projectionを分離する。\n- 1行は初回Entryから最終決済までの1 Trade。\n- 結合キーはcase_id + rule_lane + trade_id。\n- 成功/失敗は損益符号、終了種別は別項目。\n- 未決済TradeもOPEN行として残す。"
+    },
+    {
+      "work_item_id": "fx_chart_viewer_work_0029",
+      "parent_work_item_id": "fx_chart_viewer_work_0027",
+      "phase": "v0.9.1.02-batch-entry-results-viewdef",
+      "title": "Batch Entry成績表ViewDef：Entry理由・結果・損益を1 Trade 1行でレビュー",
+      "incident_type": "batch_result_viewdef",
+      "category": "GPT FX Lab / Batch Simulation / Result View",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-13",
+      "updated_at": "2026-07-13T20:50:00+09:00",
+      "target_files": "studio_overlays/gpt_fx_lab/view_defs/fx_batch_entry_results_view_def_v0_1.json\nstudio_overlays/gpt_fx_lab/studio_manifest.json\nstudio_overlays/gpt_fx_lab/simulation/tools/build_entry_result_rows_v0_1.cjs\nstudio_overlays/gpt_fx_lab/simulattion_集計/batch_*_entry_results.json\nstudio_overlays/gpt_fx_lab/tests/entry_result_rows_builder_v0_1.test.cjs\nstudio_overlays/gpt_fx_lab/CHANGELOG.md",
+      "objective": "Entry Result Rows SidecarをStudioくんで、人間がEntry理由・成功/失敗・利益/損失・終了理由を追える成績表として表示する。",
+      "background": "work_0028で1 Trade 1行のentry_result_rowsを生成できるようになったが、ViewDefは対象外であり、JSONを直接読む必要が残っていた。",
+      "scope": "Batch集計Header、Entry成績Main Grid、検索、wide Detail、理由/ルール/Add-on履歴、Markdown Export、AI分析Prompt、Overlay manifest登録、生成JSONのview_def自動参照を追加する。",
+      "out_of_scope": "売買ルール変更、損益再計算、Batch Runner本体の画面改修、チャート連携Action追加は対象外。",
+      "fixed_name_policy": "ViewDefは新規共通ファイル `fx_batch_entry_results_view_def_v0_1.json` とし、今後の `batch_*_entry_results.json` で共通利用する。",
+      "module_policy": "Simulation正本batch_*.jsonは変更せず、派生SidecarとViewDefの表示責務を分離する。ViewDefはreadonlyとする。",
+      "expected_outputs": "Entry成績一覧\nBatch集計Header\nEntry/Exit理由Detail\n理由・ルール・Add-on履歴\n検索\nMarkdown/AI分析出力",
+      "risk": "結果と終了種別を同一視するとStructural/T3 Exitの利益Tradeを誤表示する。Sidecarを編集可能にするとSimulation証跡の意味が曖昧になる。",
+      "test_points": "Schema v0.9へ適合すること。Main Gridが$.entry_result_rowsを参照すること。全fieldが実データに存在すること。未決済OPENを表示できること。生成SidecarがViewDefを参照すること。",
+      "user_request": "batch_*_entry_results.jsonを見るためのViewDefを作成してほしい。",
+      "ai_response": "Entry成績を1 Trade 1行で表示し、理由・結果・損益・Add-on・終了理由を検索/詳細確認できるreadonly ViewDefを追加した。",
+      "decision_log": [
+        {
+          "decision_id": "dec_fx_chart_viewer_0029_001",
+          "at": "2026-07-13T20:50:00+09:00",
+          "decision": "結果と損益区分と終了種別を別列で表示する。",
+          "reason": "T3/Structural Exitでも利益になり得るため、Target到達だけを成功と扱わないため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0029_002",
+          "at": "2026-07-13T20:50:00+09:00",
+          "decision": "Entry/Exit理由はGridの短縮列とDetailのreadable card/objectArrayの二段構成にする。",
+          "reason": "一覧性を維持しながら、理由コード・適用ルールまで掘れるようにするため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0029_003",
+          "at": "2026-07-13T20:50:00+09:00",
+          "decision": "Entry Result Sidecarはreadonly Viewとして扱い、生成時にViewDef参照を埋め込む。",
+          "reason": "派生証跡を人間が誤編集せず、ファイル単体で正しいViewを選べるようにするため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_fx_chart_viewer_0029_001",
+          "at": "2026-07-13T20:50:00+09:00",
+          "change_type": "entry_results_viewdef_added",
+          "before": "entry_result_rows Sidecarは生成できたが、StudioくんでEntry成績表として見る専用ViewDefがなかった。",
+          "after": "共通ViewDefでBatch集計・Entry成績・理由・損益・履歴を表示できる。",
+          "reason": "シミュレーション結果をJSONではなく判断可能な画面として読むため。"
+        }
+      ],
+      "verification_status": "ViewDef Schema v0.9 PASS / 実データfield照合PASS / Node回帰テストPASS",
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/view_defs/fx_batch_entry_results_view_def_v0_1.json\nstudio_overlays/gpt_fx_lab/studio_manifest.json\nstudio_overlays/gpt_fx_lab/simulation/tools/build_entry_result_rows_v0_1.cjs\nstudio_overlays/gpt_fx_lab/simulation/tools/README_entry_result_rows_v0_1.md\nstudio_overlays/gpt_fx_lab/simulattion_集計/batch_20260712_200928_entry_results.json\nstudio_overlays/gpt_fx_lab/simulattion_集計/batch_20260712_230503_entry_results.json\nstudio_overlays/gpt_fx_lab/tests/entry_result_rows_builder_v0_1.test.cjs\nstudio_overlays/gpt_fx_lab/CHANGELOG.md\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4_batch_simulation_registered.json",
+      "completion_summary": "Entry Result RowsをStudioくんで結果・損益・Entry理由・終了理由まで確認できるreadonly成績表Viewへ接続。",
+      "test_result": "Schema/field contract/entry_result_rows_builder_v0_1 PASS。"
     }
   ],
   "decision_log_policy": "fx_chart_viewerのUI改善・Overlay拡張では、実装差分だけでなく、違和感、採用判断、捨てた案、リスク、結果をwork_items[].decision_log / discussion_history / change_historyへ残す。この判断ログは、Studio Context Engineer Wannabe / 将来の自律的AIが、なぜそのUI・DataSource・URL責務にしたのかを学ぶための判例データとして扱う。",

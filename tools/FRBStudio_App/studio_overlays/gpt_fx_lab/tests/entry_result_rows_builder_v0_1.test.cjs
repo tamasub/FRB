@@ -74,6 +74,7 @@ const fixture = {
 
 const projection = builder.buildEntryResultProjection(fixture, catalog, 'batch_test.json', '2026-01-01T00:00:00.000Z');
 assert.equal(projection.entry_result_rows.length, 3, 'Lane+Trade ID単位で3行になる');
+assert.equal(projection.view_def, 'overlay/gpt_fx_lab/view_defs/fx_batch_entry_results_view_def_v0_1.json');
 assert.equal(projection.summary.closed_trade_count, 2);
 assert.equal(projection.summary.open_trade_count, 1);
 assert.equal(projection.summary.success_count, 1);
@@ -125,6 +126,7 @@ assert.equal(fs.existsSync(outputPath), true, 'CLIでsidecar JSONが生成され
 const cliOutput = JSON.parse(fs.readFileSync(outputPath, 'utf8'));
 assert.equal(cliOutput.entry_result_rows.length, 3);
 assert.equal(cliOutput.source_batch_file, 'batch_fixture.json');
+assert.equal(cliOutput.view_def, 'overlay/gpt_fx_lab/view_defs/fx_batch_entry_results_view_def_v0_1.json');
 
 console.log('PASS entry_result_rows_builder_v0_1');
 console.log(`rows=${actual.summary.entry_result_row_count}, success=${actual.summary.success_count}, failure=${actual.summary.failure_count}, pnl=${actual.summary.realized_profit_jpy}`);

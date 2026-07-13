@@ -8,6 +8,7 @@ const crypto = require('node:crypto');
 const SCHEMA_VERSION = 'fx_batch_entry_result_rows_v0_1';
 const KIND = 'fx_batch_entry_result_rows';
 const GENERATOR_ID = 'build_entry_result_rows_v0_1';
+const VIEW_DEF = 'overlay/gpt_fx_lab/view_defs/fx_batch_entry_results_view_def_v0_1.json';
 const DEFAULT_CATALOG_PATH = path.resolve(__dirname, '..', 'fx_simulation_reason_rule_catalog_v0_1.json');
 const DEFAULT_SCAN_ROOT = path.resolve(__dirname, '..', '..', 'simulattion_集計');
 
@@ -429,6 +430,7 @@ function buildEntryResultProjection(batch, catalog, sourceFileName = null, gener
   const projectionHash = sha256({ summary, rows });
   return {
     schema_version: SCHEMA_VERSION,
+    view_def: VIEW_DEF,
     kind: KIND,
     generator_id: GENERATOR_ID,
     generated_at: generatedAt,

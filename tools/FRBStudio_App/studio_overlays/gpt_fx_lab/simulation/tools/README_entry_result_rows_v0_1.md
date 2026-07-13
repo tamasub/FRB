@@ -78,3 +78,13 @@ case_id + rule_lane + trade_id
 ```
 
 これにより、NORMALとEXPANSION_LITEのEventを誤結合しない。
+
+## ViewDef
+
+生成される `batch_*_entry_results.json` は、次のViewDefを参照します。
+
+```text
+overlay/gpt_fx_lab/view_defs/fx_batch_entry_results_view_def_v0_1.json
+```
+
+Entryごとの成功・失敗・損益・Entry理由・終了理由を一覧/詳細で確認できます。
