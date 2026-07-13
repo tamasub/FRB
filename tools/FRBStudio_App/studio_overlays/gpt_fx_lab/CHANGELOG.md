@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-07-13 — Entry Result Rows Builder v0.1
+
+- Batch結果の `execution_events[]` を、Entry起点で1 Trade 1行へ再構成するNode.jsスクリプトを追加。
+- 結合キーを `case_id + rule_lane + trade_id` とし、同一Trade IDを使うNORMAL / EXPANSION_LITEの誤結合を防止。
+- Entry理由・使用ルールを理由カタログから日本語化し、Add-on履歴、平均Entry価格、終了理由、成功/失敗、利益/損失、損益、保有時間を `entry_result_rows[]` へ集約。
+- 元のBatch JSONは変更せず、`*_entry_results.json` Sidecarを生成する方式を採用。Simulation正本の `result_hash` を壊さない。
+- 既存の `batch_20260712_200928.json` と `batch_20260712_230503.json` からSidecarを生成。
+- 回帰テスト `entry_result_rows_builder_v0_1.test.cjs` を追加し、Lane別Trade ID衝突、Add-on、未決済、損益分類、実データ115 Entryの結合を確認。
+
 ## v0.9.1.01 — Batch Safety / Real-time Event Metrics / Complete JSON Persistence
 
 - Batch処理中のsticky表示を、評価損益合計・実現損益・含み損益・NORMAL評価・EXPANSION-LITE評価へ拡張。

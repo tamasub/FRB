@@ -6,13 +6,13 @@
   "target": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer",
   "status": "active",
   "created_at": "2026-07-05",
-  "updated_at": "2026-07-12T19:38:58+09:00",
+  "updated_at": "2026-07-13T20:30:01+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "GPT FX Lab の fx_chart_viewer が、単なるチャート表示から、M5/H1/H4同期観測、HSI仮説可視化、コメント/判断ログ共有へ育っていくため、Studio本体インシデントとは別枠で改修履歴・判断ログ・将来要望を管理する。",
   "operation_policy": "ViewDefは既存の studio_work_incident_view_def_v0_5.json を共通利用する。fx_chart_viewer固有の作業はこの専用インシデントファイルへ登録し、Studio本体汎用機能とドメイン専用Overlay機能を混ぜない。実装パッチでは、更新ファイルのみZIP返却し、未更新ファイルや.bakを含めない。",
   "standard_field_policy": "このファイルは既存インシデント管理Dataの構造を踏襲する。work_item_id / phase / status / discussion_history / decision_log / change_history 等は、インシデント管理Dataの契約として扱う。",
-  "items_count": 27,
+  "items_count": 28,
   "main_context_status": "draft",
   "main_context_updated_at": "2026-07-12T19:38:58+09:00",
   "main_context_draft": "# 主文脈素案: インシデント管理Data\n\n## 読む目的\nこのインシデント管理Data全体を扱うAIが、作業前に読むべき正本・ViewDef・Foundation Rules・Runtime対象を確認できるようにする。\n\n## 基本方針\n- Data JSONを作業台帳の正本として扱う。\n- ViewDefは表示・編集体験の定義として扱う。\n- 主文脈はData全体を扱う前に読む入口、対象文脈は各作業項目を扱う前に読む入口として分ける。\n- グリッドは編集用、プレビューは読むためのUIとして分離する。\n\n## 注意\nFoundation Rule 19のZIP返却契約とdiscussion_history実発言契約を優先する。",
@@ -2701,6 +2701,70 @@
       "context_def_status": "draft",
       "context_def_updated_at": "2026-07-12T19:38:58+09:00",
       "context_def_draft": "# ContextDef素案: Batch Simulation Runner\n\n## 実行単位\n- BatchRun = 複数Caseの集合。\n- Case = Dataset + Source Mapping + Period + Profile Snapshot + Rule/App Version。\n- Rule Lane = Case内部の独立Portfolio。\n- Chunk = 内部処理単位。状態初期化禁止。\n- UI Window = 観測表示。Case正本ではない。\n\n## 絶対条件\n- Case内部は全期間を時系列実行する。\n- NORMAL / EXPANSION / EXPANSION_LITEはパラレル、条件は混ぜない。\n- Case間は状態分離。\n- Dataset/Profile/Rule/App/Timezone/期間のHash・Snapshotを保存。\n- COMBINEDは集計のみ。Lifecycleを合成しない。\n- v0.1は逐次Case実行。"
+    },
+    {
+      "work_item_id": "fx_chart_viewer_work_0028",
+      "parent_work_item_id": "fx_chart_viewer_work_0027",
+      "phase": "v0.9.1.01-batch-entry-result-rows-projection",
+      "title": "Batch結果Entry成績表：Entry・理由・Add-on・決済・損益を1 Trade 1行へProjection",
+      "incident_type": "batch_result_projection_tool",
+      "category": "GPT FX Lab / Batch Simulation / Result View Projection",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-13",
+      "updated_at": "2026-07-13T20:30:01+09:00",
+      "target_files": "studio_overlays/gpt_fx_lab/simulation/tools/build_entry_result_rows_v0_1.cjs\nstudio_overlays/gpt_fx_lab/simulation/tools/build_entry_result_rows_v0_1.cmd\nstudio_overlays/gpt_fx_lab/simulation/tools/README_entry_result_rows_v0_1.md\nstudio_overlays/gpt_fx_lab/simulattion_集計/batch_*_entry_results.json\nstudio_overlays/gpt_fx_lab/tests/entry_result_rows_builder_v0_1.test.cjs\nstudio_overlays/gpt_fx_lab/CHANGELOG.md",
+      "objective": "Batch SimulationのEvent列を、人間がEntryごとの理由・結果・成功/失敗・利益/損失を確認できる1 Trade 1行のentry_result_rowsへ変換する。",
+      "background": "execution_eventsはEntry / Add-on / Close / Stop Closeが別Eventで並ぶため、そのままのViewDefでは1回のEntryが最終的にどう終わったかを一覧確認しにくかった。",
+      "scope": "Case内Eventをcase_id + rule_lane + trade_idで結合し、Entry理由、日本語理由、Add-on、平均Entry価格、終了理由、成功/失敗、損益、Risk Multiple、保有時間をSidecar JSONへ出力する。",
+      "out_of_scope": "Batch Runner本体への自動組込み、ViewDef本体、売買ルール変更、損益計算ロジック変更は今回対象外。",
+      "fixed_name_policy": "元のbatch_*.jsonはSimulation正本として変更しない。派生表示データは*_entry_results.jsonへ分離する。",
+      "module_policy": "Event結合はcase_id + rule_lane + trade_idを使用し、同じtrade_idを持つ別Rule Laneを混ぜない。",
+      "expected_outputs": "entry_result_rows[]\n集計summary\nLane別Entry/成功/失敗/損益\n理由・ルール日本語展開\nWindowsランチャー\n回帰テスト",
+      "risk": "trade_id単独結合ではNORMALとEXPANSION_LITEが誤結合する。元JSONへ直接追記するとresult_hashの意味が曖昧になる。",
+      "test_points": "Entry数と行数が一致すること。Lane別Trade ID衝突を回避すること。Add-onを同一行へ集約すること。未決済をOPENとして残すこと。損益符号から成功/失敗を分類すること。",
+      "user_request": "entry_result_rowsをスクリプトで作れるなら作ってほしい。Entry毎の結果・Entry理由・成功/失敗・利益/損失を見たい。",
+      "ai_response": "元Batch JSONを変更しないSidecar生成スクリプトを追加し、既存2件のBatch結果からEntry成績表JSONを生成した。",
+      "decision_log": [
+        {
+          "decision_id": "dec_fx_chart_viewer_0028_001",
+          "at": "2026-07-13T20:30:01+09:00",
+          "decision": "Entry・Add-on・Closeの結合キーをcase_id + rule_lane + trade_idとする。",
+          "reason": "実データで同一trade_idがNORMALとEXPANSION_LITEに存在し、trade_id単独では誤結合するため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0028_002",
+          "at": "2026-07-13T20:30:01+09:00",
+          "decision": "成功/失敗はrealized_profit_jpyの正負で判定し、終了種別とは別列にする。",
+          "reason": "T3/Structural Exitでも利益があり得るため、Target到達だけを成功とすると実損益とズレるため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0028_003",
+          "at": "2026-07-13T20:30:01+09:00",
+          "decision": "元Batch JSONへdisplay_setsを直接追記せず、*_entry_results.json Sidecarを生成する。",
+          "reason": "Simulation正本と表示Projectionを分離し、既存result_hashの意味を壊さないため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_fx_chart_viewer_0028_001",
+          "at": "2026-07-13T20:30:01+09:00",
+          "change_type": "entry_result_rows_builder_added",
+          "before": "Entry / Add-on / Closeが別Eventで、Entryごとの最終結果をViewDef向け1行として参照できなかった。",
+          "after": "Entryを起点に最終決済までを結合したentry_result_rows Sidecarを生成できる。",
+          "reason": "シミュレーション結果を人間がEntry成績表として確認するため。"
+        }
+      ],
+      "verification_status": "Node回帰テスト実行済み / 既存Batch 2件でSidecar生成済み",
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/simulation/tools/build_entry_result_rows_v0_1.cjs\nstudio_overlays/gpt_fx_lab/simulation/tools/build_entry_result_rows_v0_1.cmd\nstudio_overlays/gpt_fx_lab/simulation/tools/README_entry_result_rows_v0_1.md\nstudio_overlays/gpt_fx_lab/simulattion_集計/batch_20260712_200928_entry_results.json\nstudio_overlays/gpt_fx_lab/simulattion_集計/batch_20260712_230503_entry_results.json\nstudio_overlays/gpt_fx_lab/tests/entry_result_rows_builder_v0_1.test.cjs\nstudio_overlays/gpt_fx_lab/CHANGELOG.md\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4_batch_simulation_registered.json",
+      "completion_summary": "Event列から1 Trade 1行のEntry成績表を生成。230503結果は115行、成功70、失敗45、損益+27,772円として元集計と一致。",
+      "test_result": "PASS entry_result_rows_builder_v0_1 / rows=115 / success=70 / failure=45 / pnl=27772",
+      "future_work": "entry_result_rows専用ViewDef追加。Batch Runner保存完了後のSidecar自動生成は、運用確認後に別作業で検討する。",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-07-13T20:30:01+09:00",
+      "context_def_draft": "# ContextDef素案: Batch Entry Result Projection\n\n- Simulation正本と表示Projectionを分離する。\n- 1行は初回Entryから最終決済までの1 Trade。\n- 結合キーはcase_id + rule_lane + trade_id。\n- 成功/失敗は損益符号、終了種別は別項目。\n- 未決済TradeもOPEN行として残す。"
     }
   ],
   "decision_log_policy": "fx_chart_viewerのUI改善・Overlay拡張では、実装差分だけでなく、違和感、採用判断、捨てた案、リスク、結果をwork_items[].decision_log / discussion_history / change_historyへ残す。この判断ログは、Studio Context Engineer Wannabe / 将来の自律的AIが、なぜそのUI・DataSource・URL責務にしたのかを学ぶための判例データとして扱う。",
