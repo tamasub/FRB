@@ -6,13 +6,13 @@
   "target": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer",
   "status": "active",
   "created_at": "2026-07-05",
-  "updated_at": "2026-07-13T22:30:00+09:00",
+  "updated_at": "2026-07-13T23:58:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "GPT FX Lab の fx_chart_viewer が、単なるチャート表示から、M5/H1/H4同期観測、HSI仮説可視化、コメント/判断ログ共有へ育っていくため、Studio本体インシデントとは別枠で改修履歴・判断ログ・将来要望を管理する。",
   "operation_policy": "ViewDefは既存の studio_work_incident_view_def_v0_5.json を共通利用する。fx_chart_viewer固有の作業はこの専用インシデントファイルへ登録し、Studio本体汎用機能とドメイン専用Overlay機能を混ぜない。実装パッチでは、更新ファイルのみZIP返却し、未更新ファイルや.bakを含めない。",
   "standard_field_policy": "このファイルは既存インシデント管理Dataの構造を踏襲する。work_item_id / phase / status / discussion_history / decision_log / change_history 等は、インシデント管理Dataの契約として扱う。",
-  "items_count": 32,
+  "items_count": 33,
   "main_context_status": "draft",
   "main_context_updated_at": "2026-07-12T19:38:58+09:00",
   "main_context_draft": "# 主文脈素案: インシデント管理Data\n\n## 読む目的\nこのインシデント管理Data全体を扱うAIが、作業前に読むべき正本・ViewDef・Foundation Rules・Runtime対象を確認できるようにする。\n\n## 基本方針\n- Data JSONを作業台帳の正本として扱う。\n- ViewDefは表示・編集体験の定義として扱う。\n- 主文脈はData全体を扱う前に読む入口、対象文脈は各作業項目を扱う前に読む入口として分ける。\n- グリッドは編集用、プレビューは読むためのUIとして分離する。\n\n## 注意\nFoundation Rule 19のZIP返却契約とdiscussion_history実発言契約を優先する。",
@@ -2999,12 +2999,72 @@
       "actual_updated_files": "studio_overlays/gpt_fx_lab/view_defs/fx_batch_entry_results_view_def_v0_1.json\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/studio_manifest.json\nstudio_overlays/gpt_fx_lab/tests/*.test.cjs\nstudio_overlays/gpt_fx_lab/CHANGELOG.md\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4_batch_simulation_registered.json",
       "completion_summary": "Entry成績表を残したまま、新しいタブでM5実行 + H1+H4の選択Tradeチャートを開けるようにした。",
       "test_result": "PASS entry_result_chart_url_navigation_v0_1 / Plugin syntax PASS / existing regression tests PASS。"
+    },
+    {
+      "work_item_id": "fx_chart_viewer_work_0033",
+      "parent_work_item_id": "fx_chart_viewer_work_0032",
+      "phase": "v0.9.1.06-simulation-rule-v0.23-entry-guards-and-ratio-stop",
+      "title": "Simulation Rule v0.21〜v0.23 未対応分の実装",
+      "incident_type": "simulation_rule_revision_implementation",
+      "category": "GPT FX Lab / Simulation / Entry Guard / CloseMiss Strategy",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-13",
+      "updated_at": "2026-07-13T23:58:00+09:00",
+      "target_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_v0_1.json\nstudio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_expansion_lite_v0_1.json\nstudio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_normal_plus_expansion_lite_v0_1.json\nstudio_overlays/gpt_fx_lab/simulation/fx_simulation_reason_rule_catalog_v0_1.json\nstudio_overlays/gpt_fx_lab/tests/simulation_rule_v0_21_to_v0_23.test.cjs\nstudio_overlays/gpt_fx_lab/tests/*.test.cjs\nstudio_overlays/gpt_fx_lab/studio_manifest.json\nstudio_overlays/gpt_fx_lab/CHANGELOG.md",
+      "objective": "文書改定済みだがSimulation Engineへ未反映だったv0.21〜v0.23を実装し、Entry Guard・Entry前Dow崩壊失効・JSON固定倍率Stopを再Simulation可能にする。",
+      "background": "アップロード資材を確認した結果、v0.21 / v0.22 / v0.23のReason Code、Entry Guard、pre-entry Dow break失効、max_loss_to_reward_ratio設定はRule文書にのみ存在し、Plugin実装・Run Profile契約には未反映だった。",
+      "scope": "NORMAL / EXPANSION_LITEの新規Entry判定、NORMAL Entry Opportunity Lifecycle、NORMAL CloseMiss Stop計算、Run Profile JSON、Trace / Event、理由カタログ、回帰テストを更新する。",
+      "out_of_scope": "Entry後のDow崩壊を新しいClose条件にすること、勝率からmax_loss_to_reward_ratioを動的算出すること、EXPANSION本体の未実装Entry/Close条件、過去Batch結果JSONの再生成は対象外。",
+      "fixed_name_policy": "既存Profileファイル名とRule Lane IDを維持し、設定項目追加とrule_version更新で対応する。",
+      "module_policy": "Entry Guard / Opportunity失効 / Stop StrategyはFX Overlay PluginとRun Profile内へ閉じ、Core Runtimeを変更しない。",
+      "expected_outputs": "v0.21 Day Up/H4 Down/R5 Short Guard\nv0.22 NORMAL H4同方向R4 Guard\nv0.23 Entry前Dow崩壊Opportunity失効\nv0.23 max_loss_to_reward_ratio Stop\nTrace / Reason Catalog\n回帰テスト",
+      "risk": "H4 wave起点の解決不能時にGuardが誤発動すること、WAITING_R2失効が新しい反対方向Confirmationまで巻き込むこと、倍率Stopが利益方向へ配置されること、既存Rule Lane分離を崩すこと。",
+      "test_points": "R4境界でNORMAL同方向EntryをBLOCK。R4未満ではALLOW。Day Up/H4 Down/R5でExpansion-Lite ShortをBLOCK。Entry前Dow崩壊でWAITING_R2をEXPIRED。同じTriggerを再利用しない。倍率1.0/1.5とHSI Hard Limit計算。Entry後Dow崩壊だけではCloseしない。全Profile Schema契約と既存回帰を維持。",
+      "user_request": "未対応のルール改定分を確認し、v0.21からv0.23までの対応を実装してほしい。",
+      "ai_response": "アップロード資材を監査し、v0.21〜v0.23が文書のみで未実装であることを確認。Entry Guard、Entry前Dow崩壊失効、JSON固定倍率StopをPlugin / Profile / Trace / Testへ実装した。",
+      "decision_log": [
+        {
+          "decision_id": "dec_fx_chart_viewer_0033_001",
+          "at": "2026-07-13T23:58:00+09:00",
+          "decision": "NORMALのH4同方向EntryはH4波R4到達以上で禁止する。",
+          "reason": "通常M5 Entryでは伸び切り後の高値掴み・安値売りを厳しく除外するため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0033_002",
+          "at": "2026-07-13T23:58:00+09:00",
+          "decision": "WAITING_R2中のDow崩壊だけをEntry権利失効として扱い、Entry後のDow崩壊は自動Closeへ流用しない。",
+          "reason": "Entry前の根拠失効と、Entry後のPosition管理は別責務だから。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0033_003",
+          "at": "2026-07-13T23:58:00+09:00",
+          "decision": "Normal StopはTarget距離×JSON固定max_loss_to_reward_ratioでEntry時に固定し、HSI起点をHard Limitとする。",
+          "reason": "現段階では勝率からの動的算出を導入せず、手動倍率による比較Simulationを可能にするため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_fx_chart_viewer_0033_001",
+          "at": "2026-07-13T23:58:00+09:00",
+          "change_type": "simulation_rule_v0_21_to_v0_23_implemented",
+          "before": "v0.21〜v0.23はRule文書だけが更新され、Simulation Engineはv0.17.1 / v0.18のEntry・HSI起点Stopを使用していた。",
+          "after": "v0.21/v0.22 Entry Guard、v0.23 Entry前Dow崩壊失効、Target距離倍率StopをProfile駆動で評価し、判断根拠をTraceへ残す。",
+          "reason": "Rule文書と実行結果の乖離を解消するため。"
+        }
+      ],
+      "verification_status": "Plugin JavaScript構文PASS / JSON Parse PASS / Run Profile Validator PASS / Node回帰テスト17件PASS",
+      "actual_updated_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_v0_1.json\nstudio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_expansion_lite_v0_1.json\nstudio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_normal_plus_expansion_lite_v0_1.json\nstudio_overlays/gpt_fx_lab/simulation/fx_simulation_reason_rule_catalog_v0_1.json\nstudio_overlays/gpt_fx_lab/tests/*.test.cjs\nstudio_overlays/gpt_fx_lab/studio_manifest.json\nstudio_overlays/gpt_fx_lab/CHANGELOG.md\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4_batch_simulation_registered.json",
+      "completion_summary": "Rule v0.21〜v0.23をSimulation Engineへ実装し、JSONのmax_loss_to_reward_ratioを手動変更してBatch比較できる状態にした。",
+      "test_result": "PASS simulation_rule_v0_21_to_v0_23 / PASS simulation_profile_contract_v0_17 / PASS existing regression tests (17 total)。"
     }
   ],
   "decision_log_policy": "fx_chart_viewerのUI改善・Overlay拡張では、実装差分だけでなく、違和感、採用判断、捨てた案、リスク、結果をwork_items[].decision_log / discussion_history / change_historyへ残す。この判断ログは、Studio Context Engineer Wannabe / 将来の自律的AIが、なぜそのUI・DataSource・URL責務にしたのかを学ぶための判例データとして扱う。",
-  "simulation_plan_status": "core_simulator_completed_batch_extension_registered",
-  "simulation_plan_updated_at": "2026-07-12T19:38:58+09:00",
-  "simulation_plan_summary": "fx_chart_viewer_work_0011配下の0012〜0022を最新資材・CHANGELOGに基づき実装完了として後追い更新。0023〜0026へ表示範囲Simulation、NORMAL Rule Lane、Execution Annotation UI、Expansion-Lite/Parallel Rule Lanesの修正概要を登録。0027をBatch Simulation Runner親インシデントとして追加し、BatchRun > SimulationCase > RuleLane > Chunk/UI Windowの実行単位、Case内部状態継続、Lane別独立評価、Case逐次実行、結果保存契約を定義した。",
+  "simulation_plan_status": "v0.23_implemented",
+  "simulation_plan_updated_at": "2026-07-13T23:58:00+09:00",
+  "simulation_plan_summary": "v0.21〜v0.23のEntry Guard、Entry前Dow崩壊失効、JSON固定倍率Normal Stopを実装。Entry後Dow崩壊Closeと動的勝率Stopは将来検討。",
   "batch_simulation_plan_status": "parent_registered",
   "batch_simulation_plan_updated_at": "2026-07-12T19:38:58+09:00",
   "batch_simulation_plan_summary": "Simulation Case = Primary Dataset + Source Mapping Snapshot + Period + Run Profile Snapshot + Rule/App Version。Case内部はNORMAL/EXPANSION/EXPANSION_LITEを独立Portfolioとしてパラレル評価し、Chunk境界で状態を初期化しない。v0.1はCase逐次実行、Lane別およびCOMBINED集計、JSON/CSV成果物、結果からチャートへ戻る導線を対象とする。",

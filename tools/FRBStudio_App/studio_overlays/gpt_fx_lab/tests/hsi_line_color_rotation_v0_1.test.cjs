@@ -17,7 +17,7 @@ const manifestPath = artifactPath('studio_overlays', 'gpt_fx_lab', 'plugins', 'f
 const sourceText = fs.readFileSync(pluginPath, 'utf8');
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 
-assert.equal(manifest.version, '0.9.1.05');
+assert.equal(manifest.version, '0.9.1.07');
 assert.equal(manifest.signal_policy?.hsi_line_color_rotation?.enabled, true);
 assert.equal(manifest.signal_policy?.hsi_line_color_rotation?.palette_size, 8);
 assert.equal(manifest.signal_policy?.hsi_line_color_rotation?.same_anchor_same_color, true);

@@ -11,7 +11,7 @@
   "scope": "gpt_fx_lab overlay only",
   "core_change": false,
   "description": "Entry成績表の選択行から新しいタブでM5実行 + H1+H4レイアウトを開き、元Batch JSONの選択Trade Entry/Add-on/Close Eventを実行マーカーとして投影する。固定十字と既存Simulation判断ポップオーバーも維持する。",
-  "version": "0.9.1.05",
+  "version": "0.9.1.07",
   "signal_policy": {
     "visible_marker": "candidate_basis_retired_circle_marker",
     "removed_marker": "dow_structure_decision_arrow_marker",
@@ -195,12 +195,12 @@
     "visible_range_simulation_hsi_range_lines_live_projection": true,
     "chart_meta_status_default_collapsed": true,
     "chart_meta_status_toggle_support": true,
-    "simulation_stop_basis_display": "HSI_ENTRY_ANCHOR",
+    "simulation_stop_basis_display": "TARGET_DISTANCE_RATIO_WITH_HSI_ANCHOR_HARD_LIMIT",
     "simulation_virtual_pnl_display": true,
     "simulation_virtual_pnl_unit_base_currency_amount": 1000,
     "simulation_virtual_pnl_currency": "JPY",
     "simulation_virtual_pnl_fee_slippage_tax_included": false,
-    "normal_entry_rule_version": "v0.17.1",
+    "normal_entry_rule_version": "v0.23",
     "normal_entry_h4_dow_required": false,
     "normal_entry_h4_t3_direction_required": true,
     "normal_entry_h1_m5_dow_match_required": true,
@@ -222,14 +222,14 @@
     "normal_runner_enabled": false,
     "normal_add_on_enabled": false,
     "expansion_add_on_only": true,
-    "entry_stop_basis": "ENTRY_HSI_ANCHOR_FIXED_AT_ENTRY",
+    "entry_stop_basis": "TARGET_DISTANCE_RATIO_FIXED_AT_ENTRY_WITH_HSI_ANCHOR_HARD_LIMIT",
     "entry_target_basis": "NEXT_HSI_BOUNDARY_FIXED_AT_ENTRY",
     "stop_target_touch_source": "M5_HIGH_LOW",
     "ambiguous_stop_target_policy": "STOP_FIRST_CONSERVATIVE",
-    "normal_entry_hsi_anchor_policy": "DOW_ADOPTED_FIXED_UNTIL_OPPOSITE_DOW",
+    "normal_entry_hsi_anchor_policy": "DOW_CONFIRMATION_TO_TRADE_CLOSE; INVALIDATE_ON_PRE_ENTRY_DOW_STRUCTURE_BREAK",
     "normal_entry_new_swing_replaces_hsi_anchor": false,
     "normal_entry_same_direction_reconfirmation_replaces_hsi_anchor": false,
-    "normal_entry_opposite_dow_replaces_hsi_anchor": true,
+    "normal_entry_opposite_dow_replaces_hsi_anchor": false,
     "expansion_dual_hsi_anchor_support": true,
     "expansion_detection_anchor_policy": "ORIGINAL_DOW_ADOPTED_ANCHOR",
     "expansion_entry_anchor_policy": "LATEST_CONFIRMED_PULLBACK_ANCHOR",
@@ -358,7 +358,17 @@
     "entry_result_chart_focus_fallback_marker": true,
     "entry_result_chart_navigation_target": "new_tab",
     "entry_result_chart_initial_layout": "M5_ENTRY",
-    "entry_result_chart_initial_upper_timeframe": "BOTH"
+    "entry_result_chart_initial_upper_timeframe": "BOTH",
+    "normal_pre_entry_dow_structure_break_expires_opportunity": true,
+    "normal_h4_same_direction_r4_entry_guard": true,
+    "day_up_h4_down_r5_short_entry_guard": true,
+    "normal_close_miss_strategy": "target_distance_ratio_v0_1",
+    "normal_close_miss_max_loss_to_reward_ratio_default": 1.0,
+    "normal_close_miss_dynamic_win_rate_calculation": "FUTURE_NOT_IMPLEMENTED",
+    "expansion_lite_entry_guard_rule_version": "v0.21",
+    "normal_entry_pre_entry_dow_break_invalidates_hsi_anchor": true,
+    "normal_pre_entry_dow_structure_break_policy": "NEWER_OPPOSITE_DOW_CONFIRMATION_ONLY",
+    "normal_pre_entry_transient_states_expire_opportunity": false
   },
   "display_policy": {
     "high_low_range_style": {
@@ -1125,7 +1135,7 @@
     "parallel_rule_lane_positions_support": true,
     "simultaneous_multi_lane_entry_support": true,
     "cross_lane_condition_sharing": "FORBIDDEN",
-    "normal_entry_rule_version": "v0.17.1",
+    "normal_entry_rule_version": "v0.23",
     "normal_entry_cycle_late_guard_timeframes": [
       "H1"
     ],
@@ -1192,6 +1202,17 @@
         "WEB_WORKER_OR_BACKGROUND_EXECUTION_AND_PERFORMANCE_PROFILE",
         "ARTIFACT_SPLIT_INDEX_AFTER_NESTED_DIRECTORY_SAVE_API_IS_AVAILABLE"
       ]
+    },
+    "simulation_rule_revision_support": [
+      "v0.21",
+      "v0.22",
+      "v0.23"
+    ],
+    "normal_close_miss_policy": {
+      "strategy_id": "target_distance_ratio_v0_1",
+      "max_loss_to_reward_ratio_default": 1.0,
+      "hsi_anchor_hard_limit": true,
+      "fixed_at_entry": true
     }
   },
   "chart_viewer_policy": {

@@ -15,7 +15,7 @@ const pluginPath = artifactPath('studio_overlays','gpt_fx_lab','plugins','fx_cha
 const profilePath = artifactPath('studio_overlays','gpt_fx_lab','simulation','fx_simulation_run_profile_normal_plus_expansion_lite_v0_1.json');
 const source = fs.readFileSync(pluginPath,'utf8');
 const profile = JSON.parse(fs.readFileSync(profilePath,'utf8'));
-assert.equal(profile.m5_execution_policy.normal_entry_policy.rule_version,'v0.17.1');
+assert.equal(profile.m5_execution_policy.normal_entry_policy.rule_version,'v0.23');
 assert.deepEqual(profile.m5_execution_policy.normal_entry_policy.cycle_late_guard_timeframes,['H1']);
 
 const hook = `window.__h1OnlyGuardTest = { m5ExecutionNormalEntryV08Facts, normalRuleLaneEntryDecision, validateSimulationRunDraft };`;

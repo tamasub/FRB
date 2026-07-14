@@ -5,7 +5,7 @@
   "title": "FX Simulation 理由コード・使用ルール 日本語カタログ",
   "status": "draft_growing_catalog",
   "created_at": "2026-07-11T15:50:00+09:00",
-  "updated_at": "2026-07-12",
+  "updated_at": "2026-07-13",
   "display_policy": {
     "language": "ja",
     "show_judgment_summary_first": true,
@@ -51,6 +51,11 @@
     {
       "code": "ALL_ACTIVE_ALIGNED_ANCHORS",
       "ja": "方向が一致する有効起点をすべて参照対象にしました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "AMBIGUOUS_STOP_TARGET",
+      "ja": "同一M5足でStopとTargetの両方へ到達しました。",
       "category": "判断理由"
     },
     {
@@ -116,6 +121,16 @@
     {
       "code": "CLOSE_OK",
       "ja": "利益確定として扱う決済が成立しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "CLOSE_OK_NEXT_HSI_TARGET",
+      "ja": "Entry時に固定した次HSI境界へ到達しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "CLOSE_OK_R2_5_TARGET",
+      "ja": "通常Entryの固定TargetであるR2.5へ到達したため全決済しました。",
       "category": "判断理由"
     },
     {
@@ -189,6 +204,11 @@
       "category": "判断理由"
     },
     {
+      "code": "DAY_UP_H4_DOWN_R5_SHORT_ENTRY_BLOCKED",
+      "ja": "Day上昇トレンド中のH4調整下降がR5以上進行しているため、下降末期からの新規Short Entryを見送りました。",
+      "category": "判断理由"
+    },
+    {
       "code": "DIRECTION_FROM_CYCLE_DIRECTION",
       "ja": "方向はサイクル起点の向きから補助的に決定しました。",
       "category": "判断理由"
@@ -199,8 +219,68 @@
       "category": "判断理由"
     },
     {
+      "code": "DOW_ADOPTED_HSI_ANCHOR_FIXED",
+      "ja": "M5ダウ成立時に採用したHSI起点を、反対方向ダウ成立まで固定しています。",
+      "category": "判断理由"
+    },
+    {
+      "code": "DOW_ADOPTED_HSI_ANCHOR_UNRESOLVED",
+      "ja": "M5ダウ成立に対応する固定HSI起点をまだ特定できません。",
+      "category": "判断理由"
+    },
+    {
+      "code": "DOW_CONFIRMATION_DIRECTION_MISMATCH",
+      "ja": "Dow確認方向と現在の通常Entry許可方向が一致しません。",
+      "category": "判断理由"
+    },
+    {
+      "code": "DOW_CONFIRMATION_HSI_ANCHOR_FIXED",
+      "ja": "Dow Confirmation IDに対応するHSI起点をEntry用として固定しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "DOW_CONFIRMATION_NOT_AFTER_PREVIOUS_TRADE_CLOSE",
+      "ja": "このDow確認は前Trade終了後に発生していないためReEntryへ使用できません。",
+      "category": "判断理由"
+    },
+    {
+      "code": "DOW_CONFIRMATION_OPPORTUNITY_ALREADY_USED",
+      "ja": "このDow Confirmation IDの通常Entry機会はすでに使用済みです。",
+      "category": "判断理由"
+    },
+    {
+      "code": "DOW_CONFIRMATION_OPPORTUNITY_EXPIRED",
+      "ja": "このDow Confirmation IDの通常Entry機会は期限切れです。",
+      "category": "判断理由"
+    },
+    {
+      "code": "DOW_CONFIRMATION_PREDATES_SIMULATION_START",
+      "ja": "表示範囲Simulation開始前に成立したDow確認Eventのため、新規Entry機会には使用しません。",
+      "category": "見送り理由"
+    },
+    {
+      "code": "DOW_CONFIRMATION_PREVIOUS_HIGH_ANCHOR",
+      "ja": "Dow DOWN確認で比較ペア先頭のprevious Highを通常HSI起点に採用しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "DOW_CONFIRMATION_PREVIOUS_LOW_ANCHOR",
+      "ja": "Dow UP確認で比較ペア先頭のprevious Lowを通常HSI起点に採用しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "DOW_CONFIRMATION_R2_READY_ENTRY_GATES_NOT_READY",
+      "ja": "Dow確認時点でR2到達済みでしたが、上位方向・Cycle・起点整合条件が不足していました。",
+      "category": "見送り理由"
+    },
+    {
       "code": "DOW_NO_TREND",
       "ja": "高値・安値構造から明確なトレンドを確定できません。",
+      "category": "判断理由"
+    },
+    {
+      "code": "DOW_ORIGIN_PREVIOUS_SWING_ADOPTED",
+      "ja": "M5ダウ成立時に比較した起点側のSwing（UPはprevious Low、DOWNはprevious High）をHSI起点として採用しました。",
       "category": "判断理由"
     },
     {
@@ -224,14 +304,163 @@
       "category": "判断理由"
     },
     {
+      "code": "ENTRY_AT_DOW_CONFIRMATION_PRICE",
+      "ja": "Dow確認時点でR2到達済みだったため、R2境界へ遡らず確認時点の実行価格でEntryしました。",
+      "category": "実行理由"
+    },
+    {
+      "code": "ENTRY_AT_FIRST_AVAILABLE_PRICE_AFTER_R2_GAP",
+      "ja": "Dow確認後、価格がR2を飛び越えて始まったため、最初に利用可能な価格でEntryしました。",
+      "category": "実行理由"
+    },
+    {
+      "code": "ENTRY_AT_R2_BOUNDARY",
+      "ja": "Dow確認後にR2へ初到達したため、R2境界価格でEntryしました。",
+      "category": "実行理由"
+    },
+    {
+      "code": "ENTRY_EXECUTED_AT_DOW_CONFIRMATION_WITH_R2_READY",
+      "ja": "Dow確認時点でR2到達済みかつR2.5未到達だったため、即Entryしました。",
+      "category": "実行結果"
+    },
+    {
       "code": "EQUAL_SWING_PRICE",
       "ja": "比較対象の材料点が同値で、方向確定には使えません。",
+      "category": "判断理由"
+    },
+    {
+      "code": "EXPANSION_ADD_ON_NOT_IMPLEMENTED",
+      "ja": "Expansion Add-onは許可対象ですが、Expansion Core確定処理は未実装です。",
       "category": "判断理由"
     },
     {
       "code": "EXPANSION_CONFIRMATION_NOT_IMPLEMENTED",
       "ja": "Expansion確定ロジックが未実装のため、Expansion Entryは実行しません。",
       "category": "判断理由"
+    },
+    {
+      "code": "EXPANSION_DETECTION_ANCHOR_RETAINED_ACROSS_NON_DIRECTIONAL_STATE",
+      "ja": "Expansion Detection Anchorは押し戻り中も大起点として維持。"
+    },
+    {
+      "code": "EXPANSION_DETECTION_USES_ORIGINAL_DOW_ANCHOR",
+      "ja": "Expansion全体の大起点には、元のM5ダウ採用HSI起点を維持します。",
+      "category": "判断理由"
+    },
+    {
+      "code": "EXPANSION_ENTRY_USES_LATEST_PULLBACK_ANCHOR",
+      "ja": "Expansion Entryだけは、元の大起点とは別に最新の確定押し戻り起点を使用します。",
+      "category": "判断理由"
+    },
+    {
+      "code": "EXPANSION_LITE_ADD_ON_LEVEL_TOUCHED",
+      "ja": "未使用のExpansion-Lite Add-on境界へタッチしました。",
+      "category": "Expansion-Lite"
+    },
+    {
+      "code": "EXPANSION_LITE_ALL_POSITIONS_CLOSE",
+      "ja": "Expansion-Lite本玉とすべての追撃玉を同時に全決済しました。",
+      "category": "Expansion-Lite"
+    },
+    {
+      "code": "EXPANSION_LITE_ANCHOR_EXIT",
+      "ja": "M5の安値または高値が採用HSI起点を逆抜けたため、Expansion-Lite全建玉を決済しました。",
+      "category": "Expansion-Lite"
+    },
+    {
+      "code": "EXPANSION_LITE_DOW_ANCHOR_UNRESOLVED",
+      "ja": "M5 Dow Confirmationに対応するExpansion-Lite専用HSI起点を解決できません。",
+      "category": "Expansion-Lite"
+    },
+    {
+      "code": "EXPANSION_LITE_DOW_CONFIRMATION_ANCHOR_ADOPTED",
+      "ja": "M5 Dow Confirmationの根拠点をExpansion-Lite専用HSI起点として採用しました。",
+      "category": "Expansion-Lite"
+    },
+    {
+      "code": "EXPANSION_LITE_DOW_DIRECTION_MISMATCH",
+      "ja": "M5 Dow Confirmationの方向とEntry方向が一致していません。",
+      "category": "Expansion-Lite"
+    },
+    {
+      "code": "EXPANSION_LITE_ENTRY_EXECUTED",
+      "ja": "Expansion-Lite専用条件が成立し、R3基準の初回Entryを実行しました。",
+      "category": "Expansion-Lite"
+    },
+    {
+      "code": "EXPANSION_LITE_ENTRY_GATE_NOT_READY",
+      "ja": "Expansion-Lite固有のEntry前提がまだそろっていません。",
+      "category": "Expansion-Lite"
+    },
+    {
+      "code": "EXPANSION_LITE_ENTRY_OPPORTUNITY_MISSED",
+      "ja": "R3タッチ時にEntry前提が不足していたため、このDow確認のEntry機会を終了しました。",
+      "category": "Expansion-Lite"
+    },
+    {
+      "code": "EXPANSION_LITE_FIRST_R3_TOUCH_AFTER_DOW_CONFIRMATION",
+      "ja": "M5 Dow確定後、R3へ初めてタッチしました。",
+      "category": "Expansion-Lite"
+    },
+    {
+      "code": "EXPANSION_LITE_H1_CYCLE_ENTRY_WINDOW_EXCEEDED",
+      "ja": "H1の方向別Cycle起点からの経過本数が、H1 Entry許可上限14本を超えています。",
+      "category": "Expansion-Lite"
+    },
+    {
+      "code": "EXPANSION_LITE_H1_CYCLE_ENTRY_WINDOW_OK",
+      "ja": "H1の方向別Cycle起点からの経過本数が、H1 Entry許可上限14本以内です。",
+      "category": "Expansion-Lite"
+    },
+    {
+      "code": "EXPANSION_LITE_H4_H1_T3_SIDE_ALIGNED",
+      "ja": "H4とH1の終値がEntry方向のT3側にそろっています。",
+      "category": "Expansion-Lite"
+    },
+    {
+      "code": "EXPANSION_LITE_H4_H1_T3_SIDE_NOT_ALIGNED",
+      "ja": "H4またはH1の終値がEntry方向のT3側にそろっていません。",
+      "category": "Expansion-Lite"
+    },
+    {
+      "code": "EXPANSION_LITE_M5_DOW_CONFIRMATION_UNAVAILABLE",
+      "ja": "Expansion-Lite Entryに必要なM5 Dow Confirmation Eventがありません。",
+      "category": "Expansion-Lite"
+    },
+    {
+      "code": "EXPANSION_LITE_POSITION_HOLD",
+      "ja": "Expansion-LiteのExitおよびAdd-on条件に未到達のため保有を継続します。",
+      "category": "Expansion-Lite"
+    },
+    {
+      "code": "EXPANSION_LITE_R3_READY_AT_DOW_CONFIRMATION",
+      "ja": "M5 Dow確定時点ですでにR3へタッチ済みでした。",
+      "category": "Expansion-Lite"
+    },
+    {
+      "code": "EXPANSION_LITE_R5_TARGET_EXIT",
+      "ja": "採用HSI起点からR5へタッチしたため、Expansion-Lite全建玉を決済しました。",
+      "category": "Expansion-Lite"
+    },
+    {
+      "code": "EXPANSION_LITE_STALE_CONFIRMATION_R3_STATE_UNKNOWN",
+      "ja": "表示範囲開始前にR3へ到達済みの可能性があり、過去へ遡ってEntryしません。",
+      "category": "Expansion-Lite"
+    },
+    {
+      "code": "EXPANSION_LITE_STRUCTURAL_EXIT",
+      "ja": "新しいM5 Dow点の確定により従来のDow構造が破綻したため、Expansion-Lite全建玉を決済しました。",
+      "category": "Expansion-Lite"
+    },
+    {
+      "code": "EXPANSION_LITE_T3_EXIT",
+      "ja": "M5の安値または高値がM5 T3を逆抜けたため、Expansion-Lite全建玉を決済しました。",
+      "category": "Expansion-Lite"
+    },
+    {
+      "code": "EXPANSION_LITE_WAITING_R3_TOUCH",
+      "ja": "Entry前提は成立しており、R3初回タッチを待っています。",
+      "category": "Expansion-Lite"
     },
     {
       "code": "FROM_DOWN",
@@ -241,6 +470,16 @@
     {
       "code": "FROM_UP",
       "ja": "直前状態は上方向でした。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H1_CLOSE_NOT_ABOVE_T3",
+      "ja": "H1終値がH1 T3より上にありません。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H1_CLOSE_NOT_BELOW_T3",
+      "ja": "H1終値がH1 T3より下にありません。",
       "category": "判断理由"
     },
     {
@@ -271,6 +510,16 @@
     {
       "code": "H1_REVERSAL_WATCH",
       "ja": "H1は反転監視状態です。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H1_T3_DIRECTION_ALLOWED",
+      "ja": "H1 T3方向と終値位置がEntry方向で一致。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H1_T3_NOT_READY",
+      "ja": "H1 T3方向を判定できません。",
       "category": "判断理由"
     },
     {
@@ -331,6 +580,11 @@
     {
       "code": "H4_H1_DIRECTION_CONFLICT",
       "ja": "H4とH1の方向が食い違っているため、Entryを見送ります。",
+      "category": "判断理由"
+    },
+    {
+      "code": "H4_H1_T3_NOT_ALIGNED",
+      "ja": "H4 T3とH1 T3の方向が一致していません。",
       "category": "判断理由"
     },
     {
@@ -399,6 +653,11 @@
       "category": "判断理由"
     },
     {
+      "code": "HSI_ANCHOR_CONFIRMATION_MISMATCH",
+      "ja": "HSI起点とDow Confirmation IDの紐づきが一致しないためEntryしません。",
+      "category": "判断理由"
+    },
+    {
       "code": "HSI_ANCHOR_FROM_CONFIRMED_ACTIVE_SWING",
       "ja": "現在有効な確定材料点からHSI起点を作成しました。",
       "category": "判断理由"
@@ -406,6 +665,11 @@
     {
       "code": "HSI_ANCHOR_FROM_CONFIRMED_NON_ACTIVE_SWING",
       "ja": "確定済みですが現在の主材料点ではないSwingからHSI起点を保持しています。",
+      "category": "判断理由"
+    },
+    {
+      "code": "HSI_ANCHOR_FROM_DOW_DIRECTIONAL_REGIME",
+      "ja": "HSI起点は、成立中のM5ダウ方向レジームから採用されました。",
       "category": "判断理由"
     },
     {
@@ -426,6 +690,21 @@
     {
       "code": "HSI_ENTRY_ANCHOR_UNRESOLVED",
       "ja": "Entry距離を測るための確定済みHSI起点を特定できませんでした。",
+      "category": "判断理由"
+    },
+    {
+      "code": "HSI_R1_NOT_REACHED",
+      "ja": "R1未到達",
+      "category": "判断理由"
+    },
+    {
+      "code": "HSI_R1_REACHED",
+      "ja": "R1到達",
+      "category": "判断理由"
+    },
+    {
+      "code": "HSI_R2_FIRST_TOUCH",
+      "ja": "採用済みHSI起点からR2へ初到達しました。",
       "category": "判断理由"
     },
     {
@@ -484,6 +763,21 @@
       "category": "判断理由"
     },
     {
+      "code": "M5_DOW_CONFIRMATION_EVENT_AVAILABLE",
+      "ja": "通常Entryに使用できるM5 Dow Confirmation Eventがあります。",
+      "category": "判断理由"
+    },
+    {
+      "code": "M5_DOW_CONFIRMATION_EVENT_ISSUED",
+      "ja": "新しいM5 Dow構造が成立し、Dow Confirmation Eventを発行しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "M5_DOW_CONFIRMATION_EVENT_UNAVAILABLE",
+      "ja": "通常Entryに使用できるM5 Dow Confirmation Eventがありません。",
+      "category": "判断理由"
+    },
+    {
       "code": "M5_DOW_NOT_ALIGNED",
       "ja": "M5のダウ方向が、想定しているEntry方向と一致していません。",
       "category": "判断理由"
@@ -499,8 +793,75 @@
       "category": "判断理由"
     },
     {
+      "code": "NEW_NORMAL_HSI_ANCHOR_AFTER_PREVIOUS_CLOSE",
+      "ja": "前Trade終了後に成立した新しいM5 Dow確認とprevious Swingから、新しい通常HSI起点を採用しました。",
+      "category": "判断理由"
+    },
+    {
       "code": "NEXT_HSI_BOUNDARY_REACHED",
       "ja": "設定済みHSI目標へ到達。",
+      "category": "判断理由"
+    },
+    {
+      "code": "NEXT_NORMAL_ENTRY_REQUIRES_NEW_DOW_CONFIRMATION_AFTER_PREVIOUS_CLOSE",
+      "ja": "前回の通常Trade終了後に成立した新しいM5 Dow確認Eventだけを、次の通常Entryへ使用します。",
+      "category": "通常Entry"
+    },
+    {
+      "code": "NORMAL_ADD_ON_DISABLED",
+      "ja": "通常PositionではAdd-onを行いません。",
+      "category": "判断理由"
+    },
+    {
+      "code": "NORMAL_CLOSE_MISS_STOP_PLAN_INVALID",
+      "ja": "Target距離と固定倍率から有効なCloseMiss Stopを計算できないためEntryを見送りました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "NORMAL_CLOSE_MISS_TARGET_DISTANCE_RATIO_FIXED",
+      "ja": "Target距離とJSON固定倍率max_loss_to_reward_ratioからCloseMiss StopをEntry時に固定しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "NORMAL_DOW_ANCHOR_RESET_ON_NO_TREND",
+      "ja": "M5 DowがNO_TRENDへ遷移したため、通常HSI起点を解除。"
+    },
+    {
+      "code": "NORMAL_DOW_ANCHOR_RESET_ON_REVERSAL_WATCH",
+      "ja": "M5 DowがREVERSAL_WATCHへ遷移したため、通常HSI起点を解除。"
+    },
+    {
+      "code": "NORMAL_DOW_ANCHOR_RESET_ON_UNDETERMINED",
+      "ja": "M5 DowがUNDETERMINEDへ遷移したため、通常HSI起点を解除。"
+    },
+    {
+      "code": "NORMAL_DOW_STRUCTURE_BROKEN_BEFORE_ENTRY",
+      "ja": "R2到達前にM5 Dow構造が崩壊したため、Normal Entry Opportunityを失効しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "NORMAL_ENTRY_FIRST_DOW_CONFIRMATION",
+      "ja": "このRunで最初のDow Confirmation Eventを通常Entry候補として評価しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "NORMAL_ENTRY_NEW_DOW_CONFIRMATION_AFTER_PREVIOUS_CLOSE",
+      "ja": "前回Trade終了後の新しいM5 Dow確認Eventに基づく、独立した通常Entryです。",
+      "category": "通常Entry"
+    },
+    {
+      "code": "NORMAL_ENTRY_OPPORTUNITY_MISSED",
+      "ja": "R2初回到達時にEntry条件が揃わなかったため、このDow確認のEntry機会を見送りました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "NORMAL_ENTRY_OPPORTUNITY_WAITING_R2",
+      "ja": "新しいDow確認に対応するHSI起点からR2へ初到達するのを待っています。",
+      "category": "判断理由"
+    },
+    {
+      "code": "NORMAL_ENTRY_USES_DOW_ADOPTED_ANCHOR",
+      "ja": "通常Entryは、最新Swingではなく成立中のM5ダウが所有するHSI起点を使用します。",
       "category": "判断理由"
     },
     {
@@ -509,13 +870,53 @@
       "category": "判断理由"
     },
     {
+      "code": "NORMAL_H4_ENTRY_GUARD_PASSED",
+      "ja": "H4現在波のHSI進行度がNormal Entry禁止境界R4未満でした。",
+      "category": "判断理由"
+    },
+    {
+      "code": "NORMAL_H4_SAME_DIRECTION_R4_ENTRY_BLOCKED",
+      "ja": "H4現在波がEntry方向へR4以上進行しているため、伸び切り後の新規Normal Entryを見送りました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "NORMAL_HSI_ANCHOR_FIRST_ADOPTION",
+      "ja": "最初の通常Trade用HSI起点をM5 Dow確認のprevious Swingから採用しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "NORMAL_HSI_ANCHOR_INVALIDATED_BEFORE_ENTRY",
+      "ja": "Entry前のDow構造崩壊により、採用していた通常HSI起点をEntry判定へ使用できなくしました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "NORMAL_HSI_ANCHOR_LIFECYCLE_NOT_READY",
+      "ja": "通常HSI起点Lifecycleが次の新しいM5 Dow確認待ちのため、Entryを行いません。",
+      "category": "判断理由"
+    },
+    {
+      "code": "NORMAL_HSI_ANCHOR_RETIRED_ON_CLOSE",
+      "ja": "Normal TradeのClose確定時に、そのTradeで使用した通常HSI起点を即時破棄しました。",
+      "category": "判断理由"
+    },
+    {
       "code": "NOT_RESOLVER_ELIGIBLE",
       "ja": "現在の目的には使えないHSI起点です。",
       "category": "判断理由"
     },
     {
+      "code": "NO_ACTIVE_ALIGNED_EXPANSION_ENTRY_ANCHOR",
+      "ja": "Expansion Entry用の確定済み押し戻り起点が見つかりません。",
+      "category": "判断理由"
+    },
+    {
       "code": "OLDEST_ACTIVE_ALIGNED_ANCHOR_IN_ANALYSIS_SCOPE",
       "ja": "方向が一致する有効起点のうち、分析範囲内で最も古いものを選択しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "ONE_ENTRY_PER_DOW_CONFIRMATION",
+      "ja": "1つのDow Confirmation IDにつき通常Entry機会は最大1回です。",
       "category": "判断理由"
     },
     {
@@ -549,6 +950,11 @@
       "category": "判断理由"
     },
     {
+      "code": "PREVIOUS_TRADE_CLOSED",
+      "ja": "直前TradeはTerminal Close済みです。",
+      "category": "判断理由"
+    },
+    {
       "code": "PREVIOUS_TRADE_CLOSE_OK",
       "ja": "直前のTradeが利益確定で終了しているため、ReEntry候補として扱えます。",
       "category": "判断理由"
@@ -556,6 +962,36 @@
     {
       "code": "PURPOSE_ROLE_ASSIGNED",
       "ja": "HSI起点へEntry・Hold・Targetなどの用途を割り当てました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "R2_5_ALREADY_REACHED_BEFORE_ENTRY",
+      "ja": "Entry判定時点のM5足でR2.5へすでに到達しており、Targetが残っていないため見送りました。",
+      "category": "見送り理由"
+    },
+    {
+      "code": "R2_ALREADY_PASSED_BEFORE_CONFIRMATION_BAR",
+      "ja": "Dow確認時点ですでにR2を通過していたため、遅れてEntryしません。",
+      "category": "判断理由"
+    },
+    {
+      "code": "R2_ALREADY_REACHED_AT_DOW_CONFIRMATION",
+      "ja": "M5 Dow確認Event成立時点で、採用HSI起点からすでにR2へ到達していました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "R2_FIRST_TOUCH_ENTRY_GATES_NOT_READY",
+      "ja": "R2初回到達時に上位条件または建玉条件が揃っていなかったため、Entry機会を見送りました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "REENTRY_NEW_DOW_CONFIRMATION_AFTER_CLOSE",
+      "ja": "前Trade終了後に発生した新しいDow Confirmation Eventを使ってReEntryします。",
+      "category": "判断理由"
+    },
+    {
+      "code": "REENTRY_REQUIRES_NEW_DOW_CONFIRMATION_AFTER_CLOSE",
+      "ja": "ReEntryには前Trade終了後の新しいM5 Dow確認Eventが必要です。",
       "category": "判断理由"
     },
     {
@@ -581,6 +1017,26 @@
     {
       "code": "RETAINED_FOR_TRACE",
       "ja": "現在の判断には使いませんが、判断履歴を追えるよう記録を残しています。",
+      "category": "判断理由"
+    },
+    {
+      "code": "SINGLE_CLOSE_ALL_UNITS",
+      "ja": "保有している全単位を1回で決済しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "STOP_CLOSE_ENTRY_HSI_ANCHOR",
+      "ja": "Entry時に使用したHSI起点へ到達しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "STOP_CLOSE_HSI_ANCHOR_HARD_LIMIT",
+      "ja": "倍率StopがHSI起点より遠くなるため、HSI起点Hard Limitを実Stopへ適用しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "STOP_CLOSE_TARGET_DISTANCE_RATIO",
+      "ja": "Entry時にTarget距離と固定倍率から確定したStopへ到達したためCloseMissとしました。",
       "category": "判断理由"
     },
     {
@@ -674,906 +1130,12 @@
       "category": "判断理由"
     },
     {
-      "code": "HSI_R1_NOT_REACHED",
-      "ja": "R1未到達",
-      "category": "判断理由"
-    },
-    {
-      "code": "HSI_R1_REACHED",
-      "ja": "R1到達",
-      "category": "判断理由"
-    },
-    {
-      "code": "CLOSE_OK_NEXT_HSI_TARGET",
-      "ja": "Entry時に固定した次HSI境界へ到達しました。",
-      "category": "判断理由"
-    },
-    {
-      "code": "STOP_CLOSE_ENTRY_HSI_ANCHOR",
-      "ja": "Entry時に使用したHSI起点へ到達しました。",
-      "category": "判断理由"
-    },
-    {
-      "code": "SINGLE_CLOSE_ALL_UNITS",
-      "ja": "保有している全単位を1回で決済しました。",
-      "category": "判断理由"
-    },
-    {
-      "code": "AMBIGUOUS_STOP_TARGET",
-      "ja": "同一M5足でStopとTargetの両方へ到達しました。",
-      "category": "判断理由"
-    },
-    {
-      "code": "NORMAL_ADD_ON_DISABLED",
-      "ja": "通常PositionではAdd-onを行いません。",
-      "category": "判断理由"
-    },
-    {
-      "code": "PREVIOUS_TRADE_CLOSED",
-      "ja": "直前TradeはTerminal Close済みです。",
-      "category": "判断理由"
-    },
-    {
-      "code": "EXPANSION_ADD_ON_NOT_IMPLEMENTED",
-      "ja": "Expansion Add-onは許可対象ですが、Expansion Core確定処理は未実装です。",
-      "category": "判断理由"
-    },
-    {
-      "code": "H1_T3_DIRECTION_ALLOWED",
-      "ja": "H1 T3方向と終値位置がEntry方向で一致。",
-      "category": "判断理由"
-    },
-    {
-      "code": "H1_T3_NOT_READY",
-      "ja": "H1 T3方向を判定できません。",
-      "category": "判断理由"
-    },
-    {
-      "code": "H1_CLOSE_NOT_ABOVE_T3",
-      "ja": "H1終値がH1 T3より上にありません。",
-      "category": "判断理由"
-    },
-    {
-      "code": "H1_CLOSE_NOT_BELOW_T3",
-      "ja": "H1終値がH1 T3より下にありません。",
-      "category": "判断理由"
-    },
-    {
-      "code": "H4_H1_T3_NOT_ALIGNED",
-      "ja": "H4 T3とH1 T3の方向が一致していません。",
-      "category": "判断理由"
-    },
-    {
-      "code": "DOW_ADOPTED_HSI_ANCHOR_FIXED",
-      "ja": "M5ダウ成立時に採用したHSI起点を、反対方向ダウ成立まで固定しています。",
-      "category": "判断理由"
-    },
-    {
-      "code": "DOW_ADOPTED_HSI_ANCHOR_UNRESOLVED",
-      "ja": "M5ダウ成立に対応する固定HSI起点をまだ特定できません。",
-      "category": "判断理由"
-    },
-    {
-      "code": "NORMAL_ENTRY_USES_DOW_ADOPTED_ANCHOR",
-      "ja": "通常Entryは、最新Swingではなく成立中のM5ダウが所有するHSI起点を使用します。",
-      "category": "判断理由"
-    },
-    {
-      "code": "EXPANSION_DETECTION_USES_ORIGINAL_DOW_ANCHOR",
-      "ja": "Expansion全体の大起点には、元のM5ダウ採用HSI起点を維持します。",
-      "category": "判断理由"
-    },
-    {
-      "code": "EXPANSION_ENTRY_USES_LATEST_PULLBACK_ANCHOR",
-      "ja": "Expansion Entryだけは、元の大起点とは別に最新の確定押し戻り起点を使用します。",
-      "category": "判断理由"
-    },
-    {
-      "code": "NO_ACTIVE_ALIGNED_EXPANSION_ENTRY_ANCHOR",
-      "ja": "Expansion Entry用の確定済み押し戻り起点が見つかりません。",
-      "category": "判断理由"
-    },
-    {
-      "code": "HSI_ANCHOR_FROM_DOW_DIRECTIONAL_REGIME",
-      "ja": "HSI起点は、成立中のM5ダウ方向レジームから採用されました。",
-      "category": "判断理由"
-    },
-    {
-      "code": "DOW_ORIGIN_PREVIOUS_SWING_ADOPTED",
-      "ja": "M5ダウ成立時に比較した起点側のSwing（UPはprevious Low、DOWNはprevious High）をHSI起点として採用しました。",
-      "category": "判断理由"
-    },
-    {
-      "code": "NORMAL_DOW_ANCHOR_RESET_ON_REVERSAL_WATCH",
-      "ja": "M5 DowがREVERSAL_WATCHへ遷移したため、通常HSI起点を解除。"
-    },
-    {
-      "code": "NORMAL_DOW_ANCHOR_RESET_ON_NO_TREND",
-      "ja": "M5 DowがNO_TRENDへ遷移したため、通常HSI起点を解除。"
-    },
-    {
-      "code": "NORMAL_DOW_ANCHOR_RESET_ON_UNDETERMINED",
-      "ja": "M5 DowがUNDETERMINEDへ遷移したため、通常HSI起点を解除。"
-    },
-    {
-      "code": "EXPANSION_DETECTION_ANCHOR_RETAINED_ACROSS_NON_DIRECTIONAL_STATE",
-      "ja": "Expansion Detection Anchorは押し戻り中も大起点として維持。"
-    },
-    {
-      "code": "M5_DOW_CONFIRMATION_EVENT_ISSUED",
-      "ja": "新しいM5 Dow構造が成立し、Dow Confirmation Eventを発行しました。",
-      "category": "判断理由"
-    },
-    {
-      "code": "DOW_CONFIRMATION_PREVIOUS_LOW_ANCHOR",
-      "ja": "Dow UP確認で比較ペア先頭のprevious Lowを通常HSI起点に採用しました。",
-      "category": "判断理由"
-    },
-    {
-      "code": "DOW_CONFIRMATION_PREVIOUS_HIGH_ANCHOR",
-      "ja": "Dow DOWN確認で比較ペア先頭のprevious Highを通常HSI起点に採用しました。",
-      "category": "判断理由"
-    },
-    {
-      "code": "M5_DOW_CONFIRMATION_EVENT_AVAILABLE",
-      "ja": "通常Entryに使用できるM5 Dow Confirmation Eventがあります。",
-      "category": "判断理由"
-    },
-    {
-      "code": "M5_DOW_CONFIRMATION_EVENT_UNAVAILABLE",
-      "ja": "通常Entryに使用できるM5 Dow Confirmation Eventがありません。",
-      "category": "判断理由"
-    },
-    {
-      "code": "ONE_ENTRY_PER_DOW_CONFIRMATION",
-      "ja": "1つのDow Confirmation IDにつき通常Entry機会は最大1回です。",
-      "category": "判断理由"
-    },
-    {
-      "code": "NORMAL_ENTRY_FIRST_DOW_CONFIRMATION",
-      "ja": "このRunで最初のDow Confirmation Eventを通常Entry候補として評価しました。",
-      "category": "判断理由"
-    },
-    {
-      "code": "REENTRY_NEW_DOW_CONFIRMATION_AFTER_CLOSE",
-      "ja": "前Trade終了後に発生した新しいDow Confirmation Eventを使ってReEntryします。",
-      "category": "判断理由"
-    },
-    {
-      "code": "REENTRY_REQUIRES_NEW_DOW_CONFIRMATION_AFTER_CLOSE",
-      "ja": "ReEntryには前Trade終了後の新しいM5 Dow確認Eventが必要です。",
-      "category": "判断理由"
-    },
-    {
-      "code": "DOW_CONFIRMATION_NOT_AFTER_PREVIOUS_TRADE_CLOSE",
-      "ja": "このDow確認は前Trade終了後に発生していないためReEntryへ使用できません。",
-      "category": "判断理由"
-    },
-    {
-      "code": "DOW_CONFIRMATION_OPPORTUNITY_ALREADY_USED",
-      "ja": "このDow Confirmation IDの通常Entry機会はすでに使用済みです。",
-      "category": "判断理由"
-    },
-    {
-      "code": "DOW_CONFIRMATION_OPPORTUNITY_EXPIRED",
-      "ja": "このDow Confirmation IDの通常Entry機会は期限切れです。",
-      "category": "判断理由"
-    },
-    {
-      "code": "NORMAL_ENTRY_OPPORTUNITY_WAITING_R2",
-      "ja": "新しいDow確認に対応するHSI起点からR2へ初到達するのを待っています。",
-      "category": "判断理由"
-    },
-    {
-      "code": "NORMAL_ENTRY_OPPORTUNITY_MISSED",
-      "ja": "R2初回到達時にEntry条件が揃わなかったため、このDow確認のEntry機会を見送りました。",
-      "category": "判断理由"
-    },
-    {
-      "code": "R2_ALREADY_PASSED_BEFORE_CONFIRMATION_BAR",
-      "ja": "Dow確認時点ですでにR2を通過していたため、遅れてEntryしません。",
-      "category": "判断理由"
-    },
-    {
-      "code": "R2_FIRST_TOUCH_ENTRY_GATES_NOT_READY",
-      "ja": "R2初回到達時に上位条件または建玉条件が揃っていなかったため、Entry機会を見送りました。",
-      "category": "判断理由"
-    },
-    {
-      "code": "HSI_ANCHOR_CONFIRMATION_MISMATCH",
-      "ja": "HSI起点とDow Confirmation IDの紐づきが一致しないためEntryしません。",
-      "category": "判断理由"
-    },
-    {
-      "code": "DOW_CONFIRMATION_DIRECTION_MISMATCH",
-      "ja": "Dow確認方向と現在の通常Entry許可方向が一致しません。",
-      "category": "判断理由"
-    },
-    {
-      "code": "HSI_R2_FIRST_TOUCH",
-      "ja": "採用済みHSI起点からR2へ初到達しました。",
-      "category": "判断理由"
-    },
-    {
-      "code": "DOW_CONFIRMATION_HSI_ANCHOR_FIXED",
-      "ja": "Dow Confirmation IDに対応するHSI起点をEntry用として固定しました。",
-      "category": "判断理由"
-    },
-    {
-      "code": "CLOSE_OK_R2_5_TARGET",
-      "ja": "通常Entryの固定TargetであるR2.5へ到達したため全決済しました。",
-      "category": "判断理由"
-    },
-    {
-      "code": "R2_ALREADY_REACHED_AT_DOW_CONFIRMATION",
-      "ja": "M5 Dow確認Event成立時点で、採用HSI起点からすでにR2へ到達していました。",
-      "category": "判断理由"
-    },
-    {
-      "code": "ENTRY_AT_DOW_CONFIRMATION_PRICE",
-      "ja": "Dow確認時点でR2到達済みだったため、R2境界へ遡らず確認時点の実行価格でEntryしました。",
-      "category": "実行理由"
-    },
-    {
-      "code": "ENTRY_AT_R2_BOUNDARY",
-      "ja": "Dow確認後にR2へ初到達したため、R2境界価格でEntryしました。",
-      "category": "実行理由"
-    },
-    {
-      "code": "ENTRY_AT_FIRST_AVAILABLE_PRICE_AFTER_R2_GAP",
-      "ja": "Dow確認後、価格がR2を飛び越えて始まったため、最初に利用可能な価格でEntryしました。",
-      "category": "実行理由"
-    },
-    {
-      "code": "R2_5_ALREADY_REACHED_BEFORE_ENTRY",
-      "ja": "Entry判定時点のM5足でR2.5へすでに到達しており、Targetが残っていないため見送りました。",
-      "category": "見送り理由"
-    },
-    {
-      "code": "DOW_CONFIRMATION_PREDATES_SIMULATION_START",
-      "ja": "表示範囲Simulation開始前に成立したDow確認Eventのため、新規Entry機会には使用しません。",
-      "category": "見送り理由"
-    },
-    {
-      "code": "DOW_CONFIRMATION_R2_READY_ENTRY_GATES_NOT_READY",
-      "ja": "Dow確認時点でR2到達済みでしたが、上位方向・Cycle・起点整合条件が不足していました。",
-      "category": "見送り理由"
-    },
-    {
-      "code": "ENTRY_EXECUTED_AT_DOW_CONFIRMATION_WITH_R2_READY",
-      "ja": "Dow確認時点でR2到達済みかつR2.5未到達だったため、即Entryしました。",
-      "category": "実行結果"
-    },
-    {
-      "code": "NEXT_NORMAL_ENTRY_REQUIRES_NEW_DOW_CONFIRMATION_AFTER_PREVIOUS_CLOSE",
-      "ja": "前回の通常Trade終了後に成立した新しいM5 Dow確認Eventだけを、次の通常Entryへ使用します。",
-      "category": "通常Entry"
-    },
-    {
-      "code": "NORMAL_ENTRY_NEW_DOW_CONFIRMATION_AFTER_PREVIOUS_CLOSE",
-      "ja": "前回Trade終了後の新しいM5 Dow確認Eventに基づく、独立した通常Entryです。",
-      "category": "通常Entry"
-    },
-    {
-      "code": "NORMAL_HSI_ANCHOR_RETIRED_ON_CLOSE",
-      "ja": "Normal TradeのClose確定時に、そのTradeで使用した通常HSI起点を即時破棄しました。",
-      "category": "判断理由"
-    },
-    {
-      "code": "NEW_NORMAL_HSI_ANCHOR_AFTER_PREVIOUS_CLOSE",
-      "ja": "前Trade終了後に成立した新しいM5 Dow確認とprevious Swingから、新しい通常HSI起点を採用しました。",
-      "category": "判断理由"
-    },
-    {
-      "code": "NORMAL_HSI_ANCHOR_FIRST_ADOPTION",
-      "ja": "最初の通常Trade用HSI起点をM5 Dow確認のprevious Swingから採用しました。",
-      "category": "判断理由"
-    },
-    {
-      "code": "NORMAL_HSI_ANCHOR_LIFECYCLE_NOT_READY",
-      "ja": "通常HSI起点Lifecycleが次の新しいM5 Dow確認待ちのため、Entryを行いません。",
-      "category": "判断理由"
-    },
-    {
-      "code": "EXPANSION_LITE_DOW_ANCHOR_UNRESOLVED",
-      "ja": "M5 Dow Confirmationに対応するExpansion-Lite専用HSI起点を解決できません。",
-      "category": "Expansion-Lite"
-    },
-    {
-      "code": "EXPANSION_LITE_DOW_CONFIRMATION_ANCHOR_ADOPTED",
-      "ja": "M5 Dow Confirmationの根拠点をExpansion-Lite専用HSI起点として採用しました。",
-      "category": "Expansion-Lite"
-    },
-    {
-      "code": "EXPANSION_LITE_M5_DOW_CONFIRMATION_UNAVAILABLE",
-      "ja": "Expansion-Lite Entryに必要なM5 Dow Confirmation Eventがありません。",
-      "category": "Expansion-Lite"
-    },
-    {
-      "code": "EXPANSION_LITE_ENTRY_EXECUTED",
-      "ja": "Expansion-Lite専用条件が成立し、R3基準の初回Entryを実行しました。",
-      "category": "Expansion-Lite"
-    },
-    {
-      "code": "EXPANSION_LITE_H4_H1_T3_SIDE_ALIGNED",
-      "ja": "H4とH1の終値がEntry方向のT3側にそろっています。",
-      "category": "Expansion-Lite"
-    },
-    {
-      "code": "EXPANSION_LITE_H1_CYCLE_ENTRY_WINDOW_OK",
-      "ja": "H1の方向別Cycle起点からの経過本数が、H1 Entry許可上限14本以内です。",
-      "category": "Expansion-Lite"
-    },
-    {
-      "code": "EXPANSION_LITE_R3_READY_AT_DOW_CONFIRMATION",
-      "ja": "M5 Dow確定時点ですでにR3へタッチ済みでした。",
-      "category": "Expansion-Lite"
-    },
-    {
-      "code": "EXPANSION_LITE_FIRST_R3_TOUCH_AFTER_DOW_CONFIRMATION",
-      "ja": "M5 Dow確定後、R3へ初めてタッチしました。",
-      "category": "Expansion-Lite"
-    },
-    {
-      "code": "EXPANSION_LITE_WAITING_R3_TOUCH",
-      "ja": "Entry前提は成立しており、R3初回タッチを待っています。",
-      "category": "Expansion-Lite"
-    },
-    {
-      "code": "EXPANSION_LITE_ENTRY_GATE_NOT_READY",
-      "ja": "Expansion-Lite固有のEntry前提がまだそろっていません。",
-      "category": "Expansion-Lite"
-    },
-    {
-      "code": "EXPANSION_LITE_H4_H1_T3_SIDE_NOT_ALIGNED",
-      "ja": "H4またはH1の終値がEntry方向のT3側にそろっていません。",
-      "category": "Expansion-Lite"
-    },
-    {
-      "code": "EXPANSION_LITE_H1_CYCLE_ENTRY_WINDOW_EXCEEDED",
-      "ja": "H1の方向別Cycle起点からの経過本数が、H1 Entry許可上限14本を超えています。",
-      "category": "Expansion-Lite"
-    },
-    {
-      "code": "EXPANSION_LITE_DOW_DIRECTION_MISMATCH",
-      "ja": "M5 Dow Confirmationの方向とEntry方向が一致していません。",
-      "category": "Expansion-Lite"
-    },
-    {
-      "code": "EXPANSION_LITE_ENTRY_OPPORTUNITY_MISSED",
-      "ja": "R3タッチ時にEntry前提が不足していたため、このDow確認のEntry機会を終了しました。",
-      "category": "Expansion-Lite"
-    },
-    {
-      "code": "EXPANSION_LITE_STALE_CONFIRMATION_R3_STATE_UNKNOWN",
-      "ja": "表示範囲開始前にR3へ到達済みの可能性があり、過去へ遡ってEntryしません。",
-      "category": "Expansion-Lite"
-    },
-    {
-      "code": "EXPANSION_LITE_ADD_ON_LEVEL_TOUCHED",
-      "ja": "未使用のExpansion-Lite Add-on境界へタッチしました。",
-      "category": "Expansion-Lite"
-    },
-    {
-      "code": "EXPANSION_LITE_POSITION_HOLD",
-      "ja": "Expansion-LiteのExitおよびAdd-on条件に未到達のため保有を継続します。",
-      "category": "Expansion-Lite"
-    },
-    {
-      "code": "EXPANSION_LITE_R5_TARGET_EXIT",
-      "ja": "採用HSI起点からR5へタッチしたため、Expansion-Lite全建玉を決済しました。",
-      "category": "Expansion-Lite"
-    },
-    {
-      "code": "EXPANSION_LITE_T3_EXIT",
-      "ja": "M5の安値または高値がM5 T3を逆抜けたため、Expansion-Lite全建玉を決済しました。",
-      "category": "Expansion-Lite"
-    },
-    {
-      "code": "EXPANSION_LITE_STRUCTURAL_EXIT",
-      "ja": "新しいM5 Dow点の確定により従来のDow構造が破綻したため、Expansion-Lite全建玉を決済しました。",
-      "category": "Expansion-Lite"
-    },
-    {
-      "code": "EXPANSION_LITE_ANCHOR_EXIT",
-      "ja": "M5の安値または高値が採用HSI起点を逆抜けたため、Expansion-Lite全建玉を決済しました。",
-      "category": "Expansion-Lite"
-    },
-    {
-      "code": "EXPANSION_LITE_ALL_POSITIONS_CLOSE",
-      "ja": "Expansion-Lite本玉とすべての追撃玉を同時に全決済しました。",
-      "category": "Expansion-Lite"
-    },
-    {
       "code": "rule_normal_entry_v17_1_h1_cycle_late_guard",
       "ja": "通常EntryのCycle Late GuardはH1だけに適用します。H4 Cycle Lateは観測情報として保持しますが、通常Entryを禁止しません。",
       "category": "使用ルール"
     }
   ],
   "rule_ids": [
-    {
-      "code": "rule_add_on_only_when_core_profitable",
-      "ja": "買い増しはCoreが含み益のときだけ許可し、含み損へのナンピンを禁止します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_core_next_hsi_partial_close",
-      "ja": "HSI目標到達時にCOREを部分利確し、残りを次目標まで保有。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_cycle_elapsed_confirmed_bars",
-      "ja": "サイクル経過本数は、起点足を除いた確定済み足数で数えます。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_cycle_explicit_phase_thresholds",
-      "ja": "Early・Middle・Lateは時間足ごとに明示設定した本数閾値で判定します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_cycle_latest_confirmed_usable_swing_origin",
-      "ja": "現在利用可能な最新の確定Swingをサイクル起点にします。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_cycle_state_not_action_permission",
-      "ja": "サイクル状態は観測情報であり、それ単独ではEntryやCloseを実行しません。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_day_not_expansion_guard",
-      "ja": "DAYサイクル年齢が上限を超えた波はExpansionとして扱いません。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_day_warning_expansion_wait",
-      "ja": "DAYサイクル年齢が警戒帯の場合、Expansion候補の格付けを下げて待機します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_dow_confirmed_swing_structure",
-      "ja": "確定済みの直近2組の高値・安値関係からダウトレンドを判定します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_dow_state_not_entry_permission",
-      "ja": "ダウ状態は相場観測結果であり、それ単独ではEntry許可にしません。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_expansion_entry_requires_explicit_confirmation",
-      "ja": "Expansion Entryは専用の確定条件が実装・成立した場合だけ許可し、通常Entryへ自動変換しません。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_explicit_timeframe_confirm_bars",
-      "ja": "Confirm barsは各時間足で独立した明示値を使用し、他時間足から継承・計算しません。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_h1_exit_confirmed_m5_full_close",
-      "ja": "H1決済トリガー確定後、M5で残り建玉を全決済。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_h4_late_protect_mode",
-      "ja": "H4サイクル後半では新規追加より、既存利益の保護を優先します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_h4_profit_take_armed",
-      "ja": "H4 Cycle Late・BB収縮・HSI重なりがそろった場合、利益確定準備をONにします。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_hsi_anchor_from_swing_identity",
-      "ja": "HSI起点は元になったSwingの識別子とLifecycleを引き継いで管理します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_hsi_anchor_no_action_permission",
-      "ja": "HSI起点の存在だけではEntryやCloseを実行しません。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_hsi_anchor_status_role_separation",
-      "ja": "HSI起点の確定状態と、Entry・Hold・Targetなどの用途を別項目で管理します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_m5_execution_input_valid",
-      "ja": "M5実行に必要な上位足判断・現在価格・方向・建玉状態が有効な場合だけ処理します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_m5_execution_prerequisites",
-      "ja": "M5の実行前に、確定足・上位足Decision・HSI起点・前回建玉状態など必須入力を確認します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_m5_reference_once_only",
-      "ja": "同一のM5基準地点は一度だけ評価し、同じ足での二重実行を防止します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_m5_trigger_hsi_r2",
-      "ja": "M5方向一致・確定HSI起点の存在・起点からR2到達を、Entryまたは買い増しの実行条件とします。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_no_lookahead_confirm_window",
-      "ja": "材料点の確定には現在地点より未来の未確定足を使用しません。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_no_lookahead_confirmed_inputs",
-      "ja": "各判断には、その基準時刻までに確定した入力だけを使用します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_no_lookahead_confirmed_swings",
-      "ja": "ダウ・サイクル・HSI判断には確定済みSwingだけを使用します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_normal_entry_upper_permission",
-      "ja": "上位足の統合判断が通常Entry探索を許可した場合だけ、M5のEntry条件を評価します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_normal_entry_v06_cycle_late_guard",
-      "ja": "H4またはH1がCycle LateならEntry・ReEntry・Add-onを禁止。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_normal_entry_v06_h1_m5_dow_match",
-      "ja": "H1とM5のDow Trendが同方向に一致した場合だけEntryを許可。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_normal_entry_v06_h4_t3_direction",
-      "ja": "H4 Dowは使わず、H4 T3の傾きと終値のT3上下位置でEntry方向を許可。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_position_role_split_core_runner",
-      "ja": "新規Entry時に建玉をCoreとRunnerへ分割し、それぞれ別の保有役割を持たせます。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_position_structural_anchor_break",
-      "ja": "建玉の根拠となる構造起点を破った場合、保有根拠無効としてStop Closeします。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_reentry_after_close_ok",
-      "ja": "直前Tradeが利益確定で終了し、上位文脈とM5条件が継続している場合だけReEntryを許可します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_shared_swing_candidate",
-      "ja": "左側確認範囲で一意の高値・安値を材料点候補として作成します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_shared_swing_confirm",
-      "ja": "左右の確認範囲がそろい、一意性を保った材料点だけを確定します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_shared_swing_retirement",
-      "ja": "同種のより極端な材料点が現れた場合、古い材料点を履歴化します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_state_data_sufficiency_separation",
-      "ja": "データ不足と相場状態を分離し、データ不足をNoTrendと誤認しません。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_state_not_action_permission",
-      "ja": "時間足Stateは観測結果であり、それ単独では売買アクションを実行しません。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_timeframe_state_observation_aggregation",
-      "ja": "確定足・Swing・Dow・Cycle・HSI・BBを、時間足ごとの一つの状態へ集約します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_upper_context_core_hold_bias",
-      "ja": "大波継続条件が残る間は、M5の小崩れだけでCoreを閉じずHoldを優先します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_upper_context_expansion_search_allowed",
-      "ja": "WEEK・DAY・H4のExpansion条件がそろった場合だけ、Expansion候補探索を許可します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_upper_context_h4_h1_direction_conflict",
-      "ja": "H4とH1の方向が不一致の場合、新規Entryを禁止します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_upper_context_h4_no_trade",
-      "ja": "H4がNoTrendまたは判定不能の場合、新規Entryを禁止します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_upper_context_h4_reversal_watch",
-      "ja": "H4が反転監視中の場合、新規EntryではなくWatchへ倒します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_upper_context_normal_entry_search_allowed",
-      "ja": "上位足が通常Entry探索可能と判断した場合、M5へ探索許可を渡します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_upper_context_required_state_ready",
-      "ja": "WEEK・DAY・H4・H1の必要状態がすべてREADYの場合だけ上位足Decisionを確定します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_week_caution_expansion_wait",
-      "ja": "WEEKが警戒段階の場合、Expansion Entryを急がず待機します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_week_late_expansion_defensive_mode",
-      "ja": "WEEKサイクル後半ではExpansion Entry・ReEntry・Add-onを禁止し、既存建玉はH1の崩れで早めに守ります。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_m5_trigger_hsi_r1",
-      "ja": "確定HSI起点からR1到達でEntry許可",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_single_close_next_hsi_target",
-      "ja": "次HSI境界へ到達したら、そのEntryの全単位を1回でCloseOKします。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_entry_hsi_anchor_stop_fixed",
-      "ja": "Entry時に使用したHSI起点を、そのEntry専用Stopとして固定します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_single_position_single_close",
-      "ja": "1 Entryを1 Positionとして管理し、Terminal Close Eventは1回だけ発生させます。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_normal_add_on_forbidden",
-      "ja": "通常Position保有中のAdd-onを禁止します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_single_close_ambiguous_stop_first",
-      "ja": "同一M5足でStopとTargetへ到達した場合、利益側へ都合よく判定せずStopを優先します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_reentry_as_new_trade",
-      "ja": "ReEntryは前Tradeの継続建玉ではなく、新しいTrade IDとして作成します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_expansion_add_on_requires_confirmed_core",
-      "ja": "Add-onはExpansion Coreが明示的に確定した場合だけ許可します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_normal_entry_v08_h4_h1_t3_direction",
-      "ja": "H4とH1はDowを使わず、T3の傾きと終値のT3上下位置が同方向の場合だけ通常Entry方向を許可。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_normal_entry_v08_m5_dow_trigger",
-      "ja": "H4/H1 T3方向と同じM5 Dow確定を通常Entryの実行トリガーにする。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_normal_entry_v08_cycle_late_guard",
-      "ja": "H4またはH1がCycle Lateなら通常Entry・ReEntry・Expansion Add-onを禁止。",
-      "category": "使用ルール"
-    },
-    {
-      "ja": "通常HSI起点はM5ダウ成立時の構造起点から採用する。",
-      "category": "使用ルール",
-      "code": "rule_normal_hsi_anchor_adopted_by_dow"
-    },
-    {
-      "ja": "同方向ダウ継続中は後続Swingで通常HSI起点を変更せず、反対方向ダウ成立時だけ更新する。",
-      "category": "使用ルール",
-      "code": "rule_normal_hsi_anchor_fixed_until_opposite_dow"
-    },
-    {
-      "ja": "Expansionでは元Dow起点をDetection用に維持し、Entry用押し戻り起点を別管理する。",
-      "category": "使用ルール",
-      "code": "rule_expansion_dual_hsi_anchor"
-    },
-    {
-      "ja": "通常Entry v0.9はH4/H1 T3方向一致を必要とする。",
-      "category": "使用ルール",
-      "code": "rule_normal_entry_v09_h4_h1_t3_direction"
-    },
-    {
-      "ja": "通常Entry v0.9はM5 Dow確定を実行トリガーにする。",
-      "category": "使用ルール",
-      "code": "rule_normal_entry_v09_m5_dow_trigger"
-    },
-    {
-      "ja": "通常Entry v0.9はH4/H1 Cycle Lateを禁止する。",
-      "category": "使用ルール",
-      "code": "rule_normal_entry_v09_cycle_late_guard"
-    },
-    {
-      "ja": "Dow UPは比較ペア先頭のprevious Low、Dow DOWNはprevious Highを通常HSI起点にする。",
-      "category": "使用ルール",
-      "code": "rule_normal_hsi_anchor_uses_previous_structure_origin"
-    },
-    {
-      "ja": "通常Entry v0.10はH4/H1 T3方向一致を必要とする。",
-      "category": "使用ルール",
-      "code": "rule_normal_entry_v10_h4_h1_t3_direction"
-    },
-    {
-      "ja": "通常Entry v0.10はM5 Dow確定を実行トリガーにする。",
-      "category": "使用ルール",
-      "code": "rule_normal_entry_v10_m5_dow_trigger"
-    },
-    {
-      "ja": "通常Entry v0.10はH4/H1 Cycle Lateを禁止する。",
-      "category": "使用ルール",
-      "code": "rule_normal_entry_v10_cycle_late_guard"
-    },
-    {
-      "ja": "通常HSI起点はREVERSAL_WATCH / NO_TREND / UNDETERMINEDで解除する。",
-      "code": "rule_normal_hsi_anchor_reset_on_dow_break"
-    },
-    {
-      "ja": "Expansion Detection Anchorだけは非方向状態を挟んでも大起点として維持する。",
-      "code": "rule_expansion_detection_anchor_retained_across_reversal_watch"
-    },
-    {
-      "ja": "通常Entry v0.11はH4/H1 T3方向一致を必要とする。",
-      "category": "使用ルール",
-      "code": "rule_normal_entry_v11_h4_h1_t3_direction"
-    },
-    {
-      "ja": "通常Entry v0.11はM5 Dow確定を実行トリガーにする。",
-      "category": "使用ルール",
-      "code": "rule_normal_entry_v11_m5_dow_trigger"
-    },
-    {
-      "ja": "通常Entry v0.11はH4/H1 Cycle Lateを禁止する。",
-      "category": "使用ルール",
-      "code": "rule_normal_entry_v11_cycle_late_guard"
-    },
-    {
-      "code": "rule_dow_confirmation_event_per_structure_pair",
-      "ja": "新しいM5 Dow構造ペアが成立するたび、方向Stateとは別にDow Confirmation Eventを発行します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_normal_entry_one_opportunity_per_dow_confirmation",
-      "ja": "1 Dow Confirmation IDにつき通常Entry機会を最大1回に制限します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_normal_hsi_anchor_adopted_by_dow_confirmation",
-      "ja": "通常HSI起点はM5 Dow Confirmation Eventが採用したprevious Swingへ固定します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_one_normal_entry_opportunity_per_dow_confirmation",
-      "ja": "同じDow確認Eventを複数の通常Tradeへ再利用しません。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_normal_entry_v12_h4_h1_t3_direction",
-      "ja": "通常EntryはH4/H1 T3方向一致を必要とします。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_normal_entry_v12_m5_dow_confirmation_trigger",
-      "ja": "通常EntryはM5 Dow Stateだけでなく、新しいDow Confirmation Eventを必要とします。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_normal_entry_v12_cycle_late_guard",
-      "ja": "H4またはH1 Cycle Lateでは通常Entryしません。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_normal_entry_first_r2_touch_only",
-      "ja": "通常Entryは採用HSI起点からR2へ初到達した瞬間だけ許可します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_late_entry_after_r2_forbidden",
-      "ja": "R2通過後に条件が揃ってもR2.5・R3帯から遅れてEntryしません。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_reentry_requires_new_dow_confirmation_after_close",
-      "ja": "ReEntryには前Trade終了後に発生した新しいDow Confirmation IDが必要です。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_normal_close_r2_5",
-      "ja": "通常EntryのTargetは常にR2.5とし、到達時に全決済します。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_normal_entry_missed_not_late_entry",
-      "ja": "R2初回到達時に条件不成立ならMISSEDとし、そのDow確認では後追いEntryしません。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_normal_entry_requires_dow_confirmation_event",
-      "ja": "通常Entryは有効なM5 Dow Confirmation Eventと紐づくHSI起点を必須とします。",
-      "category": "使用ルール"
-    },
-    {
-      "ja": "Dow確認時点でR2以上かつR2.5未到達なら、その確認Eventで即Entryする。",
-      "category": "使用ルール",
-      "code": "rule_dow_confirmation_immediate_entry_when_r2_ready"
-    },
-    {
-      "ja": "Dow確認時点でR2未到達なら、そのConfirmation IDにおける最初のR2到達を待ってEntryする。",
-      "category": "使用ルール",
-      "code": "rule_normal_entry_first_r2_touch_after_confirmation"
-    },
-    {
-      "ja": "Entry時点でR2.5 Targetが未到達で、進行方向前方に残っていることを必須とする。",
-      "category": "使用ルール",
-      "code": "rule_normal_entry_target_must_remain_ahead"
-    },
-    {
-      "ja": "通常Entry v0.13はH4/H1 T3方向と終値位置の整合を要求する。",
-      "category": "使用ルール",
-      "code": "rule_normal_entry_v13_h4_h1_t3_direction"
-    },
-    {
-      "ja": "通常Entry v0.13はM5 Dow Confirmation EventをEntry機会の起点とする。",
-      "category": "使用ルール",
-      "code": "rule_normal_entry_v13_m5_dow_confirmation_trigger"
-    },
-    {
-      "ja": "通常Entry v0.13はH4/H1 Cycle Lateで新規建玉を禁止する。",
-      "category": "使用ルール",
-      "code": "rule_normal_entry_v13_cycle_late_guard"
-    },
-    {
-      "code": "rule_next_normal_entry_requires_new_dow_confirmation_after_previous_close",
-      "ja": "次の通常Entryには、前回Trade終了後の新しいM5 Dow確認Eventを必須とする。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_normal_lane_reentry_not_defined",
-      "ja": "NORMAL Rule LaneではReEntryというActionを定義しない。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_normal_lane_add_on_forbidden",
-      "ja": "NORMAL Rule LaneではAdd-onを禁止する。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_normal_hsi_anchor_retired_immediately_on_close",
-      "ja": "通常HSI起点はCloseOK / CloseMissの確定時に即破棄し、次の通常Entryへ再利用しません。",
-      "category": "使用ルール"
-    },
-    {
-      "code": "rule_normal_hsi_anchor_trade_scoped_until_close",
-      "ja": "通常HSI起点の有効期間を、対応するDow Confirmationから当該Normal TradeのCloseまでに限定します。",
-      "category": "使用ルール"
-    },
     {
       "id": "rule_expansion_lite_requires_m5_dow_confirmation",
       "ja": "M5 Dow Confirmation EventをExpansion-Lite Entryの必須条件とする。",
@@ -1653,6 +1215,514 @@
       "id": "rule_expansion_lite_independent_position_management",
       "ja": "Expansion-Lite建玉はExpansion-Lite専用Close Evaluatorだけで管理する。",
       "category": "Expansion-Lite"
+    },
+    {
+      "code": "rule_add_on_only_when_core_profitable",
+      "ja": "買い増しはCoreが含み益のときだけ許可し、含み損へのナンピンを禁止します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_core_next_hsi_partial_close",
+      "ja": "HSI目標到達時にCOREを部分利確し、残りを次目標まで保有。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_cycle_elapsed_confirmed_bars",
+      "ja": "サイクル経過本数は、起点足を除いた確定済み足数で数えます。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_cycle_explicit_phase_thresholds",
+      "ja": "Early・Middle・Lateは時間足ごとに明示設定した本数閾値で判定します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_cycle_latest_confirmed_usable_swing_origin",
+      "ja": "現在利用可能な最新の確定Swingをサイクル起点にします。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_cycle_state_not_action_permission",
+      "ja": "サイクル状態は観測情報であり、それ単独ではEntryやCloseを実行しません。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_day_not_expansion_guard",
+      "ja": "DAYサイクル年齢が上限を超えた波はExpansionとして扱いません。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_day_up_h4_down_r5_short_entry_guard",
+      "ja": "Day UpかつH4 Down波がR5以上進行した後の新規Short Entryを禁止します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_day_warning_expansion_wait",
+      "ja": "DAYサイクル年齢が警戒帯の場合、Expansion候補の格付けを下げて待機します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_dow_confirmation_event_per_structure_pair",
+      "ja": "新しいM5 Dow構造ペアが成立するたび、方向Stateとは別にDow Confirmation Eventを発行します。",
+      "category": "使用ルール"
+    },
+    {
+      "ja": "Dow確認時点でR2以上かつR2.5未到達なら、その確認Eventで即Entryする。",
+      "category": "使用ルール",
+      "code": "rule_dow_confirmation_immediate_entry_when_r2_ready"
+    },
+    {
+      "code": "rule_dow_confirmed_swing_structure",
+      "ja": "確定済みの直近2組の高値・安値関係からダウトレンドを判定します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_dow_state_not_entry_permission",
+      "ja": "ダウ状態は相場観測結果であり、それ単独ではEntry許可にしません。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_entry_hsi_anchor_stop_fixed",
+      "ja": "Entry時に使用したHSI起点を、そのEntry専用Stopとして固定します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_expansion_add_on_requires_confirmed_core",
+      "ja": "Add-onはExpansion Coreが明示的に確定した場合だけ許可します。",
+      "category": "使用ルール"
+    },
+    {
+      "ja": "Expansion Detection Anchorだけは非方向状態を挟んでも大起点として維持する。",
+      "code": "rule_expansion_detection_anchor_retained_across_reversal_watch"
+    },
+    {
+      "ja": "Expansionでは元Dow起点をDetection用に維持し、Entry用押し戻り起点を別管理する。",
+      "category": "使用ルール",
+      "code": "rule_expansion_dual_hsi_anchor"
+    },
+    {
+      "code": "rule_expansion_entry_requires_explicit_confirmation",
+      "ja": "Expansion Entryは専用の確定条件が実装・成立した場合だけ許可し、通常Entryへ自動変換しません。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_explicit_timeframe_confirm_bars",
+      "ja": "Confirm barsは各時間足で独立した明示値を使用し、他時間足から継承・計算しません。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_h1_exit_confirmed_m5_full_close",
+      "ja": "H1決済トリガー確定後、M5で残り建玉を全決済。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_h4_late_protect_mode",
+      "ja": "H4サイクル後半では新規追加より、既存利益の保護を優先します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_h4_profit_take_armed",
+      "ja": "H4 Cycle Late・BB収縮・HSI重なりがそろった場合、利益確定準備をONにします。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_hsi_anchor_from_swing_identity",
+      "ja": "HSI起点は元になったSwingの識別子とLifecycleを引き継いで管理します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_hsi_anchor_no_action_permission",
+      "ja": "HSI起点の存在だけではEntryやCloseを実行しません。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_hsi_anchor_status_role_separation",
+      "ja": "HSI起点の確定状態と、Entry・Hold・Targetなどの用途を別項目で管理します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_late_entry_after_r2_forbidden",
+      "ja": "R2通過後に条件が揃ってもR2.5・R3帯から遅れてEntryしません。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_m5_execution_input_valid",
+      "ja": "M5実行に必要な上位足判断・現在価格・方向・建玉状態が有効な場合だけ処理します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_m5_execution_prerequisites",
+      "ja": "M5の実行前に、確定足・上位足Decision・HSI起点・前回建玉状態など必須入力を確認します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_m5_reference_once_only",
+      "ja": "同一のM5基準地点は一度だけ評価し、同じ足での二重実行を防止します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_m5_trigger_hsi_r1",
+      "ja": "確定HSI起点からR1到達でEntry許可",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_m5_trigger_hsi_r2",
+      "ja": "M5方向一致・確定HSI起点の存在・起点からR2到達を、Entryまたは買い増しの実行条件とします。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_next_normal_entry_requires_new_dow_confirmation_after_previous_close",
+      "ja": "次の通常Entryには、前回Trade終了後の新しいM5 Dow確認Eventを必須とする。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_no_lookahead_confirm_window",
+      "ja": "材料点の確定には現在地点より未来の未確定足を使用しません。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_no_lookahead_confirmed_inputs",
+      "ja": "各判断には、その基準時刻までに確定した入力だけを使用します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_no_lookahead_confirmed_swings",
+      "ja": "ダウ・サイクル・HSI判断には確定済みSwingだけを使用します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_normal_add_on_forbidden",
+      "ja": "通常Position保有中のAdd-onを禁止します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_normal_close_miss_target_distance_ratio",
+      "ja": "Normal CloseMiss StopをTarget距離×max_loss_to_reward_ratioでEntry時に固定します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_normal_close_r2_5",
+      "ja": "通常EntryのTargetは常にR2.5とし、到達時に全決済します。",
+      "category": "使用ルール"
+    },
+    {
+      "ja": "Dow確認時点でR2未到達なら、そのConfirmation IDにおける最初のR2到達を待ってEntryする。",
+      "category": "使用ルール",
+      "code": "rule_normal_entry_first_r2_touch_after_confirmation"
+    },
+    {
+      "code": "rule_normal_entry_first_r2_touch_only",
+      "ja": "通常Entryは採用HSI起点からR2へ初到達した瞬間だけ許可します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_normal_entry_missed_not_late_entry",
+      "ja": "R2初回到達時に条件不成立ならMISSEDとし、そのDow確認では後追いEntryしません。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_normal_entry_one_opportunity_per_dow_confirmation",
+      "ja": "1 Dow Confirmation IDにつき通常Entry機会を最大1回に制限します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_normal_entry_requires_dow_confirmation_event",
+      "ja": "通常Entryは有効なM5 Dow Confirmation Eventと紐づくHSI起点を必須とします。",
+      "category": "使用ルール"
+    },
+    {
+      "ja": "Entry時点でR2.5 Targetが未到達で、進行方向前方に残っていることを必須とする。",
+      "category": "使用ルール",
+      "code": "rule_normal_entry_target_must_remain_ahead"
+    },
+    {
+      "code": "rule_normal_entry_upper_permission",
+      "ja": "上位足の統合判断が通常Entry探索を許可した場合だけ、M5のEntry条件を評価します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_normal_entry_v06_cycle_late_guard",
+      "ja": "H4またはH1がCycle LateならEntry・ReEntry・Add-onを禁止。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_normal_entry_v06_h1_m5_dow_match",
+      "ja": "H1とM5のDow Trendが同方向に一致した場合だけEntryを許可。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_normal_entry_v06_h4_t3_direction",
+      "ja": "H4 Dowは使わず、H4 T3の傾きと終値のT3上下位置でEntry方向を許可。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_normal_entry_v08_cycle_late_guard",
+      "ja": "H4またはH1がCycle Lateなら通常Entry・ReEntry・Expansion Add-onを禁止。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_normal_entry_v08_h4_h1_t3_direction",
+      "ja": "H4とH1はDowを使わず、T3の傾きと終値のT3上下位置が同方向の場合だけ通常Entry方向を許可。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_normal_entry_v08_m5_dow_trigger",
+      "ja": "H4/H1 T3方向と同じM5 Dow確定を通常Entryの実行トリガーにする。",
+      "category": "使用ルール"
+    },
+    {
+      "ja": "通常Entry v0.9はH4/H1 Cycle Lateを禁止する。",
+      "category": "使用ルール",
+      "code": "rule_normal_entry_v09_cycle_late_guard"
+    },
+    {
+      "ja": "通常Entry v0.9はH4/H1 T3方向一致を必要とする。",
+      "category": "使用ルール",
+      "code": "rule_normal_entry_v09_h4_h1_t3_direction"
+    },
+    {
+      "ja": "通常Entry v0.9はM5 Dow確定を実行トリガーにする。",
+      "category": "使用ルール",
+      "code": "rule_normal_entry_v09_m5_dow_trigger"
+    },
+    {
+      "ja": "通常Entry v0.10はH4/H1 Cycle Lateを禁止する。",
+      "category": "使用ルール",
+      "code": "rule_normal_entry_v10_cycle_late_guard"
+    },
+    {
+      "ja": "通常Entry v0.10はH4/H1 T3方向一致を必要とする。",
+      "category": "使用ルール",
+      "code": "rule_normal_entry_v10_h4_h1_t3_direction"
+    },
+    {
+      "ja": "通常Entry v0.10はM5 Dow確定を実行トリガーにする。",
+      "category": "使用ルール",
+      "code": "rule_normal_entry_v10_m5_dow_trigger"
+    },
+    {
+      "ja": "通常Entry v0.11はH4/H1 Cycle Lateを禁止する。",
+      "category": "使用ルール",
+      "code": "rule_normal_entry_v11_cycle_late_guard"
+    },
+    {
+      "ja": "通常Entry v0.11はH4/H1 T3方向一致を必要とする。",
+      "category": "使用ルール",
+      "code": "rule_normal_entry_v11_h4_h1_t3_direction"
+    },
+    {
+      "ja": "通常Entry v0.11はM5 Dow確定を実行トリガーにする。",
+      "category": "使用ルール",
+      "code": "rule_normal_entry_v11_m5_dow_trigger"
+    },
+    {
+      "code": "rule_normal_entry_v12_cycle_late_guard",
+      "ja": "H4またはH1 Cycle Lateでは通常Entryしません。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_normal_entry_v12_h4_h1_t3_direction",
+      "ja": "通常EntryはH4/H1 T3方向一致を必要とします。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_normal_entry_v12_m5_dow_confirmation_trigger",
+      "ja": "通常EntryはM5 Dow Stateだけでなく、新しいDow Confirmation Eventを必要とします。",
+      "category": "使用ルール"
+    },
+    {
+      "ja": "通常Entry v0.13はH4/H1 Cycle Lateで新規建玉を禁止する。",
+      "category": "使用ルール",
+      "code": "rule_normal_entry_v13_cycle_late_guard"
+    },
+    {
+      "ja": "通常Entry v0.13はH4/H1 T3方向と終値位置の整合を要求する。",
+      "category": "使用ルール",
+      "code": "rule_normal_entry_v13_h4_h1_t3_direction"
+    },
+    {
+      "ja": "通常Entry v0.13はM5 Dow Confirmation EventをEntry機会の起点とする。",
+      "category": "使用ルール",
+      "code": "rule_normal_entry_v13_m5_dow_confirmation_trigger"
+    },
+    {
+      "code": "rule_normal_h4_same_direction_r4_entry_guard",
+      "ja": "NORMALではH4現在波と同方向へR4以上進行した後の新規Entryを禁止します。",
+      "category": "使用ルール"
+    },
+    {
+      "ja": "通常HSI起点はM5ダウ成立時の構造起点から採用する。",
+      "category": "使用ルール",
+      "code": "rule_normal_hsi_anchor_adopted_by_dow"
+    },
+    {
+      "code": "rule_normal_hsi_anchor_adopted_by_dow_confirmation",
+      "ja": "通常HSI起点はM5 Dow Confirmation Eventが採用したprevious Swingへ固定します。",
+      "category": "使用ルール"
+    },
+    {
+      "ja": "同方向ダウ継続中は後続Swingで通常HSI起点を変更せず、反対方向ダウ成立時だけ更新する。",
+      "category": "使用ルール",
+      "code": "rule_normal_hsi_anchor_fixed_until_opposite_dow"
+    },
+    {
+      "code": "rule_normal_hsi_anchor_hard_limit",
+      "ja": "倍率StopがEntry HSI起点より遠い場合、HSI起点をHard Limitとして採用します。",
+      "category": "使用ルール"
+    },
+    {
+      "ja": "通常HSI起点はREVERSAL_WATCH / NO_TREND / UNDETERMINEDで解除する。",
+      "code": "rule_normal_hsi_anchor_reset_on_dow_break"
+    },
+    {
+      "code": "rule_normal_hsi_anchor_retired_immediately_on_close",
+      "ja": "通常HSI起点はCloseOK / CloseMissの確定時に即破棄し、次の通常Entryへ再利用しません。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_normal_hsi_anchor_trade_scoped_until_close",
+      "ja": "通常HSI起点の有効期間を、対応するDow Confirmationから当該Normal TradeのCloseまでに限定します。",
+      "category": "使用ルール"
+    },
+    {
+      "ja": "Dow UPは比較ペア先頭のprevious Low、Dow DOWNはprevious Highを通常HSI起点にする。",
+      "category": "使用ルール",
+      "code": "rule_normal_hsi_anchor_uses_previous_structure_origin"
+    },
+    {
+      "code": "rule_normal_lane_add_on_forbidden",
+      "ja": "NORMAL Rule LaneではAdd-onを禁止する。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_normal_lane_reentry_not_defined",
+      "ja": "NORMAL Rule LaneではReEntryというActionを定義しない。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_normal_pre_entry_dow_structure_break_expires_opportunity",
+      "ja": "Entry前にM5 Dow構造が崩壊した場合、WAITING_R2 Opportunityと通常HSI起点を失効します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_one_normal_entry_opportunity_per_dow_confirmation",
+      "ja": "同じDow確認Eventを複数の通常Tradeへ再利用しません。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_position_role_split_core_runner",
+      "ja": "新規Entry時に建玉をCoreとRunnerへ分割し、それぞれ別の保有役割を持たせます。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_position_structural_anchor_break",
+      "ja": "建玉の根拠となる構造起点を破った場合、保有根拠無効としてStop Closeします。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_reentry_after_close_ok",
+      "ja": "直前Tradeが利益確定で終了し、上位文脈とM5条件が継続している場合だけReEntryを許可します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_reentry_as_new_trade",
+      "ja": "ReEntryは前Tradeの継続建玉ではなく、新しいTrade IDとして作成します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_reentry_requires_new_dow_confirmation_after_close",
+      "ja": "ReEntryには前Trade終了後に発生した新しいDow Confirmation IDが必要です。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_shared_swing_candidate",
+      "ja": "左側確認範囲で一意の高値・安値を材料点候補として作成します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_shared_swing_confirm",
+      "ja": "左右の確認範囲がそろい、一意性を保った材料点だけを確定します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_shared_swing_retirement",
+      "ja": "同種のより極端な材料点が現れた場合、古い材料点を履歴化します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_single_close_ambiguous_stop_first",
+      "ja": "同一M5足でStopとTargetへ到達した場合、利益側へ都合よく判定せずStopを優先します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_single_close_next_hsi_target",
+      "ja": "次HSI境界へ到達したら、そのEntryの全単位を1回でCloseOKします。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_single_position_single_close",
+      "ja": "1 Entryを1 Positionとして管理し、Terminal Close Eventは1回だけ発生させます。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_state_data_sufficiency_separation",
+      "ja": "データ不足と相場状態を分離し、データ不足をNoTrendと誤認しません。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_state_not_action_permission",
+      "ja": "時間足Stateは観測結果であり、それ単独では売買アクションを実行しません。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_timeframe_state_observation_aggregation",
+      "ja": "確定足・Swing・Dow・Cycle・HSI・BBを、時間足ごとの一つの状態へ集約します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_upper_context_core_hold_bias",
+      "ja": "大波継続条件が残る間は、M5の小崩れだけでCoreを閉じずHoldを優先します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_upper_context_expansion_search_allowed",
+      "ja": "WEEK・DAY・H4のExpansion条件がそろった場合だけ、Expansion候補探索を許可します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_upper_context_h4_h1_direction_conflict",
+      "ja": "H4とH1の方向が不一致の場合、新規Entryを禁止します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_upper_context_h4_no_trade",
+      "ja": "H4がNoTrendまたは判定不能の場合、新規Entryを禁止します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_upper_context_h4_reversal_watch",
+      "ja": "H4が反転監視中の場合、新規EntryではなくWatchへ倒します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_upper_context_normal_entry_search_allowed",
+      "ja": "上位足が通常Entry探索可能と判断した場合、M5へ探索許可を渡します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_upper_context_required_state_ready",
+      "ja": "WEEK・DAY・H4・H1の必要状態がすべてREADYの場合だけ上位足Decisionを確定します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_week_caution_expansion_wait",
+      "ja": "WEEKが警戒段階の場合、Expansion Entryを急がず待機します。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_week_late_expansion_defensive_mode",
+      "ja": "WEEKサイクル後半ではExpansion Entry・ReEntry・Add-onを禁止し、既存建玉はH1の崩れで早めに守ります。",
+      "category": "使用ルール"
     }
   ]
 }

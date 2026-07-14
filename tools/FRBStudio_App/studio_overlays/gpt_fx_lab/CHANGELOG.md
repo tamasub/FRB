@@ -1,3 +1,32 @@
+## v0.9.1.07 - 2026-07-14
+
+### Entry前Dow崩壊判定の過剰失効を修正
+
+- `REVERSAL_WATCH / NO_TREND / UNDETERMINED` を `WAITING_R2` Opportunityの失効条件から除外。
+- Entry前の失効は、元Opportunityより後に成立した**逆方向M5 Dow Confirmation Event**だけで確定する。
+- v0.21/v0.22のH4 HSI Guardとv0.23の`max_loss_to_reward_ratio` Stopは変更しない。
+- 回帰テストへ transient state継続、後発逆方向Confirmation失効、古いConfirmation無効を追加。
+
+## v0.9.1.06 - 2026-07-13
+
+- Simulation Rule v0.21〜v0.23の未実装分をFX Simulation Engineへ反映。
+- v0.21: `Day Trend=UP`、`H4現在波=DOWN`、H4下降波がR5以上、Entry方向SHORTの場合、新規Short Entryを禁止。
+  - NORMAL / EXPANSION_LITEが同じ上位足・HSI観測事実をLane内で独立評価する。
+  - 既存PositionのHold / Close、Add-onには影響させない。
+- v0.22: NORMAL Rule Laneで、Entry方向とH4現在波方向が一致し、H4波がR4以上進行済みの場合、新規Entryを禁止。
+  - Long / Short対称。Day Trendは条件に使用しない。R4到達ちょうどからBLOCK。
+- v0.23: NORMALの`WAITING_R2`中にM5 Dow構造が崩壊した場合、Dow Confirmation / 通常HSI起点 / Entry Opportunityを失効。
+  - 失効後に同じConfirmationでR2へ到達してもEntryしない。
+  - Entry後のDow崩壊は別問題とし、それだけでは自動Closeしない。
+- v0.23: Normal CloseMiss StopをJSON設定`max_loss_to_reward_ratio`で計算可能にした。
+  - `Reward Distance = |Target - Entry|`
+  - `Max Loss Distance = Reward Distance × max_loss_to_reward_ratio`
+  - Longは`Entry - Max Loss Distance`、Shortは`Entry + Max Loss Distance`。
+  - HSI起点はHard Limitとして残し、倍率Stopが起点より遠い場合は起点側へ制限。
+  - Stop価格はEntry時に固定し、勝率からの動的計算は将来対応のまま未実装。
+- Run Profile / Plugin Manifest / Reason Rule Catalog / Trace・Execution EventへGuard・Stop計算根拠を追加。
+- 回帰テスト`simulation_rule_v0_21_to_v0_23.test.cjs`を追加。既存を含む17テストPASS。
+
 ## v0.9.1.05 - 2026-07-13
 
 - Entry成績表の「選択Entryをチャートで開く」を同一タブ遷移から新しいタブ起動へ変更。

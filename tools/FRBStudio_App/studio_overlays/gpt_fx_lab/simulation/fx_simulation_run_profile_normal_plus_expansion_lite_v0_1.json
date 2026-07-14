@@ -7,7 +7,7 @@
   "created_at": "2026-07-10T23:55:00+09:00",
   "updated_at": "2026-07-12",
   "phase": "v0.9.0.53-cycle-entry-window-independent-from-confirm",
-  "rule_version": "simulation_rule_v0_17_1_normal_plus_v0_18_expansion_lite_cycle_entry_window_v0_20",
+  "rule_version": "simulation_rule_v0_23_normal_plus_v0_21_expansion_lite",
   "dataset": {
     "primary": {
       "dataset_id": "fx_usdjpy_m5_t3_data_v0_1",
@@ -659,18 +659,18 @@
     "event_output": "run_snapshot.position_lifecycle.execution_events",
     "decision_event_output": "run_snapshot.position_lifecycle.decision_events",
     "chart_event_projection": "execution_events_only",
-    "teacher_guard": "Rule Laneは独立してパラレル走行する。NORMALのCycle Late GuardはH1だけに適用し、H4 Cycle Lateは通常Entryを禁止しない。Expansion-Liteは専用のH1 Entry Window（14本以内）を使用し、NORMAL条件を流用しない。",
+    "teacher_guard": "v0.23: Entry前Dow崩壊はOpportunity失効。NORMALはH4同方向R4以降Entry禁止。Day Up/H4 Down/R5 Short GuardをLane内評価。Normal StopはTarget距離×JSON固定倍率、HSI起点はHard Limit。Entry後Dow崩壊は別問題で自動Closeしない。",
     "valuation_policy": {
       "unit_base_currency_amount": 1000,
       "display_currency": "JPY",
       "quote_currency": "JPY",
       "pnl_formula": "USDJPY_DIRECT_QUOTE",
-      "stop_basis": "HSI_ENTRY_ANCHOR",
+      "stop_basis": "TARGET_DISTANCE_RATIO_WITH_HSI_ANCHOR_HARD_LIMIT",
       "fee_and_slippage_included": false,
       "note": "仮想損益表示用。1単位=1,000通貨。手数料・スリッページ・税は含めない。"
     },
     "normal_entry_policy": {
-      "rule_version": "v0.17.1",
+      "rule_version": "v0.23",
       "direction_permission": "H4_H1_T3_SLOPE_AND_CLOSE_SIDE_PLUS_M5_DOW",
       "long_permission": [
         "H4_T3_UP",
@@ -735,12 +735,15 @@
       "normal_hsi_anchor_retired_on_close": true,
       "normal_hsi_anchor_reuse_after_close": false,
       "next_normal_hsi_anchor_source": "FIRST_NEW_M5_DOW_CONFIRMATION_AFTER_CLOSE_PREVIOUS_SWING",
-      "same_direction_reconfirmation_before_close_for_next_trade": "IGNORE_FOR_NEXT_NORMAL_ENTRY"
+      "same_direction_reconfirmation_before_close_for_next_trade": "IGNORE_FOR_NEXT_NORMAL_ENTRY",
+      "pre_entry_dow_structure_break_expires_opportunity": true,
+      "pre_entry_dow_structure_break_states": [],
+      "pre_entry_dow_structure_break_policy": "NEWER_OPPOSITE_DOW_CONFIRMATION_ONLY"
     },
     "close_execution_policy": {
       "close_policy": "OPEN_TRADE_RULE_LANE_SPECIFIC",
       "touch_source": "M5_HIGH_LOW",
-      "stop_basis": "EXPANSION_LITE_DEFINED_EXIT_RULES",
+      "stop_basis": "TARGET_DISTANCE_RATIO_FIXED_AT_ENTRY_WITH_HSI_ANCHOR_HARD_LIMIT",
       "target_basis": "R5_FROM_ADOPTED_DOW_HSI_ANCHOR",
       "ambiguous_same_bar_policy": "ANCHOR_THEN_T3_THEN_STRUCTURAL_THEN_TARGET_CONSERVATIVE",
       "normal_entry_target_policy": "NEXT_HSI_BOUNDARY",
@@ -755,7 +758,10 @@
         "T3_EXIT",
         "STRUCTURAL_EXIT",
         "ANCHOR_EXIT"
-      ]
+      ],
+      "normal_stop_basis": "TARGET_DISTANCE_RATIO_WITH_HSI_ANCHOR_HARD_LIMIT",
+      "normal_stop_ratio_source": "m5_execution_policy.normal_close_miss_policy.max_loss_to_reward_ratio",
+      "normal_stop_fixed_at_entry": true
     },
     "rule_lane_policy": {
       "active_entry_rule_lane": "PARALLEL_RULE_LANES",
@@ -884,7 +890,47 @@
       "h1_cycle_entry_window_origin_policy": "DIRECTIONAL_LATEST_PENDING_SWING_ELSE_ACTIVE_SWING",
       "h1_cycle_entry_window_long_origin": "LATEST_H1_LOW_CANDIDATE_ELSE_ACTIVE_LOW",
       "h1_cycle_entry_window_short_origin": "LATEST_H1_HIGH_CANDIDATE_ELSE_ACTIVE_HIGH",
-      "h1_cycle_entry_window_elapsed_rule": "LATEST_CONFIRMED_H1_BAR_INDEX_MINUS_DIRECTIONAL_ORIGIN_INDEX"
+      "h1_cycle_entry_window_elapsed_rule": "LATEST_CONFIRMED_H1_BAR_INDEX_MINUS_DIRECTIONAL_ORIGIN_INDEX",
+      "entry_guard_rule_version": "v0.21"
+    },
+    "entry_guard_policy": {
+      "day_up_h4_down_r5_short": {
+        "enabled": true,
+        "rule_version": "v0.21",
+        "block_at_or_above_raw": 377,
+        "block_at_or_above_label": "R5",
+        "applies_to_rule_lanes": [
+          "NORMAL",
+          "EXPANSION",
+          "EXPANSION_LITE"
+        ],
+        "applies_to": [
+          "NEW_ENTRY"
+        ],
+        "existing_position_close_effect": "NONE"
+      },
+      "normal_h4_same_direction_r4": {
+        "enabled": true,
+        "rule_version": "v0.22",
+        "block_at_or_above_raw": 233,
+        "block_at_or_above_label": "R4",
+        "applies_to_rule_lanes": [
+          "NORMAL"
+        ],
+        "applies_to": [
+          "NEW_ENTRY"
+        ],
+        "day_trend_required": false,
+        "existing_position_close_effect": "NONE"
+      }
+    },
+    "normal_close_miss_policy": {
+      "strategy_id": "target_distance_ratio_v0_1",
+      "max_loss_to_reward_ratio": 1.0,
+      "hsi_anchor_hard_limit": true,
+      "fix_price_at_entry": true,
+      "trigger_price_source": "M5_HIGH_LOW",
+      "dynamic_win_rate_calculation": "FUTURE_NOT_IMPLEMENTED"
     }
   }
 }

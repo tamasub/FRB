@@ -1,4 +1,4 @@
-// gpt_fx_lab.fx_chart_viewer v0.9.1.05-entry-result-new-tab-m5-h1-h4
+// gpt_fx_lab.fx_chart_viewer v0.9.1.07-pre-entry-dow-collapse-scope-fix
 // Coreを変更せず、Overlay Plugin ActionとしてUSDJPY M5 + T3 + Dow candidate/basis/history静的チャートを表示する。
 // 上位足Decisionを入力にM5確定足で仮想Entry/保有/決済を実行し、1 Entry / 1 Position / 1 Stop / 1 TargetのLifecycleを原因Traceへ接続する。
 // Confirm bars を変えながら、Candidate / Active Basis / Retired Basis の違いを見える化する。
@@ -83,6 +83,7 @@
 // v0.9.1.03: Entry成績表の選択行から、Entry時刻・価格をURLへ渡して該当M5付近を中央表示し、Entry位置へ固定十字を置くチャート遷移Actionを追加。
 // v0.9.1.04: Entry Resultsの元Batch JSONから選択TradeのEntry/Add-on/Close Eventを読み込み、該当チャートへ実行マーカーとして投影する。
 // v0.9.1.05: Entry成績表からのチャート遷移を新しいタブへ変更し、初期レイアウトをM5実行 + H1+H4へ固定する。
+// v0.9.1.07: Entry前Dow崩壊の適用範囲を修正。REVERSAL_WATCH / NO_TREND / UNDETERMINEDでは失効せず、後発の逆方向Dow Confirmation成立時だけWAITING_R2 Opportunityを失効する。
 // v0.9.0.33: 通常Entryを「1 Dow Confirmation ID = 最大1回のR2初回到達Entry = R2.5全Close」へ変更。同じ確認IDによる階段ReEntryを禁止。
 // v0.9.0.34: Dow確認時点ですでにR2へ到達済みなら、その確認EventをEntry Triggerとして即Entryする。R2.5到達済みなら見送り、未到達なら従来どおりR2初回到達を待つ。
 // v0.9.0.35: M5 Dow確認を「確定済み押し安値/戻り高値の後、直前構造高値/安値をM5確定足で突破した瞬間」へ変更。新しいDow確認Eventごとに1回だけEntryし、Entry地点より先の次HSI境界で全Closeする。
@@ -140,7 +141,9 @@
   const EXPANSION_CLOSE_EVALUATOR_ID = 'expansion_close_evaluator_placeholder_v0_1';
   const EXPANSION_LITE_ENTRY_EVALUATOR_ID = 'expansion_lite_entry_evaluator_v0_1';
   const EXPANSION_LITE_CLOSE_EVALUATOR_ID = 'expansion_lite_close_evaluator_v0_1';
+  const NORMAL_RULE_VERSION = 'v0.23';
   const EXPANSION_LITE_RULE_VERSION = 'v0.18';
+  const EXPANSION_LITE_ENTRY_GUARD_RULE_VERSION = 'v0.21';
   const NORMAL_ENTRY_V0_14_UPPER_DECISION_EXCEPTION = 'normal_entry_v0_14_m5_dow_breakout_next_hsi_boundary_explicit_exception';
   const NORMAL_ENTRY_V0_15_UPPER_DECISION_EXCEPTION = 'normal_entry_v0_15_normal_entry_only_no_reentry_explicit_exception';
   const NORMAL_ENTRY_V0_16_UPPER_DECISION_EXCEPTION = 'normal_entry_v0_16_dow_breakout_threshold_entry_explicit_exception';
@@ -2926,7 +2929,7 @@
           }
         },
         normal_entry_policy: {
-          rule_version: 'v0.17.1',
+          rule_version: NORMAL_RULE_VERSION,
           applies_to: ['ENTRY'],
           direction_permission: 'H4_H1_T3_SLOPE_AND_CLOSE_SIDE_PLUS_M5_DOW',
           h4_dow_required: false,
@@ -2954,10 +2957,37 @@
           next_normal_hsi_anchor_source: 'FIRST_NEW_M5_DOW_CONFIRMATION_AFTER_CLOSE_PREVIOUS_SWING',
           same_confirmation_reuse_for_next_normal_entry: false,
           normal_reentry_concept: 'NOT_DEFINED',
-          normal_add_on_concept: 'FORBIDDEN'
+          normal_add_on_concept: 'FORBIDDEN',
+          pre_entry_dow_structure_break_expires_opportunity: true,
+          pre_entry_dow_structure_break_policy: 'NEWER_OPPOSITE_DOW_CONFIRMATION_ONLY',
+          pre_entry_dow_structure_break_states: []
+        },
+        entry_guard_policy: {
+          day_up_h4_down_r5_short: {
+            enabled: true,
+            rule_version: EXPANSION_LITE_ENTRY_GUARD_RULE_VERSION,
+            block_at_or_above_raw: 377,
+            block_at_or_above_label: 'R5',
+            applies_to_rule_lanes: [RULE_LANE_NORMAL, RULE_LANE_EXPANSION, RULE_LANE_EXPANSION_LITE]
+          },
+          normal_h4_same_direction_r4: {
+            enabled: true,
+            rule_version: 'v0.22',
+            block_at_or_above_raw: 233,
+            block_at_or_above_label: 'R4',
+            applies_to_rule_lanes: [RULE_LANE_NORMAL]
+          }
+        },
+        normal_close_miss_policy: {
+          strategy_id: 'target_distance_ratio_v0_1',
+          max_loss_to_reward_ratio: 1.0,
+          hsi_anchor_hard_limit: true,
+          fix_price_at_entry: true,
+          trigger_price_source: 'M5_HIGH_LOW'
         },
         expansion_lite_policy: {
           rule_version: EXPANSION_LITE_RULE_VERSION,
+          entry_guard_rule_version: EXPANSION_LITE_ENTRY_GUARD_RULE_VERSION,
           day_cycle_position_required: false,
           h4_close_t3_side_required: true,
           h1_close_t3_side_required: true,
@@ -3006,7 +3036,7 @@
           display_currency: 'JPY',
           quote_currency: 'JPY',
           pnl_formula: 'USDJPY_DIRECT_QUOTE',
-          stop_basis: 'HSI_ENTRY_ANCHOR',
+          stop_basis: 'TARGET_DISTANCE_RATIO_WITH_HSI_ANCHOR_HARD_LIMIT',
           fee_and_slippage_included: false
         },
         management_timeframe: {
@@ -3023,7 +3053,7 @@
         close_execution_policy: {
           close_policy: 'SINGLE_CLOSE',
           touch_source: 'M5_HIGH_LOW',
-          stop_basis: 'ENTRY_HSI_ANCHOR_FIXED_AT_ENTRY',
+          stop_basis: 'TARGET_DISTANCE_RATIO_FIXED_AT_ENTRY_WITH_HSI_ANCHOR_HARD_LIMIT',
           target_basis: 'NEXT_HSI_BOUNDARY_AHEAD_OF_ACTUAL_ENTRY_DISTANCE',
           normal_entry_target_policy: 'NEXT_HSI_BOUNDARY',
           ambiguous_same_bar_policy: 'STOP_FIRST_CONSERVATIVE',
@@ -3152,6 +3182,19 @@
           }
         },
         normal_entry_policy: { ...(base.m5_execution_policy.normal_entry_policy || {}), ...(data.m5_execution_policy?.normal_entry_policy || {}) },
+        entry_guard_policy: {
+          ...(base.m5_execution_policy.entry_guard_policy || {}),
+          ...(data.m5_execution_policy?.entry_guard_policy || {}),
+          day_up_h4_down_r5_short: {
+            ...(base.m5_execution_policy.entry_guard_policy?.day_up_h4_down_r5_short || {}),
+            ...(data.m5_execution_policy?.entry_guard_policy?.day_up_h4_down_r5_short || {})
+          },
+          normal_h4_same_direction_r4: {
+            ...(base.m5_execution_policy.entry_guard_policy?.normal_h4_same_direction_r4 || {}),
+            ...(data.m5_execution_policy?.entry_guard_policy?.normal_h4_same_direction_r4 || {})
+          }
+        },
+        normal_close_miss_policy: { ...(base.m5_execution_policy.normal_close_miss_policy || {}), ...(data.m5_execution_policy?.normal_close_miss_policy || {}) },
         expansion_lite_policy: { ...(base.m5_execution_policy.expansion_lite_policy || {}), ...(data.m5_execution_policy?.expansion_lite_policy || {}) },
         valuation_policy: { ...(base.m5_execution_policy.valuation_policy || {}), ...(data.m5_execution_policy?.valuation_policy || {}) },
         management_timeframe: { ...(base.m5_execution_policy.management_timeframe || {}), ...(data.m5_execution_policy?.management_timeframe || {}) }
@@ -3434,9 +3477,9 @@
       }
     }
     const normalEntryPolicy = executionPolicy.normal_entry_policy || {};
-    if (!['v0.6', 'v0.6.1', 'v0.7', 'v0.8', 'v0.9', 'v0.10', 'v0.11', 'v0.12', 'v0.13', 'v0.14', 'v0.15', 'v0.16', 'v0.17', 'v0.17.1'].includes(String(normalEntryPolicy.rule_version || ''))) errors.push('通常M5 Entryはnormal_entry_policy.rule_version=v0.6〜v0.17.1の許可済み値を明示してください。');
+    if (!['v0.6', 'v0.6.1', 'v0.7', 'v0.8', 'v0.9', 'v0.10', 'v0.11', 'v0.12', 'v0.13', 'v0.14', 'v0.15', 'v0.16', 'v0.17', 'v0.17.1', 'v0.23'].includes(String(normalEntryPolicy.rule_version || ''))) errors.push('通常M5 Entryはnormal_entry_policy.rule_version=v0.6〜v0.23の許可済み値を明示してください。');
     if (normalEntryPolicy.h4_dow_required !== false) errors.push('通常EntryではH4 Dowを必須条件にしません。');
-    if (['v0.8', 'v0.9', 'v0.10', 'v0.11', 'v0.12', 'v0.13', 'v0.14', 'v0.15', 'v0.16', 'v0.17', 'v0.17.1'].includes(String(normalEntryPolicy.rule_version || ''))) {
+    if (['v0.8', 'v0.9', 'v0.10', 'v0.11', 'v0.12', 'v0.13', 'v0.14', 'v0.15', 'v0.16', 'v0.17', 'v0.17.1', 'v0.23'].includes(String(normalEntryPolicy.rule_version || ''))) {
       if (normalEntryPolicy.h1_dow_required !== false) errors.push('v0.8/v0.9通常EntryではH1 Dowを必須条件にしません。');
       if (normalEntryPolicy.h1_t3_required !== true) errors.push('v0.8/v0.9通常EntryではH1 T3方向と終値位置を必須にします。');
       if (normalEntryPolicy.m5_dow_required !== true) errors.push('v0.8/v0.9通常EntryではM5 Dowを実行トリガーとして必須にします。');
@@ -3505,28 +3548,42 @@
         if (normalLaneActions.includes('REENTRY') || normalLaneActions.includes('ADD_ON')) errors.push('NORMAL Rule Laneのallowed_actionsへREENTRY / ADD_ONを含めてはいけません。');
         if (!['ENTRY', 'FULL_CLOSE', 'STOP_CLOSE'].every(value => normalLaneActions.includes(value))) errors.push('NORMAL Rule LaneはENTRY / FULL_CLOSE / STOP_CLOSEを許可する必要があります。');
       }
-      if (['v0.17', 'v0.17.1'].includes(String(normalEntryPolicy.rule_version || ''))) {
-        if (String(normalEntryPolicy.rule_version || '') === 'v0.17.1') {
+      if (['v0.17', 'v0.17.1', 'v0.23'].includes(String(normalEntryPolicy.rule_version || ''))) {
+        if (['v0.17.1', 'v0.23'].includes(String(normalEntryPolicy.rule_version || ''))) {
           if (JSON.stringify(normalEntryPolicy.cycle_late_guard_timeframes || []) !== JSON.stringify(['H1'])) errors.push('v0.17.1通常EntryのCycle Late GuardはH1だけに適用してください。');
         }
-        if (String(normalEntryPolicy.entry_trigger || '') !== 'DOW_BREAKOUT_CONFIRMATION_IF_R2_READY_ELSE_FIRST_R2_TOUCH') errors.push('v0.17/v0.17.1通常EntryはM5構造高値/安値の突破確認をDow Confirmation Eventにする必要があります。');
-        if (Number(normalEntryPolicy.entry_raw) !== 89 || String(normalEntryPolicy.entry_label || '').toUpperCase() !== 'R2') errors.push('v0.17/v0.17.1通常Entryの最低到達水準はR2（raw=89）です。');
-        if (String(normalEntryPolicy.target_policy || '') !== 'NEXT_HSI_BOUNDARY_FROM_ENTRY_DISTANCE') errors.push('v0.17/v0.17.1通常EntryはEntry地点より先の次HSI境界を全Close Targetにする必要があります。');
+        if (String(normalEntryPolicy.entry_trigger || '') !== 'DOW_BREAKOUT_CONFIRMATION_IF_R2_READY_ELSE_FIRST_R2_TOUCH') errors.push('v0.17/v0.17.1/v0.23通常EntryはM5構造高値/安値の突破確認をDow Confirmation Eventにする必要があります。');
+        if (Number(normalEntryPolicy.entry_raw) !== 89 || String(normalEntryPolicy.entry_label || '').toUpperCase() !== 'R2') errors.push('v0.17/v0.17.1/v0.23通常Entryの最低到達水準はR2（raw=89）です。');
+        if (String(normalEntryPolicy.target_policy || '') !== 'NEXT_HSI_BOUNDARY_FROM_ENTRY_DISTANCE') errors.push('v0.17/v0.17.1/v0.23通常EntryはEntry地点より先の次HSI境界を全Close Targetにする必要があります。');
         if (normalEntryPolicy.one_entry_opportunity_per_dow_confirmation !== true) errors.push('v0.17は1 Dow Confirmation IDにつき通常Entry機会を最大1回に制限する必要があります。');
-        if (String(normalEntryPolicy.r2_ready_at_confirmation || '') !== 'IMMEDIATE_ENTRY_AT_FIRST_PRICE_SATISFYING_DOW_BREAKOUT_AND_R2') errors.push('v0.17/v0.17.1ではDow突破確認時に、突破閾値とR2の双方を満たす最初の価格でEntryする必要があります。');
-        if (String(normalEntryPolicy.entry_execution_price_policy || '') !== 'DOW_BREAKOUT_THRESHOLD_OR_R2_WHICHEVER_IS_FARTHER_FROM_ANCHOR_ELSE_FIRST_AVAILABLE_GAP_PRICE') errors.push('v0.17/v0.17.1ではEntry価格をDow突破閾値とR2のうち起点から遠い方へ固定する必要があります。');
-        if (normalEntryPolicy.next_normal_entry_requires_new_dow_confirmation_after_previous_close !== true) errors.push('v0.17/v0.17.1の次回通常Entryには前Trade終了後の新しいM5 Dow突破確認Eventを必須にする必要があります。');
-        if (normalEntryPolicy.same_confirmation_reuse_for_next_normal_entry !== false) errors.push('v0.17/v0.17.1では同じDow確認IDを次回通常Entryへ再利用してはいけません。');
-        if (String(normalEntryPolicy.normal_hsi_anchor_lifecycle || '') !== 'DOW_CONFIRMATION_TO_TRADE_CLOSE') errors.push('v0.17/v0.17.1の通常HSI起点LifecycleはDow確認からTrade Closeまでに限定する必要があります。');
-        if (normalEntryPolicy.normal_hsi_anchor_retired_on_close !== true) errors.push('v0.17/v0.17.1ではNormal Close時に通常HSI起点を即破棄する必要があります。');
-        if (normalEntryPolicy.normal_hsi_anchor_reuse_after_close !== false) errors.push('v0.17/v0.17.1ではClose済み通常HSI起点を次回Entryへ再利用してはいけません。');
-        if (String(normalEntryPolicy.next_normal_hsi_anchor_source || '') !== 'FIRST_NEW_M5_DOW_CONFIRMATION_AFTER_CLOSE_PREVIOUS_SWING') errors.push('v0.17/v0.17.1の次回通常HSI起点はClose後の最初の新M5 Dow確認に紐づくprevious Swingから採用する必要があります。');
-        if (String(normalEntryPolicy.normal_reentry_concept || '') !== 'NOT_DEFINED') errors.push('v0.17/v0.17.1のNORMAL Rule LaneにはReEntry概念を定義しません。');
-        if (String(normalEntryPolicy.normal_add_on_concept || '') !== 'FORBIDDEN') errors.push('v0.17/v0.17.1のNORMAL Rule LaneではAdd-onを禁止します。');
-        if (JSON.stringify(normalEntryPolicy.applies_to || []) !== JSON.stringify(['ENTRY'])) errors.push('v0.17/v0.17.1の通常Entry PolicyはENTRYだけへ適用してください。');
+        if (String(normalEntryPolicy.r2_ready_at_confirmation || '') !== 'IMMEDIATE_ENTRY_AT_FIRST_PRICE_SATISFYING_DOW_BREAKOUT_AND_R2') errors.push('v0.17/v0.17.1/v0.23ではDow突破確認時に、突破閾値とR2の双方を満たす最初の価格でEntryする必要があります。');
+        if (String(normalEntryPolicy.entry_execution_price_policy || '') !== 'DOW_BREAKOUT_THRESHOLD_OR_R2_WHICHEVER_IS_FARTHER_FROM_ANCHOR_ELSE_FIRST_AVAILABLE_GAP_PRICE') errors.push('v0.17/v0.17.1/v0.23ではEntry価格をDow突破閾値とR2のうち起点から遠い方へ固定する必要があります。');
+        if (normalEntryPolicy.next_normal_entry_requires_new_dow_confirmation_after_previous_close !== true) errors.push('v0.17/v0.17.1/v0.23の次回通常Entryには前Trade終了後の新しいM5 Dow突破確認Eventを必須にする必要があります。');
+        if (normalEntryPolicy.same_confirmation_reuse_for_next_normal_entry !== false) errors.push('v0.17/v0.17.1/v0.23では同じDow確認IDを次回通常Entryへ再利用してはいけません。');
+        if (String(normalEntryPolicy.normal_hsi_anchor_lifecycle || '') !== 'DOW_CONFIRMATION_TO_TRADE_CLOSE') errors.push('v0.17/v0.17.1/v0.23の通常HSI起点LifecycleはDow確認からTrade Closeまでに限定する必要があります。');
+        if (normalEntryPolicy.normal_hsi_anchor_retired_on_close !== true) errors.push('v0.17/v0.17.1/v0.23ではNormal Close時に通常HSI起点を即破棄する必要があります。');
+        if (normalEntryPolicy.normal_hsi_anchor_reuse_after_close !== false) errors.push('v0.17/v0.17.1/v0.23ではClose済み通常HSI起点を次回Entryへ再利用してはいけません。');
+        if (String(normalEntryPolicy.next_normal_hsi_anchor_source || '') !== 'FIRST_NEW_M5_DOW_CONFIRMATION_AFTER_CLOSE_PREVIOUS_SWING') errors.push('v0.17/v0.17.1/v0.23の次回通常HSI起点はClose後の最初の新M5 Dow確認に紐づくprevious Swingから採用する必要があります。');
+        if (String(normalEntryPolicy.normal_reentry_concept || '') !== 'NOT_DEFINED') errors.push('v0.17/v0.17.1/v0.23のNORMAL Rule LaneにはReEntry概念を定義しません。');
+        if (String(normalEntryPolicy.normal_add_on_concept || '') !== 'FORBIDDEN') errors.push('v0.17/v0.17.1/v0.23のNORMAL Rule LaneではAdd-onを禁止します。');
+        if (JSON.stringify(normalEntryPolicy.applies_to || []) !== JSON.stringify(['ENTRY'])) errors.push('v0.17/v0.17.1/v0.23の通常Entry PolicyはENTRYだけへ適用してください。');
         const normalLaneActions = (lanePolicy.lanes?.NORMAL?.allowed_actions || []).map(value => String(value).toUpperCase());
         if (normalLaneActions.includes('REENTRY') || normalLaneActions.includes('ADD_ON')) errors.push('NORMAL Rule Laneのallowed_actionsへREENTRY / ADD_ONを含めてはいけません。');
         if (!['ENTRY', 'FULL_CLOSE', 'STOP_CLOSE'].every(value => normalLaneActions.includes(value))) errors.push('NORMAL Rule LaneはENTRY / FULL_CLOSE / STOP_CLOSEを許可する必要があります。');
+        if (String(normalEntryPolicy.rule_version || '') === 'v0.23') {
+          if (normalEntryPolicy.pre_entry_dow_structure_break_expires_opportunity !== true) errors.push('v0.23ではEntry前のM5 Dow構造崩壊でWAITING_R2 Opportunityを失効させる必要があります。');
+          if (String(normalEntryPolicy.pre_entry_dow_structure_break_policy || '') !== 'NEWER_OPPOSITE_DOW_CONFIRMATION_ONLY') errors.push('v0.23.1ではEntry前Dow崩壊を後発の逆方向M5 Dow Confirmation成立時だけに限定してください。');
+          const breakStates = (normalEntryPolicy.pre_entry_dow_structure_break_states || []).map(value => String(value).toUpperCase());
+          if (breakStates.length !== 0) errors.push('v0.23.1ではREVERSAL_WATCH / NO_TREND / UNDETERMINEDをEntry Opportunity失効条件へ使用しないでください。');
+          const guards = executionPolicy.entry_guard_policy || {};
+          if (guards.normal_h4_same_direction_r4?.enabled !== true || Number(guards.normal_h4_same_direction_r4?.block_at_or_above_raw) !== 233) errors.push('v0.22/v0.23のNORMAL H4同方向GuardはR4(raw=233)以上で有効にしてください。');
+          if (guards.day_up_h4_down_r5_short?.enabled !== true || Number(guards.day_up_h4_down_r5_short?.block_at_or_above_raw) !== 377) errors.push('v0.21のDay Up / H4 Down Short GuardはR5(raw=377)以上で有効にしてください。');
+          const closeMiss = executionPolicy.normal_close_miss_policy || {};
+          if (String(closeMiss.strategy_id || '') !== 'target_distance_ratio_v0_1') errors.push('v0.23のNormal CloseMiss strategy_idはtarget_distance_ratio_v0_1である必要があります。');
+          if (!(Number(closeMiss.max_loss_to_reward_ratio) > 0)) errors.push('v0.23のmax_loss_to_reward_ratioは0より大きい固定値である必要があります。');
+          if (closeMiss.hsi_anchor_hard_limit !== true) errors.push('v0.23ではHSI起点をStopのHard Limitとして維持してください。');
+          if (closeMiss.fix_price_at_entry !== true) errors.push('v0.23のNormal CloseMiss StopはEntry時に固定してください。');
+        }
       }
     } else if (normalEntryPolicy.h1_m5_dow_match_required !== true) errors.push('v0.6/v0.7通常EntryではH1/M5 Dow一致を必須にします。');
     if (executionPolicy.no_lookahead !== true) errors.push('M5 Executionのno_lookaheadはtrueである必要があります。');
@@ -3541,7 +3598,7 @@
     const runnerUnits = Number(sizing.runner_units);
     if (![initialUnits, coreUnits, runnerUnits].every(value => Number.isFinite(value) && value >= 0)) errors.push('Position unitsは0以上の数値で明示してください。');
     else if (coreUnits + runnerUnits !== initialUnits) errors.push('core_units + runner_units は initial_units と一致する必要があります。');
-    if (['v0.7', 'v0.8', 'v0.9', 'v0.10', 'v0.11', 'v0.12', 'v0.13', 'v0.14', 'v0.15', 'v0.16', 'v0.17', 'v0.17.1'].includes(String(normalEntryPolicy.rule_version || ''))) {
+    if (['v0.7', 'v0.8', 'v0.9', 'v0.10', 'v0.11', 'v0.12', 'v0.13', 'v0.14', 'v0.15', 'v0.16', 'v0.17', 'v0.17.1', 'v0.23'].includes(String(normalEntryPolicy.rule_version || ''))) {
       if (String(sizing.close_policy || '').toUpperCase() !== 'SINGLE_CLOSE') errors.push('v0.7以降のClose PolicyはSINGLE_CLOSEである必要があります。');
       if (runnerUnits !== 0) errors.push('v0.7以降の通常Entryではrunner_units=0である必要があります。');
       if (Number(sizing.partial_close_units || 0) !== 0) errors.push('v0.7以降の通常Entryではpartial_close_units=0である必要があります。');
@@ -6835,6 +6892,7 @@
         management_timeframe: position.management_timeframe,
         target_plan: cloneJsonValue(position.target_plan || {}),
         risk_profile: cloneJsonValue(position.risk_profile || {}),
+        close_miss_plan: cloneJsonValue(position.close_miss_plan || {}),
         status: position.status
       })),
       normal_entry_opportunity_counts: m5ExecutionOpportunityCounts(portfolio),
@@ -6881,6 +6939,159 @@
     return String(direction || '').toUpperCase() === 'SHORT'
       ? target < entry - epsilon
       : target > entry + epsilon;
+  }
+
+  function m5ExecutionUpperWaveHsiFacts(timeframeSnapshot, candidatePrice, policy) {
+    const timeframes = timeframeSnapshot?.timeframes || {};
+    const day = timeframes.DAY || {};
+    const h4 = timeframes.H4 || {};
+    const cycle = h4.cycle_state || {};
+    const cycleDirection = String(cycle.direction || '').toUpperCase();
+    const h4WaveSide = cycleDirection === 'UP_CYCLE' ? 'LONG' : cycleDirection === 'DOWN_CYCLE' ? 'SHORT' : 'UNDETERMINED';
+    const h4WaveDirection = h4WaveSide === 'LONG' ? 'UP' : h4WaveSide === 'SHORT' ? 'DOWN' : 'UNDETERMINED';
+    const origin = cycle.origin || null;
+    const originPrice = numberOrNull(origin?.pivot_price);
+    const price = numberOrNull(candidatePrice);
+    const distanceRaw = h4WaveSide === 'UNDETERMINED' ? null : m5ExecutionDistanceRaw(price, originPrice, h4WaveSide, policy);
+    const band = m5ExecutionHsiBand(distanceRaw, policy);
+    return {
+      day_trend_state: String(day.trend_state || 'UNDETERMINED').toUpperCase(),
+      h4_wave_side: h4WaveSide,
+      h4_wave_direction: h4WaveDirection,
+      h4_cycle_direction: cycleDirection || 'UNDETERMINED',
+      h4_wave_anchor_id: origin?.point_id || null,
+      h4_wave_anchor_time: origin?.pivot_time || null,
+      h4_wave_anchor_price: originPrice,
+      h4_wave_distance_raw: distanceRaw,
+      h4_wave_range_level: band?.current?.label || null,
+      candidate_price: price,
+      no_lookahead: true
+    };
+  }
+
+  function m5ExecutionEntryGuardDecision(ruleLane, entrySide, timeframeSnapshot, candidatePrice, policy) {
+    const lane = String(ruleLane || RULE_LANE_NORMAL).toUpperCase();
+    const side = String(entrySide || '').toUpperCase();
+    const facts = m5ExecutionUpperWaveHsiFacts(timeframeSnapshot, candidatePrice, policy);
+    const guardPolicy = policy?.entry_guard_policy || {};
+    const matched = [];
+    const normalR4 = guardPolicy.normal_h4_same_direction_r4 || {};
+    const normalThreshold = Number(normalR4.block_at_or_above_raw ?? 233);
+    const normalApplies = Array.isArray(normalR4.applies_to_rule_lanes)
+      ? normalR4.applies_to_rule_lanes.map(value => String(value).toUpperCase()).includes(lane)
+      : lane === RULE_LANE_NORMAL;
+    if (normalR4.enabled !== false && normalApplies && lane === RULE_LANE_NORMAL
+      && ['LONG', 'SHORT'].includes(side) && facts.h4_wave_side === side
+      && Number.isFinite(facts.h4_wave_distance_raw)
+      && Number(facts.h4_wave_distance_raw) >= normalThreshold - 1e-6) {
+      matched.push({
+        reason_code: 'NORMAL_H4_SAME_DIRECTION_R4_ENTRY_BLOCKED',
+        rule_id: 'rule_normal_h4_same_direction_r4_entry_guard',
+        summary: `H4現在波がEntry方向へ${String(normalR4.block_at_or_above_label || 'R4')}以上進行しているため、伸び切り後の新規Normal Entryを見送ります。`
+      });
+    }
+    const common = guardPolicy.day_up_h4_down_r5_short || {};
+    const commonThreshold = Number(common.block_at_or_above_raw ?? 377);
+    const commonApplies = Array.isArray(common.applies_to_rule_lanes)
+      ? common.applies_to_rule_lanes.map(value => String(value).toUpperCase()).includes(lane)
+      : true;
+    if (common.enabled !== false && commonApplies && side === 'SHORT'
+      && facts.day_trend_state === 'UP' && facts.h4_wave_side === 'SHORT'
+      && Number.isFinite(facts.h4_wave_distance_raw)
+      && Number(facts.h4_wave_distance_raw) >= commonThreshold - 1e-6) {
+      matched.push({
+        reason_code: 'DAY_UP_H4_DOWN_R5_SHORT_ENTRY_BLOCKED',
+        rule_id: 'rule_day_up_h4_down_r5_short_entry_guard',
+        summary: `Day上昇トレンド中のH4調整下降が${String(common.block_at_or_above_label || 'R5')}以上進行しているため、下降末期からの新規Short Entryを見送ります。`
+      });
+    }
+    const primary = matched.find(item => item.reason_code === 'NORMAL_H4_SAME_DIRECTION_R4_ENTRY_BLOCKED') || matched[0] || null;
+    return {
+      blocked: matched.length > 0,
+      primary_reason_code: primary?.reason_code || null,
+      summary: primary?.summary || '',
+      matched_reason_codes: matched.map(item => item.reason_code),
+      matched_rule_ids: matched.map(item => item.rule_id),
+      facts
+    };
+  }
+
+  function m5ExecutionNormalStopPlan(entryPrice, targetPrice, anchorPrice, direction, policy) {
+    const source = policy?.normal_close_miss_policy || {};
+    const side = String(direction || '').toUpperCase();
+    const entry = numberOrNull(entryPrice);
+    const target = numberOrNull(targetPrice);
+    const anchor = numberOrNull(anchorPrice);
+    const ratio = Number(source.max_loss_to_reward_ratio ?? 1.0);
+    const rewardDistance = entry == null || target == null ? null : Math.abs(target - entry);
+    const ratioStop = rewardDistance == null || !Number.isFinite(ratio) || ratio <= 0
+      ? null : side === 'SHORT' ? entry + rewardDistance * ratio : entry - rewardDistance * ratio;
+    const anchorIsLossSide = anchor != null && entry != null && (side === 'SHORT' ? anchor > entry : anchor < entry);
+    let stopPrice = ratioStop;
+    let hardLimitApplied = false;
+    if (source.hsi_anchor_hard_limit !== false && anchorIsLossSide && ratioStop != null) {
+      const limited = side === 'SHORT' ? Math.min(ratioStop, anchor) : Math.max(ratioStop, anchor);
+      hardLimitApplied = Math.abs(limited - ratioStop) > 1e-12;
+      stopPrice = limited;
+    }
+    const stopIsLossSide = stopPrice != null && entry != null && (side === 'SHORT' ? stopPrice > entry : stopPrice < entry);
+    return {
+      valid: ['LONG', 'SHORT'].includes(side) && m5ExecutionTargetDirectionValid(side, entry, target)
+        && rewardDistance != null && rewardDistance > 0 && Number.isFinite(ratio) && ratio > 0 && stopIsLossSide,
+      strategy_id: String(source.strategy_id || 'target_distance_ratio_v0_1'),
+      max_loss_to_reward_ratio: ratio,
+      reward_distance: rewardDistance,
+      max_loss_distance: rewardDistance == null || !Number.isFinite(ratio) ? null : rewardDistance * ratio,
+      ratio_stop_price: ratioStop,
+      hsi_anchor_hard_limit_enabled: source.hsi_anchor_hard_limit !== false,
+      hsi_anchor_hard_limit_price: anchor,
+      hsi_anchor_hard_limit_applied: hardLimitApplied,
+      stop_price: stopPrice,
+      fixed_at_entry: source.fix_price_at_entry !== false,
+      direction: side
+    };
+  }
+
+  function m5ExecutionExpireNormalOpportunitiesPriorToDowBreak(portfolio, normalFacts, currentConfirmation, policy, referenceMs, referenceTime) {
+    const opportunities = Array.isArray(portfolio?.normal_entry_opportunities) ? portfolio.normal_entry_opportunities : [];
+    const currentTrend = String(normalFacts?.m5_trend || '').toUpperCase();
+    const breakPolicy = String(policy?.normal_entry_policy?.pre_entry_dow_structure_break_policy || 'NEWER_OPPOSITE_DOW_CONFIRMATION_ONLY').toUpperCase();
+    const currentConfirmationId = String(currentConfirmation?.confirmation_id || '');
+    const currentConfirmationMs = numberOrNull(currentConfirmation?.confirmed_at_ms);
+    const currentConfirmationSide = String(currentConfirmation?.direction || '').toUpperCase() === 'UP'
+      ? 'LONG' : String(currentConfirmation?.direction || '').toUpperCase() === 'DOWN' ? 'SHORT' : 'UNDETERMINED';
+    const expired = [];
+    for (const opportunity of opportunities) {
+      if (String(opportunity?.status || '').toUpperCase() !== 'WAITING_R2') continue;
+      const confirmedMs = numberOrNull(opportunity?.confirmed_at_ms);
+      if (confirmedMs != null && referenceMs != null && Number(referenceMs) < confirmedMs) continue;
+      const opportunitySide = String(opportunity?.direction || '').toUpperCase();
+      const differentConfirmation = Boolean(
+        currentConfirmationId
+        && String(opportunity?.dow_confirmation_id || '') !== currentConfirmationId
+      );
+      const oppositeDirection = currentConfirmationSide !== 'UNDETERMINED'
+        && currentConfirmationSide !== opportunitySide;
+      const newerConfirmation = currentConfirmationMs != null && confirmedMs != null
+        ? Number(currentConfirmationMs) > Number(confirmedMs)
+        : differentConfirmation;
+      const oppositeNewConfirmation = differentConfirmation && oppositeDirection && newerConfirmation;
+
+      // v0.23.1: REVERSAL_WATCH / NO_TREND / UNDETERMINED は観測状態であり、
+      // Entry前のDow構造崩壊を確定するEventではない。後発の逆方向Dow Confirmationだけで失効する。
+      if (breakPolicy !== 'NEWER_OPPOSITE_DOW_CONFIRMATION_ONLY' || !oppositeNewConfirmation) continue;
+
+      opportunity.status = 'EXPIRED';
+      opportunity.terminal_reason_code = 'NORMAL_DOW_STRUCTURE_BROKEN_BEFORE_ENTRY';
+      opportunity.structure_broken_at = referenceTime || currentConfirmation?.confirmed_at || '';
+      opportunity.structure_broken_at_ms = currentConfirmationMs ?? numberOrNull(referenceMs);
+      opportunity.structure_break_trend_state = currentTrend;
+      opportunity.structure_break_confirmation_id = currentConfirmationId;
+      opportunity.structure_break_confirmation_side = currentConfirmationSide;
+      opportunity.anchor_invalidated_before_entry = true;
+      expired.push(opportunity);
+    }
+    return expired;
   }
 
   function m5ExecutionBarFill(direction, bar, requestedPrice, fillKind = 'TARGET') {
@@ -7200,7 +7411,8 @@
       r2Touch,
       policy,
       minEntryLabel,
-      hsiNotReachedReasonCode
+      hsiNotReachedReasonCode,
+      timeframeSnapshot
     } = input || {};
     const latestClosedTradeMs = m5ExecutionLatestClosedTradeMs(portfolio, RULE_LANE_NORMAL);
     const normalAnchorLifecycle = m5ExecutionEnsureNormalAnchorLifecycle(portfolio);
@@ -7223,7 +7435,20 @@
         && Number(dowConfirmation.confirmed_at_ms) > Number(normalAnchorLifecycle.last_retired_at_ms));
     const anchorLifecycleReady = String(normalAnchorLifecycle?.status || 'NONE') !== 'ACTIVE'
       && confirmationAfterAnchorRetirement;
-    const entryOpportunity = m5ExecutionOpportunityForConfirmation(portfolio, dowConfirmation, entryAnchor, referenceMs, referenceTime);
+    let entryOpportunity = m5ExecutionOpportunityForConfirmation(portfolio, dowConfirmation, entryAnchor, referenceMs, referenceTime);
+    const expiredPriorToEntry = policy?.normal_entry_policy?.pre_entry_dow_structure_break_expires_opportunity === false
+      ? []
+      : m5ExecutionExpireNormalOpportunitiesPriorToDowBreak(
+          portfolio,
+          normalFacts,
+          dowConfirmation,
+          policy,
+          referenceMs,
+          referenceTime
+        );
+    if ((!entryOpportunity || String(entryOpportunity.status || '').toUpperCase() !== 'WAITING_R2') && expiredPriorToEntry.length) {
+      entryOpportunity = expiredPriorToEntry[expiredPriorToEntry.length - 1];
+    }
     const opportunityCreatedNow = numberOrNull(entryOpportunity?.created_at_reference_ms) != null
       && referenceMs != null
       && Number(entryOpportunity.created_at_reference_ms) === Number(referenceMs);
@@ -7268,6 +7493,20 @@
     const opportunityUsed = entryOpportunity?.status === 'USED';
     const opportunityExpired = entryOpportunity?.status === 'EXPIRED';
     const opportunityMissed = entryOpportunity?.status === 'MISSED';
+
+    if (opportunityExpired && entryOpportunity?.terminal_reason_code === 'NORMAL_DOW_STRUCTURE_BROKEN_BEFORE_ENTRY') {
+      result.status_label = 'Entry前Dow構造崩壊';
+      result.summary = 'R2到達前に後発の逆方向M5 Dow Confirmationが成立したため、採用済みDow Confirmation・通常HSI起点・Entry Opportunityを失効しました。REVERSAL_WATCH / NO_TREND / UNDETERMINEDだけでは失効しません。';
+      result.reason_codes = [
+        'NORMAL_DOW_STRUCTURE_BROKEN_BEFORE_ENTRY',
+        'DOW_CONFIRMATION_OPPORTUNITY_EXPIRED',
+        'NORMAL_HSI_ANCHOR_INVALIDATED_BEFORE_ENTRY'
+      ];
+      result.rule_ids = ['rule_normal_pre_entry_dow_structure_break_expires_opportunity'];
+      result.permission = 'BLOCKED';
+      result.no_trade = true;
+      return result;
+    }
 
     if (!dowConfirmation) {
       result.status_label = 'Dow確認待ち';
@@ -7370,6 +7609,46 @@
       result.rule_ids = ['rule_next_normal_entry_requires_new_dow_confirmation_after_previous_close'];
       return result;
     }
+    const entryGuard = m5ExecutionEntryGuardDecision(
+      RULE_LANE_NORMAL,
+      confirmationSide,
+      timeframeSnapshot,
+      candidateExecutionPrice,
+      policy
+    );
+    const normalStopPlan = m5ExecutionNormalStopPlan(
+      candidateExecutionPrice,
+      candidateTargetPrice,
+      anchorPrice,
+      confirmationSide,
+      policy
+    );
+    result.entry_guard = cloneJsonValue(entryGuard);
+    result.normal_stop_plan = cloneJsonValue(normalStopPlan);
+    if (entryGuard.blocked) {
+      entryOpportunity.status = 'MISSED';
+      entryOpportunity.terminal_reason_code = entryGuard.primary_reason_code || 'NORMAL_ENTRY_GUARD_BLOCKED';
+      entryOpportunity.entry_guard = cloneJsonValue(entryGuard);
+      result.status_label = 'H4 HSI進行度Guard';
+      result.summary = entryGuard.summary || 'H4現在波のHSI進行度Guardにより、新規Normal Entryを見送ります。';
+      result.reason_codes = uniqueStrings(['NORMAL_ENTRY_OPPORTUNITY_MISSED', ...(entryGuard.matched_reason_codes || [])]);
+      result.rule_ids = uniqueStrings(entryGuard.matched_rule_ids || []);
+      result.permission = 'BLOCKED';
+      result.no_trade = true;
+      return result;
+    }
+    if (!normalStopPlan.valid) {
+      entryOpportunity.status = 'MISSED';
+      entryOpportunity.terminal_reason_code = 'NORMAL_CLOSE_MISS_STOP_PLAN_INVALID';
+      result.status_label = 'Stop計画不正';
+      result.summary = 'Target距離とmax_loss_to_reward_ratioから有効なNormal CloseMiss Stopを確定できないためEntryを見送ります。';
+      result.reason_codes = ['NORMAL_ENTRY_OPPORTUNITY_MISSED', 'NORMAL_CLOSE_MISS_STOP_PLAN_INVALID'];
+      result.rule_ids = ['rule_normal_close_miss_target_distance_ratio'];
+      result.permission = 'BLOCKED';
+      result.no_trade = true;
+      return result;
+    }
+
     if (!noTrade && triggerAligned && anchorResolved && anchorMatchesConfirmation && confirmationAligned && anchorLifecycleReady && normalPermission === 'ALLOW_SEARCH') {
       result.action = 'ENTRY';
       result.action_label = '通常Entry';
@@ -7389,7 +7668,9 @@
         'H1_CYCLE_NOT_LATE',
         'HSI_ENTRY_ANCHOR_RESOLVED',
         'DOW_CONFIRMATION_HSI_ANCHOR_FIXED',
-        latestClosedTradeMs != null ? 'NEW_NORMAL_HSI_ANCHOR_AFTER_PREVIOUS_CLOSE' : 'NORMAL_HSI_ANCHOR_FIRST_ADOPTION'
+        latestClosedTradeMs != null ? 'NEW_NORMAL_HSI_ANCHOR_AFTER_PREVIOUS_CLOSE' : 'NORMAL_HSI_ANCHOR_FIRST_ADOPTION',
+        'NORMAL_H4_ENTRY_GUARD_PASSED',
+        'NORMAL_CLOSE_MISS_TARGET_DISTANCE_RATIO_FIXED'
       ]);
       result.rule_ids = uniqueStrings([
         'rule_normal_entry_v14_h4_h1_t3_direction',
@@ -7401,7 +7682,8 @@
         'rule_normal_entry_target_must_remain_ahead',
         'rule_normal_close_next_hsi_boundary',
         'rule_single_position_single_close',
-        'rule_entry_hsi_anchor_stop_fixed',
+        'rule_normal_close_miss_target_distance_ratio',
+        'rule_normal_hsi_anchor_hard_limit',
         'rule_normal_hsi_anchor_trade_scoped_until_close'
       ]);
       entryOpportunity.status = 'USED';
@@ -7416,6 +7698,11 @@
       entryOpportunity.target_label = candidateTarget?.label || null;
       entryOpportunity.target_raw = candidateTarget?.raw ?? null;
       entryOpportunity.target_price = candidateTargetPrice;
+      entryOpportunity.entry_guard = cloneJsonValue(entryGuard);
+      entryOpportunity.normal_stop_plan = cloneJsonValue(normalStopPlan);
+      result.execution_candidate.entry_guard = cloneJsonValue(entryGuard);
+      result.execution_candidate.normal_stop_plan = cloneJsonValue(normalStopPlan);
+      result.execution_candidate.stop_price = normalStopPlan.stop_price;
       entryOpportunity.terminal_reason_code = entryAtDowConfirmation
         ? 'ENTRY_EXECUTED_AT_DOW_BREAKOUT_CONFIRMATION_WITH_R2_READY'
         : 'ENTRY_EXECUTED_AT_R2';
@@ -7475,9 +7762,9 @@
         action: 'STOP_CLOSE',
         action_label: '損切り決済',
         status_label: '同一足でStop/Target両到達',
-        summary: '通常ルールの同一M5足でStopとTargetの両方へ到達したため、保守的にHSI起点Stopを先に適用します。',
-        reason_codes: ['AMBIGUOUS_STOP_TARGET', 'STOP_CLOSE_ENTRY_HSI_ANCHOR'],
-        rule_ids: ['rule_single_close_ambiguous_stop_first', 'rule_entry_hsi_anchor_stop_fixed'],
+        summary: '通常ルールの同一M5足でStopとTargetの両方へ到達したため、保守的にEntry時固定の倍率Stopを先に適用します。',
+        reason_codes: uniqueStrings(['AMBIGUOUS_STOP_TARGET', 'STOP_CLOSE_TARGET_DISTANCE_RATIO', activePosition?.close_miss_plan?.hsi_anchor_hard_limit_applied ? 'STOP_CLOSE_HSI_ANCHOR_HARD_LIMIT' : '']),
+        rule_ids: uniqueStrings(['rule_single_close_ambiguous_stop_first', 'rule_normal_close_miss_target_distance_ratio', activePosition?.close_miss_plan?.hsi_anchor_hard_limit_applied ? 'rule_normal_hsi_anchor_hard_limit' : '']),
         bar_touch: barTouch
       };
     }
@@ -7487,10 +7774,10 @@
         evaluator_id: NORMAL_CLOSE_EVALUATOR_ID,
         action: 'STOP_CLOSE',
         action_label: '損切り決済',
-        status_label: 'HSI起点到達',
-        summary: `通常Entryに使用したHSI起点 ${round3(barTouch.stop_price)}へ到達したため全決済します。`,
-        reason_codes: ['STOP_CLOSE_ENTRY_HSI_ANCHOR'],
-        rule_ids: ['rule_entry_hsi_anchor_stop_fixed', 'rule_single_position_single_close'],
+        status_label: '倍率Stop到達',
+        summary: `Entry時にTarget距離とmax_loss_to_reward_ratioから固定したStop ${round3(barTouch.stop_price)}へ到達したため全決済します。`,
+        reason_codes: uniqueStrings(['STOP_CLOSE_TARGET_DISTANCE_RATIO', activePosition?.close_miss_plan?.hsi_anchor_hard_limit_applied ? 'STOP_CLOSE_HSI_ANCHOR_HARD_LIMIT' : '']),
+        rule_ids: uniqueStrings(['rule_normal_close_miss_target_distance_ratio', activePosition?.close_miss_plan?.hsi_anchor_hard_limit_applied ? 'rule_normal_hsi_anchor_hard_limit' : '', 'rule_single_position_single_close']),
         bar_touch: barTouch
       };
     }
@@ -7513,7 +7800,7 @@
       action: 'WAIT',
       action_label: '保有継続',
       status_label: '通常Close条件未到達',
-      summary: '通常建玉はEntry時に固定したStopまたはTargetへ到達するまで保有します。通常Add-onは行いません。',
+      summary: '通常建玉はEntry時にTarget距離とmax_loss_to_reward_ratioから固定したStop、またはTargetへ到達するまで保有します。Entry後のDow崩壊だけでは自動Closeせず、通常Add-onも行いません。',
       reason_codes: ['NORMAL_ADD_ON_DISABLED', 'POSITION_ALREADY_OPEN'],
       rule_ids: ['rule_normal_add_on_forbidden', 'rule_single_position_single_close'],
       bar_touch: barTouch
@@ -7550,7 +7837,8 @@
       anchorPrice,
       distanceRaw,
       r3Touch,
-      policy
+      policy,
+      timeframeSnapshot
     } = input || {};
     const direction = String(expansionLiteFacts?.confirmation_side || '').toUpperCase();
     const confirmationDirection = String(dowConfirmation?.direction || '').toUpperCase();
@@ -7679,6 +7967,26 @@
       result.reason_codes = ['EXPANSION_LITE_TARGET_NOT_BEYOND_ENTRY'];
       result.rule_ids = ['rule_expansion_lite_target_must_be_beyond_entry'];
       result.execution_validation_errors = [`${direction} Entry ${round3(executionPrice)} / Target ${round3(targetPrice)}`];
+      return result;
+    }
+    const entryGuard = m5ExecutionEntryGuardDecision(
+      RULE_LANE_EXPANSION_LITE,
+      direction,
+      timeframeSnapshot,
+      executionPrice,
+      policy
+    );
+    result.entry_guard = cloneJsonValue(entryGuard);
+    if (entryGuard.blocked) {
+      opportunity.status = 'MISSED';
+      opportunity.terminal_reason_code = entryGuard.primary_reason_code || 'EXPANSION_LITE_ENTRY_GUARD_BLOCKED';
+      opportunity.entry_guard = cloneJsonValue(entryGuard);
+      result.status_label = '上位足HSI進行度Guard';
+      result.summary = entryGuard.summary || '上位足・HSI進行度GuardによりExpansion-Lite Entryを見送ります。';
+      result.reason_codes = uniqueStrings(['EXPANSION_LITE_ENTRY_OPPORTUNITY_MISSED', ...(entryGuard.matched_reason_codes || [])]);
+      result.rule_ids = uniqueStrings(entryGuard.matched_rule_ids || []);
+      result.permission = 'BLOCKED';
+      result.no_trade = true;
       return result;
     }
     opportunity.status = 'USED';
@@ -8028,7 +8336,7 @@
     };
   }
 
-  function m5ExecutionRiskProfile(entryPrice, stopPrice, units, policy) {
+  function m5ExecutionRiskProfile(entryPrice, stopPrice, units, policy, stopBasisOverride = null) {
     const valuation = m5ExecutionValuationPolicy(policy);
     const entry = numberOrNull(entryPrice);
     const stop = numberOrNull(stopPrice);
@@ -8036,7 +8344,7 @@
     const riskPrice = entry == null || stop == null ? null : Math.abs(entry - stop);
     const initialRiskJpy = riskPrice == null ? null : riskPrice * valuation.unit_base_currency_amount * unitCount;
     return {
-      stop_basis: valuation.stop_basis,
+      stop_basis: stopBasisOverride || valuation.stop_basis,
       stop_price: stop,
       entry_price: entry,
       initial_units: unitCount,
@@ -8120,6 +8428,12 @@
     const band = context.hsiBand;
     const target = band?.next || null;
     const targetPrice = target ? m5ExecutionTargetPrice(context.anchorPrice, context.direction, target.raw, policy) : null;
+    const stopPlan = context?.entryOpportunity?.normal_stop_plan?.valid
+      ? cloneJsonValue(context.entryOpportunity.normal_stop_plan)
+      : m5ExecutionNormalStopPlan(context.price, targetPrice, context.anchorPrice, context.direction, policy);
+    if (!stopPlan?.valid) throw new Error('NORMAL_CLOSE_MISS_STOP_PLAN_INVALID');
+    const stopBasis = 'TARGET_DISTANCE_RATIO_WITH_HSI_ANCHOR_HARD_LIMIT';
+    const riskProfile = m5ExecutionRiskProfile(context.price, stopPlan.stop_price, initialUnits, policy, stopBasis);
     const positionId = `${tradeId}_normal`;
     const position = {
       position_id: positionId,
@@ -8148,12 +8462,17 @@
       closed_at: null,
       close_price: null,
       close_class: null,
-      risk_profile: m5ExecutionRiskProfile(context.price, context.anchorPrice, initialUnits, policy),
+      risk_profile: cloneJsonValue(riskProfile),
+      close_miss_plan: cloneJsonValue(stopPlan),
       invalidation_rule: {
-        rule_id: 'rule_entry_hsi_anchor_stop_fixed',
-        type: 'ENTRY_HSI_ANCHOR_TOUCH',
+        rule_id: 'rule_normal_close_miss_target_distance_ratio',
+        type: stopBasis,
         anchor_id: anchor?.anchor_id || null,
-        invalidation_price: context.anchorPrice,
+        invalidation_price: stopPlan.stop_price,
+        ratio_stop_price: stopPlan.ratio_stop_price,
+        hsi_anchor_hard_limit_price: stopPlan.hsi_anchor_hard_limit_price,
+        hsi_anchor_hard_limit_applied: stopPlan.hsi_anchor_hard_limit_applied,
+        max_loss_to_reward_ratio: stopPlan.max_loss_to_reward_ratio,
         direction: context.direction,
         fixed_at_entry: true
       },
@@ -8198,7 +8517,8 @@
       close_price: null,
       close_class: null,
       terminal_close_event_id: null,
-      risk_profile: m5ExecutionRiskProfile(context.price, context.anchorPrice, initialUnits, policy),
+      risk_profile: cloneJsonValue(riskProfile),
+      close_miss_plan: cloneJsonValue(stopPlan),
       valuation_policy: m5ExecutionValuationPolicy(policy),
       realized_price_delta_units: 0,
       realized_profit_jpy: 0
@@ -8210,7 +8530,7 @@
     const normalAnchorLifecycle = m5ExecutionActivateNormalAnchor(portfolio, context, tradeId);
     trade.normal_hsi_anchor_lifecycle_at_entry = cloneJsonValue(normalAnchorLifecycle);
     position.normal_hsi_anchor_lifecycle_status = normalAnchorLifecycle.status;
-    return { trade, positions: [position], targetPrice, triggerEvent, normalAnchorLifecycle };
+    return { trade, positions: [position], targetPrice, stopPlan, triggerEvent, normalAnchorLifecycle };
   }
 
   function m5ExecutionNewExpansionLiteTrade(portfolio, context, triggerEvent, policy) {
@@ -8518,11 +8838,7 @@
     }
     const previousInfo = m5ExecutionPreviousLifecycle(state, referenceMs, draft);
     const lifecycle = previousInfo.lifecycle || m5ExecutionEmptyLifecycle(draft, candleSync?.reference);
-    lifecycle.phase = selectedEntryRuleLane === ENTRY_LANE_MODE_NORMAL_AND_EXPANSION_LITE
-      ? 'v0.9.0.50-normal-plus-expansion-lite-directional-h1-cycle'
-      : selectedEntryRuleLane === RULE_LANE_EXPANSION_LITE
-        ? 'v0.9.0.50-expansion-lite-v0.18-directional-h1-cycle'
-        : 'v0.9.0.53-cycle-entry-window-independent-from-confirm';
+    lifecycle.phase = 'v0.9.1.07-pre-entry-dow-collapse-scope-fix';
     lifecycle.created_at = nowLocalIso();
     lifecycle.reference = cloneJsonValue(candleSync?.reference || {});
     lifecycle.profile_id = draft?.profile_id || '';
@@ -8644,7 +8960,8 @@
           policy,
           minEntryLabel: laneContext.minEntryLabel,
           hsiNotReachedReasonCode: laneContext.hsiNotReachedReasonCode,
-          upperDecision: upperSnapshot
+          upperDecision: upperSnapshot,
+          timeframeSnapshot
         };
       }
       const orchestration = evaluateEnabledEntryRuleLanes(lanePolicy, inputByLane);
@@ -8710,7 +9027,7 @@
       h4_close: normalEntryV08.h4_close,
       h4_cycle_phase: normalEntryV08.h4_cycle_phase,
       h1_cycle_phase: normalEntryV08.h1_cycle_phase,
-      normal_entry_rule_version: 'v0.17.1',
+      normal_entry_rule_version: NORMAL_RULE_VERSION,
       trigger_aligned: triggerAligned,
       no_trade: noTrade,
       legacy_upper_no_trade: upperNoTrade,
@@ -8730,6 +9047,10 @@
       normal_hsi_active_anchor_id: m5ExecutionEnsureNormalAnchorLifecycle(lifecycle.portfolio).active_anchor_id,
       normal_hsi_last_retired_anchor_id: m5ExecutionEnsureNormalAnchorLifecycle(lifecycle.portfolio).last_retired_anchor_id,
       normal_hsi_last_retired_at: m5ExecutionEnsureNormalAnchorLifecycle(lifecycle.portfolio).last_retired_at,
+      entry_guard: cloneJsonValue(selectedDecision?.entry_guard || null),
+      h4_wave_hsi_facts: cloneJsonValue(selectedDecision?.entry_guard?.facts || null),
+      normal_close_miss_policy: cloneJsonValue(policy?.normal_close_miss_policy || null),
+      normal_stop_plan: cloneJsonValue(selectedDecision?.normal_stop_plan || entryOpportunity?.normal_stop_plan || null),
       hsi_distance_raw: distanceRaw,
       hsi_entry_min_raw: minEntryRaw,
       hsi_entry_min_label: minEntryLabel,
@@ -8784,7 +9105,7 @@
         const afterPortfolio = cloneJsonValue(lifecycle.portfolio);
         const entryExecutionMode = String(entryOpportunity?.entry_execution_mode || 'FIRST_R2_TOUCH_AFTER_CONFIRMATION');
         const entryDisplayLabel = entryExecutionMode === 'DOW_BREAKOUT_CONFIRMATION_R2_READY' ? 'Dow突破確定即Entry' : 'R2 Entry';
-        executionEvent = m5ExecutionEvent(entryContext, 'entry', `通常Entry #${created.trade.normal_entry_sequence_no || created.trade.sequence} ${entryContext.direction} / ${position?.units_open || 0}単位 / ${entryDisplayLabel} ${round3(entryContext.price)}`, [...trigger.rule_ids], [...trigger.reason_codes, 'POSITION_LIFECYCLE_OPENED'], [triggerEvent.event_id, dowConfirmation?.confirmation_id].filter(Boolean), beforePortfolio, afterPortfolio, { trade_id: created.trade.trade_id, position_ids: [position.position_id], rule_lane: RULE_LANE_NORMAL, evaluator_id: NORMAL_ENTRY_EVALUATOR_ID, execution: { rule_lane: RULE_LANE_NORMAL, evaluator_id: NORMAL_ENTRY_EVALUATOR_ID, close_evaluator_id: NORMAL_CLOSE_EVALUATOR_ID, action, normal_entry_sequence_no: created.trade.normal_entry_sequence_no, side: entryContext.direction, units: position.units_open, price: entryContext.price, entry_price: entryContext.price, entry_level: entryExecutionMode === 'DOW_BREAKOUT_CONFIRMATION_R2_READY' ? 'R2_OR_MORE_AT_DOW_BREAKOUT_CONFIRMATION' : 'R2', entry_execution_mode: entryExecutionMode, target_price: created.targetPrice, target_label: created.trade.target_label || position?.target_plan?.next_target_label || null, entry_timeframe: 'M5', entry_anchor_id: entryContext.entryAnchor?.anchor_id || null, dow_confirmation_id: dowConfirmation?.confirmation_id || null, dow_breakout_threshold_price: numberOrNull(dowConfirmation?.breakout_threshold_price), entry_opportunity_id: entryOpportunity?.opportunity_id || null, stop_basis: created.trade.risk_profile?.stop_basis || 'HSI_ENTRY_ANCHOR', stop_price: created.trade.risk_profile?.stop_price ?? entryContext.anchorPrice, initial_units: created.trade.risk_profile?.initial_units ?? position.units_initial, unit_base_currency_amount: created.trade.risk_profile?.unit_base_currency_amount || 1000, initial_risk_jpy: created.trade.risk_profile?.initial_risk_jpy ?? null, close_policy: 'SINGLE_CLOSE', normal_hsi_anchor_lifecycle_status: created.normalAnchorLifecycle?.status || 'ACTIVE', cumulative_realized_profit_jpy: m5ExecutionPortfolioRunRealizedJpy(lifecycle.portfolio, policy), trade_cumulative_realized_profit_jpy: 0, profit_vs_initial_risk_pct: 0, risk_multiple: 0 } });
+        executionEvent = m5ExecutionEvent(entryContext, 'entry', `通常Entry #${created.trade.normal_entry_sequence_no || created.trade.sequence} ${entryContext.direction} / ${position?.units_open || 0}単位 / ${entryDisplayLabel} ${round3(entryContext.price)}`, [...trigger.rule_ids], [...trigger.reason_codes, 'POSITION_LIFECYCLE_OPENED'], [triggerEvent.event_id, dowConfirmation?.confirmation_id].filter(Boolean), beforePortfolio, afterPortfolio, { trade_id: created.trade.trade_id, position_ids: [position.position_id], rule_lane: RULE_LANE_NORMAL, evaluator_id: NORMAL_ENTRY_EVALUATOR_ID, execution: { rule_lane: RULE_LANE_NORMAL, evaluator_id: NORMAL_ENTRY_EVALUATOR_ID, close_evaluator_id: NORMAL_CLOSE_EVALUATOR_ID, action, normal_entry_sequence_no: created.trade.normal_entry_sequence_no, side: entryContext.direction, units: position.units_open, price: entryContext.price, entry_price: entryContext.price, entry_level: entryExecutionMode === 'DOW_BREAKOUT_CONFIRMATION_R2_READY' ? 'R2_OR_MORE_AT_DOW_BREAKOUT_CONFIRMATION' : 'R2', entry_execution_mode: entryExecutionMode, target_price: created.targetPrice, target_label: created.trade.target_label || position?.target_plan?.next_target_label || null, entry_timeframe: 'M5', entry_anchor_id: entryContext.entryAnchor?.anchor_id || null, dow_confirmation_id: dowConfirmation?.confirmation_id || null, dow_breakout_threshold_price: numberOrNull(dowConfirmation?.breakout_threshold_price), entry_opportunity_id: entryOpportunity?.opportunity_id || null, stop_basis: created.trade.risk_profile?.stop_basis || 'TARGET_DISTANCE_RATIO_WITH_HSI_ANCHOR_HARD_LIMIT', stop_price: created.trade.risk_profile?.stop_price ?? created.stopPlan?.stop_price, max_loss_to_reward_ratio: created.stopPlan?.max_loss_to_reward_ratio ?? null, reward_distance: created.stopPlan?.reward_distance ?? null, max_loss_distance: created.stopPlan?.max_loss_distance ?? null, ratio_stop_price: created.stopPlan?.ratio_stop_price ?? null, hsi_anchor_hard_limit_price: created.stopPlan?.hsi_anchor_hard_limit_price ?? entryContext.anchorPrice, hsi_anchor_hard_limit_applied: created.stopPlan?.hsi_anchor_hard_limit_applied === true, initial_units: created.trade.risk_profile?.initial_units ?? position.units_initial, unit_base_currency_amount: created.trade.risk_profile?.unit_base_currency_amount || 1000, initial_risk_jpy: created.trade.risk_profile?.initial_risk_jpy ?? null, close_policy: 'SINGLE_CLOSE', normal_hsi_anchor_lifecycle_status: created.normalAnchorLifecycle?.status || 'ACTIVE', cumulative_realized_profit_jpy: m5ExecutionPortfolioRunRealizedJpy(lifecycle.portfolio, policy), trade_cumulative_realized_profit_jpy: 0, profit_vs_initial_risk_pct: 0, risk_multiple: 0 } });
         created.trade.entry_event_id = executionEvent.event_id;
       } else if (context.ruleLane === RULE_LANE_EXPANSION_LITE && action === 'ENTRY') {
         const selectedEntryPrice = numberOrNull(selectedDecision?.execution_candidate?.price)
@@ -8931,7 +9252,7 @@
         const eventSummary = isExpansionLiteClose
           ? `${selectedDecision?.action_label || selectedDecision?.exit_type || 'Expansion-Lite Exit'} / ${closedUnits}単位全決済 / ${round3(closeContext.price)}`
           : (isStop
-            ? `HSI起点Stop / ${closedUnits}単位全決済 / ${round3(closeContext.price)}`
+            ? `倍率Stop / ${closedUnits}単位全決済 / ${round3(closeContext.price)}`
             : `${reachedTargetLabel || '次HSI境界'}到達 / ${closedUnits}単位全決済 / ${round3(closeContext.price)}`);
         const closeRuleIds = isExpansionLiteClose
           ? [...trigger.rule_ids]
@@ -8958,8 +9279,12 @@
             reached_target_label: reachedTargetLabel,
             target_label: reachedTargetLabel,
             target_price: barTouch.target_price ?? closed.trade?.target_price ?? null,
-            stop_basis: isExpansionLiteClose ? 'EXPANSION_LITE_DEFINED_EXIT' : 'HSI_ENTRY_ANCHOR',
+            stop_basis: isExpansionLiteClose ? 'EXPANSION_LITE_DEFINED_EXIT' : (closed.trade?.risk_profile?.stop_basis || activePosition?.risk_profile?.stop_basis || 'TARGET_DISTANCE_RATIO_WITH_HSI_ANCHOR_HARD_LIMIT'),
             stop_price: barTouch.stop_price ?? activePosition?.invalidation_rule?.invalidation_price ?? null,
+            max_loss_to_reward_ratio: isExpansionLiteClose ? null : (closed.trade?.close_miss_plan?.max_loss_to_reward_ratio ?? activePosition?.close_miss_plan?.max_loss_to_reward_ratio ?? null),
+            ratio_stop_price: isExpansionLiteClose ? null : (closed.trade?.close_miss_plan?.ratio_stop_price ?? activePosition?.close_miss_plan?.ratio_stop_price ?? null),
+            hsi_anchor_hard_limit_price: isExpansionLiteClose ? null : (closed.trade?.close_miss_plan?.hsi_anchor_hard_limit_price ?? activePosition?.close_miss_plan?.hsi_anchor_hard_limit_price ?? null),
+            hsi_anchor_hard_limit_applied: isExpansionLiteClose ? false : (closed.trade?.close_miss_plan?.hsi_anchor_hard_limit_applied === true || activePosition?.close_miss_plan?.hsi_anchor_hard_limit_applied === true),
             initial_units: closed.trade?.risk_profile?.initial_units ?? closedUnits,
             close_policy: isExpansionLiteClose ? 'EXPANSION_LITE_ALL_CLOSE' : 'SINGLE_CLOSE',
             ambiguous_stop_target: barTouch.ambiguous === true,
@@ -9000,11 +9325,7 @@
     lifecycle.run_result = m5ExecutionRunResult(lifecycle);
     lifecycle.validation = { valid: errors.length === 0, checked_at: nowLocalIso(), errors, warnings, no_lookahead: m5State?.no_lookahead === true && policy.no_lookahead === true, previous_state_policy: previousInfo.status };
     lifecycle.status = errors.length ? 'invalid' : executionEvent ? 'executed' : 'evaluated_no_execution';
-    lifecycle.teacher_guard = selectedEntryRuleLane === ENTRY_LANE_MODE_NORMAL_AND_EXPANSION_LITE
-      ? 'NORMALとEXPANSION_LITEを独立Rule Laneとして同時評価します。条件・起点・Entry Opportunity・Close Evaluatorは相互流用しません。各Rule Laneは独立Portfolioで評価され、同一足で複数Entryが成立可能です。各建玉のCloseは自身のOPEN_TRADE_RULE_LANEだけで判定します。'
-      : selectedEntryRuleLane === RULE_LANE_EXPANSION_LITE
-        ? 'EXPANSION_LITE Rule Lane専用。H4/H1 CloseのT3側、H1 Cycle Entry Window内、M5 Dow Confirmation、R3タッチだけでEntryを評価し、R3.5/R4/R4.5で各1回Add-on、R5/T3/Dow構造/採用HSI起点で全Closeします。NORMAL / EXPANSIONの条件・起点Lifecycle・Fallbackは使用しません。'
-        : `通常Entry ${policy?.normal_entry_policy?.rule_version || 'v0.17.1'}は、確定済み押し安値/戻り高値の後に直前構造高値/安値をM5確定足で突破した時点をDow Confirmation Eventとします。通常HSI起点はそのNormal Trade専用で、CloseOK / CloseMissの確定時に即破棄します。次回通常EntryはClose後の新しいM5 Dow Confirmation Eventと、その根拠となる新しいprevious Swingから新起点を採用します。NORMAL Rule LaneではReEntry / Add-onを使用しません。`;
+    lifecycle.teacher_guard = 'v0.21〜v0.23対応。Day Up/H4 Down/R5 Short Guardと、NORMAL H4同方向R4 GuardをEntry直前に評価します。NORMALのWAITING_R2はEntry前のM5 Dow構造崩壊で失効し、後からR2へ到達してもEntryしません。Entry後のDow崩壊は別問題であり、それだけでは自動Closeしません。Normal CloseMiss StopはEntry時のTarget距離×JSON固定max_loss_to_reward_ratioで決定し、HSI起点をHard Limitとして固定します。Rule Lane間の条件・起点・建玉・Close Evaluatorは流用しません。';
     return lifecycle;
   }
 
@@ -13225,6 +13546,13 @@
       CLOSE_OK: '利益確定として決済',
       CLOSE_OK_NEXT_HSI_TARGET: `${values.reached_target_label}到達`,
       STOP_CLOSE_ENTRY_HSI_ANCHOR: 'Entryに使用したHSI起点へ到達',
+      STOP_CLOSE_TARGET_DISTANCE_RATIO: 'Target距離と固定倍率からEntry時に確定したStopへ到達',
+      STOP_CLOSE_HSI_ANCHOR_HARD_LIMIT: '倍率StopへHSI起点Hard Limitを適用',
+      NORMAL_DOW_STRUCTURE_BROKEN_BEFORE_ENTRY: 'Entry前に後発の逆方向M5 Dow Confirmationが成立したためEntry権利を失効',
+      NORMAL_HSI_ANCHOR_INVALIDATED_BEFORE_ENTRY: '崩壊したDow構造の通常HSI起点をEntry判定から無効化',
+      NORMAL_H4_SAME_DIRECTION_R4_ENTRY_BLOCKED: 'H4現在波がEntry方向へR4以上進行しているため新規Normal Entry禁止',
+      DAY_UP_H4_DOWN_R5_SHORT_ENTRY_BLOCKED: 'Day上昇中のH4調整下降がR5以上進行しているため新規Short Entry禁止',
+      NORMAL_CLOSE_MISS_TARGET_DISTANCE_RATIO_FIXED: 'Target距離とJSON固定倍率からCloseMiss StopをEntry時に固定',
       SINGLE_CLOSE_ALL_UNITS: `${values.units}単位を全決済`,
       AMBIGUOUS_STOP_TARGET: '同一M5足でStopとTargetの両方へ到達',
       NORMAL_ADD_ON_DISABLED: '通常PositionではAdd-on禁止'
@@ -13234,6 +13562,11 @@
       rule_h1_exit_confirmed_m5_full_close: 'H1決済トリガー確定後、M5で残り建玉を全決済',
       rule_single_close_next_hsi_target: `${values.reached_target_label}到達時に${values.units}単位を全決済`,
       rule_entry_hsi_anchor_stop_fixed: 'Entry時に使用したHSI起点をStopとして固定',
+      rule_normal_close_miss_target_distance_ratio: 'Target距離×max_loss_to_reward_ratioでNormal StopをEntry時に固定',
+      rule_normal_hsi_anchor_hard_limit: '倍率StopがHSI起点より遠い場合はHSI起点をHard Limitとして採用',
+      rule_normal_pre_entry_dow_structure_break_expires_opportunity: 'Entry前に後発の逆方向M5 Dow Confirmationが成立した場合だけWAITING_R2 Opportunityを失効',
+      rule_normal_h4_same_direction_r4_entry_guard: 'NORMALはH4現在波と同方向へR4以上進行後の新規Entryを禁止',
+      rule_day_up_h4_down_r5_short_entry_guard: 'Day UpかつH4 Down R5以上で新規Short Entryを禁止',
       rule_single_position_single_close: '1 Entryにつき1 Position・1回の全Close',
       rule_normal_add_on_forbidden: '通常Entry中のAdd-onを禁止',
       rule_single_close_ambiguous_stop_first: '同一足でStopとTargetへ到達した場合は保守的にStopを優先'

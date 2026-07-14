@@ -269,7 +269,7 @@
     }
   },
   "changelog_file": "CHANGELOG.md",
-  "current_fx_chart_viewer_version": "v0.9.1.05-entry-result-new-tab-m5-h1-h4",
+  "current_fx_chart_viewer_version": "v0.9.1.07-pre-entry-dow-collapse-scope-fix",
   "sidecar_files": [
     "sidecars/fx_usdjpy_m5_t3_data_v0_1.chart_comments.json"
   ],
