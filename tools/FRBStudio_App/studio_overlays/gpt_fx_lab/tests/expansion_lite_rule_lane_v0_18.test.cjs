@@ -19,7 +19,7 @@ const source = fs.readFileSync(pluginPath, 'utf8');
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 const profile = JSON.parse(fs.readFileSync(profilePath, 'utf8'));
 
-assert.equal(manifest.version, '0.9.1.07');
+assert.equal(manifest.version, '0.9.1.08');
 assert.equal(manifest.display_policy.simulation_run_profile.default_file, 'fx_simulation_run_profile_normal_plus_expansion_lite_v0_1.json');
 assert.equal(profile.m5_execution_policy.rule_lane_policy.active_entry_rule_lane, 'EXPANSION_LITE');
 assert.equal(profile.m5_execution_policy.rule_lane_policy.lanes.NORMAL.enabled, false);

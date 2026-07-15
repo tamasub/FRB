@@ -19,7 +19,7 @@ const source = fs.readFileSync(pluginPath, 'utf8');
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 const viewDef = JSON.parse(fs.readFileSync(viewDefPath, 'utf8'));
 
-assert.equal(manifest.version, '0.9.1.07');
+assert.equal(manifest.version, '0.9.1.08');
 assert.ok(manifest.actions.includes('OpenFxEntryChartUrl'));
 const executeButton = viewDef.views[0].toolbar.executeButton;
 assert.equal(executeButton.action, 'OpenFxEntryChartUrl');

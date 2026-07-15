@@ -11,7 +11,7 @@
   "scope": "gpt_fx_lab overlay only",
   "core_change": false,
   "description": "Entry成績表の選択行から新しいタブでM5実行 + H1+H4レイアウトを開き、元Batch JSONの選択Trade Entry/Add-on/Close Eventを実行マーカーとして投影する。固定十字と既存Simulation判断ポップオーバーも維持する。",
-  "version": "0.9.1.07",
+  "version": "0.9.1.08",
   "signal_policy": {
     "visible_marker": "candidate_basis_retired_circle_marker",
     "removed_marker": "dow_structure_decision_arrow_marker",
@@ -1149,7 +1149,7 @@
       "case_state_sharing": "FORBIDDEN",
       "chunk_state_reset": "FORBIDDEN",
       "default_period_mode": "FULL_DATASET",
-      "progress_yield_every_bars": 50,
+      "progress_yield_every_bars": 250,
       "stop_check_every_bars": 1,
       "show_cumulative_realized_profit": true,
       "progress_profit_display": [
@@ -1201,7 +1201,10 @@
         "LIGHTWEIGHT_MID_CASE_CHECKPOINT_AND_TRUE_RESUME",
         "WEB_WORKER_OR_BACKGROUND_EXECUTION_AND_PERFORMANCE_PROFILE",
         "ARTIFACT_SPLIT_INDEX_AFTER_NESTED_DIRECTORY_SAVE_API_IS_AVAILABLE"
-      ]
+      ],
+      "progress_event_min_interval_ms": 500,
+      "hide_chart_during_batch": true,
+      "suppress_chart_redraw_during_batch": true
     },
     "simulation_rule_revision_support": [
       "v0.21",

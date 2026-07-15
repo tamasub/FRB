@@ -1,4 +1,4 @@
-// gpt_fx_lab.fx_chart_viewer v0.9.1.07-pre-entry-dow-collapse-scope-fix
+// gpt_fx_lab.fx_chart_viewer v0.9.1.08-batch-render-suppression
 // Coreを変更せず、Overlay Plugin ActionとしてUSDJPY M5 + T3 + Dow candidate/basis/history静的チャートを表示する。
 // 上位足Decisionを入力にM5確定足で仮想Entry/保有/決済を実行し、1 Entry / 1 Position / 1 Stop / 1 TargetのLifecycleを原因Traceへ接続する。
 // Confirm bars を変えながら、Candidate / Active Basis / Retired Basis の違いを見える化する。
@@ -323,6 +323,27 @@
         width: calc(100vw - 20px);
         height: calc(100vh - 20px);
         border-radius: 14px;
+      }
+      /* Batch実行中は、画面上で見えていないチャート系UIを完全停止・非表示にする。 */
+      .gpt-fx-chart-backdrop.is-batch-running .gpt-fx-chart-modal {
+        grid-template-rows: 1fr;
+      }
+      .gpt-fx-chart-backdrop.is-batch-running .gpt-fx-chart-window-btn,
+      .gpt-fx-chart-backdrop.is-batch-running .gpt-fx-chart-header,
+      .gpt-fx-chart-backdrop.is-batch-running .gpt-fx-chart-meta,
+      .gpt-fx-chart-backdrop.is-batch-running .gpt-fx-chart-scroll,
+      .gpt-fx-chart-backdrop.is-batch-running .gpt-fx-chart-settings-panel,
+      .gpt-fx-chart-backdrop.is-batch-running .gpt-fx-chart-range-result,
+      .gpt-fx-chart-backdrop.is-batch-running .gpt-fx-chart-tooltip,
+      .gpt-fx-chart-backdrop.is-batch-running .gpt-fx-chart-comment-popover,
+      .gpt-fx-chart-backdrop.is-batch-running .gpt-fx-chart-simulation-popover,
+      .gpt-fx-chart-backdrop.is-batch-running .gpt-fx-chart-text-label-popover,
+      .gpt-fx-chart-backdrop.is-batch-running .gpt-fx-chart-context-menu,
+      .gpt-fx-chart-backdrop.is-batch-running .gpt-fx-chart-footer {
+        display: none !important;
+      }
+      .gpt-fx-chart-backdrop.is-batch-running .gpt-fx-chart-body {
+        padding: 0;
       }
       .gpt-fx-chart-header {
         display: grid;
@@ -10596,13 +10617,22 @@
       enabled: raw.enabled !== false,
       manifest_path: String(raw.manifest_path || BATCH_SIMULATION_MANIFEST_PATH),
       execution_mode: String(raw.execution_mode || 'SEQUENTIAL_CASES'),
-      progress_yield_every_bars: Math.max(1, Math.floor(numberOrNull(raw.progress_yield_every_bars) ?? 50)),
+      progress_yield_every_bars: Math.max(1, Math.floor(numberOrNull(raw.progress_yield_every_bars) ?? 250)),
+      progress_event_min_interval_ms: Math.max(100, Math.floor(numberOrNull(raw.progress_event_min_interval_ms) ?? 500)),
+      hide_chart_during_batch: raw.hide_chart_during_batch !== false,
+      suppress_chart_redraw_during_batch: raw.suppress_chart_redraw_during_batch !== false,
       result_api_root: String(raw.result_api_root || 'gpt_fx_lab/simulation/results'),
       fallback_result_api_root: String(raw.fallback_result_api_root || 'gpt_fx_lab/simulation'),
       default_period_mode: String(raw.default_period_mode || 'FULL_DATASET').toUpperCase(),
       show_cumulative_realized_profit: raw.show_cumulative_realized_profit !== false,
       stop_check_every_bars: Math.max(1, Math.floor(numberOrNull(raw.stop_check_every_bars) ?? 1))
     };
+  }
+
+  function applyBatchSimulationVisualMode(backdrop, state) {
+    const settings = batchSimulationSettings();
+    const running = state?.batchSimulationRunInProgress === true;
+    backdrop?.classList?.toggle('is-batch-running', running && settings.hide_chart_during_batch);
   }
 
   function batchSimulationNormalizeDataPath(value) {
@@ -10869,6 +10899,7 @@
     let completedSteps = 0;
     const settings = batchSimulationSettings();
     const startedAt = nowLocalIso();
+    let lastProgressReportAtMs = 0;
     for (let index = 0; index < rowPlan.process_rows.length; index += 1) {
       if (state?.batchSimulationStopRequested === true) break;
       const item = rowPlan.process_rows[index];
@@ -10900,11 +10931,17 @@
       } else {
         stepErrors.push({ step_no: index + 1, reference_time: String(item.row?.datetime || ''), errors: [...(result.validation?.errors || ['Snapshot作成失敗'])] });
       }
+      const progressNowMs = Date.now();
+      const periodicProgress = (index + 1) % settings.progress_yield_every_bars === 0;
+      const executionEventChanged = executionEvents.length > eventCountBeforeStep;
+      const executionEventReportDue = executionEventChanged
+        && progressNowMs - lastProgressReportAtMs >= settings.progress_event_min_interval_ms;
       const shouldReport = index === 0
         || index === rowPlan.process_rows.length - 1
-        || (index + 1) % settings.progress_yield_every_bars === 0
-        || executionEvents.length > eventCountBeforeStep;
+        || periodicProgress
+        || executionEventReportDue;
       if (shouldReport && typeof onProgress === 'function') {
+        lastProgressReportAtMs = progressNowMs;
         const summary = batchSimulationSummaryWithState(executionEvents, finalSnapshot, lastMarkPrice);
         onProgress({
           case_id: caseId,
@@ -10924,7 +10961,7 @@
           lane_summaries: batchSimulationLaneSummaries(executionEvents, finalSnapshot, lastMarkPrice)
         });
       }
-      if ((index + 1) % settings.progress_yield_every_bars === 0) await nextAnimationFrame();
+      if (periodicProgress) await nextAnimationFrame();
     }
     const stopped = state?.batchSimulationStopRequested === true;
     const summary = batchSimulationSummaryWithState(executionEvents, finalSnapshot, lastMarkPrice);
@@ -11221,6 +11258,7 @@
   }
 
   function renderBatchSimulationDialog(backdrop, state) {
+    applyBatchSimulationVisualMode(backdrop, state);
     const overlay = backdrop?.querySelector?.('[data-role="batch-simulation-overlay"]');
     const dialog = backdrop?.querySelector?.('[data-role="batch-simulation-dialog"]');
     if (!overlay || !dialog) return;
@@ -16665,14 +16703,19 @@
       if (upperWarmupInput) upperWarmupInput.value = String(nextUpperWarmup);
       state.hsiValuesText = String(hsiValuesInput?.value ?? state.hsiValuesText ?? hsiSettings.valuesText);
       state.hsiScale = numberOrNull(hsiScaleInput?.value) ?? state.hsiScale ?? hsiSettings.scale;
-      const rows = getChartWindowRows(source, allRows, state);
-      const candidatePoints = buildCandidatePoints(rows, source, state.confirmBars);
-      const layers = buildPointLayers(candidatePoints);
+      const batchSettings = batchSimulationSettings();
+      const suppressChartRedraw = state.batchSimulationRunInProgress === true
+        && batchSettings.suppress_chart_redraw_during_batch;
       applyModeButtonState(backdrop, state);
-      buildMeta(backdrop, source, rows, layers, state);
-      drawChart(backdrop, source, rows, layers, state);
-      renderVisibleRangeRunResult(backdrop, state);
-      if (state.simulationRunDialogOpen === true) renderSimulationRunDialog(backdrop, state);
+      if (!suppressChartRedraw) {
+        const rows = getChartWindowRows(source, allRows, state);
+        const candidatePoints = buildCandidatePoints(rows, source, state.confirmBars);
+        const layers = buildPointLayers(candidatePoints);
+        buildMeta(backdrop, source, rows, layers, state);
+        drawChart(backdrop, source, rows, layers, state);
+        renderVisibleRangeRunResult(backdrop, state);
+        if (state.simulationRunDialogOpen === true) renderSimulationRunDialog(backdrop, state);
+      }
       if (state.batchSimulationDialogOpen === true || state.batchSimulationRunInProgress === true) renderBatchSimulationDialog(backdrop, state);
     };
 
@@ -16749,8 +16792,8 @@
         state.batchSimulationRunStatus = `一括Simulation例外: ${err?.message || err}`;
       } finally {
         state.batchSimulationRunInProgress = false;
-        renderBatchSimulationDialog(backdrop, state);
-        applyModeButtonState(backdrop, state);
+        applyBatchSimulationVisualMode(backdrop, state);
+        redraw();
       }
     };
 

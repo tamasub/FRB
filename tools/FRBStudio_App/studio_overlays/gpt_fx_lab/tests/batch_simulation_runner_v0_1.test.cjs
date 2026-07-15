@@ -17,13 +17,16 @@ const manifestPath = artifactPath('studio_overlays','gpt_fx_lab','plugins','fx_c
 const source = fs.readFileSync(pluginPath, 'utf8');
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 
-assert.equal(manifest.version, '0.9.1.07');
+assert.equal(manifest.version, '0.9.1.08');
 assert.equal(manifest.display_policy.batch_simulation_runner.enabled, true);
 assert.equal(manifest.display_policy.batch_simulation_runner.execution_mode, 'SEQUENTIAL_CASES');
 assert.equal(manifest.display_policy.batch_simulation_runner.show_cumulative_realized_profit, true);
 assert.equal(manifest.display_policy.batch_simulation_runner.show_unrealized_profit, true);
 assert.equal(manifest.display_policy.batch_simulation_runner.result_persistence_mode, 'FULL_JSON_SINGLE_FILE_WITH_FALLBACK');
-assert.equal(manifest.display_policy.batch_simulation_runner.progress_yield_every_bars, 50);
+assert.equal(manifest.display_policy.batch_simulation_runner.progress_yield_every_bars, 250);
+assert.equal(manifest.display_policy.batch_simulation_runner.progress_event_min_interval_ms, 500);
+assert.equal(manifest.display_policy.batch_simulation_runner.hide_chart_during_batch, true);
+assert.equal(manifest.display_policy.batch_simulation_runner.suppress_chart_redraw_during_batch, true);
 assert.equal(manifest.chart_viewer_policy.batch_simulation_cumulative_realized_profit_always_visible, true);
 
 const hook = `window.__batchSimulationTest={
@@ -154,6 +157,9 @@ assert.equal(api.batchSimulationShouldExecuteCase(api.batchSimulationExistingCas
 assert.equal(api.batchSimulationShouldExecuteCase(api.batchSimulationExistingCaseByPath(previousBatch, 'overlay/gpt_fx_lab/data/c.json'), 'retry_failed'), true, '失敗Caseは再実行対象');
 assert.equal(api.batchSimulationShouldExecuteCase(api.batchSimulationExistingCaseByPath(previousBatch, 'overlay/gpt_fx_lab/data/a.json'), 'retry_failed'), false, '完了Caseは失敗再実行対象外');
 assert.match(source, /gpt-fx-chart-batch-pnl-board/);
+assert.match(source, /is-batch-running/, 'Batch実行中のチャート非表示CSSが必要');
+assert.match(source, /suppressChartRedraw/, 'Batch実行中のdrawChart抑止が必要');
+assert.match(source, /progress_event_min_interval_ms/, 'Event発生時の進捗描画間引きが必要');
 assert.match(source, /評価損益合計/);
 assert.match(source, /利益Close/);
 assert.match(source, /損失Close/);

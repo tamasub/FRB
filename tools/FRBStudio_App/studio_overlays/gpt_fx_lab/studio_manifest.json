@@ -25,7 +25,8 @@
   "data_files": [
     "data/fx_usdjpy_m5_t3_data_v0_1.json",
     "simulattion_集計/batch_20260712_200928_entry_results.json",
-    "simulattion_集計/batch_20260712_230503_entry_results.json"
+    "simulattion_集計/batch_20260712_230503_entry_results.json",
+    "simulattion_集計/batch_20260714_224839_entry_results.json"
   ],
   "view_def_files": [
     "view_defs/fx_usdjpy_t3_view_def_v0_1.json",

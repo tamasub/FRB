@@ -6,13 +6,13 @@
   "target": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer",
   "status": "active",
   "created_at": "2026-07-05",
-  "updated_at": "2026-07-13T23:58:00+09:00",
+  "updated_at": "2026-07-14T23:10:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "GPT FX Lab の fx_chart_viewer が、単なるチャート表示から、M5/H1/H4同期観測、HSI仮説可視化、コメント/判断ログ共有へ育っていくため、Studio本体インシデントとは別枠で改修履歴・判断ログ・将来要望を管理する。",
   "operation_policy": "ViewDefは既存の studio_work_incident_view_def_v0_5.json を共通利用する。fx_chart_viewer固有の作業はこの専用インシデントファイルへ登録し、Studio本体汎用機能とドメイン専用Overlay機能を混ぜない。実装パッチでは、更新ファイルのみZIP返却し、未更新ファイルや.bakを含めない。",
   "standard_field_policy": "このファイルは既存インシデント管理Dataの構造を踏襲する。work_item_id / phase / status / discussion_history / decision_log / change_history 等は、インシデント管理Dataの契約として扱う。",
-  "items_count": 33,
+  "items_count": 34,
   "main_context_status": "draft",
   "main_context_updated_at": "2026-07-12T19:38:58+09:00",
   "main_context_draft": "# 主文脈素案: インシデント管理Data\n\n## 読む目的\nこのインシデント管理Data全体を扱うAIが、作業前に読むべき正本・ViewDef・Foundation Rules・Runtime対象を確認できるようにする。\n\n## 基本方針\n- Data JSONを作業台帳の正本として扱う。\n- ViewDefは表示・編集体験の定義として扱う。\n- 主文脈はData全体を扱う前に読む入口、対象文脈は各作業項目を扱う前に読む入口として分ける。\n- グリッドは編集用、プレビューは読むためのUIとして分離する。\n\n## 注意\nFoundation Rule 19のZIP返却契約とdiscussion_history実発言契約を優先する。",
@@ -3059,6 +3059,99 @@
       "actual_updated_files": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js\nstudio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json\nstudio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_v0_1.json\nstudio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_expansion_lite_v0_1.json\nstudio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_normal_plus_expansion_lite_v0_1.json\nstudio_overlays/gpt_fx_lab/simulation/fx_simulation_reason_rule_catalog_v0_1.json\nstudio_overlays/gpt_fx_lab/tests/*.test.cjs\nstudio_overlays/gpt_fx_lab/studio_manifest.json\nstudio_overlays/gpt_fx_lab/CHANGELOG.md\nstudio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4_batch_simulation_registered.json",
       "completion_summary": "Rule v0.21〜v0.23をSimulation Engineへ実装し、JSONのmax_loss_to_reward_ratioを手動変更してBatch比較できる状態にした。",
       "test_result": "PASS simulation_rule_v0_21_to_v0_23 / PASS simulation_profile_contract_v0_17 / PASS existing regression tests (17 total)。"
+    },
+    {
+      "work_item_id": "fx_chart_viewer_work_0034",
+      "parent_work_item_id": "fx_chart_viewer_work_0027",
+      "phase": "v0.9.1.08-batch-chart-render-suppression",
+      "title": "一括Simulation中のチャート完全停止・進捗UI描画間引き",
+      "incident_type": "performance_improvement",
+      "category": "batch_simulation_runner",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-14T22:38:01+09:00",
+      "updated_at": "2026-07-14T23:10:00+09:00",
+      "target_files": [
+        "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js",
+        "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json",
+        "studio_overlays/gpt_fx_lab/tests/batch_simulation_runner_v0_1.test.cjs"
+      ],
+      "objective": "一括Simulation中は見えていないチャート描画を完全停止し、進捗表示だけを低頻度更新してSimulation本体へCPU時間を優先配分する。",
+      "background": "Batch Runnerはチャート上のOverlayとして動作するが、実行中はチャートを観察しない。進捗Dialogは50足ごとおよび売買Event発生時にinnerHTML全体を再生成しており、非同期redraw経路からチャート描画が発生する余地もあった。",
+      "scope": [
+        "Batch実行中のChart Canvas・通常UI非表示",
+        "Batch実行中のredrawからchart row抽出・候補点生成・drawChartを抑止",
+        "進捗更新を250足単位へ間引き",
+        "Event発生時の進捗更新を500ms単位へ間引き",
+        "Batch完了・停止後の単発再描画"
+      ],
+      "out_of_scope": [
+        "Simulation判定ロジックの高速化",
+        "指標計算キャッシュ",
+        "Web Worker化・並列実行"
+      ],
+      "expected_outputs": [
+        "チャート非表示・描画抑止実装",
+        "Manifest設定",
+        "回帰テスト",
+        "変更履歴"
+      ],
+      "risk": "進捗表示が最大250足または500ms程度遅れて見える。ただし停止フラグは各足で確認するため停止応答性は維持する。",
+      "test_points": [
+        "Batch中はis-batch-running classが付与される",
+        "Batch中のredrawでdrawChartが呼ばれない構造である",
+        "progress_yield_every_bars=250",
+        "progress_event_min_interval_ms=500",
+        "既存回帰テストがPASSする"
+      ],
+      "user_request": "今、一括シュミレーション中に画面描画かきかえているの？？？w　基本シュミレーション中はチャートみえてないのに笑　チャート全非表示でもいいぐらい。",
+      "ai_response": "コード確認の結果、進捗ごとに通常チャート全体を直接再描画してはいなかったが、50足ごと＋Event発生時にBatch Dialog全体を再生成し、別経路redrawではチャート描画余地があったため、Batch中のチャート完全停止と進捗描画間引きを実装した。",
+      "discussion_history": [
+        {
+          "speaker": "tamasub",
+          "spoken_at": "2026-07-14T22:38:01+09:00",
+          "text": "今、一括シュミレーション中に画面描画かきかえているの？？？w　基本シュミレーション中はチャートみえてないのに笑　チャート全非表示でもいいぐらい。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision": "Batch中はチャート系UIを完全非表示とし、redraw内部でも描画計算をスキップする。",
+          "reason": "CSS非表示だけではdrawChart計算自体は止まらないため。"
+        },
+        {
+          "decision": "進捗更新は250足ごと、Event起因更新は500ms間隔とする。",
+          "reason": "リアルタイム感を残しつつDialog全再生成回数を削減するため。"
+        },
+        {
+          "decision": "停止確認は各足のまま維持する。",
+          "reason": "表示更新の間引きと停止応答性を分離するため。"
+        }
+      ],
+      "change_history": [
+        {
+          "changed_at": "2026-07-14T23:10:00+09:00",
+          "summary": "Batch中のチャート非表示・redraw抑止・進捗間引きを実装。"
+        }
+      ],
+      "verification_status": "verified_with_known_preexisting_test_artifact_gap",
+      "actual_updated_files": [
+        "studio_overlays/gpt_fx_lab/CHANGELOG.md",
+        "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js",
+        "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json",
+        "studio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4_batch_simulation_registered.json",
+        "studio_overlays/gpt_fx_lab/tests/batch_simulation_runner_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/crosshair_lock_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/entry_result_chart_url_navigation_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/expansion_lite_rule_lane_v0_18.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/hsi_line_color_rotation_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/normal_plus_expansion_lite_orchestration_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/simulation_execution_marker_pointer_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/simulation_profile_contract_v0_14.test.cjs"
+      ],
+      "completion_summary": "一括Simulation中はBatch Runnerだけを表示し、通常チャートの行抽出・候補点生成・Canvas描画を停止。周期進捗描画を50足→250足へ削減し、Event起因更新も500ms単位へ間引いた。17,000足なら周期ダイヤログ再生成は約340回→約68回（約80%削減）。",
+      "test_result": "16 tests PASS。entry_result_rows_builder_v0_1.test.cjs は、入力ZIPに studio_overlays/gpt_fx_lab/simulation/tools/build_entry_result_rows_v0_1.cjs が存在しない既存欠品のためSKIP。plugin.js node --check PASS、plugin.json JSON parse PASS。"
     }
   ],
   "decision_log_policy": "fx_chart_viewerのUI改善・Overlay拡張では、実装差分だけでなく、違和感、採用判断、捨てた案、リスク、結果をwork_items[].decision_log / discussion_history / change_historyへ残す。この判断ログは、Studio Context Engineer Wannabe / 将来の自律的AIが、なぜそのUI・DataSource・URL責務にしたのかを学ぶための判例データとして扱う。",
