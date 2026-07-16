@@ -1,0 +1,349 @@
+**********************
+PowerShell transcript start
+Start time: 20260716104524
+Username: TAMASUB_MOUSE\tsub-
+RunAs User: TAMASUB_MOUSE\tsub-
+Configuration Name: 
+Machine: TAMASUB_MOUSE (Microsoft Windows NT 10.0.26200.0)
+Host Application: C:\Program Files\WindowsApps\Microsoft.PowerShell_7.6.3.0_x64__8wekyb3d8bbwe\pwsh.dll -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command $utf8Bom = New-Object System.Text.UTF8Encoding($true)
+
+foreach ($path in @("F:\FRB\tools\zip_export\Export-FrbZip.ps1", "F:\FRB\tools\zip_export\Export-FrbZip.bat")) {
+    $content = Get-Content -LiteralPath $path -Raw -Encoding UTF8
+    [System.IO.File]::WriteAllText($path, $content, $utf8Bom)
+}
+
+Write-Host "Running DryRun to generate the log file..."
+& "F:\FRB\tools\zip_export\Export-FrbZip.ps1" -DryRun
+Write-Host ""
+Write-Host "=== tail of Export-FrbZip.log ==="
+Get-Content -LiteralPath "F:\FRB\tools\zip_export\Export-FrbZip.log" -Tail 25
+; $_ec = if ($null -ne $LASTEXITCODE) { $LASTEXITCODE } elseif ($?) { 0 } else { 1 }
+; (Get-Location).Path | Out-File -FilePath 'C:\Users\tsub-\AppData\Local\Temp\claude\claude-pwd-ps-d69b' -Encoding utf8 -NoNewline
+; if ($ExecutionContext.SessionState.LanguageMode -eq 'FullLanguage') { $host.SetShouldExit($_ec) } else { exit $_ec }
+Process ID: 23476
+PSVersion: 7.6.3
+PSEdition: Core
+GitCommitId: 7.6.3
+OS: Microsoft Windows 10.0.26200
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.4
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+
+対象フォルダー       : F:\FRB
+含めるファイル数     : 671
+含めるサイズ合計     : 321.7 MB
+除外したフォルダー数 : 12
+  - _archive
+  - .git
+  - bin
+  - tools/FRBStudio_App/_archive
+  - tools/FRBStudio_App/node_modules
+  - tools/FRBStudio_App/Program.cs/bin
+  - tools/FRBStudio_App/Program.cs/obj
+  - tools/FRBStudio_App/test_results
+  - tools/FRBStudio_App/tests_screen_state
+  - tools/FRBStudio_App/wwwroot/js/lib/mermaid
+  - tools/FRBStudio/bin
+  - tools/FRBStudio/obj
+
+DryRun のため zip は作成しない。
+**********************
+PowerShell transcript end
+End time: 20260716104642
+**********************
+**********************
+Windows PowerShell transcript start
+Start time: 20260716105211
+Username: TAMASUB_MOUSE\tsub-
+RunAs User: TAMASUB_MOUSE\tsub-
+Configuration Name: 
+Machine: TAMASUB_MOUSE (Microsoft Windows NT 10.0.26200.0)
+Host Application: C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -ExecutionPolicy Bypass -File F:\FRB\tools\zip_export\Export-FrbZip.ps1 -DryRun
+Process ID: 21180
+PSVersion: 5.1.26100.8875
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.8875
+BuildVersion: 10.0.26100.8875
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+???????       : F:\FRB
+????????     : 671
+????????     : 321.7 MB
+?????????? : 12
+  - .git
+  - _archive
+  - bin
+  - tools/FRBStudio/bin
+  - tools/FRBStudio/obj
+  - tools/FRBStudio_App/_archive
+  - tools/FRBStudio_App/node_modules
+  - tools/FRBStudio_App/Program.cs/bin
+  - tools/FRBStudio_App/Program.cs/obj
+  - tools/FRBStudio_App/test_results
+  - tools/FRBStudio_App/tests_screen_state
+  - tools/FRBStudio_App/wwwroot/js/lib/mermaid
+
+DryRun ??? zip ???????
+**********************
+Windows PowerShell transcript end
+End time: 20260716105324
+**********************
+**********************
+Windows PowerShell transcript start
+Start time: 20260716105339
+Username: TAMASUB_MOUSE\tsub-
+RunAs User: TAMASUB_MOUSE\tsub-
+Configuration Name: 
+Machine: TAMASUB_MOUSE (Microsoft Windows NT 10.0.26200.0)
+Host Application: powershell -NoProfile -ExecutionPolicy Bypass -File F:\FRB\tools\zip_export\Export-FrbZip.ps1 -DryRun
+Process ID: 16960
+PSVersion: 5.1.26100.8875
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.8875
+BuildVersion: 10.0.26100.8875
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+???????       : F:\FRB
+????????     : 671
+????????     : 321.7 MB
+?????????? : 12
+  - .git
+  - _archive
+  - bin
+  - tools/FRBStudio/bin
+  - tools/FRBStudio/obj
+  - tools/FRBStudio_App/_archive
+  - tools/FRBStudio_App/node_modules
+  - tools/FRBStudio_App/Program.cs/bin
+  - tools/FRBStudio_App/Program.cs/obj
+  - tools/FRBStudio_App/test_results
+  - tools/FRBStudio_App/tests_screen_state
+  - tools/FRBStudio_App/wwwroot/js/lib/mermaid
+
+DryRun ??? zip ???????
+**********************
+Windows PowerShell transcript end
+End time: 20260716105451
+**********************
+**********************
+Windows PowerShell transcript start
+Start time: 20260716105603
+Username: TAMASUB_MOUSE\tsub-
+RunAs User: TAMASUB_MOUSE\tsub-
+Configuration Name: 
+Machine: TAMASUB_MOUSE (Microsoft Windows NT 10.0.26200.0)
+Host Application: powershell -NoProfile -ExecutionPolicy Bypass -File F:\FRB\tools\zip_export\Export-FrbZip.ps1
+Process ID: 4672
+PSVersion: 5.1.26100.8875
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.8875
+BuildVersion: 10.0.26100.8875
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+???????       : F:\FRB
+????????     : 671
+????????     : 321.7 MB
+?????????? : 12
+  - .git
+  - _archive
+  - bin
+  - tools/FRBStudio/bin
+  - tools/FRBStudio/obj
+  - tools/FRBStudio_App/_archive
+  - tools/FRBStudio_App/node_modules
+  - tools/FRBStudio_App/Program.cs/bin
+  - tools/FRBStudio_App/Program.cs/obj
+  - tools/FRBStudio_App/test_results
+  - tools/FRBStudio_App/tests_screen_state
+  - tools/FRBStudio_App/wwwroot/js/lib/mermaid
+**********************
+Windows PowerShell transcript end
+End time: 20260716105604
+**********************
+**********************
+Windows PowerShell transcript start
+Start time: 20260716105624
+Username: TAMASUB_MOUSE\tsub-
+RunAs User: TAMASUB_MOUSE\tsub-
+Configuration Name: 
+Machine: TAMASUB_MOUSE (Microsoft Windows NT 10.0.26200.0)
+Host Application: powershell -NoProfile -ExecutionPolicy Bypass -File F:\FRB\tools\zip_export\Export-FrbZip.ps1
+Process ID: 1748
+PSVersion: 5.1.26100.8875
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.8875
+BuildVersion: 10.0.26100.8875
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+???????       : F:\FRB
+????????     : 670
+????????     : 321.7 MB
+?????????? : 12
+  - .git
+  - _archive
+  - bin
+  - tools/FRBStudio/bin
+  - tools/FRBStudio/obj
+  - tools/FRBStudio_App/_archive
+  - tools/FRBStudio_App/node_modules
+  - tools/FRBStudio_App/Program.cs/bin
+  - tools/FRBStudio_App/Program.cs/obj
+  - tools/FRBStudio_App/test_results
+  - tools/FRBStudio_App/tests_screen_state
+  - tools/FRBStudio_App/wwwroot/js/lib/mermaid
+
+zip????     : F:\FRB_backups\FRB_backup_20260716_105624.zip
+zip???       : 132.3 MB
+????        : 14.4 ?
+**********************
+Windows PowerShell transcript end
+End time: 20260716105639
+**********************
+**********************
+Windows PowerShell transcript start
+Start time: 20260716110010
+Username: TAMASUB_MOUSE\tsub-
+RunAs User: TAMASUB_MOUSE\tsub-
+Configuration Name: 
+Machine: TAMASUB_MOUSE (Microsoft Windows NT 10.0.26200.0)
+Host Application: powershell -NoProfile -ExecutionPolicy Bypass -File F:\FRB\tools\zip_export\Export-FrbZip.ps1
+Process ID: 20656
+PSVersion: 5.1.26100.8875
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.8875
+BuildVersion: 10.0.26100.8875
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+???????       : F:\FRB
+????????     : 670
+????????     : 321.7 MB
+?????????? : 12
+  - .git
+  - _archive
+  - bin
+  - tools/FRBStudio/bin
+  - tools/FRBStudio/obj
+  - tools/FRBStudio_App/_archive
+  - tools/FRBStudio_App/node_modules
+  - tools/FRBStudio_App/Program.cs/bin
+  - tools/FRBStudio_App/Program.cs/obj
+  - tools/FRBStudio_App/test_results
+  - tools/FRBStudio_App/tests_screen_state
+  - tools/FRBStudio_App/wwwroot/js/lib/mermaid
+
+zip????     : F:\FRB_backups\FRB_backup_20260716_110011.zip
+zip???       : 132.3 MB
+????        : 13.0 ?
+**********************
+Windows PowerShell transcript end
+End time: 20260716110024
+**********************
+**********************
+PowerShell transcript start
+Start time: 20260716110305
+Username: TAMASUB_MOUSE\tsub-
+RunAs User: TAMASUB_MOUSE\tsub-
+Configuration Name: 
+Machine: TAMASUB_MOUSE (Microsoft Windows NT 10.0.26200.0)
+Host Application: C:\Program Files\WindowsApps\Microsoft.PowerShell_7.6.3.0_x64__8wekyb3d8bbwe\pwsh.dll -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command & "F:\FRB\tools\zip_export\Export-FrbZip.ps1" -DryRun
+; $_ec = if ($null -ne $LASTEXITCODE) { $LASTEXITCODE } elseif ($?) { 0 } else { 1 }
+; (Get-Location).Path | Out-File -FilePath 'C:\Users\tsub-\AppData\Local\Temp\claude\claude-pwd-ps-eb4c' -Encoding utf8 -NoNewline
+; if ($ExecutionContext.SessionState.LanguageMode -eq 'FullLanguage') { $host.SetShouldExit($_ec) } else { exit $_ec }
+Process ID: 23412
+PSVersion: 7.6.3
+PSEdition: Core
+GitCommitId: 7.6.3
+OS: Microsoft Windows 10.0.26200
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.4
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+
+対象フォルダー       : F:\FRB
+含めるファイル数     : 655
+含めるサイズ合計     : 261.8 MB
+除外したフォルダー数 : 12
+  - _archive
+  - .git
+  - bin
+  - tools/FRBStudio_App/_archive
+  - tools/FRBStudio_App/node_modules
+  - tools/FRBStudio_App/Program.cs/bin
+  - tools/FRBStudio_App/Program.cs/obj
+  - tools/FRBStudio_App/test_results
+  - tools/FRBStudio_App/tests_screen_state
+  - tools/FRBStudio_App/wwwroot/js/lib/mermaid
+  - tools/FRBStudio/bin
+  - tools/FRBStudio/obj
+
+DryRun のため zip は作成しない。
+**********************
+PowerShell transcript end
+End time: 20260716110423
+**********************
+**********************
+Windows PowerShell transcript start
+Start time: 20260716110457
+Username: TAMASUB_MOUSE\tsub-
+RunAs User: TAMASUB_MOUSE\tsub-
+Configuration Name: 
+Machine: TAMASUB_MOUSE (Microsoft Windows NT 10.0.26200.0)
+Host Application: powershell -NoProfile -ExecutionPolicy Bypass -File F:\FRB\tools\zip_export\Export-FrbZip.ps1
+Process ID: 19172
+PSVersion: 5.1.26100.8875
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.8875
+BuildVersion: 10.0.26100.8875
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+???????       : F:\FRB
+????????     : 971
+????????     : 364.6 MB
+?????????? : 10
+  - .git
+  - bin
+  - tools/FRBStudio/bin
+  - tools/FRBStudio/obj
+  - tools/FRBStudio_App/node_modules
+  - tools/FRBStudio_App/Program.cs/bin
+  - tools/FRBStudio_App/Program.cs/obj
+  - tools/FRBStudio_App/test_results
+  - tools/FRBStudio_App/tests_screen_state
+  - tools/FRBStudio_App/wwwroot/js/lib/mermaid
+
+zip????     : F:\FRB_backups\FRB_backup_20260716_110457.zip
+zip???       : 111.1 MB
+????        : 14.2 ?
+**********************
+Windows PowerShell transcript end
+End time: 20260716110512
+**********************

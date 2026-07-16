@@ -1,0 +1,50 @@
+﻿# FRB zip export - 除外パターン設定
+#
+# このファイルを直接編集すれば、スクリプト本体を触らず除外対象を調整できる。
+# Export-FrbZip.ps1 -AdditionalExclude で実行時だけ追加パターンを足すことも可能。
+#
+# 書式:
+#   - # で始まる行、空行は無視する
+#   - "/" を含まないパターン → その名前のフォルダー/ファイルを、どの階層でも除外する
+#       (フォルダー名にマッチした場合、その中身ごと丸ごとスキップされる。走査自体しないので高速)
+#   - "/" を含むパターン → F:\FRB からの相対パス（"/" 区切り）に対してワイルドカードマッチ
+#       ( * は任意文字列、? は任意1文字。PowerShell -like と同じ規則 )
+
+# バージョン管理
+.git
+
+# .NET ビルド生成物
+# 注意: tools/FRBStudio/bin/ には発行済みexeがgit管理下でコミットされているが、
+#       このパターンだと名前が一致するため一緒に除外される。バックアップに含めたい場合は
+#       下の "bin" の行を消すか、"tools/FRBStudio_App/*/bin" のようなパス限定パターンに変える。
+bin
+obj
+Debug
+Release
+.vs
+
+# Node.js
+node_modules
+
+# Playwright / テストランタイム生成物
+playwright-report
+test-results
+test_results
+tests_screen_state
+tests/.runtime
+
+# PlatformIO (firmware)
+.pio
+.piolibdeps
+.clangd
+
+# 退避済みアーカイブ（サイズが大きくなりがちなため既定では除外）
+#_archive
+
+# サードパーティ製ライブラリ（再取得可能なので除外。約80MB）
+tools/FRBStudio_App/wwwroot/js/lib/mermaid
+
+
+# tools/FRBStudio_App 配下の zip ファイル（サブフォルダー含めて全部）
+tools/FRBStudio_App/*.zip
+
