@@ -60,6 +60,53 @@ function tableGridVisibleFields(gd) {
   return (gd?.fields ?? []).filter(f => f.grid?.visible !== false);
 }
 
+function renderGridAggregateRow(thead, visibleFields) {
+  if (typeof GridAggregator === 'undefined' || !GridAggregator?.build) return;
+  const aggregateResult = GridAggregator.build({
+    fields: visibleFields,
+    currentRows,
+    filteredRows,
+    getValue: getByPath
+  });
+  if (!aggregateResult.has_aggregates) return;
+
+  const row = document.createElement('tr');
+  row.className = 'grid-aggregate-row';
+  visibleFields.forEach(field => {
+    const cell = document.createElement('th');
+    cell.className = 'grid-aggregate-placeholder';
+    const aggregate = aggregateResult.byField[field.field];
+    if (aggregate) {
+      cell.className = 'grid-aggregate-cell';
+      cell.dataset.aggregateField = field.field;
+      cell.dataset.aggregateOperator = aggregate.operator;
+      cell.dataset.aggregateScope = aggregate.scope;
+      if (field.type) cell.classList.add(field.type);
+
+      const label = document.createElement('span');
+      label.className = 'grid-aggregate-label';
+      label.textContent = 'Σ';
+      label.setAttribute('aria-hidden', 'true');
+      const value = document.createElement('span');
+      value.className = 'grid-aggregate-value';
+      value.textContent = formatValue(aggregate.value, field);
+      cell.append(label, value);
+      const scopeDescription = aggregate.scope === 'all'
+        ? `全${aggregate.source_count}件の合計`
+        : `表示中${aggregate.source_count}件の合計`;
+      const ignoredDescription = aggregate.ignored_count > 0
+        ? ` / 数値対象外 ${aggregate.ignored_count}件`
+        : '';
+      cell.title = `${scopeDescription}: ${value.textContent}${ignoredDescription}`;
+      cell.setAttribute('aria-label', `${aggregate.label} ${scopeDescription} ${value.textContent}`);
+    } else {
+      cell.setAttribute('aria-hidden', 'true');
+    }
+    row.appendChild(cell);
+  });
+  thead.appendChild(row);
+}
+
 function renderCompactGrid(gd=gridDef()) {
   renderGridFrame(gd);
   setGridWrapMode('table');
@@ -69,6 +116,7 @@ function renderCompactGrid(gd=gridDef()) {
   const visibleFields = tableGridVisibleFields(gd);
   const thead = document.createElement('thead');
   const trh = document.createElement('tr');
+  trh.className = 'grid-column-header-row';
   visibleFields.forEach(f => {
     const th = document.createElement('th');
     th.classList.add('sortable');
@@ -85,6 +133,7 @@ function renderCompactGrid(gd=gridDef()) {
     trh.appendChild(th);
   });
   thead.appendChild(trh);
+  renderGridAggregateRow(thead, visibleFields);
   table.appendChild(thead);
   const tbody = document.createElement('tbody');
   filteredRows.forEach(({row, index}) => {
@@ -994,4 +1043,3 @@ function moveDetail(delta) {
 registerRenderer('gridTable', renderCompactGrid, ['table', 'compact', 'tableGrid', 'compactGrid']);
 registerRenderer('gridDocument', renderDocumentGrid, ['document', 'card', 'cards', 'documentGrid', 'cardGrid']);
 registerRenderer('grid', renderGrid);
-

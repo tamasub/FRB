@@ -11960,12 +11960,12 @@
       "incident_type": "architecture_improvement",
       "category": "grid_aggregate",
       "priority": "high",
-      "status": "未着手",
+      "status": "完了",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-07-16",
       "updated_at": "2026-07-16",
-      "target_files": "wwwroot/js/responsibilities/grid_aggregator.js, wwwroot/js/renderers/grid_detail.js, wwwroot/index.html, wwwroot/styles.css, data/json/00_rules/frb_view_def_schema_v0_9.json, data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json, studio_overlays/gpt_fx_lab/view_defs/fx_batch_entry_results_view_def_v0_1.json, tests/responsibilities/*grid*aggregate*.mjs",
+      "target_files": "wwwroot/js/responsibilities/grid_aggregator.js, wwwroot/js/renderers/grid_detail.js, wwwroot/index.html, wwwroot/styles.css, data/json/00_rules/frb_view_def_schema_v0_9.json, data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json, data/json/00_rules/md/GRID_NUMERIC_AGGREGATE_HEADER_ROW_REPORT_v0_18_20.md, studio_overlays/gpt_fx_lab/view_defs/fx_batch_entry_results_view_def_v0_1.json, tests/responsibilities/responsibility_refactor_first_step_smoke.mjs",
       "target_rule_files": "data/json/00_rules/frb_view_def_schema_v0_9.json, data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json",
       "objective": "ViewDefで数値列の集計を宣言し、Core標準機能として現在のGrid列幅に揃った集計行をヘッダー内へ表示できるようにする。FX Entry成績表の損益合計を最初の利用例としつつ、売上・工数・件数など任意Dataへ再利用できる汎用機能として実装する。",
       "background": "GPT FX LabのEntry成績一覧では、上部Batch集計にDataset全体の実現損益が表示される一方、Lane・売買・結果・終了種別などで検索した後の表示行だけを対象にした損益合計を、Grid列と位置を揃えて確認できない。数値列合計はFX固有の売買ロジックではなく、Studio CoreのGrid表示責務として汎用性が高いため、Overlay Pluginへ計算ロジックを置かずViewDef駆動のCore標準機能として扱う。",
@@ -11978,8 +11978,8 @@
       "test_points": "aggregate未指定ViewDefの表示が従来と変わらないこと。operator=sum / scope=filteredでSearchFilterとPlugin Filter適用後の行だけが合計されること。scope=allではcurrentRows全件が対象になること。複数のaggregate列を同時表示でき、非表示列を含め現在のvisibleFieldsと列位置が一致すること。null・空文字・非数値・NaN・Infinityの扱いが契約どおりであること。負数と小数を正しく合計し既存formatが適用されること。ソートでは合計が変わらず、行追加・削除・編集後は再計算されること。Document Gridへ意図せず集計行を表示しないこと。CSV出力へ集計行を混入させないこと。FX Entry成績表で全36件の表示合計と、Lane等で絞った後の合計がそれぞれ正しいこと。",
       "user_request": "本体の標準機能として、ViewDefに数値合計・金額合計をするフラグを持たせ、そのGrid列はヘッダー部分に合計を一覧の列に合わせて表示したい。FX Simulationがきっかけだが、本体側Studioくんの機能改善にすべきか相談したい。整理内容がよかったので、まずインシデントへ登録してほしい。",
       "ai_response": "数値列の表示行合計はFX固有ではなく売上・工数等にも使えるためCore標準機能にする。単純なsum:trueではなくfield.grid.aggregateのobject契約とし、operator=sum、scope=filtered/all、labelを宣言する。thead二段目に列幅の揃った集計行を表示し、純粋計算責務をGridAggregatorへ分離する。FX Overlay側はrealized_profit_jpy列のViewDef宣言だけを持ち、計算ロジックを持たない。",
-      "latest_user_comment": "いい感じの整理。ではまず、studio_work_incident_data_v1.jsonへインシデント登録をお願いしたい。",
-      "latest_ai_response": "studio_work_0137として、Core標準のGrid数値列集計、ViewDef aggregate契約、filtered/all scope、thead集計行、責務分離、安全柵、受入条件を登録する。",
+      "latest_user_comment": "ok! yorosiku",
+      "latest_ai_response": "Σ方式を反映してstudio_work_0137を完了した。全36件=3854、NORMAL 13件=5370、EXPANSION_LITE 23件=-1516、列位置差0px、sticky二段ヘッダー、Tooltip対象件数、ブラウザエラー0件を確認し、更新ファイル限定ZIPを返却する。",
       "discussion_history": [
         {
           "history_id": "disc_0137_001",
@@ -12001,6 +12001,41 @@
           "speaker": "user",
           "topic": "インシデント登録依頼",
           "message": "整理内容がいい感じなので、まずインシデントに登録してほしい。"
+        },
+        {
+          "history_id": "disc_0137_004",
+          "at": "2026-07-16",
+          "speaker": "user",
+          "topic": "ローカル正本での実装開始依頼",
+          "message": "ソース最新はローカルのF:\\FRB。incident_file=data/json/01_main/studio_work_incident_data_v1.json、phase=v0.18.20-grid-numeric-aggregate-header-rowとして、Foundation Rulesのfoundation_rule_019を参照して作業してほしい。"
+        },
+        {
+          "history_id": "disc_0137_005",
+          "at": "2026-07-16",
+          "speaker": "user",
+          "topic": "集計ラベルの存在感を下げる相談",
+          "message": "表示合計という表示が邪魔に感じる。[sum]程度か、もっと存在感を薄くして合計であることを伝える案はあるか。"
+        },
+        {
+          "history_id": "disc_0137_006",
+          "at": "2026-07-16",
+          "speaker": "assistant",
+          "topic": "Σによる省スペース表示案",
+          "message": "常時表示は『Σ -8,400』のように薄いΣと数値だけにし、ViewDef labelはTooltip / aria-labelへ残す案を提案した。filteredは『表示中N件の合計』、allは『全N件の合計』と補足する。"
+        },
+        {
+          "history_id": "disc_0137_007",
+          "at": "2026-07-16",
+          "speaker": "user",
+          "topic": "Σ方式の承認",
+          "message": "ok! yorosiku"
+        },
+        {
+          "history_id": "disc_0137_008",
+          "at": "2026-07-16",
+          "speaker": "assistant",
+          "topic": "実装・検証・返却完了",
+          "message": "ViewDef aggregate、GridAggregator、thead二段集計行、Σ表示、Tooltip / aria-label、Schema・生成ルール・FX ViewDef・責務Smokeを反映した。Studio実画面で全36件=3854、NORMAL 13件=5370、EXPANSION_LITE 23件=-1516、列位置差0px、コンソールエラー0件を確認し、更新ファイル限定ZIPを作成した。"
         }
       ],
       "decision_log": [
@@ -12033,6 +12068,18 @@
           "at": "2026-07-16",
           "decision": "aggregateは表示時の派生値とし、Data JSONへ保存せずCSVのData行にも混ぜない。",
           "reason": "集計値を正本Dataと混同せず、検索条件に応じて再計算されるUI状態として扱うため。"
+        },
+        {
+          "decision_id": "dec_0137_006",
+          "at": "2026-07-16",
+          "decision": "今回の実装はローカルF:\\FRBを最新正本とし、GitHub rawはFoundation Rule 019の契約参照に限定する。",
+          "reason": "tamasubがローカルソースを最新正本として明示したため。"
+        },
+        {
+          "decision_id": "dec_0137_007",
+          "at": "2026-07-16",
+          "decision": "集計行の視覚表示は薄いΣと数値だけにし、label・scope・対象件数はTooltip / aria-labelへ残す。",
+          "reason": "狭い数値列で『表示合計』が値を圧迫せず、合計であることと対象範囲の両方を伝えるため。tamasub確認済み。"
         }
       ],
       "change_history": [
@@ -12043,10 +12090,47 @@
           "before": "Studio CoreにはViewDef宣言による数値列集計と、Grid列位置へ揃えた表示行合計の標準機能がなかった。FX Entry成績表は全件Batch Summaryのみを持ち、検索後の表示行損益を即時確認できなかった。",
           "after": "studio_work_0137として、ViewDef aggregate契約、filtered/all scope、thead集計行、GridAggregator責務、FX Entry成績ViewDef利用例、Data/CSV非混入ガードを作業項目化した。",
           "reason": "FX固有実装へ閉じず、人間フレンドリーな汎用Grid能力として再利用できる形で実装するため。"
+        },
+        {
+          "history_id": "chg_0137_002",
+          "at": "2026-07-16",
+          "change_type": "implementation",
+          "before": "通常Gridは数値Fieldの表示時集計を持たなかった。",
+          "after": "field.grid.aggregateのsum / filtered / allを解決する純粋GridAggregatorと、visibleFieldsに揃えたthead二段目の集計Rendererを追加した。",
+          "reason": "検索後の表示行合計をCore標準機能として任意の数値Fieldへ再利用するため。"
+        },
+        {
+          "history_id": "chg_0137_003",
+          "at": "2026-07-16",
+          "change_type": "contract_and_usage",
+          "before": "ViewDef Schema・生成ルールとFX Entry成績ViewDefにaggregate契約がなかった。",
+          "after": "Schemaと生成ルールへaggregate契約を追加し、realized_profit_jpy列へfiltered sumを宣言した。Core / FX文脈サマリーと実装レポートも更新した。",
+          "reason": "Runtime実装だけでなく宣言契約・AI生成・次回復帰文脈を一致させるため。"
+        },
+        {
+          "history_id": "chg_0137_004",
+          "at": "2026-07-16",
+          "change_type": "visual_refinement",
+          "before": "集計行へ『表示合計』と数値を常時表示していた。",
+          "after": "常時表示を薄いΣと数値だけにし、Tooltipへ表示中N件または全N件の対象範囲、aria-labelへ意味labelを残した。",
+          "reason": "tamasubの画面確認でラベルの存在感が強いと分かり、Σ方式が承認されたため。"
+        },
+        {
+          "history_id": "chg_0137_005",
+          "at": "2026-07-16",
+          "change_type": "verification",
+          "before": "数値集計とGrid位置・検索連動は未確認だった。",
+          "after": "責務Smoke、Node構文・JSON解析、Studio実画面の全36件 / NORMAL / EXPANSION_LITE集計、列位置、sticky、Tooltip、console errorを確認した。",
+          "reason": "filtered scopeと表示品質を実データで保証するため。"
         }
       ],
-      "verification_status": "未確認",
-      "context_def_status": "draft",
+      "verification_status": "確認済み",
+      "fixed_in_version": "v0.18.20-grid-numeric-aggregate-header-row",
+      "actual_updated_files": "data/json/00_rules/frb_view_def_schema_v0_9.json\ndata/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json\ndata/json/00_rules/md/GRID_NUMERIC_AGGREGATE_HEADER_ROW_REPORT_v0_18_20.md\ndata/json/01_main/studio_work_incident_data_v1.json\nstudio_overlays/gpt_fx_lab/GPT_FX_Lab_Context_Summary.md\nstudio_overlays/gpt_fx_lab/view_defs/fx_batch_entry_results_view_def_v0_1.json\ntests/responsibilities/responsibility_refactor_first_step_smoke.mjs\nwwwroot/Studio_Core_Context_Summary.md\nwwwroot/index.html\nwwwroot/js/renderers/grid_detail.js\nwwwroot/js/responsibilities/grid_aggregator.js\nwwwroot/styles.css",
+      "completion_summary": "ViewDef駆動の数値sum集計をCore標準Grid機能として実装した。filtered/all scope、元値の有限数値判定、thead列位置一致、Σ省スペース表示、Tooltip / aria-label、FX利用例、Schema・生成ルール・文脈資料・テストを一体で更新した。Data保存・CSV行・Document Cardには混入しない。",
+      "test_result": "node --check 3件OK。responsibility_refactor_first_step_smoke: OK。Node標準JSON.parse 4件OK。Studio実画面: 全36件=3854、NORMAL 13件=5370、EXPANSION_LITE 23件=-1516、列X/幅差0px、header top=0px / aggregate top=30px、Σ opacity=0.68、Tooltip件数一致、console error=0。既存responsibility_expected_testsは6件中5件PASS、未変更の既存期待値title zzzと実装titleの不一致1件を確認（今回改修外）。",
+      "return_zip": "F:\\FRB\\FRBStudio_App_v0.18.20-grid-numeric-aggregate-header-row_20260716_codex_delivery.zip",
+      "context_def_status": "done",
       "context_def_updated_at": "2026-07-16",
       "context_def_draft": "# ContextDef素案: v0.18.20-grid-numeric-aggregate-header-row\n\n## 読む目的\nViewDefで宣言された数値列集計をCore標準Grid機能として実装し、検索後の表示行合計を列位置へ揃えて表示する。\n\n## 作業前に読む入口\n- wwwroot/Studio_Core_Context_Summary.mdでCoreのData/ViewDef/Renderer/Responsibility境界を確認する。\n- gpt_fx_lab/GPT_FX_Lab_Context_Summary.mdでFX側は利用例だけを持ち、計算ロジックをCoreへ置く境界を確認する。\n- この作業項目のobjective / scope / out_of_scope / risk / test_pointsを読む。\n- ViewDef Schemaと生成ルールのField grid契約を確認する。\n\n## AI作業メモ\n- Runtimeへrealized_profit_jpy等の固定Field名を追加しない。\n- filteredRowsとcurrentRowsの意味を混同しない。\n- visibleFieldsと同じ列構成でthead集計行を描画する。\n- 計算責務はGridAggregator等の純粋部品へ分離し、RendererはDOM描画だけを担当する。\n- aggregate結果をData保存・CSV Data行へ混ぜない。\n\n## 対象範囲メモ\nMVPはoperator=sum。scope=filteredを標準とし、allも契約候補とする。FX Entry成績表のrealized_profit_jpyを最初の適用例にする。\n\n## 注意すべきリスク\n上部Batch Summaryは全件、Grid表示合計は検索後という意味差を明示する。format文字列を加算せず元値を使う。非表示列と横スクロールでも列位置を崩さない。\n\n## 確認観点メモ\n未指定ViewDefの無回帰、filtered/all、複数列、負数・小数・空値・不正値、検索・Plugin Filter、追加削除編集、Document Grid、CSV非混入を確認する。",
       "context_refs": [
@@ -12600,11 +12684,11 @@
       "body": "StudioLog.ps1の -f 演算子周辺で Format-StudioDateTime 呼び出しを括弧化し、TestRunner.ps1経由のParserErrorを防ぐ。画面定義JSON/対象JSONコンボには英数字入力向けのinputmode等を追加した。"
     }
   ],
-  "work_revision": "v0_144_grid_numeric_aggregate_incident_added",
+  "work_revision": "v0_145_grid_numeric_aggregate_header_row_done",
   "latest_planning_note": {
     "at": "2026-07-16",
     "phase": "v0.18.20-grid-numeric-aggregate-header-row",
-    "summary": "ViewDefのfield.grid.aggregate宣言により、検索後の表示行を対象とした数値合計をGridのthead二段目へ列位置を揃えて表示するCore標準機能をstudio_work_0137として登録した。"
+    "summary": "studio_work_0137を完了。ViewDefのfield.grid.aggregate宣言、純粋GridAggregator、thead二段集計行、Σによる省スペース表示、FX Entry成績表への適用、Schema・生成ルール・責務Smoke・Studio実画面検証を実施した。"
   },
   "view_def_candidates": [
     {

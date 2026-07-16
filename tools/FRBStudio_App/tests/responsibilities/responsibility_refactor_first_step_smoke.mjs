@@ -14,13 +14,14 @@ vm.createContext(context);
 for (const rel of [
   'wwwroot/js/responsibilities/grid_column_builder.js',
   'wwwroot/js/responsibilities/search_filter.js',
-  'wwwroot/js/responsibilities/csv_exporter.js'
+  'wwwroot/js/responsibilities/csv_exporter.js',
+  'wwwroot/js/responsibilities/grid_aggregator.js'
 ]) {
   const code = fs.readFileSync(path.join(root, rel), 'utf8');
   vm.runInContext(code, context, { filename: rel });
 }
 
-const { GridColumnBuilder, SearchFilter, CsvExporter } = context;
+const { GridColumnBuilder, SearchFilter, CsvExporter, GridAggregator } = context;
 
 const fields = [
   { field: 'id', caption: 'ID', type: 'text', grid: { visible: false } },
@@ -71,5 +72,36 @@ const csv = CsvExporter.export({
   valueForField: ({ row, field }) => row[field.field]
 });
 assert.equal(csv, 'id,title,score\r\na,"A, quote ""here""",3\r\n', 'csv_export should escape commas and quotes');
+
+const aggregateFields = [
+  { field: 'profit', caption: '損益', type: 'number', grid: { aggregate: { operator: 'sum', scope: 'filtered', label: '表示合計' } } },
+  { field: 'units', caption: '数量', type: 'number', grid: { aggregate: { operator: 'sum', scope: 'all', label: '全件合計' } } },
+  { field: 'memo', caption: 'メモ', type: 'text', grid: { aggregate: { operator: 'sum' } } }
+];
+const aggregateRows = [
+  { profit: 1680, units: 10, memo: 'a' },
+  { profit: '-1,534', units: 20, memo: 'b' },
+  { profit: '', units: 30, memo: 'c' },
+  { profit: Number.POSITIVE_INFINITY, units: 40, memo: 'd' }
+];
+const aggregateResult = GridAggregator.build({
+  fields: aggregateFields,
+  currentRows: aggregateRows,
+  filteredRows: [
+    { row: aggregateRows[0], index: 0 },
+    { row: aggregateRows[1], index: 1 },
+    { row: aggregateRows[2], index: 2 },
+    { row: aggregateRows[3], index: 3 }
+  ]
+});
+assert.equal(aggregateResult.has_aggregates, true, 'grid_aggregate should activate only for declared number fields');
+assert.deepEqual(Array.from(aggregateResult.items.map(item => item.field)), ['profit', 'units'], 'grid_aggregate should ignore non-number fields');
+assert.equal(aggregateResult.byField.profit.value, 146, 'filtered sum should include negative and comma-formatted numeric values');
+assert.equal(aggregateResult.byField.profit.valid_count, 2, 'filtered sum should count finite numeric values');
+assert.equal(aggregateResult.byField.profit.ignored_count, 2, 'filtered sum should ignore empty and non-finite values');
+assert.equal(aggregateResult.byField.units.value, 100, 'all scope should aggregate currentRows');
+assert.equal(GridAggregator.toFiniteNumber('1,234.5'), 1234.5, 'numeric strings with grouping commas should be accepted');
+assert.equal(GridAggregator.toFiniteNumber('not-number'), null, 'invalid numeric strings should be ignored');
+assert.equal(GridAggregator.build({ fields, currentRows: rows, filteredRows: [] }).has_aggregates, false, 'ViewDefs without aggregate declarations should remain unchanged');
 
 console.log('responsibility_refactor_first_step_smoke: OK');

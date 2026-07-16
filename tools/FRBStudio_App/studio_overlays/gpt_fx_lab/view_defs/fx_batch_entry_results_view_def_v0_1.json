@@ -445,7 +445,12 @@
               "grid": {
                 "visible": true,
                 "width": 105,
-                "format": "#,##0"
+                "format": "#,##0",
+                "aggregate": {
+                  "operator": "sum",
+                  "scope": "filtered",
+                  "label": "表示合計"
+                }
               },
               "edit": {
                 "visible": true,

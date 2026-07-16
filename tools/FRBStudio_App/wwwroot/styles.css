@@ -387,6 +387,39 @@ th {
   font-weight: 800;
   font-size: 12px;
 }
+.grid-column-header-row th {
+  height: 30px;
+  z-index: 3;
+}
+.grid-aggregate-row th {
+  top: 30px;
+  height: 28px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  background: linear-gradient(180deg, #eef6ff, #dcecff);
+  border-bottom-color: #b8d2ee;
+  color: #173a63;
+  z-index: 2;
+}
+.grid-aggregate-row .grid-aggregate-placeholder {
+  color: transparent;
+}
+.grid-aggregate-cell {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.grid-aggregate-label {
+  margin-right: 4px;
+  color: #7890a9;
+  font-size: 10px;
+  font-weight: 600;
+  opacity: 0.68;
+}
+.grid-aggregate-value {
+  color: #0b3768;
+  font-size: 12px;
+  font-weight: 950;
+}
 tbody tr { cursor: default; }
 tbody tr:hover td { background: var(--row-hover); }
 tr:nth-child(even) td { background: var(--row-alt); }

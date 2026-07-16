@@ -13,7 +13,7 @@
   "status": "converted_draft",
   "introduced_in": "v0.4-r001",
   "generated_at": "2026-06-26T00:00:00+09:00",
-  "rule_count": 84,
+  "rule_count": 85,
   "approved_count": 83,
   "approval_policy": "各ルールは人間が内容確認し、verification_status を確認済みにしたうえで approval_decision を承認する。AIはレビューコメント案を出せるが、承認判断は人間が行う。",
   "preamble": "対象: `FRBStudio_App` / No-Code JSON Studio v0.6+ 系  \n対応Schema: `frb_view_def_schema_v0_8_action_registry_toolbar.json`\n\nこの文書は、AIに **Data JSON から ViewDef JSON を作成させる** ときの作成ルールである。\n\nStudioくんにおける ViewDef は、単なる画面定義ではない。\n\n```text\nData JSON + ViewDef JSON + Runtime + Action = Experience\n```\n\nViewDef は、データの見え方・編集の仕方・Markdown化・AIへの渡し方・仮想データの作り方・主役Actionを宣言する **体験設計書** である。\n\n---",
@@ -50,8 +50,8 @@
       "ceremony_phrase": "このルールをレビューし、採用可否を判断する。",
       "user_comment": "",
       "ai_response": "",
-      "user_reply": "",
-      "ai_followup_response": "",
+        "user_reply": "ok! yorosiku",
+        "ai_followup_response": "表示行では『表示合計』を常時出さず、薄いΣと数値だけを表示する。labelはTooltip / aria-labelへ残し、filteredは『表示中N件の合計』、allは『全N件の合計』と対象範囲を補足する。",
       "approved_by": "",
       "approved_at": "",
       "approval_stamp": "",
@@ -601,6 +601,66 @@
       "introduced_in": "v0.4-r001",
       "change_history": [],
       "decision_log": []
+    },
+    {
+      "no": 85,
+      "rule_id": "viewdef_rule_05_04",
+      "section_no": "5.4",
+      "source_heading": "5.4 数値列aggregate / Grid表示行合計",
+      "source_heading_level": 3,
+      "parent_rule_id": "viewdef_rule_05",
+      "category": "Field",
+      "title": "数値列aggregate / Grid表示行合計",
+      "priority": "high",
+      "review_status": "draft",
+      "verification_status": "未確認",
+      "approval_decision": "未承認",
+      "summary": "数値列のGrid集計はfield.grid.aggregateで宣言し、既定では検索・Plugin Filter適用後の表示行を対象にする。",
+      "body": "数値FieldのGridヘッダー内へ合計を表示したい場合は、`field.grid.aggregate`を宣言する。MVPのoperatorは`sum`とする。\n\n```json\n{\n  \"field\": \"amount\",\n  \"caption\": \"金額\",\n  \"type\": \"number\",\n  \"grid\": {\n    \"visible\": true,\n    \"format\": \"#,##0\",\n    \"aggregate\": {\n      \"operator\": \"sum\",\n      \"scope\": \"filtered\",\n      \"label\": \"表示合計\"\n    }\n  }\n}\n```\n\n`scope: filtered`はCore SearchFilterとPlugin Filter適用後の表示行を対象とする。`scope: all`はMain Gridの全行を対象とする。scope省略時は`filtered`とする。\n\nRuntimeはField名を固定せず、aggregate宣言された`type: number`のFieldだけを集計する。集計値は表示時の派生値であり、Data JSONへ保存せず、CSVのData行へ混入させない。表示にはFieldの既存formatを使用する。非数値・空値・非有限値は加算対象外とする。\n\nTable/Compact Gridではthead内の集計行へ表示し、visibleFieldsと同じ列構成で位置を揃える。Card(Document) GridへはMVPで適用しない。",
+      "ceremony_phrase": "数値列aggregate / Grid表示行合計契約をレビューし、採用可否を判断する。",
+      "user_comment": "ViewDefに数値合計・金額合計を宣言し、Grid列のヘッダー部分へ列位置を揃えて合計を表示したい。FXがきっかけだがCore標準機能にしたい。",
+      "ai_response": "field.grid.aggregate objectとしてoperator / scope / labelを宣言し、Coreの純粋集計責務とTable Grid Rendererを分離する案で実装する。",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "",
+      "approved_at": "",
+      "approval_stamp": "",
+      "notes": "studio_work_0137 / v0.18.20-grid-numeric-aggregate-header-rowで追加。人間によるルール承認は未実施。",
+      "source_line_start": 0,
+      "source_md_file": "studio_work_incident_data_v1.json#studio_work_0137",
+      "introduced_in": "v0.18.20-grid-numeric-aggregate-header-row",
+      "change_history": [
+          {
+            "history_id": "chg_viewdef_rule_05_04_v01820_001",
+            "at": "2026-07-16",
+            "change_type": "rule_added",
+            "before": "ViewDefに数値列の表示時集計を宣言する標準契約がなかった。",
+            "after": "field.grid.aggregateのoperator=sum、scope=filtered/all、label、Data/CSV非混入、Table Grid表示契約を追加した。",
+            "reason": "FX損益だけへ閉じず、売上・工数など任意Dataで再利用できるCore標準機能にするため。"
+          },
+          {
+            "history_id": "chg_viewdef_rule_05_04_v01820_002",
+            "at": "2026-07-16",
+            "change_type": "visual_refinement",
+            "before": "集計行へlabelの『表示合計』と数値を常時表示していた。",
+            "after": "視覚表示は薄いΣと数値だけにし、label・scope・対象件数はTooltip / aria-labelへ残した。",
+            "reason": "合計であることを伝えながら、狭い数値列で表示ラベルが値を圧迫しないようにするため。"
+          }
+      ],
+      "decision_log": [
+          {
+            "decision_id": "dec_viewdef_rule_05_04_v01820_001",
+            "at": "2026-07-16",
+            "decision": "aggregateの既定scopeはfilteredとする。",
+            "reason": "画面に表示されている行と合計対象を一致させ、全件Summaryとの誤認を防ぐため。"
+          },
+          {
+            "decision_id": "dec_viewdef_rule_05_04_v01820_002",
+            "at": "2026-07-16",
+            "decision": "集計行の常時表示は薄いΣと数値に限定し、意味ラベルと対象件数はTooltip / aria-labelで補足する。",
+            "reason": "tamasub確認により『表示合計』の常時表示は存在感が強いと判断し、Σ方式が承認されたため。"
+          }
+      ]
     },
     {
       "no": 20,
@@ -2743,8 +2803,8 @@
       "decision_log": []
     }
   ],
-  "updated_at": "2026-07-04",
-  "review_revision": "v0.18.6-markdown-export-mode-exportdef-rules",
+  "updated_at": "2026-07-16",
+  "review_revision": "v0.18.20-grid-numeric-aggregate-header-row",
   "review_notes": [
     {
       "note_id": "note_v012_scope_correction",
@@ -2797,7 +2857,13 @@
       "title": "v0.17.11 現在Dataタイトル表示契約 追加",
       "body": "Dataパスを現在地の住所、Dataタイトルを人間向けの看板として分離するため、ViewDefトップレベルにcurrentDataDisplay契約を追加した。titlePathは正式指定、$.titleは互換fallbackとして扱う。"
     },
-    "v0.18.6でMarkdown Export Mode / ExportDef契約を追加。full_dump / review_report / document_rebuild の責務分離、rawField非推奨、モード選択UIをViewDef生成ルールへ反映。"
+    "v0.18.6でMarkdown Export Mode / ExportDef契約を追加。full_dump / review_report / document_rebuild の責務分離、rawField非推奨、モード選択UIをViewDef生成ルールへ反映。",
+    {
+      "note_id": "note_v01820_grid_numeric_aggregate",
+      "at": "2026-07-16",
+      "title": "v0.18.20 数値列aggregate / Grid表示行合計契約を追加",
+      "body": "type=numberのFieldへgrid.aggregateを宣言し、operator=sum、scope=filtered/all、label、thead集計行、Data/CSV非混入をCore標準契約として追加した。ルール自体の人間承認は未実施。"
+    }
   ],
   "view_def_candidates": [
     {

@@ -570,6 +570,14 @@ ViewDef:
 - 実現損益
 - 判断理由要約
 
+`realized_profit_jpy`列は、Core標準の`field.grid.aggregate`を利用して`operator: sum / scope: filtered / label: 表示合計`を宣言する。FX Overlayは宣言だけを持ち、合計計算ロジックは持たない。視覚表示は薄い`Σ`と数値だけに抑え、Tooltipで表示中の対象件数を補足する。上部Batch集計はDataset全件、Gridの表示合計は検索後の表示行という意味の違いに注意する。
+
+v0.18.20の実データ確認値（`batch_20260714_224839_entry_results.json`）:
+
+- 全36件: `3854`
+- `NORMAL` 13件: `5370`
+- `EXPANSION_LITE` 23件: `-1516`
+
 選択行から`OpenFxEntryChartUrl`を実行すると、元Batch JSONのEntry/Add-on/Close Eventを読み、該当時刻を中央表示し、Entry価格へ固定Crosshairを置く。
 
 ---
@@ -718,4 +726,3 @@ CoreへFX固有ロジックを混ぜない。
 7. 実装後は対象テスト、Version、manifest、Reason Catalog、CHANGELOGの同期を確認する。
 
 この文書は復帰用の地図であり、詳細仕様そのものではない。相違があれば、現行コード、Run Profile、manifest、CHANGELOG、テストの順で確認し、意図が不明な売買ルールはtamasubへ確認してから変更する。
-

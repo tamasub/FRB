@@ -251,6 +251,29 @@ CoreからPlugin内部のドメインロジックへ依存しない。
 - CSV出力
 - 行コンテキストメニュー
 
+#### Grid数値列集計（v0.18.20）
+
+通常グリッドは、数値Fieldの`field.grid.aggregate`宣言を解決し、列ヘッダー直下の`thead`二段目へ集計値を表示できる。
+
+```json
+"grid": {
+  "aggregate": {
+    "operator": "sum",
+    "scope": "filtered",
+    "label": "表示合計"
+  }
+}
+```
+
+- `operator`: 現在は`sum`のみ。
+- `scope`: `filtered`は検索・Plugin Filter後の表示行、`all`は`currentRows`全件。省略時は`filtered`。
+- 視覚表示は薄い`Σ`と数値だけに抑え、`label`と対象件数はTooltip / aria-labelで補足する。
+- 対象は`type: "number"`のFieldだけで、固定Field名には依存しない。
+- 純粋計算は`js/responsibilities/grid_aggregator.js`、DOM統合は`js/renderers/grid_detail.js`が担当する。
+- 集計行は`visibleFields`と同じ列数で構築するため、非表示列・列幅・横スクロール時も列位置が揃う。
+- 集計値は表示時の派生値であり、Data JSONへ保存せず、CSVのData行にも混ぜない。
+- Document Card / Document GridにはMVPで集計行を出さない。
+
 便利機能として、`no`や`message_id / id / key / code / name`を推測する箇所がある。完全宣言型ではないため、汎用化改修時の確認ポイントになる。
 
 ### 6.2 Field Control
@@ -508,4 +531,3 @@ node tests/responsibilities/responsibility_refactor_first_step_smoke.mjs
 6. `git status`と対象ファイルの追跡状態を確認してから編集する。
 
 この文書は詳細仕様の正本ではなく、迷子にならないための地図である。実際の挙動については現行ソース、ViewDef、manifest、ルールJSON、テストを優先する。
-
