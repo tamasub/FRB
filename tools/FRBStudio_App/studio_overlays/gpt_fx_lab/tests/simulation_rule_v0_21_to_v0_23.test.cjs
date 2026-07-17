@@ -18,7 +18,7 @@ const source = fs.readFileSync(pluginPath,'utf8');
 const profile = JSON.parse(fs.readFileSync(profilePath,'utf8'));
 const combined = JSON.parse(fs.readFileSync(combinedPath,'utf8'));
 const hook = `
-  window.__fxRuleV023Test = {
+  window.__fxRuleV024Test = {
     m5ExecutionEntryGuardDecision,
     m5ExecutionNormalStopPlan,
     m5ExecutionExpireNormalOpportunitiesPriorToDowBreak,
@@ -30,14 +30,14 @@ const closeIndex = source.lastIndexOf('})();');
 const instrumented = source.slice(0, closeIndex) + hook + source.slice(closeIndex);
 const context = {window:{},console,setTimeout,clearTimeout,URL,structuredClone,Intl,Date,Math,JSON,Map,Set,Promise};
 vm.runInNewContext(instrumented, context, {filename:pluginPath});
-const api = context.window.__fxRuleV023Test;
+const api = context.window.__fxRuleV024Test;
 const policy = profile.m5_execution_policy;
 
-assert.equal(profile.m5_execution_policy.normal_entry_policy.rule_version,'v0.23');
+assert.equal(profile.m5_execution_policy.normal_entry_policy.rule_version,'v0.24');
 assert.equal(profile.m5_execution_policy.entry_guard_policy.normal_h4_same_direction_r4.block_at_or_above_raw,233);
 assert.equal(profile.m5_execution_policy.entry_guard_policy.day_up_h4_down_r5_short.block_at_or_above_raw,377);
 assert.equal(profile.m5_execution_policy.normal_close_miss_policy.max_loss_to_reward_ratio,1.0);
-assert.equal(combined.m5_execution_policy.normal_entry_policy.rule_version,'v0.23');
+assert.equal(combined.m5_execution_policy.normal_entry_policy.rule_version,'v0.24');
 
 const normalR4 = api.m5ExecutionEntryGuardDecision('NORMAL','LONG',{
   timeframes:{DAY:{trend_state:'UP'},H4:{cycle_state:{direction:'UP_CYCLE',origin:{point_id:'h4low',pivot_time:'t0',pivot_price:100}}}}
@@ -57,13 +57,16 @@ assert.equal(dayUpR5Short.primary_reason_code,'DAY_UP_H4_DOWN_R5_SHORT_ENTRY_BLO
 
 for (const transientState of ['REVERSAL_WATCH','NO_TREND','UNDETERMINED']) {
   const transientPortfolio={normal_entry_opportunities:[{
-    opportunity_id:`opp_${transientState}`,status:'WAITING_R2',direction:'LONG',dow_confirmation_id:'conf1',confirmed_at_ms:1000
-  }]};
+    opportunity_id:`opp_${transientState}`,status:'WAITING_R2',direction:'LONG',dow_confirmation_id:'conf1',confirmed_at_ms:1000,anchor_id:'a1',anchor_price:100
+  }],normal_anchor_lifecycle:{status:'WAITING_R2',active_anchor_id:'a1',active_confirmation_id:'conf1'}};
   const transientExpired=api.m5ExecutionExpireNormalOpportunitiesPriorToDowBreak(
-    transientPortfolio,{m5_trend:transientState},{confirmation_id:'conf1',direction:'UP',confirmed_at_ms:1000},policy,2000,'2026-01-01 00:00'
+    transientPortfolio,{m5_trend:transientState},null,policy,2000,'2026-01-01 00:00',{
+      trend_detail:{normal_dow_structure_break:{break_at:'2026-01-01 00:00',break_at_ms:1900,break_event_id:`break_${transientState}`,break_state:transientState,previous_direction:'UP'}}
+    }
   );
-  assert.equal(transientExpired.length,0,`${transientState}だけでWAITING_R2を失効してはいけません。`);
-  assert.equal(transientPortfolio.normal_entry_opportunities[0].status,'WAITING_R2');
+  assert.equal(transientExpired.length,1,`${transientState}への確定遷移でWAITING_R2を失効する必要があります。`);
+  assert.equal(transientPortfolio.normal_entry_opportunities[0].status,'EXPIRED');
+  assert.equal(transientPortfolio.normal_entry_opportunities[0].r2_history_retired_before_entry,true);
 }
 
 const portfolio={normal_entry_opportunities:[{
@@ -111,4 +114,4 @@ assert.equal(closeWait.action,'WAIT','Entry後のDow崩壊だけで自動Close�
 
 const validation=api.validateSimulationRunDraft(profile);
 assert.equal(validation.valid,true,validation.errors.join('\n'));
-console.log('PASS simulation_rule_v0_21_to_v0_23');
+console.log('PASS simulation_rule_v0_21_to_v0_24');

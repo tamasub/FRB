@@ -18,7 +18,7 @@ assert.match(source, /breakout_threshold_price: numberOrNull\(source\.breakout_t
 assert.match(source, /ENTRY_AT_DOW_BREAKOUT_THRESHOLD_AND_R2/,
   'Dow突破閾値Entryのreason codeがありません。');
 const p = profile.m5_execution_policy.normal_entry_policy;
-assert.equal(p.rule_version,'v0.23');
+assert.equal(p.rule_version,'v0.24');
 assert.equal(p.r2_ready_at_confirmation,'IMMEDIATE_ENTRY_AT_FIRST_PRICE_SATISFYING_DOW_BREAKOUT_AND_R2');
 assert.equal(p.entry_execution_price_policy,'DOW_BREAKOUT_THRESHOLD_OR_R2_WHICHEVER_IS_FARTHER_FROM_ANCHOR_ELSE_FIRST_AVAILABLE_GAP_PRICE');
 console.log('PASS dow_breakout_threshold_entry_price_v0_1');

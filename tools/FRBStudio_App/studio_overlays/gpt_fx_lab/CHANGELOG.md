@@ -1,3 +1,75 @@
+## v0.9.1.13 - 2026-07-16
+
+- NORMAL Entry Gate未成立時に、失敗Gate一覧と各Gateのtrue/false判定をEntry Opportunityへ保存。
+- R2初回タッチとDow確定時R2到達済みの両Triggerを区別して記録。
+- Batch Case結果へ `normal_entry_gate_failures` と集計を追加。
+- Batch全体へ `normal_entry_gate_failures.rows / summary` を追加。
+- `batch_*_normal_entry_gate_failures.json` をBatch結果と同時に自動保存。
+- Batch画面へ「Gate失敗JSON」「Gate失敗CSV」ボタンを追加。
+- 1 Opportunityで複数Gateが失敗した場合、Opportunity件数とGate違反延べ件数を分離集計。
+- Simulation Ruleはv0.24のまま。App Versionだけをv0.9.1.13へ更新。
+
+## v0.9.1.12 - 2026-07-16
+
+### Batch Caseが現在チャート環境を継承してEntry 0件になる回帰を修正
+
+- 添付された最新資材はv0.9.1.11を正しく含み、Focused/選択ステップテストではEntryが復帰していた。
+- 一方、実際のBatch Caseは`Object.create(state)`で現在チャートの`windowStart / windowSize / UpperMap読込状態`を継承していた。
+  - Swing Point分析の`period.from`がBatch対象期間ではなく現在チャート表示窓に依存した。
+  - UpperMap DAYが画面側で未読込の場合、Snapshot評価が失敗しても進捗画面はEntry 0件だけを表示していた。
+- Batch対象期間からCase専用の分析Windowを生成し、`windowStart / windowSize`を明示固定。
+- Profileの`dataset.upper_map.path`からUpperMap DAYをCase単位で読込し、画面側の非同期状態から分離。
+- Batch進捗へ`評価失敗 N件`を表示し、0件と評価エラーを区別可能にした。
+- Simulation Ruleはv0.24のまま。App Versionだけをv0.9.1.12へ更新。
+
+## v0.9.1.11 - 2026-07-16
+
+### Full Dataset BatchでEntryが0件になる継続Snapshot回帰を修正
+
+- v0.9.1.10適用後、Full Dataset Batchを先頭から実行すると、5,500 / 50,314足まで進んでもNORMAL / EXPANSION_LITEのEntry・Add-onが0件になる回帰を確認。
+- 原因は、Dow Trend Snapshotでは`normal_dow_structure_break`を生成していた一方、Entry Evaluatorへ渡すTimeframe Stateの`trend_detail`へ投影していなかったこと。
+  - Batch継続Snapshotでは、最初のDown Confirmationに属する`WAITING_R2`がDow崩壊を認識できず残留した。
+  - v0.9.1.10の「Active ConfirmationをDow崩壊まで固定」が、崩壊事実欠落により古いConfirmationを固定し続ける結果になった。
+- `buildTimeframeStateSnapshot()`で次を明示投影するよう修正。
+  - `trend_detail.normal_dow_structure_break`
+  - `trend_detail.directional_regime_reset`
+- Full Dataset開始フローを模したBatch continuation回帰テストを追加。
+  - 2025-10-28 14:30: 最初のDown Confirmation / WAITING_R2を生成。
+  - 2025-10-28 17:50: REVERSAL_WATCHで旧Opportunityを`EXPIRED`、Anchor Lifecycleを`AWAITING_NEW_DOW_CONFIRMATION`へ遷移。
+  - 2025-10-29 21:04: NORMAL Entry復帰。
+  - 2025-10-29 21:39: EXPANSION_LITE Entry復帰。
+  - 2025-10-29 21:44: EXPANSION_LITE Add-on復帰。
+- Simulation Ruleはv0.24のまま。App Versionだけをv0.9.1.11へ更新。
+
+## v0.9.1.10 - 2026-07-16
+
+### WAITING_R2固定起点・Dow崩壊後Confirmation再検索の回帰修正
+
+- `WAITING_R2`中のNORMAL Entry Opportunityは、最初に有効となったDow Confirmationとprevious Swing由来のNormal HSI Anchorを、Dow崩壊・Entry・Missまで固定する。
+  - 後続の同方向Dow Confirmationは観測するが、進行中OpportunityのAnchor・R2・Targetを差し替えない。
+  - Entry実行時も最新Contextではなく、固定OpportunityのConfirmation・Anchor・方向をTradeへ引き継ぐ。
+- Dow崩壊Barrier後のConfirmation解決を修正。
+  - Barrierより前の古いConfirmationをnullへ落とすだけで終了せず、Barrier以後に成立した最新の有効Dow Confirmationを再検索する。
+  - 共有M5 Dow Confirmationが復元されるため、NORMALだけでなくEXPANSION_LITEの早期Entry / Add-onも回復する。
+- 代表ケースを実データで固定。
+  - 誤: Anchor `154.735` / R2 `155.269` / Entry Event `2025-11-17 17:14`。
+  - 正: Anchor `154.620` / R2 `155.154` / Entry Event `2025-11-17 17:09`（R2初回タッチ足 17:05）/ Target R2.5 `155.322`。
+- 同一処理範囲の回帰比較では、v0.23旧RunがEntry 17件・Add-on 4件・実現損益 +10,096円、誤ったv0.24 RunがEntry 9件・Add-on 0件・実現損益 -9,760円となっていた。ルール厳格化だけでなく、共有Dow Confirmation欠落の実装バグがEntry減少を生んでいた。
+- Simulation Rule自体はv0.24のまま。App Versionだけをv0.9.1.10へ更新。
+
+## v0.9.1.09 - 2026-07-16
+
+- Simulation Rule v0.24 のNormal HSI Anchor Lifecycleへ対応。
+  - Entry前にM5 Dowが `REVERSAL_WATCH / NO_TREND / UNDETERMINED` へ確定遷移した場合、旧Dow Confirmation・旧Normal HSI Anchor・WAITING_R2 Opportunity・旧R2履歴を一括終了。
+  - Dow崩壊後は旧M5 breakout Confirmationを復活させず、新しいDow breakout Confirmation成立までNormal HSI Anchorなし。
+  - 再確定後は、再確定点そのものではなく、新しいDow構造のprevious Low / previous Highを新しいNormal HSI Anchorへ採用。
+  - 同一構造内の同方向継続だけではAnchorを乗り換えない。
+- R2 Entry後のDow崩壊は観測のみ。
+  - NORMAL Close EvaluatorはDow崩壊単独ではCloseしない。
+  - Entry時のNormal HSI Anchor / Target / StopをTrade終了まで固定。
+  - `NORMAL_POST_ENTRY_DOW_BREAKDOWN_OBSERVED_NO_CLOSE` を判断Traceへ記録。
+- Profile / Reason Rule Catalog / Test / Incidentをv0.24へ更新。
+
 ## v0.9.1.08 - 2026-07-14
 
 ### 一括Simulation中のチャート描画停止・進捗UI間引き

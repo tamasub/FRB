@@ -1,4 +1,4 @@
-// gpt_fx_lab.fx_chart_viewer v0.9.1.08-batch-render-suppression
+// gpt_fx_lab.fx_chart_viewer v0.9.1.13-normal-entry-gate-failure-log
 // Coreを変更せず、Overlay Plugin ActionとしてUSDJPY M5 + T3 + Dow candidate/basis/history静的チャートを表示する。
 // 上位足Decisionを入力にM5確定足で仮想Entry/保有/決済を実行し、1 Entry / 1 Position / 1 Stop / 1 TargetのLifecycleを原因Traceへ接続する。
 // Confirm bars を変えながら、Candidate / Active Basis / Retired Basis の違いを見える化する。
@@ -83,7 +83,11 @@
 // v0.9.1.03: Entry成績表の選択行から、Entry時刻・価格をURLへ渡して該当M5付近を中央表示し、Entry位置へ固定十字を置くチャート遷移Actionを追加。
 // v0.9.1.04: Entry Resultsの元Batch JSONから選択TradeのEntry/Add-on/Close Eventを読み込み、該当チャートへ実行マーカーとして投影する。
 // v0.9.1.05: Entry成績表からのチャート遷移を新しいタブへ変更し、初期レイアウトをM5実行 + H1+H4へ固定する。
-// v0.9.1.07: Entry前Dow崩壊の適用範囲を修正。REVERSAL_WATCH / NO_TREND / UNDETERMINEDでは失効せず、後発の逆方向Dow Confirmation成立時だけWAITING_R2 Opportunityを失効する。
+// v0.9.1.09: Simulation Rule v0.24。確定Dow崩壊でEntry前Confirmation/Anchor/Opportunity/R2履歴を終了し、再確定後のprevious Swingを新起点へ採用。Entry後Dow崩壊は観測のみでCloseしない。
+// v0.9.1.10: NORMALのWAITING_R2中は、崩壊またはEntry/Missまで最初の有効ConfirmationとHSI起点を固定。同方向の後続Confirmationで起点を乗り換えず、固定起点のR2初回タッチを評価する。
+// v0.9.1.11: Dow Trend Snapshotのnormal_dow_structure_breakをTimeframe Stateへ投影し、Batch継続Snapshotでも旧WAITING_R2を確実に失効する。
+// v0.9.1.13: NORMAL Entry Gate未成立時の個別Gate判定・事実・時刻を保存し、Batch結果JSON/CSVとして出力する。
+// v0.9.1.12: Batch Caseが現在のチャート表示窓・UpperMap非同期読込状態を継承しないよう、対象期間の分析窓と上位足DataSourceをCase単位で固定する.
 // v0.9.0.33: 通常Entryを「1 Dow Confirmation ID = 最大1回のR2初回到達Entry = R2.5全Close」へ変更。同じ確認IDによる階段ReEntryを禁止。
 // v0.9.0.34: Dow確認時点ですでにR2へ到達済みなら、その確認EventをEntry Triggerとして即Entryする。R2.5到達済みなら見送り、未到達なら従来どおりR2初回到達を待つ。
 // v0.9.0.35: M5 Dow確認を「確定済み押し安値/戻り高値の後、直前構造高値/安値をM5確定足で突破した瞬間」へ変更。新しいDow確認Eventごとに1回だけEntryし、Entry地点より先の次HSI境界で全Closeする。
@@ -141,7 +145,7 @@
   const EXPANSION_CLOSE_EVALUATOR_ID = 'expansion_close_evaluator_placeholder_v0_1';
   const EXPANSION_LITE_ENTRY_EVALUATOR_ID = 'expansion_lite_entry_evaluator_v0_1';
   const EXPANSION_LITE_CLOSE_EVALUATOR_ID = 'expansion_lite_close_evaluator_v0_1';
-  const NORMAL_RULE_VERSION = 'v0.23';
+  const NORMAL_RULE_VERSION = 'v0.24';
   const EXPANSION_LITE_RULE_VERSION = 'v0.18';
   const EXPANSION_LITE_ENTRY_GUARD_RULE_VERSION = 'v0.21';
   const NORMAL_ENTRY_V0_14_UPPER_DECISION_EXCEPTION = 'normal_entry_v0_14_m5_dow_breakout_next_hsi_boundary_explicit_exception';
@@ -2972,16 +2976,21 @@
           r2_ready_at_confirmation: 'IMMEDIATE_ENTRY_AT_FIRST_PRICE_SATISFYING_DOW_BREAKOUT_AND_R2',
           target_selection_at_confirmation: 'NEXT_HSI_BOUNDARY_AHEAD',
           next_normal_entry_requires_new_dow_confirmation_after_previous_close: true,
-          normal_hsi_anchor_lifecycle: 'DOW_CONFIRMATION_TO_TRADE_CLOSE',
+          normal_hsi_anchor_lifecycle: 'DOW_CONFIRMATION_TO_PRE_ENTRY_BREAK_OR_TRADE_CLOSE',
           normal_hsi_anchor_retired_on_close: true,
           normal_hsi_anchor_reuse_after_close: false,
-          next_normal_hsi_anchor_source: 'FIRST_NEW_M5_DOW_CONFIRMATION_AFTER_CLOSE_PREVIOUS_SWING',
+          next_normal_hsi_anchor_source: 'FIRST_NEW_M5_DOW_CONFIRMATION_AFTER_BREAK_OR_CLOSE_PREVIOUS_SWING',
           same_confirmation_reuse_for_next_normal_entry: false,
+          same_direction_dow_reconfirmation_replaces_anchor: false,
+          same_direction_reconfirmation_after_break_creates_new_anchor: true,
+          dow_reconfirmation_point_is_anchor: false,
           normal_reentry_concept: 'NOT_DEFINED',
           normal_add_on_concept: 'FORBIDDEN',
           pre_entry_dow_structure_break_expires_opportunity: true,
-          pre_entry_dow_structure_break_policy: 'NEWER_OPPOSITE_DOW_CONFIRMATION_ONLY',
-          pre_entry_dow_structure_break_states: []
+          pre_entry_dow_structure_break_policy: 'CONFIRMED_RESET_STATE_OR_NEWER_OPPOSITE_DOW_CONFIRMATION',
+          pre_entry_dow_structure_break_states: ['REVERSAL_WATCH', 'NO_TREND', 'UNDETERMINED'],
+          post_entry_dow_structure_break_close_policy: 'OBSERVE_ONLY_NO_CLOSE',
+          post_entry_anchor_target_stop_policy: 'FIX_UNTIL_TRADE_CLOSE'
         },
         entry_guard_policy: {
           day_up_h4_down_r5_short: {
@@ -3498,9 +3507,9 @@
       }
     }
     const normalEntryPolicy = executionPolicy.normal_entry_policy || {};
-    if (!['v0.6', 'v0.6.1', 'v0.7', 'v0.8', 'v0.9', 'v0.10', 'v0.11', 'v0.12', 'v0.13', 'v0.14', 'v0.15', 'v0.16', 'v0.17', 'v0.17.1', 'v0.23'].includes(String(normalEntryPolicy.rule_version || ''))) errors.push('通常M5 Entryはnormal_entry_policy.rule_version=v0.6〜v0.23の許可済み値を明示してください。');
+    if (!['v0.6', 'v0.6.1', 'v0.7', 'v0.8', 'v0.9', 'v0.10', 'v0.11', 'v0.12', 'v0.13', 'v0.14', 'v0.15', 'v0.16', 'v0.17', 'v0.17.1', 'v0.23', 'v0.24'].includes(String(normalEntryPolicy.rule_version || ''))) errors.push('通常M5 Entryはnormal_entry_policy.rule_version=v0.6〜v0.24の許可済み値を明示してください。');
     if (normalEntryPolicy.h4_dow_required !== false) errors.push('通常EntryではH4 Dowを必須条件にしません。');
-    if (['v0.8', 'v0.9', 'v0.10', 'v0.11', 'v0.12', 'v0.13', 'v0.14', 'v0.15', 'v0.16', 'v0.17', 'v0.17.1', 'v0.23'].includes(String(normalEntryPolicy.rule_version || ''))) {
+    if (['v0.8', 'v0.9', 'v0.10', 'v0.11', 'v0.12', 'v0.13', 'v0.14', 'v0.15', 'v0.16', 'v0.17', 'v0.17.1', 'v0.23', 'v0.24'].includes(String(normalEntryPolicy.rule_version || ''))) {
       if (normalEntryPolicy.h1_dow_required !== false) errors.push('v0.8/v0.9通常EntryではH1 Dowを必須条件にしません。');
       if (normalEntryPolicy.h1_t3_required !== true) errors.push('v0.8/v0.9通常EntryではH1 T3方向と終値位置を必須にします。');
       if (normalEntryPolicy.m5_dow_required !== true) errors.push('v0.8/v0.9通常EntryではM5 Dowを実行トリガーとして必須にします。');
@@ -3569,25 +3578,30 @@
         if (normalLaneActions.includes('REENTRY') || normalLaneActions.includes('ADD_ON')) errors.push('NORMAL Rule Laneのallowed_actionsへREENTRY / ADD_ONを含めてはいけません。');
         if (!['ENTRY', 'FULL_CLOSE', 'STOP_CLOSE'].every(value => normalLaneActions.includes(value))) errors.push('NORMAL Rule LaneはENTRY / FULL_CLOSE / STOP_CLOSEを許可する必要があります。');
       }
-      if (['v0.17', 'v0.17.1', 'v0.23'].includes(String(normalEntryPolicy.rule_version || ''))) {
-        if (['v0.17.1', 'v0.23'].includes(String(normalEntryPolicy.rule_version || ''))) {
+      if (['v0.17', 'v0.17.1', 'v0.23', 'v0.24'].includes(String(normalEntryPolicy.rule_version || ''))) {
+        if (['v0.17.1', 'v0.23', 'v0.24'].includes(String(normalEntryPolicy.rule_version || ''))) {
           if (JSON.stringify(normalEntryPolicy.cycle_late_guard_timeframes || []) !== JSON.stringify(['H1'])) errors.push('v0.17.1通常EntryのCycle Late GuardはH1だけに適用してください。');
         }
-        if (String(normalEntryPolicy.entry_trigger || '') !== 'DOW_BREAKOUT_CONFIRMATION_IF_R2_READY_ELSE_FIRST_R2_TOUCH') errors.push('v0.17/v0.17.1/v0.23通常EntryはM5構造高値/安値の突破確認をDow Confirmation Eventにする必要があります。');
-        if (Number(normalEntryPolicy.entry_raw) !== 89 || String(normalEntryPolicy.entry_label || '').toUpperCase() !== 'R2') errors.push('v0.17/v0.17.1/v0.23通常Entryの最低到達水準はR2（raw=89）です。');
-        if (String(normalEntryPolicy.target_policy || '') !== 'NEXT_HSI_BOUNDARY_FROM_ENTRY_DISTANCE') errors.push('v0.17/v0.17.1/v0.23通常EntryはEntry地点より先の次HSI境界を全Close Targetにする必要があります。');
+        if (String(normalEntryPolicy.entry_trigger || '') !== 'DOW_BREAKOUT_CONFIRMATION_IF_R2_READY_ELSE_FIRST_R2_TOUCH') errors.push('v0.17/v0.17.1/v0.23/v0.24通常EntryはM5構造高値/安値の突破確認をDow Confirmation Eventにする必要があります。');
+        if (Number(normalEntryPolicy.entry_raw) !== 89 || String(normalEntryPolicy.entry_label || '').toUpperCase() !== 'R2') errors.push('v0.17/v0.17.1/v0.23/v0.24通常Entryの最低到達水準はR2（raw=89）です。');
+        if (String(normalEntryPolicy.target_policy || '') !== 'NEXT_HSI_BOUNDARY_FROM_ENTRY_DISTANCE') errors.push('v0.17/v0.17.1/v0.23/v0.24通常EntryはEntry地点より先の次HSI境界を全Close Targetにする必要があります。');
         if (normalEntryPolicy.one_entry_opportunity_per_dow_confirmation !== true) errors.push('v0.17は1 Dow Confirmation IDにつき通常Entry機会を最大1回に制限する必要があります。');
-        if (String(normalEntryPolicy.r2_ready_at_confirmation || '') !== 'IMMEDIATE_ENTRY_AT_FIRST_PRICE_SATISFYING_DOW_BREAKOUT_AND_R2') errors.push('v0.17/v0.17.1/v0.23ではDow突破確認時に、突破閾値とR2の双方を満たす最初の価格でEntryする必要があります。');
-        if (String(normalEntryPolicy.entry_execution_price_policy || '') !== 'DOW_BREAKOUT_THRESHOLD_OR_R2_WHICHEVER_IS_FARTHER_FROM_ANCHOR_ELSE_FIRST_AVAILABLE_GAP_PRICE') errors.push('v0.17/v0.17.1/v0.23ではEntry価格をDow突破閾値とR2のうち起点から遠い方へ固定する必要があります。');
-        if (normalEntryPolicy.next_normal_entry_requires_new_dow_confirmation_after_previous_close !== true) errors.push('v0.17/v0.17.1/v0.23の次回通常Entryには前Trade終了後の新しいM5 Dow突破確認Eventを必須にする必要があります。');
-        if (normalEntryPolicy.same_confirmation_reuse_for_next_normal_entry !== false) errors.push('v0.17/v0.17.1/v0.23では同じDow確認IDを次回通常Entryへ再利用してはいけません。');
-        if (String(normalEntryPolicy.normal_hsi_anchor_lifecycle || '') !== 'DOW_CONFIRMATION_TO_TRADE_CLOSE') errors.push('v0.17/v0.17.1/v0.23の通常HSI起点LifecycleはDow確認からTrade Closeまでに限定する必要があります。');
-        if (normalEntryPolicy.normal_hsi_anchor_retired_on_close !== true) errors.push('v0.17/v0.17.1/v0.23ではNormal Close時に通常HSI起点を即破棄する必要があります。');
-        if (normalEntryPolicy.normal_hsi_anchor_reuse_after_close !== false) errors.push('v0.17/v0.17.1/v0.23ではClose済み通常HSI起点を次回Entryへ再利用してはいけません。');
-        if (String(normalEntryPolicy.next_normal_hsi_anchor_source || '') !== 'FIRST_NEW_M5_DOW_CONFIRMATION_AFTER_CLOSE_PREVIOUS_SWING') errors.push('v0.17/v0.17.1/v0.23の次回通常HSI起点はClose後の最初の新M5 Dow確認に紐づくprevious Swingから採用する必要があります。');
-        if (String(normalEntryPolicy.normal_reentry_concept || '') !== 'NOT_DEFINED') errors.push('v0.17/v0.17.1/v0.23のNORMAL Rule LaneにはReEntry概念を定義しません。');
-        if (String(normalEntryPolicy.normal_add_on_concept || '') !== 'FORBIDDEN') errors.push('v0.17/v0.17.1/v0.23のNORMAL Rule LaneではAdd-onを禁止します。');
-        if (JSON.stringify(normalEntryPolicy.applies_to || []) !== JSON.stringify(['ENTRY'])) errors.push('v0.17/v0.17.1/v0.23の通常Entry PolicyはENTRYだけへ適用してください。');
+        if (String(normalEntryPolicy.r2_ready_at_confirmation || '') !== 'IMMEDIATE_ENTRY_AT_FIRST_PRICE_SATISFYING_DOW_BREAKOUT_AND_R2') errors.push('v0.17/v0.17.1/v0.23/v0.24ではDow突破確認時に、突破閾値とR2の双方を満たす最初の価格でEntryする必要があります。');
+        if (String(normalEntryPolicy.entry_execution_price_policy || '') !== 'DOW_BREAKOUT_THRESHOLD_OR_R2_WHICHEVER_IS_FARTHER_FROM_ANCHOR_ELSE_FIRST_AVAILABLE_GAP_PRICE') errors.push('v0.17/v0.17.1/v0.23/v0.24ではEntry価格をDow突破閾値とR2のうち起点から遠い方へ固定する必要があります。');
+        if (normalEntryPolicy.next_normal_entry_requires_new_dow_confirmation_after_previous_close !== true) errors.push('v0.17/v0.17.1/v0.23/v0.24の次回通常Entryには前Trade終了後の新しいM5 Dow突破確認Eventを必須にする必要があります。');
+        if (normalEntryPolicy.same_confirmation_reuse_for_next_normal_entry !== false) errors.push('v0.17/v0.17.1/v0.23/v0.24では同じDow確認IDを次回通常Entryへ再利用してはいけません。');
+        const expectedNormalAnchorLifecycle = String(normalEntryPolicy.rule_version || '') === 'v0.24'
+          ? 'DOW_CONFIRMATION_TO_PRE_ENTRY_BREAK_OR_TRADE_CLOSE' : 'DOW_CONFIRMATION_TO_TRADE_CLOSE';
+        if (String(normalEntryPolicy.normal_hsi_anchor_lifecycle || '') !== expectedNormalAnchorLifecycle) errors.push('通常HSI起点LifecycleがRule Version契約と一致しません。');
+        if (normalEntryPolicy.normal_hsi_anchor_retired_on_close !== true) errors.push('v0.17/v0.17.1/v0.23/v0.24ではNormal Close時に通常HSI起点を即破棄する必要があります。');
+        if (normalEntryPolicy.normal_hsi_anchor_reuse_after_close !== false) errors.push('v0.17/v0.17.1/v0.23/v0.24ではClose済み通常HSI起点を次回Entryへ再利用してはいけません。');
+        const expectedNextNormalAnchorSource = String(normalEntryPolicy.rule_version || '') === 'v0.24'
+          ? 'FIRST_NEW_M5_DOW_CONFIRMATION_AFTER_BREAK_OR_CLOSE_PREVIOUS_SWING'
+          : 'FIRST_NEW_M5_DOW_CONFIRMATION_AFTER_CLOSE_PREVIOUS_SWING';
+        if (String(normalEntryPolicy.next_normal_hsi_anchor_source || '') !== expectedNextNormalAnchorSource) errors.push('次回通常HSI起点の採用元がRule Version契約と一致しません。');
+        if (String(normalEntryPolicy.normal_reentry_concept || '') !== 'NOT_DEFINED') errors.push('v0.17/v0.17.1/v0.23/v0.24のNORMAL Rule LaneにはReEntry概念を定義しません。');
+        if (String(normalEntryPolicy.normal_add_on_concept || '') !== 'FORBIDDEN') errors.push('v0.17/v0.17.1/v0.23/v0.24のNORMAL Rule LaneではAdd-onを禁止します。');
+        if (JSON.stringify(normalEntryPolicy.applies_to || []) !== JSON.stringify(['ENTRY'])) errors.push('v0.17/v0.17.1/v0.23/v0.24の通常Entry PolicyはENTRYだけへ適用してください。');
         const normalLaneActions = (lanePolicy.lanes?.NORMAL?.allowed_actions || []).map(value => String(value).toUpperCase());
         if (normalLaneActions.includes('REENTRY') || normalLaneActions.includes('ADD_ON')) errors.push('NORMAL Rule Laneのallowed_actionsへREENTRY / ADD_ONを含めてはいけません。');
         if (!['ENTRY', 'FULL_CLOSE', 'STOP_CLOSE'].every(value => normalLaneActions.includes(value))) errors.push('NORMAL Rule LaneはENTRY / FULL_CLOSE / STOP_CLOSEを許可する必要があります。');
@@ -3597,13 +3611,30 @@
           const breakStates = (normalEntryPolicy.pre_entry_dow_structure_break_states || []).map(value => String(value).toUpperCase());
           if (breakStates.length !== 0) errors.push('v0.23.1ではREVERSAL_WATCH / NO_TREND / UNDETERMINEDをEntry Opportunity失効条件へ使用しないでください。');
           const guards = executionPolicy.entry_guard_policy || {};
-          if (guards.normal_h4_same_direction_r4?.enabled !== true || Number(guards.normal_h4_same_direction_r4?.block_at_or_above_raw) !== 233) errors.push('v0.22/v0.23のNORMAL H4同方向GuardはR4(raw=233)以上で有効にしてください。');
+          if (guards.normal_h4_same_direction_r4?.enabled !== true || Number(guards.normal_h4_same_direction_r4?.block_at_or_above_raw) !== 233) errors.push('v0.22〜v0.24のNORMAL H4同方向GuardはR4(raw=233)以上で有効にしてください。');
           if (guards.day_up_h4_down_r5_short?.enabled !== true || Number(guards.day_up_h4_down_r5_short?.block_at_or_above_raw) !== 377) errors.push('v0.21のDay Up / H4 Down Short GuardはR5(raw=377)以上で有効にしてください。');
           const closeMiss = executionPolicy.normal_close_miss_policy || {};
           if (String(closeMiss.strategy_id || '') !== 'target_distance_ratio_v0_1') errors.push('v0.23のNormal CloseMiss strategy_idはtarget_distance_ratio_v0_1である必要があります。');
           if (!(Number(closeMiss.max_loss_to_reward_ratio) > 0)) errors.push('v0.23のmax_loss_to_reward_ratioは0より大きい固定値である必要があります。');
           if (closeMiss.hsi_anchor_hard_limit !== true) errors.push('v0.23ではHSI起点をStopのHard Limitとして維持してください。');
           if (closeMiss.fix_price_at_entry !== true) errors.push('v0.23のNormal CloseMiss StopはEntry時に固定してください。');
+        }
+        if (String(normalEntryPolicy.rule_version || '') === 'v0.24') {
+          if (normalEntryPolicy.pre_entry_dow_structure_break_expires_opportunity !== true) errors.push('v0.24ではEntry前の確定M5 Dow構造崩壊でWAITING_R2 Opportunityを失効させる必要があります。');
+          if (String(normalEntryPolicy.pre_entry_dow_structure_break_policy || '') !== 'CONFIRMED_RESET_STATE_OR_NEWER_OPPOSITE_DOW_CONFIRMATION') errors.push('v0.24のEntry前Dow崩壊Policyは確定Reset Stateまたは後発逆方向Confirmationである必要があります。');
+          const breakStates = (normalEntryPolicy.pre_entry_dow_structure_break_states || []).map(value => String(value).toUpperCase());
+          if (JSON.stringify(breakStates) !== JSON.stringify(['REVERSAL_WATCH', 'NO_TREND', 'UNDETERMINED'])) errors.push('v0.24ではREVERSAL_WATCH / NO_TREND / UNDETERMINEDの確定遷移をEntry前Dow崩壊Stateとして明示してください。');
+          if (String(normalEntryPolicy.normal_hsi_anchor_lifecycle || '') !== 'DOW_CONFIRMATION_TO_PRE_ENTRY_BREAK_OR_TRADE_CLOSE') errors.push('v0.24のNormal HSI Anchor LifecycleはEntry前Dow崩壊またはTrade Closeまでに限定してください。');
+          if (String(normalEntryPolicy.next_normal_hsi_anchor_source || '') !== 'FIRST_NEW_M5_DOW_CONFIRMATION_AFTER_BREAK_OR_CLOSE_PREVIOUS_SWING') errors.push('v0.24の次Normal HSI起点はDow崩壊またはClose後の新Confirmationに属するprevious Swingから採用してください。');
+          if (normalEntryPolicy.same_direction_dow_reconfirmation_replaces_anchor !== false) errors.push('v0.24では同一構造内の同方向継続だけでNormal HSI Anchorを更新してはいけません。');
+          if (normalEntryPolicy.same_direction_reconfirmation_after_break_creates_new_anchor !== true) errors.push('v0.24では崩壊後の同方向Dow再確定を新Confirmation・新Anchorとして扱ってください。');
+          if (normalEntryPolicy.dow_reconfirmation_point_is_anchor !== false) errors.push('v0.24ではDow再確定点そのものをNormal HSI Anchorにしてはいけません。');
+          if (String(normalEntryPolicy.post_entry_dow_structure_break_close_policy || '') !== 'OBSERVE_ONLY_NO_CLOSE') errors.push('v0.24ではEntry後Dow崩壊を観測のみとし、単独でCloseしてはいけません。');
+          if (String(normalEntryPolicy.post_entry_anchor_target_stop_policy || '') !== 'FIX_UNTIL_TRADE_CLOSE') errors.push('v0.24ではEntry後のAnchor / Target / StopをTrade Closeまで固定してください。');
+          const guards = executionPolicy.entry_guard_policy || {};
+          if (guards.normal_h4_same_direction_r4?.enabled !== true || Number(guards.normal_h4_same_direction_r4?.block_at_or_above_raw) !== 233) errors.push('v0.24のNORMAL H4同方向GuardはR4(raw=233)以上で有効にしてください。');
+          const closeMiss = executionPolicy.normal_close_miss_policy || {};
+          if (String(closeMiss.strategy_id || '') !== 'target_distance_ratio_v0_1' || !(Number(closeMiss.max_loss_to_reward_ratio) > 0) || closeMiss.hsi_anchor_hard_limit !== true || closeMiss.fix_price_at_entry !== true) errors.push('v0.24でもv0.23のJSON固定倍率Stop契約を維持してください。');
         }
       }
     } else if (normalEntryPolicy.h1_m5_dow_match_required !== true) errors.push('v0.6/v0.7通常EntryではH1/M5 Dow一致を必須にします。');
@@ -3619,7 +3650,7 @@
     const runnerUnits = Number(sizing.runner_units);
     if (![initialUnits, coreUnits, runnerUnits].every(value => Number.isFinite(value) && value >= 0)) errors.push('Position unitsは0以上の数値で明示してください。');
     else if (coreUnits + runnerUnits !== initialUnits) errors.push('core_units + runner_units は initial_units と一致する必要があります。');
-    if (['v0.7', 'v0.8', 'v0.9', 'v0.10', 'v0.11', 'v0.12', 'v0.13', 'v0.14', 'v0.15', 'v0.16', 'v0.17', 'v0.17.1', 'v0.23'].includes(String(normalEntryPolicy.rule_version || ''))) {
+    if (['v0.7', 'v0.8', 'v0.9', 'v0.10', 'v0.11', 'v0.12', 'v0.13', 'v0.14', 'v0.15', 'v0.16', 'v0.17', 'v0.17.1', 'v0.23', 'v0.24'].includes(String(normalEntryPolicy.rule_version || ''))) {
       if (String(sizing.close_policy || '').toUpperCase() !== 'SINGLE_CLOSE') errors.push('v0.7以降のClose PolicyはSINGLE_CLOSEである必要があります。');
       if (runnerUnits !== 0) errors.push('v0.7以降の通常Entryではrunner_units=0である必要があります。');
       if (Number(sizing.partial_close_units || 0) !== 0) errors.push('v0.7以降の通常Entryではpartial_close_units=0である必要があります。');
@@ -4141,7 +4172,7 @@
     return null;
   }
 
-  function latestM5BreakoutConfirmation(structure, sourceRows, referenceMs) {
+  function latestM5BreakoutConfirmation(structure, sourceRows, referenceMs, minimumBreakoutAfterMs = null) {
     const points = Array.isArray(structure) ? structure : [];
     const highs = [];
     const lows = [];
@@ -4197,6 +4228,9 @@
       const candidate = candidates[idx];
       const breakout = firstM5BreakoutRow(sourceRows, candidate.readyAfterMs, referenceMs, candidate.direction, candidate.thresholdPoint?.pivot_price);
       if (!breakout) continue;
+      const breakoutEndMs = numberOrNull(breakout.end_ms);
+      const minimumMs = numberOrNull(minimumBreakoutAfterMs);
+      if (minimumMs != null && (breakoutEndMs == null || breakoutEndMs <= minimumMs)) continue;
       return { ...candidate, breakout };
     }
     return null;
@@ -4234,6 +4268,7 @@
     let directionalRegimeResetAt = '';
     let directionalRegimeResetEventId = '';
     let directionalRegimeResetReason = '';
+    let latestNormalDowStructureBreak = null;
 
     // Expansionだけは通常Dowとは別Lifecycleで大起点を保持する。
     // REVERSAL_WATCH等は押し戻りとして許容し、反対方向Dow成立時だけDetection Anchorを更新する。
@@ -4393,6 +4428,7 @@
         evaluator_id: DOW_TREND_EVALUATOR_ID,
         event_type: 'trend_changed',
         simulation_time: point.confirmed_time || point.pivot_time || '',
+        simulation_time_ms: numberOrNull(point.confirmed_ms) ?? numberOrNull(point.pivot_ms),
         timeframe: tf,
         panel: tf,
         price: numberOrNull(point.pivot_price),
@@ -4459,10 +4495,22 @@
       } else {
         // 通常LaneではDowが崩れた時点で起点を解除する。
         // 旧大起点を保持する挙動はExpansion Detection専用。
-        if (directionalRegime || directionalRegimeAnchorPoint) {
+        if (directionalRegime || directionalRegimeAnchorPoint || latestConfirmation || ['UP', 'DOWN'].includes(previousState)) {
           directionalRegimeResetAt = event.simulation_time;
           directionalRegimeResetEventId = event.event_id;
           directionalRegimeResetReason = `NORMAL_DOW_ANCHOR_RESET_ON_${evaluated.state}`;
+          latestNormalDowStructureBreak = {
+            break_at: event.simulation_time,
+            break_at_ms: numberOrNull(point?.confirmed_ms) ?? parseDateTimeMs(event.simulation_time),
+            break_event_id: event.event_id,
+            break_state: evaluated.state,
+            previous_direction: ['UP', 'DOWN'].includes(previousState) ? previousState : lastDirectionalState,
+            invalidated_confirmation_id: latestConfirmation?.confirmation_id || null,
+            invalidated_anchor_point_id: latestConfirmationAnchorPoint?.point_id || latestConfirmationAnchorPoint?.key || directionalRegimeAnchorPoint?.point_id || directionalRegimeAnchorPoint?.key || null,
+            trigger_point_id: point?.point_id || point?.key || null,
+            reason_code: 'NORMAL_DOW_STRUCTURE_BROKEN_BEFORE_ENTRY',
+            lifecycle_action: 'RETIRE_PRE_ENTRY_CONFIRMATION_ANCHOR_OPPORTUNITY_R2_HISTORY'
+          };
         }
         directionalRegime = null;
         directionalRegimeStartedAt = '';
@@ -4491,7 +4539,59 @@
     });
 
     if (tf === 'M5') {
-      const breakoutConfirmation = latestM5BreakoutConfirmation(structure, sourceRows, referenceMs);
+      // M5 breakout候補は1回だけ解決する。
+      // 以前は各non-directional Eventごとに全Structure/全M5 Rowを再走査しており、
+      // Visible Range Simulationの各足で指数的に重くなっていた。
+      let breakoutConfirmation = latestM5BreakoutConfirmation(structure, sourceRows, referenceMs, null);
+      const breakoutConfirmationMs = numberOrNull(breakoutConfirmation?.breakout?.end_ms);
+
+      // M5のDow Confirmationはローソク足breakoutで後段確定するため、
+      // 最新の非方向状態が最新breakoutより後なら、そのbreakoutをEntry前Dow崩壊で失効する。
+      if (!latestNormalDowStructureBreak && breakoutConfirmation && breakoutConfirmationMs != null) {
+        const breakEvent = [...events].reverse().find(item => {
+          const stateValue = String(item?.state_after?.trend_state || '').toUpperCase();
+          const eventMs = numberOrNull(item?.simulation_time_ms) ?? parseDateTimeMs(item?.simulation_time);
+          return ['REVERSAL_WATCH', 'NO_TREND', 'UNDETERMINED'].includes(stateValue)
+            && eventMs != null
+            && eventMs > breakoutConfirmationMs;
+        });
+        if (breakEvent) {
+          const breakMs = numberOrNull(breakEvent?.simulation_time_ms) ?? parseDateTimeMs(breakEvent?.simulation_time);
+          latestNormalDowStructureBreak = {
+            break_at: breakEvent.simulation_time,
+            break_at_ms: breakMs,
+            break_event_id: breakEvent.event_id,
+            break_state: String(breakEvent?.state_after?.trend_state || '').toUpperCase(),
+            previous_direction: breakoutConfirmation.direction,
+            invalidated_confirmation_id: dowConfirmationEventId(tf, breakoutConfirmation.direction, [
+              breakoutConfirmation.direction,
+              breakoutConfirmation.anchorPoint?.point_id || breakoutConfirmation.anchorPoint?.key || '',
+              breakoutConfirmation.thresholdPoint?.point_id || breakoutConfirmation.thresholdPoint?.key || '',
+              breakoutConfirmation.direction === 'UP'
+                ? breakoutConfirmation.currentLow?.point_id || breakoutConfirmation.currentLow?.key || ''
+                : breakoutConfirmation.currentHigh?.point_id || breakoutConfirmation.currentHigh?.key || '',
+              breakoutConfirmation.breakout.start_ms
+            ].join('|'), {
+              point_id: `m5_breakout_bar_${stableSwingToken(breakoutConfirmation.breakout.start_ms)}`,
+              confirmed_ms: breakoutConfirmation.breakout.end_ms,
+              pivot_ms: breakoutConfirmation.breakout.start_ms,
+              type: breakoutConfirmation.direction === 'UP' ? 'breakout_high' : 'breakout_low'
+            }),
+            invalidated_anchor_point_id: breakoutConfirmation.anchorPoint?.point_id || breakoutConfirmation.anchorPoint?.key || null,
+            trigger_point_id: breakEvent?.comparison_points?.current_high?.point_id || breakEvent?.comparison_points?.current_low?.point_id || null,
+            reason_code: 'NORMAL_DOW_STRUCTURE_BROKEN_BEFORE_ENTRY',
+            lifecycle_action: 'RETIRE_PRE_ENTRY_CONFIRMATION_ANCHOR_OPPORTUNITY_R2_HISTORY'
+          };
+        }
+      }
+      const breakBarrierMs = numberOrNull(latestNormalDowStructureBreak?.break_at_ms);
+      if (breakBarrierMs != null && (breakoutConfirmationMs == null || breakoutConfirmationMs <= breakBarrierMs)) {
+        // v0.9.1.10: 旧Confirmationを単にnullへ落とすだけでは、その後に成立した
+        // 新しいDow再確定まで見失い、NORMALだけでなく共有Dow事実を参照する
+        // EXPANSION_LITEのEntryも長期間停止してしまう。
+        // 崩壊時刻を下限として再検索し、崩壊後の最初の有効breakout Confirmationを復元する。
+        breakoutConfirmation = latestM5BreakoutConfirmation(structure, sourceRows, referenceMs, breakBarrierMs);
+      }
       if (breakoutConfirmation) {
         const direction = breakoutConfirmation.direction;
         const anchorPoint = breakoutConfirmation.anchorPoint;
@@ -4701,6 +4801,7 @@
         reset_event_id: directionalRegimeResetEventId,
         reason_code: directionalRegimeResetReason
       } : null,
+      normal_dow_structure_break: cloneJsonValue(latestNormalDowStructureBreak),
       dow_adopted_anchor_point: dowPointSummary(latestConfirmationAnchorPoint || directionalRegimeAnchorPoint),
       expansion_detection_regime: expansionDetectionRegime ? {
         direction: expansionDetectionRegime,
@@ -5170,8 +5271,9 @@
   function hsiAnchorFromDowAdoption(timeframe, dowItem) {
     const regime = dowItem?.directional_regime || {};
     const confirmation = dowItem?.normal_dow_confirmation || {};
+    if (!confirmation?.confirmation_id) return null;
     const point = dowItem?.dow_adopted_anchor_point || null;
-    const direction = String(confirmation?.direction || regime?.direction || '').toUpperCase();
+    const direction = String(confirmation?.direction || '').toUpperCase();
     const expectedType = direction === 'UP' ? 'swing_low' : direction === 'DOWN' ? 'swing_high' : '';
     if (!point || !expectedType || String(point?.type || '') !== expectedType) return null;
     const price = numberOrNull(point?.pivot_price);
@@ -5912,7 +6014,11 @@
           low_relation: dowItem.low_relation || 'INSUFFICIENT',
           used_swing_point_ids: [...(dowItem.used_swing_point_ids || [])],
           reason_codes: [...(dowItem.reason_codes || [])],
-          normal_dow_confirmation: cloneJsonValue(dowItem.normal_dow_confirmation || null)
+          normal_dow_confirmation: cloneJsonValue(dowItem.normal_dow_confirmation || null),
+          // v0.9.1.11: Entry EvaluatorはTimeframe Stateを入力にするため、
+          // Dow Trend Snapshotだけに崩壊事実を保持するとBatch継続時に失効判定できない。
+          normal_dow_structure_break: cloneJsonValue(dowItem.normal_dow_structure_break || null),
+          directional_regime_reset: cloneJsonValue(dowItem.directional_regime_reset || null)
         },
         cycle_state: {
           phase: cycleItem.phase || 'UNDETERMINED',
@@ -7073,10 +7179,35 @@
     };
   }
 
-  function m5ExecutionExpireNormalOpportunitiesPriorToDowBreak(portfolio, normalFacts, currentConfirmation, policy, referenceMs, referenceTime) {
+  function m5ExecutionNormalDowStructureBreak(m5State) {
+    const source = m5State?.trend_detail?.normal_dow_structure_break
+      || m5State?.normal_dow_structure_break
+      || null;
+    if (!source) return null;
+    const breakAtMs = numberOrNull(source.break_at_ms) ?? parseDateTimeMs(source.break_at);
+    if (breakAtMs == null) return null;
+    return {
+      break_at: String(source.break_at || ''),
+      break_at_ms: breakAtMs,
+      break_event_id: source.break_event_id || null,
+      break_state: String(source.break_state || '').toUpperCase(),
+      previous_direction: String(source.previous_direction || '').toUpperCase(),
+      invalidated_confirmation_id: source.invalidated_confirmation_id || null,
+      invalidated_anchor_point_id: source.invalidated_anchor_point_id || null,
+      trigger_point_id: source.trigger_point_id || null,
+      reason_code: source.reason_code || 'NORMAL_DOW_STRUCTURE_BROKEN_BEFORE_ENTRY',
+      lifecycle_action: source.lifecycle_action || 'RETIRE_PRE_ENTRY_CONFIRMATION_ANCHOR_OPPORTUNITY_R2_HISTORY'
+    };
+  }
+
+  function m5ExecutionExpireNormalOpportunitiesPriorToDowBreak(portfolio, normalFacts, currentConfirmation, policy, referenceMs, referenceTime, m5State = null) {
     const opportunities = Array.isArray(portfolio?.normal_entry_opportunities) ? portfolio.normal_entry_opportunities : [];
     const currentTrend = String(normalFacts?.m5_trend || '').toUpperCase();
-    const breakPolicy = String(policy?.normal_entry_policy?.pre_entry_dow_structure_break_policy || 'NEWER_OPPOSITE_DOW_CONFIRMATION_ONLY').toUpperCase();
+    const normalEntryPolicy = policy?.normal_entry_policy || {};
+    const breakPolicy = String(normalEntryPolicy.pre_entry_dow_structure_break_policy || 'CONFIRMED_RESET_STATE_OR_NEWER_OPPOSITE_DOW_CONFIRMATION').toUpperCase();
+    const resetStates = (normalEntryPolicy.pre_entry_dow_structure_break_states || ['REVERSAL_WATCH', 'NO_TREND', 'UNDETERMINED'])
+      .map(value => String(value || '').toUpperCase());
+    const breakFact = m5ExecutionNormalDowStructureBreak(m5State);
     const currentConfirmationId = String(currentConfirmation?.confirmation_id || '');
     const currentConfirmationMs = numberOrNull(currentConfirmation?.confirmed_at_ms);
     const currentConfirmationSide = String(currentConfirmation?.direction || '').toUpperCase() === 'UP'
@@ -7087,29 +7218,50 @@
       const confirmedMs = numberOrNull(opportunity?.confirmed_at_ms);
       if (confirmedMs != null && referenceMs != null && Number(referenceMs) < confirmedMs) continue;
       const opportunitySide = String(opportunity?.direction || '').toUpperCase();
-      const differentConfirmation = Boolean(
-        currentConfirmationId
-        && String(opportunity?.dow_confirmation_id || '') !== currentConfirmationId
-      );
-      const oppositeDirection = currentConfirmationSide !== 'UNDETERMINED'
-        && currentConfirmationSide !== opportunitySide;
+      const differentConfirmation = Boolean(currentConfirmationId && String(opportunity?.dow_confirmation_id || '') !== currentConfirmationId);
+      const oppositeDirection = currentConfirmationSide !== 'UNDETERMINED' && currentConfirmationSide !== opportunitySide;
       const newerConfirmation = currentConfirmationMs != null && confirmedMs != null
         ? Number(currentConfirmationMs) > Number(confirmedMs)
         : differentConfirmation;
       const oppositeNewConfirmation = differentConfirmation && oppositeDirection && newerConfirmation;
+      const confirmedBreakState = Boolean(
+        breakFact
+        && resetStates.includes(breakFact.break_state)
+        && (confirmedMs == null || Number(breakFact.break_at_ms) > Number(confirmedMs))
+        && (referenceMs == null || Number(breakFact.break_at_ms) <= Number(referenceMs))
+      );
+      const policyAllowsBreakState = ['CONFIRMED_RESET_STATE_OR_NEWER_OPPOSITE_DOW_CONFIRMATION', 'CONFIRMED_RESET_STATE'].includes(breakPolicy);
+      const policyAllowsOpposite = ['CONFIRMED_RESET_STATE_OR_NEWER_OPPOSITE_DOW_CONFIRMATION', 'NEWER_OPPOSITE_DOW_CONFIRMATION_ONLY'].includes(breakPolicy);
+      if (!((policyAllowsBreakState && confirmedBreakState) || (policyAllowsOpposite && oppositeNewConfirmation))) continue;
 
-      // v0.23.1: REVERSAL_WATCH / NO_TREND / UNDETERMINED は観測状態であり、
-      // Entry前のDow構造崩壊を確定するEventではない。後発の逆方向Dow Confirmationだけで失効する。
-      if (breakPolicy !== 'NEWER_OPPOSITE_DOW_CONFIRMATION_ONLY' || !oppositeNewConfirmation) continue;
-
+      const effectiveBreak = confirmedBreakState ? breakFact : {
+        break_at: referenceTime || currentConfirmation?.confirmed_at || '',
+        break_at_ms: currentConfirmationMs ?? numberOrNull(referenceMs),
+        break_event_id: currentConfirmationId || null,
+        break_state: currentTrend,
+        previous_direction: opportunitySide === 'LONG' ? 'UP' : 'DOWN',
+        invalidated_confirmation_id: opportunity?.dow_confirmation_id || null,
+        invalidated_anchor_point_id: opportunity?.anchor_id || null,
+        trigger_point_id: null,
+        reason_code: 'NORMAL_DOW_STRUCTURE_BROKEN_BEFORE_ENTRY',
+        lifecycle_action: 'RETIRE_PRE_ENTRY_CONFIRMATION_ANCHOR_OPPORTUNITY_R2_HISTORY'
+      };
       opportunity.status = 'EXPIRED';
       opportunity.terminal_reason_code = 'NORMAL_DOW_STRUCTURE_BROKEN_BEFORE_ENTRY';
-      opportunity.structure_broken_at = referenceTime || currentConfirmation?.confirmed_at || '';
-      opportunity.structure_broken_at_ms = currentConfirmationMs ?? numberOrNull(referenceMs);
-      opportunity.structure_break_trend_state = currentTrend;
-      opportunity.structure_break_confirmation_id = currentConfirmationId;
+      opportunity.structure_broken_at = effectiveBreak.break_at;
+      opportunity.structure_broken_at_ms = numberOrNull(effectiveBreak.break_at_ms);
+      opportunity.structure_break_event_id = effectiveBreak.break_event_id || null;
+      opportunity.structure_break_trend_state = effectiveBreak.break_state || currentTrend;
+      opportunity.structure_break_confirmation_id = currentConfirmationId || null;
       opportunity.structure_break_confirmation_side = currentConfirmationSide;
       opportunity.anchor_invalidated_before_entry = true;
+      opportunity.anchor_retired_before_entry = true;
+      opportunity.r2_history_retired_before_entry = true;
+      opportunity.r2_history_retired_reason = 'NORMAL_DOW_STRUCTURE_BROKEN_BEFORE_ENTRY';
+      opportunity.first_r2_touch_at = null;
+      opportunity.first_r2_touch_at_ms = null;
+      opportunity.r2_price = null;
+      opportunity.normal_anchor_lifecycle_after_break = m5ExecutionRetireNormalAnchorBeforeEntry(portfolio, opportunity, effectiveBreak);
       expired.push(opportunity);
     }
     return expired;
@@ -7285,6 +7437,9 @@
         created_at_reference_ms: numberOrNull(referenceMs),
         anchor_id: anchor?.anchor_id || null,
         anchor_price: numberOrNull(anchor?.price ?? confirmation.anchor_price),
+        anchor_time: anchor?.time || anchor?.pivot_time || confirmation?.anchor_time || null,
+        breakout_threshold_price: numberOrNull(confirmation?.breakout_threshold_price),
+        trigger_point_id: confirmation?.trigger_point_id || null,
         status: 'WAITING_R2',
         first_r2_touch_at: null,
         first_r2_touch_at_ms: null,
@@ -7294,6 +7449,7 @@
         terminal_reason_code: null
       };
       portfolio.normal_entry_opportunities.push(opportunity);
+      m5ExecutionAdoptNormalAnchorForOpportunity(portfolio, opportunity, confirmation, anchor, referenceMs, referenceTime);
     }
     return opportunity;
   }
@@ -7309,7 +7465,7 @@
 
   function m5ExecutionEmptyNormalAnchorLifecycle() {
     return {
-      schema_version: 'normal_hsi_anchor_trade_lifecycle_v0_1',
+      schema_version: 'normal_hsi_anchor_trade_lifecycle_v0_2',
       status: 'NONE',
       active_anchor_id: null,
       active_anchor_price: null,
@@ -7324,7 +7480,7 @@
       last_retired_at_ms: null,
       last_retired_reason: null,
       retired_count: 0,
-      next_required_state: 'NEW_M5_DOW_CONFIRMATION_AFTER_CLOSE'
+      next_required_state: 'NEW_M5_DOW_CONFIRMATION_AFTER_BREAK_OR_CLOSE'
     };
   }
 
@@ -7335,6 +7491,46 @@
       : m5ExecutionEmptyNormalAnchorLifecycle();
     portfolio.normal_anchor_lifecycle = { ...m5ExecutionEmptyNormalAnchorLifecycle(), ...current };
     return portfolio.normal_anchor_lifecycle;
+  }
+
+  function m5ExecutionAdoptNormalAnchorForOpportunity(portfolio, opportunity, confirmation, anchor, referenceMs, referenceTime) {
+    if (!portfolio || !opportunity || !confirmation?.confirmation_id) return m5ExecutionEnsureNormalAnchorLifecycle(portfolio);
+    const lifecycle = m5ExecutionEnsureNormalAnchorLifecycle(portfolio);
+    if (String(lifecycle.status || '') === 'ACTIVE') return lifecycle;
+    lifecycle.status = 'WAITING_R2';
+    lifecycle.active_anchor_id = anchor?.anchor_id || opportunity?.anchor_id || null;
+    lifecycle.active_anchor_price = numberOrNull(anchor?.price ?? opportunity?.anchor_price ?? confirmation?.anchor_price);
+    lifecycle.active_confirmation_id = confirmation.confirmation_id;
+    lifecycle.active_trade_id = null;
+    lifecycle.adopted_at = confirmation?.confirmed_at || referenceTime || null;
+    lifecycle.adopted_at_ms = numberOrNull(confirmation?.confirmed_at_ms) ?? numberOrNull(referenceMs);
+    lifecycle.next_required_state = 'R2_ENTRY_OR_CONFIRMED_DOW_BREAK';
+    return lifecycle;
+  }
+
+  function m5ExecutionRetireNormalAnchorBeforeEntry(portfolio, opportunity, breakFact) {
+    const lifecycle = m5ExecutionEnsureNormalAnchorLifecycle(portfolio);
+    const opportunityConfirmationId = String(opportunity?.dow_confirmation_id || '');
+    if (String(lifecycle.status || '') === 'ACTIVE') return null;
+    if (lifecycle.active_confirmation_id && opportunityConfirmationId
+      && String(lifecycle.active_confirmation_id) !== opportunityConfirmationId) return null;
+    const retiredAnchorId = opportunity?.anchor_id || lifecycle.active_anchor_id || null;
+    lifecycle.status = 'AWAITING_NEW_DOW_CONFIRMATION';
+    lifecycle.last_retired_anchor_id = retiredAnchorId;
+    lifecycle.last_retired_confirmation_id = opportunity?.dow_confirmation_id || lifecycle.active_confirmation_id || null;
+    lifecycle.last_retired_trade_id = null;
+    lifecycle.last_retired_at = breakFact?.break_at || opportunity?.structure_broken_at || null;
+    lifecycle.last_retired_at_ms = numberOrNull(breakFact?.break_at_ms ?? opportunity?.structure_broken_at_ms);
+    lifecycle.last_retired_reason = 'NORMAL_DOW_STRUCTURE_BROKEN_BEFORE_ENTRY';
+    lifecycle.retired_count = Number(lifecycle.retired_count || 0) + 1;
+    lifecycle.active_anchor_id = null;
+    lifecycle.active_anchor_price = null;
+    lifecycle.active_confirmation_id = null;
+    lifecycle.active_trade_id = null;
+    lifecycle.adopted_at = null;
+    lifecycle.adopted_at_ms = null;
+    lifecycle.next_required_state = 'NEW_M5_DOW_CONFIRMATION_AFTER_BREAK';
+    return cloneJsonValue(lifecycle);
   }
 
   function m5ExecutionActivateNormalAnchor(portfolio, context, tradeId) {
@@ -7425,11 +7621,13 @@
       direction,
       confirmationSide,
       normalFacts,
+      m5State,
       dowConfirmation,
       entryResolution,
       entryAnchor,
       anchorPrice,
       r2Touch,
+      currentBar,
       policy,
       minEntryLabel,
       hsiNotReachedReasonCode,
@@ -7438,25 +7636,13 @@
     const latestClosedTradeMs = m5ExecutionLatestClosedTradeMs(portfolio, RULE_LANE_NORMAL);
     const normalAnchorLifecycle = m5ExecutionEnsureNormalAnchorLifecycle(portfolio);
     const triggerAligned = normalFacts?.entry_direction_ready === true;
-    const anchorResolved = entryResolution?.status === 'RESOLVED_REFERENCE' && anchorPrice != null;
     const normalPermission = normalFacts?.entry_direction_ready && normalFacts?.cycle_guard_passed ? 'ALLOW_SEARCH' : 'BLOCKED';
     const noTrade = normalFacts?.h1_cycle_late || !normalFacts?.entry_direction_ready;
-    const confirmationDirection = dowConfirmation?.direction === 'UP' ? 'LONG' : dowConfirmation?.direction === 'DOWN' ? 'SHORT' : 'UNDETERMINED';
-    const confirmationAligned = confirmationDirection !== 'UNDETERMINED' && confirmationDirection === direction;
-    const anchorMatchesConfirmation = Boolean(
-      dowConfirmation?.confirmation_id
-      && entryAnchor?.dow_confirmation_id
-      && String(entryAnchor.dow_confirmation_id) === String(dowConfirmation.confirmation_id)
-    );
-    const confirmationAfterLatestClose = latestClosedTradeMs == null
-      || (numberOrNull(dowConfirmation?.confirmed_at_ms) != null
-        && Number(dowConfirmation.confirmed_at_ms) > latestClosedTradeMs);
-    const confirmationAfterAnchorRetirement = numberOrNull(normalAnchorLifecycle?.last_retired_at_ms) == null
-      || (numberOrNull(dowConfirmation?.confirmed_at_ms) != null
-        && Number(dowConfirmation.confirmed_at_ms) > Number(normalAnchorLifecycle.last_retired_at_ms));
-    const anchorLifecycleReady = String(normalAnchorLifecycle?.status || 'NONE') !== 'ACTIVE'
-      && confirmationAfterAnchorRetirement;
-    let entryOpportunity = m5ExecutionOpportunityForConfirmation(portfolio, dowConfirmation, entryAnchor, referenceMs, referenceTime);
+
+    // v0.24の順序契約:
+    // 1) まず確定Dow崩壊で旧WAITING_R2を終了する。
+    // 2) 崩壊していなければ、最初に採用したConfirmation/Anchorを維持する。
+    // 3) 同方向の後続Confirmationを新しい起点へ乗り換える理由にしない。
     const expiredPriorToEntry = policy?.normal_entry_policy?.pre_entry_dow_structure_break_expires_opportunity === false
       ? []
       : m5ExecutionExpireNormalOpportunitiesPriorToDowBreak(
@@ -7465,15 +7651,94 @@
           dowConfirmation,
           policy,
           referenceMs,
-          referenceTime
+          referenceTime,
+          m5State
         );
+
+    const lifecycleActiveConfirmationId = String(normalAnchorLifecycle?.active_confirmation_id || '');
+    let activeWaitingOpportunity = lifecycleActiveConfirmationId
+      ? (portfolio?.normal_entry_opportunities || []).find(item =>
+          String(item?.dow_confirmation_id || '') === lifecycleActiveConfirmationId
+          && String(item?.status || '').toUpperCase() === 'WAITING_R2'
+        ) || null
+      : null;
+
+    let entryOpportunity = activeWaitingOpportunity;
+    if (!entryOpportunity) {
+      entryOpportunity = m5ExecutionOpportunityForConfirmation(portfolio, dowConfirmation, entryAnchor, referenceMs, referenceTime);
+    }
     if ((!entryOpportunity || String(entryOpportunity.status || '').toUpperCase() !== 'WAITING_R2') && expiredPriorToEntry.length) {
       entryOpportunity = expiredPriorToEntry[expiredPriorToEntry.length - 1];
     }
+
+    const opportunityDirection = String(entryOpportunity?.direction || '').toUpperCase();
+    const opportunityConfirmationId = String(entryOpportunity?.dow_confirmation_id || '');
+    const incomingConfirmationId = String(dowConfirmation?.confirmation_id || '');
+    const preservingActiveConfirmation = Boolean(
+      activeWaitingOpportunity
+      && opportunityConfirmationId
+      && incomingConfirmationId
+      && opportunityConfirmationId !== incomingConfirmationId
+    );
+
+    const effectiveDowConfirmation = entryOpportunity && opportunityConfirmationId
+      ? {
+          ...(dowConfirmation && incomingConfirmationId === opportunityConfirmationId ? dowConfirmation : {}),
+          confirmation_id: opportunityConfirmationId,
+          direction: opportunityDirection === 'SHORT' ? 'DOWN' : 'UP',
+          confirmed_at: entryOpportunity.confirmed_at || '',
+          confirmed_at_ms: numberOrNull(entryOpportunity.confirmed_at_ms),
+          trigger_point_id: entryOpportunity.trigger_point_id || null,
+          anchor_point_id: entryOpportunity.anchor_id || null,
+          anchor_price: numberOrNull(entryOpportunity.anchor_price),
+          anchor_time: entryOpportunity.anchor_time || null,
+          breakout_threshold_price: numberOrNull(entryOpportunity.breakout_threshold_price)
+        }
+      : dowConfirmation;
+    const effectiveConfirmationSide = opportunityDirection || (
+      effectiveDowConfirmation?.direction === 'DOWN' ? 'SHORT'
+        : effectiveDowConfirmation?.direction === 'UP' ? 'LONG'
+          : confirmationSide
+    );
+    const effectiveDirection = opportunityDirection || direction;
+    const effectiveEntryAnchor = entryOpportunity?.anchor_id
+      ? {
+          anchor_id: entryOpportunity.anchor_id,
+          price: numberOrNull(entryOpportunity.anchor_price),
+          time: entryOpportunity.anchor_time || null,
+          dow_confirmation_id: opportunityConfirmationId
+        }
+      : entryAnchor;
+    const effectiveAnchorPrice = numberOrNull(entryOpportunity?.anchor_price) ?? numberOrNull(anchorPrice);
+    const effectiveEntryResolution = effectiveEntryAnchor
+      ? { status: 'RESOLVED_REFERENCE', anchor_id: effectiveEntryAnchor.anchor_id, anchor: effectiveEntryAnchor }
+      : entryResolution;
+    const effectiveR2Touch = currentBar && effectiveAnchorPrice != null && ['LONG', 'SHORT'].includes(effectiveConfirmationSide)
+      ? m5ExecutionR2Touch(currentBar, effectiveAnchorPrice, effectiveConfirmationSide, policy)
+      : r2Touch;
+
+    const confirmationDirection = effectiveDowConfirmation?.direction === 'UP' ? 'LONG'
+      : effectiveDowConfirmation?.direction === 'DOWN' ? 'SHORT' : 'UNDETERMINED';
+    const confirmationAligned = confirmationDirection !== 'UNDETERMINED' && confirmationDirection === effectiveDirection;
+    const anchorResolved = effectiveEntryResolution?.status === 'RESOLVED_REFERENCE' && effectiveAnchorPrice != null;
+    const anchorMatchesConfirmation = Boolean(
+      effectiveDowConfirmation?.confirmation_id
+      && effectiveEntryAnchor?.dow_confirmation_id
+      && String(effectiveEntryAnchor.dow_confirmation_id) === String(effectiveDowConfirmation.confirmation_id)
+    );
+    const confirmationAfterLatestClose = latestClosedTradeMs == null
+      || (numberOrNull(effectiveDowConfirmation?.confirmed_at_ms) != null
+        && Number(effectiveDowConfirmation.confirmed_at_ms) > latestClosedTradeMs);
+    const confirmationAfterAnchorRetirement = numberOrNull(normalAnchorLifecycle?.last_retired_at_ms) == null
+      || (numberOrNull(effectiveDowConfirmation?.confirmed_at_ms) != null
+        && Number(effectiveDowConfirmation.confirmed_at_ms) > Number(normalAnchorLifecycle.last_retired_at_ms));
+    const anchorLifecycleReady = String(normalAnchorLifecycle?.status || 'NONE') !== 'ACTIVE'
+      && confirmationAfterAnchorRetirement;
+
     const opportunityCreatedNow = numberOrNull(entryOpportunity?.created_at_reference_ms) != null
       && referenceMs != null
       && Number(entryOpportunity.created_at_reference_ms) === Number(referenceMs);
-    const confirmationMs = numberOrNull(dowConfirmation?.confirmed_at_ms);
+    const confirmationMs = numberOrNull(effectiveDowConfirmation?.confirmed_at_ms);
     const confirmationEventOnCurrentBar = confirmationMs != null
       && referenceMs != null
       && Math.abs(Number(confirmationMs) - Number(referenceMs)) <= 5 * 60 * 1000;
@@ -7506,6 +7771,13 @@
       normal_anchor_lifecycle: cloneJsonValue(normalAnchorLifecycle),
       anchor_lifecycle_ready: anchorLifecycleReady,
       confirmation_event_on_current_bar: confirmationEventOnCurrentBar,
+      preserving_active_confirmation: preservingActiveConfirmation,
+      ignored_same_direction_confirmation_id: preservingActiveConfirmation ? incomingConfirmationId : null,
+      effective_dow_confirmation: cloneJsonValue(effectiveDowConfirmation || null),
+      effective_entry_anchor: cloneJsonValue(effectiveEntryAnchor || null),
+      effective_anchor_price: effectiveAnchorPrice,
+      effective_confirmation_side: effectiveConfirmationSide,
+      effective_direction: effectiveDirection,
       entry_opportunity: entryOpportunity,
       execution_candidate: null
     };
@@ -7517,11 +7789,12 @@
 
     if (opportunityExpired && entryOpportunity?.terminal_reason_code === 'NORMAL_DOW_STRUCTURE_BROKEN_BEFORE_ENTRY') {
       result.status_label = 'Entry前Dow構造崩壊';
-      result.summary = 'R2到達前に後発の逆方向M5 Dow Confirmationが成立したため、採用済みDow Confirmation・通常HSI起点・Entry Opportunityを失効しました。REVERSAL_WATCH / NO_TREND / UNDETERMINEDだけでは失効しません。';
+      result.summary = 'R2 Entry前に確定Dow構造が崩壊したため、旧Dow Confirmation・通常HSI起点・Entry Opportunity・旧R2到達履歴を終了しました。新しいDow Confirmationとprevious SwingからR2を再計算します。';
       result.reason_codes = [
         'NORMAL_DOW_STRUCTURE_BROKEN_BEFORE_ENTRY',
         'DOW_CONFIRMATION_OPPORTUNITY_EXPIRED',
-        'NORMAL_HSI_ANCHOR_INVALIDATED_BEFORE_ENTRY'
+        'NORMAL_HSI_ANCHOR_INVALIDATED_BEFORE_ENTRY',
+        'NORMAL_R2_HISTORY_RETIRED_BEFORE_ENTRY'
       ];
       result.rule_ids = ['rule_normal_pre_entry_dow_structure_break_expires_opportunity'];
       result.permission = 'BLOCKED';
@@ -7529,7 +7802,7 @@
       return result;
     }
 
-    if (!dowConfirmation) {
+    if (!effectiveDowConfirmation) {
       result.status_label = 'Dow確認待ち';
       result.summary = '通常Entryに使用できるM5 Dow確認Eventがありません。';
       result.reason_codes = ['M5_DOW_CONFIRMATION_EVENT_UNAVAILABLE'];
@@ -7561,36 +7834,36 @@
       result.rule_ids = ['rule_next_normal_entry_requires_new_dow_confirmation_after_previous_close', 'rule_late_entry_after_r2_forbidden'];
       return result;
     }
-    if (opportunityWaiting && !r2Touch?.touched) {
+    if (opportunityWaiting && !effectiveR2Touch?.touched) {
       result.status_label = 'R2到達待ち';
-      result.summary = `新しいDow確認Eventを受け付けました。確定時点ではR2未到達のため、HSI起点 ${round3(anchorPrice)}からR2 ${round3(r2Touch?.entry_price)}への初回到達を待ちます。`;
-      result.reason_codes = ['M5_DOW_CONFIRMATION_EVENT_AVAILABLE', 'NORMAL_ENTRY_OPPORTUNITY_WAITING_R2', hsiNotReachedReasonCode];
-      result.rule_ids = ['rule_normal_entry_one_opportunity_per_dow_confirmation', 'rule_dow_breakout_confirmation_immediate_entry_when_r2_ready', 'rule_normal_entry_first_r2_touch_after_confirmation'];
+      result.summary = `新しいDow確認Eventを受け付けました。確定時点ではR2未到達のため、HSI起点 ${round3(effectiveAnchorPrice)}からR2 ${round3(effectiveR2Touch?.entry_price)}への初回到達を待ちます。`;
+      result.reason_codes = uniqueStrings(['M5_DOW_CONFIRMATION_EVENT_AVAILABLE', 'NORMAL_ENTRY_OPPORTUNITY_WAITING_R2', preservingActiveConfirmation ? 'NORMAL_ACTIVE_CONFIRMATION_PRESERVED_UNTIL_BREAK_OR_ENTRY' : '', hsiNotReachedReasonCode]);
+      result.rule_ids = uniqueStrings(['rule_normal_entry_one_opportunity_per_dow_confirmation', preservingActiveConfirmation ? 'rule_normal_active_confirmation_fixed_until_break_entry_or_miss' : '', 'rule_dow_breakout_confirmation_immediate_entry_when_r2_ready', 'rule_normal_entry_first_r2_touch_after_confirmation']);
       return result;
     }
-    if (!opportunityWaiting || !r2Touch?.touched) return result;
+    if (!opportunityWaiting || !effectiveR2Touch?.touched) return result;
 
     entryOpportunity.first_r2_touch_at = referenceTime;
     entryOpportunity.first_r2_touch_at_ms = referenceMs;
-    entryOpportunity.r2_price = r2Touch.entry_price;
+    entryOpportunity.r2_price = effectiveR2Touch.entry_price;
     const entryAtDowConfirmation = opportunityCreatedNow && confirmationEventOnCurrentBar;
-    const breakoutThresholdPrice = numberOrNull(dowConfirmation?.breakout_threshold_price);
+    const breakoutThresholdPrice = numberOrNull(effectiveDowConfirmation?.breakout_threshold_price);
     const confirmationRequiredPrice = entryAtDowConfirmation
-      ? (confirmationSide === 'SHORT'
-        ? Math.min(breakoutThresholdPrice != null ? breakoutThresholdPrice : Number(price), Number(r2Touch.entry_price))
-        : Math.max(breakoutThresholdPrice != null ? breakoutThresholdPrice : Number(price), Number(r2Touch.entry_price)))
+      ? (effectiveConfirmationSide === 'SHORT'
+        ? Math.min(breakoutThresholdPrice != null ? breakoutThresholdPrice : Number(price), Number(effectiveR2Touch.entry_price))
+        : Math.max(breakoutThresholdPrice != null ? breakoutThresholdPrice : Number(price), Number(effectiveR2Touch.entry_price)))
       : null;
     const candidateExecutionPrice = entryAtDowConfirmation
-      ? (r2Touch.open != null && (
-        (confirmationSide === 'SHORT' && Number(r2Touch.open) < Number(confirmationRequiredPrice))
-        || (confirmationSide !== 'SHORT' && Number(r2Touch.open) > Number(confirmationRequiredPrice))
-      ) ? Number(r2Touch.open) : Number(confirmationRequiredPrice))
-      : (r2Touch.passed_before_bar && r2Touch.open != null ? r2Touch.open : r2Touch.entry_price);
-    const candidateEntryDistanceRaw = m5ExecutionDistanceRaw(candidateExecutionPrice, anchorPrice, confirmationSide, policy);
+      ? (effectiveR2Touch.open != null && (
+        (effectiveConfirmationSide === 'SHORT' && Number(effectiveR2Touch.open) < Number(confirmationRequiredPrice))
+        || (effectiveConfirmationSide !== 'SHORT' && Number(effectiveR2Touch.open) > Number(confirmationRequiredPrice))
+      ) ? Number(effectiveR2Touch.open) : Number(confirmationRequiredPrice))
+      : (effectiveR2Touch.passed_before_bar && effectiveR2Touch.open != null ? effectiveR2Touch.open : effectiveR2Touch.entry_price);
+    const candidateEntryDistanceRaw = m5ExecutionDistanceRaw(candidateExecutionPrice, effectiveAnchorPrice, effectiveConfirmationSide, policy);
     const candidateEntryBand = m5ExecutionHsiBand(candidateEntryDistanceRaw, policy);
     const candidateTarget = candidateEntryBand?.next || null;
     const candidateTargetPrice = candidateTarget
-      ? m5ExecutionTargetPrice(anchorPrice, confirmationSide, candidateTarget.raw, policy)
+      ? m5ExecutionTargetPrice(effectiveAnchorPrice, effectiveConfirmationSide, candidateTarget.raw, policy)
       : null;
     result.execution_candidate = {
       entry_at_dow_confirmation: entryAtDowConfirmation,
@@ -7632,7 +7905,7 @@
     }
     const entryGuard = m5ExecutionEntryGuardDecision(
       RULE_LANE_NORMAL,
-      confirmationSide,
+      effectiveConfirmationSide,
       timeframeSnapshot,
       candidateExecutionPrice,
       policy
@@ -7640,8 +7913,8 @@
     const normalStopPlan = m5ExecutionNormalStopPlan(
       candidateExecutionPrice,
       candidateTargetPrice,
-      anchorPrice,
-      confirmationSide,
+      effectiveAnchorPrice,
+      effectiveConfirmationSide,
       policy
     );
     result.entry_guard = cloneJsonValue(entryGuard);
@@ -7650,6 +7923,42 @@
       entryOpportunity.status = 'MISSED';
       entryOpportunity.terminal_reason_code = entryGuard.primary_reason_code || 'NORMAL_ENTRY_GUARD_BLOCKED';
       entryOpportunity.entry_guard = cloneJsonValue(entryGuard);
+      entryOpportunity.gate_failure = {
+        schema_version: 'normal_entry_gate_failure_v0_1',
+        trigger_type: entryAtDowConfirmation ? 'DOW_CONFIRMATION_R2_READY' : 'FIRST_R2_TOUCH',
+        evaluated_at: referenceTime,
+        evaluated_at_ms: referenceMs,
+        entry_allowed: false,
+        failure_category: 'ENTRY_GUARD',
+        primary_failure_code: entryGuard.primary_reason_code || 'NORMAL_ENTRY_GUARD_BLOCKED',
+        failed_gates: uniqueStrings(entryGuard.matched_reason_codes || []),
+        gate_results: {
+          h4_t3_ready: normalFacts?.h4_t3_ready === true,
+          h1_t3_ready: normalFacts?.h1_t3_ready === true,
+          h4_h1_t3_aligned: normalFacts?.h4_h1_t3_aligned === true,
+          m5_dow_aligned: normalFacts?.m5_dow_aligned === true,
+          h1_cycle_not_late: normalFacts?.h1_cycle_late !== true,
+          entry_direction_ready: normalFacts?.entry_direction_ready === true,
+          cycle_guard_passed: normalFacts?.cycle_guard_passed === true,
+          anchor_resolved: anchorResolved === true,
+          anchor_matches_confirmation: anchorMatchesConfirmation === true,
+          confirmation_aligned: confirmationAligned === true,
+          anchor_lifecycle_ready: anchorLifecycleReady === true,
+          h4_r4_guard_passed: !(entryGuard.matched_reason_codes || []).includes('NORMAL_H4_SAME_DIRECTION_R4_ENTRY_BLOCKED'),
+          day_up_h4_down_r5_short_guard_passed: !(entryGuard.matched_reason_codes || []).includes('DAY_UP_H4_DOWN_R5_SHORT_ENTRY_BLOCKED')
+        },
+        facts: cloneJsonValue({
+          direction: effectiveConfirmationSide,
+          candidate_price: candidateExecutionPrice,
+          dow_confirmation_id: effectiveDowConfirmation?.confirmation_id || null,
+          dow_confirmation_time: effectiveDowConfirmation?.confirmed_at || null,
+          anchor_id: effectiveEntryAnchor?.anchor_id || effectiveEntryAnchor?.point_id || null,
+          anchor_time: effectiveEntryAnchor?.pivot_time || effectiveEntryAnchor?.anchor_time || null,
+          anchor_price: effectiveAnchorPrice,
+          r2_price: effectiveR2Touch?.entry_price ?? null,
+          entry_guard: entryGuard
+        })
+      };
       result.status_label = 'H4 HSI進行度Guard';
       result.summary = entryGuard.summary || 'H4現在波のHSI進行度Guardにより、新規Normal Entryを見送ります。';
       result.reason_codes = uniqueStrings(['NORMAL_ENTRY_OPPORTUNITY_MISSED', ...(entryGuard.matched_reason_codes || [])]);
@@ -7675,20 +7984,21 @@
       result.action_label = '通常Entry';
       result.status_label = entryAtDowConfirmation ? 'Dow確定時R2到達済み' : 'R2初回到達';
       result.summary = entryAtDowConfirmation
-        ? `Dow確認 ${shortText(dowConfirmation?.confirmation_id || '-', 18)} の成立時点でR2到達済みのため、Dow突破閾値とR2の双方を満たす最初の価格 ${round3(candidateExecutionPrice)}でEntry。Targetは${candidateTarget?.label || '次HSI境界'}。`
-        : `Dow確認 ${shortText(dowConfirmation?.confirmation_id || '-', 18)} 後、${minEntryLabel} ${round3(r2Touch.entry_price)}へ初到達したためEntry。Targetは${candidateTarget?.label || '次HSI境界'}。`;
+        ? `Dow確認 ${shortText(effectiveDowConfirmation?.confirmation_id || '-', 18)} の成立時点でR2到達済みのため、Dow突破閾値とR2の双方を満たす最初の価格 ${round3(candidateExecutionPrice)}でEntry。Targetは${candidateTarget?.label || '次HSI境界'}。`
+        : `Dow確認 ${shortText(effectiveDowConfirmation?.confirmation_id || '-', 18)} 後、${minEntryLabel} ${round3(effectiveR2Touch.entry_price)}へ初到達したためEntry。Targetは${candidateTarget?.label || '次HSI境界'}。`;
       result.reason_codes = uniqueStrings([
         latestClosedTradeMs != null ? 'NORMAL_ENTRY_NEW_DOW_CONFIRMATION_AFTER_PREVIOUS_CLOSE' : 'NORMAL_ENTRY_FIRST_DOW_CONFIRMATION',
         'M5_DOW_CONFIRMATION_EVENT_AVAILABLE',
         'ONE_ENTRY_PER_DOW_CONFIRMATION',
         entryAtDowConfirmation ? 'R2_ALREADY_REACHED_AT_DOW_CONFIRMATION' : 'HSI_R2_FIRST_TOUCH',
-        entryAtDowConfirmation ? 'ENTRY_AT_DOW_BREAKOUT_THRESHOLD_AND_R2' : (r2Touch.passed_before_bar ? 'ENTRY_AT_FIRST_AVAILABLE_PRICE_AFTER_R2_GAP' : 'ENTRY_AT_R2_BOUNDARY'),
+        entryAtDowConfirmation ? 'ENTRY_AT_DOW_BREAKOUT_THRESHOLD_AND_R2' : (effectiveR2Touch.passed_before_bar ? 'ENTRY_AT_FIRST_AVAILABLE_PRICE_AFTER_R2_GAP' : 'ENTRY_AT_R2_BOUNDARY'),
         'H4_T3_DIRECTION_ALLOWED',
         'H1_T3_DIRECTION_ALLOWED',
         'M5_DOW_ALIGNED',
         'H1_CYCLE_NOT_LATE',
         'HSI_ENTRY_ANCHOR_RESOLVED',
         'DOW_CONFIRMATION_HSI_ANCHOR_FIXED',
+        preservingActiveConfirmation ? 'NORMAL_ACTIVE_CONFIRMATION_PRESERVED_UNTIL_BREAK_OR_ENTRY' : '',
         latestClosedTradeMs != null ? 'NEW_NORMAL_HSI_ANCHOR_AFTER_PREVIOUS_CLOSE' : 'NORMAL_HSI_ANCHOR_FIRST_ADOPTION',
         'NORMAL_H4_ENTRY_GUARD_PASSED',
         'NORMAL_CLOSE_MISS_TARGET_DISTANCE_RATIO_FIXED'
@@ -7698,6 +8008,7 @@
         'rule_normal_entry_v14_m5_dow_breakout_confirmation_trigger',
         'rule_normal_entry_v17_1_h1_cycle_late_guard',
         'rule_normal_entry_one_opportunity_per_dow_confirmation',
+        preservingActiveConfirmation ? 'rule_normal_active_confirmation_fixed_until_break_entry_or_miss' : '',
         latestClosedTradeMs != null ? 'rule_next_normal_entry_requires_new_dow_confirmation_after_previous_close' : '',
         entryAtDowConfirmation ? 'rule_dow_breakout_confirmation_immediate_entry_when_r2_ready' : 'rule_normal_entry_first_r2_touch_after_confirmation',
         'rule_normal_entry_target_must_remain_ahead',
@@ -7710,8 +8021,10 @@
       entryOpportunity.status = 'USED';
       entryOpportunity.entry_execution_mode = entryAtDowConfirmation
         ? 'DOW_BREAKOUT_CONFIRMATION_R2_READY'
-        : (r2Touch.passed_before_bar ? 'FIRST_AVAILABLE_PRICE_AFTER_R2_GAP' : 'FIRST_R2_TOUCH_AFTER_CONFIRMATION');
+        : (effectiveR2Touch.passed_before_bar ? 'FIRST_AVAILABLE_PRICE_AFTER_R2_GAP' : 'FIRST_R2_TOUCH_AFTER_CONFIRMATION');
       entryOpportunity.entry_execution_price = candidateExecutionPrice;
+      entryOpportunity.preserved_over_same_direction_confirmation = preservingActiveConfirmation;
+      entryOpportunity.ignored_same_direction_confirmation_id = preservingActiveConfirmation ? incomingConfirmationId : null;
       entryOpportunity.breakout_threshold_price = breakoutThresholdPrice;
       entryOpportunity.confirmation_required_price = confirmationRequiredPrice;
       entryOpportunity.entry_distance_raw = candidateEntryDistanceRaw;
@@ -7729,7 +8042,7 @@
         : 'ENTRY_EXECUTED_AT_R2';
       portfolio.used_dow_confirmation_ids = uniqueStrings([
         ...(portfolio.used_dow_confirmation_ids || []),
-        dowConfirmation.confirmation_id
+        effectiveDowConfirmation.confirmation_id
       ]);
       return result;
     }
@@ -7738,6 +8051,59 @@
     entryOpportunity.terminal_reason_code = entryAtDowConfirmation
       ? 'DOW_CONFIRMATION_R2_READY_ENTRY_GATES_NOT_READY'
       : 'R2_FIRST_TOUCH_ENTRY_GATES_NOT_READY';
+    const failedEntryGates = uniqueStrings([
+      !normalFacts?.h4_t3_ready ? 'H4_T3_NOT_READY' : '',
+      !normalFacts?.h1_t3_ready ? 'H1_T3_NOT_READY' : '',
+      !normalFacts?.h4_h1_t3_aligned ? 'H4_H1_T3_NOT_ALIGNED' : '',
+      !normalFacts?.m5_dow_aligned ? 'M5_DOW_NOT_ALIGNED' : '',
+      normalFacts?.h1_cycle_late ? 'H1_CYCLE_LATE_ENTRY_BLOCKED' : '',
+      !normalFacts?.entry_direction_ready ? 'ENTRY_DIRECTION_NOT_READY' : '',
+      !normalFacts?.cycle_guard_passed ? 'CYCLE_GUARD_NOT_PASSED' : '',
+      noTrade ? 'NORMAL_NO_TRADE' : '',
+      !triggerAligned ? 'TRIGGER_NOT_ALIGNED' : '',
+      !anchorResolved ? 'HSI_ENTRY_ANCHOR_UNRESOLVED' : '',
+      !anchorMatchesConfirmation ? 'HSI_ANCHOR_CONFIRMATION_MISMATCH' : '',
+      !confirmationAligned ? 'DOW_CONFIRMATION_DIRECTION_MISMATCH' : '',
+      !anchorLifecycleReady ? 'NORMAL_HSI_ANCHOR_LIFECYCLE_NOT_READY' : '',
+      normalPermission !== 'ALLOW_SEARCH' ? 'NORMAL_PERMISSION_NOT_ALLOW_SEARCH' : ''
+    ]);
+    entryOpportunity.gate_failure = {
+      schema_version: 'normal_entry_gate_failure_v0_1',
+      trigger_type: entryAtDowConfirmation ? 'DOW_CONFIRMATION_R2_READY' : 'FIRST_R2_TOUCH',
+      evaluated_at: referenceTime,
+      evaluated_at_ms: referenceMs,
+      entry_allowed: false,
+      failure_category: 'ENTRY_GATES_NOT_READY',
+      primary_failure_code: failedEntryGates[0] || entryOpportunity.terminal_reason_code,
+      failed_gates: failedEntryGates,
+      gate_results: {
+        h4_t3_ready: normalFacts?.h4_t3_ready === true,
+        h1_t3_ready: normalFacts?.h1_t3_ready === true,
+        h4_h1_t3_aligned: normalFacts?.h4_h1_t3_aligned === true,
+        m5_dow_aligned: normalFacts?.m5_dow_aligned === true,
+        h1_cycle_not_late: normalFacts?.h1_cycle_late !== true,
+        entry_direction_ready: normalFacts?.entry_direction_ready === true,
+        cycle_guard_passed: normalFacts?.cycle_guard_passed === true,
+        no_trade_clear: noTrade !== true,
+        trigger_aligned: triggerAligned === true,
+        anchor_resolved: anchorResolved === true,
+        anchor_matches_confirmation: anchorMatchesConfirmation === true,
+        confirmation_aligned: confirmationAligned === true,
+        anchor_lifecycle_ready: anchorLifecycleReady === true,
+        permission_allow_search: normalPermission === 'ALLOW_SEARCH'
+      },
+      facts: cloneJsonValue({
+        direction: effectiveConfirmationSide,
+        candidate_price: candidateExecutionPrice,
+        dow_confirmation_id: effectiveDowConfirmation?.confirmation_id || null,
+        dow_confirmation_time: effectiveDowConfirmation?.confirmed_at || null,
+        anchor_id: effectiveEntryAnchor?.anchor_id || effectiveEntryAnchor?.point_id || null,
+        anchor_time: effectiveEntryAnchor?.pivot_time || effectiveEntryAnchor?.anchor_time || null,
+        anchor_price: effectiveAnchorPrice,
+        r2_price: effectiveR2Touch?.entry_price ?? null,
+        normal_facts: normalFacts
+      })
+    };
     result.status_label = entryAtDowConfirmation ? 'Dow確定時に条件不足' : 'R2初回到達時に条件不足';
     result.summary = entryAtDowConfirmation
       ? 'Dow確認時点でR2へ到達済みでしたが、通常ルールの方向・H1 Cycle・起点整合条件がそろわなかったため、このDow確認EventではEntryしません。'
@@ -7761,7 +8127,9 @@
 
   function normalRuleLaneCloseDecision(input) {
     const activePosition = input?.activePosition || null;
+    const activeTrade = input?.activeTrade || null;
     const currentBar = input?.currentBar || {};
+    const m5State = input?.m5State || {};
     if (!activePosition) {
       return {
         rule_lane: RULE_LANE_NORMAL,
@@ -7813,6 +8181,30 @@
         reason_codes: ['CLOSE_OK_NEXT_HSI_BOUNDARY', 'SINGLE_CLOSE_ALL_UNITS'],
         rule_ids: ['rule_normal_close_next_hsi_boundary', 'rule_single_position_single_close'],
         bar_touch: barTouch
+      };
+    }
+    const postEntryBreak = m5ExecutionNormalDowStructureBreak(m5State);
+    const entryMs = numberOrNull(activePosition?.entry_ms ?? activeTrade?.entry_ms);
+    const observedBreakIds = Array.isArray(activeTrade?.post_entry_dow_break_observation_ids)
+      ? activeTrade.post_entry_dow_break_observation_ids.map(value => String(value)) : [];
+    const postEntryBreakObserved = Boolean(
+      postEntryBreak
+      && entryMs != null
+      && Number(postEntryBreak.break_at_ms) > Number(entryMs)
+      && !observedBreakIds.includes(String(postEntryBreak.break_event_id || postEntryBreak.break_at_ms))
+    );
+    if (postEntryBreakObserved) {
+      return {
+        rule_lane: RULE_LANE_NORMAL,
+        evaluator_id: NORMAL_CLOSE_EVALUATOR_ID,
+        action: 'WAIT',
+        action_label: '保有継続',
+        status_label: 'Entry後Dow崩壊を観測・Closeなし',
+        summary: 'R2 Entry後にM5 Dow構造崩壊を観測しましたが、NORMALではDow崩壊単独をClose条件にしません。Entry時のHSI起点・Target・Stopを固定したまま保有を継続します。',
+        reason_codes: ['NORMAL_POST_ENTRY_DOW_BREAKDOWN_OBSERVED_NO_CLOSE', 'POSITION_ALREADY_OPEN'],
+        rule_ids: ['rule_normal_post_entry_dow_break_observe_only_no_close', 'rule_normal_hsi_anchor_trade_scoped_until_close', 'rule_single_position_single_close'],
+        bar_touch: barTouch,
+        post_entry_dow_break_observation: { ...cloneJsonValue(postEntryBreak), close_event_emitted: false, position_action: 'HOLD' }
       };
     }
     return {
@@ -8859,7 +9251,7 @@
     }
     const previousInfo = m5ExecutionPreviousLifecycle(state, referenceMs, draft);
     const lifecycle = previousInfo.lifecycle || m5ExecutionEmptyLifecycle(draft, candleSync?.reference);
-    lifecycle.phase = 'v0.9.1.07-pre-entry-dow-collapse-scope-fix';
+    lifecycle.phase = 'v0.9.1.13-normal-entry-gate-failure-log';
     lifecycle.created_at = nowLocalIso();
     lifecycle.reference = cloneJsonValue(candleSync?.reference || {});
     lifecycle.profile_id = draft?.profile_id || '';
@@ -8969,6 +9361,7 @@
           direction: laneContext.direction,
           confirmationSide: laneContext.confirmationSide,
           normalFacts: normalEntryV08,
+          m5State,
           expansionLiteFacts,
           currentBar,
           distanceRaw: laneContext.distanceRaw,
@@ -9000,6 +9393,33 @@
     const reasonCodes = uniqueStrings(selectedDecision?.reason_codes || []);
     const ruleIds = uniqueStrings(selectedDecision?.rule_ids || []);
     const entryOpportunity = selectedDecision?.entry_opportunity || null;
+    const selectedNormalDowConfirmation = decisionRuleLane === RULE_LANE_NORMAL
+      ? (selectedDecision?.effective_dow_confirmation || (entryOpportunity?.dow_confirmation_id ? {
+          confirmation_id: entryOpportunity.dow_confirmation_id,
+          direction: String(entryOpportunity.direction || '').toUpperCase() === 'SHORT' ? 'DOWN' : 'UP',
+          confirmed_at: entryOpportunity.confirmed_at || null,
+          confirmed_at_ms: numberOrNull(entryOpportunity.confirmed_at_ms),
+          anchor_point_id: entryOpportunity.anchor_id || null,
+          anchor_price: numberOrNull(entryOpportunity.anchor_price),
+          anchor_time: entryOpportunity.anchor_time || null,
+          breakout_threshold_price: numberOrNull(entryOpportunity.breakout_threshold_price),
+          trigger_point_id: entryOpportunity.trigger_point_id || null
+        } : dowConfirmation))
+      : dowConfirmation;
+    const selectedNormalEntryAnchor = decisionRuleLane === RULE_LANE_NORMAL
+      ? (selectedDecision?.effective_entry_anchor || (entryOpportunity?.anchor_id ? {
+          anchor_id: entryOpportunity.anchor_id,
+          price: numberOrNull(entryOpportunity.anchor_price),
+          time: entryOpportunity.anchor_time || null,
+          dow_confirmation_id: entryOpportunity.dow_confirmation_id || null
+        } : entryAnchor))
+      : entryAnchor;
+    const selectedNormalAnchorPrice = decisionRuleLane === RULE_LANE_NORMAL
+      ? (numberOrNull(selectedDecision?.effective_anchor_price) ?? numberOrNull(entryOpportunity?.anchor_price) ?? numberOrNull(anchorPrice))
+      : numberOrNull(anchorPrice);
+    const selectedNormalConfirmationSide = decisionRuleLane === RULE_LANE_NORMAL
+      ? String(selectedDecision?.effective_confirmation_side || entryOpportunity?.direction || confirmationSide || '').toUpperCase()
+      : confirmationSide;
     context.entryOpportunity = entryOpportunity;
     context.ruleLane = decisionRuleLane;
     context.evaluatorId = selectedDecision?.evaluator_id || null;
@@ -9053,13 +9473,13 @@
       no_trade: noTrade,
       legacy_upper_no_trade: upperNoTrade,
       current_price: price,
-      entry_anchor_id: entryResolution?.anchor_id || null,
-      entry_anchor_price: anchorPrice,
+      entry_anchor_id: decisionRuleLane === RULE_LANE_NORMAL ? (selectedNormalEntryAnchor?.anchor_id || null) : (entryResolution?.anchor_id || null),
+      entry_anchor_price: decisionRuleLane === RULE_LANE_NORMAL ? selectedNormalAnchorPrice : anchorPrice,
       entry_anchor_policy: decisionRuleLane === RULE_LANE_EXPANSION_LITE ? 'EXPANSION_LITE_DOW_CONFIRMATION_ANCHOR_FIXED_FOR_TRADE' : 'NORMAL_RULE_LANE_DOW_CONFIRMATION_PREVIOUS_SWING',
       entry_anchor_reason_codes: [...(entryResolution?.reason_codes || [])],
-      dow_confirmation_id: dowConfirmation?.confirmation_id || null,
-      dow_confirmation_at: dowConfirmation?.confirmed_at || null,
-      dow_confirmation_at_ms: numberOrNull(dowConfirmation?.confirmed_at_ms),
+      dow_confirmation_id: decisionRuleLane === RULE_LANE_NORMAL ? (selectedNormalDowConfirmation?.confirmation_id || null) : (dowConfirmation?.confirmation_id || null),
+      dow_confirmation_at: decisionRuleLane === RULE_LANE_NORMAL ? (selectedNormalDowConfirmation?.confirmed_at || null) : (dowConfirmation?.confirmed_at || null),
+      dow_confirmation_at_ms: decisionRuleLane === RULE_LANE_NORMAL ? numberOrNull(selectedNormalDowConfirmation?.confirmed_at_ms) : numberOrNull(dowConfirmation?.confirmed_at_ms),
       entry_opportunity_id: entryOpportunity?.opportunity_id || null,
       entry_opportunity_status: entryOpportunity?.status || null,
       entry_opportunity_terminal_reason_code: entryOpportunity?.terminal_reason_code || null,
@@ -9072,13 +9492,16 @@
       h4_wave_hsi_facts: cloneJsonValue(selectedDecision?.entry_guard?.facts || null),
       normal_close_miss_policy: cloneJsonValue(policy?.normal_close_miss_policy || null),
       normal_stop_plan: cloneJsonValue(selectedDecision?.normal_stop_plan || entryOpportunity?.normal_stop_plan || null),
+      normal_dow_structure_break: cloneJsonValue(m5ExecutionNormalDowStructureBreak(m5State)),
+      post_entry_dow_break_observation: cloneJsonValue(selectedDecision?.post_entry_dow_break_observation || null),
+      close_event_emitted_for_dow_break: selectedDecision?.post_entry_dow_break_observation ? false : null,
       hsi_distance_raw: distanceRaw,
       hsi_entry_min_raw: minEntryRaw,
       hsi_entry_min_label: minEntryLabel,
       hsi_current_band: hsiBand?.current?.label || null,
       hsi_entry_touch_label: decisionRuleLane === RULE_LANE_EXPANSION_LITE ? r3Touch.label : r2Touch.entry_label,
-      hsi_entry_touch_price: decisionRuleLane === RULE_LANE_EXPANSION_LITE ? r3Touch.price : r2Touch.entry_price,
-      hsi_entry_touch_detected: decisionRuleLane === RULE_LANE_EXPANSION_LITE ? r3Touch.touched === true : r2Touch.touched === true,
+      hsi_entry_touch_price: decisionRuleLane === RULE_LANE_EXPANSION_LITE ? r3Touch.price : (numberOrNull(entryOpportunity?.r2_price) ?? numberOrNull(selectedDecision?.execution_candidate?.entry_price) ?? r2Touch.entry_price),
+      hsi_entry_touch_detected: decisionRuleLane === RULE_LANE_EXPANSION_LITE ? r3Touch.touched === true : Boolean(entryOpportunity?.first_r2_touch_at_ms || selectedDecision?.action === 'ENTRY'),
       hsi_target_touch_price: numberOrNull(entryOpportunity?.target_price ?? barTouch?.target_price),
       hsi_target_touch_detected: barTouch?.target_touched === true,
       dow_confirmation_event_on_current_bar: confirmationEventOnCurrentBar,
@@ -9105,19 +9528,43 @@
       reason_codes: reasonCodes,
       rule_ids: ruleIds
     };
+    if (selectedDecision?.post_entry_dow_break_observation && activeTrade) {
+      const observation = selectedDecision.post_entry_dow_break_observation;
+      const observationId = String(observation.break_event_id || observation.break_at_ms || '');
+      activeTrade.post_entry_dow_break_observation_ids = uniqueStrings([
+        ...(activeTrade.post_entry_dow_break_observation_ids || []),
+        observationId
+      ]);
+      activeTrade.post_entry_dow_break_observations = [
+        ...(activeTrade.post_entry_dow_break_observations || []),
+        cloneJsonValue(observation)
+      ];
+    }
     const beforePortfolio = cloneJsonValue(lifecycle.portfolio);
     const triggerEvent = m5ExecutionCreateTriggerEvent(context, trigger, lifecycle);
     if (!alreadyEvaluated) lifecycle.decision_events.push(triggerEvent);
     let executionEvent = null;
     if (!alreadyEvaluated && !errors.length) {
       if (context.ruleLane === RULE_LANE_NORMAL && action === 'ENTRY') {
-        const selectedEntryPrice = numberOrNull(entryOpportunity?.entry_execution_price) ?? r2Touch.entry_price;
-        const selectedEntryDistanceRaw = m5ExecutionDistanceRaw(selectedEntryPrice, anchorPrice, confirmationSide, policy);
+        const selectedEntryPrice = numberOrNull(entryOpportunity?.entry_execution_price)
+          ?? numberOrNull(selectedDecision?.execution_candidate?.entry_price)
+          ?? r2Touch.entry_price;
+        const selectedEntryDistanceRaw = m5ExecutionDistanceRaw(selectedEntryPrice, selectedNormalAnchorPrice, selectedNormalConfirmationSide, policy);
+        const selectedEntryResolution = selectedNormalEntryAnchor
+          ? { status: 'RESOLVED_REFERENCE', anchor_id: selectedNormalEntryAnchor.anchor_id, anchor: selectedNormalEntryAnchor }
+          : entryResolution;
         const entryContext = {
           ...context,
+          direction: selectedNormalConfirmationSide,
+          confirmationSide: selectedNormalConfirmationSide,
           price: selectedEntryPrice,
+          entryResolution: selectedEntryResolution,
+          entryAnchor: selectedNormalEntryAnchor,
+          anchorPrice: selectedNormalAnchorPrice,
           distanceRaw: selectedEntryDistanceRaw,
           hsiBand: m5ExecutionHsiBand(selectedEntryDistanceRaw, policy),
+          dowConfirmation: selectedNormalDowConfirmation,
+          causeEventIds: uniqueStrings([...(context.causeEventIds || []), selectedNormalDowConfirmation?.confirmation_id]),
           entryOpportunity
         };
         const created = m5ExecutionNewTrade(lifecycle.portfolio, entryContext, triggerEvent, 'NORMAL', policy);
@@ -9126,7 +9573,7 @@
         const afterPortfolio = cloneJsonValue(lifecycle.portfolio);
         const entryExecutionMode = String(entryOpportunity?.entry_execution_mode || 'FIRST_R2_TOUCH_AFTER_CONFIRMATION');
         const entryDisplayLabel = entryExecutionMode === 'DOW_BREAKOUT_CONFIRMATION_R2_READY' ? 'Dow突破確定即Entry' : 'R2 Entry';
-        executionEvent = m5ExecutionEvent(entryContext, 'entry', `通常Entry #${created.trade.normal_entry_sequence_no || created.trade.sequence} ${entryContext.direction} / ${position?.units_open || 0}単位 / ${entryDisplayLabel} ${round3(entryContext.price)}`, [...trigger.rule_ids], [...trigger.reason_codes, 'POSITION_LIFECYCLE_OPENED'], [triggerEvent.event_id, dowConfirmation?.confirmation_id].filter(Boolean), beforePortfolio, afterPortfolio, { trade_id: created.trade.trade_id, position_ids: [position.position_id], rule_lane: RULE_LANE_NORMAL, evaluator_id: NORMAL_ENTRY_EVALUATOR_ID, execution: { rule_lane: RULE_LANE_NORMAL, evaluator_id: NORMAL_ENTRY_EVALUATOR_ID, close_evaluator_id: NORMAL_CLOSE_EVALUATOR_ID, action, normal_entry_sequence_no: created.trade.normal_entry_sequence_no, side: entryContext.direction, units: position.units_open, price: entryContext.price, entry_price: entryContext.price, entry_level: entryExecutionMode === 'DOW_BREAKOUT_CONFIRMATION_R2_READY' ? 'R2_OR_MORE_AT_DOW_BREAKOUT_CONFIRMATION' : 'R2', entry_execution_mode: entryExecutionMode, target_price: created.targetPrice, target_label: created.trade.target_label || position?.target_plan?.next_target_label || null, entry_timeframe: 'M5', entry_anchor_id: entryContext.entryAnchor?.anchor_id || null, dow_confirmation_id: dowConfirmation?.confirmation_id || null, dow_breakout_threshold_price: numberOrNull(dowConfirmation?.breakout_threshold_price), entry_opportunity_id: entryOpportunity?.opportunity_id || null, stop_basis: created.trade.risk_profile?.stop_basis || 'TARGET_DISTANCE_RATIO_WITH_HSI_ANCHOR_HARD_LIMIT', stop_price: created.trade.risk_profile?.stop_price ?? created.stopPlan?.stop_price, max_loss_to_reward_ratio: created.stopPlan?.max_loss_to_reward_ratio ?? null, reward_distance: created.stopPlan?.reward_distance ?? null, max_loss_distance: created.stopPlan?.max_loss_distance ?? null, ratio_stop_price: created.stopPlan?.ratio_stop_price ?? null, hsi_anchor_hard_limit_price: created.stopPlan?.hsi_anchor_hard_limit_price ?? entryContext.anchorPrice, hsi_anchor_hard_limit_applied: created.stopPlan?.hsi_anchor_hard_limit_applied === true, initial_units: created.trade.risk_profile?.initial_units ?? position.units_initial, unit_base_currency_amount: created.trade.risk_profile?.unit_base_currency_amount || 1000, initial_risk_jpy: created.trade.risk_profile?.initial_risk_jpy ?? null, close_policy: 'SINGLE_CLOSE', normal_hsi_anchor_lifecycle_status: created.normalAnchorLifecycle?.status || 'ACTIVE', cumulative_realized_profit_jpy: m5ExecutionPortfolioRunRealizedJpy(lifecycle.portfolio, policy), trade_cumulative_realized_profit_jpy: 0, profit_vs_initial_risk_pct: 0, risk_multiple: 0 } });
+        executionEvent = m5ExecutionEvent(entryContext, 'entry', `通常Entry #${created.trade.normal_entry_sequence_no || created.trade.sequence} ${entryContext.direction} / ${position?.units_open || 0}単位 / ${entryDisplayLabel} ${round3(entryContext.price)}`, [...trigger.rule_ids], [...trigger.reason_codes, 'POSITION_LIFECYCLE_OPENED'], [triggerEvent.event_id, selectedNormalDowConfirmation?.confirmation_id].filter(Boolean), beforePortfolio, afterPortfolio, { trade_id: created.trade.trade_id, position_ids: [position.position_id], rule_lane: RULE_LANE_NORMAL, evaluator_id: NORMAL_ENTRY_EVALUATOR_ID, execution: { rule_lane: RULE_LANE_NORMAL, evaluator_id: NORMAL_ENTRY_EVALUATOR_ID, close_evaluator_id: NORMAL_CLOSE_EVALUATOR_ID, action, normal_entry_sequence_no: created.trade.normal_entry_sequence_no, side: entryContext.direction, units: position.units_open, price: entryContext.price, entry_price: entryContext.price, entry_level: entryExecutionMode === 'DOW_BREAKOUT_CONFIRMATION_R2_READY' ? 'R2_OR_MORE_AT_DOW_BREAKOUT_CONFIRMATION' : 'R2', entry_execution_mode: entryExecutionMode, target_price: created.targetPrice, target_label: created.trade.target_label || position?.target_plan?.next_target_label || null, entry_timeframe: 'M5', entry_anchor_id: entryContext.entryAnchor?.anchor_id || null, entry_anchor_price: entryContext.anchorPrice, entry_anchor_time: entryContext.entryAnchor?.time || entryContext.entryAnchor?.pivot_time || null, dow_confirmation_id: selectedNormalDowConfirmation?.confirmation_id || null, dow_breakout_threshold_price: numberOrNull(selectedNormalDowConfirmation?.breakout_threshold_price), entry_opportunity_id: entryOpportunity?.opportunity_id || null, stop_basis: created.trade.risk_profile?.stop_basis || 'TARGET_DISTANCE_RATIO_WITH_HSI_ANCHOR_HARD_LIMIT', stop_price: created.trade.risk_profile?.stop_price ?? created.stopPlan?.stop_price, max_loss_to_reward_ratio: created.stopPlan?.max_loss_to_reward_ratio ?? null, reward_distance: created.stopPlan?.reward_distance ?? null, max_loss_distance: created.stopPlan?.max_loss_distance ?? null, ratio_stop_price: created.stopPlan?.ratio_stop_price ?? null, hsi_anchor_hard_limit_price: created.stopPlan?.hsi_anchor_hard_limit_price ?? entryContext.anchorPrice, hsi_anchor_hard_limit_applied: created.stopPlan?.hsi_anchor_hard_limit_applied === true, initial_units: created.trade.risk_profile?.initial_units ?? position.units_initial, unit_base_currency_amount: created.trade.risk_profile?.unit_base_currency_amount || 1000, initial_risk_jpy: created.trade.risk_profile?.initial_risk_jpy ?? null, close_policy: 'SINGLE_CLOSE', normal_hsi_anchor_lifecycle_status: created.normalAnchorLifecycle?.status || 'ACTIVE', cumulative_realized_profit_jpy: m5ExecutionPortfolioRunRealizedJpy(lifecycle.portfolio, policy), trade_cumulative_realized_profit_jpy: 0, profit_vs_initial_risk_pct: 0, risk_multiple: 0 } });
         created.trade.entry_event_id = executionEvent.event_id;
       } else if (context.ruleLane === RULE_LANE_EXPANSION_LITE && action === 'ENTRY') {
         const selectedEntryPrice = numberOrNull(selectedDecision?.execution_candidate?.price)
@@ -10783,6 +11230,48 @@
     };
   }
 
+  function batchSimulationAnalysisWindow(rowPlan, allRows) {
+    const total = Math.max(0, Array.isArray(allRows) ? allRows.length : 0);
+    const requestedStart = Math.max(0, Math.floor(numberOrNull(rowPlan?.target_start_index) ?? 0));
+    const requestedEnd = Math.max(requestedStart, Math.floor(numberOrNull(rowPlan?.target_end_index) ?? Math.max(0, total - 1)));
+    const start = Math.min(requestedStart, Math.max(0, total - 1));
+    const endExclusive = total > 0 ? Math.min(total, requestedEnd + 1) : 0;
+    const size = Math.max(1, endExclusive - start);
+    return {
+      source: 'BATCH_TARGET_PERIOD',
+      window_start: start,
+      window_size: size,
+      window_end_exclusive: endExclusive,
+      period_from: String(rowPlan?.period?.from || ''),
+      period_to: String(rowPlan?.period?.to || '')
+    };
+  }
+
+  async function loadBatchSimulationUpperMapData(profile, state) {
+    const configuredPath = profile?.dataset?.upper_map?.path
+      || state?.upperMapDataPath
+      || defaultUpperMapDataPath();
+    const normalizedPath = normalizeUpperMapDataPath(configuredPath);
+    try {
+      const loaded = await loadUpperMapDataSource(normalizedPath);
+      const rows = normalizeAllRows(loaded.source);
+      if (!rows.length) throw new Error(`UpperMap DAY Datasetに足がありません: ${normalizedPath}`);
+      return { ...loaded, path: normalizedPath, rows };
+    } catch (error) {
+      const inheritedRows = normalizeAllRows(state?.upperMapSource || {});
+      if (inheritedRows.length) {
+        return {
+          source: state.upperMapSource,
+          path: normalizedPath,
+          rows: inheritedRows,
+          from: 'current_chart_fallback',
+          warning: `Profile UpperMapの再読込に失敗したため、現在チャートで読込済みのUpperMapを使用: ${String(error?.message || error)}`
+        };
+      }
+      throw error;
+    }
+  }
+
   function batchSimulationEventRuleLane(event) {
     return String(event?.rule_lane || event?.execution?.rule_lane || RULE_LANE_NORMAL).toUpperCase();
   }
@@ -10881,9 +11370,40 @@
     if (!rowPlan.valid) {
       return { case_id: caseId, status: 'failed', dataset: descriptor, validation: { valid: false, errors: rowPlan.errors, warnings: [] }, execution_events: [], summary: rangeExecutionSummary([]), lane_summaries: batchSimulationLaneSummaries([]) };
     }
+    let upperLoaded;
+    try {
+      upperLoaded = await loadBatchSimulationUpperMapData(profile, state);
+    } catch (error) {
+      return {
+        case_id: caseId,
+        status: 'failed',
+        dataset: descriptor,
+        validation: { valid: false, errors: [`UpperMap DAY DatasetをCase用に読込できませんでした: ${String(error?.message || error)}`], warnings: [] },
+        execution_events: [],
+        summary: rangeExecutionSummary([]),
+        lane_summaries: batchSimulationLaneSummaries([])
+      };
+    }
+    const upperDescriptor = await buildBatchSimulationDatasetDescriptor(upperLoaded.source, upperLoaded.path);
+    profile.dataset.upper_map = upperDescriptor;
+    const analysisWindow = batchSimulationAnalysisWindow(rowPlan, allRows);
+    const confirmBarsByTf = simulationRunConfirmBarsMap(profile);
     const workingState = Object.assign(Object.create(state || null), {
       simulationSource: source,
       simulationAllRows: allRows,
+      upperMapSource: upperLoaded.source,
+      upperMapAllRows: upperLoaded.rows,
+      upperMapDataPath: upperLoaded.path,
+      windowStart: analysisWindow.window_start,
+      windowSize: analysisWindow.window_size,
+      windowEndExclusive: analysisWindow.window_end_exclusive,
+      syncCenterTimeMs: null,
+      chartLayout: 'm5_execution',
+      upperTimeframe: 'H1',
+      confirmBars: confirmBarsByTf.M5,
+      upperConfirmBars: confirmBarsByTf.H1,
+      dayConfirmBars: confirmBarsByTf.DAY,
+      weekConfirmBars: confirmBarsByTf.WEEK,
       simulationRunDraft: profile,
       simulationRunSnapshot: null,
       simulationRunReferenceOverrideMs: null,
@@ -10954,6 +11474,8 @@
           reference_time: String(item.row?.datetime || ''),
           mark_price: lastMarkPrice,
           execution_count: executionEvents.length,
+          failed_step_count: stepErrors.length,
+          latest_step_error: stepErrors.length ? cloneJsonValue(stepErrors[stepErrors.length - 1]) : null,
           summary,
           realized_profit_jpy: summary.realized_profit_jpy,
           unrealized_profit_jpy: summary.unrealized_profit_jpy,
@@ -10978,9 +11500,12 @@
       dataset: descriptor,
       source_mapping_snapshot: {
         primary: descriptor,
-        upper_map: cloneJsonValue(profile.dataset?.upper_map || {}),
-        loaded_from: loaded.from
+        upper_map: upperDescriptor,
+        primary_loaded_from: loaded.from,
+        upper_map_loaded_from: upperLoaded.from,
+        upper_map_warning: String(upperLoaded.warning || '')
       },
+      analysis_window: analysisWindow,
       profile_snapshot: {
         profile_id: profile.profile_id || '',
         rule_version: profile.rule_version || '',
@@ -11000,10 +11525,14 @@
       focus,
       open_position_ids: finalSnapshot?.position_lifecycle?.run_result?.open_position_ids || [],
       final_state: finalSnapshot ? compactBatchSimulationContinuationSnapshot(finalSnapshot) : null,
+      normal_entry_gate_failures: finalSnapshot
+        ? batchSimulationNormalGateFailureRowsFromSnapshot(finalSnapshot, { case_id: caseId, dataset_path: descriptor.path })
+        : [],
       step_errors: stepErrors.slice(0, 100),
       validation: { valid: Boolean(finalSnapshot) && !stopped, errors: finalSnapshot ? [] : ['有効な最終Snapshotを作成できませんでした。'], warnings: stepErrors.length ? [`${stepErrors.length}地点で評価をスキップしました。`] : [] }
     };
-    result.result_hash = stableTextHash(JSON.stringify({ case_id: result.case_id, status: result.status, summary: result.summary, event_ids: executionEvents.map(event => event.event_id) }));
+    result.normal_entry_gate_failure_summary = batchSimulationNormalGateFailureSummary(result.normal_entry_gate_failures);
+    result.result_hash = stableTextHash(JSON.stringify({ case_id: result.case_id, status: result.status, summary: result.summary, event_ids: executionEvents.map(event => event.event_id), normal_entry_gate_failure_summary: result.normal_entry_gate_failure_summary }));
     return result;
   }
 
@@ -11152,8 +11681,108 @@
       resume_policy: 'CASE_BOUNDARY_RESTART_REPLACE_RESULT',
       teacher_guard: 'Case内部のNORMAL / EXPANSION / EXPANSION_LITEは独立Portfolioとしてパラレル評価します。条件・起点・建玉・Closeは共有しません。COMBINEDは損益・件数の集計だけです。停止後の再開は完了Caseを保持し、未完了CaseをCase先頭から再評価して結果を置換します。'
     };
-    batchRun.result_hash = stableTextHash(JSON.stringify({ status, summary: combined, case_hashes: orderedCases.map(item => item.result_hash) }));
+    const normalEntryGateFailureRows = orderedCases.flatMap(item => item?.normal_entry_gate_failures || [])
+      .map((item, index) => ({ ...item, row_no: index + 1 }));
+    batchRun.normal_entry_gate_failures = {
+      schema_version: 'fx_batch_normal_entry_gate_failures_v0_1',
+      kind: 'fx_batch_normal_entry_gate_failures',
+      generated_at: completedAt,
+      rows: normalEntryGateFailureRows,
+      summary: batchSimulationNormalGateFailureSummary(normalEntryGateFailureRows)
+    };
+    batchRun.result_hash = stableTextHash(JSON.stringify({ status, summary: combined, case_hashes: orderedCases.map(item => item.result_hash), normal_entry_gate_failure_summary: batchRun.normal_entry_gate_failures.summary }));
     return { batchRun, validation };
+  }
+
+
+  function batchSimulationNormalGateFailureRowsFromSnapshot(snapshot, caseContext = {}) {
+    const opportunities = snapshot?.position_lifecycle?.portfolio?.normal_entry_opportunities || [];
+    return opportunities
+      .filter(item => item?.gate_failure && String(item?.status || '').toUpperCase() === 'MISSED')
+      .map((item, index) => {
+        const diagnostic = item.gate_failure || {};
+        const gateResults = diagnostic.gate_results || {};
+        const facts = diagnostic.facts || {};
+        return {
+          row_no: index + 1,
+          case_id: caseContext.case_id || '',
+          dataset_path: caseContext.dataset_path || '',
+          opportunity_id: item.opportunity_id || '',
+          direction: item.direction || facts.direction || '',
+          trigger_type: diagnostic.trigger_type || '',
+          evaluated_at: diagnostic.evaluated_at || item.first_r2_touch_at || '',
+          dow_confirmation_id: item.dow_confirmation_id || facts.dow_confirmation_id || '',
+          dow_confirmation_time: item.confirmed_at || facts.dow_confirmation_time || '',
+          anchor_id: item.anchor_id || facts.anchor_id || '',
+          anchor_time: item.anchor_time || facts.anchor_time || '',
+          anchor_price: numberOrNull(item.anchor_price ?? facts.anchor_price),
+          r2_price: numberOrNull(item.r2_price ?? facts.r2_price),
+          candidate_price: numberOrNull(facts.candidate_price),
+          terminal_reason_code: item.terminal_reason_code || '',
+          failure_category: diagnostic.failure_category || '',
+          primary_failure_code: diagnostic.primary_failure_code || '',
+          failed_gate_count: (diagnostic.failed_gates || []).length,
+          failed_gates: uniqueStrings(diagnostic.failed_gates || []),
+          gate_results: cloneJsonValue(gateResults),
+          h4_t3_ready: gateResults.h4_t3_ready === true,
+          h1_t3_ready: gateResults.h1_t3_ready === true,
+          h4_h1_t3_aligned: gateResults.h4_h1_t3_aligned === true,
+          m5_dow_aligned: gateResults.m5_dow_aligned === true,
+          h1_cycle_not_late: gateResults.h1_cycle_not_late === true,
+          entry_direction_ready: gateResults.entry_direction_ready === true,
+          cycle_guard_passed: gateResults.cycle_guard_passed === true,
+          anchor_resolved: gateResults.anchor_resolved === true,
+          anchor_matches_confirmation: gateResults.anchor_matches_confirmation === true,
+          confirmation_aligned: gateResults.confirmation_aligned === true,
+          anchor_lifecycle_ready: gateResults.anchor_lifecycle_ready === true,
+          h4_r4_guard_passed: gateResults.h4_r4_guard_passed !== false,
+          day_up_h4_down_r5_short_guard_passed: gateResults.day_up_h4_down_r5_short_guard_passed !== false
+        };
+      });
+  }
+
+  function batchSimulationNormalGateFailureSummary(rows) {
+    const gateCounts = {};
+    const primaryCounts = {};
+    (rows || []).forEach(row => {
+      uniqueStrings(row?.failed_gates || []).forEach(code => { gateCounts[code] = (gateCounts[code] || 0) + 1; });
+      const primary = String(row?.primary_failure_code || '');
+      if (primary) primaryCounts[primary] = (primaryCounts[primary] || 0) + 1;
+    });
+    const sortCounts = source => Object.entries(source)
+      .map(([code, count]) => ({ code, count }))
+      .sort((a, b) => b.count - a.count || a.code.localeCompare(b.code));
+    return {
+      opportunity_count: (rows || []).length,
+      gate_violation_count: Object.values(gateCounts).reduce((sum, value) => sum + Number(value || 0), 0),
+      gate_counts: sortCounts(gateCounts),
+      primary_failure_counts: sortCounts(primaryCounts)
+    };
+  }
+
+  function batchSimulationNormalGateFailureCsv(batchRun) {
+    const headers = [
+      'row_no','case_id','dataset_path','evaluated_at','direction','trigger_type',
+      'dow_confirmation_time','dow_confirmation_id','anchor_time','anchor_price',
+      'r2_price','candidate_price','terminal_reason_code','failure_category',
+      'primary_failure_code','failed_gate_count','failed_gates',
+      'h4_t3_ready','h1_t3_ready','h4_h1_t3_aligned','m5_dow_aligned',
+      'h1_cycle_not_late','entry_direction_ready','cycle_guard_passed',
+      'anchor_resolved','anchor_matches_confirmation','confirmation_aligned',
+      'anchor_lifecycle_ready','h4_r4_guard_passed','day_up_h4_down_r5_short_guard_passed'
+    ];
+    const csvEscape = value => `"${String(value ?? '').replace(/"/g, '""')}"`;
+    const rows = (batchRun?.normal_entry_gate_failures?.rows || []).map(item => [
+      item.row_no,item.case_id,item.dataset_path,item.evaluated_at,item.direction,item.trigger_type,
+      item.dow_confirmation_time,item.dow_confirmation_id,item.anchor_time,item.anchor_price,
+      item.r2_price,item.candidate_price,item.terminal_reason_code,item.failure_category,
+      item.primary_failure_code,item.failed_gate_count,(item.failed_gates || []).join(' / '),
+      item.h4_t3_ready,item.h1_t3_ready,item.h4_h1_t3_aligned,item.m5_dow_aligned,
+      item.h1_cycle_not_late,item.entry_direction_ready,item.cycle_guard_passed,
+      item.anchor_resolved,item.anchor_matches_confirmation,item.confirmation_aligned,
+      item.anchor_lifecycle_ready,item.h4_r4_guard_passed,item.day_up_h4_down_r5_short_guard_passed
+    ].map(csvEscape).join(','));
+    return `\uFEFF${headers.map(csvEscape).join(',')}\r\n${rows.join('\r\n')}\r\n`;
   }
 
   function batchSimulationCsv(batchRun) {
@@ -11229,7 +11858,17 @@
     for (const attempt of attempts) {
       try {
         const savedPath = await postBatchSimulationJson(fileName, batchRun, attempt.root);
-        return { saved: 1, failed: 0, errors, saved_paths: [savedPath], mode: attempt.label };
+        const savedPaths = [savedPath];
+        const gatePayload = batchRun.normal_entry_gate_failures || null;
+        if (gatePayload) {
+          try {
+            const gatePath = await postBatchSimulationJson(`${batchRun.batch_run_id}_normal_entry_gate_failures.json`, gatePayload, attempt.root);
+            savedPaths.push(gatePath);
+          } catch (gateError) {
+            errors.push(`${attempt.label}:${attempt.root}/${batchRun.batch_run_id}_normal_entry_gate_failures.json: ${gateError?.message || gateError}`);
+          }
+        }
+        return { saved: savedPaths.length, failed: errors.length, errors, saved_paths: savedPaths, mode: attempt.label };
       } catch (err) {
         errors.push(`${attempt.label}:${attempt.root}/${fileName}: ${err?.message || err}`);
       }
@@ -11299,6 +11938,8 @@
           <button class="gpt-fx-chart-btn" type="button" data-batch-action="retry-save" ${canRetryPersist ? '' : 'disabled'}>保存再試行</button>
           <button class="gpt-fx-chart-btn" type="button" data-batch-action="download-json" ${batchRun ? '' : 'disabled'}>結果JSON</button>
           <button class="gpt-fx-chart-btn" type="button" data-batch-action="download-csv" ${batchRun ? '' : 'disabled'}>集計CSV</button>
+          <button class="gpt-fx-chart-btn" type="button" data-batch-action="download-gate-json" ${batchRun ? '' : 'disabled'}>Gate失敗JSON</button>
+          <button class="gpt-fx-chart-btn" type="button" data-batch-action="download-gate-csv" ${batchRun ? '' : 'disabled'}>Gate失敗CSV</button>
           <button class="gpt-fx-chart-btn" type="button" data-batch-action="close" ${state.batchSimulationRunInProgress ? 'disabled' : ''}>閉じる</button>
         </div>
       </div>
@@ -11330,7 +11971,7 @@
         </div>
         <section class="gpt-fx-chart-batch-section"><h4 class="gpt-fx-chart-batch-section-title">対象Dataset</h4><div class="gpt-fx-chart-batch-datasets">${datasetHtml}</div></section>
         <section class="gpt-fx-chart-batch-section"><h4 class="gpt-fx-chart-batch-section-title">対象期間</h4><div class="gpt-fx-chart-batch-controls"><select class="gpt-fx-chart-batch-select" data-batch-period-mode ${state.batchSimulationRunInProgress ? 'disabled' : ''}><option value="FULL_DATASET" ${draft.period_mode === 'FULL_DATASET' ? 'selected' : ''}>全期間</option><option value="CUSTOM" ${draft.period_mode === 'CUSTOM' ? 'selected' : ''}>開始・終了指定</option></select><input class="gpt-fx-chart-batch-input" data-batch-period-from value="${escapeHtml(draft.period_from || '')}" placeholder="YYYY-MM-DD HH:mm" ${draft.period_mode === 'CUSTOM' && !state.batchSimulationRunInProgress ? '' : 'disabled'}><span>→</span><input class="gpt-fx-chart-batch-input" data-batch-period-to value="${escapeHtml(draft.period_to || '')}" placeholder="YYYY-MM-DD HH:mm" ${draft.period_mode === 'CUSTOM' && !state.batchSimulationRunInProgress ? '' : 'disabled'}></div><div class="gpt-fx-chart-batch-note" style="margin-top:7px">CUSTOM期間では、H4/H1の必要文脈分を過去側Warmupとして処理し、集計は指定期間内Eventだけを対象にします。</div></section>
-        <section class="gpt-fx-chart-batch-section"><h4 class="gpt-fx-chart-batch-section-title">処理状況</h4><div class="gpt-fx-chart-batch-progress-track"><div class="gpt-fx-chart-batch-progress-bar" style="width:${percent.toFixed(2)}%"></div></div><div class="gpt-fx-chart-batch-status">${escapeHtml(statusText)}${state.batchSimulationRunInProgress ? `<br>Case ${progress.case_no || 0}/${progress.case_total || 0} / ${escapeHtml(batchSimulationDatasetLabel(progress.dataset_path || ''))} / ${escapeHtml(progress.case_progress?.phase || '')} / ${current.toLocaleString()}/${total.toLocaleString()}足 / ${escapeHtml(progress.case_progress?.reference_time || '-')}` : ''}<br>${validation.valid ? '<span style="color:#86efac">設定OK</span>' : `<span style="color:#fca5a5">${escapeHtml((validation.errors || []).join(' / '))}</span>`}${state.batchSimulationPersistStatus ? `<br>${escapeHtml(state.batchSimulationPersistStatus)}` : ''}${persistErrorHtml}</div></section>
+        <section class="gpt-fx-chart-batch-section"><h4 class="gpt-fx-chart-batch-section-title">処理状況</h4><div class="gpt-fx-chart-batch-progress-track"><div class="gpt-fx-chart-batch-progress-bar" style="width:${percent.toFixed(2)}%"></div></div><div class="gpt-fx-chart-batch-status">${escapeHtml(statusText)}${state.batchSimulationRunInProgress ? `<br>Case ${progress.case_no || 0}/${progress.case_total || 0} / ${escapeHtml(batchSimulationDatasetLabel(progress.dataset_path || ''))} / ${escapeHtml(progress.case_progress?.phase || '')} / ${current.toLocaleString()}/${total.toLocaleString()}足 / ${escapeHtml(progress.case_progress?.reference_time || '-')} / 評価失敗 ${Number(progress.case_progress?.failed_step_count || 0).toLocaleString()}件` : ''}<br>${validation.valid ? '<span style="color:#86efac">設定OK</span>' : `<span style="color:#fca5a5">${escapeHtml((validation.errors || []).join(' / '))}</span>`}${state.batchSimulationPersistStatus ? `<br>${escapeHtml(state.batchSimulationPersistStatus)}` : ''}${persistErrorHtml}</div></section>
         <section class="gpt-fx-chart-batch-section"><h4 class="gpt-fx-chart-batch-section-title">Case結果</h4><div class="gpt-fx-chart-batch-table-wrap"><table class="gpt-fx-chart-batch-table"><thead><tr><th>Case</th><th>Status</th><th>Dataset</th><th>期間</th><th>Event</th><th>Entry</th><th>決済</th><th>利益</th><th>損失</th><th>勝率</th><th>評価損益</th><th>未決済</th><th>確認</th></tr></thead><tbody>${batchSimulationCaseRowsHtml(batchRun)}</tbody></table></div></section>
         <div class="gpt-fx-chart-batch-note">評価損益合計 = 実現損益 + 停止/表示時点の含み損益。1単位=1,000通貨の表示用試算で、手数料・スリッページ・税・資金管理は含みません。勝率は利益Close ÷（利益Close + 損失Close）です。</div>
       </div>`;
@@ -13602,7 +14243,7 @@
       rule_entry_hsi_anchor_stop_fixed: 'Entry時に使用したHSI起点をStopとして固定',
       rule_normal_close_miss_target_distance_ratio: 'Target距離×max_loss_to_reward_ratioでNormal StopをEntry時に固定',
       rule_normal_hsi_anchor_hard_limit: '倍率StopがHSI起点より遠い場合はHSI起点をHard Limitとして採用',
-      rule_normal_pre_entry_dow_structure_break_expires_opportunity: 'Entry前に後発の逆方向M5 Dow Confirmationが成立した場合だけWAITING_R2 Opportunityを失効',
+      rule_normal_pre_entry_dow_structure_break_expires_opportunity: 'Entry前の確定Dow崩壊でWAITING_R2 OpportunityとHSI起点を失効',
       rule_normal_h4_same_direction_r4_entry_guard: 'NORMALはH4現在波と同方向へR4以上進行後の新規Entryを禁止',
       rule_day_up_h4_down_r5_short_entry_guard: 'Day UpかつH4 Down R5以上で新規Short Entryを禁止',
       rule_single_position_single_close: '1 Entryにつき1 Position・1回の全Close',
@@ -17279,6 +17920,20 @@
       }
       if (action === 'download-csv' && state.batchSimulationRunSnapshot) {
         downloadBatchSimulationArtifact(`${state.batchSimulationRunSnapshot.batch_run_id}_summary.csv`, batchSimulationCsv(state.batchSimulationRunSnapshot), 'text/csv;charset=utf-8');
+        return;
+      }
+      if (action === 'download-gate-json' && state.batchSimulationRunSnapshot) {
+        const payload = state.batchSimulationRunSnapshot.normal_entry_gate_failures || {
+          schema_version: 'fx_batch_normal_entry_gate_failures_v0_1',
+          kind: 'fx_batch_normal_entry_gate_failures',
+          rows: [],
+          summary: batchSimulationNormalGateFailureSummary([])
+        };
+        downloadBatchSimulationArtifact(`${state.batchSimulationRunSnapshot.batch_run_id}_normal_entry_gate_failures.json`, JSON.stringify(payload, null, 2), 'application/json;charset=utf-8');
+        return;
+      }
+      if (action === 'download-gate-csv' && state.batchSimulationRunSnapshot) {
+        downloadBatchSimulationArtifact(`${state.batchSimulationRunSnapshot.batch_run_id}_normal_entry_gate_failures.csv`, batchSimulationNormalGateFailureCsv(state.batchSimulationRunSnapshot), 'text/csv;charset=utf-8');
         return;
       }
       if (action === 'start' || action === 'resume' || action === 'retry-failed') {

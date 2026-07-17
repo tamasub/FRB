@@ -10,8 +10,8 @@
   ],
   "scope": "gpt_fx_lab overlay only",
   "core_change": false,
-  "description": "Entry成績表の選択行から新しいタブでM5実行 + H1+H4レイアウトを開き、元Batch JSONの選択Trade Entry/Add-on/Close Eventを実行マーカーとして投影する。固定十字と既存Simulation判断ポップオーバーも維持する。",
-  "version": "0.9.1.08",
+  "description": "App v0.9.1.13 / Simulation Rule v0.24対応。NORMAL Entry OpportunityがR2初回タッチまたはDow確定時R2到達済みでGate未成立になった場合、個別Gate結果・失敗Gate一覧・時刻・Dow Confirmation・HSI起点・候補価格を記録する。Batch結果へGate失敗JSONを内包し、自動保存・画面ダウンロード用JSON/CSVを追加する。v0.9.1.12までのBatch環境分離とv0.24 Lifecycle契約を維持する。",
+  "version": "0.9.1.13",
   "signal_policy": {
     "visible_marker": "candidate_basis_retired_circle_marker",
     "removed_marker": "dow_structure_decision_arrow_marker",
@@ -200,7 +200,7 @@
     "simulation_virtual_pnl_unit_base_currency_amount": 1000,
     "simulation_virtual_pnl_currency": "JPY",
     "simulation_virtual_pnl_fee_slippage_tax_included": false,
-    "normal_entry_rule_version": "v0.23",
+    "normal_entry_rule_version": "v0.24",
     "normal_entry_h4_dow_required": false,
     "normal_entry_h4_t3_direction_required": true,
     "normal_entry_h1_m5_dow_match_required": true,
@@ -368,7 +368,11 @@
     "expansion_lite_entry_guard_rule_version": "v0.21",
     "normal_entry_pre_entry_dow_break_invalidates_hsi_anchor": true,
     "normal_pre_entry_dow_structure_break_policy": "NEWER_OPPOSITE_DOW_CONFIRMATION_ONLY",
-    "normal_pre_entry_transient_states_expire_opportunity": false
+    "normal_pre_entry_transient_states_expire_opportunity": false,
+    "normal_hsi_anchor_rule_version": "v0.24",
+    "pre_entry_confirmed_dow_break_retires_anchor_opportunity_r2_history": true,
+    "same_direction_reconfirmation_after_break_uses_new_previous_swing": true,
+    "post_entry_dow_break_observe_only_no_close": true
   },
   "display_policy": {
     "high_low_range_style": {
@@ -1135,7 +1139,7 @@
     "parallel_rule_lane_positions_support": true,
     "simultaneous_multi_lane_entry_support": true,
     "cross_lane_condition_sharing": "FORBIDDEN",
-    "normal_entry_rule_version": "v0.23",
+    "normal_entry_rule_version": "v0.24",
     "normal_entry_cycle_late_guard_timeframes": [
       "H1"
     ],
@@ -1165,7 +1169,7 @@
         "JSON",
         "CSV"
       ],
-      "teacher_guard": "損益は1単位=1,000通貨の表示用試算。評価損益=実現+含み。手数料・スリッページ・税・資金管理・リアル注文は対象外。約定価格が方向不正または足OHLC外の場合は損益へ反映しない。",
+      "teacher_guard": "Batch Caseは現在のチャート表示窓・同期位置・UpperMap非同期読込状態を継承しない。対象期間をCase専用分析窓へ固定し、Profile指定UpperMap DAYをCase単位で読込する。損益は1単位=1,000通貨の表示用試算。評価損益=実現+含み。手数料・スリッページ・税・資金管理・リアル注文は対象外。",
       "stop_resume_policy": "CASE_BOUNDARY_RESTART_REPLACE_RESULT",
       "resume_skips_completed_cases": true,
       "retry_failed_cases": true,
@@ -1204,12 +1208,20 @@
       ],
       "progress_event_min_interval_ms": 500,
       "hide_chart_during_batch": true,
-      "suppress_chart_redraw_during_batch": true
+      "suppress_chart_redraw_during_batch": true,
+      "analysis_scope_source": "BATCH_TARGET_PERIOD_NOT_CURRENT_CHART_WINDOW",
+      "upper_map_source_policy": "LOAD_PROFILE_DATASET_PER_CASE_WITH_CURRENT_CHART_FALLBACK",
+      "progress_failed_step_count_visible": true,
+      "normal_entry_gate_failure_log_enabled": true,
+      "normal_entry_gate_failure_json_enabled": true,
+      "normal_entry_gate_failure_csv_enabled": true,
+      "normal_entry_gate_failure_multi_gate_count_policy": "OPPORTUNITY_AND_EXTENDED_GATE_COUNTS"
     },
     "simulation_rule_revision_support": [
       "v0.21",
       "v0.22",
-      "v0.23"
+      "v0.23",
+      "v0.24"
     ],
     "normal_close_miss_policy": {
       "strategy_id": "target_distance_ratio_v0_1",

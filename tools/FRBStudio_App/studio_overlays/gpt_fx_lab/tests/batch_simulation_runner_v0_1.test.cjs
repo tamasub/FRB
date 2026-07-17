@@ -17,7 +17,7 @@ const manifestPath = artifactPath('studio_overlays','gpt_fx_lab','plugins','fx_c
 const source = fs.readFileSync(pluginPath, 'utf8');
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 
-assert.equal(manifest.version, '0.9.1.08');
+assert.equal(manifest.version, '0.9.1.13');
 assert.equal(manifest.display_policy.batch_simulation_runner.enabled, true);
 assert.equal(manifest.display_policy.batch_simulation_runner.execution_mode, 'SEQUENTIAL_CASES');
 assert.equal(manifest.display_policy.batch_simulation_runner.show_cumulative_realized_profit, true);
@@ -27,6 +27,9 @@ assert.equal(manifest.display_policy.batch_simulation_runner.progress_yield_ever
 assert.equal(manifest.display_policy.batch_simulation_runner.progress_event_min_interval_ms, 500);
 assert.equal(manifest.display_policy.batch_simulation_runner.hide_chart_during_batch, true);
 assert.equal(manifest.display_policy.batch_simulation_runner.suppress_chart_redraw_during_batch, true);
+assert.equal(manifest.display_policy.batch_simulation_runner.analysis_scope_source, 'BATCH_TARGET_PERIOD_NOT_CURRENT_CHART_WINDOW');
+assert.equal(manifest.display_policy.batch_simulation_runner.upper_map_source_policy, 'LOAD_PROFILE_DATASET_PER_CASE_WITH_CURRENT_CHART_FALLBACK');
+assert.equal(manifest.display_policy.batch_simulation_runner.progress_failed_step_count_visible, true);
 assert.equal(manifest.chart_viewer_policy.batch_simulation_cumulative_realized_profit_always_visible, true);
 
 const hook = `window.__batchSimulationTest={
@@ -43,7 +46,8 @@ const hook = `window.__batchSimulationTest={
   batchSimulationShouldExecuteCase,
   batchSimulationExistingCaseByPath,
   validateBatchSimulationDraft,
-  batchSimulationFormatJpy
+  batchSimulationFormatJpy,
+  batchSimulationAnalysisWindow
 };`;
 const closeIndex = source.lastIndexOf('})();');
 assert.ok(closeIndex > 0, 'Plugin IIFE終端を検出できません。');
@@ -83,6 +87,12 @@ assert.equal(rowPlan.valid, true);
 assert.equal(rowPlan.warmup_bar_count, 4800);
 assert.equal(rowPlan.target_bar_count, 11);
 assert.equal(rowPlan.process_rows.length, 4811);
+const fullAnalysisWindow = api.batchSimulationAnalysisWindow({ target_start_index: 0, target_end_index: 5999, period: { from: bars[0].datetime, to: bars[5999].datetime } }, bars);
+assert.equal(fullAnalysisWindow.window_start, 0);
+assert.equal(fullAnalysisWindow.window_size, 6000);
+const customAnalysisWindow = api.batchSimulationAnalysisWindow({ target_start_index: 5000, target_end_index: 5010, period: { from: bars[5000].datetime, to: bars[5010].datetime } }, bars);
+assert.equal(customAnalysisWindow.window_start, 5000);
+assert.equal(customAnalysisWindow.window_size, 11);
 
 const events = [
   { event_type: 'close', rule_lane: 'NORMAL', execution: { realized_profit_jpy: 1200, exit_type: 'TARGET_EXIT' } },
@@ -177,3 +187,7 @@ assert.equal(manifest.display_policy.batch_simulation_runner.case_internal_rule_
 
 console.log('PASS batch_simulation_runner_v0_1');
 console.log(`warmup=${rowPlan.warmup_bar_count}, target=${rowPlan.target_bar_count}, pnl=${combined.realized_profit_jpy}`);
+
+assert.match(source, /upperMapSource: upperLoaded\.source/, 'Batch CaseはProfile UpperMapを明示所有する');
+assert.match(source, /windowStart: analysisWindow\.window_start/, 'Batch Caseは現在チャートwindowStartを継承しない');
+assert.match(source, /評価失敗/, 'Batch進捗へSnapshot評価失敗件数を表示する');

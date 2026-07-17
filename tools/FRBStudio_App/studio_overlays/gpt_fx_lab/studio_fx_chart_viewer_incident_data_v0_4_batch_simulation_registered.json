@@ -6,13 +6,13 @@
   "target": "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer",
   "status": "active",
   "created_at": "2026-07-05",
-  "updated_at": "2026-07-14T23:10:00+09:00",
+  "updated_at": "2026-07-16T22:30:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "GPT FX Lab の fx_chart_viewer が、単なるチャート表示から、M5/H1/H4同期観測、HSI仮説可視化、コメント/判断ログ共有へ育っていくため、Studio本体インシデントとは別枠で改修履歴・判断ログ・将来要望を管理する。",
   "operation_policy": "ViewDefは既存の studio_work_incident_view_def_v0_5.json を共通利用する。fx_chart_viewer固有の作業はこの専用インシデントファイルへ登録し、Studio本体汎用機能とドメイン専用Overlay機能を混ぜない。実装パッチでは、更新ファイルのみZIP返却し、未更新ファイルや.bakを含めない。",
   "standard_field_policy": "このファイルは既存インシデント管理Dataの構造を踏襲する。work_item_id / phase / status / discussion_history / decision_log / change_history 等は、インシデント管理Dataの契約として扱う。",
-  "items_count": 34,
+  "items_count": 39,
   "main_context_status": "draft",
   "main_context_updated_at": "2026-07-12T19:38:58+09:00",
   "main_context_draft": "# 主文脈素案: インシデント管理Data\n\n## 読む目的\nこのインシデント管理Data全体を扱うAIが、作業前に読むべき正本・ViewDef・Foundation Rules・Runtime対象を確認できるようにする。\n\n## 基本方針\n- Data JSONを作業台帳の正本として扱う。\n- ViewDefは表示・編集体験の定義として扱う。\n- 主文脈はData全体を扱う前に読む入口、対象文脈は各作業項目を扱う前に読む入口として分ける。\n- グリッドは編集用、プレビューは読むためのUIとして分離する。\n\n## 注意\nFoundation Rule 19のZIP返却契約とdiscussion_history実発言契約を優先する。",
@@ -3152,15 +3152,672 @@
       ],
       "completion_summary": "一括Simulation中はBatch Runnerだけを表示し、通常チャートの行抽出・候補点生成・Canvas描画を停止。周期進捗描画を50足→250足へ削減し、Event起因更新も500ms単位へ間引いた。17,000足なら周期ダイヤログ再生成は約340回→約68回（約80%削減）。",
       "test_result": "16 tests PASS。entry_result_rows_builder_v0_1.test.cjs は、入力ZIPに studio_overlays/gpt_fx_lab/simulation/tools/build_entry_result_rows_v0_1.cjs が存在しない既存欠品のためSKIP。plugin.js node --check PASS、plugin.json JSON parse PASS。"
+    },
+    {
+      "work_item_id": "fx_chart_viewer_work_0035",
+      "parent_work_item_id": "fx_chart_viewer_work_0033",
+      "phase": "v0.9.1.09-normal-hsi-anchor-v0.24-lifecycle",
+      "title": "Simulation Rule v0.24：Dow崩壊後のNormal HSI起点再確定 / Entry後非Close",
+      "incident_type": "simulation_rule_lifecycle_correction",
+      "category": "GPT FX Lab / Simulation / NORMAL / Dow Lifecycle / HSI Anchor",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-16T18:45:00+09:00",
+      "updated_at": "2026-07-16T18:45:00+09:00",
+      "target_files": [
+        "studio_overlays/gpt_fx_lab/CHANGELOG.md",
+        "studio_overlays/gpt_fx_lab/GPT_FX_Lab_Context_Summary.md",
+        "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js",
+        "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_reason_rule_catalog_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_expansion_lite_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_normal_plus_expansion_lite_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/reports/simulation_rule_v0_24_update_report.json",
+        "studio_overlays/gpt_fx_lab/studio_manifest.json",
+        "studio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4_batch_simulation_registered.json",
+        "studio_overlays/gpt_fx_lab/tests/batch_simulation_runner_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/crosshair_lock_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/dow_breakout_threshold_entry_price_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/entry_result_chart_url_navigation_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/expansion_lite_rule_lane_v0_18.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/hsi_line_color_rotation_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/normal_h1_only_cycle_late_guard_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/normal_hsi_anchor_trade_lifecycle_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/normal_hsi_anchor_v0_24_break_reconfirm_no_close.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/normal_plus_expansion_lite_orchestration_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/simulation_execution_marker_pointer_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/simulation_profile_contract_v0_14.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/simulation_rule_v0_21_to_v0_23.test.cjs"
+      ],
+      "objective": "Entry前Dow崩壊から同方向Dow再確定までのNormal HSI Anchor Lifecycleを正しく実装し、旧起点由来の誤ったR2 Entryを防ぐ。同時に、R2 Entry後のDow崩壊単独ではNORMAL PositionをCloseしない契約を固定する。",
+      "background": "失敗Tradeのチャート確認で、Dow崩壊後も旧HSI起点または誤った後続起点が使われ、本来の新しいDow構造のprevious SwingからR2を評価できていないことが判明した。またEntry前失効ロジックがEntry後Closeへ誤流用されないことを明示する必要があった。",
+      "scope": [
+        "M5 replayにおけるEntry前Dow崩壊Barrier",
+        "旧breakout Confirmationの復活防止",
+        "Normal HSI Anchor Lifecycle v0_2",
+        "WAITING_R2 OpportunityとR2履歴の失効",
+        "新Dow breakout Confirmationのprevious Swing Anchor採用",
+        "NORMAL Entry後Dow崩壊のObserve Only / No Close",
+        "Profile / Reason Catalog / Manifest / Incident / Test更新"
+      ],
+      "out_of_scope": [
+        "Entry後Dow崩壊を新しいNORMAL Close条件へ追加すること",
+        "EXPANSION_LITE Structural Exitの変更",
+        "過去Batch結果JSONの再生成",
+        "動的Stop倍率計算",
+        "Studio Core変更"
+      ],
+      "expected_outputs": [
+        "v0.24 Normal HSI Anchor Lifecycle実装",
+        "旧Confirmation/Anchor/Opportunity/R2履歴の一括失効",
+        "新Dow再確定後のprevious Swing起点採用",
+        "Entry後Dow崩壊の非Close Trace",
+        "Profile / Catalog / Manifest更新",
+        "Focused回帰テストと更新レポート"
+      ],
+      "risk": "Dow Stateの一時的な非方向化を過剰に崩壊扱いすること、古いbreakout Confirmationを再取得すること、再確定点をAnchorと誤認すること、Entry後のDow崩壊でPositionやTrade用Anchorを破棄すること、M5 replay再走査で性能を悪化させること。",
+      "test_points": [
+        "Entry前Dow崩壊で旧Confirmation / Anchor / Opportunity / R2履歴を終了する",
+        "崩壊後から新Dow ConfirmationまでAnchorなし",
+        "新Dow再確定でprevious Low / previous HighをAnchor採用する",
+        "Dow再確定点そのものをAnchorにしない",
+        "同一構造内の同方向継続だけでAnchorを乗り換えない",
+        "R2 Entry後のDow崩壊ではCloseしない",
+        "Entry後はTrade用Anchor / Target / Stopを固定する",
+        "EXPANSION_LITE Structural ExitとNORMALを混ぜない",
+        "Plugin構文 / JSON / Profile Validator / 既存回帰を維持する"
+      ],
+      "user_request": "app改修お願いします。インシデント（studio_fx_chart_viewer_incident_data_v0_4_batch_simulation_registered.json）更新もお願いね。",
+      "ai_response": "Simulation Rule v0.24に合わせ、M5 Dow崩壊Barrier、Normal HSI Anchor再確定Lifecycle、Entry後Dow崩壊のObserve Only / No CloseをPlugin・Profile・Reason Catalog・Testへ実装し、インシデントと更新レポートを更新した。",
+      "discussion_history": [
+        {
+          "speaker": "tamasub",
+          "spoken_at": "2026-07-16",
+          "text": "うんとねぇ。まずHSI起点がまちがっているよね？それと、R２タッチでエントリーって話も無視されていると思うのよね・・・。ダウ理論が崩壊したら、ＨＳＩ起点も一回崩壊だよ？？"
+        },
+        {
+          "speaker": "tamasub",
+          "spoken_at": "2026-07-16",
+          "text": "一応念のため、R2タッチでエントリーした後は、daw崩壊でCloseって話はないけど、そこは大丈夫？"
+        },
+        {
+          "speaker": "tamasub",
+          "spoken_at": "2026-07-16T18:45:00+09:00",
+          "text": "app改修お願いします。インシデント（studio_fx_chart_viewer_incident_data_v0_4_batch_simulation_registered.json）更新もお願いね。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_fx_chart_viewer_0035_001",
+          "at": "2026-07-16T18:45:00+09:00",
+          "decision": "Entry前の確定Dow崩壊で旧Confirmation・Normal HSI Anchor・WAITING_R2 Opportunity・旧R2履歴を同時終了する。",
+          "reason": "旧Dow構造のEntry根拠一式を残すと、崩壊後の価格到達で無効なR2 Entryが発生するため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0035_002",
+          "at": "2026-07-16T18:45:00+09:00",
+          "decision": "Dow崩壊後は、新しいM5 breakout Confirmation成立までNormal HSI Anchorを持たない。",
+          "reason": "Dowが再確定していない期間に起点を推測・乗り換えすると、R2境界が恣意的に変わるため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0035_003",
+          "at": "2026-07-16T18:45:00+09:00",
+          "decision": "新しいDow再確定時は、再確定点ではなく新構造のprevious Low / previous HighをNormal HSI Anchorへ採用する。",
+          "reason": "Dow再確定点は突破Triggerであり、波の開始点であるHSI起点とは責務が異なるため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0035_004",
+          "at": "2026-07-16T18:45:00+09:00",
+          "decision": "R2 Entry成立後のDow崩壊は観測Traceだけを残し、NORMAL PositionをCloseしない。",
+          "reason": "Entry前の切符失効とEntry後のPosition管理は別責務であり、現行NORMAL CloseはTarget / Effective Stopだけだから。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0035_005",
+          "at": "2026-07-16T18:45:00+09:00",
+          "decision": "M5 replayでbreakout候補を非方向Eventごとに再走査せず、1回解決して最新Break Eventと比較する。",
+          "reason": "v0.24 Lifecycleを維持しつつVisible Range Simulationの不要な全Row再走査を避けるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_fx_chart_viewer_0035_001",
+          "at": "2026-07-16T18:45:00+09:00",
+          "change_type": "normal_hsi_anchor_v0_24_lifecycle_implemented",
+          "before": "Entry前Dow崩壊が旧breakout Confirmationと起点のLifecycle境界として十分に扱われず、崩壊後に旧起点または誤った起点からR2 Entryする余地があった。",
+          "after": "確定Dow崩壊をBarrierとして旧根拠一式を終了し、新しいbreakout Confirmationのprevious SwingからAnchorとR2を再構築する。Entry後崩壊はObserve OnlyでCloseしない。",
+          "reason": "ルール文書v0.24とSimulation実行結果を一致させるため。"
+        }
+      ],
+      "verification_status": "Plugin node --check PASS / JSON Parse PASS / Profile Validator PASS / Node tests 17件PASS / 実データ全Range Lifecycleテスト1件は180秒TIMEOUT",
+      "actual_updated_files": [
+        "studio_overlays/gpt_fx_lab/CHANGELOG.md",
+        "studio_overlays/gpt_fx_lab/GPT_FX_Lab_Context_Summary.md",
+        "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js",
+        "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_reason_rule_catalog_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_expansion_lite_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_normal_plus_expansion_lite_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/reports/simulation_rule_v0_24_update_report.json",
+        "studio_overlays/gpt_fx_lab/studio_manifest.json",
+        "studio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4_batch_simulation_registered.json",
+        "studio_overlays/gpt_fx_lab/tests/batch_simulation_runner_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/crosshair_lock_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/dow_breakout_threshold_entry_price_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/entry_result_chart_url_navigation_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/expansion_lite_rule_lane_v0_18.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/hsi_line_color_rotation_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/normal_h1_only_cycle_late_guard_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/normal_hsi_anchor_trade_lifecycle_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/normal_hsi_anchor_v0_24_break_reconfirm_no_close.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/normal_plus_expansion_lite_orchestration_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/simulation_execution_marker_pointer_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/simulation_profile_contract_v0_14.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/simulation_rule_v0_21_to_v0_23.test.cjs"
+      ],
+      "completion_summary": "Simulation Rule v0.24をAppへ反映。Entry前Dow崩壊後の旧Confirmation・起点・Opportunity・R2履歴を破棄し、新しいDow再確定のprevious SwingからR2を再評価する。R2 Entry後のDow崩壊はTraceのみで、NORMAL Position・Trade用Anchor・Target・Stopを維持する。",
+      "test_result": "PASS 17 tests + Plugin syntax + JSON parse + Profile validator。normal_hsi_anchor_trade_lifecycle_v0_1.test.cjs は180秒で未完了。詳細は simulation/reports/simulation_rule_v0_24_update_report.json。"
+    },
+    {
+      "work_item_id": "fx_chart_viewer_work_0036",
+      "parent_work_item_id": "fx_chart_viewer_work_0035",
+      "phase": "v0.9.1.10-normal-active-confirmation-r2-fix",
+      "title": "v0.24回帰：WAITING_R2起点乗り換え・Dow崩壊後Confirmation再検索漏れ",
+      "incident_type": "simulation_regression_bug",
+      "category": "GPT FX Lab / Simulation / NORMAL / Shared Dow Confirmation / R2 Entry",
+      "priority": "critical",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-16T19:35:00+09:00",
+      "updated_at": "2026-07-16T19:35:00+09:00",
+      "target_files": [
+        "studio_overlays/gpt_fx_lab/CHANGELOG.md",
+        "studio_overlays/gpt_fx_lab/GPT_FX_Lab_Context_Summary.md",
+        "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js",
+        "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_reason_rule_catalog_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_expansion_lite_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_normal_plus_expansion_lite_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/reports/simulation_rule_v0_24_active_confirmation_r2_fix_report.json",
+        "studio_overlays/gpt_fx_lab/studio_manifest.json",
+        "studio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4_batch_simulation_registered.json",
+        "studio_overlays/gpt_fx_lab/tests/normal_active_confirmation_r2_v0_24_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/shared_dow_reconfirmation_after_break_v0_24_1.test.cjs"
+      ],
+      "objective": "WAITING_R2中の有効Confirmation/HSI起点を固定し、Dow崩壊後の新しいConfirmationを再検索して、正しいR2初回タッチとRule Lane共通Dow事実を復元する。",
+      "background": "batch_20260716_185516で、通常EntryがAnchor 154.735 / R2 155.269 / 17:14となり、全体でもEntry 9件・Add-on 0件・実現損益-9,760円まで減少した。画面上でもEntryがR2タッチに見えないという人間観測が発生した。",
+      "observed_evidence": {
+        "bad_run": {
+          "batch_run_id": "batch_20260716_185516",
+          "completed_step_count": 7229,
+          "entry_count": 9,
+          "add_on_count": 0,
+          "realized_profit_jpy": -9760,
+          "highlighted_entry": "2025-11-17 17:14 LONG 155.269 / anchor 154.735"
+        },
+        "same_cutoff_old_run": {
+          "batch_run_id": "batch_20260714_224839",
+          "cutoff_case_step_no": 7229,
+          "entry_count": 17,
+          "add_on_count": 4,
+          "realized_profit_jpy": 10096
+        },
+        "corrected_expectation": "anchor 154.620 / R2 155.154 / first touch bar 17:05 / event 17:09 / target 155.322"
+      },
+      "root_causes": [
+        "WAITING_R2中でも後続同方向Confirmationの最新ContextへAnchor/R2が乗り換わった。",
+        "Entry判断後のTrade生成がeffective固定Contextではなく最新入力Contextを再利用した。",
+        "Dow崩壊Barrierより前のConfirmationを無効化した後、Barrier以後の新しいConfirmationを再検索しなかった。"
+      ],
+      "scope": [
+        "NORMAL Active Entry Opportunityの優先・固定",
+        "effective Confirmation / Anchor / SideのEntry・Trade伝搬",
+        "Dow崩壊Barrier後のConfirmation再検索",
+        "共有Dow事実を使うEXPANSION_LITE Entry/Add-on回帰",
+        "Profile / Catalog / Manifest / Incident / Test更新"
+      ],
+      "out_of_scope": [
+        "Simulation Rule v0.24の変更",
+        "Entry後Dow崩壊をNORMAL Close条件へ追加",
+        "EXPANSION_LITE Exit条件変更",
+        "全期間Batch結果の確定・過去結果JSONの再生成"
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_fx_chart_viewer_0036_001",
+          "at": "2026-07-16T19:35:00+09:00",
+          "decision": "WAITING_R2中は最初の有効Dow Confirmationとprevious Swing AnchorをDow崩壊・Entry・Missまで固定する。",
+          "reason": "同方向の後続Confirmationは新しい観測事実でも、進行中OpportunityのR2基準を後ろへずらす理由にはならないため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0036_002",
+          "at": "2026-07-16T19:35:00+09:00",
+          "decision": "Entry判断だけでなくTrade生成もeffective active opportunity contextを使用する。",
+          "reason": "判断結果と実行Contextを分けると、Entry/Target/Stop/Lifecycleへ別Anchorが混入するため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0036_003",
+          "at": "2026-07-16T19:35:00+09:00",
+          "decision": "Dow崩壊Barrier後は、Barrier以後の最新有効Dow Confirmationを再検索する。",
+          "reason": "旧Confirmationの除外だけでは、その後の正常なConfirmationまで欠落し、複数Rule LaneのEntryが消えるため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0036_004",
+          "at": "2026-07-16T19:35:00+09:00",
+          "decision": "Simulation Ruleはv0.24のまま維持し、App Versionをv0.9.1.10とする。",
+          "reason": "今回の問題はルール変更ではなく、v0.24実装の回帰バグだから。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_fx_chart_viewer_0036_001",
+          "at": "2026-07-16T19:35:00+09:00",
+          "change_type": "active_confirmation_and_post_break_research_fixed",
+          "before": "後続同方向ConfirmationへAnchorが乗り換わり、Dow崩壊後は新しいConfirmationが再検索されず、Entryが欠落した。",
+          "after": "進行中OpportunityのConfirmation/Anchorを固定し、Barrier以後の新Confirmationを再検索して正しいR2 Entryと共有Dow事実を復元した。",
+          "reason": "人間が画面で見つけたR2不一致とEntry減少を解消するため。"
+        }
+      ],
+      "test_points": [
+        "2025-11-17の正しいAnchorが154.620になる",
+        "R2が155.154、初回タッチEventが17:09になる",
+        "Target R2.5が155.322になる",
+        "後続同方向ConfirmationでWAITING_R2 Anchorを差し替えない",
+        "Dow崩壊Barrier後の新Confirmationを再検索する",
+        "2025-10-29のNORMAL Entry / EXPANSION_LITE Entry / Add-onが復元する",
+        "Entry後Dow崩壊非Close契約を維持する",
+        "Plugin構文・JSON・Profile・既存回帰を維持する"
+      ],
+      "verification_status": "Focused real-data tests PASS / Plugin node --check PASS / JSON Parse PASS / Profile tests PASS / 既存回帰PASS（既知の全Range slow testは180秒TIMEOUT）",
+      "actual_updated_files": [
+        "studio_overlays/gpt_fx_lab/CHANGELOG.md",
+        "studio_overlays/gpt_fx_lab/GPT_FX_Lab_Context_Summary.md",
+        "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js",
+        "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_reason_rule_catalog_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_expansion_lite_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_normal_plus_expansion_lite_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/reports/simulation_rule_v0_24_active_confirmation_r2_fix_report.json",
+        "studio_overlays/gpt_fx_lab/studio_manifest.json",
+        "studio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4_batch_simulation_registered.json",
+        "studio_overlays/gpt_fx_lab/tests/normal_active_confirmation_r2_v0_24_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/shared_dow_reconfirmation_after_break_v0_24_1.test.cjs"
+      ],
+      "completion_summary": "ユーザーの違和感どおり、表示Entryは誤った起点からのR2だった。Active Confirmation固定とBarrier後再検索を実装し、代表ケースをAnchor 154.620 / R2 155.154 / Event 17:09へ修正。初期のNORMAL・Expansion-Lite Entry/Add-onもFocused実データ回帰で復元した。",
+      "test_result": "新規Focused 2件PASS。既存主要回帰PASS。全Dataset Batch完走は未確認のため、全期間損益の確定値は未提示。",
+      "user_request": "たぶん、全体的にエントリーが少なくなっている気がする。少なくても図のここのエントリーがR2のタッチになってないような気がする。確認お願い。",
+      "ai_response": "違和感を再現確認し、WAITING_R2起点乗り換え・Trade生成Context混入・Dow崩壊後Confirmation再検索漏れを修正。Incident 0036として記録した。"
+    },
+    {
+      "work_item_id": "fx_chart_viewer_work_0037",
+      "parent_work_item_id": "fx_chart_viewer_work_0036",
+      "phase": "v0.9.1.11-normal-dow-break-projection-fix",
+      "title": "v0.9.1.10回帰：Full Dataset BatchでEntryが0件になるDow崩壊事実の投影漏れ",
+      "incident_type": "batch_continuation_state_projection_regression",
+      "category": "GPT FX Lab / Simulation / Batch / Timeframe State / NORMAL HSI Lifecycle",
+      "priority": "critical",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-16T20:15:00+09:00",
+      "updated_at": "2026-07-16T20:15:00+09:00",
+      "target_files": [
+        "studio_overlays/gpt_fx_lab/CHANGELOG.md",
+        "studio_overlays/gpt_fx_lab/GPT_FX_Lab_Context_Summary.md",
+        "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js",
+        "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_expansion_lite_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_normal_plus_expansion_lite_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/reports/simulation_rule_v0_24_batch_continuation_break_projection_fix_report.json",
+        "studio_overlays/gpt_fx_lab/studio_manifest.json",
+        "studio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4_batch_simulation_registered.json",
+        "studio_overlays/gpt_fx_lab/tests/normal_dow_break_projection_batch_continuation_v0_24_2.test.cjs"
+      ],
+      "objective": "Full Dataset Batchの継続SnapshotでDow崩壊事実をExecution層へ伝搬し、古いWAITING_R2を失効させてNORMAL / EXPANSION_LITEの実行Eventを復帰させる。",
+      "background": "v0.9.1.10適用後、ブラウザキャッシュを削除して全期間Batchを実行しても、5,500 / 50,314足時点でEntry / Add-on / Close / 損益がすべて0のままとなった。",
+      "observed_evidence": {
+        "ui_progress": "TARGET / 5,500 / 50,314足 / Entry 0 / Add-on 0 / 決済 0 / 評価損益 0円",
+        "initial_stale_confirmation": "2025-10-28 14:30のDown ConfirmationがWAITING_R2として残留",
+        "required_break": "2025-10-28 17:50 REVERSAL_WATCHで失効すべき"
+      },
+      "root_causes": [
+        "Dow Trend Snapshotはnormal_dow_structure_breakを生成していたが、Timeframe State trend_detailへコピーしていなかった。",
+        "NORMAL Entry EvaluatorはTimeframe Stateを入力にするため、Batch continuationではDow崩壊を認識できなかった。",
+        "v0.9.1.10のActive Confirmation固定が、失効しない古いWAITING_R2を保持し続けた。"
+      ],
+      "scope": [
+        "Dow Trend→Timeframe State projection",
+        "Batch continuation lifecycle",
+        "NORMAL旧Opportunity失効",
+        "共有Dow後のNORMAL / EXPANSION_LITE復帰",
+        "Version / Manifest / Incident / Test同期"
+      ],
+      "out_of_scope": [
+        "Simulation Rule v0.24変更",
+        "NORMAL Entry後Dow崩壊Close",
+        "全期間Batch完走値の確定"
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_fx_chart_viewer_0037_001",
+          "at": "2026-07-16T20:15:00+09:00",
+          "decision": "normal_dow_structure_breakをM5 Timeframe State trend_detailへ明示投影する。",
+          "reason": "Execution Evaluatorの入力境界で崩壊事実を欠落させないため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0037_002",
+          "at": "2026-07-16T20:15:00+09:00",
+          "decision": "directional_regime_resetも同じ境界へ投影する。",
+          "reason": "Dow LifecycleのReset根拠をTimeframe State単体で追跡可能にするため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0037_003",
+          "at": "2026-07-16T20:15:00+09:00",
+          "decision": "Focused区間だけでなく、Full Dataset開始時の古いWAITING_R2を持ったBatch continuation回帰をテストする。",
+          "reason": "前回Focusedテストが初期残留状態を再現できず、回帰を見逃したため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0037_004",
+          "at": "2026-07-16T20:15:00+09:00",
+          "decision": "Rule v0.24は維持し、App Versionをv0.9.1.11へ更新する。",
+          "reason": "ルールではなく状態投影の実装不備だから。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_fx_chart_viewer_0037_001",
+          "at": "2026-07-16T20:15:00+09:00",
+          "change_type": "dow_break_projection_added",
+          "before": "Timeframe Stateにnormal_dow_structure_breakがなく、旧WAITING_R2がBatch継続で残留。",
+          "after": "崩壊事実をTimeframe Stateへ投影し、旧OpportunityをEXPIRED、Anchor LifecycleをAWAITING_NEW_DOW_CONFIRMATIONへ遷移。",
+          "reason": "Full Dataset Batchの0件回帰を解消するため。"
+        }
+      ],
+      "test_points": [
+        "最初のDown WAITING_R2が生成される",
+        "REVERSAL_WATCH時にnormal_dow_structure_breakがTimeframe Stateへ存在する",
+        "旧OpportunityがEXPIREDになる",
+        "Active Anchor / Confirmationがnullになる",
+        "NORMAL Entry 2025-10-29 21:04が復帰する",
+        "EXPANSION_LITE Entry 21:39が復帰する",
+        "EXPANSION_LITE Add-on 21:44が復帰する",
+        "既存R2固定・Entry後非Close契約を維持する"
+      ],
+      "verification_status": "新規Batch continuation実データ回帰PASS / Focused R2回帰PASS / Shared Dow回帰PASS / Plugin node --check PASS / JSON Parse PASS",
+      "actual_updated_files": [
+        "studio_overlays/gpt_fx_lab/CHANGELOG.md",
+        "studio_overlays/gpt_fx_lab/GPT_FX_Lab_Context_Summary.md",
+        "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js",
+        "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_expansion_lite_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_normal_plus_expansion_lite_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/reports/simulation_rule_v0_24_batch_continuation_break_projection_fix_report.json",
+        "studio_overlays/gpt_fx_lab/studio_manifest.json",
+        "studio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4_batch_simulation_registered.json",
+        "studio_overlays/gpt_fx_lab/tests/normal_dow_break_projection_batch_continuation_v0_24_2.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/batch_simulation_runner_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/crosshair_lock_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/entry_result_chart_url_navigation_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/expansion_lite_rule_lane_v0_18.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/hsi_line_color_rotation_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/normal_plus_expansion_lite_orchestration_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/simulation_execution_marker_pointer_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/simulation_profile_contract_v0_14.test.cjs"
+      ],
+      "completion_summary": "環境差ではなく、Dow崩壊事実のTimeframe State投影漏れが原因。Full Dataset先頭の古いWAITING_R2を正しく失効させ、初期NORMAL / EXPANSION_LITE Entry・Add-onを復帰した。",
+      "test_result": "代表継続経路PASS。全50,314足の完走は未確認。",
+      "user_request": "ブラウザキャッシュをクリアしても、一括SimulationでEntryがまったく行われなくなった。",
+      "ai_response": "Batch継続Snapshotの状態投影漏れを特定し、v0.9.1.11で修正。Incident 0037として記録。"
+    },
+    {
+      "work_item_id": "fx_chart_viewer_work_0038",
+      "parent_work_item_id": "fx_chart_viewer_work_0037",
+      "phase": "v0.9.1.12-batch-analysis-scope-isolation-fix",
+      "title": "v0.9.1.11回帰：Batch Caseが現在チャート表示窓・UpperMap読込状態を継承してEntry 0件",
+      "incident_type": "batch_case_environment_state_leak_regression",
+      "category": "GPT FX Lab / Simulation / Batch / Analysis Scope / DataSource Isolation",
+      "priority": "critical",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-16T20:45:00+09:00",
+      "updated_at": "2026-07-16T20:45:00+09:00",
+      "target_files": [
+        "studio_overlays/gpt_fx_lab/CHANGELOG.md",
+        "studio_overlays/gpt_fx_lab/GPT_FX_Lab_Context_Summary.md",
+        "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js",
+        "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_expansion_lite_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_normal_plus_expansion_lite_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/reports/simulation_rule_v0_24_batch_analysis_scope_isolation_fix_report.json",
+        "studio_overlays/gpt_fx_lab/studio_manifest.json",
+        "studio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4_batch_simulation_registered.json",
+        "studio_overlays/gpt_fx_lab/tests/batch_simulation_case_environment_isolation_v0_24_3.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/batch_simulation_runner_v0_1.test.cjs"
+      ],
+      "objective": "Batch Caseを現在チャートUI状態から分離し、全期間・CUSTOM期間をProfileとCase定義だけで再現可能にする。",
+      "background": "最新資材v0.9.1.11を確認しても、実ブラウザでは8,750 / 50,314足までEntry / Add-on / Closeが0件。一方、全件windowを明示したVMテストでは初期Entryが復帰した。",
+      "observed_evidence": {
+        "ui_progress": "TARGET / 8,750 / 50,314足 / Entry 0 / Add-on 0 / 決済 0 / 評価損益 0円",
+        "asset_plugin_marker": "v0.9.1.11-normal-dow-break-projection-fix",
+        "deterministic_vm_result": [
+          "2025-10-29 21:04 NORMAL Entry",
+          "2025-10-29 21:39 EXPANSION_LITE Entry",
+          "2025-10-29 21:44 EXPANSION_LITE Add-on"
+        ],
+        "difference": "VM stateはwindowStart=0/windowSize=全件/UpperMap読込済み。実Batchは現在チャートstateを暗黙継承。"
+      },
+      "root_causes": [
+        "Batch workingStateが現在チャートのwindowStart/windowSizeを継承し、Swing分析のperiod.fromがCase対象期間ではなく表示窓に依存した。",
+        "UpperMap DAYをCase自身で読まず、画面側非同期stateへ依存した。",
+        "進捗UIがSnapshot評価失敗件数を表示せず、Entry 0件と評価エラーを区別できなかった。",
+        "前回テストが全件windowを明示し、途中ステップを省略していたため実Batch環境差を検出できなかった。"
+      ],
+      "scope": [
+        "Batch Case分析窓固定",
+        "UpperMap DAY Case単位読込",
+        "同期位置の分離",
+        "進捗評価失敗件数",
+        "Version / Manifest / Profile / Incident / Test同期"
+      ],
+      "out_of_scope": [
+        "Simulation Rule v0.24変更",
+        "売買条件変更",
+        "全50,314足の最終損益確定"
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_fx_chart_viewer_0038_001",
+          "at": "2026-07-16T20:45:00+09:00",
+          "decision": "Batchの分析期間は現在表示窓ではなくCase target periodを正本とする。",
+          "reason": "同じDataset/Profile/期間なら画面操作に依存せず同一結果にするため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0038_002",
+          "at": "2026-07-16T20:45:00+09:00",
+          "decision": "UpperMap DAYをProfile PathからCase単位で読込する。",
+          "reason": "画面側の非同期読込タイミングをBatch成立条件にしないため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0038_003",
+          "at": "2026-07-16T20:45:00+09:00",
+          "decision": "Batch進捗へ評価失敗件数を表示する。",
+          "reason": "条件不成立0件とSnapshot評価不能を即座に区別するため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0038_004",
+          "at": "2026-07-16T20:45:00+09:00",
+          "decision": "Rule v0.24は維持し、App Versionをv0.9.1.12へ更新する。",
+          "reason": "売買ルールではなくCase実行環境の分離不備だから。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_fx_chart_viewer_0038_001",
+          "at": "2026-07-16T20:45:00+09:00",
+          "change_type": "batch_environment_isolated",
+          "before": "Batch Caseが現在チャートwindow/UpperMap stateを暗黙継承。",
+          "after": "Case対象期間windowとProfile UpperMapを明示所有。",
+          "reason": "ブラウザ環境差によるEntry 0件を解消するため。"
+        }
+      ],
+      "test_points": [
+        "全期間Case window=0..50313",
+        "CUSTOM Case window=target期間だけ",
+        "Profile UpperMapを画面stateなしで読込",
+        "syncCenterTimeMsを継承しない",
+        "進捗へ評価失敗件数",
+        "既存v0.24初期Entry回帰を維持"
+      ],
+      "verification_status": "Plugin node --check PASS / 全JSON Parse PASS / Batch環境分離テストPASS / 主要v0.24回帰PASS / hostile UI stateで実Batch 500足再生PASS（Entry 2・Event 5）",
+      "actual_updated_files": [
+        "studio_overlays/gpt_fx_lab/CHANGELOG.md",
+        "studio_overlays/gpt_fx_lab/GPT_FX_Lab_Context_Summary.md",
+        "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js",
+        "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_expansion_lite_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_normal_plus_expansion_lite_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/reports/simulation_rule_v0_24_batch_analysis_scope_isolation_fix_report.json",
+        "studio_overlays/gpt_fx_lab/studio_manifest.json",
+        "studio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4_batch_simulation_registered.json",
+        "studio_overlays/gpt_fx_lab/tests/batch_simulation_case_environment_isolation_v0_24_3.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/batch_simulation_runner_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/crosshair_lock_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/entry_result_chart_url_navigation_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/expansion_lite_rule_lane_v0_18.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/hsi_line_color_rotation_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/normal_plus_expansion_lite_orchestration_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/simulation_execution_marker_pointer_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/simulation_profile_contract_v0_14.test.cjs"
+      ],
+      "completion_summary": "tamasubの操作ミスではなく、Batchが現在チャート環境を継承する設計漏れ。Caseを表示窓・同期位置・UpperMap読込タイミングから分離した。",
+      "test_result": "現在チャートwindowStart=49,000/windowSize=1,000、同期位置=2026-06、UpperMap未読込の意図的な不利環境でも、Batch 500足時点でNORMAL Entry・EXPANSION_LITE Entry/Add-onを確認。全50,314足完走は未確認。",
+      "user_request": "最新資材を確認し、v0.9.1.11でもEntry 0件が続く原因を調査。",
+      "ai_response": "添付資材は正しいことを確認。Batch CaseのUI state漏洩を特定し、v0.9.1.12で分離修正。"
+    },
+    {
+      "work_item_id": "fx_chart_viewer_work_0039",
+      "parent_work_item_id": "fx_chart_viewer_work_0038",
+      "phase": "v0.9.1.13-normal-entry-gate-failure-log",
+      "title": "NORMAL Entry Gate未成立の個別条件をBatch JSON/CSVへ出力",
+      "incident_type": "simulation_diagnostic_observability_improvement",
+      "category": "GPT FX Lab / Simulation / NORMAL / Entry Gate / Diagnostics",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-16T22:30:00+09:00",
+      "updated_at": "2026-07-16T22:30:00+09:00",
+      "target_files": [
+        "studio_overlays/gpt_fx_lab/CHANGELOG.md",
+        "studio_overlays/gpt_fx_lab/GPT_FX_Lab_Context_Summary.md",
+        "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js",
+        "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_expansion_lite_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_normal_plus_expansion_lite_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/reports/simulation_rule_v0_24_normal_entry_gate_failure_log_report.json",
+        "studio_overlays/gpt_fx_lab/studio_manifest.json",
+        "studio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4_batch_simulation_registered.json",
+        "studio_overlays/gpt_fx_lab/tests/normal_entry_gate_failure_log_v0_1.test.cjs"
+      ],
+      "objective": "Gate未成立Opportunityについて、どのGateが何件Entryを止めたかを再Simulation後にCSV/JSONで分析可能にする。",
+      "background": "既存BatchではGate全体の最終理由のみ保存され、H4/H1 T3、M5 Dow、H1 Cycle、Anchor整合などの個別内訳を復元できなかった。",
+      "observed_evidence": {
+        "normal_entry_count": 13,
+        "generic_gate_not_ready_count": 71,
+        "limitation": "過去Batchには個別Gate結果が未保存のため、正確な内訳分析には再Simulationが必要。"
+      },
+      "root_causes": [
+        "Entry判定時の個別Gate booleanをOpportunityへ保存していなかった。",
+        "Batch成果物が実行Event中心で、未実行判断の診断ログを持っていなかった。"
+      ],
+      "scope": [
+        "Gate失敗診断構造",
+        "Case/Batch集計",
+        "専用JSON自動保存",
+        "専用JSON/CSVダウンロード",
+        "複数Gate違反の延べ件数集計",
+        "Version/Profile/Manifest/Incident/Test同期"
+      ],
+      "out_of_scope": [
+        "過去Batch 71件の個別Gate復元",
+        "Entry条件の緩和",
+        "Simulation Rule v0.24変更"
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_fx_chart_viewer_0039_001",
+          "at": "2026-07-16T22:30:00+09:00",
+          "decision": "1 Opportunityで複数Gateが失敗した場合、Opportunity件数とGate違反延べ件数を分離して保存する。",
+          "reason": "門番ランキングと複合失敗の両方を分析できるようにするため。"
+        },
+        {
+          "decision_id": "dec_fx_chart_viewer_0039_002",
+          "at": "2026-07-16T22:30:00+09:00",
+          "decision": "専用Gate失敗JSONをBatch本体JSONと同時保存し、CSVは画面から取得可能にする。",
+          "reason": "再Simulation直後に分析素材を確実に残すため。"
+        }
+      ],
+      "change_history": [
+        {
+          "changed_at": "2026-07-16T22:30:00+09:00",
+          "summary": "v0.9.1.13でNORMAL Entry Gate未成立ログ、専用JSON/CSV、集計を追加。"
+        }
+      ],
+      "test_points": [
+        "Gate未成立Opportunityにfailed_gatesとgate_resultsが保存される",
+        "Case結果へnormal_entry_gate_failuresが含まれる",
+        "Batch全体でOpportunity件数とGate違反延べ件数が集計される",
+        "専用JSON/CSVにDow Confirmation・Anchor・R2・候補価格が出力される",
+        "既存Simulation Rule v0.24のEntry/Close挙動を変更しない"
+      ],
+      "verification_status": "PASS",
+      "actual_updated_files": [
+        "studio_overlays/gpt_fx_lab/CHANGELOG.md",
+        "studio_overlays/gpt_fx_lab/GPT_FX_Lab_Context_Summary.md",
+        "studio_overlays/gpt_fx_lab/studio_fx_chart_viewer_incident_data_v0_4_batch_simulation_registered.json",
+        "studio_overlays/gpt_fx_lab/studio_manifest.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_expansion_lite_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_normal_plus_expansion_lite_v0_1.json",
+        "studio_overlays/gpt_fx_lab/simulation/fx_simulation_run_profile_v0_1.json",
+        "studio_overlays/gpt_fx_lab/tests/batch_simulation_case_environment_isolation_v0_24_3.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/batch_simulation_runner_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/crosshair_lock_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/entry_result_chart_url_navigation_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/expansion_lite_rule_lane_v0_18.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/hsi_line_color_rotation_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/normal_plus_expansion_lite_orchestration_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/simulation_execution_marker_pointer_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/simulation_profile_contract_v0_14.test.cjs",
+        "studio_overlays/gpt_fx_lab/tests/normal_entry_gate_failure_log_v0_1.test.cjs",
+        "studio_overlays/gpt_fx_lab/simulation/reports/simulation_rule_v0_24_normal_entry_gate_failure_log_report.json",
+        "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.js",
+        "studio_overlays/gpt_fx_lab/plugins/fx_chart_viewer/plugin.json"
+      ],
+      "completion_summary": "NORMAL Entry Gate未成立の個別条件を再Simulation後に分析できる診断ログを実装。",
+      "test_result": "Node構文、JSON Parse、専用回帰テストおよび既存主要テストを実行。",
+      "user_request": "Gate未成立71件をCSVなりlogに吐き出して、具体的にどの条件でひっかかっているか分析できるようにしたい。app改修よろしくお願いします。",
+      "ai_response": "v0.9.1.13としてGate失敗JSON/CSVと個別Gate診断を追加。"
     }
   ],
   "decision_log_policy": "fx_chart_viewerのUI改善・Overlay拡張では、実装差分だけでなく、違和感、採用判断、捨てた案、リスク、結果をwork_items[].decision_log / discussion_history / change_historyへ残す。この判断ログは、Studio Context Engineer Wannabe / 将来の自律的AIが、なぜそのUI・DataSource・URL責務にしたのかを学ぶための判例データとして扱う。",
-  "simulation_plan_status": "v0.23_implemented",
-  "simulation_plan_updated_at": "2026-07-13T23:58:00+09:00",
-  "simulation_plan_summary": "v0.21〜v0.23のEntry Guard、Entry前Dow崩壊失効、JSON固定倍率Normal Stopを実装。Entry後Dow崩壊Closeと動的勝率Stopは将来検討。",
-  "batch_simulation_plan_status": "parent_registered",
-  "batch_simulation_plan_updated_at": "2026-07-12T19:38:58+09:00",
-  "batch_simulation_plan_summary": "Simulation Case = Primary Dataset + Source Mapping Snapshot + Period + Run Profile Snapshot + Rule/App Version。Case内部はNORMAL/EXPANSION/EXPANSION_LITEを独立Portfolioとしてパラレル評価し、Chunk境界で状態を初期化しない。v0.1はCase逐次実行、Lane別およびCOMBINED集計、JSON/CSV成果物、結果からチャートへ戻る導線を対象とする。",
+  "simulation_plan_status": "v0.24_gate_failure_log_implemented",
+  "simulation_plan_updated_at": "2026-07-16T22:30:00+09:00",
+  "simulation_plan_summary": "NORMAL Entry Gate未成立時の個別Gate判定をBatch JSON/CSVへ保存し、再Simulation後に門番ランキングを分析可能にした。",
+  "batch_simulation_plan_status": "implemented_v0.9.1.11_continuation_projection_fixed",
+  "batch_simulation_plan_updated_at": "2026-07-16T20:15:00+09:00",
+  "batch_simulation_plan_summary": "Full Dataset Batchの継続Snapshotでnormal_dow_structure_breakを保持し、Entry 0件回帰を修正。",
   "source_materials_snapshot": {
     "registered_at": "2026-07-12T19:38:58+09:00",
     "incident_source_file": "studio_fx_chart_viewer_incident_data_v0_4_simulator_registered(13).json",

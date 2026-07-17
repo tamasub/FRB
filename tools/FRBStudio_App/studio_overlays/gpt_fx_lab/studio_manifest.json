@@ -7,7 +7,7 @@
   "owner": "chatgpt",
   "managed_by": "chatgpt",
   "created_at": "2026-07-05",
-  "updated_at": "2026-07-13",
+  "updated_at": "2026-07-16",
   "purpose": "Studioくんの「JSONを人間フレンドリーにする」コンセプトを、FX M5データ + T3オーバーレイ候補で試すための勇者Overlay。",
   "core_boundary_policy": {
     "core_root": "wwwroot/",
@@ -26,7 +26,8 @@
     "data/fx_usdjpy_m5_t3_data_v0_1.json",
     "simulattion_集計/batch_20260712_200928_entry_results.json",
     "simulattion_集計/batch_20260712_230503_entry_results.json",
-    "simulattion_集計/batch_20260714_224839_entry_results.json"
+    "simulattion_集計/batch_20260714_224839_entry_results.json",
+    "simulattion_集計/batch_20260716_205714_entry_results.json"
   ],
   "view_def_files": [
     "view_defs/fx_usdjpy_t3_view_def_v0_1.json",
@@ -37,7 +38,7 @@
   "plugin_index_files": [
     "plugins/plugin_index.json"
   ],
-  "notes": "v0.8.5: HSI R5.5以上など遠いターゲット線を描いても、縦価格スケールはチャート本体（価格/MA/T3/BB/High-Low）基準のままにする。",
+  "notes": "v0.9.1.13 / NORMAL Entry Gate未成立ログ。R2初回タッチ・Dow確定時R2到達済みでEntryできなかったOpportunityについて、個別Gate結果、失敗Gate一覧、Dow Confirmation、HSI起点、候補価格をBatch JSONへ保存し、専用JSON/CSVを出力する。Simulation Rule v0.24は変更しない。",
   "display_projection_policy": {
     "enabled": true,
     "scope": "gpt_fx_lab overlay only",
@@ -270,7 +271,7 @@
     }
   },
   "changelog_file": "CHANGELOG.md",
-  "current_fx_chart_viewer_version": "v0.9.1.07-pre-entry-dow-collapse-scope-fix",
+  "current_fx_chart_viewer_version": "v0.9.1.13-normal-entry-gate-failure-log",
   "sidecar_files": [
     "sidecars/fx_usdjpy_m5_t3_data_v0_1.chart_comments.json"
   ],

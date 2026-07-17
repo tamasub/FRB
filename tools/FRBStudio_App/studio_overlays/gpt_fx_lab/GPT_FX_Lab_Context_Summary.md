@@ -2,8 +2,108 @@
 
 更新日: 2026-07-16  
 対象: `F:\FRB\tools\FRBStudio_App\studio_overlays\gpt_fx_lab`  
-現行Plugin: `gpt_fx_lab.fx_chart_viewer v0.9.1.08-batch-render-suppression`  
+現行Plugin: `gpt_fx_lab.fx_chart_viewer v0.9.1.13-normal-entry-gate-failure-log`  
 目的: GPT FX Lab改修時に、設計境界、現在のSimulation構造、正本ファイル、テスト契約を短時間で復元するための入口。
+
+---
+
+
+## 0.0 v0.9.1.13 NORMAL Entry Gate未成立ログ（2026-07-16）
+
+- R2初回タッチまたはDow確定時R2到達済みで、通常Entry GateがそろわなかったOpportunityを専用ログ化。
+- 個別Gate判定、失敗Gate一覧、Trigger種別、Dow Confirmation、HSI起点、R2・候補価格を保存。
+- Batch JSONへ内包し、専用JSON/CSVを自動保存・画面ダウンロード可能。
+- 複数Gate失敗は、Opportunity件数とGate違反延べ件数を分離して集計。
+- Simulation Rule v0.24は変更なし。
+
+## 0.0 v0.9.1.12 Batch Case環境分離（2026-07-16）
+
+```text
+現在チャートの表示窓 / 同期位置 / UpperMap非同期読込状態
+        × Batch Caseへ継承しない
+
+Batch対象期間
+        → Case専用 windowStart / windowSize
+Profile dataset.upper_map.path
+        → Case単位でDAY DataSource読込
+```
+
+BatchのSwing分析期間は、現在表示中のチャート窓ではなくCase対象期間を正本とする。
+画面側のUpperMap読込が未完了でも、BatchはProfile指定Pathから上位足Dataを自分で取得する。
+進捗画面には`評価失敗 N件`を表示し、Entry条件不成立とSnapshot評価エラーを区別する。
+
+---
+
+## 0.1 v0.9.1.11 Batch継続SnapshotのDow崩壊投影（2026-07-16）
+
+```text
+Dow Trend Snapshot
+  normal_dow_structure_break
+        ↓ 明示投影
+Timeframe State M5.trend_detail
+        ↓
+NORMAL Entry Evaluator
+        ↓
+旧WAITING_R2 / Anchor / ConfirmationをEXPIRED
+```
+
+Full Dataset Batchは、各足のSnapshotから必要状態だけを継続する。
+Dow崩壊事実がTimeframe Stateへ存在しないと、v0.9.1.10のActive Confirmation固定が古いConfirmationを永続化してしまう。
+
+代表回帰:
+
+```text
+2025-10-28 14:30 旧Down WAITING_R2
+2025-10-28 17:50 REVERSAL_WATCH → EXPIRED
+2025-10-29 21:04 NORMAL Entry復帰
+2025-10-29 21:39 EXPANSION_LITE Entry復帰
+2025-10-29 21:44 EXPANSION_LITE Add-on復帰
+```
+
+---
+
+## 0.2 v0.9.1.10 Active Confirmation / R2固定（2026-07-16）
+
+```text
+NORMAL WAITING_R2
+→ 最初の有効Dow Confirmationを固定
+→ そのConfirmationのprevious Swing Anchorを固定
+→ 後続同方向Confirmationでは乗り換えない
+→ 固定起点のR2初回タッチを評価
+
+Dow崩壊Barrier
+→ Barrier以前のConfirmationを破棄
+→ Barrier以後の新しい有効Confirmationを再検索
+→ 共有Dow事実としてNORMAL / EXPANSION_LITEへ供給
+```
+
+代表回帰ケース:
+
+```text
+誤: Anchor 154.735 / R2 155.269 / Entry 17:14
+正: Anchor 154.620 / R2 155.154 / Entry Event 17:09
+Target R2.5 = 155.322
+```
+
+Simulation Ruleはv0.24のまま。今回の変更はApp実装回帰修正。
+
+---
+
+## 0.2 v0.24 Normal HSI Anchor Lifecycle（2026-07-16）
+
+```text
+Entry前Dow崩壊
+→ 旧Confirmation / 旧Normal HSI Anchor / WAITING_R2 / 旧R2履歴を終了
+→ 新しいDow breakout ConfirmationまでAnchorなし
+→ 新しい構造のprevious Swingを新Anchor採用
+
+R2 Entry後Dow崩壊
+→ 観測Traceのみ
+→ NORMALは自動Closeしない
+→ Trade用Anchor / Target / StopをCloseまで固定
+```
+
+Reason Code: `NORMAL_POST_ENTRY_DOW_BREAKDOWN_OBSERVED_NO_CLOSE`
 
 ---
 

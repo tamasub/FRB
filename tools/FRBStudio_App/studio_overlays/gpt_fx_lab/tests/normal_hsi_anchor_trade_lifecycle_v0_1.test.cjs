@@ -16,7 +16,7 @@ const m5Path = artifactPath('studio_overlays','gpt_fx_lab','data','fx_usdjpy_m5_
 const d1Path = artifactPath('studio_overlays','gpt_fx_lab','data','fx_usdjpy_d1_t3_data_v0_1.json');
 const source = fs.readFileSync(pluginPath,'utf8');
 const profile = JSON.parse(fs.readFileSync(profilePath,'utf8'));
-assert.equal(profile.m5_execution_policy.normal_entry_policy.rule_version,'v0.23');
+assert.equal(profile.m5_execution_policy.normal_entry_policy.rule_version,'v0.24');
 assert.equal(profile.m5_execution_policy.normal_entry_policy.normal_hsi_anchor_retired_on_close,true);
 assert.equal(profile.m5_execution_policy.normal_entry_policy.normal_hsi_anchor_reuse_after_close,false);
 assert.match(source,/function m5ExecutionRetireNormalAnchor\(/);
@@ -81,7 +81,7 @@ assert.equal(exactBand.next.label,'R2.5','R2 EntryのTargetがR2.5になって�
   assert.ok(ann,'Close対象TradeのSimulation HSI annotationがありません。');
   assert.equal(ann.lifecycle_status,'RETIRED_ON_NORMAL_CLOSE');
   assert.equal(ann.retired_at_time,firstClose.simulation_time);
-  console.log('PASS normal_hsi_anchor_trade_lifecycle_v0_1');
+  console.log('PASS normal_hsi_anchor_trade_lifecycle_v0_2');
   console.log(`retired=${firstClose.execution.normal_hsi_anchor_retired_anchor_id} at ${firstClose.simulation_time}`);
   console.log(`next=${nextEntry.execution.entry_anchor_id} at ${nextEntry.simulation_time}`);
 })().catch(err=>{console.error(err);process.exitCode=1;});

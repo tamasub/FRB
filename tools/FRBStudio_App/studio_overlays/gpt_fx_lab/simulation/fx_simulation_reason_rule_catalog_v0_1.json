@@ -5,7 +5,7 @@
   "title": "FX Simulation 理由コード・使用ルール 日本語カタログ",
   "status": "draft_growing_catalog",
   "created_at": "2026-07-11T15:50:00+09:00",
-  "updated_at": "2026-07-13",
+  "updated_at": "2026-07-16",
   "display_policy": {
     "language": "ja",
     "show_judgment_summary_first": true,
@@ -836,7 +836,7 @@
     },
     {
       "code": "NORMAL_DOW_STRUCTURE_BROKEN_BEFORE_ENTRY",
-      "ja": "R2到達前にM5 Dow構造が崩壊したため、Normal Entry Opportunityを失効しました。",
+      "ja": "R2 Entry前に確定M5 Dow構造が崩壊したため、旧Confirmation・通常HSI起点・Opportunity・旧R2履歴を終了しました。",
       "category": "判断理由"
     },
     {
@@ -1133,6 +1133,21 @@
       "code": "rule_normal_entry_v17_1_h1_cycle_late_guard",
       "ja": "通常EntryのCycle Late GuardはH1だけに適用します。H4 Cycle Lateは観測情報として保持しますが、通常Entryを禁止しません。",
       "category": "使用ルール"
+    },
+    {
+      "code": "NORMAL_R2_HISTORY_RETIRED_BEFORE_ENTRY",
+      "ja": "Dow崩壊前の起点に対するR2到達履歴を破棄し、新しいDow再確定後の起点から再計算します。",
+      "category": "判断理由"
+    },
+    {
+      "code": "NORMAL_POST_ENTRY_DOW_BREAKDOWN_OBSERVED_NO_CLOSE",
+      "ja": "Entry後のM5 Dow崩壊を観測しましたが、Dow崩壊単独ではCloseせず、Entry時のAnchor・Target・Stopを維持します。",
+      "category": "判断理由"
+    },
+    {
+      "code": "NORMAL_ACTIVE_CONFIRMATION_PRESERVED_UNTIL_BREAK_OR_ENTRY",
+      "ja": "WAITING_R2中は、最初に有効となったDow ConfirmationとNormal HSI AnchorをDow崩壊・Entry・Missまで固定し、後続の同方向ConfirmationではR2基準を乗り換えません。",
+      "category": "判断理由"
     }
   ],
   "rule_ids": [
@@ -1561,7 +1576,7 @@
       "category": "使用ルール"
     },
     {
-      "ja": "同方向ダウ継続中は後続Swingで通常HSI起点を変更せず、反対方向ダウ成立時だけ更新する。",
+      "ja": "同一構造内の同方向継続では通常HSI起点を変更しない。確定Dow崩壊後の新しいDow Confirmationでのみ新previous Swingを採用する。",
       "category": "使用ルール",
       "code": "rule_normal_hsi_anchor_fixed_until_opposite_dow"
     },
@@ -1571,8 +1586,9 @@
       "category": "使用ルール"
     },
     {
-      "ja": "通常HSI起点はREVERSAL_WATCH / NO_TREND / UNDETERMINEDで解除する。",
-      "code": "rule_normal_hsi_anchor_reset_on_dow_break"
+      "ja": "Entry前にREVERSAL_WATCH / NO_TREND / UNDETERMINEDへの確定遷移でDow構造が崩壊した場合、旧通常HSI起点を解除する。",
+      "code": "rule_normal_hsi_anchor_reset_on_dow_break",
+      "category": "使用ルール"
     },
     {
       "code": "rule_normal_hsi_anchor_retired_immediately_on_close",
@@ -1601,7 +1617,7 @@
     },
     {
       "code": "rule_normal_pre_entry_dow_structure_break_expires_opportunity",
-      "ja": "Entry前にM5 Dow構造が崩壊した場合、WAITING_R2 Opportunityと通常HSI起点を失効します。",
+      "ja": "Entry前の確定M5 Dow崩壊で、旧Confirmation・通常HSI起点・WAITING_R2 Opportunity・旧R2履歴を一括終了する。",
       "category": "使用ルール"
     },
     {
@@ -1722,6 +1738,21 @@
     {
       "code": "rule_week_late_expansion_defensive_mode",
       "ja": "WEEKサイクル後半ではExpansion Entry・ReEntry・Add-onを禁止し、既存建玉はH1の崩れで早めに守ります。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_normal_post_entry_dow_break_observe_only_no_close",
+      "ja": "R2 Entry後のDow崩壊は観測Traceへ残すが、単独ではClose Eventを発行しない。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_normal_reconfirmation_point_not_anchor",
+      "ja": "Dow再確定点はTriggerであり、Normal HSI Anchorは新しいDow構造のprevious Low / previous Highである。",
+      "category": "使用ルール"
+    },
+    {
+      "code": "rule_normal_active_confirmation_fixed_until_break_entry_or_miss",
+      "ja": "NORMALのWAITING_R2では、最初の有効Confirmationとprevious Swing由来AnchorをDow崩壊・Entry・Missまで固定し、その固定起点に対する最初のR2成立を評価します。",
       "category": "使用ルール"
     }
   ]

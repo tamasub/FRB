@@ -5,9 +5,9 @@
   "title": "USDJPY Expansion-Lite v0.18 — R3 Entry / R3.5-R4.5 Add-on / R5 Target",
   "status": "draft_expansion_lite_directional_h1_cycle",
   "created_at": "2026-07-10T23:55:00+09:00",
-  "updated_at": "2026-07-12",
+  "updated_at": "2026-07-16",
   "phase": "v0.9.0.53-cycle-entry-window-independent-from-confirm",
-  "rule_version": "simulation_rule_v0_21_expansion_lite_with_v0_23_normal_contract",
+  "rule_version": "simulation_rule_v0_24_normal_plus_v0_21_expansion_lite",
   "dataset": {
     "primary": {
       "dataset_id": "fx_usdjpy_m5_t3_data_v0_1",
@@ -390,8 +390,8 @@
     "no_lookahead": true,
     "event_output": "run_snapshot.hsi_anchor_registry.lifecycle_events",
     "chart_event_projection": "latest_adopted_anchor_per_timeframe",
-    "normal_anchor_reset_policy": "new_confirmation_replaces_candidate_anchor; non_directional_state_unresolves_normal_anchor",
-    "same_direction_reconfirmation_policy": "new_confirmation_event_creates_new_entry_opportunity",
+    "normal_anchor_reset_policy": "confirmed_dow_break_or_trade_close_or_entry_opportunity_miss_then_next_confirmation_adopts_anchor",
+    "same_direction_reconfirmation_policy": "KEEP_ACTIVE_CONFIRMATION_UNTIL_BREAK_ENTRY_OR_MISS",
     "new_swing_during_same_dow_policy": "candidate_only_until_new_dow_confirmation_event",
     "expansion_dual_anchor_policy": {
       "detection_anchor": "original_dow_adopted_anchor",
@@ -659,7 +659,7 @@
     "event_output": "run_snapshot.position_lifecycle.execution_events",
     "decision_event_output": "run_snapshot.position_lifecycle.decision_events",
     "chart_event_projection": "execution_events_only",
-    "teacher_guard": "v0.23: Entry前Dow崩壊はOpportunity失効。NORMALはH4同方向R4以降Entry禁止。Day Up/H4 Down/R5 Short GuardをLane内評価。Normal StopはTarget距離×JSON固定倍率、HSI起点はHard Limit。Entry後Dow崩壊は別問題で自動Closeしない。",
+    "teacher_guard": "v0.24 app fix 0.9.1.13: NORMAL Entry Gate未成立時は、個別Gate結果・失敗Gate一覧・Dow Confirmation・HSI起点・候補価格をOpportunityとBatch専用ログへ保存する。v0.9.1.12までのBatch環境分離、Entry前Dow崩壊失効、Active Confirmation固定、正しいR2初回タッチ、Entry後Dow崩壊非Closeを維持する。",
     "valuation_policy": {
       "unit_base_currency_amount": 1000,
       "display_currency": "JPY",
@@ -670,7 +670,7 @@
       "note": "仮想損益表示用。1単位=1,000通貨。手数料・スリッページ・税は含めない。"
     },
     "normal_entry_policy": {
-      "rule_version": "v0.23",
+      "rule_version": "v0.24",
       "direction_permission": "H4_H1_T3_SLOPE_AND_CLOSE_SIDE_PLUS_M5_DOW",
       "long_permission": [
         "H4_T3_UP",
@@ -707,7 +707,7 @@
       "risk_ratio_basis": "CURRENT_ENTRY_INITIAL_RISK_VS_CURRENT_TRADE_REALIZED",
       "hsi_anchor_policy": "LATEST_M5_DOW_BREAKOUT_CONFIRMATION_PREVIOUS_SWING",
       "new_swing_replaces_anchor": false,
-      "same_direction_dow_reconfirmation_replaces_anchor": true,
+      "same_direction_dow_reconfirmation_replaces_anchor": false,
       "opposite_direction_dow_replaces_anchor": true,
       "expansion_uses_separate_entry_anchor": true,
       "normal_hsi_anchor_reset_states": [
@@ -715,7 +715,7 @@
         "NO_TREND",
         "UNDETERMINED"
       ],
-      "same_direction_reconfirmation_policy": "NEW_BREAKOUT_CONFIRMATION_EVENT_CREATES_NEW_OPPORTUNITY",
+      "same_direction_reconfirmation_policy": "KEEP_ACTIVE_CONFIRMATION_UNTIL_BREAK_ENTRY_OR_MISS",
       "expansion_detection_anchor_non_directional_policy": "KEEP",
       "entry_trigger": "DOW_BREAKOUT_CONFIRMATION_IF_R2_READY_ELSE_FIRST_R2_TOUCH",
       "entry_raw": 89,
@@ -731,14 +731,24 @@
       "same_confirmation_reuse_for_next_normal_entry": false,
       "normal_reentry_concept": "NOT_DEFINED",
       "normal_add_on_concept": "FORBIDDEN",
-      "normal_hsi_anchor_lifecycle": "DOW_CONFIRMATION_TO_TRADE_CLOSE",
+      "normal_hsi_anchor_lifecycle": "DOW_CONFIRMATION_TO_PRE_ENTRY_BREAK_OR_TRADE_CLOSE",
       "normal_hsi_anchor_retired_on_close": true,
       "normal_hsi_anchor_reuse_after_close": false,
-      "next_normal_hsi_anchor_source": "FIRST_NEW_M5_DOW_CONFIRMATION_AFTER_CLOSE_PREVIOUS_SWING",
-      "same_direction_reconfirmation_before_close_for_next_trade": "IGNORE_FOR_NEXT_NORMAL_ENTRY",
+      "next_normal_hsi_anchor_source": "FIRST_NEW_M5_DOW_CONFIRMATION_AFTER_BREAK_OR_CLOSE_PREVIOUS_SWING",
+      "same_direction_reconfirmation_before_close_for_next_trade": "IGNORE_WHILE_ACTIVE_OPPORTUNITY_WAITING_R2",
       "pre_entry_dow_structure_break_expires_opportunity": true,
-      "pre_entry_dow_structure_break_states": [],
-      "pre_entry_dow_structure_break_policy": "NEWER_OPPOSITE_DOW_CONFIRMATION_ONLY"
+      "pre_entry_dow_structure_break_states": [
+        "REVERSAL_WATCH",
+        "NO_TREND",
+        "UNDETERMINED"
+      ],
+      "pre_entry_dow_structure_break_policy": "CONFIRMED_RESET_STATE_OR_NEWER_OPPOSITE_DOW_CONFIRMATION",
+      "same_direction_reconfirmation_after_break_creates_new_anchor": true,
+      "dow_reconfirmation_point_is_anchor": false,
+      "post_entry_dow_structure_break_close_policy": "OBSERVE_ONLY_NO_CLOSE",
+      "post_entry_anchor_target_stop_policy": "FIX_UNTIL_TRADE_CLOSE",
+      "active_confirmation_priority": "FIRST_VALID_CONFIRMATION_AFTER_BREAK_OR_CLOSE_UNTIL_ENTRY_MISS_OR_BREAK",
+      "r2_touch_anchor_source": "ACTIVE_NORMAL_ENTRY_OPPORTUNITY_FIXED_ANCHOR"
     },
     "close_execution_policy": {
       "close_policy": "EXPANSION_LITE_ALL_CLOSE",
@@ -918,5 +928,6 @@
       "trigger_price_source": "M5_HIGH_LOW",
       "dynamic_win_rate_calculation": "FUTURE_NOT_IMPLEMENTED"
     }
-  }
+  },
+  "app_integration_version": "0.9.1.13"
 }
