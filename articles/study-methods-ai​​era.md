@@ -6,7 +6,7 @@ topics: ["ai", "study", "methods", "aiera", "development"]
 published: true
 ---
 
----
+
 I said:
 
 > AI時代の学習・学校・勉強の在り方について、見解をおしえて！！どんな能力があるとAI時代に適用できるのか？笑
