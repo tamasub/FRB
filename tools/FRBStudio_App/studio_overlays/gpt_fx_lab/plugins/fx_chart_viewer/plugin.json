@@ -10,8 +10,8 @@
   ],
   "scope": "gpt_fx_lab overlay only",
   "core_change": false,
-  "description": "App v0.9.1.13 / Simulation Rule v0.24対応。NORMAL Entry OpportunityがR2初回タッチまたはDow確定時R2到達済みでGate未成立になった場合、個別Gate結果・失敗Gate一覧・時刻・Dow Confirmation・HSI起点・候補価格を記録する。Batch結果へGate失敗JSONを内包し、自動保存・画面ダウンロード用JSON/CSVを追加する。v0.9.1.12までのBatch環境分離とv0.24 Lifecycle契約を維持する。",
-  "version": "0.9.1.13",
+  "description": "App v0.9.1.21 / Simulation Rule v0.26対応。Expansion-Liteは最初のM5 Dow ConfirmationでEpisode Anchorを固定し、その後のDow崩壊・同方向再確定では変更しない。H4/H1 T3整合中のValid R3 TouchでEntryし、T3不整合時のR3タッチは消費せず、M5 CloseがR3内側へ戻った後の再タッチを待つ。Entry後3本はT3 Exitを無効化し、4本目以降はM5 Close逆抜けでExit。旧M5 Dow Structural ExitはShadow記録のみ。Anchor ExitとR5はEntry直後から有効。",
+  "version": "0.9.1.21",
   "signal_policy": {
     "visible_marker": "candidate_basis_retired_circle_marker",
     "removed_marker": "dow_structure_decision_arrow_marker",
@@ -151,7 +151,9 @@
     "position_roles": [
       "NORMAL",
       "EXPANSION_CORE",
-      "EXPANSION_ADD_ON"
+      "EXPANSION_ADD_ON",
+      "EXPANSION_LITE_CORE",
+      "EXPANSION_LITE_ADD_ON"
     ],
     "position_management_timeframe_cap": "DAY",
     "position_management_week_allowed": false,
@@ -312,21 +314,21 @@
     "simulation_execution_marker_chart_clearance_px": 10,
     "simulation_execution_marker_side_fallback": "preferred_side_then_opposite_side_when_local_chart_clearance_is_insufficient",
     "active_entry_rule_lane": "EXPANSION_LITE",
-    "expansion_lite_entry_evaluator_id": "expansion_lite_entry_evaluator_v0_1",
-    "expansion_lite_close_evaluator_id": "expansion_lite_close_evaluator_v0_1",
-    "expansion_lite_rule_version": "v0.18",
+    "expansion_lite_entry_evaluator_id": "expansion_lite_entry_evaluator_v0_3",
+    "expansion_lite_close_evaluator_id": "expansion_lite_close_evaluator_v0_2",
+    "expansion_lite_rule_version": "v0.26",
     "expansion_lite_other_rule_lane_fallback": "FORBIDDEN",
     "expansion_lite_day_cycle_position_required": false,
-    "expansion_lite_entry": "R3_TOUCH_AFTER_OR_AT_M5_DOW_CONFIRMATION",
+    "expansion_lite_entry": "VALID_R3_TOUCH_WHILE_T3_ALIGNED",
     "expansion_lite_add_on_levels": [
       "R3.5",
       "R4",
       "R4.5"
     ],
     "expansion_lite_target": "R5_TOUCH_FULL_CLOSE",
-    "expansion_lite_t3_exit": "LONG_M5_LOW_LT_T3__SHORT_M5_HIGH_GT_T3",
+    "expansion_lite_t3_exit": "M5_CLOSE_REVERSE_AFTER_3_GRACE_BARS",
     "expansion_lite_anchor_exit": "LONG_M5_LOW_LT_ANCHOR__SHORT_M5_HIGH_GT_ANCHOR",
-    "expansion_lite_structural_exit": "NEW_M5_DOW_POINT_CONFIRMS_PRIOR_STRUCTURE_BREAK",
+    "expansion_lite_structural_exit": "SHADOW_ONLY_NO_CLOSE",
     "expansion_lite_exit_comment_labels": [
       "R5 Exit",
       "T3 Exit",
@@ -372,7 +374,22 @@
     "normal_hsi_anchor_rule_version": "v0.24",
     "pre_entry_confirmed_dow_break_retires_anchor_opportunity_r2_history": true,
     "same_direction_reconfirmation_after_break_uses_new_previous_swing": true,
-    "post_entry_dow_break_observe_only_no_close": true
+    "post_entry_dow_break_observe_only_no_close": true,
+    "expansion_lite_observer_model": "INDEPENDENT_RULE_LANE_STATE_MACHINE",
+    "expansion_lite_state_input_policy": "OWN_PREVIOUS_STATE_PLUS_SHARED_MARKET_FACTS_ONLY",
+    "expansion_lite_episode_support": true,
+    "expansion_lite_m5_dow_confirmation_required_for_entry": false,
+    "cross_lane_trade_state_input": "FORBIDDEN",
+    "expansion_lite_other_lane_trade_state_input": "FORBIDDEN",
+    "expansion_lite_episode_unit": "EXPANSION_EPISODE",
+    "expansion_lite_same_episode_reentry": "NOT_DEFINED_DISABLED",
+    "expansion_lite_anchor_lifecycle": "FIXED_AFTER_FIRST_M5_DOW_CONFIRMATION",
+    "expansion_lite_dow_break_anchor_policy": "KEEP_ANCHOR_AND_EPISODE",
+    "expansion_lite_r3_invalid_touch_policy": "WAIT_RETURN_INSIDE_AND_RETOUCH",
+    "simulation_rule_revision_support": [
+      "v0.25",
+      "v0.26"
+    ]
   },
   "display_policy": {
     "high_low_range_style": {
@@ -1244,7 +1261,20 @@
     "batch_simulation_close_semantics": "PROFIT_LOSS_BREAKEVEN_AND_EXIT_REASON_SPLIT",
     "batch_simulation_target_ohlc_execution_guard": true,
     "batch_simulation_compact_reference_tracking": true,
-    "batch_simulation_result_persistence": "FULL_JSON_SINGLE_FILE_PRIMARY_FALLBACK_RETRY"
+    "batch_simulation_result_persistence": "FULL_JSON_SINGLE_FILE_PRIMARY_FALLBACK_RETRY",
+    "expansion_lite_entry_evaluator_id": "expansion_lite_entry_evaluator_v0_3",
+    "expansion_lite_rule_version": "v0.26",
+    "expansion_lite_observer_model": "INDEPENDENT_RULE_LANE_STATE_MACHINE",
+    "expansion_lite_state_input_policy": "OWN_PREVIOUS_STATE_PLUS_SHARED_MARKET_FACTS_ONLY",
+    "expansion_lite_other_lane_trade_state_input": "FORBIDDEN",
+    "expansion_lite_episode_unit": "EXPANSION_EPISODE",
+    "expansion_lite_m5_dow_confirmation_required_per_entry": false,
+    "expansion_lite_entry": "VALID_R3_TOUCH_WHILE_T3_ALIGNED",
+    "expansion_lite_same_episode_reentry": "NOT_DEFINED_DISABLED",
+    "expansion_lite_close_evaluator_id": "expansion_lite_close_evaluator_v0_2",
+    "expansion_lite_anchor_lifecycle": "FIXED_AFTER_FIRST_M5_DOW_CONFIRMATION",
+    "expansion_lite_t3_exit": "M5_CLOSE_REVERSE_AFTER_3_GRACE_BARS",
+    "expansion_lite_structural_exit": "SHADOW_ONLY_NO_CLOSE"
   },
   "entry_result_chart_navigation": {
     "enabled": true,

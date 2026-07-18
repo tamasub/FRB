@@ -1,13 +1,13 @@
 {
   "schema_version": "fx_simulation_run_profile_v0_1",
   "kind": "fx_simulation_run_profile",
-  "profile_id": "usdjpy_parallel_rule_lanes_v0_24",
-  "title": "USDJPY Parallel Rule Lanes — NORMAL / Expansion / Expansion-Lite",
+  "profile_id": "usdjpy_parallel_rule_lanes_v0_26",
+  "title": "USDJPY NORMAL v0.24 + Expansion-Lite v0.26 — Parallel Independent Observers",
   "status": "draft_parallel_independent_rule_lane_portfolios",
   "created_at": "2026-07-10T23:55:00+09:00",
-  "updated_at": "2026-07-16",
-  "phase": "v0.9.0.53-cycle-entry-window-independent-from-confirm",
-  "rule_version": "simulation_rule_v0_24_normal_plus_v0_21_expansion_lite",
+  "updated_at": "2026-07-17T23:20:00+09:00",
+  "phase": "v0.9.1.21-expansion-lite-fixed-anchor-valid-r3-t3-grace",
+  "rule_version": "simulation_rule_v0_24_normal_plus_v0_26_expansion_lite",
   "dataset": {
     "primary": {
       "dataset_id": "fx_usdjpy_m5_t3_data_v0_1",
@@ -268,7 +268,7 @@
     "copy_m5_trigger_decisions": true,
     "copy_execution_events": true
   },
-  "teacher_guard": "NORMAL / EXPANSION / EXPANSION_LITEは独立Rule Lane・独立Tradeとしてパラレル走行する。同一M5足で複数LaneのEntry成立を許可し、条件・起点・Entry Opportunity・建玉・Close条件を相互流用しない。EXPANSIONはEntry条件未実装のため現在はWAITだが、並列Portfolio契約の対象に含める。",
+  "teacher_guard": "NORMAL / EXPANSION / EXPANSION_LITEは同じ相場を観察する独立State Machine。各Laneの入力は自Lane前回State＋共有市場事実のみ。他LaneのEntry / Position / Close / 損益 / Opportunity / Anchor / Episodeを参照しない。Expansion-LiteはExpansion Detection RegimeをEpisodeとして保持し、専用起点からR3初回タッチでInitial Entryする。",
   "time_sync_policy": {
     "reference_axis": "M5_CLOSE",
     "bar_timestamp_role": "open_time",
@@ -560,7 +560,7 @@
   "m5_execution_policy": {
     "engine_id": "m5_rule_lane_execution_orchestrator_v0_2",
     "mode": "reference_point_step",
-    "input_source": "TIMEFRAME_STATE_SNAPSHOT shared facts -> EXPANSION_LITE Entry/Close Evaluator only",
+    "input_source": "OWN_PREVIOUS_LANE_STATE + TIMEFRAME_STATE_SNAPSHOT shared market facts",
     "execution_timeframe": "M5",
     "upper_decision_reimplementation": "forbidden",
     "allowed_actions": [
@@ -811,8 +811,8 @@
         },
         "EXPANSION_LITE": {
           "enabled": true,
-          "entry_evaluator_id": "expansion_lite_entry_evaluator_v0_1",
-          "close_evaluator_id": "expansion_lite_close_evaluator_v0_1",
+          "entry_evaluator_id": "expansion_lite_entry_evaluator_v0_3",
+          "close_evaluator_id": "expansion_lite_close_evaluator_v0_2",
           "allowed_actions": [
             "ENTRY",
             "ADD_ON",
@@ -836,7 +836,7 @@
       ]
     },
     "expansion_lite_policy": {
-      "rule_version": "v0.18",
+      "rule_version": "v0.26",
       "rule_lane": "EXPANSION_LITE",
       "direction_support": [
         "LONG",
@@ -845,16 +845,15 @@
       "day_cycle_position_required": false,
       "h4_close_t3_side_required": true,
       "h1_close_t3_side_required": true,
-      "m5_dow_confirmation_required": true,
-      "hsi_anchor_source": "M5_DOW_CONFIRMATION_ADOPTED_ANCHOR",
+      "m5_dow_confirmation_required": false,
+      "hsi_anchor_source": "M5_HSI_EXPANSION_DETECTION_ANCHOR",
       "entry_touch_source": "M5_HIGH_LOW",
       "entry_raw": 144,
       "entry_label": "R3",
       "entry_modes": [
-        "DOW_CONFIRMATION_R3_READY",
-        "FIRST_R3_TOUCH_AFTER_DOW_CONFIRMATION"
+        "VALID_R3_TOUCH_WHILE_T3_ALIGNED"
       ],
-      "one_entry_opportunity_per_dow_confirmation": true,
+      "one_entry_opportunity_per_dow_confirmation": false,
       "add_on_touch_source": "M5_HIGH_LOW",
       "add_on_levels": [
         {
@@ -877,18 +876,17 @@
       "target_touch_source": "M5_HIGH_LOW",
       "target_raw": 377,
       "target_label": "R5",
-      "t3_exit_touch_source": "M5_HIGH_LOW",
-      "t3_exit_long": "M5_LOW_LT_M5_T3",
-      "t3_exit_short": "M5_HIGH_GT_M5_T3",
+      "t3_exit_touch_source": "M5_CLOSE",
+      "t3_exit_long": "M5_CLOSE_LT_M5_T3",
+      "t3_exit_short": "M5_CLOSE_GT_M5_T3",
       "anchor_exit_touch_source": "M5_HIGH_LOW",
       "anchor_exit_long": "M5_LOW_LT_ADOPTED_HSI_ANCHOR",
       "anchor_exit_short": "M5_HIGH_GT_ADOPTED_HSI_ANCHOR",
-      "structural_exit": "NEW_M5_DOW_POINT_CONFIRMS_PRIOR_STRUCTURE_BREAK",
+      "structural_exit": "SHADOW_ONLY_NO_CLOSE",
       "all_exit_actions": "FULL_CLOSE_ALL_EXPANSION_LITE_POSITIONS",
       "same_bar_exit_priority": [
         "ANCHOR_EXIT",
         "T3_EXIT",
-        "STRUCTURAL_EXIT",
         "TARGET_EXIT"
       ],
       "other_rule_lane_fallback": "FORBIDDEN",
@@ -901,7 +899,30 @@
       "h1_cycle_entry_window_long_origin": "LATEST_H1_LOW_CANDIDATE_ELSE_ACTIVE_LOW",
       "h1_cycle_entry_window_short_origin": "LATEST_H1_HIGH_CANDIDATE_ELSE_ACTIVE_HIGH",
       "h1_cycle_entry_window_elapsed_rule": "LATEST_CONFIRMED_H1_BAR_INDEX_MINUS_DIRECTIONAL_ORIGIN_INDEX",
-      "entry_guard_rule_version": "v0.21"
+      "entry_guard_rule_version": "v0.21",
+      "observer_model": "INDEPENDENT_RULE_LANE_STATE_MACHINE",
+      "state_input_policy": "OWN_PREVIOUS_STATE_PLUS_SHARED_MARKET_FACTS_ONLY",
+      "other_lane_trade_state_input": "FORBIDDEN",
+      "episode_unit": "EXPANSION_EPISODE",
+      "episode_start_source": "M5_HSI_EXPANSION_DETECTION_REGIME",
+      "episode_end_source": "OPPOSITE_EXPANSION_DETECTION_OR_EXPLICIT_LITE_END",
+      "m5_dow_event_role": "EPISODE_OBSERVATION_MATERIAL_NOT_ENTRY_TICKET",
+      "entry_anchor_source": "EXPANSION_DETECTION_ANCHOR_UNTIL_SEPARATE_ENTRY_ANCHOR_DEFINED",
+      "entry_trigger": "VALID_R3_TOUCH_WHILE_T3_ALIGNED",
+      "entry_price_policy": "R3_BOUNDARY_ELSE_FIRST_AVAILABLE_OPEN_ON_GAP",
+      "one_initial_entry_per_episode": true,
+      "same_episode_reentry": "NOT_DEFINED_DISABLED",
+      "one_entry_per_dow_confirmation": false,
+      "target_anchor_source": "EXPANSION_DETECTION_ANCHOR",
+      "episode_anchor_lifecycle": "FIXED_AFTER_FIRST_M5_DOW_CONFIRMATION",
+      "dow_break_anchor_policy": "KEEP_ANCHOR_AND_EPISODE",
+      "same_direction_reconfirmation_anchor_policy": "KEEP_ORIGINAL_EPISODE_ANCHOR",
+      "r3_invalid_touch_policy": "DO_NOT_CONSUME_WAIT_RETURN_INSIDE_AND_RETOUCH",
+      "r3_retouch_rearm_policy": "CONFIRMED_M5_CLOSE_RETURNS_INSIDE_R3",
+      "t3_exit_grace_bars": 3,
+      "t3_exit_activation": "FOURTH_M5_BAR_AFTER_ENTRY",
+      "structural_exit_source": "SHADOW_ONLY_NO_CLOSE",
+      "structural_exit_shadow_enabled": true
     },
     "entry_guard_policy": {
       "day_up_h4_down_r5_short": {
@@ -943,5 +964,5 @@
       "dynamic_win_rate_calculation": "FUTURE_NOT_IMPLEMENTED"
     }
   },
-  "app_integration_version": "0.9.1.13"
+  "app_integration_version": "0.9.1.21"
 }

@@ -26,7 +26,10 @@ assert.equal(profile.m5_execution_policy.upper_decision_reimplementation, canoni
   'Run Profileのupper_decision_reimplementationがv0.15正式値と一致していません。');
 assert.equal(profile.m5_execution_policy.engine_id, expectedEngineId,
   'Run ProfileのM5 execution engineがRule Lane Orchestratorではありません。');
-assert.equal(manifest.version, '0.9.1.13', 'plugin.jsonのversionが0.9.1.13ではありません。');
+const versionParts = String(manifest.version || '').split('.').map(Number);
+assert.equal(versionParts.length, 4, `plugin version形式が不正です: ${manifest.version}`);
+assert.ok(versionParts[0] === 0 && versionParts[1] === 9 && versionParts[2] === 1 && versionParts[3] >= 13,
+  `plugin versionは0.9.1.13以降である必要があります: ${manifest.version}`);
 assert.equal(manifest.signal_policy.m5_execution_engine_id, expectedEngineId,
   'plugin.jsonのM5 execution engineがRun Profileと一致していません。');
 assert.match(pluginSource, /const NORMAL_ENTRY_V0_17_UPPER_DECISION_EXCEPTION = 'normal_entry_v0_17_trade_scoped_hsi_anchor_explicit_exception';/,

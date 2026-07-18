@@ -1,3 +1,31 @@
+# v0.9.1.21 - 2026-07-18
+
+- Simulation Rule v0.26へ対応し、EXPANSION_LITEのEpisode Anchorを最初のM5 Dow Confirmationで固定。後続のM5 Dow崩壊・同方向再確定では起点を変更・失効しない。
+- Lite Entryを `H4/H1 T3整合 + H1 Cycle Window + Valid R3 Touch` へ改定。新しいM5 Dow ConfirmationをEntry直前条件にしない。
+- T3不整合中のR3タッチはOpportunityを消費せず、M5 CloseがR3内側へ戻った後の再タッチを待つ。T3が後から整っただけの遅延追跡Entryは禁止。
+- H1 Cycle Window超過はEpisode EntryをEXPIRED。Cycle情報未解決は推測せずWAITとして区別。
+- Entry後3本のM5足はT3 Exitを無効化し、4本目以降はM5 CloseがT3を逆抜けた場合に全Close。
+- R5 TargetとLite Anchor ExitはEntry直後から有効。旧M5 Dow Structural ExitはShadow記録のみとし、実Closeを発行しない。
+- Structural Break Shadow件数・T3 Grace状態・Valid R3再武装状態をTraceへ追加。
+- Simulation Rule v0.26文書、Focused Regression Test、Profile契約テストを追加。NORMAL Rule v0.24は変更なし。
+
+# v0.9.1.20 - 2026-07-17
+
+- Simulation Rule v0.25へ対応し、EXPANSION_LITEをNORMAL派生のDow Confirmation単位Opportunityから、独立したExpansion Episode観察者へ変更。
+- Liteの判断入力を「自Lane前回State＋共有市場観測事実」だけに限定。他LaneのEntry / Position / Close / 損益 / Opportunity / Anchor / Episode参照を禁止。
+- M5 HSI `expansion_detection` をLite専用Detection/Initial Entry Anchorとして採用し、ACTIVE Episodeの起点からR3へ初回タッチした時点でInitial Entry。
+- 各Lite Entryの直前に新しいM5 Dow Confirmationを要求しない。M5 Dow EventはEpisode開始・方向更新の観測材料として扱う。
+- 1 Expansion EpisodeにつきInitial Entryは最大1回。同一Episode内ReEntryは未定義のため自動実行しない。Trade Close後もEpisode自体は維持。
+- R3.5 / R4 / R4.5 Add-on、R5 Target、現行T3 / Structural / Anchor Exit、v0.21 Short Guardは維持。
+- Lite見送りログをEpisode基準へ更新し、Episode ID・Episode状態・専用Anchor・他Lane状態未使用をJSON/CSVへ記録。
+- v0.25回帰テストを追加。
+
+# v0.9.1.16 - 2026-07-17
+
+- Simulation判断ポップアップをRule Lane別に補正し、Expansion-Lite EntryへNORMALのR2/R2.5説明が混在する表示不具合を修正。
+- チャートヘッダーへ現在表示中のChart JSONと、Entry結果遷移時のBatch JSONを明示。
+- Expansion-Lite Entry未成立の最終理由をOpportunityへ記録し、Batch結果から専用JSON/CSVを保存・ダウンロード可能化。
+
 ## v0.9.1.13 - 2026-07-16
 
 - NORMAL Entry Gate未成立時に、失敗Gate一覧と各Gateのtrue/false判定をEntry Opportunityへ保存。

@@ -5,7 +5,7 @@
   "title": "FX Simulation 理由コード・使用ルール 日本語カタログ",
   "status": "draft_growing_catalog",
   "created_at": "2026-07-11T15:50:00+09:00",
-  "updated_at": "2026-07-16",
+  "updated_at": "2026-07-18T08:45:00+09:00",
   "display_policy": {
     "language": "ja",
     "show_judgment_summary_first": true,
@@ -369,18 +369,24 @@
     },
     {
       "code": "EXPANSION_LITE_DOW_ANCHOR_UNRESOLVED",
-      "ja": "M5 Dow Confirmationに対応するExpansion-Lite専用HSI起点を解決できません。",
-      "category": "Expansion-Lite"
+      "ja": "【旧Run互換】M5 Dow Confirmationに対応するExpansion-Lite専用HSI起点を解決できません。",
+      "category": "Expansion-Lite",
+      "status": "deprecated_v0_25_historical_run_compatibility_only",
+      "deprecated_by": "EXPANSION_LITE_EPISODE_STATE_REASON_CODES"
     },
     {
       "code": "EXPANSION_LITE_DOW_CONFIRMATION_ANCHOR_ADOPTED",
-      "ja": "M5 Dow Confirmationの根拠点をExpansion-Lite専用HSI起点として採用しました。",
-      "category": "Expansion-Lite"
+      "ja": "【旧Run互換】M5 Dow Confirmationの根拠点をExpansion-Lite専用HSI起点として採用しました。",
+      "category": "Expansion-Lite",
+      "status": "deprecated_v0_25_historical_run_compatibility_only",
+      "deprecated_by": "EXPANSION_LITE_EPISODE_STATE_REASON_CODES"
     },
     {
       "code": "EXPANSION_LITE_DOW_DIRECTION_MISMATCH",
-      "ja": "M5 Dow Confirmationの方向とEntry方向が一致していません。",
-      "category": "Expansion-Lite"
+      "ja": "【旧Run互換】M5 Dow Confirmationの方向とEntry方向が一致していません。",
+      "category": "Expansion-Lite",
+      "status": "deprecated_v0_25_historical_run_compatibility_only",
+      "deprecated_by": "EXPANSION_LITE_EPISODE_STATE_REASON_CODES"
     },
     {
       "code": "EXPANSION_LITE_ENTRY_EXECUTED",
@@ -394,13 +400,17 @@
     },
     {
       "code": "EXPANSION_LITE_ENTRY_OPPORTUNITY_MISSED",
-      "ja": "R3タッチ時にEntry前提が不足していたため、このDow確認のEntry機会を終了しました。",
-      "category": "Expansion-Lite"
+      "ja": "【旧Run互換】R3タッチ時にEntry前提が不足していたため、このDow確認のEntry機会を終了しました。",
+      "category": "Expansion-Lite",
+      "status": "deprecated_v0_25_historical_run_compatibility_only",
+      "deprecated_by": "EXPANSION_LITE_EPISODE_STATE_REASON_CODES"
     },
     {
       "code": "EXPANSION_LITE_FIRST_R3_TOUCH_AFTER_DOW_CONFIRMATION",
-      "ja": "M5 Dow確定後、R3へ初めてタッチしました。",
-      "category": "Expansion-Lite"
+      "ja": "【旧Run互換】M5 Dow確定後、R3へ初めてタッチしました。",
+      "category": "Expansion-Lite",
+      "status": "deprecated_v0_25_historical_run_compatibility_only",
+      "deprecated_by": "EXPANSION_LITE_EPISODE_STATE_REASON_CODES"
     },
     {
       "code": "EXPANSION_LITE_H1_CYCLE_ENTRY_WINDOW_EXCEEDED",
@@ -424,8 +434,10 @@
     },
     {
       "code": "EXPANSION_LITE_M5_DOW_CONFIRMATION_UNAVAILABLE",
-      "ja": "Expansion-Lite Entryに必要なM5 Dow Confirmation Eventがありません。",
-      "category": "Expansion-Lite"
+      "ja": "【旧Run互換】Expansion-Lite Entryに必要なM5 Dow Confirmation Eventがありません。",
+      "category": "Expansion-Lite",
+      "status": "deprecated_v0_25_historical_run_compatibility_only",
+      "deprecated_by": "EXPANSION_LITE_EPISODE_STATE_REASON_CODES"
     },
     {
       "code": "EXPANSION_LITE_POSITION_HOLD",
@@ -434,8 +446,10 @@
     },
     {
       "code": "EXPANSION_LITE_R3_READY_AT_DOW_CONFIRMATION",
-      "ja": "M5 Dow確定時点ですでにR3へタッチ済みでした。",
-      "category": "Expansion-Lite"
+      "ja": "【旧Run互換】M5 Dow確定時点ですでにR3へタッチ済みでした。",
+      "category": "Expansion-Lite",
+      "status": "deprecated_v0_25_historical_run_compatibility_only",
+      "deprecated_by": "EXPANSION_LITE_EPISODE_STATE_REASON_CODES"
     },
     {
       "code": "EXPANSION_LITE_R5_TARGET_EXIT",
@@ -444,8 +458,10 @@
     },
     {
       "code": "EXPANSION_LITE_STALE_CONFIRMATION_R3_STATE_UNKNOWN",
-      "ja": "表示範囲開始前にR3へ到達済みの可能性があり、過去へ遡ってEntryしません。",
-      "category": "Expansion-Lite"
+      "ja": "【旧Run互換】表示範囲開始前にR3へ到達済みの可能性があり、過去へ遡ってEntryしません。",
+      "category": "Expansion-Lite",
+      "status": "deprecated_v0_25_historical_run_compatibility_only",
+      "deprecated_by": "EXPANSION_LITE_EPISODE_STATE_REASON_CODES"
     },
     {
       "code": "EXPANSION_LITE_STRUCTURAL_EXIT",
@@ -1148,6 +1164,131 @@
       "code": "NORMAL_ACTIVE_CONFIRMATION_PRESERVED_UNTIL_BREAK_OR_ENTRY",
       "ja": "WAITING_R2中は、最初に有効となったDow ConfirmationとNormal HSI AnchorをDow崩壊・Entry・Missまで固定し、後続の同方向ConfirmationではR2基準を乗り換えません。",
       "category": "判断理由"
+    },
+    {
+      "code": "EXPANSION_LITE_EPISODE_NOT_ACTIVE",
+      "ja": "Expansion-LiteのExpansion Episodeがまだ有効ではありません。",
+      "category": "EXPANSION_LITE"
+    },
+    {
+      "code": "EXPANSION_LITE_ENTRY_ANCHOR_NOT_RESOLVED",
+      "ja": "Expansion-Lite専用Entry Anchorを解決できません。",
+      "category": "EXPANSION_LITE"
+    },
+    {
+      "code": "EXPANSION_LITE_ACTIVE_EPISODE_CONFIRMED",
+      "ja": "Expansion-Lite自身のExpansion Episodeが有効です。",
+      "category": "EXPANSION_LITE"
+    },
+    {
+      "code": "EXPANSION_LITE_FIRST_R3_TOUCH_IN_ACTIVE_EPISODE",
+      "ja": "有効なExpansion Episodeの専用起点からR3へ初回タッチしました。",
+      "category": "EXPANSION_LITE"
+    },
+    {
+      "code": "EXPANSION_LITE_OTHER_LANE_TRADE_STATE_NOT_USED",
+      "ja": "他Rule LaneのEntry・Position・Closeを判断入力に使用していません。",
+      "category": "EXPANSION_LITE"
+    },
+    {
+      "code": "EXPANSION_LITE_EPISODE_INITIAL_ENTRY_USED",
+      "ja": "このEpisodeのInitial Entryは使用済みです。",
+      "category": "EXPANSION_LITE"
+    },
+    {
+      "code": "EXPANSION_LITE_EPISODE_INITIAL_ENTRY_MISSED",
+      "ja": "このEpisodeのInitial EntryはR3初回タッチ時に見送りとなりました。",
+      "category": "EXPANSION_LITE"
+    },
+    {
+      "code": "EXPANSION_LITE_STALE_EPISODE_R3_STATE_UNKNOWN",
+      "ja": "表示範囲開始前にEpisode起点からR3へ到達済みのため、過去Entryを遡及しません。",
+      "category": "EXPANSION_LITE"
+    },
+    {
+      "code": "EXPANSION_LITE_WAITING_R3_TOUCH_IN_ACTIVE_EPISODE",
+      "ja": "有効なExpansion EpisodeでR3初回タッチを待っています。",
+      "category": "EXPANSION_LITE"
+    },
+    {
+      "code": "EXPANSION_LITE_DETECTION_ANCHOR_ADOPTED",
+      "ja": "Expansion Detection Regimeの専用起点をLite Anchorとして採用しました。",
+      "category": "EXPANSION_LITE"
+    },
+    {
+      "code": "EXPANSION_LITE_EPISODE_ENDED_BY_OPPOSITE_DETECTION",
+      "ja": "反対方向のExpansion Detection成立によりEpisodeを終了しました。",
+      "category": "EXPANSION_LITE"
+    },
+    {
+      "code": "EXPANSION_LITE_EPISODE_INITIAL_ENTRY_EXPIRED",
+      "ja": "このEpisodeのInitial Entry機会は失効済みです。",
+      "category": "EXPANSION_LITE"
+    },
+    {
+      "code": "EXPANSION_LITE_ENTRY_DIRECTION_NOT_READY",
+      "ja": "Expansion Episode方向に対するLite Entry前提がまだ解決していません。",
+      "category": "EXPANSION_LITE"
+    },
+    {
+      "code": "EXPANSION_LITE_EPISODE_ENDED_BY_DETECTION_ANCHOR_CHANGE",
+      "ja": "Lite専用Detection Anchorの切替により旧Episodeを終了しました。",
+      "category": "EXPANSION_LITE"
+    },
+    {
+      "code": "EXPANSION_LITE_ANCHOR_RETAINED_AFTER_DOW_BREAK",
+      "ja": "M5 Dow構造が崩壊しても、Expansion-Lite Episodeの採用HSI起点を変更せず維持しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "EXPANSION_LITE_SAME_DIRECTION_ANCHOR_CHANGE_IGNORED",
+      "ja": "同方向の新しいDow起点候補を観測しましたが、進行中Lite Episodeの元起点を維持しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "EXPANSION_LITE_VALID_R3_TOUCH",
+      "ja": "H4/H1 T3整合中に、R3内側から外側へ跨ぐ有効なR3タッチを検出しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "EXPANSION_LITE_R3_TOUCH_T3_NOT_ALIGNED_RETOUCH_REQUIRED",
+      "ja": "R3へ到達しましたがT3条件不成立のためEntryせず、内側復帰後の再タッチ待ちにしました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "EXPANSION_LITE_WAITING_R3_RETURN_INSIDE",
+      "ja": "R3外側にいるため遅れて追いかけず、M5終値がR3内側へ戻るのを待っています。",
+      "category": "判断理由"
+    },
+    {
+      "code": "EXPANSION_LITE_R3_RETOUCH_REARMED",
+      "ja": "M5終値がR3内側へ戻ったため、次のR3再タッチをEntry候補として再武装しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "EXPANSION_LITE_WAITING_VALID_R3_TOUCH",
+      "ja": "T3条件成立中にR3を内側から外側へ跨ぐ有効タッチを待っています。",
+      "category": "判断理由"
+    },
+    {
+      "code": "EXPANSION_LITE_T3_EXIT_GRACE_ACTIVE",
+      "ja": "Entry後3本以内のため、T3 Exitを一時的に無効化しています。",
+      "category": "判断理由"
+    },
+    {
+      "code": "EXPANSION_LITE_T3_EXIT_ARMED",
+      "ja": "Entry後3本の猶予が終了し、M5 CloseによるT3 Exit判定を有効化しました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "EXPANSION_LITE_T3_EXIT_AFTER_GRACE_CLOSE_REVERSE",
+      "ja": "Entry後4本目以降にM5終値がT3を逆抜けたため、Lite全建玉をCloseしました。",
+      "category": "判断理由"
+    },
+    {
+      "code": "EXPANSION_LITE_STRUCTURAL_BREAK_SHADOW_OBSERVED",
+      "ja": "旧M5 Dow Structural Breakを観測しましたが、Shadow記録だけ残しCloseには使用しません。",
+      "category": "判断理由"
     }
   ],
   "rule_ids": [
@@ -1753,6 +1894,41 @@
     {
       "code": "rule_normal_active_confirmation_fixed_until_break_entry_or_miss",
       "ja": "NORMALのWAITING_R2では、最初の有効Confirmationとprevious Swing由来AnchorをDow崩壊・Entry・Missまで固定し、その固定起点に対する最初のR2成立を評価します。",
+      "category": "使用ルール"
+    },
+    {
+      "rule_id": "rule_expansion_lite_anchor_fixed_after_first_dow_confirmation",
+      "ja": "最初のM5 Dow ConfirmationでLite Episode起点を採用し、Dow崩壊・同方向再確定では変更しない。",
+      "category": "使用ルール"
+    },
+    {
+      "rule_id": "rule_expansion_lite_anchor_fixed_after_dow_break",
+      "ja": "M5 Dow崩壊後もLite EpisodeとHSI起点を維持する。",
+      "category": "使用ルール"
+    },
+    {
+      "rule_id": "rule_expansion_lite_valid_r3_touch",
+      "ja": "H4/H1 T3整合中にR3を内側から外側へ跨ぐValid TouchだけをEntry Triggerにする。",
+      "category": "使用ルール"
+    },
+    {
+      "rule_id": "rule_expansion_lite_invalid_r3_touch_not_consumed",
+      "ja": "T3不整合中のR3タッチはInitial Entry機会を消費しない。",
+      "category": "使用ルール"
+    },
+    {
+      "rule_id": "rule_expansion_lite_valid_r3_retouch_after_t3_alignment",
+      "ja": "無効R3タッチ後はM5終値のR3内側復帰を確認してから再タッチを待つ。",
+      "category": "使用ルール"
+    },
+    {
+      "rule_id": "rule_expansion_lite_t3_exit_three_bar_grace_close_trigger",
+      "ja": "Entry後3本はT3 Exitを無効化し、4本目以降はM5 Close逆抜けで全Closeする。",
+      "category": "使用ルール"
+    },
+    {
+      "rule_id": "rule_expansion_lite_structural_break_shadow_only",
+      "ja": "旧M5 Dow Structural BreakはShadow観測のみとし、実Closeを発行しない。",
       "category": "使用ルール"
     }
   ]

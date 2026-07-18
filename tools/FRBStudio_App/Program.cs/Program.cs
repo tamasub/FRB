@@ -116,7 +116,10 @@ internal static class Program
         {
             var path = SafeOverlayPath(overlaysDir, overlayId, "studio_manifest.json", new[] { ".json" });
             if (path is null || !File.Exists(path)) return Results.NotFound();
-            return Results.Text(await File.ReadAllTextAsync(path), "application/json; charset=utf-8");
+
+            var manifestText = await File.ReadAllTextAsync(path);
+            var expanded = ExpandOverlayManifestWildcards(overlaysDir, overlayId, manifestText);
+            return Results.Text(expanded, "application/json; charset=utf-8");
         });
 
         app.MapGet("/api/overlays/{overlayId}/{**name}", async (string overlayId, string name) =>
@@ -1350,6 +1353,138 @@ internal static class Program
         }
 
         return result;
+    }
+
+    private static string ExpandOverlayManifestWildcards(string overlaysDir, string overlayId, string manifestText)
+    {
+        JsonNode? root;
+        try
+        {
+            root = JsonNode.Parse(manifestText);
+        }
+        catch
+        {
+            return manifestText;
+        }
+
+        if (root is not JsonObject manifest) return manifestText;
+        var id = SafeOverlayId(overlayId);
+        if (id is null) return manifestText;
+
+        var overlayRoot = Path.GetFullPath(Path.Combine(overlaysDir, id));
+        if (!Directory.Exists(overlayRoot)) return manifestText;
+
+        var manifestKeys = new[]
+        {
+            "data_files", "dataFiles",
+            "view_def_files", "viewDefFiles", "view_defs",
+            "value_set_files", "valueSetFiles", "value_sets",
+            "search_pattern_files", "searchPatternFiles", "search_patterns",
+            "plugin_index_files", "pluginIndexFiles", "plugin_indexes"
+        };
+
+        var expansionNotes = new JsonArray();
+        foreach (var key in manifestKeys)
+        {
+            if (manifest[key] is not JsonArray values) continue;
+
+            var expandedValues = new List<string>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var node in values)
+            {
+                var value = node?.GetValue<string>()?.Trim();
+                if (string.IsNullOrWhiteSpace(value)) continue;
+
+                if (!ContainsOverlayWildcard(value))
+                {
+                    var normalized = NormalizeOverlayManifestRelativePath(value);
+                    if (normalized is not null && seen.Add(normalized)) expandedValues.Add(normalized);
+                    continue;
+                }
+
+                var matches = ExpandOverlayWildcardPattern(overlayRoot, value);
+                foreach (var match in matches)
+                {
+                    if (seen.Add(match)) expandedValues.Add(match);
+                }
+
+                expansionNotes.Add(new JsonObject
+                {
+                    ["manifest_key"] = key,
+                    ["pattern"] = value,
+                    ["match_count"] = matches.Count
+                });
+            }
+
+            manifest[key] = new JsonArray(expandedValues.Select(value => (JsonNode?)JsonValue.Create(value)).ToArray());
+        }
+
+        if (expansionNotes.Count > 0)
+        {
+            manifest["runtime_wildcard_expansion"] = new JsonObject
+            {
+                ["supported_tokens"] = new JsonArray(JsonValue.Create("*"), JsonValue.Create("?")),
+                ["recursive_glob_supported"] = false,
+                ["patterns"] = expansionNotes
+            };
+        }
+
+        return manifest.ToJsonString(new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        });
+    }
+
+    private static bool ContainsOverlayWildcard(string value)
+        => value.Contains('*') || value.Contains('?');
+
+    private static string? NormalizeOverlayManifestRelativePath(string value)
+    {
+        var normalized = value.Replace('\\', '/').Trim('/');
+        if (string.IsNullOrWhiteSpace(normalized)) return null;
+        if (normalized.Contains("//", StringComparison.Ordinal)) return null;
+        if (normalized.Contains("://", StringComparison.OrdinalIgnoreCase)) return null;
+        if (Path.IsPathRooted(normalized)) return null;
+
+        var parts = normalized.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0 || parts.Any(part => part is "." or "..")) return null;
+        return string.Join('/', parts);
+    }
+
+    private static List<string> ExpandOverlayWildcardPattern(string overlayRoot, string pattern)
+    {
+        var normalized = NormalizeOverlayManifestRelativePath(pattern);
+        if (normalized is null || normalized.Contains("**", StringComparison.Ordinal)) return new List<string>();
+
+        var slash = normalized.LastIndexOf('/');
+        var directoryPart = slash >= 0 ? normalized[..slash] : string.Empty;
+        var filePattern = slash >= 0 ? normalized[(slash + 1)..] : normalized;
+
+        if (ContainsOverlayWildcard(directoryPart)) return new List<string>();
+        if (string.IsNullOrWhiteSpace(filePattern)) return new List<string>();
+
+        var directoryPath = Path.GetFullPath(Path.Combine(overlayRoot, directoryPart.Replace('/', Path.DirectorySeparatorChar)));
+        var allowedRoot = EnsureTrailingSeparator(overlayRoot);
+        if (!directoryPath.StartsWith(allowedRoot, StringComparison.OrdinalIgnoreCase)
+            && !directoryPath.Equals(overlayRoot, StringComparison.OrdinalIgnoreCase))
+        {
+            return new List<string>();
+        }
+        if (!Directory.Exists(directoryPath)) return new List<string>();
+
+        var regexPattern = "^" + Regex.Escape(filePattern)
+            .Replace("\\*", ".*")
+            .Replace("\\?", ".") + "$";
+        var regex = new Regex(regexPattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+        return Directory.GetFiles(directoryPath, "*", SearchOption.TopDirectoryOnly)
+            .Where(File.Exists)
+            .Where(file => regex.IsMatch(Path.GetFileName(file)))
+            .Select(file => Path.GetRelativePath(overlayRoot, file).Replace('\\', '/'))
+            .OrderBy(file => file, StringComparer.OrdinalIgnoreCase)
+            .ToList();
     }
 
     private static string[] ListOverlayIds(string overlaysDir)

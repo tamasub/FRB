@@ -1,12 +1,51 @@
 # GPT FX Lab 文脈サマリー
 
-更新日: 2026-07-16  
+更新日: 2026-07-18  
 対象: `F:\FRB\tools\FRBStudio_App\studio_overlays\gpt_fx_lab`  
-現行Plugin: `gpt_fx_lab.fx_chart_viewer v0.9.1.13-normal-entry-gate-failure-log`  
+現行Plugin: `gpt_fx_lab.fx_chart_viewer v0.9.1.21`  
 目的: GPT FX Lab改修時に、設計境界、現在のSimulation構造、正本ファイル、テスト契約を短時間で復元するための入口。
 
 ---
 
+
+
+## 0.0 v0.9.1.21 / Simulation Rule v0.26（2026-07-18）
+
+```text
+最初のM5 Dow Confirmation
+  → Expansion-Lite Episode開始
+  → Lite専用Anchor固定
+
+後続M5 Dow崩壊 / 同方向再確定
+  → 市場観測事実として記録
+  → Lite Anchor変更なし
+  → Episode継続
+```
+
+Lite Entryは次で判定する。
+
+```text
+Episode ACTIVE
+＋ H4/H1 CloseがEntry方向のT3側
+＋ H1 Cycle Window内
+＋ Lite AnchorからValid R3 Touch
+→ Initial Entry
+```
+
+T3不整合中にR3へ触れてもEntry権利を消費しない。ただし、価格がR3外側に残ったままT3だけが後から整合してもEntryせず、M5 CloseがR3内側へ戻った後の再タッチを待つ。
+
+```text
+Entry後 M5 bar 1〜3
+  T3 Exit = DISARMED
+
+Entry後 M5 bar 4以降
+  M5 CloseのT3逆抜け
+  → Lite全建玉Close
+```
+
+R5 TargetとLite Anchor ExitはEntry直後から有効。旧M5 Dow Structural ExitはShadow Traceだけを残し、実Closeには使用しない。NORMAL Rule v0.24は変更しない。
+
+---
 
 ## 0.0 v0.9.1.13 NORMAL Entry Gate未成立ログ（2026-07-16）
 
