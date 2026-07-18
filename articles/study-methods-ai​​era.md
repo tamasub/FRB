@@ -2,7 +2,7 @@
 title: "AI時代の学習・学校・勉強の在り方について、CHATGPTに聞いてみた！！"
 emoji: "🧪"
 type: "idea"
-topics: ["ai", "study", "methods", "aiera"]
+topics: ["ai", "study", "methods", "era"]
 published: true
 ---
 
