@@ -97,6 +97,10 @@ flowchart LR
     G --> B
     G --> C
     G --> D
+
+    classDef treasure fill:#DFF5A5,stroke:#7CB342,stroke-width:2px,color:#263600
+    class D treasure
+    
 ```
 
 本稿では、この一本の流れを中心に考える。
