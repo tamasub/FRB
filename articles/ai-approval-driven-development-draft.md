@@ -6,6 +6,7 @@ topics: ["ai", "softwaredesign", "testing", "quality", "json"]
 published: true
 ---
 
+
 :::message
 AI承認駆動開発は、人間が承認する開発ではない。
 人間が承認できる構造を先に設計する開発である。
