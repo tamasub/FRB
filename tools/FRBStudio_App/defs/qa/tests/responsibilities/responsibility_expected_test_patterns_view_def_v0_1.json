@@ -249,6 +249,25 @@
               }
             },
             {
+              "field": "guarantee_ids",
+              "caption": "責務保証ID",
+              "type": "stringArray",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 340
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "defaultValue": []
+            },
+            {
               "field": "title",
               "caption": "テスト名",
               "type": "text",

@@ -55,7 +55,11 @@
           "title zzz",
           "score"
         ]
-      }
+      },
+      "guarantee_ids": [
+        "grid_column_build_g001",
+        "grid_column_build_g002"
+      ]
     },
     {
       "test_pattern_id": "grid_column_build_empty_fields_safe",
@@ -69,7 +73,10 @@
       },
       "expected": {
         "field_names": []
-      }
+      },
+      "guarantee_ids": [
+        "grid_column_build_g003"
+      ]
     },
     {
       "test_pattern_id": "search_filter_contains_case_insensitive",
@@ -112,7 +119,12 @@
         "indexes": [
           2
         ]
-      }
+      },
+      "guarantee_ids": [
+        "search_filter_g001",
+        "search_filter_g002",
+        "search_filter_g003"
+      ]
     },
     {
       "test_pattern_id": "search_filter_number_gte_preserves_indexes",
@@ -157,7 +169,12 @@
           1,
           2
         ]
-      }
+      },
+      "guarantee_ids": [
+        "search_filter_g001",
+        "search_filter_g003",
+        "search_filter_g004"
+      ]
     },
     {
       "test_pattern_id": "csv_export_visible_fields_with_key_and_escape",
@@ -217,7 +234,13 @@
         ],
         "has_bom": false,
         "csv_text": "id,title,score\r\na,\"A, quote \"\"here\"\"\",3\r\n"
-      }
+      },
+      "guarantee_ids": [
+        "csv_export_g001",
+        "csv_export_g003",
+        "csv_export_g004",
+        "csv_export_g006"
+      ]
     },
     {
       "test_pattern_id": "csv_export_utf8_bom_option",
@@ -247,7 +270,12 @@
       "expected": {
         "has_bom": true,
         "csv_without_bom": "id\r\na\r\n"
-      }
+      },
+      "guarantee_ids": [
+        "csv_export_g005",
+        "csv_export_g006"
+      ]
     }
-  ]
+  ],
+  "responsibility_relation_policy": "responsibility_cd は responsibility_data_v0_1.json の responsibilities[].responsibility_cd を参照し、guarantee_ids は同一責務の responsibilities[].guarantees[].guarantee_id を参照する。TestPatternは、自らが検証する責務と検証可能な保証をこの2項目で明示する。"
 }
