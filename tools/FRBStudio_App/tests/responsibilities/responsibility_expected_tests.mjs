@@ -1,4 +1,4 @@
-// v0.18.14.3-test-runner-responsibility-run-config
+// v0.18.21-json-full-text-search
 // JSON-driven minimal Expected tests for ResponsibilityDef interfaces.
 // Run from FRBStudio_App root:
 //   node tests/responsibilities/responsibility_expected_tests.mjs
@@ -94,7 +94,11 @@ function runGridColumnBuild(pattern, api) {
 }
 
 function runSearchFilter(pattern, api) {
-  const result = api.SearchFilter.apply(pattern.input?.rows ?? [], pattern.input?.criteria ?? []);
+  const result = api.SearchFilter.apply(
+    pattern.input?.rows ?? [],
+    pattern.input?.criteria ?? [],
+    pattern.input?.options ?? {}
+  );
   return {
     row_ids: Array.from(result, entry => entry?.row?.id),
     indexes: Array.from(result, entry => entry?.index),

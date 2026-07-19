@@ -229,7 +229,7 @@
       "responsibility_cd": "search_filter",
       "name": "検索条件評価責務",
       "test_level": "UT",
-      "summary": "検索条件と対象データから、条件に一致する行だけを返す責務。",
+      "summary": "列条件とJSON全階層の文字列全文検索から、条件に一致する行だけを返す責務。",
       "public_interface": {
         "interface_name": "SearchFilter.apply",
         "input_name": "SearchFilterRequest",
@@ -244,7 +244,8 @@
         "shape_rules": [
           "rows は array",
           "search_condition は object",
-          "searchable_fields は array"
+          "searchable_fields は array",
+          "full_text は任意のstring。空文字は条件なしとして扱う"
         ]
       },
       "output_contract": {
@@ -281,7 +282,9 @@
       "in_scope": [
         "検索条件評価",
         "元データsubset保証",
-        "大きすぎる検索対象への警告"
+        "大きすぎる検索対象への警告",
+        "JSON全階層文字列値の再帰検索",
+        "全文検索と列条件のAND評価"
       ],
       "out_of_scope": [
         "検索UI入力",

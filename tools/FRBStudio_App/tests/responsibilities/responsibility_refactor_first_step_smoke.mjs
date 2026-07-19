@@ -1,4 +1,4 @@
-// v0.18.7-responsibility-refactor-first-step
+// v0.18.21-json-full-text-search
 // Minimal smoke tests for ResponsibilityDef first-step interfaces.
 // Run from FRBStudio_App root: node tests/responsibilities/responsibility_refactor_first_step_smoke.mjs
 
@@ -57,6 +57,36 @@ assert.deepEqual(
   Array.from(SearchFilter.apply(rows, [{ field: 'tags', raw: ['z'], type: 'select' }]).map(x => x.row.id)),
   ['b'],
   'search_filter multi values should match array cells'
+);
+
+const nestedRows = [
+  { id: 'nested-a', title: 'Parent A', score: 123, detail: { memo: 'Visible parent only' } },
+  { id: 'nested-b', title: 'Parent B', detail: { children: [{ memo: 'Needle in child grid' }] } },
+  { id: 'nested-c', title: 'Parent C', hiddenKeyNeedle: { count: 123 } }
+];
+
+assert.deepEqual(
+  Array.from(SearchFilter.apply(nestedRows, [], { fullText: 'needle in child' }).map(x => x.row.id)),
+  ['nested-b'],
+  'full-text search should recursively match nested string values and keep the parent row'
+);
+
+assert.deepEqual(
+  Array.from(SearchFilter.apply(nestedRows, [{ field: 'title', raw: 'Parent B', type: 'text', operator: 'equals' }], { fullText: 'needle' }).map(x => x.row.id)),
+  ['nested-b'],
+  'full-text search should be AND-combined with existing field criteria'
+);
+
+assert.deepEqual(
+  Array.from(SearchFilter.apply(nestedRows, [], { fullText: '123' }).map(x => x.row.id)),
+  [],
+  'full-text search should ignore numeric values'
+);
+
+assert.deepEqual(
+  Array.from(SearchFilter.apply(nestedRows, [], { fullText: 'hiddenKeyNeedle' }).map(x => x.row.id)),
+  [],
+  'full-text search should ignore object key names'
 );
 
 const csvFields = CsvExporter.resolveFields({

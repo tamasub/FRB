@@ -24,15 +24,17 @@
       "test_level": "UT",
       "approval_status": "draft",
       "enabled": true,
-      "purpose": "検索条件と対象データから、条件に一致する行だけを後続処理へ渡せる状態にする。",
-      "summary": "文字列・数値・boolean・複数選択の検索条件を評価し、元データ上のIndexを保持した一致行を返す。",
+      "purpose": "検索条件と全文検索語から、条件に一致する行だけを後続処理へ渡せる状態にする。",
+      "summary": "文字列・数値・boolean・複数選択の列条件と、JSON全階層の文字列値を対象とする全文検索をAND評価し、元データ上のIndexを保持した一致行を返す。",
       "source_file": "wwwroot/js/responsibilities/search_filter.js",
       "interface_name": "SearchFilter.apply",
       "in_scope": [
         "検索条件評価",
         "複数条件のAND評価",
         "元データIndexの保持",
-        "空条件の無視"
+        "空条件の無視",
+        "JSON全階層の文字列値を対象とする全文検索",
+        "全文検索と列条件のAND評価"
       ],
       "out_of_scope": [
         "検索UIの描画",
@@ -109,9 +111,31 @@
           "test_pattern_seed": "検索前後の入力非破壊パターン",
           "priority": "medium",
           "enabled": true
+        },
+        {
+          "guarantee_id": "search_filter_g007",
+          "guarantee_type": "rule",
+          "condition": "全文検索語が指定された場合",
+          "guarantee": "行が保持するobject / arrayを再帰走査し、いずれかの文字列値に部分一致すれば親行を結果へ含める。",
+          "observable_result": "表示列に検索語がなくても、子Grid・詳細・非表示項目の文字列値に一致する親行が返る。",
+          "expected_def_type": "RuleExpectedDef",
+          "test_pattern_seed": "子配列の文字列一致で親行が残るパターン",
+          "priority": "high",
+          "enabled": true
+        },
+        {
+          "guarantee_id": "search_filter_g008",
+          "guarantee_type": "constraint",
+          "condition": "全文検索を評価する場合",
+          "guarantee": "検索対象は文字列値だけとし、objectのキー名・number・booleanは検索対象へ含めない。",
+          "observable_result": "キー名だけ、または数値・booleanだけに検索語が存在しても一致行にならない。",
+          "expected_def_type": "RuleExpectedDef",
+          "test_pattern_seed": "キー名と数値を全文検索対象外にするパターン",
+          "priority": "high",
+          "enabled": true
         }
       ],
-      "notes": "現行JSON駆動テストには search_filter_contains_case_insensitive / search_filter_number_gte_preserves_indexes が存在する。"
+      "notes": "JSON駆動テストに列contains / number gte / JSON全階層文字列全文検索が存在する。"
     },
     {
       "responsibility_cd": "grid_column_build",

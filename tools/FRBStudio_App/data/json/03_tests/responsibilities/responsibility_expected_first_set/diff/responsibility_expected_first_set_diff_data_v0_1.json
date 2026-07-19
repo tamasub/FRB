@@ -9,12 +9,12 @@
   "diff_kind": "responsibility_expected",
   "test_id": "responsibility_expected_first_set",
   "title": "Responsibility Expected Tests First Set / 責務単位Expectedテスト初期セット Diff",
-  "generated_at": "2026-07-05_10:20:48",
+  "generated_at": "2026-07-19_21:49:14",
   "status": "fail",
   "resultLabel": "🚨 FAIL",
   "summary": "🚨 1件の差分を検出しました: grid_column_build_visible_fields_basic.field_names",
-  "total": 11,
-  "passCount": 10,
+  "total": 15,
+  "passCount": 14,
   "failCount": 1,
   "failedCount": 1,
   "failedCheckIds": [
@@ -174,6 +174,82 @@
         1,
         2
       ],
+      "pass": true,
+      "message": "OK"
+    },
+    {
+      "check_id": "search_filter_full_text_nested_strings_only.row_ids",
+      "name": "row_ids",
+      "target": "row_ids",
+      "type": "compareStrategy",
+      "expected_def_type": "StateExpectedDef",
+      "expected_def_type_source": "declared",
+      "compare_strategy": "ArrayEquals",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_full_text_nested_strings_only",
+      "expected": "[\"b\"]",
+      "actual": "[\"b\"]",
+      "expected_raw": [
+        "b"
+      ],
+      "actual_raw": [
+        "b"
+      ],
+      "pass": true,
+      "message": "OK"
+    },
+    {
+      "check_id": "search_filter_full_text_nested_strings_only.indexes",
+      "name": "indexes",
+      "target": "indexes",
+      "type": "compareStrategy",
+      "expected_def_type": "StateExpectedDef",
+      "expected_def_type_source": "declared",
+      "compare_strategy": "ArrayEquals",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_full_text_nested_strings_only",
+      "expected": "[1]",
+      "actual": "[1]",
+      "expected_raw": [
+        1
+      ],
+      "actual_raw": [
+        1
+      ],
+      "pass": true,
+      "message": "OK"
+    },
+    {
+      "check_id": "search_filter_full_text_excludes_keys_and_numbers.row_ids",
+      "name": "row_ids",
+      "target": "row_ids",
+      "type": "compareStrategy",
+      "expected_def_type": "StateExpectedDef",
+      "expected_def_type_source": "declared",
+      "compare_strategy": "ArrayEquals",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_full_text_excludes_keys_and_numbers",
+      "expected": "[]",
+      "actual": "[]",
+      "expected_raw": [],
+      "actual_raw": [],
+      "pass": true,
+      "message": "OK"
+    },
+    {
+      "check_id": "search_filter_full_text_excludes_keys_and_numbers.indexes",
+      "name": "indexes",
+      "target": "indexes",
+      "type": "compareStrategy",
+      "expected_def_type": "StateExpectedDef",
+      "expected_def_type_source": "declared",
+      "compare_strategy": "ArrayEquals",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_full_text_excludes_keys_and_numbers",
+      "expected": "[]",
+      "actual": "[]",
+      "expected_raw": [],
+      "actual_raw": [],
       "pass": true,
       "message": "OK"
     },

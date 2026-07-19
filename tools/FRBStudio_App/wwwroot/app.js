@@ -1,3 +1,4 @@
+// v0.18.21-json-full-text-search
 // v0.13.10.1-main-json-select-autofill-silent
 // Main screen UX stabilization:
 // - Non-blocking toast status messages
@@ -386,6 +387,8 @@ $('addRowBtn').addEventListener('click', addGridRow);
 $('deleteRowBtn').addEventListener('click', deleteSelectedRow);
 if ($('gridCsvExportBtn')) $('gridCsvExportBtn').addEventListener('click', exportVisibleGridCsv);
 $('clearSearchBtn').addEventListener('click', () => {
+  const fullText = $('studioFullTextSearchInput');
+  if (fullText) fullText.value = '';
   [...$('searchForm').querySelectorAll('input, select, textarea')].forEach(i => {
     if (i instanceof HTMLSelectElement && i.multiple) [...i.options].forEach(opt => { opt.selected = false; });
     else i.value = '';

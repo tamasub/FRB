@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-07-16",
+  "updated_at": "2026-07-19",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。",
-  "items_count": 72,
+  "items_count": 73,
   "work_items": [
     {
       "work_item_id": "studio_work_0007",
@@ -12200,6 +12200,200 @@
           "note": "00_rules全体をStudioくんの主文脈群として扱う。"
         }
       ]
+    },
+    {
+      "work_item_id": "studio_work_0138",
+      "phase": "v0.18.21-json-full-text-search",
+      "title": "JSON全階層全文検索 / 全ViewDef共通UI・既存検索ボタン統合",
+      "incident_type": "architecture_improvement",
+      "category": "search",
+      "priority": "high",
+      "status": "完了",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-19",
+      "updated_at": "2026-07-19",
+      "target_files": "data/json/00_rules/md/JSON_FULL_TEXT_SEARCH_REPORT_v0_18_21.md, data/json/01_main/studio_work_incident_data_v1.json, data/json/03_tests/qa/responsibility_def/responsibility_def_master_draft_v0_1.json, data/json/03_tests/responsibilities/responsibility_data_v0_1.json, data/json/03_tests/responsibilities/responsibility_expected_first_set/actual/responsibility_expected_first_set_actual_data_v0_1.json, data/json/03_tests/responsibilities/responsibility_expected_first_set/diff/responsibility_expected_first_set_diff_data_v0_1.json, data/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/responsibility_expected_test_patterns_data_v0_1.json, tests/responsibilities/responsibility_expected_tests.mjs, tests/responsibilities/responsibility_refactor_first_step_smoke.mjs, wwwroot/Studio_Core_Context_Summary.md, wwwroot/app.js, wwwroot/index.html, wwwroot/js/renderers/field_controls.js, wwwroot/js/renderers/grid_detail.js, wwwroot/js/responsibilities/search_filter.js, wwwroot/js/runtime/search_state.js, wwwroot/styles.css",
+      "target_rule_files": "data/json/00_rules/md/JSON_FULL_TEXT_SEARCH_REPORT_v0_18_21.md",
+      "objective": "JSONの構造や表示列を知らなくても、親Grid行が保持する子Grid・詳細・非表示項目を含む全階層の文字列を、全ViewDef共通の操作で検索できるようにする。",
+      "background": "tamasubが以前から必要としていたが依頼タイミングを逃していた機能。既存検索はViewDefでsearch.visibleを宣言した列単位の条件検索であり、子配列や詳細の奥にある文字列を探すにはJSON構造を把握する必要があった。全文検索は会社固有Overlayではなく、JSONを人間フレンドリーに扱うStudio Coreの基礎能力として実装する。",
+      "scope": "検索エリア上段へCore固定の全文検索テキストボックスを全ViewDef共通で表示する。既存の検索ボタンで実行し、取消で全文検索語を含む全条件をクリアする。各親行のobject / arrayを再帰走査し、子Grid・詳細・非表示Fieldを含む文字列値へ大文字小文字を無視した部分一致を行う。子階層で一致した場合も親行を残す。既存列条件およびPlugin SearchFilterとはAND評価する。全文検索語をCore検索ui_stateへ保存・復元する。",
+      "out_of_scope": "MVPではobjectキー名、number、boolean、nullを検索対象にしない。正規表現、OR検索、空白区切り複数語、検索結果ハイライト、一致パス表示、詳細画面の一致箇所ジャンプ、永続検索インデックス、自動的な全文検索欄非表示は行わない。",
+      "fixed_name_policy": "RuntimeへData固有Field名を持ち込まない。全文検索は現在の親行オブジェクト全体を対象にし、ViewDefのfield名・caption・子Grid名に依存しない。Core内部の検索状態キーとして`__studio_full_text__`だけを標準UI識別子として使用する。",
+      "module_policy": "既存のグローバルscript方式を維持する。再帰走査と一致判定はSearchFilter責務へ置き、grid_detail.jsはUI入力の取得と再描画統合、search_state.jsは保存・復元、index.html / styles.cssは標準UIだけを担当する。",
+      "expected_outputs": "全ViewDef共通の全文検索UI、文字列値だけを対象とする再帰検索、既存検索とのAND統合、取消・検索状態保存対応、責務Smoke、JSON駆動Test Pattern / Actual / Diff、Core文脈更新、実装レポート、更新済み同名インシデントJSON、更新ファイル限定ZIP。",
+      "risk": "JSONが非常に大きい場合、検索実行ごとの再帰走査コストが増える可能性がある。キー名や数値まで初回から検索するとノイズが急増する。全文検索をViewDef列条件へ無理に見せると責務と保存状態が混乱する。検索インデックスを早期導入すると編集時の無効化設計が増えるため、まず実測してから拡張する。",
+      "test_points": "子Gridの文字列だけに検索語が存在する親行が残ること。詳細・非表示Fieldも検索対象になること。大文字小文字を無視すること。objectキー名・number・booleanだけでは一致しないこと。既存列条件とANDになること。Plugin Filterの後段契約が維持されること。空文字では全行を維持すること。取消で全文検索語と列条件が消えること。検索状態の保存・復元で全文検索語が戻ること。全ViewDefで表示され、ViewDefにsearch.visibleがない場合でも全文検索欄が出ること。",
+      "user_request": "この機能をまえからずっとほしかった機能で言うタイミングを逃してて笑　とりあえず、改善をお願いします。インシデントもファイル名は変えずに作業結果で更新しておいてください。笑　よろしく",
+      "ai_response": "全文検索をOverlayではなくCore標準機能として実装する。UIは検索エリア上段に常時表示し、既存の検索・取消ボタンを再利用する。検索ロジックはSearchFilter責務へ追加し、各親行のJSON全階層から文字列値だけを再帰検索する。",
+      "latest_user_comment": "この機能をまえからずっとほしかった機能で言うタイミングを逃してて笑　とりあえず、改善をお願いします。インシデントもファイル名は変えずに作業結果で更新しておいてください。笑　よろしく",
+      "latest_ai_response": "Studio標準のJSON全階層全文検索を実装した。全ViewDef共通の固定UIとして既存検索ボタンへ統合し、子Grid・詳細・非表示項目の文字列値を再帰検索する。列条件とPlugin FilterはANDのまま維持し、Data / ViewDef再読込時の検索語リセット、検索状態保存・取消・責務テスト・実装レポート・同名インシデント更新を反映した。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0138_001",
+          "at": "2026-07-19",
+          "speaker": "user",
+          "topic": "Core標準機能としての実装確認",
+          "message": "これはオーバーレイ機能ではなく、標準機能として実装したいのやけど、いけそう？"
+        },
+        {
+          "history_id": "disc_0138_002",
+          "at": "2026-07-19",
+          "speaker": "assistant",
+          "topic": "Core標準機能としての方針",
+          "message": "全文検索は会社固有ではなくJSONを人間が扱いやすくする基礎機能なので、Studio本体の共通検索基盤へ置く方針を提案した。"
+        },
+        {
+          "history_id": "disc_0138_003",
+          "at": "2026-07-19",
+          "speaker": "user",
+          "topic": "既存検索ボタンへ統合するUI",
+          "message": "俺のイメージはこんな感じ。既存の「検索」ボタンで対応。"
+        },
+        {
+          "history_id": "disc_0138_004",
+          "at": "2026-07-19",
+          "speaker": "user",
+          "topic": "全ViewDef共通表示",
+          "message": "で、全文検索のテキストボックスは基本、どのViewDefでも出ているってイメージ。テキスト文字列がないときは、非表示にするってのをいれてもいいかもしれんけど、今は不要って感じかね笑"
+        },
+        {
+          "history_id": "disc_0138_005",
+          "at": "2026-07-19",
+          "speaker": "user",
+          "topic": "実装と同名インシデント更新依頼",
+          "message": "この機能をまえからずっとほしかった機能で言うタイミングを逃してて笑　とりあえず、改善をお願いします。インシデントもファイル名は変えずに作業結果で更新しておいてください。笑　よろしく"
+        },
+        {
+          "history_id": "disc_0138_006",
+          "at": "2026-07-19",
+          "speaker": "assistant",
+          "topic": "実装・検証・返却完了",
+          "message": "AI回答\n\n## 今回の更新\n\n- Studio標準の`🔍 全文検索`を検索エリア上段へ追加\n- 既存の`検索`ボタンと`取消`ボタンへ統合\n- 子Grid・詳細・非表示項目を含むJSON全階層の文字列値を再帰検索\n- 既存の列検索条件、Overlay / Plugin SearchFilterとはAND評価\n- 全文検索語をCore検索状態の保存・復元対象へ追加\n- SearchFilter責務定義、Test Pattern / Actual / Diff、実装レポートを更新\n\n## 方針\n\n全文検索はViewDefごとのオプションではなく、全ViewDefで同じ位置に出るCore標準機能とした。MVPの検索対象は文字列値だけとし、objectキー名・number・booleanは対象外にした。専用の検索ボタンは追加せず、既存の検索操作へ自然に統合した。\n\n## 確認結果\n\n- JS構文確認：OK\n- Responsibility Smoke：OK\n- JSON駆動テスト：全文検索2件を含む今回対象7件PASS\n- 既存の未変更Expected誤値`title zzz`による既知FAIL：1件継続\n- JSON parse：OK\n- 更新ファイル限定ZIP：作成済み"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0138_001",
+          "at": "2026-07-19",
+          "decision": "全文検索はOverlayではなくStudio Coreの標準機能として実装する。",
+          "reason": "Dataや業務ドメインに依存せず、JSON構造を知らない人が情報を探すための全画面共通能力だから。"
+        },
+        {
+          "decision_id": "dec_0138_002",
+          "at": "2026-07-19",
+          "decision": "全文検索UIは全ViewDefで検索エリア上段へ常時表示し、専用ボタンを作らず既存の検索・取消ボタンへ統合する。",
+          "reason": "tamasubのUIイメージに一致し、従来の検索操作を増やさず学習コストを抑えられるため。"
+        },
+        {
+          "decision_id": "dec_0138_003",
+          "at": "2026-07-19",
+          "decision": "検索対象は親行が保持する全階層の文字列値だけとし、キー名・number・booleanはMVP対象外にする。",
+          "reason": "子Grid・詳細を探せる価値を得つつ、0・1・trueやキー名による大量ノイズを避けるため。"
+        },
+        {
+          "decision_id": "dec_0138_004",
+          "at": "2026-07-19",
+          "decision": "全文検索と既存列条件はAND評価し、Plugin SearchFilterは従来どおりCore検索の後段で適用する。",
+          "reason": "既存検索契約を壊さず、全文検索を追加の絞り込み条件として自然に扱うため。"
+        },
+        {
+          "decision_id": "dec_0138_005",
+          "at": "2026-07-19",
+          "decision": "初回実装では永続検索インデックスを導入せず、検索ボタン押下時に再帰走査する。",
+          "reason": "編集時のキャッシュ無効化責務を増やさず、実際の性能課題が観測されてから最適化するため。"
+        },
+        {
+          "decision_id": "dec_0138_006",
+          "at": "2026-07-19",
+          "decision": "インシデント管理JSONは既存の`data/json/01_main/studio_work_incident_data_v1.json`を同名更新する。",
+          "reason": "tamasubの明示依頼とFoundation Rule 019の同名収録契約に従うため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0138_001",
+          "at": "2026-07-19",
+          "change_type": "incident_added_and_completed",
+          "before": "StudioにはViewDefで宣言された列単位検索だけがあり、子Grid・詳細・非表示項目を横断する標準全文検索がなかった。",
+          "after": "studio_work_0138として全ViewDef共通のJSON全階層全文検索を登録し、同じ作業で実装・検証まで完了した。",
+          "reason": "以前から必要だった検索能力をCore標準機能として追加するため。"
+        },
+        {
+          "history_id": "chg_0138_002",
+          "at": "2026-07-19",
+          "change_type": "ui",
+          "before": "検索エリア上段には検索タイトルと検索・取消ボタンだけが表示されていた。",
+          "after": "`🔍 全文検索`テキストボックスを上段へ常時表示し、既存ボタンで実行・取消するUIへ変更した。",
+          "reason": "tamasubの提示UIに合わせ、専用操作を増やさないため。"
+        },
+        {
+          "history_id": "chg_0138_003",
+          "at": "2026-07-19",
+          "change_type": "implementation",
+          "before": "SearchFilterはViewDef Fieldごとのcriteriaだけを評価していた。",
+          "after": "SearchFilterへobject / arrayの文字列値再帰収集、全文一致、列条件とのAND評価を追加し、検索状態保存・fallback・取消を統合した。",
+          "reason": "子Gridや詳細の奥で一致した親行を標準検索結果へ残すため。"
+        },
+        {
+          "history_id": "chg_0138_004",
+          "at": "2026-07-19",
+          "change_type": "test_and_context",
+          "before": "全文検索の責務保証、Test Pattern、Core復帰文脈、実装レポートがなかった。",
+          "after": "ResponsibilityDef、Smoke、JSON駆動Test Pattern / Actual / Diff、Core Context Summary、実装レポートを更新した。",
+          "reason": "将来のAIと人間が検索契約・対象外・検証結果を再利用できるようにするため。"
+        }
+      ],
+      "verification_status": "確認済み",
+      "fixed_in_version": "v0.18.21-json-full-text-search",
+      "actual_updated_files": "data/json/00_rules/md/JSON_FULL_TEXT_SEARCH_REPORT_v0_18_21.md\ndata/json/01_main/studio_work_incident_data_v1.json\ndata/json/03_tests/qa/responsibility_def/responsibility_def_master_draft_v0_1.json\ndata/json/03_tests/responsibilities/responsibility_data_v0_1.json\ndata/json/03_tests/responsibilities/responsibility_expected_first_set/actual/responsibility_expected_first_set_actual_data_v0_1.json\ndata/json/03_tests/responsibilities/responsibility_expected_first_set/diff/responsibility_expected_first_set_diff_data_v0_1.json\ndata/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/responsibility_expected_test_patterns_data_v0_1.json\ntests/responsibilities/responsibility_expected_tests.mjs\ntests/responsibilities/responsibility_refactor_first_step_smoke.mjs\nwwwroot/Studio_Core_Context_Summary.md\nwwwroot/app.js\nwwwroot/index.html\nwwwroot/js/renderers/field_controls.js\nwwwroot/js/renderers/grid_detail.js\nwwwroot/js/responsibilities/search_filter.js\nwwwroot/js/runtime/search_state.js\nwwwroot/styles.css",
+      "completion_summary": "全ViewDef共通のJSON全階層全文検索をCore標準機能として実装した。既存検索ボタンへ統合し、子Grid・詳細・非表示Fieldを含む文字列値だけを再帰検索する。列条件とPlugin FilterはAND評価、取消・Data / ViewDef再読込時のリセット・検索状態保存にも対応した。",
+      "test_result": "node --check: search_filter.js / grid_detail.js / field_controls.js / search_state.js / app.js / test runner 2件 OK。responsibility_refactor_first_step_smoke: OK。JSON駆動Expected: 今回追加した全文検索2件を含む7/8 PASS。FAIL 1件は改修前から存在するgrid_column_build_visible_fields_basicのExpected値`title zzz`とActual`title`の不一致で今回対象外。変更JSON 6件parse OK。index.html必須ID・重複ID確認OK。成果物ZIPは更新17ファイルだけを収録し、runtime生成物0件、同名インシデントJSON収録を確認した。",
+      "return_zip": "FRBStudio_App_v0.18.21-json-full-text-search_20260719_chatgpt_delivery.zip",
+      "context_def_status": "done",
+      "context_def_updated_at": "2026-07-19",
+      "context_def_draft": "# ContextDef素案: v0.18.21-json-full-text-search\n\n## 読む目的\n全ViewDef共通のJSON全階層文字列検索をCore標準機能として維持する。\n\n## 作業前に読む入口\n- wwwroot/Studio_Core_Context_Summary.mdの検索責務を読む。\n- wwwroot/js/responsibilities/search_filter.jsのmatchesFullText / collectStringValues / apply契約を読む。\n- このインシデントのscope / out_of_scope / decision_log / test_pointsを読む。\n\n## AI作業メモ\n- Data固有Field名をRuntimeへ追加しない。\n- 全文検索は親行単位で評価し、子階層一致時も親行を返す。\n- 文字列値だけを対象とし、キー名・数値・booleanは勝手に含めない。\n- 列条件とPlugin Filterの既存AND契約を壊さない。\n- 性能問題が実測されるまではキャッシュ無効化責務を追加しない。\n\n## 確認観点メモ\n全ViewDef表示、既存ボタン統合、子Grid・詳細・非表示Field、文字列のみ、AND評価、取消、検索状態保存、空条件、元Index保持を確認する。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0138_001_incident_scope",
+          "title": "対象インシデントの目的・契約を読む",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/studio_work_incident_data_v1.json#studio_work_0138",
+          "purpose": "全文検索の対象、対象外、Core/Plugin境界、MVP、性能判断を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0138_002_core_context",
+          "title": "Studio Core文脈サマリーを読む",
+          "read_timing": "before_work",
+          "target_path": "wwwroot/Studio_Core_Context_Summary.md#8.1",
+          "purpose": "検索UI、SearchFilter、search_state、Plugin後段適用の構造を復元する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0138_003_foundation_rule_019",
+          "title": "Foundation Rule 019を読む",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "同名インシデント更新と更新ファイル限定ZIP返却契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        }
+      ]
     }
   ],
   "review_notes": [
@@ -12684,11 +12878,11 @@
       "body": "StudioLog.ps1の -f 演算子周辺で Format-StudioDateTime 呼び出しを括弧化し、TestRunner.ps1経由のParserErrorを防ぐ。画面定義JSON/対象JSONコンボには英数字入力向けのinputmode等を追加した。"
     }
   ],
-  "work_revision": "v0_145_grid_numeric_aggregate_header_row_done",
+  "work_revision": "v0_146_json_full_text_search_done",
   "latest_planning_note": {
-    "at": "2026-07-16",
-    "phase": "v0.18.20-grid-numeric-aggregate-header-row",
-    "summary": "studio_work_0137を完了。ViewDefのfield.grid.aggregate宣言、純粋GridAggregator、thead二段集計行、Σによる省スペース表示、FX Entry成績表への適用、Schema・生成ルール・責務Smoke・Studio実画面検証を実施した。"
+    "at": "2026-07-19",
+    "phase": "v0.18.21-json-full-text-search",
+    "summary": "studio_work_0138を完了。全ViewDef共通の全文検索UI、JSON全階層の文字列値再帰検索、既存列条件・Plugin FilterとのAND、取消・検索状態保存、責務テスト・実装レポートを反映した。"
   },
   "view_def_candidates": [
     {

@@ -1,4 +1,4 @@
-// v0.17.16-search-state-standard-ui-hidden
+// v0.18.21-json-full-text-search
 // 検索条件の保存・呼出・画面復元を担当する最小ブリッジ。
 // Core検索欄とPlugin SearchFilter stateを同じ ui_state として扱う。
 // v0.17.16: 標準UIは方針整理まで非表示。Core API / Plugin state bridge のみ残す。
@@ -31,10 +31,16 @@ function hasStudioSearchUiState(pattern) {
 }
 
 function studioCoreSearchControls() {
+  const controls = [];
+  const fullText = $('studioFullTextSearchInput');
+  if (fullText) controls.push(fullText);
+
   const form = $('searchForm');
-  if (!form) return [];
-  return [...form.querySelectorAll('input, select, textarea')]
-    .filter(control => !control.closest('.studio-plugin-search-filter'));
+  if (form) {
+    controls.push(...[...form.querySelectorAll('input, select, textarea')]
+      .filter(control => !control.closest('.studio-plugin-search-filter')));
+  }
+  return controls;
 }
 
 function getStudioControlValue(control) {

@@ -992,6 +992,8 @@ function renderHeader() {
 
 function renderSearch() {
   const gd = gridDef();
+  const fullText = $('studioFullTextSearchInput');
+  if (fullText) fullText.value = '';
   const form = $('searchForm');
   form.innerHTML = '';
   gd.fields.filter(f => f.search?.visible).forEach(field => {

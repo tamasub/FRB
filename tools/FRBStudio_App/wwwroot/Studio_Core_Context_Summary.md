@@ -362,7 +362,9 @@ ViewDefの`dataSources`を追加読込し、`virtualData`宣言に従って表�
 
 Core検索は`contains / equals / gte / lte`を担当し、その後にPlugin SearchFilterを適用する。
 
-検索状態はCoreとPluginをまとめた`ui_state`として保存・復元できる。LocalStorageとOverlay SearchPatternの両方を扱えるが、標準の検索条件保存UIは現在意図的に非表示で、APIブリッジだけ残されている。
+`v0.18.21-json-full-text-search`から、検索エリア上段にCore標準の`🔍 全文検索`を常時表示する。全文検索は現在行が保持するobject / arrayを再帰走査し、子Grid・詳細・非表示項目を含む**文字列値だけ**を大文字小文字を無視して部分一致検索する。子階層で一致した場合も親Grid行を残し、既存の列検索条件およびPlugin SearchFilterとはAND条件で評価する。キー名・number・booleanはMVPの検索対象外。ViewDefごとの宣言は不要で、どのViewDefでも同じ操作位置に表示する。
+
+検索状態はCoreとPluginをまとめた`ui_state`として保存・復元できる。全文検索語も`__studio_full_text__`としてCore stateへ含める。LocalStorageとOverlay SearchPatternの両方を扱えるが、標準の検索条件保存UIは現在意図的に非表示で、APIブリッジだけ残されている。
 
 ### 8.2 Action
 

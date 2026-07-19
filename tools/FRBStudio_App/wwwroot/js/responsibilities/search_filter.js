@@ -1,7 +1,8 @@
-// v0.18.7-responsibility-refactor-first-step
+// v0.18.21-json-full-text-search
 // ResponsibilityDef: search_filter
 // 検索条件と対象データから、条件に一致する行だけを返す薄い責務Interface。
 // DOM入力の読み取りは補助関数に分離し、判定本体は rows/fields/criteria だけで検証できる形にする。
+// v0.18.21: 行が保持するJSON全階層の文字列値を対象とする全文検索を追加する。
 
 var SearchFilter = (function () {
   function readByPath(obj, path) {
@@ -75,6 +76,34 @@ var SearchFilter = (function () {
     return criteria.every(criterion => matchesCriterion(row, criterion));
   }
 
+  function collectStringValues(value, output = [], seen = new Set()) {
+    if (typeof value === 'string') {
+      output.push(value);
+      return output;
+    }
+    if (value == null || typeof value !== 'object') return output;
+    if (seen.has(value)) return output;
+    seen.add(value);
+
+    if (Array.isArray(value)) {
+      for (const item of value) collectStringValues(item, output, seen);
+      return output;
+    }
+
+    for (const child of Object.values(value)) collectStringValues(child, output, seen);
+    return output;
+  }
+
+  function buildFullText(row) {
+    return collectStringValues(row).join('\n').toLowerCase();
+  }
+
+  function matchesFullText(row, rawQuery) {
+    const query = String(rawQuery ?? '').trim().toLowerCase();
+    if (!query) return true;
+    return buildFullText(row).includes(query);
+  }
+
   function normalizeRows(rows = []) {
     return rows.map((item, index) => {
       if (item && typeof item === 'object' && 'row' in item && 'index' in item) return item;
@@ -85,7 +114,10 @@ var SearchFilter = (function () {
   function apply(rows = [], criteria = [], options = {}) {
     const entries = normalizeRows(rows);
     const effectiveCriteria = Array.isArray(criteria) ? criteria : [];
-    const filtered = entries.filter(({ row }) => matchesRow(row, effectiveCriteria));
+    const fullText = options.fullText ?? options.full_text ?? '';
+    const filtered = entries.filter(({ row }) => (
+      matchesRow(row, effectiveCriteria) && matchesFullText(row, fullText)
+    ));
     return typeof options.afterFilter === 'function' ? options.afterFilter(filtered) : filtered;
   }
 
@@ -94,6 +126,9 @@ var SearchFilter = (function () {
     criteriaFromInputs,
     matchesCriterion,
     matchesRow,
+    matchesFullText,
+    collectStringValues,
+    buildFullText,
     isEmptyCriterionValue
   };
 })();
