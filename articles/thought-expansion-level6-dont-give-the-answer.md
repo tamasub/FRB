@@ -3,7 +3,7 @@ title: "思考拡張レベル6を発見した——相手に答えを渡さな�
 emoji: "🧠"
 type: "idea"
 topics: ["ai", "communication", "thinking", "management", "mentalhealth"]
-published: false
+published: true
 ---
 
 > サブタイトル：～**それは、もったいない。**～
