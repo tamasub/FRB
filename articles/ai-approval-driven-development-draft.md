@@ -3,7 +3,7 @@ title: "詳細設計書って、AI時代に必要？——テストパターン�
 emoji: "🧭"
 type: "idea"
 topics: ["ai", "softwaredesign", "testing", "quality", "json"]
-published: false
+published: true
 ---
 
 :::message

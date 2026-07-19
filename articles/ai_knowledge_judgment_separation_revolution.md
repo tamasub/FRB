@@ -3,7 +3,7 @@ title: "まだ知識を教えているのか？──大AI時代の『知識・�
 emoji: "🧠"
 type: "idea"
 topics: ["ai", "education", "chatgpt", "thinking", "development"]
-published: false
+published: true
 ---
 
 # まだ知識を教えているのか？
