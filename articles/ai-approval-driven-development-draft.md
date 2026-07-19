@@ -7,6 +7,11 @@ published: true
 ---
 
 :::message
+AI承認駆動開発は、人間が承認する開発ではない。
+人間が承認できる構造を先に設計する開発である。
+:::
+
+:::message
 この記事は、**AI承認駆動開発 #0**です。  
 
 AI承認駆動開発の完成形を説明するものではありません。  
@@ -100,7 +105,7 @@ flowchart LR
 
     classDef treasure fill:#DFF5A5,stroke:#7CB342,stroke-width:2px,color:#263600
     class D treasure
-    
+
 ```
 
 本稿では、この一本の流れを中心に考える。
