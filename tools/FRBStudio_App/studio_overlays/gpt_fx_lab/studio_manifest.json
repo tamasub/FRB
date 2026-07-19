@@ -7,7 +7,7 @@
   "owner": "chatgpt",
   "managed_by": "chatgpt",
   "created_at": "2026-07-05",
-  "updated_at": "2026-07-18T08:24:00+09:00",
+  "updated_at": "2026-07-18T15:30:00+09:00",
   "purpose": "Studioくんの「JSONを人間フレンドリーにする」コンセプトを、FX M5データ + T3オーバーレイ候補で試すための勇者Overlay。",
   "core_boundary_policy": {
     "core_root": "wwwroot/",
@@ -35,7 +35,7 @@
   "plugin_index_files": [
     "plugins/plugin_index.json"
   ],
-  "notes": "v0.9.1.21 / Simulation Rule v0.26。Expansion-Liteは最初のM5 Dow ConfirmationでEpisode Anchorを固定し、後続Dow崩壊では変更しない。H4/H1 T3整合中のValid R3 TouchでEntryし、Entry後3本はT3 Exit猶予、4本目以降はM5 Close逆抜けでExit。旧Structural ExitはShadowのみ。data_filesワイルドカード契約も維持。",
+  "notes": "v0.9.1.22 / Simulation Rule v0.27。Liteの最上位判断足はH4。H4下降波中の安値候補2件以上でShort Initial Entry/ReEntryを抑止。T3 Exitでは旧HSI/R3/R5を保持し、R3内側復帰後の旧R3終値奪回＋T3復帰＋BB外側Close＋BB幅拡大で同一Episodeへ最大1回ReEntry。ReEntry後Add-onなし。data_filesワイルドカード契約も維持。",
   "display_projection_policy": {
     "enabled": true,
     "scope": "gpt_fx_lab overlay only",

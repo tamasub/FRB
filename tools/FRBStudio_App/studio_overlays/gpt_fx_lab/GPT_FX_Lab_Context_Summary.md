@@ -2,12 +2,41 @@
 
 更新日: 2026-07-18  
 対象: `F:\FRB\tools\FRBStudio_App\studio_overlays\gpt_fx_lab`  
-現行Plugin: `gpt_fx_lab.fx_chart_viewer v0.9.1.21`  
+現行Plugin: `gpt_fx_lab.fx_chart_viewer v0.9.1.22`  
 目的: GPT FX Lab改修時に、設計境界、現在のSimulation構造、正本ファイル、テスト契約を短時間で復元するための入口。
 
 ---
 
 
+
+## 0.0 v0.9.1.22 / Simulation Rule v0.27（2026-07-18）
+
+```text
+Liteが売買判断に使用する最上位時間足 = H4
+DAY / WEEK = Lite判断へ使用しない
+```
+
+H4下降波中にdistinct Candidate Lowを2件以上観測した場合、Lite Initial Short Entry / Short ReEntryをBLOCKする。Candidate Lowは反転兆候Guardだけに使い、HSI起点には採用しない。
+
+```text
+Initial TradeがT3 Exit
+  → PositionだけClose
+  → Episode / 固定HSI / 旧R3 / 旧R5を保持
+  → ReEntry WATCH
+
+M5 Closeが旧R3内側へ復帰
+  → ReEntry再武装
+
+旧R3終値奪回
+＋ M5 T3方向復帰
+＋ M5 BB outer外側Close
+＋ BB幅拡大
+  → 同一Episodeへ最大1回ReEntry
+```
+
+ReEntry Tradeは初期版Add-onなし。Anchor否定、反対Episode、Flat中R5到達、H1 Cycle Window超過、最大ReEntry回数消費で売買権利を終了する。NORMAL Rule v0.24は変更しない。
+
+---
 
 ## 0.0 v0.9.1.21 / Simulation Rule v0.26（2026-07-18）
 

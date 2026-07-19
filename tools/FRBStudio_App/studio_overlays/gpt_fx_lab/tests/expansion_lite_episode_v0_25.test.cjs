@@ -19,12 +19,12 @@ const source = fs.readFileSync(pluginPath, 'utf8');
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 const profile = JSON.parse(fs.readFileSync(profilePath, 'utf8'));
 
-assert.equal(manifest.version, '0.9.1.21');
-assert.equal(profile.m5_execution_policy.expansion_lite_policy.rule_version, 'v0.26');
+assert.equal(manifest.version, '0.9.1.22');
+assert.equal(profile.m5_execution_policy.expansion_lite_policy.rule_version, 'v0.27');
 assert.equal(profile.m5_execution_policy.expansion_lite_policy.m5_dow_confirmation_required, false);
 assert.equal(profile.m5_execution_policy.expansion_lite_policy.episode_unit, 'EXPANSION_EPISODE');
 assert.equal(profile.m5_execution_policy.expansion_lite_policy.other_lane_trade_state_input, 'FORBIDDEN');
-assert.equal(profile.m5_execution_policy.expansion_lite_policy.same_episode_reentry, 'NOT_DEFINED_DISABLED');
+assert.equal(profile.m5_execution_policy.expansion_lite_policy.same_episode_reentry, 'T3_EXIT_REENTRY_ONCE_WITH_R3_T3_BB_EXPANSION');
 
 const hook = `
 window.__liteV025 = {
@@ -140,7 +140,7 @@ const second = api.expansionLiteRuleLaneEntryDecision({
 });
 assert.equal(second.action, 'WAIT');
 assert.equal(second.entry_opportunity.initial_entry_status, 'USED');
-assert.ok(second.reason_codes.includes('EXPANSION_LITE_EPISODE_INITIAL_ENTRY_USED'));
+assert.ok(second.reason_codes.includes('EXPANSION_LITE_REENTRY_NOT_WATCHING')); // Initial Entry使用済みでも、T3 Exit前はReEntry候補を作らない。
 
 // 反対方向Detectionは別Episodeを開始する。
 const longResolution = {

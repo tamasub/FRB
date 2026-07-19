@@ -1,4 +1,4 @@
-// gpt_fx_lab.fx_chart_viewer v0.9.1.14-normal-entry-gate-analysis-shadow
+// gpt_fx_lab.fx_chart_viewer v0.9.1.22-expansion-lite-hsi-retention-bb-reentry-h4-candidate-guard
 // Coreを変更せず、Overlay Plugin ActionとしてUSDJPY M5 + T3 + Dow candidate/basis/history静的チャートを表示する。
 // 上位足Decisionを入力にM5確定足で仮想Entry/保有/決済を実行し、1 Entry / 1 Position / 1 Stop / 1 TargetのLifecycleを原因Traceへ接続する。
 // Confirm bars を変えながら、Candidate / Active Basis / Retired Basis の違いを見える化する。
@@ -91,6 +91,7 @@
 // v0.9.1.16: Lane別説明UI、Chart JSON明示、Expansion-Lite Entry未成立ログ(JSON/CSV)を追加。
 // v0.9.1.20: Simulation Rule v0.25対応。EXPANSION_LITEをDow Confirmation単位Opportunityから独立Expansion Episode観察者へ変更し、他LaneのEntry/Position/Closeを入力にしない。
 // v0.9.1.21: Simulation Rule v0.26対応。Lite AnchorをDow崩壊後も固定し、T3不整合時のR3タッチは消費せず再タッチ待ち。Entry後3本はT3 Exit猶予、4本目以降はM5 Close逆抜け。旧Structural ExitはShadow化。
+// v0.9.1.22: Simulation Rule v0.27対応。Lite上位足上限をH4に固定し、H4安値候補2回でShort Entry/ReEntryを抑止。T3 Exit後は旧HSI/R3/R5を保持し、R3内側復帰後の旧R3終値奪回＋T3復帰＋BB外側Close＋BB幅拡大で同一Episodeへ最大1回ReEntryする。
 // v0.9.1.12: Batch Caseが現在のチャート表示窓・UpperMap非同期読込状態を継承しないよう、対象期間の分析窓と上位足DataSourceをCase単位で固定する.
 // v0.9.0.33: 通常Entryを「1 Dow Confirmation ID = 最大1回のR2初回到達Entry = R2.5全Close」へ変更。同じ確認IDによる階段ReEntryを禁止。
 // v0.9.0.34: Dow確認時点ですでにR2へ到達済みなら、その確認EventをEntry Triggerとして即Entryする。R2.5到達済みなら見送り、未到達なら従来どおりR2初回到達を待つ。
@@ -147,11 +148,11 @@
   const NORMAL_CLOSE_EVALUATOR_ID = 'normal_m5_close_evaluator_v0_1';
   const EXPANSION_ENTRY_EVALUATOR_ID = 'expansion_entry_evaluator_placeholder_v0_1';
   const EXPANSION_CLOSE_EVALUATOR_ID = 'expansion_close_evaluator_placeholder_v0_1';
-  const EXPANSION_LITE_ENTRY_EVALUATOR_ID = 'expansion_lite_entry_evaluator_v0_3';
-  const EXPANSION_LITE_CLOSE_EVALUATOR_ID = 'expansion_lite_close_evaluator_v0_2';
+  const EXPANSION_LITE_ENTRY_EVALUATOR_ID = 'expansion_lite_entry_evaluator_v0_4';
+  const EXPANSION_LITE_CLOSE_EVALUATOR_ID = 'expansion_lite_close_evaluator_v0_3';
   const NORMAL_RULE_VERSION = 'v0.24';
-  const EXPANSION_LITE_RULE_VERSION = 'v0.26';
-  const EXPANSION_LITE_ENTRY_GUARD_RULE_VERSION = 'v0.21';
+  const EXPANSION_LITE_RULE_VERSION = 'v0.27';
+  const EXPANSION_LITE_ENTRY_GUARD_RULE_VERSION = 'v0.27';
   const NORMAL_ENTRY_V0_14_UPPER_DECISION_EXCEPTION = 'normal_entry_v0_14_m5_dow_breakout_next_hsi_boundary_explicit_exception';
   const NORMAL_ENTRY_V0_15_UPPER_DECISION_EXCEPTION = 'normal_entry_v0_15_normal_entry_only_no_reentry_explicit_exception';
   const NORMAL_ENTRY_V0_16_UPPER_DECISION_EXCEPTION = 'normal_entry_v0_16_dow_breakout_threshold_entry_explicit_exception';
@@ -3047,7 +3048,7 @@
           lanes: {
             NORMAL: { enabled: true, entry_evaluator_id: NORMAL_ENTRY_EVALUATOR_ID, close_evaluator_id: NORMAL_CLOSE_EVALUATOR_ID, allowed_actions: ['ENTRY', 'FULL_CLOSE', 'STOP_CLOSE'] },
             EXPANSION: { enabled: false, entry_evaluator_id: EXPANSION_ENTRY_EVALUATOR_ID, close_evaluator_id: EXPANSION_CLOSE_EVALUATOR_ID, allowed_actions: ['ENTRY', 'REENTRY', 'ADD_ON', 'FULL_CLOSE', 'STOP_CLOSE'] },
-            EXPANSION_LITE: { enabled: false, entry_evaluator_id: EXPANSION_LITE_ENTRY_EVALUATOR_ID, close_evaluator_id: EXPANSION_LITE_CLOSE_EVALUATOR_ID, allowed_actions: ['ENTRY', 'ADD_ON', 'FULL_CLOSE'] }
+            EXPANSION_LITE: { enabled: false, entry_evaluator_id: EXPANSION_LITE_ENTRY_EVALUATOR_ID, close_evaluator_id: EXPANSION_LITE_CLOSE_EVALUATOR_ID, allowed_actions: ['ENTRY', 'REENTRY', 'ADD_ON', 'FULL_CLOSE'] }
           }
         },
         normal_entry_policy: {
@@ -3092,10 +3093,19 @@
         entry_guard_policy: {
           day_up_h4_down_r5_short: {
             enabled: true,
-            rule_version: EXPANSION_LITE_ENTRY_GUARD_RULE_VERSION,
+            rule_version: 'v0.21',
             block_at_or_above_raw: 377,
             block_at_or_above_label: 'R5',
-            applies_to_rule_lanes: [RULE_LANE_NORMAL, RULE_LANE_EXPANSION, RULE_LANE_EXPANSION_LITE]
+            applies_to_rule_lanes: [RULE_LANE_EXPANSION]
+          },
+          expansion_lite_h4_multiple_candidate_lows_short: {
+            enabled: true,
+            rule_version: EXPANSION_LITE_ENTRY_GUARD_RULE_VERSION,
+            distinct_candidate_low_count_block_at_or_above: 2,
+            applies_to_rule_lanes: [RULE_LANE_EXPANSION_LITE],
+            applies_to_actions: ['INITIAL_ENTRY', 'REENTRY'],
+            candidate_scope: 'CURRENT_H4_DOWN_WAVE_REALTIME_OBSERVED_ONLY',
+            unresolved_history_policy: 'WAIT'
           },
           normal_h4_same_direction_r4: {
             enabled: true,
@@ -3124,6 +3134,9 @@
           episode_anchor_lifecycle: 'FIXED_AFTER_FIRST_M5_DOW_CONFIRMATION',
           dow_break_anchor_policy: 'KEEP_ANCHOR_AND_EPISODE',
           same_direction_reconfirmation_anchor_policy: 'KEEP_ORIGINAL_EPISODE_ANCHOR',
+          upper_timeframe_ceiling: 'H4',
+          day_entry_context_used: false,
+          week_entry_context_used: false,
           day_cycle_position_required: false,
           h4_close_t3_side_required: true,
           h1_close_t3_side_required: true,
@@ -3139,7 +3152,21 @@
           r3_retouch_rearm_policy: 'CONFIRMED_M5_CLOSE_RETURNS_INSIDE_R3',
           entry_price_policy: 'R3_BOUNDARY_ELSE_FIRST_AVAILABLE_OPEN_ON_GAP',
           one_initial_entry_per_episode: true,
-          same_episode_reentry: 'NOT_DEFINED_DISABLED',
+          same_episode_reentry: 'T3_EXIT_REENTRY_ONCE_WITH_R3_T3_BB_EXPANSION',
+          max_reentry_count_per_episode: 1,
+          reentry_source_exit_type: 'T3_EXIT_ONLY',
+          reentry_anchor_policy: 'RETAIN_ORIGINAL_EPISODE_ANCHOR_R3_R5',
+          reentry_rearm_policy: 'M5_CLOSE_RETURNS_INSIDE_RETAINED_R3',
+          reentry_trigger: 'RETAINED_R3_CLOSE_RECLAIM_PLUS_T3_PLUS_BB_OUTER_PLUS_WIDTH_EXPANSION',
+          reentry_price_policy: 'TRIGGER_M5_CLOSE',
+          reentry_add_on_allowed: false,
+          reentry_t3_exit_grace_bars: 3,
+          reentry_expiry_conditions: ['ANCHOR_BROKEN', 'OPPOSITE_EPISODE', 'R5_REACHED_WHILE_FLAT', 'H1_CYCLE_WINDOW_EXCEEDED', 'MAX_REENTRY_COUNT_CONSUMED'],
+          h4_candidate_low_short_guard_enabled: true,
+          h4_candidate_low_short_guard_threshold: 2,
+          h4_candidate_low_short_guard_scope: 'CURRENT_H4_DOWN_WAVE_REALTIME_OBSERVED_ONLY',
+          bb_reentry_period: 20,
+          bb_reentry_deviations: 2.0,
           add_on_levels: [
             { raw: 188, label: 'R3.5' },
             { raw: 233, label: 'R4' },
@@ -3625,7 +3652,18 @@
       if (String(lite.r3_invalid_touch_policy || '') !== 'DO_NOT_CONSUME_WAIT_RETURN_INSIDE_AND_RETOUCH') errors.push('T3不整合時のR3タッチは消費せず、内側復帰後の再タッチを待ってください。');
       if (String(lite.r3_retouch_rearm_policy || '') !== 'CONFIRMED_M5_CLOSE_RETURNS_INSIDE_R3') errors.push('R3再タッチはM5 CloseのR3内側復帰で再武装してください。');
       if (lite.one_initial_entry_per_episode !== true) errors.push('Expansion-Liteは1 Episodeにつき最大1 Initial Entryです。');
-      if (String(lite.same_episode_reentry || '') !== 'NOT_DEFINED_DISABLED') errors.push('同一Episode内ReEntryは未定義のため無効にしてください。');
+      if (String(lite.upper_timeframe_ceiling || '').toUpperCase() !== 'H4') errors.push('Expansion-Liteの上位時間足上限はH4である必要があります。');
+      if (lite.day_entry_context_used !== false || lite.week_entry_context_used !== false) errors.push('Expansion-LiteのEntry/ReEntry判断へDAY/WEEKを使用してはいけません。');
+      if (String(lite.same_episode_reentry || '') !== 'T3_EXIT_REENTRY_ONCE_WITH_R3_T3_BB_EXPANSION') errors.push('同一Episode内ReEntryはT3 Exit後のR3/T3/BB再加速確認で最大1回に限定してください。');
+      if (Number(lite.max_reentry_count_per_episode) !== 1) errors.push('Expansion-Lite ReEntryは1 Episodeにつき最大1回です。');
+      if (String(lite.reentry_source_exit_type || '') !== 'T3_EXIT_ONLY') errors.push('Expansion-Lite ReEntry候補はT3 Exit時だけ生成してください。');
+      if (String(lite.reentry_trigger || '') !== 'RETAINED_R3_CLOSE_RECLAIM_PLUS_T3_PLUS_BB_OUTER_PLUS_WIDTH_EXPANSION') errors.push('Expansion-Lite ReEntry Triggerは旧R3終値奪回＋T3復帰＋BB外側Close＋BB幅拡大です。');
+      if (lite.reentry_add_on_allowed !== false) errors.push('v0.27初期版ではExpansion-Lite ReEntry後Add-onを禁止します。');
+      if (Number(lite.h4_candidate_low_short_guard_threshold) !== 2) errors.push('Expansion-Lite Short GuardはH4 Candidate Low 2件以上でBLOCKします。');
+      const liteCandidateGuard = executionPolicy.entry_guard_policy?.expansion_lite_h4_multiple_candidate_lows_short || {};
+      if (liteCandidateGuard.enabled !== true || Number(liteCandidateGuard.distinct_candidate_low_count_block_at_or_above) !== 2) errors.push('H4 Multiple Candidate Low Short Guardを2件閾値で有効にしてください。');
+      const dayGuardLanes = (executionPolicy.entry_guard_policy?.day_up_h4_down_r5_short?.applies_to_rule_lanes || []).map(value => String(value).toUpperCase());
+      if (dayGuardLanes.includes(RULE_LANE_EXPANSION_LITE)) errors.push('v0.27ではDay Up / H4 R5 GuardをExpansion-Liteへ適用してはいけません。');
       const addOnLabels = (lite.add_on_levels || []).map(item => String(item?.label || '').toUpperCase()).join(',');
       if (addOnLabels !== 'R3.5,R4,R4.5') errors.push('Expansion-Lite Add-onはR3.5 / R4 / R4.5に限定します。');
       if (Number(lite.target_raw) !== 377 || String(lite.target_label || '').toUpperCase() !== 'R5') errors.push('Expansion-Lite TargetはR5です。');
@@ -5887,6 +5925,7 @@
         middle,
         lower: numberOrNull(current?.lower),
         width: currentWidth,
+        previous_width: previousWidth,
         close,
         close_vs_middle: close == null || middle == null ? 'UNKNOWN' : close > middle ? 'ABOVE' : close < middle ? 'BELOW' : 'AT'
       },
@@ -6145,6 +6184,7 @@
           latest_active_low: latestLow,
           latest_pending_high: latestPendingHigh,
           latest_pending_low: latestPendingLow,
+          pending_candidates: pendingSwingCandidates.map(compactSwingRef).filter(Boolean),
           counts: cloneJsonValue(swingItem.counts || {}),
           status: swingItem.status || 'missing'
         },
@@ -6995,6 +7035,9 @@
     const h1T3 = numberOrNull(h1Bar.t3_20_0_2);
     const h1Cycle = h1.cycle_state || {};
     const h1SwingState = h1.swing_state || {};
+    const h4SwingState = h4.swing_state || {};
+    const h4Cycle = h4.cycle_state || {};
+    const m5BbState = m5.bb_state || {};
     const h1Profile = m5ExecutionTimeframeProfile(draft, 'H1');
     const detectionDirection = String(entryResolution?.direction || entryResolution?.anchor?.direction || '').toUpperCase();
     const episodeSide = detectionDirection === 'UP' ? 'LONG' : detectionDirection === 'DOWN' ? 'SHORT' : 'UNDETERMINED';
@@ -7020,6 +7063,19 @@
       ? Math.max(0, latestH1Index - originH1Index)
       : null;
     const h1CycleElapsedBars = elapsedFromDirectionalOrigin ?? numberOrNull(h1Cycle.elapsed_bars);
+    const h4WaveOrigin = h4Cycle.origin || (episodeSide === 'SHORT' ? h4SwingState.latest_active_high : h4SwingState.latest_active_low) || null;
+    const h4WaveId = String(h4WaveOrigin?.point_id || h4WaveOrigin?.key || h4WaveOrigin?.pivot_time || '');
+    const h4LatestPendingLow = cloneJsonValue(h4SwingState.latest_pending_low || null);
+    const h4PendingLowCandidates = (Array.isArray(h4SwingState.pending_candidates) ? h4SwingState.pending_candidates : [])
+      .filter(point => String(point?.type || '').toLowerCase() === 'swing_low')
+      .map(point => cloneJsonValue(point));
+    const h4CandidateHistoryResolved = String(h4SwingState.status || '').toLowerCase() !== 'missing'
+      && String(h4?.data_sufficiency?.components?.swing || '').toUpperCase() !== 'INSUFFICIENT';
+    const m5BbCurrent = m5BbState.current || {};
+    const m5BbWidth = numberOrNull(m5BbCurrent.width);
+    const m5BbPreviousWidth = numberOrNull(m5BbCurrent.previous_width);
+    const m5BbWidthChangeRatio = numberOrNull(m5BbState.width_change_ratio);
+    const m5BbWidthExpanding = m5BbWidth != null && ((m5BbPreviousWidth != null && m5BbWidth > m5BbPreviousWidth + 1e-12) || (m5BbPreviousWidth == null && m5BbWidthChangeRatio != null && m5BbWidthChangeRatio > 0));
     const h1CycleEntryAllowed = Boolean(h1DirectionalOrigin)
       && Number.isInteger(h1EntryAllowedMaxBars)
       && h1EntryAllowedMaxBars >= 0
@@ -7056,7 +7112,23 @@
       h1_cycle_front_half_limit: h1EntryAllowedMaxBars,
       h1_cycle_front_half: h1CycleEntryAllowed,
       m5_trend_state: String(m5.trend_state || 'UNDETERMINED').toUpperCase(),
+      h4_trend_state: String(h4.trend_state || 'UNDETERMINED').toUpperCase(),
+      h4_wave_id: h4WaveId || null,
+      h4_wave_origin: cloneJsonValue(h4WaveOrigin || null),
+      h4_latest_pending_low: h4LatestPendingLow,
+      h4_pending_low_candidates: h4PendingLowCandidates,
+      h4_candidate_low_history_resolved: h4CandidateHistoryResolved,
+      m5_bb_status: String(m5BbState.status || 'undetermined').toUpperCase(),
+      m5_bb_upper: numberOrNull(m5BbCurrent.upper),
+      m5_bb_lower: numberOrNull(m5BbCurrent.lower),
+      m5_bb_width: m5BbWidth,
+      m5_bb_previous_width: m5BbPreviousWidth,
+      m5_bb_width_change_ratio: m5BbWidthChangeRatio,
+      m5_bb_width_expanding: m5BbWidthExpanding,
+      upper_timeframe_ceiling: 'H4',
       day_cycle_position_used: false,
+      day_entry_context_used: false,
+      week_entry_context_used: false,
       other_lane_trade_state_used: false,
       entry_direction_ready: direction === 'LONG' || direction === 'SHORT'
     };
@@ -7256,17 +7328,171 @@
         r3_retouch_armed: false,
         r3_touch_observed_count: 0,
         r3_invalid_t3_touch_count: 0,
-        structural_break_shadow_count: 0
+        structural_break_shadow_count: 0,
+        anchor_status: 'ACTIVE',
+        reentry_opportunity_status: 'NOT_CREATED',
+        reentry_count: 0,
+        reentry_trigger_armed: false,
+        reentry_r3_inside_return_at: null,
+        reentry_r3_inside_return_at_ms: null,
+        reentry_trade_id: null,
+        h4_candidate_low_wave_id: null,
+        h4_candidate_low_ids: [],
+        h4_candidate_low_observations: [],
+        h4_candidate_low_distinct_count: 0,
+        h4_candidate_low_history_resolved: false
       };
       episodes.push(episode);
     } else {
-      episode.status = 'ACTIVE';
       episode.last_observed_at = referenceTime;
       episode.last_observed_at_ms = referenceMs;
+      if (m5ExecutionExpansionLiteEpisodeTerminalStatus(episode.status)) {
+        if (portfolio.active_expansion_lite_episode_id === episode.episode_id) portfolio.active_expansion_lite_episode_id = null;
+        portfolio.expansion_lite_entry_opportunities = episodes;
+        return episode;
+      }
+      episode.status = 'ACTIVE';
     }
     portfolio.active_expansion_lite_episode_id = episode.episode_id;
     portfolio.expansion_lite_entry_opportunities = episodes;
     return episode;
+  }
+
+  function m5ExecutionObserveExpansionLiteH4CandidateLow(episode, facts, referenceMs, referenceTime) {
+    if (!episode) return { resolved: false, count: 0, ids: [], wave_id: null };
+    const direction = String(episode.direction || '').toUpperCase();
+    const h4Trend = String(facts?.h4_trend_state || 'UNDETERMINED').toUpperCase();
+    const waveId = String(facts?.h4_wave_id || '');
+    const priorWaveId = String(episode.h4_candidate_low_wave_id || '');
+    if (waveId && priorWaveId && waveId !== priorWaveId) {
+      episode.h4_candidate_low_ids = [];
+      episode.h4_candidate_low_observations = [];
+      episode.h4_candidate_low_distinct_count = 0;
+      episode.h4_candidate_low_reset_at = referenceTime || '';
+      episode.h4_candidate_low_reset_at_ms = referenceMs;
+      episode.h4_candidate_low_reset_reason = 'H4_DOWN_WAVE_CHANGED';
+    }
+    if (waveId) episode.h4_candidate_low_wave_id = waveId;
+    episode.h4_candidate_low_history_resolved = facts?.h4_candidate_low_history_resolved === true;
+    episode.h4_candidate_low_last_observed_at = referenceTime || '';
+    episode.h4_candidate_low_last_observed_at_ms = referenceMs;
+    episode.h4_candidate_low_ids = Array.isArray(episode.h4_candidate_low_ids) ? episode.h4_candidate_low_ids : [];
+    episode.h4_candidate_low_observations = Array.isArray(episode.h4_candidate_low_observations) ? episode.h4_candidate_low_observations : [];
+    if (direction === 'SHORT' && h4Trend === 'DOWN') {
+      const candidates = Array.isArray(facts?.h4_pending_low_candidates) && facts.h4_pending_low_candidates.length
+        ? facts.h4_pending_low_candidates
+        : facts?.h4_latest_pending_low ? [facts.h4_latest_pending_low] : [];
+      for (const point of candidates) {
+        const id = String(point?.point_id || point?.key || `${point?.pivot_time || ''}|${point?.pivot_price ?? ''}`);
+        if (!id || episode.h4_candidate_low_ids.includes(id)) continue;
+        episode.h4_candidate_low_ids.push(id);
+        episode.h4_candidate_low_observations.push({
+          candidate_low_id: id,
+          pivot_time: point?.pivot_time || '',
+          pivot_ms: numberOrNull(point?.pivot_ms),
+          pivot_price: numberOrNull(point?.pivot_price),
+          first_observed_at: referenceTime || '',
+          first_observed_at_ms: referenceMs,
+          h4_wave_id: waveId || null,
+          realtime_observed: true
+        });
+      }
+    }
+    episode.h4_candidate_low_distinct_count = episode.h4_candidate_low_ids.length;
+    return {
+      resolved: episode.h4_candidate_low_history_resolved === true,
+      count: episode.h4_candidate_low_distinct_count,
+      ids: [...episode.h4_candidate_low_ids],
+      wave_id: episode.h4_candidate_low_wave_id || null,
+      h4_trend_state: h4Trend
+    };
+  }
+
+  function m5ExecutionExpansionLiteCandidateLowGuard(episode, facts, policy, actionKind = 'INITIAL_ENTRY') {
+    const direction = String(episode?.direction || facts?.episode_side || '').toUpperCase();
+    const guard = policy?.entry_guard_policy?.expansion_lite_h4_multiple_candidate_lows_short || {};
+    const threshold = Math.max(1, Math.floor(numberOrNull(guard.distinct_candidate_low_count_block_at_or_above) ?? numberOrNull(policy?.expansion_lite_policy?.h4_candidate_low_short_guard_threshold) ?? 2));
+    const applies = Array.isArray(guard.applies_to_actions)
+      ? guard.applies_to_actions.map(value => String(value).toUpperCase()).includes(String(actionKind || '').toUpperCase())
+      : true;
+    const enabled = guard.enabled !== false && policy?.expansion_lite_policy?.h4_candidate_low_short_guard_enabled !== false;
+    const resolved = episode?.h4_candidate_low_history_resolved === true;
+    const count = Math.max(0, Number(episode?.h4_candidate_low_distinct_count || 0));
+    const h4Down = String(facts?.h4_trend_state || '').toUpperCase() === 'DOWN';
+    const blocked = enabled && applies && direction === 'SHORT' && h4Down && resolved && count >= threshold;
+    const unresolved = enabled && applies && direction === 'SHORT' && h4Down && !resolved;
+    return {
+      enabled,
+      applies,
+      blocked,
+      unresolved,
+      threshold,
+      count,
+      direction,
+      h4_down: h4Down,
+      candidate_low_ids: [...(episode?.h4_candidate_low_ids || [])],
+      primary_reason_code: blocked ? 'EXPANSION_LITE_H4_MULTIPLE_CANDIDATE_LOWS_SHORT_ENTRY_BLOCKED' : unresolved ? 'EXPANSION_LITE_H4_CANDIDATE_LOW_HISTORY_UNRESOLVED' : null,
+      summary: blocked
+        ? `同一H4下降波で安値候補を${count}回観測したため、下降終盤・反転準備の可能性を考慮してExpansion-Lite Short ${String(actionKind).toUpperCase() === 'REENTRY' ? 'ReEntry' : 'Entry'}を見送ります。`
+        : unresolved ? 'H4 Candidate Low履歴を時系列で解決できないため、Short Entry判定をWAITします。' : ''
+    };
+  }
+
+  function m5ExecutionExpansionLiteEpisodeTerminalStatus(value) {
+    return ['ENDED', 'SUPERSEDED', 'OBSERVATION_ONLY', 'TARGET_COMPLETED_WHILE_FLAT'].includes(String(value || '').toUpperCase());
+  }
+
+  function m5ExecutionApplyExpansionLiteCloseToEpisode(portfolio, trade, closeDecision, context) {
+    if (!portfolio || !trade || String(trade.rule_lane || '').toUpperCase() !== RULE_LANE_EXPANSION_LITE) return null;
+    const episodes = m5ExecutionEnsureExpansionLiteEpisodeStore(portfolio);
+    const episode = episodes.find(item => item?.episode_id === trade.expansion_lite_episode_id) || null;
+    if (!episode) return null;
+    const exitType = String(closeDecision?.exit_type || trade?.close_class || '').toUpperCase();
+    const isReentryTrade = String(trade.entry_action || '').toUpperCase() === 'REENTRY' || trade.is_reentry === true;
+    episode.last_trade_id = trade.trade_id;
+    episode.last_trade_exit_type = exitType;
+    episode.last_trade_exit_at = context?.referenceTime || '';
+    episode.last_trade_exit_at_ms = context?.referenceMs;
+    episode.last_trade_exit_price = numberOrNull(context?.price);
+    if (!isReentryTrade) episode.initial_entry_exit_reason = exitType;
+    if (exitType === 'T3_EXIT' && !isReentryTrade && Number(episode.reentry_count || 0) < 1) {
+      episode.status = 'ACTIVE';
+      episode.anchor_status = 'RETAINED_FOR_REENTRY';
+      episode.reentry_opportunity_status = 'WATCHING';
+      episode.reentry_trigger_armed = false;
+      episode.reentry_r3_inside_return_at = null;
+      episode.reentry_r3_inside_return_at_ms = null;
+      episode.reentry_watch_started_at = context?.referenceTime || '';
+      episode.reentry_watch_started_at_ms = context?.referenceMs;
+      episode.reentry_terminal_reason_code = null;
+      portfolio.active_expansion_lite_episode_id = episode.episode_id;
+      return { status: 'WATCHING', reason_code: 'EXPANSION_LITE_T3_EXIT_REENTRY_WATCH_STARTED', episode };
+    }
+    if (exitType === 'T3_EXIT' && isReentryTrade) {
+      episode.status = 'OBSERVATION_ONLY';
+      episode.anchor_status = 'RETAINED_FOR_TRACE';
+      episode.reentry_opportunity_status = 'CONSUMED';
+      episode.reentry_terminal_reason_code = 'MAX_REENTRY_COUNT_CONSUMED';
+      if (portfolio.active_expansion_lite_episode_id === episode.episode_id) portfolio.active_expansion_lite_episode_id = null;
+      return { status: 'CONSUMED', reason_code: 'EXPANSION_LITE_REENTRY_MAX_COUNT_CONSUMED', episode };
+    }
+    if (exitType === 'ANCHOR_EXIT') {
+      episode.status = 'ENDED';
+      episode.anchor_status = 'RETIRED_ANCHOR_BROKEN';
+      episode.reentry_opportunity_status = 'EXPIRED';
+      episode.reentry_terminal_reason_code = 'ANCHOR_BROKEN';
+      if (portfolio.active_expansion_lite_episode_id === episode.episode_id) portfolio.active_expansion_lite_episode_id = null;
+      return { status: 'EXPIRED', reason_code: 'EXPANSION_LITE_REENTRY_EXPIRED_ANCHOR_BROKEN', episode };
+    }
+    if (exitType === 'TARGET_EXIT') {
+      episode.status = 'TARGET_COMPLETED_WHILE_FLAT';
+      episode.anchor_status = 'RETIRED_TARGET_COMPLETED';
+      episode.reentry_opportunity_status = 'EXPIRED';
+      episode.reentry_terminal_reason_code = 'TARGET_COMPLETED';
+      if (portfolio.active_expansion_lite_episode_id === episode.episode_id) portfolio.active_expansion_lite_episode_id = null;
+      return { status: 'EXPIRED', reason_code: 'EXPANSION_LITE_REENTRY_EXPIRED_TARGET_COMPLETED_WHILE_FLAT', episode };
+    }
+    return { status: episode.reentry_opportunity_status || 'NONE', reason_code: null, episode };
   }
 
   function m5ExecutionExpansionLiteStructuralBreak(activeTrade, m5State) {
@@ -7423,7 +7649,7 @@
     const commonApplies = Array.isArray(common.applies_to_rule_lanes)
       ? common.applies_to_rule_lanes.map(value => String(value).toUpperCase()).includes(lane)
       : true;
-    if (common.enabled !== false && commonApplies && side === 'SHORT'
+    if (lane !== RULE_LANE_EXPANSION_LITE && common.enabled !== false && commonApplies && side === 'SHORT'
       && facts.day_trend_state === 'UP' && facts.h4_wave_side === 'SHORT'
       && Number.isFinite(facts.h4_wave_distance_raw)
       && Number(facts.h4_wave_distance_raw) >= commonThreshold - 1e-6) {
@@ -8702,6 +8928,9 @@
     const transition = episode
       ? m5ExecutionExpansionLiteR3Transition(episode, currentBar, effectiveR3Touch, direction, referenceMs, referenceTime, { episodeCreatedNow, episodeStartedOnCurrentBar })
       : { touched: false, valid_touch: false, prior_relation: 'UNRESOLVED', close_relation: 'UNRESOLVED' };
+    const candidateObservation = episode
+      ? m5ExecutionObserveExpansionLiteH4CandidateLow(episode, expansionLiteFacts, referenceMs, referenceTime)
+      : { resolved: false, count: 0, ids: [] };
     const result = {
       rule_lane: RULE_LANE_EXPANSION_LITE,
       evaluator_id: EXPANSION_LITE_ENTRY_EVALUATOR_ID,
@@ -8721,7 +8950,8 @@
       confirmation_event_on_current_bar: false,
       entry_opportunity: episode,
       r3_transition: cloneJsonValue(transition),
-      execution_candidate: null
+      execution_candidate: null,
+      h4_candidate_low_observation: cloneJsonValue(candidateObservation)
     };
     const recordLiteGateFailure = (primaryCode, category, failedCodes = [], extraFacts = {}) => {
       if (!episode) return;
@@ -8744,6 +8974,8 @@
           h1_t3_side_aligned: direction === 'LONG' ? expansionLiteFacts?.h1_t3_side_long === true : expansionLiteFacts?.h1_t3_side_short === true,
           h4_h1_t3_side_aligned: t3AlignedNow,
           h1_cycle_entry_allowed: h1CycleAllowedNow,
+          h4_candidate_low_history_resolved: episode?.h4_candidate_low_history_resolved === true,
+          h4_candidate_low_distinct_count: Number(episode?.h4_candidate_low_distinct_count || 0),
           valid_r3_touch: transition.valid_touch === true,
           r3_retouch_required: episode?.r3_retouch_required === true,
           entry_guard_passed: result?.entry_guard?.blocked !== true,
@@ -8764,6 +8996,15 @@
           r3_transition: cloneJsonValue(transition),
           h1_cycle_elapsed_bars: numberOrNull(expansionLiteFacts?.h1_cycle_elapsed_bars),
           h1_cycle_entry_allowed_max_bars: numberOrNull(expansionLiteFacts?.h1_cycle_entry_allowed_max_bars),
+          h4_candidate_low_wave_id: episode?.h4_candidate_low_wave_id || null,
+          h4_candidate_low_ids: [...(episode?.h4_candidate_low_ids || [])],
+          h4_candidate_low_distinct_count: Number(episode?.h4_candidate_low_distinct_count || 0),
+          h4_candidate_low_history_resolved: episode?.h4_candidate_low_history_resolved === true,
+          m5_bb_upper: numberOrNull(expansionLiteFacts?.m5_bb_upper),
+          m5_bb_lower: numberOrNull(expansionLiteFacts?.m5_bb_lower),
+          m5_bb_width: numberOrNull(expansionLiteFacts?.m5_bb_width),
+          m5_bb_previous_width: numberOrNull(expansionLiteFacts?.m5_bb_previous_width),
+          m5_bb_width_expanding: expansionLiteFacts?.m5_bb_width_expanding === true,
           ...cloneJsonValue(extraFacts || {})
         }
       };
@@ -8776,13 +9017,201 @@
       return result;
     }
     const initialStatus = String(episode.initial_entry_status || 'WAITING_R3').toUpperCase();
-    if (['USED', 'MISSED', 'EXPIRED'].includes(initialStatus)) {
-      result.status_label = initialStatus === 'USED' ? 'Episode初回Entry使用済み' : 'Episode初回Entry終了済み';
-      result.summary = initialStatus === 'USED'
-        ? 'このExpansion EpisodeではInitial Entryをすでに実行済みです。同一Episode内ReEntryは未定義のため自動実行しません。'
-        : 'このExpansion EpisodeのInitial Entry機会は終了済みです。NORMALの新Dow Confirmationで復活させません。';
+    if (['MISSED', 'EXPIRED'].includes(initialStatus)) {
+      result.status_label = 'Episode初回Entry終了済み';
+      result.summary = 'このExpansion EpisodeのInitial Entry機会は終了済みです。NORMALの新Dow Confirmationで復活させません。';
       result.reason_codes = [`EXPANSION_LITE_EPISODE_INITIAL_ENTRY_${initialStatus}`];
-      result.rule_ids = ['rule_expansion_lite_one_initial_entry_per_episode', 'rule_expansion_lite_same_episode_reentry_not_defined'];
+      result.rule_ids = ['rule_expansion_lite_one_initial_entry_per_episode'];
+      return result;
+    }
+    if (initialStatus === 'USED') {
+      const reentryStatus = String(episode.reentry_opportunity_status || 'NOT_CREATED').toUpperCase();
+      const targetRaw = Number(policy?.expansion_lite_policy?.target_raw ?? 377);
+      const retainedR3Price = numberOrNull(episode.r3_price) ?? m5ExecutionTargetPrice(episodeAnchorPrice, direction, Number(policy?.expansion_lite_policy?.entry_raw ?? 144), policy);
+      const retainedR5Price = numberOrNull(episode.target_price) ?? m5ExecutionTargetPrice(episodeAnchorPrice, direction, targetRaw, policy);
+      episode.r3_price = retainedR3Price;
+      episode.target_price = retainedR5Price;
+      const anchorFillWhileFlat = m5ExecutionBarFill(direction, currentBar, episodeAnchorPrice, 'STOP');
+      const targetFillWhileFlat = m5ExecutionBarFill(direction, currentBar, retainedR5Price, 'TARGET');
+      if (anchorFillWhileFlat.touched) {
+        episode.status = 'ENDED';
+        episode.anchor_status = 'RETIRED_ANCHOR_BROKEN';
+        episode.reentry_opportunity_status = 'EXPIRED';
+        episode.reentry_terminal_reason_code = 'ANCHOR_BROKEN';
+        if (portfolio.active_expansion_lite_episode_id === episode.episode_id) portfolio.active_expansion_lite_episode_id = null;
+        result.status_label = 'ReEntry候補終了（Anchor否定）';
+        result.summary = 'Flat監視中に固定Lite Anchorが否定されたため、旧HSIによるReEntry候補を終了します。';
+        result.reason_codes = ['EXPANSION_LITE_REENTRY_EXPIRED_ANCHOR_BROKEN'];
+        result.rule_ids = ['rule_expansion_lite_reentry_expires_on_anchor_break'];
+        return result;
+      }
+      if (targetFillWhileFlat.touched) {
+        episode.status = 'TARGET_COMPLETED_WHILE_FLAT';
+        episode.anchor_status = 'RETIRED_TARGET_COMPLETED';
+        episode.reentry_opportunity_status = 'EXPIRED';
+        episode.reentry_terminal_reason_code = 'TARGET_COMPLETED_WHILE_FLAT';
+        if (portfolio.active_expansion_lite_episode_id === episode.episode_id) portfolio.active_expansion_lite_episode_id = null;
+        result.status_label = 'ReEntry候補終了（Flat中R5）';
+        result.summary = 'T3 Exit後、ReEntry前に固定AnchorからR5へ到達したため、Expansion完了として後追いReEntryを行いません。';
+        result.reason_codes = ['EXPANSION_LITE_REENTRY_EXPIRED_TARGET_COMPLETED_WHILE_FLAT'];
+        result.rule_ids = ['rule_expansion_lite_reentry_expires_on_r5_while_flat'];
+        return result;
+      }
+      const h1CycleElapsedBars = numberOrNull(expansionLiteFacts?.h1_cycle_elapsed_bars);
+      const h1CycleAllowedMaxBars = numberOrNull(expansionLiteFacts?.h1_cycle_entry_allowed_max_bars);
+      const h1CycleWindowExceeded = h1CycleElapsedBars != null && h1CycleAllowedMaxBars != null && h1CycleElapsedBars > h1CycleAllowedMaxBars;
+      if (h1CycleWindowExceeded && reentryStatus === 'WATCHING') {
+        episode.status = 'OBSERVATION_ONLY';
+        episode.anchor_status = 'RETAINED_FOR_TRACE';
+        episode.reentry_opportunity_status = 'EXPIRED';
+        episode.reentry_terminal_reason_code = 'H1_CYCLE_WINDOW_EXCEEDED';
+        if (portfolio.active_expansion_lite_episode_id === episode.episode_id) portfolio.active_expansion_lite_episode_id = null;
+        result.status_label = 'ReEntry Window終了';
+        result.summary = 'H1 Cycle Entry Windowを超えたため、旧HSIはTrace用に残し、ReEntry権利だけを終了します。';
+        result.reason_codes = ['EXPANSION_LITE_REENTRY_EXPIRED_H1_CYCLE_WINDOW'];
+        result.rule_ids = ['rule_expansion_lite_reentry_h1_cycle_window'];
+        return result;
+      }
+      if (reentryStatus !== 'WATCHING' || Number(episode.reentry_count || 0) >= Number(policy?.expansion_lite_policy?.max_reentry_count_per_episode ?? 1)) {
+        result.status_label = reentryStatus === 'CONSUMED' ? 'ReEntry使用済み' : 'T3 Exit後ReEntry候補なし';
+        result.summary = reentryStatus === 'CONSUMED'
+          ? 'このExpansion EpisodeではReEntryをすでに1回使用済みです。旧HSIはTrace用に残しても再利用しません。'
+          : 'Initial Entryは使用済みですが、T3 ExitによるReEntry Opportunityが生成されていません。';
+        result.reason_codes = [reentryStatus === 'CONSUMED' ? 'EXPANSION_LITE_REENTRY_MAX_COUNT_CONSUMED' : 'EXPANSION_LITE_REENTRY_NOT_WATCHING'];
+        result.rule_ids = ['rule_expansion_lite_max_one_reentry_per_episode'];
+        return result;
+      }
+      const closeRelation = m5ExecutionExpansionLiteLevelRelation(direction, currentBar?.close, retainedR3Price);
+      episode.reentry_last_close_relation = closeRelation;
+      episode.reentry_last_observed_at = referenceTime || '';
+      episode.reentry_last_observed_at_ms = referenceMs;
+      if (closeRelation === 'INSIDE' && episode.reentry_trigger_armed !== true) {
+        episode.reentry_trigger_armed = true;
+        episode.reentry_r3_inside_return_at = referenceTime || '';
+        episode.reentry_r3_inside_return_at_ms = referenceMs;
+      }
+      const t3Aligned = direction === 'LONG'
+        ? expansionLiteFacts?.h4_t3_side_long === true && expansionLiteFacts?.h1_t3_side_long === true
+        : direction === 'SHORT'
+          ? expansionLiteFacts?.h4_t3_side_short === true && expansionLiteFacts?.h1_t3_side_short === true
+          : false;
+      const close = numberOrNull(currentBar?.close);
+      const m5T3 = numberOrNull(currentBar?.t3_20_0_2);
+      const closeReclaimsR3 = direction === 'LONG'
+        ? close != null && retainedR3Price != null && close >= retainedR3Price
+        : direction === 'SHORT'
+          ? close != null && retainedR3Price != null && close <= retainedR3Price
+          : false;
+      const closeOnT3Side = direction === 'LONG'
+        ? close != null && m5T3 != null && close > m5T3
+        : direction === 'SHORT'
+          ? close != null && m5T3 != null && close < m5T3
+          : false;
+      const bbOuter = direction === 'LONG' ? numberOrNull(expansionLiteFacts?.m5_bb_upper) : numberOrNull(expansionLiteFacts?.m5_bb_lower);
+      const closeOutsideBb = direction === 'LONG'
+        ? close != null && bbOuter != null && close > bbOuter
+        : direction === 'SHORT'
+          ? close != null && bbOuter != null && close < bbOuter
+          : false;
+      const bbWidthExpanding = expansionLiteFacts?.m5_bb_width_expanding === true;
+      const candidateGuard = m5ExecutionExpansionLiteCandidateLowGuard(episode, expansionLiteFacts, policy, 'REENTRY');
+      result.entry_guard = cloneJsonValue(candidateGuard);
+      result.reentry_evaluation = {
+        opportunity_status: reentryStatus,
+        trigger_armed: episode.reentry_trigger_armed === true,
+        retained_r3_price: retainedR3Price,
+        retained_r5_price: retainedR5Price,
+        close_relation: closeRelation,
+        h4_h1_t3_aligned: t3Aligned,
+        m5_close_t3_side: closeOnT3Side,
+        close_reclaims_r3: closeReclaimsR3,
+        bb_outer: bbOuter,
+        close_outside_bb: closeOutsideBb,
+        bb_width: numberOrNull(expansionLiteFacts?.m5_bb_width),
+        bb_previous_width: numberOrNull(expansionLiteFacts?.m5_bb_previous_width),
+        bb_width_expanding: bbWidthExpanding,
+        h4_candidate_guard: cloneJsonValue(candidateGuard)
+      };
+      if (candidateGuard.unresolved) {
+        result.status_label = 'H4安値候補履歴待ち';
+        result.summary = candidateGuard.summary;
+        result.reason_codes = ['EXPANSION_LITE_H4_CANDIDATE_LOW_HISTORY_UNRESOLVED'];
+        result.rule_ids = ['rule_expansion_lite_h4_candidate_low_realtime_history'];
+        return result;
+      }
+      if (candidateGuard.blocked) {
+        episode.reentry_opportunity_status = 'EXPIRED';
+        episode.reentry_terminal_reason_code = candidateGuard.primary_reason_code;
+        episode.anchor_status = 'RETAINED_FOR_TRACE';
+        episode.status = 'OBSERVATION_ONLY';
+        if (portfolio.active_expansion_lite_episode_id === episode.episode_id) portfolio.active_expansion_lite_episode_id = null;
+        result.status_label = 'H4安値候補複数・Short ReEntry禁止';
+        result.summary = candidateGuard.summary;
+        result.reason_codes = [candidateGuard.primary_reason_code];
+        result.rule_ids = ['rule_expansion_lite_h4_multiple_candidate_lows_short_guard'];
+        return result;
+      }
+      if (episode.reentry_trigger_armed !== true) {
+        result.status_label = 'ReEntry用R3内側復帰待ち';
+        result.summary = 'T3 Exit後、旧R3より外側へ伸びた価格を追いかけず、M5 Closeが旧R3内側へ戻るまで待ちます。';
+        result.reason_codes = ['EXPANSION_LITE_REENTRY_WAIT_R3_INSIDE_RETURN'];
+        result.rule_ids = ['rule_expansion_lite_reentry_rearm_on_r3_inside_close'];
+        return result;
+      }
+      if (!(t3Aligned && closeOnT3Side && closeReclaimsR3 && closeOutsideBb && bbWidthExpanding)) {
+        result.permission = 'ALLOW_SEARCH';
+        result.no_trade = false;
+        result.status_label = 'ReEntry再加速待ち';
+        result.summary = '旧R3の終値奪回、M5 T3復帰、BB外側Close、BB幅拡大が同時成立するまで待ちます。';
+        result.reason_codes = uniqueStrings([
+          'EXPANSION_LITE_REENTRY_WAIT_BB_EXPANSION',
+          !t3Aligned ? 'EXPANSION_LITE_H4_H1_T3_SIDE_NOT_ALIGNED' : '',
+          !closeOnT3Side ? 'EXPANSION_LITE_REENTRY_M5_T3_SIDE_NOT_RESTORED' : '',
+          !closeReclaimsR3 ? 'EXPANSION_LITE_REENTRY_RETAINED_R3_NOT_RECLAIMED_BY_CLOSE' : '',
+          !closeOutsideBb ? 'EXPANSION_LITE_REENTRY_BB_OUTER_NOT_BROKEN_BY_CLOSE' : '',
+          !bbWidthExpanding ? 'EXPANSION_LITE_REENTRY_BB_WIDTH_NOT_EXPANDING' : ''
+        ]);
+        result.rule_ids = ['rule_expansion_lite_reentry_r3_t3_bb_expansion'];
+        return result;
+      }
+      if (!m5ExecutionTargetDirectionValid(direction, close, retainedR5Price)) {
+        episode.reentry_opportunity_status = 'EXPIRED';
+        episode.reentry_terminal_reason_code = 'TARGET_NOT_BEYOND_REENTRY';
+        result.status_label = 'ReEntry Target方向不正';
+        result.summary = 'ReEntry価格に対して旧R5が利益方向に残っていないため、ReEntry候補を終了します。';
+        result.reason_codes = ['EXPANSION_LITE_REENTRY_TARGET_NOT_BEYOND_ENTRY'];
+        result.rule_ids = ['rule_expansion_lite_reentry_target_must_remain_ahead'];
+        return result;
+      }
+      episode.reentry_count = Number(episode.reentry_count || 0) + 1;
+      episode.reentry_opportunity_status = 'CONSUMED';
+      episode.reentry_execution_time = referenceTime || '';
+      episode.reentry_execution_time_ms = referenceMs;
+      episode.reentry_execution_price = close;
+      episode.anchor_status = 'ACTIVE';
+      result.action = 'REENTRY';
+      result.action_label = 'Expansion-Lite ReEntry';
+      result.status_label = '旧R3奪回＋BB再拡大';
+      result.summary = `T3 Exit後に旧R3内側へ戻り、旧R3 ${round3(retainedR3Price)}を終値で奪回。M5 T3復帰、BB外側Close、BB幅拡大も成立したため ${round3(close)}でReEntryします。`;
+      result.reason_codes = ['EXPANSION_LITE_REENTRY_EXECUTED', 'EXPANSION_LITE_REENTRY_RETAINED_R3_RECLAIMED', 'EXPANSION_LITE_REENTRY_M5_T3_RESTORED', 'EXPANSION_LITE_REENTRY_BB_OUTER_CLOSE', 'EXPANSION_LITE_REENTRY_BB_WIDTH_EXPANDING'];
+      result.rule_ids = ['rule_expansion_lite_t3_exit_retains_episode_anchor', 'rule_expansion_lite_reentry_rearm_on_r3_inside_close', 'rule_expansion_lite_reentry_r3_t3_bb_expansion', 'rule_expansion_lite_max_one_reentry_per_episode'];
+      result.permission = 'ALLOW_ENTRY';
+      result.no_trade = false;
+      result.execution_candidate = {
+        price: close,
+        entry_level: 'R3_RECLAIM',
+        entry_raw: Number(policy?.expansion_lite_policy?.entry_raw ?? 144),
+        episode_id: episode.episode_id,
+        detection_anchor_id: episode.detection_anchor_id,
+        entry_anchor_id: episodeAnchorId,
+        anchor_id: episodeAnchorId,
+        anchor_price: episodeAnchorPrice,
+        target_price: retainedR5Price,
+        target_raw: targetRaw,
+        direction,
+        is_reentry: true,
+        reentry_sequence_no: episode.reentry_count
+      };
       return result;
     }
     if (episodeCreatedNow && !episodeStartedOnCurrentBar && r3ReachedByState) {
@@ -8877,6 +9306,30 @@
       result.reason_codes = ['EXPANSION_LITE_TARGET_NOT_BEYOND_ENTRY'];
       result.rule_ids = ['rule_expansion_lite_target_must_be_beyond_entry'];
       result.execution_validation_errors = [`${direction} Entry ${round3(executionPrice)} / Target ${round3(targetPrice)}`];
+      return result;
+    }
+    const candidateLowGuard = m5ExecutionExpansionLiteCandidateLowGuard(episode, expansionLiteFacts, policy, 'INITIAL_ENTRY');
+    if (candidateLowGuard.unresolved) {
+      recordLiteGateFailure(candidateLowGuard.primary_reason_code, 'H4_CANDIDATE_LOW_HISTORY_UNRESOLVED', [candidateLowGuard.primary_reason_code], { h4_candidate_low_guard: cloneJsonValue(candidateLowGuard) });
+      result.entry_guard = cloneJsonValue(candidateLowGuard);
+      result.status_label = 'H4安値候補履歴待ち';
+      result.summary = candidateLowGuard.summary;
+      result.reason_codes = [candidateLowGuard.primary_reason_code];
+      result.rule_ids = ['rule_expansion_lite_h4_candidate_low_realtime_history'];
+      return result;
+    }
+    if (candidateLowGuard.blocked) {
+      episode.initial_entry_status = 'MISSED';
+      episode.terminal_reason_code = candidateLowGuard.primary_reason_code;
+      episode.entry_guard = cloneJsonValue(candidateLowGuard);
+      recordLiteGateFailure(candidateLowGuard.primary_reason_code, 'ENTRY_GUARD', [candidateLowGuard.primary_reason_code], { h4_candidate_low_guard: cloneJsonValue(candidateLowGuard), execution_price: executionPrice, target_price: targetPrice });
+      result.entry_guard = cloneJsonValue(candidateLowGuard);
+      result.status_label = 'H4安値候補複数・Short Entry禁止';
+      result.summary = candidateLowGuard.summary;
+      result.reason_codes = ['EXPANSION_LITE_EPISODE_INITIAL_ENTRY_MISSED', candidateLowGuard.primary_reason_code];
+      result.rule_ids = ['rule_expansion_lite_h4_multiple_candidate_lows_short_guard'];
+      result.permission = 'BLOCKED';
+      result.no_trade = true;
       return result;
     }
     const entryGuard = m5ExecutionEntryGuardDecision(RULE_LANE_EXPANSION_LITE, direction, timeframeSnapshot, executionPrice, policy);
@@ -9066,7 +9519,9 @@
     const newLevels = addOnDefs
       .map(item => m5ExecutionLevelTouch(currentBar, anchorPrice, direction, item.raw, item.label, policy))
       .filter(item => item.touched && !consumed.has(String(item.label).toUpperCase()));
-    if (newLevels.length) {
+    const reentryTrade = String(activeTrade.entry_action || '').toUpperCase() === 'REENTRY' || activeTrade.is_reentry === true;
+    const reentryAddOnAllowed = policy?.expansion_lite_policy?.reentry_add_on_allowed === true;
+    if (newLevels.length && (!reentryTrade || reentryAddOnAllowed)) {
       return {
         rule_lane: RULE_LANE_EXPANSION_LITE,
         evaluator_id: EXPANSION_LITE_CLOSE_EVALUATOR_ID,
@@ -9121,7 +9576,7 @@
       if (!input) continue;
       decisions.push(evaluateEntryRuleLane(lane, input));
     }
-    const entryDecisions = decisions.filter(decision => String(decision?.action || '').toUpperCase() === 'ENTRY');
+    const entryDecisions = decisions.filter(decision => ['ENTRY', 'REENTRY'].includes(String(decision?.action || '').toUpperCase()));
     const selected = entryDecisions[0]
       || decisions.find(decision => decision?.rule_lane === RULE_LANE_NORMAL)
       || decisions[0]
@@ -9475,6 +9930,8 @@
   }
 
   function m5ExecutionNewExpansionLiteTrade(portfolio, context, triggerEvent, policy) {
+    const entryAction = String(context?.entryAction || 'ENTRY').toUpperCase() === 'REENTRY' ? 'REENTRY' : 'ENTRY';
+    const isReentry = entryAction === 'REENTRY';
     const tradeNo = (portfolio.trades || []).length + 1;
     const tradeId = `trade_${String(tradeNo).padStart(4, '0')}_${stableSwingToken(context.referenceMs)}`;
     const initialUnits = Math.max(1, Number(policy?.position_sizing?.initial_units || 10));
@@ -9485,14 +9942,14 @@
     const position = {
       position_id: positionId,
       trade_id: tradeId,
-      role: 'EXPANSION_LITE_CORE',
+      role: isReentry ? 'EXPANSION_LITE_REENTRY_CORE' : 'EXPANSION_LITE_CORE',
       rule_lane: RULE_LANE_EXPANSION_LITE,
       entry_evaluator_id: EXPANSION_LITE_ENTRY_EVALUATOR_ID,
       close_evaluator_id: EXPANSION_LITE_CLOSE_EVALUATOR_ID,
       side: context.direction,
       units_initial: initialUnits,
       units_open: initialUnits,
-      entry_mode: 'EXPANSION_LITE_R3',
+      entry_mode: isReentry ? 'EXPANSION_LITE_REENTRY_BB_EXPANSION' : 'EXPANSION_LITE_R3',
       entry_timeframe: 'M5',
       management_timeframe: 'M5',
       management_timeframe_cap: 'H1',
@@ -9533,6 +9990,9 @@
       t3_exit_observed_m5_bars_after_entry: 0,
       t3_exit_armed: false,
       structural_exit_mode: 'SHADOW_ONLY_NO_CLOSE',
+      entry_action: entryAction,
+      is_reentry: isReentry,
+      add_on_allowed: isReentry ? policy?.expansion_lite_policy?.reentry_add_on_allowed === true : true,
       promotion_history: []
     };
     const trade = {
@@ -9543,7 +10003,7 @@
       entry_evaluator_id: EXPANSION_LITE_ENTRY_EVALUATOR_ID,
       close_evaluator_id: EXPANSION_LITE_CLOSE_EVALUATOR_ID,
       side: context.direction,
-      entry_mode: 'EXPANSION_LITE_R3',
+      entry_mode: isReentry ? 'EXPANSION_LITE_REENTRY_BB_EXPANSION' : 'EXPANSION_LITE_R3',
       close_policy: 'EXPANSION_LITE_ALL_CLOSE',
       opened_at: context.referenceTime,
       opened_at_ms: context.referenceMs,
@@ -9572,15 +10032,25 @@
       t3_exit_observed_m5_bars_after_entry: 0,
       t3_exit_armed: false,
       structural_exit_mode: 'SHADOW_ONLY_NO_CLOSE',
-      structural_break_shadow_count: 0
+      structural_break_shadow_count: 0,
+      entry_action: entryAction,
+      is_reentry: isReentry,
+      reentry_sequence_no: isReentry ? Number(context.entryOpportunity?.reentry_count || 1) : 0,
+      add_on_allowed: isReentry ? policy?.expansion_lite_policy?.reentry_add_on_allowed === true : true
     };
     portfolio.positions.push(position);
     portfolio.trades.push(trade);
     portfolio.active_trade_id = tradeId;
     portfolio.status = 'OPEN';
     if (context.entryOpportunity?.episode_id) {
-      context.entryOpportunity.entry_trade_id = tradeId;
-      context.entryOpportunity.initial_entry_status = 'USED';
+      if (isReentry) {
+        context.entryOpportunity.reentry_trade_id = tradeId;
+        context.entryOpportunity.reentry_opportunity_status = 'CONSUMED';
+        context.entryOpportunity.reentry_execution_trade_id = tradeId;
+      } else {
+        context.entryOpportunity.entry_trade_id = tradeId;
+        context.entryOpportunity.initial_entry_status = 'USED';
+      }
     }
     return { trade, positions: [position], targetPrice, triggerEvent };
   }
@@ -9798,7 +10268,7 @@
     }
     const previousInfo = m5ExecutionPreviousLifecycle(state, referenceMs, draft);
     const lifecycle = previousInfo.lifecycle || m5ExecutionEmptyLifecycle(draft, candleSync?.reference);
-    lifecycle.phase = 'v0.9.1.21-expansion-lite-fixed-anchor-valid-r3-t3-grace';
+    lifecycle.phase = 'v0.9.1.22-expansion-lite-hsi-retention-bb-reentry-h4-candidate-guard';
     lifecycle.created_at = nowLocalIso();
     lifecycle.reference = cloneJsonValue(candleSync?.reference || {});
     lifecycle.profile_id = draft?.profile_id || '';
@@ -10083,6 +10553,12 @@
       expansion_lite_h1_cycle_front_half: decisionRuleLane === RULE_LANE_EXPANSION_LITE ? expansionLiteFacts.h1_cycle_front_half : null,
       expansion_lite_h1_cycle_front_half_limit: decisionRuleLane === RULE_LANE_EXPANSION_LITE ? expansionLiteFacts.h1_cycle_front_half_limit : null,
       expansion_lite_day_cycle_position_used: false,
+      expansion_lite_upper_timeframe_ceiling: decisionRuleLane === RULE_LANE_EXPANSION_LITE ? 'H4' : null,
+      expansion_lite_h4_candidate_low_distinct_count: decisionRuleLane === RULE_LANE_EXPANSION_LITE ? Number(entryOpportunity?.h4_candidate_low_distinct_count || 0) : null,
+      expansion_lite_h4_candidate_low_ids: decisionRuleLane === RULE_LANE_EXPANSION_LITE ? [...(entryOpportunity?.h4_candidate_low_ids || [])] : [],
+      expansion_lite_reentry_opportunity_status: decisionRuleLane === RULE_LANE_EXPANSION_LITE ? (entryOpportunity?.reentry_opportunity_status || null) : null,
+      expansion_lite_reentry_count: decisionRuleLane === RULE_LANE_EXPANSION_LITE ? Number(entryOpportunity?.reentry_count || 0) : null,
+      expansion_lite_reentry_evaluation: cloneJsonValue(selectedDecision?.reentry_evaluation || null),
       exit_type: selectedDecision?.exit_type || null,
       exit_reason_code: selectedDecision?.exit_reason_code || null,
       add_on_levels: cloneJsonValue(selectedDecision?.add_on_levels || []),
@@ -10141,16 +10617,18 @@
         const entryDisplayLabel = entryExecutionMode === 'DOW_BREAKOUT_CONFIRMATION_R2_READY' ? 'Dow突破確定即Entry' : 'R2 Entry';
         executionEvent = m5ExecutionEvent(entryContext, 'entry', `通常Entry #${created.trade.normal_entry_sequence_no || created.trade.sequence} ${entryContext.direction} / ${position?.units_open || 0}単位 / ${entryDisplayLabel} ${round3(entryContext.price)}`, [...trigger.rule_ids], [...trigger.reason_codes, 'POSITION_LIFECYCLE_OPENED'], [triggerEvent.event_id, selectedNormalDowConfirmation?.confirmation_id].filter(Boolean), beforePortfolio, afterPortfolio, { trade_id: created.trade.trade_id, position_ids: [position.position_id], rule_lane: RULE_LANE_NORMAL, evaluator_id: NORMAL_ENTRY_EVALUATOR_ID, execution: { rule_lane: RULE_LANE_NORMAL, evaluator_id: NORMAL_ENTRY_EVALUATOR_ID, close_evaluator_id: NORMAL_CLOSE_EVALUATOR_ID, action, normal_entry_sequence_no: created.trade.normal_entry_sequence_no, side: entryContext.direction, units: position.units_open, price: entryContext.price, entry_price: entryContext.price, entry_level: entryExecutionMode === 'DOW_BREAKOUT_CONFIRMATION_R2_READY' ? 'R2_OR_MORE_AT_DOW_BREAKOUT_CONFIRMATION' : 'R2', entry_execution_mode: entryExecutionMode, target_price: created.targetPrice, target_label: created.trade.target_label || position?.target_plan?.next_target_label || null, entry_timeframe: 'M5', entry_anchor_id: entryContext.entryAnchor?.anchor_id || null, entry_anchor_price: entryContext.anchorPrice, entry_anchor_time: entryContext.entryAnchor?.time || entryContext.entryAnchor?.pivot_time || null, dow_confirmation_id: selectedNormalDowConfirmation?.confirmation_id || null, dow_breakout_threshold_price: numberOrNull(selectedNormalDowConfirmation?.breakout_threshold_price), entry_opportunity_id: entryOpportunity?.opportunity_id || null, stop_basis: created.trade.risk_profile?.stop_basis || 'TARGET_DISTANCE_RATIO_WITH_HSI_ANCHOR_HARD_LIMIT', stop_price: created.trade.risk_profile?.stop_price ?? created.stopPlan?.stop_price, max_loss_to_reward_ratio: created.stopPlan?.max_loss_to_reward_ratio ?? null, reward_distance: created.stopPlan?.reward_distance ?? null, max_loss_distance: created.stopPlan?.max_loss_distance ?? null, ratio_stop_price: created.stopPlan?.ratio_stop_price ?? null, hsi_anchor_hard_limit_price: created.stopPlan?.hsi_anchor_hard_limit_price ?? entryContext.anchorPrice, hsi_anchor_hard_limit_applied: created.stopPlan?.hsi_anchor_hard_limit_applied === true, initial_units: created.trade.risk_profile?.initial_units ?? position.units_initial, unit_base_currency_amount: created.trade.risk_profile?.unit_base_currency_amount || 1000, initial_risk_jpy: created.trade.risk_profile?.initial_risk_jpy ?? null, close_policy: 'SINGLE_CLOSE', normal_hsi_anchor_lifecycle_status: created.normalAnchorLifecycle?.status || 'ACTIVE', cumulative_realized_profit_jpy: m5ExecutionPortfolioRunRealizedJpy(lifecycle.portfolio, policy), trade_cumulative_realized_profit_jpy: 0, profit_vs_initial_risk_pct: 0, risk_multiple: 0 } });
         created.trade.entry_event_id = executionEvent.event_id;
-      } else if (context.ruleLane === RULE_LANE_EXPANSION_LITE && action === 'ENTRY') {
+      } else if (context.ruleLane === RULE_LANE_EXPANSION_LITE && ['ENTRY', 'REENTRY'].includes(action)) {
         const selectedEntryPrice = numberOrNull(selectedDecision?.execution_candidate?.price)
           ?? numberOrNull(entryOpportunity?.entry_execution_price)
           ?? r3Touch.price;
         const selectedLiteAnchorPrice = numberOrNull(selectedDecision?.execution_candidate?.anchor_price) ?? numberOrNull(anchorPrice);
         const selectedLiteAnchorId = selectedDecision?.execution_candidate?.anchor_id || selectedDecision?.execution_candidate?.entry_anchor_id || entryAnchor?.anchor_id || null;
-        const selectedEntryDistanceRaw = m5ExecutionDistanceRaw(selectedEntryPrice, selectedLiteAnchorPrice, confirmationSide, policy);
+        const selectedLiteDirection = String(selectedDecision?.execution_candidate?.direction || entryOpportunity?.direction || confirmationSide || '').toUpperCase();
+        const selectedEntryDistanceRaw = m5ExecutionDistanceRaw(selectedEntryPrice, selectedLiteAnchorPrice, selectedLiteDirection, policy);
         const entryContext = {
           ...context,
-          direction: confirmationSide,
+          entryAction: action,
+          direction: selectedLiteDirection,
           price: selectedEntryPrice,
           anchorPrice: selectedLiteAnchorPrice,
           entryAnchor: { ...(entryAnchor || {}), anchor_id: selectedLiteAnchorId, price: selectedLiteAnchorPrice, pivot_time: entryOpportunity?.entry_anchor_time || entryAnchor?.pivot_time || null },
@@ -10159,13 +10637,17 @@
           entryOpportunity
         };
         const created = m5ExecutionNewExpansionLiteTrade(lifecycle.portfolio, entryContext, triggerEvent, policy);
+        const isLiteReentry = action === 'REENTRY';
         const position = created.positions[0];
-        if (entryOpportunity) entryOpportunity.entry_trade_id = created.trade.trade_id;
+        if (entryOpportunity) {
+          if (isLiteReentry) entryOpportunity.reentry_trade_id = created.trade.trade_id;
+          else entryOpportunity.entry_trade_id = created.trade.trade_id;
+        }
         const afterPortfolio = cloneJsonValue(lifecycle.portfolio);
         executionEvent = m5ExecutionEvent(
           entryContext,
-          'entry',
-          `Expansion-Lite Entry ${entryContext.direction} / ${position?.units_open || 0}単位 / R3 ${round3(entryContext.price)}`,
+          isLiteReentry ? 'reentry' : 'entry',
+          `${isLiteReentry ? 'Expansion-Lite ReEntry' : 'Expansion-Lite Entry'} ${entryContext.direction} / ${position?.units_open || 0}単位 / ${isLiteReentry ? '旧R3奪回＋BB再拡大' : 'R3'} ${round3(entryContext.price)}`,
           [...trigger.rule_ids],
           [...trigger.reason_codes, 'EXPANSION_LITE_POSITION_LIFECYCLE_OPENED'],
           [triggerEvent.event_id, entryOpportunity?.episode_id, entryContext.entryAnchor?.anchor_id].filter(Boolean),
@@ -10180,13 +10662,13 @@
               rule_lane: RULE_LANE_EXPANSION_LITE,
               evaluator_id: EXPANSION_LITE_ENTRY_EVALUATOR_ID,
               close_evaluator_id: EXPANSION_LITE_CLOSE_EVALUATOR_ID,
-              action: 'ENTRY',
+              action: isLiteReentry ? 'REENTRY' : 'ENTRY',
               side: entryContext.direction,
               units: position.units_open,
               price: entryContext.price,
               entry_price: entryContext.price,
-              entry_level: 'R3',
-              entry_execution_mode: entryOpportunity?.entry_execution_mode || 'VALID_R3_TOUCH_WHILE_T3_ALIGNED',
+              entry_level: isLiteReentry ? 'R3_RECLAIM' : 'R3',
+              entry_execution_mode: isLiteReentry ? 'T3_EXIT_REENTRY_R3_T3_BB_EXPANSION' : (entryOpportunity?.entry_execution_mode || 'VALID_R3_TOUCH_WHILE_T3_ALIGNED'),
               target_price: created.targetPrice,
               target_label: 'R5',
               entry_timeframe: 'M5',
@@ -10206,7 +10688,8 @@
               initial_units: position.units_initial,
               unit_base_currency_amount: position.risk_profile?.unit_base_currency_amount || 1000,
               initial_risk_jpy: position.risk_profile?.initial_risk_jpy ?? null,
-              chart_marker_label: 'Expansion-Lite Entry',
+              reentry_sequence_no: isLiteReentry ? Number(entryOpportunity?.reentry_count || 1) : 0,
+              chart_marker_label: isLiteReentry ? 'Expansion-Lite ReEntry' : 'Expansion-Lite Entry',
               cumulative_realized_profit_jpy: m5ExecutionPortfolioRunRealizedJpy(lifecycle.portfolio, policy)
             }
           }
@@ -10289,6 +10772,9 @@
         const closed = m5ExecutionClosePositions(lifecycle.portfolio, openTradePositions, closeContext, closeClass);
         if (closed.trade) closed.trade.realized_profit_jpy = Number(closed.trade.realized_price_delta_units || 0) * m5ExecutionValuationPolicy(policy).unit_base_currency_amount;
         const financial = m5ExecutionFinancialSnapshot(closed.trade, closed.realized, policy, lifecycle.portfolio);
+        const expansionLiteEpisodeTransition = isExpansionLiteClose
+          ? m5ExecutionApplyExpansionLiteCloseToEpisode(lifecycle.portfolio, closed.trade, selectedDecision, closeContext)
+          : null;
         const reachedTargetLabel = isExpansionLiteClose
           ? (selectedDecision?.exit_type === 'TARGET_EXIT' ? 'R5' : null)
           : (isStop ? null : activePosition?.target_plan?.next_target_label || null);
@@ -10350,7 +10836,10 @@
             normal_hsi_anchor_retired_confirmation_id: isExpansionLiteClose ? null : closed.normalAnchorRetirement?.confirmation_id || null,
             normal_hsi_anchor_retired_at: isExpansionLiteClose ? null : closed.normalAnchorRetirement?.retired_at || closeContext.referenceTime,
             normal_hsi_anchor_retired_at_ms: isExpansionLiteClose ? null : closed.normalAnchorRetirement?.retired_at_ms ?? closeContext.referenceMs,
-            next_required_state: isExpansionLiteClose ? 'EXPANSION_LITE_EPISODE_ACTIVE_REENTRY_NOT_DEFINED' : closed.normalAnchorRetirement?.next_required_state || 'NEW_M5_DOW_CONFIRMATION_AFTER_CLOSE',
+            next_required_state: isExpansionLiteClose
+              ? (expansionLiteEpisodeTransition?.status === 'WATCHING' ? 'EXPANSION_LITE_T3_EXIT_REENTRY_WATCH' : expansionLiteEpisodeTransition?.status === 'CONSUMED' ? 'EXPANSION_LITE_EPISODE_OBSERVATION_ONLY' : 'EXPANSION_LITE_EPISODE_TERMINAL_OR_MONITOR')
+              : closed.normalAnchorRetirement?.next_required_state || 'NEW_M5_DOW_CONFIRMATION_AFTER_CLOSE',
+            expansion_lite_episode_transition: cloneJsonValue(expansionLiteEpisodeTransition ? { status: expansionLiteEpisodeTransition.status, reason_code: expansionLiteEpisodeTransition.reason_code, episode_id: expansionLiteEpisodeTransition.episode?.episode_id || null, anchor_status: expansionLiteEpisodeTransition.episode?.anchor_status || null, reentry_opportunity_status: expansionLiteEpisodeTransition.episode?.reentry_opportunity_status || null } : null),
             ...financial
           }
         });
@@ -10370,7 +10859,7 @@
     lifecycle.run_result = m5ExecutionRunResult(lifecycle);
     lifecycle.validation = { valid: errors.length === 0, checked_at: nowLocalIso(), errors, warnings, no_lookahead: m5State?.no_lookahead === true && policy.no_lookahead === true, previous_state_policy: previousInfo.status };
     lifecycle.status = errors.length ? 'invalid' : executionEvent ? 'executed' : 'evaluated_no_execution';
-    lifecycle.teacher_guard = 'Simulation Rule v0.26対応。Expansion-Liteは最初のM5 Dow ConfirmationでEpisode Anchorを固定し、その後のM5 Dow崩壊や同方向再確定では変更しません。T3不整合中のR3タッチは消費せず、M5 CloseがR3内側へ戻った後のValid Re-touchを待ちます。Entry後3本はT3 Exitを無効化し、4本目以降はM5 CloseのT3逆抜けでExitします。旧M5 Dow Structural ExitはShadow記録のみです。';
+    lifecycle.teacher_guard = 'Simulation Rule v0.27対応。Expansion-LiteはH4より上をEntry判断へ使用しません。H4下降波中に安値候補を2回以上観測したShort Entry/ReEntryは抑止します。T3 ExitではPositionだけをCloseして旧HSI/R3/R5を保持し、R3内側復帰後の旧R3終値奪回＋T3復帰＋BB外側Close＋BB幅拡大で同一Episodeへ最大1回ReEntryします。';
     return lifecycle;
   }
 
@@ -10479,7 +10968,7 @@
       simultaneous_entry_policy: lanePolicy.simultaneous_entry_policy,
       close_lane_source: 'EACH_OPEN_TRADE_RULE_LANE'
     };
-    base.phase = 'v0.9.1.21-expansion-lite-fixed-anchor-valid-r3-t3-grace';
+    base.phase = 'v0.9.1.22-expansion-lite-hsi-retention-bb-reentry-h4-candidate-guard';
     base.run_result = m5ExecutionRunResult(base);
     const validations = snapshots.map(snapshot => snapshot?.validation || {});
     const errors = validations.flatMap(value => value.errors || []);

@@ -1,13 +1,13 @@
 {
   "schema_version": "fx_simulation_run_profile_v0_1",
   "kind": "fx_simulation_run_profile",
-  "profile_id": "usdjpy_expansion_lite_v0_26",
-  "title": "USDJPY Expansion-Lite v0.26 — Fixed Episode Anchor / Valid R3 Touch / T3 3-Bar Grace",
+  "profile_id": "usdjpy_expansion_lite_v0_27",
+  "title": "USDJPY Expansion-Lite v0.27 — H4 Candidate Guard / T3 Exit HSI Retention / BB ReEntry",
   "status": "draft_expansion_lite_directional_h1_cycle",
   "created_at": "2026-07-10T23:55:00+09:00",
-  "updated_at": "2026-07-17T23:20:00+09:00",
-  "phase": "v0.9.1.21-expansion-lite-fixed-anchor-valid-r3-t3-grace",
-  "rule_version": "simulation_rule_v0_24_normal_plus_v0_26_expansion_lite",
+  "updated_at": "2026-07-18T15:30:00+09:00",
+  "phase": "v0.9.1.22-expansion-lite-hsi-retention-bb-reentry-h4-candidate-guard",
+  "rule_version": "simulation_rule_v0_24_normal_plus_v0_27_expansion_lite",
   "dataset": {
     "primary": {
       "dataset_id": "fx_usdjpy_m5_t3_data_v0_1",
@@ -268,7 +268,7 @@
     "copy_m5_trigger_decisions": true,
     "copy_execution_events": true
   },
-  "teacher_guard": "NORMAL / EXPANSION / EXPANSION_LITEは同じ相場を観察する独立State Machine。各Laneの入力は自Lane前回State＋共有市場事実のみ。他LaneのEntry / Position / Close / 損益 / Opportunity / Anchor / Episodeを参照しない。Expansion-LiteはExpansion Detection RegimeをEpisodeとして保持し、専用起点からR3初回タッチでInitial Entryする。",
+  "teacher_guard": "Simulation Rule v0.27。Expansion-LiteはH4より上をEntry/ReEntry/Exit判断へ使用しない。H4下降波中のdistinct Candidate Lowが2件以上ならShort Initial Entry/ReEntryを抑止する。T3 ExitではPositionだけをCloseし、旧HSI/R3/R5を保持。旧R3内側復帰後の旧R3終値奪回＋M5 T3復帰＋BB外側Close＋BB幅拡大で同一Episodeへ最大1回ReEntryする。",
   "time_sync_policy": {
     "reference_axis": "M5_CLOSE",
     "bar_timestamp_role": "open_time",
@@ -659,7 +659,7 @@
     "event_output": "run_snapshot.position_lifecycle.execution_events",
     "decision_event_output": "run_snapshot.position_lifecycle.decision_events",
     "chart_event_projection": "execution_events_only",
-    "teacher_guard": "v0.24 app fix 0.9.1.13: NORMAL Entry Gate未成立時は、個別Gate結果・失敗Gate一覧・Dow Confirmation・HSI起点・候補価格をOpportunityとBatch専用ログへ保存する。v0.9.1.12までのBatch環境分離、Entry前Dow崩壊失効、Active Confirmation固定、正しいR2初回タッチ、Entry後Dow崩壊非Closeを維持する。",
+    "teacher_guard": "Simulation Rule v0.27。Expansion-LiteはH4より上をEntry/ReEntry/Exit判断へ使用しない。H4下降波中のdistinct Candidate Lowが2件以上ならShort Initial Entry/ReEntryを抑止する。T3 ExitではPositionだけをCloseし、旧HSI/R3/R5を保持。旧R3内側復帰後の旧R3終値奪回＋M5 T3復帰＋BB外側Close＋BB幅拡大で同一Episodeへ最大1回ReEntryする。",
     "valuation_policy": {
       "unit_base_currency_amount": 1000,
       "display_currency": "JPY",
@@ -809,10 +809,11 @@
         },
         "EXPANSION_LITE": {
           "enabled": true,
-          "entry_evaluator_id": "expansion_lite_entry_evaluator_v0_3",
-          "close_evaluator_id": "expansion_lite_close_evaluator_v0_2",
+          "entry_evaluator_id": "expansion_lite_entry_evaluator_v0_4",
+          "close_evaluator_id": "expansion_lite_close_evaluator_v0_3",
           "allowed_actions": [
             "ENTRY",
+            "REENTRY",
             "ADD_ON",
             "FULL_CLOSE"
           ],
@@ -822,7 +823,7 @@
       "other_rule_lane_fallback": "FORBIDDEN"
     },
     "expansion_lite_policy": {
-      "rule_version": "v0.26",
+      "rule_version": "v0.27",
       "rule_lane": "EXPANSION_LITE",
       "direction_support": [
         "LONG",
@@ -885,7 +886,7 @@
       "h1_cycle_entry_window_long_origin": "LATEST_H1_LOW_CANDIDATE_ELSE_ACTIVE_LOW",
       "h1_cycle_entry_window_short_origin": "LATEST_H1_HIGH_CANDIDATE_ELSE_ACTIVE_HIGH",
       "h1_cycle_entry_window_elapsed_rule": "LATEST_CONFIRMED_H1_BAR_INDEX_MINUS_DIRECTIONAL_ORIGIN_INDEX",
-      "entry_guard_rule_version": "v0.21",
+      "entry_guard_rule_version": "v0.27",
       "observer_model": "INDEPENDENT_RULE_LANE_STATE_MACHINE",
       "state_input_policy": "OWN_PREVIOUS_STATE_PLUS_SHARED_MARKET_FACTS_ONLY",
       "other_lane_trade_state_input": "FORBIDDEN",
@@ -897,7 +898,7 @@
       "entry_trigger": "VALID_R3_TOUCH_WHILE_T3_ALIGNED",
       "entry_price_policy": "R3_BOUNDARY_ELSE_FIRST_AVAILABLE_OPEN_ON_GAP",
       "one_initial_entry_per_episode": true,
-      "same_episode_reentry": "NOT_DEFINED_DISABLED",
+      "same_episode_reentry": "T3_EXIT_REENTRY_ONCE_WITH_R3_T3_BB_EXPANSION",
       "one_entry_per_dow_confirmation": false,
       "target_anchor_source": "EXPANSION_DETECTION_ANCHOR",
       "episode_anchor_lifecycle": "FIXED_AFTER_FIRST_M5_DOW_CONFIRMATION",
@@ -908,7 +909,33 @@
       "t3_exit_grace_bars": 3,
       "t3_exit_activation": "FOURTH_M5_BAR_AFTER_ENTRY",
       "structural_exit_source": "SHADOW_ONLY_NO_CLOSE",
-      "structural_exit_shadow_enabled": true
+      "structural_exit_shadow_enabled": true,
+      "upper_timeframe_ceiling": "H4",
+      "day_entry_context_used": false,
+      "week_entry_context_used": false,
+      "max_reentry_count_per_episode": 1,
+      "reentry_source_exit_type": "T3_EXIT_ONLY",
+      "reentry_anchor_policy": "RETAIN_ORIGINAL_EPISODE_ANCHOR_R3_R5",
+      "reentry_rearm_policy": "M5_CLOSE_RETURNS_INSIDE_RETAINED_R3",
+      "reentry_trigger": "RETAINED_R3_CLOSE_RECLAIM_PLUS_T3_PLUS_BB_OUTER_PLUS_WIDTH_EXPANSION",
+      "reentry_price_policy": "TRIGGER_M5_CLOSE",
+      "reentry_add_on_allowed": false,
+      "reentry_t3_exit_grace_bars": 3,
+      "reentry_expiry_conditions": [
+        "ANCHOR_BROKEN",
+        "OPPOSITE_EPISODE",
+        "R5_REACHED_WHILE_FLAT",
+        "H1_CYCLE_WINDOW_EXCEEDED",
+        "MAX_REENTRY_COUNT_CONSUMED"
+      ],
+      "h4_candidate_low_short_guard_enabled": true,
+      "h4_candidate_low_short_guard_threshold": 2,
+      "h4_candidate_low_short_guard_scope": "CURRENT_H4_DOWN_WAVE_REALTIME_OBSERVED_ONLY",
+      "bb_reentry_period": 20,
+      "bb_reentry_deviations": 2.0,
+      "t3_exit_episode_effect": "CLOSE_POSITION_RETAIN_EPISODE_ANCHOR_FOR_REENTRY",
+      "anchor_lifecycle_separate_from_reentry_opportunity": true,
+      "reentry_terminal_after_second_t3_exit": true
     },
     "entry_guard_policy": {
       "day_up_h4_down_r5_short": {
@@ -917,9 +944,7 @@
         "block_at_or_above_raw": 377,
         "block_at_or_above_label": "R5",
         "applies_to_rule_lanes": [
-          "NORMAL",
-          "EXPANSION",
-          "EXPANSION_LITE"
+          "EXPANSION"
         ],
         "applies_to": [
           "NEW_ENTRY"
@@ -939,6 +964,24 @@
         ],
         "day_trend_required": false,
         "existing_position_close_effect": "NONE"
+      },
+      "expansion_lite_h4_multiple_candidate_lows_short": {
+        "enabled": true,
+        "rule_version": "v0.27",
+        "distinct_candidate_low_count_block_at_or_above": 2,
+        "applies_to_rule_lanes": [
+          "EXPANSION_LITE"
+        ],
+        "applies_to_actions": [
+          "INITIAL_ENTRY",
+          "REENTRY"
+        ],
+        "candidate_scope": "CURRENT_H4_DOWN_WAVE_REALTIME_OBSERVED_ONLY",
+        "same_candidate_update_count_policy": "COUNT_ONCE_BY_CANDIDATE_ID",
+        "lookahead_policy": "DETECTED_AT_OR_BEFORE_ENTRY_CANDIDATE_ONLY",
+        "unresolved_history_policy": "WAIT",
+        "existing_position_close_effect": "NONE",
+        "add_on_effect": "NONE"
       }
     },
     "normal_close_miss_policy": {
@@ -950,5 +993,5 @@
       "dynamic_win_rate_calculation": "FUTURE_NOT_IMPLEMENTED"
     }
   },
-  "app_integration_version": "0.9.1.21"
+  "app_integration_version": "0.9.1.22"
 }

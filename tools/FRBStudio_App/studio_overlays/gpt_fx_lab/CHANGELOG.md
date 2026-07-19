@@ -1,3 +1,14 @@
+# v0.9.1.22 — Expansion-Lite HSI Retention / BB ReEntry / H4 Candidate Guard
+
+- Simulation Rule v0.27を取り込み。
+- Expansion-LiteがEntry / ReEntry / Exit判断に使う最上位時間足をH4へ固定。DAY / WEEKをLite判断から除外。
+- 同一H4下降波でdistinct Candidate Lowを2件以上観測した場合、Lite Initial Short Entry / Short ReEntryを抑止。
+- T3 ExitではPositionだけをCloseし、Episodeと固定HSI / R3 / R5をReEntry候補として保持。
+- T3 Exit後、旧R3内側復帰で再武装し、旧R3終値奪回＋M5 T3復帰＋M5 BB外側Close＋BB幅拡大で最大1回ReEntry。
+- ReEntry価格は条件成立M5足Close。ReEntry TradeではAdd-onなし。
+- Anchor否定、反対Episode、Flat中R5到達、H1 Cycle Window超過、最大ReEntry回数消費でReEntry権利を終了。
+- NORMAL v0.24のEntry / Close / Anchor契約は変更なし。
+
 # v0.9.1.21 - 2026-07-18
 
 - Simulation Rule v0.26へ対応し、EXPANSION_LITEのEpisode Anchorを最初のM5 Dow Confirmationで固定。後続のM5 Dow崩壊・同方向再確定では起点を変更・失効しない。

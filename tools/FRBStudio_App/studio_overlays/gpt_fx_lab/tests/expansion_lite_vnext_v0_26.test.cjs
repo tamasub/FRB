@@ -18,9 +18,9 @@ const source = fs.readFileSync(pluginPath,'utf8');
 const manifest = JSON.parse(fs.readFileSync(manifestPath,'utf8'));
 const profile = JSON.parse(fs.readFileSync(profilePath,'utf8'));
 
-assert.equal(manifest.version,'0.9.1.21');
+assert.equal(manifest.version,'0.9.1.22');
 const lite = profile.m5_execution_policy.expansion_lite_policy;
-assert.equal(lite.rule_version,'v0.26');
+assert.equal(lite.rule_version,'v0.27');
 assert.equal(lite.episode_anchor_lifecycle,'FIXED_AFTER_FIRST_M5_DOW_CONFIRMATION');
 assert.equal(lite.dow_break_anchor_policy,'KEEP_ANCHOR_AND_EPISODE');
 assert.equal(lite.entry_trigger,'VALID_R3_TOUCH_WHILE_T3_ALIGNED');

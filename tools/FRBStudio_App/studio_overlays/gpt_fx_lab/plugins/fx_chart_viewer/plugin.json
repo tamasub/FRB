@@ -10,8 +10,8 @@
   ],
   "scope": "gpt_fx_lab overlay only",
   "core_change": false,
-  "description": "App v0.9.1.21 / Simulation Rule v0.26対応。Expansion-Liteは最初のM5 Dow ConfirmationでEpisode Anchorを固定し、その後のDow崩壊・同方向再確定では変更しない。H4/H1 T3整合中のValid R3 TouchでEntryし、T3不整合時のR3タッチは消費せず、M5 CloseがR3内側へ戻った後の再タッチを待つ。Entry後3本はT3 Exitを無効化し、4本目以降はM5 Close逆抜けでExit。旧M5 Dow Structural ExitはShadow記録のみ。Anchor ExitとR5はEntry直後から有効。",
-  "version": "0.9.1.21",
+  "description": "App v0.9.1.22 / Simulation Rule v0.27対応。Expansion-Liteの上位時間足上限をH4へ固定し、DAY/WEEKをLite判断から除外。H4下降波中のdistinct Candidate Lowが2件以上ならShort Initial Entry/ReEntryを抑止する。T3 ExitではPositionだけをCloseし、Episodeと旧HSI/R3/R5を保持。旧R3内側復帰後の旧R3終値奪回＋M5 T3復帰＋BB外側Close＋BB幅拡大で同一Episodeへ最大1回ReEntryする。",
+  "version": "0.9.1.22",
   "signal_policy": {
     "visible_marker": "candidate_basis_retired_circle_marker",
     "removed_marker": "dow_structure_decision_arrow_marker",
@@ -316,7 +316,7 @@
     "active_entry_rule_lane": "EXPANSION_LITE",
     "expansion_lite_entry_evaluator_id": "expansion_lite_entry_evaluator_v0_3",
     "expansion_lite_close_evaluator_id": "expansion_lite_close_evaluator_v0_2",
-    "expansion_lite_rule_version": "v0.26",
+    "expansion_lite_rule_version": "v0.27",
     "expansion_lite_other_rule_lane_fallback": "FORBIDDEN",
     "expansion_lite_day_cycle_position_required": false,
     "expansion_lite_entry": "VALID_R3_TOUCH_WHILE_T3_ALIGNED",
@@ -388,8 +388,18 @@
     "expansion_lite_r3_invalid_touch_policy": "WAIT_RETURN_INSIDE_AND_RETOUCH",
     "simulation_rule_revision_support": [
       "v0.25",
-      "v0.26"
-    ]
+      "v0.26",
+      "v0.27"
+    ],
+    "simulation_rule_version": "v0.27",
+    "expansion_lite_upper_timeframe_ceiling": "H4",
+    "expansion_lite_day_week_entry_context_used": false,
+    "expansion_lite_h4_multiple_candidate_low_short_guard": true,
+    "expansion_lite_h4_candidate_low_block_threshold": 2,
+    "expansion_lite_t3_exit_retains_episode_anchor": true,
+    "expansion_lite_same_episode_reentry_max_count": 1,
+    "expansion_lite_reentry_uses_bb_expansion": true,
+    "expansion_lite_reentry_add_on_allowed": false
   },
   "display_policy": {
     "high_low_range_style": {
@@ -1263,7 +1273,7 @@
     "batch_simulation_compact_reference_tracking": true,
     "batch_simulation_result_persistence": "FULL_JSON_SINGLE_FILE_PRIMARY_FALLBACK_RETRY",
     "expansion_lite_entry_evaluator_id": "expansion_lite_entry_evaluator_v0_3",
-    "expansion_lite_rule_version": "v0.26",
+    "expansion_lite_rule_version": "v0.27",
     "expansion_lite_observer_model": "INDEPENDENT_RULE_LANE_STATE_MACHINE",
     "expansion_lite_state_input_policy": "OWN_PREVIOUS_STATE_PLUS_SHARED_MARKET_FACTS_ONLY",
     "expansion_lite_other_lane_trade_state_input": "FORBIDDEN",

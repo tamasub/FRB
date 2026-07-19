@@ -5,7 +5,7 @@
   "title": "FX Simulation 理由コード・使用ルール 日本語カタログ",
   "status": "draft_growing_catalog",
   "created_at": "2026-07-11T15:50:00+09:00",
-  "updated_at": "2026-07-18T08:45:00+09:00",
+  "updated_at": "2026-07-18T15:30:00+09:00",
   "display_policy": {
     "language": "ja",
     "show_judgment_summary_first": true,
@@ -1289,6 +1289,106 @@
       "code": "EXPANSION_LITE_STRUCTURAL_BREAK_SHADOW_OBSERVED",
       "ja": "旧M5 Dow Structural Breakを観測しましたが、Shadow記録だけ残しCloseには使用しません。",
       "category": "判断理由"
+    },
+    {
+      "code": "EXPANSION_LITE_H4_MULTIPLE_CANDIDATE_LOWS_SHORT_ENTRY_BLOCKED",
+      "ja": "同一H4下降波で安値候補を2件以上観測したため、下降終盤・反転準備の可能性を考慮してLite Short Entry/ReEntryを見送りました。",
+      "category": "Expansion-Lite v0.27"
+    },
+    {
+      "code": "EXPANSION_LITE_H4_CANDIDATE_LOW_HISTORY_UNRESOLVED",
+      "ja": "H4 Candidate Low履歴を時系列で解決できないため、Lite Short Entry判定をWAITしました。",
+      "category": "Expansion-Lite v0.27"
+    },
+    {
+      "code": "EXPANSION_LITE_T3_EXIT_REENTRY_WATCH_STARTED",
+      "ja": "T3 ExitでPositionだけを閉じ、旧Episode Anchor/R3/R5をReEntry監視用に保持しました。",
+      "category": "Expansion-Lite v0.27"
+    },
+    {
+      "code": "EXPANSION_LITE_REENTRY_WAIT_R3_INSIDE_RETURN",
+      "ja": "T3 Exit後、旧R3内側へM5 Closeが戻るまでReEntryを再武装しません。",
+      "category": "Expansion-Lite v0.27"
+    },
+    {
+      "code": "EXPANSION_LITE_REENTRY_WAIT_BB_EXPANSION",
+      "ja": "旧R3奪回、T3復帰、BB外側Close、BB幅拡大の同時成立を待っています。",
+      "category": "Expansion-Lite v0.27"
+    },
+    {
+      "code": "EXPANSION_LITE_REENTRY_M5_T3_SIDE_NOT_RESTORED",
+      "ja": "M5 CloseがEntry方向のT3側へ復帰していません。",
+      "category": "Expansion-Lite v0.27"
+    },
+    {
+      "code": "EXPANSION_LITE_REENTRY_RETAINED_R3_NOT_RECLAIMED_BY_CLOSE",
+      "ja": "M5 Closeで保持中の旧R3をEntry方向へ奪回していません。",
+      "category": "Expansion-Lite v0.27"
+    },
+    {
+      "code": "EXPANSION_LITE_REENTRY_BB_OUTER_NOT_BROKEN_BY_CLOSE",
+      "ja": "M5 CloseがEntry方向のBB outer外側へ到達していません。",
+      "category": "Expansion-Lite v0.27"
+    },
+    {
+      "code": "EXPANSION_LITE_REENTRY_BB_WIDTH_NOT_EXPANDING",
+      "ja": "現在のBB幅が直前M5足より拡大していません。",
+      "category": "Expansion-Lite v0.27"
+    },
+    {
+      "code": "EXPANSION_LITE_REENTRY_EXECUTED",
+      "ja": "T3 Exit後の再加速条件がそろい、同じExpansion EpisodeへReEntryしました。",
+      "category": "Expansion-Lite v0.27"
+    },
+    {
+      "code": "EXPANSION_LITE_REENTRY_RETAINED_R3_RECLAIMED",
+      "ja": "保持していた旧R3をM5 CloseでEntry方向へ奪回しました。",
+      "category": "Expansion-Lite v0.27"
+    },
+    {
+      "code": "EXPANSION_LITE_REENTRY_M5_T3_RESTORED",
+      "ja": "M5 CloseがEntry方向のT3側へ復帰しました。",
+      "category": "Expansion-Lite v0.27"
+    },
+    {
+      "code": "EXPANSION_LITE_REENTRY_BB_OUTER_CLOSE",
+      "ja": "M5 CloseがEntry方向のBB outer外側で確定しました。",
+      "category": "Expansion-Lite v0.27"
+    },
+    {
+      "code": "EXPANSION_LITE_REENTRY_BB_WIDTH_EXPANDING",
+      "ja": "M5 BB幅が直前足より拡大しています。",
+      "category": "Expansion-Lite v0.27"
+    },
+    {
+      "code": "EXPANSION_LITE_REENTRY_MAX_COUNT_CONSUMED",
+      "ja": "同じExpansion Episodeで許可された最大1回のReEntryを消費しました。",
+      "category": "Expansion-Lite v0.27"
+    },
+    {
+      "code": "EXPANSION_LITE_REENTRY_EXPIRED_ANCHOR_BROKEN",
+      "ja": "固定Lite Anchorが否定されたためReEntry権利を終了しました。",
+      "category": "Expansion-Lite v0.27"
+    },
+    {
+      "code": "EXPANSION_LITE_REENTRY_EXPIRED_OPPOSITE_EPISODE",
+      "ja": "反対方向のExpansion Episodeが成立したため旧ReEntry権利を終了しました。",
+      "category": "Expansion-Lite v0.27"
+    },
+    {
+      "code": "EXPANSION_LITE_REENTRY_EXPIRED_TARGET_COMPLETED_WHILE_FLAT",
+      "ja": "Flat中に旧R5へ到達し、Expansionの目標が完了したためReEntry権利を終了しました。",
+      "category": "Expansion-Lite v0.27"
+    },
+    {
+      "code": "EXPANSION_LITE_REENTRY_EXPIRED_H1_CYCLE_WINDOW",
+      "ja": "H1 Cycle Entry Windowを超過したためReEntry権利を終了しました。",
+      "category": "Expansion-Lite v0.27"
+    },
+    {
+      "code": "EXPANSION_LITE_REENTRY_TARGET_NOT_BEYOND_ENTRY",
+      "ja": "旧R5がReEntry価格より利益方向に残っていないためReEntry候補を終了しました。",
+      "category": "Expansion-Lite v0.27"
     }
   ],
   "rule_ids": [
@@ -1930,6 +2030,41 @@
       "rule_id": "rule_expansion_lite_structural_break_shadow_only",
       "ja": "旧M5 Dow Structural BreakはShadow観測のみとし、実Closeを発行しない。",
       "category": "使用ルール"
+    },
+    {
+      "rule_id": "rule_expansion_lite_h4_multiple_candidate_lows_short_guard",
+      "ja": "H4下降波中のdistinct Candidate Lowが2件以上ならLite Short Initial Entry/ReEntryを禁止する。",
+      "category": "Expansion-Lite v0.27"
+    },
+    {
+      "rule_id": "rule_expansion_lite_h4_candidate_low_realtime_history",
+      "ja": "Candidate LowはEntry候補時点までに観測済みの履歴だけを使用し、未来足を遡及適用しない。",
+      "category": "Expansion-Lite v0.27"
+    },
+    {
+      "rule_id": "rule_expansion_lite_t3_exit_retains_episode_anchor",
+      "ja": "T3 ExitではPositionだけをCloseし、Episodeと固定HSI/R3/R5をReEntry候補として保持する。",
+      "category": "Expansion-Lite v0.27"
+    },
+    {
+      "rule_id": "rule_expansion_lite_reentry_rearm_on_r3_inside_close",
+      "ja": "T3 Exit後にM5 Closeが旧R3内側へ戻った時だけReEntry Triggerを再武装する。",
+      "category": "Expansion-Lite v0.27"
+    },
+    {
+      "rule_id": "rule_expansion_lite_reentry_r3_t3_bb_expansion",
+      "ja": "旧R3終値奪回＋M5 T3復帰＋BB outer外側Close＋BB幅拡大でReEntryする。",
+      "category": "Expansion-Lite v0.27"
+    },
+    {
+      "rule_id": "rule_expansion_lite_max_one_reentry_per_episode",
+      "ja": "1 Expansion EpisodeにつきReEntryは最大1回とする。",
+      "category": "Expansion-Lite v0.27"
+    },
+    {
+      "rule_id": "rule_expansion_lite_reentry_target_must_remain_ahead",
+      "ja": "ReEntry価格より旧R5が利益方向に残る場合だけReEntryを許可する。",
+      "category": "Expansion-Lite v0.27"
     }
   ]
 }

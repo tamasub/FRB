@@ -8,7 +8,7 @@ const pluginPath=ap('studio_overlays','gpt_fx_lab','plugins','fx_chart_viewer','
 const manifest=JSON.parse(fs.readFileSync(ap('studio_overlays','gpt_fx_lab','plugins','fx_chart_viewer','plugin.json'),'utf8'));
 const profile=JSON.parse(fs.readFileSync(ap('studio_overlays','gpt_fx_lab','simulation','fx_simulation_run_profile_normal_plus_expansion_lite_v0_1.json'),'utf8'));
 const source=fs.readFileSync(pluginPath,'utf8');
-assert.equal(manifest.version,'0.9.1.21');
+assert.equal(manifest.version,'0.9.1.22');
 assert.equal(profile.m5_execution_policy.rule_lane_policy.active_entry_rule_lane,'PARALLEL_RULE_LANES');
 assert.equal(profile.m5_execution_policy.rule_lane_policy.cross_lane_condition_sharing,'FORBIDDEN');
 assert.equal(profile.m5_execution_policy.expansion_lite_policy.other_lane_trade_state_input,'FORBIDDEN');
