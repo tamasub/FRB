@@ -49,7 +49,7 @@ const normalBelowR4 = api.m5ExecutionEntryGuardDecision('NORMAL','LONG',{
 },101.3979,policy);
 assert.equal(normalBelowR4.blocked,false);
 
-const dayUpR5Short = api.m5ExecutionEntryGuardDecision('EXPANSION_LITE','SHORT',{
+const dayUpR5Short = api.m5ExecutionEntryGuardDecision('EXPANSION','SHORT',{
   timeframes:{DAY:{trend_state:'UP'},H4:{cycle_state:{direction:'DOWN_CYCLE',origin:{point_id:'h4high',pivot_time:'t0',pivot_price:500}}}}
 },497.738,policy);
 assert.equal(dayUpR5Short.blocked,true);

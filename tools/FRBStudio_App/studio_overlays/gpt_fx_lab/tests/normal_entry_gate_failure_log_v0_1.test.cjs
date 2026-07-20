@@ -9,7 +9,7 @@ const manifestPath = path.join(root, 'studio_overlays','gpt_fx_lab','plugins','f
 const source = fs.readFileSync(pluginPath, 'utf8');
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 
-assert.equal(manifest.version, '0.9.1.14');
+assert.equal(manifest.version, '0.9.1.23');
 assert.equal(manifest.display_policy.batch_simulation_runner.normal_entry_gate_failure_log_enabled, true);
 assert.match(source, /normal_entry_gate_failure_v0_2/);
 assert.match(source, /failedEntryGates/);

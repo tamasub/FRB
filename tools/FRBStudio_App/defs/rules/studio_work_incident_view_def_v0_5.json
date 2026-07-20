@@ -1,12 +1,12 @@
 {
   "app": {
     "name": "FRB Studio / JSON Object Studio",
-    "version": "studio-work-incident-v0.5-contextdef-open-work-draft"
+    "version": "studio-work-incident-v0.5-follow-up-actions"
   },
   "views": [
     {
       "id": "studio_work_incident_v0_5",
-      "caption": "Studioくん 改修インシデント管理 / ContextDef素案対応 v0.5",
+      "caption": "Studioくん 改修インシデント管理 / Follow-up Actions対応 v0.5",
       "layout": "header-search-grid-detail",
       "sections": [
         {
@@ -287,6 +287,34 @@
                 "visible": true,
                 "operator": "equals"
               }
+            },
+            {
+              "field": "follow_up_status",
+              "caption": "後続対応状態",
+              "type": "select",
+              "options": [
+                "UNASSESSED",
+                "NOT_REQUIRED",
+                "NOT_STARTED",
+                "IN_PROGRESS",
+                "BLOCKED",
+                "COMPLETED",
+                "CANCELLED"
+              ],
+              "defaultValue": "UNASSESSED",
+              "grid": {
+                "visible": true,
+                "width": 150
+              },
+              "edit": {
+                "visible": true,
+                "control": "select"
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              },
+              "display_note": "follow_up_actionsの検索用代表状態。既存項目の要否未評価はUNASSESSED。個別action更新時は集約規則に従って同期する。"
             },
             {
               "field": "verification_status",
@@ -1037,6 +1065,102 @@
               "display_note": "v0.16.3: 作業前に読む対象文脈。target-context detail panelで編集する。通常のobjectArrayサブグリッドには出さない。"
             },
             {
+              "field": "follow_up_actions",
+              "caption": "後続作業",
+              "type": "objectArray",
+              "grid": {
+                "visible": false,
+                "width": 180
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "subGrid": {
+                  "editable": true,
+                  "defaultItem": {
+                    "action_id": "",
+                    "action_type": "CONSTRAINT_ADD",
+                    "required": true,
+                    "status": "NOT_STARTED",
+                    "related_ids": [],
+                    "note": ""
+                  },
+                  "columns": [
+                    {
+                      "field": "action_id",
+                      "caption": "Action ID",
+                      "type": "text",
+                      "width": 180
+                    },
+                    {
+                      "field": "action_type",
+                      "caption": "Action Type",
+                      "type": "select",
+                      "options": [
+                        "CONSTRAINT_ADD",
+                        "TEST_PATTERN_ADD",
+                        "EXPECTED_DEFINE",
+                        "REGRESSION_TEST_ADD",
+                        "DOCUMENT_UPDATE",
+                        "IMPLEMENTATION_FIX",
+                        "INCIDENT_FORMAT_UPDATE",
+                        "VIEWDEF_UPDATE",
+                        "OTHER"
+                      ],
+                      "width": 200
+                    },
+                    {
+                      "field": "required",
+                      "caption": "必須",
+                      "type": "boolean",
+                      "control": "checkbox",
+                      "width": 80
+                    },
+                    {
+                      "field": "status",
+                      "caption": "Status",
+                      "type": "select",
+                      "options": [
+                        "NOT_REQUIRED",
+                        "NOT_STARTED",
+                        "IN_PROGRESS",
+                        "BLOCKED",
+                        "COMPLETED",
+                        "CANCELLED"
+                      ],
+                      "width": 150
+                    },
+                    {
+                      "field": "related_ids",
+                      "caption": "Related IDs",
+                      "type": "json",
+                      "width": 300
+                    },
+                    {
+                      "field": "note",
+                      "caption": "メモ",
+                      "type": "textarea",
+                      "width": 420,
+                      "markdown": {
+                        "enabled": true,
+                        "allowLinks": true,
+                        "allowImages": false
+                      }
+                    }
+                  ]
+                }
+              },
+              "defaultValue": [],
+              "search": {
+                "visible": false
+              },
+              "display_note": "インシデントから派生した個別後続作業を管理する。親Grid検索はfollow_up_statusで行い、related_idsで制約・TestPattern・Expected・成果物へ接続する。",
+              "layout": {
+                "placement": "detailBody",
+                "order": 110
+              }
+            },
+            {
               "field": "discussion_history",
               "caption": "会話履歴",
               "type": "objectArray",
@@ -1375,7 +1499,7 @@
           }
         ]
       },
-      "layout_note": "長文の作業説明はtextareaを並べず、detailBodyのchat型カードで横広に表示する。配列履歴はobjectArrayとして保持し、入力欄化しない。",
+      "layout_note": "v0.18.22: 親Gridにfollow_up_status検索列、詳細にfollow_up_actions編集サブグリッドを追加。既存View IDとファイル名は維持。",
       "toolbar": {
         "executeButton": {
           "caption": "AI依頼プロンプトコピー",
@@ -1426,8 +1550,8 @@
       "note_field": "note"
     }
   },
-  "updated_at": "2026-06-28",
-  "description": "FRB Studio / JSON Object Studio インシデント管理ViewDef",
+  "updated_at": "2026-07-20",
+  "description": "Studio改修インシデントをGrid/詳細/会話/対象文脈/後続作業で管理する。follow_up_statusで一覧検索し、follow_up_actionsで個別の恒久対策を追跡する。",
   "currentDataDisplay": {
     "titlePath": "$.title",
     "subtitlePath": "$.target",

@@ -29,7 +29,7 @@ const ctx = {
 vm.runInNewContext(source.slice(0, idx) + hook + source.slice(idx), ctx, { filename: pluginPath });
 const api = ctx.window.__t;
 
-assert.equal(manifest.version, '0.9.1.13');
+assert.equal(manifest.version, '0.9.1.23');
 const fakeRows = Array.from({ length: 50314 }, (_, index) => ({ datetime: `row-${index}` }));
 const full = api.batchSimulationAnalysisWindow({ target_start_index: 0, target_end_index: 50313, period: { from: '2025-10-28 06:10', to: '2026-07-03 23:50' } }, fakeRows);
 assert.deepEqual(JSON.parse(JSON.stringify(full)), {

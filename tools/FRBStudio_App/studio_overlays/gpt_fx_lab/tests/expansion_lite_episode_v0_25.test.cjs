@@ -19,7 +19,7 @@ const source = fs.readFileSync(pluginPath, 'utf8');
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 const profile = JSON.parse(fs.readFileSync(profilePath, 'utf8'));
 
-assert.equal(manifest.version, '0.9.1.22');
+assert.equal(manifest.version, '0.9.1.23');
 assert.equal(profile.m5_execution_policy.expansion_lite_policy.rule_version, 'v0.27');
 assert.equal(profile.m5_execution_policy.expansion_lite_policy.m5_dow_confirmation_required, false);
 assert.equal(profile.m5_execution_policy.expansion_lite_policy.episode_unit, 'EXPANSION_EPISODE');

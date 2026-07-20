@@ -5,7 +5,7 @@
   "title": "FX Simulation 理由コード・使用ルール 日本語カタログ",
   "status": "draft_growing_catalog",
   "created_at": "2026-07-11T15:50:00+09:00",
-  "updated_at": "2026-07-18T15:30:00+09:00",
+  "updated_at": "2026-07-20T15:00:00+09:00",
   "display_policy": {
     "language": "ja",
     "show_judgment_summary_first": true,
@@ -326,16 +326,6 @@
     {
       "code": "EQUAL_SWING_PRICE",
       "ja": "比較対象の材料点が同値で、方向確定には使えません。",
-      "category": "判断理由"
-    },
-    {
-      "code": "EXPANSION_ADD_ON_NOT_IMPLEMENTED",
-      "ja": "Expansion Add-onは許可対象ですが、Expansion Core確定処理は未実装です。",
-      "category": "判断理由"
-    },
-    {
-      "code": "EXPANSION_CONFIRMATION_NOT_IMPLEMENTED",
-      "ja": "Expansion確定ロジックが未実装のため、Expansion Entryは実行しません。",
       "category": "判断理由"
     },
     {
@@ -1389,6 +1379,96 @@
       "code": "EXPANSION_LITE_REENTRY_TARGET_NOT_BEYOND_ENTRY",
       "ja": "旧R5がReEntry価格より利益方向に残っていないためReEntry候補を終了しました。",
       "category": "Expansion-Lite v0.27"
+    },
+    {
+      "code": "EXPANSION_H1_DOW_CONFIRMATION_MISSING",
+      "ja": "H1 Dow Confirmationが未成立のためExpansion候補を開始しません。",
+      "category": "Expansion"
+    },
+    {
+      "code": "EXPANSION_H1_DOW_CONFIRMED",
+      "ja": "H1 Dow ConfirmationをExpansion Opportunityの起点として採用しました。",
+      "category": "Expansion"
+    },
+    {
+      "code": "EXPANSION_R2_TOUCHED",
+      "ja": "固定H1 AnchorからR2へ到達しました。",
+      "category": "Expansion"
+    },
+    {
+      "code": "EXPANSION_R2_NOT_TOUCHED",
+      "ja": "固定H1 AnchorからR2へ未到達です。",
+      "category": "Expansion"
+    },
+    {
+      "code": "EXPANSION_H1_T3_WICK_TOUCHED",
+      "ja": "H1確定足のHigh-LowレンジがH1 T3へ接触しました。",
+      "category": "Expansion"
+    },
+    {
+      "code": "EXPANSION_H1_T3_NOT_TOUCHED",
+      "ja": "H1 T3接触事実がまだありません。",
+      "category": "Expansion"
+    },
+    {
+      "code": "EXPANSION_H4_T3_ALIGNED",
+      "ja": "H4 CloseがH4 T3のEntry方向側です。",
+      "category": "Expansion"
+    },
+    {
+      "code": "EXPANSION_H4_T3_SIDE_NOT_ALIGNED",
+      "ja": "H4 CloseがH4 T3のEntry方向側へ揃っていません。",
+      "category": "Expansion"
+    },
+    {
+      "code": "EXPANSION_ALL_ENTRY_FACTS_CONFIRMED",
+      "ja": "H1 Dow・R2・H1 T3接触・H4 T3側の全条件が揃いました。",
+      "category": "Expansion"
+    },
+    {
+      "code": "EXPANSION_WAIT_NEXT_M5_OPEN",
+      "ja": "過去価格へ遡らず、全条件成立後の次M5 Openを待ちます。",
+      "category": "Expansion"
+    },
+    {
+      "code": "EXPANSION_NEXT_M5_OPEN_ENTRY",
+      "ja": "全条件成立後の次M5 OpenでExpansion Entryしました。",
+      "category": "Expansion"
+    },
+    {
+      "code": "EXPANSION_H1_ANCHOR_CLOSE_BREAK",
+      "ja": "H1 Closeが採用H1 Anchorを逆抜けたため候補を失効しました。",
+      "category": "Expansion"
+    },
+    {
+      "code": "EXPANSION_H1_BAR_LIMIT_EXCEEDED",
+      "ja": "H1 Dow確定後14本のEntry Windowを超過しました。",
+      "category": "Expansion"
+    },
+    {
+      "code": "EXPANSION_H1_ANCHOR_EXIT",
+      "ja": "H1 Closeが固定Anchorを逆抜けたため全Closeしました。",
+      "category": "Expansion"
+    },
+    {
+      "code": "EXPANSION_OPPOSITE_H1_DOW_EXIT",
+      "ja": "反対方向のH1 Dow Confirmationにより全Closeしました。",
+      "category": "Expansion"
+    },
+    {
+      "code": "EXPANSION_R5_TARGET_EXIT",
+      "ja": "固定H1 AnchorからR5へ到達したため全Closeしました。",
+      "category": "Expansion"
+    },
+    {
+      "code": "EXPANSION_H1_T3_EXIT",
+      "ja": "H1 CloseがH1 T3を逆抜けたため全Closeしました。",
+      "category": "Expansion"
+    },
+    {
+      "code": "EXPANSION_POSITION_HOLD",
+      "ja": "ExpansionのH1 Contextが維持されているため保有を継続します。",
+      "category": "Expansion"
     }
   ],
   "rule_ids": [
@@ -2065,6 +2145,71 @@
       "rule_id": "rule_expansion_lite_reentry_target_must_remain_ahead",
       "ja": "ReEntry価格より旧R5が利益方向に残る場合だけReEntryを許可する。",
       "category": "Expansion-Lite v0.27"
+    },
+    {
+      "id": "rule_expansion_h1_dow_confirmation_required",
+      "ja": "Expansion候補にはH1 Dow Confirmationを必須とする。",
+      "category": "Expansion"
+    },
+    {
+      "id": "rule_expansion_h1_dow_r2_t3_entry",
+      "ja": "H1 Dow・H1 Anchor R2・H1 T3接触・H4 T3側でExpansion Entry候補を成立させる。",
+      "category": "Expansion"
+    },
+    {
+      "id": "rule_expansion_conditions_any_order",
+      "ja": "R2とH1 T3接触は同一Opportunity内で順不同に蓄積する。",
+      "category": "Expansion"
+    },
+    {
+      "id": "rule_expansion_no_backdate_next_m5_open",
+      "ja": "全条件成立後の次M5 Openで実行し、過去価格へ遡らない。",
+      "category": "Expansion"
+    },
+    {
+      "id": "rule_expansion_h1_opportunity_max_14_bars",
+      "ja": "Expansion OpportunityはH1 Dow確定後14本までとする。",
+      "category": "Expansion"
+    },
+    {
+      "id": "rule_expansion_h1_anchor_break_by_h1_close",
+      "ja": "H1 CloseによるAnchor逆抜けで候補破棄または全Closeする。",
+      "category": "Expansion"
+    },
+    {
+      "id": "rule_expansion_entry_price_must_remain_on_h1_t3_direction_side",
+      "ja": "Entry価格はH1 T3の方向側にあることを要求する。",
+      "category": "Expansion"
+    },
+    {
+      "id": "rule_expansion_h4_close_t3_side_gate",
+      "ja": "H4 CloseがH4 T3の方向側にあることをEntry Gateとする。",
+      "category": "Expansion"
+    },
+    {
+      "id": "rule_expansion_opposite_h1_dow_close",
+      "ja": "反対方向H1 Dow確定でExpansion Tradeを全Closeする。",
+      "category": "Expansion"
+    },
+    {
+      "id": "rule_expansion_h1_anchor_r5_target",
+      "ja": "固定H1 AnchorからR5をTargetとする。",
+      "category": "Expansion"
+    },
+    {
+      "id": "rule_expansion_h1_close_reverse_t3",
+      "ja": "H1 CloseがH1 T3を逆抜けたら全Closeする。",
+      "category": "Expansion"
+    },
+    {
+      "id": "rule_expansion_h1_context_position_management",
+      "ja": "Expansion TradeはH1 Contextで管理する。",
+      "category": "Expansion"
+    },
+    {
+      "id": "rule_expansion_close_all_positions",
+      "ja": "Expansion Exitは全建玉を一括Closeする。",
+      "category": "Expansion"
     }
   ]
 }

@@ -32,8 +32,8 @@ const policy = profile.m5_execution_policy;
 // Profile / upper-timeframe ceiling / Day guard separation.
 const validation = api.validateSimulationRunDraft(profile);
 assert.equal(validation.valid, true, validation.errors.join('\n'));
-assert.equal(profile.rule_version, 'simulation_rule_v0_24_normal_plus_v0_27_expansion_lite');
-assert.equal(profile.app_integration_version, '0.9.1.22');
+assert.equal(profile.rule_version, 'simulation_rule_v0_24_normal_plus_v0_27_expansion_lite_plus_v0_28_expansion');
+assert.equal(profile.app_integration_version, '0.9.1.23');
 assert.equal(policy.expansion_lite_policy.upper_timeframe_ceiling, 'H4');
 assert.equal(policy.expansion_lite_policy.day_entry_context_used, false);
 assert.equal(policy.expansion_lite_policy.week_entry_context_used, false);

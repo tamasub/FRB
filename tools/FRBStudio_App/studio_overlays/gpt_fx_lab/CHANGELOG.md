@@ -1,3 +1,14 @@
+# v0.9.1.23 / Simulation Rule v0.28 — Expansion H1 Dow + R2 + T3
+
+- 未実装だったEXPANSION Rule Laneを実装。
+- H1 Dow Confirmationの前回SwingをH1 Anchorとして固定。
+- R2到達とH1 High/LowによるT3接触を順不同で蓄積。
+- H4 CloseのT3方向側Gateと、Entry時H1 T3方向側を追加。
+- 全条件成立後の次M5 OpenでEntryし、過去価格への遡及Entryを禁止。
+- H1 Anchor Close崩壊／反対H1 Dow／R5／H1 Close T3逆抜けで全Close。
+- Expansion v0.1はAdd-on / ReEntryなし。
+- NORMAL / EXPANSION_LITEの既存ルールを維持し、全3 Lane並列Profileを既定に追加。
+
 # v0.9.1.22 — Expansion-Lite HSI Retention / BB ReEntry / H4 Candidate Guard
 
 - Simulation Rule v0.27を取り込み。

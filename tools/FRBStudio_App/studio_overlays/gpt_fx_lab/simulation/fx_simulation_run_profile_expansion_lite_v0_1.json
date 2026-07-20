@@ -5,9 +5,9 @@
   "title": "USDJPY Expansion-Lite v0.27 — H4 Candidate Guard / T3 Exit HSI Retention / BB ReEntry",
   "status": "draft_expansion_lite_directional_h1_cycle",
   "created_at": "2026-07-10T23:55:00+09:00",
-  "updated_at": "2026-07-18T15:30:00+09:00",
-  "phase": "v0.9.1.22-expansion-lite-hsi-retention-bb-reentry-h4-candidate-guard",
-  "rule_version": "simulation_rule_v0_24_normal_plus_v0_27_expansion_lite",
+  "updated_at": "2026-07-20T15:00:00+09:00",
+  "phase": "v0.9.1.23-expansion-h1-dow-r2-t3",
+  "rule_version": "simulation_rule_v0_24_normal_plus_v0_27_expansion_lite_plus_v0_28_expansion",
   "dataset": {
     "primary": {
       "dataset_id": "fx_usdjpy_m5_t3_data_v0_1",
@@ -759,7 +759,7 @@
       "normal_entry_target_policy": "NEXT_HSI_BOUNDARY",
       "rule_lane_source": "OPEN_TRADE_RULE_LANE",
       "normal_close_evaluator_id": "normal_m5_close_evaluator_v0_1",
-      "expansion_close_evaluator_id": "expansion_close_evaluator_placeholder_v0_1",
+      "expansion_close_evaluator_id": "expansion_h1_context_close_evaluator_v0_1",
       "expansion_lite_close_evaluator_id": "expansion_lite_close_evaluator_v0_1",
       "normal_close_retires_entry_anchor": false,
       "normal_close_next_state": "NOT_APPLICABLE",
@@ -797,14 +797,11 @@
         },
         "EXPANSION": {
           "enabled": false,
-          "entry_evaluator_id": "expansion_entry_evaluator_placeholder_v0_1",
-          "close_evaluator_id": "expansion_close_evaluator_placeholder_v0_1",
+          "entry_evaluator_id": "expansion_h1_dow_r2_t3_entry_evaluator_v0_1",
+          "close_evaluator_id": "expansion_h1_context_close_evaluator_v0_1",
           "allowed_actions": [
             "ENTRY",
-            "REENTRY",
-            "ADD_ON",
-            "FULL_CLOSE",
-            "STOP_CLOSE"
+            "FULL_CLOSE"
           ]
         },
         "EXPANSION_LITE": {
@@ -991,7 +988,53 @@
       "fix_price_at_entry": true,
       "trigger_price_source": "M5_HIGH_LOW",
       "dynamic_win_rate_calculation": "FUTURE_NOT_IMPLEMENTED"
+    },
+    "expansion_policy": {
+      "rule_version": "v0.28",
+      "observer_model": "INDEPENDENT_RULE_LANE_STATE_MACHINE",
+      "state_input_policy": "OWN_PREVIOUS_STATE_PLUS_SHARED_MARKET_FACTS_ONLY",
+      "other_lane_trade_state_input": "FORBIDDEN",
+      "opportunity_unit": "H1_DOW_CONFIRMATION",
+      "h1_dow_confirmation_required": true,
+      "h1_anchor_source": "H1_DOW_CONFIRMATION_PREVIOUS_SWING",
+      "m5_dow_confirmation_required": false,
+      "h4_close_t3_side_required": true,
+      "h1_t3_touch_required": true,
+      "h1_t3_touch_source": "H1_HIGH_LOW_RANGE_CONTAINS_T3",
+      "h1_t3_touch_memory": "RETAIN_WITHIN_OPPORTUNITY",
+      "entry_price_t3_side_required": true,
+      "condition_order": "R2_AND_T3_ANY_ORDER_AFTER_H1_DOW_CONFIRMATION",
+      "same_confirmation_bar_fact_adoption": true,
+      "entry_raw": 89,
+      "entry_label": "R2",
+      "entry_execution": "NEXT_M5_OPEN_AFTER_ALL_FACTS_CONFIRMED",
+      "entry_gap_policy": "USE_FIRST_AVAILABLE_M5_OPEN_NO_BACKDATE",
+      "one_entry_per_h1_dow_confirmation": true,
+      "max_h1_bars_after_confirmation": 14,
+      "opportunity_expiry": [
+        "OPPOSITE_H1_DOW_CONFIRMATION",
+        "H1_ANCHOR_CLOSE_BREAK",
+        "H1_BAR_LIMIT_EXCEEDED",
+        "ENTRY_EXECUTED"
+      ],
+      "add_on_policy": "FORBIDDEN_V0_1",
+      "reentry_policy": "FORBIDDEN_V0_1",
+      "target_raw": 377,
+      "target_label": "R5",
+      "target_touch_source": "M5_HIGH_LOW",
+      "close_policy": "H1_CONTEXT_ALL_CLOSE",
+      "anchor_break_source": "H1_CLOSE",
+      "t3_exit_source": "H1_CLOSE_REVERSE_T3",
+      "opposite_dow_exit_source": "H1_DOW_CONFIRMATION",
+      "same_bar_exit_priority": [
+        "H1_ANCHOR_EXIT",
+        "OPPOSITE_H1_DOW_EXIT",
+        "R5_TARGET_EXIT",
+        "H1_T3_EXIT"
+      ],
+      "management_timeframe": "H1",
+      "other_rule_lane_fallback": "FORBIDDEN"
     }
   },
-  "app_integration_version": "0.9.1.22"
+  "app_integration_version": "0.9.1.23"
 }

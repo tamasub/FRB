@@ -18,7 +18,7 @@ const source = fs.readFileSync(pluginPath,'utf8');
 const manifest = JSON.parse(fs.readFileSync(manifestPath,'utf8'));
 const profile = JSON.parse(fs.readFileSync(profilePath,'utf8'));
 
-assert.equal(manifest.version,'0.9.1.22');
+assert.equal(manifest.version, '0.9.1.23');
 const lite = profile.m5_execution_policy.expansion_lite_policy;
 assert.equal(lite.rule_version,'v0.27');
 assert.equal(lite.episode_anchor_lifecycle,'FIXED_AFTER_FIRST_M5_DOW_CONFIRMATION');

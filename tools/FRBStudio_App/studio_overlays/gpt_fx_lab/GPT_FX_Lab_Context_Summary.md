@@ -2,14 +2,19 @@
 
 更新日: 2026-07-18  
 対象: `F:\FRB\tools\FRBStudio_App\studio_overlays\gpt_fx_lab`  
-現行Plugin: `gpt_fx_lab.fx_chart_viewer v0.9.1.22`  
+現行Plugin: `gpt_fx_lab.fx_chart_viewer v0.9.1.23`  
 目的: GPT FX Lab改修時に、設計境界、現在のSimulation構造、正本ファイル、テスト契約を短時間で復元するための入口。
 
 ---
 
 
 
-## 0.0 v0.9.1.22 / Simulation Rule v0.27（2026-07-18）
+## 0.0 v0.9.1.23 / Simulation Rule v0.28（2026-07-20）
+
+- EXPANSION LaneへH1 Dow＋R2＋H1 T3接触を実装。条件成立後の次M5 OpenでEntry。
+- H1 Anchor / 反対H1 Dow / R5 / H1 T3でExit。Add-on / ReEntryなし。
+
+## 0.1 v0.9.1.22 / Simulation Rule v0.27（2026-07-18）
 
 ```text
 Liteが売買判断に使用する最上位時間足 = H4

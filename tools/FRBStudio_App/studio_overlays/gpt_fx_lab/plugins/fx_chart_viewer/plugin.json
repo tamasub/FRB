@@ -11,7 +11,7 @@
   "scope": "gpt_fx_lab overlay only",
   "core_change": false,
   "description": "App v0.9.1.22 / Simulation Rule v0.27対応。Expansion-Liteの上位時間足上限をH4へ固定し、DAY/WEEKをLite判断から除外。H4下降波中のdistinct Candidate Lowが2件以上ならShort Initial Entry/ReEntryを抑止する。T3 ExitではPositionだけをCloseし、Episodeと旧HSI/R3/R5を保持。旧R3内側復帰後の旧R3終値奪回＋M5 T3復帰＋BB外側Close＋BB幅拡大で同一Episodeへ最大1回ReEntryする。",
-  "version": "0.9.1.22",
+  "version": "0.9.1.23",
   "signal_policy": {
     "visible_marker": "candidate_basis_retired_circle_marker",
     "removed_marker": "dow_structure_decision_arrow_marker",
@@ -234,7 +234,7 @@
     "normal_entry_opposite_dow_replaces_hsi_anchor": false,
     "expansion_dual_hsi_anchor_support": true,
     "expansion_detection_anchor_policy": "ORIGINAL_DOW_ADOPTED_ANCHOR",
-    "expansion_entry_anchor_policy": "LATEST_CONFIRMED_PULLBACK_ANCHOR",
+    "expansion_entry_anchor_policy": "H1_DOW_CONFIRMATION_PREVIOUS_SWING",
     "normal_entry_trigger": "M5_DOW_CONFIRMATION_EVENT_WITH_R2_STATE_CHECK_ELSE_FIRST_R2_TOUCH",
     "normal_entry_target": "R2.5",
     "normal_reentry_policy": "NEW_M5_DOW_CONFIRMATION_AFTER_PREVIOUS_TRADE_CLOSE_REQUIRED",
@@ -252,9 +252,9 @@
     "normal_entry_close_separated": true,
     "normal_rule_lane_week_day_dependency": false,
     "normal_rule_lane_expansion_dependency": false,
-    "expansion_rule_lane_enabled": false,
-    "expansion_entry_evaluator_id": "expansion_entry_evaluator_placeholder_v0_1",
-    "expansion_close_evaluator_id": "expansion_close_evaluator_placeholder_v0_1",
+    "expansion_rule_lane_enabled": true,
+    "expansion_entry_evaluator_id": "expansion_h1_dow_r2_t3_entry_evaluator_v0_1",
+    "expansion_close_evaluator_id": "expansion_h1_context_close_evaluator_v0_1",
     "expansion_lite_rule_lane_reserved": false,
     "expansion_lite_rule_lane_enabled": true,
     "hsi_compact_state_preserves_dow_confirmation_id": true,
@@ -290,15 +290,15 @@
     "simulation_execution_marker_leader_line": true,
     "simulation_execution_marker_leader_line_policy": "local_chart_envelope_avoidance_with_diagonal_connector",
     "simulation_execution_marker_endpoint_dot": true,
-    "simulation_execution_marker_endpoint_dot_radius_px": 2.8,
+    "simulation_execution_marker_endpoint_dot_radius_px": 3.1,
     "crosshair_sync_scope": "all_visible_timeframe_panels",
     "crosshair_horizontal_price_sync": true,
     "crosshair_vertical_time_sync": true,
     "simulation_execution_marker_detached_label_lanes": true,
     "simulation_execution_marker_label_lane_policy": "near_chart_top_for_close_bottom_for_entry_and_closemiss_with_overlap_avoidance",
     "simulation_execution_marker_diagonal_connector": true,
-    "simulation_execution_marker_label_horizontal_shift_px_base": 26,
-    "simulation_execution_marker_label_horizontal_shift_px_per_lane": 11,
+    "simulation_execution_marker_label_horizontal_shift_px_base": 32,
+    "simulation_execution_marker_label_horizontal_shift_px_per_lane": 12,
     "simulation_execution_marker_label_vertical_gap_px_top": 40,
     "simulation_execution_marker_label_vertical_gap_px_bottom": 34,
     "simulation_execution_marker_chart_overlap_avoidance": true,
@@ -399,7 +399,15 @@
     "expansion_lite_t3_exit_retains_episode_anchor": true,
     "expansion_lite_same_episode_reentry_max_count": 1,
     "expansion_lite_reentry_uses_bb_expansion": true,
-    "expansion_lite_reentry_add_on_allowed": false
+    "expansion_lite_reentry_add_on_allowed": false,
+    "simulation_execution_marker_endpoint_dot_radius_px_focused": 4.2,
+    "simulation_execution_marker_label_horizontal_shift_px_base_focused": 44,
+    "simulation_execution_marker_label_horizontal_shift_px_per_lane_focused": 16,
+    "expansion_entry_trigger": "H1_DOW_CONFIRMATION_PLUS_H1_R2_PLUS_H1_T3_TOUCH",
+    "expansion_entry_execution": "NEXT_M5_OPEN_AFTER_ALL_FACTS_CONFIRMED",
+    "expansion_management_timeframe": "H1",
+    "expansion_add_on_enabled": false,
+    "expansion_reentry_enabled": false
   },
   "display_policy": {
     "high_low_range_style": {
@@ -820,7 +828,7 @@
     },
     "simulation_run_profile": {
       "enabled": true,
-      "default_file": "fx_simulation_run_profile_normal_plus_expansion_lite_v0_1.json",
+      "default_file": "fx_simulation_run_profile_all_rule_lanes_v0_1.json",
       "directory": "studio_overlays/gpt_fx_lab/simulation/",
       "required_timeframes": [
         "WEEK",
@@ -1302,5 +1310,6 @@
     "focus_behavior": "center_entry_time_and_lock_crosshair_at_entry_price",
     "selected_row_required": true,
     "teacher_guard": "navigation and observation only; no entry or exit decision changes"
-  }
+  },
+  "updated_at": "2026-07-20T15:00:00+09:00"
 }
