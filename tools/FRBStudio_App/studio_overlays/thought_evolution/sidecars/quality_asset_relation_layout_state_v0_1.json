@@ -1,0 +1,57 @@
+{
+  "schema_version": "thought_graph_layout_state_v0_1",
+  "document_type": "thought_graph_layout_state",
+  "graph_id": "quality_asset_relation",
+  "updated_at": "2026-07-20T10:36:05.930Z",
+  "viewport": {
+    "x": -8.928,
+    "y": 143.617,
+    "scale": 1.15035
+  },
+  "positions": {
+    "constraint": {
+      "x": 130,
+      "y": 170
+    },
+    "responsibility": {
+      "x": 282.951,
+      "y": 17.997
+    },
+    "guarantee": {
+      "x": 520.761,
+      "y": -19.718
+    },
+    "test_pattern": {
+      "x": 775.333,
+      "y": -58.243
+    },
+    "expected": {
+      "x": 1011.048,
+      "y": 145
+    },
+    "execution": {
+      "x": 1230,
+      "y": 145
+    },
+    "actual": {
+      "x": 1247.52,
+      "y": 371.24
+    },
+    "diff": {
+      "x": 1011.521,
+      "y": 403.619
+    },
+    "approval": {
+      "x": 830,
+      "y": 430
+    },
+    "decision_log": {
+      "x": 565,
+      "y": 455
+    },
+    "baseline": {
+      "x": 310,
+      "y": 430
+    }
+  }
+}

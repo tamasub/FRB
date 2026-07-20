@@ -1,0 +1,287 @@
+{
+  "schema_version": "frb_view_def_v0_9",
+  "document_type": "view_def",
+  "title": "Thought Evolution Observation",
+  "description": "DecisionLog・Relation Approval・Outcome・DifferenceをEvolution Engine用の観測へ正規化する。",
+  "views": [
+    {
+      "id": "thoughtEvolutionObservation",
+      "caption": "Thought Evolution Observation",
+      "layout": "header-search-grid-detail",
+      "sections": [
+        {
+          "id": "mainGrid",
+          "caption": "Thought Evolution Observation",
+          "type": "grid",
+          "dataPath": "observations",
+          "fields": [
+            {
+              "field": "observation_id",
+              "caption": "Observation ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 260
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "source_type",
+              "caption": "Source Type",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 150
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "source_id",
+              "caption": "Source ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 230
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "outcome",
+              "caption": "Outcome",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "human_approved",
+              "caption": "Human Approved",
+              "type": "checkbox",
+              "grid": {
+                "visible": true,
+                "width": 130
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "reason",
+              "caption": "Reason",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 520
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "applicability_scope",
+              "caption": "Scope",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 360
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "candidate_keys",
+              "caption": "Candidate Keys",
+              "type": "json",
+              "grid": {
+                "visible": true,
+                "width": 260
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            }
+          ]
+        },
+        {
+          "id": "detail",
+          "caption": "Detail",
+          "type": "form",
+          "dataPath": "observations",
+          "fields": [
+            {
+              "field": "observation_id",
+              "caption": "Observation ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 260
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "source_type",
+              "caption": "Source Type",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 150
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "source_id",
+              "caption": "Source ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 230
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "outcome",
+              "caption": "Outcome",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "human_approved",
+              "caption": "Human Approved",
+              "type": "checkbox",
+              "grid": {
+                "visible": true,
+                "width": 130
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "reason",
+              "caption": "Reason",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 520
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "applicability_scope",
+              "caption": "Scope",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 360
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "candidate_keys",
+              "caption": "Candidate Keys",
+              "type": "json",
+              "grid": {
+                "visible": true,
+                "width": 260
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

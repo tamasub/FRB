@@ -1,0 +1,108 @@
+{
+  "view_def": "evolution/thought_evolution_engine_profile_view_def_v0_1.json",
+  "schema_version": "thought_evolution_engine_profile_v0_1",
+  "document_type": "thought_evolution_engine_profile",
+  "engine_profile_id": "thought_evolution_engine_default",
+  "title": "Thought Evolution Engine / Default Profile",
+  "status": "active",
+  "updated_at": "2026-07-20",
+  "purpose": "判断ログ・承認済みリレーション・差分・Outcomeを、再利用可能なEvolution Proposalへ蒸留する。定義を直接自己変更せず、人間承認後に次版Snapshotを生成する。",
+  "principles": [
+    "反復は基準候補を生むが、正当性は生まない。",
+    "頻出回数だけで昇格させず、成功結果・人間承認・理由・適用範囲を確認する。",
+    "実行中の定義は変更せず、Proposal→人間承認→次版Snapshotの順序を守る。",
+    "SUPERSEDED後も元Proposalと根拠履歴を残す。"
+  ],
+  "promotion_policy": {
+    "minimum_observations": 2,
+    "minimum_positive_outcomes": 1,
+    "minimum_human_approved_evidence": 1,
+    "minimum_reasoned_evidence": 2,
+    "require_applicability_scope": true,
+    "automatic_promotion": false,
+    "source_definition_mutation": false,
+    "counterexample_policy": "候補生成を妨げず、承認時の判断材料として必ず表示する。"
+  },
+  "proposal_states": [
+    {
+      "id": "OBSERVATION",
+      "label": "観測",
+      "color": "#8fa7b8",
+      "sort_order": 10,
+      "description": "根拠がまだ昇格候補の最低条件を満たしていない。"
+    },
+    {
+      "id": "CANDIDATE",
+      "label": "候補",
+      "color": "#ffd166",
+      "sort_order": 20,
+      "description": "複数根拠と成功結果を持つが、人間未承認。"
+    },
+    {
+      "id": "PROVISIONAL",
+      "label": "仮採用",
+      "color": "#b58cff",
+      "sort_order": 30,
+      "description": "限定適用し、追加検証を行う。"
+    },
+    {
+      "id": "APPROVED",
+      "label": "承認",
+      "color": "#2ee6d6",
+      "sort_order": 40,
+      "description": "人間が次版生成を許可した。"
+    },
+    {
+      "id": "VALIDATED",
+      "label": "検証済み",
+      "color": "#8be28b",
+      "sort_order": 50,
+      "description": "再適用結果を確認し、基準として利用可能。"
+    },
+    {
+      "id": "SUPERSEDED",
+      "label": "廃止・置換済み",
+      "color": "#ff6b7a",
+      "sort_order": 60,
+      "description": "履歴を残したまま現役候補から外す。"
+    }
+  ],
+  "proposal_types": [
+    {
+      "id": "decision_axis_add",
+      "label": "判断軸追加",
+      "color": "#70a7ff",
+      "description": "複数案から何を優先するかの基準を追加する。"
+    },
+    {
+      "id": "constraint_add",
+      "label": "制約追加",
+      "color": "#ff7070",
+      "description": "越えてはいけない境界を追加する。"
+    },
+    {
+      "id": "applicability_change",
+      "label": "適用条件変更",
+      "color": "#ff9e64",
+      "description": "適用・非適用条件を修正する。"
+    },
+    {
+      "id": "relation_change",
+      "label": "関係変更",
+      "color": "#2ee6d6",
+      "description": "品質資産間の関係を追加・修正する。"
+    },
+    {
+      "id": "thought_class_split",
+      "label": "思考クラス分離",
+      "color": "#ff6bb5",
+      "description": "目的や判断軸が異なる思考を別クラスへ分離する。"
+    },
+    {
+      "id": "baseline_terrain_candidate",
+      "label": "基準地形候補",
+      "color": "#ffffff",
+      "description": "複数の制約・判断軸・関係を標準モデルへ配合する。"
+    }
+  ]
+}

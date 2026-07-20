@@ -1,0 +1,217 @@
+{
+  "view_def": "analysis/thought_difference_result_view_def_v0_1.json",
+  "schema_version": "thought_difference_result_data_v0_1",
+  "document_type": "thought_difference_result_data",
+  "analysis_run_id": "difference_radar_quality_asset_sample_20260720",
+  "analysis_profile_id": "thought_difference_radar_default",
+  "graph_id": "quality_asset_relation",
+  "title": "品質資産リレーション / Thought Difference Radar サンプル",
+  "status": "AI_PROPOSED",
+  "generated_by": "ChatGPT",
+  "generated_at": "2026-07-20T21:40:00+09:00",
+  "updated_at": "2026-07-20T22:30:00+09:00",
+  "results": [
+    {
+      "result_id": "radar_quality_common_001",
+      "category": "COMMON",
+      "result_type": "common_structure",
+      "title": "ExpectedとActualの差分を人間が承認する構造",
+      "summary": "Expected・Actual・Diff・Approvalの流れは、AI承認駆動開発の既知の中核構造として成立している。",
+      "confidence": "高",
+      "status": "AI_PROPOSED",
+      "node_ids": [
+        "expected",
+        "actual",
+        "diff",
+        "approval"
+      ],
+      "evidence_refs": [
+        "AI承認駆動開発 #0 / Expected→Actual→Diff→承認"
+      ],
+      "relation_proposal": null,
+      "approval": {
+        "decision": "AI_PROPOSED",
+        "decided_by": "",
+        "decided_at": "",
+        "comment": ""
+      }
+    },
+    {
+      "result_id": "radar_quality_missing_001",
+      "category": "MISSING_LINK",
+      "result_type": "missing_counterpart",
+      "title": "保証とExpectedの直接対応が見えない",
+      "summary": "保証はTestPatternへ接続されているが、どのExpectedがどの保証を成立させるかをグラフ上で直接追えない。保証単位のExpected追跡が必要か確認する。",
+      "confidence": "高",
+      "status": "AI_PROPOSED",
+      "node_ids": [
+        "guarantee",
+        "expected"
+      ],
+      "evidence_refs": [
+        "保証IDとTestPatternの接続は存在する",
+        "ExpectedはTestPattern内に保持されるため保証から直接見えにくい"
+      ],
+      "relation_proposal": {
+        "relation_id": "radar_relation_guarantee_expected_001",
+        "source_node_id": "guarantee",
+        "target_node_id": "expected",
+        "relation_type": "defines",
+        "label": "保証ごとのExpectedを追跡",
+        "reason": "検証可能な保証と、その保証を成立させるExpectedの対応を明示する候補。",
+        "evidence_refs": [
+          "Thought Difference Radar missing_counterpart / radar_quality_missing_001"
+        ]
+      },
+      "approval": {
+        "decision": "AI_PROPOSED",
+        "decided_by": "",
+        "decided_at": "",
+        "comment": ""
+      },
+      "evolution_candidate_keys": [
+        "unapproved_relation_never_canonical"
+      ]
+    },
+    {
+      "result_id": "radar_quality_asymmetry_001",
+      "category": "ASYMMETRY",
+      "result_type": "asymmetric_relation",
+      "title": "制約は責務へ流れるが、承認結果から制約へ戻る経路は候補扱い",
+      "summary": "上流の制約は設計境界として強く働く一方、承認後の判断ログから制約へ戻る経路は蒸留候補に留まる。この非対称は意図されたものか確認する。",
+      "confidence": "中",
+      "status": "AI_PROPOSED",
+      "node_ids": [
+        "constraint",
+        "approval",
+        "decision_log",
+        "baseline"
+      ],
+      "evidence_refs": [
+        "constraint→responsibility は定義関係",
+        "decision_log→baseline→constraint は候補経路"
+      ],
+      "relation_proposal": null,
+      "approval": {
+        "decision": "AI_PROPOSED",
+        "decided_by": "",
+        "decided_at": "",
+        "comment": ""
+      },
+      "evolution_candidate_keys": [
+        "approval_small_semantic_diff"
+      ]
+    },
+    {
+      "result_id": "radar_quality_contradiction_001",
+      "category": "CONTRADICTION",
+      "result_type": "contradiction",
+      "title": "基準候補をそのまま制約へ戻すと仮説固定化の危険",
+      "summary": "基準候補から制約へ戻る線は存在するが、反復しただけの悪習まで制約化すると『基準は実践から蒸留する』原則と衝突する。人間承認とOutcome確認が必要。",
+      "confidence": "高",
+      "status": "AI_PROPOSED",
+      "node_ids": [
+        "decision_log",
+        "baseline",
+        "constraint"
+      ],
+      "evidence_refs": [
+        "反復は基準候補を生むが正当性は生まない",
+        "v0.4 Evolution Engineは人間承認後に次版へ反映する"
+      ],
+      "relation_proposal": null,
+      "approval": {
+        "decision": "AI_PROPOSED",
+        "decided_by": "",
+        "decided_at": "",
+        "comment": ""
+      }
+    },
+    {
+      "result_id": "radar_quality_transfer_001",
+      "category": "TRANSFER_CANDIDATE",
+      "result_type": "transfer_candidate",
+      "title": "判断ログを次回Expected Terrainへ転用できる",
+      "summary": "承認理由と結果を判断ログへ残すだけでなく、次回のExpected Terrain生成時の入力として再利用すると、基準地形が実践から育つ。",
+      "confidence": "高",
+      "status": "AI_PROPOSED",
+      "node_ids": [
+        "decision_log",
+        "expected"
+      ],
+      "evidence_refs": [
+        "判断ログは未来の基準を作る原液",
+        "Expected Terrainは承認の比較座標系"
+      ],
+      "relation_proposal": {
+        "relation_id": "radar_relation_decisionlog_expected_001",
+        "source_node_id": "decision_log",
+        "target_node_id": "expected",
+        "relation_type": "distills",
+        "label": "判断ログからExpected Terrain候補へ",
+        "reason": "承認済み判断ログを次回Expected Terrainの候補生成へ転用する関係。",
+        "evidence_refs": [
+          "Thought Difference Radar transfer_candidate / radar_quality_transfer_001"
+        ]
+      },
+      "approval": {
+        "decision": "AI_PROPOSED",
+        "decided_by": "",
+        "decided_at": "",
+        "comment": ""
+      },
+      "evolution_candidate_keys": [
+        "baseline_from_provenance"
+      ]
+    },
+    {
+      "result_id": "radar_quality_drift_001",
+      "category": "CONCEPT_DRIFT",
+      "result_type": "concept_drift",
+      "title": "Expectedが値から基準地形へ拡張されている",
+      "summary": "Expectedは単一値から、件数・関係・網羅性・構造を含む基準地形へ意味が拡張された。既存Data/ViewDefが旧い値前提のまま残っていないか確認する。",
+      "confidence": "高",
+      "status": "AI_PROPOSED",
+      "node_ids": [
+        "expected",
+        "diff"
+      ],
+      "evidence_refs": [
+        "Expectedは値ではない",
+        "Expected Terrain / 基準地形"
+      ],
+      "relation_proposal": null,
+      "approval": {
+        "decision": "AI_PROPOSED",
+        "decided_by": "",
+        "decided_at": "",
+        "comment": ""
+      }
+    },
+    {
+      "result_id": "radar_quality_jump_001",
+      "category": "UNEXPLAINED_JUMP",
+      "result_type": "unexplained_jump",
+      "title": "Expectedから実行への接続粒度が説明不足",
+      "summary": "Expectedから実行へ『比較基準を渡す』線があるが、TestPattern・Runner・Execution Contractのどこが受け渡し責務を持つかが一枚の線に圧縮されている。",
+      "confidence": "中",
+      "status": "AI_PROPOSED",
+      "node_ids": [
+        "expected",
+        "execution",
+        "test_pattern"
+      ],
+      "evidence_refs": [
+        "relation e05 はPENDING",
+        "Expected Terrainから実行への接続粒度は追加確認対象"
+      ],
+      "relation_proposal": null,
+      "approval": {
+        "decision": "AI_PROPOSED",
+        "decided_by": "",
+        "decided_at": "",
+        "comment": ""
+      }
+    }
+  ]
+}

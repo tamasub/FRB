@@ -1,5 +1,5 @@
 {
-  "schema_version": "thought_graph_def_v0_1",
+  "schema_version": "thought_graph_def_v0_2",
   "document_type": "thought_graph_def",
   "graph_def_id": "thought_evolution_graph_def_v0_1",
   "title": "Thought Evolution Graph Definition",
@@ -132,5 +132,31 @@
     "empty": "思考のノードまたはリレーションを選択してください。",
     "node_detail": "Thought Detail",
     "insights": "Generated Insights"
-  }
+  },
+  "relation_statuses": [
+    {
+      "id": "AI_PROPOSED",
+      "label": "AI提案",
+      "stroke": "#ffd166",
+      "dasharray": "7 4"
+    },
+    {
+      "id": "HUMAN_APPROVED",
+      "label": "人間承認",
+      "stroke": "#2ee6d6",
+      "dasharray": ""
+    },
+    {
+      "id": "PENDING",
+      "label": "保留",
+      "stroke": "#b58cff",
+      "dasharray": "2 4"
+    },
+    {
+      "id": "REJECTED",
+      "label": "却下",
+      "stroke": "#ff6b7a",
+      "dasharray": "3 5"
+    }
+  ]
 }

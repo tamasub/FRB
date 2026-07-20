@@ -1,0 +1,305 @@
+{
+  "app": {
+    "name": "FRB Studio / Thought Difference Radar",
+    "version": "v0.1"
+  },
+  "views": [
+    {
+      "id": "thought_difference_results",
+      "caption": "Thought Difference Radar / Analysis Results",
+      "layout": "header-search-grid-detail",
+      "sections": [
+        {
+          "id": "header",
+          "caption": "Analysis Run",
+          "type": "form",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "analysis_run_id",
+              "caption": "Analysis Run ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "analysis_profile_id",
+              "caption": "Profile ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "graph_id",
+              "caption": "Graph ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            }
+          ]
+        },
+        {
+          "id": "search",
+          "caption": "検索",
+          "type": "form",
+          "dataPath": "results",
+          "fields": [
+            {
+              "field": "category",
+              "caption": "Category",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "status",
+              "caption": "状態",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "mainGrid",
+          "caption": "Radar Results",
+          "type": "grid",
+          "dataPath": "results",
+          "fields": [
+            {
+              "field": "result_id",
+              "caption": "Result ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 250
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "category",
+              "caption": "Category",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 160
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "result_type",
+              "caption": "Result Type",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 190
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 320
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "summary",
+              "caption": "概要",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 520
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "confidence",
+              "caption": "信頼度",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 90
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "status",
+              "caption": "状態",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "node_ids",
+              "caption": "Node IDs",
+              "type": "json",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "evidence_refs",
+              "caption": "Evidence",
+              "type": "json",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "relation_proposal",
+              "caption": "Relation Proposal",
+              "type": "json",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "approval",
+              "caption": "Approval",
+              "type": "json",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

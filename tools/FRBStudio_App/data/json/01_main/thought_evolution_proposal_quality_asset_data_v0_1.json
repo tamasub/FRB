@@ -1,0 +1,305 @@
+{
+  "view_def": "evolution/thought_evolution_proposal_view_def_v0_1.json",
+  "schema_version": "thought_evolution_proposal_data_v0_1",
+  "document_type": "thought_evolution_proposal_data",
+  "proposal_set_id": "quality_asset_relation_evolution_proposals_v0_1",
+  "engine_profile_id": "thought_evolution_engine_default",
+  "graph_id": "quality_asset_relation",
+  "title": "品質資産リレーション / Evolution Proposal",
+  "status": "active",
+  "generated_at": "2026-07-20T22:30:00\u002B09:00",
+  "updated_at": "2026-07-20T09:49:24.202Z",
+  "generation_policy": "Proposalは自動昇格しない。人間がPROVISIONAL / APPROVED / VALIDATED / SUPERSEDEDを判断する。",
+  "proposals": [
+    {
+      "proposal_id": "evolution_quality_asset_relation_001",
+      "candidate_key": "approval_small_semantic_diff",
+      "proposal_type": "decision_axis_add",
+      "title": "承認単位は変更量ではなく小さな意味差分にする",
+      "summary": "人間が一度に判断する意味量を小さくし、制約Diff・責務Diff・保証Diff・Expected Diffへ分解して承認する。",
+      "state": "APPROVED",
+      "confidence": "高",
+      "node_ids": [
+        "expected",
+        "diff",
+        "approval",
+        "decision_log"
+      ],
+      "applicability_scope": "AI生成成果物、品質資産レビュー、影響範囲が広い変更の承認",
+      "source_definition_ref": {
+        "kind": "decision_axis_set",
+        "id": "ai_approval_development_axes",
+        "version": "0.1"
+      },
+      "source_version": "0.1",
+      "target_version": "0.2",
+      "proposed_definition": {
+        "decision_axis_id": "approval_small_semantic_diff",
+        "name": "認識させる意味差分を小さくする",
+        "statement": "開発成果物そのものではなく、人間が一度に認識・判断する意味差分を小さくする。",
+        "priority": "high"
+      },
+      "source_observation_ids": [
+        "obs_quality_diff_001",
+        "obs_quality_diff_002",
+        "relation:e09",
+        "relation:e10",
+        "difference:radar_quality_asymmetry_001"
+      ],
+      "evidence_refs": [
+        "Expected Terrain検討ログ",
+        "承認コストは意味差分で決まる",
+        "Thought Evolution Studio v0.2画面確認",
+        "AI承認駆動開発 #0 / 制約→責務→保証→TestPattern＋Expected→Actual・Diff→承認",
+        "overlay graph edge: e09",
+        "overlay graph edge: e10",
+        "constraint→responsibility は定義関係",
+        "decision_log→baseline→constraint は候補経路"
+      ],
+      "supporting_count": 5,
+      "positive_outcome_count": 4,
+      "human_approved_evidence_count": 4,
+      "reasoned_evidence_count": 5,
+      "counterexample_count": 0,
+      "counterexamples": [],
+      "generation_result": {
+        "eligible": true,
+        "required": {
+          "observations": 2,
+          "positive": 1,
+          "humanApproved": 1,
+          "reasoned": 2
+        },
+        "scope_ok": true,
+        "evaluated_at": "2026-07-20T09:38:33.919Z"
+      },
+      "approval": {
+        "decision": "APPROVED",
+        "decided_by": "Human",
+        "decided_at": "2026-07-20T09:49:11.242Z",
+        "comment": ""
+      },
+      "next_version": {
+        "status": "GENERATED",
+        "version_snapshot_id": "evolution_quality_asset_relation_001_0.2",
+        "generated_at": "2026-07-20T09:44:25.950Z",
+        "target_version": "0.2"
+      },
+      "version_history": [
+        {
+          "history_id": "quality_asset_relation_proposal_001_generated",
+          "at": "2026-07-20T22:30:00\u002B09:00",
+          "change_type": "proposal_generated",
+          "before": "",
+          "after": "CANDIDATE",
+          "reason": "Evolution Engine profileによる初期評価"
+        },
+        {
+          "history_id": "evolution_quality_asset_relation_001_1784540657661",
+          "at": "2026-07-20T09:44:17.661Z",
+          "change_type": "human_evolution_decision",
+          "before": "CANDIDATE",
+          "after": "APPROVED",
+          "reason": "Thought Evolution Studio Evolution Approval"
+        },
+        {
+          "history_id": "evolution_quality_asset_relation_001_snapshot_1784540665951",
+          "at": "2026-07-20T09:44:25.950Z",
+          "change_type": "next_version_snapshot_generated",
+          "before": "",
+          "after": "evolution_quality_asset_relation_001_0.2",
+          "reason": "人間承認済みProposalから元定義を上書きせず次版Snapshotを生成"
+        },
+        {
+          "history_id": "evolution_quality_asset_relation_001_1784540951242",
+          "at": "2026-07-20T09:49:11.242Z",
+          "change_type": "human_evolution_decision",
+          "before": "APPROVED",
+          "after": "APPROVED",
+          "reason": "Thought Evolution Studio Evolution Approval"
+        }
+      ]
+    },
+    {
+      "proposal_id": "evolution_quality_asset_relation_002",
+      "candidate_key": "unapproved_relation_never_canonical",
+      "proposal_type": "constraint_add",
+      "title": "未承認リレーションを正本化しない",
+      "summary": "AI提案・Radar提案はRelation Approvalを経るまで正本Relationとして扱わない。",
+      "state": "CANDIDATE",
+      "confidence": "高",
+      "node_ids": [
+        "guarantee",
+        "test_pattern",
+        "approval",
+        "decision_log"
+      ],
+      "applicability_scope": "AI提案リレーション、Difference Radar転送、品質資産の自動接続",
+      "source_definition_ref": {
+        "kind": "constraint_set",
+        "id": "thought_evolution_constraints",
+        "version": "0.1"
+      },
+      "source_version": "0.1",
+      "target_version": "0.2",
+      "proposed_definition": {
+        "constraint_id": "constraint_relation_human_approval_required",
+        "name": "Relation Human Approval Required",
+        "statement": "AIが提案した関係は、人間承認前に正式な関係として利用してはならない。",
+        "severity": "hard"
+      },
+      "source_observation_ids": [
+        "obs_relation_guard_001",
+        "obs_relation_guard_002",
+        "relation:e02",
+        "relation:e03",
+        "difference:radar_quality_missing_001"
+      ],
+      "evidence_refs": [
+        "studio_work_0141 decision_log",
+        "Thought Evolution Studio v0.3",
+        "AI承認駆動開発 #0 / 制約→責務→保証→TestPattern＋Expected→Actual・Diff→承認",
+        "overlay graph edge: e02",
+        "overlay graph edge: e03",
+        "保証IDとTestPatternの接続は存在する",
+        "ExpectedはTestPattern内に保持されるため保証から直接見えにくい"
+      ],
+      "supporting_count": 5,
+      "positive_outcome_count": 4,
+      "human_approved_evidence_count": 4,
+      "reasoned_evidence_count": 5,
+      "counterexample_count": 0,
+      "counterexamples": [],
+      "generation_result": {
+        "eligible": true,
+        "required": {
+          "observations": 2,
+          "positive": 1,
+          "humanApproved": 1,
+          "reasoned": 2
+        },
+        "scope_ok": true,
+        "evaluated_at": "2026-07-20T09:38:33.919Z"
+      },
+      "approval": {
+        "decision": "UNDECIDED",
+        "decided_by": "",
+        "decided_at": "",
+        "comment": ""
+      },
+      "next_version": {
+        "status": "NOT_GENERATED",
+        "version_snapshot_id": "",
+        "generated_at": ""
+      },
+      "version_history": [
+        {
+          "history_id": "quality_asset_relation_proposal_002_generated",
+          "at": "2026-07-20T22:30:00\u002B09:00",
+          "change_type": "proposal_generated",
+          "before": "",
+          "after": "CANDIDATE",
+          "reason": "Evolution Engine profileによる初期評価"
+        }
+      ]
+    },
+    {
+      "proposal_id": "evolution_quality_asset_relation_003",
+      "candidate_key": "baseline_from_provenance",
+      "proposal_type": "baseline_terrain_candidate",
+      "title": "基準地形は判断履歴と根拠を保持して蒸留する",
+      "summary": "基準地形はトップダウンで固定せず、判断ログ・適用範囲・結果・反例を持つProposalから生成する。",
+      "state": "CANDIDATE",
+      "confidence": "中",
+      "node_ids": [
+        "approval",
+        "decision_log",
+        "baseline",
+        "constraint"
+      ],
+      "applicability_scope": "基準制約、基準判断軸、標準Relation、Expected Terrain Profile",
+      "source_definition_ref": {
+        "kind": "baseline_terrain",
+        "id": "quality_asset_baseline",
+        "version": "0.1"
+      },
+      "source_version": "0.1",
+      "target_version": "0.2",
+      "proposed_definition": {
+        "baseline_terrain_id": "quality_asset_baseline_v0_2_candidate",
+        "name": "品質資産の承認基準地形",
+        "components": [
+          "approved_constraints",
+          "approved_decision_axes",
+          "approved_relations",
+          "validated_test_patterns"
+        ],
+        "provenance_required": true
+      },
+      "source_observation_ids": [
+        "obs_baseline_001",
+        "obs_baseline_002",
+        "obs_baseline_counter_001",
+        "relation:e10",
+        "relation:e11",
+        "relation:e12",
+        "difference:radar_quality_transfer_001"
+      ],
+      "evidence_refs": [
+        "基準は実践から蒸留する",
+        "studio_work_0140〜0143",
+        "反復は候補を生むが正当性は生まない",
+        "AI承認駆動開発 #0 / 制約→責務→保証→TestPattern＋Expected→Actual・Diff→承認",
+        "overlay graph edge: e10",
+        "overlay graph edge: e11",
+        "overlay graph edge: e12",
+        "判断ログは未来の基準を作る原液",
+        "Expected Terrainは承認の比較座標系"
+      ],
+      "supporting_count": 7,
+      "positive_outcome_count": 5,
+      "human_approved_evidence_count": 6,
+      "reasoned_evidence_count": 7,
+      "counterexample_count": 1,
+      "counterexamples": [
+        {
+          "evidence_id": "obs_baseline_counter_001",
+          "source_type": "Counterexample",
+          "reason": "繰り返された作業でも、単なる慣習や技術的負債は基準へ昇格させてはいけない。"
+        }
+      ],
+      "generation_result": {
+        "eligible": true,
+        "required": {
+          "observations": 2,
+          "positive": 1,
+          "humanApproved": 1,
+          "reasoned": 2
+        },
+        "scope_ok": true,
+        "evaluated_at": "2026-07-20T09:38:33.919Z"
+      },
+      "approval": {
+        "decision": "UNDECIDED",
+        "decided_by": "",
+        "decided_at": "",
+        "comment": ""
+      },
+      "next_version": {
+        "status": "NOT_GENERATED",
+        "version_snapshot_id": "",
+        "generated_at": ""
+      },
+      "version_history": [
+        {
+          "history_id": "quality_asset_relation_proposal_003_generated",
+          "at": "2026-07-20T22:30:00\u002B09:00",
+          "change_type": "proposal_generated",
+          "before": "",
+          "after": "CANDIDATE",
+          "reason": "Evolution Engine profileによる初期評価"
+        }
+      ]
+    }
+  ]
+}

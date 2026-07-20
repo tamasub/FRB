@@ -1,0 +1,120 @@
+{
+  "view_def": "analysis/thought_difference_analysis_profile_view_def_v0_1.json",
+  "schema_version": "thought_difference_analysis_profile_v0_1",
+  "document_type": "thought_difference_analysis_profile",
+  "analysis_profile_id": "thought_difference_radar_default",
+  "title": "Thought Difference Radar / Default Analysis Profile",
+  "status": "active",
+  "updated_at": "2026-07-20",
+  "purpose": "既知の共通点を並べるだけでなく、非対称・欠落・矛盾・転用候補・概念ドリフト・説明のない跳躍を、AI提案として可視化する。",
+  "approval_policy": "分析結果は仮説であり、Relation Approvalへ送った後に人間が承認・保留・却下する。分析結果を直接正本Relationへ反映しない。",
+  "categories": [
+    {
+      "id": "COMMON",
+      "label": "Common",
+      "caption": "共通構造",
+      "color": "#6f8798",
+      "default_visible": false,
+      "sort_order": 10,
+      "description": "両領域にすでに存在する既知の共通構造。差分を埋没させないため初期表示はOFF。"
+    },
+    {
+      "id": "ASYMMETRY",
+      "label": "Asymmetry",
+      "caption": "非対称",
+      "color": "#ff9e64",
+      "default_visible": true,
+      "sort_order": 20,
+      "description": "似た構造に見えるが、役割・方向・責任が非対称な箇所。"
+    },
+    {
+      "id": "MISSING_LINK",
+      "label": "Missing Link",
+      "caption": "欠落・未接続",
+      "color": "#ff6bb5",
+      "default_visible": true,
+      "sort_order": 30,
+      "description": "対応概念または説明すべき関係が片側に存在しない箇所。"
+    },
+    {
+      "id": "CONTRADICTION",
+      "label": "Contradiction",
+      "caption": "矛盾候補",
+      "color": "#ff7070",
+      "default_visible": true,
+      "sort_order": 40,
+      "description": "同時に成立しにくい定義・関係・判断を含む可能性がある箇所。"
+    },
+    {
+      "id": "TRANSFER_CANDIDATE",
+      "label": "Transfer Candidate",
+      "caption": "転用候補",
+      "color": "#8be28b",
+      "default_visible": true,
+      "sort_order": 50,
+      "description": "別領域の考え方を移植すると新しい判断構造が生まれる可能性がある箇所。"
+    },
+    {
+      "id": "CONCEPT_DRIFT",
+      "label": "Concept Drift",
+      "caption": "概念ドリフト",
+      "color": "#b58cff",
+      "default_visible": true,
+      "sort_order": 60,
+      "description": "同じ言葉の意味・責務・適用範囲が時間とともに変わった可能性。"
+    },
+    {
+      "id": "UNEXPLAINED_JUMP",
+      "label": "Unexplained Jump",
+      "caption": "説明のない跳躍",
+      "color": "#ffd166",
+      "default_visible": true,
+      "sort_order": 70,
+      "description": "根拠・中間判断・接続理由が不足したまま次の概念へ進んでいる箇所。"
+    }
+  ],
+  "checks": [
+    {
+      "check_type": "common_structure",
+      "result_category": "COMMON",
+      "enabled": true,
+      "description": "既知の共通構造を参考表示する。"
+    },
+    {
+      "check_type": "asymmetric_relation",
+      "result_category": "ASYMMETRY",
+      "enabled": true,
+      "description": "似た構造の役割差・方向差を探す。"
+    },
+    {
+      "check_type": "missing_counterpart",
+      "result_category": "MISSING_LINK",
+      "enabled": true,
+      "description": "片側だけに存在する概念・未接続を探す。"
+    },
+    {
+      "check_type": "contradiction",
+      "result_category": "CONTRADICTION",
+      "enabled": true,
+      "description": "定義・関係・判断の矛盾候補を探す。"
+    },
+    {
+      "check_type": "transfer_candidate",
+      "result_category": "TRANSFER_CANDIDATE",
+      "enabled": true,
+      "description": "別領域へ転用できる概念を探す。"
+    },
+    {
+      "check_type": "concept_drift",
+      "result_category": "CONCEPT_DRIFT",
+      "enabled": true,
+      "description": "同じ語の意味や責務の変化を探す。"
+    },
+    {
+      "check_type": "unexplained_jump",
+      "result_category": "UNEXPLAINED_JUMP",
+      "enabled": true,
+      "description": "根拠が明示されていない思考・関係の跳躍を探す。"
+    }
+  ]
+}

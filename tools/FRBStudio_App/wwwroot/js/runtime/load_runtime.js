@@ -107,6 +107,49 @@ async function executeLaunchActionFromQuery(params) {
   }
 }
 
+// v0.18.24-thought-evolution-studio-v0-2-relation-approval:
+// Overlayのresource_refからStudio標準エディターへ遷移したとき、
+// 指定された原本レコードを選択してDetailを開くためのURL focus契約。
+function normalizeLaunchFocusField(raw) {
+  const field = String(raw ?? '').trim();
+  if (!field) return '';
+  if (!/^[A-Za-z0-9_$.[\]-]+$/.test(field)) return '';
+  return field;
+}
+
+function launchBooleanParam(params, name, fallback=false) {
+  const raw = String(params.get(name) ?? '').trim().toLowerCase();
+  if (!raw) return fallback;
+  return ['1', 'true', 'yes', 'on', 'open'].includes(raw);
+}
+
+function applyLaunchFocusFromQuery(params) {
+  const focusField = normalizeLaunchFocusField(
+    params.get('focusField') || params.get('recordField') || params.get('rowField')
+  );
+  const focusValue = params.get('focusValue') ?? params.get('recordId') ?? params.get('rowId');
+  if (!focusField || focusValue == null || focusValue === '') return false;
+  if (!Array.isArray(currentRows)) return false;
+
+  const target = String(focusValue);
+  const index = currentRows.findIndex(row => String(getByPath(row, focusField) ?? '') === target);
+  if (index < 0) {
+    setStatus(`URL focus対象が見つかりません: ${focusField}=${target}`, {
+      kind: 'warn', title: '標準エディターFocus', toast: false
+    });
+    return false;
+  }
+
+  selectedIndex = index;
+  renderByKey('grid');
+  const openDetailRequested = launchBooleanParam(params, 'openDetail', true);
+  if (openDetailRequested && typeof openDetail === 'function') openDetail(index);
+  setStatus(`URL focus: ${focusField}=${target}`, {
+    kind: 'success', title: '標準エディターFocus', toast: false
+  });
+  return true;
+}
+
 
 function updateReadonlyLaunchControls() {
   const readonly = Boolean(launchRuntime?.readonly);
@@ -284,6 +327,7 @@ async function autoLoadFromQuery() {
       loadedData.displayPath || dataName || dataParam
     );
 
+    applyLaunchFocusFromQuery(params);
     await executeLaunchActionFromQuery(params);
   } catch (err) {
     console.error(err);

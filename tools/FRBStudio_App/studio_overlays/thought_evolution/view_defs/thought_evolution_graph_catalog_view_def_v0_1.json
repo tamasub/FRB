@@ -1,17 +1,17 @@
 {
   "app": {
     "name": "FRB Studio / Thought Evolution Studio",
-    "version": "thought-evolution-v0.1"
+    "version": "thought-evolution-v0.4"
   },
   "views": [
     {
       "id": "thought_evolution_graph_catalog",
-      "caption": "Thought Evolution Studio / Graph Catalog",
+      "caption": "Thought Evolution Studio / Evolution Engine Catalog",
       "layout": "header-search-grid-detail",
       "sections": [
         {
           "id": "header",
-          "caption": "Thought Evolution Studio v0.1",
+          "caption": "Thought Evolution Studio v0.4",
           "type": "form",
           "dataPath": "$",
           "fields": [
@@ -225,6 +225,138 @@
               "search": {
                 "visible": false
               }
+            },
+            {
+              "field": "relation_data_file",
+              "caption": "RelationData",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "relation_editable",
+              "caption": "Relation承認",
+              "type": "boolean",
+              "grid": {
+                "visible": true,
+                "width": 95
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "analysis_profile_file",
+              "caption": "AnalysisProfile",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "difference_result_data_file",
+              "caption": "Difference Results",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "evolution_enabled",
+              "caption": "Evolution",
+              "type": "boolean",
+              "grid": {
+                "visible": true,
+                "width": 90
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "evolution_profile_file",
+              "caption": "Evolution Profile",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "evolution_observation_data_file",
+              "caption": "Evolution Observation",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "evolution_proposal_data_file",
+              "caption": "Evolution Proposal",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "evolution_version_data_file",
+              "caption": "Next Version Snapshot",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
             }
           ]
         }
@@ -235,8 +367,9 @@
           "caption": "Thought Evolution Studioを開く",
           "action": "thought_evolution.open"
         }
-      }
+      },
+      "layout_note": "v0.4はGraphDef / GraphData / LayoutState / RelationData / DifferenceResultに加え、Evolution Profile・Observation・Proposal・Next Version Snapshotを読み込み、実践履歴からの判断蒸留と人間承認後の次版生成を提供する。"
     }
   ],
-  "layout_note": "v0.1はGraphDef / GraphData / LayoutStateを分離し、Relation Approvalを含めない。選択行の3ファイルをOverlay Pluginが読み込む。"
+  "layout_note": "Thought Evolution Studioは、Viewer、Relation Approval、Difference Radar、Evolution Engineを段階的に統合する。Data JSONを原本とし、元定義を自動上書きしない。"
 }

@@ -1,0 +1,159 @@
+{
+  "schema_version": "frb_view_def_v0_9",
+  "document_type": "view_def",
+  "title": "Thought Evolution Engine Profile",
+  "description": "Evolution Engineの状態・候補種別・昇格条件を確認する。",
+  "views": [
+    {
+      "id": "thoughtEvolutionEngineProfile",
+      "caption": "Thought Evolution Engine Profile",
+      "layout": "header-search-grid-detail",
+      "sections": [
+        {
+          "id": "mainGrid",
+          "caption": "Thought Evolution Engine Profile",
+          "type": "grid",
+          "dataPath": "proposal_types",
+          "fields": [
+            {
+              "field": "id",
+              "caption": "Type ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 210
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "label",
+              "caption": "Label",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 180
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "color",
+              "caption": "Color",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 100
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "description",
+              "caption": "Description",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 460
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "detail",
+          "caption": "Detail",
+          "type": "form",
+          "dataPath": "proposal_types",
+          "fields": [
+            {
+              "field": "id",
+              "caption": "Type ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 210
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "label",
+              "caption": "Label",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 180
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "color",
+              "caption": "Color",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 100
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "description",
+              "caption": "Description",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 460
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

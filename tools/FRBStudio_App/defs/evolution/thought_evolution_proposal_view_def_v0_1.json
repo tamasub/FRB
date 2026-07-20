@@ -1,0 +1,479 @@
+{
+  "schema_version": "frb_view_def_v0_9",
+  "document_type": "view_def",
+  "title": "Thought Evolution Proposal",
+  "description": "実践履歴から生成された変更候補を人間が仮採用・承認・検証済み・廃止として判断する。",
+  "views": [
+    {
+      "id": "thoughtEvolutionProposal",
+      "caption": "Thought Evolution Proposal",
+      "layout": "header-search-grid-detail",
+      "sections": [
+        {
+          "id": "mainGrid",
+          "caption": "Thought Evolution Proposal",
+          "type": "grid",
+          "dataPath": "proposals",
+          "fields": [
+            {
+              "field": "proposal_id",
+              "caption": "Proposal ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 280
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "proposal_type",
+              "caption": "Type",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 190
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "title",
+              "caption": "Title",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 360
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "state",
+              "caption": "State",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 130
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "confidence",
+              "caption": "Confidence",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 100
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "summary",
+              "caption": "Summary",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 520
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "applicability_scope",
+              "caption": "Scope",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 360
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "supporting_count",
+              "caption": "Evidence",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 90
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "positive_outcome_count",
+              "caption": "Positive",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 90
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "counterexample_count",
+              "caption": "Counter",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 90
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "proposed_definition",
+              "caption": "Proposed Definition",
+              "type": "json",
+              "grid": {
+                "visible": true,
+                "width": 520
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "approval",
+              "caption": "Approval",
+              "type": "json",
+              "grid": {
+                "visible": true,
+                "width": 420
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "next_version",
+              "caption": "Next Version",
+              "type": "json",
+              "grid": {
+                "visible": true,
+                "width": 420
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "version_history",
+              "caption": "History",
+              "type": "json",
+              "grid": {
+                "visible": true,
+                "width": 520
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            }
+          ]
+        },
+        {
+          "id": "detail",
+          "caption": "Detail",
+          "type": "form",
+          "dataPath": "proposals",
+          "fields": [
+            {
+              "field": "proposal_id",
+              "caption": "Proposal ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 280
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "proposal_type",
+              "caption": "Type",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 190
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "title",
+              "caption": "Title",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 360
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "state",
+              "caption": "State",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 130
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "confidence",
+              "caption": "Confidence",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 100
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "summary",
+              "caption": "Summary",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 520
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "applicability_scope",
+              "caption": "Scope",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 360
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "supporting_count",
+              "caption": "Evidence",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 90
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "positive_outcome_count",
+              "caption": "Positive",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 90
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "counterexample_count",
+              "caption": "Counter",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 90
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "proposed_definition",
+              "caption": "Proposed Definition",
+              "type": "json",
+              "grid": {
+                "visible": true,
+                "width": 520
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "approval",
+              "caption": "Approval",
+              "type": "json",
+              "grid": {
+                "visible": true,
+                "width": 420
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "next_version",
+              "caption": "Next Version",
+              "type": "json",
+              "grid": {
+                "visible": true,
+                "width": 420
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "version_history",
+              "caption": "History",
+              "type": "json",
+              "grid": {
+                "visible": true,
+                "width": 520
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

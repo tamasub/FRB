@@ -1,8 +1,8 @@
 {
   "view_def": "overlay/thought_evolution/view_defs/thought_evolution_graph_catalog_view_def_v0_1.json",
-  "schema_version": "thought_evolution_graph_catalog_v0_1",
+  "schema_version": "thought_evolution_graph_catalog_v0_4",
   "document_type": "thought_evolution_graph_catalog",
-  "title": "Thought Evolution Studio / Graph Catalog",
+  "title": "Thought Evolution Studio / Evolution Engine Catalog",
   "status": "active",
   "overlay_id": "thought_evolution",
   "updated_at": "2026-07-20",
@@ -10,13 +10,22 @@
     {
       "graph_id": "quality_asset_relation",
       "title": "品質資産リレーション / 基準地形サンプル",
-      "summary": "制約・責務・保証・TestPattern・Expected・Actual/Diff・承認の関係を、汎用GraphDefで表示するサンプル。",
+      "summary": "制約・責務・保証・TestPattern・Expected・Actual/Diff・承認の関係を、人間承認状態付きで確認・編集する。",
       "graph_def_file": "graph_defs/quality_asset_graph_def_v0_1.json",
       "graph_data_file": "graphs/quality_asset_relation_graph_data_v0_1.json",
       "layout_state_file": "layouts/quality_asset_relation_layout_state_v0_1.json",
       "layout_save_file": "quality_asset_relation_layout_state_v0_1.json",
       "status": "active",
-      "sort_order": 10
+      "sort_order": 10,
+      "relation_data_file": "data/json/01_main/thought_evolution_relation_approval_data_v0_1.json",
+      "relation_editable": true,
+      "analysis_profile_file": "data/json/01_main/thought_difference_analysis_profile_data_v0_1.json",
+      "difference_result_data_file": "data/json/01_main/thought_difference_result_quality_asset_data_v0_1.json",
+      "evolution_enabled": true,
+      "evolution_profile_file": "data/json/01_main/thought_evolution_engine_profile_data_v0_1.json",
+      "evolution_observation_data_file": "data/json/01_main/thought_evolution_observation_quality_asset_data_v0_1.json",
+      "evolution_proposal_data_file": "data/json/01_main/thought_evolution_proposal_quality_asset_data_v0_1.json",
+      "evolution_version_data_file": "data/json/01_main/thought_evolution_version_quality_asset_data_v0_1.json"
     },
     {
       "graph_id": "thought_evolution_sample",
@@ -27,7 +36,15 @@
       "layout_state_file": "layouts/thought_evolution_sample_layout_state_v0_1.json",
       "layout_save_file": "thought_evolution_sample_layout_state_v0_1.json",
       "status": "active",
-      "sort_order": 20
+      "sort_order": 20,
+      "relation_editable": false,
+      "analysis_profile_file": "data/json/01_main/thought_difference_analysis_profile_data_v0_1.json",
+      "difference_result_data_file": "data/json/01_main/thought_difference_result_thought_evolution_data_v0_1.json",
+      "evolution_enabled": true,
+      "evolution_profile_file": "data/json/01_main/thought_evolution_engine_profile_data_v0_1.json",
+      "evolution_observation_data_file": "data/json/01_main/thought_evolution_observation_thought_evolution_data_v0_1.json",
+      "evolution_proposal_data_file": "data/json/01_main/thought_evolution_proposal_thought_evolution_data_v0_1.json",
+      "evolution_version_data_file": "data/json/01_main/thought_evolution_version_thought_evolution_data_v0_1.json"
     }
   ]
 }

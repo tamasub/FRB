@@ -1,5 +1,5 @@
 {
-  "schema_version": "thought_graph_data_v0_1",
+  "schema_version": "thought_graph_data_v0_2",
   "document_type": "thought_graph_data",
   "graph_id": "quality_asset_relation",
   "title": "品質資産リレーション / 基準地形サンプル",
@@ -19,7 +19,13 @@
       "tags": [
         "境界",
         "安全柵"
-      ]
+      ],
+      "resource_ref": {
+        "data_file": "data/json/00_rules/frb_coding_constraints_data_v0_3.json",
+        "view_def": "defs/rules/rule_review_common_view_def_v0_3.json",
+        "record_field": "rule_id",
+        "record_id": "constitution_12"
+      }
     },
     {
       "id": "responsibility",
@@ -34,7 +40,13 @@
       "tags": [
         "保証",
         "責任単位"
-      ]
+      ],
+      "resource_ref": {
+        "data_file": "data/json/03_tests/responsibilities/responsibility_data_v0_1.json",
+        "view_def": "defs/qa/tests/responsibilities/responsibility_view_def_v0_1.json",
+        "record_field": "responsibility_cd",
+        "record_id": "search_filter"
+      }
     },
     {
       "id": "guarantee",
@@ -49,7 +61,14 @@
       "tags": [
         "保証ID",
         "トレーサビリティ"
-      ]
+      ],
+      "resource_ref": {
+        "data_file": "data/json/03_tests/responsibilities/responsibility_data_v0_1.json",
+        "view_def": "defs/qa/tests/responsibilities/responsibility_view_def_v0_1.json",
+        "record_field": "responsibility_cd",
+        "record_id": "search_filter",
+        "field_path": "guarantees[0]"
+      }
     },
     {
       "id": "test_pattern",
@@ -64,7 +83,13 @@
       "tags": [
         "条件",
         "再現性"
-      ]
+      ],
+      "resource_ref": {
+        "data_file": "data/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/responsibility_expected_test_patterns_data_v0_1.json",
+        "view_def": "defs/qa/tests/responsibilities/responsibility_expected_test_patterns_view_def_v0_1.json",
+        "record_field": "test_pattern_id",
+        "record_id": "search_filter_contains_case_insensitive"
+      }
     },
     {
       "id": "expected",
@@ -79,7 +104,14 @@
       "tags": [
         "基準地形",
         "期待"
-      ]
+      ],
+      "resource_ref": {
+        "data_file": "data/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/responsibility_expected_test_patterns_data_v0_1.json",
+        "view_def": "defs/qa/tests/responsibilities/responsibility_expected_test_patterns_view_def_v0_1.json",
+        "record_field": "test_pattern_id",
+        "record_id": "search_filter_contains_case_insensitive",
+        "field_path": "expected"
+      }
     },
     {
       "id": "execution",
@@ -94,7 +126,13 @@
       "tags": [
         "再実行",
         "ランナー"
-      ]
+      ],
+      "resource_ref": {
+        "data_file": "data/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/responsibility_expected_test_patterns_data_v0_1.json",
+        "view_def": "defs/qa/tests/responsibilities/responsibility_expected_test_patterns_view_def_v0_1.json",
+        "record_field": "test_pattern_id",
+        "record_id": "search_filter_contains_case_insensitive"
+      }
     },
     {
       "id": "actual",
@@ -109,7 +147,13 @@
       "tags": [
         "実結果",
         "証跡"
-      ]
+      ],
+      "resource_ref": {
+        "data_file": "data/json/03_tests/responsibilities/responsibility_expected_first_set/actual/responsibility_expected_first_set_actual_data_v0_1.json",
+        "view_def": "defs/qa/tests/responsibilities/responsibility_expected_actual_view_def_v0_1.json",
+        "record_field": "test_pattern_id",
+        "record_id": "grid_column_build_visible_fields_basic"
+      }
     },
     {
       "id": "diff",
@@ -124,7 +168,13 @@
       "tags": [
         "差分",
         "認識負荷"
-      ]
+      ],
+      "resource_ref": {
+        "data_file": "data/json/03_tests/responsibilities/responsibility_expected_first_set/diff/responsibility_expected_first_set_diff_data_v0_1.json",
+        "view_def": "defs/qa/tests/responsibilities/responsibility_expected_diff_view_def_v0_1.json",
+        "record_field": "check_id",
+        "record_id": "grid_column_build_visible_fields_basic.field_names"
+      }
     },
     {
       "id": "approval",
@@ -139,7 +189,13 @@
       "tags": [
         "Human",
         "承認"
-      ]
+      ],
+      "resource_ref": {
+        "data_file": "data/json/01_main/thought_evolution_relation_approval_data_v0_1.json",
+        "view_def": "defs/relation/thought_evolution_relation_approval_view_def_v0_1.json",
+        "record_field": "relation_id",
+        "record_id": "e09"
+      }
     },
     {
       "id": "decision_log",
@@ -154,7 +210,13 @@
       "tags": [
         "理由",
         "原液"
-      ]
+      ],
+      "resource_ref": {
+        "data_file": "data/json/01_main/studio_work_incident_data_v2.json",
+        "view_def": "defs/rules/studio_work_incident_view_def_v0_5.json",
+        "record_field": "work_item_id",
+        "record_id": "studio_work_0141"
+      }
     },
     {
       "id": "baseline",
@@ -169,7 +231,13 @@
       "tags": [
         "蒸留",
         "基準"
-      ]
+      ],
+      "resource_ref": {
+        "data_file": "data/json/01_main/studio_work_incident_data_v2.json",
+        "view_def": "defs/rules/studio_work_incident_view_def_v0_5.json",
+        "record_field": "work_item_id",
+        "record_id": "studio_work_0143"
+      }
     }
   ],
   "edges": [
@@ -318,5 +386,6 @@
         "baseline"
       ]
     }
-  ]
+  ],
+  "relation_source_policy": "Meaning nodes live in Overlay GraphData; canonical relation approval state lives in core RelationData."
 }

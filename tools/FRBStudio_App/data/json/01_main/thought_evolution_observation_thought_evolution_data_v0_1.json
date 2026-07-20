@@ -1,0 +1,129 @@
+{
+  "view_def": "evolution/thought_evolution_observation_view_def_v0_1.json",
+  "schema_version": "thought_evolution_observation_data_v0_1",
+  "document_type": "thought_evolution_observation_data",
+  "observation_set_id": "thought_evolution_observations_v0_1",
+  "graph_id": "thought_evolution_sample",
+  "title": "思考進化 / Evolution Observation",
+  "status": "active",
+  "updated_at": "2026-07-20T22:30:00+09:00",
+  "candidate_seeds": [
+    {
+      "candidate_key": "insight_catalytic_value",
+      "proposal_type": "decision_axis_add",
+      "title": "Insightの価値を発火後の派生で評価する",
+      "summary": "生成文の完成度だけでなく、その言葉が新しい問い・概念・設計判断をどれだけ発火させたかを別軸で記録する。",
+      "applicability_scope": "Generated Insight、AI仮説、上位概念返しの評価",
+      "node_ids": [
+        "insight_3",
+        "human_recognition",
+        "small_diff",
+        "expected_terrain"
+      ],
+      "source_definition_ref": {
+        "kind": "insight_evaluation_axes",
+        "id": "thought_expansion_axes",
+        "version": "0.1"
+      },
+      "target_version": "0.2",
+      "proposed_definition": {
+        "decision_axis_id": "insight_catalytic_value",
+        "name": "概念発火度",
+        "statement": "Insightの価値を、後続の問い・概念・判断・成果物の派生数と質でも評価する。",
+        "priority": "medium"
+      }
+    },
+    {
+      "candidate_key": "asymmetry_first_radar",
+      "proposal_type": "thought_class_split",
+      "title": "共通構造表示と差分探索を別ThoughtClassへ分離する",
+      "summary": "既知の共通点を並べるViewerと、非対称・欠落・概念ドリフトを探すRadarは目的が異なるため分離する。",
+      "applicability_scope": "異領域比較、Thought Difference Radar",
+      "node_ids": [
+        "frb_asymmetry",
+        "approval_structure",
+        "small_diff",
+        "thought_studio"
+      ],
+      "source_definition_ref": {
+        "kind": "thought_class",
+        "id": "cross_domain_graph_analysis",
+        "version": "0.1"
+      },
+      "target_version": "0.2",
+      "proposed_definition": {
+        "thought_class_id": "thought_difference_radar",
+        "name": "Thought Difference Radar",
+        "purpose": "既知関係ではなく次の思考を発火させる非対称・欠落・転用候補を提示する。",
+        "separate_from": "common_structure_viewer"
+      }
+    }
+  ],
+  "observations": [
+    {
+      "observation_id": "obs_trigger_001",
+      "candidate_keys": [
+        "insight_catalytic_value"
+      ],
+      "source_type": "DecisionLog",
+      "source_id": "insight_003",
+      "observed_at": "2026-07-20T12:20:00+09:00",
+      "human_approved": true,
+      "outcome": "SUCCESS",
+      "reason": "「人間の認識構造」という一語からExpected Terrain、承認キャリブレーション、小さな意味差分へ派生した。",
+      "applicability_scope": "AI Insight評価",
+      "evidence_refs": [
+        "Generated Insight ③"
+      ]
+    },
+    {
+      "observation_id": "obs_trigger_002",
+      "candidate_keys": [
+        "insight_catalytic_value"
+      ],
+      "source_type": "Outcome",
+      "source_id": "article_and_overlay_001",
+      "observed_at": "2026-07-20T15:10:00+09:00",
+      "human_approved": true,
+      "outcome": "SUCCESS",
+      "reason": "派生概念がZenn記事とThought Evolution Studioの実装計画へ接続した。",
+      "applicability_scope": "思考拡張成果物",
+      "evidence_refs": [
+        "AI承認駆動開発 #1",
+        "Thought Evolution Studio"
+      ]
+    },
+    {
+      "observation_id": "obs_asymmetry_001",
+      "candidate_keys": [
+        "asymmetry_first_radar"
+      ],
+      "source_type": "DecisionLog",
+      "source_id": "dec_asymmetry_001",
+      "observed_at": "2026-07-20T12:40:00+09:00",
+      "human_approved": true,
+      "outcome": "SUCCESS",
+      "reason": "FRBとAI承認駆動開発は意図的に同構造なので、共通点の再発見より非対称の方が価値を生んだ。",
+      "applicability_scope": "異領域比較",
+      "evidence_refs": [
+        "FRBとの非対称"
+      ]
+    },
+    {
+      "observation_id": "obs_asymmetry_002",
+      "candidate_keys": [
+        "asymmetry_first_radar"
+      ],
+      "source_type": "Outcome",
+      "source_id": "outcome_difference_radar_001",
+      "observed_at": "2026-07-20T21:40:00+09:00",
+      "human_approved": true,
+      "outcome": "SUCCESS",
+      "reason": "Difference Radarを独立v0.3として実装し、共通構造を初期非表示にできた。",
+      "applicability_scope": "Thought Evolution Studio",
+      "evidence_refs": [
+        "studio_work_0142"
+      ]
+    }
+  ]
+}

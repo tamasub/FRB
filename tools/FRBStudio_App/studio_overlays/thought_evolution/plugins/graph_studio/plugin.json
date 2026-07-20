@@ -1,7 +1,7 @@
 {
   "schema_version": "studio_plugin_manifest_v0_1",
   "id": "thought_evolution.graph_studio",
-  "caption": "Thought Evolution Studio / Generic Graph",
+  "caption": "Thought Evolution Studio / Evolution Engine",
   "kind": "action_plugin",
   "entry": "plugin.js",
   "actions": [
@@ -12,11 +12,25 @@
   "scope": "thought_evolution overlay only",
   "core_change": false,
   "external_library": false,
-  "description": "GraphDef、GraphData、LayoutStateを分離して読み込み、背景パン、カーソル中心ズーム、ノード移動、検索、動的フィルター、プリセット、詳細表示、レイアウト保存を提供する。",
-  "version": "0.1.0",
+  "description": "汎用SVGグラフ、Relation Approval、Difference Radarに、Observation評価、Evolution Proposalの人間承認、元定義を上書きしない次版Snapshot生成を追加する。",
+  "version": "0.4.0",
   "permissions": [
     "read_overlay_json",
     "write_overlay_sidecar",
-    "read_current_data"
+    "read_current_data",
+    "read_core_data",
+    "write_core_data",
+    "open_standard_editor",
+    "read_analysis_profile",
+    "read_difference_results",
+    "write_difference_results",
+    "open_dedicated_window",
+    "read_evolution_profile",
+    "read_evolution_observations",
+    "read_evolution_proposals",
+    "write_evolution_proposals",
+    "read_version_snapshots",
+    "write_version_snapshots",
+    "generate_next_version_snapshot"
   ]
 }

@@ -1,0 +1,207 @@
+{
+  "view_def": "evolution/thought_evolution_observation_view_def_v0_1.json",
+  "schema_version": "thought_evolution_observation_data_v0_1",
+  "document_type": "thought_evolution_observation_data",
+  "observation_set_id": "quality_asset_evolution_observations_v0_1",
+  "graph_id": "quality_asset_relation",
+  "title": "品質資産リレーション / Evolution Observation",
+  "status": "active",
+  "updated_at": "2026-07-20T22:30:00+09:00",
+  "candidate_seeds": [
+    {
+      "candidate_key": "approval_small_semantic_diff",
+      "proposal_type": "decision_axis_add",
+      "title": "承認単位は変更量ではなく小さな意味差分にする",
+      "summary": "人間が一度に判断する意味量を小さくし、制約Diff・責務Diff・保証Diff・Expected Diffへ分解して承認する。",
+      "applicability_scope": "AI生成成果物、品質資産レビュー、影響範囲が広い変更の承認",
+      "node_ids": [
+        "expected",
+        "diff",
+        "approval",
+        "decision_log"
+      ],
+      "source_definition_ref": {
+        "kind": "decision_axis_set",
+        "id": "ai_approval_development_axes",
+        "version": "0.1"
+      },
+      "target_version": "0.2",
+      "proposed_definition": {
+        "decision_axis_id": "approval_small_semantic_diff",
+        "name": "認識させる意味差分を小さくする",
+        "statement": "開発成果物そのものではなく、人間が一度に認識・判断する意味差分を小さくする。",
+        "priority": "high"
+      }
+    },
+    {
+      "candidate_key": "unapproved_relation_never_canonical",
+      "proposal_type": "constraint_add",
+      "title": "未承認リレーションを正本化しない",
+      "summary": "AI提案・Radar提案はRelation Approvalを経るまで正本Relationとして扱わない。",
+      "applicability_scope": "AI提案リレーション、Difference Radar転送、品質資産の自動接続",
+      "node_ids": [
+        "guarantee",
+        "test_pattern",
+        "approval",
+        "decision_log"
+      ],
+      "source_definition_ref": {
+        "kind": "constraint_set",
+        "id": "thought_evolution_constraints",
+        "version": "0.1"
+      },
+      "target_version": "0.2",
+      "proposed_definition": {
+        "constraint_id": "constraint_relation_human_approval_required",
+        "name": "Relation Human Approval Required",
+        "statement": "AIが提案した関係は、人間承認前に正式な関係として利用してはならない。",
+        "severity": "hard"
+      }
+    },
+    {
+      "candidate_key": "baseline_from_provenance",
+      "proposal_type": "baseline_terrain_candidate",
+      "title": "基準地形は判断履歴と根拠を保持して蒸留する",
+      "summary": "基準地形はトップダウンで固定せず、判断ログ・適用範囲・結果・反例を持つProposalから生成する。",
+      "applicability_scope": "基準制約、基準判断軸、標準Relation、Expected Terrain Profile",
+      "node_ids": [
+        "approval",
+        "decision_log",
+        "baseline",
+        "constraint"
+      ],
+      "source_definition_ref": {
+        "kind": "baseline_terrain",
+        "id": "quality_asset_baseline",
+        "version": "0.1"
+      },
+      "target_version": "0.2",
+      "proposed_definition": {
+        "baseline_terrain_id": "quality_asset_baseline_v0_2_candidate",
+        "name": "品質資産の承認基準地形",
+        "components": [
+          "approved_constraints",
+          "approved_decision_axes",
+          "approved_relations",
+          "validated_test_patterns"
+        ],
+        "provenance_required": true
+      }
+    }
+  ],
+  "observations": [
+    {
+      "observation_id": "obs_quality_diff_001",
+      "candidate_keys": [
+        "approval_small_semantic_diff"
+      ],
+      "source_type": "DecisionLog",
+      "source_id": "dec_expected_terrain_001",
+      "observed_at": "2026-07-20T13:10:00+09:00",
+      "human_approved": true,
+      "outcome": "SUCCESS",
+      "reason": "100ファイル変更でも旧名称残存2件のように意味単位へ圧縮すれば判断できる。",
+      "applicability_scope": "大規模変更の承認",
+      "evidence_refs": [
+        "Expected Terrain検討ログ",
+        "承認コストは意味差分で決まる"
+      ]
+    },
+    {
+      "observation_id": "obs_quality_diff_002",
+      "candidate_keys": [
+        "approval_small_semantic_diff"
+      ],
+      "source_type": "Outcome",
+      "source_id": "outcome_relation_graph_001",
+      "observed_at": "2026-07-20T17:10:00+09:00",
+      "human_approved": true,
+      "outcome": "SUCCESS",
+      "reason": "グラフで関係を分解して表示すると、線単位で承認対象を特定できた。",
+      "applicability_scope": "Relation Approval",
+      "evidence_refs": [
+        "Thought Evolution Studio v0.2画面確認"
+      ]
+    },
+    {
+      "observation_id": "obs_relation_guard_001",
+      "candidate_keys": [
+        "unapproved_relation_never_canonical"
+      ],
+      "source_type": "DecisionLog",
+      "source_id": "dec_relation_approval_001",
+      "observed_at": "2026-07-20T16:20:00+09:00",
+      "human_approved": true,
+      "outcome": "SUCCESS",
+      "reason": "AI_PROPOSEDとHUMAN_APPROVEDを視覚・データ双方で分離した。",
+      "applicability_scope": "AI提案Relation",
+      "evidence_refs": [
+        "studio_work_0141 decision_log"
+      ]
+    },
+    {
+      "observation_id": "obs_relation_guard_002",
+      "candidate_keys": [
+        "unapproved_relation_never_canonical"
+      ],
+      "source_type": "Outcome",
+      "source_id": "outcome_radar_transfer_001",
+      "observed_at": "2026-07-20T21:50:00+09:00",
+      "human_approved": true,
+      "outcome": "SUCCESS",
+      "reason": "Difference Radarの提案を直接正本化せず、Relation Approvalへ送る経路を実装できた。",
+      "applicability_scope": "Radar提案転送",
+      "evidence_refs": [
+        "Thought Evolution Studio v0.3"
+      ]
+    },
+    {
+      "observation_id": "obs_baseline_001",
+      "candidate_keys": [
+        "baseline_from_provenance"
+      ],
+      "source_type": "DecisionLog",
+      "source_id": "dec_distillation_001",
+      "observed_at": "2026-07-20T14:40:00+09:00",
+      "human_approved": true,
+      "outcome": "SUCCESS",
+      "reason": "判断ログを原液として、頻出理由・適用範囲・結果から基準候補を作る方針が合意された。",
+      "applicability_scope": "基準候補の蒸留",
+      "evidence_refs": [
+        "基準は実践から蒸留する"
+      ]
+    },
+    {
+      "observation_id": "obs_baseline_002",
+      "candidate_keys": [
+        "baseline_from_provenance"
+      ],
+      "source_type": "Outcome",
+      "source_id": "outcome_incident_evolution_plan_001",
+      "observed_at": "2026-07-20T15:30:00+09:00",
+      "human_approved": true,
+      "outcome": "SUCCESS",
+      "reason": "v0.1〜v0.4を独立インシデントに分割し、履歴と適用範囲を保ったまま段階的に実装できた。",
+      "applicability_scope": "Studio開発判断の再利用",
+      "evidence_refs": [
+        "studio_work_0140〜0143"
+      ]
+    },
+    {
+      "observation_id": "obs_baseline_counter_001",
+      "candidate_keys": [
+        "baseline_from_provenance"
+      ],
+      "source_type": "Counterexample",
+      "source_id": "counter_frequency_only_001",
+      "observed_at": "2026-07-20T15:31:00+09:00",
+      "human_approved": true,
+      "outcome": "NEGATIVE",
+      "reason": "繰り返された作業でも、単なる慣習や技術的負債は基準へ昇格させてはいけない。",
+      "applicability_scope": "頻出パターンの昇格判定",
+      "evidence_refs": [
+        "反復は候補を生むが正当性は生まない"
+      ]
+    }
+  ]
+}

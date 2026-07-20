@@ -5,12 +5,12 @@
   "plugins": [
     {
       "id": "thought_evolution.graph_studio",
-      "name": "Thought Evolution Studio / Generic Graph",
+      "name": "Thought Evolution Studio / Evolution Engine",
       "enabled": true,
       "manifest": "plugins/graph_studio/plugin.json",
       "scope": "action",
-      "note": "GraphDef / GraphData / LayoutStateを読み込み、外部ライブラリなしのSVGグラフを開く。"
+      "note": "GraphDef / GraphData / LayoutState、Relation Approval、Difference Radar、Evolution Proposal、人間承認後の次版Snapshot生成を提供する。"
     }
   ],
-  "updated_at": "2026-07-20"
+  "updated_at": "2026-07-20T22:30:00+09:00"
 }

@@ -1,0 +1,62 @@
+{
+  "view_def": "evolution/thought_evolution_version_snapshot_view_def_v0_1.json",
+  "schema_version": "thought_evolution_version_snapshot_data_v0_1",
+  "document_type": "thought_evolution_version_snapshot_data",
+  "version_set_id": "quality_asset_relation_version_snapshots_v0_1",
+  "graph_id": "quality_asset_relation",
+  "title": "品質資産リレーション / Next Version Snapshots",
+  "status": "active",
+  "updated_at": "2026-07-20T09:49:24.204Z",
+  "mutation_policy": "元定義を上書きしない。人間承認済みProposalから独立した次版Snapshotを生成し、provenanceを保持する。",
+  "snapshots": [
+    {
+      "version_snapshot_id": "evolution_quality_asset_relation_001_0.2",
+      "proposal_id": "evolution_quality_asset_relation_001",
+      "source_definition_ref": {
+        "kind": "decision_axis_set",
+        "id": "ai_approval_development_axes",
+        "version": "0.1"
+      },
+      "source_version": "0.1",
+      "target_version": "0.2",
+      "status": "GENERATED_FROM_HUMAN_APPROVED_PROPOSAL",
+      "generated_at": "2026-07-20T09:44:25.950Z",
+      "generated_by": "Thought Evolution Studio v0.4",
+      "definition_snapshot": {
+        "decision_axis_id": "approval_small_semantic_diff",
+        "name": "認識させる意味差分を小さくする",
+        "statement": "開発成果物そのものではなく、人間が一度に認識・判断する意味差分を小さくする。",
+        "priority": "high",
+        "version": "0.2"
+      },
+      "provenance": {
+        "proposal_state": "APPROVED",
+        "approval": {
+          "decision": "APPROVED",
+          "decided_by": "Human",
+          "decided_at": "2026-07-20T09:44:17.661Z",
+          "comment": ""
+        },
+        "source_observation_ids": [
+          "obs_quality_diff_001",
+          "obs_quality_diff_002",
+          "relation:e09",
+          "relation:e10",
+          "difference:radar_quality_asymmetry_001"
+        ],
+        "evidence_refs": [
+          "Expected Terrain検討ログ",
+          "承認コストは意味差分で決まる",
+          "Thought Evolution Studio v0.2画面確認",
+          "AI承認駆動開発 #0 / 制約→責務→保証→TestPattern＋Expected→Actual・Diff→承認",
+          "overlay graph edge: e09",
+          "overlay graph edge: e10",
+          "constraint→responsibility は定義関係",
+          "decision_log→baseline→constraint は候補経路"
+        ],
+        "counterexamples": [],
+        "mutation_policy": "SOURCE_DEFINITION_NOT_MUTATED"
+      }
+    }
+  ]
+}

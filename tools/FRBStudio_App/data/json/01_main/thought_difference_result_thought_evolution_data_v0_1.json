@@ -1,0 +1,154 @@
+{
+  "view_def": "analysis/thought_difference_result_view_def_v0_1.json",
+  "schema_version": "thought_difference_result_data_v0_1",
+  "document_type": "thought_difference_result_data",
+  "analysis_run_id": "difference_radar_thought_evolution_sample_20260720",
+  "analysis_profile_id": "thought_difference_radar_default",
+  "graph_id": "thought_evolution_sample",
+  "title": "思考進化グラフ / Thought Difference Radar サンプル",
+  "status": "AI_PROPOSED",
+  "generated_by": "ChatGPT",
+  "generated_at": "2026-07-20T21:40:00+09:00",
+  "updated_at": "2026-07-20T22:30:00+09:00",
+  "results": [
+    {
+      "result_id": "radar_thought_asymmetry_001",
+      "category": "ASYMMETRY",
+      "result_type": "asymmetric_relation",
+      "title": "FRBは振動入力を持つが、承認側には入力の分解規則が薄い",
+      "summary": "FRBでは既知の振動入力を細分化するが、人間承認側では成果物を小さな意味差分へ分解する規則がまだ抽象的である。",
+      "confidence": "高",
+      "status": "AI_PROPOSED",
+      "node_ids": [
+        "asymmetry",
+        "approval_structure",
+        "small_diff"
+      ],
+      "evidence_refs": [
+        "FRBとの非対称",
+        "認識させる差分を小さくする"
+      ],
+      "relation_proposal": null,
+      "approval": {
+        "decision": "AI_PROPOSED",
+        "decided_by": "",
+        "decided_at": "",
+        "comment": ""
+      },
+      "evolution_candidate_keys": [
+        "asymmetry_first_radar"
+      ]
+    },
+    {
+      "result_id": "radar_thought_missing_001",
+      "category": "MISSING_LINK",
+      "result_type": "missing_counterpart",
+      "title": "人間の認識構造から小さな意味差分への直接経路がない",
+      "summary": "実際の思考では『人間の認識構造を和らげるには小さな差分』と発展したが、グラフ上は複数ノードを経由する。発火点として直接関係を残す候補。",
+      "confidence": "中",
+      "status": "AI_PROPOSED",
+      "node_ids": [
+        "recognition",
+        "small_diff"
+      ],
+      "evidence_refs": [
+        "人間の認識構造を和らげるには？→小さな差分"
+      ],
+      "relation_proposal": {
+        "relation_id": "radar_relation_recognition_small_diff_001",
+        "source_node_id": "recognition",
+        "target_node_id": "small_diff",
+        "relation_type": "reframed",
+        "label": "認識負荷を小さな差分へ変換",
+        "reason": "人間の認識構造という問いが、小さな意味差分という核へ直接発展した発火経路。",
+        "evidence_refs": [
+          "Thought Difference Radar missing_counterpart / radar_thought_missing_001"
+        ]
+      },
+      "approval": {
+        "decision": "AI_PROPOSED",
+        "decided_by": "",
+        "decided_at": "",
+        "comment": ""
+      }
+    },
+    {
+      "result_id": "radar_thought_transfer_001",
+      "category": "TRANSFER_CANDIDATE",
+      "result_type": "transfer_candidate",
+      "title": "上位概念返しをInsight生成プロファイルへ転用できる",
+      "summary": "『人間の認識構造』のような一段上の概念が思考を発火した。別テーマでも上位概念候補を意図的に提示する分析観点へ転用できる。",
+      "confidence": "高",
+      "status": "AI_PROPOSED",
+      "node_ids": [
+        "viewer",
+        "recognition",
+        "studio"
+      ],
+      "evidence_refs": [
+        "上位概念返し→差分発生→思考拡張"
+      ],
+      "relation_proposal": null,
+      "approval": {
+        "decision": "AI_PROPOSED",
+        "decided_by": "",
+        "decided_at": "",
+        "comment": ""
+      }
+    },
+    {
+      "result_id": "radar_thought_drift_001",
+      "category": "CONCEPT_DRIFT",
+      "result_type": "concept_drift",
+      "title": "ViewerからStudioへ主責務が変化した",
+      "summary": "当初は思考を閲覧するViewerだったが、現在はリレーションを人間が承認するStudioへ責務が変化した。名称変更ではなく主役の変更として追跡する。",
+      "confidence": "高",
+      "status": "AI_PROPOSED",
+      "node_ids": [
+        "viewer",
+        "studio"
+      ],
+      "evidence_refs": [
+        "Viewerは落とそう",
+        "主役はリレーション承認"
+      ],
+      "relation_proposal": null,
+      "approval": {
+        "decision": "AI_PROPOSED",
+        "decided_by": "",
+        "decided_at": "",
+        "comment": ""
+      },
+      "evolution_candidate_keys": [
+        "insight_catalytic_value"
+      ]
+    },
+    {
+      "result_id": "radar_thought_jump_001",
+      "category": "UNEXPLAINED_JUMP",
+      "result_type": "unexplained_jump",
+      "title": "承認キャリブレーションから判断ログへの移行理由が圧縮されている",
+      "summary": "基準地形を理解した後、なぜ判断ログ保存が必要になるかの中間説明が一つの線に圧縮されている。承認差分と判断理由の保存責務を補足する候補。",
+      "confidence": "中",
+      "status": "AI_PROPOSED",
+      "node_ids": [
+        "calibration",
+        "decision_log"
+      ],
+      "evidence_refs": [
+        "Expected vs Mental = Calibration Diff",
+        "承認理由・適用範囲・結果を残す"
+      ],
+      "relation_proposal": null,
+      "approval": {
+        "decision": "AI_PROPOSED",
+        "decided_by": "",
+        "decided_at": "",
+        "comment": ""
+      },
+      "evolution_candidate_keys": [
+        "insight_catalytic_value"
+      ]
+    }
+  ]
+}

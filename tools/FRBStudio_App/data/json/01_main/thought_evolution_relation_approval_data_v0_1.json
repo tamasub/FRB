@@ -1,0 +1,663 @@
+{
+  "view_def": "relation/thought_evolution_relation_approval_view_def_v0_1.json",
+  "view_def_candidates": [
+    {
+      "view_def": "relation/thought_evolution_relation_approval_view_def_v0_1.json",
+      "label": "Relation Approval標準表示",
+      "role": "default",
+      "status": "active",
+      "note": "Thought Evolution Studioで承認するリレーションのData JSON原本。"
+    }
+  ],
+  "schema_version": "thought_relation_approval_data_v0_1",
+  "document_type": "thought_relation_approval_data",
+  "title": "Thought Evolution Studio / 品質資産リレーション承認",
+  "relation_set_id": "quality_asset_relation_v0_1",
+  "graph_id": "quality_asset_relation",
+  "status": "active",
+  "created_at": "2026-07-20T19:30:00\u002B09:00",
+  "updated_at": "2026-07-20T10:15:17.904Z",
+  "owner": "tamasub",
+  "ai_partner": "ChatGPT",
+  "purpose": "品質資産間の関係をAI提案と人間承認に分離し、グラフ上で確認・修正・承認するための正本Data。",
+  "policy": "AI_PROPOSEDは提案であり正本承認ではない。HUMAN_APPROVED / REJECTED / PENDINGの最終判断は人間が行う。Overlay GraphDataへ承認状態を複製しない。",
+  "relations": [
+    {
+      "relation_id": "e01",
+      "source_node_id": "constraint",
+      "target_node_id": "responsibility",
+      "source_ref": {
+        "node_id": "constraint",
+        "resource_ref": {
+          "data_file": "data/json/00_rules/frb_coding_constraints_data_v0_3.json",
+          "view_def": "defs/rules/rule_review_common_view_def_v0_3.json",
+          "record_field": "rule_id",
+          "record_id": "constitution_12"
+        }
+      },
+      "target_ref": {
+        "node_id": "responsibility",
+        "resource_ref": {
+          "data_file": "data/json/03_tests/responsibilities/responsibility_data_v0_1.json",
+          "view_def": "defs/qa/tests/responsibilities/responsibility_view_def_v0_1.json",
+          "record_field": "responsibility_cd",
+          "record_id": "search_filter"
+        }
+      },
+      "relation_type": "defines",
+      "label": "探索境界を与える",
+      "status": "HUMAN_APPROVED",
+      "reason": "探索境界を与えるという品質資産間の関係を、Thought Evolution Studio v0.2の承認対象として登録した。",
+      "evidence_refs": [
+        "AI承認駆動開発 #0 / 制約→責務→保証→TestPattern＋Expected→Actual・Diff→承認",
+        "overlay graph edge: e01"
+      ],
+      "proposed_by": "ChatGPT",
+      "proposed_at": "2026-07-20T19:30:00\u002B09:00",
+      "approval": {
+        "decision": "HUMAN_APPROVED",
+        "decided_by": "tamasub",
+        "decided_at": "2026-07-20T20:30:00\u002B09:00",
+        "comment": "v0.2サンプルとして人間承認済み。"
+      },
+      "change_history": []
+    },
+    {
+      "relation_id": "e02",
+      "source_node_id": "responsibility",
+      "target_node_id": "guarantee",
+      "source_ref": {
+        "node_id": "responsibility",
+        "resource_ref": {
+          "data_file": "data/json/03_tests/responsibilities/responsibility_data_v0_1.json",
+          "view_def": "defs/qa/tests/responsibilities/responsibility_view_def_v0_1.json",
+          "record_field": "responsibility_cd",
+          "record_id": "search_filter"
+        }
+      },
+      "target_ref": {
+        "node_id": "guarantee",
+        "resource_ref": {
+          "data_file": "data/json/03_tests/responsibilities/responsibility_data_v0_1.json",
+          "view_def": "defs/qa/tests/responsibilities/responsibility_view_def_v0_1.json",
+          "record_field": "responsibility_cd",
+          "record_id": "search_filter",
+          "field_path": "guarantees[0]"
+        }
+      },
+      "relation_type": "decomposes",
+      "label": "検証可能な約束へ分解",
+      "status": "HUMAN_APPROVED",
+      "reason": "検証可能な約束へ分解という品質資産間の関係を、Thought Evolution Studio v0.2の承認対象として登録した。",
+      "evidence_refs": [
+        "AI承認駆動開発 #0 / 制約→責務→保証→TestPattern＋Expected→Actual・Diff→承認",
+        "overlay graph edge: e02"
+      ],
+      "proposed_by": "ChatGPT",
+      "proposed_at": "2026-07-20T19:30:00\u002B09:00",
+      "approval": {
+        "decision": "HUMAN_APPROVED",
+        "decided_by": "tamasub",
+        "decided_at": "2026-07-20T10:15:17.903Z",
+        "comment": "v0.2サンプルとして人間承認済み。"
+      },
+      "change_history": [
+        {
+          "history_id": "relation_e02_1784535193597",
+          "at": "2026-07-20T08:13:13.592Z",
+          "change_type": "approval_status_change",
+          "before": "HUMAN_APPROVED",
+          "after": "HUMAN_APPROVED",
+          "reason": "v0.2サンプルとして人間承認済み。"
+        },
+        {
+          "history_id": "relation_e02_1784535201780",
+          "at": "2026-07-20T08:13:21.780Z",
+          "change_type": "approval_status_change",
+          "before": "HUMAN_APPROVED",
+          "after": "REJECTED",
+          "reason": "v0.2サンプルとして人間承認済み。"
+        },
+        {
+          "history_id": "relation_e02_1784535207976",
+          "at": "2026-07-20T08:13:27.976Z",
+          "change_type": "approval_status_change",
+          "before": "REJECTED",
+          "after": "HUMAN_APPROVED",
+          "reason": "v0.2サンプルとして人間承認済み。"
+        },
+        {
+          "history_id": "relation_e02_1784535210073",
+          "at": "2026-07-20T08:13:30.073Z",
+          "change_type": "approval_status_change",
+          "before": "HUMAN_APPROVED",
+          "after": "PENDING",
+          "reason": "v0.2サンプルとして人間承認済み。"
+        },
+        {
+          "history_id": "relation_e02_1784535212279",
+          "at": "2026-07-20T08:13:32.279Z",
+          "change_type": "approval_status_change",
+          "before": "PENDING",
+          "after": "REJECTED",
+          "reason": "v0.2サンプルとして人間承認済み。"
+        },
+        {
+          "history_id": "relation_e02_1784535214604",
+          "at": "2026-07-20T08:13:34.604Z",
+          "change_type": "approval_status_change",
+          "before": "REJECTED",
+          "after": "PENDING",
+          "reason": "v0.2サンプルとして人間承認済み。"
+        },
+        {
+          "history_id": "relation_e02_1784535215294",
+          "at": "2026-07-20T08:13:35.294Z",
+          "change_type": "approval_status_change",
+          "before": "PENDING",
+          "after": "HUMAN_APPROVED",
+          "reason": "v0.2サンプルとして人間承認済み。"
+        },
+        {
+          "history_id": "relation_e02_1784535217478",
+          "at": "2026-07-20T08:13:37.478Z",
+          "change_type": "approval_status_change",
+          "before": "HUMAN_APPROVED",
+          "after": "HUMAN_APPROVED",
+          "reason": "v0.2サンプルとして人間承認済み。"
+        },
+        {
+          "history_id": "relation_e02_1784535309197",
+          "at": "2026-07-20T08:15:09.197Z",
+          "change_type": "approval_status_change",
+          "before": "HUMAN_APPROVED",
+          "after": "REJECTED",
+          "reason": "v0.2サンプルとして人間承認済み。"
+        },
+        {
+          "history_id": "relation_e02_1784535319744",
+          "at": "2026-07-20T08:15:19.744Z",
+          "change_type": "approval_status_change",
+          "before": "REJECTED",
+          "after": "HUMAN_APPROVED",
+          "reason": "v0.2サンプルとして人間承認済み。"
+        },
+        {
+          "history_id": "relation_e02_1784542517903",
+          "at": "2026-07-20T10:15:17.903Z",
+          "change_type": "approval_status_change",
+          "before": "HUMAN_APPROVED",
+          "after": "HUMAN_APPROVED",
+          "reason": "v0.2サンプルとして人間承認済み。"
+        }
+      ],
+      "evolution_candidate_keys": [
+        "unapproved_relation_never_canonical"
+      ]
+    },
+    {
+      "relation_id": "e03",
+      "source_node_id": "guarantee",
+      "target_node_id": "test_pattern",
+      "source_ref": {
+        "node_id": "guarantee",
+        "resource_ref": {
+          "data_file": "data/json/03_tests/responsibilities/responsibility_data_v0_1.json",
+          "view_def": "defs/qa/tests/responsibilities/responsibility_view_def_v0_1.json",
+          "record_field": "responsibility_cd",
+          "record_id": "search_filter",
+          "field_path": "guarantees[0]"
+        }
+      },
+      "target_ref": {
+        "node_id": "test_pattern",
+        "resource_ref": {
+          "data_file": "data/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/responsibility_expected_test_patterns_data_v0_1.json",
+          "view_def": "defs/qa/tests/responsibilities/responsibility_expected_test_patterns_view_def_v0_1.json",
+          "record_field": "test_pattern_id",
+          "record_id": "search_filter_contains_case_insensitive"
+        }
+      },
+      "relation_type": "verifies",
+      "label": "どの条件で検証するか",
+      "status": "HUMAN_APPROVED",
+      "reason": "どの条件で検証するかという品質資産間の関係を、Thought Evolution Studio v0.2の承認対象として登録した。",
+      "evidence_refs": [
+        "AI承認駆動開発 #0 / 制約→責務→保証→TestPattern＋Expected→Actual・Diff→承認",
+        "overlay graph edge: e03"
+      ],
+      "proposed_by": "ChatGPT",
+      "proposed_at": "2026-07-20T19:30:00\u002B09:00",
+      "approval": {
+        "decision": "HUMAN_APPROVED",
+        "decided_by": "tamasub",
+        "decided_at": "2026-07-20T08:15:28.349Z",
+        "comment": ""
+      },
+      "change_history": [
+        {
+          "history_id": "relation_e03_1784535328349",
+          "at": "2026-07-20T08:15:28.349Z",
+          "change_type": "approval_status_change",
+          "before": "AI_PROPOSED",
+          "after": "HUMAN_APPROVED",
+          "reason": "どの条件で検証するかという品質資産間の関係を、Thought Evolution Studio v0.2の承認対象として登録した。"
+        }
+      ],
+      "evolution_candidate_keys": [
+        "unapproved_relation_never_canonical"
+      ]
+    },
+    {
+      "relation_id": "e04",
+      "source_node_id": "test_pattern",
+      "target_node_id": "expected",
+      "source_ref": {
+        "node_id": "test_pattern",
+        "resource_ref": {
+          "data_file": "data/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/responsibility_expected_test_patterns_data_v0_1.json",
+          "view_def": "defs/qa/tests/responsibilities/responsibility_expected_test_patterns_view_def_v0_1.json",
+          "record_field": "test_pattern_id",
+          "record_id": "search_filter_contains_case_insensitive"
+        }
+      },
+      "target_ref": {
+        "node_id": "expected",
+        "resource_ref": {
+          "data_file": "data/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/responsibility_expected_test_patterns_data_v0_1.json",
+          "view_def": "defs/qa/tests/responsibilities/responsibility_expected_test_patterns_view_def_v0_1.json",
+          "record_field": "test_pattern_id",
+          "record_id": "search_filter_contains_case_insensitive",
+          "field_path": "expected"
+        }
+      },
+      "relation_type": "compares",
+      "label": "期待を定義",
+      "status": "AI_PROPOSED",
+      "reason": "期待を定義という品質資産間の関係を、Thought Evolution Studio v0.2の承認対象として登録した。",
+      "evidence_refs": [
+        "AI承認駆動開発 #0 / 制約→責務→保証→TestPattern＋Expected→Actual・Diff→承認",
+        "overlay graph edge: e04"
+      ],
+      "proposed_by": "ChatGPT",
+      "proposed_at": "2026-07-20T19:30:00\u002B09:00",
+      "approval": {
+        "decision": "AI_PROPOSED",
+        "decided_by": "",
+        "decided_at": "",
+        "comment": ""
+      },
+      "change_history": []
+    },
+    {
+      "relation_id": "e05",
+      "source_node_id": "expected",
+      "target_node_id": "execution",
+      "source_ref": {
+        "node_id": "expected",
+        "resource_ref": {
+          "data_file": "data/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/responsibility_expected_test_patterns_data_v0_1.json",
+          "view_def": "defs/qa/tests/responsibilities/responsibility_expected_test_patterns_view_def_v0_1.json",
+          "record_field": "test_pattern_id",
+          "record_id": "search_filter_contains_case_insensitive",
+          "field_path": "expected"
+        }
+      },
+      "target_ref": {
+        "node_id": "execution",
+        "resource_ref": {
+          "data_file": "data/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/responsibility_expected_test_patterns_data_v0_1.json",
+          "view_def": "defs/qa/tests/responsibilities/responsibility_expected_test_patterns_view_def_v0_1.json",
+          "record_field": "test_pattern_id",
+          "record_id": "search_filter_contains_case_insensitive"
+        }
+      },
+      "relation_type": "defines",
+      "label": "比較基準を渡す",
+      "status": "PENDING",
+      "reason": "比較基準を渡すという品質資産間の関係を、Thought Evolution Studio v0.2の承認対象として登録した。",
+      "evidence_refs": [
+        "AI承認駆動開発 #0 / 制約→責務→保証→TestPattern＋Expected→Actual・Diff→承認",
+        "overlay graph edge: e05"
+      ],
+      "proposed_by": "ChatGPT",
+      "proposed_at": "2026-07-20T19:30:00\u002B09:00",
+      "approval": {
+        "decision": "PENDING",
+        "decided_by": "tamasub",
+        "decided_at": "2026-07-20T20:30:00\u002B09:00",
+        "comment": "Expected Terrainから実行への接続粒度は追加確認する。"
+      },
+      "change_history": []
+    },
+    {
+      "relation_id": "e06",
+      "source_node_id": "execution",
+      "target_node_id": "actual",
+      "source_ref": {
+        "node_id": "execution",
+        "resource_ref": {
+          "data_file": "data/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/responsibility_expected_test_patterns_data_v0_1.json",
+          "view_def": "defs/qa/tests/responsibilities/responsibility_expected_test_patterns_view_def_v0_1.json",
+          "record_field": "test_pattern_id",
+          "record_id": "search_filter_contains_case_insensitive"
+        }
+      },
+      "target_ref": {
+        "node_id": "actual",
+        "resource_ref": {
+          "data_file": "data/json/03_tests/responsibilities/responsibility_expected_first_set/actual/responsibility_expected_first_set_actual_data_v0_1.json",
+          "view_def": "defs/qa/tests/responsibilities/responsibility_expected_actual_view_def_v0_1.json",
+          "record_field": "test_pattern_id",
+          "record_id": "grid_column_build_visible_fields_basic"
+        }
+      },
+      "relation_type": "produces",
+      "label": "実結果を生成",
+      "status": "HUMAN_APPROVED",
+      "reason": "実結果を生成という品質資産間の関係を、Thought Evolution Studio v0.2の承認対象として登録した。",
+      "evidence_refs": [
+        "AI承認駆動開発 #0 / 制約→責務→保証→TestPattern＋Expected→Actual・Diff→承認",
+        "overlay graph edge: e06"
+      ],
+      "proposed_by": "ChatGPT",
+      "proposed_at": "2026-07-20T19:30:00\u002B09:00",
+      "approval": {
+        "decision": "HUMAN_APPROVED",
+        "decided_by": "tamasub",
+        "decided_at": "2026-07-20T20:30:00\u002B09:00",
+        "comment": "v0.2サンプルとして人間承認済み。"
+      },
+      "change_history": []
+    },
+    {
+      "relation_id": "e07",
+      "source_node_id": "expected",
+      "target_node_id": "diff",
+      "source_ref": {
+        "node_id": "expected",
+        "resource_ref": {
+          "data_file": "data/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/responsibility_expected_test_patterns_data_v0_1.json",
+          "view_def": "defs/qa/tests/responsibilities/responsibility_expected_test_patterns_view_def_v0_1.json",
+          "record_field": "test_pattern_id",
+          "record_id": "search_filter_contains_case_insensitive",
+          "field_path": "expected"
+        }
+      },
+      "target_ref": {
+        "node_id": "diff",
+        "resource_ref": {
+          "data_file": "data/json/03_tests/responsibilities/responsibility_expected_first_set/diff/responsibility_expected_first_set_diff_data_v0_1.json",
+          "view_def": "defs/qa/tests/responsibilities/responsibility_expected_diff_view_def_v0_1.json",
+          "record_field": "check_id",
+          "record_id": "grid_column_build_visible_fields_basic.field_names"
+        }
+      },
+      "relation_type": "compares",
+      "label": "基準側",
+      "status": "AI_PROPOSED",
+      "reason": "基準側という品質資産間の関係を、Thought Evolution Studio v0.2の承認対象として登録した。",
+      "evidence_refs": [
+        "AI承認駆動開発 #0 / 制約→責務→保証→TestPattern＋Expected→Actual・Diff→承認",
+        "overlay graph edge: e07"
+      ],
+      "proposed_by": "ChatGPT",
+      "proposed_at": "2026-07-20T19:30:00\u002B09:00",
+      "approval": {
+        "decision": "AI_PROPOSED",
+        "decided_by": "",
+        "decided_at": "",
+        "comment": ""
+      },
+      "change_history": []
+    },
+    {
+      "relation_id": "e08",
+      "source_node_id": "actual",
+      "target_node_id": "diff",
+      "source_ref": {
+        "node_id": "actual",
+        "resource_ref": {
+          "data_file": "data/json/03_tests/responsibilities/responsibility_expected_first_set/actual/responsibility_expected_first_set_actual_data_v0_1.json",
+          "view_def": "defs/qa/tests/responsibilities/responsibility_expected_actual_view_def_v0_1.json",
+          "record_field": "test_pattern_id",
+          "record_id": "grid_column_build_visible_fields_basic"
+        }
+      },
+      "target_ref": {
+        "node_id": "diff",
+        "resource_ref": {
+          "data_file": "data/json/03_tests/responsibilities/responsibility_expected_first_set/diff/responsibility_expected_first_set_diff_data_v0_1.json",
+          "view_def": "defs/qa/tests/responsibilities/responsibility_expected_diff_view_def_v0_1.json",
+          "record_field": "check_id",
+          "record_id": "grid_column_build_visible_fields_basic.field_names"
+        }
+      },
+      "relation_type": "reveals",
+      "label": "実際側",
+      "status": "AI_PROPOSED",
+      "reason": "実際側という品質資産間の関係を、Thought Evolution Studio v0.2の承認対象として登録した。",
+      "evidence_refs": [
+        "AI承認駆動開発 #0 / 制約→責務→保証→TestPattern＋Expected→Actual・Diff→承認",
+        "overlay graph edge: e08"
+      ],
+      "proposed_by": "ChatGPT",
+      "proposed_at": "2026-07-20T19:30:00\u002B09:00",
+      "approval": {
+        "decision": "AI_PROPOSED",
+        "decided_by": "",
+        "decided_at": "",
+        "comment": ""
+      },
+      "change_history": []
+    },
+    {
+      "relation_id": "e09",
+      "source_node_id": "diff",
+      "target_node_id": "approval",
+      "source_ref": {
+        "node_id": "diff",
+        "resource_ref": {
+          "data_file": "data/json/03_tests/responsibilities/responsibility_expected_first_set/diff/responsibility_expected_first_set_diff_data_v0_1.json",
+          "view_def": "defs/qa/tests/responsibilities/responsibility_expected_diff_view_def_v0_1.json",
+          "record_field": "check_id",
+          "record_id": "grid_column_build_visible_fields_basic.field_names"
+        }
+      },
+      "target_ref": {
+        "node_id": "approval",
+        "resource_ref": {
+          "data_file": "data/json/01_main/thought_evolution_relation_approval_data_v0_1.json",
+          "view_def": "defs/relation/thought_evolution_relation_approval_view_def_v0_1.json",
+          "record_field": "relation_id",
+          "record_id": "e09"
+        }
+      },
+      "relation_type": "decides",
+      "label": "判断対象を発光",
+      "status": "HUMAN_APPROVED",
+      "reason": "判断対象を発光という品質資産間の関係を、Thought Evolution Studio v0.2の承認対象として登録した。",
+      "evidence_refs": [
+        "AI承認駆動開発 #0 / 制約→責務→保証→TestPattern＋Expected→Actual・Diff→承認",
+        "overlay graph edge: e09"
+      ],
+      "proposed_by": "ChatGPT",
+      "proposed_at": "2026-07-20T19:30:00\u002B09:00",
+      "approval": {
+        "decision": "HUMAN_APPROVED",
+        "decided_by": "tamasub",
+        "decided_at": "2026-07-20T20:30:00\u002B09:00",
+        "comment": "v0.2サンプルとして人間承認済み。"
+      },
+      "change_history": [],
+      "evolution_candidate_keys": [
+        "approval_small_semantic_diff"
+      ]
+    },
+    {
+      "relation_id": "e10",
+      "source_node_id": "approval",
+      "target_node_id": "decision_log",
+      "source_ref": {
+        "node_id": "approval",
+        "resource_ref": {
+          "data_file": "data/json/01_main/thought_evolution_relation_approval_data_v0_1.json",
+          "view_def": "defs/relation/thought_evolution_relation_approval_view_def_v0_1.json",
+          "record_field": "relation_id",
+          "record_id": "e09"
+        }
+      },
+      "target_ref": {
+        "node_id": "decision_log",
+        "resource_ref": {
+          "data_file": "data/json/01_main/studio_work_incident_data_v2.json",
+          "view_def": "defs/rules/studio_work_incident_view_def_v0_5.json",
+          "record_field": "work_item_id",
+          "record_id": "studio_work_0141"
+        }
+      },
+      "relation_type": "records",
+      "label": "理由と結果を残す",
+      "status": "HUMAN_APPROVED",
+      "reason": "理由と結果を残すという品質資産間の関係を、Thought Evolution Studio v0.2の承認対象として登録した。",
+      "evidence_refs": [
+        "AI承認駆動開発 #0 / 制約→責務→保証→TestPattern＋Expected→Actual・Diff→承認",
+        "overlay graph edge: e10"
+      ],
+      "proposed_by": "ChatGPT",
+      "proposed_at": "2026-07-20T19:30:00\u002B09:00",
+      "approval": {
+        "decision": "HUMAN_APPROVED",
+        "decided_by": "tamasub",
+        "decided_at": "2026-07-20T08:15:41.774Z",
+        "comment": "v0.2サンプルとして人間承認済み。"
+      },
+      "change_history": [
+        {
+          "history_id": "relation_e10_1784535338032",
+          "at": "2026-07-20T08:15:38.032Z",
+          "change_type": "approval_status_change",
+          "before": "HUMAN_APPROVED",
+          "after": "REJECTED",
+          "reason": "v0.2サンプルとして人間承認済み。"
+        },
+        {
+          "history_id": "relation_e10_1784535341774",
+          "at": "2026-07-20T08:15:41.774Z",
+          "change_type": "approval_status_change",
+          "before": "REJECTED",
+          "after": "HUMAN_APPROVED",
+          "reason": "v0.2サンプルとして人間承認済み。"
+        }
+      ],
+      "evolution_candidate_keys": [
+        "approval_small_semantic_diff",
+        "baseline_from_provenance"
+      ]
+    },
+    {
+      "relation_id": "e11",
+      "source_node_id": "decision_log",
+      "target_node_id": "baseline",
+      "source_ref": {
+        "node_id": "decision_log",
+        "resource_ref": {
+          "data_file": "data/json/01_main/studio_work_incident_data_v2.json",
+          "view_def": "defs/rules/studio_work_incident_view_def_v0_5.json",
+          "record_field": "work_item_id",
+          "record_id": "studio_work_0141"
+        }
+      },
+      "target_ref": {
+        "node_id": "baseline",
+        "resource_ref": {
+          "data_file": "data/json/01_main/studio_work_incident_data_v2.json",
+          "view_def": "defs/rules/studio_work_incident_view_def_v0_5.json",
+          "record_field": "work_item_id",
+          "record_id": "studio_work_0143"
+        }
+      },
+      "relation_type": "distills",
+      "label": "再利用可能な成分へ",
+      "status": "HUMAN_APPROVED",
+      "reason": "再利用可能な成分へという品質資産間の関係を、Thought Evolution Studio v0.2の承認対象として登録した。",
+      "evidence_refs": [
+        "AI承認駆動開発 #0 / 制約→責務→保証→TestPattern＋Expected→Actual・Diff→承認",
+        "overlay graph edge: e11"
+      ],
+      "proposed_by": "ChatGPT",
+      "proposed_at": "2026-07-20T19:30:00\u002B09:00",
+      "approval": {
+        "decision": "HUMAN_APPROVED",
+        "decided_by": "tamasub",
+        "decided_at": "2026-07-20T08:16:30.727Z",
+        "comment": ""
+      },
+      "change_history": [
+        {
+          "history_id": "relation_e11_1784535390727",
+          "at": "2026-07-20T08:16:30.727Z",
+          "change_type": "approval_status_change",
+          "before": "AI_PROPOSED",
+          "after": "HUMAN_APPROVED",
+          "reason": "再利用可能な成分へという品質資産間の関係を、Thought Evolution Studio v0.2の承認対象として登録した。"
+        }
+      ],
+      "evolution_candidate_keys": [
+        "baseline_from_provenance"
+      ]
+    },
+    {
+      "relation_id": "e12",
+      "source_node_id": "baseline",
+      "target_node_id": "constraint",
+      "source_ref": {
+        "node_id": "baseline",
+        "resource_ref": {
+          "data_file": "data/json/01_main/studio_work_incident_data_v2.json",
+          "view_def": "defs/rules/studio_work_incident_view_def_v0_5.json",
+          "record_field": "work_item_id",
+          "record_id": "studio_work_0143"
+        }
+      },
+      "target_ref": {
+        "node_id": "constraint",
+        "resource_ref": {
+          "data_file": "data/json/00_rules/frb_coding_constraints_data_v0_3.json",
+          "view_def": "defs/rules/rule_review_common_view_def_v0_3.json",
+          "record_field": "rule_id",
+          "record_id": "constitution_12"
+        }
+      },
+      "relation_type": "defines",
+      "label": "次の境界候補",
+      "status": "HUMAN_APPROVED",
+      "reason": "次の境界候補という品質資産間の関係を、Thought Evolution Studio v0.2の承認対象として登録した。",
+      "evidence_refs": [
+        "AI承認駆動開発 #0 / 制約→責務→保証→TestPattern＋Expected→Actual・Diff→承認",
+        "overlay graph edge: e12"
+      ],
+      "proposed_by": "ChatGPT",
+      "proposed_at": "2026-07-20T19:30:00\u002B09:00",
+      "approval": {
+        "decision": "HUMAN_APPROVED",
+        "decided_by": "tamasub",
+        "decided_at": "2026-07-20T08:16:25.674Z",
+        "comment": "基準候補を自動的に制約へ戻す関係は、Evolution Engine前に正本化しない。"
+      },
+      "change_history": [
+        {
+          "history_id": "relation_e12_1784535385675",
+          "at": "2026-07-20T08:16:25.674Z",
+          "change_type": "approval_status_change",
+          "before": "REJECTED",
+          "after": "HUMAN_APPROVED",
+          "reason": "基準候補を自動的に制約へ戻す関係は、Evolution Engine前に正本化しない。"
+        }
+      ],
+      "evolution_candidate_keys": [
+        "baseline_from_provenance"
+      ]
+    }
+  ]
+}

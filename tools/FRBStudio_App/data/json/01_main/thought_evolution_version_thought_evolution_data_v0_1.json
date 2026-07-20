@@ -1,0 +1,12 @@
+{
+  "view_def": "evolution/thought_evolution_version_snapshot_view_def_v0_1.json",
+  "schema_version": "thought_evolution_version_snapshot_data_v0_1",
+  "document_type": "thought_evolution_version_snapshot_data",
+  "version_set_id": "thought_evolution_sample_version_snapshots_v0_1",
+  "graph_id": "thought_evolution_sample",
+  "title": "思考進化 / Next Version Snapshots",
+  "status": "active",
+  "updated_at": "2026-07-20T22:30:00+09:00",
+  "mutation_policy": "元定義を上書きしない。人間承認済みProposalから独立した次版Snapshotを生成し、provenanceを保持する。",
+  "snapshots": []
+}

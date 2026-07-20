@@ -2,17 +2,17 @@
   "schema_version": "studio_overlay_manifest_v0_1",
   "document_type": "studio_overlay_manifest",
   "overlay_id": "thought_evolution",
-  "title": "Thought Evolution Studio / 汎用グラフ基盤",
+  "title": "Thought Evolution Studio / Evolution Engine",
   "status": "active",
   "owner": "tamasub",
   "managed_by": "chatgpt",
   "created_at": "2026-07-20",
-  "updated_at": "2026-07-20T19:00:00+09:00",
-  "purpose": "外部ライブラリに依存せず、GraphDef / GraphData / LayoutStateを差し替えて、思考・品質資産・判断関係をパン・ズーム・ノード移動可能なSVGグラフとして表示する。",
+  "updated_at": "2026-07-20T22:30:00+09:00",
+  "purpose": "汎用SVGグラフ、Relation Approval、Thought Difference Radarに加え、実践履歴から判断軸・制約・適用条件・関係・ThoughtClass・基準地形候補を蒸留し、人間承認後に次版Snapshotを生成する。",
   "core_boundary_policy": {
     "core_root": "wwwroot/",
     "overlay_root": "studio_overlays/thought_evolution/",
-    "rule": "v0.1はCoreを変更せず、Overlay配下のPlugin・GraphDef・GraphData・LayoutStateだけで汎用グラフ基盤を提供する。"
+    "rule": "v0.4はOverlayにEvolution UIと評価ロジックを置き、Profile・Observation・Proposal・Version Snapshotは本体data/json・defsを原本とする。実行中定義を自己変更せず、Proposal→人間承認→次版Snapshotの順序を守る。"
   },
   "namespace_policy": {
     "allowed_overlay_prefixes": [
@@ -45,5 +45,27 @@
     "layouts/quality_asset_relation_layout_state_v0_1.json",
     "layouts/thought_evolution_sample_layout_state_v0_1.json"
   ],
-  "notes": "v0.18.23 / Thought Evolution Studio v0.1。Relation Approvalはv0.2、Difference Radarはv0.3、Evolution Engineはv0.4で扱う。"
+  "notes": "v0.18.26 / Thought Evolution Studio v0.4。Evolution Engine、データ駆動の候補評価、仮採用・承認・検証済み・廃止、根拠/反例表示、承認後の次版Snapshot生成を実装。",
+  "core_data_refs": [
+    "data/json/01_main/thought_evolution_relation_approval_data_v0_1.json",
+    "data/json/01_main/thought_difference_analysis_profile_data_v0_1.json",
+    "data/json/01_main/thought_difference_result_quality_asset_data_v0_1.json",
+    "data/json/01_main/thought_difference_result_thought_evolution_data_v0_1.json",
+    "data/json/01_main/thought_evolution_engine_profile_data_v0_1.json",
+    "data/json/01_main/thought_evolution_observation_quality_asset_data_v0_1.json",
+    "data/json/01_main/thought_evolution_observation_thought_evolution_data_v0_1.json",
+    "data/json/01_main/thought_evolution_proposal_quality_asset_data_v0_1.json",
+    "data/json/01_main/thought_evolution_proposal_thought_evolution_data_v0_1.json",
+    "data/json/01_main/thought_evolution_version_quality_asset_data_v0_1.json",
+    "data/json/01_main/thought_evolution_version_thought_evolution_data_v0_1.json"
+  ],
+  "core_view_def_refs": [
+    "defs/relation/thought_evolution_relation_approval_view_def_v0_1.json",
+    "defs/analysis/thought_difference_analysis_profile_view_def_v0_1.json",
+    "defs/analysis/thought_difference_result_view_def_v0_1.json",
+    "defs/evolution/thought_evolution_engine_profile_view_def_v0_1.json",
+    "defs/evolution/thought_evolution_observation_view_def_v0_1.json",
+    "defs/evolution/thought_evolution_proposal_view_def_v0_1.json",
+    "defs/evolution/thought_evolution_version_snapshot_view_def_v0_1.json"
+  ]
 }

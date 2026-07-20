@@ -1,0 +1,287 @@
+{
+  "schema_version": "frb_view_def_v0_9",
+  "document_type": "view_def",
+  "title": "Thought Evolution Next Version Snapshot",
+  "description": "承認済みEvolution Proposalから生成された、元定義を上書きしない次版Snapshotを確認する。",
+  "views": [
+    {
+      "id": "thoughtEvolutionVersionSnapshot",
+      "caption": "Thought Evolution Next Version Snapshot",
+      "layout": "header-search-grid-detail",
+      "sections": [
+        {
+          "id": "mainGrid",
+          "caption": "Thought Evolution Next Version Snapshot",
+          "type": "grid",
+          "dataPath": "snapshots",
+          "fields": [
+            {
+              "field": "version_snapshot_id",
+              "caption": "Snapshot ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 300
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "proposal_id",
+              "caption": "Proposal ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 280
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "source_version",
+              "caption": "Source Version",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "target_version",
+              "caption": "Target Version",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "status",
+              "caption": "Status",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 160
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "generated_at",
+              "caption": "Generated At",
+              "type": "datetime",
+              "grid": {
+                "visible": true,
+                "width": 190
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "definition_snapshot",
+              "caption": "Definition Snapshot",
+              "type": "json",
+              "grid": {
+                "visible": true,
+                "width": 560
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "provenance",
+              "caption": "Provenance",
+              "type": "json",
+              "grid": {
+                "visible": true,
+                "width": 560
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            }
+          ]
+        },
+        {
+          "id": "detail",
+          "caption": "Detail",
+          "type": "form",
+          "dataPath": "snapshots",
+          "fields": [
+            {
+              "field": "version_snapshot_id",
+              "caption": "Snapshot ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 300
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "proposal_id",
+              "caption": "Proposal ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 280
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "source_version",
+              "caption": "Source Version",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "target_version",
+              "caption": "Target Version",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "status",
+              "caption": "Status",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 160
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "generated_at",
+              "caption": "Generated At",
+              "type": "datetime",
+              "grid": {
+                "visible": true,
+                "width": 190
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "definition_snapshot",
+              "caption": "Definition Snapshot",
+              "type": "json",
+              "grid": {
+                "visible": true,
+                "width": 560
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "provenance",
+              "caption": "Provenance",
+              "type": "json",
+              "grid": {
+                "visible": true,
+                "width": 560
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
