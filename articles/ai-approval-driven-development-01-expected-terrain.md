@@ -3,7 +3,7 @@ title: "AI承認駆動開発 #1｜Expectedは値ではない——承認のた�
 emoji: "🗺️"
 type: "idea"
 topics: ["ai", "development", "testing", "json", "thought"]
-published: false
+published: true
 ---
 
 :::message
