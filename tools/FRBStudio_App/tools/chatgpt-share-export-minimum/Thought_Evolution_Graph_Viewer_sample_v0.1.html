@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thought Evolution Graph Viewer — Sample v0.1</title>
+<style>
+:root {
+  --bg:#081018; --panel:#0f1b27; --panel2:#132333; --line:#294258; --text:#e9f2f8;
+  --muted:#8fa7b8; --cyan:#2ee6d6; --pink:#ff6bb5; --yellow:#ffd166; --green:#8be28b;
+  --blue:#70a7ff; --purple:#b58cff; --orange:#ff9e64; --red:#ff7070;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:Inter,"Yu Gothic UI","Meiryo",sans-serif;overflow:hidden}
+body{display:grid;grid-template-rows:auto 1fr}
+header{background:linear-gradient(90deg,#0d1e2c,#18283b);border-bottom:1px solid #294258;padding:13px 18px;display:flex;align-items:center;gap:18px}
+.brand{font-size:18px;font-weight:800;letter-spacing:.02em}
+.brand span:first-child{color:var(--cyan)} .brand span:last-child{color:var(--pink)}
+.subtitle{color:var(--muted);font-size:12px}
+.badge{padding:4px 9px;border:1px solid #3e5870;border-radius:999px;font-size:11px;color:#bad0df;background:#0a1520}
+.layout{min-height:0;display:grid;grid-template-columns:255px 1fr 360px}
+aside,.right{background:var(--panel);min-height:0;overflow:auto}
+aside{border-right:1px solid var(--line);padding:14px}
+.right{border-left:1px solid var(--line);padding:14px}
+main{min-width:0;min-height:0;position:relative;background:
+ radial-gradient(circle at 25% 20%,rgba(46,230,214,.06),transparent 30%),
+ radial-gradient(circle at 75% 75%,rgba(255,107,181,.06),transparent 30%),
+ #081018}
+h2{font-size:13px;margin:4px 0 10px;color:#d9e7f0;text-transform:uppercase;letter-spacing:.08em}
+input[type=text]{width:100%;padding:9px 10px;background:#08131d;color:white;border:1px solid #304a60;border-radius:7px;outline:none}
+.control-group{margin:15px 0}
+.check{display:flex;align-items:center;gap:7px;margin:7px 0;font-size:12px;color:#c9d8e2}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+button{background:#162a3a;color:#dbeaf3;border:1px solid #35536b;border-radius:7px;padding:7px 9px;cursor:pointer;font-size:12px}
+button:hover{border-color:var(--cyan);color:white}
+.preset{width:100%;margin:4px 0;text-align:left}
+.help{font-size:11px;color:var(--muted);line-height:1.6;border-top:1px solid #243b4d;margin-top:14px;padding-top:12px}
+#graph{width:100%;height:100%;display:block;cursor:grab}
+#graph.dragging{cursor:grabbing}
+.edge{stroke:#526b7d;stroke-width:1.35;opacity:.65}
+.edge.active{stroke:var(--yellow);stroke-width:2.5;opacity:1}
+.edge-label{fill:#7790a2;font-size:9px;pointer-events:none}
+.node circle{stroke:#dceaf2;stroke-width:1.2;filter:drop-shadow(0 2px 4px #0008)}
+.node text{fill:#f5fbff;font-size:11px;font-weight:700;text-anchor:middle;pointer-events:none}
+.node .sub{font-size:8px;fill:#a9bcc9;font-weight:500}
+.node.dim{opacity:.12}
+.node.active circle{stroke:var(--yellow);stroke-width:3;filter:drop-shadow(0 0 8px #ffd166aa)}
+.node.neighbor circle{stroke:#fff;stroke-width:2}
+.legend{position:absolute;left:12px;bottom:10px;background:#07111adc;border:1px solid #2b4255;border-radius:8px;padding:7px 9px;font-size:10px;color:#abc0ce;display:flex;gap:10px;flex-wrap:wrap;max-width:70%}
+.zoom-controls{position:absolute;right:12px;top:12px;display:flex;gap:5px}
+.zoom-controls button{width:34px;height:32px;font-size:16px;padding:0}
+.card{background:var(--panel2);border:1px solid #29445a;border-radius:10px;padding:12px;margin-bottom:10px}
+.card h3{font-size:15px;margin:0 0 7px;line-height:1.45}
+.meta{font-size:10px;color:#8eabba;margin-bottom:8px;display:flex;gap:7px;flex-wrap:wrap}
+.pill{border-radius:999px;border:1px solid #3c566d;padding:2px 6px}
+.summary{font-size:12px;line-height:1.65;color:#d3e0e8}
+.evidence{margin-top:10px;padding:9px;border-left:3px solid var(--cyan);background:#0a1722;font-size:11px;line-height:1.55;color:#bcd0dc}
+.tags{margin-top:9px;display:flex;flex-wrap:wrap;gap:5px}
+.tag{font-size:9px;background:#1d3447;padding:3px 6px;border-radius:999px;color:#bfd1dd}
+.insight{cursor:pointer;transition:.15s}
+.insight:hover{border-color:var(--pink);transform:translateY(-1px)}
+.insight .conf{color:var(--yellow);font-size:10px}
+.insight p{font-size:11px;color:#bfd0da;line-height:1.55;margin:7px 0 0}
+.empty{color:#7f97a7;font-size:12px;padding:30px 5px;text-align:center}
+.stats{font-size:11px;color:#8ea8b8;line-height:1.7}
+.tabs{display:flex;gap:6px;margin-bottom:10px;position:sticky;top:-14px;background:var(--panel);padding:14px 0 8px;z-index:3}
+.tabs button.active{background:#20445a;border-color:var(--cyan);color:white}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><span>Thought Evolution</span> <span>Graph Viewer</span></div>
+  <div class="subtitle">mymemo / FRB Definition / Zenn AI協働記事から作った概念実証</div>
+  <span class="badge">Standalone HTML</span>
+  <span class="badge">外部通信なし</span>
+  <span class="badge">AI関係候補を含む</span>
+</header>
+<div class="layout">
+<aside>
+  <h2>Search</h2>
+  <input id="search" type="text" placeholder="ノード・タグを検索">
+  <div class="control-group">
+    <h2>Source</h2>
+    <label class="check"><input class="source-filter" type="checkbox" value="mymemo(1).md" checked> mymemo</label>
+    <label class="check"><input class="source-filter" type="checkbox" value="FRB_definition_Qiita.md" checked> FRB definition</label>
+    <label class="check"><input class="source-filter" type="checkbox" value="Zenn_Blog_All_merged(2).md" checked> Zenn / AI協働</label>
+    <label class="check"><input class="source-filter" type="checkbox" value="3文書横断" checked> 文書横断の推論</label>
+  </div>
+  <div class="control-group">
+    <h2>Node Type</h2>
+    <div id="typeFilters"></div>
+  </div>
+  <div class="control-group">
+    <h2>Preset Path</h2>
+    <button class="preset" data-preset="frb">FRBの思考進化</button>
+    <button class="preset" data-preset="ai">AI協働への転用</button>
+    <button class="preset" data-preset="bridge">横断概念だけを見る</button>
+    <button class="preset" data-preset="all">全体表示へ戻す</button>
+  </div>
+  <div class="stats" id="stats"></div>
+  <div class="help">
+    ノードをクリックすると、根拠・説明と直接つながる関係を表示。<br>
+    ノードはドラッグ可能。背景ドラッグで移動、マウスホイールで拡大縮小。<br><br>
+    <b>注意：</b>「3文書横断」はAIが推論した関係候補。将来は人間承認ステータスを持たせる想定。
+  </div>
+</aside>
+<main>
+  <svg id="graph" viewBox="0 0 1450 850" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="3.5" orient="auto">
+        <polygon points="0 0, 8 3.5, 0 7" fill="#526b7d"></polygon>
+      </marker>
+      <marker id="arrow-active" markerWidth="8" markerHeight="8" refX="7" refY="3.5" orient="auto">
+        <polygon points="0 0, 8 3.5, 0 7" fill="#ffd166"></polygon>
+      </marker>
+    </defs>
+    <g id="viewport">
+      <g id="edges"></g>
+      <g id="edgeLabels"></g>
+      <g id="nodes"></g>
+    </g>
+  </svg>
+  <div class="zoom-controls">
+    <button id="zoomIn">＋</button><button id="zoomOut">−</button><button id="reset">⟳</button>
+  </div>
+  <div class="legend" id="legend"></div>
+</main>
+<section class="right">
+  <div class="tabs">
+    <button id="tabDetail" class="active">Node Detail</button>
+    <button id="tabInsight">Generated Insights</button>
+  </div>
+  <div id="detailPanel">
+    <div class="empty">グラフのノードを選択してください。<br><br>まずは中央の「差分」「再現性」「構造露出」を押すと、3文書を横断する関係が見えます。</div>
+  </div>
+  <div id="insightPanel" class="hidden"></div>
+</section>
+</div>
+
+<script>
+const DATA = {"nodes": [{"id": "floor_rubbing", "label": "床擦りという体験", "type": "experience", "cluster": "FRB", "source": "mymemo(1).md", "confidence": 1.0, "status": "explicit", "x": 120, "y": 130, "summary": "ロッド先端を床へ擦り、手元へ伝わる振動差を体験したFRBの出発点。", "evidence": ["ロッドによって、振動するもの・ほとんど感じないもの・強く伝わるものがあった。"], "tags": ["体験", "起点", "床擦り"]}, {"id": "rod_difference", "label": "ロッドごとの差分", "type": "observation", "cluster": "FRB", "source": "mymemo(1).md", "confidence": 1.0, "status": "explicit", "x": 330, "y": 110, "summary": "同じ入力でもロッドによって振動の現れ方が異なるという観測。", "evidence": ["振動しないロッドと、振動しすぎるロッドが同時に存在した。"], "tags": ["差分", "観測", "比較"]}, {"id": "sensitivity_question", "label": "感度とは何か？", "type": "question", "cluster": "FRB", "source": "mymemo(1).md", "confidence": 1.0, "status": "explicit", "x": 520, "y": 95, "summary": "振動量だけでは感度を説明できないことから生まれた中心問い。", "evidence": ["振動が強い＝感度が高い、では説明できない。"], "tags": ["問い", "感度", "違和感"]}, {"id": "not_amount", "label": "感度 ≠ 振動量", "type": "hypothesis", "cluster": "FRB", "source": "FRB_definition_Qiita.md", "confidence": 0.98, "status": "explicit", "x": 700, "y": 85, "summary": "振動の大きさだけでは、人間が認識する情報の違いを表せないという仮説。", "evidence": ["感度は単純な振動の強さではない。"], "tags": ["仮説", "振動量", "情報"]}, {"id": "vibration_structure", "label": "感度＝認識可能な振動構造", "type": "definition", "cluster": "FRB", "source": "FRB_definition_Qiita.md", "confidence": 1.0, "status": "explicit", "x": 900, "y": 85, "summary": "FRBにおける感度の中核定義。物理量だけでなく、人が認識できる構造として扱う。", "evidence": ["人間が感じている振動体験を、構造として記述する。"], "tags": ["定義", "構造", "知覚"]}, {"id": "phase1", "label": "Phase1：擦り試験", "type": "method", "cluster": "FRB", "source": "FRB_definition_Qiita.md", "confidence": 1.0, "status": "explicit", "x": 720, "y": 190, "summary": "連続接触入力によって、ロッドの振動量・周波数特性を比較する入口。", "evidence": ["連続的な接触入力により、振動特性を評価する。"], "tags": ["Phase1", "入力", "再現"]}, {"id": "phase2", "label": "Phase2：擬似アタリ", "type": "method", "cluster": "FRB", "source": "FRB_definition_Qiita.md", "confidence": 1.0, "status": "explicit", "x": 900, "y": 200, "summary": "Impulse・Suction・Weedなど、時間変化入力への応答を室内で比較する。", "evidence": ["魚のアタリをラインの荷重変化として室内再現する。"], "tags": ["Phase2", "応答", "擬似バイト"]}, {"id": "benchmark_layer", "label": "Benchmark層", "type": "layer", "cluster": "FRB", "source": "FRB_definition_Qiita.md", "confidence": 1.0, "status": "explicit", "x": 1090, "y": 160, "summary": "固定入力・再現性・比較性を重視し、Scoreとして扱う客観層。", "evidence": ["固定入力による評価。再現性・比較性を重視。"], "tags": ["客観", "比較", "スコア"]}, {"id": "experience_layer", "label": "Experience層", "type": "layer", "cluster": "FRB", "source": "FRB_definition_Qiita.md", "confidence": 1.0, "status": "explicit", "x": 1090, "y": 250, "summary": "数値評価だけでは捉えにくい、気持ちよさ・中毒性・音化された振動体験を記録する層。", "evidence": ["再現性よりも体験の共有を重視する。"], "tags": ["主観", "体験", "共有"]}, {"id": "perception_training", "label": "知覚トレーニング", "type": "method", "cluster": "FRB", "source": "FRB_definition_Qiita.md", "confidence": 0.98, "status": "explicit", "x": 1280, "y": 250, "summary": "室内の基準振動を体験し、海で振動差を認識するための振動辞書を育てる。", "evidence": ["室内再現テストは、海で感じるための振動辞書を作る行為。"], "tags": ["知覚", "学習", "振動辞書"]}, {"id": "shared_sensation", "label": "感覚を共有可能にする", "type": "outcome", "cluster": "FRB", "source": "FRB_definition_Qiita.md", "confidence": 1.0, "status": "explicit", "x": 1280, "y": 120, "summary": "FRBが最終的に目指す、曖昧な感覚を比較・言語化・共有できる世界。", "evidence": ["FRBは評価のためではなく、選択と共有のための指標。"], "tags": ["共有", "文化", "選択"]}, {"id": "difference", "label": "差分", "type": "bridge", "cluster": "Bridge", "source": "3文書横断", "confidence": 1.0, "status": "inferred", "x": 350, "y": 405, "summary": "物理振動の差、AI回答との差、ExpectedとActualの差を同じ発見エンジンとして扱う横断概念。", "evidence": ["FRBではロッド差から問いが生まれ、AI開発ではExpected / Actualの差から改定が生まれる。"], "tags": ["横断", "発見", "Diff"]}, {"id": "reproducibility", "label": "再現性", "type": "bridge", "cluster": "Bridge", "source": "3文書横断", "confidence": 1.0, "status": "inferred", "x": 560, "y": 405, "summary": "FRBの室内入力と、AI開発のTestPatternを接続する最も強い橋。", "evidence": ["同じ条件を再現できるから、差分を比較・承認できる。"], "tags": ["横断", "再現", "条件固定"]}, {"id": "structure_exposure", "label": "構造露出", "type": "bridge", "cluster": "Bridge", "source": "mymemo(1).md", "confidence": 1.0, "status": "explicit", "x": 780, "y": 405, "summary": "FRBは感覚の構造露出、対話思考拡張は思考の構造露出、という自己定義。", "evidence": ["FRB＝感覚の構造露出／対話思考拡張＝思考の構造露出。"], "tags": ["横断", "露出", "構造化"]}, {"id": "human_centered", "label": "人間中心", "type": "principle", "cluster": "Bridge", "source": "3文書横断", "confidence": 0.95, "status": "inferred", "x": 1000, "y": 405, "summary": "センサーやJSONを主役にせず、人間が感じること・判断することを中心へ残す原則。", "evidence": ["FRBでは人間の知覚、AI承認駆動開発では人間の承認が最終責任を持つ。"], "tags": ["人間", "知覚", "承認"]}, {"id": "experience_structure_data", "label": "体験 → 構造 → データ", "type": "principle", "cluster": "Bridge", "source": "3文書横断", "confidence": 0.98, "status": "inferred", "x": 1210, "y": 405, "summary": "FRB・Studio・AI協働を一つに束ねる変換パターン。", "evidence": ["体験を言葉・関係・JSONへ変換し、比較可能な資産として残す。"], "tags": ["変換", "データ", "共通パターン"]}, {"id": "share_experience", "label": "体験をAIへ共有", "type": "experience", "cluster": "AI協働", "source": "FRB_definition_Qiita.md", "confidence": 1.0, "status": "explicit", "x": 120, "y": 670, "summary": "人間が試した結果や感覚をAIへ渡すことで、単発回答から協働へ変わる起点。", "evidence": ["AIは体験を受け取った瞬間から、協働が始まる。"], "tags": ["共有", "AI", "協働"]}, {"id": "joy_loop", "label": "喜び共有型AI協働ループ", "type": "method", "cluster": "AI協働", "source": "FRB_definition_Qiita.md", "confidence": 1.0, "status": "explicit", "x": 340, "y": 650, "summary": "体験→AI共有→提案・対話→人間実行→新しい体験、を循環するループ。", "evidence": ["発想は対話で生まれ、成長は共有で加速する。"], "tags": ["ループ", "対話", "実行"]}, {"id": "dialogic_expansion", "label": "対話思考拡張", "type": "definition", "cluster": "AI協働", "source": "mymemo(1).md", "confidence": 1.0, "status": "explicit", "x": 560, "y": 630, "summary": "AIとの対話によって、人間一人では到達しにくい思考領域へ踏み込む現象。", "evidence": ["対話思考拡張＝拡張された人間になるプロセス。"], "tags": ["思考拡張", "対話", "進化"]}, {"id": "context_design", "label": "コンテキスト設計", "type": "method", "cluster": "AI協働", "source": "mymemo(1).md", "confidence": 1.0, "status": "explicit", "x": 760, "y": 630, "summary": "思考拡張を安定・加速させるため、前提・構造・関係を再利用可能に整える。", "evidence": ["対話思考拡張がエンジン、コンテキスト設計が道路。"], "tags": ["文脈", "基盤", "再利用"]}, {"id": "decision_log", "label": "判断ログ", "type": "artifact", "cluster": "AI協働", "source": "Zenn_Blog_All_merged(2).md", "confidence": 1.0, "status": "explicit", "x": 940, "y": 585, "summary": "何を選び、なぜ選び、何を捨て、どのリスクを許容したかを残す記録。", "evidence": ["判断ログは、なぜその判断軸や選択になったかの背景。"], "tags": ["判断", "理由", "証跡"]}, {"id": "constraints", "label": "制約", "type": "artifact", "cluster": "AI協働", "source": "Zenn_Blog_All_merged(2).md", "confidence": 1.0, "status": "explicit", "x": 940, "y": 690, "summary": "AIと人間が越えてはいけない境界。自由を消すのではなく、安全な探索空間を作る。", "evidence": ["制約＝越えてはいけない境界。"], "tags": ["境界", "安全", "探索空間"]}, {"id": "actual_diff", "label": "Expected / Actual / Diff", "type": "method", "cluster": "AI協働", "source": "Zenn_Blog_All_merged(2).md", "confidence": 1.0, "status": "explicit", "x": 1130, "y": 585, "summary": "承認済み期待と実装結果を比較し、現実との差分から定義を育て直す。", "evidence": ["承認・改定＝差分から責務・保証・TestPatternを育て直す。"], "tags": ["Expected", "Actual", "差分"]}, {"id": "testpattern", "label": "TestPattern + Expected", "type": "artifact", "cluster": "AI協働", "source": "Zenn_Blog_All_merged(2).md", "confidence": 1.0, "status": "explicit", "x": 1130, "y": 690, "summary": "制約を再現可能な入力条件と期待値へ落とした、承認可能な品質資産。", "evidence": ["宝物は、期待値を含むテストパターン。"], "tags": ["テスト", "期待値", "品質資産"]}, {"id": "approval_driven", "label": "AI承認駆動開発", "type": "outcome", "cluster": "AI協働", "source": "Zenn_Blog_All_merged(2).md", "confidence": 1.0, "status": "explicit", "x": 1320, "y": 625, "summary": "AIが承認するのではなく、人間が承認できる構造をAIによって作る開発方式。", "evidence": ["人間が何を正しいとするかを定義し、その承認に責任を持つ。"], "tags": ["承認", "開発", "人間"]}, {"id": "studio", "label": "Studioくん", "type": "outcome", "cluster": "AI協働", "source": "3文書横断", "confidence": 0.9, "status": "inferred", "x": 1320, "y": 745, "summary": "Markdown・JSON・差分・判断ログ・制約・TestPatternを接続し、可視化・承認する実装基盤。", "evidence": ["思考・品質資産の意味構造をJSONで持ち、人間向けViewを生成する。"], "tags": ["Studio", "JSON", "View"]}], "edges": [{"source": "floor_rubbing", "target": "rod_difference", "relation": "revealed", "label": "差を露出"}, {"source": "rod_difference", "target": "sensitivity_question", "relation": "raised", "label": "問いを生成"}, {"source": "sensitivity_question", "target": "not_amount", "relation": "challenged", "label": "単純量を否定"}, {"source": "not_amount", "target": "vibration_structure", "relation": "formalized", "label": "構造へ再定義"}, {"source": "rod_difference", "target": "phase1", "relation": "measured_by", "label": "比較方法"}, {"source": "sensitivity_question", "target": "phase2", "relation": "expanded_to", "label": "応答へ拡張"}, {"source": "phase1", "target": "benchmark_layer", "relation": "belongs_to", "label": "客観比較"}, {"source": "phase2", "target": "benchmark_layer", "relation": "belongs_to", "label": "客観比較"}, {"source": "vibration_structure", "target": "experience_layer", "relation": "requires", "label": "体験を保持"}, {"source": "experience_layer", "target": "perception_training", "relation": "enables", "label": "知覚を育成"}, {"source": "benchmark_layer", "target": "shared_sensation", "relation": "supports", "label": "比較可能化"}, {"source": "experience_layer", "target": "shared_sensation", "relation": "supports", "label": "体験共有"}, {"source": "rod_difference", "target": "difference", "relation": "instance_of", "label": "物理差分"}, {"source": "phase1", "target": "reproducibility", "relation": "requires", "label": "条件統一"}, {"source": "phase2", "target": "reproducibility", "relation": "requires", "label": "入力再現"}, {"source": "vibration_structure", "target": "structure_exposure", "relation": "instance_of", "label": "感覚の露出"}, {"source": "experience_layer", "target": "human_centered", "relation": "supports", "label": "人間を残す"}, {"source": "shared_sensation", "target": "experience_structure_data", "relation": "realizes", "label": "共有資産化"}, {"source": "share_experience", "target": "joy_loop", "relation": "starts", "label": "協働開始"}, {"source": "joy_loop", "target": "dialogic_expansion", "relation": "produces", "label": "思考が拡張"}, {"source": "dialogic_expansion", "target": "context_design", "relation": "stabilized_by", "label": "継続基盤"}, {"source": "context_design", "target": "decision_log", "relation": "structures", "label": "判断を分離"}, {"source": "context_design", "target": "constraints", "relation": "structures", "label": "境界を明示"}, {"source": "decision_log", "target": "actual_diff", "relation": "explains", "label": "差分理由"}, {"source": "constraints", "target": "testpattern", "relation": "translated_to", "label": "検証条件へ"}, {"source": "testpattern", "target": "actual_diff", "relation": "compared_by", "label": "実行比較"}, {"source": "actual_diff", "target": "approval_driven", "relation": "drives", "label": "承認・改定"}, {"source": "testpattern", "target": "approval_driven", "relation": "core_asset", "label": "宝物"}, {"source": "approval_driven", "target": "studio", "relation": "implemented_by", "label": "可視化基盤"}, {"source": "decision_log", "target": "studio", "relation": "managed_by", "label": "構造管理"}, {"source": "constraints", "target": "studio", "relation": "managed_by", "label": "構造管理"}, {"source": "actual_diff", "target": "difference", "relation": "instance_of", "label": "開発差分"}, {"source": "testpattern", "target": "reproducibility", "relation": "realizes", "label": "再現可能化"}, {"source": "dialogic_expansion", "target": "structure_exposure", "relation": "instance_of", "label": "思考の露出"}, {"source": "approval_driven", "target": "human_centered", "relation": "requires", "label": "人間が承認"}, {"source": "studio", "target": "experience_structure_data", "relation": "implements", "label": "JSON・View化"}, {"source": "difference", "target": "reproducibility", "relation": "needs", "label": "比較条件"}, {"source": "reproducibility", "target": "structure_exposure", "relation": "makes_visible", "label": "差を安定露出"}, {"source": "structure_exposure", "target": "experience_structure_data", "relation": "converted_to", "label": "データ資産化"}], "insights": [{"title": "① FRBとAI承認駆動開発は、同じエンジンで動いている", "confidence": "高", "body": "体験／実行 → 差分 → 問い・仮説 → 再現条件 → 構造化 → 人間の承認、という流れが、釣り竿研究とソフトウェア開発の両方に繰り返し現れる。", "nodes": ["floor_rubbing", "difference", "reproducibility", "actual_diff", "approval_driven"]}, {"title": "② 「再現性」が、物理研究とAI開発を接続する橋になっている", "confidence": "高", "body": "FRBでは室内で同じ振動入力を作る。AI開発ではTestPattern＋Expectedで同じ条件を再実行する。対象は違うが、差分を意味あるものにする方法は同じ。", "nodes": ["phase1", "phase2", "reproducibility", "testpattern"]}, {"title": "③ 本当の研究対象は、ロッドから「人間の認識構造」へ広がっている", "confidence": "高", "body": "Benchmark層だけで終わらずExperience層を残したこと、さらにFRB＝感覚の構造露出、対話思考拡張＝思考の構造露出と定義したことから、中心テーマは人間が何をどう認識するかへ移っている。", "nodes": ["vibration_structure", "experience_layer", "structure_exposure", "dialogic_expansion"]}, {"title": "④ 「差分文化」は、FRBからStudioくんへ移植された", "confidence": "高", "body": "ロッドの差を見る文化が、Expected／Actualの差、判断ログ、制約、テストへ転用されている。StudioくんはFRBで育った観測方法を、思考と開発へ適用する装置に見える。", "nodes": ["rod_difference", "difference", "decision_log", "constraints", "studio"]}, {"title": "⑤ 数値化したいのに、数値だけにはしないという一貫性がある", "confidence": "中〜高", "body": "FRBではBenchmark層とExperience層を分け、AI開発ではJSON原本と人間向けViewを分ける。機械可読性を高めても、人間体験・人間承認を捨てない設計思想が共通している。", "nodes": ["benchmark_layer", "experience_layer", "human_centered", "approval_driven", "studio"]}, {"title": "⑥ 次の未解決テーマは「自動抽出」より「関係の承認」", "confidence": "中", "body": "MDからノードを大量抽出するだけなら可能。しかし価値が出るのは、どの関係が事実で、どれがAI仮説で、どれを人間が承認したかを管理できたとき。思考グラフ自体が承認対象になる。", "nodes": ["decision_log", "constraints", "actual_diff", "studio"]}]};
+const colors = {
+  experience:"#2ee6d6", observation:"#70a7ff", question:"#ffd166", hypothesis:"#ff9e64",
+  definition:"#b58cff", method:"#69d98b", layer:"#ff6bb5", principle:"#8bd9ff",
+  artifact:"#ff856f", bridge:"#ffffff", outcome:"#f6c85f"
+};
+const typeLabels = {
+ experience:"体験",observation:"観測",question:"問い",hypothesis:"仮説",definition:"定義",
+ method:"方法",layer:"層",principle:"原則",artifact:"構造化資産",bridge:"横断概念",outcome:"成果・構想"
+};
+const nodeById = Object.fromEntries(DATA.nodes.map(n=>[n.id,n]));
+let transform={x:0,y:0,k:1}, selected=null, draggingNode=null, panStart=null;
+let currentPreset="all";
+
+const svg=document.getElementById("graph"), viewport=document.getElementById("viewport");
+const edgeG=document.getElementById("edges"), edgeLabelG=document.getElementById("edgeLabels"), nodeG=document.getElementById("nodes");
+const detail=document.getElementById("detailPanel");
+
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function radius(n){ return n.type==="bridge"?28:(n.type==="outcome"?26:22); }
+function updateTransform(){viewport.setAttribute("transform",`translate(${transform.x} ${transform.y}) scale(${transform.k})`)}
+
+function buildFilters(){
+  const types=[...new Set(DATA.nodes.map(n=>n.type))];
+  const wrap=document.getElementById("typeFilters");
+  wrap.innerHTML=types.map(t=>`<label class="check"><input class="type-filter" type="checkbox" value="${t}" checked><span class="dot" style="background:${colors[t]}"></span>${typeLabels[t]}</label>`).join("");
+  document.getElementById("legend").innerHTML=types.map(t=>`<span><span class="dot" style="background:${colors[t]}"></span> ${typeLabels[t]}</span>`).join("");
+}
+
+function getFilters(){
+  const sources=new Set([...document.querySelectorAll(".source-filter:checked")].map(x=>x.value));
+  const types=new Set([...document.querySelectorAll(".type-filter:checked")].map(x=>x.value));
+  const q=document.getElementById("search").value.trim().toLowerCase();
+  return {sources,types,q};
+}
+function visibleNode(n){
+  const f=getFilters();
+  const sourceOK=f.sources.has(n.source);
+  const typeOK=f.types.has(n.type);
+  const qOK=!f.q || [n.label,n.summary,n.source,...n.tags].join(" ").toLowerCase().includes(f.q);
+  let presetOK=true;
+  if(currentPreset==="frb") presetOK=n.cluster==="FRB" || ["difference","reproducibility","structure_exposure","human_centered","experience_structure_data"].includes(n.id);
+  if(currentPreset==="ai") presetOK=n.cluster==="AI協働" || ["difference","reproducibility","structure_exposure","human_centered","experience_structure_data"].includes(n.id);
+  if(currentPreset==="bridge") presetOK=n.cluster==="Bridge";
+  return sourceOK&&typeOK&&qOK&&presetOK;
+}
+
+function render(){
+  edgeG.innerHTML=""; edgeLabelG.innerHTML=""; nodeG.innerHTML="";
+  const visibleIds=new Set(DATA.nodes.filter(visibleNode).map(n=>n.id));
+  const activeIds=new Set();
+  const activeEdges=new Set();
+  if(selected){
+    activeIds.add(selected);
+    DATA.edges.forEach((e,i)=>{if(e.source===selected||e.target===selected){activeIds.add(e.source);activeIds.add(e.target);activeEdges.add(i)}});
+  }
+  DATA.edges.forEach((e,i)=>{
+    if(!visibleIds.has(e.source)||!visibleIds.has(e.target)) return;
+    const a=nodeById[e.source], b=nodeById[e.target];
+    const dx=b.x-a.x, dy=b.y-a.y, len=Math.hypot(dx,dy)||1;
+    const r1=radius(a)+3,r2=radius(b)+8;
+    const x1=a.x+dx/len*r1,y1=a.y+dy/len*r1,x2=b.x-dx/len*r2,y2=b.y-dy/len*r2;
+    const line=document.createElementNS("http://www.w3.org/2000/svg","line");
+    line.setAttribute("x1",x1);line.setAttribute("y1",y1);line.setAttribute("x2",x2);line.setAttribute("y2",y2);
+    line.setAttribute("class","edge"+(activeEdges.has(i)?" active":""));
+    line.setAttribute("marker-end",activeEdges.has(i)?"url(#arrow-active)":"url(#arrow)");
+    edgeG.appendChild(line);
+    if(activeEdges.has(i)){
+      const t=document.createElementNS("http://www.w3.org/2000/svg","text");
+      t.setAttribute("x",(x1+x2)/2);t.setAttribute("y",(y1+y2)/2-5);t.setAttribute("class","edge-label");
+      t.textContent=e.label;edgeLabelG.appendChild(t);
+    }
+  });
+  DATA.nodes.forEach(n=>{
+    if(!visibleIds.has(n.id)) return;
+    const g=document.createElementNS("http://www.w3.org/2000/svg","g");
+    let cls="node";
+    if(selected && !activeIds.has(n.id)) cls+=" dim";
+    if(n.id===selected) cls+=" active"; else if(selected&&activeIds.has(n.id)) cls+=" neighbor";
+    g.setAttribute("class",cls);g.setAttribute("transform",`translate(${n.x} ${n.y})`);g.dataset.id=n.id;
+    const c=document.createElementNS("http://www.w3.org/2000/svg","circle");
+    c.setAttribute("r",radius(n));c.setAttribute("fill",colors[n.type]||"#999");
+    if(n.status==="inferred") c.setAttribute("stroke-dasharray","4 3");
+    g.appendChild(c);
+    const lines=wrapLabel(n.label,9);
+    lines.forEach((line,idx)=>{
+      const t=document.createElementNS("http://www.w3.org/2000/svg","text");
+      t.setAttribute("y",(idx-(lines.length-1)/2)*12+3);t.textContent=line;g.appendChild(t);
+    });
+    const sub=document.createElementNS("http://www.w3.org/2000/svg","text");
+    sub.setAttribute("class","sub");sub.setAttribute("y",radius(n)+13);sub.textContent=n.cluster;g.appendChild(sub);
+    g.addEventListener("mousedown",ev=>startNodeDrag(ev,n));
+    g.addEventListener("click",ev=>{ev.stopPropagation();selectNode(n.id)});
+    nodeG.appendChild(g);
+  });
+  const vc=visibleIds.size, ec=DATA.edges.filter(e=>visibleIds.has(e.source)&&visibleIds.has(e.target)).length;
+  document.getElementById("stats").innerHTML=`表示ノード：<b>${vc}</b> / ${DATA.nodes.length}<br>表示リレーション：<b>${ec}</b> / ${DATA.edges.length}`;
+}
+function wrapLabel(s,max){
+  if(s.length<=max)return [s];
+  const a=[];for(let i=0;i<s.length;i+=max)a.push(s.slice(i,i+max));return a.slice(0,3);
+}
+function selectNode(id){
+  selected=id; const n=nodeById[id];
+  detail.innerHTML=`<div class="card">
+    <h3>${esc(n.label)}</h3>
+    <div class="meta"><span class="pill">${esc(typeLabels[n.type])}</span><span class="pill">${esc(n.cluster)}</span>
+    <span class="pill">${n.status==="explicit"?"本文に明示":"AI横断推論候補"}</span><span class="pill">信頼度 ${Math.round(n.confidence*100)}%</span></div>
+    <div class="summary">${esc(n.summary)}</div>
+    <div class="evidence"><b>根拠メモ</b><br>${n.evidence.map(esc).join("<br>")}<br><br><b>Source</b><br>${esc(n.source)}</div>
+    <div class="tags">${n.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join("")}</div>
+  </div>
+  <div class="card"><h3>直接リレーション</h3>${
+    DATA.edges.filter(e=>e.source===id||e.target===id).map(e=>{
+      const other=e.source===id?nodeById[e.target]:nodeById[e.source];
+      const arrow=e.source===id?"→":"←";
+      return `<div class="summary" style="margin:7px 0"><b>${arrow} ${esc(other.label)}</b><br><span style="color:#8fa7b8">${esc(e.label)}</span></div>`;
+    }).join("") || "<div class='summary'>なし</div>"
+  }</div>`;
+  document.getElementById("tabDetail").click(); render();
+}
+function startNodeDrag(ev,n){
+  ev.stopPropagation(); draggingNode=n;
+  svg.setPointerCapture?.(ev.pointerId);
+}
+svg.addEventListener("mousedown",ev=>{
+  if(ev.target===svg || ev.target.closest?.("#viewport")===viewport){panStart={x:ev.clientX-transform.x,y:ev.clientY-transform.y};svg.classList.add("dragging")}
+});
+window.addEventListener("mousemove",ev=>{
+  if(draggingNode){
+    const pt=svg.createSVGPoint();pt.x=ev.clientX;pt.y=ev.clientY;
+    const p=pt.matrixTransform(viewport.getScreenCTM().inverse());draggingNode.x=p.x;draggingNode.y=p.y;render();
+  } else if(panStart){transform.x=ev.clientX-panStart.x;transform.y=ev.clientY-panStart.y;updateTransform()}
+});
+window.addEventListener("mouseup",()=>{draggingNode=null;panStart=null;svg.classList.remove("dragging")});
+svg.addEventListener("click",ev=>{if(ev.target===svg){selected=null;detail.innerHTML='<div class="empty">ノードを選択してください。</div>';render()}});
+svg.addEventListener("wheel",ev=>{
+  ev.preventDefault(); const factor=ev.deltaY<0?1.12:.89;
+  transform.k=Math.max(.35,Math.min(3,transform.k*factor));updateTransform();
+},{passive:false});
+document.getElementById("zoomIn").onclick=()=>{transform.k=Math.min(3,transform.k*1.2);updateTransform()};
+document.getElementById("zoomOut").onclick=()=>{transform.k=Math.max(.35,transform.k/1.2);updateTransform()};
+document.getElementById("reset").onclick=()=>{transform={x:0,y:0,k:1};updateTransform()};
+document.querySelectorAll(".source-filter").forEach(x=>x.onchange=render);
+document.getElementById("search").oninput=render;
+document.querySelectorAll(".preset").forEach(b=>b.onclick=()=>{currentPreset=b.dataset.preset;selected=null;render()});
+document.getElementById("tabDetail").onclick=()=>{
+  document.getElementById("tabDetail").classList.add("active");document.getElementById("tabInsight").classList.remove("active");
+  document.getElementById("detailPanel").classList.remove("hidden");document.getElementById("insightPanel").classList.add("hidden");
+};
+document.getElementById("tabInsight").onclick=()=>{
+  document.getElementById("tabInsight").classList.add("active");document.getElementById("tabDetail").classList.remove("active");
+  document.getElementById("insightPanel").classList.remove("hidden");document.getElementById("detailPanel").classList.add("hidden");
+};
+function renderInsights(){
+  document.getElementById("insightPanel").innerHTML=DATA.insights.map((x,i)=>`
+    <div class="card insight" data-i="${i}"><div class="conf">AI仮説・信頼度：${esc(x.confidence)}</div>
+    <h3>${esc(x.title)}</h3><p>${esc(x.body)}</p></div>`).join("");
+  document.querySelectorAll(".insight").forEach(el=>el.onclick=()=>{
+    const x=DATA.insights[+el.dataset.i];
+    currentPreset="all";
+    selected=x.nodes[0]; render();
+    // highlight all insight nodes manually
+    const wanted=new Set(x.nodes);
+    [...nodeG.querySelectorAll(".node")].forEach(g=>{
+      const id=g.dataset.id;
+      g.classList.toggle("dim",!wanted.has(id));
+      g.classList.toggle("neighbor",wanted.has(id));
+    });
+  });
+}
+buildFilters();
+document.querySelectorAll(".type-filter").forEach(x=>x.onchange=render);
+renderInsights();render();updateTransform();
+</script>
+</body>
+</html>

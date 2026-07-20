@@ -1,0 +1,14 @@
+{
+  "name": "chatgpt-share-export-minimum",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "ChatGPT共有URLをMarkdownへ保存する最小CLI",
+  "scripts": {
+    "export": "node export_chatgpt_share.mjs",
+    "check": "node --check export_chatgpt_share.mjs"
+  },
+  "dependencies": {
+    "playwright": "^1.55.0"
+  }
+}
