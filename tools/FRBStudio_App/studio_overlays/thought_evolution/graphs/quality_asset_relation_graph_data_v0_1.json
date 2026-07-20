@@ -1,0 +1,322 @@
+{
+  "schema_version": "thought_graph_data_v0_1",
+  "document_type": "thought_graph_data",
+  "graph_id": "quality_asset_relation",
+  "title": "品質資産リレーション / 基準地形サンプル",
+  "subtitle": "制約から承認、判断ログ、基準候補までを一枚で見る",
+  "status": "sample",
+  "nodes": [
+    {
+      "id": "constraint",
+      "label": "制約",
+      "type": "constraint",
+      "cluster": "Design",
+      "source": "AI承認駆動開発 #0",
+      "summary": "越えてはいけない境界を定義する。",
+      "evidence": [
+        "AIの探索空間に安全な境界を置く。"
+      ],
+      "tags": [
+        "境界",
+        "安全柵"
+      ]
+    },
+    {
+      "id": "responsibility",
+      "label": "責務",
+      "type": "responsibility",
+      "cluster": "Design",
+      "source": "ResponsibilityDef",
+      "summary": "何をするかではなく、何を保証するかを定義する。",
+      "evidence": [
+        "実装方法を固定せず、正しさの判定を再現できる粒度。"
+      ],
+      "tags": [
+        "保証",
+        "責任単位"
+      ]
+    },
+    {
+      "id": "guarantee",
+      "label": "検証可能な保証",
+      "type": "guarantee",
+      "cluster": "Design",
+      "source": "ResponsibilityDef",
+      "summary": "責務が約束する内容を、個別に検証可能なIDへ分解する。",
+      "evidence": [
+        "保証IDがTestPatternとの接続キーになる。"
+      ],
+      "tags": [
+        "保証ID",
+        "トレーサビリティ"
+      ]
+    },
+    {
+      "id": "test_pattern",
+      "label": "TestPattern",
+      "type": "test_pattern",
+      "cluster": "Verification",
+      "source": "TestPattern JSON",
+      "summary": "保証をどの入力条件で確認するかを定義する。",
+      "evidence": [
+        "正常・異常・境界・状態遷移などの観測条件。"
+      ],
+      "tags": [
+        "条件",
+        "再現性"
+      ]
+    },
+    {
+      "id": "expected",
+      "label": "Expected Terrain",
+      "type": "expected",
+      "cluster": "Verification",
+      "source": "ExpectedDef",
+      "summary": "単一値だけでなく、正しさを判断するための基準地形を持つ。",
+      "evidence": [
+        "承認しやすい差分を発生させる比較基準。"
+      ],
+      "tags": [
+        "基準地形",
+        "期待"
+      ]
+    },
+    {
+      "id": "execution",
+      "label": "実行",
+      "type": "execution",
+      "cluster": "Execution",
+      "source": "Test Runner",
+      "summary": "同じ入力条件で成果物・テストを再実行する。",
+      "evidence": [
+        "差分を意味あるものにするため再現性を確保する。"
+      ],
+      "tags": [
+        "再実行",
+        "ランナー"
+      ]
+    },
+    {
+      "id": "actual",
+      "label": "Actual",
+      "type": "actual",
+      "cluster": "Execution",
+      "source": "Actual JSON",
+      "summary": "実行によって観測された実際の結果。",
+      "evidence": [
+        "結果・状態・証跡を構造化して残す。"
+      ],
+      "tags": [
+        "実結果",
+        "証跡"
+      ]
+    },
+    {
+      "id": "diff",
+      "label": "小さな意味差分",
+      "type": "difference",
+      "cluster": "Approval",
+      "source": "Diff JSON",
+      "summary": "巨大な成果物を、人間が一度に判断できる意味単位へ分解する。",
+      "evidence": [
+        "変更量ではなく、認識させる差分を小さくする。"
+      ],
+      "tags": [
+        "差分",
+        "認識負荷"
+      ]
+    },
+    {
+      "id": "approval",
+      "label": "人間の承認",
+      "type": "approval",
+      "cluster": "Approval",
+      "source": "Approval Log",
+      "summary": "AIの出力ではなく、人間が差分を見て採用・保留・差戻しを決める。",
+      "evidence": [
+        "AIは判断材料を出し、最終判断は人間が行う。"
+      ],
+      "tags": [
+        "Human",
+        "承認"
+      ]
+    },
+    {
+      "id": "decision_log",
+      "label": "判断ログ",
+      "type": "decision_log",
+      "cluster": "Evolution",
+      "source": "DecisionLog",
+      "summary": "なぜその差分を承認・却下したかを、背景・理由・結果とともに残す。",
+      "evidence": [
+        "将来の基準を蒸留するための原液。"
+      ],
+      "tags": [
+        "理由",
+        "原液"
+      ]
+    },
+    {
+      "id": "baseline",
+      "label": "基準候補",
+      "type": "baseline",
+      "cluster": "Evolution",
+      "source": "Baseline Candidate",
+      "summary": "繰り返された良い判断から、再利用可能な基準候補を抽出する。",
+      "evidence": [
+        "反復だけでは正当性にならず、結果と人間承認が必要。"
+      ],
+      "tags": [
+        "蒸留",
+        "基準"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "e01",
+      "source": "constraint",
+      "target": "responsibility",
+      "type": "defines",
+      "label": "探索境界を与える"
+    },
+    {
+      "id": "e02",
+      "source": "responsibility",
+      "target": "guarantee",
+      "type": "decomposes",
+      "label": "検証可能な約束へ分解"
+    },
+    {
+      "id": "e03",
+      "source": "guarantee",
+      "target": "test_pattern",
+      "type": "verifies",
+      "label": "どの条件で検証するか"
+    },
+    {
+      "id": "e04",
+      "source": "test_pattern",
+      "target": "expected",
+      "type": "compares",
+      "label": "期待を定義"
+    },
+    {
+      "id": "e05",
+      "source": "expected",
+      "target": "execution",
+      "type": "defines",
+      "label": "比較基準を渡す"
+    },
+    {
+      "id": "e06",
+      "source": "execution",
+      "target": "actual",
+      "type": "produces",
+      "label": "実結果を生成"
+    },
+    {
+      "id": "e07",
+      "source": "expected",
+      "target": "diff",
+      "type": "compares",
+      "label": "基準側"
+    },
+    {
+      "id": "e08",
+      "source": "actual",
+      "target": "diff",
+      "type": "reveals",
+      "label": "実際側"
+    },
+    {
+      "id": "e09",
+      "source": "diff",
+      "target": "approval",
+      "type": "decides",
+      "label": "判断対象を発光"
+    },
+    {
+      "id": "e10",
+      "source": "approval",
+      "target": "decision_log",
+      "type": "records",
+      "label": "理由と結果を残す"
+    },
+    {
+      "id": "e11",
+      "source": "decision_log",
+      "target": "baseline",
+      "type": "distills",
+      "label": "再利用可能な成分へ"
+    },
+    {
+      "id": "e12",
+      "source": "baseline",
+      "target": "constraint",
+      "type": "defines",
+      "label": "次の境界候補"
+    }
+  ],
+  "presets": [
+    {
+      "id": "all",
+      "label": "全体表示",
+      "match": {
+        "all": true
+      }
+    },
+    {
+      "id": "design",
+      "label": "設計資産",
+      "match": {
+        "clusters": [
+          "Design"
+        ]
+      }
+    },
+    {
+      "id": "verification",
+      "label": "検証と差分",
+      "match": {
+        "clusters": [
+          "Verification",
+          "Execution",
+          "Approval"
+        ]
+      }
+    },
+    {
+      "id": "evolution",
+      "label": "判断から基準へ",
+      "match": {
+        "clusters": [
+          "Approval",
+          "Evolution"
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "title": "承認コストは変更量ではなく意味差分で決まる",
+      "confidence": "高",
+      "body": "コード行数が少なくても全体理解が必要なら承認は重い。基準地形と比較し、意味単位へ分解すると承認可能性が上がる。",
+      "node_ids": [
+        "expected",
+        "diff",
+        "approval"
+      ]
+    },
+    {
+      "title": "判断ログは未来の基準を作る原液",
+      "confidence": "高",
+      "body": "承認理由・適用範囲・結果が残ることで、後から制約や判断軸の候補を蒸留できる。",
+      "node_ids": [
+        "approval",
+        "decision_log",
+        "baseline"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "schema_version": "thought_graph_layout_state_v0_1",
+  "document_type": "thought_graph_layout_state",
+  "graph_id": "thought_evolution_sample",
+  "viewport": {
+    "x": 20,
+    "y": 40,
+    "scale": 0.9
+  },
+  "positions": {
+    "overlay_search": {
+      "x": 110,
+      "y": 160
+    },
+    "viewer": {
+      "x": 330,
+      "y": 150
+    },
+    "recognition": {
+      "x": 560,
+      "y": 125
+    },
+    "asymmetry": {
+      "x": 790,
+      "y": 130
+    },
+    "approval_structure": {
+      "x": 1010,
+      "y": 160
+    },
+    "small_diff": {
+      "x": 1230,
+      "y": 180
+    },
+    "expected_terrain": {
+      "x": 1260,
+      "y": 390
+    },
+    "calibration": {
+      "x": 1030,
+      "y": 430
+    },
+    "decision_log": {
+      "x": 790,
+      "y": 455
+    },
+    "distillation": {
+      "x": 545,
+      "y": 455
+    },
+    "studio": {
+      "x": 300,
+      "y": 430
+    }
+  }
+}

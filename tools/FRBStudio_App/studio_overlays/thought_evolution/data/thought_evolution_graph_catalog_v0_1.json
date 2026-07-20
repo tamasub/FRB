@@ -1,0 +1,33 @@
+{
+  "view_def": "overlay/thought_evolution/view_defs/thought_evolution_graph_catalog_view_def_v0_1.json",
+  "schema_version": "thought_evolution_graph_catalog_v0_1",
+  "document_type": "thought_evolution_graph_catalog",
+  "title": "Thought Evolution Studio / Graph Catalog",
+  "status": "active",
+  "overlay_id": "thought_evolution",
+  "updated_at": "2026-07-20",
+  "graphs": [
+    {
+      "graph_id": "quality_asset_relation",
+      "title": "品質資産リレーション / 基準地形サンプル",
+      "summary": "制約・責務・保証・TestPattern・Expected・Actual/Diff・承認の関係を、汎用GraphDefで表示するサンプル。",
+      "graph_def_file": "graph_defs/quality_asset_graph_def_v0_1.json",
+      "graph_data_file": "graphs/quality_asset_relation_graph_data_v0_1.json",
+      "layout_state_file": "layouts/quality_asset_relation_layout_state_v0_1.json",
+      "layout_save_file": "quality_asset_relation_layout_state_v0_1.json",
+      "status": "active",
+      "sort_order": 10
+    },
+    {
+      "graph_id": "thought_evolution_sample",
+      "title": "思考進化 / 人間の認識構造から基準地形へ",
+      "summary": "オーバーレイ候補探索からExpected Terrainへ進んだ思考の流れを、別GraphDefへ差し替えて表示するサンプル。",
+      "graph_def_file": "graph_defs/thought_evolution_graph_def_v0_1.json",
+      "graph_data_file": "graphs/thought_evolution_sample_graph_data_v0_1.json",
+      "layout_state_file": "layouts/thought_evolution_sample_layout_state_v0_1.json",
+      "layout_save_file": "thought_evolution_sample_layout_state_v0_1.json",
+      "status": "active",
+      "sort_order": 20
+    }
+  ]
+}

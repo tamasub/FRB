@@ -1,0 +1,49 @@
+{
+  "schema_version": "studio_overlay_manifest_v0_1",
+  "document_type": "studio_overlay_manifest",
+  "overlay_id": "thought_evolution",
+  "title": "Thought Evolution Studio / 汎用グラフ基盤",
+  "status": "active",
+  "owner": "tamasub",
+  "managed_by": "chatgpt",
+  "created_at": "2026-07-20",
+  "updated_at": "2026-07-20T19:00:00+09:00",
+  "purpose": "外部ライブラリに依存せず、GraphDef / GraphData / LayoutStateを差し替えて、思考・品質資産・判断関係をパン・ズーム・ノード移動可能なSVGグラフとして表示する。",
+  "core_boundary_policy": {
+    "core_root": "wwwroot/",
+    "overlay_root": "studio_overlays/thought_evolution/",
+    "rule": "v0.1はCoreを変更せず、Overlay配下のPlugin・GraphDef・GraphData・LayoutStateだけで汎用グラフ基盤を提供する。"
+  },
+  "namespace_policy": {
+    "allowed_overlay_prefixes": [
+      "thought_evolution",
+      "tes",
+      "thought_graph"
+    ],
+    "collision_policy": "Core、default、gpt_fx_labのIDを上書きしない。"
+  },
+  "data_files": [
+    "data/thought_evolution_graph_catalog_v0_1.json"
+  ],
+  "view_def_files": [
+    "view_defs/thought_evolution_graph_catalog_view_def_v0_1.json"
+  ],
+  "value_set_files": [],
+  "search_pattern_files": [],
+  "plugin_index_files": [
+    "plugins/plugin_index.json"
+  ],
+  "graph_def_files": [
+    "graph_defs/quality_asset_graph_def_v0_1.json",
+    "graph_defs/thought_evolution_graph_def_v0_1.json"
+  ],
+  "graph_data_files": [
+    "graphs/quality_asset_relation_graph_data_v0_1.json",
+    "graphs/thought_evolution_sample_graph_data_v0_1.json"
+  ],
+  "layout_state_files": [
+    "layouts/quality_asset_relation_layout_state_v0_1.json",
+    "layouts/thought_evolution_sample_layout_state_v0_1.json"
+  ],
+  "notes": "v0.18.23 / Thought Evolution Studio v0.1。Relation Approvalはv0.2、Difference Radarはv0.3、Evolution Engineはv0.4で扱う。"
+}

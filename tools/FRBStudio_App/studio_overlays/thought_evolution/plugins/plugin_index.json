@@ -1,0 +1,16 @@
+{
+  "schema_version": "studio_plugin_index_v0_1",
+  "document_type": "studio_overlay_plugin_index",
+  "overlay_id": "thought_evolution",
+  "plugins": [
+    {
+      "id": "thought_evolution.graph_studio",
+      "name": "Thought Evolution Studio / Generic Graph",
+      "enabled": true,
+      "manifest": "plugins/graph_studio/plugin.json",
+      "scope": "action",
+      "note": "GraphDef / GraphData / LayoutStateを読み込み、外部ライブラリなしのSVGグラフを開く。"
+    }
+  ],
+  "updated_at": "2026-07-20"
+}

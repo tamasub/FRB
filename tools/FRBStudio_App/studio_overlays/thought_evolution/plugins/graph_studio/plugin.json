@@ -1,0 +1,22 @@
+{
+  "schema_version": "studio_plugin_manifest_v0_1",
+  "id": "thought_evolution.graph_studio",
+  "caption": "Thought Evolution Studio / Generic Graph",
+  "kind": "action_plugin",
+  "entry": "plugin.js",
+  "actions": [
+    "thought_evolution.open",
+    "OpenThoughtEvolutionStudio",
+    "OpenThoughtGraph"
+  ],
+  "scope": "thought_evolution overlay only",
+  "core_change": false,
+  "external_library": false,
+  "description": "GraphDef、GraphData、LayoutStateを分離して読み込み、背景パン、カーソル中心ズーム、ノード移動、検索、動的フィルター、プリセット、詳細表示、レイアウト保存を提供する。",
+  "version": "0.1.0",
+  "permissions": [
+    "read_overlay_json",
+    "write_overlay_sidecar",
+    "read_current_data"
+  ]
+}

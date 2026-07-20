@@ -40,7 +40,9 @@ $targetRootFiles = @(
 # ó·: "F:\FRB\tools\FRBStudio_App\wwwroot\js\lib\mermaid"
 $excludePaths = @(
     "wwwroot\js\lib\mermaid",
-    "studio_overlays\gpt_fx_lab\data"
+    "studio_overlays\gpt_fx_lab\data",
+    "studio_overlays\gpt_fx_lab\simulation",
+    "studio_overlays\gpt_fx_lab\simulattion_èWåv"
 )
 
 # èoóÕ ZIP ñº

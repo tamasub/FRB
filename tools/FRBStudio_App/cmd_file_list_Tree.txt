@@ -1,62 +1,92 @@
 フォルダー パスの一覧:  ボリューム Samsung980_Pro
-ボリューム シリアル番号は 000000DD 5007:08D7 です
+ボリューム シリアル番号は 000000E3 5007:08D7 です
 F:.
 |   .gitignore
 |   appsettings.Development.json
 |   appsettings.json
 |   aspnetcorev2_inprocess.dll
-|   cmd_copy_frbstudio_publish_root_to_app.bat
+|   cmd_copy_frbstudio_publish.bat
+|   cmd_count_source_steps_diff.bat
+|   cmd_count_source_steps_diff.ps1
 |   cmd_file_list_Tree.bat
 |   cmd_file_list_Tree.txt
-|   cmd_make_wwwroot_zip_v2.bat
+|   cmd_make_FRBStudio_App_zip_v2.bat
+|   cmd_make_overlays_zip_v1.bat
 |   FRB.ico
 |   FRBStudio.exe
 |   FRBStudio.pdb
 |   FRBStudio.staticwebassets.endpoints.json
+|   FRBStudio_App20260719_213851.zip
+|   FRBStudio_App20260720_082855.zip
+|   FRBStudio_App20260720_160511.zip
+|   FRBStudio_App20260720_164235.zip
+|   FRBStudio_App20260720_164644.zip
 |   FRB_tray.ico
 |   package-lock.json
 |   package.json
 |   playwright.config.ts
+|   studio_overlays20260720_100908.zip
 |   web.config
-|   wwwroot20260630_214551.zip
-|   wwwroot20260630_215305.zip
-|   wwwroot20260630_220735.zip
-|   wwwroot20260630_222651.zip
 |   
 +---data
 |   +---json
+|   |   |   03_tests.zip
+|   |   |   
+|   |   +---00_master
+|   |   |       message_catalog_data_v0_1.json
+|   |   |       
 |   |   +---00_rules
-|   |   |   |   common_enums_v0_1.json
-|   |   |   |   context_refs_sample_data_v0_1.json
 |   |   |   |   frb_coding_constraints_data_v0_3.json
 |   |   |   |   frb_constraint_spec_v0_6.json
 |   |   |   |   frb_diff_result_format_rules_data_v0_1.json
 |   |   |   |   frb_foundation_rules_data_v0_1.json
-|   |   |   |   frb_test_evidence_rules_data_v0_1.json
+|   |   |   |   frb_test_evidence_rules_data_v0_2.json
 |   |   |   |   frb_viewdef_generation_rules_data_v0_1.json
 |   |   |   |   frb_view_def_schema_review_data_v0_1.json
 |   |   |   |   frb_view_def_schema_v0_9.json
 |   |   |   |   studio-overlay-manifest_rules_data_v0_1.json
 |   |   |   |   studio_context_engineer_wannabe_foundation_rules_data_v0_1_draft.json
+|   |   |   |   studio_test_plan_responsibility_scope_md_data_v0_1.json
+|   |   |   |   trigger_def_data_v0_1.json
 |   |   |   |   _json_creation_prompt.md
 |   |   |   |   _my_most_important_context.md
 |   |   |   |   
 |   |   |   \---md
 |   |   |           COMMON_ENUMS_DEFINITION_REPORT_v0_15_1.md
 |   |   |           COMMON_TYPES_OPTIONS_TO_ENUMREF_REPORT_v0_15_4.md
+|   |   |           CONFIG_FOLDER_PATH_AND_COMMON_DATA_MIGRATION_REPORT_v0_18_13.md
 |   |   |           CONTEXT_ENUMS_ADDED_REPORT_v0_15_3.md
 |   |   |           DELIVERY_CLEANUP_ZIP_SAFETY_POLICY_REPORT_v0_14_18.md
+|   |   |           EXPECTEDDEF_COMPARE_STRATEGY_PATTERN_REPORT_v0_18_18.md
+|   |   |           FIELDGROUP_TYPE_DYNAMIC_SWITCH_EXPECTEDDEF_VIEWDEF_REPORT_v0_18_14.md
 |   |   |           FIELDTYPE_ENUMREF_RESOLVE_REPORT_v0_15_2.md
 |   |   |           FILENAME_REFERENCE_MIGRATION_REPORT_v0_14_20.md
 |   |   |           filename_updatelist.md
+|   |   |           GRID_NUMERIC_AGGREGATE_HEADER_ROW_REPORT_v0_18_20.md
+|   |   |           JSON_FULL_TEXT_SEARCH_REPORT_v0_18_21.md
+|   |   |           JSON_UTF8_HUMAN_READABLE_SAVE_REPORT_v0_9.md
 |   |   |           MAIN_CONTEXT_HEADER_PANEL_REPORT_v0_15_5_2.md
+|   |   |           MARKDOWN_EXPORT_MODE_REPORT_v0_18_6.md
+|   |   |           QA_TESTS_RESPONSIBILITIES_VIEWDEF_PATH_ALIGNMENT_REPORT_v0_18_14_2.md
+|   |   |           QA_VIEWDEF_FOLDER_LAYOUT_ALIGNMENT_REPORT_v0_18_17.md
+|   |   |           RESPONSIBILITY_EXPECTED_DIFF_EVIDENCE_OUTPUT_REPORT_v0_18_10.md
+|   |   |           RESPONSIBILITY_EXPECTED_TESTS_FIRST_SET_REPORT_v0_18_8.md
+|   |   |           RESPONSIBILITY_REFACTOR_FIRST_STEP_REPORT_v0_18_7.md
+|   |   |           STUDIO_DATETIME_FORMAT_CONTRACT_REPORT_v0_18_19.md
+|   |   |           SUBGRID_PREVIEW_EDIT_ACTION_COLUMN_POLISH_REPORT_v0_18_12.md
+|   |   |           SUBGRID_SINGLE_LINE_TEST_PATTERN_VIEWDEF_REPORT_v0_18_11.md
 |   |   |           TARGET_CONTEXT_DETAIL_PANEL_COMPACT_REPORT_v0_15_5_3_1.md
 |   |   |           TARGET_CONTEXT_DETAIL_PANEL_REPORT_v0_15_5_3.md
+|   |   |           TEST_AREA_FOLDER_LAYOUT_ALIGNMENT_REPORT_v0_18_9.md
+|   |   |           TEST_PLAN_RESPONSIBILITY_SCOPE_v0_18_5.md
+|   |   |           TEST_RUNNER_RESPONSIBILITIES_RUN_CONFIG_REPORT_v0_18_14_3.md
+|   |   |           VALUE_VOCABULARY_REGISTRY_DIET_REPORT_v0_17_7.md
 |   |   |           VIEWDEF_CONTEXT_MODEL_CLEANUP_REPORT_v0_15_5_1.md
 |   |   |           VIEWDEF_CONTEXT_READ_CONTRACT_REPORT_v0_15_5.md
 |   |   |           VIEWDEF_GENERATION_COMMON_VIEWDEF_POLICY_REPORT_v0_14_17.md
 |   |   |           VIEWDEF_HEADER_SEARCH_LAYOUT_RULES_REPORT_v0_14_32.md
 |   |   |           VIEWDEF_RULES_VISIBLE_ADJUSTMENT_REPORT_v0_14_35.md
+|   |   |           VISIBLE_ROWS_MD_BUTTON_VISIBILITY_GUARD_REPORT_v0_18_6_1.md
 |   |   |           
 |   |   +---01_main
 |   |   |   |   00_do_incident_prompt_temple.md
@@ -65,21 +95,15 @@ F:.
 |   |   |   |   chatgpt_raw_keyword_activation_data_v0_1.json
 |   |   |   |   chatgpt_sentence_prime_map_data_v0_1.json
 |   |   |   |   chatgpt_shared_context_data_v0_1.json
+|   |   |   |   message_catalog_expected_pattern_review_data_v0_1.json
 |   |   |   |   qa_expected_checks_add_candidates_v0_1.json
 |   |   |   |   qa_expected_checks_classified_v0_1.json
 |   |   |   |   qa_expected_checks_sample_v0_1.json
 |   |   |   |   qa_test_patterns_sample_v0_1.json
-|   |   |   |   studio_work_incident_data_v0_88_md_editor_saveas_sidecar_history_added.json
-|   |   |   |   studio_work_incident_data_v0_90_studio_overlay_manifest_added.json
-|   |   |   |   studio_work_incident_data_v0_91_studio_overlay_manifest_done_archived.json
-|   |   |   |   studio_work_incident_data_v0_92_frbstudio_app_root_path_contract_added.json
-|   |   |   |   studio_work_incident_data_v0_93_frbstudio_app_root_path_contract_done.json
-|   |   |   |   studio_work_incident_data_v0_94_batch_ps1_common_daily_log_added.json
-|   |   |   |   studio_work_incident_data_v0_95_batch_ps1_common_daily_log_done.json
+|   |   |   |   studio_fx_chart_viewer_incident_data_v0_4_batch_simulation_registered.json
+|   |   |   |   studio_work_incident_data_v2.json
 |   |   |   |   
-|   |   |   \---archive
-|   |   |           studio_work_incident_archive_completed_to_0079_v0_1.json
-|   |   |           
+|   |   |   \---md
 |   |   +---02_mission
 |   |   |   +---sample
 |   |   |   |       studio_context_engineer_wannabe_mission_def_sample_v0_1_draft_xx.json
@@ -98,6 +122,11 @@ F:.
 |   |   |   |       TEST_FOLDER_ARCHIVE_RUNTIME_POLICY_NOTES_v0_1.md
 |   |   |   |       
 |   |   |   +---qa
+|   |   |   |   +---responsibility_def
+|   |   |   |   |       expected_def_type_master_data_v0_1.json
+|   |   |   |   |       performance_limit_policy_draft_v0_1.json
+|   |   |   |   |       responsibility_def_master_draft_v0_1.json
+|   |   |   |   |       
 |   |   |   |   \---v0_14_2_incident_prompt_copy_action
 |   |   |   |       +---actual
 |   |   |   |       |       TP-IPC-001.actual.json
@@ -122,6 +151,25 @@ F:.
 |   |   |   |       |       
 |   |   |   |       \---test_patterns
 |   |   |   |               qa_test_patterns_v0_14_2_incident_prompt_copy_action_draft.json
+|   |   |   |               
+|   |   |   +---responsibilities
+|   |   |   |   |   responsibility_data_v0_1.json
+|   |   |   |   |   
+|   |   |   |   \---responsibility_expected_first_set
+|   |   |   |       +---actual
+|   |   |   |       |       responsibility_expected_first_set_actual_data_v0_1.json
+|   |   |   |       |       
+|   |   |   |       +---diff
+|   |   |   |       |       responsibility_expected_first_set_diff_data_v0_1.json
+|   |   |   |       |       
+|   |   |   |       +---expected
+|   |   |   |       +---notes
+|   |   |   |       |       RESPONSIBILITY_EXPECTED_FIRST_SET_FOLDER_LAYOUT_NOTES_v0_18_9.md
+|   |   |   |       |       
+|   |   |   |       +---relations
+|   |   |   |       +---summary
+|   |   |   |       \---test_patterns
+|   |   |   |               responsibility_expected_test_patterns_data_v0_1.json
 |   |   |   |               
 |   |   |   \---screen_state
 |   |   |       \---screen_state_smoke_001
@@ -168,17 +216,65 @@ F:.
 |   |   |       fft_log_sample.json
 |   |   |       fft_log_view_def_v0_2.json
 |   |   |       
-|   |   \---90_business
-|   |           business_customers_v0_1.json
-|   |           business_employees_v0_1.json
-|   |           business_projects_v0_1.json
-|   |           business_relations_v0_1.json
-|   |           business_tasks_v0_1.json
+|   |   +---90_business
+|   |   |       business_customers_v0_1.json
+|   |   |       business_employees_v0_1.json
+|   |   |       business_projects_v0_1.json
+|   |   |       business_relations_v0_1.json
+|   |   |       business_tasks_v0_1.json
+|   |   |       
+|   |   \---config
+|   |           common_enums_v0_1.json
 |   |           
 |   \---markdown
 |       +---00_Common
 |       |       010_文脈とは.md
+|       |       batch_20260712_230503_entry_results_review_report_20260713_205245.md
+|       |       common_enums_v0_1_20260701_221809.md
+|       |       frb_coding_constraints_data_v0_3_20260630_231451.md
+|       |       frb_coding_constraints_data_v0_3_20260701_221236.md
+|       |       frb_coding_constraints_data_v0_3_20260701_221707.md
+|       |       frb_coding_constraints_data_v0_3_20260701_221707.md.comments.json
+|       |       frb_test_evidence_rules_data_v0_1_review_report_20260704_182910.md
+|       |       frb_test_evidence_rules_data_v0_2_document_rebuild_20260704_184658.md
+|       |       frb_test_evidence_rules_data_v0_2_document_rebuild_20260704_184924.md
+|       |       fx_usdjpy_1440_data_v0_1_review_report_20260705_124224.md
+|       |       git_diff_export_run_config_data_v0_1_review_report_20260704_150339.md
+|       |       git_diff_export_run_config_data_v0_1_review_report_20260704_150412.md
+|       |       responsibility_def_master_draft_v0_1_review_report_20260704_161814.md
+|       |       responsibility_expected_tests_first_set_data_v0_1_review_report_20260704_180712.md
+|       |       responsibility_expected_test_patterns_data_v0_1_document_rebuild_20260704_204509.md
+|       |       responsibility_expected_test_patterns_data_v0_1_document_rebuild_20260704_204608.md
+|       |       responsibility_expected_test_patterns_data_v0_1_document_rebuild_20260704_205929.md
+|       |       responsibility_expected_test_patterns_data_v0_1_document_rebuild_20260704_210649.md
+|       |       responsibility_expected_test_patterns_data_v0_1_review_report_20260704_203538.md
+|       |       responsibility_expected_test_patterns_data_v0_1_review_report_20260704_203611.md
+|       |       rule_review_common_view_def_v0_3_viewdef_20260704_152803.md
 |       |       studio-overlay-manifest_rules_data_v0_1_20260630_204533.md
+|       |       studio_context_engineer_wannabe_foundation_rules_data_v0_1_draft_document_rebuild_20260704_151350.md
+|       |       studio_context_engineer_wannabe_foundation_rules_data_v0_1_draft_document_rebuild_20260704_151405.md
+|       |       studio_context_engineer_wannabe_foundation_rules_data_v0_1_draft_document_rebuild_20260704_151437.md
+|       |       studio_context_engineer_wannabe_foundation_rules_data_v0_1_draft_full_dump_20260704_151313.md
+|       |       studio_context_engineer_wannabe_foundation_rules_data_v0_1_draft_review_report_20260704_151240.md
+|       |       studio_context_engineer_wannabe_foundation_rules_data_v0_1_draft_review_report_20260704_151451.md
+|       |       studio_test_plan_responsibility_scope_md_data_v0_1_20260704_140024.md
+|       |       studio_test_plan_responsibility_scope_md_data_v0_1_20260704_140118.md
+|       |       studio_test_plan_responsibility_scope_md_data_v0_1_20260704_141959.md
+|       |       studio_test_plan_responsibility_scope_md_data_v0_1_document_rebuild_20260704_145710.md
+|       |       studio_test_plan_responsibility_scope_md_data_v0_1_document_rebuild_20260704_145902.md
+|       |       studio_test_plan_responsibility_scope_md_data_v0_1_document_rebuild_20260704_152627.md
+|       |       studio_test_plan_responsibility_scope_md_data_v0_1_document_rebuild_20260704_161051.md
+|       |       studio_test_plan_responsibility_scope_md_data_v0_1_document_rebuild_20260704_161651.md
+|       |       studio_test_plan_responsibility_scope_md_data_v0_1_full_dump_20260704_145750.md
+|       |       studio_test_plan_responsibility_scope_md_data_v0_1_full_dump_20260704_145826.md
+|       |       studio_test_plan_responsibility_scope_md_data_v0_1_review_report_20260704_145630.md
+|       |       studio_test_plan_responsibility_scope_md_data_v0_1_review_report_20260704_145808.md
+|       |       studio_test_plan_responsibility_scope_md_data_v0_1_review_report_20260704_150159.md
+|       |       studio_test_plan_responsibility_scope_md_data_v0_1_review_report_20260704_150621.md
+|       |       studio_test_plan_responsibility_scope_md_data_v0_1_review_report_20260704_152618.md
+|       |       studio_test_plan_responsibility_scope_md_data_v0_1_review_report_20260704_161040.md
+|       |       studio_test_plan_responsibility_scope_md_data_v0_1_review_report_20260704_161639.md
+|       |       test_runner_run_config_view_def_v0_1_viewdef_20260704_152843.md
 |       |       
 |       +---10_Zenn
 |       |       Zenn_Blog_All.md
@@ -190,6 +286,12 @@ F:.
 |       |       ContextDef.md.comments.json
 |       |       erDiagram.md
 |       |       
+|       +---30_Studioくん構想メモ
+|       |       01_設計パターン.md
+|       |       02_expecteddef_lookup_design_summary_20260702.md
+|       |       03_著作権違反防止.md
+|       |       04_著作権違反防止_対策済み.md
+|       |       
 |       \---99_temp
 +---defs
 |   +---common
@@ -197,31 +299,56 @@ F:.
 |   |       common_types_v0_1.json
 |   |       view_def_maint_fields_v0_2.json
 |   |       
+|   +---config
+|   |       config_folder_policy_v0_1.json
+|   |       field_group_types_config_data_v0_1.json
+|   |       
 |   +---frb
 |   |       fft_log_view_def_v0_2.json
 |   |       
 |   +---inventory
 |   |       defs_data_link_inventory_view_def_v0_1.json
 |   |       
+|   +---master
+|   |       message_catalog_expected_pattern_review_view_def_v0_1.json
+|   |       message_catalog_view_def_v0_1.json
+|   |       
 |   +---mission
 |   |       studio_context_engineer_wannabe_mission_def_view_def_v0_1.json
 |   |       studio_context_engineer_wannabe_mission_result_summary_view_def_v0_1.json
 |   |       
 |   +---qa
-|   |       qa_actual_observation_view_def_v0_1.json
-|   |       qa_actual_result_view_def_v0_1.json
-|   |       qa_cross_check_risk_view_def_v0_1.json
-|   |       qa_cross_constraint_view_def_v0_1.json
-|   |       qa_cross_quality_risk_view_def_v0_1.json
-|   |       qa_cross_test_pattern_view_def_v0_1.json
-|   |       qa_diff_result_view_def_v0_1.json
-|   |       qa_expected_checks_candidate_review_view_def_v0_1.json
-|   |       qa_expected_checks_candidate_review_wrapped_view_def_v0_1.json
-|   |       qa_expected_checks_classified_view_def_v0_1.json
-|   |       qa_expected_checks_sample_view_def_v0_1.json
-|   |       qa_shortage_expected_findings_view_def_v0_1.json
-|   |       qa_test_patterns_sample_view_def_v0_1.json
-|   |       
+|   |   +---review
+|   |   |       qa_cross_check_risk_view_def_v0_1.json
+|   |   |       qa_cross_constraint_view_def_v0_1.json
+|   |   |       qa_cross_quality_risk_view_def_v0_1.json
+|   |   |       qa_cross_test_pattern_view_def_v0_1.json
+|   |   |       qa_expected_checks_candidate_review_view_def_v0_1.json
+|   |   |       qa_expected_checks_candidate_review_wrapped_view_def_v0_1.json
+|   |   |       qa_expected_checks_classified_view_def_v0_1.json
+|   |   |       qa_expected_checks_sample_view_def_v0_1.json
+|   |   |       qa_shortage_expected_findings_view_def_v0_1.json
+|   |   |       
+|   |   \---tests
+|   |       |   qa_actual_observation_view_def_v0_1.json
+|   |       |   qa_diff_result_view_def_v0_1.json
+|   |       |   qa_screen_state_actual_view_def_v0_1.json
+|   |       |   qa_test_patterns_sample_view_def_v0_1.json
+|   |       |   
+|   |       +---responsibilities
+|   |       |       responsibility_expected_actual_view_def_v0_1.json
+|   |       |       responsibility_expected_diff_view_def_v0_1.json
+|   |       |       responsibility_expected_test_patterns_view_def_v0_1.json
+|   |       |       responsibility_view_def_v0_1.json
+|   |       |       
+|   |       +---responsibility_def
+|   |       |       expected_def_type_master_view_def_v0_1.json
+|   |       |       performance_limit_policy_view_def_v0_1.json
+|   |       |       responsibility_def_master_view_def_v0_1.json
+|   |       |       
+|   |       \---_bk
+|   |               qa_actual_result_view_def_v0_1.json
+|   |               
 |   +---relation
 |   |       relation_approval_view_def_v0_1.json
 |   |       relation_axis_business_customer_view_def_v0_1.json
@@ -239,6 +366,7 @@ F:.
 |   |   |   rule_review_common_view_def_v0_3.json
 |   |   |   studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json
 |   |   |   studio_work_incident_view_def_v0_5.json
+|   |   |   trigger_def_view_def_v0_1.json
 |   |   |   
 |   |   +---chatgpt
 |   |   |       chatgpt_context_relation_graph_view_def_v0_1.json
@@ -261,8 +389,19 @@ F:.
 |           git_diff_export_run_config_view_def_v0_1.json
 |           test_runner_run_config_view_def_v0_1.json
 |           
++---docs
+|   \---notes
+|           md_json_export_challenge_notes_v0_1.md
+|           拡張アイデア.md
+|           
 +---Log
 |       Log_20260630.log
+|       Log_20260701.log
+|       Log_20260702.log
+|       Log_20260703.log
+|       Log_20260704.log
+|       Log_20260705.log
+|       Log_20260715.log
 |       README.md
 |       
 +---node_modules
@@ -732,28 +871,216 @@ F:.
 |       incident_contextdef_open_work_draft_v0_16_3_validation_report.json
 |       
 +---studio_overlays
-|   \---default
+|   +---default
+|   |   |   README.md
+|   |   |   studio_manifest.json
+|   |   |   
+|   |   +---data
+|   |   |       employee_skill_inventory_sample.json
+|   |   |       
+|   |   +---plugins
+|   |   |   |   plugin_index.json
+|   |   |   |   
+|   |   |   +---multi_select_combo
+|   |   |   |       plugin.js
+|   |   |   |       plugin.json
+|   |   |   |       
+|   |   |   \---skill_summary
+|   |   |           plugin.js
+|   |   |           plugin.json
+|   |   |           
+|   |   +---search_patterns
+|   |   |       employee_skill_search_patterns.json
+|   |   |       
+|   |   +---value_sets
+|   |   |       company_value_sets.json
+|   |   |       
+|   |   \---view_defs
+|   |           employee_skill_inventory_view_def.json
+|   |           
+|   +---gpt_fx_lab
+|   |   |   CHANGELOG.md
+|   |   |   Expansion_v0_28_Diff_Manifest.md
+|   |   |   Expansion_v0_28_Implementation_Report.md
+|   |   |   GPT_FX_Lab_Context_Summary.md
+|   |   |   GPT_FX_Labとは何か_JSONからFX専用観測画面が生えた日_v0_1.md
+|   |   |   simulation_rule_v0.22_update_report.json
+|   |   |   studio_manifest.json
+|   |   |   シュミレーションルール仮_v0.26.md
+|   |   |   シュミレーションルール仮_v0.27.md
+|   |   |   シュミレーションルール仮_v0.28.md
+|   |   |   シュミレーションルール要約_v0.26.md
+|   |   |   シュミレーションルール要約_v0.27.md
+|   |   |   シュミレーションルール要約_v0.28.md
+|   |   |   フィボナッチ定数.md
+|   |   |   
+|   |   +---data
+|   |   |       fx_usdjpy_d1_t3_data_v0_1.json
+|   |   |       fx_usdjpy_m5_t3_data_v0_1.json
+|   |   |       
+|   |   +---doc
+|   |   |       Dow材料点観測フェーズ仕様メモ_v0_7_2.md
+|   |   |       
+|   |   +---plugins
+|   |   |   |   plugin_index.json
+|   |   |   |   
+|   |   |   \---fx_chart_viewer
+|   |   |           plugin.js
+|   |   |           plugin.json
+|   |   |           
+|   |   +---search_patterns
+|   |   +---sidecars
+|   |   |       fx_usdjpy_m5_t3_data_v0_1.chart_comments.json
+|   |   |       fx_usdjpy_m5_t3_data_v0_1.simulation_trace.json
+|   |   |       
+|   |   +---simulation
+|   |   |   |   fx_simulation_reason_rule_catalog_v0_1.json
+|   |   |   |   fx_simulation_run_profile_all_rule_lanes_v0_1.json
+|   |   |   |   fx_simulation_run_profile_expansion_lite_v0_1.json
+|   |   |   |   fx_simulation_run_profile_expansion_v0_1.json
+|   |   |   |   fx_simulation_run_profile_normal_plus_expansion_lite_v0_1.json
+|   |   |   |   fx_simulation_run_profile_v0_1.json
+|   |   |   |   
+|   |   |   +---reports
+|   |   |   |       fx_simulation_zero_entry_hotfix_v0_9_1_07_validation_report.json
+|   |   |   |       simulation_rule_v0.23_update_report.json
+|   |   |   |       simulation_rule_v0_24_active_confirmation_r2_fix_report.json
+|   |   |   |       simulation_rule_v0_24_batch_analysis_scope_isolation_fix_report.json
+|   |   |   |       simulation_rule_v0_24_batch_continuation_break_projection_fix_report.json
+|   |   |   |       simulation_rule_v0_24_normal_entry_gate_analysis_shadow_report.json
+|   |   |   |       simulation_rule_v0_24_normal_entry_gate_failure_log_report.json
+|   |   |   |       simulation_rule_v0_24_update_report.json
+|   |   |   |       
+|   |   |   +---results
+|   |   |   |       .gitkeep
+|   |   |   |       
+|   |   |   \---tools
+|   |   |           build_entry_result_rows_v0_1.cjs
+|   |   |           build_entry_result_rows_v0_1_fixed.cmd
+|   |   |           log.txt
+|   |   |           README_entry_result_rows_v0_1.md
+|   |   |           
+|   |   +---simulattion_集計
+|   |   |       batch_20260716_185516.json
+|   |   |       batch_20260716_185516_entry_results.json
+|   |   |       batch_20260716_185516_summary.csv
+|   |   |       batch_20260716_205714.json
+|   |   |       batch_20260716_205714_entry_results.json
+|   |   |       batch_20260716_205714_summary.csv
+|   |   |       batch_20260716_233643.json
+|   |   |       batch_20260716_233643_entry_results.json
+|   |   |       batch_20260716_233643_normal_entry_gate_failures.csv
+|   |   |       batch_20260716_233643_normal_entry_gate_failures.json
+|   |   |       batch_20260716_233643_summary.csv
+|   |   |       batch_20260717_122702.json
+|   |   |       batch_20260717_122702_entry_results.json
+|   |   |       batch_20260717_122702_normal_entry_gate_failures.csv
+|   |   |       batch_20260717_122702_normal_entry_gate_failures.json
+|   |   |       batch_20260717_122702_summary.csv
+|   |   |       batch_20260717_122702_summary.md
+|   |   |       batch_20260717_203022.json
+|   |   |       batch_20260717_203022_entry_results.json
+|   |   |       batch_20260717_203022_expansion_lite_entry_gate_failures.csv
+|   |   |       batch_20260717_203022_expansion_lite_entry_gate_failures.json
+|   |   |       batch_20260717_203022_normal_entry_gate_failures.csv
+|   |   |       batch_20260717_203022_normal_entry_gate_failures.json
+|   |   |       batch_20260717_203022_summary.csv
+|   |   |       batch_20260717_230817.json
+|   |   |       batch_20260717_230817_entry_results.json
+|   |   |       batch_20260717_230817_expansion_lite_entry_gate_failures.csv
+|   |   |       batch_20260717_230817_expansion_lite_entry_gate_failures.json
+|   |   |       batch_20260717_230817_normal_entry_gate_failures.csv
+|   |   |       batch_20260717_230817_normal_entry_gate_failures.json
+|   |   |       batch_20260717_230817_summary.csv
+|   |   |       batch_20260718_100830.json
+|   |   |       batch_20260718_100830_entry_results.json
+|   |   |       batch_20260718_100830_expansion_lite_entry_gate_failures.csv
+|   |   |       batch_20260718_100830_expansion_lite_entry_gate_failures.json
+|   |   |       batch_20260718_100830_normal_entry_gate_failures.csv
+|   |   |       batch_20260718_100830_normal_entry_gate_failures.json
+|   |   |       batch_20260718_100830_summary.csv
+|   |   |       batch_20260718_203141.json
+|   |   |       batch_20260718_203141_entry_results.json
+|   |   |       batch_20260718_203141_expansion_lite_entry_gate_failures.csv
+|   |   |       batch_20260718_203141_expansion_lite_entry_gate_failures.json
+|   |   |       batch_20260718_203141_normal_entry_gate_failures.csv
+|   |   |       batch_20260718_203141_normal_entry_gate_failures.json
+|   |   |       batch_20260718_203141_summary.csv
+|   |   |       batch_20260720_094623.json
+|   |   |       batch_20260720_094623_entry_results.json
+|   |   |       batch_20260720_094623_expansion_lite_entry_gate_failures.csv
+|   |   |       batch_20260720_094623_expansion_lite_entry_gate_failures.json
+|   |   |       batch_20260720_094623_normal_entry_gate_failures.csv
+|   |   |       batch_20260720_094623_normal_entry_gate_failures.json
+|   |   |       batch_20260720_094623_summary.csv
+|   |   |       
+|   |   +---tests
+|   |   |       all_rule_lanes_range_smoke_v0_28.test.cjs
+|   |   |       batch_simulation_case_environment_isolation_v0_24_3.test.cjs
+|   |   |       batch_simulation_runner_v0_1.test.cjs
+|   |   |       crosshair_lock_v0_1.test.cjs
+|   |   |       cycle_entry_window_independent_from_confirm_v0_1.test.cjs
+|   |   |       dow_breakout_threshold_entry_price_v0_1.test.cjs
+|   |   |       entry_result_chart_url_navigation_v0_1.test.cjs
+|   |   |       entry_result_rows_builder_v0_1.test.cjs
+|   |   |       expansion_h1_dow_r2_t3_v0_28.test.cjs
+|   |   |       expansion_lite_episode_v0_25.test.cjs
+|   |   |       expansion_lite_hsi_retention_bb_reentry_h4_candidate_v0_27.test.cjs
+|   |   |       expansion_lite_rule_lane_v0_18.test.cjs
+|   |   |       expansion_lite_target_27_29_range_smoke_v0_1.test.cjs
+|   |   |       expansion_lite_vnext_v0_26.test.cjs
+|   |   |       hsi_line_color_rotation_v0_1.test.cjs
+|   |   |       normal_active_confirmation_r2_v0_24_1.test.cjs
+|   |   |       normal_dow_break_projection_batch_continuation_v0_24_2.test.cjs
+|   |   |       normal_entry_gate_analysis_shadow_v0_2.test.cjs
+|   |   |       normal_entry_gate_failure_log_v0_1.test.cjs
+|   |   |       normal_h1_only_cycle_late_guard_v0_1.test.cjs
+|   |   |       normal_hsi_anchor_trade_lifecycle_v0_1.test.cjs
+|   |   |       normal_hsi_anchor_v0_24_break_reconfirm_no_close.test.cjs
+|   |   |       normal_plus_expansion_lite_orchestration_v0_1.test.cjs
+|   |   |       normal_plus_expansion_lite_range_smoke_v0_1.test.cjs
+|   |   |       normal_rule_lane_separation_v0_1.test.cjs
+|   |   |       shared_dow_reconfirmation_after_break_v0_24_1.test.cjs
+|   |   |       simulation_execution_marker_pointer_v0_1.test.cjs
+|   |   |       simulation_profile_contract_v0_14.test.cjs
+|   |   |       simulation_rule_v0_21_to_v0_23.test.cjs
+|   |   |       
+|   |   +---value_sets
+|   |   \---view_defs
+|   |           fx_batch_entry_results_view_def_v0_1.json
+|   |           fx_usdjpy_t3_view_def_v0_1.json
+|   |           
+|   \---thought_evolution
 |       |   README.md
 |       |   studio_manifest.json
 |       |   
 |       +---data
-|       |       employee_skill_inventory_sample.json
+|       |       thought_evolution_graph_catalog_v0_1.json
+|       |       
+|       +---graphs
+|       |       quality_asset_relation_graph_data_v0_1.json
+|       |       thought_evolution_sample_graph_data_v0_1.json
+|       |       
+|       +---graph_defs
+|       |       quality_asset_graph_def_v0_1.json
+|       |       thought_evolution_graph_def_v0_1.json
+|       |       
+|       +---layouts
+|       |       quality_asset_relation_layout_state_v0_1.json
+|       |       thought_evolution_sample_layout_state_v0_1.json
 |       |       
 |       +---plugins
 |       |   |   plugin_index.json
 |       |   |   
-|       |   \---multi_select_combo
+|       |   \---graph_studio
 |       |           plugin.js
 |       |           plugin.json
 |       |           
-|       +---search_patterns
-|       |       employee_skill_search_patterns.json
-|       |       
-|       +---value_sets
-|       |       company_value_sets.json
+|       +---sidecars
+|       |       thought_evolution_sample_layout_state_v0_1.json
 |       |       
 |       \---view_defs
-|               employee_skill_inventory_view_def.json
+|               thought_evolution_graph_catalog_view_def_v0_1.json
 |               
 +---tests
 |   |   erDiagram.md
@@ -768,7 +1095,17 @@ F:.
 |   |               
 |   +---qa
 |   |   \---static
+|   |           field_group_type_resolver_static.test.mjs
 |   |           incident_prompt_copy_action_viewdef_static.test.mjs
+|   |           thought_evolution_studio_overlay_static.test.mjs
+|   |           
+|   +---responsibilities
+|   |   |   responsibility_expected_tests.mjs
+|   |   |   responsibility_refactor_first_step_smoke.mjs
+|   |   |   
+|   |   \---lib
+|   |           responsibility_datetime_utils.mjs
+|   |           responsibility_expected_compare_strategies.mjs
 |   |           
 |   +---screen_state
 |   |       ncjs-screen-state-compare.checks.spec.ts
@@ -776,9 +1113,271 @@ F:.
 |   \---tools
 |           cleanup_runtime_artifacts.ps1
 |           
++---tests_screen_state
 +---test_results
 |   \---diff
 +---tools
+|   +---chatgpt-share-export-minimum
+|   |   |   export.cmd
+|   |   |   export_chatgpt_share.mjs
+|   |   |   package-lock.json
+|   |   |   package.json
+|   |   |   README.md
+|   |   |   setup.cmd
+|   |   |   Thought_Evolution_Graph_Viewer_sample_v0.1.html
+|   |   |   
+|   |   +---node_modules
+|   |   |   |   .package-lock.json
+|   |   |   |   
+|   |   |   +---.bin
+|   |   |   |       playwright
+|   |   |   |       playwright-core
+|   |   |   |       playwright-core.cmd
+|   |   |   |       playwright-core.ps1
+|   |   |   |       playwright.cmd
+|   |   |   |       playwright.ps1
+|   |   |   |       
+|   |   |   +---playwright
+|   |   |   |   |   cli.js
+|   |   |   |   |   index.d.ts
+|   |   |   |   |   index.js
+|   |   |   |   |   index.mjs
+|   |   |   |   |   jsx-runtime.js
+|   |   |   |   |   jsx-runtime.mjs
+|   |   |   |   |   LICENSE
+|   |   |   |   |   NOTICE
+|   |   |   |   |   package.json
+|   |   |   |   |   README.md
+|   |   |   |   |   test.d.ts
+|   |   |   |   |   test.js
+|   |   |   |   |   test.mjs
+|   |   |   |   |   ThirdPartyNotices.txt
+|   |   |   |   |   
+|   |   |   |   +---lib
+|   |   |   |   |   |   errorContext.js
+|   |   |   |   |   |   globals.js
+|   |   |   |   |   |   index.js
+|   |   |   |   |   |   isomorphic.js
+|   |   |   |   |   |   isomorphic.js.txt
+|   |   |   |   |   |   package.js
+|   |   |   |   |   |   program.js
+|   |   |   |   |   |   util.js
+|   |   |   |   |   |   
+|   |   |   |   |   +---agents
+|   |   |   |   |   |       agentParser.js
+|   |   |   |   |   |       copilot-setup-steps.yml
+|   |   |   |   |   |       generateAgents.js
+|   |   |   |   |   |       playwright-test-coverage.prompt.md
+|   |   |   |   |   |       playwright-test-generate.prompt.md
+|   |   |   |   |   |       playwright-test-generator.agent.md
+|   |   |   |   |   |       playwright-test-heal.prompt.md
+|   |   |   |   |   |       playwright-test-healer.agent.md
+|   |   |   |   |   |       playwright-test-plan.prompt.md
+|   |   |   |   |   |       playwright-test-planner.agent.md
+|   |   |   |   |   |       
+|   |   |   |   |   +---cli
+|   |   |   |   |   |       reportActions.js
+|   |   |   |   |   |       testActions.js
+|   |   |   |   |   |       
+|   |   |   |   |   +---common
+|   |   |   |   |   |       index.js
+|   |   |   |   |   |       index.js.txt
+|   |   |   |   |   |       
+|   |   |   |   |   +---loader
+|   |   |   |   |   |       loaderProcessEntry.js
+|   |   |   |   |   |       loaderProcessEntry.js.txt
+|   |   |   |   |   |       
+|   |   |   |   |   +---matchers
+|   |   |   |   |   |       expect.js
+|   |   |   |   |   |       expect.js.LICENSE
+|   |   |   |   |   |       expect.js.txt
+|   |   |   |   |   |       
+|   |   |   |   |   +---mcp
+|   |   |   |   |   |   \---test
+|   |   |   |   |   |           browserBackend.js
+|   |   |   |   |   |           generatorTools.js
+|   |   |   |   |   |           plannerTools.js
+|   |   |   |   |   |           seed.js
+|   |   |   |   |   |           streams.js
+|   |   |   |   |   |           testBackend.js
+|   |   |   |   |   |           testContext.js
+|   |   |   |   |   |           testTool.js
+|   |   |   |   |   |           testTools.js
+|   |   |   |   |   |           
+|   |   |   |   |   +---runner
+|   |   |   |   |   |       index.js
+|   |   |   |   |   |       index.js.txt
+|   |   |   |   |   |       
+|   |   |   |   |   +---transform
+|   |   |   |   |   |       babelBundle.js
+|   |   |   |   |   |       babelBundle.js.LICENSE
+|   |   |   |   |   |       babelBundle.js.txt
+|   |   |   |   |   |       esmLoader.js
+|   |   |   |   |   |       esmLoader.js.LICENSE
+|   |   |   |   |   |       esmLoader.js.txt
+|   |   |   |   |   |       
+|   |   |   |   |   \---worker
+|   |   |   |   |           workerProcessEntry.js
+|   |   |   |   |           workerProcessEntry.js.txt
+|   |   |   |   |           
+|   |   |   |   \---types
+|   |   |   |           test.d.ts
+|   |   |   |           testReporter.d.ts
+|   |   |   |           
+|   |   |   \---playwright-core
+|   |   |       |   browsers.json
+|   |   |       |   cli.js
+|   |   |       |   index.d.ts
+|   |   |       |   index.js
+|   |   |       |   index.mjs
+|   |   |       |   LICENSE
+|   |   |       |   NOTICE
+|   |   |       |   package.json
+|   |   |       |   README.md
+|   |   |       |   ThirdPartyNotices.txt
+|   |   |       |   
+|   |   |       +---bin
+|   |   |       |       install_media_pack.ps1
+|   |   |       |       install_webkit_wsl.ps1
+|   |   |       |       reinstall_chrome_beta_linux.sh
+|   |   |       |       reinstall_chrome_beta_mac.sh
+|   |   |       |       reinstall_chrome_beta_win.ps1
+|   |   |       |       reinstall_chrome_stable_linux.sh
+|   |   |       |       reinstall_chrome_stable_mac.sh
+|   |   |       |       reinstall_chrome_stable_win.ps1
+|   |   |       |       reinstall_msedge_beta_linux.sh
+|   |   |       |       reinstall_msedge_beta_mac.sh
+|   |   |       |       reinstall_msedge_beta_win.ps1
+|   |   |       |       reinstall_msedge_dev_linux.sh
+|   |   |       |       reinstall_msedge_dev_mac.sh
+|   |   |       |       reinstall_msedge_dev_win.ps1
+|   |   |       |       reinstall_msedge_stable_linux.sh
+|   |   |       |       reinstall_msedge_stable_mac.sh
+|   |   |       |       reinstall_msedge_stable_win.ps1
+|   |   |       |       
+|   |   |       +---lib
+|   |   |       |   |   bootstrap.js
+|   |   |       |   |   coreBundle.js
+|   |   |       |   |   package.js
+|   |   |       |   |   serverRegistry.js
+|   |   |       |   |   serverRegistry.js.LICENSE
+|   |   |       |   |   utilsBundle.js
+|   |   |       |   |   utilsBundle.js.LICENSE
+|   |   |       |   |   xdg-open
+|   |   |       |   |   
+|   |   |       |   +---entry
+|   |   |       |   |       cliDaemon.js
+|   |   |       |   |       dashboardApp.js
+|   |   |       |   |       mcp.js
+|   |   |       |   |       oopBrowserDownload.js
+|   |   |       |   |       
+|   |   |       |   +---server
+|   |   |       |   |   |   deviceDescriptorsSource.json
+|   |   |       |   |   |   
+|   |   |       |   |   +---chromium
+|   |   |       |   |   |       appIcon.png
+|   |   |       |   |   |       
+|   |   |       |   |   \---electron
+|   |   |       |   |           loader.js
+|   |   |       |   |           
+|   |   |       |   +---tools
+|   |   |       |   |   +---cli-client
+|   |   |       |   |   |   |   channelSessions.js
+|   |   |       |   |   |   |   cli.js
+|   |   |       |   |   |   |   help.json
+|   |   |       |   |   |   |   minimist.js
+|   |   |       |   |   |   |   output.js
+|   |   |       |   |   |   |   program.js
+|   |   |       |   |   |   |   registry.js
+|   |   |       |   |   |   |   session.js
+|   |   |       |   |   |   |   
+|   |   |       |   |   |   \---skill
+|   |   |       |   |   |       |   SKILL.md
+|   |   |       |   |   |       |   
+|   |   |       |   |   |       \---references
+|   |   |       |   |   |               element-attributes.md
+|   |   |       |   |   |               playwright-tests.md
+|   |   |       |   |   |               request-mocking.md
+|   |   |       |   |   |               running-code.md
+|   |   |       |   |   |               session-management.md
+|   |   |       |   |   |               spec-driven-testing.md
+|   |   |       |   |   |               storage-state.md
+|   |   |       |   |   |               test-generation.md
+|   |   |       |   |   |               tracing.md
+|   |   |       |   |   |               video-recording.md
+|   |   |       |   |   |               
+|   |   |       |   |   +---dashboard
+|   |   |       |   |   |       appIcon.png
+|   |   |       |   |   |       
+|   |   |       |   |   +---trace
+|   |   |       |   |   |       SKILL.md
+|   |   |       |   |   |       
+|   |   |       |   |   \---utils
+|   |   |       |   |           extension.js
+|   |   |       |   |           socketConnection.js
+|   |   |       |   |           
+|   |   |       |   \---vite
+|   |   |       |       +---dashboard
+|   |   |       |       |   |   index.html
+|   |   |       |       |   |   playwright-logo.svg
+|   |   |       |       |   |   
+|   |   |       |       |   \---assets
+|   |   |       |       |           codicon-DCmgc-ay.ttf
+|   |   |       |       |           firefox-1bWoP6pv.svg
+|   |   |       |       |           firefox-beta-k3eOH_eK.svg
+|   |   |       |       |           firefox-nightly-Cp5nfeDT.svg
+|   |   |       |       |           index-BY2S1tHT.css
+|   |   |       |       |           index-C_5TMfeg.js
+|   |   |       |       |           safari-na3_-uQk.svg
+|   |   |       |       |           
+|   |   |       |       +---htmlReport
+|   |   |       |       |       index.html
+|   |   |       |       |       report.css
+|   |   |       |       |       report.js
+|   |   |       |       |       
+|   |   |       |       +---recorder
+|   |   |       |       |   |   index.html
+|   |   |       |       |   |   playwright-logo.svg
+|   |   |       |       |   |   
+|   |   |       |       |   \---assets
+|   |   |       |       |           codeMirrorModule-DeBYQozu.js
+|   |   |       |       |           codeMirrorModule-DYBRYzYX.css
+|   |   |       |       |           codicon-DCmgc-ay.ttf
+|   |   |       |       |           index-4ZiSSCmn.css
+|   |   |       |       |           index-Bq-mQf8S.js
+|   |   |       |       |           
+|   |   |       |       \---traceViewer
+|   |   |       |           |   codeMirrorModule.DYBRYzYX.css
+|   |   |       |           |   codicon.DCmgc-ay.ttf
+|   |   |       |           |   defaultSettingsView.CjdS-WJx.css
+|   |   |       |           |   index.CzXZzn5A.css
+|   |   |       |           |   index.DMMX1gXU.js
+|   |   |       |           |   index.html
+|   |   |       |           |   manifest.webmanifest
+|   |   |       |           |   playwright-logo.svg
+|   |   |       |           |   snapshot.html
+|   |   |       |           |   snapshot.v8KI4P3m.js
+|   |   |       |           |   sw.bundle.js
+|   |   |       |           |   uiMode.BZQ54Kgt.css
+|   |   |       |           |   uiMode.html
+|   |   |       |           |   uiMode.Ut8wwJNp.js
+|   |   |       |           |   xtermModule.DYP7pi_n.css
+|   |   |       |           |   
+|   |   |       |           \---assets
+|   |   |       |                   codeMirrorModule-LEHpjmcn.js
+|   |   |       |                   defaultSettingsView-BNmKHKpQ.js
+|   |   |       |                   urlMatch-BYQrIQwR.js
+|   |   |       |                   xtermModule-CsJ4vdCR.js
+|   |   |       |                   
+|   |   |       \---types
+|   |   |               protocol.d.ts
+|   |   |               structs.d.ts
+|   |   |               types.d.ts
+|   |   |               
+|   |   \---output
+|   |           20260720_122611_このチャットを見てみる.md
+|   |           20260720_123258_20260720思考進化オーバーレイ.md
+|   |           
 |   +---common
 |   |       StudioLog.ps1
 |   |       
@@ -793,30 +1392,40 @@ F:.
 |   +---test
 |   |       TestRunner.ps1
 |   |       
+|   +---Utf8Readable
+|   |       Repair-JsonMdUtf8ReadableText.ps1
+|   |       
 |   \---zip
-|           make_wwwroot_zip_v2.bat
-|           make_wwwroot_zip_v2.ps1
+|           make_FRBStudio_App_zip_v2.ps1
+|           make_studio_overlays_zip_v1.ps1
 |           
 +---wwwroot
 |   |   app.js
+|   |   count_js_steps.bat
 |   |   count_js_steps.py
+|   |   count_js_steps_add_datetime.bat
 |   |   DiffJsonViewer.html
 |   |   index.html
 |   |   mdViewer.html
 |   |   mdviewer.json
 |   |   MetaDiff_HypothesisViewer.html
+|   |   Not_index.html
+|   |   Studio_Core_Context_Summary.md
 |   |   styles.css
 |   |   
 |   +---config
 |   |       app_info.json
 |   |       app_settings.json
 |   |       
+|   +---countstep
+|   |       countstep.txt
+|   |       countstep_20260704_160930.txt
+|   |       
 |   +---data
 |   |   +---json
 |   |   |   \---01_main
 |   |   |           frb_coding_constraints_review_data_v0_3.json
 |   |   |           studio_work_incident_data_v0_00.json
-|   |   |           studio_work_incident_data_v0_79_incident_contextdef_open_work_draft_done.json
 |   |   |           studio_work_incident_data_v0_80_grid_card_document_renderer_scope_fixed_done.json
 |   |   |           
 |   |   \---markdown
@@ -833,12 +1442,11 @@ F:.
 |   |           studio_work_incident_view_def_v0_5.json
 |   |           
 |   +---diff
-|   |       DiffToJson_20260628_082303.json
-|   |       DiffToJson_20260628_233158.json
-|   |       DiffToJson_20260630_214013.json
-|   |       DiffToJson_20260630_214030.json
-|   |       DiffToJson_20260630_215119.json
-|   |       DiffToJson_20260630_221752.json
+|   |       DiffToJson_20260702_210451.json
+|   |       DiffToJson_20260705_091652.json
+|   |       DiffToJson_20260715_232310.json
+|   |       DiffToJson_20260715_232520.json
+|   |       DiffToJson_20260715_232659.json
 |   |       
 |   +---images
 |   |   \---chat
@@ -860,8 +1468,10 @@ F:.
 |   |   |       file_api.js
 |   |   |       loaders.js
 |   |   |       overlay_manager.js
+|   |   |       plugin_host.js
 |   |   |       registry.js
 |   |   |       state.js
+|   |   |       studio_datetime.js
 |   |   |       viewdef_context_contract.js
 |   |   |       viewdef_resolver.js
 |   |   |       
@@ -2195,6 +2805,12 @@ F:.
 |   |   |       grid_detail.js
 |   |   |       renderer_registry.js
 |   |   |       
+|   |   +---responsibilities
+|   |   |       csv_exporter.js
+|   |   |       grid_aggregator.js
+|   |   |       grid_column_builder.js
+|   |   |       search_filter.js
+|   |   |       
 |   |   +---runtime
 |   |   |       APP_INFO_BRANDING_NOTES_v0_9.md
 |   |   |       BLOCK_MODEL_NOTES_v0_13.md
@@ -2229,6 +2845,7 @@ F:.
 |   |   |       MDVIEWER_HEADING_RELATIVE_CARET_SCROLL_NOTES_v0_11_5.md
 |   |   |       MD_EDITOR_WORKPLACE_SAFE_NOTES_v0_13_8.md
 |   |   |       OBJECTARRAY_SAVE_INTEGRITY_NOTES_v0_7.md
+|   |   |       search_state.js
 |   |   |       SENTENCE_INSERT_DELETE_NOTES_v0_13_1.md
 |   |   |       SENTENCE_TOOLBAR_ROW_ANCHOR_FIX_NOTES_v0_13_1_2.md
 |   |   |       URL_LAUNCH_LOAD_NOTES_v0_8.md
@@ -2237,6 +2854,7 @@ F:.
 |   |   |       file_tree_picker.js
 |   |   |       FILE_TREE_PICKER_NAME_FIX_NOTES_v0_10_1.md
 |   |   |       page_setup.js
+|   |   |       studio_dialog.js
 |   |   |       
 |   |   \---virtualData
 |   |           expected_builders.js
@@ -2247,6 +2865,57 @@ F:.
 |           incident_contextdef_open_work_draft_v0_16_3_validation_report.json
 |           
 +---_archive
+|   |   context_refs_sample_data_v0_1.json
+|   |   frb_test_evidence_rules_data_v0_1.json
+|   |   fx_usdjpy_m5_t3_data_v0_1.zip
+|   |   studio_fx_chart_viewer_incident_data_v0_1.json
+|   |   studio_fx_chart_viewer_incident_data_v0_2.json
+|   |   studio_fx_chart_viewer_incident_data_v0_3.json
+|   |   studio_fx_chart_viewer_incident_data_v0_4_batch_simulation_registered.json
+|   |   studio_work_incident_archive_completed_to_0079_v0_1.json
+|   |   studio_work_incident_data_v0_100_daily_ux_polish_done.json
+|   |   studio_work_incident_data_v0_101_toast_noise_reduction_done.json
+|   |   studio_work_incident_data_v0_102_current_data_status_layer_done.json
+|   |   studio_work_incident_data_v0_103_current_data_title_display_done.json
+|   |   studio_work_incident_data_v0_104_current_data_title_card_style_done.json
+|   |   studio_work_incident_data_v0_105_gitdiff_viewer_launch_done.json
+|   |   studio_work_incident_data_v0_106_json_folder_open_done.json
+|   |   studio_work_incident_data_v0_107_search_state_save_load_done.json
+|   |   studio_work_incident_data_v0_108_search_state_ui_target_filter_done.json
+|   |   studio_work_incident_data_v0_109_search_state_standard_ui_hidden_done.json
+|   |   studio_work_incident_data_v0_110_search_state_ui_policy_record_done.json
+|   |   studio_work_incident_data_v0_111_expecteddef_log_compare_lookup_design_seed_added.json
+|   |   studio_work_incident_data_v0_112_viewdef_aware_object_diff_viewer_added.json
+|   |   studio_work_incident_data_v0_113_viewdef_aware_object_diff_key_matching_existing_diff_added.json
+|   |   studio_work_incident_data_v0_114_source_publication_hold_added.json
+|   |   studio_work_incident_data_v0_115_message_catalog_incident_added.json
+|   |   studio_work_incident_data_v0_116_message_catalog_data_viewdef_added.json
+|   |   studio_work_incident_data_v0_117_grid_csv_export_added.json
+|   |   studio_work_incident_data_v0_118_test_design_document_added.json
+|   |   studio_work_incident_data_v0_119_test_plan_responsibility_scope_done.json
+|   |   studio_work_incident_data_v0_120_markdown_export_mode_rules_added.json
+|   |   studio_work_incident_data_v0_121_visible_rows_md_button_visibility_guard_done.json
+|   |   studio_work_incident_data_v0_122_responsibility_refactor_first_step_added.json
+|   |   studio_work_incident_data_v0_122_responsibility_refactor_first_step_done.json
+|   |   studio_work_incident_data_v0_123_responsibility_expected_tests_first_set_done.json
+|   |   studio_work_incident_data_v0_124_test_area_folder_layout_alignment_added.json
+|   |   studio_work_incident_data_v0_124_test_area_folder_layout_alignment_done.json
+|   |   studio_work_incident_data_v0_125_responsibility_expected_diff_evidence_output_done.json
+|   |   studio_work_incident_data_v0_126_subgrid_single_line_test_pattern_viewdef_done.json
+|   |   studio_work_incident_data_v0_127_subgrid_preview_edit_action_column_polish_done.json
+|   |   studio_work_incident_data_v0_131_fieldgroup_fieldtype_strategy_config_added.json
+|   |   studio_work_incident_data_v0_132_config_folder_path_and_common_data_migration_done.json
+|   |   studio_work_incident_data_v0_133_qa_viewdef_folder_layout_alignment_added.json
+|   |   studio_work_incident_data_v0_134_qa_viewdef_folder_layout_alignment_done.json
+|   |   studio_work_incident_data_v0_135_fieldgroup_type_dynamic_switch_expecteddef_viewdef_done.json
+|   |   studio_work_incident_data_v0_136_qa_tests_responsibilities_viewdef_path_alignment_done.json
+|   |   studio_work_incident_data_v0_137_test_runner_responsibility_mjs_alignment_done.json
+|   |   studio_work_incident_data_v0_138_expecteddef_compare_strategy_pattern_added.json
+|   |   studio_work_incident_data_v0_139_expecteddef_compare_strategy_pattern_done.json
+|   |   studio_work_incident_data_v0_140_expecteddef_compare_strategy_pattern_jst_done.json
+|   |   studio_work_incident_data_v0_141_studio_datetime_format_contract_added.json
+|   |   studio_work_incident_data_v0_142_studio_datetime_format_contract_done.json
+|   |   studio_work_incident_data_v0_143_studio_datetime_format_contract_followup_done - コピー.json
 |   |   studio_work_incident_data_v0_42_md_editor_workplace_safe_done.json
 |   |   studio_work_incident_data_v0_43_md_editor_nonblocking_ux_added.json
 |   |   studio_work_incident_data_v0_44_md_editor_nonblocking_ux_implemented.json
@@ -2293,7 +2962,45 @@ F:.
 |   |   studio_work_incident_data_v0_85_file_picker_list_refresh_safety_done.json
 |   |   studio_work_incident_data_v0_86_markdown_folder_tree_picker_done.json
 |   |   studio_work_incident_data_v0_87_md_comment_sidecar_anchor_integrity_added.json
+|   |   studio_work_incident_data_v0_88_md_editor_saveas_sidecar_history_added.json
+|   |   studio_work_incident_data_v0_90_studio_overlay_manifest_added.json
+|   |   studio_work_incident_data_v0_91_studio_overlay_manifest_done_archived.json
+|   |   studio_work_incident_data_v0_92_frbstudio_app_root_path_contract_added.json
+|   |   studio_work_incident_data_v0_93_frbstudio_app_root_path_contract_done.json
+|   |   studio_work_incident_data_v0_94_batch_ps1_common_daily_log_added.json
+|   |   studio_work_incident_data_v0_95_batch_ps1_common_daily_log_done.json
+|   |   studio_work_incident_data_v0_96_pluginhost_mvp_registered.json
+|   |   studio_work_incident_data_v0_97_pluginhost_mvp_done.json
+|   |   studio_work_incident_data_v0_98_value_vocabulary_registry_diet_registered.json
+|   |   studio_work_incident_data_v0_99_value_vocabulary_registry_diet_done.json
 |   |   xxxstudio_work_incident_view_def_v0_5.json
+|   |   シュミレーションルール仮_bk.md
+|   |   シュミレーションルール仮_bk1.md
+|   |   シュミレーションルール仮_bk2.md
+|   |   シュミレーションルール仮_bk3.md
+|   |   シュミレーションルール仮_bk4.md
+|   |   シュミレーションルール仮_v0.11.md
+|   |   シュミレーションルール仮_v0.12.md
+|   |   シュミレーションルール仮_v0.13.md
+|   |   シュミレーションルール仮_v0.14.md
+|   |   シュミレーションルール仮_v0.15.md
+|   |   シュミレーションルール仮_v0.16.md
+|   |   シュミレーションルール仮_v0.17.md
+|   |   シュミレーションルール仮_v0.18.md
+|   |   シュミレーションルール仮_v0.19.md
+|   |   シュミレーションルール仮_v0.20.md
+|   |   シュミレーションルール仮_v0.21.md
+|   |   シュミレーションルール仮_v0.22.md
+|   |   シュミレーションルール仮_v0.23.md
+|   |   シュミレーションルール仮_v0.24.md
+|   |   シュミレーションルール仮_v0.25.md
+|   |   シュミレーションルール要約.md
+|   |   シュミレーションルール要約_v0.20.md
+|   |   シュミレーションルール要約_v0.21.md
+|   |   シュミレーションルール要約_v0.22.md
+|   |   シュミレーションルール要約_v0.23.md
+|   |   シュミレーションルール要約_v0.24.md
+|   |   シュミレーションルール要約_v0.25.md
 |   |   
 |   +---20260627_150837
 |   |   |   frb_studio_foundation_review_data_v0_1_github_fetch_urls_added_viewdef_candidates_rule_added.json

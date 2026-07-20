@@ -1,0 +1,136 @@
+{
+  "schema_version": "thought_graph_def_v0_1",
+  "document_type": "thought_graph_def",
+  "graph_def_id": "thought_evolution_graph_def_v0_1",
+  "title": "Thought Evolution Graph Definition",
+  "canvas": {
+    "width": 1600,
+    "height": 920,
+    "min_scale": 0.32,
+    "max_scale": 3.2,
+    "initial_scale": 1
+  },
+  "theme": {
+    "background": "#081018",
+    "panel": "#101a29",
+    "panel_alt": "#162238",
+    "line": "#34465c",
+    "text": "#f0f5ff",
+    "muted": "#93a6bc",
+    "accent": "#2ee6d6",
+    "accent_alt": "#ff6bb5",
+    "highlight": "#ffd166"
+  },
+  "node_types": [
+    {
+      "id": "trigger",
+      "label": "きっかけ",
+      "color": "#70a7ff",
+      "shape": "circle",
+      "radius": 27
+    },
+    {
+      "id": "artifact",
+      "label": "成果物",
+      "color": "#2ee6d6",
+      "shape": "rounded_rect",
+      "radius": 31
+    },
+    {
+      "id": "keyword",
+      "label": "上位概念",
+      "color": "#ffd166",
+      "shape": "diamond",
+      "radius": 30
+    },
+    {
+      "id": "difference",
+      "label": "非対称・差分",
+      "color": "#ff9e64",
+      "shape": "hexagon",
+      "radius": 31
+    },
+    {
+      "id": "question",
+      "label": "問い",
+      "color": "#ff6bb5",
+      "shape": "diamond",
+      "radius": 29
+    },
+    {
+      "id": "definition",
+      "label": "定義",
+      "color": "#b58cff",
+      "shape": "rounded_rect",
+      "radius": 32
+    },
+    {
+      "id": "principle",
+      "label": "原則",
+      "color": "#8be28b",
+      "shape": "hexagon",
+      "radius": 31
+    },
+    {
+      "id": "outcome",
+      "label": "発展",
+      "color": "#ffffff",
+      "shape": "circle",
+      "radius": 31
+    }
+  ],
+  "edge_types": [
+    {
+      "id": "led_to",
+      "label": "発展",
+      "stroke": "#6f8798"
+    },
+    {
+      "id": "triggered",
+      "label": "発火",
+      "stroke": "#ffd166"
+    },
+    {
+      "id": "reframed",
+      "label": "再定義",
+      "stroke": "#b58cff"
+    },
+    {
+      "id": "distilled",
+      "label": "蒸留",
+      "stroke": "#8be28b",
+      "dasharray": "6 4"
+    }
+  ],
+  "filters": [
+    {
+      "id": "cluster",
+      "caption": "Stage",
+      "field": "cluster"
+    },
+    {
+      "id": "source",
+      "caption": "Source",
+      "field": "source"
+    }
+  ],
+  "search_fields": [
+    "label",
+    "summary",
+    "source",
+    "cluster",
+    "tags"
+  ],
+  "detail": {
+    "show_evidence": true,
+    "show_tags": true,
+    "show_relations": true,
+    "show_metadata": true
+  },
+  "labels": {
+    "search": "思考ノード・タグを検索",
+    "empty": "思考のノードまたはリレーションを選択してください。",
+    "node_detail": "Thought Detail",
+    "insights": "Generated Insights"
+  }
+}

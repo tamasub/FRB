@@ -1,0 +1,317 @@
+{
+  "schema_version": "thought_graph_data_v0_1",
+  "document_type": "thought_graph_data",
+  "graph_id": "thought_evolution_sample",
+  "title": "思考進化 / 人間の認識構造から基準地形へ",
+  "subtitle": "思考拡張の実況中継を、データとレイアウトを分離して表示する",
+  "status": "sample",
+  "nodes": [
+    {
+      "id": "overlay_search",
+      "label": "FX以外のOverlay候補を探す",
+      "type": "trigger",
+      "cluster": "探索",
+      "source": "Gemini相談",
+      "summary": "JSONを絡めた新しいOverlay候補を探し始めた。",
+      "evidence": [
+        "FX・FFT以外のデータ探索UIを検討。"
+      ],
+      "tags": [
+        "寄り道",
+        "Overlay"
+      ]
+    },
+    {
+      "id": "viewer",
+      "label": "Thought Evolution Graph Viewer",
+      "type": "artifact",
+      "cluster": "試作",
+      "source": "GPT試作",
+      "summary": "複数文書から概念と関係を抽出し、SVGグラフとして表示した。",
+      "evidence": [
+        "外部ライブラリなしでパン・ズーム・ノード移動を実現。"
+      ],
+      "tags": [
+        "SVG",
+        "Graph"
+      ]
+    },
+    {
+      "id": "recognition",
+      "label": "人間の認識構造",
+      "type": "keyword",
+      "cluster": "Insight",
+      "source": "Generated Insight ③",
+      "summary": "ロッドだけでなく、人間が何をどう認識するかが研究対象になっているという上位概念。",
+      "evidence": [
+        "③ 本当の研究対象は、ロッドから人間の認識構造へ広がっている。"
+      ],
+      "tags": [
+        "上位概念返し",
+        "認識"
+      ]
+    },
+    {
+      "id": "asymmetry",
+      "label": "FRBとの非対称",
+      "type": "difference",
+      "cluster": "Insight",
+      "source": "人間の違和感",
+      "summary": "共通構造ではなく、片側だけにあるもの・役割の違いへ注目した。",
+      "evidence": [
+        "知っている共通点より、まだ気づいていない差分を見たい。"
+      ],
+      "tags": [
+        "非対称",
+        "Difference Radar"
+      ]
+    },
+    {
+      "id": "approval_structure",
+      "label": "人間の承認構造とは？",
+      "type": "question",
+      "cluster": "展開",
+      "source": "対話",
+      "summary": "人間が成果物を承認するとき、何を基準に認識しているのかという問い。",
+      "evidence": [
+        "振動の認識構造を人間の承認へ移植できるか。"
+      ],
+      "tags": [
+        "承認",
+        "問い"
+      ]
+    },
+    {
+      "id": "small_diff",
+      "label": "認識させる差分を小さくする",
+      "type": "principle",
+      "cluster": "展開",
+      "source": "対話",
+      "summary": "開発成果物を小さくするのではなく、人間が一度に判断する意味差分を小さくする。",
+      "evidence": [
+        "人間の承認をスムーズに行う核。"
+      ],
+      "tags": [
+        "意味差分",
+        "認知負荷"
+      ]
+    },
+    {
+      "id": "expected_terrain",
+      "label": "Expected Terrain / 基準地形",
+      "type": "definition",
+      "cluster": "理論",
+      "source": "AI承認駆動開発 #1",
+      "summary": "Expectedを単一値ではなく、正しさを判断するための全体形状として捉える。",
+      "evidence": [
+        "基準地形との差だけを人間へ見せる。"
+      ],
+      "tags": [
+        "Expected",
+        "地形"
+      ]
+    },
+    {
+      "id": "calibration",
+      "label": "承認キャリブレーション",
+      "type": "definition",
+      "cluster": "理論",
+      "source": "AI承認駆動開発 #1",
+      "summary": "Actualを見る前に、承認者が同じ基準地形を理解しているかを合わせる。",
+      "evidence": [
+        "Expected TerrainとMental Terrainの差を先に確認。"
+      ],
+      "tags": [
+        "Mental Terrain",
+        "承認"
+      ]
+    },
+    {
+      "id": "decision_log",
+      "label": "判断ログは原液",
+      "type": "principle",
+      "cluster": "蒸留",
+      "source": "対話",
+      "summary": "実作業の迷い・理由・結果を失わず残すことで、未来の基準候補を作る。",
+      "evidence": [
+        "原液がなければ蒸留はできない。"
+      ],
+      "tags": [
+        "判断ログ",
+        "原液"
+      ]
+    },
+    {
+      "id": "distillation",
+      "label": "基準は実践から蒸留する",
+      "type": "definition",
+      "cluster": "蒸留",
+      "source": "対話",
+      "summary": "最初から基準を設計せず、反復された良い判断を再利用可能な成分へ高純度化する。",
+      "evidence": [
+        "頻出だけでなく、結果・理由・人間承認が必要。"
+      ],
+      "tags": [
+        "判断蒸留",
+        "基準"
+      ]
+    },
+    {
+      "id": "studio",
+      "label": "Thought Evolution Studio",
+      "type": "outcome",
+      "cluster": "成果",
+      "source": "Studio構想",
+      "summary": "関係を眺めるViewerから、関係を承認し思考を育てるStudioへ昇格した。",
+      "evidence": [
+        "v0.1 Graph、v0.2 Approval、v0.3 Radar、v0.4 Evolution。"
+      ],
+      "tags": [
+        "Studio",
+        "Relation"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "t01",
+      "source": "overlay_search",
+      "target": "viewer",
+      "type": "led_to",
+      "label": "試作へ"
+    },
+    {
+      "id": "t02",
+      "source": "viewer",
+      "target": "recognition",
+      "type": "triggered",
+      "label": "Insight ③"
+    },
+    {
+      "id": "t03",
+      "source": "recognition",
+      "target": "asymmetry",
+      "type": "triggered",
+      "label": "違和感を回収"
+    },
+    {
+      "id": "t04",
+      "source": "asymmetry",
+      "target": "approval_structure",
+      "type": "led_to",
+      "label": "承認へ転用"
+    },
+    {
+      "id": "t05",
+      "source": "approval_structure",
+      "target": "small_diff",
+      "type": "reframed",
+      "label": "認識負荷へ"
+    },
+    {
+      "id": "t06",
+      "source": "small_diff",
+      "target": "expected_terrain",
+      "type": "reframed",
+      "label": "比較基準を地形化"
+    },
+    {
+      "id": "t07",
+      "source": "expected_terrain",
+      "target": "calibration",
+      "type": "led_to",
+      "label": "基準理解を先に"
+    },
+    {
+      "id": "t08",
+      "source": "calibration",
+      "target": "decision_log",
+      "type": "led_to",
+      "label": "判断を履歴化"
+    },
+    {
+      "id": "t09",
+      "source": "decision_log",
+      "target": "distillation",
+      "type": "distilled",
+      "label": "共通成分を抽出"
+    },
+    {
+      "id": "t10",
+      "source": "distillation",
+      "target": "studio",
+      "type": "led_to",
+      "label": "装置へ実装"
+    },
+    {
+      "id": "t11",
+      "source": "viewer",
+      "target": "studio",
+      "type": "reframed",
+      "label": "ViewerからStudioへ"
+    }
+  ],
+  "presets": [
+    {
+      "id": "all",
+      "label": "全体表示",
+      "match": {
+        "all": true
+      }
+    },
+    {
+      "id": "trigger",
+      "label": "Insight ③まで",
+      "match": {
+        "node_ids": [
+          "overlay_search",
+          "viewer",
+          "recognition"
+        ]
+      }
+    },
+    {
+      "id": "approval",
+      "label": "承認構造の展開",
+      "match": {
+        "clusters": [
+          "Insight",
+          "展開",
+          "理論"
+        ]
+      }
+    },
+    {
+      "id": "distill",
+      "label": "判断から蒸留へ",
+      "match": {
+        "clusters": [
+          "蒸留",
+          "成果"
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "title": "上位概念返しが思考を発火した",
+      "confidence": "高",
+      "body": "AIが置いた『人間の認識構造』という一語が、既存のFRB・承認・差分の思考と反応し、新しい問いを連鎖させた。",
+      "node_ids": [
+        "viewer",
+        "recognition",
+        "approval_structure"
+      ]
+    },
+    {
+      "title": "ズレた先で別の鉱脈を掘り当てた",
+      "confidence": "高",
+      "body": "振動の和音構造を承認へ当てはめる問いは直接着地しなかったが、認識させる差分を小さくするという実装可能な核へ発展した。",
+      "node_ids": [
+        "approval_structure",
+        "small_diff",
+        "expected_terrain"
+      ]
+    }
+  ]
+}

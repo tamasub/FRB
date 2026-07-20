@@ -1,0 +1,182 @@
+{
+  "schema_version": "thought_graph_def_v0_1",
+  "document_type": "thought_graph_def",
+  "graph_def_id": "quality_asset_graph_def_v0_1",
+  "title": "Quality Asset Relation Graph Definition",
+  "canvas": {
+    "width": 1600,
+    "height": 920,
+    "min_scale": 0.32,
+    "max_scale": 3.2,
+    "initial_scale": 1
+  },
+  "theme": {
+    "background": "#071018",
+    "panel": "#0f1b27",
+    "panel_alt": "#132333",
+    "line": "#294258",
+    "text": "#e9f2f8",
+    "muted": "#8fa7b8",
+    "accent": "#2ee6d6",
+    "accent_alt": "#ff6bb5",
+    "highlight": "#ffd166"
+  },
+  "node_types": [
+    {
+      "id": "constraint",
+      "label": "制約",
+      "color": "#ff7070",
+      "shape": "hexagon",
+      "radius": 30
+    },
+    {
+      "id": "responsibility",
+      "label": "責務",
+      "color": "#70a7ff",
+      "shape": "rounded_rect",
+      "radius": 31
+    },
+    {
+      "id": "guarantee",
+      "label": "保証",
+      "color": "#2ee6d6",
+      "shape": "circle",
+      "radius": 27
+    },
+    {
+      "id": "test_pattern",
+      "label": "TestPattern",
+      "color": "#8be28b",
+      "shape": "diamond",
+      "radius": 30
+    },
+    {
+      "id": "expected",
+      "label": "Expected",
+      "color": "#b58cff",
+      "shape": "rounded_rect",
+      "radius": 31
+    },
+    {
+      "id": "execution",
+      "label": "実行",
+      "color": "#ff9e64",
+      "shape": "circle",
+      "radius": 26
+    },
+    {
+      "id": "actual",
+      "label": "Actual",
+      "color": "#8bd9ff",
+      "shape": "circle",
+      "radius": 26
+    },
+    {
+      "id": "difference",
+      "label": "Diff",
+      "color": "#ffd166",
+      "shape": "diamond",
+      "radius": 29
+    },
+    {
+      "id": "approval",
+      "label": "承認",
+      "color": "#ff6bb5",
+      "shape": "hexagon",
+      "radius": 31
+    },
+    {
+      "id": "decision_log",
+      "label": "判断ログ",
+      "color": "#f6c85f",
+      "shape": "rounded_rect",
+      "radius": 32
+    },
+    {
+      "id": "baseline",
+      "label": "基準候補",
+      "color": "#ffffff",
+      "shape": "circle",
+      "radius": 30
+    }
+  ],
+  "edge_types": [
+    {
+      "id": "defines",
+      "label": "定義",
+      "stroke": "#6f8798"
+    },
+    {
+      "id": "decomposes",
+      "label": "分解",
+      "stroke": "#70a7ff"
+    },
+    {
+      "id": "verifies",
+      "label": "検証",
+      "stroke": "#8be28b"
+    },
+    {
+      "id": "compares",
+      "label": "比較",
+      "stroke": "#b58cff"
+    },
+    {
+      "id": "produces",
+      "label": "生成",
+      "stroke": "#ff9e64"
+    },
+    {
+      "id": "reveals",
+      "label": "露出",
+      "stroke": "#ffd166"
+    },
+    {
+      "id": "decides",
+      "label": "判断",
+      "stroke": "#ff6bb5"
+    },
+    {
+      "id": "records",
+      "label": "記録",
+      "stroke": "#f6c85f"
+    },
+    {
+      "id": "distills",
+      "label": "蒸留候補",
+      "stroke": "#ffffff",
+      "dasharray": "6 4"
+    }
+  ],
+  "filters": [
+    {
+      "id": "cluster",
+      "caption": "Layer",
+      "field": "cluster"
+    },
+    {
+      "id": "source",
+      "caption": "Source",
+      "field": "source"
+    }
+  ],
+  "search_fields": [
+    "label",
+    "summary",
+    "source",
+    "cluster",
+    "tags"
+  ],
+  "detail": {
+    "show_evidence": true,
+    "show_tags": true,
+    "show_relations": true,
+    "show_metadata": true
+  },
+  "labels": {
+    "search": "ノード・タグを検索",
+    "empty": "グラフのノードまたはリレーションを選択してください。",
+    "node_detail": "Node Detail",
+    "insights": "Insights"
+  }
+}
