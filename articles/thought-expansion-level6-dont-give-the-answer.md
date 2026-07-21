@@ -6,6 +6,9 @@ topics: ["ai", "communication", "thinking", "management", "mentalhealth"]
 published: true
 ---
 
+
+
+
 > サブタイトル：～**それは、もったいない。**～
 
 ## はじまりは、「なぜ面白くないのか？」だった
