@@ -3,7 +3,7 @@ title: "AI承認駆動開発 #2｜判断ログとは何か？——AIが判断�
 emoji: "🔁"
 type: "idea"
 topics: ["ai", "development", "design", "documentation", "testing"]
-published: ture
+published: false  
 ---
 
 先日、Googleで「判断ログ AI」と検索してみた。
