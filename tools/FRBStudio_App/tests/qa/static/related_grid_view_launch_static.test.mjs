@@ -24,6 +24,7 @@ test('rule review ViewDef declares a generic related Root Grid launch', () => {
   assert.equal(related[0].action, 'OpenRelatedGridView');
   assert.equal(related[0].dataPath, '$.governance_items');
   assert.equal(related[0].shellMode, 'grid_only');
+  assert.equal(related[0].launchMode, 'modal');
   assert.equal(related[0].viewDef, 'rules/governance_items_common_view_def_v0_1.json');
 });
 
@@ -55,6 +56,8 @@ test('Runtime uses ViewDef paths and parent-child array-only apply with conflict
   assert.match(runtime, /toolbar\?\.relatedGridViews/);
   assert.match(runtime, /registerStudioAction\('OpenRelatedGridView'/);
   assert.match(runtime, /postMessage/);
+  assert.match(runtime, /openRelatedGridModal/);
+  assert.match(runtime, /related-grid-modal-frame/);
   assert.match(runtime, /same array|同じ配列/);
   assert.match(runtime, /sourceData !== session\.sourceDataRef/);
   assert.doesNotMatch(runtime, /getByPath\(sourceData, ['"]\$\.governance_items['"]\)/);
@@ -65,4 +68,5 @@ test('ViewDef Schema documents generic related grid declarations', () => {
   const toolbar = schema.$defs?.toolbarOptions?.properties;
   assert.equal(toolbar?.relatedGridViews?.items?.$ref, '#/$defs/relatedGridViewOptions');
   assert.equal(schema.$defs?.relatedGridViewOptions?.properties?.shellMode?.enum?.[0], 'grid_only');
+  assert.deepEqual(schema.$defs?.relatedGridViewOptions?.properties?.launchMode?.enum, ['modal', 'new_window']);
 });

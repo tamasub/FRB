@@ -23,7 +23,7 @@
             "dataPath": "$.governance_items",
             "viewDef": "rules/governance_items_common_view_def_v0_1.json",
             "action": "OpenRelatedGridView",
-            "launchMode": "new_window",
+            "launchMode": "modal",
             "shellMode": "grid_only",
             "windowFeatures": "popup=yes,width=1600,height=920,resizable=yes,scrollbars=yes"
           }

@@ -2958,7 +2958,7 @@
     "relatedGridViewOptions": {
       "type": "object",
       "additionalProperties": true,
-      "description": "Generic declaration for opening one Data-root array in a separate Studio child window. Runtime must resolve all target paths/ViewDefs from this declaration and must not hard-code domain field names.",
+      "description": "Generic declaration for opening one Data-root array in a modal or separate Studio child view. Runtime must resolve all target paths/ViewDefs from this declaration and must not hard-code domain field names.",
       "properties": {
         "id": {
           "type": "string",
@@ -3010,12 +3010,14 @@
         "launchMode": {
           "type": "string",
           "enum": [
+            "modal",
             "new_window"
           ]
         },
         "launch_mode": {
           "type": "string",
           "enum": [
+            "modal",
             "new_window"
           ]
         },

@@ -10,6 +10,7 @@ let relatedGridChildRuntime = null;
 let relatedGridChildInitResolve = null;
 let relatedGridChildInitReject = null;
 let relatedGridChildReadyTimer = null;
+let relatedGridChildCloseApproved = false;
 
 function relatedGridQueryParams() {
   try { return new URLSearchParams(location.search); }
@@ -92,7 +93,7 @@ function relatedGridChannelId() {
   return `rg_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 }
 
-function relatedGridLaunchUrl(definition, channel) {
+function relatedGridLaunchUrl(definition, channel, hostMode='window') {
   const url = new URL(location.href);
   url.search = '';
   url.hash = '';
@@ -101,22 +102,21 @@ function relatedGridLaunchUrl(definition, channel) {
   url.searchParams.set('view', normalizeRelatedGridViewStaticPath(definition.viewDef));
   url.searchParams.set('shell', definition.shellMode || 'grid_only');
   url.searchParams.set('relatedGridId', definition.id);
+  url.searchParams.set('relatedGridHost', hostMode);
   return url.toString();
 }
 
-function openRelatedGridWindow(definition) {
+function relatedGridParentWindow(params=relatedGridQueryParams()) {
+  const hostMode = String(params.get('relatedGridHost') ?? '').trim().toLowerCase();
+  if (hostMode === 'modal' && window.parent && window.parent !== window) return window.parent;
+  if (window.opener && !window.opener.closed) return window.opener;
+  if (window.parent && window.parent !== window) return window.parent;
+  return null;
+}
+
+function createRelatedGridParentSession(definition, channel, child, extra={}) {
   const rows = relatedGridArrayFor(definition);
-  if (!rows) throw new Error(`別Grid対象がArrayではありません: ${definition.dataPath}`);
-  if (String(definition.launchMode).toLowerCase() !== 'new_window') {
-    throw new Error(`未対応のrelated Grid launchModeです: ${definition.launchMode}`);
-  }
-
-  const channel = relatedGridChannelId();
-  const url = relatedGridLaunchUrl(definition, channel);
-  const child = window.open(url, `frb_related_grid_${definition.id}_${channel}`, definition.windowFeatures || undefined);
-  if (!child) throw new Error('別Grid画面を開けませんでした。ブラウザのポップアップ許可を確認してください');
-
-  relatedGridParentSessions.set(channel, {
+  const session = {
     channel,
     child,
     definition,
@@ -125,9 +125,110 @@ function openRelatedGridWindow(definition) {
     parentDataDisplayPath: String(currentLoadedDataDisplayPath || currentDataApiUrl || ''),
     parentDataTitle: String(currentLoadedDataTitle || ''),
     baseline: stableRelatedGridJson(rows),
-    openedAt: Date.now()
+    openedAt: Date.now(),
+    ...extra
+  };
+  relatedGridParentSessions.set(channel, session);
+  return session;
+}
+
+function approveRelatedGridChildClose() {
+  relatedGridChildCloseApproved = true;
+}
+
+function relatedGridModalIsDirty(session) {
+  try {
+    return Boolean(session?.child?.relatedGridChildIsDirty?.());
+  } catch {
+    return false;
+  }
+}
+
+function closeRelatedGridModal(channel, options={}) {
+  const session = relatedGridParentSessions.get(channel);
+  if (!session?.modalOverlay) return false;
+  if (!options.force && relatedGridModalIsDirty(session)) {
+    const ok = window.confirm('親画面へ未反映の変更があります。閉じると変更は失われます。閉じますか？');
+    if (!ok) return false;
+  }
+  try { session.child?.approveRelatedGridChildClose?.(); } catch {}
+  session.modalOverlay.remove();
+  relatedGridParentSessions.delete(channel);
+  if (!document.querySelector('.related-grid-modal-overlay')) {
+    document.body.classList.remove('related-grid-modal-open');
+  }
+  return true;
+}
+
+function openRelatedGridModal(definition) {
+  const rows = relatedGridArrayFor(definition);
+  if (!rows) throw new Error(`別Grid対象がArrayではありません: ${definition.dataPath}`);
+
+  const channel = relatedGridChannelId();
+  const overlay = document.createElement('div');
+  overlay.className = 'related-grid-modal-overlay';
+  overlay.dataset.relatedGridChannel = channel;
+
+  const panel = document.createElement('section');
+  panel.className = 'related-grid-modal-panel';
+  panel.setAttribute('role', 'dialog');
+  panel.setAttribute('aria-modal', 'true');
+  panel.setAttribute('aria-label', definition.caption);
+  panel.tabIndex = -1;
+
+  const header = document.createElement('header');
+  header.className = 'related-grid-modal-header';
+  const title = document.createElement('strong');
+  title.textContent = definition.caption;
+  const closeButton = document.createElement('button');
+  closeButton.type = 'button';
+  closeButton.className = 'icon-button related-grid-modal-close';
+  closeButton.setAttribute('aria-label', '閉じる');
+  closeButton.title = '閉じる';
+  closeButton.textContent = '×';
+  header.append(title, closeButton);
+
+  const body = document.createElement('div');
+  body.className = 'related-grid-modal-body';
+  const iframe = document.createElement('iframe');
+  iframe.className = 'related-grid-modal-frame';
+  iframe.title = definition.caption;
+  body.appendChild(iframe);
+  panel.append(header, body);
+  overlay.appendChild(panel);
+  document.body.appendChild(overlay);
+  document.body.classList.add('related-grid-modal-open');
+
+  const child = iframe.contentWindow;
+  createRelatedGridParentSession(definition, channel, child, {
+    modalOverlay: overlay,
+    modalFrame: iframe,
+    modal: true
   });
+
+  closeButton.addEventListener('click', () => closeRelatedGridModal(channel));
+  iframe.src = relatedGridLaunchUrl(definition, channel, 'modal');
+  closeButton.focus();
+  return iframe;
+}
+
+function openRelatedGridWindow(definition) {
+  const rows = relatedGridArrayFor(definition);
+  if (!rows) throw new Error(`別Grid対象がArrayではありません: ${definition.dataPath}`);
+  const channel = relatedGridChannelId();
+  const url = relatedGridLaunchUrl(definition, channel, 'window');
+  const child = window.open(url, `frb_related_grid_${definition.id}_${channel}`, definition.windowFeatures || undefined);
+  if (!child) throw new Error('別Grid画面を開けませんでした。ブラウザのポップアップ許可を確認してください');
+
+  createRelatedGridParentSession(definition, channel, child);
   return child;
+}
+
+function openRelatedGridView(definition) {
+  const launchMode = String(definition.launchMode || 'new_window').trim().toLowerCase();
+  if (launchMode === 'modal') return openRelatedGridModal(definition);
+  if (launchMode === 'new_window') return openRelatedGridWindow(definition);
+  throw new Error(`未対応のrelated Grid launchModeです: ${definition.launchMode}`);
 }
 
 function removeRelatedGridButtons() {
@@ -142,7 +243,7 @@ function ensureRelatedGridButton(definition, rows) {
   button.className = 'ghost-button small related-grid-launch-button';
   button.dataset.relatedGridId = definition.id;
   button.textContent = `${definition.caption} ${rows.length}件`;
-  button.title = `${definition.dataPath} を ${definition.viewDef} で別Grid表示`;
+  button.title = `${definition.dataPath} を ${definition.viewDef} で${definition.launchMode === 'modal' ? 'モーダル' : '別Grid'}表示`;
   const addButton = $('addRowBtn');
   if (addButton && addButton.parentElement === actions) actions.insertBefore(button, addButton);
   else actions.appendChild(button);
@@ -213,14 +314,15 @@ function applyRelatedGridToParent(button) {
     setStatus(`反映対象がArrayではありません: ${relatedGridChildRuntime.dataPath}`, { kind: 'error', title: '別Grid反映エラー' });
     return;
   }
-  if (!window.opener || window.opener.closed) {
+  const parentWindow = relatedGridParentWindow();
+  if (!parentWindow) {
     setStatus('親Studio画面が閉じられているため反映できません', { kind: 'error', title: '親画面なし' });
     return;
   }
   if (button) button.disabled = true;
   relatedGridChildRuntime.applyPending = true;
   setRelatedGridShellStatus('親画面へ反映中', 'info');
-  window.opener.postMessage({
+  parentWindow.postMessage({
     namespace: RELATED_GRID_MESSAGE_NS,
     type: 'APPLY',
     channel: relatedGridChildRuntime.channel,
@@ -330,8 +432,9 @@ function sendRelatedGridReady() {
   if (!relatedGridChildRuntime?.channel && !isRelatedGridLaunchQuery()) return;
   const params = relatedGridQueryParams();
   const channel = relatedGridChildRuntime?.channel || String(params.get('relatedGridChannel') ?? '').trim();
-  if (!channel || !window.opener || window.opener.closed) return;
-  window.opener.postMessage({
+  const parentWindow = relatedGridParentWindow(params);
+  if (!channel || !parentWindow) return;
+  parentWindow.postMessage({
     namespace: RELATED_GRID_MESSAGE_NS,
     type: 'READY',
     channel
@@ -342,7 +445,7 @@ function initializeRelatedGridChildFromQuery(params=relatedGridQueryParams()) {
   if (!isRelatedGridLaunchQuery(params)) return Promise.resolve(false);
   const channel = String(params.get('relatedGridChannel') ?? '').trim();
   if (!channel) return Promise.reject(new Error('relatedGridChannel がありません'));
-  if (!window.opener) return Promise.reject(new Error('親Studio画面が見つかりません。親画面の「別Grid」ボタンから開いてください'));
+  if (!relatedGridParentWindow(params)) return Promise.reject(new Error('親Studio画面が見つかりません。親画面の「別Grid」ボタンから開いてください'));
 
   document.body.classList.add('studio-grid-only-shell');
   relatedGridChildRuntime = {
@@ -461,7 +564,8 @@ function handleParentRelatedGridMessage(event, message) {
 }
 
 async function handleChildRelatedGridMessage(event, message) {
-  if (!window.opener || event.source !== window.opener) return;
+  const parentWindow = relatedGridParentWindow();
+  if (!parentWindow || event.source !== parentWindow) return;
   if (message.channel !== relatedGridChildRuntime?.channel) return;
 
   if (message.type === 'INIT') {
@@ -524,16 +628,33 @@ window.addEventListener('message', (event) => {
 });
 
 window.addEventListener('beforeunload', (event) => {
-  if (!relatedGridChildRuntime || !relatedGridChildIsDirty()) return;
+  if (!relatedGridChildRuntime) {
+    relatedGridParentSessions.forEach(session => {
+      if (!session.modal && session.child && !session.child.closed) {
+        try { session.child.close(); } catch {}
+      }
+    });
+    return;
+  }
+  if (relatedGridChildCloseApproved || !relatedGridChildIsDirty()) return;
   event.preventDefault();
   event.returnValue = '';
+});
+
+window.addEventListener('keydown', event => {
+  if (event.key !== 'Escape' || relatedGridChildRuntime) return;
+  const modalSession = [...relatedGridParentSessions.values()].reverse().find(session => session.modalOverlay);
+  if (modalSession) {
+    event.preventDefault();
+    closeRelatedGridModal(modalSession.channel);
+  }
 });
 
 registerStudioAction('OpenRelatedGridView', async (context={}) => {
   const definition = normalizeRelatedGridDefinition(context.relatedGridView, 0);
   if (!definition) throw new Error('relatedGridView定義がありません');
-  openRelatedGridWindow(definition);
-  return { message: `${definition.caption}を別Studio画面で開きました` };
+  openRelatedGridView(definition);
+  return { message: `${definition.caption}を${definition.launchMode === 'modal' ? 'モーダル' : '別Studio画面'}で開きました` };
 }, ['OpenRelatedGrid', 'LaunchRelatedGridView']);
 
 if (isRelatedGridLaunchQuery()) document.body.classList.add('studio-grid-only-shell');
