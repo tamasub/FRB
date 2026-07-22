@@ -2955,3 +2955,92 @@ textarea.detail-subgrid-cell-input {
     justify-content: flex-end;
   }
 }
+
+/* v0.18.28-related-grid-view-launch: child Studio shell for one declared Root Grid. */
+body.studio-grid-only-shell {
+  min-height: 100vh;
+  background: #f5f8ff;
+}
+body.studio-grid-only-shell #appHeader,
+body.studio-grid-only-shell #headerSection {
+  display: none !important;
+}
+body.studio-grid-only-shell main {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 12px;
+}
+body.studio-grid-only-shell #searchSection,
+body.studio-grid-only-shell #gridSection {
+  margin-left: 0;
+  margin-right: 0;
+}
+body.studio-grid-only-shell #gridSection {
+  min-height: calc(100vh - 170px);
+}
+.related-grid-shell-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 10px;
+  padding: 10px 14px;
+  border: 1px solid #b9cdf8;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #eef4ff, #f8fbff);
+  color: #1e3a5f;
+  box-shadow: 0 6px 18px rgba(30, 64, 175, 0.08);
+}
+.related-grid-shell-banner strong {
+  font-size: 14px;
+}
+.related-grid-shell-banner span {
+  color: #506784;
+  font-size: 12px;
+}
+.related-grid-launch-button {
+  border-color: #91aef0;
+  background: #f5f8ff;
+  color: #234a8f;
+}
+.related-grid-apply-button {
+  background: linear-gradient(135deg, #2563eb, #6d4aff);
+}
+@media (max-width: 780px) {
+  .related-grid-shell-banner {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+.related-grid-shell-text {
+  display: grid;
+  gap: 3px;
+}
+.related-grid-shell-status {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  border: 1px solid #c8d5ee;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #415676;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.related-grid-shell-status[data-kind="success"] {
+  border-color: #9dd8b1;
+  background: #effcf3;
+  color: #176534;
+}
+.related-grid-shell-status[data-kind="warn"] {
+  border-color: #f1cf85;
+  background: #fff9e8;
+  color: #8b5b09;
+}
+.related-grid-shell-status[data-kind="error"] {
+  border-color: #efaaaa;
+  background: #fff2f2;
+  color: #9f2626;
+}

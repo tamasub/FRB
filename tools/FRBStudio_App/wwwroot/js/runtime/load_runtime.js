@@ -33,6 +33,7 @@ async function loadFromObjects(defObj, dataObj, label='読み込み完了', data
   loadRows();
   renderByKey('grid');
   renderByKey('viewExecuteButton');
+  if (typeof renderRelatedGridLaunchButtons === 'function') renderRelatedGridLaunchButtons();
   $('saveBtn').disabled = false;
   if ($('gridCsvExportBtn')) $('gridCsvExportBtn').disabled = false;
   if ($('exportMarkdownBtn')) $('exportMarkdownBtn').disabled = false;
@@ -260,6 +261,18 @@ function launchStatusSuffix() {
 
 async function autoLoadFromQuery() {
   const params = new URLSearchParams(location.search);
+  if (typeof isRelatedGridLaunchQuery === 'function' && isRelatedGridLaunchQuery(params)) {
+    try {
+      await initializeRelatedGridChildFromQuery(params);
+    } catch (err) {
+      console.error(err);
+      if (typeof setRelatedGridShellStatus === 'function') {
+        setRelatedGridShellStatus(`初期化エラー: ${err.message}`, 'error');
+      }
+      setStatus('別Grid起動エラー: ' + err.message, { kind: 'error', title: '別Grid起動エラー', sticky: true });
+    }
+    return;
+  }
   const viewParam = params.get('view') || params.get('def');
   const dataParam = params.get('data');
   const mode = params.get('mode') || '';

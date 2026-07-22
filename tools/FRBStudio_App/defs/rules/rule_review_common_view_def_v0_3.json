@@ -15,7 +15,19 @@
           "visible": true,
           "caption": "表示行をMD出力",
           "action": "ExportMarkdown"
-        }
+        },
+        "relatedGridViews": [
+          {
+            "id": "document_governance_items",
+            "caption": "判断軸・制約",
+            "dataPath": "$.governance_items",
+            "viewDef": "rules/governance_items_common_view_def_v0_1.json",
+            "action": "OpenRelatedGridView",
+            "launchMode": "new_window",
+            "shellMode": "grid_only",
+            "windowFeatures": "popup=yes,width=1600,height=920,resizable=yes,scrollbars=yes"
+          }
+        ]
       },
       "sections": [
         {
@@ -1199,7 +1211,7 @@
       "layout_note": "v0.18.6: Markdown出力は full_dump / review_report / document_rebuild のExport Modeで切替。rawField/markdown_export_body原文保持方式は推奨しない。"
     }
   ],
-  "layout_note": "ルール・制約・憲法・運用原則を共通表示するためのViewDef。Data原本はドメイン別JSON、ViewDefは rules 配列構造に対して共有する。v0.3では判断ログ decision_log と変更履歴 change_history を同じレビュー体験内で扱う。判断ログはまず判断内容 decision と理由 reason を中心に、必要に応じて日時・判断種別・補足を残す。",
+  "layout_note": "ルール・制約・憲法・運用原則を共通表示するためのViewDef。Data原本はドメイン別JSON、ViewDefは rules 配列構造に対して共有する。v0.3では判断ログ decision_log と変更履歴 change_history を同じレビュー体験内で扱う。判断ログはまず判断内容 decision と理由 reason を中心に、必要に応じて日時・判断種別・補足を残す。 v0.18.28ではtoolbar.relatedGridViewsにより、Data rootの別配列を汎用grid_only子画面で開ける。対象配列が存在しないDataでは起動ボタンを表示しない。",
   "currentDataDisplay": {
     "titlePath": "$.title",
     "subtitlePath": "$.target",

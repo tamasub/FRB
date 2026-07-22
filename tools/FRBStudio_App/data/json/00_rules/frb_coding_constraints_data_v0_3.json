@@ -16,6 +16,62 @@
   "approval_policy": "第1条〜第23条を1行ずつレビューし、approval_decision を「承認する」に変更することでStudioくん憲法の建国承認記録とする。",
   "preamble_title": "この文書の目的",
   "preamble": "この文書は、Studio を今後も育て続けるための恒久的なコーディング制約である。\n\nただし、これは単なる「コーディング規約」ではない。\n\nこれは、Studioくんという国の憲法である。\n\nStudio は、ただの JSON エディターではない。\n\nStudio は、JSON を「体験」に変換するためのプラットフォームである。\n\nこの文書の目的は、人間と AI が同じ思想を共有しながら、Studio を壊さず、育て続けるための共通原則を定義することである。\n\n今後、Studio のコードを変更する人間および AI は、まずこの文書を読むこと。\n\n---",
+  "governance_items": [
+    {
+      "sort_order": 10,
+      "item_id": "decision_axis_good_over_gain",
+      "item_type": "DECISION_AXIS",
+      "title": "損得より善悪",
+      "statement": "損得より善悪を優先する。ｘｘ",
+      "reason": "短期的な便益・効率・損失回避よりも、行為として正しいか、説明責任を果たせるかを先に判断するため。",
+      "scope": "document",
+      "priority": "high",
+      "status": "ACTIVE",
+      "evaluation_guidance": "案を比較するとき、得か損かを評価する前に、善悪・誠実性・説明可能性の観点で採用可能かを確認する。",
+      "verification_method": "",
+      "violation_action": "",
+      "source_decision_log_ids": [
+        "dec_0145_009"
+      ],
+      "notes": "v0.18.28-related-grid-view-launch の判断軸サンプル。"
+    },
+    {
+      "sort_order": 20,
+      "item_id": "decision_axis_safety_quality_delivery",
+      "item_type": "DECISION_AXIS",
+      "title": "安心安全・セキュリティー ＞ 品質 ＞ 納期",
+      "statement": "安心安全・セキュリティー ＞ 品質 ＞ 納期の優先順位で判断する。",
+      "reason": "納期や品質を理由に、安心安全・セキュリティーを犠牲にしないため。安全を満たしたうえで品質を追求し、その後に納期を調整する。",
+      "scope": "document",
+      "priority": "high",
+      "status": "ACTIVE",
+      "evaluation_guidance": "トレードオフが発生した場合は、安心安全・セキュリティー、品質、納期の順で優先する。上位を損なう下位最適は採用しない。",
+      "verification_method": "",
+      "violation_action": "",
+      "source_decision_log_ids": [
+        "dec_0145_010"
+      ],
+      "notes": "v0.18.28-related-grid-view-launch の判断軸サンプル。"
+    },
+    {
+      "sort_order": 30,
+      "item_id": "decision_axis_human_readability_first",
+      "item_type": "DECISION_AXIS",
+      "title": "人間の視認性を最優先",
+      "statement": "人間の視認性を最優先として考える。AI視認性に懸念が生じるときは、作業を中断し、人間と協議する。",
+      "reason": "Data JSONは人間とAIの共有原本であり、人間が読めない表現へ最適化すると承認・説明・保守の責任が失われるため。",
+      "scope": "document",
+      "priority": "high",
+      "status": "ACTIVE",
+      "evaluation_guidance": "人間可読性を先に確保する。AI処理上の都合との両立が不明な場合は、推測で形式を変更せず、作業を止めて人間へ確認する。",
+      "verification_method": "",
+      "violation_action": "",
+      "source_decision_log_ids": [
+        "dec_0145_011"
+      ],
+      "notes": "v0.18.28-related-grid-view-launch の判断軸サンプル。"
+    }
+  ],
   "rules": [
     {
       "no": 1,
@@ -1335,7 +1391,9 @@
     "view_def_role": "表示・編集・レビュー体験",
     "markdown_role": "表示用Export",
     "canonical_array": "rules",
-    "recommended_view_def": "defs/rules/rule_review_common_view_def_v0_3.json"
+    "recommended_view_def": "defs/rules/rule_review_common_view_def_v0_3.json",
+    "governance_items_role": "文書全体へ適用する判断軸・制約。各明細のdecision_logから承認・昇格した判断資産を管理する。",
+    "related_grid_view": "rules/governance_items_common_view_def_v0_1.json"
   },
   "source_schema_snapshot": {
     "file": "rule_review_common_view_def_v0_3.json",
@@ -1367,5 +1425,5 @@
     }
   ],
   "markdown_export_body": "",
-  "updated_at": "2026-07-05"
+  "updated_at": "2026-07-21"
 }
