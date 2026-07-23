@@ -1,0 +1,1081 @@
+{
+  "app": {
+    "name": "FRB Studio - Public Enterprise Accounting Learning",
+    "version": "v0.1-sample"
+  },
+  "currentDataDisplay": {
+    "titlePath": "$.title",
+    "subtitlePath": "$.target",
+    "showDataPath": true,
+    "note": "タイトルは看板、Dataパスは住所として表示する。"
+  },
+  "context": {
+    "main_context": {
+      "enabled": true,
+      "display_name": "主文脈",
+      "description": "学習全体で参照する法令・公式統計。",
+      "data_path": "$.main_context_refs",
+      "id_field": "context_ref_id",
+      "title_field": "title",
+      "target_path_field": "target_path",
+      "read_timing_field": "read_timing",
+      "failure_policy_field": "failure_policy",
+      "trust_category_field": "trust_category",
+      "purpose_field": "purpose",
+      "header_panel": {
+        "enabled": true,
+        "initially_expanded": false,
+        "summary": true,
+        "editable": false
+      },
+      "display_mode": "header_panel"
+    },
+    "target_context": {
+      "enabled": true,
+      "display_name": "設問根拠",
+      "field": "context_refs",
+      "data_path": "$.context_refs",
+      "description": "各設問を採点・復習する前に確認する根拠。",
+      "id_field": "context_ref_id",
+      "title_field": "title",
+      "target_path_field": "target_path",
+      "read_timing_field": "read_timing",
+      "failure_policy_field": "failure_policy",
+      "trust_category_field": "trust_category",
+      "purpose_field": "purpose",
+      "required_field": "required",
+      "enabled_field": "enabled",
+      "sort_order_field": "sort_order",
+      "note_field": "note",
+      "grid_summary": true,
+      "detail_panel": {
+        "enabled": true,
+        "placement": "detailTop",
+        "default_expanded": false,
+        "editable": false,
+        "summary_badges": [
+          "count",
+          "required",
+          "trust_category"
+        ]
+      }
+    }
+  },
+  "views": [
+    {
+      "id": "public_enterprise_accounting_learning",
+      "caption": "公営企業会計｜問い・回答・差分 学習Studio",
+      "layout": {
+        "detailDialog": "wide"
+      },
+      "toolbar": {
+        "executeButton": {
+          "visible": true,
+          "caption": "学習ログをMarkdown出力",
+          "action": "ExportMarkdown"
+        }
+      },
+      "markdown": {
+        "enabled": true,
+        "defaultMode": "review_report",
+        "modes": [
+          {
+            "id": "review_report",
+            "caption": "学習レビュー出力",
+            "type": "review_report",
+            "fieldPolicy": "respect_markdown_export",
+            "title": "公営企業会計 学習レビュー"
+          },
+          {
+            "id": "full_dump",
+            "caption": "全項目出力",
+            "type": "full_dump",
+            "fieldPolicy": "all",
+            "title": "公営企業会計 学習データ全項目"
+          }
+        ]
+      },
+      "sections": [
+        {
+          "id": "header",
+          "caption": "学習セット",
+          "type": "form",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "status",
+              "caption": "状態",
+              "type": "select",
+              "options": [
+                "sample_draft",
+                "active",
+                "archived"
+              ],
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "source_checked_at",
+              "caption": "根拠確認日",
+              "type": "datetime",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "question_count",
+              "caption": "設問数",
+              "type": "number",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "purpose",
+              "caption": "目的",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": false
+              },
+              "search": {
+                "visible": false
+              },
+              "markdown": {
+                "export": true,
+                "format": "paragraph"
+              }
+            },
+            {
+              "field": "study_policy",
+              "caption": "学習手順",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": false
+              },
+              "markdown": {
+                "export": true,
+                "format": "note"
+              }
+            },
+            {
+              "field": "disclaimer",
+              "caption": "注意",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": false
+              },
+              "markdown": {
+                "export": true,
+                "format": "note"
+              }
+            },
+            {
+              "field": "__header_cards",
+              "caption": "この学習画面の使い方",
+              "type": "chat",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "messages": [
+                  {
+                    "role": "constraint",
+                    "field": "purpose",
+                    "label": "目的",
+                    "readonly": true,
+                    "height": 100
+                  },
+                  {
+                    "role": "system",
+                    "field": "study_policy",
+                    "label": "学習手順",
+                    "readonly": true,
+                    "height": 100
+                  },
+                  {
+                    "role": "other",
+                    "field": "disclaimer",
+                    "label": "注意",
+                    "readonly": true,
+                    "height": 90
+                  }
+                ],
+                "input": {
+                  "enabled": false
+                }
+              },
+              "layout": {
+                "placement": "detailBody",
+                "order": 10
+              }
+            }
+          ]
+        },
+        {
+          "id": "learning_items",
+          "caption": "設問一覧",
+          "type": "grid",
+          "dataPath": "$.learning_items",
+          "keyField": "question_id",
+          "markdown": {
+            "aiPrompt": {
+              "enabled": true,
+              "title": "公営企業会計 学習コーチ依頼",
+              "targetFile": "public_enterprise_accounting_learning_data_v0_1.json",
+              "rowSource": "selected",
+              "visibleOnly": false,
+              "includeGridJson": true,
+              "template": [
+                "あなたは地方公営企業会計の学習コーチです。",
+                "以下の選択行について、学習者の回答をExpectedと比較してください。",
+                "",
+                "必須:",
+                "- 最新の公式法令・公式資料を優先して確認する",
+                "- user_answerだけでなくuser_assumption / user_question / user_reasoning / confidenceを評価する",
+                "- difference_summaryは認知可能な小さな差分として1〜3点に分ける",
+                "- ai_feedbackは責めずに、次に確認する観点を示す",
+                "- next_questionは答えが分かると次の判断が変わる問いにする",
+                "- 根拠が不足する場合は断定せず、追加確認事項を示す",
+                "",
+                "返却候補フィールド:",
+                "difference_summary / ai_feedback / next_question / understanding_status / review_priority / next_review_at",
+                "",
+                "選択行JSON:"
+              ]
+            }
+          },
+          "fields": [
+            {
+              "field": "no",
+              "caption": "No",
+              "type": "number",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 55
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "question_id",
+              "caption": "設問ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 115
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "topic",
+              "caption": "分野",
+              "type": "select",
+              "options": [
+                "制度原則",
+                "会計基礎",
+                "予算・決算",
+                "固定資産",
+                "企業債",
+                "経営分析"
+              ],
+              "grid": {
+                "visible": true,
+                "width": 115
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "subtopic",
+              "caption": "論点",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 150
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "difficulty",
+              "caption": "難易度",
+              "type": "select",
+              "options": [
+                "基礎",
+                "中級",
+                "上級"
+              ],
+              "grid": {
+                "visible": true,
+                "width": 80
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "question_type",
+              "caption": "形式",
+              "type": "select",
+              "options": [
+                "四択",
+                "問い生成",
+                "ケース分析",
+                "自由記述"
+              ],
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "title",
+              "caption": "設問タイトル",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 260
+              },
+              "edit": {
+                "visible": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "study_status",
+              "caption": "学習状態",
+              "type": "select",
+              "control": "radio",
+              "options": [
+                "未着手",
+                "学習中",
+                "復習中",
+                "習得済み"
+              ],
+              "grid": {
+                "visible": true,
+                "width": 95
+              },
+              "edit": {
+                "visible": true,
+                "control": "radio"
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "understanding_status",
+              "caption": "理解判定",
+              "type": "select",
+              "options": [
+                "未評価",
+                "要補正",
+                "概ね理解",
+                "定着"
+              ],
+              "grid": {
+                "visible": true,
+                "width": 95
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "review_priority",
+              "caption": "復習優先度",
+              "type": "select",
+              "options": [
+                "低",
+                "通常",
+                "高",
+                "最優先"
+              ],
+              "grid": {
+                "visible": true,
+                "width": 95
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "confidence",
+              "caption": "自信度",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 80,
+                "format": "0"
+              },
+              "edit": {
+                "visible": true,
+                "min": 0,
+                "max": 100,
+                "step": 5
+              },
+              "search": {
+                "visible": true,
+                "operator": "gte"
+              }
+            },
+            {
+              "field": "next_review_at",
+              "caption": "次回復習",
+              "type": "datetime",
+              "grid": {
+                "visible": true,
+                "width": 145
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "lte"
+              }
+            },
+            {
+              "field": "__question_cards",
+              "caption": "設問",
+              "type": "chat",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "messages": [
+                  {
+                    "role": "constraint",
+                    "field": "learning_objective",
+                    "label": "この設問で育てる判断",
+                    "readonly": true,
+                    "height": 80
+                  },
+                  {
+                    "role": "system",
+                    "field": "scenario",
+                    "label": "事例",
+                    "readonly": true,
+                    "height": 120
+                  },
+                  {
+                    "role": "user",
+                    "field": "question",
+                    "label": "問い",
+                    "readonly": true,
+                    "height": 100
+                  },
+                  {
+                    "role": "other",
+                    "field": "choice_a",
+                    "label": "A",
+                    "readonly": true,
+                    "height": 55
+                  },
+                  {
+                    "role": "other",
+                    "field": "choice_b",
+                    "label": "B",
+                    "readonly": true,
+                    "height": 55
+                  },
+                  {
+                    "role": "other",
+                    "field": "choice_c",
+                    "label": "C",
+                    "readonly": true,
+                    "height": 55
+                  },
+                  {
+                    "role": "other",
+                    "field": "choice_d",
+                    "label": "D",
+                    "readonly": true,
+                    "height": 55
+                  }
+                ],
+                "input": {
+                  "enabled": false
+                }
+              },
+              "layout": {
+                "placement": "detailBody",
+                "order": 20
+              }
+            },
+            {
+              "field": "learning_objective",
+              "caption": "学習目的",
+              "type": "textarea",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "markdown": {
+                "export": true
+              }
+            },
+            {
+              "field": "scenario",
+              "caption": "事例",
+              "type": "textarea",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "markdown": {
+                "export": true
+              }
+            },
+            {
+              "field": "question",
+              "caption": "問い",
+              "type": "textarea",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "markdown": {
+                "export": true
+              }
+            },
+            {
+              "field": "choice_a",
+              "caption": "A",
+              "type": "textarea",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": false
+              }
+            },
+            {
+              "field": "choice_b",
+              "caption": "B",
+              "type": "textarea",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": false
+              }
+            },
+            {
+              "field": "choice_c",
+              "caption": "C",
+              "type": "textarea",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": false
+              }
+            },
+            {
+              "field": "choice_d",
+              "caption": "D",
+              "type": "textarea",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": false
+              }
+            },
+            {
+              "field": "user_assumption",
+              "caption": "回答前の自分の前提",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 90
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "markdown": {
+                "export": true,
+                "format": "blockquote"
+              }
+            },
+            {
+              "field": "user_question",
+              "caption": "回答前に作った問い",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 100
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "markdown": {
+                "export": true,
+                "format": "blockquote"
+              }
+            },
+            {
+              "field": "user_answer",
+              "caption": "自分の回答",
+              "type": "select",
+              "control": "radio",
+              "options": [
+                "",
+                "A",
+                "B",
+                "C",
+                "D"
+              ],
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "control": "radio"
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              },
+              "markdown": {
+                "export": true
+              }
+            },
+            {
+              "field": "user_reasoning",
+              "caption": "回答理由",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "height": 120
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "markdown": {
+                "export": true,
+                "format": "paragraph"
+              }
+            },
+            {
+              "field": "answer_reveal_status",
+              "caption": "正答表示",
+              "type": "select",
+              "control": "radio",
+              "options": [
+                "非公開",
+                "公開"
+              ],
+              "grid": {
+                "visible": true,
+                "width": 85
+              },
+              "edit": {
+                "visible": true,
+                "control": "radio"
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "__answer_review_chat",
+              "caption": "Expected / Actual / Diff レビュー",
+              "type": "chat",
+              "visibleWhen": {
+                "field": "answer_reveal_status",
+                "equals": "公開"
+              },
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "messages": [
+                  {
+                    "role": "user",
+                    "field": "user_answer",
+                    "label": "Actual｜自分の回答",
+                    "readonly": true,
+                    "height": 55
+                  },
+                  {
+                    "role": "human",
+                    "field": "user_reasoning",
+                    "label": "Actual Reason｜自分の理由",
+                    "height": 100
+                  },
+                  {
+                    "role": "assistant",
+                    "field": "expected_answer",
+                    "label": "Expected｜正答",
+                    "readonly": true,
+                    "height": 55
+                  },
+                  {
+                    "role": "assistant",
+                    "field": "expected_reasoning",
+                    "label": "Expected Reason｜正答理由",
+                    "readonly": true,
+                    "height": 130
+                  },
+                  {
+                    "role": "constraint",
+                    "field": "expected_questions_text",
+                    "label": "回答前に確認したい問い",
+                    "readonly": true,
+                    "height": 130,
+                    "markdown": true
+                  },
+                  {
+                    "role": "ai",
+                    "field": "difference_summary",
+                    "label": "Diff｜認知の差分",
+                    "height": 120
+                  },
+                  {
+                    "role": "ai",
+                    "field": "ai_feedback",
+                    "label": "AI学習コーチ",
+                    "height": 120
+                  },
+                  {
+                    "role": "assistant",
+                    "field": "next_question",
+                    "label": "次の問い",
+                    "height": 100
+                  },
+                  {
+                    "role": "user",
+                    "field": "learner_followup",
+                    "label": "学習者の追加コメント",
+                    "height": 90
+                  },
+                  {
+                    "role": "ai",
+                    "field": "ai_followup_response",
+                    "label": "AI再回答",
+                    "readonly": true,
+                    "height": 100
+                  }
+                ],
+                "input": {
+                  "enabled": true,
+                  "userField": "learner_followup",
+                  "aiField": "ai_followup_response",
+                  "placeholder": "この差分への違和感、追加の問い、再説明依頼を入力…",
+                  "sendLabel": "追記",
+                  "appendPosition": "afterMessages",
+                  "appendLabel": "最新の学習者コメント",
+                  "markdown": true
+                }
+              },
+              "layout": {
+                "placement": "detailFooter",
+                "order": 500
+              }
+            },
+            {
+              "field": "expected_answer",
+              "caption": "正答",
+              "type": "text",
+              "readonly": true,
+              "visibleWhen": {
+                "field": "answer_reveal_status",
+                "equals": "公開"
+              },
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": false
+              },
+              "markdown": {
+                "export": true
+              }
+            },
+            {
+              "field": "expected_reasoning",
+              "caption": "正答理由",
+              "type": "textarea",
+              "readonly": true,
+              "visibleWhen": {
+                "field": "answer_reveal_status",
+                "equals": "公開"
+              },
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": false
+              },
+              "markdown": {
+                "export": true
+              }
+            },
+            {
+              "field": "expected_questions_text",
+              "caption": "確認すべき問い",
+              "type": "textarea",
+              "readonly": true,
+              "visibleWhen": {
+                "field": "answer_reveal_status",
+                "equals": "公開"
+              },
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": false
+              },
+              "markdown": {
+                "export": true,
+                "format": "list"
+              }
+            },
+            {
+              "field": "difference_summary",
+              "caption": "差分要約",
+              "type": "textarea",
+              "visibleWhen": {
+                "field": "answer_reveal_status",
+                "equals": "公開"
+              },
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "markdown": {
+                "export": true
+              }
+            },
+            {
+              "field": "ai_feedback",
+              "caption": "AIフィードバック",
+              "type": "textarea",
+              "visibleWhen": {
+                "field": "answer_reveal_status",
+                "equals": "公開"
+              },
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "markdown": {
+                "export": true
+              }
+            },
+            {
+              "field": "next_question",
+              "caption": "次の問い",
+              "type": "textarea",
+              "visibleWhen": {
+                "field": "answer_reveal_status",
+                "equals": "公開"
+              },
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "markdown": {
+                "export": true,
+                "format": "blockquote"
+              }
+            },
+            {
+              "field": "tags",
+              "caption": "タグ",
+              "type": "stringArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "attempts",
+              "caption": "回答履歴",
+              "type": "objectArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              }
+            },
+            {
+              "field": "decision_log",
+              "caption": "学習判断ログ",
+              "type": "objectArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              }
+            },
+            {
+              "field": "context_refs",
+              "caption": "設問根拠",
+              "type": "objectArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": false,
+                "readonly": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
