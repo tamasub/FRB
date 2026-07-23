@@ -6,6 +6,7 @@ topics: ["ai", "development", "design", "documentation", "testing"]
 published: true  
 ---
 
+
 先日、Googleで「判断ログ AI」と検索してみた。
 
 上位に出てきたのは、ざっくり言えば、
