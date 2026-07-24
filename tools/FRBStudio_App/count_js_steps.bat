@@ -4,7 +4,7 @@ setlocal EnableExtensions
 rem ===== count_js_steps runner =====
 rem Output: F:\FRB\tools\FRBStudio_App\wwwroot\countstep\countstep_yyyyMMdd_HHmmss.txt
 
-set "ROOT=F:\FRB\tools\FRBStudio_App\wwwroot"
+set "ROOT=F:\FRB\tools\FRBStudio_App"
 set "EXCLUDE_DIR=js\lib\mermaid"
 
 rem Prefer count_js_steps.py next to this BAT. Fallback to ROOT.

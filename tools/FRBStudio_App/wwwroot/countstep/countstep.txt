@@ -1,41 +1,45 @@
-count_js_steps run_datetime: 2026/07/04 23:46:13.66
+count_js_steps run_datetime: 2026/07/24 21:30:11.38
 target_folder: F:\FRB\tools\FRBStudio_App\wwwroot
 exclude_folder: js\lib\mermaid
-script: F:\FRB\tools\FRBStudio_App\wwwroot\count_js_steps.py
+script: F:\FRB\tools\FRBStudio_App\count_js_steps.py
 
 file                                         code  blank  comment  total
 ------------------------------------------------------------------------
-app.js                                        395     39        4    438
+app.js                                        397     39        5    441
 js/actions/action_registry.js                 612     74       14    700
 js/actions/action_toolbar.js                  138     25        6    169
 js/core/data_utils.js                          69     13        4     86
-js/core/field_types.js                        434     66       33    533
+js/core/field_types.js                        640     88       36    764
 js/core/file_api.js                           264     42       18    324
-js/core/loaders.js                            138     20        4    162
-js/core/overlay_manager.js                    143     25        4    172
+js/core/loaders.js                            147     21        4    172
+js/core/overlay_manager.js                    222     32        4    258
 js/core/plugin_host.js                        432     58        3    493
 js/core/registry.js                            36     11        2     49
-js/core/state.js                               45      5        7     57
+js/core/state.js                               47      5        7     59
+js/core/studio_datetime.js                     58      9        3     70
 js/core/viewdef_context_contract.js           875     85        6    966
 js/core/viewdef_resolver.js                   484     95       19    598
 js/markdown/data_markdown.js                  581     72        8    661
 js/markdown/markdown_registry.js               93     14        5    112
 js/markdown/viewdef_markdown.js                71      7        3     81
 js/renderers/field_control_registry.js         24      8        5     37
-js/renderers/field_controls.js                968    159        3   1130
-js/renderers/grid_detail.js                   869     97       14    980
+js/renderers/field_controls.js                987    162        3   1152
+js/renderers/grid_detail.js                   952    101       15   1068
 js/renderers/renderer_registry.js               7      3        2     12
 js/responsibilities/csv_exporter.js            58      8        4     70
+js/responsibilities/grid_aggregator.js         87     17        4    108
 js/responsibilities/grid_column_builder.js     23      5        4     32
-js/responsibilities/search_filter.js           81     14        4     99
-js/runtime/detail_save.js                     279     42       11    332
+js/responsibilities/search_filter.js          110     19        5    134
+js/runtime/detail_save.js                     282     42       11    335
 js/runtime/detail_subgrid_edit.js             957    104       29   1090
-js/runtime/load_runtime.js                    224     28        2    254
-js/runtime/search_state.js                    344     38        4    386
-js/ui/file_tree_picker.js                     257     39        3    299
-js/ui/page_setup.js                           126     17        2    145
+js/runtime/load_runtime.js                    306     39        5    350
+js/runtime/related_grid_view.js               593     62        5    660
+js/runtime/search_state.js                    362     39        4    405
+js/ui/file_tree_picker.js                     269     39        3    311
+js/ui/page_setup.js                           130     17        3    150
+js/ui/studio_dialog.js                        210      8        3    221
 js/virtualData/expected_builders.js           482     36        7    525
 js/virtualData/relation_builders.js           861     93        6    960
 js/virtualData/virtual_data_registry.js        13      4        2     19
 ------------------------------------------------------------------------
-TOTAL                                       10383   1346      242  11971
+TOTAL                                       11879   1496      267  13642
