@@ -120,6 +120,12 @@ Overlay
 
 FXシミュレーターは、このオーバーレイ開発のサンプルとして始めた。
 
+---
+![alt text](/images/ai-driven-development-diary-09-fx-simulator/image.png)
+![alt text](/images/ai-driven-development-diary-09-fx-simulator/image-1.png)
+
+---
+
 将来、世界のどこかにいる勇者が、
 
 - 会計学習オーバーレイ
