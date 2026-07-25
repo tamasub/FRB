@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "FRB Studio / JSON Object Studio",
-    "version": "rule-review-common-v0.3-markdown-export-mode"
+    "version": "rule-review-common-v0.3-status-responsibility-cleanup"
   },
   "views": [
     {
@@ -537,36 +537,13 @@
               }
             },
             {
-              "field": "review_status",
-              "caption": "レビュー状態",
-              "type": "select",
-              "options": [
-                "未レビュー",
-                "確認中",
-                "確認済み",
-                "要再整理",
-                "保留"
-              ],
-              "grid": {
-                "visible": true,
-                "width": 120
-              },
-              "edit": {
-                "visible": true
-              },
-              "search": {
-                "visible": true,
-                "operator": "equals"
-              },
-              "defaultValue": "未レビュー"
-            },
-            {
               "field": "verification_status",
-              "caption": "確認状態",
+              "caption": "AI確認状態",
               "type": "select",
               "options": [
                 "未確認",
                 "確認済み",
+                "要修正",
                 "対象外"
               ],
               "grid": {
@@ -575,17 +552,19 @@
               },
               "edit": {
                 "visible": true,
-                "control": "radio"
+                "readonly": true
               },
               "search": {
                 "visible": true,
                 "operator": "equals"
               },
-              "defaultValue": "未確認"
+              "defaultValue": "未確認",
+              "readonly": true,
+              "display_note": "AIまたは自動検証が更新する確認状態。人間向けレビュー画面ではreadonly表示する。"
             },
             {
               "field": "approval_decision",
-              "caption": "承認",
+              "caption": "人間承認",
               "type": "select",
               "options": [
                 "未承認",
@@ -598,14 +577,14 @@
                 "width": 110
               },
               "edit": {
-                "visible": true,
-                "control": "radio"
+                "visible": false
               },
               "search": {
                 "visible": true,
                 "operator": "equals"
               },
-              "defaultValue": "未承認"
+              "defaultValue": "未承認",
+              "display_note": "人間だけが確定する承認判断。詳細画面では確認メッセージカード内の一か所だけから操作する。"
             },
             {
               "field": "summary",
@@ -792,13 +771,13 @@
                   {
                     "role": "system",
                     "field": "ceremony_phrase",
-                    "label": "確認メッセージ",
+                    "label": "人間承認",
                     "readonly": true,
                     "height": 70,
                     "embeddedFields": [
                       {
                         "field": "approval_decision",
-                        "label": "このルールを",
+                        "label": "人間承認",
                         "type": "select",
                         "control": "radio",
                         "options": [
@@ -806,17 +785,6 @@
                           "承認する",
                           "差戻し",
                           "保留"
-                        ]
-                      },
-                      {
-                        "field": "verification_status",
-                        "label": "確認状態",
-                        "type": "select",
-                        "control": "radio",
-                        "options": [
-                          "未確認",
-                          "確認済み",
-                          "対象外"
                         ]
                       }
                     ]
@@ -836,7 +804,7 @@
                 "placement": "detailBody",
                 "order": 100
               },
-              "display_note": "レビュー対象カード。元見出し・要約・本文は編集可能。本文と要約ではMarkdownリンク/画像記法を許可し、確認メッセージは確認・承認操作用としてreadonly表示する。"
+              "display_note": "レビュー対象カード。見出し・要約・本文を確認し、確認メッセージ内の唯一の人間承認操作でapproval_decisionを更新する。AI確認状態は別のreadonly項目で表示する。"
             },
             {
               "field": "__review_chat",
@@ -1033,13 +1001,16 @@
                 "width": 120
               },
               "edit": {
-                "visible": true
+                "visible": true,
+                "readonly": true
               },
               "search": {
                 "visible": false,
                 "operator": "contains"
               },
-              "defaultValue": ""
+              "defaultValue": "",
+              "readonly": true,
+              "display_note": "人間承認の証跡メタデータ。別の承認操作ではなく、承認処理または運用記録から設定する。"
             },
             {
               "field": "approved_at",
@@ -1050,13 +1021,16 @@
                 "width": 160
               },
               "edit": {
-                "visible": true
+                "visible": true,
+                "readonly": true
               },
               "search": {
                 "visible": false,
                 "operator": "contains"
               },
-              "defaultValue": ""
+              "defaultValue": "",
+              "readonly": true,
+              "display_note": "人間承認の証跡メタデータ。別の承認操作ではなく、承認処理または運用記録から設定する。"
             },
             {
               "field": "notes",
@@ -1211,11 +1185,11 @@
       "layout_note": "v0.18.6: Markdown出力は full_dump / review_report / document_rebuild のExport Modeで切替。rawField/markdown_export_body原文保持方式は推奨しない。"
     }
   ],
-  "layout_note": "ルール・制約・憲法・運用原則を共通表示するためのViewDef。Data原本はドメイン別JSON、ViewDefは rules 配列構造に対して共有する。v0.3では判断ログ decision_log と変更履歴 change_history を同じレビュー体験内で扱う。判断ログはまず判断内容 decision と理由 reason を中心に、必要に応じて日時・判断種別・補足を残す。 v0.18.28ではtoolbar.relatedGridViewsにより、Data rootの別配列を汎用grid_only子画面で開ける。対象配列が存在しないDataでは起動ボタンを表示しない。",
+  "layout_note": "ルール・制約・憲法・運用原則を共通表示するViewDef。v0.18.30ではreview_statusを廃止し、verification_status（AI確認・readonly）とapproval_decision（人間承認）の二状態へ限定した。人間承認の編集操作は確認メッセージカード一か所だけに置く。Data原本はドメイン別JSON、ViewDefはrules配列構造に対して共有する。",
   "currentDataDisplay": {
     "titlePath": "$.title",
     "subtitlePath": "$.target",
     "showDataPath": true,
-    "note": "v0.3 filename kept. Added Markdown raw export fields for test plan MD structured data."
+    "note": "v0.3 filename kept. v0.18.30: AI verification / human approval responsibility cleanup; single human approval editor."
   }
 }

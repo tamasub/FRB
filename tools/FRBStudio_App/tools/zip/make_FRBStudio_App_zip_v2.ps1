@@ -13,7 +13,6 @@ $targetDirs = @(
     "data",
     "defs",
     "Program.cs",
-    "studio_overlays",
     "tests",
     "tools",
     "wwwroot"

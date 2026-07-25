@@ -7,14 +7,14 @@
   "target": "FRB Studio / JSON Object Studio / Test Evidence / Expected-Actual-Diff",
   "source_document": "FRB_TEST_EVIDENCE_RULES_v0_1_draft",
   "source_version": "v0.2",
-  "conversion_note": "Expected JSON / Actual JSON / Diff JSON / Test Code の責務分離に加え、03_tests配下の test_area / suite_id / artifact_kind フォルダー分類を、共通ルールレビューViewDefで扱えるように rules 配列へ構造化したData JSON。Markdownは原本ではなく、このJSONの出力Viewとして扱う想定。",
+  "conversion_note": "Expected / Actual / Diff / Test Codeの責務分離、03_testsのtest_area分類に加え、FieldDef・ValidationPolicy・共通単項目TestPatternからResolved TestCase Snapshotを導出する契約をrules配列へ構造化したData JSON。Markdownは原本ではなく、このJSONの出力Viewとして扱う。",
   "status": "updated_draft",
   "introduced_in": "v0.14.14-test-evidence-rules-contract",
   "generated_at": "2026-06-27T00:00:00+09:00",
-  "updated_at": "2026-07-04",
-  "rule_count": 16,
-  "approved_count": 16,
-  "approval_policy": "Expected / Actual / Diff / Test Code の責務を1行ずつレビューし、AI駆動開発におけるテスト証跡契約として運用する。",
+  "updated_at": "2026-07-25",
+  "rule_count": 20,
+  "approved_count": 20,
+  "approval_policy": "Rule Reviewの状態正本は verification_status（AI確認状態）と approval_decision（人間承認）の二つとする。AIは確認結果を更新できるが、人間承認を新規付与・継続・復元してはならない。AIが承認対象の意味内容を変更した場合は verification_status=未確認、approval_decision=未承認へ戻し、approved_by / approved_at をクリアして人間再承認を求める。",
   "preamble": "Test Evidence Rulesは、テスト失敗時にも人間とAIが失敗理由を追体験できるように、Expected / Actual / Diff / Test Code の責務境界を定義する。",
   "change_history_policy": "ルールを変更した場合は、各rule.change_historyへ変更前後と理由を残す。",
   "viewing_policy": "rule_review_common_view_def_v0_3.jsonでレビューし、必要に応じてMarkdown Exportする。",
@@ -23,17 +23,16 @@
       "no": 1,
       "rule_id": "test_evidence_rule_001",
       "section_no": "1",
-      "source_heading": "1. Expected / Actual / Diff / Test Code の責務分離",
+      "source_heading": "TestPattern / Expected / Actual / Diff / Test Code の責務分離",
       "source_heading_level": 2,
       "parent_rule_id": "",
       "category": "",
-      "title": "Expected / Actual / Diff / Test Code の責務分離",
+      "title": "TestPattern / Expected / Actual / Diff / Test Code の責務分離",
       "priority": "high",
-      "review_status": "未レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
-      "summary": "Expected JSONは期待値の正本、Actual JSONは観測値のみ、Diff JSONは比較結果、Test Codeは実行する仕掛けとして扱う。",
-      "body": "Test Evidence では、以下の責務を混ぜない。\n\n```text\nExpected JSON = 期待値の正本\nActual JSON   = 実行時に観測した値のみ\nDiff JSON     = Expected と Actual の比較結果\nTest Code     = 実行する仕掛け\n```\n\nExpected / Actual / Diff / Test Code の責務を分けることで、テスト失敗時にも「何を期待し、何が観測され、どこが違ったのか」をStudioくんで追体験できるようにする。\n\nActual JSON に expected / pass / summary を混ぜない。Diff JSON に観測値だけを置いて終わらせない。Test Code に期待値を直書きしない。\n\nこの分離は、AI駆動開発における証跡文化の基本契約である。\n",
+      "summary": "TestPatternは検証条件、Expected契約は期待値の正本、Actualは観測値、Diffは比較結果、Test Codeは実行する仕掛けとして扱う。Expected契約は小規模ならTestPattern内、大規模なら外部Expected参照に置くが、正本は一つにする。",
+      "body": "Test Evidence では、以下の責務を混ぜない。\n\n```text\nTestPattern       = 何を、どの条件で検証するか\nExpected契約      = 何を正しい結果とするか\nActual JSON       = 実行時に観測した値のみ\nDiff JSON         = Expected と Actual の比較結果\nTest Code / Runner = 実行・観測・比較を行う仕掛け\n```\n\nExpected契約の置き場所は、資産規模によって次のどちらかとする。\n\n```text\n小さな責務UT\n  → test_patterns[] の各行に input / expected をインライン保持してよい\n\n大きなExpected、再利用するExpected、巨大な構造Expected\n  → expected/ 配下の外部Expected正本をIDまたは相対参照で接続する\n```\n\n同じ意味のExpectedをTestPatternと外部Expectedの双方へ複製しない。\nどちらを正本とするかを一意にし、Test Codeへ期待値を直書きしない。\n\nFieldDef・ValidationPolicy・共通TestPatternから導出した具体Expectedは、承認・実行時点の版固定済みResolved TestCase Snapshotとして扱う。これは導出元とは別の手編集正本ではなく、導出元ID・version・hashを保持する再現可能な派生物である。\n\nこの分離により、テスト失敗時にも「何を期待し、何が観測され、どこが違ったのか」をStudioくんで追体験できるようにする。\n",
       "ceremony_phrase": "Test Evidence Rule 1「Expected / Actual / Diff / Test Code の責務分離」をレビューする。",
       "user_comment": "",
       "ai_response": "",
@@ -53,6 +52,14 @@
           "before": "テスト証跡ルールとして未定義。",
           "after": "Expected / Actual / Diff / Test Code の責務分離 を Test Evidence Rules として定義。",
           "reason": "Expected / Actual / Diff / Test Code の責務分離をAI作業の証跡契約として固定するため。"
+        },
+        {
+          "history_id": "chg_test_evidence_rule_001_v01829_001",
+          "at": "2026-07-25",
+          "change_type": "rule_refine",
+          "before": "title: Expected / Actual / Diff / Test Code の責務分離 / summary: Expected JSONは期待値の正本、Actual JSONは観測値のみ、Diff JSONは比較結果、Test Codeは実行する仕掛けとして扱う。",
+          "after": "title: TestPattern / Expected / Actual / Diff / Test Code の責務分離 / Expected正本をインライン・外部参照・Resolved Snapshotへ整理",
+          "reason": "小さな責務UTではinput/expectedを同じ行で承認する現行運用と、大きなExpectedを外部証跡に分離する既存フォルダー契約を矛盾なく両立させるため。"
         }
       ],
       "decision_log": [
@@ -61,6 +68,12 @@
           "at": "2026-06-27",
           "decision": "Expected / Actual / Diff / Test Code の責務を分離する。",
           "reason": "actual.jsonに比較結果が混ざると、diff.jsonの意味が消え、失敗時の追体験性が落ちるため。"
+        },
+        {
+          "decision_id": "dec_test_evidence_rule_001_v01829_001",
+          "at": "2026-07-25",
+          "decision": "Expected契約はTestPattern内インラインまたは外部Expected参照のどちらか一方を正本とし、Test Codeは正本にしない。",
+          "reason": "小さな責務UTではinput/expectedを同じ行で承認する現行運用と、大きなExpectedを外部証跡に分離する既存フォルダー契約を矛盾なく両立させるため。"
         }
       ]
     },
@@ -68,17 +81,16 @@
       "no": 2,
       "rule_id": "test_evidence_rule_002",
       "section_no": "2",
-      "source_heading": "2. Expected JSON は期待値の正本",
+      "source_heading": "Expected契約は一つの正本へ置く",
       "source_heading_level": 2,
       "parent_rule_id": "",
       "category": "",
-      "title": "Expected JSON は期待値の正本",
+      "title": "Expected契約は一つの正本へ置く",
       "priority": "high",
-      "review_status": "未レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
-      "summary": "期待値はExpected JSONに置き、テストコードへ期待値を直書きしない。",
-      "body": "Expected JSON は、テストが守るべき期待値の正本である。\n\nテストコードは Expected JSON を読み込み、そこに記録された check_id / target / type / expected / expected_value などを使って比較する。\n\nAIは、テストコード側に期待値文字列を直書きしない。\n期待値を直書きすると、Expected JSONを育てる文化が死に、Studioくんで期待値をレビュー・編集・差分確認する意味が弱くなる。\n\n期待値を変える場合は、まずExpected JSONを変更する。\nTest Codeは、期待値の保存場所ではなく、期待値を実行・観測・比較へ渡す仕掛けである。\n",
+      "summary": "ExpectedはTestPattern内または外部Expected JSONの一方を正本とし、テストコードへ直書きしない。導出Expectedは版固定された派生Snapshotとして扱う。",
+      "body": "Expected契約は、テストが守るべき期待値の正本である。\n\n正本の置き場所は、次のいずれか一方とする。\n\n```text\nA. TestPattern内インライン\n   test_patterns[].input / expected\n\nB. 外部Expected正本\n   expected/ 配下のExpected JSONをexpected_ref等で参照\n```\n\n小さな責務UTではAを基本候補とし、大きな構造Expected、複数Patternで再利用するExpected、巨大な証跡はBを検討する。\n\nAとBへ同じExpectedを二重保存しない。\nテストコードは正本のExpectedを読み、観測・比較へ渡す。AIはテストコード側に期待値文字列や期待値配列を直書きしない。\n\nFieldDef・ValidationPolicy・共通TestPatternから具体値を導出する場合、導出後のExpectedはResolved TestCase Snapshotへ固定する。Snapshotは次を保持する。\n\n```text\nfield_def_id / version / hash\nvalidation_policy_id / version / hash\ncommon_test_pattern_id / version / hash\nderivation_rule_id / version / hash\nresolved_input\nresolved_expected\nresolved_at\nsnapshot_hash\n```\n\n導出元が変わった場合は旧承認を引き継がず、再導出・差分確認・人間再承認を行う。\n",
       "ceremony_phrase": "Test Evidence Rule 2「Expected JSON は期待値の正本」をレビューする。",
       "user_comment": "",
       "ai_response": "",
@@ -98,9 +110,24 @@
           "before": "テスト証跡ルールとして未定義。",
           "after": "Expected JSON は期待値の正本 を Test Evidence Rules として定義。",
           "reason": "Expected / Actual / Diff / Test Code の責務分離をAI作業の証跡契約として固定するため。"
+        },
+        {
+          "history_id": "chg_test_evidence_rule_002_v01829_001",
+          "at": "2026-07-25",
+          "change_type": "rule_refine",
+          "before": "title: Expected JSON は期待値の正本 / summary: 期待値はExpected JSONに置き、テストコードへ期待値を直書きしない。",
+          "after": "title: Expected契約は一つの正本へ置く / Expected正本をインライン・外部参照・Resolved Snapshotへ整理",
+          "reason": "Expected.json必須とすると小さな責務UTが過剰分割される一方、すべてインラインにすると巨大Expectedの再利用性が失われるため。"
         }
       ],
-      "decision_log": []
+      "decision_log": [
+        {
+          "decision_id": "dec_test_evidence_rule_002_v01829_001",
+          "at": "2026-07-25",
+          "decision": "Expectedの正本はTestPattern内または外部Expected JSONの一方とし、導出後のResolved Snapshotは手編集正本にしない。",
+          "reason": "Expected.json必須とすると小さな責務UTが過剰分割される一方、すべてインラインにすると巨大Expectedの再利用性が失われるため。"
+        }
+      ]
     },
     {
       "no": 3,
@@ -112,7 +139,6 @@
       "category": "",
       "title": "Actual JSON は観測値のみ",
       "priority": "high",
-      "review_status": "未レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
       "summary": "actual.jsonには実行時に観測した事実だけを記録し、expected / pass / summary / failedCount を持たせない。",
@@ -157,7 +183,6 @@
       "category": "",
       "title": "Diff JSON は比較結果を持つ",
       "priority": "high",
-      "review_status": "未レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
       "summary": "diff.jsonはExpectedとActualの比較結果を保持し、判定サマリと明細の正本になる。",
@@ -195,7 +220,6 @@
       "category": "",
       "title": "判定フィールドは checks[].pass を標準とする",
       "priority": "high",
-      "review_status": "未レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
       "summary": "Diff明細の判定フィールドは checks[].pass に統一し、passed / ok / result などへ揺らさない。",
@@ -233,7 +257,6 @@
       "category": "",
       "title": "テスト失敗時もDiffを必ず残す",
       "priority": "high",
-      "review_status": "未レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
       "summary": "テストがfailする場合でも、assertより前にactual.jsonとdiff.jsonを保存する。",
@@ -272,17 +295,16 @@
       "no": 7,
       "rule_id": "test_evidence_rule_007",
       "section_no": "7",
-      "source_heading": "7. Test Code は期待値の保存場所ではない",
+      "source_heading": "Test Code / Runner は期待値の保存場所ではない",
       "source_heading_level": 2,
       "parent_rule_id": "",
       "category": "",
-      "title": "Test Code は期待値の保存場所ではない",
+      "title": "Test Code / Runner は期待値の保存場所ではない",
       "priority": "high",
-      "review_status": "未レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
-      "summary": "Test CodeはExpected JSONを読み、観測し、Actual/Diffを出力する仕掛けであり、期待値の正本ではない。",
-      "body": "Test Code は、期待値の保存場所ではない。\n\nTest Code の責務は以下である。\n\n```text\nExpected JSONを読む\n対象を実行・観測する\nActual JSONを作る\nExpectedとActualを比較する\nDiff JSONを作る\n証跡出力後にassertする\n```\n\nTest Codeに期待値を直書きすると、Expected JSONとTest Codeの二重管理になる。\n\nAIがテストコードを修正するときは、期待値をコードへ移動させていないか確認する。\n",
+      "summary": "Test Code / Runnerは承認済みTestPattern・ExpectedまたはResolved Snapshotを読み、実行・観測・比較・証跡出力を行う仕掛けであり、期待値の正本ではない。",
+      "body": "Test Code / Runner は、期待値の保存場所ではない。\n\nTest Code / Runner の責務は以下である。\n\n```text\n承認済みTestPattern / Expected / Resolved Snapshotを読む\n対象を実行・観測する\nActual JSONを作る\nExpectedとActualをCompareStrategyで比較する\nDiff JSONを作る\n証跡出力後にassertする\n```\n\nTest Codeへ期待値を直書きすると、TestPatternまたは外部Expectedとの二重管理になる。\nAIがテストコードを修正するときは、期待値をコードへ移動させていないか確認する。\n\n個別業務TestPatternごとに本番ソースを意図的に壊してRunnerの生存確認を行うことは標準必須としない。\nRunner / Adapter / CompareStrategyは別の認定試験で品質保証し、個別TestPatternでは承認済みSnapshotを実行してActual / Diffを得る。\n",
       "ceremony_phrase": "Test Evidence Rule 7「Test Code は期待値の保存場所ではない」をレビューする。",
       "user_comment": "",
       "ai_response": "",
@@ -302,9 +324,24 @@
           "before": "テスト証跡ルールとして未定義。",
           "after": "Test Code は期待値の保存場所ではない を Test Evidence Rules として定義。",
           "reason": "Expected / Actual / Diff / Test Code の責務分離をAI作業の証跡契約として固定するため。"
+        },
+        {
+          "history_id": "chg_test_evidence_rule_007_v01829_001",
+          "at": "2026-07-25",
+          "change_type": "rule_refine",
+          "before": "title: Test Code は期待値の保存場所ではない / summary: Test CodeはExpected JSONを読み、観測し、Actual/Diffを出力する仕掛けであり、期待値の正本ではない。",
+          "after": "title: Test Code / Runner は期待値の保存場所ではない / Expected正本をインライン・外部参照・Resolved Snapshotへ整理",
+          "reason": "共通Runnerを品質保証する責務と、各業務TestPatternの意味・Expectedを承認する責務を分離するため。"
         }
       ],
-      "decision_log": []
+      "decision_log": [
+        {
+          "decision_id": "dec_test_evidence_rule_007_v01829_001",
+          "at": "2026-07-25",
+          "decision": "Runnerは承認済みの期待値資産を実行する共通仕掛けとし、個別TestPatternの正本やExpected保存場所にしない。",
+          "reason": "共通Runnerを品質保証する責務と、各業務TestPatternの意味・Expectedを承認する責務を分離するため。"
+        }
+      ]
     },
     {
       "no": 8,
@@ -316,7 +353,6 @@
       "category": "",
       "title": "失敗は証跡で読む",
       "priority": "high",
-      "review_status": "未レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
       "summary": "テスト失敗は単なる赤信号ではなく、Expected/Actual/Diffで読むレビュー対象として扱う。",
@@ -354,7 +390,6 @@
       "category": "運用",
       "title": "Test Evidence Rules の適用範囲",
       "priority": "high",
-      "review_status": "未レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
       "summary": "このルールはScreen State、Responsibilities、Actions、Contracts、Visual Evidenceなど、Expected/Actual/Diffを持つテスト証跡に適用する。qaは既存互換の旧領域として扱う。",
@@ -407,7 +442,6 @@
       "category": "folder_policy",
       "title": "テスト証跡フォルダーは03_tests配下に test_area / suite_id / artifact_kind で集約する",
       "priority": "high",
-      "review_status": "未レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
       "summary": "Expected / Actual / Diff / Test Pattern / Relations / Summary / Notes は data/json/03_tests/{test_area}/{suite_id}/{artifact_kind}/ 配下を正本とする。",
@@ -466,7 +500,6 @@
       "category": "test_code_policy",
       "title": "テストコードは実行言語ごとの共通ランナーへ寄せる",
       "priority": "high",
-      "review_status": "未レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
       "summary": "テストコードは、Node.js / Playwright などコード実行言語ごとに1つの共通ランナーへ寄せ、テストケース追加はTest Pattern / Expected JSONで行うことを基本とする。",
@@ -511,7 +544,6 @@
       "category": "diff_result_format",
       "title": "Diff Resultはdiff_result_v0_1共通フォーマットへ寄せる",
       "priority": "high",
-      "review_status": "未レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
       "summary": "diff.jsonはdiff_result_v0_1共通フォーマットへ寄せ、上部サマリとchecks[].passを標準化する。",
@@ -556,7 +588,6 @@
       "category": "folder_policy",
       "title": "03_tests配下の大分類はtest_areaとして予約する",
       "priority": "high",
-      "review_status": "未レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
       "summary": "03_tests配下の大分類は test_area と呼び、definitions / responsibilities / screen_state / actions / contracts / visual_evidence / notes / qa を予約語として扱う。",
@@ -601,7 +632,6 @@
       "category": "folder_policy",
       "title": "qaは既存互換の旧・広義QA領域として扱う",
       "priority": "high",
-      "review_status": "未レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
       "summary": "qaは正式な未来分類ではなく、既存互換の旧・広義QA領域として扱い、新規標準配置先にはしない。",
@@ -640,17 +670,16 @@
       "no": 15,
       "rule_id": "test_evidence_rule_015",
       "section_no": "15",
-      "source_heading": "responsibility_expectedは責務UTの標準レイアウト候補として育てる",
+      "source_heading": "responsibility_expectedは責務UTと導出TestPatternの標準レイアウト候補として育てる",
       "source_heading_level": 2,
       "parent_rule_id": "",
       "category": "responsibility_expected",
-      "title": "responsibility_expectedは責務UTの標準レイアウト候補として育てる",
+      "title": "responsibility_expectedは責務UTと導出TestPatternの標準レイアウト候補として育てる",
       "priority": "high",
-      "review_status": "未レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
-      "summary": "responsibility_expected系は responsibilities 配下で育て、1つのtest_patterns行に responsibility_cd / input / expected を持つ小さなUTレイアウトを標準候補とする。",
-      "body": "responsibility_expected系は、責務Interface単位のUT Expectedテストとして `responsibilities` 配下で育てる。\n\n基本レイアウト:\n\n```json\n{\n  \"test_pattern_id\": \"...\",\n  \"responsibility_cd\": \"...\",\n  \"title\": \"...\",\n  \"test_level\": \"UT\",\n  \"expected_def_type\": \"RuleExpectedDef\",\n  \"enabled\": true,\n  \"input\": {},\n  \"expected\": {}\n}\n```\n\n小さな責務UTでは、`input` と `expected` を `test_patterns[]` の各行にインライン保持してよい。\nこれにより、最初のテストセットをStudioくんで読みやすくし、Expected JSONを育てる流れを優先する。\n\nただし、大きくなった場合は以下の分離を検討する。\n\n```text\ntest_patterns/ = テストパターン定義\nexpected/      = 大きな期待値の外部正本\nactual/        = 実行時観測値\ndiff/          = 比較結果\nrelations/     = 責務・Expected・テストの対応関係\nsummary/       = 実行サマリ\nnotes/         = 判断ログ・移行メモ\n```\n\n責務UTの新規資材を `qa` 直下へ増やさない。\n",
+      "summary": "responsibility_expected系は責務Interface単位のUT Expectedテストとして育て、小さな期待値はTestPattern内、大きな期待値は外部Expected参照、FieldDef由来ケースはResolved Snapshotで扱う。",
+      "body": "responsibility_expected系は、責務Interface単位のUT Expectedテストとして `responsibilities` 配下で育てる。\n\n基本レイアウト:\n\n```json\n{\n  \"test_pattern_id\": \"...\",\n  \"responsibility_cd\": \"...\",\n  \"guarantee_ids\": [\"...\"],\n  \"title\": \"...\",\n  \"test_level\": \"UT\",\n  \"expected_def_type\": \"RuleExpectedDef\",\n  \"enabled\": true,\n  \"input\": {},\n  \"expected\": {}\n}\n```\n\n小さな責務UTでは、`input` と `expected` を `test_patterns[]` の各行にインライン保持してよい。\n\n大きなExpected、再利用するExpected、巨大な構造Expectedは、`expected/` 配下の外部正本を参照する。\n同じExpectedをインラインと外部へ重複保存しない。\n\nFieldDef・ValidationPolicy・共通単項目TestPatternから導出するケースでは、TestPattern原本に `0 / 1 / 100 / 101` のような具体値を重複保持しない。承認済みの導出元からResolved TestCase Snapshotを生成し、具体入力・Expected・導出元version/hashを人間が確認してからRunnerへ渡す。\n\n基本フォルダー:\n\n```text\ntest_patterns/ = TestPattern定義またはResolved Snapshot\nexpected/      = 大きな期待値の外部正本・版固定Expected証跡\nactual/        = 実行時観測値\ndiff/          = 比較結果\nrelations/     = 責務・保証・FieldDef・Policy・Patternの対応関係\nsummary/       = 実行サマリ\nnotes/         = 判断ログ・移行メモ\n```\n\n責務UTの新規資材を `qa` 直下へ増やさない。\n",
       "ceremony_phrase": "responsibility_expectedの標準レイアウト候補をレビューする。",
       "user_comment": "",
       "ai_response": "",
@@ -670,6 +699,14 @@
           "before": "該当ルールなし。",
           "after": "test_evidence_rule_015 responsibility_expectedは責務UTの標準レイアウト候補として育てる を追加。",
           "reason": "03_tests配下の大分類・命名・新規追加先の判断を前倒しで固定し、後手後手のフォルダー増殖を防ぐため。"
+        },
+        {
+          "history_id": "chg_test_evidence_rule_015_v01829_001",
+          "at": "2026-07-25",
+          "change_type": "rule_refine",
+          "before": "title: responsibility_expectedは責務UTの標準レイアウト候補として育てる / summary: responsibility_expected系は responsibilities 配下で育て、1つのtest_patterns行に responsibility_cd / input / expected を持つ小さなUTレイアウトを標準候補とする。",
+          "after": "title: responsibility_expectedは責務UTと導出TestPatternの標準レイアウト候補として育てる / Expected正本をインライン・外部参照・Resolved Snapshotへ整理",
+          "reason": "現在の小さな責務UTの読みやすさを維持しつつ、導出Expectedと巨大Expectedの拡張先を明確にするため。"
         }
       ],
       "decision_log": [
@@ -678,6 +715,12 @@
           "at": "2026-07-04",
           "decision": "responsibility_expected系は responsibilities 配下で育て、1つのtest_patterns行に responsibility_cd / input / expected を持つ小さなUTレイアウトを標準候補とする。",
           "reason": "テスト証跡の置き場を人間とAIが同じ言葉で判断できるようにするため。"
+        },
+        {
+          "decision_id": "dec_test_evidence_rule_015_v01829_001",
+          "at": "2026-07-25",
+          "decision": "responsibility_expected系で、インラインExpected・外部Expected・FieldDef由来Resolved Snapshotの三つの役割を区別する。",
+          "reason": "現在の小さな責務UTの読みやすさを維持しつつ、導出Expectedと巨大Expectedの拡張先を明確にするため。"
         }
       ]
     },
@@ -691,7 +734,6 @@
       "category": "folder_policy",
       "title": "新規テスト証跡の置き場判定はtest_areaで行う",
       "priority": "high",
-      "review_status": "未レビュー",
       "verification_status": "確認済み",
       "approval_decision": "承認する",
       "summary": "新規テスト証跡を作る場合は、まず responsibilities / screen_state / actions / contracts / visual_evidence / definitions のどれに該当するかを判定し、qaへ安易に追加しない。",
@@ -723,6 +765,182 @@
           "at": "2026-07-04",
           "decision": "新規テスト証跡を作る場合は、まず responsibilities / screen_state / actions / contracts / visual_evidence / definitions のどれに該当するかを判定し、qaへ安易に追加しない。",
           "reason": "テスト証跡の置き場を人間とAIが同じ言葉で判断できるようにするため。"
+        }
+      ]
+    },
+    {
+      "no": 17,
+      "rule_id": "test_evidence_rule_017",
+      "section_no": "17",
+      "source_heading": "FieldDef・ValidationPolicy・共通TestPattern・Resolved Snapshotの責務分離",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "test_pattern_derivation",
+      "title": "FieldDef・ValidationPolicy・共通TestPattern・Resolved Snapshotの責務分離",
+      "priority": "high",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "FieldDefは項目事実、ValidationPolicyは判定方針、共通TestPatternは象徴的な検証観点、Resolved Snapshotは具体入力・Expectedを版固定した派生物として分離する。",
+      "body": "単項目Validation TestPatternの導出では、次の責務を分離する。\n\n```text\nFieldDef\n  = 項目の事実・契約\n  = field_id / path / data_type / required / minimum / maximum /\n    integer_only / format / allowed_values など\n\nValidationPolicy\n  = 事実をどう判定するか\n  = missing / null / empty / type / integer / range / format /\n    allowed_values の許可・拒否・Expected種別\n\nCommon SingleFieldValidation TestPattern\n  = 再利用可能な象徴的検証観点\n  = minimum_minus_step / minimum / range_midpoint など\n\nResolved TestCase Snapshot\n  = 上記三者と導出規則から生成した、承認・実行用の具体Input / Expected\n\nRunner / Adapter / CompareStrategy\n  = 承認済みSnapshotを実行し、Actual / Diffを出す共通仕掛け\n```\n\n業務Dataの実フィールド名とFieldDefは `field_id` または `path` で接続する。\nStudio Runtimeが任意Dataの `minimum` / `maximum` 等を固定名として直接解釈しない。\nこれらはFieldDef / ValidationPolicy Schemaで承認された公用語としてのみ使用する。\n\nResolved Snapshotは導出元とは別の手編集正本にしない。手修正が必要なら、FieldDef・ValidationPolicy・共通TestPattern・導出規則のいずれを改定すべきか判断し、再導出する。\n",
+      "ceremony_phrase": "FieldDef・ValidationPolicy・共通TestPattern・Resolved Snapshotの責務分離をレビューする。",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "",
+      "approved_at": "",
+      "notes": "studio_work_0146で追加した初期ルール。FieldDef等の実Data/Schemaは未実装。",
+      "source_line_start": 0,
+      "source_md_file": "",
+      "introduced_in": "v0.18.29-fielddef-validation-testpattern-derivation",
+      "change_history": [
+        {
+          "history_id": "chg_test_evidence_rule_017_v01829_001",
+          "at": "2026-07-25",
+          "change_type": "rule_added",
+          "before": "FieldDef・ValidationPolicy・共通TestPattern・Resolved Snapshotの責務分離ルールなし。",
+          "after": "test_evidence_rule_017を追加し、項目事実・判定方針・象徴Pattern・具体派生Snapshot・Runnerの責務を分離した。",
+          "reason": "具体値の重複保存と、個別テストコードへのValidation判断埋込みを防ぐため。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_test_evidence_rule_017_v01829_001",
+          "at": "2026-07-25",
+          "decision": "FieldDef・ValidationPolicy・共通TestPatternを別責務とし、具体ケースはResolved Snapshotへ導出する。",
+          "reason": "項目定義変更時に具体TestCaseを再生成でき、正本ドリフトを防げるため。"
+        }
+      ]
+    },
+    {
+      "no": 18,
+      "rule_id": "test_evidence_rule_018",
+      "section_no": "18",
+      "source_heading": "共通単項目Validation TestPatternは意味パターンとして管理する",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "test_pattern_derivation",
+      "title": "共通単項目Validation TestPatternは意味パターンとして管理する",
+      "priority": "high",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "Missing・null・型不正・整数制約・境界・範囲中央値・形式・許容値などを意味パターンとして保持し、適用可能な観点だけをFieldDefとPolicyから展開する。",
+      "body": "共通単項目Validation TestPatternは、具体値ではなく検証の意味を保持する。\n\n初期観点候補:\n\n```text\n存在・空値\n  missing\n  null\n  empty_string\n\n型・数値性\n  invalid_type\n  string_for_number\n  fraction_for_integer\n\n整数範囲（minimum / maximumがあり、integer_only=true）\n  minimum_minus_step\n  minimum\n  minimum_plus_step\n  range_midpoint\n  maximum_minus_step\n  maximum\n  maximum_plus_step\n\n形式・語彙\n  valid_format\n  invalid_format\n  allowed_value\n  disallowed_value\n```\n\nMissing、null、空文字は同じ意味としてまとめない。\n文字列、数値、小数も同じ型不正として一行に潰さず、ValidationPolicyが別Expectedを要求する場合は別観点として扱う。\n\nすべての項目へ全Patternを強制しない。\nFieldDefとValidationPolicyから適用条件を判定し、適用不能なPatternは `not_applicable`、同じ具体入力へ収束したPatternは `collapsed` として理由を残す。\n\n例:\n\n```text\nrequired=false\n  → missing拒否Patternを自動生成しない、または許可Expectedとして生成する\n\ninteger_only=false\n  → fraction_for_integerはnot_applicable\n\nminimum / maximumの片方がない\n  → range_midpointはnot_applicable\n```",
+      "ceremony_phrase": "共通単項目Validation TestPatternの初期観点と適用条件をレビューする。",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "",
+      "approved_at": "",
+      "notes": "初期観点。複数項目相関、乱数、組合せ爆発対策は対象外。",
+      "source_line_start": 0,
+      "source_md_file": "",
+      "introduced_in": "v0.18.29-fielddef-validation-testpattern-derivation",
+      "change_history": [
+        {
+          "history_id": "chg_test_evidence_rule_018_v01829_001",
+          "at": "2026-07-25",
+          "change_type": "rule_added",
+          "before": "共通単項目Validation観点の体系的なルールなし。",
+          "after": "存在・空値、型・数値性、整数範囲、形式・語彙の意味Patternと適用条件を追加した。",
+          "reason": "各項目で0/null/文字列等を都度思いつき追加する運用を避け、共通観点の承認へ集約するため。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_test_evidence_rule_018_v01829_001",
+          "at": "2026-07-25",
+          "decision": "共通Validation Patternは具体入力値ではなく意味Patternとして管理し、適用可能なものだけを展開する。",
+          "reason": "FieldDef変更に追従しながら、不要Patternの大量生成と具体値の二重管理を防ぐため。"
+        }
+      ]
+    },
+    {
+      "no": 19,
+      "rule_id": "test_evidence_rule_019",
+      "section_no": "19",
+      "source_heading": "整数範囲の境界値とrange_midpointを導出する",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "test_pattern_derivation",
+      "title": "整数範囲の境界値とrange_midpointを導出する",
+      "priority": "high",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "inclusiveな整数範囲の初期標準ではstep=1とし、minimum±1、maximum±1、range_midpointを導出する。range_midpointの端数は0方向へ切り捨てる。",
+      "body": "初期標準として、`minimum` と `maximum` を含む整数項目（`integer_only=true`、inclusive境界）では、次を導出する。\n\n```text\nminimum_minus_step = minimum - 1\nminimum            = minimum\nminimum_plus_step  = minimum + 1\nrange_midpoint     = trunc_toward_zero((minimum + maximum) / 2)\nmaximum_minus_step = maximum - 1\nmaximum            = maximum\nmaximum_plus_step  = maximum + 1\n```\n\n`range_midpoint` は統計上のmedianではない。許容範囲の代表正常値を意味する。\n内部キーは `range_midpoint` とする。\n\n例:\n\n```text\nminimum=1, maximum=100\n  → 0, 1, 2, 50, 99, 100, 101\n\nminimum=-100, maximum=-1\n  → midpoint=-50  （-50.5を0方向へ切り捨て）\n```\n\n狭い範囲では、minimum_plus_step、range_midpoint、maximum_minus_step等が同じ具体値へ収束する場合がある。\nその場合は同一InputのTestCaseを無意味に重複させず、次のいずれかで扱う。\n\n```text\ncollapsed_from\n  = 同じ具体値へ収束したsymbolic pattern IDを列挙する\n\nnot_applicable\n  = 範囲内に独立した具体値を作れない理由を記録する\n```\n\n小数許容項目のboundary step、exclusive境界、日付・時刻・文字長等のstepは、この初期規則から推測しない。明示的なValidationPolicyまたは後続導出規則がない場合は、人間へ確認する。\n",
+      "ceremony_phrase": "整数範囲の境界値とrange_midpoint導出規則をレビューする。",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "",
+      "approved_at": "",
+      "notes": "ユーザー判断によりrange_midpointの端数は0方向へ切り捨てる。",
+      "source_line_start": 0,
+      "source_md_file": "",
+      "introduced_in": "v0.18.29-fielddef-validation-testpattern-derivation",
+      "change_history": [
+        {
+          "history_id": "chg_test_evidence_rule_019_v01829_001",
+          "at": "2026-07-25",
+          "change_type": "rule_added",
+          "before": "範囲中央値と境界具体値の共通導出ルールなし。",
+          "after": "inclusive整数範囲のminimum±1、maximum±1、range_midpoint、0方向切り捨て、重複収束時の扱いを追加した。",
+          "reason": "境界値と正常代表値を項目ごとに手入力せず、一意かつ再現可能に展開するため。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_test_evidence_rule_019_v01829_001",
+          "at": "2026-07-25",
+          "decision": "range_midpointはtrunc_toward_zero((minimum + maximum) / 2)で導出する。",
+          "reason": "整数項目の代表正常値を一意にし、端数切り捨てというユーザー判断を機械実行可能な規則へ固定するため。"
+        }
+      ]
+    },
+    {
+      "no": 20,
+      "rule_id": "test_evidence_rule_020",
+      "section_no": "20",
+      "source_heading": "導出TestCaseは具体値・Expected・由来を人間承認してからRunnerへ渡す",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "approval_traceability",
+      "title": "導出TestCaseは具体値・Expected・由来を人間承認してからRunnerへ渡す",
+      "priority": "high",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "抽象Patternだけでなく、導出後の具体Input・Expected・適用/収束状態・導出元version/hashを人間が確認し、承認済みSnapshotだけをRunnerが実行する。",
+      "body": "FieldDef・ValidationPolicy・共通TestPatternから導出したTestCaseは、Runner実行前にResolved TestCase Snapshotとして版固定する。\n\n承認Viewでは、少なくとも次を表示する。\n\n```text\nresolved_test_case_id\nfield_id / path\nsymbolic_pattern_id\nresolved_input\nresolved_expected\nexpected_def_type\nexpected_value_source  = Literal / Reference / Derived\ncompare_strategy\napplicability_status   = applicable / not_applicable / collapsed\ncollapsed_from\nfield_def_version / hash\nvalidation_policy_version / hash\ncommon_pattern_version / hash\nderivation_rule_version / hash\nsnapshot_hash\n```\n\n人間は抽象規則だけでなく、最終的に実行される具体値とExpectedを確認する。\n例: `minimum=1 / maximum=100` なら、`0 / 1 / 2 / 50 / 99 / 100 / 101` と各Expectedを承認Viewで確認する。\n\n導出元のいずれかが変わった場合、Snapshotの承認状態を未承認へ戻し、再導出・差分確認・人間再承認を行う。\nRunnerは実行時に独自判断で具体値やExpectedを変更しない。承認済みSnapshotを入力として対象処理を実行し、Actual / Diffを出力する。\n\nRunner / Adapter / CompareStrategy自体の品質は別の認定試験で保証する。個別業務TestPatternのたびに本番ソース破壊を必須化しない。\n",
+      "ceremony_phrase": "導出TestCaseの承認・版固定・Runner受渡し契約をレビューする。",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "",
+      "approved_at": "",
+      "notes": "Schema/ViewDef/導出エンジン/Runner実装は後続。",
+      "source_line_start": 0,
+      "source_md_file": "",
+      "introduced_in": "v0.18.29-fielddef-validation-testpattern-derivation",
+      "change_history": [
+        {
+          "history_id": "chg_test_evidence_rule_020_v01829_001",
+          "at": "2026-07-25",
+          "change_type": "rule_added",
+          "before": "導出TestCaseの承認・版固定・Runner受渡し契約なし。",
+          "after": "具体Input/Expected、適用状態、導出元version/hash、snapshot_hashを確認してからRunnerへ渡す契約を追加した。",
+          "reason": "抽象ルールが正しくても最終具体値を人間が認知できない状態を避け、再現可能な承認単位を作るため。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_test_evidence_rule_020_v01829_001",
+          "at": "2026-07-25",
+          "decision": "Runnerは承認済みResolved Snapshotだけを実行し、導出元変更時は再承認する。",
+          "reason": "実行時の暗黙導出やExpected変更を防ぎ、人間が承認した具体差分と実行結果を一致させるため。"
         }
       ]
     }
@@ -757,9 +975,21 @@
       "at": "2026-07-04",
       "topic": "03_tests test_area分類整理",
       "note": "v0.18.9で、03_tests配下の大分類を domain ではなく test_area と呼び、definitions / responsibilities / screen_state / actions / contracts / visual_evidence / notes / qa を予約語として整理。qaは既存互換の旧・広義QA領域として扱う。"
+    },
+    {
+      "note_id": "note_test_evidence_v01829_001",
+      "at": "2026-07-25",
+      "topic": "FieldDef / ValidationPolicy / TestPattern導出",
+      "note": "v0.18.29で、Expectedの正本をTestPattern内または外部Expectedの一方へ置くよう既存4ルールを再整理し、FieldDef・ValidationPolicy・共通単項目TestPattern・range_midpoint・Resolved Snapshot・人間承認の4ルールを追加。変更ルールは人間再レビューのため未承認へ戻した。"
+    },
+    {
+      "note_id": "note_rule_review_status_v01830_001",
+      "at": "2026-07-25",
+      "topic": "Rule Review状態の二項目化",
+      "note": "v0.18.30でreview_statusを廃止し、verification_status（AI）とapproval_decision（人間）の二状態へ統合。旧review_statusは重複した人間ワークフロー表示であり正本には継承しない。旧verification_status=実装済みは確認済みへ、旧approval_decision=未判断/承認待ちは未承認へ正規化。既存のapproved_by/approved_at欠落値は推測補完しない。"
     }
   ],
-  "review_revision": "v0.18.9-test-area-folder-policy-alignment",
+  "review_revision": "v0.18.29-fielddef-validation-testpattern-derivation",
   "view_def_candidates": [
     {
       "view_def": "rules/rule_review_common_view_def_v0_3.json",
@@ -768,5 +998,6 @@
       "status": "active",
       "note": "Test Evidence Rulesをレビューする標準ViewDef"
     }
-  ]
+  ],
+  "markdown_export_body": ""
 }

@@ -6,26 +6,26 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-07-21",
+  "updated_at": "2026-07-25",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 134,
+  "items_count": 135,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
-    "generated_at": "2026-07-21",
+    "generated_at": "2026-07-25",
     "purpose": "判断ログ要約・横断分析および新規インシデント登録のため、メインインシデントと完了アーカイブを統合したフルデータ。",
     "base_file": "studio_work_incident_data_v2.json",
     "archive_source_file": "studio_work_incident_archive_completed_to_0079_v0_1_archive_eternal.json",
     "merge_key": "work_item_id",
     "merge_strategy": "本体を正とし、archive側は本体に存在しないwork_item_idのみ復元する。",
-    "base_items_count": 80,
+    "base_items_count": 81,
     "archive_items_count": 54,
     "restored_items_count": 54,
     "duplicate_ids_between_sources": 0,
-    "merged_items_count": 134,
+    "merged_items_count": 135,
     "restored_field_normalization": "復元項目にfollow_up_status=UNASSESSED / follow_up_actions=[]を補完。その他のarchive内容は保持。"
   },
   "work_items": [
@@ -6142,13 +6142,24 @@
       "incident_type": "open_issue",
       "category": "rule_review_workflow",
       "priority": "high",
-      "status": "未着手",
-      "follow_up_status": "UNASSESSED",
-      "follow_up_actions": [],
+      "status": "完了（後続あり）",
+      "follow_up_status": "PENDING",
+      "follow_up_actions": [
+        {
+          "action_type": "APPROVAL_HASH_GUARD",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "foundation_rule_024"
+          ],
+          "summary": "approved_content_hash等で承認時内容と現内容の不一致を検知し、Runtimeで未承認へ自動失効させる。",
+          "note": "今回の対象はルール・ViewDef・Data移行。Runtime自動強制は後続。"
+        }
+      ],
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-06-27",
-      "updated_at": "2026-06-27",
+      "updated_at": "2026-07-25",
       "target_files": "data/json/00_rules/frb_*_data_v*.json（frb_view_def_schema_review_data_v0_1.json は必要時のみ別扱い）, data/json/00_rules/frb_test_evidence_rules_data_v0_1.json, data/json/00_rules/frb_coding_constraints_data_v0_3.json, data/json/00_rules/frb_foundation_rules_data_v0_1.json, defs/rules/rule_review_common_view_def_*.json, rules/studio_work_incident_view_def_*.json",
       "target_rule_files": "frb_coding_constraints_data_v0_3.json / frb_foundation_rules_data_v0_1.json / frb_test_evidence_rules_data_v0_1.json / rule_review_common_view_def_*.json",
       "objective": "Rule Review系データにおける review_status / verification_status / approval_decision の意味、単一正本、UI上の表示・操作責務、人間とAIの権限範囲を整理する。特に、AIがルール本文・章・要約・分類などを修正した場合に、その章またはルール行が未承認・未確認・未レビューへ戻るべきかを運用ルールとして定義する。",
@@ -6162,8 +6173,8 @@
       "test_points": "AIがルール本文を修正した場合に承認/確認/レビュー状態がどう扱われるべきかを確認する。グリッド・上部詳細・確認メッセージカードが同じ正本フィールドを見ていることを確認する。人間だけが最終承認できる状態になっているか確認する。verification_statusとapproval_decisionが二つ必要か、一つに寄せられるかを確認する。",
       "user_request": "承認欄・確認状態欄の使い分けは一旦懸案としてインシデントに追加したい。特に、ある章をAIが修正したら、その章は未承認状態にならないといけない。また、確認状態欄と承認欄などについて、人間orAIの責務を明確に運用定義する必要がある。二ついるかどうかも含めて、ひとまず懸案として残したい。",
       "ai_response": "Rule Review承認/確認状態の単一正本化と責務整理を懸案インシデントとして追加する。即時修正ではなく、AI修正時の未承認リセット、人間/AI責務、verification_statusとapproval_decisionの要否を次工程で整理する対象として管理する。",
-      "latest_user_comment": "承認欄・確認状態欄の使い分けは一旦懸案としてインシデントに追加したい。AIが章を修正した場合の未承認化、人間/AIの責務、確認状態欄と承認欄が二つ必要かを後で整理したい。",
-      "latest_ai_response": "懸案として studio_work_0049 を追加。現時点ではViewDef/Runtime修正は行わず、Rule Reviewステータス運用の設計課題として残す。",
+      "latest_user_comment": "ルールの改定とレビューViewDefを使っているやつ全部について、データのクリーニングをいっきにお願いしたい。問題となるようなデータがなければ一括対応してほしい。",
+      "latest_ai_response": "重大な移行阻害データはなく、一括対応を完了。review_statusを廃止し、verification_status=AI確認、approval_decision=人間承認へ統合。共通ViewDefの人間承認操作を一か所へ限定し、8 Data JSON・245既存Ruleを正規化した。",
       "discussion_history": [
         {
           "history_id": "disc_0049_001",
@@ -6185,6 +6196,20 @@
           "speaker": "user",
           "topic": "懸案追加依頼",
           "message": "一旦懸案としてインシデントに追加したい。AIが章を修正したら、その章は未承認状態にならないといけない。確認状態欄と承認欄などについて、人間orAIの責務を明確に運用定義する必要がある。二ついるかどうかも後で整理したい。"
+        },
+        {
+          "history_id": "disc_0049_004",
+          "at": "2026-07-25",
+          "speaker": "user",
+          "topic": "Rule Review状態ルール改定と一括クリーニング依頼",
+          "message": "ルールの改定とレビューViewDefを使っているやつ全部について、データのクリーニングをいっきにお願いしたい。問題となるようなデータがなければ一括対応してほしい。"
+        },
+        {
+          "history_id": "disc_0049_005",
+          "at": "2026-07-25",
+          "speaker": "assistant",
+          "topic": "Rule Review状態責務整理・一括移行結果",
+          "message": "review_statusを廃止し、verification_statusをAI確認、approval_decisionを人間承認の正本として整理。共通ViewDefではAI確認をreadonly、人間承認操作を確認カード一か所へ限定し、利用Data 8ファイルを一括移行した。"
         }
       ],
       "decision_log": [
@@ -6211,6 +6236,30 @@
           "at": "2026-06-27",
           "decision": "verification_status と approval_decision が二つ必要かを検討課題として残す。",
           "reason": "状態項目が多すぎると運用が重くなり、違いが分からなくなるため。必要性が薄い場合は統合・非表示・readonly化を検討する。"
+        },
+        {
+          "decision_id": "dec_0049_005",
+          "at": "2026-07-25",
+          "decision": "Rule Reviewの状態正本はverification_statusとapproval_decisionの二つに限定する。",
+          "reason": "review_statusは人間承認と重複し、未レビュー・未確認・未承認の不整合を生むため。"
+        },
+        {
+          "decision_id": "dec_0049_006",
+          "at": "2026-07-25",
+          "decision": "verification_statusはAI、approval_decisionは人間が更新する。",
+          "reason": "確認と承認の主体を明確に分離し、人間承認をAIが代行しないため。"
+        },
+        {
+          "decision_id": "dec_0049_007",
+          "at": "2026-07-25",
+          "decision": "AIが承認対象の意味を変更した場合、人間承認を未承認へ戻す。",
+          "reason": "人間承認は承認時点の意味内容にだけ有効であり、変更後へ持ち越せないため。"
+        },
+        {
+          "decision_id": "dec_0049_008",
+          "at": "2026-07-25",
+          "decision": "人間承認の編集UIは確認メッセージカード内の一か所だけにする。",
+          "reason": "同一フィールドでも複数箇所から操作できると二重承認に見え、運用を誤解させるため。"
         }
       ],
       "change_history": [
@@ -6221,9 +6270,17 @@
           "before": "Rule Reviewの承認/確認状態の責務とAI修正時の未承認化が作業項目として管理されていなかった。",
           "after": "studio_work_0049 として、Rule Review承認/確認状態の単一正本化と責務整理を懸案追加。",
           "reason": "ルール系DataをAIが更新する運用が始まったため、承認状態の信頼性と人間/AIの責務境界を明確にする必要がある。"
+        },
+        {
+          "history_id": "chg_0049_002",
+          "at": "2026-07-25",
+          "change_type": "rule_review_status_cleanup",
+          "before": "Rule Review Dataにreview_status / verification_status / approval_decisionが併存し、共通ViewDefで承認と確認を複数箇所から編集できた。",
+          "after": "review_statusを廃止し、AI確認と人間承認の二項目へ統合。共通ViewDefの人間承認操作を一か所へ限定し、利用Dataを一括正規化した。",
+          "reason": "状態の単一正本と人間・AIの責務境界を明確にするため。"
         }
       ],
-      "verification_status": "未確認",
+      "verification_status": "確認済み",
       "context_def_status": "draft",
       "context_def_updated_at": "2026-06-28",
       "context_def_draft": "# ContextDef素案: v0.14.19-rule-review-status-responsibility-issue\n\n## 読む目的\nRule Review系データにおける review_status / verification_status / approval_decision の意味、単一正本、UI上の表示・操作責務、人間とAIの権限範囲を整理する。特に、AIがルール本文・章・要約・分類などを修正した場合に、その章またはルール行が未承認・未確認・未レビューへ戻るべきかを運用ルールとして定義する。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0016` / v0.9-rules-json-source-of-truth: ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。\n- `studio_work_0017` / v0.9-rule-review-common-viewdef-polish: 共通Rule Review ViewDefの汎用化・targetFile固定解消の方針を確認する。\n- `studio_work_0049` / v0.14.19-rule-review-status-responsibility-issue: 承認/確認状態の責務整理と単一正本化の文脈を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、MarkdownはExport Viewという分離を崩さない。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\n承認状態・確認状態・レビュー状態の意味を整理する。グリッド/上部詳細/確認メッセージカードが同じ正本フィールドを表示しているか確認する。AIがルール本文や章を修正した場合のステータスリセットルールを定義する。人間が最終承認する項目と、AIが作業都合で更新してよい項目を分離する。verification_status と approval_decision の両方が必要か、統合できるかを検討する。\n\n## 注意すべきリスク\nAIが修正したルールを承認済みのまま残すと、人間未確認の内容が正本化されるリスクがある。逆に状態項目を増やしすぎると、未レビュー/未確認/未承認の違いが分からなくなり、レビュー運用が重くなる。UI上で同じ状態を複数箇所から編集できる場合、正しくても二重管理に見えて人間が不安になる。\n\n## 確認観点メモ\nAIがルール本文を修正した場合に承認/確認/レビュー状態がどう扱われるべきかを確認する。グリッド・上部詳細・確認メッセージカードが同じ正本フィールドを見ていることを確認する。人間だけが最終承認できる状態になっているか確認する。verification_statusとapproval_decisionが二つ必要か、一つに寄せられるかを確認する。",
@@ -6293,7 +6350,11 @@
           "sort_order": 50,
           "note": ""
         }
-      ]
+      ],
+      "fixed_in_version": "v0.18.30-rule-review-status-responsibility-cleanup",
+      "actual_updated_files": "data/json/00_rules/frb_coding_constraints_data_v0_3.json\ndata/json/00_rules/frb_diff_result_format_rules_data_v0_1.json\ndata/json/00_rules/frb_foundation_rules_data_v0_1.json\ndata/json/00_rules/frb_test_evidence_rules_data_v0_2.json\ndata/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json\ndata/json/00_rules/md/RULE_REVIEW_STATUS_RESPONSIBILITY_CLEANUP_REPORT_v0_18_30.md\ndata/json/00_rules/studio-overlay-manifest_rules_data_v0_1.json\ndata/json/00_rules/studio_context_engineer_wannabe_foundation_rules_data_v0_1_draft.json\ndata/json/00_rules/studio_test_plan_responsibility_scope_md_data_v0_1.json\ndata/json/01_main/_studio_work_incident_data_v2.json\ndefs/rules/rule_review_common_view_def_v0_3.json",
+      "completion_summary": "Rule Reviewのreview_statusを廃止し、AI確認状態と人間承認の二項目へ統合。共通ViewDefの人間承認操作を一か所へ限定し、利用Data 8ファイル・既存245Ruleを一括クリーニングした。",
+      "test_result": "対象8 Data JSONとViewDefのJSON parse成功。review_status残存0件、状態値不正0件、approved_count整合、rule_id重複なし、ViewDefのapproval編集UI 1か所、verification readonlyを確認。 node --test tests/qa/static/*.test.mjs は7件成功・4件失敗。失敗4件は添付ZIPに studio_overlays/thought_evolution 資材が存在しないENOENTで、本変更とは無関係。関連するrule review / related grid static確認は成功。"
     },
     {
       "work_item_id": "studio_work_0050",
@@ -6476,13 +6537,13 @@
       "incident_type": "rules_review",
       "category": "",
       "priority": "high",
-      "status": "未着手",
-      "follow_up_status": "UNASSESSED",
+      "status": "完了",
+      "follow_up_status": "COMPLETED",
       "follow_up_actions": [],
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-06-27",
-      "updated_at": "2026-06-27",
+      "updated_at": "2026-07-25",
       "target_files": "data/json/01_main/studio_work_incident_data_*.json, defs/rules/*review*.json, data/json/00_rules/*.json",
       "target_rule_files": "data/json/00_rules/frb_foundation_rules_data_v0_1.json, data/json/00_rules/frb_coding_constraints_data_v0_3.json",
       "objective": "人間が最終判断する項目、AIが更新してよい項目、AI更新後に未承認へ戻すべき状態項目を整理し、承認・確認・レビュー状態の責務境界を明確にする。",
@@ -6496,8 +6557,8 @@
       "test_points": "AIが本文を変更した場合、要約だけ変更した場合、ViewDefだけ変更した場合の状態更新ルールが整理されていること。",
       "user_request": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。",
       "ai_response": "Human / AI Responsibility Rules 人間・AI責務境界ルール を将来対応インシデントとして追加。現時点では実装・ルール本文改正は行わず、必要を感じたタイミングで個別フェーズとして着手できるよう、目的・範囲・リスク・確認観点を整理した。",
-      "latest_user_comment": "普通にAI駆動開発をガシガシ回す人が作るルール系統で、まだStudioくんに無いルール系を、今後必要を感じたら徐々に対応できるよう、漏れないようにインシデントに分けて追加したい。",
-      "latest_ai_response": "将来ルール候補をインシデント化。必要になった時点で個別にルール本文・ViewDef・テスト証跡へ反映する。",
+      "latest_user_comment": "AIが意味のある変更を行ったときに承認を未承認へ戻すルールを重たいルールとして残し、確認はAI、承認は人間の二項目へ整理したい。",
+      "latest_ai_response": "Foundation Rule 024・025として、人間承認の意味同一性、AI変更時の承認失効、AI確認と人間承認の二項目契約を正本化した。",
       "discussion_history": [
         {
           "history_id": "disc_0051_001",
@@ -6512,6 +6573,20 @@
           "speaker": "assistant",
           "topic": "将来ルール候補の整理",
           "message": "Human / AI Responsibility Rules 人間・AI責務境界ルール はAI駆動開発を継続運用する上で必要になり得るため、未着手インシデントとして登録し、後で必要性が高まった時に実作業化する。"
+        },
+        {
+          "history_id": "disc_0051_003",
+          "at": "2026-07-25",
+          "speaker": "user",
+          "topic": "人間承認の意味同一性原則",
+          "message": "AIができるのは、意味のある変更を行ったときに承認を未承認に変更するというルールを、重たいルールとして残しておきたい。"
+        },
+        {
+          "history_id": "disc_0051_004",
+          "at": "2026-07-25",
+          "speaker": "assistant",
+          "topic": "Human / AI Responsibility Rules正本化",
+          "message": "人間承認の意味同一性とAI変更時の承認失効をFoundationへ、Rule Reviewの状態責務と単一承認操作をFoundation/ViewDef Rulesへ正本化した。"
         }
       ],
       "decision_log": [
@@ -6520,6 +6595,12 @@
           "at": "2026-06-27",
           "decision": "現時点ではルール本文へ即反映せず、将来対応インシデントとして残す。",
           "reason": "今すぐ全ルールを増やすとStudioくんのルール体系が太りすぎるため。必要性を感じた段階で、対象ルールファイルごとに個別対応する。"
+        },
+        {
+          "decision_id": "dec_0051_002",
+          "at": "2026-07-25",
+          "decision": "人間承認の意味同一性とAI変更時の承認失効をFoundationの重たい原則として置く。",
+          "reason": "ルール、責務、保証、TestPattern、Expectedなど対象を横断する承認権限の統治だから。"
         }
       ],
       "change_history": [
@@ -6530,9 +6611,17 @@
           "before": "AI駆動開発で今後必要になり得る追加ルール系統がインシデント管理上で未登録だった。",
           "after": "studio_work_0051 v0.14.21-human-ai-responsibility-rules として、Human / AI Responsibility Rules 人間・AI責務境界ルール を未着手インシデントに追加。",
           "reason": "必要を感じたタイミングで漏れなくルール化・実装化へ進めるようにするため。"
+        },
+        {
+          "history_id": "chg_0051_002",
+          "at": "2026-07-25",
+          "change_type": "human_ai_responsibility_rules_added",
+          "before": "Human / AI Responsibility Rulesは将来候補インシデントのまま未着手だった。",
+          "after": "Foundation Rule 024・025とViewDef Rule 31として責務境界を正本化し、共通ViewDef/Dataへ適用した。",
+          "reason": "Rule Review運用で状態責務の混乱が実際に発生し、今が正本化の適切なタイミングになったため。"
         }
       ],
-      "verification_status": "未確認",
+      "verification_status": "確認済み",
       "context_def_status": "draft",
       "context_def_updated_at": "2026-06-28",
       "context_def_draft": "# ContextDef素案: v0.14.21-human-ai-responsibility-rules\n\n## 読む目的\n人間が最終判断する項目、AIが更新してよい項目、AI更新後に未承認へ戻すべき状態項目を整理し、承認・確認・レビュー状態の責務境界を明確にする。\n\n## 作業前に読む入口\n- この作業項目の `objective / background / scope / out_of_scope / risk / test_points` を先に読む。\n- Foundation Rules、とくに GitHub基準ソースとZIP返却契約を確認する。\n- 既存の完了インシデントは、実装方針を真似る対象であり、無断で再設計しない。\n\n## 関連文脈候補\n- `studio_work_0016` / v0.9-rules-json-source-of-truth: ルール系Data JSON原本化とMarkdown非原本化の方針を確認する。\n- `studio_work_0017` / v0.9-rule-review-common-viewdef-polish: 共通Rule Review ViewDefの汎用化・targetFile固定解消の方針を確認する。\n- `studio_work_0049` / v0.14.19-rule-review-status-responsibility-issue: 承認/確認状態の責務整理と単一正本化の文脈を確認する。\n\n## AI作業メモ\n- まず既存Data/ViewDef/Runtimeの責務境界を確認してから変更する。\n- Data JSON原本、ViewDefは表示・編集定義、MarkdownはExport Viewという分離を崩さない。\n- 作業結果は更新後インシデントJSONと成果物ZIPに残す。\n\n## 対象範囲メモ\n人間のみが最終承認できる項目、AIが作業上更新してよい確認状態、AI修正時に未承認・未確認へ戻す条件、既存 studio_work_0049 との関係を整理する。\n\n## 注意すべきリスク\nAIが状態を勝手に承認済みにしてしまうと人間承認の意味が壊れる。逆に全変更で未承認へ戻しすぎると運用負荷が高くなる。\n\n## 確認観点メモ\nAIが本文を変更した場合、要約だけ変更した場合、ViewDefだけ変更した場合の状態更新ルールが整理されていること。",
@@ -6602,7 +6691,11 @@
           "sort_order": 50,
           "note": ""
         }
-      ]
+      ],
+      "fixed_in_version": "v0.18.30-rule-review-status-responsibility-cleanup",
+      "actual_updated_files": "data/json/00_rules/frb_foundation_rules_data_v0_1.json\ndata/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json\ndefs/rules/rule_review_common_view_def_v0_3.json",
+      "completion_summary": "Human / AI Responsibility Rules候補をFoundation Rule 024・025およびViewDef Rule 31として正本化した。",
+      "test_result": "Foundation rule_count/approved_count整合、追加Rule ID重複なし、共通ViewDefの主体別操作責務を静的確認。 node --test tests/qa/static/*.test.mjs は7件成功・4件失敗。失敗4件は添付ZIPに studio_overlays/thought_evolution 資材が存在しないENOENTで、本変更とは無関係。関連するrule review / related grid static確認は成功。"
     },
     {
       "work_item_id": "studio_work_0052",
@@ -20427,20 +20520,63 @@
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-07-20",
-      "updated_at": "2026-07-20",
-      "status": "未着手",
-      "follow_up_status": "UNASSESSED",
-      "follow_up_actions": [],
-      "verification_status": "未確認",
-      "context_def_status": "draft",
-      "context_def_updated_at": "2026-07-20",
+      "updated_at": "2026-07-25",
+      "status": "完了（後続あり）",
+      "follow_up_status": "PENDING",
+      "follow_up_actions": [
+        {
+          "action_id": "follow_up_0144_001",
+          "action_type": "CONSTITUTION_FOUNDATION_CLASSIFICATION",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "data/json/00_rules/frb_coding_constraints_data_v0_3.json",
+            "data/json/00_rules/frb_foundation_rules_data_v0_1.json"
+          ],
+          "note": "憲法28件を確認し、正本・承認・変更統治として残す項目と、Studio製品群共通アーキテクチャとしてFoundationへ寄せる候補を分類する。今回は実データ移動を行わない。"
+        },
+        {
+          "action_id": "follow_up_0144_002",
+          "action_type": "CONSTRAINT_SPEC_CLASSIFICATION",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "data/json/00_rules/frb_constraint_spec_v0_6.json"
+          ],
+          "note": "12グループ・84明細を、制約・仕様・現行制限・GAP・将来候補・レビュー方針へ分類し、正式配置先を判断する。"
+        },
+        {
+          "action_id": "follow_up_0144_003",
+          "action_type": "RESPONSIBILITY_DEF_CANONICALIZATION",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "data/json/03_tests/responsibilities/responsibility_data_v0_1.json",
+            "data/json/03_tests/qa/responsibility_def/responsibility_def_master_draft_v0_1.json"
+          ],
+          "note": "責務マスターと責務定義ドラフトの役割重複を整理し、正式正本・Schema・配置・責務からViewDef/Schema/Interfaceを参照する契約を決める。"
+        },
+        {
+          "action_id": "follow_up_0144_004",
+          "action_type": "TEST_PATTERN_DERIVATION_POLICY",
+          "required": true,
+          "status": "COMPLETED",
+          "related_ids": [
+            "studio_work_0146"
+          ],
+          "note": "studio_work_0146 / v0.18.29で、FieldDef・ValidationPolicy・共通単項目TestPattern・Resolved Snapshot・range_midpoint・承認/Runner契約をfrb_test_evidence_rules_data_v0_2.jsonへ接続済み。実Data/Schema/Runner実装は0146の後続へ継続する。"
+        }
+      ],
+      "verification_status": "確認済み（文書・JSON）",
+      "context_def_status": "done",
+      "context_def_updated_at": "2026-07-25",
       "work_item_id": "studio_work_0144",
       "phase": "v0.18.27-document-architecture-policy-record",
       "title": "設計ドキュメント体系整理 / 憲法・Foundation・責務定義と判断軸・制約・ルールの配置方針",
       "incident_type": "architecture_review",
       "category": "document_architecture",
       "priority": "medium",
-      "target_files": "data/json/00_rules/frb_coding_constraints_data_v0_3.json, data/json/00_rules/frb_foundation_rules_data_v0_1.json, 責務定義Data JSON, TestPattern Data JSON, data/json/00_rules/frb_constraint_spec_v0_6.json, 関連ViewDef / Schema",
+      "target_files": "data/json/00_rules/_FRB_Studio_Design_Document_Map_v0_1.md, data/json/01_main/_studio_work_incident_data_v2.json, data/json/00_rules/frb_coding_constraints_data_v0_3.json, data/json/00_rules/frb_foundation_rules_data_v0_1.json, data/json/03_tests/responsibilities/responsibility_data_v0_1.json, data/json/03_tests/qa/responsibility_def/responsibility_def_master_draft_v0_1.json, TestPattern Data JSON, data/json/00_rules/frb_constraint_spec_v0_6.json, 関連ViewDef / Schema",
       "objective": "FRB Studioの設計ドキュメント体系について、憲法・Foundation・責務定義等の適用範囲と、判断軸・制約・ルール・仕様的契約等の情報種別を分離して整理する。現時点の暫定方針を判断ログとして固定し、後日のファイル仕分け・Schema/ViewDef改定の入口にする。",
       "background": "既存の「Studioくん憲法」、Foundation Rules、責務定義、制約集約JSONを確認する中で、憲法やFoundationという適用範囲の高さと、判断軸・制約・ルール・仕様という情報種別が混同されていた。さらに概念整理の途中で、製品設計・機能仕様・独立Expected.json等の新しい成果物が必要であるかのような表現が生まれ、実ファイル体系とのズレが発生した。新規ファイルを増殖させず、既存の正本構造へどう配置するかを整理しておく必要がある。",
       "scope": "適用範囲を憲法・Foundation・責務定義等として捉え、判断軸・制約・ルールは各高さの設計書に存在し得るという暫定方針を記録する。憲法は正しさ・正本・承認・変更を統治し、Foundationは製品群共通のアーキテクチャ土台を定義する。責務定義は製品・機能が何を保証するかを中心に、責務固有の判断軸、関連制約、仕様的契約、保証ID、Interface/ViewDef/Schema参照を持つ。TestPatternはInput・ExpectedDef・Expectedを一体で持ち、責務CD・保証IDで責務定義と接続する。現在の制約集約JSONは純粋な制約正本ではなく、制約・仕様・GAP・将来候補・レビュー方針等の仕分け前レビュー材料として扱う。",
@@ -20452,8 +20588,8 @@
       "test_points": "憲法・Foundation・責務定義の適用範囲を説明できること。判断軸・制約・ルールが各設計書に存在し得ることを表現できること。責務定義が保証IDと仕様的契約を保持し、ViewDef/Schemaを参照できること。TestPatternがExpectedを内包し、独立Expected.jsonを要求しないこと。新規ファイルの増殖なしに既存資産へ配置できること。運用上の違和感を判断ログから方針改定へつなげられること。",
       "user_request": "ドキュメント体系整理の考え方をバシっとインシデントにまずは残しておいて、また今度整理する。制約・判断軸・ルールは各設計書に存在し得るという暫定整理とし、運用して違和感が出たら方針を変える。",
       "ai_response": "設計体系を今回完成させず、適用範囲と情報種別を分離した暫定方針、既存ファイルを優先して新規ファイルを増殖させない方針、責務定義とTestPattern＋Expectedのファイル実態を新規インシデントとして登録する。",
-      "latest_user_comment": "とりあえず、ドキュメント体系整理の考え方をバシっとインシデントにまずはのこしておいて、また今度整理しよう。インシデント登録よろしく。\n\n## ファイル実態\n\n| 設計書                   |         判断軸 |             制約 |           ルール |                仕様的なもの |\n| --------------------- | ----------: | -------------: | ------------: | --------------------: |\n| Studioくん憲法JSON        |          あり |             あり |            あり |         統治上の契約として一部あり |\n| Foundation Rules JSON |          あり |             あり |            あり |      共通構造・共通契約として一部あり |\n| 責務定義JSON              |          あり |      関連制約IDを参照 |   責務固有ルールを持てる |  入出力・状態・異常時動作・保証として持つ |\n| ViewDef / Schema      |   原則として持たない | 構造制約を表現することはある | 表示・入力ルールを表現する |             機械可読な具体仕様 |\n| TestPattern JSON      |        持たない |        直接定義しない | 検証条件として具体化される | Input＋Expectedとして検証する |\n| Incident JSON         | 適用軸ID・候補を記録 |        昇格候補を記録 |   今回採用した判断を記録 |            作業結果・差分を記録 |\n\n## 各ファイルで同じ構造に揃える必要もない",
-      "latest_ai_response": "studio_work_0144として登録。今回は方針記録のみとし、実ファイルの移動・Schema/ViewDef改定・全件仕分けは未着手で残した。",
+      "latest_user_comment": "了解。では、お願します。\n今回の作業依頼:\n- incident_file: data/json/01_main/_studio_work_incident_data_v2.json\n- phase: v0.18.27-document-architecture-policy-record\n\n作業ルール:\nFRB Studio Foundation Rules の foundation_rule_019「GitHub基準ソースとZIP返却契約」を参照して作業する。",
+      "latest_ai_response": "対応完了。設計文書体系を「適用範囲・権威」と「設計情報の種類」の二軸で整理し、既存の `_FRB_Studio_Design_Document_Map_v0_1.md` を説明用ポリシー記録として同名更新した。憲法・Foundation・責務・TestPattern・制約レビュー材料の現物を確認し、責務→保証→TestPattern（Input / ExpectedDef / Expected）→Actual / Diffの接続方針、独立Expected.jsonを現行標準にしない方針、判断ログの昇格先を明文化した。実データ移動・84明細仕分け・Schema/ViewDef改定は行わず、4件の後続作業をfollow_up_actionsへ登録した。",
       "discussion_history": [
         {
           "history_id": "disc_0144_001",
@@ -20496,6 +20632,20 @@
           "speaker": "user",
           "topic": "暫定運用",
           "message": "まずは軽い気持ちで暫定方針として運用し、違和感が出たら判断ログを残して方針を変える。"
+        },
+        {
+          "history_id": "disc_0144_007",
+          "at": "2026-07-25",
+          "speaker": "user",
+          "topic": "v0.18.27-document-architecture-policy-record 作業依頼",
+          "message": "incident_file=data/json/01_main/_studio_work_incident_data_v2.json、phase=v0.18.27-document-architecture-policy-recordを指定し、foundation_rule_019を参照して作業するよう依頼。"
+        },
+        {
+          "history_id": "disc_0144_008",
+          "at": "2026-07-25",
+          "speaker": "assistant",
+          "topic": "設計文書体系ポリシー記録の作業結果",
+          "message": "既存の憲法・Foundation・責務・TestPattern・制約レビュー材料を確認し、適用範囲と情報種別の二軸、責務・保証・TestPattern接続、Expected配置、判断ログ昇格、後続仕分けを `_FRB_Studio_Design_Document_Map_v0_1.md` とインシデントへ記録した。実ファイル移動とSchema/ViewDef改定は実施していない。"
         }
       ],
       "decision_log": [
@@ -20558,6 +20708,18 @@
           "at": "2026-07-20",
           "decision": "今回の体系整理は暫定方針とし、運用上の違和感が出た場合は判断ログを根拠に改定する。",
           "reason": "設計体系自体も実運用と差分から育てる対象であり、現時点で完成形として固定する必要はないため。"
+        },
+        {
+          "decision_id": "dec_0144_011",
+          "at": "2026-07-25",
+          "decision": "設計文書体系の判断正本はstudio_work_0144のdecision_logとし、_FRB_Studio_Design_Document_Map_v0_1.mdは人間向けの説明用記録として扱う。",
+          "reason": "Markdownを新しいルール正本にすると既存Data JSON原本化方針と衝突するため。新規正本を増やさず、判断ログを正本、Markdownを読みやすいViewとして分離する。"
+        },
+        {
+          "decision_id": "dec_0144_012",
+          "at": "2026-07-25",
+          "decision": "本Phaseは配置方針の記録を完了条件とし、憲法/Foundation仕分け、制約84明細分類、責務正本整理、TestPattern導出規則は後続作業へ分離する。",
+          "reason": "方針記録と実データ移行を同時に行うと差分が大きくなり、正本誤認や参照切れのリスクが上がるため。"
         }
       ],
       "change_history": [
@@ -20568,10 +20730,38 @@
           "before": "憲法・Foundation・責務定義と、判断軸・制約・ルール・仕様的契約の配置方針が会話内に分散していた。",
           "after": "studio_work_0144として、適用範囲と情報種別を分離した設計ドキュメント体系の暫定方針を登録した。",
           "reason": "後日の設計資産仕分け時に、今回の判断経緯とファイル実態の前提を追体験できるようにするため。"
+        },
+        {
+          "history_id": "chg_0144_002",
+          "at": "2026-07-25",
+          "change_type": "document_architecture_policy_record",
+          "before": "_FRB_Studio_Design_Document_Map_v0_1.mdは会話断片・重複説明・暫定メモが混在し、正本との関係、現在のファイル実態、後続作業が一枚で追いにくかった。",
+          "after": "同名ファイルを、適用範囲と情報種別の二軸、現行正本実態、責務・保証・TestPattern接続、Expected配置、昇格ルール、対象外、後続作業を持つ説明用ポリシー記録へ整理した。",
+          "reason": "設計文書の棚を動かす前に、棚名・収納規則・接続方針を人間とAIが同じ言葉で確認できるようにするため。"
+        },
+        {
+          "history_id": "chg_0144_003",
+          "at": "2026-07-25",
+          "change_type": "incident_completion_and_followups",
+          "before": "studio_work_0144は未着手・follow_up未評価で、方針記録後の実仕分け作業が構造化されていなかった。",
+          "after": "方針記録を完了（後続あり）とし、憲法/Foundation分類、制約レビュー材料分類、責務正本整理、TestPattern導出規則の4件をfollow_up_actionsへ登録した。",
+          "reason": "ポリシー記録の完了と、実資産を段階的にブラッシュアップする未完了作業を混同しないため。"
+        },
+        {
+          "history_id": "chg_0144_004",
+          "at": "2026-07-25",
+          "change_type": "follow_up_completed",
+          "before": "follow_up_0144_004 TEST_PATTERN_DERIVATION_POLICY はPENDING。",
+          "after": "studio_work_0146のルール正本化完了によりCOMPLETED。実装作業は0146側のfollow_up_actionsへ移管。",
+          "reason": "設計文書体系からTestPattern導出ルールへの接続が完了したため。"
         }
       ],
       "context_def_draft": "# ContextDef素案: v0.18.27-document-architecture-policy-record\n\n## 読む目的\nFRB Studioの設計文書体系を、適用範囲と情報種別の二軸で整理し、既存の正本ファイルへ安全に配置する。\n\n## 作業前に確認すること\n- Studioくん憲法JSON、Foundation Rules JSON、責務定義Data、TestPattern Dataの現物を読む。\n- `frb_constraint_spec_v0_6.json` は12グループ・84明細のレビュー材料であり、純粋な制約正本と決めつけない。\n- 独立Expected.jsonを新設せず、TestPattern内のExpectedDef / Input / Expectedを現行契約として扱う。\n- 概念名だけで新規ファイルを作らず、既存正本への配置可能性を先に確認する。\n\n## 暫定方針\n- 憲法・Foundation・責務定義等は適用範囲の高さ。\n- 判断軸・制約・ルールは各設計書に存在し得る情報種別。\n- 仕様的な契約は責務定義を中心に持ち、複雑な場合だけサブ設計書へ参照する。\n- ViewDef / Schemaは正本を分離し、Studio画面で全集約表示する。\n- 運用して違和感が出たら、判断ログを残して方針を変える。\n",
-      "context_refs": []
+      "context_refs": [],
+      "fixed_in_version": "v0.18.27-document-architecture-policy-record",
+      "actual_updated_files": "data/json/00_rules/_FRB_Studio_Design_Document_Map_v0_1.md\ndata/json/01_main/_studio_work_incident_data_v2.json",
+      "completion_summary": "設計文書体系を適用範囲と情報種別の二軸で整理し、現行ファイル実態、責務・保証・TestPattern接続、Expected配置、判断ログ昇格、段階的仕分け方針を同名Markdownとインシデントへ記録した。実データ移動は行わず、4件の後続作業へ分離した。",
+      "test_result": "対象JSON parse確認、phase一致1件、work_item_id重複なし、ポリシーMarkdownの必須章・対象ファイル・Expected/TestPattern/判断ログ記述を静的確認。実装コード・Runtime・Schema/ViewDefは未変更。"
     },
     {
       "owner": "tamasub",
@@ -20832,6 +21022,393 @@
       "actual_updated_files": "data/json/01_main/_studio_work_incident_data_v2.json\ndata/json/00_rules/frb_coding_constraints_data_v0_3.json\ndata/json/00_rules/frb_view_def_schema_v0_9.json\ndefs/rules/rule_review_common_view_def_v0_3.json\ndefs/rules/governance_items_common_view_def_v0_1.json\nwwwroot/index.html\nwwwroot/styles.css\nwwwroot/js/runtime/load_runtime.js\nwwwroot/js/runtime/related_grid_view.js\nwwwroot/js/runtime/RELATED_GRID_VIEW_LAUNCH_NOTES_v0_18_28.md\ntests/qa/static/related_grid_view_launch_static.test.mjs",
       "completion_summary": "ViewDef宣言から任意のData root配列を別Studioのgrid_only画面で開く汎用Related Grid Viewを実装した。親画面がData全体を所有し、子画面は対象配列だけをpostMessageで反映するため、全JSONの後勝ち上書きを避ける。初回例としてfrb_coding_constraints_data_v0_3.jsonへ判断軸3件を追加した。",
       "test_result": "node --check: related_grid_view.js / load_runtime.js OK。全変更JSON parse OK。rule_review_common_view_def_v0_3.json / governance_items_common_view_def_v0_1.json のSchema validation OK。node --test tests/qa/static/related_grid_view_launch_static.test.mjs: 5/5 PASS。ChromiumによるブラウザSmokeも試行したが、実行環境の管理ポリシーによりlocalhostアクセスが ERR_BLOCKED_BY_ADMINISTRATOR となり未実行。ポップアップ起動・Detail編集・親画面反映・競合中断・最終保存は利用環境で要確認。"
+    },
+    {
+      "work_item_id": "studio_work_0146",
+      "phase": "v0.18.29-fielddef-validation-testpattern-derivation",
+      "title": "FieldDef / ValidationPolicy / 共通単項目TestPattern導出ルール整理（範囲中央値パターン追加）",
+      "incident_type": "architecture_rules_review",
+      "category": "test_pattern_design",
+      "priority": "high",
+      "status": "完了（後続あり）",
+      "follow_up_status": "PENDING",
+      "follow_up_actions": [
+        {
+          "action_id": "follow_up_0146_001",
+          "action_type": "HUMAN_RULE_REVIEW",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "test_evidence_rule_001",
+            "test_evidence_rule_002",
+            "test_evidence_rule_007",
+            "test_evidence_rule_015",
+            "test_evidence_rule_017",
+            "test_evidence_rule_018",
+            "test_evidence_rule_019",
+            "test_evidence_rule_020"
+          ],
+          "note": "v0.18.29で意味変更・追加した8ルールを人間が確認し、approval_decisionを判断する。AIは未承認のまま返却する。"
+        },
+        {
+          "action_id": "follow_up_0146_002",
+          "action_type": "FIELDDEF_VALIDATIONPOLICY_CANONICAL_DATA",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "FieldDef",
+            "ValidationPolicy",
+            "CommonSingleFieldValidationTestPattern"
+          ],
+          "note": "FieldDef・ValidationPolicy・共通Patternの正式Data JSON、Schema、ID、version/hash契約、配置先を設計・実装する。"
+        },
+        {
+          "action_id": "follow_up_0146_003",
+          "action_type": "RESOLVED_TESTCASE_DERIVATION_ENGINE",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "range_midpoint",
+            "ResolvedTestCaseSnapshot"
+          ],
+          "note": "象徴Patternから具体Input/Expectedを展開し、collapsed/not_applicable、導出元version/hash、snapshot_hashを出力する導出エンジンを実装する。"
+        },
+        {
+          "action_id": "follow_up_0146_004",
+          "action_type": "APPROVAL_VIEW_AND_RUNNER_INTEGRATION",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "ResolvedTestCaseSnapshot",
+            "TestRunner",
+            "Adapter",
+            "CompareStrategy"
+          ],
+          "note": "導出後の具体値・Expected・由来を確認する承認Viewと、承認済みSnapshotだけを実行するRunner連携を実装する。"
+        },
+        {
+          "action_id": "follow_up_0146_005",
+          "action_type": "EXISTING_TESTPATTERN_MIGRATION",
+          "required": false,
+          "status": "PENDING",
+          "related_ids": [
+            "data/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/responsibility_expected_test_patterns_data_v0_1.json"
+          ],
+          "note": "正式Data/Schema/Runner確定後、既存TestPatternを一括移行せず代表項目から段階移行し、旧具体値原本が残らないことを確認する。"
+        }
+      ],
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-25",
+      "updated_at": "2026-07-25",
+      "target_files": "FieldDef / FieldType / ValidationPolicy / 共通SingleFieldValidation TestPattern関連Data・Schema・ViewDef・Rules、Test Runner / ExpectedDef関連設計",
+      "objective": "項目定義に保持する型・必須・最小値・最大値等から、共通単項目Validation TestPatternと具体的な入力値・Expectedを機械導出する正本構造を整理する。数値範囲チェックには最小値・最大値・境界外だけでなく、正常系の代表値として範囲中央値（range_midpoint）を追加する。",
+      "background": "AI承認駆動開発の検討では、0 / 1 / 100 / 101 / null / 小数 / 文字列等を個別TestPatternへ直接重複記載するのではなく、FieldDef＋FieldType＋ValidationPolicy＋共通TestPatternから具体ケースを展開する方針が整理されていた。しかし、この設計判断が記事・会話・複数インシデントへ分散し、正式なルール・設計正本への還流が遅れている。今回、数値範囲の正常系代表値として中央値も必要という判断が追加されたため、既存思想をまとめて将来のRules/Data/Runner更新へ接続する。",
+      "scope": "FieldDefにdata_type / required / minimum / maximum / integer_only / format / allowed_values等の検証根拠を保持する方針を整理する。共通単項目TestPatternとしてMissing、null、型不正、整数制約、小数、文字列、最小値未満、最小値、最小値直上、範囲中央値、最大値直下、最大値、最大値超過等を定義し、具体値とExpectedをFieldDef・ValidationPolicy・導出規則から展開する。範囲中央値は統計上のmedianではなく許容範囲の中央値を意味し、内部キーはrange_midpointとする。初期導出式は (minimum + maximum) / 2 とし、端数が出る場合は小数部を0方向へ切り捨てる。具体値をFieldDefとTestPatternの双方へ重複保持せず、承認View・実行時に版固定された定義から展開する。既存のTest Runner / ExpectedDef / 設計ドキュメント体系整理インシデントとの責務境界も確認する。",
+      "out_of_scope": "今回の登録時点ではFieldDef新規Data、ValidationPolicyマスター、共通TestPatternマスター、導出エンジン、承認View、Runner改修、既存TestPattern全面移行は実装しない。中央値以外の代表値選択アルゴリズム、乱数テスト、組合せ爆発対策、複数項目相関Validationは後続検討とする。",
+      "fixed_name_policy": "minimum / maximum / required等をStudio Runtimeの任意Data固定名として無条件に扱わない。FieldDef / ValidationPolicyのSchemaで承認された公用語としてのみ使用し、業務Dataの実フィールド名とはfield_id / pathで接続する。",
+      "module_policy": "実装方式は未確定。既存の一言語一Runner、ExpectedDef CompareStrategy、Adapter Strategyとの整合を優先し、個別ケースごとの専用テストコード増殖は避ける。",
+      "expected_outputs": "FieldDef・ValidationPolicy・共通単項目TestPatternの責務分離案、Validation観点マスター案、具体値導出規則、range_midpoint定義、Expected導出方針、版/Hashを含む承認・実行トレーサビリティ案、既存Rules/Data/Schema/ViewDef/Runnerの更新対象一覧。",
+      "risk": "具体値をTestPatternへ重複保存するとFieldDef変更時に設計ドリフトが起きる。反対に導出規則を抽象化しすぎると人間が最終的な0 / 1 / 50 / 100 / 101等を承認しにくくなる。『中央値』が統計上のmedianと誤解される可能性があるため、内部名称はrange_midpointとする。負数範囲を含む場合、端数切り捨て方向の解釈が曖昧になり得るため、0方向への切り捨てをルールとして明示し、実装時に代表例で確認する。",
+      "test_points": "minimum=1 / maximum=100 の整数項目から、minimum-1=0、minimum=1、minimum+1=2、range_midpoint=50（50.5の小数部を0方向へ切り捨て）、maximum-1=99、maximum=100、maximum+1=101を展開できること。required=true / integer_only=trueの場合にnull・小数・文字列を別観点として展開できること。FieldDefのmaximumを変更した際、具体ケースが再導出され、旧具体値が原本に残らないこと。承認Viewでは導出後の具体値・Expected・導出元・定義版/Hashを確認できること。品質保証済みRunnerが展開済みTestPattern＋Expectedを実行し、Actual/Diffを出せる責務分離になっていること。",
+      "user_request": "バリデーションのチェックで中央値のチェックもパターンとして入れてほしい。中央値に端数が出る場合は切り捨てとする。まずはインシデント登録し、FieldDef・ValidationPolicy・共通TestPatternの考え方を徐々にブラッシュアップしたい。",
+      "ai_response": "数値範囲の共通Validation TestPatternへ範囲中央値を追加する。『中央値』は統計medianとの混同を避けて内部キーrange_midpointとし、(minimum + maximum) / 2 の小数部を0方向へ切り捨てて導出する。個別具体値は原本へ重複保存せず、FieldDef＋ValidationPolicy＋共通TestPatternから展開する設計課題として登録する。",
+      "latest_user_comment": "incident_file=data/json/01_main/_studio_work_incident_data_v2.json、phase=v0.18.29-fielddef-validation-testpattern-derivationを指定し、Foundation Rule 019を参照して次作業を依頼。",
+      "latest_ai_response": "対応完了。frb_test_evidence_rules_data_v0_2.jsonを同名更新し、Expected正本の配置をTestPattern内または外部Expectedの一方へ整理したうえで、FieldDef・ValidationPolicy・共通単項目TestPattern・Resolved TestCase Snapshot・range_midpoint・人間承認・Runner受渡しの4ルールを追加した。minimum=1 / maximum=100では0 / 1 / 2 / 50 / 99 / 100 / 101を導出し、range_midpointは0方向切り捨て、狭い範囲の重複はcollapsed/not_applicableで扱う。意味変更した既存4ルールと新規4ルールはAIが承認せず未承認へ戻した。設計文書Mapへ接続を追記したが、FieldDef等の実Data/Schema/ViewDef/導出エンジン/Runnerは変更していない。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0146_001",
+          "at": "2026-07-25",
+          "speaker": "user",
+          "topic": "共通Validation TestPattern追加",
+          "message": "バリデーションのチェックで中央値のチェックもパターンとして入れて欲しい。中央値に端数が出るなら切り捨てにしたい。"
+        },
+        {
+          "history_id": "disc_0146_002",
+          "at": "2026-07-25",
+          "speaker": "assistant",
+          "topic": "インシデント整理",
+          "message": "範囲中央値をrange_midpointとして定義し、FieldDef＋ValidationPolicy＋共通TestPatternから具体値とExpectedを導出する設計課題へ統合して登録する。"
+        },
+        {
+          "history_id": "disc_0146_003",
+          "at": "2026-07-25",
+          "speaker": "user",
+          "topic": "v0.18.29-fielddef-validation-testpattern-derivation 作業依頼",
+          "message": "incident_fileとphaseを指定し、Foundation Rule 019「GitHub基準ソースとZIP返却契約」を参照してFieldDef・ValidationPolicy・共通TestPattern導出ルールの次作業を依頼。"
+        },
+        {
+          "history_id": "disc_0146_004",
+          "at": "2026-07-25",
+          "speaker": "assistant",
+          "topic": "FieldDef / ValidationPolicy / TestPattern導出ルール更新結果",
+          "message": "Test Evidence Rules正本を同名更新し、Expected正本の一意性、FieldDef/Policy/Common Pattern/Resolved Snapshotの責務分離、range_midpoint、適用条件・重複収束、版/Hash、人間承認、Runner受渡しを記録した。実Data/Schema/ViewDef/Runner実装は後続へ分離した。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0146_001",
+          "at": "2026-07-25",
+          "decision": "数値範囲Validationの正常系代表値として範囲中央値を共通TestPatternへ追加する。",
+          "reason": "最小値・最大値の境界だけでなく、許容範囲の中央付近で通常値が受理されることも共通観点として確認するため。"
+        },
+        {
+          "decision_id": "dec_0146_002",
+          "at": "2026-07-25",
+          "decision": "範囲中央値の内部キーはrange_midpointとする。",
+          "reason": "データ集合の統計的中央値medianではなく、minimumとmaximumから導出する許容範囲中央値であることを明確にするため。"
+        },
+        {
+          "decision_id": "dec_0146_003",
+          "at": "2026-07-25",
+          "decision": "range_midpointは (minimum + maximum) / 2 で求め、端数は小数部を0方向へ切り捨てる。",
+          "reason": "整数項目の具体テスト入力として一意に導出可能にし、今回のユーザー判断を初期ルールとして固定するため。"
+        },
+        {
+          "decision_id": "dec_0146_004",
+          "at": "2026-07-25",
+          "decision": "具体的な境界値・中央値をTestPattern原本へ重複保持しない。",
+          "reason": "FieldDefのminimum / maximum変更時に具体値がドリフトすることを避け、承認済み導出規則から再生成できるようにするため。"
+        },
+        {
+          "decision_id": "dec_0146_005",
+          "at": "2026-07-25",
+          "decision": "FieldDef導出ルールの構造化正本はfrb_test_evidence_rules_data_v0_2.jsonへ追加し、専用ルールDataを新設しない。",
+          "reason": "TestPattern・Expected・Runner・証跡の既存正本へ接続し、ルール正本の分散を増やさないため。"
+        },
+        {
+          "decision_id": "dec_0146_006",
+          "at": "2026-07-25",
+          "decision": "Expected契約はTestPattern内または外部Expectedの一方を正本とし、導出後のResolved Snapshotは手編集正本にしない。",
+          "reason": "小さな責務UTの可読性と大きなExpectedの分離を両立し、Expectedの二重管理を防ぐため。"
+        },
+        {
+          "decision_id": "dec_0146_007",
+          "at": "2026-07-25",
+          "decision": "初期range導出標準はinclusive整数範囲・step=1とし、小数許容・exclusive境界・他型のstepは推測しない。",
+          "reason": "今回承認可能な最小範囲を明確にし、曖昧なepsilonや型固有stepをAIが独断で決めないため。"
+        },
+        {
+          "decision_id": "dec_0146_008",
+          "at": "2026-07-25",
+          "decision": "複数のsymbolic patternが同じ具体値へ収束する場合、重複ケースを増やさずcollapsed/not_applicableと理由を残す。",
+          "reason": "狭い範囲でrange_midpointや境界内側がmin/maxと一致しても、同じInputを水増しせず意味上の観点を追跡するため。"
+        },
+        {
+          "decision_id": "dec_0146_009",
+          "at": "2026-07-25",
+          "decision": "意味変更した既存4ルールと新規4ルールはAIが承認せず、未承認・人間レビュー待ちとして返却する。",
+          "reason": "AIはルール本文を整理できるが、採用可否の最終判断は人間が行うというFoundation契約を守るため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0146_001",
+          "at": "2026-07-25",
+          "change_type": "incident_added",
+          "before": "FieldDef・ValidationPolicy・共通単項目TestPatternの導出方針と範囲中央値パターンが、正式な個別作業項目として整理されていなかった。",
+          "after": "studio_work_0146として、共通Validation TestPattern導出ルール整理とrange_midpoint追加を登録した。",
+          "reason": "会話・記事に分散したテスト設計思想を正本ルールへ還流し、徐々にブラッシュアップできる入口を作るため。"
+        },
+        {
+          "history_id": "chg_0146_002",
+          "at": "2026-07-25",
+          "change_type": "test_evidence_rules_refine",
+          "before": "Expected JSONを一律正本とする旧表現と、小さな責務UTでTestPattern内expectedを持つ現行運用が混在していた。FieldDef導出ルールは未記録だった。",
+          "after": "Expected正本をインラインまたは外部参照の一方へ整理し、既存4ルールを再レビュー対象へ戻した。新規4ルールでFieldDef/Policy/Common Pattern/Resolved Snapshot/range_midpoint/承認・Runner契約を追加した。",
+          "reason": "設計ドリフトを解消し、会話で育ったTestPattern導出思想を構造化ルール正本へ還流するため。"
+        },
+        {
+          "history_id": "chg_0146_003",
+          "at": "2026-07-25",
+          "change_type": "design_document_map_connection",
+          "before": "設計文書Mapではstudio_work_0146を後続作業として列挙するだけで、導出構造とrange_midpoint規則は未記載だった。",
+          "after": "Expected配置を一意正本へ修正し、FieldDef→ValidationPolicy→Common Pattern→Resolved Snapshot→Runnerの接続と整数range導出式を追記した。",
+          "reason": "設計文書体系からTest Evidence Rules正本への収納先と接続を人間が一枚で確認できるようにするため。"
+        },
+        {
+          "history_id": "chg_0146_004",
+          "at": "2026-07-25",
+          "change_type": "incident_completion_and_followups",
+          "before": "studio_work_0146は未着手で、実Data/Schema/導出エンジン/承認View/Runnerへの後続作業が構造化されていなかった。",
+          "after": "ルール整理を完了（後続あり）とし、人間ルールレビュー、正本Data/Schema、導出エンジン、承認View/Runner、段階移行をfollow_up_actionsへ登録した。",
+          "reason": "今回のルール正本化と、実装・移行・人間承認の未完了作業を混同しないため。"
+        }
+      ],
+      "verification_status": "確認済み（ルール・文書・JSON）",
+      "context_refs": [],
+      "context_def_status": "",
+      "fixed_in_version": "v0.18.29-fielddef-validation-testpattern-derivation",
+      "actual_updated_files": "data/json/00_rules/frb_test_evidence_rules_data_v0_2.json\ndata/json/00_rules/_FRB_Studio_Design_Document_Map_v0_1.md\ndata/json/01_main/_studio_work_incident_data_v2.json",
+      "completion_summary": "FieldDef・ValidationPolicy・共通単項目TestPatternから具体Input/Expectedを導出する規則をTest Evidence Rules正本へ追加し、Expected配置の旧ルール矛盾を再整理した。range_midpoint、適用不能・重複収束、版/Hash、Resolved Snapshot、人間承認、Runner責務を明文化した。",
+      "test_result": "全更新JSON parse確認。Test Evidence Rulesはrule_count=20、rule_id/no重複なし、approved_countが実値と一致。minimum=1/maximum=100の導出結果0,1,2,50,99,100,101、負数範囲の0方向切り捨て、狭い範囲の重複収束を静的確認。phase一致1件・work_item_id重複なし。Runtime/Schema/ViewDef/テストコードは未変更。"
+    },
+    {
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-25",
+      "updated_at": "2026-07-25",
+      "status": "完了（後続あり）",
+      "follow_up_status": "PENDING",
+      "follow_up_actions": [
+        {
+          "action_id": "follow_up_0147_001",
+          "action_type": "RULE_UPDATE",
+          "required": true,
+          "status": "COMPLETED",
+          "related_ids": [
+            "constitution_20",
+            "constitution_29",
+            "decision_axis_responsibility_before_commonization",
+            "foundation_rule_020"
+          ],
+          "note": "新規ファイルを作らず、憲法正本へ判断軸・第29条を追加し、既存の共通化優先表現を改定した。"
+        },
+        {
+          "action_id": "follow_up_0147_002",
+          "action_type": "HUMAN_RULE_APPROVAL",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "constitution_20",
+            "constitution_29",
+            "foundation_rule_020"
+          ],
+          "note": "意味変更した既存2ルールと新規1ルールは未承認。StudioくんのRule Review画面で人間が再承認する。"
+        }
+      ],
+      "verification_status": "確認済み（JSON・構造・静的整合）",
+      "context_def_status": "",
+      "context_def_updated_at": "2026-07-25",
+      "work_item_id": "studio_work_0147",
+      "phase": "v0.18.31-evidence-based-abstraction-guard",
+      "title": "実証なき抽象化の禁止 / 共通化・汎用化ガードの憲法化",
+      "incident_type": "rule_governance",
+      "category": "design_governance",
+      "priority": "high",
+      "target_files": "data/json/00_rules/frb_coding_constraints_data_v0_3.json\ndata/json/00_rules/frb_foundation_rules_data_v0_1.json\ndata/json/00_rules/_FRB_Studio_Design_Document_Map_v0_1.md\ndata/json/01_main/_studio_work_incident_data_v2.json\ntests/qa/static/related_grid_view_launch_static.test.mjs",
+      "objective": "狂気の汎用化能力を消さず、実在する責務と複数差分が確認できた場合だけ実装へ発火させる設計統治ルールを、既存の憲法・Foundation正本へ一意に記録する。",
+      "background": "AIコーディング事例のオーバーエンジニアリング防止策を確認し、Studioくんにも「実在しない未来要件」「責務未分離」「一度しか観測されていないパターン」を根拠とする早すぎる抽象化を止める必要があると判断した。一方、ViewDefやOverlay等を生んだ汎用化能力は重要であるため、禁止ではなく発火条件を定義する。",
+      "scope": "憲法の文書全体判断軸へ「責務分離を共通化より先に行う」を追加する。constitution_29として禁止3条件・実施4条件・判断順序・判断保留を追加する。constitution_20とfoundation_rule_020の共通化優先表現を改定し、Foundationは憲法第29条参照へ限定する。設計文書Mapへ配置関係と最新件数を反映する。 governance_itemsの期待件数と新判断軸を検証する既存静的テストも更新する。",
+      "out_of_scope": "新規のコーディング制約ファイル・設計ルールファイル作成、Runtime実装変更、既存コードの一括リファクタリング、過去の全共通化判断の再評価、wwwroot公開資材同期。",
+      "fixed_name_policy": "既存の憲法・Foundation・設計文書Map・インシデントの安定ファイル名を維持し、同名更新する。",
+      "module_policy": "情報種別ごとにファイルを増やさず、適用範囲と正本責任で配置する。設計統治の詳細は憲法、製品群への適用接続はFoundationとする。",
+      "expected_outputs": "責務分離を先行する判断軸、constitution_29、改定済みconstitution_20、憲法参照へ改定したfoundation_rule_020、配置関係を追記した設計文書Map、作業と人間再承認待ちを記録したインシデント。 governance_itemsが4件で新判断軸を含むことを検証する静的テスト。",
+      "risk": "ガードを機械的に厳格適用すると、一件目から明らかに必要な共通基盤まで作れなくなる可能性がある。そのため将来候補の記録は許可し、複数差分・責務境界・人間理解・削減効果を説明できた時点で人間が採否を判断する。",
+      "test_points": "更新JSONがparseできること。constitution rule_count=29、section_count=29、rule_id/no重複なし。decision_axis_responsibility_before_commonizationが一件存在すること。constitution_20とfoundation_rule_020から共通化原則優先表現が消え、constitution_29参照があること。意味変更した3ルールが未確認・未承認であること。approved_countが実値と一致すること。設計文書Mapの件数が憲法29・Foundation25であること。 related_grid_view_launch_static.test.mjsが4判断軸と新statementを検証して成功すること。",
+      "user_request": "今の方針で、ルールの改定を行う。新しいコーディング制約／設計ルールファイルは増やさず、憲法とFoundationの既存正本へ配置する。",
+      "ai_response": "新規ファイルを増やさず、憲法に判断軸と実証なき抽象化の禁止を追加し、constitution_20とfoundation_rule_020の共通化優先を改定する。意味変更したルールはAIが承認せず、人間再承認待ちへ戻す。",
+      "latest_user_comment": "了解。では、今の方針で、ルールの改定をお願いします。育っていくねぇ～笑",
+      "latest_ai_response": "対応完了。憲法へ判断軸「責務分離を共通化より先に行う」と第29条「実証なき抽象化の禁止」を追加した。constitution_20とfoundation_rule_020の共通化原則優先を撤回し、Foundationは憲法第29条参照へ変更した。新規ルールファイルは作成していない。意味変更した3ルールは未承認・人間レビュー待ちとして返却した。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0147_001",
+          "at": "2026-07-25",
+          "speaker": "user",
+          "topic": "汎用化ガードをルールへ残す",
+          "message": "実在しない未来要件、責務未分離、一度しか出ていないパターンの抽象化を止め、複数差分・共通/個別説明・人間理解・実装量または事故率低下を実施条件として残したい。"
+        },
+        {
+          "history_id": "disc_0147_002",
+          "at": "2026-07-25",
+          "speaker": "user",
+          "topic": "新規ファイルを増やさない配置方針",
+          "message": "コーディング制約は実質憲法の中にある。ファイル実態を増やしたくないため、Foundationまたは既存ファイルへの配置を検討したい。"
+        },
+        {
+          "history_id": "disc_0147_003",
+          "at": "2026-07-25",
+          "speaker": "assistant",
+          "topic": "憲法正本・Foundation参照の提案",
+          "message": "新規ファイルは作らず、frb_coding_constraints_data_v0_3.jsonへ判断軸とconstitution_29を追加し、Foundation Rule 020は詳細を重複せず憲法第29条を参照する方針を提案した。"
+        },
+        {
+          "history_id": "disc_0147_004",
+          "at": "2026-07-25",
+          "speaker": "user",
+          "topic": "ルール改定の実施承認",
+          "message": "今の方針でルールの改定を依頼した。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0147_001",
+          "at": "2026-07-25",
+          "decision": "コーディング制約／設計ルールの専用ファイルを新設しない。",
+          "reason": "既存のfrb_coding_constraints_data_v0_3.jsonがStudioくん憲法の正本として機能しており、ファイル増加と正本分散を避けるため。"
+        },
+        {
+          "decision_id": "dec_0147_002",
+          "at": "2026-07-25",
+          "decision": "判断軸「責務分離を共通化より先に行う」を憲法のgovernance_itemsへ追加する。",
+          "reason": "禁止だけでなく、複数案から選ぶ際の優先順序として文書全体へ効かせる必要があるため。"
+        },
+        {
+          "decision_id": "dec_0147_003",
+          "at": "2026-07-25",
+          "decision": "実証なき抽象化の禁止をconstitution_29として追加する。",
+          "reason": "禁止条件・実施条件・判断保留をStudio全体へ効く設計統治原則として一意に管理するため。"
+        },
+        {
+          "decision_id": "dec_0147_004",
+          "at": "2026-07-25",
+          "decision": "constitution_20とfoundation_rule_020の「共通化を原則優先する」表現を改定する。",
+          "reason": "新しい憲法第29条と矛盾する既存表現を残すと、AIがどちらを優先すべきか判断できなくなるため。"
+        },
+        {
+          "decision_id": "dec_0147_005",
+          "at": "2026-07-25",
+          "decision": "意味変更したconstitution_20、constitution_29、foundation_rule_020は未承認へ戻す。",
+          "reason": "AIはルール案と整合性を更新できるが、人間承認を新規付与・継続してはならないというRule Review契約を守るため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0147_001",
+          "at": "2026-07-25",
+          "change_type": "constitution_governance_axis_add",
+          "before": "共通化前に責務分離を優先する判断軸が文書全体資産として存在しなかった。",
+          "after": "decision_axis_responsibility_before_commonizationをgovernance_itemsへ追加した。",
+          "reason": "設計案比較時の優先順序を明示するため。"
+        },
+        {
+          "history_id": "chg_0147_002",
+          "at": "2026-07-25",
+          "change_type": "constitution_rule_add_and_refine",
+          "before": "共通化原則優先の表現はあったが、早すぎる抽象化の禁止条件と発火条件がなかった。",
+          "after": "constitution_29を追加し、constitution_20を第29条参照へ改定した。",
+          "reason": "汎用化能力を残したまま、実証なしで実装へ発火することを防ぐため。"
+        },
+        {
+          "history_id": "chg_0147_003",
+          "at": "2026-07-25",
+          "change_type": "foundation_rule_refine",
+          "before": "foundation_rule_020が共通化を原則優先としていた。",
+          "after": "詳細条件の正本をconstitution_29へ移し、Foundationは参照・適用接続へ限定した。",
+          "reason": "憲法とFoundationの重複・矛盾を防ぐため。"
+        },
+        {
+          "history_id": "chg_0147_004",
+          "at": "2026-07-25",
+          "change_type": "design_document_map_update",
+          "before": "設計文書Mapに今回の収納先と最新ルール件数が反映されていなかった。",
+          "after": "v0.18.31配置節を追加し、憲法29件・Foundation25件へ更新した。",
+          "reason": "正本関係を人間が一枚で確認できるようにするため。"
+        },
+        {
+          "history_id": "chg_0147_005",
+          "at": "2026-07-25",
+          "change_type": "static_test_update",
+          "before": "related_grid_view_launch_static.test.mjsはgovernance_itemsが3件であることを固定期待していた。",
+          "after": "governance_items 4件と新判断軸「責務分離を共通化より先に行う」のstatementを検証するよう更新した。",
+          "reason": "憲法の文書全体判断軸追加をテスト契約へ同期するため。"
+        }
+      ],
+      "context_refs": [],
+      "fixed_in_version": "v0.18.31-evidence-based-abstraction-guard",
+      "actual_updated_files": "data/json/00_rules/frb_coding_constraints_data_v0_3.json\ndata/json/00_rules/frb_foundation_rules_data_v0_1.json\ndata/json/00_rules/_FRB_Studio_Design_Document_Map_v0_1.md\ndata/json/01_main/_studio_work_incident_data_v2.json\ntests/qa/static/related_grid_view_launch_static.test.mjs",
+      "completion_summary": "新規ルールファイルを増やさず、憲法へ設計判断軸と第29条を追加した。既存の共通化優先表現を憲法・Foundation双方で改定し、Foundationは憲法参照へ一意化した。意味変更した3ルールは人間再承認待ちとした。",
+      "test_result": "更新対象JSONのparse、rule_id/no/item_id/work_item_id重複、rule_count/section_count/approved_count実値一致、憲法第29条参照、未承認状態を確認。最終値は憲法 rules=29 / governance_items=4 / approved_count=27、Foundation rules=25 / approved_count=24、Incident work_items=136。related_grid_view_launch_static.test.mjsは5件すべて成功。全static testも試行したが、入力ZIPにstudio_overlays/thought_evolutionのroot配置が存在しない既知状態により4件失敗し、同じ4件は変更前ZIPでも失敗することを確認した。今回変更起因の失敗はない。Runtimeコード変更はない。"
     }
   ],
   "review_notes": [

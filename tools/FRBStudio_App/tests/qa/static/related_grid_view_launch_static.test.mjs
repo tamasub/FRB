@@ -28,18 +28,19 @@ test('rule review ViewDef declares a generic related Root Grid launch', () => {
   assert.equal(related[0].viewDef, 'rules/governance_items_common_view_def_v0_1.json');
 });
 
-test('coding constraints sample has three document-level decision axes', () => {
+test('coding constraints sample has four document-level decision axes', () => {
   const data = readJson('data/json/00_rules/frb_coding_constraints_data_v0_3.json');
   assert.ok(Array.isArray(data.governance_items));
-  assert.equal(data.governance_items.length, 3);
+  assert.equal(data.governance_items.length, 4);
   assert.deepEqual(data.governance_items.map(x => x.item_type), [
-    'DECISION_AXIS', 'DECISION_AXIS', 'DECISION_AXIS'
+    'DECISION_AXIS', 'DECISION_AXIS', 'DECISION_AXIS', 'DECISION_AXIS'
   ]);
   const statements = data.governance_items.map(x => x.statement).join('\n');
   assert.match(statements, /損得より善悪/);
   assert.match(statements, /安心安全・セキュリティー ＞ 品質 ＞ 納期/);
   assert.match(statements, /人間の視認性を最優先/);
   assert.match(statements, /作業を中断し、人間と協議/);
+  assert.match(statements, /責務を明確に分離/);
 });
 
 test('related Grid child ViewDef points to the declared root array', () => {
