@@ -12,6 +12,7 @@ $root = "F:\FRB\tools\FRBStudio_App"
 $targetDirs = @(
     "data",
     "defs",
+    "fielddefs",
     "Program.cs",
     "tests",
     "tools",

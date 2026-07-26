@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "field_definition_data_schema_v0_1.json",
+  "title": "FRB Studio Field Definition Data Schema v0.1",
+  "description": "Structural schema for sparse explicit field validation contracts stored under the independent fielddefs root. Semantic validation against Validation Type Registry is performed separately.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "field_definition_data_v0_1"
+    },
+    "document_type": {
+      "const": "field_definition"
+    },
+    "definition_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_]+(?:\\.[A-Za-z0-9_]+)*$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "deprecated",
+        "archived"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date"
+    },
+    "target_document_type": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target_schema_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "definition_policy": {
+      "$ref": "#/$defs/definitionPolicy"
+    },
+    "design_notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "field_definition_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "field_definitions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/fieldDefinition"
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "document_type",
+    "definition_id",
+    "title",
+    "status",
+    "target_document_type",
+    "target_schema_version",
+    "definition_policy",
+    "field_definition_count",
+    "field_definitions"
+  ],
+  "$defs": {
+    "definitionPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coverage_mode": {
+          "const": "sparse_explicit_contracts"
+        },
+        "field_identity": {
+          "const": "canonical_field_path"
+        },
+        "unlisted_field_policy": {
+          "const": "resolve_default_validation_type_from_view_def_type"
+        },
+        "validation_type_policy": {
+          "type": "string"
+        },
+        "constraint_override_policy": {
+          "type": "string"
+        },
+        "standard_restore_policy": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "coverage_mode",
+        "field_identity",
+        "unlisted_field_policy",
+        "validation_type_policy",
+        "constraint_override_policy",
+        "standard_restore_policy"
+      ]
+    },
+    "boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "type": [
+            "number",
+            "string"
+          ]
+        },
+        "inclusive": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "value",
+        "inclusive"
+      ]
+    },
+    "constraintOverrides": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "required": {
+          "type": "boolean"
+        },
+        "nullable": {
+          "type": "boolean"
+        },
+        "empty_string_allowed": {
+          "type": "boolean"
+        },
+        "minimum_length": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maximum_length": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maximum_lines": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "minimum": {
+          "$ref": "#/$defs/boundary"
+        },
+        "maximum": {
+          "$ref": "#/$defs/boundary"
+        },
+        "precision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "scale": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "minimum_date": {
+          "$ref": "#/$defs/boundary"
+        },
+        "maximum_date": {
+          "$ref": "#/$defs/boundary"
+        },
+        "minimum_datetime": {
+          "$ref": "#/$defs/boundary"
+        },
+        "maximum_datetime": {
+          "$ref": "#/$defs/boundary"
+        },
+        "minimum_instant": {
+          "$ref": "#/$defs/boundary"
+        },
+        "maximum_instant": {
+          "$ref": "#/$defs/boundary"
+        },
+        "seconds_allowed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "fieldDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "field_path": {
+          "type": "string",
+          "minLength": 3,
+          "pattern": "^\\$\\.[A-Za-z_][A-Za-z0-9_]*(?:\\[\\])?(?:\\.[A-Za-z_][A-Za-z0-9_]*(?:\\[\\])?)*$"
+        },
+        "validation_type": {
+          "type": "string",
+          "minLength": 3,
+          "pattern": "^[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)+$"
+        },
+        "constraint_overrides": {
+          "$ref": "#/$defs/constraintOverrides"
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "field_path",
+        "validation_type"
+      ]
+    }
+  }
+}

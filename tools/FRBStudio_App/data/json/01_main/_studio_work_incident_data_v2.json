@@ -12,7 +12,7 @@
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 140,
+  "items_count": 143,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -21984,6 +21984,426 @@
       ],
       "actual_updated_files": "data/json/00_rules/frb_coding_constraints_data_v0_3.json\ndata/json/01_main/_studio_work_incident_data_v2.json\ntests/qa/static/related_grid_view_launch_static.test.mjs",
       "test_result": "更新対象JSON 2件のparse成功。governance_items=5件、全件DECISION_AXIS、item_id重複なし。新判断軸に「最小十分な差分」「適切な粒度」が存在し、source_decision_log_ids 3件はstudio_work_0151のdecision_logへ全件解決。Incident work_items=140件でitems_countと一致し、work_item_id重複なし。node --test tests/qa/static/related_grid_view_launch_static.test.mjsは9/9 PASS。Runtime変更なし。"
+    },
+    {
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-26",
+      "updated_at": "2026-07-26",
+      "status": "完了",
+      "follow_up_status": "PENDING",
+      "follow_up_actions": [
+        {
+          "action_id": "follow_up_0152_001",
+          "action_type": "VIEWDEF_SAMPLE_CREATE",
+          "required": true,
+          "status": "COMPLETED",
+          "related_ids": [
+            "frb.fft.measurement.sample"
+          ],
+          "note": "v0.18.37でFRB FFT測定Data用ViewDefを作成し、同一ViewDef内の二つのviewsで測定セッションと受入閾値を扱った。"
+        },
+        {
+          "action_id": "follow_up_0152_002",
+          "action_type": "SCHEMA_UPDATE",
+          "required": true,
+          "status": "COMPLETED",
+          "related_ids": [
+            "field_definition_data_v0_1",
+            "item_definition_ref"
+          ],
+          "note": "v0.18.37でfield_definition_data_schema_v0_1を追加し、ViewDef Schemaルートへitem_definition_refを正式Propertyとして追加した。"
+        },
+        {
+          "action_id": "follow_up_0152_003",
+          "action_type": "RUNTIME_UPDATE",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "fielddefs",
+            "FieldDefinitionResolver",
+            "Program.cs"
+          ],
+          "note": "独立fielddefsルート、API読込、field_path解決、EXPLICIT/IMPLICIT Validation Type解決はAPP改修フェーズで扱う。"
+        }
+      ],
+      "verification_status": "確認済み（JSON・field_path・Validation Type参照・疎定義方針）",
+      "context_def_status": "",
+      "context_def_updated_at": "2026-07-26",
+      "work_item_id": "studio_work_0152",
+      "phase": "v0.18.36-field-definition-samples",
+      "title": "Data JSON / FieldDefs 項目定義サンプル初版",
+      "incident_type": "data_design",
+      "category": "field_definition_validation_contract",
+      "priority": "high",
+      "target_files": "data/json/80_frb/frb_fft_field_definition_sample_data_v0_1.json\nfielddefs/samples/frb_fft_measurement_field_definitions_v0_1.json\ndata/json/01_main/_studio_work_incident_data_v2.json",
+      "objective": "ViewDef・Runtime改修へ進む前に、差し替え可能なData JSONと、独立fielddefsルートで管理する疎な項目定義JSONの初期サンプルを作成し、field_path / validation_type / constraint_overridesの責務を具体化する。",
+      "background": "項目定義XXX.jsonをViewDef内へ持つ案、別ファイルで持つ案、全項目を保持する案を再検討した。現在の整理では、ViewDef typeから仮Validation Typeを解決できるため、fielddefsは全項目を複製せず、明示的な品質保証契約が必要な項目だけを保持する。ViewDef側にはvalidation_typeとitem_definition_idを持たせず、Data側にもfielddefs参照を持たせない。将来ViewDefルートのitem_definition_refからfielddefsを読み、dataPath＋fieldからcanonical field_pathを生成して照合する。",
+      "scope": "FRB FFT計測を題材に、小数・整数・boolean・単一行/複数行文字列・日付下限/上限・ローカル日時を含む小規模Data JSONを作成する。fielddefs/samples配下へfield_definition_data_v0_1形式のサンプルを作成し、登録項目ではfield_pathとvalidation_typeを必須、constraint_overridesは標準との差分だけを保持する。Data内に同名フィールドを持つ二つの配列ルートを設け、field_pathが項目住所として必要であることを示す。未登録項目は将来ViewDef typeから既定Validation Typeを解決する疎定義方針を記録する。",
+      "out_of_scope": "ViewDefサンプル作成、ViewDef Schema更新、fielddefs Schema正式化、Program.csのfielddefs API追加、file_api.js変更、Resolver/Validator実装、項目定義UI、TestPattern自動導出、既存Data/ViewDefの移行は行わない。",
+      "fixed_name_policy": "新しい独立管理ルート名はfielddefsとする。項目の一意キーはcanonical field_pathとし、ViewDef field側へitem_definition_id等の別名キーを追加しない。Data側へitem_definition_refを追加しない。",
+      "module_policy": "Runtime・Program.csは変更しない。今回の成果物は設計サンプルとインシデント記録に限定し、APP実装はサンプル承認後の後続作業とする。",
+      "expected_outputs": "FRB FFT測定Dataサンプル、独立fielddefs配下の疎な項目定義サンプル、日付上下限・FFT小数・二つのルートに存在する同名フィールドの例、現時点の設計判断と後続作業を記録したインシデント。",
+      "risk": "サンプルへ説明用項目を増やしすぎるとSchema確定と誤認される。反対に単純すぎるとfield_path、疎定義、日付境界、小数、同名項目の別ルートという主要論点を検証できない。今回は正式Schemaではなく、次のViewDef議論に使う最小十分なサンプルとして扱う。",
+      "test_points": "両JSONがparseできること。field_definition_countとfield_definitions実数が一致すること。field_path重複がないこと。全validation_typeがvalidation_type_registry_v0_1.jsonに存在すること。constraint_overridesのキーが各Validation Typeのoverridable_constraints内にあること。Dataの各field_pathが実データ構造に解決できること。measurement_sessionsとacceptance_thresholdsのpeak_frequency_hzが別定義として存在すること。Dataのtitle/created_at/updated_at/purpose/sample_notesが意図的に未登録で疎定義になっていること。work_items件数とitems_countが一致し、work_item_id重複がないこと。",
+      "user_request": "APP修正は後回しにし、まずData JSONサンプルと項目定義XXX.jsonサンプルを作成する。ViewDefは後続とする。",
+      "ai_response": "FRB FFT計測を題材に、Dataを差し替え可能な値資産として保ち、fielddefs側だけに明示Validation契約を持つサンプルを作成する。fielddefsは疎な定義とし、日付上下限・小数・整数・boolean・二つのルートの同名フィールドを含める。ViewDef/Runtimeは変更しない。",
+      "latest_user_comment": "まぁ、app修正はおいおておいて、とりあえずは、データjsonサンプル　と　その項目定義xxx.json　のサンプルの作成にいこうか？？お願いできる？ViewDefはあとにしようか。",
+      "latest_ai_response": "対応完了。FRB FFT計測のDataサンプルと、独立fielddefs/samples配下の疎な項目定義サンプルを作成した。ViewDef・Schema・Runtime・Program.csは変更していない。登録項目はfield_pathとvalidation_typeを必須とし、constraint_overridesは変更制約だけを保持する。Dataの同名項目を異なるルートへ置き、field_pathで別契約を持てることを具体化した。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0152_001",
+          "at": "2026-07-26",
+          "speaker": "user",
+          "topic": "項目定義の保持範囲",
+          "message": "項目定義XXX.jsonは必ず全項目を所持する方針ではなく、ViewDef typeだけでも仮Validation Typeを持てる現状運用を残したい。"
+        },
+        {
+          "history_id": "disc_0152_002",
+          "at": "2026-07-26",
+          "speaker": "user",
+          "topic": "ViewDef側の項目契約",
+          "message": "ViewDef側にValidation Typeは持たず、item_definition_idも不要。ViewDefはdataPathとfieldから自分の項目を特定してfielddefsを見に行く。"
+        },
+        {
+          "history_id": "disc_0152_003",
+          "at": "2026-07-26",
+          "speaker": "user",
+          "topic": "Data側の責務",
+          "message": "Data側にitem_definition_refを持つのは違和感がある。DataはFXデータのように安易に差し替える値資産である。"
+        },
+        {
+          "history_id": "disc_0152_004",
+          "at": "2026-07-26",
+          "speaker": "user",
+          "topic": "独立fielddefsルート",
+          "message": "項目定義XXX.jsonはdefsではなくfielddefsのようなdata/defs以外の独立フォルダーで管理したい。"
+        },
+        {
+          "history_id": "disc_0152_005",
+          "at": "2026-07-26",
+          "speaker": "user",
+          "topic": "サンプル作成依頼",
+          "message": "APP修正は後回しにし、まずData JSONサンプルと項目定義XXX.jsonサンプルを作成する。ViewDefは後続とする。"
+        },
+        {
+          "history_id": "disc_0152_006",
+          "at": "2026-07-26",
+          "speaker": "assistant",
+          "topic": "サンプル作成結果",
+          "message": "FRB FFT計測Dataとfielddefsサンプルを作成し、疎定義、field_path、日付境界、FFT小数、同名項目の別ルートを具体化した。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0152_001",
+          "at": "2026-07-26",
+          "decision": "fielddefsは全項目を必須保持せず、明示的な品質保証契約が必要な項目だけを保持する疎な正本とする。",
+          "reason": "未登録項目はViewDef typeから既定Validation Typeを仮解決でき、既存資産の全項目移行を強制せず重要項目から段階的に品質保証対象へ昇格できるため。"
+        },
+        {
+          "decision_id": "dec_0152_002",
+          "at": "2026-07-26",
+          "decision": "登録項目の一意キーはcanonical field_pathとし、ViewDef field側へitem_definition_idを追加しない。",
+          "reason": "ViewDefはdataPathとfieldから項目住所を解決でき、別IDを持つと二重管理と参照ドリフトが増えるため。"
+        },
+        {
+          "decision_id": "dec_0152_003",
+          "at": "2026-07-26",
+          "decision": "ViewDef field側へvalidation_typeを持たせず、Data側へfielddefs参照を持たせない。",
+          "reason": "Validation契約を画面ごとに複製せず、差し替え可能なDataを定義参照から切り離すため。"
+        },
+        {
+          "decision_id": "dec_0152_004",
+          "at": "2026-07-26",
+          "decision": "項目定義資産はdata/defsと並ぶ独立fielddefsルートで管理する。",
+          "reason": "値Data・画面定義・項目品質契約をフォルダー責務として分離し、項目定義をViewDefの一部と誤認しないため。"
+        },
+        {
+          "decision_id": "dec_0152_005",
+          "at": "2026-07-26",
+          "decision": "初版はDataサンプルとfielddefsサンプルだけを作成し、ViewDef・Schema・Runtime・Program.cs変更を後続へ分離する。",
+          "reason": "項目定義のデータ構造を小さな差分として先に承認し、APP改修と画面設計を混ぜないため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0152_001",
+          "at": "2026-07-26",
+          "change_type": "sample_data_add",
+          "before": "fielddefs設計を確認できる小規模Data JSONサンプルが存在しなかった。",
+          "after": "FRB FFT測定を題材に、文字列・整数・小数・boolean・日付・日時と二つの明細ルートを持つDataサンプルを追加した。",
+          "reason": "fielddefsの具体構造とfield_path照合を次のViewDef議論前に確認するため。"
+        },
+        {
+          "history_id": "chg_0152_002",
+          "at": "2026-07-26",
+          "change_type": "field_definition_sample_add",
+          "before": "独立fielddefsルートと疎な項目定義JSONの実サンプルが存在しなかった。",
+          "after": "fielddefs/samplesへfield_definition_data_v0_1形式のサンプルを追加し、17件の明示契約とconstraint_overridesを記録した。",
+          "reason": "ViewDefやRuntimeを変更せず、項目契約の正本形を人間が先にレビューできるようにするため。"
+        }
+      ],
+      "actual_updated_files": "data/json/80_frb/frb_fft_field_definition_sample_data_v0_1.json\nfielddefs/samples/frb_fft_measurement_field_definitions_v0_1.json\ndata/json/01_main/_studio_work_incident_data_v2.json",
+      "completion_summary": "FRB FFT計測Dataと独立fielddefs項目定義の初版サンプルを作成した。fielddefsは全項目保持ではなく疎な明示契約とし、field_pathを一意キー、validation_typeを必須、constraint_overridesを変更制約だけの保存領域とした。ViewDef・Schema・Runtime・Program.csは変更していない。",
+      "test_result": "更新3 JSONのparse成功。field_definition_count=17で実数一致、field_path重複なし。全validation_typeはValidation Type Registry 0.1.0へ解決し、全constraint_overridesキーは各overridable_constraints内。全17 field_pathはData構造へ解決。measurement_sessions/acceptance_thresholdsのpeak_frequency_hzは別パス・別上限で存在。Data上位5項目は意図的に未登録。Incident work_items=141件でitems_count一致、work_item_id重複なし。Runtime/ViewDef/Schema/Program.cs変更なし。"
+    },
+    {
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-26",
+      "updated_at": "2026-07-26",
+      "status": "完了（後続あり）",
+      "follow_up_status": "PENDING",
+      "follow_up_actions": [
+        {
+          "action_id": "follow_up_0153_001",
+          "action_type": "HUMAN_RULE_REVIEW",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "viewdef_rule_33",
+            "root_property__item_definition_ref"
+          ],
+          "note": "ViewDefルートitem_definition_ref、疎なfielddefs、Field側非保持の契約を人間がRule/Schema Review画面で承認する。"
+        },
+        {
+          "action_id": "follow_up_0153_002",
+          "action_type": "RUNTIME_UPDATE",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "fielddefs",
+            "FieldDefinitionResolver",
+            "Program.cs"
+          ],
+          "note": "独立fielddefs API、item_definition_ref読込、canonical field_path解決、EXPLICIT/IMPLICIT契約表示はAPP改修フェーズで扱う。"
+        },
+        {
+          "action_id": "follow_up_0153_003",
+          "action_type": "DEFAULT_VALIDATION_CONTRACT_DECISION",
+          "required": true,
+          "status": "COMPLETED",
+          "related_ids": [
+            "view_def_type_catalogs",
+            "implicit_validation_contract"
+          ],
+          "note": "view_def_type_catalogs.default_validation_type_idを正式採用し、date/datetime分離を含む暗黙Validation契約設計をv0.18.38で確定した。"
+        }
+      ],
+      "verification_status": "確認済み（JSON・ViewDef構造・FieldPath照合・Schema/Rules同期・静的テスト）",
+      "context_def_status": "",
+      "context_def_updated_at": "2026-07-26",
+      "work_item_id": "studio_work_0153",
+      "phase": "v0.18.37-field-definition-viewdef-contract",
+      "title": "FRB FFT項目定義サンプルViewDef / item_definition_ref契約初版",
+      "incident_type": "viewdef_schema_rules",
+      "category": "field_definition_validation_contract",
+      "priority": "high",
+      "target_files": "data/json/80_frb/frb_fft_field_definition_sample_data_v0_1.json\ndefs/frb/frb_fft_field_definition_sample_view_def_v0_1.json\nfielddefs/samples/frb_fft_measurement_field_definitions_v0_1.json\nfielddefs/schema/field_definition_data_schema_v0_1.json\ndata/json/00_rules/frb_view_def_schema_v0_9.json\ndata/json/00_rules/frb_view_def_schema_review_data_v0_1.json\ndata/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json\ntests/qa/static/field_definition_viewdef_contract_static.test.mjs\ndata/json/01_main/_studio_work_incident_data_v2.json",
+      "objective": "FRB FFT測定Dataサンプルを既存Studioで表示・編集できるViewDefを作成し、ViewDefルートitem_definition_refから独立fielddefsを参照する初期契約をSchemaと生成ルールへ正式化する。",
+      "background": "Dataサンプルと疎なfielddefsサンプルを作成後、項目定義をViewDef内へ埋めるか別ファイルにするかを再検討した。結論は、Dataは差し替え可能な値、ViewDefは表示入力とField Definitionセット参照、fielddefsは明示品質契約という分離である。Field側にはvalidation_type/item_definition_idを持たせず、dataPath＋fieldからcanonical field_pathを解決する。fielddefsは全項目を必須保持しない。",
+      "scope": "Dataへ通常のview_def参照を追加する。ViewDefルートにitem_definition_refを置き、measurement_sessionsをMain Grid、acceptance_thresholdsを同一ViewDef内のRelated Grid viewIdとして定義する。fielddefsサンプルを最新資材へ復元し、構造Schemaを追加する。ViewDef Schemaへ任意item_definition_refを追加し、Schema Review DataとViewDef Generation Rulesを同期する。静的回帰テストを追加する。",
+      "out_of_scope": "Program.csのfielddefs API、file_api.js、Resolver、Validator、実効Validation Type表示、項目定義編集UI、標準TestPattern導出、既存ViewDef一括移行は行わない。item_definition_refは現段階では宣言契約であり、Runtimeはまだ解決しない。",
+      "fixed_name_policy": "独立ルート名はfielddefs、ViewDefルートPropertyはitem_definition_ref、項目一意キーはcanonical field_pathとする。ViewDef Fieldへitem_definition_id/validation_typeを追加せず、Dataへitem_definition_refを追加しない。",
+      "module_policy": "APP RuntimeとProgram.csは変更しない。既存ViewDef互換を維持し、item_definition_ref省略時は従来動作とする契約だけをSchema/Rulesへ追加する。",
+      "expected_outputs": "FRB FFT測定ViewDef、Dataからのview_def接続、fielddefs構造Schema、ViewDef Schema item_definition_ref Property、生成ルール、Schema Review同期、静的回帰テスト、更新済みインシデント。",
+      "risk": "item_definition_refを追加しただけでRuntimeがField Definitionを適用すると誤認される可能性がある。Field側にvalidation_typeを追加すると契約が重複する。複数Root配列を別ViewDefファイルへ分割すると管理対象が増える。fielddefs未登録項目の暗黙契約の正式表現は未確定である。",
+      "test_points": "Dataのview_defが新ViewDefを指すこと。ViewDefルートitem_definition_refがfielddefs/samplesへ解決すること。Fieldにvalidation_type/item_definition_idが存在しないこと。二つのviewsとRelated Grid viewIdが整合すること。fielddefs17件のfield_pathがViewDefのdataPath＋fieldへ全件解決すること。ViewDef SchemaとSchema Reviewにitem_definition_refが存在すること。新生成ルールが未承認で追加されること。JSON parseと静的テストが成功すること。",
+      "user_request": "frb_fft_field_definition_sample_data_v0_1.jsonのViewDefを作成し、必要ならルールとスキーマも同時改定する。",
+      "ai_response": "ViewDefルートitem_definition_refを正式契約として追加し、Field側にはvalidation_type/item_definition_idを持たせない。Dataの二つのRoot配列は一つのViewDefファイル内のMain/Related viewsで扱う。Schemaと生成ルールも最小差分で同期する。",
+      "latest_user_comment": "ありがとう。なっとく、では、frb_fft_field_definition_sample_data_v0_1.jsonのViewDefをお願いします。ルールとスキーマ改定も同時に必要かな？？よろしく",
+      "latest_ai_response": "対応完了。FRB FFT測定Data用ViewDefを作成し、Dataへview_def参照を追加。ViewDefルートにitem_definition_refを定義し、測定セッションと受入閾値を同一ファイル内の二つのviewsで管理した。Field Definition構造Schema、ViewDef Schema、Schema Review、生成ルール、静的テストを追加・更新した。Runtime/Program.csは未変更。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0153_001",
+          "at": "2026-07-26",
+          "speaker": "user",
+          "topic": "ViewDef作成依頼",
+          "message": "FRB FFT項目定義サンプルDataのViewDefを作成し、必要ならルールとスキーマも同時改定する。"
+        },
+        {
+          "history_id": "disc_0153_002",
+          "at": "2026-07-26",
+          "speaker": "assistant",
+          "topic": "作業方針",
+          "message": "ViewDefルートitem_definition_ref、Field側非保持、同一ViewDef内の二Root viewsをSchema/Rulesと一緒に最小差分で定義する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0153_001",
+          "at": "2026-07-26",
+          "decision": "ViewDefルートにitem_definition_refを置き、DataとFieldにはField Definition参照を持たせない。",
+          "reason": "差し替え可能なDataを定義資産から切り離し、Field側の別ID・Validation Type重複を防ぐため。"
+        },
+        {
+          "decision_id": "dec_0153_002",
+          "at": "2026-07-26",
+          "decision": "fielddefsは全項目必須ではなく、必要項目だけの疎な明示契約とする。",
+          "reason": "既存ViewDef typeだけで動く項目を一括移行せず、重要項目から品質保証契約へ昇格できるため。"
+        },
+        {
+          "decision_id": "dec_0153_003",
+          "at": "2026-07-26",
+          "decision": "measurement_sessionsとacceptance_thresholdsは一つのViewDefファイル内の二つのviewsで管理する。",
+          "reason": "同一Data・同一ドメイン・同一ライフサイクルであり、Related GridごとにViewDefファイルを増やさないルールへ従うため。"
+        },
+        {
+          "decision_id": "dec_0153_004",
+          "at": "2026-07-26",
+          "decision": "item_definition_refは任意Propertyとし、既存ViewDefを変更必須にしない。",
+          "reason": "既存資産との互換性を維持し、Field Definition導入を段階的に進めるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0153_001",
+          "at": "2026-07-26",
+          "change_type": "viewdef_sample_add",
+          "before": "FRB FFT Field DefinitionサンプルDataに対応するViewDefが存在しなかった。",
+          "after": "測定セッションをMain Grid、受入閾値を同一ViewDef内Related Gridとして扱うViewDefを追加した。",
+          "reason": "Data/ViewDef/fielddefsの三責務を実サンプルで確認するため。"
+        },
+        {
+          "history_id": "chg_0153_002",
+          "at": "2026-07-26",
+          "change_type": "schema_rules_contract_add",
+          "before": "item_definition_refと独立fielddefsの正式Schema/生成ルール契約がなかった。",
+          "after": "Field Definition構造Schema、ViewDef root Property、Schema Review項目、生成ルールを追加した。",
+          "reason": "サンプルだけの暗黙仕様にせず、後続Runtime実装が参照できる正本契約を作るため。"
+        }
+      ],
+      "actual_updated_files": "data/json/80_frb/frb_fft_field_definition_sample_data_v0_1.json\ndefs/frb/frb_fft_field_definition_sample_view_def_v0_1.json\nfielddefs/samples/frb_fft_measurement_field_definitions_v0_1.json\nfielddefs/schema/field_definition_data_schema_v0_1.json\ndata/json/00_rules/frb_view_def_schema_v0_9.json\ndata/json/00_rules/frb_view_def_schema_review_data_v0_1.json\ndata/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json\ntests/qa/static/field_definition_viewdef_contract_static.test.mjs\ndata/json/01_main/_studio_work_incident_data_v2.json",
+      "completion_summary": "FRB FFT測定Data/ViewDef/fielddefsの三資産サンプルを接続し、ViewDefルートitem_definition_refと疎なField Definition契約をSchema/Rulesへ正式化した。Runtime/Program.cs連携は後続へ分離した。",
+      "test_result": "更新8 JSONのparse成功。fielddefsサンプルはfield_definition_data_schema_v0_1、ViewDefサンプルはfrb_view_def_schema_v0_9でJSON Schema検証成功。新規契約テスト7/7 PASS。関連するfield_group_type_resolver / related_grid_view_launchを含む選択静的テスト17/17 PASS。全static一括実行も試行したが、入力ZIPにstudio_overlays/thought_evolutionが含まれていないため既存Overlay系4テストがENOENTで失敗し、今回変更との関連はない。Runtime/Program.cs実装と実画面でのField Definition解決確認は対象外。"
+    },
+    {
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-26",
+      "updated_at": "2026-07-26",
+      "status": "完了（後続あり）",
+      "follow_up_status": "PENDING",
+      "follow_up_actions": [
+        {
+          "action_id": "follow_up_0154_001",
+          "action_type": "HUMAN_RULE_REVIEW",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "viewdef_rule_34",
+            "def__fieldType"
+          ],
+          "note": "date/datetime意味分離、混在時の深い方datetime、既存互換方針をRule/Schema Review画面で承認する。"
+        },
+        {
+          "action_id": "follow_up_0154_002",
+          "action_type": "RUNTIME_UPDATE",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "date",
+            "datetime",
+            "FieldControlRegistry"
+          ],
+          "note": "date専用入力UI、Registry暗黙Validation契約解決、混在警告はAPP改修フェーズで扱う。現Runtimeでは未登録dateはtext control fallbackとなる。"
+        }
+      ],
+      "verification_status": "確認済み（JSON・Schema/Rules/Registry同期・サンプル3形式・静的テスト）",
+      "context_def_status": "",
+      "context_def_updated_at": "2026-07-26",
+      "work_item_id": "studio_work_0154",
+      "phase": "v0.18.38-date-datetime-field-type-split",
+      "title": "ViewDef date / datetime意味分離と混在時の深い方推論",
+      "incident_type": "viewdef_schema_rules",
+      "category": "field_type_validation_contract",
+      "priority": "high",
+      "target_files": "data/json/80_frb/frb_fft_field_definition_sample_data_v0_1.json\ndefs/frb/frb_fft_field_definition_sample_view_def_v0_1.json\nfielddefs/samples/frb_fft_measurement_field_definitions_v0_1.json\ndata/json/config/validation_type_registry_v0_1.json\ndata/json/00_rules/frb_view_def_schema_v0_9.json\ndata/json/00_rules/frb_view_def_schema_review_data_v0_1.json\ndata/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json\ntests/qa/static/field_definition_viewdef_contract_static.test.mjs\ndata/json/01_main/_studio_work_incident_data_v2.json",
+      "objective": "ViewDef typeのdateとdatetimeを明示分離し、fielddefs未登録項目の暗黙Validation契約を一意に解決できる基盤を作る。元Dataに日付のみと日時が混在する場合はViewDef生成上の深い方datetimeへ倒し、既存datetime資産は互換維持する。",
+      "background": "暗黙Validation契約をview_def_type_catalogs.default_validation_type_idで決める設計にすると、現行datetime一種類ではstudio.date.ymd / studio.datetime.local / studio.instant.iso8601のどれを既定にするか一意に決まらない。項目の意味からdateかdatetimeを選び、元Data混在時だけ深いdatetimeへ倒す段階移行方針を採用した。",
+      "scope": "ViewDef Schema fieldType enumへdateを追加する。Validation Type Registryにdateカタログを追加し、datetimeからstudio.date.ymdを分離する。FRB FFTサンプルでYYYY-MM-DD、ローカル日時、オフセット付き時点の3形式を示し、ViewDef/fielddefsを同期する。生成ルールとSchema Reviewを更新し、静的テストを追加する。 あわせて、既にnumberカタログのdefaultとして参照されていたstudio.number.standardの定義欠落を補完し、Registry参照整合性を回復する。",
+      "out_of_scope": "Runtimeのdate専用input、日付/日時Validation実行、既存ViewDef一括置換、混在Data自動正規化、studio.instant.iso8601のdraft解除は行わない。",
+      "fixed_name_policy": "ViewDef typeはdate / datetimeを使用する。dateは日付のみ、datetimeは時刻を含む日時。タイムゾーン付き時点もViewDef typeはdatetimeとし、Validation Typeはfielddefsでstudio.instant.iso8601を明示する。",
+      "module_policy": "APP Runtimeは変更しない。Schema/Rules/Registry/サンプル資産のみを最小差分で更新し、既存datetimeは有効なまま維持する。",
+      "expected_outputs": "date/datetime分離済みSchema・Registry・生成ルール、3形式を示すFRB FFTサンプルData/ViewDef/fielddefs、Schema Review同期、静的回帰テスト、更新済みインシデント。",
+      "risk": "混在時にdatetimeへ倒したことを、date-only/local/offsetの混在をValidation契約として許容したと誤解する可能性がある。Runtime未改修のためdate専用UIはまだ存在しない。既存datetimeを一括変更すると不要な大差分になる。",
+      "test_points": "サンプルに2026-07-26、2026-07-26T21:30、2026-07-26T21:30:00+09:00が存在すること。measurement_date/created_at/updated_atがdate、captured_at/received_atがdatetimeであること。received_atがstudio.instant.iso8601明示契約であること。Schema enumとRegistry catalogsがdate/datetime分離されること。生成ルールが混在時datetimeと既存互換を記録すること。JSON parseと静的テストが成功すること。 全catalogのdefault_validation_type_idが候補配列内かつactive定義へ解決すること。",
+      "user_request": "元Dataで日付・日時の混在が確認できた場合は深い方へ倒すルールとし、基本は項目タイトルからdateかdatetimeを決めたい。互換性を壊さず新規資産から正しいTypeへ寄せる。サンプルData、ルール、スキーマを改定する。",
+      "ai_response": "date=日付のみ、datetime=時刻ありとしてSchema/Registry/生成ルールを分離する。元Data混在時はViewDef typeをdatetimeへ倒すが、Validation契約上の混在許可とは分離する。FRB FFTサンプルに日付、ローカル日時、オフセット付き時点を追加する。",
+      "latest_user_comment": "もし、ViewDef作成時にもととなるデータがあって、混在が確認できた場合は、深い方に倒すルールを１つ設定しておけばよいと思う。基本は項目タイトルで date or datetime か決まると思うので、そこはViewDef側のTypeで分かるってことにしたいね。互換性を壊さず、新規資産から正しいTypeへ寄せるでよいです。サンプルデータの改修と　ルール・スキーマの改定をお願いします。\n2026-07-26\n2026-07-26T21:30\n2026-07-26T21:30:00+09:00",
+      "latest_ai_response": "対応完了。ViewDef Schemaへdateを追加し、Validation Type Registryをdate→studio.date.ymd、datetime→studio.datetime.local（候補にinstant）へ分離した。生成ルールに項目意味優先、元Data混在時は深いdatetime、既存datetime互換を追加。FRB FFTサンプルData/ViewDef/fielddefsへ3形式を反映した。Runtimeは未変更。",
+      "discussion_history": [
+        {
+          "history_id": "disc_0154_001",
+          "at": "2026-07-26",
+          "speaker": "user",
+          "topic": "date/datetime生成規則",
+          "message": "項目タイトル・意味でdateかdatetimeを決め、元Dataに混在があれば深いdatetimeへ倒す。既存互換を維持し新規資産から移行する。"
+        },
+        {
+          "history_id": "disc_0154_002",
+          "at": "2026-07-26",
+          "speaker": "assistant",
+          "topic": "作業方針",
+          "message": "Schema/Registry/Rulesをdateとdatetimeへ分離し、3形式サンプルを更新する。混在時datetimeは表示型推論でありValidation許可とは分ける。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0154_001",
+          "at": "2026-07-26",
+          "decision": "ViewDef type=dateはYYYY-MM-DDの日付のみ、datetimeは時刻を含む日時とする。",
+          "reason": "ViewDef typeから未登録項目の既定Validation Typeを一意に解決するため。"
+        },
+        {
+          "decision_id": "dec_0154_002",
+          "at": "2026-07-26",
+          "decision": "元Dataの同一項目にdate-onlyとdatetimeが混在する場合、ViewDef生成ではdatetimeへ倒す。",
+          "reason": "情報を欠落させず表示入力できる深い型を選ぶため。"
+        },
+        {
+          "decision_id": "dec_0154_003",
+          "at": "2026-07-26",
+          "decision": "混在時datetime規則とValidation契約は分離する。",
+          "reason": "ViewDef typeを深くしても、date-only/local/offset形式を一つのValidation Typeが自動的に許可するわけではないため。"
+        },
+        {
+          "decision_id": "dec_0154_004",
+          "at": "2026-07-26",
+          "decision": "既存datetime ViewDefは一括変更せず、新規・改定資産からdateへ寄せる。",
+          "reason": "既存資産との互換性を壊さず、小さな承認差分で段階移行するため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0154_001",
+          "at": "2026-07-26",
+          "change_type": "date_datetime_schema_registry_split",
+          "before": "ViewDef type=datetimeが日付のみ・ローカル日時・タイムゾーン付き時点をまとめていた。",
+          "after": "Schemaへdateを追加し、Registryをdateとdatetimeへ分離した。",
+          "reason": "暗黙Validation契約を一意にするため。"
+        },
+        {
+          "history_id": "chg_0154_002",
+          "at": "2026-07-26",
+          "change_type": "sample_three_formats",
+          "before": "FFTサンプルは日付とローカル日時の2形式だけだった。",
+          "after": "日付、ローカル日時、オフセット付き時点の3形式をData/ViewDef/fielddefsで表現した。",
+          "reason": "date/datetimeと明示instant契約の役割を実物で確認するため。"
+        },
+        {
+          "history_id": "chg_0154_003",
+          "at": "2026-07-26",
+          "change_type": "registry_default_definition_repair",
+          "before": "numberカタログがdefault_validation_type_id=studio.number.standardを参照していたが、validation_type_definitionsに実体が存在しなかった。",
+          "after": "一般的な有限整数・小数を受けるactiveなstudio.number.standard定義を追加した。",
+          "reason": "暗黙Validation契約のdefault参照を全ViewDef typeで解決可能にするため。"
+        }
+      ],
+      "actual_updated_files": "data/json/80_frb/frb_fft_field_definition_sample_data_v0_1.json\ndefs/frb/frb_fft_field_definition_sample_view_def_v0_1.json\nfielddefs/samples/frb_fft_measurement_field_definitions_v0_1.json\ndata/json/config/validation_type_registry_v0_1.json\ndata/json/00_rules/frb_view_def_schema_v0_9.json\ndata/json/00_rules/frb_view_def_schema_review_data_v0_1.json\ndata/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json\ntests/qa/static/field_definition_viewdef_contract_static.test.mjs\ndata/json/01_main/_studio_work_incident_data_v2.json",
+      "completion_summary": "ViewDef date/datetimeを意味分離し、元Data混在時は生成上datetimeへ倒す規則と既存互換方針をSchema/Registry/Rulesへ反映。FRB FFTサンプルへ3形式を追加した。 また、number既定契約の定義欠落を補完した。",
+      "test_result": "更新8 JSONのparse成功。Field Definitionサンプルはfield_definition_data_schema_v0_1、ViewDefサンプルはfrb_view_def_schema_v0_9でJSON Schema検証成功。Validation Type Registryは6 ViewDef Type全件についてdefaultが候補配列内・定義存在・activeであることを確認。studio.number.standardの欠落定義を補完。field_definition_viewdef_contract_static 9/9 PASS、related_grid_view_launch_staticを含む選択静的テスト18/18 PASS。Runtime/Program.cs/実画面は変更・確認対象外。現Runtimeでdateは未登録Controlのためtext fallbackとなる。"
     }
   ],
   "review_notes": [
@@ -22493,11 +22913,11 @@
       "body": "studio_work_0151で、decision_axis_small_meaningful_diff_approval_firstを憲法governance_itemsへ追加した。小さな差分は最小可能ではなく、意味・責務・影響範囲を判断できる最小十分な単位とする。Validation Type等の標準を継承し、項目定義XXX.jsonにはoverride/diffだけを保存する設計判断の上位根拠とする。"
     }
   ],
-  "work_revision": "v0_151_small_meaningful_diff_approval_north_star",
+  "work_revision": "v0_152_field_definition_samples",
   "latest_planning_note": {
     "at": "2026-07-26",
-    "phase": "v0.18.35-small-meaningful-diff-approval-north-star",
-    "summary": "studio_work_0151を完了。AI承認駆動開発の北極星として、人間が意味・責務・影響範囲を判断できる最小十分な差分を最優先する判断軸を憲法へ追加した。標準＋override/diffで変更部分だけを保存し、意味を失う過細分化は避ける。"
+    "phase": "v0.18.36-field-definition-samples",
+    "summary": "studio_work_0152を完了。APP/ViewDef改修前に、FRB FFT測定Dataと独立fielddefsの疎な項目定義サンプルを作成した。field_pathを一意キー、validation_typeを登録項目の必須契約、constraint_overridesを標準との差分保存領域とする。"
   },
   "view_def_candidates": [
     {

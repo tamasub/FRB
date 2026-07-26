@@ -16,7 +16,7 @@
     "phase": "v0.18.33-validation-type-registry-initial",
     "work_item_id": "studio_work_0149"
   },
-  "purpose": "ViewDef typeごとに選択可能なvalidation_typeを提示し、validation_typeごとの値契約・標準制約・項目固有上書き可能範囲・標準TestPattern観点を一つの正本として管理する。",
+  "purpose": "ViewDef typeとValidation Typeの許可関係、未登録項目の既定Validation契約、標準Constraints、標準TestPattern条件を一元管理する。dateとdatetimeは意味を分離する。",
   "contract": {
     "validation_type_ref_format": "{namespace}.{value_family}.{contract}",
     "catalog_role": "view_def_type_catalogsは、項目定義UIのコンボボックス候補生成、ViewDef読込時チェック、保存前チェックに使用する。",
@@ -37,6 +37,7 @@
       "view_def_type": "text",
       "label": "単一行文字列入力",
       "sort_order": 10,
+      "default_validation_type_id": "studio.string.single_line",
       "validation_type_ids": [
         "studio.string.single_line",
         "studio.string.identifier",
@@ -48,6 +49,7 @@
       "view_def_type": "textarea",
       "label": "複数行文字列入力",
       "sort_order": 20,
+      "default_validation_type_id": "studio.string.multi_line",
       "validation_type_ids": [
         "studio.string.multi_line"
       ]
@@ -56,7 +58,9 @@
       "view_def_type": "number",
       "label": "数値入力",
       "sort_order": 30,
+      "default_validation_type_id": "studio.number.standard",
       "validation_type_ids": [
+        "studio.number.standard",
         "studio.integer.signed",
         "studio.integer.non_negative",
         "studio.integer.positive",
@@ -68,16 +72,26 @@
       "view_def_type": "boolean",
       "label": "真偽値入力",
       "sort_order": 40,
+      "default_validation_type_id": "studio.boolean.standard",
       "validation_type_ids": [
         "studio.boolean.standard"
       ]
     },
     {
-      "view_def_type": "datetime",
-      "label": "日付・日時入力",
+      "view_def_type": "date",
+      "label": "日付入力",
       "sort_order": 50,
+      "default_validation_type_id": "studio.date.ymd",
       "validation_type_ids": [
-        "studio.date.ymd",
+        "studio.date.ymd"
+      ]
+    },
+    {
+      "view_def_type": "datetime",
+      "label": "日時入力",
+      "sort_order": 60,
+      "default_validation_type_id": "studio.datetime.local",
+      "validation_type_ids": [
         "studio.datetime.local",
         "studio.instant.iso8601"
       ]
@@ -259,6 +273,42 @@
         "NON_ASCII_REJECTED",
         "EMPTY_STRING_POLICY",
         "LENGTH_BOUNDARY"
+      ],
+      "test_pattern_profile_ref": ""
+    },
+    {
+      "id": "studio.number.standard",
+      "contract_version": "0.1.0",
+      "label": "標準数値",
+      "description": "整数・小数を含む一般的な有限数値。項目固有の意味、範囲、桁数は明示Validation TypeまたはConstraint Overrideで定義する。",
+      "status": "active",
+      "sort_order": 90,
+      "deprecated": false,
+      "value_family": "number",
+      "value_contract": {
+        "runtime_value_type": "number",
+        "finite_required": true,
+        "integer_allowed": true,
+        "decimal_allowed": true,
+        "semantic_specialization_required": false
+      },
+      "default_constraints": {},
+      "required_constraints": [],
+      "overridable_constraints": [
+        "required",
+        "nullable",
+        "minimum",
+        "maximum"
+      ],
+      "standard_test_conditions": [
+        "INTEGER_ACCEPTED",
+        "DECIMAL_ACCEPTED",
+        "NEGATIVE_VALUE_ACCEPTED",
+        "ZERO_ACCEPTED",
+        "NAN_REJECTED",
+        "INFINITY_REJECTED",
+        "MINIMUM_BOUNDARY",
+        "MAXIMUM_BOUNDARY"
       ],
       "test_pattern_profile_ref": ""
     },

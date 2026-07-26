@@ -13,7 +13,7 @@
   "status": "converted_draft",
   "introduced_in": "v0.4-r001",
   "generated_at": "2026-06-26T00:00:00+09:00",
-  "rule_count": 87,
+  "rule_count": 89,
   "approved_count": 83,
   "approval_policy": "Rule Reviewの状態正本は verification_status（AI確認状態）と approval_decision（人間承認）の二つとする。AIは確認結果を更新できるが、人間承認を新規付与・継続・復元してはならない。AIが承認対象の意味内容を変更した場合は verification_status=未確認、approval_decision=未承認へ戻し、approved_by / approved_at をクリアして人間再承認を求める。",
   "preamble": "対象: `FRBStudio_App` / No-Code JSON Studio v0.6+ 系  \n対応Schema: `frb_view_def_schema_v0_8_action_registry_toolbar.json`\n\nこの文書は、AIに **Data JSON から ViewDef JSON を作成させる** ときの作成ルールである。\n\nStudioくんにおける ViewDef は、単なる画面定義ではない。\n\n```text\nData JSON + ViewDef JSON + Runtime + Action = Experience\n```\n\nViewDef は、データの見え方・編集の仕方・Markdown化・AIへの渡し方・仮想データの作り方・主役Actionを宣言する **体験設計書** である。\n\n---",
@@ -2806,10 +2806,88 @@
           "reason": "1画面1メイングリッドを維持しつつ、同一Dataに属する複数Root配列のViewDefを1ファイルで管理するため。"
         }
       ]
+    },
+    {
+      "no": 88,
+      "rule_id": "viewdef_rule_33",
+      "section_no": "33",
+      "source_heading": "33. ViewDefから独立fielddefsを参照する",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "Field Definition",
+      "title": "ViewDefはルートのitem_definition_refで疎なField Definitionを参照する",
+      "priority": "high",
+      "verification_status": "確認済み",
+      "approval_decision": "未承認",
+      "summary": "ViewDefは必要な場合だけルートにitem_definition_refを持ち、各fieldのdataPath＋fieldからcanonical field_pathを生成して独立fielddefsの明示契約を照合する。",
+      "body": "ViewDefとField Definitionの責務を次のように分離する。\n\n```text\nData JSON   = 差し替え可能な値\nViewDef     = 表示・入力方法と、利用するField Definitionセットへの参照\nfielddefs   = 明示的に品質保証契約へ昇格した項目の疎な正本\n```\n\nViewDefでField Definitionを使用する場合は、ViewDefルートに次を定義する。\n\n```json\n{\n  \"item_definition_ref\": \"samples/frb_fft_measurement_field_definitions_v0_1.json\",\n  \"views\": []\n}\n```\n\n`item_definition_ref`は独立`fielddefs/`ルートからの相対パスとし、`fielddefs/`というルート名自体は値へ含めない。\n\n各Fieldには`validation_type`や`item_definition_id`を追加しない。RuntimeはSectionの`dataPath`とFieldの`field`からcanonical field_pathを生成する。\n\n```text\n$.measurement_sessions + peak_frequency_hz\n→ $.measurement_sessions[].peak_frequency_hz\n```\n\nfielddefsに一致する定義がある場合は、その`validation_type`と`constraint_overrides`を明示契約として使う。一致する定義がない場合は、既存互換としてViewDefの`type`に基づく暗黙契約で動作する。したがってfielddefsは全項目を複製する完全スキーマではなく、必要項目だけを持つ疎な正本でよい。\n\n同一Dataを複数のViewDefファイルで表示する場合、各ViewDefが`item_definition_ref`を指定する。表示方法だけが異なり項目意味が同じ場合は、原則として同じField Definitionファイルを参照する。\n\n`item_definition_ref`がない既存ViewDefはエラーにせず、従来どおり動作させる。",
+      "reason": "Validation契約をDataへ混入させず、ViewDef fieldへ別IDやValidation Typeを重複保持せず、既存ViewDefを一括移行せずに重要項目から明示契約へ昇格できるようにするため。",
+      "introduced_in": "v0.18.37-field-definition-viewdef-contract",
+      "ceremony_phrase": "ViewDefはfielddefsを参照するが、Fieldごとの契約IDは重複保持しない。",
+      "user_comment": "Dataは差し替え可能な値資産なのでfielddefs参照を持たせない。ViewDef側もFieldごとのitem_definition_idは持たず、自分のdataPathとfieldから項目を特定する。",
+      "ai_response": "ViewDefルートのitem_definition_refだけを正式契約とし、fielddefsは全項目必須ではない疎な明示契約として参照する。",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "",
+      "approved_at": "",
+      "approval_stamp": "",
+      "notes": "初回サンプルとしてFRB FFT測定Data/ViewDef/fielddefsへ適用。Runtime・Program.cs連携は後続。",
+      "source_line_start": 0,
+      "source_md_file": "data/json/01_main/_studio_work_incident_data_v2.json#studio_work_0153",
+      "change_history": [
+        {
+          "history_id": "chg_viewdef_rule_33_v01837_001",
+          "at": "2026-07-26",
+          "change_type": "rule_added",
+          "before": "ViewDef・Data・独立fielddefs間の参照責務と、未登録項目の互換動作を定める生成ルールがなかった。",
+          "after": "ViewDefルートitem_definition_ref、field-level ID/Validation Type非保持、canonical field_path照合、疎な明示契約、既存ViewDef互換をルール化した。",
+          "reason": "項目定義を別ファイルにしたことで基準値スナップショットや全項目複製が必要になる誤解を防ぎ、最小十分な契約にするため。"
+        }
+      ],
+      "decision_log": []
+    },
+    {
+      "no": 89,
+      "rule_id": "viewdef_rule_34",
+      "section_no": "34",
+      "source_heading": "34. date / datetimeを意味と観測値から分離する",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "Field Type",
+      "title": "日付のみはdate、時刻を含む日時はdatetimeを使用する",
+      "priority": "high",
+      "verification_status": "確認済み",
+      "approval_decision": "未承認",
+      "summary": "ViewDef作成時は項目名・caption・業務意味からdateかdatetimeを決め、元Dataの同一項目に日付のみと日時が混在する場合は深い方のdatetimeへ倒す。既存datetime資産は互換維持する。",
+      "body": "ViewDefのField typeは日付の深さを次のように分ける。\n\n```text\n2026-07-26                   → date\n2026-07-26T21:30             → datetime\n2026-07-26T21:30:00+09:00    → datetime\n```\n\n基本判断は項目名・caption・業務意味で行う。日付だけを表す項目は`date`、時刻を含む項目は`datetime`とする。タイムゾーン付き日時も表示入力上のViewDef typeは`datetime`とし、必要な場合はField Definitionで`studio.instant.iso8601`を明示する。\n\nViewDef作成時に元Dataが存在し、同一fieldで日付のみと日時が混在している場合は、情報量の深い`datetime`へ倒す。\n\n```text\ndate < datetime\n```\n\nただし、この深い方へ倒す規則はViewDef typeの生成規則であり、混在形式を正式なValidation契約として無条件に許可するものではない。暗黙Validation契約で表現できない場合は、Field DefinitionでValidation Typeを明示するか、Data正規化・契約見直しの対象として警告する。\n\n既存ViewDefの`type: datetime`は互換性のため引き続き有効とする。既存資産を一括変更せず、新規作成または改定するViewDefから正しい`date` / `datetime`へ寄せる。",
+      "reason": "datetime一種類のままではViewDef typeからstudio.date.ymdとstudio.datetime.localのどちらを暗黙契約にするか一意に決められず、日付のみの項目へ不要な時刻概念が混入するため。",
+      "introduced_in": "v0.18.38-date-datetime-field-type-split",
+      "ceremony_phrase": "時間を持たない日付に、時間の影を背負わせない。",
+      "user_comment": "元Dataで日付と日時の混在が確認できた場合は深い方へ倒す。基本は項目タイトルからdateかdatetimeを決め、互換性を壊さず新規資産から正しいTypeへ寄せる。",
+      "ai_response": "dateとdatetimeをSchema/Registryで分離し、混在時はViewDef typeをdatetimeへ倒す。ただしValidation契約上の混在許可とは分離して扱う。",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "",
+      "approved_at": "",
+      "approval_stamp": "",
+      "notes": "FRB FFTサンプルでdate/local datetime/offset instantの3形式へ初回適用。Runtime専用date入力UIは後続。",
+      "source_line_start": 0,
+      "source_md_file": "data/json/01_main/_studio_work_incident_data_v2.json#studio_work_0154",
+      "change_history": [
+        {
+          "history_id": "chg_viewdef_rule_34_v01838_001",
+          "at": "2026-07-26",
+          "change_type": "rule_added",
+          "before": "日付のみと日時をともにViewDef type=datetimeで生成していた。",
+          "after": "date=日付のみ、datetime=時刻ありとし、元Dataで混在時はdatetimeへ倒す生成規則を追加した。",
+          "reason": "ViewDef typeから未登録項目の暗黙Validation契約を一意に解決しつつ、既存資産を段階移行するため。"
+        }
+      ],
+      "decision_log": []
     }
   ],
   "updated_at": "2026-07-26",
-  "review_revision": "v0.18.30-rule-review-status-responsibility-cleanup",
+  "review_revision": "v0.18.37-field-definition-viewdef-contract",
   "review_notes": [
     {
       "note_id": "note_v012_scope_correction",
@@ -2874,6 +2952,12 @@
       "at": "2026-07-25",
       "topic": "Rule Review状態の二項目化",
       "note": "v0.18.30でreview_statusを廃止し、verification_status（AI）とapproval_decision（人間）の二状態へ統合。旧review_statusは重複した人間ワークフロー表示であり正本には継承しない。旧verification_status=実装済みは確認済みへ、旧approval_decision=未判断/承認待ちは未承認へ正規化。既存のapproved_by/approved_at欠落値は推測補完しない。"
+    },
+    {
+      "note_id": "note_v01837_field_definition_viewdef_contract",
+      "at": "2026-07-26",
+      "title": "v0.18.37 ViewDefルートitem_definition_ref / 独立fielddefs契約",
+      "body": "ViewDefルートだけにitem_definition_refを置き、Field側へvalidation_type/item_definition_idを持たせない。fielddefsは全項目を必須保持せず、canonical field_pathで照合する疎な明示契約とする。新規ルールは人間未承認。"
     }
   ],
   "view_def_candidates": [

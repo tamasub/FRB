@@ -1,0 +1,51 @@
+{
+  "view_def": "frb/frb_fft_field_definition_sample_view_def_v0_1.json",
+  "schema_version": "frb_fft_field_definition_sample_data_v0_1",
+  "document_type": "frb_fft_measurement_sample",
+  "title": "FRB 項目定義サンプル / FFT測定データ",
+  "status": "draft",
+  "created_at": "2026-07-26",
+  "updated_at": "2026-07-26",
+  "purpose": "Data JSON、ViewDef、独立fielddefsの責務分離、疎な明示Validation契約、およびdate / datetimeの意味分離を確認するための小規模サンプル。",
+  "measurement_sessions": [
+    {
+      "session_id": "frb_fft_20260726_001",
+      "rod_code": "FRBA01",
+      "measurement_name": "穂先振動計測サンプル",
+      "measurement_date": "2026-07-26",
+      "captured_at": "2026-07-26T21:30",
+      "received_at": "2026-07-26T21:30:00+09:00",
+      "sample_rate_hz": 1000,
+      "peak_frequency_hz": 82.375,
+      "amplitude_g": 0.01842,
+      "quality_score": 87,
+      "enabled": true,
+      "note": "FFT計測値の小数、日付・日時、整数、booleanを一つの明細で確認する。"
+    },
+    {
+      "session_id": "frb_fft_20260726_002",
+      "rod_code": "FRBA02",
+      "measurement_name": "トップガイド比較サンプル",
+      "measurement_date": "2026-07-27",
+      "captured_at": "2026-07-27T09:15",
+      "received_at": "2026-07-27T09:15:30+09:00",
+      "sample_rate_hz": 1000,
+      "peak_frequency_hz": 93.75,
+      "amplitude_g": 0.02418,
+      "quality_score": 91,
+      "enabled": true,
+      "note": "同じData構造の別レコード。項目定義は行番号ではなくfield_pathへ適用する。"
+    }
+  ],
+  "acceptance_thresholds": [
+    {
+      "threshold_id": "default_tip_vibration",
+      "peak_frequency_hz": 120.0,
+      "amplitude_g": 0.05,
+      "quality_score": 70,
+      "enabled": true,
+      "note": "measurement_sessionsと同名フィールドを持つ別ルート。field_pathで区別する。"
+    }
+  ],
+  "sample_notes": "fielddefs未登録項目は将来ViewDef typeから暗黙Validation契約を解決する。日付系サンプルは YYYY-MM-DD=date、ローカル日時=datetime、タイムゾーン付き日時=datetime＋明示instant契約として分ける。"
+}

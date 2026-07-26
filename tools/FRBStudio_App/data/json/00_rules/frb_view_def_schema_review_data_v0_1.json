@@ -14,8 +14,8 @@
   "introduced_in": "v0.4-r001",
   "generated_at": "2026-06-22T12:46:51+09:00",
   "defs_count": 35,
-  "root_properties_count": 19,
-  "schema_items_count": 360,
+  "root_properties_count": 20,
+  "schema_items_count": 361,
   "definition_property_count": 306,
   "conversion_note": "JSON Schemaはproperties/$defsの辞書構造が多いため、Studio上でレビューしやすいように root_property / definition / definition_property のフラットな schema_items 配列へ変換したData JSON。元Schemaは参照元であり、このJSONはレビュー・確認・Markdown出力用のViewである。",
   "review_policy": "Schemaの定義内容はAIが要約・分類できるが、採用可否・修正判断は人間が行う。確認済みにする場合は verification_status を確認済みにし、approval_decision を承認する。",
@@ -27,7 +27,7 @@
     "recommended_view_def": "defs/rules/frb_view_def_schema_review_view_def_v0_1.json"
   },
   "item_type_counts": {
-    "root_property": 19,
+    "root_property": 20,
     "definition": 35,
     "definition_property": 306
   },
@@ -3183,18 +3183,18 @@
       "type_summary": "string enum[9]",
       "required": false,
       "ref": "",
-      "enum_summary": "text, number, boolean, select, datetime, textarea, objectArray, stringArray, chat",
-      "description": "",
+      "enum_summary": "text, number, boolean, select, date, datetime, textarea, objectArray, stringArray, chat, fieldGroup",
+      "description": "dateはYYYY-MM-DDの日付のみ、datetimeは時刻を含む日時を表す。既存datetime資産は互換維持し、新規・改定ViewDefから意味に応じて分離する。",
       "priority": "high",
       "review_status": "未レビュー",
-      "verification_status": "未確認",
+      "verification_status": "確認済み",
       "approval_decision": "未承認",
-      "notes": "",
+      "notes": "v0.18.38でdateをdatetimeから分離。既存datetimeは互換維持し、新規・改定ViewDefから適用する。",
       "user_comment": "",
       "ai_response": "",
       "user_reply": "",
       "ai_followup_response": "",
-      "raw_schema_json": "{\n  \"type\": \"string\",\n  \"enum\": [\n    \"text\",\n    \"number\",\n    \"boolean\",\n    \"select\",\n    \"datetime\",\n    \"textarea\",\n    \"objectArray\",\n    \"stringArray\",\n    \"chat\"\n  ]\n}",
+      "raw_schema_json": "{\n  \"type\": \"string\",\n  \"enum\": [\n    \"text\",\n    \"number\",\n    \"boolean\",\n    \"select\",\n    \"date\",\n    \"datetime\",\n    \"textarea\",\n    \"objectArray\",\n    \"stringArray\",\n    \"chat\",\n    \"fieldGroup\"\n  ],\n  \"description\": \"dateはYYYY-MM-DDの日付のみ、datetimeは時刻を含む日時を表す。既存datetime資産は互換維持し、新規・改定ViewDefから意味に応じて分離する。\"\n}",
       "constraints": [
         {
           "name": "type",
@@ -3206,7 +3206,16 @@
         }
       ],
       "child_properties": [],
-      "change_history": []
+      "change_history": [
+        {
+          "history_id": "chg_schema_field_type_date_v01838_001",
+          "at": "2026-07-26",
+          "change_type": "enum_value_added",
+          "before": "fieldType enumでは日付のみと日時の両方をdatetimeで表していた。",
+          "after": "fieldType enumへdateを追加し、date=YYYY-MM-DD、datetime=時刻を含む日時として意味を分離した。",
+          "reason": "ViewDef typeから未登録項目の暗黙Validation契約を一意に解決できるようにするため。"
+        }
+      ]
     },
     {
       "no": 79,
@@ -14979,6 +14988,55 @@
       ],
       "child_properties": [],
       "change_history": []
+    },
+    {
+      "no": 361,
+      "item_id": "root_property__item_definition_ref",
+      "item_type": "root_property",
+      "name": "item_definition_ref",
+      "parent_key": "",
+      "schema_path": "properties.item_definition_ref",
+      "source": "root.properties",
+      "type_summary": "string",
+      "required": false,
+      "ref": "",
+      "enum_summary": "",
+      "description": "Optional relative path under the independent fielddefs root. The ViewDef references one sparse Field Definition set. Omit it for legacy ViewDefs and resolve all fields implicitly from ViewDef type behavior.",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "確認済み",
+      "approval_decision": "未承認",
+      "notes": "独立fielddefsルートからの相対パス。Field側へvalidation_type/item_definition_idは追加しない。Runtime連携は後続。",
+      "user_comment": "ViewDef側にitem_definition_refを置き、Data側には置かない。",
+      "ai_response": "Schemaへ任意root propertyとして追加し、既存ViewDef互換を維持する。",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "raw_schema_json": "{\n  \"type\": \"string\",\n  \"minLength\": 1,\n  \"pattern\": \"^(?!/)(?!.*\\\\.\\\\.)(?!.*\\\\\\\\).+\\\\.json$\",\n  \"description\": \"Optional relative path under the independent fielddefs root. The ViewDef references one sparse Field Definition set. Omit it for legacy ViewDefs and resolve all fields implicitly from ViewDef type behavior.\"\n}",
+      "constraints": [
+        {
+          "name": "type",
+          "value": "string"
+        },
+        {
+          "name": "minLength",
+          "value": "1"
+        },
+        {
+          "name": "pattern",
+          "value": "^(?!/)(?!.*\\.\\.)(?!.*\\\\).+\\.json$"
+        }
+      ],
+      "child_properties": [],
+      "change_history": [
+        {
+          "history_id": "chg_schema_item_definition_ref_v01837_001",
+          "at": "2026-07-26",
+          "change_type": "schema_property_added",
+          "before": "ViewDef Schemaに独立fielddefsを参照する正式Propertyがなかった。",
+          "after": "ViewDefルートへ任意item_definition_refを追加した。",
+          "reason": "Dataへ定義参照を混入させず、ViewDefからField Definitionセットを選択するため。"
+        }
+      ]
     }
   ],
   "review_notes": [
@@ -14991,8 +15049,31 @@
       "note_id": "note_002",
       "title": "元Schemaとの関係",
       "body": "このData JSONは元Schemaの置換ではなく、Schema内容を人間とAIがレビューしやすくするための構造化ビューである。"
+    },
+    {
+      "note_id": "schema_note_v01837_item_definition_ref",
+      "at": "2026-07-26",
+      "title": "item_definition_refをViewDefルートへ追加",
+      "body": "独立fielddefs参照はViewDefルートの任意Propertyとする。Data側、Field側には参照・Validation Typeを重複保持しない。既存ViewDefはProperty省略で互換動作する。人間承認は未実施。"
     }
   ],
-  "updated_at": "2026-06-22",
-  "change_history": []
+  "updated_at": "2026-07-26",
+  "change_history": [
+    {
+      "history_id": "chg_schema_review_v01837_001",
+      "at": "2026-07-26",
+      "change_type": "schema_review_sync",
+      "before": "root_properties_count=19でitem_definition_refのレビュー項目が存在しなかった。",
+      "after": "root_properties_count=20とし、item_definition_refのレビュー項目を追加した。既存Schema変更分のレビューData全面再生成は行っていない。",
+      "reason": "ViewDef Schema原本の追加PropertyとレビューDataを同期するため。"
+    },
+    {
+      "history_id": "chg_schema_review_v01838_001",
+      "at": "2026-07-26",
+      "change_type": "schema_review_sync",
+      "before": "def__fieldTypeにdateがなく、日付のみと日時がdatetimeへ混在していた。",
+      "after": "def__fieldTypeへdateを追加し、Schema原本のenum/descriptionと同期した。",
+      "reason": "date/datetime意味分離をSchema Review対象として明示するため。"
+    }
+  ]
 }
