@@ -1,9 +1,10 @@
 # FRB Studio 設計文書体系・配置方針 v0.1
 
 - 記録日: 2026-07-25
+- 最終更新日: 2026-07-26
 - 対象Phase: `v0.18.27-document-architecture-policy-record`
 - 対象Incident: `studio_work_0144`
-- 状態: 暫定方針を記録済み。v0.18.29でFieldDef・ValidationPolicy・共通TestPattern導出方針を接続。v0.18.31で実証なき抽象化の禁止を憲法へ追加し、専用ルールファイルを新設しない配置方針を実適用した。実Data/Schema/Runner実装と全件仕分けは後続作業とする。
+- 状態: 暫定方針を記録済み。v0.18.29でFieldDef・ValidationPolicy・共通TestPattern導出方針を接続。v0.18.31で実証なき抽象化の禁止を憲法へ追加し、専用ルールファイルを新設しない配置方針を実適用した。v0.18.32でvalidation_typeを最下層値契約、fieldType / fieldGroupTypeを品質継承部品とする契約を憲法へ追加した。実Data/Schema/Resolver/Runner実装と全件仕分けは後続作業とする。
 
 > このMarkdownは、人間が設計文書体系を一枚で確認するための説明用記録である。  
 > 判断の正本は `data/json/01_main/_studio_work_incident_data_v2.json` の `studio_work_0144.decision_log` とし、既存のルール・責務・TestPatternの正本Data JSONを置き換えない。
@@ -88,11 +89,28 @@ frb_foundation_rules_data_v0_1.json
 
 この配置により、設計統治の正本を増やさず、憲法で発火条件を定義し、FoundationでStudio製品群へ適用する。条件不明時は個別実装を維持し、将来候補は判断ログまたはインシデントへ記録する。
 
+## 3.2 v0.18.32 FieldType / FieldGroupType 品質継承契約の配置
+
+Field単位の値契約と再利用部品の責務は、新規ルールファイルを作らず、Studioくん憲法へ配置する。
+
+```text
+frb_coding_constraints_data_v0_3.json
+  └─ constitution_30
+       ├─ validation_type
+       │    └─ 末端Fieldの値契約・標準バリデーションを表す最下層知識
+       ├─ fieldType / typeRef
+       │    └─ UI設定とvalidation_typeを一体で継承する単一Field部品
+       └─ fieldGroupType
+            └─ 展開後の各末端Fieldが一つのvalidation_typeへ解決される構造部品
+```
+
+利用側ViewDefでfieldType / typeRefを指定した場合、validation_typeの直接指定は競合として禁止する。異なる値契約が必要な場合は既存FieldTypeを局所上書きせず、新しいFieldTypeを定義する。これにより、fieldType / fieldGroupTypeを利用するほど個別ViewDefへ品質が継承される。Schema・共通型定義・Resolverの強制実装と既存定義移行は後続作業とする。
+
 ## 4. 現在の正本ファイル実態
 
 | 役割 | 現在の主なファイル | 確認した実態 | 現時点の扱い |
 |---|---|---|---|
-| Studioくん憲法 | `data/json/00_rules/frb_coding_constraints_data_v0_3.json` | `document_type: studio_constitution_review`、`rules[]` 29件。憲法原則とFoundation級アーキテクチャ制約が同居する | 現行正本を維持する。Foundation移管候補は後続で分類する |
+| Studioくん憲法 | `data/json/00_rules/frb_coding_constraints_data_v0_3.json` | `document_type: studio_constitution_review`、`rules[]` 30件。憲法原則とFoundation級アーキテクチャ制約が同居する | 現行正本を維持する。Foundation移管候補は後続で分類する |
 | Foundation | `data/json/00_rules/frb_foundation_rules_data_v0_1.json` | `rules[]` 25件。Studio共通の命名、正本、承認、GitHub/ZIP、運用原則を保持する | Studio製品群の共通土台の正本として維持する |
 | 責務マスター | `data/json/03_tests/responsibilities/responsibility_data_v0_1.json` | 責務、関連制約、`guarantees[]`、観測可能結果を保持する | 現行の責務・保証実態として参照する。正式な配置・Schemaは後続で整理する |
 | 責務定義ドラフト | `data/json/03_tests/qa/responsibility_def/responsibility_def_master_draft_v0_1.json` | 公開Interface、入力・出力・エラー・防衛・性能契約を持つ8件のドラフト | 責務マスターとの役割重複を後続で整理する |
@@ -240,11 +258,12 @@ Runnerは実行時に独自判断で具体値やExpectedを変更しない。
 
 ## 9. 後続作業
 
-1. 憲法29件を確認し、Foundationへ寄せる候補を分類する。
+1. 憲法30件を確認し、Foundationへ寄せる候補を分類する。
 2. `frb_constraint_spec_v0_6.json` の84明細を、制約・仕様・GAP・将来候補・レビュー方針へ分類する。
 3. `responsibility_data_v0_1.json` と `responsibility_def_master_draft_v0_1.json` の責務を整理し、正式正本・Schema・配置を決める。
 4. 責務・保証・TestPatternの未接続、存在しないID参照、保証未検証をRelation/Absence検査で検出する。
 5. `studio_work_0146` で、FieldDef・ValidationPolicy・共通単項目TestPatternから具体ケースを導出する規則を `frb_test_evidence_rules_data_v0_2.json` へ接続済み。後続で実Data / Schema / 承認View / 導出エンジン / Runner連携を実装する。
+6. `validation_type` をViewDef Schemaへ正式追加し、既存fieldType / fieldGroupType末端Fieldを移行したうえで、欠落・二重指定・競合をResolverと静的テストで検出する。
 
 ## 10. 結論
 
