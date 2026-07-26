@@ -1,0 +1,1069 @@
+{
+  "app": {
+    "name": "FRB Studio / JSON Object Studio",
+    "version": "validation-type-registry-view-v0.2"
+  },
+  "writePolicy": {
+    "mode": "readonly"
+  },
+  "currentDataDisplay": {
+    "titlePath": "$.title",
+    "subtitlePath": "$.target",
+    "showDataPath": true
+  },
+  "views": [
+    {
+      "id": "validation_type_registry_v0_1",
+      "caption": "Validation Type Registry",
+      "layout": {
+        "detailDialog": "wide"
+      },
+      "toolbar": {
+        "relatedGridViews": [
+          {
+            "id": "view_def_type_catalogs",
+            "caption": "ViewDef Type別候補",
+            "dataPath": "$.view_def_type_catalogs",
+            "action": "OpenRelatedGridView",
+            "launchMode": "modal",
+            "shellMode": "grid_only",
+            "windowFeatures": "popup=yes,width=1500,height=900,resizable=yes,scrollbars=yes",
+            "viewId": "validation_type_catalogs_v0_1"
+          }
+        ]
+      },
+      "sections": [
+        {
+          "id": "header",
+          "caption": "Registry基本情報",
+          "type": "form",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "schema_version",
+              "caption": "Schema Version",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "registry_version",
+              "caption": "Registry Version",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "status",
+              "caption": "状態",
+              "type": "select",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "equals"
+              },
+              "options": [
+                "draft",
+                "active",
+                "deprecated",
+                "archived"
+              ]
+            },
+            {
+              "field": "owner",
+              "caption": "Owner",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "updated_at",
+              "caption": "Updated",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "introduced_in",
+              "caption": "Introduced In",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "source_incident.phase",
+              "caption": "Source Phase",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "source_incident.work_item_id",
+              "caption": "Work Item ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "purpose",
+              "caption": "目的",
+              "type": "textarea",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 80
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            }
+          ]
+        },
+        {
+          "id": "validation_type_definitions",
+          "caption": "Validation Type詳細定義",
+          "type": "grid",
+          "dataPath": "$.validation_type_definitions",
+          "keyField": "id",
+          "fields": [
+            {
+              "field": "sort_order",
+              "caption": "順",
+              "type": "number",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 60
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "id",
+              "caption": "Validation Type",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 270
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "label",
+              "caption": "表示名",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 170
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "contract_version",
+              "caption": "契約Version",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 110
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "status",
+              "caption": "状態",
+              "type": "select",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 90
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              },
+              "options": [
+                "active",
+                "draft",
+                "deprecated"
+              ]
+            },
+            {
+              "field": "value_family",
+              "caption": "値Family",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 110
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "description",
+              "caption": "説明",
+              "type": "textarea",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 430
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 90
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "deprecated",
+              "caption": "廃止",
+              "type": "boolean",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 70
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "value_contract.runtime_value_type",
+              "caption": "Runtime値型",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "value_contract.line_mode",
+              "caption": "行モード",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "value_contract.line_break_allowed",
+              "caption": "改行許可",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "value_contract.character_policy",
+              "caption": "文字ポリシー",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "value_contract.pattern",
+              "caption": "Pattern",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "value_contract.normalization_policy",
+              "caption": "正規化方針",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "value_contract.leading_zero_allowed",
+              "caption": "先頭ゼロ許可",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "value_contract.finite_required",
+              "caption": "有限値必須",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "value_contract.integer_required",
+              "caption": "整数必須",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "value_contract.safe_integer_required",
+              "caption": "安全整数必須",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "value_contract.negative_allowed",
+              "caption": "負数許可",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "value_contract.zero_allowed",
+              "caption": "ゼロ許可",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "value_contract.integer_allowed",
+              "caption": "整数許可",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "value_contract.decimal_allowed",
+              "caption": "小数許可",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "value_contract.exact_decimal_required",
+              "caption": "厳密小数必須",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "value_contract.floating_point_error_expected",
+              "caption": "浮動小数誤差前提",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "value_contract.rounding_policy",
+              "caption": "丸め方針",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "value_contract.storage_policy",
+              "caption": "保存方針",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "value_contract.serialization_format",
+              "caption": "直列化形式",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "value_contract.time_component_allowed",
+              "caption": "時刻成分許可",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "value_contract.timezone_allowed",
+              "caption": "Timezone許可",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "value_contract.timezone_required",
+              "caption": "Timezone必須",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "value_contract.utc_allowed",
+              "caption": "UTC許可",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "value_contract.offset_allowed",
+              "caption": "Offset許可",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "value_contract.strict_calendar_validation",
+              "caption": "厳密カレンダー検証",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "value_contract.default_precision",
+              "caption": "既定精度",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "default_constraints.minimum.value",
+              "caption": "標準最小値",
+              "type": "number",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "default_constraints.minimum.inclusive",
+              "caption": "最小値を含む",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "default_constraints.maximum.value",
+              "caption": "標準最大値",
+              "type": "number",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "default_constraints.maximum.inclusive",
+              "caption": "最大値を含む",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "required_constraints",
+              "caption": "必須Constraints",
+              "type": "stringArray",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "overridable_constraints",
+              "caption": "上書き可能Constraints",
+              "type": "stringArray",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "standard_test_conditions",
+              "caption": "標準Test条件",
+              "type": "stringArray",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "activation_conditions",
+              "caption": "有効化条件",
+              "type": "stringArray",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "test_pattern_profile_ref",
+              "caption": "TestPattern Profile Ref",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            }
+          ]
+        }
+      ],
+      "layout_note": "Validation Type詳細定義をMain Gridで閲覧し、ViewDef typeとの組み合わせは同一ViewDefファイル内のvalidation_type_catalogs_v0_1をrelatedGridViews.viewIdでモーダル表示する。初期版は閲覧専用。"
+    },
+    {
+      "id": "validation_type_catalogs_v0_1",
+      "caption": "ViewDef Type × Validation Type",
+      "layout": {
+        "detailDialog": "wide"
+      },
+      "sections": [
+        {
+          "id": "view_def_type_catalogs",
+          "caption": "ViewDef Type別 選択候補",
+          "type": "grid",
+          "dataPath": "$.view_def_type_catalogs",
+          "keyField": "view_def_type",
+          "fields": [
+            {
+              "field": "sort_order",
+              "caption": "順",
+              "type": "number",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 70
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "view_def_type",
+              "caption": "ViewDef Type",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 180
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "label",
+              "caption": "表示名",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 260
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "validation_type_ids",
+              "caption": "選択可能Validation Type",
+              "type": "stringArray",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            }
+          ]
+        }
+      ],
+      "layout_note": "validation_type_registry_v0_1.jsonのview_def_type_catalogsを、同一ViewDefファイル内の内部ViewとしてrelatedGridViews.viewIdから開くreadonly View。"
+    }
+  ]
+}

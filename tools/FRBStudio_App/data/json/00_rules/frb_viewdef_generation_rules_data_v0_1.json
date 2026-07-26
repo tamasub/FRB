@@ -13,7 +13,7 @@
   "status": "converted_draft",
   "introduced_in": "v0.4-r001",
   "generated_at": "2026-06-26T00:00:00+09:00",
-  "rule_count": 86,
+  "rule_count": 87,
   "approved_count": 83,
   "approval_policy": "Rule Reviewの状態正本は verification_status（AI確認状態）と approval_decision（人間承認）の二つとする。AIは確認結果を更新できるが、人間承認を新規付与・継続・復元してはならない。AIが承認対象の意味内容を変更した場合は verification_status=未確認、approval_decision=未承認へ戻し、approved_by / approved_at をクリアして人間再承認を求める。",
   "preamble": "対象: `FRBStudio_App` / No-Code JSON Studio v0.6+ 系  \n対応Schema: `frb_view_def_schema_v0_8_action_registry_toolbar.json`\n\nこの文書は、AIに **Data JSON から ViewDef JSON を作成させる** ときの作成ルールである。\n\nStudioくんにおける ViewDef は、単なる画面定義ではない。\n\n```text\nData JSON + ViewDef JSON + Runtime + Action = Experience\n```\n\nViewDef は、データの見え方・編集の仕方・Markdown化・AIへの渡し方・仮想データの作り方・主役Actionを宣言する **体験設計書** である。\n\n---",
@@ -2761,9 +2761,54 @@
           "reason": "同一フィールドでも複数UIから編集できると、二重管理・二重承認に見えるため。"
         }
       ]
+    },
+    {
+      "no": 87,
+      "rule_id": "viewdef_rule_32",
+      "section_no": "32",
+      "source_heading": "32. 複数Root配列 / Related GridのViewDef配置",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "Related Grid",
+      "title": "同一Dataの複数Root配列は、原則1つのViewDefファイル内の複数viewsで管理する",
+      "priority": "high",
+      "verification_status": "未確認",
+      "approval_decision": "未承認",
+      "summary": "同一Data JSONに複数の主要Root配列があり、同じドメイン・同じ変更ライフサイクルに属する場合、Main Grid以外は同一ViewDefファイル内の内部Viewとして定義し、toolbar.relatedGridViews[].viewIdで開く。",
+      "body": "Studioは1画面1メイングリッドを基本とする。Data JSONのRootに複数の主要配列がある場合、Main Grid以外の配列は `toolbar.relatedGridViews` から `grid_only` の関連Gridとして開く。\n\n同じData JSON、同じドメイン、同じ変更ライフサイクルに属する関連Gridは、原則としてViewDefファイルを分割しない。同一ファイルの `views[]` に内部Viewを追加し、`viewId` で指定する。\n\n```json\n{\n  \"views\": [\n    {\n      \"id\": \"main_view\",\n      \"caption\": \"Main\",\n      \"layout\": \"header-search-grid-detail\",\n      \"toolbar\": {\n        \"relatedGridViews\": [\n          {\n            \"id\": \"sub_items\",\n            \"caption\": \"Sub Items\",\n            \"dataPath\": \"$.sub_items\",\n            \"viewId\": \"sub_items_view\",\n            \"action\": \"OpenRelatedGridView\",\n            \"launchMode\": \"modal\",\n            \"shellMode\": \"grid_only\"\n          }\n        ]\n      },\n      \"sections\": []\n    },\n    {\n      \"id\": \"sub_items_view\",\n      \"caption\": \"Sub Items\",\n      \"layout\": \"header-search-grid-detail\",\n      \"sections\": [\n        {\n          \"id\": \"sub_items\",\n          \"caption\": \"Sub Items\",\n          \"type\": \"grid\",\n          \"dataPath\": \"$.sub_items\",\n          \"fields\": []\n        }\n      ]\n    }\n  ]\n}\n```\n\n`viewDef`による別ファイル化は、複数Dataから共通利用する、独立したVersion管理が必要、別ドメインとして扱う、または旧版と並行運用する明確な理由がある場合に限定する。\n\n解決規則:\n\n- `viewDef`のみ: 外部ViewDefファイルの先頭Viewを開く。\n- `viewId`のみ: 現在のViewDefファイル内の指定Viewを開く。\n- `viewDef`と`viewId`: 外部ViewDefファイル内の指定Viewを開く。\n- `viewId`が見つからない場合は推測や先頭Viewへのfallbackをせず、定義エラーとする。",
+      "ceremony_phrase": "Root配列が二つあるからといって、ViewDefファイルまで二つに増やさない。",
+      "user_comment": "同一Dataの二つのRoot配列を別Grid表示するためだけにViewDefを二つ作ると、管理対象が増える。できれば一つのViewDefファイルで管理したい。",
+      "ai_response": "同一ViewDef内のviews[]をviewIdで選択する方式を標準化し、外部ViewDef方式との互換性も維持する。",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "",
+      "approved_at": "",
+      "approval_stamp": "",
+      "notes": "v0.18.34でSchema・Runtime・Validation Type Registry ViewDefへ初回適用。人間承認は未実施。",
+      "source_line_start": 0,
+      "source_md_file": "data/json/01_main/_studio_work_incident_data_v2.json#studio_work_0150",
+      "introduced_in": "v0.18.34-related-grid-inline-view-id",
+      "change_history": [
+        {
+          "history_id": "chg_viewdef_rule_32_v01834_001",
+          "at": "2026-07-26",
+          "change_type": "rule_added",
+          "before": "複数Root配列をRelated Gridで開く場合、子ViewDefを別ファイルにするか同一ファイルへ置くかの生成ルールがなかった。",
+          "after": "同一Data・同一ドメイン・同一ライフサイクルでは、同一ViewDef内の複数viewsとrelatedGridViews.viewIdを原則とするルールを追加した。",
+          "reason": "関連GridごとにViewDefファイルを増やす管理負荷を避け、1つの体験設計書としてまとまりを保つため。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_viewdef_rule_32_v01834_001",
+          "at": "2026-07-26",
+          "decision": "同一ViewDef内の内部View指定にはrelatedGridViews.viewIdを使用する。",
+          "reason": "1画面1メイングリッドを維持しつつ、同一Dataに属する複数Root配列のViewDefを1ファイルで管理するため。"
+        }
+      ]
     }
   ],
-  "updated_at": "2026-07-25",
+  "updated_at": "2026-07-26",
   "review_revision": "v0.18.30-rule-review-status-responsibility-cleanup",
   "review_notes": [
     {

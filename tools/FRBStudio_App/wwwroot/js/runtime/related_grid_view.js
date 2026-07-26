@@ -1,4 +1,4 @@
-// v0.18.28-related-grid-view-launch
+// v0.18.34-related-grid-inline-view-id
 // ViewDef-driven related Root Grid launcher.
 // The Runtime does not know domain field names such as governance_items.
 // A parent Studio owns the whole Data JSON; a child grid_only Studio edits one declared array
@@ -56,7 +56,8 @@ function normalizeRelatedGridDefinition(raw, index=0) {
   if (!raw || typeof raw !== 'object') return null;
   const dataPath = String(raw.dataPath ?? raw.data_path ?? raw.path ?? '').trim();
   const viewDefPath = String(raw.viewDef ?? raw.view_def ?? raw.view ?? '').trim();
-  if (!dataPath || !viewDefPath || raw.visible === false) return null;
+  const viewId = String(raw.viewId ?? raw.view_id ?? '').trim();
+  if (!dataPath || (!viewDefPath && !viewId) || raw.visible === false) return null;
   const id = String(raw.id ?? raw.key ?? `related_grid_${index + 1}`).trim() || `related_grid_${index + 1}`;
   return {
     ...raw,
@@ -64,6 +65,7 @@ function normalizeRelatedGridDefinition(raw, index=0) {
     caption: String(raw.caption ?? raw.label ?? id).trim() || id,
     dataPath,
     viewDef: viewDefPath,
+    viewId,
     action: String(raw.action ?? raw.actionId ?? raw.action_id ?? 'OpenRelatedGridView').trim() || 'OpenRelatedGridView',
     launchMode: String(raw.launchMode ?? raw.launch_mode ?? 'new_window').trim() || 'new_window',
     shellMode: String(raw.shellMode ?? raw.shell_mode ?? 'grid_only').trim() || 'grid_only',
@@ -99,7 +101,12 @@ function relatedGridLaunchUrl(definition, channel, hostMode='window') {
   url.hash = '';
   url.searchParams.set('relatedGrid', '1');
   url.searchParams.set('relatedGridChannel', channel);
-  url.searchParams.set('view', normalizeRelatedGridViewStaticPath(definition.viewDef));
+  if (definition.viewDef) {
+    url.searchParams.set('view', normalizeRelatedGridViewStaticPath(definition.viewDef));
+  } else if (lastLoadedDefName) {
+    url.searchParams.set('view', normalizeRelatedGridViewStaticPath(lastLoadedDefName));
+  }
+  if (definition.viewId) url.searchParams.set('relatedGridViewId', definition.viewId);
   url.searchParams.set('shell', definition.shellMode || 'grid_only');
   url.searchParams.set('relatedGridId', definition.id);
   url.searchParams.set('relatedGridHost', hostMode);
@@ -124,6 +131,8 @@ function createRelatedGridParentSession(definition, channel, child, extra={}) {
     sourceDataSnapshot: cloneData(sourceData),
     parentDataDisplayPath: String(currentLoadedDataDisplayPath || currentDataApiUrl || ''),
     parentDataTitle: String(currentLoadedDataTitle || ''),
+    parentViewDefName: String(lastLoadedDefName || ''),
+    sourceViewDef: cloneData(viewDef),
     baseline: stableRelatedGridJson(rows),
     openedAt: Date.now(),
     ...extra
@@ -243,7 +252,10 @@ function ensureRelatedGridButton(definition, rows) {
   button.className = 'ghost-button small related-grid-launch-button';
   button.dataset.relatedGridId = definition.id;
   button.textContent = `${definition.caption} ${rows.length}件`;
-  button.title = `${definition.dataPath} を ${definition.viewDef} で${definition.launchMode === 'modal' ? 'モーダル' : '別Grid'}表示`;
+  const viewSource = definition.viewDef
+    ? `${definition.viewDef}${definition.viewId ? `#${definition.viewId}` : ''}`
+    : `同一ViewDef#${definition.viewId}`;
+  button.title = `${definition.dataPath} を ${viewSource} で${definition.launchMode === 'modal' ? 'モーダル' : '別Grid'}表示`;
   const addButton = $('addRowBtn');
   if (addButton && addButton.parentElement === actions) actions.insertBefore(button, addButton);
   else actions.appendChild(button);
@@ -370,6 +382,23 @@ function setRelatedGridShellStatus(message, kind='info') {
   status.dataset.kind = kind;
 }
 
+function relatedGridViewDefForViewId(sourceViewDef, viewId, sourceLabel='ViewDef') {
+  if (!sourceViewDef || typeof sourceViewDef !== 'object') {
+    throw new Error(`${sourceLabel}を解決できません`);
+  }
+  const normalizedId = String(viewId ?? '').trim();
+  if (!normalizedId) return cloneData(sourceViewDef);
+  const views = Array.isArray(sourceViewDef.views) ? sourceViewDef.views : [];
+  const targetView = views.find(candidate => String(candidate?.id ?? '').trim() === normalizedId);
+  if (!targetView) {
+    throw new Error(`${sourceLabel}にviewId=${normalizedId}が見つかりません`);
+  }
+  return {
+    ...cloneData(sourceViewDef),
+    views: [cloneData(targetView)]
+  };
+}
+
 async function loadRelatedGridChildPayload(payload) {
   const config = normalizeRelatedGridDefinition(payload?.config, 0);
   if (!config) throw new Error('related Grid設定が不正です');
@@ -377,16 +406,35 @@ async function loadRelatedGridChildPayload(payload) {
   const rows = getByPath(payload.sourceData, config.dataPath);
   if (!Array.isArray(rows)) throw new Error(`related Grid対象がArrayではありません: ${config.dataPath}`);
 
-  const relatedDefName = safeJsonFileName(config.viewDef);
-  if (!relatedDefName) throw new Error(`related Grid ViewDef名が不正です: ${config.viewDef}`);
   let loadedDef;
-  if (typeof isStaticHostingMode === 'function' && isStaticHostingMode()) {
-    loadedDef = await fetchLaunchViewDefJson(normalizeRelatedGridViewStaticPath(config.viewDef));
+  if (config.viewDef) {
+    const relatedDefName = safeJsonFileName(config.viewDef);
+    if (!relatedDefName) throw new Error(`related Grid ViewDef名が不正です: ${config.viewDef}`);
+    if (typeof isStaticHostingMode === 'function' && isStaticHostingMode()) {
+      loadedDef = await fetchLaunchViewDefJson(normalizeRelatedGridViewStaticPath(config.viewDef));
+    } else {
+      loadedDef = {
+        defName: relatedDefName,
+        defObj: await fetchResolvedViewDef(relatedDefName),
+        displayPath: `defs/${relatedDefName}`
+      };
+    }
+    loadedDef.defObj = relatedGridViewDefForViewId(
+      loadedDef.defObj,
+      config.viewId,
+      `related Grid ViewDef ${config.viewDef}`
+    );
   } else {
     loadedDef = {
-      defName: relatedDefName,
-      defObj: await fetchResolvedViewDef(relatedDefName),
-      displayPath: `defs/${relatedDefName}`
+      defName: String(payload.parentViewDefName ?? lastLoadedDefName ?? '').trim(),
+      defObj: relatedGridViewDefForViewId(
+        payload.sourceViewDef,
+        config.viewId,
+        '親画面のViewDef'
+      ),
+      displayPath: String(payload.parentViewDefName ?? '').trim()
+        ? `defs/${String(payload.parentViewDefName).trim()}`
+        : `same-view-def#${config.viewId}`
     };
   }
   lastLoadedDefName = loadedDef.defName;
@@ -395,7 +443,9 @@ async function loadRelatedGridChildPayload(payload) {
     mode: 'related_grid',
     readonly: false,
     dataParam: String(payload.parentDataDisplayPath ?? ''),
-    viewParam: normalizeRelatedGridViewStaticPath(config.viewDef),
+    viewParam: config.viewDef
+      ? normalizeRelatedGridViewStaticPath(config.viewDef)
+      : normalizeRelatedGridViewStaticPath(payload.parentViewDefName || ''),
     fileParam: ''
   };
   relatedGridChildRuntime = {
@@ -409,7 +459,9 @@ async function loadRelatedGridChildPayload(payload) {
   document.body.classList.add('studio-grid-only-shell');
   ensureRelatedGridShellBanner(payload);
   if ($('dataNameInput')) $('dataNameInput').value = String(payload.parentDataDisplayPath ?? '');
-  if ($('defNameInput')) $('defNameInput').value = loadedDef.defName || config.viewDef;
+  if ($('defNameInput')) {
+    $('defNameInput').value = loadedDef.defName || config.viewDef || `same-view-def#${config.viewId}`;
+  }
 
   await loadFromObjects(
     loadedDef.defObj,
@@ -488,6 +540,8 @@ function parentRelatedGridInitPayload(session) {
     sourceData: cloneData(session.sourceDataSnapshot),
     parentDataDisplayPath: session.parentDataDisplayPath,
     parentDataTitle: session.parentDataTitle,
+    parentViewDefName: session.parentViewDefName,
+    sourceViewDef: cloneData(session.sourceViewDef),
     baseline: session.baseline
   };
 }

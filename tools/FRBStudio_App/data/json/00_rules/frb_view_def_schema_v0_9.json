@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "frb_view_def_schema_v0_9.json",
   "title": "FRB Studio View Definition Schema v0.9 - Markdown Export Mode / Context / Chat Input Mapping / Related Grid View",
-  "description": "Schema for FRBStudio_App / No-Code JSON Studio view_def JSON files. Includes inheritance, common field types, Markdown export / AI Prompt, dataSources, virtualData registry builders, single-source writeBack, Relation status filters, and toolbar.executeButton action declarations. v0.9 adds chat edit.input.appendPosition/appendLabel and chat Markdown inline link/image permissions. v0.15.5でViewDef context.read_contract定義を追加。 v0.15.5.1で主文脈 Data root main_context_refs[] と対象文脈 Data明細 context_refs[] の正本モデルを追加し、ViewDefは context.main_context.data_path / context.target_context で場所と表示方法だけを宣言する形へ整理。 v0.15.5.3 adds target context Detail-top panel declaration. v0.18.6 adds Markdown Export Mode / ExportDef options: markdown.defaultMode, markdown.modes[], full_dump/review_report/document_sections, fieldPolicy, and field/section markdown.export. v0.18.14 adds FieldGroupType declarations, fieldGroupSources, and dynamic visibleWhen support. v0.18.20 adds field.grid.aggregate for numeric Grid sum rows with filtered/all scope. v0.18.28 adds toolbar.relatedGridViews / related_grid_views for ViewDef-driven Root array launch in a grid_only child Studio.",
+  "description": "Schema for FRBStudio_App / No-Code JSON Studio view_def JSON files. Includes inheritance, common field types, Markdown export / AI Prompt, dataSources, virtualData registry builders, single-source writeBack, Relation status filters, and toolbar.executeButton action declarations. v0.9 adds chat edit.input.appendPosition/appendLabel and chat Markdown inline link/image permissions. v0.15.5でViewDef context.read_contract定義を追加。 v0.15.5.1で主文脈 Data root main_context_refs[] と対象文脈 Data明細 context_refs[] の正本モデルを追加し、ViewDefは context.main_context.data_path / context.target_context で場所と表示方法だけを宣言する形へ整理。 v0.15.5.3 adds target context Detail-top panel declaration. v0.18.6 adds Markdown Export Mode / ExportDef options: markdown.defaultMode, markdown.modes[], full_dump/review_report/document_sections, fieldPolicy, and field/section markdown.export. v0.18.14 adds FieldGroupType declarations, fieldGroupSources, and dynamic visibleWhen support. v0.18.20 adds field.grid.aggregate for numeric Grid sum rows with filtered/all scope. v0.18.28 adds toolbar.relatedGridViews / related_grid_views for ViewDef-driven Root array launch in a grid_only child Studio. v0.18.34 adds relatedGridViews.viewId / view_id so a related Root Grid can open a named views[] entry from the same ViewDef file; viewDef remains supported for external files.",
   "type": "object",
   "additionalProperties": true,
   "properties": {
@@ -2958,7 +2958,7 @@
     "relatedGridViewOptions": {
       "type": "object",
       "additionalProperties": true,
-      "description": "Generic declaration for opening one Data-root array in a modal or separate Studio child view. Runtime must resolve all target paths/ViewDefs from this declaration and must not hard-code domain field names.",
+      "description": "Generic declaration for opening one Data-root array in a modal or separate Studio child view. Use viewId/view_id to open a named views[] entry from the current ViewDef file, viewDef/view_def/view to load an external ViewDef file, or both to select a named view inside an external file. Runtime must not hard-code domain field names.",
       "properties": {
         "id": {
           "type": "string",
@@ -2997,6 +2997,16 @@
         "view": {
           "type": "string",
           "minLength": 1
+        },
+        "viewId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Named views[].id to open. When viewDef is omitted, resolve from the current ViewDef file."
+        },
+        "view_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Snake_case alias of viewId."
         },
         "action": {
           "type": "string"
@@ -3075,6 +3085,16 @@
             {
               "required": [
                 "view"
+              ]
+            },
+            {
+              "required": [
+                "viewId"
+              ]
+            },
+            {
+              "required": [
+                "view_id"
               ]
             }
           ]

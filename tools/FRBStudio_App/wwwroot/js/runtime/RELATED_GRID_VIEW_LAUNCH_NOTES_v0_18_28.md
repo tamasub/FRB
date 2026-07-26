@@ -4,7 +4,7 @@
 
 FRB Studio の「1画面 = 1メイングリッド」を維持したまま、ViewDefで宣言されたData root上の別配列を、別Studio画面の `grid_only` shellで編集する。
 
-本機能は判断軸・制約専用ではない。ViewDefの `toolbar.relatedGridViews[]` に `dataPath` と `viewDef` を宣言すれば、任意のRoot配列へ再利用できる。
+本機能は判断軸・制約専用ではない。ViewDefの `toolbar.relatedGridViews[]` に `dataPath` と `viewDef` または `viewId` を宣言すれば、任意のRoot配列へ再利用できる。`viewId`だけを指定した場合は同一ViewDefファイル内の `views[].id` を解決する。
 
 ## 初回利用例
 
@@ -62,3 +62,31 @@ FRB Studio の「1画面 = 1メイングリッド」を維持したまま、View
 - JSON全件parse確認
 - `node --test tests/qa/static/related_grid_view_launch_static.test.mjs`
 - ブラウザ実機では、ポップアップ起動、Detail編集、親反映、競合中断、親保存を確認する
+
+
+## v0.18.34 同一ViewDef内View
+
+同一Data JSONの複数Root配列を開くためだけに子ViewDefファイルを増やさないよう、`relatedGridViews.viewId`を追加した。
+
+```json
+{
+  "relatedGridViews": [
+    {
+      "id": "sub_items",
+      "caption": "Sub Items",
+      "dataPath": "$.sub_items",
+      "viewId": "sub_items_view",
+      "action": "OpenRelatedGridView",
+      "launchMode": "modal",
+      "shellMode": "grid_only"
+    }
+  ]
+}
+```
+
+解決規則:
+
+- `viewDef`のみ: 外部ViewDefの先頭View。
+- `viewId`のみ: 現在のViewDef内の指定View。
+- `viewDef` + `viewId`: 外部ViewDef内の指定View。
+- `viewId`未解決時は先頭Viewへfallbackせずエラー。

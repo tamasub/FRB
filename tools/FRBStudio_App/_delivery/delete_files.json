@@ -1,0 +1,9 @@
+{
+  "schema_version": "frb_delivery_delete_files_v0_1",
+  "phase": "v0.18.34-related-grid-inline-view-id",
+  "delete_files": [
+    "defs/config/validation_type_catalogs_view_def_v0_1.json"
+  ],
+  "archive_copy": "_archive/20260726_184500/defs/config/validation_type_catalogs_view_def_v0_1.json",
+  "reason": "Validation Type Registry related Grid View was merged into validation_type_registry_view_def_v0_1.json views[]."
+}

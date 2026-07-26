@@ -18,6 +18,26 @@
   "preamble": "この文書は、Studio を今後も育て続けるための恒久的なコーディング制約である。\n\nただし、これは単なる「コーディング規約」ではない。\n\nこれは、Studioくんという国の憲法である。\n\nStudio は、ただの JSON エディターではない。\n\nStudio は、JSON を「体験」に変換するためのプラットフォームである。\n\nこの文書の目的は、人間と AI が同じ思想を共有しながら、Studio を壊さず、育て続けるための共通原則を定義することである。\n\n今後、Studio のコードを変更する人間および AI は、まずこの文書を読むこと。\n\n---",
   "governance_items": [
     {
+      "sort_order": 5,
+      "item_id": "decision_axis_small_meaningful_diff_approval_first",
+      "item_type": "DECISION_AXIS",
+      "title": "適切な粒度の小さな差分を最優先する",
+      "statement": "設計・実装・データ構造・UI・作業分割では、人間が意味を認識して承認できる「最小十分な差分」を継続的に作れることを最優先する。差分は単に小さく分割するのではなく、判断に必要な意味・責務・影響範囲を失わない適切な粒度とする。",
+      "reason": "AIが大規模な成果物を生成できても、人間が承認責任を引き受けられるのは意味のある変更単位である。標準を継承し、変更部分だけを保存・提示することで、承認負荷、重複定義、設計ドリフトを抑え、AI承認駆動開発の連続的な人間承認を成立させるため。",
+      "scope": "document",
+      "priority": "high",
+      "status": "ACTIVE",
+      "evaluation_guidance": "複数案を比較するときは、何が変わったか、なぜ変わったか、どこへ影響するか、標準へどう戻せるかを一つの承認単位で説明できる案を優先する。標準値や継承値を全量複製する案より、base/referenceとoverride/diffを分離し、意味のある変更部分だけを正本へ保存する案を優先する。ただし、差分単独では意味や影響を判断できないほど細かい場合は、承認可能な単位へまとめ直す。",
+      "verification_method": "保存Data、Git diff、承認Viewで、未変更値が重複保存されず、変更点と解決後の実効値を確認できることを確認する。一つの差分に複数の独立責務が混在していないこと、差分単独で意味・理由・影響範囲を判断できることを確認する。",
+      "violation_action": "全量スナップショット化、巨大差分、または意味を失う過細分化を中断し、標準＋差分構造、または人間が一度に承認可能な最小十分の作業単位へ再設計する。",
+      "source_decision_log_ids": [
+        "dec_0151_001",
+        "dec_0151_002",
+        "dec_0151_003"
+      ],
+      "notes": "AI承認駆動開発の北極星となる文書全体判断軸。Validation Typeを標準地形として継承し、項目定義XXX.jsonにはconstraint_overrides等の意味ある変更差分だけを保存する判断の上位根拠とする。"
+    },
+    {
       "sort_order": 10,
       "item_id": "decision_axis_good_over_gain",
       "item_type": "DECISION_AXIS",
@@ -1557,9 +1577,15 @@
       "at": "2026-07-26",
       "title": "FieldType / FieldGroupType 品質継承契約",
       "body": "constitution_30を追加。validation_typeを末端Fieldの最下層値契約とし、fieldType / typeRef参照先では必須、利用側での二重指定は禁止、異なる値契約は新しいFieldTypeとして定義する。fieldGroupTypeは展開後の各末端Fieldがちょうど一つのvalidation_typeへ解決されることを必須とした。Schema・共通型定義・Resolverへの反映は後続作業とする。"
+    },
+    {
+      "note_id": "note_v01835_small_meaningful_diff_approval_north_star",
+      "at": "2026-07-26",
+      "title": "適切な粒度の小さな差分を最優先する判断軸",
+      "body": "governance_itemsへdecision_axis_small_meaningful_diff_approval_firstを追加した。AI承認駆動開発の北極星として、人間が意味・責務・影響範囲を判断できる最小十分な差分を優先する。単なる過細分化は避け、標準＋override/diffにより変更部分だけを保存・提示する。Validation Typeを基準として項目定義XXX.jsonへ個別変更差分だけを保存する設計判断の上位根拠とする。"
     }
   ],
-  "review_revision": "v0.18.32-fieldtype-validation-contract",
+  "review_revision": "v0.18.35-small-meaningful-diff-approval-north-star",
   "updated": "2026-07-26",
   "change_history_policy": "レビューで条文・仕様を変更した場合は、対象行の change_history に変更前・変更後・理由・会話を保存する。変更後だけを残さず、修正元を追体験できる状態にする。",
   "viewing_policy": {

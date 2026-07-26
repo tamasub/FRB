@@ -1,0 +1,634 @@
+{
+  "view_def": "config/validation_type_registry_view_def_v0_1.json",
+  "schema_version": "validation_type_registry_data_v0_1",
+  "registry_version": "0.1.0",
+  "document_type": "validation_type_registry",
+  "title": "FRB Studio Validation Type Registry",
+  "target": "ViewDef項目の値契約、選択候補、標準Validation観点を管理する共通Registry正本",
+  "status": "draft",
+  "created_at": "2026-07-26",
+  "updated_at": "2026-07-26",
+  "owner": "tamasub",
+  "ai_partner": "ChatGPT",
+  "introduced_in": "v0.18.33-validation-type-registry-initial",
+  "source_incident": {
+    "incident_file": "data/json/01_main/_studio_work_incident_data_v2.json",
+    "phase": "v0.18.33-validation-type-registry-initial",
+    "work_item_id": "studio_work_0149"
+  },
+  "purpose": "ViewDef typeごとに選択可能なvalidation_typeを提示し、validation_typeごとの値契約・標準制約・項目固有上書き可能範囲・標準TestPattern観点を一つの正本として管理する。",
+  "contract": {
+    "validation_type_ref_format": "{namespace}.{value_family}.{contract}",
+    "catalog_role": "view_def_type_catalogsは、項目定義UIのコンボボックス候補生成、ViewDef読込時チェック、保存前チェックに使用する。",
+    "definition_role": "validation_type_definitionsは、選択されたValidation Typeの値契約、標準制約、上書き可能項目、標準テスト観点を解決する。",
+    "combination_policy": "ViewDef field.typeに対応するcatalogのvalidation_type_idsに指定validation_typeが存在しない場合は、ViewDef定義エラーとして扱う。暗黙の型変換で補完しない。",
+    "default_selectable_statuses": [
+      "active"
+    ],
+    "draft_visibility_policy": "status=draftは名称と設計候補を予約する。通常の項目定義UIでは非表示とし、設計・検証モードでのみ候補表示できる。",
+    "catalog_integrity_policy": "catalogに記載するvalidation_type_idは、validation_type_definitionsに一意に存在しなければならない。詳細定義が未参照の場合は警告候補とする。",
+    "constraint_override_policy": "項目定義Overlayはoverridable_constraintsだけを変更できる。Validation Typeが持つ固有境界を緩和して名前の意味を変えてはならず、minimum/maximum等は固有境界の内側へ狭める変更だけを許可する。",
+    "required_nullable_policy": "requiredとnullableは項目存在・null許可の契約であり、null以外の値契約を表すValidation Type名には含めない。",
+    "coercion_policy": "文字列から数値、数値から文字列、文字列からboolean等の暗黙変換は行わない。",
+    "test_pattern_policy": "standard_test_conditionsは初期の象徴テスト観点である。test_pattern_profile_refは正式TestPattern Profile作成後に設定する。"
+  },
+  "view_def_type_catalogs": [
+    {
+      "view_def_type": "text",
+      "label": "単一行文字列入力",
+      "sort_order": 10,
+      "validation_type_ids": [
+        "studio.string.single_line",
+        "studio.string.identifier",
+        "studio.string.numeric",
+        "studio.string.alphanumeric"
+      ]
+    },
+    {
+      "view_def_type": "textarea",
+      "label": "複数行文字列入力",
+      "sort_order": 20,
+      "validation_type_ids": [
+        "studio.string.multi_line"
+      ]
+    },
+    {
+      "view_def_type": "number",
+      "label": "数値入力",
+      "sort_order": 30,
+      "validation_type_ids": [
+        "studio.integer.signed",
+        "studio.integer.non_negative",
+        "studio.integer.positive",
+        "studio.float.measurement",
+        "studio.decimal.fixed_scale"
+      ]
+    },
+    {
+      "view_def_type": "boolean",
+      "label": "真偽値入力",
+      "sort_order": 40,
+      "validation_type_ids": [
+        "studio.boolean.standard"
+      ]
+    },
+    {
+      "view_def_type": "datetime",
+      "label": "日付・日時入力",
+      "sort_order": 50,
+      "validation_type_ids": [
+        "studio.date.ymd",
+        "studio.datetime.local",
+        "studio.instant.iso8601"
+      ]
+    }
+  ],
+  "validation_type_definitions": [
+    {
+      "id": "studio.string.single_line",
+      "contract_version": "0.1.0",
+      "label": "単一行文字列",
+      "description": "改行を含まない一般的な文字列。",
+      "status": "active",
+      "sort_order": 10,
+      "deprecated": false,
+      "value_family": "string",
+      "value_contract": {
+        "runtime_value_type": "string",
+        "line_mode": "single_line",
+        "line_break_allowed": false,
+        "normalization_policy": "none"
+      },
+      "default_constraints": {},
+      "required_constraints": [],
+      "overridable_constraints": [
+        "required",
+        "nullable",
+        "empty_string_allowed",
+        "minimum_length",
+        "maximum_length"
+      ],
+      "standard_test_conditions": [
+        "STRING_VALUE_ACCEPTED",
+        "LINE_BREAK_REJECTED",
+        "NON_STRING_REJECTED",
+        "EMPTY_STRING_POLICY",
+        "MINIMUM_LENGTH_BOUNDARY",
+        "MAXIMUM_LENGTH_BOUNDARY"
+      ],
+      "test_pattern_profile_ref": ""
+    },
+    {
+      "id": "studio.string.multi_line",
+      "contract_version": "0.1.0",
+      "label": "複数行文字列",
+      "description": "改行を含むことができる複数行文字列。",
+      "status": "active",
+      "sort_order": 20,
+      "deprecated": false,
+      "value_family": "string",
+      "value_contract": {
+        "runtime_value_type": "string",
+        "line_mode": "multi_line",
+        "line_break_allowed": true,
+        "normalization_policy": "none"
+      },
+      "default_constraints": {},
+      "required_constraints": [],
+      "overridable_constraints": [
+        "required",
+        "nullable",
+        "empty_string_allowed",
+        "minimum_length",
+        "maximum_length",
+        "maximum_lines"
+      ],
+      "standard_test_conditions": [
+        "SINGLE_LINE_ACCEPTED",
+        "MULTI_LINE_ACCEPTED",
+        "NON_STRING_REJECTED",
+        "EMPTY_STRING_POLICY",
+        "MINIMUM_LENGTH_BOUNDARY",
+        "MAXIMUM_LENGTH_BOUNDARY",
+        "MAXIMUM_LINES_BOUNDARY"
+      ],
+      "test_pattern_profile_ref": ""
+    },
+    {
+      "id": "studio.string.identifier",
+      "contract_version": "0.1.0",
+      "label": "識別子",
+      "description": "設定IDや参照キーなどに使用する機械可読文字列。",
+      "status": "active",
+      "sort_order": 30,
+      "deprecated": false,
+      "value_family": "string",
+      "value_contract": {
+        "runtime_value_type": "string",
+        "line_break_allowed": false,
+        "character_policy": "identifier",
+        "pattern": "^[A-Za-z_][A-Za-z0-9_.-]*$",
+        "normalization_policy": "none"
+      },
+      "default_constraints": {},
+      "required_constraints": [],
+      "overridable_constraints": [
+        "required",
+        "nullable",
+        "empty_string_allowed",
+        "minimum_length",
+        "maximum_length"
+      ],
+      "standard_test_conditions": [
+        "ALPHABET_START_ACCEPTED",
+        "UNDERSCORE_START_ACCEPTED",
+        "DIGIT_START_REJECTED",
+        "SPACE_REJECTED",
+        "LINE_BREAK_REJECTED",
+        "NON_ASCII_REJECTED",
+        "EMPTY_STRING_POLICY",
+        "LENGTH_BOUNDARY"
+      ],
+      "test_pattern_profile_ref": ""
+    },
+    {
+      "id": "studio.string.numeric",
+      "contract_version": "0.1.0",
+      "label": "数字文字列",
+      "description": "0から9だけで構成された文字列。先頭ゼロを保持する。",
+      "status": "active",
+      "sort_order": 40,
+      "deprecated": false,
+      "value_family": "string",
+      "value_contract": {
+        "runtime_value_type": "string",
+        "line_break_allowed": false,
+        "pattern": "^[0-9]+$",
+        "leading_zero_allowed": true,
+        "normalization_policy": "none"
+      },
+      "default_constraints": {},
+      "required_constraints": [],
+      "overridable_constraints": [
+        "required",
+        "nullable",
+        "empty_string_allowed",
+        "minimum_length",
+        "maximum_length"
+      ],
+      "standard_test_conditions": [
+        "DIGITS_ACCEPTED",
+        "LEADING_ZERO_ACCEPTED",
+        "ALPHABET_REJECTED",
+        "SIGN_REJECTED",
+        "DECIMAL_POINT_REJECTED",
+        "SPACE_REJECTED",
+        "EMPTY_STRING_POLICY",
+        "LENGTH_BOUNDARY"
+      ],
+      "test_pattern_profile_ref": ""
+    },
+    {
+      "id": "studio.string.alphanumeric",
+      "contract_version": "0.1.0",
+      "label": "英数字文字列",
+      "description": "半角英字と数字だけで構成された文字列。",
+      "status": "active",
+      "sort_order": 50,
+      "deprecated": false,
+      "value_family": "string",
+      "value_contract": {
+        "runtime_value_type": "string",
+        "line_break_allowed": false,
+        "pattern": "^[A-Za-z0-9]+$",
+        "normalization_policy": "none"
+      },
+      "default_constraints": {},
+      "required_constraints": [],
+      "overridable_constraints": [
+        "required",
+        "nullable",
+        "empty_string_allowed",
+        "minimum_length",
+        "maximum_length"
+      ],
+      "standard_test_conditions": [
+        "ALPHANUMERIC_ACCEPTED",
+        "SYMBOL_REJECTED",
+        "SPACE_REJECTED",
+        "NON_ASCII_REJECTED",
+        "EMPTY_STRING_POLICY",
+        "LENGTH_BOUNDARY"
+      ],
+      "test_pattern_profile_ref": ""
+    },
+    {
+      "id": "studio.integer.signed",
+      "contract_version": "0.1.0",
+      "label": "符号付き整数",
+      "description": "JavaScriptの安全整数範囲内で、負数・0・正数を許可する有限整数。",
+      "status": "active",
+      "sort_order": 100,
+      "deprecated": false,
+      "value_family": "integer",
+      "value_contract": {
+        "runtime_value_type": "number",
+        "finite_required": true,
+        "integer_required": true,
+        "safe_integer_required": true,
+        "negative_allowed": true,
+        "zero_allowed": true
+      },
+      "default_constraints": {
+        "minimum": {
+          "value": -9007199254740991,
+          "inclusive": true
+        },
+        "maximum": {
+          "value": 9007199254740991,
+          "inclusive": true
+        }
+      },
+      "required_constraints": [],
+      "overridable_constraints": [
+        "required",
+        "nullable",
+        "minimum",
+        "maximum"
+      ],
+      "standard_test_conditions": [
+        "NEGATIVE_INTEGER_ACCEPTED",
+        "ZERO_ACCEPTED",
+        "POSITIVE_INTEGER_ACCEPTED",
+        "DECIMAL_REJECTED",
+        "NAN_REJECTED",
+        "INFINITY_REJECTED",
+        "UNSAFE_INTEGER_REJECTED",
+        "MINIMUM_BOUNDARY",
+        "MAXIMUM_BOUNDARY"
+      ],
+      "test_pattern_profile_ref": ""
+    },
+    {
+      "id": "studio.integer.non_negative",
+      "contract_version": "0.1.0",
+      "label": "0以上の整数",
+      "description": "JavaScriptの安全整数範囲内で、0以上を許可する有限整数。",
+      "status": "active",
+      "sort_order": 110,
+      "deprecated": false,
+      "value_family": "integer",
+      "value_contract": {
+        "runtime_value_type": "number",
+        "finite_required": true,
+        "integer_required": true,
+        "safe_integer_required": true,
+        "negative_allowed": false,
+        "zero_allowed": true
+      },
+      "default_constraints": {
+        "minimum": {
+          "value": 0,
+          "inclusive": true
+        },
+        "maximum": {
+          "value": 9007199254740991,
+          "inclusive": true
+        }
+      },
+      "required_constraints": [],
+      "overridable_constraints": [
+        "required",
+        "nullable",
+        "minimum",
+        "maximum"
+      ],
+      "standard_test_conditions": [
+        "ZERO_ACCEPTED",
+        "POSITIVE_INTEGER_ACCEPTED",
+        "NEGATIVE_INTEGER_REJECTED",
+        "DECIMAL_REJECTED",
+        "NAN_REJECTED",
+        "INFINITY_REJECTED",
+        "UNSAFE_INTEGER_REJECTED",
+        "MINIMUM_BOUNDARY",
+        "MAXIMUM_BOUNDARY"
+      ],
+      "test_pattern_profile_ref": ""
+    },
+    {
+      "id": "studio.integer.positive",
+      "contract_version": "0.1.0",
+      "label": "1以上の整数",
+      "description": "JavaScriptの安全整数範囲内で、1以上を許可する有限整数。",
+      "status": "active",
+      "sort_order": 120,
+      "deprecated": false,
+      "value_family": "integer",
+      "value_contract": {
+        "runtime_value_type": "number",
+        "finite_required": true,
+        "integer_required": true,
+        "safe_integer_required": true,
+        "negative_allowed": false,
+        "zero_allowed": false
+      },
+      "default_constraints": {
+        "minimum": {
+          "value": 1,
+          "inclusive": true
+        },
+        "maximum": {
+          "value": 9007199254740991,
+          "inclusive": true
+        }
+      },
+      "required_constraints": [],
+      "overridable_constraints": [
+        "required",
+        "nullable",
+        "minimum",
+        "maximum"
+      ],
+      "standard_test_conditions": [
+        "ONE_ACCEPTED",
+        "POSITIVE_INTEGER_ACCEPTED",
+        "ZERO_REJECTED",
+        "NEGATIVE_INTEGER_REJECTED",
+        "DECIMAL_REJECTED",
+        "NAN_REJECTED",
+        "INFINITY_REJECTED",
+        "UNSAFE_INTEGER_REJECTED",
+        "MINIMUM_BOUNDARY",
+        "MAXIMUM_BOUNDARY"
+      ],
+      "test_pattern_profile_ref": ""
+    },
+    {
+      "id": "studio.float.measurement",
+      "contract_version": "0.1.0",
+      "label": "計測用小数",
+      "description": "FFT・加速度・周波数・センサー値などに使用する有限浮動小数点数。",
+      "status": "active",
+      "sort_order": 130,
+      "deprecated": false,
+      "value_family": "float",
+      "value_contract": {
+        "runtime_value_type": "number",
+        "finite_required": true,
+        "integer_allowed": true,
+        "decimal_allowed": true,
+        "exact_decimal_required": false,
+        "floating_point_error_expected": true
+      },
+      "default_constraints": {},
+      "required_constraints": [],
+      "overridable_constraints": [
+        "required",
+        "nullable",
+        "minimum",
+        "maximum"
+      ],
+      "standard_test_conditions": [
+        "INTEGER_ACCEPTED",
+        "DECIMAL_ACCEPTED",
+        "NEGATIVE_VALUE_ACCEPTED",
+        "ZERO_ACCEPTED",
+        "NAN_REJECTED",
+        "INFINITY_REJECTED",
+        "MINIMUM_BOUNDARY",
+        "MAXIMUM_BOUNDARY"
+      ],
+      "test_pattern_profile_ref": ""
+    },
+    {
+      "id": "studio.decimal.fixed_scale",
+      "contract_version": "0.1.0",
+      "label": "固定小数桁数",
+      "description": "金額・税率等を指定した精度と小数桁数で管理する10進小数。保存方式確定前の予約定義。",
+      "status": "draft",
+      "sort_order": 140,
+      "deprecated": false,
+      "value_family": "decimal",
+      "value_contract": {
+        "runtime_value_type": "pending",
+        "exact_decimal_required": true,
+        "rounding_policy": "forbidden",
+        "storage_policy": "unresolved"
+      },
+      "default_constraints": {},
+      "required_constraints": [
+        "precision",
+        "scale"
+      ],
+      "overridable_constraints": [
+        "required",
+        "nullable",
+        "precision",
+        "scale",
+        "minimum",
+        "maximum"
+      ],
+      "standard_test_conditions": [
+        "EXACT_SCALE_ACCEPTED",
+        "SCALE_OVER_REJECTED",
+        "PRECISION_OVER_REJECTED",
+        "IMPLICIT_ROUNDING_REJECTED",
+        "MINIMUM_BOUNDARY",
+        "MAXIMUM_BOUNDARY"
+      ],
+      "test_pattern_profile_ref": "",
+      "activation_conditions": [
+        "DECIMAL_STORAGE_POLICY_DEFINED",
+        "RUNTIME_VALIDATOR_IMPLEMENTED",
+        "STANDARD_TEST_PROFILE_APPROVED"
+      ]
+    },
+    {
+      "id": "studio.boolean.standard",
+      "contract_version": "0.1.0",
+      "label": "真偽値",
+      "description": "JSON booleanのtrueまたはfalseだけを許可する。",
+      "status": "active",
+      "sort_order": 200,
+      "deprecated": false,
+      "value_family": "boolean",
+      "value_contract": {
+        "runtime_value_type": "boolean",
+        "accepted_values": [
+          true,
+          false
+        ],
+        "string_coercion_allowed": false,
+        "numeric_coercion_allowed": false
+      },
+      "default_constraints": {},
+      "required_constraints": [],
+      "overridable_constraints": [
+        "required",
+        "nullable"
+      ],
+      "standard_test_conditions": [
+        "TRUE_ACCEPTED",
+        "FALSE_ACCEPTED",
+        "STRING_TRUE_REJECTED",
+        "STRING_FALSE_REJECTED",
+        "ZERO_REJECTED",
+        "ONE_REJECTED"
+      ],
+      "test_pattern_profile_ref": ""
+    },
+    {
+      "id": "studio.date.ymd",
+      "contract_version": "0.1.0",
+      "label": "年月日",
+      "description": "YYYY-MM-DD形式で表現する、実在する日付。",
+      "status": "active",
+      "sort_order": 300,
+      "deprecated": false,
+      "value_family": "date",
+      "value_contract": {
+        "runtime_value_type": "string",
+        "serialization_format": "YYYY-MM-DD",
+        "time_component_allowed": false,
+        "timezone_allowed": false,
+        "strict_calendar_validation": true
+      },
+      "default_constraints": {},
+      "required_constraints": [],
+      "overridable_constraints": [
+        "required",
+        "nullable",
+        "minimum_date",
+        "maximum_date"
+      ],
+      "standard_test_conditions": [
+        "VALID_DATE_ACCEPTED",
+        "LEAP_DAY_VALID_ACCEPTED",
+        "INVALID_LEAP_DAY_REJECTED",
+        "INVALID_MONTH_REJECTED",
+        "INVALID_DAY_REJECTED",
+        "DATETIME_VALUE_REJECTED",
+        "MINIMUM_DATE_BOUNDARY",
+        "MAXIMUM_DATE_BOUNDARY"
+      ],
+      "test_pattern_profile_ref": ""
+    },
+    {
+      "id": "studio.datetime.local",
+      "contract_version": "0.1.0",
+      "label": "ローカル日時",
+      "description": "タイムゾーン情報を持たないローカル年月日時分秒。",
+      "status": "active",
+      "sort_order": 310,
+      "deprecated": false,
+      "value_family": "datetime",
+      "value_contract": {
+        "runtime_value_type": "string",
+        "serialization_format": "YYYY-MM-DDTHH:mm[:ss]",
+        "timezone_required": false,
+        "timezone_allowed": false,
+        "strict_calendar_validation": true,
+        "default_precision": "minute"
+      },
+      "default_constraints": {},
+      "required_constraints": [],
+      "overridable_constraints": [
+        "required",
+        "nullable",
+        "minimum_datetime",
+        "maximum_datetime",
+        "seconds_allowed"
+      ],
+      "standard_test_conditions": [
+        "VALID_LOCAL_DATETIME_ACCEPTED",
+        "TIMEZONE_SUFFIX_REJECTED",
+        "INVALID_DATE_REJECTED",
+        "INVALID_TIME_REJECTED",
+        "MINIMUM_DATETIME_BOUNDARY",
+        "MAXIMUM_DATETIME_BOUNDARY"
+      ],
+      "test_pattern_profile_ref": ""
+    },
+    {
+      "id": "studio.instant.iso8601",
+      "contract_version": "0.1.0",
+      "label": "ISO 8601時点",
+      "description": "UTCまたはタイムゾーンオフセットを含む日時。Runtimeの正規化方針確定前の予約定義。",
+      "status": "draft",
+      "sort_order": 320,
+      "deprecated": false,
+      "value_family": "instant",
+      "value_contract": {
+        "runtime_value_type": "string",
+        "serialization_format": "ISO_8601",
+        "timezone_required": true,
+        "utc_allowed": true,
+        "offset_allowed": true,
+        "normalization_policy": "unresolved"
+      },
+      "default_constraints": {},
+      "required_constraints": [],
+      "overridable_constraints": [
+        "required",
+        "nullable",
+        "minimum_instant",
+        "maximum_instant"
+      ],
+      "standard_test_conditions": [
+        "UTC_INSTANT_ACCEPTED",
+        "OFFSET_INSTANT_ACCEPTED",
+        "TIMEZONE_MISSING_REJECTED",
+        "INVALID_OFFSET_REJECTED",
+        "MINIMUM_INSTANT_BOUNDARY",
+        "MAXIMUM_INSTANT_BOUNDARY"
+      ],
+      "test_pattern_profile_ref": "",
+      "activation_conditions": [
+        "TIMEZONE_NORMALIZATION_POLICY_DEFINED",
+        "RUNTIME_VALIDATOR_IMPLEMENTED",
+        "STANDARD_TEST_PROFILE_APPROVED"
+      ]
+    }
+  ]
+}
