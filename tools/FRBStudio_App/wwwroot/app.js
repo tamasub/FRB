@@ -371,6 +371,7 @@ setupFileTreePickers();
 setupDataSelectionViewDefReset();
 setupViewDefMarkdownButtonState();
 if (typeof setupStudioSearchPatternButtons === 'function') setupStudioSearchPatternButtons();
+if (typeof setupStudioJsonRoundTrip === 'function') setupStudioJsonRoundTrip();
 suppressBrowserAutofillOnComboInputs();
 
 $('loadBtn').addEventListener('click', async () => {

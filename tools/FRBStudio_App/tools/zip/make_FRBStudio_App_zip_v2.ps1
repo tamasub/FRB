@@ -16,7 +16,8 @@ $targetDirs = @(
     "Program.cs",
     "tests",
     "tools",
-    "wwwroot"
+    "wwwroot",
+    "studio_overlays"
 )
 
 # ZIP に含めるルート直下ファイル
@@ -40,9 +41,9 @@ $targetRootFiles = @(
 # 例: "F:\FRB\tools\FRBStudio_App\wwwroot\js\lib\mermaid"
 $excludePaths = @(
     "wwwroot\js\lib\mermaid",
-    "studio_overlays\gpt_fx_lab\data",
-    "studio_overlays\gpt_fx_lab\simulation",
-    "studio_overlays\gpt_fx_lab\simulattion_集計"
+    "studio_overlays\default",
+    "studio_overlays\gpt_fx_lab",
+
 )
 
 # 出力 ZIP 名

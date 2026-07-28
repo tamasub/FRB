@@ -3116,3 +3116,57 @@ body.related-grid-modal-open {
     max-height: 92vh;
   }
 }
+
+/* v0.18.35 Studio JSON Round Trip */
+#detailDialog .detail-footer {
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+#detailDialog .detail-roundtrip-actions,
+#detailDialog .detail-navigation-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+#detailDialog .studio-json-roundtrip-button {
+  border-color: rgba(59, 130, 246, .32);
+  background: linear-gradient(180deg, #ffffff, #eff6ff);
+  color: #1d4ed8;
+  font-weight: 850;
+}
+#detailDialog .studio-json-roundtrip-diff {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  color: #c2410c;
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+#detailDialog .studio-json-roundtrip-diff.hidden { display: none; }
+#detailDialog .studio-json-roundtrip-changed {
+  outline: 2px solid rgba(249, 115, 22, .62);
+  outline-offset: 2px;
+  border-radius: 12px;
+  background-color: rgba(255, 247, 237, .72);
+  transition: outline-color .18s ease, background-color .18s ease;
+}
+#detailDialog .detail-subgrid-edit.studio-json-roundtrip-changed {
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, .16);
+}
+@media (max-width: 760px) {
+  #detailDialog .detail-footer {
+    justify-content: flex-start;
+    align-items: center;
+  }
+  #detailDialog .detail-roundtrip-actions,
+  #detailDialog .detail-navigation-actions {
+    flex: 0 0 auto;
+  }
+}

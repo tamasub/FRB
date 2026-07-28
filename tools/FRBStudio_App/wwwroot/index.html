@@ -284,11 +284,18 @@
       </div>
       <div id="detailForm" class="form-grid detail-grid"></div>
       <div id="childArea"></div>
-      <div class="button-row right detail-footer">
-        <button id="prevDetailBtn" type="button" class="ghost-button" title="F7">前へ(F7)</button>
-        <button id="nextDetailBtn" type="button" class="ghost-button" title="F8">次へ(F8)</button>
-        <button id="applyDetailBtn" class="primary-button" value="default" title="F12">反映(F12)</button>
-        <button class="ghost-button" value="cancel">閉じる</button>
+      <div class="button-row detail-footer">
+        <div class="detail-roundtrip-actions" aria-label="Studio JSON Round Trip">
+          <button id="copyDetailJsonBtn" type="button" class="ghost-button studio-json-roundtrip-button" title="現在の詳細画面をRow JSONとしてコピー（サブグリッド含む）">CopyJSON</button>
+          <button id="pasteDetailJsonBtn" type="button" class="ghost-button studio-json-roundtrip-button" title="Row JSONを詳細画面へ展開（サブグリッド含む・F12で反映）">PasteJSON</button>
+          <span id="studioJsonRoundTripDiff" class="studio-json-roundtrip-diff hidden" aria-live="polite"></span>
+        </div>
+        <div class="detail-navigation-actions">
+          <button id="prevDetailBtn" type="button" class="ghost-button" title="F7">前へ(F7)</button>
+          <button id="nextDetailBtn" type="button" class="ghost-button" title="F8">次へ(F8)</button>
+          <button id="applyDetailBtn" class="primary-button" value="default" title="F12">反映(F12)</button>
+          <button class="ghost-button" value="cancel">閉じる</button>
+        </div>
       </div>
     </form>
   </dialog>
@@ -323,6 +330,7 @@
   <script src="js/markdown/viewdef_markdown.js?v=action-execute-006"></script>
   <script src="js/runtime/detail_subgrid_edit.js?v=detail-select-0168"></script>
   <script src="js/runtime/detail_save.js?v=context-grid-preview-0164"></script>
+  <script src="js/runtime/studio_json_round_trip.js?v=studio-json-round-trip-01835"></script>
   <script src="js/core/viewdef_context_contract.js?v=context-grid-preview-0165-6"></script>
   <script src="js/runtime/load_runtime.js?v=fx-chart-url-bb-075"></script>
   <script src="js/actions/action_registry.js?v=test-runner-command-profile-01438"></script>
