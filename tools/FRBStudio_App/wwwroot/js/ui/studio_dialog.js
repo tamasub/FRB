@@ -1,4 +1,4 @@
-// v0.18.13-studio-dialog-no-browser-standard
+// v0.18.35.2-studio-dialog-top-layer
 // FRB Studio共通の画面内ダイアログ。
 // alert/confirm/prompt等のブラウザ標準ダイアログを使わず、視線と文脈を画面内に保つ。
 (function installStudioDialog(){
@@ -9,14 +9,21 @@
     .studio-dialog-backdrop {
       position: fixed;
       inset: 0;
-      z-index: 2147483400;
+      width: 100vw;
+      max-width: none;
+      height: 100vh;
+      max-height: none;
+      margin: 0;
+      border: 0;
+      box-sizing: border-box;
       display: none;
       place-items: center;
       padding: 18px;
       background: rgba(15, 23, 42, .24);
       backdrop-filter: blur(2px);
     }
-    .studio-dialog-backdrop.show { display: grid; }
+    .studio-dialog-backdrop[open] { display: grid; }
+    .studio-dialog-backdrop::backdrop { background: transparent; }
     .studio-dialog-panel {
       width: min(520px, calc(100vw - 36px));
       max-height: min(78vh, 640px);
@@ -122,7 +129,7 @@
   function ensureDialog(){
     ensureStyles();
     if (runtime.backdrop) return runtime.backdrop;
-    const backdrop = document.createElement('div');
+    const backdrop = document.createElement('dialog');
     backdrop.id = 'studioDialogBackdrop';
     backdrop.className = 'studio-dialog-backdrop';
     backdrop.innerHTML = `
@@ -159,11 +166,15 @@
       if (e.key === 'Enter' && runtime.mode === 'confirm') { e.preventDefault(); e.stopPropagation(); finish(true); }
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && runtime.mode !== 'confirm') { e.preventDefault(); e.stopPropagation(); finish(true); }
     }, true);
+    backdrop.addEventListener('cancel', (e) => {
+      e.preventDefault();
+      finish(false);
+    });
     return backdrop;
   }
 
   function hide(){
-    if (runtime.backdrop) runtime.backdrop.classList.remove('show');
+    if (runtime.backdrop?.open) runtime.backdrop.close();
     document.body.classList.remove('studio-dialog-open');
     runtime.resolver = null;
     runtime.input = null;
@@ -203,7 +214,7 @@
     panel.querySelector('button[data-action="ok"]').textContent = String(options.okText || options.okLabel || (options.danger ? '実行する' : 'OK'));
     panel.querySelector('button[data-action="cancel"]').textContent = String(options.cancelText || options.cancelLabel || 'キャンセル');
     document.body.classList.add('studio-dialog-open');
-    backdrop.classList.add('show');
+    if (!backdrop.open) backdrop.showModal();
     requestAnimationFrame(() => (runtime.input || panel.querySelector('button[data-action="ok"]'))?.focus({ preventScroll:true }));
     return new Promise(resolve => { runtime.resolver = resolve; });
   }

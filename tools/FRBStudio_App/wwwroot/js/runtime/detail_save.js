@@ -23,6 +23,7 @@ function renderDetailForRow(row) {
 }
 
 function openDetail(index, keepOpen=false) {
+  if (typeof discardStudioJsonRoundTripDraft === 'function') discardStudioJsonRoundTripDraft();
   detailMode = 'edit';
   draftRow = null;
   selectedIndex = index;
@@ -32,6 +33,7 @@ function openDetail(index, keepOpen=false) {
 }
 
 function openNewDetail(row, statusMessage='新規登録画面を開きました') {
+  if (typeof discardStudioJsonRoundTripDraft === 'function') discardStudioJsonRoundTripDraft();
   detailMode = 'new';
   draftRow = row;
   selectedIndex = -1;
@@ -98,7 +100,11 @@ function applyDetail(e) {
 
   if (detailMode === 'new') {
     if (!draftRow || !Array.isArray(currentRows)) return;
-    applyDetailInputsToRow(draftRow);
+    const roundTripDraft = typeof consumeStudioJsonRoundTripDraft === 'function'
+      ? consumeStudioJsonRoundTripDraft()
+      : null;
+    if (roundTripDraft) draftRow = roundTripDraft;
+    else applyDetailInputsToRow(draftRow);
     // 反映直前にもNo/Keyを再採番して、開いている間に増えた行との重複を避ける。
     assignNewRowKeys(draftRow, draftRow);
     currentRows.push(draftRow);

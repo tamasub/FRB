@@ -224,6 +224,11 @@ function normalizeChatMessages(field, row, gd) {
 }
 
 function currentDetailRow() {
+  // Studio JSON Round TripのPaste後は、F12まで実データではなくDraftを編集対象にする。
+  if (typeof getStudioJsonRoundTripDraftRow === 'function') {
+    const roundTripDraft = getStudioJsonRoundTripDraftRow();
+    if (roundTripDraft) return roundTripDraft;
+  }
   if (detailMode === 'new') return draftRow;
   if (selectedIndex >= 0 && Array.isArray(currentRows)) return currentRows[selectedIndex];
   return null;

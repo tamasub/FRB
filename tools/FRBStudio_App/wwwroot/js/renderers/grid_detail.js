@@ -1049,6 +1049,14 @@ function applyDetailInputsToRow(row) {
 
 function applyDetailInputsToSelectedRow() {
   if (selectedIndex < 0) return;
+  // PasteJSON後は保持中のRound Trip Draftを、F12または既存の前後移動確定で実データへ反映する。
+  if (typeof consumeStudioJsonRoundTripDraft === 'function') {
+    const roundTripDraft = consumeStudioJsonRoundTripDraft();
+    if (roundTripDraft) {
+      currentRows[selectedIndex] = roundTripDraft;
+      return;
+    }
+  }
   applyDetailInputsToRow(currentRows[selectedIndex]);
 }
 function moveDetail(delta) {

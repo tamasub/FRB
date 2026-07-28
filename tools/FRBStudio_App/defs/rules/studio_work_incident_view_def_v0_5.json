@@ -131,14 +131,14 @@
               "field": "work_item_id",
               "caption": "作業ID",
               "type": "text",
-              "readonly": true,
+              "readonly": false,
               "grid": {
                 "visible": true,
                 "width": 140
               },
               "edit": {
                 "visible": true,
-                "readonly": true
+                "readonly": false
               },
               "search": {
                 "visible": true,

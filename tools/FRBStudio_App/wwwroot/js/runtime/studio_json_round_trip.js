@@ -1,4 +1,4 @@
-// v0.18.35-studio-json-round-trip
+// v0.18.35.3-studio-json-round-trip-all-screen-editable-fields
 // Studio JSON Round Trip:
 // - Copy JSON: current detail editor values (including child subgrids) -> clipboard
 // - Paste JSON: clipboard / manual JSON -> current detail editor
@@ -8,11 +8,56 @@
   window.__studioJsonRoundTripRuntimeInstalled = true;
 
   let lastChangedPaths = [];
+  let pendingDraftRow = null;
+  let pendingTarget = null;
+
+  function currentTarget(){
+    if (detailMode === 'new') return { mode: 'new', index: -1, row: draftRow };
+    if (selectedIndex >= 0 && Array.isArray(currentRows)) {
+      return { mode: 'edit', index: selectedIndex, row: currentRows[selectedIndex] };
+    }
+    return null;
+  }
+
+  function pendingMatchesCurrentTarget(){
+    if (!pendingDraftRow || !pendingTarget) return false;
+    const target = currentTarget();
+    if (!target || target.mode !== pendingTarget.mode) return false;
+    if (target.mode === 'new') return target.row === pendingTarget.row;
+    return target.index === pendingTarget.index && target.row === pendingTarget.row;
+  }
 
   function currentRow(){
-    if (detailMode === 'new') return draftRow;
-    if (selectedIndex >= 0 && Array.isArray(currentRows)) return currentRows[selectedIndex];
-    return null;
+    if (pendingMatchesCurrentTarget()) return pendingDraftRow;
+    return currentTarget()?.row ?? null;
+  }
+
+  function setPendingDraft(row){
+    const target = currentTarget();
+    if (!target) throw new Error('詳細エディターの対象行がありません');
+    pendingDraftRow = row;
+    pendingTarget = target;
+  }
+
+  function getPendingDraftRow(){
+    return pendingMatchesCurrentTarget() ? pendingDraftRow : null;
+  }
+
+  function consumePendingDraft(){
+    if (!pendingMatchesCurrentTarget()) return null;
+    // F12/前後移動の時点で、通常入力・サブグリッドの最新UI値をDraftへ回収する。
+    if (typeof applyDetailInputsToRow === 'function') applyDetailInputsToRow(pendingDraftRow);
+    const committed = cloneData(pendingDraftRow);
+    pendingDraftRow = null;
+    pendingTarget = null;
+    clearRoundTripDiff();
+    return committed;
+  }
+
+  function discardPendingDraft(){
+    pendingDraftRow = null;
+    pendingTarget = null;
+    clearRoundTripDiff();
   }
 
   function hasByPath(obj, path){
@@ -50,14 +95,42 @@
     map.set(name, next);
   }
 
-  function contractsForGrid(gd){
+  function chatInputSourceField(field, gd){
+    const raw = field?.edit?.input ?? field?.input ?? field?.chat?.input;
+    const cfg = raw ?? {};
+    const fields = gd?.fields ?? [];
+    const existing = new Set(fields.map(item => item?.field).filter(Boolean));
+    const hasExplicitInput = raw && typeof raw === 'object';
+    const userField = cfg.userField ?? cfg.user_field ?? (!hasExplicitInput && existing.has('user_reply') ? 'user_reply' : null);
+    return cfg.enabled === false ? null : userField;
+  }
+
+  function contractsForGrid(gd, row=null){
     const map = new Map();
     const fields = gd?.fields ?? [];
     const fieldByName = new Map(fields.map(field => [field.field, field]));
 
     fields.forEach(field => {
       if (!field?.field) return;
+      if (row && typeof fieldMatchesVisibleWhen === 'function' && !fieldMatchesVisibleWhen(field, row)) return;
       const readonly = Boolean(field.readonly || field.edit?.readonly);
+      const arrayField = field.type === 'objectArray' || field.type === 'stringArray';
+
+      // objectArray / stringArray は edit.visible=false でも、Detail下部の共通サブグリッド、
+      // または対象文脈の専用Gridとして画面入力できる。画面描画契約に合わせて先に登録する。
+      if (arrayField) {
+        const editable = typeof isDetailSubGridEditable === 'function'
+          ? isDetailSubGridEditable(field)
+          : !readonly;
+        const targetContext = typeof isTargetContextField === 'function' && isTargetContextField(field);
+        addContract(map, field.field, {
+          type: field.type,
+          editable,
+          field,
+          source: targetContext ? 'target-context' : 'subgrid'
+        });
+        return;
+      }
 
       if (field.type === 'chat') {
         const messages = field.edit?.messages ?? field.messages ?? field.chat?.messages ?? [];
@@ -80,20 +153,28 @@
             });
           });
         });
+
+        // chat composerはmessagesとは別UIだが、userFieldへ人間が入力できる。
+        const inputFieldName = chatInputSourceField(field, gd);
+        if (inputFieldName) {
+          const inputSource = fieldByName.get(inputFieldName) ?? {};
+          addContract(map, inputFieldName, {
+            type: inputSource.type ?? 'textarea',
+            editable: !(inputSource.readonly || inputSource.edit?.readonly),
+            field: inputSource,
+            source: 'chat-input'
+          });
+        }
         return;
       }
 
-      // edit.visible=false の項目は、Chat等の別UIに出た場合だけ上の契約で追加する。
+      // edit.visible=false の通常項目は、Chat等の別UIに出た場合だけ上の契約で追加する。
       if (field.edit?.visible === false) return;
-      const arrayField = field.type === 'objectArray' || field.type === 'stringArray';
-      const editable = arrayField && typeof isDetailSubGridEditable === 'function'
-        ? isDetailSubGridEditable(field)
-        : !readonly;
       addContract(map, field.field, {
         type: field.type ?? 'text',
-        editable,
+        editable: !readonly,
         field,
-        source: arrayField ? 'subgrid' : 'field'
+        source: 'field'
       });
     });
 
@@ -138,7 +219,7 @@
     if (!gd) throw new Error('Grid ViewDefが読み込まれていません');
     const row = collectEditorRow();
     const output = {};
-    contractsForGrid(gd).forEach(contract => {
+    contractsForGrid(gd, row).forEach(contract => {
       const value = hasByPath(row, contract.path)
         ? cloneData(getByPath(row, contract.path))
         : emptyValueForContract(contract);
@@ -166,14 +247,59 @@
     return parsed;
   }
 
+  function optionContractValue(option, field){
+    if (typeof optionValue === 'function') return optionValue(option, field);
+    if (option && typeof option === 'object') {
+      return option.value ?? option.id ?? option.key ?? option.label ?? option.caption ?? '';
+    }
+    return option;
+  }
+
+  function allowedOptionValues(contract){
+    const field = contract.field ?? {};
+    const options = Array.isArray(field.options) ? field.options : [];
+    return options.map(option => optionContractValue(option, field));
+  }
+
   function validateContractValue(contract, value){
     if (value == null) return null;
+    const allowed = allowedOptionValues(contract);
+    if (allowed.length && (contract.type === 'select' || contract.field?.edit?.control === 'radio')) {
+      const values = Array.isArray(value) ? value : [value];
+      const invalid = values.find(item => item !== '' && !allowed.some(option => sameJsonValue(option, item)));
+      if (invalid !== undefined) {
+        return `${contract.path}: ${JSON.stringify(invalid)} は許可された選択肢ではありません（${allowed.join(' / ')}）`;
+      }
+    }
     if ((contract.type === 'objectArray' || contract.type === 'stringArray' || contract.type === 'array') && !Array.isArray(value)) {
       return `${contract.path}: 配列を指定してください`;
     }
     if (contract.type === 'objectArray') {
       const invalidIndex = value.findIndex(item => !item || typeof item !== 'object' || Array.isArray(item));
       if (invalidIndex >= 0) return `${contract.path}[${invalidIndex}]: オブジェクトを指定してください`;
+
+      // サブグリッド内のselect/radio等も、親ViewDefのsubGrid.columns契約で検証する。
+      // 配列であることだけ確認して通すと、候補外値が画面上で空欄化してしまうため。
+      const subGrid = contract.field?.edit?.subGrid
+        ?? contract.field?.edit?.subgrid
+        ?? contract.field?.edit?.sub_grid
+        ?? {};
+      const columns = Array.isArray(subGrid.columns) ? subGrid.columns : [];
+      for (let itemIndex = 0; itemIndex < value.length; itemIndex++) {
+        const item = value[itemIndex];
+        for (const column of columns) {
+          if (!column?.field || !Object.prototype.hasOwnProperty.call(item, column.field)) continue;
+          const childContract = {
+            path: `${contract.path}[${itemIndex}].${column.field}`,
+            type: column.type ?? 'text',
+            editable: true,
+            field: column,
+            source: 'subgrid-column'
+          };
+          const childError = validateContractValue(childContract, item[column.field]);
+          if (childError) return childError;
+        }
+      }
     }
     if (contract.type === 'stringArray') {
       const invalidIndex = value.findIndex(item => typeof item !== 'string');
@@ -186,7 +312,7 @@
     const gd = gridDef();
     if (!gd) throw new Error('Grid ViewDefが読み込まれていません');
     const working = collectEditorRow();
-    const contracts = contractsForGrid(gd);
+    const contracts = contractsForGrid(gd, working);
     const errors = [];
     const changes = [];
     const readonlyPaths = [];
@@ -216,13 +342,17 @@
       return { changes, readonlyPaths };
     }
 
-    // 画面上のDraftだけを書き換える。既存の反映(F12)を人間の確定境界として維持する。
+    // 画面上のDraftだけを書き換える。実データはまだ変更せず、既存の反映(F12)を確定境界とする。
+    // Markdownプレビュー型chatはcontenteditable=falseのため、DOMだけではF12時に値を回収できない。
+    // workingは「貼り付け時点の固定スナップショット」ではなく、F12まで編集を続ける作業行。
+    // F12時にapplyDetailInputsToRow()で通常項目・サブグリッドの最新UI値を再回収してから確定する。
+    setPendingDraft(working);
     renderDetailForRow(working);
     lastChangedPaths = changes;
     highlightRoundTripChanges(changes);
     updateRoundTripDiffBadge(changes, readonlyPaths);
     const readonlyMessage = readonlyPaths.length ? ` / 読取専用 ${readonlyPaths.length}項目は無視` : '';
-    setStatus(`Paste JSONを画面へ展開しました: ${changes.length}項目${readonlyMessage}（F12で反映）`);
+    setStatus(`Paste JSONを画面へ展開しました: ${changes.length}項目${readonlyMessage}（貼り付け後の手修正も含めてF12で反映）`);
     return { changes, readonlyPaths };
   }
 
@@ -242,6 +372,10 @@
       });
       const card = root.querySelector(`.detail-subgrid-edit[data-subgrid-field="${cssEscape(path)}"]`);
       if (card) card.classList.add('studio-json-roundtrip-changed');
+      const contract = contractsForGrid(gridDef(), currentRow()).find(item => item.path === path);
+      if (contract?.source === 'target-context') {
+        root.querySelector('#targetContextDetailPanel')?.classList.add('studio-json-roundtrip-changed');
+      }
     });
   }
 
@@ -302,7 +436,7 @@
     return await showStudioPromptDialog({
       title: 'Paste JSON',
       message: 'AIなどから返されたRow JSONを貼り付けてください。部分JSONにも対応しています。',
-      detail: 'JSONに存在する編集可能項目だけを画面へ展開します。サブグリッド配列は配列全体を置き換えます。保存はされず、反映(F12)が確定境界です。',
+      detail: 'JSONに存在する編集可能項目だけを画面へ展開します。サブグリッド配列は配列全体を置き換えます。貼り付け後も通常どおり修正でき、その最新内容を反映(F12)で確定します。',
       defaultValue: '',
       multiline: true,
       okText: '画面へ展開',
@@ -347,6 +481,11 @@
       applyButton.dataset.roundTripClearBound = 'true';
       applyButton.addEventListener('click', () => window.setTimeout(clearRoundTripDiff, 0));
     }
+    const detailDialog = $('detailDialog');
+    if (detailDialog && !detailDialog.dataset.roundTripCloseBound) {
+      detailDialog.dataset.roundTripCloseBound = 'true';
+      detailDialog.addEventListener('close', discardPendingDraft);
+    }
   }
 
   window.setupStudioJsonRoundTrip = setup;
@@ -354,5 +493,8 @@
   window.pasteStudioDetailJson = pasteRoundTripJson;
   window.buildStudioDetailRoundTripJson = buildRoundTripJson;
   window.applyStudioDetailRoundTripObject = applyRoundTripObject;
+  window.getStudioJsonRoundTripDraftRow = getPendingDraftRow;
+  window.consumeStudioJsonRoundTripDraft = consumePendingDraft;
+  window.discardStudioJsonRoundTripDraft = discardPendingDraft;
   window.clearStudioJsonRoundTripDiff = clearRoundTripDiff;
 })();

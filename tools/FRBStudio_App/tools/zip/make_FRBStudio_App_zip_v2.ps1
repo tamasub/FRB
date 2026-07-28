@@ -42,8 +42,7 @@ $targetRootFiles = @(
 $excludePaths = @(
     "wwwroot\js\lib\mermaid",
     "studio_overlays\default",
-    "studio_overlays\gpt_fx_lab",
-
+    "studio_overlays\gpt_fx_lab"
 )
 
 # èoóÕ ZIP ñº
