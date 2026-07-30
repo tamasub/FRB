@@ -3,3 +3,8 @@ tamasub said:
 
 いつもながら、思うけど、ChatGPTの便利機能を俺に説明するタイミングが遅すぎる！！なんで？？笑
 
+## 手動Pull Requestテスト
+
+2026-07-30  
+GitHubのブラウザ画面から、初めて手動でPull Requestを作成しました。
+
