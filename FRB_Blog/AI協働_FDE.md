@@ -389,3 +389,8 @@ UX担当：0.5 FTE
 [4]: https://www.gov.uk/guidance/digital-outcomes-and-specialists-buyers-guide "Buying through the Digital Outcomes and Specialists framework - GOV.UK"
 [5]: https://www.gov.uk/government/publications/the-digital-data-and-technology-playbook/the-digital-data-and-technology-playbook-html "The Digital, Data and Technology Playbook (HTML) - GOV.UK"
 [6]: https://www.digital.go.jp/councils/procurement-reform/c2221dfd-28e4-4a4f-b58f-bb89e5a5504b?utm_source=chatgpt.com "2023年度デジタル庁情報システム調達改革検討会のフォロー ..."
+
+
+
+2026-07-30 -2
+VSCODEからプルリクエストの流れを体験するぞっ。その２
