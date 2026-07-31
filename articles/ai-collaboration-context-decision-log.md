@@ -6,6 +6,14 @@ topics: ["ai", "copilot", "aidev", "markdown", "mermaid"]
 published: true
 ---
 
+別の記事で、パートナー離脱の話から「判断を会社の資産として残す」重要性を書いた。
+👉 [私が考えるAI協働とは —— パートナー離脱でプロジェクト崩壊？](https://zenn.dev/frb_tamasub/articles/ai-collaboration03-decisions-remain)
+
+今回は、その「判断」を実際にどう分解し、どう育てるかの話。
+
+---
+
+
 # 文脈というブラックホールに、判断ログを投げ込むな
 
 AI協働をしていると、何でも「文脈」と呼びたくなる。
