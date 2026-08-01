@@ -22616,6 +22616,211 @@
         }
       ],
       "change_history": []
+    },
+    {
+      "work_item_id": "studio_work_0157",
+      "phase": "future-display-format-round-trip-preservation",
+      "title": "表示整形値を保存データへ混入させない未編集値保全責務",
+      "incident_type": "refactoring",
+      "category": "source_split",
+      "priority": "high",
+      "status": "構想",
+      "follow_up_status": "UNASSESSED",
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-07-31T23:46:00\u002B09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-07-31T23:46:00\u002B09:00",
+      "updated_at": "2026-07-31T23:46:00\u002B09:00",
+      "target_files": "未特定。Grid描画、数値フォーマット、WorkingRow、JSON保存・別名保存、Copy/Paste JSON、Round Trip処理に関係するモジュールを調査対象とする。",
+      "actual_updated_files": "",
+      "objective": "数値の表示整形を導入または拡張しても、未編集データの精度・値・構造を変化させずにJSON Round Tripできる保存責務を明確化する。",
+      "background": "FFTログにはJavaScriptの浮動小数点計算由来で小数点以下が長い数値が含まれる。FFTログの測定値はFFT業務側が生成するReadOnly値であり、Studioの入力バリデーション対象外と整理した。このため、画面上では丸めて見やすく表示してよい。一方、メモなど別の編集可能項目だけを変更して保存した際、画面上の全セルを読み取ってJSONを再構築すると、ReadOnly数値が表示時の丸め値へ置き換わる危険がある。表示整形の導入によって原本値が意図せず変更されないよう、表示責務と保存責務を分離する必要が生じた。",
+      "scope": "ReadOnly数値の表示時フォーマット、元Dataの保持、編集済み項目の識別、編集差分のData反映、未編集項目の値保全、保存・別名保存時のRound Trip、親項目およびサブグリッド項目の未編集値保全、表示値を保存値として利用していないことの確認を対象とする。",
+      "out_of_scope": "FFT業務側における必要小数桁数の決定、FFT計算アルゴリズムの変更、測定値自体の丸め保存、C# decimal相当の完全十進数対応、ReadOnly値の手動補正機能、original_valueとcorrected_valueの二重管理、Validation Typeごとの小数桁制約設計は対象外とする。",
+      "fixed_name_policy": "表示用文字列はData項目として保持しない。概念名は originalData、workingData、editedPatch、formattedDisplayValue を候補とするが、formattedDisplayValueを永続データ構造へ追加しない。保存整合性の責務名は Round Trip Preservation または Unedited Value Preservation を候補とする。",
+      "module_policy": "FormatterはDataから表示文字列を生成する一方向の責務とする。保存処理はDOM、Gridセル文字列、表示フォーマット済み値からJSON全体を再構築しない。元DataまたはWorkingDataへ編集された項目だけを反映し、そのDataから保存JSONを生成する。表示処理、編集差分管理、保存処理を分離し、共通Formatterから保存処理への逆依存を禁止する。",
+      "expected_outputs": "保存整合性の責務定義、対象モジュール調査結果、表示値から保存している箇所の有無、元Dataと編集差分を用いた保存方式案、ReadOnly数値の表示フォーマット方針、Round Tripテスト、サブグリッドを含む未編集値保全テスト、必要に応じたモジュール分割案。",
+      "risk": "現行実装が画面セルからJSONを再構築している場合、表示丸めの導入によりFFTログなどの原本値が静かに変化する。ReadOnly項目だけでなく、非表示項目、画面定義に存在しない項目、サブグリッド、null、配列順序にも影響する可能性がある。元DataとWorkingDataの扱いを誤ると、Paste JSON、行追加、行複製、別名保存など既存機能へ副作用が発生する。未編集判定が不正確な場合、利用者が変更した値を保存しない、または未編集値を丸めて保存する危険がある。",
+      "test_points": "1. ReadOnly実値0.10962573126894251を0.109626と表示し、memoだけ変更して保存しても実値が0.10962573126894251のままであること。2. ReadOnly実値284.84999999999997を284.85と表示しても、保存後の値が変化しないこと。3. 編集可能項目を変更した場合、その項目だけが変更されること。4. 編集可能な数値では表示値と保存値が異なる隠れた状態を作らないこと。5. 非表示項目およびViewDef未定義項目が保存後も維持されること。6. サブグリッド内の未編集数値が維持されること。7. null、0、負数、小数、長い小数が未編集時に変化しないこと。8. 保存、別名保存、Copy/Paste JSONで責務境界が崩れないこと。9. 表示フォーマット変更前後で、未編集データの意味的差分が0件であること。",
+      "verification_log": "",
+      "context_def_draft": "Dataを正とし、ViewはDataを人間向けに投影した結果として扱う。ReadOnly数値は表示時に丸めて見やすくしてよいが、表示文字列または丸め後の値を保存データの生成元にしてはならない。保存時は元Dataへ利用者が実際に編集した項目の差分だけを反映し、未編集項目は表示形式にかかわらず元の値を維持する。表示用の値と実値を業務データとして二重管理しない。編集可能な数値については、人間に表示される値と保存対象値が異なる隠れた状態を持たせない。",
+      "user_request": "FFTログはFFT業務側のReadOnly生成値として入力バリデーション対象外とし、画面では小数を丸めて見やすく表示してよい。表示値と実値を別データとして管理しない。別の編集可能項目を変更して保存するとき、表示用に丸めた内容を保存値として使ってはならない責務をインシデントへ記録したい。",
+      "ai_response": "",
+      "latest_user_comment": "ReadOnlyではない項目を修正して保存する時に、表示内容で保存してはいけないという責務が発生する。とりあえずインシデントへメモを残す。",
+      "latest_ai_response": "",
+      "context_refs": [],
+      "follow_up_actions": [
+        {
+          "action_id": "studio_work_0157_action_01",
+          "action_type": "",
+          "required": false,
+          "status": "NOT_STARTED",
+          "related_ids": null,
+          "note": "",
+          "action": "現行保存処理が元Data、WorkingRow、DOM、Gridセルのどれを保存元としているか調査する。"
+        },
+        {
+          "action_id": "studio_work_0157_action_02",
+          "action_type": "",
+          "required": false,
+          "status": "NOT_STARTED",
+          "related_ids": null,
+          "note": "",
+          "action": "数値Formatterと保存処理の依存関係を確認し、表示値が保存経路へ混入する可能性を洗い出す。"
+        },
+        {
+          "action_id": "studio_work_0157_action_03",
+          "action_type": "",
+          "required": false,
+          "status": "NOT_STARTED",
+          "related_ids": null,
+          "note": "",
+          "action": "元Dataへ編集差分だけを反映する保存方式と、既存WorkingRow方式との整合性を整理する。"
+        },
+        {
+          "action_id": "studio_work_0157_action_04",
+          "action_type": "",
+          "required": false,
+          "status": "NOT_STARTED",
+          "related_ids": null,
+          "note": "",
+          "action": "親項目、サブグリッド、非表示項目を含む未編集値保全テストを追加する。"
+        },
+        {
+          "action_id": "studio_work_0157_action_05",
+          "action_type": "",
+          "required": false,
+          "status": "NOT_STARTED",
+          "related_ids": null,
+          "note": "",
+          "action": "categoryがsource_splitのままで適切か、save_integrityまたはround_tripへ再分類すべきか実装着手時に評価する。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "discussed_at": "2026-07-31T23:30:00\u002B09:00",
+          "topic": "FFTログの小数桁",
+          "summary": "FFTログには小数点以下が長い値が存在するが、FFT業務側が生成した測定値であり、人間が入力・編集する数値とは責務が異なると整理した。"
+        },
+        {
+          "discussed_at": "2026-07-31T23:35:00\u002B09:00",
+          "topic": "ReadOnlyと入力バリデーション",
+          "summary": "FFTログの測定値はReadOnlyであるため、Studioの入力バリデーション対象外とする方向を確認した。"
+        },
+        {
+          "discussed_at": "2026-07-31T23:40:00\u002B09:00",
+          "topic": "表示時の丸め",
+          "summary": "入力バリデーション対象外のReadOnly数値は、元値を変更せず画面表示時だけ丸めて見やすくしてよいと整理した。表示値を別の業務データとして保持しない。"
+        },
+        {
+          "discussed_at": "2026-07-31T23:46:00\u002B09:00",
+          "topic": "保存整合性",
+          "summary": "他の編集可能項目を変更して保存する際、画面表示用に丸めたReadOnly値を保存してはならない責務が発生すると確認した。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "studio_work_0157_decision_01",
+          "decision": "FFTログの生成数値はFFT業務側のReadOnly値として扱い、Studioの入力バリデーション対象外とする。",
+          "reason": "FFTログの値は人間が入力する業務値ではなく、FFT処理が生成した測定結果であるため。",
+          "applied_axes": [
+            "責務分離",
+            "業務定義優先",
+            "承認対象の極小化"
+          ],
+          "conditions": [
+            "Studio上でFFT測定値を直接編集しないこと"
+          ],
+          "exceptions": [],
+          "expected_behavior": "FFT測定値の小数桁数をValidation Typeで制約しない。",
+          "acceptance_criteria": "FFT固有の小数桁テストが入力Validationへ生成されないこと。",
+          "test_pattern_seed": [
+            "READ_ONLY_MEASUREMENT_EXCLUDED_FROM_INPUT_VALIDATION"
+          ],
+          "remaining_risks": [
+            "ReadOnly解除時には別途編集契約が必要になる。"
+          ]
+        },
+        {
+          "decision_id": "studio_work_0157_decision_02",
+          "decision": "ReadOnly数値は元値を変更せず、表示時だけ丸めてよい。",
+          "reason": "長い浮動小数点表現は人間の視認性を低下させるが、測定原本を書き換える必要はないため。",
+          "applied_axes": [
+            "人間の視認性",
+            "原本保全",
+            "DataとViewの分離"
+          ],
+          "conditions": [
+            "丸め処理がレンダリング時の表示整形に限定されること"
+          ],
+          "exceptions": [],
+          "expected_behavior": "画面では見やすい数値を表示し、元Dataには丸めを反映しない。",
+          "acceptance_criteria": "Formatter適用前後で元Dataが変更されないこと。",
+          "test_pattern_seed": [
+            "READ_ONLY_NUMBER_FORMATTED_FOR_DISPLAY",
+            "FORMATTER_DOES_NOT_MUTATE_SOURCE_DATA"
+          ],
+          "remaining_risks": [
+            "画面セルを保存元にすると丸め値が混入する。"
+          ]
+        },
+        {
+          "decision_id": "studio_work_0157_decision_03",
+          "decision": "保存時は表示内容からJSON全体を再構築せず、元Dataへ編集差分だけを反映する。",
+          "reason": "未編集項目まで表示用の丸め値へ置換されることを防止するため。",
+          "applied_axes": [
+            "保存整合性",
+            "小さな差分",
+            "Round Trip Preservation"
+          ],
+          "conditions": [
+            "編集された項目を識別できること",
+            "元Dataまたは同等のWorkingDataを保持していること"
+          ],
+          "exceptions": [],
+          "expected_behavior": "利用者が変更した項目だけが保存結果へ反映され、未編集項目は元値を維持する。",
+          "acceptance_criteria": "memoのみ変更した保存で、丸め表示されたFFT数値の実値が変化しないこと。",
+          "test_pattern_seed": [
+            "EDITED_FIELD_ONLY_APPLIED",
+            "UNEDITED_VALUE_PRESERVED",
+            "FORMATTED_DISPLAY_VALUE_NOT_PERSISTED"
+          ],
+          "remaining_risks": [
+            "サブグリッドや非表示項目で差分適用漏れが発生する可能性がある。",
+            "既存Paste JSON機能との責務境界を確認する必要がある。"
+          ]
+        },
+        {
+          "decision_id": "studio_work_0157_decision_04",
+          "decision": "表示値と実値を業務データとして二重管理しない。",
+          "reason": "表示はViewの責務であり、表示専用値をDataへ持ち込むと状態管理と承認対象が増えるため。",
+          "applied_axes": [
+            "単一原本",
+            "状態の最小化",
+            "人間の認知負荷軽減"
+          ],
+          "conditions": [],
+          "exceptions": [],
+          "expected_behavior": "永続データには元値だけを保持し、表示文字列はレンダリング時に生成する。",
+          "acceptance_criteria": "displayValueなどの表示専用フィールドが保存JSONへ追加されないこと。",
+          "test_pattern_seed": [
+            "DISPLAY_VALUE_NOT_STORED_AS_DOMAIN_DATA"
+          ],
+          "remaining_risks": [
+            "編集可能な数値へ丸め表示を適用する場合は、表示値と保存値を一致させる別ルールが必要になる。"
+          ]
+        }
+      ],
+      "change_history": [
+        {
+          "changed_at": "2026-07-31T23:46:00\u002B09:00",
+          "changed_by": "ChatGPT",
+          "change_type": "CREATED",
+          "summary": "FFTログのReadOnly丸め表示と、表示整形値を保存データへ混入させない未編集値保全責務を構想インシデントとして登録した。"
+        }
+      ]
     }
   ],
   "review_notes": [
