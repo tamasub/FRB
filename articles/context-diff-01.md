@@ -3,7 +3,7 @@ title: "CONTEXT DIFF #1 — 同じ画像・同じ質問でも、AIが見る「�
 emoji: "🔍"
 type: "idea"
 topics: ["生成AI", "AI協働", "ChatGPT", "Claude", "プロンプト設計"]
-published: false
+published: true
 ---
 
 **こんな人に向けて書いています**
