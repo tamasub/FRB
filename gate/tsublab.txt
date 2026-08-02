@@ -1,0 +1,25 @@
+## context_diff_1_v8.html
+
+- pwd: context_diff_20260802
+- hash:c49a71ac58c7d7b0d77b3f6336abd706368926a849f0fd4426a7e68783ef29ca
+
+## context_diff_2_v8.html
+- pwd: context_diff_20260899
+- hash:9038bc7953396be1f57d15fb22a350a2eddc0c90abe0eda1362bd9367182daa2
+
+
+
+
+
+allow pasting
+
+crypto.subtle.digest("SHA-256", new TextEncoder().encode("context_diff_20260802"))
+      .then(buf => console.log(
+        Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("")
+      ));
+      
+crypto.subtle.digest("SHA-256", new TextEncoder().encode("context_diff_20260899"))
+      .then(buf => console.log(
+        Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("")
+      ));
+      
