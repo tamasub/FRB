@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>認証ページ</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f4f0;
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+    padding: 20px;
+  }
+  .card {
+    background: #ffffff;
+    border: 1px solid #e3e1da;
+    border-radius: 12px;
+    padding: 2.5rem 2rem;
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+  }
+  h1 {
+    font-size: 18px;
+    font-weight: 500;
+    margin: 0 0 0.5rem;
+    color: #2c2c2a;
+  }
+  p.desc {
+    font-size: 13px;
+    color: #6b6a65;
+    margin: 0 0 1.5rem;
+  }
+  input[type="password"] {
+    width: 100%;
+    height: 40px;
+    padding: 0 12px;
+    font-size: 15px;
+    border: 1px solid #cfcdc4;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    outline: none;
+  }
+  input[type="password"]:focus {
+    border-color: #7f77dd;
+    box-shadow: 0 0 0 2px rgba(127,119,221,0.15);
+  }
+  button {
+    width: 100%;
+    height: 42px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #fff;
+    background: #3c3489;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  button:disabled { opacity: 0.5; cursor: default; }
+  button:active { transform: scale(0.98); }
+  .error, .status {
+    color: #a32d2d;
+    font-size: 13px;
+    margin-top: 10px;
+    min-height: 16px;
+  }
+  .status { color: #928f86; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1 id="item-title">限定公開コンテンツ</h1>
+  <p class="desc">購入時にお送りしたパスワードを入力してください</p>
+  <input type="password" id="pw" placeholder="パスワード" disabled>
+  <button id="btn" onclick="checkPassword()" disabled>読み込み中...</button>
+  <div class="error" id="err"></div>
+</div>
+
+<!-- ▼ 忍者に置いたファイルのURLに書き換える ▼ -->
+<script src="https://tamasub364.ikidane.com/FRB/gate/gate-data.js?key=2026080220161"></script>
+<!-- ▲ 忍者に置いたファイルのURLに書き換える ▲ -->
+
+<script>
+  // ITEM_KEY はもう決め打ちしない。URLの ?key=work-a から取る。
+  // 使い方: gate.html?key=work-a
+  const urlParams = new URLSearchParams(window.location.search);
+  const ITEM_KEY = urlParams.get('key');
+
+  const btn = document.getElementById('btn');
+  const pwInput = document.getElementById('pw');
+  const err = document.getElementById('err');
+
+  // key が無ければ、gate-data.js の読み込みを待たずに即エラー。
+  if (!ITEM_KEY) {
+    err.textContent = "作品を特定できませんでした。URLに ?key=作品キー を付けてアクセスしてください。";
+    btn.textContent = "開く";
+    // pw/btn は disabled のまま(操作させない)
+  } else {
+    window.addEventListener('load', function() {
+      // gate-data.js の読み込みに失敗した場合の保険
+      if (typeof GATE_DATA === 'undefined') {
+        err.textContent = "認証データの読み込みに失敗しました。時間をおいて再度お試しください。";
+        btn.textContent = "開く";
+        return;
+      }
+      const item = GATE_DATA[ITEM_KEY];
+      if (!item) {
+        err.textContent = "作品情報が見つかりませんでした。";
+        btn.textContent = "開く";
+        return;
+      }
+      document.getElementById('item-title').textContent = item.title || "限定公開コンテンツ";
+      pwInput.disabled = false;
+      btn.disabled = false;
+      btn.textContent = "開く";
+      pwInput.focus();
+    });
+  }
+
+  async function sha256(text) {
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  async function checkPassword() {
+    if (!ITEM_KEY) return;
+    const item = (typeof GATE_DATA !== 'undefined') ? GATE_DATA[ITEM_KEY] : null;
+    if (!item) return;
+
+    const inputHash = await sha256(pwInput.value);
+    if (inputHash === item.hash) {
+      window.location.href = item.url;
+    } else {
+      err.textContent = "パスワードが違います";
+    }
+  }
+
+  pwInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !btn.disabled) checkPassword();
+  });
+</script>
+
+</body>
+</html>
