@@ -513,7 +513,8 @@ HOLD(保留)
 
 理論はここまで無料で公開した。失敗を全部飛び越えて、自分のAIで追試するための体験装置は、こちら。
 
-**→ CONTEXT DIFF #1（先行体験版）** ※リンクは近日追記予定
+**→ [CONTEXT DIFF #1（先行体験版）](https://note.com/juicy_roses3305/n/n3bd280129725)**
+ https://note.com/juicy_roses3305/n/n3bd280129725
 
 ![alt text](/images/context-diff-judgment-axis-constraint/CONTEXT_DIFF.png)
 
