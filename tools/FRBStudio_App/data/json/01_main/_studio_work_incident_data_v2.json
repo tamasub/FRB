@@ -22821,6 +22821,60 @@
           "summary": "FFTログのReadOnly丸め表示と、表示整形値を保存データへ混入させない未編集値保全責務を構想インシデントとして登録した。"
         }
       ]
+    },
+    {
+      "work_item_id": "studio_work_0158",
+      "phase": "future-webview2-native-shell",
+      "title": "WinForms＋WebView2によるネイティブアプリ化構想",
+      "incident_type": "refactoring",
+      "category": "other",
+      "priority": "low",
+      "status": "構想",
+      "follow_up_status": "UNASSESSED",
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-08-03T19:53:00\u002B09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-03T19:53:00\u002B09:00",
+      "updated_at": "2026-08-03T19:53:00\u002B09:00",
+      "target_files": "未定",
+      "actual_updated_files": "",
+      "objective": "localhost HTTPサーバーを使用せず、既存Web UIの柔軟性を維持しながら、ファイル操作をネイティブ側で安全に制御できる構造を作る。",
+      "background": "現在のブラウザー＋localhost方式では、会社利用時にポート公開、認証、CORS、不正アクセス対策などの説明が必要になる。WebView2の公式メッセージ連携を利用すれば、外部ポートを使用せずWeb UIとC#を接続できる。",
+      "scope": "WinFormsシェル、WebView2組み込み、JSONコマンド連携、Workspace制約、ファイル操作責務の分離を将来構想として整理する。",
+      "out_of_scope": "現時点での実装、既存FRB Studioの動作変更、localhost方式の廃止、会社環境への配布。",
+      "fixed_name_policy": "既存のStudio内API・Action名は可能な限り維持し、ネイティブ連携部分のみ差し替え可能にする。",
+      "module_policy": "Web UIは画面・操作要求を担当し、C#側はOS操作・Workspace検証・パス検証を担当する。両者の境界はJSONコマンドで定義する。",
+      "expected_outputs": "将来アーキテクチャ案、JSONコマンド定義、WebView2連携プロトタイプ、WorkspacePolicy設計。",
+      "risk": "WebView2メッセージ経由で過剰なネイティブ機能を公開すると、任意ファイル操作などの危険が生じる。コマンド許可リストと入力検証が必要。",
+      "test_points": "外部ポートを開かないこと、許可されたJSONコマンドのみ実行されること、Workspace外のパスが拒否されること、既存Web UIが維持できること。",
+      "verification_log": "構想段階のため未検証。",
+      "context_def_draft": "将来、FRB Studioを会社環境でも説明・利用しやすくするため、WinForms内のWebView2で既存Web UIを動作させる構成を検討する。Web UIとC#ネイティブ側はJSONメッセージで連携し、ファイル操作などのOS機能はC#側で制約を適用して実行する。",
+      "user_request": "FRB Studioを将来会社でも使えるようにする場合、WinForms＋WebView2方式を採用する構想をインシデントへ残す。",
+      "ai_response": "",
+      "latest_user_comment": "少なくとも会社でも使えるようにしたい場合は、この方式が有力。ただし今は実施しない。",
+      "latest_ai_response": "",
+      "context_refs": [],
+      "follow_up_actions": [],
+      "discussion_history": [
+        {
+          "at": "2026-08-03T19:53:00\u002B09:00",
+          "summary": "localhost API方式とWinForms＋WebView2方式を比較し、会社利用ではWebView2方式が説明・制御しやすいと整理した。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision": "現時点では実装せず、将来構想として保持する。",
+          "reason": "現在の優先度は低いが、会社利用時の有力なアーキテクチャ候補になるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "at": "2026-08-03T19:53:00\u002B09:00",
+          "change": "studio_work_0158を将来構想として新規作成。"
+        }
+      ]
     }
   ],
   "review_notes": [
