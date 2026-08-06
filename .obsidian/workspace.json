@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "articles/invisible-visualization-structuring-culture.md",
+                "file": "2026-08-05.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "invisible-visualization-structuring-culture"
+              "title": "2026-08-05"
             }
           }
         ]
@@ -180,8 +180,13 @@
       "bases:新規ベースを作成": false
     }
   },
-  "active": "69f6ac229016834c",
+  "active": "79fba93e563a35ed",
   "lastOpenFiles": [
+    "無題のファイル 1.canvas",
+    "2026-08-05.md",
+    "無題のファイル.canvas",
+    "FRB_Blog/AI協働016_RAG_ベクトル検索_戦略的設計パターン.md",
+    "articles/invisible-visualization-structuring-culture.md",
     "tools/FRBStudio_App/wwwroot/defs/fft_view_def_螳滄ｨ捺擅莉ｶ繝励Μ繧ｻ繝・ヨ_v0_5_editable_subgrid.json.br",
     "tools/FRBStudio_App/wwwroot/defs/fft_view_def_螳滄ｨ捺擅莉ｶ繝励Μ繧ｻ繝・ヨ_v0_5_editable_subgrid.json.gz",
     "tools/FRBStudio_App/wwwroot/defs/fft_view_def_螳滄ｨ捺擅莉ｶ繝励Μ繧ｻ繝・ヨ_v0_5_editable_subgrid.json",
@@ -192,7 +197,6 @@
     "tools/FRBStudio_App/defs/新規 テキスト ドキュメント.txt",
     "tools/FRBStudio_App/data/fft_実験条件プリセット.json",
     "tools/FRBStudio_App/data/新規 テキスト ドキュメント.txt",
-    "tools/FRBStudio_App/data/新しいフォルダー",
     "tools/FRBStudio/wwwroot/README.md",
     "tools/FRBStudio/schema_RULES/FRB_VIEW_DEF_GENERATION_RULES.md",
     "tools/FRBStudio_App/schema_RULES/FRB_VIEW_DEF_GENERATION_RULES.md",
