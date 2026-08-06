@@ -1105,6 +1105,7 @@
                         "IMPLEMENTATION_FIX",
                         "INCIDENT_FORMAT_UPDATE",
                         "VIEWDEF_UPDATE",
+                        "UI_IMPROVEMENT",
                         "OTHER"
                       ],
                       "width": 200

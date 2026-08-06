@@ -78,7 +78,7 @@ test('Round Trip working row explicitly preserves edits made after paste until F
 });
 
 
-test('detail editor exposes a single maximize/restore toggle with viewport margins', () => {
+test('detail editor exposes a single maximize/restore toggle and a sticky title header', () => {
   const index = readText('wwwroot/index.html');
   const app = readText('wwwroot/app.js');
   const styles = readText('wwwroot/styles.css');
@@ -86,7 +86,7 @@ test('detail editor exposes a single maximize/restore toggle with viewport margi
   assert.match(index, /id="detailDialogSizeToggleBtn"/);
   assert.match(index, /type="button"[\s\S]*aria-label="詳細画面を最大化"/);
   assert.match(index, /app\.js\?v=detail-dialog-expand-01836/);
-  assert.match(index, /styles\.css\?v=detail-dialog-expand-01836/);
+  assert.match(index, /styles\.css\?v=detail-dialog-sticky-header-018361/);
 
   assert.match(app, /function setDetailDialogExpanded/);
   assert.match(app, /detail-dialog-expanded/);
@@ -97,4 +97,7 @@ test('detail editor exposes a single maximize/restore toggle with viewport margi
   assert.match(styles, /width:\s*calc\(100vw - var\(--detail-dialog-expanded-gap\) - var\(--detail-dialog-expanded-gap\)\)/);
   assert.match(styles, /height:\s*calc\(100vh - var\(--detail-dialog-expanded-gap\) - var\(--detail-dialog-expanded-gap\)\)/);
   assert.match(styles, /detail-window-icon::after/);
+  assert.match(styles, /#detailDialog \.dialog-title-row\s*\{[\s\S]*position:\s*sticky/);
+  assert.match(styles, /#detailDialog \.dialog-title-row\s*\{[\s\S]*top:\s*0/);
+  assert.match(styles, /#detailDialog \.dialog-title-row\s*\{[\s\S]*z-index:\s*8/);
 });

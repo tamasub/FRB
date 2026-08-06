@@ -222,6 +222,41 @@ test('actual incident ViewDef accepts decision_log through Paste JSON although e
   assert.deepEqual(draft.decision_log[0].applied_axes, [{ axis_id: 'identity_integrity', priority: 'high' }]);
 });
 
+test('actual incident ViewDef accepts UI_IMPROVEMENT in follow_up_actions through Paste JSON', () => {
+  const viewDef = JSON.parse(fs.readFileSync(
+    path.join(root, 'defs/rules/studio_work_incident_view_def_v0_5.json'),
+    'utf8'
+  ));
+  const incidentGrid = viewDef.views[0].sections.find(section => section.id === 'work_items');
+  const runtime = createRuntime({
+    gridOverride: incidentGrid,
+    rowOverride: {
+      work_item_id: 'studio_work_0159',
+      status: '完了',
+      verification_status: '確認済み',
+      decision_log: [],
+      discussion_history: [],
+      change_history: [],
+      follow_up_actions: []
+    }
+  });
+
+  runtime.applyStudioDetailRoundTripObject({
+    follow_up_actions: [{
+      action_id: 'follow_up_0159_001',
+      action_type: 'UI_IMPROVEMENT',
+      required: true,
+      status: 'COMPLETED',
+      related_ids: ['studio_work_0159', 'detailDialog'],
+      note: '詳細Editorの表示改善'
+    }]
+  });
+
+  const draft = runtime.getStudioJsonRoundTripDraftRow();
+  assert.equal(draft.follow_up_actions.length, 1);
+  assert.equal(draft.follow_up_actions[0].action_type, 'UI_IMPROVEMENT');
+});
+
 test('Paste JSON rejects invalid subgrid shapes atomically', () => {
   const runtime = createRuntime();
   assert.throws(

@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-07-26",
+  "updated_at": "2026-08-06",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 143,
+  "items_count": 148,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -21755,67 +21755,50 @@
       "test_result": "Registry/IncidentのJSON parse、view_def_type重複、Validation Type ID重複、catalogからdefinitionへの参照、active/draft件数、single_line/multi_line分離、number catalog内容、items_count実値一致、work_item_id重複を確認。すべて成功。返却ZIPは更新2ファイルのみを収録する。"
     },
     {
-      "owner": "tamasub",
-      "ai_owner": "ChatGPT",
-      "created_at": "2026-07-28T16:19:11\u002B09:00",
-      "updated_at": "2026-07-28T16:19:11\u002B09:00",
-      "status": "完了",
-      "follow_up_status": "COMPLETED",
+      "owner": "",
+      "ai_owner": "",
+      "created_at": "2026-08-06T21:37:00\u002B09:00",
+      "updated_at": "2026-08-06T21:37:00\u002B09:00",
+      "status": "構想",
+      "follow_up_status": "UNASSESSED",
       "follow_up_actions": [
         {
-          "action_id": "studio_json_round_trip_commit_fix",
-          "action_type": "IMPLEMENTATION_FIX",
-          "required": true,
-          "status": "COMPLETED",
-          "related_ids": [
-            "studio_json_round_trip",
-            "row_copy_1"
-          ],
-          "note": "Paste後の最新画面状態をF12時に再回収し、作業行から実データへ反映するよう修正した。"
-        },
-        {
-          "action_id": "studio_dialog_top_layer_fix",
-          "action_type": "IMPLEMENTATION_FIX",
-          "required": true,
-          "status": "COMPLETED",
-          "related_ids": [
-            "studio_common_dialog"
-          ],
-          "note": "詳細エディター表示中でもエラーダイアログが前面に表示されるよう、共通ダイアログをshowModal方式へ修正した。"
-        },
-        {
-          "action_id": "studio_json_round_trip_regression_test",
-          "action_type": "REGRESSION_TEST_ADD",
-          "required": true,
-          "status": "COMPLETED",
-          "related_ids": [
-            "studio_json_round_trip_copy_paste_test",
-            "studio_json_round_trip_manual_edit_test",
-            "studio_json_round_trip_subgrid_validation_test"
-          ],
-          "note": "通常項目、Markdownカード、サブグリッド、Paste後の手修正保持、候補外値検証を追加テストした。"
-        },
-        {
-          "action_id": "future_row_api_extension",
-          "action_type": "OTHER",
+          "action_id": "follow_up_0160_01",
+          "action_type": "",
           "required": false,
-          "status": "NOT_REQUIRED",
-          "related_ids": [
-            "future_row_api_create",
-            "future_row_api_update"
-          ],
-          "note": "API経由のデータ追加・更新は将来候補とし、今回の実装対象には含めない。"
+          "status": "NOT_STARTED",
+          "related_ids": null,
+          "note": "",
+          "action": "Studioくんの背景、問題、目的、利用者、要求、成功条件、スコープ、対象外、利用シナリオ、外部から見た振る舞いを一度だけ自由記述で整理する"
+        },
+        {
+          "action_id": "follow_up_0160_02",
+          "action_type": "",
+          "required": false,
+          "status": "NOT_STARTED",
+          "related_ids": null,
+          "note": "",
+          "action": "整理結果を憲法グリッド1明細へ圧縮できるか試す"
+        },
+        {
+          "action_id": "follow_up_0160_03",
+          "action_type": "",
+          "required": false,
+          "status": "NOT_STARTED",
+          "related_ids": null,
+          "note": "",
+          "action": "独立要件層が必要か、Incidentの既存項目で十分かを将来再評価する"
         }
       ],
-      "verification_status": "確認済み",
+      "verification_status": "未確認",
       "context_def_status": "draft",
-      "context_def_updated_at": "",
-      "work_item_id": "studio_work_0150",
-      "phase": "v0.18.30-studio-json-round-trip-dialog-workingrow-fix",
-      "title": "Studio JSON Round Trip — JSON貼付・反映・編集継続とダイアログ表示の修正",
-      "incident_type": "feature",
-      "category": "runtime",
-      "priority": "high",
+      "context_def_updated_at": "2026-08-06T21:37:00\u002B09:00",
+      "work_item_id": "studio_work_0160",
+      "phase": "concept",
+      "title": "Spec-Driven Development概念の軽量取り込み検討",
+      "incident_type": "refactoring",
+      "category": "other",
+      "priority": "medium",
       "target_files": "data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json\ndata/json/00_rules/frb_view_def_schema_v0_9.json\ndefs/config/validation_type_registry_view_def_v0_1.json\ndefs/config/validation_type_catalogs_view_def_v0_1.json\nwwwroot/js/runtime/related_grid_view.js\ntests/qa/static/related_grid_view_launch_static.test.mjs\nwwwroot/index.html",
       "objective": "同一Data JSONの複数Root配列をRelated Gridで表示する場合に、関連GridごとのViewDefファイル増加を避け、同一ViewDef内の名前付きviews[]を選択できるようにする。",
       "background": "Validation Type Registryはview_def_type_catalogsとvalidation_type_definitionsの二つのRoot配列を持つ。従来のrelatedGridViewsはviewDef必須であり、閲覧用ViewDefを二ファイル作る必要があった。機能上は成立したが、同一Dataの一体的な体験設計に対して管理ファイルが増える問題が確認された。",
@@ -21830,9 +21813,69 @@
       "ai_response": "relatedGridViews.viewIdを追加し、同一ViewDef内のviews[]を名前で解決する。外部viewDef方式との互換性を維持し、Validation Type Registryへ初回適用する。",
       "latest_user_comment": "Validation Type Registry画面で「ViewDef Type別候補」Related Grid起動ボタンが表示されない。最新資材を基準に修正する。",
       "latest_ai_response": "原因はrelated_grid_view.js本体ではなく、wwwroot/index.htmlのScript URLがv0.18.28時点のcache keyのままだったこと。ブラウザがviewId未対応の旧Runtimeを再利用し、viewDefを持たないviewId-only定義を候補から除外していた。Script URLをv0.18.34用のcache keyへ更新し、同じ事故を検知する静的テストを追加した。",
-      "discussion_history": [],
-      "decision_log": [],
-      "change_history": [],
+      "discussion_history": [
+        {
+          "discussed_at": "2026-08-06T21:37:00\u002B09:00",
+          "summary": "GitHub Spec KitのSpecifyは詳細設計書ではなく、何を・なぜ実現するかを整理する工程であると確認した。"
+        },
+        {
+          "discussed_at": "2026-08-06T21:37:00\u002B09:00",
+          "summary": "Studioくんでは、憲法と責務の間に要件相当の情報が不足している可能性を認識した。"
+        },
+        {
+          "discussed_at": "2026-08-06T21:37:00\u002B09:00",
+          "summary": "本格的な要件JSON・ID・リレーション管理は過剰と判断し、憲法グリッド1明細へ圧縮する軽量案を宿題として残すことにした。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "decision_0160_01",
+          "decision": "Spec-Driven Developmentの概念をStudioくんへ取り込む可能性を検討対象として残す。",
+          "reason": "既存の有用な概念を無視して独自構造だけを作るのではなく、憲法と責務の間に必要な情報を再確認する価値があるため。",
+          "applied_axes": [
+            "既存の有用な概念を再利用する",
+            "実装量より概念理解を優先する",
+            "楽しさを失うほど管理対象を増やさない"
+          ],
+          "conditions": [
+            "現時点では構想・宿題として扱う",
+            "具体的な必要性が発生した時点で再評価する"
+          ],
+          "exceptions": [
+            "大規模・高リスク案件へ適用する場合は、独立した要件層やリレーション管理が必要になる可能性がある"
+          ],
+          "remaining_risks": [
+            "憲法1明細への過剰な情報集約",
+            "Incident・要件・責務の境界曖昧化"
+          ]
+        },
+        {
+          "decision_id": "decision_0160_02",
+          "decision": "独立した要件JSON、ID採番、要件管理UIは現時点では作らない。",
+          "reason": "Studioくんの個人開発としては過剰であり、仕事化によって楽しさと開発速度を損なう可能性が高いため。",
+          "applied_axes": [
+            "人間の判断対象を最小化する",
+            "必要になるまで構造を増やさない",
+            "概念は残すが仕事は増やさない"
+          ],
+          "conditions": [
+            "Incidentの既存項目で目的・背景・対象範囲を保持できること"
+          ],
+          "exceptions": [
+            "責務の由来が追跡できず、実際の開発判断に支障が出た場合"
+          ],
+          "remaining_risks": [
+            "将来必要になった際の移行方法が未定義"
+          ]
+        }
+      ],
+      "change_history": [
+        {
+          "changed_at": "2026-08-06T21:37:00\u002B09:00",
+          "change_type": "created",
+          "summary": "Spec-Driven Development概念の軽量取り込み検討を宿題として新規登録した。"
+        }
+      ],
       "context_refs": [
         "studio_work_0145",
         "studio_work_0149"
@@ -22875,6 +22918,287 @@
           "change": "studio_work_0158を将来構想として新規作成。"
         }
       ]
+    },
+    {
+      "work_item_id": "studio_work_0159",
+      "phase": "v0.18.36.1-detail-dialog-expand-sticky-header",
+      "title": "詳細Editor 最大化・復元切替とトップヘッダー固定表示",
+      "incident_type": "feature",
+      "category": "runtime",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "COMPLETED",
+      "verification_status": "確認済み",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-08-06T20:03:00\u002B09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-06T19:35:10\u002B09:00",
+      "updated_at": "2026-08-06T20:36:00\u002B09:00",
+      "target_files": "wwwroot/index.html\nwwwroot/styles.css\nwwwroot/app.js\ntests/qa/static/studio_json_round_trip_static.test.mjs\ndata/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "wwwroot/index.html\nwwwroot/styles.css\nwwwroot/app.js\ntests/qa/static/studio_json_round_trip_static.test.mjs\ndata/json/01_main/_studio_work_incident_data_v2.json",
+      "objective": "詳細Editorから画面遷移せずに判断ログ・会話履歴などの横長サブグリッドを確認しやすくする。通常サイズと拡大サイズを一つのボタンで切り替え、拡大中に本文をスクロールしてもRow Detail見出しと最大化／復元／閉じる操作を常に表示する。",
+      "background": "通常サイズの詳細Editorでは、判断ログや会話履歴などの横長・複数行データを確認する際にスクロール量が多くなっていた。プレビュー編集では読みやすいが、画面遷移せずにまず全体を確認したい要求がある。先行対応で、背景余白を残した拡大表示と一ボタンの最大化／復元切替を追加したところ、拡大画面を下へスクロールするとトップの見出しとウィンドウ操作が見えなくなる残留課題が確認された。",
+      "scope": "詳細Editor右上へ最大化／元のサイズへ戻す単一トグルボタンを追加する。拡大時は上下左右に背景余白を残し、横幅を大きく、高さを少しだけ広げる。拡大状態をF7／F8の行移動後も維持する。dialog-bodyをスクロール領域として維持し、タイトル行をsticky固定してRow Detail、詳細見出し、最大化／復元、閉じる操作を常時表示する。既存固定フッター、内部スクロール、サブグリッド編集を維持する。",
+      "out_of_scope": "ブラウザ自体の全画面化、OSウィンドウの最大化、詳細Editor内の各セクション個別固定、対象文脈パネル全体の固定、プレビュー編集画面の変更、サブグリッド列幅自動最適化、ユーザー別サイズ保存、ドラッグリサイズは対象外とする。",
+      "fixed_name_policy": "既存detailDialog、dialog-title-row、detail-footerを維持し、新しいRuntimeモジュールは追加しない。サイズ切替はdetailDialogSizeToggleBtn一つで最大化／復元を表現する。インシデント正本は既存の_studio_work_incident_data_v2.jsonへ追記する。",
+      "module_policy": "最大化状態とボタン表示制御は既存wwwroot/app.jsへ置く。表示寸法・余白・アイコン・stickyヘッダーは既存wwwroot/styles.cssへ置く。HTMLは既存detailDialogのタイトル行へ一つの操作ボタンを追加し、CSS/JSキャッシュバージョンを更新する。タイトル固定はdialog-body内のCSS stickyで実現し、本文DOM構造やデータ反映境界を変更しない。",
+      "expected_outputs": "詳細Editor右上の一ボタンで通常サイズと拡大サイズを相互切替できること。拡大時も背景が見える余白を残すこと。判断ログ・会話履歴などの横長Gridを画面遷移なしで確認しやすいこと。本文を下へスクロールしてもRow Detail／詳細／最大化・復元／閉じる操作が上部に固定表示されること。既存の固定フッター、CopyJSON、PasteJSON、F7、F8、F12、閉じる操作が維持されること。",
+      "risk": "stickyヘッダーの背景が透明だと本文と重なって読みにくくなる。z-indexが低いと入力項目や対象文脈パネルが前面へ出る。ヘッダー余白を追加しすぎると通常サイズの表示領域が減る。最大化時にwidth/heightを100vw/100vhへ直指定すると背景余白が失われる。タイトル固定と固定フッターが同一スクロール領域で競合する可能性があるため、ヘッダーを高いz-index、フッターを従来z-indexとして分離する。",
+      "test_points": "detailDialogSizeToggleBtnが一つだけ存在すること。ボタンがtype=buttonでF12確定を誤発火しないこと。通常時のラベルが詳細画面を最大化、拡大時が詳細画面を元のサイズに戻すとなること。detail-dialog-expandedでviewport余白を残した幅・高さになること。拡大状態でもdialog-body内部スクロールとdetail-footer固定が維持されること。#detailDialog .dialog-title-rowにposition:sticky、top:0、本文より高いz-index、非透明背景が設定されること。対象Static Testが成功すること。インシデントJSONがparseでき、work_item_id重複がないこと。",
+      "verification_log": "詳細Editorの最大化／復元トグルを実装済み。利用者画面で、横幅を広げた状態でも背景余白、内部スクロール、固定フッターが維持されることを確認した。続けてタイトル行をsticky固定し、スクロール中もRow Detail、詳細、最大化／復元、閉じる操作を表示するCSSを追加した。studio_json_round_trip_static.test.mjsへ最大化寸法とstickyヘッダー契約の回帰検証を追加した。",
+      "context_def_draft": "詳細Editorは、通常の編集画面と横長ログを確認する拡大画面を同じdialog内で切り替える。拡大はブラウザ全画面ではなく、背景を認識できる余白を残した閲覧支援状態とする。画面遷移せずに判断ログ・会話履歴を観測することを優先し、確定・行移動・閉じる操作は常に見える境界へ固定する。",
+      "user_request": "詳細Editorに、最大化ボタンと元のサイズへ戻すボタンを一つの状態切替ボタンとして追加したい。高さは大きく変えず少しだけ広げ、背景が見える余白を残し、横幅を広げて判断ログや会話履歴を見やすくする。さらに、拡大画面をスクロールしてもトップのヘッダー部分が動かないよう位置固定し、前の対応と合わせてインシデント正本へ追加する。",
+      "ai_response": "詳細Editorへ一ボタンの最大化／復元トグルを追加し、背景余白を残す拡大寸法と復元アイコンを実装する。続けてRow Detail見出しとウィンドウ操作を含むタイトル行をsticky固定し、既存の内部スクロールと固定フッターを維持する。作業内容はstudio_work_0159として既存インシデント正本へ登録する。",
+      "latest_user_comment": "PasteJSONによってJSON全体を往復させず、一つのオブジェクト単位でAI協働できるようになった。将来的にはサブグリッド単位でJSONを往復させる可能性もあり、この思想を残留物候補として会話履歴へ残したい。",
+      "latest_ai_response": "タイトル行へsticky固定を追加し、スクロール中もRow Detail、詳細、最大化／復元、閉じる操作が上部に残るようにした。最大化／復元の先行変更を含む一件のインシデントとしてstudio_work_0159へ記録し、Static Testで表示契約を回帰検証する。",
+      "context_refs": [],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_up_0159_001",
+          "action_type": "UI_IMPROVEMENT",
+          "required": true,
+          "status": "COMPLETED",
+          "related_ids": [
+            "studio_work_0159",
+            "detailDialog",
+            "detailDialogSizeToggleBtn"
+          ],
+          "note": "詳細Editorへ背景余白を残す最大化／復元トグルを一ボタンで追加した。"
+        },
+        {
+          "action_id": "follow_up_0159_002",
+          "action_type": "UI_IMPROVEMENT",
+          "required": true,
+          "status": "COMPLETED",
+          "related_ids": [
+            "studio_work_0159",
+            "detailDialog",
+            "dialog-title-row"
+          ],
+          "note": "詳細Editor本文をスクロールしてもタイトルとウィンドウ操作が残るstickyヘッダーを追加した。"
+        },
+        {
+          "action_id": "follow_up_0159_003",
+          "action_type": "REGRESSION_TEST_ADD",
+          "required": true,
+          "status": "COMPLETED",
+          "related_ids": [
+            "studio_work_0159",
+            "studio_json_round_trip_static.test.mjs"
+          ],
+          "note": "最大化寸法、単一トグル、stickyヘッダーのStatic回帰テストを更新した。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "disc_0159_001",
+          "at": "2026-08-06T19:35:10\u002B09:00",
+          "speaker": "user",
+          "topic": "詳細Editorの最大化／復元",
+          "message": "判断ログや会話ログを通常ウィンドウより広く見たい。背景余白を残し、高さは少しだけ、横幅を大きくする最大化／復元を一つのボタンで切り替えたい。"
+        },
+        {
+          "history_id": "disc_0159_002",
+          "at": "2026-08-06T20:03:00\u002B09:00",
+          "speaker": "user",
+          "topic": "トップヘッダーの固定",
+          "message": "最大化表示は良い感じ。スクロール中もトップのヘッダー部分を固定し、前の対応と合わせてインシデントへ残したい。"
+        },
+        {
+          "history_id": "disc_0159_003",
+          "at": "2026-08-06T20:03:00\u002B09:00",
+          "speaker": "assistant",
+          "topic": "既存構造内での追加対応",
+          "message": "新しいRuntimeファイルを増やさず、既存タイトル行をsticky化し、最大化／復元と固定フッターを同じ詳細dialog内で共存させる。"
+        },
+        {
+          "history_id": "disc_0159_004",
+          "at": "2026-08-06T20:36:00\u002B09:00",
+          "speaker": "assistant",
+          "topic": "残留物候補：サブグリッド単位のJSON Round Trip",
+          "message": "PasteJSONにより、JSONファイル全体をAIと往復させず、現在の一つの業務オブジェクトだけを構造を維持したまま往復できるようになった。将来は判断ログ、会話履歴、後続作業など、サブグリッド単位までAI協働の往復粒度を局所化できる可能性がある。今回の実装判断には含めず、AI協働における意味単位最適化の残留物候補として記録する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0159_001",
+          "at": "2026-08-06T19:35:10\u002B09:00",
+          "decision": "最大化と元のサイズへ戻す操作は、二つのボタンではなく状態に応じて意味が変わる一つのトグルボタンにする。",
+          "reason": "同時に実行できない排他的操作であり、詳細Editor右上の操作量を増やさず現在状態を明示できるため。"
+        },
+        {
+          "decision_id": "dec_0159_002",
+          "at": "2026-08-06T19:35:10\u002B09:00",
+          "decision": "拡大状態はブラウザ全面を覆わず、上下左右に同程度の背景余白を残す。",
+          "reason": "詳細Editor内に留まっていることを視覚的に維持しつつ、横長の判断ログ・会話履歴を読みやすくするため。"
+        },
+        {
+          "decision_id": "dec_0159_003",
+          "at": "2026-08-06T20:03:00\u002B09:00",
+          "decision": "詳細Editorのタイトル行をdialog-bodyのスクロール領域内でsticky固定する。",
+          "reason": "本文を大きくスクロールしても、画面名と最大化／復元／閉じる操作を見失わず、別画面へ遷移せずに観測を続けられるため。"
+        },
+        {
+          "decision_id": "dec_0159_004",
+          "at": "2026-08-06T20:03:00\u002B09:00",
+          "decision": "対象文脈パネルや入力項目は固定せず、今回の固定対象をRow Detailタイトル行に限定する。",
+          "reason": "固定領域を増やすと閲覧可能な本文高さが減るため。まずウィンドウ操作を保証する最小十分なUI差分とする。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0159_001",
+          "at": "2026-08-06T19:35:10\u002B09:00",
+          "change_type": "detail_dialog_expand_toggle",
+          "before": "詳細Editorは固定幅・固定上限高で、判断ログや会話履歴の確認時に横スクロールと縦スクロールが多かった。",
+          "after": "右上の単一トグルで、背景余白を残した拡大表示と通常サイズを相互切替できる。拡大状態では横幅を大きくし、高さはviewport余白内へ少し拡張する。",
+          "reason": "プレビュー編集へ遷移する前に、詳細Editorのまま横長ログを観測しやすくするため。"
+        },
+        {
+          "history_id": "chg_0159_002",
+          "at": "2026-08-06T20:03:00\u002B09:00",
+          "change_type": "detail_dialog_sticky_header",
+          "before": "詳細Editor本文を下へスクロールすると、Row Detail／詳細見出しと最大化／復元／閉じる操作が画面外へ移動した。",
+          "after": "タイトル行を上端へsticky固定し、非透明背景・境界線・影・高いz-indexで本文と分離した。",
+          "reason": "長い判断ログや会話履歴を確認中も、現在画面とウィンドウ操作を常に認識できるようにするため。"
+        },
+        {
+          "history_id": "chg_0159_003",
+          "at": "2026-08-06T20:03:00\u002B09:00",
+          "change_type": "static_test_update",
+          "before": "Static Testは最大化／復元トグルとviewport余白だけを検証していた。",
+          "after": "タイトル行のposition:sticky、top:0、z-index契約と新しいstylesheet cache versionも検証する。",
+          "reason": "将来のCSS整理でヘッダー固定が消える回帰を検知するため。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0160",
+      "phase": "concept",
+      "title": "Spec-Driven Development概念の軽量取り込み検討",
+      "incident_type": "refactoring",
+      "category": "other",
+      "priority": "medium",
+      "status": "構想",
+      "follow_up_status": "UNASSESSED",
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-08-06T21:37:00\u002B09:00",
+      "owner": "",
+      "ai_owner": "",
+      "created_at": "2026-08-06T21:37:00\u002B09:00",
+      "updated_at": "2026-08-06T21:37:00\u002B09:00",
+      "target_files": "",
+      "actual_updated_files": "",
+      "objective": "既存のSpec-Driven Developmentの概念を参考に、憲法と責務の間に存在する「何を・なぜ実現するか」という情報を、Studioくんへ軽量に取り込む方法を整理する。",
+      "background": "Studioくんでは、判断軸・制約を含む憲法から責務へ接続する構造を検討してきた。一方、Spec KitのSpecify工程を確認した結果、憲法と責務の間には、背景、問題、目的、利用者、要求、成功条件、スコープ、対象外、利用シナリオ、外部から見た振る舞いを整理する層が存在することに気づいた。大規模プロジェクトでは要件定義や基本設計の一部として一般的に扱われるが、Studioくんで同等の管理を導入すると仕事化・過剰設計につながる懸念がある。",
+      "scope": "Spec-Driven DevelopmentとStudioくんの既存構造の対応整理。憲法と責務の間に必要な情報の抽出。Studioくん全体の目的・要求を憲法グリッド1明細へ圧縮する軽量案の検討。Incidentのobjective、background、scope、out_of_scopeを要件相当の代替情報として利用できるかの確認。",
+      "out_of_scope": "独立したRequirement JSONの新設。要件IDの採番。要件と責務のリレーション管理機能。要件管理用画面・グリッドの実装。Spec Kitのワークフローの全面導入。既存インシデントデータの一括更新。詳細設計書や従来型要件定義書の復活。",
+      "fixed_name_policy": "Specify、Requirement、要件定義などの正式名称は現時点では固定しない。概念の必要性とStudioくんに適した粒度を先に確認する。",
+      "module_policy": "新規の要件管理モジュールは作成しない。まずは既存の憲法グリッド、Incident、責務JSONの範囲で軽量に表現できるかを優先して検討する。",
+      "expected_outputs": "Spec-Driven DevelopmentとStudioくんの概念対応メモ。Studioくんの背景・問題・目的・利用者・要求・成功条件・スコープ・対象外・利用シナリオ・外部振る舞いを圧縮した憲法グリッド1明細案。独立した要件層を導入するか、Incidentで代替するかの将来判断材料。",
+      "risk": "要件管理を本格化するとStudioくんが業務用プロジェクト管理ツール化し、個人開発としての楽しさと軽量性を損なう可能性がある。憲法1明細へ情報を詰め込みすぎると、憲法と個別要件の境界が曖昧になる可能性がある。既存概念をそのまま輸入すると、Studioくん独自の責務・保証・Expected構造と重複する可能性がある。",
+      "test_points": "憲法1明細だけでStudioくんの存在目的と対象外を説明できること。責務が存在する理由をIncidentまたは憲法から追跡できること。個別要件管理を追加しなくても現在の開発で困らないこと。新しい概念が人間の判断対象や管理作業を過度に増やさないこと。",
+      "verification_log": "",
+      "context_def_draft": "既存のSpec-Driven Developmentが持つ「憲法と実装の間で、何を・なぜ実現するかを明確化する」考え方を、Studioくんの憲法・インシデント・責務構造へ過剰にならない形で取り込めるか検討する。現時点では独立した要件管理機能を作らず、Studioくん全体の背景、問題、目的、利用者、要求、成功条件、スコープ、対象外、利用シナリオ、外部から見た振る舞いを、憲法グリッドの1明細程度へ圧縮する案を候補とする。",
+      "user_request": "せっかく存在するSpec-Driven Developmentの概念を取り込むチャレンジ案件として宿題に残す。現時点では要件JSON化やID採番までは行わず、背景、問題、目的、利用者、要求、成功条件、スコープ、対象外、利用シナリオ、外部から見た振る舞いを、憲法グリッド1明細程度へ簡単にまとめる案を候補とする。",
+      "ai_response": "",
+      "latest_user_comment": "要件JSON化やID採番は重いため今は行わない。ただし、Studioくんの要件とは何かを試しに考え、憲法グリッド1明細程度にまとめる案は楽しめる可能性がある。現時点では宿題として明示して残す。",
+      "latest_ai_response": "",
+      "context_refs": [],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_up_0160_01",
+          "action_type": "",
+          "required": false,
+          "status": "NOT_STARTED",
+          "related_ids": null,
+          "note": "",
+          "action": "Studioくんの背景、問題、目的、利用者、要求、成功条件、スコープ、対象外、利用シナリオ、外部から見た振る舞いを一度だけ自由記述で整理する"
+        },
+        {
+          "action_id": "follow_up_0160_02",
+          "action_type": "",
+          "required": false,
+          "status": "NOT_STARTED",
+          "related_ids": null,
+          "note": "",
+          "action": "整理結果を憲法グリッド1明細へ圧縮できるか試す"
+        },
+        {
+          "action_id": "follow_up_0160_03",
+          "action_type": "",
+          "required": false,
+          "status": "NOT_STARTED",
+          "related_ids": null,
+          "note": "",
+          "action": "独立要件層が必要か、Incidentの既存項目で十分かを将来再評価する"
+        }
+      ],
+      "discussion_history": [
+        {
+          "discussed_at": "2026-08-06T21:37:00\u002B09:00",
+          "summary": "GitHub Spec KitのSpecifyは詳細設計書ではなく、何を・なぜ実現するかを整理する工程であると確認した。"
+        },
+        {
+          "discussed_at": "2026-08-06T21:37:00\u002B09:00",
+          "summary": "Studioくんでは、憲法と責務の間に要件相当の情報が不足している可能性を認識した。"
+        },
+        {
+          "discussed_at": "2026-08-06T21:37:00\u002B09:00",
+          "summary": "本格的な要件JSON・ID・リレーション管理は過剰と判断し、憲法グリッド1明細へ圧縮する軽量案を宿題として残すことにした。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "decision_0160_01",
+          "decision": "Spec-Driven Developmentの概念をStudioくんへ取り込む可能性を検討対象として残す。",
+          "reason": "既存の有用な概念を無視して独自構造だけを作るのではなく、憲法と責務の間に必要な情報を再確認する価値があるため。",
+          "applied_axes": [
+            "既存の有用な概念を再利用する",
+            "実装量より概念理解を優先する",
+            "楽しさを失うほど管理対象を増やさない"
+          ],
+          "conditions": [
+            "現時点では構想・宿題として扱う",
+            "具体的な必要性が発生した時点で再評価する"
+          ],
+          "exceptions": [
+            "大規模・高リスク案件へ適用する場合は、独立した要件層やリレーション管理が必要になる可能性がある"
+          ],
+          "remaining_risks": [
+            "憲法1明細への過剰な情報集約",
+            "Incident・要件・責務の境界曖昧化"
+          ]
+        },
+        {
+          "decision_id": "decision_0160_02",
+          "decision": "独立した要件JSON、ID採番、要件管理UIは現時点では作らない。",
+          "reason": "Studioくんの個人開発としては過剰であり、仕事化によって楽しさと開発速度を損なう可能性が高いため。",
+          "applied_axes": [
+            "人間の判断対象を最小化する",
+            "必要になるまで構造を増やさない",
+            "概念は残すが仕事は増やさない"
+          ],
+          "conditions": [
+            "Incidentの既存項目で目的・背景・対象範囲を保持できること"
+          ],
+          "exceptions": [
+            "責務の由来が追跡できず、実際の開発判断に支障が出た場合"
+          ],
+          "remaining_risks": [
+            "将来必要になった際の移行方法が未定義"
+          ]
+        }
+      ],
+      "change_history": [
+        {
+          "changed_at": "2026-08-06T21:37:00\u002B09:00",
+          "change_type": "created",
+          "summary": "Spec-Driven Development概念の軽量取り込み検討を宿題として新規登録した。"
+        }
+      ]
     }
   ],
   "review_notes": [
@@ -23384,11 +23708,11 @@
       "body": "studio_work_0151で、decision_axis_small_meaningful_diff_approval_firstを憲法governance_itemsへ追加した。小さな差分は最小可能ではなく、意味・責務・影響範囲を判断できる最小十分な単位とする。Validation Type等の標準を継承し、項目定義XXX.jsonにはoverride/diffだけを保存する設計判断の上位根拠とする。"
     }
   ],
-  "work_revision": "v0_152_field_definition_samples",
+  "work_revision": "v0_18_36_1_detail_dialog_expand_sticky_header",
   "latest_planning_note": {
-    "at": "2026-07-26",
-    "phase": "v0.18.36-field-definition-samples",
-    "summary": "studio_work_0152を完了。APP/ViewDef改修前に、FRB FFT測定Dataと独立fielddefsの疎な項目定義サンプルを作成した。field_pathを一意キー、validation_typeを登録項目の必須契約、constraint_overridesを標準との差分保存領域とする。"
+    "at": "2026-08-06T20:03:00\u002B09:00",
+    "phase": "v0.18.36.1-detail-dialog-expand-sticky-header",
+    "summary": "studio_work_0159を完了。詳細Editorへ背景余白を残す最大化／復元トグルを追加し、スクロール中もRow Detail見出しとウィンドウ操作が残るstickyヘッダーを追加した。判断ログ・会話履歴を画面遷移せず観測しやすくする。"
   },
   "view_def_candidates": [
     {
