@@ -429,8 +429,66 @@ td.boolean { text-align:center; }
 #detailDialog { width: min(1040px, 92vw); max-height: 92vh; border: none; border-radius: 18px; padding: 0; box-shadow: 0 28px 80px rgba(15,23,42,.30); }
 #detailDialog::backdrop { background: rgba(15,23,42,.42); backdrop-filter: blur(2px); }
 .dialog-body { padding: 16px; background: linear-gradient(180deg, #fff, #f8fbff); }
-.dialog-title-row { display:flex; align-items:start; justify-content:space-between; margin-bottom: 10px; }
+.dialog-title-row { display:flex; align-items:start; justify-content:space-between; gap: 12px; margin-bottom: 10px; }
 .dialog-title-row h2 { margin-bottom:0; }
+.detail-dialog-window-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+.detail-dialog-size-toggle {
+  position: relative;
+}
+.detail-window-icon {
+  position: relative;
+  display: block;
+  width: 14px;
+  height: 14px;
+}
+.detail-window-icon::before,
+.detail-window-icon::after {
+  content: '';
+  position: absolute;
+  box-sizing: border-box;
+  border: 1.5px solid currentColor;
+  border-radius: 1px;
+}
+.detail-window-icon::before {
+  inset: 2px;
+}
+.detail-window-icon::after {
+  display: none;
+}
+#detailDialog.detail-dialog-expanded {
+  --detail-dialog-expanded-gap: clamp(16px, 2.2vw, 28px);
+  width: calc(100vw - var(--detail-dialog-expanded-gap) - var(--detail-dialog-expanded-gap));
+  max-width: none;
+  height: calc(100vh - var(--detail-dialog-expanded-gap) - var(--detail-dialog-expanded-gap));
+  max-height: calc(100vh - var(--detail-dialog-expanded-gap) - var(--detail-dialog-expanded-gap));
+  box-sizing: border-box;
+}
+#detailDialog.detail-dialog-expanded .dialog-body {
+  height: 100%;
+  max-height: none;
+  box-sizing: border-box;
+}
+#detailDialog.detail-dialog-expanded .detail-window-icon::before {
+  inset: 4px 1px 1px 4px;
+  background: #ffffff;
+  z-index: 2;
+}
+#detailDialog.detail-dialog-expanded .detail-window-icon::after {
+  display: block;
+  inset: 1px 4px 4px 1px;
+  background: #f8fbff;
+  z-index: 1;
+}
+@media (max-width: 760px) {
+  #detailDialog.detail-dialog-expanded {
+    --detail-dialog-expanded-gap: 8px;
+  }
+}
 .detail-grid { grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); }
 .child-card {
   margin-top: 14px;

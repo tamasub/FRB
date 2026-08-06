@@ -76,3 +76,25 @@ test('Round Trip working row explicitly preserves edits made after paste until F
   assert.match(runtime, /applyDetailInputsToRow\(pendingDraftRow\)/);
   assert.match(runtime, /貼り付け後の手修正も含めてF12で反映/);
 });
+
+
+test('detail editor exposes a single maximize/restore toggle with viewport margins', () => {
+  const index = readText('wwwroot/index.html');
+  const app = readText('wwwroot/app.js');
+  const styles = readText('wwwroot/styles.css');
+
+  assert.match(index, /id="detailDialogSizeToggleBtn"/);
+  assert.match(index, /type="button"[\s\S]*aria-label="詳細画面を最大化"/);
+  assert.match(index, /app\.js\?v=detail-dialog-expand-01836/);
+  assert.match(index, /styles\.css\?v=detail-dialog-expand-01836/);
+
+  assert.match(app, /function setDetailDialogExpanded/);
+  assert.match(app, /detail-dialog-expanded/);
+  assert.match(app, /詳細画面を元のサイズに戻す/);
+  assert.match(app, /setupDetailDialogSizeToggle\(\)/);
+
+  assert.match(styles, /#detailDialog\.detail-dialog-expanded/);
+  assert.match(styles, /width:\s*calc\(100vw - var\(--detail-dialog-expanded-gap\) - var\(--detail-dialog-expanded-gap\)\)/);
+  assert.match(styles, /height:\s*calc\(100vh - var\(--detail-dialog-expanded-gap\) - var\(--detail-dialog-expanded-gap\)\)/);
+  assert.match(styles, /detail-window-icon::after/);
+});

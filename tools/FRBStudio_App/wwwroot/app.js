@@ -1,8 +1,40 @@
+// v0.18.36-detail-dialog-expand
 // v0.18.21-json-full-text-search
 // v0.13.10.1-main-json-select-autofill-silent
 // Main screen UX stabilization:
 // - Non-blocking toast status messages
 // - When target JSON changes, clear stale ViewDef selection and re-resolve from data.view_def
+
+function setDetailDialogExpanded(expanded) {
+  const dialog = $('detailDialog');
+  const button = $('detailDialogSizeToggleBtn');
+  if (!dialog || !button) return false;
+
+  const next = Boolean(expanded);
+  dialog.classList.toggle('detail-dialog-expanded', next);
+  button.setAttribute('aria-pressed', String(next));
+  const label = next ? '詳細画面を元のサイズに戻す' : '詳細画面を最大化';
+  button.setAttribute('aria-label', label);
+  button.title = label;
+  return next;
+}
+
+function toggleDetailDialogSize() {
+  const dialog = $('detailDialog');
+  if (!dialog) return false;
+  return setDetailDialogExpanded(!dialog.classList.contains('detail-dialog-expanded'));
+}
+
+function setupDetailDialogSizeToggle() {
+  const button = $('detailDialogSizeToggleBtn');
+  if (!button || button.dataset.detailDialogSizeBound === 'true') return;
+  button.dataset.detailDialogSizeBound = 'true';
+  button.addEventListener('click', event => {
+    event.preventDefault();
+    event.stopPropagation();
+    toggleDetailDialogSize();
+  });
+}
 
 function installMainStatusToast() {
   if (window.__frbMainStatusToastInstalled) return;
@@ -372,6 +404,7 @@ setupDataSelectionViewDefReset();
 setupViewDefMarkdownButtonState();
 if (typeof setupStudioSearchPatternButtons === 'function') setupStudioSearchPatternButtons();
 if (typeof setupStudioJsonRoundTrip === 'function') setupStudioJsonRoundTrip();
+setupDetailDialogSizeToggle();
 suppressBrowserAutofillOnComboInputs();
 
 $('loadBtn').addEventListener('click', async () => {
