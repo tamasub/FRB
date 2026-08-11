@@ -406,11 +406,18 @@ flowchart LR
     A[行動・実行] --> B[差分・違和感]
     B --> C[判断]
     C --> D[判断ログ]
-    D --> E[昇格・蒸留候補]
+    D --> E[昇格・蒸留　候補]
     E --> H[人間の承認]
     H --> F[判断軸・制約・責務 他]
     F --> G[再利用]
     G --> A
+
+
+    classDef promotion fill:#e8f5e9,stroke:#81c784,color:#222,font-size:18px,font-weight:bold
+    class E promotion
+　　class F promotion
+
+
 ```
 
 重要なのは、
@@ -763,6 +770,10 @@ flowchart LR
     A --> D
     D --> J[判断]
     J --> R
+
+    classDef promotion fill:#e8f5e9,stroke:#81c784,color:#222,font-size:18px,font-weight:bold
+    class D promotion
+
 ```
 
 これまで私は、
