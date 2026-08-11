@@ -23199,6 +23199,62 @@
           "summary": "Spec-Driven Development概念の軽量取り込み検討を宿題として新規登録した。"
         }
       ]
+    },
+    {
+      "work_item_id": "studio_work_0161",
+      "phase": "definition-test-runner-concept",
+      "title": "Definition Test Runner 構想",
+      "incident_type": "refactoring",
+      "category": "other",
+      "priority": "high",
+      "status": "構想",
+      "follow_up_status": "UNASSESSED",
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "",
+      "owner": "",
+      "ai_owner": "",
+      "created_at": "2026-08-07",
+      "updated_at": "2026-08-07",
+      "target_files": "",
+      "actual_updated_files": "",
+      "objective": "人間が承認したDefinitionから標準テストを機械導出し、個別TestPattern JSONを作成・保守することなく、テスト実行からActual/Diff生成まで流せる共通Definition Test Runnerを構築する。",
+      "background": "項目定義ではValidation TypeとConstraint Overrideを定義することで、多くの標準テスト条件を決定できる。関連項目チェックについてもCross Field Constraintとして定義化する方針とした。これらから生成可能なTestPatternを別資産として保存すると、重複管理と人間の承認対象増加につながるため、Definition自体をTest Runnerの入力とする構造を採用する。",
+      "scope": "Definition Test Runnerの基本責務を定義する。項目定義JSONの読込、Validation Type Registryの解決、Constraint Overrideの合成、Cross Field Constraintの解決、標準テスト条件の導出、具体TestPatternの実行時生成、Expectedの導出、テスト実行、Actual/Diff生成を対象とする。また、同じTestPattern導出ロジックを項目定義画面のテスト内容プレビュー機能からも利用できる構造とする。",
+      "out_of_scope": "複雑な業務固有ルールをすべてCoreで汎用化することは対象外とする。標準化が困難なテスト条件・業務固有ロジックはOverlay側へ逃がせる構造を前提とする。TestPattern JSONを標準運用上の正本資産として大量生成・保存する方式は採用しない。",
+      "fixed_name_policy": "現時点の作業名称はDefinition Test Runnerを第一候補とする。Contract Test Runner、Definition Verification Runnerは代替名称候補として保持し、責務確定後に正式名称を判断する。",
+      "module_policy": "TestPattern導出ロジックはUIやRunnerへ個別実装せず、共通モジュールとして分離する。項目定義画面は共通導出ロジックの結果をPreview表示し、Definition Test Runnerも同じ共通ロジックを呼び出して実際のテストを実行する。表示用ロジックと実行用ロジックの二重実装は禁止する。",
+      "expected_outputs": "項目定義JSONから導出された実行時TestPattern、Expected、Actual、Diff、Resultおよび導出元Definition・Registry Version等を追跡可能な実行証跡。TestPatternは通常時は保存不要とし、確認・デバッグ用途ではPreview表示または任意Exportできる構造を想定する。",
+      "risk": "UI表示用TestPatternと実際のRunner実行内容が異なる二重ロジックになると、見えている保証と実行される保証が不一致になる。Validation TypeやConstraintの意味変更により過去実行結果の再現性が失われる可能性があるため、Definition・Registry・RunnerのVersionまたはHashを実行証跡へ残す必要がある。",
+      "test_points": "同一DefinitionからPreview表示とRunner実行で同一TestPatternが導出されること。Validation Type標準条件が導出されること。Constraint Overrideに応じて境界値等が変化すること。Cross Field Constraintから関係成立・等値境界・逆転条件等が導出されること。標準TestPattern JSONを保存しなくても再実行可能であること。Overlayによる追加・差替えがCoreロジックを壊さず適用できること。",
+      "verification_log": "",
+      "context_def_draft": "項目定義JSONを入力として、Validation Type、Constraint Override、Cross Field Constraint等から標準テスト条件・具体TestPattern・Expectedを実行時に導出し、共通Runnerで検証する。TestPatternは原則として正本Data JSONを作成せず、共通導出ロジックによる実行時中間データとして扱う。",
+      "user_request": "項目定義JSONをTest Runnerの入力とし、TestPatternは原則Dataとして保存せず実行時生成したい。項目定義画面では実際に生成されるTestPatternを自動表示し、その表示に使う導出ロジックを共通化してDefinition Test Runnerからも利用したい。",
+      "ai_response": "",
+      "latest_user_comment": "Definition Test Runnerという粒度の共通機能を作る方針でインシデントとして残す。",
+      "latest_ai_response": "",
+      "context_refs": [],
+      "follow_up_actions": [],
+      "discussion_history": [],
+      "decision_log": [
+        {
+          "decision": "項目定義JSONをDefinition Test Runnerの直接入力とする。",
+          "reason": "Validation Type、Constraint Override、Cross Field Constraintから標準テスト条件を機械導出できるため。"
+        },
+        {
+          "decision": "標準TestPatternは原則として正本Data JSONを生成・保存しない。",
+          "reason": "Definitionから再導出可能な派生データを別資産として管理すると、重複管理と人間の承認対象増加につながるため。"
+        },
+        {
+          "decision": "TestPattern導出ロジックをUI PreviewとRunnerで共通利用する。",
+          "reason": "画面上で見えているテスト内容と実際に実行されるテスト内容を一致させるため。"
+        },
+        {
+          "decision": "複雑な業務固有条件は無理にCoreへ汎用化せずOverlayへ逃がす。",
+          "reason": "シンプルに整理可能な領域は徹底的に汎用化しつつ、Coreの過剰複雑化を避けるため。"
+        }
+      ],
+      "change_history": []
     }
   ],
   "review_notes": [

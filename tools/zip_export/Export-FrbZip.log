@@ -430,3 +430,45 @@ zip???       : 115.5 MB
 Windows PowerShell transcript end
 End time: 20260725151145
 **********************
+**********************
+Windows PowerShell transcript start
+Start time: 20260811142313
+Username: TAMASUB_MOUSE\tsub-
+RunAs User: TAMASUB_MOUSE\tsub-
+Configuration Name: 
+Machine: TAMASUB_MOUSE (Microsoft Windows NT 10.0.26200.0)
+Host Application: powershell -NoProfile -ExecutionPolicy Bypass -File F:\FRB\tools\zip_export\Export-FrbZip.ps1
+Process ID: 9920
+PSVersion: 5.1.26100.8875
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.8875
+BuildVersion: 10.0.26100.8875
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+???????       : F:\FRB
+????????     : 1180
+????????     : 385.9 MB
+?????????? : 11
+  - .git
+  - bin
+  - tools/FRBStudio/bin
+  - tools/FRBStudio/obj
+  - tools/FRBStudio_App/node_modules
+  - tools/FRBStudio_App/Program.cs/bin
+  - tools/FRBStudio_App/Program.cs/obj
+  - tools/FRBStudio_App/test_results
+  - tools/FRBStudio_App/tests_screen_state
+  - tools/FRBStudio_App/tools/chatgpt-share-export-minimum/node_modules
+  - tools/FRBStudio_App/wwwroot/js/lib/mermaid
+
+zip????     : F:\FRB_backups\FRB_backup_20260811_142315.zip
+zip???       : 119.7 MB
+????        : 40.1 ?
+**********************
+Windows PowerShell transcript end
+End time: 20260811142355
+**********************
