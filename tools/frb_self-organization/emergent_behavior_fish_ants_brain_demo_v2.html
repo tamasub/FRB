@@ -1,0 +1,1015 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Simple Rules → Emergent Behavior</title>
+<style>
+  :root{
+    --bg:#071018; --panel:#0d1822; --panel2:#101f2c; --text:#edf6fb;
+    --muted:#9fb5c4; --line:#203545; --accent:#7ed7ff; --danger:#ff9f9f; --ok:#9ee7b2;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--text);
+    font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  body{overflow:hidden}
+  .app{height:100%;display:grid;grid-template-rows:auto 1fr}
+  header{
+    display:flex;align-items:center;gap:14px;padding:12px 16px;
+    border-bottom:1px solid var(--line);background:rgba(7,16,24,.96);z-index:5
+  }
+  .brand{font-weight:800;letter-spacing:.02em}
+  .subtitle{color:var(--muted);font-size:13px}
+  .tabs{margin-left:auto;display:flex;gap:6px}
+  .tab{
+    border:1px solid var(--line);background:var(--panel);color:var(--muted);
+    padding:7px 11px;border-radius:999px;font-size:12px;cursor:pointer;user-select:none
+  }
+  .tab.active{color:var(--text);border-color:#3b6680;background:#143047}
+  .tab.disabled{cursor:default;opacity:.68}
+  main{min-height:0;display:grid;grid-template-columns:320px 1fr}
+  aside{
+    border-right:1px solid var(--line);background:var(--panel);
+    padding:16px;overflow:auto
+  }
+  h1{font-size:20px;margin:0 0 8px}
+  h2{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:20px 0 8px}
+  p{margin:6px 0;color:var(--muted);line-height:1.55;font-size:13px}
+  .callout{
+    margin:12px 0;padding:10px 11px;border:1px solid #315169;border-radius:10px;
+    background:#0b2130;color:#dff4ff;font-size:13px;line-height:1.5
+  }
+  .rule{display:flex;gap:9px;align-items:flex-start;padding:7px 0;border-bottom:1px dashed #1b2e3b;font-size:13px}
+  .rule b{color:var(--ok)}
+  .rule.no b{color:var(--danger)}
+  .controls{display:grid;gap:8px}
+  button{
+    appearance:none;border:1px solid #315169;background:#102433;color:var(--text);
+    border-radius:9px;padding:9px 10px;cursor:pointer;font-weight:650
+  }
+  button:hover{background:#153247}
+  button.primary{border-color:#4b8aac;background:#153b51}
+  button.danger{border-color:#6f3f46;background:#35191e}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  label{font-size:12px;color:var(--muted)}
+  input[type=range]{width:100%}
+  .stage{position:relative;min-width:0;min-height:0;background:
+    radial-gradient(circle at 50% 45%,#0b2030 0,#071018 68%)}
+  canvas{display:block;width:100%;height:100%}
+  .hud{
+    position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;
+    gap:12px;pointer-events:none
+  }
+  .badge{
+    padding:7px 10px;border-radius:999px;background:rgba(7,16,24,.78);
+    border:1px solid rgba(86,137,168,.35);backdrop-filter:blur(6px);
+    color:#d8edf8;font-size:12px
+  }
+  .centerMsg{
+    position:absolute;left:50%;bottom:18px;transform:translateX(-50%);
+    background:rgba(7,16,24,.82);border:1px solid rgba(86,137,168,.35);
+    color:#e8f6fc;padding:10px 14px;border-radius:12px;font-size:13px;
+    pointer-events:none;white-space:nowrap;max-width:80%;overflow:hidden;text-overflow:ellipsis
+  }
+  .legend{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6}
+  .stat{display:grid;grid-template-columns:1fr auto;gap:8px;padding:6px 0;border-bottom:1px solid #182b38;font-size:12px;color:var(--muted)}
+  .stat strong{color:var(--text)}
+  .hidden{display:none!important}
+  @media(max-width:800px){
+    body{overflow:auto}
+    .app{min-height:100%;height:auto}
+    main{grid-template-columns:1fr;grid-template-rows:auto 70vh}
+    aside{border-right:0;border-bottom:1px solid var(--line)}
+    .tabs{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div>
+      <div class="brand">Simple Rules → Emergent Behavior</div>
+      <div class="subtitle">単純な局所ルールだけで、全体はどこまで「賢く」見えるか</div>
+    </div>
+    <div class="tabs">
+      <div class="tab active" data-mode="fish">🐟 Fish</div>
+      <div class="tab" data-mode="ants">🐜 Ants</div>
+      <div class="tab" data-mode="brain">🧠 Brain</div>
+      <div class="tab disabled">🎣 FRB — later</div>
+      <div class="tab disabled">🤝 AI協働 — later</div>
+    </div>
+  </header>
+
+  <main>
+    <aside>
+      <div id="fishPanel">
+        <h1>魚群デモ</h1>
+        <p>開始時点では障害物はありません。魚は障害物の位置も形も事前には知りません。</p>
+        <div class="callout">
+          <b>操作:</b><br>
+          海の好きな場所をクリック → 障害物を追加<br>
+          障害物をドラッグ → 移動<br>
+          障害物を右クリック → 削除
+        </div>
+        <h2>魚が知っているルール</h2>
+        <div class="rule"><b>✓</b><span>近すぎる仲間から離れる</span></div>
+        <div class="rule"><b>✓</b><span>近くの仲間と向きを合わせる</span></div>
+        <div class="rule"><b>✓</b><span>近くの仲間の中心へ寄る</span></div>
+        <div class="rule"><b>✓</b><span>前方に障害物があれば避ける</span></div>
+        <h2>魚が知らないこと</h2>
+        <div class="rule no"><b>×</b><span>地図</span></div>
+        <div class="rule no"><b>×</b><span>リーダー</span></div>
+        <div class="rule no"><b>×</b><span>群れを二つに分ける命令</span></div>
+        <div class="rule no"><b>×</b><span>障害物通過後に再集合する命令</span></div>
+        <h2>デモ操作</h2>
+        <div class="controls">
+          <div class="row">
+            <button id="fishPauseBtn">一時停止</button>
+            <button id="fishResetBtn">魚をリセット</button>
+          </div>
+          <button id="fishClearBtn" class="danger">障害物を全部消す</button>
+          <label>魚の数: <strong id="fishCountLabel">140</strong></label>
+          <input id="fishCountRange" type="range" min="30" max="260" value="140" step="10">
+          <label>障害物サイズ: <strong id="fishRadiusLabel">58</strong> px</label>
+          <input id="fishRadiusRange" type="range" min="24" max="120" value="58" step="2">
+        </div>
+        <h2>現在の状態</h2>
+        <div class="stat"><span>魚</span><strong id="fishStat">140</strong></div>
+        <div class="stat"><span>障害物</span><strong id="fishObstacleStat">0</strong></div>
+        <div class="stat"><span>全体経路計算</span><strong>0回</strong></div>
+        <div class="stat"><span>リーダー命令</span><strong>0回</strong></div>
+        <div class="legend">
+          ※ 端では画面外へ消えず、反対側から戻ります。<br>
+          ※ 障害物回避は各魚が自分の前方だけを見て判断します。
+        </div>
+      </div>
+
+      <div id="antPanel" class="hidden">
+        <h1>アリの道づくりデモ</h1>
+        <p>巣だけが最初からあります。餌の場所は観客が後から決めます。</p>
+        <div class="callout">
+          <b>操作:</b><br>
+          好きな場所をクリック → 餌を追加<br>
+          餌をドラッグ → 移動<br>
+          餌を右クリック → 削除<br><br>
+          アリが餌を発見すると、帰り道にフェロモンを残します。
+        </div>
+        <h2>アリが知っているルール</h2>
+        <div class="rule"><b>✓</b><span>餌がなければ少しランダムに探索する</span></div>
+        <div class="rule"><b>✓</b><span>近くのフェロモンが濃い方向へ少し寄る</span></div>
+        <div class="rule"><b>✓</b><span>餌を見つけたら巣へ戻る</span></div>
+        <div class="rule"><b>✓</b><span>餌を持って帰る間、フェロモンを残す</span></div>
+        <div class="rule"><b>✓</b><span>フェロモンは時間とともに消える</span></div>
+        <h2>アリが知らないこと</h2>
+        <div class="rule no"><b>×</b><span>餌の場所</span></div>
+        <div class="rule no"><b>×</b><span>最短経路</span></div>
+        <div class="rule no"><b>×</b><span>全体地図</span></div>
+        <div class="rule no"><b>×</b><span>司令塔</span></div>
+        <h2>デモ操作</h2>
+        <div class="controls">
+          <div class="row">
+            <button id="antPauseBtn">一時停止</button>
+            <button id="antResetBtn">アリをリセット</button>
+          </div>
+          <button id="antClearFoodBtn" class="danger">餌を全部消す</button>
+          <button id="antClearPheroBtn">フェロモンだけ消す</button>
+          <label>アリの数: <strong id="antCountLabel">180</strong></label>
+          <input id="antCountRange" type="range" min="50" max="400" value="180" step="10">
+          <label>フェロモン寿命: <strong id="pheroLifeLabel">長め</strong></label>
+          <input id="pheroLifeRange" type="range" min="940" max="992" value="978" step="2">
+        </div>
+        <h2>現在の状態</h2>
+        <div class="stat"><span>アリ</span><strong id="antStat">180</strong></div>
+        <div class="stat"><span>餌</span><strong id="foodStat">0</strong></div>
+        <div class="stat"><span>運搬中</span><strong id="carryingStat">0</strong></div>
+        <div class="stat"><span>巣へ持ち帰った餌</span><strong id="deliveredStat">0</strong></div>
+        <div class="stat"><span>最短経路計算</span><strong>0回</strong></div>
+        <div class="legend">
+          緑の光がフェロモンです。<br>
+          フェロモンは「道」ではなく、各アリが残した局所情報の蓄積です。
+        </div>
+
+      </div>
+
+      <div id="brainPanel" class="hidden">
+        <h1>シナプス学習デモ</h1>
+        <p>
+          ニューロンとシナプス可塑性を、自己組織化を見るために
+          <b>かなり単純化したモデル</b>です。
+        </p>
+
+        <div class="callout">
+          <b>操作:</b><br>
+          画面をクリック / ドラッグ → その周辺を刺激<br>
+          同じ場所を何度も刺激 → 一緒に発火した結合が強くなる<br>
+          近接ニューロンが繰り返し同時発火 → 新しい弱いシナプスが生える<br>
+          シナプスを右クリック → その結合を切断
+        </div>
+
+        <h2>ニューロンが知っているルール</h2>
+        <div class="rule"><b>✓</b><span>入力がしきい値を超えると発火する</span></div>
+        <div class="rule"><b>✓</b><span>発火すると接続先へ信号を送る</span></div>
+        <div class="rule"><b>✓</b><span>近い時間に一緒に発火した結合は少し強くなる</span></div>
+        <div class="rule"><b>✓</b><span>近くで何度も一緒に発火した未接続ペアには、弱い新規シナプスが生える</span></div>
+        <div class="rule"><b>✓</b><span>使われない結合は少しずつ弱くなり、極端に弱い結合は消える</span></div>
+
+        <h2>ニューロンが知らないこと</h2>
+        <div class="rule no"><b>×</b><span>どんな「記憶」を作るべきか</span></div>
+        <div class="rule no"><b>×</b><span>どの経路を太くするべきか</span></div>
+        <div class="rule no"><b>×</b><span>全体ネットワークの完成形</span></div>
+        <div class="rule no"><b>×</b><span>司令塔</span></div>
+
+        <h2>デモ操作</h2>
+        <div class="controls">
+          <div class="row">
+            <button id="brainPauseBtn">一時停止</button>
+            <button id="brainResetBtn">脳をリセット</button>
+          </div>
+          <button id="brainWeightsBtn">結合強度だけ初期化</button>
+          <button id="brainHealBtn">弱い新規結合を少し追加</button>
+
+          <label>ニューロン数: <strong id="brainCountLabel">64</strong></label>
+          <input id="brainCountRange" type="range" min="30" max="110" value="64" step="2">
+
+          <label>学習速度: <strong id="brainLearnLabel">標準</strong></label>
+          <input id="brainLearnRange" type="range" min="2" max="16" value="8" step="1">
+
+          <label>刺激範囲: <strong id="brainStimLabel">70</strong> px</label>
+          <input id="brainStimRange" type="range" min="35" max="130" value="70" step="5">
+        </div>
+
+        <h2>現在の状態</h2>
+        <div class="stat"><span>ニューロン</span><strong id="brainNeuronStat">64</strong></div>
+        <div class="stat"><span>シナプス</span><strong id="brainSynapseStat">0</strong></div>
+        <div class="stat"><span>強い結合</span><strong id="brainStrongStat">0</strong></div>
+        <div class="stat"><span>総発火回数</span><strong id="brainFireStat">0</strong></div>
+        <div class="stat"><span>「記憶」の設計命令</span><strong>0回</strong></div>
+
+        <div class="legend">
+          線が太いほど結合が強い状態です。初期の弱いシナプスも見やすい表示にしています。<br>
+          同じ領域を繰り返し刺激すると、新しい弱い線が生えることがあります。<br>
+          そのあと刺激を少し小さくすると、
+          周囲へ発火が広がりやすくなることがあります。<br><br>
+          ※ 実際の脳は、神経伝達物質・抑制性ニューロン・多様な可塑性・
+          ネットワーク構造などを含む、はるかに複雑な系です。
+        </div>
+
+    </aside>
+
+    <section class="stage" id="stage">
+      <canvas id="canvas"></canvas>
+      <div class="hud">
+        <div class="badge" id="modeBadge">障害物は観客がリアルタイム追加できます</div>
+        <div class="badge" id="fpsBadge">60 FPS</div>
+      </div>
+      <div class="centerMsg" id="centerMsg">まずは群れを眺めて、好きな場所に突然「壁」を置いてみてください。</div>
+    </section>
+  </main>
+</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const stage = document.getElementById('stage');
+  const fpsBadge = document.getElementById('fpsBadge');
+  const centerMsg = document.getElementById('centerMsg');
+  const modeBadge = document.getElementById('modeBadge');
+  const tabs = [...document.querySelectorAll('.tab[data-mode]')];
+
+  const fishPanel = document.getElementById('fishPanel');
+  const antPanel = document.getElementById('antPanel');
+  const brainPanel = document.getElementById('brainPanel');
+
+  let mode='fish', W=1,H=1,dpr=1,lastT=performance.now(),fpsSmooth=60,msgTimer=0;
+
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  const wrapAngle=a=>Math.atan2(Math.sin(a),Math.cos(a));
+  function limit(vx,vy,m){ const d=Math.hypot(vx,vy); return d>m?[vx/d*m,vy/d*m]:[vx,vy]; }
+  function setMag(vx,vy,m){ const d=Math.hypot(vx,vy)||1; return [vx/d*m,vy/d*m]; }
+  function showMsg(text,ms=2500){
+    centerMsg.textContent=text; centerMsg.style.opacity='1';
+    clearTimeout(msgTimer); msgTimer=setTimeout(()=>centerMsg.style.opacity='.72',ms);
+  }
+  function localPoint(e){
+    const r=canvas.getBoundingClientRect();
+    return {x:e.clientX-r.left,y:e.clientY-r.top};
+  }
+  function resize(){
+    const r=stage.getBoundingClientRect();
+    dpr=Math.min(window.devicePixelRatio||1,2);
+    W=Math.max(1,r.width); H=Math.max(1,r.height);
+    canvas.width=Math.round(W*dpr); canvas.height=Math.round(H*dpr);
+    canvas.style.width=W+'px'; canvas.style.height=H+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    antSim.resizePheromone();
+  }
+  window.addEventListener('resize',resize);
+
+  // ====================== FISH ======================
+  const fishUI = {
+    pauseBtn:document.getElementById('fishPauseBtn'), resetBtn:document.getElementById('fishResetBtn'),
+    clearBtn:document.getElementById('fishClearBtn'), countRange:document.getElementById('fishCountRange'),
+    countLabel:document.getElementById('fishCountLabel'), radiusRange:document.getElementById('fishRadiusRange'),
+    radiusLabel:document.getElementById('fishRadiusLabel'), fishStat:document.getElementById('fishStat'),
+    obstacleStat:document.getElementById('fishObstacleStat')
+  };
+  const FSET={neighborRadius:62,separationRadius:23,maxSpeed:2.35,maxForce:.055,
+    separationWeight:1.55,alignmentWeight:.78,cohesionWeight:.66,obstacleWeight:2.8,lookAhead:62,obstaclePadding:22};
+
+  class Fish{
+    constructor(){
+      this.x=rand(0,W); this.y=rand(0,H);
+      const a=rand(-.22,.22); this.vx=Math.cos(a)*rand(1.2,2.1); this.vy=Math.sin(a)*rand(1.2,2.1);
+      this.ax=0;this.ay=0;this.bias=Math.random()<.5?-1:1;this.phase=rand(0,Math.PI*2);
+    }
+    apply(x,y,w=1){this.ax+=x*w;this.ay+=y*w}
+    flock(all){
+      let sx=0,sy=0,sc=0, ax=0,ay=0,ac=0, cx=0,cy=0,cc=0;
+      for(const o of all){
+        if(o===this)continue;
+        let dx=o.x-this.x,dy=o.y-this.y;
+        if(dx>W/2)dx-=W; else if(dx<-W/2)dx+=W;
+        if(dy>H/2)dy-=H; else if(dy<-H/2)dy+=H;
+        const d=Math.hypot(dx,dy);
+        if(d<FSET.separationRadius&&d>0){sx-=dx/(d*d+.01);sy-=dy/(d*d+.01);sc++}
+        if(d<FSET.neighborRadius){ax+=o.vx;ay+=o.vy;ac++;cx+=dx;cy+=dy;cc++}
+      }
+      if(sc){sx/=sc;sy/=sc;[sx,sy]=setMag(sx,sy,FSET.maxSpeed);sx-=this.vx;sy-=this.vy;[sx,sy]=limit(sx,sy,FSET.maxForce);this.apply(sx,sy,FSET.separationWeight)}
+      if(ac){ax/=ac;ay/=ac;[ax,ay]=setMag(ax,ay,FSET.maxSpeed);ax-=this.vx;ay-=this.vy;[ax,ay]=limit(ax,ay,FSET.maxForce);this.apply(ax,ay,FSET.alignmentWeight)}
+      if(cc){cx/=cc;cy/=cc;[cx,cy]=setMag(cx,cy,FSET.maxSpeed);cx-=this.vx;cy-=this.vy;[cx,cy]=limit(cx,cy,FSET.maxForce);this.apply(cx,cy,FSET.cohesionWeight)}
+    }
+    avoid(obstacles){
+      const sp=Math.hypot(this.vx,this.vy)||1,nx=this.vx/sp,ny=this.vy/sp,px=-ny,py=nx;
+      for(const ob of obstacles){
+        const fx=this.x+nx*FSET.lookAhead,fy=this.y+ny*FSET.lookAhead;
+        const dx=fx-ob.x,dy=fy-ob.y,d=Math.hypot(dx,dy);
+        const bdx=this.x-ob.x,bdy=this.y-ob.y,bd=Math.hypot(bdx,bdy),safe=ob.r+FSET.obstaclePadding;
+        if(d<safe||bd<safe+20){
+          let ox=dx,oy=dy;if(Math.hypot(ox,oy)<1){ox=px*this.bias;oy=py*this.bias}
+          [ox,oy]=setMag(ox,oy,FSET.maxSpeed);
+          const side=(px*(ob.x-this.x)+py*(ob.y-this.y))>0?-1:1;
+          const chosen=Math.abs(px*(ob.x-this.x)+py*(ob.y-this.y))<4?this.bias:side;
+          ox+=px*.9*chosen;oy+=py*.9*chosen;ox-=this.vx;oy-=this.vy;
+          [ox,oy]=limit(ox,oy,FSET.maxForce*2.8);
+          const close=1-clamp(Math.min(d,bd)/safe,0,1);this.apply(ox,oy,FSET.obstacleWeight*(.55+close))
+        }
+      }
+    }
+    update(){
+      this.vx+=this.ax;this.vy+=this.ay;[this.vx,this.vy]=limit(this.vx,this.vy,FSET.maxSpeed);
+      this.x+=this.vx;this.y+=this.vy;this.ax=this.ay=0;
+      if(this.x<-8)this.x=W+8;if(this.x>W+8)this.x=-8;if(this.y<-8)this.y=H+8;if(this.y>H+8)this.y=-8
+    }
+    draw(t){
+      const a=Math.atan2(this.vy,this.vx),pulse=Math.sin(t*.003+this.phase)*.6;
+      ctx.save();ctx.translate(this.x,this.y);ctx.rotate(a);
+      ctx.beginPath();ctx.moveTo(10+pulse,0);ctx.lineTo(-7,-4.8);ctx.lineTo(-4,0);ctx.lineTo(-7,4.8);ctx.closePath();
+      ctx.fillStyle='rgba(126,215,255,.88)';ctx.fill();
+      ctx.beginPath();ctx.moveTo(-5,0);ctx.lineTo(-11,-5);ctx.lineTo(-10,5);ctx.closePath();
+      ctx.fillStyle='rgba(126,215,255,.46)';ctx.fill();ctx.restore()
+    }
+  }
+  const fishSim={
+    fishes:[],obstacles:[],paused:false,dragging:null,desiredCount:140,radius:58,
+    reset(){this.fishes=Array.from({length:this.desiredCount},()=>new Fish());this.stats()},
+    stats(){fishUI.fishStat.textContent=this.fishes.length;fishUI.obstacleStat.textContent=this.obstacles.length},
+    hit(p){for(let i=this.obstacles.length-1;i>=0;i--){const o=this.obstacles[i];if(Math.hypot(p.x-o.x,p.y-o.y)<=o.r)return o}return null},
+    step(t){
+      if(!this.paused){for(const f of this.fishes){f.flock(this.fishes);f.avoid(this.obstacles)}for(const f of this.fishes)f.update()}
+      for(const ob of this.obstacles)this.drawObstacle(ob);for(const f of this.fishes)f.draw(t)
+    },
+    drawObstacle(ob){
+      ctx.save();ctx.beginPath();ctx.arc(ob.x,ob.y,ob.r,0,Math.PI*2);
+      const g=ctx.createRadialGradient(ob.x-ob.r*.25,ob.y-ob.r*.25,4,ob.x,ob.y,ob.r);
+      g.addColorStop(0,'rgba(255,178,128,.96)');g.addColorStop(1,'rgba(205,90,65,.92)');
+      ctx.fillStyle=g;ctx.fill();ctx.lineWidth=2;ctx.strokeStyle='rgba(255,224,206,.65)';ctx.stroke();
+      ctx.beginPath();ctx.arc(ob.x,ob.y,ob.r+FSET.obstaclePadding,0,Math.PI*2);ctx.setLineDash([5,6]);
+      ctx.strokeStyle='rgba(255,164,130,.16)';ctx.stroke();ctx.restore()
+    }
+  };
+
+  // ====================== ANTS ======================
+  const antUI={
+    pauseBtn:document.getElementById('antPauseBtn'),resetBtn:document.getElementById('antResetBtn'),
+    clearFoodBtn:document.getElementById('antClearFoodBtn'),clearPheroBtn:document.getElementById('antClearPheroBtn'),
+    countRange:document.getElementById('antCountRange'),countLabel:document.getElementById('antCountLabel'),
+    lifeRange:document.getElementById('pheroLifeRange'),lifeLabel:document.getElementById('pheroLifeLabel'),
+    antStat:document.getElementById('antStat'),foodStat:document.getElementById('foodStat'),
+    carryingStat:document.getElementById('carryingStat'),deliveredStat:document.getElementById('deliveredStat')
+  };
+
+  const ASET={speed:1.7,turnNoise:.24,sensorDist:18,sensorAngle:.55,deposit:1.0,foodRadius:18,nestRadius:28};
+
+  class Ant{
+    constructor(nest){
+      this.x=nest.x+rand(-8,8);this.y=nest.y+rand(-8,8);this.a=rand(-Math.PI,Math.PI);
+      this.carrying=false;this.depositClock=0;this.wanderBias=rand(-.02,.02);
+    }
+    update(sim){
+      const nest=sim.nest;
+      if(this.carrying){
+        // Returning ants know only where "home" is and leave a local trace.
+        const target=Math.atan2(nest.y-this.y,nest.x-this.x);
+        this.a+=clamp(wrapAngle(target-this.a),-.18,.18)+rand(-.045,.045);
+        sim.depositPhero(this.x,this.y,ASET.deposit);
+        if(Math.hypot(this.x-nest.x,this.y-nest.y)<ASET.nestRadius){
+          this.carrying=false;sim.delivered++;
+          this.a+=Math.PI+rand(-.45,.45)
+        }
+      }else{
+        // Searching ants only compare three nearby pheromone samples.
+        const left=sim.samplePhero(this.x+Math.cos(this.a-ASET.sensorAngle)*ASET.sensorDist,this.y+Math.sin(this.a-ASET.sensorAngle)*ASET.sensorDist);
+        const mid=sim.samplePhero(this.x+Math.cos(this.a)*ASET.sensorDist,this.y+Math.sin(this.a)*ASET.sensorDist);
+        const right=sim.samplePhero(this.x+Math.cos(this.a+ASET.sensorAngle)*ASET.sensorDist,this.y+Math.sin(this.a+ASET.sensorAngle)*ASET.sensorDist);
+        if(mid>left&&mid>right)this.a+=rand(-.035,.035);
+        else if(left>right)this.a-=.12+rand(0,.06);
+        else if(right>left)this.a+=.12+rand(0,.06);
+        else this.a+=rand(-ASET.turnNoise,ASET.turnNoise);
+        this.a+=this.wanderBias;
+
+        for(const food of sim.foods){
+          if(Math.hypot(this.x-food.x,this.y-food.y)<food.r){
+            this.carrying=true;
+            this.a=Math.atan2(nest.y-this.y,nest.x-this.x);
+            break;
+          }
+        }
+      }
+      this.x+=Math.cos(this.a)*ASET.speed;this.y+=Math.sin(this.a)*ASET.speed;
+
+      // Reflect off edges instead of wrapping, to keep paths readable.
+      if(this.x<4){this.x=4;this.a=Math.PI-this.a}
+      if(this.x>W-4){this.x=W-4;this.a=Math.PI-this.a}
+      if(this.y<4){this.y=4;this.a=-this.a}
+      if(this.y>H-4){this.y=H-4;this.a=-this.a}
+    }
+    draw(){
+      ctx.save();ctx.translate(this.x,this.y);ctx.rotate(this.a);
+      ctx.fillStyle=this.carrying?'rgba(255,224,118,.95)':'rgba(235,238,232,.82)';
+      ctx.beginPath();ctx.ellipse(0,0,3.3,1.8,0,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(-3.3,0,1.5,0,Math.PI*2);ctx.fill();ctx.restore()
+    }
+  }
+
+  const antSim={
+    ants:[],foods:[],paused:false,dragging:null,desiredCount:180,delivered:0,
+    nest:{x:120,y:300,r:28},cell:10,cols:1,rows:1,phero:new Float32Array(1),evap:.978,
+    resizePheromone(){
+      this.cols=Math.max(1,Math.ceil(W/this.cell));this.rows=Math.max(1,Math.ceil(H/this.cell));
+      this.phero=new Float32Array(this.cols*this.rows);
+      this.nest={x:Math.max(70,W*.16),y:H*.5,r:ASET.nestRadius};
+      if(this.ants.length) this.resetAnts(false)
+    },
+    resetAnts(resetDelivered=true){
+      this.ants=Array.from({length:this.desiredCount},()=>new Ant(this.nest));
+      if(resetDelivered)this.delivered=0;this.stats()
+    },
+    clearPhero(){this.phero.fill(0)},
+    idx(x,y){
+      const c=clamp(Math.floor(x/this.cell),0,this.cols-1),r=clamp(Math.floor(y/this.cell),0,this.rows-1);
+      return r*this.cols+c
+    },
+    depositPhero(x,y,v){const i=this.idx(x,y);this.phero[i]=Math.min(8,this.phero[i]+v)},
+    samplePhero(x,y){
+      if(x<0||x>=W||y<0||y>=H)return 0;
+      const c=clamp(Math.floor(x/this.cell),0,this.cols-1),r=clamp(Math.floor(y/this.cell),0,this.rows-1);
+      let s=0,n=0;
+      for(let yy=-1;yy<=1;yy++)for(let xx=-1;xx<=1;xx++){
+        const cc=c+xx,rr=r+yy;if(cc>=0&&cc<this.cols&&rr>=0&&rr<this.rows){s+=this.phero[rr*this.cols+cc];n++}
+      }
+      return n?s/n:0
+    },
+    evaporate(){
+      for(let i=0;i<this.phero.length;i++){this.phero[i]*=this.evap;if(this.phero[i]<.002)this.phero[i]=0}
+    },
+    hitFood(p){for(let i=this.foods.length-1;i>=0;i--){const f=this.foods[i];if(Math.hypot(p.x-f.x,p.y-f.y)<=f.r+5)return f}return null},
+    stats(){
+      antUI.antStat.textContent=this.ants.length;antUI.foodStat.textContent=this.foods.length;
+      antUI.carryingStat.textContent=this.ants.filter(a=>a.carrying).length;antUI.deliveredStat.textContent=this.delivered
+    },
+    step(){
+      if(!this.paused){
+        for(const a of this.ants)a.update(this);
+        this.evaporate();
+        if((performance.now()|0)%10<4)this.stats()
+      }
+      this.drawPhero();this.drawNest();for(const f of this.foods)this.drawFood(f);for(const a of this.ants)a.draw()
+    },
+    drawPhero(){
+      ctx.save();
+      for(let r=0;r<this.rows;r++){
+        for(let c=0;c<this.cols;c++){
+          const v=this.phero[r*this.cols+c];if(v<.03)continue;
+          const alpha=clamp(v/5,0,.42);
+          ctx.fillStyle=`rgba(93,255,145,${alpha})`;
+          ctx.fillRect(c*this.cell,r*this.cell,this.cell+1,this.cell+1)
+        }
+      }
+      ctx.restore()
+    },
+    drawNest(){
+      const n=this.nest;ctx.save();
+      const g=ctx.createRadialGradient(n.x-8,n.y-8,3,n.x,n.y,n.r);
+      g.addColorStop(0,'rgba(226,190,146,.98)');g.addColorStop(1,'rgba(110,73,44,.98)');
+      ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();
+      ctx.lineWidth=2;ctx.strokeStyle='rgba(247,218,178,.62)';ctx.stroke();
+      ctx.fillStyle='rgba(255,244,223,.85)';ctx.font='12px system-ui';ctx.textAlign='center';ctx.fillText('巣',n.x,n.y+4);ctx.restore()
+    },
+    drawFood(f){
+      ctx.save();ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,Math.PI*2);
+      const g=ctx.createRadialGradient(f.x-5,f.y-5,2,f.x,f.y,f.r);
+      g.addColorStop(0,'rgba(255,240,103,.98)');g.addColorStop(1,'rgba(180,141,30,.96)');
+      ctx.fillStyle=g;ctx.fill();ctx.lineWidth=2;ctx.strokeStyle='rgba(255,248,180,.6)';ctx.stroke();
+      ctx.fillStyle='rgba(20,20,10,.8)';ctx.font='11px system-ui';ctx.textAlign='center';ctx.fillText('餌',f.x,f.y+4);ctx.restore()
+    }
+  };
+
+
+  // ====================== BRAIN ======================
+  const brainUI={
+    pauseBtn:document.getElementById('brainPauseBtn'),
+    resetBtn:document.getElementById('brainResetBtn'),
+    weightsBtn:document.getElementById('brainWeightsBtn'),
+    healBtn:document.getElementById('brainHealBtn'),
+    countRange:document.getElementById('brainCountRange'),
+    countLabel:document.getElementById('brainCountLabel'),
+    learnRange:document.getElementById('brainLearnRange'),
+    learnLabel:document.getElementById('brainLearnLabel'),
+    stimRange:document.getElementById('brainStimRange'),
+    stimLabel:document.getElementById('brainStimLabel'),
+    neuronStat:document.getElementById('brainNeuronStat'),
+    synapseStat:document.getElementById('brainSynapseStat'),
+    strongStat:document.getElementById('brainStrongStat'),
+    fireStat:document.getElementById('brainFireStat')
+  };
+
+  class BrainNeuron{
+    constructor(id){
+      this.id=id;
+      const margin=55;
+      this.x=rand(margin,Math.max(margin+1,W-margin));
+      this.y=rand(margin,Math.max(margin+1,H-margin));
+      this.potential=rand(0,.18);
+      this.activation=0;
+      this.refractory=0;
+      this.lastFire=-1e9;
+      this.firePulse=0;
+      this.received=0;
+    }
+    step(now){
+      if(this.refractory>0)this.refractory--;
+      this.potential*=.955;
+      this.potential+=this.received;
+      this.received=0;
+      this.activation*=.90;
+      this.firePulse*=.86;
+
+      if(this.refractory<=0 && this.potential>=brainSim.threshold){
+        brainSim.fire(this,now);
+      }
+    }
+    draw(){
+      const glow=clamp(this.activation,0,1);
+      const r=5.5+this.firePulse*3.5;
+
+      if(glow>.06){
+        const g=ctx.createRadialGradient(this.x,this.y,1,this.x,this.y,22+glow*18);
+        g.addColorStop(0,`rgba(255,236,126,${.42*glow})`);
+        g.addColorStop(1,'rgba(255,236,126,0)');
+        ctx.fillStyle=g;
+        ctx.beginPath();ctx.arc(this.x,this.y,25+glow*18,0,Math.PI*2);ctx.fill();
+      }
+
+      ctx.beginPath();ctx.arc(this.x,this.y,r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${Math.round(130+120*glow)},${Math.round(190+55*glow)},255,.96)`;
+      ctx.fill();
+      ctx.lineWidth=1.2;
+      ctx.strokeStyle='rgba(222,244,255,.72)';
+      ctx.stroke();
+    }
+  }
+
+  const brainSim={
+    neurons:[],
+    edges:[],
+    paused:false,
+    desiredCount:64,
+    learning:.008,
+    stimulusRadius:70,
+    threshold:.92,
+    totalFires:0,
+    coactivity:new Map(),
+    stimulating:false,
+    stimX:0,
+    stimY:0,
+    frame:0,
+    formationRadius:150,
+    formationWindow:260,
+    formationThreshold:5.0,
+    formationGain:1.0,
+
+    reset(){
+      this.totalFires=0;
+      this.coactivity=new Map();
+      this.neurons=Array.from({length:this.desiredCount},(_,i)=>new BrainNeuron(i));
+      this.edges=[];
+      this.buildLocalNetwork();
+      this.stats();
+    },
+
+    buildLocalNetwork(){
+      // Keep the network local-ish: nearby neurons are more likely to connect.
+      const maxD=Math.max(135,Math.min(220,Math.min(W,H)*.30));
+      for(let i=0;i<this.neurons.length;i++){
+        for(let j=i+1;j<this.neurons.length;j++){
+          const a=this.neurons[i],b=this.neurons[j];
+          const d=Math.hypot(a.x-b.x,a.y-b.y);
+          if(d>maxD)continue;
+          const p=.24*(1-d/maxD)+.035;
+          if(Math.random()<p){
+            this.edges.push({a:i,b:j,w:rand(.10,.26),lastUse:0,cut:false,born:false});
+          }
+        }
+      }
+
+      // Avoid isolated neurons where possible.
+      for(let i=0;i<this.neurons.length;i++){
+        if(this.edges.some(e=>!e.cut&&(e.a===i||e.b===i)))continue;
+        let best=-1,bd=Infinity;
+        for(let j=0;j<this.neurons.length;j++){
+          if(i===j)continue;
+          const d=Math.hypot(this.neurons[i].x-this.neurons[j].x,this.neurons[i].y-this.neurons[j].y);
+          if(d<bd){bd=d;best=j}
+        }
+        if(best>=0)this.edges.push({a:Math.min(i,best),b:Math.max(i,best),w:rand(.10,.20),lastUse:0,cut:false,born:false});
+      }
+    },
+
+    resetWeights(){
+      for(const e of this.edges)if(!e.cut){e.w=rand(.12,.25);e.born=false;}
+      for(const n of this.neurons){n.potential=0;n.activation=0;n.firePulse=0;n.received=0}
+      this.totalFires=0;
+      this.coactivity=new Map();
+      this.stats();
+    },
+
+    addWeakConnections(){
+      let added=0;
+      const attempts=Math.max(10,Math.round(this.neurons.length*.28));
+      for(let k=0;k<attempts;k++){
+        const i=Math.floor(Math.random()*this.neurons.length);
+        let j=Math.floor(Math.random()*this.neurons.length);
+        if(i===j){k--;continue}
+        const a=Math.min(i,j),b=Math.max(i,j);
+        if(this.edges.some(e=>!e.cut&&e.a===a&&e.b===b))continue;
+        const n1=this.neurons[a],n2=this.neurons[b];
+        if(Math.hypot(n1.x-n2.x,n1.y-n2.y)>240)continue;
+        this.edges.push({a,b,w:rand(.07,.14),lastUse:0,cut:false,born:false});
+        added++;
+      }
+      this.stats();
+      return added;
+    },
+
+    edgeFor(i,j){
+      const a=Math.min(i,j),b=Math.max(i,j);
+      return this.edges.find(e=>!e.cut&&e.a===a&&e.b===b);
+    },
+
+    pairKey(i,j){
+      return i<j ? `${i}:${j}` : `${j}:${i}`;
+    },
+
+    tryFormNewSynapses(n,now){
+      for(const o of this.neurons){
+        if(o.id===n.id)continue;
+
+        const d=Math.hypot(n.x-o.x,n.y-o.y);
+        if(d>this.formationRadius)continue;
+
+        const dt=Math.abs(now-o.lastFire);
+        if(dt>this.formationWindow)continue;
+
+        // If a connection already exists, formation is unnecessary.
+        if(this.edgeFor(n.id,o.id))continue;
+
+        const key=this.pairKey(n.id,o.id);
+        const current=this.coactivity.get(key) || 0;
+
+        // Closer and tighter-timed co-firing accumulates faster.
+        const spatial=1-d/this.formationRadius;
+        const temporal=1-dt/this.formationWindow;
+        const next=current + this.formationGain*(0.45 + 0.75*spatial + 0.80*temporal);
+        this.coactivity.set(key,next);
+
+        if(next>=this.formationThreshold){
+          const a=Math.min(n.id,o.id),b=Math.max(n.id,o.id);
+          this.edges.push({
+            a,b,
+            w:.085 + Math.random()*.035,
+            lastUse:now,
+            cut:false,
+            born:true
+          });
+          this.coactivity.delete(key);
+        }
+      }
+    },
+
+    decayCoactivity(){
+      if(this.coactivity.size===0)return;
+      for(const [k,v] of this.coactivity){
+        const nv=v*.992;
+        if(nv<.05)this.coactivity.delete(k);
+        else this.coactivity.set(k,nv);
+      }
+    },
+
+    fire(n,now){
+      n.potential=.05;
+      n.activation=1;
+      n.firePulse=1;
+      n.refractory=14;
+      n.lastFire=now;
+      this.totalFires++;
+      this.tryFormNewSynapses(n,now);
+
+      for(const e of this.edges){
+        if(e.cut)continue;
+        let other=-1;
+        if(e.a===n.id)other=e.b;
+        else if(e.b===n.id)other=e.a;
+        if(other<0)continue;
+
+        const o=this.neurons[other];
+        // Signal transmission through the synapse.
+        o.received += e.w*.46;
+        e.lastUse=now;
+
+        // Simplified Hebbian/STDP-like rule:
+        // if the other neuron fired recently, strengthen this connection.
+        const dt=Math.abs(now-o.lastFire);
+        if(dt<320){
+          const timing=1-dt/320;
+          e.w=Math.min(1,e.w+this.learning*(.45+.90*timing));
+        }
+      }
+    },
+
+    stimulate(x,y,strong=true){
+      this.stimX=x;this.stimY=y;
+      const r=this.stimulusRadius;
+      for(const n of this.neurons){
+        const d=Math.hypot(n.x-x,n.y-y);
+        if(d>r)continue;
+        const fall=1-d/r;
+        n.received += (strong?.34:.20)*(0.35+.9*fall);
+      }
+    },
+
+    decayEdges(){
+      for(const e of this.edges){
+        if(e.cut)continue;
+
+        // Existing synapses slowly weaken when not reinforced.
+        if(e.w>.045)e.w-=.000020*(1+e.w);
+
+        // Newly formed, very weak synapses can disappear if they are not reused.
+        if(e.born && e.w<.055){
+          e.cut=true;
+          continue;
+        }
+
+        e.w=Math.max(.042,e.w);
+      }
+      this.decayCoactivity();
+    },
+
+    step(now){
+      this.frame++;
+      if(!this.paused){
+        if(this.stimulating)this.stimulate(this.stimX,this.stimY,true);
+
+        // Very small spontaneous activity.
+        if(this.frame%9===0){
+          const n=this.neurons[Math.floor(Math.random()*this.neurons.length)];
+          if(Math.random()<.13)n.received+=rand(.08,.17);
+        }
+
+        for(const n of this.neurons)n.step(now);
+        this.decayEdges();
+        if(this.frame%20===0)this.stats();
+      }
+
+      this.drawEdges(now);
+      if(this.stimulating)this.drawStimulus();
+      for(const n of this.neurons)n.draw();
+    },
+
+    drawEdges(now){
+      ctx.save();
+      ctx.lineCap='round';
+      for(const e of this.edges){
+        if(e.cut)continue;
+        const a=this.neurons[e.a],b=this.neurons[e.b];
+        const activity=Math.max(a.activation,b.activation);
+        const recent=clamp(1-(now-e.lastUse)/450,0,1);
+        const alpha=clamp(.18+e.w*.72+recent*.24,0,.95);
+        const bornBoost=e.born ? .06 : 0;
+        ctx.strokeStyle=`rgba(${Math.round(125+105*activity)},${Math.round(175+70*activity)},255,${clamp(alpha+bornBoost,0,.98)})`;
+        ctx.lineWidth=1.05+e.w*4.8+recent*.8;
+        ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+      }
+      ctx.restore();
+    },
+
+    drawStimulus(){
+      ctx.save();
+      const g=ctx.createRadialGradient(this.stimX,this.stimY,3,this.stimX,this.stimY,this.stimulusRadius);
+      g.addColorStop(0,'rgba(255,229,100,.28)');
+      g.addColorStop(1,'rgba(255,229,100,0)');
+      ctx.fillStyle=g;
+      ctx.beginPath();ctx.arc(this.stimX,this.stimY,this.stimulusRadius,0,Math.PI*2);ctx.fill();
+
+      ctx.setLineDash([4,6]);
+      ctx.strokeStyle='rgba(255,231,124,.42)';
+      ctx.lineWidth=1.4;
+      ctx.beginPath();ctx.arc(this.stimX,this.stimY,this.stimulusRadius,0,Math.PI*2);ctx.stroke();
+      ctx.restore();
+    },
+
+    nearestEdge(p,maxDist=9){
+      let best=null,bd=maxDist;
+      for(const e of this.edges){
+        if(e.cut)continue;
+        const a=this.neurons[e.a],b=this.neurons[e.b];
+        const vx=b.x-a.x,vy=b.y-a.y;
+        const wx=p.x-a.x,wy=p.y-a.y;
+        const vv=vx*vx+vy*vy||1;
+        const t=clamp((wx*vx+wy*vy)/vv,0,1);
+        const px=a.x+t*vx,py=a.y+t*vy;
+        const d=Math.hypot(p.x-px,p.y-py);
+        if(d<bd){bd=d;best=e}
+      }
+      return best;
+    },
+
+    stats(){
+      brainUI.neuronStat.textContent=this.neurons.length;
+      const activeEdges=this.edges.filter(e=>!e.cut);
+      brainUI.synapseStat.textContent=activeEdges.length;
+      brainUI.strongStat.textContent=activeEdges.filter(e=>e.w>=.46).length;
+      brainUI.fireStat.textContent=this.totalFires;
+    }
+  };
+
+  function background(){
+    ctx.clearRect(0,0,W,H);ctx.save();ctx.globalAlpha=.13;ctx.strokeStyle='#2c546a';ctx.lineWidth=1;
+    const gap=42;for(let x=0;x<W;x+=gap){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+    for(let y=0;y<H;y+=gap){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}ctx.restore()
+  }
+
+  function setMode(next){
+    mode=next;
+    tabs.forEach(t=>t.classList.toggle('active',t.dataset.mode===mode));
+    fishPanel.classList.toggle('hidden',mode!=='fish');
+    antPanel.classList.toggle('hidden',mode!=='ants');
+    brainPanel.classList.toggle('hidden',mode!=='brain');
+
+    fishSim.dragging=null;
+    antSim.dragging=null;
+    brainSim.stimulating=false;
+
+    if(mode==='fish'){
+      modeBadge.textContent='障害物は観客がリアルタイム追加できます';
+      showMsg('好きな場所に突然「壁」を置いてみてください。')
+    }else if(mode==='ants'){
+      modeBadge.textContent='餌の場所は観客がリアルタイムで決めます';
+      showMsg('好きな場所に餌を置いて、緑の道が育つか観察してください。')
+    }else{
+      modeBadge.textContent='同時発火した結合だけが、局所ルールで強くなります';
+      showMsg('同じ場所を何度もクリック / ドラッグして刺激してみてください。')
+    }
+  }
+  tabs.forEach(t=>t.addEventListener('click',()=>setMode(t.dataset.mode)));
+
+  // Fish UI
+  fishUI.pauseBtn.onclick=()=>{fishSim.paused=!fishSim.paused;fishUI.pauseBtn.textContent=fishSim.paused?'再開':'一時停止'};
+  fishUI.resetBtn.onclick=()=>{fishSim.reset();showMsg('魚だけリセットしました。障害物はそのままです。')};
+  fishUI.clearBtn.onclick=()=>{fishSim.obstacles=[];fishSim.stats();showMsg('障害物をすべて消しました。')};
+  fishUI.countRange.oninput=()=>{fishSim.desiredCount=+fishUI.countRange.value;fishUI.countLabel.textContent=fishSim.desiredCount};
+  fishUI.countRange.onchange=()=>fishSim.reset();
+  fishUI.radiusRange.oninput=()=>{fishSim.radius=+fishUI.radiusRange.value;fishUI.radiusLabel.textContent=fishSim.radius};
+
+  // Ant UI
+  antUI.pauseBtn.onclick=()=>{antSim.paused=!antSim.paused;antUI.pauseBtn.textContent=antSim.paused?'再開':'一時停止'};
+  antUI.resetBtn.onclick=()=>{antSim.resetAnts(true);showMsg('アリだけリセットしました。餌とフェロモンは残しています。')};
+  antUI.clearFoodBtn.onclick=()=>{antSim.foods=[];antSim.stats();showMsg('餌をすべて消しました。')};
+  antUI.clearPheroBtn.onclick=()=>{antSim.clearPhero();showMsg('フェロモンを消しました。探索がほぼ最初から始まります。')};
+  antUI.countRange.oninput=()=>{antSim.desiredCount=+antUI.countRange.value;antUI.countLabel.textContent=antSim.desiredCount};
+  antUI.countRange.onchange=()=>antSim.resetAnts(false);
+  antUI.lifeRange.oninput=()=>{
+    antSim.evap=+antUI.lifeRange.value/1000;
+    const v=antSim.evap;antUI.lifeLabel.textContent=v>=.986?'かなり長い':v>=.976?'長め':v>=.962?'標準':'短め'
+  };
+
+
+  // Brain UI
+  brainUI.pauseBtn.onclick=()=>{
+    brainSim.paused=!brainSim.paused;
+    brainUI.pauseBtn.textContent=brainSim.paused?'再開':'一時停止'
+  };
+  brainUI.resetBtn.onclick=()=>{
+    brainSim.reset();
+    showMsg('脳ネットワークを作り直しました。学習結果もリセットされています。')
+  };
+  brainUI.weightsBtn.onclick=()=>{
+    brainSim.resetWeights();
+    showMsg('ネットワーク形状はそのまま、結合強度だけ弱い初期状態へ戻しました。')
+  };
+  brainUI.healBtn.onclick=()=>{
+    const n=brainSim.addWeakConnections();
+    showMsg(`弱い新規シナプスを ${n} 本追加しました。`)
+  };
+  brainUI.countRange.oninput=()=>{
+    brainSim.desiredCount=+brainUI.countRange.value;
+    brainUI.countLabel.textContent=brainSim.desiredCount
+  };
+  brainUI.countRange.onchange=()=>brainSim.reset();
+  brainUI.learnRange.oninput=()=>{
+    const v=+brainUI.learnRange.value;
+    brainSim.learning=v/1000;
+    brainUI.learnLabel.textContent=v>=13?'速い':v>=7?'標準':'ゆっくり'
+  };
+  brainUI.stimRange.oninput=()=>{
+    brainSim.stimulusRadius=+brainUI.stimRange.value;
+    brainUI.stimLabel.textContent=brainSim.stimulusRadius
+  };
+
+  // Shared pointer interactions, mode-aware.
+  let pointerId=null;
+  canvas.addEventListener('pointerdown',e=>{
+    if(e.button!==0)return;const p=localPoint(e);pointerId=e.pointerId;
+    if(mode==='fish'){
+      const hit=fishSim.hit(p);
+      if(hit){fishSim.dragging=hit;canvas.setPointerCapture(e.pointerId)}
+      else{fishSim.obstacles.push({x:p.x,y:p.y,r:fishSim.radius});fishSim.stats();showMsg('障害物を追加。魚にこの場所は事前登録されていません。')}
+    }else if(mode==='ants'){
+      const hit=antSim.hitFood(p);
+      if(hit){antSim.dragging=hit;canvas.setPointerCapture(e.pointerId)}
+      else{
+        antSim.foods.push({x:p.x,y:p.y,r:ASET.foodRadius});antSim.stats();
+        showMsg('餌を追加。アリはこの場所を事前には知りません。')
+      }
+    }else{
+      brainSim.stimulating=true;
+      brainSim.stimX=p.x;brainSim.stimY=p.y;
+      brainSim.stimulate(p.x,p.y,true);
+      canvas.setPointerCapture(e.pointerId);
+    }
+  });
+  canvas.addEventListener('pointermove',e=>{
+    const p=localPoint(e);
+    if(mode==='fish'&&fishSim.dragging){fishSim.dragging.x=p.x;fishSim.dragging.y=p.y}
+    if(mode==='ants'&&antSim.dragging){antSim.dragging.x=p.x;antSim.dragging.y=p.y}
+    if(mode==='brain'&&brainSim.stimulating){brainSim.stimX=p.x;brainSim.stimY=p.y}
+  });
+  canvas.addEventListener('pointerup',e=>{
+    fishSim.dragging=null;antSim.dragging=null;brainSim.stimulating=false;
+    try{canvas.releasePointerCapture(e.pointerId)}catch{}
+  });
+  canvas.addEventListener('contextmenu',e=>{
+    e.preventDefault();const p=localPoint(e);
+    if(mode==='fish'){
+      const hit=fishSim.hit(p);if(hit){fishSim.obstacles=fishSim.obstacles.filter(o=>o!==hit);fishSim.stats();showMsg('障害物を削除しました。')}
+    }else if(mode==='ants'){
+      const hit=antSim.hitFood(p);if(hit){antSim.foods=antSim.foods.filter(f=>f!==hit);antSim.stats();showMsg('餌を削除しました。')}
+    }else{
+      const edge=brainSim.nearestEdge(p,12);
+      if(edge){
+        edge.cut=true;
+        brainSim.stats();
+        showMsg('シナプスを切断しました。周囲に別ルートが育つか試してみてください。')
+      }
+    }
+  });
+
+  function tick(t){
+    const dt=Math.max(1,t-lastT);lastT=t;fpsSmooth=fpsSmooth*.9+(1000/dt)*.1;fpsBadge.textContent=Math.round(fpsSmooth)+' FPS';
+    background();
+    if(mode==='fish')fishSim.step(t);else if(mode==='ants')antSim.step(t);else brainSim.step(t);
+    requestAnimationFrame(tick)
+  }
+
+  resize();
+  fishSim.reset();
+  antSim.resetAnts(true);
+  brainSim.reset();
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
