@@ -115,6 +115,13 @@ GPTに、「知能とは？」を解説してもらった。
 
 だった。
 
+
+■[自己組織化デモ～魚の群れ～ (魚の群れエリアをクリックすると障害物が表示されます。)](https://tamasub.github.io/FRB/tools/frb_self-organization/emergent_behavior_fish_ants_brain_demo_v2.html)
+（アリの道づくり編もあり）
+
+![魚の群れ](/images/ai-collaboration04-humanintheloop/fish_Emergent_Behavior.png)
+
+
 一匹一匹が、群れ全体の完成形を知っているわけではない。
 
 中央に司令塔がいて、
