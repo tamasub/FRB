@@ -576,7 +576,7 @@ AIを使って成果物を量産するのではなく、会社の判断を蓄積
 
 その試行錯誤は別記事にまとめている。
 
-👉 [文脈というブラックホールに、判断ログを投げ込むな](記事URL)
+👉 [文脈というブラックホールに、判断ログを投げ込むな](https://zenn.dev/frb_tamasub/articles/ai-collaboration-context-decision-log)
 
 ---
 
