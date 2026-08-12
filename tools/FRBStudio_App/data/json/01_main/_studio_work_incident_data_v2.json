@@ -23852,17 +23852,17 @@
       "incident_type": "feature",
       "category": "testing",
       "priority": "high",
-      "status": "未着手",
-      "follow_up_status": "PENDING",
-      "verification_status": "未確認",
+      "status": "完了",
+      "follow_up_status": "COMPLETED",
+      "verification_status": "確認済み",
       "context_def_status": "draft",
       "context_def_updated_at": "2026-08-12T09:04:00+09:00",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-12T09:04:00+09:00",
-      "updated_at": "2026-08-12T09:04:00+09:00",
+      "updated_at": "2026-08-12T10:39:00+09:00",
       "target_files": "tools/test/TestRunner.ps1 (integration candidate)\nwwwroot/js/services/definition/ (shared)\ntests/definition/ (new candidate)\ndata/json/03_tests/ (result candidate)\ndata/json/01_main/_studio_work_incident_data_v2.json",
-      "actual_updated_files": "",
+      "actual_updated_files": "wwwroot/js/services/definition/test_pattern_deriver.js\nwwwroot/js/services/definition/definition_value_validator.js\nwwwroot/js/services/definition/definition_test_runner_core.js\ntests/definition/definition_test_runner_core.test.mjs\ntests/definition/definition_test_runner_cli.mjs\ntools/test/TestRunner.ps1\ndata/json/01_main/_studio_work_incident_data_v2.json",
       "objective": "- Field DefinitionをRunnerの直接入力として、保存済みTestPattern JSONなしで標準Validationテストを実行する。\n- studio_work_0165の共通導出Serviceを利用し、Previewと実行内容を一致させる。",
       "background": "- Definitionから再導出できるTestPatternを別正本として保存すると、人間の承認対象と重複管理が増える。\n- Previewで承認した保証を同じロジックで実行し、Definition Driven Testingを成立させる。",
       "scope": "- Field Definition読込\n- Validation Type Registry解決\n- DefinitionVerificationServiceからTestPattern/Expected取得\n- 対象Validation実行\n- Actual生成\n- Expected比較\n- Result生成\n- 導出元Definition/Registry/Runner VersionまたはHash記録\n- 単項目Validationを最初のRunner責務とする",
@@ -23872,12 +23872,12 @@
       "expected_outputs": "- Definition Test Runner Core\n- 実行時TestPattern\n- Expected / Actual / Result\n- Definition/Registry/Runner追跡メタ情報\n- CLIまたは既存Test Runnerから呼べる最小実行入口\n- 自動テスト",
       "risk": "- RunnerがUIと別のExpectedを計算すると承認内容と実行内容が乖離する。\n- Version/Hashを残さないとRegistry更新後に過去Resultを説明できない。\n- 既存Test Runner責務との境界が曖昧になる可能性がある。",
       "test_points": "- 同じDefinitionでPreviewとRunnerのTestPattern/Expectedが一致すること。\n- TestPattern JSONファイルがなくても実行できること。\n- ExpectedとActualの一致/不一致をResultへ記録できること。\n- Definition/Registry/Runner識別情報がResultへ残ること。\n- 代表Validation Typeで正常/異常/境界値を実行できること。",
-      "verification_log": "",
+      "verification_log": "- node --check:\n  - test_pattern_deriver.js: PASS\n  - definition_value_validator.js: PASS\n  - definition_test_runner_core.js: PASS\n  - definition_test_runner_cli.mjs: PASS\n  - definition_test_runner_core.test.mjs: PASS\n- Definition Test Suite:\n  - 16件 PASS / 0件 FAIL\n  - 既存DefinitionVerificationService 9件を含む\n  - Definition Test Runner Core新規7件を確認\n  - PreviewとRunnerが同じTestPattern / Expectedを使用することを確認\n  - sample_rate_hzのminimum / minimum_minus_1 / maximum / maximum_plus_1 / null / required_missing / invalid_formatをActual実行し、Expectedと一致することを確認\n  - string / boolean / date / datetime / instantの代表Validation Typeで不一致0件を確認\n  - numeric stringのlength境界値がValidation Type patternを壊さないことを確認\n  - FRB FFTサンプル20 Field DefinitionをTestPattern JSON正本なしで実行\n  - 20 Field / 126 Pattern / PASS 126 / FAIL 0 / UNRESOLVED 0\n  - Field Definition / RegistryのVersion・SHA-256追跡情報をResultへ保持することを確認\n  - Expected / Actual不一致をRunnerがFAILとして記録し、Expectedを書き換えないことを確認\n- Definition Test Runner CLI:\n  - FRB FFTサンプルを直接入力してResult JSON生成を確認\n  - TestRunner.ps1のdefinition_test_runner whitelist配線はStatic Testで確認\n  - PowerShell wrapper実行は環境にpwsh / powershellが存在しないため未実施\n  - CLI本体はnodeで直接実行して確認\n  - 実行結果: PARTIAL\n  - 理由: 20 Field中9 Fieldに未定義の任意Constraintが残るためDefinition ContractがPARTIAL\n  - 実行済み126 PatternはすべてExpected / Actual一致\n  - 生成Resultはtests/.runtime/definition/へ出力し、返却ZIPには含めない\n- Static Test全体:\n  - 作業前: 63件中58件 PASS / 5件 FAIL\n  - 作業後: 63件中58件 PASS / 5件 FAIL\n  - FAIL 5件は作業前と同一\n  - 既存FAIL内訳:\n    - Field Definition / ViewDef Generation Rulesの承認状態期待差分 2件\n    - Thought Evolution系Data JSON欠落によるENOENT 3件\n  - 今回差分による新規FAILなし\n- Runtime生成物:\n  - Static Testで更新されたActual / Diffは原本へ復元\n  - Definition Test Runnerのtests/.runtime生成Resultは削除\n  - 返却ZIPへruntime生成物を混入しない\n- 未実施:\n  - PlaywrightブラウザUI操作\n  - Cross Field Constraint実行\n  - Scenario Driven Test\n  - 理由: 本フェーズは単項目Definition Test Runner Coreまでを対象とするため。",
       "context_def_draft": "- Studioくんは汎用AI協働基盤として維持する。\n- AI承認駆動開発はStudio Coreそのものではなく、標準Capabilityとして実装する。\n- UI Componentと計算Serviceを分離し、表示と実行で同じ導出ロジックを利用する。",
       "user_request": "ルール改定計画からComponent基盤、項目定義Editor改善、共通Expected/TestPattern導出、Definition Test Runner実装までを、小さなインシデントへ分割して計画登録する。",
       "ai_response": "作業を段階分割し、Studio Coreの汎用性を維持したまま、Definition Verificationを標準Capabilityとして実装する計画を登録する。",
       "latest_user_comment": "ルール改定計画～テストラン実装まで、インシデントで計画登録する。箇条書きにできる内容は箇条書きで記載する。",
-      "latest_ai_response": "計画登録のみ。実装・ルール改定は各インシデント着手時に最新ソースを再確認して行う。",
+      "latest_ai_response": "- Definition Test Runner Coreを実装。\n  - Field Definitionを直接入力する。\n  - 保存済みTestPattern JSONを必要としない。\n  - DefinitionVerificationService.deriveForRunner()からTestPattern / Expectedを取得する。\n- DefinitionValueValidatorを追加。\n  - ResolvedFieldContractに対してActual Validationを実行する。\n  - required / nullable / value type / pattern / string length / line count / numeric boundary / date / datetime / instantを初期責務として扱う。\n  - UI / Editor / SubGridへ依存しない。\n- DefinitionTestRunnerCoreを追加。\n  - Expected計算式を持たない。\n  - Expected / Actualを比較し、PASS / FAIL / UNRESOLVEDをResultへ記録する。\n  - Field単位およびDocument単位の集計を返す。\n  - Runner ID / Version、Registry Version、Validation Type Contract Version、Field Definition / Registry SHA-256を追跡可能にした。\n- TestPatternDeriverを1点修正。\n  - string length境界値で固定文字'a'を使用せず、Validation Typeのpattern / character policyに適合するseedを使用する。\n  - Runner側で期待値を補正せず、共通導出Service側の原因を修正した。\n- CLI入口を追加。\n  - tests/definition/definition_test_runner_cli.mjs\n  - Field Definition / Registryを引数で受け、Result JSONを生成できる。\n- 既存TestRunner.ps1へwhitelist済みdefinition_test_runnerを追加。\n  - 既定FRB FFTサンプルを実行する。\n  - runtime Resultはtests/.runtime/definition/へ出力する。\n- FRB FFTサンプル実行結果:\n  - 20 Field\n  - 126 Pattern\n  - PASS 126\n  - FAIL 0\n  - UNRESOLVED 0\n  - Document StatusはPARTIAL。未定義の任意Constraintを持つFieldが9件あるためで、実行済みPatternの不一致ではない。\n- Definition Test Suiteは16件すべてPASS。\n- Static Test全体は作業前後とも既存5FAILのみで、新規FAILなし。\n- TestPattern / Expected / Actual / Resultのruntime生成物は正本Field Definitionへ保存しない。\n- 次作業はstudio_work_0168「Cross Field Constraint / Actual / DiffまでのE2E」。",
       "context_refs": [
         "studio_work_0165",
         "studio_work_0166",
@@ -23891,9 +23891,113 @@
           "speaker": "user",
           "topic": "実装計画の段階登録",
           "message": "ルール改定、Componentクラス構造、特殊SubGrid接続、期待値共通計算、Field Definition Editor改善、Definition Test Runnerまでを段階的に計画する。"
+        },
+        {
+          "history_id": "disc_0167_002",
+          "at": "2026-08-12T10:39:00+09:00",
+          "speaker": "user",
+          "topic": "v0.18.44実装依頼",
+          "message": "- work_item_id: studio_work_0167\n- phase: v0.18.44-definition-test-runner-core\n- 最新のFRBStudio_App ZIPを基準資材として扱う。\n- foundation_rule_019に従って実装する。\n- constitution_32に従い、複数事項は箇条書きで記載する。"
         }
       ],
-      "decision_log": [],
+      "decision_log": [
+        {
+          "decision_id": "dec_0167_001",
+          "at": "2026-08-12T10:39:00+09:00",
+          "decision": "Definition Test RunnerはExpected計算式を持たず、DefinitionVerificationService.deriveForRunner()で生成されたTestPattern / Expectedをそのまま実行対象にする。",
+          "reason": "Editor Previewで人間が確認したExpectedとRunner実行時のExpectedを同一経路に固定し、表示と実行の二重実装を防ぐため。",
+          "applied_axes": [
+            "二重実装禁止",
+            "承認内容と実行内容の一致",
+            "再現性"
+          ],
+          "conditions": "単項目Field Definitionから標準Validation Testを実行する場合。",
+          "exceptions": "Cross Field Constraint / Scenario Driven Testは後続Incidentで別Runner責務として扱う。",
+          "expected_behavior": "同一Field Definition / RegistryではPreviewとRunnerのpattern_id / input / expectedが一致する。",
+          "acceptance_criteria": "Node TestでPreview結果とRunner Test CaseのTestPattern / ExpectedをdeepEqual確認する。",
+          "confirmation_level": "Node Test確認"
+        },
+        {
+          "decision_id": "dec_0167_002",
+          "at": "2026-08-12T10:39:00+09:00",
+          "decision": "Actual ValidationはDefinitionValueValidatorへ分離し、DefinitionTestRunnerCoreは実行順序・Expected比較・Result集計・追跡情報を担当する。",
+          "reason": "値契約の判定とRunner orchestrationを分離し、Actual Validationを将来の別実行入口からも再利用できるようにするため。",
+          "applied_axes": [
+            "単一責務",
+            "Service分離",
+            "UI非依存"
+          ],
+          "conditions": "ResolvedFieldContractへTestPattern inputを適用する場合。",
+          "exceptions": "decimal.fixed_scaleはRegistry側runtime contractがpendingのため初期RunnerではUNRESOLVEDとする。",
+          "expected_behavior": "ValueValidatorはDOM / Editor / SubGridを知らず、Plain DataのActualを返す。",
+          "acceptance_criteria": "string / number / integer / float / boolean / date / datetime / instantの代表TestでExpected / Actual不一致0件となること。",
+          "confirmation_level": "Node Test確認"
+        },
+        {
+          "decision_id": "dec_0167_003",
+          "at": "2026-08-12T10:39:00+09:00",
+          "decision": "TestPatternは実行時中間Dataとして扱い、Field Definition正本とは別に保存必須としない。TestRunner.ps1の既定Resultはtests/.runtimeへ出力する。",
+          "reason": "Definitionから再導出可能なTestPatternを別正本にすると承認対象と同期責務が増えるため。",
+          "applied_axes": [
+            "正本分離",
+            "人間判断数ミニマム化",
+            "再導出可能性"
+          ],
+          "conditions": "Definition Drivenの単項目標準TestPattern。",
+          "exceptions": "明示的なExport・証跡保存が必要な場合は別契約でdata/json/03_testsへ出力可能とする。",
+          "expected_behavior": "RunnerはTestPattern JSONファイルが存在しなくてもField Definition / Registryだけで実行できる。",
+          "acceptance_criteria": "FRB FFTサンプル20 Fieldを保存済みTestPattern JSONなしで126 Pattern実行できること。",
+          "confirmation_level": "CLI / Node Test確認"
+        },
+        {
+          "decision_id": "dec_0167_004",
+          "at": "2026-08-12T10:39:00+09:00",
+          "decision": "Runner ResultにはRunner Version・Registry Version・Validation Type Contract Versionに加え、CLI入力時のField Definition / Registry SHA-256を記録する。",
+          "reason": "RegistryやDefinition更新後でも、過去Resultがどの契約を入力として生成されたか追跡できるようにするため。",
+          "applied_axes": [
+            "追跡可能性",
+            "再現性",
+            "証跡品質"
+          ],
+          "conditions": "Definition Document単位でCLI実行する場合。",
+          "exceptions": "Core単体利用でHash計算環境がない場合はVersion情報を保持し、Hashは呼出側metadataから任意注入する。",
+          "expected_behavior": "Result sourceからDefinition / RegistryのPath・Version・Hashを確認できる。",
+          "acceptance_criteria": "Node TestでmetadataのSHA-256とregistry_version / definition_idをResultへ保持すること。",
+          "confirmation_level": "Node Test確認"
+        },
+        {
+          "decision_id": "dec_0167_005",
+          "at": "2026-08-12T10:39:00+09:00",
+          "decision": "Runner実装で発見したstring length境界入力のValidation Type不整合はRunnerで補正せず、共通TestPatternDeriver側を修正する。",
+          "reason": "studio.string.numeric等で固定文字aを境界値に使うと、length契約を試す前にpattern違反となり、PreviewとRunner双方のTestPattern品質が低下するため。",
+          "applied_axes": [
+            "原因箇所修正",
+            "共通Service優先",
+            "Expected品質"
+          ],
+          "conditions": "string Validation Typeにminimum_length / maximum_lengthが設定される場合。",
+          "exceptions": "なし。Validation Typeのpattern / character policyに適合するseedを使用する。",
+          "expected_behavior": "numeric string等でもlength境界Pattern自体はvalue contractを満たし、境界差分だけを検証する。",
+          "acceptance_criteria": "studio.string.numericの3〜5文字境界でminimum/maximumがACCEPT、外側がREJECTとなること。",
+          "confirmation_level": "Node Test確認"
+        },
+        {
+          "decision_id": "dec_0167_006",
+          "at": "2026-08-12T10:39:00+09:00",
+          "decision": "Definition Contractに未定義の任意Constraintが残る場合、実行済みPatternが全一致でもDocument StatusはPARTIALとして可視化し、CLIはFAILED / INVALIDの場合だけ失敗終了する。",
+          "reason": "未確定契約をREADYと誤表示せず、一方で未定義の任意Constraintだけを理由に既に定義済みの検証結果を失敗扱いしないため。",
+          "applied_axes": [
+            "未解決の可視化",
+            "Fail条件の分離",
+            "段階的承認"
+          ],
+          "conditions": "verification_status=PARTIALだが実行対象PatternのExpectedが解決済みの場合。",
+          "exceptions": "Expected / Actual不一致またはField Contract INVALIDはFAILED / INVALIDとして非0終了対象とする。",
+          "expected_behavior": "FRB FFTサンプルは126 PatternすべてPASSしつつ、任意Constraint未定義9 FieldによりDocument Status=PARTIALとなる。",
+          "acceptance_criteria": "CLI実行でPARTIAL / FAIL 0 / UNRESOLVED 0となり、exit code 0で完走すること。",
+          "confirmation_level": "CLI確認"
+        }
+      ],
       "change_history": [
         {
           "history_id": "chg_0167_001",
@@ -23902,6 +24006,14 @@
           "before": "未登録",
           "after": "実装前の計画インシデントとして登録",
           "reason": "大きな一括改修を避け、人間が差分単位で判断・承認できるようにするため。"
+        },
+        {
+          "history_id": "chg_0167_002",
+          "at": "2026-08-12T10:39:00+09:00",
+          "change_type": "implementation_completed",
+          "before": "Definition Test Runnerは計画のみで、Definitionから実行時TestPattern / Expectedを取得してActual検証・比較・Result生成する実装が存在しなかった。",
+          "after": "DefinitionValueValidator / DefinitionTestRunnerCore / CLIを追加し、DefinitionVerificationServiceの共通TestPattern / Expectedを直接実行できるようにした。TestRunner.ps1へwhitelist済み入口も追加した。",
+          "reason": "Field Definition Editorで確認したExpectedを同じ導出経路のまま実行へ接続し、Definition Driven Testingの最小E2Eを成立させるため。"
         }
       ]
     },

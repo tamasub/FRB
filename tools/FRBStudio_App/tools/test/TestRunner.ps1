@@ -17,10 +17,13 @@
 
 .EXAMPLE
   powershell -ExecutionPolicy Bypass -File .\TestRunner.ps1 -TestRunnerId responsibility_refactor_first_step_smoke -RunMode wait
+
+.EXAMPLE
+  powershell -ExecutionPolicy Bypass -File .\TestRunner.ps1 -TestRunnerId definition_test_runner -RunMode wait
 #>
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateSet('playwright_ui', 'incident_prompt_copy_action_static', 'responsibility_expected_tests', 'responsibility_refactor_first_step_smoke')]
+    [ValidateSet('playwright_ui', 'incident_prompt_copy_action_static', 'responsibility_expected_tests', 'responsibility_refactor_first_step_smoke', 'definition_test_runner')]
     [string]$TestRunnerId,
 
     [Parameter(Mandatory = $false)]
@@ -150,6 +153,20 @@ $runner = switch ($TestRunnerId) {
             Command = 'node'
             Arguments = @('tests/responsibilities/responsibility_refactor_first_step_smoke.mjs')
             Preview = 'node tests/responsibilities/responsibility_refactor_first_step_smoke.mjs'
+        }
+    }
+    'definition_test_runner' {
+        [pscustomobject]@{
+            Id = 'definition_test_runner'
+            ExpectedRunMode = 'wait'
+            Command = 'node'
+            Arguments = @(
+                'tests/definition/definition_test_runner_cli.mjs',
+                '--field-defs', 'fielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json',
+                '--registry', 'data/json/config/validation_type_registry_v0_1.json',
+                '--out', 'tests/.runtime/definition/definition_test_runner.result.json'
+            )
+            Preview = 'node tests/definition/definition_test_runner_cli.mjs --field-defs fielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json --registry data/json/config/validation_type_registry_v0_1.json --out tests/.runtime/definition/definition_test_runner.result.json'
         }
     }
     default {

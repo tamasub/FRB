@@ -86,15 +86,19 @@ class TestPatternDeriver {
     if (contract.value_family !== 'string') return;
     const minimum = contract.constraint_resolutions?.find(item => item.constraint === 'minimum_length');
     if (minimum?.status === 'RESOLVED' && Number.isInteger(minimum.resolved_value) && minimum.resolved_value >= 0) {
-      add('minimum_length', 'length_boundary', { state: 'VALUE', value: 'a'.repeat(minimum.resolved_value) }, { type: 'length_at', constraint: 'minimum_length' }, 'minimum_length');
+      const seed = definitionVerificationStringSeed(contract.value_contract);
+      const buildValue = length => seed.repeat(Math.ceil(Math.max(1, length) / seed.length)).slice(0, length);
+      add('minimum_length', 'length_boundary', { state: 'VALUE', value: buildValue(minimum.resolved_value) }, { type: 'length_at', constraint: 'minimum_length' }, 'minimum_length');
       if (minimum.resolved_value > 0) {
-        add('minimum_length_minus_1', 'length_boundary', { state: 'VALUE', value: 'a'.repeat(minimum.resolved_value - 1) }, { type: 'length_outside', constraint: 'minimum_length' }, 'minimum_length');
+        add('minimum_length_minus_1', 'length_boundary', { state: 'VALUE', value: buildValue(minimum.resolved_value - 1) }, { type: 'length_outside', constraint: 'minimum_length' }, 'minimum_length');
       }
     }
     const maximum = contract.constraint_resolutions?.find(item => item.constraint === 'maximum_length');
     if (maximum?.status === 'RESOLVED' && Number.isInteger(maximum.resolved_value) && maximum.resolved_value >= 0) {
-      add('maximum_length', 'length_boundary', { state: 'VALUE', value: 'a'.repeat(maximum.resolved_value) }, { type: 'length_at', constraint: 'maximum_length' }, 'maximum_length');
-      add('maximum_length_plus_1', 'length_boundary', { state: 'VALUE', value: 'a'.repeat(maximum.resolved_value + 1) }, { type: 'length_outside', constraint: 'maximum_length' }, 'maximum_length');
+      const seed = definitionVerificationStringSeed(contract.value_contract);
+      const buildValue = length => seed.repeat(Math.ceil(Math.max(1, length) / seed.length)).slice(0, length);
+      add('maximum_length', 'length_boundary', { state: 'VALUE', value: buildValue(maximum.resolved_value) }, { type: 'length_at', constraint: 'maximum_length' }, 'maximum_length');
+      add('maximum_length_plus_1', 'length_boundary', { state: 'VALUE', value: buildValue(maximum.resolved_value + 1) }, { type: 'length_outside', constraint: 'maximum_length' }, 'maximum_length');
     }
   }
 }
