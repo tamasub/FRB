@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
   FRB Studio / JSON Object Studio Test Runner.
 
@@ -20,10 +20,13 @@
 
 .EXAMPLE
   powershell -ExecutionPolicy Bypass -File .\TestRunner.ps1 -TestRunnerId definition_test_runner -RunMode wait
+
+.EXAMPLE
+  powershell -ExecutionPolicy Bypass -File .\TestRunner.ps1 -TestRunnerId definition_test_runner_cross_field_operator_matrix -RunMode wait
 #>
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateSet('playwright_ui', 'incident_prompt_copy_action_static', 'responsibility_expected_tests', 'responsibility_refactor_first_step_smoke', 'definition_test_runner')]
+    [ValidateSet('playwright_ui', 'incident_prompt_copy_action_static', 'responsibility_expected_tests', 'responsibility_refactor_first_step_smoke', 'definition_test_runner', 'definition_test_runner_cross_field_operator_matrix')]
     [string]$TestRunnerId,
 
     [Parameter(Mandatory = $false)]
@@ -168,6 +171,22 @@ $runner = switch ($TestRunnerId) {
                 '--evidence-dir', 'data/json/03_tests/contracts/definition_test_runner_frb_fft_v0_1'
             )
             Preview = 'node tests/definition/definition_test_runner_cli.mjs --field-defs fielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json --registry data/json/config/validation_type_registry_v0_1.json --out tests/.runtime/definition/definition_test_runner.result.json --evidence-dir data/json/03_tests/contracts/definition_test_runner_frb_fft_v0_1'
+        }
+    }
+
+    'definition_test_runner_cross_field_operator_matrix' {
+        [pscustomobject]@{
+            Id = 'definition_test_runner_cross_field_operator_matrix'
+            ExpectedRunMode = 'wait'
+            Command = 'node'
+            Arguments = @(
+                'tests/definition/definition_test_runner_cli.mjs',
+                '--field-defs', 'fielddefs/samples/cross_field_compare_operator_matrix_v0_1.json',
+                '--registry', 'data/json/config/validation_type_registry_v0_1.json',
+                '--out', 'tests/.runtime/definition/definition_test_runner_cross_field_operator_matrix.result.json',
+                '--evidence-dir', 'data/json/03_tests/contracts/definition_test_runner_cross_field_operator_matrix_v0_1'
+            )
+            Preview = 'node tests/definition/definition_test_runner_cli.mjs --field-defs fielddefs/samples/cross_field_compare_operator_matrix_v0_1.json --registry data/json/config/validation_type_registry_v0_1.json --out tests/.runtime/definition/definition_test_runner_cross_field_operator_matrix.result.json --evidence-dir data/json/03_tests/contracts/definition_test_runner_cross_field_operator_matrix_v0_1'
         }
     }
     default {

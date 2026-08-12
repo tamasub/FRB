@@ -194,4 +194,23 @@ test('Definition Test Runner stays UI-independent and TestRunner.ps1 exposes a w
   const ps1 = readText('tools/test/TestRunner.ps1');
   assert.match(ps1, /definition_test_runner/);
   assert.match(ps1, /definition_test_runner_cli\.mjs/);
+  assert.match(ps1, /definition_test_runner_cross_field_operator_matrix/);
+  assert.match(ps1, /fielddefs\/samples\/cross_field_compare_operator_matrix_v0_1\.json/);
+  assert.match(ps1, /data\/json\/03_tests\/contracts\/definition_test_runner_cross_field_operator_matrix_v0_1/);
+
+  const runConfig = readJson('data/json/04_tools/test_runner_run_config_data_v0_1.json');
+  const frbConfig = runConfig.run_configs.find(item => item.test_runner_id === 'definition_test_runner');
+  const matrixConfig = runConfig.run_configs.find(item => item.test_runner_id === 'definition_test_runner_cross_field_operator_matrix');
+  assert.ok(frbConfig);
+  assert.ok(matrixConfig);
+  assert.equal(matrixConfig.run_mode, 'wait');
+  assert.equal(
+    matrixConfig.output_artifact_path,
+    'data/json/03_tests/contracts/definition_test_runner_cross_field_operator_matrix_v0_1/diff/definition_test_runner.diff.json'
+  );
+
+  const program = readText('Program.cs/Program.cs');
+  assert.match(program, /"definition_test_runner"/);
+  assert.match(program, /"definition_test_runner_cross_field_operator_matrix"/);
+  assert.match(program, /definition_test_runner_cross_field_operator_matrix_v0_1\/diff\/definition_test_runner\.diff\.json/);
 });

@@ -4,7 +4,7 @@
   "test_id": "definition_test_runner_frb_fft_v0_1",
   "testId": "definition_test_runner_frb_fft_v0_1",
   "title": "FRB FFT Field Definition — Definition Driven Test E2E",
-  "resolved_at": "2026-08-12T11:27:10.325Z",
+  "resolved_at": "2026-08-12T12:30:00.365Z",
   "source": {
     "field_definition_document": {
       "definition_id": "studio.cross_field.compare.operator_matrix",
@@ -12,7 +12,7 @@
       "document_type": "field_definition_test_fixture",
       "updated_at": "",
       "sha256": "8bb00e405405fdd31c5cfe57a289bf1f02247d8b46bd566b5c0d3618afb20bb0",
-      "path": "tests/fixtures/definition/cross_field_compare_operator_matrix_v0_1.json"
+      "path": "fielddefs/samples/cross_field_compare_operator_matrix_v0_1.json"
     },
     "validation_type_registry": {
       "schema_version": "validation_type_registry_data_v0_1",
@@ -30,14 +30,14 @@
   },
   "definition_review_snapshots": {
     "schema_version": "definition_review_snapshot_v0_1",
-    "captured_at": "2026-08-12T11:27:10.325Z",
+    "captured_at": "2026-08-12T12:30:00.365Z",
     "field_definition_source": {
       "definition_id": "studio.cross_field.compare.operator_matrix",
       "schema_version": "cross_field_compare_operator_matrix_fixture_v0_1",
       "document_type": "field_definition_test_fixture",
       "updated_at": "",
       "sha256": "8bb00e405405fdd31c5cfe57a289bf1f02247d8b46bd566b5c0d3618afb20bb0",
-      "path": "tests/fixtures/definition/cross_field_compare_operator_matrix_v0_1.json"
+      "path": "fielddefs/samples/cross_field_compare_operator_matrix_v0_1.json"
     },
     "validation_type_registry_source": {
       "schema_version": "validation_type_registry_data_v0_1",

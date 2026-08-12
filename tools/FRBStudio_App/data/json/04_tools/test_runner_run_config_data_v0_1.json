@@ -6,14 +6,14 @@
   "target": "TestRunner.ps1 / Studio Test Runner",
   "status": "active",
   "created_at": "2026-06-27",
-  "updated_at": "2026-07-05",
+  "updated_at": "2026-08-12",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "command_profile_id": "test_runner",
   "command_profile_caption": "TestRunner.ps1",
   "script_display_name": "tools/test/TestRunner.ps1",
   "security_policy": "任意commandLine/scriptPath/test_fileはData JSONに持たせない。実行正本はProgram.cs側の許可済みCommandProfileとTestRunner.ps1内の許可済みtest_runner_idとし、command_previewは画面表示専用とする。",
-  "run_policy": "playwright_ui はUI起動後に終了しない可能性が高いため run_mode=launch として起動後すぐAPIを返す。incident_prompt_copy_action_static は終了を待てるため run_mode=wait として exit_code/stdout/stderr を返す。\n\nv0.18.14.3: responsibilities系mjsをTestRunnerから実行できるようにし、責務系テストファイル名は responsibility_* 先頭へ寄せる。",
+  "run_policy": "playwright_ui はUI起動後に終了しない可能性が高いため run_mode=launch として起動後すぐAPIを返す。incident_prompt_copy_action_static は終了を待てるため run_mode=wait として exit_code/stdout/stderr を返す。\n\nv0.18.14.3: responsibilities系mjsをTestRunnerから実行できるようにし、責務系テストファイル名は responsibility_* 先頭へ寄せる。\n\nv0.18.53.1: Definition Test Runnerの既存FRB FFT実DefinitionとCross Field 6 Operator MatrixをStudio Test Runner Run Configから再実行できるように接続する。実行正本は引き続きProgram.csの許可済みtest_runner_idとTestRunner.ps1の固定引数とし、Data JSONのcommand_previewは表示専用。",
   "run_configs": [
     {
       "run_config_id": "test_run_001_playwright_ui",
@@ -58,7 +58,29 @@
       "enabled": true,
       "note": "責務分離の最小smokeをTestRunnerから実行する。出力artifactは持たない軽量確認用。",
       "output_artifact_path": ""
+    },
+    {
+      "run_config_id": "test_run_005_definition_test_runner_frb_fft",
+      "caption": "Definition Test Runner / FRB FFT",
+      "command_profile_id": "test_runner",
+      "test_runner_id": "definition_test_runner",
+      "run_mode": "wait",
+      "command_preview": "node tests/definition/definition_test_runner_cli.mjs --field-defs fielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json --registry data/json/config/validation_type_registry_v0_1.json --out tests/.runtime/definition/definition_test_runner.result.json --evidence-dir data/json/03_tests/contracts/definition_test_runner_frb_fft_v0_1",
+      "enabled": true,
+      "note": "FRB FFT実Field DefinitionをDefinition Test Runnerで再実行し、Expected / Actual / Diff / Relations / SummaryのCanonical Evidenceを更新する。",
+      "output_artifact_path": "data/json/03_tests/contracts/definition_test_runner_frb_fft_v0_1/diff/definition_test_runner.diff.json"
+    },
+    {
+      "run_config_id": "test_run_006_definition_test_runner_cross_field_operator_matrix",
+      "caption": "Cross Field Compare / 6 Operator Matrix",
+      "command_profile_id": "test_runner",
+      "test_runner_id": "definition_test_runner_cross_field_operator_matrix",
+      "run_mode": "wait",
+      "command_preview": "node tests/definition/definition_test_runner_cli.mjs --field-defs fielddefs/samples/cross_field_compare_operator_matrix_v0_1.json --registry data/json/config/validation_type_registry_v0_1.json --out tests/.runtime/definition/definition_test_runner_cross_field_operator_matrix.result.json --evidence-dir data/json/03_tests/contracts/definition_test_runner_cross_field_operator_matrix_v0_1",
+      "enabled": true,
+      "note": "Cross Field CompareのLT/LTE/EQ/NE/GTE/GT × LESS/EQUAL/GREATERを再実行し、34件Diffを含むCanonical Evidenceを更新する。",
+      "output_artifact_path": "data/json/03_tests/contracts/definition_test_runner_cross_field_operator_matrix_v0_1/diff/definition_test_runner.diff.json"
     }
   ],
-  "notes": "v0.14.38: Git Diff Runで見えたCommandProfile Runnerの枝として、AI駆動開発の作業台にTest Runを追加するための初期Data JSON。\n\nv0.14.39: TestRunner結果分類に合わせて、各run_configへ output_artifact_path を追加。TestRunner実行結果は result_kind=launcher_error/test_passed/test_failed として扱う。\n\nv0.18.14.3: responsibilities系mjsをTestRunner Run Configへ追加。run_responsibility_expected_tests.mjs は responsibility_expected_tests.mjs へ名称寄せ。"
+  "notes": "v0.14.38: Git Diff Runで見えたCommandProfile Runnerの枝として、AI駆動開発の作業台にTest Runを追加するための初期Data JSON。\n\nv0.14.39: TestRunner結果分類に合わせて、各run_configへ output_artifact_path を追加。TestRunner実行結果は result_kind=launcher_error/test_passed/test_failed として扱う。\n\nv0.18.14.3: responsibilities系mjsをTestRunner Run Configへ追加。run_responsibility_expected_tests.mjs は responsibility_expected_tests.mjs へ名称寄せ。\n\nv0.18.53.1: Definition Test Runner / FRB FFT と Cross Field Compare / 6 Operator Matrix をRun Configへ追加。"
 }

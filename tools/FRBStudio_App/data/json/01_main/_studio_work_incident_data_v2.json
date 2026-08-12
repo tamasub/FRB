@@ -25342,13 +25342,13 @@
       "follow_up_status": "NOT_STARTED",
       "verification_status": "確認済み",
       "context_def_status": "reviewed",
-      "context_def_updated_at": "2026-08-12T20:13:00+09:00",
+      "context_def_updated_at": "2026-08-12T21:12:00+09:00",
       "owner": "",
       "ai_owner": "",
       "created_at": "2026-08-12T20:13:00+09:00",
-      "updated_at": "2026-08-12T20:13:00+09:00",
-      "target_files": "- data/json/00_rules/frb_test_evidence_rules_data_v0_2.json\n- fielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json\n- defs/fielddefs/frb_fft_measurement_field_definitions_view_def_v0_1.json\n- fielddefs/schema/field_definition_data_schema_v0_1.json\n- wwwroot/js/services/definition/cross_field_verification_service.js\n- wwwroot/js/services/definition/cross_field_relation_evaluator.js\n- wwwroot/js/services/definition/definition_test_runner_core.js\n- wwwroot/js/components/definition/cross_field_test_preview_component.js\n- tests/definition/cross_field_definition_test.test.mjs\n- tests/fixtures/definition/cross_field_compare_operator_matrix_v0_1.json\n- data/json/03_tests/contracts/definition_test_runner_frb_fft_v0_1/**\n- data/json/03_tests/contracts/definition_test_runner_cross_field_operator_matrix_v0_1/**",
-      "actual_updated_files": "- data/json/00_rules/frb_test_evidence_rules_data_v0_2.json\n- data/json/01_main/_studio_work_incident_data_v2.json\n- data/json/03_tests/contracts/definition_test_runner_cross_field_operator_matrix_v0_1/actual/definition_test_runner.actual.json\n- data/json/03_tests/contracts/definition_test_runner_cross_field_operator_matrix_v0_1/diff/definition_test_runner.diff.json\n- data/json/03_tests/contracts/definition_test_runner_cross_field_operator_matrix_v0_1/expected/definition_test_runner.expected.json\n- data/json/03_tests/contracts/definition_test_runner_cross_field_operator_matrix_v0_1/relations/definition_test_runner_trace_relations.json\n- data/json/03_tests/contracts/definition_test_runner_cross_field_operator_matrix_v0_1/summary/definition_test_runner.result.json\n- data/json/03_tests/contracts/definition_test_runner_frb_fft_v0_1/actual/definition_test_runner.actual.json\n- data/json/03_tests/contracts/definition_test_runner_frb_fft_v0_1/diff/definition_test_runner.diff.json\n- data/json/03_tests/contracts/definition_test_runner_frb_fft_v0_1/expected/definition_test_runner.expected.json\n- data/json/03_tests/contracts/definition_test_runner_frb_fft_v0_1/relations/definition_test_runner_trace_relations.json\n- data/json/03_tests/contracts/definition_test_runner_frb_fft_v0_1/summary/definition_test_runner.result.json\n- defs/fielddefs/frb_fft_measurement_field_definitions_view_def_v0_1.json\n- fielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json\n- fielddefs/schema/field_definition_data_schema_v0_1.json\n- tests/definition/cross_field_definition_test.test.mjs\n- tests/definition/definition_test_runner_core.test.mjs\n- tests/fixtures/definition/cross_field_compare_operator_matrix_v0_1.json\n- tests/qa/static/cross_field_definition_preview_static.test.mjs\n- tests/qa/static/cross_field_fieldset_ui_static.test.mjs\n- wwwroot/index.html\n- wwwroot/js/components/definition/cross_field_test_preview_component.js\n- wwwroot/js/services/definition/cross_field_relation_evaluator.js\n- wwwroot/js/services/definition/cross_field_verification_service.js\n- wwwroot/js/services/definition/definition_test_runner_core.js",
+      "updated_at": "2026-08-12T21:12:00+09:00",
+      "target_files": "- data/json/00_rules/frb_test_evidence_rules_data_v0_2.json\n- fielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json\n- defs/fielddefs/frb_fft_measurement_field_definitions_view_def_v0_1.json\n- fielddefs/schema/field_definition_data_schema_v0_1.json\n- wwwroot/js/services/definition/cross_field_verification_service.js\n- wwwroot/js/services/definition/cross_field_relation_evaluator.js\n- wwwroot/js/services/definition/definition_test_runner_core.js\n- wwwroot/js/components/definition/cross_field_test_preview_component.js\n- tests/definition/cross_field_definition_test.test.mjs\n- tests/fixtures/definition/cross_field_compare_operator_matrix_v0_1.json\n- data/json/03_tests/contracts/definition_test_runner_frb_fft_v0_1/**\n- data/json/03_tests/contracts/definition_test_runner_cross_field_operator_matrix_v0_1/**\n- data/json/04_tools/test_runner_run_config_data_v0_1.json\n- tools/test/TestRunner.ps1\n- Program.cs/Program.cs\n- tests/definition/definition_test_runner_core.test.mjs",
+      "actual_updated_files": "- data/json/00_rules/frb_test_evidence_rules_data_v0_2.json\n- data/json/01_main/_studio_work_incident_data_v2.json\n- data/json/03_tests/contracts/definition_test_runner_cross_field_operator_matrix_v0_1/actual/definition_test_runner.actual.json\n- data/json/03_tests/contracts/definition_test_runner_cross_field_operator_matrix_v0_1/diff/definition_test_runner.diff.json\n- data/json/03_tests/contracts/definition_test_runner_cross_field_operator_matrix_v0_1/expected/definition_test_runner.expected.json\n- data/json/03_tests/contracts/definition_test_runner_cross_field_operator_matrix_v0_1/relations/definition_test_runner_trace_relations.json\n- data/json/03_tests/contracts/definition_test_runner_cross_field_operator_matrix_v0_1/summary/definition_test_runner.result.json\n- data/json/03_tests/contracts/definition_test_runner_frb_fft_v0_1/actual/definition_test_runner.actual.json\n- data/json/03_tests/contracts/definition_test_runner_frb_fft_v0_1/diff/definition_test_runner.diff.json\n- data/json/03_tests/contracts/definition_test_runner_frb_fft_v0_1/expected/definition_test_runner.expected.json\n- data/json/03_tests/contracts/definition_test_runner_frb_fft_v0_1/relations/definition_test_runner_trace_relations.json\n- data/json/03_tests/contracts/definition_test_runner_frb_fft_v0_1/summary/definition_test_runner.result.json\n- defs/fielddefs/frb_fft_measurement_field_definitions_view_def_v0_1.json\n- fielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json\n- fielddefs/schema/field_definition_data_schema_v0_1.json\n- tests/definition/cross_field_definition_test.test.mjs\n- tests/definition/definition_test_runner_core.test.mjs\n- fielddefs/samples/cross_field_compare_operator_matrix_v0_1.json\n- tests/qa/static/cross_field_definition_preview_static.test.mjs\n- tests/qa/static/cross_field_fieldset_ui_static.test.mjs\n- wwwroot/index.html\n- wwwroot/js/components/definition/cross_field_test_preview_component.js\n- wwwroot/js/services/definition/cross_field_relation_evaluator.js\n- wwwroot/js/services/definition/cross_field_verification_service.js\n- wwwroot/js/services/definition/definition_test_runner_core.js\n- data/json/04_tools/test_runner_run_config_data_v0_1.json\n- tools/test/TestRunner.ps1\n- Program.cs/Program.cs",
       "context_def_draft": "- 関連項目の大小比較はOperatorごとに別の入力生成ロジックを持たず、LESS / EQUAL / GREATERの3関係を共通軸とする。\n- 境界値そのものは単項目Validationの責務とし、関連項目比較は共通有効範囲の内部代表値LOW / MID / HIGHを使って自然な比較データを生成する。\n- null / 空文字 / missingは物理表現として区別するが、Field Contractで有効な未設定表現はCross Fieldでは「未設定」という意味レイヤーで扱う。\n- 未設定時の結果はOK / NGの2分類のみとし、WARN / SKIP / UNRESOLVEDを人間向け第三状態として増やさない。\n- 自動的にPASSと説明できない状態はPASSへ倒さず、NG側へ寄せて人間の思考を立ち上げる。",
       "objective": "- Cross Field Compareの標準TestPattern生成をLESS / EQUAL / GREATERの3関係へ固定する。\n- 共通範囲の内部代表値LOW / MID / HIGHから自然なテスト入力を機械生成する。\n- Null Policyを「未設定時の扱い」へ意味拡張し、OK / NGの2値契約へ整理する。\n- LT / LTE / EQ / NE / GTE / GTの6 Operatorを専用Fixtureで一括検証し、18 Cross Field TestPatternを実行する。\n- FRB FFT実Definitionの既存1制約でも新生成ルールを実行し、Expected / Actual / Diff / Relations / Summary証跡を更新する。",
       "background": "- 従来は比較テストに最小値 / 最大値や候補集合の端値を使うため、関連項目チェックとしては極端で不自然なテストデータに見える余地があった。\n- ユーザーから「まず中央値を出し、最小値と中央値の間、中央値と最大値の間の値を使う方が自然」と提案があり、境界値テストと関連項目比較テストの責務分離が明確になった。\n- nullと空文字は物理値として異なるが、日付や金額でも空文字を正常な未設定として扱う可能性があるため、Cross Fieldの概念をNull限定にすると意味が狭すぎる。\n- 人間向けDiffではPASSかNGかを明確にし、曖昧状態を自動PASSにしない方針が確認された。",
@@ -25359,11 +25359,11 @@
       "expected_outputs": "- 明示共通範囲0..100ではLOW=25 / MID=50 / HIGH=75が生成される。\n- 6 Operatorすべてで同じ3入力を使い、ExpectedのみがOperator Matrixに従って変わる。\n- FRB FFTのanalysis_start_date / analysis_end_date比較では極端な最小最大値ではなく内部代表値で3 Patternが生成される。\n- 未設定時の扱いはUI上「未設定ならOK / 未設定ならNG」の2択で表示される。\n- Preview ExpectedはOK / NGで表示される。\n- 生成不能・旧null_policy等を黙ってPASSへ倒さない。",
       "risk": "- 左右の共通有効範囲が狭い場合、LOW / MID / HIGHが同値化するため決定的フォールバックが必要。\n- Field Contractが空文字を許可しない型では、空文字を未設定代表値としてCross Field側だけで勝手に採用してはならない。\n- null_policyからunset_policyへ意味契約が変わるため、旧値を暗黙変換するとレビュー無しで意味が変わる危険がある。\n- 6 Operatorを実Definitionへ直接増やすと業務制約が相互矛盾し、テスト用Definitionと本物のDefinitionの責務が混ざる。",
       "test_points": "- FRB FFT LT制約で3 Cross Field Patternが生成され、端値ではなく内部候補が使われること。\n- 0..100 FixtureでLOW=25 / MID=50 / HIGH=75となること。\n- LT/LTE/EQ/NE/GTE/GT × LESS/EQUAL/GREATER = 18 PatternのExpected Matrixが一致すること。\n- 18 Cross Field PatternがRunnerで全件PASSすること。\n- null / 空文字をそれぞれField ContractでACCEPTできるFixtureでは、代表未設定Patternが生成され、unset_policy OK/NGどちらも期待どおり評価されること。\n- legacy null_policyのみの制約はINVALIDとしてレビュー対象となり、黙ってPASSしないこと。\n- PreviewとRunnerが同一Patternを使用すること。\n- Field Definition / ViewDefが各Schema validationをPASSすること。",
-      "verification_log": "- node --check: Cross Field Verification / Relation Evaluator / Runner Core / Preview Component PASS。\n- node --test tests/definition/*.test.mjs: 24 tests / 24 PASS。\n- Cross Field関連Static: 10 tests / 10 PASS。\n- ViewDef Schema validation: error 0。\n- Field Definition Schema validation: error 0。既存Cross Field契約をSchemaへ正式追加し従来のSchema driftも解消。\n- 6 Operator Matrix Runner: field 16 PASS + cross field 18 PASS = total 34 / 34 PASS、fail 0、unresolved 0。\n- FRB FFT Runner: field 126 PASS + cross field 3 PASS = total 129 / 129 PASS、fail 0、unresolved 0。Document statusは既存の部分解決Field Contractを含むためPARTIALだが、実行TestPattern失敗は0。\n- 全Static一括は変更前baseline 88 tests中75 PASS / 13 FAIL、変更後89 tests中76 PASS / 13 FAIL。既存FAIL数は増加せず、今回追加StaticはPASS。\n- Test実行で生成されるruntime副作用は返却差分から除外。",
+      "verification_log": "- node --check: Cross Field Verification / Relation Evaluator / Runner Core / Preview Component PASS。\n- node --test tests/definition/*.test.mjs: 24 tests / 24 PASS。\n- Cross Field関連Static: 10 tests / 10 PASS。\n- ViewDef Schema validation: error 0。\n- Field Definition Schema validation: error 0。既存Cross Field契約をSchemaへ正式追加し従来のSchema driftも解消。\n- 6 Operator Matrix Runner: field 16 PASS + cross field 18 PASS = total 34 / 34 PASS、fail 0、unresolved 0。\n- FRB FFT Runner: field 126 PASS + cross field 3 PASS = total 129 / 129 PASS、fail 0、unresolved 0。Document statusは既存の部分解決Field Contractを含むためPARTIALだが、実行TestPattern失敗は0。\n- 全Static一括は変更前baseline 88 tests中75 PASS / 13 FAIL、変更後89 tests中76 PASS / 13 FAIL。既存FAIL数は増加せず、今回追加StaticはPASS。\n- Test実行で生成されるruntime副作用は返却差分から除外。\n- v0.18.53.1 follow-up: Studio Test Runner Run ConfigへFRB FFT Definition RunnerとCross Field 6 Operator Matrix Runnerを追加。\n- node --test tests/definition/definition_test_runner_core.test.mjs tests/definition/cross_field_definition_test.test.mjs: 15 / 15 PASS。\n- Cross Field Operator Matrix CLI再実行: total 34 / 34 PASS、cross field 18 / 18 PASS、fail 0、unresolved 0。\n- FRB FFT Definition Runner CLI再実行: 129 / 129 TestPattern PASS、fail 0、unresolved 0（document status PARTIALは既存部分解決Field Contractによる）。\n- 実行経路は Run Config Data → Program.cs allowlist → TestRunner.ps1固定Runner → definition_test_runner_cli.mjs → Canonical Evidence Diff の順で固定。\n- node --test tests/definition/*.test.mjs: 24 / 24 PASS。\n- studio_work_0176 item schema validation: 0 error。",
       "user_request": "現在までの議論をインシデントへ整理し、関連チェックのテストデータを増やして一気にテスト実行まで進める。比較値は自然な内部代表値とし、未設定はNull限定ではなくField Contract上の未設定を意味し、結果はOK / NGの2分類にする。",
       "ai_response": "関連項目比較の3関係・内部代表値LOW/MID/HIGH・未設定OK/NGを標準ルール化し、6 Operator専用Fixtureを追加してRunner/Evidenceまで一気に更新・実行する。FRB実Definitionにはテスト用の矛盾制約を増やさず、実制約1件を新生成ルールで検証する。",
-      "latest_ai_response": "v0.18.53-cross-field-test-pattern-generation 完了。関連項目比較をLESS/EQUAL/GREATERの3関係へ固定し、明示共通範囲ではMID→LOW/HIGHの内部代表値を導出するルールを追加。Null Policyは未設定Policyへ変更し、Field ContractがACCEPTするnull/空文字/missingを意味上の未設定として扱い、人間向けは「未設定ならOK / 未設定ならNG」の2値に整理した。FRB実Definitionは本物のLT制約1件のままとし、6 Operator網羅は専用Fixtureへ分離。Operator Matrixは18/18 Cross Field PASS、Fixture全体34/34 PASS、FRB FFTは129/129 TestPattern PASS。Definition 24/24、関連Static 10/10、ViewDef/FieldDefinition Schema validationもPASS。date/number等で空文字を単項目として許可する契約拡張は今回対象外で、Cross Field側はField Contractが許可した時点で扱える構造まで整備した。",
-      "latest_user_comment": "じゃぁーーー一通り整理できたってことかな？？　行けるなら、インシデントに今の話を整理した上で、関連チェックテストデータを増やして、一気にテスト実行までいけるかな？？いかなかったらいうて笑よろしく",
+      "latest_ai_response": "v0.18.53.1 follow-upとしてStudio Test Runner Run ConfigからDefinition Test Runnerを再実行できる配線を追加。既存FRB FFT RunnerとCross Field 6 Operator Matrix RunnerをRun Configへ登録し、Program.csの許可済みtest_runner_id、TestRunner.ps1の固定引数、Output ArtifactのDiffパスを接続した。Matrixはfielddefs/samples/cross_field_compare_operator_matrix_v0_1.jsonを入力正本として34/34 PASS、FRB FFTは129/129 TestPattern PASSを再確認。command_previewは表示専用で、任意コマンド実行には広げていない。",
+      "latest_user_comment": "とりあえず、diff更新された。Studio Test Runner Run Config から動くように設定変更お願いします。",
       "context_refs": [
         {
           "context_ref_id": "studio_work_0168",
@@ -25459,6 +25459,27 @@
           "speaker": "assistant",
           "topic": "v0.18.53 実装・検証完了",
           "message": "AI回答\n\n## 今回の更新\n\n- Cross Field Compareを `LESS / EQUAL / GREATER` の3関係へ固定。\n- 共通有効範囲がある場合は、境界値そのものではなく `LOW / MID / HIGH` の内部代表値を生成。\n- `Null Policy` を意味上の「未設定時の扱い」へ変更し、UI/Expectedは `OK / NG` の2値へ整理。\n- FRB FFT実Definitionは本物の `analysis_start_date < analysis_end_date` 1制約のまま維持。\n- 6 Operator網羅は専用Fixtureへ分離し、`LT / LTE / EQ / NE / GTE / GT × 3関係 = 18 Pattern` を実行。\n- Operator Matrix Canonical EvidenceとFRB FFT Canonical Evidenceを更新。\n\n## 設計方針\n\n境界値は単項目Validationの責務とし、関連項目比較では共通範囲内部の自然な代表値を使って関係そのものを検証する。null / 空文字 / missingは物理表現として区別するが、Field ContractがACCEPTしたものはCross Fieldでは「未設定」という意味で扱う。自動的にPASSと説明できないものを第三状態へ逃がさず、現時点の人間向け結果はOK / NGの2値とする。\n\n## 確認結果\n\n- Definition tests: 24 / 24 PASS\n- Cross Field関連Static: 10 / 10 PASS\n- 6 Operator Matrix: Cross Field 18 / 18 PASS、Fixture全体34 / 34 PASS\n- FRB FFT: 129 / 129 TestPattern PASS、fail 0、unresolved 0\n- ViewDef Schema validation: PASS\n- Field Definition Schema validation: PASS\n- 全Static: baseline/currentとも既存FAIL 13件で増加なし\n- runtime生成物: 返却ZIPから除外\n\n## 残したもの\n\ndate / number / float等で `\"\"` を単項目として正常な未設定にするValidation Type契約の拡張は今回行っていない。Cross Field側は、Field Contractがその表現をACCEPTした時点で未設定として扱える構造まで整備済み。"
+        },
+        {
+          "history_id": "studio_work_0176_discussion_007",
+          "at": "2026-08-12T21:12:00+09:00",
+          "speaker": "user",
+          "topic": "Operator Matrix Diffの再生成経路",
+          "message": "入力jsonのパスを移動させて実行したけど、diffが更新されない。このdiffが更新されると思っている。"
+        },
+        {
+          "history_id": "studio_work_0176_discussion_008",
+          "at": "2026-08-12T21:12:00+09:00",
+          "speaker": "user",
+          "topic": "Studio Test Runner Run Config接続",
+          "message": "とりあえず、diff更新された。Studio Test Runner Run Config から動くように設定変更お願いします。"
+        },
+        {
+          "history_id": "studio_work_0176_discussion_009",
+          "at": "2026-08-12T21:12:00+09:00",
+          "speaker": "assistant",
+          "topic": "v0.18.53.1 Run Config接続完了",
+          "message": "AI回答\n\n- Studio Test Runner Run ConfigへFRB FFT Definition RunnerとCross Field 6 Operator Matrix Runnerを追加。\n- Program.csのtest_runner allowlistへ両Runnerを追加し、結果DiffをOutput Artifactとして返す。\n- TestRunner.ps1へOperator Matrix専用の固定Runnerを追加。\n- Matrix入力は fielddefs/samples/cross_field_compare_operator_matrix_v0_1.json、出力Diffは data/json/03_tests/contracts/definition_test_runner_cross_field_operator_matrix_v0_1/diff/definition_test_runner.diff.json。\n- Definition/Cross Field targeted tests 15/15 PASS、Matrix 34/34 PASS、FRB FFT 129/129 PASSを確認。"
         }
       ],
       "decision_log": [
@@ -25551,6 +25572,25 @@
           "remaining_risks": "Fixtureと実DefinitionのRegistry差分。",
           "confirmation_level": "human_confirmed",
           "axis_update_candidate": ""
+        },
+        {
+          "decision_id": "studio_work_0176_decision_006",
+          "at": "2026-08-12T21:12:00+09:00",
+          "decision": "Definition Test Runnerの再実行はStudio Test Runner Run Configから選択できるようにし、Data JSONから任意コマンドを実行させずProgram.cs allowlistとTestRunner.ps1固定引数を実行正本として維持する。",
+          "reason": "Canonical Diffを人間が同じUI入口から再生成できる再現性を確保しつつ、Run Config Data JSONを任意コマンド実行口にしないため。",
+          "applied_axes": [
+            "再現可能な実行入口を用意する",
+            "実行責務と表示設定を分離する",
+            "任意コマンド実行へ広げない"
+          ],
+          "conditions": "Definition Test Runner / Cross Field Operator MatrixのStudio UI再実行。",
+          "exceptions": "新しいRunnerを増やす場合はProgram.csとTestRunner.ps1の許可済みIDを明示的に追加する。",
+          "expected_behavior": "Run Config選択→Test Runで固定CLIが実行され、対応するCanonical Diffが更新される。",
+          "acceptance_criteria": "FRB FFTとOperator MatrixのRun Configが存在し、Program.cs/TestRunner.ps1で許可され、Matrix DiffへのOutput Artifactが接続される。",
+          "test_pattern_seed": "",
+          "remaining_risks": "PowerShell/.NET実行環境そのものの起動確認はユーザーWindows環境で最終確認が必要。",
+          "confirmation_level": "ai_implemented",
+          "axis_update_candidate": ""
         }
       ],
       "change_history": [
@@ -25583,6 +25623,12 @@
           "at": "2026-08-12T20:13:00+09:00",
           "change": "Schema drift解消",
           "detail": "Field Definition Schemaへview_def / cross_field_constraint_count / cross_field_constraints / cross_field_constraint_policyを正式追加し、現行FRB sampleをSchema validation 0 errorへ揃えた。"
+        },
+        {
+          "change_id": "studio_work_0176_change_006",
+          "at": "2026-08-12T21:12:00+09:00",
+          "change": "Studio Test Runner Run ConfigへDefinition Runner接続",
+          "detail": "FRB FFT実DefinitionとCross Field 6 Operator MatrixをRun Configへ追加。Program.cs allowlist / Output Artifact、TestRunner.ps1固定Runnerを接続し、同じUI入口からCanonical Diffを再生成可能にした。"
         }
       ]
     }

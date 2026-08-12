@@ -3,7 +3,7 @@
   "document_type": "definition_test_trace_relations",
   "test_id": "definition_test_runner_frb_fft_v0_1",
   "title": "FRB FFT Field Definition — Definition Driven Test E2E",
-  "generated_at": "2026-08-12T12:03:16.096Z",
+  "generated_at": "2026-08-12T12:29:50.776Z",
   "source": {
     "field_definition_document": {
       "definition_id": "frb.fft.measurement.sample",

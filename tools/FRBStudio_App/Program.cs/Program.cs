@@ -421,7 +421,7 @@ internal static class Program
             defaultOutputPath: string.Empty,
             kind: "test_runner",
             allowedModes: Array.Empty<string>(),
-            allowedTestRunnerIds: new[] { "playwright_ui", "incident_prompt_copy_action_static", "responsibility_expected_tests", "responsibility_refactor_first_step_smoke" },
+            allowedTestRunnerIds: new[] { "playwright_ui", "incident_prompt_copy_action_static", "responsibility_expected_tests", "responsibility_refactor_first_step_smoke", "definition_test_runner", "definition_test_runner_cross_field_operator_matrix" },
             defaultTimeoutSeconds: 120);
         profiles[testProfile.Id] = testProfile;
 
@@ -1083,6 +1083,14 @@ internal static class Program
                 "data/json/03_tests/responsibilities/responsibility_expected_first_set/diff/responsibility_expected_first_set_diff_data_v0_1.json"
             },
             "responsibility_refactor_first_step_smoke" => Array.Empty<string>(),
+            "definition_test_runner" => new[]
+            {
+                "data/json/03_tests/contracts/definition_test_runner_frb_fft_v0_1/diff/definition_test_runner.diff.json"
+            },
+            "definition_test_runner_cross_field_operator_matrix" => new[]
+            {
+                "data/json/03_tests/contracts/definition_test_runner_cross_field_operator_matrix_v0_1/diff/definition_test_runner.diff.json"
+            },
             _ => Array.Empty<string>()
         };
 

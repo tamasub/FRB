@@ -3,7 +3,7 @@
   "document_type": "definition_test_trace_relations",
   "test_id": "definition_test_runner_frb_fft_v0_1",
   "title": "FRB FFT Field Definition — Definition Driven Test E2E",
-  "generated_at": "2026-08-12T11:27:10.325Z",
+  "generated_at": "2026-08-12T12:30:00.365Z",
   "source": {
     "field_definition_document": {
       "definition_id": "studio.cross_field.compare.operator_matrix",
@@ -11,7 +11,7 @@
       "document_type": "field_definition_test_fixture",
       "updated_at": "",
       "sha256": "8bb00e405405fdd31c5cfe57a289bf1f02247d8b46bd566b5c0d3618afb20bb0",
-      "path": "tests/fixtures/definition/cross_field_compare_operator_matrix_v0_1.json"
+      "path": "fielddefs/samples/cross_field_compare_operator_matrix_v0_1.json"
     },
     "validation_type_registry": {
       "schema_version": "validation_type_registry_data_v0_1",
