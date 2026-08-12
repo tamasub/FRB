@@ -10,9 +10,9 @@
   "conversion_note": "Studioくん憲法レビュー記録を共通ルールレビューViewDef v0.3で扱えるように、constitution_sections を rules へ正規化し、各行に rule_id と decision_log を追加した。section_id は旧IDとして残す。",
   "created": "2026-06-21",
   "status": "",
-  "section_count": 30,
-  "rule_count": 30,
-  "approved_count": 27,
+  "section_count": 32,
+  "rule_count": 32,
+  "approved_count": 24,
   "approval_policy": "Rule Reviewの状態正本は verification_status（AI確認状態）と approval_decision（人間承認）の二つとする。AIは確認結果を更新できるが、人間承認を新規付与・継続・復元してはならない。AIが承認対象の意味内容を変更した場合は verification_status=未確認、approval_decision=未承認へ戻し、approved_by / approved_at をクリアして人間再承認を求める。",
   "preamble_title": "この文書の目的",
   "preamble": "この文書は、Studio を今後も育て続けるための恒久的なコーディング制約である。\n\nただし、これは単なる「コーディング規約」ではない。\n\nこれは、Studioくんという国の憲法である。\n\nStudio は、ただの JSON エディターではない。\n\nStudio は、JSON を「体験」に変換するためのプラットフォームである。\n\nこの文書の目的は、人間と AI が同じ思想を共有しながら、Studio を壊さず、育て続けるための共通原則を定義することである。\n\n今後、Studio のコードを変更する人間および AI は、まずこの文書を読むこと。\n\n---",
@@ -178,20 +178,29 @@
       "category": "設計パターン",
       "title": "戦略的設計パターン",
       "priority": "high",
-      "verification_status": "確認済み",
+      "verification_status": "未確認",
       "approval_decision": "承認する",
       "approval_stamp": "",
       "approved_by": "",
       "approved_at": "",
-      "summary": "Studio は、戦略的設計パターンを優先する。",
-      "body": "Studio は、戦略的設計パターンを優先する。\n\n見た目や用途が違っても、共通の考え方で扱えるものは、共通のインターフェースとして扱う。\n\n\u0060\u0060\u0060text\nFRB\nAI駆動開発\nAI会話Replay\nMIDI\nテスト実行\n\u0060\u0060\u0060\n\nこれらは一見違うものに見える。\n\nしかし Studio では、すべて Data、ViewDef、Action によって成立する Experience として扱う。\n\n### 3.1 中核パターン\n\nStudio 関連の世界では、次の考え方が繰り返し登場する。\n\n\u0060\u0060\u0060text\ndetectGap()\nexecuteExperience()\nconstraints()\n\u0060\u0060\u0060\n\n- FRB：FFT と体感の差分を検出する\n- AI駆動開発：期待値と実行結果の差分を検出する\n- JSON Studio：Data と View のズレを検出する\n- Replay：思考過程の分岐や違和感を検出する\n- Testing：期待結果と実際の結果の差分を検出する\n\n対象は違う。\n\nしかし、設計思想は共通である。\n\n---",
+      "summary": "共通構造は戦略的設計パターン候補として観測し、責務分離と憲法第29条の実証条件を満たした場合に限り共通インターフェースへ昇格させる。",
+      "body": "Studio は、戦略的設計パターンを優先する。\n\nただし、見た目や用途が似ていることだけを理由に、直ちに共通インターフェースへ抽象化してはならない。\n\n共通の考え方で扱えそうな構造は、まず **戦略的設計パターン候補** として観測する。\n\n### 判断順序\n\n\u0060\u0060\u0060text\n同じ構造・差分を観測する\n  ↓\n責務を分離する\n  ↓\n共通部分と個別部分を説明する\n  ↓\n憲法第29条の実証条件を確認する\n  ↓\n人間が共通インターフェースへの昇格を判断する\n\u0060\u0060\u0060\n\n### 中核パターン候補\n\nStudio 関連の世界では、次の考え方が繰り返し登場する。\n\n\u0060\u0060\u0060text\ndetectGap()\nexecuteExperience()\nconstraints()\n\u0060\u0060\u0060\n\n具体例:\n\n- FRB: FFT と体感の差分を検出する\n- AI駆動開発: 期待値と実行結果の差分を検出する\n- JSON Studio: Data と View のズレを検出する\n- Replay: 思考過程の分岐や違和感を検出する\n- Testing: 期待結果と実際の結果の差分を検出する\n\n対象は違っても、同じ責務構造が実証された場合は共通化候補になり得る。\n\n共通化の実施可否は、憲法第29条「実証なき抽象化の禁止」を正本とする。",
       "ceremony_phrase": "Studioくん憲法 第3条「戦略的設計パターン」を承認する。",
       "user_comment": "",
       "ai_response": "",
       "user_reply": "",
       "ai_followup_response": "",
       "notes": "",
-      "change_history": [],
+      "change_history": [
+        {
+          "history_id": "chg_constitution_03_v01839_001",
+          "at": "2026-08-12T09:20:00\u002B09:00",
+          "change_type": "body_refine",
+          "before": "共通の考え方で扱えるものは、共通のインターフェースとして扱う。",
+          "after": "共通構造は戦略的設計パターン候補として観測し、責務分離・実証・人間判断を経て共通インターフェースへ昇格させる。",
+          "reason": "constitution_29の実証条件と整合させ、戦略的設計パターンを早すぎる抽象化の根拠にしないため。"
+        }
+      ],
       "section_no": "3",
       "parent_rule_id": "",
       "source_heading": "3. 戦略的設計パターン",
@@ -199,7 +208,23 @@
       "source_line_start": 0,
       "source_md_file": "CODING_CONSTRAINTS_ja.md",
       "introduced_in": "0.1-draft",
-      "decision_log": []
+      "decision_log": [
+        {
+          "decision_id": "dec_constitution_03_v01839_001",
+          "at": "2026-08-12T09:20:00\u002B09:00",
+          "decision": "戦略的設計パターンは即時共通化ルールではなく、共通化候補を発見するための観測原則として扱う。",
+          "reason": "責務分離と実証を共通化より先に置くため。",
+          "applied_axes": [
+            "責務分離を共通化より先に行う",
+            "人間の理解可能性"
+          ],
+          "conditions": "共通インターフェース、基底クラス、Registry、Extension Pointの新設を検討する場合。",
+          "exceptions": "constitution_29の実施条件を満たし、人間が採用した場合。",
+          "expected_behavior": "同じ構造を発見しても即共通化せず、候補→責務分離→実証→承認の順で進む。",
+          "acceptance_criteria": "constitution_03がconstitution_29を参照し、即時共通化を要求する表現が残っていないこと。",
+          "confirmation_level": "JSON・静的確認"
+        }
+      ]
     },
     {
       "no": 4,
@@ -238,13 +263,13 @@
       "category": "ViewDef",
       "title": "ViewDef First",
       "priority": "medium",
-      "verification_status": "確認済み",
+      "verification_status": "未確認",
       "approval_decision": "承認する",
       "approval_stamp": "",
       "approved_by": "",
       "approved_at": "",
-      "summary": "ViewDef で表現できるものは、可能な限り ViewDef に寄せる。",
-      "body": "ViewDef で表現できるものは、可能な限り ViewDef に寄せる。\n\n次のようなものをコードに固定してはならない。\n\n- フィールド名\n- チャットの role\n- メッセージ本文のキー\n- 固定列構成\n- 固定ラベル\n- 固定ボタン\n- ドメイン固有の表示名\n\n悪い例：\n\n\u0060\u0060\u0060js\nmessage.user\nmessage.assistant\nmessage.text\n\u0060\u0060\u0060\n\n良い例：\n\n\u0060\u0060\u0060json\n{\n  \u0022chat\u0022: {\n    \u0022roleField\u0022: \u0022speaker\u0022,\n    \u0022textField\u0022: \u0022message\u0022,\n    \u0022timeField\u0022: \u0022timestamp\u0022,\n    \u0022metaFields\u0022: [\u0022pattern\u0022, \u0022event_type\u0022]\n  }\n}\n\u0060\u0060\u0060\n\n---",
+      "summary": "ViewDefには表示構成・接続・選択を宣言し、計算・判定・導出アルゴリズムはRuntimeのComponent / Service側へ分離する。",
+      "body": "ViewDef で表現できる **表示構成・接続・選択** は、可能な限り ViewDef に寄せる。\n\n次のようなものをコードに固定してはならない。\n\n- フィールド名\n- チャットの role\n- メッセージ本文のキー\n- 固定列構成\n- 固定ラベル\n- 固定ボタン\n- ドメイン固有の表示名\n- 利用するComponentの選択\n\n### ViewDefの責務境界\n\nViewDef First は、計算ロジックまでJSONへ押し込むという意味ではない。\n\nViewDefが宣言するもの:\n\n- 何を表示するか\n- どこへ配置するか\n- どのComponent / Action / Rendererを接続するか\n- 表示・編集に必要な設定\n\nViewDefへ埋め込まないもの:\n\n- Expectedの計算\n- TestPatternの導出\n- Validation契約の解決アルゴリズム\n- ドメイン固有の判定ロジック\n- Runnerの実行ロジック\n\nこれらは、UIから独立した Service / Resolver / Deriver 等へ分離する。\n\n悪い例:\n\n\u0060\u0060\u0060js\nmessage.user\nmessage.assistant\nmessage.text\n\u0060\u0060\u0060\n\n良い例:\n\n\u0060\u0060\u0060json\n{\n  \u0022chat\u0022: {\n    \u0022roleField\u0022: \u0022speaker\u0022,\n    \u0022textField\u0022: \u0022message\u0022,\n    \u0022timeField\u0022: \u0022timestamp\u0022,\n    \u0022metaFields\u0022: [\u0022pattern\u0022, \u0022event_type\u0022]\n  }\n}\n\u0060\u0060\u0060\n\nViewDefは **体験の配線図** であり、計算エンジンそのものではない。",
       "ceremony_phrase": "Studioくん憲法 第5条「ViewDef First」を承認する。",
       "user_comment": "",
       "ai_response": "",
@@ -265,14 +290,42 @@
           "after_category": "ViewDef",
           "before_summary": "ViewDef で表現できるものは、可能な限り ViewDef に寄せる。",
           "after_summary": "ViewDef で表現できるものは、可能な限り ViewDef に寄せる。",
-          "before_body": "ViewDef で表現できるものは、可能な限り ViewDef に寄せる。\n\n次のようなものをコードに固定してはならない。\n\n- フィールド名\n- チャットの role\n- メッセージ本文のキー\n- 固定列構成\n- 固定ラベル\n- 固定ボタン\n- ドメイン固有の表示名\n\n悪い例：\n\n\u0060\u0060\u0060js\nmessage.user\nmessage.assistant\nmessage.text\n\u0060\u0060\u0060\n\n良い例：\n\n\u0060\u0060\u0060json\n{\n  \u0022chat\u0022: {\n    \u0022roleField\u0022: \u0022speaker\u0022,\n    \u0022textField\u0022: \u0022message\u0022,\n    \u0022timeField\u0022: \u0022timestamp\u0022,\n    \u0022metaFields\u0022: [\u0022pattern\u0022, \u0022event_type\u0022]\n  }\n}\n\u0060\u0060\u0060\n\n---",
-          "after_body": "ViewDef で表現できるものは、可能な限り ViewDef に寄せる。\n\n次のようなものをコードに固定してはならない。\n\n- フィールド名\n- チャットの role\n- メッセージ本文のキー\n- 固定列構成\n- 固定ラベル\n- 固定ボタン\n- ドメイン固有の表示名\n\n悪い例：\n\n\u0060\u0060\u0060js\nmessage.user\nmessage.assistant\nmessage.text\n\u0060\u0060\u0060\n\n良い例：\n\n\u0060\u0060\u0060json\n{\n  \u0022chat\u0022: {\n    \u0022roleField\u0022: \u0022speaker\u0022,\n    \u0022textField\u0022: \u0022message\u0022,\n    \u0022timeField\u0022: \u0022timestamp\u0022,\n    \u0022metaFields\u0022: [\u0022pattern\u0022, \u0022event_type\u0022]\n  }\n}\n\u0060\u0060\u0060\n\n---",
+          "before_body": "ViewDef で表現できるものは、可能な限り ViewDef に寄せる。  次のようなものをコードに固定してはならない。  - フィールド名 - チャットの role - メッセージ本文のキー - 固定列構成 - 固定ラベル - 固定ボタン - ドメイン固有の表示名  悪い例：  \u0060\u0060\u0060js message.user message.assistant message.text \u0060\u0060\u0060  良い例：  \u0060\u0060\u0060json {   \u0022chat\u0022: {     \u0022roleField\u0022: \u0022speaker\u0022,     \u0022textField\u0022: \u0022message\u0022,     \u0022timeField\u0022: \u0022timestamp\u0022,     \u0022metaFields\u0022: [\u0022pattern\u0022, \u0022event_type\u0022]   } } \u0060\u0060\u0060  ---",
+          "after_body": "ViewDef で表現できるものは、可能な限り ViewDef に寄せる。  次のようなものをコードに固定してはならない。  - フィールド名 - チャットの role - メッセージ本文のキー - 固定列構成 - 固定ラベル - 固定ボタン - ドメイン固有の表示名  悪い例：  \u0060\u0060\u0060js message.user message.assistant message.text \u0060\u0060\u0060  良い例：  \u0060\u0060\u0060json {   \u0022chat\u0022: {     \u0022roleField\u0022: \u0022speaker\u0022,     \u0022textField\u0022: \u0022message\u0022,     \u0022timeField\u0022: \u0022timestamp\u0022,     \u0022metaFields\u0022: [\u0022pattern\u0022, \u0022event_type\u0022]   } } \u0060\u0060\u0060  ---",
           "before_ceremony_phrase": "Studioくん憲法 第5条「ViewDef First」を承認する。",
           "after_ceremony_phrase": "Studioくん憲法 第5条「ViewDef First」を承認する。",
           "reason": "本文と ceremony_phrase は ViewDef First の内容だったが、category/title が Replay Ready になっていたため、メタ情報を補正した。",
           "source_user_comment": "",
           "ai_comment": "条文本文の意味に合わせて、category=ViewDef、title=ViewDef First に変更するのが自然と判断した。",
-          "notes": "本文は変更していない。"
+          "notes": "本文は変更していない。",
+          "at": "",
+          "before": "",
+          "after": ""
+        },
+        {
+          "history_id": "chg_constitution_05_v01839_001",
+          "revision": "",
+          "changed_at": "",
+          "changed_by": "",
+          "change_type": "body_refine",
+          "target_fields": "",
+          "before_title": "",
+          "after_title": "",
+          "before_category": "",
+          "after_category": "",
+          "before_summary": "",
+          "after_summary": "",
+          "before_body": "",
+          "after_body": "",
+          "before_ceremony_phrase": "",
+          "after_ceremony_phrase": "",
+          "reason": "Component Model導入時に、ViewDef Firstを計算ロジックのJSON化と誤解しない境界を明文化するため。",
+          "source_user_comment": "",
+          "ai_comment": "",
+          "notes": "",
+          "at": "2026-08-12T09:20:00\u002B09:00",
+          "before": "ViewDef で表現できるものは、可能な限り ViewDef に寄せる。",
+          "after": "ViewDefは表示構成・接続・選択を宣言し、計算・判定・導出アルゴリズムはComponent / Serviceへ分離する。"
         }
       ],
       "section_no": "5",
@@ -773,20 +826,29 @@
       "category": "ファイル構成",
       "title": "ファイル分割方針",
       "priority": "medium",
-      "verification_status": "確認済み",
+      "verification_status": "未確認",
       "approval_decision": "承認する",
       "approval_stamp": "",
       "approved_by": "",
       "approved_at": "",
-      "summary": "大きなファイルは、責務ごとに分割する。",
-      "body": "大きなファイルは、責務ごとに分割する。\n\n推奨構成例：\n\n\u0060\u0060\u0060text\napp.js\ncore/\n  state.js\n  dataStore.js\n  viewDefLoader.js\n  studioRuntime.js\nrenderers/\n  gridRenderer.js\n  formRenderer.js\n  chatRenderer.js\n  diffRenderer.js\nactions/\n  actionRegistry.js\n  openUrlAction.js\n  replayAction.js\n  runTestAction.js\nfeatures/\n  replayController.js\n  urlLaunch.js\nutils/\n  dom.js\n  jsonPath.js\n  format.js\n\u0060\u0060\u0060\n\n\u0060app.js\u0060 は、起動と配線の層に近づける。\n\n---",
+      "summary": "大きなファイルは責務ごとに分割し、UIライフサイクルを持つComponentとUI非依存のService / Resolver / Deriverを分離する。",
+      "body": "大きなファイルは、責務ごとに分割する。\n\n推奨構成例:\n\n\u0060\u0060\u0060text\napp.js\ncore/\n  state.js\n  dataStore.js\n  viewDefLoader.js\n  studioRuntime.js\nrenderers/\n  gridRenderer.js\n  formRenderer.js\n  chatRenderer.js\n  diffRenderer.js\nactions/\n  actionRegistry.js\n  openUrlAction.js\n  replayAction.js\n  runTestAction.js\ncomponents/\n  ... UIライフサイクルを持つ部品\nservices/\n  ... UI非依存の計算・解決・導出\nfeatures/\n  replayController.js\n  urlLaunch.js\nutils/\n  dom.js\n  jsonPath.js\n  format.js\n\u0060\u0060\u0060\n\n### 分割判断\n\n- Component: mount / update / render / destroy 等のUIライフサイクルを持つ\n- Service: UIへ依存しない処理を提供する\n- Resolver: 複数定義・入力から実効値や契約を解決する\n- Deriver: 正本Dataから派生情報を導出する\n- Renderer: 与えられた表示モデルを描画する\n\n物理フォルダー名・ファイル名は実装時の責務配置に応じて決める。\n\n憲法が固定するのは **責務境界** であり、将来のファイル名そのものではない。\n\n\u0060app.js\u0060 は、起動と配線の層に近づける。",
       "ceremony_phrase": "Studioくん憲法 第19条「ファイル分割方針」を承認する。",
       "user_comment": "",
       "ai_response": "",
       "user_reply": "",
       "ai_followup_response": "",
       "notes": "",
-      "change_history": [],
+      "change_history": [
+        {
+          "history_id": "chg_constitution_19_v01839_001",
+          "at": "2026-08-12T09:20:00\u002B09:00",
+          "change_type": "body_refine",
+          "before": "大きなファイルは責務ごとに分割し、core/renderers/actions/features/utilsを推奨していた。",
+          "after": "ComponentとService / Resolver / Deriverの責務分離を追加し、物理名ではなく責務境界を憲法で固定する方針を明記した。",
+          "reason": "UI Component Modelを導入しても、表示責務と計算責務を同一クラス・同一ファイルへ混在させないため。"
+        }
+      ],
       "section_no": "19",
       "parent_rule_id": "",
       "source_heading": "19. ファイル分割方針",
@@ -804,12 +866,12 @@
       "title": "AI協働ルール",
       "priority": "high",
       "verification_status": "未確認",
-      "approval_decision": "未承認",
+      "approval_decision": "承認する",
       "approval_stamp": "",
       "approved_by": "",
       "approved_at": "",
-      "summary": "AI協働では、作業対象ファイル・確認種別・完了報告・ViewDef安定ファイル名をインシデントJSONに残す。共通化・汎用化・抽象化は自動的に優先せず、責務分離と憲法第29条の実証条件を満たす場合に限り実施候補とする。不要データはactiveから削除し_archiveへ退避する。成果物ZIPではnode_modulesやruntime生成物を除外し、Windowsで安全に展開できる形で返却する。",
-      "body": "AI が Studio のコードを変更する場合、AI は次を守る。\n\n1. まずこの文書を読む\n2. 関係する設計原則を確認する\n3. 変更意図を簡潔に説明する\n4. 無関係な変更をしない\n5. 差分を小さく保つ\n6. 既存動作を守る\n7. Data / ViewDef / Action の分離を優先する\n8. 不確実な点を報告する\n\n---\n\n---\n\n---\n\n### v0.12追記：AI作業対象ファイルとインシデント回答記録\n\nAIがコード、Data JSON、Defs JSON、Rules JSON、Incident JSON、Markdownプロンプト等を更新した場合、更新したファイル名、変更理由、変更概要、対応結果を該当インシデントJSONへ記録する。\n\n記録は、まず既存フィールドや自然文で扱える範囲を優先する。管理項目を増やしすぎず、必要に応じて \u0060target_files\u0060、\u0060latest_ai_response\u0060、\u0060discussion_history\u0060、\u0060change_history\u0060 などへテキストとして残す。\n\nroot \u0060data/\u0060 / \u0060defs/\u0060 は一律変更禁止ではない。作業目的に必要な場合、AIは更新してよい。特に \u0060data/json/01_main/studio_work_incident_data_*.json\u0060 のようなインシデント管理データは、作業結果を収録する対象になり得る。\n\nただし、AIが更新したファイル・変更理由・実施結果は、人間が後から追える形で開示する。\n\n一方、\u0060wwwroot/data\u0060 / \u0060wwwroot/defs\u0060 は GitHub Pages 等の公開用静的領域として扱うため、明示依頼がない限り更新しない。\n\nインシデント対応後のAI完了報告は、会話上だけに流さず、該当インシデントJSONの \u0060latest_ai_response\u0060 等にも残す。\n\n---\n\n### v0.14追記：判断ログ・確認種別・最新ソース・ViewDef安定ファイル名\n\nAIが判断ログを残す場合は、\u0060decision\u0060 / \u0060reason\u0060 だけで終わらせず、必要に応じて \u0060applied_axes\u0060、\u0060conditions\u0060、\u0060exceptions\u0060、\u0060expected_behavior\u0060、\u0060acceptance_criteria\u0060、\u0060test_pattern_seed\u0060、\u0060discarded_options\u0060、\u0060remaining_risks\u0060、\u0060axis_update_candidate\u0060 を残す。\n\nAIが「確認した」と報告する場合は、確認種別を明示する。少なくとも、静的確認、JSON parse、ビルド確認、ローカル起動確認、スクショ確認、Playwright確認、推定確認、ユーザー実機確認待ちを混同しない。\n\nC# / .NET / Program.cs の修正では、AI側の \u0060dotnet build\u0060 / \u0060dotnet run\u0060 を必須にしない。ただし、実施したか、未実施か、未実施なら理由をインシデントJSONの作業記録へ残す。\n\nAIは、最新ソースを実ファイルとして確認できない場合、実装修正を行わない。会話文脈、前回チャットの記憶、過去のファイル名を、最新ソース確認の代替として扱わない。\n\n既存Data JSONから参照されている ViewDef / DefView ファイルは、原則として同じファイル名のまま更新する。ViewDefファイル名は、Data JSON の \u0060view_def\u0060 参照、URL起動、GitHub Pages、GitDiff確認の接続キーである。\n\nAIは、通常のViewDef改善・表示項目追加・Markdown出力設定変更などで、新しいViewDefファイル名を勝手に作成しない。新しいViewDef名を作成してよいのは、ユーザーが明示した場合、互換性を意図的に切る場合、または既存ViewDefと並行運用する明確な理由がある場合に限る。その場合も、Data JSON側の \u0060view_def\u0060 参照更新、影響範囲、GitDiff上の扱いをインシデントに記録する。\n\n\n---\n\n### v0.14.13追記：共通化・archive退避・ファイル名維持\n\nAIは、構造・表示・検証・出力の共通化・汎用化・抽象化を、自動的に優先してはならない。\n\nまず責務を分離し、実際に観測された差分を確認する。憲法第29条「実証なき抽象化の禁止」に定める実施条件を満たす場合に限り、共通化を実施候補とする。\n\n条件を満たさない場合、または満たすか判断できない場合は、個別実装を維持する。将来候補として記録することは許可するが、実在しない未来要件を根拠として現在の実装へ先行投入してはならない。\n\n複数責務へ影響する共通化を行う場合は、共通部分・個別部分・期待する削減効果・残存リスクを示し、人間レビューを受ける。\n\n古いデータ・不要と思われるデータ・移行済み旧パスは、成果物のactive領域から削除して返却することを基本とする。\nただし、完全削除ではなく、ルートの \u0060_archive/{削除日時}/\u0060 配下へ、元の相対パスが追える形で退避する。\n\nルール系統およびViewDefを修正する場合は、原則としてファイル名を変更しない。\n既存参照、URL起動、GitHub raw URL、GitDiff確認、作業履歴を壊さないためである。\n\nファイル名変更が必要な場合は、人間へ確認し、理由・影響範囲・参照更新をインシデントJSONへ記録する。\n\n---\n\n### v0.14.18追記：成果物ZIP安全返却とcleanup\n\nAIが成果物ZIPを返却する場合、作業に必要なactiveファイルだけを含め、再生成可能なruntime生成物を混ぜない。\n\n成果物ZIPには、原則として以下を含めない。\n\n\u0060\u0060\u0060text\nnode_modules/\nplaywright-report/\ntest-results/\ntest_results/\ntests/.runtime/\ntests_screen_state/\n\u0060\u0060\u0060\n\n\u0060node_modules/\u0060 は依存ライブラリであり、AIの返却成果物ではない。\nPlaywrightやNode testの実行結果フォルダーはruntime一時生成物であり、証跡正本ではない。\nExpected / Actual / Diff / Test Patternなどの証跡正本は \u0060data/json/03_tests/\u0060 に置き、runtime生成物と混ぜない。\n\n返却前には、JSON parse、不要生成物混入有無、Windowsで問題になりやすい長大パス、旧パス罠フォルダーの残存、更新済みインシデントJSON収録を確認する。\n\n旧パス・不要データはactiveから外し、判断履歴として残すべきものは \u0060_archive/{削除日時}/\u0060 へ退避する。\nただしruntime生成物は再生成可能なため、原則としてarchiveせず削除・除外する。\n",
+      "summary": "AI協働では、作業対象・確認種別・完了報告をインシデントJSONに残し、共通化は憲法第29条、記述形式は憲法第32条に従う。成果物ZIPではruntime生成物を除外する。",
+      "body": "AI が Studio のコードを変更する場合、AI は次を守る。\n\n1. まずこの文書を読む\n2. 関係する設計原則を確認する\n3. 変更意図を簡潔に説明する\n4. 無関係な変更をしない\n5. 差分を小さく保つ\n6. 既存動作を守る\n7. Data / ViewDef / Action の分離を優先する\n8. 不確実な点を報告する\n\n---\n\n---\n\n---\n\n### v0.12追記：AI作業対象ファイルとインシデント回答記録\n\nAIがコード、Data JSON、Defs JSON、Rules JSON、Incident JSON、Markdownプロンプト等を更新した場合、更新したファイル名、変更理由、変更概要、対応結果を該当インシデントJSONへ記録する。\n\n記録は、まず既存フィールドや自然文で扱える範囲を優先する。管理項目を増やしすぎず、必要に応じて \u0060target_files\u0060、\u0060latest_ai_response\u0060、\u0060discussion_history\u0060、\u0060change_history\u0060 などへテキストとして残す。\n\nroot \u0060data/\u0060 / \u0060defs/\u0060 は一律変更禁止ではない。作業目的に必要な場合、AIは更新してよい。特に \u0060data/json/01_main/studio_work_incident_data_*.json\u0060 のようなインシデント管理データは、作業結果を収録する対象になり得る。\n\nただし、AIが更新したファイル・変更理由・実施結果は、人間が後から追える形で開示する。\n\n一方、\u0060wwwroot/data\u0060 / \u0060wwwroot/defs\u0060 は GitHub Pages 等の公開用静的領域として扱うため、明示依頼がない限り更新しない。\n\nインシデント対応後のAI完了報告は、会話上だけに流さず、該当インシデントJSONの \u0060latest_ai_response\u0060 等にも残す。\n\n---\n\n### v0.14追記：判断ログ・確認種別・最新ソース・ViewDef安定ファイル名\n\nAIが判断ログを残す場合は、\u0060decision\u0060 / \u0060reason\u0060 だけで終わらせず、必要に応じて \u0060applied_axes\u0060、\u0060conditions\u0060、\u0060exceptions\u0060、\u0060expected_behavior\u0060、\u0060acceptance_criteria\u0060、\u0060test_pattern_seed\u0060、\u0060discarded_options\u0060、\u0060remaining_risks\u0060、\u0060axis_update_candidate\u0060 を残す。\n\nAIが「確認した」と報告する場合は、確認種別を明示する。少なくとも、静的確認、JSON parse、ビルド確認、ローカル起動確認、スクショ確認、Playwright確認、推定確認、ユーザー実機確認待ちを混同しない。\n\nC# / .NET / Program.cs の修正では、AI側の \u0060dotnet build\u0060 / \u0060dotnet run\u0060 を必須にしない。ただし、実施したか、未実施か、未実施なら理由をインシデントJSONの作業記録へ残す。\n\nAIは、最新ソースを実ファイルとして確認できない場合、実装修正を行わない。会話文脈、前回チャットの記憶、過去のファイル名を、最新ソース確認の代替として扱わない。\n\n既存Data JSONから参照されている ViewDef / DefView ファイルは、原則として同じファイル名のまま更新する。ViewDefファイル名は、Data JSON の \u0060view_def\u0060 参照、URL起動、GitHub Pages、GitDiff確認の接続キーである。\n\nAIは、通常のViewDef改善・表示項目追加・Markdown出力設定変更などで、新しいViewDefファイル名を勝手に作成しない。新しいViewDef名を作成してよいのは、ユーザーが明示した場合、互換性を意図的に切る場合、または既存ViewDefと並行運用する明確な理由がある場合に限る。その場合も、Data JSON側の \u0060view_def\u0060 参照更新、影響範囲、GitDiff上の扱いをインシデントに記録する。\n\n\n---\n\n### v0.14.13追記：共通化・archive退避・ファイル名維持\n\nAIは、構造・表示・検証・出力の共通化・汎用化・抽象化を、自動的に優先してはならない。\n\nまず責務を分離し、実際に観測された差分を確認する。憲法第29条「実証なき抽象化の禁止」に定める実施条件を満たす場合に限り、共通化を実施候補とする。\n\n条件を満たさない場合、または満たすか判断できない場合は、個別実装を維持する。将来候補として記録することは許可するが、実在しない未来要件を根拠として現在の実装へ先行投入してはならない。\n\n複数責務へ影響する共通化を行う場合は、共通部分・個別部分・期待する削減効果・残存リスクを示し、人間レビューを受ける。\n\n古いデータ・不要と思われるデータ・移行済み旧パスは、成果物のactive領域から削除して返却することを基本とする。\nただし、完全削除ではなく、ルートの \u0060_archive/{削除日時}/\u0060 配下へ、元の相対パスが追える形で退避する。\n\nルール系統およびViewDefを修正する場合は、原則としてファイル名を変更しない。\n既存参照、URL起動、GitHub raw URL、GitDiff確認、作業履歴を壊さないためである。\n\nファイル名変更が必要な場合は、人間へ確認し、理由・影響範囲・参照更新をインシデントJSONへ記録する。\n\n---\n\n### v0.14.18追記：成果物ZIP安全返却とcleanup\n\nAIが成果物ZIPを返却する場合、作業に必要なactiveファイルだけを含め、再生成可能なruntime生成物を混ぜない。\n\n成果物ZIPには、原則として以下を含めない。\n\n\u0060\u0060\u0060text\nnode_modules/\nplaywright-report/\ntest-results/\ntest_results/\ntests/.runtime/\ntests_screen_state/\n\u0060\u0060\u0060\n\n\u0060node_modules/\u0060 は依存ライブラリであり、AIの返却成果物ではない。\nPlaywrightやNode testの実行結果フォルダーはruntime一時生成物であり、証跡正本ではない。\nExpected / Actual / Diff / Test Patternなどの証跡正本は \u0060data/json/03_tests/\u0060 に置き、runtime生成物と混ぜない。\n\n返却前には、JSON parse、不要生成物混入有無、Windowsで問題になりやすい長大パス、旧パス罠フォルダーの残存、更新済みインシデントJSON収録を確認する。\n\n旧パス・不要データはactiveから外し、判断履歴として残すべきものは \u0060_archive/{削除日時}/\u0060 へ退避する。\nただしruntime生成物は再生成可能なため、原則としてarchiveせず削除・除外する。\n\n\n---\n\n### v0.18.39追記：構造化記述\n\nAIがインシデント、判断ログ、ルール、作業結果、確認結果を自然文で記録する場合も、憲法第32条「構造化記述の原則」に従う。\n\n複数の独立した意味単位を一文へ連結せず、次の内容は原則として箇条書きまたは番号付きリストへ分解する。\n\n- 変更内容\n- 変更理由\n- 対象ファイル\n- 判断事項\n- 制約\n- 確認結果\n- 残課題\n- リスク\n- 次作業\n",
       "ceremony_phrase": "Studioくん憲法 第20条「AI協働ルール」を承認する。",
       "user_comment": "",
       "ai_response": "",
@@ -841,7 +903,8 @@
           "change_type": "body_append",
           "before": "判断ログ標準項目、AI確認種別、最新ソース確認、ViewDef安定ファイル名の運用ルールがAI協働ルールにまとまっていなかった。",
           "after": "v0.14追記として、判断ログ拡張、確認種別明示、C#実行確認非必須だが記録必須、最新ソース未確認時の実装修正禁止、ViewDefファイル名原則維持を追加。",
-          "reason": "v0.14.0-decision-log-confirmation-governance により、AI作業の透明性とGitDiff/参照安定性を守るため。"
+          "reason": "v0.14.0-decision-log-confirmation-governance により、AI作業の透明性とGitDiff/参照安定性を守るため。",
+          "comment": ""
         },
         {
           "history_id": "chg_constitution_20_v01413_001",
@@ -849,7 +912,8 @@
           "change_type": "body_append",
           "before": "共通化優先、過剰共通化時の人間相談、不要データの_archive退避、ルール/ViewDefファイル名維持がAI協働ルールにまとまっていなかった。",
           "after": "v0.14.13追記として、共通化優先・人間相談・archive退避・ファイル名維持を追加。",
-          "reason": "Step 4-A/4-Bで、JSを広げるよりデータ契約を揃えること、旧パスを残す危険、ViewDef/Ruleファイル名変更の副作用が明確になったため。"
+          "reason": "Step 4-A/4-Bで、JSを広げるよりデータ契約を揃えること、旧パスを残す危険、ViewDef/Ruleファイル名変更の副作用が明確になったため。",
+          "comment": ""
         },
         {
           "history_id": "chg_constitution_20_v01418_001",
@@ -857,7 +921,8 @@
           "change_type": "body_append",
           "before": "AI協働ルールには成果物ZIPの不要生成物除外とWindows解凍安全性のチェックが独立した実務ルールとしてまとまっていなかった。",
           "after": "v0.14.18追記として、node_modules/Playwright生成物/tests/.runtime/tests_screen_stateをZIPへ含めない、JSON parse/長大パス/旧パス残存/更新済みインシデント収録を返却前に確認するルールを追加した。",
-          "reason": "成果物ZIPへruntime生成物や長大パスが混入すると、Windows解凍エラーや旧フォルダー誤参照を引き起こすため。"
+          "reason": "成果物ZIPへruntime生成物や長大パスが混入すると、Windows解凍エラーや旧フォルダー誤参照を引き起こすため。",
+          "comment": ""
         },
         {
           "history_id": "chg_constitution_20_v01831_001",
@@ -865,7 +930,17 @@
           "change_type": "body_refine",
           "before": "構造・表示・検証・出力が共通化できる場合は、原則として共通化を優先し、過剰共通化の疑いがある場合に人間へ相談する。",
           "after": "共通化を自動的に優先せず、責務分離と憲法第29条の実証条件を満たす場合に限り実施候補とする。条件不明時は個別実装を維持する。",
-          "reason": "実在しない未来要件、責務未分離、一度しか観測されていないパターンを根拠とする早すぎる抽象化を防ぐため。"
+          "reason": "実在しない未来要件、責務未分離、一度しか観測されていないパターンを根拠とする早すぎる抽象化を防ぐため。",
+          "comment": ""
+        },
+        {
+          "history_id": "chg_constitution_20_v01839_001",
+          "at": "2026-08-12T09:20:00\u002B09:00",
+          "change_type": "body_append",
+          "before": "自然文中心で記録する方針はあったが、複数事項を箇条書きへ分解する全体ルールへの参照がなかった。",
+          "after": "AI作業記録はconstitution_32の構造化記述原則に従い、複数の意味単位を箇条書きまたは番号付きリストへ分解する。",
+          "reason": "Incident JSON等の横に長い文章を減らし、人間が短時間で差分・判断・確認結果を拾えるようにするため。",
+          "comment": ""
         }
       ],
       "updated_at": "2026-07-25",
@@ -881,13 +956,25 @@
           "decision_id": "dec_constitution_20_v01413_001",
           "at": "2026-06-27",
           "decision": "共通化は原則優先するが、過剰共通化の疑いがある場合は人間へ相談する。",
-          "reason": "AIが一見きれいな共通化を進めすぎると、将来のドメイン差分や意味の違いを潰す可能性があるため。"
+          "reason": "AIが一見きれいな共通化を進めすぎると、将来のドメイン差分や意味の違いを潰す可能性があるため。",
+          "applied_axes": null,
+          "conditions": "",
+          "exceptions": "",
+          "expected_behavior": "",
+          "acceptance_criteria": "",
+          "confirmation_level": ""
         },
         {
           "decision_id": "dec_constitution_20_v01418_001",
           "at": "2026-06-27",
           "decision": "成果物ZIPには再生成可能なruntime生成物を含めない。",
-          "reason": "AI返却物は作業成果と証跡正本に絞るべきであり、node_modulesやPlaywrightレポートは巨大化・長大パス・誤解凍の原因になるため。"
+          "reason": "AI返却物は作業成果と証跡正本に絞るべきであり、node_modulesやPlaywrightレポートは巨大化・長大パス・誤解凍の原因になるため。",
+          "applied_axes": null,
+          "conditions": "",
+          "exceptions": "",
+          "expected_behavior": "",
+          "acceptance_criteria": "",
+          "confirmation_level": ""
         },
         {
           "decision_id": "dec_constitution_20_v01831_001",
@@ -1350,12 +1437,12 @@
       "title": "実証なき抽象化の禁止",
       "priority": "high",
       "verification_status": "未確認",
-      "approval_decision": "未承認",
+      "approval_decision": "承認する",
       "approval_stamp": "",
       "approved_by": "",
       "approved_at": "",
-      "summary": "汎用化・共通化・抽象化を目的化しない。実在する複数差分、明確な責務境界、人間の理解可能性、実装量または事故リスクの削減を説明できる場合に限り実施候補とする。",
-      "body": "汎用化・共通化・抽象化は、それ自体を目的として行ってはならない。\n\nStudioくんでは、現在確認できる責務と差分を根拠とし、人間が構造を理解でき、実装量または事故リスクを実際に減らせる場合に限り、抽象化を実施候補とする。\n\n### 原則禁止\n\n次のいずれかに該当する汎用化・共通化・抽象化は行わない。\n\n1. 実在しない未来要件を前提としている\n2. 対象となる責務が明確に分離されていない\n3. 一度しか観測されていないパターンを根拠としている\n\n### 実施条件\n\n汎用化・共通化・抽象化は、次の条件をすべて説明できる場合に限り実施候補とする。\n\n1. 同種の差分が複数回、実際に観測されている\n2. 共通部分と個別部分を明確に説明できる\n3. 汎用化後も、人間が構造と責務を理解できる\n4. 今回または継続的な作業において、実装量または事故リスクが実際に低下する\n\n### 判断順序\n\n\u0060\u0060\u0060text\n責務を分離する\n  ↓\n同種の差分を複数回観測する\n  ↓\n共通部分と個別部分を説明する\n  ↓\n削減できる実装量または事故リスクを示す\n  ↓\n人間が共通化の採否を判断する\n\u0060\u0060\u0060\n\n### 判断保留\n\n実施条件を満たすか判断できない場合は、抽象化せず個別実装を維持する。\n\n将来候補として判断ログまたはインシデントへ記録することは許可するが、現在の実装へ先行投入してはならない。\n\n共通化によって人間の理解可能性が下がる場合は、実装量が減るように見えても採用しない。",
+      "summary": "汎用化・共通化・抽象化を目的化しない。未来想定だけのExtension Pointを禁止し、現在の具体責務と共通ライフサイクルを説明できる場合に限り実施候補とする。",
+      "body": "汎用化・共通化・抽象化は、それ自体を目的として行ってはならない。\n\nStudioくんでは、現在確認できる責務と差分を根拠とし、人間が構造を理解でき、実装量または事故リスクを実際に減らせる場合に限り、抽象化を実施候補とする。\n\n### 原則禁止\n\n次のいずれかに該当する汎用化・共通化・抽象化は行わない。\n\n1. 実在しない未来要件だけを前提としている\n2. 対象となる責務が明確に分離されていない\n3. 一度しか観測されていないパターンだけを根拠としている\n4. 将来使うかもしれないという理由だけで Extension Point / Registry / 基底クラスを先行投入する\n\n### 実施条件\n\n汎用化・共通化・抽象化は、次の条件をすべて説明できる場合に限り実施候補とする。\n\n1. 同種の差分または接続要求が複数の具体責務で確認できる\n2. 共通部分と個別部分を明確に説明できる\n3. 共通ライフサイクルまたは共通接続契約を説明できる\n4. 汎用化後も、人間が構造と責務を理解できる\n5. 今回または継続的な作業において、実装量または事故リスクが実際に低下する\n\nここでいう「具体責務」には、次を含む。\n\n- 現在すでに実装されている責務\n- 現在着手している承認済み作業スコープ内で、入力・出力・責務が具体化している複数の実装対象\n\n将来いつか使うかもしれない用途は、具体責務には含めない。\n\n### 判断順序\n\n\u0060\u0060\u0060text\n責務を分離する\n  ↓\n複数の具体責務で同種の差分・接続要求を確認する\n  ↓\n共通部分・個別部分・ライフサイクルを説明する\n  ↓\n削減できる実装量または事故リスクを示す\n  ↓\n人間が共通化の採否を判断する\n\u0060\u0060\u0060\n\n### 判断保留\n\n実施条件を満たすか判断できない場合は、抽象化せず個別実装を維持する。\n\n将来候補として判断ログまたはインシデントへ記録することは許可するが、現在の実装へ先行投入してはならない。\n\n共通化によって人間の理解可能性が下がる場合は、実装量が減るように見えても採用しない。",
       "ceremony_phrase": "Studioくん憲法 第29条「実証なき抽象化の禁止」を承認する。",
       "user_comment": "狂気の汎用化を消すのではなく、実装へ発火させる条件をルールとして残したい。",
       "ai_response": "新規ファイルを増やさず、憲法へ実証なき抽象化の禁止と実施条件を追加した。",
@@ -1370,6 +1457,14 @@
           "before": "共通化を原則優先する既存表現はあったが、早すぎる汎用化・共通化・抽象化を止める禁止条件と実施条件が明文化されていなかった。",
           "after": "実証なき抽象化を禁止し、3つの原則禁止条件、4つの実施条件、判断順序、判断保留時の扱いを憲法第29条として追加した。",
           "reason": "オーバーエンジニアリングを防ぎつつ、実際に価値のある汎用化能力は失わないため。"
+        },
+        {
+          "history_id": "chg_constitution_29_v01839_001",
+          "at": "2026-08-12T09:20:00\u002B09:00",
+          "change_type": "body_refine",
+          "before": "未来要件、責務未分離、一度しか観測されていないパターンを根拠とする抽象化を禁止していた。",
+          "after": "将来用途だけのExtension Point / Registry / 基底クラス先行投入を明示禁止し、現在スコープ内で具体化済みの複数責務と共通ライフサイクルを説明できる場合の実施条件を追加した。",
+          "reason": "Component Modelを未来想定で作るのではなく、現在必要な複数Componentの接続責務を根拠に判断できるようにするため。"
         }
       ],
       "section_no": 29,
@@ -1407,7 +1502,7 @@
       "title": "FieldType / FieldGroupType 品質継承契約",
       "priority": "high",
       "verification_status": "未確認",
-      "approval_decision": "未承認",
+      "approval_decision": "承認する",
       "approval_stamp": "",
       "approved_by": "",
       "approved_at": "",
@@ -1486,6 +1581,119 @@
         }
       ],
       "updated_at": "2026-07-26"
+    },
+    {
+      "no": 31,
+      "rule_id": "constitution_31",
+      "section_id": "constitution_31",
+      "category": "UI Architecture",
+      "title": "Component / Service 責務分離契約",
+      "priority": "high",
+      "verification_status": "未確認",
+      "approval_decision": "承認する",
+      "approval_stamp": "",
+      "approved_by": "",
+      "approved_at": "",
+      "summary": "Studio標準Editorを汎用Component Hostとして保ち、特殊UIはComponentへ、計算・解決・導出はUI非依存Serviceへ分離する。PreviewとRunner等は同じServiceを共有する。",
+      "body": "### 目的\n\nStudio Coreは、特定ドメイン専用Editorではなく、構造化Dataを人間とAIが確認・編集・差分レビューできる汎用AI協働基盤として維持する。\n\nDefinition Verification等の用途固有機能は、Studio Coreそのものではなく **Standard Capability** として接続する。\n\n### 標準Editorの責務\n\n標準Editorが持つ責務:\n\n- Componentを配置する\n- 現在のEditor ContextをComponentへ渡す\n- Componentの更新・破棄ライフサイクルを管理する\n\n標準Editorが直接持たない責務:\n\n- Expectedの計算\n- TestPatternの導出\n- Validation Type固有処理\n- ドメイン固有の表示分岐\n- Component IDごとの個別if分岐\n\n### Componentの責務\n\n特殊な表示・操作はComponentとしてカプセル化する。\n\nComponentは、必要なServiceを呼び出して表示モデルを受け取り、UIとして表現する。\n\nComponent内部へ、Runner等でも必要になる計算・判定・導出ロジックを複製してはならない。\n\n### Service / Resolver / Deriverの責務\n\n- Service: 複数の計算・解決・導出を組み合わせ、Capabilityとして利用できる処理を提供する\n- Resolver: 定義・Override・入力から実効契約を解決する\n- Deriver: 正本DataからTestPattern等の派生情報を導出する\n\nこれらは原則としてUIへ依存しない。\n\n同じ導出結果をEditor PreviewとTest Runnerが利用する場合、両者は同じService / Resolver / Deriverを呼ぶ。\n\n\u0060\u0060\u0060text\n                    ┌─ Preview Component\n                    │\nDefinition ─ Service ┤\n                    │\n                    └─ Test Runner\n\u0060\u0060\u0060\n\n### SubGrid Componentの基本分類\n\n- DataSubGridComponent: 正本Dataに実在する配列を表示・編集する\n- DerivedSubGridComponent: Service等から導出した情報を表示する\n\nDerivedSubGridComponentの表示結果は、別途保存契約が定義されない限り、正本Dataへ自動保存しない。\n\n### Component接続\n\nComponentの生成・接続は、Host / Registry等の共通接続機構を通す。\n\n標準Editor本体へ、Capability固有Componentの生成ロジックを直接追加しない。\n\n### クラスモデル\n\nUIライフサイクルを持つComponentは、次の浅いクラス構造を標準候補とする。\n\n\u0060\u0060\u0060text\nStudioComponent\n  └─ EditorComponent\n      └─ SubGridComponent\n          ├─ DataSubGridComponent\n          └─ DerivedSubGridComponent\n\u0060\u0060\u0060\n\n継承を深くしすぎず、意味の違い・計算責務はCompositionで分離する。\n\n物理ファイル名、配置先、具体的メソッド名は実装時に決定し、憲法では責務境界と接続原則を正本とする。",
+      "ceremony_phrase": "Studioくん憲法 第31条「Component / Service 責務分離契約」を承認する。",
+      "user_comment": "特殊SubGridをComponentとしてカプセル化し、標準Editorへ簡単に接続できる構造を先に作る。期待値等の共通計算はComponentへ埋め込まず、PreviewとRunnerから同じ共通処理を呼びたい。",
+      "ai_response": "Studio Coreを汎用AI協働基盤のまま保つため、標準Editor=Host、特殊UI=Component、計算=Service / Resolver / Deriverとして責務分離する。",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "notes": "意味のある新規条文であるため、AIは承認せず人間再承認待ちとする。具体的なComponent実装はstudio_work_0163以降。",
+      "change_history": [
+        {
+          "history_id": "chg_constitution_31_v01839_001",
+          "at": "2026-08-12T09:20:00\u002B09:00",
+          "change_type": "rule_added",
+          "before": "標準Editorへ用途固有UIを接続する共通Component契約と、Component / Serviceの責務境界が憲法上に存在しなかった。",
+          "after": "標準Editor=Component Host、特殊UI=Component、計算=Service / Resolver / Deriverとする責務分離契約を第31条として追加した。",
+          "reason": "Definition Verificationを最初のStandard Capabilityとして載せてもStudio Coreを用途専用基盤へ固定しないため。"
+        }
+      ],
+      "section_no": 31,
+      "parent_rule_id": "",
+      "source_heading": "Component / Service 責務分離契約",
+      "source_heading_level": 2,
+      "source_line_start": null,
+      "source_md_file": "frb_coding_constraints_data_v0_3.json",
+      "introduced_in": "v0.18.39-component-governance-and-structured-writing",
+      "decision_log": [
+        {
+          "decision_id": "dec_constitution_31_v01839_001",
+          "at": "2026-08-12T09:20:00\u002B09:00",
+          "decision": "標準EditorはCapability固有ロジックを直接持たず、Component Hostとして振る舞う。",
+          "reason": "Studio Coreを汎用AI協働基盤として維持し、用途固有機能をStandard Capabilityとして着脱可能にするため。",
+          "applied_axes": [
+            "責務分離",
+            "Studio Coreの汎用性",
+            "人間の理解可能性"
+          ],
+          "conditions": "標準Editorへ特殊表示・操作を追加する場合。",
+          "exceptions": "単純な既存Data SubGrid等、既存標準契約だけで表現できる場合。",
+          "expected_behavior": "特殊UI追加時に標準EditorへCapability固有if分岐を増やさない。",
+          "acceptance_criteria": "ComponentとServiceの責務、Host / Registry接続、Preview / RunnerのService共有が条文に存在すること。",
+          "confirmation_level": "JSON・設計レビュー"
+        }
+      ],
+      "updated_at": "2026-08-12T09:20:00\u002B09:00"
+    },
+    {
+      "no": 32,
+      "rule_id": "constitution_32",
+      "section_id": "constitution_32",
+      "category": "人間可読性",
+      "title": "構造化記述の原則",
+      "priority": "high",
+      "verification_status": "未確認",
+      "approval_decision": "承認する",
+      "approval_stamp": "",
+      "approved_by": "",
+      "approved_at": "",
+      "summary": "独立した複数の意味単位を一文へ連結しない。箇条書きにできる変更内容・理由・対象・判断・確認結果・リスク・次作業は、原則として必ず箇条書きまたは番号付きリストへ分解する。",
+      "body": "Studioにおける文書・ルール・インシデント・判断ログ・AI作業記録は、人間が短時間で意味単位を認識できる構造を優先する。\n\n### 必須原則\n\n独立した複数の意味単位を、一つの長い文章へ連結してはならない。\n\n箇条書きにできる内容は、原則として **必ず箇条書きまたは番号付きリスト** に分解する。\n\n特に次の情報は、一項目ずつ分離して記載する。\n\n- 変更内容\n- 変更理由\n- 対象ファイル\n- 対象機能\n- 判断事項\n- 判断軸\n- 制約\n- 確認結果\n- 残課題\n- リスク\n- 次の作業\n- 採用案 / 不採用案\n\n### 自然文を使う場合\n\n次のように、文章としての連続性そのものに意味がある内容は自然文で記載してよい。\n\n- 背景説明\n- 一つの理由を段階的に説明する文章\n- 物語・会話・引用\n- 一つの概念を説明する連続した論述\n\nただし、その中に独立した複数事項が現れた場合は、箇条書きへ分離する。\n\n### 目的\n\n目的は文字数を減らすことではない。\n\n意味の単位を視覚的に分離し、人間が次を拾いやすくすることである。\n\n- 差分\n- 判断\n- 制約\n- 確認結果\n- 残課題\n\n長文を短文化するのではなく、**判断可能な単位へ構造化する**。",
+      "ceremony_phrase": "Studioくん憲法 第32条「構造化記述の原則」を承認する。",
+      "user_comment": "インシデントに限らず、箇条書きにできるものは必ず箇条書きにする全体共通ルールにしたい。",
+      "ai_response": "インシデント専用ルールではなく、人間可読性と意味単位分離の全体原則として憲法へ追加する。",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "notes": "意味のある新規条文であるため、AIは承認せず人間再承認待ちとする。Incident Promptからも本条を参照する。",
+      "change_history": [
+        {
+          "history_id": "chg_constitution_32_v01839_001",
+          "at": "2026-08-12T09:20:00\u002B09:00",
+          "change_type": "rule_added",
+          "before": "自然文記録は許可されていたが、独立した複数事項を箇条書きへ分解する全体共通原則がなかった。",
+          "after": "箇条書きにできる独立事項は原則として必ず箇条書きまたは番号付きリストへ分解する第32条を追加した。",
+          "reason": "横に長い文章を減らし、人間が差分・判断・確認結果を短時間で認識できるようにするため。"
+        }
+      ],
+      "section_no": 32,
+      "parent_rule_id": "",
+      "source_heading": "構造化記述の原則",
+      "source_heading_level": 2,
+      "source_line_start": null,
+      "source_md_file": "frb_coding_constraints_data_v0_3.json",
+      "introduced_in": "v0.18.39-component-governance-and-structured-writing",
+      "decision_log": [
+        {
+          "decision_id": "dec_constitution_32_v01839_001",
+          "at": "2026-08-12T09:20:00\u002B09:00",
+          "decision": "箇条書き優先をインシデント専用ではなくStudio全体の構造化記述原則とする。",
+          "reason": "同じ可読性問題がルール、判断ログ、AI作業記録等にも発生するため。",
+          "applied_axes": [
+            "人間の視認性を最優先",
+            "意味単位の分離"
+          ],
+          "conditions": "一つの記録欄に独立した複数事項を記載する場合。",
+          "exceptions": "文章の連続性そのものに意味がある背景説明・論述・物語等。",
+          "expected_behavior": "変更内容、理由、確認結果、残課題等が一文に連結されず、項目単位で読める。",
+          "acceptance_criteria": "対象例と自然文例外が条文に明記され、Incident Promptから参照されること。",
+          "confirmation_level": "JSON・設計レビュー"
+        }
+      ],
+      "updated_at": "2026-08-12T09:20:00\u002B09:00"
     }
   ],
   "review_notes": [
@@ -1585,8 +1793,8 @@
       "body": "governance_itemsへdecision_axis_small_meaningful_diff_approval_firstを追加した。AI承認駆動開発の北極星として、人間が意味・責務・影響範囲を判断できる最小十分な差分を優先する。単なる過細分化は避け、標準＋override/diffにより変更部分だけを保存・提示する。Validation Typeを基準として項目定義XXX.jsonへ個別変更差分だけを保存する設計判断の上位根拠とする。"
     }
   ],
-  "review_revision": "v0.18.35-small-meaningful-diff-approval-north-star",
-  "updated": "2026-07-26",
+  "review_revision": "v0.18.39-component-governance-and-structured-writing",
+  "updated": "2026-08-12",
   "change_history_policy": "レビューで条文・仕様を変更した場合は、対象行の change_history に変更前・変更後・理由・会話を保存する。変更後だけを残さず、修正元を追体験できる状態にする。",
   "viewing_policy": {
     "data_json_role": "原本",
@@ -1627,5 +1835,5 @@
     }
   ],
   "markdown_export_body": "",
-  "updated_at": "2026-07-26"
+  "updated_at": "2026-08-12T09:20:00\u002B09:00"
 }

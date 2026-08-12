@@ -13,3 +13,8 @@ AIやスクリプトが直接取得するためのraw/archive URL:
 
 FRB Studio Foundation Rules の foundation_rule_019「GitHub基準ソースとZIP返却契約」を参照してください。
 
+記載形式:
+- Studioくん憲法 constitution_32「構造化記述の原則」に従う。
+- 複数の変更内容・理由・対象・判断・確認結果・残課題・リスク・次作業は、原則として箇条書きまたは番号付きリストで記載する。
+- 独立した複数事項を、一つの長い文章へ連結しない。
+

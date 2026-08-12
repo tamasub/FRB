@@ -13,8 +13,8 @@
   "status": "converted_draft",
   "introduced_in": "v0.4-r001",
   "generated_at": "2026-06-26T00:00:00\u002B09:00",
-  "rule_count": 25,
-  "approved_count": 24,
+  "rule_count": 26,
+  "approved_count": 23,
   "approval_policy": "Rule Reviewの状態正本は verification_status（AI確認状態）と approval_decision（人間承認）の二つとする。AIは確認結果を更新できるが、人間承認を新規付与・継続・復元してはならない。AIが承認対象の意味内容を変更した場合は verification_status=未確認、approval_decision=未承認へ戻し、approved_by / approved_at をクリアして人間再承認を求める。",
   "preamble": "このData JSONは、FRB Studio / JSON Object Studio の土台となる運用原則を管理するためのレビュー対象データである。\n\nMarkdownを原本にせず、構造化できるルール・制約・判断理由はData JSONを原本として管理する。\n\nData JSONをViewDefで表示・編集し、Markdownは必要に応じてExport Viewとして生成する。",
   "change_history_policy": "ルール本文、要約、カテゴリ、優先度、適用範囲、判定条件など承認対象の意味を変更した場合は、各rule.change_historyへ変更前後と理由を残し、verification_status=未確認、approval_decision=未承認へ戻す。AIは人間承認を新規付与・継続・復元しない。",
@@ -303,10 +303,10 @@
       "category": "基本構造",
       "title": "ViewDefは構造が同じなら共通化する",
       "priority": "high",
-      "verification_status": "確認済み",
+      "verification_status": "未確認",
       "approval_decision": "承認する",
-      "summary": "ルール系Data JSONはドメインごとに分けるが、レビュー対象としての基本構造が同じ場合、ViewDefは共通化してよい。",
-      "body": "ルール系Data JSONはドメインごとに分ける。\n\nただし、レビュー対象としての基本構造が同じ場合、ViewDefは共通化してよい。\n\n共通ルールレビューViewDefとして、\u0060rule_review_common_view_def_v0_1.json\u0060 を使用する。\n\nData JSON 側は、レビュー対象配列を \u0060rules\u0060 に揃える。\n\n理由:\nデータはドメインで分け、ViewDefは構造で共有することで、重複した画面定義を減らし、レビュー体験を統一できるため。",
+      "summary": "ルール系Data JSONはドメインごとに分ける。レビュー構造が同じViewDefは共通化候補にできるが、共通化判断はStudioくん憲法第29条に従う。",
+      "body": "ルール系Data JSONはドメインごとに分ける。\n\nレビュー対象としての基本構造が同じ場合、ViewDefは共通化候補として扱ってよい。\n\nただし、**構造が同じことだけを理由に自動的に共通化しない。**\n\n共通化の実施可否は、Studioくん憲法 第29条「実証なき抽象化の禁止」を正本とする。\n\n共通ルールレビューViewDefとして、\u0060rule_review_common_view_def_v0_1.json\u0060 を使用する。\n\nData JSON 側は、レビュー対象配列を \u0060rules\u0060 に揃える。\n\n理由:\n\n- データはドメインで分ける\n- ViewDefは実証済みの共通構造で共有する\n- 重複した画面定義を減らす\n- レビュー体験を統一する\n- 早すぎる抽象化は避ける",
       "ceremony_phrase": "このルールをレビューし、採用可否を判断する。",
       "user_comment": "",
       "ai_response": "",
@@ -318,8 +318,24 @@
       "source_line_start": 0,
       "source_md_file": "FRB_STUDIO_FOUNDATION_RULES_v0_1_draft.md",
       "introduced_in": "v0.4-r001",
-      "change_history": [],
-      "decision_log": []
+      "change_history": [
+        {
+          "history_id": "chg_foundation_rule_010_v01839_001",
+          "at": "2026-08-12T09:20:00\u002B09:00",
+          "change_type": "body_refine",
+          "before": "レビュー対象としての基本構造が同じ場合、ViewDefは共通化してよい。",
+          "after": "基本構造が同じ場合は共通化候補にできるが、実施可否はconstitution_29を正本として判断する。",
+          "reason": "Foundationと憲法の共通化判断を一致させ、構造一致だけを自動共通化の根拠にしないため。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_foundation_rule_010_v01839_001",
+          "at": "2026-08-12T09:20:00\u002B09:00",
+          "decision": "ViewDef共通化の詳細条件はFoundationへ重複定義せずconstitution_29を参照する。",
+          "reason": "設計統治の正本を憲法へ一意化するため。"
+        }
+      ]
     },
     {
       "no": 11,
@@ -737,7 +753,7 @@
       "title": "実証に基づく共通化・archive退避・ファイル名維持原則",
       "priority": "high",
       "verification_status": "未確認",
-      "approval_decision": "未承認",
+      "approval_decision": "承認する",
       "summary": "共通化・汎用化・抽象化は憲法第29条の実証条件を満たす場合に限り行う。条件不明時は個別実装を維持する。古いデータ・不要データはactiveから削除して_archiveへ退避し、ルール系ファイルおよびViewDefは原則同じファイル名で更新する。",
       "body": "共通化・汎用化・抽象化は、それ自体を目的として行わない。\n\n実施可否の正本は、Studioくん憲法 第29条「実証なき抽象化の禁止」とする。Foundationでは禁止条件・実施条件を重複定義せず、憲法第29条を参照する。\n\nまず責務を分離し、実際に観測された複数の差分、共通部分と個別部分、人間の理解可能性、実装量または事故リスクの削減を説明できる場合に限り、共通化を実施候補とする。\n\n条件を満たさない場合、または判断できない場合は、個別実装を維持する。将来候補として記録してよいが、実在しない未来要件を根拠として先行実装してはならない。\n\n古いデータ・不要と思われるデータは、成果物のactive領域から削除して返却することを基本とする。\nただし、完全削除ではなく、ルートの \u0060_archive\u0060 フォルダー配下に削除日時フォルダーを作成し、元の相対パスが追える形で退避する。\n\n例:\n\n\u0060\u0060\u0060text\n_archive/20260627_153000/data/json/03_tests/old_path/...\n\u0060\u0060\u0060\n\n旧パスや不要データをactive領域に残すと、存在するだけで正本と誤認される可能性がある。\nそのため、削除対象はactiveから外し、archiveへ退避したうえで、何を退避したかをインシデントJSONの \u0060change_history\u0060 / \u0060latest_ai_response\u0060 に残す。\n\nルール系統およびViewDefを修正する場合は、原則としてファイル名を変更しない。\nこれは、Data JSONの \u0060view_def\u0060 参照、URL起動、GitHub raw URL、GitDiff確認、作業履歴、記事リンクなど、参照元が多いためである。\n\n新しい正本世代を作る、互換性を切る、旧版と並行運用するなどの理由でファイル名変更が必要な場合は、人間に確認し、理由・影響範囲・参照更新をインシデントJSONへ記録する。",
       "ceremony_phrase": "旧パスを残すな。だが、歴史は捨てるな。archiveへ送れ。",
@@ -1037,7 +1053,7 @@
       "title": "インシデント作成時の会話履歴・判断ログ記録ルール",
       "priority": "high",
       "verification_status": "未確認",
-      "approval_decision": "未承認",
+      "approval_decision": "承認する",
       "summary": "インシデント作成時、確定した判断と理由は判断ログへ記録する。判断ログへ昇格しなかった内容のうち、将来の再検討や新しい問いにつながる残留物候補がある場合は、最大3件まで会話履歴へ記録する。",
       "body": "## 基本原則\n\nインシデント作成時は、会話履歴と判断ログの役割を分離する。\n\n### 判断ログ\n\n判断ログには、今回の作業において人間が採用・承認した判断と、その理由を記録する。\n\n記録対象は次のとおり。\n\n- 採用した方針\n- 採用理由\n- 適用した判断軸\n- 適用または発火した制約\n- 決定した責務\n- 許容したリスク\n\n判断ログは、後から同じ判断を再現・説明できる状態を目的とする。\n\n### 会話履歴\n\n会話履歴は、会話をすべて保存する場所ではない。\n\n判断ログへ昇格しなかった内容のうち、将来の再検討、類似事象との接続、新しい問いや仮説の生成に価値がある内容を、残留物候補として優先的に記録する。\n\n残留物候補は、1インシデントにつき最大3件までとする。\n\n残留物候補が存在しない場合は、無理に記録しない。\n\n### 残留物候補として記録する内容\n\n次のいずれかに該当する内容を候補とする。\n\n- 採用されなかったが、別条件では成立する可能性がある仮説\n- 現時点では確認できなかった未検証条件\n- 将来の例外、リスク、再発可能性を示す内容\n- 判断軸または制約との衝突が残った内容\n- 採用した説明だけでは説明しきれなかった事実\n- 人間が違和感を覚えた発言または差分\n- 新しい事実が生じた場合に再浮上させたい問い\n\n### 会話履歴へ記録しない内容\n\n次の内容は原則として記録しない。\n\n- 単なる進捗報告\n- 判断ログへ記録済みの内容の繰り返し\n- 採用済み判断の単なる言い換え\n- 根拠がなく、再検討条件も示せない思いつき\n- 作業結果だけを伝える定型的な応答\n\n### 記録時の考え方\n\n残留物候補を記録する場合は、可能な範囲で次の内容が分かるようにする。\n\n- 何が残ったのか\n- なぜ判断ログへ昇格しなかったのか\n- どのような価値が残っているのか\n- どの条件で再浮上させるのか\n\n確定した意味は判断ログへ残す。\n確定できなかったが将来価値のある可能性は、会話履歴へ残留物候補として残す。",
       "source_heading": "",
@@ -1060,7 +1076,7 @@
       "original_markdown_block": ""
     }
   ],
-  "updated_at": "2026-07-25",
+  "updated_at": "2026-08-12T09:20:00\u002B09:00",
   "review_notes": [
     {
       "note_id": "note_v012_reporting_policy",
@@ -1145,7 +1161,7 @@
       "body": "共通化・汎用化・抽象化の禁止条件と実施条件は憲法第29条を正本とする。Foundation Rule 020は参照と運用接続に限定し、archive退避・ファイル名維持契約は継続した。意味変更のため未承認へ戻した。"
     }
   ],
-  "review_revision": "v0.18.31-evidence-based-abstraction-guard",
+  "review_revision": "v0.18.39-component-governance-and-structured-writing",
   "view_def_candidates": [
     {
       "view_def": "rules/rule_review_common_view_def_v0_3.json",
