@@ -45,11 +45,19 @@ class CrossFieldTestPreviewComponent extends DerivedSubGridComponent {
     return [
       { field: 'pattern', caption: 'Pattern' },
       { field: 'left_input', caption: 'Left Input' },
-      { field: 'operator', caption: 'Operator' },
+      { field: 'operator', caption: '比較' },
       { field: 'right_input', caption: 'Right Input' },
       { field: 'expected', caption: 'Expected' },
       { field: 'reason', caption: 'Reason' }
     ];
+  }
+
+  displayOperator(value) {
+    const operatorField = (this.gridDef?.fields ?? []).find(field => field?.field === 'operator');
+    if (operatorField && typeof optionLabelForValue === 'function') {
+      return String(optionLabelForValue(value, operatorField) ?? value ?? '');
+    }
+    return String(value ?? '');
   }
 
   buildRows() {
@@ -57,7 +65,7 @@ class CrossFieldTestPreviewComponent extends DerivedSubGridComponent {
     return (this._result.test_patterns ?? []).map(pattern => ({
       pattern: pattern.pattern_key ?? pattern.pattern_id ?? '',
       left_input: definitionVerificationComponentDisplayValue(pattern.input?.left?.value, ''),
-      operator: pattern.relation?.operator ?? this._result.operator ?? '',
+      operator: this.displayOperator(pattern.relation?.operator ?? this._result.operator ?? ''),
       right_input: definitionVerificationComponentDisplayValue(pattern.input?.right?.value, ''),
       expected: pattern.expected?.outcome ?? 'UNRESOLVED',
       reason: pattern.expected?.reason_code ?? ''

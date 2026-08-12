@@ -189,7 +189,7 @@ test('standard Detail Editor uses generic editorComponents + Host/Registry integ
   assert.match(index, /data-editor-component-slot="detailFooter"/);
   assert.match(index, /js\/components\/studio_component\.js\?v=studio-editor-component-model-01840/);
   assert.match(index, /js\/components\/editor_component_host\.js\?v=studio-editor-component-model-01840/);
-  assert.match(index, /js\/runtime\/detail_save\.js\?v=field-definition-derived-preview-01843/);
+  assert.match(index, /js\/runtime\/detail_save\.js\?v=detail-fieldset-cross-field-01852/);
 });
 
 test('ViewDef Schema declares editorComponents as a declarative Detail Editor connection contract', () => {

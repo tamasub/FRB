@@ -512,7 +512,7 @@
             },
             {
               "field": "left_field_path",
-              "caption": "Left Field Path",
+              "caption": "左項目",
               "type": "text",
               "grid": {
                 "visible": true,
@@ -529,15 +529,33 @@
             },
             {
               "field": "operator",
-              "caption": "Operator",
+              "caption": "比較",
               "type": "select",
               "options": [
-                "LT",
-                "LTE",
-                "GT",
-                "GTE",
-                "EQ",
-                "NE"
+                {
+                  "cd": "LT",
+                  "name": "<"
+                },
+                {
+                  "cd": "LTE",
+                  "name": "<="
+                },
+                {
+                  "cd": "EQ",
+                  "name": "="
+                },
+                {
+                  "cd": "NE",
+                  "name": "!="
+                },
+                {
+                  "cd": "GTE",
+                  "name": ">="
+                },
+                {
+                  "cd": "GT",
+                  "name": ">"
+                }
               ],
               "grid": {
                 "visible": true,
@@ -554,7 +572,7 @@
             },
             {
               "field": "right_field_path",
-              "caption": "Right Field Path",
+              "caption": "右項目",
               "type": "text",
               "grid": {
                 "visible": true,
@@ -571,12 +589,21 @@
             },
             {
               "field": "null_policy",
-              "caption": "Null Policy",
+              "caption": "Null時の扱い",
               "type": "select",
               "options": [
-                "DEFER_TO_FIELD_CONTRACTS",
-                "SKIP_IF_EITHER_NULL",
-                "REJECT_IF_EITHER_NULL"
+                {
+                  "cd": "DEFER_TO_FIELD_CONTRACTS",
+                  "name": "各項目のNull設定に従う"
+                },
+                {
+                  "cd": "SKIP_IF_EITHER_NULL",
+                  "name": "どちらかがNullなら判定しない"
+                },
+                {
+                  "cd": "REJECT_IF_EITHER_NULL",
+                  "name": "どちらかがNullならNG"
+                }
               ],
               "grid": {
                 "visible": true,
@@ -620,6 +647,18 @@
               "config": {
                 "registryDataPath": "config/validation_type_registry_v0_1.json"
               }
+            }
+          ],
+          "fieldSets": [
+            {
+              "id": "accept_condition",
+              "caption": "OK条件",
+              "fields": [
+                "left_field_path",
+                "operator",
+                "right_field_path",
+                "null_policy"
+              ]
             }
           ]
         }

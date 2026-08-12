@@ -68,6 +68,76 @@ function renderDetailEditorComponents(row, gd) {
   );
 }
 
+function detailFieldSetConfigs(gd) {
+  const raw = gd?.fieldSets ?? gd?.field_sets ?? [];
+  return Array.isArray(raw) ? raw.filter(item => item && typeof item === 'object') : [];
+}
+
+function detailFieldSetFieldNames(fieldSet) {
+  const raw = fieldSet?.fields ?? [];
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set();
+  return raw
+    .map(value => String(value ?? '').trim())
+    .filter(value => value && !seen.has(value) && seen.add(value));
+}
+
+function createDetailFieldSet(fieldSet, fields, row, gd) {
+  const group = document.createElement('fieldset');
+  const caption = String(fieldSet?.caption ?? '').trim();
+  group.className = 'detail-fieldset' + (caption ? '' : ' detail-fieldset-captionless');
+  if (fieldSet?.id) group.dataset.fieldSetId = String(fieldSet.id);
+
+  // v0.18.52-detail-fieldset-cross-field-ux:
+  // caption is optional by contract. Do not render an empty legend because the empty
+  // notch/spacing itself would become redundant UI noise.
+  if (caption) {
+    const legend = document.createElement('legend');
+    legend.textContent = caption;
+    group.appendChild(legend);
+  }
+
+  const grid = document.createElement('div');
+  grid.className = 'detail-fieldset-grid';
+  fields.forEach(field => {
+    grid.appendChild(createInput(field, getByPath(row, field.field), 'detail', false, row, gd));
+  });
+  group.appendChild(grid);
+  return group;
+}
+
+function renderDetailBodyFields(form, row, gd) {
+  const fields = detailVisibleFields(gd, row).filter(field => !isDetailFooterField(field));
+  const fieldByName = new Map(fields.map(field => [String(field.field), field]));
+  const fieldSetByField = new Map();
+  const configs = detailFieldSetConfigs(gd);
+
+  configs.forEach(fieldSet => {
+    detailFieldSetFieldNames(fieldSet).forEach(fieldName => {
+      // First declaration wins. A Field cannot be rendered into two visual groups.
+      if (fieldByName.has(fieldName) && !fieldSetByField.has(fieldName)) {
+        fieldSetByField.set(fieldName, fieldSet);
+      }
+    });
+  });
+
+  const renderedSets = new Set();
+  fields.forEach(field => {
+    const fieldSet = fieldSetByField.get(String(field.field));
+    if (!fieldSet) {
+      form.appendChild(createInput(field, getByPath(row, field.field), 'detail', false, row, gd));
+      return;
+    }
+    if (renderedSets.has(fieldSet)) return;
+
+    const groupedFields = detailFieldSetFieldNames(fieldSet)
+      .map(fieldName => fieldByName.get(fieldName))
+      .filter(Boolean);
+    if (groupedFields.length) form.appendChild(createDetailFieldSet(fieldSet, groupedFields, row, gd));
+    renderedSets.add(fieldSet);
+  });
+}
+
 function renderDetailForRow(row) {
   if (typeof clearStudioJsonRoundTripDiff === 'function') clearStudioJsonRoundTripDiff();
   const gd = gridDef();
@@ -78,11 +148,7 @@ function renderDetailForRow(row) {
 
   if (typeof renderTargetContextDetailPanel === 'function') renderTargetContextDetailPanel(row, gd, form);
 
-  detailVisibleFields(gd, row)
-    .filter(field => !isDetailFooterField(field))
-    .forEach(field => {
-      form.appendChild(createInput(field, getByPath(row, field.field), 'detail', false, row, gd));
-    });
+  renderDetailBodyFields(form, row, gd);
 
   renderChildArea(row, gd);
   renderDetailFooterFields(row, gd);
