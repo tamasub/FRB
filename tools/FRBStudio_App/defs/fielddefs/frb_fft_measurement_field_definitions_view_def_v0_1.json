@@ -599,6 +599,18 @@
                 "operator": "contains"
               }
             }
+          ],
+          "editorComponents": [
+            {
+              "id": "cross_field_test_preview",
+              "type": "cross_field_test_preview",
+              "placement": "afterChildGrids",
+              "caption": "Generated Cross Field TestPattern / Expected Preview",
+              "readonly": true,
+              "config": {
+                "registryDataPath": "config/validation_type_registry_v0_1.json"
+              }
+            }
           ]
         }
       ],

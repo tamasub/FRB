@@ -164,9 +164,10 @@ $runner = switch ($TestRunnerId) {
                 'tests/definition/definition_test_runner_cli.mjs',
                 '--field-defs', 'fielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json',
                 '--registry', 'data/json/config/validation_type_registry_v0_1.json',
-                '--out', 'tests/.runtime/definition/definition_test_runner.result.json'
+                '--out', 'tests/.runtime/definition/definition_test_runner.result.json',
+                '--evidence-dir', 'data/json/03_tests/contracts/definition_test_runner_frb_fft_v0_1'
             )
-            Preview = 'node tests/definition/definition_test_runner_cli.mjs --field-defs fielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json --registry data/json/config/validation_type_registry_v0_1.json --out tests/.runtime/definition/definition_test_runner.result.json'
+            Preview = 'node tests/definition/definition_test_runner_cli.mjs --field-defs fielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json --registry data/json/config/validation_type_registry_v0_1.json --out tests/.runtime/definition/definition_test_runner.result.json --evidence-dir data/json/03_tests/contracts/definition_test_runner_frb_fft_v0_1'
         }
     }
     default {

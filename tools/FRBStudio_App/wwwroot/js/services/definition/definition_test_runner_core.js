@@ -1,14 +1,22 @@
-// v0.18.44-definition-test-runner-core
-// Executes Definition-derived TestPatterns without persisting TestPattern as canonical data.
+// v0.18.45-definition-test-runner-diff-crossfield-e2e
+// Executes Definition-derived single-field and Cross Field TestPatterns without persisting TestPattern as canonical data.
 
-const DEFINITION_TEST_RUNNER_RESULT_SCHEMA_VERSION = 'definition_test_runner_result_v0_1';
+const DEFINITION_TEST_RUNNER_RESULT_SCHEMA_VERSION = 'definition_test_runner_result_v0_2';
 const DEFINITION_TEST_RUNNER_ID = 'studio.definition_test_runner.core';
-const DEFINITION_TEST_RUNNER_VERSION = '0.1.0';
+const DEFINITION_TEST_RUNNER_VERSION = '0.2.0';
 
 class DefinitionTestRunnerCore {
-  constructor({ verificationService=null, valueValidator=null, clock=null }={}) {
+  constructor({
+    verificationService=null,
+    valueValidator=null,
+    crossFieldVerificationService=null,
+    crossFieldEvaluator=null,
+    clock=null
+  }={}) {
     this.verificationService = verificationService;
     this.valueValidator = valueValidator ?? new DefinitionValueValidator();
+    this.crossFieldVerificationService = crossFieldVerificationService;
+    this.crossFieldEvaluator = crossFieldEvaluator ?? new CrossFieldRelationEvaluator({ valueValidator: this.valueValidator });
     this.clock = clock ?? (() => new Date().toISOString());
   }
 
@@ -16,27 +24,64 @@ class DefinitionTestRunnerCore {
     const definitions = Array.isArray(fieldDefinitionDocument?.field_definitions)
       ? fieldDefinitionDocument.field_definitions
       : [];
+    const constraints = Array.isArray(fieldDefinitionDocument?.cross_field_constraints)
+      ? fieldDefinitionDocument.cross_field_constraints
+      : [];
     const sourceMetadata = options.source_metadata ?? {};
     const fieldResults = definitions.map(fieldDefinition => this.runField(fieldDefinition, registry, { source_metadata: sourceMetadata }));
+    const crossFieldResults = constraints.map(constraint => this.runCrossFieldConstraint(
+      constraint,
+      fieldDefinitionDocument,
+      registry,
+      { source_metadata: sourceMetadata }
+    ));
 
-    const totals = fieldResults.reduce((summary, field) => {
+    const fieldTotals = fieldResults.reduce((summary, field) => {
       summary.field_count += 1;
-      summary.pattern_count += field.summary.pattern_count;
-      summary.passed_count += field.summary.passed_count;
-      summary.failed_count += field.summary.failed_count;
-      summary.unresolved_count += field.summary.unresolved_count;
+      summary.field_pattern_count += field.summary.pattern_count;
+      summary.field_passed_count += field.summary.passed_count;
+      summary.field_failed_count += field.summary.failed_count;
+      summary.field_unresolved_count += field.summary.unresolved_count;
       if (field.status === 'INVALID') summary.invalid_field_count += 1;
       if (field.status === 'PARTIAL') summary.partial_field_count += 1;
       return summary;
     }, {
       field_count: 0,
-      pattern_count: 0,
-      passed_count: 0,
-      failed_count: 0,
-      unresolved_count: 0,
+      field_pattern_count: 0,
+      field_passed_count: 0,
+      field_failed_count: 0,
+      field_unresolved_count: 0,
       invalid_field_count: 0,
       partial_field_count: 0
     });
+
+    const crossFieldTotals = crossFieldResults.reduce((summary, constraint) => {
+      summary.cross_field_constraint_count += 1;
+      summary.cross_field_pattern_count += constraint.summary.pattern_count;
+      summary.cross_field_passed_count += constraint.summary.passed_count;
+      summary.cross_field_failed_count += constraint.summary.failed_count;
+      summary.cross_field_unresolved_count += constraint.summary.unresolved_count;
+      if (constraint.status === 'INVALID') summary.invalid_cross_field_constraint_count += 1;
+      if (constraint.status === 'PARTIAL') summary.partial_cross_field_constraint_count += 1;
+      return summary;
+    }, {
+      cross_field_constraint_count: 0,
+      cross_field_pattern_count: 0,
+      cross_field_passed_count: 0,
+      cross_field_failed_count: 0,
+      cross_field_unresolved_count: 0,
+      invalid_cross_field_constraint_count: 0,
+      partial_cross_field_constraint_count: 0
+    });
+
+    const totals = {
+      ...fieldTotals,
+      ...crossFieldTotals,
+      pattern_count: fieldTotals.field_pattern_count + crossFieldTotals.cross_field_pattern_count,
+      passed_count: fieldTotals.field_passed_count + crossFieldTotals.cross_field_passed_count,
+      failed_count: fieldTotals.field_failed_count + crossFieldTotals.cross_field_failed_count,
+      unresolved_count: fieldTotals.field_unresolved_count + crossFieldTotals.cross_field_unresolved_count
+    };
 
     return {
       schema_version: DEFINITION_TEST_RUNNER_RESULT_SCHEMA_VERSION,
@@ -59,10 +104,12 @@ class DefinitionTestRunnerCore {
           sha256: String(sourceMetadata.registry_sha256 ?? ''),
           path: String(sourceMetadata.registry_path ?? '')
         },
-        verification_schema_version: String(globalThis.DEFINITION_VERIFICATION_SCHEMA_VERSION ?? '')
+        verification_schema_version: String(globalThis.DEFINITION_VERIFICATION_SCHEMA_VERSION ?? ''),
+        cross_field_verification_schema_version: String(globalThis.CROSS_FIELD_VERIFICATION_SCHEMA_VERSION ?? '')
       },
       summary: totals,
-      fields: fieldResults
+      fields: fieldResults,
+      cross_field_constraints: crossFieldResults
     };
   }
 
@@ -70,12 +117,7 @@ class DefinitionTestRunnerCore {
     const service = this.verificationService ?? new DefinitionVerificationService({ registry });
     const verification = service.deriveForRunner(fieldDefinition, registry);
     const cases = verification.test_patterns.map(pattern => this.#runPattern(verification.field_contract, pattern));
-    const summary = {
-      pattern_count: cases.length,
-      passed_count: cases.filter(item => item.comparison.status === 'PASS').length,
-      failed_count: cases.filter(item => item.comparison.status === 'FAIL').length,
-      unresolved_count: cases.filter(item => item.comparison.status === 'UNRESOLVED').length
-    };
+    const summary = this.#caseSummary(cases);
 
     return {
       field_path: verification.field_path,
@@ -93,6 +135,35 @@ class DefinitionTestRunnerCore {
     };
   }
 
+  runCrossFieldConstraint(constraint={}, fieldDefinitionDocument={}, registry={}, options={}) {
+    const service = this.crossFieldVerificationService ?? new CrossFieldVerificationService({
+      registry,
+      valueValidator: this.valueValidator
+    });
+    const verification = service.deriveForRunner(constraint, fieldDefinitionDocument, registry);
+    const cases = verification.test_patterns.map(pattern => this.#runCrossFieldPattern(verification, pattern));
+    const summary = this.#caseSummary(cases);
+
+    return {
+      constraint_id: verification.constraint_id,
+      constraint_type: verification.constraint_type,
+      operator: verification.operator,
+      null_policy: verification.null_policy,
+      left_field_path: verification.left_field_path,
+      right_field_path: verification.right_field_path,
+      status: this.#crossFieldStatus(verification, summary),
+      verification_status: verification.status,
+      source: {
+        ...definitionVerificationClone(verification.source ?? {}),
+        field_definition_sha256: String(options.source_metadata?.field_definition_sha256 ?? ''),
+        registry_sha256: String(options.source_metadata?.registry_sha256 ?? '')
+      },
+      summary,
+      issues: definitionVerificationClone(verification.issues ?? []),
+      test_cases: cases
+    };
+  }
+
   #runPattern(contract, pattern) {
     const expected = definitionVerificationClone(pattern.expected ?? {});
     const actual = this.valueValidator.validate(contract, pattern.input);
@@ -105,6 +176,31 @@ class DefinitionTestRunnerCore {
       actual,
       comparison: this.#compare(expected, actual),
       source: definitionVerificationClone(pattern.source ?? {})
+    };
+  }
+
+  #runCrossFieldPattern(verification, pattern) {
+    const expected = definitionVerificationClone(pattern.expected ?? {});
+    const actual = this.crossFieldEvaluator.evaluate(verification, pattern);
+    return {
+      pattern_id: pattern.pattern_id,
+      pattern_key: pattern.pattern_key,
+      category: pattern.category,
+      input: definitionVerificationClone(pattern.input),
+      expected,
+      actual,
+      comparison: this.#compare(expected, actual),
+      relation: definitionVerificationClone(pattern.relation ?? {}),
+      source: definitionVerificationClone(pattern.source ?? {})
+    };
+  }
+
+  #caseSummary(cases) {
+    return {
+      pattern_count: cases.length,
+      passed_count: cases.filter(item => item.comparison.status === 'PASS').length,
+      failed_count: cases.filter(item => item.comparison.status === 'FAIL').length,
+      unresolved_count: cases.filter(item => item.comparison.status === 'UNRESOLVED').length
     };
   }
 
@@ -135,10 +231,21 @@ class DefinitionTestRunnerCore {
     return 'PASSED';
   }
 
-  #documentStatus(summary) {
-    if (summary.invalid_field_count > 0) return 'INVALID';
+  #crossFieldStatus(verification, summary) {
+    if (verification.status === 'INVALID') return 'INVALID';
     if (summary.failed_count > 0) return 'FAILED';
-    if (summary.partial_field_count > 0 || summary.unresolved_count > 0) return 'PARTIAL';
+    if (verification.status === 'PARTIAL' || summary.unresolved_count > 0) return 'PARTIAL';
+    return 'PASSED';
+  }
+
+  #documentStatus(summary) {
+    if (summary.invalid_field_count > 0 || summary.invalid_cross_field_constraint_count > 0) return 'INVALID';
+    if (summary.failed_count > 0) return 'FAILED';
+    if (
+      summary.partial_field_count > 0 ||
+      summary.partial_cross_field_constraint_count > 0 ||
+      summary.unresolved_count > 0
+    ) return 'PARTIAL';
     return 'PASSED';
   }
 

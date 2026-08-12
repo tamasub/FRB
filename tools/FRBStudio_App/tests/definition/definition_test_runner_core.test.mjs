@@ -25,7 +25,10 @@ function loadRuntime() {
     'wwwroot/js/services/definition/expected_resolver.js',
     'wwwroot/js/services/definition/definition_verification_service.js',
     'wwwroot/js/services/definition/definition_value_validator.js',
-    'wwwroot/js/services/definition/definition_test_runner_core.js'
+    'wwwroot/js/services/definition/cross_field_verification_service.js',
+    'wwwroot/js/services/definition/cross_field_relation_evaluator.js',
+    'wwwroot/js/services/definition/definition_test_runner_core.js',
+    'wwwroot/js/services/definition/definition_test_evidence_builder.js'
   ].forEach(relativePath => vm.runInContext(readText(relativePath), sandbox, { filename: relativePath }));
   return sandbox;
 }
@@ -141,9 +144,9 @@ test('all FRB FFT Field Definitions run without saved TestPattern JSON and retai
   vm.runInContext(`globalThis.__result = new DefinitionTestRunnerCore().runDocument(__definitions, __registry, { source_metadata: __meta });`, sandbox);
   const result = plain(sandbox.__result);
 
-  assert.equal(result.schema_version, 'definition_test_runner_result_v0_1');
+  assert.equal(result.schema_version, 'definition_test_runner_result_v0_2');
   assert.equal(result.runner.id, 'studio.definition_test_runner.core');
-  assert.equal(result.runner.version, '0.1.0');
+  assert.equal(result.runner.version, '0.2.0');
   assert.equal(result.summary.field_count, definitions.field_definition_count);
   assert.equal(result.summary.failed_count, 0);
   assert.equal(result.summary.invalid_field_count, 0);
@@ -180,7 +183,10 @@ test('Runner records Expected / Actual mismatch as FAIL instead of changing Expe
 test('Definition Test Runner stays UI-independent and TestRunner.ps1 exposes a whitelisted minimal entry', () => {
   for (const relativePath of [
     'wwwroot/js/services/definition/definition_value_validator.js',
-    'wwwroot/js/services/definition/definition_test_runner_core.js'
+    'wwwroot/js/services/definition/cross_field_verification_service.js',
+    'wwwroot/js/services/definition/cross_field_relation_evaluator.js',
+    'wwwroot/js/services/definition/definition_test_runner_core.js',
+    'wwwroot/js/services/definition/definition_test_evidence_builder.js'
   ]) {
     const source = readText(relativePath);
     assert.doesNotMatch(source, /\bdocument\b|querySelector|EditorComponent|SubGridComponent/);
