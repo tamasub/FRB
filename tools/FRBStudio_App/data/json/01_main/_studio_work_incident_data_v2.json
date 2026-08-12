@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-06",
+  "updated_at": "2026-08-12",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 148,
+  "items_count": 157,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -23074,133 +23074,6 @@
       ]
     },
     {
-      "work_item_id": "studio_work_0160",
-      "phase": "concept",
-      "title": "Spec-Driven Development概念の軽量取り込み検討",
-      "incident_type": "refactoring",
-      "category": "other",
-      "priority": "medium",
-      "status": "構想",
-      "follow_up_status": "UNASSESSED",
-      "verification_status": "未確認",
-      "context_def_status": "draft",
-      "context_def_updated_at": "2026-08-06T21:37:00\u002B09:00",
-      "owner": "",
-      "ai_owner": "",
-      "created_at": "2026-08-06T21:37:00\u002B09:00",
-      "updated_at": "2026-08-06T21:37:00\u002B09:00",
-      "target_files": "",
-      "actual_updated_files": "",
-      "objective": "既存のSpec-Driven Developmentの概念を参考に、憲法と責務の間に存在する「何を・なぜ実現するか」という情報を、Studioくんへ軽量に取り込む方法を整理する。",
-      "background": "Studioくんでは、判断軸・制約を含む憲法から責務へ接続する構造を検討してきた。一方、Spec KitのSpecify工程を確認した結果、憲法と責務の間には、背景、問題、目的、利用者、要求、成功条件、スコープ、対象外、利用シナリオ、外部から見た振る舞いを整理する層が存在することに気づいた。大規模プロジェクトでは要件定義や基本設計の一部として一般的に扱われるが、Studioくんで同等の管理を導入すると仕事化・過剰設計につながる懸念がある。",
-      "scope": "Spec-Driven DevelopmentとStudioくんの既存構造の対応整理。憲法と責務の間に必要な情報の抽出。Studioくん全体の目的・要求を憲法グリッド1明細へ圧縮する軽量案の検討。Incidentのobjective、background、scope、out_of_scopeを要件相当の代替情報として利用できるかの確認。",
-      "out_of_scope": "独立したRequirement JSONの新設。要件IDの採番。要件と責務のリレーション管理機能。要件管理用画面・グリッドの実装。Spec Kitのワークフローの全面導入。既存インシデントデータの一括更新。詳細設計書や従来型要件定義書の復活。",
-      "fixed_name_policy": "Specify、Requirement、要件定義などの正式名称は現時点では固定しない。概念の必要性とStudioくんに適した粒度を先に確認する。",
-      "module_policy": "新規の要件管理モジュールは作成しない。まずは既存の憲法グリッド、Incident、責務JSONの範囲で軽量に表現できるかを優先して検討する。",
-      "expected_outputs": "Spec-Driven DevelopmentとStudioくんの概念対応メモ。Studioくんの背景・問題・目的・利用者・要求・成功条件・スコープ・対象外・利用シナリオ・外部振る舞いを圧縮した憲法グリッド1明細案。独立した要件層を導入するか、Incidentで代替するかの将来判断材料。",
-      "risk": "要件管理を本格化するとStudioくんが業務用プロジェクト管理ツール化し、個人開発としての楽しさと軽量性を損なう可能性がある。憲法1明細へ情報を詰め込みすぎると、憲法と個別要件の境界が曖昧になる可能性がある。既存概念をそのまま輸入すると、Studioくん独自の責務・保証・Expected構造と重複する可能性がある。",
-      "test_points": "憲法1明細だけでStudioくんの存在目的と対象外を説明できること。責務が存在する理由をIncidentまたは憲法から追跡できること。個別要件管理を追加しなくても現在の開発で困らないこと。新しい概念が人間の判断対象や管理作業を過度に増やさないこと。",
-      "verification_log": "",
-      "context_def_draft": "既存のSpec-Driven Developmentが持つ「憲法と実装の間で、何を・なぜ実現するかを明確化する」考え方を、Studioくんの憲法・インシデント・責務構造へ過剰にならない形で取り込めるか検討する。現時点では独立した要件管理機能を作らず、Studioくん全体の背景、問題、目的、利用者、要求、成功条件、スコープ、対象外、利用シナリオ、外部から見た振る舞いを、憲法グリッドの1明細程度へ圧縮する案を候補とする。",
-      "user_request": "せっかく存在するSpec-Driven Developmentの概念を取り込むチャレンジ案件として宿題に残す。現時点では要件JSON化やID採番までは行わず、背景、問題、目的、利用者、要求、成功条件、スコープ、対象外、利用シナリオ、外部から見た振る舞いを、憲法グリッド1明細程度へ簡単にまとめる案を候補とする。",
-      "ai_response": "",
-      "latest_user_comment": "要件JSON化やID採番は重いため今は行わない。ただし、Studioくんの要件とは何かを試しに考え、憲法グリッド1明細程度にまとめる案は楽しめる可能性がある。現時点では宿題として明示して残す。",
-      "latest_ai_response": "",
-      "context_refs": [],
-      "follow_up_actions": [
-        {
-          "action_id": "follow_up_0160_01",
-          "action_type": "",
-          "required": false,
-          "status": "NOT_STARTED",
-          "related_ids": null,
-          "note": "",
-          "action": "Studioくんの背景、問題、目的、利用者、要求、成功条件、スコープ、対象外、利用シナリオ、外部から見た振る舞いを一度だけ自由記述で整理する"
-        },
-        {
-          "action_id": "follow_up_0160_02",
-          "action_type": "",
-          "required": false,
-          "status": "NOT_STARTED",
-          "related_ids": null,
-          "note": "",
-          "action": "整理結果を憲法グリッド1明細へ圧縮できるか試す"
-        },
-        {
-          "action_id": "follow_up_0160_03",
-          "action_type": "",
-          "required": false,
-          "status": "NOT_STARTED",
-          "related_ids": null,
-          "note": "",
-          "action": "独立要件層が必要か、Incidentの既存項目で十分かを将来再評価する"
-        }
-      ],
-      "discussion_history": [
-        {
-          "discussed_at": "2026-08-06T21:37:00\u002B09:00",
-          "summary": "GitHub Spec KitのSpecifyは詳細設計書ではなく、何を・なぜ実現するかを整理する工程であると確認した。"
-        },
-        {
-          "discussed_at": "2026-08-06T21:37:00\u002B09:00",
-          "summary": "Studioくんでは、憲法と責務の間に要件相当の情報が不足している可能性を認識した。"
-        },
-        {
-          "discussed_at": "2026-08-06T21:37:00\u002B09:00",
-          "summary": "本格的な要件JSON・ID・リレーション管理は過剰と判断し、憲法グリッド1明細へ圧縮する軽量案を宿題として残すことにした。"
-        }
-      ],
-      "decision_log": [
-        {
-          "decision_id": "decision_0160_01",
-          "decision": "Spec-Driven Developmentの概念をStudioくんへ取り込む可能性を検討対象として残す。",
-          "reason": "既存の有用な概念を無視して独自構造だけを作るのではなく、憲法と責務の間に必要な情報を再確認する価値があるため。",
-          "applied_axes": [
-            "既存の有用な概念を再利用する",
-            "実装量より概念理解を優先する",
-            "楽しさを失うほど管理対象を増やさない"
-          ],
-          "conditions": [
-            "現時点では構想・宿題として扱う",
-            "具体的な必要性が発生した時点で再評価する"
-          ],
-          "exceptions": [
-            "大規模・高リスク案件へ適用する場合は、独立した要件層やリレーション管理が必要になる可能性がある"
-          ],
-          "remaining_risks": [
-            "憲法1明細への過剰な情報集約",
-            "Incident・要件・責務の境界曖昧化"
-          ]
-        },
-        {
-          "decision_id": "decision_0160_02",
-          "decision": "独立した要件JSON、ID採番、要件管理UIは現時点では作らない。",
-          "reason": "Studioくんの個人開発としては過剰であり、仕事化によって楽しさと開発速度を損なう可能性が高いため。",
-          "applied_axes": [
-            "人間の判断対象を最小化する",
-            "必要になるまで構造を増やさない",
-            "概念は残すが仕事は増やさない"
-          ],
-          "conditions": [
-            "Incidentの既存項目で目的・背景・対象範囲を保持できること"
-          ],
-          "exceptions": [
-            "責務の由来が追跡できず、実際の開発判断に支障が出た場合"
-          ],
-          "remaining_risks": [
-            "将来必要になった際の移行方法が未定義"
-          ]
-        }
-      ],
-      "change_history": [
-        {
-          "changed_at": "2026-08-06T21:37:00\u002B09:00",
-          "change_type": "created",
-          "summary": "Spec-Driven Development概念の軽量取り込み検討を宿題として新規登録した。"
-        }
-      ]
-    },
-    {
       "work_item_id": "studio_work_0161",
       "phase": "definition-test-runner-concept",
       "title": "Definition Test Runner 構想",
@@ -23208,22 +23081,22 @@
       "category": "other",
       "priority": "high",
       "status": "構想",
-      "follow_up_status": "UNASSESSED",
+      "follow_up_status": "PENDING",
       "verification_status": "未確認",
       "context_def_status": "draft",
       "context_def_updated_at": "",
-      "owner": "",
-      "ai_owner": "",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
       "created_at": "2026-08-07",
-      "updated_at": "2026-08-07",
+      "updated_at": "2026-08-12T09:04:00\u002B09:00",
       "target_files": "",
       "actual_updated_files": "",
       "objective": "人間が承認したDefinitionから標準テストを機械導出し、個別TestPattern JSONを作成・保守することなく、テスト実行からActual/Diff生成まで流せる共通Definition Test Runnerを構築する。",
       "background": "項目定義ではValidation TypeとConstraint Overrideを定義することで、多くの標準テスト条件を決定できる。関連項目チェックについてもCross Field Constraintとして定義化する方針とした。これらから生成可能なTestPatternを別資産として保存すると、重複管理と人間の承認対象増加につながるため、Definition自体をTest Runnerの入力とする構造を採用する。",
-      "scope": "Definition Test Runnerの基本責務を定義する。項目定義JSONの読込、Validation Type Registryの解決、Constraint Overrideの合成、Cross Field Constraintの解決、標準テスト条件の導出、具体TestPatternの実行時生成、Expectedの導出、テスト実行、Actual/Diff生成を対象とする。また、同じTestPattern導出ロジックを項目定義画面のテスト内容プレビュー機能からも利用できる構造とする。",
-      "out_of_scope": "複雑な業務固有ルールをすべてCoreで汎用化することは対象外とする。標準化が困難なテスト条件・業務固有ロジックはOverlay側へ逃がせる構造を前提とする。TestPattern JSONを標準運用上の正本資産として大量生成・保存する方式は採用しない。",
+      "scope": "- ルール改定と設計統治の整合\n- Studio UI Component Modelの基盤化\n- SubGrid ComponentのData / Derived責務分離\n- Field Definition向けConstraint差分・TestPattern/Expected Preview\n- Definition Verification共通導出Service\n- Definition Test Runnerの実装\n- Actual / Diff / 実行証跡までの接続",
+      "out_of_scope": "- StudioくんをAI承認駆動開発専用基盤へ定義変更すること\n- 既存サブグリッド実装の一括全面書換え\n- 将来利用を想像しただけのChart / Timeline等の先行Component実装\n- 複雑な業務固有条件をCoreへ無理に汎用化すること\n- 標準TestPattern JSONを大量生成して正本保存すること",
       "fixed_name_policy": "現時点の作業名称はDefinition Test Runnerを第一候補とする。Contract Test Runner、Definition Verification Runnerは代替名称候補として保持し、責務確定後に正式名称を判断する。",
-      "module_policy": "TestPattern導出ロジックはUIやRunnerへ個別実装せず、共通モジュールとして分離する。項目定義画面は共通導出ロジックの結果をPreview表示し、Definition Test Runnerも同じ共通ロジックを呼び出して実際のテストを実行する。表示用ロジックと実行用ロジックの二重実装は禁止する。",
+      "module_policy": "- Studioくん本体は汎用AI協働基盤として維持する。\n- Definition VerificationはStudio標準Capabilityとして実装し、Studio Coreの存在目的そのものには固定しない。\n- 標準EditorはValidation Type / Expected / TestPatternを直接知らない。\n- 標準EditorはEditorComponentHost / Component Registryを通じて特殊Componentを接続する。\n- DefinitionTestPreviewComponent等のUI Componentは、共通Definition Verification Serviceを呼ぶ。\n- FieldContractResolver / TestPatternDeriver / ExpectedResolver等の計算責務はUIから分離する。\n- Definition Test Runnerも同じ共通Serviceを利用し、Previewと実行の二重ロジックを禁止する。",
       "expected_outputs": "項目定義JSONから導出された実行時TestPattern、Expected、Actual、Diff、Resultおよび導出元Definition・Registry Version等を追跡可能な実行証跡。TestPatternは通常時は保存不要とし、確認・デバッグ用途ではPreview表示または任意Exportできる構造を想定する。",
       "risk": "UI表示用TestPatternと実際のRunner実行内容が異なる二重ロジックになると、見えている保証と実行される保証が不一致になる。Validation TypeやConstraintの意味変更により過去実行結果の再現性が失われる可能性があるため、Definition・Registry・RunnerのVersionまたはHashを実行証跡へ残す必要がある。",
       "test_points": "同一DefinitionからPreview表示とRunner実行で同一TestPatternが導出されること。Validation Type標準条件が導出されること。Constraint Overrideに応じて境界値等が変化すること。Cross Field Constraintから関係成立・等値境界・逆転条件等が導出されること。標準TestPattern JSONを保存しなくても再実行可能であること。Overlayによる追加・差替えがCoreロジックを壊さず適用できること。",
@@ -23231,30 +23104,568 @@
       "context_def_draft": "項目定義JSONを入力として、Validation Type、Constraint Override、Cross Field Constraint等から標準テスト条件・具体TestPattern・Expectedを実行時に導出し、共通Runnerで検証する。TestPatternは原則として正本Data JSONを作成せず、共通導出ロジックによる実行時中間データとして扱う。",
       "user_request": "項目定義JSONをTest Runnerの入力とし、TestPatternは原則Dataとして保存せず実行時生成したい。項目定義画面では実際に生成されるTestPatternを自動表示し、その表示に使う導出ロジックを共通化してDefinition Test Runnerからも利用したい。",
       "ai_response": "",
-      "latest_user_comment": "Definition Test Runnerという粒度の共通機能を作る方針でインシデントとして残す。",
-      "latest_ai_response": "",
-      "context_refs": [],
-      "follow_up_actions": [],
-      "discussion_history": [],
+      "latest_user_comment": "Studioくんの汎用AI協働基盤という位置づけを維持しつつ、Componentクラス構造を先に作り、特殊SubGridから共通Expected計算を呼べるようにする。ルール改定計画からDefinition Test Runner実装までをインシデント分割して登録する。",
+      "latest_ai_response": "studio_work_0161を親構想として見直し、studio_work_0162～0168を段階実装計画として登録する。Core / Standard Capability / ViewDef / Component / Serviceの境界を明示し、PreviewとRunnerは同一導出Serviceを利用する。",
+      "context_refs": [
+        "studio_work_0147",
+        "studio_work_0149",
+        "studio_work_0151",
+        "studio_work_0152",
+        "studio_work_0153",
+        "studio_work_0154"
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_up_0161_001",
+          "action_type": "RULE_GOVERNANCE",
+          "required": true,
+          "status": "NOT_STARTED",
+          "related_ids": [
+            "studio_work_0162"
+          ],
+          "note": "Component Model・構造化記述・共通化ルールの整合を先に行う。"
+        },
+        {
+          "action_id": "follow_up_0161_002",
+          "action_type": "COMPONENT_MODEL",
+          "required": true,
+          "status": "NOT_STARTED",
+          "related_ids": [
+            "studio_work_0163",
+            "studio_work_0164"
+          ],
+          "note": "Editor Component Host / RegistryとSubGrid Component階層を実装する。"
+        },
+        {
+          "action_id": "follow_up_0161_003",
+          "action_type": "DEFINITION_VERIFICATION",
+          "required": true,
+          "status": "NOT_STARTED",
+          "related_ids": [
+            "studio_work_0165",
+            "studio_work_0166"
+          ],
+          "note": "共通導出ServiceとField Definition Editor Previewを実装する。"
+        },
+        {
+          "action_id": "follow_up_0161_004",
+          "action_type": "DEFINITION_TEST_RUNNER",
+          "required": true,
+          "status": "NOT_STARTED",
+          "related_ids": [
+            "studio_work_0167",
+            "studio_work_0168"
+          ],
+          "note": "Runner本体からActual/Diff/証跡まで接続する。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "disc_0161_001",
+          "at": "2026-08-12T09:04:00\u002B09:00",
+          "speaker": "user",
+          "topic": "Studio Coreと標準Capabilityの境界",
+          "message": "StudioくんをAI承認駆動開発専用基盤へ固定せず、汎用AI協働基盤のまま保つ。Definition Verificationは標準Capabilityとして載せる。"
+        },
+        {
+          "history_id": "disc_0161_002",
+          "at": "2026-08-12T09:04:00\u002B09:00",
+          "speaker": "user",
+          "topic": "Componentクラス構造",
+          "message": "特殊SubGridをComponentとしてカプセル化し、標準Editorへ簡単に接続できるComponent Modelを先に作る。"
+        },
+        {
+          "history_id": "disc_0161_003",
+          "at": "2026-08-12T09:04:00\u002B09:00",
+          "speaker": "user",
+          "topic": "構造化記述ルール",
+          "message": "インシデントを含む全体共通ルールとして、箇条書きにできる内容は箇条書きにし、横へ伸びる長文を避ける。"
+        }
+      ],
       "decision_log": [
         {
           "decision": "項目定義JSONをDefinition Test Runnerの直接入力とする。",
-          "reason": "Validation Type、Constraint Override、Cross Field Constraintから標準テスト条件を機械導出できるため。"
+          "reason": "Validation Type、Constraint Override、Cross Field Constraintから標準テスト条件を機械導出できるため。",
+          "decision_id": "",
+          "at": ""
         },
         {
           "decision": "標準TestPatternは原則として正本Data JSONを生成・保存しない。",
-          "reason": "Definitionから再導出可能な派生データを別資産として管理すると、重複管理と人間の承認対象増加につながるため。"
+          "reason": "Definitionから再導出可能な派生データを別資産として管理すると、重複管理と人間の承認対象増加につながるため。",
+          "decision_id": "",
+          "at": ""
         },
         {
           "decision": "TestPattern導出ロジックをUI PreviewとRunnerで共通利用する。",
-          "reason": "画面上で見えているテスト内容と実際に実行されるテスト内容を一致させるため。"
+          "reason": "画面上で見えているテスト内容と実際に実行されるテスト内容を一致させるため。",
+          "decision_id": "",
+          "at": ""
         },
         {
           "decision": "複雑な業務固有条件は無理にCoreへ汎用化せずOverlayへ逃がす。",
-          "reason": "シンプルに整理可能な領域は徹底的に汎用化しつつ、Coreの過剰複雑化を避けるため。"
+          "reason": "シンプルに整理可能な領域は徹底的に汎用化しつつ、Coreの過剰複雑化を避けるため。",
+          "decision_id": "",
+          "at": ""
+        },
+        {
+          "decision": "Definition VerificationをStudio標準Capabilityとして扱い、Studio Coreの存在目的には固定しない。",
+          "reason": "Studioくんを汎用的なAI協働基盤として維持し、将来ほかのCapabilityを同じCoreへ載せられる余地を残すため。",
+          "decision_id": "dec_0161_005",
+          "at": "2026-08-12T09:04:00\u002B09:00"
+        },
+        {
+          "decision": "標準Editorへドメイン固有ロジックを直接追加せず、EditorComponentHost / Registryから特殊Componentを接続する。",
+          "reason": "標準Editorの汎用責務を維持し、特殊UI追加のたびにEditor本体へ条件分岐を増やさないため。",
+          "decision_id": "dec_0161_006",
+          "at": "2026-08-12T09:04:00\u002B09:00"
+        },
+        {
+          "decision": "UI ComponentとExpected/TestPattern導出ロジックを分離し、PreviewとRunnerで同じServiceを利用する。",
+          "reason": "見えている保証と実行される保証を一致させ、二重実装を防ぐため。",
+          "decision_id": "dec_0161_007",
+          "at": "2026-08-12T09:04:00\u002B09:00"
         }
       ],
       "change_history": []
+    },
+    {
+      "work_item_id": "studio_work_0162",
+      "phase": "v0.18.39-component-governance-and-structured-writing",
+      "title": "Component Model導入前の憲法・ViewDef・記述ルール整合改定計画",
+      "incident_type": "rule_governance",
+      "category": "design_governance",
+      "priority": "high",
+      "status": "未着手",
+      "follow_up_status": "PENDING",
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-08-12T09:04:00\u002B09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-12T09:04:00\u002B09:00",
+      "updated_at": "2026-08-12T09:04:00\u002B09:00",
+      "target_files": "data/json/00_rules/frb_coding_constraints_data_v0_3.json\ndata/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json\ndata/json/00_rules/frb_foundation_rules_data_v0_1.json\ndata/json/01_main/00_do_incident_prompt_temple.md\ndata/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "",
+      "objective": "- Component Model導入前に既存ルールの矛盾・曖昧さを解消する。\n- 箇条書き優先の構造化記述原則をStudio全体ルールとして追加する。\n- AI承認駆動開発Capabilityを載せてもStudio Coreが汎用AI協働基盤であり続ける境界を明文化する。",
+      "background": "- constitution_03の「共通の考え方なら共通Interface」表現とconstitution_29の実証条件が衝突しうる。\n- viewdef_rule_25の「共通化できるものは原則共通化」がconstitution_29と整合していない。\n- ViewDef Firstが接続宣言と計算ロジックの境界をまだ明示していない。\n- インシデント等で複数事項を一文へ連結する記載が多く、人間の視認性を下げている。",
+      "scope": "- constitution_03を「候補観測→責務分離→実証→共通Interface昇格」へ改定する。\n- constitution_05へ「ViewDefは構成・接続・選択を宣言し、計算アルゴリズムを埋め込まない」を追記する。\n- constitution_19へComponent / Service責務分離の配置指針を追記する。\n- constitution_29へ将来想定だけのExtension Point禁止と、現在の複数具体責務による抽象化許可条件を補強する。\n- constitution_31「Component / Service責務分離契約」を新設する。\n- constitution_32「構造化記述の原則」を新設し、複数事項は箇条書きを優先する。\n- constitution_20からconstitution_32を参照し、AI作業記録にも適用する。\n- viewdef_rule_08をData SubGrid用途として明確化する。\n- viewdef_rule_25をconstitution_29準拠へ改定する。\n- viewdef_rule_35「Editor Component宣言契約」を新設する。\n- foundation_rule_010へconstitution_29参照を追記する。\n- 00_do_incident_prompt_temple.mdへ箇条書きReminderを追加する。",
+      "out_of_scope": "- Component実装そのもの\n- Expected/TestPattern導出実装\n- Definition Test Runner実装\n- Overlay Plugin APIへのregisterComponent追加",
+      "fixed_name_policy": "- 既存の安定ファイル名は維持する。\n- 新規Component / Serviceの物理ファイル名は、実装開始時に最新ソースを確認して確定する。\n- ViewDef・Rules正本の既存ファイル名は変更しない。",
+      "module_policy": "- ルール詳細の正本は憲法へ置き、Foundationへ重複定義しない。\n- ComponentはUI責務、Service / Resolver / Deriverは計算・解決・導出責務とする。\n- 意味変更した既存ルールと新規ルールはAI承認せず、人間レビュー待ちへ戻す。",
+      "expected_outputs": "- 改定済み憲法正本\n- 改定済みViewDef生成ルール\n- 必要最小限のFoundation参照更新\n- 構造化記述原則\n- Incident Promptへの記載形式Reminder\n- 更新済みインシデント",
+      "risk": "- ルールを細かくしすぎると運用負荷が増える。\n- Componentという実装概念を憲法へ書き込みすぎると将来の技術選択を拘束する。\n- 既存承認済みルールの意味変更は人間再承認が必要。",
+      "test_points": "- rule_id / no重複がないこと。\n- rule_count / section_count / approved_countが実値と一致すること。\n- constitution_03 / 29 / viewdef_rule_25の共通化判断が矛盾しないこと。\n- constitution_31 / 32が未承認・人間レビュー待ちで登録されること。\n- 箇条書き原則がインシデント専用ではなく全体共通原則として読めること。",
+      "verification_log": "",
+      "context_def_draft": "- Studioくんは汎用AI協働基盤として維持する。\n- AI承認駆動開発はStudio Coreそのものではなく、標準Capabilityとして実装する。\n- UI Componentと計算Serviceを分離し、表示と実行で同じ導出ロジックを利用する。",
+      "user_request": "ルール改定計画からComponent基盤、項目定義Editor改善、共通Expected/TestPattern導出、Definition Test Runner実装までを、小さなインシデントへ分割して計画登録する。",
+      "ai_response": "作業を段階分割し、Studio Coreの汎用性を維持したまま、Definition Verificationを標準Capabilityとして実装する計画を登録する。",
+      "latest_user_comment": "ルール改定計画～テストラン実装まで、インシデントで計画登録する。箇条書きにできる内容は箇条書きで記載する。",
+      "latest_ai_response": "計画登録のみ。実装・ルール改定は各インシデント着手時に最新ソースを再確認して行う。",
+      "context_refs": [
+        "studio_work_0147",
+        "studio_work_0161"
+      ],
+      "follow_up_actions": [],
+      "discussion_history": [
+        {
+          "history_id": "disc_0162_001",
+          "at": "2026-08-12T09:04:00\u002B09:00",
+          "speaker": "user",
+          "topic": "実装計画の段階登録",
+          "message": "ルール改定、Componentクラス構造、特殊SubGrid接続、期待値共通計算、Field Definition Editor改善、Definition Test Runnerまでを段階的に計画する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0162_001",
+          "at": "2026-08-12T09:04:00\u002B09:00",
+          "decision": "Component実装より先にルール整合を行う。",
+          "reason": "新しい拡張モデルを既存憲法と矛盾した状態で実装しないため。"
+        },
+        {
+          "decision_id": "dec_0162_002",
+          "at": "2026-08-12T09:04:00\u002B09:00",
+          "decision": "箇条書き優先を全体共通の構造化記述原則として憲法化する。",
+          "reason": "インシデントだけでなく、判断ログ・ルール・作業記録等の人間可読性へ一貫して効かせるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0162_001",
+          "at": "2026-08-12T09:04:00\u002B09:00",
+          "change_type": "planning_registered",
+          "before": "未登録",
+          "after": "実装前の計画インシデントとして登録",
+          "reason": "大きな一括改修を避け、人間が差分単位で判断・承認できるようにするため。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0163",
+      "phase": "v0.18.40-studio-editor-component-model",
+      "title": "Studio UI Component Model基盤 — StudioComponent / EditorComponent / Host / Registry",
+      "incident_type": "refactoring",
+      "category": "runtime",
+      "priority": "high",
+      "status": "未着手",
+      "follow_up_status": "PENDING",
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-08-12T09:04:00\u002B09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-12T09:04:00\u002B09:00",
+      "updated_at": "2026-08-12T09:04:00\u002B09:00",
+      "target_files": "wwwroot/js/core/registry.js\nwwwroot/js/renderers/grid_detail.js\nwwwroot/js/runtime/detail_subgrid_edit.js\nwwwroot/js/components/ (new candidate)\ntests/qa/static/\ndata/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "",
+      "objective": "- 標準Editorへ特殊UIを条件分岐で直接組み込まず、Componentとして差し込める共通基盤を作る。\n- 状態・描画・更新・破棄を持つUI部品だけをクラス化し、純粋関数まで無理にclass化しない。",
+      "background": "- 既存StudioにはRendererRegistry等のRegistry思想がある一方、Detail/SubGridは関数群中心で、状態とライフサイクルを持つ正式なUI Component Modelがない。\n- Definition Test Previewを最初の実ユースケースとして、汎用的なComponent接続点が必要になった。",
+      "scope": "- StudioComponentの最小ライフサイクルを定義する。\n- EditorComponentでEditor Contextを受け取る契約を定義する。\n- EditorComponentHostでmount / update / destroyを統括する。\n- EditorComponentRegistryからtype名でComponentを生成する。\n- 標準EditorはComponent固有IDのif分岐を持たない。\n- 既存Registry設計との整合を取る。",
+      "out_of_scope": "- SubGrid固有のData / Derived責務分離\n- Definition Test Preview実装\n- 既存全UIのComponent化\n- Chart / Timeline等の将来Component先行実装\n- Overlay Plugin API公開",
+      "fixed_name_policy": "- 既存の安定ファイル名は維持する。\n- 新規Component / Serviceの物理ファイル名は、実装開始時に最新ソースを確認して確定する。\n- ViewDef・Rules正本の既存ファイル名は変更しない。",
+      "module_policy": "- 継承は浅く保ち、ライフサイクル共通化に限定する。\n- 特殊な意味・計算責務はCompositionでServiceへ委譲する。\n- Editor Contextを介し、ComponentがEditor内部グローバル状態へ直接依存しない構造を優先する。",
+      "expected_outputs": "- StudioComponent基底\n- EditorComponent基底\n- EditorComponentHost\n- EditorComponentRegistry\n- 最小のComponent接続例\n- 静的/Runtime回帰テスト",
+      "risk": "- 過剰な抽象化により既存Editorが読みづらくなる。\n- 既存Registryと新Registryの役割が重複する可能性がある。\n- mount/update/destroy契約を曖昧にするとイベント解除漏れや状態リークが起きる。",
+      "test_points": "- Component固有IDの分岐が標準Editorへ追加されないこと。\n- Hostが複数Componentのmount/update/destroyを管理できること。\n- Component破棄時にイベント・DOM参照を残さないこと。\n- 既存Detail Editor動作を壊さないこと。\n- node --check / 対象node --testが成功すること。",
+      "verification_log": "",
+      "context_def_draft": "- Studioくんは汎用AI協働基盤として維持する。\n- AI承認駆動開発はStudio Coreそのものではなく、標準Capabilityとして実装する。\n- UI Componentと計算Serviceを分離し、表示と実行で同じ導出ロジックを利用する。",
+      "user_request": "ルール改定計画からComponent基盤、項目定義Editor改善、共通Expected/TestPattern導出、Definition Test Runner実装までを、小さなインシデントへ分割して計画登録する。",
+      "ai_response": "作業を段階分割し、Studio Coreの汎用性を維持したまま、Definition Verificationを標準Capabilityとして実装する計画を登録する。",
+      "latest_user_comment": "ルール改定計画～テストラン実装まで、インシデントで計画登録する。箇条書きにできる内容は箇条書きで記載する。",
+      "latest_ai_response": "計画登録のみ。実装・ルール改定は各インシデント着手時に最新ソースを再確認して行う。",
+      "context_refs": [
+        "studio_work_0162",
+        "studio_work_0159"
+      ],
+      "follow_up_actions": [],
+      "discussion_history": [
+        {
+          "history_id": "disc_0163_001",
+          "at": "2026-08-12T09:04:00\u002B09:00",
+          "speaker": "user",
+          "topic": "実装計画の段階登録",
+          "message": "ルール改定、Componentクラス構造、特殊SubGrid接続、期待値共通計算、Field Definition Editor改善、Definition Test Runnerまでを段階的に計画する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0163_001",
+          "at": "2026-08-12T09:04:00\u002B09:00",
+          "decision": "Component ModelはStudio Coreの汎用拡張機構として実装する。",
+          "reason": "Definition Verification固有機能をEditor本体へ焼き込まず、Studioくんを汎用AI協働基盤として維持するため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0163_001",
+          "at": "2026-08-12T09:04:00\u002B09:00",
+          "change_type": "planning_registered",
+          "before": "未登録",
+          "after": "実装前の計画インシデントとして登録",
+          "reason": "大きな一括改修を避け、人間が差分単位で判断・承認できるようにするため。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0164",
+      "phase": "v0.18.41-subgrid-component-data-derived",
+      "title": "SubGrid Component階層 — DataSubGrid / DerivedSubGrid責務分離",
+      "incident_type": "refactoring",
+      "category": "runtime",
+      "priority": "high",
+      "status": "未着手",
+      "follow_up_status": "PENDING",
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-08-12T09:04:00\u002B09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-12T09:04:00\u002B09:00",
+      "updated_at": "2026-08-12T09:04:00\u002B09:00",
+      "target_files": "wwwroot/js/runtime/detail_subgrid_edit.js\nwwwroot/js/renderers/grid_detail.js\nwwwroot/js/components/ (new candidate)\ntests/qa/static/\ndata/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "",
+      "objective": "- SubGridを正式なComponent階層へ載せる。\n- 保存対象Dataを扱うSubGridと、計算・解釈結果を表示するDerived SubGridを明確に分離する。",
+      "background": "- 既存objectArray/stringArrayはData JSONに実在する配列をDetailで扱う仕組みである。\n- 今回必要なConstraint DiffやTestPattern Previewは元Dataに存在しない派生情報であり、既存Data SubGridと同じ保存責務へ混ぜると正本Dataを汚染する。",
+      "scope": "- SubGridComponentをEditorComponent配下に定義する。\n- DataSubGridComponentは正本Data読込・編集・commit責務を持つ。\n- DerivedSubGridComponentはreadonly派生Rows生成を責務とし、正本Dataへ保存しない。\n- 既存SubGridは一括書換えせず、Adapter/共存で段階移行する。\n- 共通Table Rendererを再利用できる境界を整理する。",
+      "out_of_scope": "- 既存detail_subgrid_edit.jsの全面廃止\n- すべてのobjectArray/stringArrayの一括移行\n- Definition固有の計算ロジック\n- Runner実装",
+      "fixed_name_policy": "- 既存の安定ファイル名は維持する。\n- 新規Component / Serviceの物理ファイル名は、実装開始時に最新ソースを確認して確定する。\n- ViewDef・Rules正本の既存ファイル名は変更しない。",
+      "module_policy": "- Data / Derivedの違いは保存責務で判定する。\n- 見た目がGridであることより、正本Dataを編集するか派生情報を表示するかを優先して分類する。\n- 既存SubGridとの互換を保った小さな差分で導入する。",
+      "expected_outputs": "- SubGridComponent\n- DataSubGridComponent\n- DerivedSubGridComponent\n- 既存SubGrid互換接続\n- readonly派生SubGridの最小サンプル\n- 回帰テスト",
+      "risk": "- Derived表示を誤ってDataへcommitすると正本汚染が起きる。\n- 既存SubGrid移行を同時に広げると改修範囲が大きくなる。\n- 共通Renderer抽出を急ぐとconstitution_29に反する可能性がある。",
+      "test_points": "- DataSubGridだけがcommit経路を持つこと。\n- DerivedSubGridが保存対象へ混入しないこと。\n- 既存objectArray/stringArray編集が維持されること。\n- readonly派生Rowsが標準Editor内に表示できること。\n- 対象Static/Runtime Testが成功すること。",
+      "verification_log": "",
+      "context_def_draft": "- Studioくんは汎用AI協働基盤として維持する。\n- AI承認駆動開発はStudio Coreそのものではなく、標準Capabilityとして実装する。\n- UI Componentと計算Serviceを分離し、表示と実行で同じ導出ロジックを利用する。",
+      "user_request": "ルール改定計画からComponent基盤、項目定義Editor改善、共通Expected/TestPattern導出、Definition Test Runner実装までを、小さなインシデントへ分割して計画登録する。",
+      "ai_response": "作業を段階分割し、Studio Coreの汎用性を維持したまま、Definition Verificationを標準Capabilityとして実装する計画を登録する。",
+      "latest_user_comment": "ルール改定計画～テストラン実装まで、インシデントで計画登録する。箇条書きにできる内容は箇条書きで記載する。",
+      "latest_ai_response": "計画登録のみ。実装・ルール改定は各インシデント着手時に最新ソースを再確認して行う。",
+      "context_refs": [
+        "studio_work_0163",
+        "studio_work_0162"
+      ],
+      "follow_up_actions": [],
+      "discussion_history": [
+        {
+          "history_id": "disc_0164_001",
+          "at": "2026-08-12T09:04:00\u002B09:00",
+          "speaker": "user",
+          "topic": "実装計画の段階登録",
+          "message": "ルール改定、Componentクラス構造、特殊SubGrid接続、期待値共通計算、Field Definition Editor改善、Definition Test Runnerまでを段階的に計画する。"
+        }
+      ],
+      "decision_log": [],
+      "change_history": [
+        {
+          "history_id": "chg_0164_001",
+          "at": "2026-08-12T09:04:00\u002B09:00",
+          "change_type": "planning_registered",
+          "before": "未登録",
+          "after": "実装前の計画インシデントとして登録",
+          "reason": "大きな一括改修を避け、人間が差分単位で判断・承認できるようにするため。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0165",
+      "phase": "v0.18.42-definition-verification-service",
+      "title": "Definition Verification共通Service — FieldContract / TestPattern / Expected導出",
+      "incident_type": "feature",
+      "category": "definition_verification",
+      "priority": "high",
+      "status": "未着手",
+      "follow_up_status": "PENDING",
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-08-12T09:04:00\u002B09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-12T09:04:00\u002B09:00",
+      "updated_at": "2026-08-12T09:04:00\u002B09:00",
+      "target_files": "data/json/config/validation_type_registry_v0_1.json\nfielddefs/schema/field_definition_data_schema_v0_1.json\nfielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json\nwwwroot/js/services/definition/ (new candidate)\ntests/qa/static/ or tests/definition/ (new candidate)\ndata/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "",
+      "objective": "- Field DefinitionとValidation Type Registryから実効契約を解決する。\n- 実効契約からTestPatternとExpectedを機械導出する。\n- UI PreviewとDefinition Test Runnerが同じ共通Serviceを利用できる状態を作る。",
+      "background": "- Validation Type標準、Constraint Override、実効値、TestPattern、ExpectedはDefinitionから再導出可能な派生情報である。\n- UI内へ計算式を埋め込むとRunnerとの二重実装になるため、UI非依存の共通Serviceが必要。",
+      "scope": "- FieldContractResolverを定義する。\n- Registry標準値 \u002B OverrideからResolved Contractを作る。\n- 未定義標準 \u002B OverrideなしはUNRESOLVEDとして明示する。\n- TestPatternDeriverを定義する。\n- ExpectedResolverを定義する。\n- DefinitionVerificationServiceでResolver/DeriverをCompositionする。\n- まず単一Field Validationの標準パターンを対象とする。\n- 導出元Validation Type / Registry Version等の追跡情報を返せる構造にする。",
+      "out_of_scope": "- UI描画\n- Definition Test Runnerの実行\n- Cross Field Constraintの全パターン実装\n- 業務固有Overlayロジック\n- TestPattern JSONの正本保存",
+      "fixed_name_policy": "- 既存の安定ファイル名は維持する。\n- 新規Component / Serviceの物理ファイル名は、実装開始時に最新ソースを確認して確定する。\n- ViewDef・Rules正本の既存ファイル名は変更しない。",
+      "module_policy": "- ServiceはDOM / Editor状態へ依存しない。\n- InputとOutputをJSON化可能なPlain Dataとして扱う。\n- ComponentとRunnerはServiceの公開契約だけを利用する。\n- 期待値計算をComponentへ複製しない。",
+      "expected_outputs": "- ResolvedFieldContract\n- FieldContractResolver\n- TestPatternDeriver\n- ExpectedResolver\n- DefinitionVerificationService\n- 単項目Validation導出テスト\n- Version/Source追跡メタ情報",
+      "risk": "- Registryにdefault値がないConstraintの扱いを曖昧にすると誤Expectedを生成する。\n- 数値境界・日時・null/required等で型別の生成規則が増えすぎる可能性がある。\n- Validation Type意味変更後の再現性を確保する必要がある。",
+      "test_points": "- Registry defaultあり/なし、Overrideあり/なしの組合せを検証すること。\n- Preview用呼出しとRunner用呼出しで同一入力から同一TestPattern/Expectedを返すこと。\n- minimum/minimum_minus_1、maximum/maximum_plus_1、null、invalid_format等の代表パターンを検証すること。\n- 未解決Constraintを黙ってPASSにしないこと。\n- 純粋ロジックとしてnode環境でテスト可能であること。",
+      "verification_log": "",
+      "context_def_draft": "- Studioくんは汎用AI協働基盤として維持する。\n- AI承認駆動開発はStudio Coreそのものではなく、標準Capabilityとして実装する。\n- UI Componentと計算Serviceを分離し、表示と実行で同じ導出ロジックを利用する。",
+      "user_request": "ルール改定計画からComponent基盤、項目定義Editor改善、共通Expected/TestPattern導出、Definition Test Runner実装までを、小さなインシデントへ分割して計画登録する。",
+      "ai_response": "作業を段階分割し、Studio Coreの汎用性を維持したまま、Definition Verificationを標準Capabilityとして実装する計画を登録する。",
+      "latest_user_comment": "ルール改定計画～テストラン実装まで、インシデントで計画登録する。箇条書きにできる内容は箇条書きで記載する。",
+      "latest_ai_response": "計画登録のみ。実装・ルール改定は各インシデント着手時に最新ソースを再確認して行う。",
+      "context_refs": [
+        "studio_work_0161",
+        "studio_work_0149",
+        "studio_work_0152",
+        "studio_work_0154"
+      ],
+      "follow_up_actions": [],
+      "discussion_history": [
+        {
+          "history_id": "disc_0165_001",
+          "at": "2026-08-12T09:04:00\u002B09:00",
+          "speaker": "user",
+          "topic": "実装計画の段階登録",
+          "message": "ルール改定、Componentクラス構造、特殊SubGrid接続、期待値共通計算、Field Definition Editor改善、Definition Test Runnerまでを段階的に計画する。"
+        }
+      ],
+      "decision_log": [],
+      "change_history": [
+        {
+          "history_id": "chg_0165_001",
+          "at": "2026-08-12T09:04:00\u002B09:00",
+          "change_type": "planning_registered",
+          "before": "未登録",
+          "after": "実装前の計画インシデントとして登録",
+          "reason": "大きな一括改修を避け、人間が差分単位で判断・承認できるようにするため。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0166",
+      "phase": "v0.18.43-field-definition-editor-derived-preview",
+      "title": "Field Definition Editor改善 — Constraint Diff / TestPattern Preview Components",
+      "incident_type": "feature",
+      "category": "ui",
+      "priority": "high",
+      "status": "未着手",
+      "follow_up_status": "PENDING",
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-08-12T09:04:00\u002B09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-12T09:04:00\u002B09:00",
+      "updated_at": "2026-08-12T09:04:00\u002B09:00",
+      "target_files": "defs/fielddefs/frb_fft_measurement_field_definitions_view_def_v0_1.json\nfielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json\ndata/json/config/validation_type_registry_v0_1.json\nwwwroot/js/components/ (new candidate)\nwwwroot/js/renderers/grid_detail.js\ntests/qa/static/\ndata/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "",
+      "objective": "- 標準Detail Editor上にField Definition用の特殊Derived SubGridを接続する。\n- Validation Type標準・Override・実効値と、生成予定TestPattern/Expectedを一画面で確認できるようにする。",
+      "background": "- 人間がDefinitionを承認する前に、標準から何を変え、その結果どのTestPattern/Expectedが発生するかを目で確認できる必要がある。\n- 専用Editorを新設せず、標準Editor \u002B Componentとして構成することでStudio Coreの汎用性を維持する。",
+      "scope": "- DefinitionConstraintDiffComponentをDerivedSubGridComponentとして実装する。\n- DefinitionTestPreviewComponentをDerivedSubGridComponentとして実装する。\n- Constraint列は標準値 / Override / Resolved / 状態を分離表示する。\n- Override差分を視覚強調する。\n- Test PreviewはPattern / Input / Expected / Source等をreadonly表示する。\n- Componentはstudio_work_0165の共通Serviceを呼ぶ。\n- ViewDefからComponentを宣言して接続する。",
+      "out_of_scope": "- 項目定義専用Editorの別実装\n- Expected/TestPattern計算ロジックのUI内複製\n- Runner実行\n- Cross Field Constraint Previewの完全対応\n- 既存全Field Definition資産の一括移行",
+      "fixed_name_policy": "- 既存の安定ファイル名は維持する。\n- 新規Component / Serviceの物理ファイル名は、実装開始時に最新ソースを確認して確定する。\n- ViewDef・Rules正本の既存ファイル名は変更しない。",
+      "module_policy": "- 標準EditorはComponentの意味を知らず、Host / Registryを通じて接続する。\n- DerivedSubGridは正本Field Definitionへ保存しない。\n- 表示されるExpectedは共通Serviceの結果そのものを利用する。",
+      "expected_outputs": "- Constraint Diff Derived SubGrid\n- TestPattern/Expected Preview Derived SubGrid\n- ViewDef Component宣言\n- FRB FFT Field Definition v0_2を用いた初回実証\n- UI/Static回帰テスト",
+      "risk": "- 見た目だけの専用処理がComponent外へ漏れるとEditor本体が再び用途依存になる。\n- Derived値がCopy/Paste JSONや保存Dataへ混入する可能性がある。\n- 列数増加でDetail Editorの視認性が下がる可能性がある。",
+      "test_points": "- FRB FFT項目定義で標準/Override/Resolvedが期待どおり表示されること。\n- Override行だけが強調されること。\n- TestPattern Previewがstudio_work_0165の結果と一致すること。\n- 保存・Copy/Paste JSONへDerived Rowsが混入しないこと。\n- 通常のField Definition以外のEditor表示を壊さないこと。",
+      "verification_log": "",
+      "context_def_draft": "- Studioくんは汎用AI協働基盤として維持する。\n- AI承認駆動開発はStudio Coreそのものではなく、標準Capabilityとして実装する。\n- UI Componentと計算Serviceを分離し、表示と実行で同じ導出ロジックを利用する。",
+      "user_request": "ルール改定計画からComponent基盤、項目定義Editor改善、共通Expected/TestPattern導出、Definition Test Runner実装までを、小さなインシデントへ分割して計画登録する。",
+      "ai_response": "作業を段階分割し、Studio Coreの汎用性を維持したまま、Definition Verificationを標準Capabilityとして実装する計画を登録する。",
+      "latest_user_comment": "ルール改定計画～テストラン実装まで、インシデントで計画登録する。箇条書きにできる内容は箇条書きで記載する。",
+      "latest_ai_response": "計画登録のみ。実装・ルール改定は各インシデント着手時に最新ソースを再確認して行う。",
+      "context_refs": [
+        "studio_work_0164",
+        "studio_work_0165",
+        "studio_work_0153"
+      ],
+      "follow_up_actions": [],
+      "discussion_history": [
+        {
+          "history_id": "disc_0166_001",
+          "at": "2026-08-12T09:04:00\u002B09:00",
+          "speaker": "user",
+          "topic": "実装計画の段階登録",
+          "message": "ルール改定、Componentクラス構造、特殊SubGrid接続、期待値共通計算、Field Definition Editor改善、Definition Test Runnerまでを段階的に計画する。"
+        }
+      ],
+      "decision_log": [],
+      "change_history": [
+        {
+          "history_id": "chg_0166_001",
+          "at": "2026-08-12T09:04:00\u002B09:00",
+          "change_type": "planning_registered",
+          "before": "未登録",
+          "after": "実装前の計画インシデントとして登録",
+          "reason": "大きな一括改修を避け、人間が差分単位で判断・承認できるようにするため。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0167",
+      "phase": "v0.18.44-definition-test-runner-core",
+      "title": "Definition Test Runner Core — Definitionから実行時TestPatternを生成して検証する",
+      "incident_type": "feature",
+      "category": "testing",
+      "priority": "high",
+      "status": "未着手",
+      "follow_up_status": "PENDING",
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-08-12T09:04:00\u002B09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-12T09:04:00\u002B09:00",
+      "updated_at": "2026-08-12T09:04:00\u002B09:00",
+      "target_files": "tools/test/TestRunner.ps1 (integration candidate)\nwwwroot/js/services/definition/ (shared)\ntests/definition/ (new candidate)\ndata/json/03_tests/ (result candidate)\ndata/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "",
+      "objective": "- Field DefinitionをRunnerの直接入力として、保存済みTestPattern JSONなしで標準Validationテストを実行する。\n- studio_work_0165の共通導出Serviceを利用し、Previewと実行内容を一致させる。",
+      "background": "- Definitionから再導出できるTestPatternを別正本として保存すると、人間の承認対象と重複管理が増える。\n- Previewで承認した保証を同じロジックで実行し、Definition Driven Testingを成立させる。",
+      "scope": "- Field Definition読込\n- Validation Type Registry解決\n- DefinitionVerificationServiceからTestPattern/Expected取得\n- 対象Validation実行\n- Actual生成\n- Expected比較\n- Result生成\n- 導出元Definition/Registry/Runner VersionまたはHash記録\n- 単項目Validationを最初のRunner責務とする",
+      "out_of_scope": "- Scenario Driven Test\n- UI操作シナリオ\n- Cross Field Constraintの完全実行\n- 負荷試験\n- Overlay固有Runnerの全面汎用化\n- TestPattern正本保存",
+      "fixed_name_policy": "- 既存の安定ファイル名は維持する。\n- 新規Component / Serviceの物理ファイル名は、実装開始時に最新ソースを確認して確定する。\n- ViewDef・Rules正本の既存ファイル名は変更しない。",
+      "module_policy": "- RunnerはTestPattern導出式を持たず、DefinitionVerificationServiceを呼ぶ。\n- 実行対象・比較・証跡生成をRunner責務とする。\n- TestPatternは実行時中間Dataとして扱い、必要時のみPreview/Export可能とする。",
+      "expected_outputs": "- Definition Test Runner Core\n- 実行時TestPattern\n- Expected / Actual / Result\n- Definition/Registry/Runner追跡メタ情報\n- CLIまたは既存Test Runnerから呼べる最小実行入口\n- 自動テスト",
+      "risk": "- RunnerがUIと別のExpectedを計算すると承認内容と実行内容が乖離する。\n- Version/Hashを残さないとRegistry更新後に過去Resultを説明できない。\n- 既存Test Runner責務との境界が曖昧になる可能性がある。",
+      "test_points": "- 同じDefinitionでPreviewとRunnerのTestPattern/Expectedが一致すること。\n- TestPattern JSONファイルがなくても実行できること。\n- ExpectedとActualの一致/不一致をResultへ記録できること。\n- Definition/Registry/Runner識別情報がResultへ残ること。\n- 代表Validation Typeで正常/異常/境界値を実行できること。",
+      "verification_log": "",
+      "context_def_draft": "- Studioくんは汎用AI協働基盤として維持する。\n- AI承認駆動開発はStudio Coreそのものではなく、標準Capabilityとして実装する。\n- UI Componentと計算Serviceを分離し、表示と実行で同じ導出ロジックを利用する。",
+      "user_request": "ルール改定計画からComponent基盤、項目定義Editor改善、共通Expected/TestPattern導出、Definition Test Runner実装までを、小さなインシデントへ分割して計画登録する。",
+      "ai_response": "作業を段階分割し、Studio Coreの汎用性を維持したまま、Definition Verificationを標準Capabilityとして実装する計画を登録する。",
+      "latest_user_comment": "ルール改定計画～テストラン実装まで、インシデントで計画登録する。箇条書きにできる内容は箇条書きで記載する。",
+      "latest_ai_response": "計画登録のみ。実装・ルール改定は各インシデント着手時に最新ソースを再確認して行う。",
+      "context_refs": [
+        "studio_work_0165",
+        "studio_work_0166",
+        "studio_work_0161"
+      ],
+      "follow_up_actions": [],
+      "discussion_history": [
+        {
+          "history_id": "disc_0167_001",
+          "at": "2026-08-12T09:04:00\u002B09:00",
+          "speaker": "user",
+          "topic": "実装計画の段階登録",
+          "message": "ルール改定、Componentクラス構造、特殊SubGrid接続、期待値共通計算、Field Definition Editor改善、Definition Test Runnerまでを段階的に計画する。"
+        }
+      ],
+      "decision_log": [],
+      "change_history": [
+        {
+          "history_id": "chg_0167_001",
+          "at": "2026-08-12T09:04:00\u002B09:00",
+          "change_type": "planning_registered",
+          "before": "未登録",
+          "after": "実装前の計画インシデントとして登録",
+          "reason": "大きな一括改修を避け、人間が差分単位で判断・承認できるようにするため。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0168",
+      "phase": "v0.18.45-definition-test-runner-diff-crossfield-e2e",
+      "title": "Definition Test Runner E2E — Diff / Cross Field Constraint / 実行証跡接続",
+      "incident_type": "feature",
+      "category": "testing",
+      "priority": "high",
+      "status": "未着手",
+      "follow_up_status": "PENDING",
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-08-12T09:04:00\u002B09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-12T09:04:00\u002B09:00",
+      "updated_at": "2026-08-12T09:04:00\u002B09:00",
+      "target_files": "fielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json\ndata/json/91_fielddef_temp/frb_fft_measurement_field_definitions_v0_2.json\ndata/json/config/validation_type_registry_v0_1.json\ntests/definition/ (new candidate)\ndata/json/03_tests/ (result candidate)\ndata/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "",
+      "objective": "- Definition Test RunnerをActual/Diffまで接続し、Definition Driven Testingの最初のE2Eを完成させる。\n- Cross Field Constraintを代表例で実行時導出し、単項目Validationと同じResult契約へ統合する。",
+      "background": "- studio_work_0167で単項目Runner Coreを成立させた後、実際の項目定義サンプルにはanalysis_start_date \u003C analysis_end_date等のCross Field Constraintが存在する。\n- Definition承認→Preview→Runner→Actual/Diffまで一本につながることで、人間が見た保証と実行証跡が接続される。",
+      "scope": "- Cross Field Constraintの代表比較パターンを導出する。\n- A\u003CBの場合にA\u003CB=OK / A=B=NG / A\u003EB=NG等の境界・逆転条件を生成する。\n- RunnerでCross Field TestPatternを実行する。\n- Actual / Expected / Diffを共通Result形式へ保存する。\n- FRB FFT Field Definition v0_2を最初のE2E教材にする。\n- Preview内容とRunner実行一覧の一致を検証する。\n- Resultから導出元Definition/Registry/Constraintを追跡可能にする。",
+      "out_of_scope": "- 複雑な業務ロジックDSL\n- Scenario Driven Test Runner\n- UI Playwright操作シナリオの自動生成\n- Overlay固有Cross Fieldロジックの一般化\n- 大量のテスト資産生成",
+      "fixed_name_policy": "- 既存の安定ファイル名は維持する。\n- 新規Component / Serviceの物理ファイル名は、実装開始時に最新ソースを確認して確定する。\n- ViewDef・Rules正本の既存ファイル名は変更しない。",
+      "module_policy": "- Cross Field ConstraintもDefinitionから再導出できる範囲だけを標準Capabilityとする。\n- 標準化しにくい条件は無理にCoreへ入れず、後続の拡張点として保留する。\n- Diff形式は既存StudioのExpected/Actual/Diff思想と整合させる。",
+      "expected_outputs": "- Cross Field TestPattern導出\n- Definition Runnerによる実行\n- Actual / Diff / Result証跡\n- FRB FFT項目定義v0_2のE2Eサンプル\n- Preview=Runner一致検証\n- 回帰テスト",
+      "risk": "- Cross Field DSLを広げすぎると小さなRunnerが業務ルールエンジン化する。\n- 比較対象Fieldの型・null・未解決状態の扱いが曖昧だと誤判定する。\n- E2E証跡の保存量が増えすぎる可能性がある。",
+      "test_points": "- A\u003CB / A=B / A\u003EBの代表パターンが期待どおり判定されること。\n- Previewに表示されたCross Field TestPatternとRunner実行内容が一致すること。\n- Actual/Diffが既存Result方針に沿って保存または出力できること。\n- Definition/Registry/Constraintの追跡情報が残ること。\n- 単項目Validationの回帰が維持されること。\n- 対象node --test / 必要に応じたscreen_state確認が成功すること。",
+      "verification_log": "",
+      "context_def_draft": "- Studioくんは汎用AI協働基盤として維持する。\n- AI承認駆動開発はStudio Coreそのものではなく、標準Capabilityとして実装する。\n- UI Componentと計算Serviceを分離し、表示と実行で同じ導出ロジックを利用する。",
+      "user_request": "ルール改定計画からComponent基盤、項目定義Editor改善、共通Expected/TestPattern導出、Definition Test Runner実装までを、小さなインシデントへ分割して計画登録する。",
+      "ai_response": "作業を段階分割し、Studio Coreの汎用性を維持したまま、Definition Verificationを標準Capabilityとして実装する計画を登録する。",
+      "latest_user_comment": "ルール改定計画～テストラン実装まで、インシデントで計画登録する。箇条書きにできる内容は箇条書きで記載する。",
+      "latest_ai_response": "計画登録のみ。実装・ルール改定は各インシデント着手時に最新ソースを再確認して行う。",
+      "context_refs": [
+        "studio_work_0167",
+        "studio_work_0165",
+        "studio_work_0152",
+        "studio_work_0153"
+      ],
+      "follow_up_actions": [],
+      "discussion_history": [
+        {
+          "history_id": "disc_0168_001",
+          "at": "2026-08-12T09:04:00\u002B09:00",
+          "speaker": "user",
+          "topic": "実装計画の段階登録",
+          "message": "ルール改定、Componentクラス構造、特殊SubGrid接続、期待値共通計算、Field Definition Editor改善、Definition Test Runnerまでを段階的に計画する。"
+        }
+      ],
+      "decision_log": [],
+      "change_history": [
+        {
+          "history_id": "chg_0168_001",
+          "at": "2026-08-12T09:04:00\u002B09:00",
+          "change_type": "planning_registered",
+          "before": "未登録",
+          "after": "実装前の計画インシデントとして登録",
+          "reason": "大きな一括改修を避け、人間が差分単位で判断・承認できるようにするため。"
+        }
+      ]
     }
   ],
   "review_notes": [
@@ -23762,13 +24173,19 @@
       "note_id": "note_v01835_small_meaningful_diff_approval_north_star",
       "title": "適切な粒度の小さな差分をAI承認駆動開発の北極星として憲法化",
       "body": "studio_work_0151で、decision_axis_small_meaningful_diff_approval_firstを憲法governance_itemsへ追加した。小さな差分は最小可能ではなく、意味・責務・影響範囲を判断できる最小十分な単位とする。Validation Type等の標準を継承し、項目定義XXX.jsonにはoverride/diffだけを保存する設計判断の上位根拠とする。"
+    },
+    {
+      "note_id": "note_definition_verification_component_plan_20260812",
+      "at": "2026-08-12T09:04:00\u002B09:00",
+      "title": "Definition Verification / Component Model 実装計画を段階登録",
+      "body": "- studio_work_0161を親構想として見直した。\n- studio_work_0162～0168を未着手計画として追加した。\n- Studio Coreは汎用AI協働基盤として維持する。\n- Definition Verificationは標準Capabilityとして実装する。\n- Editor Componentと計算Serviceを分離し、PreviewとRunnerで共通導出ロジックを利用する。\n- 構造化記述原則の新設をルール改定計画へ含めた。"
     }
   ],
-  "work_revision": "v0_18_36_1_detail_dialog_expand_sticky_header",
+  "work_revision": "planning_definition_verification_component_model_20260812",
   "latest_planning_note": {
-    "at": "2026-08-06T20:03:00\u002B09:00",
-    "phase": "v0.18.36.1-detail-dialog-expand-sticky-header",
-    "summary": "studio_work_0159を完了。詳細Editorへ背景余白を残す最大化／復元トグルを追加し、スクロール中もRow Detail見出しとウィンドウ操作が残るstickyヘッダーを追加した。判断ログ・会話履歴を画面遷移せず観測しやすくする。"
+    "at": "2026-08-12T09:04:00\u002B09:00",
+    "phase": "definition-verification-implementation-plan",
+    "summary": "studio_work_0161を親構想として見直し、ルール整合→Studio Component Model→SubGrid Data/Derived分離→Definition Verification共通Service→Field Definition Editor Preview→Definition Test Runner Core→Cross Field/Actual/Diff E2Eのstudio_work_0162～0168を未着手計画として登録した。記載は複数事項を箇条書きへ分解した。"
   },
   "view_def_candidates": [
     {
