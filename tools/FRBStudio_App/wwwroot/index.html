@@ -293,7 +293,10 @@
         </div>
       </div>
       <div id="detailForm" class="form-grid detail-grid"></div>
+      <div id="detailComponentBodyArea" class="editor-component-slot" data-editor-component-slot="detailBody"></div>
       <div id="childArea"></div>
+      <div id="detailComponentAfterChildArea" class="editor-component-slot" data-editor-component-slot="afterChildGrids"></div>
+      <div id="detailComponentFooterArea" class="editor-component-slot" data-editor-component-slot="detailFooter"></div>
       <div class="button-row detail-footer">
         <div class="detail-roundtrip-actions" aria-label="Studio JSON Round Trip">
           <button id="copyDetailJsonBtn" type="button" class="ghost-button studio-json-roundtrip-button" title="現在の詳細画面をRow JSONとしてコピー（サブグリッド含む）">CopyJSON</button>
@@ -324,6 +327,10 @@
   <script src="js/ui/page_setup.js?v=data-viewdef-candidates-0141"></script>
   <script src="js/ui/file_tree_picker.js?v=file-picker-gpt-fx-lab-0170"></script>
   <script src="js/core/data_utils.js?v=action-execute-006"></script>
+  <script src="js/components/studio_component.js?v=studio-editor-component-model-01840"></script>
+  <script src="js/components/editor_component.js?v=studio-editor-component-model-01840"></script>
+  <script src="js/components/editor_component_registry.js?v=studio-editor-component-model-01840"></script>
+  <script src="js/components/editor_component_host.js?v=studio-editor-component-model-01840"></script>
   <script src="js/renderers/renderer_registry.js?v=action-execute-006"></script>
   <script src="js/renderers/field_control_registry.js?v=action-execute-006"></script>
   <script src="js/virtualData/virtual_data_registry.js?v=action-execute-006"></script>
@@ -339,7 +346,7 @@
   <script src="js/markdown/data_markdown.js?v=visible-rows-md-01861"></script>
   <script src="js/markdown/viewdef_markdown.js?v=action-execute-006"></script>
   <script src="js/runtime/detail_subgrid_edit.js?v=detail-select-0168"></script>
-  <script src="js/runtime/detail_save.js?v=context-grid-preview-0164"></script>
+  <script src="js/runtime/detail_save.js?v=studio-editor-component-model-01840"></script>
   <script src="js/runtime/studio_json_round_trip.js?v=studio-json-round-trip-018353"></script>
   <script src="js/core/viewdef_context_contract.js?v=context-grid-preview-0165-6"></script>
   <script src="js/runtime/load_runtime.js?v=fx-chart-url-bb-075"></script>

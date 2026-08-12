@@ -443,6 +443,13 @@
         },
         "markdown": {
           "$ref": "#/$defs/markdownSectionOptions"
+        },
+        "editorComponents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/editorComponentOptions"
+          },
+          "description": "標準Detail EditorへHost / Registry経由で接続するEditor Component宣言。"
         }
       },
       "required": [
@@ -3107,6 +3114,53 @@
             }
           ]
         }
+      ]
+    },
+    "editorComponentOptions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "minLength": 1,
+          "description": "EditorComponentRegistry に登録された Component type。"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "同一Editor内でComponentを識別する任意ID。"
+        },
+        "placement": {
+          "type": "string",
+          "enum": [
+            "detailBody",
+            "afterChildGrids",
+            "detailFooter"
+          ],
+          "default": "afterChildGrids",
+          "description": "標準Detail Editor内のComponent配置位置。"
+        },
+        "caption": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "readonly": {
+          "type": "boolean"
+        },
+        "editable": {
+          "type": "boolean"
+        },
+        "config": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Component固有の宣言的UI設定。計算・判定・導出アルゴリズムは記述しない。"
+        }
+      },
+      "required": [
+        "type"
       ]
     }
   }

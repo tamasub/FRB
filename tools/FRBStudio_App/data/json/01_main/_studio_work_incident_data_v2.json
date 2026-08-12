@@ -23351,17 +23351,17 @@
       "incident_type": "refactoring",
       "category": "runtime",
       "priority": "high",
-      "status": "未着手",
-      "follow_up_status": "PENDING",
-      "verification_status": "未確認",
+      "status": "完了",
+      "follow_up_status": "COMPLETED",
+      "verification_status": "確認済み",
       "context_def_status": "draft",
-      "context_def_updated_at": "2026-08-12T09:04:00+09:00",
+      "context_def_updated_at": "2026-08-12T09:45:41+09:00",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-12T09:04:00+09:00",
-      "updated_at": "2026-08-12T09:04:00+09:00",
+      "updated_at": "2026-08-12T09:45:41+09:00",
       "target_files": "wwwroot/js/core/registry.js\nwwwroot/js/renderers/grid_detail.js\nwwwroot/js/runtime/detail_subgrid_edit.js\nwwwroot/js/components/ (new candidate)\ntests/qa/static/\ndata/json/01_main/_studio_work_incident_data_v2.json",
-      "actual_updated_files": "",
+      "actual_updated_files": "wwwroot/js/components/studio_component.js\nwwwroot/js/components/editor_component.js\nwwwroot/js/components/editor_component_registry.js\nwwwroot/js/components/editor_component_host.js\nwwwroot/js/runtime/detail_save.js\nwwwroot/index.html\ndata/json/00_rules/frb_view_def_schema_v0_9.json\ntests/qa/static/editor_component_model_static.test.mjs\ndata/json/01_main/_studio_work_incident_data_v2.json",
       "objective": "- 標準Editorへ特殊UIを条件分岐で直接組み込まず、Componentとして差し込める共通基盤を作る。\n- 状態・描画・更新・破棄を持つUI部品だけをクラス化し、純粋関数まで無理にclass化しない。",
       "background": "- 既存StudioにはRendererRegistry等のRegistry思想がある一方、Detail/SubGridは関数群中心で、状態とライフサイクルを持つ正式なUI Component Modelがない。\n- Definition Test Previewを最初の実ユースケースとして、汎用的なComponent接続点が必要になった。",
       "scope": "- StudioComponentの最小ライフサイクルを定義する。\n- EditorComponentでEditor Contextを受け取る契約を定義する。\n- EditorComponentHostでmount / update / destroyを統括する。\n- EditorComponentRegistryからtype名でComponentを生成する。\n- 標準EditorはComponent固有IDのif分岐を持たない。\n- 既存Registry設計との整合を取る。",
@@ -23371,12 +23371,12 @@
       "expected_outputs": "- StudioComponent基底\n- EditorComponent基底\n- EditorComponentHost\n- EditorComponentRegistry\n- 最小のComponent接続例\n- 静的/Runtime回帰テスト",
       "risk": "- 過剰な抽象化により既存Editorが読みづらくなる。\n- 既存Registryと新Registryの役割が重複する可能性がある。\n- mount/update/destroy契約を曖昧にするとイベント解除漏れや状態リークが起きる。",
       "test_points": "- Component固有IDの分岐が標準Editorへ追加されないこと。\n- Hostが複数Componentのmount/update/destroyを管理できること。\n- Component破棄時にイベント・DOM参照を残さないこと。\n- 既存Detail Editor動作を壊さないこと。\n- node --check / 対象node --testが成功すること。",
-      "verification_log": "",
+      "verification_log": "- node --check:\n  - studio_component.js: PASS\n  - editor_component.js: PASS\n  - editor_component_registry.js: PASS\n  - editor_component_host.js: PASS\n  - detail_save.js: PASS\n- Component Model対象Static Test:\n  - 4件 PASS / 0件 FAIL\n  - mount / update / destroyを確認\n  - listen()で登録したイベント解除を確認\n  - Hostによる複数Component管理を確認\n  - Host所有mount nodeの破棄を確認\n  - 標準EditorにCapability固有if分岐がないことを確認\n  - ViewDef SchemaのeditorComponents契約を確認\n- Static Test全体:\n  - 59件中56件 PASS / 3件 FAIL\n  - 作業前は55件中52件 PASS / 3件 FAIL\n  - FAIL 3件は作業前と同一の既存失敗\n  - 今回差分による新規FAILなし\n- JSON parse:\n  - frb_view_def_schema_v0_9.json: PASS\n  - _studio_work_incident_data_v2.json: PASS\n- 未実施:\n  - ブラウザ実機操作 / Playwright\n  - 理由: 本フェーズでは実Componentを製品登録せず、Host / Registry / Lifecycle基盤と静的Runtime接続を対象としたため。",
       "context_def_draft": "- Studioくんは汎用AI協働基盤として維持する。\n- AI承認駆動開発はStudio Coreそのものではなく、標準Capabilityとして実装する。\n- UI Componentと計算Serviceを分離し、表示と実行で同じ導出ロジックを利用する。",
       "user_request": "ルール改定計画からComponent基盤、項目定義Editor改善、共通Expected/TestPattern導出、Definition Test Runner実装までを、小さなインシデントへ分割して計画登録する。",
-      "ai_response": "作業を段階分割し、Studio Coreの汎用性を維持したまま、Definition Verificationを標準Capabilityとして実装する計画を登録する。",
-      "latest_user_comment": "ルール改定計画～テストラン実装まで、インシデントで計画登録する。箇条書きにできる内容は箇条書きで記載する。",
-      "latest_ai_response": "計画登録のみ。実装・ルール改定は各インシデント着手時に最新ソースを再確認して行う。",
+      "ai_response": "- v0.18.40としてStudio UI Component Model基盤を実装。\n- 標準Detail EditorはHost / Registry経由でEditor Componentを接続する。\n- Capability固有ロジックは本フェーズでは追加しない。",
+      "latest_user_comment": "- incident_file: data/json/01_main/_studio_work_incident_data_v2.json\n- phase: v0.18.40-studio-editor-component-model\n- foundation_rule_019「GitHub基準ソースとZIP返却契約」に従って次の作業を実施する。",
+      "latest_ai_response": "- Studio UI Component Model基盤を実装。\n- StudioComponentを追加。\n  - mount / update / render / destroyライフサイクルを定義。\n  - addCleanup / listenでイベント解除をComponent自身のライフサイクルへ接続。\n- EditorComponentを追加。\n  - row / rowIndex / mode / viewDef / gridDef / sourceDataをEditor Contextから参照。\n  - Editor内部グローバル状態への直接依存を避ける境界を作成。\n- EditorComponentRegistryを追加。\n  - ViewDefのtype名からfactoryを解決。\n  - 標準EditorへComponent固有if分岐を追加しない構造とした。\n- EditorComponentHostを追加。\n  - 複数Componentのmount / update / destroyを統括。\n  - Componentごとのmount nodeをHostが所有し、destroy時に除去。\n- 標準Detail EditorをComponent Host化。\n  - ViewDef sectionのeditorComponents宣言を読み取る。\n  - detailBody / afterChildGrids / detailFooterの3配置slotを追加。\n  - Detail Dialog close時にComponentを破棄。\n- ViewDef SchemaへeditorComponents / editorComponentOptionsを追加。\n  - canonical keyはeditorComponents。\n  - 計算・判定・導出はconfigへ埋め込まず、後続Serviceへ分離する契約。\n- 製品用の仮Componentは追加しなかった。\n  - 最小接続例はStatic Test内のProbe Componentで検証。\n  - DataSubGrid / DerivedSubGridの具体実装はstudio_work_0164へ送る。\n- Static Test全体で新規FAILなし。\n- 次作業はstudio_work_0164「SubGrid Component — Data / Derived責務分離」。",
       "context_refs": [
         "studio_work_0162",
         "studio_work_0159"
@@ -23389,6 +23389,13 @@
           "speaker": "user",
           "topic": "実装計画の段階登録",
           "message": "ルール改定、Componentクラス構造、特殊SubGrid接続、期待値共通計算、Field Definition Editor改善、Definition Test Runnerまでを段階的に計画する。"
+        },
+        {
+          "history_id": "disc_0163_002",
+          "at": "2026-08-12T09:38:00+09:00",
+          "speaker": "user",
+          "topic": "v0.18.40実装依頼",
+          "message": "incident_file=data/json/01_main/_studio_work_incident_data_v2.json、phase=v0.18.40-studio-editor-component-modelを指定し、foundation_rule_019に従って次作業を依頼。"
         }
       ],
       "decision_log": [
@@ -23397,6 +23404,24 @@
           "at": "2026-08-12T09:04:00+09:00",
           "decision": "Component ModelはStudio Coreの汎用拡張機構として実装する。",
           "reason": "Definition Verification固有機能をEditor本体へ焼き込まず、Studioくんを汎用AI協働基盤として維持するため。"
+        },
+        {
+          "decision_id": "dec_0163_002",
+          "at": "2026-08-12T09:45:41+09:00",
+          "decision": "ViewDefのEditor Component宣言はgrid section配下のeditorComponentsをcanonical keyとする。",
+          "reason": "Detail Editorの責務単位で接続対象を宣言し、標準Editor本体へCapability固有分岐を持ち込まないため。配置はdetailBody / afterChildGrids / detailFooterの3点に限定して開始する。"
+        },
+        {
+          "decision_id": "dec_0163_003",
+          "at": "2026-08-12T09:45:41+09:00",
+          "decision": "EditorComponentHostがComponentごとのmount nodeを生成・所有し、Component破棄とDOM除去を統括する。",
+          "reason": "複数Componentが同じplacementを共有できるようにし、Component間のDOM所有境界と破棄責務を明確にするため。"
+        },
+        {
+          "decision_id": "dec_0163_004",
+          "at": "2026-08-12T09:45:41+09:00",
+          "decision": "本フェーズでは製品用の仮Componentを追加せず、Static TestのProbe Componentを最小接続例とする。",
+          "reason": "実在しない用途のComponentを先行投入せず、constitution_29に従うため。具体的なData / Derived SubGrid Componentはstudio_work_0164で実装する。"
         }
       ],
       "change_history": [
@@ -23407,6 +23432,14 @@
           "before": "未登録",
           "after": "実装前の計画インシデントとして登録",
           "reason": "大きな一括改修を避け、人間が差分単位で判断・承認できるようにするため。"
+        },
+        {
+          "history_id": "chg_0163_002",
+          "at": "2026-08-12T09:45:41+09:00",
+          "change_type": "implementation_completed",
+          "before": "Component Modelは計画のみで、標準Detail Editorは特殊UIを差し込む正式なHost / Registry / Lifecycle契約を持っていなかった。",
+          "after": "StudioComponent / EditorComponent / EditorComponentRegistry / EditorComponentHostを追加し、ViewDef editorComponents宣言から標準Detail EditorへComponentを接続できる基盤を実装した。",
+          "reason": "AI承認駆動開発固有ロジックを標準Editorへ焼き込まず、Studio Coreを汎用AI協働基盤として維持するため。"
         }
       ]
     },
@@ -24225,12 +24258,8 @@
       "body": "- studio_work_0161を親構想として見直した。\n- studio_work_0162～0168を未着手計画として追加した。\n- Studio Coreは汎用AI協働基盤として維持する。\n- Definition Verificationは標準Capabilityとして実装する。\n- Editor Componentと計算Serviceを分離し、PreviewとRunnerで共通導出ロジックを利用する。\n- 構造化記述原則の新設をルール改定計画へ含めた。"
     }
   ],
-  "work_revision": "planning_definition_verification_component_model_20260812",
-  "latest_planning_note": {
-    "at": "2026-08-12T09:04:00+09:00",
-    "phase": "definition-verification-implementation-plan",
-    "summary": "studio_work_0161を親構想として見直し、ルール整合→Studio Component Model→SubGrid Data/Derived分離→Definition Verification共通Service→Field Definition Editor Preview→Definition Test Runner Core→Cross Field/Actual/Diff E2Eのstudio_work_0162～0168を未着手計画として登録した。記載は複数事項を箇条書きへ分解した。"
-  },
+  "work_revision": "studio_editor_component_model_20260812",
+  "latest_planning_note": "- studio_work_0163完了。\n- Studio UI Component Model基盤を追加。\n- 次はstudio_work_0164でSubGridComponentをData / Derivedへ責務分離する。\n- Definition Verification固有Componentはstudio_work_0166まで標準Editorへ追加しない。",
   "view_def_candidates": [
     {
       "view_def": "rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",
