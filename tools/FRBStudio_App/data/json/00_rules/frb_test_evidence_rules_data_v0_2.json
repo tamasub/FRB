@@ -11,9 +11,9 @@
   "status": "updated_draft",
   "introduced_in": "v0.14.14-test-evidence-rules-contract",
   "generated_at": "2026-06-27T00:00:00+09:00",
-  "updated_at": "2026-07-25",
-  "rule_count": 20,
-  "approved_count": 20,
+  "updated_at": "2026-08-12",
+  "rule_count": 21,
+  "approved_count": 21,
   "approval_policy": "Rule Reviewの状態正本は verification_status（AI確認状態）と approval_decision（人間承認）の二つとする。AIは確認結果を更新できるが、人間承認を新規付与・継続・復元してはならない。AIが承認対象の意味内容を変更した場合は verification_status=未確認、approval_decision=未承認へ戻し、approved_by / approved_at をクリアして人間再承認を求める。",
   "preamble": "Test Evidence Rulesは、テスト失敗時にも人間とAIが失敗理由を追体験できるように、Expected / Actual / Diff / Test Code の責務境界を定義する。",
   "change_history_policy": "ルールを変更した場合は、各rule.change_historyへ変更前後と理由を残す。",
@@ -943,6 +943,56 @@
           "reason": "実行時の暗黙導出やExpected変更を防ぎ、人間が承認した具体差分と実行結果を一致させるため。"
         }
       ]
+    },
+    {
+      "no": 21,
+      "rule_id": "test_evidence_rule_021",
+      "section_no": "21",
+      "source_heading": "関連項目比較は共通範囲の内部代表値から3関係を導出する",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "test_pattern_derivation",
+      "title": "関連項目比較は共通範囲の内部代表値から3関係を導出する",
+      "priority": "high",
+      "verification_status": "確認済み",
+      "approval_decision": "承認する",
+      "summary": "大小比較の標準TestPatternはA<B / A=B / A>Bの3関係を基本軸とし、境界値そのものではなく共通有効範囲のLOW / MID / HIGHを使う。未設定はnull等の物理表現ではなく意味レイヤーで扱い、Policy結果はOK/NGの2分類とする。",
+      "body": "関連項目の大小比較 `studio.cross_field.compare` では、Operatorごとに別の具体値生成ロジックを持たず、次の3関係を共通の基本軸として導出する。\n\n```text\nLEFT < RIGHT\nLEFT = RIGHT\nLEFT > RIGHT\n```\n\nLeft / RightのField Contractにminimum / maximum系の境界が双方とも存在する場合、まず両項目で共通して有効な範囲を求める。\n\n```text\nCOMMON_MIN = max(Left.minimum, Right.minimum)\nCOMMON_MAX = min(Left.maximum, Right.maximum)\n\nMID  = midpoint(COMMON_MIN, COMMON_MAX)\nLOW  = midpoint(COMMON_MIN, MID)\nHIGH = midpoint(MID, COMMON_MAX)\n```\n\n標準比較TestPatternは次とする。\n\n```text\nLESS    = LOW  / HIGH\nEQUAL   = MID  / MID\nGREATER = HIGH / LOW\n```\n\n境界値そのものを通常の関連項目比較へ使わない。minimum / maximum等の境界保証は単項目Validationの責務であり、関連項目比較では範囲内部の自然な代表値を使って関係そのものを確認する。\n\nOperatorごとのExpectedは3関係に対してのみ決定する。\n\n```text\n<   : OK / NG / NG\n<=  : OK / OK / NG\n=   : NG / OK / NG\n!=  : OK / NG / OK\n>=  : NG / OK / OK\n>   : NG / NG / OK\n```\n\n整数midpointは既存の整数代表値規則に従い0方向へ切り捨てる。日付は日数差、datetimeは時間差等を使い、決定論的に中間点を求める。範囲が狭く独立したLOW / MID / HIGHを作れない場合は、Field Contract内で成立する値へ決定論的にフォールバックし、生成不能を暗黙PASSにしない。\n\nminimum / maximumが十分に解決されていない場合も、固定候補から比較可能な内部代表値を決定論的に選ぶことは許可する。ただし、その導出由来をResultへ残す。\n\n### 未設定の意味レイヤー\n\n`null` / `\"\"` / missing等は物理表現としては区別する。各表現を許可するかどうかはField Contractの責務とする。Cross Field側では、Field Contractを通過した未設定表現を意味レイヤーの「未設定」として扱う。\n\nCross FieldのPolicyは次の2分類を標準とする。\n\n```text\nACCEPT_IF_EITHER_UNSET = どちらかが未設定ならOK\nREJECT_IF_EITHER_UNSET = どちらかが未設定ならNG\n```\n\nField Contractが未設定を許可する場合だけ、Left未設定 / Right未設定 / Both未設定の代表TestPatternを追加導出する。物理表現ごとの組合せをCross Fieldで再テストせず、Field Contractで許可された代表未設定Inputを一つ選ぶ。\n\n人間向けDiff / PreviewはPASS可能と説明できるものだけをOK/PASS側へ置き、未判定・導出不能・未対応を暗黙PASSへ寄せない。警告という第三状態は、実害と責務が確認されるまで導入しない。",
+      "ceremony_phrase": "関連項目比較の3関係・内部代表値・未設定OK/NG導出規則をレビューする。",
+      "user_comment": "自然なテストデータにしたい。最小値と最大値そのものの比較は極端なので、中央値とその上下の中間値を使う。Nullではなく未設定として意味を扱い、少なくともOK/NGの2分類にする。",
+      "ai_response": "Cross Field Compareを3関係共通軸へ固定し、共通有効範囲からLOW/MID/HIGHを導出する。未設定はField Contractで許可されたnull/空文字/missingを意味レイヤーへ上げ、Cross Field PolicyはOK/NGの2値にする。",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "",
+      "approved_at": "",
+      "notes": "2026-08-12 studio_work_0176で実装・6 Operator Matrix試験へ接続。",
+      "source_line_start": 0,
+      "source_md_file": "",
+      "introduced_in": "v0.18.53-cross-field-test-pattern-generation",
+      "change_history": [
+        {
+          "history_id": "chg_test_evidence_rule_021_v01853_001",
+          "at": "2026-08-12",
+          "change_type": "rule_added",
+          "before": "Cross Field Compareは3関係を生成していたが、具体値の選び方が固定候補の最小/最大寄りで、Null Policyも3状態だった。",
+          "after": "共通範囲の内部代表値LOW/MID/HIGH、6 Operator共通Expected表、未設定意味レイヤー、OK/NG二値Policyを標準化した。",
+          "reason": "関連項目テストを自然な値で説明可能にし、人間が判定結果の意味を再解釈しなくてよい状態へ寄せるため。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_test_evidence_rule_021_v01853_001",
+          "at": "2026-08-12",
+          "decision": "関連項目比較はA<B / A=B / A>Bの3関係を共通軸とし、共通有効範囲のLOW/MID/HIGHから具体値を導出する。",
+          "reason": "Operator別に値生成を増やさず、境界値テストと関連項目比較の責務を分離して自然な代表値を得るため。"
+        },
+        {
+          "decision_id": "dec_test_evidence_rule_021_v01853_002",
+          "at": "2026-08-12",
+          "decision": "null / 空文字 / missingは物理的に区別しつつ、Cross FieldではField Contractを通過したものを「未設定」として扱い、PolicyはOK/NGの2値とする。",
+          "reason": "物理表現の組合せ爆発を避けながら、関連項目として未設定を許すか拒否するかを人間が即読できるようにするため。"
+        }
+      ]
     }
   ],
   "review_notes": [
@@ -987,9 +1037,15 @@
       "at": "2026-07-25",
       "topic": "Rule Review状態の二項目化",
       "note": "v0.18.30でreview_statusを廃止し、verification_status（AI）とapproval_decision（人間）の二状態へ統合。旧review_statusは重複した人間ワークフロー表示であり正本には継承しない。旧verification_status=実装済みは確認済みへ、旧approval_decision=未判断/承認待ちは未承認へ正規化。既存のapproved_by/approved_at欠落値は推測補完しない。"
+    },
+    {
+      "note_id": "note_v01853_cross_field_generation",
+      "at": "2026-08-12",
+      "title": "v0.18.53 Cross Field Compare TestPattern標準生成",
+      "body": "A<B / A=B / A>Bの3関係を共通軸とし、共通範囲のLOW/MID/HIGHで自然な比較値を作る。未設定はnull/空文字/missingの意味レイヤーとして扱い、Cross Field PolicyはOK/NGの2値とする。"
     }
   ],
-  "review_revision": "v0.18.29-fielddef-validation-testpattern-derivation",
+  "review_revision": "v0.18.53-cross-field-test-pattern-generation",
   "view_def_candidates": [
     {
       "view_def": "rules/rule_review_common_view_def_v0_3.json",

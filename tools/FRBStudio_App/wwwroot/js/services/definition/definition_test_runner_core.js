@@ -1,9 +1,9 @@
-// v0.18.45-definition-test-runner-diff-crossfield-e2e
+// v0.18.53-cross-field-test-pattern-generation
 // Executes Definition-derived single-field and Cross Field TestPatterns without persisting TestPattern as canonical data.
 
 const DEFINITION_TEST_RUNNER_RESULT_SCHEMA_VERSION = 'definition_test_runner_result_v0_2';
 const DEFINITION_TEST_RUNNER_ID = 'studio.definition_test_runner.core';
-const DEFINITION_TEST_RUNNER_VERSION = '0.2.0';
+const DEFINITION_TEST_RUNNER_VERSION = '0.3.0';
 
 class DefinitionTestRunnerCore {
   constructor({
@@ -153,7 +153,7 @@ class DefinitionTestRunnerCore {
       constraint_id: verification.constraint_id,
       constraint_type: verification.constraint_type,
       operator: verification.operator,
-      null_policy: verification.null_policy,
+      unset_policy: verification.unset_policy,
       left_field_path: verification.left_field_path,
       right_field_path: verification.right_field_path,
       status: this.#crossFieldStatus(verification, summary),

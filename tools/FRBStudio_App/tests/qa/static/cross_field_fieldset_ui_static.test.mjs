@@ -29,18 +29,17 @@ test('Cross Field ViewDef groups the positive relation as OK condition and prese
   const fieldByName = Object.fromEntries(section.fields.map(field => [field.field, field]));
 
   assert.equal(fieldSet.caption, 'OK条件');
-  assert.deepEqual(fieldSet.fields, ['left_field_path', 'operator', 'right_field_path', 'null_policy']);
+  assert.deepEqual(fieldSet.fields, ['left_field_path', 'operator', 'right_field_path', 'unset_policy']);
 
   assert.deepEqual(
     fieldByName.operator.options.map(item => [item.cd, item.name]),
     [['LT', '<'], ['LTE', '<='], ['EQ', '='], ['NE', '!='], ['GTE', '>='], ['GT', '>']]
   );
   assert.deepEqual(
-    fieldByName.null_policy.options.map(item => [item.cd, item.name]),
+    fieldByName.unset_policy.options.map(item => [item.cd, item.name]),
     [
-      ['DEFER_TO_FIELD_CONTRACTS', '各項目のNull設定に従う'],
-      ['SKIP_IF_EITHER_NULL', 'どちらかがNullなら判定しない'],
-      ['REJECT_IF_EITHER_NULL', 'どちらかがNullならNG']
+      ['ACCEPT_IF_EITHER_UNSET', '未設定ならOK'],
+      ['REJECT_IF_EITHER_UNSET', '未設定ならNG']
     ]
   );
 });
@@ -58,13 +57,15 @@ test('Detail Renderer treats FieldSet as one full-width block and omits empty le
   assert.match(css, /\.detail-fieldset-grid \{[\s\S]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
 });
 
-test('Cross Field Preview reuses ViewDef option label instead of duplicating an operator mapping', () => {
+test('Cross Field Preview reuses ViewDef option label and shows Expected as OK/NG', () => {
   const component = readText('wwwroot/js/components/definition/cross_field_test_preview_component.js');
 
   assert.match(component, /displayOperator\(value\)/);
   assert.match(component, /optionLabelForValue\(value, operatorField\)/);
   assert.match(component, /operator:\s*this\.displayOperator/);
   assert.doesNotMatch(component, /LT\s*:\s*['"]<['"]/);
+  assert.match(component, /if \(value === 'ACCEPT'\) return 'OK'/);
+  assert.match(component, /if \(value === 'REJECT'\) return 'NG'/);
 });
 
 test('ViewDef Generation Rules records full-width / optional-caption / no-redundant-summary FieldSet policy', () => {
@@ -77,5 +78,22 @@ test('ViewDef Generation Rules records full-width / optional-caption / no-redund
   assert.match(rule.body, /3列フル幅/);
   assert.match(rule.body, /caption.*任意/);
   assert.match(rule.body, /要約文を重ねない/);
+  assert.equal(rules.rule_count, rules.rules.length);
+});
+
+test('Test Evidence Rules formalize Cross Field 3-shape interior values and two-value unset policy', () => {
+  const rules = readJson('data/json/00_rules/frb_test_evidence_rules_data_v0_2.json');
+  const rule = rules.rules.find(item => item.rule_id === 'test_evidence_rule_021');
+
+  assert.ok(rule);
+  assert.equal(rule.verification_status, '確認済み');
+  assert.equal(rule.approval_decision, '承認する');
+  assert.match(rule.body, /LEFT < RIGHT/);
+  assert.match(rule.body, /MID\s+= midpoint/);
+  assert.match(rule.body, /LOW\s+= midpoint/);
+  assert.match(rule.body, /HIGH\s+= midpoint/);
+  assert.match(rule.body, /ACCEPT_IF_EITHER_UNSET/);
+  assert.match(rule.body, /REJECT_IF_EITHER_UNSET/);
+  assert.match(rule.body, /警告という第三状態/);
   assert.equal(rules.rule_count, rules.rules.length);
 });

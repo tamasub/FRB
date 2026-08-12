@@ -1,0 +1,90 @@
+{
+  "schema_version": "cross_field_compare_operator_matrix_fixture_v0_1",
+  "document_type": "field_definition_test_fixture",
+  "definition_id": "studio.cross_field.compare.operator_matrix",
+  "title": "Cross Field Compare 6 Operator Matrix",
+  "field_definitions": [
+    {
+      "field_path": "$.left",
+      "validation_type": "studio.integer.signed",
+      "constraint_overrides": {
+        "required": true,
+        "nullable": false,
+        "minimum": {
+          "value": 0,
+          "inclusive": true
+        },
+        "maximum": {
+          "value": 100,
+          "inclusive": true
+        }
+      }
+    },
+    {
+      "field_path": "$.right",
+      "validation_type": "studio.integer.signed",
+      "constraint_overrides": {
+        "required": true,
+        "nullable": false,
+        "minimum": {
+          "value": 0,
+          "inclusive": true
+        },
+        "maximum": {
+          "value": 100,
+          "inclusive": true
+        }
+      }
+    }
+  ],
+  "cross_field_constraints": [
+    {
+      "id": "operator_lt",
+      "constraint_type": "studio.cross_field.compare",
+      "left_field_path": "$.left",
+      "operator": "LT",
+      "right_field_path": "$.right",
+      "unset_policy": "REJECT_IF_EITHER_UNSET"
+    },
+    {
+      "id": "operator_lte",
+      "constraint_type": "studio.cross_field.compare",
+      "left_field_path": "$.left",
+      "operator": "LTE",
+      "right_field_path": "$.right",
+      "unset_policy": "REJECT_IF_EITHER_UNSET"
+    },
+    {
+      "id": "operator_eq",
+      "constraint_type": "studio.cross_field.compare",
+      "left_field_path": "$.left",
+      "operator": "EQ",
+      "right_field_path": "$.right",
+      "unset_policy": "REJECT_IF_EITHER_UNSET"
+    },
+    {
+      "id": "operator_ne",
+      "constraint_type": "studio.cross_field.compare",
+      "left_field_path": "$.left",
+      "operator": "NE",
+      "right_field_path": "$.right",
+      "unset_policy": "REJECT_IF_EITHER_UNSET"
+    },
+    {
+      "id": "operator_gte",
+      "constraint_type": "studio.cross_field.compare",
+      "left_field_path": "$.left",
+      "operator": "GTE",
+      "right_field_path": "$.right",
+      "unset_policy": "REJECT_IF_EITHER_UNSET"
+    },
+    {
+      "id": "operator_gt",
+      "constraint_type": "studio.cross_field.compare",
+      "left_field_path": "$.left",
+      "operator": "GT",
+      "right_field_path": "$.right",
+      "unset_policy": "REJECT_IF_EITHER_UNSET"
+    }
+  ]
+}

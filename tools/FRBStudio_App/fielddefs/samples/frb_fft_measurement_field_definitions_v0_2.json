@@ -6,7 +6,7 @@
   "title": "FRB FFT測定 項目定義サンプル",
   "status": "draft",
   "created_at": "2026-07-26",
-  "updated_at": "2026-08-07",
+  "updated_at": "2026-08-12",
   "target_document_type": "frb_fft_measurement_sample",
   "target_schema_version": "frb_fft_field_definition_sample_data_v0_1",
   "definition_policy": {
@@ -16,7 +16,7 @@
     "validation_type_policy": "field_definitionsへ登録した項目ではvalidation_typeを必須とする。",
     "constraint_override_policy": "Validation Type標準から変更した制約だけをconstraint_overridesへ保存する。",
     "standard_restore_policy": "標準値へ戻した制約キーはconstraint_overridesから削除し、空になった場合はconstraint_overrides自体を省略できる。",
-    "cross_field_constraint_policy": "単項目のField Contractとは分離し、項目間の関係はcross_field_constraintsへ定義する。TestPatternは項目定義へ直接保持せず、constraint_type / operator と参照先Field Contractから標準導出する。"
+    "cross_field_constraint_policy": "単項目のField Contractとは分離し、項目間の関係はcross_field_constraintsへ定義する。TestPatternは項目定義へ直接保持せず、constraint_type / operator / unset_policy と参照先Field Contractから標準導出する。"
   },
   "design_notes": [
     "ViewDef側にはvalidation_typeを保持しない。",
@@ -27,7 +27,10 @@
     "ViewDef type=dateはYYYY-MM-DDの日付のみ、type=datetimeは時刻を含む日時を表す。",
     "received_atはViewDef type=datetimeだが、タイムゾーン付き時点のためstudio.instant.iso8601を明示する。",
     "関連項目チェックはfield_definitions内へ埋め込まず、rootのcross_field_constraintsへ関係契約として分離する。",
-    "cross_field_constraintsはTestPatternそのものを保持しない。constraint_type / operatorと各field_pathのValidation Type・Constraint Overrideから標準テスト条件を導出する想定とする。"
+    "cross_field_constraintsはTestPatternそのものを保持しない。constraint_type / operatorと各field_pathのValidation Type・Constraint Overrideから標準テスト条件を導出する想定とする。",
+    "関連項目比較の標準TestPatternは、比較可能な共通範囲の内部代表値LOW / MID / HIGHから A<B / A=B / A>B の3関係を導出する。境界値そのものは単項目Validationの責務とする。",
+    "関連項目チェックではnull / 空文字 / missing等の物理表現を直接Policy名にせず、各Field Contractで許可された未設定状態を意味レイヤーの「未設定」として扱う。",
+    "未設定時の関連項目ExpectedはOK/NGの2分類とし、判定不能をPASS扱いしない。"
   ],
   "field_definition_count": 20,
   "field_definitions": [
@@ -278,8 +281,8 @@
       "left_field_path": "$.analysis_start_date",
       "operator": "LT",
       "right_field_path": "$.analysis_end_date",
-      "null_policy": "DEFER_TO_FIELD_CONTRACTS",
-      "note": "analysis_start_date < analysis_end_date。等値(A=B)と逆転(A>B)は標準テスト条件からNGとして導出する想定。"
+      "note": "analysis_start_date < analysis_end_date。通常比較は A<B / A=B / A>B の3関係を内部代表値から標準導出し、未設定がField Contract上有効な場合でも本制約ではNGとする。",
+      "unset_policy": "REJECT_IF_EITHER_UNSET"
     }
   ]
 }

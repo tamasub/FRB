@@ -1,0 +1,2754 @@
+{
+  "schema_version": "definition_test_runner_result_v0_2",
+  "runner": {
+    "id": "studio.definition_test_runner.core",
+    "version": "0.3.0"
+  },
+  "status": "PASSED",
+  "executed_at": "2026-08-12T11:27:10.325Z",
+  "source": {
+    "field_definition_document": {
+      "definition_id": "studio.cross_field.compare.operator_matrix",
+      "schema_version": "cross_field_compare_operator_matrix_fixture_v0_1",
+      "document_type": "field_definition_test_fixture",
+      "updated_at": "",
+      "sha256": "8bb00e405405fdd31c5cfe57a289bf1f02247d8b46bd566b5c0d3618afb20bb0",
+      "path": "tests/fixtures/definition/cross_field_compare_operator_matrix_v0_1.json"
+    },
+    "validation_type_registry": {
+      "schema_version": "validation_type_registry_data_v0_1",
+      "registry_version": "0.1.0",
+      "document_type": "validation_type_registry",
+      "sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803",
+      "path": "data/json/config/validation_type_registry_v0_1.json"
+    },
+    "verification_schema_version": "definition_verification_result_v0_1",
+    "cross_field_verification_schema_version": "cross_field_verification_result_v0_2"
+  },
+  "summary": {
+    "field_count": 2,
+    "field_pattern_count": 16,
+    "field_passed_count": 16,
+    "field_failed_count": 0,
+    "field_unresolved_count": 0,
+    "invalid_field_count": 0,
+    "partial_field_count": 0,
+    "cross_field_constraint_count": 6,
+    "cross_field_pattern_count": 18,
+    "cross_field_passed_count": 18,
+    "cross_field_failed_count": 0,
+    "cross_field_unresolved_count": 0,
+    "invalid_cross_field_constraint_count": 0,
+    "partial_cross_field_constraint_count": 0,
+    "pattern_count": 34,
+    "passed_count": 34,
+    "failed_count": 0,
+    "unresolved_count": 0
+  },
+  "fields": [
+    {
+      "field_path": "$.left",
+      "validation_type_id": "studio.integer.signed",
+      "status": "PASSED",
+      "verification_status": "READY",
+      "field_definition_snapshot": {
+        "field_path": "$.left",
+        "validation_type": "studio.integer.signed",
+        "constraint_overrides": {
+          "required": true,
+          "nullable": false,
+          "minimum": {
+            "value": 0,
+            "inclusive": true
+          },
+          "maximum": {
+            "value": 100,
+            "inclusive": true
+          }
+        }
+      },
+      "verification_snapshot": {
+        "schema_version": "definition_verification_result_v0_1",
+        "status": "READY",
+        "field_path": "$.left",
+        "validation_type_id": "studio.integer.signed",
+        "field_contract": {
+          "schema_version": "resolved_field_contract_v0_1",
+          "field_path": "$.left",
+          "validation_type_id": "studio.integer.signed",
+          "resolution_status": "RESOLVED",
+          "value_family": "integer",
+          "value_contract": {
+            "runtime_value_type": "number",
+            "finite_required": true,
+            "integer_required": true,
+            "safe_integer_required": true,
+            "negative_allowed": true,
+            "zero_allowed": true
+          },
+          "constraint_resolutions": [
+            {
+              "constraint": "minimum",
+              "status": "RESOLVED",
+              "source": "override",
+              "required_by_validation_type": false,
+              "default_defined": true,
+              "default_value": {
+                "value": -9007199254740991,
+                "inclusive": true
+              },
+              "override_defined": true,
+              "override_value": {
+                "value": 0,
+                "inclusive": true
+              },
+              "resolved_value": {
+                "value": 0,
+                "inclusive": true
+              }
+            },
+            {
+              "constraint": "maximum",
+              "status": "RESOLVED",
+              "source": "override",
+              "required_by_validation_type": false,
+              "default_defined": true,
+              "default_value": {
+                "value": 9007199254740991,
+                "inclusive": true
+              },
+              "override_defined": true,
+              "override_value": {
+                "value": 100,
+                "inclusive": true
+              },
+              "resolved_value": {
+                "value": 100,
+                "inclusive": true
+              }
+            },
+            {
+              "constraint": "required",
+              "status": "RESOLVED",
+              "source": "override",
+              "required_by_validation_type": false,
+              "default_defined": false,
+              "default_value": null,
+              "override_defined": true,
+              "override_value": true,
+              "resolved_value": true
+            },
+            {
+              "constraint": "nullable",
+              "status": "RESOLVED",
+              "source": "override",
+              "required_by_validation_type": false,
+              "default_defined": false,
+              "default_value": null,
+              "override_defined": true,
+              "override_value": false,
+              "resolved_value": false
+            }
+          ],
+          "resolved_constraints": {
+            "minimum": {
+              "value": 0,
+              "inclusive": true
+            },
+            "maximum": {
+              "value": 100,
+              "inclusive": true
+            },
+            "required": true,
+            "nullable": false
+          },
+          "unresolved_constraints": [],
+          "issues": [],
+          "source": {
+            "registry_schema_version": "validation_type_registry_data_v0_1",
+            "registry_version": "0.1.0",
+            "registry_document_type": "validation_type_registry",
+            "validation_type_id": "studio.integer.signed",
+            "validation_type_contract_version": "0.1.0",
+            "validation_type_status": "active"
+          }
+        },
+        "test_patterns": [
+          {
+            "pattern_id": "$.left::required_missing",
+            "pattern_key": "required_missing",
+            "category": "presence",
+            "input": {
+              "state": "MISSING"
+            },
+            "constraint_ref": "required",
+            "expectation_rule": {
+              "type": "required_policy"
+            },
+            "source": {
+              "field_path": "$.left",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0"
+            },
+            "expected": {
+              "outcome": "REJECT",
+              "reason_code": "REQUIRED_MISSING_REJECTED",
+              "source": {
+                "field_path": "$.left",
+                "validation_type_id": "studio.integer.signed",
+                "registry_version": "0.1.0",
+                "validation_type_contract_version": "0.1.0",
+                "constraint_ref": "required"
+              }
+            }
+          },
+          {
+            "pattern_id": "$.left::null",
+            "pattern_key": "null",
+            "category": "nullability",
+            "input": {
+              "state": "VALUE",
+              "value": null
+            },
+            "constraint_ref": "nullable",
+            "expectation_rule": {
+              "type": "nullable_policy"
+            },
+            "source": {
+              "field_path": "$.left",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0"
+            },
+            "expected": {
+              "outcome": "REJECT",
+              "reason_code": "NULL_REJECTED",
+              "source": {
+                "field_path": "$.left",
+                "validation_type_id": "studio.integer.signed",
+                "registry_version": "0.1.0",
+                "validation_type_contract_version": "0.1.0",
+                "constraint_ref": "nullable"
+              }
+            }
+          },
+          {
+            "pattern_id": "$.left::valid_value",
+            "pattern_key": "valid_value",
+            "category": "value_contract",
+            "input": {
+              "state": "VALUE",
+              "value": 0
+            },
+            "constraint_ref": "",
+            "expectation_rule": {
+              "type": "valid_value_contract"
+            },
+            "source": {
+              "field_path": "$.left",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0"
+            },
+            "expected": {
+              "outcome": "ACCEPT",
+              "reason_code": "VALUE_CONTRACT_VALID_SAMPLE",
+              "source": {
+                "field_path": "$.left",
+                "validation_type_id": "studio.integer.signed",
+                "registry_version": "0.1.0",
+                "validation_type_contract_version": "0.1.0",
+                "constraint_ref": ""
+              }
+            }
+          },
+          {
+            "pattern_id": "$.left::invalid_format",
+            "pattern_key": "invalid_format",
+            "category": "value_contract",
+            "input": {
+              "state": "VALUE",
+              "value": "not-a-number"
+            },
+            "constraint_ref": "",
+            "expectation_rule": {
+              "type": "invalid_value_contract"
+            },
+            "source": {
+              "field_path": "$.left",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0"
+            },
+            "expected": {
+              "outcome": "REJECT",
+              "reason_code": "VALUE_CONTRACT_INVALID_SAMPLE",
+              "source": {
+                "field_path": "$.left",
+                "validation_type_id": "studio.integer.signed",
+                "registry_version": "0.1.0",
+                "validation_type_contract_version": "0.1.0",
+                "constraint_ref": ""
+              }
+            }
+          },
+          {
+            "pattern_id": "$.left::minimum",
+            "pattern_key": "minimum",
+            "category": "boundary",
+            "input": {
+              "state": "VALUE",
+              "value": 0
+            },
+            "constraint_ref": "minimum",
+            "expectation_rule": {
+              "type": "boundary_at",
+              "constraint": "minimum",
+              "inclusive": true
+            },
+            "source": {
+              "field_path": "$.left",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0"
+            },
+            "expected": {
+              "outcome": "ACCEPT",
+              "reason_code": "INCLUSIVE_BOUNDARY_ACCEPTED",
+              "source": {
+                "field_path": "$.left",
+                "validation_type_id": "studio.integer.signed",
+                "registry_version": "0.1.0",
+                "validation_type_contract_version": "0.1.0",
+                "constraint_ref": "minimum"
+              }
+            }
+          },
+          {
+            "pattern_id": "$.left::minimum_minus_1",
+            "pattern_key": "minimum_minus_1",
+            "category": "boundary",
+            "input": {
+              "state": "VALUE",
+              "value": -1
+            },
+            "constraint_ref": "minimum",
+            "expectation_rule": {
+              "type": "boundary_outside",
+              "constraint": "minimum"
+            },
+            "source": {
+              "field_path": "$.left",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0"
+            },
+            "expected": {
+              "outcome": "REJECT",
+              "reason_code": "OUTSIDE_BOUNDARY_REJECTED",
+              "source": {
+                "field_path": "$.left",
+                "validation_type_id": "studio.integer.signed",
+                "registry_version": "0.1.0",
+                "validation_type_contract_version": "0.1.0",
+                "constraint_ref": "minimum"
+              }
+            }
+          },
+          {
+            "pattern_id": "$.left::maximum",
+            "pattern_key": "maximum",
+            "category": "boundary",
+            "input": {
+              "state": "VALUE",
+              "value": 100
+            },
+            "constraint_ref": "maximum",
+            "expectation_rule": {
+              "type": "boundary_at",
+              "constraint": "maximum",
+              "inclusive": true
+            },
+            "source": {
+              "field_path": "$.left",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0"
+            },
+            "expected": {
+              "outcome": "ACCEPT",
+              "reason_code": "INCLUSIVE_BOUNDARY_ACCEPTED",
+              "source": {
+                "field_path": "$.left",
+                "validation_type_id": "studio.integer.signed",
+                "registry_version": "0.1.0",
+                "validation_type_contract_version": "0.1.0",
+                "constraint_ref": "maximum"
+              }
+            }
+          },
+          {
+            "pattern_id": "$.left::maximum_plus_1",
+            "pattern_key": "maximum_plus_1",
+            "category": "boundary",
+            "input": {
+              "state": "VALUE",
+              "value": 101
+            },
+            "constraint_ref": "maximum",
+            "expectation_rule": {
+              "type": "boundary_outside",
+              "constraint": "maximum"
+            },
+            "source": {
+              "field_path": "$.left",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0"
+            },
+            "expected": {
+              "outcome": "REJECT",
+              "reason_code": "OUTSIDE_BOUNDARY_REJECTED",
+              "source": {
+                "field_path": "$.left",
+                "validation_type_id": "studio.integer.signed",
+                "registry_version": "0.1.0",
+                "validation_type_contract_version": "0.1.0",
+                "constraint_ref": "maximum"
+              }
+            }
+          }
+        ],
+        "summary": {
+          "test_pattern_count": 8,
+          "accept_count": 3,
+          "reject_count": 5,
+          "unresolved_expected_count": 0,
+          "unresolved_constraint_count": 0,
+          "issue_count": 0
+        },
+        "source": {
+          "registry_schema_version": "validation_type_registry_data_v0_1",
+          "registry_version": "0.1.0",
+          "registry_document_type": "validation_type_registry",
+          "validation_type_id": "studio.integer.signed",
+          "validation_type_contract_version": "0.1.0",
+          "validation_type_status": "active"
+        }
+      },
+      "source": {
+        "registry_schema_version": "validation_type_registry_data_v0_1",
+        "registry_version": "0.1.0",
+        "registry_document_type": "validation_type_registry",
+        "validation_type_id": "studio.integer.signed",
+        "validation_type_contract_version": "0.1.0",
+        "validation_type_status": "active",
+        "field_definition_sha256": "8bb00e405405fdd31c5cfe57a289bf1f02247d8b46bd566b5c0d3618afb20bb0",
+        "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
+      },
+      "summary": {
+        "pattern_count": 8,
+        "passed_count": 8,
+        "failed_count": 0,
+        "unresolved_count": 0
+      },
+      "issues": [],
+      "test_cases": [
+        {
+          "pattern_id": "$.left::required_missing",
+          "pattern_key": "required_missing",
+          "category": "presence",
+          "input": {
+            "state": "MISSING"
+          },
+          "expected": {
+            "outcome": "REJECT",
+            "reason_code": "REQUIRED_MISSING_REJECTED",
+            "source": {
+              "field_path": "$.left",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0",
+              "constraint_ref": "required"
+            }
+          },
+          "actual": {
+            "outcome": "REJECT",
+            "reason_code": "REQUIRED_MISSING",
+            "violations": [
+              {
+                "code": "REQUIRED_MISSING",
+                "constraint": "required"
+              }
+            ]
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "source": {
+            "field_path": "$.left",
+            "validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "validation_type_contract_version": "0.1.0"
+          }
+        },
+        {
+          "pattern_id": "$.left::null",
+          "pattern_key": "null",
+          "category": "nullability",
+          "input": {
+            "state": "VALUE",
+            "value": null
+          },
+          "expected": {
+            "outcome": "REJECT",
+            "reason_code": "NULL_REJECTED",
+            "source": {
+              "field_path": "$.left",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0",
+              "constraint_ref": "nullable"
+            }
+          },
+          "actual": {
+            "outcome": "REJECT",
+            "reason_code": "NULL_NOT_ALLOWED",
+            "violations": [
+              {
+                "code": "NULL_NOT_ALLOWED",
+                "constraint": "nullable"
+              }
+            ]
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "source": {
+            "field_path": "$.left",
+            "validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "validation_type_contract_version": "0.1.0"
+          }
+        },
+        {
+          "pattern_id": "$.left::valid_value",
+          "pattern_key": "valid_value",
+          "category": "value_contract",
+          "input": {
+            "state": "VALUE",
+            "value": 0
+          },
+          "expected": {
+            "outcome": "ACCEPT",
+            "reason_code": "VALUE_CONTRACT_VALID_SAMPLE",
+            "source": {
+              "field_path": "$.left",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0",
+              "constraint_ref": ""
+            }
+          },
+          "actual": {
+            "outcome": "ACCEPT",
+            "reason_code": "VALUE_ACCEPTED",
+            "violations": []
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "source": {
+            "field_path": "$.left",
+            "validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "validation_type_contract_version": "0.1.0"
+          }
+        },
+        {
+          "pattern_id": "$.left::invalid_format",
+          "pattern_key": "invalid_format",
+          "category": "value_contract",
+          "input": {
+            "state": "VALUE",
+            "value": "not-a-number"
+          },
+          "expected": {
+            "outcome": "REJECT",
+            "reason_code": "VALUE_CONTRACT_INVALID_SAMPLE",
+            "source": {
+              "field_path": "$.left",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0",
+              "constraint_ref": ""
+            }
+          },
+          "actual": {
+            "outcome": "REJECT",
+            "reason_code": "NUMBER_REQUIRED",
+            "violations": [
+              {
+                "code": "NUMBER_REQUIRED",
+                "constraint": ""
+              }
+            ]
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "source": {
+            "field_path": "$.left",
+            "validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "validation_type_contract_version": "0.1.0"
+          }
+        },
+        {
+          "pattern_id": "$.left::minimum",
+          "pattern_key": "minimum",
+          "category": "boundary",
+          "input": {
+            "state": "VALUE",
+            "value": 0
+          },
+          "expected": {
+            "outcome": "ACCEPT",
+            "reason_code": "INCLUSIVE_BOUNDARY_ACCEPTED",
+            "source": {
+              "field_path": "$.left",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0",
+              "constraint_ref": "minimum"
+            }
+          },
+          "actual": {
+            "outcome": "ACCEPT",
+            "reason_code": "VALUE_ACCEPTED",
+            "violations": []
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "source": {
+            "field_path": "$.left",
+            "validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "validation_type_contract_version": "0.1.0"
+          }
+        },
+        {
+          "pattern_id": "$.left::minimum_minus_1",
+          "pattern_key": "minimum_minus_1",
+          "category": "boundary",
+          "input": {
+            "state": "VALUE",
+            "value": -1
+          },
+          "expected": {
+            "outcome": "REJECT",
+            "reason_code": "OUTSIDE_BOUNDARY_REJECTED",
+            "source": {
+              "field_path": "$.left",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0",
+              "constraint_ref": "minimum"
+            }
+          },
+          "actual": {
+            "outcome": "REJECT",
+            "reason_code": "MINIMUM_BOUNDARY_VIOLATION",
+            "violations": [
+              {
+                "code": "MINIMUM_BOUNDARY_VIOLATION",
+                "constraint": "minimum"
+              }
+            ]
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "source": {
+            "field_path": "$.left",
+            "validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "validation_type_contract_version": "0.1.0"
+          }
+        },
+        {
+          "pattern_id": "$.left::maximum",
+          "pattern_key": "maximum",
+          "category": "boundary",
+          "input": {
+            "state": "VALUE",
+            "value": 100
+          },
+          "expected": {
+            "outcome": "ACCEPT",
+            "reason_code": "INCLUSIVE_BOUNDARY_ACCEPTED",
+            "source": {
+              "field_path": "$.left",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0",
+              "constraint_ref": "maximum"
+            }
+          },
+          "actual": {
+            "outcome": "ACCEPT",
+            "reason_code": "VALUE_ACCEPTED",
+            "violations": []
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "source": {
+            "field_path": "$.left",
+            "validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "validation_type_contract_version": "0.1.0"
+          }
+        },
+        {
+          "pattern_id": "$.left::maximum_plus_1",
+          "pattern_key": "maximum_plus_1",
+          "category": "boundary",
+          "input": {
+            "state": "VALUE",
+            "value": 101
+          },
+          "expected": {
+            "outcome": "REJECT",
+            "reason_code": "OUTSIDE_BOUNDARY_REJECTED",
+            "source": {
+              "field_path": "$.left",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0",
+              "constraint_ref": "maximum"
+            }
+          },
+          "actual": {
+            "outcome": "REJECT",
+            "reason_code": "MAXIMUM_BOUNDARY_VIOLATION",
+            "violations": [
+              {
+                "code": "MAXIMUM_BOUNDARY_VIOLATION",
+                "constraint": "maximum"
+              }
+            ]
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "source": {
+            "field_path": "$.left",
+            "validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "validation_type_contract_version": "0.1.0"
+          }
+        }
+      ]
+    },
+    {
+      "field_path": "$.right",
+      "validation_type_id": "studio.integer.signed",
+      "status": "PASSED",
+      "verification_status": "READY",
+      "field_definition_snapshot": {
+        "field_path": "$.right",
+        "validation_type": "studio.integer.signed",
+        "constraint_overrides": {
+          "required": true,
+          "nullable": false,
+          "minimum": {
+            "value": 0,
+            "inclusive": true
+          },
+          "maximum": {
+            "value": 100,
+            "inclusive": true
+          }
+        }
+      },
+      "verification_snapshot": {
+        "schema_version": "definition_verification_result_v0_1",
+        "status": "READY",
+        "field_path": "$.right",
+        "validation_type_id": "studio.integer.signed",
+        "field_contract": {
+          "schema_version": "resolved_field_contract_v0_1",
+          "field_path": "$.right",
+          "validation_type_id": "studio.integer.signed",
+          "resolution_status": "RESOLVED",
+          "value_family": "integer",
+          "value_contract": {
+            "runtime_value_type": "number",
+            "finite_required": true,
+            "integer_required": true,
+            "safe_integer_required": true,
+            "negative_allowed": true,
+            "zero_allowed": true
+          },
+          "constraint_resolutions": [
+            {
+              "constraint": "minimum",
+              "status": "RESOLVED",
+              "source": "override",
+              "required_by_validation_type": false,
+              "default_defined": true,
+              "default_value": {
+                "value": -9007199254740991,
+                "inclusive": true
+              },
+              "override_defined": true,
+              "override_value": {
+                "value": 0,
+                "inclusive": true
+              },
+              "resolved_value": {
+                "value": 0,
+                "inclusive": true
+              }
+            },
+            {
+              "constraint": "maximum",
+              "status": "RESOLVED",
+              "source": "override",
+              "required_by_validation_type": false,
+              "default_defined": true,
+              "default_value": {
+                "value": 9007199254740991,
+                "inclusive": true
+              },
+              "override_defined": true,
+              "override_value": {
+                "value": 100,
+                "inclusive": true
+              },
+              "resolved_value": {
+                "value": 100,
+                "inclusive": true
+              }
+            },
+            {
+              "constraint": "required",
+              "status": "RESOLVED",
+              "source": "override",
+              "required_by_validation_type": false,
+              "default_defined": false,
+              "default_value": null,
+              "override_defined": true,
+              "override_value": true,
+              "resolved_value": true
+            },
+            {
+              "constraint": "nullable",
+              "status": "RESOLVED",
+              "source": "override",
+              "required_by_validation_type": false,
+              "default_defined": false,
+              "default_value": null,
+              "override_defined": true,
+              "override_value": false,
+              "resolved_value": false
+            }
+          ],
+          "resolved_constraints": {
+            "minimum": {
+              "value": 0,
+              "inclusive": true
+            },
+            "maximum": {
+              "value": 100,
+              "inclusive": true
+            },
+            "required": true,
+            "nullable": false
+          },
+          "unresolved_constraints": [],
+          "issues": [],
+          "source": {
+            "registry_schema_version": "validation_type_registry_data_v0_1",
+            "registry_version": "0.1.0",
+            "registry_document_type": "validation_type_registry",
+            "validation_type_id": "studio.integer.signed",
+            "validation_type_contract_version": "0.1.0",
+            "validation_type_status": "active"
+          }
+        },
+        "test_patterns": [
+          {
+            "pattern_id": "$.right::required_missing",
+            "pattern_key": "required_missing",
+            "category": "presence",
+            "input": {
+              "state": "MISSING"
+            },
+            "constraint_ref": "required",
+            "expectation_rule": {
+              "type": "required_policy"
+            },
+            "source": {
+              "field_path": "$.right",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0"
+            },
+            "expected": {
+              "outcome": "REJECT",
+              "reason_code": "REQUIRED_MISSING_REJECTED",
+              "source": {
+                "field_path": "$.right",
+                "validation_type_id": "studio.integer.signed",
+                "registry_version": "0.1.0",
+                "validation_type_contract_version": "0.1.0",
+                "constraint_ref": "required"
+              }
+            }
+          },
+          {
+            "pattern_id": "$.right::null",
+            "pattern_key": "null",
+            "category": "nullability",
+            "input": {
+              "state": "VALUE",
+              "value": null
+            },
+            "constraint_ref": "nullable",
+            "expectation_rule": {
+              "type": "nullable_policy"
+            },
+            "source": {
+              "field_path": "$.right",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0"
+            },
+            "expected": {
+              "outcome": "REJECT",
+              "reason_code": "NULL_REJECTED",
+              "source": {
+                "field_path": "$.right",
+                "validation_type_id": "studio.integer.signed",
+                "registry_version": "0.1.0",
+                "validation_type_contract_version": "0.1.0",
+                "constraint_ref": "nullable"
+              }
+            }
+          },
+          {
+            "pattern_id": "$.right::valid_value",
+            "pattern_key": "valid_value",
+            "category": "value_contract",
+            "input": {
+              "state": "VALUE",
+              "value": 0
+            },
+            "constraint_ref": "",
+            "expectation_rule": {
+              "type": "valid_value_contract"
+            },
+            "source": {
+              "field_path": "$.right",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0"
+            },
+            "expected": {
+              "outcome": "ACCEPT",
+              "reason_code": "VALUE_CONTRACT_VALID_SAMPLE",
+              "source": {
+                "field_path": "$.right",
+                "validation_type_id": "studio.integer.signed",
+                "registry_version": "0.1.0",
+                "validation_type_contract_version": "0.1.0",
+                "constraint_ref": ""
+              }
+            }
+          },
+          {
+            "pattern_id": "$.right::invalid_format",
+            "pattern_key": "invalid_format",
+            "category": "value_contract",
+            "input": {
+              "state": "VALUE",
+              "value": "not-a-number"
+            },
+            "constraint_ref": "",
+            "expectation_rule": {
+              "type": "invalid_value_contract"
+            },
+            "source": {
+              "field_path": "$.right",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0"
+            },
+            "expected": {
+              "outcome": "REJECT",
+              "reason_code": "VALUE_CONTRACT_INVALID_SAMPLE",
+              "source": {
+                "field_path": "$.right",
+                "validation_type_id": "studio.integer.signed",
+                "registry_version": "0.1.0",
+                "validation_type_contract_version": "0.1.0",
+                "constraint_ref": ""
+              }
+            }
+          },
+          {
+            "pattern_id": "$.right::minimum",
+            "pattern_key": "minimum",
+            "category": "boundary",
+            "input": {
+              "state": "VALUE",
+              "value": 0
+            },
+            "constraint_ref": "minimum",
+            "expectation_rule": {
+              "type": "boundary_at",
+              "constraint": "minimum",
+              "inclusive": true
+            },
+            "source": {
+              "field_path": "$.right",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0"
+            },
+            "expected": {
+              "outcome": "ACCEPT",
+              "reason_code": "INCLUSIVE_BOUNDARY_ACCEPTED",
+              "source": {
+                "field_path": "$.right",
+                "validation_type_id": "studio.integer.signed",
+                "registry_version": "0.1.0",
+                "validation_type_contract_version": "0.1.0",
+                "constraint_ref": "minimum"
+              }
+            }
+          },
+          {
+            "pattern_id": "$.right::minimum_minus_1",
+            "pattern_key": "minimum_minus_1",
+            "category": "boundary",
+            "input": {
+              "state": "VALUE",
+              "value": -1
+            },
+            "constraint_ref": "minimum",
+            "expectation_rule": {
+              "type": "boundary_outside",
+              "constraint": "minimum"
+            },
+            "source": {
+              "field_path": "$.right",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0"
+            },
+            "expected": {
+              "outcome": "REJECT",
+              "reason_code": "OUTSIDE_BOUNDARY_REJECTED",
+              "source": {
+                "field_path": "$.right",
+                "validation_type_id": "studio.integer.signed",
+                "registry_version": "0.1.0",
+                "validation_type_contract_version": "0.1.0",
+                "constraint_ref": "minimum"
+              }
+            }
+          },
+          {
+            "pattern_id": "$.right::maximum",
+            "pattern_key": "maximum",
+            "category": "boundary",
+            "input": {
+              "state": "VALUE",
+              "value": 100
+            },
+            "constraint_ref": "maximum",
+            "expectation_rule": {
+              "type": "boundary_at",
+              "constraint": "maximum",
+              "inclusive": true
+            },
+            "source": {
+              "field_path": "$.right",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0"
+            },
+            "expected": {
+              "outcome": "ACCEPT",
+              "reason_code": "INCLUSIVE_BOUNDARY_ACCEPTED",
+              "source": {
+                "field_path": "$.right",
+                "validation_type_id": "studio.integer.signed",
+                "registry_version": "0.1.0",
+                "validation_type_contract_version": "0.1.0",
+                "constraint_ref": "maximum"
+              }
+            }
+          },
+          {
+            "pattern_id": "$.right::maximum_plus_1",
+            "pattern_key": "maximum_plus_1",
+            "category": "boundary",
+            "input": {
+              "state": "VALUE",
+              "value": 101
+            },
+            "constraint_ref": "maximum",
+            "expectation_rule": {
+              "type": "boundary_outside",
+              "constraint": "maximum"
+            },
+            "source": {
+              "field_path": "$.right",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0"
+            },
+            "expected": {
+              "outcome": "REJECT",
+              "reason_code": "OUTSIDE_BOUNDARY_REJECTED",
+              "source": {
+                "field_path": "$.right",
+                "validation_type_id": "studio.integer.signed",
+                "registry_version": "0.1.0",
+                "validation_type_contract_version": "0.1.0",
+                "constraint_ref": "maximum"
+              }
+            }
+          }
+        ],
+        "summary": {
+          "test_pattern_count": 8,
+          "accept_count": 3,
+          "reject_count": 5,
+          "unresolved_expected_count": 0,
+          "unresolved_constraint_count": 0,
+          "issue_count": 0
+        },
+        "source": {
+          "registry_schema_version": "validation_type_registry_data_v0_1",
+          "registry_version": "0.1.0",
+          "registry_document_type": "validation_type_registry",
+          "validation_type_id": "studio.integer.signed",
+          "validation_type_contract_version": "0.1.0",
+          "validation_type_status": "active"
+        }
+      },
+      "source": {
+        "registry_schema_version": "validation_type_registry_data_v0_1",
+        "registry_version": "0.1.0",
+        "registry_document_type": "validation_type_registry",
+        "validation_type_id": "studio.integer.signed",
+        "validation_type_contract_version": "0.1.0",
+        "validation_type_status": "active",
+        "field_definition_sha256": "8bb00e405405fdd31c5cfe57a289bf1f02247d8b46bd566b5c0d3618afb20bb0",
+        "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
+      },
+      "summary": {
+        "pattern_count": 8,
+        "passed_count": 8,
+        "failed_count": 0,
+        "unresolved_count": 0
+      },
+      "issues": [],
+      "test_cases": [
+        {
+          "pattern_id": "$.right::required_missing",
+          "pattern_key": "required_missing",
+          "category": "presence",
+          "input": {
+            "state": "MISSING"
+          },
+          "expected": {
+            "outcome": "REJECT",
+            "reason_code": "REQUIRED_MISSING_REJECTED",
+            "source": {
+              "field_path": "$.right",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0",
+              "constraint_ref": "required"
+            }
+          },
+          "actual": {
+            "outcome": "REJECT",
+            "reason_code": "REQUIRED_MISSING",
+            "violations": [
+              {
+                "code": "REQUIRED_MISSING",
+                "constraint": "required"
+              }
+            ]
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "source": {
+            "field_path": "$.right",
+            "validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "validation_type_contract_version": "0.1.0"
+          }
+        },
+        {
+          "pattern_id": "$.right::null",
+          "pattern_key": "null",
+          "category": "nullability",
+          "input": {
+            "state": "VALUE",
+            "value": null
+          },
+          "expected": {
+            "outcome": "REJECT",
+            "reason_code": "NULL_REJECTED",
+            "source": {
+              "field_path": "$.right",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0",
+              "constraint_ref": "nullable"
+            }
+          },
+          "actual": {
+            "outcome": "REJECT",
+            "reason_code": "NULL_NOT_ALLOWED",
+            "violations": [
+              {
+                "code": "NULL_NOT_ALLOWED",
+                "constraint": "nullable"
+              }
+            ]
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "source": {
+            "field_path": "$.right",
+            "validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "validation_type_contract_version": "0.1.0"
+          }
+        },
+        {
+          "pattern_id": "$.right::valid_value",
+          "pattern_key": "valid_value",
+          "category": "value_contract",
+          "input": {
+            "state": "VALUE",
+            "value": 0
+          },
+          "expected": {
+            "outcome": "ACCEPT",
+            "reason_code": "VALUE_CONTRACT_VALID_SAMPLE",
+            "source": {
+              "field_path": "$.right",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0",
+              "constraint_ref": ""
+            }
+          },
+          "actual": {
+            "outcome": "ACCEPT",
+            "reason_code": "VALUE_ACCEPTED",
+            "violations": []
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "source": {
+            "field_path": "$.right",
+            "validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "validation_type_contract_version": "0.1.0"
+          }
+        },
+        {
+          "pattern_id": "$.right::invalid_format",
+          "pattern_key": "invalid_format",
+          "category": "value_contract",
+          "input": {
+            "state": "VALUE",
+            "value": "not-a-number"
+          },
+          "expected": {
+            "outcome": "REJECT",
+            "reason_code": "VALUE_CONTRACT_INVALID_SAMPLE",
+            "source": {
+              "field_path": "$.right",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0",
+              "constraint_ref": ""
+            }
+          },
+          "actual": {
+            "outcome": "REJECT",
+            "reason_code": "NUMBER_REQUIRED",
+            "violations": [
+              {
+                "code": "NUMBER_REQUIRED",
+                "constraint": ""
+              }
+            ]
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "source": {
+            "field_path": "$.right",
+            "validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "validation_type_contract_version": "0.1.0"
+          }
+        },
+        {
+          "pattern_id": "$.right::minimum",
+          "pattern_key": "minimum",
+          "category": "boundary",
+          "input": {
+            "state": "VALUE",
+            "value": 0
+          },
+          "expected": {
+            "outcome": "ACCEPT",
+            "reason_code": "INCLUSIVE_BOUNDARY_ACCEPTED",
+            "source": {
+              "field_path": "$.right",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0",
+              "constraint_ref": "minimum"
+            }
+          },
+          "actual": {
+            "outcome": "ACCEPT",
+            "reason_code": "VALUE_ACCEPTED",
+            "violations": []
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "source": {
+            "field_path": "$.right",
+            "validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "validation_type_contract_version": "0.1.0"
+          }
+        },
+        {
+          "pattern_id": "$.right::minimum_minus_1",
+          "pattern_key": "minimum_minus_1",
+          "category": "boundary",
+          "input": {
+            "state": "VALUE",
+            "value": -1
+          },
+          "expected": {
+            "outcome": "REJECT",
+            "reason_code": "OUTSIDE_BOUNDARY_REJECTED",
+            "source": {
+              "field_path": "$.right",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0",
+              "constraint_ref": "minimum"
+            }
+          },
+          "actual": {
+            "outcome": "REJECT",
+            "reason_code": "MINIMUM_BOUNDARY_VIOLATION",
+            "violations": [
+              {
+                "code": "MINIMUM_BOUNDARY_VIOLATION",
+                "constraint": "minimum"
+              }
+            ]
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "source": {
+            "field_path": "$.right",
+            "validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "validation_type_contract_version": "0.1.0"
+          }
+        },
+        {
+          "pattern_id": "$.right::maximum",
+          "pattern_key": "maximum",
+          "category": "boundary",
+          "input": {
+            "state": "VALUE",
+            "value": 100
+          },
+          "expected": {
+            "outcome": "ACCEPT",
+            "reason_code": "INCLUSIVE_BOUNDARY_ACCEPTED",
+            "source": {
+              "field_path": "$.right",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0",
+              "constraint_ref": "maximum"
+            }
+          },
+          "actual": {
+            "outcome": "ACCEPT",
+            "reason_code": "VALUE_ACCEPTED",
+            "violations": []
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "source": {
+            "field_path": "$.right",
+            "validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "validation_type_contract_version": "0.1.0"
+          }
+        },
+        {
+          "pattern_id": "$.right::maximum_plus_1",
+          "pattern_key": "maximum_plus_1",
+          "category": "boundary",
+          "input": {
+            "state": "VALUE",
+            "value": 101
+          },
+          "expected": {
+            "outcome": "REJECT",
+            "reason_code": "OUTSIDE_BOUNDARY_REJECTED",
+            "source": {
+              "field_path": "$.right",
+              "validation_type_id": "studio.integer.signed",
+              "registry_version": "0.1.0",
+              "validation_type_contract_version": "0.1.0",
+              "constraint_ref": "maximum"
+            }
+          },
+          "actual": {
+            "outcome": "REJECT",
+            "reason_code": "MAXIMUM_BOUNDARY_VIOLATION",
+            "violations": [
+              {
+                "code": "MAXIMUM_BOUNDARY_VIOLATION",
+                "constraint": "maximum"
+              }
+            ]
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "source": {
+            "field_path": "$.right",
+            "validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "validation_type_contract_version": "0.1.0"
+          }
+        }
+      ]
+    }
+  ],
+  "cross_field_constraints": [
+    {
+      "constraint_id": "operator_lt",
+      "constraint_type": "studio.cross_field.compare",
+      "operator": "LT",
+      "unset_policy": "REJECT_IF_EITHER_UNSET",
+      "left_field_path": "$.left",
+      "right_field_path": "$.right",
+      "status": "PASSED",
+      "verification_status": "READY",
+      "source": {
+        "constraint_id": "operator_lt",
+        "constraint_type": "studio.cross_field.compare",
+        "operator": "LT",
+        "unset_policy": "REJECT_IF_EITHER_UNSET",
+        "left_field_path": "$.left",
+        "right_field_path": "$.right",
+        "left_validation_type_id": "studio.integer.signed",
+        "right_validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "registry_schema_version": "validation_type_registry_data_v0_1",
+        "left_validation_type_contract_version": "0.1.0",
+        "right_validation_type_contract_version": "0.1.0",
+        "field_definition_sha256": "8bb00e405405fdd31c5cfe57a289bf1f02247d8b46bd566b5c0d3618afb20bb0",
+        "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
+      },
+      "summary": {
+        "pattern_count": 3,
+        "passed_count": 3,
+        "failed_count": 0,
+        "unresolved_count": 0
+      },
+      "issues": [],
+      "test_cases": [
+        {
+          "pattern_id": "operator_lt::left_less_right",
+          "pattern_key": "left_less_right",
+          "category": "cross_field_compare",
+          "input": {
+            "left": {
+              "field_path": "$.left",
+              "state": "VALUE",
+              "value": 25
+            },
+            "right": {
+              "field_path": "$.right",
+              "state": "VALUE",
+              "value": 75
+            }
+          },
+          "expected": {
+            "outcome": "ACCEPT",
+            "reason_code": "CROSS_FIELD_RELATION_ACCEPTED"
+          },
+          "actual": {
+            "outcome": "ACCEPT",
+            "reason_code": "CROSS_FIELD_RELATION_ACCEPTED",
+            "details": {
+              "left": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "right": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "comparison": "LT",
+              "operator": "LT"
+            }
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "relation": {
+            "constraint_type": "studio.cross_field.compare",
+            "operator": "LT",
+            "comparison_shape": "LT",
+            "unset_policy": "REJECT_IF_EITHER_UNSET"
+          },
+          "source": {
+            "constraint_id": "operator_lt",
+            "left_field_path": "$.left",
+            "right_field_path": "$.right",
+            "left_validation_type_id": "studio.integer.signed",
+            "right_validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "left_validation_type_contract_version": "0.1.0",
+            "right_validation_type_contract_version": "0.1.0"
+          }
+        },
+        {
+          "pattern_id": "operator_lt::left_equal_right",
+          "pattern_key": "left_equal_right",
+          "category": "cross_field_compare",
+          "input": {
+            "left": {
+              "field_path": "$.left",
+              "state": "VALUE",
+              "value": 50
+            },
+            "right": {
+              "field_path": "$.right",
+              "state": "VALUE",
+              "value": 50
+            }
+          },
+          "expected": {
+            "outcome": "REJECT",
+            "reason_code": "CROSS_FIELD_RELATION_REJECTED"
+          },
+          "actual": {
+            "outcome": "REJECT",
+            "reason_code": "CROSS_FIELD_RELATION_REJECTED",
+            "details": {
+              "left": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "right": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "comparison": "EQ",
+              "operator": "LT"
+            }
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "relation": {
+            "constraint_type": "studio.cross_field.compare",
+            "operator": "LT",
+            "comparison_shape": "EQ",
+            "unset_policy": "REJECT_IF_EITHER_UNSET"
+          },
+          "source": {
+            "constraint_id": "operator_lt",
+            "left_field_path": "$.left",
+            "right_field_path": "$.right",
+            "left_validation_type_id": "studio.integer.signed",
+            "right_validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "left_validation_type_contract_version": "0.1.0",
+            "right_validation_type_contract_version": "0.1.0"
+          }
+        },
+        {
+          "pattern_id": "operator_lt::left_greater_right",
+          "pattern_key": "left_greater_right",
+          "category": "cross_field_compare",
+          "input": {
+            "left": {
+              "field_path": "$.left",
+              "state": "VALUE",
+              "value": 75
+            },
+            "right": {
+              "field_path": "$.right",
+              "state": "VALUE",
+              "value": 25
+            }
+          },
+          "expected": {
+            "outcome": "REJECT",
+            "reason_code": "CROSS_FIELD_RELATION_REJECTED"
+          },
+          "actual": {
+            "outcome": "REJECT",
+            "reason_code": "CROSS_FIELD_RELATION_REJECTED",
+            "details": {
+              "left": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "right": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "comparison": "GT",
+              "operator": "LT"
+            }
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "relation": {
+            "constraint_type": "studio.cross_field.compare",
+            "operator": "LT",
+            "comparison_shape": "GT",
+            "unset_policy": "REJECT_IF_EITHER_UNSET"
+          },
+          "source": {
+            "constraint_id": "operator_lt",
+            "left_field_path": "$.left",
+            "right_field_path": "$.right",
+            "left_validation_type_id": "studio.integer.signed",
+            "right_validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "left_validation_type_contract_version": "0.1.0",
+            "right_validation_type_contract_version": "0.1.0"
+          }
+        }
+      ]
+    },
+    {
+      "constraint_id": "operator_lte",
+      "constraint_type": "studio.cross_field.compare",
+      "operator": "LTE",
+      "unset_policy": "REJECT_IF_EITHER_UNSET",
+      "left_field_path": "$.left",
+      "right_field_path": "$.right",
+      "status": "PASSED",
+      "verification_status": "READY",
+      "source": {
+        "constraint_id": "operator_lte",
+        "constraint_type": "studio.cross_field.compare",
+        "operator": "LTE",
+        "unset_policy": "REJECT_IF_EITHER_UNSET",
+        "left_field_path": "$.left",
+        "right_field_path": "$.right",
+        "left_validation_type_id": "studio.integer.signed",
+        "right_validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "registry_schema_version": "validation_type_registry_data_v0_1",
+        "left_validation_type_contract_version": "0.1.0",
+        "right_validation_type_contract_version": "0.1.0",
+        "field_definition_sha256": "8bb00e405405fdd31c5cfe57a289bf1f02247d8b46bd566b5c0d3618afb20bb0",
+        "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
+      },
+      "summary": {
+        "pattern_count": 3,
+        "passed_count": 3,
+        "failed_count": 0,
+        "unresolved_count": 0
+      },
+      "issues": [],
+      "test_cases": [
+        {
+          "pattern_id": "operator_lte::left_less_right",
+          "pattern_key": "left_less_right",
+          "category": "cross_field_compare",
+          "input": {
+            "left": {
+              "field_path": "$.left",
+              "state": "VALUE",
+              "value": 25
+            },
+            "right": {
+              "field_path": "$.right",
+              "state": "VALUE",
+              "value": 75
+            }
+          },
+          "expected": {
+            "outcome": "ACCEPT",
+            "reason_code": "CROSS_FIELD_RELATION_ACCEPTED"
+          },
+          "actual": {
+            "outcome": "ACCEPT",
+            "reason_code": "CROSS_FIELD_RELATION_ACCEPTED",
+            "details": {
+              "left": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "right": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "comparison": "LT",
+              "operator": "LTE"
+            }
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "relation": {
+            "constraint_type": "studio.cross_field.compare",
+            "operator": "LTE",
+            "comparison_shape": "LT",
+            "unset_policy": "REJECT_IF_EITHER_UNSET"
+          },
+          "source": {
+            "constraint_id": "operator_lte",
+            "left_field_path": "$.left",
+            "right_field_path": "$.right",
+            "left_validation_type_id": "studio.integer.signed",
+            "right_validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "left_validation_type_contract_version": "0.1.0",
+            "right_validation_type_contract_version": "0.1.0"
+          }
+        },
+        {
+          "pattern_id": "operator_lte::left_equal_right",
+          "pattern_key": "left_equal_right",
+          "category": "cross_field_compare",
+          "input": {
+            "left": {
+              "field_path": "$.left",
+              "state": "VALUE",
+              "value": 50
+            },
+            "right": {
+              "field_path": "$.right",
+              "state": "VALUE",
+              "value": 50
+            }
+          },
+          "expected": {
+            "outcome": "ACCEPT",
+            "reason_code": "CROSS_FIELD_RELATION_ACCEPTED"
+          },
+          "actual": {
+            "outcome": "ACCEPT",
+            "reason_code": "CROSS_FIELD_RELATION_ACCEPTED",
+            "details": {
+              "left": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "right": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "comparison": "EQ",
+              "operator": "LTE"
+            }
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "relation": {
+            "constraint_type": "studio.cross_field.compare",
+            "operator": "LTE",
+            "comparison_shape": "EQ",
+            "unset_policy": "REJECT_IF_EITHER_UNSET"
+          },
+          "source": {
+            "constraint_id": "operator_lte",
+            "left_field_path": "$.left",
+            "right_field_path": "$.right",
+            "left_validation_type_id": "studio.integer.signed",
+            "right_validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "left_validation_type_contract_version": "0.1.0",
+            "right_validation_type_contract_version": "0.1.0"
+          }
+        },
+        {
+          "pattern_id": "operator_lte::left_greater_right",
+          "pattern_key": "left_greater_right",
+          "category": "cross_field_compare",
+          "input": {
+            "left": {
+              "field_path": "$.left",
+              "state": "VALUE",
+              "value": 75
+            },
+            "right": {
+              "field_path": "$.right",
+              "state": "VALUE",
+              "value": 25
+            }
+          },
+          "expected": {
+            "outcome": "REJECT",
+            "reason_code": "CROSS_FIELD_RELATION_REJECTED"
+          },
+          "actual": {
+            "outcome": "REJECT",
+            "reason_code": "CROSS_FIELD_RELATION_REJECTED",
+            "details": {
+              "left": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "right": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "comparison": "GT",
+              "operator": "LTE"
+            }
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "relation": {
+            "constraint_type": "studio.cross_field.compare",
+            "operator": "LTE",
+            "comparison_shape": "GT",
+            "unset_policy": "REJECT_IF_EITHER_UNSET"
+          },
+          "source": {
+            "constraint_id": "operator_lte",
+            "left_field_path": "$.left",
+            "right_field_path": "$.right",
+            "left_validation_type_id": "studio.integer.signed",
+            "right_validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "left_validation_type_contract_version": "0.1.0",
+            "right_validation_type_contract_version": "0.1.0"
+          }
+        }
+      ]
+    },
+    {
+      "constraint_id": "operator_eq",
+      "constraint_type": "studio.cross_field.compare",
+      "operator": "EQ",
+      "unset_policy": "REJECT_IF_EITHER_UNSET",
+      "left_field_path": "$.left",
+      "right_field_path": "$.right",
+      "status": "PASSED",
+      "verification_status": "READY",
+      "source": {
+        "constraint_id": "operator_eq",
+        "constraint_type": "studio.cross_field.compare",
+        "operator": "EQ",
+        "unset_policy": "REJECT_IF_EITHER_UNSET",
+        "left_field_path": "$.left",
+        "right_field_path": "$.right",
+        "left_validation_type_id": "studio.integer.signed",
+        "right_validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "registry_schema_version": "validation_type_registry_data_v0_1",
+        "left_validation_type_contract_version": "0.1.0",
+        "right_validation_type_contract_version": "0.1.0",
+        "field_definition_sha256": "8bb00e405405fdd31c5cfe57a289bf1f02247d8b46bd566b5c0d3618afb20bb0",
+        "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
+      },
+      "summary": {
+        "pattern_count": 3,
+        "passed_count": 3,
+        "failed_count": 0,
+        "unresolved_count": 0
+      },
+      "issues": [],
+      "test_cases": [
+        {
+          "pattern_id": "operator_eq::left_less_right",
+          "pattern_key": "left_less_right",
+          "category": "cross_field_compare",
+          "input": {
+            "left": {
+              "field_path": "$.left",
+              "state": "VALUE",
+              "value": 25
+            },
+            "right": {
+              "field_path": "$.right",
+              "state": "VALUE",
+              "value": 75
+            }
+          },
+          "expected": {
+            "outcome": "REJECT",
+            "reason_code": "CROSS_FIELD_RELATION_REJECTED"
+          },
+          "actual": {
+            "outcome": "REJECT",
+            "reason_code": "CROSS_FIELD_RELATION_REJECTED",
+            "details": {
+              "left": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "right": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "comparison": "LT",
+              "operator": "EQ"
+            }
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "relation": {
+            "constraint_type": "studio.cross_field.compare",
+            "operator": "EQ",
+            "comparison_shape": "LT",
+            "unset_policy": "REJECT_IF_EITHER_UNSET"
+          },
+          "source": {
+            "constraint_id": "operator_eq",
+            "left_field_path": "$.left",
+            "right_field_path": "$.right",
+            "left_validation_type_id": "studio.integer.signed",
+            "right_validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "left_validation_type_contract_version": "0.1.0",
+            "right_validation_type_contract_version": "0.1.0"
+          }
+        },
+        {
+          "pattern_id": "operator_eq::left_equal_right",
+          "pattern_key": "left_equal_right",
+          "category": "cross_field_compare",
+          "input": {
+            "left": {
+              "field_path": "$.left",
+              "state": "VALUE",
+              "value": 50
+            },
+            "right": {
+              "field_path": "$.right",
+              "state": "VALUE",
+              "value": 50
+            }
+          },
+          "expected": {
+            "outcome": "ACCEPT",
+            "reason_code": "CROSS_FIELD_RELATION_ACCEPTED"
+          },
+          "actual": {
+            "outcome": "ACCEPT",
+            "reason_code": "CROSS_FIELD_RELATION_ACCEPTED",
+            "details": {
+              "left": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "right": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "comparison": "EQ",
+              "operator": "EQ"
+            }
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "relation": {
+            "constraint_type": "studio.cross_field.compare",
+            "operator": "EQ",
+            "comparison_shape": "EQ",
+            "unset_policy": "REJECT_IF_EITHER_UNSET"
+          },
+          "source": {
+            "constraint_id": "operator_eq",
+            "left_field_path": "$.left",
+            "right_field_path": "$.right",
+            "left_validation_type_id": "studio.integer.signed",
+            "right_validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "left_validation_type_contract_version": "0.1.0",
+            "right_validation_type_contract_version": "0.1.0"
+          }
+        },
+        {
+          "pattern_id": "operator_eq::left_greater_right",
+          "pattern_key": "left_greater_right",
+          "category": "cross_field_compare",
+          "input": {
+            "left": {
+              "field_path": "$.left",
+              "state": "VALUE",
+              "value": 75
+            },
+            "right": {
+              "field_path": "$.right",
+              "state": "VALUE",
+              "value": 25
+            }
+          },
+          "expected": {
+            "outcome": "REJECT",
+            "reason_code": "CROSS_FIELD_RELATION_REJECTED"
+          },
+          "actual": {
+            "outcome": "REJECT",
+            "reason_code": "CROSS_FIELD_RELATION_REJECTED",
+            "details": {
+              "left": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "right": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "comparison": "GT",
+              "operator": "EQ"
+            }
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "relation": {
+            "constraint_type": "studio.cross_field.compare",
+            "operator": "EQ",
+            "comparison_shape": "GT",
+            "unset_policy": "REJECT_IF_EITHER_UNSET"
+          },
+          "source": {
+            "constraint_id": "operator_eq",
+            "left_field_path": "$.left",
+            "right_field_path": "$.right",
+            "left_validation_type_id": "studio.integer.signed",
+            "right_validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "left_validation_type_contract_version": "0.1.0",
+            "right_validation_type_contract_version": "0.1.0"
+          }
+        }
+      ]
+    },
+    {
+      "constraint_id": "operator_ne",
+      "constraint_type": "studio.cross_field.compare",
+      "operator": "NE",
+      "unset_policy": "REJECT_IF_EITHER_UNSET",
+      "left_field_path": "$.left",
+      "right_field_path": "$.right",
+      "status": "PASSED",
+      "verification_status": "READY",
+      "source": {
+        "constraint_id": "operator_ne",
+        "constraint_type": "studio.cross_field.compare",
+        "operator": "NE",
+        "unset_policy": "REJECT_IF_EITHER_UNSET",
+        "left_field_path": "$.left",
+        "right_field_path": "$.right",
+        "left_validation_type_id": "studio.integer.signed",
+        "right_validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "registry_schema_version": "validation_type_registry_data_v0_1",
+        "left_validation_type_contract_version": "0.1.0",
+        "right_validation_type_contract_version": "0.1.0",
+        "field_definition_sha256": "8bb00e405405fdd31c5cfe57a289bf1f02247d8b46bd566b5c0d3618afb20bb0",
+        "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
+      },
+      "summary": {
+        "pattern_count": 3,
+        "passed_count": 3,
+        "failed_count": 0,
+        "unresolved_count": 0
+      },
+      "issues": [],
+      "test_cases": [
+        {
+          "pattern_id": "operator_ne::left_less_right",
+          "pattern_key": "left_less_right",
+          "category": "cross_field_compare",
+          "input": {
+            "left": {
+              "field_path": "$.left",
+              "state": "VALUE",
+              "value": 25
+            },
+            "right": {
+              "field_path": "$.right",
+              "state": "VALUE",
+              "value": 75
+            }
+          },
+          "expected": {
+            "outcome": "ACCEPT",
+            "reason_code": "CROSS_FIELD_RELATION_ACCEPTED"
+          },
+          "actual": {
+            "outcome": "ACCEPT",
+            "reason_code": "CROSS_FIELD_RELATION_ACCEPTED",
+            "details": {
+              "left": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "right": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "comparison": "LT",
+              "operator": "NE"
+            }
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "relation": {
+            "constraint_type": "studio.cross_field.compare",
+            "operator": "NE",
+            "comparison_shape": "LT",
+            "unset_policy": "REJECT_IF_EITHER_UNSET"
+          },
+          "source": {
+            "constraint_id": "operator_ne",
+            "left_field_path": "$.left",
+            "right_field_path": "$.right",
+            "left_validation_type_id": "studio.integer.signed",
+            "right_validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "left_validation_type_contract_version": "0.1.0",
+            "right_validation_type_contract_version": "0.1.0"
+          }
+        },
+        {
+          "pattern_id": "operator_ne::left_equal_right",
+          "pattern_key": "left_equal_right",
+          "category": "cross_field_compare",
+          "input": {
+            "left": {
+              "field_path": "$.left",
+              "state": "VALUE",
+              "value": 50
+            },
+            "right": {
+              "field_path": "$.right",
+              "state": "VALUE",
+              "value": 50
+            }
+          },
+          "expected": {
+            "outcome": "REJECT",
+            "reason_code": "CROSS_FIELD_RELATION_REJECTED"
+          },
+          "actual": {
+            "outcome": "REJECT",
+            "reason_code": "CROSS_FIELD_RELATION_REJECTED",
+            "details": {
+              "left": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "right": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "comparison": "EQ",
+              "operator": "NE"
+            }
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "relation": {
+            "constraint_type": "studio.cross_field.compare",
+            "operator": "NE",
+            "comparison_shape": "EQ",
+            "unset_policy": "REJECT_IF_EITHER_UNSET"
+          },
+          "source": {
+            "constraint_id": "operator_ne",
+            "left_field_path": "$.left",
+            "right_field_path": "$.right",
+            "left_validation_type_id": "studio.integer.signed",
+            "right_validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "left_validation_type_contract_version": "0.1.0",
+            "right_validation_type_contract_version": "0.1.0"
+          }
+        },
+        {
+          "pattern_id": "operator_ne::left_greater_right",
+          "pattern_key": "left_greater_right",
+          "category": "cross_field_compare",
+          "input": {
+            "left": {
+              "field_path": "$.left",
+              "state": "VALUE",
+              "value": 75
+            },
+            "right": {
+              "field_path": "$.right",
+              "state": "VALUE",
+              "value": 25
+            }
+          },
+          "expected": {
+            "outcome": "ACCEPT",
+            "reason_code": "CROSS_FIELD_RELATION_ACCEPTED"
+          },
+          "actual": {
+            "outcome": "ACCEPT",
+            "reason_code": "CROSS_FIELD_RELATION_ACCEPTED",
+            "details": {
+              "left": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "right": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "comparison": "GT",
+              "operator": "NE"
+            }
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "relation": {
+            "constraint_type": "studio.cross_field.compare",
+            "operator": "NE",
+            "comparison_shape": "GT",
+            "unset_policy": "REJECT_IF_EITHER_UNSET"
+          },
+          "source": {
+            "constraint_id": "operator_ne",
+            "left_field_path": "$.left",
+            "right_field_path": "$.right",
+            "left_validation_type_id": "studio.integer.signed",
+            "right_validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "left_validation_type_contract_version": "0.1.0",
+            "right_validation_type_contract_version": "0.1.0"
+          }
+        }
+      ]
+    },
+    {
+      "constraint_id": "operator_gte",
+      "constraint_type": "studio.cross_field.compare",
+      "operator": "GTE",
+      "unset_policy": "REJECT_IF_EITHER_UNSET",
+      "left_field_path": "$.left",
+      "right_field_path": "$.right",
+      "status": "PASSED",
+      "verification_status": "READY",
+      "source": {
+        "constraint_id": "operator_gte",
+        "constraint_type": "studio.cross_field.compare",
+        "operator": "GTE",
+        "unset_policy": "REJECT_IF_EITHER_UNSET",
+        "left_field_path": "$.left",
+        "right_field_path": "$.right",
+        "left_validation_type_id": "studio.integer.signed",
+        "right_validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "registry_schema_version": "validation_type_registry_data_v0_1",
+        "left_validation_type_contract_version": "0.1.0",
+        "right_validation_type_contract_version": "0.1.0",
+        "field_definition_sha256": "8bb00e405405fdd31c5cfe57a289bf1f02247d8b46bd566b5c0d3618afb20bb0",
+        "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
+      },
+      "summary": {
+        "pattern_count": 3,
+        "passed_count": 3,
+        "failed_count": 0,
+        "unresolved_count": 0
+      },
+      "issues": [],
+      "test_cases": [
+        {
+          "pattern_id": "operator_gte::left_less_right",
+          "pattern_key": "left_less_right",
+          "category": "cross_field_compare",
+          "input": {
+            "left": {
+              "field_path": "$.left",
+              "state": "VALUE",
+              "value": 25
+            },
+            "right": {
+              "field_path": "$.right",
+              "state": "VALUE",
+              "value": 75
+            }
+          },
+          "expected": {
+            "outcome": "REJECT",
+            "reason_code": "CROSS_FIELD_RELATION_REJECTED"
+          },
+          "actual": {
+            "outcome": "REJECT",
+            "reason_code": "CROSS_FIELD_RELATION_REJECTED",
+            "details": {
+              "left": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "right": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "comparison": "LT",
+              "operator": "GTE"
+            }
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "relation": {
+            "constraint_type": "studio.cross_field.compare",
+            "operator": "GTE",
+            "comparison_shape": "LT",
+            "unset_policy": "REJECT_IF_EITHER_UNSET"
+          },
+          "source": {
+            "constraint_id": "operator_gte",
+            "left_field_path": "$.left",
+            "right_field_path": "$.right",
+            "left_validation_type_id": "studio.integer.signed",
+            "right_validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "left_validation_type_contract_version": "0.1.0",
+            "right_validation_type_contract_version": "0.1.0"
+          }
+        },
+        {
+          "pattern_id": "operator_gte::left_equal_right",
+          "pattern_key": "left_equal_right",
+          "category": "cross_field_compare",
+          "input": {
+            "left": {
+              "field_path": "$.left",
+              "state": "VALUE",
+              "value": 50
+            },
+            "right": {
+              "field_path": "$.right",
+              "state": "VALUE",
+              "value": 50
+            }
+          },
+          "expected": {
+            "outcome": "ACCEPT",
+            "reason_code": "CROSS_FIELD_RELATION_ACCEPTED"
+          },
+          "actual": {
+            "outcome": "ACCEPT",
+            "reason_code": "CROSS_FIELD_RELATION_ACCEPTED",
+            "details": {
+              "left": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "right": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "comparison": "EQ",
+              "operator": "GTE"
+            }
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "relation": {
+            "constraint_type": "studio.cross_field.compare",
+            "operator": "GTE",
+            "comparison_shape": "EQ",
+            "unset_policy": "REJECT_IF_EITHER_UNSET"
+          },
+          "source": {
+            "constraint_id": "operator_gte",
+            "left_field_path": "$.left",
+            "right_field_path": "$.right",
+            "left_validation_type_id": "studio.integer.signed",
+            "right_validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "left_validation_type_contract_version": "0.1.0",
+            "right_validation_type_contract_version": "0.1.0"
+          }
+        },
+        {
+          "pattern_id": "operator_gte::left_greater_right",
+          "pattern_key": "left_greater_right",
+          "category": "cross_field_compare",
+          "input": {
+            "left": {
+              "field_path": "$.left",
+              "state": "VALUE",
+              "value": 75
+            },
+            "right": {
+              "field_path": "$.right",
+              "state": "VALUE",
+              "value": 25
+            }
+          },
+          "expected": {
+            "outcome": "ACCEPT",
+            "reason_code": "CROSS_FIELD_RELATION_ACCEPTED"
+          },
+          "actual": {
+            "outcome": "ACCEPT",
+            "reason_code": "CROSS_FIELD_RELATION_ACCEPTED",
+            "details": {
+              "left": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "right": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "comparison": "GT",
+              "operator": "GTE"
+            }
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "relation": {
+            "constraint_type": "studio.cross_field.compare",
+            "operator": "GTE",
+            "comparison_shape": "GT",
+            "unset_policy": "REJECT_IF_EITHER_UNSET"
+          },
+          "source": {
+            "constraint_id": "operator_gte",
+            "left_field_path": "$.left",
+            "right_field_path": "$.right",
+            "left_validation_type_id": "studio.integer.signed",
+            "right_validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "left_validation_type_contract_version": "0.1.0",
+            "right_validation_type_contract_version": "0.1.0"
+          }
+        }
+      ]
+    },
+    {
+      "constraint_id": "operator_gt",
+      "constraint_type": "studio.cross_field.compare",
+      "operator": "GT",
+      "unset_policy": "REJECT_IF_EITHER_UNSET",
+      "left_field_path": "$.left",
+      "right_field_path": "$.right",
+      "status": "PASSED",
+      "verification_status": "READY",
+      "source": {
+        "constraint_id": "operator_gt",
+        "constraint_type": "studio.cross_field.compare",
+        "operator": "GT",
+        "unset_policy": "REJECT_IF_EITHER_UNSET",
+        "left_field_path": "$.left",
+        "right_field_path": "$.right",
+        "left_validation_type_id": "studio.integer.signed",
+        "right_validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "registry_schema_version": "validation_type_registry_data_v0_1",
+        "left_validation_type_contract_version": "0.1.0",
+        "right_validation_type_contract_version": "0.1.0",
+        "field_definition_sha256": "8bb00e405405fdd31c5cfe57a289bf1f02247d8b46bd566b5c0d3618afb20bb0",
+        "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
+      },
+      "summary": {
+        "pattern_count": 3,
+        "passed_count": 3,
+        "failed_count": 0,
+        "unresolved_count": 0
+      },
+      "issues": [],
+      "test_cases": [
+        {
+          "pattern_id": "operator_gt::left_less_right",
+          "pattern_key": "left_less_right",
+          "category": "cross_field_compare",
+          "input": {
+            "left": {
+              "field_path": "$.left",
+              "state": "VALUE",
+              "value": 25
+            },
+            "right": {
+              "field_path": "$.right",
+              "state": "VALUE",
+              "value": 75
+            }
+          },
+          "expected": {
+            "outcome": "REJECT",
+            "reason_code": "CROSS_FIELD_RELATION_REJECTED"
+          },
+          "actual": {
+            "outcome": "REJECT",
+            "reason_code": "CROSS_FIELD_RELATION_REJECTED",
+            "details": {
+              "left": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "right": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "comparison": "LT",
+              "operator": "GT"
+            }
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "relation": {
+            "constraint_type": "studio.cross_field.compare",
+            "operator": "GT",
+            "comparison_shape": "LT",
+            "unset_policy": "REJECT_IF_EITHER_UNSET"
+          },
+          "source": {
+            "constraint_id": "operator_gt",
+            "left_field_path": "$.left",
+            "right_field_path": "$.right",
+            "left_validation_type_id": "studio.integer.signed",
+            "right_validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "left_validation_type_contract_version": "0.1.0",
+            "right_validation_type_contract_version": "0.1.0"
+          }
+        },
+        {
+          "pattern_id": "operator_gt::left_equal_right",
+          "pattern_key": "left_equal_right",
+          "category": "cross_field_compare",
+          "input": {
+            "left": {
+              "field_path": "$.left",
+              "state": "VALUE",
+              "value": 50
+            },
+            "right": {
+              "field_path": "$.right",
+              "state": "VALUE",
+              "value": 50
+            }
+          },
+          "expected": {
+            "outcome": "REJECT",
+            "reason_code": "CROSS_FIELD_RELATION_REJECTED"
+          },
+          "actual": {
+            "outcome": "REJECT",
+            "reason_code": "CROSS_FIELD_RELATION_REJECTED",
+            "details": {
+              "left": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "right": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "comparison": "EQ",
+              "operator": "GT"
+            }
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "relation": {
+            "constraint_type": "studio.cross_field.compare",
+            "operator": "GT",
+            "comparison_shape": "EQ",
+            "unset_policy": "REJECT_IF_EITHER_UNSET"
+          },
+          "source": {
+            "constraint_id": "operator_gt",
+            "left_field_path": "$.left",
+            "right_field_path": "$.right",
+            "left_validation_type_id": "studio.integer.signed",
+            "right_validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "left_validation_type_contract_version": "0.1.0",
+            "right_validation_type_contract_version": "0.1.0"
+          }
+        },
+        {
+          "pattern_id": "operator_gt::left_greater_right",
+          "pattern_key": "left_greater_right",
+          "category": "cross_field_compare",
+          "input": {
+            "left": {
+              "field_path": "$.left",
+              "state": "VALUE",
+              "value": 75
+            },
+            "right": {
+              "field_path": "$.right",
+              "state": "VALUE",
+              "value": 25
+            }
+          },
+          "expected": {
+            "outcome": "ACCEPT",
+            "reason_code": "CROSS_FIELD_RELATION_ACCEPTED"
+          },
+          "actual": {
+            "outcome": "ACCEPT",
+            "reason_code": "CROSS_FIELD_RELATION_ACCEPTED",
+            "details": {
+              "left": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "right": {
+                "outcome": "ACCEPT",
+                "reason_code": "VALUE_ACCEPTED",
+                "violations": []
+              },
+              "comparison": "GT",
+              "operator": "GT"
+            }
+          },
+          "comparison": {
+            "status": "PASS",
+            "reason_code": "OUTCOME_MATCH"
+          },
+          "relation": {
+            "constraint_type": "studio.cross_field.compare",
+            "operator": "GT",
+            "comparison_shape": "GT",
+            "unset_policy": "REJECT_IF_EITHER_UNSET"
+          },
+          "source": {
+            "constraint_id": "operator_gt",
+            "left_field_path": "$.left",
+            "right_field_path": "$.right",
+            "left_validation_type_id": "studio.integer.signed",
+            "right_validation_type_id": "studio.integer.signed",
+            "registry_version": "0.1.0",
+            "left_validation_type_contract_version": "0.1.0",
+            "right_validation_type_contract_version": "0.1.0"
+          }
+        }
+      ]
+    }
+  ]
+}

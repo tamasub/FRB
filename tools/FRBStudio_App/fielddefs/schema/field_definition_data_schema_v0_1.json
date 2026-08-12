@@ -6,6 +6,10 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
+    "view_def": {
+      "type": "string",
+      "minLength": 1
+    },
     "schema_version": {
       "const": "field_definition_data_v0_1"
     },
@@ -64,6 +68,16 @@
       "items": {
         "$ref": "#/$defs/fieldDefinition"
       }
+    },
+    "cross_field_constraint_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "cross_field_constraints": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/crossFieldConstraint"
+      }
     }
   },
   "required": [
@@ -99,6 +113,9 @@
           "type": "string"
         },
         "standard_restore_policy": {
+          "type": "string"
+        },
+        "cross_field_constraint_policy": {
           "type": "string"
         }
       },
@@ -216,6 +233,59 @@
       "required": [
         "field_path",
         "validation_type"
+      ]
+    },
+    "crossFieldConstraint": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        },
+        "constraint_type": {
+          "const": "studio.cross_field.compare"
+        },
+        "left_field_path": {
+          "type": "string",
+          "minLength": 3,
+          "pattern": "^\\$\\.[A-Za-z_][A-Za-z0-9_]*(?:\\[\\])?(?:\\.[A-Za-z_][A-Za-z0-9_]*(?:\\[\\])?)*$"
+        },
+        "operator": {
+          "type": "string",
+          "enum": [
+            "LT",
+            "LTE",
+            "EQ",
+            "NE",
+            "GTE",
+            "GT"
+          ]
+        },
+        "right_field_path": {
+          "type": "string",
+          "minLength": 3,
+          "pattern": "^\\$\\.[A-Za-z_][A-Za-z0-9_]*(?:\\[\\])?(?:\\.[A-Za-z_][A-Za-z0-9_]*(?:\\[\\])?)*$"
+        },
+        "unset_policy": {
+          "type": "string",
+          "enum": [
+            "ACCEPT_IF_EITHER_UNSET",
+            "REJECT_IF_EITHER_UNSET"
+          ]
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "constraint_type",
+        "left_field_path",
+        "operator",
+        "right_field_path",
+        "unset_policy"
       ]
     }
   }

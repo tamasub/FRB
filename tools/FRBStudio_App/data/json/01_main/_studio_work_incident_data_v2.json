@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-12T19:20:00+09:00",
+  "updated_at": "2026-08-12T20:13:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 163,
+  "items_count": 164,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -25330,6 +25330,261 @@
           "detail": "Schema/Generation Rules/Runtime/ViewDef/Preview/CSS/cache tag/static testsを更新。FieldSetは3列フル幅・caption任意。operator/null_policyはCanonical値を維持した表示変換のみ。"
         }
       ]
+    },
+    {
+      "work_item_id": "studio_work_0176",
+      "phase": "v0.18.53-cross-field-test-pattern-generation",
+      "title": "関連項目比較TestPattern標準化 — 内部代表値LOW/MID/HIGH・未設定OK/NG・6 Operator Matrix",
+      "incident_type": "feature",
+      "category": "testing",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "NOT_STARTED",
+      "verification_status": "確認済み",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-12T20:13:00+09:00",
+      "owner": "",
+      "ai_owner": "",
+      "created_at": "2026-08-12T20:13:00+09:00",
+      "updated_at": "2026-08-12T20:13:00+09:00",
+      "target_files": "- data/json/00_rules/frb_test_evidence_rules_data_v0_2.json\n- fielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json\n- defs/fielddefs/frb_fft_measurement_field_definitions_view_def_v0_1.json\n- fielddefs/schema/field_definition_data_schema_v0_1.json\n- wwwroot/js/services/definition/cross_field_verification_service.js\n- wwwroot/js/services/definition/cross_field_relation_evaluator.js\n- wwwroot/js/services/definition/definition_test_runner_core.js\n- wwwroot/js/components/definition/cross_field_test_preview_component.js\n- tests/definition/cross_field_definition_test.test.mjs\n- tests/fixtures/definition/cross_field_compare_operator_matrix_v0_1.json\n- data/json/03_tests/contracts/definition_test_runner_frb_fft_v0_1/**\n- data/json/03_tests/contracts/definition_test_runner_cross_field_operator_matrix_v0_1/**",
+      "actual_updated_files": "- data/json/00_rules/frb_test_evidence_rules_data_v0_2.json\n- data/json/01_main/_studio_work_incident_data_v2.json\n- data/json/03_tests/contracts/definition_test_runner_cross_field_operator_matrix_v0_1/actual/definition_test_runner.actual.json\n- data/json/03_tests/contracts/definition_test_runner_cross_field_operator_matrix_v0_1/diff/definition_test_runner.diff.json\n- data/json/03_tests/contracts/definition_test_runner_cross_field_operator_matrix_v0_1/expected/definition_test_runner.expected.json\n- data/json/03_tests/contracts/definition_test_runner_cross_field_operator_matrix_v0_1/relations/definition_test_runner_trace_relations.json\n- data/json/03_tests/contracts/definition_test_runner_cross_field_operator_matrix_v0_1/summary/definition_test_runner.result.json\n- data/json/03_tests/contracts/definition_test_runner_frb_fft_v0_1/actual/definition_test_runner.actual.json\n- data/json/03_tests/contracts/definition_test_runner_frb_fft_v0_1/diff/definition_test_runner.diff.json\n- data/json/03_tests/contracts/definition_test_runner_frb_fft_v0_1/expected/definition_test_runner.expected.json\n- data/json/03_tests/contracts/definition_test_runner_frb_fft_v0_1/relations/definition_test_runner_trace_relations.json\n- data/json/03_tests/contracts/definition_test_runner_frb_fft_v0_1/summary/definition_test_runner.result.json\n- defs/fielddefs/frb_fft_measurement_field_definitions_view_def_v0_1.json\n- fielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json\n- fielddefs/schema/field_definition_data_schema_v0_1.json\n- tests/definition/cross_field_definition_test.test.mjs\n- tests/definition/definition_test_runner_core.test.mjs\n- tests/fixtures/definition/cross_field_compare_operator_matrix_v0_1.json\n- tests/qa/static/cross_field_definition_preview_static.test.mjs\n- tests/qa/static/cross_field_fieldset_ui_static.test.mjs\n- wwwroot/index.html\n- wwwroot/js/components/definition/cross_field_test_preview_component.js\n- wwwroot/js/services/definition/cross_field_relation_evaluator.js\n- wwwroot/js/services/definition/cross_field_verification_service.js\n- wwwroot/js/services/definition/definition_test_runner_core.js",
+      "context_def_draft": "- 関連項目の大小比較はOperatorごとに別の入力生成ロジックを持たず、LESS / EQUAL / GREATERの3関係を共通軸とする。\n- 境界値そのものは単項目Validationの責務とし、関連項目比較は共通有効範囲の内部代表値LOW / MID / HIGHを使って自然な比較データを生成する。\n- null / 空文字 / missingは物理表現として区別するが、Field Contractで有効な未設定表現はCross Fieldでは「未設定」という意味レイヤーで扱う。\n- 未設定時の結果はOK / NGの2分類のみとし、WARN / SKIP / UNRESOLVEDを人間向け第三状態として増やさない。\n- 自動的にPASSと説明できない状態はPASSへ倒さず、NG側へ寄せて人間の思考を立ち上げる。",
+      "objective": "- Cross Field Compareの標準TestPattern生成をLESS / EQUAL / GREATERの3関係へ固定する。\n- 共通範囲の内部代表値LOW / MID / HIGHから自然なテスト入力を機械生成する。\n- Null Policyを「未設定時の扱い」へ意味拡張し、OK / NGの2値契約へ整理する。\n- LT / LTE / EQ / NE / GTE / GTの6 Operatorを専用Fixtureで一括検証し、18 Cross Field TestPatternを実行する。\n- FRB FFT実Definitionの既存1制約でも新生成ルールを実行し、Expected / Actual / Diff / Relations / Summary証跡を更新する。",
+      "background": "- 従来は比較テストに最小値 / 最大値や候補集合の端値を使うため、関連項目チェックとしては極端で不自然なテストデータに見える余地があった。\n- ユーザーから「まず中央値を出し、最小値と中央値の間、中央値と最大値の間の値を使う方が自然」と提案があり、境界値テストと関連項目比較テストの責務分離が明確になった。\n- nullと空文字は物理値として異なるが、日付や金額でも空文字を正常な未設定として扱う可能性があるため、Cross Fieldの概念をNull限定にすると意味が狭すぎる。\n- 人間向けDiffではPASSかNGかを明確にし、曖昧状態を自動PASSにしない方針が確認された。",
+      "scope": "- 共通有効範囲からMID / LOW / HIGHを導出するCross Field TestPattern生成。\n- 明示的な共通min/maxが取れない場合の、極端値を避けた決定的な内部候補フォールバック。\n- 3関係に対する6 Operator Expected Matrix。\n- null / 空文字 / missingのうちField ContractがACCEPTする代表値を「未設定」として扱うCross Field評価。\n- unset_policy = ACCEPT_IF_EITHER_UNSET / REJECT_IF_EITHER_UNSET の2値化。\n- 関連項目Detail UIを「未設定時の扱い」「未設定ならOK / 未設定ならNG」へ変更。\n- Previewの人間向けExpected表示をOK / NGへ変更。\n- 6 Operator専用FixtureとCanonical Test Evidence追加。\n- Field Definition Schemaへ既存Cross Field契約を正式収容しSchema driftを解消。",
+      "out_of_scope": "- date / number / float等で空文字をACCEPTする単項目Validation Type契約の新設・拡張。Cross Field側はField ContractがACCEPTする未設定表現を扱えるが、現在のRegistryで空文字許可が定義されていない型までは変更しない。\n- WARNという第三の人間向け結果状態。必要性が実証された時点で別途設計する。\n- 6 OperatorをFRB FFTの実Definitionへ6件の業務制約として追加すること。相互に矛盾するテスト用制約は専用Fixtureへ分離する。\n- Cross Field Constraint種別をcompare以外へ拡張すること。",
+      "fixed_name_policy": "- 既存FRB Field Definition / ViewDef / Test Evidence Rules / Runner Evidenceの安定ファイル名は維持して同名更新する。\n- 6 Operator網羅用の専用Fixture / Evidenceのみ新規安定名を追加する。\n- 返却ZIPはFoundation Rule 019に従い変更ファイルだけを相対パス維持で含める。",
+      "module_policy": "- TestPatternDeriverはOperator別の入力生成を持たず、3関係の代表値生成とOperator→Expected判定を分離する。\n- 単項目Field Contractがnull / 空文字 / missingの物理表現可否を判定し、Cross FieldはACCEPT済み未設定表現の意味だけを扱う。\n- PreviewとRunnerは同じCross Field Verification / Relation Evaluatorを使用する。\n- 6 Operatorのエンジン保証はテストFixtureへ置き、FRB実Definitionの業務意味を汚染しない。",
+      "expected_outputs": "- 明示共通範囲0..100ではLOW=25 / MID=50 / HIGH=75が生成される。\n- 6 Operatorすべてで同じ3入力を使い、ExpectedのみがOperator Matrixに従って変わる。\n- FRB FFTのanalysis_start_date / analysis_end_date比較では極端な最小最大値ではなく内部代表値で3 Patternが生成される。\n- 未設定時の扱いはUI上「未設定ならOK / 未設定ならNG」の2択で表示される。\n- Preview ExpectedはOK / NGで表示される。\n- 生成不能・旧null_policy等を黙ってPASSへ倒さない。",
+      "risk": "- 左右の共通有効範囲が狭い場合、LOW / MID / HIGHが同値化するため決定的フォールバックが必要。\n- Field Contractが空文字を許可しない型では、空文字を未設定代表値としてCross Field側だけで勝手に採用してはならない。\n- null_policyからunset_policyへ意味契約が変わるため、旧値を暗黙変換するとレビュー無しで意味が変わる危険がある。\n- 6 Operatorを実Definitionへ直接増やすと業務制約が相互矛盾し、テスト用Definitionと本物のDefinitionの責務が混ざる。",
+      "test_points": "- FRB FFT LT制約で3 Cross Field Patternが生成され、端値ではなく内部候補が使われること。\n- 0..100 FixtureでLOW=25 / MID=50 / HIGH=75となること。\n- LT/LTE/EQ/NE/GTE/GT × LESS/EQUAL/GREATER = 18 PatternのExpected Matrixが一致すること。\n- 18 Cross Field PatternがRunnerで全件PASSすること。\n- null / 空文字をそれぞれField ContractでACCEPTできるFixtureでは、代表未設定Patternが生成され、unset_policy OK/NGどちらも期待どおり評価されること。\n- legacy null_policyのみの制約はINVALIDとしてレビュー対象となり、黙ってPASSしないこと。\n- PreviewとRunnerが同一Patternを使用すること。\n- Field Definition / ViewDefが各Schema validationをPASSすること。",
+      "verification_log": "- node --check: Cross Field Verification / Relation Evaluator / Runner Core / Preview Component PASS。\n- node --test tests/definition/*.test.mjs: 24 tests / 24 PASS。\n- Cross Field関連Static: 10 tests / 10 PASS。\n- ViewDef Schema validation: error 0。\n- Field Definition Schema validation: error 0。既存Cross Field契約をSchemaへ正式追加し従来のSchema driftも解消。\n- 6 Operator Matrix Runner: field 16 PASS + cross field 18 PASS = total 34 / 34 PASS、fail 0、unresolved 0。\n- FRB FFT Runner: field 126 PASS + cross field 3 PASS = total 129 / 129 PASS、fail 0、unresolved 0。Document statusは既存の部分解決Field Contractを含むためPARTIALだが、実行TestPattern失敗は0。\n- 全Static一括は変更前baseline 88 tests中75 PASS / 13 FAIL、変更後89 tests中76 PASS / 13 FAIL。既存FAIL数は増加せず、今回追加StaticはPASS。\n- Test実行で生成されるruntime副作用は返却差分から除外。",
+      "user_request": "現在までの議論をインシデントへ整理し、関連チェックのテストデータを増やして一気にテスト実行まで進める。比較値は自然な内部代表値とし、未設定はNull限定ではなくField Contract上の未設定を意味し、結果はOK / NGの2分類にする。",
+      "ai_response": "関連項目比較の3関係・内部代表値LOW/MID/HIGH・未設定OK/NGを標準ルール化し、6 Operator専用Fixtureを追加してRunner/Evidenceまで一気に更新・実行する。FRB実Definitionにはテスト用の矛盾制約を増やさず、実制約1件を新生成ルールで検証する。",
+      "latest_ai_response": "v0.18.53-cross-field-test-pattern-generation 完了。関連項目比較をLESS/EQUAL/GREATERの3関係へ固定し、明示共通範囲ではMID→LOW/HIGHの内部代表値を導出するルールを追加。Null Policyは未設定Policyへ変更し、Field ContractがACCEPTするnull/空文字/missingを意味上の未設定として扱い、人間向けは「未設定ならOK / 未設定ならNG」の2値に整理した。FRB実Definitionは本物のLT制約1件のままとし、6 Operator網羅は専用Fixtureへ分離。Operator Matrixは18/18 Cross Field PASS、Fixture全体34/34 PASS、FRB FFTは129/129 TestPattern PASS。Definition 24/24、関連Static 10/10、ViewDef/FieldDefinition Schema validationもPASS。date/number等で空文字を単項目として許可する契約拡張は今回対象外で、Cross Field側はField Contractが許可した時点で扱える構造まで整備した。",
+      "latest_user_comment": "じゃぁーーー一通り整理できたってことかな？？　行けるなら、インシデントに今の話を整理した上で、関連チェックテストデータを増やして、一気にテスト実行までいけるかな？？いかなかったらいうて笑よろしく",
+      "context_refs": [
+        {
+          "context_ref_id": "studio_work_0168",
+          "title": "Definition Test Runner E2E — Diff / Cross Field Constraint / 実行証跡接続",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/_studio_work_incident_data_v2.json#studio_work_0168",
+          "purpose": "既存Cross Field Runner / Evidence接続と責務境界を維持するため。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 10,
+          "note": ""
+        },
+        {
+          "context_ref_id": "studio_work_0174",
+          "title": "単項目Validation自動テスト成立性調査",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/_studio_work_incident_data_v2.json#studio_work_0174",
+          "purpose": "境界値は単項目Validation、関連項目は関係そのものという責務分離を接続するため。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "studio_work_0175",
+          "title": "Detail FieldSet / 関連項目チェックOK条件UI改善",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/_studio_work_incident_data_v2.json#studio_work_0175",
+          "purpose": "関連項目DetailのOK条件UIとoperator表示契約を維持し、未設定Policy表示を接続するため。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        }
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "studio_work_0176_followup_001",
+          "action_type": "CONSTRAINT_ADD",
+          "required": false,
+          "status": "NOT_STARTED",
+          "related_ids": [
+            "studio_work_0176"
+          ],
+          "note": "date / number / float等で空文字を正常な未設定として扱う要件が具体化した時点で、単項目Validation Type側のempty string契約を追加する。Cross Field側はField ContractがACCEPTする未設定表現を既に意味上の未設定として扱える。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "studio_work_0176_discussion_001",
+          "at": "2026-08-12T20:13:00+09:00",
+          "speaker": "user",
+          "topic": "自然な関連項目テスト値",
+          "message": "最小値を最大値を使って大小比較するっていうのが感覚としてなくて、まず中央値を出して、最小値と中央値の間の値、中央値と最大値の間の値って考え方を入れるとわりと自然な比較テストデータになるのでは？"
+        },
+        {
+          "history_id": "studio_work_0176_discussion_002",
+          "at": "2026-08-12T20:13:00+09:00",
+          "speaker": "user",
+          "topic": "Nullではなく未設定",
+          "message": "Nullって言葉ではなく、普通は 未設定(Null or \"\"・・・) とかぐらいの言葉があると、ばしって意味がすぐ通じるよね。"
+        },
+        {
+          "history_id": "studio_work_0176_discussion_003",
+          "at": "2026-08-12T20:13:00+09:00",
+          "speaker": "user",
+          "topic": "OK / NG 2分類",
+          "message": "少なくても、OK or NGの２分類にしないといかんよねぇ～。Diff画面にPASSと出すのかNG？って出すのかはっきりして悪い方（NG）側に寄せて、まずは、人間の思考を立ち上げるってストーリーにせんとあかんよねぇ～笑"
+        },
+        {
+          "history_id": "studio_work_0176_discussion_004",
+          "at": "2026-08-12T20:13:00+09:00",
+          "speaker": "user",
+          "topic": "WARNは必要になってから",
+          "message": "そこで、警告が欲しいってなったら、その時、仕掛けを直しなさいってぐらいやなぁ～今は笑"
+        },
+        {
+          "history_id": "studio_work_0176_discussion_005",
+          "at": "2026-08-12T20:13:00+09:00",
+          "speaker": "user",
+          "topic": "一気にテスト実行まで",
+          "message": "インシデントに今の話を整理した上で、関連チェックテストデータを増やして、一気にテスト実行までいけるかな？？いかなかったらいうて笑よろしく"
+        },
+        {
+          "history_id": "studio_work_0176_discussion_006",
+          "at": "2026-08-12T20:13:00+09:00",
+          "speaker": "assistant",
+          "topic": "v0.18.53 実装・検証完了",
+          "message": "AI回答\n\n## 今回の更新\n\n- Cross Field Compareを `LESS / EQUAL / GREATER` の3関係へ固定。\n- 共通有効範囲がある場合は、境界値そのものではなく `LOW / MID / HIGH` の内部代表値を生成。\n- `Null Policy` を意味上の「未設定時の扱い」へ変更し、UI/Expectedは `OK / NG` の2値へ整理。\n- FRB FFT実Definitionは本物の `analysis_start_date < analysis_end_date` 1制約のまま維持。\n- 6 Operator網羅は専用Fixtureへ分離し、`LT / LTE / EQ / NE / GTE / GT × 3関係 = 18 Pattern` を実行。\n- Operator Matrix Canonical EvidenceとFRB FFT Canonical Evidenceを更新。\n\n## 設計方針\n\n境界値は単項目Validationの責務とし、関連項目比較では共通範囲内部の自然な代表値を使って関係そのものを検証する。null / 空文字 / missingは物理表現として区別するが、Field ContractがACCEPTしたものはCross Fieldでは「未設定」という意味で扱う。自動的にPASSと説明できないものを第三状態へ逃がさず、現時点の人間向け結果はOK / NGの2値とする。\n\n## 確認結果\n\n- Definition tests: 24 / 24 PASS\n- Cross Field関連Static: 10 / 10 PASS\n- 6 Operator Matrix: Cross Field 18 / 18 PASS、Fixture全体34 / 34 PASS\n- FRB FFT: 129 / 129 TestPattern PASS、fail 0、unresolved 0\n- ViewDef Schema validation: PASS\n- Field Definition Schema validation: PASS\n- 全Static: baseline/currentとも既存FAIL 13件で増加なし\n- runtime生成物: 返却ZIPから除外\n\n## 残したもの\n\ndate / number / float等で `\"\"` を単項目として正常な未設定にするValidation Type契約の拡張は今回行っていない。Cross Field側は、Field Contractがその表現をACCEPTした時点で未設定として扱える構造まで整備済み。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "studio_work_0176_decision_001",
+          "at": "2026-08-12T20:13:00+09:00",
+          "decision": "Cross Field CompareはLESS / EQUAL / GREATERの3関係を常時の基本軸とし、Operatorごとに入力生成ロジックを分岐しない。",
+          "reason": "LT/LTE/EQ/NE/GTE/GTで必要な関係状態は同じ3種類で、違うのはExpectedだけだから。",
+          "applied_axes": [
+            "テストデータ生成とExpected判定を分離する",
+            "機械導出できるものは人間判断に戻さない"
+          ],
+          "conditions": "compare型の関連項目Constraint。",
+          "exceptions": "比較可能な代表値を生成できない場合はPASSへ倒さない。",
+          "expected_behavior": "同じLOW/MID/HIGH入力にOperator Matrixを適用してExpectedが決まる。",
+          "acceptance_criteria": "6 Operator × 3関係 = 18 PatternのExpected Matrixが自動一致する。",
+          "test_pattern_seed": "LESS=LOW/HIGH, EQUAL=MID/MID, GREATER=HIGH/LOW",
+          "remaining_risks": "狭い範囲で代表値が同値化する場合。",
+          "confirmation_level": "human_confirmed",
+          "axis_update_candidate": ""
+        },
+        {
+          "decision_id": "studio_work_0176_decision_002",
+          "at": "2026-08-12T20:13:00+09:00",
+          "decision": "明示的な共通有効範囲がある場合、最小値・最大値を直接比較値にせず、MID / LOW / HIGHの内部代表値を導出する。",
+          "reason": "境界値は単項目Validationが保証し、関連項目チェックでは関係そのものを自然な値で検証する方が責務と説明性が明確だから。",
+          "applied_axes": [
+            "自然なテストデータを優先する",
+            "単項目境界値テストと関連項目テストの責務を分ける"
+          ],
+          "conditions": "左右のResolved Contractから共通min/maxを求められること。",
+          "exceptions": "狭い範囲や明示境界無しでは決定的な内部候補フォールバックを使用する。",
+          "expected_behavior": "MID=midpoint(COMMON_MIN,COMMON_MAX), LOW=midpoint(COMMON_MIN,MID), HIGH=midpoint(MID,COMMON_MAX)。",
+          "acceptance_criteria": "0..100では25/50/75が生成され、最小0/最大100を通常比較値に使わない。",
+          "test_pattern_seed": "COMMON_MIN/MAX → MID → LOW/HIGH",
+          "remaining_risks": "integer丸めや極端に狭い範囲。",
+          "confirmation_level": "human_confirmed",
+          "axis_update_candidate": ""
+        },
+        {
+          "decision_id": "studio_work_0176_decision_003",
+          "at": "2026-08-12T20:13:00+09:00",
+          "decision": "null / 空文字 / missingは物理的には区別するが、Field Contractで有効な表現はCross Fieldでは「未設定」という意味レイヤーで扱う。",
+          "reason": "日付・金額等でも空文字が正常な未設定になり得るため、Null限定のPolicyでは意味が狭く、物理表現ごとのCross Field組合せを増やすと責務が爆発するため。",
+          "applied_axes": [
+            "物理表現と意味を分離する",
+            "同じ意味のテストを重複させない"
+          ],
+          "conditions": "単項目Field Contractが当該物理表現をACCEPTすること。",
+          "exceptions": "Field ContractがREJECTする表現をCross Field側で勝手に未設定扱いしない。",
+          "expected_behavior": "各FieldからACCEPTされる代表未設定表現を1つ選び、left_unset/right_unset/both_unsetを必要に応じて生成する。",
+          "acceptance_criteria": "null許可Fieldと空文字許可Fieldの双方でunset_policyが同じ意味で評価される。",
+          "test_pattern_seed": "left_unset / right_unset / both_unset",
+          "remaining_risks": "非string型の空文字許可は現在のValidation Type契約に未実装。",
+          "confirmation_level": "human_confirmed",
+          "axis_update_candidate": ""
+        },
+        {
+          "decision_id": "studio_work_0176_decision_004",
+          "at": "2026-08-12T20:13:00+09:00",
+          "decision": "未設定時の人間向け判定はOK / NGの2値だけとし、WARN / SKIP / UNRESOLVEDを第三の承認状態として追加しない。",
+          "reason": "人間が「結局承認してよいのか」を再判断する曖昧状態を増やさず、自動PASSを説明できないものはNG側へ寄せて人間の思考を立ち上げるため。",
+          "applied_axes": [
+            "人間判断対象を最小化する",
+            "説明できない状態をPASSへ倒さない"
+          ],
+          "conditions": "現時点のCross Field human-facing result。",
+          "exceptions": "WARNの実需要が具体化した場合はその時点で別設計する。",
+          "expected_behavior": "unset_policyは未設定ならOK / 未設定ならNGの2択。Preview ExpectedもOK / NG表示。",
+          "acceptance_criteria": "UIに第三の未設定PolicyやWARNを追加しない。",
+          "test_pattern_seed": "",
+          "remaining_risks": "将来WARN需要が出た場合は状態遷移・承認契約の再設計が必要。",
+          "confirmation_level": "human_confirmed",
+          "axis_update_candidate": ""
+        },
+        {
+          "decision_id": "studio_work_0176_decision_005",
+          "at": "2026-08-12T20:13:00+09:00",
+          "decision": "6 Operatorの網羅テストはFRB FFT実Definitionへ6制約を追加せず、専用Test Fixtureへ分離する。",
+          "reason": "LT/LTE/EQ/NE/GTE/GTを同一2Fieldへ同時に業務制約として置くと相互矛盾し、テストエンジン保証と業務Definitionの正本が混ざるため。",
+          "applied_axes": [
+            "テストFixtureと業務Definitionの責務を分ける",
+            "正本へテスト都合の偽制約を混ぜない"
+          ],
+          "conditions": "Operator Matrixのエンジン検証。",
+          "exceptions": "実際に業務上存在するOperatorは実Definition側でも個別E2Eを持てる。",
+          "expected_behavior": "FRB sampleは本物のLT 1件、専用Fixtureは6 Operator。",
+          "acceptance_criteria": "Fixtureの18 Cross Field Pattern全PASS、FRBの実制約3 Pattern全PASS。",
+          "test_pattern_seed": "",
+          "remaining_risks": "Fixtureと実DefinitionのRegistry差分。",
+          "confirmation_level": "human_confirmed",
+          "axis_update_candidate": ""
+        }
+      ],
+      "change_history": [
+        {
+          "change_id": "studio_work_0176_change_001",
+          "at": "2026-08-12T20:13:00+09:00",
+          "change": "生成ルール標準化",
+          "detail": "Cross Field Verificationへ共通範囲の内部代表値LOW/MID/HIGH、3関係固定、Operator Expected Matrixを実装。"
+        },
+        {
+          "change_id": "studio_work_0176_change_002",
+          "at": "2026-08-12T20:13:00+09:00",
+          "change": "Null Policyを未設定Policyへ再設計",
+          "detail": "null_policyをunset_policyへ変更し、Field ContractでACCEPTされるnull/空文字/missingを意味上の未設定として評価。UIは未設定ならOK / 未設定ならNGの2択へ変更。旧null_policyは暗黙移行せずINVALID。"
+        },
+        {
+          "change_id": "studio_work_0176_change_003",
+          "at": "2026-08-12T20:13:00+09:00",
+          "change": "6 Operator Matrix Fixture / Evidence追加",
+          "detail": "0..100のinteger Fixtureを追加し25/50/75の3入力をLT/LTE/EQ/NE/GTE/GTへ適用。18 Cross Field Pattern全PASSのCanonical Evidenceを保存。"
+        },
+        {
+          "change_id": "studio_work_0176_change_004",
+          "at": "2026-08-12T20:13:00+09:00",
+          "change": "FRB FFT Evidence更新",
+          "detail": "analysis_start_date < analysis_end_dateの実制約1件を新ルールで再実行し、3 Cross Field Patternを含む129 TestPattern全PASSのEvidenceへ更新。"
+        },
+        {
+          "change_id": "studio_work_0176_change_005",
+          "at": "2026-08-12T20:13:00+09:00",
+          "change": "Schema drift解消",
+          "detail": "Field Definition Schemaへview_def / cross_field_constraint_count / cross_field_constraints / cross_field_constraint_policyを正式追加し、現行FRB sampleをSchema validation 0 errorへ揃えた。"
+        }
+      ]
     }
   ],
   "review_notes": [
@@ -25845,7 +26100,7 @@
       "body": "- studio_work_0161を親構想として見直した。\n- studio_work_0162～0168を未着手計画として追加した。\n- Studio Coreは汎用AI協働基盤として維持する。\n- Definition Verificationは標準Capabilityとして実装する。\n- Editor Componentと計算Serviceを分離し、PreviewとRunnerで共通導出ロジックを利用する。\n- 構造化記述原則の新設をルール改定計画へ含めた。"
     }
   ],
-  "work_revision": "v0.18.52-detail-fieldset-cross-field-ux",
+  "work_revision": "v0.18.53-cross-field-test-pattern-generation",
   "latest_planning_note": "- studio_work_0163完了。\n- Studio UI Component Model基盤を追加。\n- 次はstudio_work_0164でSubGridComponentをData / Derivedへ責務分離する。\n- Definition Verification固有Componentはstudio_work_0166まで標準Editorへ追加しない。",
   "view_def_candidates": [
     {

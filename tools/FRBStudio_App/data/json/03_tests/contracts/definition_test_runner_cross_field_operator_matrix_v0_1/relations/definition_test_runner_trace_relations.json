@@ -1,0 +1,644 @@
+{
+  "schema_version": "definition_test_trace_relations_v0_2",
+  "document_type": "definition_test_trace_relations",
+  "test_id": "definition_test_runner_frb_fft_v0_1",
+  "title": "FRB FFT Field Definition — Definition Driven Test E2E",
+  "generated_at": "2026-08-12T11:27:10.325Z",
+  "source": {
+    "field_definition_document": {
+      "definition_id": "studio.cross_field.compare.operator_matrix",
+      "schema_version": "cross_field_compare_operator_matrix_fixture_v0_1",
+      "document_type": "field_definition_test_fixture",
+      "updated_at": "",
+      "sha256": "8bb00e405405fdd31c5cfe57a289bf1f02247d8b46bd566b5c0d3618afb20bb0",
+      "path": "tests/fixtures/definition/cross_field_compare_operator_matrix_v0_1.json"
+    },
+    "validation_type_registry": {
+      "schema_version": "validation_type_registry_data_v0_1",
+      "registry_version": "0.1.0",
+      "document_type": "validation_type_registry",
+      "sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803",
+      "path": "data/json/config/validation_type_registry_v0_1.json"
+    },
+    "verification_schema_version": "definition_verification_result_v0_1",
+    "cross_field_verification_schema_version": "cross_field_verification_result_v0_2"
+  },
+  "relations": [
+    {
+      "check_id": "field::$.left::required_missing",
+      "scope": "field",
+      "field_path": "$.left",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.signed",
+      "pattern_id": "$.left::required_missing",
+      "constraint_ref": "required",
+      "definition_review_ref": "$.left",
+      "source": {
+        "field_path": "$.left",
+        "validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "field::$.left::null",
+      "scope": "field",
+      "field_path": "$.left",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.signed",
+      "pattern_id": "$.left::null",
+      "constraint_ref": "nullable",
+      "definition_review_ref": "$.left",
+      "source": {
+        "field_path": "$.left",
+        "validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "field::$.left::valid_value",
+      "scope": "field",
+      "field_path": "$.left",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.signed",
+      "pattern_id": "$.left::valid_value",
+      "constraint_ref": "",
+      "definition_review_ref": "$.left",
+      "source": {
+        "field_path": "$.left",
+        "validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "field::$.left::invalid_format",
+      "scope": "field",
+      "field_path": "$.left",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.signed",
+      "pattern_id": "$.left::invalid_format",
+      "constraint_ref": "",
+      "definition_review_ref": "$.left",
+      "source": {
+        "field_path": "$.left",
+        "validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "field::$.left::minimum",
+      "scope": "field",
+      "field_path": "$.left",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.signed",
+      "pattern_id": "$.left::minimum",
+      "constraint_ref": "minimum",
+      "definition_review_ref": "$.left",
+      "source": {
+        "field_path": "$.left",
+        "validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "field::$.left::minimum_minus_1",
+      "scope": "field",
+      "field_path": "$.left",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.signed",
+      "pattern_id": "$.left::minimum_minus_1",
+      "constraint_ref": "minimum",
+      "definition_review_ref": "$.left",
+      "source": {
+        "field_path": "$.left",
+        "validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "field::$.left::maximum",
+      "scope": "field",
+      "field_path": "$.left",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.signed",
+      "pattern_id": "$.left::maximum",
+      "constraint_ref": "maximum",
+      "definition_review_ref": "$.left",
+      "source": {
+        "field_path": "$.left",
+        "validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "field::$.left::maximum_plus_1",
+      "scope": "field",
+      "field_path": "$.left",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.signed",
+      "pattern_id": "$.left::maximum_plus_1",
+      "constraint_ref": "maximum",
+      "definition_review_ref": "$.left",
+      "source": {
+        "field_path": "$.left",
+        "validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "field::$.right::required_missing",
+      "scope": "field",
+      "field_path": "$.right",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.signed",
+      "pattern_id": "$.right::required_missing",
+      "constraint_ref": "required",
+      "definition_review_ref": "$.right",
+      "source": {
+        "field_path": "$.right",
+        "validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "field::$.right::null",
+      "scope": "field",
+      "field_path": "$.right",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.signed",
+      "pattern_id": "$.right::null",
+      "constraint_ref": "nullable",
+      "definition_review_ref": "$.right",
+      "source": {
+        "field_path": "$.right",
+        "validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "field::$.right::valid_value",
+      "scope": "field",
+      "field_path": "$.right",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.signed",
+      "pattern_id": "$.right::valid_value",
+      "constraint_ref": "",
+      "definition_review_ref": "$.right",
+      "source": {
+        "field_path": "$.right",
+        "validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "field::$.right::invalid_format",
+      "scope": "field",
+      "field_path": "$.right",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.signed",
+      "pattern_id": "$.right::invalid_format",
+      "constraint_ref": "",
+      "definition_review_ref": "$.right",
+      "source": {
+        "field_path": "$.right",
+        "validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "field::$.right::minimum",
+      "scope": "field",
+      "field_path": "$.right",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.signed",
+      "pattern_id": "$.right::minimum",
+      "constraint_ref": "minimum",
+      "definition_review_ref": "$.right",
+      "source": {
+        "field_path": "$.right",
+        "validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "field::$.right::minimum_minus_1",
+      "scope": "field",
+      "field_path": "$.right",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.signed",
+      "pattern_id": "$.right::minimum_minus_1",
+      "constraint_ref": "minimum",
+      "definition_review_ref": "$.right",
+      "source": {
+        "field_path": "$.right",
+        "validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "field::$.right::maximum",
+      "scope": "field",
+      "field_path": "$.right",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.signed",
+      "pattern_id": "$.right::maximum",
+      "constraint_ref": "maximum",
+      "definition_review_ref": "$.right",
+      "source": {
+        "field_path": "$.right",
+        "validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "field::$.right::maximum_plus_1",
+      "scope": "field",
+      "field_path": "$.right",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.signed",
+      "pattern_id": "$.right::maximum_plus_1",
+      "constraint_ref": "maximum",
+      "definition_review_ref": "$.right",
+      "source": {
+        "field_path": "$.right",
+        "validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "cross::operator_lt::left_less_right",
+      "scope": "cross_field",
+      "field_path": "",
+      "constraint_id": "operator_lt",
+      "validation_type_id": "",
+      "pattern_id": "operator_lt::left_less_right",
+      "constraint_ref": "operator_lt",
+      "definition_review_ref": "operator_lt",
+      "source": {
+        "constraint_id": "operator_lt",
+        "left_field_path": "$.left",
+        "right_field_path": "$.right",
+        "left_validation_type_id": "studio.integer.signed",
+        "right_validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "left_validation_type_contract_version": "0.1.0",
+        "right_validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "cross::operator_lt::left_equal_right",
+      "scope": "cross_field",
+      "field_path": "",
+      "constraint_id": "operator_lt",
+      "validation_type_id": "",
+      "pattern_id": "operator_lt::left_equal_right",
+      "constraint_ref": "operator_lt",
+      "definition_review_ref": "operator_lt",
+      "source": {
+        "constraint_id": "operator_lt",
+        "left_field_path": "$.left",
+        "right_field_path": "$.right",
+        "left_validation_type_id": "studio.integer.signed",
+        "right_validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "left_validation_type_contract_version": "0.1.0",
+        "right_validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "cross::operator_lt::left_greater_right",
+      "scope": "cross_field",
+      "field_path": "",
+      "constraint_id": "operator_lt",
+      "validation_type_id": "",
+      "pattern_id": "operator_lt::left_greater_right",
+      "constraint_ref": "operator_lt",
+      "definition_review_ref": "operator_lt",
+      "source": {
+        "constraint_id": "operator_lt",
+        "left_field_path": "$.left",
+        "right_field_path": "$.right",
+        "left_validation_type_id": "studio.integer.signed",
+        "right_validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "left_validation_type_contract_version": "0.1.0",
+        "right_validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "cross::operator_lte::left_less_right",
+      "scope": "cross_field",
+      "field_path": "",
+      "constraint_id": "operator_lte",
+      "validation_type_id": "",
+      "pattern_id": "operator_lte::left_less_right",
+      "constraint_ref": "operator_lte",
+      "definition_review_ref": "operator_lte",
+      "source": {
+        "constraint_id": "operator_lte",
+        "left_field_path": "$.left",
+        "right_field_path": "$.right",
+        "left_validation_type_id": "studio.integer.signed",
+        "right_validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "left_validation_type_contract_version": "0.1.0",
+        "right_validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "cross::operator_lte::left_equal_right",
+      "scope": "cross_field",
+      "field_path": "",
+      "constraint_id": "operator_lte",
+      "validation_type_id": "",
+      "pattern_id": "operator_lte::left_equal_right",
+      "constraint_ref": "operator_lte",
+      "definition_review_ref": "operator_lte",
+      "source": {
+        "constraint_id": "operator_lte",
+        "left_field_path": "$.left",
+        "right_field_path": "$.right",
+        "left_validation_type_id": "studio.integer.signed",
+        "right_validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "left_validation_type_contract_version": "0.1.0",
+        "right_validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "cross::operator_lte::left_greater_right",
+      "scope": "cross_field",
+      "field_path": "",
+      "constraint_id": "operator_lte",
+      "validation_type_id": "",
+      "pattern_id": "operator_lte::left_greater_right",
+      "constraint_ref": "operator_lte",
+      "definition_review_ref": "operator_lte",
+      "source": {
+        "constraint_id": "operator_lte",
+        "left_field_path": "$.left",
+        "right_field_path": "$.right",
+        "left_validation_type_id": "studio.integer.signed",
+        "right_validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "left_validation_type_contract_version": "0.1.0",
+        "right_validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "cross::operator_eq::left_less_right",
+      "scope": "cross_field",
+      "field_path": "",
+      "constraint_id": "operator_eq",
+      "validation_type_id": "",
+      "pattern_id": "operator_eq::left_less_right",
+      "constraint_ref": "operator_eq",
+      "definition_review_ref": "operator_eq",
+      "source": {
+        "constraint_id": "operator_eq",
+        "left_field_path": "$.left",
+        "right_field_path": "$.right",
+        "left_validation_type_id": "studio.integer.signed",
+        "right_validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "left_validation_type_contract_version": "0.1.0",
+        "right_validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "cross::operator_eq::left_equal_right",
+      "scope": "cross_field",
+      "field_path": "",
+      "constraint_id": "operator_eq",
+      "validation_type_id": "",
+      "pattern_id": "operator_eq::left_equal_right",
+      "constraint_ref": "operator_eq",
+      "definition_review_ref": "operator_eq",
+      "source": {
+        "constraint_id": "operator_eq",
+        "left_field_path": "$.left",
+        "right_field_path": "$.right",
+        "left_validation_type_id": "studio.integer.signed",
+        "right_validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "left_validation_type_contract_version": "0.1.0",
+        "right_validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "cross::operator_eq::left_greater_right",
+      "scope": "cross_field",
+      "field_path": "",
+      "constraint_id": "operator_eq",
+      "validation_type_id": "",
+      "pattern_id": "operator_eq::left_greater_right",
+      "constraint_ref": "operator_eq",
+      "definition_review_ref": "operator_eq",
+      "source": {
+        "constraint_id": "operator_eq",
+        "left_field_path": "$.left",
+        "right_field_path": "$.right",
+        "left_validation_type_id": "studio.integer.signed",
+        "right_validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "left_validation_type_contract_version": "0.1.0",
+        "right_validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "cross::operator_ne::left_less_right",
+      "scope": "cross_field",
+      "field_path": "",
+      "constraint_id": "operator_ne",
+      "validation_type_id": "",
+      "pattern_id": "operator_ne::left_less_right",
+      "constraint_ref": "operator_ne",
+      "definition_review_ref": "operator_ne",
+      "source": {
+        "constraint_id": "operator_ne",
+        "left_field_path": "$.left",
+        "right_field_path": "$.right",
+        "left_validation_type_id": "studio.integer.signed",
+        "right_validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "left_validation_type_contract_version": "0.1.0",
+        "right_validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "cross::operator_ne::left_equal_right",
+      "scope": "cross_field",
+      "field_path": "",
+      "constraint_id": "operator_ne",
+      "validation_type_id": "",
+      "pattern_id": "operator_ne::left_equal_right",
+      "constraint_ref": "operator_ne",
+      "definition_review_ref": "operator_ne",
+      "source": {
+        "constraint_id": "operator_ne",
+        "left_field_path": "$.left",
+        "right_field_path": "$.right",
+        "left_validation_type_id": "studio.integer.signed",
+        "right_validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "left_validation_type_contract_version": "0.1.0",
+        "right_validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "cross::operator_ne::left_greater_right",
+      "scope": "cross_field",
+      "field_path": "",
+      "constraint_id": "operator_ne",
+      "validation_type_id": "",
+      "pattern_id": "operator_ne::left_greater_right",
+      "constraint_ref": "operator_ne",
+      "definition_review_ref": "operator_ne",
+      "source": {
+        "constraint_id": "operator_ne",
+        "left_field_path": "$.left",
+        "right_field_path": "$.right",
+        "left_validation_type_id": "studio.integer.signed",
+        "right_validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "left_validation_type_contract_version": "0.1.0",
+        "right_validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "cross::operator_gte::left_less_right",
+      "scope": "cross_field",
+      "field_path": "",
+      "constraint_id": "operator_gte",
+      "validation_type_id": "",
+      "pattern_id": "operator_gte::left_less_right",
+      "constraint_ref": "operator_gte",
+      "definition_review_ref": "operator_gte",
+      "source": {
+        "constraint_id": "operator_gte",
+        "left_field_path": "$.left",
+        "right_field_path": "$.right",
+        "left_validation_type_id": "studio.integer.signed",
+        "right_validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "left_validation_type_contract_version": "0.1.0",
+        "right_validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "cross::operator_gte::left_equal_right",
+      "scope": "cross_field",
+      "field_path": "",
+      "constraint_id": "operator_gte",
+      "validation_type_id": "",
+      "pattern_id": "operator_gte::left_equal_right",
+      "constraint_ref": "operator_gte",
+      "definition_review_ref": "operator_gte",
+      "source": {
+        "constraint_id": "operator_gte",
+        "left_field_path": "$.left",
+        "right_field_path": "$.right",
+        "left_validation_type_id": "studio.integer.signed",
+        "right_validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "left_validation_type_contract_version": "0.1.0",
+        "right_validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "cross::operator_gte::left_greater_right",
+      "scope": "cross_field",
+      "field_path": "",
+      "constraint_id": "operator_gte",
+      "validation_type_id": "",
+      "pattern_id": "operator_gte::left_greater_right",
+      "constraint_ref": "operator_gte",
+      "definition_review_ref": "operator_gte",
+      "source": {
+        "constraint_id": "operator_gte",
+        "left_field_path": "$.left",
+        "right_field_path": "$.right",
+        "left_validation_type_id": "studio.integer.signed",
+        "right_validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "left_validation_type_contract_version": "0.1.0",
+        "right_validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "cross::operator_gt::left_less_right",
+      "scope": "cross_field",
+      "field_path": "",
+      "constraint_id": "operator_gt",
+      "validation_type_id": "",
+      "pattern_id": "operator_gt::left_less_right",
+      "constraint_ref": "operator_gt",
+      "definition_review_ref": "operator_gt",
+      "source": {
+        "constraint_id": "operator_gt",
+        "left_field_path": "$.left",
+        "right_field_path": "$.right",
+        "left_validation_type_id": "studio.integer.signed",
+        "right_validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "left_validation_type_contract_version": "0.1.0",
+        "right_validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "cross::operator_gt::left_equal_right",
+      "scope": "cross_field",
+      "field_path": "",
+      "constraint_id": "operator_gt",
+      "validation_type_id": "",
+      "pattern_id": "operator_gt::left_equal_right",
+      "constraint_ref": "operator_gt",
+      "definition_review_ref": "operator_gt",
+      "source": {
+        "constraint_id": "operator_gt",
+        "left_field_path": "$.left",
+        "right_field_path": "$.right",
+        "left_validation_type_id": "studio.integer.signed",
+        "right_validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "left_validation_type_contract_version": "0.1.0",
+        "right_validation_type_contract_version": "0.1.0"
+      }
+    },
+    {
+      "check_id": "cross::operator_gt::left_greater_right",
+      "scope": "cross_field",
+      "field_path": "",
+      "constraint_id": "operator_gt",
+      "validation_type_id": "",
+      "pattern_id": "operator_gt::left_greater_right",
+      "constraint_ref": "operator_gt",
+      "definition_review_ref": "operator_gt",
+      "source": {
+        "constraint_id": "operator_gt",
+        "left_field_path": "$.left",
+        "right_field_path": "$.right",
+        "left_validation_type_id": "studio.integer.signed",
+        "right_validation_type_id": "studio.integer.signed",
+        "registry_version": "0.1.0",
+        "left_validation_type_contract_version": "0.1.0",
+        "right_validation_type_contract_version": "0.1.0"
+      }
+    }
+  ]
+}

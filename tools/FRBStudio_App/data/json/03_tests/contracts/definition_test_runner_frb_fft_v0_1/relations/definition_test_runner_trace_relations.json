@@ -3,25 +3,25 @@
   "document_type": "definition_test_trace_relations",
   "test_id": "definition_test_runner_frb_fft_v0_1",
   "title": "FRB FFT Field Definition — Definition Driven Test E2E",
-  "generated_at": "2026-08-12T05:53:23.333Z",
+  "generated_at": "2026-08-12T12:03:16.096Z",
   "source": {
     "field_definition_document": {
       "definition_id": "frb.fft.measurement.sample",
       "schema_version": "field_definition_data_v0_1",
       "document_type": "field_definition",
-      "updated_at": "2026-08-07",
-      "sha256": "a62d98fc8e82ff248fcc6b957c28c770d5fccc69fb3ad6ebf918dddbbf2127f1",
+      "updated_at": "2026-08-12",
+      "sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
       "path": "fielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json"
     },
     "validation_type_registry": {
       "schema_version": "validation_type_registry_data_v0_1",
       "registry_version": "0.1.0",
       "document_type": "validation_type_registry",
-      "sha256": "d28dac205fb09ae5160af58a5c4612cf4114857b8399b078bb9dfaa8cd4d0443",
+      "sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803",
       "path": "data/json/config/validation_type_registry_v0_1.json"
     },
     "verification_schema_version": "definition_verification_result_v0_1",
-    "cross_field_verification_schema_version": "cross_field_verification_result_v0_1"
+    "cross_field_verification_schema_version": "cross_field_verification_result_v0_2"
   },
   "relations": [
     {

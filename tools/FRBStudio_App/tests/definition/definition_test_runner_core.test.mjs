@@ -146,7 +146,7 @@ test('all FRB FFT Field Definitions run without saved TestPattern JSON and retai
 
   assert.equal(result.schema_version, 'definition_test_runner_result_v0_2');
   assert.equal(result.runner.id, 'studio.definition_test_runner.core');
-  assert.equal(result.runner.version, '0.2.0');
+  assert.equal(result.runner.version, '0.3.0');
   assert.equal(result.summary.field_count, definitions.field_definition_count);
   assert.equal(result.summary.failed_count, 0);
   assert.equal(result.summary.invalid_field_count, 0);

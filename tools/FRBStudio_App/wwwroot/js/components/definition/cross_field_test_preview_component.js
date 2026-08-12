@@ -1,4 +1,4 @@
-// v0.18.45-definition-test-runner-diff-crossfield-e2e
+// v0.18.53-cross-field-test-pattern-generation
 // Readonly Derived SubGrid for Cross Field Constraint TestPattern + Expected preview.
 
 class CrossFieldTestPreviewComponent extends DerivedSubGridComponent {
@@ -67,19 +67,27 @@ class CrossFieldTestPreviewComponent extends DerivedSubGridComponent {
       left_input: definitionVerificationComponentDisplayValue(pattern.input?.left?.value, ''),
       operator: this.displayOperator(pattern.relation?.operator ?? this._result.operator ?? ''),
       right_input: definitionVerificationComponentDisplayValue(pattern.input?.right?.value, ''),
-      expected: pattern.expected?.outcome ?? 'UNRESOLVED',
+      expected: this.displayExpected(pattern.expected?.outcome),
+      expected_outcome: pattern.expected?.outcome ?? 'UNRESOLVED',
       reason: pattern.expected?.reason_code ?? ''
     }));
   }
 
+  displayExpected(outcome) {
+    const value = String(outcome ?? '').toUpperCase();
+    if (value === 'ACCEPT') return 'OK';
+    if (value === 'REJECT') return 'NG';
+    return 'NG';
+  }
+
   getRowClassName(row) {
-    const outcome = String(row?.expected ?? '').toLowerCase();
+    const outcome = String(row?.expected_outcome ?? '').toLowerCase();
     return `definition-test-preview-row expected-${outcome || 'unknown'}`;
   }
 
   getCellClassName(row, column) {
     if (column?.field !== 'expected') return '';
-    return `definition-test-expected definition-test-expected-${String(row?.expected ?? '').toLowerCase()}`;
+    return `definition-test-expected definition-test-expected-${String(row?.expected_outcome ?? '').toLowerCase()}`;
   }
 
   buildViewModel() {
@@ -93,8 +101,8 @@ class CrossFieldTestPreviewComponent extends DerivedSubGridComponent {
       model.note = [
         `Cross Field Verification: ${this._result.status ?? ''}`,
         `TestPattern ${summary.test_pattern_count ?? 0}件`,
-        `ACCEPT ${summary.accept_count ?? 0}件`,
-        `REJECT ${summary.reject_count ?? 0}件`,
+        `OK ${summary.accept_count ?? 0}件`,
+        `NG ${summary.reject_count ?? 0}件`,
         `Issue ${summary.issue_count ?? 0}件`
       ].join(' / ');
     }

@@ -1,13 +1,13 @@
 {
   "app": {
     "name": "FRB Studio / JSON Object Studio",
-    "version": "field-definition-maintenance-v0.2-cross-field"
+    "version": "field-definition-maintenance-v0.3-cross-field-unset"
   },
   "currentDataDisplay": {
     "titlePath": "$.title",
     "subtitlePath": "$.definition_id",
     "showDataPath": true,
-    "note": "fielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json を確認・保守するためのViewDef。field_path / validation_typeを主承認対象とし、関連項目チェックはrootのcross_field_constraintsをRelated Gridで分離表示する。"
+    "note": "fielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json を確認・保守するためのViewDef。field_path / validation_typeを主承認対象とし、関連項目チェックはrootのcross_field_constraintsをRelated Gridで分離表示する。未設定時の扱いはnull等の物理表現ではなく意味レイヤーのOK/NG Policyとして表示する。"
   },
   "views": [
     {
@@ -588,26 +588,22 @@
               }
             },
             {
-              "field": "null_policy",
-              "caption": "Null時の扱い",
+              "field": "unset_policy",
+              "caption": "未設定時の扱い",
               "type": "select",
               "options": [
                 {
-                  "cd": "DEFER_TO_FIELD_CONTRACTS",
-                  "name": "各項目のNull設定に従う"
+                  "cd": "ACCEPT_IF_EITHER_UNSET",
+                  "name": "未設定ならOK"
                 },
                 {
-                  "cd": "SKIP_IF_EITHER_NULL",
-                  "name": "どちらかがNullなら判定しない"
-                },
-                {
-                  "cd": "REJECT_IF_EITHER_NULL",
-                  "name": "どちらかがNullならNG"
+                  "cd": "REJECT_IF_EITHER_UNSET",
+                  "name": "未設定ならNG"
                 }
               ],
               "grid": {
                 "visible": true,
-                "width": 230
+                "width": 200
               },
               "edit": {
                 "visible": true,
@@ -657,13 +653,13 @@
                 "left_field_path",
                 "operator",
                 "right_field_path",
-                "null_policy"
+                "unset_policy"
               ]
             }
           ]
         }
       ],
-      "layout_note": "関連項目チェックはField Definitionへ埋め込まず、関係そのものを独立したConstraintとして管理する。TestPatternはここへ直接記載せず、constraint_type / operatorと参照先Field Contractから導出する。"
+      "layout_note": "関連項目チェックはField Definitionへ埋め込まず、関係そのものを独立したConstraintとして管理する。通常比較はA<B / A=B / A>Bの3関係を内部代表値から導出し、未設定時はunset_policyでOK/NGを明示する。"
     }
   ]
 }

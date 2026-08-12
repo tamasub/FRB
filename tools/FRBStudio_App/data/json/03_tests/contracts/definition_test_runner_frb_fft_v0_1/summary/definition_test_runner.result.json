@@ -2,28 +2,28 @@
   "schema_version": "definition_test_runner_result_v0_2",
   "runner": {
     "id": "studio.definition_test_runner.core",
-    "version": "0.2.0"
+    "version": "0.3.0"
   },
   "status": "PARTIAL",
-  "executed_at": "2026-08-12T05:53:23.333Z",
+  "executed_at": "2026-08-12T12:03:16.096Z",
   "source": {
     "field_definition_document": {
       "definition_id": "frb.fft.measurement.sample",
       "schema_version": "field_definition_data_v0_1",
       "document_type": "field_definition",
-      "updated_at": "2026-08-07",
-      "sha256": "a62d98fc8e82ff248fcc6b957c28c770d5fccc69fb3ad6ebf918dddbbf2127f1",
+      "updated_at": "2026-08-12",
+      "sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
       "path": "fielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json"
     },
     "validation_type_registry": {
       "schema_version": "validation_type_registry_data_v0_1",
       "registry_version": "0.1.0",
       "document_type": "validation_type_registry",
-      "sha256": "d28dac205fb09ae5160af58a5c4612cf4114857b8399b078bb9dfaa8cd4d0443",
+      "sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803",
       "path": "data/json/config/validation_type_registry_v0_1.json"
     },
     "verification_schema_version": "definition_verification_result_v0_1",
-    "cross_field_verification_schema_version": "cross_field_verification_result_v0_1"
+    "cross_field_verification_schema_version": "cross_field_verification_result_v0_2"
   },
   "summary": {
     "field_count": 20,
@@ -369,8 +369,8 @@
         "validation_type_id": "studio.string.identifier",
         "validation_type_contract_version": "0.1.0",
         "validation_type_status": "active",
-        "field_definition_sha256": "a62d98fc8e82ff248fcc6b957c28c770d5fccc69fb3ad6ebf918dddbbf2127f1",
-        "registry_sha256": "d28dac205fb09ae5160af58a5c4612cf4114857b8399b078bb9dfaa8cd4d0443"
+        "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+        "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
       },
       "summary": {
         "pattern_count": 6,
@@ -995,8 +995,8 @@
         "validation_type_id": "studio.string.alphanumeric",
         "validation_type_contract_version": "0.1.0",
         "validation_type_status": "active",
-        "field_definition_sha256": "a62d98fc8e82ff248fcc6b957c28c770d5fccc69fb3ad6ebf918dddbbf2127f1",
-        "registry_sha256": "d28dac205fb09ae5160af58a5c4612cf4114857b8399b078bb9dfaa8cd4d0443"
+        "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+        "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
       },
       "summary": {
         "pattern_count": 8,
@@ -1638,8 +1638,8 @@
         "validation_type_id": "studio.string.single_line",
         "validation_type_contract_version": "0.1.0",
         "validation_type_status": "active",
-        "field_definition_sha256": "a62d98fc8e82ff248fcc6b957c28c770d5fccc69fb3ad6ebf918dddbbf2127f1",
-        "registry_sha256": "d28dac205fb09ae5160af58a5c4612cf4114857b8399b078bb9dfaa8cd4d0443"
+        "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+        "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
       },
       "summary": {
         "pattern_count": 6,
@@ -2279,8 +2279,8 @@
         "validation_type_id": "studio.date.ymd",
         "validation_type_contract_version": "0.1.0",
         "validation_type_status": "active",
-        "field_definition_sha256": "a62d98fc8e82ff248fcc6b957c28c770d5fccc69fb3ad6ebf918dddbbf2127f1",
-        "registry_sha256": "d28dac205fb09ae5160af58a5c4612cf4114857b8399b078bb9dfaa8cd4d0443"
+        "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+        "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
       },
       "summary": {
         "pattern_count": 8,
@@ -2863,8 +2863,8 @@
         "validation_type_id": "studio.datetime.local",
         "validation_type_contract_version": "0.1.0",
         "validation_type_status": "active",
-        "field_definition_sha256": "a62d98fc8e82ff248fcc6b957c28c770d5fccc69fb3ad6ebf918dddbbf2127f1",
-        "registry_sha256": "d28dac205fb09ae5160af58a5c4612cf4114857b8399b078bb9dfaa8cd4d0443"
+        "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+        "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
       },
       "summary": {
         "pattern_count": 4,
@@ -3298,8 +3298,8 @@
         "validation_type_id": "studio.instant.iso8601",
         "validation_type_contract_version": "0.1.0",
         "validation_type_status": "draft",
-        "field_definition_sha256": "a62d98fc8e82ff248fcc6b957c28c770d5fccc69fb3ad6ebf918dddbbf2127f1",
-        "registry_sha256": "d28dac205fb09ae5160af58a5c4612cf4114857b8399b078bb9dfaa8cd4d0443"
+        "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+        "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
       },
       "summary": {
         "pattern_count": 4,
@@ -3876,8 +3876,8 @@
         "validation_type_id": "studio.integer.positive",
         "validation_type_contract_version": "0.1.0",
         "validation_type_status": "active",
-        "field_definition_sha256": "a62d98fc8e82ff248fcc6b957c28c770d5fccc69fb3ad6ebf918dddbbf2127f1",
-        "registry_sha256": "d28dac205fb09ae5160af58a5c4612cf4114857b8399b078bb9dfaa8cd4d0443"
+        "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+        "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
       },
       "summary": {
         "pattern_count": 8,
@@ -4586,8 +4586,8 @@
         "validation_type_id": "studio.float.measurement",
         "validation_type_contract_version": "0.1.0",
         "validation_type_status": "active",
-        "field_definition_sha256": "a62d98fc8e82ff248fcc6b957c28c770d5fccc69fb3ad6ebf918dddbbf2127f1",
-        "registry_sha256": "d28dac205fb09ae5160af58a5c4612cf4114857b8399b078bb9dfaa8cd4d0443"
+        "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+        "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
       },
       "summary": {
         "pattern_count": 8,
@@ -5295,8 +5295,8 @@
         "validation_type_id": "studio.float.measurement",
         "validation_type_contract_version": "0.1.0",
         "validation_type_status": "active",
-        "field_definition_sha256": "a62d98fc8e82ff248fcc6b957c28c770d5fccc69fb3ad6ebf918dddbbf2127f1",
-        "registry_sha256": "d28dac205fb09ae5160af58a5c4612cf4114857b8399b078bb9dfaa8cd4d0443"
+        "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+        "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
       },
       "summary": {
         "pattern_count": 8,
@@ -6003,8 +6003,8 @@
         "validation_type_id": "studio.integer.non_negative",
         "validation_type_contract_version": "0.1.0",
         "validation_type_status": "active",
-        "field_definition_sha256": "a62d98fc8e82ff248fcc6b957c28c770d5fccc69fb3ad6ebf918dddbbf2127f1",
-        "registry_sha256": "d28dac205fb09ae5160af58a5c4612cf4114857b8399b078bb9dfaa8cd4d0443"
+        "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+        "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
       },
       "summary": {
         "pattern_count": 8,
@@ -6541,8 +6541,8 @@
         "validation_type_id": "studio.boolean.standard",
         "validation_type_contract_version": "0.1.0",
         "validation_type_status": "active",
-        "field_definition_sha256": "a62d98fc8e82ff248fcc6b957c28c770d5fccc69fb3ad6ebf918dddbbf2127f1",
-        "registry_sha256": "d28dac205fb09ae5160af58a5c4612cf4114857b8399b078bb9dfaa8cd4d0443"
+        "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+        "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
       },
       "summary": {
         "pattern_count": 4,
@@ -7043,8 +7043,8 @@
         "validation_type_id": "studio.string.multi_line",
         "validation_type_contract_version": "0.1.0",
         "validation_type_status": "active",
-        "field_definition_sha256": "a62d98fc8e82ff248fcc6b957c28c770d5fccc69fb3ad6ebf918dddbbf2127f1",
-        "registry_sha256": "d28dac205fb09ae5160af58a5c4612cf4114857b8399b078bb9dfaa8cd4d0443"
+        "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+        "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
       },
       "summary": {
         "pattern_count": 6,
@@ -7610,8 +7610,8 @@
         "validation_type_id": "studio.string.identifier",
         "validation_type_contract_version": "0.1.0",
         "validation_type_status": "active",
-        "field_definition_sha256": "a62d98fc8e82ff248fcc6b957c28c770d5fccc69fb3ad6ebf918dddbbf2127f1",
-        "registry_sha256": "d28dac205fb09ae5160af58a5c4612cf4114857b8399b078bb9dfaa8cd4d0443"
+        "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+        "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
       },
       "summary": {
         "pattern_count": 6,
@@ -8252,8 +8252,8 @@
         "validation_type_id": "studio.float.measurement",
         "validation_type_contract_version": "0.1.0",
         "validation_type_status": "active",
-        "field_definition_sha256": "a62d98fc8e82ff248fcc6b957c28c770d5fccc69fb3ad6ebf918dddbbf2127f1",
-        "registry_sha256": "d28dac205fb09ae5160af58a5c4612cf4114857b8399b078bb9dfaa8cd4d0443"
+        "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+        "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
       },
       "summary": {
         "pattern_count": 8,
@@ -8961,8 +8961,8 @@
         "validation_type_id": "studio.float.measurement",
         "validation_type_contract_version": "0.1.0",
         "validation_type_status": "active",
-        "field_definition_sha256": "a62d98fc8e82ff248fcc6b957c28c770d5fccc69fb3ad6ebf918dddbbf2127f1",
-        "registry_sha256": "d28dac205fb09ae5160af58a5c4612cf4114857b8399b078bb9dfaa8cd4d0443"
+        "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+        "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
       },
       "summary": {
         "pattern_count": 8,
@@ -9669,8 +9669,8 @@
         "validation_type_id": "studio.integer.non_negative",
         "validation_type_contract_version": "0.1.0",
         "validation_type_status": "active",
-        "field_definition_sha256": "a62d98fc8e82ff248fcc6b957c28c770d5fccc69fb3ad6ebf918dddbbf2127f1",
-        "registry_sha256": "d28dac205fb09ae5160af58a5c4612cf4114857b8399b078bb9dfaa8cd4d0443"
+        "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+        "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
       },
       "summary": {
         "pattern_count": 8,
@@ -10207,8 +10207,8 @@
         "validation_type_id": "studio.boolean.standard",
         "validation_type_contract_version": "0.1.0",
         "validation_type_status": "active",
-        "field_definition_sha256": "a62d98fc8e82ff248fcc6b957c28c770d5fccc69fb3ad6ebf918dddbbf2127f1",
-        "registry_sha256": "d28dac205fb09ae5160af58a5c4612cf4114857b8399b078bb9dfaa8cd4d0443"
+        "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+        "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
       },
       "summary": {
         "pattern_count": 4,
@@ -10709,8 +10709,8 @@
         "validation_type_id": "studio.string.multi_line",
         "validation_type_contract_version": "0.1.0",
         "validation_type_status": "active",
-        "field_definition_sha256": "a62d98fc8e82ff248fcc6b957c28c770d5fccc69fb3ad6ebf918dddbbf2127f1",
-        "registry_sha256": "d28dac205fb09ae5160af58a5c4612cf4114857b8399b078bb9dfaa8cd4d0443"
+        "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+        "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
       },
       "summary": {
         "pattern_count": 6,
@@ -11207,8 +11207,8 @@
         "validation_type_id": "studio.date.ymd",
         "validation_type_contract_version": "0.1.0",
         "validation_type_status": "active",
-        "field_definition_sha256": "a62d98fc8e82ff248fcc6b957c28c770d5fccc69fb3ad6ebf918dddbbf2127f1",
-        "registry_sha256": "d28dac205fb09ae5160af58a5c4612cf4114857b8399b078bb9dfaa8cd4d0443"
+        "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+        "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
       },
       "summary": {
         "pattern_count": 4,
@@ -11641,8 +11641,8 @@
         "validation_type_id": "studio.date.ymd",
         "validation_type_contract_version": "0.1.0",
         "validation_type_status": "active",
-        "field_definition_sha256": "a62d98fc8e82ff248fcc6b957c28c770d5fccc69fb3ad6ebf918dddbbf2127f1",
-        "registry_sha256": "d28dac205fb09ae5160af58a5c4612cf4114857b8399b078bb9dfaa8cd4d0443"
+        "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+        "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
       },
       "summary": {
         "pattern_count": 4,
@@ -11827,7 +11827,7 @@
       "constraint_id": "analysis_start_date_before_end_date",
       "constraint_type": "studio.cross_field.compare",
       "operator": "LT",
-      "null_policy": "DEFER_TO_FIELD_CONTRACTS",
+      "unset_policy": "REJECT_IF_EITHER_UNSET",
       "left_field_path": "$.analysis_start_date",
       "right_field_path": "$.analysis_end_date",
       "status": "PARTIAL",
@@ -11836,7 +11836,7 @@
         "constraint_id": "analysis_start_date_before_end_date",
         "constraint_type": "studio.cross_field.compare",
         "operator": "LT",
-        "null_policy": "DEFER_TO_FIELD_CONTRACTS",
+        "unset_policy": "REJECT_IF_EITHER_UNSET",
         "left_field_path": "$.analysis_start_date",
         "right_field_path": "$.analysis_end_date",
         "left_validation_type_id": "studio.date.ymd",
@@ -11845,8 +11845,8 @@
         "registry_schema_version": "validation_type_registry_data_v0_1",
         "left_validation_type_contract_version": "0.1.0",
         "right_validation_type_contract_version": "0.1.0",
-        "field_definition_sha256": "a62d98fc8e82ff248fcc6b957c28c770d5fccc69fb3ad6ebf918dddbbf2127f1",
-        "registry_sha256": "d28dac205fb09ae5160af58a5c4612cf4114857b8399b078bb9dfaa8cd4d0443"
+        "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+        "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
       },
       "summary": {
         "pattern_count": 3,
@@ -11864,12 +11864,12 @@
             "left": {
               "field_path": "$.analysis_start_date",
               "state": "VALUE",
-              "value": "2020-01-01"
+              "value": "2024-01-01"
             },
             "right": {
               "field_path": "$.analysis_end_date",
               "state": "VALUE",
-              "value": "2090-01-01"
+              "value": "2030-01-01"
             }
           },
           "expected": {
@@ -11902,7 +11902,7 @@
             "constraint_type": "studio.cross_field.compare",
             "operator": "LT",
             "comparison_shape": "LT",
-            "null_policy": "DEFER_TO_FIELD_CONTRACTS"
+            "unset_policy": "REJECT_IF_EITHER_UNSET"
           },
           "source": {
             "constraint_id": "analysis_start_date_before_end_date",
@@ -11961,7 +11961,7 @@
             "constraint_type": "studio.cross_field.compare",
             "operator": "LT",
             "comparison_shape": "EQ",
-            "null_policy": "DEFER_TO_FIELD_CONTRACTS"
+            "unset_policy": "REJECT_IF_EITHER_UNSET"
           },
           "source": {
             "constraint_id": "analysis_start_date_before_end_date",
@@ -11982,12 +11982,12 @@
             "left": {
               "field_path": "$.analysis_start_date",
               "state": "VALUE",
-              "value": "2090-01-01"
+              "value": "2030-01-01"
             },
             "right": {
               "field_path": "$.analysis_end_date",
               "state": "VALUE",
-              "value": "2020-01-01"
+              "value": "2024-01-01"
             }
           },
           "expected": {
@@ -12020,7 +12020,7 @@
             "constraint_type": "studio.cross_field.compare",
             "operator": "LT",
             "comparison_shape": "GT",
-            "null_policy": "DEFER_TO_FIELD_CONTRACTS"
+            "unset_policy": "REJECT_IF_EITHER_UNSET"
           },
           "source": {
             "constraint_id": "analysis_start_date_before_end_date",
