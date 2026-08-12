@@ -147,6 +147,57 @@
               }
             },
             {
+              "field": "category",
+              "caption": "カテゴリー",
+              "type": "select",
+              "options": [
+                "文字列",
+                "数値",
+                "boolean",
+                "日付",
+                "日時",
+                "Instant",
+                "複合",
+                "その他"
+              ],
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "generation_class",
+              "caption": "生成分類",
+              "type": "select",
+              "options": [
+                "DERIVE",
+                "TYPE_GUARD",
+                "TYPE_FIXED",
+                "DEPRECATED_CANDIDATE",
+                "USAGE_SPLIT"
+              ],
+              "grid": {
+                "visible": true,
+                "width": 190
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
               "field": "label_ja",
               "caption": "日本語タイトル",
               "type": "text",

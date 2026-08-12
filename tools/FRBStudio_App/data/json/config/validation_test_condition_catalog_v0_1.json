@@ -1,6 +1,5 @@
 {
   "schema_version": "validation_test_condition_catalog_data_v0_1",
-  "view_def": "config/validation_test_condition_catalog_view_def_v0_1.json",
   "catalog_version": "0.1.0",
   "document_type": "validation_test_condition_catalog",
   "title": "FRB Studio Validation Test Condition Catalog",
@@ -14,37 +13,45 @@
     "label_policy": "label_jaは人間向けの短い日本語タイトルとして表示に使用できる。",
     "description_policy": "description_jaは、そのTest Conditionが何を確認する観点なのかを人間が理解するための説明とする。",
     "execution_policy": "本CatalogはTest Condition語彙の正本であり、具体的なInput / Expectedを固定する正本ではない。実行可能TestPatternへの変換規則は別責務とする。",
-    "resolved_contract_policy": "minimum / maximum等のOverrideで意味が変化し得るConditionは、実行時・Generated TestPattern生成時にResolved Contractを基準として解決する。"
+    "resolved_contract_policy": "minimum / maximum等のOverrideで意味が変化し得るConditionは、実行時・Generated TestPattern生成時にResolved Contractを基準として解決する。",
+    "generation_class_policy": "generation_classはTest Conditionの生成・維持方針を表す。DERIVEはResolved Contractから機械導出する。TYPE_GUARDは型固有観点を維持しつつResolved Contractを確認して生成可否を機械判定する。TYPE_FIXEDは型固有の固定観点として生成する。DEPRECATED_CANDIDATEは他の導出TestPatternで代替可能な廃止候補を表す。USAGE_SPLITはValidation Typeごとに意味または有効性が異なるため利用単位で整理する。"
   },
   "conditions": [
     {
       "condition_id": "STRING_VALUE_ACCEPTED",
+      "category": "文字列",
       "label_ja": "文字列を許可",
       "description_ja": "一般的な文字列値を受け入れることを確認する。",
       "used_by_validation_type_ids": [
         "studio.string.single_line"
-      ]
+      ],
+      "generation_class": "TYPE_GUARD"
     },
     {
       "condition_id": "LINE_BREAK_REJECTED",
+      "category": "文字列",
       "label_ja": "改行を拒否",
       "description_ja": "改行を含む値を受け入れないことを確認する。",
       "used_by_validation_type_ids": [
         "studio.string.single_line",
         "studio.string.identifier"
-      ]
+      ],
+      "generation_class": "TYPE_FIXED"
     },
     {
       "condition_id": "NON_STRING_REJECTED",
+      "category": "文字列",
       "label_ja": "文字列以外を拒否",
       "description_ja": "数値・真偽値など文字列以外の値を受け入れないことを確認する。",
       "used_by_validation_type_ids": [
         "studio.string.single_line",
         "studio.string.multi_line"
-      ]
+      ],
+      "generation_class": "TYPE_FIXED"
     },
     {
       "condition_id": "EMPTY_STRING_POLICY",
+      "category": "文字列",
       "label_ja": "空文字ポリシー",
       "description_ja": "空文字を許可するか拒否するかを、Resolved Contractのempty_string_allowedに従って確認する。",
       "used_by_validation_type_ids": [
@@ -53,188 +60,232 @@
         "studio.string.identifier",
         "studio.string.numeric",
         "studio.string.alphanumeric"
-      ]
+      ],
+      "generation_class": "DERIVE"
     },
     {
       "condition_id": "MINIMUM_LENGTH_BOUNDARY",
+      "category": "文字列",
       "label_ja": "最小文字数境界",
       "description_ja": "Resolved Contractのminimum_length境界とその外側を確認する。",
       "used_by_validation_type_ids": [
         "studio.string.single_line",
         "studio.string.multi_line"
-      ]
+      ],
+      "generation_class": "DERIVE"
     },
     {
       "condition_id": "MAXIMUM_LENGTH_BOUNDARY",
+      "category": "文字列",
       "label_ja": "最大文字数境界",
       "description_ja": "Resolved Contractのmaximum_length境界とその外側を確認する。",
       "used_by_validation_type_ids": [
         "studio.string.single_line",
         "studio.string.multi_line"
-      ]
+      ],
+      "generation_class": "DERIVE"
     },
     {
       "condition_id": "SINGLE_LINE_ACCEPTED",
+      "category": "文字列",
       "label_ja": "単一行を許可",
       "description_ja": "改行を含まない単一行文字列を受け入れることを確認する。",
       "used_by_validation_type_ids": [
         "studio.string.multi_line"
-      ]
+      ],
+      "generation_class": "TYPE_GUARD"
     },
     {
       "condition_id": "MULTI_LINE_ACCEPTED",
+      "category": "文字列",
       "label_ja": "複数行を許可",
       "description_ja": "改行を含む複数行文字列を受け入れることを確認する。",
       "used_by_validation_type_ids": [
         "studio.string.multi_line"
-      ]
+      ],
+      "generation_class": "TYPE_GUARD"
     },
     {
       "condition_id": "MAXIMUM_LINES_BOUNDARY",
+      "category": "文字列",
       "label_ja": "最大行数境界",
       "description_ja": "Resolved Contractのmaximum_lines境界と超過値を確認する。",
       "used_by_validation_type_ids": [
         "studio.string.multi_line"
-      ]
+      ],
+      "generation_class": "DERIVE"
     },
     {
       "condition_id": "ALPHABET_START_ACCEPTED",
+      "category": "文字列",
       "label_ja": "英字開始を許可",
       "description_ja": "識別子が英字で始まる場合に受け入れることを確認する。",
       "used_by_validation_type_ids": [
         "studio.string.identifier"
-      ]
+      ],
+      "generation_class": "TYPE_GUARD"
     },
     {
       "condition_id": "UNDERSCORE_START_ACCEPTED",
+      "category": "文字列",
       "label_ja": "アンダースコア開始を許可",
       "description_ja": "識別子がアンダースコアで始まる場合に受け入れることを確認する。",
       "used_by_validation_type_ids": [
         "studio.string.identifier"
-      ]
+      ],
+      "generation_class": "TYPE_GUARD"
     },
     {
       "condition_id": "DIGIT_START_REJECTED",
+      "category": "文字列",
       "label_ja": "数字開始を拒否",
       "description_ja": "識別子が数字で始まる場合に拒否することを確認する。",
       "used_by_validation_type_ids": [
         "studio.string.identifier"
-      ]
+      ],
+      "generation_class": "TYPE_FIXED"
     },
     {
       "condition_id": "SPACE_REJECTED",
+      "category": "文字列",
       "label_ja": "空白を拒否",
       "description_ja": "許可されない空白文字を含む値を拒否することを確認する。",
       "used_by_validation_type_ids": [
         "studio.string.identifier",
         "studio.string.numeric",
         "studio.string.alphanumeric"
-      ]
+      ],
+      "generation_class": "TYPE_FIXED"
     },
     {
       "condition_id": "NON_ASCII_REJECTED",
+      "category": "文字列",
       "label_ja": "非ASCII文字を拒否",
       "description_ja": "契約上ASCII文字だけを許可する場合に非ASCII文字を拒否することを確認する。",
       "used_by_validation_type_ids": [
         "studio.string.identifier",
         "studio.string.alphanumeric"
-      ]
+      ],
+      "generation_class": "TYPE_FIXED"
     },
     {
       "condition_id": "LENGTH_BOUNDARY",
+      "category": "文字列",
       "label_ja": "文字数境界",
       "description_ja": "Resolved Contractに文字数制約がある場合、その境界条件を確認する。",
       "used_by_validation_type_ids": [
         "studio.string.identifier",
         "studio.string.numeric",
         "studio.string.alphanumeric"
-      ]
+      ],
+      "generation_class": "DERIVE"
     },
     {
       "condition_id": "DIGITS_ACCEPTED",
+      "category": "文字列",
       "label_ja": "数字文字列を許可",
       "description_ja": "0〜9だけで構成された文字列を受け入れることを確認する。",
       "used_by_validation_type_ids": [
         "studio.string.numeric"
-      ]
+      ],
+      "generation_class": "TYPE_GUARD"
     },
     {
       "condition_id": "LEADING_ZERO_ACCEPTED",
+      "category": "文字列",
       "label_ja": "先頭ゼロを許可",
       "description_ja": "先頭ゼロを含む数字文字列を文字列として保持・受入できることを確認する。",
       "used_by_validation_type_ids": [
         "studio.string.numeric"
-      ]
+      ],
+      "generation_class": "TYPE_GUARD"
     },
     {
       "condition_id": "ALPHABET_REJECTED",
+      "category": "文字列",
       "label_ja": "英字を拒否",
       "description_ja": "数字文字列など英字を許可しない契約で英字を拒否することを確認する。",
       "used_by_validation_type_ids": [
         "studio.string.numeric"
-      ]
+      ],
+      "generation_class": "TYPE_FIXED"
     },
     {
       "condition_id": "SIGN_REJECTED",
+      "category": "文字列",
       "label_ja": "符号を拒否",
       "description_ja": "数字文字列など符号を許可しない契約で+/-を拒否することを確認する。",
       "used_by_validation_type_ids": [
         "studio.string.numeric"
-      ]
+      ],
+      "generation_class": "TYPE_FIXED"
     },
     {
       "condition_id": "DECIMAL_POINT_REJECTED",
+      "category": "文字列",
       "label_ja": "小数点を拒否",
       "description_ja": "数字文字列など小数点を許可しない契約で小数点を拒否することを確認する。",
       "used_by_validation_type_ids": [
         "studio.string.numeric"
-      ]
+      ],
+      "generation_class": "TYPE_FIXED"
     },
     {
       "condition_id": "ALPHANUMERIC_ACCEPTED",
+      "category": "文字列",
       "label_ja": "英数字を許可",
       "description_ja": "半角英字と数字だけで構成された値を受け入れることを確認する。",
       "used_by_validation_type_ids": [
         "studio.string.alphanumeric"
-      ]
+      ],
+      "generation_class": "TYPE_GUARD"
     },
     {
       "condition_id": "SYMBOL_REJECTED",
+      "category": "文字列",
       "label_ja": "記号を拒否",
       "description_ja": "記号を許可しない契約で記号を含む値を拒否することを確認する。",
       "used_by_validation_type_ids": [
         "studio.string.alphanumeric"
-      ]
+      ],
+      "generation_class": "TYPE_FIXED"
     },
     {
       "condition_id": "INTEGER_ACCEPTED",
+      "category": "数値",
       "label_ja": "整数を許可",
       "description_ja": "整数値を受け入れることを確認する。",
       "used_by_validation_type_ids": [
         "studio.number.standard",
         "studio.float.measurement"
-      ]
+      ],
+      "generation_class": "TYPE_GUARD"
     },
     {
       "condition_id": "DECIMAL_ACCEPTED",
+      "category": "数値",
       "label_ja": "小数を許可",
       "description_ja": "小数値を受け入れることを確認する。",
       "used_by_validation_type_ids": [
         "studio.number.standard",
         "studio.float.measurement"
-      ]
+      ],
+      "generation_class": "TYPE_GUARD"
     },
     {
       "condition_id": "NEGATIVE_VALUE_ACCEPTED",
+      "category": "数値",
       "label_ja": "負数を許可",
       "description_ja": "負の数値を受け入れる契約で負数を受け入れることを確認する。",
       "used_by_validation_type_ids": [
         "studio.number.standard",
         "studio.float.measurement"
-      ]
+      ],
+      "generation_class": "TYPE_GUARD"
     },
     {
       "condition_id": "ZERO_ACCEPTED",
+      "category": "数値",
       "label_ja": "0を許可",
       "description_ja": "0を受け入れる契約で0を受け入れることを確認する。",
       "used_by_validation_type_ids": [
@@ -242,10 +293,12 @@
         "studio.integer.signed",
         "studio.integer.non_negative",
         "studio.float.measurement"
-      ]
+      ],
+      "generation_class": "TYPE_GUARD"
     },
     {
       "condition_id": "NAN_REJECTED",
+      "category": "数値",
       "label_ja": "NaNを拒否",
       "description_ja": "NaNを有効な数値として受け入れないことを確認する。",
       "used_by_validation_type_ids": [
@@ -254,10 +307,12 @@
         "studio.integer.non_negative",
         "studio.integer.positive",
         "studio.float.measurement"
-      ]
+      ],
+      "generation_class": "TYPE_FIXED"
     },
     {
       "condition_id": "INFINITY_REJECTED",
+      "category": "数値",
       "label_ja": "Infinityを拒否",
       "description_ja": "正負のInfinityを有限数値として受け入れないことを確認する。",
       "used_by_validation_type_ids": [
@@ -266,10 +321,12 @@
         "studio.integer.non_negative",
         "studio.integer.positive",
         "studio.float.measurement"
-      ]
+      ],
+      "generation_class": "TYPE_FIXED"
     },
     {
       "condition_id": "MINIMUM_BOUNDARY",
+      "category": "数値",
       "label_ja": "最小値境界",
       "description_ja": "Resolved Contractのminimum境界とその外側を確認する。",
       "used_by_validation_type_ids": [
@@ -279,10 +336,12 @@
         "studio.integer.positive",
         "studio.float.measurement",
         "studio.decimal.fixed_scale"
-      ]
+      ],
+      "generation_class": "DERIVE"
     },
     {
       "condition_id": "MAXIMUM_BOUNDARY",
+      "category": "数値",
       "label_ja": "最大値境界",
       "description_ja": "Resolved Contractのmaximum境界とその外側を確認する。",
       "used_by_validation_type_ids": [
@@ -292,303 +351,376 @@
         "studio.integer.positive",
         "studio.float.measurement",
         "studio.decimal.fixed_scale"
-      ]
+      ],
+      "generation_class": "DERIVE"
     },
     {
       "condition_id": "NEGATIVE_INTEGER_ACCEPTED",
+      "category": "数値",
       "label_ja": "負の整数を許可",
       "description_ja": "負の整数を受け入れる契約で受け入れることを確認する。",
       "used_by_validation_type_ids": [
         "studio.integer.signed"
-      ]
+      ],
+      "generation_class": "TYPE_GUARD"
     },
     {
       "condition_id": "POSITIVE_INTEGER_ACCEPTED",
+      "category": "数値",
       "label_ja": "正の整数を許可",
       "description_ja": "正の整数を受け入れる契約で受け入れることを確認する。",
       "used_by_validation_type_ids": [
         "studio.integer.signed",
         "studio.integer.non_negative",
         "studio.integer.positive"
-      ]
+      ],
+      "generation_class": "TYPE_GUARD"
     },
     {
       "condition_id": "DECIMAL_REJECTED",
+      "category": "数値",
       "label_ja": "小数を拒否",
       "description_ja": "整数契約で小数値を拒否することを確認する。",
       "used_by_validation_type_ids": [
         "studio.integer.signed",
         "studio.integer.non_negative",
         "studio.integer.positive"
-      ]
+      ],
+      "generation_class": "TYPE_FIXED"
     },
     {
       "condition_id": "UNSAFE_INTEGER_REJECTED",
+      "category": "数値",
       "label_ja": "安全整数範囲外を拒否",
       "description_ja": "JavaScriptの安全整数範囲を超える整数を拒否することを確認する。",
       "used_by_validation_type_ids": [
         "studio.integer.signed",
         "studio.integer.non_negative",
         "studio.integer.positive"
-      ]
+      ],
+      "generation_class": "DEPRECATED_CANDIDATE"
     },
     {
       "condition_id": "NEGATIVE_INTEGER_REJECTED",
+      "category": "数値",
       "label_ja": "負の整数を拒否",
       "description_ja": "負の整数を許可しない契約で拒否することを確認する。",
       "used_by_validation_type_ids": [
         "studio.integer.non_negative",
         "studio.integer.positive"
-      ]
+      ],
+      "generation_class": "DEPRECATED_CANDIDATE"
     },
     {
       "condition_id": "ONE_ACCEPTED",
+      "category": "数値",
       "label_ja": "1を許可",
       "description_ja": "1を受け入れる契約で1を受け入れることを確認する。",
       "used_by_validation_type_ids": [
         "studio.integer.positive"
-      ]
+      ],
+      "generation_class": "DEPRECATED_CANDIDATE"
     },
     {
       "condition_id": "ZERO_REJECTED",
+      "category": "複合",
       "label_ja": "0を拒否",
       "description_ja": "0を許可しない契約、または型契約上0が不正な場合に拒否することを確認する。",
       "used_by_validation_type_ids": [
         "studio.integer.positive",
         "studio.boolean.standard"
-      ]
+      ],
+      "generation_class": "USAGE_SPLIT"
     },
     {
       "condition_id": "EXACT_SCALE_ACCEPTED",
+      "category": "数値",
       "label_ja": "指定小数桁を許可",
       "description_ja": "指定されたscaleに一致する10進小数を受け入れることを確認する。",
       "used_by_validation_type_ids": [
         "studio.decimal.fixed_scale"
-      ]
+      ],
+      "generation_class": "DERIVE"
     },
     {
       "condition_id": "SCALE_OVER_REJECTED",
+      "category": "数値",
       "label_ja": "小数桁超過を拒否",
       "description_ja": "指定scaleを超える小数桁を持つ値を拒否することを確認する。",
       "used_by_validation_type_ids": [
         "studio.decimal.fixed_scale"
-      ]
+      ],
+      "generation_class": "DERIVE"
     },
     {
       "condition_id": "PRECISION_OVER_REJECTED",
+      "category": "数値",
       "label_ja": "精度超過を拒否",
       "description_ja": "指定precisionを超える桁数の値を拒否することを確認する。",
       "used_by_validation_type_ids": [
         "studio.decimal.fixed_scale"
-      ]
+      ],
+      "generation_class": "DERIVE"
     },
     {
       "condition_id": "IMPLICIT_ROUNDING_REJECTED",
+      "category": "数値",
       "label_ja": "暗黙丸めを拒否",
       "description_ja": "許可されていない暗黙の丸めを行わず、丸めが必要な値を拒否することを確認する。",
       "used_by_validation_type_ids": [
         "studio.decimal.fixed_scale"
-      ]
+      ],
+      "generation_class": "TYPE_FIXED"
     },
     {
       "condition_id": "TRUE_ACCEPTED",
+      "category": "boolean",
       "label_ja": "trueを許可",
       "description_ja": "JSON booleanのtrueを受け入れることを確認する。",
       "used_by_validation_type_ids": [
         "studio.boolean.standard"
-      ]
+      ],
+      "generation_class": "TYPE_FIXED"
     },
     {
       "condition_id": "FALSE_ACCEPTED",
+      "category": "boolean",
       "label_ja": "falseを許可",
       "description_ja": "JSON booleanのfalseを受け入れることを確認する。",
       "used_by_validation_type_ids": [
         "studio.boolean.standard"
-      ]
+      ],
+      "generation_class": "TYPE_FIXED"
     },
     {
       "condition_id": "STRING_TRUE_REJECTED",
+      "category": "boolean",
       "label_ja": "文字列\"true\"を拒否",
       "description_ja": "boolean trueへの暗黙変換を行わず、文字列\"true\"を拒否することを確認する。",
       "used_by_validation_type_ids": [
         "studio.boolean.standard"
-      ]
+      ],
+      "generation_class": "TYPE_FIXED"
     },
     {
       "condition_id": "STRING_FALSE_REJECTED",
+      "category": "boolean",
       "label_ja": "文字列\"false\"を拒否",
       "description_ja": "boolean falseへの暗黙変換を行わず、文字列\"false\"を拒否することを確認する。",
       "used_by_validation_type_ids": [
         "studio.boolean.standard"
-      ]
+      ],
+      "generation_class": "TYPE_FIXED"
     },
     {
       "condition_id": "ONE_REJECTED",
+      "category": "boolean",
       "label_ja": "1を拒否",
       "description_ja": "boolean等、型契約上number 1を許可しない場合に拒否することを確認する。",
       "used_by_validation_type_ids": [
         "studio.boolean.standard"
-      ]
+      ],
+      "generation_class": "TYPE_FIXED"
     },
     {
       "condition_id": "VALID_DATE_ACCEPTED",
+      "category": "日付",
       "label_ja": "有効な日付を許可",
       "description_ja": "YYYY-MM-DD形式の実在する日付を受け入れることを確認する。",
       "used_by_validation_type_ids": [
         "studio.date.ymd"
-      ]
+      ],
+      "generation_class": "TYPE_GUARD"
     },
     {
       "condition_id": "LEAP_DAY_VALID_ACCEPTED",
+      "category": "日付",
       "label_ja": "有効なうるう日を許可",
       "description_ja": "うるう年の2月29日を有効な日付として受け入れることを確認する。",
       "used_by_validation_type_ids": [
         "studio.date.ymd"
-      ]
+      ],
+      "generation_class": "TYPE_FIXED"
     },
     {
       "condition_id": "INVALID_LEAP_DAY_REJECTED",
+      "category": "日付",
       "label_ja": "無効なうるう日を拒否",
       "description_ja": "うるう年ではない年の2月29日を拒否することを確認する。",
       "used_by_validation_type_ids": [
         "studio.date.ymd"
-      ]
+      ],
+      "generation_class": "TYPE_FIXED"
     },
     {
       "condition_id": "INVALID_MONTH_REJECTED",
+      "category": "日付",
       "label_ja": "無効な月を拒否",
       "description_ja": "13月など実在しない月を拒否することを確認する。",
       "used_by_validation_type_ids": [
         "studio.date.ymd"
-      ]
+      ],
+      "generation_class": "TYPE_FIXED"
     },
     {
       "condition_id": "INVALID_DAY_REJECTED",
+      "category": "日付",
       "label_ja": "無効な日を拒否",
       "description_ja": "存在しない日付を拒否することを確認する。",
       "used_by_validation_type_ids": [
         "studio.date.ymd"
-      ]
+      ],
+      "generation_class": "TYPE_FIXED"
     },
     {
       "condition_id": "DATETIME_VALUE_REJECTED",
+      "category": "日付",
       "label_ja": "日時値を日付として拒否",
       "description_ja": "date契約へ時刻成分を含むdatetime値を渡した場合に拒否することを確認する。",
       "used_by_validation_type_ids": [
         "studio.date.ymd"
-      ]
+      ],
+      "generation_class": "TYPE_FIXED"
     },
     {
       "condition_id": "MINIMUM_DATE_BOUNDARY",
+      "category": "日付",
       "label_ja": "最小日付境界",
       "description_ja": "Resolved Contractのminimum_date境界とその外側を確認する。",
       "used_by_validation_type_ids": [
         "studio.date.ymd"
-      ]
+      ],
+      "generation_class": "DERIVE"
     },
     {
       "condition_id": "MAXIMUM_DATE_BOUNDARY",
+      "category": "日付",
       "label_ja": "最大日付境界",
       "description_ja": "Resolved Contractのmaximum_date境界とその外側を確認する。",
       "used_by_validation_type_ids": [
         "studio.date.ymd"
-      ]
+      ],
+      "generation_class": "DERIVE"
     },
     {
       "condition_id": "VALID_LOCAL_DATETIME_ACCEPTED",
+      "category": "日時",
       "label_ja": "有効なローカル日時を許可",
       "description_ja": "タイムゾーンを含まない有効なローカル日時を受け入れることを確認する。",
       "used_by_validation_type_ids": [
         "studio.datetime.local"
-      ]
+      ],
+      "generation_class": "TYPE_GUARD"
     },
     {
       "condition_id": "TIMEZONE_SUFFIX_REJECTED",
+      "category": "日時",
       "label_ja": "タイムゾーン付き値を拒否",
       "description_ja": "timezone_allowed=falseのローカル日時契約でZやオフセット付き値を拒否することを確認する。",
       "used_by_validation_type_ids": [
         "studio.datetime.local"
-      ]
+      ],
+      "generation_class": "TYPE_FIXED"
     },
     {
       "condition_id": "INVALID_DATE_REJECTED",
+      "category": "日時",
       "label_ja": "日時内の無効日付を拒否",
       "description_ja": "datetime値の日付部分が実在しない場合に拒否することを確認する。",
       "used_by_validation_type_ids": [
         "studio.datetime.local"
-      ]
+      ],
+      "generation_class": "TYPE_FIXED"
     },
     {
       "condition_id": "INVALID_TIME_REJECTED",
+      "category": "日時",
       "label_ja": "無効な時刻を拒否",
       "description_ja": "存在しない時刻を含むdatetime値を拒否することを確認する。",
       "used_by_validation_type_ids": [
         "studio.datetime.local"
-      ]
+      ],
+      "generation_class": "TYPE_FIXED"
     },
     {
       "condition_id": "MINIMUM_DATETIME_BOUNDARY",
+      "category": "日時",
       "label_ja": "最小日時境界",
       "description_ja": "Resolved Contractのminimum_datetime境界とその外側を確認する。",
       "used_by_validation_type_ids": [
         "studio.datetime.local"
-      ]
+      ],
+      "generation_class": "DERIVE"
     },
     {
       "condition_id": "MAXIMUM_DATETIME_BOUNDARY",
+      "category": "日時",
       "label_ja": "最大日時境界",
       "description_ja": "Resolved Contractのmaximum_datetime境界とその外側を確認する。",
       "used_by_validation_type_ids": [
         "studio.datetime.local"
-      ]
+      ],
+      "generation_class": "DERIVE"
     },
     {
       "condition_id": "UTC_INSTANT_ACCEPTED",
+      "category": "Instant",
       "label_ja": "UTC時点を許可",
       "description_ja": "UTCを表すZ付きISO 8601日時を受け入れることを確認する。",
       "used_by_validation_type_ids": [
         "studio.instant.iso8601"
-      ]
+      ],
+      "generation_class": "TYPE_GUARD"
     },
     {
       "condition_id": "OFFSET_INSTANT_ACCEPTED",
+      "category": "Instant",
       "label_ja": "オフセット付き時点を許可",
       "description_ja": "タイムゾーンオフセット付きISO 8601日時を受け入れることを確認する。",
       "used_by_validation_type_ids": [
         "studio.instant.iso8601"
-      ]
+      ],
+      "generation_class": "TYPE_GUARD"
     },
     {
       "condition_id": "TIMEZONE_MISSING_REJECTED",
+      "category": "Instant",
       "label_ja": "タイムゾーン欠落を拒否",
       "description_ja": "timezone_required=trueの時点契約でタイムゾーン情報のない値を拒否することを確認する。",
       "used_by_validation_type_ids": [
         "studio.instant.iso8601"
-      ]
+      ],
+      "generation_class": "TYPE_FIXED"
     },
     {
       "condition_id": "INVALID_OFFSET_REJECTED",
+      "category": "Instant",
       "label_ja": "無効なオフセットを拒否",
       "description_ja": "不正なタイムゾーンオフセットを含む値を拒否することを確認する。",
       "used_by_validation_type_ids": [
         "studio.instant.iso8601"
-      ]
+      ],
+      "generation_class": "TYPE_FIXED"
     },
     {
       "condition_id": "MINIMUM_INSTANT_BOUNDARY",
+      "category": "Instant",
       "label_ja": "最小時点境界",
       "description_ja": "Resolved Contractのminimum_instant境界とその外側を確認する。",
       "used_by_validation_type_ids": [
         "studio.instant.iso8601"
-      ]
+      ],
+      "generation_class": "DERIVE"
     },
     {
       "condition_id": "MAXIMUM_INSTANT_BOUNDARY",
+      "category": "Instant",
       "label_ja": "最大時点境界",
       "description_ja": "Resolved Contractのmaximum_instant境界とその外側を確認する。",
       "used_by_validation_type_ids": [
         "studio.instant.iso8601"
-      ]
+      ],
+      "generation_class": "DERIVE"
     }
   ]
 }

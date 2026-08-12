@@ -12,7 +12,7 @@
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 160,
+  "items_count": 161,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -24774,6 +24774,404 @@
           "date": "2026-08-12",
           "change": "studio_work_0172 構想作成",
           "detail": "- Constraint Resolution Editorをscope化。 - Overrideのみを直接編集対象とする方針を追加。 - Generated TestPattern Editorをscope化。 - Generated TestPatternの二重正本問題を主要論点として追加。 - Generated TestPattern編集内容の保存先契約をDecision Gateとして設定。 - 既存Definition Verification共通ロジックの継続利用を固定。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0173",
+      "phase": "v0.18.50-human-readable-local-offset-time-policy",
+      "title": "人間可読な時刻表現 — UTC(Z)新規登録抑止・JST(\u002B09:00)表示/保存方針",
+      "incident_type": "specification",
+      "category": "datetime_policy",
+      "priority": "high",
+      "status": "構想",
+      "follow_up_status": "NOT_STARTED",
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-08-12T17:01:00\u002B09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-12T17:01:00\u002B09:00",
+      "updated_at": "2026-08-12T17:01:00\u002B09:00",
+      "target_files": "",
+      "actual_updated_files": "",
+      "context_def_draft": "- Studioくんの当面の利用環境は日本時間を前提とし、人間が時刻を見るたびにUTCへ9時間を足す運用を避ける。\n- 絶対時刻を表す必要がある場合も、Studioが新規生成・新規登録する値はUTCのZ表記を標準にせず、日本時間のoffsetを明示したISO 8601（例: 2026-08-12T17:00:00\u002B09:00）を基本とする。\n- 既存のZ表記データは破壊的に一括書換えせず、読み込み時に同一瞬間のJST(\u002B09:00)へ変換して人間向け表示できるようにする。\n- UTC(Z)入力自体は既存互換・外部入力互換として受理可能とするが、Studio内部から積極的にZ表記を生成する運用はやめる。\n- 将来、多地域・海外利用が現実化した時点で表示Timezoneを設定可能にする拡張を検討する。",
+      "objective": "- Studioくんで時刻を確認する人間が、UTC値へ毎回9時間を加算して意味を読み替える必要をなくす。\n- 新規登録・新規生成する絶対時刻は、UTC(Z)ではなく日本時間のoffset付きISO 8601を基本とする。\n- 既存UTC(Z)データは同一瞬間を保ったままJST(\u002B09:00)で表示できるようにする。\n- 保存形式・表示形式・内部比較を分離し、将来の多Timezone対応余地を残す。\n- 本方針をStudioくん憲法へ昇格し、人間可読性を時刻表現にも適用する。",
+      "background": "- \u0060studio.instant.iso8601\u0060 ではUTCのZ付きISO 8601およびoffset付きISO 8601を絶対時刻として扱える。\n- UTC(Z)は機械処理上は明確だが、日本時間で運用する人間には9時間の暗算が必要になり、レビュー・確認時の認知負荷が高い。\n- 現在のStudioくんは日本での利用が中心であり、海外利用を前提に表示Timezone設定まで先行実装する必要性は低い。\n- ISO 8601の\u0060\u002B09:00\u0060表記でも絶対時刻は一意に表現できるため、機械可読性を維持したまま人間可読性を上げられる。\n- 既存DataにはZ表記が存在する可能性があるため、方針変更時に履歴Dataを無条件一括変換すると不要な差分・証跡改変が発生する。\n- Validation Test Conditionの\u0060UTC_INSTANT_ACCEPTED\u0060は、UTCを標準保存形式にする宣言ではなく、互換入力としてZ表記を受理できることのテストとして整理する。",
+      "scope": "- Studioが新規生成・新規登録する絶対時刻では、UTCの\u0060Z\u0060表記を標準保存形式として使用しない。\n- 当面の標準保存例を\u00602026-08-12T17:00:00\u002B09:00\u0060のようなJST offset付きISO 8601とする。\n- 既存の\u0060...Z\u0060値は読み込み時に同一瞬間のJST(\u002B09:00)へ変換して表示する。\n- Z値の表示変換は値そのものの時点を変更せず、表示Projectionとして扱う。\n- 既存Z値は単に画面を開いたことだけを理由にcanonical Dataへ書戻さない。\n- 既存Z値を利用者が明示的に編集・更新して保存する場合、新しい保存値は現在の\u002B09:00方針へ寄せる。\n- \u0060studio.datetime.local\u0060 はTimezoneを持たないローカル日時として扱い、勝手な\u002B09:00変換を行わない。\n- \u0060studio.instant.iso8601\u0060 は絶対時刻として扱い、Zまたはoffsetを含む入力を解釈できる互換性を維持する。\n- Instantの比較・境界判定は表示文字列ではなく、同一瞬間へ正規化した値で行う。\n- \u0060UTC_INSTANT_ACCEPTED\u0060は互換入力テストとして維持し、日本語タイトル・説明は『UTC(Z)表記も受入』等、主標準と誤解しない表現へ見直す。\n- Studioくん憲法へ『人間可読な時刻表現』の原則を追加する。\n- 憲法改定時は意味変更を人間レビュー対象とし、承認前に既存ルールへ暗黙統合しない。\n- 将来の海外利用・ユーザー別Timezone設定は別インシデントへ分離する。",
+      "out_of_scope": "- ユーザーごとのTimezone設定UI。\n- Asia/Tokyo以外の地域を自動推定する機能。\n- 夏時間(DST)を含む世界各地域の表示Timezone切替。\n- 既存Z表記Dataの一括migration。\n- 外部システムが要求するUTC(Z)形式そのものの禁止。\n- ISO 8601 Parser全体の再設計。\n- \u0060studio.datetime.local\u0060を一律\u0060studio.instant.iso8601\u0060へ変更すること。",
+      "fixed_name_policy": "- \u0060studio.instant.iso8601\u0060の既存Validation Type名は維持する。\n- \u0060studio.datetime.local\u0060の既存Validation Type名は維持する。\n- \u0060UTC_INSTANT_ACCEPTED\u0060のCondition IDは互換性のため当面維持し、日本語表示・説明で役割を明確化する。\n- Timezone/offset方針を特定Dataフィールド名へ埋め込まず、Validation Type・表示Policy・時刻Service等の共通責務として扱う。",
+      "module_policy": "- 保存値の意味、表示Projection、内部比較を分離する。\n- \u0060Z → \u002B09:00\u0060は単純な文字列置換で実装せず、Instantとして解釈したうえで同一瞬間をJST表示へ変換する。\n- UIごとに独自の\u002B9時間ロジックを実装しない。\n- 共通の日時表示/変換責務を利用し、Grid / Detail / Diff / Evidence等で同じ時刻を異なる変換規則で表示しない。\n- canonical Dataを表示目的だけで暗黙更新しない。\n- 将来Timezone設定を追加できるよう、Asia/Tokyo固定値を各画面へ散在させない。\n- 憲法では技術実装詳細より『人間が暗算しない時刻表現を優先する』判断原則を正本化する。",
+      "expected_outputs": "- 新規生成される絶対時刻が\u0060Z\u0060ではなく\u0060\u002B09:00\u0060付きISO 8601で保存される。\n- 例: \u00602026-08-12T08:00:00Z\u0060が画面では\u00602026-08-12T17:00:00\u002B09:00\u0060として確認できる。\n- 上記表示変換後も、両者が同一Instantとして比較される。\n- 既存Z値を表示しただけではcanonical Dataが変更されない。\n- 明示的に編集・保存した時刻は新しい\u002B09:00保存方針へ従う。\n- \u0060datetime.local\u0060値はTimezone変換されない。\n- \u0060UTC_INSTANT_ACCEPTED\u0060が『UTCを主標準とするテスト』ではなく『Z表記互換入力を受け入れるテスト』として人間に読める。\n- 憲法に人間可読な時刻表現の原則が追加され、人間レビュー対象として管理される。",
+      "risk": "- Z表記を単純に9時間加算するだけの実装では、将来JST以外のoffsetや入力offsetを誤変換する可能性がある。\n- \u0060datetime.local\u0060と\u0060instant.iso8601\u0060を混同すると、本来Timezoneを持たない日時まで変換してしまう可能性がある。\n- 表示時変換と保存時変換を混ぜると、画面を開いただけでData差分が発生する可能性がある。\n- 既存Evidence/Snapshotの時刻表示を変える場合、実行時の原値と表示値の区別が必要になる。\n- \u002B09:00を各UIへ直書きすると、将来の海外対応時に変更箇所が拡散する。\n- UTC(Z)入力拒否まで行うと外部Data互換性を不必要に失うため、受入と生成Policyを混同しない。",
+      "test_points": "- 新規Instant生成値が\u0060Z\u0060ではなく\u0060\u002B09:00\u0060表記になること。\n- \u00602026-08-12T08:00:00Z\u0060を読み込むと\u00602026-08-12T17:00:00\u002B09:00\u0060として表示されること。\n- 上記2値が同一Instantとして比較されること。\n- Z表記Dataを表示しただけでは元JSONのcanonical値が変更されないこと。\n- Z表記Dataを明示編集して保存した場合は\u002B09:00方針へ寄せられること。\n- \u00602026-08-12T17:00:00\u0060のような\u0060datetime.local\u0060値は\u002B9時間変換されないこと。\n- \u00602026-08-12T17:00:00\u002B09:00\u0060が\u0060studio.instant.iso8601\u0060でACCEPTされること。\n- \u00602026-08-12T08:00:00Z\u0060も互換入力としてACCEPTされること。\n- UTC(Z)の受入可否と、Studioが新規生成する保存形式が別責務としてテストされること。\n- Grid / Detail / Diff / Evidenceで同一Instantの表示規則が一致すること。\n- 憲法改定候補が未承認状態で登録され、人間レビュー前に承認済み扱いにならないこと。",
+      "verification_log": "",
+      "user_request": "- UTC表記で新規登録する運用をやめたい。\n- 日本で使う間は、時刻を見るたびに9時間を足して理解する運用を避けたい。\n- 既にUTC(Z)で登録されているものは、同じ瞬間をJST(\u002B09:00)へ変換して表示できる仕様にしたい。\n- 海外利用への本格対応は、実際に必要になってから考えたい。\n- この判断はStudioくん憲法の改定候補として忘れずに残したい。",
+      "ai_response": "- 新規生成・登録する絶対時刻はUTC(Z)を標準にせず、当面は\u002B09:00付きISO 8601を基本とする方針でIncident化する。\n- 既存Z値は破壊的に一括書換えず、表示時にJSTへ変換する。\n- Z入力は外部互換として受理可能なまま維持し、『受入可能』と『Studioが標準生成する形式』を分離する。\n- 憲法には実装方式ではなく、人間がTimezone暗算をしなくてよい表現を優先する原則として追加する。",
+      "latest_ai_response": "- \u0060Z\u0060は互換入力として残すが、新規生成の主標準にはしない。\n- 既存Z値は同一InstantのJST(\u002B09:00)へ表示変換し、表示だけではcanonical Dataを書換えない。\n- 憲法改定候補として『人間可読な時刻表現の原則』を登録する。",
+      "latest_user_comment": "- UTC表記で登録するのをやめる話をインシデントへ追加したい。\n- 既にUTC表記で登録されている値は、可能なら9時間足した日本時間で表示したい。\n- 憲法改定の話も忘れずに追加してほしい。",
+      "context_refs": [
+        {
+          "context_ref_id": "target_0173_010_studio_work_0162",
+          "title": "関連作業 studio_work_0162: 憲法・設計統治改定",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/_studio_work_incident_data_v2.json#studio_work_0162",
+          "purpose": "憲法改定時の責務境界、構造化記述、人間再承認の運用を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0173_020_studio_work_0018",
+          "title": "関連作業 studio_work_0018: Data JSONの日本語可読保存",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/_studio_work_incident_data_v2.json#studio_work_0018",
+          "purpose": "Data JSON原本でも人間可読性を重視する既存判断との整合を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0173_030_studio_work_0165",
+          "title": "関連作業 studio_work_0165: Definition Verification Service",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/_studio_work_incident_data_v2.json#studio_work_0165",
+          "purpose": "Instant/DatetimeのResolved Contract・TestPattern生成・Expected導出を共通ロジックから行う既存責務を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "target_0173_040_studio_work_0172",
+          "title": "関連作業 studio_work_0172: Generated TestPattern Editor",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/_studio_work_incident_data_v2.json#studio_work_0172",
+          "purpose": "UTC_INSTANT_ACCEPTED等のTest Condition表示・意味整理がGenerated TestPattern側へ与える影響を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        }
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0173_001",
+          "action_type": "DOCUMENT_UPDATE",
+          "required": true,
+          "status": "NOT_STARTED",
+          "related_ids": [],
+          "note": "Studioくん憲法へ新規原則を追加する。候補: constitution_33（仮）『人間可読な時刻表現の原則』。人間がTimezone暗算を必要としない表示・保存を優先し、UTC(Z)を新規生成の標準へ固定しないこと、絶対時刻の受入互換性と人間向け表示Policyを分離することを記載する。番号・文言は最新憲法正本確認後に確定する。",
+          "action": "Studioくん憲法へ人間可読な時刻表現の原則を追加する",
+          "priority": "high"
+        },
+        {
+          "action_id": "follow_0173_002",
+          "action_type": "IMPLEMENTATION_FIX",
+          "required": true,
+          "status": "NOT_STARTED",
+          "related_ids": [],
+          "note": "既存UTC(Z) Instantを表示時にAsia/Tokyo(\u002B09:00)へ変換する共通責務を設計・実装する。表示だけではcanonical Dataを書換えない。",
+          "action": "既存UTC(Z)値をJST(\u002B09:00)で表示する",
+          "priority": "high"
+        },
+        {
+          "action_id": "follow_0173_003",
+          "action_type": "DOCUMENT_UPDATE",
+          "required": true,
+          "status": "NOT_STARTED",
+          "related_ids": [
+            "studio_work_0172"
+          ],
+          "note": "Validation Test Condition CatalogのUTC_INSTANT_ACCEPTEDを、UTCを主標準と誤解しない日本語タイトル・説明へ見直す。Condition ID自体は互換性を優先して当面維持する。",
+          "action": "UTC_INSTANT_ACCEPTEDの日本語表示・説明を互換入力テストとして明確化する",
+          "priority": "medium"
+        }
+      ],
+      "discussion_history": [
+        {
+          "date": "2026-08-12",
+          "topic": "UTC(Z)を標準保存形式にしない",
+          "summary": "- 日本時間で運用するStudioくんでは、UTC値へ毎回9時間を加算して読む負担を避けたい。\n- 絶対時刻が必要な場合は\u002B09:00付きISO 8601を基本とする。\n- UTC(Z)は外部互換入力として受け入れても、新規生成の主標準にはしない。"
+        },
+        {
+          "date": "2026-08-12",
+          "topic": "既存UTC(Z)値の扱い",
+          "summary": "- 既存Z値は一括書換えしない。\n- 読み込み・表示時に同一瞬間をJST(\u002B09:00)へ変換して人間向け表示する。\n- 表示しただけではcanonical Dataを更新しない。\n- 明示編集・保存時は新しい\u002B09:00方針へ寄せる。"
+        },
+        {
+          "date": "2026-08-12",
+          "topic": "憲法改定候補",
+          "summary": "- 人間可読性を時刻表現にも適用する。\n- 実装詳細ではなく『人間がTimezone暗算をしなくてよい表現を優先する』判断原則として憲法化する。\n- constitution番号・文言は最新正本を確認して確定する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision": "Studioが新規生成・登録する絶対時刻の標準表記としてUTC(Z)を使用しない。",
+          "reason": "日本時間で利用する人間が時刻確認のたびに9時間を加算する認知負荷を避けるため。"
+        },
+        {
+          "decision": "当面の絶対時刻保存はJSTの\u0060\u002B09:00\u0060を明示したISO 8601を基本とする。",
+          "reason": "絶対時刻としての一意性を維持しながら、日本の利用者がそのまま時刻を読めるため。"
+        },
+        {
+          "decision": "既存UTC(Z)値は一括書換えせず、表示時にJST(\u002B09:00)へ変換する。",
+          "reason": "履歴Data・Evidenceへ不要な差分を発生させず、人間可読性だけを改善するため。"
+        },
+        {
+          "decision": "UTC(Z)入力は互換入力として引き続き受け入れる。",
+          "reason": "外部Data・既存Dataとの互換性を保ち、『受入可能形式』と『Studioが新規生成する標準形式』を分離するため。"
+        },
+        {
+          "decision": "\u0060datetime.local\u0060と\u0060instant.iso8601\u0060の意味を混同しない。",
+          "reason": "Timezoneを持たないローカル日時へ勝手な\u002B09:00変換を適用すると値の意味を変えてしまうため。"
+        },
+        {
+          "decision": "人間可読な時刻表現をStudioくん憲法の改定候補とする。",
+          "reason": "時刻表現の判断は個別画面の都合ではなく、Data原本・表示・レビュー全体に共通する人間可読性の原則だから。"
+        }
+      ],
+      "change_history": [
+        {
+          "date": "2026-08-12",
+          "change": "studio_work_0173 構想登録",
+          "detail": "- UTC(Z)を新規生成・新規登録の標準表記にしない方針を登録。\n- 当面はJST(\u002B09:00)付きISO 8601を基本保存形式とする案を登録。\n- 既存Z値は一括書換えせずJST表示へ変換する方針を登録。\n- UTC_INSTANT_ACCEPTEDを互換入力テストとして整理する課題を追加。\n- Studioくん憲法へ『人間可読な時刻表現の原則』を追加する必須Follow-upを登録。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0174",
+      "phase": "v0.18.51-single-field-validation-auto-test-feasibility",
+      "title": "単項目Validation自動テスト成立性調査 — Resolved Contract起点のTestPattern自動生成と残課題整理",
+      "incident_type": "refactoring",
+      "category": "source_split",
+      "priority": "high",
+      "status": "構想",
+      "follow_up_status": "UNASSESSED",
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-08-12T18:26:00\u002B09:00",
+      "owner": "",
+      "ai_owner": "",
+      "created_at": "2026-08-12T18:26:00\u002B09:00",
+      "updated_at": "2026-08-12T18:26:00\u002B09:00",
+      "target_files": "data/json/config/validation_type_registry_v0_1.json\nvalidation_test_condition_catalog_v0_1.json\nvalidation_test_condition_catalog_view_def_v0_1.json\nTestPatternDeriver / FieldContractResolver / DefinitionVerificationService 関連実装",
+      "actual_updated_files": "",
+      "objective": "- 単項目Validationについて、定義承認後にTestPattern / Expectedを機械生成し自動テストへ接続できる見通しを確認する。\n- Test Condition全件を生成方式で仕分けし、機械化できる領域と追加判断が必要な領域を明確にする。\n- 今後AI承認駆動開発全体を設計する際の判断材料として、未解決事項をインシデントに凍結して残す。",
+      "background": "- validation_test_condition_catalog_v0_1.json の66 Test Conditionを対象に、Resolved Contractからの自動生成可能性を調査した。\n- 全件を DERIVE 16件 / TYPE_GUARD 18件 / TYPE_FIXED 28件 / DEPRECATED_CANDIDATE 3件 / USAGE_SPLIT 1件に暫定分類した。\n- minimum / maximum等の境界、型固有の固定テスト、Resolved Contractによる生成可否判定を組み合わせれば、単項目チェックの大半は機械化できる見通しとなった。\n- 一方で、文字列の代表正常値、Unicode文字数、日本語文字列観点、廃止Condition整理など、Studio標準として決めるべき事項が残っている。\n- 現時点では個別論点を完全体まで詰めるより、AI承認駆動開発の全体像を先に捕まえることを優先する。",
+      "scope": "- validation_test_condition_catalog_v0_1.json の66 Conditionの生成方式分類。\n- DERIVE: Resolved Contractから機械導出するCondition。\n- TYPE_GUARD: 型固有観点を維持しつつ、Resolved Contractを見て有効なテストデータ生成可否を機械判定するCondition。\n- TYPE_FIXED: 型固有の固定観点として生成するCondition。\n- DEPRECATED_CANDIDATE: 他のDERIVEパターンで代替可能な廃止候補。\n- USAGE_SPLIT: Validation Typeごとに意味または必要性が異なるCondition。\n- 代表正常値生成の基本方針。数値はminimum/maximumの中央値、整数は端数切り捨て。date/datetimeも範囲差の半分を起点へ加算する固定ロジックを候補とする。\n- stringの代表正常値はStudio標準値として固定する方向。ただし具体値・文字種構成は未決。\n- minimum_length / maximum_lengthは将来的にJavaScript string.lengthではなく、人間が認識する文字単位(grapheme)で評価する方向を候補とする。\n- empty_string_allowed / maximum_lines / seconds_allowed 等、現在のTestPatternDeriverで不足している自動生成観点の記録。\n- NaN / Infinity、decimal.fixed_scale、Instant等、実行層または型仕様側に残る論点の記録。",
+      "out_of_scope": "- 本インシデント内でTestPatternDeriverを完全実装すること。\n- 66 Conditionすべての最終的なInput / Expected具体値を確定すること。\n- 日本語・全角半角・絵文字・結合文字等のUnicode標準テストセットを完成させること。\n- DEPRECATED_CANDIDATEを即時削除すること。\n- ZERO_REJECTED等のRegistry参照関係を即時変更すること。\n- decimal.fixed_scale / Instantの未確定仕様を本インシデントで確定すること。\n- 多項目・相関・シナリオ・画面遷移・E2Eテストの設計。",
+      "fixed_name_policy": "- Test Conditionのcondition_idは既存Catalogを正本とし、本インシデントだけを理由に即時renameしない。\n- 生成方式の区分名は暫定的に DERIVE / TYPE_GUARD / TYPE_FIXED / DEPRECATED_CANDIDATE / USAGE_SPLIT を使用する。\n- 正式名称変更は、実装責務と利用箇所が固まった時点で別判断とする。",
+      "module_policy": "- Resolved Contractの解決責務はFieldContractResolverへ集約する。\n- TestPattern生成責務はTestPatternDeriverへ集約し、画面ごとに同等ロジックを再実装しない。\n- 型固有テスト値・代表値・文字数カウント等の共通ルールは、必要になった時点で共通Resolver/Deriver/Utilityへ閉じ込める。\n- UI Componentは計算ロジックを持たず、共通Serviceの結果を表示する。",
+      "expected_outputs": "- 単項目Validation自動テストが十分射程圏内であるという成立性判断。\n- Test Condition 66件の生成方式分類を保持したCatalog。\n- 実装前に判断が必要な残課題一覧。\n- 将来の実装時に、Resolved Contract → Generated TestPattern → Expected → Runtime Validationへ接続するための設計メモ。\n- 本インシデントは課題凍結を主目的とし、直ちに対策完了へ進めることを要求しない。",
+      "risk": "- Catalog分類をそのまま実行仕様と誤認すると、TYPE_GUARDのResolved Contract判定やSUPPRESS条件が未定義のまま実装される可能性がある。\n- DEPRECATED_CANDIDATEを即削除すると、既存Registry / Evidence / Snapshot参照を壊す可能性がある。\n- ZERO_REJECTEDはinteger.positiveとboolean.standardで意味が異なるため、Condition単位の単純無効化は誤りとなる。\n- JavaScript string.lengthをそのまま文字数契約に使うと、絵文字・結合文字等で人間認識文字数と乖離する可能性がある。\n- NaN / InfinityはJSON原本で通常値として表現しにくく、どの実行層で保証するかを誤るとテスト責務が曖昧になる。\n- 全体像把握前に個別課題の完全実装へ進むと、局所最適化で設計探索が停滞する。",
+      "test_points": "- 本インシデントは調査・設計メモが主目的のため、現時点では実装Acceptance Testを必須としない。\n- 将来実装時は、Resolved Contractから境界値・代表正常値・型固有値が同一Deriverで再現可能に生成されること。\n- TYPE_GUARDはResolved Contract内に有効なテスト値を生成できない場合に機械的にSUPPRESSできること。\n- integer中央値は端数切り捨てとし、minimum=0 / maximum=1の場合に代表値0となること。\n- 文字数契約を人間認識文字数へ昇格する場合、ASCII / 日本語 / 絵文字 / 結合文字で共通カウンターの挙動を確認すること。\n- F12 Runtime Validationへ接続する場合、契約違反値がcanonical Dataを更新せず拒否されることを主Acceptance Testとする。",
+      "verification_log": "- 2026-08-12: validation_test_condition_catalog_v0_1.json の66 Conditionを全件仕分け。\n- 暫定集計: DERIVE 16 / TYPE_GUARD 18 / TYPE_FIXED 28 / DEPRECATED_CANDIDATE 3 / USAGE_SPLIT 1。\n- 分類情報はCatalog Data JSONへgeneration_classとして付与し、ViewDefへ生成分類列を追加したZIPを作成済み。\n- 単項目チェックは未決事項を残すものの、自動テストは十分射程圏内と判断。",
+      "context_def_draft": "- 単項目Validationの自動テストは、Validation Type \u002B Field Definition OverrideをFieldContractResolverでResolved Contractへ解決し、TestPatternDeriverがTestPatternを生成し、Expectedと実Data検証へ接続する構造を基本とする。\n- Test Conditionは、少なくとも DERIVE / TYPE_GUARD / TYPE_FIXED / DEPRECATED_CANDIDATE / USAGE_SPLIT の観点で整理できる。\n- 今回の目的は完全実装ではなく、AI承認駆動開発の全体像を捕まえるために、自動化可能領域と人間判断が残る領域を露出させることとする。",
+      "user_request": "今回の調査分析で見えた課題を中心にstudio_work_0174としてインシデント登録し、現時点では対策完了まで進めず、AI承認駆動開発の全体像を捕まえることを優先する。",
+      "ai_response": "",
+      "latest_user_comment": "基本は対策するところまでもっていくつもりは現時点は無い。AI承認駆動開発の全体像を捕まえることを優先する。",
+      "latest_ai_response": "",
+      "context_refs": [
+        {
+          "context_ref_id": "studio_work_0161",
+          "title": "Definition Test Runner",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/_studio_work_incident_data_v2.json#studio_work_0161",
+          "purpose": "Definition起点の自動テスト構想との連続性を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 10,
+          "note": ""
+        },
+        {
+          "context_ref_id": "studio_work_0165",
+          "title": "Definition Verification 共通Service",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/_studio_work_incident_data_v2.json#studio_work_0165",
+          "purpose": "FieldContractResolver / TestPatternDeriver / ExpectedResolverの共通責務を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 20,
+          "note": ""
+        },
+        {
+          "context_ref_id": "studio_work_0172",
+          "title": "Field Definition Derived Grid Editor",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/_studio_work_incident_data_v2.json#studio_work_0172",
+          "purpose": "Resolved Contract / Generated TestPatternの編集境界とDerived Data責務を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 30,
+          "note": ""
+        },
+        {
+          "context_ref_id": "studio_work_0173",
+          "title": "人間可読な時刻表現",
+          "read_timing": "before_work",
+          "target_path": "data/json/01_main/_studio_work_incident_data_v2.json#studio_work_0173",
+          "purpose": "Instant / UTC(Z) / \u002B09:00の表示保存方針を確認する。",
+          "failure_policy": "warn_and_continue",
+          "trust_category": "reference",
+          "required": false,
+          "enabled": true,
+          "sort_order": 40,
+          "note": ""
+        }
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "studio_work_0174_followup_01",
+          "action_type": "DOCUMENT_UPDATE",
+          "required": false,
+          "status": "NOT_STARTED",
+          "related_ids": [
+            "validation_test_condition_catalog_v0_1"
+          ],
+          "note": "DEPRECATED_CANDIDATE 3件とUSAGE_SPLIT 1件を将来レビューする。現時点では削除・無効化を必須としない。",
+          "action": "Test Condition廃止候補と利用分離をレビューする",
+          "priority": "medium",
+          "summary": "ONE_ACCEPTED / NEGATIVE_INTEGER_REJECTED / UNSAFE_INTEGER_REJECTED、およびZERO_REJECTEDの利用分離を確認する。"
+        },
+        {
+          "action_id": "studio_work_0174_followup_02",
+          "action_type": "TEST_PATTERN_ADD",
+          "required": false,
+          "status": "NOT_STARTED",
+          "related_ids": [
+            "TestPatternDeriver"
+          ],
+          "note": "AI承認駆動開発全体像の整理後に着手判断する。",
+          "action": "Resolved Contractからの不足TestPattern自動生成を追加する",
+          "priority": "medium",
+          "summary": "empty_string_allowed / maximum_lines / seconds_allowed / 代表正常値等の機械生成を候補とする。"
+        },
+        {
+          "action_id": "studio_work_0174_followup_03",
+          "action_type": "OTHER",
+          "required": false,
+          "status": "NOT_STARTED",
+          "related_ids": [
+            "string_length",
+            "unicode"
+          ],
+          "note": "完全体を今すぐ作らず、必要性が高まった時点で実装判断する。",
+          "action": "人間認識文字数と日本語Unicode標準テストの方針を確定する",
+          "priority": "low",
+          "summary": "grapheme単位の文字数、ひらがな/漢字/全角半角/絵文字/結合文字等の標準テスト範囲を検討する。"
+        },
+        {
+          "action_id": "studio_work_0174_followup_04",
+          "action_type": "OTHER",
+          "required": false,
+          "status": "NOT_STARTED",
+          "related_ids": [
+            "AI承認駆動開発"
+          ],
+          "note": "本インシデントの最優先軸。",
+          "action": "単項目最適化よりAI承認駆動開発の全体像把握を優先する",
+          "priority": "high",
+          "summary": "個別論点の完全実装へ進む前に、多項目・責務結合・承認対象・Evidenceまで含む全体構造を整理する。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "date": "2026-08-12",
+          "topic": "Test Condition全件仕分け",
+          "summary": "Catalog 66件を生成方式で全件分類し、単項目Validationの大半が機械生成可能であることを確認した。"
+        },
+        {
+          "date": "2026-08-12",
+          "topic": "代表正常値",
+          "summary": "数値はminimum/maximumの中央値を機械生成し、integerは端数切り捨てとする固定ルールでよいと整理。date/datetimeも同型の考え方へ倒す。"
+        },
+        {
+          "date": "2026-08-12",
+          "topic": "文字列とUnicode",
+          "summary": "string代表値、日本語文字列観点、絵文字等を含む人間認識文字数は未決事項として残す。巨大な個別実装ではなく共通部品へ閉じ込める方向。"
+        },
+        {
+          "date": "2026-08-12",
+          "topic": "今回の到達点",
+          "summary": "単項目Validation自動テストは十分射程圏内。ただし現時点では完全実装へ進まず、AI承認駆動開発の全体像把握を優先する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "studio_work_0174_decision_01",
+          "at": "2026-08-12T18:26:00\u002B09:00",
+          "decision": "単項目Validation自動テストは十分射程圏内と判断する。",
+          "reason": "66 Test Conditionを仕分けした結果、大半がResolved Contractからの導出、型固有固定観点、またはResolved Contractによる機械的な生成可否判定に整理できたため。",
+          "applied_axes": [
+            "人間判断数を最小化する",
+            "期待値を機械導出できるところは人間へ返さない",
+            "同じ契約からPreview/Runner/Runtime Validationを生成する"
+          ],
+          "conditions": [
+            "FieldContractResolverがStandard \u002B OverrideからResolved Contractを一意に解決すること",
+            "TestPatternDeriverが共通責務として再利用されること"
+          ],
+          "exceptions": [
+            "Unicode/日本語標準テストなどStudio標準ルール未確定領域",
+            "decimal.fixed_scale / Instant等の未確定型仕様"
+          ],
+          "expected_behavior": "Field Definitionを承認すると、単項目TestPatternとExpectedの大半が機械的に生成される。",
+          "acceptance_criteria": "将来実装時に主要Validation TypeでResolved Contractから再現可能なTestPatternが生成されること。",
+          "test_pattern_seed": [
+            "minimum / minimum_minus_1",
+            "maximum / maximum_plus_1",
+            "median",
+            "type-specific fixed cases"
+          ],
+          "remaining_risks": [
+            "文字列テスト標準の未確定",
+            "TYPE_GUARDのSUPPRESS条件未実装"
+          ],
+          "confirmation_level": "analysis_confirmed",
+          "axis_update_candidate": ""
+        },
+        {
+          "decision_id": "studio_work_0174_decision_02",
+          "at": "2026-08-12T18:26:00\u002B09:00",
+          "decision": "本インシデントでは個別課題の完全対策を完了条件にしない。",
+          "reason": "現時点の優先軸は単項目テストの完全体化ではなく、AI承認駆動開発全体の承認対象・責務・Evidence・自動化境界を捕まえることだから。",
+          "applied_axes": [
+            "AI承認駆動開発の全体像把握を局所最適化より優先する",
+            "未決事項は消さずにインシデントとして凍結する"
+          ],
+          "conditions": "単項目自動テストの成立性が十分確認できていること。",
+          "exceptions": "全体設計を妨げる重大な欠陥が見つかった場合は別途優先度を見直す。",
+          "expected_behavior": "残課題は将来再開可能な形で記録され、現時点では次の全体設計探索へ進める。",
+          "acceptance_criteria": "残課題・判断理由・再開ポイントがインシデントから追跡できること。",
+          "test_pattern_seed": null,
+          "remaining_risks": "未決事項が長期放置される可能性。",
+          "confirmation_level": "human_confirmed",
+          "axis_update_candidate": ""
+        }
+      ],
+      "change_history": [
+        {
+          "change_id": "studio_work_0174_change_01",
+          "at": "2026-08-12T18:26:00\u002B09:00",
+          "change": "インシデント新規作成",
+          "detail": "単項目Validation自動テスト成立性調査と残課題を、対策完了を要求しない構想インシデントとして記録。"
         }
       ]
     }

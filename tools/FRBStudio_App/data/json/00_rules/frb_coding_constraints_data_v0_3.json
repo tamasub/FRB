@@ -124,6 +124,22 @@
       "violation_action": "",
       "source_decision_log_ids": [],
       "notes": ""
+    },
+    {
+      "sort_order": 60,
+      "item_id": "decision_axis_string_length_copy_1",
+      "item_type": "DECISION_AXIS",
+      "title": "文字数は人間が認識可能な文字数優先",
+      "statement": "文字列長は人間が認識する文字単位を優先する",
+      "reason": "",
+      "scope": "document",
+      "priority": "high",
+      "status": "ACTIVE",
+      "evaluation_guidance": "",
+      "verification_method": "",
+      "violation_action": "",
+      "source_decision_log_ids": [],
+      "notes": ""
     }
   ],
   "rules": [
