@@ -6,7 +6,7 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-12",
+  "updated_at": "2026-08-12T09:58:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
@@ -23450,17 +23450,17 @@
       "incident_type": "refactoring",
       "category": "runtime",
       "priority": "high",
-      "status": "未着手",
-      "follow_up_status": "PENDING",
-      "verification_status": "未確認",
+      "status": "完了",
+      "follow_up_status": "COMPLETED",
+      "verification_status": "確認済み",
       "context_def_status": "draft",
       "context_def_updated_at": "2026-08-12T09:04:00+09:00",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-12T09:04:00+09:00",
-      "updated_at": "2026-08-12T09:04:00+09:00",
+      "updated_at": "2026-08-12T09:58:00+09:00",
       "target_files": "wwwroot/js/runtime/detail_subgrid_edit.js\nwwwroot/js/renderers/grid_detail.js\nwwwroot/js/components/ (new candidate)\ntests/qa/static/\ndata/json/01_main/_studio_work_incident_data_v2.json",
-      "actual_updated_files": "",
+      "actual_updated_files": "wwwroot/js/components/subgrid_component.js\nwwwroot/js/components/data_subgrid_component.js\nwwwroot/js/components/derived_subgrid_component.js\nwwwroot/js/runtime/detail_subgrid_edit.js\nwwwroot/index.html\ntests/qa/static/subgrid_component_data_derived_static.test.mjs\ndata/json/01_main/_studio_work_incident_data_v2.json",
       "objective": "- SubGridを正式なComponent階層へ載せる。\n- 保存対象Dataを扱うSubGridと、計算・解釈結果を表示するDerived SubGridを明確に分離する。",
       "background": "- 既存objectArray/stringArrayはData JSONに実在する配列をDetailで扱う仕組みである。\n- 今回必要なConstraint DiffやTestPattern Previewは元Dataに存在しない派生情報であり、既存Data SubGridと同じ保存責務へ混ぜると正本Dataを汚染する。",
       "scope": "- SubGridComponentをEditorComponent配下に定義する。\n- DataSubGridComponentは正本Data読込・編集・commit責務を持つ。\n- DerivedSubGridComponentはreadonly派生Rows生成を責務とし、正本Dataへ保存しない。\n- 既存SubGridは一括書換えせず、Adapter/共存で段階移行する。\n- 共通Table Rendererを再利用できる境界を整理する。",
@@ -23470,12 +23470,12 @@
       "expected_outputs": "- SubGridComponent\n- DataSubGridComponent\n- DerivedSubGridComponent\n- 既存SubGrid互換接続\n- readonly派生SubGridの最小サンプル\n- 回帰テスト",
       "risk": "- Derived表示を誤ってDataへcommitすると正本汚染が起きる。\n- 既存SubGrid移行を同時に広げると改修範囲が大きくなる。\n- 共通Renderer抽出を急ぐとconstitution_29に反する可能性がある。",
       "test_points": "- DataSubGridだけがcommit経路を持つこと。\n- DerivedSubGridが保存対象へ混入しないこと。\n- 既存objectArray/stringArray編集が維持されること。\n- readonly派生Rowsが標準Editor内に表示できること。\n- 対象Static/Runtime Testが成功すること。",
-      "verification_log": "",
+      "verification_log": "- node --check:\n  - subgrid_component.js: PASS\n  - data_subgrid_component.js: PASS\n  - derived_subgrid_component.js: PASS\n  - detail_subgrid_edit.js: PASS\n- SubGrid Component対象Static Test:\n  - 5件 PASS / 0件 FAIL\n  - SubGridComponent → DataSubGridComponent / DerivedSubGridComponent の継承関係を確認\n  - DerivedSubGridがreadonly表示でき、commit時に正本Dataを変更しないことを確認\n  - DataSubGridComponentだけがcanonical Data commit責務を持つことを確認\n  - 既存objectArray/stringArrayカードがdata / canonicalとして分類されることを確認\n  - F12親JSON反映経路がDerivedカードを除外することを確認\n  - index.htmlのScript読込順を確認\n- Static Test全体:\n  - 作業前: 59件中56件 PASS / 3件 FAIL\n  - 作業後: 64件中61件 PASS / 3件 FAIL\n  - 追加5件はすべてPASS\n  - FAIL 3件は作業前と同一の既存失敗\n  - 今回差分による新規FAILなし\n- 既存SubGrid互換:\n  - detail_subgrid_edit.jsの既存objectArray/stringArray編集処理は維持\n  - DataSubGridComponentは既存createDetailSubGridCard / collectDetailSubGridValueへ委譲するAdapter構造\n  - 既存SubGridの一括移行・全面廃止は実施していない\n- 未実施:\n  - ブラウザ実機操作 / Playwright\n  - 理由: 本フェーズではDefinition固有ComponentをまだViewDefへ接続せず、Component階層・保存境界・既存SubGrid互換をStatic/Runtime単位で検証したため。",
       "context_def_draft": "- Studioくんは汎用AI協働基盤として維持する。\n- AI承認駆動開発はStudio Coreそのものではなく、標準Capabilityとして実装する。\n- UI Componentと計算Serviceを分離し、表示と実行で同じ導出ロジックを利用する。",
       "user_request": "ルール改定計画からComponent基盤、項目定義Editor改善、共通Expected/TestPattern導出、Definition Test Runner実装までを、小さなインシデントへ分割して計画登録する。",
       "ai_response": "作業を段階分割し、Studio Coreの汎用性を維持したまま、Definition Verificationを標準Capabilityとして実装する計画を登録する。",
-      "latest_user_comment": "ルール改定計画～テストラン実装まで、インシデントで計画登録する。箇条書きにできる内容は箇条書きで記載する。",
-      "latest_ai_response": "計画登録のみ。実装・ルール改定は各インシデント着手時に最新ソースを再確認して行う。",
+      "latest_user_comment": "- incident_file: data/json/01_main/_studio_work_incident_data_v2.json\n- phase: v0.18.41-subgrid-component-data-derived\n- foundation_rule_019「GitHub基準ソースとZIP返却契約」に従って次作業を実施する。",
+      "latest_ai_response": "- SubGridComponentをEditorComponent配下へ追加。\n- DataSubGridComponentを追加。\n  - 正本Dataを扱うcanonical SubGridとして定義。\n  - field pathから配列を読み込む。\n  - commit責務をDataSubGrid側だけに持たせる。\n  - 既存createDetailSubGridCard / collectDetailSubGridValueへ委譲するAdapterで段階移行する。\n- DerivedSubGridComponentを追加。\n  - readonly派生Rows表示を責務とする。\n  - persistenceModeをderived-readonlyとする。\n  - canonical Dataへのcommitを明示的に拒否する。\n- SubGridComponentへ共通Table Renderer境界を追加。\n  - Derived SubGridのreadonly表描画で利用。\n  - 既存Data SubGridの成熟した編集UIは今回一括移行せず維持。\n- 既存objectArray/stringArrayカードをdata / canonicalとして明示。\n- F12親JSON反映時にDerived SubGridを除外する保存ガードを追加。\n- index.htmlへ新Component階層を追加。\n- SubGrid Component専用Static Testを5件追加し、全件PASS。\n- Static Test全体は64件中61件PASS / 3件FAIL。\n  - 3件は作業前と同一の既存FAIL。\n  - 今回差分による新規FAILなし。\n- 次作業はstudio_work_0165「Definition Verification共通Service」。",
       "context_refs": [
         "studio_work_0163",
         "studio_work_0162"
@@ -23488,9 +23488,63 @@
           "speaker": "user",
           "topic": "実装計画の段階登録",
           "message": "ルール改定、Componentクラス構造、特殊SubGrid接続、期待値共通計算、Field Definition Editor改善、Definition Test Runnerまでを段階的に計画する。"
+        },
+        {
+          "history_id": "disc_0164_002",
+          "at": "2026-08-12T09:58:00+09:00",
+          "speaker": "user",
+          "topic": "v0.18.41実装依頼",
+          "message": "incident_file=data/json/01_main/_studio_work_incident_data_v2.json、phase=v0.18.41-subgrid-component-data-derivedを指定し、foundation_rule_019に従って次作業を依頼。"
         }
       ],
-      "decision_log": [],
+      "decision_log": [
+        {
+          "decision_id": "dec_0164_001",
+          "at": "2026-08-12T09:58:00+09:00",
+          "decision": "SubGridの分類は見た目ではなく、正本DataへcommitするかどうかでData / Derivedを分離する。",
+          "reason": "同じGrid表示でも、正本Data編集と派生情報表示では保存責務が異なり、混在するとDerived情報が正本Dataへ混入するため。",
+          "applied_axes": [
+            "責務分離",
+            "正本Data保護"
+          ],
+          "conditions": "標準Editor上にSubGrid形式の表示を追加する場合。",
+          "exceptions": "なし。派生表示を正本Dataへ保存する必要が生じた場合は別責務として再設計する。",
+          "expected_behavior": "DataSubGridだけがcanonical commit経路を持ち、DerivedSubGridはreadonly表示に限定される。",
+          "acceptance_criteria": "DataSubGridComponentだけがcommit可能で、DerivedSubGridComponentのcommitが拒否されること。",
+          "confirmation_level": "Static/Runtime確認"
+        },
+        {
+          "decision_id": "dec_0164_002",
+          "at": "2026-08-12T09:58:00+09:00",
+          "decision": "既存objectArray/stringArray編集は一括クラス移行せず、DataSubGridComponentから既存SubGrid処理へ委譲できるAdapterとして共存させる。",
+          "reason": "既存SubGridは編集・Preview・列幅・型変換等の成熟した責務を持ち、同時移行すると差分が大きくなるため。",
+          "applied_axes": [
+            "小さな差分",
+            "既存互換",
+            "constitution_29"
+          ],
+          "conditions": "v0.18.41の初回SubGrid Component導入。",
+          "exceptions": "後続実証でComponent側への移行価値が確認された責務は段階的に移行可能。",
+          "expected_behavior": "既存objectArray/stringArray操作を維持しながら、新しいData / Derived責務境界を追加できる。",
+          "acceptance_criteria": "既存Runtimeを維持し、追加Static Testと既存Round Trip/SubGrid関連Testで新規FAILが発生しないこと。",
+          "confirmation_level": "Static/Runtime確認"
+        },
+        {
+          "decision_id": "dec_0164_003",
+          "at": "2026-08-12T09:58:00+09:00",
+          "decision": "SubGridComponentに共通Table Renderer境界を置くが、既存Data SubGrid編集Rendererの全面抽出は行わない。",
+          "reason": "Derived SubGridには共通readonly表描画が現在必要だが、既存Data編集Rendererまで同時抽象化する根拠はまだ不足しているため。",
+          "applied_axes": [
+            "責務分離",
+            "実証に基づく抽象化"
+          ],
+          "conditions": "Derived SubGridの最小表示を実現する場合。",
+          "exceptions": "Data/Derived双方で同じ編集・表示責務が複数実証された場合は共通Renderer昇格を再評価する。",
+          "expected_behavior": "DerivedはSubGridComponent共通Tableを利用し、Dataは既存編集UIをAdapter利用する。",
+          "acceptance_criteria": "Derived readonly表示と既存Data編集互換が同時に成立すること。",
+          "confirmation_level": "Static/Runtime確認"
+        }
+      ],
       "change_history": [
         {
           "history_id": "chg_0164_001",
@@ -23499,6 +23553,14 @@
           "before": "未登録",
           "after": "実装前の計画インシデントとして登録",
           "reason": "大きな一括改修を避け、人間が差分単位で判断・承認できるようにするため。"
+        },
+        {
+          "history_id": "chg_0164_002",
+          "at": "2026-08-12T09:58:00+09:00",
+          "change_type": "implementation_completed",
+          "before": "SubGrid Component階層は計画のみで、既存objectArray/stringArrayと将来Derived表示の保存責務がクラスとして分離されていなかった。",
+          "after": "SubGridComponent / DataSubGridComponent / DerivedSubGridComponentを追加し、既存Data SubGridをAdapterで維持しながらcanonical Dataとderived-readonlyの保存境界を実装した。",
+          "reason": "Definition Constraint Diff / TestPattern Previewを正本Dataへ混入させず標準Editorへ接続する前提を作るため。"
         }
       ]
     },

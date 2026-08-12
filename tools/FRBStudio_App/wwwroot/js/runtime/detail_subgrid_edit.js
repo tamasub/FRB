@@ -947,6 +947,11 @@ function createDetailSubGridCard({ field, row, gd, data }) {
   const editable = isDetailSubGridEditable(field);
   const card = document.createElement('div');
   card.className = 'child-card detail-subgrid-edit' + (editable ? ' is-editable' : ' is-readonly');
+  // v0.18.41-subgrid-component-data-derived:
+  // Existing objectArray/stringArray cards are canonical Data SubGrids.
+  // Derived Component cards use a different role and are excluded from the parent JSON commit path.
+  card.dataset.subgridRole = 'data';
+  card.dataset.subgridPersistence = 'canonical';
   card.dataset.subgridField = field.field;
   card.dataset.subgridType = field.type;
 
@@ -1078,6 +1083,9 @@ function applyDetailSubGridEdits(row, gd) {
   if (!row) return;
   const root = $('detailDialog') ?? document;
   [...root.querySelectorAll('.detail-subgrid-edit')].forEach(card => {
+    // v0.18.41: only canonical Data SubGrids participate in F12 parent JSON commit.
+    // Legacy cards without an explicit role are accepted during the migration period.
+    if (card.dataset.subgridRole && card.dataset.subgridRole !== 'data') return;
     const fieldName = card.dataset.subgridField;
     const field = (gd?.fields ?? []).find(f => f.field === fieldName);
     if (!field || !isDetailSubGridEditable(field)) return;
