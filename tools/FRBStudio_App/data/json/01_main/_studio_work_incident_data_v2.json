@@ -23571,17 +23571,17 @@
       "incident_type": "feature",
       "category": "definition_verification",
       "priority": "high",
-      "status": "未着手",
-      "follow_up_status": "PENDING",
-      "verification_status": "未確認",
+      "status": "完了",
+      "follow_up_status": "COMPLETED",
+      "verification_status": "確認済み",
       "context_def_status": "draft",
       "context_def_updated_at": "2026-08-12T09:04:00+09:00",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-12T09:04:00+09:00",
-      "updated_at": "2026-08-12T09:04:00+09:00",
+      "updated_at": "2026-08-12T10:10:00+09:00",
       "target_files": "data/json/config/validation_type_registry_v0_1.json\nfielddefs/schema/field_definition_data_schema_v0_1.json\nfielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json\nwwwroot/js/services/definition/ (new candidate)\ntests/qa/static/ or tests/definition/ (new candidate)\ndata/json/01_main/_studio_work_incident_data_v2.json",
-      "actual_updated_files": "",
+      "actual_updated_files": "wwwroot/js/services/definition/definition_verification_common.js\nwwwroot/js/services/definition/field_contract_resolver.js\nwwwroot/js/services/definition/test_pattern_deriver.js\nwwwroot/js/services/definition/expected_resolver.js\nwwwroot/js/services/definition/definition_verification_service.js\ntests/definition/definition_verification_service.test.mjs\ndata/json/01_main/_studio_work_incident_data_v2.json",
       "objective": "- Field DefinitionとValidation Type Registryから実効契約を解決する。\n- 実効契約からTestPatternとExpectedを機械導出する。\n- UI PreviewとDefinition Test Runnerが同じ共通Serviceを利用できる状態を作る。",
       "background": "- Validation Type標準、Constraint Override、実効値、TestPattern、ExpectedはDefinitionから再導出可能な派生情報である。\n- UI内へ計算式を埋め込むとRunnerとの二重実装になるため、UI非依存の共通Serviceが必要。",
       "scope": "- FieldContractResolverを定義する。\n- Registry標準値 + OverrideからResolved Contractを作る。\n- 未定義標準 + OverrideなしはUNRESOLVEDとして明示する。\n- TestPatternDeriverを定義する。\n- ExpectedResolverを定義する。\n- DefinitionVerificationServiceでResolver/DeriverをCompositionする。\n- まず単一Field Validationの標準パターンを対象とする。\n- 導出元Validation Type / Registry Version等の追跡情報を返せる構造にする。",
@@ -23591,12 +23591,12 @@
       "expected_outputs": "- ResolvedFieldContract\n- FieldContractResolver\n- TestPatternDeriver\n- ExpectedResolver\n- DefinitionVerificationService\n- 単項目Validation導出テスト\n- Version/Source追跡メタ情報",
       "risk": "- Registryにdefault値がないConstraintの扱いを曖昧にすると誤Expectedを生成する。\n- 数値境界・日時・null/required等で型別の生成規則が増えすぎる可能性がある。\n- Validation Type意味変更後の再現性を確保する必要がある。",
       "test_points": "- Registry defaultあり/なし、Overrideあり/なしの組合せを検証すること。\n- Preview用呼出しとRunner用呼出しで同一入力から同一TestPattern/Expectedを返すこと。\n- minimum/minimum_minus_1、maximum/maximum_plus_1、null、invalid_format等の代表パターンを検証すること。\n- 未解決Constraintを黙ってPASSにしないこと。\n- 純粋ロジックとしてnode環境でテスト可能であること。",
-      "verification_log": "",
+      "verification_log": "- node --check:\n  - definition_verification_common.js: PASS\n  - field_contract_resolver.js: PASS\n  - test_pattern_deriver.js: PASS\n  - expected_resolver.js: PASS\n  - definition_verification_service.js: PASS\n- Definition Verification Service Test:\n  - 9件 PASS / 0件 FAIL\n  - Registry default / Override / UNRESOLVEDの解決経路を確認\n  - minimum / minimum_minus_1 / maximum / maximum_plus_1 / null / invalid_formatの代表PatternとExpectedを確認\n  - Preview用 deriveForPreview とRunner用 deriveForRunner が同一結果を返すことを確認\n  - Registry既定境界を緩和するOverrideをINVALIDとして拒否することを確認\n  - minimum / maximumの矛盾RangeをINVALIDとして拒否することを確認\n  - string.numeric等のValidation Type固有patternをvalid_value / invalid_formatへ反映することを確認\n  - FRB FFTサンプル20 Field Definitionすべてで導出処理が完走することを確認\n  - 出力がJSON serialize可能なPlain Dataであり、DOM / Editor / SubGridへ依存しないことを確認\n- Static Test全体:\n  - 作業前: 54件中49件 PASS / 5件 FAIL\n  - 作業後: 54件中49件 PASS / 5件 FAIL\n  - FAIL 5件は作業前と同一\n  - 既存FAIL内訳:\n    - Field Definition / ViewDef Generation Rulesの承認状態期待差分 2件\n    - Thought Evolution系Data JSON欠落によるENOENT 3件\n  - 今回差分による新規FAILなし\n- 未実施:\n  - UI描画 / ブラウザ実機操作\n  - Definition Test Runner実行\n  - 理由: 本フェーズはUI非依存の共通導出Serviceまでを対象とし、UI接続とRunner実行は後続Incidentへ分離しているため。",
       "context_def_draft": "- Studioくんは汎用AI協働基盤として維持する。\n- AI承認駆動開発はStudio Coreそのものではなく、標準Capabilityとして実装する。\n- UI Componentと計算Serviceを分離し、表示と実行で同じ導出ロジックを利用する。",
       "user_request": "ルール改定計画からComponent基盤、項目定義Editor改善、共通Expected/TestPattern導出、Definition Test Runner実装までを、小さなインシデントへ分割して計画登録する。",
       "ai_response": "作業を段階分割し、Studio Coreの汎用性を維持したまま、Definition Verificationを標準Capabilityとして実装する計画を登録する。",
-      "latest_user_comment": "ルール改定計画～テストラン実装まで、インシデントで計画登録する。箇条書きにできる内容は箇条書きで記載する。",
-      "latest_ai_response": "計画登録のみ。実装・ルール改定は各インシデント着手時に最新ソースを再確認して行う。",
+      "latest_user_comment": "- incident_file: data/json/01_main/_studio_work_incident_data_v2.json\n- phase: v0.18.42-definition-verification-service\n- foundation_rule_019「GitHub基準ソースとZIP返却契約」に従って次作業を実施する。",
+      "latest_ai_response": "- Definition VerificationのUI非依存共通Serviceを実装。\n- FieldContractResolverを追加。\n  - Validation Type Registryのdefault_constraintsとField Definitionのconstraint_overridesを解決。\n  - default未定義かつOverrideなしをUNRESOLVEDとして明示。\n  - Registry既定境界を緩和するOverrideをINVALIDとして拒否。\n  - minimum / maximum等の解決後Range矛盾をINVALIDとして拒否。\n- TestPatternDeriverを追加。\n  - required_missing / null / valid_value / invalid_formatを標準導出。\n  - minimum / minimum_minus_1 / maximum / maximum_plus_1等の境界Patternを導出。\n  - date / datetime / instant / string lengthの代表境界にも対応。\n- ExpectedResolverを追加。\n  - TestPatternとResolvedFieldContractからACCEPT / REJECT / UNRESOLVEDを解決。\n  - 未解決Constraintを黙ってPASSにしない。\n- DefinitionVerificationServiceをComposition Rootとして追加。\n  - deriveForPreview / deriveForRunnerはいずれも同一derive処理へ委譲。\n  - PreviewとRunnerでExpected計算を二重実装しない契約を実装で固定。\n- Version / Source追跡情報をResolvedFieldContractとTestPatternへ付与。\n- Service入出力はJSON serialize可能なPlain Dataとし、DOM / Editor状態へ依存させていない。\n- 専用Testは9件すべてPASS。\n- Static Test全体は作業前後とも54件中49件PASS / 5件FAILで、今回差分による新規FAILなし。\n- validation_type_registry / Field Definition Schema / FRB FFTサンプル正本は参照のみで変更していない。\n- 次作業はstudio_work_0166「Field Definition Editor — Constraint Diff / TestPattern Preview」。",
       "context_refs": [
         "studio_work_0161",
         "studio_work_0149",
@@ -23611,9 +23611,81 @@
           "speaker": "user",
           "topic": "実装計画の段階登録",
           "message": "ルール改定、Componentクラス構造、特殊SubGrid接続、期待値共通計算、Field Definition Editor改善、Definition Test Runnerまでを段階的に計画する。"
+        },
+        {
+          "history_id": "disc_0165_002",
+          "at": "2026-08-12T10:10:00+09:00",
+          "speaker": "user",
+          "topic": "v0.18.42実装依頼",
+          "message": "incident_file=data/json/01_main/_studio_work_incident_data_v2.json、phase=v0.18.42-definition-verification-serviceを指定し、foundation_rule_019に従って次作業を依頼。"
         }
       ],
-      "decision_log": [],
+      "decision_log": [
+        {
+          "decision_id": "dec_0165_001",
+          "at": "2026-08-12T10:10:00+09:00",
+          "decision": "ResolvedFieldContract / TestPattern / Expectedの入出力はJSON serialize可能なPlain Dataとし、Definition Verification ServiceをDOM / Editor状態から分離する。",
+          "reason": "Preview ComponentとDefinition Test Runnerの双方から同じ導出ロジックを利用し、UI固有状態による二重実装・再現性低下を防ぐため。",
+          "applied_axes": [
+            "責務分離",
+            "再利用性",
+            "再現性"
+          ],
+          "conditions": "単一Field Definitionから実効契約・TestPattern・Expectedを導出する場合。",
+          "exceptions": "UI表示用Rowsへの変換は後続Component側の責務とする。",
+          "expected_behavior": "同一Field Definition / Registry入力からPreviewとRunnerで同一の導出結果を取得できる。",
+          "acceptance_criteria": "deriveForPreviewとderiveForRunnerが同一入力に対してdeepEqualとなり、ServiceソースがDOM / Editor / SubGridへ依存しないこと。",
+          "confirmation_level": "Node Test確認"
+        },
+        {
+          "decision_id": "dec_0165_002",
+          "at": "2026-08-12T10:10:00+09:00",
+          "decision": "Registry default未定義かつField Definition OverrideなしのConstraintはUNRESOLVEDとして保持し、黙って許可値・PASSへ補完しない。",
+          "reason": "標準値が存在しないこと自体が契約上の未確定情報であり、暗黙補完すると誤Expectedを生成するため。",
+          "applied_axes": [
+            "明示性",
+            "誤Expected防止",
+            "制約保全"
+          ],
+          "conditions": "overridable_constraints / required_constraintsの解決時。",
+          "exceptions": "Registry defaultまたはField Definition Overrideのどちらかが明示されているConstraintはその値をResolvedとして扱う。",
+          "expected_behavior": "未解決Constraintをunresolved_constraints / issuesへ残し、関連ExpectedはUNRESOLVEDとなる。",
+          "acceptance_criteria": "nullable未定義等のケースでService statusがPARTIALとなり、null PatternをACCEPTへ補完しないこと。",
+          "confirmation_level": "Node Test確認"
+        },
+        {
+          "decision_id": "dec_0165_003",
+          "at": "2026-08-12T10:10:00+09:00",
+          "decision": "TestPatternDeriverは入力候補とExpectation Ruleだけを生成し、ACCEPT / REJECT / UNRESOLVEDの最終Expected判定はExpectedResolverへ分離する。",
+          "reason": "Pattern生成と期待値判定を同一クラスへ混在させず、Runner・Preview双方でExpected判定責務を一箇所へ固定するため。",
+          "applied_axes": [
+            "単一責務",
+            "Composition",
+            "二重実装禁止"
+          ],
+          "conditions": "Definition由来TestPatternを生成する場合。",
+          "exceptions": "なし。UI Component側へExpected計算を複製しない。",
+          "expected_behavior": "TestPatternDeriver単体はExpectedを持たず、DefinitionVerificationServiceがExpectedResolverをCompositionして最終結果を作る。",
+          "acceptance_criteria": "derive結果のExpectedがExpectedResolver経由で付与され、Preview/Runner入口が共通deriveへ委譲すること。",
+          "confirmation_level": "Code Review / Node Test確認"
+        },
+        {
+          "decision_id": "dec_0165_004",
+          "at": "2026-08-12T10:10:00+09:00",
+          "decision": "Validation Type Registryが持つ固有境界はField Definition Overrideで緩和できず、解決後minimum / maximum等が矛盾する場合もINVALIDとして停止する。",
+          "reason": "Validation Type名が表す契約をOverrideで破壊したり、実現不能Rangeから誤った境界Expectedを生成したりしないため。",
+          "applied_axes": [
+            "契約保全",
+            "Fail Fast",
+            "Expected品質"
+          ],
+          "conditions": "Registry defaultとOverrideの双方がある境界Constraint、および解決後Rangeを評価する場合。",
+          "exceptions": "Registry固有境界の内側へ狭めるOverrideは許可する。",
+          "expected_behavior": "loosen / range contradictionをissuesへERRORとして記録し、TestPattern導出を停止する。",
+          "acceptance_criteria": "minimum=-1によるnon_negative境界緩和とminimum=90 / maximum=10の矛盾がINVALIDになること。",
+          "confirmation_level": "Node Test確認"
+        }
+      ],
       "change_history": [
         {
           "history_id": "chg_0165_001",
@@ -23622,6 +23694,14 @@
           "before": "未登録",
           "after": "実装前の計画インシデントとして登録",
           "reason": "大きな一括改修を避け、人間が差分単位で判断・承認できるようにするため。"
+        },
+        {
+          "history_id": "chg_0165_002",
+          "at": "2026-08-12T10:10:00+09:00",
+          "change_type": "implementation_completed",
+          "before": "Definition Verification共通Serviceは計画のみで、Field Contract解決・TestPattern導出・Expected解決をPreview / Runnerで共有する実装が存在しなかった。",
+          "after": "FieldContractResolver / TestPatternDeriver / ExpectedResolver / DefinitionVerificationServiceを追加し、Registry + OverrideからResolvedFieldContractとTestPattern + ExpectedをUI非依存で導出できるようにした。",
+          "reason": "次フェーズのField Definition Editor PreviewとDefinition Test Runnerが同じ期待値計算部品を利用できる共通基盤を先に確立するため。"
         }
       ]
     },

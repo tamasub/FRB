@@ -1505,7 +1505,7 @@
         "executeButton": {
           "caption": "AI依頼プロンプトコピー",
           "action": "CopyPromptFromTemplate",
-          "promptTemplate": "今回の作業依頼:\n- work_item_id: {{row.work_item_id}}\n- incident_file: {{data.filePath}}\n- phase: {{row.phase}}\n\n作業ルール:\n\nAIやスクリプトが直接取得するためのraw/archive URL:\n          - Foundation Rules raw: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/data/json/00_rules/frb_foundation_rules_data_v0_1.json\n\n          FRB Studio Foundation Rules の foundation_rule_019「GitHub基準ソースとZIP返却契約」を参照してください。  \n\n 記載形式:\n\n- Studioくん憲法 constitution_32「構造化記述の原則」に従う。  \n\n- 複数の変更内容・理由・対象・判断・確認結果・残課題・リスク・次作業は、原則として箇条書きまたは番号付きリストで記載する。  \n\n- 独立した複数事項を、一つの長い文章へ連結しない。",
+          "promptTemplate": "今回の作業依頼:\n- incident_file: {{data.filePath}}\n- work_item_id: {{row.work_item_id}}\n- phase: {{row.phase}}\n\n作業ルール:\n\n- FRBStudio_App*.zipがチャットに添付された場合は、最新資材zipとして扱う。\n- AIやスクリプトが直接取得するためのraw/archive URL:\n          - Foundation Rules raw: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/data/json/00_rules/frb_foundation_rules_data_v0_1.json\n\n          FRB Studio Foundation Rules の foundation_rule_019「GitHub基準ソースとZIP返却契約」を参照してください。  \n\n 記載形式:\n\n- Studioくん憲法 constitution_32「構造化記述の原則」に従う。  \n\n- 複数の変更内容・理由・対象・判断・確認結果・残課題・リスク・次作業は、原則として箇条書きまたは番号付きリストで記載する。  \n\n- 独立した複数事項を、一つの長い文章へ連結しない。",
           "requireSelectedRow": true,
           "description": "選択中の作業項目と現在のData JSONファイル名から、ChatGPT依頼用プロンプトを生成してクリップボードへコピーする。"
         }
