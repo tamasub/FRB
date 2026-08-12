@@ -3240,3 +3240,43 @@ body.related-grid-modal-open {
     flex: 0 0 auto;
   }
 }
+
+/* v0.18.43-field-definition-editor-derived-preview: Definition Verification Derived SubGrids */
+.studio-subgrid-component[data-subgrid-role="derived"] .detail-subgrid-note {
+  color: var(--muted);
+}
+.definition-constraint-diff-row.is-override td {
+  background: rgba(249, 115, 22, .07);
+}
+.definition-constraint-diff-row.is-override td:first-child {
+  box-shadow: inset 3px 0 0 rgba(249, 115, 22, .7);
+}
+.definition-constraint-override-cell {
+  font-weight: 800;
+}
+.definition-constraint-diff-row.is-unresolved td,
+.definition-test-preview-row.expected-unresolved td {
+  background: rgba(245, 158, 11, .08);
+}
+.definition-constraint-diff-row.is-invalid td {
+  background: rgba(220, 38, 38, .07);
+}
+.definition-constraint-status-override,
+.definition-test-expected-accept,
+.definition-test-expected-reject,
+.definition-test-expected-unresolved {
+  font-weight: 900;
+  letter-spacing: .02em;
+}
+.definition-constraint-status-unresolved,
+.definition-test-expected-unresolved {
+  color: #92400e;
+}
+.definition-constraint-status-invalid {
+  color: #b91c1c;
+}
+.definition-test-preview-row td[data-column="input"],
+.definition-test-preview-row td[data-column="reason"],
+.definition-test-preview-row td[data-column="source"] {
+  max-width: 360px;
+}

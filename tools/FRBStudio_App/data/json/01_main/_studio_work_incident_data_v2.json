@@ -23712,17 +23712,17 @@
       "incident_type": "feature",
       "category": "ui",
       "priority": "high",
-      "status": "未着手",
-      "follow_up_status": "PENDING",
-      "verification_status": "未確認",
+      "status": "完了",
+      "follow_up_status": "COMPLETED",
+      "verification_status": "確認済み",
       "context_def_status": "draft",
       "context_def_updated_at": "2026-08-12T09:04:00+09:00",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-12T09:04:00+09:00",
-      "updated_at": "2026-08-12T09:04:00+09:00",
+      "updated_at": "2026-08-12T10:26:00+09:00",
       "target_files": "defs/fielddefs/frb_fft_measurement_field_definitions_view_def_v0_1.json\nfielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json\ndata/json/config/validation_type_registry_v0_1.json\nwwwroot/js/components/ (new candidate)\nwwwroot/js/renderers/grid_detail.js\ntests/qa/static/\ndata/json/01_main/_studio_work_incident_data_v2.json",
-      "actual_updated_files": "",
+      "actual_updated_files": "defs/fielddefs/frb_fft_measurement_field_definitions_view_def_v0_1.json\nwwwroot/js/components/subgrid_component.js\nwwwroot/js/components/definition/definition_verification_derived_subgrid_component.js\nwwwroot/js/components/definition/definition_constraint_diff_component.js\nwwwroot/js/components/definition/definition_test_preview_component.js\nwwwroot/js/runtime/detail_save.js\nwwwroot/index.html\nwwwroot/styles.css\ntests/qa/static/field_definition_editor_derived_preview_static.test.mjs\ntests/qa/static/editor_component_model_static.test.mjs\ntests/qa/static/subgrid_component_data_derived_static.test.mjs\ntests/qa/static/studio_json_round_trip_static.test.mjs\ndata/json/01_main/_studio_work_incident_data_v2.json",
       "objective": "- 標準Detail Editor上にField Definition用の特殊Derived SubGridを接続する。\n- Validation Type標準・Override・実効値と、生成予定TestPattern/Expectedを一画面で確認できるようにする。",
       "background": "- 人間がDefinitionを承認する前に、標準から何を変え、その結果どのTestPattern/Expectedが発生するかを目で確認できる必要がある。\n- 専用Editorを新設せず、標準Editor + Componentとして構成することでStudio Coreの汎用性を維持する。",
       "scope": "- DefinitionConstraintDiffComponentをDerivedSubGridComponentとして実装する。\n- DefinitionTestPreviewComponentをDerivedSubGridComponentとして実装する。\n- Constraint列は標準値 / Override / Resolved / 状態を分離表示する。\n- Override差分を視覚強調する。\n- Test PreviewはPattern / Input / Expected / Source等をreadonly表示する。\n- Componentはstudio_work_0165の共通Serviceを呼ぶ。\n- ViewDefからComponentを宣言して接続する。",
@@ -23732,12 +23732,12 @@
       "expected_outputs": "- Constraint Diff Derived SubGrid\n- TestPattern/Expected Preview Derived SubGrid\n- ViewDef Component宣言\n- FRB FFT Field Definition v0_2を用いた初回実証\n- UI/Static回帰テスト",
       "risk": "- 見た目だけの専用処理がComponent外へ漏れるとEditor本体が再び用途依存になる。\n- Derived値がCopy/Paste JSONや保存Dataへ混入する可能性がある。\n- 列数増加でDetail Editorの視認性が下がる可能性がある。",
       "test_points": "- FRB FFT項目定義で標準/Override/Resolvedが期待どおり表示されること。\n- Override行だけが強調されること。\n- TestPattern Previewがstudio_work_0165の結果と一致すること。\n- 保存・Copy/Paste JSONへDerived Rowsが混入しないこと。\n- 通常のField Definition以外のEditor表示を壊さないこと。",
-      "verification_log": "",
+      "verification_log": "- node --check:\n  - subgrid_component.js: PASS\n  - definition_verification_derived_subgrid_component.js: PASS\n  - definition_constraint_diff_component.js: PASS\n  - definition_test_preview_component.js: PASS\n  - detail_save.js: PASS\n- Definition Editor Derived Preview専用Static Test:\n  - 9件 PASS / 0件 FAIL\n  - Field Definition ViewDefから2つのDerived Componentが宣言接続されることを確認\n  - Component継承構造とEditorComponentRegistry登録を確認\n  - Standard / Override / Resolvedの表示変換を確認\n  - Override行の視覚強調クラスを確認\n  - TestPattern PreviewがDefinitionVerificationService.deriveForPreview結果の直接Projectionであることを確認\n  - 2 ComponentがValidation Type Registry読込Promiseを共有し、同一Registryを重複取得しないことを確認\n  - Derived PreviewがField Definition正本JSONへ混入しないことを確認\n- Definition Verification / Component回帰Test:\n  - 26件 PASS / 0件 FAIL\n  - studio_work_0165共通Serviceの9件を含めて回帰確認\n  - SubGrid Data / Derived分離とEditor Component Modelを回帰確認\n- Static + Definition Test全体:\n  - 作業前: 63件中58件 PASS / 5件 FAIL\n  - 作業後: 72件中67件 PASS / 5件 FAIL\n  - FAIL 5件は作業前と同一\n  - 既存FAIL内訳:\n    - Field Definition / ViewDef Generation Rulesの承認状態期待差分 2件\n    - Thought Evolution系Data JSON欠落によるENOENT 3件\n  - 今回差分による新規FAILなし\n- Runtime生成物:\n  - Test実行で更新されたActual / Diffは原本へ復元\n  - 返却ZIPへruntime生成物を混入しない\n- 未実施:\n  - 実ブラウザでの手動UI操作\n  - Definition Test Runner実行\n  - Cross Field Constraint Preview\n  - 理由: 本フェーズはDerived Preview Component接続までを対象とし、Runnerはstudio_work_0167以降へ分離しているため。",
       "context_def_draft": "- Studioくんは汎用AI協働基盤として維持する。\n- AI承認駆動開発はStudio Coreそのものではなく、標準Capabilityとして実装する。\n- UI Componentと計算Serviceを分離し、表示と実行で同じ導出ロジックを利用する。",
       "user_request": "ルール改定計画からComponent基盤、項目定義Editor改善、共通Expected/TestPattern導出、Definition Test Runner実装までを、小さなインシデントへ分割して計画登録する。",
       "ai_response": "作業を段階分割し、Studio Coreの汎用性を維持したまま、Definition Verificationを標準Capabilityとして実装する計画を登録する。",
-      "latest_user_comment": "ルール改定計画～テストラン実装まで、インシデントで計画登録する。箇条書きにできる内容は箇条書きで記載する。",
-      "latest_ai_response": "計画登録のみ。実装・ルール改定は各インシデント着手時に最新ソースを再確認して行う。",
+      "latest_user_comment": "- work_item_id: studio_work_0166\n- incident_file: data/json/01_main/_studio_work_incident_data_v2.json\n- phase: v0.18.43-field-definition-editor-derived-preview\n- foundation_rule_019「GitHub基準ソースとZIP返却契約」に従って作業する。\n- constitution_32「構造化記述の原則」に従い、独立事項は箇条書きで記録する。",
+      "latest_ai_response": "- Field Definition Editorへ2つのreadonly Derived SubGrid Componentを接続。\n  - DefinitionConstraintDiffComponent\n    - Standard / Override / Resolved / Statusを分離表示\n    - Override行を視覚強調\n  - DefinitionTestPreviewComponent\n    - Pattern / Category / Input / Expected / Reason / Sourceを表示\n    - Expectedはstudio_work_0165のDefinitionVerificationService結果を直接利用\n- 共通のDefinitionVerificationDerivedSubGridComponentを追加。\n  - Validation Type Registry読込を担当\n  - 2 Component間でRegistry読込Promiseを共有\n  - 計算ロジックは持たずDefinitionVerificationServiceへ委譲\n- 標準Detail Editorは用途固有ロジックを保持しない。\n  - ViewDefのeditorComponents宣言からHost / Registry経由で接続\n  - F12反映後は全Componentを汎用的に再計算・再描画\n- SubGridComponentへ汎用Row / Cell class hookを追加。\n  - Override強調のためにComponent固有Rendererを複製しない\n- Derived PreviewはField Definition正本Data、Copy/Paste JSON、F12保存へ混入しない。\n- FRB FFT Field Definition v0_2を初回実証DataとしてStatic Testで確認。\n- 専用Testは9件すべてPASS。\n- 全体Testは作業前後とも既存5FAILのみで、新規FAILなし。\n- validation_type_registry_v0_1.jsonとField DefinitionサンプルDataは参照のみで変更していない。\n- 次作業はstudio_work_0167「Definition Test Runner Core」。",
       "context_refs": [
         "studio_work_0164",
         "studio_work_0165",
@@ -23751,9 +23751,81 @@
           "speaker": "user",
           "topic": "実装計画の段階登録",
           "message": "ルール改定、Componentクラス構造、特殊SubGrid接続、期待値共通計算、Field Definition Editor改善、Definition Test Runnerまでを段階的に計画する。"
+        },
+        {
+          "history_id": "disc_0166_002",
+          "at": "2026-08-12T10:26:00+09:00",
+          "speaker": "user",
+          "topic": "v0.18.43実装依頼",
+          "message": "- work_item_id: studio_work_0166\n- phase: v0.18.43-field-definition-editor-derived-preview\n- foundation_rule_019に従って実装する。\n- constitution_32に従い、複数事項は箇条書きで記載する。"
         }
       ],
-      "decision_log": [],
+      "decision_log": [
+        {
+          "decision_id": "dec_0166_001",
+          "at": "2026-08-12T10:26:00+09:00",
+          "decision": "Definition Verification用の2つのDerived SubGridは、共通のDefinitionVerificationDerivedSubGridComponentを介してDefinitionVerificationServiceを呼ぶ。",
+          "reason": "Constraint DiffとTest Previewに共通するRegistry読込・Service解決・非同期ライフサイクルを一箇所へ閉じ込め、Expected/TestPattern計算をUIへ複製しないため。",
+          "applied_axes": [
+            "責務分離",
+            "Composition",
+            "二重実装禁止"
+          ],
+          "conditions": "Field Definitionから派生情報を標準Detail Editorへ表示する場合。",
+          "exceptions": "Constraint行への変換とTestPattern行への変換は各Concrete ComponentのUI責務として分離する。",
+          "expected_behavior": "2 Componentは同じDefinitionVerificationService結果を利用し、Registry読込も同一dataPathでは共有される。",
+          "acceptance_criteria": "専用Static TestでService直結果との一致、Registry取得1回、Derived readonlyを確認する。",
+          "confirmation_level": "Node Static Test確認"
+        },
+        {
+          "decision_id": "dec_0166_002",
+          "at": "2026-08-12T10:26:00+09:00",
+          "decision": "標準Detail EditorへDefinition固有分岐を追加せず、ViewDef editorComponents + EditorComponentHost / Registryだけで接続する。",
+          "reason": "Studio Coreを汎用AI協働基盤として維持し、Definition Verificationを標準Capabilityとして載せる境界を守るため。",
+          "applied_axes": [
+            "汎用性",
+            "用途依存排除",
+            "ViewDef First"
+          ],
+          "conditions": "Field Definition GridのDetail Editorを開く場合。",
+          "exceptions": "F12反映後のComponent再描画は全Component共通のEditor Lifecycleとしてdetail_save.jsへ追加する。",
+          "expected_behavior": "detail_save.jsはdefinition_constraint_diff / definition_test_preview / Expected等の用途語彙を知らず、Hostへcontextを渡すだけになる。",
+          "acceptance_criteria": "Static TestでDetail RuntimeにDefinition固有語彙が存在しないことと、F12後の汎用refreshを確認する。",
+          "confirmation_level": "Code Review / Static Test確認"
+        },
+        {
+          "decision_id": "dec_0166_003",
+          "at": "2026-08-12T10:26:00+09:00",
+          "decision": "Override差分の視覚強調はSubGrid共通RendererへRow / Cell class hookだけを追加し、Definition Component側がclass名を返す方式とする。",
+          "reason": "特殊ComponentごとにTable Rendererを複製せず、標準SubGrid描画契約を維持しながら用途固有の強調表現だけを差し込むため。",
+          "applied_axes": [
+            "共通Renderer維持",
+            "小さな拡張点",
+            "可読性"
+          ],
+          "conditions": "Derived SubGridで行・セル単位の視覚状態を表現する場合。",
+          "exceptions": "具体的なOverride / INVALID / UNRESOLVEDの意味とclass選択はDefinitionConstraintDiffComponent側が所有する。",
+          "expected_behavior": "SubGridComponentは意味を知らずgetRowClassName / getCellClassNameだけを呼ぶ。",
+          "acceptance_criteria": "Override行にis-overrideと専用cell classが付与され、共通Rendererが継続利用されること。",
+          "confirmation_level": "Static Test確認"
+        },
+        {
+          "decision_id": "dec_0166_004",
+          "at": "2026-08-12T10:26:00+09:00",
+          "decision": "Constraint Diff / TestPattern / Expectedなどの派生値はViewDefのeditorComponents宣言から表示するだけとし、Field Definition正本Dataへ保存しない。",
+          "reason": "再導出可能な派生情報を正本へ混ぜると、Registry変更時の不整合とCopy/Paste・保存時の二重正本化を招くため。",
+          "applied_axes": [
+            "正本分離",
+            "再導出可能性",
+            "保存安全性"
+          ],
+          "conditions": "Field Definition DetailでDefinition Verification結果を表示する場合。",
+          "exceptions": "将来Export成果物として明示的に生成する場合は別契約で扱う。",
+          "expected_behavior": "Field Definitionのfieldsやsample Dataへresolved/test_patterns/expectedを追加せず、Derived Componentだけが一時表示する。",
+          "acceptance_criteria": "Static Testでsample Dataに派生キーが存在せず、Component commitがreadonly拒否されること。",
+          "confirmation_level": "Static Test確認"
+        }
+      ],
       "change_history": [
         {
           "history_id": "chg_0166_001",
@@ -23762,6 +23834,14 @@
           "before": "未登録",
           "after": "実装前の計画インシデントとして登録",
           "reason": "大きな一括改修を避け、人間が差分単位で判断・承認できるようにするため。"
+        },
+        {
+          "history_id": "chg_0166_002",
+          "at": "2026-08-12T10:26:00+09:00",
+          "change_type": "implementation_completed",
+          "before": "Field Definition Editor改善は計画のみで、Validation Type標準/Override/ResolvedやTestPattern/Expectedを標準Detail Editor上で確認するComponentが存在しなかった。",
+          "after": "DefinitionConstraintDiffComponentとDefinitionTestPreviewComponentをDerivedSubGridとして追加し、Field Definition ViewDefから宣言接続。共通DefinitionVerificationServiceを利用して派生Previewを表示できる構造にした。",
+          "reason": "人間がField Definitionを承認する際に、標準からの差分とその結果生成されるTestPattern/Expectedを同じDetail Editorで確認できるようにするため。"
         }
       ]
     },

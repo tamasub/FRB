@@ -190,6 +190,7 @@ function applyDetail(e) {
   if (selectedIndex < 0) return;
   applyDetailInputsToSelectedRow();
   renderGrid();
+  renderDetailEditorComponents(currentRows[selectedIndex], gd);
   updateDetailNavButtons();
   setStatus('詳細を反映しました（F7/F8で前後移動できます）');
   // 承認作業では連続レビューしたいので、反映では詳細ダイアログを閉じない。

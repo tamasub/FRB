@@ -409,6 +409,28 @@
                 "operator": "contains"
               }
             }
+          ],
+          "editorComponents": [
+            {
+              "id": "field_definition_constraint_diff",
+              "type": "definition_constraint_diff",
+              "placement": "afterChildGrids",
+              "caption": "Constraint Resolution — Standard / Override / Resolved",
+              "readonly": true,
+              "config": {
+                "registryDataPath": "config/validation_type_registry_v0_1.json"
+              }
+            },
+            {
+              "id": "field_definition_test_preview",
+              "type": "definition_test_preview",
+              "placement": "afterChildGrids",
+              "caption": "Generated TestPattern / Expected Preview",
+              "readonly": true,
+              "config": {
+                "registryDataPath": "config/validation_type_registry_v0_1.json"
+              }
+            }
           ]
         }
       ],

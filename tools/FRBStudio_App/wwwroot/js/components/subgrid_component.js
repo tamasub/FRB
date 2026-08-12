@@ -1,4 +1,4 @@
-// v0.18.41-subgrid-component-data-derived
+// v0.18.43-field-definition-editor-derived-preview
 // SubGrid UI Component base.
 // The class owns SubGrid presentation/lifecycle only. Persistence and derived calculation belong to subclasses/services.
 
@@ -90,6 +90,14 @@ class SubGridComponent extends EditorComponent {
     });
   }
 
+  getRowClassName(_row, _rowIndex) {
+    return '';
+  }
+
+  getCellClassName(_row, _column, _rowIndex) {
+    return '';
+  }
+
   buildViewModel() {
     const rows = this.normalizeRows(this.getRows());
     const columns = this.getColumns(rows).map(subGridComponentColumn).filter(Boolean);
@@ -176,11 +184,15 @@ class SubGridComponent extends EditorComponent {
     table.appendChild(thead);
 
     const tbody = doc.createElement('tbody');
-    model.rows.forEach(row => {
+    model.rows.forEach((row, rowIndex) => {
       const tr = doc.createElement('tr');
+      const rowClassName = String(this.getRowClassName(row, rowIndex) ?? '').trim();
+      if (rowClassName) tr.className = rowClassName;
       model.columns.forEach(column => {
         const td = doc.createElement('td');
         td.dataset.column = column.field;
+        const cellClassName = String(this.getCellClassName(row, column, rowIndex) ?? '').trim();
+        if (cellClassName) td.className = cellClassName;
         td.textContent = subGridComponentCellText(row?.[column.field]);
         tr.appendChild(td);
       });
