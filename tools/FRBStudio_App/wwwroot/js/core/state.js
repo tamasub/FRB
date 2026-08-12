@@ -33,6 +33,13 @@ let currentViewDefContextModel = null; // v0.15.5.2 ViewDef context declaration 
 let mainContextPanelExpanded = false;
 let targetContextDetailPanelExpanded = false;
 
+// v0.18.47-field-definition-runtime-validation:
+// ViewDef root item_definition_ref から読み込んだ、現在の実Data Editor用の明示契約。
+// item_definition_ref がない既存ViewDefでは null のまま従来動作を維持する。
+let currentRuntimeFieldDefinitionRef = '';
+let currentRuntimeFieldDefinitionDocument = null;
+let currentRuntimeValidationTypeRegistry = null;
+
 // v0.14.1-data-viewdef-candidates:
 // Data JSON can declare which ViewDefs are valid manual switch candidates.
 // When candidates are present, the ViewDef picker is restricted to this list.

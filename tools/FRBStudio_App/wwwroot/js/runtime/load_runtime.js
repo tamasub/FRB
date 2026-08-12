@@ -14,6 +14,9 @@ async function loadFromObjects(defObj, dataObj, label='読み込み完了', data
   if (typeof logViewDefReadContract === 'function') logViewDefReadContract(currentViewDefReadContract);
   if (typeof logViewDefContextModel === 'function') logViewDefContextModel(currentViewDefContextModel);
   viewDef = defObj;
+  if (typeof loadRuntimeFieldDefinitionContext === 'function') {
+    await loadRuntimeFieldDefinitionContext(defObj);
+  }
   currentDataSources = {};
   currentDataSourceSpecs = {};
   sourceData = await materializeVirtualDataForViewDef(defObj, dataObj);
@@ -65,6 +68,68 @@ async function fetchJson(url) {
   const res = await fetch(url, {cache: 'no-store'});
   if (!res.ok) throw new Error(`${url} の読み込みに失敗しました (${res.status})`);
   return res.json();
+}
+
+function normalizeRuntimeFieldDefinitionRef(raw) {
+  const value = String(raw ?? '').trim().replace(/\\/g, '/');
+  if (!value) return '';
+  if (value.includes('://') || value.startsWith('/') || /^[A-Za-z]:/.test(value) || /[?#]/.test(value)) {
+    throw new Error(`item_definition_ref が不正です: ${value}`);
+  }
+  if (!value.toLowerCase().endsWith('.json')) {
+    throw new Error(`item_definition_ref は .json を指定してください: ${value}`);
+  }
+  const parts = value.split('/');
+  if (parts.some(part => !part || part === '.' || part === '..')) {
+    throw new Error(`item_definition_ref のパスが不正です: ${value}`);
+  }
+  return parts.join('/');
+}
+
+function runtimeFieldDefinitionApiPath(ref) {
+  return '/api/fielddefs/' + ref.split('/').map(part => encodeURIComponent(part)).join('/');
+}
+
+async function loadRuntimeFieldDefinitionContext(defObj) {
+  currentRuntimeFieldDefinitionRef = '';
+  currentRuntimeFieldDefinitionDocument = null;
+  currentRuntimeValidationTypeRegistry = null;
+
+  const ref = normalizeRuntimeFieldDefinitionRef(
+    defObj?.item_definition_ref
+      ?? defObj?.itemDefinitionRef
+      ?? ''
+  );
+  if (!ref) return { enabled: false };
+
+  const registryPath = '/api/data/config/validation_type_registry_v0_1.json';
+  let fieldDefinitionDocument;
+  let registry;
+  try {
+    [fieldDefinitionDocument, registry] = await Promise.all([
+      fetchJson(runtimeFieldDefinitionApiPath(ref)),
+      fetchJson(registryPath)
+    ]);
+  } catch (err) {
+    throw new Error(`Field Definition Runtime契約の読み込みに失敗しました: ${ref} / ${err.message}`);
+  }
+
+  if (fieldDefinitionDocument?.document_type !== 'field_definition' || !Array.isArray(fieldDefinitionDocument?.field_definitions)) {
+    throw new Error(`item_definition_ref のJSONがField Definition契約ではありません: ${ref}`);
+  }
+  if (registry?.document_type !== 'validation_type_registry' || !Array.isArray(registry?.validation_type_definitions)) {
+    throw new Error(`Validation Type Registryが不正です: config/validation_type_registry_v0_1.json`);
+  }
+
+  currentRuntimeFieldDefinitionRef = ref;
+  currentRuntimeFieldDefinitionDocument = fieldDefinitionDocument;
+  currentRuntimeValidationTypeRegistry = registry;
+  return {
+    enabled: true,
+    ref,
+    field_definition_count: fieldDefinitionDocument.field_definitions.length,
+    registry_version: String(registry.registry_version ?? '')
+  };
 }
 
 

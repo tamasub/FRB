@@ -3280,3 +3280,16 @@ body.related-grid-modal-open {
 .definition-test-preview-row td[data-column="source"] {
   max-width: 360px;
 }
+
+
+/* v0.18.47-field-definition-runtime-validation */
+.field.studio-field-definition-invalid {
+  border-radius: 10px;
+  outline: 2px solid rgba(220, 38, 38, .55);
+  outline-offset: 3px;
+  background: rgba(254, 226, 226, .42);
+}
+.field.studio-field-definition-invalid label {
+  color: #b91c1c;
+  font-weight: 800;
+}

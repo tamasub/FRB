@@ -1079,8 +1079,9 @@ function collectDetailSubGridValue(card) {
   });
 }
 
-function applyDetailSubGridEdits(row, gd) {
+function applyDetailSubGridEdits(row, gd, options={}) {
   if (!row) return;
+  const markCommitted = options.markCommitted !== false;
   const root = $('detailDialog') ?? document;
   [...root.querySelectorAll('.detail-subgrid-edit')].forEach(card => {
     // v0.18.41: only canonical Data SubGrids participate in F12 parent JSON commit.
@@ -1091,6 +1092,18 @@ function applyDetailSubGridEdits(row, gd) {
     if (!field || !isDetailSubGridEditable(field)) return;
     const value = collectDetailSubGridValue(card);
     setByPath(row, fieldName, value);
+    if (markCommitted) {
+      card.classList.remove('is-dirty');
+      const badge = card.querySelector('.detail-subgrid-dirty-badge');
+      if (badge) badge.textContent = '反映済み';
+    }
+  });
+}
+
+function markDetailSubGridEditsCommitted() {
+  const root = $('detailDialog') ?? document;
+  [...root.querySelectorAll('.detail-subgrid-edit')].forEach(card => {
+    if (card.dataset.subgridRole && card.dataset.subgridRole !== 'data') return;
     card.classList.remove('is-dirty');
     const badge = card.querySelector('.detail-subgrid-dirty-badge');
     if (badge) badge.textContent = '反映済み';

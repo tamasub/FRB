@@ -1016,7 +1016,7 @@ function updateDetailNavButtons() {
   if (nextBtn) nextBtn.disabled = pos < 0 || pos >= filteredRows.length - 1;
 }
 
-function applyDetailInputsToRow(row) {
+function applyDetailInputsToRow(row, options={}) {
   if (!row) return;
   const gd = gridDef();
   if (typeof applyTargetContextDetailPanelEdits === 'function') applyTargetContextDetailPanelEdits(row);
@@ -1043,7 +1043,7 @@ function applyDetailInputsToRow(row) {
   });
 
   if (typeof applyDetailSubGridEdits === 'function') {
-    applyDetailSubGridEdits(row, gd);
+    applyDetailSubGridEdits(row, gd, { markCommitted: options.markSubGridCommitted !== false });
   }
 }
 
@@ -1064,7 +1064,11 @@ function moveDetail(delta) {
   const pos = currentFilteredPosition();
   const nextPos = pos + delta;
   if (pos < 0 || nextPos < 0 || nextPos >= filteredRows.length) return;
-  applyDetailInputsToSelectedRow();
+  if (typeof tryCommitCurrentDetailEdits === 'function') {
+    if (!tryCommitCurrentDetailEdits({ source: 'navigation' })) return;
+  } else {
+    applyDetailInputsToSelectedRow();
+  }
   selectedIndex = filteredRows[nextPos].index;
   renderGrid();
   openDetail(selectedIndex, true);

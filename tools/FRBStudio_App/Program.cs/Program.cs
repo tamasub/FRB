@@ -75,12 +75,14 @@ internal static class Program
         var dataDir = Path.Combine(dataRootDir, "json");
         var markdownDir = Path.Combine(dataRootDir, "markdown");
         var defsDir = Path.Combine(root, "defs");
+        var fieldDefsDir = Path.Combine(root, "fielddefs");
         var overlaysDir = Path.Combine(root, "studio_overlays");
 
         Directory.CreateDirectory(dataRootDir);
         Directory.CreateDirectory(dataDir);
         Directory.CreateDirectory(markdownDir);
         Directory.CreateDirectory(defsDir);
+        Directory.CreateDirectory(fieldDefsDir);
         Directory.CreateDirectory(overlaysDir);
 
         var dataFolders = ResolveDataFolders(
@@ -106,6 +108,16 @@ internal static class Program
         app.MapGet("/api/data", () => Results.Json(ListJsonFiles(dataFolders)));
 
         app.MapGet("/api/defs", () => Results.Json(ListJsonFiles(defsDir)));
+
+        // v0.18.47-field-definition-runtime-validation:
+        // item_definition_ref is relative to the independent fielddefs root.
+        // Runtime only needs a read path here; editing/browsing policy remains a separate responsibility.
+        app.MapGet("/api/fielddefs/{**name}", async (string name) =>
+        {
+            var path = SafeJsonPath(fieldDefsDir, name);
+            if (path is null || !File.Exists(path)) return Results.NotFound();
+            return Results.Text(await File.ReadAllTextAsync(path, Encoding.UTF8), "application/json; charset=utf-8");
+        });
 
         // v0.17.0-studio-overlay-manifest-separation:
         // OverlayはCore(wwwroot/defs/data)を変更せず、studio_overlays/{overlayId} 配下で管理する。

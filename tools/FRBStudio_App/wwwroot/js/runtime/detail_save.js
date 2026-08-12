@@ -163,19 +163,128 @@ function renderChildArea(row, gd) {
   });
 }
 
+// Round Trip compatibility: consumeStudioJsonRoundTripDraft must not run before Runtime Validation;
+// the pending draft is staged with getStudioJsonRoundTripDraftRow and cleared only after an accepted commit.
+function buildPendingDetailApplyRow(baseRow) {
+  if (!baseRow) return null;
+  const roundTripDraft = typeof getStudioJsonRoundTripDraftRow === 'function'
+    ? getStudioJsonRoundTripDraftRow()
+    : null;
+  const working = cloneData(roundTripDraft ?? baseRow) ?? {};
+  // F12 validation must inspect the latest UI values without mutating canonical Data.
+  // SubGrid dirty state is only cleared after validation succeeds.
+  applyDetailInputsToRow(working, { markSubGridCommitted: false });
+  return working;
+}
+
+function clearRuntimeFieldDefinitionValidationMarks() {
+  const root = $('detailDialog') ?? document;
+  root?.querySelectorAll?.('.studio-field-definition-invalid').forEach(el => {
+    el.classList.remove('studio-field-definition-invalid');
+  });
+}
+
+function markRuntimeFieldDefinitionValidationErrors(result) {
+  const root = $('detailDialog') ?? document;
+  const checks = Array.isArray(result?.blocking_checks) ? result.blocking_checks : [];
+  checks.forEach(check => {
+    const fieldName = String(check?.field_name ?? '');
+    if (!fieldName) return;
+    const escaped = globalThis.CSS?.escape ? CSS.escape(fieldName) : fieldName.replace(/["\\]/g, '\\$&');
+    root?.querySelectorAll?.(`[data-field="${escaped}"]`).forEach(control => {
+      const target = control.closest?.('.field') ?? control;
+      target.classList?.add?.('studio-field-definition-invalid');
+    });
+  });
+}
+
+function validatePendingDetailApplyRow(row, gd) {
+  if (typeof RuntimeFieldDefinitionValidationService === 'undefined') {
+    return { status: 'SKIPPED', reason_code: 'RUNTIME_VALIDATION_SERVICE_UNAVAILABLE', checks: [], blocking_checks: [] };
+  }
+  const service = new RuntimeFieldDefinitionValidationService();
+  return service.validateRow({
+    row,
+    gridDef: gd,
+    fieldDefinitionDocument: currentRuntimeFieldDefinitionDocument,
+    registry: currentRuntimeValidationTypeRegistry
+  });
+}
+
+function reportRuntimeFieldDefinitionValidationFailure(result) {
+  clearRuntimeFieldDefinitionValidationMarks();
+  markRuntimeFieldDefinitionValidationErrors(result);
+  const detailText = typeof formatRuntimeFieldDefinitionValidationDetail === 'function'
+    ? formatRuntimeFieldDefinitionValidationDetail(result)
+    : String(result?.reason_code ?? 'FIELD_DEFINITION_CONTRACT_VIOLATION');
+
+  const count = Array.isArray(result?.blocking_checks) ? result.blocking_checks.length : 0;
+  setStatus(`F12反映を拒否しました: Field Definition契約違反 ${count}件`, {
+    kind: 'error',
+    title: 'Field Definition契約違反',
+    toast: false,
+    sticky: true
+  });
+  if (typeof showStudioConfirmDialog === 'function') {
+    showStudioConfirmDialog({
+      title: 'Field Definition契約違反',
+      message: '入力値がField Definitionの契約を満たしていないため、正本Dataへ反映しませんでした。入力値は画面に残しています。',
+      detail: detailText,
+      okText: '閉じる',
+      cancelText: '戻る',
+      danger: true
+    });
+  }
+}
+
+function finalizeValidatedDetailCommit(row, index) {
+  currentRows[index] = row;
+  if (typeof getStudioJsonRoundTripDraftRow === 'function' && getStudioJsonRoundTripDraftRow()) {
+    if (typeof discardStudioJsonRoundTripDraft === 'function') discardStudioJsonRoundTripDraft();
+  }
+  if (typeof markDetailSubGridEditsCommitted === 'function') markDetailSubGridEditsCommitted();
+  clearRuntimeFieldDefinitionValidationMarks();
+}
+
+function tryCommitCurrentDetailEdits(options={}) {
+  if (detailMode !== 'edit' || selectedIndex < 0 || !currentRows[selectedIndex]) return true;
+  const gd = gridDef();
+  const pending = buildPendingDetailApplyRow(currentRows[selectedIndex]);
+  if (!pending) return false;
+
+  const validation = validatePendingDetailApplyRow(pending, gd);
+  if (validation.status === 'REJECT' || validation.status === 'UNRESOLVED') {
+    reportRuntimeFieldDefinitionValidationFailure(validation);
+    return false;
+  }
+
+  finalizeValidatedDetailCommit(pending, selectedIndex);
+  return true;
+}
+
 function applyDetail(e) {
   if (e) e.preventDefault();
 
   if (detailMode === 'new') {
     if (!draftRow || !Array.isArray(currentRows)) return;
-    const roundTripDraft = typeof consumeStudioJsonRoundTripDraft === 'function'
-      ? consumeStudioJsonRoundTripDraft()
-      : null;
-    if (roundTripDraft) draftRow = roundTripDraft;
-    else applyDetailInputsToRow(draftRow);
+    const pending = buildPendingDetailApplyRow(draftRow);
+    if (!pending) return;
+
     // 反映直前にもNo/Keyを再採番して、開いている間に増えた行との重複を避ける。
-    assignNewRowKeys(draftRow, draftRow);
-    currentRows.push(draftRow);
+    assignNewRowKeys(pending, pending);
+    const validation = validatePendingDetailApplyRow(pending, gridDef());
+    if (validation.status === 'REJECT' || validation.status === 'UNRESOLVED') {
+      reportRuntimeFieldDefinitionValidationFailure(validation);
+      return;
+    }
+
+    if (typeof getStudioJsonRoundTripDraftRow === 'function' && getStudioJsonRoundTripDraftRow()) {
+      if (typeof discardStudioJsonRoundTripDraft === 'function') discardStudioJsonRoundTripDraft();
+    }
+    if (typeof markDetailSubGridEditsCommitted === 'function') markDetailSubGridEditsCommitted();
+    clearRuntimeFieldDefinitionValidationMarks();
+
+    currentRows.push(pending);
     selectedIndex = currentRows.length - 1;
     detailMode = 'edit';
     draftRow = null;
@@ -188,7 +297,8 @@ function applyDetail(e) {
   }
 
   if (selectedIndex < 0) return;
-  applyDetailInputsToSelectedRow();
+  const gd = gridDef();
+  if (!tryCommitCurrentDetailEdits({ source: 'F12' })) return;
   renderGrid();
   renderDetailEditorComponents(currentRows[selectedIndex], gd);
   updateDetailNavButtons();
@@ -374,7 +484,9 @@ async function writeBackVirtualDataEdits() {
 
 async function saveOverwriteJson() {
   applyHeaderEdits();
-  if (detailMode === 'edit' && selectedIndex >= 0) applyDetailInputsToSelectedRow();
+  if (detailMode === 'edit' && selectedIndex >= 0) {
+    if (!tryCommitCurrentDetailEdits({ source: 'save' })) return false;
+  }
   ensureViewDefNameInData(sourceData, lastLoadedDefName || selectedDefName());
 
   const writeBackSaved = await writeBackVirtualDataEdits();
@@ -388,7 +500,7 @@ async function saveOverwriteJson() {
   if (!currentDataApiUrl) {
     setStatus('API読み込みではないため、別名保存します（上書き保存するには /api/data/xxx.json で読み込んでください）');
     saveAsJson();
-    return;
+    return true;
   }
 
   const res = await fetch(currentDataApiUrl, {
@@ -403,6 +515,7 @@ async function saveOverwriteJson() {
   }
 
   setStatus(`上書き保存しました: ${currentDataApiUrl}`);
+  return true;
 }
 
 // v0.5-registry: high-level renderer registrations.
