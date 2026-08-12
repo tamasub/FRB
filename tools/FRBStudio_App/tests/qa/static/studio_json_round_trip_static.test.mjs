@@ -86,7 +86,7 @@ test('detail editor exposes a single maximize/restore toggle and a sticky title 
   assert.match(index, /id="detailDialogSizeToggleBtn"/);
   assert.match(index, /type="button"[\s\S]*aria-label="詳細画面を最大化"/);
   assert.match(index, /app\.js\?v=detail-dialog-expand-01836/);
-  assert.match(index, /styles\.css\?v=field-definition-derived-preview-01843/);
+  assert.match(index, /styles\.css\?v=field-definition-caption-header-01848/);
 
   assert.match(app, /function setDetailDialogExpanded/);
   assert.match(app, /detail-dialog-expanded/);

@@ -1,5 +1,5 @@
 フォルダー パスの一覧:  ボリューム Samsung980_Pro
-ボリューム シリアル番号は 000000E3 5007:08D7 です
+ボリューム シリアル番号は 0000001A 5007:08D7 です
 F:.
 |   .gitignore
 |   appsettings.Development.json
@@ -12,15 +12,17 @@ F:.
 |   cmd_file_list_Tree.txt
 |   cmd_make_FRBStudio_App_zip_v2.bat
 |   cmd_make_overlays_zip_v1.bat
+|   count_js_steps.bat
+|   count_js_steps.py
 |   FRB.ico
 |   FRBStudio.exe
 |   FRBStudio.pdb
 |   FRBStudio.staticwebassets.endpoints.json
-|   FRBStudio_App20260719_213851.zip
-|   FRBStudio_App20260720_082855.zip
-|   FRBStudio_App20260720_160511.zip
-|   FRBStudio_App20260720_164235.zip
-|   FRBStudio_App20260720_164644.zip
+|   FRBStudio_App20260812_130538.zip
+|   FRBStudio_App20260812_132226.zip
+|   FRBStudio_App20260812_140056.zip
+|   FRBStudio_App20260812_142216.zip
+|   FRBStudio_App20260812_153416.zip
 |   FRB_tray.ico
 |   package-lock.json
 |   package.json
@@ -28,10 +30,12 @@ F:.
 |   studio_overlays20260720_100908.zip
 |   web.config
 |   
++---countstep
+|       countstep.txt
+|       countstep_20260704_160930.txt
+|       
 +---data
 |   +---json
-|   |   |   03_tests.zip
-|   |   |   
 |   |   +---00_master
 |   |   |       message_catalog_data_v0_1.json
 |   |   |       
@@ -48,6 +52,7 @@ F:.
 |   |   |   |   studio_context_engineer_wannabe_foundation_rules_data_v0_1_draft.json
 |   |   |   |   studio_test_plan_responsibility_scope_md_data_v0_1.json
 |   |   |   |   trigger_def_data_v0_1.json
+|   |   |   |   _FRB_Studio_Design_Document_Map_v0_1.md
 |   |   |   |   _json_creation_prompt.md
 |   |   |   |   _my_most_important_context.md
 |   |   |   |   
@@ -72,6 +77,7 @@ F:.
 |   |   |           RESPONSIBILITY_EXPECTED_DIFF_EVIDENCE_OUTPUT_REPORT_v0_18_10.md
 |   |   |           RESPONSIBILITY_EXPECTED_TESTS_FIRST_SET_REPORT_v0_18_8.md
 |   |   |           RESPONSIBILITY_REFACTOR_FIRST_STEP_REPORT_v0_18_7.md
+|   |   |           RULE_REVIEW_STATUS_RESPONSIBILITY_CLEANUP_REPORT_v0_18_30.md
 |   |   |           STUDIO_DATETIME_FORMAT_CONTRACT_REPORT_v0_18_19.md
 |   |   |           SUBGRID_PREVIEW_EDIT_ACTION_COLUMN_POLISH_REPORT_v0_18_12.md
 |   |   |           SUBGRID_SINGLE_LINE_TEST_PATTERN_VIEWDEF_REPORT_v0_18_11.md
@@ -90,20 +96,39 @@ F:.
 |   |   |           
 |   |   +---01_main
 |   |   |   |   00_do_incident_prompt_temple.md
-|   |   |   |   01_create_testpatern_prompt_temple.md
-|   |   |   |   chatgpt_context_relation_graph_data_v0_1.json
-|   |   |   |   chatgpt_raw_keyword_activation_data_v0_1.json
-|   |   |   |   chatgpt_sentence_prime_map_data_v0_1.json
-|   |   |   |   chatgpt_shared_context_data_v0_1.json
-|   |   |   |   message_catalog_expected_pattern_review_data_v0_1.json
-|   |   |   |   qa_expected_checks_add_candidates_v0_1.json
-|   |   |   |   qa_expected_checks_classified_v0_1.json
-|   |   |   |   qa_expected_checks_sample_v0_1.json
 |   |   |   |   qa_test_patterns_sample_v0_1.json
-|   |   |   |   studio_fx_chart_viewer_incident_data_v0_4_batch_simulation_registered.json
-|   |   |   |   studio_work_incident_data_v2.json
+|   |   |   |   studio_fx_chart_viewer_incident_data_v0_4.json
+|   |   |   |   _studio_work_incident_data_v2.json
+|   |   |   |   _studio_work_incident_data_v2_schema_v0_1.json
 |   |   |   |   
-|   |   |   \---md
+|   |   |   +---chatgpt_ex
+|   |   |   |       chatgpt_context_relation_graph_data_v0_1.json
+|   |   |   |       chatgpt_raw_keyword_activation_data_v0_1.json
+|   |   |   |       chatgpt_sentence_prime_map_data_v0_1.json
+|   |   |   |       chatgpt_shared_context_data_v0_1.json
+|   |   |   |       
+|   |   |   +---md
+|   |   |   |       studio_work_decision_reasons_summary.md
+|   |   |   |       
+|   |   |   +---qa_expected_checks
+|   |   |   |       qa_expected_checks_add_candidates_v0_1.json
+|   |   |   |       qa_expected_checks_classified_v0_1.json
+|   |   |   |       qa_expected_checks_sample_v0_1.json
+|   |   |   |       
+|   |   |   +---thought_difference
+|   |   |   |       thought_difference_analysis_profile_data_v0_1.json
+|   |   |   |       thought_difference_result_quality_asset_data_v0_1.json
+|   |   |   |       thought_difference_result_thought_evolution_data_v0_1.json
+|   |   |   |       thought_evolution_engine_profile_data_v0_1.json
+|   |   |   |       thought_evolution_observation_quality_asset_data_v0_1.json
+|   |   |   |       thought_evolution_observation_thought_evolution_data_v0_1.json
+|   |   |   |       thought_evolution_proposal_quality_asset_data_v0_1.json
+|   |   |   |       thought_evolution_proposal_thought_evolution_data_v0_1.json
+|   |   |   |       thought_evolution_relation_approval_data_v0_1.json
+|   |   |   |       thought_evolution_version_quality_asset_data_v0_1.json
+|   |   |   |       thought_evolution_version_thought_evolution_data_v0_1.json
+|   |   |   |       
+|   |   |   \---_archive
 |   |   +---02_mission
 |   |   |   +---sample
 |   |   |   |       studio_context_engineer_wannabe_mission_def_sample_v0_1_draft_xx.json
@@ -116,6 +141,23 @@ F:.
 |   |   +---03_tests
 |   |   |   |   ai_constraint_spec_aggregated_v0_6_footer_chat.json
 |   |   |   |   
+|   |   |   +---contracts
+|   |   |   |   \---definition_test_runner_frb_fft_v0_1
+|   |   |   |       +---actual
+|   |   |   |       |       definition_test_runner.actual.json
+|   |   |   |       |       
+|   |   |   |       +---diff
+|   |   |   |       |       definition_test_runner.diff.json
+|   |   |   |       |       
+|   |   |   |       +---expected
+|   |   |   |       |       definition_test_runner.expected.json
+|   |   |   |       |       
+|   |   |   |       +---relations
+|   |   |   |       |       definition_test_runner_trace_relations.json
+|   |   |   |       |       
+|   |   |   |       \---summary
+|   |   |   |               definition_test_runner.result.json
+|   |   |   |               
 |   |   |   +---notes
 |   |   |   |       DIFF_OUTPUT_BEFORE_ASSERT_NOTES_v0_1.md
 |   |   |   |       DIFF_RESULT_COMMON_FORMAT_NOTES_v0_1.md
@@ -215,6 +257,11 @@ F:.
 |   |   +---80_frb
 |   |   |       fft_log_sample.json
 |   |   |       fft_log_view_def_v0_2.json
+|   |   |       frb_fft_field_definition_sample_data_v0_1.json
+|   |   |       
+|   |   +---81_learning
+|   |   |       public_enterprise_accounting_learning_data_v0_1.json
+|   |   |       README_public_enterprise_accounting_learning_v0_1.md
 |   |   |       
 |   |   +---90_business
 |   |   |       business_customers_v0_1.json
@@ -225,6 +272,7 @@ F:.
 |   |   |       
 |   |   \---config
 |   |           common_enums_v0_1.json
+|   |           validation_type_registry_v0_1.json
 |   |           
 |   \---markdown
 |       +---00_Common
@@ -235,12 +283,14 @@ F:.
 |       |       frb_coding_constraints_data_v0_3_20260701_221236.md
 |       |       frb_coding_constraints_data_v0_3_20260701_221707.md
 |       |       frb_coding_constraints_data_v0_3_20260701_221707.md.comments.json
+|       |       frb_coding_constraints_data_v0_3_review_report_20260731_182127.md
 |       |       frb_test_evidence_rules_data_v0_1_review_report_20260704_182910.md
 |       |       frb_test_evidence_rules_data_v0_2_document_rebuild_20260704_184658.md
 |       |       frb_test_evidence_rules_data_v0_2_document_rebuild_20260704_184924.md
 |       |       fx_usdjpy_1440_data_v0_1_review_report_20260705_124224.md
 |       |       git_diff_export_run_config_data_v0_1_review_report_20260704_150339.md
 |       |       git_diff_export_run_config_data_v0_1_review_report_20260704_150412.md
+|       |       public_enterprise_accounting_learning_data_v0_1_review_report_20260722_234205.md
 |       |       responsibility_def_master_draft_v0_1_review_report_20260704_161814.md
 |       |       responsibility_expected_tests_first_set_data_v0_1_review_report_20260704_180712.md
 |       |       responsibility_expected_test_patterns_data_v0_1_document_rebuild_20260704_204509.md
@@ -291,9 +341,14 @@ F:.
 |       |       02_expecteddef_lookup_design_summary_20260702.md
 |       |       03_著作権違反防止.md
 |       |       04_著作権違反防止_対策済み.md
+|       |       05_テスト計画構想20260807.md
 |       |       
 |       \---99_temp
 +---defs
+|   +---analysis
+|   |       thought_difference_analysis_profile_view_def_v0_1.json
+|   |       thought_difference_result_view_def_v0_1.json
+|   |       
 |   +---common
 |   |       common_enums_view_def_v0_1.json
 |   |       common_types_v0_1.json
@@ -302,12 +357,27 @@ F:.
 |   +---config
 |   |       config_folder_policy_v0_1.json
 |   |       field_group_types_config_data_v0_1.json
+|   |       validation_type_registry_view_def_v0_1.json
+|   |       
+|   +---evolution
+|   |       thought_evolution_engine_profile_view_def_v0_1.json
+|   |       thought_evolution_observation_view_def_v0_1.json
+|   |       thought_evolution_proposal_view_def_v0_1.json
+|   |       thought_evolution_version_snapshot_view_def_v0_1.json
+|   |       
+|   +---fielddefs
+|   |       definition_test_diff_view_def_v0_1.json
+|   |       frb_fft_measurement_field_definitions_view_def_v0_1.json
 |   |       
 |   +---frb
 |   |       fft_log_view_def_v0_2.json
+|   |       frb_fft_field_definition_sample_view_def_v0_1.json
 |   |       
 |   +---inventory
 |   |       defs_data_link_inventory_view_def_v0_1.json
+|   |       
+|   +---learning
+|   |       public_enterprise_accounting_learning_view_def_v0_1.json
 |   |       
 |   +---master
 |   |       message_catalog_expected_pattern_review_view_def_v0_1.json
@@ -358,11 +428,13 @@ F:.
 |   |       relation_axis_diff_check_view_def_v0_1.json
 |   |       relation_axis_test_pattern_view_def_v0_1.json
 |   |       relation_edit_view_def_v0_1.json
+|   |       thought_evolution_relation_approval_view_def_v0_1.json
 |   |       
 |   +---rules
 |   |   |   ai_constraint_grouped_view_def_v0_6_footer_chat.json
 |   |   |   context_refs_sample_view_def_v0_1.json
 |   |   |   frb_view_def_schema_review_view_def_v0_1.json
+|   |   |   governance_items_common_view_def_v0_1.json
 |   |   |   rule_review_common_view_def_v0_3.json
 |   |   |   studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json
 |   |   |   studio_work_incident_view_def_v0_5.json
@@ -375,9 +447,6 @@ F:.
 |   |   |       chatgpt_shared_context_view_def_v0_1.json
 |   |   |       
 |   |   \---tmp
-|   |           rule_review_common_view_def_v0_1.json
-|   |           rule_review_common_view_def_v0_2_editable_review_target.json
-|   |           
 |   +---screen_state
 |   |       screen_state_diff_view_def_base_v0_2_checks.json
 |   |       screen_state_diff_view_def_child_v0_3_failure_focus.json
@@ -394,6 +463,14 @@ F:.
 |           md_json_export_challenge_notes_v0_1.md
 |           拡張アイデア.md
 |           
++---fielddefs
+|   +---samples
+|   |       frb_fft_measurement_field_definitions_v0_1.json
+|   |       frb_fft_measurement_field_definitions_v0_2.json
+|   |       
+|   \---schema
+|           field_definition_data_schema_v0_1.json
+|           
 +---Log
 |       Log_20260630.log
 |       Log_20260701.log
@@ -402,6 +479,8 @@ F:.
 |       Log_20260704.log
 |       Log_20260705.log
 |       Log_20260715.log
+|       Log_20260730.log
+|       Log_20260812.log
 |       README.md
 |       
 +---node_modules
@@ -1077,6 +1156,7 @@ F:.
 |       |           plugin.json
 |       |           
 |       +---sidecars
+|       |       quality_asset_relation_layout_state_v0_1.json
 |       |       thought_evolution_sample_layout_state_v0_1.json
 |       |       
 |       \---view_defs
@@ -1088,16 +1168,38 @@ F:.
 |   |   setup.md
 |   |   
 |   +---.runtime
+|   |   +---definition
+|   |   |       definition_test_runner.result.json
+|   |   |       
 |   |   \---playwright-output
 |   |       \---ncjs-screen-state-compare.-84498-SONをExpectedと比較してDiffを保存できる
 |   |               error-context.md
-|   |               trace.zip
 |   |               
+|   +---definition
+|   |       cross_field_definition_test.test.mjs
+|   |       definition_test_runner_cli.mjs
+|   |       definition_test_runner_core.test.mjs
+|   |       definition_verification_service.test.mjs
+|   |       
 |   +---qa
 |   |   \---static
+|   |           cross_field_definition_preview_static.test.mjs
+|   |           definition_review_evidence_acceptance.test.mjs
+|   |           editor_component_model_static.test.mjs
+|   |           field_definition_editor_derived_preview_static.test.mjs
+|   |           field_definition_runtime_validation_acceptance.test.mjs
+|   |           field_definition_target_caption_static.test.mjs
+|   |           field_definition_viewdef_contract_static.test.mjs
 |   |           field_group_type_resolver_static.test.mjs
 |   |           incident_prompt_copy_action_viewdef_static.test.mjs
+|   |           related_grid_view_launch_static.test.mjs
+|   |           studio_json_round_trip_runtime.test.mjs
+|   |           studio_json_round_trip_static.test.mjs
+|   |           subgrid_component_data_derived_static.test.mjs
+|   |           thought_evolution_studio_difference_radar_static.test.mjs
+|   |           thought_evolution_studio_evolution_engine_static.test.mjs
 |   |           thought_evolution_studio_overlay_static.test.mjs
+|   |           thought_evolution_studio_relation_approval_static.test.mjs
 |   |           
 |   +---responsibilities
 |   |   |   responsibility_expected_tests.mjs
@@ -1377,6 +1479,7 @@ F:.
 |   |   \---output
 |   |           20260720_122611_このチャットを見てみる.md
 |   |           20260720_123258_20260720思考進化オーバーレイ.md
+|   |           20260811_143326_知能と自己組織化.md
 |   |           
 |   +---common
 |   |       StudioLog.ps1
@@ -1401,8 +1504,6 @@ F:.
 |           
 +---wwwroot
 |   |   app.js
-|   |   count_js_steps.bat
-|   |   count_js_steps.py
 |   |   count_js_steps_add_datetime.bat
 |   |   DiffJsonViewer.html
 |   |   index.html
@@ -1419,7 +1520,6 @@ F:.
 |   |       
 |   +---countstep
 |   |       countstep.txt
-|   |       countstep_20260704_160930.txt
 |   |       
 |   +---data
 |   |   +---json
@@ -1435,12 +1535,12 @@ F:.
 |   |           
 |   +---defs
 |   |   |   coding_constraints_review_view_def_v0_2_change_history.json
-|   |   |   studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json
-|   |   |   studio_work_incident_view_def_v0_5.json
 |   |   |   
-|   |   \---rules
-|   |           studio_work_incident_view_def_v0_5.json
-|   |           
+|   |   \---json
+|   |       \---rules
+|   |               studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json
+|   |               studio_work_incident_view_def_v0_5.json
+|   |               
 |   +---diff
 |   |       DiffToJson_20260702_210451.json
 |   |       DiffToJson_20260705_091652.json
@@ -1462,6 +1562,23 @@ F:.
 |   |   |       action_registry.js
 |   |   |       action_toolbar.js
 |   |   |       
+|   |   +---components
+|   |   |   |   data_subgrid_component.js
+|   |   |   |   derived_subgrid_component.js
+|   |   |   |   editor_component.js
+|   |   |   |   editor_component_host.js
+|   |   |   |   editor_component_registry.js
+|   |   |   |   studio_component.js
+|   |   |   |   subgrid_component.js
+|   |   |   |   
+|   |   |   \---definition
+|   |   |           cross_field_test_preview_component.js
+|   |   |           definition_constraint_diff_component.js
+|   |   |           definition_evidence_review_component.js
+|   |   |           definition_target_caption_component.js
+|   |   |           definition_test_preview_component.js
+|   |   |           definition_verification_derived_subgrid_component.js
+|   |   |           
 |   |   +---core
 |   |   |       data_utils.js
 |   |   |       field_types.js
@@ -2845,11 +2962,30 @@ F:.
 |   |   |       MDVIEWER_HEADING_RELATIVE_CARET_SCROLL_NOTES_v0_11_5.md
 |   |   |       MD_EDITOR_WORKPLACE_SAFE_NOTES_v0_13_8.md
 |   |   |       OBJECTARRAY_SAVE_INTEGRITY_NOTES_v0_7.md
+|   |   |       related_grid_view.js
+|   |   |       RELATED_GRID_VIEW_LAUNCH_NOTES_v0_18_28.md
 |   |   |       search_state.js
 |   |   |       SENTENCE_INSERT_DELETE_NOTES_v0_13_1.md
 |   |   |       SENTENCE_TOOLBAR_ROW_ANCHOR_FIX_NOTES_v0_13_1_2.md
+|   |   |       studio_json_round_trip.js
+|   |   |       STUDIO_JSON_ROUND_TRIP_NOTES_v0_18_35.md
 |   |   |       URL_LAUNCH_LOAD_NOTES_v0_8.md
 |   |   |       
+|   |   +---services
+|   |   |   \---definition
+|   |   |           cross_field_relation_evaluator.js
+|   |   |           cross_field_verification_service.js
+|   |   |           definition_test_evidence_builder.js
+|   |   |           definition_test_runner_core.js
+|   |   |           definition_value_validator.js
+|   |   |           definition_verification_common.js
+|   |   |           definition_verification_service.js
+|   |   |           expected_resolver.js
+|   |   |           field_contract_resolver.js
+|   |   |           field_definition_target_view_resolver.js
+|   |   |           runtime_field_definition_validation.js
+|   |   |           test_pattern_deriver.js
+|   |   |           
 |   |   +---ui
 |   |   |       file_tree_picker.js
 |   |   |       FILE_TREE_PICKER_NAME_FIX_NOTES_v0_10_1.md
@@ -2866,8 +3002,10 @@ F:.
 |           
 +---_archive
 |   |   context_refs_sample_data_v0_1.json
+|   |   frb_fft_measurement_field_definitions_v0_2_bk.json
 |   |   frb_test_evidence_rules_data_v0_1.json
 |   |   fx_usdjpy_m5_t3_data_v0_1.zip
+|   |   message_catalog_expected_pattern_review_data_v0_1.json
 |   |   studio_fx_chart_viewer_incident_data_v0_1.json
 |   |   studio_fx_chart_viewer_incident_data_v0_2.json
 |   |   studio_fx_chart_viewer_incident_data_v0_3.json
@@ -3229,6 +3367,11 @@ F:.
 |   |               screen_state_expected_view_def_v0_1.json
 |   |               screen_state_test_patterns_view_def_v0_2_chat.json
 |   |               
+|   +---20260726_184500
+|   |   \---defs
+|   |       \---config
+|   |               validation_type_catalogs_view_def_v0_1.json
+|   |               
 |   +---markdown
 |   |   |   data_markdown.js
 |   |   |   markdown_registry.js
@@ -3283,30 +3426,33 @@ F:.
 |   \---mermaid_download
 |           mermaid-11.16.0.tgz
 |           
-\---_archive_eternal
-    |   studio_work_incident_archive_completed_to_0079_v0_1.json
-    |   
-    \---studio_overlays
-        \---default
-            |   README.md
-            |   studio_manifest.json
-            |   
-            +---data
-            |       employee_skill_inventory_sample.json
-            |       
-            +---plugins
-            |   |   plugin_index.json
-            |   |   
-            |   \---multi_select_combo
-            |           plugin.js
-            |           plugin.json
-            |           
-            +---search_patterns
-            |       employee_skill_search_patterns.json
-            |       
-            +---value_sets
-            |       company_value_sets.json
-            |       
-            \---view_defs
-                    employee_skill_inventory_view_def.json
-                    
++---_archive_eternal
+|   |   studio_work_incident_archive_completed_to_0079_v0_1_archive_eternal.json
+|   |   
+|   \---studio_overlays
+|       \---default
+|           |   README.md
+|           |   studio_manifest.json
+|           |   
+|           +---data
+|           |       employee_skill_inventory_sample.json
+|           |       
+|           +---plugins
+|           |   |   plugin_index.json
+|           |   |   
+|           |   \---multi_select_combo
+|           |           plugin.js
+|           |           plugin.json
+|           |           
+|           +---search_patterns
+|           |       employee_skill_search_patterns.json
+|           |       
+|           +---value_sets
+|           |       company_value_sets.json
+|           |       
+|           \---view_defs
+|                   employee_skill_inventory_view_def.json
+|                   
+\---_delivery
+        delete_files.json
+        

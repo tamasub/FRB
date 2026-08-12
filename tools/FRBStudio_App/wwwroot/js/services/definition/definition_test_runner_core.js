@@ -124,6 +124,11 @@ class DefinitionTestRunnerCore {
       validation_type_id: verification.validation_type_id,
       status: this.#fieldStatus(verification, summary),
       verification_status: verification.status,
+      // v0.18.46-definition-review-evidence:
+      // Freeze the exact definition + derived verification result used by this execution.
+      // Diff review must remain explainable even after the current Field Definition changes.
+      field_definition_snapshot: definitionVerificationClone(fieldDefinition),
+      verification_snapshot: definitionVerificationClone(verification),
       source: {
         ...definitionVerificationClone(verification.source ?? {}),
         field_definition_sha256: String(options.source_metadata?.field_definition_sha256 ?? ''),

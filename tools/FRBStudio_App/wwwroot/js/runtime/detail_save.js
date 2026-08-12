@@ -90,6 +90,17 @@ function renderDetailForRow(row) {
   updateDetailNavButtons();
 }
 
+function rebindDetailAfterCanonicalCommit(row, { preserveScroll=true }={}) {
+  const body = $('detailDialog')?.querySelector?.('.dialog-body') ?? null;
+  const scrollTop = preserveScroll ? Number(body?.scrollTop ?? 0) : 0;
+  renderDetailForRow(row);
+  if (preserveScroll && body) {
+    const restore = () => { body.scrollTop = scrollTop; };
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(restore);
+    else restore();
+  }
+}
+
 function openDetail(index, keepOpen=false) {
   if (typeof discardStudioJsonRoundTripDraft === 'function') discardStudioJsonRoundTripDraft();
   detailMode = 'edit';
@@ -300,8 +311,10 @@ function applyDetail(e) {
   const gd = gridDef();
   if (!tryCommitCurrentDetailEdits({ source: 'F12' })) return;
   renderGrid();
-  renderDetailEditorComponents(currentRows[selectedIndex], gd);
-  updateDetailNavButtons();
+  // v0.18.46-definition-review-evidence:
+  // F12 means Commit -> canonical Data -> full Detail rebind.
+  // Standard fields and Derived Components must represent the same canonical point in time.
+  rebindDetailAfterCanonicalCommit(currentRows[selectedIndex], { preserveScroll: true });
   setStatus('詳細を反映しました（F7/F8で前後移動できます）');
   // 承認作業では連続レビューしたいので、反映では詳細ダイアログを閉じない。
   // 閉じる場合は「閉じる」ボタンまたは右上×を使う。

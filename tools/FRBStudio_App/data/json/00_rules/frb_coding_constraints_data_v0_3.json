@@ -108,6 +108,22 @@
         "dec_0147_002"
       ],
       "notes": "v0.18.31-evidence-based-abstraction-guardで追加。新規ルールファイルは作成せず、憲法の文書全体判断軸として管理する。"
+    },
+    {
+      "sort_order": 50,
+      "item_id": "decision_axis_traceability",
+      "item_type": "DECISION_AXIS",
+      "title": "承認経路・追跡可能性を優先する",
+      "statement": "承認対象のView表示項目については、承認経路・追跡可能性を最優先とする。",
+      "reason": "",
+      "scope": "document",
+      "priority": "high",
+      "status": "ACTIVE",
+      "evaluation_guidance": "",
+      "verification_method": "",
+      "violation_action": "",
+      "source_decision_log_ids": [],
+      "notes": ""
     }
   ],
   "rules": [

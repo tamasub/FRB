@@ -106,13 +106,21 @@ test('Field Definition ViewDef connects Constraint Diff and Test Preview as read
 
   assert.deepEqual(
     section.editorComponents.map(component => component.type),
-    ['definition_constraint_diff', 'definition_test_preview']
+    ['definition_target_caption', 'definition_constraint_diff', 'definition_test_preview']
   );
-  section.editorComponents.forEach(component => {
-    assert.equal(component.placement, 'afterChildGrids');
-    assert.equal(component.readonly, true);
-    assert.equal(component.config.registryDataPath, 'config/validation_type_registry_v0_1.json');
-  });
+
+  const targetCaption = section.editorComponents.find(component => component.type === 'definition_target_caption');
+  assert.equal(targetCaption.placement, 'detailBody');
+  assert.equal(targetCaption.readonly, true);
+  assert.equal(targetCaption.config.targetViewDefPath, 'frb/frb_fft_field_definition_sample_view_def_v0_1.json');
+
+  section.editorComponents
+    .filter(component => ['definition_constraint_diff', 'definition_test_preview'].includes(component.type))
+    .forEach(component => {
+      assert.equal(component.placement, 'afterChildGrids');
+      assert.equal(component.readonly, true);
+      assert.equal(component.config.registryDataPath, 'config/validation_type_registry_v0_1.json');
+    });
 });
 
 test('Definition preview Components use the DerivedSubGrid hierarchy and are registered by type', () => {
@@ -242,11 +250,11 @@ test('two Definition preview Components share one Registry load when Service is 
   assert.equal(vm.runInContext('__b.verificationState', sandbox), 'ready');
 });
 
-test('standard Detail Editor stays capability-neutral and generically refreshes Components after F12 apply', () => {
+test('standard Detail Editor stays capability-neutral and generically rebinds the full Detail after F12 apply', () => {
   const detailRuntime = readText('wwwroot/js/runtime/detail_save.js');
 
   assert.doesNotMatch(detailRuntime, /definition_constraint_diff|definition_test_preview|DefinitionVerificationService|ExpectedResolver|TestPatternDeriver/);
-  assert.match(detailRuntime, /renderDetailEditorComponents\(currentRows\[selectedIndex\], gd\)/);
+  assert.match(detailRuntime, /rebindDetailAfterCanonicalCommit\(currentRows\[selectedIndex\]/);
 });
 
 test('Derived Preview remains outside canonical Field Definition JSON / Copy-Paste field contract', () => {
@@ -255,7 +263,7 @@ test('Derived Preview remains outside canonical Field Definition JSON / Copy-Pas
   const section = findFieldDefinitionSection(viewDef);
   const fields = section.fields.map(field => field.field);
 
-  assert.ok(section.editorComponents.length === 2);
+  assert.ok(section.editorComponents.length === 3);
   assert.equal(fields.some(field => /resolved|expected|test_pattern|constraint_diff/i.test(field)), false);
   sample.field_definitions.forEach(field => {
     assert.equal(Object.hasOwn(field, 'resolved_constraints'), false);
@@ -267,9 +275,9 @@ test('Derived Preview remains outside canonical Field Definition JSON / Copy-Pas
 test('index loads Definition Verification Service and preview Components before the Detail Editor runtime', () => {
   const index = readText('wwwroot/index.html');
   const service = index.indexOf('js/services/definition/definition_verification_service.js?v=definition-verification-service-01842');
-  const base = index.indexOf('js/components/definition/definition_verification_derived_subgrid_component.js?v=field-definition-derived-preview-01843');
-  const constraint = index.indexOf('js/components/definition/definition_constraint_diff_component.js?v=field-definition-derived-preview-01843');
-  const preview = index.indexOf('js/components/definition/definition_test_preview_component.js?v=field-definition-derived-preview-01843');
+  const base = index.indexOf('js/components/definition/definition_verification_derived_subgrid_component.js?v=definition-review-evidence-01846');
+  const constraint = index.indexOf('js/components/definition/definition_constraint_diff_component.js?v=definition-review-evidence-01846');
+  const preview = index.indexOf('js/components/definition/definition_test_preview_component.js?v=definition-review-evidence-01846');
   const detail = index.indexOf('js/runtime/detail_save.js?v=field-definition-derived-preview-01843');
 
   assert.ok(service >= 0);

@@ -1,10 +1,10 @@
 {
-  "schema_version": "definition_test_actual_v0_1",
+  "schema_version": "definition_test_actual_v0_2",
   "document_type": "definition_test_actual",
   "test_id": "definition_test_runner_frb_fft_v0_1",
   "testId": "definition_test_runner_frb_fft_v0_1",
   "title": "FRB FFT Field Definition — Definition Driven Test E2E",
-  "observed_at": "2026-08-12T03:15:35.756Z",
+  "observed_at": "2026-08-12T05:53:23.333Z",
   "source": {
     "field_definition_document": {
       "definition_id": "frb.fft.measurement.sample",
@@ -32,10 +32,25 @@
     {
       "check_id": "field::$.measurement_sessions[].session_id::required_missing",
       "name": "required_missing",
+      "pattern_id": "$.measurement_sessions[].session_id::required_missing",
+      "category": "presence",
       "target": "$.measurement_sessions[].session_id",
+      "field_path": "$.measurement_sessions[].session_id",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.identifier",
+      "constraint_ref": "required",
+      "input": {
+        "state": "MISSING"
+      },
       "actual": "REJECT",
       "actual_reason_code": "REQUIRED_MISSING",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "REQUIRED_MISSING",
+          "constraint": "required"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].session_id",
         "validation_type_id": "studio.string.identifier",
@@ -46,10 +61,26 @@
     {
       "check_id": "field::$.measurement_sessions[].session_id::null",
       "name": "null",
+      "pattern_id": "$.measurement_sessions[].session_id::null",
+      "category": "nullability",
       "target": "$.measurement_sessions[].session_id",
+      "field_path": "$.measurement_sessions[].session_id",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.identifier",
+      "constraint_ref": "nullable",
+      "input": {
+        "state": "VALUE",
+        "value": null
+      },
       "actual": "REJECT",
       "actual_reason_code": "NULL_NOT_ALLOWED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "NULL_NOT_ALLOWED",
+          "constraint": "nullable"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].session_id",
         "validation_type_id": "studio.string.identifier",
@@ -60,10 +91,21 @@
     {
       "check_id": "field::$.measurement_sessions[].session_id::valid_value",
       "name": "valid_value",
+      "pattern_id": "$.measurement_sessions[].session_id::valid_value",
+      "category": "value_contract",
       "target": "$.measurement_sessions[].session_id",
+      "field_path": "$.measurement_sessions[].session_id",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.identifier",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": "A"
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].session_id",
         "validation_type_id": "studio.string.identifier",
@@ -74,10 +116,26 @@
     {
       "check_id": "field::$.measurement_sessions[].session_id::invalid_format",
       "name": "invalid_format",
+      "pattern_id": "$.measurement_sessions[].session_id::invalid_format",
+      "category": "value_contract",
       "target": "$.measurement_sessions[].session_id",
+      "field_path": "$.measurement_sessions[].session_id",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.identifier",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": "1 invalid"
+      },
       "actual": "REJECT",
       "actual_reason_code": "VALUE_PATTERN_MISMATCH",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "VALUE_PATTERN_MISMATCH",
+          "constraint": ""
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].session_id",
         "validation_type_id": "studio.string.identifier",
@@ -88,10 +146,21 @@
     {
       "check_id": "field::$.measurement_sessions[].session_id::maximum_length",
       "name": "maximum_length",
+      "pattern_id": "$.measurement_sessions[].session_id::maximum_length",
+      "category": "length_boundary",
       "target": "$.measurement_sessions[].session_id",
+      "field_path": "$.measurement_sessions[].session_id",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.identifier",
+      "constraint_ref": "maximum_length",
+      "input": {
+        "state": "VALUE",
+        "value": "A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1"
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].session_id",
         "validation_type_id": "studio.string.identifier",
@@ -102,10 +171,26 @@
     {
       "check_id": "field::$.measurement_sessions[].session_id::maximum_length_plus_1",
       "name": "maximum_length_plus_1",
+      "pattern_id": "$.measurement_sessions[].session_id::maximum_length_plus_1",
+      "category": "length_boundary",
       "target": "$.measurement_sessions[].session_id",
+      "field_path": "$.measurement_sessions[].session_id",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.identifier",
+      "constraint_ref": "maximum_length",
+      "input": {
+        "state": "VALUE",
+        "value": "A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A"
+      },
       "actual": "REJECT",
       "actual_reason_code": "MAXIMUM_LENGTH_VIOLATION",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "MAXIMUM_LENGTH_VIOLATION",
+          "constraint": "maximum_length"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].session_id",
         "validation_type_id": "studio.string.identifier",
@@ -116,10 +201,25 @@
     {
       "check_id": "field::$.measurement_sessions[].rod_code::required_missing",
       "name": "required_missing",
+      "pattern_id": "$.measurement_sessions[].rod_code::required_missing",
+      "category": "presence",
       "target": "$.measurement_sessions[].rod_code",
+      "field_path": "$.measurement_sessions[].rod_code",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.alphanumeric",
+      "constraint_ref": "required",
+      "input": {
+        "state": "MISSING"
+      },
       "actual": "REJECT",
       "actual_reason_code": "REQUIRED_MISSING",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "REQUIRED_MISSING",
+          "constraint": "required"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].rod_code",
         "validation_type_id": "studio.string.alphanumeric",
@@ -130,10 +230,26 @@
     {
       "check_id": "field::$.measurement_sessions[].rod_code::null",
       "name": "null",
+      "pattern_id": "$.measurement_sessions[].rod_code::null",
+      "category": "nullability",
       "target": "$.measurement_sessions[].rod_code",
+      "field_path": "$.measurement_sessions[].rod_code",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.alphanumeric",
+      "constraint_ref": "nullable",
+      "input": {
+        "state": "VALUE",
+        "value": null
+      },
       "actual": "REJECT",
       "actual_reason_code": "NULL_NOT_ALLOWED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "NULL_NOT_ALLOWED",
+          "constraint": "nullable"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].rod_code",
         "validation_type_id": "studio.string.alphanumeric",
@@ -144,10 +260,21 @@
     {
       "check_id": "field::$.measurement_sessions[].rod_code::valid_value",
       "name": "valid_value",
+      "pattern_id": "$.measurement_sessions[].rod_code::valid_value",
+      "category": "value_contract",
       "target": "$.measurement_sessions[].rod_code",
+      "field_path": "$.measurement_sessions[].rod_code",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.alphanumeric",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": "A1A1"
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].rod_code",
         "validation_type_id": "studio.string.alphanumeric",
@@ -158,10 +285,30 @@
     {
       "check_id": "field::$.measurement_sessions[].rod_code::invalid_format",
       "name": "invalid_format",
+      "pattern_id": "$.measurement_sessions[].rod_code::invalid_format",
+      "category": "value_contract",
       "target": "$.measurement_sessions[].rod_code",
+      "field_path": "$.measurement_sessions[].rod_code",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.alphanumeric",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": "A-1"
+      },
       "actual": "REJECT",
       "actual_reason_code": "VALUE_PATTERN_MISMATCH",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "VALUE_PATTERN_MISMATCH",
+          "constraint": ""
+        },
+        {
+          "code": "MINIMUM_LENGTH_VIOLATION",
+          "constraint": "minimum_length"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].rod_code",
         "validation_type_id": "studio.string.alphanumeric",
@@ -172,10 +319,21 @@
     {
       "check_id": "field::$.measurement_sessions[].rod_code::minimum_length",
       "name": "minimum_length",
+      "pattern_id": "$.measurement_sessions[].rod_code::minimum_length",
+      "category": "length_boundary",
       "target": "$.measurement_sessions[].rod_code",
+      "field_path": "$.measurement_sessions[].rod_code",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.alphanumeric",
+      "constraint_ref": "minimum_length",
+      "input": {
+        "state": "VALUE",
+        "value": "A1A1"
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].rod_code",
         "validation_type_id": "studio.string.alphanumeric",
@@ -186,10 +344,26 @@
     {
       "check_id": "field::$.measurement_sessions[].rod_code::minimum_length_minus_1",
       "name": "minimum_length_minus_1",
+      "pattern_id": "$.measurement_sessions[].rod_code::minimum_length_minus_1",
+      "category": "length_boundary",
       "target": "$.measurement_sessions[].rod_code",
+      "field_path": "$.measurement_sessions[].rod_code",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.alphanumeric",
+      "constraint_ref": "minimum_length",
+      "input": {
+        "state": "VALUE",
+        "value": "A1A"
+      },
       "actual": "REJECT",
       "actual_reason_code": "MINIMUM_LENGTH_VIOLATION",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "MINIMUM_LENGTH_VIOLATION",
+          "constraint": "minimum_length"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].rod_code",
         "validation_type_id": "studio.string.alphanumeric",
@@ -200,10 +374,21 @@
     {
       "check_id": "field::$.measurement_sessions[].rod_code::maximum_length",
       "name": "maximum_length",
+      "pattern_id": "$.measurement_sessions[].rod_code::maximum_length",
+      "category": "length_boundary",
       "target": "$.measurement_sessions[].rod_code",
+      "field_path": "$.measurement_sessions[].rod_code",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.alphanumeric",
+      "constraint_ref": "maximum_length",
+      "input": {
+        "state": "VALUE",
+        "value": "A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1"
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].rod_code",
         "validation_type_id": "studio.string.alphanumeric",
@@ -214,10 +399,26 @@
     {
       "check_id": "field::$.measurement_sessions[].rod_code::maximum_length_plus_1",
       "name": "maximum_length_plus_1",
+      "pattern_id": "$.measurement_sessions[].rod_code::maximum_length_plus_1",
+      "category": "length_boundary",
       "target": "$.measurement_sessions[].rod_code",
+      "field_path": "$.measurement_sessions[].rod_code",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.alphanumeric",
+      "constraint_ref": "maximum_length",
+      "input": {
+        "state": "VALUE",
+        "value": "A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A"
+      },
       "actual": "REJECT",
       "actual_reason_code": "MAXIMUM_LENGTH_VIOLATION",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "MAXIMUM_LENGTH_VIOLATION",
+          "constraint": "maximum_length"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].rod_code",
         "validation_type_id": "studio.string.alphanumeric",
@@ -228,10 +429,25 @@
     {
       "check_id": "field::$.measurement_sessions[].measurement_name::required_missing",
       "name": "required_missing",
+      "pattern_id": "$.measurement_sessions[].measurement_name::required_missing",
+      "category": "presence",
       "target": "$.measurement_sessions[].measurement_name",
+      "field_path": "$.measurement_sessions[].measurement_name",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.single_line",
+      "constraint_ref": "required",
+      "input": {
+        "state": "MISSING"
+      },
       "actual": "REJECT",
       "actual_reason_code": "REQUIRED_MISSING",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "REQUIRED_MISSING",
+          "constraint": "required"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].measurement_name",
         "validation_type_id": "studio.string.single_line",
@@ -242,10 +458,26 @@
     {
       "check_id": "field::$.measurement_sessions[].measurement_name::null",
       "name": "null",
+      "pattern_id": "$.measurement_sessions[].measurement_name::null",
+      "category": "nullability",
       "target": "$.measurement_sessions[].measurement_name",
+      "field_path": "$.measurement_sessions[].measurement_name",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.single_line",
+      "constraint_ref": "nullable",
+      "input": {
+        "state": "VALUE",
+        "value": null
+      },
       "actual": "REJECT",
       "actual_reason_code": "NULL_NOT_ALLOWED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "NULL_NOT_ALLOWED",
+          "constraint": "nullable"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].measurement_name",
         "validation_type_id": "studio.string.single_line",
@@ -256,10 +488,21 @@
     {
       "check_id": "field::$.measurement_sessions[].measurement_name::valid_value",
       "name": "valid_value",
+      "pattern_id": "$.measurement_sessions[].measurement_name::valid_value",
+      "category": "value_contract",
       "target": "$.measurement_sessions[].measurement_name",
+      "field_path": "$.measurement_sessions[].measurement_name",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.single_line",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": "a"
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].measurement_name",
         "validation_type_id": "studio.string.single_line",
@@ -270,10 +513,26 @@
     {
       "check_id": "field::$.measurement_sessions[].measurement_name::invalid_format",
       "name": "invalid_format",
+      "pattern_id": "$.measurement_sessions[].measurement_name::invalid_format",
+      "category": "value_contract",
       "target": "$.measurement_sessions[].measurement_name",
+      "field_path": "$.measurement_sessions[].measurement_name",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.single_line",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": 123
+      },
       "actual": "REJECT",
       "actual_reason_code": "STRING_REQUIRED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "STRING_REQUIRED",
+          "constraint": ""
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].measurement_name",
         "validation_type_id": "studio.string.single_line",
@@ -284,10 +543,21 @@
     {
       "check_id": "field::$.measurement_sessions[].measurement_name::maximum_length",
       "name": "maximum_length",
+      "pattern_id": "$.measurement_sessions[].measurement_name::maximum_length",
+      "category": "length_boundary",
       "target": "$.measurement_sessions[].measurement_name",
+      "field_path": "$.measurement_sessions[].measurement_name",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.single_line",
+      "constraint_ref": "maximum_length",
+      "input": {
+        "state": "VALUE",
+        "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].measurement_name",
         "validation_type_id": "studio.string.single_line",
@@ -298,10 +568,26 @@
     {
       "check_id": "field::$.measurement_sessions[].measurement_name::maximum_length_plus_1",
       "name": "maximum_length_plus_1",
+      "pattern_id": "$.measurement_sessions[].measurement_name::maximum_length_plus_1",
+      "category": "length_boundary",
       "target": "$.measurement_sessions[].measurement_name",
+      "field_path": "$.measurement_sessions[].measurement_name",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.single_line",
+      "constraint_ref": "maximum_length",
+      "input": {
+        "state": "VALUE",
+        "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
       "actual": "REJECT",
       "actual_reason_code": "MAXIMUM_LENGTH_VIOLATION",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "MAXIMUM_LENGTH_VIOLATION",
+          "constraint": "maximum_length"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].measurement_name",
         "validation_type_id": "studio.string.single_line",
@@ -312,10 +598,25 @@
     {
       "check_id": "field::$.measurement_sessions[].measurement_date::required_missing",
       "name": "required_missing",
+      "pattern_id": "$.measurement_sessions[].measurement_date::required_missing",
+      "category": "presence",
       "target": "$.measurement_sessions[].measurement_date",
+      "field_path": "$.measurement_sessions[].measurement_date",
+      "constraint_id": "",
+      "validation_type_id": "studio.date.ymd",
+      "constraint_ref": "required",
+      "input": {
+        "state": "MISSING"
+      },
       "actual": "REJECT",
       "actual_reason_code": "REQUIRED_MISSING",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "REQUIRED_MISSING",
+          "constraint": "required"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].measurement_date",
         "validation_type_id": "studio.date.ymd",
@@ -326,10 +627,26 @@
     {
       "check_id": "field::$.measurement_sessions[].measurement_date::null",
       "name": "null",
+      "pattern_id": "$.measurement_sessions[].measurement_date::null",
+      "category": "nullability",
       "target": "$.measurement_sessions[].measurement_date",
+      "field_path": "$.measurement_sessions[].measurement_date",
+      "constraint_id": "",
+      "validation_type_id": "studio.date.ymd",
+      "constraint_ref": "nullable",
+      "input": {
+        "state": "VALUE",
+        "value": null
+      },
       "actual": "REJECT",
       "actual_reason_code": "NULL_NOT_ALLOWED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "NULL_NOT_ALLOWED",
+          "constraint": "nullable"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].measurement_date",
         "validation_type_id": "studio.date.ymd",
@@ -340,10 +657,21 @@
     {
       "check_id": "field::$.measurement_sessions[].measurement_date::valid_value",
       "name": "valid_value",
+      "pattern_id": "$.measurement_sessions[].measurement_date::valid_value",
+      "category": "value_contract",
       "target": "$.measurement_sessions[].measurement_date",
+      "field_path": "$.measurement_sessions[].measurement_date",
+      "constraint_id": "",
+      "validation_type_id": "studio.date.ymd",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": "2020-01-01"
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].measurement_date",
         "validation_type_id": "studio.date.ymd",
@@ -354,10 +682,26 @@
     {
       "check_id": "field::$.measurement_sessions[].measurement_date::invalid_format",
       "name": "invalid_format",
+      "pattern_id": "$.measurement_sessions[].measurement_date::invalid_format",
+      "category": "value_contract",
       "target": "$.measurement_sessions[].measurement_date",
+      "field_path": "$.measurement_sessions[].measurement_date",
+      "constraint_id": "",
+      "validation_type_id": "studio.date.ymd",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": "2026-02-30"
+      },
       "actual": "REJECT",
       "actual_reason_code": "DATE_FORMAT_INVALID",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "DATE_FORMAT_INVALID",
+          "constraint": ""
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].measurement_date",
         "validation_type_id": "studio.date.ymd",
@@ -368,10 +712,21 @@
     {
       "check_id": "field::$.measurement_sessions[].measurement_date::minimum_date",
       "name": "minimum_date",
+      "pattern_id": "$.measurement_sessions[].measurement_date::minimum_date",
+      "category": "boundary",
       "target": "$.measurement_sessions[].measurement_date",
+      "field_path": "$.measurement_sessions[].measurement_date",
+      "constraint_id": "",
+      "validation_type_id": "studio.date.ymd",
+      "constraint_ref": "minimum_date",
+      "input": {
+        "state": "VALUE",
+        "value": "2020-01-01"
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].measurement_date",
         "validation_type_id": "studio.date.ymd",
@@ -382,10 +737,26 @@
     {
       "check_id": "field::$.measurement_sessions[].measurement_date::minimum_date_minus_1_day",
       "name": "minimum_date_minus_1_day",
+      "pattern_id": "$.measurement_sessions[].measurement_date::minimum_date_minus_1_day",
+      "category": "boundary",
       "target": "$.measurement_sessions[].measurement_date",
+      "field_path": "$.measurement_sessions[].measurement_date",
+      "constraint_id": "",
+      "validation_type_id": "studio.date.ymd",
+      "constraint_ref": "minimum_date",
+      "input": {
+        "state": "VALUE",
+        "value": "2019-12-31"
+      },
       "actual": "REJECT",
       "actual_reason_code": "MINIMUM_BOUNDARY_VIOLATION",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "MINIMUM_BOUNDARY_VIOLATION",
+          "constraint": "minimum_date"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].measurement_date",
         "validation_type_id": "studio.date.ymd",
@@ -396,10 +767,21 @@
     {
       "check_id": "field::$.measurement_sessions[].measurement_date::maximum_date",
       "name": "maximum_date",
+      "pattern_id": "$.measurement_sessions[].measurement_date::maximum_date",
+      "category": "boundary",
       "target": "$.measurement_sessions[].measurement_date",
+      "field_path": "$.measurement_sessions[].measurement_date",
+      "constraint_id": "",
+      "validation_type_id": "studio.date.ymd",
+      "constraint_ref": "maximum_date",
+      "input": {
+        "state": "VALUE",
+        "value": "2099-12-31"
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].measurement_date",
         "validation_type_id": "studio.date.ymd",
@@ -410,10 +792,26 @@
     {
       "check_id": "field::$.measurement_sessions[].measurement_date::maximum_date_plus_1_day",
       "name": "maximum_date_plus_1_day",
+      "pattern_id": "$.measurement_sessions[].measurement_date::maximum_date_plus_1_day",
+      "category": "boundary",
       "target": "$.measurement_sessions[].measurement_date",
+      "field_path": "$.measurement_sessions[].measurement_date",
+      "constraint_id": "",
+      "validation_type_id": "studio.date.ymd",
+      "constraint_ref": "maximum_date",
+      "input": {
+        "state": "VALUE",
+        "value": "2100-01-01"
+      },
       "actual": "REJECT",
       "actual_reason_code": "MAXIMUM_BOUNDARY_VIOLATION",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "MAXIMUM_BOUNDARY_VIOLATION",
+          "constraint": "maximum_date"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].measurement_date",
         "validation_type_id": "studio.date.ymd",
@@ -424,10 +822,25 @@
     {
       "check_id": "field::$.measurement_sessions[].captured_at::required_missing",
       "name": "required_missing",
+      "pattern_id": "$.measurement_sessions[].captured_at::required_missing",
+      "category": "presence",
       "target": "$.measurement_sessions[].captured_at",
+      "field_path": "$.measurement_sessions[].captured_at",
+      "constraint_id": "",
+      "validation_type_id": "studio.datetime.local",
+      "constraint_ref": "required",
+      "input": {
+        "state": "MISSING"
+      },
       "actual": "REJECT",
       "actual_reason_code": "REQUIRED_MISSING",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "REQUIRED_MISSING",
+          "constraint": "required"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].captured_at",
         "validation_type_id": "studio.datetime.local",
@@ -438,10 +851,26 @@
     {
       "check_id": "field::$.measurement_sessions[].captured_at::null",
       "name": "null",
+      "pattern_id": "$.measurement_sessions[].captured_at::null",
+      "category": "nullability",
       "target": "$.measurement_sessions[].captured_at",
+      "field_path": "$.measurement_sessions[].captured_at",
+      "constraint_id": "",
+      "validation_type_id": "studio.datetime.local",
+      "constraint_ref": "nullable",
+      "input": {
+        "state": "VALUE",
+        "value": null
+      },
       "actual": "REJECT",
       "actual_reason_code": "NULL_NOT_ALLOWED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "NULL_NOT_ALLOWED",
+          "constraint": "nullable"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].captured_at",
         "validation_type_id": "studio.datetime.local",
@@ -452,10 +881,21 @@
     {
       "check_id": "field::$.measurement_sessions[].captured_at::valid_value",
       "name": "valid_value",
+      "pattern_id": "$.measurement_sessions[].captured_at::valid_value",
+      "category": "value_contract",
       "target": "$.measurement_sessions[].captured_at",
+      "field_path": "$.measurement_sessions[].captured_at",
+      "constraint_id": "",
+      "validation_type_id": "studio.datetime.local",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": "2026-01-15T12:34"
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].captured_at",
         "validation_type_id": "studio.datetime.local",
@@ -466,10 +906,26 @@
     {
       "check_id": "field::$.measurement_sessions[].captured_at::invalid_format",
       "name": "invalid_format",
+      "pattern_id": "$.measurement_sessions[].captured_at::invalid_format",
+      "category": "value_contract",
       "target": "$.measurement_sessions[].captured_at",
+      "field_path": "$.measurement_sessions[].captured_at",
+      "constraint_id": "",
+      "validation_type_id": "studio.datetime.local",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": "2026-02-30T25:61"
+      },
       "actual": "REJECT",
       "actual_reason_code": "DATETIME_FORMAT_INVALID",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "DATETIME_FORMAT_INVALID",
+          "constraint": ""
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].captured_at",
         "validation_type_id": "studio.datetime.local",
@@ -480,10 +936,25 @@
     {
       "check_id": "field::$.measurement_sessions[].received_at::required_missing",
       "name": "required_missing",
+      "pattern_id": "$.measurement_sessions[].received_at::required_missing",
+      "category": "presence",
       "target": "$.measurement_sessions[].received_at",
+      "field_path": "$.measurement_sessions[].received_at",
+      "constraint_id": "",
+      "validation_type_id": "studio.instant.iso8601",
+      "constraint_ref": "required",
+      "input": {
+        "state": "MISSING"
+      },
       "actual": "REJECT",
       "actual_reason_code": "REQUIRED_MISSING",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "REQUIRED_MISSING",
+          "constraint": "required"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].received_at",
         "validation_type_id": "studio.instant.iso8601",
@@ -494,10 +965,26 @@
     {
       "check_id": "field::$.measurement_sessions[].received_at::null",
       "name": "null",
+      "pattern_id": "$.measurement_sessions[].received_at::null",
+      "category": "nullability",
       "target": "$.measurement_sessions[].received_at",
+      "field_path": "$.measurement_sessions[].received_at",
+      "constraint_id": "",
+      "validation_type_id": "studio.instant.iso8601",
+      "constraint_ref": "nullable",
+      "input": {
+        "state": "VALUE",
+        "value": null
+      },
       "actual": "REJECT",
       "actual_reason_code": "NULL_NOT_ALLOWED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "NULL_NOT_ALLOWED",
+          "constraint": "nullable"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].received_at",
         "validation_type_id": "studio.instant.iso8601",
@@ -508,10 +995,21 @@
     {
       "check_id": "field::$.measurement_sessions[].received_at::valid_value",
       "name": "valid_value",
+      "pattern_id": "$.measurement_sessions[].received_at::valid_value",
+      "category": "value_contract",
       "target": "$.measurement_sessions[].received_at",
+      "field_path": "$.measurement_sessions[].received_at",
+      "constraint_id": "",
+      "validation_type_id": "studio.instant.iso8601",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": "2026-01-15T12:34:56Z"
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].received_at",
         "validation_type_id": "studio.instant.iso8601",
@@ -522,10 +1020,26 @@
     {
       "check_id": "field::$.measurement_sessions[].received_at::invalid_format",
       "name": "invalid_format",
+      "pattern_id": "$.measurement_sessions[].received_at::invalid_format",
+      "category": "value_contract",
       "target": "$.measurement_sessions[].received_at",
+      "field_path": "$.measurement_sessions[].received_at",
+      "constraint_id": "",
+      "validation_type_id": "studio.instant.iso8601",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": "2026-01-15T12:34:56"
+      },
       "actual": "REJECT",
       "actual_reason_code": "INSTANT_FORMAT_INVALID",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "INSTANT_FORMAT_INVALID",
+          "constraint": ""
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].received_at",
         "validation_type_id": "studio.instant.iso8601",
@@ -536,10 +1050,25 @@
     {
       "check_id": "field::$.measurement_sessions[].sample_rate_hz::required_missing",
       "name": "required_missing",
+      "pattern_id": "$.measurement_sessions[].sample_rate_hz::required_missing",
+      "category": "presence",
       "target": "$.measurement_sessions[].sample_rate_hz",
+      "field_path": "$.measurement_sessions[].sample_rate_hz",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.positive",
+      "constraint_ref": "required",
+      "input": {
+        "state": "MISSING"
+      },
       "actual": "REJECT",
       "actual_reason_code": "REQUIRED_MISSING",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "REQUIRED_MISSING",
+          "constraint": "required"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].sample_rate_hz",
         "validation_type_id": "studio.integer.positive",
@@ -550,10 +1079,26 @@
     {
       "check_id": "field::$.measurement_sessions[].sample_rate_hz::null",
       "name": "null",
+      "pattern_id": "$.measurement_sessions[].sample_rate_hz::null",
+      "category": "nullability",
       "target": "$.measurement_sessions[].sample_rate_hz",
+      "field_path": "$.measurement_sessions[].sample_rate_hz",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.positive",
+      "constraint_ref": "nullable",
+      "input": {
+        "state": "VALUE",
+        "value": null
+      },
       "actual": "REJECT",
       "actual_reason_code": "NULL_NOT_ALLOWED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "NULL_NOT_ALLOWED",
+          "constraint": "nullable"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].sample_rate_hz",
         "validation_type_id": "studio.integer.positive",
@@ -564,10 +1109,21 @@
     {
       "check_id": "field::$.measurement_sessions[].sample_rate_hz::valid_value",
       "name": "valid_value",
+      "pattern_id": "$.measurement_sessions[].sample_rate_hz::valid_value",
+      "category": "value_contract",
       "target": "$.measurement_sessions[].sample_rate_hz",
+      "field_path": "$.measurement_sessions[].sample_rate_hz",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.positive",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": 100
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].sample_rate_hz",
         "validation_type_id": "studio.integer.positive",
@@ -578,10 +1134,26 @@
     {
       "check_id": "field::$.measurement_sessions[].sample_rate_hz::invalid_format",
       "name": "invalid_format",
+      "pattern_id": "$.measurement_sessions[].sample_rate_hz::invalid_format",
+      "category": "value_contract",
       "target": "$.measurement_sessions[].sample_rate_hz",
+      "field_path": "$.measurement_sessions[].sample_rate_hz",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.positive",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": "not-a-number"
+      },
       "actual": "REJECT",
       "actual_reason_code": "NUMBER_REQUIRED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "NUMBER_REQUIRED",
+          "constraint": ""
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].sample_rate_hz",
         "validation_type_id": "studio.integer.positive",
@@ -592,10 +1164,21 @@
     {
       "check_id": "field::$.measurement_sessions[].sample_rate_hz::minimum",
       "name": "minimum",
+      "pattern_id": "$.measurement_sessions[].sample_rate_hz::minimum",
+      "category": "boundary",
       "target": "$.measurement_sessions[].sample_rate_hz",
+      "field_path": "$.measurement_sessions[].sample_rate_hz",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.positive",
+      "constraint_ref": "minimum",
+      "input": {
+        "state": "VALUE",
+        "value": 100
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].sample_rate_hz",
         "validation_type_id": "studio.integer.positive",
@@ -606,10 +1189,26 @@
     {
       "check_id": "field::$.measurement_sessions[].sample_rate_hz::minimum_minus_1",
       "name": "minimum_minus_1",
+      "pattern_id": "$.measurement_sessions[].sample_rate_hz::minimum_minus_1",
+      "category": "boundary",
       "target": "$.measurement_sessions[].sample_rate_hz",
+      "field_path": "$.measurement_sessions[].sample_rate_hz",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.positive",
+      "constraint_ref": "minimum",
+      "input": {
+        "state": "VALUE",
+        "value": 99
+      },
       "actual": "REJECT",
       "actual_reason_code": "MINIMUM_BOUNDARY_VIOLATION",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "MINIMUM_BOUNDARY_VIOLATION",
+          "constraint": "minimum"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].sample_rate_hz",
         "validation_type_id": "studio.integer.positive",
@@ -620,10 +1219,21 @@
     {
       "check_id": "field::$.measurement_sessions[].sample_rate_hz::maximum",
       "name": "maximum",
+      "pattern_id": "$.measurement_sessions[].sample_rate_hz::maximum",
+      "category": "boundary",
       "target": "$.measurement_sessions[].sample_rate_hz",
+      "field_path": "$.measurement_sessions[].sample_rate_hz",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.positive",
+      "constraint_ref": "maximum",
+      "input": {
+        "state": "VALUE",
+        "value": 200000
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].sample_rate_hz",
         "validation_type_id": "studio.integer.positive",
@@ -634,10 +1244,26 @@
     {
       "check_id": "field::$.measurement_sessions[].sample_rate_hz::maximum_plus_1",
       "name": "maximum_plus_1",
+      "pattern_id": "$.measurement_sessions[].sample_rate_hz::maximum_plus_1",
+      "category": "boundary",
       "target": "$.measurement_sessions[].sample_rate_hz",
+      "field_path": "$.measurement_sessions[].sample_rate_hz",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.positive",
+      "constraint_ref": "maximum",
+      "input": {
+        "state": "VALUE",
+        "value": 200001
+      },
       "actual": "REJECT",
       "actual_reason_code": "MAXIMUM_BOUNDARY_VIOLATION",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "MAXIMUM_BOUNDARY_VIOLATION",
+          "constraint": "maximum"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].sample_rate_hz",
         "validation_type_id": "studio.integer.positive",
@@ -648,10 +1274,25 @@
     {
       "check_id": "field::$.measurement_sessions[].peak_frequency_hz::required_missing",
       "name": "required_missing",
+      "pattern_id": "$.measurement_sessions[].peak_frequency_hz::required_missing",
+      "category": "presence",
       "target": "$.measurement_sessions[].peak_frequency_hz",
+      "field_path": "$.measurement_sessions[].peak_frequency_hz",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "required",
+      "input": {
+        "state": "MISSING"
+      },
       "actual": "REJECT",
       "actual_reason_code": "REQUIRED_MISSING",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "REQUIRED_MISSING",
+          "constraint": "required"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -662,10 +1303,26 @@
     {
       "check_id": "field::$.measurement_sessions[].peak_frequency_hz::null",
       "name": "null",
+      "pattern_id": "$.measurement_sessions[].peak_frequency_hz::null",
+      "category": "nullability",
       "target": "$.measurement_sessions[].peak_frequency_hz",
+      "field_path": "$.measurement_sessions[].peak_frequency_hz",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "nullable",
+      "input": {
+        "state": "VALUE",
+        "value": null
+      },
       "actual": "REJECT",
       "actual_reason_code": "NULL_NOT_ALLOWED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "NULL_NOT_ALLOWED",
+          "constraint": "nullable"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -676,10 +1333,21 @@
     {
       "check_id": "field::$.measurement_sessions[].peak_frequency_hz::valid_value",
       "name": "valid_value",
+      "pattern_id": "$.measurement_sessions[].peak_frequency_hz::valid_value",
+      "category": "value_contract",
       "target": "$.measurement_sessions[].peak_frequency_hz",
+      "field_path": "$.measurement_sessions[].peak_frequency_hz",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": 0
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -690,10 +1358,26 @@
     {
       "check_id": "field::$.measurement_sessions[].peak_frequency_hz::invalid_format",
       "name": "invalid_format",
+      "pattern_id": "$.measurement_sessions[].peak_frequency_hz::invalid_format",
+      "category": "value_contract",
       "target": "$.measurement_sessions[].peak_frequency_hz",
+      "field_path": "$.measurement_sessions[].peak_frequency_hz",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": "not-a-number"
+      },
       "actual": "REJECT",
       "actual_reason_code": "NUMBER_REQUIRED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "NUMBER_REQUIRED",
+          "constraint": ""
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -704,10 +1388,21 @@
     {
       "check_id": "field::$.measurement_sessions[].peak_frequency_hz::minimum",
       "name": "minimum",
+      "pattern_id": "$.measurement_sessions[].peak_frequency_hz::minimum",
+      "category": "boundary",
       "target": "$.measurement_sessions[].peak_frequency_hz",
+      "field_path": "$.measurement_sessions[].peak_frequency_hz",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "minimum",
+      "input": {
+        "state": "VALUE",
+        "value": 0
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -718,10 +1413,26 @@
     {
       "check_id": "field::$.measurement_sessions[].peak_frequency_hz::minimum_minus_1",
       "name": "minimum_minus_1",
+      "pattern_id": "$.measurement_sessions[].peak_frequency_hz::minimum_minus_1",
+      "category": "boundary",
       "target": "$.measurement_sessions[].peak_frequency_hz",
+      "field_path": "$.measurement_sessions[].peak_frequency_hz",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "minimum",
+      "input": {
+        "state": "VALUE",
+        "value": -1
+      },
       "actual": "REJECT",
       "actual_reason_code": "MINIMUM_BOUNDARY_VIOLATION",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "MINIMUM_BOUNDARY_VIOLATION",
+          "constraint": "minimum"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -732,10 +1443,21 @@
     {
       "check_id": "field::$.measurement_sessions[].peak_frequency_hz::maximum",
       "name": "maximum",
+      "pattern_id": "$.measurement_sessions[].peak_frequency_hz::maximum",
+      "category": "boundary",
       "target": "$.measurement_sessions[].peak_frequency_hz",
+      "field_path": "$.measurement_sessions[].peak_frequency_hz",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "maximum",
+      "input": {
+        "state": "VALUE",
+        "value": 10000
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -746,10 +1468,26 @@
     {
       "check_id": "field::$.measurement_sessions[].peak_frequency_hz::maximum_plus_1",
       "name": "maximum_plus_1",
+      "pattern_id": "$.measurement_sessions[].peak_frequency_hz::maximum_plus_1",
+      "category": "boundary",
       "target": "$.measurement_sessions[].peak_frequency_hz",
+      "field_path": "$.measurement_sessions[].peak_frequency_hz",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "maximum",
+      "input": {
+        "state": "VALUE",
+        "value": 10001
+      },
       "actual": "REJECT",
       "actual_reason_code": "MAXIMUM_BOUNDARY_VIOLATION",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "MAXIMUM_BOUNDARY_VIOLATION",
+          "constraint": "maximum"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -760,10 +1498,25 @@
     {
       "check_id": "field::$.measurement_sessions[].amplitude_g::required_missing",
       "name": "required_missing",
+      "pattern_id": "$.measurement_sessions[].amplitude_g::required_missing",
+      "category": "presence",
       "target": "$.measurement_sessions[].amplitude_g",
+      "field_path": "$.measurement_sessions[].amplitude_g",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "required",
+      "input": {
+        "state": "MISSING"
+      },
       "actual": "REJECT",
       "actual_reason_code": "REQUIRED_MISSING",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "REQUIRED_MISSING",
+          "constraint": "required"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -774,10 +1527,26 @@
     {
       "check_id": "field::$.measurement_sessions[].amplitude_g::null",
       "name": "null",
+      "pattern_id": "$.measurement_sessions[].amplitude_g::null",
+      "category": "nullability",
       "target": "$.measurement_sessions[].amplitude_g",
+      "field_path": "$.measurement_sessions[].amplitude_g",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "nullable",
+      "input": {
+        "state": "VALUE",
+        "value": null
+      },
       "actual": "REJECT",
       "actual_reason_code": "NULL_NOT_ALLOWED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "NULL_NOT_ALLOWED",
+          "constraint": "nullable"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -788,10 +1557,21 @@
     {
       "check_id": "field::$.measurement_sessions[].amplitude_g::valid_value",
       "name": "valid_value",
+      "pattern_id": "$.measurement_sessions[].amplitude_g::valid_value",
+      "category": "value_contract",
       "target": "$.measurement_sessions[].amplitude_g",
+      "field_path": "$.measurement_sessions[].amplitude_g",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": 0
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -802,10 +1582,26 @@
     {
       "check_id": "field::$.measurement_sessions[].amplitude_g::invalid_format",
       "name": "invalid_format",
+      "pattern_id": "$.measurement_sessions[].amplitude_g::invalid_format",
+      "category": "value_contract",
       "target": "$.measurement_sessions[].amplitude_g",
+      "field_path": "$.measurement_sessions[].amplitude_g",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": "not-a-number"
+      },
       "actual": "REJECT",
       "actual_reason_code": "NUMBER_REQUIRED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "NUMBER_REQUIRED",
+          "constraint": ""
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -816,10 +1612,21 @@
     {
       "check_id": "field::$.measurement_sessions[].amplitude_g::minimum",
       "name": "minimum",
+      "pattern_id": "$.measurement_sessions[].amplitude_g::minimum",
+      "category": "boundary",
       "target": "$.measurement_sessions[].amplitude_g",
+      "field_path": "$.measurement_sessions[].amplitude_g",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "minimum",
+      "input": {
+        "state": "VALUE",
+        "value": 0
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -830,10 +1637,26 @@
     {
       "check_id": "field::$.measurement_sessions[].amplitude_g::minimum_minus_1",
       "name": "minimum_minus_1",
+      "pattern_id": "$.measurement_sessions[].amplitude_g::minimum_minus_1",
+      "category": "boundary",
       "target": "$.measurement_sessions[].amplitude_g",
+      "field_path": "$.measurement_sessions[].amplitude_g",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "minimum",
+      "input": {
+        "state": "VALUE",
+        "value": -1
+      },
       "actual": "REJECT",
       "actual_reason_code": "MINIMUM_BOUNDARY_VIOLATION",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "MINIMUM_BOUNDARY_VIOLATION",
+          "constraint": "minimum"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -844,10 +1667,21 @@
     {
       "check_id": "field::$.measurement_sessions[].amplitude_g::maximum",
       "name": "maximum",
+      "pattern_id": "$.measurement_sessions[].amplitude_g::maximum",
+      "category": "boundary",
       "target": "$.measurement_sessions[].amplitude_g",
+      "field_path": "$.measurement_sessions[].amplitude_g",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "maximum",
+      "input": {
+        "state": "VALUE",
+        "value": 16
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -858,10 +1692,26 @@
     {
       "check_id": "field::$.measurement_sessions[].amplitude_g::maximum_plus_1",
       "name": "maximum_plus_1",
+      "pattern_id": "$.measurement_sessions[].amplitude_g::maximum_plus_1",
+      "category": "boundary",
       "target": "$.measurement_sessions[].amplitude_g",
+      "field_path": "$.measurement_sessions[].amplitude_g",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "maximum",
+      "input": {
+        "state": "VALUE",
+        "value": 17
+      },
       "actual": "REJECT",
       "actual_reason_code": "MAXIMUM_BOUNDARY_VIOLATION",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "MAXIMUM_BOUNDARY_VIOLATION",
+          "constraint": "maximum"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -872,10 +1722,25 @@
     {
       "check_id": "field::$.measurement_sessions[].quality_score::required_missing",
       "name": "required_missing",
+      "pattern_id": "$.measurement_sessions[].quality_score::required_missing",
+      "category": "presence",
       "target": "$.measurement_sessions[].quality_score",
+      "field_path": "$.measurement_sessions[].quality_score",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.non_negative",
+      "constraint_ref": "required",
+      "input": {
+        "state": "MISSING"
+      },
       "actual": "REJECT",
       "actual_reason_code": "REQUIRED_MISSING",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "REQUIRED_MISSING",
+          "constraint": "required"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -886,10 +1751,26 @@
     {
       "check_id": "field::$.measurement_sessions[].quality_score::null",
       "name": "null",
+      "pattern_id": "$.measurement_sessions[].quality_score::null",
+      "category": "nullability",
       "target": "$.measurement_sessions[].quality_score",
+      "field_path": "$.measurement_sessions[].quality_score",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.non_negative",
+      "constraint_ref": "nullable",
+      "input": {
+        "state": "VALUE",
+        "value": null
+      },
       "actual": "REJECT",
       "actual_reason_code": "NULL_NOT_ALLOWED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "NULL_NOT_ALLOWED",
+          "constraint": "nullable"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -900,10 +1781,21 @@
     {
       "check_id": "field::$.measurement_sessions[].quality_score::valid_value",
       "name": "valid_value",
+      "pattern_id": "$.measurement_sessions[].quality_score::valid_value",
+      "category": "value_contract",
       "target": "$.measurement_sessions[].quality_score",
+      "field_path": "$.measurement_sessions[].quality_score",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.non_negative",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": 0
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -914,10 +1806,26 @@
     {
       "check_id": "field::$.measurement_sessions[].quality_score::invalid_format",
       "name": "invalid_format",
+      "pattern_id": "$.measurement_sessions[].quality_score::invalid_format",
+      "category": "value_contract",
       "target": "$.measurement_sessions[].quality_score",
+      "field_path": "$.measurement_sessions[].quality_score",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.non_negative",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": "not-a-number"
+      },
       "actual": "REJECT",
       "actual_reason_code": "NUMBER_REQUIRED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "NUMBER_REQUIRED",
+          "constraint": ""
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -928,10 +1836,21 @@
     {
       "check_id": "field::$.measurement_sessions[].quality_score::minimum",
       "name": "minimum",
+      "pattern_id": "$.measurement_sessions[].quality_score::minimum",
+      "category": "boundary",
       "target": "$.measurement_sessions[].quality_score",
+      "field_path": "$.measurement_sessions[].quality_score",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.non_negative",
+      "constraint_ref": "minimum",
+      "input": {
+        "state": "VALUE",
+        "value": 0
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -942,10 +1861,30 @@
     {
       "check_id": "field::$.measurement_sessions[].quality_score::minimum_minus_1",
       "name": "minimum_minus_1",
+      "pattern_id": "$.measurement_sessions[].quality_score::minimum_minus_1",
+      "category": "boundary",
       "target": "$.measurement_sessions[].quality_score",
+      "field_path": "$.measurement_sessions[].quality_score",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.non_negative",
+      "constraint_ref": "minimum",
+      "input": {
+        "state": "VALUE",
+        "value": -1
+      },
       "actual": "REJECT",
       "actual_reason_code": "NEGATIVE_NOT_ALLOWED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "NEGATIVE_NOT_ALLOWED",
+          "constraint": ""
+        },
+        {
+          "code": "MINIMUM_BOUNDARY_VIOLATION",
+          "constraint": "minimum"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -956,10 +1895,21 @@
     {
       "check_id": "field::$.measurement_sessions[].quality_score::maximum",
       "name": "maximum",
+      "pattern_id": "$.measurement_sessions[].quality_score::maximum",
+      "category": "boundary",
       "target": "$.measurement_sessions[].quality_score",
+      "field_path": "$.measurement_sessions[].quality_score",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.non_negative",
+      "constraint_ref": "maximum",
+      "input": {
+        "state": "VALUE",
+        "value": 100
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -970,10 +1920,26 @@
     {
       "check_id": "field::$.measurement_sessions[].quality_score::maximum_plus_1",
       "name": "maximum_plus_1",
+      "pattern_id": "$.measurement_sessions[].quality_score::maximum_plus_1",
+      "category": "boundary",
       "target": "$.measurement_sessions[].quality_score",
+      "field_path": "$.measurement_sessions[].quality_score",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.non_negative",
+      "constraint_ref": "maximum",
+      "input": {
+        "state": "VALUE",
+        "value": 101
+      },
       "actual": "REJECT",
       "actual_reason_code": "MAXIMUM_BOUNDARY_VIOLATION",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "MAXIMUM_BOUNDARY_VIOLATION",
+          "constraint": "maximum"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -984,10 +1950,25 @@
     {
       "check_id": "field::$.measurement_sessions[].enabled::required_missing",
       "name": "required_missing",
+      "pattern_id": "$.measurement_sessions[].enabled::required_missing",
+      "category": "presence",
       "target": "$.measurement_sessions[].enabled",
+      "field_path": "$.measurement_sessions[].enabled",
+      "constraint_id": "",
+      "validation_type_id": "studio.boolean.standard",
+      "constraint_ref": "required",
+      "input": {
+        "state": "MISSING"
+      },
       "actual": "REJECT",
       "actual_reason_code": "REQUIRED_MISSING",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "REQUIRED_MISSING",
+          "constraint": "required"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].enabled",
         "validation_type_id": "studio.boolean.standard",
@@ -998,10 +1979,26 @@
     {
       "check_id": "field::$.measurement_sessions[].enabled::null",
       "name": "null",
+      "pattern_id": "$.measurement_sessions[].enabled::null",
+      "category": "nullability",
       "target": "$.measurement_sessions[].enabled",
+      "field_path": "$.measurement_sessions[].enabled",
+      "constraint_id": "",
+      "validation_type_id": "studio.boolean.standard",
+      "constraint_ref": "nullable",
+      "input": {
+        "state": "VALUE",
+        "value": null
+      },
       "actual": "REJECT",
       "actual_reason_code": "NULL_NOT_ALLOWED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "NULL_NOT_ALLOWED",
+          "constraint": "nullable"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].enabled",
         "validation_type_id": "studio.boolean.standard",
@@ -1012,10 +2009,21 @@
     {
       "check_id": "field::$.measurement_sessions[].enabled::valid_value",
       "name": "valid_value",
+      "pattern_id": "$.measurement_sessions[].enabled::valid_value",
+      "category": "value_contract",
       "target": "$.measurement_sessions[].enabled",
+      "field_path": "$.measurement_sessions[].enabled",
+      "constraint_id": "",
+      "validation_type_id": "studio.boolean.standard",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": true
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].enabled",
         "validation_type_id": "studio.boolean.standard",
@@ -1026,10 +2034,26 @@
     {
       "check_id": "field::$.measurement_sessions[].enabled::invalid_format",
       "name": "invalid_format",
+      "pattern_id": "$.measurement_sessions[].enabled::invalid_format",
+      "category": "value_contract",
       "target": "$.measurement_sessions[].enabled",
+      "field_path": "$.measurement_sessions[].enabled",
+      "constraint_id": "",
+      "validation_type_id": "studio.boolean.standard",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": "true"
+      },
       "actual": "REJECT",
       "actual_reason_code": "BOOLEAN_REQUIRED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "BOOLEAN_REQUIRED",
+          "constraint": ""
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].enabled",
         "validation_type_id": "studio.boolean.standard",
@@ -1040,10 +2064,20 @@
     {
       "check_id": "field::$.measurement_sessions[].note::required_missing",
       "name": "required_missing",
+      "pattern_id": "$.measurement_sessions[].note::required_missing",
+      "category": "presence",
       "target": "$.measurement_sessions[].note",
+      "field_path": "$.measurement_sessions[].note",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.multi_line",
+      "constraint_ref": "required",
+      "input": {
+        "state": "MISSING"
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "OPTIONAL_MISSING_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].note",
         "validation_type_id": "studio.string.multi_line",
@@ -1054,10 +2088,26 @@
     {
       "check_id": "field::$.measurement_sessions[].note::null",
       "name": "null",
+      "pattern_id": "$.measurement_sessions[].note::null",
+      "category": "nullability",
       "target": "$.measurement_sessions[].note",
+      "field_path": "$.measurement_sessions[].note",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.multi_line",
+      "constraint_ref": "nullable",
+      "input": {
+        "state": "VALUE",
+        "value": null
+      },
       "actual": "REJECT",
       "actual_reason_code": "NULL_NOT_ALLOWED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "NULL_NOT_ALLOWED",
+          "constraint": "nullable"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].note",
         "validation_type_id": "studio.string.multi_line",
@@ -1068,10 +2118,21 @@
     {
       "check_id": "field::$.measurement_sessions[].note::valid_value",
       "name": "valid_value",
+      "pattern_id": "$.measurement_sessions[].note::valid_value",
+      "category": "value_contract",
       "target": "$.measurement_sessions[].note",
+      "field_path": "$.measurement_sessions[].note",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.multi_line",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": "a"
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].note",
         "validation_type_id": "studio.string.multi_line",
@@ -1082,10 +2143,26 @@
     {
       "check_id": "field::$.measurement_sessions[].note::invalid_format",
       "name": "invalid_format",
+      "pattern_id": "$.measurement_sessions[].note::invalid_format",
+      "category": "value_contract",
       "target": "$.measurement_sessions[].note",
+      "field_path": "$.measurement_sessions[].note",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.multi_line",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": 123
+      },
       "actual": "REJECT",
       "actual_reason_code": "STRING_REQUIRED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "STRING_REQUIRED",
+          "constraint": ""
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].note",
         "validation_type_id": "studio.string.multi_line",
@@ -1096,10 +2173,21 @@
     {
       "check_id": "field::$.measurement_sessions[].note::maximum_length",
       "name": "maximum_length",
+      "pattern_id": "$.measurement_sessions[].note::maximum_length",
+      "category": "length_boundary",
       "target": "$.measurement_sessions[].note",
+      "field_path": "$.measurement_sessions[].note",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.multi_line",
+      "constraint_ref": "maximum_length",
+      "input": {
+        "state": "VALUE",
+        "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].note",
         "validation_type_id": "studio.string.multi_line",
@@ -1110,10 +2198,26 @@
     {
       "check_id": "field::$.measurement_sessions[].note::maximum_length_plus_1",
       "name": "maximum_length_plus_1",
+      "pattern_id": "$.measurement_sessions[].note::maximum_length_plus_1",
+      "category": "length_boundary",
       "target": "$.measurement_sessions[].note",
+      "field_path": "$.measurement_sessions[].note",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.multi_line",
+      "constraint_ref": "maximum_length",
+      "input": {
+        "state": "VALUE",
+        "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
       "actual": "REJECT",
       "actual_reason_code": "MAXIMUM_LENGTH_VIOLATION",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "MAXIMUM_LENGTH_VIOLATION",
+          "constraint": "maximum_length"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.measurement_sessions[].note",
         "validation_type_id": "studio.string.multi_line",
@@ -1124,10 +2228,25 @@
     {
       "check_id": "field::$.acceptance_thresholds[].threshold_id::required_missing",
       "name": "required_missing",
+      "pattern_id": "$.acceptance_thresholds[].threshold_id::required_missing",
+      "category": "presence",
       "target": "$.acceptance_thresholds[].threshold_id",
+      "field_path": "$.acceptance_thresholds[].threshold_id",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.identifier",
+      "constraint_ref": "required",
+      "input": {
+        "state": "MISSING"
+      },
       "actual": "REJECT",
       "actual_reason_code": "REQUIRED_MISSING",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "REQUIRED_MISSING",
+          "constraint": "required"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].threshold_id",
         "validation_type_id": "studio.string.identifier",
@@ -1138,10 +2257,26 @@
     {
       "check_id": "field::$.acceptance_thresholds[].threshold_id::null",
       "name": "null",
+      "pattern_id": "$.acceptance_thresholds[].threshold_id::null",
+      "category": "nullability",
       "target": "$.acceptance_thresholds[].threshold_id",
+      "field_path": "$.acceptance_thresholds[].threshold_id",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.identifier",
+      "constraint_ref": "nullable",
+      "input": {
+        "state": "VALUE",
+        "value": null
+      },
       "actual": "REJECT",
       "actual_reason_code": "NULL_NOT_ALLOWED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "NULL_NOT_ALLOWED",
+          "constraint": "nullable"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].threshold_id",
         "validation_type_id": "studio.string.identifier",
@@ -1152,10 +2287,21 @@
     {
       "check_id": "field::$.acceptance_thresholds[].threshold_id::valid_value",
       "name": "valid_value",
+      "pattern_id": "$.acceptance_thresholds[].threshold_id::valid_value",
+      "category": "value_contract",
       "target": "$.acceptance_thresholds[].threshold_id",
+      "field_path": "$.acceptance_thresholds[].threshold_id",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.identifier",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": "A"
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].threshold_id",
         "validation_type_id": "studio.string.identifier",
@@ -1166,10 +2312,26 @@
     {
       "check_id": "field::$.acceptance_thresholds[].threshold_id::invalid_format",
       "name": "invalid_format",
+      "pattern_id": "$.acceptance_thresholds[].threshold_id::invalid_format",
+      "category": "value_contract",
       "target": "$.acceptance_thresholds[].threshold_id",
+      "field_path": "$.acceptance_thresholds[].threshold_id",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.identifier",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": "1 invalid"
+      },
       "actual": "REJECT",
       "actual_reason_code": "VALUE_PATTERN_MISMATCH",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "VALUE_PATTERN_MISMATCH",
+          "constraint": ""
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].threshold_id",
         "validation_type_id": "studio.string.identifier",
@@ -1180,10 +2342,21 @@
     {
       "check_id": "field::$.acceptance_thresholds[].threshold_id::maximum_length",
       "name": "maximum_length",
+      "pattern_id": "$.acceptance_thresholds[].threshold_id::maximum_length",
+      "category": "length_boundary",
       "target": "$.acceptance_thresholds[].threshold_id",
+      "field_path": "$.acceptance_thresholds[].threshold_id",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.identifier",
+      "constraint_ref": "maximum_length",
+      "input": {
+        "state": "VALUE",
+        "value": "A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1"
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].threshold_id",
         "validation_type_id": "studio.string.identifier",
@@ -1194,10 +2367,26 @@
     {
       "check_id": "field::$.acceptance_thresholds[].threshold_id::maximum_length_plus_1",
       "name": "maximum_length_plus_1",
+      "pattern_id": "$.acceptance_thresholds[].threshold_id::maximum_length_plus_1",
+      "category": "length_boundary",
       "target": "$.acceptance_thresholds[].threshold_id",
+      "field_path": "$.acceptance_thresholds[].threshold_id",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.identifier",
+      "constraint_ref": "maximum_length",
+      "input": {
+        "state": "VALUE",
+        "value": "A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A"
+      },
       "actual": "REJECT",
       "actual_reason_code": "MAXIMUM_LENGTH_VIOLATION",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "MAXIMUM_LENGTH_VIOLATION",
+          "constraint": "maximum_length"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].threshold_id",
         "validation_type_id": "studio.string.identifier",
@@ -1208,10 +2397,25 @@
     {
       "check_id": "field::$.acceptance_thresholds[].peak_frequency_hz::required_missing",
       "name": "required_missing",
+      "pattern_id": "$.acceptance_thresholds[].peak_frequency_hz::required_missing",
+      "category": "presence",
       "target": "$.acceptance_thresholds[].peak_frequency_hz",
+      "field_path": "$.acceptance_thresholds[].peak_frequency_hz",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "required",
+      "input": {
+        "state": "MISSING"
+      },
       "actual": "REJECT",
       "actual_reason_code": "REQUIRED_MISSING",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "REQUIRED_MISSING",
+          "constraint": "required"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -1222,10 +2426,26 @@
     {
       "check_id": "field::$.acceptance_thresholds[].peak_frequency_hz::null",
       "name": "null",
+      "pattern_id": "$.acceptance_thresholds[].peak_frequency_hz::null",
+      "category": "nullability",
       "target": "$.acceptance_thresholds[].peak_frequency_hz",
+      "field_path": "$.acceptance_thresholds[].peak_frequency_hz",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "nullable",
+      "input": {
+        "state": "VALUE",
+        "value": null
+      },
       "actual": "REJECT",
       "actual_reason_code": "NULL_NOT_ALLOWED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "NULL_NOT_ALLOWED",
+          "constraint": "nullable"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -1236,10 +2456,21 @@
     {
       "check_id": "field::$.acceptance_thresholds[].peak_frequency_hz::valid_value",
       "name": "valid_value",
+      "pattern_id": "$.acceptance_thresholds[].peak_frequency_hz::valid_value",
+      "category": "value_contract",
       "target": "$.acceptance_thresholds[].peak_frequency_hz",
+      "field_path": "$.acceptance_thresholds[].peak_frequency_hz",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": 0
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -1250,10 +2481,26 @@
     {
       "check_id": "field::$.acceptance_thresholds[].peak_frequency_hz::invalid_format",
       "name": "invalid_format",
+      "pattern_id": "$.acceptance_thresholds[].peak_frequency_hz::invalid_format",
+      "category": "value_contract",
       "target": "$.acceptance_thresholds[].peak_frequency_hz",
+      "field_path": "$.acceptance_thresholds[].peak_frequency_hz",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": "not-a-number"
+      },
       "actual": "REJECT",
       "actual_reason_code": "NUMBER_REQUIRED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "NUMBER_REQUIRED",
+          "constraint": ""
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -1264,10 +2511,21 @@
     {
       "check_id": "field::$.acceptance_thresholds[].peak_frequency_hz::minimum",
       "name": "minimum",
+      "pattern_id": "$.acceptance_thresholds[].peak_frequency_hz::minimum",
+      "category": "boundary",
       "target": "$.acceptance_thresholds[].peak_frequency_hz",
+      "field_path": "$.acceptance_thresholds[].peak_frequency_hz",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "minimum",
+      "input": {
+        "state": "VALUE",
+        "value": 0
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -1278,10 +2536,26 @@
     {
       "check_id": "field::$.acceptance_thresholds[].peak_frequency_hz::minimum_minus_1",
       "name": "minimum_minus_1",
+      "pattern_id": "$.acceptance_thresholds[].peak_frequency_hz::minimum_minus_1",
+      "category": "boundary",
       "target": "$.acceptance_thresholds[].peak_frequency_hz",
+      "field_path": "$.acceptance_thresholds[].peak_frequency_hz",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "minimum",
+      "input": {
+        "state": "VALUE",
+        "value": -1
+      },
       "actual": "REJECT",
       "actual_reason_code": "MINIMUM_BOUNDARY_VIOLATION",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "MINIMUM_BOUNDARY_VIOLATION",
+          "constraint": "minimum"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -1292,10 +2566,21 @@
     {
       "check_id": "field::$.acceptance_thresholds[].peak_frequency_hz::maximum",
       "name": "maximum",
+      "pattern_id": "$.acceptance_thresholds[].peak_frequency_hz::maximum",
+      "category": "boundary",
       "target": "$.acceptance_thresholds[].peak_frequency_hz",
+      "field_path": "$.acceptance_thresholds[].peak_frequency_hz",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "maximum",
+      "input": {
+        "state": "VALUE",
+        "value": 2000
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -1306,10 +2591,26 @@
     {
       "check_id": "field::$.acceptance_thresholds[].peak_frequency_hz::maximum_plus_1",
       "name": "maximum_plus_1",
+      "pattern_id": "$.acceptance_thresholds[].peak_frequency_hz::maximum_plus_1",
+      "category": "boundary",
       "target": "$.acceptance_thresholds[].peak_frequency_hz",
+      "field_path": "$.acceptance_thresholds[].peak_frequency_hz",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "maximum",
+      "input": {
+        "state": "VALUE",
+        "value": 2001
+      },
       "actual": "REJECT",
       "actual_reason_code": "MAXIMUM_BOUNDARY_VIOLATION",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "MAXIMUM_BOUNDARY_VIOLATION",
+          "constraint": "maximum"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -1320,10 +2621,25 @@
     {
       "check_id": "field::$.acceptance_thresholds[].amplitude_g::required_missing",
       "name": "required_missing",
+      "pattern_id": "$.acceptance_thresholds[].amplitude_g::required_missing",
+      "category": "presence",
       "target": "$.acceptance_thresholds[].amplitude_g",
+      "field_path": "$.acceptance_thresholds[].amplitude_g",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "required",
+      "input": {
+        "state": "MISSING"
+      },
       "actual": "REJECT",
       "actual_reason_code": "REQUIRED_MISSING",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "REQUIRED_MISSING",
+          "constraint": "required"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -1334,10 +2650,26 @@
     {
       "check_id": "field::$.acceptance_thresholds[].amplitude_g::null",
       "name": "null",
+      "pattern_id": "$.acceptance_thresholds[].amplitude_g::null",
+      "category": "nullability",
       "target": "$.acceptance_thresholds[].amplitude_g",
+      "field_path": "$.acceptance_thresholds[].amplitude_g",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "nullable",
+      "input": {
+        "state": "VALUE",
+        "value": null
+      },
       "actual": "REJECT",
       "actual_reason_code": "NULL_NOT_ALLOWED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "NULL_NOT_ALLOWED",
+          "constraint": "nullable"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -1348,10 +2680,21 @@
     {
       "check_id": "field::$.acceptance_thresholds[].amplitude_g::valid_value",
       "name": "valid_value",
+      "pattern_id": "$.acceptance_thresholds[].amplitude_g::valid_value",
+      "category": "value_contract",
       "target": "$.acceptance_thresholds[].amplitude_g",
+      "field_path": "$.acceptance_thresholds[].amplitude_g",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": 0
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -1362,10 +2705,26 @@
     {
       "check_id": "field::$.acceptance_thresholds[].amplitude_g::invalid_format",
       "name": "invalid_format",
+      "pattern_id": "$.acceptance_thresholds[].amplitude_g::invalid_format",
+      "category": "value_contract",
       "target": "$.acceptance_thresholds[].amplitude_g",
+      "field_path": "$.acceptance_thresholds[].amplitude_g",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": "not-a-number"
+      },
       "actual": "REJECT",
       "actual_reason_code": "NUMBER_REQUIRED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "NUMBER_REQUIRED",
+          "constraint": ""
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -1376,10 +2735,21 @@
     {
       "check_id": "field::$.acceptance_thresholds[].amplitude_g::minimum",
       "name": "minimum",
+      "pattern_id": "$.acceptance_thresholds[].amplitude_g::minimum",
+      "category": "boundary",
       "target": "$.acceptance_thresholds[].amplitude_g",
+      "field_path": "$.acceptance_thresholds[].amplitude_g",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "minimum",
+      "input": {
+        "state": "VALUE",
+        "value": 0
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -1390,10 +2760,26 @@
     {
       "check_id": "field::$.acceptance_thresholds[].amplitude_g::minimum_minus_1",
       "name": "minimum_minus_1",
+      "pattern_id": "$.acceptance_thresholds[].amplitude_g::minimum_minus_1",
+      "category": "boundary",
       "target": "$.acceptance_thresholds[].amplitude_g",
+      "field_path": "$.acceptance_thresholds[].amplitude_g",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "minimum",
+      "input": {
+        "state": "VALUE",
+        "value": -1
+      },
       "actual": "REJECT",
       "actual_reason_code": "MINIMUM_BOUNDARY_VIOLATION",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "MINIMUM_BOUNDARY_VIOLATION",
+          "constraint": "minimum"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -1404,10 +2790,21 @@
     {
       "check_id": "field::$.acceptance_thresholds[].amplitude_g::maximum",
       "name": "maximum",
+      "pattern_id": "$.acceptance_thresholds[].amplitude_g::maximum",
+      "category": "boundary",
       "target": "$.acceptance_thresholds[].amplitude_g",
+      "field_path": "$.acceptance_thresholds[].amplitude_g",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "maximum",
+      "input": {
+        "state": "VALUE",
+        "value": 2
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -1418,10 +2815,26 @@
     {
       "check_id": "field::$.acceptance_thresholds[].amplitude_g::maximum_plus_1",
       "name": "maximum_plus_1",
+      "pattern_id": "$.acceptance_thresholds[].amplitude_g::maximum_plus_1",
+      "category": "boundary",
       "target": "$.acceptance_thresholds[].amplitude_g",
+      "field_path": "$.acceptance_thresholds[].amplitude_g",
+      "constraint_id": "",
+      "validation_type_id": "studio.float.measurement",
+      "constraint_ref": "maximum",
+      "input": {
+        "state": "VALUE",
+        "value": 3
+      },
       "actual": "REJECT",
       "actual_reason_code": "MAXIMUM_BOUNDARY_VIOLATION",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "MAXIMUM_BOUNDARY_VIOLATION",
+          "constraint": "maximum"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -1432,10 +2845,25 @@
     {
       "check_id": "field::$.acceptance_thresholds[].quality_score::required_missing",
       "name": "required_missing",
+      "pattern_id": "$.acceptance_thresholds[].quality_score::required_missing",
+      "category": "presence",
       "target": "$.acceptance_thresholds[].quality_score",
+      "field_path": "$.acceptance_thresholds[].quality_score",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.non_negative",
+      "constraint_ref": "required",
+      "input": {
+        "state": "MISSING"
+      },
       "actual": "REJECT",
       "actual_reason_code": "REQUIRED_MISSING",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "REQUIRED_MISSING",
+          "constraint": "required"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -1446,10 +2874,26 @@
     {
       "check_id": "field::$.acceptance_thresholds[].quality_score::null",
       "name": "null",
+      "pattern_id": "$.acceptance_thresholds[].quality_score::null",
+      "category": "nullability",
       "target": "$.acceptance_thresholds[].quality_score",
+      "field_path": "$.acceptance_thresholds[].quality_score",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.non_negative",
+      "constraint_ref": "nullable",
+      "input": {
+        "state": "VALUE",
+        "value": null
+      },
       "actual": "REJECT",
       "actual_reason_code": "NULL_NOT_ALLOWED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "NULL_NOT_ALLOWED",
+          "constraint": "nullable"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -1460,10 +2904,21 @@
     {
       "check_id": "field::$.acceptance_thresholds[].quality_score::valid_value",
       "name": "valid_value",
+      "pattern_id": "$.acceptance_thresholds[].quality_score::valid_value",
+      "category": "value_contract",
       "target": "$.acceptance_thresholds[].quality_score",
+      "field_path": "$.acceptance_thresholds[].quality_score",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.non_negative",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": 0
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -1474,10 +2929,26 @@
     {
       "check_id": "field::$.acceptance_thresholds[].quality_score::invalid_format",
       "name": "invalid_format",
+      "pattern_id": "$.acceptance_thresholds[].quality_score::invalid_format",
+      "category": "value_contract",
       "target": "$.acceptance_thresholds[].quality_score",
+      "field_path": "$.acceptance_thresholds[].quality_score",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.non_negative",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": "not-a-number"
+      },
       "actual": "REJECT",
       "actual_reason_code": "NUMBER_REQUIRED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "NUMBER_REQUIRED",
+          "constraint": ""
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -1488,10 +2959,21 @@
     {
       "check_id": "field::$.acceptance_thresholds[].quality_score::minimum",
       "name": "minimum",
+      "pattern_id": "$.acceptance_thresholds[].quality_score::minimum",
+      "category": "boundary",
       "target": "$.acceptance_thresholds[].quality_score",
+      "field_path": "$.acceptance_thresholds[].quality_score",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.non_negative",
+      "constraint_ref": "minimum",
+      "input": {
+        "state": "VALUE",
+        "value": 0
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -1502,10 +2984,30 @@
     {
       "check_id": "field::$.acceptance_thresholds[].quality_score::minimum_minus_1",
       "name": "minimum_minus_1",
+      "pattern_id": "$.acceptance_thresholds[].quality_score::minimum_minus_1",
+      "category": "boundary",
       "target": "$.acceptance_thresholds[].quality_score",
+      "field_path": "$.acceptance_thresholds[].quality_score",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.non_negative",
+      "constraint_ref": "minimum",
+      "input": {
+        "state": "VALUE",
+        "value": -1
+      },
       "actual": "REJECT",
       "actual_reason_code": "NEGATIVE_NOT_ALLOWED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "NEGATIVE_NOT_ALLOWED",
+          "constraint": ""
+        },
+        {
+          "code": "MINIMUM_BOUNDARY_VIOLATION",
+          "constraint": "minimum"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -1516,10 +3018,21 @@
     {
       "check_id": "field::$.acceptance_thresholds[].quality_score::maximum",
       "name": "maximum",
+      "pattern_id": "$.acceptance_thresholds[].quality_score::maximum",
+      "category": "boundary",
       "target": "$.acceptance_thresholds[].quality_score",
+      "field_path": "$.acceptance_thresholds[].quality_score",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.non_negative",
+      "constraint_ref": "maximum",
+      "input": {
+        "state": "VALUE",
+        "value": 100
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -1530,10 +3043,26 @@
     {
       "check_id": "field::$.acceptance_thresholds[].quality_score::maximum_plus_1",
       "name": "maximum_plus_1",
+      "pattern_id": "$.acceptance_thresholds[].quality_score::maximum_plus_1",
+      "category": "boundary",
       "target": "$.acceptance_thresholds[].quality_score",
+      "field_path": "$.acceptance_thresholds[].quality_score",
+      "constraint_id": "",
+      "validation_type_id": "studio.integer.non_negative",
+      "constraint_ref": "maximum",
+      "input": {
+        "state": "VALUE",
+        "value": 101
+      },
       "actual": "REJECT",
       "actual_reason_code": "MAXIMUM_BOUNDARY_VIOLATION",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "MAXIMUM_BOUNDARY_VIOLATION",
+          "constraint": "maximum"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -1544,10 +3073,25 @@
     {
       "check_id": "field::$.acceptance_thresholds[].enabled::required_missing",
       "name": "required_missing",
+      "pattern_id": "$.acceptance_thresholds[].enabled::required_missing",
+      "category": "presence",
       "target": "$.acceptance_thresholds[].enabled",
+      "field_path": "$.acceptance_thresholds[].enabled",
+      "constraint_id": "",
+      "validation_type_id": "studio.boolean.standard",
+      "constraint_ref": "required",
+      "input": {
+        "state": "MISSING"
+      },
       "actual": "REJECT",
       "actual_reason_code": "REQUIRED_MISSING",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "REQUIRED_MISSING",
+          "constraint": "required"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].enabled",
         "validation_type_id": "studio.boolean.standard",
@@ -1558,10 +3102,26 @@
     {
       "check_id": "field::$.acceptance_thresholds[].enabled::null",
       "name": "null",
+      "pattern_id": "$.acceptance_thresholds[].enabled::null",
+      "category": "nullability",
       "target": "$.acceptance_thresholds[].enabled",
+      "field_path": "$.acceptance_thresholds[].enabled",
+      "constraint_id": "",
+      "validation_type_id": "studio.boolean.standard",
+      "constraint_ref": "nullable",
+      "input": {
+        "state": "VALUE",
+        "value": null
+      },
       "actual": "REJECT",
       "actual_reason_code": "NULL_NOT_ALLOWED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "NULL_NOT_ALLOWED",
+          "constraint": "nullable"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].enabled",
         "validation_type_id": "studio.boolean.standard",
@@ -1572,10 +3132,21 @@
     {
       "check_id": "field::$.acceptance_thresholds[].enabled::valid_value",
       "name": "valid_value",
+      "pattern_id": "$.acceptance_thresholds[].enabled::valid_value",
+      "category": "value_contract",
       "target": "$.acceptance_thresholds[].enabled",
+      "field_path": "$.acceptance_thresholds[].enabled",
+      "constraint_id": "",
+      "validation_type_id": "studio.boolean.standard",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": true
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].enabled",
         "validation_type_id": "studio.boolean.standard",
@@ -1586,10 +3157,26 @@
     {
       "check_id": "field::$.acceptance_thresholds[].enabled::invalid_format",
       "name": "invalid_format",
+      "pattern_id": "$.acceptance_thresholds[].enabled::invalid_format",
+      "category": "value_contract",
       "target": "$.acceptance_thresholds[].enabled",
+      "field_path": "$.acceptance_thresholds[].enabled",
+      "constraint_id": "",
+      "validation_type_id": "studio.boolean.standard",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": "true"
+      },
       "actual": "REJECT",
       "actual_reason_code": "BOOLEAN_REQUIRED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "BOOLEAN_REQUIRED",
+          "constraint": ""
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].enabled",
         "validation_type_id": "studio.boolean.standard",
@@ -1600,10 +3187,20 @@
     {
       "check_id": "field::$.acceptance_thresholds[].note::required_missing",
       "name": "required_missing",
+      "pattern_id": "$.acceptance_thresholds[].note::required_missing",
+      "category": "presence",
       "target": "$.acceptance_thresholds[].note",
+      "field_path": "$.acceptance_thresholds[].note",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.multi_line",
+      "constraint_ref": "required",
+      "input": {
+        "state": "MISSING"
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "OPTIONAL_MISSING_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].note",
         "validation_type_id": "studio.string.multi_line",
@@ -1614,10 +3211,26 @@
     {
       "check_id": "field::$.acceptance_thresholds[].note::null",
       "name": "null",
+      "pattern_id": "$.acceptance_thresholds[].note::null",
+      "category": "nullability",
       "target": "$.acceptance_thresholds[].note",
+      "field_path": "$.acceptance_thresholds[].note",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.multi_line",
+      "constraint_ref": "nullable",
+      "input": {
+        "state": "VALUE",
+        "value": null
+      },
       "actual": "REJECT",
       "actual_reason_code": "NULL_NOT_ALLOWED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "NULL_NOT_ALLOWED",
+          "constraint": "nullable"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].note",
         "validation_type_id": "studio.string.multi_line",
@@ -1628,10 +3241,21 @@
     {
       "check_id": "field::$.acceptance_thresholds[].note::valid_value",
       "name": "valid_value",
+      "pattern_id": "$.acceptance_thresholds[].note::valid_value",
+      "category": "value_contract",
       "target": "$.acceptance_thresholds[].note",
+      "field_path": "$.acceptance_thresholds[].note",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.multi_line",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": "a"
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].note",
         "validation_type_id": "studio.string.multi_line",
@@ -1642,10 +3266,26 @@
     {
       "check_id": "field::$.acceptance_thresholds[].note::invalid_format",
       "name": "invalid_format",
+      "pattern_id": "$.acceptance_thresholds[].note::invalid_format",
+      "category": "value_contract",
       "target": "$.acceptance_thresholds[].note",
+      "field_path": "$.acceptance_thresholds[].note",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.multi_line",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": 123
+      },
       "actual": "REJECT",
       "actual_reason_code": "STRING_REQUIRED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "STRING_REQUIRED",
+          "constraint": ""
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].note",
         "validation_type_id": "studio.string.multi_line",
@@ -1656,10 +3296,21 @@
     {
       "check_id": "field::$.acceptance_thresholds[].note::maximum_length",
       "name": "maximum_length",
+      "pattern_id": "$.acceptance_thresholds[].note::maximum_length",
+      "category": "length_boundary",
       "target": "$.acceptance_thresholds[].note",
+      "field_path": "$.acceptance_thresholds[].note",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.multi_line",
+      "constraint_ref": "maximum_length",
+      "input": {
+        "state": "VALUE",
+        "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].note",
         "validation_type_id": "studio.string.multi_line",
@@ -1670,10 +3321,26 @@
     {
       "check_id": "field::$.acceptance_thresholds[].note::maximum_length_plus_1",
       "name": "maximum_length_plus_1",
+      "pattern_id": "$.acceptance_thresholds[].note::maximum_length_plus_1",
+      "category": "length_boundary",
       "target": "$.acceptance_thresholds[].note",
+      "field_path": "$.acceptance_thresholds[].note",
+      "constraint_id": "",
+      "validation_type_id": "studio.string.multi_line",
+      "constraint_ref": "maximum_length",
+      "input": {
+        "state": "VALUE",
+        "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
       "actual": "REJECT",
       "actual_reason_code": "MAXIMUM_LENGTH_VIOLATION",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "MAXIMUM_LENGTH_VIOLATION",
+          "constraint": "maximum_length"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.acceptance_thresholds[].note",
         "validation_type_id": "studio.string.multi_line",
@@ -1684,10 +3351,25 @@
     {
       "check_id": "field::$.analysis_start_date::required_missing",
       "name": "required_missing",
+      "pattern_id": "$.analysis_start_date::required_missing",
+      "category": "presence",
       "target": "$.analysis_start_date",
+      "field_path": "$.analysis_start_date",
+      "constraint_id": "",
+      "validation_type_id": "studio.date.ymd",
+      "constraint_ref": "required",
+      "input": {
+        "state": "MISSING"
+      },
       "actual": "REJECT",
       "actual_reason_code": "REQUIRED_MISSING",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "REQUIRED_MISSING",
+          "constraint": "required"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.analysis_start_date",
         "validation_type_id": "studio.date.ymd",
@@ -1698,10 +3380,26 @@
     {
       "check_id": "field::$.analysis_start_date::null",
       "name": "null",
+      "pattern_id": "$.analysis_start_date::null",
+      "category": "nullability",
       "target": "$.analysis_start_date",
+      "field_path": "$.analysis_start_date",
+      "constraint_id": "",
+      "validation_type_id": "studio.date.ymd",
+      "constraint_ref": "nullable",
+      "input": {
+        "state": "VALUE",
+        "value": null
+      },
       "actual": "REJECT",
       "actual_reason_code": "NULL_NOT_ALLOWED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "NULL_NOT_ALLOWED",
+          "constraint": "nullable"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.analysis_start_date",
         "validation_type_id": "studio.date.ymd",
@@ -1712,10 +3410,21 @@
     {
       "check_id": "field::$.analysis_start_date::valid_value",
       "name": "valid_value",
+      "pattern_id": "$.analysis_start_date::valid_value",
+      "category": "value_contract",
       "target": "$.analysis_start_date",
+      "field_path": "$.analysis_start_date",
+      "constraint_id": "",
+      "validation_type_id": "studio.date.ymd",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": "2026-01-15"
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.analysis_start_date",
         "validation_type_id": "studio.date.ymd",
@@ -1726,10 +3435,26 @@
     {
       "check_id": "field::$.analysis_start_date::invalid_format",
       "name": "invalid_format",
+      "pattern_id": "$.analysis_start_date::invalid_format",
+      "category": "value_contract",
       "target": "$.analysis_start_date",
+      "field_path": "$.analysis_start_date",
+      "constraint_id": "",
+      "validation_type_id": "studio.date.ymd",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": "2026-02-30"
+      },
       "actual": "REJECT",
       "actual_reason_code": "DATE_FORMAT_INVALID",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "DATE_FORMAT_INVALID",
+          "constraint": ""
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.analysis_start_date",
         "validation_type_id": "studio.date.ymd",
@@ -1740,10 +3465,25 @@
     {
       "check_id": "field::$.analysis_end_date::required_missing",
       "name": "required_missing",
+      "pattern_id": "$.analysis_end_date::required_missing",
+      "category": "presence",
       "target": "$.analysis_end_date",
+      "field_path": "$.analysis_end_date",
+      "constraint_id": "",
+      "validation_type_id": "studio.date.ymd",
+      "constraint_ref": "required",
+      "input": {
+        "state": "MISSING"
+      },
       "actual": "REJECT",
       "actual_reason_code": "REQUIRED_MISSING",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "REQUIRED_MISSING",
+          "constraint": "required"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.analysis_end_date",
         "validation_type_id": "studio.date.ymd",
@@ -1754,10 +3494,26 @@
     {
       "check_id": "field::$.analysis_end_date::null",
       "name": "null",
+      "pattern_id": "$.analysis_end_date::null",
+      "category": "nullability",
       "target": "$.analysis_end_date",
+      "field_path": "$.analysis_end_date",
+      "constraint_id": "",
+      "validation_type_id": "studio.date.ymd",
+      "constraint_ref": "nullable",
+      "input": {
+        "state": "VALUE",
+        "value": null
+      },
       "actual": "REJECT",
       "actual_reason_code": "NULL_NOT_ALLOWED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "NULL_NOT_ALLOWED",
+          "constraint": "nullable"
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.analysis_end_date",
         "validation_type_id": "studio.date.ymd",
@@ -1768,10 +3524,21 @@
     {
       "check_id": "field::$.analysis_end_date::valid_value",
       "name": "valid_value",
+      "pattern_id": "$.analysis_end_date::valid_value",
+      "category": "value_contract",
       "target": "$.analysis_end_date",
+      "field_path": "$.analysis_end_date",
+      "constraint_id": "",
+      "validation_type_id": "studio.date.ymd",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": "2026-01-15"
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "VALUE_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.analysis_end_date",
         "validation_type_id": "studio.date.ymd",
@@ -1782,10 +3549,26 @@
     {
       "check_id": "field::$.analysis_end_date::invalid_format",
       "name": "invalid_format",
+      "pattern_id": "$.analysis_end_date::invalid_format",
+      "category": "value_contract",
       "target": "$.analysis_end_date",
+      "field_path": "$.analysis_end_date",
+      "constraint_id": "",
+      "validation_type_id": "studio.date.ymd",
+      "constraint_ref": "",
+      "input": {
+        "state": "VALUE",
+        "value": "2026-02-30"
+      },
       "actual": "REJECT",
       "actual_reason_code": "DATE_FORMAT_INVALID",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [
+        {
+          "code": "DATE_FORMAT_INVALID",
+          "constraint": ""
+        }
+      ],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "field_path": "$.analysis_end_date",
         "validation_type_id": "studio.date.ymd",
@@ -1796,10 +3579,29 @@
     {
       "check_id": "cross::analysis_start_date_before_end_date::left_less_right",
       "name": "left_less_right",
+      "pattern_id": "analysis_start_date_before_end_date::left_less_right",
+      "category": "cross_field_compare",
       "target": "$.analysis_start_date LT $.analysis_end_date",
+      "field_path": "",
+      "constraint_id": "analysis_start_date_before_end_date",
+      "validation_type_id": "",
+      "constraint_ref": "analysis_start_date_before_end_date",
+      "input": {
+        "left": {
+          "field_path": "$.analysis_start_date",
+          "state": "VALUE",
+          "value": "2020-01-01"
+        },
+        "right": {
+          "field_path": "$.analysis_end_date",
+          "state": "VALUE",
+          "value": "2090-01-01"
+        }
+      },
       "actual": "ACCEPT",
       "actual_reason_code": "CROSS_FIELD_RELATION_ACCEPTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "constraint_id": "analysis_start_date_before_end_date",
         "left_field_path": "$.analysis_start_date",
@@ -1814,10 +3616,29 @@
     {
       "check_id": "cross::analysis_start_date_before_end_date::left_equal_right",
       "name": "left_equal_right",
+      "pattern_id": "analysis_start_date_before_end_date::left_equal_right",
+      "category": "cross_field_compare",
       "target": "$.analysis_start_date LT $.analysis_end_date",
+      "field_path": "",
+      "constraint_id": "analysis_start_date_before_end_date",
+      "validation_type_id": "",
+      "constraint_ref": "analysis_start_date_before_end_date",
+      "input": {
+        "left": {
+          "field_path": "$.analysis_start_date",
+          "state": "VALUE",
+          "value": "2026-01-02"
+        },
+        "right": {
+          "field_path": "$.analysis_end_date",
+          "state": "VALUE",
+          "value": "2026-01-02"
+        }
+      },
       "actual": "REJECT",
       "actual_reason_code": "CROSS_FIELD_RELATION_REJECTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "constraint_id": "analysis_start_date_before_end_date",
         "left_field_path": "$.analysis_start_date",
@@ -1832,10 +3653,29 @@
     {
       "check_id": "cross::analysis_start_date_before_end_date::left_greater_right",
       "name": "left_greater_right",
+      "pattern_id": "analysis_start_date_before_end_date::left_greater_right",
+      "category": "cross_field_compare",
       "target": "$.analysis_start_date LT $.analysis_end_date",
+      "field_path": "",
+      "constraint_id": "analysis_start_date_before_end_date",
+      "validation_type_id": "",
+      "constraint_ref": "analysis_start_date_before_end_date",
+      "input": {
+        "left": {
+          "field_path": "$.analysis_start_date",
+          "state": "VALUE",
+          "value": "2090-01-01"
+        },
+        "right": {
+          "field_path": "$.analysis_end_date",
+          "state": "VALUE",
+          "value": "2020-01-01"
+        }
+      },
       "actual": "REJECT",
       "actual_reason_code": "CROSS_FIELD_RELATION_REJECTED",
-      "observed_at": "2026-08-12T03:15:35.756Z",
+      "actual_violations": [],
+      "observed_at": "2026-08-12T05:53:23.333Z",
       "source": {
         "constraint_id": "analysis_start_date_before_end_date",
         "left_field_path": "$.analysis_start_date",

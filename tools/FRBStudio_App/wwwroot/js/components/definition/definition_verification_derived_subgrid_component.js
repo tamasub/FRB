@@ -117,6 +117,18 @@ class DefinitionVerificationDerivedSubGridComponent extends DerivedSubGridCompon
     this._verificationResult = null;
 
     try {
+      // v0.18.46-definition-review-evidence:
+      // Diff/Evidence review may provide the frozen execution-time verification result.
+      // The same Component renders it without re-deriving from today's Definition.
+      const frozenVerification = this.context?.verificationResult ?? this.context?.verification_result ?? null;
+      if (frozenVerification && typeof frozenVerification === 'object') {
+        if (token !== this._refreshToken || !this.mounted) return;
+        this._verificationResult = frozenVerification;
+        this._verificationState = 'ready';
+        this.render();
+        return;
+      }
+
       const service = await this.resolveVerificationService();
       if (token !== this._refreshToken || !this.mounted) return;
       this._verificationResult = service.deriveForPreview(this.row ?? {});

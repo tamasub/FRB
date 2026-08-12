@@ -3293,3 +3293,207 @@ body.related-grid-modal-open {
   color: #b91c1c;
   font-weight: 800;
 }
+
+/* v0.18.48-field-definition-caption-and-detail-header-spacing */
+/* Keep the first field caption visually clear of the sticky detail header. */
+#detailDialog .dialog-title-row {
+  margin-bottom: 14px;
+}
+#detailDialog #detailForm {
+  padding-top: 2px;
+}
+
+/* Derived human-facing caption from the target Data ViewDef. */
+.definition-target-caption-card {
+  display: grid;
+  grid-template-columns: max-content minmax(0, max-content) minmax(180px, 1fr);
+  align-items: baseline;
+  gap: 8px 12px;
+  margin: 2px 0 12px;
+  padding: 9px 12px;
+  border: 1px solid rgba(147, 197, 253, .72);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(239,246,255,.92), rgba(255,255,255,.96));
+}
+.definition-target-caption-label {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+.definition-target-caption-value {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 950;
+}
+.definition-target-caption-meta {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+  font-size: 11px;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+.definition-target-caption-card.is-error,
+.definition-target-caption-card.is-unresolved {
+  border-color: rgba(251, 191, 36, .72);
+  background: rgba(255, 251, 235, .92);
+}
+@media (max-width: 760px) {
+  .definition-target-caption-card {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  .definition-target-caption-meta {
+    white-space: normal;
+  }
+}
+
+/* v0.18.46-definition-review-evidence-and-fielddefs-access */
+/* Definition Test Diff: keep execution evidence and the linked Field Definition snapshot in one review screen. */
+#detailDialog.detail-dialog-definition-evidence-review {
+  width: min(1540px, 96vw);
+  max-width: none;
+}
+#detailDialog .dialog-body.definition-evidence-review-layout {
+  display: grid;
+  grid-template-columns: minmax(340px, .78fr) minmax(620px, 1.22fr);
+  align-items: start;
+  column-gap: 14px;
+  row-gap: 0;
+}
+#detailDialog .dialog-body.definition-evidence-review-layout > .dialog-title-row,
+#detailDialog .dialog-body.definition-evidence-review-layout > #childArea,
+#detailDialog .dialog-body.definition-evidence-review-layout > #detailComponentAfterChildArea,
+#detailDialog .dialog-body.definition-evidence-review-layout > #detailComponentFooterArea,
+#detailDialog .dialog-body.definition-evidence-review-layout > .detail-footer {
+  grid-column: 1 / -1;
+}
+#detailDialog .dialog-body.definition-evidence-review-layout > #detailForm {
+  grid-column: 1;
+  min-width: 0;
+}
+#detailDialog .dialog-body.definition-evidence-review-layout > #detailComponentBodyArea {
+  grid-column: 2;
+  min-width: 0;
+}
+.definition-evidence-review-panel {
+  min-width: 0;
+  border: 1px solid rgba(147, 197, 253, .82);
+  border-radius: 15px;
+  padding: 10px;
+  background: linear-gradient(180deg, rgba(239,246,255,.90), rgba(255,255,255,.98));
+}
+.definition-evidence-review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 2px 8px;
+}
+.definition-evidence-review-header > div {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+.definition-evidence-review-header strong { font-size: 14px; }
+.definition-evidence-review-header span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+.definition-evidence-review-empty {
+  padding: 14px;
+  border: 1px dashed rgba(148,163,184,.8);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.definition-execution-evidence-card {
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid rgba(191,219,254,.88);
+  border-radius: 12px;
+  background: rgba(255,255,255,.94);
+}
+.definition-execution-evidence-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.definition-execution-evidence-heading strong { font-size: 13px; }
+.definition-execution-evidence-heading span {
+  color: var(--muted);
+  font-size: 11px;
+}
+.definition-execution-evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 10px;
+}
+.definition-execution-evidence-item {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 7px;
+  align-items: baseline;
+}
+.definition-execution-evidence-item > span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 850;
+}
+.definition-execution-evidence-item > strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 11px;
+  font-weight: 800;
+}
+.definition-execution-evidence-item > strong.is-json-like {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+.definition-execution-evidence-item > strong.is-result-pass { color: #166534; }
+.definition-execution-evidence-item > strong.is-result-fail { color: #b91c1c; }
+.definition-execution-evidence-source {
+  margin-top: 8px;
+  padding-top: 7px;
+  border-top: 1px dashed rgba(203,213,225,.9);
+  color: var(--muted);
+  font-size: 9px;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  overflow-wrap: anywhere;
+}
+.definition-evidence-review-slot .child-card { margin-top: 10px; }
+.definition-test-preview-row.is-evidence-target td,
+.definition-constraint-diff-row.is-evidence-source td {
+  background: rgba(254, 249, 195, .95) !important;
+  box-shadow: inset 0 1px 0 rgba(245,158,11,.38), inset 0 -1px 0 rgba(245,158,11,.38);
+}
+.definition-test-preview-row.is-evidence-target td:first-child,
+.definition-constraint-diff-row.is-evidence-source td:first-child {
+  box-shadow: inset 4px 0 0 #f59e0b, inset 0 1px 0 rgba(245,158,11,.38), inset 0 -1px 0 rgba(245,158,11,.38);
+  font-weight: 950;
+}
+.definition-evidence-target-cell[data-column="input"],
+.definition-evidence-target-cell[data-column="actual"],
+.definition-evidence-target-cell[data-column="result"] {
+  font-weight: 900;
+}
+.definition-test-result-pass { color: #166534; font-weight: 950; }
+.definition-test-result-fail { color: #b91c1c; font-weight: 950; }
+
+@media (max-width: 1120px) {
+  #detailDialog .dialog-body.definition-evidence-review-layout {
+    display: flex;
+    flex-direction: column;
+  }
+  #detailDialog .dialog-body.definition-evidence-review-layout > #detailComponentBodyArea {
+    width: 100%;
+  }
+}
+@media (max-width: 760px) {
+  .definition-execution-evidence-grid { grid-template-columns: 1fr; }
+}

@@ -1,9 +1,9 @@
 {
-  "schema_version": "definition_test_trace_relations_v0_1",
+  "schema_version": "definition_test_trace_relations_v0_2",
   "document_type": "definition_test_trace_relations",
   "test_id": "definition_test_runner_frb_fft_v0_1",
   "title": "FRB FFT Field Definition — Definition Driven Test E2E",
-  "generated_at": "2026-08-12T03:15:35.756Z",
+  "generated_at": "2026-08-12T05:53:23.333Z",
   "source": {
     "field_definition_document": {
       "definition_id": "frb.fft.measurement.sample",
@@ -31,6 +31,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.identifier",
       "pattern_id": "$.measurement_sessions[].session_id::required_missing",
+      "constraint_ref": "required",
+      "definition_review_ref": "$.measurement_sessions[].session_id",
       "source": {
         "field_path": "$.measurement_sessions[].session_id",
         "validation_type_id": "studio.string.identifier",
@@ -45,6 +47,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.identifier",
       "pattern_id": "$.measurement_sessions[].session_id::null",
+      "constraint_ref": "nullable",
+      "definition_review_ref": "$.measurement_sessions[].session_id",
       "source": {
         "field_path": "$.measurement_sessions[].session_id",
         "validation_type_id": "studio.string.identifier",
@@ -59,6 +63,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.identifier",
       "pattern_id": "$.measurement_sessions[].session_id::valid_value",
+      "constraint_ref": "",
+      "definition_review_ref": "$.measurement_sessions[].session_id",
       "source": {
         "field_path": "$.measurement_sessions[].session_id",
         "validation_type_id": "studio.string.identifier",
@@ -73,6 +79,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.identifier",
       "pattern_id": "$.measurement_sessions[].session_id::invalid_format",
+      "constraint_ref": "",
+      "definition_review_ref": "$.measurement_sessions[].session_id",
       "source": {
         "field_path": "$.measurement_sessions[].session_id",
         "validation_type_id": "studio.string.identifier",
@@ -87,6 +95,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.identifier",
       "pattern_id": "$.measurement_sessions[].session_id::maximum_length",
+      "constraint_ref": "maximum_length",
+      "definition_review_ref": "$.measurement_sessions[].session_id",
       "source": {
         "field_path": "$.measurement_sessions[].session_id",
         "validation_type_id": "studio.string.identifier",
@@ -101,6 +111,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.identifier",
       "pattern_id": "$.measurement_sessions[].session_id::maximum_length_plus_1",
+      "constraint_ref": "maximum_length",
+      "definition_review_ref": "$.measurement_sessions[].session_id",
       "source": {
         "field_path": "$.measurement_sessions[].session_id",
         "validation_type_id": "studio.string.identifier",
@@ -115,6 +127,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.alphanumeric",
       "pattern_id": "$.measurement_sessions[].rod_code::required_missing",
+      "constraint_ref": "required",
+      "definition_review_ref": "$.measurement_sessions[].rod_code",
       "source": {
         "field_path": "$.measurement_sessions[].rod_code",
         "validation_type_id": "studio.string.alphanumeric",
@@ -129,6 +143,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.alphanumeric",
       "pattern_id": "$.measurement_sessions[].rod_code::null",
+      "constraint_ref": "nullable",
+      "definition_review_ref": "$.measurement_sessions[].rod_code",
       "source": {
         "field_path": "$.measurement_sessions[].rod_code",
         "validation_type_id": "studio.string.alphanumeric",
@@ -143,6 +159,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.alphanumeric",
       "pattern_id": "$.measurement_sessions[].rod_code::valid_value",
+      "constraint_ref": "",
+      "definition_review_ref": "$.measurement_sessions[].rod_code",
       "source": {
         "field_path": "$.measurement_sessions[].rod_code",
         "validation_type_id": "studio.string.alphanumeric",
@@ -157,6 +175,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.alphanumeric",
       "pattern_id": "$.measurement_sessions[].rod_code::invalid_format",
+      "constraint_ref": "",
+      "definition_review_ref": "$.measurement_sessions[].rod_code",
       "source": {
         "field_path": "$.measurement_sessions[].rod_code",
         "validation_type_id": "studio.string.alphanumeric",
@@ -171,6 +191,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.alphanumeric",
       "pattern_id": "$.measurement_sessions[].rod_code::minimum_length",
+      "constraint_ref": "minimum_length",
+      "definition_review_ref": "$.measurement_sessions[].rod_code",
       "source": {
         "field_path": "$.measurement_sessions[].rod_code",
         "validation_type_id": "studio.string.alphanumeric",
@@ -185,6 +207,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.alphanumeric",
       "pattern_id": "$.measurement_sessions[].rod_code::minimum_length_minus_1",
+      "constraint_ref": "minimum_length",
+      "definition_review_ref": "$.measurement_sessions[].rod_code",
       "source": {
         "field_path": "$.measurement_sessions[].rod_code",
         "validation_type_id": "studio.string.alphanumeric",
@@ -199,6 +223,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.alphanumeric",
       "pattern_id": "$.measurement_sessions[].rod_code::maximum_length",
+      "constraint_ref": "maximum_length",
+      "definition_review_ref": "$.measurement_sessions[].rod_code",
       "source": {
         "field_path": "$.measurement_sessions[].rod_code",
         "validation_type_id": "studio.string.alphanumeric",
@@ -213,6 +239,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.alphanumeric",
       "pattern_id": "$.measurement_sessions[].rod_code::maximum_length_plus_1",
+      "constraint_ref": "maximum_length",
+      "definition_review_ref": "$.measurement_sessions[].rod_code",
       "source": {
         "field_path": "$.measurement_sessions[].rod_code",
         "validation_type_id": "studio.string.alphanumeric",
@@ -227,6 +255,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.single_line",
       "pattern_id": "$.measurement_sessions[].measurement_name::required_missing",
+      "constraint_ref": "required",
+      "definition_review_ref": "$.measurement_sessions[].measurement_name",
       "source": {
         "field_path": "$.measurement_sessions[].measurement_name",
         "validation_type_id": "studio.string.single_line",
@@ -241,6 +271,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.single_line",
       "pattern_id": "$.measurement_sessions[].measurement_name::null",
+      "constraint_ref": "nullable",
+      "definition_review_ref": "$.measurement_sessions[].measurement_name",
       "source": {
         "field_path": "$.measurement_sessions[].measurement_name",
         "validation_type_id": "studio.string.single_line",
@@ -255,6 +287,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.single_line",
       "pattern_id": "$.measurement_sessions[].measurement_name::valid_value",
+      "constraint_ref": "",
+      "definition_review_ref": "$.measurement_sessions[].measurement_name",
       "source": {
         "field_path": "$.measurement_sessions[].measurement_name",
         "validation_type_id": "studio.string.single_line",
@@ -269,6 +303,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.single_line",
       "pattern_id": "$.measurement_sessions[].measurement_name::invalid_format",
+      "constraint_ref": "",
+      "definition_review_ref": "$.measurement_sessions[].measurement_name",
       "source": {
         "field_path": "$.measurement_sessions[].measurement_name",
         "validation_type_id": "studio.string.single_line",
@@ -283,6 +319,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.single_line",
       "pattern_id": "$.measurement_sessions[].measurement_name::maximum_length",
+      "constraint_ref": "maximum_length",
+      "definition_review_ref": "$.measurement_sessions[].measurement_name",
       "source": {
         "field_path": "$.measurement_sessions[].measurement_name",
         "validation_type_id": "studio.string.single_line",
@@ -297,6 +335,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.single_line",
       "pattern_id": "$.measurement_sessions[].measurement_name::maximum_length_plus_1",
+      "constraint_ref": "maximum_length",
+      "definition_review_ref": "$.measurement_sessions[].measurement_name",
       "source": {
         "field_path": "$.measurement_sessions[].measurement_name",
         "validation_type_id": "studio.string.single_line",
@@ -311,6 +351,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.date.ymd",
       "pattern_id": "$.measurement_sessions[].measurement_date::required_missing",
+      "constraint_ref": "required",
+      "definition_review_ref": "$.measurement_sessions[].measurement_date",
       "source": {
         "field_path": "$.measurement_sessions[].measurement_date",
         "validation_type_id": "studio.date.ymd",
@@ -325,6 +367,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.date.ymd",
       "pattern_id": "$.measurement_sessions[].measurement_date::null",
+      "constraint_ref": "nullable",
+      "definition_review_ref": "$.measurement_sessions[].measurement_date",
       "source": {
         "field_path": "$.measurement_sessions[].measurement_date",
         "validation_type_id": "studio.date.ymd",
@@ -339,6 +383,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.date.ymd",
       "pattern_id": "$.measurement_sessions[].measurement_date::valid_value",
+      "constraint_ref": "",
+      "definition_review_ref": "$.measurement_sessions[].measurement_date",
       "source": {
         "field_path": "$.measurement_sessions[].measurement_date",
         "validation_type_id": "studio.date.ymd",
@@ -353,6 +399,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.date.ymd",
       "pattern_id": "$.measurement_sessions[].measurement_date::invalid_format",
+      "constraint_ref": "",
+      "definition_review_ref": "$.measurement_sessions[].measurement_date",
       "source": {
         "field_path": "$.measurement_sessions[].measurement_date",
         "validation_type_id": "studio.date.ymd",
@@ -367,6 +415,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.date.ymd",
       "pattern_id": "$.measurement_sessions[].measurement_date::minimum_date",
+      "constraint_ref": "minimum_date",
+      "definition_review_ref": "$.measurement_sessions[].measurement_date",
       "source": {
         "field_path": "$.measurement_sessions[].measurement_date",
         "validation_type_id": "studio.date.ymd",
@@ -381,6 +431,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.date.ymd",
       "pattern_id": "$.measurement_sessions[].measurement_date::minimum_date_minus_1_day",
+      "constraint_ref": "minimum_date",
+      "definition_review_ref": "$.measurement_sessions[].measurement_date",
       "source": {
         "field_path": "$.measurement_sessions[].measurement_date",
         "validation_type_id": "studio.date.ymd",
@@ -395,6 +447,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.date.ymd",
       "pattern_id": "$.measurement_sessions[].measurement_date::maximum_date",
+      "constraint_ref": "maximum_date",
+      "definition_review_ref": "$.measurement_sessions[].measurement_date",
       "source": {
         "field_path": "$.measurement_sessions[].measurement_date",
         "validation_type_id": "studio.date.ymd",
@@ -409,6 +463,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.date.ymd",
       "pattern_id": "$.measurement_sessions[].measurement_date::maximum_date_plus_1_day",
+      "constraint_ref": "maximum_date",
+      "definition_review_ref": "$.measurement_sessions[].measurement_date",
       "source": {
         "field_path": "$.measurement_sessions[].measurement_date",
         "validation_type_id": "studio.date.ymd",
@@ -423,6 +479,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.datetime.local",
       "pattern_id": "$.measurement_sessions[].captured_at::required_missing",
+      "constraint_ref": "required",
+      "definition_review_ref": "$.measurement_sessions[].captured_at",
       "source": {
         "field_path": "$.measurement_sessions[].captured_at",
         "validation_type_id": "studio.datetime.local",
@@ -437,6 +495,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.datetime.local",
       "pattern_id": "$.measurement_sessions[].captured_at::null",
+      "constraint_ref": "nullable",
+      "definition_review_ref": "$.measurement_sessions[].captured_at",
       "source": {
         "field_path": "$.measurement_sessions[].captured_at",
         "validation_type_id": "studio.datetime.local",
@@ -451,6 +511,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.datetime.local",
       "pattern_id": "$.measurement_sessions[].captured_at::valid_value",
+      "constraint_ref": "",
+      "definition_review_ref": "$.measurement_sessions[].captured_at",
       "source": {
         "field_path": "$.measurement_sessions[].captured_at",
         "validation_type_id": "studio.datetime.local",
@@ -465,6 +527,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.datetime.local",
       "pattern_id": "$.measurement_sessions[].captured_at::invalid_format",
+      "constraint_ref": "",
+      "definition_review_ref": "$.measurement_sessions[].captured_at",
       "source": {
         "field_path": "$.measurement_sessions[].captured_at",
         "validation_type_id": "studio.datetime.local",
@@ -479,6 +543,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.instant.iso8601",
       "pattern_id": "$.measurement_sessions[].received_at::required_missing",
+      "constraint_ref": "required",
+      "definition_review_ref": "$.measurement_sessions[].received_at",
       "source": {
         "field_path": "$.measurement_sessions[].received_at",
         "validation_type_id": "studio.instant.iso8601",
@@ -493,6 +559,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.instant.iso8601",
       "pattern_id": "$.measurement_sessions[].received_at::null",
+      "constraint_ref": "nullable",
+      "definition_review_ref": "$.measurement_sessions[].received_at",
       "source": {
         "field_path": "$.measurement_sessions[].received_at",
         "validation_type_id": "studio.instant.iso8601",
@@ -507,6 +575,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.instant.iso8601",
       "pattern_id": "$.measurement_sessions[].received_at::valid_value",
+      "constraint_ref": "",
+      "definition_review_ref": "$.measurement_sessions[].received_at",
       "source": {
         "field_path": "$.measurement_sessions[].received_at",
         "validation_type_id": "studio.instant.iso8601",
@@ -521,6 +591,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.instant.iso8601",
       "pattern_id": "$.measurement_sessions[].received_at::invalid_format",
+      "constraint_ref": "",
+      "definition_review_ref": "$.measurement_sessions[].received_at",
       "source": {
         "field_path": "$.measurement_sessions[].received_at",
         "validation_type_id": "studio.instant.iso8601",
@@ -535,6 +607,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.integer.positive",
       "pattern_id": "$.measurement_sessions[].sample_rate_hz::required_missing",
+      "constraint_ref": "required",
+      "definition_review_ref": "$.measurement_sessions[].sample_rate_hz",
       "source": {
         "field_path": "$.measurement_sessions[].sample_rate_hz",
         "validation_type_id": "studio.integer.positive",
@@ -549,6 +623,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.integer.positive",
       "pattern_id": "$.measurement_sessions[].sample_rate_hz::null",
+      "constraint_ref": "nullable",
+      "definition_review_ref": "$.measurement_sessions[].sample_rate_hz",
       "source": {
         "field_path": "$.measurement_sessions[].sample_rate_hz",
         "validation_type_id": "studio.integer.positive",
@@ -563,6 +639,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.integer.positive",
       "pattern_id": "$.measurement_sessions[].sample_rate_hz::valid_value",
+      "constraint_ref": "",
+      "definition_review_ref": "$.measurement_sessions[].sample_rate_hz",
       "source": {
         "field_path": "$.measurement_sessions[].sample_rate_hz",
         "validation_type_id": "studio.integer.positive",
@@ -577,6 +655,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.integer.positive",
       "pattern_id": "$.measurement_sessions[].sample_rate_hz::invalid_format",
+      "constraint_ref": "",
+      "definition_review_ref": "$.measurement_sessions[].sample_rate_hz",
       "source": {
         "field_path": "$.measurement_sessions[].sample_rate_hz",
         "validation_type_id": "studio.integer.positive",
@@ -591,6 +671,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.integer.positive",
       "pattern_id": "$.measurement_sessions[].sample_rate_hz::minimum",
+      "constraint_ref": "minimum",
+      "definition_review_ref": "$.measurement_sessions[].sample_rate_hz",
       "source": {
         "field_path": "$.measurement_sessions[].sample_rate_hz",
         "validation_type_id": "studio.integer.positive",
@@ -605,6 +687,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.integer.positive",
       "pattern_id": "$.measurement_sessions[].sample_rate_hz::minimum_minus_1",
+      "constraint_ref": "minimum",
+      "definition_review_ref": "$.measurement_sessions[].sample_rate_hz",
       "source": {
         "field_path": "$.measurement_sessions[].sample_rate_hz",
         "validation_type_id": "studio.integer.positive",
@@ -619,6 +703,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.integer.positive",
       "pattern_id": "$.measurement_sessions[].sample_rate_hz::maximum",
+      "constraint_ref": "maximum",
+      "definition_review_ref": "$.measurement_sessions[].sample_rate_hz",
       "source": {
         "field_path": "$.measurement_sessions[].sample_rate_hz",
         "validation_type_id": "studio.integer.positive",
@@ -633,6 +719,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.integer.positive",
       "pattern_id": "$.measurement_sessions[].sample_rate_hz::maximum_plus_1",
+      "constraint_ref": "maximum",
+      "definition_review_ref": "$.measurement_sessions[].sample_rate_hz",
       "source": {
         "field_path": "$.measurement_sessions[].sample_rate_hz",
         "validation_type_id": "studio.integer.positive",
@@ -647,6 +735,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.measurement_sessions[].peak_frequency_hz::required_missing",
+      "constraint_ref": "required",
+      "definition_review_ref": "$.measurement_sessions[].peak_frequency_hz",
       "source": {
         "field_path": "$.measurement_sessions[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -661,6 +751,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.measurement_sessions[].peak_frequency_hz::null",
+      "constraint_ref": "nullable",
+      "definition_review_ref": "$.measurement_sessions[].peak_frequency_hz",
       "source": {
         "field_path": "$.measurement_sessions[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -675,6 +767,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.measurement_sessions[].peak_frequency_hz::valid_value",
+      "constraint_ref": "",
+      "definition_review_ref": "$.measurement_sessions[].peak_frequency_hz",
       "source": {
         "field_path": "$.measurement_sessions[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -689,6 +783,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.measurement_sessions[].peak_frequency_hz::invalid_format",
+      "constraint_ref": "",
+      "definition_review_ref": "$.measurement_sessions[].peak_frequency_hz",
       "source": {
         "field_path": "$.measurement_sessions[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -703,6 +799,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.measurement_sessions[].peak_frequency_hz::minimum",
+      "constraint_ref": "minimum",
+      "definition_review_ref": "$.measurement_sessions[].peak_frequency_hz",
       "source": {
         "field_path": "$.measurement_sessions[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -717,6 +815,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.measurement_sessions[].peak_frequency_hz::minimum_minus_1",
+      "constraint_ref": "minimum",
+      "definition_review_ref": "$.measurement_sessions[].peak_frequency_hz",
       "source": {
         "field_path": "$.measurement_sessions[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -731,6 +831,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.measurement_sessions[].peak_frequency_hz::maximum",
+      "constraint_ref": "maximum",
+      "definition_review_ref": "$.measurement_sessions[].peak_frequency_hz",
       "source": {
         "field_path": "$.measurement_sessions[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -745,6 +847,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.measurement_sessions[].peak_frequency_hz::maximum_plus_1",
+      "constraint_ref": "maximum",
+      "definition_review_ref": "$.measurement_sessions[].peak_frequency_hz",
       "source": {
         "field_path": "$.measurement_sessions[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -759,6 +863,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.measurement_sessions[].amplitude_g::required_missing",
+      "constraint_ref": "required",
+      "definition_review_ref": "$.measurement_sessions[].amplitude_g",
       "source": {
         "field_path": "$.measurement_sessions[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -773,6 +879,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.measurement_sessions[].amplitude_g::null",
+      "constraint_ref": "nullable",
+      "definition_review_ref": "$.measurement_sessions[].amplitude_g",
       "source": {
         "field_path": "$.measurement_sessions[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -787,6 +895,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.measurement_sessions[].amplitude_g::valid_value",
+      "constraint_ref": "",
+      "definition_review_ref": "$.measurement_sessions[].amplitude_g",
       "source": {
         "field_path": "$.measurement_sessions[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -801,6 +911,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.measurement_sessions[].amplitude_g::invalid_format",
+      "constraint_ref": "",
+      "definition_review_ref": "$.measurement_sessions[].amplitude_g",
       "source": {
         "field_path": "$.measurement_sessions[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -815,6 +927,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.measurement_sessions[].amplitude_g::minimum",
+      "constraint_ref": "minimum",
+      "definition_review_ref": "$.measurement_sessions[].amplitude_g",
       "source": {
         "field_path": "$.measurement_sessions[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -829,6 +943,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.measurement_sessions[].amplitude_g::minimum_minus_1",
+      "constraint_ref": "minimum",
+      "definition_review_ref": "$.measurement_sessions[].amplitude_g",
       "source": {
         "field_path": "$.measurement_sessions[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -843,6 +959,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.measurement_sessions[].amplitude_g::maximum",
+      "constraint_ref": "maximum",
+      "definition_review_ref": "$.measurement_sessions[].amplitude_g",
       "source": {
         "field_path": "$.measurement_sessions[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -857,6 +975,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.measurement_sessions[].amplitude_g::maximum_plus_1",
+      "constraint_ref": "maximum",
+      "definition_review_ref": "$.measurement_sessions[].amplitude_g",
       "source": {
         "field_path": "$.measurement_sessions[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -871,6 +991,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.integer.non_negative",
       "pattern_id": "$.measurement_sessions[].quality_score::required_missing",
+      "constraint_ref": "required",
+      "definition_review_ref": "$.measurement_sessions[].quality_score",
       "source": {
         "field_path": "$.measurement_sessions[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -885,6 +1007,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.integer.non_negative",
       "pattern_id": "$.measurement_sessions[].quality_score::null",
+      "constraint_ref": "nullable",
+      "definition_review_ref": "$.measurement_sessions[].quality_score",
       "source": {
         "field_path": "$.measurement_sessions[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -899,6 +1023,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.integer.non_negative",
       "pattern_id": "$.measurement_sessions[].quality_score::valid_value",
+      "constraint_ref": "",
+      "definition_review_ref": "$.measurement_sessions[].quality_score",
       "source": {
         "field_path": "$.measurement_sessions[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -913,6 +1039,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.integer.non_negative",
       "pattern_id": "$.measurement_sessions[].quality_score::invalid_format",
+      "constraint_ref": "",
+      "definition_review_ref": "$.measurement_sessions[].quality_score",
       "source": {
         "field_path": "$.measurement_sessions[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -927,6 +1055,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.integer.non_negative",
       "pattern_id": "$.measurement_sessions[].quality_score::minimum",
+      "constraint_ref": "minimum",
+      "definition_review_ref": "$.measurement_sessions[].quality_score",
       "source": {
         "field_path": "$.measurement_sessions[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -941,6 +1071,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.integer.non_negative",
       "pattern_id": "$.measurement_sessions[].quality_score::minimum_minus_1",
+      "constraint_ref": "minimum",
+      "definition_review_ref": "$.measurement_sessions[].quality_score",
       "source": {
         "field_path": "$.measurement_sessions[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -955,6 +1087,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.integer.non_negative",
       "pattern_id": "$.measurement_sessions[].quality_score::maximum",
+      "constraint_ref": "maximum",
+      "definition_review_ref": "$.measurement_sessions[].quality_score",
       "source": {
         "field_path": "$.measurement_sessions[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -969,6 +1103,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.integer.non_negative",
       "pattern_id": "$.measurement_sessions[].quality_score::maximum_plus_1",
+      "constraint_ref": "maximum",
+      "definition_review_ref": "$.measurement_sessions[].quality_score",
       "source": {
         "field_path": "$.measurement_sessions[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -983,6 +1119,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.boolean.standard",
       "pattern_id": "$.measurement_sessions[].enabled::required_missing",
+      "constraint_ref": "required",
+      "definition_review_ref": "$.measurement_sessions[].enabled",
       "source": {
         "field_path": "$.measurement_sessions[].enabled",
         "validation_type_id": "studio.boolean.standard",
@@ -997,6 +1135,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.boolean.standard",
       "pattern_id": "$.measurement_sessions[].enabled::null",
+      "constraint_ref": "nullable",
+      "definition_review_ref": "$.measurement_sessions[].enabled",
       "source": {
         "field_path": "$.measurement_sessions[].enabled",
         "validation_type_id": "studio.boolean.standard",
@@ -1011,6 +1151,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.boolean.standard",
       "pattern_id": "$.measurement_sessions[].enabled::valid_value",
+      "constraint_ref": "",
+      "definition_review_ref": "$.measurement_sessions[].enabled",
       "source": {
         "field_path": "$.measurement_sessions[].enabled",
         "validation_type_id": "studio.boolean.standard",
@@ -1025,6 +1167,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.boolean.standard",
       "pattern_id": "$.measurement_sessions[].enabled::invalid_format",
+      "constraint_ref": "",
+      "definition_review_ref": "$.measurement_sessions[].enabled",
       "source": {
         "field_path": "$.measurement_sessions[].enabled",
         "validation_type_id": "studio.boolean.standard",
@@ -1039,6 +1183,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.multi_line",
       "pattern_id": "$.measurement_sessions[].note::required_missing",
+      "constraint_ref": "required",
+      "definition_review_ref": "$.measurement_sessions[].note",
       "source": {
         "field_path": "$.measurement_sessions[].note",
         "validation_type_id": "studio.string.multi_line",
@@ -1053,6 +1199,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.multi_line",
       "pattern_id": "$.measurement_sessions[].note::null",
+      "constraint_ref": "nullable",
+      "definition_review_ref": "$.measurement_sessions[].note",
       "source": {
         "field_path": "$.measurement_sessions[].note",
         "validation_type_id": "studio.string.multi_line",
@@ -1067,6 +1215,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.multi_line",
       "pattern_id": "$.measurement_sessions[].note::valid_value",
+      "constraint_ref": "",
+      "definition_review_ref": "$.measurement_sessions[].note",
       "source": {
         "field_path": "$.measurement_sessions[].note",
         "validation_type_id": "studio.string.multi_line",
@@ -1081,6 +1231,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.multi_line",
       "pattern_id": "$.measurement_sessions[].note::invalid_format",
+      "constraint_ref": "",
+      "definition_review_ref": "$.measurement_sessions[].note",
       "source": {
         "field_path": "$.measurement_sessions[].note",
         "validation_type_id": "studio.string.multi_line",
@@ -1095,6 +1247,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.multi_line",
       "pattern_id": "$.measurement_sessions[].note::maximum_length",
+      "constraint_ref": "maximum_length",
+      "definition_review_ref": "$.measurement_sessions[].note",
       "source": {
         "field_path": "$.measurement_sessions[].note",
         "validation_type_id": "studio.string.multi_line",
@@ -1109,6 +1263,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.multi_line",
       "pattern_id": "$.measurement_sessions[].note::maximum_length_plus_1",
+      "constraint_ref": "maximum_length",
+      "definition_review_ref": "$.measurement_sessions[].note",
       "source": {
         "field_path": "$.measurement_sessions[].note",
         "validation_type_id": "studio.string.multi_line",
@@ -1123,6 +1279,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.identifier",
       "pattern_id": "$.acceptance_thresholds[].threshold_id::required_missing",
+      "constraint_ref": "required",
+      "definition_review_ref": "$.acceptance_thresholds[].threshold_id",
       "source": {
         "field_path": "$.acceptance_thresholds[].threshold_id",
         "validation_type_id": "studio.string.identifier",
@@ -1137,6 +1295,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.identifier",
       "pattern_id": "$.acceptance_thresholds[].threshold_id::null",
+      "constraint_ref": "nullable",
+      "definition_review_ref": "$.acceptance_thresholds[].threshold_id",
       "source": {
         "field_path": "$.acceptance_thresholds[].threshold_id",
         "validation_type_id": "studio.string.identifier",
@@ -1151,6 +1311,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.identifier",
       "pattern_id": "$.acceptance_thresholds[].threshold_id::valid_value",
+      "constraint_ref": "",
+      "definition_review_ref": "$.acceptance_thresholds[].threshold_id",
       "source": {
         "field_path": "$.acceptance_thresholds[].threshold_id",
         "validation_type_id": "studio.string.identifier",
@@ -1165,6 +1327,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.identifier",
       "pattern_id": "$.acceptance_thresholds[].threshold_id::invalid_format",
+      "constraint_ref": "",
+      "definition_review_ref": "$.acceptance_thresholds[].threshold_id",
       "source": {
         "field_path": "$.acceptance_thresholds[].threshold_id",
         "validation_type_id": "studio.string.identifier",
@@ -1179,6 +1343,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.identifier",
       "pattern_id": "$.acceptance_thresholds[].threshold_id::maximum_length",
+      "constraint_ref": "maximum_length",
+      "definition_review_ref": "$.acceptance_thresholds[].threshold_id",
       "source": {
         "field_path": "$.acceptance_thresholds[].threshold_id",
         "validation_type_id": "studio.string.identifier",
@@ -1193,6 +1359,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.identifier",
       "pattern_id": "$.acceptance_thresholds[].threshold_id::maximum_length_plus_1",
+      "constraint_ref": "maximum_length",
+      "definition_review_ref": "$.acceptance_thresholds[].threshold_id",
       "source": {
         "field_path": "$.acceptance_thresholds[].threshold_id",
         "validation_type_id": "studio.string.identifier",
@@ -1207,6 +1375,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.acceptance_thresholds[].peak_frequency_hz::required_missing",
+      "constraint_ref": "required",
+      "definition_review_ref": "$.acceptance_thresholds[].peak_frequency_hz",
       "source": {
         "field_path": "$.acceptance_thresholds[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -1221,6 +1391,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.acceptance_thresholds[].peak_frequency_hz::null",
+      "constraint_ref": "nullable",
+      "definition_review_ref": "$.acceptance_thresholds[].peak_frequency_hz",
       "source": {
         "field_path": "$.acceptance_thresholds[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -1235,6 +1407,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.acceptance_thresholds[].peak_frequency_hz::valid_value",
+      "constraint_ref": "",
+      "definition_review_ref": "$.acceptance_thresholds[].peak_frequency_hz",
       "source": {
         "field_path": "$.acceptance_thresholds[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -1249,6 +1423,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.acceptance_thresholds[].peak_frequency_hz::invalid_format",
+      "constraint_ref": "",
+      "definition_review_ref": "$.acceptance_thresholds[].peak_frequency_hz",
       "source": {
         "field_path": "$.acceptance_thresholds[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -1263,6 +1439,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.acceptance_thresholds[].peak_frequency_hz::minimum",
+      "constraint_ref": "minimum",
+      "definition_review_ref": "$.acceptance_thresholds[].peak_frequency_hz",
       "source": {
         "field_path": "$.acceptance_thresholds[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -1277,6 +1455,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.acceptance_thresholds[].peak_frequency_hz::minimum_minus_1",
+      "constraint_ref": "minimum",
+      "definition_review_ref": "$.acceptance_thresholds[].peak_frequency_hz",
       "source": {
         "field_path": "$.acceptance_thresholds[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -1291,6 +1471,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.acceptance_thresholds[].peak_frequency_hz::maximum",
+      "constraint_ref": "maximum",
+      "definition_review_ref": "$.acceptance_thresholds[].peak_frequency_hz",
       "source": {
         "field_path": "$.acceptance_thresholds[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -1305,6 +1487,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.acceptance_thresholds[].peak_frequency_hz::maximum_plus_1",
+      "constraint_ref": "maximum",
+      "definition_review_ref": "$.acceptance_thresholds[].peak_frequency_hz",
       "source": {
         "field_path": "$.acceptance_thresholds[].peak_frequency_hz",
         "validation_type_id": "studio.float.measurement",
@@ -1319,6 +1503,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.acceptance_thresholds[].amplitude_g::required_missing",
+      "constraint_ref": "required",
+      "definition_review_ref": "$.acceptance_thresholds[].amplitude_g",
       "source": {
         "field_path": "$.acceptance_thresholds[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -1333,6 +1519,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.acceptance_thresholds[].amplitude_g::null",
+      "constraint_ref": "nullable",
+      "definition_review_ref": "$.acceptance_thresholds[].amplitude_g",
       "source": {
         "field_path": "$.acceptance_thresholds[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -1347,6 +1535,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.acceptance_thresholds[].amplitude_g::valid_value",
+      "constraint_ref": "",
+      "definition_review_ref": "$.acceptance_thresholds[].amplitude_g",
       "source": {
         "field_path": "$.acceptance_thresholds[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -1361,6 +1551,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.acceptance_thresholds[].amplitude_g::invalid_format",
+      "constraint_ref": "",
+      "definition_review_ref": "$.acceptance_thresholds[].amplitude_g",
       "source": {
         "field_path": "$.acceptance_thresholds[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -1375,6 +1567,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.acceptance_thresholds[].amplitude_g::minimum",
+      "constraint_ref": "minimum",
+      "definition_review_ref": "$.acceptance_thresholds[].amplitude_g",
       "source": {
         "field_path": "$.acceptance_thresholds[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -1389,6 +1583,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.acceptance_thresholds[].amplitude_g::minimum_minus_1",
+      "constraint_ref": "minimum",
+      "definition_review_ref": "$.acceptance_thresholds[].amplitude_g",
       "source": {
         "field_path": "$.acceptance_thresholds[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -1403,6 +1599,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.acceptance_thresholds[].amplitude_g::maximum",
+      "constraint_ref": "maximum",
+      "definition_review_ref": "$.acceptance_thresholds[].amplitude_g",
       "source": {
         "field_path": "$.acceptance_thresholds[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -1417,6 +1615,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.float.measurement",
       "pattern_id": "$.acceptance_thresholds[].amplitude_g::maximum_plus_1",
+      "constraint_ref": "maximum",
+      "definition_review_ref": "$.acceptance_thresholds[].amplitude_g",
       "source": {
         "field_path": "$.acceptance_thresholds[].amplitude_g",
         "validation_type_id": "studio.float.measurement",
@@ -1431,6 +1631,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.integer.non_negative",
       "pattern_id": "$.acceptance_thresholds[].quality_score::required_missing",
+      "constraint_ref": "required",
+      "definition_review_ref": "$.acceptance_thresholds[].quality_score",
       "source": {
         "field_path": "$.acceptance_thresholds[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -1445,6 +1647,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.integer.non_negative",
       "pattern_id": "$.acceptance_thresholds[].quality_score::null",
+      "constraint_ref": "nullable",
+      "definition_review_ref": "$.acceptance_thresholds[].quality_score",
       "source": {
         "field_path": "$.acceptance_thresholds[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -1459,6 +1663,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.integer.non_negative",
       "pattern_id": "$.acceptance_thresholds[].quality_score::valid_value",
+      "constraint_ref": "",
+      "definition_review_ref": "$.acceptance_thresholds[].quality_score",
       "source": {
         "field_path": "$.acceptance_thresholds[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -1473,6 +1679,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.integer.non_negative",
       "pattern_id": "$.acceptance_thresholds[].quality_score::invalid_format",
+      "constraint_ref": "",
+      "definition_review_ref": "$.acceptance_thresholds[].quality_score",
       "source": {
         "field_path": "$.acceptance_thresholds[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -1487,6 +1695,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.integer.non_negative",
       "pattern_id": "$.acceptance_thresholds[].quality_score::minimum",
+      "constraint_ref": "minimum",
+      "definition_review_ref": "$.acceptance_thresholds[].quality_score",
       "source": {
         "field_path": "$.acceptance_thresholds[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -1501,6 +1711,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.integer.non_negative",
       "pattern_id": "$.acceptance_thresholds[].quality_score::minimum_minus_1",
+      "constraint_ref": "minimum",
+      "definition_review_ref": "$.acceptance_thresholds[].quality_score",
       "source": {
         "field_path": "$.acceptance_thresholds[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -1515,6 +1727,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.integer.non_negative",
       "pattern_id": "$.acceptance_thresholds[].quality_score::maximum",
+      "constraint_ref": "maximum",
+      "definition_review_ref": "$.acceptance_thresholds[].quality_score",
       "source": {
         "field_path": "$.acceptance_thresholds[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -1529,6 +1743,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.integer.non_negative",
       "pattern_id": "$.acceptance_thresholds[].quality_score::maximum_plus_1",
+      "constraint_ref": "maximum",
+      "definition_review_ref": "$.acceptance_thresholds[].quality_score",
       "source": {
         "field_path": "$.acceptance_thresholds[].quality_score",
         "validation_type_id": "studio.integer.non_negative",
@@ -1543,6 +1759,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.boolean.standard",
       "pattern_id": "$.acceptance_thresholds[].enabled::required_missing",
+      "constraint_ref": "required",
+      "definition_review_ref": "$.acceptance_thresholds[].enabled",
       "source": {
         "field_path": "$.acceptance_thresholds[].enabled",
         "validation_type_id": "studio.boolean.standard",
@@ -1557,6 +1775,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.boolean.standard",
       "pattern_id": "$.acceptance_thresholds[].enabled::null",
+      "constraint_ref": "nullable",
+      "definition_review_ref": "$.acceptance_thresholds[].enabled",
       "source": {
         "field_path": "$.acceptance_thresholds[].enabled",
         "validation_type_id": "studio.boolean.standard",
@@ -1571,6 +1791,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.boolean.standard",
       "pattern_id": "$.acceptance_thresholds[].enabled::valid_value",
+      "constraint_ref": "",
+      "definition_review_ref": "$.acceptance_thresholds[].enabled",
       "source": {
         "field_path": "$.acceptance_thresholds[].enabled",
         "validation_type_id": "studio.boolean.standard",
@@ -1585,6 +1807,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.boolean.standard",
       "pattern_id": "$.acceptance_thresholds[].enabled::invalid_format",
+      "constraint_ref": "",
+      "definition_review_ref": "$.acceptance_thresholds[].enabled",
       "source": {
         "field_path": "$.acceptance_thresholds[].enabled",
         "validation_type_id": "studio.boolean.standard",
@@ -1599,6 +1823,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.multi_line",
       "pattern_id": "$.acceptance_thresholds[].note::required_missing",
+      "constraint_ref": "required",
+      "definition_review_ref": "$.acceptance_thresholds[].note",
       "source": {
         "field_path": "$.acceptance_thresholds[].note",
         "validation_type_id": "studio.string.multi_line",
@@ -1613,6 +1839,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.multi_line",
       "pattern_id": "$.acceptance_thresholds[].note::null",
+      "constraint_ref": "nullable",
+      "definition_review_ref": "$.acceptance_thresholds[].note",
       "source": {
         "field_path": "$.acceptance_thresholds[].note",
         "validation_type_id": "studio.string.multi_line",
@@ -1627,6 +1855,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.multi_line",
       "pattern_id": "$.acceptance_thresholds[].note::valid_value",
+      "constraint_ref": "",
+      "definition_review_ref": "$.acceptance_thresholds[].note",
       "source": {
         "field_path": "$.acceptance_thresholds[].note",
         "validation_type_id": "studio.string.multi_line",
@@ -1641,6 +1871,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.multi_line",
       "pattern_id": "$.acceptance_thresholds[].note::invalid_format",
+      "constraint_ref": "",
+      "definition_review_ref": "$.acceptance_thresholds[].note",
       "source": {
         "field_path": "$.acceptance_thresholds[].note",
         "validation_type_id": "studio.string.multi_line",
@@ -1655,6 +1887,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.multi_line",
       "pattern_id": "$.acceptance_thresholds[].note::maximum_length",
+      "constraint_ref": "maximum_length",
+      "definition_review_ref": "$.acceptance_thresholds[].note",
       "source": {
         "field_path": "$.acceptance_thresholds[].note",
         "validation_type_id": "studio.string.multi_line",
@@ -1669,6 +1903,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.string.multi_line",
       "pattern_id": "$.acceptance_thresholds[].note::maximum_length_plus_1",
+      "constraint_ref": "maximum_length",
+      "definition_review_ref": "$.acceptance_thresholds[].note",
       "source": {
         "field_path": "$.acceptance_thresholds[].note",
         "validation_type_id": "studio.string.multi_line",
@@ -1683,6 +1919,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.date.ymd",
       "pattern_id": "$.analysis_start_date::required_missing",
+      "constraint_ref": "required",
+      "definition_review_ref": "$.analysis_start_date",
       "source": {
         "field_path": "$.analysis_start_date",
         "validation_type_id": "studio.date.ymd",
@@ -1697,6 +1935,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.date.ymd",
       "pattern_id": "$.analysis_start_date::null",
+      "constraint_ref": "nullable",
+      "definition_review_ref": "$.analysis_start_date",
       "source": {
         "field_path": "$.analysis_start_date",
         "validation_type_id": "studio.date.ymd",
@@ -1711,6 +1951,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.date.ymd",
       "pattern_id": "$.analysis_start_date::valid_value",
+      "constraint_ref": "",
+      "definition_review_ref": "$.analysis_start_date",
       "source": {
         "field_path": "$.analysis_start_date",
         "validation_type_id": "studio.date.ymd",
@@ -1725,6 +1967,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.date.ymd",
       "pattern_id": "$.analysis_start_date::invalid_format",
+      "constraint_ref": "",
+      "definition_review_ref": "$.analysis_start_date",
       "source": {
         "field_path": "$.analysis_start_date",
         "validation_type_id": "studio.date.ymd",
@@ -1739,6 +1983,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.date.ymd",
       "pattern_id": "$.analysis_end_date::required_missing",
+      "constraint_ref": "required",
+      "definition_review_ref": "$.analysis_end_date",
       "source": {
         "field_path": "$.analysis_end_date",
         "validation_type_id": "studio.date.ymd",
@@ -1753,6 +1999,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.date.ymd",
       "pattern_id": "$.analysis_end_date::null",
+      "constraint_ref": "nullable",
+      "definition_review_ref": "$.analysis_end_date",
       "source": {
         "field_path": "$.analysis_end_date",
         "validation_type_id": "studio.date.ymd",
@@ -1767,6 +2015,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.date.ymd",
       "pattern_id": "$.analysis_end_date::valid_value",
+      "constraint_ref": "",
+      "definition_review_ref": "$.analysis_end_date",
       "source": {
         "field_path": "$.analysis_end_date",
         "validation_type_id": "studio.date.ymd",
@@ -1781,6 +2031,8 @@
       "constraint_id": "",
       "validation_type_id": "studio.date.ymd",
       "pattern_id": "$.analysis_end_date::invalid_format",
+      "constraint_ref": "",
+      "definition_review_ref": "$.analysis_end_date",
       "source": {
         "field_path": "$.analysis_end_date",
         "validation_type_id": "studio.date.ymd",
@@ -1795,6 +2047,8 @@
       "constraint_id": "analysis_start_date_before_end_date",
       "validation_type_id": "",
       "pattern_id": "analysis_start_date_before_end_date::left_less_right",
+      "constraint_ref": "analysis_start_date_before_end_date",
+      "definition_review_ref": "analysis_start_date_before_end_date",
       "source": {
         "constraint_id": "analysis_start_date_before_end_date",
         "left_field_path": "$.analysis_start_date",
@@ -1813,6 +2067,8 @@
       "constraint_id": "analysis_start_date_before_end_date",
       "validation_type_id": "",
       "pattern_id": "analysis_start_date_before_end_date::left_equal_right",
+      "constraint_ref": "analysis_start_date_before_end_date",
+      "definition_review_ref": "analysis_start_date_before_end_date",
       "source": {
         "constraint_id": "analysis_start_date_before_end_date",
         "left_field_path": "$.analysis_start_date",
@@ -1831,6 +2087,8 @@
       "constraint_id": "analysis_start_date_before_end_date",
       "validation_type_id": "",
       "pattern_id": "analysis_start_date_before_end_date::left_greater_right",
+      "constraint_ref": "analysis_start_date_before_end_date",
+      "definition_review_ref": "analysis_start_date_before_end_date",
       "source": {
         "constraint_id": "analysis_start_date_before_end_date",
         "left_field_path": "$.analysis_start_date",

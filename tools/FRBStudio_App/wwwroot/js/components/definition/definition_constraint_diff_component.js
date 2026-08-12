@@ -54,6 +54,14 @@ class DefinitionConstraintDiffComponent extends DefinitionVerificationDerivedSub
     if (row?.override_defined) classes.push('is-override');
     if (row?.status === 'UNRESOLVED') classes.push('is-unresolved');
     if (row?.status === 'INVALID') classes.push('is-invalid');
+    const highlightedConstraint = String(
+      this.context?.highlight?.constraint
+        ?? this.context?.highlight?.constraint_ref
+        ?? ''
+    );
+    if (highlightedConstraint && String(row?.constraint ?? '') === highlightedConstraint) {
+      classes.push('is-evidence-source');
+    }
     return classes.join(' ');
   }
 

@@ -1,5 +1,6 @@
 {
   "view_def": "config/validation_type_registry_view_def_v0_1.json",
+  "standard_test_condition_catalog_ref": "config/validation_test_condition_catalog_v0_1.json",
   "schema_version": "validation_type_registry_data_v0_1",
   "registry_version": "0.1.0",
   "document_type": "validation_type_registry",
@@ -7,7 +8,7 @@
   "target": "ViewDef項目の値契約、選択候補、標準Validation観点を管理する共通Registry正本",
   "status": "draft",
   "created_at": "2026-07-26",
-  "updated_at": "2026-07-26",
+  "updated_at": "2026-08-12",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "introduced_in": "v0.18.33-validation-type-registry-initial",
@@ -30,7 +31,8 @@
     "constraint_override_policy": "項目定義Overlayはoverridable_constraintsだけを変更できる。Validation Typeが持つ固有境界を緩和して名前の意味を変えてはならず、minimum/maximum等は固有境界の内側へ狭める変更だけを許可する。",
     "required_nullable_policy": "requiredとnullableは項目存在・null許可の契約であり、null以外の値契約を表すValidation Type名には含めない。",
     "coercion_policy": "文字列から数値、数値から文字列、文字列からboolean等の暗黙変換は行わない。",
-    "test_pattern_policy": "standard_test_conditionsは初期の象徴テスト観点である。test_pattern_profile_refは正式TestPattern Profile作成後に設定する。"
+    "test_pattern_policy": "standard_test_conditionsは初期の象徴テスト観点である。test_pattern_profile_refは正式TestPattern Profile作成後に設定する。",
+    "standard_test_condition_catalog_policy": "standard_test_conditionsの各キーワードはstandard_test_condition_catalog_refで指定したCatalogのconditions[].condition_idを参照する。未登録キーワードを使用してはならない。"
   },
   "view_def_type_catalogs": [
     {

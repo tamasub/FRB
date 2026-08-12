@@ -113,6 +113,10 @@ function createF12Runtime() {
   for (const script of scripts) {
     vm.runInContext(readText(script), context, { filename: script });
   }
+  // v0.18.46: successful F12 now performs a full Detail rebind after canonical commit.
+  // This acceptance harness verifies the Runtime Validation/commit responsibility, not DOM rendering,
+  // so replace the full renderer with a no-op while preserving the actual applyDetail -> rebind call path.
+  vm.runInContext('renderDetailForRow = function () {};', context);
   return context;
 }
 
