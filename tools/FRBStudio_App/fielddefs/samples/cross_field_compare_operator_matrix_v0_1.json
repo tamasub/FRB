@@ -1,5 +1,15 @@
 {
   "schema_version": "cross_field_compare_operator_matrix_fixture_v0_1",
+  "view_def": "fielddefs/frb_fft_measurement_field_definitions_view_def_v0_1.json",
+  "view_def_candidates": [
+    {
+      "view_def": "fielddefs/definition_test_diff_view_def_v0_1.json",
+      "label": "Definition Test Diff / Evidence Review",
+      "role": "default",
+      "status": "active",
+      "note": "Execution Evidenceと実行時Field Definition Snapshotを同一Detailで確認する。"
+    }
+  ],
   "document_type": "field_definition_test_fixture",
   "definition_id": "studio.cross_field.compare.operator_matrix",
   "title": "Cross Field Compare 6 Operator Matrix",
