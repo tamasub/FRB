@@ -5,7 +5,7 @@
     "version": "0.3.0"
   },
   "status": "PARTIAL",
-  "executed_at": "2026-08-12T12:29:50.776Z",
+  "executed_at": "2026-08-13T22:28:40.616Z",
   "source": {
     "field_definition_document": {
       "definition_id": "frb.fft.measurement.sample",

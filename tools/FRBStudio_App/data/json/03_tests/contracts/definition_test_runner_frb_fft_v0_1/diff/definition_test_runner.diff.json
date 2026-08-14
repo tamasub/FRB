@@ -17,7 +17,7 @@
   "testId": "definition_test_runner_frb_fft_v0_1",
   "test_name": "FRB FFT Field Definition — Definition Driven Test E2E",
   "title": "FRB FFT Field Definition — Definition Driven Test E2E",
-  "generated_at": "2026-08-12T12:29:50.776Z",
+  "generated_at": "2026-08-13T22:28:40.616Z",
   "status": "pass",
   "resultLabel": "✅ PASS",
   "summary": "✅ 129件のDefinition TestがExpectedと一致しました。",
@@ -71,7 +71,7 @@
   },
   "definition_review_snapshots": {
     "schema_version": "definition_review_snapshot_v0_1",
-    "captured_at": "2026-08-12T12:29:50.776Z",
+    "captured_at": "2026-08-13T22:28:40.616Z",
     "field_definition_source": {
       "definition_id": "frb.fft.measurement.sample",
       "schema_version": "field_definition_data_v0_1",
