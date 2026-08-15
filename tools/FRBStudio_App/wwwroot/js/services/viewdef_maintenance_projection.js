@@ -1,4 +1,4 @@
-// v0.18.55-viewdef-maintenance-all-sections
+// v0.18.56-viewdef-maintenance-primary-section-default
 // ViewDef maintenance projection.
 // The maintenance UI edits one flattened temporary field list, while the canonical ViewDef
 // keeps fields under their original views[].sections[].fields ownership.
@@ -167,4 +167,5 @@
   globalThis.finalizeViewDefMaintenanceDocument = finalizeViewDefMaintenanceDocument;
   globalThis.isViewDefMaintenanceDocument = isViewDefMaintenanceDocument;
   globalThis.viewDefMaintenanceSectionCatalog = sectionCatalog;
+  globalThis.viewDefMaintenancePreferredDefaultSectionRef = preferredDefaultSectionRef;
 })();

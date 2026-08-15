@@ -291,16 +291,27 @@
               "type": "text",
               "grid": {
                 "visible": true,
-                "width": 360
+                "width": 360,
+                "format": ""
               },
               "edit": {
                 "visible": true,
-                "readonly": false
+                "readonly": false,
+                "editor": "",
+                "height": null,
+                "step": null,
+                "min": null,
+                "max": null
               },
               "search": {
                 "visible": true,
                 "operator": "contains"
-              }
+              },
+              "validation": {
+                "required": false
+              },
+              "format": "",
+              "defaultValue": ""
             },
             {
               "field": "validation_type",

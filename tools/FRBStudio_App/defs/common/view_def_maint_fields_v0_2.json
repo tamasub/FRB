@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "FRB Studio / JSON Object Studio",
-    "version": "0.2-draft"
+    "version": "0.3-primary-section-default"
   },
   "views": [
     {
@@ -59,7 +59,7 @@
         },
         {
           "id": "fields",
-          "caption": "項目定義 fields（全View / Section）",
+          "caption": "項目定義 fields（選択中View / Section）",
           "type": "grid",
           "dataPath": "$.__studio_viewdef_maintenance_fields",
           "keyField": "__maintenance_key",
@@ -70,7 +70,7 @@
               "type": "select",
               "options": [],
               "grid": {
-                "visible": true,
+                "visible": false,
                 "width": 260
               },
               "edit": {
@@ -442,7 +442,8 @@
             }
           ]
         }
-      ]
+      ],
+      "maintenance_note": "初期表示は通常画面の主Grid Sectionに自動で絞り込む。上部のView / SectionでHeaderや関連Gridへ切替可能。"
     }
   ]
 }

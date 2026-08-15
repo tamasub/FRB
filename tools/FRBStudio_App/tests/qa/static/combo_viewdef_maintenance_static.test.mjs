@@ -19,9 +19,12 @@ test('ViewDef maintenance adds only the quiet ellipsis entry and preserves exist
   assert.match(pageSetup, /VIEWDEF_MAINTENANCE_VIEWDEF_PATH = 'common\/view_def_maint_fields_v0_2\.json'/);
   assert.match(pageSetup, /loadFromObjects\([\s\S]*'viewdef'[\s\S]*\)/);
   assert.match(app, /setupViewDefMaintenanceButton\(\)/);
-  assert.match(index, /js\/services\/viewdef_maintenance_projection\.js\?v=viewdef-maintenance-all-sections-01855/);
+  assert.match(index, /js\/services\/viewdef_maintenance_projection\.js\?v=viewdef-maintenance-primary-section-01856/);
   assert.match(pageSetup, /buildViewDefMaintenanceDocument\(target\.json\)/);
   assert.match(pageSetup, /configureViewDefMaintenanceViewDef\(maintenance\.json, target\.json\)/);
+  assert.match(pageSetup, /viewDefMaintenancePreferredDefaultSectionRef/);
+  assert.match(pageSetup, /__maintenance_section_ref: maintenanceDefaultSectionRef/);
+  assert.match(pageSetup, /applyStudioSearchState\([\s\S]*runSearch: true/);
 });
 
 test('ViewDef maintenance reuses one common ViewDef and saves the edited ViewDef through /api/defs without injecting view_def', () => {
@@ -99,6 +102,10 @@ test('one ViewDef maintenance projection covers every view/section and round-tri
 
   const sectionSelector = configured.views[0].sections[1].fields.find(field => field.field === '__maintenance_section_ref');
   assert.ok(sectionSelector.options.length >= 3);
+  assert.equal(sectionSelector.grid.visible, false);
+  assert.equal(sectionSelector.search.visible, true);
+  assert.equal(sectionSelector.defaultValue, '0:1');
+  assert.equal(sandbox.viewDefMaintenancePreferredDefaultSectionRef(sandbox.viewDefMaintenanceSectionCatalog(target)), '0:1');
   assert.equal(configured.views[0].sections[1].keyField, '__maintenance_key');
 
   rows.push({
@@ -118,6 +125,24 @@ test('one ViewDef maintenance projection covers every view/section and round-tri
   assert.ok(header.fields.every(field => !('__maintenance_section_ref' in field) && !('__maintenance_key' in field)));
 });
 
+
+test('ViewDef maintenance initial section is the first main grid, so captions match the normal screen first', () => {
+  const source = text('wwwroot/js/services/viewdef_maintenance_projection.js');
+  const sandbox = { globalThis: {} };
+  sandbox.globalThis = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(source, sandbox);
+
+  const target = json('defs/fielddefs/frb_fft_measurement_field_definitions_view_def_v0_1.json');
+  const catalog = sandbox.viewDefMaintenanceSectionCatalog(target);
+  const selected = sandbox.viewDefMaintenancePreferredDefaultSectionRef(catalog);
+  assert.equal(selected, '0:1');
+
+  const projected = sandbox.buildViewDefMaintenanceDocument(target).__studio_viewdef_maintenance_fields
+    .filter(row => row.__maintenance_section_ref === selected);
+  const captions = projected.map(row => row.caption);
+  assert.deepEqual(Array.from(captions), ['Field Path', 'Validation Type', 'Required', 'Nullable', 'Constraint Overrides', 'Note']);
+});
 
 test('ViewDef maintenance does not rewrite object layout as [object Object]', () => {
   const fieldDefEditor = json('defs/fielddefs/frb_fft_measurement_field_definitions_view_def_v0_1.json');

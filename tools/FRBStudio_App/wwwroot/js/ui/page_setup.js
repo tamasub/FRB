@@ -152,6 +152,12 @@ async function openSelectedViewDefForMaintenance() {
   const maintenanceViewDef = (typeof configureViewDefMaintenanceViewDef === 'function')
     ? configureViewDefMaintenanceViewDef(maintenance.json, target.json)
     : maintenance.json;
+  const maintenanceSectionCatalog = (typeof viewDefMaintenanceSectionCatalog === 'function')
+    ? viewDefMaintenanceSectionCatalog(target.json)
+    : [];
+  const maintenanceDefaultSectionRef = (typeof viewDefMaintenancePreferredDefaultSectionRef === 'function')
+    ? viewDefMaintenancePreferredDefaultSectionRef(maintenanceSectionCatalog)
+    : '';
   await loadFromObjects(
     maintenanceViewDef,
     maintenanceData,
@@ -160,6 +166,15 @@ async function openSelectedViewDefForMaintenance() {
     `ViewDef: ${targetName}`,
     'viewdef'
   );
+  // v0.18.56:
+  // ViewDef全Sectionを編集可能な構造は維持するが、初期表示で全部を混ぜない。
+  // 通常画面の主一覧に対応する first main grid section を自動選択し、
+  // 「…」を押した直後から現在画面のcaptionと対応するFieldだけを見せる。
+  if (maintenanceDefaultSectionRef && typeof applyStudioSearchState === 'function') {
+    applyStudioSearchState({
+      core: { __maintenance_section_ref: maintenanceDefaultSectionRef }
+    }, { runSearch: true });
+  }
   currentViewDefMaintenanceTarget = targetName;
   updateViewDefMaintenanceButtonState();
   if (typeof updateSelectedJsonFolderButtonStates === 'function') updateSelectedJsonFolderButtonStates();
