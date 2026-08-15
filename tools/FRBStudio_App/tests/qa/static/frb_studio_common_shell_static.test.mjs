@@ -152,14 +152,15 @@ test('Markdown workspace drag indicators are cleared after internal move complet
   assert.match(mdHtml, /finally \{\s*clearMarkdownDragIndicators\(\);\s*\}/);
 });
 
-test('Diff viewers use Markdown-like rounded soft buttons while only Diff JSON gets pale-green left panel', () => {
+test('Diff viewers use Markdown-like rounded soft buttons while module left rails follow their accent colors', () => {
   for (const html of [diffHtml, metaHtml]) {
     assert.match(html, /input\[type="file"\]::file-selector-button/);
     assert.match(html, /border-radius:14px/);
     assert.match(html, /background:rgba\(105,120,160,\.12\)/);
   }
-  assert.match(diffHtml, /\.layout > aside\.panel\{[\s\S]*#f4faef/);
-  assert.doesNotMatch(metaHtml, /\.layout > aside\.panel\{/);
+  assert.match(diffHtml, /\.layout > aside\.panel\{[\s\S]*#fff5ea/);
+  assert.match(shellCss, /\.frb-page-diff-json \.layout > aside\.panel \{[\s\S]*--frb-diff-surface/);
+  assert.match(shellCss, /\.frb-page-meta-diff \.layout > \.panel:first-child \{[\s\S]*--frb-meta-surface/);
 });
 
 test('Markdown front-matter missing notice is muted gray with a pale-pink generation action', () => {
@@ -232,4 +233,24 @@ test('Markdown operation toolbar is sticky below the Common Shell and sidebars s
   assert.match(shellCss, /\.frb-page-markdown \.workspace-sidebar,[\s\S]*\.frb-page-markdown \.sidebar \{[\s\S]*var\(--frb-markdown-toolbar-height/);
   assert.match(mdHtml, /function syncMarkdownStickyToolbarMetrics\(\)/);
   assert.match(mdHtml, /--frb-markdown-toolbar-height/);
+});
+
+
+test('Module-specific supplemental surfaces follow JSON blue, Markdown green, Diff orange, and MetaDiff warm purple accents', () => {
+  assert.match(shellCss, /--frb-json-surface: #f2f9ff/);
+  assert.match(shellCss, /--frb-diff-surface: #fff5ea/);
+  assert.match(shellCss, /--frb-meta-surface: #fff6f1/);
+  assert.match(shellCss, /\.frb-page-json-object \.app-header \{[\s\S]*var\(--frb-json-surface\)[\s\S]*var\(--frb-json-line\)/);
+  assert.match(shellCss, /\.frb-page-markdown \.workspace-sidebar \.side-card,[\s\S]*var\(--frb-green-surface\)/);
+});
+
+test('JSON primary save has a visually active enabled state distinct from disabled state', () => {
+  assert.match(shellCss, /\.frb-page-json-object #saveBtn:not\(:disabled\) \{[\s\S]*opacity: 1 !important;[\s\S]*#0b4f7c[\s\S]*#eef8ff/);
+  assert.match(shellCss, /\.frb-page-json-object #saveBtn:disabled \{[\s\S]*#aab8c4[\s\S]*#dde8ef/);
+});
+
+test('All Common Shell pages use the p6 visual-foundation cache key', () => {
+  for (const html of [indexHtml, mdHtml, diffHtml, metaHtml, homeHtml]) {
+    assert.match(html, /css\/frb-studio-shell\.css\?v=0185p6/);
+  }
 });

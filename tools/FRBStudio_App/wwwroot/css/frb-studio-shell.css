@@ -19,6 +19,15 @@
   --frb-markdown: #4fbf3f;
   --frb-diff: #ff7a1a;
   --frb-meta: #a855d8;
+  --frb-json-surface: #f2f9ff;
+  --frb-json-surface-2: #f9fcff;
+  --frb-json-line: #c9e2f4;
+  --frb-diff-surface: #fff5ea;
+  --frb-diff-surface-2: #fffaf5;
+  --frb-diff-line: #f0d2b3;
+  --frb-meta-surface: #fff6f1;
+  --frb-meta-surface-2: #faf2ff;
+  --frb-meta-line: #e6d2ee;
   --frb-radius: 14px;
   --frb-shadow: 0 8px 24px rgba(25, 52, 71, .07);
 }
@@ -293,8 +302,8 @@ body.frb-page-json-object {
   align-self:stretch;
   padding:12px;
   color:var(--frb-text);
-  background:linear-gradient(180deg, var(--frb-green-surface), #fbfdfb);
-  border:1px solid var(--frb-green-line);
+  background:linear-gradient(180deg, var(--frb-json-surface), var(--frb-json-surface-2));
+  border:1px solid var(--frb-json-line);
   border-left:0;
   border-radius:0 var(--frb-radius) var(--frb-radius) 0;
   box-shadow:var(--frb-shadow);
@@ -322,13 +331,13 @@ body.frb-page-json-object {
   min-height:0;
   color:var(--frb-text);
   background:rgba(255,255,255,.82);
-  border-color:#cfded3;
+  border-color:var(--frb-json-line);
   border-radius:10px;
 }
 .frb-page-json-object .combo-field input {
   color:var(--frb-text);
   background:#fff;
-  border-color:#d3dfd6;
+  border-color:#d5e8f5;
 }
 .frb-page-json-object .combo-field input::placeholder { color:#8a98a5; }
 .frb-page-json-object .drop-label { color:#596975; }
@@ -535,6 +544,57 @@ body.studio-grid-only-shell .json-studio-main-pane > main { padding:0; }
 .frb-page-diff-json .layout { grid-template-columns:minmax(300px, 350px) minmax(0,1fr); }
 .frb-page-meta-diff .layout { grid-template-columns:minmax(380px,.95fr) minmax(480px,1.05fr); }
 
+
+
+/* studio_work_0185 p6: module accent surfaces + unmistakable active JSON save state */
+.frb-page-json-object #saveBtn:not(:disabled) {
+  opacity: 1 !important;
+  color: #0b4f7c !important;
+  background: linear-gradient(180deg, #eef8ff 0%, #e2f3ff 100%) !important;
+  border: 1px solid #91cdee !important;
+  box-shadow: 0 3px 10px rgba(29,155,240,.12) !important;
+  font-weight: 850;
+}
+.frb-page-json-object #saveBtn:not(:disabled):hover {
+  color: #083f65 !important;
+  background: linear-gradient(180deg, #e1f3ff 0%, #d3edff 100%) !important;
+  border-color: #63b8e7 !important;
+  box-shadow: 0 5px 13px rgba(29,155,240,.18) !important;
+}
+.frb-page-json-object #saveBtn:disabled {
+  color: #aab8c4 !important;
+  background: rgba(255,255,255,.54) !important;
+  border-color: #dde8ef !important;
+  box-shadow: none !important;
+}
+
+/* Diff JSON: left summary rail follows the orange module accent. */
+.frb-page-diff-json .layout > aside.panel {
+  background: linear-gradient(180deg, var(--frb-diff-surface) 0%, var(--frb-diff-surface-2) 100%);
+  border-color: var(--frb-diff-line);
+}
+.frb-page-diff-json .layout > aside.panel h2 {
+  background: rgba(255,247,238,.96);
+  border-bottom-color: #f1dcc5;
+}
+.frb-page-diff-json .layout > aside.panel > .body {
+  background: linear-gradient(180deg, rgba(255,248,240,.82), rgba(255,252,248,.94));
+}
+
+/* MetaDiff: left hypothesis rail uses a very pale warm orange-purple accent. */
+.frb-page-meta-diff .layout > .panel:first-child {
+  background: linear-gradient(180deg, var(--frb-meta-surface) 0%, var(--frb-meta-surface-2) 100%);
+  border-color: var(--frb-meta-line);
+}
+.frb-page-meta-diff .layout > .panel:first-child h2 {
+  background: rgba(252,245,255,.94);
+  border-bottom-color: #eadcf0;
+}
+.frb-page-meta-diff .layout > .panel:first-child > .body {
+  background: linear-gradient(180deg, rgba(255,249,245,.72), rgba(251,246,255,.88));
+}
+
+
 /* ===== Home ===== */
 .frb-home-main {
   width:min(1180px, calc(100% - 28px));
@@ -653,8 +713,8 @@ body.studio-grid-only-shell .json-studio-main-pane > main { padding:0; }
 .frb-page-json-object .json-document-meta {
   margin-top: auto;
   padding: 12px 10px;
-  border-top: 1px solid var(--frb-green-line);
-  background: rgba(255,255,255,.42);
+  border-top: 1px solid var(--frb-json-line);
+  background: rgba(255,255,255,.48);
 }
 .frb-page-json-object .json-document-meta h2 {
   margin: 0 0 9px;
