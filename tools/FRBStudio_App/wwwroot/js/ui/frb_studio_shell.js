@@ -8,24 +8,28 @@
       href: 'index.html',
       label: 'JSON Object Studio',
       icon: '{}',
+      iconClass: 'json',
       description: 'JSON > Definition & Data を構造化して管理'
     },
     'markdown': {
       href: 'mdViewer.html',
       label: 'Markdown Studio',
       icon: 'M',
+      iconClass: 'markdown',
       description: 'Markdown > Sidecarコメントを管理'
     },
     'diff-json': {
       href: 'DiffJsonViewer.html',
       label: 'Diff JSON Viewer',
-      icon: 'Δ',
+      icon: '⇄',
+      iconClass: 'diff',
       description: 'DiffToJson > ファイル差分を確認'
     },
     'meta-diff': {
       href: 'MetaDiff_HypothesisViewer.html',
       label: 'MetaDiff Viewer',
-      icon: '◆',
+      icon: '✦',
+      iconClass: 'meta',
       description: 'AI仮説 > 根拠差分を確認'
     }
   };
@@ -60,7 +64,7 @@
       const active = id === activePage ? ' is-active' : '';
       return `
         <a class="frb-shell-nav-link${active}" data-page="${id}" href="${page.href}">
-          <span class="frb-shell-nav-icon">${htmlEscape(page.icon)}</span>
+          <span class="frb-shell-nav-icon frb-icon-${htmlEscape(page.iconClass || id)}" aria-hidden="true">${htmlEscape(page.icon)}</span>
           <span>${htmlEscape(page.label)}</span>
         </a>`;
     }).join('');
@@ -93,7 +97,7 @@
     pagebar.setAttribute('data-frb-pagebar', pageId || 'home');
     pagebar.innerHTML = `
       <div class="frb-pagebar-main">
-        <span class="frb-page-icon">${htmlEscape(icon)}</span>
+        <span class="frb-page-icon frb-icon-${htmlEscape(page.iconClass || pageId || 'default')}" aria-hidden="true">${htmlEscape(icon)}</span>
         <h1 class="frb-page-title">${htmlEscape(title)}</h1>
         ${description ? `<span class="frb-page-separator">›</span><span class="frb-page-description">${htmlEscape(description)}</span>` : ''}
       </div>

@@ -52,7 +52,7 @@ test('JSON Object Studio uses the agreed left-thin + right-wide two-column works
   assert.match(indexHtml, /class="json-studio-workspace"/);
   assert.match(indexHtml, /class="json-studio-source-pane"/);
   assert.match(indexHtml, /class="json-studio-main-pane"/);
-  assert.match(shellCss, /grid-template-columns:\s*minmax\(230px, 270px\)\s+minmax\(0, 1fr\)/);
+  assert.match(shellCss, /grid-template-columns:minmax\(220px, 250px\) minmax\(0, 1fr\)/);
 });
 
 test('Markdown Studio keeps its responsibility-driven three-column layout', () => {
@@ -82,4 +82,36 @@ test('Visual Foundation uses shared tokens and pale-green supplemental panes', (
 test('Related/SubGrid compact launch mode is not forced into the full Common Shell layout', () => {
   assert.match(shellCss, /body\.studio-grid-only-shell \.frb-app-shell/);
   assert.match(shellCss, /body\.studio-grid-only-shell \.json-studio-source-pane/);
+});
+
+
+test('Common Shell uses colored module icon tiles instead of monochrome placeholder badges', () => {
+  assert.match(shellJs, /iconClass: 'json'/);
+  assert.match(shellJs, /iconClass: 'markdown'/);
+  assert.match(shellJs, /iconClass: 'diff'/);
+  assert.match(shellJs, /iconClass: 'meta'/);
+  assert.match(shellCss, /\.frb-icon-json \{ background:linear-gradient/);
+  assert.match(shellCss, /\.frb-icon-markdown \{ background:linear-gradient/);
+  assert.match(shellCss, /\.frb-icon-diff \{ background:linear-gradient/);
+  assert.match(shellCss, /\.frb-icon-meta \{ background:linear-gradient/);
+});
+
+test('Markdown Studio keeps Viewer and Editor but removes the Qiita Zenn theme selector from the toolbar', () => {
+  assert.match(mdHtml, /id="btnViewerMode"/);
+  assert.match(mdHtml, /id="btnEditorMode"/);
+  assert.doesNotMatch(mdHtml, /id="themeSelect"/);
+  assert.doesNotMatch(mdHtml, /<option value="zenn">/);
+  assert.doesNotMatch(mdHtml, /themeSelect\.addEventListener/);
+});
+
+test('JSON Object Studio main pane is forced to consume the available right-column width', () => {
+  assert.match(shellCss, /\.frb-page-json-object \.json-studio-workspace \{[\s\S]*width:calc\(100% - 24px\);[\s\S]*max-width:none;/);
+  assert.match(shellCss, /\.frb-page-json-object \.json-studio-main-pane \{[\s\S]*justify-self:stretch;/);
+  assert.match(shellCss, /\.frb-page-json-object \.json-studio-main-pane > main \{[\s\S]*width:100%;[\s\S]*max-width:none;/);
+  assert.match(shellCss, /#gridSection \{[\s\S]*width:100%;[\s\S]*max-width:none;/);
+});
+
+test('JSON Object Studio left source pane sizes itself to content instead of reserving a tall empty column', () => {
+  assert.match(shellCss, /\.frb-page-json-object \.json-studio-source-pane \{[\s\S]*height:max-content;[\s\S]*max-height:none;/);
+  assert.match(shellCss, /\.frb-page-json-object \.app-header \{[\s\S]*height:auto;[\s\S]*min-height:0;/);
 });

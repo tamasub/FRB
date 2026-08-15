@@ -2033,10 +2033,10 @@
     body.md-sidecar-comment-editing .md-block-inline-actions { display: none !important; }
 
   </style>
-  <link rel="stylesheet" href="css/frb-studio-shell.css?v=0185" />
+  <link rel="stylesheet" href="css/frb-studio-shell.css?v=0185p1" />
 </head>
 <body data-mode="editor">
-  <script src="js/ui/frb_studio_shell.js?v=0185"></script>
+  <script src="js/ui/frb_studio_shell.js?v=0185p1"></script>
   <script>
     FrbStudioShell.mount({
       pageId: 'markdown',
@@ -2056,18 +2056,10 @@
         </div>
           <a class="studio-link" href="index.html" title="JSON Object Studioへ戻る">📊 JSON Object Studio</a>
 
-        <div class="module-nav-frame">
-
+        <div class="module-nav-frame" aria-label="Markdown表示モード">
           <div class="control-group view-flow">
-          <button id="btnViewerMode" class="ghost-btn compact-text-btn">Viewer</button>
-          <button id="btnEditorMode" class="ghost-btn mode-active compact-text-btn">Editor</button>
-
-          <div class="control-group view-flow">
-            <select id="themeSelect" title="表示テーマ">
-              <option value="qiita">🟢 Qiita</option>
-              <option value="zenn">🔵 Zenn</option>
-              <option value="dark">🌌 Dark</option>
-            </select>
+            <button id="btnViewerMode" class="ghost-btn compact-text-btn">Viewer</button>
+            <button id="btnEditorMode" class="ghost-btn mode-active compact-text-btn">Editor</button>
           </div>
         </div>
       </div>
@@ -2243,7 +2235,7 @@ function mdStudioDateTime(options = {}) {
 function mdStudioFileTimestamp() {
   return typeof studioFormatFileTimestamp === "function" ? studioFormatFileTimestamp() : new Date().toLocaleString("sv-SE").replace(/[-: ]/g, "").slice(0, 15);
 }
-const mdUrlEl=document.getElementById("mdUrl"),previewEl=document.getElementById("preview"),editorInlineHost=document.getElementById("editorInlineHost"),tocEl=document.getElementById("toc"),charCountEl=document.getElementById("charCount"),readTimeEl=document.getElementById("readTime"),blockModelMeta=document.getElementById("blockModelMeta"),localFileBtn=document.getElementById("localFileBtn"),localFileInput=document.getElementById("localFileInput"),tocDepthBtns=[...document.querySelectorAll(".toc-depth-btn")],themeSelect=document.getElementById("themeSelect"),editorEl=document.getElementById("editor"),btnViewerMode=document.getElementById("btnViewerMode"),btnEditorMode=document.getElementById("btnEditorMode"),articleCard=document.getElementById("articleCard"),metaFileName=document.getElementById("metaFileName"),editorFileName=document.getElementById("editorFileName"),slashMenu=document.getElementById("slashMenu"),managedMdSelect=document.getElementById("managedMdSelect"),btnClearManagedMd=document.getElementById("btnClearManagedMd"),btnManagedMdTree=document.getElementById("btnManagedMdTree"),managedMdTreePicker=document.getElementById("managedMdTreePicker"),managedMdTreeList=document.getElementById("managedMdTreeList"),btnRefreshManagedMd=document.getElementById("btnRefreshManagedMd"),btnOverwriteManagedMd=document.getElementById("btnOverwriteManagedMd");
+const mdUrlEl=document.getElementById("mdUrl"),previewEl=document.getElementById("preview"),editorInlineHost=document.getElementById("editorInlineHost"),tocEl=document.getElementById("toc"),charCountEl=document.getElementById("charCount"),readTimeEl=document.getElementById("readTime"),blockModelMeta=document.getElementById("blockModelMeta"),localFileBtn=document.getElementById("localFileBtn"),localFileInput=document.getElementById("localFileInput"),tocDepthBtns=[...document.querySelectorAll(".toc-depth-btn")],editorEl=document.getElementById("editor"),btnViewerMode=document.getElementById("btnViewerMode"),btnEditorMode=document.getElementById("btnEditorMode"),articleCard=document.getElementById("articleCard"),metaFileName=document.getElementById("metaFileName"),editorFileName=document.getElementById("editorFileName"),slashMenu=document.getElementById("slashMenu"),managedMdSelect=document.getElementById("managedMdSelect"),btnClearManagedMd=document.getElementById("btnClearManagedMd"),btnManagedMdTree=document.getElementById("btnManagedMdTree"),managedMdTreePicker=document.getElementById("managedMdTreePicker"),managedMdTreeList=document.getElementById("managedMdTreeList"),btnRefreshManagedMd=document.getElementById("btnRefreshManagedMd"),btnOverwriteManagedMd=document.getElementById("btnOverwriteManagedMd");
 
 const fmPanel=document.getElementById("fmPanel"),fmHeader=document.getElementById("fmHeader"),fmBody=document.getElementById("fmBody"),fmToggleIcon=document.getElementById("fmToggleIcon"),fmSuggestArea=document.getElementById("fmSuggestArea");
 const btnExternalOpen=document.getElementById("btnExternalOpen"),btnRefreshWorkspace=document.getElementById("btnRefreshWorkspace"),btnNewWorkspaceMarkdown=document.getElementById("btnNewWorkspaceMarkdown"),btnNewWorkspaceFolder=document.getElementById("btnNewWorkspaceFolder"),mdWorkspaceTree=document.getElementById("mdWorkspaceTree"),mdWorkspaceName=document.getElementById("mdWorkspaceName"),mdWorkspacePath=document.getElementById("mdWorkspacePath"),mdWorkspaceRootDrop=document.getElementById("mdWorkspaceRootDrop"),mdDocumentOrigin=document.getElementById("mdDocumentOrigin");
@@ -2645,11 +2637,6 @@ mdCommentReviewListEl?.addEventListener("click", async (e) => {
   }
   const item = e.target.closest(".md-comment-review-item[data-comment-id]");
   if (item) focusMarkdownSidecarComment(item.dataset.commentId);
-});
-
-// テーマ切り替え
-themeSelect.addEventListener("change", (e) => {
-  document.documentElement.setAttribute("data-theme", e.target.value);
 });
 
 // フロントマターパネルのトグル
