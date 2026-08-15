@@ -90,9 +90,20 @@
     .empty{border:1px dashed var(--border);border-radius:12px;padding:18px;text-align:center;color:var(--muted);background:#fff}
     @media(max-width:980px){.layout{grid-template-columns:1fr;height:auto}.panel{min-height:520px}.controls{grid-template-columns:1fr}}
   </style>
+  <link rel="stylesheet" href="css/frb-studio-shell.css?v=0185" />
 </head>
 <body>
-<header>
+<script src="js/ui/frb_studio_shell.js?v=0185"></script>
+<script>
+  FrbStudioShell.mount({
+    pageId: 'meta-diff',
+    pageTitle: 'MetaDiff Viewer',
+    description: 'AI仮説 > 根拠差分を確認',
+    icon: '◆',
+    resetConfirmMessage: 'MetaDiff Viewerの読込・検索状態を破棄して、初期状態へ戻します。よろしいですか？'
+  });
+</script>
+<header class="legacy-page-header">
   <h1>MetaDiff Hypothesis Viewer v0.2.2-draft</h1>
   <p>AI仮説Markdownを読み、左の根拠ボタンから右端のカテゴリ付き - / + 根拠差分カードを絞り込みます。</p>
 </header>

@@ -26291,17 +26291,17 @@
       "incident_type": "refactoring",
       "category": "ui_foundation",
       "priority": "high",
-      "status": "構想",
+      "status": "確認中",
       "follow_up_status": "REQUIRED",
-      "verification_status": "未実装 / デザイン方針合意済み",
+      "verification_status": "Static確認済み / NativeShell実機・画面確認待ち",
       "context_def_status": "draft",
       "context_def_updated_at": "2026-08-15T19:19:00+09:00",
       "owner": "",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-15T19:19:00+09:00",
-      "updated_at": "2026-08-15T19:19:00+09:00",
+      "updated_at": "2026-08-15T19:39:53+09:00",
       "target_files": "- wwwroot/index.html\n- wwwroot/mdViewer.html\n- wwwroot/diffJsonViewer.html（実ファイル名は実装前確認）\n- wwwroot/metaDiffViewer.html（実ファイル名は実装前確認）\n- wwwroot/home.html（新規候補）\n- wwwroot/css/* 共通UI基盤（新規候補）\n- wwwroot/js/* 共通Shell基盤（新規候補）\n- data/json/01_main/_studio_work_incident_data_v2.json",
-      "actual_updated_files": "- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- wwwroot/css/frb-studio-shell.css\n- wwwroot/js/ui/frb_studio_shell.js\n- wwwroot/home.html\n- wwwroot/index.html\n- wwwroot/mdViewer.html\n- wwwroot/DiffJsonViewer.html\n- wwwroot/MetaDiff_HypothesisViewer.html\n- tests/qa/static/frb_studio_common_shell_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
       "context_def_draft": "- FRB Studio全画面に共通のApp Shellを持たせる。ただしiframe/HTML frameではなく、共通HTML部品 + 共通CSS + 共通JSとして実装する。\n- 左上に「FRB Studio」を固定表示し、クリックでHomeへ戻れること。\n- 画面名は共通Shell直下の統一位置・統一階層で表示する。\n- 画面責務に応じてカラム数は変えてよい。Markdown Studioは3列、JSON Object Studio / Diff JSON Viewer / MetaDiff Viewerは基本2列とする。\n- 視覚テーマは案B「モダンミディアム」を基準にし、黒を弱めた濃紺/青灰色のShellと、明るい作業面を組み合わせる。\n- Markdown Studioでは左Workspaceと右INDEX/コメント/メタの補助領域を淡いグリーン系で統一する。\n- 将来はVS Codeのようにテーマ切替可能な構造を目指すが、現時点では1テーマを完成させる。",
       "objective": "- FRB Studioを複数の独立HTMLツールの集合ではなく、同一製品の複数Studio/Viewerとして認識できる外観へ統一する。\n- 全画面からHomeへ戻れる共通導線を設ける。\n- JSON Object Studio / Markdown Studio / Diff JSON Viewer / MetaDiff Viewerの画面名・タイトル階層・ナビゲーションを統一する。\n- JSON Object Studioの初期状態へ戻る手段を追加する。\n- JSON Object Studioの濃色ヘッダーと明色本文の断絶を緩和し、Markdown Studioとの雰囲気差を中間へ寄せる。\n- 画面ごとの責務に合った2列/3列レイアウト契約を明示する。",
       "background": "NativeShell化とMarkdown Workspace化により、FRB Studioは単一JSONエディターから複数の実用画面を持つデスクトップアプリへ広がった。一方、JSON Object Studio / Markdown Studio / Diff JSON Viewer / MetaDiff Viewerはタイトル位置、色、戻る導線、レイアウト、初期化手段がそれぞれ異なり、別アプリの集合に見える状態になっている。特にDiff JSON / MetaDiffはHomeへの帰還導線がなく、JSON Object Studioには画面内の初期状態へ戻る操作がない。デザイン検討では案B「モダンミディアム」を採用し、黒を弱めた濃紺系Shellと明るい作業面を基本とする方向で合意した。",
@@ -26312,23 +26312,24 @@
       "expected_outputs": "- 全画面左上にFRB Studioが同じ位置/雰囲気で表示される。\n- FRB StudioクリックでHomeへ戻れる。\n- Homeから4画面へ移動できる。\n- 4画面の画面名が統一位置・統一タイポグラフィで表示される。\n- Diff JSON / MetaDiffから迷わずHomeへ戻れる。\n- JSON Object Studioで「この画面の初期状態へ戻す」が機能する。\n- JSON Object Studioは左細/右広の2列になり、右端の補助第3列を前提としない。\n- Markdown Studioは3列を維持し、左Workspaceと右補助ペインが淡いグリーン系で視覚的に対応する。\n- Diff JSON / MetaDiffは基本2列で統一Shellへ収まる。\n- JSON Object Studio上部の濃色と本文背景の不整合が緩和される。\n- 画面ごとのアクセントは残しつつ、同じFRB Studio製品に見える。",
       "risk": "- 共通CSSを強く当てすぎると既存画面の細かなレイアウト/イベント領域へ副作用が出る。\n- JSON Object Studioは既存UI密度が高いため、2列化で情報を削るのではなく配置変更として扱う必要がある。\n- Markdown Studioは3列が責務上必要であり、全画面2列という誤った共通化をしない。\n- Home/初期化を混同しない。Homeは画面遷移、初期状態へ戻すは現在画面の状態リセット。\n- 色だけを統一して既存の機能別識別性を失わないよう、画面別Accentを保持する。\n- テーマ将来対応を理由に現時点のCSS抽象化を過剰化しない。",
       "test_points": "- 共通Shellが4画面すべてで表示される。\n- 各ナビゲーションから対象画面へ遷移できる。\n- FRB Studio / HomeボタンでHomeへ戻れる。\n- 現在画面のナビ項目だけActive表示になる。\n- JSON Object Studio初期化で画面定義/対象JSON/表示状態が期待する初期状態へ戻る。\n- Markdown StudioのWorkspace/Current Document/Sidecar状態を共通Shell導入で壊さない。\n- JSON Object Studioの読込/編集/保存/ViewDef操作を2列化で壊さない。\n- Diff JSON / MetaDiffのOpen/Drop/表示/検索を壊さない。\n- 主要解像度でMarkdown 3列 / 他画面2列が破綻しない。\n- 共通CSS読み込み前後でNative Bridge契約に差分がない。",
-      "verification_log": "2026-08-15 インシデント登録のみ。実装・Static・NativeShell実機確認は未実施。",
+      "verification_log": "- Static確認:\n  - Common Shell専用 9/9 PASS。\n  - node --check: frb_studio_shell.js OK。\n  - CSS波括弧: 111 / 111で一致。\n  - 5 HTMLのID重複なし。\n- Regression比較:\n  - Before: 118 tests / 105 pass / 13 fail。\n  - After: 127 tests / 114 pass / 13 fail。\n  - 13 FAILは実装前後で同一。\n- 実機確認:\n  - NativeShell / WebView2はユーザー実機待ち。\n- 補足:\n  - Headless Chromiumスクショ試行は実行環境側タイムアウトのため未採用。",
       "user_request": "FRB Studio全体の見栄えを統一したい。左上トップにFRB Studioを置いてHomeへ戻れるようにし、JSON Object Studio / Markdown Studio / Diff JSON / MetaDiffの画面名を統一位置で表示する。デザインは案Bを基準に黒を弱める。Markdown Studioは3列、JSON Studioは2列、Diff/MetaDiffも基本2列。JSON Studioは左細・右広の大きな2列構成で決定。",
-      "ai_response": "共通Shellはiframeではなく共通HTML部品 + CSS + JSとして実装し、画面固有責務は各HTMLに残す。Visual Foundationだけ統一し、カラム数は画面責務に応じてMarkdown=3列、JSON/Diff/MetaDiff=2列とする。",
-      "latest_user_comment": "Markdown Studioは3列、JSON Studioは2列。他のViewerは2列の想定。インシデント作成を依頼。",
-      "latest_ai_response": "共通化対象と画面固有レイアウトを分離してインシデント化する。FRB Studio Common UI Shellを全画面に置き、Visual Foundationは案Bの黒を弱めたモダンミディアムを基準とする。",
+      "ai_response": "- 共通CSS + 共通JSのCommon UI Shellを実装。\n- Home画面を追加。\n- JSON=2列、Markdown=3列、Diff/MetaDiff=2列を責務別に適用。\n- Home遷移と画面初期化を別操作として実装。\n- Native Bridge / API / ViewDef / Data / Sidecar契約は変更していない。",
+      "latest_user_comment": "- studio_work_0185 / v0.18.63-common-ui-shell-visual-foundation を最新添付ZIP基準で実装する。\n- foundation_rule_019 / constitution_32 に従う。\n- Common Shell / Visual Foundationを、いけるところまで進める。",
+      "latest_ai_response": "- 変更内容:\n  - 共通FRB Studioトップバー / ページタイトルバーを実装。\n  - Homeから4画面へ遷移可能。\n  - 4画面からHomeへ帰還可能。\n  - JSON Object Studioを左細 / 右広の2列へ再構成。\n  - Markdown Studioは3列維持 + 左右補助ペインを淡いグリーンへ統一。\n  - Diff JSON / MetaDiffは既存2列維持 + 共通Shell接続。\n- 共通化:\n  - frb-studio-shell.css にVisual Token / Layoutを集約。\n  - frb_studio_shell.js に共通ナビ / Home / Resetを集約。\n  - iframeは不使用。\n- 確認結果:\n  - 専用Static 9/9 PASS。\n  - 全Static: 実装前 118/105/13 → 実装後 127/114/13。\n  - 既存13 FAIL名は完全一致。新規Regressionなし。\n- 未確認:\n  - Windows NativeShell / WebView2実機の見栄えと操作。",
       "context_refs": [
         "foundation_rule_019",
         "studio_work_0158",
         "studio_work_0184"
       ],
       "follow_up_actions": [
-        "実装前に現行4画面のHTML/CSS構造と既存遷移URLを棚卸しする。",
-        "Common ShellのDOM契約とCSS Custom Propertiesの最小セットを確定する。",
-        "Home画面の最小情報設計を確定する。",
-        "JSON Object Studioの2列化で移動する既存部品を一覧化する。",
-        "Diff JSON / MetaDiffの実ファイル名と既存戻り導線を確認する。",
-        "将来テーマ切替候補は別インシデントへ分離する。"
+        "Windows NativeShellでHome + 4画面を目視確認する。",
+        "各画面のHome / Module tab / Reset遷移を確認する。",
+        "JSONの読込・Grid・詳細編集・保存・Markdown出力を確認する。",
+        "MarkdownのWorkspace・保存・Sidecarコメントを確認する。",
+        "Diff / MetaDiffのOpen・Drop・検索を確認する。",
+        "実機スクショを基に濃紺・淡いグリーン・余白・左幅を微調整する。",
+        "テーマ切替は別インシデントへ分離する。"
       ],
       "discussion_history": [
         {
@@ -26390,12 +26391,37 @@
           "at": "2026-08-15T19:19:00+09:00",
           "decision": "将来のユーザー選択テーマを視野に入れるが、今回の実装では単一テーマの完成を優先する。",
           "reason": "VS Code型テーマ選択は将来価値がある一方、現在はVisual Foundationそのものを安定させることが先決なため。"
+        },
+        {
+          "decision_id": "dec_studio_work_0185_009",
+          "at": "2026-08-15T19:39:53+09:00",
+          "decision": "Common Shellは既存4 HTML URLをそのまま使用し、新規Routerを導入しない。",
+          "reason": "既存NativeShell/localhost/GitHub Pages導線を壊さずUI統一だけを行うため。",
+          "confirmation_level": "Static Test"
+        },
+        {
+          "decision_id": "dec_studio_work_0185_010",
+          "at": "2026-08-15T19:39:53+09:00",
+          "decision": "JSON Object Studioの旧ViewerリンクDOMは削除せず、Common Shell時のみ非表示にする。",
+          "reason": "既存接続を残したまま表示上の重複だけを除去するため。",
+          "confirmation_level": "Static Test"
+        },
+        {
+          "decision_id": "dec_studio_work_0185_011",
+          "at": "2026-08-15T19:39:53+09:00",
+          "decision": "Related/SubGrid compact launchではフルCommon Shellを表示しない。",
+          "reason": "補助Grid専用画面の既存責務と狭い表示を守るため。",
+          "confirmation_level": "Static Test"
         }
       ],
       "change_history": [
         {
           "at": "2026-08-15T19:19:00+09:00",
           "summary": "新規登録。FRB Studio Common UI Shell / Home / Visual Foundationと画面別2列/3列レイアウト契約を定義。"
+        },
+        {
+          "at": "2026-08-15T19:39:53+09:00",
+          "summary": "Common UI Shell / Home / Visual Foundationを実装。JSON=2列、Markdown=3列、Diff/MetaDiff=2列を適用しStatic Regression比較を実施。"
         }
       ]
     }

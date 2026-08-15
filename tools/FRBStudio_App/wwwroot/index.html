@@ -146,9 +146,22 @@
     }
   }
   </style>
+  <link rel="stylesheet" href="css/frb-studio-shell.css?v=0185" />
 </head>
 <body>
-  <header class="app-header" id="appHeader">
+  <script src="js/ui/frb_studio_shell.js?v=0185"></script>
+  <script>
+    FrbStudioShell.mount({
+      pageId: 'json-object',
+      pageTitle: 'JSON Object Studio',
+      description: 'JSON > Definition & Data を構造化して管理',
+      icon: '{}',
+      resetConfirmMessage: 'JSON Object Studioの現在の選択・表示状態を破棄して、初期状態へ戻します。よろしいですか？'
+    });
+  </script>
+  <div class="json-studio-workspace">
+    <aside class="json-studio-source-pane">
+      <header class="app-header" id="appHeader">
     <div class="brand-block">
       <div class="app-kicker" id="appBrand">FRB Studio</div>
       <h1><span id="appProductName" class="app-product-name">JSON Object Studio</span><span id="appDisplayVersion" class="app-version">v0.4-r001</span></h1>
@@ -203,6 +216,11 @@
         </div>
       </div>
       <span class="studio-row-break" aria-hidden="true"></span>
+    </section>
+      </header>
+    </aside>
+    <section class="json-studio-main-pane">
+      <div class="json-studio-main-toolbar">
       <div class="studio-tool-dock studio-output-dock" aria-label="Markdown出力">
         <div class="studio-tool-group" aria-label="Markdown出力">
           <span class="studio-tool-label">Output</span>
@@ -222,15 +240,14 @@
           </button>
         </div>
       </div>
-    </section>
     <div class="current-data-layer" aria-label="現在表示中のData JSON">
       <div id="currentDataTitle" class="current-data-title" title=""></div>
       <div id="currentDataSubtitle" class="current-data-subtitle" title=""></div>
       <span id="status" class="status current-data-path">未読み込み</span>
     </div>
-  </header>
+      </div>
 
-  <main>
+      <main>
     <section id="headerSection" class="card hidden">
       <h2 id="headerCaption">Header</h2>
       <div id="headerForm" class="form-grid"></div>
@@ -273,7 +290,9 @@
         <table id="dataGrid"></table>
       </div>
     </section>
-  </main>
+      </main>
+    </section>
+  </div>
 
   <dialog id="detailDialog">
     <form method="dialog" class="dialog-body">

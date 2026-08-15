@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FRB Studio Home</title>
+  <link rel="stylesheet" href="css/frb-studio-shell.css?v=0185" />
+</head>
+<body>
+<script src="js/ui/frb_studio_shell.js?v=0185"></script>
+<script>
+  FrbStudioShell.mount({
+    pageTitle: 'FRB Studio Home',
+    description: '作業するStudio / Viewerを選択',
+    icon: '⌂',
+    showHome: false,
+    showReset: false
+  });
+</script>
+<main class="frb-home-main">
+  <section class="frb-home-hero">
+    <div class="frb-home-kicker">FRB Studio</div>
+    <h1>構造化・文書・差分を、ひとつのStudioで。</h1>
+    <p>JSON Object Studio、Markdown Studio、Diff JSON Viewer、MetaDiff Viewerを同じFRB Studioの入口から開きます。</p>
+  </section>
+  <section class="frb-home-grid" aria-label="FRB Studio modules">
+    <a class="frb-home-card json" href="index.html">
+      <span class="frb-home-card-icon">{}</span>
+      <h2>JSON Object Studio</h2>
+      <p>ViewDefとData JSONを組み合わせて、構造化データを表示・編集します。</p>
+    </a>
+    <a class="frb-home-card markdown" href="mdViewer.html">
+      <span class="frb-home-card-icon">M</span>
+      <h2>Markdown Studio</h2>
+      <p>Markdown Workspace、文書編集、INDEX、Sidecarコメントを扱います。</p>
+    </a>
+    <a class="frb-home-card diff" href="DiffJsonViewer.html">
+      <span class="frb-home-card-icon">Δ</span>
+      <h2>Diff JSON Viewer</h2>
+      <p>DiffToJsonを読み込み、ファイル単位・差分単位で確認します。</p>
+    </a>
+    <a class="frb-home-card meta" href="MetaDiff_HypothesisViewer.html">
+      <span class="frb-home-card-icon">◆</span>
+      <h2>MetaDiff Viewer</h2>
+      <p>AI仮説Markdownと根拠差分を並べて確認します。</p>
+    </a>
+  </section>
+</main>
+</body>
+</html>

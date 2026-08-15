@@ -29,7 +29,7 @@ namespace FRBStudio.NativeShell
             Width = 1500;
             Height = 950;
             StartPosition = FormStartPosition.CenterScreen;
-		    var iconPath = Path.Combine(AppContext.BaseDirectory, "FRBStudio_NativeShell_Icon.ico");
+		    var iconPath = Path.Combine(AppContext.BaseDirectory, "FRB_Studio.ico");
 		    if (File.Exists(iconPath))
 		    {
 		        this.Icon = new Icon(iconPath);

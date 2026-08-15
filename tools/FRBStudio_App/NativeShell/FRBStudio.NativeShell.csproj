@@ -10,7 +10,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AssemblyName>FRBStudio.NativeShell</AssemblyName>
     <RootNamespace>FRBStudio.NativeShell</RootNamespace>
-    <ApplicationIcon>FRBStudio_NativeShell_Icon.ico</ApplicationIcon>
+    <ApplicationIcon>FRB_Studio.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
