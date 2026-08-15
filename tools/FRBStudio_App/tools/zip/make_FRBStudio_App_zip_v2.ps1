@@ -13,7 +13,6 @@ $targetDirs = @(
     "data",
     "defs",
     "fielddefs",
-    "Program.cs",
     "NativeShell",
     "tests",
     "tools",
