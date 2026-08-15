@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-15T13:12:00+09:00",
+  "updated_at": "2026-08-15",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 170,
+  "items_count": 171,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -26025,6 +26025,64 @@
       "user_request": "Field Definition詳細のData項目名（Caption）は特別仕様なので、入力欄下ではなくDetailヘッダーへ移動してほしい。",
       "ai_response": "Caption Componentを汎用Editor ComponentのdetailHeader placementへ移し、sticky Header内でコンパクト表示する。",
       "latest_ai_response": "Field Definition CaptionをDetail Headerへ移動し、既存のCaption解決・Grid派生列・Constraint/TestPreviewの配置は維持。"
+    },
+    {
+      "work_item_id": "studio_work_0183",
+      "phase": "v0.18.60-header-detail-visible-and-f12-grid-immediate",
+      "title": "基本情報の詳細表示契約統一 / F12反映のGrid即時更新",
+      "incident_type": "bugfix",
+      "category": "ui_maintenance",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "NOT_REQUIRED",
+      "verification_status": "静的確認済み / ブラウザ実機確認待ち",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-15T13:28:00+09:00",
+      "owner": "",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-15T13:28:00+09:00",
+      "updated_at": "2026-08-15T13:28:00+09:00",
+      "target_files": "- wwwroot/js/renderers/field_controls.js\n- wwwroot/js/runtime/detail_save.js\n- wwwroot/index.html\n- tests/qa/static/combo_viewdef_maintenance_static.test.mjs\n- tests/qa/static/field_definition_editor_derived_preview_static.test.mjs\n- tests/qa/static/cross_field_definition_preview_static.test.mjs\n- tests/qa/static/editor_component_model_static.test.mjs",
+      "actual_updated_files": "- data/json/01_main/_studio_work_incident_data_v2.json\n- wwwroot/js/renderers/field_controls.js\n- wwwroot/js/runtime/detail_save.js\n- wwwroot/index.html\n- tests/qa/static/combo_viewdef_maintenance_static.test.mjs\n- tests/qa/static/field_definition_editor_derived_preview_static.test.mjs\n- tests/qa/static/cross_field_definition_preview_static.test.mjs\n- tests/qa/static/editor_component_model_static.test.mjs",
+      "context_def_draft": "- ViewDefメンテ画面の「詳細表示」は field.edit.visible の正本として扱う。\n- Header / 基本情報もDetailと同じedit.visible契約で表示ON/OFFする。\n- F12反映後はcanonical rowとGrid表示側が同じrow identityを共有し、再読込なしで即時にGridへ反映する。",
+      "objective": "- 基本情報Sectionの各項目をViewDefの「詳細表示」true/falseで表示制御できるようにする。\n- ViewDef Editor等のDetailでF12反映した変更を、背面Gridへその場で反映する。",
+      "background": "- renderHeaderは従来def.fieldsを無条件表示しており、ViewDefメンテでedit.visible=falseにしても基本情報から消えなかった。\n- Detail F12 commitはcurrentRows[index]を新objectへ差し替えていた一方、filteredRowsは旧row object参照を保持していたため、canonical Dataは更新されてもGrid表示だけ古い値のまま残った。",
+      "scope": "- renderHeaderでfield.edit.visible !== falseを適用する。\n- visibleWhenがあるHeader fieldも同じ可視性判定を利用する。\n- Detail commit時は通常object rowのidentityを維持したまま内容を置換する。\n- 変更JSのcache-bustとStatic回帰テストを更新する。",
+      "out_of_scope": "- Header Section全体の表示/非表示契約追加。\n- Grid sort/filter条件をF12変更値で自動的に再評価して行を移動・除外する機能。\n- ViewDef Schemaの名称変更。",
+      "fixed_name_policy": "- 既存ファイルを同名更新する。\n- 返却ZIPはFoundation Rule 019に従い変更ファイルのみ。",
+      "module_policy": "- Header可視性はfield_controls renderer責務で統一する。\n- F12 canonical commitと参照整合性はdetail_save責務で吸収し、ViewDefメンテ専用分岐を追加しない。",
+      "expected_outputs": "- ViewDefメンテで基本情報Fieldの「詳細表示」をfalseにして保存すると、通常画面の基本情報からその項目が消える。\n- trueへ戻すと再表示される。\n- Detail Editorで値を変更してF12を押すと、Dialog背面のGrid該当セルが即時更新される。",
+      "risk": "- edit.visible未指定は従来互換で表示する。\n- F12後もactive sort/filterの再判定までは行わず、現在表示中行のセル内容を即時同期する。",
+      "test_points": "- renderHeaderがedit.visible=falseを除外する。\n- Header visibleWhenも既存契約を利用する。\n- Detail commitがrow objectを差し替えずidentityを維持する。\n- index.htmlが変更JSの新cache keyを参照する。\n- 全Staticで既存FAIL数が増えない。",
+      "verification_log": "- Target Static: combo_viewdef_maintenance_static + field_definition_editor_derived_preview_static + cross_field_definition_preview_static + editor_component_model_static = 28 / 28 PASS。\n- 全Static: baseline 107 tests = 94 PASS / 13 FAIL、変更後109 tests = 96 PASS / 13 FAIL。FAIL 13件の名称はbaseline/currentで一致し、今回変更によるFAIL増加なし。\n- node --check: wwwroot/js/renderers/field_controls.js / wwwroot/js/runtime/detail_save.js PASS。\n- F12 identity smoke: currentRows / filteredRowsが同一row objectを保持したままcaption/edit.visible変更を即時参照できることを確認。\n- Header renderはfield.edit.visible !== falseを適用し、visibleWhenも既存契約を利用するStatic acceptanceを追加。\n- ブラウザ実機で基本情報OFF/ONとF12背面Grid即時反映はユーザー確認待ち。",
+      "user_request": "基本情報の項目表示ON/OFFをViewDefの「詳細表示 visible」で制御したい。またEditorで「反映(F12)」を押したら背面Gridへすぐ反映してほしい。",
+      "ai_response": "Header/基本情報もedit.visible契約へ統一し、F12 commit時にcanonical row identityを維持してfilteredRowsの表示参照を即時同期する。",
+      "latest_ai_response": "基本情報HeaderもViewDefの「詳細表示」(field.edit.visible)に従うよう統一。F12反映はcanonical rowのobject identityを維持して内容を更新し、filteredRowsが古いrow参照を掴み続ける問題を修正。Target 28/28 PASS、全Staticは96 PASS / 13 FAILで既存FAIL増加なし。",
+      "discussion_history": [
+        {
+          "speaker": "user",
+          "at": "2026-08-15T13:28:00+09:00",
+          "body": "基本情報の項目表示OFF/ONをGridの詳細表示visibleで制御してほしい。Editorで反映を押したらGridにすぐ反映してほしい。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_studio_work_0183_001",
+          "at": "2026-08-15T13:28:00+09:00",
+          "decision": "Header/基本情報の可視性もfield.edit.visibleへ統一する。",
+          "reason": "ViewDefメンテ上の「詳細表示」と実画面表示が一致し、人間がViewDefだけ見て表示契約を判断できるようにするため。"
+        },
+        {
+          "decision_id": "dec_studio_work_0183_002",
+          "at": "2026-08-15T13:28:00+09:00",
+          "decision": "F12 commitではrow objectを差し替えず、既存objectの内容を置換する。",
+          "reason": "filteredRows等がcanonical rowへの参照を保持している既存構造を壊さず、即時Grid反映を汎用的に復元できるため。"
+        }
+      ],
+      "context_refs": [
+        "foundation_rule_019",
+        "defs/common/view_def_maint_fields_v0_2.json"
+      ]
     }
   ],
   "review_notes": [

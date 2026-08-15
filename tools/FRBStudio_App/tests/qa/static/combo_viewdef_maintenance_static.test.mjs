@@ -201,3 +201,24 @@ test('ViewDef row-order buttons are visible only for maintenance documents and w
   assert.match(pageSetup, /viewDefMoveUpBtn[\s\S]*moveSelectedViewDefMaintenanceRow\(-1\)/);
   assert.match(pageSetup, /viewDefMoveDownBtn[\s\S]*moveSelectedViewDefMaintenanceRow\(1\)/);
 });
+
+
+test('basic-info header visibility follows the same edit.visible contract shown as 詳細表示 in ViewDef maintenance', () => {
+  const fieldControls = text('wwwroot/js/renderers/field_controls.js');
+  const index = text('wwwroot/index.html');
+
+  assert.match(fieldControls, /function renderHeader\(\)[\s\S]*field\?\.edit\?\.visible !== false/);
+  assert.match(fieldControls, /fieldMatchesVisibleWhen\(field, sourceData\)/);
+  assert.match(index, /js\/renderers\/field_controls\.js\?v=header-detail-visible-01860/);
+});
+
+test('F12 detail commit preserves canonical row identity so the visible Grid receives edits immediately', () => {
+  const save = text('wwwroot/js/runtime/detail_save.js');
+  const index = text('wwwroot/index.html');
+
+  assert.match(save, /function replaceDetailRowPreservingReferences\(rows, index, nextRow\)/);
+  assert.match(save, /Object\.keys\(current\)\.forEach\(key => \{ delete current\[key\]; \}\)/);
+  assert.match(save, /Object\.keys\(nextRow\)\.forEach\(key => \{ current\[key\] = nextRow\[key\]; \}\)/);
+  assert.match(save, /function finalizeValidatedDetailCommit\(row, index\)[\s\S]*replaceDetailRowPreservingReferences\(currentRows, index, row\)/);
+  assert.match(index, /js\/runtime\/detail_save\.js\?v=detail-grid-immediate-01860/);
+});

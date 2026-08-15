@@ -988,9 +988,15 @@ function renderHeader() {
   $('headerCaption').textContent = def.caption ?? 'Header';
   const form = $('headerForm');
   form.innerHTML = '';
-  def.fields.forEach(field => {
-    form.appendChild(createInput(field, getByPath(sourceData, (def.dataPath === '$' ? '$.' : def.dataPath + '.') + field.field), 'header'));
-  });
+  // v0.18.60-header-detail-visible:
+  // ViewDefメンテの「詳細表示」は field.edit.visible の正本。
+  // Header / 基本情報も Detail と同じ可視性契約を使い、false の項目は表示しない。
+  def.fields
+    .filter(field => field?.edit?.visible !== false)
+    .filter(field => typeof fieldMatchesVisibleWhen === 'function' ? fieldMatchesVisibleWhen(field, sourceData) : true)
+    .forEach(field => {
+      form.appendChild(createInput(field, getByPath(sourceData, (def.dataPath === '$' ? '$.' : def.dataPath + '.') + field.field), 'header'));
+    });
   $('headerSection').classList.remove('hidden');
   // v0.15.5.2: Main Context is Data-side information. Show it as a header panel,
   // not as the main Grid. The ViewDef only declares data_path/display contract.

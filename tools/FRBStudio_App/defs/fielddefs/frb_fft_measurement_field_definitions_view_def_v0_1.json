@@ -199,12 +199,28 @@
               "type": "text",
               "readonly": true,
               "grid": {
-                "visible": false
+                "visible": false,
+                "width": null,
+                "format": ""
               },
               "edit": {
                 "visible": true,
-                "readonly": true
-              }
+                "readonly": true,
+                "editor": "",
+                "height": null,
+                "step": null,
+                "min": null,
+                "max": null
+              },
+              "search": {
+                "visible": false,
+                "operator": ""
+              },
+              "validation": {
+                "required": false
+              },
+              "format": "",
+              "defaultValue": ""
             },
             {
               "field": "definition_policy.validation_type_policy",
@@ -212,13 +228,28 @@
               "type": "textarea",
               "readonly": true,
               "grid": {
-                "visible": false
+                "visible": false,
+                "width": null,
+                "format": ""
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": true,
-                "height": 70
-              }
+                "height": 70,
+                "editor": "",
+                "step": null,
+                "min": null,
+                "max": null
+              },
+              "search": {
+                "visible": false,
+                "operator": ""
+              },
+              "validation": {
+                "required": false
+              },
+              "format": "",
+              "defaultValue": ""
             },
             {
               "field": "definition_policy.constraint_override_policy",
@@ -226,13 +257,28 @@
               "type": "textarea",
               "readonly": true,
               "grid": {
-                "visible": false
+                "visible": false,
+                "width": null,
+                "format": ""
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": true,
-                "height": 70
-              }
+                "height": 70,
+                "editor": "",
+                "step": null,
+                "min": null,
+                "max": null
+              },
+              "search": {
+                "visible": false,
+                "operator": ""
+              },
+              "validation": {
+                "required": false
+              },
+              "format": "",
+              "defaultValue": ""
             },
             {
               "field": "definition_policy.cross_field_constraint_policy",
@@ -240,13 +286,28 @@
               "type": "textarea",
               "readonly": true,
               "grid": {
-                "visible": false
+                "visible": false,
+                "width": null,
+                "format": ""
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": true,
-                "height": 90
-              }
+                "height": 90,
+                "editor": "",
+                "step": null,
+                "min": null,
+                "max": null
+              },
+              "search": {
+                "visible": false,
+                "operator": ""
+              },
+              "validation": {
+                "required": false
+              },
+              "format": "",
+              "defaultValue": ""
             },
             {
               "field": "definition_policy.standard_restore_policy",
@@ -254,13 +315,28 @@
               "type": "textarea",
               "readonly": true,
               "grid": {
-                "visible": false
+                "visible": false,
+                "width": null,
+                "format": ""
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": true,
-                "height": 70
-              }
+                "height": 70,
+                "editor": "",
+                "step": null,
+                "min": null,
+                "max": null
+              },
+              "search": {
+                "visible": false,
+                "operator": ""
+              },
+              "validation": {
+                "required": false
+              },
+              "format": "",
+              "defaultValue": ""
             },
             {
               "field": "design_notes",

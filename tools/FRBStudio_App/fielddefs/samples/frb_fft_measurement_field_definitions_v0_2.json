@@ -159,7 +159,8 @@
           "value": 100,
           "inclusive": true
         }
-      }
+      },
+      "note": ""
     },
     {
       "field_path": "$.measurement_sessions[].enabled",

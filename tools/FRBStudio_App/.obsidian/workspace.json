@@ -1,20 +1,24 @@
 {
   "main": {
-    "id": "454a0f9b774e18eb",
+    "id": "757062fc42877154",
     "type": "split",
     "children": [
       {
-        "id": "45f7c67bd4042fe3",
+        "id": "d1d7e76f76a3bdda",
         "type": "tabs",
         "children": [
           {
-            "id": "9086bb37127c8036",
+            "id": "39306a842522a960",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "data/markdown/30_Studioくん構想メモ/06_作業備忘録.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "新規タブ"
+              "title": "06_作業備忘録"
             }
           }
         ]
@@ -23,15 +27,15 @@
     "direction": "vertical"
   },
   "left": {
-    "id": "2677202193178083",
+    "id": "f8a62701c8f3ab97",
     "type": "split",
     "children": [
       {
-        "id": "a4474989d61acc31",
+        "id": "d79ebf22977b00b3",
         "type": "tabs",
         "children": [
           {
-            "id": "69f6ac229016834c",
+            "id": "e6111320288d0b6a",
             "type": "leaf",
             "state": {
               "type": "file-explorer",
@@ -46,7 +50,7 @@
             }
           },
           {
-            "id": "26772714bb2e63cc",
+            "id": "e167c7be898c96e2",
             "type": "leaf",
             "state": {
               "type": "search",
@@ -63,11 +67,14 @@
             }
           },
           {
-            "id": "91048fdfb36a8391",
+            "id": "63408a121bff110f",
             "type": "leaf",
             "state": {
               "type": "bookmarks",
-              "state": {},
+              "state": {
+                "showSearch": false,
+                "searchQuery": ""
+              },
               "icon": "lucide-bookmark",
               "title": "ブックマーク"
             }
@@ -79,19 +86,20 @@
     "width": 300
   },
   "right": {
-    "id": "6e6a7add4646855a",
+    "id": "23e218085f94434b",
     "type": "split",
     "children": [
       {
-        "id": "d3808541b4d400ea",
+        "id": "38ab00919eb12809",
         "type": "tabs",
         "children": [
           {
-            "id": "ee1d89c775f44235",
+            "id": "9e4eb4e8e208d3e1",
             "type": "leaf",
             "state": {
               "type": "backlink",
               "state": {
+                "file": "data/markdown/30_Studioくん構想メモ/06_作業備忘録.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -105,11 +113,12 @@
             }
           },
           {
-            "id": "048014a68408d53b",
+            "id": "05be088970a1eeba",
             "type": "leaf",
             "state": {
               "type": "outgoing-link",
               "state": {
+                "file": "data/markdown/30_Studioくん構想メモ/06_作業備忘録.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
@@ -118,7 +127,7 @@
             }
           },
           {
-            "id": "e26c6ffddf40f401",
+            "id": "35b759f32c9e104c",
             "type": "leaf",
             "state": {
               "type": "tag",
@@ -133,7 +142,7 @@
             }
           },
           {
-            "id": "89c7f4e831d7a686",
+            "id": "94af5bd388ae7238",
             "type": "leaf",
             "state": {
               "type": "all-properties",
@@ -147,11 +156,12 @@
             }
           },
           {
-            "id": "7fc65aee1bc2a126",
+            "id": "ca772055b4e6572f",
             "type": "leaf",
             "state": {
               "type": "outline",
               "state": {
+                "file": "data/markdown/30_Studioくん構想メモ/06_作業備忘録.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -160,12 +170,12 @@
               "title": "アウトライン"
             }
           }
-        ],
-        "currentTab": 4
+        ]
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -178,36 +188,10 @@
       "bases:新規ベースを作成": false
     }
   },
-  "active": "69f6ac229016834c",
+  "active": "e6111320288d0b6a",
   "lastOpenFiles": [
-    "2026-08-15.md",
-    "無題のファイル 1.canvas",
-    "2026-08-05.md",
-    "無題のファイル.canvas",
-    "FRB_Blog/AI協働016_RAG_ベクトル検索_戦略的設計パターン.md",
-    "articles/invisible-visualization-structuring-culture.md",
-    "tools/FRBStudio_App/wwwroot/defs/fft_view_def_螳滄ｨ捺擅莉ｶ繝励Μ繧ｻ繝・ヨ_v0_5_editable_subgrid.json.br",
-    "tools/FRBStudio_App/wwwroot/defs/fft_view_def_螳滄ｨ捺擅莉ｶ繝励Μ繧ｻ繝・ヨ_v0_5_editable_subgrid.json.gz",
-    "tools/FRBStudio_App/wwwroot/defs/fft_view_def_螳滄ｨ捺擅莉ｶ繝励Μ繧ｻ繝・ヨ_v0_5_editable_subgrid.json",
-    "tools/FRBStudio_App/wwwroot.zip",
-    "tools/FRBStudio_App/data/fft_data_実験条件プリセット.json",
-    "tools/FRBStudio_App/defs/fft_view_def_実験条件プリセット.json",
-    "tools/FRBStudio_App/defs/view_def_実験条件プリセット.json",
-    "tools/FRBStudio_App/defs/新規 テキスト ドキュメント.txt",
-    "tools/FRBStudio_App/data/fft_実験条件プリセット.json",
-    "tools/FRBStudio_App/data/新規 テキスト ドキュメント.txt",
-    "tools/FRBStudio/wwwroot/README.md",
-    "tools/FRBStudio/schema_RULES/FRB_VIEW_DEF_GENERATION_RULES.md",
-    "tools/FRBStudio_App/schema_RULES/FRB_VIEW_DEF_GENERATION_RULES.md",
-    "tools/FRBStudio_App/schema/FRB_VIEW_DEF_GENERATION_RULES.md",
-    "tools/FRBStudio_App/FRB_VIEW_DEF_GENERATION_RULES.md",
-    "tools/FRBStudio/ReadMe.md",
-    "FRB_Blog/FRB_Lab_Notes_Qiita.md",
-    "data/frb_No-Code_JSON_Studio/README.md",
-    "FRB_Blog/FRB_Lab_Notes_Qiita_Summary.md",
-    "mymemo.md",
-    "FRB_Blog/やることメモ.md",
-    "FRB_Blog/FRB_definition_Qiita.md",
-    "FRB_Blog/FRB_cultural design structure.md"
+    "FRBStudio_App20260815_141755.zip",
+    "data/markdown/30_Studioくん構想メモ/06_作業備忘録 1.md",
+    "data/markdown/30_Studioくん構想メモ/06_作業備忘録.md"
   ]
 }

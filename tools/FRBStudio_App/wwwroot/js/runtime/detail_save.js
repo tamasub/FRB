@@ -316,8 +316,30 @@ function reportRuntimeFieldDefinitionValidationFailure(result) {
   }
 }
 
+function replaceDetailRowPreservingReferences(rows, index, nextRow) {
+  if (!Array.isArray(rows) || index < 0 || index >= rows.length) return nextRow;
+  const current = rows[index];
+
+  // v0.18.60-detail-grid-immediate:
+  // filteredRows は canonical row object への参照を保持している。
+  // F12で rows[index] 自体を差し替えるとGrid側だけ古いobjectを掴み続けるため、
+  // 通常object rowは同一identityのまま内容だけ置換して即時反映させる。
+  if (
+    current && nextRow &&
+    typeof current === 'object' && !Array.isArray(current) &&
+    typeof nextRow === 'object' && !Array.isArray(nextRow)
+  ) {
+    Object.keys(current).forEach(key => { delete current[key]; });
+    Object.keys(nextRow).forEach(key => { current[key] = nextRow[key]; });
+    return current;
+  }
+
+  rows[index] = nextRow;
+  return nextRow;
+}
+
 function finalizeValidatedDetailCommit(row, index) {
-  currentRows[index] = row;
+  replaceDetailRowPreservingReferences(currentRows, index, row);
   if (typeof getStudioJsonRoundTripDraftRow === 'function' && getStudioJsonRoundTripDraftRow()) {
     if (typeof discardStudioJsonRoundTripDraft === 'function') discardStudioJsonRoundTripDraft();
   }

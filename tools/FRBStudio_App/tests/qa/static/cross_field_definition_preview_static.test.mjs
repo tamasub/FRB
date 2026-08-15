@@ -36,7 +36,7 @@ test('index loads Cross Field Verification dependencies and Component before Det
   const validator = index.indexOf('js/services/definition/definition_value_validator.js?v=definition-test-runner-crossfield-01845');
   const service = index.indexOf('js/services/definition/cross_field_verification_service.js?v=cross-field-generation-01853');
   const component = index.indexOf('js/components/definition/cross_field_test_preview_component.js?v=cross-field-generation-01853');
-  const detail = index.indexOf('js/runtime/detail_save.js?v=detail-fieldset-cross-field-01852');
+  const detail = index.indexOf('js/runtime/detail_save.js?v=detail-grid-immediate-01860');
 
   assert.ok(validator >= 0);
   assert.ok(service > validator);
