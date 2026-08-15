@@ -110,7 +110,7 @@ test('Field Definition ViewDef connects Constraint Diff and Test Preview as read
   );
 
   const targetCaption = section.editorComponents.find(component => component.type === 'definition_target_caption');
-  assert.equal(targetCaption.placement, 'detailBody');
+  assert.equal(targetCaption.placement, 'detailHeader');
   assert.equal(targetCaption.readonly, true);
   assert.equal(targetCaption.config.targetViewDefPath, 'frb/frb_fft_field_definition_sample_view_def_v0_1.json');
 

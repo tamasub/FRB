@@ -3380,6 +3380,44 @@ body.related-grid-modal-open {
   }
 }
 
+/* v0.18.59-field-definition-caption-in-detail-header */
+/* Field Definitionの人間向けCaptionは特殊な派生情報なので、入力欄ではなくDetailヘッダーに常時表示する。 */
+#detailDialog .detail-header-component-slot {
+  flex: 1 1 auto;
+  min-width: 0;
+  align-self: center;
+}
+#detailDialog .detail-header-component-slot:empty {
+  display: none;
+}
+#detailDialog .detail-header-component-slot .editor-component-host-item {
+  min-width: 0;
+}
+#detailDialog .detail-header-component-slot .definition-target-caption-card {
+  grid-template-columns: max-content max-content minmax(0, 1fr);
+  margin: 0 8px 0 14px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+}
+#detailDialog .detail-header-component-slot .definition-target-caption-label {
+  font-size: 10px;
+}
+#detailDialog .detail-header-component-slot .definition-target-caption-value {
+  font-size: 15px;
+}
+#detailDialog .detail-header-component-slot .definition-target-caption-meta {
+  font-size: 10px;
+}
+@media (max-width: 760px) {
+  #detailDialog .detail-header-component-slot .definition-target-caption-card {
+    grid-template-columns: 1fr;
+    gap: 2px;
+    margin-left: 8px;
+  }
+}
+
 /* v0.18.46-definition-review-evidence-and-fielddefs-access */
 /* Definition Test Diff: keep execution evidence and the linked Field Definition snapshot in one review screen. */
 #detailDialog.detail-dialog-definition-evidence-review {

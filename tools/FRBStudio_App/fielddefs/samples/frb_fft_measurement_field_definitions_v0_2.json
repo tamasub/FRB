@@ -28,7 +28,7 @@
     "received_atはViewDef type=datetimeだが、タイムゾーン付き時点のためstudio.instant.iso8601を明示する。",
     "関連項目チェックはfield_definitions内へ埋め込まず、rootのcross_field_constraintsへ関係契約として分離する。",
     "cross_field_constraintsはTestPatternそのものを保持しない。constraint_type / operatorと各field_pathのValidation Type・Constraint Overrideから標準テスト条件を導出する想定とする。",
-    "関連項目比較の標準TestPatternは、比較可能な共通範囲の内部代表値LOW / MID / HIGHから A<B / A=B / A>B の3関係を導出する。境界値そのものは単項目Validationの責務とする。",
+    "関連項目比較の標準TestPatternは、比較可能な共通範囲の内部代表値LOW / MID / HIGHから A\u003CB / A=B / A\u003EB の3関係を導出する。境界値そのものは単項目Validationの責務とする。",
     "関連項目チェックではnull / 空文字 / missing等の物理表現を直接Policy名にせず、各Field Contractで許可された未設定状態を意味レイヤーの「未設定」として扱う。",
     "未設定時の関連項目ExpectedはOK/NGの2分類とし、判定不能をPASS扱いしない。"
   ],
@@ -281,7 +281,7 @@
       "left_field_path": "$.analysis_start_date",
       "operator": "LT",
       "right_field_path": "$.analysis_end_date",
-      "note": "analysis_start_date < analysis_end_date。通常比較は A<B / A=B / A>B の3関係を内部代表値から標準導出し、未設定がField Contract上有効な場合でも本制約ではNGとする。",
+      "note": "analysis_start_date \u003C analysis_end_date。通常比較は A\u003CB / A=B / A\u003EB の3関係を内部代表値から標準導出し、未設定がField Contract上有効な場合でも本制約ではNGとする。",
       "unset_policy": "REJECT_IF_EITHER_UNSET"
     }
   ]

@@ -268,13 +268,28 @@
               "type": "textarea",
               "readonly": true,
               "grid": {
-                "visible": false
+                "visible": false,
+                "width": null,
+                "format": ""
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": true,
-                "height": 150
-              }
+                "height": 150,
+                "editor": "",
+                "step": null,
+                "min": null,
+                "max": null
+              },
+              "search": {
+                "visible": false,
+                "operator": ""
+              },
+              "validation": {
+                "required": false
+              },
+              "format": "",
+              "defaultValue": ""
             }
           ]
         },
@@ -462,7 +477,7 @@
             {
               "id": "field_definition_target_caption",
               "type": "definition_target_caption",
-              "placement": "detailBody",
+              "placement": "detailHeader",
               "caption": "Data項目名（Caption）",
               "readonly": true,
               "config": {

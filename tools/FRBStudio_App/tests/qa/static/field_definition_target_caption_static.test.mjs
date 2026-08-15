@@ -48,7 +48,7 @@ test('Field Definition Editor declares target caption as a readonly Editor Compo
   const component = section?.editorComponents?.find(item => item.id === 'field_definition_target_caption');
   assert.ok(component);
   assert.equal(component.type, 'definition_target_caption');
-  assert.equal(component.placement, 'detailBody');
+  assert.equal(component.placement, 'detailHeader');
   assert.equal(component.readonly, true);
   assert.equal(component.config.targetViewDefPath, 'frb/frb_fft_field_definition_sample_view_def_v0_1.json');
 });
@@ -174,4 +174,29 @@ test('overwrite save never applies stale hidden detail form after ViewDef row-or
     source,
     /detailMode === 'edit' && selectedIndex >= 0 && detailDialogOpen/
   );
+});
+
+
+test('Detail dialog exposes a dedicated detailHeader Editor Component slot', () => {
+  const html = read('wwwroot/index.html');
+  assert.match(
+    html,
+    /id="detailComponentHeaderArea"[^>]*data-editor-component-slot="detailHeader"/
+  );
+});
+
+test('Detail runtime maps detailHeader placement to the sticky header slot', () => {
+  const source = read('wwwroot/js/runtime/detail_save.js');
+  assert.match(source, /detailHeader:\s*\$\('detailComponentHeaderArea'\)/);
+  assert.match(source, /cached\?\.detailHeader\?\.isConnected/);
+});
+
+test('target Caption component is rendered compactly when mounted in the detail header', () => {
+  const css = read('wwwroot/styles.css');
+  assert.match(css, /v0\.18\.59-field-definition-caption-in-detail-header/);
+  assert.match(
+    css,
+    /#detailDialog \.detail-header-component-slot \.definition-target-caption-card\s*\{/s
+  );
+  assert.match(css, /background:\s*transparent;/);
 });
