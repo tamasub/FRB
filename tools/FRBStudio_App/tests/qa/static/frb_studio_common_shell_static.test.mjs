@@ -17,6 +17,7 @@ const nativeDispatcher = read('NativeShell/NativeCommandDispatcher.cs');
 const nativeConfig = read('NativeShell/native_shell.config.json');
 const loadRuntime = read('wwwroot/js/runtime/load_runtime.js');
 const fileApi = read('wwwroot/js/core/file_api.js');
+const pageSetup = read('wwwroot/js/ui/page_setup.js');
 
 test('Common Shell is shared by the four Studio/Viewer pages without iframe composition', () => {
   for (const html of [indexHtml, mdHtml, diffHtml, metaHtml]) {
@@ -215,4 +216,20 @@ test('Markdown document metadata keeps filename and character count only, with f
   assert.doesNotMatch(mdHtml, /<b>Block Model<\/b>/);
   assert.match(mdHtml, /metaFileName\.title = value/);
   assert.match(mdHtml, /if \(readTimeEl\) readTimeEl\.textContent/);
+});
+
+
+test('JSON primary save fix busts the WebView2 runtime cache and re-syncs after ViewDef maintenance state changes', () => {
+  assert.match(indexHtml, /js\/runtime\/load_runtime\.js\?v=0185p5-primary-save-state/);
+  assert.match(loadRuntime, /function syncLoadedDocumentSaveButtonState\(\)/);
+  assert.match(loadRuntime, /saveBtn\.disabled = readonly/);
+  assert.match(pageSetup, /if \(typeof syncLoadedDocumentSaveButtonState === 'function'\) syncLoadedDocumentSaveButtonState\(\);/);
+});
+
+test('Markdown operation toolbar is sticky below the Common Shell and sidebars stay below that toolbar', () => {
+  assert.match(shellCss, /\.frb-page-markdown \.topbar \{[\s\S]*position:sticky;[\s\S]*top:var\(--frb-fixed-header-height/);
+  assert.match(shellCss, /--frb-markdown-toolbar-height: 68px/);
+  assert.match(shellCss, /\.frb-page-markdown \.workspace-sidebar,[\s\S]*\.frb-page-markdown \.sidebar \{[\s\S]*var\(--frb-markdown-toolbar-height/);
+  assert.match(mdHtml, /function syncMarkdownStickyToolbarMetrics\(\)/);
+  assert.match(mdHtml, /--frb-markdown-toolbar-height/);
 });

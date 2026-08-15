@@ -447,6 +447,23 @@ body.studio-grid-only-shell .json-studio-main-pane > main { padding:0; }
   box-shadow:var(--frb-shadow);
 }
 .frb-page-markdown .topbar .logo,
+/* studio_work_0185 p5: Markdown operation toolbar stays reachable while editing long documents. */
+.frb-page-markdown { --frb-markdown-toolbar-height: 68px; }
+.frb-page-markdown .topbar {
+  position:sticky;
+  top:var(--frb-fixed-header-height, 122px);
+  z-index:2147479980;
+  margin-top:0;
+  background:rgba(255,255,255,.97);
+  box-shadow:0 5px 16px rgba(25,52,71,.08);
+}
+.frb-page-markdown .workspace-sidebar,
+.frb-page-markdown .sidebar {
+  top:calc(var(--frb-fixed-header-height, 122px) + var(--frb-markdown-toolbar-height, 68px) + 12px);
+  height:calc(100dvh - var(--frb-fixed-header-height, 122px) - var(--frb-markdown-toolbar-height, 68px) - 28px);
+  max-height:calc(100dvh - var(--frb-fixed-header-height, 122px) - var(--frb-markdown-toolbar-height, 68px) - 28px);
+}
+
 .frb-page-markdown .topbar .brand-text,
 .frb-page-markdown .topbar .studio-link { display:none !important; }
 .frb-page-markdown .topbar .brand { flex:0 0 auto; }

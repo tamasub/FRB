@@ -176,6 +176,10 @@ async function openSelectedViewDefForMaintenance() {
     }, { runSearch: true });
   }
   currentViewDefMaintenanceTarget = targetName;
+  // studio_work_0185 p5:
+  // Section初期選択や検索状態の反映後にもPrimary Save状態を再確定する。
+  // WebView2ではHTML初期disabledを引きずらないよう、ViewDefメンテ完了地点を保存可否の責務境界とする。
+  if (typeof syncLoadedDocumentSaveButtonState === 'function') syncLoadedDocumentSaveButtonState();
   updateViewDefMaintenanceButtonState();
   if (typeof updateSelectedJsonFolderButtonStates === 'function') updateSelectedJsonFolderButtonStates();
   console.log(`[FRBStudio ViewDef maintenance] ${targetName} を ${VIEWDEF_MAINTENANCE_VIEWDEF_PATH} で開きました`);

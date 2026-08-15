@@ -2063,10 +2063,10 @@
     .md-workspace-open-actions { margin-bottom: 6px; }
     .md-workspace-open-actions button { font-size: 10px; }
   </style>
-  <link rel="stylesheet" href="css/frb-studio-shell.css?v=0185p4" />
+  <link rel="stylesheet" href="css/frb-studio-shell.css?v=0185p5" />
 </head>
 <body data-mode="editor">
-  <script src="js/ui/frb_studio_shell.js?v=0185p4"></script>
+  <script src="js/ui/frb_studio_shell.js?v=0185p5"></script>
   <script>
     FrbStudioShell.mount({
       pageId: 'markdown',
@@ -6875,6 +6875,22 @@ tocDepthBtns.forEach(btn=>btn.addEventListener("click",()=>{
   tocDepthBtns.forEach(b=>b.classList.toggle("active",b.dataset.depth===tocDepth));
   buildToc();
 }));
+
+// studio_work_0185 p5: Common Pagebar直下へ固定する操作帯の実高さをCSSへ共有する。
+(function syncMarkdownStickyToolbarMetrics(){
+  const bar = document.querySelector('.topbar');
+  if (!bar) return;
+  const update = () => {
+    const height = Math.max(1, Math.ceil(bar.getBoundingClientRect().height || 0));
+    document.documentElement.style.setProperty('--frb-markdown-toolbar-height', `${height}px`);
+  };
+  requestAnimationFrame(update);
+  window.addEventListener('resize', update, { passive:true });
+  if ('ResizeObserver' in window) {
+    const observer = new ResizeObserver(update);
+    observer.observe(bar);
+  }
+})();
 
 // 初期ロード: ?file=xxx.md / ?md=xxx.md の明示指定がある場合だけ読む。
 // v0.13.9: 初期表示で先頭ファイルを勝手にプレロードしない。人に見せた時の事故を防ぐ。
