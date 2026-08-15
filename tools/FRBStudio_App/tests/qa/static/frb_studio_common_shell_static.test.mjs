@@ -135,3 +135,31 @@ test('JSON Object Studio treats DATA JSON as the primary source and places it be
   assert.doesNotMatch(indexHtml, />対象JSON</);
   assert.doesNotMatch(indexHtml, />対象Drop</);
 });
+
+test('JSON file tree picker can escape the fixed left rail without being clipped', () => {
+  assert.match(shellCss, /\.frb-page-json-object \.json-studio-source-pane \{[\s\S]*overflow:visible;/);
+  assert.match(shellCss, /\.frb-page-json-object \.json-studio-source-pane \.file-tree-picker \{[\s\S]*z-index:/);
+});
+
+test('Markdown workspace drag indicators are cleared after internal move completion', () => {
+  assert.match(mdHtml, /function clearMarkdownDragIndicators\(\)/);
+  assert.match(mdHtml, /document\.body\.classList\.remove\('drag-over'\)/);
+  assert.match(mdHtml, /finally \{\s*clearMarkdownDragIndicators\(\);\s*\}/);
+});
+
+test('Diff viewers use Markdown-like rounded soft buttons while only Diff JSON gets pale-green left panel', () => {
+  for (const html of [diffHtml, metaHtml]) {
+    assert.match(html, /input\[type="file"\]::file-selector-button/);
+    assert.match(html, /border-radius:14px/);
+    assert.match(html, /background:rgba\(105,120,160,\.12\)/);
+  }
+  assert.match(diffHtml, /\.layout > aside\.panel\{[\s\S]*#f4faef/);
+  assert.doesNotMatch(metaHtml, /\.layout > aside\.panel\{/);
+});
+
+test('Markdown front-matter missing notice is muted gray with a pale-pink generation action', () => {
+  assert.match(mdHtml, /\.fm-suggest-card \{[\s\S]*rgba\(100,116,139,0\.075\)/);
+  assert.match(mdHtml, /\.fm-suggest-action \{[\s\S]*background:#fbe7ec;[\s\S]*color:#9f5367;/);
+  assert.match(mdHtml, /class="fm-suggest-action"[^>]*>設定ヘッダーを自動生成<\/button>/);
+  assert.doesNotMatch(mdHtml, /background:linear-gradient\(135deg, #f59e0b, #d97706\)/);
+});

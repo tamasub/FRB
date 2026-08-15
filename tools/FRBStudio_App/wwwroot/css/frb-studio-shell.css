@@ -273,11 +273,11 @@ body.frb-page-json-object {
   position:sticky;
   top:var(--frb-fixed-header-height, 122px);
   left:0;
-  z-index:20;
+  z-index:40;
   align-self:start;
   height:calc(100dvh - var(--frb-fixed-header-height, 122px));
   min-height:calc(100dvh - var(--frb-fixed-header-height, 122px));
-  overflow:auto;
+  overflow:visible;
 }
 
 .frb-page-json-object .json-studio-main-pane {
@@ -298,6 +298,7 @@ body.frb-page-json-object {
   border-left:0;
   border-radius:0 var(--frb-radius) var(--frb-radius) 0;
   box-shadow:var(--frb-shadow);
+  overflow:visible;
 }
 
 .frb-page-json-object .brand-block { display:none !important; }
@@ -584,4 +585,10 @@ body.studio-grid-only-shell .json-studio-main-pane > main { padding:0; }
   .frb-pagebar-actions { width:100%; }
   .frb-pagebar-button { flex:1 1 0; }
   .frb-page-title { white-space:normal; }
+}
+
+
+/* studio_work_0185 feedback-3: JSON file-tree popup must escape the fixed left rail. */
+.frb-page-json-object .json-studio-source-pane .file-tree-picker {
+  z-index: 2147479900;
 }

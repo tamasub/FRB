@@ -1179,8 +1179,8 @@
     /* フロントマター提案エリア */
     .fm-suggest-card {
       padding: 16px 20px;
-      background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(239,68,68,0.06));
-      border: 1px dashed #f59e0b;
+      background: linear-gradient(135deg, rgba(100,116,139,0.075), rgba(148,163,184,0.045));
+      border: 1px solid rgba(148,163,184,0.34);
       border-radius: 16px;
       margin-bottom: 24px;
       display: flex;
@@ -1188,7 +1188,22 @@
       align-items: center;
       gap: 14px;
     }
-    .fm-suggest-text { font-size: 13.5px; font-weight: 700; color: var(--text); }
+    .fm-suggest-text { font-size: 13.5px; font-weight: 700; color: #4b5563; }
+    .fm-suggest-action {
+      font-size:12px;
+      padding:7px 13px;
+      border:1px solid #efc9d3;
+      border-radius:14px;
+      background:#fbe7ec;
+      color:#9f5367;
+      box-shadow:none;
+    }
+    .fm-suggest-action:hover {
+      background:#f7dce4;
+      border-color:#e8b8c6;
+      box-shadow:none;
+      transform:none;
+    }
 
     /* スクロール遷移時のエレガント・ターゲット・エフェクト */
 .flash-target {
@@ -2033,10 +2048,10 @@
     body.md-sidecar-comment-editing .md-block-inline-actions { display: none !important; }
 
   </style>
-  <link rel="stylesheet" href="css/frb-studio-shell.css?v=0185p2" />
+  <link rel="stylesheet" href="css/frb-studio-shell.css?v=0185p3" />
 </head>
 <body data-mode="editor">
-  <script src="js/ui/frb_studio_shell.js?v=0185p2"></script>
+  <script src="js/ui/frb_studio_shell.js?v=0185p3"></script>
   <script>
     FrbStudioShell.mount({
       pageId: 'markdown',
@@ -5439,7 +5454,7 @@ function renderMarkdown(rawMd, sourceUrl, sourceLabel){
       fmSuggestArea.innerHTML = `
         <div class="fm-suggest-card">
           <span class="fm-suggest-text">⚡ Zenn/Qiita用のフロントマターが設定されていません。</span>
-          <button type="button" style="font-size:12px; padding:6px 12px; background:linear-gradient(135deg, #f59e0b, #d97706);" onclick="insertSuggestedFrontMatter()">設定ヘッダーを自動生成</button>
+          <button type="button" class="fm-suggest-action" onclick="insertSuggestedFrontMatter()">設定ヘッダーを自動生成</button>
         </div>
       `;
       
@@ -5948,6 +5963,13 @@ function renderMarkdownWorkspaceTree() {
   }
   renderMarkdownWorkspaceChildren('', mdWorkspaceTree, 0);
 }
+function clearMarkdownDragIndicators(){
+  markdownWorkspaceRuntime.dragging = null;
+  document.body.classList.remove('drag-over');
+  mdWorkspaceTree?.querySelectorAll('.drag-target').forEach(el=>el.classList.remove('drag-target'));
+  mdWorkspaceRootDrop?.classList.remove('drag-target');
+}
+
 function renderMarkdownWorkspaceChildren(parentPath, host, depth) {
   const items = markdownWorkspaceRuntime.children.get(parentPath) || [];
   const dirs = items.filter(x => x.is_directory).sort((a,b)=>String(a.name).localeCompare(String(b.name),'ja'));
@@ -5985,13 +6007,18 @@ function renderMarkdownWorkspaceChildren(parentPath, host, depth) {
       markdownWorkspaceRuntime.dragging = { path, kind: isDir ? 'folder' : 'file' };
       try { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', path); } catch (_) {}
     });
-    row.addEventListener('dragend', () => { markdownWorkspaceRuntime.dragging = null; mdWorkspaceTree.querySelectorAll('.drag-target').forEach(el=>el.classList.remove('drag-target')); });
+    row.addEventListener('dragend', () => clearMarkdownDragIndicators());
     if (isDir) {
       row.addEventListener('dragover', e => { e.preventDefault(); e.stopPropagation(); row.classList.add('drag-target'); if (e.dataTransfer) e.dataTransfer.dropEffect='move'; });
       row.addEventListener('dragleave', () => row.classList.remove('drag-target'));
       row.addEventListener('drop', async e => {
         e.preventDefault(); e.stopPropagation(); row.classList.remove('drag-target');
-        if (markdownWorkspaceRuntime.dragging) await moveWorkspaceEntry(markdownWorkspaceRuntime.dragging, path);
+        const draggingEntry = markdownWorkspaceRuntime.dragging;
+        try {
+          if (draggingEntry) await moveWorkspaceEntry(draggingEntry, path);
+        } finally {
+          clearMarkdownDragIndicators();
+        }
       });
     }
     host.appendChild(row);
@@ -6762,7 +6789,12 @@ mdWorkspaceRootDrop?.addEventListener('drop', async e => {
   e.preventDefault();
   e.stopPropagation();
   mdWorkspaceRootDrop.classList.remove('drag-target');
-  await moveWorkspaceEntry(markdownWorkspaceRuntime.dragging, '');
+  const draggingEntry = markdownWorkspaceRuntime.dragging;
+  try {
+    if (draggingEntry) await moveWorkspaceEntry(draggingEntry, '');
+  } finally {
+    clearMarkdownDragIndicators();
+  }
 });
 
 // 強固な全画面ドラッグ＆ドロップ検知
@@ -6779,7 +6811,10 @@ window.addEventListener("dragleave", (e) => {
 window.addEventListener("drop", async (e) => {
   e.preventDefault();
   document.body.classList.remove("drag-over");
-  if (markdownWorkspaceRuntime.dragging) return;
+  if (markdownWorkspaceRuntime.dragging) {
+    clearMarkdownDragIndicators();
+    return;
+  }
   if (e.dataTransfer && e.dataTransfer.files.length > 0) {
     const file = e.dataTransfer.files[0];
     let dropHandle = null;
