@@ -17,6 +17,8 @@ namespace FRBStudio.NativeShell
         private readonly NativeShellConfig _config;
         private readonly WorkspacePolicy _workspace;
         private readonly JavaScriptSerializer _serializer = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
+        private readonly Dictionary<string, WorkspacePolicy> _folderGrants = new Dictionary<string, WorkspacePolicy>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, string> _documentGrants = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         public NativeCommandDispatcher(NativeShellConfig config, WorkspacePolicy workspace)
         {
@@ -92,6 +94,33 @@ namespace FRBStudio.NativeShell
                 case "workspace.select":
                     return SelectWorkspace();
 
+                case "folderGrant.select":
+                    return SelectFolderGrant(payload);
+
+                case "folderGrant.list":
+                    return ListFolderGrant(payload);
+
+                case "folderGrant.readText":
+                    return ReadFolderGrantText(payload);
+
+                case "folderGrant.writeText":
+                    return WriteFolderGrantText(payload);
+
+                case "folderGrant.exists":
+                    return FolderGrantExists(payload);
+
+                case "folderGrant.createDirectory":
+                    return CreateFolderGrantDirectory(payload);
+
+                case "folderGrant.move":
+                    return MoveFolderGrantEntry(payload);
+
+                case "folderGrant.describePath":
+                    return DescribeFolderGrantPath(payload);
+
+                case "document.writeText":
+                    return WriteGrantedDocument(payload);
+
                 case "file.exists":
                     return FileExists(payload);
 
@@ -136,6 +165,255 @@ namespace FRBStudio.NativeShell
                 _workspace.SetRoot(dialog.SelectedPath);
                 return new Dictionary<string, object> { ["root_path"] = _workspace.RootPath };
             }
+        }
+
+        private object SelectFolderGrant(IDictionary<string, object> payload)
+        {
+            using (var dialog = new FolderBrowserDialog
+            {
+                Description = GetString(payload, "description") ?? "フォルダーを開く",
+                SelectedPath = Directory.Exists(GetString(payload, "initial_path") ?? string.Empty)
+                    ? GetString(payload, "initial_path")
+                    : _workspace.RootPath,
+                ShowNewFolderButton = false
+            })
+            {
+                if (dialog.ShowDialog() != DialogResult.OK)
+                    throw new OperationCanceledException();
+
+                var policy = new WorkspacePolicy(dialog.SelectedPath);
+                var grantId = "folder-" + Guid.NewGuid().ToString("N");
+                _folderGrants[grantId] = policy;
+                return new Dictionary<string, object>
+                {
+                    ["grant_id"] = grantId,
+                    ["root_path"] = policy.RootPath,
+                    ["root_name"] = new DirectoryInfo(policy.RootPath).Name
+                };
+            }
+        }
+
+        private WorkspacePolicy RequiredFolderGrant(IDictionary<string, object> payload)
+        {
+            var grantId = RequiredString(payload, "grant_id");
+            if (!_folderGrants.TryGetValue(grantId, out var policy))
+                throw new InvalidOperationException("FOLDER_GRANT_NOT_FOUND: folder grant is not active.");
+            return policy;
+        }
+
+        private object ListFolderGrant(IDictionary<string, object> payload)
+        {
+            var policy = RequiredFolderGrant(payload);
+            var path = GetString(payload, "path") ?? string.Empty;
+            var full = policy.ResolveRelativePath(path);
+            if (!Directory.Exists(full)) throw new DirectoryNotFoundException(full);
+
+            var extensions = GetStringList(payload, "extensions")
+                .Select(x => x.StartsWith(".", StringComparison.Ordinal) ? x : "." + x)
+                .ToArray();
+            var includeFiles = GetBool(payload, "include_files", true);
+            var includeDirectories = GetBool(payload, "include_directories", true);
+            var items = new List<object>();
+
+            if (includeDirectories)
+            {
+                foreach (var dir in Directory.EnumerateDirectories(full, "*", SearchOption.TopDirectoryOnly)
+                    .OrderBy(x => Path.GetFileName(x), StringComparer.OrdinalIgnoreCase))
+                {
+                    items.Add(new Dictionary<string, object>
+                    {
+                        ["path"] = policy.ToRelativePath(dir),
+                        ["name"] = Path.GetFileName(dir),
+                        ["is_directory"] = true,
+                        ["size"] = 0L
+                    });
+                }
+            }
+
+            if (includeFiles)
+            {
+                foreach (var file in Directory.EnumerateFiles(full, "*", SearchOption.TopDirectoryOnly)
+                    .Where(file => extensions.Length == 0 || extensions.Contains(Path.GetExtension(file), StringComparer.OrdinalIgnoreCase))
+                    .OrderBy(x => Path.GetFileName(x), StringComparer.OrdinalIgnoreCase))
+                {
+                    items.Add(new Dictionary<string, object>
+                    {
+                        ["path"] = policy.ToRelativePath(file),
+                        ["name"] = Path.GetFileName(file),
+                        ["is_directory"] = false,
+                        ["size"] = new FileInfo(file).Length
+                    });
+                }
+            }
+
+            return new Dictionary<string, object> { ["items"] = items.ToArray() };
+        }
+
+        private object ReadFolderGrantText(IDictionary<string, object> payload)
+        {
+            var policy = RequiredFolderGrant(payload);
+            var path = RequiredString(payload, "path");
+            var full = policy.ResolveRelativePath(path);
+            if (!File.Exists(full)) throw new FileNotFoundException("File not found.", full);
+            return new Dictionary<string, object>
+            {
+                ["path"] = policy.ToRelativePath(full),
+                ["full_path"] = full,
+                ["content"] = File.ReadAllText(full, new UTF8Encoding(false, true)),
+                ["size"] = new FileInfo(full).Length,
+                ["last_write_time_utc"] = File.GetLastWriteTimeUtc(full).ToString("o")
+            };
+        }
+
+        private object WriteFolderGrantText(IDictionary<string, object> payload)
+        {
+            var policy = RequiredFolderGrant(payload);
+            var path = RequiredString(payload, "path");
+            var content = GetString(payload, "content") ?? string.Empty;
+            var full = policy.ResolveRelativePath(path, allowMissingLeaf: true);
+            var dir = Path.GetDirectoryName(full);
+            if (!string.IsNullOrWhiteSpace(dir) && !Directory.Exists(dir))
+            {
+                if (!GetBool(payload, "create_directories", false))
+                    throw new DirectoryNotFoundException(dir);
+                Directory.CreateDirectory(dir);
+            }
+            File.WriteAllText(full, content, new UTF8Encoding(false));
+            return new Dictionary<string, object>
+            {
+                ["saved"] = policy.ToRelativePath(full),
+                ["full_path"] = full,
+                ["size"] = new FileInfo(full).Length
+            };
+        }
+
+        private object FolderGrantExists(IDictionary<string, object> payload)
+        {
+            var policy = RequiredFolderGrant(payload);
+            var path = GetString(payload, "path") ?? string.Empty;
+            var full = policy.ResolveRelativePath(path, allowMissingLeaf: true);
+            return new Dictionary<string, object>
+            {
+                ["exists"] = File.Exists(full) || Directory.Exists(full),
+                ["is_file"] = File.Exists(full),
+                ["is_directory"] = Directory.Exists(full),
+                ["path"] = path.Replace('\\', '/'),
+                ["full_path"] = full
+            };
+        }
+
+        private object CreateFolderGrantDirectory(IDictionary<string, object> payload)
+        {
+            var policy = RequiredFolderGrant(payload);
+            var path = RequiredString(payload, "path");
+            var full = policy.ResolveRelativePath(path, allowMissingLeaf: true);
+            var existed = Directory.Exists(full);
+            Directory.CreateDirectory(full);
+            return new Dictionary<string, object>
+            {
+                ["created"] = !existed,
+                ["path"] = policy.ToRelativePath(full),
+                ["full_path"] = full
+            };
+        }
+
+        private object DescribeFolderGrantPath(IDictionary<string, object> payload)
+        {
+            var policy = RequiredFolderGrant(payload);
+            var path = GetString(payload, "path") ?? string.Empty;
+            var full = policy.ResolveRelativePath(path, allowMissingLeaf: true);
+            return new Dictionary<string, object>
+            {
+                ["path"] = path.Replace('\\', '/'),
+                ["full_path"] = full,
+                ["root_path"] = policy.RootPath
+            };
+        }
+
+        private object MoveFolderGrantEntry(IDictionary<string, object> payload)
+        {
+            var policy = RequiredFolderGrant(payload);
+            var sourcePath = RequiredString(payload, "source_path");
+            var destinationPath = RequiredString(payload, "destination_path");
+            var source = policy.ResolveRelativePath(sourcePath);
+            var destination = policy.ResolveRelativePath(destinationPath, allowMissingLeaf: true);
+            if (File.Exists(destination) || Directory.Exists(destination))
+                throw new IOException("DESTINATION_EXISTS: destination already exists.");
+
+            var destinationParent = Path.GetDirectoryName(destination);
+            if (string.IsNullOrWhiteSpace(destinationParent) || !Directory.Exists(destinationParent))
+                throw new DirectoryNotFoundException(destinationParent ?? destination);
+
+            var sourceIsFile = File.Exists(source);
+            var sourceIsDirectory = Directory.Exists(source);
+            if (!sourceIsFile && !sourceIsDirectory)
+                throw new FileNotFoundException("Source not found.", source);
+
+            // Preflight all companion destinations before moving anything.
+            // A Markdown + Sidecar move must never leave the document set half-moved
+            // merely because a companion destination already existed.
+            var companionMoves = new List<Tuple<string, string, string>>();
+            if (sourceIsFile)
+            {
+                foreach (var suffix in GetStringList(payload, "companion_suffixes"))
+                {
+                    var sourceCompanion = source + suffix;
+                    if (!File.Exists(sourceCompanion)) continue;
+                    var destinationCompanion = destination + suffix;
+                    if (File.Exists(destinationCompanion) || Directory.Exists(destinationCompanion))
+                        throw new IOException("DESTINATION_EXISTS: companion destination already exists.");
+                    companionMoves.Add(Tuple.Create(suffix, sourceCompanion, destinationCompanion));
+                }
+            }
+
+            if (sourceIsFile)
+                File.Move(source, destination);
+            else
+                Directory.Move(source, destination);
+
+            var companionsMoved = new List<object>();
+            foreach (var companionMove in companionMoves)
+            {
+                File.Move(companionMove.Item2, companionMove.Item3);
+                companionsMoved.Add(new Dictionary<string, object>
+                {
+                    ["suffix"] = companionMove.Item1,
+                    ["path"] = policy.ToRelativePath(companionMove.Item3)
+                });
+            }
+
+            return new Dictionary<string, object>
+            {
+                ["moved"] = true,
+                ["source_path"] = sourcePath.Replace('\\', '/'),
+                ["destination_path"] = policy.ToRelativePath(destination),
+                ["companions"] = companionsMoved.ToArray()
+            };
+        }
+
+        private string RegisterDocumentGrant(string fullPath)
+        {
+            var full = Path.GetFullPath(fullPath);
+            var documentId = "document-" + Guid.NewGuid().ToString("N");
+            _documentGrants[documentId] = full;
+            return documentId;
+        }
+
+        private object WriteGrantedDocument(IDictionary<string, object> payload)
+        {
+            var documentId = RequiredString(payload, "document_id");
+            if (!_documentGrants.TryGetValue(documentId, out var full))
+                throw new InvalidOperationException("DOCUMENT_GRANT_NOT_FOUND: document grant is not active.");
+            if (!File.Exists(full)) throw new FileNotFoundException("Granted document not found.", full);
+            var content = GetString(payload, "content") ?? string.Empty;
+            File.WriteAllText(full, content, new UTF8Encoding(false));
+            return new Dictionary<string, object>
+            {
+                ["saved"] = Path.GetFileName(full),
+                ["path"] = full,
+                ["document_id"] = documentId,
+                ["size"] = new FileInfo(full).Length
+            };
         }
 
         private object FileExists(IDictionary<string, object> payload)
@@ -251,9 +529,11 @@ namespace FRBStudio.NativeShell
                         : new Dictionary<string, object> { ["found"] = false };
                 }
 
+                var documentId = RegisterDocumentGrant(selected);
                 return new Dictionary<string, object>
                 {
                     ["cancelled"] = false,
+                    ["document_id"] = documentId,
                     ["file_name"] = Path.GetFileName(selected),
                     ["path"] = selected,
                     ["content"] = File.ReadAllText(selected, Encoding.UTF8),
@@ -295,9 +575,11 @@ namespace FRBStudio.NativeShell
                     });
                 }
 
+                var documentId = RegisterDocumentGrant(dialog.FileName);
                 return new Dictionary<string, object>
                 {
                     ["cancelled"] = false,
+                    ["document_id"] = documentId,
                     ["file_name"] = Path.GetFileName(dialog.FileName),
                     ["path"] = dialog.FileName,
                     ["companions"] = companionsSaved.ToArray()

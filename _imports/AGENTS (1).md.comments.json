@@ -1,0 +1,49 @@
+{
+  "schema_version": "md_comment_sidecar_v0_1",
+  "document_type": "markdown_comment_sidecar",
+  "target_file": "_imports/AGENTS (1).md",
+  "sidecar_name": "_imports/AGENTS (1).md.comments.json",
+  "updated_at": "2026-08-15_18:16:29",
+  "comments": [
+    {
+      "comment_id": "mdc_20260815_181618_14ql",
+      "status": "OK",
+      "body": "了解。この方針でOK。",
+      "author": "tamasub",
+      "created_at": "2026-08-15_18:16:18",
+      "updated_at": "2026-08-15_18:16:18",
+      "resolved": false,
+      "target_type": "block",
+      "block_id": "mdblk_0002_heading_3",
+      "block_type": "heading",
+      "table_id": "",
+      "cell_id": "",
+      "row_index": null,
+      "column_index": null,
+      "line": 3,
+      "start_line": 3,
+      "end_line": 3,
+      "target_excerpt": "Project Mission"
+    },
+    {
+      "comment_id": "mdc_20260815_181629_jhch",
+      "status": "NG",
+      "body": "ここはNG。理由を追記。",
+      "author": "tamasub",
+      "created_at": "2026-08-15_18:16:29",
+      "updated_at": "2026-08-15_18:16:29",
+      "resolved": false,
+      "target_type": "block",
+      "block_id": "mdblk_0003_paragraph_5",
+      "block_type": "paragraph",
+      "table_id": "",
+      "cell_id": "",
+      "row_index": null,
+      "column_index": null,
+      "line": 5,
+      "start_line": 5,
+      "end_line": 5,
+      "target_excerpt": "このリポジトリの目的は、"
+    }
+  ]
+}

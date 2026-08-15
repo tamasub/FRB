@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FRB Studio - Markdown Viewer & Editor</title>
-  <script src="./js/core/native_host_bridge.js?v=webview2-native-shell-01861"></script>
+  <script src="./js/core/native_host_bridge.js?v=webview2-native-shell-01862"></script>
   <script src="./js/lib/marked.min.js"></script>
   <script src="./js/lib/purify.min.js"></script>
   <script src="./js/core/studio_datetime.js?v=studio-datetime-01819"></script>
@@ -471,19 +471,56 @@
     /* レイアウト切り替え */
     .layout {
       display: grid;
-      grid-template-columns: 320px minmax(0, 1fr);
-      gap: 24px;
+      grid-template-columns: 280px minmax(0, 1fr) 300px;
+      gap: 18px;
       margin-top: 22px;
       align-items: start;
       min-width: 0;
     }
     .layout > * { min-width: 0; }
-    
-    body[data-mode="editor"] .layout { grid-template-columns: 320px minmax(0, 1fr) !important; }
-
+    body[data-mode="editor"] .layout { grid-template-columns: 280px minmax(0, 1fr) 300px !important; }
     body[data-mode="editor"] .sidebar { display: grid; }
+    .workspace-sidebar { grid-column: 1; grid-row:1; }
+    .article-card { grid-column: 2; grid-row:1; }
+    .sidebar { grid-column: 3; grid-row:1; }
     body[data-mode="viewer"] .edit-container,
     body[data-mode="editor"] .edit-container { display: none; }
+
+    .workspace-sidebar {
+      position: sticky;
+      top: 108px;
+      height: calc(100dvh - 126px);
+      max-height: calc(100dvh - 126px);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 0;
+    }
+    .md-workspace-card { display:flex; flex-direction:column; min-height:0; height:100%; overflow:hidden; padding:13px; }
+    .md-workspace-head { display:grid; gap:8px; padding-bottom:10px; border-bottom:1px solid var(--line); }
+    .md-workspace-title-row { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .md-workspace-title { font-size:13px; font-weight:950; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .md-workspace-path { font-size:10px; line-height:1.35; color:var(--muted); word-break:break-all; }
+    .md-workspace-actions { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+    .md-workspace-actions button { padding:7px 8px; font-size:10.5px; border-radius:10px; }
+    .md-workspace-tree { flex:1; min-height:0; overflow:auto; padding:8px 2px 4px; }
+    .md-workspace-empty { padding:18px 8px; color:var(--muted); font-size:11.5px; line-height:1.6; }
+    .md-workspace-row {
+      display:flex; align-items:center; gap:5px; width:100%; min-width:0;
+      padding:6px 6px 6px calc(5px + var(--depth, 0) * 15px); border-radius:9px;
+      color:var(--text); background:transparent; border:0; box-shadow:none; text-align:left;
+      font-size:11.5px; font-weight:700; cursor:pointer;
+    }
+    .md-workspace-row:hover, .md-workspace-row.selected { background:rgba(63,124,255,.11); transform:none; box-shadow:none; }
+    .md-workspace-row.drag-target { outline:2px dashed var(--brand-color); outline-offset:-2px; background:rgba(63,124,255,.08); }
+    .md-workspace-row .tree-toggle { width:14px; flex:0 0 14px; text-align:center; color:var(--muted); }
+    .md-workspace-row .tree-icon { width:17px; flex:0 0 17px; text-align:center; }
+    .md-workspace-row .tree-label { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .md-workspace-root-drop { border-radius:10px; }
+    .md-document-origin { margin-top:7px; padding:7px 8px; border-radius:10px; background:rgba(105,120,160,.07); color:var(--muted); font-size:10px; line-height:1.45; word-break:break-all; }
+    .md-document-origin strong { color:var(--text); }
+    .md-drop-hint { display:inline-flex; align-items:center; padding:8px 10px; border:1px dashed var(--line); border-radius:12px; color:var(--muted); font-size:11px; font-weight:800; white-space:nowrap; }
+    .md-hidden-legacy { display:none !important; }
 
     .sidebar {
       position: sticky;
@@ -1542,7 +1579,16 @@
       .md-comment-review-meta { font-size: 9.8px; }
     }
 
+    @media (max-width: 1180px) {
+      .layout, body[data-mode="editor"] .layout { grid-template-columns: 250px minmax(0, 1fr) !important; }
+      .workspace-sidebar { grid-column:1; grid-row:1 / span 2; }
+      .article-card { grid-column:2; grid-row:1; }
+      .sidebar { grid-column:2; grid-row:2; position:static; height:auto; max-height:none; grid-template-columns:repeat(3,minmax(0,1fr)); grid-template-rows:none; margin-top:0; }
+    }
     @media (max-width: 760px) {
+      .layout, body[data-mode="editor"] .layout { grid-template-columns:1fr !important; }
+      .workspace-sidebar, .article-card, .sidebar { grid-column:1; grid-row:auto; }
+      .workspace-sidebar,
       .sidebar {
         position: static;
         height: auto;
@@ -2017,28 +2063,23 @@
       
       <div class="controls">
         <div class="control-group primary-flow">
-          <button class="ghost-btn compact-text-btn" id="localFileBtn">ローカル</button>
-          
-          <div class="md-managed-picker-wrap">
-            <input id="managedMdSelect" type="text" value="" title="data/markdown 管理Markdown。フォルダー階層で選択できます。" placeholder="管理Markdownを選択..." autocomplete="off" />
-            <button id="btnClearManagedMd" type="button" title="Markdownファイル名/検索文字をクリア" hidden>×</button>
-            <button id="btnManagedMdTree" type="button" title="フォルダー階層でMarkdownを選択">▾</button>
-            <div id="managedMdTreePicker" class="md-file-tree-picker hidden" role="listbox" aria-label="管理Markdown フォルダー階層選択">
-              <div class="md-file-tree-hint">
-                <span>フォルダー階層で選択</span>
-                <span>文字入力で相対パス検索</span>
-              </div>
-              <div id="managedMdTreeList" class="md-file-tree-list"></div>
-            </div>
+          <button class="ghost-btn compact-text-btn" id="localFileBtn" title="Markdownを管理するフォルダーを開きます。選択だけでは何も作成しません。">📁 フォルダーを開く</button>
+          <button class="ghost-btn compact-text-btn" id="btnExternalOpen" title="Workspace外のMarkdownを開きます。元ファイルへの上書きは可能ですが、コメント追加にはWorkspaceへの取り込みが必要です。">ファイルを開く</button>
+          <span class="md-drop-hint" title="Markdownを画面へDropして開けます。">MD Drop</span>
+          <div class="md-managed-picker-wrap md-hidden-legacy" aria-hidden="true">
+            <input id="managedMdSelect" type="text" value="" placeholder="管理Markdownを選択..." autocomplete="off" />
+            <button id="btnClearManagedMd" type="button" hidden>×</button>
+            <button id="btnManagedMdTree" type="button">▾</button>
+            <div id="managedMdTreePicker" class="md-file-tree-picker hidden"><div id="managedMdTreeList" class="md-file-tree-list"></div></div>
           </div>
-          <button id="btnRefreshManagedMd" class="ghost-btn compact-icon-btn" title="管理Markdown一覧を再取得">↻</button>
-          <button id="btnOverwriteManagedMd" class="compact-text-btn" title="data/markdownへ上書き保存">上書き</button>
+          <button id="btnRefreshManagedMd" class="ghost-btn compact-icon-btn md-hidden-legacy" aria-hidden="true">↻</button>
+          <button id="btnOverwriteManagedMd" class="compact-text-btn" title="現在開いているMarkdownへ上書き保存">上書き</button>
           <button id="btnMarkdownSaveSafety" class="ghost-btn compact-text-btn" title="保存前にMarkdown本文・表・Sidecarコメントの安全性を検査">保存検査</button>
           <button id="btnSaveFile" class="ghost-btn compact-text-btn" title="FRBStudio.exe起動時はOSの名前を付けて保存ダイアログを開きます。静的表示時はダウンロード保存になります。">名前保存</button>
         </div>
 
 
-        <div class="control-group import-flow">
+        <div class="control-group import-flow md-hidden-legacy">
 
           <input id="localFileInput" style="display: none;" type="file" accept=".md,.markdown,.txt" />
 
@@ -2052,9 +2093,31 @@
     </header>
 
     <main class="layout">
+      <aside class="workspace-sidebar">
+        <section class="side-card md-workspace-card">
+          <div class="md-workspace-head md-workspace-root-drop" id="mdWorkspaceRootDrop">
+            <div class="md-workspace-title-row">
+              <div>
+                <div class="md-workspace-title" id="mdWorkspaceName">フォルダー未選択</div>
+                <div class="md-workspace-path" id="mdWorkspacePath">「フォルダーを開く」からMarkdown作業領域を選択</div>
+              </div>
+              <button id="btnRefreshWorkspace" type="button" class="ghost-btn" title="ツリーを更新" style="padding:6px 8px; min-width:34px;">↻</button>
+            </div>
+            <div class="md-workspace-actions">
+              <button id="btnNewWorkspaceMarkdown" type="button" class="ghost-btn">＋ Markdown</button>
+              <button id="btnNewWorkspaceFolder" type="button" class="ghost-btn">＋ Folder</button>
+            </div>
+          </div>
+          <div id="mdWorkspaceTree" class="md-workspace-tree">
+            <div class="md-workspace-empty">フォルダーを開くと、ここにフォルダーとMarkdownだけを表示します。Sidecar JSONは表示しません。</div>
+          </div>
+          <div id="mdDocumentOrigin" class="md-document-origin"><strong>Document:</strong> 未選択</div>
+        </section>
+      </aside>
+
       <aside class="sidebar">
         <section class="side-card md-toc-panel">
-          <h2>目次</h2>
+          <h2>INDEX / 目次</h2>
           <div class="toc-options">
             <button type="button" class="toc-depth-btn" data-depth="all">全階層</button>
             <button type="button" class="toc-depth-btn" data-depth="1">H1</button>
@@ -2172,6 +2235,7 @@ function mdStudioFileTimestamp() {
 const mdUrlEl=document.getElementById("mdUrl"),previewEl=document.getElementById("preview"),editorInlineHost=document.getElementById("editorInlineHost"),tocEl=document.getElementById("toc"),charCountEl=document.getElementById("charCount"),readTimeEl=document.getElementById("readTime"),blockModelMeta=document.getElementById("blockModelMeta"),localFileBtn=document.getElementById("localFileBtn"),localFileInput=document.getElementById("localFileInput"),tocDepthBtns=[...document.querySelectorAll(".toc-depth-btn")],themeSelect=document.getElementById("themeSelect"),editorEl=document.getElementById("editor"),btnViewerMode=document.getElementById("btnViewerMode"),btnEditorMode=document.getElementById("btnEditorMode"),articleCard=document.getElementById("articleCard"),metaFileName=document.getElementById("metaFileName"),editorFileName=document.getElementById("editorFileName"),slashMenu=document.getElementById("slashMenu"),managedMdSelect=document.getElementById("managedMdSelect"),btnClearManagedMd=document.getElementById("btnClearManagedMd"),btnManagedMdTree=document.getElementById("btnManagedMdTree"),managedMdTreePicker=document.getElementById("managedMdTreePicker"),managedMdTreeList=document.getElementById("managedMdTreeList"),btnRefreshManagedMd=document.getElementById("btnRefreshManagedMd"),btnOverwriteManagedMd=document.getElementById("btnOverwriteManagedMd");
 
 const fmPanel=document.getElementById("fmPanel"),fmHeader=document.getElementById("fmHeader"),fmBody=document.getElementById("fmBody"),fmToggleIcon=document.getElementById("fmToggleIcon"),fmSuggestArea=document.getElementById("fmSuggestArea");
+const btnExternalOpen=document.getElementById("btnExternalOpen"),btnRefreshWorkspace=document.getElementById("btnRefreshWorkspace"),btnNewWorkspaceMarkdown=document.getElementById("btnNewWorkspaceMarkdown"),btnNewWorkspaceFolder=document.getElementById("btnNewWorkspaceFolder"),mdWorkspaceTree=document.getElementById("mdWorkspaceTree"),mdWorkspaceName=document.getElementById("mdWorkspaceName"),mdWorkspacePath=document.getElementById("mdWorkspacePath"),mdWorkspaceRootDrop=document.getElementById("mdWorkspaceRootDrop"),mdDocumentOrigin=document.getElementById("mdDocumentOrigin");
 const fmSlug=document.getElementById("fmSlug"),fmTopics=document.getElementById("fmTopics"),fmTitleInput=document.getElementById("fmTitleInput"),fmEmojiInput=document.getElementById("fmEmojiInput"),fmTypeInput=document.getElementById("fmTypeInput"),fmTopicsInput=document.getElementById("fmTopicsInput"),fmPublishedInput=document.getElementById("fmPublishedInput"),btnApplyFrontMatter=document.getElementById("btnApplyFrontMatter"),btnResetFrontMatter=document.getElementById("btnResetFrontMatter"),fmEditStatus=document.getElementById("fmEditStatus");
 
 let tocDepth="all";
@@ -2179,6 +2243,24 @@ let currentManagedMarkdownName = "";
 let managedMarkdownFiles = [];
 let managedMarkdownTreeExpanded = new Set();
 let isManagedMarkdownDirty = false;
+let markdownWorkspaceRuntime = {
+  grantId: "",
+  rootPath: "",
+  rootName: "",
+  expanded: new Set(),
+  children: new Map(),
+  selectedPath: "",
+  selectedKind: "",
+  dragging: null
+};
+let markdownDocumentRuntime = {
+  kind: "none", // workspace | external | drop | managed | remote | clipboard | none
+  relativePath: "",
+  fullPath: "",
+  documentId: "",
+  fileName: "",
+  dropHandle: null
+};
 let launchMarkdownRuntime = { fromUrl: false, readonly: false, fileParam: "" };
 let mdViewerConfigRuntime = {
   schema_version: "mdviewer_config_v0_1",
@@ -3961,59 +4043,105 @@ async function loadMarkdownCommentSidecar(targetName) {
   const legacySidecarName = normalizeMarkdownFileName(`${sidecarName}.md`);
   const cacheNames = [sidecarName, legacySidecarName];
   let raw = "";
-  try {
-    let res = await fetch(withMarkdownSidecarNoCache(markdownSidecarApiUrl(sidecarName)), { cache: "no-store" });
-    if (!res.ok && res.status === 404) {
-      // 旧版で作られた erDiagram.md.comments.json.md を読むための互換フォールバック。
-      res = await fetch(withMarkdownSidecarNoCache(legacyMarkdownSidecarApiUrl(sidecarName)), { cache: "no-store" });
-    }
-    if (res.ok) {
-      raw = await res.text();
-    } else if (res.status === 404) {
-      // Sidecar JSONが存在しないならコメントは存在しない扱いにする。
-      // localStorageの退避データは表示に使わない。削除済みJSONの亡霊コメントを防ぐ。
-      applyEmptyMarkdownCommentSidecarState({ clearLocalCache: true, cacheNames });
+
+  // Workspace Document: Sidecarは同じFolder Grant配下に置く。
+  if (markdownDocumentRuntime.kind === 'workspace' && markdownWorkspaceSelected()) {
+    try {
+      const exists = await window.FRBStudioNativeHost.invoke('folderGrant.exists', {
+        grant_id: markdownWorkspaceRuntime.grantId,
+        path: sidecarName
+      });
+      if (!exists?.is_file) {
+        applyEmptyMarkdownCommentSidecarState({ clearLocalCache: true, cacheNames });
+        return;
+      }
+      const result = await window.FRBStudioNativeHost.invoke('folderGrant.readText', {
+        grant_id: markdownWorkspaceRuntime.grantId,
+        path: sidecarName
+      });
+      raw = String(result?.content || '');
+    } catch (err) {
+      console.warn('workspace sidecar load failed', err);
+      mdCommentSidecarRuntime.lastSaveError = String(err?.message || err);
+      applyEmptyMarkdownCommentSidecarState({ clearLocalCache: false, cacheNames });
       return;
-    } else {
-      throw new Error(`HTTP ${res.status}`);
     }
-  } catch (err) {
-    // 読込エラー時も、嘘コメントを避けるためlocalStorageへフォールバックしない。
-    console.warn("sidecar JSON load failed. comments cleared to avoid stale localStorage display.", err);
-    mdCommentSidecarRuntime.lastSaveError = String(err.message || err);
+  } else if (markdownDocumentRuntime.kind === 'managed' || (!markdownDocumentRuntime.kind || markdownDocumentRuntime.kind === 'none')) {
+    // Browser/旧管理Markdown互換。
+    try {
+      let res = await fetch(withMarkdownSidecarNoCache(markdownSidecarApiUrl(sidecarName)), { cache: "no-store" });
+      if (!res.ok && res.status === 404) {
+        res = await fetch(withMarkdownSidecarNoCache(legacyMarkdownSidecarApiUrl(sidecarName)), { cache: "no-store" });
+      }
+      if (res.ok) raw = await res.text();
+      else if (res.status === 404) {
+        applyEmptyMarkdownCommentSidecarState({ clearLocalCache: true, cacheNames });
+        return;
+      } else throw new Error(`HTTP ${res.status}`);
+    } catch (err) {
+      console.warn("sidecar JSON load failed. comments cleared to avoid stale localStorage display.", err);
+      mdCommentSidecarRuntime.lastSaveError = String(err.message || err);
+      applyEmptyMarkdownCommentSidecarState({ clearLocalCache: false, cacheNames });
+      return;
+    }
+  } else {
+    // External / Drop / Remoteはコメント無し前提。Studio固有Sidecarを外部へ生成しない。
     applyEmptyMarkdownCommentSidecarState({ clearLocalCache: false, cacheNames });
     return;
   }
+
   const doc = normalizeMarkdownCommentSidecarDocument(raw, targetName);
   mdCommentSidecarRuntime.comments = doc.comments;
   mdCommentSidecarRuntime.dirty = false;
-  mdCommentReviewRuntime.lastFocusedCommentId = "";
+  mdCommentSidecarRuntime.lastSaveError = "";
+  try { localStorage.setItem(markdownCommentSidecarStorageKey(sidecarName), raw); } catch (_) {}
   renderMarkdownCommentReviewUI();
+  updateBlockModelMeta();
 }
+
 async function saveMarkdownCommentSidecar({ quiet = true } = {}) {
   const sidecarName = mdCommentSidecarRuntime.sidecarName || markdownCommentSidecarName(mdCommentSidecarRuntime.targetFile);
   mdCommentSidecarRuntime.sidecarName = sidecarName;
   const content = JSON.stringify(buildMarkdownCommentSidecarDocument(), null, 2);
   try { localStorage.setItem(markdownCommentSidecarStorageKey(sidecarName), content); } catch (_) {}
+
   try {
-    const res = await fetch(markdownSidecarApiUrl(sidecarName), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: sidecarName, content })
-    });
-    if (!res.ok) throw new Error(await res.text());
-    mdCommentSidecarRuntime.dirty = false;
-    mdCommentSidecarRuntime.lastSaveError = "";
-    if (!quiet) showMarkdownSuccess(`コメントSidecar JSONを保存しました: data/markdown/${sidecarName}`);
-    return true;
+    if (markdownDocumentRuntime.kind === 'workspace' && markdownWorkspaceSelected()) {
+      const result = await window.FRBStudioNativeHost.invoke('folderGrant.writeText', {
+        grant_id: markdownWorkspaceRuntime.grantId,
+        path: sidecarName,
+        content,
+        create_directories: false
+      });
+      mdCommentSidecarRuntime.dirty = false;
+      mdCommentSidecarRuntime.lastSaveError = "";
+      if (!quiet) showMarkdownSuccess(`コメントSidecar JSONを保存しました: ${result?.full_path || sidecarName}`);
+      return;
+    }
+
+    if (markdownDocumentRuntime.kind === 'managed' || (!markdownDocumentRuntime.kind || markdownDocumentRuntime.kind === 'none')) {
+      const res = await fetch(markdownSidecarApiUrl(sidecarName), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: sidecarName, content })
+      });
+      if (!res.ok) throw new Error(await res.text());
+      mdCommentSidecarRuntime.dirty = false;
+      mdCommentSidecarRuntime.lastSaveError = "";
+      if (!quiet) showMarkdownSuccess(`コメントSidecar JSONを保存しました: data/markdown/${sidecarName}`);
+      return;
+    }
+
+    throw new Error('External DocumentへSidecarコメントは保存できません。Workspaceへ取り込んでください。');
   } catch (err) {
     mdCommentSidecarRuntime.dirty = true;
     mdCommentSidecarRuntime.lastSaveError = String(err.message || err);
-    console.warn("sidecar JSON save failed. kept as emergency local backup only; load remains JSON-first.", err);
-    if (!quiet) showMarkdownError(`Sidecar JSONのAPI保存に失敗しました。再読込時はJSONファイルが存在する場合だけ表示します。\n${mdCommentSidecarRuntime.lastSaveError}`);
-    return false;
+    console.warn("sidecar JSON save failed.", err);
+    if (!quiet) showMarkdownError(`Sidecar JSONの保存に失敗しました。\n${mdCommentSidecarRuntime.lastSaveError}`);
+    if (!quiet) throw err;
   }
 }
+
 function sidecarTargetKeyFromComment(c) {
   if (!c) return "";
   if (c.target_type === "table_cell") return `cell:${c.cell_id || ""}:${c.line || ""}`;
@@ -4269,6 +4397,8 @@ async function applyMarkdownSidecarCommentEditor() {
   showMarkdownSuccess("Sidecarコメントを追加しました。", 2400);
 }
 async function addSidecarCommentToTarget(block, cell, status) {
+  const ready = await importCurrentDocumentIntoWorkspaceForComments();
+  if (!ready) return;
   showMarkdownSidecarCommentEditorForTarget(block, cell, status);
 }
 
@@ -5664,6 +5794,427 @@ function markdownDisplayName(name) {
   return String(name || "").replace(/\\/g, "/").trim();
 }
 
+
+function nativeMarkdownHostAvailable() {
+  return Boolean(window.FRBStudioNativeHost?.isAvailable?.());
+}
+function normalizeWorkspaceRelativePath(value) {
+  const raw = String(value || '').replace(/\\/g, '/').replace(/^\/+|\/+$/g, '');
+  if (!raw) return '';
+  const parts = raw.split('/').filter(Boolean);
+  if (parts.some(part => part === '.' || part === '..')) throw new Error('不正な相対パスです。');
+  return parts.join('/');
+}
+function workspaceJoinPath(...parts) {
+  return parts.map(normalizeWorkspaceRelativePath).filter(Boolean).join('/');
+}
+function workspaceBaseName(path) {
+  const parts = normalizeWorkspaceRelativePath(path).split('/').filter(Boolean);
+  return parts.pop() || '';
+}
+function workspaceDirName(path) {
+  const parts = normalizeWorkspaceRelativePath(path).split('/').filter(Boolean);
+  parts.pop();
+  return parts.join('/');
+}
+function sanitizeWorkspaceEntryName(name, { markdown = false } = {}) {
+  let value = String(name || '').trim().replace(/[<>:"/\\|?*\x00-\x1F]/g, '_');
+  if (!value) return '';
+  if (markdown && !/\.(md|markdown)$/i.test(value)) value += '.md';
+  return value;
+}
+function currentWorkspaceFolderForCreate() {
+  const selected = normalizeWorkspaceRelativePath(markdownWorkspaceRuntime.selectedPath || '');
+  if (!selected) return '';
+  if (markdownWorkspaceRuntime.selectedKind === 'folder') return selected;
+  return workspaceDirName(selected);
+}
+function documentDisplayName() {
+  return markdownDocumentRuntime.fileName || metaFileName?.value || editorFileName?.value || 'document.md';
+}
+function setMarkdownDocumentRuntime(next = {}) {
+  markdownDocumentRuntime = {
+    kind: String(next.kind || 'none'),
+    relativePath: normalizeWorkspaceRelativePath(next.relativePath || ''),
+    fullPath: String(next.fullPath || ''),
+    documentId: String(next.documentId || ''),
+    fileName: String(next.fileName || ''),
+    dropHandle: next.dropHandle || null
+  };
+  updateMarkdownDocumentOrigin();
+}
+function updateMarkdownDocumentOrigin() {
+  if (!mdDocumentOrigin) return;
+  const d = markdownDocumentRuntime;
+  const kindLabel = {
+    workspace: 'Workspace Document',
+    external: 'External Document',
+    drop: 'Dropped Document',
+    managed: 'Legacy Managed Markdown',
+    remote: 'Remote Markdown',
+    clipboard: 'Clipboard',
+    none: '未選択'
+  }[d.kind] || d.kind || '未選択';
+  let path = '';
+  if (d.kind === 'workspace') path = d.relativePath;
+  else path = d.fullPath || d.fileName || '';
+  mdDocumentOrigin.innerHTML = `<strong>Document:</strong> ${escapeHtml(kindLabel)}${path ? `<br>${escapeHtml(path)}` : ''}`;
+}
+function markdownWorkspaceSelected() {
+  return Boolean(markdownWorkspaceRuntime.grantId);
+}
+async function confirmReplaceCurrentMarkdown(actionLabel = '別のMarkdownを開く') {
+  if (!isManagedMarkdownDirty) return true;
+  return await showMarkdownConfirmDialog({
+    title:'未保存の編集があります',
+    message:`未保存の編集があります。保存せずに${actionLabel}を実行しますか？`,
+    okLabel:'続ける',
+    cancelLabel:'キャンセル'
+  });
+}
+async function selectMarkdownWorkspaceFolder() {
+  if (!nativeMarkdownHostAvailable()) {
+    showMarkdownWarn('「フォルダーを開く」はFRBStudio.NativeShell.exeで利用できます。ブラウザでは「ファイルを開く」またはMD Dropを使用してください。', 6200);
+    return false;
+  }
+  try {
+    const result = await window.FRBStudioNativeHost.invoke('folderGrant.select', {
+      description: 'Markdown Editorで開くフォルダーを選択'
+    });
+    markdownWorkspaceRuntime.grantId = String(result?.grant_id || '');
+    markdownWorkspaceRuntime.rootPath = String(result?.root_path || '');
+    markdownWorkspaceRuntime.rootName = String(result?.root_name || '') || workspaceBaseName(markdownWorkspaceRuntime.rootPath) || 'Workspace';
+    markdownWorkspaceRuntime.expanded = new Set(['']);
+    markdownWorkspaceRuntime.children = new Map();
+    markdownWorkspaceRuntime.selectedPath = '';
+    markdownWorkspaceRuntime.selectedKind = 'folder';
+    mdWorkspaceName.textContent = markdownWorkspaceRuntime.rootName;
+    mdWorkspacePath.textContent = markdownWorkspaceRuntime.rootPath;
+    await loadMarkdownWorkspaceChildren('', { force: true });
+    renderMarkdownWorkspaceTree();
+    showMarkdownSuccess(`フォルダーを開きました: ${markdownWorkspaceRuntime.rootPath}\n※フォルダー選択だけではファイル/フォルダーを作成しません。`, 5200);
+    return true;
+  } catch (err) {
+    if (err?.code === 'USER_CANCELLED') return false;
+    showMarkdownError('フォルダーを開けませんでした。\n' + (err?.message || err));
+    return false;
+  }
+}
+async function loadMarkdownWorkspaceChildren(path = '', { force = false } = {}) {
+  if (!markdownWorkspaceSelected()) return [];
+  const relative = normalizeWorkspaceRelativePath(path);
+  if (!force && markdownWorkspaceRuntime.children.has(relative)) return markdownWorkspaceRuntime.children.get(relative);
+  const result = await window.FRBStudioNativeHost.invoke('folderGrant.list', {
+    grant_id: markdownWorkspaceRuntime.grantId,
+    path: relative,
+    extensions: ['.md', '.markdown'],
+    include_files: true,
+    include_directories: true
+  });
+  const items = (result?.items || []).filter(item => {
+    const name = String(item?.name || '');
+    return item?.is_directory || !isMarkdownSidecarFileName(name);
+  });
+  markdownWorkspaceRuntime.children.set(relative, items);
+  return items;
+}
+function clearMarkdownWorkspaceTreeCache() {
+  markdownWorkspaceRuntime.children = new Map();
+}
+async function refreshMarkdownWorkspaceTree({ preserveSelection = true } = {}) {
+  if (!markdownWorkspaceSelected()) {
+    renderMarkdownWorkspaceTree();
+    return;
+  }
+  const selected = preserveSelection ? markdownWorkspaceRuntime.selectedPath : '';
+  clearMarkdownWorkspaceTreeCache();
+  await loadMarkdownWorkspaceChildren('', { force: true });
+  const expandedPaths = [...markdownWorkspaceRuntime.expanded].filter(Boolean);
+  for (const path of expandedPaths) {
+    try { await loadMarkdownWorkspaceChildren(path, { force: true }); } catch (_) {}
+  }
+  if (preserveSelection) markdownWorkspaceRuntime.selectedPath = selected;
+  renderMarkdownWorkspaceTree();
+}
+function renderMarkdownWorkspaceTree() {
+  if (!mdWorkspaceTree) return;
+  mdWorkspaceTree.innerHTML = '';
+  if (!markdownWorkspaceSelected()) {
+    mdWorkspaceTree.innerHTML = '<div class="md-workspace-empty">フォルダーを開くと、ここにフォルダーとMarkdownだけを表示します。Sidecar JSONは表示しません。</div>';
+    return;
+  }
+  const rootItems = markdownWorkspaceRuntime.children.get('') || [];
+  if (!rootItems.length) {
+    mdWorkspaceTree.innerHTML = '<div class="md-workspace-empty">Markdownはまだありません。<br>「＋ Markdown」または「＋ Folder」から作成できます。</div>';
+    return;
+  }
+  renderMarkdownWorkspaceChildren('', mdWorkspaceTree, 0);
+}
+function renderMarkdownWorkspaceChildren(parentPath, host, depth) {
+  const items = markdownWorkspaceRuntime.children.get(parentPath) || [];
+  const dirs = items.filter(x => x.is_directory).sort((a,b)=>String(a.name).localeCompare(String(b.name),'ja'));
+  const files = items.filter(x => !x.is_directory).sort((a,b)=>String(a.name).localeCompare(String(b.name),'ja'));
+  [...dirs, ...files].forEach(item => {
+    const path = normalizeWorkspaceRelativePath(item.path || workspaceJoinPath(parentPath, item.name));
+    const isDir = Boolean(item.is_directory);
+    const expanded = isDir && markdownWorkspaceRuntime.expanded.has(path);
+    const row = document.createElement('button');
+    row.type = 'button';
+    row.className = 'md-workspace-row' + (markdownWorkspaceRuntime.selectedPath === path ? ' selected' : '');
+    row.style.setProperty('--depth', depth);
+    row.dataset.path = path;
+    row.dataset.kind = isDir ? 'folder' : 'file';
+    row.title = path;
+    row.draggable = true;
+    row.innerHTML = `<span class="tree-toggle">${isDir ? (expanded ? '▾' : '▸') : ''}</span><span class="tree-icon">${isDir ? '📁' : '📄'}</span><span class="tree-label"></span>`;
+    row.querySelector('.tree-label').textContent = item.name;
+    row.addEventListener('click', async () => {
+      markdownWorkspaceRuntime.selectedPath = path;
+      markdownWorkspaceRuntime.selectedKind = isDir ? 'folder' : 'file';
+      if (isDir) {
+        if (expanded) markdownWorkspaceRuntime.expanded.delete(path);
+        else {
+          markdownWorkspaceRuntime.expanded.add(path);
+          try { await loadMarkdownWorkspaceChildren(path); } catch (err) { showMarkdownError('フォルダー一覧の取得に失敗しました。\n' + err.message); }
+        }
+        renderMarkdownWorkspaceTree();
+        return;
+      }
+      renderMarkdownWorkspaceTree();
+      await loadWorkspaceMarkdown(path);
+    });
+    row.addEventListener('dragstart', e => {
+      markdownWorkspaceRuntime.dragging = { path, kind: isDir ? 'folder' : 'file' };
+      try { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', path); } catch (_) {}
+    });
+    row.addEventListener('dragend', () => { markdownWorkspaceRuntime.dragging = null; mdWorkspaceTree.querySelectorAll('.drag-target').forEach(el=>el.classList.remove('drag-target')); });
+    if (isDir) {
+      row.addEventListener('dragover', e => { e.preventDefault(); e.stopPropagation(); row.classList.add('drag-target'); if (e.dataTransfer) e.dataTransfer.dropEffect='move'; });
+      row.addEventListener('dragleave', () => row.classList.remove('drag-target'));
+      row.addEventListener('drop', async e => {
+        e.preventDefault(); e.stopPropagation(); row.classList.remove('drag-target');
+        if (markdownWorkspaceRuntime.dragging) await moveWorkspaceEntry(markdownWorkspaceRuntime.dragging, path);
+      });
+    }
+    host.appendChild(row);
+    if (isDir && expanded) {
+      if (markdownWorkspaceRuntime.children.has(path)) renderMarkdownWorkspaceChildren(path, host, depth + 1);
+      else {
+        const loading = document.createElement('div');
+        loading.className = 'md-workspace-empty';
+        loading.style.paddingLeft = `${18 + (depth + 1) * 15}px`;
+        loading.textContent = '読み込み中...';
+        host.appendChild(loading);
+      }
+    }
+  });
+}
+async function loadWorkspaceMarkdown(relativePath) {
+  if (!markdownWorkspaceSelected()) return;
+  const path = normalizeWorkspaceRelativePath(relativePath);
+  if (!path || isMarkdownSidecarFileName(path)) return;
+  if (isManagedMarkdownDirty && documentDisplayName() && markdownDocumentRuntime.relativePath !== path) {
+    const ok = await showMarkdownConfirmDialog({ title:'未保存の編集があります', message:'保存せずに別のMarkdownを開きますか？', okLabel:'開く', cancelLabel:'キャンセル' });
+    if (!ok) return;
+  }
+  try {
+    previewEl.innerHTML = '<div class="status-shimmer">WorkspaceからMarkdown読み込み中...</div>';
+    const result = await window.FRBStudioNativeHost.invoke('folderGrant.readText', { grant_id: markdownWorkspaceRuntime.grantId, path });
+    const md = String(result?.content || '');
+    setMarkdownDocumentRuntime({ kind:'workspace', relativePath:path, fullPath:result?.full_path || '', fileName:workspaceBaseName(path) });
+    currentManagedMarkdownName = '';
+    isManagedMarkdownDirty = false;
+    editorEl.value = md;
+    recordMarkdownLoadedSnapshot(path, md);
+    syncFileNameUI(workspaceBaseName(path));
+    await loadMarkdownCommentSidecar(path);
+    renderMarkdown(md, '#', 'Workspace Markdown');
+    applyMarkdownReadonlyLaunchControls();
+  } catch (err) {
+    previewEl.innerHTML = `<div class="qiita-note warn">Workspace Markdown読み込みエラー: ${escapeHtml(err.message || err)}</div>`;
+  }
+}
+async function saveWorkspaceMarkdown({ quiet = false } = {}) {
+  const path = normalizeWorkspaceRelativePath(markdownDocumentRuntime.relativePath);
+  if (!markdownWorkspaceSelected() || !path) throw new Error('Workspace Documentが選択されていません。');
+  const content = editorEl.value || '';
+  const safetyOk = await runMarkdownSaveSafetyBeforeSave(workspaceBaseName(path), content);
+  if (!safetyOk) throw new Error('Save Safety 検査により保存を中止しました。');
+  const result = await window.FRBStudioNativeHost.invoke('folderGrant.writeText', {
+    grant_id: markdownWorkspaceRuntime.grantId,
+    path,
+    content,
+    create_directories: false
+  });
+  isManagedMarkdownDirty = false;
+  recordMarkdownLoadedSnapshot(path, content);
+  if (mdCommentSidecarRuntime.dirty) await saveMarkdownCommentSidecar({ quiet:true });
+  if (!quiet) showMarkdownSuccess(`上書き保存しました: ${result?.full_path || path}`, 4600);
+  return result;
+}
+async function saveExternalMarkdownOverwrite() {
+  const content = editorEl.value || '';
+  if (markdownDocumentRuntime.documentId && nativeMarkdownHostAvailable()) {
+    const result = await window.FRBStudioNativeHost.invoke('document.writeText', {
+      document_id: markdownDocumentRuntime.documentId,
+      content
+    });
+    isManagedMarkdownDirty = false;
+    recordMarkdownLoadedSnapshot(documentDisplayName(), content);
+    showMarkdownSuccess(`上書き保存しました: ${result?.path || markdownDocumentRuntime.fullPath || documentDisplayName()}`, 4600);
+    return true;
+  }
+  if (markdownDocumentRuntime.dropHandle && typeof markdownDocumentRuntime.dropHandle.createWritable === 'function') {
+    const writable = await markdownDocumentRuntime.dropHandle.createWritable();
+    await writable.write(content);
+    await writable.close();
+    isManagedMarkdownDirty = false;
+    recordMarkdownLoadedSnapshot(documentDisplayName(), content);
+    showMarkdownSuccess(`Drop元Markdownへ上書き保存しました: ${documentDisplayName()}`, 4200);
+    return true;
+  }
+  showMarkdownWarn('このDropファイルは元パスへの書込Grantを取得できませんでした。「名前保存」を使用してください。', 5200);
+  return false;
+}
+async function createWorkspaceMarkdown() {
+  if (!markdownWorkspaceSelected()) {
+    showMarkdownWarn('新規Markdownは、先に「フォルダーを開く」で作成先を選択してください。', 4200);
+    return;
+  }
+  if (!(await confirmReplaceCurrentMarkdown('新規Markdown作成'))) return;
+  isManagedMarkdownDirty = false;
+  const folder = currentWorkspaceFolderForCreate();
+  const input = await showMarkdownPromptDialog({ title:'新しいMarkdown', message:`作成先: ${markdownWorkspaceRuntime.rootPath}${folder ? '\\' + folder.replace(/\//g,'\\') : ''}`, defaultValue:'新しいMarkdown.md', okLabel:'作成' });
+  const fileName = sanitizeWorkspaceEntryName(input, { markdown:true });
+  if (!fileName) return;
+  const path = workspaceJoinPath(folder, fileName);
+  const exists = await window.FRBStudioNativeHost.invoke('folderGrant.exists', { grant_id:markdownWorkspaceRuntime.grantId, path });
+  if (exists?.exists) { showMarkdownWarn(`同名のファイル/フォルダーが存在します: ${path}`, 4200); return; }
+  await window.FRBStudioNativeHost.invoke('folderGrant.writeText', { grant_id:markdownWorkspaceRuntime.grantId, path, content:'', create_directories:false });
+  markdownWorkspaceRuntime.selectedPath = path;
+  markdownWorkspaceRuntime.selectedKind = 'file';
+  markdownWorkspaceRuntime.expanded.add(folder);
+  await refreshMarkdownWorkspaceTree();
+  await loadWorkspaceMarkdown(path);
+  showMarkdownSuccess(`新規Markdownを作成しました: ${path}`, 3600);
+}
+async function createWorkspaceFolder() {
+  if (!markdownWorkspaceSelected()) {
+    showMarkdownWarn('新規フォルダーは、先に「フォルダーを開く」で作成先を選択してください。', 4200);
+    return;
+  }
+  const folder = currentWorkspaceFolderForCreate();
+  const input = await showMarkdownPromptDialog({ title:'新しいフォルダー', message:`作成先: ${markdownWorkspaceRuntime.rootPath}${folder ? '\\' + folder.replace(/\//g,'\\') : ''}`, defaultValue:'新しいフォルダー', okLabel:'作成' });
+  const name = sanitizeWorkspaceEntryName(input);
+  if (!name) return;
+  const path = workspaceJoinPath(folder, name);
+  const exists = await window.FRBStudioNativeHost.invoke('folderGrant.exists', { grant_id:markdownWorkspaceRuntime.grantId, path });
+  if (exists?.exists) { showMarkdownWarn(`同名のファイル/フォルダーが存在します: ${path}`, 4200); return; }
+  await window.FRBStudioNativeHost.invoke('folderGrant.createDirectory', { grant_id:markdownWorkspaceRuntime.grantId, path });
+  markdownWorkspaceRuntime.expanded.add(folder);
+  markdownWorkspaceRuntime.expanded.add(path);
+  markdownWorkspaceRuntime.selectedPath = path;
+  markdownWorkspaceRuntime.selectedKind = 'folder';
+  await refreshMarkdownWorkspaceTree();
+  showMarkdownSuccess(`フォルダーを作成しました: ${path}`, 3200);
+}
+async function moveWorkspaceEntry(source, destinationFolder) {
+  if (!source?.path || !markdownWorkspaceSelected()) return;
+  const sourcePath = normalizeWorkspaceRelativePath(source.path);
+  const destFolder = normalizeWorkspaceRelativePath(destinationFolder || '');
+  if (source.kind === 'folder' && (destFolder === sourcePath || destFolder.startsWith(sourcePath + '/'))) {
+    showMarkdownWarn('フォルダーを自分自身または配下へ移動できません。', 3600); return;
+  }
+  const destinationPath = workspaceJoinPath(destFolder, workspaceBaseName(sourcePath));
+  if (destinationPath === sourcePath) return;
+  const desc = await window.FRBStudioNativeHost.invoke('folderGrant.describePath', { grant_id:markdownWorkspaceRuntime.grantId, path:destinationPath });
+  const ok = await showMarkdownConfirmDialog({ title:'Workspace内で移動', message:`${sourcePath}\n↓\n${desc?.full_path || destinationPath}\n\nSidecarコメントがあるMarkdownはセットで移動します。`, okLabel:'移動する', cancelLabel:'キャンセル' });
+  if (!ok) return;
+  try {
+    await window.FRBStudioNativeHost.invoke('folderGrant.move', {
+      grant_id:markdownWorkspaceRuntime.grantId,
+      source_path:sourcePath,
+      destination_path:destinationPath,
+      companion_suffixes: source.kind === 'file' ? ['.comments.json'] : []
+    });
+    if (markdownDocumentRuntime.kind === 'workspace') {
+      if (markdownDocumentRuntime.relativePath === sourcePath) {
+        markdownDocumentRuntime.relativePath = destinationPath;
+        markdownDocumentRuntime.fileName = workspaceBaseName(destinationPath);
+        mdCommentSidecarRuntime.targetFile = destinationPath;
+        mdCommentSidecarRuntime.sidecarName = markdownCommentSidecarName(destinationPath);
+        syncFileNameUI(workspaceBaseName(destinationPath));
+      } else if (source.kind === 'folder' && markdownDocumentRuntime.relativePath.startsWith(sourcePath + '/')) {
+        markdownDocumentRuntime.relativePath = destinationPath + markdownDocumentRuntime.relativePath.slice(sourcePath.length);
+        mdCommentSidecarRuntime.targetFile = markdownDocumentRuntime.relativePath;
+        mdCommentSidecarRuntime.sidecarName = markdownCommentSidecarName(markdownDocumentRuntime.relativePath);
+      }
+      updateMarkdownDocumentOrigin();
+    }
+    markdownWorkspaceRuntime.selectedPath = destinationPath;
+    markdownWorkspaceRuntime.selectedKind = source.kind;
+    await refreshMarkdownWorkspaceTree();
+    showMarkdownSuccess(`移動しました: ${destinationPath}`, 3600);
+  } catch (err) {
+    showMarkdownError('移動に失敗しました。\n' + (err?.message || err));
+  }
+}
+async function uniqueWorkspaceImportPath(fileName) {
+  const safe = sanitizeWorkspaceEntryName(fileName || 'imported.md', { markdown:true }) || 'imported.md';
+  const dot = safe.lastIndexOf('.');
+  const stem = dot > 0 ? safe.slice(0,dot) : safe;
+  const ext = dot > 0 ? safe.slice(dot) : '.md';
+  for (let i=0; i<1000; i++) {
+    const candidateName = i === 0 ? safe : `${stem}_${i}${ext}`;
+    const candidate = workspaceJoinPath('_imports', candidateName);
+    const exists = await window.FRBStudioNativeHost.invoke('folderGrant.exists', { grant_id:markdownWorkspaceRuntime.grantId, path:candidate });
+    if (!exists?.exists) return candidate;
+  }
+  return workspaceJoinPath('_imports', `${stem}_${mdStudioFileTimestamp()}${ext}`);
+}
+async function importCurrentDocumentIntoWorkspaceForComments() {
+  if (markdownDocumentRuntime.kind === 'workspace' || markdownDocumentRuntime.kind === 'managed') return true;
+  if (!markdownWorkspaceSelected()) {
+    showMarkdownWarn('コメントを付けるには、先に「フォルダーを開く」でWorkspaceを選択してください。', 5200);
+    return false;
+  }
+  const importFolder = '_imports';
+  const folderStatus = await window.FRBStudioNativeHost.invoke('folderGrant.exists', { grant_id:markdownWorkspaceRuntime.grantId, path:importFolder });
+  const targetPath = await uniqueWorkspaceImportPath(documentDisplayName());
+  const targetDesc = await window.FRBStudioNativeHost.invoke('folderGrant.describePath', { grant_id:markdownWorkspaceRuntime.grantId, path:targetPath });
+  const folderDesc = await window.FRBStudioNativeHost.invoke('folderGrant.describePath', { grant_id:markdownWorkspaceRuntime.grantId, path:importFolder });
+  const message = folderStatus?.is_directory
+    ? `このMarkdownはWorkspace外にあります。\n\nコメント機能を使用するにはWorkspaceへ取り込みます。\n\n取込先:\n${targetDesc?.full_path || targetPath}\n\n取り込みますか？`
+    : `このMarkdownはWorkspace外にあります。\n\nコメント機能を使用するにはWorkspaceへ取り込む必要があります。\n\n次のフォルダーはまだ存在しません。\n${folderDesc?.full_path || importFolder}\n\nこのフォルダーを作成し、Markdownを\n${targetDesc?.full_path || targetPath}\nへ取り込んでよいですか？`;
+  const ok = await showMarkdownConfirmDialog({ title:'Workspaceへ取り込み', message, okLabel:folderStatus?.is_directory ? '取り込む' : '作成して取り込む', cancelLabel:'キャンセル' });
+  if (!ok) return false;
+  if (!folderStatus?.is_directory) {
+    await window.FRBStudioNativeHost.invoke('folderGrant.createDirectory', { grant_id:markdownWorkspaceRuntime.grantId, path:importFolder });
+  }
+  await window.FRBStudioNativeHost.invoke('folderGrant.writeText', {
+    grant_id:markdownWorkspaceRuntime.grantId,
+    path:targetPath,
+    content:editorEl.value || '',
+    create_directories:false
+  });
+  setMarkdownDocumentRuntime({ kind:'workspace', relativePath:targetPath, fullPath:targetDesc?.full_path || '', fileName:workspaceBaseName(targetPath) });
+  currentManagedMarkdownName = '';
+  isManagedMarkdownDirty = false;
+  syncFileNameUI(workspaceBaseName(targetPath));
+  recordMarkdownLoadedSnapshot(targetPath, editorEl.value || '');
+  resetMarkdownCommentSidecarForLocal(targetPath);
+  mdCommentSidecarRuntime.targetFile = targetPath;
+  mdCommentSidecarRuntime.sidecarName = markdownCommentSidecarName(targetPath);
+  markdownWorkspaceRuntime.expanded.add(importFolder);
+  markdownWorkspaceRuntime.selectedPath = targetPath;
+  markdownWorkspaceRuntime.selectedKind = 'file';
+  await refreshMarkdownWorkspaceTree();
+  // 本文は変化していないため再描画せず、コメント操作の対象DOMを維持する。
+  updateMarkdownDocumentOrigin();
+  showMarkdownSuccess(`Workspaceへ取り込みました: ${targetDesc?.full_path || targetPath}`, 4600);
+  return true;
+}
+
 function buildManagedMarkdownTree(paths) {
   const root = { name: "", path: "", folders: new Map(), files: [] };
   uniqueMarkdownNames(paths).forEach(raw => {
@@ -5857,6 +6408,7 @@ async function loadManagedMarkdown(name) {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const md = await res.text();
     currentManagedMarkdownName = name;
+    setMarkdownDocumentRuntime({ kind:'managed', relativePath:name, fileName:workspaceBaseName(name) });
     managedMdSelect.value = name;
     updateManagedMarkdownClearButton();
     isManagedMarkdownDirty = false;
@@ -5927,7 +6479,9 @@ async function loadMarkdown(rawUrl){
     const res=await fetch(rawUrl,{cache:"no-store"});
     if(!res.ok)throw new Error(`HTTP ${res.status}`);
     const md=await res.text();
-    resetMarkdownCommentSidecarForLocal(rawUrl.split('/').pop() || "remote.md");
+    const remoteName = rawUrl.split('/').pop() || "remote.md";
+    setMarkdownDocumentRuntime({ kind:'remote', fullPath:rawUrl, fileName:remoteName });
+    resetMarkdownCommentSidecarForLocal(remoteName);
     editorEl.value = md;
     recordMarkdownLoadedSnapshot(rawUrl.split('/').pop() || "remote.md", md);
     renderMarkdown(md, rawUrl, "GitHub Raw");
@@ -5937,6 +6491,7 @@ async function loadMarkdown(rawUrl){
 }
 
 async function loadLocalMarkdownWithNativeDialog() {
+  if (!(await confirmReplaceCurrentMarkdown('ファイル読込'))) return true;
   previewEl.innerHTML = '<div class="status-shimmer">ローカルMarkdownをOSダイアログから展開中...</div>';
   const res = await fetch("/api/markdown/open-dialog", { method: "POST" });
   if (!res.ok) throw new Error(await res.text());
@@ -5949,40 +6504,51 @@ async function loadLocalMarkdownWithNativeDialog() {
   const name = String(result.file_name || "local.md");
   const md = String(result.content || "");
   currentManagedMarkdownName = "";
-  isManagedMarkdownDirty = true;
+  isManagedMarkdownDirty = false;
+  setMarkdownDocumentRuntime({
+    kind:'external',
+    fullPath:String(result.path || ''),
+    documentId:String(result.document_id || ''),
+    fileName:name
+  });
   editorEl.value = md;
   recordMarkdownLoadedSnapshot(name, md);
-  syncFileNameUI(normalizeMarkdownFileName(name));
-
-  if (result.sidecar_content) {
-    applyMarkdownCommentSidecarDocumentFromRaw(String(result.sidecar_content), name, String(result.sidecar_file || `${name}.comments.json`));
-  } else {
-    resetMarkdownCommentSidecarForLocal(name);
-  }
-
-  renderMarkdown(md, "#", "Local file");
-  const sidecarText = result.sidecar_content ? `\nコメントSidecarも読み込みました: ${result.sidecar_file || `${name}.comments.json`}` : "";
-  showMarkdownSuccess(`ローカルMarkdownを読み込みました: ${result.path || name}${sidecarText}`, 5200);
+  syncFileNameUI(normalizeMarkdownRootFileName(name));
+  // Workspace外はコメント無し前提。既存Sidecarが隣にあっても自動編集対象にしない。
+  resetMarkdownCommentSidecarForLocal(name);
+  renderMarkdown(md, "#", "External file");
+  showMarkdownSuccess(`外部Markdownを開きました: ${result.path || name}\n元ファイルへの上書き保存は可能です。コメント追加にはWorkspaceへの取り込みが必要です。`, 6200);
   return true;
 }
 
-function loadLocalFile(file){
+async function loadLocalFile(file, options = {}) {
   if(!file)return;
-  previewEl.innerHTML='<div class="status-shimmer">ローカルの思考コアを展開中...</div>';
+  if (!(await confirmReplaceCurrentMarkdown(options.drop ? 'MD Drop' : 'ファイル読込'))) return;
+  previewEl.innerHTML='<div class="status-shimmer">Drop/ローカルMarkdownを展開中...</div>';
   const reader=new FileReader();
   reader.onload=async ()=>{
     const md=String(reader.result||"");
     currentManagedMarkdownName = "";
-    isManagedMarkdownDirty = true;
-    // ブラウザのFile inputではセキュリティ制約により、同じフォルダの *.comments.json を自動取得できない。
-    // FRBStudio.exe起動時は上のOS OpenFileDialog経由でSidecarも読み込む。
+    isManagedMarkdownDirty = false;
+    setMarkdownDocumentRuntime({
+      kind: options.drop ? 'drop' : 'external',
+      fullPath:'',
+      documentId:'',
+      fileName:file.name,
+      dropHandle:options.dropHandle || null
+    });
     resetMarkdownCommentSidecarForLocal(file.name);
     editorEl.value = md;
     recordMarkdownLoadedSnapshot(file.name, md);
-    syncFileNameUI(normalizeMarkdownFileName(file.name));
-    renderMarkdown(md, "#", "Local file");
-    showMarkdownWarn("ブラウザのローカル読込では、同じフォルダのコメントSidecarを自動読込できません。FRBStudio.exe起動時は上部のローカルボタンからOSダイアログで開いてください。", 6500);
-    await askRegisterAsManagedMarkdown(file.name, md);
+    syncFileNameUI(normalizeMarkdownRootFileName(file.name));
+    renderMarkdown(md, "#", options.drop ? "Dropped file" : "Local file");
+    if (options.drop && options.dropHandle) {
+      showMarkdownSuccess(`MarkdownをDropで開きました: ${file.name}\nDrop元への上書きGrantを取得しました。コメント追加にはWorkspaceへの取り込みが必要です。`, 5600);
+    } else if (options.drop) {
+      showMarkdownWarn(`MarkdownをDropで開きました: ${file.name}\nこの環境ではDrop元パスの書込Grantを取得できないため、上書き時は「名前保存」を使用してください。コメント追加にはWorkspaceへの取り込みが必要です。`, 6500);
+    } else {
+      showMarkdownInfo(`Markdownを開きました: ${file.name}\nコメント追加にはWorkspaceへの取り込みが必要です。`, 5200);
+    }
   };
   reader.readAsText(file,"UTF-8");
 }
@@ -6022,38 +6588,61 @@ function buildMarkdownSaveAsSidecarPayload(sourceName) {
   };
 }
 
+function windowsPathInsideWorkspace(fullPath) {
+  if (!markdownWorkspaceSelected() || !fullPath) return null;
+  const root = String(markdownWorkspaceRuntime.rootPath || '').replace(/\//g,'\\').replace(/\\+$/,'');
+  const full = String(fullPath || '').replace(/\//g,'\\');
+  if (!root || full.toLowerCase() === root.toLowerCase()) return '';
+  const prefix = root + '\\';
+  if (!full.toLowerCase().startsWith(prefix.toLowerCase())) return null;
+  return normalizeWorkspaceRelativePath(full.slice(prefix.length).replace(/\\/g,'/'));
+}
 async function saveMarkdownWithNativeDialog() {
-  const sourceName = normalizeMarkdownFileName(currentManagedMarkdownName || metaFileName.value || editorFileName.value || "frb_expanded_thought.md");
-  const saveName = normalizeMarkdownRootFileName(sourceName);
+  const sourceName = normalizeMarkdownRootFileName(documentDisplayName() || "frb_expanded_thought.md");
   const content = editorEl.value || "";
-  const sidecarPayload = buildMarkdownSaveAsSidecarPayload(sourceName);
   try {
     const res = await fetch("/api/markdown/save-as-dialog", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: saveName, content, sourceName, ...sidecarPayload })
+      body: JSON.stringify({ name: sourceName, content })
     });
-
     if (!res.ok) throw new Error(await res.text());
     const result = await res.json();
-    if (result?.cancelled) {
-      showMarkdownInfo("名前を付けて保存をキャンセルしました。", 2200);
-      return;
-    }
+    if (result?.cancelled) { showMarkdownInfo("名前を付けて保存をキャンセルしました。", 2200); return; }
 
-    const savedName = result?.saved || saveName;
+    const savedPath = String(result?.path || '');
+    const savedName = String(result?.saved || sourceName);
+    const workspaceRelative = windowsPathInsideWorkspace(savedPath);
     syncFileNameUI(normalizeMarkdownRootFileName(savedName));
-    const sidecarNote = result?.sidecar_saved
-      ? `\nコメントSidecarも保存しました: ${result.sidecar_path || result.sidecar_file || "*.comments.json"}`
-      : (sidecarPayload.sidecarContent ? "\n※コメントSidecarの保存は確認できませんでした。" : "");
-    showMarkdownSuccess((result?.path ? `保存しました: ${result.path}` : `保存しました: ${savedName}`) + sidecarNote, 6500);
+    isManagedMarkdownDirty = false;
+    recordMarkdownLoadedSnapshot(savedName, content);
+
+    if (workspaceRelative !== null && workspaceRelative) {
+      setMarkdownDocumentRuntime({ kind:'workspace', relativePath:workspaceRelative, fullPath:savedPath, fileName:savedName });
+      currentManagedMarkdownName = '';
+      // Workspace内へのSave Asだけは現在コメントを新Document Setへ引き継ぐ。
+      mdCommentSidecarRuntime.targetFile = workspaceRelative;
+      mdCommentSidecarRuntime.sidecarName = markdownCommentSidecarName(workspaceRelative);
+      if ((mdCommentSidecarRuntime.comments || []).length) {
+        mdCommentSidecarRuntime.dirty = true;
+        await saveMarkdownCommentSidecar({ quiet:true });
+      }
+      markdownWorkspaceRuntime.selectedPath = workspaceRelative;
+      markdownWorkspaceRuntime.selectedKind = 'file';
+      await refreshMarkdownWorkspaceTree();
+      showMarkdownSuccess(`Workspace内へ名前保存しました: ${savedPath}`, 5200);
+    } else {
+      // Workspace外Save AsはMarkdown本文のみ。Sidecarを持ち出さない。
+      setMarkdownDocumentRuntime({ kind:'external', fullPath:savedPath, documentId:String(result?.document_id || ''), fileName:savedName });
+      currentManagedMarkdownName = '';
+      resetMarkdownCommentSidecarForLocal(savedName);
+      applyMarkdownSidecarComments();
+      showMarkdownSuccess(`名前を付けて保存しました: ${savedPath}\nWorkspace外のためSidecarコメントは保存していません。`, 6200);
+    }
   } catch (err) {
     console.warn("native save-as dialog is unavailable. falling back to browser download.", err);
-    downloadMarkdownFile(saveName, content);
-    if (sidecarPayload.sidecarContent) {
-      downloadRawNamedFile(`${saveName}.comments.json`, sidecarPayload.sidecarContent, "application/json;charset=utf-8;");
-    }
-    showMarkdownWarn("FRBStudio.exe の名前を付けて保存APIが使えなかったため、ブラウザのダウンロード保存に切り替えました。", 5200);
+    downloadMarkdownFile(sourceName, content);
+    showMarkdownWarn("FRBStudio.exe の名前を付けて保存APIが使えなかったため、Markdown本文だけをダウンロード保存しました。", 5200);
   }
 }
 
@@ -6064,6 +6653,7 @@ document.getElementById("btnSaveFile")?.addEventListener("click", () => saveMark
 document.getElementById("btnPasteClip").addEventListener("click", async () => {
   try {
     const text = await navigator.clipboard.readText();
+    setMarkdownDocumentRuntime({ kind:'clipboard', fileName:'clipboard.md' });
     resetMarkdownCommentSidecarForLocal("clipboard.md");
     editorEl.value = text;
     renderMarkdown(text, "#", "Clipboard Paste");
@@ -6125,33 +6715,57 @@ if (btnMarkdownSaveSafety) btnMarkdownSaveSafety.addEventListener("click", () =>
 
 btnOverwriteManagedMd.addEventListener("click", async () => {
   try {
-    const saveName = normalizeMarkdownFileName(currentManagedMarkdownName || metaFileName.value || editorFileName.value);
-    if (!currentManagedMarkdownName) {
-      const ok = await showMarkdownConfirmDialog({
-        title: `${saveName} を管理対象として保存しますか？`,
-        message: "data/markdown の管理対象として保存します。",
-        okLabel: "保存する",
-        cancelLabel: "キャンセル"
-      });
-      if (!ok) return;
+    if (markdownDocumentRuntime.kind === 'workspace') {
+      await saveWorkspaceMarkdown();
+      return;
     }
-    await saveManagedMarkdown(saveName, editorEl.value);
+    if (markdownDocumentRuntime.kind === 'external' || markdownDocumentRuntime.kind === 'drop') {
+      await saveExternalMarkdownOverwrite();
+      return;
+    }
+    if (markdownDocumentRuntime.kind === 'managed' && currentManagedMarkdownName) {
+      await saveManagedMarkdown(currentManagedMarkdownName, editorEl.value);
+      return;
+    }
+    showMarkdownWarn('現在の文書には上書き先がありません。「名前保存」を使用するか、Workspace内に新規Markdownを作成してください。', 5200);
   } catch (err) {
-    showMarkdownError("上書き保存に失敗しました。\n" + err.message);
+    showMarkdownError("上書き保存に失敗しました。\n" + (err?.message || err));
   }
 });
 
 document.getElementById("loadBtn").addEventListener("click",()=>loadMarkdown(mdUrlEl.value));
 localFileBtn.addEventListener("click", async () => {
+  await selectMarkdownWorkspaceFolder();
+});
+btnExternalOpen?.addEventListener("click", async () => {
   try {
-    const handled = await loadLocalMarkdownWithNativeDialog();
-    if (handled) return;
+    if (nativeMarkdownHostAvailable()) {
+      const handled = await loadLocalMarkdownWithNativeDialog();
+      if (handled) return;
+    }
   } catch (err) {
     console.warn("native markdown open dialog unavailable. falling back to browser file input.", err);
   }
   localFileInput.click();
 });
-localFileInput.addEventListener("change",e=>loadLocalFile(e.target.files&&e.target.files[0]));
+localFileInput.addEventListener("change",e=>loadLocalFile(e.target.files&&e.target.files[0], { drop:false }));
+btnRefreshWorkspace?.addEventListener('click', () => refreshMarkdownWorkspaceTree());
+btnNewWorkspaceMarkdown?.addEventListener('click', () => createWorkspaceMarkdown());
+btnNewWorkspaceFolder?.addEventListener('click', () => createWorkspaceFolder());
+mdWorkspaceRootDrop?.addEventListener('dragover', e => {
+  if (!markdownWorkspaceRuntime.dragging) return;
+  e.preventDefault();
+  e.stopPropagation();
+  mdWorkspaceRootDrop.classList.add('drag-target');
+});
+mdWorkspaceRootDrop?.addEventListener('dragleave', () => mdWorkspaceRootDrop.classList.remove('drag-target'));
+mdWorkspaceRootDrop?.addEventListener('drop', async e => {
+  if (!markdownWorkspaceRuntime.dragging) return;
+  e.preventDefault();
+  e.stopPropagation();
+  mdWorkspaceRootDrop.classList.remove('drag-target');
+  await moveWorkspaceEntry(markdownWorkspaceRuntime.dragging, '');
+});
 
 // 強固な全画面ドラッグ＆ドロップ検知
 window.addEventListener("dragover", (e) => {
@@ -6164,11 +6778,18 @@ window.addEventListener("dragleave", (e) => {
     document.body.classList.remove("drag-over");
   }
 });
-window.addEventListener("drop", (e) => {
+window.addEventListener("drop", async (e) => {
   e.preventDefault();
   document.body.classList.remove("drag-over");
+  if (markdownWorkspaceRuntime.dragging) return;
   if (e.dataTransfer && e.dataTransfer.files.length > 0) {
-    loadLocalFile(e.dataTransfer.files[0]);
+    const file = e.dataTransfer.files[0];
+    let dropHandle = null;
+    try {
+      const item = [...(e.dataTransfer.items || [])].find(x => x.kind === "file");
+      if (item && typeof item.getAsFileSystemHandle === "function") dropHandle = await item.getAsFileSystemHandle();
+    } catch (err) { console.debug("Drop file handle grant unavailable", err); }
+    loadLocalFile(file, { drop:true, dropHandle });
   }
 });
 

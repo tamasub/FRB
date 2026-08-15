@@ -88,7 +88,7 @@ namespace FRBStudio.NativeShell
                 _webView.CoreWebView2.NavigationStarting += OnNavigationStarting;
                 _webView.CoreWebView2.NewWindowRequested += OnNewWindowRequested;
 
-                _status.Text = "Native Shell / WebView2 Runtime " + runtimeVersion + " / Workspace: " + _workspace.RootPath;
+                _status.Text = "Native Shell / WebView2 Runtime " + runtimeVersion + " / App Root: " + _workspace.RootPath;
                 var startUri = !string.IsNullOrWhiteSpace(_initialUri) && IsAllowedNavigation(_initialUri)
                     ? _initialUri
                     : _allowedOrigin + "/" + _config.StartPage.TrimStart('/');
@@ -114,7 +114,7 @@ namespace FRBStudio.NativeShell
                 if (!IsAllowedSource(e.Source)) return;
                 var responseJson = await _dispatcher.DispatchAsync(e.WebMessageAsJson);
                 _webView.CoreWebView2.PostWebMessageAsJson(responseJson);
-                _status.Text = "Native Bridge: message processed / Workspace: " + _workspace.RootPath;
+                _status.Text = "Native Bridge: message processed / App Root: " + _workspace.RootPath;
             }
             catch (Exception ex)
             {

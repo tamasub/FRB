@@ -211,18 +211,20 @@
           const result = await invoke('dialog.openText', {
             title: 'Markdownを開く',
             filter: 'Markdown (*.md;*.markdown)|*.md;*.markdown|Text (*.txt)|*.txt|All files (*.*)|*.*',
-            companion_suffixes: ['.comments.json']
+            companion_suffixes: []
           });
-          const sidecar = result?.companions?.['.comments.json'];
           return jsonResponse({
             cancelled: false,
+            document_id: result?.document_id ?? '',
             file_name: result?.file_name ?? '',
             path: result?.path ?? '',
             content: result?.content ?? '',
-            sidecar_file: sidecar?.found ? String(result?.file_name ?? '') + '.comments.json' : '',
-            sidecar_path: sidecar?.found ? sidecar?.path ?? '' : '',
-            sidecar_content: sidecar?.found ? sidecar?.content ?? '' : '',
-            sidecar_found: !!sidecar?.found
+            // External DocumentはMarkdown本文だけをGrant対象にする。
+            // SidecarコメントはWorkspaceへImportした後に初めて扱う。
+            sidecar_file: '',
+            sidecar_path: '',
+            sidecar_content: '',
+            sidecar_found: false
           });
         } catch (error) {
           if (error?.code === 'USER_CANCELLED') return jsonResponse({ cancelled: true });
@@ -232,11 +234,8 @@
 
       if (method === 'POST' && path === '/api/markdown/save-as-dialog') {
         const body = await parseJsonBody(input, init);
-        const companions = [];
-        const sidecarContent = body?.sidecar_content ?? body?.sidecarContent ?? null;
-        if (sidecarContent != null && String(sidecarContent).trim())
-          companions.push({ suffix: '.comments.json', content: String(sidecarContent) });
-
+        // Save As はMarkdown本文の自由な保存/Exportとして扱い、
+        // FRB Studio固有SidecarはWorkspace外へ自動持ち出ししない。
         try {
           const result = await invoke('dialog.saveText', {
             title: 'Markdownを名前を付けて保存',
@@ -244,16 +243,16 @@
             file_name: String(body?.name ?? body?.file_name ?? 'document.md'),
             default_extension: 'md',
             content: String(body?.content ?? ''),
-            companions
+            companions: []
           });
-          const savedCompanion = Array.isArray(result?.companions) ? result.companions[0] : null;
           return jsonResponse({
             cancelled: false,
+            document_id: result?.document_id ?? '',
             saved: result?.file_name ?? '',
             path: result?.path ?? '',
-            sidecar_saved: !!savedCompanion,
-            sidecar_file: savedCompanion?.file_name ?? '',
-            sidecar_path: savedCompanion?.path ?? '',
+            sidecar_saved: false,
+            sidecar_file: '',
+            sidecar_path: '',
             sidecar_error: ''
           });
         } catch (error) {

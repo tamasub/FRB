@@ -21,7 +21,16 @@
     "dialog.openText",
     "dialog.saveText",
     "shell.openFolder",
-    "process.runProfile"
+    "process.runProfile",
+    "folderGrant.select",
+    "folderGrant.list",
+    "folderGrant.readText",
+    "folderGrant.writeText",
+    "folderGrant.exists",
+    "folderGrant.createDirectory",
+    "folderGrant.move",
+    "folderGrant.describePath",
+    "document.writeText"
   ],
   "process_profiles": [
     {
