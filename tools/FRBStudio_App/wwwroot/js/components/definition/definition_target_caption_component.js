@@ -1,19 +1,108 @@
-// v0.18.48-field-definition-caption-and-detail-header-spacing
+// v0.18.57-field-definition-caption-grid-and-viewdef-row-order
 // Readonly Editor Component that shows the human-facing caption from the target Data ViewDef.
 // The caption is derived, not persisted into Field Definition JSON.
 
 const definitionTargetViewPromiseCache = new Map();
+const definitionTargetViewResolvedCache = new Map();
 
 function invalidateDefinitionTargetViewDefCache(path='') {
   const normalized = String(path ?? '').trim();
-  if (normalized) definitionTargetViewPromiseCache.delete(normalized);
-  else definitionTargetViewPromiseCache.clear();
+  if (normalized) {
+    definitionTargetViewPromiseCache.delete(normalized);
+    definitionTargetViewResolvedCache.delete(normalized);
+  } else {
+    definitionTargetViewPromiseCache.clear();
+    definitionTargetViewResolvedCache.clear();
+  }
 }
 
 
 function definitionTargetCaptionOptions(component) {
   const raw = component?.config?.config;
   return raw && typeof raw === 'object' ? raw : {};
+}
+
+function definitionTargetCaptionDerivedFields(viewDef={}) {
+  const result = [];
+  const views = Array.isArray(viewDef?.views) ? viewDef.views : [];
+  views.forEach(view => {
+    const sections = Array.isArray(view?.sections) ? view.sections : [];
+    sections.forEach(section => {
+      const fields = Array.isArray(section?.fields) ? section.fields : [];
+      fields.forEach(field => {
+        const derived = field?.derived;
+        if (!derived || String(derived.type ?? '').trim() !== 'definition_target_caption') return;
+        const targetViewDefPath = String(
+          derived.targetViewDefPath ?? derived.target_view_def_path ?? ''
+        ).trim();
+        const sourceField = String(derived.sourceField ?? derived.source_field ?? 'field_path').trim() || 'field_path';
+        if (!field?.field || !targetViewDefPath) return;
+        result.push({
+          section,
+          field,
+          targetViewDefPath,
+          sourceField,
+          unresolvedValue: String(derived.unresolvedValue ?? derived.unresolved_value ?? '⚠ 未解決')
+        });
+      });
+    });
+  });
+  return result;
+}
+
+function definitionTargetCaptionRows(dataObj={}, section={}) {
+  if (typeof getByPath !== 'function') return [];
+  const rows = getByPath(dataObj, section?.dataPath ?? section?.data_path ?? '$');
+  return Array.isArray(rows) ? rows : [];
+}
+
+function attachDefinitionTargetCaptionGetter(row, spec, targetViewDef) {
+  if (!row || typeof row !== 'object' || !spec?.field?.field || !targetViewDef) return;
+  const targetFieldName = String(spec.field.field);
+  Object.defineProperty(row, targetFieldName, {
+    enumerable: false,
+    configurable: true,
+    get() {
+      const sourceValue = (typeof getByPath === 'function')
+        ? getByPath(row, spec.sourceField)
+        : row?.[spec.sourceField];
+      const resolved = (typeof resolveFieldDefinitionTargetViewField === 'function')
+        ? resolveFieldDefinitionTargetViewField(targetViewDef, sourceValue)
+        : null;
+      return resolved?.caption || spec.unresolvedValue;
+    }
+  });
+}
+
+function refreshDefinitionTargetCaptionDerivedProperties(viewDef={}, dataObj={}) {
+  const specs = definitionTargetCaptionDerivedFields(viewDef);
+  specs.forEach(spec => {
+    const target = definitionTargetViewResolvedCache.get(spec.targetViewDefPath);
+    if (!target) return;
+    definitionTargetCaptionRows(dataObj, spec.section).forEach(row => {
+      attachDefinitionTargetCaptionGetter(row, spec, target);
+    });
+  });
+  return dataObj;
+}
+
+async function materializeDefinitionTargetCaptionDerivedProperties(viewDef={}, dataObj={}) {
+  const specs = definitionTargetCaptionDerivedFields(viewDef);
+  if (!specs.length) return dataObj;
+
+  const targets = new Map();
+  for (const spec of specs) {
+    if (!targets.has(spec.targetViewDefPath)) {
+      targets.set(spec.targetViewDefPath, await loadDefinitionTargetViewDef(spec.targetViewDefPath));
+    }
+  }
+  specs.forEach(spec => {
+    const target = targets.get(spec.targetViewDefPath);
+    definitionTargetCaptionRows(dataObj, spec.section).forEach(row => {
+      attachDefinitionTargetCaptionGetter(row, spec, target);
+    });
+  });
+  return dataObj;
 }
 
 async function loadDefinitionTargetViewDef(path) {
@@ -27,6 +116,7 @@ async function loadDefinitionTargetViewDef(path) {
         if (!loaded?.json || typeof loaded.json !== 'object') {
           throw new Error(`Target ViewDef load returned invalid JSON: ${normalized}`);
         }
+        definitionTargetViewResolvedCache.set(normalized, loaded.json);
         return loaded.json;
       }
 
@@ -34,7 +124,9 @@ async function loadDefinitionTargetViewDef(path) {
         const encoded = normalized.split('/').map(encodeURIComponent).join('/');
         const response = await fetch(`/api/defs/${encoded}`);
         if (!response.ok) throw new Error(`Target ViewDef load failed (${response.status}): ${normalized}`);
-        return response.json();
+        const json = await response.json();
+        definitionTargetViewResolvedCache.set(normalized, json);
+        return json;
       }
 
       throw new Error('Target ViewDef loader is unavailable.');
@@ -151,4 +243,7 @@ registerEditorComponent(
 
 globalThis.loadDefinitionTargetViewDef = loadDefinitionTargetViewDef;
 globalThis.invalidateDefinitionTargetViewDefCache = invalidateDefinitionTargetViewDefCache;
+globalThis.definitionTargetCaptionDerivedFields = definitionTargetCaptionDerivedFields;
+globalThis.refreshDefinitionTargetCaptionDerivedProperties = refreshDefinitionTargetCaptionDerivedProperties;
+globalThis.materializeDefinitionTargetCaptionDerivedProperties = materializeDefinitionTargetCaptionDerivedProperties;
 globalThis.DefinitionTargetCaptionComponent = DefinitionTargetCaptionComponent;

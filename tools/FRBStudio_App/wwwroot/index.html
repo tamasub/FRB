@@ -262,6 +262,8 @@
         <h2 id="gridCaption">Grid</h2>
         <div class="grid-actions">
           <span id="gridCount" class="count"></span>
+          <button id="viewDefMoveUpBtn" class="ghost-button small hidden" type="button" disabled title="選択中のViewDef項目を同一Section内で1行上へ移動">↑ 上へ</button>
+          <button id="viewDefMoveDownBtn" class="ghost-button small hidden" type="button" disabled title="選択中のViewDef項目を同一Section内で1行下へ移動">↓ 下へ</button>
           <button id="addRowBtn" class="primary-button small" disabled>新規</button>
           <button id="deleteRowBtn" class="ghost-button small danger" disabled>削除</button>
           <button id="gridCsvExportBtn" class="ghost-button small" disabled title="現在Gridに表示されている行・列をCSV出力">CSV出力</button>
@@ -323,10 +325,10 @@
   <script src="js/core/field_types.js?v=studio-overlay-0170"></script>
   <script src="js/core/viewdef_resolver.js?v=file-picker-list-0169"></script>
   <script src="js/services/option_maintenance_service.js?v=combo-option-maintenance-01854"></script>
-  <script src="js/services/viewdef_maintenance_projection.js?v=viewdef-maintenance-primary-section-01856"></script>
+  <script src="js/services/viewdef_maintenance_projection.js?v=viewdef-row-order-01857"></script>
   <script src="js/ui/studio_dialog.js?v=studio-dialog-top-layer-018352"></script>
   <script src="js/core/loaders.js?v=studio-dialog-no-browser-standard-01813"></script>
-  <script src="js/ui/page_setup.js?v=data-viewdef-candidates-0141"></script>
+  <script src="js/ui/page_setup.js?v=viewdef-row-order-01857"></script>
   <script src="js/ui/file_tree_picker.js?v=file-picker-gpt-fx-lab-0170"></script>
   <script src="js/core/data_utils.js?v=action-execute-006"></script>
   <script src="js/components/studio_component.js?v=studio-editor-component-model-01840"></script>
@@ -345,7 +347,7 @@
   <script src="js/services/definition/runtime_field_definition_validation.js?v=field-definition-runtime-validation-01847"></script>
   <script src="js/services/definition/cross_field_verification_service.js?v=cross-field-generation-01853"></script>
   <script src="js/components/definition/definition_verification_derived_subgrid_component.js?v=definition-review-evidence-01846"></script>
-  <script src="js/components/definition/definition_target_caption_component.js?v=viewdef-caption-refresh-01855"></script>
+  <script src="js/components/definition/definition_target_caption_component.js?v=fielddef-caption-grid-01857"></script>
   <script src="js/components/definition/definition_constraint_diff_component.js?v=definition-review-evidence-01846"></script>
   <script src="js/components/definition/definition_test_preview_component.js?v=definition-review-evidence-01846"></script>
   <script src="js/components/definition/cross_field_test_preview_component.js?v=cross-field-generation-01853"></script>
@@ -361,7 +363,7 @@
   <script src="js/responsibilities/search_filter.js?v=json-full-text-search-01821"></script>
   <script src="js/responsibilities/csv_exporter.js?v=responsibility-refactor-0187"></script>
   <script src="js/responsibilities/grid_aggregator.js?v=grid-numeric-aggregate-01820"></script>
-  <script src="js/renderers/grid_detail.js?v=json-full-text-search-01821"></script>
+  <script src="js/renderers/grid_detail.js?v=viewdef-row-order-01857"></script>
   <script src="js/markdown/markdown_registry.js?v=markdown-export-mode-0186"></script>
   <script src="js/markdown/data_markdown.js?v=visible-rows-md-01861"></script>
   <script src="js/markdown/viewdef_markdown.js?v=action-execute-006"></script>
@@ -369,7 +371,7 @@
   <script src="js/runtime/detail_save.js?v=detail-fieldset-cross-field-01852"></script>
   <script src="js/runtime/studio_json_round_trip.js?v=studio-json-round-trip-018353"></script>
   <script src="js/core/viewdef_context_contract.js?v=context-grid-preview-0165-6"></script>
-  <script src="js/runtime/load_runtime.js?v=fx-chart-url-bb-075"></script>
+  <script src="js/runtime/load_runtime.js?v=fielddef-caption-grid-01857"></script>
   <script src="js/actions/action_registry.js?v=test-runner-command-profile-01438"></script>
   <script src="js/runtime/related_grid_view.js?v=related-grid-inline-view-id-01834b"></script>
   <script src="js/core/plugin_host.js?v=search-state-01714"></script>

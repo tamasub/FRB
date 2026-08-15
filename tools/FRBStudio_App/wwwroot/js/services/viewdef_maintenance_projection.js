@@ -1,4 +1,4 @@
-// v0.18.56-viewdef-maintenance-primary-section-default
+// v0.18.57-field-definition-caption-grid-and-viewdef-row-order
 // ViewDef maintenance projection.
 // The maintenance UI edits one flattened temporary field list, while the canonical ViewDef
 // keeps fields under their original views[].sections[].fields ownership.
@@ -66,7 +66,7 @@
 
     document[PROJECTION_PATH] = fields;
     document[MARKER_PATH] = {
-      version: 'v0.18.55',
+      version: 'v0.18.57',
       temporary: true,
       purpose: 'Flatten ViewDef fields across all views/sections for Studio maintenance.'
     };
@@ -158,6 +158,41 @@
     return result;
   }
 
+
+  function moveViewDefMaintenanceProjectionRow(maintenanceDocument={}, rowKey='', delta=0) {
+    const projection = Array.isArray(maintenanceDocument?.[PROJECTION_PATH])
+      ? maintenanceDocument[PROJECTION_PATH]
+      : null;
+    if (!projection || !rowKey || ![-1, 1].includes(Number(delta))) {
+      return { moved: false, reason: 'invalid_request' };
+    }
+
+    const index = projection.findIndex(row => String(row?.[KEY_FIELD] ?? '') === String(rowKey));
+    if (index < 0) return { moved: false, reason: 'row_not_found' };
+    const ref = String(projection[index]?.[SECTION_REF_FIELD] ?? '');
+    if (!ref) return { moved: false, reason: 'section_unresolved' };
+
+    let targetIndex = index + Number(delta);
+    while (targetIndex >= 0 && targetIndex < projection.length) {
+      const targetRef = String(projection[targetIndex]?.[SECTION_REF_FIELD] ?? '');
+      if (targetRef === ref) break;
+      targetIndex += Number(delta);
+    }
+    if (targetIndex < 0 || targetIndex >= projection.length) {
+      return { moved: false, reason: 'section_boundary' };
+    }
+
+    const [row] = projection.splice(index, 1);
+    projection.splice(targetIndex, 0, row);
+    return {
+      moved: true,
+      from_index: index,
+      to_index: targetIndex,
+      row_key: String(rowKey),
+      section_ref: ref
+    };
+  }
+
   function isViewDefMaintenanceDocument(value={}) {
     return Boolean(value && typeof value === 'object' && value[MARKER_PATH]?.temporary === true && Array.isArray(value[PROJECTION_PATH]));
   }
@@ -168,4 +203,5 @@
   globalThis.isViewDefMaintenanceDocument = isViewDefMaintenanceDocument;
   globalThis.viewDefMaintenanceSectionCatalog = sectionCatalog;
   globalThis.viewDefMaintenancePreferredDefaultSectionRef = preferredDefaultSectionRef;
+  globalThis.moveViewDefMaintenanceProjectionRow = moveViewDefMaintenanceProjectionRow;
 })();

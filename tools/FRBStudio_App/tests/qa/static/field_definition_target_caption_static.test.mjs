@@ -79,3 +79,53 @@ test('detail header spacing keeps first field labels below the sticky header', (
   assert.match(css, /#detailDialog \.dialog-title-row\s*\{\s*margin-bottom:\s*14px;/s);
   assert.match(css, /#detailDialog #detailForm\s*\{\s*padding-top:\s*2px;/s);
 });
+
+
+test('Field Definition Grid exposes target ViewDef caption as the leftmost non-persistent derived column', () => {
+  const section = fieldDefEditor.views
+    .flatMap(view => view.sections ?? [])
+    .find(item => item.id === 'field_definitions');
+  const first = section?.fields?.[0];
+  assert.equal(first?.field, '__target_caption');
+  assert.equal(first?.caption, '項目名（Caption）');
+  assert.equal(first?.readonly, true);
+  assert.equal(first?.grid?.visible, true);
+  assert.equal(first?.edit?.visible, false);
+  assert.equal(first?.create?.include, false);
+  assert.equal(first?.derived?.type, 'definition_target_caption');
+  assert.equal(first?.derived?.sourceField, 'field_path');
+  assert.equal(first?.derived?.targetViewDefPath, 'frb/frb_fft_field_definition_sample_view_def_v0_1.json');
+});
+
+test('derived target caption getter follows field_path changes and never persists into Field Definition JSON', async () => {
+  const componentSource = read('wwwroot/js/components/definition/definition_target_caption_component.js');
+  const data = readJson('fielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json');
+  const target = readJson('defs/frb/frb_fft_field_definition_sample_view_def_v0_1.json');
+
+  const getByPath = (obj, pathValue) => {
+    const raw = String(pathValue ?? '').replace(/^\$\.?/, '');
+    if (!raw) return obj;
+    return raw.split('.').reduce((cur, part) => cur == null ? undefined : cur[part], obj);
+  };
+  const localSandbox = {
+    globalThis: {},
+    EditorComponent: class {},
+    registerEditorComponent: () => {},
+    getByPath,
+    resolveFieldDefinitionTargetViewField: sandbox.resolveFieldDefinitionTargetViewField,
+    fetchApiJsonWithUrl: async (kind, name) => ({ json: target, url: `/api/${kind}/${name}` }),
+    console
+  };
+  localSandbox.globalThis = localSandbox;
+  vm.createContext(localSandbox);
+  vm.runInContext(componentSource, localSandbox);
+
+  await localSandbox.materializeDefinitionTargetCaptionDerivedProperties(fieldDefEditor, data);
+  const row = data.field_definitions.find(item => item.field_path === '$.measurement_sessions[].measurement_name');
+  assert.equal(row.__target_caption, '測定名');
+  assert.equal(Object.prototype.propertyIsEnumerable.call(row, '__target_caption'), false);
+  assert.equal(JSON.stringify(row).includes('__target_caption'), false);
+
+  row.field_path = '$.analysis_start_date';
+  assert.equal(row.__target_caption, '分析開始日');
+});

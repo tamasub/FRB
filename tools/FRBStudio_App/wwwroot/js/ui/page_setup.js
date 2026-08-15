@@ -186,6 +186,17 @@ function setupViewDefMaintenanceButton() {
   const btn = $('maintainViewDefBtn');
   const input = $('defNameInput');
   if (!btn || !input) return;
+
+  const moveUp = $('viewDefMoveUpBtn');
+  const moveDown = $('viewDefMoveDownBtn');
+  if (moveUp && moveUp.dataset.viewdefOrderInstalled !== '1') {
+    moveUp.dataset.viewdefOrderInstalled = '1';
+    moveUp.addEventListener('click', () => moveSelectedViewDefMaintenanceRow(-1));
+  }
+  if (moveDown && moveDown.dataset.viewdefOrderInstalled !== '1') {
+    moveDown.dataset.viewdefOrderInstalled = '1';
+    moveDown.addEventListener('click', () => moveSelectedViewDefMaintenanceRow(1));
+  }
   if (btn.dataset.viewdefMaintenanceInstalled === '1') {
     updateViewDefMaintenanceButtonState();
     return;

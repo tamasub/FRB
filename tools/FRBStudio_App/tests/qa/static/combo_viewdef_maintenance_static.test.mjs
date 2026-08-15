@@ -19,7 +19,7 @@ test('ViewDef maintenance adds only the quiet ellipsis entry and preserves exist
   assert.match(pageSetup, /VIEWDEF_MAINTENANCE_VIEWDEF_PATH = 'common\/view_def_maint_fields_v0_2\.json'/);
   assert.match(pageSetup, /loadFromObjects\([\s\S]*'viewdef'[\s\S]*\)/);
   assert.match(app, /setupViewDefMaintenanceButton\(\)/);
-  assert.match(index, /js\/services\/viewdef_maintenance_projection\.js\?v=viewdef-maintenance-primary-section-01856/);
+  assert.match(index, /js\/services\/viewdef_maintenance_projection\.js\?v=viewdef-row-order-01857/);
   assert.match(pageSetup, /buildViewDefMaintenanceDocument\(target\.json\)/);
   assert.match(pageSetup, /configureViewDefMaintenanceViewDef\(maintenance\.json, target\.json\)/);
   assert.match(pageSetup, /viewDefMaintenancePreferredDefaultSectionRef/);
@@ -141,10 +141,63 @@ test('ViewDef maintenance initial section is the first main grid, so captions ma
   const projected = sandbox.buildViewDefMaintenanceDocument(target).__studio_viewdef_maintenance_fields
     .filter(row => row.__maintenance_section_ref === selected);
   const captions = projected.map(row => row.caption);
-  assert.deepEqual(Array.from(captions), ['Field Path', 'Validation Type', 'Required', 'Nullable', 'Constraint Overrides', 'Note']);
+  assert.deepEqual(Array.from(captions), ['項目名（Caption）', 'Field Path', 'Validation Type', 'Required', 'Nullable', 'Constraint Overrides', 'Note']);
 });
 
 test('ViewDef maintenance does not rewrite object layout as [object Object]', () => {
   const fieldDefEditor = json('defs/fielddefs/frb_fft_measurement_field_definitions_view_def_v0_1.json');
   assert.deepEqual(fieldDefEditor.views[0].layout, { detailDialog: 'wide' });
+});
+
+
+test('ViewDef maintenance supports one-row up/down movement only inside the same Section and finalize preserves order', () => {
+  const source = text('wwwroot/js/services/viewdef_maintenance_projection.js');
+  const sandbox = { globalThis: {} };
+  sandbox.globalThis = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(source, sandbox);
+
+  const target = json('defs/fielddefs/frb_fft_measurement_field_definitions_view_def_v0_1.json');
+  const projected = sandbox.buildViewDefMaintenanceDocument(target);
+  const rows = projected.__studio_viewdef_maintenance_fields;
+  const sectionRef = '0:1';
+  const sectionRows = rows.filter(row => row.__maintenance_section_ref === sectionRef);
+  const validationTypeRow = sectionRows.find(row => row.field === 'validation_type');
+  assert.ok(validationTypeRow);
+
+  const before = sectionRows.map(row => row.field);
+  const originalPos = before.indexOf('validation_type');
+  assert.ok(originalPos > 0);
+
+  const moved = sandbox.moveViewDefMaintenanceProjectionRow(projected, validationTypeRow.__maintenance_key, -1);
+  assert.equal(moved.moved, true);
+
+  const after = projected.__studio_viewdef_maintenance_fields
+    .filter(row => row.__maintenance_section_ref === sectionRef)
+    .map(row => row.field);
+  assert.equal(after.indexOf('validation_type'), originalPos - 1);
+
+  const finalized = sandbox.finalizeViewDefMaintenanceDocument(projected);
+  const canonical = finalized.views[0].sections[1].fields.map(field => field.field);
+  assert.deepEqual(Array.from(canonical), Array.from(after));
+
+  const firstKey = projected.__studio_viewdef_maintenance_fields
+    .filter(row => row.__maintenance_section_ref === sectionRef)[0].__maintenance_key;
+  const boundary = sandbox.moveViewDefMaintenanceProjectionRow(projected, firstKey, -1);
+  assert.equal(boundary.moved, false);
+  assert.equal(boundary.reason, 'section_boundary');
+});
+
+test('ViewDef row-order buttons are visible only for maintenance documents and wire to one-row movement', () => {
+  const index = text('wwwroot/index.html');
+  const grid = text('wwwroot/js/renderers/grid_detail.js');
+  const pageSetup = text('wwwroot/js/ui/page_setup.js');
+
+  assert.match(index, /id="viewDefMoveUpBtn"[^>]*class="ghost-button small hidden"[^>]*>↑ 上へ<\/button>/);
+  assert.match(index, /id="viewDefMoveDownBtn"[^>]*class="ghost-button small hidden"[^>]*>↓ 下へ<\/button>/);
+  assert.match(grid, /isViewDefMaintenanceDocument\(sourceData\)/);
+  assert.match(grid, /moveViewDefMaintenanceProjectionRow\(sourceData, rowKey, Number\(delta\)\)/);
+  assert.match(grid, /ソート中はViewDefの並び順を変更できません/);
+  assert.match(pageSetup, /viewDefMoveUpBtn[\s\S]*moveSelectedViewDefMaintenanceRow\(-1\)/);
+  assert.match(pageSetup, /viewDefMoveDownBtn[\s\S]*moveSelectedViewDefMaintenanceRow\(1\)/);
 });
