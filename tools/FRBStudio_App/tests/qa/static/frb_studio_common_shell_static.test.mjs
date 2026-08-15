@@ -254,3 +254,11 @@ test('All Common Shell pages use the p6 visual-foundation cache key', () => {
     assert.match(html, /css\/frb-studio-shell\.css\?v=0185p6/);
   }
 });
+
+
+test('JSON Data title shows the FRB icon only when a real title exists', () => {
+  assert.match(indexHtml, /\.frb-page-json-object \.current-data-title:not\(:empty\)/);
+  assert.match(indexHtml, /json-data-title-icon\.png/);
+  assert.match(indexHtml, /\.current-data-title:not\(:empty\)::before/);
+  assert.ok(fs.existsSync(path.join(ROOT, 'wwwroot/images/json-data-title-icon.png')));
+});

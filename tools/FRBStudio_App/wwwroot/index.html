@@ -133,6 +133,27 @@
       radial-gradient(circle at 20% 20%, rgba(255,255,255,0.24), transparent 30%),
       linear-gradient(135deg, #8b5cf6 0%, #2563eb 50%, #0f766e 100%);
   }
+
+  /* v0.18.63-json-data-title-icon: Dataタイトルがある時だけFRBアイコンを表示 */
+  .frb-page-json-object .current-data-title:not(:empty) {
+    position: relative;
+    min-height: 34px;
+    padding-left: 42px;
+    box-sizing: border-box;
+  }
+  .frb-page-json-object .current-data-title:not(:empty)::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 34px;
+    height: 34px;
+    transform: translateY(-50%);
+    border-radius: 10px;
+    background: url("images/json-data-title-icon.png") center / cover no-repeat;
+    box-shadow: 0 2px 8px rgba(26, 116, 166, 0.14);
+  }
+
   @media (max-width: 920px) {
     .studio-tool-dock,
     .studio-tool-group {
