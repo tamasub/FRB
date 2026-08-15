@@ -1,4 +1,4 @@
-// v0.18.57-field-definition-caption-grid-and-viewdef-row-order
+// v0.18.58-caption-derived-recursion-and-viewdef-order-save-safety
 // Readonly Editor Component that shows the human-facing caption from the target Data ViewDef.
 // The caption is derived, not persisted into Field Definition JSON.
 
@@ -37,6 +37,18 @@ function definitionTargetCaptionDerivedFields(viewDef={}) {
         ).trim();
         const sourceField = String(derived.sourceField ?? derived.source_field ?? 'field_path').trim() || 'field_path';
         if (!field?.field || !targetViewDefPath) return;
+
+        // Save-safety: a derived Caption field must never overwrite its own source field.
+        // A malformed ViewDef such as field="field_path" + sourceField="field_path"
+        // would otherwise install a getter that recursively reads itself and causes
+        // "Maximum call stack size exceeded".
+        if (String(field.field).trim() === sourceField) {
+          console.warn(
+            `[FRBStudio] definition_target_caption skipped self-recursive field: ${String(field.field)}`
+          );
+          return;
+        }
+
         result.push({
           section,
           field,

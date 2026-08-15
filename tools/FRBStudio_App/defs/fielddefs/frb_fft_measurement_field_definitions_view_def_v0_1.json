@@ -286,6 +286,33 @@
           "keyField": "field_path",
           "fields": [
             {
+              "field": "__target_caption",
+              "caption": "項目名（Caption）",
+              "type": "text",
+              "readonly": true,
+              "derived": {
+                "type": "definition_target_caption",
+                "sourceField": "field_path",
+                "targetViewDefPath": "frb/frb_fft_field_definition_sample_view_def_v0_1.json",
+                "unresolvedValue": "⚠ 未解決"
+              },
+              "grid": {
+                "visible": true,
+                "width": 180
+              },
+              "edit": {
+                "visible": false,
+                "readonly": true
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "create": {
+                "include": false
+              }
+            },
+            {
               "field": "field_path",
               "caption": "Field Path",
               "type": "text",
@@ -423,44 +450,6 @@
               "search": {
                 "visible": true,
                 "operator": "contains"
-              },
-              "validation": {
-                "required": false
-              },
-              "format": "",
-              "defaultValue": ""
-            },
-            {
-              "field": "field_path",
-              "caption": "Field Path",
-              "type": "text",
-              "readonly": true,
-              "derived": {
-                "type": "definition_target_caption",
-                "sourceField": "field_path",
-                "targetViewDefPath": "frb/frb_fft_field_definition_sample_view_def_v0_1.json",
-                "unresolvedValue": "⚠ 未解決"
-              },
-              "grid": {
-                "visible": true,
-                "width": 360,
-                "format": ""
-              },
-              "edit": {
-                "visible": true,
-                "readonly": false,
-                "editor": "",
-                "height": null,
-                "step": null,
-                "min": null,
-                "max": null
-              },
-              "search": {
-                "visible": true,
-                "operator": "contains"
-              },
-              "create": {
-                "include": false
               },
               "validation": {
                 "required": false

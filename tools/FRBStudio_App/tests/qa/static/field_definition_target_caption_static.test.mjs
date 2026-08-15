@@ -129,3 +129,49 @@ test('derived target caption getter follows field_path changes and never persist
   row.field_path = '$.analysis_start_date';
   assert.equal(row.__target_caption, '分析開始日');
 });
+
+
+test('malformed derived caption may not overwrite its own source field or recurse', async () => {
+  const componentSource = read('wwwroot/js/components/definition/definition_target_caption_component.js');
+  const target = readJson('defs/frb/frb_fft_field_definition_sample_view_def_v0_1.json');
+  const malformed = structuredClone(fieldDefEditor);
+  const section = malformed.views
+    .flatMap(view => view.sections ?? [])
+    .find(item => item.id === 'field_definitions');
+  const derived = section.fields.find(field => field.derived?.type === 'definition_target_caption');
+  derived.field = 'field_path';
+  derived.derived.sourceField = 'field_path';
+
+  const data = { field_definitions: [{ field_path: '$.analysis_start_date' }] };
+  const getByPath = (obj, pathValue) => {
+    const raw = String(pathValue ?? '').replace(/^\$\.?/, '');
+    if (!raw) return obj;
+    return raw.split('.').reduce((cur, part) => cur == null ? undefined : cur[part], obj);
+  };
+  const warnings = [];
+  const localSandbox = {
+    globalThis: {},
+    EditorComponent: class {},
+    registerEditorComponent: () => {},
+    getByPath,
+    resolveFieldDefinitionTargetViewField: sandbox.resolveFieldDefinitionTargetViewField,
+    fetchApiJsonWithUrl: async () => ({ json: target }),
+    console: { ...console, warn: (...args) => warnings.push(args.join(' ')) }
+  };
+  localSandbox.globalThis = localSandbox;
+  vm.createContext(localSandbox);
+  vm.runInContext(componentSource, localSandbox);
+
+  await localSandbox.materializeDefinitionTargetCaptionDerivedProperties(malformed, data);
+  assert.equal(data.field_definitions[0].field_path, '$.analysis_start_date');
+  assert.ok(warnings.some(message => message.includes('self-recursive')));
+});
+
+test('overwrite save never applies stale hidden detail form after ViewDef row-order changes', () => {
+  const source = read('wwwroot/js/runtime/detail_save.js');
+  assert.match(source, /const detailDialogOpen = Boolean\(\$\('detailDialog'\)\?\.open\);/);
+  assert.match(
+    source,
+    /detailMode === 'edit' && selectedIndex >= 0 && detailDialogOpen/
+  );
+});
