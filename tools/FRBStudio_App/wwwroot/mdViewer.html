@@ -2244,7 +2244,6 @@
             <div class="fm-edit-actions">
               <span class="fm-edit-status" id="fmEditStatus">フロントマターを編集できます。</span>
               <button id="btnResetFrontMatter" type="button" class="ghost-btn">読み直し</button>
-              <button id="btnApplyFrontMatter" type="button">本文へ反映</button>
             </div>
           </div>
         </div>
@@ -2269,7 +2268,7 @@ const mdUrlEl=document.getElementById("mdUrl"),previewEl=document.getElementById
 
 const fmPanel=document.getElementById("fmPanel"),fmHeader=document.getElementById("fmHeader"),fmBody=document.getElementById("fmBody"),fmToggleIcon=document.getElementById("fmToggleIcon"),fmSuggestArea=document.getElementById("fmSuggestArea");
 const btnExternalOpen=document.getElementById("btnExternalOpen"),btnRefreshWorkspace=document.getElementById("btnRefreshWorkspace"),btnNewWorkspaceMarkdown=document.getElementById("btnNewWorkspaceMarkdown"),btnNewWorkspaceFolder=document.getElementById("btnNewWorkspaceFolder"),mdWorkspaceTree=document.getElementById("mdWorkspaceTree"),mdWorkspaceName=document.getElementById("mdWorkspaceName"),mdWorkspacePath=document.getElementById("mdWorkspacePath"),mdWorkspaceRootDrop=document.getElementById("mdWorkspaceRootDrop"),mdDocumentOrigin=document.getElementById("mdDocumentOrigin");
-const fmSlug=document.getElementById("fmSlug"),fmTopics=document.getElementById("fmTopics"),fmTitleInput=document.getElementById("fmTitleInput"),fmEmojiInput=document.getElementById("fmEmojiInput"),fmTypeInput=document.getElementById("fmTypeInput"),fmTopicsInput=document.getElementById("fmTopicsInput"),fmPublishedInput=document.getElementById("fmPublishedInput"),btnApplyFrontMatter=document.getElementById("btnApplyFrontMatter"),btnResetFrontMatter=document.getElementById("btnResetFrontMatter"),fmEditStatus=document.getElementById("fmEditStatus");
+const fmSlug=document.getElementById("fmSlug"),fmTopics=document.getElementById("fmTopics"),fmTitleInput=document.getElementById("fmTitleInput"),fmEmojiInput=document.getElementById("fmEmojiInput"),fmTypeInput=document.getElementById("fmTypeInput"),fmTopicsInput=document.getElementById("fmTopicsInput"),fmPublishedInput=document.getElementById("fmPublishedInput"),btnResetFrontMatter=document.getElementById("btnResetFrontMatter"),fmEditStatus=document.getElementById("fmEditStatus");
 
 let tocDepth="all";
 let currentManagedMarkdownName = "";
@@ -2507,6 +2506,16 @@ function stripFrontMatter(rawMd) {
   return match ? text.substring(match[0].length) : text;
 }
 
+// Front MatterはMarkdown Documentの一部として保持し、Bodyだけを置換する。
+// Front Matterのみの初期Documentへ最初の行を挿入する場合も、設定ヘッダーを消さない。
+function replaceMarkdownBodyPreservingFrontMatter(rawMd, nextBody) {
+  const raw = String(rawMd ?? "");
+  const body = String(nextBody ?? "").replace(/^\s*\n/, "");
+  const match = raw.match(/^(---\r?\n[\s\S]*?\r?\n---)(?:\r?\n)?/);
+  if (!match) return body;
+  return `${match[1]}\n\n${body}`;
+}
+
 function frontMatterSlugFromTitle(title) {
   const slug = String(title || "article")
     .toLowerCase()
@@ -2586,7 +2595,7 @@ function frontMatterDataFromEditor(baseData = {}) {
 }
 
 function setFrontMatterEditorEnabled(enabled) {
-  [fmTitleInput, fmEmojiInput, fmTypeInput, fmTopicsInput, fmPublishedInput, btnApplyFrontMatter, btnResetFrontMatter]
+  [fmTitleInput, fmEmojiInput, fmTypeInput, fmTopicsInput, fmPublishedInput, btnResetFrontMatter]
     .forEach(el => { if (el) el.disabled = !enabled; });
 }
 
@@ -2604,22 +2613,24 @@ function syncFrontMatterEditor(data) {
   fmEditStatus.textContent = launchMarkdownRuntime.readonly ? "readonlyモードのため編集できません。" : "フロントマターを編集できます。";
 }
 
-function applyFrontMatterEdits() {
-  if (launchMarkdownRuntime.readonly) {
-    showMarkdownWarn("readonlyモードではフロントマターを編集できません。");
-    return;
-  }
-  const current = parseFrontMatter(editorEl.value).data || {};
-  const next = frontMatterDataFromEditor(current);
-  editorEl.value = replaceFrontMatter(editorEl.value, next);
+function syncFrontMatterEditorToCanonicalMarkdown() {
+  if (launchMarkdownRuntime.readonly) return false;
+  const parsed = parseFrontMatter(editorEl.value);
+  if (!parsed.data) return false;
+
+  const next = frontMatterDataFromEditor(parsed.data);
+  const canonical = replaceFrontMatter(editorEl.value, next);
+  if (canonical === editorEl.value) return false;
+
+  editorEl.value = canonical;
   isManagedMarkdownDirty = true;
-  markdownEditorRuntime.pendingPreviewRestoreLine = getContentLineOffset(editorEl.value) + 1;
-  renderMarkdown(editorEl.value, "#", "Front Matter Edited");
-  showMarkdownSuccess("フロントマターを本文へ反映しました。上書き保存で保存できます。", 3600);
+  fmEditStatus.textContent = "Markdownへ同期済み（未保存）";
+  return true;
 }
 
-// Front Matterの編集フォームは本文とは別状態を持つため、保存時は本文へ未反映でも必ず統合する。
-// Front Matterが本文に存在しない初期状態では何も生成しない。自動生成後は通常の保存対象になる。
+// Front MatterフォームはCanonical Markdownへ即時同期する。
+// 保存時のmaterializeは、DOM/イベント取りこぼしに備えた最後の整合性ガードとして残す。
+// Front Matterが本文に存在しない場合は、保存時に勝手に生成しない。
 function materializeFrontMatterForSave(rawMd = editorEl.value) {
   const raw = String(rawMd ?? "");
   const parsed = parseFrontMatter(raw);
@@ -2634,7 +2645,7 @@ function materializeFrontMatterForSave(rawMd = editorEl.value) {
   if (materialized !== raw) {
     editorEl.value = materialized;
     isManagedMarkdownDirty = true;
-    if (fmEditStatus) fmEditStatus.textContent = "保存時に本文へ反映します。";
+    if (fmEditStatus) fmEditStatus.textContent = "保存直前の整合性を補正しました。";
   }
   return materialized;
 }
@@ -2698,7 +2709,6 @@ fmHeader.addEventListener("click", () => {
   const isCollapsed = fmBody.classList.toggle("collapsed");
   fmToggleIcon.textContent = isCollapsed ? "▼" : "▲";
 });
-btnApplyFrontMatter?.addEventListener("click", applyFrontMatterEdits);
 btnResetFrontMatter?.addEventListener("click", () => {
   const data = parseFrontMatter(editorEl.value).data;
   if (!data) {
@@ -2713,7 +2723,7 @@ btnResetFrontMatter?.addEventListener("click", () => {
     const previewData = frontMatterDataFromEditor(parseFrontMatter(editorEl.value).data || {});
     fmSlug.textContent = frontMatterSlugFromTitle(previewData.title);
     renderFrontMatterTopicTags(previewData.topics);
-    fmEditStatus.textContent = "未反映の変更があります。";
+    syncFrontMatterEditorToCanonicalMarkdown();
   });
 });
 
@@ -2729,7 +2739,7 @@ window.insertSuggestedFrontMatter = function() {
   editorEl.value = generatedFM + rawText;
   isManagedMarkdownDirty = true;
   renderMarkdown(editorEl.value, "#", "Front Matter Generated");
-  showMarkdownSuccess("フロントマターを自動生成しました。必要に応じて編集して本文へ反映してください。", 3600);
+  showMarkdownSuccess("フロントマターを自動生成しました。Markdown本文の一部として保存対象になりました。", 3600);
 };
 
 
@@ -3790,8 +3800,8 @@ async function applyMarkdownRawBlockEdit() {
     if (!ok) return;
   }
   captureMarkdownMutationBackup("edit_raw_block", info);
-  if (info.type === "empty_document" || !String(editorEl.value || "").trim()) {
-    editorEl.value = String(newSource || "");
+  if (info.type === "empty_document" || !String(stripFrontMatter(editorEl.value) || "").trim()) {
+    editorEl.value = replaceMarkdownBodyPreservingFrontMatter(editorEl.value, String(newSource || ""));
   } else {
     editorEl.value = updateMarkdownRawBlockRange(editorEl.value, info, newSource);
   }
@@ -4704,8 +4714,8 @@ function applyMarkdownSentenceInsertEdit() {
   const position = mdSentenceInsertRuntime.position === "before" ? "before" : "after";
   const compact = isCompactListInsertion(info, insertText);
   captureMarkdownMutationBackup(position === "before" ? "insert_before" : "insert_after", info);
-  if (info.type === "empty_document" || !String(editorEl.value || "").trim()) {
-    editorEl.value = insertText;
+  if (info.type === "empty_document" || !String(stripFrontMatter(editorEl.value) || "").trim()) {
+    editorEl.value = replaceMarkdownBodyPreservingFrontMatter(editorEl.value, insertText);
     hideMarkdownSentenceInsertEditor();
     renderAfterMarkdownBlockMutation(1, "SentenceBlock Insert First");
     return;

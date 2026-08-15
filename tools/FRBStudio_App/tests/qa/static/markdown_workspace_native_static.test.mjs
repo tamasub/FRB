@@ -93,22 +93,48 @@ test('Workspace move preflights Sidecar destination before moving Markdown', () 
   assert.ok(preflight >= 0 && mainMove > preflight, 'Sidecar destination collision must be checked before Markdown is moved');
 });
 
-test('Front Matter form is materialized automatically on every Markdown save path without requiring Apply', () => {
+test('Front Matter is part of Canonical Markdown and no Apply button/state exists', () => {
+  assert.doesNotMatch(md, /id="btnApplyFrontMatter"/);
+  assert.doesNotMatch(md, /btnApplyFrontMatter/);
+  assert.doesNotMatch(md, />本文へ反映</);
+  assert.match(md, /function syncFrontMatterEditorToCanonicalMarkdown\(\)/);
+
+  const syncStart = md.indexOf('function syncFrontMatterEditorToCanonicalMarkdown');
+  const syncEnd = md.indexOf('// Front MatterフォームはCanonical Markdownへ即時同期する。', syncStart);
+  const syncBody = md.slice(syncStart, syncEnd);
+  assert.match(syncBody, /frontMatterDataFromEditor\(parsed\.data\)/);
+  assert.match(syncBody, /replaceFrontMatter\(editorEl\.value, next\)/);
+  assert.match(syncBody, /editorEl\.value = canonical/);
+  assert.match(syncBody, /isManagedMarkdownDirty = true/);
+
+  const fieldListenerStart = md.indexOf('[fmTitleInput, fmEmojiInput, fmTypeInput, fmTopicsInput, fmPublishedInput].forEach');
+  const fieldListenerEnd = md.indexOf('// フロントマターの自動挿入', fieldListenerStart);
+  assert.match(md.slice(fieldListenerStart, fieldListenerEnd), /syncFrontMatterEditorToCanonicalMarkdown\(\)/);
+});
+
+test('Front Matter generation immediately becomes Canonical Markdown and first body edit preserves it', () => {
+  assert.match(md, /window\.insertSuggestedFrontMatter = function\(\)/);
+  assert.match(md, /editorEl\.value = generatedFM \+ rawText;/);
+  assert.match(md, /Markdown本文の一部として保存対象になりました/);
+
+  assert.match(md, /function replaceMarkdownBodyPreservingFrontMatter\(rawMd, nextBody\)/);
+  assert.match(md, /editorEl\.value = replaceMarkdownBodyPreservingFrontMatter\(editorEl\.value, insertText\)/,
+    'Sentence insert into Front-Matter-only document must preserve Front Matter');
+  assert.match(md, /editorEl\.value = replaceMarkdownBodyPreservingFrontMatter\(editorEl\.value, String\(newSource \|\| ""\)\)/,
+    'Raw edit of empty body must preserve Front Matter');
+});
+
+test('Front Matter save materialization remains only as a final consistency guard', () => {
   assert.match(md, /function materializeFrontMatterForSave\(rawMd = editorEl\.value\)/);
   const materializeStart = md.indexOf('function materializeFrontMatterForSave');
   const materializeEnd = md.indexOf('// 保存ファイル名の入力欄同期', materializeStart);
   const materializeBody = md.slice(materializeStart, materializeEnd);
   assert.match(materializeBody, /if \(!parsed\.data\) return raw;/, 'no Front Matter must stay no Front Matter');
-  assert.match(materializeBody, /frontMatterDataFromEditor\(parsed\.data\)/, 'latest visible Front Matter form values must be used');
-  assert.match(materializeBody, /replaceFrontMatter\(raw, next\)/, 'form values must be merged into Markdown before save');
+  assert.match(materializeBody, /frontMatterDataFromEditor\(parsed\.data\)/);
+  assert.match(materializeBody, /replaceFrontMatter\(raw, next\)/);
 
   assert.match(md, /async function saveWorkspaceMarkdown[\s\S]*?const content = materializeFrontMatterForSave\(editorEl\.value \|\| ''\);/);
   assert.match(md, /async function saveExternalMarkdownOverwrite[\s\S]*?const content = materializeFrontMatterForSave\(editorEl\.value \|\| ''\);/);
   assert.match(md, /async function saveManagedMarkdown[\s\S]*?const saveContent = materializeFrontMatterForSave\(content\);/);
   assert.match(md, /async function saveMarkdownWithNativeDialog[\s\S]*?const content = materializeFrontMatterForSave\(editorEl\.value \|\| ""\);/);
-
-  // Initial-state generation remains allowed: generated Front Matter becomes editor content and can be saved by Save As.
-  assert.match(md, /window\.insertSuggestedFrontMatter = function\(\)/);
-  assert.match(md, /editorEl\.value = generatedFM \+ rawText;/);
-  assert.doesNotMatch(md, /insertSuggestedFrontMatter[\s\S]{0,500}(Document未選択|documentDisplayName\(\).*return)/);
 });
