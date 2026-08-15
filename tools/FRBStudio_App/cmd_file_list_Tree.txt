@@ -1,35 +1,34 @@
 フォルダー パスの一覧:  ボリューム Samsung980_Pro
-ボリューム シリアル番号は 0000001A 5007:08D7 です
+ボリューム シリアル番号は 00000086 5007:08D7 です
 F:.
 |   .gitignore
-|   appsettings.Development.json
-|   appsettings.json
-|   aspnetcorev2_inprocess.dll
-|   cmd_copy_frbstudio_publish.bat
+|   cmd_compile_NativeShell.bat
 |   cmd_count_source_steps_diff.bat
 |   cmd_count_source_steps_diff.ps1
 |   cmd_file_list_Tree.bat
 |   cmd_file_list_Tree.txt
+|   cmd_file_size_list.py
+|   cmd_file_size_list.txt
 |   cmd_make_FRBStudio_App_zip_v2.bat
 |   cmd_make_overlays_zip_v1.bat
 |   count_js_steps.bat
 |   count_js_steps.py
-|   FRB.ico
-|   FRBStudio.exe
-|   FRBStudio.pdb
-|   FRBStudio.staticwebassets.endpoints.json
-|   FRBStudio_App20260812_130538.zip
-|   FRBStudio_App20260812_132226.zip
-|   FRBStudio_App20260812_140056.zip
-|   FRBStudio_App20260812_142216.zip
-|   FRBStudio_App20260812_153416.zip
-|   FRB_tray.ico
+|   FRBStudio_App20260815_195644.zip
+|   FRBStudio_App20260815_201441.zip
+|   FRBStudio_App20260815_203939.zip
+|   FRBStudio_App20260815_211923.zip
+|   FRBStudio_App20260815_214224.zip
 |   package-lock.json
 |   package.json
 |   playwright.config.ts
 |   studio_overlays20260720_100908.zip
-|   web.config
 |   
++---.obsidian
+|       app.json
+|       appearance.json
+|       core-plugins.json
+|       workspace.json
+|       
 +---countstep
 |       countstep.txt
 |       countstep_20260704_160930.txt
@@ -142,6 +141,22 @@ F:.
 |   |   |   |   ai_constraint_spec_aggregated_v0_6_footer_chat.json
 |   |   |   |   
 |   |   |   +---contracts
+|   |   |   |   +---definition_test_runner_cross_field_operator_matrix_v0_1
+|   |   |   |   |   +---actual
+|   |   |   |   |   |       definition_test_runner.actual.json
+|   |   |   |   |   |       
+|   |   |   |   |   +---diff
+|   |   |   |   |   |       definition_test_runner.diff.json
+|   |   |   |   |   |       
+|   |   |   |   |   +---expected
+|   |   |   |   |   |       definition_test_runner.expected.json
+|   |   |   |   |   |       
+|   |   |   |   |   +---relations
+|   |   |   |   |   |       definition_test_runner_trace_relations.json
+|   |   |   |   |   |       
+|   |   |   |   |   \---summary
+|   |   |   |   |           definition_test_runner.result.json
+|   |   |   |   |           
 |   |   |   |   \---definition_test_runner_frb_fft_v0_1
 |   |   |   |       +---actual
 |   |   |   |       |       definition_test_runner.actual.json
@@ -272,6 +287,7 @@ F:.
 |   |   |       
 |   |   \---config
 |   |           common_enums_v0_1.json
+|   |           validation_test_condition_catalog_v0_1.json
 |   |           validation_type_registry_v0_1.json
 |   |           
 |   \---markdown
@@ -324,7 +340,10 @@ F:.
 |       |       studio_test_plan_responsibility_scope_md_data_v0_1_review_report_20260704_152618.md
 |       |       studio_test_plan_responsibility_scope_md_data_v0_1_review_report_20260704_161040.md
 |       |       studio_test_plan_responsibility_scope_md_data_v0_1_review_report_20260704_161639.md
+|       |       studio_work_incident_view_def_v0_5_viewdef_20260815_205735.md
+|       |       studio_work_incident_view_def_v0_5_viewdef_20260815_213926.md
 |       |       test_runner_run_config_view_def_v0_1_viewdef_20260704_152843.md
+|       |       test_runner_run_config_view_def_v0_1_viewdef_20260814_073639.md
 |       |       
 |       +---10_Zenn
 |       |       Zenn_Blog_All.md
@@ -342,8 +361,11 @@ F:.
 |       |       03_著作権違反防止.md
 |       |       04_著作権違反防止_対策済み.md
 |       |       05_テスト計画構想20260807.md
+|       |       06_作業備忘録.md
 |       |       
 |       \---99_temp
+|               Zenn_Blog_All_merged.md
+|               
 +---defs
 |   +---analysis
 |   |       thought_difference_analysis_profile_view_def_v0_1.json
@@ -357,6 +379,7 @@ F:.
 |   +---config
 |   |       config_folder_policy_v0_1.json
 |   |       field_group_types_config_data_v0_1.json
+|   |       validation_test_condition_catalog_view_def_v0_1.json
 |   |       validation_type_registry_view_def_v0_1.json
 |   |       
 |   +---evolution
@@ -465,7 +488,7 @@ F:.
 |           
 +---fielddefs
 |   +---samples
-|   |       frb_fft_measurement_field_definitions_v0_1.json
+|   |       cross_field_compare_operator_matrix_v0_1.json
 |   |       frb_fft_measurement_field_definitions_v0_2.json
 |   |       
 |   \---schema
@@ -481,8 +504,139 @@ F:.
 |       Log_20260715.log
 |       Log_20260730.log
 |       Log_20260812.log
+|       Log_20260814.log
+|       Log_20260815.log
 |       README.md
 |       
++---NativeShell
+|   |   app.manifest
+|   |   FRBStudio.NativeShell.csproj
+|   |   FRBStudio_NativeShell_Icon.ico
+|   |   FRB_Studio.ico
+|   |   NativeCommandDispatcher.cs
+|   |   NativeShellConfig.cs
+|   |   NativeShellForm.cs
+|   |   native_shell.config.json
+|   |   Program.cs
+|   |   README.md
+|   |   WorkspacePolicy.cs
+|   |   
+|   +---bin
+|   |   +---Debug
+|   |   |   \---net48
+|   |   \---Release
+|   |       \---net48
+|   |           |   FRBStudio.NativeShell.exe
+|   |           |   FRBStudio.NativeShell.exe.config
+|   |           |   FRBStudio.NativeShell.pdb
+|   |           |   Microsoft.Web.WebView2.Core.dll
+|   |           |   Microsoft.Web.WebView2.WinForms.dll
+|   |           |   Microsoft.Web.WebView2.Wpf.dll
+|   |           |   native_shell.config.json
+|   |           |   WebView2Loader.dll
+|   |           |   
+|   |           +---publish
+|   |           |   |   FRBStudio.NativeShell.exe
+|   |           |   |   FRBStudio.NativeShell.exe.config
+|   |           |   |   FRBStudio.NativeShell.pdb
+|   |           |   |   FRB_Studio.ico
+|   |           |   |   Microsoft.Web.WebView2.Core.dll
+|   |           |   |   Microsoft.Web.WebView2.WinForms.dll
+|   |           |   |   Microsoft.Web.WebView2.Wpf.dll
+|   |           |   |   native_shell.config.json
+|   |           |   |   WebView2Loader.dll
+|   |           |   |   
+|   |           |   \---runtimes
+|   |           |       \---win-x64
+|   |           |           \---native
+|   |           |                   WebView2Loader.dll
+|   |           |                   
+|   |           +---runtimes
+|   |           |   \---win-x64
+|   |           |       \---native
+|   |           |               WebView2Loader.dll
+|   |           |               
+|   |           \---win-x64
+|   |               |   FRBStudio.NativeShell.exe
+|   |               |   FRBStudio.NativeShell.exe.config
+|   |               |   FRBStudio.NativeShell.pdb
+|   |               |   Microsoft.Web.WebView2.Core.dll
+|   |               |   Microsoft.Web.WebView2.WinForms.dll
+|   |               |   Microsoft.Web.WebView2.Wpf.dll
+|   |               |   native_shell.config.json
+|   |               |   WebView2Loader.dll
+|   |               |   
+|   |               \---runtimes
+|   |                   \---win-x64
+|   |                       \---native
+|   |                               WebView2Loader.dll
+|   |                               
+|   \---obj
+|       |   FRBStudio.NativeShell.csproj.nuget.dgspec.json
+|       |   FRBStudio.NativeShell.csproj.nuget.g.props
+|       |   FRBStudio.NativeShell.csproj.nuget.g.targets
+|       |   project.assets.json
+|       |   project.nuget.cache
+|       |   
+|       +---Debug
+|       |   \---net48
+|       |           .NETFramework,Version=v4.8.AssemblyAttributes.cs
+|       |           FRBStudio.NativeShell.AssemblyInfo.cs
+|       |           FRBStudio.NativeShell.AssemblyInfoInputs.cache
+|       |           FRBStudio.NativeShell.assets.cache
+|       |           FRBStudio.NativeShell.csproj.AssemblyReference.cache
+|       |           FRBStudio.NativeShell.exe.withSupportedRuntime.config
+|       |           FRBStudio.NativeShell.GeneratedMSBuildEditorConfig.editorconfig
+|       |           
+|       \---Release
+|           \---net48
+|               |   .NETFramework,Version=v4.8.AssemblyAttributes.cs
+|               |   FRBStudi.DDDA676D.Up2Date
+|               |   FRBStudio.NativeShell.AssemblyInfo.cs
+|               |   FRBStudio.NativeShell.AssemblyInfoInputs.cache
+|               |   FRBStudio.NativeShell.assets.cache
+|               |   FRBStudio.NativeShell.csproj.AssemblyReference.cache
+|               |   FRBStudio.NativeShell.csproj.CoreCompileInputs.cache
+|               |   FRBStudio.NativeShell.csproj.FileListAbsolute.txt
+|               |   FRBStudio.NativeShell.exe
+|               |   FRBStudio.NativeShell.exe.withSupportedRuntime.config
+|               |   FRBStudio.NativeShell.GeneratedMSBuildEditorConfig.editorconfig
+|               |   FRBStudio.NativeShell.pdb
+|               |   FRBStudio.NativeShell.sourcelink.json
+|               |   PublishOutputs.0d120ed3c8.txt
+|               |   
+|               \---win-x64
+|                       .NETFramework,Version=v4.8.AssemblyAttributes.cs
+|                       FRBStudi.DDDA676D.Up2Date
+|                       FRBStudio.NativeShell.AssemblyInfo.cs
+|                       FRBStudio.NativeShell.AssemblyInfoInputs.cache
+|                       FRBStudio.NativeShell.assets.cache
+|                       FRBStudio.NativeShell.csproj.AssemblyReference.cache
+|                       FRBStudio.NativeShell.csproj.CoreCompileInputs.cache
+|                       FRBStudio.NativeShell.csproj.FileListAbsolute.txt
+|                       FRBStudio.NativeShell.exe
+|                       FRBStudio.NativeShell.exe.withSupportedRuntime.config
+|                       FRBStudio.NativeShell.GeneratedMSBuildEditorConfig.editorconfig
+|                       FRBStudio.NativeShell.pdb
+|                       FRBStudio.NativeShell.sourcelink.json
+|                       
++---NativeShell_publish
+|   |   FRBStudio.NativeShell.exe
+|   |   FRBStudio.NativeShell.exe.config
+|   |   FRBStudio.NativeShell.pdb
+|   |   FRBStudio_NativeShell_Icon.ico
+|   |   FRB_Studio.ico
+|   |   Microsoft.Web.WebView2.Core.dll
+|   |   Microsoft.Web.WebView2.WinForms.dll
+|   |   Microsoft.Web.WebView2.Wpf.dll
+|   |   native_shell.config.json
+|   |   WebView2Loader.dll
+|   |   
+|   \---runtimes
+|       \---win-x64
+|           \---native
+|                   WebView2Loader.dll
+|                   
 +---node_modules
 |   |   .package-lock.json
 |   |   
@@ -920,32 +1074,6 @@ F:.
 |           webidl.d.ts
 |           websocket.d.ts
 |           
-+---Program.cs
-|   |   appsettings.Development.json
-|   |   FRBStudio.csproj
-|   |   Program.cs
-|   |   
-|   +---bin
-|   |   \---Debug
-|   |       \---net9.0-windows
-|   \---obj
-|       |   FRBStudio.csproj.nuget.dgspec.json
-|       |   FRBStudio.csproj.nuget.g.props
-|       |   FRBStudio.csproj.nuget.g.targets
-|       |   project.assets.json
-|       |   project.nuget.cache
-|       |   
-|       \---Debug
-|           \---net9.0-windows
-|               |   .NETCoreApp,Version=v9.0.AssemblyAttributes.cs
-|               |   FRBStudio.AssemblyInfo.cs
-|               |   FRBStudio.AssemblyInfoInputs.cache
-|               |   FRBStudio.assets.cache
-|               |   FRBStudio.GeneratedMSBuildEditorConfig.editorconfig
-|               |   FRBStudio.GlobalUsings.g.cs
-|               |   
-|               +---ref
-|               \---refint
 +---reports
 |       incident_contextdef_open_work_draft_v0_16_3_validation_report.json
 |       
@@ -1170,6 +1298,7 @@ F:.
 |   +---.runtime
 |   |   +---definition
 |   |   |       definition_test_runner.result.json
+|   |   |       definition_test_runner_cross_field_operator_matrix.result.json
 |   |   |       
 |   |   \---playwright-output
 |   |       \---ncjs-screen-state-compare.-84498-SONをExpectedと比較してDiffを保存できる
@@ -1183,7 +1312,9 @@ F:.
 |   |       
 |   +---qa
 |   |   \---static
+|   |           combo_viewdef_maintenance_static.test.mjs
 |   |           cross_field_definition_preview_static.test.mjs
+|   |           cross_field_fieldset_ui_static.test.mjs
 |   |           definition_review_evidence_acceptance.test.mjs
 |   |           editor_component_model_static.test.mjs
 |   |           field_definition_editor_derived_preview_static.test.mjs
@@ -1191,7 +1322,9 @@ F:.
 |   |           field_definition_target_caption_static.test.mjs
 |   |           field_definition_viewdef_contract_static.test.mjs
 |   |           field_group_type_resolver_static.test.mjs
+|   |           frb_studio_common_shell_static.test.mjs
 |   |           incident_prompt_copy_action_viewdef_static.test.mjs
+|   |           markdown_workspace_native_static.test.mjs
 |   |           related_grid_view_launch_static.test.mjs
 |   |           studio_json_round_trip_runtime.test.mjs
 |   |           studio_json_round_trip_static.test.mjs
@@ -1506,6 +1639,7 @@ F:.
 |   |   app.js
 |   |   count_js_steps_add_datetime.bat
 |   |   DiffJsonViewer.html
+|   |   home.html
 |   |   index.html
 |   |   mdViewer.html
 |   |   mdviewer.json
@@ -1520,6 +1654,9 @@ F:.
 |   |       
 |   +---countstep
 |   |       countstep.txt
+|   |       
+|   +---css
+|   |       frb-studio-shell.css
 |   |       
 |   +---data
 |   |   +---json
@@ -1547,6 +1684,7 @@ F:.
 |   |       DiffToJson_20260715_232310.json
 |   |       DiffToJson_20260715_232520.json
 |   |       DiffToJson_20260715_232659.json
+|   |       DiffToJson_20260815_155338.json
 |   |       
 |   +---images
 |   |   \---chat
@@ -1584,6 +1722,7 @@ F:.
 |   |   |       field_types.js
 |   |   |       file_api.js
 |   |   |       loaders.js
+|   |   |       native_host_bridge.js
 |   |   |       overlay_manager.js
 |   |   |       plugin_host.js
 |   |   |       registry.js
@@ -2972,6 +3111,9 @@ F:.
 |   |   |       URL_LAUNCH_LOAD_NOTES_v0_8.md
 |   |   |       
 |   |   +---services
+|   |   |   |   option_maintenance_service.js
+|   |   |   |   viewdef_maintenance_projection.js
+|   |   |   |   
 |   |   |   \---definition
 |   |   |           cross_field_relation_evaluator.js
 |   |   |           cross_field_verification_service.js
@@ -2989,6 +3131,7 @@ F:.
 |   |   +---ui
 |   |   |       file_tree_picker.js
 |   |   |       FILE_TREE_PICKER_NAME_FIX_NOTES_v0_10_1.md
+|   |   |       frb_studio_shell.js
 |   |   |       page_setup.js
 |   |   |       studio_dialog.js
 |   |   |       
@@ -3002,6 +3145,7 @@ F:.
 |           
 +---_archive
 |   |   context_refs_sample_data_v0_1.json
+|   |   frb_fft_measurement_field_definitions_v0_1.json
 |   |   frb_fft_measurement_field_definitions_v0_2_bk.json
 |   |   frb_test_evidence_rules_data_v0_1.json
 |   |   fx_usdjpy_m5_t3_data_v0_1.zip
@@ -3372,6 +3516,10 @@ F:.
 |   |       \---config
 |   |               validation_type_catalogs_view_def_v0_1.json
 |   |               
+|   +---fixtures
+|   |   \---definition
+|   |           cross_field_compare_operator_matrix_v0_1.json
+|   |           
 |   +---markdown
 |   |   |   data_markdown.js
 |   |   |   markdown_registry.js
@@ -3426,6 +3574,44 @@ F:.
 |   \---mermaid_download
 |           mermaid-11.16.0.tgz
 |           
++---_archive_APP_Server
+|   |   appsettings.Development.json
+|   |   appsettings.json
+|   |   aspnetcorev2_inprocess.dll
+|   |   cmd_copy_frbstudio_publish.bat
+|   |   FRB.ico
+|   |   FRBStudio.exe
+|   |   FRBStudio.pdb
+|   |   FRBStudio.staticwebassets.endpoints.json
+|   |   FRB_tray.ico
+|   |   web.config
+|   |   
+|   \---Program.cs
+|       |   appsettings.Development.json
+|       |   FRBStudio.csproj
+|       |   Program.cs
+|       |   
+|       +---bin
+|       |   \---Debug
+|       |       \---net9.0-windows
+|       \---obj
+|           |   FRBStudio.csproj.nuget.dgspec.json
+|           |   FRBStudio.csproj.nuget.g.props
+|           |   FRBStudio.csproj.nuget.g.targets
+|           |   project.assets.json
+|           |   project.nuget.cache
+|           |   
+|           \---Debug
+|               \---net9.0-windows
+|                   |   .NETCoreApp,Version=v9.0.AssemblyAttributes.cs
+|                   |   FRBStudio.AssemblyInfo.cs
+|                   |   FRBStudio.AssemblyInfoInputs.cache
+|                   |   FRBStudio.assets.cache
+|                   |   FRBStudio.GeneratedMSBuildEditorConfig.editorconfig
+|                   |   FRBStudio.GlobalUsings.g.cs
+|                   |   
+|                   +---ref
+|                   \---refint
 +---_archive_eternal
 |   |   studio_work_incident_archive_completed_to_0079_v0_1_archive_eternal.json
 |   |   

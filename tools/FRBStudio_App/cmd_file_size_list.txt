@@ -1,25 +1,24 @@
 ﻿対象フォルダー: F:\FRB\tools\FRBStudio_App
-ファイル数    : 2677
+ファイル数    : 2796
 ========================================================================================================================
-    133.13 MB      139,593,751 bytes  FRBStudio.exe
+    133.13 MB      139,593,751 bytes  _archive_APP_Server\FRBStudio.exe
      30.27 MB       31,739,126 bytes  studio_overlays\gpt_fx_lab\data\fx_usdjpy_m5_t3_data_v0_1.json
      16.78 MB       17,600,095 bytes  _archive\mermaid_download\mermaid-11.16.0.tgz
      12.66 MB       13,276,891 bytes  wwwroot\js\lib\mermaid\mermaid.js.map
      12.65 MB       13,266,635 bytes  wwwroot\js\lib\mermaid\mermaid.min.js.map
       7.83 MB        8,212,686 bytes  wwwroot\js\lib\mermaid\mermaid.js
-      7.13 MB        7,478,204 bytes  FRBStudio_App20260812_183151.zip
-      7.12 MB        7,464,271 bytes  FRBStudio_App20260812_153416.zip
-      7.06 MB        7,406,426 bytes  FRBStudio_App20260812_142216.zip
-      7.06 MB        7,398,001 bytes  FRBStudio_App20260812_140056.zip
-      7.05 MB        7,389,668 bytes  FRBStudio_App20260812_132226.zip
-      7.05 MB        7,389,298 bytes  FRBStudio_App20260812_130538.zip
       5.83 MB        6,116,088 bytes  studio_overlays20260720_100908.zip
       5.61 MB        5,879,158 bytes  studio_overlays\gpt_fx_lab\sidecars\fx_usdjpy_m5_t3_data_v0_1.simulation_trace.json
       5.24 MB        5,496,731 bytes  studio_overlays\gpt_fx_lab\simulattion_集計\batch_20260716_233643.json
       4.21 MB        4,418,001 bytes  studio_overlays\gpt_fx_lab\simulattion_集計\batch_20260718_100830.json
       4.20 MB        4,402,135 bytes  studio_overlays\gpt_fx_lab\simulattion_集計\batch_20260720_094623.json
       3.69 MB        3,871,388 bytes  studio_overlays\gpt_fx_lab\simulattion_集計\batch_20260718_203141.json
+      3.42 MB        3,587,967 bytes  FRBStudio_App20260815_211923.zip
+      3.42 MB        3,585,107 bytes  FRBStudio_App20260815_203939.zip
+      3.42 MB        3,583,679 bytes  FRBStudio_App20260815_201441.zip
       3.40 MB        3,565,102 bytes  wwwroot\js\lib\mermaid\mermaid.min.js
+      3.40 MB        3,564,725 bytes  FRBStudio_App20260815_214224.zip
+      3.31 MB        3,473,492 bytes  FRBStudio_App20260815_195644.zip
       3.20 MB        3,352,341 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\coreBundle.js
       3.20 MB        3,352,230 bytes  node_modules\playwright-core\lib\coreBundle.js
       3.17 MB        3,318,943 bytes  studio_overlays\gpt_fx_lab\simulattion_集計\batch_20260717_230817.json
@@ -29,8 +28,8 @@
       2.66 MB        2,789,601 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright\lib\transform\babelBundle.js
       2.66 MB        2,789,601 bytes  node_modules\playwright\lib\transform\babelBundle.js
       2.54 MB        2,661,901 bytes  studio_overlays\gpt_fx_lab\simulattion_集計\batch_20260716_205714.json
+      2.50 MB        2,618,695 bytes  data\json\01_main\_studio_work_incident_data_v2.json
       2.48 MB        2,601,879 bytes  studio_overlays\gpt_fx_lab\simulattion_集計\batch_20260717_122702.json
-      2.35 MB        2,460,753 bytes  data\json\01_main\_studio_work_incident_data_v2.json
       2.05 MB        2,151,499 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-L5GCOVLC.mjs.map
       2.00 MB        2,099,459 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\chunk-A7G5T7E5.mjs.map
       1.90 MB        1,993,672 bytes  wwwroot\data\json\01_main\studio_work_incident_data_v0_00.json
@@ -96,12 +95,12 @@
     841.38 KB          861,577 bytes  _archive\studio_work_incident_data_v0_74_context_model_cleanup_incidents_added.json
     837.31 KB          857,407 bytes  _archive\studio_work_incident_data_v0_116_message_catalog_data_viewdef_added.json
     834.05 KB          854,067 bytes  _archive\studio_work_incident_data_v0_115_message_catalog_incident_added.json
+    830.25 KB          850,180 bytes  data\json\00_master\message_catalog_data_v0_1.json
     818.10 KB          837,737 bytes  _archive\studio_work_incident_data_v0_114_source_publication_hold_added.json
     799.22 KB          818,397 bytes  _archive\studio_work_incident_data_v0_113_viewdef_aware_object_diff_key_matching_existing_diff_added.json
     798.06 KB          817,216 bytes  _archive\studio_work_incident_data_v0_111_expecteddef_log_compare_lookup_design_seed_added.json
     795.38 KB          814,471 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\types\protocol.d.ts
     795.38 KB          814,471 bytes  node_modules\playwright-core\types\protocol.d.ts
-    794.29 KB          813,357 bytes  data\json\00_master\message_catalog_data_v0_1.json
     791.04 KB          810,029 bytes  _archive\studio_work_incident_data_v0_112_viewdef_aware_object_diff_viewer_added.json
     760.95 KB          779,216 bytes  _archive\studio_work_incident_data_v0_110_search_state_ui_policy_record_done.json
     759.73 KB          777,959 bytes  _archive\markdown\99_temp\studio_work_incident_export.md
@@ -117,6 +116,10 @@
     688.54 KB          705,061 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-L5GCOVLC.mjs
     687.02 KB          703,506 bytes  _archive\studio_work_incident_archive_completed_to_0079_v0_1.json
     687.02 KB          703,506 bytes  _archive_eternal\studio_work_incident_archive_completed_to_0079_v0_1_archive_eternal.json
+    681.88 KB          698,248 bytes  NativeShell_publish\Microsoft.Web.WebView2.Core.dll
+    681.88 KB          698,248 bytes  NativeShell\bin\Release\net48\Microsoft.Web.WebView2.Core.dll
+    681.88 KB          698,248 bytes  NativeShell\bin\Release\net48\publish\Microsoft.Web.WebView2.Core.dll
+    681.88 KB          698,248 bytes  NativeShell\bin\Release\net48\win-x64\Microsoft.Web.WebView2.Core.dll
     681.61 KB          697,969 bytes  _archive\studio_work_incident_data_v0_104_current_data_title_card_style_done.json
     673.50 KB          689,662 bytes  _archive\studio_work_incident_data_v0_64_test_runner_result_classification_done.json
     671.93 KB          688,053 bytes  _archive\studio_work_incident_data_v0_103_current_data_title_display_done.json
@@ -153,6 +156,7 @@
     542.04 KB          555,051 bytes  _archive\studio_work_incident_data_v0_93_frbstudio_app_root_path_contract_done.json
     538.69 KB          551,621 bytes  _archive\studio_work_incident_data_v0_92_frbstudio_app_root_path_contract_added.json
     537.73 KB          550,640 bytes  _archive\20260627_1745\data\json\01_main\studio_work_incident_data_v0_58_rules_filename_reference_migration_added.json
+    525.60 KB          538,215 bytes  data\markdown\99_temp\Zenn_Blog_All_merged.md
     523.15 KB          535,701 bytes  _archive\studio_work_incident_data_v0_57_rule_review_status_responsibility_issue_added.json
     523.15 KB          535,701 bytes  _archive\20260627_1745\data\json\01_main\studio_work_incident_data_v0_57_rule_review_status_responsibility_issue_added.json
     520.75 KB          533,249 bytes  _archive\studio_work_incident_data_v0_91_studio_overlay_manifest_done_archived.json
@@ -178,9 +182,9 @@
     448.09 KB          458,845 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\chunk-65BZPYT2.mjs.map
     443.81 KB          454,458 bytes  studio_overlays\gpt_fx_lab\simulattion_集計\batch_20260716_233643_normal_entry_gate_failures.json
     440.08 KB          450,646 bytes  _archive\studio_work_incident_data_v0_54_incident_prompt_copy_action_implemented.json
-    436.91 KB          447,396 bytes  data\json\03_tests\contracts\definition_test_runner_frb_fft_v0_1\diff\definition_test_runner.diff.json
-    435.91 KB          446,375 bytes  tests\.runtime\definition\definition_test_runner.result.json
-    435.91 KB          446,375 bytes  data\json\03_tests\contracts\definition_test_runner_frb_fft_v0_1\summary\definition_test_runner.result.json
+    436.93 KB          447,418 bytes  data\json\03_tests\contracts\definition_test_runner_frb_fft_v0_1\diff\definition_test_runner.diff.json
+    435.93 KB          446,390 bytes  tests\.runtime\definition\definition_test_runner.result.json
+    435.93 KB          446,390 bytes  data\json\03_tests\contracts\definition_test_runner_frb_fft_v0_1\summary\definition_test_runner.result.json
     428.39 KB          438,673 bytes  _archive\studio_work_incident_data_v0_53_data_viewdef_candidates_implemented.json
     424.93 KB          435,125 bytes  _archive\studio_work_incident_data_v0_52_incident_prompt_copy_action_added.json
     422.55 KB          432,690 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\architectureDiagram-FW2JMN5B.mjs
@@ -189,9 +193,9 @@
     406.26 KB          416,009 bytes  node_modules\playwright-core\lib\vite\htmlReport\report.js
     404.39 KB          414,093 bytes  _archive\studio_work_incident_data_v0_50_decision_log_confirmation_governance_done.json
     396.45 KB          405,962 bytes  _archive\studio_work_incident_data_v0_49_decision_log_confirmation_governance_added.json
-    386.05 KB          395,316 bytes  data\json\03_tests\contracts\definition_test_runner_frb_fft_v0_1\expected\definition_test_runner.expected.json
+    386.07 KB          395,338 bytes  data\json\03_tests\contracts\definition_test_runner_frb_fft_v0_1\expected\definition_test_runner.expected.json
     384.04 KB          393,255 bytes  _archive\studio_work_incident_data_v0_48_index_studio_tool_dock_layout_added.json
-    375.03 KB          384,032 bytes  aspnetcorev2_inprocess.dll
+    375.03 KB          384,032 bytes  _archive_APP_Server\aspnetcorev2_inprocess.dll
     368.23 KB          377,067 bytes  _archive\studio_work_incident_data_v0_47_main_json_select_reset_toast_ux_picker_suppressed.json
     365.36 KB          374,132 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright\types\test.d.ts
     365.36 KB          374,132 bytes  node_modules\playwright\types\test.d.ts
@@ -225,13 +229,13 @@
     300.02 KB          307,221 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\swimlanes-YAP2ZHFU.mjs
     299.98 KB          307,183 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\swimlanes-5IMT3BWC.mjs
     295.83 KB          302,933 bytes  studio_overlays\gpt_fx_lab\simulattion_集計\batch_20260718_100830_normal_entry_gate_failures.json
+    293.61 KB          300,659 bytes  wwwroot\mdViewer.html
     290.82 KB          297,798 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright\lib\runner\index.js
     290.82 KB          297,798 bytes  node_modules\playwright\lib\runner\index.js
     285.39 KB          292,244 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\vite\traceViewer\assets\xtermModule-CsJ4vdCR.js
     285.39 KB          292,244 bytes  node_modules\playwright-core\lib\vite\traceViewer\assets\xtermModule-CsJ4vdCR.js
     263.87 KB          270,207 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\katex-C5OPUE3Q.mjs
     260.58 KB          266,835 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\chunk-WYO6CB5R.mjs
-    256.87 KB          263,034 bytes  wwwroot\mdViewer.html
     253.48 KB          259,562 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\blockDiagram-BDH3CYR7.mjs.map
     251.43 KB          257,463 bytes  studio_overlays\gpt_fx_lab\simulattion_集計\batch_20260717_230817_normal_entry_gate_failures.json
     250.57 KB          256,583 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\blockDiagram-677ZJIJ3.mjs.map
@@ -253,14 +257,15 @@
     215.70 KB          220,872 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\chunk-65BZPYT2.mjs
     203.75 KB          208,641 bytes  studio_overlays\gpt_fx_lab\simulattion_集計\batch_20260717_122702_entry_results.json
     203.66 KB          208,552 bytes  wwwroot\diff\DiffToJson_20260702_210451.json
-    202.34 KB          207,200 bytes  data\json\00_rules\frb_viewdef_generation_rules_data_v0_1.json
     199.43 KB          204,215 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\sequenceDiagram-DXCB7GA4.mjs
     199.33 KB          204,117 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\sequenceDiagram-DBY2YBRQ.mjs
     198.64 KB          203,404 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\c4Diagram-6Y6SKSDM.mjs.map
     198.38 KB          203,144 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\c4Diagram-LMCZKHZV.mjs.map
     198.37 KB          203,127 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\c4Diagram-OL75R3QW.mjs.map
     196.00 KB          200,702 bytes  node_modules\@types\node\fs.d.ts
+    192.67 KB          197,290 bytes  data\json\00_rules\frb_viewdef_generation_rules_data_v0_1.json
     190.23 KB          194,799 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\vennDiagram-VSB6UTAL.mjs.map
+    189.61 KB          194,159 bytes  wwwroot\diff\DiffToJson_20260815_155338.json
     185.92 KB          190,380 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\vennDiagram-GZOJKRXC.mjs.map
     184.67 KB          189,107 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\chunk-PUDLZKDR.mjs.map
     184.62 KB          189,047 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\chunk-YI7H2ERT.mjs.map
@@ -271,11 +276,23 @@
     169.85 KB          173,927 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\chunk-ZIRB5QZD.mjs.map
     169.85 KB          173,927 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\chunk-PWCFYZI5.mjs.map
     166.09 KB          170,075 bytes  data\json\00_rules\frb_coding_constraints_data_v0_3.json
+    165.88 KB          169,859 bytes  cmd_file_list_Tree.txt
     163.73 KB          167,656 bytes  node_modules\@types\node\crypto.d.ts
     162.73 KB          166,634 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\ganttDiagram-65O4CIDK.mjs.map
     162.29 KB          166,186 bytes  studio_overlays\gpt_fx_lab\simulattion_集計\batch_20260717_203022_normal_entry_gate_failures.json
     161.98 KB          165,863 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\ganttDiagram-VWBR5VES.mjs.map
-    157.95 KB          161,741 bytes  cmd_file_list_Tree.txt
+    159.38 KB          163,208 bytes  NativeShell_publish\WebView2Loader.dll
+    159.38 KB          163,208 bytes  NativeShell_publish\runtimes\win-x64\native\WebView2Loader.dll
+    159.38 KB          163,208 bytes  NativeShell\bin\Release\net48\WebView2Loader.dll
+    159.38 KB          163,208 bytes  NativeShell\bin\Release\net48\publish\WebView2Loader.dll
+    159.38 KB          163,208 bytes  NativeShell\bin\Release\net48\win-x64\WebView2Loader.dll
+    159.38 KB          163,208 bytes  NativeShell\bin\Release\net48\win-x64\runtimes\win-x64\native\WebView2Loader.dll
+    159.38 KB          163,208 bytes  NativeShell\bin\Release\net48\runtimes\win-x64\native\WebView2Loader.dll
+    159.38 KB          163,208 bytes  NativeShell\bin\Release\net48\publish\runtimes\win-x64\native\WebView2Loader.dll
+    158.50 KB          162,304 bytes  NativeShell_publish\FRBStudio.NativeShell.exe
+    158.50 KB          162,304 bytes  NativeShell\obj\Release\net48\FRBStudio.NativeShell.exe
+    158.50 KB          162,304 bytes  NativeShell\bin\Release\net48\FRBStudio.NativeShell.exe
+    158.50 KB          162,304 bytes  NativeShell\bin\Release\net48\publish\FRBStudio.NativeShell.exe
     156.06 KB          159,805 bytes  studio_overlays\gpt_fx_lab\sidecars\fx_usdjpy_m5_t3_data_v0_1.chart_comments.json
     153.32 KB          157,004 bytes  studio_overlays\gpt_fx_lab\simulattion_集計\batch_20260717_203022_entry_results.json
     151.86 KB          155,501 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-KRXBNO2N.mjs.map
@@ -328,6 +345,8 @@
     109.63 KB          112,258 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\vite\traceViewer\defaultSettingsView.CjdS-WJx.css
     109.63 KB          112,258 bytes  node_modules\playwright-core\lib\vite\traceViewer\defaultSettingsView.CjdS-WJx.css
     109.55 KB          112,175 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-6C3L5S6U.mjs.map
+    108.59 KB          111,199 bytes  NativeShell\FRBStudio_NativeShell_Icon.ico
+    108.59 KB          111,199 bytes  NativeShell_publish\FRBStudio_NativeShell_Icon.ico
     108.43 KB          111,029 bytes  node_modules\@types\node\process.d.ts
     107.83 KB          110,417 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\utilsBundle.js.LICENSE
     107.83 KB          110,417 bytes  node_modules\playwright-core\lib\utilsBundle.js.LICENSE
@@ -335,6 +354,9 @@
     106.61 KB          109,164 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\chunk-4F4KDU6L.mjs.map
     106.34 KB          108,891 bytes  data\markdown\00_Common\studio_test_plan_responsibility_scope_md_data_v0_1_full_dump_20260704_145750.md
     106.34 KB          108,891 bytes  data\markdown\00_Common\studio_test_plan_responsibility_scope_md_data_v0_1_full_dump_20260704_145826.md
+    106.13 KB          108,677 bytes  NativeShell\FRB_Studio.ico
+    106.13 KB          108,677 bytes  NativeShell_publish\FRB_Studio.ico
+    106.13 KB          108,677 bytes  NativeShell\bin\Release\net48\publish\FRB_Studio.ico
     105.79 KB          108,330 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\vite\htmlReport\report.css
     105.79 KB          108,330 bytes  node_modules\playwright-core\lib\vite\htmlReport\report.css
     105.71 KB          108,247 bytes  data\markdown\00_Common\frb_coding_constraints_data_v0_3_review_report_20260731_182127.md
@@ -346,7 +368,7 @@
     101.56 KB          103,995 bytes  data\json\05_inventory\defs_data_link_inventory_v0_2_repaired.json
     100.47 KB          102,881 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\architectureDiagram-ZJ3FMSHR.mjs.map
     100.21 KB          102,613 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-KTKOSTGQ.mjs
-     98.59 KB          100,958 bytes  Program.cs\Program.cs
+     99.72 KB          102,112 bytes  _archive_APP_Server\Program.cs\Program.cs
      98.32 KB          100,679 bytes  _archive\20260627_1745\data\json\05_inventory\defs_data_link_inventory_v0_1.json
      97.84 KB          100,190 bytes  data\json\05_inventory\defs_data_link_inventory_v0_1.json
      93.91 KB           96,167 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\requirementDiagram-R3ZQC5DG.mjs.map
@@ -368,8 +390,11 @@
      90.23 KB           92,398 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-ENMKPL7Y.mjs.map
      90.07 KB           92,234 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\vite\recorder\assets\index-4ZiSSCmn.css
      90.07 KB           92,234 bytes  node_modules\playwright-core\lib\vite\recorder\assets\index-4ZiSSCmn.css
+     90.03 KB           92,195 bytes  tests\.runtime\definition\definition_test_runner_cross_field_operator_matrix.result.json
+     90.03 KB           92,195 bytes  data\json\03_tests\contracts\definition_test_runner_cross_field_operator_matrix_v0_1\summary\definition_test_runner.result.json
      89.15 KB           91,291 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\mindmap-definition-CKRMFO7I.mjs.map
      88.77 KB           90,905 bytes  studio_overlays\gpt_fx_lab\CHANGELOG.md
+     88.72 KB           90,852 bytes  wwwroot\styles.css
      88.44 KB           90,559 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\mindmap-definition-GVBGAMR2.mjs.map
      88.39 KB           90,510 bytes  _archive\markdown\99_temp\rule_review_decision_log_export.md
      87.33 KB           89,427 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\erDiagram-Q63AITRT.mjs.map
@@ -385,13 +410,16 @@
      84.62 KB           86,651 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\chunk-V7JOEXUC.mjs
      84.58 KB           86,610 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\chunk-ICPQ7HTI.mjs
      84.53 KB           86,556 bytes  studio_overlays\gpt_fx_lab\シュミレーションルール仮_v0.28.md
-     84.15 KB           86,166 bytes  wwwroot\styles.css
      82.55 KB           84,527 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\journeyDiagram-WII6DRMM.mjs.map
+     82.21 KB           84,183 bytes  data\json\00_rules\frb_view_def_schema_v0_9.json
      82.20 KB           84,169 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\cose-bilkent-RZA4XIPR.mjs
+     81.88 KB           83,848 bytes  NativeShell_publish\Microsoft.Web.WebView2.Wpf.dll
+     81.88 KB           83,848 bytes  NativeShell\bin\Release\net48\Microsoft.Web.WebView2.Wpf.dll
+     81.88 KB           83,848 bytes  NativeShell\bin\Release\net48\publish\Microsoft.Web.WebView2.Wpf.dll
+     81.88 KB           83,848 bytes  NativeShell\bin\Release\net48\win-x64\Microsoft.Web.WebView2.Wpf.dll
      81.69 KB           83,648 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\journeyDiagram-5HDEW3XC.mjs.map
      81.65 KB           83,613 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\journeyDiagram-YFPJT4EK.mjs.map
      80.37 KB           82,294 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\vennDiagram-L72KCM5P.mjs.map
-     80.30 KB           82,230 bytes  data\json\00_rules\frb_view_def_schema_v0_9.json
      79.90 KB           81,818 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\chunk-PLCLPJVV.mjs.map
      79.47 KB           81,373 bytes  studio_overlays\gpt_fx_lab\シュミレーションルール仮_v0.27.md
      78.89 KB           80,785 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\server\deviceDescriptorsSource.json
@@ -407,8 +435,10 @@
      76.54 KB           78,377 bytes  data\markdown\00_Common\frb_coding_constraints_data_v0_3_20260701_221236.md
      76.54 KB           78,377 bytes  data\markdown\00_Common\frb_coding_constraints_data_v0_3_20260701_221707.md
      76.48 KB           78,314 bytes  wwwroot\js\lib\mermaid\themes\index.d.ts
+     76.30 KB           78,127 bytes  data\json\00_rules\frb_test_evidence_rules_data_v0_2.json
      75.90 KB           77,718 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\xychartDiagram-FW5EYKEG.mjs
      75.80 KB           77,620 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\xychartDiagram-3DBDKXFU.mjs
+     75.60 KB           77,411 bytes  data\json\03_tests\contracts\definition_test_runner_cross_field_operator_matrix_v0_1\diff\definition_test_runner.diff.json
      75.36 KB           77,167 bytes  studio_overlays\gpt_fx_lab\simulattion_集計\batch_20260716_185516_entry_results.json
      75.31 KB           77,115 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\ganttDiagram-NO4QXBWP.mjs
      75.08 KB           76,885 bytes  studio_overlays\gpt_fx_lab\simulattion_集計\batch_20260718_100830_normal_entry_gate_failures.csv
@@ -424,7 +454,6 @@
      70.64 KB           72,335 bytes  data\markdown\00_Common\frb_coding_constraints_data_v0_3_20260630_231451.md
      70.18 KB           71,865 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\blockDiagram-BDH3CYR7.mjs
      69.84 KB           71,518 bytes  _archive\シュミレーションルール仮_v0.13.md
-     69.67 KB           71,343 bytes  data\json\00_rules\frb_test_evidence_rules_data_v0_2.json
      69.47 KB           71,137 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\kanban-definition-HUTT4EX6.mjs.map
      69.45 KB           71,119 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\kanban-definition-353KVIO4.mjs.map
      69.21 KB           70,866 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\kanban-definition-B52SFAVG.mjs.map
@@ -439,6 +468,7 @@
      63.89 KB           65,419 bytes  studio_overlays\gpt_fx_lab\simulattion_集計\batch_20260717_230817_normal_entry_gate_failures.csv
      63.27 KB           64,785 bytes  node_modules\@types\node\util.d.ts
      63.06 KB           64,576 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\chunk-T5XCKZAJ.mjs
+     62.76 KB           64,268 bytes  data\json\03_tests\contracts\definition_test_runner_cross_field_operator_matrix_v0_1\expected\definition_test_runner.expected.json
      62.47 KB           63,971 bytes  studio_overlays\gpt_fx_lab\simulattion_集計\batch_20260717_122702_normal_entry_gate_failures.csv
      61.93 KB           63,416 bytes  wwwroot\js\lib\mermaid\mermaid.esm.mjs
      61.53 KB           63,006 bytes  _archive\シュミレーションルール仮_v0.11.md
@@ -492,8 +522,8 @@
      48.50 KB           49,663 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\architectureDiagram-ZJ3FMSHR.mjs
      48.13 KB           49,281 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-VIJNA47K.mjs
      47.84 KB           48,989 bytes  _archive\シュミレーションルール仮_v0.23.md
+     46.28 KB           47,391 bytes  wwwroot\js\runtime\detail_subgrid_edit.js
      46.26 KB           47,375 bytes  node_modules\@types\node\events.d.ts
-     46.12 KB           47,230 bytes  wwwroot\js\runtime\detail_subgrid_edit.js
      46.00 KB           47,100 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-SZQNAPRP.mjs
      45.62 KB           46,710 bytes  wwwroot\defs\json\rules\studio_work_incident_view_def_v0_5.json
      45.50 KB           46,594 bytes  _archive\xxxstudio_work_incident_view_def_v0_5.json
@@ -501,6 +531,8 @@
      45.30 KB           46,383 bytes  _archive\20260627_1745\data\json\00_rules\frb_view_def_schema_v0_9.json
      45.06 KB           46,137 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\journeyDiagram-5HDEW3XC.mjs
      45.05 KB           46,132 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\journeyDiagram-YFPJT4EK.mjs
+     45.00 KB           46,080 bytes  NativeShell\obj\Release\net48\win-x64\FRBStudio.NativeShell.exe
+     45.00 KB           46,080 bytes  NativeShell\bin\Release\net48\win-x64\FRBStudio.NativeShell.exe
      44.78 KB           45,851 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\diagram-G47NLZAW.mjs.map
      44.73 KB           45,806 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\diagram-X4YHHYUO.mjs.map
      44.68 KB           45,753 bytes  data\markdown\00_Common\studio_test_plan_responsibility_scope_md_data_v0_1_20260704_140024.md
@@ -509,7 +541,8 @@
      44.35 KB           45,412 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\mindmap-definition-CKRMFO7I.mjs
      44.27 KB           45,332 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\wardleyDiagram-NBP37UBZ.mjs
      44.21 KB           45,266 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\diagram-JDTM4OSO.mjs.map
-     43.80 KB           44,852 bytes  FRBStudio.pdb
+     43.96 KB           45,016 bytes  _archive_APP_Server\FRBStudio.pdb
+     43.84 KB           44,890 bytes  wwwroot\js\renderers\grid_detail.js
      43.75 KB           44,801 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\wardleyDiagram-EHGQE667.mjs
      43.67 KB           44,722 bytes  data\markdown\00_Common\studio_test_plan_responsibility_scope_md_data_v0_1_review_report_20260704_145630.md
      43.67 KB           44,722 bytes  data\markdown\00_Common\studio_test_plan_responsibility_scope_md_data_v0_1_review_report_20260704_145808.md
@@ -528,12 +561,13 @@
      42.67 KB           43,694 bytes  data\json\config\common_enums_v0_1.json
      42.50 KB           43,525 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\mindmap-definition-LN4V7U3C.mjs
      42.44 KB           43,462 bytes  data\markdown\00_Common\rule_review_common_view_def_v0_3_viewdef_20260704_152803.md
+     42.31 KB           43,321 bytes  wwwroot\js\renderers\field_controls.js
      42.20 KB           43,209 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\chunk-MMGVDTGO.mjs
+     42.06 KB           43,071 bytes  NativeShell\NativeCommandDispatcher.cs
      42.03 KB           43,040 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\vennDiagram-VSB6UTAL.mjs
      41.92 KB           42,923 bytes  data\markdown\30_Studioくん構想メモ\04_著作権違反防止_対策済み.md
      41.89 KB           42,891 bytes  node_modules\@types\node\assert.d.ts
      41.74 KB           42,739 bytes  wwwroot\js\virtualData\relation_builders.js
-     41.72 KB           42,718 bytes  wwwroot\js\renderers\field_controls.js
      41.50 KB           42,495 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-W44A43WB.mjs
      41.50 KB           42,494 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-7FYTHRHK.mjs
      41.40 KB           42,392 bytes  studio_overlays\gpt_fx_lab\simulattion_集計\batch_20260717_203022_normal_entry_gate_failures.csv
@@ -552,7 +586,6 @@
      40.44 KB           41,407 bytes  studio_overlays\gpt_fx_lab\simulation\fx_simulation_run_profile_expansion_v0_1.json
      40.17 KB           41,130 bytes  studio_overlays\gpt_fx_lab\simulation\fx_simulation_run_profile_expansion_lite_v0_1.json
      40.06 KB           41,024 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\stateDiagram-CSZEIB5N.mjs.map
-     40.00 KB           40,960 bytes  wwwroot\js\renderers\grid_detail.js
      39.94 KB           40,895 bytes  _archive\シュミレーションルール仮_v0.22.md
      39.81 KB           40,764 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\xychartDiagram-R6JRNRHN.mjs
      39.70 KB           40,650 bytes  data\json\81_learning\public_enterprise_accounting_learning_data_v0_1.json
@@ -569,11 +602,16 @@
      38.56 KB           39,484 bytes  studio_overlays\gpt_fx_lab\simulation\fx_simulation_run_profile_v0_1.json
      38.30 KB           39,215 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright\lib\matchers\expect.js.LICENSE
      38.30 KB           39,215 bytes  node_modules\playwright\lib\matchers\expect.js.LICENSE
+     37.88 KB           38,792 bytes  NativeShell_publish\Microsoft.Web.WebView2.WinForms.dll
+     37.88 KB           38,792 bytes  NativeShell\bin\Release\net48\Microsoft.Web.WebView2.WinForms.dll
+     37.88 KB           38,792 bytes  NativeShell\bin\Release\net48\publish\Microsoft.Web.WebView2.WinForms.dll
+     37.88 KB           38,792 bytes  NativeShell\bin\Release\net48\win-x64\Microsoft.Web.WebView2.WinForms.dll
      37.69 KB           38,594 bytes  _archive\20260627_1745\defs\rules\tmp\rule_review_common_view_def_v0_1.json
      37.61 KB           38,514 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\vite\traceViewer\uiMode.Ut8wwJNp.js
      37.61 KB           38,514 bytes  node_modules\playwright-core\lib\vite\traceViewer\uiMode.Ut8wwJNp.js
      37.56 KB           38,461 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\diagram-EYB2CBB5.mjs.map
      37.53 KB           38,432 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-AX4YENZL.mjs
+     37.45 KB           38,347 bytes  wwwroot\js\core\field_types.js
      36.66 KB           37,537 bytes  defs\rules\rule_review_common_view_def_v0_3.json
      35.83 KB           36,695 bytes  _archive\20260627_1745\defs\rules\frb_view_def_schema_review_view_def_v0_1.json
      35.78 KB           36,637 bytes  tools\chatgpt-share-export-minimum\Thought_Evolution_Graph_Viewer_sample_v0.1.html
@@ -581,6 +619,7 @@
      35.74 KB           36,596 bytes  node_modules\playwright-core\lib\tools\cli-client\help.json
      35.73 KB           36,591 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\diagram-DSDODEYW.mjs.map
      35.73 KB           36,590 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\diagram-OA4YK3LP.mjs.map
+     35.54 KB           36,392 bytes  data\json\03_tests\contracts\definition_test_runner_cross_field_operator_matrix_v0_1\actual\definition_test_runner.actual.json
      35.04 KB           35,883 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\ishikawaDiagram-EUVD52U2.mjs
      35.00 KB           35,839 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\ishikawaDiagram-FXEZZL3T.mjs
      34.79 KB           35,627 bytes  _archive\markdown\99_temp\qa_shortage_expected_findings_view_def_v0_1_viewdef.md
@@ -601,10 +640,9 @@
      33.01 KB           33,804 bytes  _archive\20260627_1745\data\markdown\studio_work_incident_view_def_v0_1_viewdef.md
      32.96 KB           33,754 bytes  _archive\20260627_1745\defs\common\common_types_v0_1.json
      32.96 KB           33,749 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-VY5UBI4V.mjs.map
-     32.52 KB           33,303 bytes  wwwroot\js\core\field_types.js
      32.52 KB           33,299 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\chunk-GUDDZZ3A.mjs.map
-     32.41 KB           33,192 bytes  FRB.ico
-     32.25 KB           33,027 bytes  FRB_tray.ico
+     32.41 KB           33,192 bytes  _archive_APP_Server\FRB.ico
+     32.25 KB           33,027 bytes  _archive_APP_Server\FRB_tray.ico
      32.21 KB           32,983 bytes  node_modules\@types\node\module.d.ts
      32.20 KB           32,977 bytes  studio_overlays\gpt_fx_lab\simulattion_集計\batch_20260717_230817_expansion_lite_entry_gate_failures.json
      32.01 KB           32,777 bytes  _archive\シュミレーションルール仮_v0.21.md
@@ -668,24 +706,28 @@
      24.86 KB           25,457 bytes  node_modules\@types\node\url.d.ts
      24.60 KB           25,188 bytes  _archive\studio_fx_chart_viewer_incident_data_v0_1.json
      24.52 KB           25,112 bytes  node_modules\@types\node\diagnostics_channel.d.ts
+     24.50 KB           25,093 bytes  wwwroot\DiffJsonViewer.html
      24.45 KB           25,033 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\diagram-5YXONRP5.mjs.map
      24.44 KB           25,029 bytes  data\markdown\30_Studioくん構想メモ\01_設計パターン.md
      24.43 KB           25,016 bytes  wwwroot\js\virtualData\expected_builders.js
+     24.39 KB           24,980 bytes  defs\fielddefs\frb_fft_measurement_field_definitions_view_def_v0_1.json
+     24.36 KB           24,942 bytes  wwwroot\js\runtime\detail_save.js
      24.34 KB           24,921 bytes  node_modules\@types\node\dgram.d.ts
      23.90 KB           24,475 bytes  _archive\markdown\99_temp\metadiff_ai_hypothesis_frb_20260523_v0_2_1.md
      23.90 KB           24,475 bytes  _archive\20260627_1745\data\markdown\metadiff_ai_hypothesis_frb_20260523_v0_2_1.md
      23.65 KB           24,222 bytes  data\markdown\00_Common\frb_test_evidence_rules_data_v0_1_review_report_20260704_182910.md
      23.57 KB           24,134 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\sankeyDiagram-H77HJZDF.mjs
      23.43 KB           23,992 bytes  defs\mission\studio_context_engineer_wannabe_mission_def_view_def_v0_1.json
-     23.34 KB           23,904 bytes  wwwroot\DiffJsonViewer.html
      23.33 KB           23,892 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\mindmap-definition-GVBGAMR2.mjs
      23.31 KB           23,868 bytes  _archive\シュミレーションルール仮_v0.19.md
+     23.30 KB           23,859 bytes  wwwroot\js\services\option_maintenance_service.js
      23.27 KB           23,832 bytes  node_modules\@types\node\util\types.d.ts
      23.07 KB           23,628 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\diagram-L2TKVKAN.mjs.map
      23.07 KB           23,624 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\diagram-WEI45ONY.mjs.map
      22.99 KB           23,543 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\journeyDiagram-WII6DRMM.mjs
      22.81 KB           23,358 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\diagram-X4YHHYUO.mjs
      22.72 KB           23,265 bytes  _archive\シュミレーションルール仮_v0.18.md
+     22.52 KB           23,059 bytes  data\json\03_tests\contracts\definition_test_runner_cross_field_operator_matrix_v0_1\relations\definition_test_runner_trace_relations.json
      22.49 KB           23,026 bytes  defs\master\message_catalog_view_def_v0_1.json
      22.43 KB           22,973 bytes  node_modules\@types\node\perf_hooks.d.ts
      22.42 KB           22,959 bytes  _archive\20260627_1745\data\json\03_tests\screen_state\screen_state_smoke_001\relations\constraint_trace_relations_v0_1.json
@@ -697,6 +739,7 @@
      22.12 KB           22,655 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\diagram-FRZYSN44.mjs
      22.07 KB           22,604 bytes  node_modules\@types\node\buffer.buffer.d.ts
      22.04 KB           22,574 bytes  studio_overlays\gpt_fx_lab\simulation\tools\build_entry_result_rows_v0_1.cjs
+     21.93 KB           22,461 bytes  wwwroot\js\services\definition\cross_field_verification_service.js
      21.87 KB           22,398 bytes  _archive\markdown\99_temp\ai_constraint_spec_aggregated_v0_1.md
      21.87 KB           22,398 bytes  _archive\20260627_1745\data\markdown\ai_constraint_spec_aggregated_v0_1.md
      21.80 KB           22,328 bytes  data\json\config\validation_type_registry_v0_1.json
@@ -705,6 +748,7 @@
      21.70 KB           22,217 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\cose-bilkent-JH36ORCC.mjs.map
      21.67 KB           22,185 bytes  wwwroot\js\core\viewdef_resolver.js
      21.52 KB           22,039 bytes  _archive\20260627_1745\defs\rules\ai_constraint_grouped_view_def_v0_6_footer_chat.json
+     21.42 KB           21,930 bytes  wwwroot\index.html
      21.34 KB           21,855 bytes  node_modules\@types\node\ts5.6\buffer.buffer.d.ts
      21.33 KB           21,845 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\pieDiagram-OG5FZAAG.mjs.map
      21.20 KB           21,706 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright\lib\transform\babelBundle.js.txt
@@ -713,6 +757,7 @@
      20.72 KB           21,216 bytes  node_modules\@types\node\readline.d.ts
      20.67 KB           21,162 bytes  _archive\markdown\99_temp\screen_state_diff_view_def_child_v0_3_failure_focus_viewdef.md
      20.67 KB           21,162 bytes  _archive\20260627_1745\data\markdown\screen_state_diff_view_def_child_v0_3_failure_focus_viewdef.md
+     20.56 KB           21,050 bytes  wwwroot\MetaDiff_HypothesisViewer.html
      20.56 KB           21,050 bytes  data\json\00_rules\_my_most_important_context.md
      20.44 KB           20,934 bytes  defs\rules\ai_constraint_grouped_view_def_v0_6_footer_chat.json
      20.38 KB           20,869 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\pieDiagram-ENE6RG2P.mjs.map
@@ -723,12 +768,9 @@
      20.25 KB           20,739 bytes  _archive\シュミレーションルール仮_bk4.md
      20.15 KB           20,633 bytes  _archive\20260627_1745\defs\rules\chatgpt\chatgpt_shared_context_view_def_v0_1.json
      19.97 KB           20,446 bytes  data\json\03_tests\responsibilities\responsibility_data_v0_1.json
-     19.95 KB           20,431 bytes  wwwroot\js\runtime\detail_save.js
      19.93 KB           20,406 bytes  _archive\markdown\99_temp\FRB_VIEW_DEF_GENERATION_RULES_v0_15_action_registry_current.md
      19.93 KB           20,406 bytes  _archive\20260627_1745\data\markdown\#U2605FRB_VIEW_DEF_GENERATION_RULES_v0_15_action_registry_current.md
-     19.76 KB           20,235 bytes  wwwroot\MetaDiff_HypothesisViewer.html
      19.51 KB           19,978 bytes  defs\rules\chatgpt\chatgpt_shared_context_view_def_v0_1.json
-     19.44 KB           19,907 bytes  wwwroot\index.html
      19.24 KB           19,704 bytes  _archive\シュミレーションルール仮_bk3.md
      19.24 KB           19,698 bytes  data\json\02_mission\schema\studio_context_engineer_wannabe_mission_def_schema_v0_1_draft.json
      19.20 KB           19,661 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\stateDiagram-2N3HPSRC.mjs
@@ -754,9 +796,9 @@
      18.67 KB           19,123 bytes  _archive\20260627_1745\data\json\01_main\chatgpt_shared_context_data_v0_1.json
      18.67 KB           19,123 bytes  data\json\01_main\chatgpt_ex\chatgpt_shared_context_data_v0_1.json
      18.58 KB           19,023 bytes  node_modules\@types\node\repl.d.ts
-     18.54 KB           18,989 bytes  defs\fielddefs\frb_fft_measurement_field_definitions_view_def_v0_1.json
      18.50 KB           18,945 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\tools\dashboard\appIcon.png
      18.50 KB           18,945 bytes  node_modules\playwright-core\lib\tools\dashboard\appIcon.png
+     18.40 KB           18,841 bytes  wwwroot\css\frb-studio-shell.css
      18.32 KB           18,763 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\dagre-VKFMJZFB.mjs
      18.29 KB           18,725 bytes  _archive\シュミレーションルール仮_v0.17.md
      18.25 KB           18,692 bytes  tools\git\Export-DiffToJson.ps1
@@ -766,6 +808,7 @@
      18.18 KB           18,617 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\serverRegistry.js.LICENSE
      18.18 KB           18,617 bytes  node_modules\playwright-core\lib\serverRegistry.js.LICENSE
      18.13 KB           18,563 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-ENMKPL7Y.mjs
+     17.51 KB           17,927 bytes  Log\Log_20260812.log
      17.46 KB           17,875 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright\lib\transform\esmLoader.js.LICENSE
      17.46 KB           17,875 bytes  node_modules\playwright\lib\transform\esmLoader.js.LICENSE
      17.33 KB           17,745 bytes  _archive\markdown\99_temp\fft_log_sample.md
@@ -776,7 +819,7 @@
      17.05 KB           17,460 bytes  wwwroot\Studio_Core_Context_Summary.md
      17.01 KB           17,415 bytes  _archive\20260627_1745\defs\rules\chatgpt\chatgpt_context_relation_graph_view_def_v0_1.json
      17.00 KB           17,404 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\chunk-BQKPLVCE.mjs.map
-     16.96 KB           17,370 bytes  wwwroot\app.js
+     17.00 KB           17,403 bytes  wwwroot\app.js
      16.78 KB           17,183 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\diagram-DSDODEYW.mjs
      16.56 KB           16,958 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright\lib\agents\generateAgents.js
      16.56 KB           16,958 bytes  node_modules\playwright\lib\agents\generateAgents.js
@@ -793,8 +836,10 @@
      16.18 KB           16,571 bytes  defs\relation\relation_axis_diff_check_view_def_v0_1.json
      16.18 KB           16,565 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\server\chromium\appIcon.png
      16.18 KB           16,565 bytes  node_modules\playwright-core\lib\server\chromium\appIcon.png
+     16.17 KB           16,559 bytes  wwwroot\js\core\native_host_bridge.js
      16.12 KB           16,502 bytes  _archive\シュミレーションルール仮_v0.16.md
      16.09 KB           16,473 bytes  defs\rules\chatgpt\chatgpt_context_relation_graph_view_def_v0_1.json
+     15.99 KB           16,373 bytes  wwwroot\js\runtime\load_runtime.js
      15.92 KB           16,300 bytes  data\markdown\30_Studioくん構想メモ\03_著作権違反防止.md
      15.78 KB           16,161 bytes  _archive\markdown\99_temp\ai_constraint_spec_v0_1xxx.md
      15.78 KB           16,161 bytes  _archive\20260627_1745\data\markdown\ai_constraint_spec_v0_1xxx.md
@@ -807,7 +852,6 @@
      15.54 KB           15,915 bytes  _archive\20260627_1745\data\markdown\To_AI_Comment_MyComment.md
      15.50 KB           15,869 bytes  defs\qa\tests\responsibilities\responsibility_expected_test_patterns_view_def_v0_1.json
      15.46 KB           15,834 bytes  defs\common\common_enums_view_def_v0_1.json
-     15.44 KB           15,811 bytes  wwwroot\js\runtime\load_runtime.js
      15.40 KB           15,766 bytes  data\json\02_mission\schema\studio_context_engineer_wannabe_mission_result_summary_schema_v0_1_draft.json
      15.37 KB           15,737 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-UITSOMYB.mjs
      15.36 KB           15,725 bytes  _archive\20260627_1745\data\json\03_tests\qa\v0_14_2_incident_prompt_copy_action\relations\constraint_trace_relations_v0_14_2_incident_prompt_copy_action_draft.json
@@ -825,6 +869,7 @@
      14.81 KB           15,165 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright\lib\util.js
      14.81 KB           15,165 bytes  node_modules\playwright\lib\util.js
      14.73 KB           15,080 bytes  defs\tools\git_diff_export_run_config_view_def_v0_1.json
+     14.64 KB           14,996 bytes  tests\definition\cross_field_definition_test.test.mjs
      14.61 KB           14,956 bytes  data\json\04_qa\qa_expected_checks_classified_v0_1.json
      14.58 KB           14,925 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\chunk-Q4XR5HBZ.mjs
      14.55 KB           14,900 bytes  _archive\20260627_1745\data\json\04_qa\qa_expected_checks_classified_v0_1.json
@@ -832,9 +877,11 @@
      14.53 KB           14,877 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\diagram-MPNEUAEF.mjs.map
      14.52 KB           14,873 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\diagram-NH7WQ7WH.mjs.map
      14.45 KB           14,793 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\chunk-4PNYCQBS.mjs
+     14.35 KB           14,699 bytes  defs\frb\frb_fft_field_definition_sample_view_def_v0_1.json
      14.34 KB           14,684 bytes  _archive\markdown\99_temp\screen_state_diff_view_def_base_v0_2_checks_viewdef.md
      14.34 KB           14,684 bytes  _archive\20260627_1745\data\markdown\screen_state_diff_view_def_base_v0_2_checks_viewdef.md
      14.18 KB           14,524 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\chunk-RYQCIY6F.mjs
+     14.14 KB           14,484 bytes  data\markdown\00_Common\test_runner_run_config_view_def_v0_1_viewdef_20260814_073639.md
      14.09 KB           14,424 bytes  node_modules\undici-types\dispatcher.d.ts
      14.06 KB           14,396 bytes  data\json\00_rules\_FRB_Studio_Design_Document_Map_v0_1.md
      14.05 KB           14,391 bytes  data\markdown\00_Common\test_runner_run_config_view_def_v0_1_viewdef_20260704_152843.md
@@ -842,20 +889,22 @@
      14.02 KB           14,357 bytes  _archive\20260627_1745\data\markdown\json_studio_export_2026-06-17T11-10-43-232Z.md
      14.01 KB           14,343 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\chunk-7BUUIJ7U.mjs.map
      14.01 KB           14,343 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\chunk-RTI7CJYH.mjs.map
+     13.88 KB           14,212 bytes  NativeShell_publish\FRBStudio.NativeShell.pdb
+     13.88 KB           14,212 bytes  NativeShell\obj\Release\net48\FRBStudio.NativeShell.pdb
+     13.88 KB           14,212 bytes  NativeShell\bin\Release\net48\FRBStudio.NativeShell.pdb
+     13.88 KB           14,212 bytes  NativeShell\bin\Release\net48\publish\FRBStudio.NativeShell.pdb
      13.85 KB           14,181 bytes  _archive\20260627_1745\defs\rules\chatgpt\chatgpt_raw_keyword_activation_view_def_v0_1.json
      13.84 KB           14,170 bytes  tools\Utf8Readable\Repair-JsonMdUtf8ReadableText.ps1
      13.78 KB           14,106 bytes  Log\Log_20260704.log
      13.70 KB           14,025 bytes  defs\rules\trigger_def_view_def_v0_1.json
-     13.49 KB           13,809 bytes  defs\frb\frb_fft_field_definition_sample_view_def_v0_1.json
      13.42 KB           13,747 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-5VCL7Z4A.mjs.map
-     13.34 KB           13,663 bytes  wwwroot\js\services\definition\cross_field_verification_service.js
      13.26 KB           13,581 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright\lib\program.js
      13.26 KB           13,581 bytes  node_modules\playwright\lib\program.js
      13.24 KB           13,558 bytes  defs\rules\chatgpt\chatgpt_raw_keyword_activation_view_def_v0_1.json
-     13.08 KB           13,395 bytes  tests\qa\static\field_definition_editor_derived_preview_static.test.mjs
      13.08 KB           13,392 bytes  _archive\20260627_1745\defs\relation\relation_axis_constraint_view_def_v0_1.json
      13.08 KB           13,392 bytes  data\markdown\00_Common\frb_test_evidence_rules_data_v0_2_document_rebuild_20260704_184658.md
      13.08 KB           13,392 bytes  data\markdown\00_Common\frb_test_evidence_rules_data_v0_2_document_rebuild_20260704_184924.md
+     13.07 KB           13,386 bytes  tests\qa\static\field_definition_editor_derived_preview_static.test.mjs
      13.06 KB           13,370 bytes  defs\relation\relation_axis_constraint_view_def_v0_1.json
      13.00 KB           13,317 bytes  tests\qa\static\studio_json_round_trip_runtime.test.mjs
      12.81 KB           13,122 bytes  _archive\markdown\99_temp\No-Code JSON Studiov0.3-draft.md
@@ -865,7 +914,9 @@
      12.61 KB           12,913 bytes  data\markdown\30_Studioくん構想メモ\02_expecteddef_lookup_design_summary_20260702.md
      12.41 KB           12,707 bytes  studio_overlays\gpt_fx_lab\doc\Dow材料点観測フェーズ仕様メモ_v0_7_2.md
      12.35 KB           12,645 bytes  defs\evolution\thought_evolution_proposal_view_def_v0_1.json
+     12.26 KB           12,551 bytes  tests\qa\static\combo_viewdef_maintenance_static.test.mjs
      12.23 KB           12,522 bytes  _archive\シュミレーションルール仮_v0.14.md
+     12.20 KB           12,489 bytes  defs\common\view_def_maint_fields_v0_2.json
      12.07 KB           12,357 bytes  tests\qa\static\incident_prompt_copy_action_viewdef_static.test.mjs
      11.92 KB           12,203 bytes  data\markdown\00_Common\010_文脈とは.md
      11.91 KB           12,198 bytes  node_modules\@types\node\inspector.d.ts
@@ -873,11 +924,14 @@
      11.81 KB           12,095 bytes  studio_overlays\thought_evolution\graphs\quality_asset_relation_graph_data_v0_1.json
      11.78 KB           12,067 bytes  data\json\01_main\md\studio_work_decision_reasons_summary.md
      11.72 KB           12,003 bytes  count_js_steps.py
+     11.69 KB           11,972 bytes  NativeShell\obj\Release\net48\win-x64\FRBStudio.NativeShell.pdb
+     11.69 KB           11,972 bytes  NativeShell\bin\Release\net48\win-x64\FRBStudio.NativeShell.pdb
      11.64 KB           11,923 bytes  defs\rules\context_refs_sample_view_def_v0_1.json
      11.64 KB           11,918 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\diagram-L2TKVKAN.mjs
      11.61 KB           11,890 bytes  tools\chatgpt-share-export-minimum\export_chatgpt_share.mjs
      11.59 KB           11,869 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\tools\cli-client\skill\SKILL.md
      11.59 KB           11,869 bytes  node_modules\playwright-core\lib\tools\cli-client\skill\SKILL.md
+     11.56 KB           11,840 bytes  tests\qa\static\frb_studio_common_shell_static.test.mjs
      11.47 KB           11,744 bytes  studio_overlays\gpt_fx_lab\tests\batch_simulation_runner_v0_1.test.cjs
      11.46 KB           11,730 bytes  _archive\20260627_1745\defs\qa\qa_expected_checks_classified_view_def_v0_1.json
      11.46 KB           11,730 bytes  defs\qa\review\qa_expected_checks_classified_view_def_v0_1.json
@@ -892,15 +946,15 @@
      11.33 KB           11,601 bytes  node_modules\playwright-core\LICENSE
      11.33 KB           11,601 bytes  node_modules\@playwright\test\LICENSE
      11.31 KB           11,582 bytes  _archive\20260627_1745\defs\common\view_def_maint_fields_v0_2.json
-     11.31 KB           11,582 bytes  defs\common\view_def_maint_fields_v0_2.json
      11.31 KB           11,578 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\tools\cli-client\skill\references\spec-driven-testing.md
      11.31 KB           11,578 bytes  node_modules\playwright-core\lib\tools\cli-client\skill\references\spec-driven-testing.md
      11.26 KB           11,527 bytes  _archive\20260627_1745\defs\qa\qa_shortage_expected_findings_view_def_v0_1.json
      11.26 KB           11,527 bytes  defs\qa\review\qa_shortage_expected_findings_view_def_v0_1.json
      11.25 KB           11,523 bytes  data\json\01_main\thought_difference\thought_evolution_proposal_quality_asset_data_v0_1.json
+     11.22 KB           11,485 bytes  wwwroot\js\core\file_api.js
      11.21 KB           11,475 bytes  wwwroot\js\lib\mermaid\utils.d.ts
      11.17 KB           11,442 bytes  data\json\03_tests\responsibilities\responsibility_expected_first_set\diff\responsibility_expected_first_set_diff_data_v0_1.json
-     11.16 KB           11,424 bytes  wwwroot\js\services\definition\definition_test_runner_core.js
+     11.15 KB           11,419 bytes  wwwroot\js\services\definition\definition_test_runner_core.js
      11.12 KB           11,387 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\diagram-WEI45ONY.mjs
      11.06 KB           11,330 bytes  tests\screen_state\ncjs-screen-state-compare.checks.spec.ts
      11.02 KB           11,282 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright\README.md
@@ -916,17 +970,19 @@
      10.84 KB           11,098 bytes  _archive\markdown\99_temp\chatgpt_sentence_prime_map_preview_v0_1.md
      10.84 KB           11,098 bytes  _archive\20260627_1745\data\markdown\chatgpt_sentence_prime_map_preview_v0_1.md
      10.82 KB           11,077 bytes  wwwroot\js\services\definition\definition_test_evidence_builder.js
+     10.73 KB           10,983 bytes  fielddefs\samples\frb_fft_measurement_field_definitions_v0_2.json
      10.65 KB           10,907 bytes  _archive\20260627_1745\defs\screen_state\screen_state_diff_view_def_base_v0_2_checks.json
      10.65 KB           10,907 bytes  defs\screen_state\screen_state_diff_view_def_base_v0_2_checks.json
      10.62 KB           10,879 bytes  studio_overlays\gpt_fx_lab\tests\expansion_lite_hsi_retention_bb_reentry_h4_candidate_v0_27.test.cjs
+     10.47 KB           10,725 bytes  tests\definition\definition_test_runner_core.test.mjs
      10.46 KB           10,716 bytes  defs\config\field_group_types_config_data_v0_1.json
      10.43 KB           10,684 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\stateDiagram-CSZEIB5N.mjs
      10.40 KB           10,654 bytes  defs\tools\test_runner_run_config_view_def_v0_1.json
-     10.40 KB           10,649 bytes  wwwroot\js\core\file_api.js
      10.40 KB           10,648 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\pieDiagram-ENE6RG2P.mjs
      10.38 KB           10,626 bytes  tools\chatgpt-share-export-minimum\output\20260720_123258_20260720思考進化オーバーレイ.md
      10.35 KB           10,595 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\cynefinDiagram-N5GTLAMU.mjs
      10.34 KB           10,587 bytes  _archive\シュミレーションルール仮_bk.md
+     10.34 KB           10,587 bytes  wwwroot\js\ui\page_setup.js
      10.34 KB           10,585 bytes  tools\chatgpt-share-export-minimum\output\20260720_122611_このチャットを見てみる.md
      10.29 KB           10,536 bytes  data\json\00_rules\_json_creation_prompt.md
      10.22 KB           10,461 bytes  wwwroot\js\ui\file_tree_picker.js
@@ -938,19 +994,20 @@
       9.97 KB           10,206 bytes  tests\responsibilities\responsibility_expected_tests.mjs
       9.93 KB           10,172 bytes  studio_overlays\thought_evolution\view_defs\thought_evolution_graph_catalog_view_def_v0_1.json
       9.77 KB           10,009 bytes  _archive\frb_fft_measurement_field_definitions_v0_2_bk.json
-      9.77 KB           10,009 bytes  fielddefs\samples\frb_fft_measurement_field_definitions_v0_2.json
       9.74 KB            9,977 bytes  defs\relation\thought_evolution_relation_approval_view_def_v0_1.json
+      9.72 KB            9,953 bytes  NativeShell\obj\Debug\net48\FRBStudio.NativeShell.csproj.AssemblyReference.cache
+      9.66 KB            9,891 bytes  NativeShell\obj\project.assets.json
+      9.62 KB            9,851 bytes  wwwroot\js\components\definition\definition_target_caption_component.js
       9.58 KB            9,809 bytes  wwwroot\images\chat\v0.7-json-select-folder-hierarchy_tree.png
-      9.57 KB            9,800 bytes  tests\definition\cross_field_definition_test.test.mjs
       9.55 KB            9,778 bytes  studio_overlays\gpt_fx_lab\GPT_FX_Labとは何か_JSONからFX専用観測画面が生えた日_v0_1.md
       9.55 KB            9,776 bytes  data\json\03_tests\responsibilities\responsibility_expected_first_set\test_patterns\responsibility_expected_test_patterns_data_v0_1.json
       9.36 KB            9,585 bytes  _archive\markdown\99_temp\relation_axis_business_customer_view_def_v0_1_viewdef.md
       9.36 KB            9,585 bytes  _archive\20260627_1745\data\markdown\relation_axis_business_customer_view_def_v0_1_viewdef.md
+      9.31 KB            9,537 bytes  tools\test\TestRunner.ps1
       9.30 KB            9,527 bytes  data\markdown\00_Common\studio_context_engineer_wannabe_foundation_rules_data_v0_1_draft_review_report_20260704_151240.md
       9.30 KB            9,527 bytes  data\markdown\00_Common\studio_context_engineer_wannabe_foundation_rules_data_v0_1_draft_review_report_20260704_151451.md
       9.30 KB            9,525 bytes  _archive\markdown\99_temp\my-ai-driven-development-08-thinking-as-class.md
       9.30 KB            9,525 bytes  _archive\20260627_1745\data\markdown\my-ai-driven-development-08-thinking-as-class.md
-      9.29 KB            9,511 bytes  tests\definition\definition_test_runner_core.test.mjs
       9.17 KB            9,395 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\tools\cli-client\session.js
       9.17 KB            9,395 bytes  node_modules\playwright-core\lib\tools\cli-client\session.js
       9.15 KB            9,372 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright\lib\cli\testActions.js
@@ -965,13 +1022,16 @@
       8.93 KB            9,143 bytes  node_modules\playwright-core\lib\vite\dashboard\assets\firefox-nightly-Cp5nfeDT.svg
       8.78 KB            8,993 bytes  wwwroot\js\ui\studio_dialog.js
       8.73 KB            8,944 bytes  studio_overlays\gpt_fx_lab\simulattion_集計\batch_20260718_100830_expansion_lite_entry_gate_failures.json
+      8.71 KB            8,916 bytes  tests\qa\static\field_definition_target_caption_static.test.mjs
       8.69 KB            8,899 bytes  studio_overlays\gpt_fx_lab\tests\expansion_lite_episode_v0_25.test.cjs
       8.67 KB            8,877 bytes  wwwroot\js\core\overlay_manager.js
       8.66 KB            8,870 bytes  node_modules\undici-types\webidl.d.ts
       8.64 KB            8,851 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\diagram-EYB2CBB5.mjs
+      8.62 KB            8,831 bytes  wwwroot\js\services\viewdef_maintenance_projection.js
       8.62 KB            8,826 bytes  _archive\20260627_1745\data\json\80_frb\fft_log_view_def_v0_2.json
       8.62 KB            8,826 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\dagre-QGBC2H2C.mjs
       8.62 KB            8,826 bytes  data\json\80_frb\fft_log_view_def_v0_2.json
+      8.53 KB            8,734 bytes  NativeShell\NativeShellForm.cs
       8.50 KB            8,703 bytes  defs\qa\tests\responsibilities\responsibility_expected_diff_view_def_v0_1.json
       8.49 KB            8,696 bytes  wwwroot\js\services\definition\definition_verification_common.js
       8.47 KB            8,676 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-QU2NO3GS.mjs.map
@@ -982,6 +1042,7 @@
       8.35 KB            8,549 bytes  studio_overlays\gpt_fx_lab\tests\expansion_lite_vnext_v0_26.test.cjs
       8.28 KB            8,475 bytes  _archive\20260627_1745\defs\frb\fft_log_view_def_v0_2.json
       8.28 KB            8,475 bytes  defs\frb\fft_log_view_def_v0_2.json
+      8.17 KB            8,361 bytes  NativeShell\NativeShellConfig.cs
       8.05 KB            8,245 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\chunk-FWX5IMBZ.mjs.map
       8.05 KB            8,245 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\chunk-FW7PRHBN.mjs.map
       8.04 KB            8,232 bytes  tests\qa\static\field_definition_runtime_validation_acceptance.test.mjs
@@ -989,10 +1050,9 @@
       8.00 KB            8,191 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright\lib\isomorphic.js
       8.00 KB            8,191 bytes  node_modules\playwright\lib\isomorphic.js
       7.98 KB            8,170 bytes  wwwroot\js\services\definition\runtime_field_definition_validation.js
-      7.96 KB            8,156 bytes  tools\test\TestRunner.ps1
       7.95 KB            8,142 bytes  studio_overlays\gpt_fx_lab\tests\entry_result_rows_builder_v0_1.test.cjs
       7.91 KB            8,101 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\diagram-MPNEUAEF.mjs
-      7.88 KB            8,072 bytes  fielddefs\samples\frb_fft_measurement_field_definitions_v0_1.json
+      7.88 KB            8,072 bytes  _archive\frb_fft_measurement_field_definitions_v0_1.json
       7.84 KB            8,032 bytes  tools\chatgpt-share-export-minimum\output\20260811_143326_知能と自己組織化.md
       7.84 KB            8,032 bytes  defs\qa\tests\qa_diff_result_view_def_v0_1.json
       7.84 KB            8,026 bytes  _archive\20260627_1745\defs\qa\qa_diff_result_view_def_v0_1.json
@@ -1015,7 +1075,7 @@
       7.35 KB            7,524 bytes  data\json\03_tests\screen_state\screen_state_smoke_001\actual\screen_state_smoke_001.actual.json
       7.31 KB            7,488 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\vite\dashboard\assets\firefox-1bWoP6pv.svg
       7.31 KB            7,488 bytes  node_modules\playwright-core\lib\vite\dashboard\assets\firefox-1bWoP6pv.svg
-      7.30 KB            7,473 bytes  tests\qa\static\editor_component_model_static.test.mjs
+      7.29 KB            7,462 bytes  tests\qa\static\editor_component_model_static.test.mjs
       7.27 KB            7,445 bytes  defs\fielddefs\definition_test_diff_view_def_v0_1.json
       7.21 KB            7,384 bytes  defs\rules\governance_items_common_view_def_v0_1.json
       7.20 KB            7,375 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\ebnfDiagram-CCIWWBDH.mjs.map
@@ -1041,7 +1101,7 @@
       6.92 KB            7,087 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\tools\cli-client\channelSessions.js
       6.92 KB            7,087 bytes  node_modules\playwright-core\lib\tools\cli-client\channelSessions.js
       6.90 KB            7,062 bytes  studio_overlays\gpt_fx_lab\tests\normal_active_confirmation_r2_v0_24_1.test.cjs
-      6.89 KB            7,059 bytes  Log\Log_20260812.log
+      6.89 KB            7,057 bytes  data\json\04_tools\test_runner_run_config_data_v0_1.json
       6.89 KB            7,054 bytes  Log\Log_20260705.log
       6.86 KB            7,029 bytes  node_modules\undici-types\fetch.d.ts
       6.86 KB            7,020 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-VY5UBI4V.mjs
@@ -1049,6 +1109,7 @@
       6.85 KB            7,012 bytes  wwwroot\js\lib\mermaid\diagrams\radar\styles.d.ts
       6.84 KB            7,004 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\pegDiagram-S433AU4E.mjs.map
       6.81 KB            6,974 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-SXFNDEX5.mjs.map
+      6.79 KB            6,949 bytes  fielddefs\schema\field_definition_data_schema_v0_1.json
       6.78 KB            6,940 bytes  _archive\20260627_1745\data\json\03_tests\qa\v0_14_2_incident_prompt_copy_action\diff\TP-IPC-001.diff.json
       6.77 KB            6,930 bytes  wwwroot\js\components\definition\definition_verification_derived_subgrid_component.js
       6.76 KB            6,918 bytes  _archive\20260627_1745\data\json\01_main\qa_expected_checks_classified_v0_1.json
@@ -1123,12 +1184,12 @@
       5.72 KB            5,859 bytes  data\markdown\00_Common\common_enums_v0_1_20260701_221809.md
       5.72 KB            5,855 bytes  _archive\20260627_1745\data\json\00_rules\_json_creation_prompt.md
       5.71 KB            5,845 bytes  wwwroot\js\lib\mermaid\themes\theme-default.d.ts
+      5.68 KB            5,816 bytes  wwwroot\js\ui\frb_studio_shell.js
       5.63 KB            5,761 bytes  _archive\20260627_1745\defs\relation\relation_edit_view_def_v0_1.json
       5.63 KB            5,761 bytes  defs\relation\relation_edit_view_def_v0_1.json
       5.61 KB            5,745 bytes  studio_overlays\gpt_fx_lab\tests\entry_result_chart_url_navigation_v0_1.test.cjs
       5.60 KB            5,739 bytes  wwwroot\js\lib\mermaid\themes\theme-base.d.ts
       5.58 KB            5,713 bytes  wwwroot\js\lib\mermaid\themes\theme-dark.d.ts
-      5.55 KB            5,681 bytes  wwwroot\js\ui\page_setup.js
       5.54 KB            5,671 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\tools\cli-client\skill\references\session-management.md
       5.54 KB            5,671 bytes  node_modules\playwright-core\lib\tools\cli-client\skill\references\session-management.md
       5.51 KB            5,645 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\vite\dashboard\playwright-logo.svg
@@ -1146,6 +1207,7 @@
       5.41 KB            5,536 bytes  _archive\20260627_1745\defs\screen_state\screen_state_expected_view_def_v0_1.json
       5.41 KB            5,536 bytes  defs\screen_state\screen_state_expected_view_def_v0_1.json
       5.39 KB            5,517 bytes  wwwroot\js\lib\mermaid\diagrams\flowchart\flowDb.d.ts
+      5.38 KB            5,509 bytes  tests\qa\static\markdown_workspace_native_static.test.mjs
       5.37 KB            5,501 bytes  data\json\03_tests\responsibilities\responsibility_expected_first_set\actual\responsibility_expected_first_set_actual_data_v0_1.json
       5.36 KB            5,486 bytes  wwwroot\js\lib\mermaid\config.d.ts
       5.31 KB            5,441 bytes  _archive\20260627_1745\data\json\03_tests\screen_state\screen_state_smoke_001\test_patterns\screen_state_test_patterns_data_v0_2_chat.json
@@ -1169,19 +1231,18 @@
       5.18 KB            5,306 bytes  node_modules\@types\node\ts5.7\index.d.ts
       5.16 KB            5,287 bytes  wwwroot\js\lib\mermaid\rendering-util\types.d.ts
       5.15 KB            5,270 bytes  wwwroot\js\services\definition\test_pattern_deriver.js
+      5.14 KB            5,260 bytes  .obsidian\workspace.json
       5.13 KB            5,254 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\vite\dashboard\assets\safari-na3_-uQk.svg
       5.13 KB            5,254 bytes  node_modules\playwright-core\lib\vite\dashboard\assets\safari-na3_-uQk.svg
       5.13 KB            5,250 bytes  studio_overlays\gpt_fx_lab\simulattion_集計\batch_20260717_203022_expansion_lite_entry_gate_failures.csv
       5.12 KB            5,248 bytes  wwwroot\js\lib\mermaid\themes\theme-redux.d.ts
       5.12 KB            5,246 bytes  wwwroot\Not_index.html
-      5.11 KB            5,231 bytes  fielddefs\schema\field_definition_data_schema_v0_1.json
       5.08 KB            5,201 bytes  wwwroot\js\lib\mermaid\themes\theme-neo.d.ts
       5.08 KB            5,198 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\tools\cli-client\skill\references\storage-state.md
       5.08 KB            5,198 bytes  node_modules\playwright-core\lib\tools\cli-client\skill\references\storage-state.md
       5.07 KB            5,195 bytes  studio_overlays\default\value_sets\company_value_sets.json
-      5.05 KB            5,176 bytes  wwwroot\js\components\definition\definition_target_caption_component.js
       5.03 KB            5,154 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-E5QJAATJ.mjs.map
-      5.03 KB            5,153 bytes  tests\qa\static\studio_json_round_trip_static.test.mjs
+      5.03 KB            5,149 bytes  tests\qa\static\studio_json_round_trip_static.test.mjs
       4.99 KB            5,106 bytes  defs\qa\tests\responsibilities\responsibility_expected_actual_view_def_v0_1.json
       4.97 KB            5,094 bytes  studio_overlays\gpt_fx_lab\tests\expansion_lite_target_27_29_range_smoke_v0_1.test.cjs
       4.96 KB            5,084 bytes  node_modules\@types\node\globals.d.ts
@@ -1189,10 +1250,13 @@
       4.96 KB            5,076 bytes  _archive\20260627_1745\data\json\02_business\business_relations_v0_1.json
       4.96 KB            5,076 bytes  data\json\90_business\business_relations_v0_1.json
       4.94 KB            5,058 bytes  studio_overlays\gpt_fx_lab\tests\simulation_profile_contract_v0_14.test.cjs
+      4.93 KB            5,051 bytes  NativeShell\obj\Release\net48\FRBStudio.NativeShell.csproj.AssemblyReference.cache
+      4.93 KB            5,051 bytes  NativeShell\obj\Release\net48\win-x64\FRBStudio.NativeShell.csproj.AssemblyReference.cache
       4.92 KB            5,033 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\vite\recorder\playwright-logo.svg
       4.92 KB            5,033 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\vite\traceViewer\playwright-logo.svg
       4.92 KB            5,033 bytes  node_modules\playwright-core\lib\vite\recorder\playwright-logo.svg
       4.92 KB            5,033 bytes  node_modules\playwright-core\lib\vite\traceViewer\playwright-logo.svg
+      4.91 KB            5,030 bytes  wwwroot\js\components\definition\cross_field_test_preview_component.js
       4.89 KB            5,012 bytes  wwwroot\js\lib\mermaid\diagrams\sequence\sequenceDb.d.ts
       4.89 KB            5,012 bytes  data\json\04_tools\git_diff_export_run_config_data_v0_1.json
       4.89 KB            5,009 bytes  node_modules\undici-types\formdata.d.ts
@@ -1200,6 +1264,7 @@
       4.87 KB            4,985 bytes  node_modules\@types\node\index.d.ts
       4.86 KB            4,978 bytes  studio_overlays\gpt_fx_lab\tests\normal_plus_expansion_lite_range_smoke_v0_1.test.cjs
       4.84 KB            4,960 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-D6VWDJW2.mjs.map
+      4.80 KB            4,914 bytes  tests\qa\static\cross_field_fieldset_ui_static.test.mjs
       4.80 KB            4,911 bytes  data\markdown\00_Common\responsibility_expected_test_patterns_data_v0_1_document_rebuild_20260704_210649.md
       4.79 KB            4,901 bytes  Log\Log_20260703.log
       4.77 KB            4,889 bytes  wwwroot\js\lib\mermaid\mermaidAPI.d.ts
@@ -1209,6 +1274,7 @@
       4.75 KB            4,868 bytes  node_modules\undici-types\errors.d.ts
       4.75 KB            4,864 bytes  node_modules\@types\node\globals.typedarray.d.ts
       4.74 KB            4,849 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\chunk-FXRKSSP6.mjs.map
+      4.72 KB            4,831 bytes  wwwroot\js\services\definition\cross_field_relation_evaluator.js
       4.72 KB            4,831 bytes  data\json\01_main\thought_difference\thought_evolution_observation_thought_evolution_data_v0_1.json
       4.71 KB            4,823 bytes  wwwroot\diff\DiffToJson_20260715_232659.json
       4.71 KB            4,821 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\server\electron\loader.js
@@ -1216,6 +1282,7 @@
       4.70 KB            4,808 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\chunk-X3CZISLH.mjs.map
       4.68 KB            4,790 bytes  wwwroot\js\components\editor_component_host.js
       4.67 KB            4,781 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\diagram-G5KYCVHS.mjs
+      4.65 KB            4,762 bytes  Log\Log_20260815.log
       4.64 KB            4,753 bytes  wwwroot\js\lib\mermaid\diagrams\c4\c4Db.d.ts
       4.60 KB            4,712 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\tools\trace\SKILL.md
       4.60 KB            4,712 bytes  node_modules\playwright-core\lib\tools\trace\SKILL.md
@@ -1229,28 +1296,25 @@
       4.53 KB            4,639 bytes  data\markdown\00_Common\responsibility_def_master_draft_v0_1_review_report_20260704_161814.md
       4.52 KB            4,631 bytes  _archive\20260627_1745\defs\qa\qa_cross_check_risk_view_def_v0_1.json
       4.52 KB            4,631 bytes  defs\qa\review\qa_cross_check_risk_view_def_v0_1.json
-      4.51 KB            4,623 bytes  wwwroot\js\services\definition\cross_field_relation_evaluator.js
       4.51 KB            4,622 bytes  wwwroot\js\lib\mermaid\diagram-api\types.d.ts
       4.51 KB            4,619 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright\lib\errorContext.js
       4.51 KB            4,619 bytes  node_modules\playwright\lib\errorContext.js
       4.50 KB            4,603 bytes  wwwroot\js\responsibilities\search_filter.js
-      4.49 KB            4,596 bytes  data\json\04_tools\test_runner_run_config_data_v0_1.json
       4.48 KB            4,585 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\tools\cli-client\skill\references\test-generation.md
       4.48 KB            4,585 bytes  node_modules\playwright-core\lib\tools\cli-client\skill\references\test-generation.md
       4.48 KB            4,584 bytes  defs\analysis\thought_difference_analysis_profile_view_def_v0_1.json
       4.47 KB            4,575 bytes  studio_overlays\default\plugins\multi_select_combo\plugin.js
+      4.47 KB            4,574 bytes  NativeShell\WorkspacePolicy.cs
       4.47 KB            4,573 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\chunk-43ACQNTO.mjs.map
       4.45 KB            4,557 bytes  studio_overlays\gpt_fx_lab\シュミレーションルール要約_v0.27.md
       4.44 KB            4,550 bytes  _archive\20260627_1745\defs\qa\qa_cross_quality_risk_view_def_v0_1.json
       4.44 KB            4,550 bytes  defs\qa\review\qa_cross_quality_risk_view_def_v0_1.json
       4.40 KB            4,508 bytes  node_modules\@types\node\package.json
       4.36 KB            4,465 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\ebnfDiagram-G6P3SIUA.mjs
-      4.33 KB            4,430 bytes  wwwroot\js\components\definition\cross_field_test_preview_component.js
       4.30 KB            4,399 bytes  Log\Log_20260630.log
       4.29 KB            4,389 bytes  wwwroot\js\components\definition\definition_test_preview_component.js
       4.28 KB            4,387 bytes  data\markdown\00_Common\public_enterprise_accounting_learning_data_v0_1_review_report_20260722_234205.md
       4.28 KB            4,381 bytes  studio_overlays\gpt_fx_lab\simulation\reports\simulation_rule_v0_24_active_confirmation_r2_fix_report.json
-      4.26 KB            4,367 bytes  tools\zip\make_FRBStudio_App_zip_v2.ps1
       4.26 KB            4,362 bytes  node_modules\undici-types\cache-interceptor.d.ts
       4.23 KB            4,330 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\chunk-IPM4HZQ6.mjs
       4.20 KB            4,304 bytes  _archive\20260627_1745\data\json\03_tests\screen_state\screen_state_smoke_001\diff\screen_state_smoke_001.diff.json
@@ -1260,6 +1324,7 @@
       4.18 KB            4,277 bytes  data\json\00_rules\md\QA_VIEWDEF_FOLDER_LAYOUT_ALIGNMENT_REPORT_v0_18_17.md
       4.17 KB            4,272 bytes  node_modules\@types\node\stream\consumers.d.ts
       4.15 KB            4,250 bytes  node_modules\@types\node\console.d.ts
+      4.15 KB            4,245 bytes  tools\zip\make_FRBStudio_App_zip_v2.ps1
       4.14 KB            4,236 bytes  _archive\20260627_1745\data\json\00_rules\filename_updatelist.md
       4.14 KB            4,236 bytes  data\json\00_rules\md\filename_updatelist.md
       4.09 KB            4,189 bytes  wwwroot\js\lib\mermaid\rendering-util\layout-algorithms\swimlanes\direction\portSwap.d.ts
@@ -1316,6 +1381,10 @@
       3.77 KB            3,861 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-OIYT25JQ.mjs.map
       3.75 KB            3,842 bytes  node_modules\@types\node\trace_events.d.ts
       3.75 KB            3,841 bytes  studio_overlays\gpt_fx_lab\tests\normal_plus_expansion_lite_orchestration_v0_1.test.cjs
+      3.74 KB            3,831 bytes  NativeShell\native_shell.config.json
+      3.74 KB            3,831 bytes  NativeShell_publish\native_shell.config.json
+      3.74 KB            3,831 bytes  NativeShell\bin\Release\net48\native_shell.config.json
+      3.74 KB            3,831 bytes  NativeShell\bin\Release\net48\publish\native_shell.config.json
       3.72 KB            3,811 bytes  node_modules\@types\node\ts5.6\compatibility\float16array.d.ts
       3.72 KB            3,809 bytes  _archive\20260627_1745\data\json\01_main\qa_expected_checks_sample_v0_1.json
       3.72 KB            3,808 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\chunk-32BRIVSS.mjs
@@ -1341,6 +1410,7 @@
       3.54 KB            3,624 bytes  node_modules\undici-types\interceptors.d.ts
       3.53 KB            3,615 bytes  wwwroot\js\responsibilities\grid_aggregator.js
       3.53 KB            3,614 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\chunk-S7Q6ZHN2.mjs.map
+      3.52 KB            3,609 bytes  wwwroot\js\core\state.js
       3.52 KB            3,606 bytes  data\json\00_rules\md\RULE_REVIEW_STATUS_RESPONSIBILITY_CLEANUP_REPORT_v0_18_30.md
       3.52 KB            3,604 bytes  studio_overlays\thought_evolution\studio_manifest.json
       3.50 KB            3,582 bytes  _archive\シュミレーションルール要約_v0.22.md
@@ -1348,6 +1418,7 @@
       3.49 KB            3,573 bytes  wwwroot\diff\DiffToJson_20260715_232520.json
       3.48 KB            3,562 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright\lib\cli\reportActions.js
       3.48 KB            3,562 bytes  node_modules\playwright\lib\cli\reportActions.js
+      3.47 KB            3,554 bytes  NativeShell\bin\Release\net48\win-x64\native_shell.config.json
       3.47 KB            3,552 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\abnfDiagram-VRR7QNED.mjs
       3.44 KB            3,524 bytes  node_modules\@types\node\web-globals\fetch.d.ts
       3.43 KB            3,516 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\railroadDiagram-HQNCXZT7.mjs
@@ -1364,6 +1435,7 @@
       3.37 KB            3,448 bytes  node_modules\undici-types\mock-agent.d.ts
       3.36 KB            3,440 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\tools\cli-client\skill\references\tracing.md
       3.36 KB            3,440 bytes  node_modules\playwright-core\lib\tools\cli-client\skill\references\tracing.md
+      3.34 KB            3,418 bytes  NativeShell\README.md
       3.33 KB            3,414 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-DMV4VAQV.mjs
       3.30 KB            3,383 bytes  node_modules\@types\node\timers\promises.d.ts
       3.29 KB            3,372 bytes  wwwroot\js\lib\mermaid\diagrams\git\gitGraphTypes.d.ts
@@ -1376,7 +1448,6 @@
       3.24 KB            3,317 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\tools\utils\socketConnection.js
       3.24 KB            3,317 bytes  node_modules\playwright-core\lib\tools\utils\socketConnection.js
       3.24 KB            3,315 bytes  wwwroot\js\lib\mermaid\diagrams\state\stateCommon.d.ts
-      3.23 KB            3,307 bytes  wwwroot\js\core\state.js
       3.23 KB            3,306 bytes  node_modules\undici-types\snapshot-agent.d.ts
       3.22 KB            3,302 bytes  studio_overlays\gpt_fx_lab\simulation\reports\simulation_rule_v0_24_update_report.json
       3.21 KB            3,292 bytes  studio_overlays\thought_evolution\data\thought_evolution_graph_catalog_v0_1.json
@@ -1408,10 +1479,10 @@
       3.01 KB            3,086 bytes  package-lock.json
       2.98 KB            3,053 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\chunk-FXRKSSP6.mjs
       2.98 KB            3,052 bytes  node_modules\@types\node\web-globals\domexception.d.ts
-      2.96 KB            3,032 bytes  tests\qa\static\cross_field_definition_preview_static.test.mjs
       2.96 KB            3,027 bytes  studio_overlays\gpt_fx_lab\シュミレーションルール要約_v0.26.md
       2.94 KB            3,010 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\railroadDiagram-RFXS5EU6.mjs
       2.94 KB            3,008 bytes  data\json\03_tests\qa\responsibility_def\expected_def_type_master_data_v0_1.json
+      2.93 KB            2,999 bytes  tests\qa\static\cross_field_definition_preview_static.test.mjs
       2.93 KB            2,997 bytes  _archive\markdown\99_temp\copilot_table_review_fixture_v0_13_6.md
       2.93 KB            2,997 bytes  _archive\20260627_1745\data\markdown\copilot_table_review_fixture_v0_13_6.md
       2.93 KB            2,997 bytes  wwwroot\data\markdown\copilot_table_review_fixture_v0_13_6.md
@@ -1431,21 +1502,22 @@
       2.79 KB            2,858 bytes  defs\qa\tests\qa_test_patterns_sample_view_def_v0_1.json
       2.79 KB            2,857 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright\lib\runner\index.js.txt
       2.79 KB            2,857 bytes  node_modules\playwright\lib\runner\index.js.txt
+      2.79 KB            2,855 bytes  fielddefs\samples\cross_field_compare_operator_matrix_v0_1.json
       2.75 KB            2,818 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-RRFMTAIC.mjs.map
       2.74 KB            2,808 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright\lib\agents\playwright-test-planner.agent.md
       2.74 KB            2,808 bytes  node_modules\playwright\lib\agents\playwright-test-planner.agent.md
       2.73 KB            2,793 bytes  studio_overlays\gpt_fx_lab\simulation\reports\simulation_rule_v0_24_batch_analysis_scope_isolation_fix_report.json
       2.72 KB            2,783 bytes  wwwroot\js\services\definition\field_definition_target_view_resolver.js
       2.71 KB            2,779 bytes  node_modules\@types\node\test\reporters.d.ts
+      2.70 KB            2,764 bytes  _archive_APP_Server\Program.cs\obj\FRBStudio.csproj.nuget.dgspec.json
       2.69 KB            2,758 bytes  wwwroot\js\core\data_utils.js
       2.68 KB            2,746 bytes  wwwroot\js\lib\mermaid\rendering-util\layout-algorithms\layout-utils\validateLayout.d.ts
       2.68 KB            2,740 bytes  studio_overlays\default\studio_manifest.json
       2.68 KB            2,740 bytes  data\json\00_rules\md\STUDIO_DATETIME_FORMAT_CONTRACT_REPORT_v0_18_19.md
       2.65 KB            2,718 bytes  studio_overlays\gpt_fx_lab\Expansion_v0_28_Diff_Manifest.md
+      2.65 KB            2,717 bytes  _archive_APP_Server\Program.cs\obj\project.assets.json
       2.65 KB            2,713 bytes  data\json\00_rules\md\RESPONSIBILITY_EXPECTED_TESTS_FIRST_SET_REPORT_v0_18_8.md
       2.62 KB            2,684 bytes  wwwroot\js\services\definition\expected_resolver.js
-      2.60 KB            2,659 bytes  Program.cs\obj\FRBStudio.csproj.nuget.dgspec.json
-      2.59 KB            2,654 bytes  Program.cs\obj\project.assets.json
       2.57 KB            2,631 bytes  data\json\01_main\thought_difference\thought_evolution_version_quality_asset_data_v0_1.json
       2.55 KB            2,616 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\chunk-Z6Q54H3S.mjs.map
       2.54 KB            2,597 bytes  wwwroot\js\lib\mermaid\diagrams\class\classTypes.d.ts
@@ -1454,7 +1526,6 @@
       2.49 KB            2,551 bytes  node_modules\@types\node\web-globals\performance.d.ts
       2.49 KB            2,549 bytes  data\json\00_rules\md\SUBGRID_PREVIEW_EDIT_ACTION_COLUMN_POLISH_REPORT_v0_18_12.md
       2.48 KB            2,541 bytes  data\json\00_rules\md\TARGET_CONTEXT_DETAIL_PANEL_REPORT_v0_15_5_3.md
-      2.47 KB            2,531 bytes  tests\qa\static\field_definition_target_caption_static.test.mjs
       2.47 KB            2,531 bytes  studio_overlays\gpt_fx_lab\Expansion_v0_28_Implementation_Report.md
       2.46 KB            2,516 bytes  wwwroot\js\services\definition\definition_verification_service.js
       2.45 KB            2,510 bytes  countstep\countstep_20260704_160930.txt
@@ -1471,6 +1542,7 @@
       2.41 KB            2,465 bytes  node_modules\playwright\lib\transform\esmLoader.js.txt
       2.39 KB            2,451 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-QU2NO3GS.mjs
       2.39 KB            2,449 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\pegDiagram-ZGJ7CXPE.mjs
+      2.39 KB            2,443 bytes  _archive\fixtures\definition\cross_field_compare_operator_matrix_v0_1.json
       2.38 KB            2,439 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-4S3VB3X6.mjs.map
       2.37 KB            2,422 bytes  wwwroot\js\lib\mermaid\diagrams\cynefin\cynefinBoundaries.d.ts
       2.36 KB            2,421 bytes  _archive\20260627_1745\defs\screen_state\screen_state_diff_view_def_child_v0_3_failure_focus.json
@@ -1486,9 +1558,13 @@
       2.30 KB            2,356 bytes  wwwroot\js\runtime\GRID_CARD_DOCUMENT_RENDERER_NOTES_v0_16_5.md
       2.30 KB            2,355 bytes  data\json\00_rules\md\RESPONSIBILITY_REFACTOR_FIRST_STEP_REPORT_v0_18_7.md
       2.29 KB            2,345 bytes  wwwroot\js\responsibilities\csv_exporter.js
+      2.29 KB            2,345 bytes  NativeShell\obj\Release\net48\FRBStudio.NativeShell.assets.cache
+      2.29 KB            2,345 bytes  NativeShell\obj\Release\net48\win-x64\FRBStudio.NativeShell.assets.cache
+      2.29 KB            2,345 bytes  NativeShell\obj\Debug\net48\FRBStudio.NativeShell.assets.cache
       2.28 KB            2,335 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\chunk-4KMQCWFH.mjs
       2.27 KB            2,327 bytes  data\json\00_rules\md\RESPONSIBILITY_EXPECTED_DIFF_EVIDENCE_OUTPUT_REPORT_v0_18_10.md
       2.27 KB            2,322 bytes  wwwroot\js\runtime\CHAT_INPUT_MAPPING_NOTES_v0_7.md
+      2.26 KB            2,317 bytes  NativeShell\obj\FRBStudio.NativeShell.csproj.nuget.dgspec.json
       2.26 KB            2,316 bytes  data\json\00_rules\md\VISIBLE_ROWS_MD_BUTTON_VISIBILITY_GUARD_REPORT_v0_18_6_1.md
       2.25 KB            2,304 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-NV3KIAZN.mjs.map
       2.25 KB            2,301 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\chunk-S7Q6ZHN2.mjs
@@ -1572,6 +1648,7 @@
       1.89 KB            1,935 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright\lib\globals.js
       1.89 KB            1,935 bytes  node_modules\playwright\lib\globals.js
       1.89 KB            1,932 bytes  data\json\00_rules\md\TEST_AREA_FOLDER_LAYOUT_ALIGNMENT_REPORT_v0_18_9.md
+      1.88 KB            1,928 bytes  wwwroot\home.html
       1.87 KB            1,912 bytes  wwwroot\js\lib\mermaid\diagrams\xychart\chartBuilder\components\axis\baseAxis.d.ts
       1.87 KB            1,910 bytes  node_modules\undici-types\readable.d.ts
       1.86 KB            1,900 bytes  wwwroot\js\lib\mermaid\rendering-util\layout-algorithms\cose-bilkent\cytoscape-setup.d.ts
@@ -1586,10 +1663,12 @@
       1.80 KB            1,846 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-SXFNDEX5.mjs
       1.79 KB            1,835 bytes  wwwroot\js\lib\mermaid\rendering-util\createText.d.ts
       1.79 KB            1,830 bytes  wwwroot\js\lib\mermaid\rendering-util\layout-algorithms\ddlt\fixtureSizes.d.ts
+      1.79 KB            1,830 bytes  NativeShell\obj\Release\net48\win-x64\FRBStudio.NativeShell.csproj.FileListAbsolute.txt
       1.77 KB            1,816 bytes  wwwroot\js\runtime\MARKDOWN_TABLE_CELL_EDITOR_NOTES_v0_13_2.md
       1.76 KB            1,804 bytes  data\markdown\20_tests\erDiagram.md
       1.75 KB            1,796 bytes  data\json\00_rules\md\TARGET_CONTEXT_DETAIL_PANEL_COMPACT_REPORT_v0_15_5_3_1.md
       1.75 KB            1,794 bytes  node_modules\undici-types\eventsource.d.ts
+      1.75 KB            1,793 bytes  Log\Log_20260814.log
       1.75 KB            1,792 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-BI6VK774.mjs
       1.75 KB            1,792 bytes  data\json\00_rules\md\QA_TESTS_RESPONSIBILITIES_VIEWDEF_PATH_ALIGNMENT_REPORT_v0_18_14_2.md
       1.73 KB            1,776 bytes  node_modules\undici-types\diagnostics-channel.d.ts
@@ -1602,6 +1681,7 @@
       1.66 KB            1,701 bytes  data\json\04_tools\TEST_RUNNER_COMMAND_PROFILE_REPORT_v0_14_38.md
       1.65 KB            1,690 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\tools\cli-client\skill\references\playwright-tests.md
       1.65 KB            1,690 bytes  node_modules\playwright-core\lib\tools\cli-client\skill\references\playwright-tests.md
+      1.65 KB            1,686 bytes  NativeShell\obj\Release\net48\FRBStudio.NativeShell.csproj.FileListAbsolute.txt
       1.64 KB            1,683 bytes  _archive\20260627_1745\data\json\03_tests\screen_state\screen_state_smoke_001\actual\screen_state_smoke_001.actual.json
       1.64 KB            1,678 bytes  docs\notes\拡張アイデア.md
       1.63 KB            1,673 bytes  wwwroot\js\lib\mermaid\diagram-api\diagramAPI.d.ts
@@ -1625,6 +1705,7 @@
       1.54 KB            1,582 bytes  node_modules\@types\node\README.md
       1.54 KB            1,577 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright\lib\mcp\test\streams.js
       1.54 KB            1,577 bytes  node_modules\playwright\lib\mcp\test\streams.js
+      1.54 KB            1,577 bytes  NativeShell\obj\FRBStudio.NativeShell.csproj.nuget.g.props
       1.53 KB            1,569 bytes  wwwroot\count_js_steps_add_datetime.bat
       1.52 KB            1,559 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright\package.json
       1.52 KB            1,559 bytes  node_modules\playwright\package.json
@@ -1679,7 +1760,8 @@
       1.35 KB            1,382 bytes  tests\setup.md
       1.35 KB            1,378 bytes  data\json\00_rules\md\TEST_RUNNER_RESPONSIBILITIES_RUN_CONFIG_REPORT_v0_18_14_3.md
       1.34 KB            1,374 bytes  data\json\00_rules\md\SUBGRID_SINGLE_LINE_TEST_PATTERN_VIEWDEF_REPORT_v0_18_11.md
-      1.34 KB            1,370 bytes  cmd_copy_frbstudio_publish.bat
+      1.34 KB            1,370 bytes  _archive_APP_Server\cmd_copy_frbstudio_publish.bat
+      1.34 KB            1,370 bytes  _archive_APP_Server\Program.cs\obj\Debug\net9.0-windows\FRBStudio.GeneratedMSBuildEditorConfig.editorconfig
       1.33 KB            1,366 bytes  wwwroot\js\runtime\MDVIEWER_BLUR_PREVIEW_MODE_NOTES_v0_11.md
       1.33 KB            1,360 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\chunk-LJTN6OYE.mjs
       1.33 KB            1,358 bytes  wwwroot\js\runtime\MARKDOWN_COMMENT_REVIEW_UI_NOTES_v0_13_4.md
@@ -1687,7 +1769,6 @@
       1.31 KB            1,337 bytes  wwwroot\js\lib\mermaid\diagrams\treeView\boxDrawingPreprocessor.d.ts
       1.30 KB            1,336 bytes  wwwroot\js\lib\mermaid\diagrams\kanban\kanbanDb.d.ts
       1.30 KB            1,334 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\chunk-6OZ7KPF7.mjs
-      1.30 KB            1,330 bytes  Program.cs\obj\Debug\net9.0-windows\FRBStudio.GeneratedMSBuildEditorConfig.editorconfig
       1.30 KB            1,327 bytes  wwwroot\js\lib\mermaid\diagrams\common\commonTypes.d.ts
       1.29 KB            1,324 bytes  tests\tools\cleanup_runtime_artifacts.ps1
       1.29 KB            1,318 bytes  node_modules\@types\node\string_decoder.d.ts
@@ -1695,7 +1776,7 @@
       1.28 KB            1,312 bytes  wwwroot\js\lib\mermaid\rendering-util\rendering-elements\createLabel.d.ts
       1.28 KB            1,312 bytes  wwwroot\js\lib\mermaid\rendering-util\layout-algorithms\ddlt\index.d.ts
       1.28 KB            1,306 bytes  wwwroot\js\lib\mermaid\dagre-wrapper\createLabel.d.ts
-      1.27 KB            1,303 bytes  Program.cs\obj\FRBStudio.csproj.nuget.g.props
+      1.27 KB            1,303 bytes  _archive_APP_Server\Program.cs\obj\FRBStudio.csproj.nuget.g.props
       1.27 KB            1,297 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-Y3FQM624.mjs.map
       1.27 KB            1,296 bytes  wwwroot\js\lib\mermaid\rendering-util\rendering-elements\clusters.d.ts
       1.26 KB            1,294 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright\lib\agents\playwright-test-coverage.prompt.md
@@ -1738,7 +1819,7 @@
       1.16 KB            1,191 bytes  wwwroot\js\lib\mermaid\rendering-util\layout-algorithms\swimlanes\phase2.options.d.ts
       1.16 KB            1,186 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-EQFTRU2I.mjs
       1.16 KB            1,183 bytes  wwwroot\js\runtime\MDVIEWER_DIRTY_BLOCK_COMMENT_NOTES_v0_11_7.md
-      1.15 KB            1,182 bytes  Program.cs\obj\Debug\net9.0-windows\FRBStudio.AssemblyInfo.cs
+      1.15 KB            1,182 bytes  _archive_APP_Server\Program.cs\obj\Debug\net9.0-windows\FRBStudio.AssemblyInfo.cs
       1.15 KB            1,176 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.core\chunk-VR4S4FIN.mjs
       1.15 KB            1,176 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\chunk-DRARJEGU.mjs
       1.15 KB            1,175 bytes  wwwroot\js\runtime\DETAIL_SUBGRID_TABLE_EDIT_CORE_NOTES_v0_16_2.md
@@ -1787,6 +1868,9 @@
       1.04 KB            1,063 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\index.mjs
       1.04 KB            1,063 bytes  node_modules\playwright-core\index.mjs
       1.04 KB            1,062 bytes  node_modules\undici-types\agent.d.ts
+      1.04 KB            1,061 bytes  NativeShell\obj\Release\net48\FRBStudio.NativeShell.AssemblyInfo.cs
+      1.04 KB            1,061 bytes  NativeShell\obj\Release\net48\win-x64\FRBStudio.NativeShell.AssemblyInfo.cs
+      1.03 KB            1,059 bytes  NativeShell\obj\Debug\net48\FRBStudio.NativeShell.AssemblyInfo.cs
       1.03 KB            1,055 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-OIYT25JQ.mjs
       1.03 KB            1,054 bytes  _archive\20260627_1745\data\json\03_tests\qa\v0_14_2_incident_prompt_copy_action\notes\QA_ACTUAL_DIFF_RESPONSIBILITY_SPLIT_NOTES_v0_1.md
       1.03 KB            1,054 bytes  data\json\03_tests\qa\v0_14_2_incident_prompt_copy_action\notes\QA_ACTUAL_DIFF_RESPONSIBILITY_SPLIT_NOTES_v0_1.md
@@ -1836,7 +1920,7 @@
        957 B              957 bytes  node_modules\playwright-core\bin\reinstall_chrome_beta_win.ps1
        953 B              953 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-STADKHD7.mjs
        949 B              949 bytes  wwwroot\js\lib\mermaid\diagrams\xychart\chartBuilder\components\plot\index.d.ts
-       946 B              946 bytes  appsettings.json
+       946 B              946 bytes  _archive_APP_Server\appsettings.json
        946 B              946 bytes  wwwroot\js\lib\mermaid\diagrams\user-journey\svgDraw.d.ts
        942 B              942 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright\jsx-runtime.js
        942 B              942 bytes  node_modules\playwright\jsx-runtime.js
@@ -1846,7 +1930,8 @@
        921 B              921 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-VE5CLXGZ.mjs.map
        921 B              921 bytes  data\markdown\00_Common\frb_coding_constraints_data_v0_3_20260701_221707.md.comments.json
        913 B              913 bytes  studio_overlays\gpt_fx_lab\simulation_rule_v0.22_update_report.json
-       912 B              912 bytes  Program.cs\FRBStudio.csproj
+       912 B              912 bytes  NativeShell\FRBStudio.NativeShell.csproj
+       912 B              912 bytes  _archive_APP_Server\Program.cs\FRBStudio.csproj
        912 B              912 bytes  wwwroot\js\runtime\SENTENCE_TOOLBAR_ROW_ANCHOR_FIX_NOTES_v0_13_1_2.md
        910 B              910 bytes  wwwroot\js\lib\mermaid\rendering-util\layout-algorithms\cose-bilkent\layout.d.ts
        910 B              910 bytes  wwwroot\js\lib\mermaid\diagrams\block\renderHelpers.d.ts
@@ -1877,6 +1962,7 @@
        866 B              866 bytes  studio_overlays\gpt_fx_lab\simulattion_集計\batch_20260716_205714_summary.csv
        865 B              865 bytes  studio_overlays\thought_evolution\layouts\quality_asset_relation_layout_state_v0_1.json
        865 B              865 bytes  studio_overlays\gpt_fx_lab\simulattion_集計\batch_20260716_233643_summary.csv
+       865 B              865 bytes  NativeShell\obj\Release\net48\PublishOutputs.0d120ed3c8.txt
        864 B              864 bytes  studio_overlays\gpt_fx_lab\simulattion_集計\batch_20260717_122702_summary.csv
        864 B              864 bytes  studio_overlays\gpt_fx_lab\simulattion_集計\batch_20260717_230817_summary.csv
        862 B              862 bytes  cmd_count_source_steps_diff.ps1
@@ -1888,7 +1974,7 @@
        856 B              856 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\bin\reinstall_msedge_stable_win.ps1
        856 B              856 bytes  studio_overlays\default\plugins\plugin_index.json
        856 B              856 bytes  node_modules\playwright-core\bin\reinstall_msedge_stable_win.ps1
-       852 B              852 bytes  Program.cs\obj\Debug\net9.0-windows\FRBStudio.GlobalUsings.g.cs
+       852 B              852 bytes  _archive_APP_Server\Program.cs\obj\Debug\net9.0-windows\FRBStudio.GlobalUsings.g.cs
        850 B              850 bytes  wwwroot\js\lib\mermaid\rendering-util\rendering-elements\nodes.d.ts
        850 B              850 bytes  studio_overlays\default\plugins\multi_select_combo\plugin.json
        848 B              848 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\swimlanesDiagram-OX7UBUGT.mjs
@@ -1963,6 +2049,7 @@
        697 B              697 bytes  wwwroot\js\lib\mermaid\diagrams\state\dataFetcher.d.ts
        697 B              697 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\index.js
        697 B              697 bytes  node_modules\playwright-core\index.js
+       696 B              696 bytes  .obsidian\core-plugins.json
        696 B              696 bytes  node_modules\undici-types\cookies.d.ts
        695 B              695 bytes  wwwroot\js\lib\mermaid\diagrams\class\svgDraw.d.ts
        692 B              692 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright\lib\worker\workerProcessEntry.js.txt
@@ -1991,6 +2078,9 @@
        660 B              660 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\vite\traceViewer\snapshot.v8KI4P3m.js
        660 B              660 bytes  node_modules\playwright-core\lib\vite\traceViewer\snapshot.v8KI4P3m.js
        659 B              659 bytes  studio_overlays\default\README.md
+       657 B              657 bytes  NativeShell\obj\Release\net48\FRBStudio.NativeShell.GeneratedMSBuildEditorConfig.editorconfig
+       657 B              657 bytes  NativeShell\obj\Release\net48\win-x64\FRBStudio.NativeShell.GeneratedMSBuildEditorConfig.editorconfig
+       657 B              657 bytes  NativeShell\obj\Debug\net48\FRBStudio.NativeShell.GeneratedMSBuildEditorConfig.editorconfig
        656 B              656 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\chunk-PJCWW7M6.mjs
        650 B              650 bytes  node_modules\@playwright\test\reporter.d.ts
        648 B              648 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright\index.js
@@ -2012,6 +2102,7 @@
        624 B              624 bytes  data\json\01_main\thought_difference\thought_evolution_version_thought_evolution_data_v0_1.json
        623 B              623 bytes  node_modules\undici-types\util.d.ts
        619 B              619 bytes  wwwroot\js\lib\mermaid\rendering-util\layout-algorithms\cose-bilkent\render.d.ts
+       618 B              618 bytes  NativeShell\app.manifest
        617 B              617 bytes  wwwroot\js\lib\mermaid\diagram-api\frontmatter.d.ts
        616 B              616 bytes  playwright.config.ts
        608 B              608 bytes  _archive_eternal\studio_overlays\default\plugins\multi_select_combo\plugin.json
@@ -2056,13 +2147,14 @@
        514 B              514 bytes  data\json\03_tests\screen_state\screen_state_smoke_001\notes\expected_request_prompt.md
        513 B              513 bytes  wwwroot\js\lib\mermaid\diagrams\xychart\chartBuilder\components\plot\barPlot.d.ts
        506 B              506 bytes  wwwroot\js\lib\mermaid\diagrams\block\styles.d.ts
+       503 B              503 bytes  NativeShell\obj\FRBStudio.NativeShell.csproj.nuget.g.targets
        491 B              491 bytes  node_modules\@types\node\constants.d.ts
        488 B              488 bytes  wwwroot\js\lib\mermaid\defaultConfig.d.ts
        488 B              488 bytes  wwwroot\js\lib\mermaid\rendering-util\rendering-elements\shapes\labelImageUtils.d.ts
        485 B              485 bytes  studio_overlays\default\plugins\skill_summary\plugin.json
        482 B              482 bytes  wwwroot\js\lib\mermaid\rendering-util\rendering-elements\shapes\labelRect.d.ts
        478 B              478 bytes  wwwroot\js\lib\mermaid\dagre-wrapper\edges.d.ts
-       476 B              476 bytes  web.config
+       476 B              476 bytes  _archive_APP_Server\web.config
        469 B              469 bytes  _archive_eternal\studio_overlays\default\plugins\plugin_index.json
        468 B              468 bytes  wwwroot\js\lib\mermaid\rendering-util\layout-algorithms\swimlanes\laneOrdering.d.ts
        464 B              464 bytes  wwwroot\js\lib\mermaid\diagrams\treemap\utils.d.ts
@@ -2130,6 +2222,7 @@
        369 B              369 bytes  wwwroot\js\lib\mermaid\rendering-util\rendering-elements\shapes\circle.d.ts
        367 B              367 bytes  wwwroot\js\lib\mermaid\rendering-util\rendering-elements\shapes\icon.d.ts
        365 B              365 bytes  wwwroot\js\lib\mermaid\rendering-util\layout-algorithms\swimlanes\adjustLayout.d.ts
+       364 B              364 bytes  NativeShell\Program.cs
        363 B              363 bytes  wwwroot\js\lib\mermaid\rendering-util\rendering-elements\shapes\forkJoin.d.ts
        363 B              363 bytes  wwwroot\js\lib\mermaid\rendering-util\rendering-elements\shapes\roundedRect.d.ts
        363 B              363 bytes  wwwroot\js\lib\mermaid\rendering-util\layout-algorithms\swimlanes\phase4.coordinates.d.ts
@@ -2140,6 +2233,7 @@
        353 B              353 bytes  wwwroot\js\lib\mermaid\rendering-util\rendering-elements\shapes\stateStart.d.ts
        351 B              351 bytes  wwwroot\js\lib\mermaid\rendering-util\rendering-elements\shapes\stateEnd.d.ts
        351 B              351 bytes  tools\chatgpt-share-export-minimum\package.json
+       349 B              349 bytes  NativeShell\obj\project.nuget.cache
        346 B              346 bytes  wwwroot\js\lib\mermaid\diagrams\xychart\chartBuilder\index.d.ts
        345 B              345 bytes  wwwroot\js\lib\mermaid\diagrams\block\layout.d.ts
        342 B              342 bytes  wwwroot\js\lib\mermaid\diagrams\radar\renderer.d.ts
@@ -2230,6 +2324,7 @@
        260 B              260 bytes  wwwroot\js\lib\mermaid\rendering-util\rendering-elements\intersect\intersect-line.d.ts
        260 B              260 bytes  studio_overlays\gpt_fx_lab\plugins\plugin_index.json
        259 B              259 bytes  node_modules\@types\node\web-globals\importmeta.d.ts
+       257 B              257 bytes  data\markdown\30_Studioくん構想メモ\06_作業備忘録.md
        254 B              254 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright\NOTICE
        254 B              254 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\NOTICE
        254 B              254 bytes  node_modules\playwright\NOTICE
@@ -2241,10 +2336,11 @@
        234 B              234 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright\lib\loader\loaderProcessEntry.js.txt
        234 B              234 bytes  node_modules\playwright\lib\loader\loaderProcessEntry.js.txt
        233 B              233 bytes  node_modules\undici-types\retry-agent.d.ts
-       228 B              228 bytes  Program.cs\obj\Debug\net9.0-windows\FRBStudio.assets.cache
+       228 B              228 bytes  _archive_APP_Server\Program.cs\obj\Debug\net9.0-windows\FRBStudio.assets.cache
        227 B              227 bytes  wwwroot\js\lib\mermaid\diagram-api\comments.d.ts
        226 B              226 bytes  wwwroot\js\lib\mermaid\dagre-wrapper\clusters.d.ts
        226 B              226 bytes  wwwroot\js\lib\mermaid\rendering-util\layout-algorithms\swimlanes\direction\endpointClip.d.ts
+       225 B              225 bytes  _archive_APP_Server\Program.cs\obj\project.nuget.cache
        221 B              221 bytes  wwwroot\js\lib\mermaid\rendering-util\layout-algorithms\ddlt\discoverFixtures.d.ts
        221 B              221 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\chunk-JQRUD6KW.mjs
        220 B              220 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\eventmodeling-45OFAUF4-3WKU7OSU.mjs
@@ -2256,15 +2352,18 @@
        212 B              212 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\railroad-peg-LSFZ7HO6-HLXQPOFZ.mjs
        211 B              211 bytes  wwwroot\js\lib\mermaid\diagrams\state\stateRenderer.d.ts
        210 B              210 bytes  wwwroot\js\lib\mermaid\diagrams\gantt\ganttRenderer.d.ts
+       210 B              210 bytes  NativeShell\obj\Release\net48\.NETFramework,Version=v4.8.AssemblyAttributes.cs
+       210 B              210 bytes  NativeShell\obj\Release\net48\win-x64\.NETFramework,Version=v4.8.AssemblyAttributes.cs
+       210 B              210 bytes  NativeShell\obj\Debug\net48\.NETFramework,Version=v4.8.AssemblyAttributes.cs
        206 B              206 bytes  wwwroot\js\lib\mermaid\rendering-util\layout-algorithms\dagre\index.d.ts
-       204 B              204 bytes  Program.cs\obj\project.nuget.cache
+       205 B              205 bytes  cmd_compile_NativeShell.bat
        203 B              203 bytes  wwwroot\js\lib\mermaid\rendering-util\layout-algorithms\swimlanes\phase1.cycles.d.ts
        203 B              203 bytes  wwwroot\js\lib\mermaid\dagre-wrapper\intersect\intersect-ellipse.d.ts
        203 B              203 bytes  studio_overlays\gpt_fx_lab\tests\expansion_lite_rule_lane_v0_18.test.cjs
        200 B              200 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\gitGraph-TEB2WS4Q-EIY3NVGF.mjs
        200 B              200 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\railroad-3IZDKUUU-NPR2B6A7.mjs
        200 B              200 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm\treeView-QDETBFTQ-LXWSYSUM.mjs
-       198 B              198 bytes  Program.cs\obj\Debug\net9.0-windows\.NETCoreApp,Version=v9.0.AssemblyAttributes.cs
+       198 B              198 bytes  _archive_APP_Server\Program.cs\obj\Debug\net9.0-windows\.NETCoreApp,Version=v9.0.AssemblyAttributes.cs
        197 B              197 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\entry\cliDaemon.js
        197 B              197 bytes  node_modules\playwright-core\lib\entry\cliDaemon.js
        196 B              196 bytes  wwwroot\js\lib\mermaid\utils\sanitizeDirective.d.ts
@@ -2296,8 +2395,15 @@
        176 B              176 bytes  node_modules\undici-types\global-origin.d.ts
        175 B              175 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright\lib\agents\playwright-test-generate.prompt.md
        175 B              175 bytes  node_modules\playwright\lib\agents\playwright-test-generate.prompt.md
+       174 B              174 bytes  NativeShell_publish\FRBStudio.NativeShell.exe.config
        174 B              174 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\bin\install_media_pack.ps1
        174 B              174 bytes  node_modules\playwright-core\bin\install_media_pack.ps1
+       174 B              174 bytes  NativeShell\obj\Release\net48\FRBStudio.NativeShell.exe.withSupportedRuntime.config
+       174 B              174 bytes  NativeShell\obj\Release\net48\win-x64\FRBStudio.NativeShell.exe.withSupportedRuntime.config
+       174 B              174 bytes  NativeShell\obj\Debug\net48\FRBStudio.NativeShell.exe.withSupportedRuntime.config
+       174 B              174 bytes  NativeShell\bin\Release\net48\FRBStudio.NativeShell.exe.config
+       174 B              174 bytes  NativeShell\bin\Release\net48\publish\FRBStudio.NativeShell.exe.config
+       174 B              174 bytes  NativeShell\bin\Release\net48\win-x64\FRBStudio.NativeShell.exe.config
        173 B              173 bytes  wwwroot\js\lib\mermaid\rendering-util\setupViewPortForSVG.d.ts
        173 B              173 bytes  wwwroot\js\lib\mermaid\chunks\mermaid.esm.min\eventmodeling-45OFAUF4-AOUJWSLX.mjs
        171 B              171 bytes  wwwroot\js\lib\mermaid\diagrams\architecture\architectureRenderer.d.ts
@@ -2326,7 +2432,7 @@
        153 B              153 bytes  node_modules\playwright-core\lib\tools\cli-client\cli.js
        152 B              152 bytes  wwwroot\mdviewer.json
        152 B              152 bytes  wwwroot\js\lib\mermaid\diagrams\flowchart\elk\detector.d.ts
-       150 B              150 bytes  Program.cs\obj\FRBStudio.csproj.nuget.g.targets
+       150 B              150 bytes  _archive_APP_Server\Program.cs\obj\FRBStudio.csproj.nuget.g.targets
        149 B              149 bytes  wwwroot\js\lib\mermaid\diagrams\block\blockDetector.d.ts
        149 B              149 bytes  wwwroot\js\lib\mermaid\diagrams\c4\c4Detector.d.ts
        149 B              149 bytes  wwwroot\js\lib\mermaid\diagrams\class\classDetector-V2.d.ts
@@ -2384,8 +2490,8 @@
        130 B              130 bytes  wwwroot\js\lib\mermaid\diagrams\pie\pieDetector.d.ts
        129 B              129 bytes  wwwroot\js\lib\mermaid\dagre-wrapper\intersect\intersect-node.d.ts
        128 B              128 bytes  wwwroot\js\lib\mermaid\diagrams\info\infoRenderer.d.ts
-       127 B              127 bytes  appsettings.Development.json
-       127 B              127 bytes  Program.cs\appsettings.Development.json
+       127 B              127 bytes  _archive_APP_Server\appsettings.Development.json
+       127 B              127 bytes  _archive_APP_Server\Program.cs\appsettings.Development.json
        127 B              127 bytes  wwwroot\js\lib\mermaid\rendering-util\rendering-elements\intersect\intersect-circle.d.ts
        123 B              123 bytes  wwwroot\js\lib\mermaid\rendering-util\layout-algorithms\ddlt\paths.d.ts
        120 B              120 bytes  cmd_make_overlays_zip_v1.bat
@@ -2393,6 +2499,8 @@
        120 B              120 bytes  tools\chatgpt-share-export-minimum\node_modules\playwright-core\lib\entry\oopBrowserDownload.js
        120 B              120 bytes  node_modules\playwright-core\README.md
        120 B              120 bytes  node_modules\playwright-core\lib\entry\oopBrowserDownload.js
+       119 B              119 bytes  NativeShell\obj\Release\net48\FRBStudio.NativeShell.sourcelink.json
+       119 B              119 bytes  NativeShell\obj\Release\net48\win-x64\FRBStudio.NativeShell.sourcelink.json
        118 B              118 bytes  cmd_make_FRBStudio_App_zip_v2.bat
        118 B              118 bytes  wwwroot\js\lib\mermaid\diagrams\architecture\architectureDiagram.d.ts
        118 B              118 bytes  wwwroot\js\lib\mermaid\diagrams\block\blockDiagram.d.ts
@@ -2517,14 +2625,19 @@
         76 B               76 bytes  wwwroot\js\lib\mermaid\diagrams\state\styles.d.ts
         76 B               76 bytes  wwwroot\js\lib\mermaid\diagrams\timeline\styles.d.ts
         76 B               76 bytes  wwwroot\js\lib\mermaid\diagrams\user-journey\styles.d.ts
-        70 B               70 bytes  FRBStudio.staticwebassets.endpoints.json
+        70 B               70 bytes  _archive_APP_Server\FRBStudio.staticwebassets.endpoints.json
         70 B               70 bytes  wwwroot\js\lib\mermaid\diagrams\block\blockUtils.d.ts
         70 B               70 bytes  wwwroot\js\lib\mermaid\diagrams\sankey\sankeyUtils.d.ts
         69 B               69 bytes  wwwroot\js\lib\mermaid\diagram-api\diagram-orchestration.d.ts
         69 B               69 bytes  wwwroot\js\lib\mermaid\rendering-util\insertElementsForSize.d.ts
         68 B               68 bytes  cmd_file_list_Tree.bat
+        66 B               66 bytes  _archive_APP_Server\Program.cs\obj\Debug\net9.0-windows\FRBStudio.AssemblyInfoInputs.cache
         66 B               66 bytes  wwwroot\js\lib\mermaid\diagram-api\loadDiagram.d.ts
-        66 B               66 bytes  Program.cs\obj\Debug\net9.0-windows\FRBStudio.AssemblyInfoInputs.cache
+        66 B               66 bytes  NativeShell\obj\Release\net48\FRBStudio.NativeShell.AssemblyInfoInputs.cache
+        66 B               66 bytes  NativeShell\obj\Release\net48\FRBStudio.NativeShell.csproj.CoreCompileInputs.cache
+        66 B               66 bytes  NativeShell\obj\Release\net48\win-x64\FRBStudio.NativeShell.AssemblyInfoInputs.cache
+        66 B               66 bytes  NativeShell\obj\Release\net48\win-x64\FRBStudio.NativeShell.csproj.CoreCompileInputs.cache
+        66 B               66 bytes  NativeShell\obj\Debug\net48\FRBStudio.NativeShell.AssemblyInfoInputs.cache
         64 B               64 bytes  tools\FileTree\file_list_Tree.bat
         56 B               56 bytes  wwwroot\js\lib\mermaid\themes\theme-helpers.d.ts
         56 B               56 bytes  wwwroot\js\lib\mermaid\diagrams\flowchart\parser\flowParser.d.ts
@@ -2668,6 +2781,8 @@
         11 B               11 bytes  wwwroot\js\lib\mermaid\diagrams\railroad\parser\railroadDiagram.spec.d.ts
         11 B               11 bytes  wwwroot\js\lib\mermaid\diagrams\quadrant-chart\parser\quadrant.jison.spec.d.ts
         11 B               11 bytes  wwwroot\js\lib\mermaid\diagrams\block\parser\block.spec.d.ts
+         2 B                2 bytes  .obsidian\app.json
+         2 B                2 bytes  .obsidian\appearance.json
          0 B                0 bytes  _archive\markdown\99_temp\test.md
          0 B                0 bytes  _archive\20260627_1745\data\markdown\test.md
          0 B                0 bytes  _archive\20260627_1745\data\json\01_main\01_create_testpatern_prompt_temple.md
@@ -2675,6 +2790,10 @@
          0 B                0 bytes  _archive\20260627_1745\data\json\03_tests\qa\v0_14_2_incident_prompt_copy_action\diff\.gitkeep
          0 B                0 bytes  _archive\20260627_1745\data\json\03_tests\qa\v0_14_2_incident_prompt_copy_action\summary\.gitkeep
          0 B                0 bytes  studio_overlays\gpt_fx_lab\simulation\results\.gitkeep
+         0 B                0 bytes  NativeShell\obj\Release\net48\FRBStudi.DDDA676D.Up2Date
+         0 B                0 bytes  NativeShell\obj\Release\net48\win-x64\FRBStudi.DDDA676D.Up2Date
+         0 B                0 bytes  data\markdown\00_Common\studio_work_incident_view_def_v0_5_viewdef_20260815_205735.md
+         0 B                0 bytes  data\markdown\00_Common\studio_work_incident_view_def_v0_5_viewdef_20260815_213926.md
          0 B                0 bytes  data\json\03_tests\screen_state\screen_state_smoke_001\summary\.gitkeep
          0 B                0 bytes  data\json\03_tests\qa\v0_14_2_incident_prompt_copy_action\diff\.gitkeep
          0 B                0 bytes  data\json\03_tests\qa\v0_14_2_incident_prompt_copy_action\summary\.gitkeep

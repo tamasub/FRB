@@ -24,15 +24,6 @@ $targetDirs = @(
 # ZIP に含めるルート直下ファイル
 $targetRootFiles = @(
     ".gitignore",
-    "appsettings.Development.json",
-    "appsettings.json",
-    "FRBStudio.staticwebassets.endpoints.json",
-    "package.json",
-    "package-lock.json",
-    "playwright.config.ts",
-    "web.config",
-    "cmd_copy_frbstudio_publish.bat",
-    "cmd_file_list_Tree.bat",
     "cmd_make_FRBStudio_App_zip_v2.bat"
 )
 

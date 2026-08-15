@@ -13,6 +13,10 @@ const mdHtml = read('wwwroot/mdViewer.html');
 const diffHtml = read('wwwroot/DiffJsonViewer.html');
 const metaHtml = read('wwwroot/MetaDiff_HypothesisViewer.html');
 const homeHtml = read('wwwroot/home.html');
+const nativeDispatcher = read('NativeShell/NativeCommandDispatcher.cs');
+const nativeConfig = read('NativeShell/native_shell.config.json');
+const loadRuntime = read('wwwroot/js/runtime/load_runtime.js');
+const fileApi = read('wwwroot/js/core/file_api.js');
 
 test('Common Shell is shared by the four Studio/Viewer pages without iframe composition', () => {
   for (const html of [indexHtml, mdHtml, diffHtml, metaHtml]) {
@@ -162,4 +166,53 @@ test('Markdown front-matter missing notice is muted gray with a pale-pink genera
   assert.match(mdHtml, /\.fm-suggest-action \{[\s\S]*background:#fbe7ec;[\s\S]*color:#9f5367;/);
   assert.match(mdHtml, /class="fm-suggest-action"[^>]*>設定ヘッダーを自動生成<\/button>/);
   assert.doesNotMatch(mdHtml, /background:linear-gradient\(135deg, #f59e0b, #d97706\)/);
+});
+
+
+test('Markdown toolbar moves open actions into Workspace and reserves a wide central drop area', () => {
+  const workspaceIndex = mdHtml.indexOf('class="md-workspace-actions md-workspace-open-actions"');
+  const folderButtonIndex = mdHtml.indexOf('id="localFileBtn"');
+  const externalButtonIndex = mdHtml.indexOf('id="btnExternalOpen"');
+  assert.ok(workspaceIndex >= 0 && folderButtonIndex > workspaceIndex && externalButtonIndex > workspaceIndex);
+  assert.match(mdHtml, /class="md-drop-hint md-drop-wide"[^>]*>MarkdownをここへDrop<\/span>/);
+  assert.match(mdHtml, /\.md-drop-hint\.md-drop-wide \{[\s\S]*flex: 1 1 360px;/);
+});
+
+test('Markdown workspace restores the last explicitly selected folder through a persisted Native folder grant', () => {
+  assert.match(mdHtml, /MARKDOWN_WORKSPACE_PERSIST_KEY = 'markdown\.workspace'/);
+  assert.match(mdHtml, /folderGrant\.select[\s\S]*persist_key: MARKDOWN_WORKSPACE_PERSIST_KEY/);
+  assert.match(mdHtml, /folderGrant\.restore[\s\S]*persist_key: MARKDOWN_WORKSPACE_PERSIST_KEY/);
+  assert.match(mdHtml, /await restoreLastMarkdownWorkspaceFolder\(\)/);
+  assert.match(nativeConfig, /"folderGrant\.restore"/);
+  assert.match(nativeDispatcher, /case "folderGrant\.restore"/);
+  assert.match(nativeDispatcher, /LocalApplicationData/);
+  assert.match(nativeDispatcher, /NormalizePersistKey/);
+});
+
+test('JSON loaded documents always resynchronize the primary save button after render and readonly checks', () => {
+  assert.match(loadRuntime, /function syncLoadedDocumentSaveButtonState\(\)/);
+  assert.match(loadRuntime, /saveBtn\.disabled = readonly/);
+  assert.match(loadRuntime, /currentDataApiUrl \? '上書き保存' : '別名保存'/);
+  assert.match(loadRuntime, /updateReadonlyLaunchControls\(\);\s*syncLoadedDocumentSaveButtonState\(\);/);
+});
+
+test('JSON title toolbar is compact and document path metadata moves to the fixed left rail', () => {
+  assert.match(indexHtml, /class="json-document-meta"/);
+  assert.match(indexHtml, /id="jsonMetaFileName"/);
+  assert.match(indexHtml, /id="jsonMetaCharCount"/);
+  assert.doesNotMatch(indexHtml, /class="status current-data-path"/);
+  assert.match(indexHtml, />MD 出力→Viewer<\/button>/);
+  assert.match(indexHtml, />ViewDef 出力→Viewer<\/button>/);
+  assert.match(shellCss, /\.frb-page-json-object \.json-document-meta \{[\s\S]*margin-top: auto;/);
+  assert.match(fileApi, /metaFileEl\.title = path/);
+  assert.match(fileApi, /JSON\.stringify\(sourceData, null, 2\)\.length/);
+});
+
+test('Markdown document metadata keeps filename and character count only, with filename tooltip sync', () => {
+  assert.match(mdHtml, /id="metaFileName"[^>]*title=""/);
+  assert.match(mdHtml, /id="charCount"/);
+  assert.doesNotMatch(mdHtml, /<b>読了目安<\/b>/);
+  assert.doesNotMatch(mdHtml, /<b>Block Model<\/b>/);
+  assert.match(mdHtml, /metaFileName\.title = value/);
+  assert.match(mdHtml, /if \(readTimeEl\) readTimeEl\.textContent/);
 });

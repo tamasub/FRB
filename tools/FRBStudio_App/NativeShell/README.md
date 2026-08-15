@@ -77,3 +77,10 @@ This Phase A source has **not** been compiled in the ChatGPT execution environme
 6. Copy the built application to a clean company-equivalent PC and verify whether it starts without any user-side installation or administrator action.
 
 The final distribution constraint is intentionally not fixed yet; the result of the real-PC verification is a distillation candidate in `studio_work_0158`.
+
+
+## Persisted folder grant
+
+`folderGrant.select` は任意の `persist_key` を受け取り、ユーザーが明示選択したフォルダーだけを `%LOCALAPPDATA%\FRBStudio\folder_grants.json` に保存できます。
+次回起動時は `folderGrant.restore` に同じ `persist_key` を渡すことで、任意パスをJSから指定せず、過去に承認済みのフォルダーGrantだけを復元します。
+Markdown Studioは `markdown.workspace` を使用します。

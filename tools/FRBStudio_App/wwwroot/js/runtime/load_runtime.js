@@ -42,17 +42,16 @@ async function loadFromObjects(defObj, dataObj, label='読み込み完了', data
   renderByKey('grid');
   renderByKey('viewExecuteButton');
   if (typeof renderRelatedGridLaunchButtons === 'function') renderRelatedGridLaunchButtons();
-  $('saveBtn').disabled = false;
   if ($('gridCsvExportBtn')) $('gridCsvExportBtn').disabled = false;
   if ($('exportMarkdownBtn')) $('exportMarkdownBtn').disabled = false;
   if (typeof updateMarkdownExportModeSelect === 'function') updateMarkdownExportModeSelect();
   updateViewDefMarkdownButtonState();
   if ($('exportViewDefMarkdownBtn')) $('exportViewDefMarkdownBtn').disabled = false;
-  $('saveBtn').textContent = currentDataApiUrl ? '上書き保存' : '別名保存';
   const mainGridIsVirtual = isVirtualDataCompatible(defObj, gridDef());
   $('addRowBtn').disabled = mainGridIsVirtual;
   $('deleteRowBtn').disabled = mainGridIsVirtual;
   updateReadonlyLaunchControls();
+  syncLoadedDocumentSaveButtonState();
   updateFileLabels();
   if (typeof setCurrentLoadedDataDisplayPath === 'function') {
     setCurrentLoadedDataDisplayPath(dataDisplayPath || dataApiUrl || label, { updateStatus: false });
@@ -222,10 +221,17 @@ function applyLaunchFocusFromQuery(params) {
 }
 
 
+function syncLoadedDocumentSaveButtonState() {
+  const saveBtn = $('saveBtn');
+  if (!saveBtn) return;
+  const readonly = Boolean(launchRuntime?.readonly);
+  saveBtn.disabled = readonly;
+  saveBtn.textContent = readonly ? 'ReadOnly' : (currentDataApiUrl ? '上書き保存' : '別名保存');
+}
+
 function updateReadonlyLaunchControls() {
   const readonly = Boolean(launchRuntime?.readonly);
   const idsToDisable = [
-    'saveBtn',
     'addRowBtn',
     'deleteRowBtn',
     'applyDetailBtn',

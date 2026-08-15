@@ -2047,11 +2047,26 @@
     }
     body.md-sidecar-comment-editing .md-block-inline-actions { display: none !important; }
 
+
+    /* studio_work_0185 p4: toolbar responsibility + wider MD drop */
+    .topbar .controls { flex: 1 1 auto; min-width: 0; }
+    .topbar .control-group.primary-flow { width: 100%; min-width: 0; display:flex; align-items:center; gap:9px; }
+    .md-drop-hint.md-drop-wide {
+      flex: 1 1 360px;
+      min-width: 220px;
+      min-height: 40px;
+      justify-content: center;
+      border-color: rgba(120,136,160,.28);
+      background: rgba(245,247,249,.88);
+      color: #687386;
+    }
+    .md-workspace-open-actions { margin-bottom: 6px; }
+    .md-workspace-open-actions button { font-size: 10px; }
   </style>
-  <link rel="stylesheet" href="css/frb-studio-shell.css?v=0185p3" />
+  <link rel="stylesheet" href="css/frb-studio-shell.css?v=0185p4" />
 </head>
 <body data-mode="editor">
-  <script src="js/ui/frb_studio_shell.js?v=0185p3"></script>
+  <script src="js/ui/frb_studio_shell.js?v=0185p4"></script>
   <script>
     FrbStudioShell.mount({
       pageId: 'markdown',
@@ -2081,9 +2096,7 @@
       
       <div class="controls">
         <div class="control-group primary-flow">
-          <button class="ghost-btn compact-text-btn" id="localFileBtn" title="Markdownを管理するフォルダーを開きます。選択だけでは何も作成しません。">📁 フォルダーを開く</button>
-          <button class="ghost-btn compact-text-btn" id="btnExternalOpen" title="Workspace外のMarkdownを開きます。元ファイルへの上書きは可能ですが、コメント追加にはWorkspaceへの取り込みが必要です。">ファイルを開く</button>
-          <span class="md-drop-hint" title="Markdownを画面へDropして開けます。">MD Drop</span>
+          <span class="md-drop-hint md-drop-wide" title="MarkdownをここへDropして開けます。">MarkdownをここへDrop</span>
           <div class="md-managed-picker-wrap md-hidden-legacy" aria-hidden="true">
             <input id="managedMdSelect" type="text" value="" placeholder="管理Markdownを選択..." autocomplete="off" />
             <button id="btnClearManagedMd" type="button" hidden>×</button>
@@ -2120,6 +2133,10 @@
                 <div class="md-workspace-path" id="mdWorkspacePath">「フォルダーを開く」からMarkdown作業領域を選択</div>
               </div>
               <button id="btnRefreshWorkspace" type="button" class="ghost-btn" title="ツリーを更新" style="padding:6px 8px; min-width:34px;">↻</button>
+            </div>
+            <div class="md-workspace-actions md-workspace-open-actions">
+              <button class="ghost-btn" id="localFileBtn" type="button" title="Markdownを管理するフォルダーを開きます。選択だけでは何も作成しません。">📁 フォルダーを開く</button>
+              <button class="ghost-btn" id="btnExternalOpen" type="button" title="Workspace外のMarkdownを開きます。元ファイルへの上書きは可能ですが、コメント追加にはWorkspaceへの取り込みが必要です。">ファイルを開く</button>
             </div>
             <div class="md-workspace-actions">
               <button id="btnNewWorkspaceMarkdown" type="button" class="ghost-btn">＋ Markdown</button>
@@ -2161,10 +2178,8 @@
         <section class="side-card md-meta-panel">
           <h2>ドキュメントメタ</h2>
           <div class="meta-list">
-            <div><b>保存ファイル名</b><input id="metaFileName" type="text" value="" style="width:100%; margin-top:4px; font-size:12px; padding:6px 10px;" placeholder="ファイル名を入力"/></div>
+            <div><b>保存ファイル名</b><input id="metaFileName" type="text" value="" title="" style="width:100%; margin-top:4px; font-size:12px; padding:6px 10px;" placeholder="ファイル名を入力"/></div>
             <div><b>文字数</b><span id="charCount">-</span></div>
-            <div><b>読了目安</b><span id="readTime">-</span></div>
-            <div><b>Block Model</b><span id="blockModelMeta">-</span></div>
           </div>
         </section>
       </aside>
@@ -2605,8 +2620,11 @@ function applyFrontMatterEdits() {
 
 // 保存ファイル名の入力欄同期
 function syncFileNameUI(name) {
-  metaFileName.value = name;
-  editorFileName.value = name;
+  const value = String(name ?? '');
+  metaFileName.value = value;
+  metaFileName.title = value;
+  editorFileName.value = value;
+  editorFileName.title = value;
 }
 [metaFileName, editorFileName].forEach(input => {
   input.addEventListener("input", (e) => syncFileNameUI(e.target.value));
@@ -5425,7 +5443,7 @@ function buildToc(){
 function updateMeta(rawMd, parsedContent){
   const chars = parsedContent.replace(/\s/g,"").length;
   charCountEl.textContent = chars.toLocaleString("ja-JP")+" 文字";
-  readTimeEl.textContent = "約 "+Math.max(1,Math.ceil(chars/800))+" 分";
+  if (readTimeEl) readTimeEl.textContent = "約 "+Math.max(1,Math.ceil(chars/800))+" 分";
 }
 
 function renderMarkdown(rawMd, sourceUrl, sourceLabel){
@@ -5885,6 +5903,43 @@ async function confirmReplaceCurrentMarkdown(actionLabel = '別のMarkdownを開
     cancelLabel:'キャンセル'
   });
 }
+const MARKDOWN_WORKSPACE_PERSIST_KEY = 'markdown.workspace';
+
+async function applyMarkdownWorkspaceGrant(result, { announce = false } = {}) {
+  const grantId = String(result?.grant_id || '');
+  const rootPath = String(result?.root_path || '');
+  if (!grantId || !rootPath) return false;
+  markdownWorkspaceRuntime.grantId = grantId;
+  markdownWorkspaceRuntime.rootPath = rootPath;
+  markdownWorkspaceRuntime.rootName = String(result?.root_name || '') || workspaceBaseName(rootPath) || 'Workspace';
+  markdownWorkspaceRuntime.expanded = new Set(['']);
+  markdownWorkspaceRuntime.children = new Map();
+  markdownWorkspaceRuntime.selectedPath = '';
+  markdownWorkspaceRuntime.selectedKind = 'folder';
+  mdWorkspaceName.textContent = markdownWorkspaceRuntime.rootName;
+  mdWorkspacePath.textContent = markdownWorkspaceRuntime.rootPath;
+  await loadMarkdownWorkspaceChildren('', { force: true });
+  renderMarkdownWorkspaceTree();
+  if (announce) {
+    showMarkdownSuccess(`フォルダーを開きました: ${markdownWorkspaceRuntime.rootPath}\n※フォルダー選択だけではファイル/フォルダーを作成しません。`, 5200);
+  }
+  return true;
+}
+
+async function restoreLastMarkdownWorkspaceFolder() {
+  if (!nativeMarkdownHostAvailable()) return false;
+  try {
+    const result = await window.FRBStudioNativeHost.invoke('folderGrant.restore', {
+      persist_key: MARKDOWN_WORKSPACE_PERSIST_KEY
+    });
+    if (!result?.restored) return false;
+    return await applyMarkdownWorkspaceGrant(result, { announce: false });
+  } catch (err) {
+    console.warn('前回のMarkdown Workspaceを復元できませんでした。', err);
+    return false;
+  }
+}
+
 async function selectMarkdownWorkspaceFolder() {
   if (!nativeMarkdownHostAvailable()) {
     showMarkdownWarn('「フォルダーを開く」はFRBStudio.NativeShell.exeで利用できます。ブラウザでは「ファイルを開く」またはMD Dropを使用してください。', 6200);
@@ -5892,21 +5947,10 @@ async function selectMarkdownWorkspaceFolder() {
   }
   try {
     const result = await window.FRBStudioNativeHost.invoke('folderGrant.select', {
-      description: 'Markdown Editorで開くフォルダーを選択'
+      description: 'Markdown Editorで開くフォルダーを選択',
+      persist_key: MARKDOWN_WORKSPACE_PERSIST_KEY
     });
-    markdownWorkspaceRuntime.grantId = String(result?.grant_id || '');
-    markdownWorkspaceRuntime.rootPath = String(result?.root_path || '');
-    markdownWorkspaceRuntime.rootName = String(result?.root_name || '') || workspaceBaseName(markdownWorkspaceRuntime.rootPath) || 'Workspace';
-    markdownWorkspaceRuntime.expanded = new Set(['']);
-    markdownWorkspaceRuntime.children = new Map();
-    markdownWorkspaceRuntime.selectedPath = '';
-    markdownWorkspaceRuntime.selectedKind = 'folder';
-    mdWorkspaceName.textContent = markdownWorkspaceRuntime.rootName;
-    mdWorkspacePath.textContent = markdownWorkspaceRuntime.rootPath;
-    await loadMarkdownWorkspaceChildren('', { force: true });
-    renderMarkdownWorkspaceTree();
-    showMarkdownSuccess(`フォルダーを開きました: ${markdownWorkspaceRuntime.rootPath}\n※フォルダー選択だけではファイル/フォルダーを作成しません。`, 5200);
-    return true;
+    return await applyMarkdownWorkspaceGrant(result, { announce: true });
   } catch (err) {
     if (err?.code === 'USER_CANCELLED') return false;
     showMarkdownError('フォルダーを開けませんでした。\n' + (err?.message || err));
@@ -6836,6 +6880,7 @@ tocDepthBtns.forEach(btn=>btn.addEventListener("click",()=>{
 // v0.13.9: 初期表示で先頭ファイルを勝手にプレロードしない。人に見せた時の事故を防ぐ。
 (async () => {
   await loadMdViewerConfig();
+  await restoreLastMarkdownWorkspaceFolder();
 
   const params = new URLSearchParams(location.search);
   const requestedFileRaw = params.get('file') || params.get('md');

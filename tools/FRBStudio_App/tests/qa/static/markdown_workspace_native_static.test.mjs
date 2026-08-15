@@ -28,7 +28,7 @@ test('Markdown UI promotes Folder Open + Workspace Tree and keeps INDEX on right
 test('URL flow and legacy data/markdown picker are removed from the primary visual flow', () => {
   assert.match(md, /md-managed-picker-wrap md-hidden-legacy/);
   assert.match(md, /control-group import-flow md-hidden-legacy/);
-  assert.match(md, /class="md-drop-hint"[^>]*>MD Drop</);
+  assert.match(md, /class="md-drop-hint md-drop-wide"[^>]*>MarkdownをここへDrop</);
 });
 
 test('Markdown Folder Grant is independent from App Root workspace', () => {
@@ -39,11 +39,12 @@ test('Markdown Folder Grant is independent from App Root workspace', () => {
   assert.match(shellForm, /\/ App Root: /);
 });
 
-test('opening a Markdown folder has no file-system creation side effect', () => {
+test('opening a Markdown folder has no side effect inside the selected Workspace', () => {
   const selectStart = dispatcher.indexOf('private object SelectFolderGrant');
-  const selectEnd = dispatcher.indexOf('private WorkspacePolicy RequiredFolderGrant', selectStart);
+  const selectEnd = dispatcher.indexOf('private object RestoreFolderGrant', selectStart);
   const selectBody = dispatcher.slice(selectStart, selectEnd);
-  assert.doesNotMatch(selectBody, /CreateDirectory|WriteAllText|File\.Copy|File\.Move/);
+  assert.doesNotMatch(selectBody, /File\.Copy|File\.Move/);
+  assert.match(dispatcher, /LocalApplicationData/);
   const jsStart = md.indexOf('async function selectMarkdownWorkspaceFolder');
   const jsEnd = md.indexOf('async function loadMarkdownWorkspaceChildren', jsStart);
   assert.doesNotMatch(md.slice(jsStart, jsEnd), /folderGrant\.createDirectory|folderGrant\.writeText/);

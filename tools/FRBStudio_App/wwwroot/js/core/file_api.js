@@ -11,6 +11,8 @@ function renderCurrentLoadedDataDisplay() {
   const titleEl = $('currentDataTitle');
   const subtitleEl = $('currentDataSubtitle');
   const statusEl = $('status');
+  const metaFileEl = $('jsonMetaFileName');
+  const metaCharEl = $('jsonMetaCharCount');
   const title = String(currentLoadedDataTitle || '').trim();
   const subtitle = String(currentLoadedDataSubtitle || '').trim();
   const statusText = currentLoadedDataStatusText();
@@ -22,6 +24,17 @@ function renderCurrentLoadedDataDisplay() {
   if (subtitleEl) {
     subtitleEl.textContent = subtitle;
     subtitleEl.title = subtitle;
+  }
+  if (metaFileEl) {
+    const path = String(currentLoadedDataDisplayPath || '').trim();
+    const fileName = path ? path.split('/').filter(Boolean).pop() : '';
+    metaFileEl.textContent = fileName || '未読み込み';
+    metaFileEl.title = path || '';
+  }
+  if (metaCharEl) {
+    let count = 0;
+    try { count = sourceData ? JSON.stringify(sourceData, null, 2).length : 0; } catch { count = 0; }
+    metaCharEl.textContent = count ? `${count.toLocaleString('ja-JP')} 文字` : '-';
   }
   if (statusEl) {
     statusEl.textContent = statusText || '未読み込み';

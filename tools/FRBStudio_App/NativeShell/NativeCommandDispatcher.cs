@@ -19,11 +19,16 @@ namespace FRBStudio.NativeShell
         private readonly JavaScriptSerializer _serializer = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
         private readonly Dictionary<string, WorkspacePolicy> _folderGrants = new Dictionary<string, WorkspacePolicy>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, string> _documentGrants = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, string> _persistedFolderGrantPaths = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private readonly string _persistedFolderGrantStorePath;
 
         public NativeCommandDispatcher(NativeShellConfig config, WorkspacePolicy workspace)
         {
             _config = config;
             _workspace = workspace;
+            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            _persistedFolderGrantStorePath = Path.Combine(localAppData, "FRBStudio", "folder_grants.json");
+            LoadPersistedFolderGrants();
         }
 
         public async Task<string> DispatchAsync(string messageJson)
@@ -96,6 +101,9 @@ namespace FRBStudio.NativeShell
 
                 case "folderGrant.select":
                     return SelectFolderGrant(payload);
+
+                case "folderGrant.restore":
+                    return RestoreFolderGrant(payload);
 
                 case "folderGrant.list":
                     return ListFolderGrant(payload);
@@ -182,15 +190,80 @@ namespace FRBStudio.NativeShell
                     throw new OperationCanceledException();
 
                 var policy = new WorkspacePolicy(dialog.SelectedPath);
-                var grantId = "folder-" + Guid.NewGuid().ToString("N");
-                _folderGrants[grantId] = policy;
+                var persistKey = NormalizePersistKey(GetString(payload, "persist_key"), allowEmpty: true);
+                if (!string.IsNullOrWhiteSpace(persistKey))
+                {
+                    _persistedFolderGrantPaths[persistKey] = policy.RootPath;
+                    SavePersistedFolderGrants();
+                }
+                return ActivateFolderGrant(policy, persistKey, restored: false);
+            }
+        }
+
+        private object RestoreFolderGrant(IDictionary<string, object> payload)
+        {
+            var persistKey = NormalizePersistKey(RequiredString(payload, "persist_key"), allowEmpty: false);
+            if (!_persistedFolderGrantPaths.TryGetValue(persistKey, out var rootPath) || !Directory.Exists(rootPath))
+            {
                 return new Dictionary<string, object>
                 {
-                    ["grant_id"] = grantId,
-                    ["root_path"] = policy.RootPath,
-                    ["root_name"] = new DirectoryInfo(policy.RootPath).Name
+                    ["restored"] = false,
+                    ["persist_key"] = persistKey
                 };
             }
+
+            var policy = new WorkspacePolicy(rootPath);
+            return ActivateFolderGrant(policy, persistKey, restored: true);
+        }
+
+        private object ActivateFolderGrant(WorkspacePolicy policy, string persistKey, bool restored)
+        {
+            var grantId = "folder-" + Guid.NewGuid().ToString("N");
+            _folderGrants[grantId] = policy;
+            return new Dictionary<string, object>
+            {
+                ["restored"] = restored,
+                ["grant_id"] = grantId,
+                ["root_path"] = policy.RootPath,
+                ["root_name"] = new DirectoryInfo(policy.RootPath).Name,
+                ["persist_key"] = persistKey ?? string.Empty
+            };
+        }
+
+        private static string NormalizePersistKey(string raw, bool allowEmpty)
+        {
+            var value = (raw ?? string.Empty).Trim();
+            if (string.IsNullOrEmpty(value) && allowEmpty) return string.Empty;
+            if (!Regex.IsMatch(value, "^[A-Za-z0-9_.-]{1,80}$"))
+                throw new InvalidOperationException("INVALID_PERSIST_KEY: persist_key is invalid.");
+            return value;
+        }
+
+        private void LoadPersistedFolderGrants()
+        {
+            try
+            {
+                if (!File.Exists(_persistedFolderGrantStorePath)) return;
+                var json = File.ReadAllText(_persistedFolderGrantStorePath, Encoding.UTF8);
+                var loaded = _serializer.Deserialize<Dictionary<string, string>>(json);
+                if (loaded == null) return;
+                foreach (var item in loaded)
+                {
+                    var key = NormalizePersistKey(item.Key, allowEmpty: false);
+                    if (!string.IsNullOrWhiteSpace(item.Value)) _persistedFolderGrantPaths[key] = item.Value;
+                }
+            }
+            catch
+            {
+                _persistedFolderGrantPaths.Clear();
+            }
+        }
+
+        private void SavePersistedFolderGrants()
+        {
+            var directory = Path.GetDirectoryName(_persistedFolderGrantStorePath);
+            if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
+            File.WriteAllText(_persistedFolderGrantStorePath, _serializer.Serialize(_persistedFolderGrantPaths), new UTF8Encoding(false));
         }
 
         private WorkspacePolicy RequiredFolderGrant(IDictionary<string, object> payload)

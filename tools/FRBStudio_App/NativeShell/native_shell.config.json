@@ -23,6 +23,7 @@
     "shell.openFolder",
     "process.runProfile",
     "folderGrant.select",
+    "folderGrant.restore",
     "folderGrant.list",
     "folderGrant.readText",
     "folderGrant.writeText",
