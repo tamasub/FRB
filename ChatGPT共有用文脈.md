@@ -1,3 +1,11 @@
+---
+title: "ChatGPT共有用文脈.md"
+emoji: "📖"
+type: "idea"
+topics: ["ai", "development", "thought"]
+published: false
+---
+
 # ChatGPT共有用文脈.md
 
 最終更新: 2026-08-06  

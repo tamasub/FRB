@@ -92,3 +92,23 @@ test('Workspace move preflights Sidecar destination before moving Markdown', () 
   const mainMove = moveBody.indexOf('File.Move(source, destination)');
   assert.ok(preflight >= 0 && mainMove > preflight, 'Sidecar destination collision must be checked before Markdown is moved');
 });
+
+test('Front Matter form is materialized automatically on every Markdown save path without requiring Apply', () => {
+  assert.match(md, /function materializeFrontMatterForSave\(rawMd = editorEl\.value\)/);
+  const materializeStart = md.indexOf('function materializeFrontMatterForSave');
+  const materializeEnd = md.indexOf('// 保存ファイル名の入力欄同期', materializeStart);
+  const materializeBody = md.slice(materializeStart, materializeEnd);
+  assert.match(materializeBody, /if \(!parsed\.data\) return raw;/, 'no Front Matter must stay no Front Matter');
+  assert.match(materializeBody, /frontMatterDataFromEditor\(parsed\.data\)/, 'latest visible Front Matter form values must be used');
+  assert.match(materializeBody, /replaceFrontMatter\(raw, next\)/, 'form values must be merged into Markdown before save');
+
+  assert.match(md, /async function saveWorkspaceMarkdown[\s\S]*?const content = materializeFrontMatterForSave\(editorEl\.value \|\| ''\);/);
+  assert.match(md, /async function saveExternalMarkdownOverwrite[\s\S]*?const content = materializeFrontMatterForSave\(editorEl\.value \|\| ''\);/);
+  assert.match(md, /async function saveManagedMarkdown[\s\S]*?const saveContent = materializeFrontMatterForSave\(content\);/);
+  assert.match(md, /async function saveMarkdownWithNativeDialog[\s\S]*?const content = materializeFrontMatterForSave\(editorEl\.value \|\| ""\);/);
+
+  // Initial-state generation remains allowed: generated Front Matter becomes editor content and can be saved by Save As.
+  assert.match(md, /window\.insertSuggestedFrontMatter = function\(\)/);
+  assert.match(md, /editorEl\.value = generatedFM \+ rawText;/);
+  assert.doesNotMatch(md, /insertSuggestedFrontMatter[\s\S]{0,500}(Document未選択|documentDisplayName\(\).*return)/);
+});

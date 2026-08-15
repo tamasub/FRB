@@ -2618,6 +2618,27 @@ function applyFrontMatterEdits() {
   showMarkdownSuccess("フロントマターを本文へ反映しました。上書き保存で保存できます。", 3600);
 }
 
+// Front Matterの編集フォームは本文とは別状態を持つため、保存時は本文へ未反映でも必ず統合する。
+// Front Matterが本文に存在しない初期状態では何も生成しない。自動生成後は通常の保存対象になる。
+function materializeFrontMatterForSave(rawMd = editorEl.value) {
+  const raw = String(rawMd ?? "");
+  const parsed = parseFrontMatter(raw);
+  if (!parsed.data) return raw;
+
+  // 現在Editor上のDocumentを保存する場合だけ、画面上の最新Front Matterフォームを採用する。
+  // 任意contentを内部API経由で保存する場合に、別Documentのフォーム値を混ぜないための境界。
+  if (raw !== String(editorEl.value ?? "")) return raw;
+
+  const next = frontMatterDataFromEditor(parsed.data);
+  const materialized = replaceFrontMatter(raw, next);
+  if (materialized !== raw) {
+    editorEl.value = materialized;
+    isManagedMarkdownDirty = true;
+    if (fmEditStatus) fmEditStatus.textContent = "保存時に本文へ反映します。";
+  }
+  return materialized;
+}
+
 // 保存ファイル名の入力欄同期
 function syncFileNameUI(name) {
   const value = String(name ?? '');
@@ -6106,7 +6127,7 @@ async function loadWorkspaceMarkdown(relativePath) {
 async function saveWorkspaceMarkdown({ quiet = false } = {}) {
   const path = normalizeWorkspaceRelativePath(markdownDocumentRuntime.relativePath);
   if (!markdownWorkspaceSelected() || !path) throw new Error('Workspace Documentが選択されていません。');
-  const content = editorEl.value || '';
+  const content = materializeFrontMatterForSave(editorEl.value || '');
   const safetyOk = await runMarkdownSaveSafetyBeforeSave(workspaceBaseName(path), content);
   if (!safetyOk) throw new Error('Save Safety 検査により保存を中止しました。');
   const result = await window.FRBStudioNativeHost.invoke('folderGrant.writeText', {
@@ -6122,7 +6143,7 @@ async function saveWorkspaceMarkdown({ quiet = false } = {}) {
   return result;
 }
 async function saveExternalMarkdownOverwrite() {
-  const content = editorEl.value || '';
+  const content = materializeFrontMatterForSave(editorEl.value || '');
   if (markdownDocumentRuntime.documentId && nativeMarkdownHostAvailable()) {
     const result = await window.FRBStudioNativeHost.invoke('document.writeText', {
       document_id: markdownDocumentRuntime.documentId,
@@ -6494,18 +6515,19 @@ async function loadManagedMarkdown(name) {
 
 async function saveManagedMarkdown(name, content, quiet = false) {
   const fileName = normalizeMarkdownFileName(name);
-  const safetyOk = await runMarkdownSaveSafetyBeforeSave(fileName, content);
+  const saveContent = materializeFrontMatterForSave(content);
+  const safetyOk = await runMarkdownSaveSafetyBeforeSave(fileName, saveContent);
   if (!safetyOk) throw new Error("Save Safety 検査により保存を中止しました。");
   const res = await fetch(markdownApiUrl(fileName), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: fileName, content })
+    body: JSON.stringify({ name: fileName, content: saveContent })
   });
   if (!res.ok) throw new Error(await res.text());
-  await verifySavedManagedMarkdown(fileName, content);
+  await verifySavedManagedMarkdown(fileName, saveContent);
   currentManagedMarkdownName = fileName;
   isManagedMarkdownDirty = false;
-  recordMarkdownLoadedSnapshot(fileName, content);
+  recordMarkdownLoadedSnapshot(fileName, saveContent);
   syncFileNameUI(fileName);
   await refreshManagedMarkdownList(fileName);
   if (mdCommentSidecarRuntime.dirty && (mdCommentSidecarRuntime.targetFile === fileName || mdCommentSidecarRuntime.targetFile === currentManagedMarkdownName)) {
@@ -6668,7 +6690,7 @@ function windowsPathInsideWorkspace(fullPath) {
 }
 async function saveMarkdownWithNativeDialog() {
   const sourceName = normalizeMarkdownRootFileName(documentDisplayName() || "frb_expanded_thought.md");
-  const content = editorEl.value || "";
+  const content = materializeFrontMatterForSave(editorEl.value || "");
   try {
     const res = await fetch("/api/markdown/save-as-dialog", {
       method: "POST",
