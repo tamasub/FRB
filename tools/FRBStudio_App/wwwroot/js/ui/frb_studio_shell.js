@@ -108,6 +108,23 @@
     return pagebar;
   }
 
+  function syncStickyOffsets(shell, pagebar) {
+    const update = () => {
+      const shellHeight = Math.ceil(shell.getBoundingClientRect().height || 0);
+      const pagebarHeight = Math.ceil(pagebar.getBoundingClientRect().height || 0);
+      document.documentElement.style.setProperty('--frb-shell-height', `${shellHeight}px`);
+      document.documentElement.style.setProperty('--frb-fixed-header-height', `${shellHeight + pagebarHeight}px`);
+    };
+
+    requestAnimationFrame(update);
+    window.addEventListener('resize', update, { passive: true });
+    if ('ResizeObserver' in window) {
+      const observer = new ResizeObserver(update);
+      observer.observe(shell);
+      observer.observe(pagebar);
+    }
+  }
+
   function mount(options) {
     options = options || {};
     if (document.querySelector('[data-frb-shell="common"]')) return;
@@ -120,6 +137,7 @@
     const pagebar = buildPagebar(pageId, options);
     document.body.prepend(pagebar);
     document.body.prepend(shell);
+    syncStickyOffsets(shell, pagebar);
 
     const homeButton = pagebar.querySelector('[data-frb-home]');
     if (homeButton) homeButton.addEventListener('click', () => location.assign('home.html'));

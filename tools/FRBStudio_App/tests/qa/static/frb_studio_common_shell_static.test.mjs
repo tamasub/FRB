@@ -105,13 +105,33 @@ test('Markdown Studio keeps Viewer and Editor but removes the Qiita Zenn theme s
 });
 
 test('JSON Object Studio main pane is forced to consume the available right-column width', () => {
-  assert.match(shellCss, /\.frb-page-json-object \.json-studio-workspace \{[\s\S]*width:calc\(100% - 24px\);[\s\S]*max-width:none;/);
+  assert.match(shellCss, /\.frb-page-json-object \.json-studio-workspace \{[\s\S]*width:100%;[\s\S]*max-width:none;/);
   assert.match(shellCss, /\.frb-page-json-object \.json-studio-main-pane \{[\s\S]*justify-self:stretch;/);
   assert.match(shellCss, /\.frb-page-json-object \.json-studio-main-pane > main \{[\s\S]*width:100%;[\s\S]*max-width:none;/);
   assert.match(shellCss, /#gridSection \{[\s\S]*width:100%;[\s\S]*max-width:none;/);
 });
 
-test('JSON Object Studio left source pane sizes itself to content instead of reserving a tall empty column', () => {
-  assert.match(shellCss, /\.frb-page-json-object \.json-studio-source-pane \{[\s\S]*height:max-content;[\s\S]*max-height:none;/);
-  assert.match(shellCss, /\.frb-page-json-object \.app-header \{[\s\S]*height:auto;[\s\S]*min-height:0;/);
+test('JSON Object Studio left source pane is a fixed full-height rail below the common fixed headers', () => {
+  assert.match(shellCss, /\.frb-page-json-object \.json-studio-workspace \{[\s\S]*width:100%;[\s\S]*margin:0;[\s\S]*align-items:stretch;/);
+  assert.match(shellCss, /\.frb-page-json-object \.json-studio-source-pane \{[\s\S]*position:sticky;[\s\S]*top:var\(--frb-fixed-header-height,[\s\S]*height:calc\(100dvh - var\(--frb-fixed-header-height,/);
+  assert.match(shellCss, /\.frb-page-json-object \.app-header \{[\s\S]*min-height:100%;/);
+});
+
+test('Common page title bar remains fixed below the module navigation on every screen', () => {
+  assert.match(shellCss, /\.frb-pagebar \{[\s\S]*position: sticky;[\s\S]*top: var\(--frb-shell-height,/);
+  assert.match(shellJs, /function syncStickyOffsets\(shell, pagebar\)/);
+  assert.match(shellJs, /--frb-fixed-header-height/);
+  assert.match(shellJs, /syncStickyOffsets\(shell, pagebar\)/);
+});
+
+test('JSON Object Studio treats DATA JSON as the primary source and places it before ViewDef', () => {
+  const dataInput = indexHtml.indexOf('id="dataNameInput"');
+  const defInput = indexHtml.indexOf('id="defNameInput"');
+  const dataDrop = indexHtml.indexOf('data-input="dataFile"');
+  const defDrop = indexHtml.indexOf('data-input="defFile"');
+  assert.ok(dataInput >= 0 && defInput >= 0 && dataInput < defInput);
+  assert.ok(dataDrop >= 0 && defDrop >= 0 && dataDrop < defDrop);
+  assert.match(indexHtml, /<span class="drop-label">DATA JSON<\/span>/);
+  assert.doesNotMatch(indexHtml, />対象JSON</);
+  assert.doesNotMatch(indexHtml, />対象Drop</);
 });

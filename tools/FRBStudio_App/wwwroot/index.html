@@ -146,10 +146,10 @@
     }
   }
   </style>
-  <link rel="stylesheet" href="css/frb-studio-shell.css?v=0185p1" />
+  <link rel="stylesheet" href="css/frb-studio-shell.css?v=0185p2" />
 </head>
 <body>
-  <script src="js/ui/frb_studio_shell.js?v=0185p1"></script>
+  <script src="js/ui/frb_studio_shell.js?v=0185p2"></script>
   <script>
     FrbStudioShell.mount({
       pageId: 'json-object',
@@ -169,6 +169,15 @@
     </div>
     <section class="loader-panel" aria-label="JSON読み込み">
       <label class="combo-field has-clear">
+        <span class="drop-label">DATA JSON</span>
+        <span class="combo-input-wrap">
+          <input id="dataNameInput" name="frb_data_combo_009" list="dataNameList" placeholder="data から検索・選択" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="latin" enterkeyhint="search" data-studio-ime-policy="latin-filename" style="ime-mode: inactive;" />
+          <button id="openDataFolderBtn" class="combo-folder-button" type="button" aria-label="DATA JSONの場所をExplorerで開く" title="DATA JSONの場所をExplorerで開く" disabled>📁</button>
+          <button id="clearDataNameBtn" class="combo-clear-button" type="button" aria-label="DATA JSONの選択をクリア" title="DATA JSONの選択をクリア">×</button>
+        </span>
+        <datalist id="dataNameList"></datalist>
+      </label>
+      <label class="combo-field has-clear">
         <span class="drop-label combo-label-row"><span>画面定義JSON</span><button id="maintainViewDefBtn" class="viewdef-maintenance-button" type="button" aria-label="選択中ViewDefをメンテナンス" title="選択中ViewDefをメンテナンス" disabled>…</button></span>
         <span class="combo-input-wrap">
           <input id="defNameInput" name="frb_def_combo_009" list="defNameList" placeholder="defs から検索・選択" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="latin" enterkeyhint="search" data-studio-ime-policy="latin-filename" style="ime-mode: inactive;" />
@@ -177,24 +186,15 @@
         </span>
         <datalist id="defNameList"></datalist>
       </label>
-      <label class="combo-field has-clear">
-        <span class="drop-label">対象JSON</span>
-        <span class="combo-input-wrap">
-          <input id="dataNameInput" name="frb_data_combo_009" list="dataNameList" placeholder="data から検索・選択" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="latin" enterkeyhint="search" data-studio-ime-policy="latin-filename" style="ime-mode: inactive;" />
-          <button id="openDataFolderBtn" class="combo-folder-button" type="button" aria-label="対象JSONの場所をExplorerで開く" title="対象JSONの場所をExplorerで開く" disabled>📁</button>
-          <button id="clearDataNameBtn" class="combo-clear-button" type="button" aria-label="対象JSONの選択をクリア" title="対象JSONの選択をクリア">×</button>
-        </span>
-        <datalist id="dataNameList"></datalist>
-      </label>
-      <label class="drop-file-box compact-drop" data-input="defFile">
-        <span class="drop-label">定義Drop</span>
-        <span class="drop-name" id="defFileName">Drop</span>
-        <input id="defFile" type="file" accept=".json,application/json" />
-      </label>
       <label class="drop-file-box compact-drop" data-input="dataFile">
-        <span class="drop-label">対象Drop</span>
+        <span class="drop-label">DATA JSON</span>
         <span class="drop-name" id="dataFileName">Drop</span>
         <input id="dataFile" type="file" accept=".json,application/json" />
+      </label>
+      <label class="drop-file-box compact-drop" data-input="defFile">
+        <span class="drop-label">画面定義JSON Drop</span>
+        <span class="drop-name" id="defFileName">Drop</span>
+        <input id="defFile" type="file" accept=".json,application/json" />
       </label>
       <button id="loadBtn" class="primary-button">読み込み</button>
       <button id="saveBtn" class="ghost-button" disabled>保存</button>
