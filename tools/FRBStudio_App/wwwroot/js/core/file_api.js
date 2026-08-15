@@ -180,6 +180,10 @@ function encodeJsonPath(name) {
 
 function isStaticHostingMode() {
   try {
+    // v0.18.61: WebView2 Native Shell uses a virtual HTTPS host but /api is supplied by
+    // native_host_bridge.js, so it must not fall back to GitHub-Pages-style static loading.
+    if (window.FRBStudioNativeHost?.isAvailable?.()) return false;
+
     const protocol = String(location.protocol || '').toLowerCase();
     const host = String(location.hostname || '').toLowerCase();
 

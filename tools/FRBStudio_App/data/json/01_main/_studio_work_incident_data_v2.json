@@ -22867,55 +22867,151 @@
     },
     {
       "work_item_id": "studio_work_0158",
-      "phase": "future-webview2-native-shell",
+      "phase": "v0.18.61-webview2-native-shell-phase-a",
       "title": "WinForms＋WebView2によるネイティブアプリ化構想",
       "incident_type": "refactoring",
       "category": "other",
-      "priority": "low",
-      "status": "構想",
-      "follow_up_status": "UNASSESSED",
+      "priority": "high",
+      "status": "確認中",
+      "follow_up_status": "IN_PROGRESS",
       "verification_status": "未確認",
       "context_def_status": "draft",
-      "context_def_updated_at": "2026-08-03T19:53:00+09:00",
+      "context_def_updated_at": "2026-08-15T14:20:00+09:00",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-03T19:53:00+09:00",
-      "updated_at": "2026-08-03T19:53:00+09:00",
-      "target_files": "未定",
-      "actual_updated_files": "",
-      "objective": "localhost HTTPサーバーを使用せず、既存Web UIの柔軟性を維持しながら、ファイル操作をネイティブ側で安全に制御できる構造を作る。",
-      "background": "現在のブラウザー＋localhost方式では、会社利用時にポート公開、認証、CORS、不正アクセス対策などの説明が必要になる。WebView2の公式メッセージ連携を利用すれば、外部ポートを使用せずWeb UIとC#を接続できる。",
-      "scope": "WinFormsシェル、WebView2組み込み、JSONコマンド連携、Workspace制約、ファイル操作責務の分離を将来構想として整理する。",
-      "out_of_scope": "現時点での実装、既存FRB Studioの動作変更、localhost方式の廃止、会社環境への配布。",
-      "fixed_name_policy": "既存のStudio内API・Action名は可能な限り維持し、ネイティブ連携部分のみ差し替え可能にする。",
-      "module_policy": "Web UIは画面・操作要求を担当し、C#側はOS操作・Workspace検証・パス検証を担当する。両者の境界はJSONコマンドで定義する。",
-      "expected_outputs": "将来アーキテクチャ案、JSONコマンド定義、WebView2連携プロトタイプ、WorkspacePolicy設計。",
-      "risk": "WebView2メッセージ経由で過剰なネイティブ機能を公開すると、任意ファイル操作などの危険が生じる。コマンド許可リストと入力検証が必要。",
-      "test_points": "外部ポートを開かないこと、許可されたJSONコマンドのみ実行されること、Workspace外のパスが拒否されること、既存Web UIが維持できること。",
-      "verification_log": "構想段階のため未検証。",
-      "context_def_draft": "将来、FRB Studioを会社環境でも説明・利用しやすくするため、WinForms内のWebView2で既存Web UIを動作させる構成を検討する。Web UIとC#ネイティブ側はJSONメッセージで連携し、ファイル操作などのOS機能はC#側で制約を適用して実行する。",
-      "user_request": "FRB Studioを将来会社でも使えるようにする場合、WinForms＋WebView2方式を採用する構想をインシデントへ残す。",
+      "updated_at": "2026-08-15T14:20:00+09:00",
+      "target_files": "NativeShell/*, wwwroot/js/core/native_host_bridge.js, wwwroot/js/core/file_api.js, wwwroot/index.html, wwwroot/mdViewer.html, tools/zip/make_FRBStudio_App_zip_v2.ps1, data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "NativeShell/FRBStudio.NativeShell.csproj\nNativeShell/app.manifest\nNativeShell/native_shell.config.json\nNativeShell/README.md\nNativeShell/Program.cs\nNativeShell/NativeShellConfig.cs\nNativeShell/WorkspacePolicy.cs\nNativeShell/NativeCommandDispatcher.cs\nNativeShell/NativeShellForm.cs\nwwwroot/js/core/native_host_bridge.js\nwwwroot/js/core/file_api.js\nwwwroot/index.html\nwwwroot/mdViewer.html\ntools/zip/make_FRBStudio_App_zip_v2.ps1\ndata/json/01_main/_studio_work_incident_data_v2.json",
+      "objective": "localhost HTTPサーバーを使用せず、既存Web UIの柔軟性を維持したままWebView2 Native ShellからStudioを実行する。Native側はStudio固有ロジックを持たない汎用OS Adapterへ寄せ、将来のStudio機能追加でC#変更を極力発生させない構造を検証する。",
+      "background": "現在のブラウザー＋localhost方式では、会社利用時にポート公開、認証、CORS、不正アクセス対策などの説明が必要になる。WebView2の公式メッセージ連携とVirtual Host Name Mappingを使えば、外部ポートを使用せず既存HTML/CSS/JavaScriptをネイティブアプリ内で動かせる。今回の追加背景として、会社配布を想定した場合に「利用者PCへ追加Runtime等のインストールを要求せず、フォルダーコピーだけで動かしたい」という要求を非常に強く重視している。ただし、対象OS、WebView2 Runtimeの会社標準状態、セキュリティポリシー等の実機検証前であり、現時点ではFoundation/最大制約として確定させない。後続の蒸留候補として背景・判断ログ・follow_up_actionsに残す。また、Studio機能追加のたびにC#を変更する運用は避けたいという要求が明確になったため、既存Program.csとは別にNativeShell専用C#管理フォルダーを設け、C#管理フォルダーを2系統に分離する。",
+      "scope": "Phase Aとして、(1) 既存Program.cs/localhost系を維持したままNativeShell/を新設、(2) .NET Framework 4.8ターゲットのWinForms＋WebView2シェル、(3) Virtual Host Name Mappingでwwwrootをhttps://frb-studio.local/としてロード、(4) Web↔C# JSONメッセージ契約、(5) Workspace配下パス検証・ReparsePoint拒否、(6) file/dialog/shell/processの汎用Native Command、(7) native_shell.config.jsonによるコマンド許可リストとProcessProfile定義、(8) 既存/api/* fetchをNative Commandへ翻訳するWeb側互換Bridge、(9) Markdown Viewerの同一Native Shell対応、(10) Git Diff/TestRunnerを汎用process.runProfile経由で接続する。",
+      "out_of_scope": "現行Program.cs/localhost方式の廃止、会社標準PCでの配布可否確定、Windows 10/11対応範囲の最終確定、WebView2 Fixed Version Runtime同梱、MSI/MSIX/Installer作成、Foundation Rulesへの最大制約昇格、会社セキュリティ部門のAppLocker/WDAC/EDR判定。Phase Aではソース構造とBridge契約を作り、Windows実機でのビルド・起動確認後に確定判断する。",
+      "fixed_name_policy": "既存Studioの/api/*契約・Action名・Data/ViewDef構造は可能な限り維持する。Native Shell固有判定はnative_host_bridge.jsとNativeShell配下へ閉じ込め、Studio本体へwindow.chrome.webview判定を散在させない。C#側にsaveFieldDefinition等のStudioドメイン固有コマンドを作らず、file.readText/file.writeText/dialog/process.runProfile等の汎用OS操作に限定する。",
+      "module_policy": "Web UIは画面・Studioドメインロジック・既存/api互換変換を担当する。C# Native ShellはWebView2初期化、Virtual Host Mapping、WorkspacePolicy、OSファイル/ダイアログ/Explorer/許可済みProcessProfile実行のみを担当する。Native Commandの有効/無効とProcessProfile詳細はnative_shell.config.jsonで管理し、既に実装済みの汎用Command範囲ではC#再変更なしで運用変更できることを狙う。",
+      "expected_outputs": "NativeShell専用C#プロジェクト、Virtual Host Name Mapping起動、JSON Native Bridge、既存/api互換Bridge、WorkspacePolicy、汎用Native Command許可リスト、Git Diff/TestRunner ProcessProfile、更新済みインシデントJSON、Windows実機確認ポイント。",
+      "risk": "最大の未確定リスクは配布先環境依存。WebView2 Evergreen Runtimeの存在/更新方針、.NET Framework 4.8利用可否、会社のAppLocker/WDAC/EDR/未署名EXE制約により「コピーだけ起動」が成立しない可能性がある。またPhase AのC#は実行環境でビルド未確認のため、Windows＋Visual Studio/MSBuildでの初回コンパイル確認が必要。Native Bridgeでは任意絶対パスを直接受け付けずWorkspace境界を設けるが、将来Commandを追加する際に万能Native API化しないことが重要。 `file.writeText`は設定済みwritable_rootsに限定し、NativeShell/・Program.cs/・tools/を書換対象にしない。",
+      "test_points": "1) NativeShell起動時にlocalhost待受ポートを使用しない。2) https://frb-studio.local/index.html がVirtual Host Mappingで表示される。3) Browser modeではnative_host_bridge.jsがno-opで既存fetchを変更しない。4) Native modeでは/api/data等がfile.list/readText/writeTextへ翻訳される。5) ../やWorkspace外絶対パスを拒否する。6) ReparsePoint経由のWorkspace外逃げを拒否する。7) native_shell.config.jsonで無効なCommandは実行されない。8) Git Diff/TestRunnerはprocess.runProfileの許可済みProfileのみ起動できる。9) Markdown Viewerのopen/save dialogがNative Bridgeで動く。10) 既存Program.cs/localhost版が引き続き動作する。11) Windows実機で追加Runtimeインストールなしのコピー起動可否を確認し、結果を蒸留判断へ回す。 12) file.writeTextでNativeShell/native_shell.config.json等のwritable_roots外を拒否する。",
+      "verification_log": "2026-08-15 Phase Aソース作成。native_host_bridge.js / file_api.js は node --check OK。Native BridgeのWebView2 mockテストで /api/data→file.list 変換とBrowser mode no-opを確認。作業環境にdotnet/msbuild/monoがないため、.NET Framework 4.8 NativeShellのC#ビルドおよびWindows WebView2実機起動は未実施。",
+      "context_def_draft": "FRB Studio Native Shell Phase A。既存Program.cs/localhost系は移行中の安全網として残し、新しいNativeShell/を別C#管理フォルダーとして追加する。WebView2はwwwrootをVirtual Host Name Mappingで読み込み、Web側native_host_bridge.jsが既存/api/*契約をJSON Native Commandへ翻訳する。C#はStudio固有意味を持たず、WorkspacePolicyと汎用OS操作だけを提供する。会社配布時の「インストールなし・コピーだけ起動」は強い要求だが未検証のため、最大制約にはまだ昇格させず蒸留候補として保持する。",
+      "user_request": "WinForms＋WebView2 Native Shellを実装開始する。最大制約はまだ確定させず、会社配布時のインストール無し・コピー起動要求を背景と判断ログに残し、後で蒸留対象として回収できるようにする。既存C#とは別の新C#管理フォルダーを作り、C#管理フォルダー2系統で進める。",
       "ai_response": "",
-      "latest_user_comment": "少なくとも会社でも使えるようにしたい場合は、この方式が有力。ただし今は実施しない。",
-      "latest_ai_response": "",
+      "latest_user_comment": "とりあえず、最大制約などはまだ確定できないし、インシデントの背景と判断ログに入れておいて、後で、蒸留対象として漏れにくくしておこう。インシデント登録してご提案の内容で作業開始できるかな？よろしく。新しいc#exeの管理フォルダーは新しいフォルダーを作って管理する形にたぶんなるねぇ～。C＃管理フォルダー２つで行こう！！",
+      "latest_ai_response": "AI回答\n\n## 今回の更新\n\n- `NativeShell/` を新設し、既存 `Program.cs/` とC#管理フォルダーを2系統へ分離\n- .NET Framework 4.8 WinForms + WebView2 Native ShellのPhase Aを追加\n- Virtual Host Name Mappingで `wwwroot/` を `https://frb-studio.local/` としてロード\n- `native_host_bridge.js` で既存 `/api/*` fetchをJSON Native Commandへ翻訳\n- C#側は `file.* / dialog.* / shell.* / process.runProfile` の汎用OS Adapterに限定\n- `native_shell.config.json` でCommand許可リストとGit Diff/TestRunner ProcessProfileを管理\n- Workspace外パスとReparsePoint経由の逃げを拒否するPolicyを追加\n- Markdown Viewerも同じNative Bridgeを利用\n- `writable_roots` を追加し、Web側からNativeShell設定/C#本体/toolsを書き換えられない安全柵を追加\n- `NativeShell/README.md` にPhase Aの責務境界・ビルド/実機確認手順を記録\n\n## 方針\n\n「追加インストールなし・コピーだけで起動したい」は重要な要求として背景・判断ログ・follow-upへ残したが、会社実機未検証のためFoundation/最大制約には昇格していない。既存localhost版は移行中の安全網として温存している。\n\n## 確認結果\n\n- `native_host_bridge.js`: node --check OK\n- `file_api.js`: node --check OK\n- Native Bridge mock: `/api/data -> file.list` OK\n- Browser mode mock: Bridge no-op OK\n- C#ビルド: 作業環境に.NET/MSBuildがないため未実施\n- Windows WebView2実機: 未確認\n",
       "context_refs": [],
-      "follow_up_actions": [],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_up_0158_001",
+          "action_type": "DISTILLATION_CANDIDATE_REVIEW",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "copy-only-distribution",
+            "native-shell-freeze"
+          ],
+          "note": "会社PC実機で追加インストールなし・フォルダーコピー起動が成立するか確認後、配布制約およびC# Native Shell Freeze方針をFoundation/制約/判断軸へ昇格するか判断する。現時点では未確定。"
+        },
+        {
+          "action_id": "follow_up_0158_002",
+          "action_type": "WINDOWS_NATIVE_SHELL_RUNTIME_VERIFICATION",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "NativeShell/FRBStudio.NativeShell.csproj",
+            "WebView2 Evergreen Runtime",
+            ".NET Framework 4.8"
+          ],
+          "note": "Windows実機でnet48ビルド、WebView2 Runtime検出、Virtual Host Mapping、コピー配置からの起動、管理者権限不要を確認する。"
+        }
+      ],
       "discussion_history": [
         {
           "at": "2026-08-03T19:53:00+09:00",
-          "summary": "localhost API方式とWinForms＋WebView2方式を比較し、会社利用ではWebView2方式が説明・制御しやすいと整理した。"
+          "summary": "localhost API方式とWinForms＋WebView2方式を比較し、会社利用ではWebView2方式が説明・制御しやすいと整理した。",
+          "history_id": "",
+          "speaker": "",
+          "topic": "",
+          "message": ""
+        },
+        {
+          "at": "2026-08-15T14:20:00+09:00",
+          "summary": "",
+          "history_id": "disc_0158_002",
+          "speaker": "user",
+          "topic": "Native Shell実装開始・蒸留候補・C#管理フォルダー分離",
+          "message": "とりあえず、最大制約などはまだ確定できないし、インシデントの背景と判断ログに入れておいて、後で、蒸留対象として漏れにくくしておこう。インシデント登録してご提案の内容で作業開始できるかな？よろしく。新しいc#exeの管理フォルダーは新しいフォルダーを作って管理する形にたぶんなるねぇ～。C＃管理フォルダー２つで行こう！！"
+        },
+        {
+          "at": "2026-08-15T14:20:00+09:00",
+          "summary": "",
+          "history_id": "disc_0158_003",
+          "speaker": "assistant",
+          "topic": "v0.18.61 Native Shell Phase A作業結果",
+          "message": "AI回答  ## 今回の更新  - `NativeShell/` を新設し、既存 `Program.cs/` とC#管理フォルダーを2系統へ分離 - .NET Framework 4.8 WinForms + WebView2 Native ShellのPhase Aを追加 - Virtual Host Name Mappingで `wwwroot/` を `https://frb-studio.local/` としてロード - `native_host_bridge.js` で既存 `/api/*` fetchをJSON Native Commandへ翻訳 - C#側は `file.* / dialog.* / shell.* / process.runProfile` の汎用OS Adapterに限定 - `native_shell.config.json` でCommand許可リストとGit Diff/TestRunner ProcessProfileを管理 - Workspace外パスとReparsePoint経由の逃げを拒否するPolicyを追加 - Markdown Viewerも同じNative Bridgeを利用 - `writable_roots` を追加し、Web側からNativeShell設定/C#本体/toolsを書き換えられない安全柵を追加 - `NativeShell/README.md` にPhase Aの責務境界・ビルド/実機確認手順を記録  ## 方針  「追加インストールなし・コピーだけで起動したい」は重要な要求として背景・判断ログ・follow-upへ残したが、会社実機未検証のためFoundation/最大制約には昇格していない。既存localhost版は移行中の安全網として温存している。  ## 確認結果  - `native_host_bridge.js`: node --check OK - `file_api.js`: node --check OK - Native Bridge mock: `/api/data -> file.list` OK - Browser mode mock: Bridge no-op OK - C#ビルド: 作業環境に.NET/MSBuildがないため未実施 - Windows WebView2実機: 未確認 "
         }
       ],
       "decision_log": [
         {
           "decision": "現時点では実装せず、将来構想として保持する。",
-          "reason": "現在の優先度は低いが、会社利用時の有力なアーキテクチャ候補になるため。"
+          "reason": "現在の優先度は低いが、会社利用時の有力なアーキテクチャ候補になるため。",
+          "decision_id": "",
+          "at": ""
+        },
+        {
+          "decision": "会社配布時の「追加インストールなし・フォルダーコピーだけで起動」は強い要求として記録するが、現時点では最大制約/Foundation Rulesへ昇格しない。",
+          "reason": "対象OS・WebView2 Runtime・会社セキュリティポリシーの実機確認前であり、確定制約にすると未検証前提を固定化するため。背景・判断ログ・follow_up_actionsへ残し、後で蒸留判断できるようにする。",
+          "decision_id": "dec_0158_002",
+          "at": "2026-08-15T14:20:00+09:00"
+        },
+        {
+          "decision": "既存Program.cs/localhost系と新NativeShell系を別C#管理フォルダーとして分離し、C#管理フォルダー2系統で移行する。",
+          "reason": "現行版を壊さず比較・切戻し可能にしながら、Native Shellを独立した薄いWindows Adapterとして育てるため。",
+          "decision_id": "dec_0158_003",
+          "at": "2026-08-15T14:20:00+09:00"
+        },
+        {
+          "decision": "Native Shell Phase Aは .NET Framework 4.8ターゲットのWinForms＋WebView2を採用する。",
+          "reason": "配布先へ現行.NET Desktop Runtimeの追加導入を要求しない構成を優先しつつ、WebView2 WinFormsを利用するため。最終配布条件はWindows実機検証後に確定する。",
+          "decision_id": "dec_0158_004",
+          "at": "2026-08-15T14:20:00+09:00"
+        },
+        {
+          "decision": "Web UIロードはVirtual Host Name Mappingを採用し、localhost HTTP ServerをNative Shell経路では使用しない。",
+          "reason": "既存HTML/CSS/JavaScriptを通常のHTTPS originとして扱いながら、外部待受ポートを不要にするため。",
+          "decision_id": "dec_0158_005",
+          "at": "2026-08-15T14:20:00+09:00"
+        },
+        {
+          "decision": "C# Native Commandは汎用OS操作に限定し、許可リストとProcessProfileをnative_shell.config.jsonで管理する。",
+          "reason": "Studio固有機能追加のたびにC#を修正する構造を避けるため。設定変更で既存汎用Commandの許可/不許可や許可済みProcessProfileを変更できるようにし、万能Native APIは作らない。",
+          "decision_id": "dec_0158_006",
+          "at": "2026-08-15T14:20:00+09:00"
+        },
+        {
+          "decision": "既存Web UIの/api契約は当面維持し、Native Shell時だけnative_host_bridge.jsがJSON Native Commandへ翻訳する。",
+          "reason": "大量の既存fetch呼び出しを個別改修せず、Browser/localhost版とNative版のStudioドメインロジックを共通化するため。",
+          "decision_id": "dec_0158_007",
+          "at": "2026-08-15T14:20:00+09:00"
         }
       ],
       "change_history": [
         {
           "at": "2026-08-03T19:53:00+09:00",
-          "change": "studio_work_0158を将来構想として新規作成。"
+          "change": "studio_work_0158を将来構想として新規作成。",
+          "history_id": "",
+          "change_type": "",
+          "before": "",
+          "after": "",
+          "reason": ""
+        },
+        {
+          "at": "2026-08-15T14:20:00+09:00",
+          "change": "",
+          "history_id": "chg_0158_002",
+          "change_type": "native_shell_phase_a_started",
+          "before": "future-webview2-native-shell の将来構想。現時点実装はout_of_scope。既存Program.csはnet9.0-windows＋localhostサーバー。",
+          "after": "v0.18.61 Native Shell Phase AとしてNativeShell/を新設。net48 WinForms＋WebView2、Virtual Host Mapping、JSON Bridge、WorkspacePolicy、汎用Native Command、既存/api互換Bridgeを追加。既存Program.cs/localhost版は維持。",
+          "reason": "会社配布を見据えたコピー起動・localhost排除・C#変更最小化の実現可能性を実装で検証する段階へ進めるため。"
         }
       ]
     },

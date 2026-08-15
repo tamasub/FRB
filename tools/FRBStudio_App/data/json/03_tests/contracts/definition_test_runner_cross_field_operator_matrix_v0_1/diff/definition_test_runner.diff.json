@@ -17,7 +17,7 @@
   "testId": "definition_test_runner_frb_fft_v0_1",
   "test_name": "FRB FFT Field Definition — Definition Driven Test E2E",
   "title": "FRB FFT Field Definition — Definition Driven Test E2E",
-  "generated_at": "2026-08-12T12:30:00.365Z",
+  "generated_at": "2026-08-15T06:51:47.424Z",
   "status": "pass",
   "resultLabel": "✅ PASS",
   "summary": "✅ 34件のDefinition TestがExpectedと一致しました。",
@@ -52,7 +52,7 @@
       "schema_version": "cross_field_compare_operator_matrix_fixture_v0_1",
       "document_type": "field_definition_test_fixture",
       "updated_at": "",
-      "sha256": "8bb00e405405fdd31c5cfe57a289bf1f02247d8b46bd566b5c0d3618afb20bb0",
+      "sha256": "4d9c6d31d902e418971da0c478800451070738f90c57ddb67781200b569a294d",
       "path": "fielddefs/samples/cross_field_compare_operator_matrix_v0_1.json"
     },
     "validation_type_registry": {
@@ -71,13 +71,13 @@
   },
   "definition_review_snapshots": {
     "schema_version": "definition_review_snapshot_v0_1",
-    "captured_at": "2026-08-12T12:30:00.365Z",
+    "captured_at": "2026-08-15T06:51:47.424Z",
     "field_definition_source": {
       "definition_id": "studio.cross_field.compare.operator_matrix",
       "schema_version": "cross_field_compare_operator_matrix_fixture_v0_1",
       "document_type": "field_definition_test_fixture",
       "updated_at": "",
-      "sha256": "8bb00e405405fdd31c5cfe57a289bf1f02247d8b46bd566b5c0d3618afb20bb0",
+      "sha256": "4d9c6d31d902e418971da0c478800451070738f90c57ddb67781200b569a294d",
       "path": "fielddefs/samples/cross_field_compare_operator_matrix_v0_1.json"
     },
     "validation_type_registry_source": {
@@ -484,7 +484,7 @@
           "validation_type_id": "studio.integer.signed",
           "validation_type_contract_version": "0.1.0",
           "validation_type_status": "active",
-          "field_definition_sha256": "8bb00e405405fdd31c5cfe57a289bf1f02247d8b46bd566b5c0d3618afb20bb0",
+          "field_definition_sha256": "4d9c6d31d902e418971da0c478800451070738f90c57ddb67781200b569a294d",
           "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
         }
       },
@@ -884,7 +884,7 @@
           "validation_type_id": "studio.integer.signed",
           "validation_type_contract_version": "0.1.0",
           "validation_type_status": "active",
-          "field_definition_sha256": "8bb00e405405fdd31c5cfe57a289bf1f02247d8b46bd566b5c0d3618afb20bb0",
+          "field_definition_sha256": "4d9c6d31d902e418971da0c478800451070738f90c57ddb67781200b569a294d",
           "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
         }
       }

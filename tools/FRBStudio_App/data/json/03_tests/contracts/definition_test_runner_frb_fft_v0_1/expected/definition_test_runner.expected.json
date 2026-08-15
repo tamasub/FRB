@@ -4,14 +4,14 @@
   "test_id": "definition_test_runner_frb_fft_v0_1",
   "testId": "definition_test_runner_frb_fft_v0_1",
   "title": "FRB FFT Field Definition — Definition Driven Test E2E",
-  "resolved_at": "2026-08-13T22:28:40.616Z",
+  "resolved_at": "2026-08-15T06:51:37.825Z",
   "source": {
     "field_definition_document": {
       "definition_id": "frb.fft.measurement.sample",
       "schema_version": "field_definition_data_v0_1",
       "document_type": "field_definition",
       "updated_at": "2026-08-12",
-      "sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+      "sha256": "68e5b99358e3419ebe902da2336fddf9ea2c2b2ebd66c5e56c69727867e732b7",
       "path": "fielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json"
     },
     "validation_type_registry": {
@@ -30,13 +30,13 @@
   },
   "definition_review_snapshots": {
     "schema_version": "definition_review_snapshot_v0_1",
-    "captured_at": "2026-08-13T22:28:40.616Z",
+    "captured_at": "2026-08-15T06:51:37.825Z",
     "field_definition_source": {
       "definition_id": "frb.fft.measurement.sample",
       "schema_version": "field_definition_data_v0_1",
       "document_type": "field_definition",
       "updated_at": "2026-08-12",
-      "sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+      "sha256": "68e5b99358e3419ebe902da2336fddf9ea2c2b2ebd66c5e56c69727867e732b7",
       "path": "fielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json"
     },
     "validation_type_registry_source": {
@@ -368,7 +368,7 @@
           "validation_type_id": "studio.string.identifier",
           "validation_type_contract_version": "0.1.0",
           "validation_type_status": "active",
-          "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+          "field_definition_sha256": "68e5b99358e3419ebe902da2336fddf9ea2c2b2ebd66c5e56c69727867e732b7",
           "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
         }
       },
@@ -747,7 +747,7 @@
           "validation_type_id": "studio.string.alphanumeric",
           "validation_type_contract_version": "0.1.0",
           "validation_type_status": "active",
-          "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+          "field_definition_sha256": "68e5b99358e3419ebe902da2336fddf9ea2c2b2ebd66c5e56c69727867e732b7",
           "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
         }
       },
@@ -1071,7 +1071,7 @@
           "validation_type_id": "studio.string.single_line",
           "validation_type_contract_version": "0.1.0",
           "validation_type_status": "active",
-          "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+          "field_definition_sha256": "68e5b99358e3419ebe902da2336fddf9ea2c2b2ebd66c5e56c69727867e732b7",
           "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
         }
       },
@@ -1465,7 +1465,7 @@
           "validation_type_id": "studio.date.ymd",
           "validation_type_contract_version": "0.1.0",
           "validation_type_status": "active",
-          "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+          "field_definition_sha256": "68e5b99358e3419ebe902da2336fddf9ea2c2b2ebd66c5e56c69727867e732b7",
           "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
         }
       },
@@ -1734,7 +1734,7 @@
           "validation_type_id": "studio.datetime.local",
           "validation_type_contract_version": "0.1.0",
           "validation_type_status": "active",
-          "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+          "field_definition_sha256": "68e5b99358e3419ebe902da2336fddf9ea2c2b2ebd66c5e56c69727867e732b7",
           "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
         }
       },
@@ -1991,7 +1991,7 @@
           "validation_type_id": "studio.instant.iso8601",
           "validation_type_contract_version": "0.1.0",
           "validation_type_status": "draft",
-          "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+          "field_definition_sha256": "68e5b99358e3419ebe902da2336fddf9ea2c2b2ebd66c5e56c69727867e732b7",
           "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
         }
       },
@@ -2391,7 +2391,7 @@
           "validation_type_id": "studio.integer.positive",
           "validation_type_contract_version": "0.1.0",
           "validation_type_status": "active",
-          "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+          "field_definition_sha256": "68e5b99358e3419ebe902da2336fddf9ea2c2b2ebd66c5e56c69727867e732b7",
           "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
         }
       },
@@ -2786,7 +2786,7 @@
           "validation_type_id": "studio.float.measurement",
           "validation_type_contract_version": "0.1.0",
           "validation_type_status": "active",
-          "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+          "field_definition_sha256": "68e5b99358e3419ebe902da2336fddf9ea2c2b2ebd66c5e56c69727867e732b7",
           "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
         }
       },
@@ -3180,7 +3180,7 @@
           "validation_type_id": "studio.float.measurement",
           "validation_type_contract_version": "0.1.0",
           "validation_type_status": "active",
-          "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+          "field_definition_sha256": "68e5b99358e3419ebe902da2336fddf9ea2c2b2ebd66c5e56c69727867e732b7",
           "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
         }
       },
@@ -3197,7 +3197,8 @@
               "value": 100,
               "inclusive": true
             }
-          }
+          },
+          "note": ""
         },
         "verification_result": {
           "schema_version": "definition_verification_result_v0_1",
@@ -3573,7 +3574,7 @@
           "validation_type_id": "studio.integer.non_negative",
           "validation_type_contract_version": "0.1.0",
           "validation_type_status": "active",
-          "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+          "field_definition_sha256": "68e5b99358e3419ebe902da2336fddf9ea2c2b2ebd66c5e56c69727867e732b7",
           "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
         }
       },
@@ -3792,7 +3793,7 @@
           "validation_type_id": "studio.boolean.standard",
           "validation_type_contract_version": "0.1.0",
           "validation_type_status": "active",
-          "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+          "field_definition_sha256": "68e5b99358e3419ebe902da2336fddf9ea2c2b2ebd66c5e56c69727867e732b7",
           "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
         }
       },
@@ -4129,7 +4130,7 @@
           "validation_type_id": "studio.string.multi_line",
           "validation_type_contract_version": "0.1.0",
           "validation_type_status": "active",
-          "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+          "field_definition_sha256": "68e5b99358e3419ebe902da2336fddf9ea2c2b2ebd66c5e56c69727867e732b7",
           "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
         }
       },
@@ -4454,7 +4455,7 @@
           "validation_type_id": "studio.string.identifier",
           "validation_type_contract_version": "0.1.0",
           "validation_type_status": "active",
-          "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+          "field_definition_sha256": "68e5b99358e3419ebe902da2336fddf9ea2c2b2ebd66c5e56c69727867e732b7",
           "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
         }
       },
@@ -4849,7 +4850,7 @@
           "validation_type_id": "studio.float.measurement",
           "validation_type_contract_version": "0.1.0",
           "validation_type_status": "active",
-          "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+          "field_definition_sha256": "68e5b99358e3419ebe902da2336fddf9ea2c2b2ebd66c5e56c69727867e732b7",
           "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
         }
       },
@@ -5243,7 +5244,7 @@
           "validation_type_id": "studio.float.measurement",
           "validation_type_contract_version": "0.1.0",
           "validation_type_status": "active",
-          "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+          "field_definition_sha256": "68e5b99358e3419ebe902da2336fddf9ea2c2b2ebd66c5e56c69727867e732b7",
           "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
         }
       },
@@ -5636,7 +5637,7 @@
           "validation_type_id": "studio.integer.non_negative",
           "validation_type_contract_version": "0.1.0",
           "validation_type_status": "active",
-          "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+          "field_definition_sha256": "68e5b99358e3419ebe902da2336fddf9ea2c2b2ebd66c5e56c69727867e732b7",
           "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
         }
       },
@@ -5855,7 +5856,7 @@
           "validation_type_id": "studio.boolean.standard",
           "validation_type_contract_version": "0.1.0",
           "validation_type_status": "active",
-          "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+          "field_definition_sha256": "68e5b99358e3419ebe902da2336fddf9ea2c2b2ebd66c5e56c69727867e732b7",
           "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
         }
       },
@@ -6192,7 +6193,7 @@
           "validation_type_id": "studio.string.multi_line",
           "validation_type_contract_version": "0.1.0",
           "validation_type_status": "active",
-          "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+          "field_definition_sha256": "68e5b99358e3419ebe902da2336fddf9ea2c2b2ebd66c5e56c69727867e732b7",
           "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
         }
       },
@@ -6448,7 +6449,7 @@
           "validation_type_id": "studio.date.ymd",
           "validation_type_contract_version": "0.1.0",
           "validation_type_status": "active",
-          "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+          "field_definition_sha256": "68e5b99358e3419ebe902da2336fddf9ea2c2b2ebd66c5e56c69727867e732b7",
           "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
         }
       },
@@ -6704,7 +6705,7 @@
           "validation_type_id": "studio.date.ymd",
           "validation_type_contract_version": "0.1.0",
           "validation_type_status": "active",
-          "field_definition_sha256": "6407601913b858fe6c25f94618366458f15e7bb2f9d8de75a3dfc4a2dae198a7",
+          "field_definition_sha256": "68e5b99358e3419ebe902da2336fddf9ea2c2b2ebd66c5e56c69727867e732b7",
           "registry_sha256": "ae9d0b3d0d63d86ef169f77c15d911915faa83fc9bd8221f34daea690b62d803"
         }
       }

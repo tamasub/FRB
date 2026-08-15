@@ -1,0 +1,145 @@
+{
+  "protocol_version": "1.0",
+  "virtual_host_name": "frb-studio.local",
+  "start_page": "index.html",
+  "dev_tools_enabled": true,
+  "open_external_links_in_default_browser": true,
+  "writable_roots": [
+    "data/json",
+    "data/markdown",
+    "defs",
+    "studio_overlays"
+  ],
+  "allowed_commands": [
+    "system.ping",
+    "workspace.getCurrent",
+    "workspace.select",
+    "file.exists",
+    "file.list",
+    "file.readText",
+    "file.writeText",
+    "dialog.openText",
+    "dialog.saveText",
+    "shell.openFolder",
+    "process.runProfile"
+  ],
+  "process_profiles": [
+    {
+      "id": "git_diff_export",
+      "display_name": "Export-DiffToJson.ps1 / Git Diff JSON Export",
+      "executable": "powershell.exe",
+      "working_directory": ".",
+      "timeout_seconds": 60,
+      "fixed_arguments": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "tools/git/Export-DiffToJson.ps1"
+      ],
+      "parameters": [
+        {
+          "key": "mode",
+          "switch": "-Mode",
+          "kind": "enum",
+          "allowed_values": [
+            "WorkingTree",
+            "Staged",
+            "Head",
+            "FilePair"
+          ],
+          "omit_if_empty": true
+        },
+        {
+          "key": "range",
+          "switch": "-Range",
+          "kind": "text",
+          "pattern": "^[A-Za-z0-9_./~^:\\-]+$",
+          "omit_if_empty": true
+        },
+        {
+          "key": "from_file",
+          "switch": "-FromFile",
+          "kind": "workspace_path",
+          "omit_if_empty": true
+        },
+        {
+          "key": "to_file",
+          "switch": "-ToFile",
+          "kind": "workspace_path",
+          "omit_if_empty": true
+        },
+        {
+          "key": "unified",
+          "switch": "-Unified",
+          "kind": "integer",
+          "min": 0,
+          "max": 100,
+          "omit_if_empty": true
+        },
+        {
+          "key": "max_patch_chars",
+          "switch": "-MaxPatchChars",
+          "kind": "integer",
+          "min": 1000,
+          "max": 1000000,
+          "omit_if_empty": true
+        },
+        {
+          "key": "no_patch",
+          "switch": "-NoPatch",
+          "kind": "boolean_switch"
+        }
+      ],
+      "output_globs": [
+        "wwwroot/diff/DiffToJson_*.json"
+      ]
+    },
+    {
+      "id": "test_runner",
+      "display_name": "TestRunner.ps1 / Studio Test Runner",
+      "executable": "powershell.exe",
+      "working_directory": ".",
+      "timeout_seconds": 180,
+      "fixed_arguments": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "tools/test/TestRunner.ps1"
+      ],
+      "parameters": [
+        {
+          "key": "test_runner_id",
+          "switch": "-TestRunnerId",
+          "kind": "enum",
+          "allowed_values": [
+            "playwright_ui",
+            "incident_prompt_copy_action_static",
+            "responsibility_expected_tests",
+            "responsibility_refactor_first_step_smoke",
+            "definition_test_runner",
+            "definition_test_runner_cross_field_operator_matrix"
+          ]
+        },
+        {
+          "key": "run_mode",
+          "switch": "-RunMode",
+          "kind": "enum",
+          "allowed_values": [
+            "launch",
+            "wait"
+          ],
+          "omit_if_empty": true
+        }
+      ],
+      "launch_when_parameter_equals": {
+        "key": "run_mode",
+        "value": "launch"
+      },
+      "output_globs": [
+        "tests/.runtime/definition/*.json"
+      ]
+    }
+  ]
+}

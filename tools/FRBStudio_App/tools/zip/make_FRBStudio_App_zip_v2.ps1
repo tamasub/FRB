@@ -14,6 +14,7 @@ $targetDirs = @(
     "defs",
     "fielddefs",
     "Program.cs",
+    "NativeShell",
     "tests",
     "tools",
     "wwwroot",
@@ -44,7 +45,9 @@ $excludePaths = @(
     "studio_overlays\default",
     "studio_overlays\gpt_fx_lab",
     "tools\chatgpt-share-export-minimum\node_modules",
-    "wwwroot\data\json"
+    "wwwroot\data\json",
+    "NativeShell\bin",
+    "NativeShell\obj"
 )
 
 # èoóÕ ZIP ñº

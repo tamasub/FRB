@@ -4,21 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "d1d7e76f76a3bdda",
+        "id": "342b634c76f5f800",
         "type": "tabs",
         "children": [
           {
-            "id": "39306a842522a960",
+            "id": "cd032dfc067ef1b2",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "data/markdown/30_Studioくん構想メモ/06_作業備忘録.md",
-                "mode": "source",
-                "source": false
-              },
+              "type": "empty",
+              "state": {},
               "icon": "lucide-file",
-              "title": "06_作業備忘録"
+              "title": "新規タブ"
             }
           }
         ]
@@ -99,7 +95,6 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "data/markdown/30_Studioくん構想メモ/06_作業備忘録.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -118,7 +113,6 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "data/markdown/30_Studioくん構想メモ/06_作業備忘録.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
@@ -161,7 +155,6 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "data/markdown/30_Studioくん構想メモ/06_作業備忘録.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -188,10 +181,11 @@
       "bases:新規ベースを作成": false
     }
   },
-  "active": "e6111320288d0b6a",
+  "active": "cd032dfc067ef1b2",
   "lastOpenFiles": [
+    "FRBStudio_App20260815_173231.zip",
+    "data/markdown/30_Studioくん構想メモ/06_作業備忘録.md",
     "FRBStudio_App20260815_141755.zip",
-    "data/markdown/30_Studioくん構想メモ/06_作業備忘録 1.md",
-    "data/markdown/30_Studioくん構想メモ/06_作業備忘録.md"
+    "data/markdown/30_Studioくん構想メモ/06_作業備忘録 1.md"
   ]
 }
