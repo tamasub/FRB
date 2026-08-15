@@ -279,6 +279,18 @@ internal static class Program
             return Results.Ok(new { saved = req.Name });
         });
 
+        // v0.18.54-combo-option-and-viewdef-maintenance:
+        // ViewDefを別ViewDefでDataとして開く自己メンテ時、およびViewDef直書きoptionsの更新で同名上書きする。
+        app.MapPost("/api/defs/{**name}", async (string name, JsonElement json) =>
+        {
+            var path = SafeJsonPath(defsDir, name);
+            if (path is null) return Results.BadRequest("invalid file name");
+
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            await WriteJsonAsync(path, json);
+            return Results.Ok(new { saved = ToRelativeApiPath(defsDir, path) });
+        });
+
         // v0.17.9-json-folder-open:
         // ブラウザからはローカルフォルダーを直接開けないため、FRBStudio.exe側で選択中JSONをExplorer表示する。
         // kind=data は dataFolders 契約、kind=viewdef は defs 契約に限定して解決し、任意パス実行を防ぐ。

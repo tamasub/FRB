@@ -824,6 +824,7 @@ function createSelectControlElement({ field, value }) {
   });
   applySelectDisplayMode(input, field);
   setSelectValuePreservingUnknown(input, field, value);
+  if (typeof bindComboOptionMaintenance === 'function') bindComboOptionMaintenance(input, field);
   return input;
 }
 
@@ -922,6 +923,7 @@ function createBooleanControlElement({ field, value }) {
   });
   applySelectDisplayMode(input, field);
   input.value = value === true ? 'true' : value === false ? 'false' : '';
+  if (typeof bindComboOptionMaintenance === 'function') bindComboOptionMaintenance(input, field);
   return input;
 }
 

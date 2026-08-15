@@ -126,6 +126,38 @@
               }
             },
             {
+              "field": "analysis_start_date",
+              "caption": "分析開始日",
+              "type": "date",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "analysis_end_date",
+              "caption": "分析終了日",
+              "type": "date",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
               "field": "sample_notes",
               "caption": "疎定義メモ",
               "type": "textarea",

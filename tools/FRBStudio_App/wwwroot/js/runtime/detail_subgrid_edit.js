@@ -278,6 +278,9 @@ function createSubGridCellControl({ value, column, editable, field }) {
       if (typeof applyDetail === 'function') applyDetail(e);
     }
   });
+  if (String(input.tagName).toLowerCase() === 'select' && typeof bindComboOptionMaintenance === 'function') {
+    bindComboOptionMaintenance(input, column);
+  }
   return input;
 }
 

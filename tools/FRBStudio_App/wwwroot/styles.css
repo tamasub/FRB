@@ -3528,3 +3528,107 @@ body.related-grid-modal-open {
 @media (max-width: 760px) {
   .definition-execution-evidence-grid { grid-template-columns: 1fr; }
 }
+
+/* v0.18.54-combo-option-and-viewdef-maintenance */
+.combo-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+button.viewdef-maintenance-button {
+  width: 24px;
+  min-width: 24px;
+  height: 18px;
+  min-height: 18px;
+  padding: 0 5px 2px;
+  margin: -2px 1px 0 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255,255,255,.07);
+  color: rgba(226,232,240,.66);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 16px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  opacity: .58;
+}
+button.viewdef-maintenance-button:hover:not(:disabled),
+button.viewdef-maintenance-button:focus-visible {
+  opacity: 1;
+  color: #fff;
+  background: rgba(148,163,184,.18);
+  outline: none;
+}
+button.viewdef-maintenance-button:disabled {
+  opacity: .18;
+  cursor: default;
+}
+
+.combo-option-maintenance-dialog {
+  width: min(720px, calc(100vw - 32px));
+  max-width: 720px;
+  border: 0;
+  padding: 0;
+  border-radius: 18px;
+  color: #0f172a;
+  background: transparent;
+  box-shadow: 0 28px 90px rgba(15,23,42,.30);
+}
+.combo-option-maintenance-dialog::backdrop {
+  background: rgba(15,23,42,.28);
+  backdrop-filter: blur(2px);
+}
+.combo-option-maintenance-panel {
+  background: rgba(255,255,255,.99);
+  border: 1px solid rgba(148,163,184,.38);
+  border-radius: 18px;
+  padding: 18px;
+  display: grid;
+  gap: 12px;
+}
+.combo-option-maintenance-title-row,
+.combo-option-maintenance-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.combo-option-maintenance-title-row h2 { margin: 2px 0 0; font-size: 18px; }
+.combo-option-maintenance-meta,
+.combo-option-maintenance-note {
+  font-size: 12px;
+  line-height: 1.65;
+  color: #475569;
+  word-break: break-word;
+}
+.combo-option-maintenance-table-wrap {
+  max-height: min(52vh, 420px);
+  overflow: auto;
+  border: 1px solid rgba(148,163,184,.34);
+  border-radius: 12px;
+}
+.combo-option-maintenance-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.combo-option-maintenance-table th,
+.combo-option-maintenance-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(148,163,184,.20);
+  text-align: left;
+}
+.combo-option-maintenance-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f8fafc;
+  color: #334155;
+}
+.combo-option-maintenance-table tbody tr { cursor: pointer; }
+.combo-option-maintenance-table tbody tr:hover { background: #f8fafc; }
+.combo-option-maintenance-table tbody tr.selected { background: #dbeafe; }
+.combo-option-maintenance-table tbody tr.deprecated { opacity: .55; text-decoration: line-through; }
+.combo-option-maintenance-actions > div { display: flex; gap: 8px; flex-wrap: wrap; }

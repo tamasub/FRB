@@ -90,8 +90,8 @@ function hasViewDefMarkdownTarget() {
 
 function updateViewDefMarkdownButtonState() {
   const btn = $('exportViewDefMarkdownBtn');
-  if (!btn) return;
-  btn.disabled = !hasViewDefMarkdownTarget();
+  if (btn) btn.disabled = !hasViewDefMarkdownTarget();
+  if (typeof updateViewDefMaintenanceButtonState === 'function') updateViewDefMaintenanceButtonState();
 }
 
 function setupViewDefMarkdownButtonState() {
@@ -103,6 +103,92 @@ function setupViewDefMarkdownButtonState() {
   }
   if (defFile) defFile.addEventListener('change', updateViewDefMarkdownButtonState);
   updateViewDefMarkdownButtonState();
+}
+
+
+const VIEWDEF_MAINTENANCE_VIEWDEF_PATH = 'common/view_def_maint_fields_v0_2.json';
+
+function selectedViewDefForMaintenance() {
+  return safeJsonFileName($('defNameInput')?.value) || safeJsonFileName(lastLoadedDefName);
+}
+
+function updateViewDefMaintenanceButtonState() {
+  const btn = $('maintainViewDefBtn');
+  if (!btn) return;
+  const selected = selectedViewDefForMaintenance();
+  btn.disabled = !selected || selected === VIEWDEF_MAINTENANCE_VIEWDEF_PATH;
+}
+
+async function openSelectedViewDefForMaintenance() {
+  const targetName = selectedViewDefForMaintenance();
+  if (!targetName) {
+    setStatus('メンテナンスするViewDefが選択されていません', { kind: 'warn', title: 'ViewDef未選択' });
+    return false;
+  }
+  if (targetName === VIEWDEF_MAINTENANCE_VIEWDEF_PATH) {
+    setStatus('ViewDefメンテ用ViewDef自身は「…」から再帰的には開きません', { kind: 'warn', title: '自己参照抑止' });
+    return false;
+  }
+
+  const [maintenance, target] = await Promise.all([
+    fetchApiJsonWithUrl('defs', VIEWDEF_MAINTENANCE_VIEWDEF_PATH),
+    fetchApiJsonWithUrl('defs', targetName)
+  ]);
+  if (target?.readonly) {
+    throw new Error(`Overlay等の読取専用ViewDefはこの導線では上書きできません: ${targetName}`);
+  }
+
+  lastLoadedDefName = VIEWDEF_MAINTENANCE_VIEWDEF_PATH;
+  currentViewDefMaintenanceTarget = targetName;
+  if ($('defNameInput')) $('defNameInput').value = VIEWDEF_MAINTENANCE_VIEWDEF_PATH;
+  if ($('dataNameInput')) $('dataNameInput').value = '';
+  if ($('defFile')) $('defFile').value = '';
+  if ($('dataFile')) $('dataFile').value = '';
+
+  const writableUrl = String(target?.url ?? '').startsWith('/api/defs/') ? target.url : null;
+  const maintenanceData = (typeof buildViewDefMaintenanceDocument === 'function')
+    ? buildViewDefMaintenanceDocument(target.json)
+    : target.json;
+  const maintenanceViewDef = (typeof configureViewDefMaintenanceViewDef === 'function')
+    ? configureViewDefMaintenanceViewDef(maintenance.json, target.json)
+    : maintenance.json;
+  await loadFromObjects(
+    maintenanceViewDef,
+    maintenanceData,
+    `ViewDefメンテナンス: ${targetName}`,
+    writableUrl,
+    `ViewDef: ${targetName}`,
+    'viewdef'
+  );
+  currentViewDefMaintenanceTarget = targetName;
+  updateViewDefMaintenanceButtonState();
+  if (typeof updateSelectedJsonFolderButtonStates === 'function') updateSelectedJsonFolderButtonStates();
+  console.log(`[FRBStudio ViewDef maintenance] ${targetName} を ${VIEWDEF_MAINTENANCE_VIEWDEF_PATH} で開きました`);
+  return true;
+}
+
+function setupViewDefMaintenanceButton() {
+  const btn = $('maintainViewDefBtn');
+  const input = $('defNameInput');
+  if (!btn || !input) return;
+  if (btn.dataset.viewdefMaintenanceInstalled === '1') {
+    updateViewDefMaintenanceButtonState();
+    return;
+  }
+  btn.dataset.viewdefMaintenanceInstalled = '1';
+  input.addEventListener('input', updateViewDefMaintenanceButtonState);
+  input.addEventListener('change', updateViewDefMaintenanceButtonState);
+  btn.addEventListener('click', async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    try {
+      await openSelectedViewDefForMaintenance();
+    } catch (err) {
+      console.error(err);
+      setStatus(`ViewDefメンテナンスを開始できません: ${err.message}`, { kind: 'error', title: 'ViewDefメンテナンス' });
+    }
+  });
+  updateViewDefMaintenanceButtonState();
 }
 
 function setupComboClearButtons() {

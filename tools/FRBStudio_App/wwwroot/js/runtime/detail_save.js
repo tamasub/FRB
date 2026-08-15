@@ -566,7 +566,9 @@ async function saveOverwriteJson() {
   if (detailMode === 'edit' && selectedIndex >= 0) {
     if (!tryCommitCurrentDetailEdits({ source: 'save' })) return false;
   }
-  ensureViewDefNameInData(sourceData, lastLoadedDefName || selectedDefName());
+  if (currentDataSourceKind !== 'viewdef') {
+    ensureViewDefNameInData(sourceData, lastLoadedDefName || selectedDefName());
+  }
 
   const writeBackSaved = await writeBackVirtualDataEdits();
   if (writeBackSaved.length) {
@@ -582,10 +584,17 @@ async function saveOverwriteJson() {
     return true;
   }
 
+  const saveDocument = (
+    currentDataSourceKind === 'viewdef' &&
+    typeof finalizeViewDefMaintenanceDocument === 'function' &&
+    typeof isViewDefMaintenanceDocument === 'function' &&
+    isViewDefMaintenanceDocument(sourceData)
+  ) ? finalizeViewDefMaintenanceDocument(sourceData) : sourceData;
+
   const res = await fetch(currentDataApiUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(sourceData)
+    body: JSON.stringify(saveDocument)
   });
 
   if (!res.ok) {
@@ -593,7 +602,10 @@ async function saveOverwriteJson() {
     throw new Error(`保存に失敗しました (${res.status}) ${text}`);
   }
 
-  setStatus(`上書き保存しました: ${currentDataApiUrl}`);
+  if (currentDataSourceKind === 'viewdef' && typeof invalidateDefinitionTargetViewDefCache === 'function') {
+    invalidateDefinitionTargetViewDefCache(currentViewDefMaintenanceTarget || '');
+  }
+  setStatus(`${currentDataSourceKind === 'viewdef' ? 'ViewDefを' : ''}上書き保存しました: ${currentDataApiUrl}`);
   return true;
 }
 

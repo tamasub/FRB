@@ -4,6 +4,13 @@
 
 const definitionTargetViewPromiseCache = new Map();
 
+function invalidateDefinitionTargetViewDefCache(path='') {
+  const normalized = String(path ?? '').trim();
+  if (normalized) definitionTargetViewPromiseCache.delete(normalized);
+  else definitionTargetViewPromiseCache.clear();
+}
+
+
 function definitionTargetCaptionOptions(component) {
   const raw = component?.config?.config;
   return raw && typeof raw === 'object' ? raw : {};
@@ -83,7 +90,7 @@ class DefinitionTargetCaptionComponent extends EditorComponent {
 
     try {
       const path = this.targetViewDefPath;
-      const viewDef = this._targetViewDef ?? await loadDefinitionTargetViewDef(path);
+      const viewDef = await loadDefinitionTargetViewDef(path);
       if (token !== this._refreshToken || !this.mounted) return;
       this._targetViewDef = viewDef;
       this._resolvedField = resolveFieldDefinitionTargetViewField(viewDef, this.row?.field_path ?? '');
@@ -143,4 +150,5 @@ registerEditorComponent(
 );
 
 globalThis.loadDefinitionTargetViewDef = loadDefinitionTargetViewDef;
+globalThis.invalidateDefinitionTargetViewDefCache = invalidateDefinitionTargetViewDefCache;
 globalThis.DefinitionTargetCaptionComponent = DefinitionTargetCaptionComponent;

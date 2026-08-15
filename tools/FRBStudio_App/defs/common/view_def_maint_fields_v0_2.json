@@ -54,29 +54,44 @@
                 "visible": true,
                 "readonly": false
               }
-            },
-            {
-              "field": "views.0.layout",
-              "caption": "レイアウト",
-              "type": "select",
-              "options": [
-                "header-search-grid-detail"
-              ],
-              "readonly": false,
-              "edit": {
-                "visible": true,
-                "readonly": false
-              }
             }
           ]
         },
         {
           "id": "fields",
-          "caption": "項目定義 fields",
+          "caption": "項目定義 fields（全View / Section）",
           "type": "grid",
-          "dataPath": "$.views.0.sections.1.fields",
-          "keyField": "field",
+          "dataPath": "$.__studio_viewdef_maintenance_fields",
+          "keyField": "__maintenance_key",
           "fields": [
+            {
+              "field": "__maintenance_section_ref",
+              "caption": "View / Section",
+              "type": "select",
+              "options": [],
+              "grid": {
+                "visible": true,
+                "width": 260
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              },
+              "validation": {
+                "required": true
+              },
+              "defaultValue": "",
+              "_option_maintenance_source": {
+                "kind": "fixed",
+                "source_type": "fixed",
+                "readonly": true,
+                "reason": "対象ViewDefのviews / sectionsからRuntimeが導出する候補。"
+              }
+            },
             {
               "field": "field",
               "caption": "field",
@@ -125,13 +140,19 @@
               "type": "select",
               "options": [
                 "text",
+                "textarea",
                 "number",
+                "date",
+                "datetime",
                 "boolean",
                 "select",
-                "datetime",
-                "textarea",
                 "objectArray",
-                "stringArray"
+                "stringArray",
+                "chat",
+                "json",
+                "checkbox",
+                "field",
+                "fieldGroup"
               ],
               "grid": {
                 "visible": true,

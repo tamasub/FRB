@@ -534,11 +534,11 @@
               "options": [
                 {
                   "cd": "LT",
-                  "name": "<"
+                  "name": "\u003C"
                 },
                 {
                   "cd": "LTE",
-                  "name": "<="
+                  "name": "\u003C="
                 },
                 {
                   "cd": "EQ",
@@ -550,11 +550,11 @@
                 },
                 {
                   "cd": "GTE",
-                  "name": ">="
+                  "name": "\u003E="
                 },
                 {
                   "cd": "GT",
-                  "name": ">"
+                  "name": "\u003E"
                 }
               ],
               "grid": {
@@ -659,7 +659,7 @@
           ]
         }
       ],
-      "layout_note": "関連項目チェックはField Definitionへ埋め込まず、関係そのものを独立したConstraintとして管理する。通常比較はA<B / A=B / A>Bの3関係を内部代表値から導出し、未設定時はunset_policyでOK/NGを明示する。"
+      "layout_note": "関連項目チェックはField Definitionへ埋め込まず、関係そのものを独立したConstraintとして管理する。通常比較はA\u003CB / A=B / A\u003EBの3関係を内部代表値から導出し、未設定時はunset_policyでOK/NGを明示する。"
     }
   ]
 }

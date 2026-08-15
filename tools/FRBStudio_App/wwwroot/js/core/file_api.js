@@ -97,7 +97,7 @@ function normalizeLoadedDataDisplayPath(raw) {
   } catch { /* keep raw value */ }
 
   value = value.replace(/\\/g, '/').replace(/^\/+/, '');
-  value = value.replace(/^api\/data\//i, '');
+  value = value.replace(/^api\/(data|defs)\//i, '');
   value = value.replace(/^data\//i, 'data/');
   return safeJsonFileName(value) || value;
 }

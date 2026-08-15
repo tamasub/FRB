@@ -156,7 +156,7 @@
     </div>
     <section class="loader-panel" aria-label="JSON読み込み">
       <label class="combo-field has-clear">
-        <span class="drop-label">画面定義JSON</span>
+        <span class="drop-label combo-label-row"><span>画面定義JSON</span><button id="maintainViewDefBtn" class="viewdef-maintenance-button" type="button" aria-label="選択中ViewDefをメンテナンス" title="選択中ViewDefをメンテナンス" disabled>…</button></span>
         <span class="combo-input-wrap">
           <input id="defNameInput" name="frb_def_combo_009" list="defNameList" placeholder="defs から検索・選択" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="latin" enterkeyhint="search" data-studio-ime-policy="latin-filename" style="ime-mode: inactive;" />
           <button id="openDefFolderBtn" class="combo-folder-button" type="button" aria-label="画面定義JSONの場所をExplorerで開く" title="画面定義JSONの場所をExplorerで開く" disabled>📁</button>
@@ -322,6 +322,8 @@
   <script src="js/core/overlay_manager.js?v=multi-overlay-gpt-fx-lab-0171"></script>
   <script src="js/core/field_types.js?v=studio-overlay-0170"></script>
   <script src="js/core/viewdef_resolver.js?v=file-picker-list-0169"></script>
+  <script src="js/services/option_maintenance_service.js?v=combo-option-maintenance-01854"></script>
+  <script src="js/services/viewdef_maintenance_projection.js?v=viewdef-maintenance-all-sections-01855"></script>
   <script src="js/ui/studio_dialog.js?v=studio-dialog-top-layer-018352"></script>
   <script src="js/core/loaders.js?v=studio-dialog-no-browser-standard-01813"></script>
   <script src="js/ui/page_setup.js?v=data-viewdef-candidates-0141"></script>
@@ -343,7 +345,7 @@
   <script src="js/services/definition/runtime_field_definition_validation.js?v=field-definition-runtime-validation-01847"></script>
   <script src="js/services/definition/cross_field_verification_service.js?v=cross-field-generation-01853"></script>
   <script src="js/components/definition/definition_verification_derived_subgrid_component.js?v=definition-review-evidence-01846"></script>
-  <script src="js/components/definition/definition_target_caption_component.js?v=field-definition-caption-header-01848"></script>
+  <script src="js/components/definition/definition_target_caption_component.js?v=viewdef-caption-refresh-01855"></script>
   <script src="js/components/definition/definition_constraint_diff_component.js?v=definition-review-evidence-01846"></script>
   <script src="js/components/definition/definition_test_preview_component.js?v=definition-review-evidence-01846"></script>
   <script src="js/components/definition/cross_field_test_preview_component.js?v=cross-field-generation-01853"></script>

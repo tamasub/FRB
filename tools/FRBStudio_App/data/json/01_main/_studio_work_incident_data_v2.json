@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-12T20:13:00+09:00",
+  "updated_at": "2026-08-15T09:39:38+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 164,
+  "items_count": 165,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -25631,6 +25631,268 @@
           "detail": "FRB FFT実DefinitionとCross Field 6 Operator MatrixをRun Configへ追加。Program.cs allowlist / Output Artifact、TestRunner.ps1固定Runnerを接続し、同じUI入口からCanonical Diffを再生成可能にした。"
         }
       ]
+    },
+    {
+      "work_item_id": "studio_work_0177",
+      "phase": "v0.18.54-combo-option-and-viewdef-maintenance",
+      "title": "Combo選択肢メンテナンス / ViewDef自己メンテナンス導線",
+      "incident_type": "feature",
+      "category": "ui_maintenance",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "NOT_REQUIRED",
+      "verification_status": "静的確認済み / ブラウザ実機未確認",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-15T09:27:00+09:00",
+      "owner": "",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-15T09:27:00+09:00",
+      "updated_at": "2026-08-15T09:39:38+09:00",
+      "target_files": "- wwwroot/index.html\n- wwwroot/styles.css\n- wwwroot/js/core/state.js\n- wwwroot/js/core/field_types.js\n- wwwroot/js/ui/page_setup.js\n- wwwroot/js/runtime/load_runtime.js\n- wwwroot/js/runtime/detail_save.js\n- wwwroot/js/renderers/field_controls.js\n- wwwroot/js/renderers/grid_detail.js\n- wwwroot/js/runtime/detail_subgrid_edit.js\n- Program.cs/Program.cs\n- defs/common/view_def_maint_fields_v0_2.json\n- tests/qa/static/*",
+      "actual_updated_files": "- Program.cs/Program.cs\n- data/json/01_main/_studio_work_incident_data_v2.json\n- tests/qa/static/combo_viewdef_maintenance_static.test.mjs\n- wwwroot/app.js\n- wwwroot/index.html\n- wwwroot/styles.css\n- wwwroot/js/core/state.js\n- wwwroot/js/core/field_types.js\n- wwwroot/js/core/file_api.js\n- wwwroot/js/ui/page_setup.js\n- wwwroot/js/runtime/load_runtime.js\n- wwwroot/js/runtime/detail_save.js\n- wwwroot/js/renderers/field_controls.js\n- wwwroot/js/renderers/grid_detail.js\n- wwwroot/js/runtime/detail_subgrid_edit.js\n- wwwroot/js/services/option_maintenance_service.js",
+      "context_def_draft": "- ComboBoxの選択肢メンテナンスは、表示中ComboBoxの定義元へ逆引きして正本を更新する共通機能とする。\n- ViewDef直書きoptionsは現在読み込み中ViewDefを更新対象とする。\n- enumRef / valueSet / valueVocabularyRef由来のoptionsはValue Vocabulary Registryの正本を更新対象とする。\n- 正本不明・派生・動的候補は編集不可として理由を表示する。\n- ViewDefメンテナンスは既存の共通ViewDef `defs/common/view_def_maint_fields_v0_2.json` をsystem固定のメンテ用ViewDefとして再利用し、選択中ViewDef自体をDataとして開く。\n- 既存の紫色「読み込み」ボタンと📁ボタンの責務・配置は変更しない。\n- ViewDefメンテ導線は画面定義JSONラベル右側の目立たない `…` ボタンとする。\n- 📁はViewDefが収録されているフォルダーをExplorerで開く既存機能のまま維持する。\n- ViewDefメンテ画面上でもComboBox右クリックメンテナンスが同じ共通機能として動作する。",
+      "objective": "- すべての標準select系ComboBoxから右クリックで選択肢の登録・修正・削除を開始できるようにする。\n- 選択肢の正本がViewDef直書きか共通Value Vocabulary Registryかを解決し、正しい保存先を更新する。\n- 画面定義JSON欄の `…` から、現在選択中のViewDefを共通ViewDefメンテ用ViewDefで気軽に開いて編集・上書き保存できるようにする。\n- ViewDefメンテ画面でもComboBoxメンテ機能を継続利用できる共通実装にする。",
+      "background": "- ComboBoxの候補値はViewDef直書きoptionsだけでなく、common_enums / Overlay value_sets等のValue Vocabulary RegistryからenumRef/valueSetで解決されるものがある。\n- RuntimeはすでにFieldType/Enum解決時に `_options_source` / `_resolved_value_vocabulary_ref` を保持しているため、正本逆引きの足場がある。\n- `defs/common/view_def_maint_fields_v0_2.json` は既存のViewDef FieldListメンテ用ViewDefとして存在しており、新しいViewDef専用画面をハードコードせず再利用できる。\n- `/api/defs` は現状GETとdrop登録のみで、選択中ViewDefの同名上書き保存APIがないため、ViewDefをDataとして編集するには保存契約の追加が必要。",
+      "scope": "- 標準Detail select、Document Grid select、SubGrid selectへ共通contextmenu導線を接続する。\n- 右クリック時に現在の選択肢、定義元種別、更新先を表示する軽量メンテナンスDialogを提供する。\n- ViewDef直書きoptionsは該当Field/Columnのoptions配列を登録・修正・削除可能にする。\n- Value Vocabulary Registry由来はenum itemsを登録・修正し、削除は即物理削除ではなくdeprecated=trueを基本とする。\n- Registry保存後はEnum cacheを破棄し、現在画面を再Resolve/再描画して候補を更新する。\n- ViewDef直書きoptions保存後は選択中ViewDefを同名保存し、現在画面を再Resolve/再描画する。\n- 画面定義JSONラベル右側へ `…` ボタンを追加し、現在選択中ViewDefを `common/view_def_maint_fields_v0_2.json` で開く。\n- ViewDefメンテ時の保存先は `/api/defs/{path}` とし、通常Data保存と区別する。\n- ViewDefをDataとして保存する際、メンテ用ViewDef名を編集対象ViewDefのtop-level `view_def` として自動注入しない。\n- 既存の「読み込み」ボタン・📁ボタンは機能変更しない。",
+      "out_of_scope": "- 動的生成候補やファイル一覧候補など、正本を一意に特定できないComboBoxの直接編集。\n- Overlay manifest自体の一般メンテナンス。\n- ViewDef Schemaの大規模再設計。\n- ViewDefメンテ用ViewDef自身を `…` から再帰的に自己編集すること。\n- ComboBox以外のCaption/Validation/Required等の右クリックメンテナンスへの拡張。",
+      "fixed_name_policy": "- 既存ViewDefは同名更新。\n- `defs/common/view_def_maint_fields_v0_2.json` のファイル名を維持する。",
+      "module_policy": "- Combo option maintenanceの定義元解決・保存は共通service/moduleへ寄せ、各select生成箇所には共通bindingだけを接続する。\n- ViewDefメンテナンスは既存loadFromObjects/save runtimeを再利用し、専用Editorを別実装しない。",
+      "expected_outputs": "- ComboBox右クリックから選択肢メンテナンスDialogが開く。\n- ViewDef直書きoptionsの追加/修正/削除がViewDefへ保存され、再描画後に反映される。\n- Value Vocabulary Registry由来の候補追加/修正/deprecated化が正本Data JSONへ保存され、再描画後に反映される。\n- 画面定義JSON欄の `…` から現在選択中ViewDefを共通メンテViewDefで開ける。\n- ViewDefメンテ画面でもComboBox右クリックメンテが動く。\n- 既存「読み込み」/📁の回帰がない。",
+      "risk": "- Resolve後のFieldは元ViewDefより展開・上書きされているため、編集対象のField pathを誤ると派生結果を書き戻す危険がある。元ViewDef内のfield/column識別子から正本位置を再探索する。\n- Registry由来optionsで物理削除すると既存Dataが孤児化するため、削除はdeprecated化を基本とする。\n- ViewDefをDataとして保存すると誤って `view_def` を注入する既存ロジックがあるため、保存対象kindを明示して回避する。",
+      "test_points": "- ViewDef直書きselectで右クリックメニュー/メンテDialogが開く。\n- options追加後にViewDef JSONへ値が保存される。\n- options修正/削除後に画面候補が再描画される。\n- enumRef/valueSet由来selectでRegistry sourceが特定される。\n- Registry itemの追加/修正/deprecated化が正本へ保存される。\n- boolean固定selectなど正本なし候補は編集不可として扱う。\n- `…` はViewDef選択済み時のみ有効。\n- `…` から選択中ViewDefがDataとして開き、共通ViewDefメンテ画面が表示される。\n- ViewDef保存時にtop-level view_defが勝手に追加されない。\n- 紫「読み込み」および📁の既存挙動が変わらない。\n- node --test が通る。",
+      "verification_log": "- node --test tests/qa/static/combo_viewdef_maintenance_static.test.mjs: 4 tests / 4 PASS。\n- node --check: field_types.js / option_maintenance_service.js / page_setup.js / load_runtime.js / detail_save.js / field_controls.js / grid_detail.js / detail_subgrid_edit.js / app.js PASS。\n- 全Static一括: baseline 89 tests = 76 PASS / 13 FAIL、変更後93 tests = 80 PASS / 13 FAIL。FAIL 13件の名称はbaseline/currentで一致し、今回変更によるFAIL増加なし。\n- 既存FAIL例: missing fielddefs/thought_evolution系fixture、coding constraints sample期待5件に対し現状7件など。\n- JSON parse: _studio_work_incident_data_v2.json / view_def_maint_fields_v0_2.json PASS。\n- screen_state_smoke_001のrequiredButtonsはincludesAll契約のため、ひっそり追加した `…` は既存Expectedを破壊しないことを静的確認。\n- テスト実行で更新された既存Actual/Diffはbaselineへ復元し、返却差分から除外。\n- dotnet / csc / mcs が作業環境に無くProgram.csのcompileは未実施。\n- ブラウザ実機での右クリック操作、ViewDef上書き保存、Explorer📁動作はユーザー実機確認待ち。",
+      "user_request": "comboメンテナンス機能と、ViewDefメンテナンス機能をやってほしいけど、２ステップでいく？そこはおまかせするので、インシデント登録してから、いっきにやっちゃってください。",
+      "ai_response": "Combo選択肢メンテナンスとViewDef自己メンテナンス導線を、画面から定義元へ逆引きする共通構造として一括実装する。Combo側は正本Resolverを通し、ViewDefメンテ側は既存共通ViewDefと既存load/save Runtimeを再利用する。",
+      "latest_ai_response": "AI回答\n\n## v0.18.54 実装完了\n\n- 標準ComboBoxへ右クリックの「選択肢メンテナンス」を追加。Detail / Document Grid / SubGridのselectへ共通bindingを接続。\n- 選択肢の正本をResolverで逆引きし、ViewDef直書きoptions / 共通FieldType / Value Vocabulary Registryをそれぞれ正しいJSONへ保存する構造にした。\n- Value Vocabularyの「削除」は既存Dataを孤児化させないよう、物理削除ではなくdeprecated=trueの無効化を採用。\n- ViewDef直書きoptionsはResolved後のfield名だけでなくnode_pathも保持し、同名Fieldが複数あっても元ViewDefの該当ノードへ戻れるようにした。\n- 画面定義JSONラベル右側へ目立たない `…` ボタンを追加。選択中ViewDefそのものをDataとして、既存の `common/view_def_maint_fields_v0_2.json` で開く。\n- ViewDefメンテ時は `/api/defs/{path}` へ同名上書きし、編集対象ViewDefへメンテ用 `view_def` 名を誤注入しないようData種別を分離。\n- 既存の紫「読み込み」ボタンと📁（ViewDef格納フォルダーをExplorerで開く）の責務・処理は変更していない。\n- ViewDefメンテ画面上のComboBoxにも同じ右クリックメンテナンスが効く。\n\n## 確認\n\n- 新規static acceptance: 4 / 4 PASS。\n- JS構文チェック: 9ファイル PASS。\n- 全Static: baseline 89 tests = 76 PASS / 13 FAIL、変更後 93 tests = 80 PASS / 13 FAIL。既存FAIL 13件は同一で、今回変更によるFAIL増加なし。\n- JSON parse: incident / 既存ViewDefメンテ定義 PASS。\n- テスト実行で更新された既存Actual/Diffは原本へ復元し、返却差分へ含めない。\n- 作業環境にdotnet CLIが無いため、Program.csの実ビルドとブラウザ実機操作は未確認。\n\n## 初期版の境界\n\n- 正本を一意に特定できない動的候補やOverlay候補は、推測して書き換えず読取専用理由を表示する。\n- 共通ViewDefメンテ定義は通常の `views[0].sections[1].fields` 型ViewDefを主対象とし、特殊な子ViewDef構造は必要になった時点で共通メンテViewDef側を拡張する。",
+      "latest_user_comment": "comboメンテナンス機能と、ViewDefメンテナンス機能をやってほしいけど、２ステップでいく？そこはおまかせするので、インシデント登録してから、いっきにやっちゃってください。",
+      "context_refs": [
+        "foundation_rule_019",
+        "constitution_32",
+        "defs/common/view_def_maint_fields_v0_2.json",
+        "data/json/config/common_enums_v0_1.json"
+      ],
+      "follow_up_actions": [],
+      "discussion_history": [
+        {
+          "speaker": "user",
+          "at": "2026-08-15T09:27:00+09:00",
+          "body": "comboメンテナンス機能と、ViewDefメンテナンス機能をやってほしいけど、２ステップでいく？そこはおまかせするので、インシデント登録してから、いっきにやっちゃってください。"
+        },
+        {
+          "history_id": "studio_work_0177_discussion_002",
+          "at": "2026-08-15T09:39:38+09:00",
+          "speaker": "assistant",
+          "topic": "v0.18.54 Combo / ViewDefメンテナンス実装完了",
+          "message": "AI回答\n\n## v0.18.54 実装完了\n\n- 標準ComboBoxへ右クリックの「選択肢メンテナンス」を追加。Detail / Document Grid / SubGridのselectへ共通bindingを接続。\n- 選択肢の正本をResolverで逆引きし、ViewDef直書きoptions / 共通FieldType / Value Vocabulary Registryをそれぞれ正しいJSONへ保存する構造にした。\n- Value Vocabularyの「削除」は既存Dataを孤児化させないよう、物理削除ではなくdeprecated=trueの無効化を採用。\n- ViewDef直書きoptionsはResolved後のfield名だけでなくnode_pathも保持し、同名Fieldが複数あっても元ViewDefの該当ノードへ戻れるようにした。\n- 画面定義JSONラベル右側へ目立たない `…` ボタンを追加。選択中ViewDefそのものをDataとして、既存の `common/view_def_maint_fields_v0_2.json` で開く。\n- ViewDefメンテ時は `/api/defs/{path}` へ同名上書きし、編集対象ViewDefへメンテ用 `view_def` 名を誤注入しないようData種別を分離。\n- 既存の紫「読み込み」ボタンと📁（ViewDef格納フォルダーをExplorerで開く）の責務・処理は変更していない。\n- ViewDefメンテ画面上のComboBoxにも同じ右クリックメンテナンスが効く。\n\n## 確認\n\n- 新規static acceptance: 4 / 4 PASS。\n- JS構文チェック: 9ファイル PASS。\n- 全Static: baseline 89 tests = 76 PASS / 13 FAIL、変更後 93 tests = 80 PASS / 13 FAIL。既存FAIL 13件は同一で、今回変更によるFAIL増加なし。\n- JSON parse: incident / 既存ViewDefメンテ定義 PASS。\n- テスト実行で更新された既存Actual/Diffは原本へ復元し、返却差分へ含めない。\n- 作業環境にdotnet CLIが無いため、Program.csの実ビルドとブラウザ実機操作は未確認。\n\n## 初期版の境界\n\n- 正本を一意に特定できない動的候補やOverlay候補は、推測して書き換えず読取専用理由を表示する。\n- 共通ViewDefメンテ定義は通常の `views[0].sections[1].fields` 型ViewDefを主対象とし、特殊な子ViewDef構造は必要になった時点で共通メンテViewDef側を拡張する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_studio_work_0177_001",
+          "at": "2026-08-15T09:27:00+09:00",
+          "decision": "Combo選択肢メンテナンスとViewDefメンテナンス導線を1インシデント内の2サブステップとして一括実装する。",
+          "reason": "両機能は「画面から定義元へ逆引きして編集する」同一設計上にあり、ViewDefメンテ画面でもComboメンテを動かす要件があるため、別インシデントへ分断するより共通基盤を同時に整備する方が責務と回帰確認が明確になる。"
+        },
+        {
+          "decision_id": "dec_studio_work_0177_002",
+          "at": "2026-08-15T09:39:38+09:00",
+          "decision": "ComboBox自身は保存先を判断せず、Resolved Fieldへ付与した正本source metadataをOption Maintenance Serviceが解決して保存する。",
+          "reason": "ViewDef直書き、共通FieldType、Value Vocabularyで更新先が異なるため、各Rendererへ分岐を持たせると責務が拡散する。",
+          "applied_axes": [
+            "責務を共通Serviceへ集約する",
+            "定義元を推測せず正本へ戻る",
+            "Runtimeを太らせない"
+          ],
+          "conditions": "標準select系Control。",
+          "exceptions": "動的生成候補・Overlay等の書込契約がないsourceはreadonly。",
+          "expected_behavior": "右クリック時に定義元と保存先を表示し、正本JSONだけを更新する。",
+          "acceptance_criteria": "Detail / Document Grid / SubGridのselectが同じbindingを使用し、source_type別に保存先が分かれる。",
+          "test_pattern_seed": "viewDefOptions / fieldType / valueVocabulary / fixed",
+          "remaining_risks": "将来新しいOptionSource種別を追加する場合はResolver Strategy追加が必要。",
+          "confirmation_level": "user_requested"
+        },
+        {
+          "decision_id": "dec_studio_work_0177_003",
+          "at": "2026-08-15T09:39:38+09:00",
+          "decision": "Value Vocabulary Registryの削除操作は物理削除ではなくdeprecated=trueの論理無効化とする。",
+          "reason": "既存Dataがそのコード値を保持している場合、物理削除すると過去Dataが孤児化するため。",
+          "applied_axes": [
+            "既存Data互換性を優先する",
+            "削除による破壊を避ける"
+          ],
+          "conditions": "source_type=valueVocabulary。",
+          "exceptions": "ViewDef直書きoptions / shared FieldType optionsは配列から削除可能。",
+          "expected_behavior": "deprecated itemは新規候補から除外され、メンテ画面では無効として再有効化できる。",
+          "acceptance_criteria": "enumItemsToOptionsでdeprecatedを除外し、Dialog削除操作でdeprecatedをtoggleする。",
+          "test_pattern_seed": "registry item delete -> deprecated -> re-enable",
+          "remaining_risks": "既存Data表示時のunknown値保持は既存setSelectValuePreservingUnknown契約に依存。",
+          "confirmation_level": "ai_design"
+        },
+        {
+          "decision_id": "dec_studio_work_0177_004",
+          "at": "2026-08-15T09:39:38+09:00",
+          "decision": "ViewDefメンテは新規専用Editorを作らず、選択中ViewDefをDataとして既存common/view_def_maint_fields_v0_2.jsonで開く。",
+          "reason": "ViewDefもJSON DataとしてStudio標準Editorで扱えるため、別実装より既存ViewDef駆動構造を再利用した方が一貫する。",
+          "applied_axes": [
+            "共通ViewDefを優先する",
+            "Data/View分離を維持する",
+            "既存Runtimeを再利用する"
+          ],
+          "conditions": "通常ViewDef。",
+          "exceptions": "メンテ用ViewDef自身の再帰openは抑止。Overlay等readonly ViewDefは上書き不可。",
+          "expected_behavior": "`…` clickでtarget ViewDefをData、common maintenance ViewDefをViewとして表示し、/api/defsへ同名保存する。",
+          "acceptance_criteria": "既存読み込み/📁を変更せず、ViewDef保存時にtop-level view_defを誤注入しない。",
+          "test_pattern_seed": "selected ViewDef -> ellipsis -> common maintenance ViewDef -> overwrite",
+          "remaining_risks": "特殊な子ViewDef構造はcommon maintenance ViewDefの現行dataPathで全項目を編集できない可能性がある。",
+          "confirmation_level": "user_confirmed"
+        }
+      ],
+      "change_history": [
+        {
+          "change_id": "chg_studio_work_0177_register_001",
+          "at": "2026-08-15T09:27:00+09:00",
+          "summary": "Combo選択肢メンテナンス / ViewDef自己メンテナンス導線を実装対象としてインシデント登録。実装前状態。"
+        },
+        {
+          "change_id": "chg_studio_work_0177_impl_002",
+          "at": "2026-08-15T09:39:38+09:00",
+          "summary": "Combo選択肢メンテナンス実装",
+          "detail": "Option Maintenance Serviceを追加し、Detail / Document Grid / SubGrid selectへ共通contextmenu bindingを接続。FieldType/Value Vocabulary読み込み時に正本source metadataを保持し、ViewDef direct optionsはnode_pathで正本ノードへ戻す。"
+        },
+        {
+          "change_id": "chg_studio_work_0177_impl_003",
+          "at": "2026-08-15T09:39:38+09:00",
+          "summary": "ViewDef自己メンテナンス導線実装",
+          "detail": "画面定義JSONラベル右側へ `…` を追加し、選択中ViewDefを既存common/view_def_maint_fields_v0_2.jsonでDataとして開く。/api/defs同名POSTとData source kind分離を追加。既存読み込み/📁処理は変更なし。"
+        },
+        {
+          "change_id": "chg_studio_work_0177_verify_004",
+          "at": "2026-08-15T09:39:38+09:00",
+          "summary": "静的検証完了",
+          "detail": "新規acceptance 4/4 PASS、JS構文PASS。全Staticはbaseline/currentとも既存FAIL 13件で増加なし。runtime生成Actual/Diffは返却差分から除外。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0178",
+      "phase": "v0.18.55-viewdef-maintenance-all-sections-caption-resolution",
+      "title": "ViewDefメンテ全Section対応 / Caption名前解決修正 / layout破損防止",
+      "incident_type": "bugfix",
+      "category": "ui_maintenance",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "NOT_REQUIRED",
+      "verification_status": "静的確認済み / ブラウザ実機確認待ち",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-15T10:33:00+09:00",
+      "owner": "",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-15T10:33:00+09:00",
+      "updated_at": "2026-08-15T10:33:00+09:00",
+      "target_files": "- defs/common/view_def_maint_fields_v0_2.json\n- defs/fielddefs/frb_fft_measurement_field_definitions_view_def_v0_1.json\n- defs/frb/frb_fft_field_definition_sample_view_def_v0_1.json\n- wwwroot/js/core/field_types.js\n- wwwroot/js/services/viewdef_maintenance_projection.js\n- wwwroot/js/ui/page_setup.js\n- wwwroot/js/runtime/detail_save.js\n- wwwroot/js/components/definition/definition_target_caption_component.js\n- wwwroot/js/services/option_maintenance_service.js\n- wwwroot/index.html\n- tests/qa/static/combo_viewdef_maintenance_static.test.mjs\n- tests/qa/static/field_definition_target_caption_static.test.mjs",
+      "actual_updated_files": "- data/json/01_main/_studio_work_incident_data_v2.json\n- defs/common/view_def_maint_fields_v0_2.json\n- defs/fielddefs/frb_fft_measurement_field_definitions_view_def_v0_1.json\n- defs/frb/frb_fft_field_definition_sample_view_def_v0_1.json\n- wwwroot/js/core/field_types.js\n- wwwroot/js/services/viewdef_maintenance_projection.js\n- wwwroot/js/ui/page_setup.js\n- wwwroot/js/runtime/detail_save.js\n- wwwroot/js/components/definition/definition_target_caption_component.js\n- wwwroot/js/services/option_maintenance_service.js\n- wwwroot/index.html\n- tests/qa/static/combo_viewdef_maintenance_static.test.mjs\n- tests/qa/static/field_definition_target_caption_static.test.mjs",
+      "context_def_draft": "- ViewDefメンテは1個の共通ViewDefを維持するが、特定Section indexへ固定しない。\n- Target ViewDefの全views/sections/fieldsを一時Projectionへフラット化し、保存時にCanonicalなviews[].sections[].fieldsへ戻す。\n- Projection用のSection参照・KeyはRuntime一時メタ情報であり正本ViewDefへ保存しない。\n- Field DefinitionのCaptionはTarget Data ViewDefを正本として解決する。\n- ViewDef保存後はTarget ViewDef cacheを無効化し、古いCaption定義を保持しない。\n- object/string両形を持つlayoutは、汎用的な型安全編集を用意するまで共通ViewDefメンテHeaderから直接編集しない。",
+      "objective": "- `…` から開くViewDefメンテを全View / 全SectionのFieldへ対応させる。\n- `$.analysis_start_date` / `$.analysis_end_date` のCaption未解決を正しいTarget Data ViewDef定義へ接続して解消する。\n- ViewDefメンテ保存によるlayout objectの `[object Object]` 破損を防止・復旧する。\n- ViewDef更新後のCaption Resolver cache staleを防止する。",
+      "background": "- v0.18.54の共通メンテViewDefはMain Gridを `$.views.0.sections.1.fields` に固定しており、Headerや別ViewのSectionを編集できなかった。\n- ユーザーがCaption解決対象のroot Fieldを追加しようとした結果、Field Definition Editor ViewDefのsection[1]へ `analysis_start_date / analysis_end_date` が追加され、Target Data ViewDefには追加されなかった。\n- 同じメンテ画面のHeaderに `views.0.layout` をselectとして置いていたため、object layoutが文字列 `[object Object]` として保存される破損も実機で発生した。\n- Caption ComponentはTarget ViewDefをcacheするため、正しいViewDefを保存した後も更新反映を遅らせる可能性があった。",
+      "scope": "- 全views[].sections[].fieldsを一時Projectionへ展開する共通Service追加。\n- View / Section選択列をRuntime導出し、新規Fieldの所属Sectionを明示可能にする。\n- ViewDef保存直前にProjectionをCanonical構造へ戻して一時メタ情報を除去する。\n- Target FRB sample ViewDefのHeaderへanalysis_start_date / analysis_end_dateを追加。\n- Field Definition Editor ViewDefへ誤追加された同名Fieldを削除。\n- 破損したlayoutを復元し、共通メンテViewDefからunsafeなlayout編集欄を外す。\n- Caption target ViewDef cacheのinvalidate API追加とViewDef保存/option保存からの呼出。\n- Runtime生成した固定候補の `_option_maintenance_source` をFieldType解決時に上書きせず、明示source ownershipを維持する。",
+      "out_of_scope": "- ViewDefのsections自体の追加・削除専用UI。\n- layout objectを構造化編集する専用Component。\n- ViewDef Schema全項目を完全にGUI編集可能にすること。\n- ブラウザE2E自動操作による実保存テスト。",
+      "fixed_name_policy": "- 既存 `defs/common/view_def_maint_fields_v0_2.json` は同名更新。\n- 既存FRB ViewDef 2ファイルも同名更新。\n- Projection処理のみ新規共通Service `wwwroot/js/services/viewdef_maintenance_projection.js` として追加。",
+      "module_policy": "- ViewDef構造のフラット化/復元はpage_setupやsave処理へ個別分岐を増殖させず、共通Projection Serviceへ分離する。\n- Caption解決は既存Resolverを維持し、正本Target ViewDefとcache lifecycleを修正する。\n- Runtime一時Projectionを正本JSONへ混入させない。",
+      "expected_outputs": "- ViewDefメンテ一覧に全View / SectionのFieldが表示される。\n- `View / Section` を選んでHeaderへ新規Fieldを追加できる。\n- 保存後のViewDefは元のnested sections[].fields構造を維持し、一時Projection keyを含まない。\n- Field Definition詳細でanalysis_start_date / analysis_end_dateが `分析開始日 / 分析終了日` と名前解決される。\n- Field Definition Editorのlayoutがobjectのまま保持される。\n- 既存Combo右クリックメンテナンスはViewDefメンテ画面でも継続動作する。",
+      "risk": "- Flatten Projectionから戻す際にFieldの所属Sectionや順序を壊す危険があるため、Section Refと一時Keyを明示してround-trip testを行う。\n- 新規FieldのSection未指定は誤保存せずエラーにする。\n- Target ViewDefで既に使われている拡張typeがtype Combo候補に無いと意図せず変更される危険があるため、対象ViewDefの既存typeを候補へ動的追加する。\n- layoutはobject/stringの多態性があるため、現時点では共通Header編集対象から外す。",
+      "test_points": "- Target ViewDef全views/sectionsのField数とProjection行数が一致する。\n- Header / Main Grid / 2つ目ViewのFieldがそれぞれ異なるSection RefでProjectionされる。\n- 新規Projection行をHeaderへ追加しfinalizeすると正しいsection.fieldsへ入る。\n- finalize後に一時Projection/Key/Section Refが正本へ残らない。\n- analysis_start_date / analysis_end_dateのCaptionがTarget Data ViewDefから解決される。\n- Field Definition Editor ViewDef自身にはanalysis_start_date / analysis_end_date Fieldが残らない。\n- layoutが `{detailDialog: wide}` objectのまま維持される。\n- 全Staticの既存FAIL数を増やさない。",
+      "verification_log": "- node --test tests/qa/static/combo_viewdef_maintenance_static.test.mjs tests/qa/static/field_definition_target_caption_static.test.mjs: 12 / 12 PASS。\n- node --test tests/definition/*.test.mjs: 24 / 24 PASS。\n- 全Static baseline: 93 tests = 80 PASS / 13 FAIL。\n- 全Static current: 97 tests = 84 PASS / 13 FAIL。FAIL 13件の名称はbaseline/currentで一致。\n- node --check: viewdef_maintenance_projection.js / page_setup.js / detail_save.js / definition_target_caption_component.js / option_maintenance_service.js PASS。\n- JSON parse: common ViewDef maintenance / Field Definition Editor ViewDef / Target FRB sample ViewDef / Incident PASS。\n- 既存Field Definition Editor layoutの `[object Object]` 破損を、ユーザー添付の改修前版に存在した `{detailDialog: wide}` へ復元。\n- ブラウザ実機での `…` → Section切替 → 保存 → Caption再表示はユーザー実機確認待ち。",
+      "user_request": "なおらない、修正してぇーー",
+      "ai_response": "v0.18.54のViewDefメンテがsection[1]固定であったことと、layout objectをselectで保存していたことを不具合として切り分け、全Section Projection方式へ修正する。CaptionはTarget Data ViewDef正本へFieldを移し、cache lifecycleも修正する。",
+      "latest_ai_response": "AI回答\n\n## v0.18.55 修正完了\n\n今回の未解決は、Caption Resolverそのものではなく、ViewDefメンテ側の構造制約が原因でした。\n\n- 共通ViewDefメンテ定義が `$.views.0.sections.1.fields` に固定されていたため、Headerなど別SectionのFieldを `…` から編集できませんでした。\n- そのため `analysis_start_date / analysis_end_date` がField Definition Editor自身のFieldとして誤追加され、Target Data ViewDefには存在しないまま `該当Caption未解決` になっていました。\n- さらに `views.0.layout` がobjectなのにselectで編集され、実際に `[object Object]` へ書き換わっていました。\n\n### 今回の更新\n\n- ViewDefメンテ対象の全 `views[].sections[].fields` を一時的なフラット一覧へ投影し、1つの共通メンテViewDefで全Sectionを編集できるようにしました。\n- Gridへ `View / Section` 列を追加し、新規FieldもどのSectionへ追加するか選択できます。\n- 保存時は一時投影を元の `views[].sections[].fields` へ戻し、一時メタ情報は正本ViewDefへ保存しません。\n- `analysis_start_date / analysis_end_date` は正しいTarget Data ViewDefのHeaderへ移動し、Captionを `分析開始日 / 分析終了日` としました。\n- Field Definition Editor側へ誤追加されていた同名Fieldは削除しました。\n- `[object Object]` 化したField Definition Editorのlayoutを `{ detailDialog: \"wide\" }` に復元し、共通メンテ画面から危険なlayout直接編集欄を外しました。\n- ViewDef保存 / ViewDef options保存時にCaption ResolverのViewDef cacheを破棄するようにしました。\n\n### 確認結果\n\n- 対象Static: 12 / 12 PASS。\n- Definition tests: 24 / 24 PASS。\n- 全Static: 変更前 93件 = 80 PASS / 13 FAIL、変更後 97件 = 84 PASS / 13 FAIL。既存FAIL 13件は同一で増加なし。\n- JS構文確認: 今回変更JS 6ファイル PASS。\n- JSON parse: 更新ViewDef / Incident PASS。\n\nこれで `…` のViewDefメンテは「sections[1]だけ」ではなく、同じ1個の共通ViewDefでHeader・Main Grid・別View・別Sectionまで扱う構造になりました。",
+      "latest_user_comment": "なおらない、修正してぇーー",
+      "context_refs": [
+        "foundation_rule_019",
+        "constitution_05",
+        "studio_work_0177",
+        "defs/common/view_def_maint_fields_v0_2.json"
+      ],
+      "follow_up_actions": [],
+      "discussion_history": [
+        {
+          "history_id": "studio_work_0178_discussion_001",
+          "at": "2026-08-15T10:33:00+09:00",
+          "speaker": "user",
+          "topic": "Caption未解決の修正依頼",
+          "message": "なおらない、修正してぇーー"
+        },
+        {
+          "history_id": "studio_work_0178_discussion_002",
+          "at": "2026-08-15T10:33:00+09:00",
+          "speaker": "assistant",
+          "topic": "v0.18.55 ViewDefメンテ全Section対応 / Caption修正完了",
+          "message": "AI回答\n\n## v0.18.55 修正完了\n\n今回の未解決は、Caption Resolverそのものではなく、ViewDefメンテ側の構造制約が原因でした。\n\n- 共通ViewDefメンテ定義が `$.views.0.sections.1.fields` に固定されていたため、Headerなど別SectionのFieldを `…` から編集できませんでした。\n- そのため `analysis_start_date / analysis_end_date` がField Definition Editor自身のFieldとして誤追加され、Target Data ViewDefには存在しないまま `該当Caption未解決` になっていました。\n- さらに `views.0.layout` がobjectなのにselectで編集され、実際に `[object Object]` へ書き換わっていました。\n\n### 今回の更新\n\n- ViewDefメンテ対象の全 `views[].sections[].fields` を一時的なフラット一覧へ投影し、1つの共通メンテViewDefで全Sectionを編集できるようにしました。\n- Gridへ `View / Section` 列を追加し、新規FieldもどのSectionへ追加するか選択できます。\n- 保存時は一時投影を元の `views[].sections[].fields` へ戻し、一時メタ情報は正本ViewDefへ保存しません。\n- `analysis_start_date / analysis_end_date` は正しいTarget Data ViewDefのHeaderへ移動し、Captionを `分析開始日 / 分析終了日` としました。\n- Field Definition Editor側へ誤追加されていた同名Fieldは削除しました。\n- `[object Object]` 化したField Definition Editorのlayoutを `{ detailDialog: \"wide\" }` に復元し、共通メンテ画面から危険なlayout直接編集欄を外しました。\n- ViewDef保存 / ViewDef options保存時にCaption ResolverのViewDef cacheを破棄するようにしました。\n\n### 確認結果\n\n- 対象Static: 12 / 12 PASS。\n- Definition tests: 24 / 24 PASS。\n- 全Static: 変更前 93件 = 80 PASS / 13 FAIL、変更後 97件 = 84 PASS / 13 FAIL。既存FAIL 13件は同一で増加なし。\n- JS構文確認: 今回変更JS 6ファイル PASS。\n- JSON parse: 更新ViewDef / Incident PASS。\n\nこれで `…` のViewDefメンテは「sections[1]だけ」ではなく、同じ1個の共通ViewDefでHeader・Main Grid・別View・別Sectionまで扱う構造になりました。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_studio_work_0178_001",
+          "at": "2026-08-15T10:33:00+09:00",
+          "decision": "ViewDefメンテは1個の共通ViewDefを維持しつつ、全views/sections/fieldsを一時Projectionへフラット化して編集する。",
+          "reason": "section index固定ではHeader・別Viewを編集できず、「すべてのViewDefを同じメンテ画面で扱う」という目的を満たさないため。"
+        },
+        {
+          "decision_id": "dec_studio_work_0178_002",
+          "at": "2026-08-15T10:33:00+09:00",
+          "decision": "ProjectionのSection Ref/KeyはRuntime一時メタ情報とし、保存時にCanonical nested fieldsへ戻して除去する。",
+          "reason": "ViewDef正本へメンテナンス都合の構造を混入させないため。"
+        },
+        {
+          "decision_id": "dec_studio_work_0178_003",
+          "at": "2026-08-15T10:33:00+09:00",
+          "decision": "layoutは共通メンテHeaderの直接編集対象から外し、破損したobject layoutを復元する。",
+          "reason": "layoutはstring/objectの両形があり、単純selectで編集すると `[object Object]` へ破損することが実機で確認されたため。"
+        },
+        {
+          "decision_id": "dec_studio_work_0178_004",
+          "at": "2026-08-15T10:33:00+09:00",
+          "decision": "analysis_start_date / analysis_end_dateのCaption定義はField Definition EditorではなくTarget Data ViewDef Headerへ置く。",
+          "reason": "Field Definitionのfield_pathが参照する人間向けCaptionの正本はTarget Data ViewDefであり、Editor自身へData項目名を追加するのは責務違反だから。"
+        },
+        {
+          "decision_id": "dec_studio_work_0178_005",
+          "at": "2026-08-15T10:33:00+09:00",
+          "decision": "ViewDefメンテ用のRuntime導出Comboは明示 `_option_maintenance_source` を優先し、FieldType解決でViewDef直書きsourceへ上書きしない。",
+          "reason": "View / Sectionや対象ViewDef既存typeから導出した候補を、共通メンテViewDefの正本optionsと誤認して編集させないため。"
+        }
+      ],
+      "change_history": [
+        {
+          "change_id": "chg_studio_work_0178_001",
+          "at": "2026-08-15T10:33:00+09:00",
+          "change_type": "bugfix",
+          "summary": "ViewDefメンテのsection[1]固定を廃止し、全View/Section Field Projectionと保存時round-tripを追加。"
+        },
+        {
+          "change_id": "chg_studio_work_0178_002",
+          "at": "2026-08-15T10:33:00+09:00",
+          "change_type": "data_definition_fix",
+          "summary": "analysis_start_date / analysis_end_dateをTarget Data ViewDef Headerへ移し、Field Definition Editor側の誤追加Fieldを除去。"
+        },
+        {
+          "change_id": "chg_studio_work_0178_003",
+          "at": "2026-08-15T10:33:00+09:00",
+          "change_type": "regression_fix",
+          "summary": "Field Definition Editorのlayout objectを復元し、共通ViewDefメンテからunsafeなlayout select編集を除外。"
+        },
+        {
+          "change_id": "chg_studio_work_0178_004",
+          "at": "2026-08-15T10:33:00+09:00",
+          "change_type": "cache_fix",
+          "summary": "Target ViewDef Caption cache invalidateを追加し、ViewDef/option保存後の古い定義保持を防止。"
+        },
+        {
+          "change_id": "chg_studio_work_0178_005",
+          "at": "2026-08-15T10:33:00+09:00",
+          "change_type": "source_ownership_fix",
+          "summary": "FieldType解決時に明示option maintenance sourceを保持し、Runtime導出Comboを誤ってViewDef options正本扱いしないよう修正。"
+        }
+      ]
     }
   ],
   "review_notes": [
@@ -26146,7 +26408,7 @@
       "body": "- studio_work_0161を親構想として見直した。\n- studio_work_0162～0168を未着手計画として追加した。\n- Studio Coreは汎用AI協働基盤として維持する。\n- Definition Verificationは標準Capabilityとして実装する。\n- Editor Componentと計算Serviceを分離し、PreviewとRunnerで共通導出ロジックを利用する。\n- 構造化記述原則の新設をルール改定計画へ含めた。"
     }
   ],
-  "work_revision": "v0.18.53-cross-field-test-pattern-generation",
+  "work_revision": "v0.18.55-viewdef-maintenance-all-sections-caption-resolution",
   "latest_planning_note": "- studio_work_0163完了。\n- Studio UI Component Model基盤を追加。\n- 次はstudio_work_0164でSubGridComponentをData / Derivedへ責務分離する。\n- Definition Verification固有Componentはstudio_work_0166まで標準Editorへ追加しない。",
   "view_def_candidates": [
     {

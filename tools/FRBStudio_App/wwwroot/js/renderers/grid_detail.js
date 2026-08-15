@@ -309,6 +309,9 @@ function createDocumentGridEditor(field, value) {
   input.className = 'document-grid-editor';
   input.dataset.field = field.field;
   input.dataset.type = field.type ?? 'text';
+  if (String(input.tagName).toLowerCase() === 'select' && typeof bindComboOptionMaintenance === 'function') {
+    bindComboOptionMaintenance(input, field);
+  }
   return input;
 }
 

@@ -62,6 +62,66 @@ function normalizeCommonEnumSourceItems(defObj) {
   return out;
 }
 
+
+function studioDefinitionSource(kind, path, extra={}) {
+  const safePath = safeJsonFileName(path);
+  if (!safePath) return null;
+  return { kind, path: safePath, ...extra };
+}
+
+function annotateFieldTypeRegistrySource(src, source) {
+  if (!src || typeof src !== 'object' || Array.isArray(src) || !source) return src;
+  const annotateNamespace = (nsObj, nsId) => {
+    if (!nsObj || typeof nsObj !== 'object' || Array.isArray(nsObj)) return;
+    const group = nsObj.fieldTypes ?? nsObj.field_types;
+    if (Array.isArray(group)) {
+      group.forEach((typeObj, index) => {
+        if (!typeObj || typeof typeObj !== 'object' || Array.isArray(typeObj)) return;
+        const typeId = String(typeObj.id ?? typeObj.field_type_id ?? typeObj.name ?? `type_${index + 1}`).trim();
+        typeObj._studio_definition_source = { ...source, source_type: 'fieldType', ref: nsId && typeId ? `${nsId}.${typeId}` : typeId };
+      });
+    } else if (group && typeof group === 'object') {
+      Object.entries(group).forEach(([typeId, typeObj]) => {
+        if (!typeObj || typeof typeObj !== 'object' || Array.isArray(typeObj)) return;
+        typeObj._studio_definition_source = { ...source, source_type: 'fieldType', ref: nsId ? `${nsId}.${typeId}` : typeId };
+      });
+    }
+  };
+
+  if (Array.isArray(src.namespaces)) {
+    src.namespaces.forEach((nsObj, index) => annotateNamespace(nsObj, enumNamespaceId(nsObj, `ns_${index + 1}`)));
+  } else if (src.namespaces && typeof src.namespaces === 'object') {
+    Object.entries(src.namespaces).forEach(([nsId, nsObj]) => annotateNamespace(nsObj, nsId));
+  }
+  if (src.fieldTypes || src.field_types) annotateNamespace(src, 'core');
+  return src;
+}
+
+function annotateEnumRegistrySource(src, source) {
+  if (!src || typeof src !== 'object' || Array.isArray(src) || !source) return src;
+  const annotateEnum = (enumObj, nsId, fallbackId) => {
+    if (!enumObj || typeof enumObj !== 'object' || Array.isArray(enumObj)) return;
+    const ref = canonicalEnumRef(nsId, enumObj, fallbackId);
+    enumObj._studio_definition_source = { ...source, source_type: 'valueVocabulary', ref };
+  };
+  const annotateNamespace = (nsObj, nsId) => {
+    if (!nsObj || typeof nsObj !== 'object' || Array.isArray(nsObj)) return;
+    const enums = nsObj.enums;
+    if (Array.isArray(enums)) enums.forEach((enumObj, index) => annotateEnum(enumObj, nsId, enumObj?.enum_id ?? enumObj?.id ?? `enum_${index + 1}`));
+    else if (enums && typeof enums === 'object') Object.entries(enums).forEach(([enumId, enumObj]) => annotateEnum(enumObj, nsId, enumId));
+  };
+  if (Array.isArray(src.namespaces)) {
+    src.namespaces.forEach((nsObj, index) => annotateNamespace(nsObj, enumNamespaceId(nsObj, `ns_${index + 1}`)));
+  } else if (src.namespaces && typeof src.namespaces === 'object') {
+    Object.entries(src.namespaces).forEach(([nsId, nsObj]) => annotateNamespace(nsObj, nsId));
+  }
+  if (Array.isArray(src.enums)) src.enums.forEach((enumObj, index) => {
+    const ref = String(enumObj?.enum_ref ?? enumObj?.enumRef ?? '').trim();
+    annotateEnum(enumObj, ref.includes('.') ? ref.split('.')[0] : 'studio', enumObj?.enum_id ?? enumObj?.id ?? `enum_${index + 1}`);
+  });
+  return src;
+}
+
 function emptyFieldTypeRegistry() {
   return { namespaces: {} };
 }
@@ -217,6 +277,7 @@ async function loadFieldTypeRegistryForViewDef(defObj) {
   for (const item of sourceItems) {
     try {
       const common = await fetchApiJson('defs', item.name);
+      annotateFieldTypeRegistrySource(common, studioDefinitionSource('defs', item.name));
       mergeFieldTypeRegistry(registry, common);
     } catch (err) {
       // 現行FRBStudio APIは defs/common/foo.json のようなサブフォルダ取得に対応していない構成がある。
@@ -225,6 +286,7 @@ async function loadFieldTypeRegistryForViewDef(defObj) {
       if (baseName && baseName !== item.name) {
         try {
           const common = await fetchApiJson('defs', baseName);
+          annotateFieldTypeRegistrySource(common, studioDefinitionSource('defs', baseName));
           mergeFieldTypeRegistry(registry, common);
           continue;
         } catch {
@@ -322,12 +384,14 @@ async function loadEnumRegistryForViewDef(defObj) {
   for (const item of sourceItems) {
     try {
       const common = await fetchApiJson('data', item.name);
+      annotateEnumRegistrySource(common, studioDefinitionSource(item.overlay ? 'overlay' : 'data', item.name, { readonly: Boolean(item.overlay) }));
       mergeEnumRegistry(registry, common);
     } catch (err) {
       const baseName = item.name.split('/').pop();
       if (baseName && baseName !== item.name) {
         try {
           const common = await fetchApiJson('data', baseName);
+          annotateEnumRegistrySource(common, studioDefinitionSource('data', baseName));
           mergeEnumRegistry(registry, common);
           continue;
         } catch {
@@ -605,12 +669,14 @@ function isSelectFieldLike(field) {
 }
 
 function enumItemsToOptions(enumObj) {
-  return normalizeEnumItems(enumObj?.items ?? []).map(item => {
-    const out = cloneData(item);
-    if (out.cd == null && out.value != null) out.cd = out.value;
-    if (out.name == null && out.label != null) out.name = out.label;
-    return out;
-  });
+  return normalizeEnumItems(enumObj?.items ?? [])
+    .filter(item => item?.deprecated !== true)
+    .map(item => {
+      const out = cloneData(item);
+      if (out.cd == null && out.value != null) out.cd = out.value;
+      if (out.name == null && out.label != null) out.name = out.label;
+      return out;
+    });
 }
 
 function resolveEnumRefForField(field, enumRegistry) {
@@ -635,9 +701,13 @@ function resolveEnumRefForField(field, enumRegistry) {
     return out;
   }
 
+  if (enumObj?._studio_definition_source) {
+    out._option_maintenance_source = cloneData(enumObj._studio_definition_source);
+  }
+
   const enumOptions = enumItemsToOptions(enumObj);
   if (!enumOptions.length) {
-    console.warn(`Enum「${enumRef}」にitemsがありません。既存optionsがあれば互換表示を継続します`, out);
+    console.warn(`Enum「${enumRef}」に有効なitemsがありません。既存optionsがあれば互換表示を継続します`, out);
     return out;
   }
 
@@ -666,12 +736,23 @@ function resolveFieldTypeForField(field, registry, enumRegistry=null) {
   if (!field || typeof field !== 'object' || Array.isArray(field)) return field;
   const explicitRef = field.fieldType ?? field.field_type ?? field.typeRef ?? field.type_ref;
   const typeRef = explicitRef ?? maybeResolveFieldTypeRefFromType(field, registry);
-  if (!typeRef) return resolveEnumRefForField(field, enumRegistry);
+  const hasLocalOptions = Array.isArray(field.options);
+  if (!typeRef) {
+    const resolved = resolveEnumRefForField(field, enumRegistry);
+    if (!resolved?._option_maintenance_source && hasLocalOptions) {
+      resolved._option_maintenance_source = { kind: 'viewdef', source_type: 'viewDefOptions', field: String(field.field ?? '') };
+    }
+    return resolved;
+  }
 
   const typeObj = findFieldType(registry, typeRef);
   if (!typeObj) {
     console.warn(`FieldType「${typeRef}」が見つかりません`, field);
-    return resolveEnumRefForField(field, enumRegistry);
+    const resolved = resolveEnumRefForField(field, enumRegistry);
+    if (!resolved?._option_maintenance_source && hasLocalOptions) {
+      resolved._option_maintenance_source = { kind: 'viewdef', source_type: 'viewDefOptions', field: String(field.field ?? '') };
+    }
+    return resolved;
   }
 
   const base = normalizeFieldTypeObject(typeObj);
@@ -679,20 +760,32 @@ function resolveFieldTypeForField(field, registry, enumRegistry=null) {
   if (explicitRef == null && override.type === typeRef) delete override.type;
   const merged = deepMergePlain(base, override);
   merged.fieldType = typeRef;
+  if (hasLocalOptions) {
+    merged._option_maintenance_source = override?._option_maintenance_source
+      ? cloneData(override._option_maintenance_source)
+      : { kind: 'viewdef', source_type: 'viewDefOptions', field: String(field.field ?? ''), ref: typeRef };
+  } else if (typeObj?._studio_definition_source && Array.isArray(typeObj.options)) {
+    merged._option_maintenance_source = cloneData(typeObj._studio_definition_source);
+  }
   return resolveEnumRefForField(merged, enumRegistry);
 }
 
-function resolveFieldTypesDeep(obj, registry, enumRegistry=null) {
-  if (Array.isArray(obj)) return obj.map(x => resolveFieldTypesDeep(x, registry, enumRegistry));
+function resolveFieldTypesDeep(obj, registry, enumRegistry=null, definitionPath='$') {
+  if (Array.isArray(obj)) {
+    return obj.map((x, index) => resolveFieldTypesDeep(x, registry, enumRegistry, `${definitionPath}[${index}]`));
+  }
   if (!obj || typeof obj !== 'object') return obj;
 
   let current = obj;
   if (current.field || current.fieldType || current.field_type || current.typeRef || current.type_ref || current.enumRef || current.enum_ref) {
     current = resolveFieldTypeForField(current, registry, enumRegistry);
+    if (current?._option_maintenance_source?.source_type === 'viewDefOptions') {
+      current._option_maintenance_source.node_path = definitionPath;
+    }
   }
 
   Object.keys(current).forEach(key => {
-    current[key] = resolveFieldTypesDeep(current[key], registry, enumRegistry);
+    current[key] = resolveFieldTypesDeep(current[key], registry, enumRegistry, `${definitionPath}.${key}`);
   });
   return current;
 }

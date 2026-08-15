@@ -53,6 +53,26 @@ test('Field Definition Editor declares target caption as a readonly Editor Compo
   assert.equal(component.config.targetViewDefPath, 'frb/frb_fft_field_definition_sample_view_def_v0_1.json');
 });
 
+
+
+test('root cross-field date captions resolve from the target Data ViewDef', () => {
+  const start = sandbox.resolveFieldDefinitionTargetViewField(targetViewDef, '$.analysis_start_date');
+  const end = sandbox.resolveFieldDefinitionTargetViewField(targetViewDef, '$.analysis_end_date');
+  assert.equal(start?.caption, '分析開始日');
+  assert.equal(end?.caption, '分析終了日');
+  assert.equal(start?.section_id, 'header');
+  assert.equal(end?.section_id, 'header');
+});
+
+test('Field Definition Editor does not persist target Data field names as its own row properties', () => {
+  const section = fieldDefEditor.views
+    .flatMap(view => view.sections ?? [])
+    .find(item => item.id === 'field_definitions');
+  const names = new Set((section?.fields ?? []).map(field => field.field));
+  assert.equal(names.has('analysis_start_date'), false);
+  assert.equal(names.has('analysis_end_date'), false);
+});
+
 test('detail header spacing keeps first field labels below the sticky header', () => {
   const css = read('wwwroot/styles.css');
   assert.match(css, /v0\.18\.48-field-definition-caption-and-detail-header-spacing/);

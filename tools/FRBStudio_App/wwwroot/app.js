@@ -398,6 +398,7 @@ installMainStatusToast();
 loadAndApplyAppInfo();
 setupPageDrop();
 setupComboClearButtons();
+setupViewDefMaintenanceButton();
 setupSelectedJsonFolderButtons();
 setupFileTreePickers();
 setupDataSelectionViewDefReset();
