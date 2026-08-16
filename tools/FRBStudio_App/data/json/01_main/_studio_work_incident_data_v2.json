@@ -28591,22 +28591,22 @@
       "incident_type": "enhancement",
       "category": "architecture",
       "priority": "high",
-      "verification_status": "未確認",
+      "verification_status": "Static確認済み / 実機UI確認待ち",
       "context_def_status": "draft",
       "context_def_updated_at": "",
       "owner": "",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-16T21:11:00+09:00",
-      "updated_at": "2026-08-16T21:11:00+09:00",
-      "actual_updated_files": "",
-      "verification_log": "",
+      "updated_at": "2026-08-16T22:58:00+09:00",
+      "actual_updated_files": "- wwwroot/js/ui/frb_studio_shell.js\n- wwwroot/css/frb-studio-shell.css\n- wwwroot/js/runtime/detail_save.js\n- tests/qa/static/launch_shortcut_menu_phase5.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "verification_log": "- Phase 5専用Static: 6 / 6 PASS。\n- Phase 2 / 4 / 5 Focused Static: 19 / 19 PASS。\n- 全Static Before: 237 tests / 219 pass / 18 fail。\n- 全Static After: 243 tests / 225 pass / 18 fail。\n- Before / Afterの18 FAILはテスト名まで完全一致し、新規FAILなし。\n- `node --check wwwroot/js/ui/frb_studio_shell.js`: PASS。\n- `node --check wwwroot/js/runtime/detail_save.js`: PASS。\n- 表示グループ外枠の `height:100%` は維持し、Navigation本体 / Listへ `align-content:start` を追加してボタン伸張を抑止。\n- Shortcut MenuはCommon Pagebarへ配置し、JSON Object Studio / Markdown Studio等の共通Shellページから利用可能な契約をStatic確認。\n- 実機でのメニュー開閉、ショートカットクリック、表示グループの見た目は利用者確認待ち。",
       "context_refs": [],
       "work_item_id": "studio_work_0198",
       "phase": "v0.18.76-launch-shortcut-menu-phase5",
       "title": "App Settings Phase 5 — launch_shortcuts明示起動メニュー / 既存Editor起動",
-      "status": "構想",
-      "follow_up_status": "NOT_STARTED",
-      "target_files": "- Phase実装時に現行構造を確認して確定する。\n- Foundation Rule 019に従い安定ファイル名・変更ファイルのみ返却契約を維持する。",
+      "status": "完了",
+      "follow_up_status": "PENDING",
+      "target_files": "- wwwroot/js/ui/frb_studio_shell.js\n- wwwroot/css/frb-studio-shell.css\n- wwwroot/js/runtime/detail_save.js\n- tests/qa/static/launch_shortcut_menu_phase5.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
       "context_def_draft": "# ContextDef素案: App Settings Phase 5 — launch_shortcuts明示起動メニュー / 既存Editor起動\n\n## 前提\n- 親: studio_work_0194 / v0.18.72-viewdef-section-groups-contract-phase1\n- 前Phaseの契約を継承し、一度に大きな変更を行わない。",
       "objective": "- Settingsで登録したlaunch_shortcutsを別メニューから明示的に選択し、既存JSON Object Studioを起動できるようにする。",
       "background": "- App Settings / sectionGroups設計をPhase 1〜5へ分割した後続Phase。\n- 前Phaseの成果を正本として継承する。",
@@ -28618,11 +28618,90 @@
       "risk": "- 前Phase契約を壊す変更が必要な場合は独断で進めず再確認する。",
       "test_points": "- 前Phaseの回帰を増やさない。\n- Phase固有の責務をStaticまたは実機確認できる。",
       "user_request": "はーい。では、インシデントにフェーズ1～5を先に登録してから、フェーズ1の作業を開始お願いします。よろしく",
-      "ai_response": "Phase 1〜5を先行登録。現在はPhase 1のみ着手し、このPhaseは未着手として保持する。",
-      "latest_ai_response": "",
-      "follow_up_actions": [],
-      "discussion_history": [],
-      "decision_log": [],
+      "ai_response": "Phase 5実装完了。Common Pagebar Shortcut Menuからlaunch_shortcutsを選択し、既存JSON Object Studio URL起動へ接続した。表示グループボタン伸張UIも修正した。",
+      "latest_ai_response": "## 変更内容\n- 表示グループNavigationの外枠高さはPhase 4のfull-height契約を維持した。\n- Navigation内部だけを上寄せに変更し、「JSON Object Studio」「Markdown Studio」の2ボタンが通常高さで上部へ並ぶようにした。\n- Common Pagebarへ「ショートカット」メニューを追加し、Dark Topbarではなく利用者指定の上部ヘッダ領域へ配置した。\n- Shortcut Menuは `config/app_settings.json` の `launch_shortcuts` を `cache:no-store` で読み、JSON Object Studioの既存URL起動契約 `index.html?data=...&view=...` を利用する。\n- `view_def` が空の場合は `view` パラメータを付けず、既存のData内ViewDef自動解決へ委譲する。\n- Windows区切り `\\\\` はURL起動時だけ `/` へ正規化し、Canonical `app_settings.json` の値自体は変更しない。\n- Shortcut MenuはCommon Shell側の責務とし、JSON Object Studio専用画面へ埋め込まないためMarkdown Studio等でも利用できる。\n- App Settings保存成功後はCommon ShellのShortcut Menuを再読込し、ページ再読込なしで新しい登録内容を反映する。\n\n## 判断\n- ショートカット登録責務は引き続きApp Settings、実行責務はCommon Shell Shortcut Menuへ分離する。\n- Shortcutクリック後は新しいEditorを作らず、既存JSON Object Studio URL Launchへ接続する。\n- 外部URL、絶対パス、`..` を含むTraversal、JSON以外のパスはShortcut Launcher側で拒否する。\n- 表示グループの外枠full-heightは変更せず、子Gridのstretchだけを解除する。\n\n## 確認結果\n- Phase 5専用Static: 6 / 6 PASS。\n- Phase 2 / 4 / 5 Focused Static: 19 / 19 PASS。\n- 全Static: Before 237/219/18 → After 243/225/18。\n- 既存18 FAILはテスト名まで完全一致し、新規FAILなし。\n- 更新JavaScriptのsyntax check PASS。\n\n## 残課題 / リスク\n- Shortcut Menuの見た目・開閉・実クリックは利用者実機確認が必要。\n- Markdown Studio等の未保存遷移ガードは既存Common Shell Navigation契約と同じ扱いであり、Phase 5では新規責務として追加していない。",
+      "follow_up_actions": [
+        {
+          "action_type": "MANUAL_PHASE5_UI_VERIFICATION",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "studio_work_0198"
+          ],
+          "summary": "利用者実機で表示グループの2ボタンが上寄せ通常高さになったこと、Shortcut Menu開閉と登録Shortcutクリック起動を確認する。",
+          "note": "Static / URL生成契約 / syntaxは確認済み。"
+        },
+        {
+          "action_type": "FUTURE_SHORTCUT_SCOPE_EXPANSION",
+          "required": false,
+          "status": "FUTURE",
+          "related_ids": [],
+          "summary": "Markdown Studio等にも専用Shortcut定義が必要になった場合、app_settings構造とCommon Shell Menuのグルーピングを再検討する。",
+          "note": "現時点ではlaunch_shortcutsはJSON Object Studio起動専用。先回りして多階層化しない。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "at": "2026-08-16T22:58:00+09:00",
+          "speaker": "user",
+          "message": "表示グループのデザインおかしい笑　二つのボタンの高さは普通の高さにして、上部に寄せて。💦\n外枠の高さは今のままだよ。変えないでね間違えないでねぇ。\nショートカットメニューを出す場所は、今後、マークダウンSTUDIOでも欲しくなる可能性あるかな？って思うので、トップヘッダ側に付けてほしいです。\n\n今回の作業依頼:\n- incident_file: data/json/01_main/_studio_work_incident_data_v2.json\n- work_item_id: studio_work_0198\n- phase: v0.18.76-launch-shortcut-menu-phase5"
+        },
+        {
+          "at": "2026-08-16T22:58:00+09:00",
+          "speaker": "assistant",
+          "message": "AI回答\n\n## 変更内容\n- 表示グループ外枠full-heightを維持し、内部ボタンだけ上寄せ通常高さへ修正。\n- Common PagebarへShortcut Menuを追加。\n- launch_shortcutsから既存JSON Object Studio URL起動へ接続。\n- App Settings保存後にShortcut Menuを再読込。\n\n## 確認結果\n- Phase 5専用Static 6/6 PASS。\n- Phase 2/4/5 Focused Static 19/19 PASS。\n- 全Static 237/219/18 → 243/225/18。既存18 FAIL名は一致、新規FAILなし。\n- JS syntax check PASS。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0198_001",
+          "at": "2026-08-16T22:58:00+09:00",
+          "decision": "Shortcut MenuはDark Topbar内ではなくCommon Pagebar actionsへ配置する。",
+          "reason": "利用者が画像で指定した上部ヘッダ領域に合わせつつ、JSON Object StudioだけでなくMarkdown Studio等のCommon Shellページでも同じMenuを利用できるようにするため。",
+          "applied_axes": [
+            "共通Shell再利用",
+            "外からつまめ原則",
+            "UI意図優先"
+          ],
+          "conditions": "FrbStudioShell.mount()を利用するページ。",
+          "exceptions": "launch_shortcuts自体は現時点でJSON Object Studio起動専用。",
+          "expected_behavior": "Pagebarのホーム/初期化操作の手前にShortcut triggerが表示される。",
+          "acceptance_criteria": "buildPagebar内にShortcut hostがあり、buildTopbar内にはShortcut hostを置かない。",
+          "confirmation_level": "Static確認"
+        },
+        {
+          "decision_id": "dec_0198_002",
+          "at": "2026-08-16T22:58:00+09:00",
+          "decision": "Shortcut実行は既存URL Launch契約へ委譲し、新しいEditor Launcherを作らない。",
+          "reason": "登録済みData/ViewDefを既存JSON Object Studioの起動経路へ外から接続し、重複実装を避けるため。",
+          "applied_axes": [
+            "外からつまめ原則",
+            "既存責務再利用",
+            "専用実装抑制"
+          ],
+          "conditions": "launch_shortcuts[].dataが有効なJSON相対パス。",
+          "exceptions": "view_def空文字時はURL viewを省略し既存自動Resolverへ委譲。",
+          "expected_behavior": "index.html?data=... または index.html?data=...&view=... を開く。",
+          "acceptance_criteria": "Phase 5 StaticでWindows区切り正規化、view省略/明示、危険パス拒否を確認する。",
+          "confirmation_level": "Static / VM確認"
+        },
+        {
+          "decision_id": "dec_0198_003",
+          "at": "2026-08-16T22:58:00+09:00",
+          "decision": "表示グループNavigationの外枠full-heightは維持し、内部Gridのstretchだけを解除する。",
+          "reason": "利用者が外枠の高さは変更しないことを明示し、問題は2ボタンが余白へ引き伸ばされている点に限定されているため。",
+          "applied_axes": [
+            "差分最小化",
+            "利用者期待",
+            "既存レイアウト維持"
+          ],
+          "conditions": "DesktopのsectionGroups Navigation。",
+          "exceptions": "900px以下は既存Responsive契約どおりfull-heightを解除する。",
+          "expected_behavior": "外枠は下端まで続くが、タイトルとボタンは上部に通常高さで並ぶ。",
+          "acceptance_criteria": "Navigation outer height:100%を残し、Navigation/Listにalign-content:startとmax-content rowを適用する。",
+          "confirmation_level": "Static確認 / 実機確認待ち"
+        }
+      ],
       "change_history": [
         {
           "at": "2026-08-16T21:11:00+09:00",
@@ -28630,6 +28709,27 @@
           "before": "未登録",
           "after": "studio_work_0198 / v0.18.76-launch-shortcut-menu-phase5",
           "reason": "ユーザーがPhase 1〜5を先に登録して後続依頼しやすくすることを希望したため。"
+        },
+        {
+          "at": "2026-08-16T22:58:00+09:00",
+          "change_type": "phase5_common_shortcut_menu_added",
+          "before": "launch_shortcutsはSettingsで登録できるが、実行用Menuが存在しない。",
+          "after": "Common Pagebarがapp_settings.jsonのlaunch_shortcutsを読み、既存JSON Object Studio URL起動リンクとして表示する。",
+          "reason": "Phase 5 objectiveのShortcut Menu / 明示起動を成立させるため。"
+        },
+        {
+          "at": "2026-08-16T22:58:00+09:00",
+          "change_type": "phase5_section_group_button_layout_fixed",
+          "before": "Navigation外枠full-height化に伴い、Navigation Listの行が余白へstretchして2ボタンが縦長表示になった。",
+          "after": "外枠full-heightは維持し、Navigation本体とListをtop-aligned / max-content rowsへ変更。",
+          "reason": "利用者が外枠高さ維持とボタン通常高さ・上寄せを明示したため。"
+        },
+        {
+          "at": "2026-08-16T22:58:00+09:00",
+          "change_type": "phase5_verification_completed",
+          "before": "Phase 5未実装・未確認。",
+          "after": "専用Static 6/6、Focused 19/19、全Static新規FAILなし、JS syntax PASS。実機UI確認のみ残存。",
+          "reason": "Shortcut URL生成、Common Pagebar配置、Navigation CSS契約、保存後再読込を確認したため。"
         }
       ]
     }

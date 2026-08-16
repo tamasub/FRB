@@ -34,6 +34,8 @@
     }
   };
 
+  const APP_SETTINGS_URL = 'config/app_settings.json';
+
   function htmlEscape(value) {
     return String(value == null ? '' : value)
       .replaceAll('&', '&amp;')
@@ -57,6 +59,159 @@
     const message = options.resetConfirmMessage || '現在の画面状態を破棄して、初期状態へ戻します。よろしいですか？';
     if (!window.confirm(message)) return;
     location.assign(pageUrlWithoutState());
+  }
+
+  function normalizeShortcutJsonPath(raw, label) {
+    const value = String(raw == null ? '' : raw).trim();
+    if (!value) return '';
+    const normalized = value.replace(/\\/g, '/');
+    if (
+      normalized.includes('://') ||
+      normalized.startsWith('/') ||
+      normalized.startsWith('//') ||
+      /^[A-Za-z]:/.test(normalized) ||
+      /[?#]/.test(normalized)
+    ) {
+      throw new Error(`${label} に外部URL・絶対パス・クエリは指定できません: ${value}`);
+    }
+    if (!normalized.toLowerCase().endsWith('.json')) {
+      throw new Error(`${label} は .json を指定してください: ${value}`);
+    }
+    const parts = normalized.split('/');
+    if (parts.some(part => !part || part === '.' || part === '..')) {
+      throw new Error(`${label} のパスが不正です: ${value}`);
+    }
+    return parts.join('/');
+  }
+
+  function shortcutHref(shortcut) {
+    const data = normalizeShortcutJsonPath(shortcut?.data, 'Data JSON');
+    if (!data) throw new Error('Data JSON が未設定です');
+    const viewDef = normalizeShortcutJsonPath(shortcut?.view_def, 'ViewDef');
+    const url = new URL('index.html', location.href);
+    url.search = '';
+    url.hash = '';
+    url.searchParams.set('data', data);
+    if (viewDef) url.searchParams.set('view', viewDef);
+    return url.href;
+  }
+
+  function shortcutHost(root) {
+    return root?.querySelector?.('[data-frb-shortcuts]') || document.querySelector('[data-frb-shortcuts]');
+  }
+
+  function setShortcutMenuOpen(host, open) {
+    if (!host) return;
+    const trigger = host.querySelector('[data-frb-shortcuts-trigger]');
+    const menu = host.querySelector('[data-frb-shortcuts-menu]');
+    const nextOpen = Boolean(open && trigger && !trigger.disabled);
+    if (trigger) trigger.setAttribute('aria-expanded', String(nextOpen));
+    if (menu) menu.hidden = !nextOpen;
+    host.classList.toggle('is-open', nextOpen);
+  }
+
+  function bindShortcutMenu(host) {
+    if (!host || host.dataset.bound === 'true') return;
+    host.dataset.bound = 'true';
+    const trigger = host.querySelector('[data-frb-shortcuts-trigger]');
+    const menu = host.querySelector('[data-frb-shortcuts-menu]');
+    if (!trigger || !menu) return;
+
+    trigger.addEventListener('click', () => {
+      setShortcutMenuOpen(host, menu.hidden);
+    });
+    menu.addEventListener('click', event => {
+      if (event.target.closest('[data-frb-launch-shortcut]')) setShortcutMenuOpen(host, false);
+    });
+    document.addEventListener('click', event => {
+      if (!host.contains(event.target)) setShortcutMenuOpen(host, false);
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') setShortcutMenuOpen(host, false);
+    });
+  }
+
+  function renderLaunchShortcuts(host, settings) {
+    if (!host) return;
+    const trigger = host.querySelector('[data-frb-shortcuts-trigger]');
+    const menu = host.querySelector('[data-frb-shortcuts-menu]');
+    if (!trigger || !menu) return;
+
+    const rawItems = Array.isArray(settings?.launch_shortcuts) ? settings.launch_shortcuts : [];
+    menu.innerHTML = '';
+
+    const title = document.createElement('div');
+    title.className = 'frb-pagebar-shortcut-menu-title';
+    title.textContent = 'JSON Object Studio';
+    menu.appendChild(title);
+
+    let validCount = 0;
+    rawItems.forEach(shortcut => {
+      const caption = String(shortcut?.caption ?? shortcut?.id ?? '').trim() || '名称未設定';
+      try {
+        const href = shortcutHref(shortcut);
+        const item = document.createElement('a');
+        item.className = 'frb-pagebar-shortcut-item';
+        item.href = href;
+        item.dataset.frbLaunchShortcut = String(shortcut?.id ?? '');
+        item.setAttribute('role', 'menuitem');
+
+        const label = document.createElement('span');
+        label.className = 'frb-pagebar-shortcut-item-label';
+        label.textContent = caption;
+        item.appendChild(label);
+
+        const path = document.createElement('span');
+        path.className = 'frb-pagebar-shortcut-item-path';
+        path.textContent = normalizeShortcutJsonPath(shortcut?.data, 'Data JSON');
+        item.appendChild(path);
+
+        menu.appendChild(item);
+        validCount += 1;
+      } catch (err) {
+        const invalid = document.createElement('div');
+        invalid.className = 'frb-pagebar-shortcut-item is-invalid';
+        invalid.setAttribute('role', 'menuitem');
+        invalid.setAttribute('aria-disabled', 'true');
+        invalid.title = err.message;
+        invalid.textContent = `${caption}（設定を確認）`;
+        menu.appendChild(invalid);
+      }
+    });
+
+    if (!rawItems.length) {
+      const empty = document.createElement('div');
+      empty.className = 'frb-pagebar-shortcut-empty';
+      empty.textContent = 'JSON Object Studioのショートカットは未登録です';
+      menu.appendChild(empty);
+    }
+
+    host.hidden = false;
+    trigger.disabled = rawItems.length === 0;
+    trigger.title = rawItems.length
+      ? `JSON Object Studio ショートカット ${validCount}/${rawItems.length}件`
+      : 'Studio設定からJSON Object Studioのショートカットを登録できます';
+    setShortcutMenuOpen(host, false);
+    bindShortcutMenu(host);
+  }
+
+  async function refreshLaunchShortcuts(root) {
+    const host = shortcutHost(root);
+    if (!host) return { loaded: false, count: 0 };
+    try {
+      const response = await fetch(APP_SETTINGS_URL, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`app_settings.json (${response.status})`);
+      const settings = await response.json();
+      renderLaunchShortcuts(host, settings);
+      return {
+        loaded: true,
+        count: Array.isArray(settings?.launch_shortcuts) ? settings.launch_shortcuts.length : 0
+      };
+    } catch (err) {
+      console.warn('FRB Studio shortcut menu load failed.', err);
+      host.hidden = true;
+      return { loaded: false, count: 0, error: String(err?.message ?? err) };
+    }
   }
 
   function buildTopbar(activePage) {
@@ -107,6 +262,15 @@
         ${description ? `<span class="frb-page-separator">›</span><span class="frb-page-description">${htmlEscape(description)}</span>` : ''}
       </div>
       <div class="frb-pagebar-actions">
+        <div class="frb-pagebar-shortcuts" data-frb-shortcuts hidden>
+          <button type="button" class="frb-pagebar-button frb-pagebar-shortcut-trigger" data-frb-shortcuts-trigger
+                  aria-haspopup="menu" aria-expanded="false" title="JSON Object Studio ショートカット">
+            <span aria-hidden="true">↗</span>
+            <span>ショートカット</span>
+            <span class="frb-pagebar-shortcut-caret" aria-hidden="true">▾</span>
+          </button>
+          <div class="frb-pagebar-shortcut-menu" data-frb-shortcuts-menu role="menu" hidden></div>
+        </div>
         ${showHome ? '<button type="button" class="frb-pagebar-button" data-frb-home>⌂ ホームに戻る</button>' : ''}
         ${showReset ? '<button type="button" class="frb-pagebar-button" data-frb-reset>↻ この画面の初期状態へ戻す</button>' : ''}
       </div>`;
@@ -143,6 +307,7 @@
     document.body.prepend(pagebar);
     document.body.prepend(shell);
     syncStickyOffsets(shell, pagebar);
+    void refreshLaunchShortcuts(pagebar);
 
     const homeButton = pagebar.querySelector('[data-frb-home]');
     if (homeButton) homeButton.addEventListener('click', () => location.assign('home.html'));
@@ -151,5 +316,10 @@
     if (resetButton) resetButton.addEventListener('click', () => requestReset(options));
   }
 
-  window.FrbStudioShell = { mount, pages: Object.freeze({ ...pages }) };
+  window.FrbStudioShell = {
+    mount,
+    pages: Object.freeze({ ...pages }),
+    refreshLaunchShortcuts,
+    shortcutHref
+  };
 })();

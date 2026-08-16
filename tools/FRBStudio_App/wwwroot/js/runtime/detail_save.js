@@ -651,6 +651,9 @@ async function saveOverwriteJson() {
   if (systemAppSettingsMode && saveDocument?.updated_at) {
     sourceData.updated_at = saveDocument.updated_at;
   }
+  if (systemAppSettingsMode && typeof window?.FrbStudioShell?.refreshLaunchShortcuts === 'function') {
+    void window.FrbStudioShell.refreshLaunchShortcuts();
+  }
   setStatus(`${systemAppSettingsMode ? 'Studio設定を' : (currentDataSourceKind === 'viewdef' ? 'ViewDefを' : '')}上書き保存しました: ${currentDataApiUrl}`);
   return true;
 }
