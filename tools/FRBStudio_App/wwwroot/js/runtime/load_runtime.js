@@ -293,7 +293,16 @@ function normalizeLaunchJsonPath(raw, label) {
 
 function staticJsonKindPath(path, kind) {
   if (!path) return null;
-  const prefix = kind === 'data' ? 'data/' : 'defs/';
+
+  if (kind === 'data') {
+    // Native /api/data は data/json を起点にするため、
+    // static path `data/json/...` から APIへ渡す名前は `...` まで落とす。
+    if (path.startsWith('data/json/')) return path.slice('data/json/'.length);
+    if (path.startsWith('data/')) return path.slice('data/'.length);
+    return null;
+  }
+
+  const prefix = 'defs/';
   if (!path.startsWith(prefix)) return null;
   return path.slice(prefix.length);
 }
@@ -307,11 +316,21 @@ async function fetchLaunchDataJson(rawPath) {
   const path = normalizeLaunchJsonPath(rawPath, 'data');
   const managedName = launchApiNameFromStaticPath(path, 'data');
 
-  if (managedName) {
+  if (managedName && isStaticHostingMode()) {
     return {
       json: await fetchJson(path),
       dataName: managedName,
-      dataApiUrl: isStaticHostingMode() ? null : apiJsonUrl('data', managedName),
+      dataApiUrl: null,
+      displayPath: path
+    };
+  }
+
+  if (managedName) {
+    const loaded = await fetchApiJsonWithUrl('data', managedName);
+    return {
+      json: loaded.json,
+      dataName: loaded.correctedName || managedName,
+      dataApiUrl: normalizeApiDataUrl(loaded.url),
       displayPath: path
     };
   }
@@ -330,11 +349,19 @@ async function fetchLaunchViewDefJson(rawPath) {
   const path = normalizeLaunchJsonPath(rawPath, 'view');
   const managedName = launchApiNameFromStaticPath(path, 'defs');
 
-  if (managedName) {
+  if (managedName && isStaticHostingMode()) {
     const rawDefObj = await fetchJson(path);
     return {
       defName: managedName,
       defObj: await resolveViewDefInheritance(rawDefObj, managedName),
+      displayPath: path
+    };
+  }
+
+  if (managedName) {
+    return {
+      defName: managedName,
+      defObj: await fetchResolvedViewDef(managedName),
       displayPath: path
     };
   }
@@ -359,10 +386,25 @@ const SYSTEM_APP_SETTINGS_SAVE_API_PATH = '/api/app-settings';
 
 function applySystemSettingsModePresentation() {
   document.body.classList.add('studio-settings-mode');
+
   const pageTitle = document.querySelector('.frb-page-title');
   if (pageTitle) pageTitle.textContent = 'Studio設定';
+
   const pageDescription = document.querySelector('.frb-page-description');
   if (pageDescription) pageDescription.textContent = 'app_settings.json > 既存Editorで設定を管理';
+
+  const pageIcon = document.querySelector('.frb-page-icon');
+  if (pageIcon) {
+    pageIcon.textContent = '⚙';
+    pageIcon.classList.remove('frb-icon-json');
+    pageIcon.classList.add('frb-icon-settings');
+  }
+
+  const activeModuleLink = document.querySelector('.frb-shell-nav-link.is-active');
+  activeModuleLink?.classList.remove('is-active');
+
+  const settingsLink = document.querySelector('[data-frb-settings]');
+  settingsLink?.classList.add('is-active');
 }
 
 function isSystemAppSettingsMode() {

@@ -28591,15 +28591,15 @@
       "incident_type": "enhancement",
       "category": "architecture",
       "priority": "high",
-      "verification_status": "Static確認済み / 実機UI確認待ち",
+      "verification_status": "Static確認済み / ショートカット実機再確認待ち",
       "context_def_status": "draft",
       "context_def_updated_at": "",
       "owner": "",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-16T21:11:00+09:00",
-      "updated_at": "2026-08-16T22:58:00+09:00",
-      "actual_updated_files": "- wwwroot/js/ui/frb_studio_shell.js\n- wwwroot/css/frb-studio-shell.css\n- wwwroot/js/runtime/detail_save.js\n- tests/qa/static/launch_shortcut_menu_phase5.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
-      "verification_log": "- Phase 5専用Static: 6 / 6 PASS。\n- Phase 2 / 4 / 5 Focused Static: 19 / 19 PASS。\n- 全Static Before: 237 tests / 219 pass / 18 fail。\n- 全Static After: 243 tests / 225 pass / 18 fail。\n- Before / Afterの18 FAILはテスト名まで完全一致し、新規FAILなし。\n- `node --check wwwroot/js/ui/frb_studio_shell.js`: PASS。\n- `node --check wwwroot/js/runtime/detail_save.js`: PASS。\n- 表示グループ外枠の `height:100%` は維持し、Navigation本体 / Listへ `align-content:start` を追加してボタン伸張を抑止。\n- Shortcut MenuはCommon Pagebarへ配置し、JSON Object Studio / Markdown Studio等の共通Shellページから利用可能な契約をStatic確認。\n- 実機でのメニュー開閉、ショートカットクリック、表示グループの見た目は利用者確認待ち。",
+      "updated_at": "2026-08-16T23:20:00+09:00",
+      "actual_updated_files": "- wwwroot/js/runtime/load_runtime.js\n- tests/qa/static/launch_shortcut_menu_phase5.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "verification_log": "- Shortcut起動失敗の原因を特定: `data/json/...` を `data/` だけ除去して `json/...` を `/api/data` へ渡していた。\n- Native Bridge `/api/data/{relative}` は内部で `data/json/{relative}` へ解決するため、従来は `data/json/json/...` となっていた。\n- 修正後: `data/json/01_main/...` → Native API相対 `01_main/...` → `/api/data/01_main/...`。\n- Phase 5専用Static: 9 / 9 PASS。\n- 全Static Before: 245 tests / 227 pass / 18 fail。\n- 全Static After: 246 tests / 228 pass / 18 fail。\n- Before / Afterの18 FAILはテスト名まで完全一致し、新規FAILなし。\n- `node --check wwwroot/js/runtime/load_runtime.js`: PASS。\n- 実機ショートカット起動は利用者再確認待ち。",
       "context_refs": [],
       "work_item_id": "studio_work_0198",
       "phase": "v0.18.76-launch-shortcut-menu-phase5",
@@ -28619,7 +28619,7 @@
       "test_points": "- 前Phaseの回帰を増やさない。\n- Phase固有の責務をStaticまたは実機確認できる。",
       "user_request": "はーい。では、インシデントにフェーズ1～5を先に登録してから、フェーズ1の作業を開始お願いします。よろしく",
       "ai_response": "Phase 5実装完了。Common Pagebar Shortcut Menuからlaunch_shortcutsを選択し、既存JSON Object Studio URL起動へ接続した。表示グループボタン伸張UIも修正した。",
-      "latest_ai_response": "## 変更内容\n- 表示グループNavigationの外枠高さはPhase 4のfull-height契約を維持した。\n- Navigation内部だけを上寄せに変更し、「JSON Object Studio」「Markdown Studio」の2ボタンが通常高さで上部へ並ぶようにした。\n- Common Pagebarへ「ショートカット」メニューを追加し、Dark Topbarではなく利用者指定の上部ヘッダ領域へ配置した。\n- Shortcut Menuは `config/app_settings.json` の `launch_shortcuts` を `cache:no-store` で読み、JSON Object Studioの既存URL起動契約 `index.html?data=...&view=...` を利用する。\n- `view_def` が空の場合は `view` パラメータを付けず、既存のData内ViewDef自動解決へ委譲する。\n- Windows区切り `\\\\` はURL起動時だけ `/` へ正規化し、Canonical `app_settings.json` の値自体は変更しない。\n- Shortcut MenuはCommon Shell側の責務とし、JSON Object Studio専用画面へ埋め込まないためMarkdown Studio等でも利用できる。\n- App Settings保存成功後はCommon ShellのShortcut Menuを再読込し、ページ再読込なしで新しい登録内容を反映する。\n\n## 判断\n- ショートカット登録責務は引き続きApp Settings、実行責務はCommon Shell Shortcut Menuへ分離する。\n- Shortcutクリック後は新しいEditorを作らず、既存JSON Object Studio URL Launchへ接続する。\n- 外部URL、絶対パス、`..` を含むTraversal、JSON以外のパスはShortcut Launcher側で拒否する。\n- 表示グループの外枠full-heightは変更せず、子Gridのstretchだけを解除する。\n\n## 確認結果\n- Phase 5専用Static: 6 / 6 PASS。\n- Phase 2 / 4 / 5 Focused Static: 19 / 19 PASS。\n- 全Static: Before 237/219/18 → After 243/225/18。\n- 既存18 FAILはテスト名まで完全一致し、新規FAILなし。\n- 更新JavaScriptのsyntax check PASS。\n\n## 残課題 / リスク\n- Shortcut Menuの見た目・開閉・実クリックは利用者実機確認が必要。\n- Markdown Studio等の未保存遷移ガードは既存Common Shell Navigation契約と同じ扱いであり、Phase 5では新規責務として追加していない。",
+      "latest_ai_response": "## 今回の更新\n- `wwwroot/js/runtime/load_runtime.js`\n- `tests/qa/static/launch_shortcut_menu_phase5.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n- `app_settings.json` のショートカット設定値は変更していない。\n- `data/json/...` 形式のStatic PathをNative `/api/data` へ渡す境界だけ修正した。\n- Native `/api/data` は既に `data/json` を起点にするため、`data/json/01_main/x.json` は `01_main/x.json` へ変換してからAPIへ渡す。\n- これにより、従来発生していた `data/json/json/...` の二重化を解消した。\n\n## 判断\n- Canonical設定値をNative API専用形式へ変えず、Runtime境界でStatic PathとNative API Relative Pathを分離する。\n- `defs/...` の既存契約には触れない。\n\n## 確認結果\n- Phase 5専用Static: 9 / 9 PASS。\n- 全Static: Before 245/227/18 → After 246/228/18。\n- 既存18 FAILのテスト名は完全一致し、新規FAILなし。\n- `node --check`: PASS。\n\n## 残課題\n- 実機でショートカットをクリックし、インシデントDataが正常表示されることを再確認する。",
       "follow_up_actions": [
         {
           "action_type": "MANUAL_PHASE5_UI_VERIFICATION",
@@ -28628,8 +28628,8 @@
           "related_ids": [
             "studio_work_0198"
           ],
-          "summary": "利用者実機で表示グループの2ボタンが上寄せ通常高さになったこと、Shortcut Menu開閉と登録Shortcutクリック起動を確認する。",
-          "note": "Static / URL生成契約 / syntaxは確認済み。"
+          "summary": "利用者実機でShortcut Menuから登録済みDataを起動し、URL読込エラーが解消して正常表示されることを確認する。",
+          "note": "Staticで data/json prefix除去とNative API相対パス変換を確認済み。"
         },
         {
           "action_type": "FUTURE_SHORTCUT_SCOPE_EXPANSION",
@@ -28650,6 +28650,26 @@
           "at": "2026-08-16T22:58:00+09:00",
           "speaker": "assistant",
           "message": "AI回答\n\n## 変更内容\n- 表示グループ外枠full-heightを維持し、内部ボタンだけ上寄せ通常高さへ修正。\n- Common PagebarへShortcut Menuを追加。\n- launch_shortcutsから既存JSON Object Studio URL起動へ接続。\n- App Settings保存後にShortcut Menuを再読込。\n\n## 確認結果\n- Phase 5専用Static 6/6 PASS。\n- Phase 2/4/5 Focused Static 19/19 PASS。\n- 全Static 237/219/18 → 243/225/18。既存18 FAIL名は一致、新規FAILなし。\n- JS syntax check PASS。"
+        },
+        {
+          "at": "2026-08-16T23:20:00+09:00",
+          "speaker": "user",
+          "message": "①設定画面の左上のアイコンを右上の設定アイコンと同じに変更。②設定画面全体を認識しやすいようボタン色をダークグレー系に変更。③JSON Object Studio下線を消して設定ボタン下に白系下線、左列背景も薄いグレー系へ変更。④ショートカット起動エラーも修正。"
+        },
+        {
+          "at": "2026-08-16T23:20:00+09:00",
+          "speaker": "assistant",
+          "message": "AI回答\n- Settings mode専用の視覚強調を追加。\n- ページ左上アイコンを歯車へ変更。\n- JSON Object Studioのactive下線を消し、設定ボタン側をactive化。\n- managed data pathのショートカット起動をAPI経由へ修正。"
+        },
+        {
+          "at": "2026-08-16T23:20:00+09:00",
+          "speaker": "user",
+          "message": "では、修正お願いします。"
+        },
+        {
+          "at": "2026-08-16T23:20:00+09:00",
+          "speaker": "assistant",
+          "message": "AI回答\n\n## 今回の更新\n- `wwwroot/js/runtime/load_runtime.js`\n- `tests/qa/static/launch_shortcut_menu_phase5.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n- ショートカット設定そのものは変更せず、`data/json/...` からNative `/api/data` へ渡す相対パス変換だけを修正した。\n- `data/json/01_main/...` が `/api/data/01_main/...` になるため、`data/json/json/...` の二重化は発生しない。\n\n## 確認結果\n- Phase 5専用Static: 9 / 9 PASS。\n- 全Static: 245/227/18 → 246/228/18。\n- 既存18 FAILは同一、新規FAILなし。\n- JS構文確認: PASS。\n\n## 次の確認\n- 実機でショートカット起動を再確認する。"
         }
       ],
       "decision_log": [
@@ -28700,6 +28720,22 @@
           "expected_behavior": "外枠は下端まで続くが、タイトルとボタンは上部に通常高さで並ぶ。",
           "acceptance_criteria": "Navigation outer height:100%を残し、Navigation/Listにalign-content:startとmax-content rowを適用する。",
           "confirmation_level": "Static確認 / 実機確認待ち"
+        },
+        {
+          "decision_id": "dec_0198_shortcut_native_data_root_fix_001",
+          "at": "2026-08-16T23:20:00+09:00",
+          "decision": "launch_shortcutsのCanonical設定値は変更せず、Runtime境界で `data/json/` をNative `/api/data` 相対パスへ変換する。",
+          "reason": "Native Bridgeの `/api/data/{relative}` 自体が `data/json` を起点としており、設定値までNative API形式へ寄せるとStatic Pathとの意味が混在するため。",
+          "applied_axes": [
+            "Canonical Data維持",
+            "責務境界",
+            "差分最小化"
+          ],
+          "conditions": "URL/Shortcut Launchで `data/json/...` 形式のData JSONパスを指定した場合。",
+          "exceptions": "Static Hostingでは従来どおりStatic Pathを直接利用する。",
+          "expected_behavior": "`data/json/01_main/x.json` はNative環境で `/api/data/01_main/x.json` として読み込まれる。",
+          "acceptance_criteria": "staticJsonKindPath(data/json/..., data) が `01_main/...` を返し、Focused StaticがPASSする。",
+          "confirmation_level": "Static確認"
         }
       ],
       "change_history": [
@@ -28730,6 +28766,13 @@
           "before": "Phase 5未実装・未確認。",
           "after": "専用Static 6/6、Focused 19/19、全Static新規FAILなし、JS syntax PASS。実機UI確認のみ残存。",
           "reason": "Shortcut URL生成、Common Pagebar配置、Navigation CSS契約、保存後再読込を確認したため。"
+        },
+        {
+          "at": "2026-08-16T23:20:00+09:00",
+          "change_type": "phase5_shortcut_native_data_root_fixed",
+          "before": "`data/json/...` → `json/...` → `/api/data/json/...` となりNative側で `data/json/json/...` を読もうとして失敗。",
+          "after": "`data/json/...` → `...` → `/api/data/...` とし、Native側で正しく `data/json/...` へ解決。",
+          "reason": "利用者実機でショートカット起動時のURL読込エラーが継続していることを確認したため。"
         }
       ]
     }

@@ -82,8 +82,8 @@ test('Shortcut href passes an explicitly configured ViewDef but rejects external
 
 test('Group Navigation keeps its outer full height while its title and buttons stay top-aligned at normal height', () => {
   assert.match(css, /> \.section-group-navigation \{[\s\S]*align-self:stretch;[\s\S]*height:100%/);
-  assert.match(css, /\.section-group-navigation \{[\s\S]*grid-template-rows:auto auto;[\s\S]*align-content:start/);
-  assert.match(css, /\.section-group-navigation-list \{[\s\S]*grid-auto-rows:max-content;[\s\S]*align-content:start/);
+  assert.match(css, /\.section-group-navigation \{[\s\S]*display:flex;[\s\S]*flex-direction:column;[\s\S]*justify-content:flex-start/);
+  assert.match(css, /\.section-group-navigation-list \{[\s\S]*display:flex;[\s\S]*flex-direction:column;[\s\S]*justify-content:flex-start/);
   assert.match(css, /\.section-group-navigation-item \{[\s\S]*padding:9px 10px/);
 });
 
@@ -92,4 +92,43 @@ test('Saving app_settings refreshes the common shortcut menu and studio_work_019
   const item = incident.work_items.find(row => row.work_item_id === 'studio_work_0198');
   assert.ok(item);
   assert.equal(item.phase, 'v0.18.76-launch-shortcut-menu-phase5');
+});
+
+
+test('Settings mode rethemes the page and marks the gear settings button as the active shell entry', () => {
+  const runtime = read('wwwroot/js/runtime/load_runtime.js');
+  assert.match(runtime, /pageIcon\.textContent = '⚙'/);
+  assert.match(runtime, /pageIcon\.classList\.add\('frb-icon-settings'\)/);
+  assert.match(runtime, /settingsLink\?\.classList\.add\('is-active'\)/);
+  assert.match(css, /body\.studio-settings-mode \.frb-shell-nav-link\.is-active::after \{/);
+  assert.match(css, /\.frb-shell-utility-link\.is-active::after \{/);
+});
+
+test('Shortcut launch uses API loading for managed data paths outside static hosting', () => {
+  const runtime = read('wwwroot/js/runtime/load_runtime.js');
+  assert.match(runtime, /if \(managedName && isStaticHostingMode\(\)\)/);
+  assert.match(runtime, /const loaded = await fetchApiJsonWithUrl\('data', managedName\)/);
+  assert.match(runtime, /defObj: await fetchResolvedViewDef\(managedName\)/);
+});
+
+
+test('Shortcut managed data path strips data/json before calling Native /api/data', () => {
+  const runtime = read('wwwroot/js/runtime/load_runtime.js');
+  const start = runtime.indexOf('function staticJsonKindPath');
+  const end = runtime.indexOf('function launchApiNameFromStaticPath');
+  assert.ok(start >= 0 && end > start, 'staticJsonKindPath source must exist');
+
+  const source = runtime.slice(start, end);
+  const sandbox = {};
+  vm.createContext(sandbox);
+  vm.runInContext(`${source}; this.staticJsonKindPath = staticJsonKindPath;`, sandbox);
+
+  assert.equal(
+    sandbox.staticJsonKindPath('data/json/01_main/_studio_work_incident_data_v2.json', 'data'),
+    '01_main/_studio_work_incident_data_v2.json'
+  );
+  assert.equal(
+    sandbox.staticJsonKindPath('defs/rules/studio_work_incident_view_def_v0_5.json', 'defs'),
+    'rules/studio_work_incident_view_def_v0_5.json'
+  );
 });
