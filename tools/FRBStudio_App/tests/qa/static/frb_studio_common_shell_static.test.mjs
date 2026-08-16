@@ -194,7 +194,7 @@ test('Markdown workspace restores the last explicitly selected folder through a 
 test('JSON loaded documents always resynchronize the primary save button after render and readonly checks', () => {
   assert.match(loadRuntime, /function syncLoadedDocumentSaveButtonState\(\)/);
   assert.match(loadRuntime, /saveBtn\.disabled = readonly/);
-  assert.match(loadRuntime, /currentDataApiUrl \? '上書き保存' : '別名保存'/);
+  assert.match(loadRuntime, /currentDataApiUrl \? '保　存' : '別名保存'/);
   assert.match(loadRuntime, /updateReadonlyLaunchControls\(\);\s*syncLoadedDocumentSaveButtonState\(\);/);
 });
 

@@ -16,7 +16,7 @@
       label: 'Markdown Studio',
       icon: 'M',
       iconClass: 'markdown',
-      description: 'Markdown > Sidecarコメントを管理'
+      description: 'Markdown > AIレビューコメントを構造化'
     },
     'diff-json': {
       href: 'DiffJsonViewer.html',

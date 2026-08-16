@@ -237,7 +237,7 @@
             path: result?.path ?? '',
             content: result?.content ?? '',
             // External DocumentはMarkdown本文だけをGrant対象にする。
-            // SidecarコメントはWorkspaceへImportした後に初めて扱う。
+            // Review JSONはWorkspaceへImportした後に初めて扱う。
             sidecar_file: '',
             sidecar_path: '',
             sidecar_content: '',
@@ -249,10 +249,33 @@
         }
       }
 
+      if (method === 'POST' && path === '/api/markdown/review-save-as-dialog') {
+        const body = await parseJsonBody(input, init);
+        try {
+          const result = await invoke('dialog.saveText', {
+            title: 'Review JSONを名前を付けて保存',
+            filter: 'JSON (*.json)|*.json|All files (*.*)|*.*',
+            file_name: String(body?.name ?? body?.file_name ?? 'document.md.review.json'),
+            default_extension: 'json',
+            content: String(body?.content ?? ''),
+            companions: []
+          });
+          return jsonResponse({
+            cancelled: false,
+            document_id: result?.document_id ?? '',
+            saved: result?.file_name ?? '',
+            path: result?.path ?? ''
+          });
+        } catch (error) {
+          if (error?.code === 'USER_CANCELLED') return jsonResponse({ cancelled: true });
+          throw error;
+        }
+      }
+
       if (method === 'POST' && path === '/api/markdown/save-as-dialog') {
         const body = await parseJsonBody(input, init);
         // Save As はMarkdown本文の自由な保存/Exportとして扱い、
-        // FRB Studio固有SidecarはWorkspace外へ自動持ち出ししない。
+        // FRB Studio固有Review JSONはWorkspace外へ自動持ち出ししない。
         try {
           const result = await invoke('dialog.saveText', {
             title: 'Markdownを名前を付けて保存',

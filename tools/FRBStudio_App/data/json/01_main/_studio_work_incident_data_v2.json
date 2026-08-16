@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-16T16:40:00+09:00",
+  "updated_at": "2026-08-16T17:27:13+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 179,
+  "items_count": 181,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -27712,6 +27712,97 @@
           "before": "承認導線づくりが独立した作業項目として未登録。",
           "after": "studio_work_0192 として、Definition Driven Testの承認導線づくりを構想登録。",
           "reason": "Phase 6完了後に残った『人間がDefinitionからDiffまで追跡して承認する導線』の作業漏れを防ぐため。"
+        }
+      ]
+    },
+    {
+      "incident_type": "enhancement",
+      "category": "ui_maintenance",
+      "priority": "high",
+      "verification_status": "Static確認済み / Native実機確認待ち",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-08-16T17:15:00+09:00",
+      "owner": "",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-16T17:15:00+09:00",
+      "updated_at": "2026-08-16T17:27:13+09:00",
+      "actual_updated_files": "- wwwroot/mdViewer.html\n- wwwroot/css/frb-studio-shell.css\n- wwwroot/config/app_settings.json\n- wwwroot/js/core/native_host_bridge.js\n- wwwroot/js/runtime/load_runtime.js\n- wwwroot/js/ui/frb_studio_shell.js\n- wwwroot/index.html\n- wwwroot/home.html\n- tests/qa/static/markdown_workspace_native_static.test.mjs\n- tests/qa/static/frb_studio_common_shell_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "verification_log": "- 実装前に studio_work_0193 を登録してから着手。\n- app_settings.json / incident JSON: parse PASS。\n- node --check: mdViewer inline JS / native_host_bridge.js / load_runtime.js PASS。\n- Review Mode / Large Markdown / JSON Studio保存名称 focused Static: 4 / 4 PASS。\n- 全Static Before（受領ZIP）: 205 tests / 186 pass / 19 fail。\n- 全Static After: 209 tests / 193 pass / 16 fail。\n- Beforeに無かった新規FAILは0件。既存FAILのうち3件はインシデントData更新後に解消。\n- WebView2 Native実機でのReview生成・再読込・保存・巨大Markdown警告の操作確認は未実施。",
+      "context_refs": [],
+      "discussion_history": [
+        {
+          "at": "2026-08-16T17:15:00+09:00",
+          "speaker": "user",
+          "message": "Markdown StudioをViewer / Editor / Reviewの3モード化し、Markdown凍結Snapshot + Review JSONによるHuman→AIレビュー入力へステップアップする。JSON Studioの「上書き」表記も「保存」へ変更する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_studio_work_0193_001",
+          "at": "2026-08-16T17:15:00+09:00",
+          "decision": "Review Modeは人間同士のレビュー管理ではなく、Markdownに対する人間の判断を構造化してAIへ返すHuman→AIインターフェースとする。",
+          "reason": "AIとのコミュニケーションをスムーズにすることが本機能の中核目的であるため。"
+        },
+        {
+          "decision_id": "dec_studio_work_0193_002",
+          "at": "2026-08-16T17:15:00+09:00",
+          "decision": "Review Mode開始時にMarkdownをSnapshotとして固定し、本文編集とレビューを同時に許可しない。",
+          "reason": "行挿入・削除によるコメント位置ずれを構造的に防ぎ、AIが見た対象・人間がレビューした対象・Review JSONの対象を一致させるため。"
+        },
+        {
+          "decision_id": "dec_studio_work_0193_003",
+          "at": "2026-08-16T17:15:00+09:00",
+          "decision": "人間向けUI語彙は日本語へ寄せ、Sidecar表記を撤去する。Block情報は段落情報へ変更し、レビュー判定はコメント・承認・要修正・要確認へ整理する。",
+          "reason": "内部実装語をUIから除去し、判断時の迷いを減らすため。"
+        },
+        {
+          "decision_id": "dec_studio_work_0193_004",
+          "at": "2026-08-16T17:15:00+09:00",
+          "decision": "JSON Studio / Markdown Studioの主保存操作は「上書き」ではなく「保存」と表示する。",
+          "reason": "利用者の目的は現在の対象を保存することであり、ファイル操作方式をUI語彙へ露出させないため。"
+        }
+      ],
+      "change_history": [
+        {
+          "at": "2026-08-16T17:15:00+09:00",
+          "change_type": "incident_registered",
+          "before": "未登録",
+          "after": "studio_work_0193 / v0.18.71-markdown-review-mode-human-ai-feedback",
+          "reason": "Markdown Studio Review Modeと保存UI語彙整理を実装前に独立インシデントとして管理するため。"
+        },
+        {
+          "at": "2026-08-16T17:27:13+09:00",
+          "change_type": "implementation_completed",
+          "before": "Review Mode未実装 / Sidecar UI / 上書き表記",
+          "after": "Review Mode + Review JSON + Human→AI構造化レビュー / 日本語UI / 保存表記",
+          "reason": "Markdown本文編集とAI向けレビュー責務を分離し、コメント位置ずれを構造的に防止するため。"
+        }
+      ],
+      "work_item_id": "studio_work_0193",
+      "phase": "v0.18.71-markdown-review-mode-human-ai-feedback",
+      "title": "Markdown Studio Review Mode — Markdown凍結 / Review JSON / Human→AI構造化フィードバック",
+      "status": "完了",
+      "follow_up_status": "PENDING",
+      "target_files": "- wwwroot/mdViewer.html\n- wwwroot/js/ui/frb_studio_shell.js\n- wwwroot/js/runtime/load_runtime.js\n- wwwroot/config/app_settings.json\n- tests/qa/static/*（必要最小限）\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "# ContextDef素案: Markdown Studio Review Mode\n\n## 目的\n- Markdown本文編集とレビュー責務を分離する。\n- Review開始時のMarkdownをSnapshotとして固定し、Review JSONへ人間判断を構造化する。\n- Review JSONをMarkdown Studioの新しい入力形式として扱う。\n- Human→AIのフィードバック精度を高める。\n\n## UI原則\n- 人間向け表示は日本語中心。\n- Sidecar等の内部用語はUIへ出さない。\n- Block情報は「段落情報」。",
+      "objective": "- Viewer / Editor / Reviewの3モード化。\n- Review JSONへSnapshot・コメント・判定・ハイライトを保存。\n- Review時のみコメント入力を許可。\n- 保存対象をMarkdown / Review JSONで明示。\n- JSON Studio / Markdown Studioの「上書き」表記を「保存」へ整理。\n- 巨大Markdown読込前警告をapp_settings.json閾値で制御。",
+      "background": "- 現行SidecarコメントはMarkdown本文の行挿入・削除で対象位置がずれる。\n- コメント機能をAI協働の売り機能として利用するには、レビュー対象を固定する強い制約が必要。\n- Reviewは人間同士のワークフローではなく、AIへ構造化フィードバックを返すための手段。",
+      "scope": "- Markdown Studioの3モード化。\n- Review開始確認とSnapshot生成。\n- 規定名 *.md.review.json の新規作成 / 既存読込。\n- Review本文ReadOnly。\n- コメント / 承認 / 要修正 / 要確認 / ハイライトをReview JSONへ保存。\n- Sidecar表記撤去、段落情報への名称変更。\n- 保存UIの対象切替表示。\n- 巨大Markdown警告。\n- JSON Studio保存ボタン名称変更。",
+      "out_of_scope": "- 人間同士のレビュー依頼 / 承認フロー。\n- 複数レビュアー、メンション、返信スレッド。\n- Review JSON複数世代管理。\n- 旧 *.comments.json 互換 / 自動移行。\n- Review JSONのファイルツリー表示切替。\n- 設定UI本体。",
+      "fixed_name_policy": "- Review JSON規定名は <markdown-file>.review.json。\n- 旧 *.comments.json 互換は持たない。\n- foundation_rule_019に従い返却ZIPは変更ファイルのみ。",
+      "module_policy": "- MarkdownはEditorの正本、Review JSONはReview Modeの正本。\n- Review Modeではsnapshot.markdownを表示し元Markdownを編集しない。\n- 人間向けUIと内部英語構造を分離する。\n- Native Shellの権限制約とStudio動作設定を混在させない。",
+      "expected_outputs": "- Review Mode追加。\n- Review JSON v0.1生成 / 読込 / 保存。\n- コメント位置ずれの構造的防止。\n- ハイライト復元。\n- 日本語中心の右クリックメニュー。\n- 保存対象表示と保存語彙統一。\n- 巨大Markdown警告。",
+      "risk": "- 既存Sidecarロジックが大きいため、旧互換を残すと責務が混在する。\n- Review JSON保存時にSnapshotを書き換えないこと。\n- Editor / Viewerでレビュー追加操作を露出しないこと。\n- 既存Markdown保存導線を壊さないこと。",
+      "test_points": "- Review開始時に規定名Review JSONが無ければ新規生成される。\n- 既存Review JSONがあればSnapshot / コメント / ハイライトを復元する。\n- Review中は本文編集不可、レビュー操作のみ可能。\n- Editor / Viewerではレビュー追加メニューが出ない。\n- 保存対象ラベルと保存先がモードに一致する。\n- 巨大Markdownは本文読込前に確認が出る。\n- JSON Studioの保存ボタン表示が「保存」になる。\n- 更新JSON parse確認、JS構文確認、focused Staticを実施。",
+      "user_request": "JSONstudio側の名称「上書き」⇒「保　存」（途中スペースバランス調整）含めて、マークダウンエディターのステップアップ実装をインシデント登録してから、実施ください。",
+      "ai_response": "Viewer / Editor / Reviewの3モード化、固定Markdown Snapshotを持つ *.md.review.json、Review限定のコメント・承認・要修正・要確認・ハイライト、保存対象切替、巨大Markdown警告、JSON Studioの「保　存」表記を実装。",
+      "latest_ai_response": "Viewer / Editor / Reviewの3モード化、固定Markdown Snapshotを持つ *.md.review.json、Review限定のコメント・承認・要修正・要確認・ハイライト、保存対象切替、巨大Markdown警告、JSON Studioの「保　存」表記を実装。",
+      "follow_up_actions": [
+        {
+          "action_id": "followup_studio_work_0193_001",
+          "title": "Native実機でReview Mode操作確認",
+          "status": "PENDING",
+          "detail": "Review JSON新規生成・既存再読込・コメント/判定/ハイライト復元・保存対象切替・巨大Markdown警告をWebView2 Native Shell上で確認する。"
         }
       ]
     }

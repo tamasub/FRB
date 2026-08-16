@@ -1,0 +1,55 @@
+{
+  "schema_version": "markdown_review_v0_1",
+  "document_type": "markdown_review",
+  "target_file": "_ViewTimeLine.md",
+  "review_file": "_ViewTimeLine.md.review.json",
+  "created_at": "2026-08-16_17:39:01",
+  "updated_at": "2026-08-16_17:40:10",
+  "snapshot": {
+    "hash": "fnv1a32_c482662b",
+    "markdown": "https://qiita.com/tamasub/items/2b6649748e1772b7eec1\n\nreleases Download Count\nhttps://api.github.com/repos/tamasub/FRB/releases\n\nhttps://www.google.com/search?q=Fishing+Rod+Benchmark+FRB&sca_esv=d2b5db79e1641e91&gl=us&hl=en&biw=1231&bih=766&ei=wG4las-WLeSxvr0Ptsyk-AY&ved=0ahUKEwjP9tHpmvWUAxXkmK8BHTYmCW8Q4dUDCBA&uact=5&oq=Fishing+Rod+Benchmark+FRB&gs_lp=Egxnd3Mtd2l6LXNlcnAiGUZpc2hpbmcgUm9kIEJlbmNobWFyayBGUkIyBRAhGKABSMQiUKgLWP4gcAJ4AZABAJgBfKABkAOqAQM0LjG4AQPIAQD4AQGYAgegArsDwgIKEAAYRxjWBBiwA8ICCBAAGAgYHhgNwgILEAAYgAQYigUYhgPCAggQABiABBiiBMICCBAAGIkFGKIEwgIGEAAYFhgemAMAiAYBkAYIkgcDNi4xoAf4E7IHAzQuMbgHrAPCBwUwLjMuNMgHG4AIAQ&sclient=gws-wiz-serp\n\nhttps://zenn.dev/frb_tamasub/articles/c6660a4e81fef1?locale=en\n\n\nhttp://localhost:5055/?data=data/json/01_main/studio_work_incident_data_v0_12_url_param_launch_load.json\n\nhttps://tamasub.github.io/FRB/tools/FRBStudio_App/wwwroot/?data=data/json/01_main/studio_work_incident_data_v0_12_url_param_launch_load.json&mode=readonly\n\n\n\n\npython3 merge_zenn.py *.md -o Zenn_Blog_All_merged.md\n\n\n\nCTRL + SHIFT + I\n\n\n2026-05-18 17:56:07 1777 views\n2026-05-18 22:15:22 1782 views\n2026-05-19 08:41:43 1791 views\n2026-05-19 12:32:42 1792 views\n2026-05-19 18:58:50 1798 views\n2026-05-19 21:33:31 1803 views\n2026-05-19 23:10:06 1807 views\n2026-05-20 19:51:57 1818 views\n2026-05-21 08:29:53 1832 views\n2026-05-21 20:09:04 1843 views\n2026-05-22 08:42:40 1852 views\n2026-05-22 12:21:27 1855 views\n2026-05-22 17:48:54 1863 views\n2026-05-22 23:40:31 1874 views\n2026-05-23 18:36:43 1887 views\n2026-05-24 20:10:34 1909 views\n2026-05-25 08:24:23 1912 views\n2026-05-25 12:37:28 1919 views\n2026-05-25 22:14:58 1928 views\n2026-05-26 19:48:13 1948 views\n2026-05-30 22:49:08 2042 views\n2026-05-31 17:17:08 2058 views\n2026-06-01 20:42:26 2076 views\n2026-06-03 18:46:43 2111 views\n2026-06-05 20:26:18 2146 views\n2026-06-05 23:21:53 2149 views\n2026-06-07 23:26:09 2200 views\n2026-06-10 20:01:40 2227 views\n2026-06-11 20:28:38 2237 views\n2026-06-12 21:16:46 2252 views\n2026-06-14 17:58:33 2292 views\n2026-06-15 20:00:41 2299 views\n2026-06-16 21:40:23 2306 views\n2026-07-12 16:19:14 2526 views\n\n\nアクティブ ユーザー - 新規ユーザー数\n2026-06-12 21:15:25 Zenn 219-262 Qiita 189-168\n2026-06-13 06:08:53 Zenn 227-271 Qiita 188-167\n2026-06-15 20:02:46 Zenn 238-286 Qiita 188-167\n2026-06-16 21:38:06 Zenn 246-294 Qiita 181-161\n\n\n\n----\n\naaaaccc\nbbbbddd\nccccccc\n\n\n\n---\n\n┌─────────────────────────────┐\n│ BEFORE       + CONTEXT       AFTER │\n│                                  │\n│  同じ対象を見るAI     →    別の構造が浮かぶ │\n│                                  │\n│       CONTEXT DIFF #1          │\n│ 文脈を渡すと、AIの「見え方」は変わる？ │\n└─────────────────────────────┘\n\n新しいセンテンス\n\n新しいセンテンス\n"
+  },
+  "comments": [
+    {
+      "comment_id": "mdc_20260816_173950_v3jd",
+      "status": "REVISION_REQUIRED",
+      "body": "ここは要修正。修正方針を追記。",
+      "author": "tamasub",
+      "created_at": "2026-08-16_17:39:50",
+      "updated_at": "2026-08-16_17:39:50",
+      "resolved": false,
+      "target_type": "block",
+      "block_id": "mdblk_0012_paragraph_71",
+      "block_type": "paragraph",
+      "table_id": "",
+      "cell_id": "",
+      "row_index": null,
+      "column_index": null,
+      "line": 71,
+      "start_line": 71,
+      "end_line": 73,
+      "target_excerpt": "aaaaccc bbbbddd ccccccc"
+    },
+    {
+      "comment_id": "mdc_20260816_173956_5rq4",
+      "status": "COMMENT",
+      "body": "コメント。",
+      "author": "tamasub",
+      "created_at": "2026-08-16_17:39:56",
+      "updated_at": "2026-08-16_17:39:56",
+      "resolved": false,
+      "target_type": "block",
+      "block_id": "mdblk_0015_paragraph_88",
+      "block_type": "paragraph",
+      "table_id": "",
+      "cell_id": "",
+      "row_index": null,
+      "column_index": null,
+      "line": 88,
+      "start_line": 88,
+      "end_line": 88,
+      "target_excerpt": "新しいセンテンス"
+    }
+  ],
+  "highlights": []
+}

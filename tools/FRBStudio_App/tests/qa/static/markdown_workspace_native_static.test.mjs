@@ -57,7 +57,7 @@ test('new Markdown and folder creation require an active Markdown Workspace', ()
   assert.match(md, /folderGrant\.createDirectory/);
 });
 
-test('External Document comments force explicit import and _imports is created only after full-path confirmation', () => {
+test('External Document Review forces explicit import and _imports is created only after full-path confirmation', () => {
   assert.match(md, /async function importCurrentDocumentIntoWorkspaceForComments/);
   assert.match(md, /const importFolder = '_imports'/);
   assert.match(md, /folderGrant\.describePath/);
@@ -77,20 +77,20 @@ test('External Open gets a document grant and overwrite uses only that grant', (
   }
 });
 
-test('Save As does not export Sidecar outside Workspace and move follows Sidecar inside Workspace', () => {
+test('Markdown Save As does not export Review JSON and move follows Review JSON inside Workspace', () => {
   assert.match(bridge, /Save As はMarkdown本文の自由な保存\/Exportとして扱い/);
   assert.match(bridge, /companions:\s*\[\]/);
-  assert.match(md, /Workspace外のためSidecarコメントは保存していません/);
-  assert.match(md, /companion_suffixes:\s*source\.kind === 'file' \? \['\.comments\.json'\] : \[\]/);
+  assert.match(md, /Markdownのみ保存しました。Review JSONは保存していません/);
+  assert.match(md, /companion_suffixes:\s*source\.kind === 'file' \? \['\.review\.json'\] : \[\]/);
 });
 
-test('Workspace move preflights Sidecar destination before moving Markdown', () => {
+test('Workspace move preflights Review JSON destination before moving Markdown', () => {
   const moveStart = dispatcher.indexOf('private object MoveFolderGrantEntry');
   const moveEnd = dispatcher.indexOf('private string RegisterDocumentGrant', moveStart);
   const moveBody = dispatcher.slice(moveStart, moveEnd);
   const preflight = moveBody.indexOf('companion destination already exists');
   const mainMove = moveBody.indexOf('File.Move(source, destination)');
-  assert.ok(preflight >= 0 && mainMove > preflight, 'Sidecar destination collision must be checked before Markdown is moved');
+  assert.ok(preflight >= 0 && mainMove > preflight, 'Review JSON destination collision must be checked before Markdown is moved');
 });
 
 test('Front Matter is part of Canonical Markdown and no Apply button/state exists', () => {
@@ -147,4 +147,46 @@ test('NativeShell binds window.open to one child WebView2 instead of leaving an 
   assert.match(shellForm, /_environment = _sharedEnvironment \?\? await CoreWebView2Environment\.CreateAsync/);
   assert.match(shellForm, /if \(!_deferInitialNavigation\)[\s\S]*?_webView\.Source = new Uri\(startUri\)/);
   assert.match(shellForm, /finally[\s\S]*deferral\.Complete\(\)/);
+});
+
+
+test('Markdown Studio has explicit Review Mode as Human to AI structured feedback interface', () => {
+  assert.match(md, /id="btnReviewMode"[^>]*>Review</);
+  assert.match(md, /document_type:\s*"markdown_review"/);
+  assert.match(md, /return `\$\{base\}\.review\.json`/);
+  assert.match(md, /snapshot:\s*\{[\s\S]*markdown:\s*snapshotMarkdown/);
+  assert.match(md, /highlights:\s*mdCommentSidecarRuntime\.highlights/);
+  assert.match(md, /保存対象：Review JSON/);
+  assert.match(md, /data-status="APPROVED"[^>]*>✅ 承認</);
+  assert.match(md, /data-status="REVISION_REQUIRED"[^>]*>🛠 要修正</);
+  assert.match(md, /data-status="CHECK_REQUIRED"[^>]*>❓ 要確認</);
+  assert.doesNotMatch(md, />🚫 Sidecar NG</);
+  assert.doesNotMatch(md, />💾 Sidecar JSON保存</);
+  assert.match(md, />🔎 段落情報</);
+});
+
+test('Review Mode freezes Markdown Snapshot and review actions are Review-only', () => {
+  assert.match(md, /現在のMarkdownをレビュー用の固定文章として保存します/);
+  assert.match(md, /editorEl\.readOnly = true/);
+  assert.match(md, /if \(getMode\(\) !== "review"\) return;/);
+  assert.match(md, /group === "all" \|\| group === mode/);
+  assert.match(md, /applyMarkdownReviewHighlights\(\)/);
+  assert.match(md, /captureMarkdownSourceBeforeReview\(\)/);
+  assert.match(md, /if \(previousMode === "review"\) \{\s*restoreMarkdownSourceAfterReview\(\)/,
+    'Markdown source must only be restored when actually leaving Review Mode');
+});
+
+test('large Markdown warning is driven by app_settings before Workspace read', () => {
+  const appSettings = readJson('wwwroot/config/app_settings.json');
+  assert.equal(appSettings.markdown.large_file_warning_enabled, true);
+  assert.ok(appSettings.markdown.large_file_warning_bytes > 0);
+  const confirmPos = md.indexOf('const openOk = await confirmLargeMarkdownOpen(item)');
+  const readPos = md.indexOf("await loadWorkspaceMarkdown(path)", confirmPos);
+  assert.ok(confirmPos >= 0 && readPos > confirmPos);
+});
+
+test('JSON Object Studio primary save label is 保存 instead of 上書き保存', () => {
+  const runtime = read('wwwroot/js/runtime/load_runtime.js');
+  assert.match(runtime, /currentDataApiUrl \? '保　存' : '別名保存'/);
+  assert.doesNotMatch(runtime, /currentDataApiUrl \? '上書き保存'/);
 });

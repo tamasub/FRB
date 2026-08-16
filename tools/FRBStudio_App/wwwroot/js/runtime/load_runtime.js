@@ -235,7 +235,7 @@ function syncLoadedDocumentSaveButtonState() {
   if (!saveBtn) return;
   const readonly = Boolean(launchRuntime?.readonly);
   saveBtn.disabled = readonly;
-  saveBtn.textContent = readonly ? 'ReadOnly' : (currentDataApiUrl ? '上書き保存' : '別名保存');
+  saveBtn.textContent = readonly ? 'ReadOnly' : (currentDataApiUrl ? '保　存' : '別名保存');
 }
 
 function updateReadonlyLaunchControls() {

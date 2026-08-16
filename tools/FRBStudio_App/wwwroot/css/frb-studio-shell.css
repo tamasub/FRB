@@ -488,12 +488,14 @@ body.studio-grid-only-shell .json-studio-main-pane > main { padding:0; }
   flex-wrap:nowrap;
 }
 .frb-page-markdown .module-nav-frame #btnViewerMode,
-.frb-page-markdown .module-nav-frame #btnEditorMode {
+.frb-page-markdown .module-nav-frame #btnEditorMode,
+.frb-page-markdown .module-nav-frame #btnReviewMode {
   min-width:78px;
 }
 .frb-page-markdown .topbar .controls { flex:1 1 auto; }
 .frb-page-markdown .layout,
-.frb-page-markdown[data-mode="editor"] .layout {
+.frb-page-markdown[data-mode="editor"] .layout,
+.frb-page-markdown[data-mode="review"] .layout {
   grid-template-columns:minmax(235px, 270px) minmax(0,1fr) minmax(265px,300px) !important;
   gap:14px;
   margin-top:12px;
@@ -918,7 +920,8 @@ body.studio-grid-only-shell .json-studio-main-pane > main { padding:0; }
   max-width: none;
 }
 .frb-page-markdown .layout,
-.frb-page-markdown[data-mode="editor"] .layout {
+.frb-page-markdown[data-mode="editor"] .layout,
+.frb-page-markdown[data-mode="review"] .layout {
   grid-template-columns: minmax(280px, 1.15fr) minmax(680px, 800px) minmax(300px, .85fr) !important;
 }
 .frb-page-markdown .workspace-sidebar,
