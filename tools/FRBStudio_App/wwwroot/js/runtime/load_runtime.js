@@ -14,6 +14,15 @@ async function loadFromObjects(defObj, dataObj, label='読み込み完了', data
   if (typeof logViewDefReadContract === 'function') logViewDefReadContract(currentViewDefReadContract);
   if (typeof logViewDefContextModel === 'function') logViewDefContextModel(currentViewDefContextModel);
   viewDef = defObj;
+  // Phase 4: Search UIを描画する前にOperator / Validation Registryを一度だけ解決する。
+  // 失敗時は画面全体を止めず、renderSearch側のLegacy UI fallbackを維持する。
+  if (typeof ensureStandardSearchUiContext === 'function') {
+    try {
+      await ensureStandardSearchUiContext();
+    } catch (err) {
+      console.warn('Standard Search UI context load failed; legacy search UI fallback is used.', err);
+    }
+  }
   if (typeof loadRuntimeFieldDefinitionContext === 'function') {
     await loadRuntimeFieldDefinitionContext(defObj);
   }

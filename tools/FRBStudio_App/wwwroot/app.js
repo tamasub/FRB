@@ -428,6 +428,7 @@ $('clearSearchBtn').addEventListener('click', () => {
     if (i instanceof HTMLSelectElement && i.multiple) [...i.options].forEach(opt => { opt.selected = false; });
     else i.value = '';
   });
+  if (typeof resetStandardSearchUi === 'function') resetStandardSearchUi($('searchForm'));
   if (typeof resetStudioPluginSearchFilters === 'function') resetStudioPluginSearchFilters();
   filteredRows = currentRows.map((row, index) => ({row, index}));
   applySortToFilteredRows();

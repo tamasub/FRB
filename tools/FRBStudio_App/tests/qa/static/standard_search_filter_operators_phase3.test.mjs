@@ -151,7 +151,7 @@ test('Phase 3 implementation remains UI-independent and index cache key is advan
   const source = readText('wwwroot/js/responsibilities/search_filter.js');
   assert.doesNotMatch(source, /document\.|querySelector|addEventListener/);
   const html = readText('wwwroot/index.html');
-  assert.match(html, /js\/responsibilities\/search_filter\.js\?v=standard-search-filter-01866/);
+  assert.match(html, /js\/responsibilities\/search_filter\.js\?v=standard-search-ui-01867/);
 });
 
 test('studio_work_0188 is completed and Phase 4 remains an explicit follow-up', () => {
@@ -161,8 +161,8 @@ test('studio_work_0188 is completed and Phase 4 remains an explicit follow-up', 
   assert.ok(item && phase2);
   assert.equal(item.phase, 'v0.18.66-standard-search-filter-operators-phase3');
   assert.equal(item.status, '完了');
-  assert.equal(item.follow_up_status, 'PENDING');
-  assert.ok(item.follow_up_actions.some(action => action.related_ids?.includes('studio_work_0189') && action.status === 'PENDING'));
+  assert.equal(item.follow_up_status, 'COMPLETED');
+  assert.ok(item.follow_up_actions.some(action => action.related_ids?.includes('studio_work_0189') && action.status === 'COMPLETED'));
   assert.ok(phase2.follow_up_actions.some(action => action.related_ids?.includes('studio_work_0188') && action.status === 'COMPLETED'));
   assert.equal(incident.items_count, incident.work_items.length);
 });

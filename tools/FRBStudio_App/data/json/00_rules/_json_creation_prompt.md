@@ -138,3 +138,31 @@ ViewDef JSONを生成・修正する場合は、次を守る。
 
 <!-- change_history: 2026-06-27 v0.14.32 / ヘッダー基本情報を1行・短文中心にし、長文欄/Owner非表示、検索項目コンパクト表示の実務指示を追加 -->
 
+---
+
+## v0.18.68 追加ルール: 標準検索ViewDef / Canonical Search Projection
+
+ViewDef JSONを新規生成・修正する場合、検索Fieldを独立したSearch Sectionへ複製しない。
+
+* 検索対象は、Main Grid側のCanonical Field Definitionに `search.visible=true` を設定する。
+* 標準OperatorはField type / Validation Typeから導出するため、通常は `search.operator` を書かない。
+* `id: search` のSectionを検索Field定義の置き場として新規生成しない。
+* Fieldを持たない空のSearch Sectionも新規生成しない。
+* Legacy Search Sectionを移行する場合は、同一 `dataPath` / 同一 `field` のCanonical Fieldへ検索意図を転記してから重複定義を削除する。
+* LegacyとCanonicalの設定が食い違う場合は全件自動変換せず、人間確認または代表ViewDefによる段階移行を優先する。
+* 詳細契約は `frb_viewdef_generation_rules_data_v0_1.json` の `viewdef_rule_36` を参照する。
+
+標準例:
+
+```json
+{
+  "field": "updated_at",
+  "type": "datetime",
+  "grid": { "visible": true },
+  "edit": { "visible": true },
+  "search": { "visible": true }
+}
+```
+
+<!-- change_history: 2026-08-16 v0.18.68 / Search Section二重Field定義を新規生成せず、Canonical Fieldのsearch.visibleから検索UIをProjectionする実務指示を追加 -->
+

@@ -128,5 +128,7 @@ test('studio_work_0186 records Phase 1 completion and keeps runtime/UI work as e
   assert.equal(item.status, '完了');
   assert.equal(item.follow_up_status, 'PENDING');
   assert.ok(item.follow_up_actions.some((action) => action.action_type === 'SEARCH_CAPABILITY_RESOLVER' && action.related_ids?.includes('studio_work_0187')));
-  assert.ok(item.follow_up_actions.some((action) => action.action_type === 'SEARCH_UI_CONTEXT_MENU' && action.status === 'PENDING'));
+  assert.ok(item.follow_up_actions.some((action) => action.action_type === 'SEARCH_UI_CONTEXT_MENU' && action.status === 'COMPLETED'));
+  assert.ok(item.follow_up_actions.some((action) => action.action_type === 'VIEWDEF_SEARCH_STANDARDIZATION' && action.status === 'COMPLETED'));
+  assert.ok(item.follow_up_actions.some((action) => action.action_type === 'DEFINITION_DRIVEN_SEARCH_TEST' && action.status === 'PENDING'));
 });

@@ -1015,6 +1015,20 @@ function renderSearch() {
   const form = $('searchForm');
   form.innerHTML = '';
   gd.fields.filter(f => f.search?.visible).forEach(field => {
+    // v0.18.67-standard-search-ui-context-menu-phase4:
+    // SearchCapabilityResolverの実効Capabilityから検索UIを生成する。
+    // Resolver/Registryが利用できないLegacy環境だけ、従来単一入力UIへ安全fallbackする。
+    const capability = typeof resolveStandardSearchCapability === 'function'
+      ? resolveStandardSearchCapability(field)
+      : null;
+    const standardField = capability?.resolution_status === 'RESOLVED' && typeof createStandardSearchField === 'function'
+      ? createStandardSearchField(field, capability, createFieldControlElement)
+      : null;
+    if (standardField) {
+      form.appendChild(standardField);
+      return;
+    }
+
     const searchField = {...field, readonly:false, edit:{readonly:false}};
     if (field.type === 'number') {
       form.appendChild(createInput({...searchField, caption:(field.caption ?? field.field) + ' >='}, '', 'search'));

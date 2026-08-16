@@ -3009,10 +3009,10 @@
       "verification_status": "未確認",
       "approval_decision": "未承認",
       "summary": "検索はCanonical Field DefinitionからのProjectionとし、Operatorは型・Validation Typeから標準導出する。検索語彙はSearchOperatorRegistryで一元管理し、ViewDefは必要な差分だけOverrideする。",
-      "body": "検索FieldをSearch Sectionへ重複定義しない。同一dataPath / 同一FieldはCanonical Field Definitionを一か所の正本とし、検索は `search.visible` からProjectionする。\n\n標準検索OperatorはField type / Resolved Validation TypeからSearchCapabilityResolverで導出する。利用可能Operator / Operator Setの語彙正本は `data/json/config/search_operator_registry_v0_1.json` とする。\n\n標準形:\n\n```json\n\"search\": { \"visible\": true }\n```\n\n特殊Override:\n\n```json\n\"search\": {\n  \"visible\": true,\n  \"operator_set\": \"date_standard\",\n  \"operators\": [\"between\", \"blank\", \"not_blank\"],\n  \"operator\": \"between\"\n}\n```\n\nOverride解決規則:\n- `operator_set`: 標準Operator Setの置換。\n- `operators`: 利用可能Operatorの絞り込み。\n- `operator`: 初期・既定Operatorの明示Override。\n- 指定IDはSearchOperatorRegistryのactive語彙に存在し、Field/Validation Typeと互換でなければならない。\n\nUI原則:\n- 標準Operatorは通常UIへ常時表示せず、標準から変更した場合のみ📌等で差分を示す。\n- Operator変更の右クリックメニューは原則1階層。\n- ComboBoxでは検索Operatorと既存の選択肢メンテナンスを区切り線等で同一1階層メニューへ共存させる。\n\nLegacy互換:\n- 既存Search Sectionは即削除しない。\n- ただし検索Field契約の正本にはせず、新規ViewDef生成ではSearch SectionへのField重複定義を作らない。\n\n将来互換:\n- ComboBox複数選択の `in / not_in / values[]` を塞がない。\n- Search Presetは標準検索v1直後の近接Future Scopeとする。",
+      "body": "検索FieldをSearch Sectionへ重複定義しない。同一dataPath / 同一FieldはCanonical Field Definitionを一か所の正本とし、検索は `search.visible` からProjectionする。\n\n標準検索OperatorはField type / Resolved Validation TypeからSearchCapabilityResolverで導出する。利用可能Operator / Operator Setの語彙正本は `data/json/config/search_operator_registry_v0_1.json` とする。\n\n標準形:\n\n```json\n\"search\": { \"visible\": true }\n```\n\n特殊Override:\n\n```json\n\"search\": {\n  \"visible\": true,\n  \"operator_set\": \"date_standard\",\n  \"operators\": [\"between\", \"blank\", \"not_blank\"],\n  \"operator\": \"between\"\n}\n```\n\nOverride解決規則:\n- `operator_set`: 標準Operator Setの置換。\n- `operators`: 利用可能Operatorの絞り込み。\n- `operator`: 初期・既定Operatorの明示Override。\n- 指定IDはSearchOperatorRegistryのactive語彙に存在し、Field/Validation Typeと互換でなければならない。\n\nUI原則:\n- 標準Operatorは通常UIへ常時表示せず、標準から変更した場合のみ📌等で差分を示す。\n- Operator変更の右クリックメニューは原則1階層。\n- ComboBoxでは検索Operatorと既存の選択肢メンテナンスを区切り線等で同一1階層メニューへ共存させる。\n\nLegacy互換:\n- 既存Search Sectionは即削除しない。\n- ただし検索Field契約の正本にはせず、新規ViewDef生成ではSearch SectionへのField重複定義を作らない。\n\n将来互換:\n- ComboBox複数選択の `in / not_in / values[]` を塞がない。\n- Search Presetは標準検索v1直後の近接Future Scopeとする。\n\nPhase 5 ViewDef標準化:\n- 新規ViewDefでは、検索UI配置だけを理由に `id: search` のSectionを作成しない。検索対象はCanonical Grid Fieldの `search.visible` で宣言する。\n- 空のSearch Sectionも新規生成しない。現行Runtimeの検索UIはGrid側Canonical Fieldを参照して生成する。\n- Legacy Search Sectionを移行する場合は、同一dataPath / 同一fieldへ検索意図を明示的に転記した後、重複Field定義を削除する。\n- Legacy側とCanonical側の設定が食い違うViewDefは全件自動変換せず、代表ViewDefで確認してから段階移行する。\n- 既存Search Sectionは即削除しないというLegacy互換方針は「全件一括削除しない」という意味であり、新規生成・移行済みViewDefへ空Sectionを残すことを要求しない。",
       "ceremony_phrase": "この検索Capability / Operator Registry契約をレビューし、採用可否を判断する。",
       "user_comment": "",
-      "ai_response": "Phase 1としてSearchOperatorRegistry、ViewDef search override shape、Legacy Search Section互換方針を契約化した。",
+      "ai_response": "Phase 5として新規ViewDefのSearch Section二重定義禁止を実務契約へ固定し、代表ViewDefのCanonical Search Projection移行を実施した。",
       "user_reply": "",
       "ai_followup_response": "",
       "approved_by": "",
@@ -3022,7 +3022,17 @@
       "source_line_start": 0,
       "source_md_file": "AI協働026_検索強化_FRB_Standard_Search_Design_Overview_v0_2.md",
       "introduced_in": "v0.18.64-standard-search-contract-phase1",
-      "change_history": [],
+      "change_history": [
+        {
+          "history_id": "chg_viewdef_rule_36_v01868_projection_standardization_001",
+          "at": "2026-08-16T16:03:00+09:00",
+          "change_type": "body_append",
+          "before": "Legacy Search Sectionは即削除せず、新規ViewDef生成ではSearch SectionへのField重複定義を作らない。",
+          "after": "新規ViewDefではSearch Section/空Search Sectionを作らずCanonical Grid Fieldのsearch.visibleから検索UIをProjectionする。Legacyは検索意図を同一Fieldへ転記後に段階移行し、全件自動変換はしない。",
+          "reason": "Phase 5でViewDef生成標準とLegacy移行手順を曖昧さなく固定し、同一Fieldの二重定義を再発させないため。",
+          "related_work_item_id": "studio_work_0190"
+        }
+      ],
       "decision_log": []
     }
   ],

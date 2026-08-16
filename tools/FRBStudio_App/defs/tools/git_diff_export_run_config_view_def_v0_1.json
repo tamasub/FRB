@@ -262,13 +262,6 @@
           ]
         },
         {
-          "id": "search",
-          "caption": "検索",
-          "type": "form",
-          "dataPath": "run_configs",
-          "fields": []
-        },
-        {
           "id": "grid",
           "caption": "Git Diff Run Config",
           "type": "grid",
@@ -649,8 +642,8 @@
           ]
         }
       ],
-      "layout_note": "v0.14.37: Git Diff Runボタンは toolbar.executeButton/action=RunCommandProfile で表示する。v0.17.0: FilePairモードでは from_file/to_file をProgram.cs経由で -Mode FilePair に渡す。v0.17.2: Run Config明細にはoutput_path_displayを持たせず、出力先は基本情報メモまたはCommandProfile API由来の参考表示として扱う。v0.17.3: FilePairのfrom_file/to_fileはFRBStudio_App root基準の相対パスを推奨し、enabled=falseの行は実行対象外とする。v0.17.4: FilePair入力ファイルは任意2ファイル比較用途のため、既存ローカルファイルであればFRBStudio_App外の絶対パスも許可する。出力先は引き続きCommandProfile側のFRBStudio_App配下に制限する。"
+      "layout_note": "v0.14.37: Git Diff Runボタンは toolbar.executeButton/action=RunCommandProfile で表示する。v0.17.0: FilePairモードでは from_file/to_file をProgram.cs経由で -Mode FilePair に渡す。v0.17.2: Run Config明細にはoutput_path_displayを持たせず、出力先は基本情報メモまたはCommandProfile API由来の参考表示として扱う。v0.17.3: FilePairのfrom_file/to_fileはFRBStudio_App root基準の相対パスを推奨し、enabled=falseの行は実行対象外とする。v0.17.4: FilePair入力ファイルは任意2ファイル比較用途のため、既存ローカルファイルであればFRBStudio_App外の絶対パスも許可する。出力先は引き続きCommandProfile側のFRBStudio_App配下に制限する。 v0.18.68: 空のLegacy Search Sectionを削除。検索UIはGrid側Canonical Fieldの search.visible からProjectionする。"
     }
   ],
-  "layout_note": "v0.14.37: Git Diff Runボタンは toolbar.executeButton/action=RunCommandProfile で表示する。v0.17.0: FilePairモードでは from_file/to_file をProgram.cs経由で -Mode FilePair に渡す。v0.17.2: Run Config明細にはoutput_path_displayを持たせず、出力先は基本情報メモまたはCommandProfile API由来の参考表示として扱う。v0.17.3: FilePairのfrom_file/to_fileはFRBStudio_App root基準の相対パスを推奨し、enabled=falseの行は実行対象外とする。v0.17.4: FilePair入力ファイルは任意2ファイル比較用途のため、既存ローカルファイルであればFRBStudio_App外の絶対パスも許可する。出力先は引き続きCommandProfile側のFRBStudio_App配下に制限する。"
+  "layout_note": "v0.14.37: Git Diff Runボタンは toolbar.executeButton/action=RunCommandProfile で表示する。v0.17.0: FilePairモードでは from_file/to_file をProgram.cs経由で -Mode FilePair に渡す。v0.17.2: Run Config明細にはoutput_path_displayを持たせず、出力先は基本情報メモまたはCommandProfile API由来の参考表示として扱う。v0.17.3: FilePairのfrom_file/to_fileはFRBStudio_App root基準の相対パスを推奨し、enabled=falseの行は実行対象外とする。v0.17.4: FilePair入力ファイルは任意2ファイル比較用途のため、既存ローカルファイルであればFRBStudio_App外の絶対パスも許可する。出力先は引き続きCommandProfile側のFRBStudio_App配下に制限する。 v0.18.68: 空のLegacy Search Sectionを削除。検索UIはGrid側Canonical Fieldの search.visible からProjectionする。"
 }

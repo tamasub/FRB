@@ -6,7 +6,7 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-16T15:07:20+09:00",
+  "updated_at": "2026-08-16T15:57:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
@@ -26905,13 +26905,13 @@
       "priority": "high",
       "status": "完了",
       "follow_up_status": "PENDING",
-      "verification_status": "Static確認済み / 人間ルール承認・Phase 2 Runtime実装待ち",
+      "verification_status": "Static確認済み / Phase 6 Definition Driven Search Test待ち",
       "context_def_status": "reviewed",
       "context_def_updated_at": "2026-08-16T14:50:00+09:00",
       "owner": "",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-16T14:50:00+09:00",
-      "updated_at": "2026-08-16T15:07:20+09:00",
+      "updated_at": "2026-08-16T16:18:00+09:00",
       "target_files": "- data/json/config/search_operator_registry_v0_1.json\n- data/json/00_rules/frb_view_def_schema_v0_9.json\n- data/json/00_rules/frb_view_def_schema_review_data_v0_1.json\n- data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json\n- tests/qa/static/standard_search_contract_phase1.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
       "actual_updated_files": "- data/json/config/search_operator_registry_v0_1.json\n- data/json/00_rules/frb_view_def_schema_v0_9.json\n- data/json/00_rules/frb_view_def_schema_review_data_v0_1.json\n- data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json\n- tests/qa/static/standard_search_contract_phase1.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
       "context_def_draft": "# ContextDef素案: 標準検索Capability Phase 1\n\n## 読む目的\n検索をField Definitionから派生する標準Capabilityとして定義し、Runtime実装前にOperator語彙・ViewDef Override・Legacy互換境界を固定する。\n\n## 中核原則\n- 同一Fieldは一か所を正本とする。SearchはProjection。\n- OperatorはField type / Validation Typeから標準導出する。\n- Operator語彙はSearchOperatorRegistry一か所を正本とする。\n- Schemaは形、Registryは語彙を検証する。\n- 現在のRenderer/Responsibility体系を壊さず、Field Control Class全面移行は行わない。\n\n## UI契約\n- 標準Operatorは通常UIへ露出しない。\n- Override時だけ📌等で差分表示。\n- 右クリックは原則1階層。\n- ComboBoxは検索Operatorと選択肢メンテナンスを区切り線で共存。",
@@ -26943,32 +26943,35 @@
         {
           "action_type": "SEARCH_FILTER_OPERATORS",
           "required": true,
-          "status": "PENDING",
+          "status": "COMPLETED",
           "related_ids": [
             "studio_work_0188"
           ],
           "summary": "SearchFilterへnot_contains/not_equals/between/blank/not_blank/date比較を追加する。",
-          "note": "DOM非依存Criteria評価を維持。"
+          "note": "studio_work_0188 / v0.18.66 でSearchFilter Operator拡張完了。",
+          "completed_at": "2026-08-16T15:19:00+09:00"
         },
         {
           "action_type": "SEARCH_UI_CONTEXT_MENU",
           "required": true,
-          "status": "PENDING",
+          "status": "COMPLETED",
           "related_ids": [
             "studio_work_0189"
           ],
           "summary": "1階層右クリックOperator変更、Override📌、Range UI、Combo選択肢メンテナンス共存を実装する。",
-          "note": "階層メニュー化しない。"
+          "note": "studio_work_0189 / v0.18.67 で1階層Context Menu / Range / Override表示を実装。",
+          "completed_at": "2026-08-16T15:42:00+09:00"
         },
         {
           "action_type": "VIEWDEF_SEARCH_STANDARDIZATION",
           "required": true,
-          "status": "PENDING",
+          "status": "COMPLETED",
           "related_ids": [
             "studio_work_0190"
           ],
           "summary": "新規ViewDef生成をCanonical Field / search.visibleへ統一し、代表ViewDefでLegacy Search Section移行を検証する。",
-          "note": "既存全件一括移行はしない。"
+          "note": "studio_work_0190 / v0.18.68で新規ViewDef標準化・代表ViewDef移行を完了。",
+          "completed_at": "2026-08-16T16:03:00+09:00"
         },
         {
           "action_type": "DEFINITION_DRIVEN_SEARCH_TEST",
@@ -27169,7 +27172,7 @@
       "owner": "",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-16T15:01:00+09:00",
-      "updated_at": "2026-08-16T15:19:00+09:00",
+      "updated_at": "2026-08-16T15:42:00+09:00",
       "actual_updated_files": "- wwwroot/js/responsibilities/search_filter.js\n- wwwroot/index.html\n- tests/qa/static/standard_search_filter_operators_phase3.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
       "verification_log": "- Phase 3 SearchFilter専用Test: 12 / 12 PASS。\n- responsibility_refactor_first_step_smoke: PASS。\n- node --check: search_filter.js PASS。\n- 全Static Before: 179 tests / 163 pass / 16 fail。\n- 全Static After: 191 tests / 175 pass / 16 fail。\n- 既存16 FAILは名前まで完全一致し、新規FAILなし。\n- C#変更なし。\n- Phase 3ではSearch UI / 右クリック / 📌は未変更。",
       "context_refs": [],
@@ -27251,7 +27254,7 @@
       "phase": "v0.18.66-standard-search-filter-operators-phase3",
       "title": "標準検索Capability Phase 3 — SearchFilter Operator拡張 / Criteria評価",
       "status": "完了",
-      "follow_up_status": "PENDING",
+      "follow_up_status": "COMPLETED",
       "target_files": "- wwwroot/js/responsibilities/search_filter.js\n- wwwroot/index.html\n- tests/qa/static/standard_search_filter_operators_phase3.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
       "context_def_draft": "# ContextDef素案: 標準検索Capability Phase 3 — SearchFilter Operator拡張 / Criteria評価\n\n## 目的\n- Phase 2で解決したSearch Capabilityを、DOM非依存のSearchFilterで実行可能にする。\n\n## 前提\n- 親: studio_work_0186 / v0.18.64-standard-search-contract-phase1\n- Phase 1のSearchOperatorRegistry契約を正本として継承する。",
       "objective": "- Phase 2で解決したSearch Capabilityを、DOM非依存のSearchFilterで実行可能にする。",
@@ -27270,12 +27273,13 @@
         {
           "action_type": "SEARCH_UI_CONTEXT_MENU",
           "required": true,
-          "status": "PENDING",
+          "status": "COMPLETED",
           "related_ids": [
             "studio_work_0189"
           ],
           "summary": "Phase 4でSearchCapabilityResolver結果とSearchFilter Criteriaを右クリック1階層UI / 📌 / Range UIへ接続する。",
-          "note": "ComboBoxでは検索Operatorと既存の選択肢メンテナンスを区切り線で共存させる。"
+          "note": "Phase 4でSearchCapabilityResolver結果を標準検索UIへ接続し、Range / Context Menu / 📌 / Comboメンテナンス共存を実装。",
+          "completed_at": "2026-08-16T15:42:00+09:00"
         }
       ]
     },
@@ -27283,18 +27287,70 @@
       "incident_type": "enhancement",
       "category": "architecture",
       "priority": "high",
-      "verification_status": "未確認",
-      "context_def_status": "draft",
-      "context_def_updated_at": "2026-08-16T15:01:00+09:00",
+      "verification_status": "Static確認済み / Phase 5 ViewDef標準化待ち",
+      "context_def_status": "implemented",
+      "context_def_updated_at": "2026-08-16T15:42:00+09:00",
       "owner": "",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-16T15:01:00+09:00",
-      "updated_at": "2026-08-16T15:01:00+09:00",
-      "actual_updated_files": "",
-      "verification_log": "",
+      "updated_at": "2026-08-16T16:18:00+09:00",
+      "actual_updated_files": "- data/json/01_main/_studio_work_incident_data_v2.json\n- tests/qa/static/combo_viewdef_maintenance_static.test.mjs\n- tests/qa/static/frb_studio_common_shell_static.test.mjs\n- tests/qa/static/standard_search_contract_phase1.test.mjs\n- tests/qa/static/standard_search_filter_operators_phase3.test.mjs\n- tests/qa/static/standard_search_ui_context_menu_phase4.test.mjs\n- tests/qa/static/studio_json_round_trip_static.test.mjs\n- wwwroot/app.js\n- wwwroot/index.html\n- wwwroot/js/renderers/field_controls.js\n- wwwroot/js/responsibilities/search_filter.js\n- wwwroot/js/runtime/load_runtime.js\n- wwwroot/js/services/option_maintenance_service.js\n- wwwroot/js/services/search_ui_controller.js\n- wwwroot/styles.css",
+      "verification_log": "- Phase 1〜4 focused Static: 41 / 41 PASS。\n- Phase 4専用Staticを含む全Static After: 199 tests / 183 pass / 16 fail。\n- 全Static Before: 191 tests / 175 pass / 16 fail。\n- 既存16 FAILは名前を正規化して比較し同一、新規FAILなし。\n- node --check: search_ui_controller.js / option_maintenance_service.js / field_controls.js / search_filter.js / load_runtime.js / app.js PASS。\n- Static実行で更新された既存Actual/Diff 2ファイルはbaselineへ復元し、成果物差分から除外。\n- C#変更なし。dotnet publish不要。\n- WebView2実機での右クリック操作・見た目はユーザー環境で最終確認対象。",
       "context_refs": [],
-      "discussion_history": [],
-      "decision_log": [],
+      "discussion_history": [
+        {
+          "history_id": "disc_0189_phase4_user_001",
+          "at": "2026-08-16T15:42:00+09:00",
+          "speaker": "user",
+          "topic": "標準検索Phase 4実装依頼",
+          "message": "うぃーーー次お願いしまーーーす\n\nwork_item_id: studio_work_0189 / phase: v0.18.67-standard-search-ui-context-menu-phase4 の作業を依頼。"
+        },
+        {
+          "history_id": "disc_0189_phase4_assistant_complete_001",
+          "at": "2026-08-16T15:57:00+09:00",
+          "speaker": "assistant",
+          "topic": "標準検索Phase 4完了報告",
+          "message": "Phase 4完了。\n\n- 右クリック1階層Operatorメニュー、現在Operator✓、Override時📌を実装。\n- Number / Date / DateTimeのFrom～To検索UIを実装。\n- 検索ComboBoxはOperator群と選択肢メンテナンスを区切り線で共存。通常ComboBoxの既存右クリックは維持。\n- blank / not_blank等をUIからSearchFilterへ接続。\n- Focused Static 41/41 PASS。\n- 全Static 199/183/16、既存16 FAIL同一、新規FAILなし。\n- C#変更なし / publish不要。\n- 次作業: studio_work_0190 / Phase 5。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0189_001",
+          "at": "2026-08-16T15:42:00+09:00",
+          "decision": "SearchCapabilityResolverの実効default/operator listを検索UIの正本とし、Renderer側で型別Operatorを再定義しない。",
+          "reason": "Registry / Resolver / UIの責務を分け、検索語彙の二重管理を防ぐため。"
+        },
+        {
+          "decision_id": "dec_0189_002",
+          "at": "2026-08-16T15:42:00+09:00",
+          "decision": "検索Operator変更Context Menuは1階層とし、現在Operatorを✓、Field固有操作との境界を区切り線で示す。",
+          "reason": "使用者の操作手数を増やさず、検索方法とField固有操作の意味差を視覚化するため。"
+        },
+        {
+          "decision_id": "dec_0189_003",
+          "at": "2026-08-16T15:42:00+09:00",
+          "decision": "標準Operatorから変更した場合のみ📌を表示し、betweenはFrom/To形状そのものが差分を示すため📌必須対象外とする。",
+          "reason": "標準状態を静かに保ち、人間が判断すべき差分だけを画面へ露出するため。"
+        },
+        {
+          "decision_id": "dec_0189_004",
+          "at": "2026-08-16T15:42:00+09:00",
+          "decision": "検索ComboBoxでは既存の直接右クリック起動を抑止し、同じ1階層Menu内の「選択肢メンテナンス」コマンドから既存Serviceを呼ぶ。",
+          "reason": "既存メンテナンス責務を失わず、右クリックイベント競合を避けるため。"
+        },
+        {
+          "decision_id": "dec_0189_005",
+          "at": "2026-08-16T15:42:00+09:00",
+          "decision": "Range UIのFrom/ToはSearchFilterで同一Fieldのbetween Criteria一件へ集約し、Resolved value_familyをCriteriaへ渡す。",
+          "reason": "UI入力個数と検索Criteria責務を分離し、Validation Type由来の型比較を維持するため。"
+        },
+        {
+          "decision_id": "dec_0189_006",
+          "at": "2026-08-16T15:42:00+09:00",
+          "decision": "検索Registry読込失敗時は画面全体を停止せずLegacy検索UIへfallbackする。",
+          "reason": "既存ViewDef/Studio起動の可用性を保ちながら標準検索UIを段階導入するため。"
+        }
+      ],
       "change_history": [
         {
           "at": "2026-08-16T15:01:00+09:00",
@@ -27302,13 +27358,41 @@
           "before": "未登録",
           "after": "studio_work_0189 / v0.18.67-standard-search-ui-context-menu-phase4",
           "reason": "ユーザーがPhase 6まで先に登録し、後続作業を依頼しやすくすることを希望したため。"
+        },
+        {
+          "at": "2026-08-16T15:42:00+09:00",
+          "change_type": "phase4_search_ui_implemented",
+          "before": "Phase 4は構想登録のみ。検索UIはLegacy単一入力、Numberは暗黙gte。",
+          "after": "SearchCapabilityResolver結果から標準検索UIを生成し、Number/Date betweenをFrom/To表示、Operator右クリック変更を実装。",
+          "reason": "Phase 1〜3で固定した検索契約をRuntime UIへ接続するため。"
+        },
+        {
+          "at": "2026-08-16T15:42:00+09:00",
+          "change_type": "context_menu_responsibility_merged",
+          "before": "ComboBox右クリックは選択肢メンテナンスを即時起動。",
+          "after": "検索ComboBoxだけは1階層Context Menuへ検索Operatorと選択肢メンテナンスを区切り線で共存。通常ComboBoxは従来挙動維持。",
+          "reason": "検索Operator選択と既存Field固有操作の右クリック競合を解消するため。"
+        },
+        {
+          "at": "2026-08-16T15:42:00+09:00",
+          "change_type": "search_criteria_range_ui_connected",
+          "before": "SearchFilterはbetween評価可能だが検索UIからFrom/To Criteriaを生成していない。",
+          "after": "From/To入力をdataset searchRoleで識別し、criteriaFromInputsでbetween一件へ集約。",
+          "reason": "Range UIとDOM非依存SearchFilterを責務分離したまま接続するため。"
+        },
+        {
+          "at": "2026-08-16T15:57:00+09:00",
+          "change_type": "phase4_verification_completed",
+          "before": "Phase 4 Runtime UI実装済み / 全Static最終確認前",
+          "after": "Focused 41/41 PASS、全Static 199/183/16、既存16 FAIL同一、新規FAILなし",
+          "reason": "Phase 4のSearch UI / Context Menu / Range Criteria接続が既存Static回帰を増やさないことを確認するため。"
         }
       ],
       "work_item_id": "studio_work_0189",
       "phase": "v0.18.67-standard-search-ui-context-menu-phase4",
       "title": "標準検索Capability Phase 4 — Search UI / 1階層Context Menu / Range / Override表示",
-      "status": "構想",
-      "follow_up_status": "PENDING",
+      "status": "完了",
+      "follow_up_status": "COMPLETED",
       "target_files": "- Phase実装時に現行構造を確認して確定する。\n- foundation_rule_019に従い安定ファイル名・差分ZIP契約を維持する。",
       "context_def_draft": "# ContextDef素案: 標準検索Capability Phase 4 — Search UI / 1階層Context Menu / Range / Override表示\n\n## 目的\n- 標準Operatorを常時露出せず、必要時だけ右クリックで変更できる検索UIへ拡張する。\n\n## 前提\n- 親: studio_work_0186 / v0.18.64-standard-search-contract-phase1\n- Phase 1のSearchOperatorRegistry契約を正本として継承する。",
       "objective": "- 標準Operatorを常時露出せず、必要時だけ右クリックで変更できる検索UIへ拡張する。",
@@ -27321,26 +27405,62 @@
       "risk": "- 後続Phaseの責務を先取りして実装範囲を膨らませない。\n- Legacy ViewDef互換を壊さない。\n- AIは人間承認を代行しない。",
       "test_points": "- 当該Phaseの責務をUI非依存またはStatic Testで固定する。\n- 全Staticの既存FAILを増やさない。\n- JSON更新時はparse確認する。",
       "user_request": "下記インシデントの後続作業フェーズ２をお願いします。先に簡単な内容でいいので、フェーズ６まで、インシデントデータを登録してから作業をお願いします。依頼しにくいので💦　よろしく。",
-      "ai_response": "標準検索Capability Phase 4 — Search UI / 1階層Context Menu / Range / Override表示 を studio_work_0186 の後続Phaseとして先行登録。実装は該当Phase依頼時に行う。",
-      "latest_ai_response": "- 後続Phaseとして先行登録。\n- 未実装。前Phase完了後に着手する。",
-      "follow_up_actions": []
+      "ai_response": "- SearchCapabilityResolverの結果を標準検索UIへ接続する。\n- Number / Dateの標準betweenをFrom/To UIで表示する。\n- 右クリックOperator変更は1階層とし、現在Operatorを✓表示する。\n- 標準から変更した非Range Operatorだけ📌を表示する。\n- ComboBoxの既存選択肢メンテナンスを区切り線下の独立コマンドとして共存させる。",
+      "latest_ai_response": "- Phase 4標準検索UIを実装。\n- SearchCapabilityResolverの結果から、Text / Number / Date / DateTime / Boolean / Selectの検索UIを生成するSearch UI Controllerを追加。\n- Text等は標準Operatorを常時表示せず、右クリック1階層メニューから変更可能。現在Operatorを✓、標準から変更した非Range検索のみ📌表示。\n- Number / Date / DateTimeの標準betweenはFrom～To UIで表示し、Fromのみ=以上、Toのみ=以下、両方=inclusive範囲としてSearch Criteriaへ集約。\n- ComboBox検索では既存の右クリック即時「選択肢メンテナンス」を抑止し、検索Operator群の下へ区切り線付き「⚙ 選択肢メンテナンス...」として共存。通常EditorのComboBoxは従来挙動を維持。\n- blank / not_blank等の値不要Operatorでは入力欄を非表示化し、SearchFilterへOperator状態を渡す。\n- Search clear時はRuntime Operator Overrideも標準へ戻す。\n- Registry / Resolver読込失敗時はLegacy検索UIへfallbackし、画面全体のロードを止めない。\n- Phase 1〜4 focused Static 41/41 PASS。全StaticはBefore 191/175/16 → After 199/183/16で、既存16 FAIL同一・新規FAILなし。\n- 次作業はstudio_work_0190 / Phase 5 ViewDef検索Projection標準化。",
+      "follow_up_actions": [
+        {
+          "action_type": "VIEWDEF_SEARCH_STANDARDIZATION",
+          "required": true,
+          "status": "COMPLETED",
+          "related_ids": [
+            "studio_work_0190"
+          ],
+          "summary": "Phase 5でSearchをCanonical Field DefinitionからのProjectionへ統一し、Legacy Search Section移行を代表ViewDefで検証する。",
+          "note": "studio_work_0190 / v0.18.68でCanonical Search Projection標準化と代表ViewDef移行を完了。",
+          "completed_at": "2026-08-16T16:03:00+09:00"
+        }
+      ]
     },
     {
       "incident_type": "enhancement",
       "category": "architecture",
       "priority": "high",
-      "verification_status": "未確認",
+      "verification_status": "Static確認済み / Phase 6 Definition Driven Search Test待ち",
       "context_def_status": "draft",
-      "context_def_updated_at": "2026-08-16T15:01:00+09:00",
+      "context_def_updated_at": "2026-08-16T16:18:00+09:00",
       "owner": "",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-16T15:01:00+09:00",
-      "updated_at": "2026-08-16T15:01:00+09:00",
-      "actual_updated_files": "",
-      "verification_log": "",
+      "updated_at": "2026-08-16T16:18:00+09:00",
+      "actual_updated_files": "- defs/tools/test_runner_run_config_view_def_v0_1.json\n- defs/tools/git_diff_export_run_config_view_def_v0_1.json\n- data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json\n- data/json/00_rules/_json_creation_prompt.md\n- tests/qa/static/standard_search_viewdef_standardization_phase5.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "verification_log": "- Phase 1〜5 focused Static: 47 / 47 PASS。\n- 全Static Before: 199 tests / 183 pass / 16 fail。\n- 全Static After: 205 tests / 189 pass / 16 fail。\n- 既存16 FAILは名前まで完全一致。\n- 新規FAILなし。\n- Test Runner代表ViewDefはLegacy Search Sectionの5項目をCanonical Grid Fieldへ移行済み。\n- Git Diff代表ViewDefは空Legacy Search Sectionを削除済み。\n- Runtime renderSearchはgridDef().fields[].search.visibleを参照し、Search Sectionを要求しないことをStaticで固定。\n- 更新JSONはparse確認済み。\n- Static実行で更新された既存Actual/Diffはbaselineへ復元し、成果物ZIPから除外。\n- Legacy Search Section残存監査: 3 ViewDef。全件一括移行しない方針どおり。",
       "context_refs": [],
-      "discussion_history": [],
-      "decision_log": [],
+      "discussion_history": [
+        {
+          "at": "2026-08-16T16:03:00+09:00",
+          "speaker": "user",
+          "message": "いい感じ。完璧ぃーー。次よろしくーー\n\n今回の作業依頼:\n- incident_file: data/json/01_main/_studio_work_incident_data_v2.json\n- work_item_id: studio_work_0190\n- phase: v0.18.68-standard-search-viewdef-standardization-phase5"
+        },
+        {
+          "at": "2026-08-16T16:18:00+09:00",
+          "speaker": "assistant",
+          "message": "Phase 5完了。Canonical Search Projectionを新規ViewDef標準として固定し、Test Runner / Git Diffの代表ViewDefを移行。Search Section全件一括削除はせず、LegacyとCanonicalが食い違うViewDefは段階移行とした。Phase 1〜5 focused Static 47/47 PASS、全Static Before 199/183/16 → After 205/189/16、既存16 FAIL同一。次はstudio_work_0191 / Phase 6。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_studio_work_0190_001",
+          "at": "2026-08-16T16:03:00+09:00",
+          "decision": "新規ViewDefではSearch Sectionへ検索Fieldを複製せず、Canonical Grid Fieldのsearch.visibleから検索UIをProjectionする。",
+          "reason": "同一Fieldの定義正本を一か所にし、検索・Grid・Detail間の二重管理と不整合を防ぐため。"
+        },
+        {
+          "decision_id": "dec_studio_work_0190_002",
+          "at": "2026-08-16T16:03:00+09:00",
+          "decision": "Legacy Search Sectionは全件一括変換せず、Test Runnerを代表移行し、Git Diffの空Sectionを除去する段階移行とする。",
+          "reason": "LegacyとCanonicalでsearch設定が食い違うViewDefが存在し、自動変換すると検索項目の意味を勝手に変更する危険があるため。"
+        }
+      ],
       "change_history": [
         {
           "at": "2026-08-16T15:01:00+09:00",
@@ -27348,12 +27468,19 @@
           "before": "未登録",
           "after": "studio_work_0190 / v0.18.68-standard-search-viewdef-standardization-phase5",
           "reason": "ユーザーがPhase 6まで先に登録し、後続作業を依頼しやすくすることを希望したため。"
+        },
+        {
+          "at": "2026-08-16T16:03:00+09:00",
+          "change_type": "implementation",
+          "before": "Legacy Search Sectionが一部ViewDefにField定義を重複保持し、新規生成時の実務指示も二重定義禁止まで明示されていなかった。",
+          "after": "新規ViewDefはCanonical Fieldのsearch.visibleへ統一。Test Runnerの5検索FieldをGrid側へ移行しSearch Section削除、Git Diffの空Search Sectionも削除。生成ルール/作成Promptへ標準化契約を追加。",
+          "reason": "SearchをField DefinitionからのProjectionとして統一し、Phase 6のDefinition Driven Testへ進む前に正本構造を安定させるため。"
         }
       ],
       "work_item_id": "studio_work_0190",
       "phase": "v0.18.68-standard-search-viewdef-standardization-phase5",
       "title": "標準検索Capability Phase 5 — ViewDef検索Projection標準化 / Legacy Search Section移行検証",
-      "status": "構想",
+      "status": "完了",
       "follow_up_status": "PENDING",
       "target_files": "- Phase実装時に現行構造を確認して確定する。\n- foundation_rule_019に従い安定ファイル名・差分ZIP契約を維持する。",
       "context_def_draft": "# ContextDef素案: 標準検索Capability Phase 5 — ViewDef検索Projection標準化 / Legacy Search Section移行検証\n\n## 目的\n- SearchをCanonical Field DefinitionからのProjectionへ統一し、新規ViewDefの二重Field定義を止める。\n\n## 前提\n- 親: studio_work_0186 / v0.18.64-standard-search-contract-phase1\n- Phase 1のSearchOperatorRegistry契約を正本として継承する。",
@@ -27364,12 +27491,23 @@
       "fixed_name_policy": "- Foundation Rule 019の安定ファイル名契約を守る。\n- 既存正本は原則同名更新する。\n- 返却ZIPは変更ファイルのみ。\n- runtime生成物は返却ZIPへ含めない。",
       "module_policy": "- SearchOperatorRegistryを検索Operator語彙の正本とする。\n- Resolver / SearchFilter / UI Renderer / Test Runnerの責務を混ぜない。\n- 現行StudioのRenderer / Responsibility / Registry体系を壊さない。",
       "expected_outputs": "- 新規ViewDef生成をsearch.visible中心の標準へ更新する。\n- 代表ViewDefでLegacy Search SectionからCanonical Field方式への移行を検証する。\n- 既存ViewDef互換を維持する。",
-      "risk": "- 後続Phaseの責務を先取りして実装範囲を膨らませない。\n- Legacy ViewDef互換を壊さない。\n- AIは人間承認を代行しない。",
+      "risk": "- 後続Phaseの責務を先取りして実装範囲を膨らませない。\n- Legacy ViewDef互換を壊さない。\n- AIは人間承認を代行しない。\n- Phase 5後もLegacy Search Sectionは3 ViewDef（thought_difference_analysis_profile / thought_difference_result / thought_evolution_relation_approval）に残る。これは全件一括移行を行わないスコープ判断による意図的残課題。\n- 3件はCanonical側search設定との食い違いがあるため、必要時に人間確認を含む個別移行とする。",
       "test_points": "- 当該Phaseの責務をUI非依存またはStatic Testで固定する。\n- 全Staticの既存FAILを増やさない。\n- JSON更新時はparse確認する。",
       "user_request": "下記インシデントの後続作業フェーズ２をお願いします。先に簡単な内容でいいので、フェーズ６まで、インシデントデータを登録してから作業をお願いします。依頼しにくいので💦　よろしく。",
-      "ai_response": "標準検索Capability Phase 5 — ViewDef検索Projection標準化 / Legacy Search Section移行検証 を studio_work_0186 の後続Phaseとして先行登録。実装は該当Phase依頼時に行う。",
-      "latest_ai_response": "- 後続Phaseとして先行登録。\n- 未実装。前Phase完了後に着手する。",
-      "follow_up_actions": []
+      "ai_response": "Phase 5を完了。新規ViewDefの検索定義をCanonical Field / search.visibleへ標準化し、代表ViewDefのLegacy Search Section移行を実施した。Test RunnerではLegacy 5検索FieldをGrid側へ転記後にSearch Sectionを削除し、Git Diffでは空Search Sectionを削除。生成ルールとJSON作成Promptへ再発防止契約を追加し、既存全件一括変換は行わず段階移行とした。",
+      "latest_ai_response": "- Phase 5 Canonical Search Projection標準化を完了。\n- 新規ViewDefではSearch Sectionへ検索Fieldを複製せず、Canonical Grid Fieldのsearch.visibleを正本とする。\n- Test Runner代表ViewDef: run_config_id / caption / test_runner_id / run_mode / enabled の検索意図をGrid側へ移行し、Legacy Search Sectionを削除。\n- Git Diff代表ViewDef: 既に空だったLegacy Search Sectionを削除。\n- frb_viewdef_generation_rules_data_v0_1.json Rule 36と_json_creation_prompt.mdへ、Search Section/空Search Sectionを新規生成しない契約と段階移行手順を追加。\n- RuntimeのrenderSearchは従来からgridDef().fields[].search.visibleを参照しているため、今回Runtime JS変更なし。Legacy ViewDef全件一括変換も実施しない。\n- Phase 1〜5 focused Static 47/47 PASS。全StaticはBefore 199/183/16 → After 205/189/16、既存16 FAIL名は完全一致・新規FAILなし。\n- C#変更なし / publish不要。\n- 次作業: studio_work_0191 / v0.18.69 Definition Driven Search Test Phase 6。",
+      "follow_up_actions": [
+        {
+          "action_type": "DEFINITION_DRIVEN_SEARCH_TEST",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "studio_work_0191"
+          ],
+          "summary": "Phase 6でSearchCapabilityからTestPattern候補を導出し、Expected / Actual / Diffへ接続する。",
+          "note": "ViewDef Search Projection標準化完了後の次フェーズ。"
+        }
+      ]
     },
     {
       "incident_type": "enhancement",

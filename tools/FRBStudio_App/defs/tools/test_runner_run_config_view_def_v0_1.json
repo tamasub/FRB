@@ -141,93 +141,6 @@
           ]
         },
         {
-          "id": "search",
-          "caption": "検索",
-          "type": "form",
-          "dataPath": "run_configs",
-          "fields": [
-            {
-              "field": "run_config_id",
-              "caption": "Run Config ID",
-              "type": "text",
-              "readonly": false,
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": false
-              },
-              "search": {
-                "visible": true
-              }
-            },
-            {
-              "field": "caption",
-              "caption": "Caption",
-              "type": "text",
-              "readonly": false,
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": false
-              },
-              "search": {
-                "visible": true
-              }
-            },
-            {
-              "field": "test_runner_id",
-              "caption": "Test Runner ID",
-              "type": "text",
-              "readonly": false,
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": false
-              },
-              "search": {
-                "visible": true
-              }
-            },
-            {
-              "field": "run_mode",
-              "caption": "Run Mode",
-              "type": "select",
-              "readonly": false,
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": false
-              },
-              "search": {
-                "visible": true
-              },
-              "options": [
-                "launch",
-                "wait"
-              ]
-            },
-            {
-              "field": "enabled",
-              "caption": "Enabled",
-              "type": "checkbox",
-              "readonly": false,
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": false
-              },
-              "search": {
-                "visible": true
-              }
-            }
-          ]
-        },
-        {
           "id": "grid",
           "caption": "Test Runner Run Config",
           "type": "grid",
@@ -247,7 +160,7 @@
                 "readonly": true
               },
               "search": {
-                "visible": false
+                "visible": true
               }
             },
             {
@@ -263,7 +176,7 @@
                 "visible": true
               },
               "search": {
-                "visible": false
+                "visible": true
               }
             },
             {
@@ -297,7 +210,7 @@
                 "readonly": true
               },
               "search": {
-                "visible": false
+                "visible": true
               }
             },
             {
@@ -313,7 +226,7 @@
                 "visible": true
               },
               "search": {
-                "visible": false
+                "visible": true
               },
               "options": [
                 "launch",
@@ -367,7 +280,7 @@
                 "visible": true
               },
               "search": {
-                "visible": false
+                "visible": true
               }
             },
             {
@@ -391,5 +304,5 @@
       ]
     }
   ],
-  "layout_note": "v0.14.38: Test Runボタンは toolbar.executeButton/action=RunCommandProfile で表示する。Data JSONのcommand_previewは表示専用で、実行正本はProgram.cs側CommandProfileとTestRunner.ps1内の許可済みtest_runner_idとする。\n\nv0.14.39: wait modeのテスト失敗をAction起動エラーと分離するため、output_artifact_pathを表示項目に追加。stdout/stderrはCommandProfile結果ダイアログで確認する。"
+  "layout_note": "v0.14.38: Test Runボタンは toolbar.executeButton/action=RunCommandProfile で表示する。Data JSONのcommand_previewは表示専用で、実行正本はProgram.cs側CommandProfileとTestRunner.ps1内の許可済みtest_runner_idとする。\n\nv0.14.39: wait modeのテスト失敗をAction起動エラーと分離するため、output_artifact_pathを表示項目に追加。stdout/stderrはCommandProfile結果ダイアログで確認する。\n\nv0.18.68: Search Sectionの重複Field定義を廃止し、run_configsの検索対象はGrid側Canonical Fieldの search.visible へ統合。既存5項目（run_config_id / caption / test_runner_id / run_mode / enabled）の検索意図を移行した。"
 }

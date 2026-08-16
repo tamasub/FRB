@@ -498,16 +498,26 @@
     if (!dialog.open) dialog.showModal();
   }
 
+  // Phase 4: Search UIでは右クリックをField Context Menuとして共有する。
+  // 通常ComboBoxは従来どおり直接メンテナンスを開き、検索ComboBoxだけは
+  // StandardSearchUiの1階層Menuへ「選択肢メンテナンス」を合流させる。
+  window.openComboOptionMaintenanceForField = function openComboOptionMaintenanceForField(field) {
+    return openForSelect(null, field);
+  };
+
   window.bindComboOptionMaintenance = function bindComboOptionMaintenance(input, field) {
     if (!input || String(input.tagName).toLowerCase() !== 'select') return input;
     input.__studioOptionMaintenanceField = field;
+    input.__studioOpenOptionMaintenance = () => openForSelect(input, input.__studioOptionMaintenanceField ?? field);
     input.title = input.title || '右クリック: 選択肢メンテナンス';
     if (input.dataset.optionMaintenanceInstalled === '1') return input;
     input.dataset.optionMaintenanceInstalled = '1';
     input.addEventListener('contextmenu', (event) => {
+      // 検索欄はStandardSearchUiのContext Menuが責務を持つため、ここでは開かない。
+      if (input.dataset.standardSearchContextMenu === '1') return;
       event.preventDefault();
       event.stopPropagation();
-      openForSelect(input, input.__studioOptionMaintenanceField ?? field);
+      input.__studioOpenOptionMaintenance();
     });
     return input;
   };

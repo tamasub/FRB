@@ -59,7 +59,7 @@ test('all standard select render paths bind the shared right-click option mainte
   assert.match(service, /source_type === 'viewDefOptions'/);
   assert.match(service, /source_type === 'fieldType'/);
   assert.match(service, /source_type === 'valueVocabulary'/);
-  assert.match(index, /js\/services\/option_maintenance_service\.js\?v=combo-option-maintenance-01854/);
+  assert.match(index, /js\/services\/option_maintenance_service\.js\?v=standard-search-ui-01867/);
 });
 
 test('option source resolution keeps canonical source ownership and deprecates registry values instead of orphaning existing data', () => {
@@ -209,7 +209,7 @@ test('basic-info header visibility follows the same edit.visible contract shown 
 
   assert.match(fieldControls, /function isFieldVisibleInDetail\(field, row=null\)[\s\S]*field\?\.edit\?\.visible === false/);
   assert.match(fieldControls, /function renderHeader\(\)[\s\S]*isFieldVisibleInDetail\(field, sourceData\)/);
-  assert.match(index, /js\/renderers\/field_controls\.js\?v=visibility-contract-audit-01831/);
+  assert.match(index, /js\/renderers\/field_controls\.js\?v=standard-search-ui-01867/);
 });
 
 test('F12 detail commit preserves canonical row identity so the visible Grid receives edits immediately', () => {
@@ -257,6 +257,6 @@ test('ViewDef maintenance section selector exposes Section identity before long 
   const target = json('defs/tools/git_diff_export_run_config_view_def_v0_1.json');
   const catalog = sandbox.viewDefMaintenanceSectionCatalog(target);
   assert.equal(catalog[0].name.startsWith('Git Diff / 基本情報 [form] / '), true);
-  assert.equal(catalog[1].name.startsWith('検索 [form] / '), true);
-  assert.equal(catalog[2].name.startsWith('Git Diff Run Config [grid] / '), true);
+  assert.equal(catalog[1].name.startsWith('Git Diff Run Config [grid] / '), true);
+  assert.equal(catalog.some(item => item.name.startsWith('検索 [form] / ')), false);
 });

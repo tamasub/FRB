@@ -2,7 +2,7 @@
 // ResponsibilityDef: search_filter
 // Search Criteria と対象データから一致行だけを返す薄い責務Interface。
 // DOM入力の読み取りは補助関数へ分離し、判定本体は rows / criteria だけで検証できる形を維持する。
-// Phase 3: SearchOperatorRegistry v0.1 のactive operator
+// Phase 3/4: SearchOperatorRegistry v0.1 のactive operator
 // contains / not_contains / equals / not_equals / gte / lte / between / blank / not_blank
 // をDOM非依存で評価する。date / datetime / instant の比較もここで扱う。
 
@@ -110,8 +110,10 @@ var SearchFilter = (function () {
     return {
       field: field.field,
       type: field.type,
-      operator: operatorFor(field),
+      value_family: input?.dataset?.searchValueFamily || field.type,
+      operator: normalizeOperator(input?.dataset?.searchOperator, operatorFor(field)),
       raw: normalizeRawValue(input),
+      search_role: input?.dataset?.searchRole || 'value',
       fieldDef: field
     };
   }
@@ -128,10 +130,31 @@ var SearchFilter = (function () {
   }
 
   function criteriaFromInputs(inputs = [], fields = []) {
-    return [...inputs]
-      .map(input => criterionFromInput(input, fields))
-      .filter(Boolean)
-      .filter(criterionIsActive);
+    // Phase 4: betweenのFrom/Toは同一Fieldの2入力から1 Criteriaへ集約する。
+    // Legacy単一入力は従来どおり1入力=1 Criteriaとして扱う。
+    const grouped = new Map();
+    for (const input of [...inputs]) {
+      const criterion = criterionFromInput(input, fields);
+      if (!criterion) continue;
+      const role = criterion.search_role || 'value';
+      const key = `${criterion.field}::${criterion.operator}`;
+      if (role === 'from' || role === 'to') {
+        const current = grouped.get(key) ?? {
+          field: criterion.field,
+          type: criterion.type,
+          value_family: criterion.value_family,
+          operator: criterion.operator,
+          from: '',
+          to: '',
+          fieldDef: criterion.fieldDef
+        };
+        current[role] = criterion.raw;
+        grouped.set(key, current);
+      } else {
+        grouped.set(key, criterion);
+      }
+    }
+    return [...grouped.values()].filter(criterionIsActive);
   }
 
   function toFiniteNumber(value) {

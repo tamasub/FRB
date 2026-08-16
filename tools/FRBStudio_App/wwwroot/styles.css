@@ -3670,3 +3670,60 @@ button.viewdef-maintenance-button:disabled {
 .combo-option-maintenance-table tbody tr.selected { background: #dbeafe; }
 .combo-option-maintenance-table tbody tr.deprecated { opacity: .55; text-decoration: line-through; }
 .combo-option-maintenance-actions > div { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ===== v0.18.67-standard-search-ui-context-menu-phase4 ===== */
+#searchSection .standard-search-control-line {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+#searchSection .standard-search-control-host {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+#searchSection .standard-search-range {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+#searchSection .standard-search-range-separator {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  user-select: none;
+}
+#searchSection .standard-search-pin {
+  flex: 0 0 28px;
+  width: 28px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0;
+  border-radius: 8px;
+  background: #fff8e8;
+  border: 1px solid #f6d58a;
+  box-shadow: none;
+  font-size: 13px;
+  line-height: 1;
+}
+#searchSection .standard-search-pin:hover {
+  background: #fff2c9;
+  transform: none;
+}
+.standard-search-context-menu {
+  min-width: 210px;
+}
+.standard-search-context-menu button.current {
+  background: var(--accent-soft);
+  color: #1d4ed8;
+}
+.standard-search-context-menu button.field-command {
+  color: #475467;
+}
+.standard-search-context-separator {
+  height: 1px;
+  margin: 5px 4px;
+  background: var(--line-soft);
+}
