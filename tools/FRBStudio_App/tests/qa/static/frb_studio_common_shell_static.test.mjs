@@ -249,16 +249,47 @@ test('JSON primary save has a visually active enabled state distinct from disabl
   assert.match(shellCss, /\.frb-page-json-object #saveBtn:disabled \{[\s\S]*#aab8c4[\s\S]*#dde8ef/);
 });
 
-test('All Common Shell pages use the p6 visual-foundation cache key', () => {
-  for (const html of [indexHtml, mdHtml, diffHtml, metaHtml, homeHtml]) {
-    assert.match(html, /css\/frb-studio-shell\.css\?v=0185p6/);
-  }
+test('JSON Studio uses the p10 JSON-output-alignment cache key and keeps output controls vertically aligned', () => {
+  assert.match(indexHtml, /css\/frb-studio-shell\.css\?v=0185p10-json-output-align/);
+  assert.match(shellCss, /feedback-4: JSON output actions vertical centering \+ uniform control height/);
+  assert.match(shellCss, /\.frb-page-json-object \.studio-output-dock \.studio-mini-button-singleline,[\s\S]*\.markdown-export-mode-select[\s\S]*height:\s*38px/);
+  assert.match(shellCss, /\.frb-page-json-object \.studio-output-dock,[\s\S]*\.markdown-export-control[\s\S]*align-items:\s*center/);
 });
 
 
-test('JSON Data title shows the FRB icon only when a real title exists', () => {
+test('JSON Data title keeps the J-hook identity visible with the AI collaboration message before Data is loaded', () => {
   assert.match(indexHtml, /\.frb-page-json-object \.current-data-title:not\(:empty\)/);
   assert.match(indexHtml, /json-data-title-icon\.png/);
   assert.match(indexHtml, /\.current-data-title:not\(:empty\)::before/);
+  assert.match(indexHtml, /JSONを、AIとの共通言語に。――\ 構造化されたJSONで、AIとの成果物循環をもっと密に。/);
+  assert.match(indexHtml, /file_api\.js\?v=0185p8-initial-json-title/);
+  assert.match(indexHtml, /white-space: nowrap;[\s\S]*text-overflow: ellipsis;/);
+  assert.match(fileApi, /JSON_STUDIO_INITIAL_DATA_TITLE\s*=\s*["']JSONを、AIとの共通言語に。――\ 構造化されたJSONで、AIとの成果物循環をもっと密に。["']/);
+  assert.match(fileApi, /const actualTitle = String\(currentLoadedDataTitle[\s\S]*const title = actualTitle \|\| JSON_STUDIO_INITIAL_DATA_TITLE/);
   assert.ok(fs.existsSync(path.join(ROOT, 'wwwroot/images/json-data-title-icon.png')));
 });
+
+test('JSON Data title text is vertically centered against its playful J-hook icon', () => {
+  assert.match(indexHtml, /\.current-data-title:not\(:empty\) \{[\s\S]*display: flex;[\s\S]*align-items: center;[\s\S]*min-height: 42px;/);
+  assert.match(indexHtml, /\.current-data-title:not\(:empty\)::before \{[\s\S]*width: 42px;[\s\S]*height: 42px;/);
+});
+
+test('Markdown Studio separates the top menu icon from the Viewer Editor toolbar icon', () => {
+  assert.match(shellCss, /\.frb-shell-nav-link\[data-page="markdown"\] \.frb-shell-nav-icon\.frb-icon-markdown \{[\s\S]*markdown_menu_btn1\.png/);
+  assert.ok(fs.existsSync(path.join(ROOT, 'wwwroot/images/markdown_menu_btn1.png')));
+
+  // The icon at the left of Viewer / Editor is intentionally unchanged.
+  assert.match(mdHtml, /class="logo markdown-studio-app-icon"/);
+  assert.match(mdHtml, /\.markdown-studio-app-icon \{[\s\S]*images\/markdown-studio-icon\.png/);
+  assert.ok(fs.existsSync(path.join(ROOT, 'wwwroot/images/markdown-studio-icon.png')));
+});
+
+test('Diff JSON and MetaDiff left-panel titles use supplied icons with vertically centered title text', () => {
+  assert.match(diffHtml, /frb-panel-title-with-icon[\s\S]*images\/jsondiff-panel-icon\.png[\s\S]*Diff Summary/);
+  assert.match(metaHtml, /frb-panel-title-with-icon[\s\S]*images\/metadiff-panel-icon\.png[\s\S]*AI仮説Markdown/);
+  assert.match(shellCss, /\.frb-panel-title-with-icon \{[\s\S]*display: inline-flex;[\s\S]*align-items: center;/);
+  assert.match(shellCss, /\.frb-panel-title-with-icon > img \{[\s\S]*width: 38px;[\s\S]*height: 38px;/);
+  assert.ok(fs.existsSync(path.join(ROOT, 'wwwroot/images/jsondiff-panel-icon.png')));
+  assert.ok(fs.existsSync(path.join(ROOT, 'wwwroot/images/metadiff-panel-icon.png')));
+});
+

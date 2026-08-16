@@ -2048,6 +2048,14 @@
     body.md-sidecar-comment-editing .md-block-inline-actions { display: none !important; }
 
 
+    /* studio_work_0185 p7: Markdown Studio app icon promoted to the supplied application icon. */
+    .markdown-studio-app-icon {
+      background: #fff url("images/markdown-studio-icon.png") center / cover no-repeat !important;
+      border: 1px solid rgba(116, 129, 196, .16);
+      box-shadow: 0 3px 10px rgba(65, 79, 145, .10);
+      font-size: 0 !important;
+    }
+
     /* studio_work_0185 p4: toolbar responsibility + wider MD drop */
     .topbar .controls { flex: 1 1 auto; min-width: 0; }
     .topbar .control-group.primary-flow { width: 100%; min-width: 0; display:flex; align-items:center; gap:9px; }
@@ -2063,7 +2071,7 @@
     .md-workspace-open-actions { margin-bottom: 6px; }
     .md-workspace-open-actions button { font-size: 10px; }
   </style>
-  <link rel="stylesheet" href="css/frb-studio-shell.css?v=0185p6" />
+  <link rel="stylesheet" href="css/frb-studio-shell.css?v=0185p9-markdown-menu" />
 </head>
 <body data-mode="editor">
   <script src="js/ui/frb_studio_shell.js?v=0185p5"></script>
@@ -2079,7 +2087,7 @@
   <div class="app">
     <header class="topbar">
       <div class="brand">
-        <div class="logo">🎣</div>
+        <div class="logo markdown-studio-app-icon" role="img" aria-label="Markdown Studio"></div>
         <div class="brand-text">
           <div class="brand-title"><strong>FRB Studio</strong><span class="badge">Markdown</span></div>
           <div class="brand-sub">Markdown Viewer & Editor / JSON Object Studio連携</div>

@@ -6,7 +6,7 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-16T00:42:00+09:00",
+  "updated_at": "2026-08-16T09:20:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
@@ -26302,9 +26302,9 @@
       "owner": "",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-15T19:19:00+09:00",
-      "updated_at": "2026-08-16T00:42:00+09:00",
+      "updated_at": "2026-08-16T09:20:00+09:00",
       "target_files": "- wwwroot/index.html\n- wwwroot/mdViewer.html\n- wwwroot/diffJsonViewer.html（実ファイル名は実装前確認）\n- wwwroot/metaDiffViewer.html（実ファイル名は実装前確認）\n- wwwroot/home.html（新規候補）\n- wwwroot/css/* 共通UI基盤（新規候補）\n- wwwroot/js/* 共通Shell基盤（新規候補）\n- data/json/01_main/_studio_work_incident_data_v2.json",
-      "actual_updated_files": "- wwwroot/css/frb-studio-shell.css\n- wwwroot/js/ui/frb_studio_shell.js\n- wwwroot/home.html\n- wwwroot/index.html\n- wwwroot/mdViewer.html\n- wwwroot/DiffJsonViewer.html\n- wwwroot/MetaDiff_HypothesisViewer.html\n- wwwroot/js/core/file_api.js\n- wwwroot/js/runtime/load_runtime.js\n- wwwroot/js/ui/page_setup.js\n- NativeShell/NativeCommandDispatcher.cs\n- NativeShell/native_shell.config.json\n- NativeShell/README.md\n- tests/qa/static/frb_studio_common_shell_static.test.mjs\n- tests/qa/static/markdown_workspace_native_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json\n- wwwroot/images/json-data-title-icon.png",
+      "actual_updated_files": "- wwwroot/css/frb-studio-shell.css\n- wwwroot/js/ui/frb_studio_shell.js\n- wwwroot/home.html\n- wwwroot/index.html\n- wwwroot/mdViewer.html\n- wwwroot/DiffJsonViewer.html\n- wwwroot/MetaDiff_HypothesisViewer.html\n- wwwroot/js/core/file_api.js\n- wwwroot/js/runtime/load_runtime.js\n- wwwroot/js/ui/page_setup.js\n- NativeShell/NativeCommandDispatcher.cs\n- NativeShell/native_shell.config.json\n- NativeShell/README.md\n- tests/qa/static/frb_studio_common_shell_static.test.mjs\n- tests/qa/static/markdown_workspace_native_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json\n- wwwroot/images/json-data-title-icon.png\n- wwwroot/images/markdown-studio-icon.png\n- wwwroot/images/jsondiff-panel-icon.png\n- wwwroot/images/metadiff-panel-icon.png\n- wwwroot/images/markdown_menu_btn1.png\n- tests/qa/static/frb_studio_common_shell_static.test.mjs",
       "context_def_draft": "- FRB Studio全画面に共通のApp Shellを持たせる。ただしiframe/HTML frameではなく、共通HTML部品 + 共通CSS + 共通JSとして実装する。\n- 左上に「FRB Studio」を固定表示し、クリックでHomeへ戻れること。\n- 画面名は共通Shell直下の統一位置・統一階層で表示する。\n- 画面責務に応じてカラム数は変えてよい。Markdown Studioは3列、JSON Object Studio / Diff JSON Viewer / MetaDiff Viewerは基本2列とする。\n- 視覚テーマは案B「モダンミディアム」を基準にし、黒を弱めた濃紺/青灰色のShellと、明るい作業面を組み合わせる。\n- Markdown Studioでは左Workspaceと右INDEX/コメント/メタの補助領域を淡いグリーン系で統一する。\n- 将来はVS Codeのようにテーマ切替可能な構造を目指すが、現時点では1テーマを完成させる。\n- Common Shellの機能名称行（JSON Object Studio / Markdown Studio / Diff JSON Viewer / MetaDiff Viewer）は、トップナビ直下へ固定し、本文スクロールで消えない。\n- JSON Object Studioの左ソース領域は「内容高カード」ではなく、共通ヘッダー直下から画面下端までを占有する左固定レールとして扱う。\n- JSON Object StudioではDATA JSONを主要操作対象としてViewDefより上に置き、左ペイン表示語「対象JSON / 対象Drop」は「DATA JSON」へ統一する。\n- Markdown Workspaceの前回フォルダー復元は、JSが任意の絶対パスを再Grantする方式にせず、NativeShellが過去の明示選択Grantをpersist_keyで復元する汎用契約とする。\n- JSON Studioのドキュメントメタは左固定レール下部に置き、DataタイトルToolbarからファイルパスを分離する。\n- Markdown Studioの上部操作帯（Viewer / Editor / MD Drop / 上書き / 保存検査 / 名前保存）はCommon Pagebar直下へsticky固定し、長文末尾編集時も常時操作可能とする。\n- JSON Primary Saveは読込完了後にreadonly契約だけでdisable判定し、WebView2キャッシュで旧load_runtime.jsを掴まないよう更新時はruntime scriptのcache keyを更新する。\n- Visual Foundationの補助面は画面アクセントに合わせ、JSON=淡い水色、Markdown=淡い緑（現状維持）、Diff JSON=淡いオレンジ、MetaDiff=淡いオレンジ紫とする。\n- JSON Primary Saveは機能上のenabled/disabledだけでなく、視覚上も操作可否を誤認しないコントラスト差を持たせる。\n- Front MatterはMarkdown Documentの一部であり、生成・フォーム編集された時点でCanonical Markdownへ即時反映する。\n- Front Matter編集に「本文へ反映」の中間操作を要求しない。保存操作はFront Matter + Bodyを含むDocument全体の永続化だけを担う。\n- Front Matterだけ存在しBodyが空のDocumentへ最初の行/Raw Markdownを追加しても、Front Matterを保持してBodyだけを変更する。",
       "objective": "- FRB Studioを複数の独立HTMLツールの集合ではなく、同一製品の複数Studio/Viewerとして認識できる外観へ統一する。\n- 全画面からHomeへ戻れる共通導線を設ける。\n- JSON Object Studio / Markdown Studio / Diff JSON Viewer / MetaDiff Viewerの画面名・タイトル階層・ナビゲーションを統一する。\n- JSON Object Studioの初期状態へ戻る手段を追加する。\n- JSON Object Studioの濃色ヘッダーと明色本文の断絶を緩和し、Markdown Studioとの雰囲気差を中間へ寄せる。\n- 画面ごとの責務に合った2列/3列レイアウト契約を明示する。",
       "background": "NativeShell化とMarkdown Workspace化により、FRB Studioは単一JSONエディターから複数の実用画面を持つデスクトップアプリへ広がった。一方、JSON Object Studio / Markdown Studio / Diff JSON Viewer / MetaDiff Viewerはタイトル位置、色、戻る導線、レイアウト、初期化手段がそれぞれ異なり、別アプリの集合に見える状態になっている。特にDiff JSON / MetaDiffはHomeへの帰還導線がなく、JSON Object Studioには画面内の初期状態へ戻る操作がない。デザイン検討では案B「モダンミディアム」を採用し、黒を弱めた濃紺系Shellと明るい作業面を基本とする方向で合意した。",
@@ -26314,12 +26314,12 @@
       "module_policy": "- 共通Shell責務: App名、Home遷移、Studio/Viewerナビゲーション、ページタイトル共通枠、共通Visual Token。\n- 各画面責務: 実際のEditor/Viewer操作、固有ツールバー、固有カラム内容。\n- レイアウトは責務ベースで決める。統一感のために画面構造を無理に同一化しない。\n- CSSは共通Token/Component層と画面固有Accent層を分ける。\n- 将来Theme切替を可能にするため、色値の直書きを減らしCSS Custom Properties等へ寄せる。",
       "expected_outputs": "- 全画面左上にFRB Studioが同じ位置/雰囲気で表示される。\n- FRB StudioクリックでHomeへ戻れる。\n- Homeから4画面へ移動できる。\n- 4画面の画面名が統一位置・統一タイポグラフィで表示される。\n- Diff JSON / MetaDiffから迷わずHomeへ戻れる。\n- JSON Object Studioで「この画面の初期状態へ戻す」が機能する。\n- JSON Object Studioは左細/右広の2列になり、右端の補助第3列を前提としない。\n- Markdown Studioは3列を維持し、左Workspaceと右補助ペインが淡いグリーン系で視覚的に対応する。\n- Diff JSON / MetaDiffは基本2列で統一Shellへ収まる。\n- JSON Object Studio上部の濃色と本文背景の不整合が緩和される。\n- 画面ごとのアクセントは残しつつ、同じFRB Studio製品に見える。\n- 共通の機能名称行はトップナビ直下に固定され、長いJSON一覧を縦スクロールしても現在画面名が常時見える。\n- JSON Object Studioの左ペインは画面左端に固定された縦フルハイトのレールとして表示される。\n- JSON Object Studioの左ペインではDATA JSONが画面定義JSONより先に表示され、DropもDATA JSONが先に表示される。\n- 左ペイン上の「対象JSON」「対象Drop」という表示語は使用しない。\n- JSON Object StudioのDATA JSON/画面定義JSONツリーピッカーは左固定レールにクリップされず、メイン領域側へ重なって表示できる。\n- Markdown StudioのWorkspace内ファイル/フォルダー移動完了後は、中央Documentのドラッグ候補点線を含むDrag UI状態が残留しない。\n- Diff JSON / MetaDiffのボタンはMarkdown Studioに寄せた丸みのある淡色ボタン基盤で表示する。\n- Diff JSONの左Summary列だけをMarkdown Studio左サイドバー相当の淡いグリーン系とする。MetaDiffの2列配色は変更しない。\n- Markdown Studioのフロントマター未設定通知はグレー系へトーンダウンし、自動生成ボタンは淡いピンク系とする。\n- Markdown Studio再起動時、前回ユーザーが明示選択したWorkspaceが存在する場合は自動復元される。\n- JSON Object Studioの通常Data / ViewDefメンテナンス読込後に保存ボタンが有効化される（readonly/Related Gridは既存制約を維持）。\n- JSON DataタイトルToolbarはタイトルを左寄せして高さを抑え、ファイル名/パスは左レール下部メタへ分離される。\n- Markdown上部中央には横長MD Drop領域があり、フォルダー/外部ファイルOpenはWorkspace側へ配置される。\n- Markdown長文を最下部までスクロールしても上部操作帯と上書きボタンがCommon Pagebar直下に表示され続ける。\n- 通常Data JSON / ViewDefメンテナンス読込後、readonly/Related Gridでない限りPrimary Saveボタンが押せる。\n- JSON Object Studio左レールは淡い水色、Markdown補助ペインは淡い緑、Diff JSON左Summary列は淡いオレンジ、MetaDiff左AI仮説列は淡いオレンジ紫で、上部モジュールアクセント色と対応する。\n- JSON Primary Saveはenabled時に濃い青文字 + 淡い水色背景 + 明瞭な枠/hoverを持ち、disabled時の薄い表示と明確に区別できる。",
       "risk": "- 共通CSSを強く当てすぎると既存画面の細かなレイアウト/イベント領域へ副作用が出る。\n- JSON Object Studioは既存UI密度が高いため、2列化で情報を削るのではなく配置変更として扱う必要がある。\n- Markdown Studioは3列が責務上必要であり、全画面2列という誤った共通化をしない。\n- Home/初期化を混同しない。Homeは画面遷移、初期状態へ戻すは現在画面の状態リセット。\n- 色だけを統一して既存の機能別識別性を失わないよう、画面別Accentを保持する。\n- テーマ将来対応を理由に現時点のCSS抽象化を過剰化しない。\n- 左ペインは前回の「内容高」判断を今回のフルハイト固定レール判断で上書きした。将来の再修正では最新decision_logを優先する。\n- sticky共通ヘッダーは画面幅縮小時に高さが変わるため、JSで実高さを計測する。NativeShell実機で狭幅時も確認が必要。\n- folderGrant永続化はNativeShell C#変更のため、差分適用後はdotnet publishが必要。\n- 永続Grantは `%LOCALAPPDATA%` のStudio設定のみを変更し、選択したWorkspace内へ設定ファイルを生成しない。\n- 保存ボタン再同期はRelated Gridの親画面保存契約を上書きしないよう、Related Grid側の後段disableを維持する。\n- Markdown本文を全置換する編集経路では、Front Matterを含むCanonical Document全体を意図せず破棄しないこと。特にempty_documentの初回Body挿入はFront Matter保持を必須とする。",
-      "test_points": "- 共通Shellが4画面すべてで表示される。\n- 各ナビゲーションから対象画面へ遷移できる。\n- FRB Studio / HomeボタンでHomeへ戻れる。\n- 現在画面のナビ項目だけActive表示になる。\n- JSON Object Studio初期化で画面定義/対象JSON/表示状態が期待する初期状態へ戻る。\n- Markdown StudioのWorkspace/Current Document/Sidecar状態を共通Shell導入で壊さない。\n- JSON Object Studioの読込/編集/保存/ViewDef操作を2列化で壊さない。\n- Diff JSON / MetaDiffのOpen/Drop/表示/検索を壊さない。\n- 主要解像度でMarkdown 3列 / 他画面2列が破綻しない。\n- 共通CSS読み込み前後でNative Bridge契約に差分がない。\n- Markdown StudioでViewer / Editor切替が残り、Qiita / Zenn / Darkテーマ切替UIが表示されない。\n- 共通ナビ4画面が画面別色付きアイコンで識別できる。\n- JSON Object Studioの左ペインが内容高で終わり、下方向へ大きな空白領域を予約しない。\n- JSON Object Studioの右メインが利用可能な横幅を使い切り、Header/Search/Gridに不要な右空白が残らない。\n- 全画面で機能名称行がCommon Shell直下にsticky固定される。\n- JSON Object Studio左レールが共通Shell + 機能名称行の直下から100dvh下端まで占有する。\n- DATA JSON入力が画面定義JSON入力より前に存在する。\n- DATA JSON Dropが画面定義JSON Dropより前に存在する。\n- 左ペイン可視ラベルに「対象JSON」「対象Drop」が残らない。\n- DATA JSON/画面定義JSONのツリーピッカーが左レール幅でクリップされない。\n- Markdown Workspace内移動のdrop/dragend後に `drag-over` / `drag-target` が残らない。\n- Diff JSON / MetaDiffのFile選択を含むボタンが14px角丸・淡色系になる。\n- Diff JSON左列のみ淡いグリーン系になる。MetaDiffは左列色を変更しない。\n- Front Matter未設定カードがグレー系、設定ヘッダー自動生成ボタンが淡いピンク系になる。\n- Markdown Workspaceを選択後NativeShellを再起動し、同フォルダーがダイアログなしで復元されること。\n- Persisted Folder Grantは過去に選択済みのpersist_keyだけを復元し、JSから任意絶対パスをGrantできないこと。\n- 通常Data JSON読込後に上書き保存ボタンが有効になること。\n- ViewDefメンテナンス開始後に上書き保存ボタンが有効になること。\n- Related Grid / readonly起動では既存どおり保存が抑止されること。\n- JSON左下メタの保存ファイル名hoverでフルパスが確認でき、文字数が表示されること。\n- Markdownメタに読了目安 / Block Modelが表示されないこと。\n- Markdown長文を下端までスクロールし、上書きボタンを画面上部から移動せず押せること。\n- WebView2再起動後、通常Data JSON読込で上書き保存ボタンが有効になること。\n- ViewDefメンテナンス開始後も上書き保存ボタンが有効になること。\n- Related Grid / readonly起動では保存抑止が維持されること。\n- JSON Primary Saveがenabled時に視覚的にactiveと認識でき、disabled時と混同しないこと。\n- JSON左レール/Markdown補助ペイン/Diff左Summary/MetaDiff左AI仮説列が各モジュールの青/緑/橙/紫アクセントに対応した淡色面で表示されること。\n- Front Matterが存在するMarkdownでフォームを変更し「本文へ反映」を押さずにWorkspace上書き / External・Drop上書き / Managed保存 / 名前保存しても、フォーム最新値が保存されること。\n- Front Matter自動生成後、本文が空のまま「＋上 / ＋下」で最初の行を挿入してもFront Matterが消えない。\n- Front MatterフォームのTitle/Emoji/Type/Topics/Published変更が「本文へ反映」操作なしでCanonical Markdownへ即時反映される。\n- Front Matter UIに「本文へ反映」ボタンが存在しない。\n- Front MatterのみのDocumentへRaw Markdownで最初のBodyを入力してもFront Matterが残る。\n- JSON Dataタイトルが空の初期状態ではFRBアイコンが表示されず、タイトル表示時はData種類に関係なくタイトル左へFRBアイコンが表示されること。",
-      "verification_log": "- ユーザー実機フィードバック:\n  - MarkdownのViewer / Editorは必要。Qiita/Zenn切替は不要。\n  - 共通タブは単色プレースホルダーではなく色付きアイコンが期待。\n  - JSON 2列化は左下・右側に不要空白が残り、メイン幅を使い切れていなかった。\n- Static確認:\n  - Common Shell専用 13/13 PASS。\n  - node --check: frb_studio_shell.js OK。\n- Regression比較:\n  - Before: 127 tests / 114 pass / 13 fail。\n  - After: 131 tests / 118 pass / 13 fail。\n  - 13 FAILは修正前後で完全一致。\n- Runtime生成物:\n  - Static実行で更新されたActual/Diffは最新ZIP基準へ復元し、返却差分へ混入させない。\n- 実機確認:\n  - 修正版NativeShell / WebView2の見栄えはユーザー実機再確認待ち。\n- 2026-08-15 20:22 実機フィードバック第2弾対応:\n  - 左ペインを内容高からフルハイト固定レールへ契約変更。\n  - Common Pagebarをトップナビ直下stickyへ変更。\n  - DATA JSONをViewDefより上へ配置し、DATA JSON Dropも先行配置。\n  - 左ペイン表示語「対象JSON / 対象Drop」を廃止。\n- Static確認:\n  - Common Shell専用 15/15 PASS。\n  - Before: 131 tests / 118 pass / 13 fail。\n  - After: 133 tests / 120 pass / 13 fail。\n  - 13 FAILは修正前後で完全一致。\n  - node --check: frb_studio_shell.js OK。\n- 実機確認:\n  - 更新後NativeShell / WebView2のsticky位置・左レール見栄えはユーザー再確認待ち。\n- 2026-08-15 20:40 実機フィードバック第3弾対応:\n  - JSON左レール内のFile Tree Pickerがレール幅でクリップされる事象を修正。\n  - Markdown Workspace内移動後に中央Documentへ緑点線が残るDrag UI残留を修正。\n  - Diff JSON / MetaDiffのボタンをMarkdown Studio系の丸み・淡色スタイルへ統一。\n  - Diff JSON左列のみ淡いグリーン系へ変更。MetaDiffは配色維持。\n  - Markdown Front Matter未設定カードをグレー系、自動生成ボタンを淡いピンク系へ変更。\n- Static確認:\n  - Common Shell専用 19/19 PASS。\n  - 全Static Before: 133 tests / 120 pass / 13 fail。\n  - 全Static After: 137 tests / 124 pass / 13 fail。\n  - 既存13 FAILは修正前後で完全一致。\n  - mdViewer / DiffJsonViewer / MetaDiff / index inline JS構文確認 OK。\n  - frb_studio_shell.js 構文確認 OK。\n- NativeShell実機再確認待ち。\n- 2026-08-15 21:20 実機フィードバック第4弾対応:\n  - Markdown Open操作をWorkspace側へ移動し、上部MD Dropを横長化。\n  - Generic Persisted Folder Grant (`folderGrant.restore`) を追加し、Markdown前回Workspace復元を実装。\n  - JSON通常Data / ViewDefメンテナンスの保存ボタン状態を読込完了後に再同期。\n  - JSON Dataタイトル/Output toolbarをコンパクト化し、Document Metaを左レール下部へ移動。\n  - Markdown Document Metaを保存ファイル名 + 文字数へ簡素化しtooltipを追加。\n- Static確認:\n  - Common Shell + Markdown Workspace関連: 33/33 PASS。\n  - 全Static Before: 161 tests / 148 pass / 13 fail。\n  - 全Static After: 166 tests / 153 pass / 13 fail。\n  - 既存13 FAILは修正前後で完全一致。\n  - index / mdViewer inline JS、load_runtime.js、file_api.js、frb_studio_shell.js 構文確認 OK。\n- NativeShell C#:\n  - 実行環境にdotnetがないためbuild未実施。Windows側で `dotnet publish -c Release` と実機復元確認が必要。\n- 2026-08-15 21:43 実機フィードバック第5弾対応:\n  - JSON Primary SaveのWebView2 subresource cache keyを更新し、修正済みload_runtime.jsを確実に読ませる。\n  - ViewDefメンテナンス完了後にもPrimary Save状態を再同期。\n  - Markdown操作帯をCommon Pagebar直下へsticky固定し、左右サイドバーのsticky開始位置を操作帯実高さへ追従。\n- Static確認:\n  - Common Shell + Markdown Workspace関連: 35/35 PASS。\n  - 全Static Before: 142 tests / 127 pass / 15 fail。\n  - 全Static After: 144 tests / 129 pass / 15 fail。\n  - 既存15 FAILは修正前後で完全一致。\n  - load_runtime.js / page_setup.js / frb_studio_shell.js、index / mdViewer inline JS構文確認 OK。\n- NativeShell実機再確認待ち。\n- 2026-08-15 22:02 実機フィードバック第6弾対応:\n  - JSON Primary Saveは機能上押せていたが、disabled相当の薄い見た目で操作不能と誤認されていたため、有効/無効のVisual Stateを明確化。\n  - JSON左レールを淡い水色、Diff JSON左Summary列を淡いオレンジ、MetaDiff左AI仮説列を淡いオレンジ紫へ変更。Markdownは淡い緑を維持。\n  - Common Shell CSS cache keyを0185p6へ更新。\n- Static確認:\n  - Common Shell専用 29/29 PASS。\n  - 全Static Before: 144 tests / 129 pass / 15 fail。\n  - 全Static After: 147 tests / 132 pass / 15 fail。\n  - 既存15 FAILは修正前後で完全一致。\n- NativeShell実機で色味/保存ボタンVisual Stateの再確認待ち。\n- 2026-08-15 23:10 Front Matter Canonical化:\n  - Markdown専用Static 12/12 PASS。\n  - 全Static Before 172/156/16 → After 174/158/16。\n  - 既存16 FAILは名前まで完全一致。\n  - mdViewer inline JS構文確認OK。\n  - replaceMarkdownBodyPreservingFrontMatter()を実行し、Front MatterのみのDocumentへ最初の本文を追加しても設定ヘッダーが保持されることを確認。",
-      "user_request": "FRB Studio全体の見栄えを統一したい。左上トップにFRB Studioを置いてHomeへ戻れるようにし、JSON Object Studio / Markdown Studio / Diff JSON / MetaDiffの画面名を統一位置で表示する。デザインは案Bを基準に黒を弱める。Markdown Studioは3列、JSON Studioは2列、Diff/MetaDiffも基本2列。JSON Studioは左細・右広の大きな2列構成で決定。",
-      "ai_response": "- 共通CSS + 共通JSのCommon UI Shellを実装。\n- Home画面を追加。\n- JSON=2列、Markdown=3列、Diff/MetaDiff=2列を責務別に適用。\n- Home遷移と画面初期化を別操作として実装。\n- Native Bridge / API / ViewDef / Data / Sidecar契約は変更していない。",
-      "latest_user_comment": "ありがとう。次、遊び心を入れる笑　JSONデータのタイトル文字列の前に、添付のアイコンを表示してほしい。データのタイトルを表示する時に、どんなタイトルでもこのアイコンを表示する。だから、初期状態の時は、このアイコンはでていない状態にしたい。よろしく笑",
-      "latest_ai_response": "- JSON Dataタイトル左に添付FRBアイコンを表示するVisual Accentを追加。\n- タイトルが空の初期状態では非表示、Dataタイトルが存在する場合のみ表示する。\n- Data/ViewDef種類に依存せず、タイトル文字列が表示されるすべてのJSON Dataへ共通適用。\n- アイコンは表示用256px PNGとして同梱し、読込/タイトル決定ロジックには変更を加えない。\n- Common Shell専用Static 30/30 PASS。全StaticはBefore 150/135/15 → After 151/136/15、既存FAIL件数維持。",
+      "test_points": "- 共通Shellが4画面すべてで表示される。\n- 各ナビゲーションから対象画面へ遷移できる。\n- FRB Studio / HomeボタンでHomeへ戻れる。\n- 現在画面のナビ項目だけActive表示になる。\n- JSON Object Studio初期化で画面定義/対象JSON/表示状態が期待する初期状態へ戻る。\n- Markdown StudioのWorkspace/Current Document/Sidecar状態を共通Shell導入で壊さない。\n- JSON Object Studioの読込/編集/保存/ViewDef操作を2列化で壊さない。\n- Diff JSON / MetaDiffのOpen/Drop/表示/検索を壊さない。\n- 主要解像度でMarkdown 3列 / 他画面2列が破綻しない。\n- 共通CSS読み込み前後でNative Bridge契約に差分がない。\n- Markdown StudioでViewer / Editor切替が残り、Qiita / Zenn / Darkテーマ切替UIが表示されない。\n- 共通ナビ4画面が画面別色付きアイコンで識別できる。\n- JSON Object Studioの左ペインが内容高で終わり、下方向へ大きな空白領域を予約しない。\n- JSON Object Studioの右メインが利用可能な横幅を使い切り、Header/Search/Gridに不要な右空白が残らない。\n- 全画面で機能名称行がCommon Shell直下にsticky固定される。\n- JSON Object Studio左レールが共通Shell + 機能名称行の直下から100dvh下端まで占有する。\n- DATA JSON入力が画面定義JSON入力より前に存在する。\n- DATA JSON Dropが画面定義JSON Dropより前に存在する。\n- 左ペイン可視ラベルに「対象JSON」「対象Drop」が残らない。\n- DATA JSON/画面定義JSONのツリーピッカーが左レール幅でクリップされない。\n- Markdown Workspace内移動のdrop/dragend後に `drag-over` / `drag-target` が残らない。\n- Diff JSON / MetaDiffのFile選択を含むボタンが14px角丸・淡色系になる。\n- Diff JSON左列のみ淡いグリーン系になる。MetaDiffは左列色を変更しない。\n- Front Matter未設定カードがグレー系、設定ヘッダー自動生成ボタンが淡いピンク系になる。\n- Markdown Workspaceを選択後NativeShellを再起動し、同フォルダーがダイアログなしで復元されること。\n- Persisted Folder Grantは過去に選択済みのpersist_keyだけを復元し、JSから任意絶対パスをGrantできないこと。\n- 通常Data JSON読込後に上書き保存ボタンが有効になること。\n- ViewDefメンテナンス開始後に上書き保存ボタンが有効になること。\n- Related Grid / readonly起動では既存どおり保存が抑止されること。\n- JSON左下メタの保存ファイル名hoverでフルパスが確認でき、文字数が表示されること。\n- Markdownメタに読了目安 / Block Modelが表示されないこと。\n- Markdown長文を下端までスクロールし、上書きボタンを画面上部から移動せず押せること。\n- WebView2再起動後、通常Data JSON読込で上書き保存ボタンが有効になること。\n- ViewDefメンテナンス開始後も上書き保存ボタンが有効になること。\n- Related Grid / readonly起動では保存抑止が維持されること。\n- JSON Primary Saveがenabled時に視覚的にactiveと認識でき、disabled時と混同しないこと。\n- JSON左レール/Markdown補助ペイン/Diff左Summary/MetaDiff左AI仮説列が各モジュールの青/緑/橙/紫アクセントに対応した淡色面で表示されること。\n- Front Matterが存在するMarkdownでフォームを変更し「本文へ反映」を押さずにWorkspace上書き / External・Drop上書き / Managed保存 / 名前保存しても、フォーム最新値が保存されること。\n- Front Matter自動生成後、本文が空のまま「＋上 / ＋下」で最初の行を挿入してもFront Matterが消えない。\n- Front MatterフォームのTitle/Emoji/Type/Topics/Published変更が「本文へ反映」操作なしでCanonical Markdownへ即時反映される。\n- Front Matter UIに「本文へ反映」ボタンが存在しない。\n- Front MatterのみのDocumentへRaw Markdownで最初のBodyを入力してもFront Matterが残る。\n- Data JSON未読込の初期状態ではJ＋釣り針アイコンと初期キャッチコピーが表示され、Data JSON読込後は実Dataタイトルへ置換されること。初期キャッチコピーがcurrentLoadedDataTitle等の実Data内部状態へ混入しないこと。\n- Markdown上部Common Shellメニューのみ markdown_menu_btn1.png を使用し、Viewer / Editor左の markdown-studio-icon.png は維持されること。",
+      "verification_log": "- ユーザー実機フィードバック:\n  - MarkdownのViewer / Editorは必要。Qiita/Zenn切替は不要。\n  - 共通タブは単色プレースホルダーではなく色付きアイコンが期待。\n  - JSON 2列化は左下・右側に不要空白が残り、メイン幅を使い切れていなかった。\n- Static確認:\n  - Common Shell専用 13/13 PASS。\n  - node --check: frb_studio_shell.js OK。\n- Regression比較:\n  - Before: 127 tests / 114 pass / 13 fail。\n  - After: 131 tests / 118 pass / 13 fail。\n  - 13 FAILは修正前後で完全一致。\n- Runtime生成物:\n  - Static実行で更新されたActual/Diffは最新ZIP基準へ復元し、返却差分へ混入させない。\n- 実機確認:\n  - 修正版NativeShell / WebView2の見栄えはユーザー実機再確認待ち。\n- 2026-08-15 20:22 実機フィードバック第2弾対応:\n  - 左ペインを内容高からフルハイト固定レールへ契約変更。\n  - Common Pagebarをトップナビ直下stickyへ変更。\n  - DATA JSONをViewDefより上へ配置し、DATA JSON Dropも先行配置。\n  - 左ペイン表示語「対象JSON / 対象Drop」を廃止。\n- Static確認:\n  - Common Shell専用 15/15 PASS。\n  - Before: 131 tests / 118 pass / 13 fail。\n  - After: 133 tests / 120 pass / 13 fail。\n  - 13 FAILは修正前後で完全一致。\n  - node --check: frb_studio_shell.js OK。\n- 実機確認:\n  - 更新後NativeShell / WebView2のsticky位置・左レール見栄えはユーザー再確認待ち。\n- 2026-08-15 20:40 実機フィードバック第3弾対応:\n  - JSON左レール内のFile Tree Pickerがレール幅でクリップされる事象を修正。\n  - Markdown Workspace内移動後に中央Documentへ緑点線が残るDrag UI残留を修正。\n  - Diff JSON / MetaDiffのボタンをMarkdown Studio系の丸み・淡色スタイルへ統一。\n  - Diff JSON左列のみ淡いグリーン系へ変更。MetaDiffは配色維持。\n  - Markdown Front Matter未設定カードをグレー系、自動生成ボタンを淡いピンク系へ変更。\n- Static確認:\n  - Common Shell専用 19/19 PASS。\n  - 全Static Before: 133 tests / 120 pass / 13 fail。\n  - 全Static After: 137 tests / 124 pass / 13 fail。\n  - 既存13 FAILは修正前後で完全一致。\n  - mdViewer / DiffJsonViewer / MetaDiff / index inline JS構文確認 OK。\n  - frb_studio_shell.js 構文確認 OK。\n- NativeShell実機再確認待ち。\n- 2026-08-15 21:20 実機フィードバック第4弾対応:\n  - Markdown Open操作をWorkspace側へ移動し、上部MD Dropを横長化。\n  - Generic Persisted Folder Grant (`folderGrant.restore`) を追加し、Markdown前回Workspace復元を実装。\n  - JSON通常Data / ViewDefメンテナンスの保存ボタン状態を読込完了後に再同期。\n  - JSON Dataタイトル/Output toolbarをコンパクト化し、Document Metaを左レール下部へ移動。\n  - Markdown Document Metaを保存ファイル名 + 文字数へ簡素化しtooltipを追加。\n- Static確認:\n  - Common Shell + Markdown Workspace関連: 33/33 PASS。\n  - 全Static Before: 161 tests / 148 pass / 13 fail。\n  - 全Static After: 166 tests / 153 pass / 13 fail。\n  - 既存13 FAILは修正前後で完全一致。\n  - index / mdViewer inline JS、load_runtime.js、file_api.js、frb_studio_shell.js 構文確認 OK。\n- NativeShell C#:\n  - 実行環境にdotnetがないためbuild未実施。Windows側で `dotnet publish -c Release` と実機復元確認が必要。\n- 2026-08-15 21:43 実機フィードバック第5弾対応:\n  - JSON Primary SaveのWebView2 subresource cache keyを更新し、修正済みload_runtime.jsを確実に読ませる。\n  - ViewDefメンテナンス完了後にもPrimary Save状態を再同期。\n  - Markdown操作帯をCommon Pagebar直下へsticky固定し、左右サイドバーのsticky開始位置を操作帯実高さへ追従。\n- Static確認:\n  - Common Shell + Markdown Workspace関連: 35/35 PASS。\n  - 全Static Before: 142 tests / 127 pass / 15 fail。\n  - 全Static After: 144 tests / 129 pass / 15 fail。\n  - 既存15 FAILは修正前後で完全一致。\n  - load_runtime.js / page_setup.js / frb_studio_shell.js、index / mdViewer inline JS構文確認 OK。\n- NativeShell実機再確認待ち。\n- 2026-08-15 22:02 実機フィードバック第6弾対応:\n  - JSON Primary Saveは機能上押せていたが、disabled相当の薄い見た目で操作不能と誤認されていたため、有効/無効のVisual Stateを明確化。\n  - JSON左レールを淡い水色、Diff JSON左Summary列を淡いオレンジ、MetaDiff左AI仮説列を淡いオレンジ紫へ変更。Markdownは淡い緑を維持。\n  - Common Shell CSS cache keyを0185p6へ更新。\n- Static確認:\n  - Common Shell専用 29/29 PASS。\n  - 全Static Before: 144 tests / 129 pass / 15 fail。\n  - 全Static After: 147 tests / 132 pass / 15 fail。\n  - 既存15 FAILは修正前後で完全一致。\n- NativeShell実機で色味/保存ボタンVisual Stateの再確認待ち。\n- 2026-08-15 23:10 Front Matter Canonical化:\n  - Markdown専用Static 12/12 PASS。\n  - 全Static Before 172/156/16 → After 174/158/16。\n  - 既存16 FAILは名前まで完全一致。\n  - mdViewer inline JS構文確認OK。\n  - replaceMarkdownBodyPreservingFrontMatter()を実行し、Front MatterのみのDocumentへ最初の本文を追加しても設定ヘッダーが保持されることを確認。\n- 2026-08-16 01:04 実機フィードバック第10弾 / アイコン統一:\n  - JSON DataタイトルのJ＋釣り針アイコンを42pxへ調整し、タイトル文字をアイコン縦中央へ寄せた。\n  - Markdown Studioへ添付APPアイコンを適用し、操作帯 / Common Shellナビ / 画面名 / HomeのMarkdown識別へ共通利用。\n  - Diff JSON左列 `Diff Summary` とMetaDiff左列 `AI仮説Markdown` へ添付アイコンを固定表示し、タイトル文字を縦中央揃え。\n  - 添付画像3点は表示用256px PNGへ最適化して `wwwroot/images/` へ同梱。\n- Static確認:\n  - Common Shell専用: 33/33 PASS。\n  - 全Static Before: 151 tests / 136 pass / 15 fail。\n  - 全Static After: 154 tests / 139 pass / 15 fail。\n  - 既存15 FAILのテスト名は修正前後で同一。\n  - frb_studio_shell.js 構文確認 OK。\n- NativeShell実機でアイコンサイズ / タイトル縦中央位置の最終確認待ち。\n- 2026-08-16 09:04 JST: Common Shell専用 33/33 PASS。全Static Before/Afterとも154 tests / 139 pass / 15 fail。既存15 FAIL名は完全一致。\n- 2026-08-16 09:20 JST: JSON Output帯の微調整。Common Shell + Markdown Workspace static 45/45 PASS。cache key expectationを0185p10へ更新。",
+      "user_request": "JSON Studioの「MD 出力→Viewer」ボタンをOutputエリアの縦中央へ揃え、JSON Studio上部の3つの出力操作の縦サイズを揃える。",
+      "ai_response": "- FRB Studio上部Common Shellの「Markdown Studio」メニューボタンだけを、添付 `markdown_menu_btn1.png` の緑系M波形アイコンへ差し替えた。\n- Markdown画面内のViewer / Editor左にある既存 `markdown-studio-icon.png` は変更せず、そのまま維持した。\n- Common Shellの汎用 `.frb-icon-markdown` は既存APPアイコンを保持し、上部ナビだけをより具体的なセレクタで `markdown_menu_btn1.png` に上書きして責務を分離した。\n- Common Shell CSSのcache keyを `0185p9-markdown-menu` へ更新し、全5画面で確実に新アイコンを読み込むようにした。\n- Common Shell専用Static 33/33 PASS。全StaticはBefore 154/139/15 → After 154/139/15で、既存15 FAILのテスト名は完全一致。\n- C#変更なし / dotnet publish不要。NativeShell再起動で実機確認する。\n- JSON StudioのOutput帯で `studio-output-dock` / `studio-tool-group` / `markdown-export-control` を縦中央揃えに調整した。\n- `MD 出力→Viewer` / モードselect / `ViewDef 出力→Viewer` に 38px の統一高さを与え、paddingも揃えて3操作の縦サイズを統一した。\n- Common Shell CSS cache keyを `0185p10-json-output-align` へ更新し、NativeShell / WebView2で新CSSを確実に読み込むようにした。\n- Common Shell + Markdown Workspace static 45/45 PASS。",
+      "latest_user_comment": "あぁーーーバグってるぁ。GPTたすけてーー。プログラムの改修依頼してるいるのに話が通じない",
+      "latest_ai_response": "- FRB Studio上部Common Shellの「Markdown Studio」メニューボタンだけを、添付 `markdown_menu_btn1.png` の緑系M波形アイコンへ差し替えた。\n- Markdown画面内のViewer / Editor左にある既存 `markdown-studio-icon.png` は変更せず、そのまま維持した。\n- Common Shellの汎用 `.frb-icon-markdown` は既存APPアイコンを保持し、上部ナビだけをより具体的なセレクタで `markdown_menu_btn1.png` に上書きして責務を分離した。\n- Common Shell CSSのcache keyを `0185p9-markdown-menu` へ更新し、全5画面で確実に新アイコンを読み込むようにした。\n- Common Shell専用Static 33/33 PASS。全StaticはBefore 154/139/15 → After 154/139/15で、既存15 FAILのテスト名は完全一致。\n- C#変更なし / dotnet publish不要。NativeShell再起動で実機確認する。",
       "context_refs": [
         "foundation_rule_019",
         "studio_work_0158",
@@ -26429,6 +26429,41 @@
           "speaker": "assistant",
           "at": "2026-08-16T00:42:00+09:00",
           "body": "AI回答\n\n## 今回の更新\n\n- `wwwroot/index.html`\n- `wwwroot/images/json-data-title-icon.png`\n- `tests/qa/static/frb_studio_common_shell_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\n- JSON Dataタイトルの左へFRBアイコンを追加。\n- タイトル要素が空でない場合だけCSS `:not(:empty)` でアイコンを表示し、初期状態では表示しない。\n- タイトル文字列やViewDef/Data JSONの種類には依存せず、Dataタイトルが存在すれば常に同じアイコンを表示する。\n- 添付アイコンは表示用に256px PNGへ縮小し、`wwwroot/images/json-data-title-icon.png` として同梱。\n- Data読込/タイトル決定ロジックは変更せず、表示責務だけで対応。\n\n## 確認結果\n\n- Common Shell専用Static：30/30 PASS\n- 全Static：Before 150/135/15 → After 151/136/15\n- 既存15 FAIL：件数維持\n- 今回追加1件：PASS\n- runtime生成物は返却ZIPから除外。\n- C#変更なし / `dotnet publish`不要。"
+        },
+        {
+          "speaker": "user",
+          "at": "2026-08-16T01:04:00+09:00",
+          "body": "さんきゅーー。今のJSONタイトル用アイコンは、JsonのJと釣り針を掛け合わせたネタ。① JSONタイトル文字を少し下げ、アイコンの縦中央に合わせたい。② Markdown StudioのアイコンはAPPアイコンへ昇格したため、添付markdown.pngへ差し替える。③ Diff JSON / MetaDiffは左列枠のタイトル部分へ添付アイコンを固定表示する。すべてアイコンの縦中央にタイトル文字が来るよう調整する。"
+        },
+        {
+          "speaker": "assistant",
+          "at": "2026-08-16T01:04:00+09:00",
+          "body": "AI回答\n\n## 今回の更新\n\n- JSON DataタイトルはJ＋釣り針アイコンを42pxへ調整し、タイトルをflex中央揃え＋微量の上余白でアイコン中央へ寄せた。\n- Markdown Studioは添付markdown.pngを表示用256pxへ最適化し、操作帯のAPPアイコン・Common Shellナビ・画面名・Home側のMarkdownアイデンティティへ共通適用した。\n- Diff JSON左列 `Diff Summary` に添付jsondiff.png、MetaDiff左列 `AI仮説Markdown` に添付metadiff.pngを固定表示し、共通flexルールでタイトル文字を縦中央揃えにした。\n- 追加画像は wwwroot/images 配下へ表示用256px PNGとして同梱し、既存の読込・保存・Viewerロジックは変更していない。\n- Common Shell専用Static 33/33 PASS。全StaticはBefore 151/136/15 → After 154/139/15、既存15 FAILのテスト名は同一。\n- C#変更なし / dotnet publish不要。NativeShell再起動で実機確認する。"
+        },
+        {
+          "speaker": "user",
+          "at": "2026-08-16T01:25:00+09:00",
+          "body": "よっし、これをファイルが読まれていいない時の、初期タイトルにしよう。\nJSONを、AIとの共通言語に。―― 構造化されたJSONで、AIとの成果物循環をもっと密に。"
+        },
+        {
+          "speaker": "assistant",
+          "at": "2026-08-16T01:25:00+09:00",
+          "body": "AI回答\n\n- 初期状態でもJ＋釣り針アイコンを表示するため、JSON Studioの目的を示すキャッチコピーをDataタイトル領域の表示fallbackとして採用。\n- 実Dataタイトル状態と表示用キャッチコピーは分離し、Data読込後は実タイトルへ置換する。\n- Common Shell専用33/33 PASS、全Static 154/139/15で既存FAIL完全一致。"
+        },
+        {
+          "speaker": "user",
+          "at": "2026-08-16T09:04:00+09:00",
+          "body": "うんだから、FRB　STUDIO のマークダウンメニューボタンのアイコンを　markdown_menu_btn1.pngに差し替えて欲しい。  。意味わかる？"
+        },
+        {
+          "speaker": "user",
+          "at": "2026-08-16T09:04:00+09:00",
+          "body": "あぁーーーバグってるぁ。GPTたすけてーー。プログラムの改修依頼してるいるのに話が通じない"
+        },
+        {
+          "speaker": "assistant",
+          "at": "2026-08-16T09:04:00+09:00",
+          "body": "プログラム改修として対応。FRB Studio上部のMarkdown Studioメニューボタンだけをmarkdown_menu_btn1.pngへ差し替え、Viewer / Editor左の既存アイコンは維持する責務分離で実装。Common Shell専用33/33 PASS、全Staticは154/139/15で既存FAIL完全一致。"
         }
       ],
       "decision_log": [
@@ -26696,6 +26731,41 @@
           "decision": "JSON Dataタイトルの装飾アイコンはData種類やViewDefに依存させず、タイトル要素が空でない時だけ共通表示する。",
           "reason": "遊び心とDataタイトルの視認性を加えつつ、初期状態では装飾を出さず、既存のタイトル決定/読込責務へ条件分岐を持ち込まないため。",
           "confirmation_level": "Static Test / Native実機再確認待ち"
+        },
+        {
+          "decision_id": "dec_studio_work_0185_040",
+          "at": "2026-08-16T01:04:00+09:00",
+          "decision": "JSON Dataタイトルの装飾アイコンは42pxとし、タイトル要素をflexの縦中央揃えにして、J＋釣り針アイコンの視覚中心へタイトル文字を寄せる。",
+          "reason": "アイコンだけが上に浮いて見える状態を避け、Dataタイトルと遊び心アイコンを一つの識別要素として見せるため。",
+          "confirmation_level": "Static Test / Native実機再確認待ち"
+        },
+        {
+          "decision_id": "dec_studio_work_0185_041",
+          "at": "2026-08-16T01:04:00+09:00",
+          "decision": "添付markdown.pngをMarkdown Studioの正式なAPPアイコンとして扱い、操作帯だけでなくCommon ShellのMarkdown識別にも共通利用する。",
+          "reason": "Markdown StudioのアイコンがAPPアイコンへ昇格したため、画面ごとに旧M記号や釣り針絵文字が混在する状態をなくし、製品内アイデンティティを揃えるため。",
+          "confirmation_level": "Static Test / Native実機再確認待ち"
+        },
+        {
+          "decision_id": "dec_studio_work_0185_042",
+          "at": "2026-08-16T01:04:00+09:00",
+          "decision": "Diff JSON / MetaDiffの添付アイコンは左列ペインのタイトル識別子として固定し、タイトル文字列とflexで縦中央揃えにする。",
+          "reason": "Viewer全体のCommon Shellアイコンとは別に、左ペインの責務を視覚的に識別しやすくしつつ、既存2列レイアウトや読込責務を変更しないため。",
+          "confirmation_level": "Static Test / Native実機再確認待ち"
+        },
+        {
+          "decision_id": "dec_studio_work_0185_043",
+          "at": "2026-08-16T01:25:00+09:00",
+          "decision": "Data JSON未読込時もJ＋釣り針アイコンを表示し、表示専用初期タイトルとして「JSONを、AIとの共通言語に。―― 構造化されたJSONで、AIとの成果物循環をもっと密に。」を使用する。",
+          "reason": "JSON Object StudioのJ＋釣り針アイコンを初期状態からアイデンティティとして成立させつつ、JSONをAIとの共通言語として成果物循環へ使う目的を画面上で明示するため。仮タイトルは表示fallbackに限定し、実Dataタイトル状態には混ぜない。",
+          "confirmation_level": "Static Test / Native実機再確認待ち"
+        },
+        {
+          "decision_id": "dec_studio_work_0185_044",
+          "at": "2026-08-16T09:04:00+09:00",
+          "decision": "Markdown Studioの上部Common Shellメニューアイコンと、Markdown画面内Viewer / Editor左の操作帯アイコンを別責務として扱う。上部メニューのみ `markdown_menu_btn1.png` を使用し、操作帯は既存 `markdown-studio-icon.png` を維持する。",
+          "reason": "ユーザーが変更対象をFRB Studio上部のMarkdownメニューボタンだけに限定しており、画面内操作帯の波形アイコンは継承する意図が明確なため。共通クラス全体を差し替えると意図しない箇所まで変更されるので、より具体的な上部ナビセレクタで分離する。",
+          "confirmation_level": "Static Test / Native実機再確認待ち"
         }
       ],
       "change_history": [
@@ -26742,6 +26812,22 @@
         {
           "at": "2026-08-16T00:42:00+09:00",
           "summary": "実機フィードバック第9弾。JSON Dataタイトル表示時のみFRBアイコンを左へ追加し、初期状態では非表示とするVisual Accentを実装。添付アイコンを表示用256px PNGへ最適化し、Static Regression比較を実施。"
+        },
+        {
+          "at": "2026-08-16T01:04:00+09:00",
+          "summary": "実機フィードバック第10弾。JSON DataタイトルのJ＋釣り針アイコンと文字の縦位置を再調整。Markdown Studioの添付APPアイコンを正式アイデンティティとして共通適用。Diff JSON / MetaDiff左列タイトルへ添付アイコンを追加し、全タイトルをアイコン縦中央へ統一。"
+        },
+        {
+          "at": "2026-08-16T01:25:00+09:00",
+          "summary": "実機フィードバック第11弾。JSON Data未読込時の初期タイトルへ『JSONを、AIとの共通言語に。―― 構造化されたJSONで、AIとの成果物循環をもっと密に。』を採用し、J＋釣り針アイコンを初期状態から表示。仮タイトルは表示fallbackに限定し、実Dataタイトル状態とは分離。"
+        },
+        {
+          "at": "2026-08-16T09:04:00+09:00",
+          "summary": "実機フィードバック第12弾。FRB Studio上部のMarkdown Studioメニューボタンだけを緑系M波形 `markdown_menu_btn1.png` へ差し替え、Viewer / Editor左の既存アイコンは維持。Common Shellのアイコン責務を上部ナビと画面内操作帯で分離した。"
+        },
+        {
+          "at": "2026-08-16T09:20:00+09:00",
+          "summary": "実機フィードバック第13弾。JSON StudioのOutput帯を縦中央揃えへ微調整し、MD 出力→Viewer / レビュー用Markdown出力 / ViewDef 出力→Viewer の3操作の高さを統一。Common Shell CSS cache keyを0185p10へ更新。"
         }
       ]
     }
@@ -27259,8 +27345,8 @@
       "body": "- studio_work_0161を親構想として見直した。\n- studio_work_0162～0168を未着手計画として追加した。\n- Studio Coreは汎用AI協働基盤として維持する。\n- Definition Verificationは標準Capabilityとして実装する。\n- Editor Componentと計算Serviceを分離し、PreviewとRunnerで共通導出ロジックを利用する。\n- 構造化記述原則の新設をルール改定計画へ含めた。"
     }
   ],
-  "work_revision": "v0.18.55-viewdef-maintenance-all-sections-caption-resolution",
-  "latest_planning_note": "- studio_work_0163完了。\n- Studio UI Component Model基盤を追加。\n- 次はstudio_work_0164でSubGridComponentをData / Derivedへ責務分離する。\n- Definition Verification固有Componentはstudio_work_0166まで標準Editorへ追加しない。",
+  "work_revision": "v0.18.63-json-output-align",
+  "latest_planning_note": "JSON StudioのOutput帯は文字列長の異なる3操作を持つため、レイアウトは横並びを維持しつつ、縦中央揃えと高さ統一で視覚ノイズを抑える。",
   "view_def_candidates": [
     {
       "view_def": "rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",

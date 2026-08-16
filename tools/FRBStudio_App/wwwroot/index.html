@@ -134,22 +134,28 @@
       linear-gradient(135deg, #8b5cf6 0%, #2563eb 50%, #0f766e 100%);
   }
 
-  /* v0.18.63-json-data-title-icon: Dataタイトルがある時だけFRBアイコンを表示 */
+  /* v0.18.63-json-data-title-icon: 初期メッセージまたはDataタイトルがある時にFRBアイコンを表示 */
   .frb-page-json-object .current-data-title:not(:empty) {
     position: relative;
-    min-height: 34px;
-    padding-left: 42px;
+    display: flex;
+    align-items: center;
+    min-height: 42px;
+    padding: 3px 0 0 50px;
     box-sizing: border-box;
+    line-height: 1.22;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .frb-page-json-object .current-data-title:not(:empty)::before {
     content: "";
     position: absolute;
     left: 0;
     top: 50%;
-    width: 34px;
-    height: 34px;
+    width: 42px;
+    height: 42px;
     transform: translateY(-50%);
-    border-radius: 10px;
+    border-radius: 11px;
     background: url("images/json-data-title-icon.png") center / cover no-repeat;
     box-shadow: 0 2px 8px rgba(26, 116, 166, 0.14);
   }
@@ -167,7 +173,7 @@
     }
   }
   </style>
-  <link rel="stylesheet" href="css/frb-studio-shell.css?v=0185p6" />
+  <link rel="stylesheet" href="css/frb-studio-shell.css?v=0185p10-json-output-align" />
 </head>
 <body>
   <script src="js/ui/frb_studio_shell.js?v=0185p5"></script>
@@ -251,7 +257,7 @@
     <section class="json-studio-main-pane">
       <div class="json-studio-main-toolbar">
         <div class="current-data-layer" aria-label="現在表示中のData JSON">
-          <div id="currentDataTitle" class="current-data-title" title=""></div>
+          <div id="currentDataTitle" class="current-data-title" title="JSONを、AIとの共通言語に。―― 構造化されたJSONで、AIとの成果物循環をもっと密に。">JSONを、AIとの共通言語に。―― 構造化されたJSONで、AIとの成果物循環をもっと密に。</div>
           <div id="currentDataSubtitle" class="current-data-subtitle" title=""></div>
         </div>
         <div class="studio-tool-dock studio-output-dock" aria-label="Markdown出力">
@@ -363,7 +369,7 @@
   <script src="js/core/studio_datetime.js?v=studio-datetime-01819"></script>
   <script src="js/core/state.js?v=fieldtype-enumref-0152"></script>
   <script src="js/core/registry.js?v=action-execute-006"></script>
-  <script src="js/core/file_api.js?v=current-data-status-0178"></script>
+  <script src="js/core/file_api.js?v=0185p8-initial-json-title"></script>
   <script src="js/core/overlay_manager.js?v=multi-overlay-gpt-fx-lab-0171"></script>
   <script src="js/core/field_types.js?v=studio-overlay-0170"></script>
   <script src="js/core/viewdef_resolver.js?v=file-picker-list-0169"></script>
