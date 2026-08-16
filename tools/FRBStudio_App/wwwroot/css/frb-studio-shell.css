@@ -985,3 +985,107 @@ body.studio-grid-only-shell .json-studio-main-pane > main { padding:0; }
     grid-template-rows: none;
   }
 }
+
+/* ===== v0.18.73 Section Group Navigation =====
+   ViewDef sectionGroups selects existing Sections outside the Renderer.
+   No group-specific Renderer is introduced. */
+.frb-page-json-object .json-studio-main-pane.has-section-groups {
+  display:grid;
+  grid-template-columns:minmax(150px, 190px) minmax(0, 1fr);
+  grid-template-rows:auto minmax(0, 1fr);
+  column-gap:10px;
+  align-content:start;
+}
+.frb-page-json-object .json-studio-main-pane.has-section-groups > .json-studio-main-toolbar {
+  grid-column:1 / -1;
+  grid-row:1;
+}
+.frb-page-json-object .json-studio-main-pane.has-section-groups > .section-group-navigation {
+  grid-column:1;
+  grid-row:2;
+}
+.frb-page-json-object .json-studio-main-pane.has-section-groups > main {
+  grid-column:2;
+  grid-row:2;
+}
+.frb-page-json-object .section-group-navigation {
+  position:sticky;
+  top:calc(var(--frb-fixed-header-height, 122px) + 12px);
+  align-self:start;
+  display:grid;
+  gap:8px;
+  min-width:0;
+  padding:10px;
+  border:1px solid var(--frb-line);
+  border-radius:var(--frb-radius);
+  background:#fff;
+  box-shadow:var(--frb-shadow);
+}
+.frb-page-json-object .section-group-navigation.hidden {
+  display:none !important;
+}
+.frb-page-json-object .section-group-navigation-title {
+  padding:2px 6px 6px;
+  color:#667085;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.04em;
+}
+.frb-page-json-object .section-group-navigation-list {
+  display:grid;
+  gap:5px;
+}
+.frb-page-json-object .section-group-navigation-item {
+  width:100%;
+  min-width:0;
+  padding:9px 10px;
+  border:1px solid transparent;
+  border-radius:9px;
+  background:transparent;
+  color:#344054;
+  font:inherit;
+  font-size:13px;
+  font-weight:700;
+  text-align:left;
+  cursor:pointer;
+}
+.frb-page-json-object .section-group-navigation-item:hover {
+  background:#f5f8f6;
+  border-color:#e3ebe6;
+}
+.frb-page-json-object .section-group-navigation-item.active,
+.frb-page-json-object .section-group-navigation-item[aria-selected="true"] {
+  background:#eef6f1;
+  border-color:#cfe1d6;
+  color:#173f2c;
+}
+
+body.studio-grid-only-shell .section-group-navigation {
+  display:none !important;
+}
+body.studio-grid-only-shell .json-studio-main-pane.has-section-groups {
+  display:block;
+}
+body.studio-grid-only-shell .json-studio-main-pane.has-section-groups > main {
+  display:grid;
+}
+
+@media (max-width: 900px) {
+  .frb-page-json-object .json-studio-main-pane.has-section-groups {
+    display:block;
+  }
+  .frb-page-json-object .section-group-navigation {
+    position:static;
+    margin-bottom:10px;
+  }
+  .frb-page-json-object .section-group-navigation-list {
+    display:flex;
+    gap:6px;
+    overflow-x:auto;
+  }
+  .frb-page-json-object .section-group-navigation-item {
+    width:auto;
+    flex:0 0 auto;
+    white-space:nowrap;
+  }
+}

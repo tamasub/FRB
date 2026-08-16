@@ -14,6 +14,9 @@ async function loadFromObjects(defObj, dataObj, label='読み込み完了', data
   if (typeof logViewDefReadContract === 'function') logViewDefReadContract(currentViewDefReadContract);
   if (typeof logViewDefContextModel === 'function') logViewDefContextModel(currentViewDefContextModel);
   viewDef = defObj;
+  if (typeof initializeSectionGroupNavigation === 'function') {
+    initializeSectionGroupNavigation(defObj);
+  }
   // Phase 4: Search UIを描画する前にOperator / Validation Registryを一度だけ解決する。
   // 失敗時は画面全体を止めず、renderSearch側のLegacy UI fallbackを維持する。
   if (typeof ensureStandardSearchUiContext === 'function') {
@@ -45,20 +48,25 @@ async function loadFromObjects(defObj, dataObj, label='読み込み完了', data
   currentDataSourceKind = dataSourceKind === 'viewdef' ? 'viewdef' : 'data';
   if (currentDataSourceKind !== 'viewdef') currentViewDefMaintenanceTarget = '';
   if (lastLoadedDefName && $('defNameInput')) $('defNameInput').value = lastLoadedDefName;
-  renderByKey('header');
-  renderByKey('search');
-  loadRows();
-  renderByKey('grid');
-  renderByKey('viewExecuteButton');
-  if (typeof renderRelatedGridLaunchButtons === 'function') renderRelatedGridLaunchButtons();
-  if ($('gridCsvExportBtn')) $('gridCsvExportBtn').disabled = false;
+  if (typeof renderActiveSectionGroup === 'function') {
+    renderActiveSectionGroup({ resetSelection: false });
+  } else {
+    renderByKey('header');
+    renderByKey('search');
+    loadRows();
+    renderByKey('grid');
+    renderByKey('viewExecuteButton');
+    if (typeof renderRelatedGridLaunchButtons === 'function') renderRelatedGridLaunchButtons();
+  }
+  if ($('gridCsvExportBtn')) $('gridCsvExportBtn').disabled = !gridDef();
   if ($('exportMarkdownBtn')) $('exportMarkdownBtn').disabled = false;
   if (typeof updateMarkdownExportModeSelect === 'function') updateMarkdownExportModeSelect();
   updateViewDefMarkdownButtonState();
   if ($('exportViewDefMarkdownBtn')) $('exportViewDefMarkdownBtn').disabled = false;
-  const mainGridIsVirtual = isVirtualDataCompatible(defObj, gridDef());
-  $('addRowBtn').disabled = mainGridIsVirtual;
-  $('deleteRowBtn').disabled = mainGridIsVirtual;
+  const activeGrid = gridDef();
+  const mainGridIsVirtual = activeGrid ? isVirtualDataCompatible(defObj, activeGrid) : false;
+  $('addRowBtn').disabled = !activeGrid || mainGridIsVirtual;
+  $('deleteRowBtn').disabled = !activeGrid || mainGridIsVirtual;
   updateReadonlyLaunchControls();
   syncLoadedDocumentSaveButtonState();
   updateFileLabels();

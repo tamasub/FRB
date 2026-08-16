@@ -28059,38 +28059,134 @@
       "incident_type": "enhancement",
       "category": "architecture",
       "priority": "high",
-      "verification_status": "未確認",
-      "context_def_status": "draft",
-      "context_def_updated_at": "",
+      "verification_status": "Static確認済み / 実機UI確認待ち",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-16T21:25:57+09:00",
       "owner": "",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-16T21:11:00+09:00",
-      "updated_at": "2026-08-16T21:15:00+09:00",
-      "actual_updated_files": "",
-      "verification_log": "",
+      "updated_at": "2026-08-16T21:25:57+09:00",
+      "actual_updated_files": "- wwwroot/js/ui/section_group_navigation.js\n- wwwroot/js/renderers/field_controls.js\n- wwwroot/js/runtime/load_runtime.js\n- wwwroot/index.html\n- wwwroot/css/frb-studio-shell.css\n- tests/qa/static/viewdef_section_group_navigation_phase2.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "verification_log": "- Phase 2専用Static: 6 / 6 PASS。\n- 全Static Before: 218 tests / 202 pass / 16 fail。\n- 全Static After: 224 tests / 208 pass / 16 fail。\n- Before / Afterの16 FAILはテスト名まで完全一致し、新規FAILなし。\n- `node --check wwwroot/js/ui/section_group_navigation.js`: PASS。\n- `node --check wwwroot/js/renderers/field_controls.js`: PASS。\n- `node --check wwwroot/js/runtime/load_runtime.js`: PASS。\n- Static SampleでGrid Group / Form Group / 未所属Section / Shared Sectionを確認。\n- Chromium headless実DOM確認は実行環境でTimeoutとなり、視覚・実クリック確認は未完了。",
       "context_refs": [],
       "work_item_id": "studio_work_0195",
       "phase": "v0.18.73-section-group-navigation-phase2",
       "title": "ViewDef Section Groups Phase 2 — Group Navigation / Active Section選択 / 既存Editor接続",
-      "status": "構想",
-      "follow_up_status": "NOT_STARTED",
-      "target_files": "- Phase実装時に現行構造を確認して確定する。\n- Foundation Rule 019に従い安定ファイル名・変更ファイルのみ返却契約を維持する。",
-      "context_def_draft": "# ContextDef素案: ViewDef Section Groups Phase 2 — Group Navigation / Active Section選択 / 既存Editor接続\n\n## 前提\n- 親: studio_work_0194 / v0.18.72-viewdef-section-groups-contract-phase1\n- 前Phaseの契約を継承し、一度に大きな変更を行わない。",
-      "objective": "- sectionGroupsを標準Editorで認識し、Group選択UIからActive sectionIdsを解決して既存Editor / Rendererへ接続する。",
-      "background": "- 親インシデント studio_work_0194 のPhase 1で sectionGroups / sectionIds Data契約が確定済み。\n- Phase 2ではその契約を標準Editor Navigationへ接続し、既存Rendererを再利用する。\n- 前Phaseの成果を正本として継承する。",
-      "scope": "- sectionGroups認識。\n- Group Navigation表示。\n- Active Group / sectionIds解決。\n- 既存Editor / Rendererへ対象Sectionを渡す。\n- Settings非依存のサンプルViewDefで動作確認する。",
-      "out_of_scope": "- 後続Phaseの責務は先取りしない。",
-      "fixed_name_policy": "- Foundation Rule 019を遵守する。\n- 既存正本は原則同名更新する。\n- 返却ZIPは変更ファイルのみ。",
-      "module_policy": "- 外からつまめ原則を優先し、既存Editor / Rendererの責務を壊さない。",
-      "expected_outputs": "- objective / scopeに記載したPhase責務が独立して成立する。",
-      "risk": "- 前Phase契約を壊す変更が必要な場合は独断で進めず再確認する。",
-      "test_points": "- 前Phaseの回帰を増やさない。\n- Phase固有の責務をStaticまたは実機確認できる。",
-      "user_request": "はーい。では、インシデントにフェーズ1～5を先に登録してから、フェーズ1の作業を開始お願いします。よろしく",
-      "ai_response": "Phase 1〜5を先行登録。現在はPhase 1のみ着手し、このPhaseは未着手として保持する。",
-      "latest_ai_response": "",
-      "follow_up_actions": [],
-      "discussion_history": [],
-      "decision_log": [],
+      "status": "完了",
+      "follow_up_status": "PENDING",
+      "target_files": "- wwwroot/js/ui/section_group_navigation.js\n- wwwroot/js/renderers/field_controls.js\n- wwwroot/js/runtime/load_runtime.js\n- wwwroot/index.html\n- wwwroot/css/frb-studio-shell.css\n- tests/qa/static/viewdef_section_group_navigation_phase2.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "# ContextDef: ViewDef Section Groups Phase 2 — Group Navigation / Active Section選択 / 既存Editor接続\n\n## 前提\n- 親: studio_work_0194 / v0.18.72-viewdef-section-groups-contract-phase1。\n- Phase 1で確定した `views[].sectionGroups` / `sectionIds` 契約を変更しない。\n\n## 中核判断軸\n- 外からつまめ原則を優先する。\n- Groupごとの専用Rendererは作らない。\n- `sectionIds` からActive Section集合を解決し、既存Header / Search / Grid Editorへ渡す。\n- Settings固有語彙をNavigation Runtimeへ持ち込まない。",
+      "objective": "- `sectionGroups` を標準Editorで認識する。\n- Group選択UIからActive `sectionIds` を解決する。\n- 選択された既存Sectionだけを既存Editor / Rendererへ接続する。\n- `sectionGroups` 未定義ViewDefでは従来動作を維持する。",
+      "background": "- Phase 1で `sectionGroups` はViewDef内部の `views[]` 各Viewにおいて `sections` と同階層のData構造として確定した。\n- Phase 2ではData契約を変更せず、Navigationを外側へ追加して既存Sectionを選択する。\n- SettingsはPhase 3の利用例であり、Phase 2 RuntimeはSettings非依存とする。",
+      "scope": "- `sectionGroups` / `sectionIds` のRuntime解決。\n- Group Navigation表示。\n- Active Group切替。\n- Active Section集合から既存 `headerDef()` / `gridDef()` を解決。\n- Group切替時のHeader / Search / Grid表示切替。\n- Form-only Active Group時のGrid操作抑止。\n- `sectionGroups` 未定義時の後方互換。\n- Settings非依存のサンプルViewDef構造をStatic Test内で確認。",
+      "out_of_scope": "- App Settings ViewDef / Field Definition。\n- `launch_shortcuts` Data追加。\n- `app_settings.json` 保存契約。\n- Shortcut Launcher。\n- `sectionGroups` 多階層化。\n- User `app_settings.json` Override。\n- 1 Group内で同一TypeのSectionを複数同時描画するためのRenderer拡張。\n- Gridを一つも持たない純Form-only ViewDefへの互換判定拡張。",
+      "fixed_name_policy": "- Foundation Rule 019を遵守する。\n- 既存正本は同名更新する。\n- 新規Runtimeは責務名を表す `wwwroot/js/ui/section_group_navigation.js` とする。\n- 返却ZIPには変更ファイルだけを元相対パスで収録する。",
+      "module_policy": "- `section_group_navigation.js` がActive Group / Active Section解決とNavigation UIを所有する。\n- `field_controls.js` はActive Section集合を受け取り、既存Header / Grid選択責務を維持する。\n- `load_runtime.js` は初期化時にGroup Navigationへ接続するだけとし、Settings固有分岐を持たない。\n- GroupごとのRenderer複製は行わない。",
+      "expected_outputs": "- `sectionGroups` があるViewDefではGroup Navigationが表示される。\n- 初期Active Groupは `sectionGroups` の先頭とする。\n- Group選択時、そのGroupの `sectionIds` で指定されたSectionだけがEditor対象になる。\n- Grid Sectionを含まないGroupではSearch / Gridを表示せずGrid操作を無効化する。\n- `sectionGroups` がないViewDefでは従来のSection集合をそのまま利用する。\n- 同一Sectionの複数Group参照と未所属Sectionを維持する。",
+      "risk": "- 現行 `isDefCompatibleWithData()` はViewDef全体にGrid Sectionが存在することを前提とする。Phase 2では「Gridを含むViewDef内のForm-only Group切替」まで対応し、Gridを一つも持たない純Form-only ViewDefは対象外とする。\n- 既存標準EditorはMain表示として最初のForm / 最初のGridを扱う。1 Group内に同一TypeのSectionを複数指定した場合の複数同時描画は今回追加しない。\n- Chromium headlessによる実DOM確認を試行したが、この実行環境ではプロセスが終了せずTimeoutとなった。Static / VM確認は完了しているため、見た目とクリック操作の最終確認は利用者実機で行う。",
+      "test_points": "- Settings非依存のSection Group解決ができる。\n- Active Group以外のSectionはEditor対象から外れる。\n- Sectionオブジェクトを複製せず既存定義を再利用する。\n- `sectionGroups` 未定義時は全既存Sectionを返す。\n- 不正な未知Section参照をRuntimeでも拒否する。\n- 同一Sectionを複数Groupから参照できる。\n- Navigation host / Active表示 / `aria-selected` がHTML・Runtimeへ接続される。\n- Navigation RuntimeにSettings固有語彙を入れない。\n- Phase 1 Staticを含む全Staticの既存FAIL数を増やさない。",
+      "user_request": "- incident_file: data/json/01_main/_studio_work_incident_data_v2.json\n- work_item_id: studio_work_0195\n- phase: v0.18.73-section-group-navigation-phase2\n- 最新の `FRBStudio_App*.zip` を基準資材として扱う。\n- foundation_rule_019「GitHub基準ソースとZIP返却契約」に従う。\n- constitution_32「構造化記述の原則」に従い、複数事項は箇条書きまたは番号付きリストで記載する。",
+      "ai_response": "- 最新添付 `FRBStudio_App20260816_211824.zip` を基準資材としてPhase 2を実装する。\n- Phase 1の `sectionGroups` Data契約は変更せず、Navigation / Active Section解決だけを追加する。\n- Settings固有実装はPhase 3へ残す。",
+      "latest_ai_response": "- `section_group_navigation.js` を追加し、`sectionGroups` / Active Group / Active `sectionIds` の解決責務を標準Editor外側へ分離した。\n- Group Navigationは左側メニューとして表示し、狭い画面では横並びへ切り替える。\n- `field_controls.js` は `activeSectionsForView()` から既存Sectionを受け取り、Header / Grid Renderer自体は変更していない。\n- `load_runtime.js` は読込時にGroup Navigationを初期化し、Active Groupだけを既存Rendererへ接続する。\n- Form-only Active GroupではSearch / Gridを隠し、Grid操作ボタンを無効化する。\n- `sectionGroups` 未定義時は従来Section集合をそのまま利用し、後方互換を維持した。\n- Phase 2専用Static: 6 / 6 PASS。\n- 全Static: Before 218 tests / 202 pass / 16 fail → After 224 tests / 208 pass / 16 fail。\n- 既存16 FAILはテスト名まで完全一致し、新規FAILなし。\n- `node --check` は新規Navigation Runtime / field_controls / load_runtimeでPASS。\n- Chromium headless実DOM確認は環境都合でTimeout。利用者実機でNavigation見た目・クリック切替を最終確認する。",
+      "follow_up_actions": [
+        {
+          "action_type": "APP_SETTINGS_DEFINITION",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "studio_work_0196"
+          ],
+          "summary": "Phase 3でSystem側App Settings Definitionとlaunch_shortcuts / Markdown設定をsectionGroupsへ接続する。",
+          "note": "Phase 2 Group Navigation完了後の次作業。"
+        },
+        {
+          "action_type": "MANUAL_UI_VERIFICATION",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "studio_work_0195"
+          ],
+          "summary": "sectionGroupsを持つViewDefで左Navigation表示とクリック切替を利用者実機確認する。",
+          "note": "Static / VM確認済み。Chromium headlessは環境都合でTimeout。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "at": "2026-08-16T21:19:00+09:00",
+          "speaker": "user",
+          "message": "次お願いしまーす。\n\n今回の作業依頼:\n- incident_file: data/json/01_main/_studio_work_incident_data_v2.json\n- work_item_id: studio_work_0195\n- phase: v0.18.73-section-group-navigation-phase2\n\n作業ルール:\n- FRBStudio_App*.zipがチャットに添付された場合は、最新資材zipとして扱う。\n- Foundation Rule 019「GitHub基準ソースとZIP返却契約」を参照する。\n- constitution_32「構造化記述の原則」に従い、複数事項は箇条書きまたは番号付きリストで記載する。"
+        },
+        {
+          "at": "2026-08-16T21:25:57+09:00",
+          "speaker": "assistant",
+          "message": "AI回答\n\n## 変更内容\n- sectionGroups用の汎用Group Navigation Runtimeを追加。\n- Active sectionIdsだけを既存Header / Search / Grid Editorへ接続。\n- sectionGroups未指定ViewDefは従来動作を維持。\n\n## 確認結果\n- Phase 2専用Static 6/6 PASS。\n- 全Static 218/202/16 → 224/208/16。既存16 FAIL名は完全一致。\n- JS syntax check PASS。\n- Chromium headless実DOM確認は環境都合でTimeoutのため、利用者実機確認待ち。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0195_001",
+          "at": "2026-08-16T21:25:57+09:00",
+          "decision": "Active GroupのSection定義を複製せず、sectionIdsから既存Sectionオブジェクトを解決して既存Editorへ渡す。",
+          "reason": "外からつまめ原則を守り、既存Section / Rendererの責務を変更しないため。",
+          "applied_axes": [
+            "外からつまめ原則",
+            "既存構造維持",
+            "ViewDef First"
+          ],
+          "conditions": "views[].sectionGroupsが存在するViewDef。",
+          "exceptions": "sectionGroups未定義時は従来の全Section集合をそのまま使用する。",
+          "expected_behavior": "Group切替でheaderDef / gridDefの参照対象だけが変わる。",
+          "acceptance_criteria": "Navigation RuntimeがSectionをコピーせず、activeSectionsForView()で既存Section参照を返す。",
+          "confirmation_level": "Static / VM確認"
+        },
+        {
+          "decision_id": "dec_0195_002",
+          "at": "2026-08-16T21:25:57+09:00",
+          "decision": "Group Navigation RuntimeへSettings固有語彙を持ち込まない。",
+          "reason": "sectionGroupsをApp Settings専用機能ではなく標準Editorの汎用能力として成立させるため。",
+          "applied_axes": [
+            "外からつまめ原則",
+            "汎用責務",
+            "専用実装抑制"
+          ],
+          "conditions": "Phase 2 Navigation Runtime。",
+          "exceptions": "Settings固有Data / DefinitionはPhase 3で接続する。",
+          "expected_behavior": "任意ViewDefのsectionGroupsで同じNavigation Runtimeを利用できる。",
+          "acceptance_criteria": "Phase 2 StaticがNavigation Runtime内にapp_settings / launch_shortcuts / markdown_settings固有分岐がないことを確認する。",
+          "confirmation_level": "Static確認"
+        },
+        {
+          "decision_id": "dec_0195_003",
+          "at": "2026-08-16T21:25:57+09:00",
+          "decision": "初期Active GroupはsectionGroups配列の先頭とし、Group状態の永続化は行わない。",
+          "reason": "Phase 2ではNavigation成立に必要な最小状態だけを持ち、将来要求を先回りしないため。",
+          "applied_axes": [
+            "実証なき抽象化の禁止",
+            "小さい差分"
+          ],
+          "conditions": "ViewDef読込直後。",
+          "exceptions": "将来、初期Group指定や状態復元の具体要求が出た場合は別契約で追加する。",
+          "expected_behavior": "ViewDef読込時は必ず先頭Groupから開始する。",
+          "acceptance_criteria": "initializeSectionGroupNavigation()が先頭Groupを選択する。",
+          "confirmation_level": "Static / VM確認"
+        },
+        {
+          "decision_id": "dec_0195_004",
+          "at": "2026-08-16T21:25:57+09:00",
+          "decision": "Phase 2では純Form-only ViewDef互換判定や同一Type複数Section同時描画まで拡張しない。",
+          "reason": "今回の責務はGroup Navigationと既存Editor接続であり、既存Editorの構造自体を先回り変更しないため。",
+          "applied_axes": [
+            "外からつまめ原則",
+            "スコープ分離",
+            "既存構造維持"
+          ],
+          "conditions": "Phase 2。",
+          "exceptions": "Settings Phase 3または将来の具体ViewDefで必要性が実証された場合。",
+          "expected_behavior": "Gridを含むViewDef内ではForm-only Groupへ切替可能。既存Editorの1 Form / 1 Grid主表示契約は維持する。",
+          "acceptance_criteria": "out_of_scope / riskへ明記し、Phase 2で互換判定やRenderer多重化を変更しない。",
+          "confirmation_level": "設計・Static確認"
+        }
+      ],
       "change_history": [
         {
           "at": "2026-08-16T21:11:00+09:00",
@@ -28098,6 +28194,27 @@
           "before": "未登録",
           "after": "studio_work_0195 / v0.18.73-section-group-navigation-phase2",
           "reason": "ユーザーがPhase 1〜5を先に登録して後続依頼しやすくすることを希望したため。"
+        },
+        {
+          "at": "2026-08-16T21:25:57+09:00",
+          "change_type": "phase2_navigation_runtime_added",
+          "before": "sectionGroups Data契約のみで、標準EditorにGroup Navigationなし。",
+          "after": "section_group_navigation.jsでActive Group / sectionIds解決とNavigation UIを追加。",
+          "reason": "Phase 1契約を既存Editorへ外側から接続するため。"
+        },
+        {
+          "at": "2026-08-16T21:25:57+09:00",
+          "change_type": "phase2_existing_editor_connected",
+          "before": "headerDef / gridDefはmainView().sections全体から先頭Sectionを選択。",
+          "after": "activeSectionsForView()でGroup対象Sectionだけを選択してから既存headerDef / gridDefを利用。",
+          "reason": "Rendererを複製せず、表示対象だけを外からつまむため。"
+        },
+        {
+          "at": "2026-08-16T21:25:57+09:00",
+          "change_type": "phase2_verification_completed",
+          "before": "Phase 2未確認。",
+          "after": "専用Static 6/6 PASS、全Staticの既存FAIL増加なし、JS syntax PASS。実機UI確認のみ残存。",
+          "reason": "Group Navigation / 後方互換 / Settings非依存接続を確認したため。"
         }
       ]
     },

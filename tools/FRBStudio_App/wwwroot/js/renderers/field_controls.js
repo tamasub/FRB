@@ -48,8 +48,13 @@ function selectedDisplayPosition() {
 }
 
 function mainView() { return viewDef.views?.[0] ?? viewDef; }
-function headerDef() { return mainView().sections.find(s => s.type === 'form' && s.role !== 'detailOnly'); }
-function gridDef() { return mainView().sections.find(s => s.type === 'grid'); }
+function editorSections() {
+  const view = mainView();
+  if (typeof activeSectionsForView === 'function') return activeSectionsForView(view);
+  return Array.isArray(view?.sections) ? view.sections : [];
+}
+function headerDef() { return editorSections().find(s => s.type === 'form' && s.role !== 'detailOnly'); }
+function gridDef() { return editorSections().find(s => s.type === 'grid'); }
 
 function convertValue(type, value) {
   if (Array.isArray(value)) return value;
