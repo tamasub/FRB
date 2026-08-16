@@ -646,6 +646,16 @@
       color: var(--code-text) !important;
       box-shadow: 0 0 0 3px rgba(63,124,255,.045);
     }
+    body[data-mode="review"] #preview [data-md-line] {
+      cursor: pointer;
+    }
+    body[data-mode="review"] #preview pre.md-current-block {
+      outline: 1.5px dashed rgba(63,124,255,.58);
+      outline-offset: 5px;
+      background: var(--code-current-bg) !important;
+      color: var(--code-text) !important;
+      box-shadow: 0 0 0 3px rgba(63,124,255,.045);
+    }
     #preview [data-md-block-id] {
       position: relative;
     }
@@ -4329,8 +4339,7 @@ async function enterMarkdownReviewMode() {
     if (!exists) {
       const ok = await showMarkdownConfirmDialog({
         title: "レビューを開始しますか？",
-        message: "現在のMarkdownをレビュー用の固定文章として保存します。\nレビュー開始後、本文は編集できません。\nコメント・判定・ハイライトは、この固定文章に対してReview JSONへ記録されます。",
-        okLabel: "レビュー開始",
+		message: "現在のMarkdownをレビュー用に固定(凍結)してReviewコメント・ハイライなどを追加できます。\n\n元のMarkdownは Editorで引き続き編集できます。",        okLabel: "レビュー開始",
         cancelLabel: "キャンセル"
       });
       if (!ok) return;
@@ -5309,10 +5318,49 @@ function leaveInlineMarkdownEdit({ restorePreview = true } = {}) {
     renderMarkdown(editorEl.value, "#", "Editor Blur Preview");
   }
 }
-previewEl.addEventListener("contextmenu", (e) => {
-  if (markdownEditorRuntime.editing) return;
+previewEl.addEventListener("click", (e) => {
+  if (getMode() !== "review" || markdownEditorRuntime.editing) return;
+  if (e.button !== 0) return;
+  if (e.target.closest("a,button,input,textarea,select,summary")) return;
   const block = e.target.closest("[data-md-line]");
   if (!block || !previewEl.contains(block)) return;
+  setCurrentMarkdownBlockElement(block);
+  markdownEditorRuntime.lastActiveLine = Number(block.dataset.mdLine || markdownEditorRuntime.lastActiveLine || 1);
+  markdownEditorRuntime.lastActiveAnchor = anchorFromPreviewBlock(block) || markdownEditorRuntime.lastActiveAnchor;
+});
+
+previewEl.addEventListener("contextmenu", (e) => {
+  if (markdownEditorRuntime.editing) return;
+  const mode = getMode();
+
+  if (mode === "viewer") {
+    hideMdBlockActionMenu();
+    clearCurrentPreviewBlock();
+    markdownBlockModelRuntime.currentBlockId = "";
+    hideMdBlockInlineActions();
+    updateBlockModelMeta();
+    return;
+  }
+
+  const block = e.target.closest("[data-md-line]");
+  if (!block || !previewEl.contains(block)) return;
+
+  if (mode === "review") {
+    e.preventDefault();
+    e.stopPropagation();
+    const blockId = block.dataset.mdBlockId || "";
+    const selected = block.classList.contains("md-current-block")
+      && blockId
+      && markdownBlockModelRuntime.currentBlockId === blockId;
+    if (!selected) {
+      hideMdBlockActionMenu();
+      showMarkdownInfo("先に左クリックでレビュー対象の段落を選択してください。", 2200);
+      return;
+    }
+    showMdBlockActionMenu(e.clientX, e.clientY, block, e.target.closest("td[data-md-cell-id],th[data-md-cell-id]"));
+    return;
+  }
+
   e.preventDefault();
   e.stopPropagation();
   setCurrentMarkdownBlockElement(block);

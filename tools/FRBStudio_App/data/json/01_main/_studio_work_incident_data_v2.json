@@ -27719,21 +27719,26 @@
       "incident_type": "enhancement",
       "category": "ui_maintenance",
       "priority": "high",
-      "verification_status": "Static確認済み / Native実機確認待ち",
+      "verification_status": "追加修正 Static確認済み / Native実機確認待ち",
       "context_def_status": "draft",
       "context_def_updated_at": "2026-08-16T17:15:00+09:00",
       "owner": "",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-16T17:15:00+09:00",
-      "updated_at": "2026-08-16T17:27:13+09:00",
+      "updated_at": "2026-08-16T17:58:00+09:00",
       "actual_updated_files": "- wwwroot/mdViewer.html\n- wwwroot/css/frb-studio-shell.css\n- wwwroot/config/app_settings.json\n- wwwroot/js/core/native_host_bridge.js\n- wwwroot/js/runtime/load_runtime.js\n- wwwroot/js/ui/frb_studio_shell.js\n- wwwroot/index.html\n- wwwroot/home.html\n- tests/qa/static/markdown_workspace_native_static.test.mjs\n- tests/qa/static/frb_studio_common_shell_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
-      "verification_log": "- 実装前に studio_work_0193 を登録してから着手。\n- app_settings.json / incident JSON: parse PASS。\n- node --check: mdViewer inline JS / native_host_bridge.js / load_runtime.js PASS。\n- Review Mode / Large Markdown / JSON Studio保存名称 focused Static: 4 / 4 PASS。\n- 全Static Before（受領ZIP）: 205 tests / 186 pass / 19 fail。\n- 全Static After: 209 tests / 193 pass / 16 fail。\n- Beforeに無かった新規FAILは0件。既存FAILのうち3件はインシデントData更新後に解消。\n- WebView2 Native実機でのReview生成・再読込・保存・巨大Markdown警告の操作確認は未実施。",
+      "verification_log": "- 実装前に studio_work_0193 を登録してから着手。\n- app_settings.json / incident JSON: parse PASS。\n- node --check: mdViewer inline JS / native_host_bridge.js / load_runtime.js PASS。\n- Review Mode / Large Markdown / JSON Studio保存名称 focused Static: 4 / 4 PASS。\n- 全Static Before（受領ZIP）: 205 tests / 186 pass / 19 fail。\n- 全Static After: 209 tests / 193 pass / 16 fail。\n- Beforeに無かった新規FAILは0件。既存FAILのうち3件はインシデントData更新後に解消。\n- 初回実装時点ではWebView2 Native実機確認未実施。今回、Review Mode新規生成・表示はユーザー確認済み。再読込・保存・巨大Markdown警告は引き続き確認待ち。\n- 追加UI修正: Review開始文言 / Viewer右クリック無効化 / Review左クリック選択→右クリック操作を実装。\n- 追加修正後 JS構文確認: mdViewer inline script 3本すべて PASS。\n- 追加修正後 focused Static: Review Mode / Large Markdown / JSON Studio保存名称 4 / 4 PASS。\n- 全Static After: 209 tests / 193 pass / 16 fail。studio_work_0193初回実装時と同数で、新規FAILなし。既存FAILは欠落ファイル/旧レイアウト期待等。",
       "context_refs": [],
       "discussion_history": [
         {
           "at": "2026-08-16T17:15:00+09:00",
           "speaker": "user",
           "message": "Markdown StudioをViewer / Editor / Reviewの3モード化し、Markdown凍結Snapshot + Review JSONによるHuman→AIレビュー入力へステップアップする。JSON Studioの「上書き」表記も「保存」へ変更する。"
+        },
+        {
+          "at": "2026-08-16T17:58:00+09:00",
+          "speaker": "user",
+          "message": "Review開始確認文で元Markdownは後から編集可能と明示する。Viewerでは右クリックでカレント段落を残さずカスタム段落情報メニューも出さない。Reviewでは左クリックでカレント段落を点線表示し、その選択後に右クリック操作する。"
         }
       ],
       "decision_log": [
@@ -27760,6 +27765,24 @@
           "at": "2026-08-16T17:15:00+09:00",
           "decision": "JSON Studio / Markdown Studioの主保存操作は「上書き」ではなく「保存」と表示する。",
           "reason": "利用者の目的は現在の対象を保存することであり、ファイル操作方式をUI語彙へ露出させないため。"
+        },
+        {
+          "decision_id": "dec_studio_work_0193_005",
+          "at": "2026-08-16T17:58:00+09:00",
+          "decision": "Review開始確認では、Review Snapshotは固定されるが元MarkdownはViewer / Editorへ戻れば引き続き編集可能であることを明示する。",
+          "reason": "「レビュー開始後、本文は編集できない」だけでは元Markdown自体が永久に編集不可になるように読め、利用者がReview開始を躊躇するため。"
+        },
+        {
+          "decision_id": "dec_studio_work_0193_006",
+          "at": "2026-08-16T17:58:00+09:00",
+          "decision": "Viewerでは独自右クリックメニューとカレント段落マーキングを行わない。",
+          "reason": "Viewerは読む責務に限定し、編集・レビュー対象選択の状態を持ち込まないため。"
+        },
+        {
+          "decision_id": "dec_studio_work_0193_007",
+          "at": "2026-08-16T17:58:00+09:00",
+          "decision": "Reviewでは左クリックでレビュー対象段落をカレント表示し、右クリックは選択済み段落に対してのみレビュー操作を開く。",
+          "reason": "対象を先に視覚確認してから操作する順序の方が、人間にとって対象と操作の対応が明確なため。"
         }
       ],
       "change_history": [
@@ -27776,6 +27799,13 @@
           "before": "Review Mode未実装 / Sidecar UI / 上書き表記",
           "after": "Review Mode + Review JSON + Human→AI構造化レビュー / 日本語UI / 保存表記",
           "reason": "Markdown本文編集とAI向けレビュー責務を分離し、コメント位置ずれを構造的に防止するため。"
+        },
+        {
+          "at": "2026-08-16T17:58:00+09:00",
+          "change_type": "review_mode_interaction_refined",
+          "before": "Review開始文が編集不可を強く見せる / Viewer右クリックで段落選択 / Review右クリック時に対象選択",
+          "after": "元Markdown再編集可能を明示 / Viewerは読むだけ / Reviewは左クリック選択→右クリック操作",
+          "reason": "Review開始への心理的障壁を下げ、Viewer / Reviewの操作責務をより明確にするため。"
         }
       ],
       "work_item_id": "studio_work_0193",
@@ -27793,10 +27823,10 @@
       "module_policy": "- MarkdownはEditorの正本、Review JSONはReview Modeの正本。\n- Review Modeではsnapshot.markdownを表示し元Markdownを編集しない。\n- 人間向けUIと内部英語構造を分離する。\n- Native Shellの権限制約とStudio動作設定を混在させない。",
       "expected_outputs": "- Review Mode追加。\n- Review JSON v0.1生成 / 読込 / 保存。\n- コメント位置ずれの構造的防止。\n- ハイライト復元。\n- 日本語中心の右クリックメニュー。\n- 保存対象表示と保存語彙統一。\n- 巨大Markdown警告。",
       "risk": "- 既存Sidecarロジックが大きいため、旧互換を残すと責務が混在する。\n- Review JSON保存時にSnapshotを書き換えないこと。\n- Editor / Viewerでレビュー追加操作を露出しないこと。\n- 既存Markdown保存導線を壊さないこと。",
-      "test_points": "- Review開始時に規定名Review JSONが無ければ新規生成される。\n- 既存Review JSONがあればSnapshot / コメント / ハイライトを復元する。\n- Review中は本文編集不可、レビュー操作のみ可能。\n- Editor / Viewerではレビュー追加メニューが出ない。\n- 保存対象ラベルと保存先がモードに一致する。\n- 巨大Markdownは本文読込前に確認が出る。\n- JSON Studioの保存ボタン表示が「保存」になる。\n- 更新JSON parse確認、JS構文確認、focused Staticを実施。",
+      "test_points": "- Review開始時に規定名Review JSONが無ければ新規生成される。\n- 既存Review JSONがあればSnapshot / コメント / ハイライトを復元する。\n- Review中は本文編集不可、レビュー操作のみ可能。\n- Editor / Viewerではレビュー追加メニューが出ない。\n- 保存対象ラベルと保存先がモードに一致する。\n- 巨大Markdownは本文読込前に確認が出る。\n- JSON Studioの保存ボタン表示が「保存」になる。\n- 更新JSON parse確認、JS構文確認、focused Staticを実施。\n- Review開始確認に元MarkdownはViewer / Editorへ戻れば編集可能と明示される。\n- Viewer右クリックでカレント段落を設定せず、独自段落メニューを開かない。\n- Review左クリックでカレント段落を点線表示し、未選択段落の右クリックではレビュー操作を開始しない。",
       "user_request": "JSONstudio側の名称「上書き」⇒「保　存」（途中スペースバランス調整）含めて、マークダウンエディターのステップアップ実装をインシデント登録してから、実施ください。",
       "ai_response": "Viewer / Editor / Reviewの3モード化、固定Markdown Snapshotを持つ *.md.review.json、Review限定のコメント・承認・要修正・要確認・ハイライト、保存対象切替、巨大Markdown警告、JSON Studioの「保　存」表記を実装。",
-      "latest_ai_response": "Viewer / Editor / Reviewの3モード化、固定Markdown Snapshotを持つ *.md.review.json、Review限定のコメント・承認・要修正・要確認・ハイライト、保存対象切替、巨大Markdown警告、JSON Studioの「保　存」表記を実装。",
+      "latest_ai_response": "Review開始文を安心できる表現へ変更し、Viewerは右クリック選択なし、Reviewは左クリックで対象確定後に右クリックする操作へ改善。",
       "follow_up_actions": [
         {
           "action_id": "followup_studio_work_0193_001",

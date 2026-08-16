@@ -166,10 +166,16 @@ test('Markdown Studio has explicit Review Mode as Human to AI structured feedbac
 });
 
 test('Review Mode freezes Markdown Snapshot and review actions are Review-only', () => {
-  assert.match(md, /現在のMarkdownをレビュー用の固定文章として保存します/);
+  assert.match(md, /現在のMarkdownをレビュー開始時点の固定文章としてReview JSONへ保存します/);
+  assert.match(md, /元のMarkdownは、Viewer \/ Editorへ戻れば引き続き編集できます/);
+  assert.match(md, /Review Modeでは固定文章を表示するため本文は編集できません/);
   assert.match(md, /editorEl\.readOnly = true/);
   assert.match(md, /if \(getMode\(\) !== "review"\) return;/);
   assert.match(md, /group === "all" \|\| group === mode/);
+  assert.match(md, /getMode\(\) !== "review"/);
+  assert.match(md, /setCurrentMarkdownBlockElement\(block\)/);
+  assert.match(md, /mode === "viewer"[\s\S]*?clearCurrentPreviewBlock\(\)[\s\S]*?return;/);
+  assert.match(md, /mode === "review"[\s\S]*?先に左クリックでレビュー対象の段落を選択してください/);
   assert.match(md, /applyMarkdownReviewHighlights\(\)/);
   assert.match(md, /captureMarkdownSourceBeforeReview\(\)/);
   assert.match(md, /if \(previousMode === "review"\) \{\s*restoreMarkdownSourceAfterReview\(\)/,
