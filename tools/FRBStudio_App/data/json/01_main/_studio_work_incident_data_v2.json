@@ -27061,7 +27061,7 @@
       "owner": "",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-16T15:01:00+09:00",
-      "updated_at": "2026-08-16T15:07:20+09:00",
+      "updated_at": "2026-08-16T15:19:00+09:00",
       "actual_updated_files": "- wwwroot/js/services/search_capability_resolver.js\n- wwwroot/index.html\n- tests/qa/static/standard_search_capability_resolver_phase2.test.mjs\n- tests/qa/static/standard_search_contract_phase1.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
       "verification_log": "- Phase 2 Resolver専用Test: 13 / 13 PASS。\n- node --check: search_capability_resolver.js PASS。\n- 全Static Before: 166 tests / 150 pass / 16 fail。\n- 全Static After: 179 tests / 163 pass / 16 fail。\n- 既存16 FAILは名前まで完全一致し、新規FAILなし。\n- Phase 2〜6は studio_work_0187〜0191 として先行登録済み。\n- C#変更なし。\n- SearchFilter / UI挙動はPhase 3以降のため実機検索挙動変更なし。",
       "context_refs": [],
@@ -27130,7 +27130,7 @@
       "phase": "v0.18.65-standard-search-capability-resolver-phase2",
       "title": "標準検索Capability Phase 2 — SearchCapabilityResolver / Validation Type・Field Type・Override解決",
       "status": "完了",
-      "follow_up_status": "PENDING",
+      "follow_up_status": "COMPLETED",
       "target_files": "- wwwroot/js/services/search_capability_resolver.js\n- wwwroot/index.html\n- tests/qa/static/standard_search_capability_resolver_phase2.test.mjs\n- tests/qa/static/standard_search_contract_phase1.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
       "context_def_draft": "# ContextDef素案: 標準検索Capability Phase 2 — SearchCapabilityResolver / Validation Type・Field Type・Override解決\n\n## 目的\n- SearchOperatorRegistryとValidation Type Registryを入力に、Fieldごとの実効Search CapabilityをUI非依存で解決する。\n- ViewDef search.operator_set / search.operators / search.operator Overrideを検証し、標準導出との優先順位を固定する。\n\n## 前提\n- 親: studio_work_0186 / v0.18.64-standard-search-contract-phase1\n- Phase 1のSearchOperatorRegistry契約を正本として継承する。",
       "objective": "- SearchOperatorRegistryとValidation Type Registryを入力に、Fieldごとの実効Search CapabilityをUI非依存で解決する。\n- ViewDef search.operator_set / search.operators / search.operator Overrideを検証し、標準導出との優先順位を固定する。",
@@ -27149,12 +27149,13 @@
         {
           "action_type": "SEARCH_FILTER_OPERATORS",
           "required": true,
-          "status": "PENDING",
+          "status": "COMPLETED",
           "related_ids": [
             "studio_work_0188"
           ],
           "summary": "Phase 3でSearchFilterへnot_contains/not_equals/between/blank/not_blank/date比較を追加し、Resolver契約をCriteria評価へ接続する。",
-          "note": "DOM非依存SearchFilter責務を維持する。"
+          "note": "Phase 3でSearchFilterのactive Operator評価とCriteria評価を実装・Static確認。",
+          "completed_at": "2026-08-16T15:19:00+09:00"
         }
       ]
     },
@@ -27162,18 +27163,60 @@
       "incident_type": "enhancement",
       "category": "architecture",
       "priority": "high",
-      "verification_status": "未確認",
-      "context_def_status": "draft",
-      "context_def_updated_at": "2026-08-16T15:01:00+09:00",
+      "verification_status": "Static確認済み / Phase 4 UI接続待ち",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-16T15:19:00+09:00",
       "owner": "",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-16T15:01:00+09:00",
-      "updated_at": "2026-08-16T15:01:00+09:00",
-      "actual_updated_files": "",
-      "verification_log": "",
+      "updated_at": "2026-08-16T15:19:00+09:00",
+      "actual_updated_files": "- wwwroot/js/responsibilities/search_filter.js\n- wwwroot/index.html\n- tests/qa/static/standard_search_filter_operators_phase3.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "verification_log": "- Phase 3 SearchFilter専用Test: 12 / 12 PASS。\n- responsibility_refactor_first_step_smoke: PASS。\n- node --check: search_filter.js PASS。\n- 全Static Before: 179 tests / 163 pass / 16 fail。\n- 全Static After: 191 tests / 175 pass / 16 fail。\n- 既存16 FAILは名前まで完全一致し、新規FAILなし。\n- C#変更なし。\n- Phase 3ではSearch UI / 右クリック / 📌は未変更。",
       "context_refs": [],
-      "discussion_history": [],
-      "decision_log": [],
+      "discussion_history": [
+        {
+          "at": "2026-08-16T15:19:00+09:00",
+          "speaker": "user",
+          "message": "つぎよろしくぅーー\n\n今回の作業依頼: studio_work_0188 / v0.18.66-standard-search-filter-operators-phase3"
+        },
+        {
+          "at": "2026-08-16T15:19:00+09:00",
+          "speaker": "assistant",
+          "message": "Phase 3完了報告\n\n- SearchFilterへactive Operator 9種を実装。\n- not_contains / not_equals / between / blank / not_blank / date・datetime・instant比較を追加。\n- Fromのみ / Toのみ / 両方の範囲契約をinclusiveで実装。\n- value/from/to新CriteriaとLegacy rawを両対応。\n- Phase 3専用Test 12/12 PASS。\n- Responsibility smoke PASS。\n- 全Static Before 179/163/16 → After 191/175/16。既存16 FAIL名は完全一致。\n- Phase 4 UIは未着手。\n- 次作業: studio_work_0189。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0188_001",
+          "at": "2026-08-16T15:19:00+09:00",
+          "decision": "SearchFilterは新Search Criteria形(value/from/to)とLegacy raw形を同時に受理する。",
+          "reason": "Phase 4以降のCriteria構造へ進みつつ、現行検索UIと既存責務テストを壊さないため。"
+        },
+        {
+          "decision_id": "dec_0188_002",
+          "at": "2026-08-16T15:19:00+09:00",
+          "decision": "SearchOperatorRegistry active 9 OperatorをSearchFilterの正規評価対象とし、未知Operatorはfail-closedとする。",
+          "reason": "未登録Operatorをcontains/equals等へ黙って読み替えると、Registryを語彙正本にしたPhase 1契約が崩れるため。"
+        },
+        {
+          "decision_id": "dec_0188_003",
+          "at": "2026-08-16T15:19:00+09:00",
+          "decision": "blankはnull/undefined/空文字/空白文字列/空配列を空白とし、0とfalseは空白にしない。",
+          "reason": "業務検索の「未設定」と有効な0/falseを区別するため。"
+        },
+        {
+          "decision_id": "dec_0188_004",
+          "at": "2026-08-16T15:19:00+09:00",
+          "decision": "date/datetime/instantはvalue_familyに応じた時間値へ正規化して比較し、invalid値は一致させない。",
+          "reason": "文字列大小比較やブラウザローカルTimezone依存による誤判定を避けるため。"
+        },
+        {
+          "decision_id": "dec_0188_005",
+          "at": "2026-08-16T15:19:00+09:00",
+          "decision": "NumberのRegistry標準betweenはPhase 4でUI接続し、Phase 3では現行単一入力欄の暗黙gteを維持する。",
+          "reason": "検索ロジック拡張だけで現行画面のNumber検索意味を突然変更しないため。"
+        }
+      ],
       "change_history": [
         {
           "at": "2026-08-16T15:01:00+09:00",
@@ -27181,14 +27224,35 @@
           "before": "未登録",
           "after": "studio_work_0188 / v0.18.66-standard-search-filter-operators-phase3",
           "reason": "ユーザーがPhase 6まで先に登録し、後続作業を依頼しやすくすることを希望したため。"
+        },
+        {
+          "at": "2026-08-16T15:19:00+09:00",
+          "change_type": "phase3_implementation",
+          "before": "SearchFilterはcontains/equals/number gte/lte等の既存限定評価",
+          "after": "Registry active Operator 9種、range、blank、date/datetime/instant比較へ拡張",
+          "reason": "標準検索v1のCriteria評価責務をPhase 3で完成させるため。"
+        },
+        {
+          "at": "2026-08-16T15:19:00+09:00",
+          "change_type": "legacy_compatibility_preserved",
+          "before": "Criteriaは主にraw単一値を前提",
+          "after": "value/from/to新形を追加しつつraw、>= alias、multi-select既存挙動を維持",
+          "reason": "Phase 4 UI導入前に既存ViewDef/検索挙動を破壊しないため。"
+        },
+        {
+          "at": "2026-08-16T15:19:00+09:00",
+          "change_type": "phase3_verification_completed",
+          "before": "Static確認中",
+          "after": "専用12/12 PASS、Responsibility smoke PASS、全Static新規FAILなし",
+          "reason": "SearchFilter Operator拡張が既存検索責務へ回帰を増やさず成立することを確認した。"
         }
       ],
       "work_item_id": "studio_work_0188",
       "phase": "v0.18.66-standard-search-filter-operators-phase3",
       "title": "標準検索Capability Phase 3 — SearchFilter Operator拡張 / Criteria評価",
-      "status": "構想",
+      "status": "完了",
       "follow_up_status": "PENDING",
-      "target_files": "- Phase実装時に現行構造を確認して確定する。\n- foundation_rule_019に従い安定ファイル名・差分ZIP契約を維持する。",
+      "target_files": "- wwwroot/js/responsibilities/search_filter.js\n- wwwroot/index.html\n- tests/qa/static/standard_search_filter_operators_phase3.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
       "context_def_draft": "# ContextDef素案: 標準検索Capability Phase 3 — SearchFilter Operator拡張 / Criteria評価\n\n## 目的\n- Phase 2で解決したSearch Capabilityを、DOM非依存のSearchFilterで実行可能にする。\n\n## 前提\n- 親: studio_work_0186 / v0.18.64-standard-search-contract-phase1\n- Phase 1のSearchOperatorRegistry契約を正本として継承する。",
       "objective": "- Phase 2で解決したSearch Capabilityを、DOM非依存のSearchFilterで実行可能にする。",
       "background": "- 親インシデント studio_work_0186 の標準検索v1計画を段階実装する後続Phase。\n- 前Phaseの契約・成果を次Phaseへ継承し、一度に大きなUI/Runtime変更を行わない。",
@@ -27196,13 +27260,24 @@
       "out_of_scope": "- 右クリックContext Menu / 📌。\n- Combo複数選択in/not_in本実装。\n- ViewDef全件移行。",
       "fixed_name_policy": "- Foundation Rule 019の安定ファイル名契約を守る。\n- 既存正本は原則同名更新する。\n- 返却ZIPは変更ファイルのみ。\n- runtime生成物は返却ZIPへ含めない。",
       "module_policy": "- SearchOperatorRegistryを検索Operator語彙の正本とする。\n- Resolver / SearchFilter / UI Renderer / Test Runnerの責務を混ぜない。\n- 現行StudioのRenderer / Responsibility / Registry体系を壊さない。",
-      "expected_outputs": "- not_contains / not_equals / between / blank / not_blank / date・datetime比較をSearchFilterへ追加する。\n- Fromのみ / Toのみ / 両方の範囲契約を実装する。\n- Criteria評価の単体テストを追加する。",
-      "risk": "- 後続Phaseの責務を先取りして実装範囲を膨らませない。\n- Legacy ViewDef互換を壊さない。\n- AIは人間承認を代行しない。",
-      "test_points": "- 当該Phaseの責務をUI非依存またはStatic Testで固定する。\n- 全Staticの既存FAILを増やさない。\n- JSON更新時はparse確認する。",
-      "user_request": "下記インシデントの後続作業フェーズ２をお願いします。先に簡単な内容でいいので、フェーズ６まで、インシデントデータを登録してから作業をお願いします。依頼しにくいので💦　よろしく。",
-      "ai_response": "標準検索Capability Phase 3 — SearchFilter Operator拡張 / Criteria評価 を studio_work_0186 の後続Phaseとして先行登録。実装は該当Phase依頼時に行う。",
-      "latest_ai_response": "- 後続Phaseとして先行登録。\n- 未実装。前Phase完了後に着手する。",
-      "follow_up_actions": []
+      "expected_outputs": "- SearchOperatorRegistry v0.1 のactive Operator 9種をSearchFilterで評価可能にする。\n- not_contains / not_equals / between / blank / not_blankを実装する。\n- gte / lte / equalsをnumber/date/datetime/instantで型に応じて比較する。\n- betweenはFromのみ / Toのみ / 両方を許可し、境界値を含む。\n- Search Criteriaの新形 value / from / to とLegacy rawの双方を評価可能にする。\n- 未知Operatorは別演算へ黙ってfallbackせず不一致とする。\n- Phase 4まで現行単一Number検索UIの暗黙gte互換を維持する。",
+      "risk": "- Phase 3では右クリックOperator変更UIを実装しないため、新Operatorの画面操作接続はPhase 4で行う。\n- Numberの標準OperatorはRegistry上betweenだが、現行UIは単一入力欄のためPhase 4までは暗黙gteを維持する。\n- Legacy `>=` 等はSearchFilter内で互換Aliasとして受理するが、Registryの正規Operator語彙には追加しない。\n- invalid date/datetime/numberは比較対象として一致させない。",
+      "test_points": "- Registry active Operator 9種とSearchFilter実装の対応。\n- text: contains / not_contains / equals / not_equals。\n- number: equals / not_equals / gte / lte / between。\n- between: Fromのみ / Toのみ / 両方 / 境界値含有。\n- blank / not_blank: null / undefined / empty / whitespace / empty array / 0 / false。\n- date: YYYY-MM-DD厳密比較。\n- datetime: timezone非依存のlocal datetime比較。\n- instant: timezone付きISO時点比較。\n- Legacy raw / >= alias / multi-select matching互換。\n- Full Text SearchとのAND維持。\n- 未知Operator fail-closed。\n- SearchFilterのDOM非依存。\n- 全Staticの既存FAILを増やさない。",
+      "user_request": "つぎよろしくぅーー / studio_work_0188 / v0.18.66-standard-search-filter-operators-phase3 の作業依頼。",
+      "ai_response": "Phase 2で固定したSearch Capability契約を受け、Phase 3ではSearchFilterのOperator評価をDOM非依存で拡張する。右クリックUIはPhase 4へ分離する。",
+      "latest_ai_response": "- SearchFilterへSearchOperatorRegistry active Operator 9種を実装。\n- not_contains / not_equals / between / blank / not_blankを追加。\n- number / date / datetime / instantの比較を型に応じて実装。\n- betweenはFromのみ / Toのみ / 両方をinclusiveで評価。\n- Search Criteriaはvalue/from/to新形とLegacy rawを両対応。\n- Legacy >= alias / multi-select matching / Full Text ANDを維持。\n- 未知Operatorはfail-closed。\n- Phase 3専用Test 12/12 PASS、Responsibility smoke PASS。\n- 全StaticはBefore 179/163/16 → After 191/175/16。既存16 FAIL名は完全一致。\n- 次作業: studio_work_0189 / Phase 4 Search UI Context Menu。",
+      "follow_up_actions": [
+        {
+          "action_type": "SEARCH_UI_CONTEXT_MENU",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "studio_work_0189"
+          ],
+          "summary": "Phase 4でSearchCapabilityResolver結果とSearchFilter Criteriaを右クリック1階層UI / 📌 / Range UIへ接続する。",
+          "note": "ComboBoxでは検索Operatorと既存の選択肢メンテナンスを区切り線で共存させる。"
+        }
+      ]
     },
     {
       "incident_type": "enhancement",

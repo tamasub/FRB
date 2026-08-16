@@ -1,10 +1,34 @@
-// v0.18.21-json-full-text-search
+// v0.18.66-standard-search-filter-operators-phase3
 // ResponsibilityDef: search_filter
-// 検索条件と対象データから、条件に一致する行だけを返す薄い責務Interface。
-// DOM入力の読み取りは補助関数に分離し、判定本体は rows/fields/criteria だけで検証できる形にする。
-// v0.18.21: 行が保持するJSON全階層の文字列値を対象とする全文検索を追加する。
+// Search Criteria と対象データから一致行だけを返す薄い責務Interface。
+// DOM入力の読み取りは補助関数へ分離し、判定本体は rows / criteria だけで検証できる形を維持する。
+// Phase 3: SearchOperatorRegistry v0.1 のactive operator
+// contains / not_contains / equals / not_equals / gte / lte / between / blank / not_blank
+// をDOM非依存で評価する。date / datetime / instant の比較もここで扱う。
 
 var SearchFilter = (function () {
+  const CANONICAL_OPERATOR_IDS = Object.freeze([
+    'contains',
+    'not_contains',
+    'equals',
+    'not_equals',
+    'gte',
+    'lte',
+    'between',
+    'blank',
+    'not_blank'
+  ]);
+
+  const NO_VALUE_OPERATORS = new Set(['blank', 'not_blank']);
+  const LEGACY_OPERATOR_ALIASES = Object.freeze({
+    '>=': 'gte',
+    '<=': 'lte',
+    '=': 'equals',
+    '==': 'equals',
+    '!=': 'not_equals',
+    '<>': 'not_equals'
+  });
+
   function readByPath(obj, path) {
     if (typeof getByPath === 'function') return getByPath(obj, path);
     if (!path || path === '$') return obj;
@@ -25,8 +49,58 @@ var SearchFilter = (function () {
     return raw === '' || raw == null;
   }
 
+  function isBlankValue(value) {
+    if (value == null) return true;
+    if (typeof value === 'string') return value.trim() === '';
+    if (Array.isArray(value)) return value.length === 0;
+    return false;
+  }
+
+  function normalizeOperator(operator, fallback='') {
+    const raw = String(operator ?? '').trim();
+    if (!raw) return fallback;
+    return LEGACY_OPERATOR_ALIASES[raw] ?? raw;
+  }
+
   function operatorFor(field) {
-    return field?.search?.operator ?? field?.search?.match ?? (field?.type === 'number' ? 'gte' : 'contains');
+    // Phase 4でSearchCapabilityResolverの標準OperatorをUIへ接続するまでは、
+    // 現行単一入力欄との互換を維持するため number の暗黙既定は gte のままにする。
+    const configured = field?.search?.operator ?? field?.search?.match;
+    return normalizeOperator(configured, field?.type === 'number' ? 'gte' : 'contains');
+  }
+
+  function criterionValue(criterion) {
+    if (!criterion || typeof criterion !== 'object') return '';
+    if (Object.prototype.hasOwnProperty.call(criterion, 'raw')) return criterion.raw;
+    if (Object.prototype.hasOwnProperty.call(criterion, 'value')) return criterion.value;
+    return '';
+  }
+
+  function criterionRange(criterion) {
+    const raw = criterionValue(criterion);
+    const rawObject = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : null;
+    return {
+      from: criterion?.from ?? criterion?.min ?? rawObject?.from ?? rawObject?.min ?? '',
+      to: criterion?.to ?? criterion?.max ?? rawObject?.to ?? rawObject?.max ?? ''
+    };
+  }
+
+  function criterionFamily(criterion) {
+    const raw = String(
+      criterion?.value_family ??
+      criterion?.valueFamily ??
+      criterion?.resolved_value_family ??
+      criterion?.type ??
+      ''
+    ).trim().toLowerCase();
+
+    if (['number', 'integer', 'float', 'decimal'].includes(raw)) return 'number';
+    if (raw === 'date') return 'date';
+    if (raw === 'datetime') return 'datetime';
+    if (raw === 'instant') return 'instant';
+    if (raw === 'boolean') return 'boolean';
+    if (raw === 'select') return 'select';
+    return 'string';
   }
 
   function criterionFromInput(input, fields = []) {
@@ -42,34 +116,167 @@ var SearchFilter = (function () {
     };
   }
 
+  function criterionIsActive(criterion) {
+    if (!criterion) return false;
+    const op = normalizeOperator(criterion.operator, criterion.type === 'number' ? 'gte' : 'contains');
+    if (NO_VALUE_OPERATORS.has(op)) return true;
+    if (op === 'between') {
+      const range = criterionRange(criterion);
+      return !isEmptyCriterionValue(range.from) || !isEmptyCriterionValue(range.to);
+    }
+    return !isEmptyCriterionValue(criterionValue(criterion));
+  }
+
   function criteriaFromInputs(inputs = [], fields = []) {
     return [...inputs]
       .map(input => criterionFromInput(input, fields))
       .filter(Boolean)
-      .filter(criterion => !isEmptyCriterionValue(criterion.raw));
+      .filter(criterionIsActive);
+  }
+
+  function toFiniteNumber(value) {
+    if (isBlankValue(value)) return null;
+    if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+    const normalized = String(value).trim().replace(/,/g, '');
+    if (!normalized) return null;
+    const number = Number(normalized);
+    return Number.isFinite(number) ? number : null;
+  }
+
+  function validUtcParts(year, month, day, hour=0, minute=0, second=0, millisecond=0) {
+    const d = new Date(Date.UTC(year, month - 1, day, hour, minute, second, millisecond));
+    return d.getUTCFullYear() === year &&
+      d.getUTCMonth() === month - 1 &&
+      d.getUTCDate() === day &&
+      d.getUTCHours() === hour &&
+      d.getUTCMinutes() === minute &&
+      d.getUTCSeconds() === second &&
+      d.getUTCMilliseconds() === millisecond;
+  }
+
+  function parseDateValue(value) {
+    const text = String(value ?? '').trim();
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text);
+    if (!match) return null;
+    const [, y, m, d] = match;
+    const year = Number(y), month = Number(m), day = Number(d);
+    if (!validUtcParts(year, month, day)) return null;
+    return Date.UTC(year, month - 1, day);
+  }
+
+  function parseLocalDateTimeValue(value) {
+    const text = String(value ?? '').trim();
+    const match = /^(\d{4})-(\d{2})-(\d{2})[T_ ](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?$/.exec(text);
+    if (!match) return null;
+    const [, y, m, d, hh, mm, ss='0', ms='0'] = match;
+    const year = Number(y), month = Number(m), day = Number(d);
+    const hour = Number(hh), minute = Number(mm), second = Number(ss);
+    const millisecond = Number(String(ms).padEnd(3, '0'));
+    if (!validUtcParts(year, month, day, hour, minute, second, millisecond)) return null;
+    return Date.UTC(year, month - 1, day, hour, minute, second, millisecond);
+  }
+
+  function parseInstantValue(value) {
+    const text = String(value ?? '').trim();
+    if (!text || !/(Z|[+-]\d{2}:\d{2})$/i.test(text)) return null;
+    const timestamp = Date.parse(text);
+    return Number.isFinite(timestamp) ? timestamp : null;
+  }
+
+  function comparableValue(value, family) {
+    if (family === 'number') return toFiniteNumber(value);
+    if (family === 'date') return parseDateValue(value);
+    if (family === 'datetime') return parseLocalDateTimeValue(value);
+    if (family === 'instant') return parseInstantValue(value);
+    return null;
+  }
+
+  function equalsScalar(actual, expected, family) {
+    if (family === 'number' || family === 'date' || family === 'datetime' || family === 'instant') {
+      const a = comparableValue(actual, family);
+      const b = comparableValue(expected, family);
+      return a != null && b != null && a === b;
+    }
+    if (family === 'boolean') {
+      return String(actual ?? '').toLowerCase() === String(expected ?? '').toLowerCase();
+    }
+    return String(actual ?? '') === String(expected ?? '');
+  }
+
+  function matchesArrayCriterion(actual, expectedValues, operator) {
+    const actualValues = Array.isArray(actual) ? actual.map(v => String(v)) : [String(actual ?? '')];
+    const expected = expectedValues.map(v => String(v));
+    const intersects = expected.some(value => actualValues.includes(value));
+    if (operator === 'not_equals') return !intersects;
+    return intersects;
+  }
+
+  function matchesContains(actual, expected) {
+    return String(actual ?? '').toLowerCase().includes(String(expected ?? '').toLowerCase());
+  }
+
+  function matchesComparable(actual, expected, family, operator) {
+    const a = comparableValue(actual, family);
+    const b = comparableValue(expected, family);
+    if (a == null || b == null) return false;
+    if (operator === 'gte') return a >= b;
+    if (operator === 'lte') return a <= b;
+    return false;
+  }
+
+  function matchesBetween(actual, criterion, family) {
+    const range = criterionRange(criterion);
+    const hasFrom = !isEmptyCriterionValue(range.from);
+    const hasTo = !isEmptyCriterionValue(range.to);
+    if (!hasFrom && !hasTo) return true;
+
+    const actualValue = comparableValue(actual, family);
+    if (actualValue == null) return false;
+
+    if (hasFrom) {
+      const fromValue = comparableValue(range.from, family);
+      if (fromValue == null || actualValue < fromValue) return false;
+    }
+    if (hasTo) {
+      const toValue = comparableValue(range.to, family);
+      if (toValue == null || actualValue > toValue) return false;
+    }
+    return true;
   }
 
   function matchesCriterion(row, criterion) {
-    if (!criterion || isEmptyCriterionValue(criterion.raw)) return true;
+    if (!criterion) return true;
+
+    const family = criterionFamily(criterion);
+    const op = normalizeOperator(criterion.operator, family === 'number' ? 'gte' : 'contains');
+    if (!criterionIsActive({ ...criterion, operator: op })) return true;
+
     const val = readByPath(row, criterion.field);
-    const raw = criterion.raw;
-    const op = criterion.operator ?? (criterion.type === 'number' ? 'gte' : 'contains');
+    const raw = criterionValue(criterion);
+
+    if (op === 'blank') return isBlankValue(val);
+    if (op === 'not_blank') return !isBlankValue(val);
+
+    if (op === 'between') {
+      if (!['number', 'date', 'datetime', 'instant'].includes(family)) return false;
+      return matchesBetween(val, criterion, family);
+    }
 
     if (Array.isArray(raw)) {
-      const values = Array.isArray(val) ? val.map(v => String(v)) : [String(val ?? '')];
-      return raw.some(x => values.includes(String(x)));
+      return matchesArrayCriterion(val, raw, op);
     }
 
-    if (criterion.type === 'number') {
-      const n = Number(raw);
-      if (op === 'gte') return Number(val) >= n;
-      if (op === 'lte') return Number(val) <= n;
-      return Number(val) === n;
+    if (op === 'contains') return matchesContains(val, raw);
+    if (op === 'not_contains') return !matchesContains(val, raw);
+    if (op === 'equals') return equalsScalar(val, raw, family);
+    if (op === 'not_equals') return !equalsScalar(val, raw, family);
+    if (op === 'gte' || op === 'lte') {
+      if (!['number', 'date', 'datetime', 'instant'].includes(family)) return false;
+      return matchesComparable(val, raw, family, op);
     }
 
-    if (criterion.type === 'boolean') return String(val) === String(raw);
-    if (op === 'equals') return String(val ?? '') === String(raw);
-    return String(val ?? '').toLowerCase().includes(String(raw).toLowerCase());
+    // Resolver / Registryで検証済みCriteriaを前提とし、未知Operatorを別演算へ黙ってfallbackしない。
+    return false;
   }
 
   function matchesRow(row, criteria = []) {
@@ -121,14 +328,27 @@ var SearchFilter = (function () {
     return typeof options.afterFilter === 'function' ? options.afterFilter(filtered) : filtered;
   }
 
+  function supportsOperator(operator) {
+    return CANONICAL_OPERATOR_IDS.includes(normalizeOperator(operator));
+  }
+
   return {
     apply,
     criteriaFromInputs,
+    criterionFromInput,
+    criterionIsActive,
     matchesCriterion,
     matchesRow,
     matchesFullText,
     collectStringValues,
     buildFullText,
-    isEmptyCriterionValue
+    isEmptyCriterionValue,
+    isBlankValue,
+    normalizeOperator,
+    supportsOperator,
+    operatorIds: CANONICAL_OPERATOR_IDS,
+    parseDateValue,
+    parseLocalDateTimeValue,
+    parseInstantValue
   };
 })();
