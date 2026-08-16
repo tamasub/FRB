@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "frb_view_def_schema_v0_9.json",
-  "title": "FRB Studio View Definition Schema v0.9 - Markdown Export Mode / Context / Chat Input Mapping / Related Grid View",
-  "description": "Schema for FRBStudio_App / No-Code JSON Studio view_def JSON files. Includes inheritance, common field types, Markdown export / AI Prompt, dataSources, virtualData registry builders, single-source writeBack, Relation status filters, and toolbar.executeButton action declarations. v0.9 adds chat edit.input.appendPosition/appendLabel and chat Markdown inline link/image permissions. v0.15.5でViewDef context.read_contract定義を追加。 v0.15.5.1で主文脈 Data root main_context_refs[] と対象文脈 Data明細 context_refs[] の正本モデルを追加し、ViewDefは context.main_context.data_path / context.target_context で場所と表示方法だけを宣言する形へ整理。 v0.15.5.3 adds target context Detail-top panel declaration. v0.18.6 adds Markdown Export Mode / ExportDef options: markdown.defaultMode, markdown.modes[], full_dump/review_report/document_sections, fieldPolicy, and field/section markdown.export. v0.18.14 adds FieldGroupType declarations, fieldGroupSources, and dynamic visibleWhen support. v0.18.20 adds field.grid.aggregate for numeric Grid sum rows with filtered/all scope. v0.18.28 adds toolbar.relatedGridViews / related_grid_views for ViewDef-driven Root array launch in a grid_only child Studio. v0.18.34 adds relatedGridViews.viewId / view_id so a related Root Grid can open a named views[] entry from the same ViewDef file; viewDef remains supported for external files. v0.18.38 adds date as an explicit Field type separate from datetime; date means YYYY-MM-DD only, while datetime means values with a time component. Existing datetime ViewDefs remain valid for compatibility. v0.18.52 adds section.fieldSets as a Detail layout contract that groups existing fields in a full-width three-column FieldSet; caption is optional and empty caption renders border-only grouping. v0.18.64 adds standard search override shape (operator/operator_set/operators); SearchOperatorRegistry is the vocabulary source of truth.",
+  "title": "FRB Studio View Definition Schema v0.9 - Section Groups / Markdown Export Mode / Context / Chat Input Mapping / Related Grid View",
+  "description": "Schema for FRBStudio_App / No-Code JSON Studio view_def JSON files. Includes inheritance, common field types, Markdown export / AI Prompt, dataSources, virtualData registry builders, single-source writeBack, Relation status filters, and toolbar.executeButton action declarations. v0.9 adds chat edit.input.appendPosition/appendLabel and chat Markdown inline link/image permissions. v0.15.5でViewDef context.read_contract定義を追加。 v0.15.5.1で主文脈 Data root main_context_refs[] と対象文脈 Data明細 context_refs[] の正本モデルを追加し、ViewDefは context.main_context.data_path / context.target_context で場所と表示方法だけを宣言する形へ整理。 v0.15.5.3 adds target context Detail-top panel declaration. v0.18.6 adds Markdown Export Mode / ExportDef options: markdown.defaultMode, markdown.modes[], full_dump/review_report/document_sections, fieldPolicy, and field/section markdown.export. v0.18.14 adds FieldGroupType declarations, fieldGroupSources, and dynamic visibleWhen support. v0.18.20 adds field.grid.aggregate for numeric Grid sum rows with filtered/all scope. v0.18.28 adds toolbar.relatedGridViews / related_grid_views for ViewDef-driven Root array launch in a grid_only child Studio. v0.18.34 adds relatedGridViews.viewId / view_id so a related Root Grid can open a named views[] entry from the same ViewDef file; viewDef remains supported for external files. v0.18.38 adds date as an explicit Field type separate from datetime; date means YYYY-MM-DD only, while datetime means values with a time component. Existing datetime ViewDefs remain valid for compatibility. v0.18.52 adds section.fieldSets as a Detail layout contract that groups existing fields in a full-width three-column FieldSet; caption is optional and empty caption renders border-only grouping. v0.18.64 adds standard search override shape (operator/operator_set/operators); SearchOperatorRegistry is the vocabulary source of truth. v0.18.72 adds optional views[].sectionGroups as a declarative grouping contract that references existing sections by sectionIds without duplicating Section definitions; grouping is one level only in this phase.",
   "type": "object",
   "additionalProperties": true,
   "properties": {
@@ -242,6 +242,14 @@
             "$ref": "#/$defs/section"
           }
         },
+        "sectionGroups": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Optional display grouping of existing sections. Groups are navigation/projection metadata inside the view; section definitions remain canonical in sections[].",
+          "items": {
+            "$ref": "#/$defs/sectionGroup"
+          }
+        },
         "markdown": {
           "$ref": "#/$defs/markdownOptions"
         },
@@ -404,6 +412,37 @@
         "caption",
         "layout",
         "sections"
+      ]
+    },
+    "sectionGroup": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "One display group inside a View. It selects existing sections by ID. It does not define or duplicate Sections and is intentionally one-level in v0.18.72.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique group ID within the containing view. Cross-item uniqueness is verified by the ViewDef contract/static validator."
+        },
+        "caption": {
+          "type": "string",
+          "description": "Human-readable label for the group navigation."
+        },
+        "sectionIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "IDs of existing sections in the same view. The same Section may be referenced by multiple groups; ungrouped Sections are allowed.",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "id",
+        "caption",
+        "sectionIds"
       ]
     },
     "section": {

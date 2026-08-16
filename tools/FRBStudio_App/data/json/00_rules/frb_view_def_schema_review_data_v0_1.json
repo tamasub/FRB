@@ -13,10 +13,10 @@
   "status": "converted_draft",
   "introduced_in": "v0.4-r001",
   "generated_at": "2026-06-22T12:46:51+09:00",
-  "defs_count": 35,
+  "defs_count": 36,
   "root_properties_count": 20,
-  "schema_items_count": 363,
-  "definition_property_count": 308,
+  "schema_items_count": 368,
+  "definition_property_count": 312,
   "conversion_note": "JSON Schemaはproperties/$defsの辞書構造が多いため、Studio上でレビューしやすいように root_property / definition / definition_property のフラットな schema_items 配列へ変換したData JSON。元Schemaは参照元であり、このJSONはレビュー・確認・Markdown出力用のViewである。",
   "review_policy": "Schemaの定義内容はAIが要約・分類できるが、採用可否・修正判断は人間が行う。確認済みにする場合は verification_status を確認済みにし、approval_decision を承認する。",
   "viewing_policy": {
@@ -695,9 +695,9 @@
       "parent_key": "$defs",
       "schema_path": "$defs.view",
       "source": "$defs",
-      "type_summary": "object{21 properties}",
+      "type_summary": "object{22 properties}",
       "required": false,
-      "ref": "layoutOptions, section, markdownOptions, viewDefReportOptions, dataSources, dataSources, virtualData, virtualData, writePolicy, writePolicy, toolbarOptions",
+      "ref": "layoutOptions, section, sectionGroup, markdownOptions, viewDefReportOptions, dataSources, dataSources, virtualData, virtualData, writePolicy, writePolicy, toolbarOptions",
       "enum_summary": "",
       "description": "",
       "priority": "high",
@@ -709,7 +709,7 @@
       "ai_response": "",
       "user_reply": "",
       "ai_followup_response": "",
-      "raw_schema_json": "{\n  \"type\": \"object\",\n  \"additionalProperties\": true,\n  \"properties\": {\n    \"id\": {\n      \"type\": \"string\",\n      \"minLength\": 1\n    },\n    \"caption\": {\n      \"type\": \"string\"\n    },\n    \"layout\": {\n      \"oneOf\": [\n        {\n          \"type\": \"string\",\n          \"enum\": [\n            \"header-search-grid-detail\"\n          ]\n        },\n        {\n          \"$ref\": \"#/$defs/layoutOptions\"\n        }\n      ]\n    },\n    \"sections\": {\n      \"type\": \"array\",\n      \"minItems\": 1,\n      \"items\": {\n        \"$ref\": \"#/$defs/section\"\n      }\n    },\n    \"markdown\": {\n      \"$ref\": \"#/$defs/markdownOptions\"\n    },\n    \"viewDefReport\": {\n      \"$ref\": \"#/$defs/viewDefReportOptions\"\n    },\n    \"dataSources\": {\n      \"$ref\": \"#/$defs/dataSources\"\n    },\n    \"data_sources\": {\n      \"$ref\": \"#/$defs/dataSources\"\n    },\n    \"virtualData\": {\n      \"$ref\": \"#/$defs/virtualData\"\n    },\n    \"virtual_data\": {\n      \"$ref\": \"#/$defs/virtualData\"\n    },\n    \"writePolicy\": {\n      \"$ref\": \"#/$defs/writePolicy\"\n    },\n    \"write_policy\": {\n      \"$ref\": \"#/$defs/writePolicy\"\n    },\n    \"toolbar\": {\n      \"$ref\": \"#/$defs/toolbarOptions\"\n    },\n    \"fieldTypeSources\": {\n      \"oneOf\": [\n        {\n          \"type\": \"string\"\n        },\n        {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"string\"\n          }\n        }\n      ]\n    },\n    \"field_type_sources\": {\n      \"oneOf\": [\n        {\n          \"type\": \"string\"\n        },\n        {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"string\"\n          }\n        }\n      ]\n    },\n    \"typeSources\": {\n      \"oneOf\": [\n        {\n          \"type\": \"string\"\n        },\n        {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"string\"\n          }\n        }\n      ]\n    },\n    \"type_sources\": {\n      \"oneOf\": [\n        {\n          \"type\": \"string\"\n        },\n        {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"string\"\n          }\n        }\n      ]\n    },\n    \"commonTypeRegistry\": {\n      \"type\": \"object\",\n      \"additionalProperties\": true\n    },\n    \"common_type_registry\": {\n      \"type\": \"object\",\n      \"additionalProperties\": true\n    },\n    \"commonTypes\": {\n      \"type\": \"object\",\n      \"additionalProperties\": true\n    },\n    \"common_types\": {\n      \"type\": \"object\",\n      \"additionalProperties\": true\n    }\n  },\n  \"required\": [\n    \"id\",\n    \"caption\",\n    \"layout\",\n    \"sections\"\n  ]\n}",
+      "raw_schema_json": "{\n  \"type\": \"object\",\n  \"additionalProperties\": true,\n  \"properties\": {\n    \"id\": {\n      \"type\": \"string\",\n      \"minLength\": 1\n    },\n    \"caption\": {\n      \"type\": \"string\"\n    },\n    \"layout\": {\n      \"oneOf\": [\n        {\n          \"type\": \"string\",\n          \"enum\": [\n            \"header-search-grid-detail\"\n          ]\n        },\n        {\n          \"$ref\": \"#/$defs/layoutOptions\"\n        }\n      ]\n    },\n    \"sections\": {\n      \"type\": \"array\",\n      \"minItems\": 1,\n      \"items\": {\n        \"$ref\": \"#/$defs/section\"\n      }\n    },\n    \"sectionGroups\": {\n      \"type\": \"array\",\n      \"minItems\": 1,\n      \"description\": \"Optional display grouping of existing sections. Groups are navigation/projection metadata inside the view; section definitions remain canonical in sections[].\",\n      \"items\": {\n        \"$ref\": \"#/$defs/sectionGroup\"\n      }\n    },\n    \"markdown\": {\n      \"$ref\": \"#/$defs/markdownOptions\"\n    },\n    \"viewDefReport\": {\n      \"$ref\": \"#/$defs/viewDefReportOptions\"\n    },\n    \"dataSources\": {\n      \"$ref\": \"#/$defs/dataSources\"\n    },\n    \"data_sources\": {\n      \"$ref\": \"#/$defs/dataSources\"\n    },\n    \"virtualData\": {\n      \"$ref\": \"#/$defs/virtualData\"\n    },\n    \"virtual_data\": {\n      \"$ref\": \"#/$defs/virtualData\"\n    },\n    \"writePolicy\": {\n      \"$ref\": \"#/$defs/writePolicy\"\n    },\n    \"write_policy\": {\n      \"$ref\": \"#/$defs/writePolicy\"\n    },\n    \"toolbar\": {\n      \"$ref\": \"#/$defs/toolbarOptions\"\n    },\n    \"fieldTypeSources\": {\n      \"oneOf\": [\n        {\n          \"type\": \"string\"\n        },\n        {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"string\"\n          }\n        }\n      ]\n    },\n    \"field_type_sources\": {\n      \"oneOf\": [\n        {\n          \"type\": \"string\"\n        },\n        {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"string\"\n          }\n        }\n      ]\n    },\n    \"typeSources\": {\n      \"oneOf\": [\n        {\n          \"type\": \"string\"\n        },\n        {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"string\"\n          }\n        }\n      ]\n    },\n    \"type_sources\": {\n      \"oneOf\": [\n        {\n          \"type\": \"string\"\n        },\n        {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"string\"\n          }\n        }\n      ]\n    },\n    \"commonTypeRegistry\": {\n      \"type\": \"object\",\n      \"additionalProperties\": true\n    },\n    \"common_type_registry\": {\n      \"type\": \"object\",\n      \"additionalProperties\": true\n    },\n    \"commonTypes\": {\n      \"type\": \"object\",\n      \"additionalProperties\": true\n    },\n    \"common_types\": {\n      \"type\": \"object\",\n      \"additionalProperties\": true\n    }\n  },\n  \"required\": [\n    \"id\",\n    \"caption\",\n    \"layout\",\n    \"sections\"\n  ]\n}",
       "constraints": [
         {
           "name": "type",
@@ -721,7 +721,7 @@
         },
         {
           "name": "$ref(s)",
-          "value": "layoutOptions, section, markdownOptions, viewDefReportOptions, dataSources, dataSources, virtualData, virtualData, writePolicy, writePolicy, toolbarOptions"
+          "value": "layoutOptions, section, sectionGroup, markdownOptions, viewDefReportOptions, dataSources, dataSources, virtualData, virtualData, writePolicy, writePolicy, toolbarOptions"
         },
         {
           "name": "required",
@@ -764,6 +764,15 @@
           "enum_summary": "",
           "description": "",
           "raw_schema_json": "{\n  \"type\": \"array\",\n  \"minItems\": 1,\n  \"items\": {\n    \"$ref\": \"#/$defs/section\"\n  }\n}"
+        },
+        {
+          "property_name": "sectionGroups",
+          "type_summary": "array<ref: sectionGroup>",
+          "required": false,
+          "ref": "sectionGroup",
+          "enum_summary": "",
+          "description": "Optional display grouping of existing sections. Groups are navigation/projection metadata inside the view; section definitions remain canonical in sections[].",
+          "raw_schema_json": "{\n  \"type\": \"array\",\n  \"minItems\": 1,\n  \"description\": \"Optional display grouping of existing sections. Groups are navigation/projection metadata inside the view; section definitions remain canonical in sections[].\",\n  \"items\": {\n    \"$ref\": \"#/$defs/sectionGroup\"\n  }\n}"
         },
         {
           "property_name": "markdown",
@@ -919,7 +928,15 @@
           "raw_schema_json": "{\n  \"type\": \"object\",\n  \"additionalProperties\": true\n}"
         }
       ],
-      "change_history": []
+      "change_history": [
+        {
+          "at": "2026-08-16T21:11:00+09:00",
+          "change_type": "schema_sync",
+          "before": "views[].sectionGroups未定義",
+          "after": "views[].sectionGroupsをoptional propertyとして追加",
+          "reason": "studio_work_0194 Phase 1でSection Group Data契約を正式化したため。"
+        }
+      ]
     },
     {
       "no": 21,
@@ -15131,6 +15148,222 @@
       "user_reply": "",
       "ai_followup_response": "",
       "raw_schema_json": "{\n  \"type\": \"array\",\n  \"minItems\": 1,\n  \"uniqueItems\": true,\n  \"items\": {\n    \"type\": \"string\",\n    \"minLength\": 1\n  },\n  \"description\": \"利用可能Operatorを標準Setから絞り込む特殊Override。各IDはSearchOperatorRegistryのactive operatorsに存在し、型互換であること。\"\n}",
+      "constraints": [
+        {
+          "name": "type",
+          "value": "array"
+        },
+        {
+          "name": "minItems",
+          "value": "1"
+        },
+        {
+          "name": "uniqueItems",
+          "value": "True"
+        }
+      ],
+      "child_properties": [],
+      "change_history": []
+    },
+    {
+      "no": 364,
+      "item_id": "defprop__view__sectionGroups",
+      "item_type": "definition_property",
+      "name": "sectionGroups",
+      "parent_key": "view",
+      "schema_path": "$defs.view.properties.sectionGroups",
+      "source": "$defs.view.properties",
+      "type_summary": "array<ref: sectionGroup>",
+      "required": false,
+      "ref": "sectionGroup",
+      "enum_summary": "",
+      "description": "Optional display grouping of existing sections. Groups are navigation/projection metadata inside the view; section definitions remain canonical in sections[].",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "未確認",
+      "approval_decision": "未承認",
+      "notes": "",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "raw_schema_json": "{\n  \"type\": \"array\",\n  \"minItems\": 1,\n  \"description\": \"Optional display grouping of existing sections. Groups are navigation/projection metadata inside the view; section definitions remain canonical in sections[].\",\n  \"items\": {\n    \"$ref\": \"#/$defs/sectionGroup\"\n  }\n}",
+      "constraints": [
+        {
+          "name": "type",
+          "value": "array"
+        },
+        {
+          "name": "minItems",
+          "value": "1"
+        },
+        {
+          "name": "$ref(s)",
+          "value": "sectionGroup"
+        }
+      ],
+      "child_properties": [],
+      "change_history": []
+    },
+    {
+      "no": 365,
+      "item_id": "def__sectionGroup",
+      "item_type": "definition",
+      "name": "sectionGroup",
+      "parent_key": "$defs",
+      "schema_path": "$defs.sectionGroup",
+      "source": "$defs",
+      "type_summary": "object{3 properties}",
+      "required": false,
+      "ref": "",
+      "enum_summary": "",
+      "description": "One display group inside a View. It selects existing sections by ID. It does not define or duplicate Sections and is intentionally one-level in v0.18.72.",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "未確認",
+      "approval_decision": "未承認",
+      "notes": "",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "raw_schema_json": "{\n  \"type\": \"object\",\n  \"additionalProperties\": true,\n  \"description\": \"One display group inside a View. It selects existing sections by ID. It does not define or duplicate Sections and is intentionally one-level in v0.18.72.\",\n  \"properties\": {\n    \"id\": {\n      \"type\": \"string\",\n      \"minLength\": 1,\n      \"description\": \"Unique group ID within the containing view. Cross-item uniqueness is verified by the ViewDef contract/static validator.\"\n    },\n    \"caption\": {\n      \"type\": \"string\",\n      \"description\": \"Human-readable label for the group navigation.\"\n    },\n    \"sectionIds\": {\n      \"type\": \"array\",\n      \"minItems\": 1,\n      \"uniqueItems\": true,\n      \"description\": \"IDs of existing sections in the same view. The same Section may be referenced by multiple groups; ungrouped Sections are allowed.\",\n      \"items\": {\n        \"type\": \"string\",\n        \"minLength\": 1\n      }\n    }\n  },\n  \"required\": [\n    \"id\",\n    \"caption\",\n    \"sectionIds\"\n  ]\n}",
+      "constraints": [
+        {
+          "name": "type",
+          "value": "object"
+        },
+        {
+          "name": "additionalProperties",
+          "value": "True"
+        },
+        {
+          "name": "required",
+          "value": "id, caption, sectionIds"
+        }
+      ],
+      "child_properties": [
+        {
+          "property_name": "id",
+          "type_summary": "string",
+          "required": true,
+          "ref": "",
+          "enum_summary": "",
+          "description": "Unique group ID within the containing view. Cross-item uniqueness is verified by the ViewDef contract/static validator.",
+          "raw_schema_json": "{\n  \"type\": \"string\",\n  \"minLength\": 1,\n  \"description\": \"Unique group ID within the containing view. Cross-item uniqueness is verified by the ViewDef contract/static validator.\"\n}"
+        },
+        {
+          "property_name": "caption",
+          "type_summary": "string",
+          "required": true,
+          "ref": "",
+          "enum_summary": "",
+          "description": "Human-readable label for the group navigation.",
+          "raw_schema_json": "{\n  \"type\": \"string\",\n  \"description\": \"Human-readable label for the group navigation.\"\n}"
+        },
+        {
+          "property_name": "sectionIds",
+          "type_summary": "array<string>",
+          "required": true,
+          "ref": "",
+          "enum_summary": "",
+          "description": "IDs of existing sections in the same view. The same Section may be referenced by multiple groups; ungrouped Sections are allowed.",
+          "raw_schema_json": "{\n  \"type\": \"array\",\n  \"minItems\": 1,\n  \"uniqueItems\": true,\n  \"description\": \"IDs of existing sections in the same view. The same Section may be referenced by multiple groups; ungrouped Sections are allowed.\",\n  \"items\": {\n    \"type\": \"string\",\n    \"minLength\": 1\n  }\n}"
+        }
+      ],
+      "change_history": []
+    },
+    {
+      "no": 366,
+      "item_id": "defprop__sectionGroup__id",
+      "item_type": "definition_property",
+      "name": "id",
+      "parent_key": "sectionGroup",
+      "schema_path": "$defs.sectionGroup.properties.id",
+      "source": "$defs.sectionGroup.properties",
+      "type_summary": "string",
+      "required": true,
+      "ref": "",
+      "enum_summary": "",
+      "description": "Unique group ID within the containing view. Cross-item uniqueness is verified by the ViewDef contract/static validator.",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "未確認",
+      "approval_decision": "未承認",
+      "notes": "",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "raw_schema_json": "{\n  \"type\": \"string\",\n  \"minLength\": 1,\n  \"description\": \"Unique group ID within the containing view. Cross-item uniqueness is verified by the ViewDef contract/static validator.\"\n}",
+      "constraints": [
+        {
+          "name": "type",
+          "value": "string"
+        },
+        {
+          "name": "minLength",
+          "value": "1"
+        }
+      ],
+      "child_properties": [],
+      "change_history": []
+    },
+    {
+      "no": 367,
+      "item_id": "defprop__sectionGroup__caption",
+      "item_type": "definition_property",
+      "name": "caption",
+      "parent_key": "sectionGroup",
+      "schema_path": "$defs.sectionGroup.properties.caption",
+      "source": "$defs.sectionGroup.properties",
+      "type_summary": "string",
+      "required": true,
+      "ref": "",
+      "enum_summary": "",
+      "description": "Human-readable label for the group navigation.",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "未確認",
+      "approval_decision": "未承認",
+      "notes": "",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "raw_schema_json": "{\n  \"type\": \"string\",\n  \"description\": \"Human-readable label for the group navigation.\"\n}",
+      "constraints": [
+        {
+          "name": "type",
+          "value": "string"
+        }
+      ],
+      "child_properties": [],
+      "change_history": []
+    },
+    {
+      "no": 368,
+      "item_id": "defprop__sectionGroup__sectionIds",
+      "item_type": "definition_property",
+      "name": "sectionIds",
+      "parent_key": "sectionGroup",
+      "schema_path": "$defs.sectionGroup.properties.sectionIds",
+      "source": "$defs.sectionGroup.properties",
+      "type_summary": "array<string>",
+      "required": true,
+      "ref": "",
+      "enum_summary": "",
+      "description": "IDs of existing sections in the same view. The same Section may be referenced by multiple groups; ungrouped Sections are allowed.",
+      "priority": "high",
+      "review_status": "未レビュー",
+      "verification_status": "未確認",
+      "approval_decision": "未承認",
+      "notes": "",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "raw_schema_json": "{\n  \"type\": \"array\",\n  \"minItems\": 1,\n  \"uniqueItems\": true,\n  \"description\": \"IDs of existing sections in the same view. The same Section may be referenced by multiple groups; ungrouped Sections are allowed.\",\n  \"items\": {\n    \"type\": \"string\",\n    \"minLength\": 1\n  }\n}",
       "constraints": [
         {
           "name": "type",

@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-16T19:36:00+09:00",
+  "updated_at": "2026-08-16T21:15:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 181,
+  "items_count": 186,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -27889,6 +27889,355 @@
           "detail": "Review JSON新規生成・既存再読込・コメント/判定/ハイライト復元・保存対象切替・巨大Markdown警告をWebView2 Native Shell上で確認する。"
         }
       ]
+    },
+    {
+      "incident_type": "enhancement",
+      "category": "architecture",
+      "priority": "high",
+      "verification_status": "Static確認済み / Phase 2 Group Navigation待ち",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-16T21:15:00+09:00",
+      "owner": "",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-16T21:11:00+09:00",
+      "updated_at": "2026-08-16T21:15:00+09:00",
+      "actual_updated_files": "- data/json/00_rules/frb_view_def_schema_v0_9.json\n- data/json/00_rules/frb_view_def_schema_review_data_v0_1.json\n- tests/qa/static/viewdef_section_groups_contract_phase1.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "verification_log": "- Phase 1専用Static: 6 / 6 PASS。\n- 全Static Before: 212 tests / 196 pass / 16 fail。\n- 全Static After: 218 tests / 202 pass / 16 fail。\n- 既存16 FAILはテスト名まで完全一致し、新規FAILなし。\n- frb_view_def_schema_v0_9.json JSON parse: PASS。\n- frb_view_def_schema_review_data_v0_1.json JSON parse: PASS。\n- Phase 1ではRuntime / UI JS変更なし。Group NavigationはPhase 2へ温存。",
+      "context_refs": [],
+      "work_item_id": "studio_work_0194",
+      "phase": "v0.18.72-viewdef-section-groups-contract-phase1",
+      "title": "ViewDef Section Groups Phase 1 — sectionGroups契約 / sectionIds検証 / 後方互換",
+      "status": "完了",
+      "follow_up_status": "PENDING",
+      "target_files": "- data/json/00_rules/frb_view_def_schema_v0_9.json\n- data/json/00_rules/frb_view_def_schema_review_data_v0_1.json\n- tests/qa/static/viewdef_section_groups_contract_phase1.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "# ContextDef素案: ViewDef Section Groups Phase 1\n\n## 目的\n- ViewDefのviews[]内で、sectionsと同階層にsectionGroupsを正式な固定語彙として追加する。\n- 既存Sectionを外から選択・束ねる契約をSchemaとStatic Testで固定する。\n\n## 中核判断軸\n- 外からつまめ原則: 既存構造を壊したくない場合、内部専用実装より外部定義から既存要素を選択・構成する方法を優先する。\n- Phase 1ではUI Navigationを実装しない。まずData構造契約だけを固定する。",
+      "objective": "- ViewDefのview内に任意のsectionGroupsを追加し、既存sectionsを表示単位として束ねる契約を正式化する。\n- sectionGroups / sectionIdsの形・一意性・参照整合の検証観点を固定する。\n- sectionGroupsを持たない既存ViewDefの後方互換を維持する。",
+      "background": "- App Settingsを専用Editorで作らず、標準Editorの既存Sectionをグループ単位で切り替える構造へ育てる方針で合意した。\n- sectionGroupsはSettings専用ではなく、既存Sectionを外からつまんで表示単位を作る汎用ViewDef契約とする。\n- 階層化は現時点で先回り実装せず、必要になった時点でさらに外からつまむ。",
+      "scope": "- frb_view_def_schema_v0_9.json の $defs.view.properties に sectionGroups を追加する。\n- $defs.sectionGroup を追加し、id / caption / sectionIds を定義する。\n- sectionIdsは1件以上・重複不可とする。\n- Static TestでGroup ID重複、sectionIds重複、存在しないSection参照を検出する契約を固定する。\n- sectionGroupsが任意であり既存ViewDefを変更不要とする後方互換を確認する。\n- Schema Review Dataを新契約へ同期する。",
+      "out_of_scope": "- Group Navigation UI。\n- Active Group状態管理。\n- App Settings ViewDef / Field Definition。\n- app_settings.json保存。\n- launch_shortcuts起動メニュー。\n- sectionGroupsの多階層化。",
+      "fixed_name_policy": "- ViewDef Schemaは既存の data/json/00_rules/frb_view_def_schema_v0_9.json を同名更新する。\n- Schema Review Dataも同名更新する。\n- Foundation Rule 019に従い返却ZIPは変更ファイルのみ。",
+      "module_policy": "- sectionGroupsはviews[].sectionsと同階層のData構造定義とする。\n- Rendererの内側へ専用分岐を入れず、Phase 2で既存Editorへ渡すSectionを外側で選択する。\n- Section定義は複製せずsectionIdsで参照する。",
+      "expected_outputs": "- Schemaに $defs.sectionGroup が存在する。\n- views[].sectionGroups が optional array<ref: sectionGroup> として宣言される。\n- sectionGroupはid/caption/sectionIdsを持ち、sectionIdsはminItems=1 / uniqueItems=true。\n- Static TestでGroup ID / sectionIds / Section参照整合の契約が確認できる。\n- 既存ViewDefはsectionGroups未指定のまま成立する。",
+      "risk": "- JSON Schema単体ではsectionIdsが同一Viewのsections[].idを参照することを表現しにくいため、Phase 1ではStatic契約テストで参照整合を固定する。Runtimeでの防御はPhase 2接続時に再確認する。\n- sectionGroupsを全Section分類の仕組みにしない。未所属Sectionを即エラーにしない。",
+      "test_points": "- sectionGroupsはview内・sectionsと同階層に定義される。\n- sectionGroupsはrequiredではない。\n- sectionGroupのid/caption/sectionIdsがSchema上必須。\n- sectionIdsは重複不可。\n- Group ID重複をStatic検証できる。\n- 存在しないSection ID参照をStatic検証できる。\n- 同一Sectionを複数Groupから参照できる。\n- 未所属Sectionは許容する。\n- 既存ViewDefにsectionGroups追加を要求しない。\n- 全StaticのBaseline FAILを増やさない。",
+      "user_request": "はーい。では、インシデントにフェーズ1～5を先に登録してから、フェーズ1の作業を開始お願いします。よろしく",
+      "ai_response": "Phase 1〜5を先に個別work_itemとして登録し、Phase 1ではViewDefのsectionGroups契約・検証・後方互換だけを実装する。UI NavigationはPhase 2へ分離する。",
+      "latest_ai_response": "- studio_work_0194〜0198としてApp Settings / sectionGroups Phase 1〜5を先行登録。\n- Phase 1でViewDef Schemaへoptional `views[].sectionGroups` と `$defs.sectionGroup` を追加。\n- sectionGroupはid/caption/sectionIdsを必須とし、sectionIdsはminItems=1 / uniqueItems=true。\n- Group ID重複・Group内sectionIds重複・未知Section参照をStatic契約で検出。\n- 同一Sectionの複数Group参照と未所属Sectionは許容し、全Section分類を強制しない。\n- Schema Review Dataを新契約へ同期。\n- Phase 1専用Static 6/6 PASS。全Static Before 212/196/16 → After 218/202/16、既存16 FAIL名は完全一致。\n- Runtime / UIは変更せず、Phase 2 studio_work_0195へ温存。",
+      "follow_up_actions": [
+        {
+          "action_type": "SECTION_GROUP_NAVIGATION",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "studio_work_0195"
+          ],
+          "summary": "Phase 2でsectionGroupsを認識し、Group Navigationから既存Editorへ対象Sectionを渡す。",
+          "note": "Phase 1契約完了。次作業候補。"
+        },
+        {
+          "action_type": "APP_SETTINGS_DEFINITION",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "studio_work_0196"
+          ],
+          "summary": "Phase 3でlaunch_shortcutsとMarkdown設定をSystem側Definitionで表現する。",
+          "note": ""
+        },
+        {
+          "action_type": "APP_SETTINGS_SAVE",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "studio_work_0197"
+          ],
+          "summary": "Phase 4でapp_settings.json固定保存契約・Validation・Round Tripを実装する。",
+          "note": ""
+        },
+        {
+          "action_type": "LAUNCH_SHORTCUT_MENU",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "studio_work_0198"
+          ],
+          "summary": "Phase 5でlaunch_shortcutsを明示起動するShortcut Menuを実装する。",
+          "note": ""
+        }
+      ],
+      "discussion_history": [
+        {
+          "at": "2026-08-16T21:11:00+09:00",
+          "speaker": "user",
+          "message": "はーい。では、インシデントにフェーズ1～5を先に登録してから、フェーズ1の作業を開始お願いします。よろしく"
+        },
+        {
+          "at": "2026-08-16T21:15:00+09:00",
+          "speaker": "assistant",
+          "message": "AI回答\n\n## 今回の更新\n\n- `data/json/00_rules/frb_view_def_schema_v0_9.json`\n- `data/json/00_rules/frb_view_def_schema_review_data_v0_1.json`\n- `tests/qa/static/viewdef_section_groups_contract_phase1.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\n- `studio_work_0194`〜`0198` としてPhase 1〜5を先に登録した。\n- Phase 1として、`views[].sectionGroups` を `sections` と同階層のoptional契約としてViewDef Schemaへ追加した。\n- `$defs.sectionGroup` に `id` / `caption` / `sectionIds` を定義し、`sectionIds` は1件以上・Group内重複不可とした。\n- Group ID重複、Group内sectionIds重複、存在しないSection参照をStatic契約で検出するようにした。\n- 同一Sectionの複数Group参照と、Groupに所属しないSectionは許容した。\n- Schema Review Dataを新しいSection Group契約へ同期した。\n\n## 方針\n\n- `sectionGroups` はViewDef内部、`views[]` の各View内で `sections` と同階層に置く。\n- Phase 1はData構造契約だけを固定し、Group Navigation UIやRuntime接続はPhase 2へ分離した。\n- 多階層化は先回り実装せず、必要になった時点でさらに「外からつまむ」上位概念を検討する。\n\n## 確認結果\n\n- Phase 1専用Static: 6 / 6 PASS\n- 全Static: Before 212 / 196 PASS / 16 FAIL → After 218 / 202 PASS / 16 FAIL\n- 既存16 FAIL名: 完全一致、新規FAILなし\n- JSON parse: OK\n- Runtime / UI変更: なし"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0194_001",
+          "at": "2026-08-16T21:11:00+09:00",
+          "decision": "sectionGroupsをviews[]内のviewでsectionsと同階層に置く。",
+          "reason": "ViewDef外部ではなく、既存Sectionを束ねるViewDef内部のData構造定義だから。",
+          "applied_axes": [
+            "外からつまめ原則",
+            "ViewDef First"
+          ],
+          "conditions": "同一View内の既存Sectionを利用目的別に切り替える場合。",
+          "exceptions": "なし。多階層化は今回対象外。",
+          "expected_behavior": "sectionGroupsが既存Section参照だけを持ち、Section定義を複製しない。",
+          "acceptance_criteria": "Schemaの$defs.view.propertiesにsectionGroupsが存在し、sectionsとは別プロパティとして定義される。",
+          "confirmation_level": "JSON・静的確認"
+        },
+        {
+          "decision_id": "dec_0194_002",
+          "at": "2026-08-16T21:11:00+09:00",
+          "decision": "sectionGroupsを全Section分類の仕組みにせず、未所属Sectionを許容する。",
+          "reason": "設定画面に出したくないSection等を意図的にGroup対象外にできるようにするため。",
+          "applied_axes": [
+            "外からつまめ原則",
+            "既存構造維持"
+          ],
+          "conditions": "sectionGroupsが存在するView。",
+          "exceptions": "個別ViewDefが独自に全所属を要求する場合は別契約で扱う。",
+          "expected_behavior": "つままれたSectionだけがGroup対象となり、未所属Section自体は契約違反にならない。",
+          "acceptance_criteria": "Phase 1 Static Testが未所属Sectionを許容する。",
+          "confirmation_level": "静的確認"
+        },
+        {
+          "decision_id": "dec_0194_003",
+          "at": "2026-08-16T21:11:00+09:00",
+          "decision": "sectionGroupsの多階層化を先回り実装しない。",
+          "reason": "現時点の具体責務は1階層Groupで満たせるため。必要になればsectionGroups自体をさらに外からつまむ上位概念を検討する。",
+          "applied_axes": [
+            "外からつまめ原則",
+            "実証なき抽象化の禁止"
+          ],
+          "conditions": "Phase 1〜5。",
+          "exceptions": "実際に二階層以上の具体要求が発生した場合。",
+          "expected_behavior": "sectionGroupsの構造を単純に保つ。",
+          "acceptance_criteria": "children等の再帰プロパティをPhase 1 Schemaへ追加しない。",
+          "confirmation_level": "JSON・設計レビュー"
+        }
+      ],
+      "change_history": [
+        {
+          "at": "2026-08-16T21:11:00+09:00",
+          "change_type": "phase_registered",
+          "before": "未登録",
+          "after": "studio_work_0194 / v0.18.72-viewdef-section-groups-contract-phase1",
+          "reason": "App Settings計画をPhase 1〜5へ分割し、まずViewDef Data契約だけを小さく実装するため。"
+        },
+        {
+          "at": "2026-08-16T21:15:00+09:00",
+          "change_type": "phase1_schema_contract",
+          "before": "views[].sectionsのみでSection Groupの正式契約なし",
+          "after": "views[].sectionGroups + $defs.sectionGroupをoptional契約として追加",
+          "reason": "既存Sectionを外からつまんで表示単位を作るData構造をViewDefの公用語として固定するため。"
+        },
+        {
+          "at": "2026-08-16T21:15:00+09:00",
+          "change_type": "phase1_schema_review_sync",
+          "before": "Schema Review DataにsectionGroups / sectionGroupなし",
+          "after": "sectionGroups / sectionGroup / id / caption / sectionIdsのレビュー項目を追加しdef__viewを同期",
+          "reason": "Schemaと人間レビュー用Dataの二重構造を不整合にしないため。"
+        },
+        {
+          "at": "2026-08-16T21:15:00+09:00",
+          "change_type": "phase1_verification_completed",
+          "before": "未確認",
+          "after": "専用Static 6/6 PASS、全Static新規FAILなし",
+          "reason": "Phase 1契約と既存ViewDef後方互換を確認した。"
+        }
+      ]
+    },
+    {
+      "incident_type": "enhancement",
+      "category": "architecture",
+      "priority": "high",
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "",
+      "owner": "",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-16T21:11:00+09:00",
+      "updated_at": "2026-08-16T21:15:00+09:00",
+      "actual_updated_files": "",
+      "verification_log": "",
+      "context_refs": [],
+      "work_item_id": "studio_work_0195",
+      "phase": "v0.18.73-section-group-navigation-phase2",
+      "title": "ViewDef Section Groups Phase 2 — Group Navigation / Active Section選択 / 既存Editor接続",
+      "status": "構想",
+      "follow_up_status": "NOT_STARTED",
+      "target_files": "- Phase実装時に現行構造を確認して確定する。\n- Foundation Rule 019に従い安定ファイル名・変更ファイルのみ返却契約を維持する。",
+      "context_def_draft": "# ContextDef素案: ViewDef Section Groups Phase 2 — Group Navigation / Active Section選択 / 既存Editor接続\n\n## 前提\n- 親: studio_work_0194 / v0.18.72-viewdef-section-groups-contract-phase1\n- 前Phaseの契約を継承し、一度に大きな変更を行わない。",
+      "objective": "- sectionGroupsを標準Editorで認識し、Group選択UIからActive sectionIdsを解決して既存Editor / Rendererへ接続する。",
+      "background": "- 親インシデント studio_work_0194 のPhase 1で sectionGroups / sectionIds Data契約が確定済み。\n- Phase 2ではその契約を標準Editor Navigationへ接続し、既存Rendererを再利用する。\n- 前Phaseの成果を正本として継承する。",
+      "scope": "- sectionGroups認識。\n- Group Navigation表示。\n- Active Group / sectionIds解決。\n- 既存Editor / Rendererへ対象Sectionを渡す。\n- Settings非依存のサンプルViewDefで動作確認する。",
+      "out_of_scope": "- 後続Phaseの責務は先取りしない。",
+      "fixed_name_policy": "- Foundation Rule 019を遵守する。\n- 既存正本は原則同名更新する。\n- 返却ZIPは変更ファイルのみ。",
+      "module_policy": "- 外からつまめ原則を優先し、既存Editor / Rendererの責務を壊さない。",
+      "expected_outputs": "- objective / scopeに記載したPhase責務が独立して成立する。",
+      "risk": "- 前Phase契約を壊す変更が必要な場合は独断で進めず再確認する。",
+      "test_points": "- 前Phaseの回帰を増やさない。\n- Phase固有の責務をStaticまたは実機確認できる。",
+      "user_request": "はーい。では、インシデントにフェーズ1～5を先に登録してから、フェーズ1の作業を開始お願いします。よろしく",
+      "ai_response": "Phase 1〜5を先行登録。現在はPhase 1のみ着手し、このPhaseは未着手として保持する。",
+      "latest_ai_response": "",
+      "follow_up_actions": [],
+      "discussion_history": [],
+      "decision_log": [],
+      "change_history": [
+        {
+          "at": "2026-08-16T21:11:00+09:00",
+          "change_type": "phase_registered",
+          "before": "未登録",
+          "after": "studio_work_0195 / v0.18.73-section-group-navigation-phase2",
+          "reason": "ユーザーがPhase 1〜5を先に登録して後続依頼しやすくすることを希望したため。"
+        }
+      ]
+    },
+    {
+      "incident_type": "enhancement",
+      "category": "architecture",
+      "priority": "high",
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "",
+      "owner": "",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-16T21:11:00+09:00",
+      "updated_at": "2026-08-16T21:11:00+09:00",
+      "actual_updated_files": "",
+      "verification_log": "",
+      "context_refs": [],
+      "work_item_id": "studio_work_0196",
+      "phase": "v0.18.74-app-settings-definition-phase3",
+      "title": "App Settings Phase 3 — launch_shortcuts / System ViewDef・Field Definition / Settings接続",
+      "status": "構想",
+      "follow_up_status": "NOT_STARTED",
+      "target_files": "- Phase実装時に現行構造を確認して確定する。\n- Foundation Rule 019に従い安定ファイル名・変更ファイルのみ返却契約を維持する。",
+      "context_def_draft": "# ContextDef素案: App Settings Phase 3 — launch_shortcuts / System ViewDef・Field Definition / Settings接続\n\n## 前提\n- 親: studio_work_0194 / v0.18.72-viewdef-section-groups-contract-phase1\n- 前Phaseの契約を継承し、一度に大きな変更を行わない。",
+      "objective": "- default_launchをlaunch_shortcutsへ置き換え、System側Settings DefinitionをsectionGroupsの最初の利用例として構築する。",
+      "background": "- App Settings / sectionGroups設計をPhase 1〜5へ分割した後続Phase。\n- 前Phaseの成果を正本として継承する。",
+      "scope": "- app_settings.jsonのdefault_launchをlaunch_shortcutsへ変更する。\n- System側Settings ViewDef / Field Definitionをwwwroot/config付近へ追加する。\n- Shortcut Grid SectionとMarkdown Form SectionをsectionGroupsで切り替える。",
+      "out_of_scope": "- 後続Phaseの責務は先取りしない。",
+      "fixed_name_policy": "- Foundation Rule 019を遵守する。\n- 既存正本は原則同名更新する。\n- 返却ZIPは変更ファイルのみ。",
+      "module_policy": "- 外からつまめ原則を優先し、既存Editor / Rendererの責務を壊さない。",
+      "expected_outputs": "- objective / scopeに記載したPhase責務が独立して成立する。",
+      "risk": "- 前Phase契約を壊す変更が必要な場合は独断で進めず再確認する。",
+      "test_points": "- 前Phaseの回帰を増やさない。\n- Phase固有の責務をStaticまたは実機確認できる。",
+      "user_request": "はーい。では、インシデントにフェーズ1～5を先に登録してから、フェーズ1の作業を開始お願いします。よろしく",
+      "ai_response": "Phase 1〜5を先行登録。現在はPhase 1のみ着手し、このPhaseは未着手として保持する。",
+      "latest_ai_response": "",
+      "follow_up_actions": [],
+      "discussion_history": [],
+      "decision_log": [],
+      "change_history": [
+        {
+          "at": "2026-08-16T21:11:00+09:00",
+          "change_type": "phase_registered",
+          "before": "未登録",
+          "after": "studio_work_0196 / v0.18.74-app-settings-definition-phase3",
+          "reason": "ユーザーがPhase 1〜5を先に登録して後続依頼しやすくすることを希望したため。"
+        }
+      ]
+    },
+    {
+      "incident_type": "enhancement",
+      "category": "architecture",
+      "priority": "high",
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "",
+      "owner": "",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-16T21:11:00+09:00",
+      "updated_at": "2026-08-16T21:11:00+09:00",
+      "actual_updated_files": "",
+      "verification_log": "",
+      "context_refs": [],
+      "work_item_id": "studio_work_0197",
+      "phase": "v0.18.75-app-settings-save-phase4",
+      "title": "App Settings Phase 4 — Canonical保存契約 / Validation / Round Trip",
+      "status": "構想",
+      "follow_up_status": "NOT_STARTED",
+      "target_files": "- Phase実装時に現行構造を確認して確定する。\n- Foundation Rule 019に従い安定ファイル名・変更ファイルのみ返却契約を維持する。",
+      "context_def_draft": "# ContextDef素案: App Settings Phase 4 — Canonical保存契約 / Validation / Round Trip\n\n## 前提\n- 親: studio_work_0194 / v0.18.72-viewdef-section-groups-contract-phase1\n- 前Phaseの契約を継承し、一度に大きな変更を行わない。",
+      "objective": "- System側app_settings.jsonを現時点のCanonicalとして安全に登録・更新できるようにする。",
+      "background": "- App Settings / sectionGroups設計をPhase 1〜5へ分割した後続Phase。\n- 前Phaseの成果を正本として継承する。",
+      "scope": "- app_settings.json固定保存契約。\n- Definition Driven Validation。\n- 非表示設定値を保持するRound Trip。\n- updated_at更新。\n- wwwroot/config全体を一般書込領域へしない。",
+      "out_of_scope": "- 後続Phaseの責務は先取りしない。",
+      "fixed_name_policy": "- Foundation Rule 019を遵守する。\n- 既存正本は原則同名更新する。\n- 返却ZIPは変更ファイルのみ。",
+      "module_policy": "- 外からつまめ原則を優先し、既存Editor / Rendererの責務を壊さない。",
+      "expected_outputs": "- objective / scopeに記載したPhase責務が独立して成立する。",
+      "risk": "- 前Phase契約を壊す変更が必要な場合は独断で進めず再確認する。",
+      "test_points": "- 前Phaseの回帰を増やさない。\n- Phase固有の責務をStaticまたは実機確認できる。",
+      "user_request": "はーい。では、インシデントにフェーズ1～5を先に登録してから、フェーズ1の作業を開始お願いします。よろしく",
+      "ai_response": "Phase 1〜5を先行登録。現在はPhase 1のみ着手し、このPhaseは未着手として保持する。",
+      "latest_ai_response": "",
+      "follow_up_actions": [],
+      "discussion_history": [],
+      "decision_log": [],
+      "change_history": [
+        {
+          "at": "2026-08-16T21:11:00+09:00",
+          "change_type": "phase_registered",
+          "before": "未登録",
+          "after": "studio_work_0197 / v0.18.75-app-settings-save-phase4",
+          "reason": "ユーザーがPhase 1〜5を先に登録して後続依頼しやすくすることを希望したため。"
+        }
+      ]
+    },
+    {
+      "incident_type": "enhancement",
+      "category": "architecture",
+      "priority": "high",
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "",
+      "owner": "",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-16T21:11:00+09:00",
+      "updated_at": "2026-08-16T21:11:00+09:00",
+      "actual_updated_files": "",
+      "verification_log": "",
+      "context_refs": [],
+      "work_item_id": "studio_work_0198",
+      "phase": "v0.18.76-launch-shortcut-menu-phase5",
+      "title": "App Settings Phase 5 — launch_shortcuts明示起動メニュー / 既存Editor起動",
+      "status": "構想",
+      "follow_up_status": "NOT_STARTED",
+      "target_files": "- Phase実装時に現行構造を確認して確定する。\n- Foundation Rule 019に従い安定ファイル名・変更ファイルのみ返却契約を維持する。",
+      "context_def_draft": "# ContextDef素案: App Settings Phase 5 — launch_shortcuts明示起動メニュー / 既存Editor起動\n\n## 前提\n- 親: studio_work_0194 / v0.18.72-viewdef-section-groups-contract-phase1\n- 前Phaseの契約を継承し、一度に大きな変更を行わない。",
+      "objective": "- Settingsで登録したlaunch_shortcutsを別メニューから明示的に選択し、既存JSON Object Studioを起動できるようにする。",
+      "background": "- App Settings / sectionGroups設計をPhase 1〜5へ分割した後続Phase。\n- 前Phaseの成果を正本として継承する。",
+      "scope": "- launch_shortcuts読込。\n- Shortcut Menu表示。\n- クリックで既存Editor起動経路を利用する。\n- 自動起動は行わない。",
+      "out_of_scope": "- 後続Phaseの責務は先取りしない。",
+      "fixed_name_policy": "- Foundation Rule 019を遵守する。\n- 既存正本は原則同名更新する。\n- 返却ZIPは変更ファイルのみ。",
+      "module_policy": "- 外からつまめ原則を優先し、既存Editor / Rendererの責務を壊さない。",
+      "expected_outputs": "- objective / scopeに記載したPhase責務が独立して成立する。",
+      "risk": "- 前Phase契約を壊す変更が必要な場合は独断で進めず再確認する。",
+      "test_points": "- 前Phaseの回帰を増やさない。\n- Phase固有の責務をStaticまたは実機確認できる。",
+      "user_request": "はーい。では、インシデントにフェーズ1～5を先に登録してから、フェーズ1の作業を開始お願いします。よろしく",
+      "ai_response": "Phase 1〜5を先行登録。現在はPhase 1のみ着手し、このPhaseは未着手として保持する。",
+      "latest_ai_response": "",
+      "follow_up_actions": [],
+      "discussion_history": [],
+      "decision_log": [],
+      "change_history": [
+        {
+          "at": "2026-08-16T21:11:00+09:00",
+          "change_type": "phase_registered",
+          "before": "未登録",
+          "after": "studio_work_0198 / v0.18.76-launch-shortcut-menu-phase5",
+          "reason": "ユーザーがPhase 1〜5を先に登録して後続依頼しやすくすることを希望したため。"
+        }
+      ]
     }
   ],
   "review_notes": [
@@ -28404,8 +28753,8 @@
       "body": "- studio_work_0161を親構想として見直した。\n- studio_work_0162～0168を未着手計画として追加した。\n- Studio Coreは汎用AI協働基盤として維持する。\n- Definition Verificationは標準Capabilityとして実装する。\n- Editor Componentと計算Serviceを分離し、PreviewとRunnerで共通導出ロジックを利用する。\n- 構造化記述原則の新設をルール改定計画へ含めた。"
     }
   ],
-  "work_revision": "v0.18.65-standard-search-capability-resolver-phase2",
-  "latest_planning_note": "標準検索Phase 2完了。Phase 2〜6はstudio_work_0187〜0191として登録済み。次はstudio_work_0188 / Phase 3 SearchFilter Operator拡張。",
+  "work_revision": "v0.18.72-viewdef-section-groups-contract-phase1",
+  "latest_planning_note": "studio_work_0194 / Phase 1 ViewDef sectionGroups契約完了。Phase 1〜5はstudio_work_0194〜0198として登録済み。次はstudio_work_0195 / Phase 2 Group Navigation。",
   "view_def_candidates": [
     {
       "view_def": "rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",
