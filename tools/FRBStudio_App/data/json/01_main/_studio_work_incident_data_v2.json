@@ -6,7 +6,7 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-16T15:57:00+09:00",
+  "updated_at": "2026-08-16T16:40:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
@@ -27431,9 +27431,9 @@
       "owner": "",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-16T15:01:00+09:00",
-      "updated_at": "2026-08-16T16:18:00+09:00",
+      "updated_at": "2026-08-16T16:25:00+09:00",
       "actual_updated_files": "- defs/tools/test_runner_run_config_view_def_v0_1.json\n- defs/tools/git_diff_export_run_config_view_def_v0_1.json\n- data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json\n- data/json/00_rules/_json_creation_prompt.md\n- tests/qa/static/standard_search_viewdef_standardization_phase5.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
-      "verification_log": "- Phase 1〜5 focused Static: 47 / 47 PASS。\n- 全Static Before: 199 tests / 183 pass / 16 fail。\n- 全Static After: 205 tests / 189 pass / 16 fail。\n- 既存16 FAILは名前まで完全一致。\n- 新規FAILなし。\n- Test Runner代表ViewDefはLegacy Search Sectionの5項目をCanonical Grid Fieldへ移行済み。\n- Git Diff代表ViewDefは空Legacy Search Sectionを削除済み。\n- Runtime renderSearchはgridDef().fields[].search.visibleを参照し、Search Sectionを要求しないことをStaticで固定。\n- 更新JSONはparse確認済み。\n- Static実行で更新された既存Actual/Diffはbaselineへ復元し、成果物ZIPから除外。\n- Legacy Search Section残存監査: 3 ViewDef。全件一括移行しない方針どおり。",
+      "verification_log": "- Phase 1〜5 focused Static: 47 / 47 PASS。\n- 全Static Before: 199 tests / 183 pass / 16 fail。\n- 全Static After: 205 tests / 189 pass / 16 fail。\n- 既存16 FAILは名前まで完全一致。\n- 新規FAILなし。\n- Test Runner代表ViewDefはLegacy Search Sectionの5項目をCanonical Grid Fieldへ移行済み。\n- Git Diff代表ViewDefは空Legacy Search Sectionを削除済み。\n- Runtime renderSearchはgridDef().fields[].search.visibleを参照し、Search Sectionを要求しないことをStaticで固定。\n- 更新JSONはparse確認済み。\n- Static実行で更新された既存Actual/Diffはbaselineへ復元し、成果物ZIPから除外。\n- Legacy Search Section残存監査: 3 ViewDef。全件一括移行しない方針どおり。\n- 既存Static 16 FAIL内訳（Phase 5完了後の再確認）:\n  - 旧 fielddefs パス参照: 7件。fielddefs/samples/frb_fft_measurement_field_definitions_v0_1.json 等の旧Fixture/旧配置を参照。\n  - 旧 C# パス参照: 2件。Program.cs/Program.cs を参照。\n  - Rule承認状態の旧期待値: 2件。testsは未承認を期待するが、現在Dataは承認する。\n  - Markdown旧レイアウト期待: 1件。旧3カラム幅 280px minmax(0, 1fr) 300px を固定期待。\n  - 判断軸件数の旧期待: 1件。testsは5件を期待するが、現在Dataは7件。\n  - Thought Evolution旧Data参照: 3件。data/json/01_main 配下の旧 thought_* Dataパスを参照。\n  - 合計: 16件。\n- Phase 1〜5検索対応で新規に発生したFAILは0件。\n- 過去テストは本Phase/Phase 6では修正しない。テスト保守は別インシデントでまとめて扱う。",
       "context_refs": [],
       "discussion_history": [
         {
@@ -27445,6 +27445,11 @@
           "at": "2026-08-16T16:18:00+09:00",
           "speaker": "assistant",
           "message": "Phase 5完了。Canonical Search Projectionを新規ViewDef標準として固定し、Test Runner / Git Diffの代表ViewDefを移行。Search Section全件一括削除はせず、LegacyとCanonicalが食い違うViewDefは段階移行とした。Phase 1〜5 focused Static 47/47 PASS、全Static Before 199/183/16 → After 205/189/16、既存16 FAIL同一。次はstudio_work_0191 / Phase 6。"
+        },
+        {
+          "at": "2026-08-16T16:25:00+09:00",
+          "speaker": "user",
+          "message": "Phase 5結果へ既存16 FAILの内訳情報を残す。過去のテストは修正せず、別途別インシデントでまとめて依頼する。"
         }
       ],
       "decision_log": [
@@ -27459,6 +27464,12 @@
           "at": "2026-08-16T16:03:00+09:00",
           "decision": "Legacy Search Sectionは全件一括変換せず、Test Runnerを代表移行し、Git Diffの空Sectionを除去する段階移行とする。",
           "reason": "LegacyとCanonicalでsearch設定が食い違うViewDefが存在し、自動変換すると検索項目の意味を勝手に変更する危険があるため。"
+        },
+        {
+          "decision_id": "dec_studio_work_0190_003",
+          "at": "2026-08-16T16:25:00+09:00",
+          "decision": "既存16 FAILはPhase 5の残存テスト保守課題として内訳を記録するが、過去テストは本検索Phase群では修正しない。",
+          "reason": "検索機能実装と既存テスト資産の追随修正を混在させず、過去テスト修正は別インシデントで一括判断・実施するため。"
         }
       ],
       "change_history": [
@@ -27475,6 +27486,13 @@
           "before": "Legacy Search Sectionが一部ViewDefにField定義を重複保持し、新規生成時の実務指示も二重定義禁止まで明示されていなかった。",
           "after": "新規ViewDefはCanonical Fieldのsearch.visibleへ統一。Test Runnerの5検索FieldをGrid側へ移行しSearch Section削除、Git Diffの空Search Sectionも削除。生成ルール/作成Promptへ標準化契約を追加。",
           "reason": "SearchをField DefinitionからのProjectionとして統一し、Phase 6のDefinition Driven Testへ進む前に正本構造を安定させるため。"
+        },
+        {
+          "at": "2026-08-16T16:25:00+09:00",
+          "change_type": "verification_note_append",
+          "before": "Phase 5結果には全Static 16 FAILが既存FAIL同一であることのみ記録。",
+          "after": "既存16 FAILを旧fielddefs 7 / 旧C# 2 / Rule承認期待2 / Markdown旧Layout1 / 判断軸件数1 / Thought Evolution旧Data3に分類して記録。過去テスト修正は別インシデント扱いと明記。",
+          "reason": "後続Phaseで既存FAILを検索機能の回帰と誤認せず、テスト保守課題を独立管理できるようにするため。"
         }
       ],
       "work_item_id": "studio_work_0190",
@@ -27495,7 +27513,7 @@
       "test_points": "- 当該Phaseの責務をUI非依存またはStatic Testで固定する。\n- 全Staticの既存FAILを増やさない。\n- JSON更新時はparse確認する。",
       "user_request": "下記インシデントの後続作業フェーズ２をお願いします。先に簡単な内容でいいので、フェーズ６まで、インシデントデータを登録してから作業をお願いします。依頼しにくいので💦　よろしく。",
       "ai_response": "Phase 5を完了。新規ViewDefの検索定義をCanonical Field / search.visibleへ標準化し、代表ViewDefのLegacy Search Section移行を実施した。Test RunnerではLegacy 5検索FieldをGrid側へ転記後にSearch Sectionを削除し、Git Diffでは空Search Sectionを削除。生成ルールとJSON作成Promptへ再発防止契約を追加し、既存全件一括変換は行わず段階移行とした。",
-      "latest_ai_response": "- Phase 5 Canonical Search Projection標準化を完了。\n- 新規ViewDefではSearch Sectionへ検索Fieldを複製せず、Canonical Grid Fieldのsearch.visibleを正本とする。\n- Test Runner代表ViewDef: run_config_id / caption / test_runner_id / run_mode / enabled の検索意図をGrid側へ移行し、Legacy Search Sectionを削除。\n- Git Diff代表ViewDef: 既に空だったLegacy Search Sectionを削除。\n- frb_viewdef_generation_rules_data_v0_1.json Rule 36と_json_creation_prompt.mdへ、Search Section/空Search Sectionを新規生成しない契約と段階移行手順を追加。\n- RuntimeのrenderSearchは従来からgridDef().fields[].search.visibleを参照しているため、今回Runtime JS変更なし。Legacy ViewDef全件一括変換も実施しない。\n- Phase 1〜5 focused Static 47/47 PASS。全StaticはBefore 199/183/16 → After 205/189/16、既存16 FAIL名は完全一致・新規FAILなし。\n- C#変更なし / publish不要。\n- 次作業: studio_work_0191 / v0.18.69 Definition Driven Search Test Phase 6。",
+      "latest_ai_response": "- Phase 5 Canonical Search Projection標準化を完了。\n- 新規ViewDefではSearch Sectionへ検索Fieldを複製せず、Canonical Grid Fieldのsearch.visibleを正本とする。\n- Test Runner代表ViewDef: run_config_id / caption / test_runner_id / run_mode / enabled の検索意図をGrid側へ移行し、Legacy Search Sectionを削除。\n- Git Diff代表ViewDef: 既に空だったLegacy Search Sectionを削除。\n- frb_viewdef_generation_rules_data_v0_1.json Rule 36と_json_creation_prompt.mdへ、Search Section/空Search Sectionを新規生成しない契約と段階移行手順を追加。\n- RuntimeのrenderSearchは従来からgridDef().fields[].search.visibleを参照しているため、今回Runtime JS変更なし。Legacy ViewDef全件一括変換も実施しない。\n- Phase 1〜5 focused Static 47/47 PASS。全StaticはBefore 199/183/16 → After 205/189/16、既存16 FAIL名は完全一致・新規FAILなし。\n- C#変更なし / publish不要。\n- 次作業: studio_work_0191 / v0.18.69 Definition Driven Search Test Phase 6。\n- 既存16 FAIL内訳を追記: 旧fielddefs 7 / 旧C# 2 / Rule承認期待2 / Markdown旧Layout1 / 判断軸件数1 / Thought Evolution旧Data3。検索Phase由来の新規FAILは0。過去テスト修正は別インシデントへ分離する。",
       "follow_up_actions": [
         {
           "action_type": "DEFINITION_DRIVEN_SEARCH_TEST",
@@ -27513,18 +27531,54 @@
       "incident_type": "enhancement",
       "category": "architecture",
       "priority": "high",
-      "verification_status": "未確認",
+      "verification_status": "Definition Driven Search確認済み / 既存16 FAILは別インシデント保守",
       "context_def_status": "draft",
       "context_def_updated_at": "2026-08-16T15:01:00+09:00",
       "owner": "",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-16T15:01:00+09:00",
-      "updated_at": "2026-08-16T15:01:00+09:00",
-      "actual_updated_files": "",
-      "verification_log": "",
+      "updated_at": "2026-08-16T16:40:00+09:00",
+      "actual_updated_files": "- wwwroot/js/services/search_test_pattern_deriver.js\n- wwwroot/js/services/search_definition_test_runner.js\n- wwwroot/js/services/search_definition_test_evidence_builder.js\n- defs/search/search_definition_test_diff_view_def_v0_1.json\n- data/json/03_tests/contracts/definition_driven_search_v0_1/\n- tests/search/search_definition_test_runner_cli.mjs\n- tests/search/search_definition_test_runner.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "verification_log": "- Phase 6新規Test: 6 / 6 PASS。\n- Phase 1〜6 focused: 53 / 53 PASS。\n- Definition Driven Search CLI Evidence: fields=3 / patterns=38 / pass=38 / fail=0 / status=PASSED。\n- Text: contains / not_contains / equals / not_equals / blank / not_blank / case-insensitive containsを機械導出・検証。\n- Number: gte/lte境界、between内側/最小/最大/外側、Fromのみ、Toのみ、blank、0のnot_blankを検証。\n- Date: gte/lte境界、between inclusive境界、Fromのみ、Toのみ、blank/not_blank、invalid date NO_MATCHを検証。\n- Expected / Actual / Diff / Summaryをdata/json/03_tests/contracts/definition_driven_search_v0_1へ証跡化。\n- DiffにはField Definition / Resolved Search Capability / Derived TestPattern Snapshotを保持。\n- 既存Static Before: 205 tests / 189 pass / 16 fail。\n- 既存Static After: 205 tests / 189 pass / 16 fail。\n- 既存16 FAILの名前は完全一致。新規FAILなし。\n- 既存tests配下の既存ファイルは変更0件。Phase 6は新規tests/searchファイルのみ追加。\n- Static実行で更新された既存Actual/Diffはbaselineへ復元し、返却差分から除外。\n- 新規JS / CLI / Testはnode --check PASS。\n- C#変更なし / publish不要。",
       "context_refs": [],
-      "discussion_history": [],
-      "decision_log": [],
+      "discussion_history": [
+        {
+          "at": "2026-08-16T16:25:00+09:00",
+          "speaker": "user",
+          "message": "Phase 5へ既存16 FAIL内訳を残し、過去テストは修正せず別インシデントで扱う。続けてstudio_work_0191 / Phase 6を実施する。"
+        },
+        {
+          "at": "2026-08-16T16:40:00+09:00",
+          "speaker": "assistant",
+          "message": "Phase 6完了。既存テストは変更せず、SearchCapabilityからText/Number/Dateの38 TestPatternを機械導出し、SearchFilterをActualとしてExpected/Actual/Diff/Summaryへ接続。新規Phase 6 Test 6/6 PASS、Phase 1〜6 focused 53/53 PASS。既存StaticはBefore/Afterとも205/189/16で16 FAIL名も完全一致。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_studio_work_0191_001",
+          "at": "2026-08-16T16:25:00+09:00",
+          "decision": "Phase 6は既存テストを一切変更せず、新規Definition Driven Searchテストと新規Evidenceのみ追加する。",
+          "reason": "検索Capabilityの検証と既存テスト資産の保守を分離し、既存16 FAILを別インシデントで扱うユーザー方針を守るため。"
+        },
+        {
+          "decision_id": "dec_studio_work_0191_002",
+          "at": "2026-08-16T16:40:00+09:00",
+          "decision": "Search TestPattern自体を正本JSONとして手作成せず、Field Definition + Resolved Search Capabilityから実行時に機械導出する。",
+          "reason": "Definition Driven Testingの目的を維持し、Operator追加・型契約変更時の二重保守を避けるため。"
+        },
+        {
+          "decision_id": "dec_studio_work_0191_003",
+          "at": "2026-08-16T16:40:00+09:00",
+          "decision": "SearchFilterをActual評価実装として再利用し、ExpectedはSearch Capabilityから導出したTestPattern側に固定する。",
+          "reason": "検索Runtimeとテスト実装を二重化せず、実際の検索責務が定義契約どおり動くかを検証するため。"
+        },
+        {
+          "decision_id": "dec_studio_work_0191_004",
+          "at": "2026-08-16T16:40:00+09:00",
+          "decision": "Phase 6 EvidenceはExpected / Actual / Diff / Summaryを03_tests/contractsへ保存し、DiffにField Definition・Search Capability・Derived TestPattern Snapshotを残す。",
+          "reason": "後から契約が変わっても、当時何を正として検索テストを実行したか人間が説明・承認できるようにするため。"
+        }
+      ],
       "change_history": [
         {
           "at": "2026-08-16T15:01:00+09:00",
@@ -27532,28 +27586,134 @@
           "before": "未登録",
           "after": "studio_work_0191 / v0.18.69-definition-driven-search-test-phase6",
           "reason": "ユーザーがPhase 6まで先に登録し、後続作業を依頼しやすくすることを希望したため。"
+        },
+        {
+          "at": "2026-08-16T16:40:00+09:00",
+          "change_type": "implementation",
+          "before": "Search Capability / SearchFilter / Search UI / ViewDef Projectionは実装済みだが、Search契約からTestPatternを機械導出してExpected/Actual/Diffへ証跡化する接続が未実装。",
+          "after": "SearchTestPatternDeriver / SearchDefinitionTestRunner / SearchDefinitionTestEvidenceBuilder / Search Diff ViewDef / 新規CLI・Test・Evidenceを追加。Text/Number/Date 38パターンをDefinitionから導出し全件PASS。",
+          "reason": "検索契約をDefinition Driven Testingの承認対象として検証可能にし、検索機能整備後にTestPattern検証へ進める状態を作るため。"
         }
       ],
       "work_item_id": "studio_work_0191",
       "phase": "v0.18.69-definition-driven-search-test-phase6",
       "title": "標準検索Capability Phase 6 — Definition Driven Search Test / TestPattern・Expected・Diff接続",
-      "status": "構想",
-      "follow_up_status": "UNASSESSED",
-      "target_files": "- Phase実装時に現行構造を確認して確定する。\n- foundation_rule_019に従い安定ファイル名・差分ZIP契約を維持する。",
+      "status": "完了",
+      "follow_up_status": "COMPLETED",
+      "target_files": "- wwwroot/js/services/search_test_pattern_deriver.js\n- wwwroot/js/services/search_definition_test_runner.js\n- wwwroot/js/services/search_definition_test_evidence_builder.js\n- defs/search/search_definition_test_diff_view_def_v0_1.json\n- data/json/03_tests/contracts/definition_driven_search_v0_1/\n- tests/search/search_definition_test_runner_cli.mjs\n- tests/search/search_definition_test_runner.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
       "context_def_draft": "# ContextDef素案: 標準検索Capability Phase 6 — Definition Driven Search Test / TestPattern・Expected・Diff接続\n\n## 目的\n- SearchCapabilityをDefinition Driven Testingへ接続し、検索契約そのものを機械検証可能にする。\n\n## 前提\n- 親: studio_work_0186 / v0.18.64-standard-search-contract-phase1\n- Phase 1のSearchOperatorRegistry契約を正本として継承する。",
       "objective": "- SearchCapabilityをDefinition Driven Testingへ接続し、検索契約そのものを機械検証可能にする。",
       "background": "- 親インシデント studio_work_0186 の標準検索v1計画を段階実装する後続Phase。\n- 前Phaseの契約・成果を次Phaseへ継承し、一度に大きなUI/Runtime変更を行わない。",
       "scope": "- SearchCapabilityからText / Number / Dateの代表TestPattern候補を導出する。\n- Expected / Actual / Diffへ接続する。\n- between境界、not_contains、blank/not_blank等を証跡化する。",
-      "out_of_scope": "- Search Preset。\n- 高度AND/OR。\n- Regex / fuzzy / AI検索。",
+      "out_of_scope": "- Search Preset。\n- 高度AND/OR。\n- Regex / fuzzy / AI検索。\n- 既存・過去テストファイルの修正は行わない。既存16 FAILの保守は別インシデントで扱う。",
       "fixed_name_policy": "- Foundation Rule 019の安定ファイル名契約を守る。\n- 既存正本は原則同名更新する。\n- 返却ZIPは変更ファイルのみ。\n- runtime生成物は返却ZIPへ含めない。",
       "module_policy": "- SearchOperatorRegistryを検索Operator語彙の正本とする。\n- Resolver / SearchFilter / UI Renderer / Test Runnerの責務を混ぜない。\n- 現行StudioのRenderer / Responsibility / Registry体系を壊さない。",
       "expected_outputs": "- SearchCapabilityからText / Number / Dateの代表TestPattern候補を導出する。\n- Expected / Actual / Diffへ接続する。\n- between境界、not_contains、blank/not_blank等を証跡化する。",
       "risk": "- 後続Phaseの責務を先取りして実装範囲を膨らませない。\n- Legacy ViewDef互換を壊さない。\n- AIは人間承認を代行しない。",
       "test_points": "- 当該Phaseの責務をUI非依存またはStatic Testで固定する。\n- 全Staticの既存FAILを増やさない。\n- JSON更新時はparse確認する。",
-      "user_request": "下記インシデントの後続作業フェーズ２をお願いします。先に簡単な内容でいいので、フェーズ６まで、インシデントデータを登録してから作業をお願いします。依頼しにくいので💦　よろしく。",
-      "ai_response": "標準検索Capability Phase 6 — Definition Driven Search Test / TestPattern・Expected・Diff接続 を studio_work_0186 の後続Phaseとして先行登録。実装は該当Phase依頼時に行う。",
-      "latest_ai_response": "- 後続Phaseとして先行登録。\n- 未実装。前Phase完了後に着手する。",
+      "user_request": "- Phase 5結果へ既存16 FAILの内訳を記録する。\n- 過去のテストは修正しない。\n- studio_work_0191 / v0.18.69-definition-driven-search-test-phase6 を実施する。\n- SearchCapabilityからTestPatternを導出し、Expected / Actual / Diffへ接続する。",
+      "ai_response": "- Phase 6 Definition Driven Search Testを完了。\n- SearchCapabilityResolverの解決結果からText / Number / Dateの代表Search TestPatternをSearchTestPatternDeriverで機械導出する。\n- SearchDefinitionTestRunnerがSearchFilterをActual実装として実行し、Expected MATCH / NO_MATCHと比較する。\n- SearchDefinitionTestEvidenceBuilderでExpected / Actual / Diff / Summaryを生成し、実行時Field Definition / Search Capability / TestPattern SnapshotをDiffへ保持する。\n- 代表3Fieldから38 TestPatternを導出し38/38 PASS。\n- Phase 6新規Test 6/6 PASS、Phase 1〜6 focused 53/53 PASS。\n- 既存StaticはBefore/Afterとも205 tests / 189 pass / 16 failで、16 FAIL名は完全一致。\n- ユーザー方針に従い過去テストは修正していない。既存16 FAIL保守は別インシデントで扱う。\n- C#変更なし / publish不要。",
+      "latest_ai_response": "- Phase 6 Definition Driven Search Testを完了。\n- SearchCapabilityResolverの解決結果からText / Number / Dateの代表Search TestPatternをSearchTestPatternDeriverで機械導出する。\n- SearchDefinitionTestRunnerがSearchFilterをActual実装として実行し、Expected MATCH / NO_MATCHと比較する。\n- SearchDefinitionTestEvidenceBuilderでExpected / Actual / Diff / Summaryを生成し、実行時Field Definition / Search Capability / TestPattern SnapshotをDiffへ保持する。\n- 代表3Fieldから38 TestPatternを導出し38/38 PASS。\n- Phase 6新規Test 6/6 PASS、Phase 1〜6 focused 53/53 PASS。\n- 既存StaticはBefore/Afterとも205 tests / 189 pass / 16 failで、16 FAIL名は完全一致。\n- ユーザー方針に従い過去テストは修正していない。既存16 FAIL保守は別インシデントで扱う。\n- C#変更なし / publish不要。",
       "follow_up_actions": []
+    },
+    {
+      "work_item_id": "studio_work_0192",
+      "phase": "v0.18.70-definition-test-approval-navigation",
+      "title": "Definition Driven Test 承認導線 — Field DefinitionからTestPattern・Diffまでの説明線をつなぐ",
+      "incident_type": "refactoring",
+      "category": "source_split",
+      "priority": "high",
+      "status": "構想",
+      "follow_up_status": "NOT_STARTED",
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "",
+      "owner": "",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-16T17:07:00+09:00",
+      "updated_at": "2026-08-16T17:07:00+09:00",
+      "target_files": "",
+      "actual_updated_files": "",
+      "objective": "Definition Driven Testの生成根拠とDiff結果を人間が同一文脈で追跡できる承認導線を整備する。",
+      "background": "Phase 6でSearch CapabilityからTestPattern・Expected・Actual・Diffまでの機械導出は成立した。一方、現行Field Definition詳細画面のGenerated TestPattern / Expected PreviewはValidation系中心で、Search TestPatternやPhase 6のDiff証跡へ直接つながっていないため、人間が『このDiffがどのDefinitionからなぜ生成されたか』を画面上で追いにくい。",
+      "scope": "承認導線づくりの設計・実装。Field Definition詳細、Constraint / Search Capability、Generated TestPattern / Expected、Actual / Diffの相互関係を人間が追える状態を対象とする。具体的なUI構成・表示項目・遷移方式は本インシデント着手時に整理する。",
+      "out_of_scope": "本登録時点では詳細UI仕様、TestPattern生成ロジックの追加変更、既存16 FAILの修正、過去テストの修正は行わない。",
+      "fixed_name_policy": "既存ファイル名・既存ViewDef名は原則維持する。新規責務や新規ファイルが必要な場合は着手時に判断する。",
+      "module_policy": "既存のDefinition / Search Capability / TestPattern / Diff責務を再利用し、承認導線のために同じ判定ロジックを二重実装しない。",
+      "expected_outputs": "人間がField Definitionから生成TestPattern・Expected・Actual・Diffまでの根拠を追跡できるStudio上の承認導線。詳細成果物は着手時に確定する。",
+      "risk": "画面表示だけを追加して生成ロジックを別実装すると、Runtime・Test・Preview間で契約が分岐するリスクがある。既存責務を正本として参照する。",
+      "test_points": "承認者が対象Field Definitionから生成されたTestPatternとDiff証跡へ到達できること。表示される根拠が実際のResolver / Deriver / Runner結果と一致すること。既存テストは本インシデントとは別管理とする。",
+      "verification_log": "",
+      "context_def_draft": "Definition Driven Testの結果を人間が承認できるよう、Field Definition → Capability / Constraint Resolution → Generated TestPattern / Expected → Actual / Diff の関係をStudio画面上で追跡できる導線を整備する。詳細UI・表示粒度は後続検討とする。",
+      "user_request": "承認する為の導線づくりって作業が残っているって扱にして、内容は詰めなくていいので、まずは、作業が漏れないようにって位置づけてで軽くインシデント登録したい。",
+      "ai_response": "",
+      "latest_user_comment": "承認する為の導線づくりって作業が残っているって扱にして、内容は詰めなくていいので、まずは、作業が漏れないようにって位置づけてで軽くインシデント登録したい。",
+      "latest_ai_response": "",
+      "context_refs": [],
+      "follow_up_actions": [
+        {
+          "action_id": "followup_studio_work_0192_001",
+          "action_type": "UI_IMPROVEMENT",
+          "required": true,
+          "status": "NOT_STARTED",
+          "related_ids": [
+            "studio_work_0191"
+          ],
+          "note": "Phase 6で成立したDefinition Driven Search Testの生成根拠とDiff証跡を、人間がField Definition画面から追跡・承認できる導線を後続で設計・実装する。詳細は着手時に整理する。",
+          "action": "承認導線の設計・実装",
+          "priority": "high",
+          "summary": "Field Definition → TestPattern / Expected → Actual / Diff の説明線をStudio UI上で接続する。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "discussion_studio_work_0192_001",
+          "at": "2026-08-16T17:07:00+09:00",
+          "speaker": "user",
+          "topic": "承認導線づくりを後続作業として登録",
+          "message": "承認する為の導線づくりって作業が残っているって扱にして、内容は詰めなくていいので、まずは、作業が漏れないようにって位置づけてで軽くインシデント登録したい。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "decision_studio_work_0192_001",
+          "at": "2026-08-16T17:07:00+09:00",
+          "decision": "承認導線づくりを独立インシデントとして登録し、詳細仕様は着手時まで確定しない。",
+          "reason": "Phase 6でテスト生成・証跡作成は成立したが、人間がDefinitionからDiffまでを追う説明線が未接続であり、作業漏れを防ぐ必要があるため。",
+          "applied_axes": [
+            "人間が承認可能な説明性",
+            "作業漏れ防止",
+            "既存責務の再利用"
+          ],
+          "conditions": [
+            "詳細UI仕様は本登録時点では決めない",
+            "過去テスト修正は別インシデントで扱う"
+          ],
+          "exceptions": [],
+          "expected_behavior": [
+            "後続着手時に承認導線の具体設計へ進める",
+            "Phase 6の生成ロジック・証跡を正本として再利用する"
+          ],
+          "acceptance_criteria": [
+            "承認者がField Definitionから生成TestPattern・Expected・Actual・Diffまで追跡できる"
+          ],
+          "test_pattern_seed": [],
+          "remaining_risks": [
+            "詳細UI・表示粒度・遷移方式は未確定"
+          ],
+          "confirmation_level": "構想"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "change_studio_work_0192_001",
+          "at": "2026-08-16T17:07:00+09:00",
+          "change_type": "incident_created",
+          "before": "承認導線づくりが独立した作業項目として未登録。",
+          "after": "studio_work_0192 として、Definition Driven Testの承認導線づくりを構想登録。",
+          "reason": "Phase 6完了後に残った『人間がDefinitionからDiffまで追跡して承認する導線』の作業漏れを防ぐため。"
+        }
+      ]
     }
   ],
   "review_notes": [

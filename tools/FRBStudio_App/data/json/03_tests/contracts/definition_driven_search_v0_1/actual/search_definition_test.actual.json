@@ -1,0 +1,1010 @@
+{
+  "schema_version": "search_definition_test_actual_v0_1",
+  "document_type": "search_definition_test_actual",
+  "test_id": "definition_driven_search_v0_1",
+  "title": "Definition Driven Search — Text / Number / Date",
+  "observed_at": "2026-08-16T07:31:55.165Z",
+  "source": {
+    "definition_id": "definition_driven_search_v0_1",
+    "schema_version": "search_field_definition_fixture_v0_1",
+    "definition_path": "data/json/03_tests/contracts/definition_driven_search_v0_1/input/search_field_definitions.json",
+    "search_operator_registry_version": "0.1.0",
+    "validation_type_registry_version": "0.1.0"
+  },
+  "checks": [
+    {
+      "check_id": "search::title::contains_hit",
+      "field": "title",
+      "operator": "contains",
+      "pattern_id": "search::title::contains_hit",
+      "input": {
+        "row": {
+          "title": "Alpha Beta"
+        },
+        "criterion": {
+          "field": "title",
+          "value_family": "string",
+          "operator": "contains",
+          "value": "beta"
+        }
+      },
+      "actual": "MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "title",
+        "validation_type_id": "studio.string.single_line",
+        "value_family": "string",
+        "operator_set_id": "text_standard",
+        "operator": "contains"
+      }
+    },
+    {
+      "check_id": "search::title::contains_miss",
+      "field": "title",
+      "operator": "contains",
+      "pattern_id": "search::title::contains_miss",
+      "input": {
+        "row": {
+          "title": "Alpha Beta"
+        },
+        "criterion": {
+          "field": "title",
+          "value_family": "string",
+          "operator": "contains",
+          "value": "gamma"
+        }
+      },
+      "actual": "NO_MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "title",
+        "validation_type_id": "studio.string.single_line",
+        "value_family": "string",
+        "operator_set_id": "text_standard",
+        "operator": "contains"
+      }
+    },
+    {
+      "check_id": "search::title::case_insensitive_contains",
+      "field": "title",
+      "operator": "contains",
+      "pattern_id": "search::title::case_insensitive_contains",
+      "input": {
+        "row": {
+          "title": "Alpha Beta"
+        },
+        "criterion": {
+          "field": "title",
+          "value_family": "string",
+          "operator": "contains",
+          "value": "ALPHA"
+        }
+      },
+      "actual": "MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "title",
+        "validation_type_id": "studio.string.single_line",
+        "value_family": "string",
+        "operator_set_id": "text_standard",
+        "operator": "contains"
+      }
+    },
+    {
+      "check_id": "search::title::not_contains_hit",
+      "field": "title",
+      "operator": "not_contains",
+      "pattern_id": "search::title::not_contains_hit",
+      "input": {
+        "row": {
+          "title": "Alpha Beta"
+        },
+        "criterion": {
+          "field": "title",
+          "value_family": "string",
+          "operator": "not_contains",
+          "value": "gamma"
+        }
+      },
+      "actual": "MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "title",
+        "validation_type_id": "studio.string.single_line",
+        "value_family": "string",
+        "operator_set_id": "text_standard",
+        "operator": "not_contains"
+      }
+    },
+    {
+      "check_id": "search::title::not_contains_excluded",
+      "field": "title",
+      "operator": "not_contains",
+      "pattern_id": "search::title::not_contains_excluded",
+      "input": {
+        "row": {
+          "title": "Alpha Beta"
+        },
+        "criterion": {
+          "field": "title",
+          "value_family": "string",
+          "operator": "not_contains",
+          "value": "alpha"
+        }
+      },
+      "actual": "NO_MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "title",
+        "validation_type_id": "studio.string.single_line",
+        "value_family": "string",
+        "operator_set_id": "text_standard",
+        "operator": "not_contains"
+      }
+    },
+    {
+      "check_id": "search::title::equals",
+      "field": "title",
+      "operator": "equals",
+      "pattern_id": "search::title::equals",
+      "input": {
+        "row": {
+          "title": "Alpha Beta"
+        },
+        "criterion": {
+          "field": "title",
+          "value_family": "string",
+          "operator": "equals",
+          "value": "Alpha Beta"
+        }
+      },
+      "actual": "MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "title",
+        "validation_type_id": "studio.string.single_line",
+        "value_family": "string",
+        "operator_set_id": "text_standard",
+        "operator": "equals"
+      }
+    },
+    {
+      "check_id": "search::title::not_equals",
+      "field": "title",
+      "operator": "not_equals",
+      "pattern_id": "search::title::not_equals",
+      "input": {
+        "row": {
+          "title": "Alpha Beta"
+        },
+        "criterion": {
+          "field": "title",
+          "value_family": "string",
+          "operator": "not_equals",
+          "value": "Gamma"
+        }
+      },
+      "actual": "MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "title",
+        "validation_type_id": "studio.string.single_line",
+        "value_family": "string",
+        "operator_set_id": "text_standard",
+        "operator": "not_equals"
+      }
+    },
+    {
+      "check_id": "search::title::blank",
+      "field": "title",
+      "operator": "blank",
+      "pattern_id": "search::title::blank",
+      "input": {
+        "row": {
+          "title": "   "
+        },
+        "criterion": {
+          "field": "title",
+          "value_family": "string",
+          "operator": "blank"
+        }
+      },
+      "actual": "MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "title",
+        "validation_type_id": "studio.string.single_line",
+        "value_family": "string",
+        "operator_set_id": "text_standard",
+        "operator": "blank"
+      }
+    },
+    {
+      "check_id": "search::title::not_blank",
+      "field": "title",
+      "operator": "not_blank",
+      "pattern_id": "search::title::not_blank",
+      "input": {
+        "row": {
+          "title": "Alpha Beta"
+        },
+        "criterion": {
+          "field": "title",
+          "value_family": "string",
+          "operator": "not_blank"
+        }
+      },
+      "actual": "MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "title",
+        "validation_type_id": "studio.string.single_line",
+        "value_family": "string",
+        "operator_set_id": "text_standard",
+        "operator": "not_blank"
+      }
+    },
+    {
+      "check_id": "search::amount::equals",
+      "field": "amount",
+      "operator": "equals",
+      "pattern_id": "search::amount::equals",
+      "input": {
+        "row": {
+          "amount": 20
+        },
+        "criterion": {
+          "field": "amount",
+          "value_family": "number",
+          "operator": "equals",
+          "value": 20
+        }
+      },
+      "actual": "MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "amount",
+        "validation_type_id": "studio.number.standard",
+        "value_family": "number",
+        "operator_set_id": "numeric_standard",
+        "operator": "equals"
+      }
+    },
+    {
+      "check_id": "search::amount::not_equals",
+      "field": "amount",
+      "operator": "not_equals",
+      "pattern_id": "search::amount::not_equals",
+      "input": {
+        "row": {
+          "amount": 20
+        },
+        "criterion": {
+          "field": "amount",
+          "value_family": "number",
+          "operator": "not_equals",
+          "value": 21
+        }
+      },
+      "actual": "MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "amount",
+        "validation_type_id": "studio.number.standard",
+        "value_family": "number",
+        "operator_set_id": "numeric_standard",
+        "operator": "not_equals"
+      }
+    },
+    {
+      "check_id": "search::amount::gte_boundary",
+      "field": "amount",
+      "operator": "gte",
+      "pattern_id": "search::amount::gte_boundary",
+      "input": {
+        "row": {
+          "amount": 20
+        },
+        "criterion": {
+          "field": "amount",
+          "value_family": "number",
+          "operator": "gte",
+          "value": 20
+        }
+      },
+      "actual": "MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "amount",
+        "validation_type_id": "studio.number.standard",
+        "value_family": "number",
+        "operator_set_id": "numeric_standard",
+        "operator": "gte"
+      }
+    },
+    {
+      "check_id": "search::amount::gte_below",
+      "field": "amount",
+      "operator": "gte",
+      "pattern_id": "search::amount::gte_below",
+      "input": {
+        "row": {
+          "amount": 19
+        },
+        "criterion": {
+          "field": "amount",
+          "value_family": "number",
+          "operator": "gte",
+          "value": 20
+        }
+      },
+      "actual": "NO_MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "amount",
+        "validation_type_id": "studio.number.standard",
+        "value_family": "number",
+        "operator_set_id": "numeric_standard",
+        "operator": "gte"
+      }
+    },
+    {
+      "check_id": "search::amount::lte_boundary",
+      "field": "amount",
+      "operator": "lte",
+      "pattern_id": "search::amount::lte_boundary",
+      "input": {
+        "row": {
+          "amount": 20
+        },
+        "criterion": {
+          "field": "amount",
+          "value_family": "number",
+          "operator": "lte",
+          "value": 20
+        }
+      },
+      "actual": "MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "amount",
+        "validation_type_id": "studio.number.standard",
+        "value_family": "number",
+        "operator_set_id": "numeric_standard",
+        "operator": "lte"
+      }
+    },
+    {
+      "check_id": "search::amount::lte_above",
+      "field": "amount",
+      "operator": "lte",
+      "pattern_id": "search::amount::lte_above",
+      "input": {
+        "row": {
+          "amount": 21
+        },
+        "criterion": {
+          "field": "amount",
+          "value_family": "number",
+          "operator": "lte",
+          "value": 20
+        }
+      },
+      "actual": "NO_MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "amount",
+        "validation_type_id": "studio.number.standard",
+        "value_family": "number",
+        "operator_set_id": "numeric_standard",
+        "operator": "lte"
+      }
+    },
+    {
+      "check_id": "search::amount::between_inside",
+      "field": "amount",
+      "operator": "between",
+      "pattern_id": "search::amount::between_inside",
+      "input": {
+        "row": {
+          "amount": 20
+        },
+        "criterion": {
+          "field": "amount",
+          "value_family": "number",
+          "operator": "between",
+          "from": 10,
+          "to": 30
+        }
+      },
+      "actual": "MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "amount",
+        "validation_type_id": "studio.number.standard",
+        "value_family": "number",
+        "operator_set_id": "numeric_standard",
+        "operator": "between"
+      }
+    },
+    {
+      "check_id": "search::amount::between_min",
+      "field": "amount",
+      "operator": "between",
+      "pattern_id": "search::amount::between_min",
+      "input": {
+        "row": {
+          "amount": 10
+        },
+        "criterion": {
+          "field": "amount",
+          "value_family": "number",
+          "operator": "between",
+          "from": 10,
+          "to": 30
+        }
+      },
+      "actual": "MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "amount",
+        "validation_type_id": "studio.number.standard",
+        "value_family": "number",
+        "operator_set_id": "numeric_standard",
+        "operator": "between"
+      }
+    },
+    {
+      "check_id": "search::amount::between_max",
+      "field": "amount",
+      "operator": "between",
+      "pattern_id": "search::amount::between_max",
+      "input": {
+        "row": {
+          "amount": 30
+        },
+        "criterion": {
+          "field": "amount",
+          "value_family": "number",
+          "operator": "between",
+          "from": 10,
+          "to": 30
+        }
+      },
+      "actual": "MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "amount",
+        "validation_type_id": "studio.number.standard",
+        "value_family": "number",
+        "operator_set_id": "numeric_standard",
+        "operator": "between"
+      }
+    },
+    {
+      "check_id": "search::amount::between_outside",
+      "field": "amount",
+      "operator": "between",
+      "pattern_id": "search::amount::between_outside",
+      "input": {
+        "row": {
+          "amount": 31
+        },
+        "criterion": {
+          "field": "amount",
+          "value_family": "number",
+          "operator": "between",
+          "from": 10,
+          "to": 30
+        }
+      },
+      "actual": "NO_MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "amount",
+        "validation_type_id": "studio.number.standard",
+        "value_family": "number",
+        "operator_set_id": "numeric_standard",
+        "operator": "between"
+      }
+    },
+    {
+      "check_id": "search::amount::from_only",
+      "field": "amount",
+      "operator": "between",
+      "pattern_id": "search::amount::from_only",
+      "input": {
+        "row": {
+          "amount": 20
+        },
+        "criterion": {
+          "field": "amount",
+          "value_family": "number",
+          "operator": "between",
+          "from": 20,
+          "to": ""
+        }
+      },
+      "actual": "MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "amount",
+        "validation_type_id": "studio.number.standard",
+        "value_family": "number",
+        "operator_set_id": "numeric_standard",
+        "operator": "between"
+      }
+    },
+    {
+      "check_id": "search::amount::to_only",
+      "field": "amount",
+      "operator": "between",
+      "pattern_id": "search::amount::to_only",
+      "input": {
+        "row": {
+          "amount": 20
+        },
+        "criterion": {
+          "field": "amount",
+          "value_family": "number",
+          "operator": "between",
+          "from": "",
+          "to": 20
+        }
+      },
+      "actual": "MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "amount",
+        "validation_type_id": "studio.number.standard",
+        "value_family": "number",
+        "operator_set_id": "numeric_standard",
+        "operator": "between"
+      }
+    },
+    {
+      "check_id": "search::amount::blank",
+      "field": "amount",
+      "operator": "blank",
+      "pattern_id": "search::amount::blank",
+      "input": {
+        "row": {
+          "amount": null
+        },
+        "criterion": {
+          "field": "amount",
+          "value_family": "number",
+          "operator": "blank"
+        }
+      },
+      "actual": "MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "amount",
+        "validation_type_id": "studio.number.standard",
+        "value_family": "number",
+        "operator_set_id": "numeric_standard",
+        "operator": "blank"
+      }
+    },
+    {
+      "check_id": "search::amount::not_blank_zero",
+      "field": "amount",
+      "operator": "not_blank",
+      "pattern_id": "search::amount::not_blank_zero",
+      "input": {
+        "row": {
+          "amount": 0
+        },
+        "criterion": {
+          "field": "amount",
+          "value_family": "number",
+          "operator": "not_blank"
+        }
+      },
+      "actual": "MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "amount",
+        "validation_type_id": "studio.number.standard",
+        "value_family": "number",
+        "operator_set_id": "numeric_standard",
+        "operator": "not_blank"
+      }
+    },
+    {
+      "check_id": "search::updated_at::equals",
+      "field": "updated_at",
+      "operator": "equals",
+      "pattern_id": "search::updated_at::equals",
+      "input": {
+        "row": {
+          "updated_at": "2026-08-16"
+        },
+        "criterion": {
+          "field": "updated_at",
+          "value_family": "date",
+          "operator": "equals",
+          "value": "2026-08-16"
+        }
+      },
+      "actual": "MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "updated_at",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "operator": "equals"
+      }
+    },
+    {
+      "check_id": "search::updated_at::not_equals",
+      "field": "updated_at",
+      "operator": "not_equals",
+      "pattern_id": "search::updated_at::not_equals",
+      "input": {
+        "row": {
+          "updated_at": "2026-08-16"
+        },
+        "criterion": {
+          "field": "updated_at",
+          "value_family": "date",
+          "operator": "not_equals",
+          "value": "2026-08-17"
+        }
+      },
+      "actual": "MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "updated_at",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "operator": "not_equals"
+      }
+    },
+    {
+      "check_id": "search::updated_at::gte_boundary",
+      "field": "updated_at",
+      "operator": "gte",
+      "pattern_id": "search::updated_at::gte_boundary",
+      "input": {
+        "row": {
+          "updated_at": "2026-08-16"
+        },
+        "criterion": {
+          "field": "updated_at",
+          "value_family": "date",
+          "operator": "gte",
+          "value": "2026-08-16"
+        }
+      },
+      "actual": "MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "updated_at",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "operator": "gte"
+      }
+    },
+    {
+      "check_id": "search::updated_at::gte_below",
+      "field": "updated_at",
+      "operator": "gte",
+      "pattern_id": "search::updated_at::gte_below",
+      "input": {
+        "row": {
+          "updated_at": "2026-08-15"
+        },
+        "criterion": {
+          "field": "updated_at",
+          "value_family": "date",
+          "operator": "gte",
+          "value": "2026-08-16"
+        }
+      },
+      "actual": "NO_MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "updated_at",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "operator": "gte"
+      }
+    },
+    {
+      "check_id": "search::updated_at::lte_boundary",
+      "field": "updated_at",
+      "operator": "lte",
+      "pattern_id": "search::updated_at::lte_boundary",
+      "input": {
+        "row": {
+          "updated_at": "2026-08-16"
+        },
+        "criterion": {
+          "field": "updated_at",
+          "value_family": "date",
+          "operator": "lte",
+          "value": "2026-08-16"
+        }
+      },
+      "actual": "MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "updated_at",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "operator": "lte"
+      }
+    },
+    {
+      "check_id": "search::updated_at::lte_above",
+      "field": "updated_at",
+      "operator": "lte",
+      "pattern_id": "search::updated_at::lte_above",
+      "input": {
+        "row": {
+          "updated_at": "2026-08-17"
+        },
+        "criterion": {
+          "field": "updated_at",
+          "value_family": "date",
+          "operator": "lte",
+          "value": "2026-08-16"
+        }
+      },
+      "actual": "NO_MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "updated_at",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "operator": "lte"
+      }
+    },
+    {
+      "check_id": "search::updated_at::between_inside",
+      "field": "updated_at",
+      "operator": "between",
+      "pattern_id": "search::updated_at::between_inside",
+      "input": {
+        "row": {
+          "updated_at": "2026-08-16"
+        },
+        "criterion": {
+          "field": "updated_at",
+          "value_family": "date",
+          "operator": "between",
+          "from": "2026-08-01",
+          "to": "2026-08-31"
+        }
+      },
+      "actual": "MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "updated_at",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "operator": "between"
+      }
+    },
+    {
+      "check_id": "search::updated_at::between_min",
+      "field": "updated_at",
+      "operator": "between",
+      "pattern_id": "search::updated_at::between_min",
+      "input": {
+        "row": {
+          "updated_at": "2026-08-01"
+        },
+        "criterion": {
+          "field": "updated_at",
+          "value_family": "date",
+          "operator": "between",
+          "from": "2026-08-01",
+          "to": "2026-08-31"
+        }
+      },
+      "actual": "MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "updated_at",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "operator": "between"
+      }
+    },
+    {
+      "check_id": "search::updated_at::between_max",
+      "field": "updated_at",
+      "operator": "between",
+      "pattern_id": "search::updated_at::between_max",
+      "input": {
+        "row": {
+          "updated_at": "2026-08-31"
+        },
+        "criterion": {
+          "field": "updated_at",
+          "value_family": "date",
+          "operator": "between",
+          "from": "2026-08-01",
+          "to": "2026-08-31"
+        }
+      },
+      "actual": "MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "updated_at",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "operator": "between"
+      }
+    },
+    {
+      "check_id": "search::updated_at::between_outside",
+      "field": "updated_at",
+      "operator": "between",
+      "pattern_id": "search::updated_at::between_outside",
+      "input": {
+        "row": {
+          "updated_at": "2026-09-01"
+        },
+        "criterion": {
+          "field": "updated_at",
+          "value_family": "date",
+          "operator": "between",
+          "from": "2026-08-01",
+          "to": "2026-08-31"
+        }
+      },
+      "actual": "NO_MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "updated_at",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "operator": "between"
+      }
+    },
+    {
+      "check_id": "search::updated_at::from_only",
+      "field": "updated_at",
+      "operator": "between",
+      "pattern_id": "search::updated_at::from_only",
+      "input": {
+        "row": {
+          "updated_at": "2026-08-16"
+        },
+        "criterion": {
+          "field": "updated_at",
+          "value_family": "date",
+          "operator": "between",
+          "from": "2026-08-16",
+          "to": ""
+        }
+      },
+      "actual": "MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "updated_at",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "operator": "between"
+      }
+    },
+    {
+      "check_id": "search::updated_at::to_only",
+      "field": "updated_at",
+      "operator": "between",
+      "pattern_id": "search::updated_at::to_only",
+      "input": {
+        "row": {
+          "updated_at": "2026-08-16"
+        },
+        "criterion": {
+          "field": "updated_at",
+          "value_family": "date",
+          "operator": "between",
+          "from": "",
+          "to": "2026-08-16"
+        }
+      },
+      "actual": "MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "updated_at",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "operator": "between"
+      }
+    },
+    {
+      "check_id": "search::updated_at::blank",
+      "field": "updated_at",
+      "operator": "blank",
+      "pattern_id": "search::updated_at::blank",
+      "input": {
+        "row": {
+          "updated_at": ""
+        },
+        "criterion": {
+          "field": "updated_at",
+          "value_family": "date",
+          "operator": "blank"
+        }
+      },
+      "actual": "MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "updated_at",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "operator": "blank"
+      }
+    },
+    {
+      "check_id": "search::updated_at::not_blank",
+      "field": "updated_at",
+      "operator": "not_blank",
+      "pattern_id": "search::updated_at::not_blank",
+      "input": {
+        "row": {
+          "updated_at": "2026-08-16"
+        },
+        "criterion": {
+          "field": "updated_at",
+          "value_family": "date",
+          "operator": "not_blank"
+        }
+      },
+      "actual": "MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "updated_at",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "operator": "not_blank"
+      }
+    },
+    {
+      "check_id": "search::updated_at::invalid_date_input",
+      "field": "updated_at",
+      "operator": "equals",
+      "pattern_id": "search::updated_at::invalid_date_input",
+      "input": {
+        "row": {
+          "updated_at": "2026-02-30"
+        },
+        "criterion": {
+          "field": "updated_at",
+          "value_family": "date",
+          "operator": "equals",
+          "value": "2026-02-30"
+        }
+      },
+      "actual": "NO_MATCH",
+      "comparison": "PASS",
+      "source": {
+        "field": "updated_at",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "operator": "equals"
+      }
+    }
+  ]
+}

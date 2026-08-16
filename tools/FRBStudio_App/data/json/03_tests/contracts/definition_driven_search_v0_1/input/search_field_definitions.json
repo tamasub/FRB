@@ -1,0 +1,39 @@
+{
+  "schema_version": "search_field_definition_fixture_v0_1",
+  "document_type": "search_field_definition_fixture",
+  "definition_id": "definition_driven_search_v0_1",
+  "title": "Definition Driven Search — Representative Field Definitions",
+  "status": "active",
+  "created_at": "2026-08-16",
+  "updated_at": "2026-08-16",
+  "purpose": "SearchCapabilityResolverからText / Number / Dateの標準検索TestPatternを機械導出するための代表Field Definition。TestPattern自体は保存しない。",
+  "field_definitions": [
+    {
+      "field": "title",
+      "caption": "タイトル",
+      "type": "text",
+      "validation_type": "studio.string.single_line",
+      "search": {
+        "visible": true
+      }
+    },
+    {
+      "field": "amount",
+      "caption": "金額",
+      "type": "number",
+      "validation_type": "studio.number.standard",
+      "search": {
+        "visible": true
+      }
+    },
+    {
+      "field": "updated_at",
+      "caption": "更新日",
+      "type": "date",
+      "validation_type": "studio.date.ymd",
+      "search": {
+        "visible": true
+      }
+    }
+  ]
+}

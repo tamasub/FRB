@@ -1,0 +1,3133 @@
+{
+  "view_def": "search/search_definition_test_diff_view_def_v0_1.json",
+  "view_def_candidates": [
+    {
+      "view_def": "search/search_definition_test_diff_view_def_v0_1.json",
+      "label": "Definition Driven Search Test Diff",
+      "role": "default",
+      "status": "active"
+    }
+  ],
+  "schema_version": "diff_result_v0_1",
+  "document_type": "diff_result",
+  "domain": "contracts",
+  "diff_kind": "definition_driven_search",
+  "test_id": "definition_driven_search_v0_1",
+  "testId": "definition_driven_search_v0_1",
+  "test_name": "Definition Driven Search — Text / Number / Date",
+  "title": "Definition Driven Search — Text / Number / Date",
+  "generated_at": "2026-08-16T07:31:55.165Z",
+  "status": "pass",
+  "resultLabel": "✅ PASS",
+  "summary": "✅ 38件のSearch TestがExpectedと一致しました。",
+  "total": 38,
+  "passCount": 38,
+  "failCount": 0,
+  "failedCount": 0,
+  "failedChecks": [],
+  "failedCheckIds": [],
+  "firstFailure": null,
+  "result_summary": {
+    "total_count": 38,
+    "pass_count": 38,
+    "fail_count": 0,
+    "field_count": 3,
+    "pattern_count": 38,
+    "runner_result_status": "PASSED"
+  },
+  "sourceFiles": {
+    "definitionFile": "data/json/03_tests/contracts/definition_driven_search_v0_1/input/search_field_definitions.json",
+    "searchRegistryFile": "data/json/config/search_operator_registry_v0_1.json",
+    "validationRegistryFile": "data/json/config/validation_type_registry_v0_1.json",
+    "expectedFile": "data/json/03_tests/contracts/definition_driven_search_v0_1/expected/search_definition_test.expected.json",
+    "actualFile": "data/json/03_tests/contracts/definition_driven_search_v0_1/actual/search_definition_test.actual.json",
+    "diffFile": "data/json/03_tests/contracts/definition_driven_search_v0_1/diff/search_definition_test.diff.json",
+    "summaryFile": "data/json/03_tests/contracts/definition_driven_search_v0_1/summary/search_definition_test.result.json"
+  },
+  "source": {
+    "definition_id": "definition_driven_search_v0_1",
+    "schema_version": "search_field_definition_fixture_v0_1",
+    "definition_path": "data/json/03_tests/contracts/definition_driven_search_v0_1/input/search_field_definitions.json",
+    "search_operator_registry_version": "0.1.0",
+    "validation_type_registry_version": "0.1.0"
+  },
+  "runner": {
+    "id": "studio.search_definition_test_runner",
+    "version": "0.1.0"
+  },
+  "search_definition_snapshots": [
+    {
+      "field": "title",
+      "field_definition": {
+        "field": "title",
+        "caption": "タイトル",
+        "type": "text",
+        "validation_type": "studio.string.single_line",
+        "search": {
+          "visible": true
+        }
+      },
+      "search_capability": {
+        "schema_version": "resolved_search_capability_v0_1",
+        "field": "title",
+        "field_type": "text",
+        "validation_type_id": "studio.string.single_line",
+        "value_family": "string",
+        "value_family_source": "validation_type_registry",
+        "search_visible": true,
+        "resolution_status": "RESOLVED",
+        "derived": {
+          "operator_set_id": "text_standard",
+          "default_operator": "contains",
+          "source": "validation_value_family"
+        },
+        "effective": {
+          "operator_set_id": "text_standard",
+          "operator_ids": [
+            "contains",
+            "not_contains",
+            "equals",
+            "not_equals",
+            "blank",
+            "not_blank"
+          ],
+          "default_operator": "contains",
+          "operators": [
+            {
+              "id": "contains",
+              "caption": "含む",
+              "status": "active",
+              "value_mode": "single",
+              "value_required": true,
+              "value_count": 1,
+              "supported_value_families": [
+                "string"
+              ],
+              "case_policy": "case_insensitive_default"
+            },
+            {
+              "id": "not_contains",
+              "caption": "含まない",
+              "status": "active",
+              "value_mode": "single",
+              "value_required": true,
+              "value_count": 1,
+              "supported_value_families": [
+                "string"
+              ],
+              "case_policy": "case_insensitive_default"
+            },
+            {
+              "id": "equals",
+              "caption": "完全一致 / 等しい",
+              "status": "active",
+              "value_mode": "single",
+              "value_required": true,
+              "value_count": 1,
+              "supported_value_families": [
+                "string",
+                "number",
+                "integer",
+                "float",
+                "decimal",
+                "date",
+                "datetime",
+                "instant",
+                "boolean",
+                "select"
+              ]
+            },
+            {
+              "id": "not_equals",
+              "caption": "一致以外 / 等しくない",
+              "status": "active",
+              "value_mode": "single",
+              "value_required": true,
+              "value_count": 1,
+              "supported_value_families": [
+                "string",
+                "number",
+                "integer",
+                "float",
+                "decimal",
+                "date",
+                "datetime",
+                "instant",
+                "boolean",
+                "select"
+              ]
+            },
+            {
+              "id": "blank",
+              "caption": "空白",
+              "status": "active",
+              "value_mode": "none",
+              "value_required": false,
+              "value_count": 0,
+              "supported_value_families": [
+                "string",
+                "number",
+                "integer",
+                "float",
+                "decimal",
+                "date",
+                "datetime",
+                "instant",
+                "select"
+              ]
+            },
+            {
+              "id": "not_blank",
+              "caption": "空白以外",
+              "status": "active",
+              "value_mode": "none",
+              "value_required": false,
+              "value_count": 0,
+              "supported_value_families": [
+                "string",
+                "number",
+                "integer",
+                "float",
+                "decimal",
+                "date",
+                "datetime",
+                "instant",
+                "select"
+              ]
+            }
+          ]
+        },
+        "overrides": {
+          "operator_set": {
+            "defined": false,
+            "value": "",
+            "applied": false
+          },
+          "operators": {
+            "defined": false,
+            "value": [],
+            "applied": false
+          },
+          "operator": {
+            "defined": false,
+            "value": "",
+            "applied": false
+          }
+        },
+        "issues": [],
+        "source": {
+          "search_registry_schema_version": "search_operator_registry_data_v0_1",
+          "search_registry_version": "0.1.0",
+          "validation_registry_schema_version": "validation_type_registry_data_v0_1",
+          "validation_registry_version": "0.1.0"
+        }
+      },
+      "test_patterns": {
+        "schema_version": "search_test_pattern_set_v0_1",
+        "field": "title",
+        "value_family": "string",
+        "operator_set_id": "text_standard",
+        "status": "DERIVED",
+        "issues": [],
+        "patterns": [
+          {
+            "pattern_id": "search::title::contains_hit",
+            "pattern_key": "contains_hit",
+            "category": "text",
+            "operator": "contains",
+            "input": {
+              "row": {
+                "title": "Alpha Beta"
+              },
+              "criterion": {
+                "field": "title",
+                "value_family": "string",
+                "operator": "contains",
+                "value": "beta"
+              }
+            },
+            "expected": {
+              "matched": true,
+              "outcome": "MATCH"
+            },
+            "source": {
+              "field": "title",
+              "validation_type_id": "studio.string.single_line",
+              "value_family": "string",
+              "operator_set_id": "text_standard",
+              "operator": "contains"
+            }
+          },
+          {
+            "pattern_id": "search::title::contains_miss",
+            "pattern_key": "contains_miss",
+            "category": "text",
+            "operator": "contains",
+            "input": {
+              "row": {
+                "title": "Alpha Beta"
+              },
+              "criterion": {
+                "field": "title",
+                "value_family": "string",
+                "operator": "contains",
+                "value": "gamma"
+              }
+            },
+            "expected": {
+              "matched": false,
+              "outcome": "NO_MATCH"
+            },
+            "source": {
+              "field": "title",
+              "validation_type_id": "studio.string.single_line",
+              "value_family": "string",
+              "operator_set_id": "text_standard",
+              "operator": "contains"
+            }
+          },
+          {
+            "pattern_id": "search::title::case_insensitive_contains",
+            "pattern_key": "case_insensitive_contains",
+            "category": "text",
+            "operator": "contains",
+            "input": {
+              "row": {
+                "title": "Alpha Beta"
+              },
+              "criterion": {
+                "field": "title",
+                "value_family": "string",
+                "operator": "contains",
+                "value": "ALPHA"
+              }
+            },
+            "expected": {
+              "matched": true,
+              "outcome": "MATCH"
+            },
+            "source": {
+              "field": "title",
+              "validation_type_id": "studio.string.single_line",
+              "value_family": "string",
+              "operator_set_id": "text_standard",
+              "operator": "contains"
+            }
+          },
+          {
+            "pattern_id": "search::title::not_contains_hit",
+            "pattern_key": "not_contains_hit",
+            "category": "text",
+            "operator": "not_contains",
+            "input": {
+              "row": {
+                "title": "Alpha Beta"
+              },
+              "criterion": {
+                "field": "title",
+                "value_family": "string",
+                "operator": "not_contains",
+                "value": "gamma"
+              }
+            },
+            "expected": {
+              "matched": true,
+              "outcome": "MATCH"
+            },
+            "source": {
+              "field": "title",
+              "validation_type_id": "studio.string.single_line",
+              "value_family": "string",
+              "operator_set_id": "text_standard",
+              "operator": "not_contains"
+            }
+          },
+          {
+            "pattern_id": "search::title::not_contains_excluded",
+            "pattern_key": "not_contains_excluded",
+            "category": "text",
+            "operator": "not_contains",
+            "input": {
+              "row": {
+                "title": "Alpha Beta"
+              },
+              "criterion": {
+                "field": "title",
+                "value_family": "string",
+                "operator": "not_contains",
+                "value": "alpha"
+              }
+            },
+            "expected": {
+              "matched": false,
+              "outcome": "NO_MATCH"
+            },
+            "source": {
+              "field": "title",
+              "validation_type_id": "studio.string.single_line",
+              "value_family": "string",
+              "operator_set_id": "text_standard",
+              "operator": "not_contains"
+            }
+          },
+          {
+            "pattern_id": "search::title::equals",
+            "pattern_key": "equals",
+            "category": "text",
+            "operator": "equals",
+            "input": {
+              "row": {
+                "title": "Alpha Beta"
+              },
+              "criterion": {
+                "field": "title",
+                "value_family": "string",
+                "operator": "equals",
+                "value": "Alpha Beta"
+              }
+            },
+            "expected": {
+              "matched": true,
+              "outcome": "MATCH"
+            },
+            "source": {
+              "field": "title",
+              "validation_type_id": "studio.string.single_line",
+              "value_family": "string",
+              "operator_set_id": "text_standard",
+              "operator": "equals"
+            }
+          },
+          {
+            "pattern_id": "search::title::not_equals",
+            "pattern_key": "not_equals",
+            "category": "text",
+            "operator": "not_equals",
+            "input": {
+              "row": {
+                "title": "Alpha Beta"
+              },
+              "criterion": {
+                "field": "title",
+                "value_family": "string",
+                "operator": "not_equals",
+                "value": "Gamma"
+              }
+            },
+            "expected": {
+              "matched": true,
+              "outcome": "MATCH"
+            },
+            "source": {
+              "field": "title",
+              "validation_type_id": "studio.string.single_line",
+              "value_family": "string",
+              "operator_set_id": "text_standard",
+              "operator": "not_equals"
+            }
+          },
+          {
+            "pattern_id": "search::title::blank",
+            "pattern_key": "blank",
+            "category": "blank",
+            "operator": "blank",
+            "input": {
+              "row": {
+                "title": "   "
+              },
+              "criterion": {
+                "field": "title",
+                "value_family": "string",
+                "operator": "blank"
+              }
+            },
+            "expected": {
+              "matched": true,
+              "outcome": "MATCH"
+            },
+            "source": {
+              "field": "title",
+              "validation_type_id": "studio.string.single_line",
+              "value_family": "string",
+              "operator_set_id": "text_standard",
+              "operator": "blank"
+            }
+          },
+          {
+            "pattern_id": "search::title::not_blank",
+            "pattern_key": "not_blank",
+            "category": "blank",
+            "operator": "not_blank",
+            "input": {
+              "row": {
+                "title": "Alpha Beta"
+              },
+              "criterion": {
+                "field": "title",
+                "value_family": "string",
+                "operator": "not_blank"
+              }
+            },
+            "expected": {
+              "matched": true,
+              "outcome": "MATCH"
+            },
+            "source": {
+              "field": "title",
+              "validation_type_id": "studio.string.single_line",
+              "value_family": "string",
+              "operator_set_id": "text_standard",
+              "operator": "not_blank"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "field": "amount",
+      "field_definition": {
+        "field": "amount",
+        "caption": "金額",
+        "type": "number",
+        "validation_type": "studio.number.standard",
+        "search": {
+          "visible": true
+        }
+      },
+      "search_capability": {
+        "schema_version": "resolved_search_capability_v0_1",
+        "field": "amount",
+        "field_type": "number",
+        "validation_type_id": "studio.number.standard",
+        "value_family": "number",
+        "value_family_source": "validation_type_registry",
+        "search_visible": true,
+        "resolution_status": "RESOLVED",
+        "derived": {
+          "operator_set_id": "numeric_standard",
+          "default_operator": "between",
+          "source": "validation_value_family"
+        },
+        "effective": {
+          "operator_set_id": "numeric_standard",
+          "operator_ids": [
+            "between",
+            "equals",
+            "not_equals",
+            "gte",
+            "lte",
+            "blank",
+            "not_blank"
+          ],
+          "default_operator": "between",
+          "operators": [
+            {
+              "id": "between",
+              "caption": "範囲",
+              "status": "active",
+              "value_mode": "range",
+              "value_required": false,
+              "value_count": 2,
+              "partial_range_allowed": true,
+              "supported_value_families": [
+                "number",
+                "integer",
+                "float",
+                "decimal",
+                "date",
+                "datetime",
+                "instant"
+              ]
+            },
+            {
+              "id": "equals",
+              "caption": "完全一致 / 等しい",
+              "status": "active",
+              "value_mode": "single",
+              "value_required": true,
+              "value_count": 1,
+              "supported_value_families": [
+                "string",
+                "number",
+                "integer",
+                "float",
+                "decimal",
+                "date",
+                "datetime",
+                "instant",
+                "boolean",
+                "select"
+              ]
+            },
+            {
+              "id": "not_equals",
+              "caption": "一致以外 / 等しくない",
+              "status": "active",
+              "value_mode": "single",
+              "value_required": true,
+              "value_count": 1,
+              "supported_value_families": [
+                "string",
+                "number",
+                "integer",
+                "float",
+                "decimal",
+                "date",
+                "datetime",
+                "instant",
+                "boolean",
+                "select"
+              ]
+            },
+            {
+              "id": "gte",
+              "caption": "以上 / 以降",
+              "status": "active",
+              "value_mode": "single",
+              "value_required": true,
+              "value_count": 1,
+              "supported_value_families": [
+                "number",
+                "integer",
+                "float",
+                "decimal",
+                "date",
+                "datetime",
+                "instant"
+              ]
+            },
+            {
+              "id": "lte",
+              "caption": "以下 / 以前",
+              "status": "active",
+              "value_mode": "single",
+              "value_required": true,
+              "value_count": 1,
+              "supported_value_families": [
+                "number",
+                "integer",
+                "float",
+                "decimal",
+                "date",
+                "datetime",
+                "instant"
+              ]
+            },
+            {
+              "id": "blank",
+              "caption": "空白",
+              "status": "active",
+              "value_mode": "none",
+              "value_required": false,
+              "value_count": 0,
+              "supported_value_families": [
+                "string",
+                "number",
+                "integer",
+                "float",
+                "decimal",
+                "date",
+                "datetime",
+                "instant",
+                "select"
+              ]
+            },
+            {
+              "id": "not_blank",
+              "caption": "空白以外",
+              "status": "active",
+              "value_mode": "none",
+              "value_required": false,
+              "value_count": 0,
+              "supported_value_families": [
+                "string",
+                "number",
+                "integer",
+                "float",
+                "decimal",
+                "date",
+                "datetime",
+                "instant",
+                "select"
+              ]
+            }
+          ]
+        },
+        "overrides": {
+          "operator_set": {
+            "defined": false,
+            "value": "",
+            "applied": false
+          },
+          "operators": {
+            "defined": false,
+            "value": [],
+            "applied": false
+          },
+          "operator": {
+            "defined": false,
+            "value": "",
+            "applied": false
+          }
+        },
+        "issues": [],
+        "source": {
+          "search_registry_schema_version": "search_operator_registry_data_v0_1",
+          "search_registry_version": "0.1.0",
+          "validation_registry_schema_version": "validation_type_registry_data_v0_1",
+          "validation_registry_version": "0.1.0"
+        }
+      },
+      "test_patterns": {
+        "schema_version": "search_test_pattern_set_v0_1",
+        "field": "amount",
+        "value_family": "number",
+        "operator_set_id": "numeric_standard",
+        "status": "DERIVED",
+        "issues": [],
+        "patterns": [
+          {
+            "pattern_id": "search::amount::equals",
+            "pattern_key": "equals",
+            "category": "numeric",
+            "operator": "equals",
+            "input": {
+              "row": {
+                "amount": 20
+              },
+              "criterion": {
+                "field": "amount",
+                "value_family": "number",
+                "operator": "equals",
+                "value": 20
+              }
+            },
+            "expected": {
+              "matched": true,
+              "outcome": "MATCH"
+            },
+            "source": {
+              "field": "amount",
+              "validation_type_id": "studio.number.standard",
+              "value_family": "number",
+              "operator_set_id": "numeric_standard",
+              "operator": "equals"
+            }
+          },
+          {
+            "pattern_id": "search::amount::not_equals",
+            "pattern_key": "not_equals",
+            "category": "numeric",
+            "operator": "not_equals",
+            "input": {
+              "row": {
+                "amount": 20
+              },
+              "criterion": {
+                "field": "amount",
+                "value_family": "number",
+                "operator": "not_equals",
+                "value": 21
+              }
+            },
+            "expected": {
+              "matched": true,
+              "outcome": "MATCH"
+            },
+            "source": {
+              "field": "amount",
+              "validation_type_id": "studio.number.standard",
+              "value_family": "number",
+              "operator_set_id": "numeric_standard",
+              "operator": "not_equals"
+            }
+          },
+          {
+            "pattern_id": "search::amount::gte_boundary",
+            "pattern_key": "gte_boundary",
+            "category": "boundary",
+            "operator": "gte",
+            "input": {
+              "row": {
+                "amount": 20
+              },
+              "criterion": {
+                "field": "amount",
+                "value_family": "number",
+                "operator": "gte",
+                "value": 20
+              }
+            },
+            "expected": {
+              "matched": true,
+              "outcome": "MATCH"
+            },
+            "source": {
+              "field": "amount",
+              "validation_type_id": "studio.number.standard",
+              "value_family": "number",
+              "operator_set_id": "numeric_standard",
+              "operator": "gte"
+            }
+          },
+          {
+            "pattern_id": "search::amount::gte_below",
+            "pattern_key": "gte_below",
+            "category": "boundary",
+            "operator": "gte",
+            "input": {
+              "row": {
+                "amount": 19
+              },
+              "criterion": {
+                "field": "amount",
+                "value_family": "number",
+                "operator": "gte",
+                "value": 20
+              }
+            },
+            "expected": {
+              "matched": false,
+              "outcome": "NO_MATCH"
+            },
+            "source": {
+              "field": "amount",
+              "validation_type_id": "studio.number.standard",
+              "value_family": "number",
+              "operator_set_id": "numeric_standard",
+              "operator": "gte"
+            }
+          },
+          {
+            "pattern_id": "search::amount::lte_boundary",
+            "pattern_key": "lte_boundary",
+            "category": "boundary",
+            "operator": "lte",
+            "input": {
+              "row": {
+                "amount": 20
+              },
+              "criterion": {
+                "field": "amount",
+                "value_family": "number",
+                "operator": "lte",
+                "value": 20
+              }
+            },
+            "expected": {
+              "matched": true,
+              "outcome": "MATCH"
+            },
+            "source": {
+              "field": "amount",
+              "validation_type_id": "studio.number.standard",
+              "value_family": "number",
+              "operator_set_id": "numeric_standard",
+              "operator": "lte"
+            }
+          },
+          {
+            "pattern_id": "search::amount::lte_above",
+            "pattern_key": "lte_above",
+            "category": "boundary",
+            "operator": "lte",
+            "input": {
+              "row": {
+                "amount": 21
+              },
+              "criterion": {
+                "field": "amount",
+                "value_family": "number",
+                "operator": "lte",
+                "value": 20
+              }
+            },
+            "expected": {
+              "matched": false,
+              "outcome": "NO_MATCH"
+            },
+            "source": {
+              "field": "amount",
+              "validation_type_id": "studio.number.standard",
+              "value_family": "number",
+              "operator_set_id": "numeric_standard",
+              "operator": "lte"
+            }
+          },
+          {
+            "pattern_id": "search::amount::between_inside",
+            "pattern_key": "between_inside",
+            "category": "range",
+            "operator": "between",
+            "input": {
+              "row": {
+                "amount": 20
+              },
+              "criterion": {
+                "field": "amount",
+                "value_family": "number",
+                "operator": "between",
+                "from": 10,
+                "to": 30
+              }
+            },
+            "expected": {
+              "matched": true,
+              "outcome": "MATCH"
+            },
+            "source": {
+              "field": "amount",
+              "validation_type_id": "studio.number.standard",
+              "value_family": "number",
+              "operator_set_id": "numeric_standard",
+              "operator": "between"
+            }
+          },
+          {
+            "pattern_id": "search::amount::between_min",
+            "pattern_key": "between_min",
+            "category": "range",
+            "operator": "between",
+            "input": {
+              "row": {
+                "amount": 10
+              },
+              "criterion": {
+                "field": "amount",
+                "value_family": "number",
+                "operator": "between",
+                "from": 10,
+                "to": 30
+              }
+            },
+            "expected": {
+              "matched": true,
+              "outcome": "MATCH"
+            },
+            "source": {
+              "field": "amount",
+              "validation_type_id": "studio.number.standard",
+              "value_family": "number",
+              "operator_set_id": "numeric_standard",
+              "operator": "between"
+            }
+          },
+          {
+            "pattern_id": "search::amount::between_max",
+            "pattern_key": "between_max",
+            "category": "range",
+            "operator": "between",
+            "input": {
+              "row": {
+                "amount": 30
+              },
+              "criterion": {
+                "field": "amount",
+                "value_family": "number",
+                "operator": "between",
+                "from": 10,
+                "to": 30
+              }
+            },
+            "expected": {
+              "matched": true,
+              "outcome": "MATCH"
+            },
+            "source": {
+              "field": "amount",
+              "validation_type_id": "studio.number.standard",
+              "value_family": "number",
+              "operator_set_id": "numeric_standard",
+              "operator": "between"
+            }
+          },
+          {
+            "pattern_id": "search::amount::between_outside",
+            "pattern_key": "between_outside",
+            "category": "range",
+            "operator": "between",
+            "input": {
+              "row": {
+                "amount": 31
+              },
+              "criterion": {
+                "field": "amount",
+                "value_family": "number",
+                "operator": "between",
+                "from": 10,
+                "to": 30
+              }
+            },
+            "expected": {
+              "matched": false,
+              "outcome": "NO_MATCH"
+            },
+            "source": {
+              "field": "amount",
+              "validation_type_id": "studio.number.standard",
+              "value_family": "number",
+              "operator_set_id": "numeric_standard",
+              "operator": "between"
+            }
+          },
+          {
+            "pattern_id": "search::amount::from_only",
+            "pattern_key": "from_only",
+            "category": "range",
+            "operator": "between",
+            "input": {
+              "row": {
+                "amount": 20
+              },
+              "criterion": {
+                "field": "amount",
+                "value_family": "number",
+                "operator": "between",
+                "from": 20,
+                "to": ""
+              }
+            },
+            "expected": {
+              "matched": true,
+              "outcome": "MATCH"
+            },
+            "source": {
+              "field": "amount",
+              "validation_type_id": "studio.number.standard",
+              "value_family": "number",
+              "operator_set_id": "numeric_standard",
+              "operator": "between"
+            }
+          },
+          {
+            "pattern_id": "search::amount::to_only",
+            "pattern_key": "to_only",
+            "category": "range",
+            "operator": "between",
+            "input": {
+              "row": {
+                "amount": 20
+              },
+              "criterion": {
+                "field": "amount",
+                "value_family": "number",
+                "operator": "between",
+                "from": "",
+                "to": 20
+              }
+            },
+            "expected": {
+              "matched": true,
+              "outcome": "MATCH"
+            },
+            "source": {
+              "field": "amount",
+              "validation_type_id": "studio.number.standard",
+              "value_family": "number",
+              "operator_set_id": "numeric_standard",
+              "operator": "between"
+            }
+          },
+          {
+            "pattern_id": "search::amount::blank",
+            "pattern_key": "blank",
+            "category": "blank",
+            "operator": "blank",
+            "input": {
+              "row": {
+                "amount": null
+              },
+              "criterion": {
+                "field": "amount",
+                "value_family": "number",
+                "operator": "blank"
+              }
+            },
+            "expected": {
+              "matched": true,
+              "outcome": "MATCH"
+            },
+            "source": {
+              "field": "amount",
+              "validation_type_id": "studio.number.standard",
+              "value_family": "number",
+              "operator_set_id": "numeric_standard",
+              "operator": "blank"
+            }
+          },
+          {
+            "pattern_id": "search::amount::not_blank_zero",
+            "pattern_key": "not_blank_zero",
+            "category": "blank",
+            "operator": "not_blank",
+            "input": {
+              "row": {
+                "amount": 0
+              },
+              "criterion": {
+                "field": "amount",
+                "value_family": "number",
+                "operator": "not_blank"
+              }
+            },
+            "expected": {
+              "matched": true,
+              "outcome": "MATCH"
+            },
+            "source": {
+              "field": "amount",
+              "validation_type_id": "studio.number.standard",
+              "value_family": "number",
+              "operator_set_id": "numeric_standard",
+              "operator": "not_blank"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "field": "updated_at",
+      "field_definition": {
+        "field": "updated_at",
+        "caption": "更新日",
+        "type": "date",
+        "validation_type": "studio.date.ymd",
+        "search": {
+          "visible": true
+        }
+      },
+      "search_capability": {
+        "schema_version": "resolved_search_capability_v0_1",
+        "field": "updated_at",
+        "field_type": "date",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "value_family_source": "validation_type_registry",
+        "search_visible": true,
+        "resolution_status": "RESOLVED",
+        "derived": {
+          "operator_set_id": "date_standard",
+          "default_operator": "between",
+          "source": "validation_value_family"
+        },
+        "effective": {
+          "operator_set_id": "date_standard",
+          "operator_ids": [
+            "between",
+            "equals",
+            "not_equals",
+            "gte",
+            "lte",
+            "blank",
+            "not_blank"
+          ],
+          "default_operator": "between",
+          "operators": [
+            {
+              "id": "between",
+              "caption": "範囲",
+              "status": "active",
+              "value_mode": "range",
+              "value_required": false,
+              "value_count": 2,
+              "partial_range_allowed": true,
+              "supported_value_families": [
+                "number",
+                "integer",
+                "float",
+                "decimal",
+                "date",
+                "datetime",
+                "instant"
+              ]
+            },
+            {
+              "id": "equals",
+              "caption": "完全一致 / 等しい",
+              "status": "active",
+              "value_mode": "single",
+              "value_required": true,
+              "value_count": 1,
+              "supported_value_families": [
+                "string",
+                "number",
+                "integer",
+                "float",
+                "decimal",
+                "date",
+                "datetime",
+                "instant",
+                "boolean",
+                "select"
+              ]
+            },
+            {
+              "id": "not_equals",
+              "caption": "一致以外 / 等しくない",
+              "status": "active",
+              "value_mode": "single",
+              "value_required": true,
+              "value_count": 1,
+              "supported_value_families": [
+                "string",
+                "number",
+                "integer",
+                "float",
+                "decimal",
+                "date",
+                "datetime",
+                "instant",
+                "boolean",
+                "select"
+              ]
+            },
+            {
+              "id": "gte",
+              "caption": "以上 / 以降",
+              "status": "active",
+              "value_mode": "single",
+              "value_required": true,
+              "value_count": 1,
+              "supported_value_families": [
+                "number",
+                "integer",
+                "float",
+                "decimal",
+                "date",
+                "datetime",
+                "instant"
+              ]
+            },
+            {
+              "id": "lte",
+              "caption": "以下 / 以前",
+              "status": "active",
+              "value_mode": "single",
+              "value_required": true,
+              "value_count": 1,
+              "supported_value_families": [
+                "number",
+                "integer",
+                "float",
+                "decimal",
+                "date",
+                "datetime",
+                "instant"
+              ]
+            },
+            {
+              "id": "blank",
+              "caption": "空白",
+              "status": "active",
+              "value_mode": "none",
+              "value_required": false,
+              "value_count": 0,
+              "supported_value_families": [
+                "string",
+                "number",
+                "integer",
+                "float",
+                "decimal",
+                "date",
+                "datetime",
+                "instant",
+                "select"
+              ]
+            },
+            {
+              "id": "not_blank",
+              "caption": "空白以外",
+              "status": "active",
+              "value_mode": "none",
+              "value_required": false,
+              "value_count": 0,
+              "supported_value_families": [
+                "string",
+                "number",
+                "integer",
+                "float",
+                "decimal",
+                "date",
+                "datetime",
+                "instant",
+                "select"
+              ]
+            }
+          ]
+        },
+        "overrides": {
+          "operator_set": {
+            "defined": false,
+            "value": "",
+            "applied": false
+          },
+          "operators": {
+            "defined": false,
+            "value": [],
+            "applied": false
+          },
+          "operator": {
+            "defined": false,
+            "value": "",
+            "applied": false
+          }
+        },
+        "issues": [],
+        "source": {
+          "search_registry_schema_version": "search_operator_registry_data_v0_1",
+          "search_registry_version": "0.1.0",
+          "validation_registry_schema_version": "validation_type_registry_data_v0_1",
+          "validation_registry_version": "0.1.0"
+        }
+      },
+      "test_patterns": {
+        "schema_version": "search_test_pattern_set_v0_1",
+        "field": "updated_at",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "status": "DERIVED",
+        "issues": [],
+        "patterns": [
+          {
+            "pattern_id": "search::updated_at::equals",
+            "pattern_key": "equals",
+            "category": "date",
+            "operator": "equals",
+            "input": {
+              "row": {
+                "updated_at": "2026-08-16"
+              },
+              "criterion": {
+                "field": "updated_at",
+                "value_family": "date",
+                "operator": "equals",
+                "value": "2026-08-16"
+              }
+            },
+            "expected": {
+              "matched": true,
+              "outcome": "MATCH"
+            },
+            "source": {
+              "field": "updated_at",
+              "validation_type_id": "studio.date.ymd",
+              "value_family": "date",
+              "operator_set_id": "date_standard",
+              "operator": "equals"
+            }
+          },
+          {
+            "pattern_id": "search::updated_at::not_equals",
+            "pattern_key": "not_equals",
+            "category": "date",
+            "operator": "not_equals",
+            "input": {
+              "row": {
+                "updated_at": "2026-08-16"
+              },
+              "criterion": {
+                "field": "updated_at",
+                "value_family": "date",
+                "operator": "not_equals",
+                "value": "2026-08-17"
+              }
+            },
+            "expected": {
+              "matched": true,
+              "outcome": "MATCH"
+            },
+            "source": {
+              "field": "updated_at",
+              "validation_type_id": "studio.date.ymd",
+              "value_family": "date",
+              "operator_set_id": "date_standard",
+              "operator": "not_equals"
+            }
+          },
+          {
+            "pattern_id": "search::updated_at::gte_boundary",
+            "pattern_key": "gte_boundary",
+            "category": "boundary",
+            "operator": "gte",
+            "input": {
+              "row": {
+                "updated_at": "2026-08-16"
+              },
+              "criterion": {
+                "field": "updated_at",
+                "value_family": "date",
+                "operator": "gte",
+                "value": "2026-08-16"
+              }
+            },
+            "expected": {
+              "matched": true,
+              "outcome": "MATCH"
+            },
+            "source": {
+              "field": "updated_at",
+              "validation_type_id": "studio.date.ymd",
+              "value_family": "date",
+              "operator_set_id": "date_standard",
+              "operator": "gte"
+            }
+          },
+          {
+            "pattern_id": "search::updated_at::gte_below",
+            "pattern_key": "gte_below",
+            "category": "boundary",
+            "operator": "gte",
+            "input": {
+              "row": {
+                "updated_at": "2026-08-15"
+              },
+              "criterion": {
+                "field": "updated_at",
+                "value_family": "date",
+                "operator": "gte",
+                "value": "2026-08-16"
+              }
+            },
+            "expected": {
+              "matched": false,
+              "outcome": "NO_MATCH"
+            },
+            "source": {
+              "field": "updated_at",
+              "validation_type_id": "studio.date.ymd",
+              "value_family": "date",
+              "operator_set_id": "date_standard",
+              "operator": "gte"
+            }
+          },
+          {
+            "pattern_id": "search::updated_at::lte_boundary",
+            "pattern_key": "lte_boundary",
+            "category": "boundary",
+            "operator": "lte",
+            "input": {
+              "row": {
+                "updated_at": "2026-08-16"
+              },
+              "criterion": {
+                "field": "updated_at",
+                "value_family": "date",
+                "operator": "lte",
+                "value": "2026-08-16"
+              }
+            },
+            "expected": {
+              "matched": true,
+              "outcome": "MATCH"
+            },
+            "source": {
+              "field": "updated_at",
+              "validation_type_id": "studio.date.ymd",
+              "value_family": "date",
+              "operator_set_id": "date_standard",
+              "operator": "lte"
+            }
+          },
+          {
+            "pattern_id": "search::updated_at::lte_above",
+            "pattern_key": "lte_above",
+            "category": "boundary",
+            "operator": "lte",
+            "input": {
+              "row": {
+                "updated_at": "2026-08-17"
+              },
+              "criterion": {
+                "field": "updated_at",
+                "value_family": "date",
+                "operator": "lte",
+                "value": "2026-08-16"
+              }
+            },
+            "expected": {
+              "matched": false,
+              "outcome": "NO_MATCH"
+            },
+            "source": {
+              "field": "updated_at",
+              "validation_type_id": "studio.date.ymd",
+              "value_family": "date",
+              "operator_set_id": "date_standard",
+              "operator": "lte"
+            }
+          },
+          {
+            "pattern_id": "search::updated_at::between_inside",
+            "pattern_key": "between_inside",
+            "category": "range",
+            "operator": "between",
+            "input": {
+              "row": {
+                "updated_at": "2026-08-16"
+              },
+              "criterion": {
+                "field": "updated_at",
+                "value_family": "date",
+                "operator": "between",
+                "from": "2026-08-01",
+                "to": "2026-08-31"
+              }
+            },
+            "expected": {
+              "matched": true,
+              "outcome": "MATCH"
+            },
+            "source": {
+              "field": "updated_at",
+              "validation_type_id": "studio.date.ymd",
+              "value_family": "date",
+              "operator_set_id": "date_standard",
+              "operator": "between"
+            }
+          },
+          {
+            "pattern_id": "search::updated_at::between_min",
+            "pattern_key": "between_min",
+            "category": "range",
+            "operator": "between",
+            "input": {
+              "row": {
+                "updated_at": "2026-08-01"
+              },
+              "criterion": {
+                "field": "updated_at",
+                "value_family": "date",
+                "operator": "between",
+                "from": "2026-08-01",
+                "to": "2026-08-31"
+              }
+            },
+            "expected": {
+              "matched": true,
+              "outcome": "MATCH"
+            },
+            "source": {
+              "field": "updated_at",
+              "validation_type_id": "studio.date.ymd",
+              "value_family": "date",
+              "operator_set_id": "date_standard",
+              "operator": "between"
+            }
+          },
+          {
+            "pattern_id": "search::updated_at::between_max",
+            "pattern_key": "between_max",
+            "category": "range",
+            "operator": "between",
+            "input": {
+              "row": {
+                "updated_at": "2026-08-31"
+              },
+              "criterion": {
+                "field": "updated_at",
+                "value_family": "date",
+                "operator": "between",
+                "from": "2026-08-01",
+                "to": "2026-08-31"
+              }
+            },
+            "expected": {
+              "matched": true,
+              "outcome": "MATCH"
+            },
+            "source": {
+              "field": "updated_at",
+              "validation_type_id": "studio.date.ymd",
+              "value_family": "date",
+              "operator_set_id": "date_standard",
+              "operator": "between"
+            }
+          },
+          {
+            "pattern_id": "search::updated_at::between_outside",
+            "pattern_key": "between_outside",
+            "category": "range",
+            "operator": "between",
+            "input": {
+              "row": {
+                "updated_at": "2026-09-01"
+              },
+              "criterion": {
+                "field": "updated_at",
+                "value_family": "date",
+                "operator": "between",
+                "from": "2026-08-01",
+                "to": "2026-08-31"
+              }
+            },
+            "expected": {
+              "matched": false,
+              "outcome": "NO_MATCH"
+            },
+            "source": {
+              "field": "updated_at",
+              "validation_type_id": "studio.date.ymd",
+              "value_family": "date",
+              "operator_set_id": "date_standard",
+              "operator": "between"
+            }
+          },
+          {
+            "pattern_id": "search::updated_at::from_only",
+            "pattern_key": "from_only",
+            "category": "range",
+            "operator": "between",
+            "input": {
+              "row": {
+                "updated_at": "2026-08-16"
+              },
+              "criterion": {
+                "field": "updated_at",
+                "value_family": "date",
+                "operator": "between",
+                "from": "2026-08-16",
+                "to": ""
+              }
+            },
+            "expected": {
+              "matched": true,
+              "outcome": "MATCH"
+            },
+            "source": {
+              "field": "updated_at",
+              "validation_type_id": "studio.date.ymd",
+              "value_family": "date",
+              "operator_set_id": "date_standard",
+              "operator": "between"
+            }
+          },
+          {
+            "pattern_id": "search::updated_at::to_only",
+            "pattern_key": "to_only",
+            "category": "range",
+            "operator": "between",
+            "input": {
+              "row": {
+                "updated_at": "2026-08-16"
+              },
+              "criterion": {
+                "field": "updated_at",
+                "value_family": "date",
+                "operator": "between",
+                "from": "",
+                "to": "2026-08-16"
+              }
+            },
+            "expected": {
+              "matched": true,
+              "outcome": "MATCH"
+            },
+            "source": {
+              "field": "updated_at",
+              "validation_type_id": "studio.date.ymd",
+              "value_family": "date",
+              "operator_set_id": "date_standard",
+              "operator": "between"
+            }
+          },
+          {
+            "pattern_id": "search::updated_at::blank",
+            "pattern_key": "blank",
+            "category": "blank",
+            "operator": "blank",
+            "input": {
+              "row": {
+                "updated_at": ""
+              },
+              "criterion": {
+                "field": "updated_at",
+                "value_family": "date",
+                "operator": "blank"
+              }
+            },
+            "expected": {
+              "matched": true,
+              "outcome": "MATCH"
+            },
+            "source": {
+              "field": "updated_at",
+              "validation_type_id": "studio.date.ymd",
+              "value_family": "date",
+              "operator_set_id": "date_standard",
+              "operator": "blank"
+            }
+          },
+          {
+            "pattern_id": "search::updated_at::not_blank",
+            "pattern_key": "not_blank",
+            "category": "blank",
+            "operator": "not_blank",
+            "input": {
+              "row": {
+                "updated_at": "2026-08-16"
+              },
+              "criterion": {
+                "field": "updated_at",
+                "value_family": "date",
+                "operator": "not_blank"
+              }
+            },
+            "expected": {
+              "matched": true,
+              "outcome": "MATCH"
+            },
+            "source": {
+              "field": "updated_at",
+              "validation_type_id": "studio.date.ymd",
+              "value_family": "date",
+              "operator_set_id": "date_standard",
+              "operator": "not_blank"
+            }
+          },
+          {
+            "pattern_id": "search::updated_at::invalid_date_input",
+            "pattern_key": "invalid_date_input",
+            "category": "invalid_input",
+            "operator": "equals",
+            "input": {
+              "row": {
+                "updated_at": "2026-02-30"
+              },
+              "criterion": {
+                "field": "updated_at",
+                "value_family": "date",
+                "operator": "equals",
+                "value": "2026-02-30"
+              }
+            },
+            "expected": {
+              "matched": false,
+              "outcome": "NO_MATCH"
+            },
+            "source": {
+              "field": "updated_at",
+              "validation_type_id": "studio.date.ymd",
+              "value_family": "date",
+              "operator_set_id": "date_standard",
+              "operator": "equals"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "checks": [
+    {
+      "check_id": "search::title::contains_hit",
+      "name": "contains_hit",
+      "pattern_id": "search::title::contains_hit",
+      "category": "text",
+      "target": "title",
+      "field": "title",
+      "validation_type_id": "studio.string.single_line",
+      "value_family": "string",
+      "operator_set_id": "text_standard",
+      "operator": "contains",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "title": "Alpha Beta"
+        },
+        "criterion": {
+          "field": "title",
+          "value_family": "string",
+          "operator": "contains",
+          "value": "beta"
+        }
+      },
+      "expected": "MATCH",
+      "actual": "MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "title",
+        "validation_type_id": "studio.string.single_line",
+        "value_family": "string",
+        "operator_set_id": "text_standard",
+        "operator": "contains"
+      }
+    },
+    {
+      "check_id": "search::title::contains_miss",
+      "name": "contains_miss",
+      "pattern_id": "search::title::contains_miss",
+      "category": "text",
+      "target": "title",
+      "field": "title",
+      "validation_type_id": "studio.string.single_line",
+      "value_family": "string",
+      "operator_set_id": "text_standard",
+      "operator": "contains",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "title": "Alpha Beta"
+        },
+        "criterion": {
+          "field": "title",
+          "value_family": "string",
+          "operator": "contains",
+          "value": "gamma"
+        }
+      },
+      "expected": "NO_MATCH",
+      "actual": "NO_MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "title",
+        "validation_type_id": "studio.string.single_line",
+        "value_family": "string",
+        "operator_set_id": "text_standard",
+        "operator": "contains"
+      }
+    },
+    {
+      "check_id": "search::title::case_insensitive_contains",
+      "name": "case_insensitive_contains",
+      "pattern_id": "search::title::case_insensitive_contains",
+      "category": "text",
+      "target": "title",
+      "field": "title",
+      "validation_type_id": "studio.string.single_line",
+      "value_family": "string",
+      "operator_set_id": "text_standard",
+      "operator": "contains",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "title": "Alpha Beta"
+        },
+        "criterion": {
+          "field": "title",
+          "value_family": "string",
+          "operator": "contains",
+          "value": "ALPHA"
+        }
+      },
+      "expected": "MATCH",
+      "actual": "MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "title",
+        "validation_type_id": "studio.string.single_line",
+        "value_family": "string",
+        "operator_set_id": "text_standard",
+        "operator": "contains"
+      }
+    },
+    {
+      "check_id": "search::title::not_contains_hit",
+      "name": "not_contains_hit",
+      "pattern_id": "search::title::not_contains_hit",
+      "category": "text",
+      "target": "title",
+      "field": "title",
+      "validation_type_id": "studio.string.single_line",
+      "value_family": "string",
+      "operator_set_id": "text_standard",
+      "operator": "not_contains",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "title": "Alpha Beta"
+        },
+        "criterion": {
+          "field": "title",
+          "value_family": "string",
+          "operator": "not_contains",
+          "value": "gamma"
+        }
+      },
+      "expected": "MATCH",
+      "actual": "MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "title",
+        "validation_type_id": "studio.string.single_line",
+        "value_family": "string",
+        "operator_set_id": "text_standard",
+        "operator": "not_contains"
+      }
+    },
+    {
+      "check_id": "search::title::not_contains_excluded",
+      "name": "not_contains_excluded",
+      "pattern_id": "search::title::not_contains_excluded",
+      "category": "text",
+      "target": "title",
+      "field": "title",
+      "validation_type_id": "studio.string.single_line",
+      "value_family": "string",
+      "operator_set_id": "text_standard",
+      "operator": "not_contains",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "title": "Alpha Beta"
+        },
+        "criterion": {
+          "field": "title",
+          "value_family": "string",
+          "operator": "not_contains",
+          "value": "alpha"
+        }
+      },
+      "expected": "NO_MATCH",
+      "actual": "NO_MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "title",
+        "validation_type_id": "studio.string.single_line",
+        "value_family": "string",
+        "operator_set_id": "text_standard",
+        "operator": "not_contains"
+      }
+    },
+    {
+      "check_id": "search::title::equals",
+      "name": "equals",
+      "pattern_id": "search::title::equals",
+      "category": "text",
+      "target": "title",
+      "field": "title",
+      "validation_type_id": "studio.string.single_line",
+      "value_family": "string",
+      "operator_set_id": "text_standard",
+      "operator": "equals",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "title": "Alpha Beta"
+        },
+        "criterion": {
+          "field": "title",
+          "value_family": "string",
+          "operator": "equals",
+          "value": "Alpha Beta"
+        }
+      },
+      "expected": "MATCH",
+      "actual": "MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "title",
+        "validation_type_id": "studio.string.single_line",
+        "value_family": "string",
+        "operator_set_id": "text_standard",
+        "operator": "equals"
+      }
+    },
+    {
+      "check_id": "search::title::not_equals",
+      "name": "not_equals",
+      "pattern_id": "search::title::not_equals",
+      "category": "text",
+      "target": "title",
+      "field": "title",
+      "validation_type_id": "studio.string.single_line",
+      "value_family": "string",
+      "operator_set_id": "text_standard",
+      "operator": "not_equals",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "title": "Alpha Beta"
+        },
+        "criterion": {
+          "field": "title",
+          "value_family": "string",
+          "operator": "not_equals",
+          "value": "Gamma"
+        }
+      },
+      "expected": "MATCH",
+      "actual": "MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "title",
+        "validation_type_id": "studio.string.single_line",
+        "value_family": "string",
+        "operator_set_id": "text_standard",
+        "operator": "not_equals"
+      }
+    },
+    {
+      "check_id": "search::title::blank",
+      "name": "blank",
+      "pattern_id": "search::title::blank",
+      "category": "blank",
+      "target": "title",
+      "field": "title",
+      "validation_type_id": "studio.string.single_line",
+      "value_family": "string",
+      "operator_set_id": "text_standard",
+      "operator": "blank",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "title": "   "
+        },
+        "criterion": {
+          "field": "title",
+          "value_family": "string",
+          "operator": "blank"
+        }
+      },
+      "expected": "MATCH",
+      "actual": "MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "title",
+        "validation_type_id": "studio.string.single_line",
+        "value_family": "string",
+        "operator_set_id": "text_standard",
+        "operator": "blank"
+      }
+    },
+    {
+      "check_id": "search::title::not_blank",
+      "name": "not_blank",
+      "pattern_id": "search::title::not_blank",
+      "category": "blank",
+      "target": "title",
+      "field": "title",
+      "validation_type_id": "studio.string.single_line",
+      "value_family": "string",
+      "operator_set_id": "text_standard",
+      "operator": "not_blank",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "title": "Alpha Beta"
+        },
+        "criterion": {
+          "field": "title",
+          "value_family": "string",
+          "operator": "not_blank"
+        }
+      },
+      "expected": "MATCH",
+      "actual": "MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "title",
+        "validation_type_id": "studio.string.single_line",
+        "value_family": "string",
+        "operator_set_id": "text_standard",
+        "operator": "not_blank"
+      }
+    },
+    {
+      "check_id": "search::amount::equals",
+      "name": "equals",
+      "pattern_id": "search::amount::equals",
+      "category": "numeric",
+      "target": "amount",
+      "field": "amount",
+      "validation_type_id": "studio.number.standard",
+      "value_family": "number",
+      "operator_set_id": "numeric_standard",
+      "operator": "equals",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "amount": 20
+        },
+        "criterion": {
+          "field": "amount",
+          "value_family": "number",
+          "operator": "equals",
+          "value": 20
+        }
+      },
+      "expected": "MATCH",
+      "actual": "MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "amount",
+        "validation_type_id": "studio.number.standard",
+        "value_family": "number",
+        "operator_set_id": "numeric_standard",
+        "operator": "equals"
+      }
+    },
+    {
+      "check_id": "search::amount::not_equals",
+      "name": "not_equals",
+      "pattern_id": "search::amount::not_equals",
+      "category": "numeric",
+      "target": "amount",
+      "field": "amount",
+      "validation_type_id": "studio.number.standard",
+      "value_family": "number",
+      "operator_set_id": "numeric_standard",
+      "operator": "not_equals",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "amount": 20
+        },
+        "criterion": {
+          "field": "amount",
+          "value_family": "number",
+          "operator": "not_equals",
+          "value": 21
+        }
+      },
+      "expected": "MATCH",
+      "actual": "MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "amount",
+        "validation_type_id": "studio.number.standard",
+        "value_family": "number",
+        "operator_set_id": "numeric_standard",
+        "operator": "not_equals"
+      }
+    },
+    {
+      "check_id": "search::amount::gte_boundary",
+      "name": "gte_boundary",
+      "pattern_id": "search::amount::gte_boundary",
+      "category": "boundary",
+      "target": "amount",
+      "field": "amount",
+      "validation_type_id": "studio.number.standard",
+      "value_family": "number",
+      "operator_set_id": "numeric_standard",
+      "operator": "gte",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "amount": 20
+        },
+        "criterion": {
+          "field": "amount",
+          "value_family": "number",
+          "operator": "gte",
+          "value": 20
+        }
+      },
+      "expected": "MATCH",
+      "actual": "MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "amount",
+        "validation_type_id": "studio.number.standard",
+        "value_family": "number",
+        "operator_set_id": "numeric_standard",
+        "operator": "gte"
+      }
+    },
+    {
+      "check_id": "search::amount::gte_below",
+      "name": "gte_below",
+      "pattern_id": "search::amount::gte_below",
+      "category": "boundary",
+      "target": "amount",
+      "field": "amount",
+      "validation_type_id": "studio.number.standard",
+      "value_family": "number",
+      "operator_set_id": "numeric_standard",
+      "operator": "gte",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "amount": 19
+        },
+        "criterion": {
+          "field": "amount",
+          "value_family": "number",
+          "operator": "gte",
+          "value": 20
+        }
+      },
+      "expected": "NO_MATCH",
+      "actual": "NO_MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "amount",
+        "validation_type_id": "studio.number.standard",
+        "value_family": "number",
+        "operator_set_id": "numeric_standard",
+        "operator": "gte"
+      }
+    },
+    {
+      "check_id": "search::amount::lte_boundary",
+      "name": "lte_boundary",
+      "pattern_id": "search::amount::lte_boundary",
+      "category": "boundary",
+      "target": "amount",
+      "field": "amount",
+      "validation_type_id": "studio.number.standard",
+      "value_family": "number",
+      "operator_set_id": "numeric_standard",
+      "operator": "lte",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "amount": 20
+        },
+        "criterion": {
+          "field": "amount",
+          "value_family": "number",
+          "operator": "lte",
+          "value": 20
+        }
+      },
+      "expected": "MATCH",
+      "actual": "MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "amount",
+        "validation_type_id": "studio.number.standard",
+        "value_family": "number",
+        "operator_set_id": "numeric_standard",
+        "operator": "lte"
+      }
+    },
+    {
+      "check_id": "search::amount::lte_above",
+      "name": "lte_above",
+      "pattern_id": "search::amount::lte_above",
+      "category": "boundary",
+      "target": "amount",
+      "field": "amount",
+      "validation_type_id": "studio.number.standard",
+      "value_family": "number",
+      "operator_set_id": "numeric_standard",
+      "operator": "lte",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "amount": 21
+        },
+        "criterion": {
+          "field": "amount",
+          "value_family": "number",
+          "operator": "lte",
+          "value": 20
+        }
+      },
+      "expected": "NO_MATCH",
+      "actual": "NO_MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "amount",
+        "validation_type_id": "studio.number.standard",
+        "value_family": "number",
+        "operator_set_id": "numeric_standard",
+        "operator": "lte"
+      }
+    },
+    {
+      "check_id": "search::amount::between_inside",
+      "name": "between_inside",
+      "pattern_id": "search::amount::between_inside",
+      "category": "range",
+      "target": "amount",
+      "field": "amount",
+      "validation_type_id": "studio.number.standard",
+      "value_family": "number",
+      "operator_set_id": "numeric_standard",
+      "operator": "between",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "amount": 20
+        },
+        "criterion": {
+          "field": "amount",
+          "value_family": "number",
+          "operator": "between",
+          "from": 10,
+          "to": 30
+        }
+      },
+      "expected": "MATCH",
+      "actual": "MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "amount",
+        "validation_type_id": "studio.number.standard",
+        "value_family": "number",
+        "operator_set_id": "numeric_standard",
+        "operator": "between"
+      }
+    },
+    {
+      "check_id": "search::amount::between_min",
+      "name": "between_min",
+      "pattern_id": "search::amount::between_min",
+      "category": "range",
+      "target": "amount",
+      "field": "amount",
+      "validation_type_id": "studio.number.standard",
+      "value_family": "number",
+      "operator_set_id": "numeric_standard",
+      "operator": "between",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "amount": 10
+        },
+        "criterion": {
+          "field": "amount",
+          "value_family": "number",
+          "operator": "between",
+          "from": 10,
+          "to": 30
+        }
+      },
+      "expected": "MATCH",
+      "actual": "MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "amount",
+        "validation_type_id": "studio.number.standard",
+        "value_family": "number",
+        "operator_set_id": "numeric_standard",
+        "operator": "between"
+      }
+    },
+    {
+      "check_id": "search::amount::between_max",
+      "name": "between_max",
+      "pattern_id": "search::amount::between_max",
+      "category": "range",
+      "target": "amount",
+      "field": "amount",
+      "validation_type_id": "studio.number.standard",
+      "value_family": "number",
+      "operator_set_id": "numeric_standard",
+      "operator": "between",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "amount": 30
+        },
+        "criterion": {
+          "field": "amount",
+          "value_family": "number",
+          "operator": "between",
+          "from": 10,
+          "to": 30
+        }
+      },
+      "expected": "MATCH",
+      "actual": "MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "amount",
+        "validation_type_id": "studio.number.standard",
+        "value_family": "number",
+        "operator_set_id": "numeric_standard",
+        "operator": "between"
+      }
+    },
+    {
+      "check_id": "search::amount::between_outside",
+      "name": "between_outside",
+      "pattern_id": "search::amount::between_outside",
+      "category": "range",
+      "target": "amount",
+      "field": "amount",
+      "validation_type_id": "studio.number.standard",
+      "value_family": "number",
+      "operator_set_id": "numeric_standard",
+      "operator": "between",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "amount": 31
+        },
+        "criterion": {
+          "field": "amount",
+          "value_family": "number",
+          "operator": "between",
+          "from": 10,
+          "to": 30
+        }
+      },
+      "expected": "NO_MATCH",
+      "actual": "NO_MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "amount",
+        "validation_type_id": "studio.number.standard",
+        "value_family": "number",
+        "operator_set_id": "numeric_standard",
+        "operator": "between"
+      }
+    },
+    {
+      "check_id": "search::amount::from_only",
+      "name": "from_only",
+      "pattern_id": "search::amount::from_only",
+      "category": "range",
+      "target": "amount",
+      "field": "amount",
+      "validation_type_id": "studio.number.standard",
+      "value_family": "number",
+      "operator_set_id": "numeric_standard",
+      "operator": "between",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "amount": 20
+        },
+        "criterion": {
+          "field": "amount",
+          "value_family": "number",
+          "operator": "between",
+          "from": 20,
+          "to": ""
+        }
+      },
+      "expected": "MATCH",
+      "actual": "MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "amount",
+        "validation_type_id": "studio.number.standard",
+        "value_family": "number",
+        "operator_set_id": "numeric_standard",
+        "operator": "between"
+      }
+    },
+    {
+      "check_id": "search::amount::to_only",
+      "name": "to_only",
+      "pattern_id": "search::amount::to_only",
+      "category": "range",
+      "target": "amount",
+      "field": "amount",
+      "validation_type_id": "studio.number.standard",
+      "value_family": "number",
+      "operator_set_id": "numeric_standard",
+      "operator": "between",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "amount": 20
+        },
+        "criterion": {
+          "field": "amount",
+          "value_family": "number",
+          "operator": "between",
+          "from": "",
+          "to": 20
+        }
+      },
+      "expected": "MATCH",
+      "actual": "MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "amount",
+        "validation_type_id": "studio.number.standard",
+        "value_family": "number",
+        "operator_set_id": "numeric_standard",
+        "operator": "between"
+      }
+    },
+    {
+      "check_id": "search::amount::blank",
+      "name": "blank",
+      "pattern_id": "search::amount::blank",
+      "category": "blank",
+      "target": "amount",
+      "field": "amount",
+      "validation_type_id": "studio.number.standard",
+      "value_family": "number",
+      "operator_set_id": "numeric_standard",
+      "operator": "blank",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "amount": null
+        },
+        "criterion": {
+          "field": "amount",
+          "value_family": "number",
+          "operator": "blank"
+        }
+      },
+      "expected": "MATCH",
+      "actual": "MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "amount",
+        "validation_type_id": "studio.number.standard",
+        "value_family": "number",
+        "operator_set_id": "numeric_standard",
+        "operator": "blank"
+      }
+    },
+    {
+      "check_id": "search::amount::not_blank_zero",
+      "name": "not_blank_zero",
+      "pattern_id": "search::amount::not_blank_zero",
+      "category": "blank",
+      "target": "amount",
+      "field": "amount",
+      "validation_type_id": "studio.number.standard",
+      "value_family": "number",
+      "operator_set_id": "numeric_standard",
+      "operator": "not_blank",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "amount": 0
+        },
+        "criterion": {
+          "field": "amount",
+          "value_family": "number",
+          "operator": "not_blank"
+        }
+      },
+      "expected": "MATCH",
+      "actual": "MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "amount",
+        "validation_type_id": "studio.number.standard",
+        "value_family": "number",
+        "operator_set_id": "numeric_standard",
+        "operator": "not_blank"
+      }
+    },
+    {
+      "check_id": "search::updated_at::equals",
+      "name": "equals",
+      "pattern_id": "search::updated_at::equals",
+      "category": "date",
+      "target": "updated_at",
+      "field": "updated_at",
+      "validation_type_id": "studio.date.ymd",
+      "value_family": "date",
+      "operator_set_id": "date_standard",
+      "operator": "equals",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "updated_at": "2026-08-16"
+        },
+        "criterion": {
+          "field": "updated_at",
+          "value_family": "date",
+          "operator": "equals",
+          "value": "2026-08-16"
+        }
+      },
+      "expected": "MATCH",
+      "actual": "MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "updated_at",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "operator": "equals"
+      }
+    },
+    {
+      "check_id": "search::updated_at::not_equals",
+      "name": "not_equals",
+      "pattern_id": "search::updated_at::not_equals",
+      "category": "date",
+      "target": "updated_at",
+      "field": "updated_at",
+      "validation_type_id": "studio.date.ymd",
+      "value_family": "date",
+      "operator_set_id": "date_standard",
+      "operator": "not_equals",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "updated_at": "2026-08-16"
+        },
+        "criterion": {
+          "field": "updated_at",
+          "value_family": "date",
+          "operator": "not_equals",
+          "value": "2026-08-17"
+        }
+      },
+      "expected": "MATCH",
+      "actual": "MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "updated_at",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "operator": "not_equals"
+      }
+    },
+    {
+      "check_id": "search::updated_at::gte_boundary",
+      "name": "gte_boundary",
+      "pattern_id": "search::updated_at::gte_boundary",
+      "category": "boundary",
+      "target": "updated_at",
+      "field": "updated_at",
+      "validation_type_id": "studio.date.ymd",
+      "value_family": "date",
+      "operator_set_id": "date_standard",
+      "operator": "gte",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "updated_at": "2026-08-16"
+        },
+        "criterion": {
+          "field": "updated_at",
+          "value_family": "date",
+          "operator": "gte",
+          "value": "2026-08-16"
+        }
+      },
+      "expected": "MATCH",
+      "actual": "MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "updated_at",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "operator": "gte"
+      }
+    },
+    {
+      "check_id": "search::updated_at::gte_below",
+      "name": "gte_below",
+      "pattern_id": "search::updated_at::gte_below",
+      "category": "boundary",
+      "target": "updated_at",
+      "field": "updated_at",
+      "validation_type_id": "studio.date.ymd",
+      "value_family": "date",
+      "operator_set_id": "date_standard",
+      "operator": "gte",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "updated_at": "2026-08-15"
+        },
+        "criterion": {
+          "field": "updated_at",
+          "value_family": "date",
+          "operator": "gte",
+          "value": "2026-08-16"
+        }
+      },
+      "expected": "NO_MATCH",
+      "actual": "NO_MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "updated_at",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "operator": "gte"
+      }
+    },
+    {
+      "check_id": "search::updated_at::lte_boundary",
+      "name": "lte_boundary",
+      "pattern_id": "search::updated_at::lte_boundary",
+      "category": "boundary",
+      "target": "updated_at",
+      "field": "updated_at",
+      "validation_type_id": "studio.date.ymd",
+      "value_family": "date",
+      "operator_set_id": "date_standard",
+      "operator": "lte",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "updated_at": "2026-08-16"
+        },
+        "criterion": {
+          "field": "updated_at",
+          "value_family": "date",
+          "operator": "lte",
+          "value": "2026-08-16"
+        }
+      },
+      "expected": "MATCH",
+      "actual": "MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "updated_at",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "operator": "lte"
+      }
+    },
+    {
+      "check_id": "search::updated_at::lte_above",
+      "name": "lte_above",
+      "pattern_id": "search::updated_at::lte_above",
+      "category": "boundary",
+      "target": "updated_at",
+      "field": "updated_at",
+      "validation_type_id": "studio.date.ymd",
+      "value_family": "date",
+      "operator_set_id": "date_standard",
+      "operator": "lte",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "updated_at": "2026-08-17"
+        },
+        "criterion": {
+          "field": "updated_at",
+          "value_family": "date",
+          "operator": "lte",
+          "value": "2026-08-16"
+        }
+      },
+      "expected": "NO_MATCH",
+      "actual": "NO_MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "updated_at",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "operator": "lte"
+      }
+    },
+    {
+      "check_id": "search::updated_at::between_inside",
+      "name": "between_inside",
+      "pattern_id": "search::updated_at::between_inside",
+      "category": "range",
+      "target": "updated_at",
+      "field": "updated_at",
+      "validation_type_id": "studio.date.ymd",
+      "value_family": "date",
+      "operator_set_id": "date_standard",
+      "operator": "between",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "updated_at": "2026-08-16"
+        },
+        "criterion": {
+          "field": "updated_at",
+          "value_family": "date",
+          "operator": "between",
+          "from": "2026-08-01",
+          "to": "2026-08-31"
+        }
+      },
+      "expected": "MATCH",
+      "actual": "MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "updated_at",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "operator": "between"
+      }
+    },
+    {
+      "check_id": "search::updated_at::between_min",
+      "name": "between_min",
+      "pattern_id": "search::updated_at::between_min",
+      "category": "range",
+      "target": "updated_at",
+      "field": "updated_at",
+      "validation_type_id": "studio.date.ymd",
+      "value_family": "date",
+      "operator_set_id": "date_standard",
+      "operator": "between",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "updated_at": "2026-08-01"
+        },
+        "criterion": {
+          "field": "updated_at",
+          "value_family": "date",
+          "operator": "between",
+          "from": "2026-08-01",
+          "to": "2026-08-31"
+        }
+      },
+      "expected": "MATCH",
+      "actual": "MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "updated_at",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "operator": "between"
+      }
+    },
+    {
+      "check_id": "search::updated_at::between_max",
+      "name": "between_max",
+      "pattern_id": "search::updated_at::between_max",
+      "category": "range",
+      "target": "updated_at",
+      "field": "updated_at",
+      "validation_type_id": "studio.date.ymd",
+      "value_family": "date",
+      "operator_set_id": "date_standard",
+      "operator": "between",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "updated_at": "2026-08-31"
+        },
+        "criterion": {
+          "field": "updated_at",
+          "value_family": "date",
+          "operator": "between",
+          "from": "2026-08-01",
+          "to": "2026-08-31"
+        }
+      },
+      "expected": "MATCH",
+      "actual": "MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "updated_at",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "operator": "between"
+      }
+    },
+    {
+      "check_id": "search::updated_at::between_outside",
+      "name": "between_outside",
+      "pattern_id": "search::updated_at::between_outside",
+      "category": "range",
+      "target": "updated_at",
+      "field": "updated_at",
+      "validation_type_id": "studio.date.ymd",
+      "value_family": "date",
+      "operator_set_id": "date_standard",
+      "operator": "between",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "updated_at": "2026-09-01"
+        },
+        "criterion": {
+          "field": "updated_at",
+          "value_family": "date",
+          "operator": "between",
+          "from": "2026-08-01",
+          "to": "2026-08-31"
+        }
+      },
+      "expected": "NO_MATCH",
+      "actual": "NO_MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "updated_at",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "operator": "between"
+      }
+    },
+    {
+      "check_id": "search::updated_at::from_only",
+      "name": "from_only",
+      "pattern_id": "search::updated_at::from_only",
+      "category": "range",
+      "target": "updated_at",
+      "field": "updated_at",
+      "validation_type_id": "studio.date.ymd",
+      "value_family": "date",
+      "operator_set_id": "date_standard",
+      "operator": "between",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "updated_at": "2026-08-16"
+        },
+        "criterion": {
+          "field": "updated_at",
+          "value_family": "date",
+          "operator": "between",
+          "from": "2026-08-16",
+          "to": ""
+        }
+      },
+      "expected": "MATCH",
+      "actual": "MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "updated_at",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "operator": "between"
+      }
+    },
+    {
+      "check_id": "search::updated_at::to_only",
+      "name": "to_only",
+      "pattern_id": "search::updated_at::to_only",
+      "category": "range",
+      "target": "updated_at",
+      "field": "updated_at",
+      "validation_type_id": "studio.date.ymd",
+      "value_family": "date",
+      "operator_set_id": "date_standard",
+      "operator": "between",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "updated_at": "2026-08-16"
+        },
+        "criterion": {
+          "field": "updated_at",
+          "value_family": "date",
+          "operator": "between",
+          "from": "",
+          "to": "2026-08-16"
+        }
+      },
+      "expected": "MATCH",
+      "actual": "MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "updated_at",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "operator": "between"
+      }
+    },
+    {
+      "check_id": "search::updated_at::blank",
+      "name": "blank",
+      "pattern_id": "search::updated_at::blank",
+      "category": "blank",
+      "target": "updated_at",
+      "field": "updated_at",
+      "validation_type_id": "studio.date.ymd",
+      "value_family": "date",
+      "operator_set_id": "date_standard",
+      "operator": "blank",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "updated_at": ""
+        },
+        "criterion": {
+          "field": "updated_at",
+          "value_family": "date",
+          "operator": "blank"
+        }
+      },
+      "expected": "MATCH",
+      "actual": "MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "updated_at",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "operator": "blank"
+      }
+    },
+    {
+      "check_id": "search::updated_at::not_blank",
+      "name": "not_blank",
+      "pattern_id": "search::updated_at::not_blank",
+      "category": "blank",
+      "target": "updated_at",
+      "field": "updated_at",
+      "validation_type_id": "studio.date.ymd",
+      "value_family": "date",
+      "operator_set_id": "date_standard",
+      "operator": "not_blank",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "updated_at": "2026-08-16"
+        },
+        "criterion": {
+          "field": "updated_at",
+          "value_family": "date",
+          "operator": "not_blank"
+        }
+      },
+      "expected": "MATCH",
+      "actual": "MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "updated_at",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "operator": "not_blank"
+      }
+    },
+    {
+      "check_id": "search::updated_at::invalid_date_input",
+      "name": "invalid_date_input",
+      "pattern_id": "search::updated_at::invalid_date_input",
+      "category": "invalid_input",
+      "target": "updated_at",
+      "field": "updated_at",
+      "validation_type_id": "studio.date.ymd",
+      "value_family": "date",
+      "operator_set_id": "date_standard",
+      "operator": "equals",
+      "type": "search_match_outcome_equals",
+      "input": {
+        "row": {
+          "updated_at": "2026-02-30"
+        },
+        "criterion": {
+          "field": "updated_at",
+          "value_family": "date",
+          "operator": "equals",
+          "value": "2026-02-30"
+        }
+      },
+      "expected": "NO_MATCH",
+      "actual": "NO_MATCH",
+      "pass": true,
+      "result": "PASS",
+      "message": "差分なし",
+      "comparison_reason_code": "MATCH_RESULT_EQUAL",
+      "source": {
+        "field": "updated_at",
+        "validation_type_id": "studio.date.ymd",
+        "value_family": "date",
+        "operator_set_id": "date_standard",
+        "operator": "equals"
+      }
+    }
+  ]
+}
