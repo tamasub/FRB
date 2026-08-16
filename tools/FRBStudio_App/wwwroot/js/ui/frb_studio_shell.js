@@ -84,6 +84,27 @@
     return parts.join('/');
   }
 
+  const SHORTCUT_LAUNCH_PARAM_KEYS = Object.freeze([
+    'focusField',
+    'focusValue',
+    'openDetail',
+    'action'
+  ]);
+
+  function appendShortcutLaunchParams(url, shortcut) {
+    const params = shortcut?.launch_params ?? shortcut?.launchParams ?? null;
+    if (!params || typeof params !== 'object' || Array.isArray(params)) return;
+
+    SHORTCUT_LAUNCH_PARAM_KEYS.forEach(key => {
+      if (!(key in params)) return;
+      const raw = params[key];
+      if (raw === null || raw === undefined) return;
+      const value = typeof raw === 'boolean' ? String(raw) : String(raw).trim();
+      if (!value) return;
+      url.searchParams.set(key, value);
+    });
+  }
+
   function shortcutHref(shortcut) {
     const data = normalizeShortcutJsonPath(shortcut?.data, 'Data JSON');
     if (!data) throw new Error('Data JSON が未設定です');
@@ -93,6 +114,7 @@
     url.hash = '';
     url.searchParams.set('data', data);
     if (viewDef) url.searchParams.set('view', viewDef);
+    appendShortcutLaunchParams(url, shortcut);
     return url.href;
   }
 

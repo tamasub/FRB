@@ -410,30 +410,6 @@
               }
             },
             {
-              "field": "created_at",
-              "caption": "作成日",
-              "type": "datetime",
-              "grid": {
-                "visible": false,
-                "width": 130
-              },
-              "edit": {
-                "visible": true
-              }
-            },
-            {
-              "field": "updated_at",
-              "caption": "更新日",
-              "type": "datetime",
-              "grid": {
-                "visible": false,
-                "width": 130
-              },
-              "edit": {
-                "visible": true
-              }
-            },
-            {
               "field": "__work_summary_cards",
               "caption": "作業内容 / 方針",
               "type": "chat",
@@ -1199,6 +1175,46 @@
               },
               "defaultValue": [],
               "display_note": "詳細画面では入力欄化せず、objectArrayの子グリッドとして表示する。表示用の「n items」を保存値にしないため。"
+            },
+            {
+              "field": "created_at",
+              "caption": "作成日",
+              "type": "datetime",
+              "grid": {
+                "visible": true,
+                "width": 130,
+                "format": ""
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "editor": "",
+                "height": null,
+                "step": null,
+                "min": null,
+                "max": null
+              },
+              "search": {
+                "visible": false,
+                "operator": ""
+              },
+              "validation": {
+                "required": false
+              },
+              "format": "",
+              "defaultValue": ""
+            },
+            {
+              "field": "updated_at",
+              "caption": "更新日",
+              "type": "datetime",
+              "grid": {
+                "visible": false,
+                "width": 130
+              },
+              "edit": {
+                "visible": true
+              }
             }
           ],
           "markdown": {

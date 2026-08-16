@@ -184,9 +184,15 @@ async function executeLaunchActionFromQuery(params) {
   if (typeof executeStudioAction !== 'function' || typeof currentStudioActionContext !== 'function') {
     throw new Error(`URL action を実行できません。ActionRegistryが未初期化です: ${actionId}`);
   }
+  const selectedRow = selectedIndex >= 0 && Array.isArray(currentRows)
+    ? currentRows[selectedIndex] ?? null
+    : null;
+  const executeButton = typeof viewExecuteButtonDef === 'function' ? viewExecuteButtonDef() : null;
   const context = currentStudioActionContext({
     launchParams: launchParamsObject(params),
-    urlParams: launchParamsObject(params)
+    urlParams: launchParamsObject(params),
+    selectedRow,
+    executeButton
   });
   const result = await executeStudioAction(actionId, context);
   if (result?.message && typeof setStatus === 'function') {

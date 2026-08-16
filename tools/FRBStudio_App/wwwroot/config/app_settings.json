@@ -2,7 +2,7 @@
   "schema_version": "app_settings_v0_1",
   "document_type": "app_settings",
   "status": "draft",
-  "updated_at": "2026-08-16T23:39:40+09:00",
+  "updated_at": "2026-08-16T23:45:00+09:00",
   "purpose": "FRB Studio / JSON Object Studio の動作設定。app_info.json には名札情報のみを置き、Studio動作設定はこのファイル側で管理する。設定画面で変更可能な項目はSystem ViewDefで明示的に露出する。",
   "hosting": {
     "prefer_api_on_localhost": true,
@@ -18,6 +18,18 @@
       "caption": "studio_work_incident",
       "data": "data\\json\\01_main\\_studio_work_incident_data_v2.json",
       "view_def": ""
+    },
+    {
+      "id": "gitdiff_working_tree",
+      "caption": "Git Diff / WorkingTree 実行",
+      "data": "data\\json\\04_tools\\git_diff_export_run_config_data_v0_1.json",
+      "view_def": "tools/git_diff_export_run_config_view_def_v0_1.json",
+      "launch_params": {
+        "focusField": "run_config_id",
+        "focusValue": "gitdiff_001_default_working_tree",
+        "openDetail": false,
+        "action": "RunCommandProfile"
+      }
     }
   ],
   "markdown": {

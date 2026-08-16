@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-16T21:15:00+09:00",
+  "updated_at": "2026-08-16T23:45:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 186,
+  "items_count": 187,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -28822,6 +28822,124 @@
           "before": "Settingsに任意JSON切替経路が残り、Markdown Common Shell遷移ではdirty確認がなかった。",
           "after": "Settings固定Sourceをロックし、Document Meta余白を拡張し、Markdown Common Shell遷移へdirty guardを追加。",
           "reason": "Phase 5実機確認で発見した迷い・未保存破棄リスクを解消するため。"
+        }
+      ]
+    },
+    {
+      "incident_type": "enhancement",
+      "category": "architecture",
+      "priority": "high",
+      "verification_status": "Static確認済み / 実機確認待ち",
+      "context_def_status": "draft",
+      "context_def_updated_at": "",
+      "owner": "",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-16T23:45:00+09:00",
+      "updated_at": "2026-08-16T23:45:00+09:00",
+      "actual_updated_files": "- wwwroot/js/ui/frb_studio_shell.js\n- wwwroot/js/runtime/load_runtime.js\n- wwwroot/config/app_settings.json\n- tests/qa/static/launch_shortcut_focus_action_v0_18_77.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "verification_log": "- v0.18.77専用Static: 5 / 5 PASS。\n- Shortcut / Settings focused Static: 22 / 22 PASS。\n- 全Static Before: 248 tests / 230 pass / 18 fail。\n- 全Static After: 253 tests / 235 pass / 18 fail。\n- Before / Afterの既存18 FAILはテスト名まで一致し、新規FAILなし。\n- `node --check wwwroot/js/ui/frb_studio_shell.js`: PASS。\n- `node --check wwwroot/js/runtime/load_runtime.js`: PASS。\n- app_settings.json JSON parse: PASS。\n- 実機でのGit Diff WorkingTree自動実行とDiffJsonViewer自動openは利用者確認待ち。",
+      "context_refs": [],
+      "work_item_id": "studio_work_0199",
+      "phase": "v0.18.77-launch-shortcut-focus-action",
+      "title": "Launch Shortcut Focus / Action — Git Diff WorkingTree ワンクリック実行",
+      "status": "確認中",
+      "follow_up_status": "PENDING",
+      "target_files": "- wwwroot/js/ui/frb_studio_shell.js\n- wwwroot/js/runtime/load_runtime.js\n- wwwroot/config/app_settings.json\n- tests/qa/static/launch_shortcut_focus_action_v0_18_77.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "# ContextDef素案: Launch Shortcut Focus / Action\n\n## 前提\n- studio_work_0198でlaunch_shortcutsからData/ViewDefを開く契約が成立済み。\n- 標準EditorにはURL Focus契約（focusField / focusValue）とURL Action契約（action）が既に存在する。\n- Git Diff RunはViewDef toolbar.executeButton.action=RunCommandProfile とActionRegistryを正本実行経路とする。",
+      "objective": "- launch_shortcutsからGit Diff Run Configを開き、run_config_id=gitdiff_001_default_working_treeを選択した状態で既存RunCommandProfileを実行できるようにする。\n- Git Diff専用Launcherを新設せず、既存URL Focus / Action契約を外からつまんで接続する。",
+      "background": "- ユーザーから、ショートカットからGit DiffのWorkingTree Run IDを起動できれば大きなインパクトになるとの要望があった。\n- 現行launch_shortcutsはData/ViewDef起動までで、Focus / Actionを設定から渡す契約が未接続だった。",
+      "scope": "- launch_shortcutsへ任意のlaunch_paramsを保持し、focusField / focusValue / openDetail / actionを既存URL起動へ付加する。\n- URL Focus後に選択されたrowをURL ActionContextへ渡す。\n- System app_settings.jsonへGit Diff WorkingTree実行ショートカットを1件登録する。",
+      "out_of_scope": "- Settings画面からlaunch_paramsを登録・更新するUI。\n- launch_params用Field Definition / ViewDef列・Detail Editorの追加。\n- Shortcut Menuの多階層化。\n- Git Diff専用Actionや専用Runnerの新設。",
+      "fixed_name_policy": "- Foundation Rule 019を遵守する。\n- 最新添付FRBStudio_App ZIPを基準ソースとする。\n- 返却ZIPには更新したファイルだけを同一相対パスで収録し、更新済みIncident JSONを含める。",
+      "module_policy": "- 外からつまめ原則を優先し、既存URL Focus / Action / ActionRegistry / RunCommandProfileを再利用する。",
+      "expected_outputs": "- Common Shellのショートカット「Git Diff / WorkingTree 実行」からGit Diff Run Configを開き、指定Run IDを選択してRunCommandProfileを自動実行できる。",
+      "risk": "- URL auto actionは画面ロード完了後に実行されるため、Git Diff結果Viewerの新規Window自動openはWebView/ブラウザのpopup制御によって実機挙動確認が必要。\n- Settings画面ではlaunch_paramsが未露出のため、現時点ではこの詳細パラメータを画面から編集できない。",
+      "test_points": "- shortcutHrefがlaunch_paramsをURL queryへ付加する。\n- Git Diff WorkingTree shortcutにData/ViewDef/focus/actionが定義される。\n- URL Focus後のselectedRowがRunCommandProfileへ渡る。\n- 既存launch_shortcutsはlaunch_paramsなしでも従来通り起動できる。\n- 全Staticの既存FAILを増やさない。",
+      "user_request": "今の起動ショートカットの画面で設定できたら100点だが、そこまでいかなくてもショートカットからGit DiffのRUNID=gitdiff_001_default_working_treeを起動できるようにしたい。インシデント登録して対応し、設定画面部分など残作業があれば明確に残してほしい。",
+      "ai_response": "- studio_work_0199として登録し、既存launch_shortcuts → URL Focus → URL Action → RunCommandProfileを接続する。\n- launch_paramsのSettings UI編集は今回スコープ外としてfollow_up_actionsへ明示する。",
+      "latest_ai_response": "## 変更内容\n- `launch_shortcuts` に汎用 `launch_params` を追加できるようにし、既存URL起動へ `focusField` / `focusValue` / `openDetail` / `action` を付加する契約を実装した。\n- URL Focusで選択されたrowをURL ActionContextの `selectedRow` として渡し、既存 `RunCommandProfile` をそのまま実行できるようにした。\n- System `app_settings.json` へ「Git Diff / WorkingTree 実行」を追加し、`run_config_id=gitdiff_001_default_working_tree` をFocusした後 `RunCommandProfile` を自動実行する設定を登録した。\n- Git Diff専用Launcher / Action / Runnerは新設していない。\n\n## 残作業\n- Settings画面の既存4列には `launch_params` をまだ露出していない。画面からFocus / Actionを登録・編集するUIは `SETTINGS_SHORTCUT_LAUNCH_PARAMS_UI` としてPENDINGで残した。\n- Git Diff結果Viewerの新規Window自動openはpopup制御の影響を受ける可能性があるため実機確認対象。\n\n## 確認結果\n- 専用Static 5/5 PASS。\n- Focused Static 22/22 PASS。\n- 全Static 248/230/18 → 253/235/18、既存18 FAIL名一致、新規FAILなし。\n- JS syntax PASS。",
+      "follow_up_actions": [
+        {
+          "action_id": "",
+          "action_type": "SETTINGS_SHORTCUT_LAUNCH_PARAMS_UI",
+          "required": false,
+          "status": "PENDING",
+          "related_ids": [
+            "studio_work_0199"
+          ],
+          "note": "現時点ではSystem app_settings.jsonにlaunch_paramsを保持し、既存4列UIには露出しない。隠し値はRound Tripで保持する前提。",
+          "summary": "Settingsの起動ショートカット画面からfocusField / focusValue / openDetail / action等を登録・更新できるようにする。"
+        },
+        {
+          "action_id": "",
+          "action_type": "MANUAL_GITDIFF_SHORTCUT_VERIFICATION",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "studio_work_0199"
+          ],
+          "note": "auto action自体とURL生成はStatic確認する。Viewer新規Windowはpopup制御の影響を受ける可能性があるため実機確認対象。",
+          "summary": "実機で「Git Diff / WorkingTree 実行」をクリックし、WorkingTree Runが実行されることとDiffJsonViewer遷移を確認する。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "at": "2026-08-16T23:45:00+09:00",
+          "speaker": "user",
+          "message": "今の起動ショートカットの画面で設定できたら100点だけど、そこまでいかなくてもショートカットから起動できたら。とりあえず。これはとりあえず、インシデント登録して対応してほしい。で、設定画面部分とか作業を残す部分あれば、それを明確にして残してほしい。よろしく(笑)"
+        },
+        {
+          "at": "2026-08-16T23:45:00+09:00",
+          "speaker": "assistant",
+          "message": "studio_work_0199を登録し、既存URL Focus / Action契約をlaunch_shortcutsから利用する最小実装で対応する。Settings UIからlaunch_paramsを編集する部分は明示的な後続作業として残す。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0199_001",
+          "at": "2026-08-16T23:45:00+09:00",
+          "decision": "Git Diff専用Shortcut Runnerを作らず、launch_shortcutsから既存URL Focus / Action契約を利用する。",
+          "reason": "標準EditorにfocusField/focusValueとactionの既存契約があり、Git Diff RunもRunCommandProfileとして既存ActionRegistryへ接続済みのため。",
+          "applied_axes": [
+            "外からつまめ原則",
+            "既存責務再利用",
+            "専用実装抑制"
+          ],
+          "conditions": "Data/ViewDef読込後に指定focus対象rowが存在し、ActionRegistryにactionが登録済みであること。",
+          "exceptions": "Settings UIからlaunch_paramsを編集する能力は今回実装しない。",
+          "expected_behavior": "ShortcutクリックだけでGit Diff WorkingTree行をFocusし、RunCommandProfileが実行される。",
+          "acceptance_criteria": "URLにfocusField=run_config_id / focusValue=gitdiff_001_default_working_tree / action=RunCommandProfileが付加され、URL ActionContextへselectedRowが渡る。",
+          "confirmation_level": "Static確認 / 実機確認待ち"
+        }
+      ],
+      "change_history": [
+        {
+          "at": "2026-08-16T23:45:00+09:00",
+          "change_type": "incident_registered",
+          "before": "Git Diff Run IDをlaunch_shortcutsから直接Focus/Actionする契約なし。",
+          "after": "studio_work_0199 / v0.18.77-launch-shortcut-focus-actionを登録。",
+          "reason": "ユーザーがGit Diff WorkingTreeをショートカットから起動する実装と、残作業の明示を依頼したため。"
+        },
+        {
+          "at": "2026-08-16T23:45:00+09:00",
+          "change_type": "launch_shortcut_focus_action_connected",
+          "before": "launch_shortcutsはData/ViewDefの起動までで、対象rowのFocusやAction実行を指定できなかった。",
+          "after": "launch_paramsからfocusField/focusValue/openDetail/actionを既存URL契約へ付加し、URL Focus後のselectedRowをURL ActionContextへ渡す。",
+          "reason": "Git Diff専用実装を増やさず既存URL Focus / Action / RunCommandProfileを外からつまんで再利用するため。"
+        },
+        {
+          "at": "2026-08-16T23:45:00+09:00",
+          "change_type": "gitdiff_working_tree_shortcut_registered",
+          "before": "System app_settingsにGit Diff WorkingTreeワンクリック実行ショートカットなし。",
+          "after": "Git Diff Run Config + gitdiff_001_default_working_tree Focus + RunCommandProfileを1つのlaunch_shortcuts定義として登録。",
+          "reason": "ユーザーの最小要求であるショートカットからのGit Diff WorkingTree起動を先に成立させるため。"
+        },
+        {
+          "at": "2026-08-16T23:45:00+09:00",
+          "change_type": "verification_completed",
+          "before": "未検証。",
+          "after": "専用5/5、Focused22/22、全Static新規FAILなし、JS syntax PASS。実機確認のみ残存。",
+          "reason": "今回責務のStatic契約と既存回帰を確認したため。"
         }
       ]
     }
