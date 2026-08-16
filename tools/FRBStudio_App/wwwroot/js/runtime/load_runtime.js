@@ -384,6 +384,37 @@ const SYSTEM_APP_SETTINGS_VIEW_DEF_PATH = 'config/app_settings/app_settings_view
 const SYSTEM_APP_SETTINGS_FIELD_DEF_PATH = 'config/app_settings/app_settings_field_definitions_v0_1.json';
 const SYSTEM_APP_SETTINGS_SAVE_API_PATH = '/api/app-settings';
 
+function lockSystemSettingsSourceControls() {
+  // Settings modeのData / ViewDefはSystem固定資材。
+  // 通常JSON Editorの選択UIを残したまま別JSONへ切替できると責務境界が崩れるため、
+  // 表示は維持しつつ選択経路だけを明示的にロックする。
+  ['dataNameInput', 'defNameInput'].forEach(id => {
+    const input = $(id);
+    if (!input) return;
+    input.disabled = true;
+    input.setAttribute('aria-disabled', 'true');
+    input.title = 'Studio設定ではSystem固定JSONを使用します';
+  });
+
+  ['clearDataNameBtn', 'clearDefNameBtn', 'maintainViewDefBtn'].forEach(id => {
+    const button = $(id);
+    if (!button) return;
+    button.disabled = true;
+    button.hidden = true;
+  });
+
+  ['dataFile', 'defFile'].forEach(id => {
+    const input = $(id);
+    if (input) input.disabled = true;
+  });
+
+  const loadBtn = $('loadBtn');
+  if (loadBtn) {
+    loadBtn.disabled = true;
+    loadBtn.title = 'Studio設定ではSystem固定JSONを自動読み込みします';
+  }
+}
+
 function applySystemSettingsModePresentation() {
   document.body.classList.add('studio-settings-mode');
 
@@ -405,6 +436,8 @@ function applySystemSettingsModePresentation() {
 
   const settingsLink = document.querySelector('[data-frb-settings]');
   settingsLink?.classList.add('is-active');
+
+  lockSystemSettingsSourceControls();
 }
 
 function isSystemAppSettingsMode() {

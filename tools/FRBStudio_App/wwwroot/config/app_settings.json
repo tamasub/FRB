@@ -2,7 +2,7 @@
   "schema_version": "app_settings_v0_1",
   "document_type": "app_settings",
   "status": "draft",
-  "updated_at": "2026-08-16T22:52:32+09:00",
+  "updated_at": "2026-08-16T23:39:40+09:00",
   "purpose": "FRB Studio / JSON Object Studio の動作設定。app_info.json には名札情報のみを置き、Studio動作設定はこのファイル側で管理する。設定画面で変更可能な項目はSystem ViewDefで明示的に露出する。",
   "hosting": {
     "prefer_api_on_localhost": true,
@@ -15,7 +15,7 @@
   "launch_shortcuts": [
     {
       "id": "studio_work_incident",
-      "caption": "data\\json\\01_main",
+      "caption": "studio_work_incident",
       "data": "data\\json\\01_main\\_studio_work_incident_data_v2.json",
       "view_def": ""
     }

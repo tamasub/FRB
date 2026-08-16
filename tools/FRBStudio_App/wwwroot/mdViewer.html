@@ -6413,6 +6413,65 @@ async function confirmReplaceCurrentMarkdown(actionLabel = '別のMarkdownを開
     cancelLabel:'キャンセル'
   });
 }
+
+let markdownNavigationAwayConfirmed = false;
+
+function hasUnsavedMarkdownNavigationState() {
+  return Boolean(isManagedMarkdownDirty || mdCommentSidecarRuntime.dirty);
+}
+
+function markdownUnsavedNavigationMessage() {
+  if (isManagedMarkdownDirty && mdCommentSidecarRuntime.dirty) {
+    return 'Markdown本文とReview JSONに未保存の変更があります。保存せずに別の画面へ移動しますか？';
+  }
+  if (mdCommentSidecarRuntime.dirty) {
+    return 'Review JSONに未保存の変更があります。保存せずに別の画面へ移動しますか？';
+  }
+  return '現在のMarkdownに未保存の変更があります。保存せずに別の画面へ移動しますか？';
+}
+
+async function confirmMarkdownNavigationAway() {
+  if (!hasUnsavedMarkdownNavigationState()) return true;
+  return await showMarkdownConfirmDialog({
+    title:'未保存の変更があります',
+    message:markdownUnsavedNavigationMessage(),
+    okLabel:'移動する',
+    cancelLabel:'キャンセル'
+  });
+}
+
+function installMarkdownUnsavedNavigationGuard() {
+  document.addEventListener('click', async (event) => {
+    if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    const target = event.target instanceof Element ? event.target : null;
+    if (!target) return;
+
+    const anchor = target.closest('.frb-app-shell a[href], .frb-pagebar a[href]');
+    const homeButton = target.closest('.frb-pagebar [data-frb-home]');
+    if (!anchor && !homeButton) return;
+    if (!hasUnsavedMarkdownNavigationState()) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+
+    const ok = await confirmMarkdownNavigationAway();
+    if (!ok) return;
+
+    markdownNavigationAwayConfirmed = true;
+    const href = anchor ? anchor.href : 'home.html';
+    location.assign(href);
+  }, true);
+
+  // Browser back / reload / window closeなど、Common Shell外の離脱にも最低限の標準警告を残す。
+  window.addEventListener('beforeunload', (event) => {
+    if (markdownNavigationAwayConfirmed || !hasUnsavedMarkdownNavigationState()) return;
+    event.preventDefault();
+    event.returnValue = '';
+  });
+}
+
+installMarkdownUnsavedNavigationGuard();
 const MARKDOWN_WORKSPACE_PERSIST_KEY = 'markdown.workspace';
 
 async function applyMarkdownWorkspaceGrant(result, { announce = false } = {}) {

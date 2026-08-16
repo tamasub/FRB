@@ -132,3 +132,15 @@ test('Shortcut managed data path strips data/json before calling Native /api/dat
     'rules/studio_work_incident_view_def_v0_5.json'
   );
 });
+
+
+test('Settings mode locks the fixed System Data/ViewDef selection path and keeps document meta spacing readable', () => {
+  const runtime = read('wwwroot/js/runtime/load_runtime.js');
+  assert.match(runtime, /function lockSystemSettingsSourceControls\(\)/);
+  assert.match(runtime, /\['dataNameInput', 'defNameInput'\][\s\S]*?input\.disabled = true/);
+  assert.match(runtime, /\['clearDataNameBtn', 'clearDefNameBtn', 'maintainViewDefBtn'\][\s\S]*?button\.hidden = true/);
+  assert.match(runtime, /\['dataFile', 'defFile'\][\s\S]*?input\.disabled = true/);
+  assert.match(runtime, /loadBtn\.disabled = true/);
+  assert.match(css, /body\.studio-settings-mode \.json-studio-source-pane \.file-tree-picker[\s\S]*?display:none !important/);
+  assert.match(css, /\.frb-page-json-object \.json-document-meta \{[\s\S]*?margin-top: 16px/);
+});

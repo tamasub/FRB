@@ -28591,15 +28591,15 @@
       "incident_type": "enhancement",
       "category": "architecture",
       "priority": "high",
-      "verification_status": "Static確認済み / ショートカット実機再確認待ち",
+      "verification_status": "Static確認済み / 実機UI確認待ち",
       "context_def_status": "draft",
       "context_def_updated_at": "",
       "owner": "",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-16T21:11:00+09:00",
-      "updated_at": "2026-08-16T23:20:00+09:00",
-      "actual_updated_files": "- wwwroot/js/runtime/load_runtime.js\n- tests/qa/static/launch_shortcut_menu_phase5.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
-      "verification_log": "- Shortcut起動失敗の原因を特定: `data/json/...` を `data/` だけ除去して `json/...` を `/api/data` へ渡していた。\n- Native Bridge `/api/data/{relative}` は内部で `data/json/{relative}` へ解決するため、従来は `data/json/json/...` となっていた。\n- 修正後: `data/json/01_main/...` → Native API相対 `01_main/...` → `/api/data/01_main/...`。\n- Phase 5専用Static: 9 / 9 PASS。\n- 全Static Before: 245 tests / 227 pass / 18 fail。\n- 全Static After: 246 tests / 228 pass / 18 fail。\n- Before / Afterの18 FAILはテスト名まで完全一致し、新規FAILなし。\n- `node --check wwwroot/js/runtime/load_runtime.js`: PASS。\n- 実機ショートカット起動は利用者再確認待ち。",
+      "updated_at": "2026-08-16T23:45:00+09:00",
+      "actual_updated_files": "- wwwroot/js/runtime/load_runtime.js\n- wwwroot/css/frb-studio-shell.css\n- wwwroot/mdViewer.html\n- tests/qa/static/launch_shortcut_menu_phase5.test.mjs\n- tests/qa/static/frb_studio_common_shell_static.test.mjs\n- tests/qa/static/markdown_workspace_native_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "verification_log": "- ショートカット起動: 利用者実機で成功確認済み。\n- Focused Static: 65 tests / 63 pass / 2 fail。\n- Focused既存2 FAIL: `Markdown UI promotes Folder Open + Workspace Tree and keeps INDEX on right column` / `large Markdown warning is driven by app_settings before Workspace read`。\n- 全Static Before: 276 tests / 257 pass / 19 fail。\n- 全Static After: 278 tests / 259 pass / 19 fail。\n- Before / Afterの19 FAILはテスト名まで完全一致し、新規FAILなし。\n- `node --check wwwroot/js/runtime/load_runtime.js`: PASS。\n- `mdViewer.html` inline script抽出後 `node --check`: PASS。\n- Settings固定Sourceロック / Document Meta余白 / Markdown未保存遷移ガードは利用者実機確認待ち。",
       "context_refs": [],
       "work_item_id": "studio_work_0198",
       "phase": "v0.18.76-launch-shortcut-menu-phase5",
@@ -28619,17 +28619,17 @@
       "test_points": "- 前Phaseの回帰を増やさない。\n- Phase固有の責務をStaticまたは実機確認できる。",
       "user_request": "はーい。では、インシデントにフェーズ1～5を先に登録してから、フェーズ1の作業を開始お願いします。よろしく",
       "ai_response": "Phase 5実装完了。Common Pagebar Shortcut Menuからlaunch_shortcutsを選択し、既存JSON Object Studio URL起動へ接続した。表示グループボタン伸張UIも修正した。",
-      "latest_ai_response": "## 今回の更新\n- `wwwroot/js/runtime/load_runtime.js`\n- `tests/qa/static/launch_shortcut_menu_phase5.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n- `app_settings.json` のショートカット設定値は変更していない。\n- `data/json/...` 形式のStatic PathをNative `/api/data` へ渡す境界だけ修正した。\n- Native `/api/data` は既に `data/json` を起点にするため、`data/json/01_main/x.json` は `01_main/x.json` へ変換してからAPIへ渡す。\n- これにより、従来発生していた `data/json/json/...` の二重化を解消した。\n\n## 判断\n- Canonical設定値をNative API専用形式へ変えず、Runtime境界でStatic PathとNative API Relative Pathを分離する。\n- `defs/...` の既存契約には触れない。\n\n## 確認結果\n- Phase 5専用Static: 9 / 9 PASS。\n- 全Static: Before 245/227/18 → After 246/228/18。\n- 既存18 FAILのテスト名は完全一致し、新規FAILなし。\n- `node --check`: PASS。\n\n## 残課題\n- 実機でショートカットをクリックし、インシデントDataが正常表示されることを再確認する。",
+      "latest_ai_response": "## 追加修正内容\n- Settings画面ではSystem固定Data / ViewDefを通常Comboから変更できないようにした。\n- Data / ViewDef入力をdisabled化し、clear / ViewDef maintenanceを非表示、Dropを無効化、Loadをdisabled化した。\n- JSON Object Studio共通で「保存」ボタン下とDocument Meta外枠の間に16pxの余白を追加した。\n- Markdown Studioは既存 `isManagedMarkdownDirty` と `mdCommentSidecarRuntime.dirty` を再利用し、Common ShellのTopbar / Pagebarから別画面へ遷移する前に未保存確認を表示する。\n- Browser back / reload / closeにはbeforeunload標準警告を追加した。\n\n## 判断\n- Settings専用System JSONから通常JSON Editorの任意Dataへ逸脱できる経路は閉じる。\n- Markdown dirty状態を新規に二重管理せず、既存状態を画面遷移安全性へ再利用する。\n- Ctrl / Cmd / Shift等で新しいタブを開く操作は現在のMarkdown画面を失わないため、遷移警告の対象外とする。\n\n## 確認結果\n- Focused Static: 65 / 63 / 2。2 FAILは修正前から存在する既存FAIL。\n- 全Static: Before 276/257/19 → After 278/259/19。\n- 既存19 FAILはテスト名まで完全一致し、新規FAILなし。\n- `load_runtime.js` と `mdViewer.html` inline JavaScriptのsyntax check PASS。\n\n## 残課題\n- Settings画面でData / ViewDefを変更できないことを実機確認する。\n- 保存ボタンとDocument Metaの余白を実機確認する。\n- Markdown本文を編集後、JSON Object Studio / 設定 / Home等へ移動した際の確認ダイアログを実機確認する。",
       "follow_up_actions": [
         {
-          "action_type": "MANUAL_PHASE5_UI_VERIFICATION",
+          "action_type": "MANUAL_UI_VERIFICATION",
           "required": true,
           "status": "PENDING",
           "related_ids": [
             "studio_work_0198"
           ],
-          "summary": "利用者実機でShortcut Menuから登録済みDataを起動し、URL読込エラーが解消して正常表示されることを確認する。",
-          "note": "Staticで data/json prefix除去とNative API相対パス変換を確認済み。"
+          "summary": "Settings固定Sourceロック、Document Meta余白、Markdown未保存遷移警告を実機確認する。",
+          "note": "Shortcut起動は実機確認済み。"
         },
         {
           "action_type": "FUTURE_SHORTCUT_SCOPE_EXPANSION",
@@ -28670,6 +28670,16 @@
           "at": "2026-08-16T23:20:00+09:00",
           "speaker": "assistant",
           "message": "AI回答\n\n## 今回の更新\n- `wwwroot/js/runtime/load_runtime.js`\n- `tests/qa/static/launch_shortcut_menu_phase5.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n- ショートカット設定そのものは変更せず、`data/json/...` からNative `/api/data` へ渡す相対パス変換だけを修正した。\n- `data/json/01_main/...` が `/api/data/01_main/...` になるため、`data/json/json/...` の二重化は発生しない。\n\n## 確認結果\n- Phase 5専用Static: 9 / 9 PASS。\n- 全Static: 245/227/18 → 246/228/18。\n- 既存18 FAILは同一、新規FAILなし。\n- JS構文確認: PASS。\n\n## 次の確認\n- 実機でショートカット起動を再確認する。"
+        },
+        {
+          "at": "2026-08-16T23:31:00+09:00",
+          "speaker": "user",
+          "message": "ショートカット起動できた。他の気づきは以下。\n・設定画面において、JSON選択コンボの右端の×マークがおせて、別のJSONを選択して、動作できてしまうので、これは、設定画面としては防止しておきたい。意味がわからない世界に入ってしまうので。\n・設定画面とJSONobjectstudio共通の話で、「保存」ボタンの下の「ドキュメントメタ」の外枠との余白が狭すぎるので、少し余白を広げてほしい。\n・別の話で、「Markdown Studio」マークダウンを未保存のまま、別の画面に遷移しようとしたら、警告確認メッセージを出してほしい。未保存が勝手に捨てられるのは避けたい。\n\nいやぁーすごくよくなってきている。続きよろしく。"
+        },
+        {
+          "at": "2026-08-16T23:45:00+09:00",
+          "speaker": "assistant",
+          "message": "## 追加修正内容\n- Settings画面ではSystem固定Data / ViewDefを通常Comboから変更できないようにした。\n- Data / ViewDef入力をdisabled化し、clear / ViewDef maintenanceを非表示、Dropを無効化、Loadをdisabled化した。\n- JSON Object Studio共通で「保存」ボタン下とDocument Meta外枠の間に16pxの余白を追加した。\n- Markdown Studioは既存 `isManagedMarkdownDirty` と `mdCommentSidecarRuntime.dirty` を再利用し、Common ShellのTopbar / Pagebarから別画面へ遷移する前に未保存確認を表示する。\n- Browser back / reload / closeにはbeforeunload標準警告を追加した。\n\n## 判断\n- Settings専用System JSONから通常JSON Editorの任意Dataへ逸脱できる経路は閉じる。\n- Markdown dirty状態を新規に二重管理せず、既存状態を画面遷移安全性へ再利用する。\n- Ctrl / Cmd / Shift等で新しいタブを開く操作は現在のMarkdown画面を失わないため、遷移警告の対象外とする。\n\n## 確認結果\n- Focused Static: 65 / 63 / 2。2 FAILは修正前から存在する既存FAIL。\n- 全Static: Before 276/257/19 → After 278/259/19。\n- 既存19 FAILはテスト名まで完全一致し、新規FAILなし。\n- `load_runtime.js` と `mdViewer.html` inline JavaScriptのsyntax check PASS。\n\n## 残課題\n- Settings画面でData / ViewDefを変更できないことを実機確認する。\n- 保存ボタンとDocument Metaの余白を実機確認する。\n- Markdown本文を編集後、JSON Object Studio / 設定 / Home等へ移動した際の確認ダイアログを実機確認する。"
         }
       ],
       "decision_log": [
@@ -28736,6 +28746,38 @@
           "expected_behavior": "`data/json/01_main/x.json` はNative環境で `/api/data/01_main/x.json` として読み込まれる。",
           "acceptance_criteria": "staticJsonKindPath(data/json/..., data) が `01_main/...` を返し、Focused StaticがPASSする。",
           "confirmation_level": "Static確認"
+        },
+        {
+          "decision_id": "dec_0198_005",
+          "at": "2026-08-16T23:45:00+09:00",
+          "decision": "Settings modeではSystem Data / ViewDefの通常選択経路をロックする。",
+          "reason": "Settings専用のSystem固定資材から通常Editorの任意JSONへ逸脱すると画面責務が不明瞭になるため。",
+          "applied_axes": [
+            "責務境界維持",
+            "利用者の迷いを防ぐ",
+            "差分最小化"
+          ],
+          "conditions": "mode=settings。",
+          "exceptions": "通常JSON Object Studioでは従来どおり選択可能。",
+          "expected_behavior": "Settings画面では固定Data/ViewDefの参照表示だけを許可し、別JSONへの切替経路を持たない。",
+          "acceptance_criteria": "Data/ViewDef Combo・clear・Drop・Loadから任意JSONへ切り替えられない。",
+          "confirmation_level": "Static確認 / 実機確認待ち"
+        },
+        {
+          "decision_id": "dec_0198_006",
+          "at": "2026-08-16T23:45:00+09:00",
+          "decision": "Markdown Common Shell遷移は既存dirty状態を再利用して未保存確認を行う。",
+          "reason": "Markdown内部の別Document読込と同じ安全性を画面遷移にも適用し、dirty状態を二重管理しないため。",
+          "applied_axes": [
+            "既存責務再利用",
+            "未保存データ保護",
+            "外からつまめ原則"
+          ],
+          "conditions": "Markdown本文またはReview JSONがdirtyで別画面へ遷移する場合。",
+          "exceptions": "Ctrl/Cmd/Shift等の新規タブ操作は現在画面を失わないため対象外。",
+          "expected_behavior": "遷移前に未保存確認を表示し、キャンセル時は現在画面に留まる。",
+          "acceptance_criteria": "Common Shell遷移とbrowser unloadにdirty guardがある。",
+          "confirmation_level": "Static確認 / 実機確認待ち"
         }
       ],
       "change_history": [
@@ -28773,6 +28815,13 @@
           "before": "`data/json/...` → `json/...` → `/api/data/json/...` となりNative側で `data/json/json/...` を読もうとして失敗。",
           "after": "`data/json/...` → `...` → `/api/data/...` とし、Native側で正しく `data/json/...` へ解決。",
           "reason": "利用者実機でショートカット起動時のURL読込エラーが継続していることを確認したため。"
+        },
+        {
+          "at": "2026-08-16T23:45:00+09:00",
+          "change_type": "phase5_followup_settings_lock_and_markdown_navigation_safety",
+          "before": "Settingsに任意JSON切替経路が残り、Markdown Common Shell遷移ではdirty確認がなかった。",
+          "after": "Settings固定Sourceをロックし、Document Meta余白を拡張し、Markdown Common Shell遷移へdirty guardを追加。",
+          "reason": "Phase 5実機確認で発見した迷い・未保存破棄リスクを解消するため。"
         }
       ]
     }

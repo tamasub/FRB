@@ -768,6 +768,22 @@ body.studio-settings-mode .json-studio-source-pane .drop-file-box {
 body.studio-settings-mode .json-studio-source-pane .combo-field input {
   border-color:#d5dae1;
 }
+body.studio-settings-mode .json-studio-source-pane .combo-field input:disabled {
+  opacity:1;
+  color:#344054;
+  background:#f7f8fa;
+  cursor:default;
+}
+body.studio-settings-mode .json-studio-source-pane .combo-clear-button,
+body.studio-settings-mode .json-studio-source-pane .viewdef-maintenance-button,
+body.studio-settings-mode .json-studio-source-pane .file-tree-picker {
+  display:none !important;
+}
+body.studio-settings-mode .json-studio-source-pane .compact-drop {
+  opacity:.58;
+  cursor:not-allowed;
+  pointer-events:none;
+}
 body.studio-settings-mode .loader-panel .primary-button {
   color:#fff !important;
   background:linear-gradient(180deg, #6b7280 0%, #4b5563 100%) !important;
@@ -935,7 +951,7 @@ body.studio-settings-mode .section-group-navigation-item[aria-selected="true"] {
   white-space: nowrap;
 }
 .frb-page-json-object .json-document-meta {
-  margin-top: auto;
+  margin-top: 16px;
   padding: 12px 10px;
   border-top: 1px solid var(--frb-json-line);
   background: rgba(255,255,255,.48);

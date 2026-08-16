@@ -233,3 +233,15 @@ test('Markdown comment review action buttons stay horizontal', () => {
   assert.match(md, /\.md-comment-review-actions button\s*\{[\s\S]*?white-space:\s*nowrap/);
   assert.match(md, /\.md-comment-review-actions button\s*\{[\s\S]*?writing-mode:\s*horizontal-tb/);
 });
+
+
+test('Markdown Studio warns before Common Shell navigation when Markdown or Review changes are unsaved', () => {
+  assert.match(md, /function hasUnsavedMarkdownNavigationState\(\)[\s\S]*?isManagedMarkdownDirty \|\| mdCommentSidecarRuntime\.dirty/);
+  assert.match(md, /function installMarkdownUnsavedNavigationGuard\(\)/);
+  assert.match(md, /\.frb-app-shell a\[href\], \.frb-pagebar a\[href\]/);
+  assert.match(md, /\.frb-pagebar \[data-frb-home\]/);
+  assert.match(md, /現在のMarkdownに未保存の変更があります。保存せずに別の画面へ移動しますか/);
+  assert.match(md, /okLabel:'移動する'/);
+  assert.match(md, /window\.addEventListener\('beforeunload'/);
+  assert.match(md, /event\.returnValue = ''/);
+});

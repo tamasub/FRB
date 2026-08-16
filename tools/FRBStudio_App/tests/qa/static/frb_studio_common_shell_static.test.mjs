@@ -205,7 +205,7 @@ test('JSON title toolbar is compact and document path metadata moves to the fixe
   assert.doesNotMatch(indexHtml, /class="status current-data-path"/);
   assert.match(indexHtml, />MD 出力→Viewer<\/button>/);
   assert.match(indexHtml, />ViewDef 出力→Viewer<\/button>/);
-  assert.match(shellCss, /\.frb-page-json-object \.json-document-meta \{[\s\S]*margin-top: auto;/);
+  assert.match(shellCss, /\.frb-page-json-object \.json-document-meta \{[\s\S]*margin-top: 16px;/);
   assert.match(fileApi, /metaFileEl\.title = path/);
   assert.match(fileApi, /JSON\.stringify\(sourceData, null, 2\)\.length/);
 });
