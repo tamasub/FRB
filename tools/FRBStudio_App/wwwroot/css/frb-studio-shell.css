@@ -160,6 +160,32 @@ body.frb-shell-enabled {
   min-width: 38px;
 }
 
+.frb-shell-utility-link {
+  min-height:34px;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:0 10px;
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:10px;
+  color:#eaf6ff;
+  text-decoration:none;
+  font-weight:700;
+  font-size:13px;
+  background:rgba(115,173,208,.18);
+}
+
+.frb-shell-utility-link:hover,
+.frb-shell-utility-link:focus-visible {
+  background:rgba(115,173,208,.32);
+  color:#fff;
+}
+
+.frb-shell-utility-icon {
+  font-size:16px;
+  line-height:1;
+}
+
 .frb-shell-utility-dot {
   width: 34px;
   height: 34px;

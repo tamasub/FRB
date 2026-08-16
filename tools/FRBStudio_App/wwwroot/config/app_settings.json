@@ -3,7 +3,7 @@
   "document_type": "app_settings",
   "status": "draft",
   "updated_at": "2026-08-16",
-  "purpose": "FRB Studio / JSON Object Studio の動作設定を将来分離するための雛形。app_info.json には名札情報のみを置き、動作設定はこのファイル側へ分離する。",
+  "purpose": "FRB Studio / JSON Object Studio の動作設定。app_info.json には名札情報のみを置き、Studio動作設定はこのファイル側で管理する。設定画面で変更可能な項目はSystem ViewDefで明示的に露出する。",
   "hosting": {
     "prefer_api_on_localhost": true,
     "static_fallback_enabled": true
@@ -12,10 +12,7 @@
     "show_branding": true,
     "show_tagline": true
   },
-  "default_launch": {
-    "data": "",
-    "view_def": ""
-  },
+  "launch_shortcuts": [],
   "markdown": {
     "large_file_warning_enabled": true,
     "large_file_warning_bytes": 524288

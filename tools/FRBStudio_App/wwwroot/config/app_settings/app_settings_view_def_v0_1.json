@@ -1,0 +1,130 @@
+{
+  "schema_version": "frb_view_def_v0_9",
+  "document_type": "view_def",
+  "title": "FRB Studio App Settings",
+  "description": "System app_settings.json を標準Editorで表示するSystem ViewDef。sectionGroupsで既存Grid/Form Sectionを外からつまみ、Settings専用Rendererを持たない。",
+  "views": [
+    {
+      "id": "appSettings",
+      "caption": "Studio設定",
+      "layout": "header-search-grid-detail",
+      "sectionGroups": [
+        {
+          "id": "launch",
+          "caption": "ショートカット",
+          "sectionIds": [
+            "launchShortcuts"
+          ]
+        },
+        {
+          "id": "markdown",
+          "caption": "Markdown Studio",
+          "sectionIds": [
+            "markdownSettings"
+          ]
+        }
+      ],
+      "sections": [
+        {
+          "id": "launchShortcuts",
+          "caption": "起動ショートカット",
+          "type": "grid",
+          "dataPath": "launch_shortcuts",
+          "fields": [
+            {
+              "field": "id",
+              "caption": "ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 160
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "caption",
+              "caption": "表示名",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 220
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "data",
+              "caption": "Data JSON",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 360
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "view_def",
+              "caption": "ViewDef",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 360
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "markdownSettings",
+          "caption": "Markdown Studio",
+          "type": "form",
+          "dataPath": "markdown",
+          "fields": [
+            {
+              "field": "large_file_warning_enabled",
+              "caption": "巨大ファイル警告",
+              "type": "boolean",
+              "edit": {
+                "visible": true,
+                "readonly": false
+              }
+            },
+            {
+              "field": "large_file_warning_bytes",
+              "caption": "警告サイズ（bytes）",
+              "type": "number",
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "step": 1024
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -79,7 +79,12 @@
           <span>FRB Studio</span>
         </a>
         <nav class="frb-shell-nav" aria-label="FRB Studio modules">${nav}</nav>
-        <div class="frb-shell-utility" aria-hidden="true"></div>
+        <div class="frb-shell-utility">
+          <a class="frb-shell-utility-link" data-frb-settings href="index.html?mode=settings" title="Studio設定を開く" aria-label="Studio設定を開く">
+            <span class="frb-shell-utility-icon" aria-hidden="true">⚙</span>
+            <span>設定</span>
+          </a>
+        </div>
       </div>`;
     return shell;
   }

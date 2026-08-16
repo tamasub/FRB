@@ -28222,21 +28222,21 @@
       "incident_type": "enhancement",
       "category": "architecture",
       "priority": "high",
-      "verification_status": "未確認",
+      "verification_status": "Static確認済み / Phase 4 Save接続待ち",
       "context_def_status": "draft",
       "context_def_updated_at": "",
       "owner": "",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-16T21:11:00+09:00",
-      "updated_at": "2026-08-16T21:11:00+09:00",
-      "actual_updated_files": "",
-      "verification_log": "",
+      "updated_at": "2026-08-16T21:34:45+09:00",
+      "actual_updated_files": "- wwwroot/config/app_settings.json\n- wwwroot/config/app_settings/app_settings_view_def_v0_1.json\n- wwwroot/config/app_settings/app_settings_field_definitions_v0_1.json\n- wwwroot/js/ui/frb_studio_shell.js\n- wwwroot/css/frb-studio-shell.css\n- wwwroot/js/runtime/load_runtime.js\n- tests/qa/static/app_settings_definition_phase3.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "verification_log": "- Phase 3専用Static: 6 / 6 PASS。\n- Phase 1〜3連結Static: 18 / 18 PASS。\n- 全Static: Before 224 tests / 208 pass / 16 fail → After 230 tests / 214 pass / 16 fail。\n- 既存16 FAILはテスト名まで完全一致し、新規FAILなし。\n- node --check: frb_studio_shell.js / load_runtime.js PASS。\n- JSON Schema: System App Settings ViewDef 0 error / System Field Definition 0 error。\n- Phase 3はSettings保存をReadOnlyで意図的に抑止。保存契約・System Field Definition Validation接続はPhase 4へ残す。",
       "context_refs": [],
       "work_item_id": "studio_work_0196",
       "phase": "v0.18.74-app-settings-definition-phase3",
       "title": "App Settings Phase 3 — launch_shortcuts / System ViewDef・Field Definition / Settings接続",
-      "status": "構想",
-      "follow_up_status": "NOT_STARTED",
+      "status": "完了",
+      "follow_up_status": "PENDING",
       "target_files": "- Phase実装時に現行構造を確認して確定する。\n- Foundation Rule 019に従い安定ファイル名・変更ファイルのみ返却契約を維持する。",
       "context_def_draft": "# ContextDef素案: App Settings Phase 3 — launch_shortcuts / System ViewDef・Field Definition / Settings接続\n\n## 前提\n- 親: studio_work_0194 / v0.18.72-viewdef-section-groups-contract-phase1\n- 前Phaseの契約を継承し、一度に大きな変更を行わない。",
       "objective": "- default_launchをlaunch_shortcutsへ置き換え、System側Settings DefinitionをsectionGroupsの最初の利用例として構築する。",
@@ -28249,11 +28249,117 @@
       "risk": "- 前Phase契約を壊す変更が必要な場合は独断で進めず再確認する。",
       "test_points": "- 前Phaseの回帰を増やさない。\n- Phase固有の責務をStaticまたは実機確認できる。",
       "user_request": "はーい。では、インシデントにフェーズ1～5を先に登録してから、フェーズ1の作業を開始お願いします。よろしく",
-      "ai_response": "Phase 1〜5を先行登録。現在はPhase 1のみ着手し、このPhaseは未着手として保持する。",
-      "latest_ai_response": "",
-      "follow_up_actions": [],
-      "discussion_history": [],
-      "decision_log": [],
+      "ai_response": "- 最新添付 `FRBStudio_App20260816_212949.zip` を基準資材としてPhase 3を実装する。\n- `default_launch` は自動起動に使わず `launch_shortcuts` へ置き換える。\n- System側Settings ViewDef / Field Definitionは `wwwroot/config/app_settings/` に置き、ユーザー領域 defs / fielddefs へ混在させない。\n- Settingsは `sectionGroups` の最初の実利用例として既存Editorへ接続する。\n- 保存責務はPhase 4へ残し、Phase 3ではReadOnlyで起動する。",
+      "latest_ai_response": "## 変更内容\n- `app_settings.json` の未使用 `default_launch` を削除し、明示操作用 `launch_shortcuts: []` へ変更した。\n- System ViewDef `app_settings_view_def_v0_1.json` を追加し、`sectionGroups` で「ショートカット」と「Markdown Studio」を切り替える構造にした。\n- ショートカットは既存Grid Section、Markdown設定は既存Form Sectionとして定義し、Settings専用Rendererを作っていない。\n- System Field Definition `app_settings_field_definitions_v0_1.json` を追加し、Phase 3で画面露出する6項目だけを明示契約化した。\n- Common Shell右上へ `⚙ 設定` を追加し、`index.html?mode=settings` を既存JSON Object Studioへの起動トリガーとした。\n- `mode=settings` はSystem Data / ViewDefを固定パスから読み、既存 `loadFromObjects()` / `sectionGroups` / Rendererへ接続する。\n\n## 判断\n- `launch_shortcuts` の初期値は空配列とし、存在しない利用者ショートカットをAIが勝手に作らない。\n- `hosting` / `ui` はCanonical Dataへ保持するが、Settings画面へ露出しない。\n- Phase 3ではSettingsをReadOnly起動し、`wwwroot/config/app_settings.json` の固定保存契約はPhase 4へ残す。\n- System Field DefinitionのRuntime Validation接続もPhase 4の保存前Validation責務へ残す。\n\n## 確認結果\n- Phase 3専用Static: 6 / 6 PASS。\n- Phase 1〜3連結Static: 18 / 18 PASS。\n- 全Static: Before 224/208/16 → After 230/214/16。\n- 既存16 FAILはテスト名まで完全一致し、新規FAILなし。\n- JS syntax check PASS。\n- JSON Schema validation: ViewDef 0 error / Field Definition 0 error。\n\n## 残課題 / 次作業\n- Phase 4 `studio_work_0197` で `app_settings.json` 固定保存契約、Validation、Round Trip、updated_at更新を実装する。\n- Phase 5 `studio_work_0198` で `launch_shortcuts` を利用するShortcut Menu / Launcherを実装する。\n- Settings画面の実機見た目・Group切替は利用者確認対象として残す。",
+      "follow_up_actions": [
+        {
+          "action_type": "APP_SETTINGS_SAVE",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "studio_work_0197"
+          ],
+          "summary": "Phase 4でapp_settings.json固定保存契約、Validation、Round Trip、updated_at更新を実装する。",
+          "note": "Phase 3は意図的にReadOnly。"
+        },
+        {
+          "action_type": "SHORTCUT_LAUNCHER",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "studio_work_0198"
+          ],
+          "summary": "Phase 5でlaunch_shortcutsを一覧表示し、利用者クリックから既存Editorを起動する。",
+          "note": "登録と実行は別責務。"
+        },
+        {
+          "action_type": "MANUAL_UI_VERIFICATION",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "studio_work_0196"
+          ],
+          "summary": "Common Shellの⚙設定、Settings Group Navigation、Grid/Form切替を利用者実機で確認する。",
+          "note": "Static契約は確認済み。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "at": "2026-08-16T21:31:00+09:00",
+          "speaker": "user",
+          "message": "次よろしく。\n\n今回の作業依頼:\n- incident_file: data/json/01_main/_studio_work_incident_data_v2.json\n- work_item_id: studio_work_0196\n- phase: v0.18.74-app-settings-definition-phase3\n\n作業ルール:\n- FRBStudio_App*.zipがチャットに添付された場合は、最新資材zipとして扱う。\n- Foundation Rule 019「GitHub基準ソースとZIP返却契約」を参照する。\n- constitution_32「構造化記述の原則」に従い、複数事項は箇条書きまたは番号付きリストで記載する。"
+        },
+        {
+          "at": "2026-08-16T21:34:45+09:00",
+          "speaker": "assistant",
+          "message": "AI回答\n\n## 変更内容\n- default_launchをlaunch_shortcutsへ置換。\n- System App Settings ViewDef / Field Definitionを追加。\n- Common Shellの⚙設定からmode=settingsで既存Editorを起動。\n- sectionGroupsでShortcut Grid / Markdown Formを切替。\n\n## 確認結果\n- Phase 3専用Static 6/6 PASS。\n- Phase 1〜3連結Static 18/18 PASS。\n- 全Static 224/208/16 → 230/214/16。既存16 FAIL名は完全一致。\n- JS syntax check PASS。\n- JSON Schema validation: ViewDef / Field Definitionとも0 error。\n- Phase 3はReadOnlyとし、保存はPhase 4へ残した。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0196_001",
+          "at": "2026-08-16T21:34:45+09:00",
+          "decision": "未使用default_launchを削除し、利用者明示操作用launch_shortcutsへ置き換える。",
+          "reason": "自動起動はやりすぎであり、登録と起動を別責務へ分離する合意を反映するため。",
+          "applied_axes": [
+            "明示操作優先",
+            "責務分離",
+            "外からつまめ原則"
+          ],
+          "conditions": "App Settings Phase 3。",
+          "exceptions": "Shortcut実行UIはPhase 5で実装する。",
+          "expected_behavior": "Studio起動時に自動Data読込をせず、launch_shortcutsは登録情報としてのみ存在する。",
+          "acceptance_criteria": "app_settings.jsonにdefault_launchがなくlaunch_shortcuts配列が存在する。",
+          "confirmation_level": "Static確認"
+        },
+        {
+          "decision_id": "dec_0196_002",
+          "at": "2026-08-16T21:34:45+09:00",
+          "decision": "Settings ViewDefはsectionGroupsから既存Grid/Form Sectionを選択し、Settings専用Rendererを作らない。",
+          "reason": "標準Editorを外からつまむ最初の実利用例として成立させるため。",
+          "applied_axes": [
+            "外からつまめ原則",
+            "既存構造維持",
+            "専用実装抑制"
+          ],
+          "conditions": "System App Settings ViewDef。",
+          "exceptions": "保存責務はPhase 4。",
+          "expected_behavior": "ショートカットGroupではGrid、Markdown GroupではFormが既存Rendererで表示される。",
+          "acceptance_criteria": "System ViewDefのsectionGroups / sectionIdsが既存Sectionsを参照する。",
+          "confirmation_level": "Static確認"
+        },
+        {
+          "decision_id": "dec_0196_003",
+          "at": "2026-08-16T21:34:45+09:00",
+          "decision": "System Settings Definitionをwwwroot/config/app_settings配下に置き、defs / fielddefsへ配置しない。",
+          "reason": "defs / fielddefsはユーザー定義領域であり、Studio自身を成立させるSystem Definitionと所有境界を分けるため。",
+          "applied_axes": [
+            "所有境界明確化",
+            "System/User分離"
+          ],
+          "conditions": "App SettingsのSystem ViewDef / Field Definition。",
+          "exceptions": "将来User_app_settings overrideを導入する場合は別契約で扱う。",
+          "expected_behavior": "Studio本体DefinitionとユーザーDefinitionが混在しない。",
+          "acceptance_criteria": "新規Definitionがwwwroot/config/app_settings配下にのみ存在する。",
+          "confirmation_level": "Static確認"
+        },
+        {
+          "decision_id": "dec_0196_004",
+          "at": "2026-08-16T21:34:45+09:00",
+          "decision": "Phase 3のSettings起動はReadOnlyとし、固定保存契約とSystem Field Definition Validation接続をPhase 4へ温存する。",
+          "reason": "Phase責務を分離し、wwwroot書込境界を保存UIと同時に曖昧導入しないため。",
+          "applied_axes": [
+            "フェーズ分離",
+            "安全境界",
+            "小さい差分"
+          ],
+          "conditions": "mode=settings。",
+          "exceptions": "Phase 4完了後に保存可へ切り替える。",
+          "expected_behavior": "Phase 3ではSettingsを閲覧・Group切替できるが上書き保存しない。",
+          "acceptance_criteria": "loadSystemAppSettings()がreadonly=trueで既存Editorへ接続する。",
+          "confirmation_level": "Static確認"
+        }
+      ],
       "change_history": [
         {
           "at": "2026-08-16T21:11:00+09:00",
@@ -28261,6 +28367,27 @@
           "before": "未登録",
           "after": "studio_work_0196 / v0.18.74-app-settings-definition-phase3",
           "reason": "ユーザーがPhase 1〜5を先に登録して後続依頼しやすくすることを希望したため。"
+        },
+        {
+          "at": "2026-08-16T21:34:45+09:00",
+          "change_type": "phase3_app_settings_definition_added",
+          "before": "app_settings.jsonにdefault_launchがあり、System Settings ViewDef / Field Definitionなし。",
+          "after": "launch_shortcutsへ置換し、wwwroot/config/app_settings配下にSystem ViewDef / Field Definitionを追加。",
+          "reason": "App SettingsをsectionGroupsの最初の実利用例として成立させるため。"
+        },
+        {
+          "at": "2026-08-16T21:34:45+09:00",
+          "change_type": "phase3_settings_trigger_connected",
+          "before": "Common Shell右Utility領域は空でSettings起動経路なし。",
+          "after": "⚙ 設定からindex.html?mode=settingsを開き、固定System Data/ViewDefを既存EditorへReadOnly接続。",
+          "reason": "Settings専用Editorを作らず、既存Editorの起動トリガーとして実装するため。"
+        },
+        {
+          "at": "2026-08-16T21:34:45+09:00",
+          "change_type": "phase3_verification_completed",
+          "before": "Phase 3未確認。",
+          "after": "専用Static 6/6、Phase 1〜3連結18/18、全Static既存FAIL増加なし、JS syntax PASS。",
+          "reason": "Definition / Trigger / Runtime接続のStatic契約を確認したため。"
         }
       ]
     },

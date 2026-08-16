@@ -1,0 +1,86 @@
+{
+  "schema_version": "field_definition_data_v0_1",
+  "document_type": "field_definition",
+  "definition_id": "frb.studio.app_settings",
+  "title": "FRB Studio App Settings Field Definitions",
+  "status": "draft",
+  "created_at": "2026-08-16",
+  "updated_at": "2026-08-16",
+  "target_document_type": "app_settings",
+  "target_schema_version": "app_settings_v0_1",
+  "definition_policy": {
+    "coverage_mode": "sparse_explicit_contracts",
+    "field_identity": "canonical_field_path",
+    "unlisted_field_policy": "resolve_default_validation_type_from_view_def_type",
+    "validation_type_policy": "Settings画面へ露出する項目だけを明示し、Validation Typeは共通Registryの契約を使用する。",
+    "constraint_override_policy": "Validation Type標準から変更する制約だけをconstraint_overridesへ保存する。",
+    "standard_restore_policy": "標準値へ戻した制約キーはconstraint_overridesから削除できる。"
+  },
+  "design_notes": [
+    "System Definitionのためユーザー領域 fielddefs/ には配置せず、wwwroot/config/app_settings/ でStudio本体が所有する。",
+    "Phase 3ではDefinitionを用意するところまでとし、System Field Definitionの保存時Validation接続はPhase 4の責務とする。",
+    "Dataに存在することとSettings画面から変更可能であることは別。hosting/uiは現時点ではSettings Viewへ露出しない。"
+  ],
+  "field_definition_count": 6,
+  "field_definitions": [
+    {
+      "field_path": "$.launch_shortcuts[].id",
+      "validation_type": "studio.string.identifier",
+      "constraint_overrides": {
+        "required": true,
+        "nullable": false,
+        "empty_string_allowed": false,
+        "maximum_length": 64
+      }
+    },
+    {
+      "field_path": "$.launch_shortcuts[].caption",
+      "validation_type": "studio.string.single_line",
+      "constraint_overrides": {
+        "required": true,
+        "nullable": false,
+        "empty_string_allowed": false,
+        "maximum_length": 120
+      }
+    },
+    {
+      "field_path": "$.launch_shortcuts[].data",
+      "validation_type": "studio.string.single_line",
+      "constraint_overrides": {
+        "required": true,
+        "nullable": false,
+        "empty_string_allowed": false,
+        "maximum_length": 500
+      }
+    },
+    {
+      "field_path": "$.launch_shortcuts[].view_def",
+      "validation_type": "studio.string.single_line",
+      "constraint_overrides": {
+        "required": false,
+        "nullable": false,
+        "empty_string_allowed": true,
+        "maximum_length": 500
+      },
+      "note": "空文字は既存Data/ViewDef解決契約を利用する候補。Phase 5実装時にResolver契約へ合わせて確定する。"
+    },
+    {
+      "field_path": "$.markdown.large_file_warning_enabled",
+      "validation_type": "studio.boolean.standard",
+      "constraint_overrides": {
+        "required": true,
+        "nullable": false
+      }
+    },
+    {
+      "field_path": "$.markdown.large_file_warning_bytes",
+      "validation_type": "studio.integer.positive",
+      "constraint_overrides": {
+        "required": true,
+        "nullable": false
+      }
+    }
+  ],
+  "cross_field_constraint_count": 0,
+  "cross_field_constraints": []
+}

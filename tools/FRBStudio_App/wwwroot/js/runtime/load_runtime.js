@@ -352,6 +352,47 @@ function launchStatusSuffix() {
   return launchRuntime?.readonly ? ' / ReadOnly' : '';
 }
 
+const SYSTEM_APP_SETTINGS_DATA_PATH = 'config/app_settings.json';
+const SYSTEM_APP_SETTINGS_VIEW_DEF_PATH = 'config/app_settings/app_settings_view_def_v0_1.json';
+
+function applySystemSettingsModePresentation() {
+  document.body.classList.add('studio-settings-mode');
+  const pageTitle = document.querySelector('.frb-page-title');
+  if (pageTitle) pageTitle.textContent = 'Studio設定';
+  const pageDescription = document.querySelector('.frb-page-description');
+  if (pageDescription) pageDescription.textContent = 'app_settings.json > 既存Editorで設定を管理';
+}
+
+async function loadSystemAppSettings() {
+  const [dataObj, defObj] = await Promise.all([
+    fetchJson(SYSTEM_APP_SETTINGS_DATA_PATH),
+    fetchJson(SYSTEM_APP_SETTINGS_VIEW_DEF_PATH)
+  ]);
+
+  launchRuntime = {
+    fromUrl: true,
+    mode: 'settings',
+    readonly: true,
+    dataParam: SYSTEM_APP_SETTINGS_DATA_PATH,
+    viewParam: SYSTEM_APP_SETTINGS_VIEW_DEF_PATH,
+    fileParam: ''
+  };
+
+  applySystemSettingsModePresentation();
+  lastLoadedDefName = SYSTEM_APP_SETTINGS_VIEW_DEF_PATH;
+  if ($('defNameInput')) $('defNameInput').value = SYSTEM_APP_SETTINGS_VIEW_DEF_PATH;
+  if ($('dataNameInput')) $('dataNameInput').value = SYSTEM_APP_SETTINGS_DATA_PATH;
+
+  await loadFromObjects(
+    defObj,
+    dataObj,
+    'Studio設定を読み込みました / Phase 3はReadOnly（保存はPhase 4）',
+    null,
+    SYSTEM_APP_SETTINGS_DATA_PATH
+  );
+  return { dataObj, defObj };
+}
+
 async function autoLoadFromQuery() {
   const params = new URLSearchParams(location.search);
   if (typeof isRelatedGridLaunchQuery === 'function' && isRelatedGridLaunchQuery(params)) {
@@ -371,6 +412,16 @@ async function autoLoadFromQuery() {
   const mode = params.get('mode') || '';
 
   if (!viewParam && !dataParam && !mode) return;
+
+  if (String(mode).trim().toLowerCase() === 'settings') {
+    try {
+      await loadSystemAppSettings();
+    } catch (err) {
+      console.error(err);
+      setStatus('Studio設定読込エラー: ' + err.message, { kind: 'error', title: 'Studio設定読込エラー', sticky: true });
+    }
+    return;
+  }
 
   launchRuntime = {
     fromUrl: Boolean(viewParam || dataParam),
