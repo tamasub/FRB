@@ -183,6 +183,9 @@
   },
   "active": "cd032dfc067ef1b2",
   "lastOpenFiles": [
+    "FRBStudio_App20260816_151819.zip",
+    "wwwroot/js/services/search_capability_resolver.js",
+    "tests/qa/static/standard_search_capability_resolver_phase2.test.mjs",
     "FRBStudio_App20260816_145921.zip",
     "tests/qa/static/standard_search_contract_phase1.test.mjs",
     "data/json/config/search_operator_registry_v0_1.json",
@@ -191,9 +194,6 @@
     "data/json/81_frb_OrgSample/fft_log_sample.json",
     "data/json/81_frb_OrgSample",
     "data/json/新しいフォルダー",
-    "FRBStudio_App20260816_142808.zip",
-    "FRBStudio_App20260816_140155.zip",
-    "FRBStudio_App20260816_134349.zip",
     "data/markdown/30_Studioくん構想メモ/06_作業備忘録.md",
     "data/markdown/30_Studioくん構想メモ/06_作業備忘録 1.md"
   ]

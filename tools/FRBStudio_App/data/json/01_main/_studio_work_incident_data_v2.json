@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-16T14:57:00+09:00",
+  "updated_at": "2026-08-16T15:07:20+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 174,
+  "items_count": 179,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -26911,7 +26911,7 @@
       "owner": "",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-16T14:50:00+09:00",
-      "updated_at": "2026-08-16T14:57:00+09:00",
+      "updated_at": "2026-08-16T15:07:20+09:00",
       "target_files": "- data/json/config/search_operator_registry_v0_1.json\n- data/json/00_rules/frb_view_def_schema_v0_9.json\n- data/json/00_rules/frb_view_def_schema_review_data_v0_1.json\n- data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json\n- tests/qa/static/standard_search_contract_phase1.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
       "actual_updated_files": "- data/json/config/search_operator_registry_v0_1.json\n- data/json/00_rules/frb_view_def_schema_v0_9.json\n- data/json/00_rules/frb_view_def_schema_review_data_v0_1.json\n- data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json\n- tests/qa/static/standard_search_contract_phase1.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
       "context_def_draft": "# ContextDef素案: 標準検索Capability Phase 1\n\n## 読む目的\n検索をField Definitionから派生する標準Capabilityとして定義し、Runtime実装前にOperator語彙・ViewDef Override・Legacy互換境界を固定する。\n\n## 中核原則\n- 同一Fieldは一か所を正本とする。SearchはProjection。\n- OperatorはField type / Validation Typeから標準導出する。\n- Operator語彙はSearchOperatorRegistry一か所を正本とする。\n- Schemaは形、Registryは語彙を検証する。\n- 現在のRenderer/Responsibility体系を壊さず、Field Control Class全面移行は行わない。\n\n## UI契約\n- 標準Operatorは通常UIへ露出しない。\n- Override時だけ📌等で差分表示。\n- 右クリックは原則1階層。\n- ComboBoxは検索Operatorと選択肢メンテナンスを区切り線で共存。",
@@ -26933,19 +26933,19 @@
         {
           "action_type": "SEARCH_CAPABILITY_RESOLVER",
           "required": true,
-          "status": "PENDING",
+          "status": "COMPLETED",
           "related_ids": [
-            "Phase 2"
+            "studio_work_0187"
           ],
           "summary": "SearchCapabilityResolverを実装し、Validation Type / Field type / ViewDef Overrideから実効Operator Setを解決する。",
-          "note": "UI非依存の薄い責務として実装。"
+          "note": "studio_work_0187 / v0.18.65 で完了。"
         },
         {
           "action_type": "SEARCH_FILTER_OPERATORS",
           "required": true,
           "status": "PENDING",
           "related_ids": [
-            "Phase 3"
+            "studio_work_0188"
           ],
           "summary": "SearchFilterへnot_contains/not_equals/between/blank/not_blank/date比較を追加する。",
           "note": "DOM非依存Criteria評価を維持。"
@@ -26955,7 +26955,7 @@
           "required": true,
           "status": "PENDING",
           "related_ids": [
-            "Phase 4"
+            "studio_work_0189"
           ],
           "summary": "1階層右クリックOperator変更、Override📌、Range UI、Combo選択肢メンテナンス共存を実装する。",
           "note": "階層メニュー化しない。"
@@ -26965,7 +26965,7 @@
           "required": true,
           "status": "PENDING",
           "related_ids": [
-            "Phase 5"
+            "studio_work_0190"
           ],
           "summary": "新規ViewDef生成をCanonical Field / search.visibleへ統一し、代表ViewDefでLegacy Search Section移行を検証する。",
           "note": "既存全件一括移行はしない。"
@@ -26975,7 +26975,7 @@
           "required": true,
           "status": "PENDING",
           "related_ids": [
-            "Phase 6"
+            "studio_work_0191"
           ],
           "summary": "SearchCapabilityからTestPattern候補を導出しExpected/Actual/Diffへ接続する。",
           "note": "Definition Driven Testing接続。"
@@ -27041,8 +27041,306 @@
           "before": "Phase 1契約実装中",
           "after": "Phase 1専用Static 8/8 PASS、全Static新規FAILなし",
           "reason": "契約正本とSchema/Review/Rulesの整合を確認した。"
+        },
+        {
+          "at": "2026-08-16T15:01:00+09:00",
+          "change_type": "follow_up_phase_registration",
+          "before": "Phase 2〜6はfollow_up_actionsの概要登録のみ",
+          "after": "studio_work_0187〜0191として個別Phaseを先行登録",
+          "reason": "後続作業をwork_item_idで依頼しやすくするため。"
         }
       ]
+    },
+    {
+      "incident_type": "enhancement",
+      "category": "architecture",
+      "priority": "high",
+      "verification_status": "Static確認済み / Phase 3 SearchFilter拡張待ち",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-16T15:07:20+09:00",
+      "owner": "",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-16T15:01:00+09:00",
+      "updated_at": "2026-08-16T15:07:20+09:00",
+      "actual_updated_files": "- wwwroot/js/services/search_capability_resolver.js\n- wwwroot/index.html\n- tests/qa/static/standard_search_capability_resolver_phase2.test.mjs\n- tests/qa/static/standard_search_contract_phase1.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "verification_log": "- Phase 2 Resolver専用Test: 13 / 13 PASS。\n- node --check: search_capability_resolver.js PASS。\n- 全Static Before: 166 tests / 150 pass / 16 fail。\n- 全Static After: 179 tests / 163 pass / 16 fail。\n- 既存16 FAILは名前まで完全一致し、新規FAILなし。\n- Phase 2〜6は studio_work_0187〜0191 として先行登録済み。\n- C#変更なし。\n- SearchFilter / UI挙動はPhase 3以降のため実機検索挙動変更なし。",
+      "context_refs": [],
+      "discussion_history": [
+        {
+          "at": "2026-08-16T15:01:00+09:00",
+          "speaker": "user",
+          "message": "下記インシデントの後続作業フェーズ２をお願いします。先に簡単な内容でいいので、フェーズ６まで、インシデントデータを登録してから作業をお願いします。依頼しにくいので💦　よろしく。"
+        },
+        {
+          "at": "2026-08-16T15:07:20+09:00",
+          "speaker": "assistant",
+          "message": "Phase 2完了報告\n\n- Phase 2〜6を studio_work_0187〜0191 として先行登録。\n- SearchCapabilityResolverをUI非依存Serviceとして実装。\n- Resolved Field Contract / Validation Type / Field type fallbackからOperator Setを解決。\n- operator_set / operators / operator Overrideを検証。\n- Resolver専用Test 13/13 PASS。\n- 全Static Before 166/150/16 → After 179/163/16。既存16 FAIL名は完全一致。\n- SearchFilter / UI挙動はPhase 3以降。\n- 次作業: studio_work_0188 / v0.18.66-standard-search-filter-operators-phase3。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0187_001",
+          "at": "2026-08-16T15:07:20+09:00",
+          "decision": "SearchCapabilityResolverはUI非依存のServiceとして実装する。",
+          "reason": "検索能力解決とUI表現・Criteria評価を分離し、後続Phaseで再利用できる境界にするため。"
+        },
+        {
+          "decision_id": "dec_0187_002",
+          "at": "2026-08-16T15:07:20+09:00",
+          "decision": "検索型解決はResolved Field Contract value_family、Validation Type Registry、Field type fallbackの順とする。",
+          "reason": "Validation/Runtime/Test/Searchを同じ値契約へ接続しつつ、Validation Type未設定の既存ViewDefも互換維持するため。"
+        },
+        {
+          "decision_id": "dec_0187_003",
+          "at": "2026-08-16T15:07:20+09:00",
+          "decision": "明示Validation Typeが未登録の場合はField typeへ黙ってfallbackせずINVALIDとする。",
+          "reason": "定義ミスを検索側の暗黙補完で隠さないため。"
+        },
+        {
+          "decision_id": "dec_0187_004",
+          "at": "2026-08-16T15:07:20+09:00",
+          "decision": "search.operatorsは実効Operator Setの絞り込み専用とし、標準defaultを除外する場合はsearch.operator明示を必須とする。",
+          "reason": "利用可能Operatorと既定Operatorの意味を曖昧にしないため。"
+        }
+      ],
+      "change_history": [
+        {
+          "at": "2026-08-16T15:01:00+09:00",
+          "change_type": "phase_registered",
+          "before": "未登録",
+          "after": "studio_work_0187 / v0.18.65-standard-search-capability-resolver-phase2",
+          "reason": "ユーザーがPhase 6まで先に登録し、後続作業を依頼しやすくすることを希望したため。"
+        },
+        {
+          "at": "2026-08-16T15:07:20+09:00",
+          "change_type": "phase2_implementation",
+          "before": "Phase 2は構想登録のみ",
+          "after": "SearchCapabilityResolver実装 / index読込 / Resolver単体テスト追加",
+          "reason": "SearchOperatorRegistry契約をRuntimeから解決できるようにするため。"
+        },
+        {
+          "at": "2026-08-16T15:07:20+09:00",
+          "change_type": "phase2_verification_completed",
+          "before": "未確認",
+          "after": "Resolver専用13/13 PASS、全Static新規FAILなし",
+          "reason": "Phase 2責務が既存Staticへ回帰を増やさず成立することを確認した。"
+        }
+      ],
+      "work_item_id": "studio_work_0187",
+      "phase": "v0.18.65-standard-search-capability-resolver-phase2",
+      "title": "標準検索Capability Phase 2 — SearchCapabilityResolver / Validation Type・Field Type・Override解決",
+      "status": "完了",
+      "follow_up_status": "PENDING",
+      "target_files": "- wwwroot/js/services/search_capability_resolver.js\n- wwwroot/index.html\n- tests/qa/static/standard_search_capability_resolver_phase2.test.mjs\n- tests/qa/static/standard_search_contract_phase1.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "# ContextDef素案: 標準検索Capability Phase 2 — SearchCapabilityResolver / Validation Type・Field Type・Override解決\n\n## 目的\n- SearchOperatorRegistryとValidation Type Registryを入力に、Fieldごとの実効Search CapabilityをUI非依存で解決する。\n- ViewDef search.operator_set / search.operators / search.operator Overrideを検証し、標準導出との優先順位を固定する。\n\n## 前提\n- 親: studio_work_0186 / v0.18.64-standard-search-contract-phase1\n- Phase 1のSearchOperatorRegistry契約を正本として継承する。",
+      "objective": "- SearchOperatorRegistryとValidation Type Registryを入力に、Fieldごとの実効Search CapabilityをUI非依存で解決する。\n- ViewDef search.operator_set / search.operators / search.operator Overrideを検証し、標準導出との優先順位を固定する。",
+      "background": "- 親インシデント studio_work_0186 の標準検索v1計画を段階実装する後続Phase。\n- 前Phaseの契約・成果を次Phaseへ継承し、一度に大きなUI/Runtime変更を行わない。",
+      "scope": "- SearchCapabilityResolverを実装する。\n- Resolved Validation Type value_family優先、Field type fallbackの解決を実装する。\n- operator_set / operators / operator Overrideを検証する。\n- Resolver単体テストとStatic契約テストを追加する。",
+      "out_of_scope": "- SearchFilterの新Operator評価。\n- 右クリック検索UI。\n- ViewDef移行。\n- TestPattern導出。",
+      "fixed_name_policy": "- Foundation Rule 019の安定ファイル名契約を守る。\n- 既存正本は原則同名更新する。\n- 返却ZIPは変更ファイルのみ。\n- runtime生成物は返却ZIPへ含めない。",
+      "module_policy": "- SearchOperatorRegistryを検索Operator語彙の正本とする。\n- Resolver / SearchFilter / UI Renderer / Test Runnerの責務を混ぜない。\n- 現行StudioのRenderer / Responsibility / Registry体系を壊さない。",
+      "expected_outputs": "- SearchCapabilityResolverがSearchOperatorRegistry / Validation Type Registryを引数で受け、DOM非依存で動作する。\n- Resolved Field Contract value_familyを最優先し、Validation Type Registry、Field type fallbackの順で標準Operator Setを解決する。\n- search.operator_set / search.operators / search.operator Overrideを順に適用・検証する。\n- search.operatorsは標準Setの絞り込みのみ許可し、標準defaultを外す場合はsearch.operator明示を要求する。\n- 未登録Validation Typeは暗黙fallbackせずINVALID、未知Field typeはUNSUPPORTEDとして説明可能にする。\n- Phase 2〜6を具体work_item_idとして登録済みにする。",
+      "risk": "- Phase 2ではSearchFilter / Search UIはまだResolverを利用しないため、画面検索挙動そのものは変わらない。\n- Phase 3以降でResolver結果をCriteria評価・UIへ接続する。\n- Legacy search.operator=\"\" は互換のため未指定として扱う。\n- 明示された未登録Validation Typeは型fallbackで隠さずINVALIDとする。",
+      "test_points": "- Validation Type value_familyがField typeより優先される。\n- Validation TypeなしselectがField type fallbackでselect_standardへ解決される。\n- Resolved Field Contract value_familyから直接解決できる。\n- operator_set Overrideは登録済み・型互換のみ許可される。\n- operators Overrideは絞り込みのみ許可される。\n- defaultを除外した場合はoperator明示を要求する。\n- 空文字operatorはLegacy互換で未指定扱い。\n- 未登録Validation TypeはINVALID。\n- 未知Field typeはUNSUPPORTED。\n- ResolverにDOM依存を持たせない。\n- 全Staticの既存FAILを増やさない。",
+      "user_request": "下記インシデントの後続作業フェーズ２をお願いします。先に簡単な内容でいいので、フェーズ６まで、インシデントデータを登録してから作業をお願いします。依頼しにくいので💦　よろしく。",
+      "ai_response": "Phase 2〜6を先に個別work_itemとして登録し、Phase 2ではUI非依存SearchCapabilityResolverを実装・検証する。SearchFilter/UIは後続Phaseへ分離する。",
+      "latest_ai_response": "- studio_work_0187〜0191としてPhase 2〜6を先行登録。\n- Phase 2 SearchCapabilityResolverを新規実装し、SearchOperatorRegistry / Validation Type Registry / Resolved Field Contractから実効Search Capabilityを解決可能にした。\n- 解決優先順位は Resolved Field Contract value_family → Validation Type Registry value_family → Field type fallback。\n- ViewDef Overrideは operator_set → operators(絞り込み) → operator(既定選択) の順で検証・適用。\n- 未登録Validation TypeはINVALID、未知Field typeはUNSUPPORTEDとして暗黙補完しない。\n- ResolverはDOM非依存で、Phase 2専用Test 13/13 PASS。\n- 全StaticはBefore 166/150/16 → After 179/163/16。既存16 FAIL名は完全一致。\n- Phase 2ではSearchFilter/UI検索挙動は変更していない。Phase 3はstudio_work_0188。",
+      "follow_up_actions": [
+        {
+          "action_type": "SEARCH_FILTER_OPERATORS",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "studio_work_0188"
+          ],
+          "summary": "Phase 3でSearchFilterへnot_contains/not_equals/between/blank/not_blank/date比較を追加し、Resolver契約をCriteria評価へ接続する。",
+          "note": "DOM非依存SearchFilter責務を維持する。"
+        }
+      ]
+    },
+    {
+      "incident_type": "enhancement",
+      "category": "architecture",
+      "priority": "high",
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-08-16T15:01:00+09:00",
+      "owner": "",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-16T15:01:00+09:00",
+      "updated_at": "2026-08-16T15:01:00+09:00",
+      "actual_updated_files": "",
+      "verification_log": "",
+      "context_refs": [],
+      "discussion_history": [],
+      "decision_log": [],
+      "change_history": [
+        {
+          "at": "2026-08-16T15:01:00+09:00",
+          "change_type": "phase_registered",
+          "before": "未登録",
+          "after": "studio_work_0188 / v0.18.66-standard-search-filter-operators-phase3",
+          "reason": "ユーザーがPhase 6まで先に登録し、後続作業を依頼しやすくすることを希望したため。"
+        }
+      ],
+      "work_item_id": "studio_work_0188",
+      "phase": "v0.18.66-standard-search-filter-operators-phase3",
+      "title": "標準検索Capability Phase 3 — SearchFilter Operator拡張 / Criteria評価",
+      "status": "構想",
+      "follow_up_status": "PENDING",
+      "target_files": "- Phase実装時に現行構造を確認して確定する。\n- foundation_rule_019に従い安定ファイル名・差分ZIP契約を維持する。",
+      "context_def_draft": "# ContextDef素案: 標準検索Capability Phase 3 — SearchFilter Operator拡張 / Criteria評価\n\n## 目的\n- Phase 2で解決したSearch Capabilityを、DOM非依存のSearchFilterで実行可能にする。\n\n## 前提\n- 親: studio_work_0186 / v0.18.64-standard-search-contract-phase1\n- Phase 1のSearchOperatorRegistry契約を正本として継承する。",
+      "objective": "- Phase 2で解決したSearch Capabilityを、DOM非依存のSearchFilterで実行可能にする。",
+      "background": "- 親インシデント studio_work_0186 の標準検索v1計画を段階実装する後続Phase。\n- 前Phaseの契約・成果を次Phaseへ継承し、一度に大きなUI/Runtime変更を行わない。",
+      "scope": "- not_contains / not_equals / between / blank / not_blank / date・datetime比較をSearchFilterへ追加する。\n- Fromのみ / Toのみ / 両方の範囲契約を実装する。\n- Criteria評価の単体テストを追加する。",
+      "out_of_scope": "- 右クリックContext Menu / 📌。\n- Combo複数選択in/not_in本実装。\n- ViewDef全件移行。",
+      "fixed_name_policy": "- Foundation Rule 019の安定ファイル名契約を守る。\n- 既存正本は原則同名更新する。\n- 返却ZIPは変更ファイルのみ。\n- runtime生成物は返却ZIPへ含めない。",
+      "module_policy": "- SearchOperatorRegistryを検索Operator語彙の正本とする。\n- Resolver / SearchFilter / UI Renderer / Test Runnerの責務を混ぜない。\n- 現行StudioのRenderer / Responsibility / Registry体系を壊さない。",
+      "expected_outputs": "- not_contains / not_equals / between / blank / not_blank / date・datetime比較をSearchFilterへ追加する。\n- Fromのみ / Toのみ / 両方の範囲契約を実装する。\n- Criteria評価の単体テストを追加する。",
+      "risk": "- 後続Phaseの責務を先取りして実装範囲を膨らませない。\n- Legacy ViewDef互換を壊さない。\n- AIは人間承認を代行しない。",
+      "test_points": "- 当該Phaseの責務をUI非依存またはStatic Testで固定する。\n- 全Staticの既存FAILを増やさない。\n- JSON更新時はparse確認する。",
+      "user_request": "下記インシデントの後続作業フェーズ２をお願いします。先に簡単な内容でいいので、フェーズ６まで、インシデントデータを登録してから作業をお願いします。依頼しにくいので💦　よろしく。",
+      "ai_response": "標準検索Capability Phase 3 — SearchFilter Operator拡張 / Criteria評価 を studio_work_0186 の後続Phaseとして先行登録。実装は該当Phase依頼時に行う。",
+      "latest_ai_response": "- 後続Phaseとして先行登録。\n- 未実装。前Phase完了後に着手する。",
+      "follow_up_actions": []
+    },
+    {
+      "incident_type": "enhancement",
+      "category": "architecture",
+      "priority": "high",
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-08-16T15:01:00+09:00",
+      "owner": "",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-16T15:01:00+09:00",
+      "updated_at": "2026-08-16T15:01:00+09:00",
+      "actual_updated_files": "",
+      "verification_log": "",
+      "context_refs": [],
+      "discussion_history": [],
+      "decision_log": [],
+      "change_history": [
+        {
+          "at": "2026-08-16T15:01:00+09:00",
+          "change_type": "phase_registered",
+          "before": "未登録",
+          "after": "studio_work_0189 / v0.18.67-standard-search-ui-context-menu-phase4",
+          "reason": "ユーザーがPhase 6まで先に登録し、後続作業を依頼しやすくすることを希望したため。"
+        }
+      ],
+      "work_item_id": "studio_work_0189",
+      "phase": "v0.18.67-standard-search-ui-context-menu-phase4",
+      "title": "標準検索Capability Phase 4 — Search UI / 1階層Context Menu / Range / Override表示",
+      "status": "構想",
+      "follow_up_status": "PENDING",
+      "target_files": "- Phase実装時に現行構造を確認して確定する。\n- foundation_rule_019に従い安定ファイル名・差分ZIP契約を維持する。",
+      "context_def_draft": "# ContextDef素案: 標準検索Capability Phase 4 — Search UI / 1階層Context Menu / Range / Override表示\n\n## 目的\n- 標準Operatorを常時露出せず、必要時だけ右クリックで変更できる検索UIへ拡張する。\n\n## 前提\n- 親: studio_work_0186 / v0.18.64-standard-search-contract-phase1\n- Phase 1のSearchOperatorRegistry契約を正本として継承する。",
+      "objective": "- 標準Operatorを常時露出せず、必要時だけ右クリックで変更できる検索UIへ拡張する。",
+      "background": "- 親インシデント studio_work_0186 の標準検索v1計画を段階実装する後続Phase。\n- 前Phaseの契約・成果を次Phaseへ継承し、一度に大きなUI/Runtime変更を行わない。",
+      "scope": "- 右クリックOperator変更を原則1階層で実装する。\n- 現在Operatorを✓表示する。\n- 標準から変更した場合のみ📌等を表示する。\n- Number / DateのFrom-To UIを実装する。\n- ComboBoxの既存「選択肢メンテナンス」を区切り線下の独立コマンドとして共存させる。",
+      "out_of_scope": "- 複雑な階層Context Menu。\n- Combo複数選択の本格実装。\n- Search Preset。",
+      "fixed_name_policy": "- Foundation Rule 019の安定ファイル名契約を守る。\n- 既存正本は原則同名更新する。\n- 返却ZIPは変更ファイルのみ。\n- runtime生成物は返却ZIPへ含めない。",
+      "module_policy": "- SearchOperatorRegistryを検索Operator語彙の正本とする。\n- Resolver / SearchFilter / UI Renderer / Test Runnerの責務を混ぜない。\n- 現行StudioのRenderer / Responsibility / Registry体系を壊さない。",
+      "expected_outputs": "- 右クリックOperator変更を原則1階層で実装する。\n- 現在Operatorを✓表示する。\n- 標準から変更した場合のみ📌等を表示する。\n- Number / DateのFrom-To UIを実装する。\n- ComboBoxの既存「選択肢メンテナンス」を区切り線下の独立コマンドとして共存させる。",
+      "risk": "- 後続Phaseの責務を先取りして実装範囲を膨らませない。\n- Legacy ViewDef互換を壊さない。\n- AIは人間承認を代行しない。",
+      "test_points": "- 当該Phaseの責務をUI非依存またはStatic Testで固定する。\n- 全Staticの既存FAILを増やさない。\n- JSON更新時はparse確認する。",
+      "user_request": "下記インシデントの後続作業フェーズ２をお願いします。先に簡単な内容でいいので、フェーズ６まで、インシデントデータを登録してから作業をお願いします。依頼しにくいので💦　よろしく。",
+      "ai_response": "標準検索Capability Phase 4 — Search UI / 1階層Context Menu / Range / Override表示 を studio_work_0186 の後続Phaseとして先行登録。実装は該当Phase依頼時に行う。",
+      "latest_ai_response": "- 後続Phaseとして先行登録。\n- 未実装。前Phase完了後に着手する。",
+      "follow_up_actions": []
+    },
+    {
+      "incident_type": "enhancement",
+      "category": "architecture",
+      "priority": "high",
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-08-16T15:01:00+09:00",
+      "owner": "",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-16T15:01:00+09:00",
+      "updated_at": "2026-08-16T15:01:00+09:00",
+      "actual_updated_files": "",
+      "verification_log": "",
+      "context_refs": [],
+      "discussion_history": [],
+      "decision_log": [],
+      "change_history": [
+        {
+          "at": "2026-08-16T15:01:00+09:00",
+          "change_type": "phase_registered",
+          "before": "未登録",
+          "after": "studio_work_0190 / v0.18.68-standard-search-viewdef-standardization-phase5",
+          "reason": "ユーザーがPhase 6まで先に登録し、後続作業を依頼しやすくすることを希望したため。"
+        }
+      ],
+      "work_item_id": "studio_work_0190",
+      "phase": "v0.18.68-standard-search-viewdef-standardization-phase5",
+      "title": "標準検索Capability Phase 5 — ViewDef検索Projection標準化 / Legacy Search Section移行検証",
+      "status": "構想",
+      "follow_up_status": "PENDING",
+      "target_files": "- Phase実装時に現行構造を確認して確定する。\n- foundation_rule_019に従い安定ファイル名・差分ZIP契約を維持する。",
+      "context_def_draft": "# ContextDef素案: 標準検索Capability Phase 5 — ViewDef検索Projection標準化 / Legacy Search Section移行検証\n\n## 目的\n- SearchをCanonical Field DefinitionからのProjectionへ統一し、新規ViewDefの二重Field定義を止める。\n\n## 前提\n- 親: studio_work_0186 / v0.18.64-standard-search-contract-phase1\n- Phase 1のSearchOperatorRegistry契約を正本として継承する。",
+      "objective": "- SearchをCanonical Field DefinitionからのProjectionへ統一し、新規ViewDefの二重Field定義を止める。",
+      "background": "- 親インシデント studio_work_0186 の標準検索v1計画を段階実装する後続Phase。\n- 前Phaseの契約・成果を次Phaseへ継承し、一度に大きなUI/Runtime変更を行わない。",
+      "scope": "- 新規ViewDef生成をsearch.visible中心の標準へ更新する。\n- 代表ViewDefでLegacy Search SectionからCanonical Field方式への移行を検証する。\n- 既存ViewDef互換を維持する。",
+      "out_of_scope": "- 既存ViewDef全件一括変換・一括削除。\n- fieldRefs高度配置機能。",
+      "fixed_name_policy": "- Foundation Rule 019の安定ファイル名契約を守る。\n- 既存正本は原則同名更新する。\n- 返却ZIPは変更ファイルのみ。\n- runtime生成物は返却ZIPへ含めない。",
+      "module_policy": "- SearchOperatorRegistryを検索Operator語彙の正本とする。\n- Resolver / SearchFilter / UI Renderer / Test Runnerの責務を混ぜない。\n- 現行StudioのRenderer / Responsibility / Registry体系を壊さない。",
+      "expected_outputs": "- 新規ViewDef生成をsearch.visible中心の標準へ更新する。\n- 代表ViewDefでLegacy Search SectionからCanonical Field方式への移行を検証する。\n- 既存ViewDef互換を維持する。",
+      "risk": "- 後続Phaseの責務を先取りして実装範囲を膨らませない。\n- Legacy ViewDef互換を壊さない。\n- AIは人間承認を代行しない。",
+      "test_points": "- 当該Phaseの責務をUI非依存またはStatic Testで固定する。\n- 全Staticの既存FAILを増やさない。\n- JSON更新時はparse確認する。",
+      "user_request": "下記インシデントの後続作業フェーズ２をお願いします。先に簡単な内容でいいので、フェーズ６まで、インシデントデータを登録してから作業をお願いします。依頼しにくいので💦　よろしく。",
+      "ai_response": "標準検索Capability Phase 5 — ViewDef検索Projection標準化 / Legacy Search Section移行検証 を studio_work_0186 の後続Phaseとして先行登録。実装は該当Phase依頼時に行う。",
+      "latest_ai_response": "- 後続Phaseとして先行登録。\n- 未実装。前Phase完了後に着手する。",
+      "follow_up_actions": []
+    },
+    {
+      "incident_type": "enhancement",
+      "category": "architecture",
+      "priority": "high",
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-08-16T15:01:00+09:00",
+      "owner": "",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-16T15:01:00+09:00",
+      "updated_at": "2026-08-16T15:01:00+09:00",
+      "actual_updated_files": "",
+      "verification_log": "",
+      "context_refs": [],
+      "discussion_history": [],
+      "decision_log": [],
+      "change_history": [
+        {
+          "at": "2026-08-16T15:01:00+09:00",
+          "change_type": "phase_registered",
+          "before": "未登録",
+          "after": "studio_work_0191 / v0.18.69-definition-driven-search-test-phase6",
+          "reason": "ユーザーがPhase 6まで先に登録し、後続作業を依頼しやすくすることを希望したため。"
+        }
+      ],
+      "work_item_id": "studio_work_0191",
+      "phase": "v0.18.69-definition-driven-search-test-phase6",
+      "title": "標準検索Capability Phase 6 — Definition Driven Search Test / TestPattern・Expected・Diff接続",
+      "status": "構想",
+      "follow_up_status": "UNASSESSED",
+      "target_files": "- Phase実装時に現行構造を確認して確定する。\n- foundation_rule_019に従い安定ファイル名・差分ZIP契約を維持する。",
+      "context_def_draft": "# ContextDef素案: 標準検索Capability Phase 6 — Definition Driven Search Test / TestPattern・Expected・Diff接続\n\n## 目的\n- SearchCapabilityをDefinition Driven Testingへ接続し、検索契約そのものを機械検証可能にする。\n\n## 前提\n- 親: studio_work_0186 / v0.18.64-standard-search-contract-phase1\n- Phase 1のSearchOperatorRegistry契約を正本として継承する。",
+      "objective": "- SearchCapabilityをDefinition Driven Testingへ接続し、検索契約そのものを機械検証可能にする。",
+      "background": "- 親インシデント studio_work_0186 の標準検索v1計画を段階実装する後続Phase。\n- 前Phaseの契約・成果を次Phaseへ継承し、一度に大きなUI/Runtime変更を行わない。",
+      "scope": "- SearchCapabilityからText / Number / Dateの代表TestPattern候補を導出する。\n- Expected / Actual / Diffへ接続する。\n- between境界、not_contains、blank/not_blank等を証跡化する。",
+      "out_of_scope": "- Search Preset。\n- 高度AND/OR。\n- Regex / fuzzy / AI検索。",
+      "fixed_name_policy": "- Foundation Rule 019の安定ファイル名契約を守る。\n- 既存正本は原則同名更新する。\n- 返却ZIPは変更ファイルのみ。\n- runtime生成物は返却ZIPへ含めない。",
+      "module_policy": "- SearchOperatorRegistryを検索Operator語彙の正本とする。\n- Resolver / SearchFilter / UI Renderer / Test Runnerの責務を混ぜない。\n- 現行StudioのRenderer / Responsibility / Registry体系を壊さない。",
+      "expected_outputs": "- SearchCapabilityからText / Number / Dateの代表TestPattern候補を導出する。\n- Expected / Actual / Diffへ接続する。\n- between境界、not_contains、blank/not_blank等を証跡化する。",
+      "risk": "- 後続Phaseの責務を先取りして実装範囲を膨らませない。\n- Legacy ViewDef互換を壊さない。\n- AIは人間承認を代行しない。",
+      "test_points": "- 当該Phaseの責務をUI非依存またはStatic Testで固定する。\n- 全Staticの既存FAILを増やさない。\n- JSON更新時はparse確認する。",
+      "user_request": "下記インシデントの後続作業フェーズ２をお願いします。先に簡単な内容でいいので、フェーズ６まで、インシデントデータを登録してから作業をお願いします。依頼しにくいので💦　よろしく。",
+      "ai_response": "標準検索Capability Phase 6 — Definition Driven Search Test / TestPattern・Expected・Diff接続 を studio_work_0186 の後続Phaseとして先行登録。実装は該当Phase依頼時に行う。",
+      "latest_ai_response": "- 後続Phaseとして先行登録。\n- 未実装。前Phase完了後に着手する。",
+      "follow_up_actions": []
     }
   ],
   "review_notes": [
@@ -27558,8 +27856,8 @@
       "body": "- studio_work_0161を親構想として見直した。\n- studio_work_0162～0168を未着手計画として追加した。\n- Studio Coreは汎用AI協働基盤として維持する。\n- Definition Verificationは標準Capabilityとして実装する。\n- Editor Componentと計算Serviceを分離し、PreviewとRunnerで共通導出ロジックを利用する。\n- 構造化記述原則の新設をルール改定計画へ含めた。"
     }
   ],
-  "work_revision": "v0.18.64-standard-search-contract-phase1",
-  "latest_planning_note": "標準検索Phase 1: SearchOperatorRegistryを語彙正本として、Canonical FieldからのSearch Projection、ViewDef Override形、Legacy Search Section互換境界を固定する。",
+  "work_revision": "v0.18.65-standard-search-capability-resolver-phase2",
+  "latest_planning_note": "標準検索Phase 2完了。Phase 2〜6はstudio_work_0187〜0191として登録済み。次はstudio_work_0188 / Phase 3 SearchFilter Operator拡張。",
   "view_def_candidates": [
     {
       "view_def": "rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",
