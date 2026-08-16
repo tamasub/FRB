@@ -801,3 +801,109 @@ body.studio-grid-only-shell .json-studio-main-pane > main { padding:0; }
   align-items: center;
   min-height: 38px;
 }
+
+/* studio_work_0185 p11: Diff / MetaDiff form typography + visual rhythm polish. */
+.frb-page-diff-json input,
+.frb-page-diff-json select,
+.frb-page-diff-json button,
+.frb-page-meta-diff input,
+.frb-page-meta-diff select,
+.frb-page-meta-diff button {
+  font-family: inherit;
+}
+.frb-page-diff-json input[type="file"]::file-selector-button,
+.frb-page-meta-diff input[type="file"]::file-selector-button {
+  font-family: inherit;
+}
+
+.frb-page-diff-json .toolbar,
+.frb-page-meta-diff .toolbar {
+  align-items: stretch;
+  min-height: 72px;
+}
+.frb-page-diff-json .toolbar > div:first-child,
+.frb-page-meta-diff .toolbar > div:first-child {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto 40px;
+  align-items: center;
+  column-gap: 8px;
+  row-gap: 5px;
+  min-width: 390px;
+}
+.frb-page-diff-json .toolbar > div:first-child > br,
+.frb-page-meta-diff .toolbar > div:first-child > br {
+  display: none;
+}
+.frb-page-diff-json .toolbar > div:first-child > label,
+.frb-page-meta-diff .toolbar > div:first-child > label {
+  grid-column: 1 / -1;
+  align-self: end;
+  line-height: 1.2;
+  color: #6b7887;
+}
+.frb-page-diff-json .toolbar input[type="file"],
+.frb-page-meta-diff .toolbar input[type="file"] {
+  width: 100%;
+  height: 40px;
+  min-height: 40px;
+  line-height: 40px;
+  color: #5f6d7b;
+}
+.frb-page-diff-json .toolbar input[type="file"]::file-selector-button,
+.frb-page-meta-diff .toolbar input[type="file"]::file-selector-button {
+  height: 40px;
+  margin-right: 10px;
+  padding: 0 14px;
+  vertical-align: middle;
+}
+.frb-page-diff-json .toolbar select,
+.frb-page-meta-diff .toolbar select,
+.frb-page-diff-json input[type="search"],
+.frb-page-meta-diff input[type="search"],
+.frb-page-diff-json .panel select,
+.frb-page-meta-diff .panel select,
+.frb-page-diff-json .panel button,
+.frb-page-meta-diff .panel button {
+  height: 40px;
+  min-height: 40px;
+  box-sizing: border-box;
+}
+.frb-page-diff-json .drop-zone,
+.frb-page-meta-diff .drop-zone {
+  align-self: stretch;
+  min-height: 64px;
+  text-align: center;
+}
+
+.frb-page-diff-json .panel h2,
+.frb-page-meta-diff .panel h2 {
+  min-height: 56px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  color: #273544;
+}
+.frb-page-diff-json .panel h2 > .note,
+.frb-page-meta-diff .panel h2 > .note {
+  color: #738091;
+  font-weight: 600;
+}
+.frb-page-diff-json .layout > aside.panel > .body,
+.frb-page-meta-diff .layout > .panel:first-child > .body {
+  color: #667585;
+}
+.frb-page-diff-json .layout > aside.panel > .body .note,
+.frb-page-meta-diff .layout > .panel:first-child > .body .note {
+  color: #758292;
+}
+.frb-page-diff-json .filters,
+.frb-page-meta-diff .controls {
+  align-items: center;
+}
+
+@media(max-width:980px) {
+  .frb-page-diff-json .toolbar > div:first-child,
+  .frb-page-meta-diff .toolbar > div:first-child {
+    min-width: 100%;
+  }
+}

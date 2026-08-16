@@ -293,3 +293,14 @@ test('Diff JSON and MetaDiff left-panel titles use supplied icons with verticall
   assert.ok(fs.existsSync(path.join(ROOT, 'wwwroot/images/metadiff-panel-icon.png')));
 });
 
+
+test('Diff JSON and MetaDiff inherit Studio typography and share aligned control rhythm', () => {
+  assert.match(diffHtml, /css\/frb-studio-shell\.css\?v=0185p11-diff-meta-polish/);
+  assert.match(metaHtml, /css\/frb-studio-shell\.css\?v=0185p11-diff-meta-polish/);
+  assert.match(shellCss, /p11: Diff \/ MetaDiff form typography \+ visual rhythm polish/);
+  assert.match(shellCss, /\.frb-page-diff-json input,[\s\S]*\.frb-page-meta-diff button \{[\s\S]*font-family:\s*inherit/);
+  assert.match(shellCss, /input\[type="file"\]::file-selector-button,[\s\S]*font-family:\s*inherit/);
+  assert.match(shellCss, /\.toolbar > div:first-child \{[\s\S]*grid-template-rows:\s*auto 40px[\s\S]*align-items:\s*center/);
+  assert.match(shellCss, /\.panel h2 \{[\s\S]*min-height:\s*56px[\s\S]*color:\s*#273544/);
+  assert.match(shellCss, /\.layout > aside\.panel > \.body,[\s\S]*\.panel:first-child > \.body \{[\s\S]*color:\s*#667585/);
+});

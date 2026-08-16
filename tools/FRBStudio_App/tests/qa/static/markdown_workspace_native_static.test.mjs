@@ -138,3 +138,13 @@ test('Front Matter save materialization remains only as a final consistency guar
   assert.match(md, /async function saveManagedMarkdown[\s\S]*?const saveContent = materializeFrontMatterForSave\(content\);/);
   assert.match(md, /async function saveMarkdownWithNativeDialog[\s\S]*?const content = materializeFrontMatterForSave\(editorEl\.value \|\| ""\);/);
 });
+
+test('NativeShell binds window.open to one child WebView2 instead of leaving an orphan blank window', () => {
+  assert.match(shellForm, /var deferral = e\.GetDeferral\(\)/);
+  assert.match(shellForm, /sharedEnvironment:\s*_environment/);
+  assert.match(shellForm, /deferInitialNavigation:\s*true/);
+  assert.match(shellForm, /e\.NewWindow = await child\.EnsureCoreWebViewReadyAsync\(\)/);
+  assert.match(shellForm, /_environment = _sharedEnvironment \?\? await CoreWebView2Environment\.CreateAsync/);
+  assert.match(shellForm, /if \(!_deferInitialNavigation\)[\s\S]*?_webView\.Source = new Uri\(startUri\)/);
+  assert.match(shellForm, /finally[\s\S]*deferral\.Complete\(\)/);
+});

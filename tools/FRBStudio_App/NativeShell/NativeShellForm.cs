@@ -20,11 +20,21 @@ namespace FRBStudio.NativeShell
         private string _allowedOrigin;
         private readonly string _initialUri;
         private readonly string _initialWorkspaceRoot;
+        private readonly CoreWebView2Environment _sharedEnvironment;
+        private readonly bool _deferInitialNavigation;
+        private CoreWebView2Environment _environment;
+        private Task _initializationTask;
 
-        public NativeShellForm(string initialUri = null, string initialWorkspaceRoot = null)
+        public NativeShellForm(
+            string initialUri = null,
+            string initialWorkspaceRoot = null,
+            CoreWebView2Environment sharedEnvironment = null,
+            bool deferInitialNavigation = false)
         {
             _initialUri = initialUri;
             _initialWorkspaceRoot = initialWorkspaceRoot;
+            _sharedEnvironment = sharedEnvironment;
+            _deferInitialNavigation = deferInitialNavigation;
             Text = "FRB Studio / Native Shell";
             Width = 1500;
             Height = 950;
@@ -45,7 +55,22 @@ namespace FRBStudio.NativeShell
             Controls.Add(_webView);
             Controls.Add(_status);
 
-            Shown += async (_, __) => await InitializeAsync();
+            Shown += async (_, __) => await EnsureInitializedAsync();
+        }
+
+        private Task EnsureInitializedAsync()
+        {
+            if (_initializationTask == null)
+                _initializationTask = InitializeAsync();
+            return _initializationTask;
+        }
+
+        private async Task<CoreWebView2> EnsureCoreWebViewReadyAsync()
+        {
+            await EnsureInitializedAsync();
+            if (_webView.CoreWebView2 == null)
+                throw new InvalidOperationException("Child WebView2 initialization failed.");
+            return _webView.CoreWebView2;
         }
 
         private async Task InitializeAsync()
@@ -73,8 +98,8 @@ namespace FRBStudio.NativeShell
                 Directory.CreateDirectory(userDataFolder);
 
                 var runtimeVersion = CoreWebView2Environment.GetAvailableBrowserVersionString();
-                var environment = await CoreWebView2Environment.CreateAsync(null, userDataFolder);
-                await _webView.EnsureCoreWebView2Async(environment);
+                _environment = _sharedEnvironment ?? await CoreWebView2Environment.CreateAsync(null, userDataFolder);
+                await _webView.EnsureCoreWebView2Async(_environment);
 
                 _webView.CoreWebView2.Settings.AreDevToolsEnabled = _config.DevToolsEnabled;
                 _webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = true;
@@ -89,10 +114,13 @@ namespace FRBStudio.NativeShell
                 _webView.CoreWebView2.NewWindowRequested += OnNewWindowRequested;
 
                 _status.Text = "Native Shell / WebView2 Runtime " + runtimeVersion + " / App Root: " + _workspace.RootPath;
-                var startUri = !string.IsNullOrWhiteSpace(_initialUri) && IsAllowedNavigation(_initialUri)
-                    ? _initialUri
-                    : _allowedOrigin + "/" + _config.StartPage.TrimStart('/');
-                _webView.Source = new Uri(startUri);
+                if (!_deferInitialNavigation)
+                {
+                    var startUri = !string.IsNullOrWhiteSpace(_initialUri) && IsAllowedNavigation(_initialUri)
+                        ? _initialUri
+                        : _allowedOrigin + "/" + _config.StartPage.TrimStart('/');
+                    _webView.Source = new Uri(startUri);
+                }
             }
             catch (Exception ex)
             {
@@ -130,18 +158,42 @@ namespace FRBStudio.NativeShell
                 OpenExternal(uri.AbsoluteUri);
         }
 
-        private void OnNewWindowRequested(object sender, CoreWebView2NewWindowRequestedEventArgs e)
+        private async void OnNewWindowRequested(object sender, CoreWebView2NewWindowRequestedEventArgs e)
         {
-            e.Handled = true;
-            if (IsAllowedNavigation(e.Uri))
+            var deferral = e.GetDeferral();
+            NativeShellForm child = null;
+            try
             {
-                var child = new NativeShellForm(e.Uri, _workspace?.RootPath ?? _appRoot);
-                child.Show(this);
-                return;
-            }
+                if (IsAllowedNavigation(e.Uri))
+                {
+                    // Bind the JavaScript window.open() WindowProxy to the actual child WebView2.
+                    // WebView2 requires the popup target to share the opener environment/profile and
+                    // to remain un-navigated until assigned to NewWindow.
+                    child = new NativeShellForm(
+                        initialUri: null,
+                        initialWorkspaceRoot: _workspace?.RootPath ?? _appRoot,
+                        sharedEnvironment: _environment,
+                        deferInitialNavigation: true);
+                    child.Show(this);
+                    e.NewWindow = await child.EnsureCoreWebViewReadyAsync();
+                    return;
+                }
 
-            if (_config.OpenExternalLinksInDefaultBrowser && Uri.TryCreate(e.Uri, UriKind.Absolute, out var uri))
-                OpenExternal(uri.AbsoluteUri);
+                e.Handled = true;
+                if (_config.OpenExternalLinksInDefaultBrowser && Uri.TryCreate(e.Uri, UriKind.Absolute, out var uri))
+                    OpenExternal(uri.AbsoluteUri);
+            }
+            catch (Exception ex)
+            {
+                e.Handled = true;
+                if (child != null && !child.IsDisposed)
+                    child.Close();
+                _status.Text = "Native Shell new-window error: " + ex.Message;
+            }
+            finally
+            {
+                deferral.Complete();
+            }
         }
 
         private bool IsAllowedSource(string source)
