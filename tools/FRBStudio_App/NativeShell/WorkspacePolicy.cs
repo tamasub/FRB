@@ -46,17 +46,21 @@ namespace FRBStudio.NativeShell
             return full.Substring(rootWithSeparator.Length).Replace(Path.DirectorySeparatorChar, '/');
         }
 
-        public string ResolveWritablePath(string relativePath, string[] writableRoots, bool allowMissingLeaf = true)
+        public string ResolveWritablePath(string relativePath, string[] writableRoots, string[] writableFiles = null, bool allowMissingLeaf = true)
         {
             var full = ResolveRelativePath(relativePath, allowMissingLeaf);
-            var relative = ToRelativePath(full);
-            var allowed = (writableRoots ?? Array.Empty<string>())
+            var relative = ToRelativePath(full).Replace('\\', '/').Trim('/');
+            var allowedByRoot = (writableRoots ?? Array.Empty<string>())
                 .Where(root => !string.IsNullOrWhiteSpace(root))
                 .Select(root => root.Trim().Replace('\\', '/').Trim('/'))
                 .Any(root => string.Equals(relative, root, StringComparison.OrdinalIgnoreCase)
                     || relative.StartsWith(root + "/", StringComparison.OrdinalIgnoreCase));
-            if (!allowed)
-                throw new InvalidOperationException("WORKSPACE_PATH_DENIED: path is outside writable roots.");
+            var allowedByFile = (writableFiles ?? Array.Empty<string>())
+                .Where(file => !string.IsNullOrWhiteSpace(file))
+                .Select(file => file.Trim().Replace('\\', '/').Trim('/'))
+                .Any(file => string.Equals(relative, file, StringComparison.OrdinalIgnoreCase));
+            if (!allowedByRoot && !allowedByFile)
+                throw new InvalidOperationException("WORKSPACE_PATH_DENIED: path is outside writable roots/files.");
             return full;
         }
 

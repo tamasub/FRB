@@ -28395,38 +28395,153 @@
       "incident_type": "enhancement",
       "category": "architecture",
       "priority": "high",
-      "verification_status": "未確認",
+      "verification_status": "Static確認済み / 表示グループUI微修正実機確認待ち",
       "context_def_status": "draft",
       "context_def_updated_at": "",
       "owner": "",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-16T21:11:00+09:00",
-      "updated_at": "2026-08-16T21:11:00+09:00",
-      "actual_updated_files": "",
-      "verification_log": "",
+      "updated_at": "2026-08-16T22:19:00+09:00",
+      "actual_updated_files": "- wwwroot/js/runtime/load_runtime.js\n- wwwroot/js/runtime/detail_save.js\n- wwwroot/js/services/definition/definition_document_validator.js\n- wwwroot/js/core/native_host_bridge.js\n- wwwroot/js/ui/section_group_navigation.js\n- wwwroot/index.html\n- NativeShell/native_shell.config.json\n- NativeShell/NativeShellConfig.cs\n- NativeShell/WorkspacePolicy.cs\n- NativeShell/NativeCommandDispatcher.cs\n- tests/qa/static/app_settings_save_phase4.test.mjs\n- tests/qa/static/app_settings_definition_phase3.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json\n- wwwroot/config/app_settings/app_settings_view_def_v0_1.json\n- wwwroot/css/frb-studio-shell.css\n- tests/qa/static/viewdef_section_group_navigation_phase2.test.mjs",
+      "verification_log": "- Phase 4専用Static: 7 / 7 PASS。\n- Phase 1〜4連結Static: 25 / 25 PASS。\n- 全Static Before: 230 tests / 214 pass / 16 fail。\n- 全Static After: 237 tests / 221 pass / 16 fail。\n- 既存16 FAILはテスト名まで完全一致し、新規FAILなし。\n- `node --check`: definition_document_validator.js / load_runtime.js / detail_save.js / section_group_navigation.js / native_host_bridge.js PASS。\n- `dotnet build`: AI実行環境にdotnetが存在しないため未実施。\n- NativeShell実機でのapp_settings.json保存確認は利用者確認待ち。\n- 2026-08-16 UI微修正: Settingsの第1表示グループcaptionを「ショートカット」から「JSON Object Studio」へ変更。\n- 2026-08-16 UI微修正: Desktop時の表示グループNavigationをEditor中央領域の残り高さまでstretchするCSS契約を追加。\n- UI微修正Focused Static: app_settings_definition_phase3 + viewdef_section_group_navigation_phase2 = 12 / 12 PASS。\n- UI微修正全Static: 237 tests / 221 pass / 16 fail。\n- Before/Afterとも既存16 FAILのテスト名は完全一致し、新規FAILなし。",
       "context_refs": [],
       "work_item_id": "studio_work_0197",
       "phase": "v0.18.75-app-settings-save-phase4",
       "title": "App Settings Phase 4 — Canonical保存契約 / Validation / Round Trip",
-      "status": "構想",
-      "follow_up_status": "NOT_STARTED",
-      "target_files": "- Phase実装時に現行構造を確認して確定する。\n- Foundation Rule 019に従い安定ファイル名・変更ファイルのみ返却契約を維持する。",
+      "status": "完了",
+      "follow_up_status": "PENDING",
+      "target_files": "- wwwroot/js/runtime/load_runtime.js\n- wwwroot/js/runtime/detail_save.js\n- wwwroot/js/services/definition/definition_document_validator.js\n- wwwroot/js/core/native_host_bridge.js\n- wwwroot/js/ui/section_group_navigation.js\n- wwwroot/index.html\n- NativeShell/native_shell.config.json\n- NativeShell/NativeShellConfig.cs\n- NativeShell/WorkspacePolicy.cs\n- NativeShell/NativeCommandDispatcher.cs\n- tests/qa/static/app_settings_save_phase4.test.mjs\n- tests/qa/static/app_settings_definition_phase3.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
       "context_def_draft": "# ContextDef素案: App Settings Phase 4 — Canonical保存契約 / Validation / Round Trip\n\n## 前提\n- 親: studio_work_0194 / v0.18.72-viewdef-section-groups-contract-phase1\n- 前Phaseの契約を継承し、一度に大きな変更を行わない。",
-      "objective": "- System側app_settings.jsonを現時点のCanonicalとして安全に登録・更新できるようにする。",
+      "objective": "- System側 `wwwroot/config/app_settings.json` を現時点のCanonicalとして安全に登録・更新できるようにする。\n- System App Settings Field Definitionを保存前Validationへ接続する。\n- Settings Viewへ露出していない `hosting` / `ui` 等をRound Tripで保持する。",
       "background": "- App Settings / sectionGroups設計をPhase 1〜5へ分割した後続Phase。\n- 前Phaseの成果を正本として継承する。",
-      "scope": "- app_settings.json固定保存契約。\n- Definition Driven Validation。\n- 非表示設定値を保持するRound Trip。\n- updated_at更新。\n- wwwroot/config全体を一般書込領域へしない。",
-      "out_of_scope": "- 後続Phaseの責務は先取りしない。",
+      "scope": "- `app_settings.json` だけを対象とした固定保存契約。\n- Definition Driven Validation。\n- 非表示設定値を保持するRound Trip。\n- 保存成功時の `updated_at` 更新。\n- Form SectionのGroup切替時に入力値を既存Header編集契約へ反映する。\n- `wwwroot/config` 全体を一般書込領域へしない。",
+      "out_of_scope": "- Phase 5のShortcut Launcherは実装しない。\n- User `app_settings.json` Overrideは実装しない。\n- `wwwroot/config` 全体への書込権限は付与しない。\n- Settings専用Renderer / Settings専用Field Validatorは作らない。",
       "fixed_name_policy": "- Foundation Rule 019を遵守する。\n- 既存正本は原則同名更新する。\n- 返却ZIPは変更ファイルのみ。",
       "module_policy": "- 外からつまめ原則を優先し、既存Editor / Rendererの責務を壊さない。",
       "expected_outputs": "- objective / scopeに記載したPhase責務が独立して成立する。",
-      "risk": "- 前Phase契約を壊す変更が必要な場合は独断で進めず再確認する。",
-      "test_points": "- 前Phaseの回帰を増やさない。\n- Phase固有の責務をStaticまたは実機確認できる。",
-      "user_request": "はーい。では、インシデントにフェーズ1～5を先に登録してから、フェーズ1の作業を開始お願いします。よろしく",
-      "ai_response": "Phase 1〜5を先行登録。現在はPhase 1のみ着手し、このPhaseは未着手として保持する。",
-      "latest_ai_response": "",
-      "follow_up_actions": [],
-      "discussion_history": [],
-      "decision_log": [],
+      "risk": "- AI実行環境に `dotnet` / C# compiler がないため、NativeShell C#のBuild確認は未実施。\n- `/api/app-settings` の実ファイル保存はNativeShell実機確認が必要。\n- 将来User `app_settings.json` Overrideを導入した場合は、System側 `wwwroot/config/app_settings.json` への利用者書込権限を廃止する方向で再設計する。",
+      "test_points": "- Phase 4専用Staticで固定保存境界 / Definition Driven Validation / Round Trip / updated_at / Group切替時Form反映を確認する。\n- Phase 1〜4連結Staticで既存sectionGroups契約からSettings保存までの回帰を確認する。\n- 全Staticで既存FAILを増加させない。\n- 更新JavaScriptを `node --check` する。\n- NativeShell C# Buildは実行環境にcompilerがある場合に確認する。",
+      "user_request": "今回の作業依頼:\n- incident_file: data/json/01_main/_studio_work_incident_data_v2.json\n- work_item_id: studio_work_0197\n- phase: v0.18.75-app-settings-save-phase4\n\n作業ルール:\n- FRBStudio_App*.zipがチャットに添付された場合は、最新資材zipとして扱う。\n- Foundation Rule 019「GitHub基準ソースとZIP返却契約」を参照する。\n- constitution_32「構造化記述の原則」に従い、複数事項は箇条書きまたは番号付きリストで記載する。",
+      "ai_response": "Phase 4を実装し、System app_settings.jsonの固定保存契約、Definition Driven Validation、Round Trip、updated_at更新を接続した。",
+      "latest_ai_response": "## 変更内容\n- `mode=settings` をPhase 3のReadOnlyから保存可能へ切り替えた。\n- 保存先は `/api/app-settings` 固定とし、Native Bridgeから `wwwroot/config/app_settings.json` だけを書き込む契約にした。\n- NativeShellへ `writable_files` を追加し、`wwwroot/config` 全体ではなく `app_settings.json` 1ファイルだけをexact allowlist化した。\n- `DefinitionDocumentValidator` を追加し、既存 `FieldContractResolver` / `DefinitionValueValidator` を再利用してSystem Field Definitionを文書全体へ適用した。\n- 保存時に非表示の `hosting` / `ui` 等を保持し、Settings Dataへ `view_def` を勝手に注入しないRound Trip契約にした。\n- 保存成功対象Documentへ `updated_at` をJST ISO形式で更新する。\n- Form Groupから別Groupへ切り替える前に既存 `applyHeaderEdits()` を呼び、Markdown設定の入力値を失わないようにした。\n\n## 判断\n- Settings専用Rendererは作らない。\n- Settings専用Validationロジックは作らず、Definition Drivenの既存Resolver / Validatorを再利用する。\n- `wwwroot/config` をwritable rootへ追加しない。\n- System設定1ファイルだけを `writable_files` で許可する。\n- 将来User Override導入時はSystem側書込を廃止する方向とし、今回は実装しない。\n\n## 確認結果\n- Phase 4専用Static: 7 / 7 PASS。\n- Phase 1〜4連結Static: 25 / 25 PASS。\n- 全Static: Before 230/214/16 → After 237/221/16。\n- 既存16 FAILはテスト名まで完全一致し、新規FAILなし。\n- 更新JavaScriptのsyntax checkは全てPASS。\n- C# BuildはAI環境にdotnetがないため未実施。\n\n## 残課題 / 次作業\n- NativeShell実機で設定変更→保存→再読込を確認する。\n- Phase 5 `studio_work_0198` で `launch_shortcuts` のShortcut Menu / Launcherを実装する。\n\n## 追加修正 2026-08-16 22:19\n- 表示グループの先頭captionを「ショートカット」から「JSON Object Studio」へ変更した。\n- 起動ショートカットGrid自体の責務・Data構造・section idは変更していない。\n- 左側の表示グループNavigation枠をDesktop時に縦方向へstretchし、中央Editor領域の下端まで外枠が続くレイアウトへ変更した。\n- 900px以下では従来どおり横並びNavigationへ戻し、full-heightを解除する。\n- Settings専用RendererやsectionGroups Data契約は変更していない。",
+      "follow_up_actions": [
+        {
+          "action_type": "MANUAL_APP_SETTINGS_SAVE_VERIFICATION",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "studio_work_0197"
+          ],
+          "summary": "NativeShell実機でMarkdown設定またはlaunch_shortcutsを変更し、保存後にapp_settings.jsonと再読込結果を確認する。",
+          "note": "Static / Definition Validation契約は確認済み。C# BuildはAI環境にdotnetなし。"
+        },
+        {
+          "action_type": "SHORTCUT_LAUNCHER",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "studio_work_0198"
+          ],
+          "summary": "Phase 5でlaunch_shortcutsを一覧表示し、利用者クリックから既存Editorを起動する。",
+          "note": "登録と実行は別責務。"
+        },
+        {
+          "action_type": "FUTURE_USER_SETTINGS_OVERRIDE",
+          "required": false,
+          "status": "FUTURE",
+          "related_ids": [],
+          "summary": "将来User_app_settings相当を導入した場合、System app_settings.jsonをDefaultへ戻し利用者書込をUser領域へ移す。",
+          "note": "現時点の明示的スコープ外。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "at": "2026-08-16T21:41:00+09:00",
+          "speaker": "user",
+          "message": "今回の作業依頼:\n- incident_file: data/json/01_main/_studio_work_incident_data_v2.json\n- work_item_id: studio_work_0197\n- phase: v0.18.75-app-settings-save-phase4\n\n作業ルール:\n- FRBStudio_App*.zipがチャットに添付された場合は、最新資材zipとして扱う。\n- Foundation Rule 019「GitHub基準ソースとZIP返却契約」を参照する。\n- constitution_32「構造化記述の原則」に従い、複数事項は箇条書きまたは番号付きリストで記載する。"
+        },
+        {
+          "at": "2026-08-16T21:41:00+09:00",
+          "speaker": "assistant",
+          "message": "AI回答\n\n## 変更内容\n- app_settings.json固定保存契約を追加。\n- exact writable fileでSystem設定1ファイルだけを書込許可。\n- Definition Driven Validation / Round Trip / updated_at更新を接続。\n- Form Group切替前に既存Header編集を反映。\n\n## 確認結果\n- Phase 4専用Static 7/7 PASS。\n- Phase 1〜4連結Static 25/25 PASS。\n- 全Static 230/214/16 → 237/221/16、新規FAILなし。\n- NativeShell実機保存確認は利用者確認待ち。"
+        },
+        {
+          "at": "2026-08-16T22:19:00+09:00",
+          "speaker": "user",
+          "message": "うぃーー。では、２点の修正お願いします。\n\n①「ショートカット」　⇒　「JSON Object Studio」  \n\n②の左側の**「表示グループ」枠を縦いっぱいにする"
+        },
+        {
+          "at": "2026-08-16T22:19:00+09:00",
+          "speaker": "assistant",
+          "message": "AI回答\n\n## 追加修正\n- 表示グループ名を「ショートカット」から「JSON Object Studio」へ変更。\n- 表示グループNavigationの外枠をDesktop時に中央Editor領域の下端までstretch。\n- Data構造、launch_shortcuts、sectionGroups契約、既存Renderer責務は変更しない。\n\n## 確認結果\n- Focused Static: 19/19 PASS（Phase 2/3/4関連）。\n- 全Static: 237 tests / 221 pass / 16 fail。\n- Before/Afterの既存16 FAIL名は完全一致し、新規FAILなし。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0197_001",
+          "at": "2026-08-16T21:41:00+09:00",
+          "decision": "`wwwroot/config` 全体をwritable rootにせず、System `app_settings.json` 1ファイルだけをexact writable fileとして許可する。",
+          "reason": "現時点ではSystem設定を直接更新する必要がある一方、System領域全体を利用者書込可能にしたくないため。",
+          "applied_axes": [
+            "安全境界",
+            "最小権限",
+            "既存Native Command再利用"
+          ],
+          "conditions": "Phase 4 System App Settings保存。",
+          "exceptions": "将来User App Settings Override導入時はSystem側書込権限を廃止する方向で再設計する。",
+          "expected_behavior": "`file.writeText` は既存writable rootsに加え、明示されたexact writable fileだけを書ける。",
+          "acceptance_criteria": "native_shell.config.jsonのwritable_rootsにwwwroot/configがなく、writable_filesにapp_settings.jsonだけが存在する。",
+          "confirmation_level": "Static確認"
+        },
+        {
+          "decision_id": "dec_0197_002",
+          "at": "2026-08-16T21:41:00+09:00",
+          "decision": "Settings保存Validationは専用Validatorを作らず、汎用DefinitionDocumentValidatorから既存FieldContractResolver / DefinitionValueValidatorを再利用する。",
+          "reason": "Field Definitionを正本契約とし、Settingsだけ別Validation体系を持たせないため。",
+          "applied_axes": [
+            "Definition Driven",
+            "外からつまめ原則",
+            "共通Validation"
+          ],
+          "conditions": "System App Settings Field Definitionへ露出した項目の保存前Validation。",
+          "exceptions": "Cross Field契約はSystem Field Definition側が0件のため今回対象外。",
+          "expected_behavior": "launch_shortcuts行とMarkdown設定が同じValidation Type Registry契約で検証される。",
+          "acceptance_criteria": "Valid SettingsはACCEPT、identifier/boolean/positive integer違反はREJECTになる。",
+          "confirmation_level": "Static / VM確認"
+        },
+        {
+          "decision_id": "dec_0197_003",
+          "at": "2026-08-16T21:41:00+09:00",
+          "decision": "System App Settings保存時は通常Data向けview_def自動注入を行わず、読み込んだCanonical Object全体を保持して露出項目だけ更新する。",
+          "reason": "hosting/ui等の非表示設定値を失わず、Settings DataへEditor都合のメタ情報を混入させないため。",
+          "applied_axes": [
+            "Round Trip",
+            "Canonical維持",
+            "Data/View分離"
+          ],
+          "conditions": "mode=settingsの保存。",
+          "exceptions": "通常Data Editorの既存view_def自動注入契約は変更しない。",
+          "expected_behavior": "保存後もhosting/uiが残り、app_settings.jsonへview_defが追加されない。",
+          "acceptance_criteria": "Phase 4 Staticでhidden settings保持とview_def非注入を確認する。",
+          "confirmation_level": "Static確認"
+        },
+        {
+          "decision_id": "dec_0197_004",
+          "at": "2026-08-16T21:41:00+09:00",
+          "decision": "sectionGroup切替前に既存applyHeaderEdits()を実行する。",
+          "reason": "Form Sectionの編集値はDOM上に存在するため、Group切替だけで再描画すると入力が失われるため。",
+          "applied_axes": [
+            "既存Editor契約再利用",
+            "Round Trip",
+            "外からつまめ原則"
+          ],
+          "conditions": "Active GroupにForm Sectionがあり、別Groupへ切り替える場合。",
+          "exceptions": "Grid Detailは既存F12/Save commit契約を維持する。",
+          "expected_behavior": "Markdown設定を編集してShortcut Groupへ切り替えてもsourceDataへ値が残る。",
+          "acceptance_criteria": "activateSectionGroup()がactiveSectionGroupId変更前にapplyHeaderEdits()を呼ぶ。",
+          "confirmation_level": "Static確認"
+        }
+      ],
       "change_history": [
         {
           "at": "2026-08-16T21:11:00+09:00",
@@ -28434,6 +28549,41 @@
           "before": "未登録",
           "after": "studio_work_0197 / v0.18.75-app-settings-save-phase4",
           "reason": "ユーザーがPhase 1〜5を先に登録して後続依頼しやすくすることを希望したため。"
+        },
+        {
+          "at": "2026-08-16T21:41:00+09:00",
+          "change_type": "phase4_fixed_app_settings_save_contract",
+          "before": "mode=settingsはReadOnly。wwwroot/configは書込不可。",
+          "after": "/api/app-settings固定契約 + writable_files exact allowlistでapp_settings.jsonだけ保存可能。",
+          "reason": "System設定だけを最小権限で更新可能にするため。"
+        },
+        {
+          "at": "2026-08-16T21:41:00+09:00",
+          "change_type": "phase4_definition_driven_validation",
+          "before": "System App Settings Field Definitionは表示Definitionのみで保存時未接続。",
+          "after": "DefinitionDocumentValidatorから既存FieldContractResolver / DefinitionValueValidatorへ接続。",
+          "reason": "Settings保存も共通Definition Driven Validationへ統一するため。"
+        },
+        {
+          "at": "2026-08-16T21:41:00+09:00",
+          "change_type": "phase4_round_trip_and_updated_at",
+          "before": "Settings保存契約なし。Group切替時Form入力保持契約なし。",
+          "after": "hidden設定保持 / view_def非注入 / updated_at更新 / Group切替前Header反映を追加。",
+          "reason": "Canonical app_settings.jsonを欠落・混入なくRound Trip保存するため。"
+        },
+        {
+          "at": "2026-08-16T21:41:00+09:00",
+          "change_type": "phase4_verification_completed",
+          "before": "Phase 4未確認。",
+          "after": "専用Static 7/7、Phase 1〜4連結25/25、全Static新規FAILなし、JS syntax PASS。NativeShell実機保存のみ確認待ち。",
+          "reason": "Phase 4のStatic契約と回帰を確認したため。"
+        },
+        {
+          "at": "2026-08-16T22:19:00+09:00",
+          "change_type": "phase4_settings_group_navigation_ui_refine",
+          "before": "Settings先頭Group captionは「ショートカット」。Navigation外枠は内容高に留まり下部に余白が残る。",
+          "after": "先頭Group captionを「JSON Object Studio」へ変更。DesktopではNavigation外枠を中央Editor領域の残り高さまでstretch。",
+          "reason": "設定対象がStudio全体ShortcutではなくJSON Object StudioのData/View選択支援であることを画面名で明確化し、Navigation Paneとして縦方向の見た目を整えるため。"
         }
       ]
     },

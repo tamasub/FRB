@@ -202,6 +202,27 @@
       if (method === 'GET' && path === '/api/overlays')
         return jsonResponse(await listDirectories('studio_overlays'));
 
+      if (path === '/api/app-settings') {
+        const settingsPath = 'wwwroot/config/app_settings.json';
+        if (method === 'GET') {
+          const result = await invoke('file.readText', { path: settingsPath });
+          return textResponse(result?.content ?? '', 'application/json; charset=utf-8');
+        }
+        if (method === 'POST') {
+          const body = await parseJsonBody(input, init);
+          if (!body || typeof body !== 'object' || Array.isArray(body)) {
+            return errorResponse(400, 'APP_SETTINGS_OBJECT_REQUIRED', 'app_settings.json must be a JSON object.');
+          }
+          await invoke('file.writeText', {
+            path: settingsPath,
+            content: prettyJson(body),
+            create_directories: false
+          });
+          return jsonResponse({ saved: settingsPath });
+        }
+        return errorResponse(405, 'METHOD_NOT_ALLOWED', 'Only GET/POST are supported for app settings.');
+      }
+
       if (method === 'POST' && path === '/api/data/drop') {
         const body = await parseJsonBody(input, init);
         const name = normalizedRelativePath(body?.name);

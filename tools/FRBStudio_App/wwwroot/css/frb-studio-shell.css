@@ -1020,7 +1020,9 @@ body.studio-grid-only-shell .json-studio-main-pane > main { padding:0; }
   grid-template-columns:minmax(150px, 190px) minmax(0, 1fr);
   grid-template-rows:auto minmax(0, 1fr);
   column-gap:10px;
-  align-content:start;
+  align-content:stretch;
+  min-height:calc(100dvh - var(--frb-fixed-header-height, 122px));
+  box-sizing:border-box;
 }
 .frb-page-json-object .json-studio-main-pane.has-section-groups > .json-studio-main-toolbar {
   grid-column:1 / -1;
@@ -1029,6 +1031,9 @@ body.studio-grid-only-shell .json-studio-main-pane > main { padding:0; }
 .frb-page-json-object .json-studio-main-pane.has-section-groups > .section-group-navigation {
   grid-column:1;
   grid-row:2;
+  align-self:stretch;
+  height:100%;
+  box-sizing:border-box;
 }
 .frb-page-json-object .json-studio-main-pane.has-section-groups > main {
   grid-column:2;
@@ -1037,7 +1042,7 @@ body.studio-grid-only-shell .json-studio-main-pane > main { padding:0; }
 .frb-page-json-object .section-group-navigation {
   position:sticky;
   top:calc(var(--frb-fixed-header-height, 122px) + 12px);
-  align-self:start;
+  align-self:stretch;
   display:grid;
   gap:8px;
   min-width:0;
@@ -1099,6 +1104,10 @@ body.studio-grid-only-shell .json-studio-main-pane.has-section-groups > main {
 @media (max-width: 900px) {
   .frb-page-json-object .json-studio-main-pane.has-section-groups {
     display:block;
+    min-height:0;
+  }
+  .frb-page-json-object .json-studio-main-pane.has-section-groups > .section-group-navigation {
+    height:auto;
   }
   .frb-page-json-object .section-group-navigation {
     position:static;

@@ -563,7 +563,7 @@ namespace FRBStudio.NativeShell
             var path = RequiredString(payload, "path");
             var content = GetString(payload, "content") ?? string.Empty;
             var createDirectories = GetBool(payload, "create_directories", true);
-            var full = _workspace.ResolveWritablePath(path, _config.WritableRoots, allowMissingLeaf: true);
+            var full = _workspace.ResolveWritablePath(path, _config.WritableRoots, _config.WritableFiles, allowMissingLeaf: true);
             var dir = Path.GetDirectoryName(full);
             if (createDirectories && !string.IsNullOrWhiteSpace(dir)) Directory.CreateDirectory(dir);
 

@@ -354,6 +354,8 @@ function launchStatusSuffix() {
 
 const SYSTEM_APP_SETTINGS_DATA_PATH = 'config/app_settings.json';
 const SYSTEM_APP_SETTINGS_VIEW_DEF_PATH = 'config/app_settings/app_settings_view_def_v0_1.json';
+const SYSTEM_APP_SETTINGS_FIELD_DEF_PATH = 'config/app_settings/app_settings_field_definitions_v0_1.json';
+const SYSTEM_APP_SETTINGS_SAVE_API_PATH = '/api/app-settings';
 
 function applySystemSettingsModePresentation() {
   document.body.classList.add('studio-settings-mode');
@@ -363,16 +365,99 @@ function applySystemSettingsModePresentation() {
   if (pageDescription) pageDescription.textContent = 'app_settings.json > 既存Editorで設定を管理';
 }
 
+function isSystemAppSettingsMode() {
+  return String(launchRuntime?.mode ?? '').trim().toLowerCase() === 'settings';
+}
+
+async function loadSystemAppSettingsValidationContext() {
+  const [fieldDefinitionDocument, registry] = await Promise.all([
+    fetchJson(SYSTEM_APP_SETTINGS_FIELD_DEF_PATH),
+    fetchJson('/api/data/config/validation_type_registry_v0_1.json')
+  ]);
+
+  if (fieldDefinitionDocument?.document_type !== 'field_definition' || !Array.isArray(fieldDefinitionDocument?.field_definitions)) {
+    throw new Error(`System App Settings Field Definitionが不正です: ${SYSTEM_APP_SETTINGS_FIELD_DEF_PATH}`);
+  }
+  if (registry?.document_type !== 'validation_type_registry' || !Array.isArray(registry?.validation_type_definitions)) {
+    throw new Error('Validation Type Registryが不正です: config/validation_type_registry_v0_1.json');
+  }
+
+  currentRuntimeFieldDefinitionRef = SYSTEM_APP_SETTINGS_FIELD_DEF_PATH;
+  currentRuntimeFieldDefinitionDocument = fieldDefinitionDocument;
+  currentRuntimeValidationTypeRegistry = registry;
+  return {
+    field_definition_count: fieldDefinitionDocument.field_definitions.length,
+    registry_version: String(registry.registry_version ?? '')
+  };
+}
+
+function validateSystemAppSettingsDocument(document) {
+  if (typeof DefinitionDocumentValidator === 'undefined') {
+    return {
+      status: 'UNRESOLVED',
+      reason_code: 'DEFINITION_DOCUMENT_VALIDATOR_UNAVAILABLE',
+      checks: [],
+      blocking_checks: []
+    };
+  }
+  const service = new DefinitionDocumentValidator();
+  return service.validate(
+    document,
+    currentRuntimeFieldDefinitionDocument,
+    currentRuntimeValidationTypeRegistry
+  );
+}
+
+function reportSystemAppSettingsValidationFailure(result) {
+  const count = Array.isArray(result?.blocking_checks) ? result.blocking_checks.length : 0;
+  const detail = typeof formatDefinitionDocumentValidationDetail === 'function'
+    ? formatDefinitionDocumentValidationDetail(result)
+    : String(result?.reason_code ?? 'FIELD_DEFINITION_CONTRACT_VIOLATION');
+  setStatus(`設定保存を拒否しました: Field Definition契約違反 ${count}件`, {
+    kind: 'error',
+    title: 'App Settings Validation',
+    toast: false,
+    sticky: true
+  });
+  if (typeof showStudioConfirmDialog === 'function') {
+    showStudioConfirmDialog({
+      title: '設定値を保存できません',
+      message: '入力値がApp Settings Field Definitionの契約を満たしていないため、app_settings.jsonへ保存しませんでした。',
+      detail,
+      okText: '閉じる',
+      cancelText: '戻る',
+      danger: true
+    });
+  }
+}
+
+function prepareSystemAppSettingsSaveDocument(document) {
+  const validation = validateSystemAppSettingsDocument(document);
+  if (validation.status !== 'ACCEPT') {
+    reportSystemAppSettingsValidationFailure(validation);
+    return { ok: false, validation, document: null };
+  }
+
+  const prepared = typeof cloneData === 'function'
+    ? cloneData(document)
+    : JSON.parse(JSON.stringify(document));
+  prepared.updated_at = typeof studioFormatIsoJst === 'function'
+    ? studioFormatIsoJst()
+    : new Date().toISOString();
+  return { ok: true, validation, document: prepared };
+}
+
 async function loadSystemAppSettings() {
   const [dataObj, defObj] = await Promise.all([
     fetchJson(SYSTEM_APP_SETTINGS_DATA_PATH),
     fetchJson(SYSTEM_APP_SETTINGS_VIEW_DEF_PATH)
   ]);
+  const readonly = typeof isStaticHostingMode === 'function' ? isStaticHostingMode() : false;
 
   launchRuntime = {
     fromUrl: true,
     mode: 'settings',
-    readonly: true,
+    readonly,
     dataParam: SYSTEM_APP_SETTINGS_DATA_PATH,
     viewParam: SYSTEM_APP_SETTINGS_VIEW_DEF_PATH,
     fileParam: ''
@@ -386,11 +471,16 @@ async function loadSystemAppSettings() {
   await loadFromObjects(
     defObj,
     dataObj,
-    'Studio設定を読み込みました / Phase 3はReadOnly（保存はPhase 4）',
-    null,
+    readonly ? 'Studio設定を読み込みました / Static hostingではReadOnly' : 'Studio設定を読み込みました / 保存可能',
+    readonly ? null : SYSTEM_APP_SETTINGS_SAVE_API_PATH,
     SYSTEM_APP_SETTINGS_DATA_PATH
   );
-  return { dataObj, defObj };
+
+  if (!readonly) {
+    await loadSystemAppSettingsValidationContext();
+    syncLoadedDocumentSaveButtonState();
+  }
+  return { dataObj, defObj, readonly };
 }
 
 async function autoLoadFromQuery() {

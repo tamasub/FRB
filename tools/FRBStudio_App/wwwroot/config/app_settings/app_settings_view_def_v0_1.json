@@ -11,7 +11,7 @@
       "sectionGroups": [
         {
           "id": "launch",
-          "caption": "ショートカット",
+          "caption": "JSON Object Studio",
           "sectionIds": [
             "launchShortcuts"
           ]

@@ -152,5 +152,8 @@
         "tests/.runtime/definition/*.json"
       ]
     }
+  ],
+  "writable_files": [
+    "wwwroot/config/app_settings.json"
   ]
 }

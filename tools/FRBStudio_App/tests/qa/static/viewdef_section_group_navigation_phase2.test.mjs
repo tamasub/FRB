@@ -104,6 +104,8 @@ test('JSON Object Studio provides generic Group Navigation UI and loads it befor
   assert.ok(navScript >= 0 && runtimeScript >= 0 && navScript < runtimeScript, 'navigation runtime must load before load_runtime');
 
   assert.match(css, /\.json-studio-main-pane\.has-section-groups/);
+  assert.match(css, /min-height:calc\(100dvh - var\(--frb-fixed-header-height, 122px\)\)/);
+  assert.match(css, /> \.section-group-navigation \{[\s\S]*align-self:stretch;[\s\S]*height:100%/);
   assert.match(css, /\.section-group-navigation-item\.active/);
   assert.match(navigation, /sectionGroupNavigation/);
   assert.match(navigation, /role', 'tab'/);

@@ -599,7 +599,8 @@ async function saveOverwriteJson() {
   if (detailMode === 'edit' && selectedIndex >= 0 && detailDialogOpen) {
     if (!tryCommitCurrentDetailEdits({ source: 'save' })) return false;
   }
-  if (currentDataSourceKind !== 'viewdef') {
+  const systemAppSettingsMode = typeof isSystemAppSettingsMode === 'function' && isSystemAppSettingsMode();
+  if (!systemAppSettingsMode && currentDataSourceKind !== 'viewdef') {
     ensureViewDefNameInData(sourceData, lastLoadedDefName || selectedDefName());
   }
 
@@ -617,12 +618,21 @@ async function saveOverwriteJson() {
     return true;
   }
 
-  const saveDocument = (
+  let saveDocument = (
     currentDataSourceKind === 'viewdef' &&
     typeof finalizeViewDefMaintenanceDocument === 'function' &&
     typeof isViewDefMaintenanceDocument === 'function' &&
     isViewDefMaintenanceDocument(sourceData)
   ) ? finalizeViewDefMaintenanceDocument(sourceData) : sourceData;
+
+  if (systemAppSettingsMode) {
+    if (typeof prepareSystemAppSettingsSaveDocument !== 'function') {
+      throw new Error('App Settings保存契約が初期化されていません');
+    }
+    const prepared = prepareSystemAppSettingsSaveDocument(sourceData);
+    if (!prepared?.ok) return false;
+    saveDocument = prepared.document;
+  }
 
   const res = await fetch(currentDataApiUrl, {
     method: 'POST',
@@ -638,7 +648,10 @@ async function saveOverwriteJson() {
   if (currentDataSourceKind === 'viewdef' && typeof invalidateDefinitionTargetViewDefCache === 'function') {
     invalidateDefinitionTargetViewDefCache(currentViewDefMaintenanceTarget || '');
   }
-  setStatus(`${currentDataSourceKind === 'viewdef' ? 'ViewDefを' : ''}上書き保存しました: ${currentDataApiUrl}`);
+  if (systemAppSettingsMode && saveDocument?.updated_at) {
+    sourceData.updated_at = saveDocument.updated_at;
+  }
+  setStatus(`${systemAppSettingsMode ? 'Studio設定を' : (currentDataSourceKind === 'viewdef' ? 'ViewDefを' : '')}上書き保存しました: ${currentDataApiUrl}`);
   return true;
 }
 

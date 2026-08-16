@@ -201,6 +201,10 @@ function activateSectionGroup(groupId) {
     return false;
   }
 
+  // Form SectionはGrid Detailと違い、入力値がDOM上にのみ存在する。
+  // Group切替前に既存applyHeaderEditsへ渡し、外からつまむNavigationが入力を消さないようにする。
+  if (typeof applyHeaderEdits === 'function') applyHeaderEdits();
+
   activeSectionGroupId = String(target.id);
   renderSectionGroupNavigation();
   renderActiveSectionGroup({ resetSelection: true });

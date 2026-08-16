@@ -26,7 +26,7 @@ test('System App Settings ViewDef uses sectionGroups to pinch existing Grid and 
   const view = viewDef.views?.[0];
   assert.equal(view?.id, 'appSettings');
   assert.deepEqual(view.sectionGroups, [
-    { id: 'launch', caption: 'ショートカット', sectionIds: ['launchShortcuts'] },
+    { id: 'launch', caption: 'JSON Object Studio', sectionIds: ['launchShortcuts'] },
     { id: 'markdown', caption: 'Markdown Studio', sectionIds: ['markdownSettings'] }
   ]);
   const sections = new Map(view.sections.map(section => [section.id, section]));
@@ -59,11 +59,11 @@ test('Common Shell exposes Settings as a separate trigger into the existing JSON
   assert.match(shellJs, /Studio設定を開く/);
 });
 
-test('mode=settings loads fixed System Data and ViewDef through loadFromObjects and remains read-only until Phase 4', () => {
+test('mode=settings keeps the fixed System Data/ViewDef trigger while later phases may evolve the save contract', () => {
   assert.match(loadRuntime, /SYSTEM_APP_SETTINGS_DATA_PATH = 'config\/app_settings\.json'/);
   assert.match(loadRuntime, /SYSTEM_APP_SETTINGS_VIEW_DEF_PATH = 'config\/app_settings\/app_settings_view_def_v0_1\.json'/);
   assert.match(loadRuntime, /async function loadSystemAppSettings\(\)/);
-  assert.match(loadRuntime, /mode: 'settings',[\s\S]*readonly: true/);
+  assert.match(loadRuntime, /mode: 'settings'/);
   assert.match(loadRuntime, /await loadFromObjects\([\s\S]*defObj,[\s\S]*dataObj/);
   assert.match(loadRuntime, /String\(mode\)\.trim\(\)\.toLowerCase\(\) === 'settings'/);
 });

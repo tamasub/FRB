@@ -15,6 +15,7 @@ namespace FRBStudio.NativeShell
         public bool DevToolsEnabled { get; private set; } = true;
         public bool OpenExternalLinksInDefaultBrowser { get; private set; } = true;
         public string[] WritableRoots { get; private set; } = Array.Empty<string>();
+        public string[] WritableFiles { get; private set; } = Array.Empty<string>();
         public HashSet<string> AllowedCommands { get; private set; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         public Dictionary<string, NativeProcessProfile> ProcessProfiles { get; private set; } = new Dictionary<string, NativeProcessProfile>(StringComparer.OrdinalIgnoreCase);
 
@@ -35,7 +36,8 @@ namespace FRBStudio.NativeShell
                 StartPage = GetString(raw, "start_page", "index.html"),
                 DevToolsEnabled = GetBool(raw, "dev_tools_enabled", true),
                 OpenExternalLinksInDefaultBrowser = GetBool(raw, "open_external_links_in_default_browser", true),
-                WritableRoots = GetStringList(raw, "writable_roots").ToArray()
+                WritableRoots = GetStringList(raw, "writable_roots").ToArray(),
+                WritableFiles = GetStringList(raw, "writable_files").ToArray()
             };
 
             foreach (var command in GetStringList(raw, "allowed_commands"))
