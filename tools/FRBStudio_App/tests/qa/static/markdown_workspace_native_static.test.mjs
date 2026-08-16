@@ -152,6 +152,7 @@ test('NativeShell binds window.open to one child WebView2 instead of leaving an 
 
 test('Markdown Studio has explicit Review Mode as Human to AI structured feedback interface', () => {
   assert.match(md, /id="btnReviewMode"[^>]*>Review</);
+  assert.match(md, /id="btnNewReview"[^>]*>＋ NEW Review</);
   assert.match(md, /document_type:\s*"markdown_review"/);
   assert.match(md, /return `\$\{base\}\.review\.json`/);
   assert.match(md, /snapshot:\s*\{[\s\S]*markdown:\s*snapshotMarkdown/);
@@ -166,9 +167,9 @@ test('Markdown Studio has explicit Review Mode as Human to AI structured feedbac
 });
 
 test('Review Mode freezes Markdown Snapshot and review actions are Review-only', () => {
-  assert.match(md, /現在のMarkdownをレビュー開始時点の固定文章としてReview JSONへ保存します/);
-  assert.match(md, /元のMarkdownは、Viewer \/ Editorへ戻れば引き続き編集できます/);
-  assert.match(md, /Review Modeでは固定文章を表示するため本文は編集できません/);
+  assert.match(md, /現在のMarkdownをレビュー用に固定してReview JSONへ保存します/);
+  assert.match(md, /元のMarkdownはViewer \/ Editorで引き続き編集できます/);
+  assert.match(md, /Review Modeでは固定文章へのコメント・判定・ハイライトのみ行えます/);
   assert.match(md, /editorEl\.readOnly = true/);
   assert.match(md, /if \(getMode\(\) !== "review"\) return;/);
   assert.match(md, /group === "all" \|\| group === mode/);
@@ -180,6 +181,23 @@ test('Review Mode freezes Markdown Snapshot and review actions are Review-only',
   assert.match(md, /captureMarkdownSourceBeforeReview\(\)/);
   assert.match(md, /if \(previousMode === "review"\) \{\s*restoreMarkdownSourceAfterReview\(\)/,
     'Markdown source must only be restored when actually leaving Review Mode');
+});
+
+test('NEW Review is always available for an opened Markdown while Review requires existing Review JSON', () => {
+  assert.match(md, /btnNewReview\.disabled = !canReview/);
+  assert.match(md, /btnReviewMode\.disabled = !canReview \|\| !markdownReviewAvailabilityRuntime\.exists/);
+  assert.match(md, /btnReviewMode\?\.addEventListener\("click", \(\) => openExistingMarkdownReviewMode\(\)\)/);
+  assert.match(md, /btnNewReview\?\.addEventListener\("click", \(\) => startNewMarkdownReview\(\)\)/);
+  assert.match(md, /既存のReviewデータがあります/);
+  assert.match(md, /現在のReview JSONを置き換えます/);
+  assert.match(md, /先に「名前を付けて保存」してください/);
+  assert.match(md, /okLabel: "新規レビュー開始"/);
+  assert.match(md, /現在のMarkdownに未保存の変更があります/);
+  assert.match(md, /保存してからNEW Reviewを開始します/);
+  assert.match(md, /okLabel: "OK"/);
+  assert.match(md, /saveCurrentMarkdownSourceForNewReview\(\)/);
+  assert.match(md, /mdCommentSidecarRuntime\.comments = \[\]/);
+  assert.match(md, /mdCommentSidecarRuntime\.highlights = \[\]/);
 });
 
 test('large Markdown warning is driven by app_settings before Workspace read', () => {
@@ -195,4 +213,23 @@ test('JSON Object Studio primary save label is 保存 instead of 上書き保存
   const runtime = read('wwwroot/js/runtime/load_runtime.js');
   assert.match(runtime, /currentDataApiUrl \? '保　存' : '別名保存'/);
   assert.doesNotMatch(runtime, /currentDataApiUrl \? '上書き保存'/);
+});
+
+
+test('Markdown Save Safety does not persist unused localStorage backups', () => {
+  const backupStart = md.indexOf('function createMarkdownSaveSafetyBackup');
+  const backupEnd = md.indexOf('async function runMarkdownSaveSafetyBeforeSave', backupStart);
+  const backupBody = md.slice(backupStart, backupEnd);
+  assert.doesNotMatch(backupBody, /localStorage\.setItem/);
+  assert.match(md, /function clearLegacyMarkdownSaveSafetyBackups\(\)/);
+  assert.match(md, /key\.startsWith\(prefix\)/);
+  assert.match(md, /window\.addEventListener\("beforeunload", clearLegacyMarkdownSaveSafetyBackups\)/);
+  assert.doesNotMatch(md, /直前バックアップはlocalStorageに残しています/);
+  assert.doesNotMatch(md, /直前バックアップ: localStorage/);
+});
+
+test('Markdown comment review action buttons stay horizontal', () => {
+  assert.match(md, /\.md-comment-review-actions\s*\{[\s\S]*?flex-wrap:\s*nowrap/);
+  assert.match(md, /\.md-comment-review-actions button\s*\{[\s\S]*?white-space:\s*nowrap/);
+  assert.match(md, /\.md-comment-review-actions button\s*\{[\s\S]*?writing-mode:\s*horizontal-tb/);
 });

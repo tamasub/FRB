@@ -473,6 +473,27 @@
       background: linear-gradient(135deg, #7c3aed, #a855f7) !important;
       color: #fff !important;
     }
+    #btnReviewMode:disabled,
+    #btnNewReview:disabled {
+      opacity: .42;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+    #btnReviewMode:disabled:hover,
+    #btnNewReview:disabled:hover {
+      background: rgba(105,120,160,.12);
+      transform: none !important;
+      box-shadow: none !important;
+    }
+    .md-new-review-btn {
+      border: 1px dashed rgba(124,58,237,.34);
+      color: #6d28d9;
+      background: rgba(124,58,237,.08);
+    }
+    .md-new-review-btn:not(:disabled):hover {
+      background: rgba(124,58,237,.15);
+    }
     .md-save-target-badge {
       display:inline-flex; align-items:center; min-height:34px; padding:0 10px;
       border:1px solid var(--line); border-radius:999px;
@@ -1095,9 +1116,16 @@
       white-space:pre-wrap;
     }
     .md-comment-review-meta { color:var(--muted); font-size:10.5px; font-weight:800; }
-    .md-comment-review-actions { display:flex; gap:6px; flex-wrap:wrap; }
+    .md-comment-review-actions {
+      display:flex; gap:6px; flex-wrap:nowrap; align-items:center;
+    }
     .md-comment-review-actions button {
-      padding:4px 7px; border-radius:8px; font-size:10px; box-shadow:none;
+      flex:0 0 auto;
+      min-width:38px;
+      min-height:28px;
+      padding:4px 7px; border-radius:8px; font-size:10px; line-height:1.2; box-shadow:none;
+      white-space:nowrap;
+      writing-mode:horizontal-tb;
       background:rgba(105,120,160,.12); color:var(--text);
     }
     .md-comment-review-actions button[data-comment-action="toggle-resolved"] { background:rgba(34,197,94,.13); }
@@ -2147,8 +2175,9 @@
           <div class="control-group view-flow">
             <button id="btnViewerMode" class="ghost-btn compact-text-btn">Viewer</button>
             <button id="btnEditorMode" class="ghost-btn mode-active compact-text-btn">Editor</button>
-            <button id="btnReviewMode" class="ghost-btn compact-text-btn">Review</button>
+            <button id="btnReviewMode" class="ghost-btn compact-text-btn" disabled>Review</button>
           </div>
+          <button id="btnNewReview" class="ghost-btn compact-text-btn md-new-review-btn" disabled>＋ NEW Review</button>
         </div>
       </div>
       
@@ -2323,7 +2352,7 @@ function mdStudioDateTime(options = {}) {
 function mdStudioFileTimestamp() {
   return typeof studioFormatFileTimestamp === "function" ? studioFormatFileTimestamp() : new Date().toLocaleString("sv-SE").replace(/[-: ]/g, "").slice(0, 15);
 }
-const mdUrlEl=document.getElementById("mdUrl"),previewEl=document.getElementById("preview"),editorInlineHost=document.getElementById("editorInlineHost"),tocEl=document.getElementById("toc"),charCountEl=document.getElementById("charCount"),readTimeEl=document.getElementById("readTime"),blockModelMeta=document.getElementById("blockModelMeta"),localFileBtn=document.getElementById("localFileBtn"),localFileInput=document.getElementById("localFileInput"),tocDepthBtns=[...document.querySelectorAll(".toc-depth-btn")],editorEl=document.getElementById("editor"),btnViewerMode=document.getElementById("btnViewerMode"),btnEditorMode=document.getElementById("btnEditorMode"),btnReviewMode=document.getElementById("btnReviewMode"),mdSaveTargetBadge=document.getElementById("mdSaveTargetBadge"),articleCard=document.getElementById("articleCard"),metaFileName=document.getElementById("metaFileName"),editorFileName=document.getElementById("editorFileName"),slashMenu=document.getElementById("slashMenu"),managedMdSelect=document.getElementById("managedMdSelect"),btnClearManagedMd=document.getElementById("btnClearManagedMd"),btnManagedMdTree=document.getElementById("btnManagedMdTree"),managedMdTreePicker=document.getElementById("managedMdTreePicker"),managedMdTreeList=document.getElementById("managedMdTreeList"),btnRefreshManagedMd=document.getElementById("btnRefreshManagedMd"),btnOverwriteManagedMd=document.getElementById("btnOverwriteManagedMd");
+const mdUrlEl=document.getElementById("mdUrl"),previewEl=document.getElementById("preview"),editorInlineHost=document.getElementById("editorInlineHost"),tocEl=document.getElementById("toc"),charCountEl=document.getElementById("charCount"),readTimeEl=document.getElementById("readTime"),blockModelMeta=document.getElementById("blockModelMeta"),localFileBtn=document.getElementById("localFileBtn"),localFileInput=document.getElementById("localFileInput"),tocDepthBtns=[...document.querySelectorAll(".toc-depth-btn")],editorEl=document.getElementById("editor"),btnViewerMode=document.getElementById("btnViewerMode"),btnEditorMode=document.getElementById("btnEditorMode"),btnReviewMode=document.getElementById("btnReviewMode"),btnNewReview=document.getElementById("btnNewReview"),mdSaveTargetBadge=document.getElementById("mdSaveTargetBadge"),articleCard=document.getElementById("articleCard"),metaFileName=document.getElementById("metaFileName"),editorFileName=document.getElementById("editorFileName"),slashMenu=document.getElementById("slashMenu"),managedMdSelect=document.getElementById("managedMdSelect"),btnClearManagedMd=document.getElementById("btnClearManagedMd"),btnManagedMdTree=document.getElementById("btnManagedMdTree"),managedMdTreePicker=document.getElementById("managedMdTreePicker"),managedMdTreeList=document.getElementById("managedMdTreeList"),btnRefreshManagedMd=document.getElementById("btnRefreshManagedMd"),btnOverwriteManagedMd=document.getElementById("btnOverwriteManagedMd");
 
 const fmPanel=document.getElementById("fmPanel"),fmHeader=document.getElementById("fmHeader"),fmBody=document.getElementById("fmBody"),fmToggleIcon=document.getElementById("fmToggleIcon"),fmSuggestArea=document.getElementById("fmSuggestArea");
 const btnExternalOpen=document.getElementById("btnExternalOpen"),btnRefreshWorkspace=document.getElementById("btnRefreshWorkspace"),btnNewWorkspaceMarkdown=document.getElementById("btnNewWorkspaceMarkdown"),btnNewWorkspaceFolder=document.getElementById("btnNewWorkspaceFolder"),mdWorkspaceTree=document.getElementById("mdWorkspaceTree"),mdWorkspaceName=document.getElementById("mdWorkspaceName"),mdWorkspacePath=document.getElementById("mdWorkspacePath"),mdWorkspaceRootDrop=document.getElementById("mdWorkspaceRootDrop"),mdDocumentOrigin=document.getElementById("mdDocumentOrigin");
@@ -2778,6 +2807,71 @@ let markdownReviewModeRuntime = {
   sourceDirty: false,
   hasSourceSnapshot: false
 };
+let markdownReviewAvailabilityRuntime = {
+  exists: false,
+  targetName: "",
+  requestSeq: 0
+};
+function currentMarkdownReviewTargetName() {
+  if (markdownDocumentRuntime.kind === "workspace") {
+    return normalizeWorkspaceRelativePath(markdownDocumentRuntime.relativePath || "");
+  }
+  if (markdownDocumentRuntime.kind === "managed") {
+    return normalizeMarkdownFileName(currentManagedMarkdownName || markdownDocumentRuntime.relativePath || "");
+  }
+  return normalizeMarkdownFileName(documentDisplayName() || "");
+}
+function hasCurrentMarkdownDocumentForReview() {
+  const targetName = currentMarkdownReviewTargetName();
+  return Boolean(targetName && !isMarkdownSidecarFileName(targetName) && markdownDocumentRuntime.kind !== "none");
+}
+function updateMarkdownReviewButtonsUI() {
+  const hasDocument = hasCurrentMarkdownDocumentForReview();
+  const canReview = hasDocument && !launchMarkdownRuntime.readonly;
+  if (btnNewReview) {
+    btnNewReview.disabled = !canReview;
+    btnNewReview.title = canReview
+      ? "現在のMarkdownから新しいReviewを開始"
+      : "先にMarkdownを開いてください";
+  }
+  if (btnReviewMode) {
+    btnReviewMode.disabled = !canReview || !markdownReviewAvailabilityRuntime.exists;
+    btnReviewMode.title = markdownReviewAvailabilityRuntime.exists
+      ? "既存のReviewを開く"
+      : "既存のReviewデータはありません";
+  }
+}
+function setMarkdownReviewAvailability(exists, targetName = currentMarkdownReviewTargetName()) {
+  markdownReviewAvailabilityRuntime.requestSeq += 1;
+  markdownReviewAvailabilityRuntime.exists = Boolean(exists);
+  markdownReviewAvailabilityRuntime.targetName = String(targetName || "");
+  updateMarkdownReviewButtonsUI();
+}
+async function refreshMarkdownReviewAvailability(targetName = currentMarkdownReviewTargetName()) {
+  const target = String(targetName || "");
+  const seq = ++markdownReviewAvailabilityRuntime.requestSeq;
+  markdownReviewAvailabilityRuntime.exists = false;
+  markdownReviewAvailabilityRuntime.targetName = target;
+  updateMarkdownReviewButtonsUI();
+
+  if (!hasCurrentMarkdownDocumentForReview()) return false;
+  if (markdownDocumentRuntime.kind !== "workspace" && markdownDocumentRuntime.kind !== "managed") return false;
+
+  try {
+    const raw = await readMarkdownReviewJson(target);
+    if (seq !== markdownReviewAvailabilityRuntime.requestSeq) return markdownReviewAvailabilityRuntime.exists;
+    markdownReviewAvailabilityRuntime.exists = raw !== null;
+    markdownReviewAvailabilityRuntime.targetName = target;
+    updateMarkdownReviewButtonsUI();
+    return markdownReviewAvailabilityRuntime.exists;
+  } catch (err) {
+    if (seq !== markdownReviewAvailabilityRuntime.requestSeq) return markdownReviewAvailabilityRuntime.exists;
+    console.warn("Review JSON存在確認に失敗", err);
+    markdownReviewAvailabilityRuntime.exists = false;
+    updateMarkdownReviewButtonsUI();
+    return false;
+  }
+}
 function captureMarkdownSourceBeforeReview() {
   markdownReviewModeRuntime.sourceMarkdown = String(editorEl.value || "");
   markdownReviewModeRuntime.sourceDirty = Boolean(isManagedMarkdownDirty);
@@ -2806,6 +2900,7 @@ function setMarkdownMode(mode) {
   btnEditorMode.classList.toggle("mode-active", mode === "editor");
   btnReviewMode?.classList.toggle("mode-active", mode === "review");
   updateMarkdownSaveTargetUI(mode);
+  updateMarkdownReviewButtonsUI();
 
   if (mode === "review") {
     const snapshot = String(mdCommentSidecarRuntime.snapshotMarkdown || "");
@@ -2832,7 +2927,8 @@ function setMarkdownMode(mode) {
 }
 btnViewerMode.addEventListener("click", () => setMarkdownMode("viewer"));
 btnEditorMode.addEventListener("click", () => setMarkdownMode("editor"));
-btnReviewMode?.addEventListener("click", () => enterMarkdownReviewMode());
+btnReviewMode?.addEventListener("click", () => openExistingMarkdownReviewMode());
+btnNewReview?.addEventListener("click", () => startNewMarkdownReview());
 
 // mdViewer v0.13.4: コメントレビューUI
 document.querySelectorAll("[data-comment-filter]").forEach(btn => {
@@ -4313,58 +4409,165 @@ async function loadMarkdownCommentSidecar(targetName) {
   applyMarkdownCommentSidecarDocumentFromRaw(raw, targetName, markdownCommentSidecarName(targetName));
   return true;
 }
-async function enterMarkdownReviewMode() {
+async function reviewTargetNameAfterWorkspacePreparation() {
+  const ready = await importCurrentDocumentIntoWorkspaceForComments();
+  if (!ready) return "";
+  return markdownDocumentRuntime.kind === "workspace"
+    ? normalizeWorkspaceRelativePath(markdownDocumentRuntime.relativePath)
+    : normalizeMarkdownFileName(currentManagedMarkdownName || markdownDocumentRuntime.relativePath || documentDisplayName());
+}
+function currentMarkdownSourceDirtyForReview() {
+  if (getMode() === "review" && markdownReviewModeRuntime.hasSourceSnapshot) {
+    return Boolean(markdownReviewModeRuntime.sourceDirty);
+  }
+  return Boolean(isManagedMarkdownDirty);
+}
+function currentMarkdownSourceTextForReview() {
+  if (getMode() === "review" && markdownReviewModeRuntime.hasSourceSnapshot) {
+    return String(markdownReviewModeRuntime.sourceMarkdown || "");
+  }
+  return String(editorEl.value || "");
+}
+async function saveCurrentMarkdownSourceForNewReview() {
+  const wasReview = getMode() === "review" && markdownReviewModeRuntime.hasSourceSnapshot;
+  const reviewSnapshotValue = wasReview ? String(editorEl.value || "") : "";
+  const sourceText = currentMarkdownSourceTextForReview();
+
+  if (wasReview) {
+    editorEl.value = sourceText;
+    isManagedMarkdownDirty = Boolean(markdownReviewModeRuntime.sourceDirty);
+  }
+
+  try {
+    let saved = true;
+    if (markdownDocumentRuntime.kind === "workspace") {
+      await saveWorkspaceMarkdown({ quiet: true });
+    } else if (markdownDocumentRuntime.kind === "managed" && currentManagedMarkdownName) {
+      await saveManagedMarkdown(currentManagedMarkdownName, editorEl.value, true);
+    } else if (markdownDocumentRuntime.kind === "external" || markdownDocumentRuntime.kind === "drop") {
+      saved = await saveExternalMarkdownOverwrite();
+    } else {
+      showMarkdownWarn('現在のMarkdownには上書き保存先がありません。先に「名前を付けて保存」を使用してください。', 5200);
+      saved = false;
+    }
+
+    if (!saved) return false;
+
+    if (wasReview) {
+      markdownReviewModeRuntime.sourceMarkdown = String(editorEl.value || sourceText);
+      markdownReviewModeRuntime.sourceDirty = false;
+    }
+    return true;
+  } finally {
+    if (wasReview) {
+      editorEl.value = reviewSnapshotValue;
+      isManagedMarkdownDirty = Boolean(markdownReviewModeRuntime.sourceDirty);
+    }
+  }
+}
+async function confirmAndSaveDirtyMarkdownBeforeNewReview() {
+  if (!currentMarkdownSourceDirtyForReview()) return true;
+  const ok = await showMarkdownConfirmDialog({
+    title: "未保存の変更があります",
+    message: "現在のMarkdownに未保存の変更があります。\n保存してからNEW Reviewを開始します。よろしいですか？",
+    okLabel: "OK",
+    cancelLabel: "キャンセル"
+  });
+  if (!ok) return false;
+  try {
+    return await saveCurrentMarkdownSourceForNewReview();
+  } catch (err) {
+    showMarkdownError("Markdownの保存に失敗したため、NEW Reviewを開始できません。\n" + (err?.message || err));
+    return false;
+  }
+}
+async function openExistingMarkdownReviewMode() {
   if (getMode() === "review") return;
   if (launchMarkdownRuntime.readonly) {
     showMarkdownWarn("ReadOnly起動ではReview Modeを開始できません。");
     return;
   }
-  if (!String(editorEl.value || "").trim() && !documentDisplayName()) {
+  if (!hasCurrentMarkdownDocumentForReview()) {
     showMarkdownWarn("先にレビュー対象のMarkdownを開いてください。");
     return;
   }
-  const ready = await importCurrentDocumentIntoWorkspaceForComments();
-  if (!ready) return;
 
-  const targetName = markdownDocumentRuntime.kind === "workspace"
-    ? normalizeWorkspaceRelativePath(markdownDocumentRuntime.relativePath)
-    : normalizeMarkdownFileName(currentManagedMarkdownName || markdownDocumentRuntime.relativePath || documentDisplayName());
-  if (!targetName) {
-    showMarkdownWarn("レビュー対象のMarkdownを特定できません。");
-    return;
-  }
-
+  const targetName = currentMarkdownReviewTargetName();
   try {
     const exists = await loadMarkdownCommentSidecar(targetName);
     if (!exists) {
-      const ok = await showMarkdownConfirmDialog({
-        title: "レビューを開始しますか？",
-		message: "現在のMarkdownをレビュー用に固定(凍結)してReviewコメント・ハイライなどを追加できます。\n\n元のMarkdownは Editorで引き続き編集できます。",        okLabel: "レビュー開始",
-        cancelLabel: "キャンセル"
-      });
-      if (!ok) return;
-
-      const snapshot = materializeFrontMatterForSave(editorEl.value || "");
-      if (markdownDocumentRuntime.kind === "workspace") await saveWorkspaceMarkdown({ quiet: true });
-      else if (markdownDocumentRuntime.kind === "managed" && currentManagedMarkdownName) await saveManagedMarkdown(currentManagedMarkdownName, snapshot, true);
-
-      mdCommentSidecarRuntime.schemaVersion = "markdown_review_v0_1";
-      mdCommentSidecarRuntime.targetFile = targetName;
-      mdCommentSidecarRuntime.sidecarName = markdownCommentSidecarName(targetName);
-      mdCommentSidecarRuntime.snapshotMarkdown = snapshot;
-      mdCommentSidecarRuntime.snapshotHash = markdownTextHash(snapshot);
-      mdCommentSidecarRuntime.createdAt = mdStudioDateTime();
-      mdCommentSidecarRuntime.comments = [];
-      mdCommentSidecarRuntime.highlights = [];
-      mdCommentSidecarRuntime.loaded = true;
-      mdCommentSidecarRuntime.dirty = true;
-      await saveMarkdownCommentSidecar({ quiet: true });
-      showMarkdownSuccess(`Review JSONを作成しました: ${mdCommentSidecarRuntime.sidecarName}`, 4200);
+      setMarkdownReviewAvailability(false, targetName);
+      showMarkdownInfo("既存のReviewデータがありません。「＋ NEW Review」から開始してください。", 4200);
+      return;
     }
+    setMarkdownReviewAvailability(true, targetName);
     captureMarkdownSourceBeforeReview();
     setMarkdownMode("review");
   } catch (err) {
     showMarkdownError("Review Modeを開始できません。\n" + (err?.message || err));
+  }
+}
+async function startNewMarkdownReview() {
+  if (launchMarkdownRuntime.readonly) {
+    showMarkdownWarn("ReadOnly起動ではNEW Reviewを開始できません。");
+    return;
+  }
+  if (!hasCurrentMarkdownDocumentForReview()) {
+    showMarkdownWarn("先にレビュー対象のMarkdownを開いてください。");
+    return;
+  }
+
+  try {
+    const currentTarget = currentMarkdownReviewTargetName();
+    const existingRaw = (markdownDocumentRuntime.kind === "workspace" || markdownDocumentRuntime.kind === "managed")
+      ? await readMarkdownReviewJson(currentTarget)
+      : null;
+
+    if (existingRaw !== null) {
+      const replaceOk = await showMarkdownConfirmDialog({
+        title: "既存のReviewデータがあります",
+        message: "新しいレビューを開始すると、現在のReview JSONを置き換えます。\n\n必要な場合は、先に「名前を付けて保存」してください。",
+        okLabel: "新規レビュー開始",
+        cancelLabel: "キャンセル"
+      });
+      if (!replaceOk) return;
+    } else {
+      const startOk = await showMarkdownConfirmDialog({
+        title: "レビューを開始しますか？",
+        message: "現在のMarkdownをレビュー用に固定してReview JSONへ保存します。\n元のMarkdownはViewer / Editorで引き続き編集できます。\nReview Modeでは固定文章へのコメント・判定・ハイライトのみ行えます。",
+        okLabel: "レビュー開始",
+        cancelLabel: "キャンセル"
+      });
+      if (!startOk) return;
+    }
+
+    const saved = await confirmAndSaveDirtyMarkdownBeforeNewReview();
+    if (!saved) return;
+
+    const targetName = await reviewTargetNameAfterWorkspacePreparation();
+    if (!targetName) return;
+
+    const sourceMarkdown = currentMarkdownSourceTextForReview();
+    const snapshot = materializeFrontMatterForSave(sourceMarkdown);
+
+    mdCommentSidecarRuntime.schemaVersion = "markdown_review_v0_1";
+    mdCommentSidecarRuntime.targetFile = targetName;
+    mdCommentSidecarRuntime.sidecarName = markdownCommentSidecarName(targetName);
+    mdCommentSidecarRuntime.snapshotMarkdown = snapshot;
+    mdCommentSidecarRuntime.snapshotHash = markdownTextHash(snapshot);
+    mdCommentSidecarRuntime.createdAt = mdStudioDateTime();
+    mdCommentSidecarRuntime.comments = [];
+    mdCommentSidecarRuntime.highlights = [];
+    mdCommentSidecarRuntime.loaded = true;
+    mdCommentSidecarRuntime.dirty = true;
+    await saveMarkdownCommentSidecar({ quiet: true });
+    setMarkdownReviewAvailability(true, targetName);
+
+    if (getMode() !== "review") captureMarkdownSourceBeforeReview();
+    setMarkdownMode("review");
+    showMarkdownSuccess(`新しいReview JSONを作成しました: ${mdCommentSidecarRuntime.sidecarName}`, 4200);
+  } catch (err) {
+    showMarkdownError("NEW Reviewを開始できません。\n" + (err?.message || err));
   }
 }
 async function saveMarkdownCommentSidecar({ quiet = true } = {}) {
@@ -4383,6 +4586,7 @@ async function saveMarkdownCommentSidecar({ quiet = true } = {}) {
       });
       mdCommentSidecarRuntime.dirty = false;
       mdCommentSidecarRuntime.lastSaveError = "";
+      setMarkdownReviewAvailability(true, mdCommentSidecarRuntime.targetFile || currentMarkdownReviewTargetName());
       if (!quiet) showMarkdownSuccess(`Review JSONを保存しました: ${result?.full_path || sidecarName}`);
       return;
     }
@@ -4396,6 +4600,7 @@ async function saveMarkdownCommentSidecar({ quiet = true } = {}) {
       if (!res.ok) throw new Error(await res.text());
       mdCommentSidecarRuntime.dirty = false;
       mdCommentSidecarRuntime.lastSaveError = "";
+      setMarkdownReviewAvailability(true, mdCommentSidecarRuntime.targetFile || currentMarkdownReviewTargetName());
       if (!quiet) showMarkdownSuccess(`Review JSONを保存しました: data/markdown/${sidecarName}`);
       return;
     }
@@ -4730,6 +4935,7 @@ function resetMarkdownCommentSidecarForLocal(targetName = "") {
   mdCommentSidecarRuntime.lastSaveError = "";
   mdCommentReviewRuntime.lastFocusedCommentId = "";
   renderMarkdownCommentReviewUI();
+  void refreshMarkdownReviewAvailability(targetName || "");
 }
 
 function frbCommentLabel(status) {
@@ -5838,8 +6044,9 @@ function applyMarkdownReadonlyLaunchControls() {
   if (!launchMarkdownRuntime.readonly) return;
   editorEl.readOnly = true;
   editorEl.setAttribute('aria-readonly', 'true');
-  [btnOverwriteManagedMd, document.getElementById('btnSaveFile'), localFileBtn, document.getElementById('btnPasteClip')]
+  [btnOverwriteManagedMd, document.getElementById('btnSaveFile'), localFileBtn, document.getElementById('btnPasteClip'), btnReviewMode, btnNewReview]
     .forEach(btn => { if (btn) btn.disabled = true; });
+  updateMarkdownReviewButtonsUI();
   if (previewEl && !document.getElementById('readonlyLaunchNote')) {
     const note = document.createElement('div');
     note.id = 'readonlyLaunchNote';
@@ -5854,9 +6061,26 @@ function applyMarkdownReadonlyLaunchControls() {
 function normalizeMarkdownForSafety(text) {
   return String(text ?? "").replace(/\r\n?/g, "\n");
 }
+// Save Safety localStorage backup is intentionally disabled.
+// There is no restore path, so persistent backup data must not be written to the user's PC.
+// The prefix remains only to remove legacy backup keys created by earlier versions.
 function markdownSafetyStoragePrefix() {
   return "frb-md-save-backup:";
 }
+function clearLegacyMarkdownSaveSafetyBackups() {
+  try {
+    const prefix = markdownSafetyStoragePrefix();
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(prefix)) keys.push(key);
+    }
+    keys.forEach(key => localStorage.removeItem(key));
+    mdSaveSafetyRuntime.lastBackupKey = "";
+  } catch (_) {}
+}
+clearLegacyMarkdownSaveSafetyBackups();
+window.addEventListener("beforeunload", clearLegacyMarkdownSaveSafetyBackups);
 function recordMarkdownLoadedSnapshot(name, content) {
   mdSaveSafetyRuntime.loadedName = normalizeMarkdownFileName(name || currentManagedMarkdownName || metaFileName.value || "frb_thought.md");
   mdSaveSafetyRuntime.loadedContent = String(content ?? "");
@@ -6026,39 +6250,25 @@ function updateMarkdownSaveSafetyButton(result) {
   }
 }
 function createMarkdownSaveSafetyBackup(fileName, content, result) {
-  const safeName = normalizeMarkdownFileName(fileName || "frb_thought.md");
-  const backup = {
-    document_type: "markdown_save_backup",
-    schema_version: "md_save_safety_backup_v0_1",
-    created_at: mdStudioDateTime(),
-    file_name: safeName,
-    sidecar_name: mdCommentSidecarRuntime.sidecarName || markdownCommentSidecarName(safeName),
-    safety: result,
-    content: String(content ?? ""),
-    sidecar: buildMarkdownCommentSidecarDocument()
-  };
-  const latestKey = `${markdownSafetyStoragePrefix()}${safeName}:latest`;
-  try {
-    localStorage.setItem(latestKey, JSON.stringify(backup));
-    mdSaveSafetyRuntime.lastBackupKey = latestKey;
-  } catch (err) {
-    result.warnings.push(`localStorageバックアップに失敗しました: ${err.message}`);
-  }
-  return latestKey;
+  // Disabled by design:
+  // Save Safety has validation + post-save RoundTrip verification, but no backup restore feature.
+  // Do not persist unused backup data in localStorage.
+  mdSaveSafetyRuntime.lastBackupKey = "";
+  return "";
 }
 async function runMarkdownSaveSafetyBeforeSave(fileName, content) {
   const result = buildMarkdownSaveSafetyResult(fileName, content);
-  createMarkdownSaveSafetyBackup(fileName, content, result);
+  // localStorage backup disabled: no restore feature exists.
   mdSaveSafetyRuntime.lastCheck = result;
   updateMarkdownSaveSafetyButton(result);
   if (result.errors.length) {
-    showMarkdownError(markdownSaveSafetySummary(result) + "\n\n保存は中止しました。直前バックアップはlocalStorageに残しています。", 9000);
+    showMarkdownError(markdownSaveSafetySummary(result) + "\n\n保存は中止しました。", 9000);
     return false;
   }
   if (result.warnings.length) {
     return await showMarkdownConfirmDialog({
       title: "警告があります。このまま保存しますか？",
-      message: markdownSaveSafetySummary(result) + "\n\n直前バックアップはlocalStorageに残しています。",
+      message: markdownSaveSafetySummary(result),
       okLabel: "保存する",
       cancelLabel: "キャンセル"
     });
@@ -6082,10 +6292,10 @@ async function verifySavedManagedMarkdown(fileName, expectedContent) {
 async function runManualMarkdownSaveSafetyCheck() {
   const fileName = normalizeMarkdownFileName(currentManagedMarkdownName || metaFileName.value || editorFileName.value);
   const result = buildMarkdownSaveSafetyResult(fileName, editorEl.value);
-  createMarkdownSaveSafetyBackup(fileName, editorEl.value, result);
+  // localStorage backup disabled: no restore feature exists.
   mdSaveSafetyRuntime.lastCheck = result;
   updateMarkdownSaveSafetyButton(result);
-  showMarkdownInfo(markdownSaveSafetySummary(result) + "\n\n直前バックアップ: localStorage / " + (mdSaveSafetyRuntime.lastBackupKey || "-"), 9000 );
+  showMarkdownInfo(markdownSaveSafetySummary(result), 9000 );
 }
 
 function normalizeMarkdownFileName(name) {
@@ -6819,8 +7029,7 @@ async function saveManagedMarkdown(name, content, quiet = false) {
   await refreshManagedMarkdownList(fileName);
   const summary = mdSaveSafetyRuntime.lastCheck ? `
 
-Save Safety: ${mdSaveSafetyRuntime.lastCheck.errors.length} errors / ${mdSaveSafetyRuntime.lastCheck.warnings.length} warnings
-Backup: ${mdSaveSafetyRuntime.lastBackupKey || "-"}` : "";
+Save Safety: ${mdSaveSafetyRuntime.lastCheck.errors.length} errors / ${mdSaveSafetyRuntime.lastCheck.warnings.length} warnings` : "";
   if (!quiet) showMarkdownSuccess(`保存しました: data/markdown/${fileName}${summary}`, 5200);
   return fileName;
 }

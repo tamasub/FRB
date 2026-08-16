@@ -183,6 +183,9 @@
   },
   "active": "cd032dfc067ef1b2",
   "lastOpenFiles": [
+    "FRBStudio_App20260816_193253.zip",
+    "FRBStudio_App20260816_192016.zip",
+    "FRBStudio_App20260816_190410.zip",
     "FRBStudio_App20260816_174657.zip",
     "FRBStudio_App20260816_171243.zip",
     "wwwroot/js/services/search_definition_test_evidence_builder.js",
@@ -191,9 +194,6 @@
     "tests/search/search_definition_test_runner_cli.mjs",
     "tests/search/search_definition_test_runner.test.mjs",
     "tests/search",
-    "defs/search/search_definition_test_diff_view_def_v0_1.json",
-    "defs/search",
-    "data/json/03_tests/contracts/definition_driven_search_v0_1/summary/search_definition_test.result.json",
     "data/markdown/30_Studioくん構想メモ/06_作業備忘録.md",
     "data/markdown/30_Studioくん構想メモ/06_作業備忘録 1.md"
   ]
