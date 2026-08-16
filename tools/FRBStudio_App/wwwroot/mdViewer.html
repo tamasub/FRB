@@ -223,6 +223,7 @@
       --radius: 22px;
       --code-bg: #0f172a;
       --code-text: #dbeafe;
+      --code-current-bg: #293442;
     }
 
     [data-theme="zenn"] {
@@ -249,6 +250,7 @@
       --shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
       --code-bg: #020617;
       --code-text: #dbeafe;
+      --code-current-bg: #172033;
     }
 
     * { box-sizing: border-box; }
@@ -263,7 +265,7 @@
       transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
     }
 
-    .app { width: min(1400px, calc(100% - 28px)); margin: 16px auto 56px; }
+    .app { width: calc(100% - 28px); max-width: none; margin: 16px auto 56px; }
     
     /* ヘッダー・トップバー */
     .topbar {
@@ -471,14 +473,16 @@
     /* レイアウト切り替え */
     .layout {
       display: grid;
-      grid-template-columns: 280px minmax(0, 1fr) 300px;
+      grid-template-columns: minmax(280px, 1.15fr) minmax(680px, 800px) minmax(300px, .85fr);
       gap: 18px;
       margin-top: 22px;
       align-items: start;
       min-width: 0;
     }
     .layout > * { min-width: 0; }
-    body[data-mode="editor"] .layout { grid-template-columns: 280px minmax(0, 1fr) 300px !important; }
+    body[data-mode="editor"] .layout {
+      grid-template-columns: minmax(280px, 1.15fr) minmax(680px, 800px) minmax(300px, .85fr) !important;
+    }
     body[data-mode="editor"] .sidebar { display: grid; }
     .workspace-sidebar { grid-column: 1; grid-row:1; }
     .article-card { grid-column: 2; grid-row:1; }
@@ -531,7 +535,7 @@
       max-height: calc(100dvh - 126px);
       min-height: 0;
       overflow: hidden;
-      grid-template-rows: minmax(150px, 38%) auto minmax(150px, 1fr);
+      grid-template-rows: minmax(170px, 1fr) minmax(190px, 1fr) auto;
     }
     .side-card, .article-card, .edit-card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); backdrop-filter: blur(18px); box-shadow: var(--shadow); min-width: 0; }
     .side-card { padding: 16px; min-height: 0; }
@@ -597,14 +601,29 @@
       border-radius: 10px;
       transition: background .15s ease, outline-color .15s ease, box-shadow .15s ease;
     }
-    body[data-mode="editor"] #preview [data-md-line]:hover {
+    body[data-mode="editor"] #preview [data-md-line]:not(pre):hover {
       background: rgba(63,124,255,.028);
     }
-    #preview .md-current-block {
+    #preview .md-current-block:not(pre) {
       outline: 1.5px dashed rgba(63,124,255,.58);
       outline-offset: 5px;
       background: rgba(63,124,255,.045);
       box-shadow: 0 0 0 3px rgba(63,124,255,.022);
+    }
+    /* mdViewer v0.16.15: code blocks must never inherit the pale editor hover surface.
+       Hover and current state stay in the dark-gray family so the code text remains readable. */
+    body[data-mode="editor"] #preview pre[data-md-line] {
+      background: var(--code-bg) !important;
+      color: var(--code-text) !important;
+      transition: outline-color .12s ease, box-shadow .12s ease !important;
+    }
+    body[data-mode="editor"] #preview pre[data-md-line]:hover,
+    body[data-mode="editor"] #preview pre.md-current-block {
+      outline: 1.5px dashed rgba(63,124,255,.58);
+      outline-offset: 5px;
+      background: var(--code-current-bg) !important;
+      color: var(--code-text) !important;
+      box-shadow: 0 0 0 3px rgba(63,124,255,.045);
     }
     #preview [data-md-block-id] {
       position: relative;
@@ -1101,7 +1120,7 @@
 
 
     /* プレビュー・記事エリア */
-    .article-card { padding: clamp(24px, 5vw, 48px); min-height: calc(100vh - 130px); transition: opacity 0.2s ease; overflow: hidden; }
+    .article-card { padding: clamp(24px, 5vw, 48px); min-height: calc(100vh - 130px); transition: none; overflow: hidden; }
     
     /* --- Zenn フロントマター管理 UI パネル (image_193b23.pngのハック再現) --- */
     .fm-panel {
@@ -1578,7 +1597,7 @@
     @media (max-height: 820px) {
       .sidebar {
         gap: 8px;
-        grid-template-rows: minmax(128px, 34%) auto minmax(132px, 1fr);
+        grid-template-rows: minmax(132px, 1fr) minmax(150px, 1fr) auto;
       }
       .side-card { padding: 12px 14px; }
       .side-card h2 { margin-bottom: 7px; font-size: 12.5px; }
@@ -5489,8 +5508,6 @@ function renderMarkdown(rawMd, sourceUrl, sourceLabel){
   hideMdBlockActionMenu();
   hideMarkdownTableCellEditor();
   hideMarkdownRawBlockEditor();
-  articleCard.style.opacity = 0.85;
-  
   setTimeout(() => {
     const { data, content } = parseFrontMatter(rawMd);
     
@@ -5539,7 +5556,6 @@ function renderMarkdown(rawMd, sourceUrl, sourceLabel){
     
     buildToc();
     updateMeta(rawMd, content);
-    articleCard.style.opacity = 1;
     const restoreAnchor = markdownEditorRuntime.pendingPreviewRestoreAnchor;
     const restoreLine = restoreAnchor ? resolveHeadingRelativeAnchor(restoreAnchor, rawMd) : markdownEditorRuntime.pendingPreviewRestoreLine;
     markdownEditorRuntime.pendingPreviewRestoreAnchor = null;

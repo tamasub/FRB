@@ -8,15 +8,15 @@
   "source_document": "frb_view_def_schema_v0_9.json",
   "source_schema_id": "frb_view_def_schema_v0_9.json",
   "source_schema_title": "FRB Studio View Definition Schema v0.9 - Chat Input Mapping / Markdown Inline",
-  "source_schema_description": "Schema for FRBStudio_App / No-Code JSON Studio view_def JSON files. Includes inheritance, common field types, Markdown export / AI Prompt, dataSources, virtualData registry builders, single-source writeBack, Relation status filters, and toolbar.executeButton action declarations. v0.9 adds chat edit.input.appendPosition/appendLabel and chat Markdown inline link/image permissions.",
+  "source_schema_description": "Schema for FRBStudio_App / No-Code JSON Studio view_def JSON files. Includes inheritance, common field types, Markdown export / AI Prompt, dataSources, virtualData registry builders, single-source writeBack, Relation status filters, and toolbar.executeButton action declarations. v0.9 adds chat edit.input.appendPosition/appendLabel and chat Markdown inline link/image permissions. v0.15.5でViewDef context.read_contract定義を追加。 v0.15.5.1で主文脈 Data root main_context_refs[] と対象文脈 Data明細 context_refs[] の正本モデルを追加し、ViewDefは context.main_context.data_path / context.target_context で場所と表示方法だけを宣言する形へ整理。 v0.15.5.3 adds target context Detail-top panel declaration. v0.18.6 adds Markdown Export Mode / ExportDef options: markdown.defaultMode, markdown.modes[], full_dump/review_report/document_sections, fieldPolicy, and field/section markdown.export. v0.18.14 adds FieldGroupType declarations, fieldGroupSources, and dynamic visibleWhen support. v0.18.20 adds field.grid.aggregate for numeric Grid sum rows with filtered/all scope. v0.18.28 adds toolbar.relatedGridViews / related_grid_views for ViewDef-driven Root array launch in a grid_only child Studio. v0.18.34 adds relatedGridViews.viewId / view_id so a related Root Grid can open a named views[] entry from the same ViewDef file; viewDef remains supported for external files. v0.18.38 adds date as an explicit Field type separate from datetime; date means YYYY-MM-DD only, while datetime means values with a time component. Existing datetime ViewDefs remain valid for compatibility. v0.18.52 adds section.fieldSets as a Detail layout contract that groups existing fields in a full-width three-column FieldSet; caption is optional and empty caption renders border-only grouping. v0.18.64 adds standard search override shape (operator/operator_set/operators); SearchOperatorRegistry is the vocabulary source of truth.",
   "source_schema_draft": "https://json-schema.org/draft/2020-12/schema",
   "status": "converted_draft",
   "introduced_in": "v0.4-r001",
   "generated_at": "2026-06-22T12:46:51+09:00",
   "defs_count": 35,
   "root_properties_count": 20,
-  "schema_items_count": 361,
-  "definition_property_count": 306,
+  "schema_items_count": 363,
+  "definition_property_count": 308,
   "conversion_note": "JSON Schemaはproperties/$defsの辞書構造が多いため、Studio上でレビューしやすいように root_property / definition / definition_property のフラットな schema_items 配列へ変換したData JSON。元Schemaは参照元であり、このJSONはレビュー・確認・Markdown出力用のViewである。",
   "review_policy": "Schemaの定義内容はAIが要約・分類できるが、採用可否・修正判断は人間が行う。確認済みにする場合は verification_status を確認済みにし、approval_decision を承認する。",
   "viewing_policy": {
@@ -29,7 +29,7 @@
   "item_type_counts": {
     "root_property": 20,
     "definition": 35,
-    "definition_property": 306
+    "definition_property": 308
   },
   "schema_items": [
     {
@@ -4060,11 +4060,11 @@
       "parent_key": "$defs",
       "schema_path": "$defs.searchOptions",
       "source": "$defs",
-      "type_summary": "object{2 properties}",
+      "type_summary": "object{4 properties}",
       "required": false,
       "ref": "",
       "enum_summary": "",
-      "description": "",
+      "description": "Field検索Projection。visibleで検索UI投影を宣言し、operator/operator_set/operatorsはSearchOperatorRegistry登録語彙だけを使用する。Schemaは形、Registryは語彙を正本とする。",
       "priority": "medium",
       "review_status": "未レビュー",
       "verification_status": "未確認",
@@ -4074,7 +4074,7 @@
       "ai_response": "",
       "user_reply": "",
       "ai_followup_response": "",
-      "raw_schema_json": "{\n  \"type\": \"object\",\n  \"additionalProperties\": true,\n  \"properties\": {\n    \"visible\": {\n      \"type\": \"boolean\"\n    },\n    \"operator\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"contains\",\n        \"equals\",\n        \"gte\",\n        \"lte\"\n      ]\n    }\n  }\n}",
+      "raw_schema_json": "{\n  \"type\": \"object\",\n  \"additionalProperties\": true,\n  \"properties\": {\n    \"visible\": {\n      \"type\": \"boolean\"\n    },\n    \"operator\": {\n      \"type\": \"string\",\n      \"minLength\": 1,\n      \"description\": \"標準Operatorから明示Overrideする場合のOperator ID。data/json/config/search_operator_registry_v0_1.json のactive operatorsに存在すること。\"\n    },\n    \"operator_set\": {\n      \"type\": \"string\",\n      \"minLength\": 1,\n      \"description\": \"型/Validation Typeから導出される標準Operator Setを置き換える場合のSet ID。SearchOperatorRegistryのactive operator_setsに存在すること。\"\n    },\n    \"operators\": {\n      \"type\": \"array\",\n      \"minItems\": 1,\n      \"uniqueItems\": true,\n      \"items\": {\n        \"type\": \"string\",\n        \"minLength\": 1\n      },\n      \"description\": \"利用可能Operatorを標準Setから絞り込む特殊Override。各IDはSearchOperatorRegistryのactive operatorsに存在し、型互換であること。\"\n    }\n  },\n  \"description\": \"Field検索Projection。visibleで検索UI投影を宣言し、operator/operator_set/operatorsはSearchOperatorRegistry登録語彙だけを使用する。Schemaは形、Registryは語彙を正本とする。\"\n}",
       "constraints": [
         {
           "name": "type",
@@ -4097,15 +4097,41 @@
         },
         {
           "property_name": "operator",
-          "type_summary": "string enum[4]",
+          "type_summary": "string",
           "required": false,
           "ref": "",
-          "enum_summary": "contains, equals, gte, lte",
-          "description": "",
-          "raw_schema_json": "{\n  \"type\": \"string\",\n  \"enum\": [\n    \"contains\",\n    \"equals\",\n    \"gte\",\n    \"lte\"\n  ]\n}"
+          "enum_summary": "",
+          "description": "標準Operatorから明示Overrideする場合のOperator ID。data/json/config/search_operator_registry_v0_1.json のactive operatorsに存在すること。",
+          "raw_schema_json": "{\n  \"type\": \"string\",\n  \"minLength\": 1,\n  \"description\": \"標準Operatorから明示Overrideする場合のOperator ID。data/json/config/search_operator_registry_v0_1.json のactive operatorsに存在すること。\"\n}"
+        },
+        {
+          "property_name": "operator_set",
+          "type_summary": "string",
+          "required": false,
+          "ref": "",
+          "enum_summary": "",
+          "description": "型/Validation Typeから導出される標準Operator Setを置き換える場合のSet ID。SearchOperatorRegistryのactive operator_setsに存在すること。",
+          "raw_schema_json": "{\n  \"type\": \"string\",\n  \"minLength\": 1,\n  \"description\": \"型/Validation Typeから導出される標準Operator Setを置き換える場合のSet ID。SearchOperatorRegistryのactive operator_setsに存在すること。\"\n}"
+        },
+        {
+          "property_name": "operators",
+          "type_summary": "array<string>",
+          "required": false,
+          "ref": "",
+          "enum_summary": "",
+          "description": "利用可能Operatorを標準Setから絞り込む特殊Override。各IDはSearchOperatorRegistryのactive operatorsに存在し、型互換であること。",
+          "raw_schema_json": "{\n  \"type\": \"array\",\n  \"minItems\": 1,\n  \"uniqueItems\": true,\n  \"items\": {\n    \"type\": \"string\",\n    \"minLength\": 1\n  },\n  \"description\": \"利用可能Operatorを標準Setから絞り込む特殊Override。各IDはSearchOperatorRegistryのactive operatorsに存在し、型互換であること。\"\n}"
         }
       ],
-      "change_history": []
+      "change_history": [
+        {
+          "history_id": "chg_schema_review_search_options_v01864_001",
+          "at": "2026-08-16T14:54:00+09:00",
+          "before": "searchOptions: visible + operator enum[contains, equals, gte, lte]",
+          "after": "searchOptions: visible + operator + operator_set + operators。語彙はSearchOperatorRegistry正本。",
+          "reason": "Phase 1標準検索契約にSchema Review表示を同期するため。"
+        }
+      ]
     },
     {
       "no": 96,
@@ -4147,11 +4173,11 @@
       "parent_key": "searchOptions",
       "schema_path": "$defs.searchOptions.properties.operator",
       "source": "$defs.searchOptions.properties",
-      "type_summary": "string enum[4]",
+      "type_summary": "string",
       "required": false,
       "ref": "",
-      "enum_summary": "contains, equals, gte, lte",
-      "description": "",
+      "enum_summary": "",
+      "description": "標準Operatorから明示Overrideする場合のOperator ID。data/json/config/search_operator_registry_v0_1.json のactive operatorsに存在すること。",
       "priority": "medium",
       "review_status": "未レビュー",
       "verification_status": "未確認",
@@ -4161,19 +4187,27 @@
       "ai_response": "",
       "user_reply": "",
       "ai_followup_response": "",
-      "raw_schema_json": "{\n  \"type\": \"string\",\n  \"enum\": [\n    \"contains\",\n    \"equals\",\n    \"gte\",\n    \"lte\"\n  ]\n}",
+      "raw_schema_json": "{\n  \"type\": \"string\",\n  \"minLength\": 1,\n  \"description\": \"標準Operatorから明示Overrideする場合のOperator ID。data/json/config/search_operator_registry_v0_1.json のactive operatorsに存在すること。\"\n}",
       "constraints": [
         {
           "name": "type",
           "value": "string"
         },
         {
-          "name": "enum",
-          "value": "contains, equals, gte, lte"
+          "name": "minLength",
+          "value": "1"
         }
       ],
       "child_properties": [],
-      "change_history": []
+      "change_history": [
+        {
+          "history_id": "chg_schema_review_search_operator_v01864_001",
+          "at": "2026-08-16T14:54:00+09:00",
+          "before": "operator enum: contains, equals, gte, lte",
+          "after": "operator string。active語彙検証はSearchOperatorRegistryへ移管。",
+          "reason": "SchemaとRegistryの二重正本を解消するため。"
+        }
+      ]
     },
     {
       "no": 98,
@@ -15037,6 +15071,82 @@
           "reason": "Dataへ定義参照を混入させず、ViewDefからField Definitionセットを選択するため。"
         }
       ]
+    },
+    {
+      "no": 362,
+      "item_id": "defprop__searchOptions__operator_set",
+      "item_type": "definition_property",
+      "name": "operator_set",
+      "parent_key": "searchOptions",
+      "schema_path": "$defs.searchOptions.properties.operator_set",
+      "source": "$defs.searchOptions.properties",
+      "type_summary": "string",
+      "required": false,
+      "ref": "",
+      "enum_summary": "",
+      "description": "型/Validation Typeから導出される標準Operator Setを置き換える場合のSet ID。SearchOperatorRegistryのactive operator_setsに存在すること。",
+      "priority": "medium",
+      "review_status": "未レビュー",
+      "verification_status": "未確認",
+      "approval_decision": "未承認",
+      "notes": "v0.18.64 standard search contract Phase 1",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "raw_schema_json": "{\n  \"type\": \"string\",\n  \"minLength\": 1,\n  \"description\": \"型/Validation Typeから導出される標準Operator Setを置き換える場合のSet ID。SearchOperatorRegistryのactive operator_setsに存在すること。\"\n}",
+      "constraints": [
+        {
+          "name": "type",
+          "value": "string"
+        },
+        {
+          "name": "minLength",
+          "value": "1"
+        }
+      ],
+      "child_properties": [],
+      "change_history": []
+    },
+    {
+      "no": 363,
+      "item_id": "defprop__searchOptions__operators",
+      "item_type": "definition_property",
+      "name": "operators",
+      "parent_key": "searchOptions",
+      "schema_path": "$defs.searchOptions.properties.operators",
+      "source": "$defs.searchOptions.properties",
+      "type_summary": "array<string>",
+      "required": false,
+      "ref": "",
+      "enum_summary": "",
+      "description": "利用可能Operatorを標準Setから絞り込む特殊Override。各IDはSearchOperatorRegistryのactive operatorsに存在し、型互換であること。",
+      "priority": "medium",
+      "review_status": "未レビュー",
+      "verification_status": "未確認",
+      "approval_decision": "未承認",
+      "notes": "v0.18.64 standard search contract Phase 1",
+      "user_comment": "",
+      "ai_response": "",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "raw_schema_json": "{\n  \"type\": \"array\",\n  \"minItems\": 1,\n  \"uniqueItems\": true,\n  \"items\": {\n    \"type\": \"string\",\n    \"minLength\": 1\n  },\n  \"description\": \"利用可能Operatorを標準Setから絞り込む特殊Override。各IDはSearchOperatorRegistryのactive operatorsに存在し、型互換であること。\"\n}",
+      "constraints": [
+        {
+          "name": "type",
+          "value": "array"
+        },
+        {
+          "name": "minItems",
+          "value": "1"
+        },
+        {
+          "name": "uniqueItems",
+          "value": "True"
+        }
+      ],
+      "child_properties": [],
+      "change_history": []
     }
   ],
   "review_notes": [
@@ -15057,7 +15167,7 @@
       "body": "独立fielddefs参照はViewDefルートの任意Propertyとする。Data側、Field側には参照・Validation Typeを重複保持しない。既存ViewDefはProperty省略で互換動作する。人間承認は未実施。"
     }
   ],
-  "updated_at": "2026-07-26",
+  "updated_at": "2026-08-16T14:54:00+09:00",
   "change_history": [
     {
       "history_id": "chg_schema_review_v01837_001",
@@ -15074,6 +15184,14 @@
       "before": "def__fieldTypeにdateがなく、日付のみと日時がdatetimeへ混在していた。",
       "after": "def__fieldTypeへdateを追加し、Schema原本のenum/descriptionと同期した。",
       "reason": "date/datetime意味分離をSchema Review対象として明示するため。"
+    },
+    {
+      "history_id": "chg_schema_review_v01864_search_contract_001",
+      "at": "2026-08-16T14:54:00+09:00",
+      "change_type": "schema_sync",
+      "before": "searchOptions operator語彙がSchema Review内enumへ固定されていた。",
+      "after": "searchOptionsのoperator/operator_set/operators形をReview Dataへ同期し、語彙正本をSearchOperatorRegistryへ移した。",
+      "reason": "Schema Reviewを実Schemaと一致させ、古いOperator enumを残さないため。"
     }
   ]
 }

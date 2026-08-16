@@ -1,0 +1,29 @@
+{
+  "schema_version": "md_comment_sidecar_v0_1",
+  "document_type": "markdown_comment_sidecar",
+  "target_file": "_testマークダウン.md",
+  "sidecar_name": "_testマークダウン.md.comments.json",
+  "updated_at": "2026-08-16_15:03:45",
+  "comments": [
+    {
+      "comment_id": "mdc_20260816_150345_uel0",
+      "status": "NG",
+      "body": "方針０３　ＮＧ",
+      "author": "tamasub",
+      "created_at": "2026-08-16_15:03:45",
+      "updated_at": "2026-08-16_15:03:45",
+      "resolved": false,
+      "target_type": "block",
+      "block_id": "mdblk_0004_paragraph_9",
+      "block_type": "paragraph",
+      "table_id": "",
+      "cell_id": "",
+      "row_index": null,
+      "column_index": null,
+      "line": 9,
+      "start_line": 9,
+      "end_line": 9,
+      "target_excerpt": "方針０３です。"
+    }
+  ]
+}

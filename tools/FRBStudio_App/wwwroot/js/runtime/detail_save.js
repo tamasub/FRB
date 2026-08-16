@@ -194,7 +194,9 @@ function renderChildArea(row, gd) {
   area.innerHTML = '';
   gd.fields
     .filter(f => (f.type === 'objectArray' || f.type === 'stringArray') && !(typeof isTargetContextField === 'function' && isTargetContextField(f)))
-    .filter(f => typeof fieldMatchesVisibleWhen === 'function' ? fieldMatchesVisibleWhen(f, row) : true)
+    .filter(f => typeof isFieldVisibleInDetail === 'function'
+      ? isFieldVisibleInDetail(f, row)
+      : (f?.edit?.visible !== false && (typeof fieldMatchesVisibleWhen === 'function' ? fieldMatchesVisibleWhen(f, row) : true)))
     .forEach(field => {
     const data = getByPath(row, field.field);
     if (!Array.isArray(data)) return;

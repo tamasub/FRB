@@ -1,0 +1,1198 @@
+# FRB Studio 標準検索機能 設計概要 v0.2
+
+- 対象: JSON Object Studio / ViewDef Driven UI
+- 種別: Design Overview / Search Capability
+- 作成日: 2026-08-16
+- 更新日: 2026-08-16
+- 状態: 構想・設計整理
+- 主題: **Field Definition / ViewDef から標準検索能力を導出し、業務利用にも耐えうる検索の最低ラインを整備する**
+
+---
+
+# 0. この設計の位置づけ
+
+FRB Studio の検索機能を、単純な「文字を含む行を絞り込む機能」から、
+
+**Field の型・Validation Type に応じた標準検索能力を持つ仕組み**
+
+へ育てる。
+
+今回の目的は、検索機能を際限なく高機能化することではない。
+
+今後、
+
+- Definition Driven Testing
+- TestPattern の機械導出
+- Expected の検証
+- 業務データへの応用
+
+へ進むために、Studio が持つべき標準的な検索契約を先に整えることである。
+
+特に、
+
+- 数値・日付に対する範囲検索
+- 文字列の除外検索
+- 空白 / 空白以外検索
+
+は、業務検索における最低限の実用機能として扱う。
+
+---
+
+# 1. 現状認識
+
+現行 Studio には、すでに検索責務の基礎が存在する。
+
+主な既存構造:
+
+```text
+ViewDef / Field
+    ↓
+renderSearch()
+    ↓
+Search UI
+    ↓
+SearchFilter
+    ↓
+Grid表示対象
+```
+
+現行コードでは `renderSearch()` が `gridDef().fields` のうち、
+
+```text
+search.visible = true
+```
+
+の Field を検索欄へ投影している。
+
+つまり実装思想としてはすでに、
+
+> Search は独立した Field 定義ではなく、Grid / Canonical Field からの Projection
+
+という方向へ寄っている。
+
+一方、一部の ViewDef には現在も `search` Section が存在し、同一 `dataPath`・同一 Field が `search` Section と `grid` Section の双方へ重複定義されている。
+
+これは今後の検索機能拡張において、
+
+- 設定値の不整合
+- 二重管理
+- どちらが正本か分からない状態
+
+を生みやすい。
+
+---
+
+# 2. 中核原則
+
+## 2.1 Field 定義は一か所を正本とする
+
+同一 `dataPath` の同一 Field を、検索用・Grid用・Detail用として別々に再定義しない。
+
+```text
+Canonical Field Definition
+        │
+        ├─ grid
+        ├─ edit
+        └─ search
+```
+
+各表示領域は、同一 Field に対する Projection として扱う。
+
+> **検索条件は独立した Field 定義ではない。Canonical Field Definition から導出される検索 Projection である。**
+
+---
+
+## 2.2 検索演算子は型から標準導出する
+
+ViewDef に検索演算子を毎回すべて書かせない。
+
+```text
+Field type
+Validation Type
+        ↓
+Search Capability Resolver
+        ↓
+標準検索演算子
+```
+
+> **検索演算子は Field の型・Validation Type から標準導出し、必要な場合だけ ViewDef で Override する。**
+
+---
+
+## 2.3 標準状態はUIへ過剰に露出しない
+
+検索Operatorは、常時ComboBox等で表示しない。
+
+通常状態では、型から導出された標準Operatorを暗黙適用する。
+
+例:
+
+```text
+Text
+標準Operator = contains
+```
+
+通常表示:
+
+```text
+Caption
+[ ABC                              ]
+```
+
+標準から変更した場合のみ、📌等で「標準から外れている」ことを視覚化する。
+
+> **標準値そのものを常時見せるのではなく、標準からの差分だけを人間に見せる。**
+
+---
+
+## 2.4 現在の Studio の構造を壊さない
+
+今回の検索拡張を理由に、
+
+```text
+BaseEditor
+ ├─ TextEditor
+ ├─ NumberEditor
+ ├─ DateEditor
+ ...
+```
+
+のような新しい UI Class 体系へ全面移行しない。
+
+現段階では既存の、
+
+```text
+Resolver
+Renderer
+Responsibility
+Registry
+```
+
+を中心とした Studio の構造を利用する。
+
+---
+
+# 3. 今回「やること」
+
+## 3.1 Search Capability Resolver を追加する
+
+Field Definition から、その Field が標準的に利用できる検索演算子を導出する薄い責務を追加する。
+
+仮称:
+
+```text
+SearchCapabilityResolver
+```
+
+責務:
+
+```text
+入力:
+  Field Definition
+  Resolved Validation Type
+
+出力:
+  利用可能な標準検索演算子
+  標準Operator
+  Operator Set
+```
+
+例:
+
+```text
+text                     → text_standard
+number/integer/decimal   → numeric_standard
+date/datetime            → date_standard
+boolean                  → boolean_standard
+select                   → select_standard
+```
+
+---
+
+## 3.2 Search Operator Registry を追加する
+
+Studio がサポートする検索Operatorを一か所で管理する。
+
+仮称:
+
+```text
+SearchOperatorRegistry
+```
+
+Registryで管理する主な情報:
+
+```text
+id
+caption
+value_required
+value_count
+supported_validation_types
+default_for_type
+```
+
+例:
+
+```text
+contains
+not_contains
+equals
+not_equals
+gte
+lte
+between
+blank
+not_blank
+```
+
+> **ViewDef が未登録Operatorを自由に発明しない。Studio がサポートする検索Operatorは必ず一か所で管理する。**
+
+---
+
+# 4. 標準検索演算子
+
+## 4.1 Text
+
+初期標準:
+
+| Operator | 意味 |
+|---|---|
+| `contains` | 入力文字列を含む |
+| `not_contains` | 入力文字列を含まない |
+| `equals` | 完全一致 |
+| `not_equals` | 完全一致以外 |
+| `blank` | 空白 / 未設定 |
+| `not_blank` | 空白以外 / 設定済み |
+
+標準Operator:
+
+```text
+contains
+```
+
+通常UI:
+
+```text
+Caption
+[ ABC                              ]
+```
+
+右クリック:
+
+```text
+✓ 含む
+  含まない
+  完全一致
+  一致以外
+  空白
+  空白以外
+```
+
+標準から変更した場合:
+
+```text
+Caption
+[ ABC                           ] 📌
+```
+
+`blank / not_blank` 選択時は値入力欄を不要とする。
+
+---
+
+## 4.2 Number / Integer / Decimal
+
+初期標準:
+
+| Operator | 意味 |
+|---|---|
+| `equals` | 等しい |
+| `not_equals` | 等しくない |
+| `gte` | 以上 |
+| `lte` | 以下 |
+| `between` | 範囲 |
+| `blank` | 空白 / 未設定 |
+| `not_blank` | 空白以外 / 設定済み |
+
+### 範囲検索
+
+Number / Date の範囲検索は、UI形状そのものから検索モードが分かるため、必ずしも📌を必要としない。
+
+```text
+金額
+
+[ From ] ～ [ To ]
+```
+
+基本契約:
+
+```text
+Fromのみ入力
+  → From以上
+
+Toのみ入力
+  → To以下
+
+From / To両方
+  → From以上 AND To以下
+```
+
+---
+
+## 4.3 Date / DateTime
+
+初期標準:
+
+| Operator | 意味 |
+|---|---|
+| `equals` | 同一日 / 同一日時 |
+| `not_equals` | 同一値以外 |
+| `gte` | 指定値以降 |
+| `lte` | 指定値以前 |
+| `between` | 期間範囲 |
+| `blank` | 未設定 |
+| `not_blank` | 設定済み |
+
+UI:
+
+```text
+更新日
+
+[ 2026-08-01 ] ～ [ 2026-08-31 ]
+```
+
+数値と同様、
+
+```text
+Fromだけ → 以降
+Toだけ   → 以前
+```
+
+を許可する。
+
+---
+
+## 4.4 Boolean
+
+初期標準:
+
+```text
+equals
+```
+
+UI例:
+
+```text
+Enabled
+
+[ 指定なし ▼ ]
+[ true ]
+[ false ]
+```
+
+---
+
+## 4.5 Select / Enum / ComboBox
+
+初期標準:
+
+```text
+equals
+not_equals
+```
+
+標準Operator:
+
+```text
+equals
+```
+
+既存の選択肢メンテナンス機能を維持する。
+
+### 右クリックUI
+
+ComboBoxの右クリックは検索専用にしない。
+
+```text
+✓ 完全一致
+  一致以外
+  空白
+  空白以外
+────────────
+⚙ 選択肢メンテナンス...
+```
+
+> **右クリックはField Context Menuの入口とし、検索OperatorとField固有操作を共存させる。**
+
+---
+
+# 5. Field Context Menu のUI原則
+
+## 5.1 原則1階層とする
+
+右クリックメニューは、原則として階層化しない。
+
+理由:
+
+- 操作手数を増やさない
+- 使用者が検索方法へすぐ到達できる
+- サブメニューによる迷いを減らす
+
+## 5.2 意味の違いは区切り線等で表現する
+
+検索OperatorとField固有コマンドは、サブメニューで分けず、
+
+- 区切り線
+- アイコン
+- 文言
+
+で責務の違いを表現する。
+
+例:
+
+```text
+✓ 完全一致
+  一致以外
+  空白
+  空白以外
+────────────
+⚙ 選択肢メンテナンス...
+```
+
+## 5.3 現在のOperatorを✓で表示する
+
+現在適用中のOperatorを✓等で明示する。
+
+## 5.4 標準から変更した時だけ📌
+
+標準Operatorは通常UIへ常時表示しない。
+
+標準から変更した場合のみ、
+
+```text
+📌
+```
+
+等でOverride状態を示す。
+
+範囲検索のようにUI形状そのものが明確に異なる場合は、その限りではない。
+
+---
+
+# 6. Validation Type との接続
+
+検索能力の判定は、可能な限り `type` の文字列だけに依存しない。
+
+優先順位:
+
+```text
+Resolved Validation Type
+        ↓
+Field type
+        ↓
+安全なfallback
+```
+
+例:
+
+```text
+view type = text
+validation_type = integer
+```
+
+の場合、検索能力としては `numeric_standard` を基本とする。
+
+理由:
+
+> UIの見た目ではなく、値として何者かを基準に検索演算子を決めるため。
+
+これにより、
+
+```text
+Validation
+Runtime Validation
+TestPattern
+Search
+```
+
+が同じ Field 契約から派生できる。
+
+---
+
+# 7. ViewDef の標準形
+
+## 7.1 基本形
+
+通常は以下だけで検索可能とする。
+
+```json
+{
+  "field": "updated_at",
+  "type": "datetime",
+  "validation_type": "datetime",
+  "grid": {
+    "visible": true
+  },
+  "edit": {
+    "visible": true
+  },
+  "search": {
+    "visible": true
+  }
+}
+```
+
+この場合、検索演算子は自動導出する。
+
+```text
+datetime
+    ↓
+equals
+not_equals
+gte
+lte
+between
+blank
+not_blank
+```
+
+## 7.2 Override
+
+特殊な Field だけ Override を許可する。
+
+```json
+{
+  "search": {
+    "visible": true,
+    "operator_set": "date_range"
+  }
+}
+```
+
+将来的には、
+
+```json
+{
+  "search": {
+    "visible": true,
+    "operators": [
+      "between",
+      "blank",
+      "not_blank"
+    ]
+  }
+}
+```
+
+も検討可能とする。
+
+ただし、
+
+- `operators` に指定できる値はSearchOperatorRegistry登録済みのみ
+- 原則は標準Operator Setを優先
+- 自由配列Overrideは特殊用途
+
+とする。
+
+---
+
+# 8. Search Section の扱い
+
+## 8.1 新規設計では Field を重複定義しない
+
+```text
+search Section
+ ├─ run_config_id
+ ├─ caption
+ └─ mode
+
+grid Section
+ ├─ run_config_id
+ ├─ caption
+ └─ mode
+```
+
+のような二重Field定義は新規標準から外す。
+
+## 8.2 v1ではSearch Sectionを必須にしない
+
+まずは、
+
+```text
+Canonical Fields
+        ↓
+search.visible = true
+        ↓
+定義順に自動配置
+```
+
+を基本とする。
+
+Search Sectionの新しい構造を、今回無理に作り込まない。
+
+## 8.3 fieldRefs は将来拡張候補
+
+検索項目だけ、
+
+- 表示順を変えたい
+- 一部だけ別配置したい
+
+という要求が出た場合、
+
+```json
+{
+  "id": "search",
+  "type": "search",
+  "fieldRefs": [
+    "run_config_id",
+    "caption",
+    "updated_at"
+  ]
+}
+```
+
+を検討する。
+
+この場合 `fieldRefs` は、
+
+> **誰を・どの順番で検索UIに配置するか**
+
+だけを指定する。
+
+## 8.4 既存ViewDef互換
+
+- 現行ViewDefを壊さない
+- `gridDef().fields[].search` をCanonical Search Projectionとして優先
+- Legacy Search Sectionは即削除しない
+- 新規ViewDef生成ルールから二重Field定義を減らす
+
+という段階移行を採る。
+
+---
+
+# 9. Search UI Renderer
+
+現時点では新しいField Control Class体系を導入しない。
+
+既存 `renderSearch()` / `createInput()` 系の構造を利用しつつ、検索UI生成責務だけを整理する。
+
+```text
+renderSearch()
+    ↓
+SearchCapabilityResolver
+    ↓
+Search UI生成境界
+    ↓
+既存 input / select / date control
+```
+
+> Field型ごとの検索UI判断を `renderSearch()` に巨大な if 文として蓄積しない。
+
+---
+
+# 10. Search Criteria
+
+基本形:
+
+```json
+{
+  "field": "caption",
+  "operator": "not_contains",
+  "value": "test"
+}
+```
+
+範囲:
+
+```json
+{
+  "field": "updated_at",
+  "operator": "between",
+  "from": "2026-08-01",
+  "to": "2026-08-31"
+}
+```
+
+### 将来拡張
+
+ComboBox複数選択は近い将来必ず対応する前提とする。
+
+```json
+{
+  "field": "status",
+  "operator": "in",
+  "values": [
+    "active",
+    "draft"
+  ]
+}
+```
+
+> **現時点で複数選択を本格実装しなくても、将来の `in / not_in / values[]` を塞がない。**
+
+---
+
+# 11. SearchFilter の拡張
+
+現行 `SearchFilter` の責務を維持しつつ、以下を追加する。
+
+```text
+not_contains
+not_equals
+between
+blank
+not_blank
+date/datetime comparison
+```
+
+将来候補:
+
+```text
+in
+not_in
+```
+
+---
+
+# 12. 条件の結合
+
+初期段階では、複数Fieldの検索条件は現在と同様、
+
+```text
+AND
+```
+
+で結合する。
+
+```text
+Status = active
+AND
+UpdatedAt >= 2026-08-01
+AND
+Caption not_contains "test"
+```
+
+---
+
+# 13. 全文検索との関係
+
+既存の全文検索は別責務として維持する。
+
+```text
+Field Search
+  = Fieldごとの構造化検索
+
+Full Text Search
+  = JSON全体からの横断文字検索
+```
+
+両者はANDで適用する。
+
+---
+
+# 14. 今回「やらないこと」
+
+## 14.1 UI Class体系の全面リファクタ
+
+やらない。
+
+将来、Studioを広く外部展開する段階で再検討する。
+
+## 14.2 SQL / DB検索エンジン
+
+対象外:
+
+- SQL生成
+- DB側WHERE生成
+- Server Side Search
+- Query Planner
+- Index設計
+
+## 14.3 複雑な論理式
+
+対象外:
+
+```text
+(A OR B) AND (C OR D)
+```
+
+初期標準はField条件のAND。
+
+## 14.4 高度な文字列検索
+
+初期対象外:
+
+- Regex
+- fuzzy search
+- 類似度検索
+- 発音検索
+- typo補正
+- ranking / relevance score
+
+## 14.5 大規模データ検索性能の最適化
+
+初期対象外:
+
+- 大規模Index
+- Web Worker
+- 仮想検索Index
+- 永続検索Index
+
+## 14.6 Search Preset / 保存条件の高度化
+
+今回v1の中心にはしない。
+
+ただし、
+
+> **標準検索v1直後の近接Future Scope**
+
+として扱う。
+
+将来候補:
+
+- 検索条件のお気に入り保存
+- 条件名付け
+- 再呼出
+- 共有
+- 履歴
+- Preset管理
+
+## 14.7 既存ViewDefの一括変換
+
+一括移行しない。
+
+1. 新しい標準を定義
+2. Runtimeを対応
+3. 新規ViewDef生成を新標準へ
+4. 代表ViewDefで移行検証
+5. 既存ViewDefを段階移行
+
+とする。
+
+---
+
+# 15. 検索責務の境界
+
+```text
+Field Definition
+      ↓
+SearchCapabilityResolver
+      ↓
+SearchOperatorRegistry
+      ↓
+Search UI Renderer
+      ↓
+Search Criteria
+      ↓
+SearchFilter
+      ↓
+Filtered Rows
+      ↓
+Grid Renderer
+```
+
+- SearchCapabilityResolver: 何が検索可能かを判断
+- SearchOperatorRegistry: Studioがサポートする検索語彙を管理
+- Search UI Renderer: 検索能力を入力UIへ表現
+- SearchFilter: CriteriaとDataを比較して一致行を返す
+
+この責務を混ぜない。
+
+---
+
+# 16. 将来のField Control Class化に備える境界
+
+今回Class体系へ移行しないが、将来の移行を阻害する実装もしない。
+
+避ける:
+
+```text
+画面コードA → if type=date
+画面コードB → if type=date
+画面コードC → if type=date
+```
+
+型固有判断は、
+
+```text
+SearchCapabilityResolver
+Search UI生成境界
+```
+
+へ集約する。
+
+---
+
+# 17. TestPatternへの接続
+
+検索標準化が完了すると、Definition Driven Test の対象として扱いやすくなる。
+
+```text
+Field Definition
+  type = integer
+  search.visible = true
+      ↓
+SearchCapability
+  equals
+  not_equals
+  gte
+  lte
+  between
+  blank
+  not_blank
+      ↓
+TestPattern
+```
+
+## 17.1 Text代表パターン
+
+```text
+contains_hit
+contains_miss
+not_contains_hit
+not_contains_excluded
+equals
+not_equals
+blank
+not_blank
+case_insensitive_contains
+```
+
+## 17.2 Number代表パターン
+
+```text
+equals
+not_equals
+gte_boundary
+gte_below
+lte_boundary
+lte_above
+between_inside
+between_min
+between_max
+between_outside
+from_only
+to_only
+blank
+not_blank
+```
+
+## 17.3 Date代表パターン
+
+```text
+equals
+not_equals
+gte_boundary
+lte_boundary
+between_inside
+between_from
+between_to
+between_outside
+from_only
+to_only
+blank
+not_blank
+invalid_date_input
+```
+
+---
+
+# 18. 実装フェーズ案
+
+## Phase 1: Search契約定義
+
+- 標準Operator語彙を確定
+- SearchOperatorRegistry契約を確定
+- Field type / Validation Type → Operator Set対応表を確定
+- ViewDef Override契約を確定
+- Legacy Search Sectionとの互換方針を確定
+
+## Phase 2: SearchCapabilityResolver
+
+- Resolver追加
+- 型から標準Operatorを導出
+- Validation Type優先順位を実装
+- Resolver単体テスト
+
+## Phase 3: SearchFilter Operator拡張
+
+追加:
+
+```text
+not_contains
+not_equals
+between
+blank
+not_blank
+date/datetime comparison
+```
+
+## Phase 4: Search UI拡張
+
+- Operator変更用右クリックContext Menu
+- メニューは原則1階層
+- 現在Operatorを✓表示
+- 標準から変更した時だけ📌
+- ComboBoxでは選択肢メンテナンスを区切り線下へ残す
+- `between` のFrom / To
+- blank系では値欄非表示
+- Number / Date / Textの標準UI
+- 現行Search stateとの接続
+
+## Phase 5: ViewDef標準化
+
+- 新規ViewDef生成ルール更新
+- Search Section二重Field定義を新規生成しない
+- 代表ViewDefを新標準へ移行
+- Legacy ViewDef互換確認
+
+## Phase 6: Definition Driven Test接続
+
+- SearchCapabilityからTestPattern候補を導出
+- Expected / Actual / Diffへ接続
+- Search Capabilityがテスト証跡として説明可能になることを確認
+
+---
+
+# 19. 初期Acceptance Criteria
+
+## Text
+
+- 含む
+- 含まない
+- 完全一致
+- 一致以外
+- 空白
+- 空白以外
+
+## Number
+
+- 等しい
+- 等しくない
+- 以上
+- 以下
+- From ～ To
+- 空白
+- 空白以外
+
+## Date / DateTime
+
+- 等しい
+- 等しくない
+- 以降
+- 以前
+- From ～ To
+- 空白
+- 空白以外
+
+## Select / ComboBox
+
+- 完全一致
+- 一致以外
+- 既存選択肢メンテナンスを維持
+- 右クリックContext Menuで検索OperatorとField固有機能を共存
+- 将来の複数選択を阻害しない
+
+## 共通
+
+- 複数Field条件はAND
+- Full Text SearchとのANDが維持される
+- ViewDefのField定義を検索用に二重作成しなくてよい
+- 型から標準検索能力が導出される
+- ViewDef Overrideが可能
+- OperatorはRegistry管理
+- SearchFilterはDOMから独立した責務としてテスト可能
+- 現行StudioのGrid / Detail / Validation体系を壊さない
+- 標準Operatorは通常UIへ過剰表示しない
+- Override時のみ📌等で差分表示する
+
+---
+
+# 20. 設計上の「やる / やらない」まとめ
+
+| 項目 | 今回 |
+|---|---|
+| Text contains | やる |
+| Text not_contains | やる |
+| Text equals / not_equals | やる |
+| blank / not_blank | やる |
+| Number >= / <= | やる |
+| Number From-To | やる |
+| Date >= / <= | やる |
+| Date From-To | やる |
+| Validation TypeからOperator導出 | やる |
+| SearchOperatorRegistry | やる |
+| ViewDef Override | やる |
+| 右クリックOperator変更 | やる |
+| 右クリック1階層化 | やる |
+| Override時📌表示 | やる |
+| ComboBox選択肢メンテナンス維持 | やる |
+| Search Sectionの二重Field定義を新規標準から外す | やる |
+| 現行SearchFilter責務の拡張 | やる |
+| Definition Driven Testへの接続準備 | やる |
+| ComboBox複数選択 | 今回は本格実装しないが近い将来必須 |
+| Search Preset | 今回はやらないが近接Future Scope |
+| UI Editor Class体系の全面変更 | やらない |
+| SQL / DB検索 | やらない |
+| 任意AND/OR式 | やらない |
+| Regex / fuzzy / AI検索 | やらない |
+| 大量データ向けIndex | やらない |
+| 既存ViewDef全件一括移行 | やらない |
+
+---
+
+# 21. この設計で目指す状態
+
+```text
+Field Definition
+      │
+      ├─ Validation
+      ├─ Runtime Editor
+      ├─ Grid
+      ├─ Detail
+      ├─ Search Capability
+      └─ TestPattern
+```
+
+検索だけが特別な別世界ではなく、
+
+**同じField Definitionから派生する能力の一つ**
+
+として扱う。
+
+最終的に目指す構造:
+
+```text
+Field Definition
+        ↓
+Capability Resolution
+        ↓
+┌───────────────┬────────────────┬────────────────┐
+│ Validation    │ Search         │ TestPattern    │
+│ Capability    │ Capability     │ Capability     │
+└───────────────┴────────────────┴────────────────┘
+        ↓
+Renderer / Validator / Runner
+```
+
+---
+
+# 22. 今回の設計判断
+
+今回の検索強化は、単なるUI便利機能追加ではない。
+
+Studio が将来、
+
+```text
+JSON編集ツール
+    ↓
+Definition Driven Studio
+    ↓
+業務データも扱える汎用Studio
+```
+
+へ広がれるための基礎能力として位置づける。
+
+一方で、現在のStudioに対して過剰なClass再設計や巨大リファクタは行わない。
+
+> **今の構造に沿って小さく検索能力を追加し、将来の大規模リファクタを邪魔しない境界を作る。**
+
+これを今回の実装判断軸とする。

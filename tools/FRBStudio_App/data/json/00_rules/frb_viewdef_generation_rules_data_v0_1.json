@@ -13,8 +13,8 @@
   "status": "converted_draft",
   "introduced_in": "v0.4-r001",
   "generated_at": "2026-06-26T00:00:00+09:00",
-  "rule_count": 91,
-  "approved_count": 81,
+  "rule_count": 92,
+  "approved_count": 90,
   "approval_policy": "Rule Reviewの状態正本は verification_status（AI確認状態）と approval_decision（人間承認）の二つとする。AIは確認結果を更新できるが、人間承認を新規付与・継続・復元してはならない。AIが承認対象の意味内容を変更した場合は verification_status=未確認、approval_decision=未承認へ戻し、approved_by / approved_at をクリアして人間再承認を求める。",
   "preamble": "対象: `FRBStudio_App` / No-Code JSON Studio v0.6+ 系  \n対応Schema: `frb_view_def_schema_v0_8_action_registry_toolbar.json`\n\nこの文書は、AIに **Data JSON から ViewDef JSON を作成させる** ときの作成ルールである。\n\nStudioくんにおける ViewDef は、単なる画面定義ではない。\n\n```text\nData JSON + ViewDef JSON + Runtime + Action = Experience\n```\n\nViewDef は、データの見え方・編集の仕方・Markdown化・AIへの渡し方・仮想データの作り方・主役Actionを宣言する **体験設計書** である。\n\n---",
   "change_history_policy": "ルール本文、要約、カテゴリ、優先度、承認判断を変更した場合は、各 rule.change_history に変更前後・理由・会話を残す。",
@@ -477,10 +477,10 @@
       "category": "Field",
       "title": "Field設計",
       "priority": "medium",
-      "verification_status": "確認済み",
-      "approval_decision": "承認する",
-      "summary": "基本形:",
-      "body": "基本形:\n\n```json\n{\n  \"field\": \"title\",\n  \"caption\": \"タイトル\",\n  \"type\": \"text\",\n  \"grid\": { \"visible\": true, \"width\": 220 },\n  \"edit\": { \"visible\": true },\n  \"search\": { \"visible\": true, \"operator\": \"contains\" }\n}\n```",
+      "verification_status": "未確認",
+      "approval_decision": "未承認",
+      "summary": "基本形ではsearch.visibleだけを宣言し、標準検索OperatorはField type / Validation Typeから導出する。",
+      "body": "基本形:\n\n```json\n{\n  \"field\": \"title\",\n  \"caption\": \"タイトル\",\n  \"type\": \"text\",\n  \"grid\": { \"visible\": true, \"width\": 220 },\n  \"edit\": { \"visible\": true },\n  \"search\": { \"visible\": true }\n}\n```\n\n検索Operatorは原則としてField type / Validation Typeから標準導出する。標準Operatorを使う場合は `search.operator` を書かない。特殊な検索契約だけ `operator_set` / `operators` / `operator` でOverrideする。検索語彙の正本は `data/json/config/search_operator_registry_v0_1.json` とする。",
       "ceremony_phrase": "このルールをレビューし、採用可否を判断する。",
       "user_comment": "",
       "ai_response": "",
@@ -493,7 +493,16 @@
       "source_line_start": 232,
       "source_md_file": "FRB_VIEW_DEF_GENERATION_RULES_ALL_v0_16.md",
       "introduced_in": "v0.4-r001",
-      "change_history": [],
+      "change_history": [
+        {
+          "history_id": "chg_viewdef_rule_05_v01864_search_default_001",
+          "at": "2026-08-16T14:50:00+09:00",
+          "before": "基本形:\n\n```json\n{\n  \"field\": \"title\",\n  \"caption\": \"タイトル\",\n  \"type\": \"text\",\n  \"grid\": { \"visible\": true, \"width\": 220 },\n  \"edit\": { \"visible\": true },\n  \"search\": { \"visible\": true, \"operator\": \"contains\" }\n}\n```",
+          "after": "基本形:\n\n```json\n{\n  \"field\": \"title\",\n  \"caption\": \"タイトル\",\n  \"type\": \"text\",\n  \"grid\": { \"visible\": true, \"width\": 220 },\n  \"edit\": { \"visible\": true },\n  \"search\": { \"visible\": true }\n}\n```\n\n検索Operatorは原則としてField type / Validation Typeから標準導出する。標準Operatorを使う場合は `search.operator` を書かない。特殊な検索契約だけ `operator_set` / `operators` / `operator` でOverrideする。検索語彙の正本は `data/json/config/search_operator_registry_v0_1.json` とする。",
+          "reason": "標準検索OperatorをViewDefへ毎回重複記述せず、Field type / Validation Typeから導出する設計へ変更したため。意味変更のため人間再承認対象へ戻す。",
+          "related_work_item_id": "studio_work_0186"
+        }
+      ],
       "decision_log": []
     },
     {
@@ -2986,10 +2995,39 @@
           "reason": "自由度を増やすより一貫したレイアウトを優先し、caption不要のグルーピングも枠だけで表現できるようにするため。"
         }
       ]
+    },
+    {
+      "no": 92,
+      "rule_id": "viewdef_rule_36",
+      "section_no": "36",
+      "source_heading": "36. 標準検索Capability / Search Operator Registry契約",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "Search",
+      "title": "標準検索Capability / Search Operator Registry契約",
+      "priority": "high",
+      "verification_status": "未確認",
+      "approval_decision": "未承認",
+      "summary": "検索はCanonical Field DefinitionからのProjectionとし、Operatorは型・Validation Typeから標準導出する。検索語彙はSearchOperatorRegistryで一元管理し、ViewDefは必要な差分だけOverrideする。",
+      "body": "検索FieldをSearch Sectionへ重複定義しない。同一dataPath / 同一FieldはCanonical Field Definitionを一か所の正本とし、検索は `search.visible` からProjectionする。\n\n標準検索OperatorはField type / Resolved Validation TypeからSearchCapabilityResolverで導出する。利用可能Operator / Operator Setの語彙正本は `data/json/config/search_operator_registry_v0_1.json` とする。\n\n標準形:\n\n```json\n\"search\": { \"visible\": true }\n```\n\n特殊Override:\n\n```json\n\"search\": {\n  \"visible\": true,\n  \"operator_set\": \"date_standard\",\n  \"operators\": [\"between\", \"blank\", \"not_blank\"],\n  \"operator\": \"between\"\n}\n```\n\nOverride解決規則:\n- `operator_set`: 標準Operator Setの置換。\n- `operators`: 利用可能Operatorの絞り込み。\n- `operator`: 初期・既定Operatorの明示Override。\n- 指定IDはSearchOperatorRegistryのactive語彙に存在し、Field/Validation Typeと互換でなければならない。\n\nUI原則:\n- 標準Operatorは通常UIへ常時表示せず、標準から変更した場合のみ📌等で差分を示す。\n- Operator変更の右クリックメニューは原則1階層。\n- ComboBoxでは検索Operatorと既存の選択肢メンテナンスを区切り線等で同一1階層メニューへ共存させる。\n\nLegacy互換:\n- 既存Search Sectionは即削除しない。\n- ただし検索Field契約の正本にはせず、新規ViewDef生成ではSearch SectionへのField重複定義を作らない。\n\n将来互換:\n- ComboBox複数選択の `in / not_in / values[]` を塞がない。\n- Search Presetは標準検索v1直後の近接Future Scopeとする。",
+      "ceremony_phrase": "この検索Capability / Operator Registry契約をレビューし、採用可否を判断する。",
+      "user_comment": "",
+      "ai_response": "Phase 1としてSearchOperatorRegistry、ViewDef search override shape、Legacy Search Section互換方針を契約化した。",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "",
+      "approved_at": "",
+      "approval_stamp": "",
+      "notes": "AI協働026_検索強化_FRB_Standard_Search_Design_Overview_v0_2 の設計内容を実装側契約へ反映。",
+      "source_line_start": 0,
+      "source_md_file": "AI協働026_検索強化_FRB_Standard_Search_Design_Overview_v0_2.md",
+      "introduced_in": "v0.18.64-standard-search-contract-phase1",
+      "change_history": [],
+      "decision_log": []
     }
   ],
-  "updated_at": "2026-08-12T19:20:00+09:00",
-  "review_revision": "v0.18.52-detail-fieldset-cross-field-ux",
+  "updated_at": "2026-08-16T14:50:00+09:00",
+  "review_revision": "v0.18.64-standard-search-contract-phase1",
   "review_notes": [
     {
       "note_id": "note_v012_scope_correction",

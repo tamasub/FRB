@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-16T09:56:00+09:00",
+  "updated_at": "2026-08-16T14:57:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 173,
+  "items_count": 174,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -26134,34 +26134,39 @@
       "priority": "high",
       "status": "完了",
       "follow_up_status": "NOT_REQUIRED",
-      "verification_status": "静的確認済み / ブラウザ実機確認待ち",
+      "verification_status": "Static確認済み / NativeShell実機再確認待ち",
       "context_def_status": "reviewed",
       "context_def_updated_at": "2026-08-15T13:28:00+09:00",
       "owner": "",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-15T13:28:00+09:00",
-      "updated_at": "2026-08-15T13:28:00+09:00",
-      "target_files": "- wwwroot/js/renderers/field_controls.js\n- wwwroot/js/runtime/detail_save.js\n- wwwroot/index.html\n- tests/qa/static/combo_viewdef_maintenance_static.test.mjs\n- tests/qa/static/field_definition_editor_derived_preview_static.test.mjs\n- tests/qa/static/cross_field_definition_preview_static.test.mjs\n- tests/qa/static/editor_component_model_static.test.mjs",
-      "actual_updated_files": "- data/json/01_main/_studio_work_incident_data_v2.json\n- wwwroot/js/renderers/field_controls.js\n- wwwroot/js/runtime/detail_save.js\n- wwwroot/index.html\n- tests/qa/static/combo_viewdef_maintenance_static.test.mjs\n- tests/qa/static/field_definition_editor_derived_preview_static.test.mjs\n- tests/qa/static/cross_field_definition_preview_static.test.mjs\n- tests/qa/static/editor_component_model_static.test.mjs",
+      "updated_at": "2026-08-16T10:16:00+09:00",
+      "target_files": "- wwwroot/js/renderers/field_controls.js\n- wwwroot/js/runtime/detail_save.js\n- wwwroot/js/renderers/grid_detail.js\n- wwwroot/js/services/viewdef_maintenance_projection.js\n- wwwroot/index.html\n- tests/qa/static/combo_viewdef_maintenance_static.test.mjs\n- tests/qa/static/cross_field_definition_preview_static.test.mjs\n- tests/qa/static/field_definition_editor_derived_preview_static.test.mjs\n- tests/qa/static/editor_component_model_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- wwwroot/js/renderers/field_controls.js\n- wwwroot/js/runtime/detail_save.js\n- wwwroot/js/renderers/grid_detail.js\n- wwwroot/js/services/viewdef_maintenance_projection.js\n- wwwroot/index.html\n- tests/qa/static/combo_viewdef_maintenance_static.test.mjs\n- tests/qa/static/cross_field_definition_preview_static.test.mjs\n- tests/qa/static/field_definition_editor_derived_preview_static.test.mjs\n- tests/qa/static/editor_component_model_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
       "context_def_draft": "- ViewDefメンテ画面の「詳細表示」は field.edit.visible の正本として扱う。\n- Header / 基本情報もDetailと同じedit.visible契約で表示ON/OFFする。\n- F12反映後はcanonical rowとGrid表示側が同じrow identityを共有し、再読込なしで即時にGridへ反映する。",
       "objective": "- 基本情報Sectionの各項目をViewDefの「詳細表示」true/falseで表示制御できるようにする。\n- ViewDef Editor等のDetailでF12反映した変更を、背面Gridへその場で反映する。",
       "background": "- renderHeaderは従来def.fieldsを無条件表示しており、ViewDefメンテでedit.visible=falseにしても基本情報から消えなかった。\n- Detail F12 commitはcurrentRows[index]を新objectへ差し替えていた一方、filteredRowsは旧row object参照を保持していたため、canonical Dataは更新されてもGrid表示だけ古い値のまま残った。",
-      "scope": "- renderHeaderでfield.edit.visible !== falseを適用する。\n- visibleWhenがあるHeader fieldも同じ可視性判定を利用する。\n- Detail commit時は通常object rowのidentityを維持したまま内容を置換する。\n- 変更JSのcache-bustとStatic回帰テストを更新する。",
+      "scope": "- renderHeaderでfield.edit.visible !== falseを適用する。\n- visibleWhenがあるHeader fieldも同じ可視性判定を利用する。\n- Detail commit時は通常object rowのidentityを維持したまま内容を置換する。\n- 変更JSのcache-bustとStatic回帰テストを更新する。\n- 類似チェックFollow-up: Table/Document Grid・通常Detail・Header・child array subgrid・Searchの表示契約を横断確認し、各責務のvisible flagへ統一する。\n- ViewDefメンテのSection選択肢をSection-first表示にして、検索SectionとGrid Sectionの誤認を防ぐ。",
       "out_of_scope": "- Header Section全体の表示/非表示契約追加。\n- Grid sort/filter条件をF12変更値で自動的に再評価して行を移動・除外する機能。\n- ViewDef Schemaの名称変更。",
       "fixed_name_policy": "- 既存ファイルを同名更新する。\n- 返却ZIPはFoundation Rule 019に従い変更ファイルのみ。",
       "module_policy": "- Header可視性はfield_controls renderer責務で統一する。\n- F12 canonical commitと参照整合性はdetail_save責務で吸収し、ViewDefメンテ専用分岐を追加しない。",
       "expected_outputs": "- ViewDefメンテで基本情報Fieldの「詳細表示」をfalseにして保存すると、通常画面の基本情報からその項目が消える。\n- trueへ戻すと再表示される。\n- Detail Editorで値を変更してF12を押すと、Dialog背面のGrid該当セルが即時更新される。",
       "risk": "- edit.visible未指定は従来互換で表示する。\n- F12後もactive sort/filterの再判定までは行わず、現在表示中行のセル内容を即時同期する。",
-      "test_points": "- renderHeaderがedit.visible=falseを除外する。\n- Header visibleWhenも既存契約を利用する。\n- Detail commitがrow objectを差し替えずidentityを維持する。\n- index.htmlが変更JSの新cache keyを参照する。\n- 全Staticで既存FAIL数が増えない。",
-      "verification_log": "- Target Static: combo_viewdef_maintenance_static + field_definition_editor_derived_preview_static + cross_field_definition_preview_static + editor_component_model_static = 28 / 28 PASS。\n- 全Static: baseline 107 tests = 94 PASS / 13 FAIL、変更後109 tests = 96 PASS / 13 FAIL。FAIL 13件の名称はbaseline/currentで一致し、今回変更によるFAIL増加なし。\n- node --check: wwwroot/js/renderers/field_controls.js / wwwroot/js/runtime/detail_save.js PASS。\n- F12 identity smoke: currentRows / filteredRowsが同一row objectを保持したままcaption/edit.visible変更を即時参照できることを確認。\n- Header renderはfield.edit.visible !== falseを適用し、visibleWhenも既存契約を利用するStatic acceptanceを追加。\n- ブラウザ実機で基本情報OFF/ONとF12背面Grid即時反映はユーザー確認待ち。",
-      "user_request": "基本情報の項目表示ON/OFFをViewDefの「詳細表示 visible」で制御したい。またEditorで「反映(F12)」を押したら背面Gridへすぐ反映してほしい。",
-      "ai_response": "Header/基本情報もedit.visible契約へ統一し、F12 commit時にcanonical row identityを維持してfilteredRowsの表示参照を即時同期する。",
-      "latest_ai_response": "基本情報HeaderもViewDefの「詳細表示」(field.edit.visible)に従うよう統一。F12反映はcanonical rowのobject identityを維持して内容を更新し、filteredRowsが古いrow参照を掴み続ける問題を修正。Target 28/28 PASS、全Staticは96 PASS / 13 FAILで既存FAIL増加なし。",
+      "test_points": "- renderHeaderがedit.visible=falseを除外する。\n- Header visibleWhenも既存契約を利用する。\n- Detail commitがrow objectを差し替えずidentityを維持する。\n- index.htmlが変更JSの新cache keyを参照する。\n- 全Staticで既存FAIL数が増えない。\n- Table Grid / Document Gridがgrid.visible=falseを表示しない。\n- Header / scalar Detail / objectArray・stringArray child gridがedit.visible=falseを表示しない。\n- Searchはsearch.visibleを独立して使用し、edit.visibleとは混同しない。\n- ViewDefメンテSection候補がSection名/種別を先頭表示する。",
+      "verification_log": "- Target Static: combo_viewdef_maintenance_static + field_definition_editor_derived_preview_static + cross_field_definition_preview_static + editor_component_model_static = 28 / 28 PASS。\n- 全Static: baseline 107 tests = 94 PASS / 13 FAIL、変更後109 tests = 96 PASS / 13 FAIL。FAIL 13件の名称はbaseline/currentで一致し、今回変更によるFAIL増加なし。\n- node --check: wwwroot/js/renderers/field_controls.js / wwwroot/js/runtime/detail_save.js PASS。\n- F12 identity smoke: currentRows / filteredRowsが同一row objectを保持したままcaption/edit.visible変更を即時参照できることを確認。\n- Header renderはfield.edit.visible !== falseを適用し、visibleWhenも既存契約を利用するStatic acceptanceを追加。\n- ブラウザ実機で基本情報OFF/ONとF12背面Grid即時反映はユーザー確認待ち。\n- 2026-08-16 10:16 類似チェックFollow-up:\n  - 全Static baseline: 156 tests / 141 PASS / 15 FAIL。\n  - 変更後: 158 tests / 143 PASS / 15 FAIL。\n  - 既存15 FAIL名はbaseline/currentで一致し、今回変更によるFAIL増加なし。\n  - node --check: field_controls.js / detail_save.js / grid_detail.js / viewdef_maintenance_projection.js PASS。\n  - テスト実行で更新されたActual/Diffはbaselineへ復元し返却差分から除外。",
+      "user_request": "ViewDefの「詳細表示=false」がData JSON表示制御に使われていないように見える。前回の基本情報対応に対する類似チェックとして、Grid側・Editor側も横断確認して修正してほしい。",
+      "ai_response": "- 類似チェックを横断実施。通常Table Gridはgrid.visible、通常Detail/Headerはedit.visibleを既に参照していた。\n- 実漏れとしてDetail内objectArray/stringArrayサブグリッドがedit.visible=falseを無視していたため、共通Detail可視性判定へ統一した。\n- Document/Card Gridのexplicit fields経路もgrid.visible=falseを迂回しないよう補強した。\n- Searchは独立契約search.visibleであり、edit.visible=falseでもsearch.visible=trueなら検索欄へ表示する仕様を維持した。\n- スクリーンショットの8項目は検索Sectionであり、grid表示=false / 詳細表示=false / 検索表示=trueのため検索欄への表示は契約どおりだった。\n- ViewDefメンテのView / Section候補はSection名を先頭へ変更し、Header / 検索 / Gridを狭いselectでも判別しやすくした。\n- 全Static: Before 156 tests / 141 pass / 15 fail → After 158 tests / 143 pass / 15 fail。既存15 FAILは同一。",
+      "latest_ai_response": "- 類似チェックを横断実施。通常Table Gridはgrid.visible、通常Detail/Headerはedit.visibleを既に参照していた。\n- 実漏れとしてDetail内objectArray/stringArrayサブグリッドがedit.visible=falseを無視していたため、共通Detail可視性判定へ統一した。\n- Document/Card Gridのexplicit fields経路もgrid.visible=falseを迂回しないよう補強した。\n- Searchは独立契約search.visibleであり、edit.visible=falseでもsearch.visible=trueなら検索欄へ表示する仕様を維持した。\n- スクリーンショットの8項目は検索Sectionであり、grid表示=false / 詳細表示=false / 検索表示=trueのため検索欄への表示は契約どおりだった。\n- ViewDefメンテのView / Section候補はSection名を先頭へ変更し、Header / 検索 / Gridを狭いselectでも判別しやすくした。\n- 全Static: Before 156 tests / 141 pass / 15 fail → After 158 tests / 143 pass / 15 fail。既存15 FAILは同一。",
       "discussion_history": [
         {
           "speaker": "user",
           "at": "2026-08-15T13:28:00+09:00",
           "body": "基本情報の項目表示OFF/ONをGridの詳細表示visibleで制御してほしい。Editorで反映を押したらGridにすぐ反映してほしい。"
+        },
+        {
+          "speaker": "user",
+          "at": "2026-08-16T10:16:00+09:00",
+          "body": "view Defの 詳細表示=false が データJSON 表示制御に使われていない。この前、基本情報部分対応してもらった時の類似チェック漏れ。grid側、エディター側の類似チェックもお願い。"
         }
       ],
       "decision_log": [
@@ -26176,6 +26181,30 @@
           "at": "2026-08-15T13:28:00+09:00",
           "decision": "F12 commitではrow objectを差し替えず、既存objectの内容を置換する。",
           "reason": "filteredRows等がcanonical rowへの参照を保持している既存構造を壊さず、即時Grid反映を汎用的に復元できるため。"
+        },
+        {
+          "decision_id": "dec_studio_work_0183_003",
+          "at": "2026-08-16T10:16:00+09:00",
+          "decision": "Search表示はsearch.visible、Grid表示はgrid.visible、詳細/Header表示はedit.visibleという責務別契約を維持する。",
+          "reason": "3種類の表示ON/OFFを1つの詳細表示へ混ぜると、検索専用項目やGrid専用項目を定義できなくなるため。"
+        },
+        {
+          "decision_id": "dec_studio_work_0183_004",
+          "at": "2026-08-16T10:16:00+09:00",
+          "decision": "edit.visible=falseはscalar DetailだけでなくobjectArray/stringArrayのDetail child gridにも適用する。",
+          "reason": "同じ詳細Editor内でField型によって「詳細表示」の意味が変わる類似漏れをなくすため。"
+        },
+        {
+          "decision_id": "dec_studio_work_0183_005",
+          "at": "2026-08-16T10:16:00+09:00",
+          "decision": "Document/Card Gridのexplicit field指定でもgrid.visible=falseを上位契約として適用する。",
+          "reason": "RendererモードによってGrid表示契約を迂回できないようにするため。"
+        },
+        {
+          "decision_id": "dec_studio_work_0183_006",
+          "at": "2026-08-16T10:16:00+09:00",
+          "decision": "ViewDefメンテのView / Section候補はSection名とtypeを先頭に表示する。",
+          "reason": "長いView名で末尾のSection名が隠れ、検索SectionとGrid Sectionを誤認しやすかったため。"
         }
       ],
       "context_refs": [
@@ -26866,6 +26895,154 @@
           "summary": "実機フィードバック第14弾。JSON Studio→Git Diff Run時に孤立する空白NativeShell Windowを修正。NewWindowRequestedをDeferral + NewWindow割当方式へ変更し、同一Environment/Profileの1枚の子WebViewを待機→DiffJsonViewerで継続利用する契約へ変更。"
         }
       ]
+    },
+    {
+      "work_item_id": "studio_work_0186",
+      "phase": "v0.18.64-standard-search-contract-phase1",
+      "title": "標準検索Capability Phase 1 — Operator Registry / ViewDef検索契約 / Legacy Search Section境界",
+      "incident_type": "enhancement",
+      "category": "architecture",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "PENDING",
+      "verification_status": "Static確認済み / 人間ルール承認・Phase 2 Runtime実装待ち",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-16T14:50:00+09:00",
+      "owner": "",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-16T14:50:00+09:00",
+      "updated_at": "2026-08-16T14:57:00+09:00",
+      "target_files": "- data/json/config/search_operator_registry_v0_1.json\n- data/json/00_rules/frb_view_def_schema_v0_9.json\n- data/json/00_rules/frb_view_def_schema_review_data_v0_1.json\n- data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json\n- tests/qa/static/standard_search_contract_phase1.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- data/json/config/search_operator_registry_v0_1.json\n- data/json/00_rules/frb_view_def_schema_v0_9.json\n- data/json/00_rules/frb_view_def_schema_review_data_v0_1.json\n- data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json\n- tests/qa/static/standard_search_contract_phase1.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "# ContextDef素案: 標準検索Capability Phase 1\n\n## 読む目的\n検索をField Definitionから派生する標準Capabilityとして定義し、Runtime実装前にOperator語彙・ViewDef Override・Legacy互換境界を固定する。\n\n## 中核原則\n- 同一Fieldは一か所を正本とする。SearchはProjection。\n- OperatorはField type / Validation Typeから標準導出する。\n- Operator語彙はSearchOperatorRegistry一か所を正本とする。\n- Schemaは形、Registryは語彙を検証する。\n- 現在のRenderer/Responsibility体系を壊さず、Field Control Class全面移行は行わない。\n\n## UI契約\n- 標準Operatorは通常UIへ露出しない。\n- Override時だけ📌等で差分表示。\n- 右クリックは原則1階層。\n- ComboBoxは検索Operatorと選択肢メンテナンスを区切り線で共存。",
+      "objective": "- 標準検索v1の実装前に、検索Operator語彙と型別Operator Setを一元契約化する。\n- ViewDef検索定義をCanonical FieldからのProjectionへ整理し、Search Sectionの二重Field定義を新規標準から外す。\n- Validation / Search / TestPatternが同じField契約から派生できる境界を作る。",
+      "background": "- 数値・日付の範囲検索、含まない、空白/空白以外など業務利用に必要な標準検索をStudioへ持たせたい。\n- 現行ViewDefにはSearch SectionとGrid Sectionへ同じFieldが重複定義される例があり、設定不整合の温床になっている。\n- 現行RuntimeはすでにgridDef().fields[].search.visibleから検索UIを生成しており、SearchをProjectionとして整理できる土台がある。\n- Definition Driven Testingへ進む前に、検索Capability自体の正しさを固定したい。",
+      "scope": "- SearchOperatorRegistry Data JSONを新規正本として追加する。\n- active Operator 9種と標準Operator Set 5種を定義する。\n- Validation Type value_family / Field type fallbackからOperator Setへ対応する契約を定義する。\n- ViewDef SchemaのsearchOptionsへoperator_set/operatorsを追加し、語彙正本をRegistryへ分離する。\n- ViewDef Generation RulesへCanonical Field / Search Projection / Override / Legacy Search Section互換方針を追加する。\n- Schema Review Dataを実SchemaのsearchOptionsへ同期し、旧Operator enumを残さない。\n- Phase 1契約をStatic Testで固定する。",
+      "out_of_scope": "- SearchCapabilityResolver Runtime実装。\n- SearchFilterへのnot_contains/not_equals/between/blank/not_blank/date比較実装。\n- 右クリックContext Menu / 📌 / Range UIの実装。\n- ComboBox複数選択in/not_in実装。\n- Search Preset。\n- 既存ViewDefのSearch Section一括削除・一括変換。\n- UI Editor Class体系への全面リファクタ。",
+      "fixed_name_policy": "- Search Operator語彙は data/json/config/search_operator_registry_v0_1.json に集中させる。\n- RuntimeへOperator ID一覧を別固定定義として重複させない。\n- 既存Rule / SchemaはFoundation Rule 019の安定ファイル名契約に従い同名更新する。\n- 返却ZIPは変更ファイルのみ。",
+      "module_policy": "- SearchOperatorRegistry: Operator / Operator Set / Mapping / UI方針の語彙正本。\n- ViewDef Schema: search overrideの構造検証。Operator語彙は重複enum化しない。\n- SearchCapabilityResolver: Phase 2でRegistryとValidation Typeを解決するUI非依存責務。\n- SearchFilter: Phase 3でCriteria評価を担当。\n- Search UI Renderer: Phase 4で入力UI表現を担当。",
+      "expected_outputs": "- SearchOperatorRegistryがJSONとして存在し、Operator IDが一意である。\n- text/numeric/date/boolean/select標準Setとdefault Operatorが定義される。\n- numeric/dateのdefaultがbetween、textがcontains、boolean/selectがequalsである。\n- Schemaにoperator/operator_set/operatorsの形が存在し、Operator enumの二重正本が残らない。\n- Schema Review Dataも同じsearchOptions形へ同期される。\n- 新規ViewDef生成ではsearch.visibleのみで標準検索を表現できる契約になる。\n- Legacy Search Sectionは互換維持しつつ新規二重定義を禁止する方針が明文化される。",
+      "risk": "- RuntimeはPhase 1時点では新Operatorをまだ実行しないため、ViewDefへ新Overrideを先行投入すると既存Runtimeでは期待動作しない。Phase 2〜4完了前に実利用ViewDefへ新Operatorを適用しない。\n- 既存のsearch.operator contains/equals/gte/lteは互換対象として残す。\n- ViewDef Generation Rule 05は意味変更のため人間承認を未承認へ戻す。AIが承認を代行しない。",
+      "test_points": "- RegistryのOperator ID / Operator Set IDが一意。\n- Operator Set参照先がactive operatorsに存在する。\n- default_operatorが各Setのoperator_idsに含まれる。\n- Validation value_family mapping / Field type fallbackが存在する。\n- future in/not_inがplanned予約されているがactive operatorsへ混入しない。\n- ViewDef Schema searchOptionsがoperator/operator_set/operatorsを許可し、operator enumを持たない。\n- Schema Review Dataがoperator_set/operatorsを含み、旧operator enumを保持しない。\n- Generation Rule 05がsearch.visibleのみの基本形へ更新され、人間承認が未承認へ戻る。\n- Rule 36にCanonical Field / Registry / Context Menu / Legacy互換が記載される。\n- 全StaticでBaseline FAILが増えない。",
+      "verification_log": "- Phase 1専用Static: 8 / 8 PASS。\n- 全Static Before: 158 tests / 142 pass / 16 fail。\n- 全Static After: 166 tests / 150 pass / 16 fail。\n- 既存16 FAILは名前まで完全一致し、新規FAILなし。\n- 更新JSON 5ファイルはJSON.parse確認済み。\n- Runtime JS / C#変更なし。ブラウザ実機挙動はPhase 2以降。",
+      "user_request": "ありがとう。では、インシデント登録後、フェーズ1作業をお願いします。",
+      "ai_response": "標準検索設計v0.2をPhase 1実装契約へ落とし、SearchOperatorRegistry・ViewDef Schema・Generation Rules・Static Testを追加/更新する。Runtime検索挙動はPhase 2以降へ分離する。",
+      "latest_ai_response": "- studio_work_0186を登録し、Phase 1標準検索契約を実装。\n- SearchOperatorRegistryを新規追加し、active Operator 9種、標準Operator Set 5種、Validation value_family / Field type fallback、将来in/not_in予約を一元管理。\n- text=contains、numeric/date=between、boolean/select=equalsを標準Operatorとして契約化。\n- ViewDef SchemaのsearchOptionsへoperator/operator_set/operatorsを追加し、Schemaは形・Registryは語彙の正本とするため旧operator enumを削除。\n- Schema Review Dataも新searchOptionsへ同期。\n- ViewDef Generation Rule 05をsearch.visibleのみの基本形へ更新し、意味変更のため人間承認を未承認へ戻した。Rule 36としてCanonical Field / Search Projection / Context Menu / Legacy Search Section互換方針を追加。\n- Phase 1専用Static 8/8 PASS。全StaticはBefore 158/142/16 → After 166/150/16、既存16 FAIL名は完全一致。\n- Runtime検索挙動は変更していない。Phase 2 SearchCapabilityResolverをfollow_upとしてPENDING登録。",
+      "context_refs": [],
+      "follow_up_actions": [
+        {
+          "action_type": "SEARCH_CAPABILITY_RESOLVER",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "Phase 2"
+          ],
+          "summary": "SearchCapabilityResolverを実装し、Validation Type / Field type / ViewDef Overrideから実効Operator Setを解決する。",
+          "note": "UI非依存の薄い責務として実装。"
+        },
+        {
+          "action_type": "SEARCH_FILTER_OPERATORS",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "Phase 3"
+          ],
+          "summary": "SearchFilterへnot_contains/not_equals/between/blank/not_blank/date比較を追加する。",
+          "note": "DOM非依存Criteria評価を維持。"
+        },
+        {
+          "action_type": "SEARCH_UI_CONTEXT_MENU",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "Phase 4"
+          ],
+          "summary": "1階層右クリックOperator変更、Override📌、Range UI、Combo選択肢メンテナンス共存を実装する。",
+          "note": "階層メニュー化しない。"
+        },
+        {
+          "action_type": "VIEWDEF_SEARCH_STANDARDIZATION",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "Phase 5"
+          ],
+          "summary": "新規ViewDef生成をCanonical Field / search.visibleへ統一し、代表ViewDefでLegacy Search Section移行を検証する。",
+          "note": "既存全件一括移行はしない。"
+        },
+        {
+          "action_type": "DEFINITION_DRIVEN_SEARCH_TEST",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "Phase 6"
+          ],
+          "summary": "SearchCapabilityからTestPattern候補を導出しExpected/Actual/Diffへ接続する。",
+          "note": "Definition Driven Testing接続。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "at": "2026-08-16T14:50:00+09:00",
+          "speaker": "user",
+          "message": "ありがとう。では、インシデント登録後、フェーズ1作業をお願いします。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0186_001",
+          "at": "2026-08-16T14:50:00+09:00",
+          "decision": "検索FieldはSearch Sectionへ重複定義せずCanonical Field Definitionを正本とする。",
+          "reason": "同一Fieldの設定が複数箇所へ分散するとvisible/operator等が不整合になるため。"
+        },
+        {
+          "decision_id": "dec_0186_002",
+          "at": "2026-08-16T14:50:00+09:00",
+          "decision": "Search Operator語彙はSearchOperatorRegistry一か所で管理する。",
+          "reason": "ViewDef/Schema/RuntimeへOperator名を重複定義しないため。"
+        },
+        {
+          "decision_id": "dec_0186_003",
+          "at": "2026-08-16T14:50:00+09:00",
+          "decision": "ViewDef SchemaはOverrideの形を検証し、Operator語彙enumを正本として持たない。",
+          "reason": "Registryを唯一の語彙正本にするため。"
+        },
+        {
+          "decision_id": "dec_0186_004",
+          "at": "2026-08-16T14:50:00+09:00",
+          "decision": "text=contains、numeric/date=between、boolean/select=equalsを標準Operatorとする。",
+          "reason": "通常UIを簡素化しつつ、数値・日付では業務利用に必要な範囲検索を標準で提供するため。"
+        },
+        {
+          "decision_id": "dec_0186_005",
+          "at": "2026-08-16T14:50:00+09:00",
+          "decision": "Phase 1ではRuntime挙動を変更しない。",
+          "reason": "何を正しいとするかを先に契約・Static Testで固定し、Resolver/Filter/UIを後続フェーズで小さな差分として実装するため。"
+        }
+      ],
+      "change_history": [
+        {
+          "at": "2026-08-16T14:50:00+09:00",
+          "change_type": "incident_created",
+          "before": "未登録",
+          "after": "studio_work_0186 / v0.18.64-standard-search-contract-phase1",
+          "reason": "標準検索v1を段階実装するためPhase 1作業項目を登録。"
+        },
+        {
+          "at": "2026-08-16T14:50:00+09:00",
+          "change_type": "phase1_contract",
+          "before": "検索Operator語彙がViewDef/runtimeへ分散し、標準導出契約が未定義",
+          "after": "SearchOperatorRegistry + Schema shape + Generation RulesとしてPhase 1契約を固定",
+          "reason": "Definition Driven Searchの実装前提を明確にするため。"
+        },
+        {
+          "at": "2026-08-16T14:57:00+09:00",
+          "change_type": "verification_completed",
+          "before": "Phase 1契約実装中",
+          "after": "Phase 1専用Static 8/8 PASS、全Static新規FAILなし",
+          "reason": "契約正本とSchema/Review/Rulesの整合を確認した。"
+        }
+      ]
     }
   ],
   "review_notes": [
@@ -27381,8 +27558,8 @@
       "body": "- studio_work_0161を親構想として見直した。\n- studio_work_0162～0168を未着手計画として追加した。\n- Studio Coreは汎用AI協働基盤として維持する。\n- Definition Verificationは標準Capabilityとして実装する。\n- Editor Componentと計算Serviceを分離し、PreviewとRunnerで共通導出ロジックを利用する。\n- 構造化記述原則の新設をルール改定計画へ含めた。"
     }
   ],
-  "work_revision": "v0.18.63-native-popup-windowproxy-binding",
-  "latest_planning_note": "NativeShellのwindow.openはWebView2 NewWindowRequestedのNewWindow契約に従い、JS WindowProxyと子WebViewを1対1で接続する。独立した空白Formを残さない。",
+  "work_revision": "v0.18.64-standard-search-contract-phase1",
+  "latest_planning_note": "標準検索Phase 1: SearchOperatorRegistryを語彙正本として、Canonical FieldからのSearch Projection、ViewDef Override形、Legacy Search Section互換境界を固定する。",
   "view_def_candidates": [
     {
       "view_def": "rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",

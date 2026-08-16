@@ -201,7 +201,12 @@ function normalizeDocumentFieldSpec(gd, raw) {
 function documentGridFieldSpecs(gd, cfg=documentGridConfig(gd)) {
   const explicit = cfg.fields ?? cfg.itemFields ?? cfg.item_fields ?? gd?.grid?.documentFields ?? gd?.grid?.document_fields ?? gd?.grid?.cardFields ?? gd?.grid?.card_fields;
   if (Array.isArray(explicit) && explicit.length) {
-    return explicit.map(item => normalizeDocumentFieldSpec(gd, item)).filter(Boolean);
+    return explicit
+      .map(item => normalizeDocumentFieldSpec(gd, item))
+      .filter(Boolean)
+      .filter(spec => typeof GridColumnBuilder !== 'undefined' && GridColumnBuilder?.isVisibleInGrid
+        ? GridColumnBuilder.isVisibleInGrid(spec.field)
+        : spec.field?.grid?.visible !== false);
   }
   return (gd?.fields ?? [])
     .filter(f => f.grid?.visible !== false)

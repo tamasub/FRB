@@ -278,7 +278,7 @@ test('index loads Definition Verification Service and preview Components before 
   const base = index.indexOf('js/components/definition/definition_verification_derived_subgrid_component.js?v=definition-review-evidence-01846');
   const constraint = index.indexOf('js/components/definition/definition_constraint_diff_component.js?v=definition-review-evidence-01846');
   const preview = index.indexOf('js/components/definition/definition_test_preview_component.js?v=definition-review-evidence-01846');
-  const detail = index.indexOf('js/runtime/detail_save.js?v=detail-grid-immediate-01860');
+  const detail = index.indexOf('js/runtime/detail_save.js?v=visibility-contract-audit-01831');
 
   assert.ok(service >= 0);
   assert.ok(base > service);

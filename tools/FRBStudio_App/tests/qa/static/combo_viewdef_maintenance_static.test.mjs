@@ -19,7 +19,7 @@ test('ViewDef maintenance adds only the quiet ellipsis entry and preserves exist
   assert.match(pageSetup, /VIEWDEF_MAINTENANCE_VIEWDEF_PATH = 'common\/view_def_maint_fields_v0_2\.json'/);
   assert.match(pageSetup, /loadFromObjects\([\s\S]*'viewdef'[\s\S]*\)/);
   assert.match(app, /setupViewDefMaintenanceButton\(\)/);
-  assert.match(index, /js\/services\/viewdef_maintenance_projection\.js\?v=viewdef-row-order-01857/);
+  assert.match(index, /js\/services\/viewdef_maintenance_projection\.js\?v=visibility-contract-audit-01831/);
   assert.match(pageSetup, /buildViewDefMaintenanceDocument\(target\.json\)/);
   assert.match(pageSetup, /configureViewDefMaintenanceViewDef\(maintenance\.json, target\.json\)/);
   assert.match(pageSetup, /viewDefMaintenancePreferredDefaultSectionRef/);
@@ -207,9 +207,9 @@ test('basic-info header visibility follows the same edit.visible contract shown 
   const fieldControls = text('wwwroot/js/renderers/field_controls.js');
   const index = text('wwwroot/index.html');
 
-  assert.match(fieldControls, /function renderHeader\(\)[\s\S]*field\?\.edit\?\.visible !== false/);
-  assert.match(fieldControls, /fieldMatchesVisibleWhen\(field, sourceData\)/);
-  assert.match(index, /js\/renderers\/field_controls\.js\?v=header-detail-visible-01860/);
+  assert.match(fieldControls, /function isFieldVisibleInDetail\(field, row=null\)[\s\S]*field\?\.edit\?\.visible === false/);
+  assert.match(fieldControls, /function renderHeader\(\)[\s\S]*isFieldVisibleInDetail\(field, sourceData\)/);
+  assert.match(index, /js\/renderers\/field_controls\.js\?v=visibility-contract-audit-01831/);
 });
 
 test('F12 detail commit preserves canonical row identity so the visible Grid receives edits immediately', () => {
@@ -220,5 +220,43 @@ test('F12 detail commit preserves canonical row identity so the visible Grid rec
   assert.match(save, /Object\.keys\(current\)\.forEach\(key => \{ delete current\[key\]; \}\)/);
   assert.match(save, /Object\.keys\(nextRow\)\.forEach\(key => \{ current\[key\] = nextRow\[key\]; \}\)/);
   assert.match(save, /function finalizeValidatedDetailCommit\(row, index\)[\s\S]*replaceDetailRowPreservingReferences\(currentRows, index, row\)/);
-  assert.match(index, /js\/runtime\/detail_save\.js\?v=detail-grid-immediate-01860/);
+  assert.match(index, /js\/runtime\/detail_save\.js\?v=visibility-contract-audit-01831/);
+});
+
+
+test('visibility contract audit keeps Search independent while Grid and all Detail render paths honor their own flags', () => {
+  const fieldControls = text('wwwroot/js/renderers/field_controls.js');
+  const gridDetail = text('wwwroot/js/renderers/grid_detail.js');
+  const detailSave = text('wwwroot/js/runtime/detail_save.js');
+  const gridBuilder = text('wwwroot/js/responsibilities/grid_column_builder.js');
+  const index = text('wwwroot/index.html');
+
+  // Search has its own explicit contract and must not be suppressed by edit.visible=false.
+  assert.match(fieldControls, /gd\.fields\.filter\(f => f\.search\?\.visible\)/);
+  // Table Grid uses grid.visible.
+  assert.match(gridBuilder, /f\.grid\?\.visible !== false/);
+  assert.match(gridDetail, /GridColumnBuilder\.build\(gd\)/);
+  // Explicit Document/Card Grid fields must not bypass grid.visible=false.
+  assert.match(gridDetail, /documentGridFieldSpecs[\s\S]*GridColumnBuilder\.isVisibleInGrid\(spec\.field\)/);
+  // Scalar Detail + Header + array child grids share edit.visible.
+  assert.match(fieldControls, /function isFieldVisibleInDetail\(field, row=null\)/);
+  assert.match(fieldControls, /detailVisibleFields[\s\S]*isFieldVisibleInDetail\(f, row\)/);
+  assert.match(detailSave, /renderChildArea[\s\S]*isFieldVisibleInDetail\(f, row\)/);
+
+  assert.match(index, /js\/renderers\/grid_detail\.js\?v=visibility-contract-audit-01831/);
+  assert.match(index, /js\/runtime\/detail_save\.js\?v=visibility-contract-audit-01831/);
+});
+
+test('ViewDef maintenance section selector exposes Section identity before long View captions', () => {
+  const source = text('wwwroot/js/services/viewdef_maintenance_projection.js');
+  const sandbox = { globalThis: {} };
+  sandbox.globalThis = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(source, sandbox);
+
+  const target = json('defs/tools/git_diff_export_run_config_view_def_v0_1.json');
+  const catalog = sandbox.viewDefMaintenanceSectionCatalog(target);
+  assert.equal(catalog[0].name.startsWith('Git Diff / 基本情報 [form] / '), true);
+  assert.equal(catalog[1].name.startsWith('検索 [form] / '), true);
+  assert.equal(catalog[2].name.startsWith('Git Diff Run Config [grid] / '), true);
 });

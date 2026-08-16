@@ -907,3 +907,78 @@ body.studio-grid-only-shell .json-studio-main-pane > main { padding:0; }
     min-width: 100%;
   }
 }
+
+
+/* mdViewer v0.16.15: responsive wide-window Markdown layout
+   - use the Native Shell window width instead of capping the Markdown app at 1500px
+   - keep the article column readable/fixed-ish while giving extra width to the file tree and review rail
+   - make the right sidebar consume the full available viewport height so Document Meta sits at the bottom */
+.frb-page-markdown .app {
+  width: calc(100% - 24px);
+  max-width: none;
+}
+.frb-page-markdown .layout,
+.frb-page-markdown[data-mode="editor"] .layout {
+  grid-template-columns: minmax(280px, 1.15fr) minmax(680px, 800px) minmax(300px, .85fr) !important;
+}
+.frb-page-markdown .workspace-sidebar,
+.frb-page-markdown .sidebar {
+  top: 144px;
+  height: calc(100dvh - 160px);
+  max-height: calc(100dvh - 160px);
+}
+.frb-page-markdown .sidebar {
+  grid-template-rows: minmax(220px, 1.08fr) minmax(240px, 1.18fr) auto;
+}
+.frb-page-markdown .md-meta-panel {
+  align-self: end;
+}
+
+/* Keep existing narrow-screen behavior. */
+@media (max-width: 1180px) {
+  .frb-page-markdown .layout,
+  .frb-page-markdown[data-mode="editor"] .layout {
+    grid-template-columns: 250px minmax(0, 1fr) !important;
+  }
+  .frb-page-markdown .workspace-sidebar {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+  }
+  .frb-page-markdown .article-card {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .frb-page-markdown .sidebar {
+    grid-column: 2;
+    grid-row: 2;
+    position: static;
+    height: auto;
+    max-height: none;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: none;
+    margin-top: 0;
+  }
+}
+@media (max-width: 760px) {
+  .frb-page-markdown .layout,
+  .frb-page-markdown[data-mode="editor"] .layout {
+    grid-template-columns: 1fr !important;
+  }
+  .frb-page-markdown .workspace-sidebar,
+  .frb-page-markdown .article-card,
+  .frb-page-markdown .sidebar {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .frb-page-markdown .workspace-sidebar,
+  .frb-page-markdown .sidebar {
+    position: static;
+    height: auto;
+    max-height: none;
+  }
+  .frb-page-markdown .sidebar {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+  }
+}

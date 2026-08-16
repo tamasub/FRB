@@ -1,4 +1,4 @@
-// v0.18.61-webview2-native-shell-phase-a
+// v0.18.64-fielddefs-data-picker-access
 // Browser mode: no-op.
 // WebView2 Native Shell mode: translate the existing /api/* fetch contract into
 // a small generic JSON command bridge so Studio application logic stays unchanged.
@@ -135,6 +135,23 @@
       .sort((a, b) => a.localeCompare(b, 'ja'));
   }
 
+  async function listStudioDataJsonFiles() {
+    const [dataFiles, fieldDefinitionFiles] = await Promise.all([
+      listRelativeFiles('data/json', ['.json']),
+      listRelativeFiles('fielddefs', ['.json'])
+    ]);
+    return [
+      ...dataFiles,
+      ...fieldDefinitionFiles.map(path => joinPath('fielddefs', path))
+    ].sort((a, b) => a.localeCompare(b, 'ja'));
+  }
+
+  function studioDataWorkspacePath(relativePath) {
+    const relative = normalizedRelativePath(relativePath);
+    if (relative === 'fielddefs' || relative.startsWith('fielddefs/')) return relative;
+    return joinPath('data/json', relative);
+  }
+
   async function requestBodyText(input, init) {
     if (init?.body != null) {
       if (typeof init.body === 'string') return init.body;
@@ -174,7 +191,7 @@
 
     try {
       if (method === 'GET' && path === '/api/data')
-        return jsonResponse(await listRelativeFiles('data/json', ['.json']));
+        return jsonResponse(await listStudioDataJsonFiles());
 
       if (method === 'GET' && path === '/api/defs')
         return jsonResponse(await listRelativeFiles('defs', ['.json']));
@@ -272,7 +289,7 @@
         } else {
           workspacePath = kind === 'viewdef' || kind === 'def' || kind === 'defs'
             ? joinPath('defs', relative)
-            : joinPath('data/json', relative);
+            : studioDataWorkspacePath(relative);
         }
         const result = await invoke('shell.openFolder', { path: workspacePath, select_file: body?.selectFile ?? body?.select_file ?? true });
         return jsonResponse({ opened: result?.path ?? workspacePath, selected: workspacePath, kind, path: relative });
@@ -281,7 +298,7 @@
       const dataMatch = path.match(/^\/api\/data\/(.+)$/);
       if (dataMatch) {
         const relative = normalizedRelativePath(dataMatch[1]);
-        const workspacePath = joinPath('data/json', relative);
+        const workspacePath = studioDataWorkspacePath(relative);
         if (method === 'GET') {
           const result = await invoke('file.readText', { path: workspacePath });
           return textResponse(result?.content ?? '', 'application/json; charset=utf-8');

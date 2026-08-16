@@ -1,0 +1,376 @@
+{
+  "schema_version": "search_operator_registry_data_v0_1",
+  "registry_version": "0.1.0",
+  "document_type": "search_operator_registry",
+  "title": "FRB Studio Search Operator Registry",
+  "target": "Field Definition / ViewDef から導出する標準検索Operator・Operator Set・検索Criteria形状を一元管理するStudio Core共通Registry",
+  "status": "draft",
+  "created_at": "2026-08-16",
+  "updated_at": "2026-08-16",
+  "owner": "tamasub",
+  "ai_partner": "ChatGPT",
+  "introduced_in": "v0.18.64-standard-search-contract-phase1",
+  "source_incident": {
+    "incident_file": "data/json/01_main/_studio_work_incident_data_v2.json",
+    "phase": "v0.18.64-standard-search-contract-phase1",
+    "work_item_id": "studio_work_0186"
+  },
+  "validation_type_registry_ref": "config/validation_type_registry_v0_1.json",
+  "purpose": "検索を独立Field定義として重複管理せず、Canonical Field Definitionのtype / Validation Type / search overrideから標準検索能力を解決するための語彙正本を提供する。",
+  "contract": {
+    "canonical_field_policy": "同一dataPathの同一Fieldは一か所を正本とする。SearchはCanonical Field Definitionのsearch Projectionであり、検索専用Field定義を重複作成しない。",
+    "resolution_policy": "ViewDef search.operator_set / search.operators / search.operatorの明示Overrideを検証した上で、Resolved Validation Typeのvalue_family、Field type fallbackの順に標準Operator Setを解決する。UI型固有の表現差はRenderer責務とする。",
+    "schema_registry_boundary": "ViewDef JSON Schemaはsearch overrideの形を検証し、Operator / Operator Setの語彙正本は本Registryとする。SchemaへOperator enumを重複保持しない。",
+    "override_policy": "search.operator_setは標準Set全体の置換、search.operatorsは利用可能Operatorの絞り込み、search.operatorは初期・既定Operatorの明示Overrideとして扱う。operatorは最終的な利用可能Operator集合に含まれなければならない。",
+    "standard_ui_policy": "標準Operatorは通常UIへ常時露出しない。標準から変更した場合だけ📌等で差分を示す。RangeのようにUI形状そのものから意味が明確な場合は例外とする。",
+    "context_menu_policy": "検索Operator変更用右クリックメニューは原則1階層とする。Field固有操作とは区切り線・アイコン・文言で責務差を示す。ComboBoxでは既存の選択肢メンテナンスを同じ1階層メニュー内の独立コマンドとして維持する。",
+    "criteria_policy": "Search Criteriaはfield / operator / value系を持つRuntime派生状態としData JSONへ保存しない。betweenはfrom/toを持ち、Fromのみ=gte、Toのみ=lte、両方=範囲として扱える契約とする。",
+    "legacy_search_section_policy": "既存Search Sectionは互換のため即削除しないが、検索Field契約の正本にはしない。新規ViewDefではgrid等のCanonical Fieldにsearch.visibleを持たせ、Search SectionへのField重複定義を生成しない。",
+    "future_multi_select_policy": "ComboBox複数選択は近い将来の必須拡張とし、Criteriaを単一value専用に固定しない。in / not_in / values[] を将来追加できる境界を維持する。",
+    "search_preset_policy": "Search Presetは標準検索v1直後の近接Future Scopeとし、Phase 1では実装しない。"
+  },
+  "operators": [
+    {
+      "id": "contains",
+      "caption": "含む",
+      "status": "active",
+      "value_mode": "single",
+      "value_required": true,
+      "value_count": 1,
+      "supported_value_families": [
+        "string"
+      ],
+      "case_policy": "case_insensitive_default"
+    },
+    {
+      "id": "not_contains",
+      "caption": "含まない",
+      "status": "active",
+      "value_mode": "single",
+      "value_required": true,
+      "value_count": 1,
+      "supported_value_families": [
+        "string"
+      ],
+      "case_policy": "case_insensitive_default"
+    },
+    {
+      "id": "equals",
+      "caption": "完全一致 / 等しい",
+      "status": "active",
+      "value_mode": "single",
+      "value_required": true,
+      "value_count": 1,
+      "supported_value_families": [
+        "string",
+        "number",
+        "integer",
+        "float",
+        "decimal",
+        "date",
+        "datetime",
+        "instant",
+        "boolean",
+        "select"
+      ]
+    },
+    {
+      "id": "not_equals",
+      "caption": "一致以外 / 等しくない",
+      "status": "active",
+      "value_mode": "single",
+      "value_required": true,
+      "value_count": 1,
+      "supported_value_families": [
+        "string",
+        "number",
+        "integer",
+        "float",
+        "decimal",
+        "date",
+        "datetime",
+        "instant",
+        "boolean",
+        "select"
+      ]
+    },
+    {
+      "id": "gte",
+      "caption": "以上 / 以降",
+      "status": "active",
+      "value_mode": "single",
+      "value_required": true,
+      "value_count": 1,
+      "supported_value_families": [
+        "number",
+        "integer",
+        "float",
+        "decimal",
+        "date",
+        "datetime",
+        "instant"
+      ]
+    },
+    {
+      "id": "lte",
+      "caption": "以下 / 以前",
+      "status": "active",
+      "value_mode": "single",
+      "value_required": true,
+      "value_count": 1,
+      "supported_value_families": [
+        "number",
+        "integer",
+        "float",
+        "decimal",
+        "date",
+        "datetime",
+        "instant"
+      ]
+    },
+    {
+      "id": "between",
+      "caption": "範囲",
+      "status": "active",
+      "value_mode": "range",
+      "value_required": false,
+      "value_count": 2,
+      "partial_range_allowed": true,
+      "supported_value_families": [
+        "number",
+        "integer",
+        "float",
+        "decimal",
+        "date",
+        "datetime",
+        "instant"
+      ]
+    },
+    {
+      "id": "blank",
+      "caption": "空白",
+      "status": "active",
+      "value_mode": "none",
+      "value_required": false,
+      "value_count": 0,
+      "supported_value_families": [
+        "string",
+        "number",
+        "integer",
+        "float",
+        "decimal",
+        "date",
+        "datetime",
+        "instant",
+        "select"
+      ]
+    },
+    {
+      "id": "not_blank",
+      "caption": "空白以外",
+      "status": "active",
+      "value_mode": "none",
+      "value_required": false,
+      "value_count": 0,
+      "supported_value_families": [
+        "string",
+        "number",
+        "integer",
+        "float",
+        "decimal",
+        "date",
+        "datetime",
+        "instant",
+        "select"
+      ]
+    }
+  ],
+  "operator_sets": [
+    {
+      "id": "text_standard",
+      "caption": "Text標準検索",
+      "status": "active",
+      "value_families": [
+        "string"
+      ],
+      "field_types": [
+        "text",
+        "textarea"
+      ],
+      "default_operator": "contains",
+      "operator_ids": [
+        "contains",
+        "not_contains",
+        "equals",
+        "not_equals",
+        "blank",
+        "not_blank"
+      ]
+    },
+    {
+      "id": "numeric_standard",
+      "caption": "数値標準検索",
+      "status": "active",
+      "value_families": [
+        "number",
+        "integer",
+        "float",
+        "decimal"
+      ],
+      "field_types": [
+        "number"
+      ],
+      "default_operator": "between",
+      "operator_ids": [
+        "between",
+        "equals",
+        "not_equals",
+        "gte",
+        "lte",
+        "blank",
+        "not_blank"
+      ]
+    },
+    {
+      "id": "date_standard",
+      "caption": "日付・日時標準検索",
+      "status": "active",
+      "value_families": [
+        "date",
+        "datetime",
+        "instant"
+      ],
+      "field_types": [
+        "date",
+        "datetime"
+      ],
+      "default_operator": "between",
+      "operator_ids": [
+        "between",
+        "equals",
+        "not_equals",
+        "gte",
+        "lte",
+        "blank",
+        "not_blank"
+      ]
+    },
+    {
+      "id": "boolean_standard",
+      "caption": "Boolean標準検索",
+      "status": "active",
+      "value_families": [
+        "boolean"
+      ],
+      "field_types": [
+        "boolean"
+      ],
+      "default_operator": "equals",
+      "operator_ids": [
+        "equals"
+      ]
+    },
+    {
+      "id": "select_standard",
+      "caption": "Select / ComboBox標準検索",
+      "status": "active",
+      "value_families": [
+        "select"
+      ],
+      "field_types": [
+        "select"
+      ],
+      "default_operator": "equals",
+      "operator_ids": [
+        "equals",
+        "not_equals",
+        "blank",
+        "not_blank"
+      ]
+    }
+  ],
+  "validation_value_family_mappings": [
+    {
+      "value_family": "string",
+      "operator_set_id": "text_standard"
+    },
+    {
+      "value_family": "number",
+      "operator_set_id": "numeric_standard"
+    },
+    {
+      "value_family": "integer",
+      "operator_set_id": "numeric_standard"
+    },
+    {
+      "value_family": "float",
+      "operator_set_id": "numeric_standard"
+    },
+    {
+      "value_family": "decimal",
+      "operator_set_id": "numeric_standard"
+    },
+    {
+      "value_family": "date",
+      "operator_set_id": "date_standard"
+    },
+    {
+      "value_family": "datetime",
+      "operator_set_id": "date_standard"
+    },
+    {
+      "value_family": "instant",
+      "operator_set_id": "date_standard"
+    },
+    {
+      "value_family": "boolean",
+      "operator_set_id": "boolean_standard"
+    }
+  ],
+  "field_type_fallbacks": [
+    {
+      "field_type": "text",
+      "operator_set_id": "text_standard"
+    },
+    {
+      "field_type": "textarea",
+      "operator_set_id": "text_standard"
+    },
+    {
+      "field_type": "number",
+      "operator_set_id": "numeric_standard"
+    },
+    {
+      "field_type": "date",
+      "operator_set_id": "date_standard"
+    },
+    {
+      "field_type": "datetime",
+      "operator_set_id": "date_standard"
+    },
+    {
+      "field_type": "boolean",
+      "operator_set_id": "boolean_standard"
+    },
+    {
+      "field_type": "select",
+      "operator_set_id": "select_standard"
+    }
+  ],
+  "future_operator_reservations": [
+    {
+      "id": "in",
+      "caption": "いずれかに一致",
+      "status": "planned",
+      "target": "ComboBox複数選択",
+      "criteria_shape": "values[]"
+    },
+    {
+      "id": "not_in",
+      "caption": "いずれにも一致しない",
+      "status": "planned",
+      "target": "ComboBox複数選択",
+      "criteria_shape": "values[]"
+    }
+  ]
+}

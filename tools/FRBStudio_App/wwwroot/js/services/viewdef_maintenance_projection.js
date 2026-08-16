@@ -26,9 +26,12 @@
       sections.forEach((section, sectionIndex) => {
         const viewName = String(view?.caption ?? view?.id ?? `View ${viewIndex + 1}`).trim();
         const sectionName = String(section?.caption ?? section?.id ?? `Section ${sectionIndex + 1}`).trim();
+        const sectionType = String(section?.type ?? '').trim() || 'section';
         catalog.push({
           cd: sectionRef(viewIndex, sectionIndex),
-          name: `${viewName} / ${sectionName}`,
+          // Narrow maintenance select must expose the Section identity first.
+          // Otherwise long View captions hide whether the user is editing Header / Search / Grid.
+          name: `${sectionName} [${sectionType}] / ${viewName}`,
           view_index: viewIndex,
           section_index: sectionIndex,
           view_id: String(view?.id ?? ''),

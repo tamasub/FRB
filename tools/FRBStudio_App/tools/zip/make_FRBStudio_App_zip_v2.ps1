@@ -37,7 +37,8 @@ $excludePaths = @(
     "tools\chatgpt-share-export-minimum\node_modules",
     "wwwroot\data\json",
     "NativeShell\bin",
-    "NativeShell\obj"
+    "NativeShell\obj",
+    "data\json\81_frb_OrgSample"
 )
 
 # èoóÕ ZIP ñº

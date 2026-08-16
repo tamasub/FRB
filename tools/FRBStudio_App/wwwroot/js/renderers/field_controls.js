@@ -982,18 +982,23 @@ function createInput(field, value, prefix, readonlyOverride=false, row=null, gd=
   return wrap;
 }
 
+function isFieldVisibleInDetail(field, row=null) {
+  // ViewDefメンテの「詳細表示」は field.edit.visible の正本。
+  // Header / Detail body / Detail child-grid の全経路で同じ判定を再利用する。
+  if (field?.edit?.visible === false || String(field?.edit?.visible ?? '').trim().toLowerCase() === 'false') return false;
+  return typeof fieldMatchesVisibleWhen === 'function' ? fieldMatchesVisibleWhen(field, row) : true;
+}
+
 function renderHeader() {
   const def = headerDef();
   if (!def) return;
   $('headerCaption').textContent = def.caption ?? 'Header';
   const form = $('headerForm');
   form.innerHTML = '';
-  // v0.18.60-header-detail-visible:
-  // ViewDefメンテの「詳細表示」は field.edit.visible の正本。
-  // Header / 基本情報も Detail と同じ可視性契約を使い、false の項目は表示しない。
+  // v0.18.60-header-detail-visible + follow-up:
+  // Header / 基本情報も Detail と同じ isFieldVisibleInDetail 契約を使う。
   def.fields
-    .filter(field => field?.edit?.visible !== false)
-    .filter(field => typeof fieldMatchesVisibleWhen === 'function' ? fieldMatchesVisibleWhen(field, sourceData) : true)
+    .filter(field => isFieldVisibleInDetail(field, sourceData))
     .forEach(field => {
       form.appendChild(createInput(field, getByPath(sourceData, (def.dataPath === '$' ? '$.' : def.dataPath + '.') + field.field), 'header'));
     });
@@ -1079,7 +1084,7 @@ function detailVisibleFields(gd, row=null) {
   // objectArray / stringArray は childArea の専用サブグリッドで表示する。
   // Detail Form へ「2 items」のような表示専用テキスト入力を出すと、
   // 反映・保存時に配列本体を文字列へ壊す危険があるため除外する。
-  return (gd?.fields ?? []).filter(f => f.edit?.visible !== false && !isChildArrayField(f) && fieldMatchesVisibleWhen(f, row));
+  return (gd?.fields ?? []).filter(f => isFieldVisibleInDetail(f, row) && !isChildArrayField(f));
 }
 
 function renderDetailFooterFields(row, gd) {

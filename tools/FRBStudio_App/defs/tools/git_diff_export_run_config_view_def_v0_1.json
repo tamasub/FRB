@@ -266,248 +266,7 @@
           "caption": "検索",
           "type": "form",
           "dataPath": "run_configs",
-          "fields": [
-            {
-              "field": "run_config_id",
-              "caption": "Run ID",
-              "type": "text",
-              "readonly": false,
-              "grid": {
-                "visible": true,
-                "width": null,
-                "format": ""
-              },
-              "edit": {
-                "visible": true,
-                "readonly": false,
-                "editor": "",
-                "height": null,
-                "step": null,
-                "min": null,
-                "max": null
-              },
-              "search": {
-                "visible": true,
-                "operator": ""
-              },
-              "validation": {
-                "required": false
-              },
-              "format": "",
-              "defaultValue": ""
-            },
-            {
-              "field": "caption",
-              "caption": "Caption",
-              "type": "text",
-              "readonly": false,
-              "grid": {
-                "visible": false,
-                "width": null,
-                "format": ""
-              },
-              "edit": {
-                "visible": true,
-                "readonly": false,
-                "editor": "",
-                "height": null,
-                "step": null,
-                "min": null,
-                "max": null
-              },
-              "search": {
-                "visible": true,
-                "operator": ""
-              },
-              "validation": {
-                "required": false
-              },
-              "format": "",
-              "defaultValue": ""
-            },
-            {
-              "field": "mode",
-              "caption": "Mode",
-              "type": "select",
-              "options": [
-                "",
-                "Staged",
-                "Head",
-                "Range",
-                "FilePair",
-                "WorkingTree"
-              ],
-              "readonly": false,
-              "grid": {
-                "visible": false,
-                "width": null,
-                "format": ""
-              },
-              "edit": {
-                "visible": true,
-                "readonly": false,
-                "editor": "",
-                "height": null,
-                "step": null,
-                "min": null,
-                "max": null
-              },
-              "search": {
-                "visible": false,
-                "operator": ""
-              },
-              "validation": {
-                "required": false
-              },
-              "format": "",
-              "defaultValue": ""
-            },
-            {
-              "field": "from_ref",
-              "caption": "From",
-              "type": "text",
-              "readonly": false,
-              "grid": {
-                "visible": false,
-                "width": null,
-                "format": ""
-              },
-              "edit": {
-                "visible": true,
-                "readonly": false,
-                "editor": "",
-                "height": null,
-                "step": null,
-                "min": null,
-                "max": null
-              },
-              "search": {
-                "visible": false,
-                "operator": ""
-              },
-              "validation": {
-                "required": false
-              },
-              "format": "",
-              "defaultValue": ""
-            },
-            {
-              "field": "to_ref",
-              "caption": "To",
-              "type": "text",
-              "readonly": false,
-              "grid": {
-                "visible": false,
-                "width": null,
-                "format": ""
-              },
-              "edit": {
-                "visible": true,
-                "readonly": false,
-                "editor": "",
-                "height": null,
-                "step": null,
-                "min": null,
-                "max": null
-              },
-              "search": {
-                "visible": false,
-                "operator": ""
-              },
-              "validation": {
-                "required": false
-              },
-              "format": "",
-              "defaultValue": ""
-            },
-            {
-              "field": "from_file",
-              "caption": "From File",
-              "type": "text",
-              "readonly": false,
-              "grid": {
-                "visible": false,
-                "width": 260,
-                "format": ""
-              },
-              "edit": {
-                "visible": true,
-                "readonly": false,
-                "editor": "",
-                "height": null,
-                "step": null,
-                "min": null,
-                "max": null
-              },
-              "search": {
-                "visible": false,
-                "operator": ""
-              },
-              "validation": {
-                "required": false
-              },
-              "format": "",
-              "defaultValue": ""
-            },
-            {
-              "field": "to_file",
-              "caption": "To File",
-              "type": "text",
-              "readonly": false,
-              "grid": {
-                "visible": false,
-                "width": 260,
-                "format": ""
-              },
-              "edit": {
-                "visible": true,
-                "readonly": false,
-                "editor": "",
-                "height": null,
-                "step": null,
-                "min": null,
-                "max": null
-              },
-              "search": {
-                "visible": false,
-                "operator": ""
-              },
-              "validation": {
-                "required": false
-              },
-              "format": "",
-              "defaultValue": ""
-            },
-            {
-              "field": "enabled",
-              "caption": "Enabled",
-              "type": "boolean",
-              "readonly": false,
-              "grid": {
-                "visible": false,
-                "width": null,
-                "format": ""
-              },
-              "edit": {
-                "visible": true,
-                "readonly": false,
-                "editor": "",
-                "height": null,
-                "step": null,
-                "min": null,
-                "max": null
-              },
-              "search": {
-                "visible": false,
-                "operator": ""
-              },
-              "validation": {
-                "required": false
-              },
-              "format": "",
-              "defaultValue": ""
-            }
-          ]
+          "fields": []
         },
         {
           "id": "grid",
@@ -523,14 +282,27 @@
               "readonly": false,
               "grid": {
                 "visible": true,
-                "width": 210
+                "width": 210,
+                "format": ""
               },
               "edit": {
-                "visible": true
+                "visible": true,
+                "readonly": false,
+                "editor": "",
+                "height": null,
+                "step": null,
+                "min": null,
+                "max": null
               },
               "search": {
-                "visible": true
-              }
+                "visible": false,
+                "operator": ""
+              },
+              "validation": {
+                "required": false
+              },
+              "format": "",
+              "defaultValue": ""
             },
             {
               "field": "caption",
@@ -539,14 +311,27 @@
               "readonly": false,
               "grid": {
                 "visible": true,
-                "width": 250
+                "width": 250,
+                "format": ""
               },
               "edit": {
-                "visible": true
+                "visible": true,
+                "readonly": false,
+                "editor": "",
+                "height": null,
+                "step": null,
+                "min": null,
+                "max": null
               },
               "search": {
-                "visible": true
-              }
+                "visible": true,
+                "operator": ""
+              },
+              "validation": {
+                "required": false
+              },
+              "format": "",
+              "defaultValue": ""
             },
             {
               "field": "command_profile_id",
@@ -555,14 +340,27 @@
               "readonly": false,
               "grid": {
                 "visible": true,
-                "width": 130
+                "width": 130,
+                "format": ""
               },
               "edit": {
-                "visible": true
+                "visible": true,
+                "readonly": false,
+                "editor": "",
+                "height": null,
+                "step": null,
+                "min": null,
+                "max": null
               },
               "search": {
-                "visible": true
-              }
+                "visible": false,
+                "operator": ""
+              },
+              "validation": {
+                "required": false
+              },
+              "format": "",
+              "defaultValue": ""
             },
             {
               "field": "mode",
@@ -579,14 +377,27 @@
               "readonly": false,
               "grid": {
                 "visible": true,
-                "width": 110
+                "width": 110,
+                "format": ""
               },
               "edit": {
-                "visible": true
+                "visible": true,
+                "readonly": false,
+                "editor": "",
+                "height": null,
+                "step": null,
+                "min": null,
+                "max": null
               },
               "search": {
-                "visible": true
-              }
+                "visible": false,
+                "operator": ""
+              },
+              "validation": {
+                "required": false
+              },
+              "format": "",
+              "defaultValue": ""
             },
             {
               "field": "from_ref",
@@ -595,14 +406,27 @@
               "readonly": false,
               "grid": {
                 "visible": true,
-                "width": 110
+                "width": 110,
+                "format": ""
               },
               "edit": {
-                "visible": true
+                "visible": true,
+                "readonly": false,
+                "editor": "",
+                "height": null,
+                "step": null,
+                "min": null,
+                "max": null
               },
               "search": {
-                "visible": true
-              }
+                "visible": false,
+                "operator": ""
+              },
+              "validation": {
+                "required": false
+              },
+              "format": "",
+              "defaultValue": ""
             },
             {
               "field": "to_ref",
@@ -611,14 +435,27 @@
               "readonly": false,
               "grid": {
                 "visible": true,
-                "width": 110
+                "width": 110,
+                "format": ""
               },
               "edit": {
-                "visible": true
+                "visible": true,
+                "readonly": false,
+                "editor": "",
+                "height": null,
+                "step": null,
+                "min": null,
+                "max": null
               },
               "search": {
-                "visible": true
-              }
+                "visible": false,
+                "operator": ""
+              },
+              "validation": {
+                "required": false
+              },
+              "format": "",
+              "defaultValue": ""
             },
             {
               "field": "from_file",
@@ -627,14 +464,27 @@
               "readonly": false,
               "grid": {
                 "visible": true,
-                "width": 300
+                "width": 300,
+                "format": ""
               },
               "edit": {
-                "visible": true
+                "visible": true,
+                "readonly": false,
+                "editor": "",
+                "height": null,
+                "step": null,
+                "min": null,
+                "max": null
               },
               "search": {
-                "visible": true
-              }
+                "visible": false,
+                "operator": ""
+              },
+              "validation": {
+                "required": false
+              },
+              "format": "",
+              "defaultValue": ""
             },
             {
               "field": "to_file",
@@ -643,14 +493,27 @@
               "readonly": false,
               "grid": {
                 "visible": true,
-                "width": 300
+                "width": 300,
+                "format": ""
               },
               "edit": {
-                "visible": true
+                "visible": true,
+                "readonly": false,
+                "editor": "",
+                "height": null,
+                "step": null,
+                "min": null,
+                "max": null
               },
               "search": {
-                "visible": true
-              }
+                "visible": false,
+                "operator": ""
+              },
+              "validation": {
+                "required": false
+              },
+              "format": "",
+              "defaultValue": ""
             },
             {
               "field": "unified",
@@ -659,14 +522,27 @@
               "readonly": false,
               "grid": {
                 "visible": true,
-                "width": 80
+                "width": 80,
+                "format": ""
               },
               "edit": {
-                "visible": true
+                "visible": true,
+                "readonly": false,
+                "editor": "",
+                "height": null,
+                "step": null,
+                "min": null,
+                "max": null
               },
               "search": {
-                "visible": true
-              }
+                "visible": false,
+                "operator": ""
+              },
+              "validation": {
+                "required": false
+              },
+              "format": "",
+              "defaultValue": ""
             },
             {
               "field": "max_patch_chars",
@@ -675,14 +551,27 @@
               "readonly": false,
               "grid": {
                 "visible": true,
-                "width": 120
+                "width": 120,
+                "format": ""
               },
               "edit": {
-                "visible": true
+                "visible": true,
+                "readonly": false,
+                "editor": "",
+                "height": null,
+                "step": null,
+                "min": null,
+                "max": null
               },
               "search": {
-                "visible": true
-              }
+                "visible": false,
+                "operator": ""
+              },
+              "validation": {
+                "required": false
+              },
+              "format": "",
+              "defaultValue": ""
             },
             {
               "field": "no_patch",
@@ -691,14 +580,27 @@
               "readonly": false,
               "grid": {
                 "visible": true,
-                "width": 80
+                "width": 80,
+                "format": ""
               },
               "edit": {
-                "visible": true
+                "visible": true,
+                "readonly": false,
+                "editor": "",
+                "height": null,
+                "step": null,
+                "min": null,
+                "max": null
               },
               "search": {
-                "visible": true
-              }
+                "visible": false,
+                "operator": ""
+              },
+              "validation": {
+                "required": false
+              },
+              "format": "",
+              "defaultValue": ""
             },
             {
               "field": "enabled",
@@ -707,14 +609,27 @@
               "readonly": false,
               "grid": {
                 "visible": true,
-                "width": 80
+                "width": 80,
+                "format": ""
               },
               "edit": {
-                "visible": true
+                "visible": true,
+                "readonly": false,
+                "editor": "",
+                "height": null,
+                "step": null,
+                "min": null,
+                "max": null
               },
               "search": {
-                "visible": true
-              }
+                "visible": true,
+                "operator": ""
+              },
+              "validation": {
+                "required": false
+              },
+              "format": "",
+              "defaultValue": ""
             },
             {
               "field": "note",

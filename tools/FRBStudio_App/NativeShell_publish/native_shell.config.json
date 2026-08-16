@@ -8,6 +8,7 @@
     "data/json",
     "data/markdown",
     "defs",
+    "fielddefs",
     "studio_overlays"
   ],
   "allowed_commands": [
