@@ -3,7 +3,7 @@
   "schema_version": "coding_constraints_review_data_v0_1",
   "document_type": "studio_constitution_review",
   "domain": "coding_constraints",
-  "title": "Studioくん憲法 レビュー記録",
+  "title": "Studioくん憲法 ",
   "target": "CODING_CONSTRAINTS.md / Studio Architecture Constraints",
   "source_document": "CODING_CONSTRAINTS_ja.md",
   "source_version": "0.1-draft",
@@ -156,7 +156,7 @@
       "approved_by": "tamasub",
       "approved_at": "2026/6/21",
       "summary": "Studio は JSON Experience Platform である。",
-      "body": "Studio は JSON Experience Platform である。\n\nStudio は、構造化されたデータを受け取り、それを人間が読めるもの、人間が操作できるもの、人間が追体験できるものへ変換する。\n\n\u0060\u0060\u0060text\nData JSON\n  \u002B ViewDef JSON\n  \u002B Action\n  = Experience\n\u0060\u0060\u0060\n\nStudio は、ひとつの用途に閉じた専用ツールであってはならない。\n\nFFT、AI会話、テストパターン、MIDI、Markdown、差分、制約。\n\nそれらはすべて、Studio にとっては「JSON から生まれる体験」の一種である。\n\n---",
+      "body": "Studio は JSON Experience Platform である。\n\nStudio は、構造化されたデータを受け取り、それを人間が読めるもの、人間が操作できるもの、人間が追体験できるものへ変換する。\n\n```text\nData JSON\n  + ViewDef JSON\n  + Action\n  = Experience\n```\n\nStudio は、ひとつの用途に閉じた専用ツールであってはならない。\n\nFFT、AI会話、テストパターン、MIDI、Markdown、差分、制約。\n\nそれらはすべて、Studio にとっては「JSON から生まれる体験」の一種である。\n\n---",
       "ceremony_phrase": "Studioくん憲法 第1条「建国宣言」を承認する。",
       "user_comment": "",
       "ai_response": "",
@@ -186,7 +186,7 @@
       "approved_by": "",
       "approved_at": "",
       "summary": "Studio は、次の4層を分離して考える。",
-      "body": "Studio は、次の4層を分離して考える。\n\n\u0060\u0060\u0060text\nData\nViewDef\nAction\nRuntime\n\u0060\u0060\u0060\n\n### 2.1 Data\n\nData は真実の源泉である。\n\n例：\n\n- FFTログ JSON\n- AI会話 JSON\n- 制約 JSON\n- テストパターン JSON\n- 期待値 JSON\n- テスト結果 JSON\n- 差分 JSON\n- MIDI JSON\n\nData は、画面都合で汚してはならない。\n\nただし、明示的に表示用メタ情報として定義されたものは例外とする。\n\n### 2.2 ViewDef\n\nViewDef は、Data をどのように表示し、どのような体験として見せるかを定義する。\n\nViewDef は、単なる設定ファイルではない。\n\nViewDef は、体験設計書である。\n\n例：\n\n- グリッド表示\n- フォーム表示\n- チャット表示\n- Replay表示\n- FFT表示\n- MIDIピアノロール表示\n- テスト結果表示\n- 差分表示\n\n新しい表示ルールは、可能な限り ViewDef の拡張として実装する。\n\n### 2.3 Action\n\nAction は、ユーザーが操作したときに何が起きるかを定義する。\n\n例：\n\n- MIDIを再生する\n- AI会話をReplayする\n- テストを実行する\n- FFT Viewerを開く\n- Markdownを書き出す\n- URLを開く\n- 差分を比較する\n\nAction は、Renderer から分離する。\n\nボタンの表示名は ViewDef で変えてよい。\n\nしかし、実際の処理は Action として分離された実装へ委譲する。\n\n### 2.4 Runtime\n\nRuntime は、Data、ViewDef、Action を接続する役割を持つ。\n\nRuntime は薄く保つ。戦略的設計パターンを優先する。\n\nRuntime に特定ドメイン専用の処理を詰め込んではならない。\n\n---",
+      "body": "Studio は、次の4層を分離して考える。\n\n```text\nData\nViewDef\nAction\nRuntime\n```\n\n### 2.1 Data\n\nData は真実の源泉である。\n\n例：\n\n- FFTログ JSON\n- AI会話 JSON\n- 制約 JSON\n- テストパターン JSON\n- 期待値 JSON\n- テスト結果 JSON\n- 差分 JSON\n- MIDI JSON\n\nData は、画面都合で汚してはならない。\n\nただし、明示的に表示用メタ情報として定義されたものは例外とする。\n\n### 2.2 ViewDef\n\nViewDef は、Data をどのように表示し、どのような体験として見せるかを定義する。\n\nViewDef は、単なる設定ファイルではない。\n\nViewDef は、体験設計書である。\n\n例：\n\n- グリッド表示\n- フォーム表示\n- チャット表示\n- Replay表示\n- FFT表示\n- MIDIピアノロール表示\n- テスト結果表示\n- 差分表示\n\n新しい表示ルールは、可能な限り ViewDef の拡張として実装する。\n\n### 2.3 Action\n\nAction は、ユーザーが操作したときに何が起きるかを定義する。\n\n例：\n\n- MIDIを再生する\n- AI会話をReplayする\n- テストを実行する\n- FFT Viewerを開く\n- Markdownを書き出す\n- URLを開く\n- 差分を比較する\n\nAction は、Renderer から分離する。\n\nボタンの表示名は ViewDef で変えてよい。\n\nしかし、実際の処理は Action として分離された実装へ委譲する。\n\n### 2.4 Runtime\n\nRuntime は、Data、ViewDef、Action を接続する役割を持つ。\n\nRuntime は薄く保つ。戦略的設計パターンを優先する。\n\nRuntime に特定ドメイン専用の処理を詰め込んではならない。\n\n---",
       "ceremony_phrase": "Studioくん憲法 第2条「基本構造」を承認する。",
       "user_comment": "",
       "ai_response": "",
@@ -216,7 +216,7 @@
       "approved_by": "",
       "approved_at": "",
       "summary": "共通構造は戦略的設計パターン候補として観測し、責務分離と憲法第29条の実証条件を満たした場合に限り共通インターフェースへ昇格させる。",
-      "body": "Studio は、戦略的設計パターンを優先する。\n\nただし、見た目や用途が似ていることだけを理由に、直ちに共通インターフェースへ抽象化してはならない。\n\n共通の考え方で扱えそうな構造は、まず **戦略的設計パターン候補** として観測する。\n\n### 判断順序\n\n\u0060\u0060\u0060text\n同じ構造・差分を観測する\n  ↓\n責務を分離する\n  ↓\n共通部分と個別部分を説明する\n  ↓\n憲法第29条の実証条件を確認する\n  ↓\n人間が共通インターフェースへの昇格を判断する\n\u0060\u0060\u0060\n\n### 中核パターン候補\n\nStudio 関連の世界では、次の考え方が繰り返し登場する。\n\n\u0060\u0060\u0060text\ndetectGap()\nexecuteExperience()\nconstraints()\n\u0060\u0060\u0060\n\n具体例:\n\n- FRB: FFT と体感の差分を検出する\n- AI駆動開発: 期待値と実行結果の差分を検出する\n- JSON Studio: Data と View のズレを検出する\n- Replay: 思考過程の分岐や違和感を検出する\n- Testing: 期待結果と実際の結果の差分を検出する\n\n対象は違っても、同じ責務構造が実証された場合は共通化候補になり得る。\n\n共通化の実施可否は、憲法第29条「実証なき抽象化の禁止」を正本とする。",
+      "body": "Studio は、戦略的設計パターンを優先する。\n\nただし、見た目や用途が似ていることだけを理由に、直ちに共通インターフェースへ抽象化してはならない。\n\n共通の考え方で扱えそうな構造は、まず **戦略的設計パターン候補** として観測する。\n\n### 判断順序\n\n```text\n同じ構造・差分を観測する\n  ↓\n責務を分離する\n  ↓\n共通部分と個別部分を説明する\n  ↓\n憲法第29条の実証条件を確認する\n  ↓\n人間が共通インターフェースへの昇格を判断する\n```\n\n### 中核パターン候補\n\nStudio 関連の世界では、次の考え方が繰り返し登場する。\n\n```text\ndetectGap()\nexecuteExperience()\nconstraints()\n```\n\n具体例:\n\n- FRB: FFT と体感の差分を検出する\n- AI駆動開発: 期待値と実行結果の差分を検出する\n- JSON Studio: Data と View のズレを検出する\n- Replay: 思考過程の分岐や違和感を検出する\n- Testing: 期待結果と実際の結果の差分を検出する\n\n対象は違っても、同じ責務構造が実証された場合は共通化候補になり得る。\n\n共通化の実施可否は、憲法第29条「実証なき抽象化の禁止」を正本とする。",
       "ceremony_phrase": "Studioくん憲法 第3条「戦略的設計パターン」を承認する。",
       "user_comment": "",
       "ai_response": "",
@@ -226,7 +226,7 @@
       "change_history": [
         {
           "history_id": "chg_constitution_03_v01839_001",
-          "at": "2026-08-12T09:20:00\u002B09:00",
+          "at": "2026-08-12T09:20:00+09:00",
           "change_type": "body_refine",
           "before": "共通の考え方で扱えるものは、共通のインターフェースとして扱う。",
           "after": "共通構造は戦略的設計パターン候補として観測し、責務分離・実証・人間判断を経て共通インターフェースへ昇格させる。",
@@ -243,7 +243,7 @@
       "decision_log": [
         {
           "decision_id": "dec_constitution_03_v01839_001",
-          "at": "2026-08-12T09:20:00\u002B09:00",
+          "at": "2026-08-12T09:20:00+09:00",
           "decision": "戦略的設計パターンは即時共通化ルールではなく、共通化候補を発見するための観測原則として扱う。",
           "reason": "責務分離と実証を共通化より先に置くため。",
           "applied_axes": [
@@ -301,7 +301,7 @@
       "approved_by": "",
       "approved_at": "",
       "summary": "ViewDefには表示構成・接続・選択を宣言し、計算・判定・導出アルゴリズムはRuntimeのComponent / Service側へ分離する。",
-      "body": "ViewDef で表現できる **表示構成・接続・選択** は、可能な限り ViewDef に寄せる。\n\n次のようなものをコードに固定してはならない。\n\n- フィールド名\n- チャットの role\n- メッセージ本文のキー\n- 固定列構成\n- 固定ラベル\n- 固定ボタン\n- ドメイン固有の表示名\n- 利用するComponentの選択\n\n### ViewDefの責務境界\n\nViewDef First は、計算ロジックまでJSONへ押し込むという意味ではない。\n\nViewDefが宣言するもの:\n\n- 何を表示するか\n- どこへ配置するか\n- どのComponent / Action / Rendererを接続するか\n- 表示・編集に必要な設定\n\nViewDefへ埋め込まないもの:\n\n- Expectedの計算\n- TestPatternの導出\n- Validation契約の解決アルゴリズム\n- ドメイン固有の判定ロジック\n- Runnerの実行ロジック\n\nこれらは、UIから独立した Service / Resolver / Deriver 等へ分離する。\n\n悪い例:\n\n\u0060\u0060\u0060js\nmessage.user\nmessage.assistant\nmessage.text\n\u0060\u0060\u0060\n\n良い例:\n\n\u0060\u0060\u0060json\n{\n  \u0022chat\u0022: {\n    \u0022roleField\u0022: \u0022speaker\u0022,\n    \u0022textField\u0022: \u0022message\u0022,\n    \u0022timeField\u0022: \u0022timestamp\u0022,\n    \u0022metaFields\u0022: [\u0022pattern\u0022, \u0022event_type\u0022]\n  }\n}\n\u0060\u0060\u0060\n\nViewDefは **体験の配線図** であり、計算エンジンそのものではない。",
+      "body": "ViewDef で表現できる **表示構成・接続・選択** は、可能な限り ViewDef に寄せる。\n\n次のようなものをコードに固定してはならない。\n\n- フィールド名\n- チャットの role\n- メッセージ本文のキー\n- 固定列構成\n- 固定ラベル\n- 固定ボタン\n- ドメイン固有の表示名\n- 利用するComponentの選択\n\n### ViewDefの責務境界\n\nViewDef First は、計算ロジックまでJSONへ押し込むという意味ではない。\n\nViewDefが宣言するもの:\n\n- 何を表示するか\n- どこへ配置するか\n- どのComponent / Action / Rendererを接続するか\n- 表示・編集に必要な設定\n\nViewDefへ埋め込まないもの:\n\n- Expectedの計算\n- TestPatternの導出\n- Validation契約の解決アルゴリズム\n- ドメイン固有の判定ロジック\n- Runnerの実行ロジック\n\nこれらは、UIから独立した Service / Resolver / Deriver 等へ分離する。\n\n悪い例:\n\n```js\nmessage.user\nmessage.assistant\nmessage.text\n```\n\n良い例:\n\n```json\n{\n  \"chat\": {\n    \"roleField\": \"speaker\",\n    \"textField\": \"message\",\n    \"timeField\": \"timestamp\",\n    \"metaFields\": [\"pattern\", \"event_type\"]\n  }\n}\n```\n\nViewDefは **体験の配線図** であり、計算エンジンそのものではない。",
       "ceremony_phrase": "Studioくん憲法 第5条「ViewDef First」を承認する。",
       "user_comment": "",
       "ai_response": "",
@@ -322,8 +322,8 @@
           "after_category": "ViewDef",
           "before_summary": "ViewDef で表現できるものは、可能な限り ViewDef に寄せる。",
           "after_summary": "ViewDef で表現できるものは、可能な限り ViewDef に寄せる。",
-          "before_body": "ViewDef で表現できるものは、可能な限り ViewDef に寄せる。  次のようなものをコードに固定してはならない。  - フィールド名 - チャットの role - メッセージ本文のキー - 固定列構成 - 固定ラベル - 固定ボタン - ドメイン固有の表示名  悪い例：  \u0060\u0060\u0060js message.user message.assistant message.text \u0060\u0060\u0060  良い例：  \u0060\u0060\u0060json {   \u0022chat\u0022: {     \u0022roleField\u0022: \u0022speaker\u0022,     \u0022textField\u0022: \u0022message\u0022,     \u0022timeField\u0022: \u0022timestamp\u0022,     \u0022metaFields\u0022: [\u0022pattern\u0022, \u0022event_type\u0022]   } } \u0060\u0060\u0060  ---",
-          "after_body": "ViewDef で表現できるものは、可能な限り ViewDef に寄せる。  次のようなものをコードに固定してはならない。  - フィールド名 - チャットの role - メッセージ本文のキー - 固定列構成 - 固定ラベル - 固定ボタン - ドメイン固有の表示名  悪い例：  \u0060\u0060\u0060js message.user message.assistant message.text \u0060\u0060\u0060  良い例：  \u0060\u0060\u0060json {   \u0022chat\u0022: {     \u0022roleField\u0022: \u0022speaker\u0022,     \u0022textField\u0022: \u0022message\u0022,     \u0022timeField\u0022: \u0022timestamp\u0022,     \u0022metaFields\u0022: [\u0022pattern\u0022, \u0022event_type\u0022]   } } \u0060\u0060\u0060  ---",
+          "before_body": "ViewDef で表現できるものは、可能な限り ViewDef に寄せる。  次のようなものをコードに固定してはならない。  - フィールド名 - チャットの role - メッセージ本文のキー - 固定列構成 - 固定ラベル - 固定ボタン - ドメイン固有の表示名  悪い例：  ```js message.user message.assistant message.text ```  良い例：  ```json {   \"chat\": {     \"roleField\": \"speaker\",     \"textField\": \"message\",     \"timeField\": \"timestamp\",     \"metaFields\": [\"pattern\", \"event_type\"]   } } ```  ---",
+          "after_body": "ViewDef で表現できるものは、可能な限り ViewDef に寄せる。  次のようなものをコードに固定してはならない。  - フィールド名 - チャットの role - メッセージ本文のキー - 固定列構成 - 固定ラベル - 固定ボタン - ドメイン固有の表示名  悪い例：  ```js message.user message.assistant message.text ```  良い例：  ```json {   \"chat\": {     \"roleField\": \"speaker\",     \"textField\": \"message\",     \"timeField\": \"timestamp\",     \"metaFields\": [\"pattern\", \"event_type\"]   } } ```  ---",
           "before_ceremony_phrase": "Studioくん憲法 第5条「ViewDef First」を承認する。",
           "after_ceremony_phrase": "Studioくん憲法 第5条「ViewDef First」を承認する。",
           "reason": "本文と ceremony_phrase は ViewDef First の内容だったが、category/title が Replay Ready になっていたため、メタ情報を補正した。",
@@ -355,7 +355,7 @@
           "source_user_comment": "",
           "ai_comment": "",
           "notes": "",
-          "at": "2026-08-12T09:20:00\u002B09:00",
+          "at": "2026-08-12T09:20:00+09:00",
           "before": "ViewDef で表現できるものは、可能な限り ViewDef に寄せる。",
           "after": "ViewDefは表示構成・接続・選択を宣言し、計算・判定・導出アルゴリズムはComponent / Serviceへ分離する。"
         }
@@ -382,19 +382,19 @@
       "approved_by": "",
       "approved_at": "",
       "summary": "Action は ViewDef で宣言し、Runtime は Action 識別子を変数として受け渡す。",
-      "body": "UI 部品の中に、ドメイン固有の処理を直接書いてはならない。\n\nAction は ViewDef によって宣言され、Runtime によって変数として受け渡され、ActionRegistry によって実装へ委譲される。\n\n汎用 Runtime 側で、特定 Action 名を固定文字列として直接指定してはならない。\n\n悪い例：\n\n\u0060\u0060\u0060js\nbutton.onclick = () =\u003E playMidi(data);\n\u0060\u0060\u0060\n\n悪い例：\n\n\u0060\u0060\u0060js\nactionRegistry.execute(\u0022PlayMidi\u0022, context);\n\u0060\u0060\u0060\n\n良い例：\n\n\u0060\u0060\u0060js\nconst executeButton = viewDef.toolbar?.executeButton;\nconst actionId = executeButton?.action;\nactionRegistry.execute(actionId, context);\n\u0060\u0060\u0060\n\nViewDef は、次のように、その View における主役操作を \u0060toolbar.executeButton\u0060 として宣言できる。\n\n\u0060\u0060\u0060json\n{\n  \u0022toolbar\u0022: {\n    \u0022executeButton\u0022: {\n      \u0022visible\u0022: true,\n      \u0022caption\u0022: \u0022再生\u0022,\n      \u0022action\u0022: \u0022PlayMidi\u0022\n    }\n  }\n}\n\u0060\u0060\u0060\n\nここでの \u0060\u0022PlayMidi\u0022\u0060 は、コードに埋め込まれた固定処理名ではなく、ViewDef によって宣言された Action 識別子である。\n\nRuntime は Action の意味を知らない。\n\nRuntime は ViewDef から取得した Action 識別子を ActionRegistry に渡すだけである。\n\n実際の処理は、ActionRegistry に登録された Action 実装が担当する。\n\n補助的なボタンが必要な場合は、\u0060toolbar.buttons\u0060 など、\u0060executeButton\u0060 とは別の領域として定義する。\n\n\u0060executeButton\u0060 は、その View における代表的な実行操作を表す。\n\n同じ UI 構造でも、ViewDef が変われば呼び出す Action が変わる。\n\nこれが Studio におけるポリモーフィズムである。\n\n---",
+      "body": "UI 部品の中に、ドメイン固有の処理を直接書いてはならない。\n\nAction は ViewDef によって宣言され、Runtime によって変数として受け渡され、ActionRegistry によって実装へ委譲される。\n\n汎用 Runtime 側で、特定 Action 名を固定文字列として直接指定してはならない。\n\n悪い例：\n\n```js\nbutton.onclick = () => playMidi(data);\n```\n\n悪い例：\n\n```js\nactionRegistry.execute(\"PlayMidi\", context);\n```\n\n良い例：\n\n```js\nconst executeButton = viewDef.toolbar?.executeButton;\nconst actionId = executeButton?.action;\nactionRegistry.execute(actionId, context);\n```\n\nViewDef は、次のように、その View における主役操作を `toolbar.executeButton` として宣言できる。\n\n```json\n{\n  \"toolbar\": {\n    \"executeButton\": {\n      \"visible\": true,\n      \"caption\": \"再生\",\n      \"action\": \"PlayMidi\"\n    }\n  }\n}\n```\n\nここでの `\"PlayMidi\"` は、コードに埋め込まれた固定処理名ではなく、ViewDef によって宣言された Action 識別子である。\n\nRuntime は Action の意味を知らない。\n\nRuntime は ViewDef から取得した Action 識別子を ActionRegistry に渡すだけである。\n\n実際の処理は、ActionRegistry に登録された Action 実装が担当する。\n\n補助的なボタンが必要な場合は、`toolbar.buttons` など、`executeButton` とは別の領域として定義する。\n\n`executeButton` は、その View における代表的な実行操作を表す。\n\n同じ UI 構造でも、ViewDef が変われば呼び出す Action が変わる。\n\nこれが Studio におけるポリモーフィズムである。\n\n---",
       "ceremony_phrase": "Studioくん憲法 第6条「Action Separation」を承認する。",
-      "user_comment": "actionRegistry.execute(\u0022PlayMidi\u0022, context); は固定文字列指定なのでNG。ポリモーフィズムの場合、必ず変数名の指定になると思っている。これはかなり強い思い。\n\n{ \u0022toolbar\u0022: [ { \u0022caption\u0022: \u0022再生\u0022, \u0022action\u0022: \u0022PlayMidi\u0022 } ] } にも違和感がある。toolbar の下に executeButton みたいなのがあり、その中に { \u0022caption\u0022: \u0022再生\u0022, \u0022action\u0022: \u0022PlayMidi\u0022 } がある構造の方が自然ではないか。",
+      "user_comment": "actionRegistry.execute(\"PlayMidi\", context); は固定文字列指定なのでNG。ポリモーフィズムの場合、必ず変数名の指定になると思っている。これはかなり強い思い。\n\n{ \"toolbar\": [ { \"caption\": \"再生\", \"action\": \"PlayMidi\" } ] } にも違和感がある。toolbar の下に executeButton みたいなのがあり、その中に { \"caption\": \"再生\", \"action\": \"PlayMidi\" } がある構造の方が自然ではないか。",
       "ai_response": "指摘は妥当。汎用 Runtime 側に PlayMidi のような固定 Action 名が出ると、Action が増えるたびに Runtime が肥大化し、ポリモーフィズムではなく分岐地獄に近づく。ViewDef 側の Action 識別子として PlayMidi が出るのは許容できるが、コード側は ViewDef から取得した actionId を変数として ActionRegistry に渡すだけにするべき。また、toolbar 直下の単純配列より、主役操作として toolbar.executeButton を定義し、補助操作は toolbar.buttons に分ける構造の方が、意味が明確で拡張しやすい。",
       "user_reply": "実行ボタンの名称は ViewDef で「再生」「テスト実行」「Replay開始」などに変わる。そのため、UI側は固定の実行処理を知らず、ViewDef 側の executeButton 定義を読む形にしたい。\n\nv0.4-split作業後バージョンで入力しています。動作確認用コメント",
       "ai_followup_response": "第6条の修正案として、Action は ViewDef で宣言し、Runtime は actionId を変数として扱う方針に更新。主役操作は toolbar.executeButton に定義し、ActionRegistry が実装へ委譲する形を条文へ反映した。",
-      "notes": "差戻し理由：元条文の良い例に固定文字列 actionRegistry.execute(\u0022PlayMidi\u0022, context) が含まれていたため。修正案では、固定文字列を Runtime に置かず、ViewDef 由来の actionId を変数として渡す形に変更。",
+      "notes": "差戻し理由：元条文の良い例に固定文字列 actionRegistry.execute(\"PlayMidi\", context) が含まれていたため。修正案では、固定文字列を Runtime に置かず、ViewDef 由来の actionId を変数として渡す形に変更。",
       "change_history": [
         {
           "history_id": "hist_20260621_006_001",
           "revision": "v0.2",
           "changed_at": "2026-06-21",
-          "changed_by": "tamasub \u002B ChatGPT",
+          "changed_by": "tamasub + ChatGPT",
           "change_type": "spec_revision",
           "target_fields": "summary,body,user_comment,ai_response,user_reply,ai_followup_response,notes",
           "before_title": "Action Separation",
@@ -403,12 +403,12 @@
           "after_category": "Action",
           "before_summary": "UI 部品の中に、ドメイン固有の処理を直接書いてはならない。",
           "after_summary": "Action は ViewDef で宣言し、Runtime は Action 識別子を変数として受け渡す。",
-          "before_body": "UI 部品の中に、ドメイン固有の処理を直接書いてはならない。\n\n悪い例：\n\n\u0060\u0060\u0060js\nbutton.onclick = () =\u003E playMidi(data);\n\u0060\u0060\u0060\n\n良い例：\n\n\u0060\u0060\u0060js\nactionRegistry.execute(\u0022PlayMidi\u0022, context);\n\u0060\u0060\u0060\n\nViewDef は、次のように Action を宣言できる。\n\n\u0060\u0060\u0060json\n{\n  \u0022toolbar\u0022: [\n    {\n      \u0022caption\u0022: \u0022再生\u0022,\n      \u0022action\u0022: \u0022PlayMidi\u0022\n    }\n  ]\n}\n\u0060\u0060\u0060\n\n同じ UI 構造でも、ViewDef が変われば呼び出す Action が変わる。\n\nこれが Studio におけるポリモーフィズムである。\n\n---",
-          "after_body": "UI 部品の中に、ドメイン固有の処理を直接書いてはならない。\n\nAction は ViewDef によって宣言され、Runtime によって変数として受け渡され、ActionRegistry によって実装へ委譲される。\n\n汎用 Runtime 側で、特定 Action 名を固定文字列として直接指定してはならない。\n\n悪い例：\n\n\u0060\u0060\u0060js\nbutton.onclick = () =\u003E playMidi(data);\n\u0060\u0060\u0060\n\n悪い例：\n\n\u0060\u0060\u0060js\nactionRegistry.execute(\u0022PlayMidi\u0022, context);\n\u0060\u0060\u0060\n\n良い例：\n\n\u0060\u0060\u0060js\nconst executeButton = viewDef.toolbar?.executeButton;\nconst actionId = executeButton?.action;\nactionRegistry.execute(actionId, context);\n\u0060\u0060\u0060\n\nViewDef は、次のように、その View における主役操作を \u0060toolbar.executeButton\u0060 として宣言できる。\n\n\u0060\u0060\u0060json\n{\n  \u0022toolbar\u0022: {\n    \u0022executeButton\u0022: {\n      \u0022visible\u0022: true,\n      \u0022caption\u0022: \u0022再生\u0022,\n      \u0022action\u0022: \u0022PlayMidi\u0022\n    }\n  }\n}\n\u0060\u0060\u0060\n\nここでの \u0060\u0022PlayMidi\u0022\u0060 は、コードに埋め込まれた固定処理名ではなく、ViewDef によって宣言された Action 識別子である。\n\nRuntime は Action の意味を知らない。\n\nRuntime は ViewDef から取得した Action 識別子を ActionRegistry に渡すだけである。\n\n実際の処理は、ActionRegistry に登録された Action 実装が担当する。\n\n補助的なボタンが必要な場合は、\u0060toolbar.buttons\u0060 など、\u0060executeButton\u0060 とは別の領域として定義する。\n\n\u0060executeButton\u0060 は、その View における代表的な実行操作を表す。\n\n同じ UI 構造でも、ViewDef が変われば呼び出す Action が変わる。\n\nこれが Studio におけるポリモーフィズムである。\n\n---",
+          "before_body": "UI 部品の中に、ドメイン固有の処理を直接書いてはならない。\n\n悪い例：\n\n```js\nbutton.onclick = () => playMidi(data);\n```\n\n良い例：\n\n```js\nactionRegistry.execute(\"PlayMidi\", context);\n```\n\nViewDef は、次のように Action を宣言できる。\n\n```json\n{\n  \"toolbar\": [\n    {\n      \"caption\": \"再生\",\n      \"action\": \"PlayMidi\"\n    }\n  ]\n}\n```\n\n同じ UI 構造でも、ViewDef が変われば呼び出す Action が変わる。\n\nこれが Studio におけるポリモーフィズムである。\n\n---",
+          "after_body": "UI 部品の中に、ドメイン固有の処理を直接書いてはならない。\n\nAction は ViewDef によって宣言され、Runtime によって変数として受け渡され、ActionRegistry によって実装へ委譲される。\n\n汎用 Runtime 側で、特定 Action 名を固定文字列として直接指定してはならない。\n\n悪い例：\n\n```js\nbutton.onclick = () => playMidi(data);\n```\n\n悪い例：\n\n```js\nactionRegistry.execute(\"PlayMidi\", context);\n```\n\n良い例：\n\n```js\nconst executeButton = viewDef.toolbar?.executeButton;\nconst actionId = executeButton?.action;\nactionRegistry.execute(actionId, context);\n```\n\nViewDef は、次のように、その View における主役操作を `toolbar.executeButton` として宣言できる。\n\n```json\n{\n  \"toolbar\": {\n    \"executeButton\": {\n      \"visible\": true,\n      \"caption\": \"再生\",\n      \"action\": \"PlayMidi\"\n    }\n  }\n}\n```\n\nここでの `\"PlayMidi\"` は、コードに埋め込まれた固定処理名ではなく、ViewDef によって宣言された Action 識別子である。\n\nRuntime は Action の意味を知らない。\n\nRuntime は ViewDef から取得した Action 識別子を ActionRegistry に渡すだけである。\n\n実際の処理は、ActionRegistry に登録された Action 実装が担当する。\n\n補助的なボタンが必要な場合は、`toolbar.buttons` など、`executeButton` とは別の領域として定義する。\n\n`executeButton` は、その View における代表的な実行操作を表す。\n\n同じ UI 構造でも、ViewDef が変われば呼び出す Action が変わる。\n\nこれが Studio におけるポリモーフィズムである。\n\n---",
           "before_ceremony_phrase": "Studioくん憲法 第6条「Action Separation」を承認する。",
           "after_ceremony_phrase": "Studioくん憲法 第6条「Action Separation」を承認する。",
-          "reason": "汎用Runtime側に actionRegistry.execute(\u0022PlayMidi\u0022, context) のような固定文字列が出るのは、ポリモーフィズムの思想に反するため修正した。",
-          "source_user_comment": "actionRegistry.execute(\u0022PlayMidi\u0022, context); は固定文字列指定なのでNG。ポリモーフィズムの場合、必ず変数名の指定になると思っている。これはかなり強い思い。\n\n{ \u0022toolbar\u0022: [ { \u0022caption\u0022: \u0022再生\u0022, \u0022action\u0022: \u0022PlayMidi\u0022 } ] } にも違和感がある。toolbar の下に executeButton みたいなのがあり、その中に { \u0022caption\u0022: \u0022再生\u0022, \u0022action\u0022: \u0022PlayMidi\u0022 } がある構造の方が自然ではないか。",
+          "reason": "汎用Runtime側に actionRegistry.execute(\"PlayMidi\", context) のような固定文字列が出るのは、ポリモーフィズムの思想に反するため修正した。",
+          "source_user_comment": "actionRegistry.execute(\"PlayMidi\", context); は固定文字列指定なのでNG。ポリモーフィズムの場合、必ず変数名の指定になると思っている。これはかなり強い思い。\n\n{ \"toolbar\": [ { \"caption\": \"再生\", \"action\": \"PlayMidi\" } ] } にも違和感がある。toolbar の下に executeButton みたいなのがあり、その中に { \"caption\": \"再生\", \"action\": \"PlayMidi\" } がある構造の方が自然ではないか。",
           "ai_comment": "指摘は妥当。汎用 Runtime 側に PlayMidi のような固定 Action 名が出ると、Action が増えるたびに Runtime が肥大化し、ポリモーフィズムではなく分岐地獄に近づく。ViewDef 側の Action 識別子として PlayMidi が出るのは許容できるが、コード側は ViewDef から取得した actionId を変数として ActionRegistry に渡すだけにするべき。また、toolbar 直下の単純配列より、主役操作として toolbar.executeButton を定義し、補助操作は toolbar.buttons に分ける構造の方が、意味が明確で拡張しやすい。",
           "notes": "toolbar直下配列ではなく、主役操作を toolbar.executeButton として定義する方針も合わせて記録。"
         }
@@ -525,7 +525,7 @@
       "approved_by": "",
       "approved_at": "",
       "summary": "変更は、小さく、確認可能な単位で行う。",
-      "body": "変更は、小さく、確認可能な単位で行う。\n\n明示的に依頼されない限り、大規模な全面書き換えを避ける。\n\nリファクタリング時は次の順序を守る。\n\n1. 既存動作を保つ\n2. 責務を分離する\n3. 拡張ポイントを作る\n4. 新しい挙動を ViewDef または Action で追加する\n5. サンプル Data で確認する\n\n### 10.1 仕様変更履歴の保存\n\nレビューによって条文、設計、仕様、ViewDef、Action、固定フィールド名、または運用ルールを変更する場合は、変更前の内容を必ず履歴として残す。\n\n変更後の値だけを保存してはならない。\n\n仕様変更時は、対象行に \u0060change_history\u0060 を追加し、少なくとも次を記録する。\n\n- 変更日時\n- 変更者\n- 変更種別\n- 変更対象フィールド\n- 変更前の値\n- 変更後の値\n- 変更理由\n- 人間のコメント\n- AIの回答\n- 補足メモ\n\n修正元を残すことは、単なる履歴管理ではない。\n\nStudio における Diff First、Replay Ready、AI協働の再現性を守るための必須条件である。\n\n特に、レビューで仕様を変更した場合は、なぜその仕様が変更されたのかを未来の人間とAIが追体験できるようにする。\n\n---",
+      "body": "変更は、小さく、確認可能な単位で行う。\n\n明示的に依頼されない限り、大規模な全面書き換えを避ける。\n\nリファクタリング時は次の順序を守る。\n\n1. 既存動作を保つ\n2. 責務を分離する\n3. 拡張ポイントを作る\n4. 新しい挙動を ViewDef または Action で追加する\n5. サンプル Data で確認する\n\n### 10.1 仕様変更履歴の保存\n\nレビューによって条文、設計、仕様、ViewDef、Action、固定フィールド名、または運用ルールを変更する場合は、変更前の内容を必ず履歴として残す。\n\n変更後の値だけを保存してはならない。\n\n仕様変更時は、対象行に `change_history` を追加し、少なくとも次を記録する。\n\n- 変更日時\n- 変更者\n- 変更種別\n- 変更対象フィールド\n- 変更前の値\n- 変更後の値\n- 変更理由\n- 人間のコメント\n- AIの回答\n- 補足メモ\n\n修正元を残すことは、単なる履歴管理ではない。\n\nStudio における Diff First、Replay Ready、AI協働の再現性を守るための必須条件である。\n\n特に、レビューで仕様を変更した場合は、なぜその仕様が変更されたのかを未来の人間とAIが追体験できるようにする。\n\n---",
       "ceremony_phrase": "Studioくん憲法 第10条「小さな変更の原則」を承認する。",
       "user_comment": "",
       "ai_response": "",
@@ -537,7 +537,7 @@
           "history_id": "hist_20260621_010_001",
           "revision": "v0.3",
           "changed_at": "2026-06-21",
-          "changed_by": "tamasub \u002B ChatGPT",
+          "changed_by": "tamasub + ChatGPT",
           "change_type": "rule_addition",
           "target_fields": "body",
           "before_title": "小さな変更の原則",
@@ -547,7 +547,7 @@
           "before_summary": "変更は、小さく、確認可能な単位で行う。",
           "after_summary": "変更は、小さく、確認可能な単位で行う。",
           "before_body": "変更は、小さく、確認可能な単位で行う。\n\n明示的に依頼されない限り、大規模な全面書き換えを避ける。\n\nリファクタリング時は次の順序を守る。\n\n1. 既存動作を保つ\n2. 責務を分離する\n3. 拡張ポイントを作る\n4. 新しい挙動を ViewDef または Action で追加する\n5. サンプル Data で確認する\n\n---",
-          "after_body": "変更は、小さく、確認可能な単位で行う。\n\n明示的に依頼されない限り、大規模な全面書き換えを避ける。\n\nリファクタリング時は次の順序を守る。\n\n1. 既存動作を保つ\n2. 責務を分離する\n3. 拡張ポイントを作る\n4. 新しい挙動を ViewDef または Action で追加する\n5. サンプル Data で確認する\n\n### 10.1 仕様変更履歴の保存\n\nレビューによって条文、設計、仕様、ViewDef、Action、固定フィールド名、または運用ルールを変更する場合は、変更前の内容を必ず履歴として残す。\n\n変更後の値だけを保存してはならない。\n\n仕様変更時は、対象行に \u0060change_history\u0060 を追加し、少なくとも次を記録する。\n\n- 変更日時\n- 変更者\n- 変更種別\n- 変更対象フィールド\n- 変更前の値\n- 変更後の値\n- 変更理由\n- 人間のコメント\n- AIの回答\n- 補足メモ\n\n修正元を残すことは、単なる履歴管理ではない。\n\nStudio における Diff First、Replay Ready、AI協働の再現性を守るための必須条件である。\n\n特に、レビューで仕様を変更した場合は、なぜその仕様が変更されたのかを未来の人間とAIが追体験できるようにする。\n\n---",
+          "after_body": "変更は、小さく、確認可能な単位で行う。\n\n明示的に依頼されない限り、大規模な全面書き換えを避ける。\n\nリファクタリング時は次の順序を守る。\n\n1. 既存動作を保つ\n2. 責務を分離する\n3. 拡張ポイントを作る\n4. 新しい挙動を ViewDef または Action で追加する\n5. サンプル Data で確認する\n\n### 10.1 仕様変更履歴の保存\n\nレビューによって条文、設計、仕様、ViewDef、Action、固定フィールド名、または運用ルールを変更する場合は、変更前の内容を必ず履歴として残す。\n\n変更後の値だけを保存してはならない。\n\n仕様変更時は、対象行に `change_history` を追加し、少なくとも次を記録する。\n\n- 変更日時\n- 変更者\n- 変更種別\n- 変更対象フィールド\n- 変更前の値\n- 変更後の値\n- 変更理由\n- 人間のコメント\n- AIの回答\n- 補足メモ\n\n修正元を残すことは、単なる履歴管理ではない。\n\nStudio における Diff First、Replay Ready、AI協働の再現性を守るための必須条件である。\n\n特に、レビューで仕様を変更した場合は、なぜその仕様が変更されたのかを未来の人間とAIが追体験できるようにする。\n\n---",
           "before_ceremony_phrase": "Studioくん憲法 第10条「小さな変更の原則」を承認する。",
           "after_ceremony_phrase": "Studioくん憲法 第10条「小さな変更の原則」を承認する。",
           "reason": "レビューで仕様を変更した場合、その修正元を必ず残すルールを憲法に明記するため。",
@@ -578,7 +578,7 @@
       "approved_by": "",
       "approved_at": "",
       "summary": "Studio の既存機能を壊してはならない。",
-      "body": "Studio の既存機能を壊してはならない。\n\nコード変更前に、影響する機能を確認する。\n\n例：\n\n- グリッド表示\n- フォーム表示\n- コンボ選択読み込み\n- Markdown Viewer 連携\n- サブグリッド編集\n- ReadOnly モード\n- 保存処理\n- Drag \u0026 Drop\n- Data と ViewDef の関連付け\n\n回帰リスクがある場合は、必ず明示する。\n\n---",
+      "body": "Studio の既存機能を壊してはならない。\n\nコード変更前に、影響する機能を確認する。\n\n例：\n\n- グリッド表示\n- フォーム表示\n- コンボ選択読み込み\n- Markdown Viewer 連携\n- サブグリッド編集\n- ReadOnly モード\n- 保存処理\n- Drag & Drop\n- Data と ViewDef の関連付け\n\n回帰リスクがある場合は、必ず明示する。\n\n---",
       "ceremony_phrase": "Studioくん憲法 第11条「既存機能保護」を承認する。",
       "user_comment": "",
       "ai_response": "",
@@ -608,7 +608,7 @@
       "approved_by": "",
       "approved_at": "",
       "summary": "固定フィールド名・固定パスの使用は原則禁止し、FRBStudio_App上位の絶対パス依存も禁止する。PowerShellバッチ処理は共通ログ部品を使用する。",
-      "body": "Studio は、特定のフィールド名、固定パス（固定のフォルダーパス・ファイル名）を前提にした実装を原則禁止する。\n\n- 固定のフォルダーパス・ファイル名を使う場合は、フォルダーパス・ファイル名定義を一か所に集中させる設計とすること。\n- バッチ処理を行う場合、ログファイルを出力しない処理を作ってはならない。\n\nGrid、Form、Chat、Replay、Diff、Markdown 出力、Action 実行など、すべての表示・操作において、データ構造の差異は ViewDef によって吸収することを原則とする。\n\n固定フィールド名、固定パス（固定のフォルダーパス・ファイル名）は、Studio が汎用プラットフォームとして育つか、専用処理だらけに肥満化するかの瀬戸際にある重要事項である。\n\n悪い例：\n\n\u0060\u0060\u0060js\nrow.message\nrow.user\nrow.status\nrow.result\n\u0060\u0060\u0060\n\n良い例：\n\n\u0060\u0060\u0060js\nconst value = getValueByPath(row, fieldDef.field);\n\u0060\u0060\u0060\n\nChat View の場合も、固定フィールド名を前提にしてはならない。\n\n悪い例：\n\n\u0060\u0060\u0060js\nmessage.role\nmessage.text\n\u0060\u0060\u0060\n\n良い例：\n\n\u0060\u0060\u0060json\n{\n  \u0022chat\u0022: {\n    \u0022roleField\u0022: \u0022speaker\u0022,\n    \u0022textField\u0022: \u0022message\u0022,\n    \u0022timeField\u0022: \u0022timestamp\u0022\n  }\n}\n\u0060\u0060\u0060\n\nただし、Studio の仕様、ViewDef スキーマ、生成ルール、または明示された予約語として定義されているものは例外とする。\n\n例外の根拠となる仕様ファイル例：\n\n\u0060\u0060\u0060text\nFRB_VIEW_DEF_GENERATION_RULES_*_markdown_ai_prompt.md\nfrb_view_def_schema_*_relation_status_filter.json\n\u0060\u0060\u0060\n\n固定フィールド名、固定パス（固定のフォルダーパス・ファイル名）を使いたい場合は、必ず tamasub と協議し、承認を得ること。\n\n固定フィールド名、固定パス（固定のフォルダーパス・ファイル名）を使う場合は、少なくとも次を説明すること。\n\n1. なぜ ViewDef では吸収できないのか\n2. その固定フィールド名の影響範囲はどこまでか\n3. 根拠となる仕様ファイル、スキーマ、生成ルールは何か\n4. 固定フィールド名、固定パス（固定のフォルダーパス・ファイル名）を使わない場合の代替案とコストは何か\n\n固定フィールド名、固定パス（固定のフォルダーパス・ファイル名）は、便利だから使うものではない。\n\nStudio 全体の互換性と再利用性を守るため、固定フィールド名、固定パス（固定のフォルダーパス・ファイル名）は仕様として定義され、協議によって承認された場合にのみ使用する。\n\n---\n\n## v0.17.2 追記: FRBStudio_App上位パス依存の禁止\n\nStudio は、FRBStudio_App より上位のパス構造に依存してはならない。\n\n禁止例:\n\n\u0060\u0060\u0060text\nF:\\FRB\\tools\\FRBStudio_App\\...\nF:\\FRB_Diff\\...\nC:\\Users\\...\n../tools/FRBStudio_App を前提にした探索\n\u0060\u0060\u0060\n\n許可する基本形:\n\n\u0060\u0060\u0060text\nFRBStudio_App root\n  \u002B data/json/...\n  \u002B defs/...\n  \u002B tools/git/...\n  \u002B tools/test/...\n  \u002B wwwroot/diff/...\n\u0060\u0060\u0060\n\n- C# / JavaScript / PowerShell / Data JSON に、個人PC固有の絶対パスを埋め込んではならない。\n- \u0060Program.cs\u0060 などのプログラム本文にパスやファイル名を直接散在させてはならない。必要な場合は、ファイル上部の定数、CommandProfile設定、またはManifest/Configへ集約すること。\n- \u0060appsettings.json\u0060 などの設定へパスを書く場合も、原則として FRBStudio_App root からの相対パスを使うこと。\n- 実行設定Data JSONの明細行に、環境依存の出力先絶対パスを持たせてはならない。出力先を画面に見せたい場合は、基本情報メモまたはAPI由来の参考表示として扱うこと。\n- バッチやスクリプトは、自分自身の位置またはFRBStudio_App root markerからルートを解決し、\u0060tools/FRBStudio_App\u0060 のような上位リポジトリ配置を前提にしてはならない。\n\nこの条項は、Studioくんを会社PC・別フォルダー・ZIP展開先へ持ち運べるようにするための移植性制約である。\n\n---\n\n## v0.17.5 追記: PowerShellバッチ共通ログ部品の使用必須\n\nStudio の PowerShell バッチ処理を作成または改修する場合は、共通ログ部品 \u0060tools/common/StudioLog.ps1\u0060 を使用すること。\n\n対象例:\n\n\u0060\u0060\u0060text\ntools/test/TestRunner.ps1\ntools/git/Export-DiffToJson.ps1\n将来追加する tools/**/*.ps1 のバッチ処理\n\u0060\u0060\u0060\n\n- バッチごとに独自のログ出力ロジックを複製してはならない。\n- ログ出力先は FRBStudio_App root 基準の \u0060Log/Log_yyyyMMdd.log\u0060 を基本とする。\n- ログには開始、終了、主要パラメータ、解決済みFRBStudio_App root、実行コマンド概要、出力先、終了コード、エラー要約を記録する。\n- 巨大なDiff本文、テスト結果本文、機密値、環境依存の個人情報をログへ丸ごと出してはならない。\n- ログ出力に失敗しても、原則として本処理を止めてはならない。ただし共通ログ部品そのものが存在しない場合は、バッチ実装ルール違反として検出できるようにする。\n- 新しい \u0060.ps1\u0060 バッチを追加する場合は、まず \u0060tools/common/StudioLog.ps1\u0060 を dot-source し、独自ログではなく共通関数を使うこと。\n\nこの条項は、過去にログ不足で Git Diff Run / TestRunner / CommandProfile の原因調査が難しくなった経緯を踏まえ、バッチ処理の観測可能性をStudio標準として確保するための制約である。\n",
+      "body": "Studio は、特定のフィールド名、固定パス（固定のフォルダーパス・ファイル名）を前提にした実装を原則禁止する。\n\n- 固定のフォルダーパス・ファイル名を使う場合は、フォルダーパス・ファイル名定義を一か所に集中させる設計とすること。\n- バッチ処理を行う場合、ログファイルを出力しない処理を作ってはならない。\n\nGrid、Form、Chat、Replay、Diff、Markdown 出力、Action 実行など、すべての表示・操作において、データ構造の差異は ViewDef によって吸収することを原則とする。\n\n固定フィールド名、固定パス（固定のフォルダーパス・ファイル名）は、Studio が汎用プラットフォームとして育つか、専用処理だらけに肥満化するかの瀬戸際にある重要事項である。\n\n悪い例：\n\n```js\nrow.message\nrow.user\nrow.status\nrow.result\n```\n\n良い例：\n\n```js\nconst value = getValueByPath(row, fieldDef.field);\n```\n\nChat View の場合も、固定フィールド名を前提にしてはならない。\n\n悪い例：\n\n```js\nmessage.role\nmessage.text\n```\n\n良い例：\n\n```json\n{\n  \"chat\": {\n    \"roleField\": \"speaker\",\n    \"textField\": \"message\",\n    \"timeField\": \"timestamp\"\n  }\n}\n```\n\nただし、Studio の仕様、ViewDef スキーマ、生成ルール、または明示された予約語として定義されているものは例外とする。\n\n例外の根拠となる仕様ファイル例：\n\n```text\nFRB_VIEW_DEF_GENERATION_RULES_*_markdown_ai_prompt.md\nfrb_view_def_schema_*_relation_status_filter.json\n```\n\n固定フィールド名、固定パス（固定のフォルダーパス・ファイル名）を使いたい場合は、必ず tamasub と協議し、承認を得ること。\n\n固定フィールド名、固定パス（固定のフォルダーパス・ファイル名）を使う場合は、少なくとも次を説明すること。\n\n1. なぜ ViewDef では吸収できないのか\n2. その固定フィールド名の影響範囲はどこまでか\n3. 根拠となる仕様ファイル、スキーマ、生成ルールは何か\n4. 固定フィールド名、固定パス（固定のフォルダーパス・ファイル名）を使わない場合の代替案とコストは何か\n\n固定フィールド名、固定パス（固定のフォルダーパス・ファイル名）は、便利だから使うものではない。\n\nStudio 全体の互換性と再利用性を守るため、固定フィールド名、固定パス（固定のフォルダーパス・ファイル名）は仕様として定義され、協議によって承認された場合にのみ使用する。\n\n---\n\n## v0.17.2 追記: FRBStudio_App上位パス依存の禁止\n\nStudio は、FRBStudio_App より上位のパス構造に依存してはならない。\n\n禁止例:\n\n```text\nF:\\FRB\\tools\\FRBStudio_App\\...\nF:\\FRB_Diff\\...\nC:\\Users\\...\n../tools/FRBStudio_App を前提にした探索\n```\n\n許可する基本形:\n\n```text\nFRBStudio_App root\n  + data/json/...\n  + defs/...\n  + tools/git/...\n  + tools/test/...\n  + wwwroot/diff/...\n```\n\n- C# / JavaScript / PowerShell / Data JSON に、個人PC固有の絶対パスを埋め込んではならない。\n- `Program.cs` などのプログラム本文にパスやファイル名を直接散在させてはならない。必要な場合は、ファイル上部の定数、CommandProfile設定、またはManifest/Configへ集約すること。\n- `appsettings.json` などの設定へパスを書く場合も、原則として FRBStudio_App root からの相対パスを使うこと。\n- 実行設定Data JSONの明細行に、環境依存の出力先絶対パスを持たせてはならない。出力先を画面に見せたい場合は、基本情報メモまたはAPI由来の参考表示として扱うこと。\n- バッチやスクリプトは、自分自身の位置またはFRBStudio_App root markerからルートを解決し、`tools/FRBStudio_App` のような上位リポジトリ配置を前提にしてはならない。\n\nこの条項は、Studioくんを会社PC・別フォルダー・ZIP展開先へ持ち運べるようにするための移植性制約である。\n\n---\n\n## v0.17.5 追記: PowerShellバッチ共通ログ部品の使用必須\n\nStudio の PowerShell バッチ処理を作成または改修する場合は、共通ログ部品 `tools/common/StudioLog.ps1` を使用すること。\n\n対象例:\n\n```text\ntools/test/TestRunner.ps1\ntools/git/Export-DiffToJson.ps1\n将来追加する tools/**/*.ps1 のバッチ処理\n```\n\n- バッチごとに独自のログ出力ロジックを複製してはならない。\n- ログ出力先は FRBStudio_App root 基準の `Log/Log_yyyyMMdd.log` を基本とする。\n- ログには開始、終了、主要パラメータ、解決済みFRBStudio_App root、実行コマンド概要、出力先、終了コード、エラー要約を記録する。\n- 巨大なDiff本文、テスト結果本文、機密値、環境依存の個人情報をログへ丸ごと出してはならない。\n- ログ出力に失敗しても、原則として本処理を止めてはならない。ただし共通ログ部品そのものが存在しない場合は、バッチ実装ルール違反として検出できるようにする。\n- 新しい `.ps1` バッチを追加する場合は、まず `tools/common/StudioLog.ps1` を dot-source し、独自ログではなく共通関数を使うこと。\n\nこの条項は、過去にログ不足で Git Diff Run / TestRunner / CommandProfile の原因調査が難しくなった経緯を踏まえ、バッチ処理の観測可能性をStudio標準として確保するための制約である。\n",
       "ceremony_phrase": "Studioくん憲法 第12条「固定フィールド名の原則禁止」を承認する。",
       "user_comment": "固定フィールド名の使用は原則禁止（Chat View に限らず）。ただし、以下に記載のあるものは除く。\n- FRB_VIEW_DEF_GENERATION_RULES_*_markdown_ai_prompt.md\n- frb_view_def_schema_*_relation_status_filter.json\n\n厳しすぎるなら、なにかうまく逃げれる言葉を調整したい。\n\n特に固定フィールド名を使いたい場合は、必ず協議するという制約を入れたい。Studioくんが肥満になるかどうかの瀬戸際になる話なので、肥満を許容するかどうかは判断させてほしい。",
       "ai_response": "Chat View 限定ではなく、Studio 全体の原則として固定フィールド名を扱うべき。固定フィールド名は、短期的には便利だが、長期的には Studio の汎用性を削り、専用処理を増やす原因になる。したがって、禁止ではなく『例外申請制』とし、仕様ファイル・スキーマ・生成ルールに根拠があるものだけを例外にするのがよい。さらに、固定フィールド名を使う場合は必ず tamasub と協議し、肥満を許容するかどうかを人間が判断する制約を入れるべき。",
@@ -620,7 +620,7 @@
           "history_id": "hist_20260621_012_001",
           "revision": "v0.2",
           "changed_at": "2026-06-21",
-          "changed_by": "tamasub \u002B ChatGPT",
+          "changed_by": "tamasub + ChatGPT",
           "change_type": "spec_revision",
           "target_fields": "category,title,summary,body,ceremony_phrase,user_comment,ai_response,user_reply,ai_followup_response,notes",
           "before_title": "Chat View は可変であること",
@@ -630,7 +630,7 @@
           "before_summary": "Chat View は固定フィールド名を前提にしてはならない。",
           "after_summary": "固定フィールド名の使用は Chat View に限らず原則禁止し、例外は仕様根拠と協議承認を必要とする。",
           "before_body": "Chat View は固定フィールド名を前提にしてはならない。\n\nAI会話 JSON の構造は、プロジェクトごとに変わる。\n\nChat ViewDef は、次を定義できる必要がある。\n\n- role フィールド\n- 本文フィールド\n- timestamp フィールド\n- avatar または label フィールド\n- 表示するメタ情報\n- 強調表示ルール\n- 関連成果物\n- step 順序\n\nChat は Conversation JSON のひとつの見方にすぎない。\n\n同じ Conversation JSON は、次のようにも表示できる。\n\n- Story\n- Timeline\n- Diff\n- Architecture Map\n- Replay\n- Review Log\n\n---",
-          "after_body": "Studio は、特定のフィールド名を前提にした実装を原則禁止する。\n\nこれは Chat View に限らない。\n\nGrid、Form、Chat、Replay、Diff、Markdown 出力、Action 実行など、すべての表示・操作において、データ構造の差異は ViewDef によって吸収することを原則とする。\n\n固定フィールド名は、Studio が汎用プラットフォームとして育つか、専用処理だらけに肥満化するかの瀬戸際にある重要事項である。\n\n悪い例：\n\n\u0060\u0060\u0060js\nrow.message\nrow.user\nrow.status\nrow.result\n\u0060\u0060\u0060\n\n良い例：\n\n\u0060\u0060\u0060js\nconst value = getValueByPath(row, fieldDef.field);\n\u0060\u0060\u0060\n\nChat View の場合も、固定フィールド名を前提にしてはならない。\n\n悪い例：\n\n\u0060\u0060\u0060js\nmessage.role\nmessage.text\n\u0060\u0060\u0060\n\n良い例：\n\n\u0060\u0060\u0060json\n{\n  \u0022chat\u0022: {\n    \u0022roleField\u0022: \u0022speaker\u0022,\n    \u0022textField\u0022: \u0022message\u0022,\n    \u0022timeField\u0022: \u0022timestamp\u0022\n  }\n}\n\u0060\u0060\u0060\n\nただし、Studio の仕様、ViewDef スキーマ、生成ルール、または明示された予約語として定義されているものは例外とする。\n\n例外の根拠となる仕様ファイル例：\n\n\u0060\u0060\u0060text\nFRB_VIEW_DEF_GENERATION_RULES_*_markdown_ai_prompt.md\nfrb_view_def_schema_*_relation_status_filter.json\n\u0060\u0060\u0060\n\n固定フィールド名を使いたい場合は、必ず tamasub と協議し、承認を得ること。\n\n固定フィールド名を使う場合は、少なくとも次を説明すること。\n\n1. なぜ ViewDef では吸収できないのか\n2. その固定フィールド名の影響範囲はどこまでか\n3. 根拠となる仕様ファイル、スキーマ、生成ルールは何か\n4. 固定フィールド名を使わない場合の代替案とコストは何か\n\n固定フィールド名は、便利だから使うものではない。\n\nStudio 全体の互換性と再利用性を守るため、固定フィールド名は仕様として定義され、協議によって承認された場合にのみ使用する。\n\n---",
+          "after_body": "Studio は、特定のフィールド名を前提にした実装を原則禁止する。\n\nこれは Chat View に限らない。\n\nGrid、Form、Chat、Replay、Diff、Markdown 出力、Action 実行など、すべての表示・操作において、データ構造の差異は ViewDef によって吸収することを原則とする。\n\n固定フィールド名は、Studio が汎用プラットフォームとして育つか、専用処理だらけに肥満化するかの瀬戸際にある重要事項である。\n\n悪い例：\n\n```js\nrow.message\nrow.user\nrow.status\nrow.result\n```\n\n良い例：\n\n```js\nconst value = getValueByPath(row, fieldDef.field);\n```\n\nChat View の場合も、固定フィールド名を前提にしてはならない。\n\n悪い例：\n\n```js\nmessage.role\nmessage.text\n```\n\n良い例：\n\n```json\n{\n  \"chat\": {\n    \"roleField\": \"speaker\",\n    \"textField\": \"message\",\n    \"timeField\": \"timestamp\"\n  }\n}\n```\n\nただし、Studio の仕様、ViewDef スキーマ、生成ルール、または明示された予約語として定義されているものは例外とする。\n\n例外の根拠となる仕様ファイル例：\n\n```text\nFRB_VIEW_DEF_GENERATION_RULES_*_markdown_ai_prompt.md\nfrb_view_def_schema_*_relation_status_filter.json\n```\n\n固定フィールド名を使いたい場合は、必ず tamasub と協議し、承認を得ること。\n\n固定フィールド名を使う場合は、少なくとも次を説明すること。\n\n1. なぜ ViewDef では吸収できないのか\n2. その固定フィールド名の影響範囲はどこまでか\n3. 根拠となる仕様ファイル、スキーマ、生成ルールは何か\n4. 固定フィールド名を使わない場合の代替案とコストは何か\n\n固定フィールド名は、便利だから使うものではない。\n\nStudio 全体の互換性と再利用性を守るため、固定フィールド名は仕様として定義され、協議によって承認された場合にのみ使用する。\n\n---",
           "before_ceremony_phrase": "Studioくん憲法 第12条「Chat View は可変であること」を承認する。",
           "after_ceremony_phrase": "Studioくん憲法 第12条「固定フィールド名の原則禁止」を承認する。",
           "reason": "固定フィールド名禁止は Chat View だけではなく Studio 全体の原則であるため、条文の対象範囲を拡張した。",
@@ -642,7 +642,7 @@
           "history_id": "hist_20260630_012_002",
           "revision": "v0.17.2",
           "changed_at": "2026-06-30",
-          "changed_by": "tamasub \u002B ChatGPT",
+          "changed_by": "tamasub + ChatGPT",
           "change_type": "spec_revision",
           "target_fields": "summary,body,change_history",
           "before_summary": "固定フィールド名の使用は Chat View に限らず原則禁止し、例外は仕様根拠と協議承認を必要とする。",
@@ -653,7 +653,7 @@
           "history_id": "hist_20260630_012_003",
           "revision": "v0.17.5",
           "changed_at": "2026-06-30",
-          "changed_by": "tamasub \u002B ChatGPT",
+          "changed_by": "tamasub + ChatGPT",
           "change_type": "spec_revision",
           "target_fields": "summary,body,change_history",
           "before_summary": "固定フィールド名・固定パスの使用は原則禁止し、FRBStudio_App上位の絶対パス依存も禁止する。例外は仕様根拠と協議承認を必要とする。",
@@ -744,7 +744,7 @@
       "approved_by": "",
       "approved_at": "",
       "summary": "Studio は URL による起動に対応する。",
-      "body": "Studio は URL による起動に対応する。\n\n例：\n\n\u0060\u0060\u0060text\nstudio.html?data=...\u0026view=...\n\u0060\u0060\u0060\n\n将来的には、次のような拡張も想定する。\n\n\u0060\u0060\u0060text\nstudio.html?data=...\u0026view=...\u0026mode=readonly\nstudio.html?data=...\u0026view=...\u0026step=12\nstudio.html?data=...\u0026view=...\u0026action=replay\n\u0060\u0060\u0060\n\n記事から直接 Studio 体験へリンクするために、URL 起動は重要である。\n\n---",
+      "body": "Studio は URL による起動に対応する。\n\n例：\n\n```text\nstudio.html?data=...&view=...\n```\n\n将来的には、次のような拡張も想定する。\n\n```text\nstudio.html?data=...&view=...&mode=readonly\nstudio.html?data=...&view=...&step=12\nstudio.html?data=...&view=...&action=replay\n```\n\n記事から直接 Studio 体験へリンクするために、URL 起動は重要である。\n\n---",
       "ceremony_phrase": "Studioくん憲法 第15条「URL 起動対応」を承認する。",
       "user_comment": "",
       "ai_response": "",
@@ -864,7 +864,7 @@
       "approved_by": "",
       "approved_at": "",
       "summary": "大きなファイルは責務ごとに分割し、UIライフサイクルを持つComponentとUI非依存のService / Resolver / Deriverを分離する。",
-      "body": "大きなファイルは、責務ごとに分割する。\n\n推奨構成例:\n\n\u0060\u0060\u0060text\napp.js\ncore/\n  state.js\n  dataStore.js\n  viewDefLoader.js\n  studioRuntime.js\nrenderers/\n  gridRenderer.js\n  formRenderer.js\n  chatRenderer.js\n  diffRenderer.js\nactions/\n  actionRegistry.js\n  openUrlAction.js\n  replayAction.js\n  runTestAction.js\ncomponents/\n  ... UIライフサイクルを持つ部品\nservices/\n  ... UI非依存の計算・解決・導出\nfeatures/\n  replayController.js\n  urlLaunch.js\nutils/\n  dom.js\n  jsonPath.js\n  format.js\n\u0060\u0060\u0060\n\n### 分割判断\n\n- Component: mount / update / render / destroy 等のUIライフサイクルを持つ\n- Service: UIへ依存しない処理を提供する\n- Resolver: 複数定義・入力から実効値や契約を解決する\n- Deriver: 正本Dataから派生情報を導出する\n- Renderer: 与えられた表示モデルを描画する\n\n物理フォルダー名・ファイル名は実装時の責務配置に応じて決める。\n\n憲法が固定するのは **責務境界** であり、将来のファイル名そのものではない。\n\n\u0060app.js\u0060 は、起動と配線の層に近づける。",
+      "body": "大きなファイルは、責務ごとに分割する。\n\n推奨構成例:\n\n```text\napp.js\ncore/\n  state.js\n  dataStore.js\n  viewDefLoader.js\n  studioRuntime.js\nrenderers/\n  gridRenderer.js\n  formRenderer.js\n  chatRenderer.js\n  diffRenderer.js\nactions/\n  actionRegistry.js\n  openUrlAction.js\n  replayAction.js\n  runTestAction.js\ncomponents/\n  ... UIライフサイクルを持つ部品\nservices/\n  ... UI非依存の計算・解決・導出\nfeatures/\n  replayController.js\n  urlLaunch.js\nutils/\n  dom.js\n  jsonPath.js\n  format.js\n```\n\n### 分割判断\n\n- Component: mount / update / render / destroy 等のUIライフサイクルを持つ\n- Service: UIへ依存しない処理を提供する\n- Resolver: 複数定義・入力から実効値や契約を解決する\n- Deriver: 正本Dataから派生情報を導出する\n- Renderer: 与えられた表示モデルを描画する\n\n物理フォルダー名・ファイル名は実装時の責務配置に応じて決める。\n\n憲法が固定するのは **責務境界** であり、将来のファイル名そのものではない。\n\n`app.js` は、起動と配線の層に近づける。",
       "ceremony_phrase": "Studioくん憲法 第19条「ファイル分割方針」を承認する。",
       "user_comment": "",
       "ai_response": "",
@@ -874,7 +874,7 @@
       "change_history": [
         {
           "history_id": "chg_constitution_19_v01839_001",
-          "at": "2026-08-12T09:20:00\u002B09:00",
+          "at": "2026-08-12T09:20:00+09:00",
           "change_type": "body_refine",
           "before": "大きなファイルは責務ごとに分割し、core/renderers/actions/features/utilsを推奨していた。",
           "after": "ComponentとService / Resolver / Deriverの責務分離を追加し、物理名ではなく責務境界を憲法で固定する方針を明記した。",
@@ -903,7 +903,7 @@
       "approved_by": "",
       "approved_at": "",
       "summary": "AI協働では、作業対象・確認種別・完了報告をインシデントJSONに残し、共通化は憲法第29条、記述形式は憲法第32条に従う。成果物ZIPではruntime生成物を除外する。",
-      "body": "AI が Studio のコードを変更する場合、AI は次を守る。\n\n1. まずこの文書を読む\n2. 関係する設計原則を確認する\n3. 変更意図を簡潔に説明する\n4. 無関係な変更をしない\n5. 差分を小さく保つ\n6. 既存動作を守る\n7. Data / ViewDef / Action の分離を優先する\n8. 不確実な点を報告する\n\n---\n\n---\n\n---\n\n### v0.12追記：AI作業対象ファイルとインシデント回答記録\n\nAIがコード、Data JSON、Defs JSON、Rules JSON、Incident JSON、Markdownプロンプト等を更新した場合、更新したファイル名、変更理由、変更概要、対応結果を該当インシデントJSONへ記録する。\n\n記録は、まず既存フィールドや自然文で扱える範囲を優先する。管理項目を増やしすぎず、必要に応じて \u0060target_files\u0060、\u0060latest_ai_response\u0060、\u0060discussion_history\u0060、\u0060change_history\u0060 などへテキストとして残す。\n\nroot \u0060data/\u0060 / \u0060defs/\u0060 は一律変更禁止ではない。作業目的に必要な場合、AIは更新してよい。特に \u0060data/json/01_main/studio_work_incident_data_*.json\u0060 のようなインシデント管理データは、作業結果を収録する対象になり得る。\n\nただし、AIが更新したファイル・変更理由・実施結果は、人間が後から追える形で開示する。\n\n一方、\u0060wwwroot/data\u0060 / \u0060wwwroot/defs\u0060 は GitHub Pages 等の公開用静的領域として扱うため、明示依頼がない限り更新しない。\n\nインシデント対応後のAI完了報告は、会話上だけに流さず、該当インシデントJSONの \u0060latest_ai_response\u0060 等にも残す。\n\n---\n\n### v0.14追記：判断ログ・確認種別・最新ソース・ViewDef安定ファイル名\n\nAIが判断ログを残す場合は、\u0060decision\u0060 / \u0060reason\u0060 だけで終わらせず、必要に応じて \u0060applied_axes\u0060、\u0060conditions\u0060、\u0060exceptions\u0060、\u0060expected_behavior\u0060、\u0060acceptance_criteria\u0060、\u0060test_pattern_seed\u0060、\u0060discarded_options\u0060、\u0060remaining_risks\u0060、\u0060axis_update_candidate\u0060 を残す。\n\nAIが「確認した」と報告する場合は、確認種別を明示する。少なくとも、静的確認、JSON parse、ビルド確認、ローカル起動確認、スクショ確認、Playwright確認、推定確認、ユーザー実機確認待ちを混同しない。\n\nC# / .NET / Program.cs の修正では、AI側の \u0060dotnet build\u0060 / \u0060dotnet run\u0060 を必須にしない。ただし、実施したか、未実施か、未実施なら理由をインシデントJSONの作業記録へ残す。\n\nAIは、最新ソースを実ファイルとして確認できない場合、実装修正を行わない。会話文脈、前回チャットの記憶、過去のファイル名を、最新ソース確認の代替として扱わない。\n\n既存Data JSONから参照されている ViewDef / DefView ファイルは、原則として同じファイル名のまま更新する。ViewDefファイル名は、Data JSON の \u0060view_def\u0060 参照、URL起動、GitHub Pages、GitDiff確認の接続キーである。\n\nAIは、通常のViewDef改善・表示項目追加・Markdown出力設定変更などで、新しいViewDefファイル名を勝手に作成しない。新しいViewDef名を作成してよいのは、ユーザーが明示した場合、互換性を意図的に切る場合、または既存ViewDefと並行運用する明確な理由がある場合に限る。その場合も、Data JSON側の \u0060view_def\u0060 参照更新、影響範囲、GitDiff上の扱いをインシデントに記録する。\n\n\n---\n\n### v0.14.13追記：共通化・archive退避・ファイル名維持\n\nAIは、構造・表示・検証・出力の共通化・汎用化・抽象化を、自動的に優先してはならない。\n\nまず責務を分離し、実際に観測された差分を確認する。憲法第29条「実証なき抽象化の禁止」に定める実施条件を満たす場合に限り、共通化を実施候補とする。\n\n条件を満たさない場合、または満たすか判断できない場合は、個別実装を維持する。将来候補として記録することは許可するが、実在しない未来要件を根拠として現在の実装へ先行投入してはならない。\n\n複数責務へ影響する共通化を行う場合は、共通部分・個別部分・期待する削減効果・残存リスクを示し、人間レビューを受ける。\n\n古いデータ・不要と思われるデータ・移行済み旧パスは、成果物のactive領域から削除して返却することを基本とする。\nただし、完全削除ではなく、ルートの \u0060_archive/{削除日時}/\u0060 配下へ、元の相対パスが追える形で退避する。\n\nルール系統およびViewDefを修正する場合は、原則としてファイル名を変更しない。\n既存参照、URL起動、GitHub raw URL、GitDiff確認、作業履歴を壊さないためである。\n\nファイル名変更が必要な場合は、人間へ確認し、理由・影響範囲・参照更新をインシデントJSONへ記録する。\n\n---\n\n### v0.14.18追記：成果物ZIP安全返却とcleanup\n\nAIが成果物ZIPを返却する場合、作業に必要なactiveファイルだけを含め、再生成可能なruntime生成物を混ぜない。\n\n成果物ZIPには、原則として以下を含めない。\n\n\u0060\u0060\u0060text\nnode_modules/\nplaywright-report/\ntest-results/\ntest_results/\ntests/.runtime/\ntests_screen_state/\n\u0060\u0060\u0060\n\n\u0060node_modules/\u0060 は依存ライブラリであり、AIの返却成果物ではない。\nPlaywrightやNode testの実行結果フォルダーはruntime一時生成物であり、証跡正本ではない。\nExpected / Actual / Diff / Test Patternなどの証跡正本は \u0060data/json/03_tests/\u0060 に置き、runtime生成物と混ぜない。\n\n返却前には、JSON parse、不要生成物混入有無、Windowsで問題になりやすい長大パス、旧パス罠フォルダーの残存、更新済みインシデントJSON収録を確認する。\n\n旧パス・不要データはactiveから外し、判断履歴として残すべきものは \u0060_archive/{削除日時}/\u0060 へ退避する。\nただしruntime生成物は再生成可能なため、原則としてarchiveせず削除・除外する。\n\n\n---\n\n### v0.18.39追記：構造化記述\n\nAIがインシデント、判断ログ、ルール、作業結果、確認結果を自然文で記録する場合も、憲法第32条「構造化記述の原則」に従う。\n\n複数の独立した意味単位を一文へ連結せず、次の内容は原則として箇条書きまたは番号付きリストへ分解する。\n\n- 変更内容\n- 変更理由\n- 対象ファイル\n- 判断事項\n- 制約\n- 確認結果\n- 残課題\n- リスク\n- 次作業\n",
+      "body": "AI が Studio のコードを変更する場合、AI は次を守る。\n\n1. まずこの文書を読む\n2. 関係する設計原則を確認する\n3. 変更意図を簡潔に説明する\n4. 無関係な変更をしない\n5. 差分を小さく保つ\n6. 既存動作を守る\n7. Data / ViewDef / Action の分離を優先する\n8. 不確実な点を報告する\n\n---\n\n---\n\n---\n\n### v0.12追記：AI作業対象ファイルとインシデント回答記録\n\nAIがコード、Data JSON、Defs JSON、Rules JSON、Incident JSON、Markdownプロンプト等を更新した場合、更新したファイル名、変更理由、変更概要、対応結果を該当インシデントJSONへ記録する。\n\n記録は、まず既存フィールドや自然文で扱える範囲を優先する。管理項目を増やしすぎず、必要に応じて `target_files`、`latest_ai_response`、`discussion_history`、`change_history` などへテキストとして残す。\n\nroot `data/` / `defs/` は一律変更禁止ではない。作業目的に必要な場合、AIは更新してよい。特に `data/json/01_main/studio_work_incident_data_*.json` のようなインシデント管理データは、作業結果を収録する対象になり得る。\n\nただし、AIが更新したファイル・変更理由・実施結果は、人間が後から追える形で開示する。\n\n一方、`wwwroot/data` / `wwwroot/defs` は GitHub Pages 等の公開用静的領域として扱うため、明示依頼がない限り更新しない。\n\nインシデント対応後のAI完了報告は、会話上だけに流さず、該当インシデントJSONの `latest_ai_response` 等にも残す。\n\n---\n\n### v0.14追記：判断ログ・確認種別・最新ソース・ViewDef安定ファイル名\n\nAIが判断ログを残す場合は、`decision` / `reason` だけで終わらせず、必要に応じて `applied_axes`、`conditions`、`exceptions`、`expected_behavior`、`acceptance_criteria`、`test_pattern_seed`、`discarded_options`、`remaining_risks`、`axis_update_candidate` を残す。\n\nAIが「確認した」と報告する場合は、確認種別を明示する。少なくとも、静的確認、JSON parse、ビルド確認、ローカル起動確認、スクショ確認、Playwright確認、推定確認、ユーザー実機確認待ちを混同しない。\n\nC# / .NET / Program.cs の修正では、AI側の `dotnet build` / `dotnet run` を必須にしない。ただし、実施したか、未実施か、未実施なら理由をインシデントJSONの作業記録へ残す。\n\nAIは、最新ソースを実ファイルとして確認できない場合、実装修正を行わない。会話文脈、前回チャットの記憶、過去のファイル名を、最新ソース確認の代替として扱わない。\n\n既存Data JSONから参照されている ViewDef / DefView ファイルは、原則として同じファイル名のまま更新する。ViewDefファイル名は、Data JSON の `view_def` 参照、URL起動、GitHub Pages、GitDiff確認の接続キーである。\n\nAIは、通常のViewDef改善・表示項目追加・Markdown出力設定変更などで、新しいViewDefファイル名を勝手に作成しない。新しいViewDef名を作成してよいのは、ユーザーが明示した場合、互換性を意図的に切る場合、または既存ViewDefと並行運用する明確な理由がある場合に限る。その場合も、Data JSON側の `view_def` 参照更新、影響範囲、GitDiff上の扱いをインシデントに記録する。\n\n\n---\n\n### v0.14.13追記：共通化・archive退避・ファイル名維持\n\nAIは、構造・表示・検証・出力の共通化・汎用化・抽象化を、自動的に優先してはならない。\n\nまず責務を分離し、実際に観測された差分を確認する。憲法第29条「実証なき抽象化の禁止」に定める実施条件を満たす場合に限り、共通化を実施候補とする。\n\n条件を満たさない場合、または満たすか判断できない場合は、個別実装を維持する。将来候補として記録することは許可するが、実在しない未来要件を根拠として現在の実装へ先行投入してはならない。\n\n複数責務へ影響する共通化を行う場合は、共通部分・個別部分・期待する削減効果・残存リスクを示し、人間レビューを受ける。\n\n古いデータ・不要と思われるデータ・移行済み旧パスは、成果物のactive領域から削除して返却することを基本とする。\nただし、完全削除ではなく、ルートの `_archive/{削除日時}/` 配下へ、元の相対パスが追える形で退避する。\n\nルール系統およびViewDefを修正する場合は、原則としてファイル名を変更しない。\n既存参照、URL起動、GitHub raw URL、GitDiff確認、作業履歴を壊さないためである。\n\nファイル名変更が必要な場合は、人間へ確認し、理由・影響範囲・参照更新をインシデントJSONへ記録する。\n\n---\n\n### v0.14.18追記：成果物ZIP安全返却とcleanup\n\nAIが成果物ZIPを返却する場合、作業に必要なactiveファイルだけを含め、再生成可能なruntime生成物を混ぜない。\n\n成果物ZIPには、原則として以下を含めない。\n\n```text\nnode_modules/\nplaywright-report/\ntest-results/\ntest_results/\ntests/.runtime/\ntests_screen_state/\n```\n\n`node_modules/` は依存ライブラリであり、AIの返却成果物ではない。\nPlaywrightやNode testの実行結果フォルダーはruntime一時生成物であり、証跡正本ではない。\nExpected / Actual / Diff / Test Patternなどの証跡正本は `data/json/03_tests/` に置き、runtime生成物と混ぜない。\n\n返却前には、JSON parse、不要生成物混入有無、Windowsで問題になりやすい長大パス、旧パス罠フォルダーの残存、更新済みインシデントJSON収録を確認する。\n\n旧パス・不要データはactiveから外し、判断履歴として残すべきものは `_archive/{削除日時}/` へ退避する。\nただしruntime生成物は再生成可能なため、原則としてarchiveせず削除・除外する。\n\n\n---\n\n### v0.18.39追記：構造化記述\n\nAIがインシデント、判断ログ、ルール、作業結果、確認結果を自然文で記録する場合も、憲法第32条「構造化記述の原則」に従う。\n\n複数の独立した意味単位を一文へ連結せず、次の内容は原則として箇条書きまたは番号付きリストへ分解する。\n\n- 変更内容\n- 変更理由\n- 対象ファイル\n- 判断事項\n- 制約\n- 確認結果\n- 残課題\n- リスク\n- 次作業\n",
       "ceremony_phrase": "Studioくん憲法 第20条「AI協働ルール」を承認する。",
       "user_comment": "",
       "ai_response": "",
@@ -967,7 +967,7 @@
         },
         {
           "history_id": "chg_constitution_20_v01839_001",
-          "at": "2026-08-12T09:20:00\u002B09:00",
+          "at": "2026-08-12T09:20:00+09:00",
           "change_type": "body_append",
           "before": "自然文中心で記録する方針はあったが、複数事項を箇条書きへ分解する全体ルールへの参照がなかった。",
           "after": "AI作業記録はconstitution_32の構造化記述原則に従い、複数の意味単位を箇条書きまたは番号付きリストへ分解する。",
@@ -1107,7 +1107,7 @@
       "approved_by": "",
       "approved_at": "",
       "summary": "Studio は、次のどれかひとつではない。",
-      "body": "Studio は、次のどれかひとつではない。\n\n- JSONエディター\n- Viewer\n- Replayツール\n- テストツール\n- FFTツール\n- MIDIツール\n\nStudio は、構造化されたデータを体験へ変換するためのプラットフォームである。\n\n\u0060\u0060\u0060text\n見えないもの\n  -\u003E JSON\n  -\u003E ViewDef\n  -\u003E Action\n  -\u003E Experience\n  -\u003E 共有可能な理解\n\u0060\u0060\u0060\n\nStudio の使命は、見えないものを、見えるものへ、構造化されたものへ、Replay 可能なものへ、共有可能なものへ変換することである。\n\n---\n\n## Revision History\n\n- 2026-06-21: v0.1-draft 初版。Studioくん憲法として誕生。",
+      "body": "Studio は、次のどれかひとつではない。\n\n- JSONエディター\n- Viewer\n- Replayツール\n- テストツール\n- FFTツール\n- MIDIツール\n\nStudio は、構造化されたデータを体験へ変換するためのプラットフォームである。\n\n```text\n見えないもの\n  -> JSON\n  -> ViewDef\n  -> Action\n  -> Experience\n  -> 共有可能な理解\n```\n\nStudio の使命は、見えないものを、見えるものへ、構造化されたものへ、Replay 可能なものへ、共有可能なものへ変換することである。\n\n---\n\n## Revision History\n\n- 2026-06-21: v0.1-draft 初版。Studioくん憲法として誕生。",
       "ceremony_phrase": "Studioくん憲法 第23条「まとめ」を承認する。",
       "user_comment": "",
       "ai_response": "",
@@ -1137,7 +1137,7 @@
       "approved_by": "tamasub",
       "approved_at": "2026/6/29",
       "summary": "テストコードは言語別に1本を原則とし、対象差分はExpected JSONとAdapter方式で吸収する。",
-      "body": "テストコードは、言語別に1本を原則とする。\n\nここでいう1本とは、対象ごとにテストコードを増やすのではなく、共通Runner / Harnessとして育てるという意味である。\n\nテストコードの直接インプットは、ミニマムでは Expected JSON とする。\n\nTest Pattern JSON は、将来的にStudioくんのグリッド一覧から「TestRun」を実行するための上位カタログ／実行メニューとして扱う。  \nただし、テストコード本体が直接読む最小入力は Expected JSON とする。\n\nAdapter方式では、テスト対象の違いをテストコード本体へ増殖させない。\n\n- JSON構造確認\n- 画面状態 / DOM確認\n- ZIP内容確認\n- Markdown内容確認\n- APIレスポンス確認\n- PDF本文確認\n- DB結果確認\n- ログ確認\n\nこれらは、Expected JSON の expected_kind から Adapter Catalog を経由して、対応するAdapter実装へ解決する。\n\nTest Pattern JSON には adapter_type を直接持たせない。  \nAdapterは、テストシナリオの概念ではなく、Expected JSONを評価するための内部実行方式である。\n\n\u0060\u0060\u0060text\nExpected JSON\n  ↓ expected_kind\nAdapter Catalog\n  ↓\nAdapter Implementation\n  ↓\n共通Runner\n\u0060\u0060\u0060\n\n増やすべきものは、テストコードではなく、Expected JSON、Adapter Catalog、Adapter実装である。\n\n---",
+      "body": "テストコードは、言語別に1本を原則とする。\n\nここでいう1本とは、対象ごとにテストコードを増やすのではなく、共通Runner / Harnessとして育てるという意味である。\n\nテストコードの直接インプットは、ミニマムでは Expected JSON とする。\n\nTest Pattern JSON は、将来的にStudioくんのグリッド一覧から「TestRun」を実行するための上位カタログ／実行メニューとして扱う。  \nただし、テストコード本体が直接読む最小入力は Expected JSON とする。\n\nAdapter方式では、テスト対象の違いをテストコード本体へ増殖させない。\n\n- JSON構造確認\n- 画面状態 / DOM確認\n- ZIP内容確認\n- Markdown内容確認\n- APIレスポンス確認\n- PDF本文確認\n- DB結果確認\n- ログ確認\n\nこれらは、Expected JSON の expected_kind から Adapter Catalog を経由して、対応するAdapter実装へ解決する。\n\nTest Pattern JSON には adapter_type を直接持たせない。  \nAdapterは、テストシナリオの概念ではなく、Expected JSONを評価するための内部実行方式である。\n\n```text\nExpected JSON\n  ↓ expected_kind\nAdapter Catalog\n  ↓\nAdapter Implementation\n  ↓\n共通Runner\n```\n\n増やすべきものは、テストコードではなく、Expected JSON、Adapter Catalog、Adapter実装である。\n\n---",
       "ceremony_phrase": "Studioくん憲法 第24条「テストコード一言語一Runner / Adapter方式」を承認する。",
       "user_comment": "テストコードは言語別に1本というルールに、Adapter方式の考え方を追加したい。テストコードの直接インプットはTEST_PATTERNではなくEXPECTED_JSONであり、TEST_PATTERNは将来的なTestRun起動用の上位カタログとして扱う。",
       "ai_response": "既存の憲法内に『テストコードは言語別に1本』の明示記述は見つからなかったため、新しい章として追加する。Expected JSONをテストコードの直接入力とし、expected_kindからAdapter Catalogを介して対象別Adapterを解決する方式にする。",
@@ -1149,7 +1149,7 @@
           "history_id": "hist_20260629_024_001",
           "revision": "v0.4",
           "changed_at": "2026-06-29",
-          "changed_by": "tamasub \u002B ChatGPT",
+          "changed_by": "tamasub + ChatGPT",
           "change_type": "rule_addition",
           "target_fields": "rules",
           "before_title": "",
@@ -1205,7 +1205,7 @@
       "approved_by": "",
       "approved_at": "",
       "summary": "値候補マスタの論理スキーマは1つにし、common_enumsはCoreスコープ、value_setsはOverlayスコープの同一Registry実体として扱う。",
-      "body": "値候補マスタを、common_enums と value_sets の別スキーマとして育てない。\n\n唯一の論理スキーマを Value Vocabulary Registry Schema と呼ぶ。\n\n\u0060\u0060\u0060text\nValue Vocabulary Registry Schema\n  ├─ common_enums : registry_scope = core\n  └─ value_sets   : registry_scope = overlay\n\u0060\u0060\u0060\n\ncommon_enums は Studio Core が所有する標準語彙である。qa.risk_level / relation.status / studio.lifecycle_status など、Studio本体の運用・QA・Relation・文脈制御に使う語彙を置く。\n\nvalue_sets は Overlay が所有する業務語彙である。sample.qualification / sample.business_area / sample.skill_rank など、会社・業務・勇者Overlayごとに変化する語彙を置く。\n\n両者は所有者と配置場所を分けるが、namespaces / enums / items の構造は共有する。\n\nViewDef上の enumRef は Core語彙参照、valueSet は Overlay語彙参照の互換aliasとして扱う。Runtime内部ではどちらも Value Vocabulary Ref として同じ解決系に入り、最終的に field.options へ展開する。\n\n表示名の正本項目は name とする。caption / label は互換aliasとして読み取り可能に留め、新規定義では name を優先する。\n\nvalue_sets側で育った kind / value_type / order などの便利属性は、必要に応じて Value Vocabulary Registry Schema 側へ回収する。Overlay側だけで独自進化させない。\n\nPluginは候補値を定義しない。Pluginは Runtime が解決した field.options を表示・編集・検索するだけとする。\n\nCoreは sample.* の中身を知らない。Coreが知ってよいのは、Value Vocabulary Registry の構造語彙と解決処理だけである。\n\n\u0060\u0060\u0060text\nCoreは構造を知る。\nOverlayは語彙を持つ。\nPluginは語彙を触る。\n\u0060\u0060\u0060\n\n---",
+      "body": "値候補マスタを、common_enums と value_sets の別スキーマとして育てない。\n\n唯一の論理スキーマを Value Vocabulary Registry Schema と呼ぶ。\n\n```text\nValue Vocabulary Registry Schema\n  ├─ common_enums : registry_scope = core\n  └─ value_sets   : registry_scope = overlay\n```\n\ncommon_enums は Studio Core が所有する標準語彙である。qa.risk_level / relation.status / studio.lifecycle_status など、Studio本体の運用・QA・Relation・文脈制御に使う語彙を置く。\n\nvalue_sets は Overlay が所有する業務語彙である。sample.qualification / sample.business_area / sample.skill_rank など、会社・業務・勇者Overlayごとに変化する語彙を置く。\n\n両者は所有者と配置場所を分けるが、namespaces / enums / items の構造は共有する。\n\nViewDef上の enumRef は Core語彙参照、valueSet は Overlay語彙参照の互換aliasとして扱う。Runtime内部ではどちらも Value Vocabulary Ref として同じ解決系に入り、最終的に field.options へ展開する。\n\n表示名の正本項目は name とする。caption / label は互換aliasとして読み取り可能に留め、新規定義では name を優先する。\n\nvalue_sets側で育った kind / value_type / order などの便利属性は、必要に応じて Value Vocabulary Registry Schema 側へ回収する。Overlay側だけで独自進化させない。\n\nPluginは候補値を定義しない。Pluginは Runtime が解決した field.options を表示・編集・検索するだけとする。\n\nCoreは sample.* の中身を知らない。Coreが知ってよいのは、Value Vocabulary Registry の構造語彙と解決処理だけである。\n\n```text\nCoreは構造を知る。\nOverlayは語彙を持つ。\nPluginは語彙を触る。\n```\n\n---",
       "ceremony_phrase": "Studioくん憲法 第25条「Value Vocabulary Registryは唯一スキーマとする」を承認する。",
       "user_comment": "common_enums と value_sets が別系統で各々太ると手がつけられなくなるため、今のうちにダイエットできるところはやっておきたい。frb_coding_constraints_data_v0_3.json に新章を立てて考え方を整理したい。",
       "ai_response": "Value Vocabulary Registry Schemaを唯一の論理スキーマとし、common_enumsはcore scope、value_setsはoverlay scopeの実体として整理する。enumRef/valueSetは同じoptions解決系へ入るaliasとし、Pluginはfield.optionsだけを見る制約として明記する。",
@@ -1217,7 +1217,7 @@
           "history_id": "hist_20260701_025_001",
           "revision": "v0.17.7",
           "changed_at": "2026-07-01",
-          "changed_by": "tamasub \u002B ChatGPT",
+          "changed_by": "tamasub + ChatGPT",
           "change_type": "rule_addition",
           "target_fields": "rules",
           "before_title": "",
@@ -1285,7 +1285,7 @@
       "approved_by": "tamasub",
       "approved_at": "2026/7/2",
       "summary": "JSON / Markdown は UTF-8 で保存し、日本語などの非ASCII文字を Unicode escape に変換してはならない。",
-      "body": "JSON / Markdown は、人間とAIが差分レビューできる可読テキストとして保存する。\n\n保存時は UTF-8 を原則とする。\n\n日本語、絵文字、全角記号など、人間が読むための非ASCII文字を \u0060\\uXXXX\u0060 形式の Unicode escape へ変換してはならない。\n\n悪い例：\n\n\u0060\u0060\u0060json\n{\n  \u0022note\u0022: \u00221\\u884C\\u76EE\\u3002Mode\\u3092\\u7A7A\\u6B04\\u306B\\u3057\\u3066\\u3001Export-DiffToJson.ps1 \\u306E\\u65E2\\u5B9A\\u5024 WorkingTree \\u3092\\u4F7F\\u3046\\u3002\u0022\n}\n\u0060\u0060\u0060\n\n良い例：\n\n\u0060\u0060\u0060json\n{\n  \u0022note\u0022: \u00221行目。Modeを空欄にして、Export-DiffToJson.ps1 の既定値 WorkingTree を使う。\u0022\n}\n\u0060\u0060\u0060\n\nこの条文は、単なる見た目の好みではない。\n\nStudio における JSON / Markdown は、GitDiff、AI差分物語、インシデント記録、判断ログ、レビュー会話の正本になり得る。\n\nそのため、人間が GitDiff 上で読めない保存形式は、AI協働の再現性を壊す。\n\n### 実装上の注意\n\nC# / System.Text.Json で保存する場合は、非ASCII文字が Unicode escape へ変換されない設定を確認する。\n\n例：\n\n\u0060\u0060\u0060csharp\nvar options = new JsonSerializerOptions\n{\n    WriteIndented = true,\n    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping\n};\n\u0060\u0060\u0060\n\nPython で保存する場合は、\u0060ensure_ascii=false\u0060 相当を必須とする。\n\n例：\n\n\u0060\u0060\u0060python\njson.dumps(data, ensure_ascii=False, indent=2)\n\u0060\u0060\u0060\n\nPowerShell で保存する場合は、UTF-8 で書き出す。\n\n例：\n\n\u0060\u0060\u0060powershell\n$json | Set-Content -Encoding utf8\n\u0060\u0060\u0060\n\nただし、JSON構文上必要なエスケープ（\u0060\\n\u0060, \u0060\\r\u0060, \u0060\\t\u0060, \u0060\\\u0022\u0060, \u0060\\\\\u0060 など）は禁止しない。\n\nBOM の有無は既存ファイルの形式維持を優先する。新規ファイルは UTF-8 no BOM を推奨する。\n\n### 返却前確認\n\nAIが JSON / Markdown を返却する場合は、少なくとも次を確認する。\n\n- \u0060.json\u0060 / \u0060.md\u0060 に、人間可読であるべき日本語の \u0060\\uXXXX\u0060 化が残っていないこと\n- 文字化け疑い文字（\u0060�\u0060、\u0060ã\u0060、\u0060縺\u0060 など）が混入していないこと\n- GitDiff上で判断ログ・note・body・summary が読めること\n\nUnicode escape や文字化け疑いを検出した場合は、返却前に抽出し、必要に応じて一括変換する。\n\n---",
+      "body": "JSON / Markdown は、人間とAIが差分レビューできる可読テキストとして保存する。\n\n保存時は UTF-8 を原則とする。\n\n日本語、絵文字、全角記号など、人間が読むための非ASCII文字を `\\uXXXX` 形式の Unicode escape へ変換してはならない。\n\n悪い例：\n\n```json\n{\n  \"note\": \"1\\u884C\\u76EE\\u3002Mode\\u3092\\u7A7A\\u6B04\\u306B\\u3057\\u3066\\u3001Export-DiffToJson.ps1 \\u306E\\u65E2\\u5B9A\\u5024 WorkingTree \\u3092\\u4F7F\\u3046\\u3002\"\n}\n```\n\n良い例：\n\n```json\n{\n  \"note\": \"1行目。Modeを空欄にして、Export-DiffToJson.ps1 の既定値 WorkingTree を使う。\"\n}\n```\n\nこの条文は、単なる見た目の好みではない。\n\nStudio における JSON / Markdown は、GitDiff、AI差分物語、インシデント記録、判断ログ、レビュー会話の正本になり得る。\n\nそのため、人間が GitDiff 上で読めない保存形式は、AI協働の再現性を壊す。\n\n### 実装上の注意\n\nC# / System.Text.Json で保存する場合は、非ASCII文字が Unicode escape へ変換されない設定を確認する。\n\n例：\n\n```csharp\nvar options = new JsonSerializerOptions\n{\n    WriteIndented = true,\n    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping\n};\n```\n\nPython で保存する場合は、`ensure_ascii=false` 相当を必須とする。\n\n例：\n\n```python\njson.dumps(data, ensure_ascii=False, indent=2)\n```\n\nPowerShell で保存する場合は、UTF-8 で書き出す。\n\n例：\n\n```powershell\n$json | Set-Content -Encoding utf8\n```\n\nただし、JSON構文上必要なエスケープ（`\\n`, `\\r`, `\\t`, `\\\"`, `\\\\` など）は禁止しない。\n\nBOM の有無は既存ファイルの形式維持を優先する。新規ファイルは UTF-8 no BOM を推奨する。\n\n### 返却前確認\n\nAIが JSON / Markdown を返却する場合は、少なくとも次を確認する。\n\n- `.json` / `.md` に、人間可読であるべき日本語の `\\uXXXX` 化が残っていないこと\n- 文字化け疑い文字（`�`、`ã`、`縺` など）が混入していないこと\n- GitDiff上で判断ログ・note・body・summary が読めること\n\nUnicode escape や文字化け疑いを検出した場合は、返却前に抽出し、必要に応じて一括変換する。\n\n---",
       "ceremony_phrase": "Studioくん憲法 第26条「UTF-8・非ASCII可読保存」を承認する。",
       "user_comment": "JSONとしては合法でも、人間が差分レビューするJSONとしては、Unicode escape化された日本語は許容できない。これは死活問題なので憲法に追加したい。",
       "ai_response": "Unicode escapeは文字化けではないが、GitDiffやインシデントレビューで人間が読む用途では、実質的に文字化けと同等の障害になる。Diff First / AI協働 / 判断ログの正本性を守るため、独立条文として追加するのが妥当。",
@@ -1297,7 +1297,7 @@
           "history_id": "hist_20260702_026_001",
           "revision": "v0.17.8",
           "changed_at": "2026-07-02",
-          "changed_by": "tamasub \u002B ChatGPT",
+          "changed_by": "tamasub + ChatGPT",
           "change_type": "rule_addition",
           "target_fields": "rules",
           "before_title": "",
@@ -1353,19 +1353,19 @@
       "approved_by": "tamasub",
       "approved_at": "2026/7/5",
       "summary": "人間が見る日時はJSTの yyyy-MM-dd_HH:mm:ss を標準とし、UTC/Z/ISO/ミリ秒を不用意に表示してはならない。",
-      "body": "Studio で人間が読む日時は、原則として JST の人間可読形式で表示・保存する。\n\n標準形式は次とする。\n\n\u0060\u0060\u0060text\n2026-07-05_09:39:32\n\u0060\u0060\u0060\n\nこの形式は、Generated At、Observed At、Saved At、Updated At、Captured At、作業ログ、テスト証跡、Markdown Export、Sidecarコメント、Diff JSONなど、人間が直接読む場所の標準である。\n\n\u0060new Date().toISOString()\u0060 や UTC の \u0060Z\u0060 表記を、人間表示・作業ログ・テスト証跡・Generated At に直接使ってはならない。\n\n悪い例：\n\n\u0060\u0060\u0060text\n2026-07-05T00:39:32.320Z\n2026-07-05T09:39:32.320\u002B09:00\n\u0060\u0060\u0060\n\n良い例：\n\n\u0060\u0060\u0060text\n2026-07-05_09:39:32\n\u0060\u0060\u0060\n\n秒未満は、性能計測、高頻度イベント、衝突回避など、明確に必要な場合のみオプションとして出力する。通常の人間表示ではミリ秒を出してはならない。\n\n秒未満を含める場合の例：\n\n\u0060\u0060\u0060text\n2026-07-05_09:39:32.320\n\u0060\u0060\u0060\n\nファイル名用の日時は、Windows禁止文字を避けるため、次を標準とする。\n\n\u0060\u0060\u0060text\n20260705_093932\n\u0060\u0060\u0060\n\nISO 8601形式は、外部連携、API互換、厳密な機械処理など、本当に必要な場合だけ明示的に使う。\n\nStudio本体、ブラウザJS、mjsテストランナー、PowerShellツール、C#バックエンドは、それぞれ最小限の共通日時フォーマッタを持ち、個別箇所で日時フォーマットを直書きしない。\n\nこの条文は、UTCズレを防ぐためだけではない。\n\nStudio の JSON / Markdown / Diff / Test Evidence は、人間とAIが一緒に読む正本である。\n\n人間に見える場所では、人間が自然に理解できる日時表記を優先する。\n\n---",
+      "body": "Studio で人間が読む日時は、原則として JST の人間可読形式で表示・保存する。\n\n標準形式は次とする。\n\n```text\n2026-07-05_09:39:32\n```\n\nこの形式は、Generated At、Observed At、Saved At、Updated At、Captured At、作業ログ、テスト証跡、Markdown Export、Sidecarコメント、Diff JSONなど、人間が直接読む場所の標準である。\n\n`new Date().toISOString()` や UTC の `Z` 表記を、人間表示・作業ログ・テスト証跡・Generated At に直接使ってはならない。\n\n悪い例：\n\n```text\n2026-07-05T00:39:32.320Z\n2026-07-05T09:39:32.320+09:00\n```\n\n良い例：\n\n```text\n2026-07-05_09:39:32\n```\n\n秒未満は、性能計測、高頻度イベント、衝突回避など、明確に必要な場合のみオプションとして出力する。通常の人間表示ではミリ秒を出してはならない。\n\n秒未満を含める場合の例：\n\n```text\n2026-07-05_09:39:32.320\n```\n\nファイル名用の日時は、Windows禁止文字を避けるため、次を標準とする。\n\n```text\n20260705_093932\n```\n\nISO 8601形式は、外部連携、API互換、厳密な機械処理など、本当に必要な場合だけ明示的に使う。\n\nStudio本体、ブラウザJS、mjsテストランナー、PowerShellツール、C#バックエンドは、それぞれ最小限の共通日時フォーマッタを持ち、個別箇所で日時フォーマットを直書きしない。\n\nこの条文は、UTCズレを防ぐためだけではない。\n\nStudio の JSON / Markdown / Diff / Test Evidence は、人間とAIが一緒に読む正本である。\n\n人間に見える場所では、人間が自然に理解できる日時表記を優先する。\n\n---",
       "ceremony_phrase": "Studioくん憲法 第27条「Studio日時表記契約」を承認する。",
       "user_comment": "人間が見えるところはちゃんと配慮したい。UTC/Z/ISO/ミリ秒だらけの日時をそのまま出さず、Studioくん標準の人間可読JSTフォーマットへ統一したい。",
       "ai_response": "Studio日時表記契約として、JST yyyy-MM-dd_HH:mm:ss を人間表示の標準にし、秒未満は必要時のみオプション、ファイル名用は yyyyMMdd_HHmmss、ISOは外部連携時のみとするルールを追加する。",
       "user_reply": "",
       "ai_followup_response": "v0.18.19でStudio本体・mjs・PowerShell・ブラウザ側の共通日時フォーマッタへ寄せる実装修正を行う。",
-      "notes": "v0.18.19-studio-datetime-format-contract。Generated AtがUTCのZ表記や\u002B09:00付きミリ秒表示になり、人間が見た時刻とズレて見える問題から追加。",
+      "notes": "v0.18.19-studio-datetime-format-contract。Generated AtがUTCのZ表記や+09:00付きミリ秒表示になり、人間が見た時刻とズレて見える問題から追加。",
       "change_history": [
         {
           "history_id": "hist_20260705_027_001",
           "revision": "v0.18.19",
           "changed_at": "2026-07-05_09:58:20",
-          "changed_by": "tamasub \u002B ChatGPT",
+          "changed_by": "tamasub + ChatGPT",
           "change_type": "rule_addition",
           "target_fields": "rules",
           "before_title": "",
@@ -1374,7 +1374,7 @@
           "after_category": "Datetime / Human Readability",
           "before_summary": "",
           "after_summary": "人間が見る日時はJSTの yyyy-MM-dd_HH:mm:ss を標準とし、UTC/Z/ISO/ミリ秒を不用意に表示してはならない。",
-          "reason": "new Date().toISOString() や DateTimeOffset.ToString(\u0022O\u0022) が人間表示に混入すると、UTCズレ・Z表記・不要なミリ秒により、Studioくんの人間可読原本思想と矛盾するため。",
+          "reason": "new Date().toISOString() や DateTimeOffset.ToString(\"O\") が人間表示に混入すると、UTCズレ・Z表記・不要なミリ秒により、Studioくんの人間可読原本思想と矛盾するため。",
           "source_user_comment": "人間が見えるところはちゃんと配慮しよう。全体見直し含む。",
           "ai_comment": "日時表記は局所修正ではなく、Studio日時表記契約としてルール化し、共通フォーマッタ経由へ寄せるのが妥当と判断した。",
           "notes": "人間表示、ファイル名、秒未満、ISO形式の用途を分けた。"
@@ -1422,7 +1422,7 @@
       "approved_by": "tamasub",
       "approved_at": "2026/7/5",
       "summary": "FRB Studioでは alert / confirm / prompt を使用せず、画面内の共通カスタムダイアログまたはtoastを使用する。",
-      "body": "FRB Studioでは、ブラウザ標準ダイアログである alert() / confirm() / prompt() を新規実装で使用してはならない。\n\nユーザー確認・危険操作の確認・入力要求・手動コピー導線は、Studio共通の画面内カスタムダイアログを使用する。\n\n判断を必要としない成功通知・情報通知は、toastまたは画面内メッセージで表示する。\n\n理由は、ブラウザ標準ダイアログが表示位置・見た目・フォーカス復帰・文脈表示を制御しにくく、ユーザーの視線と思考の連続性を壊すためである。\n\n\u0060\u0060\u0060text\n禁止:\n  alert()\n  confirm()\n  prompt()\n\n使用するもの:\n  showStudioConfirmDialog()\n  showStudioPromptDialog()\n  showStudioManualCopyDialog()\n  showStudioToast() / setStatus()\n\u0060\u0060\u0060\n\nMarkdown Editor等の個別画面では、その画面の既存カスタムダイアログ作法に合わせた専用関数を使ってよい。ただし、ブラウザ標準ダイアログへ戻してはならない。",
+      "body": "FRB Studioでは、ブラウザ標準ダイアログである alert() / confirm() / prompt() を新規実装で使用してはならない。\n\nユーザー確認・危険操作の確認・入力要求・手動コピー導線は、Studio共通の画面内カスタムダイアログを使用する。\n\n判断を必要としない成功通知・情報通知は、toastまたは画面内メッセージで表示する。\n\n理由は、ブラウザ標準ダイアログが表示位置・見た目・フォーカス復帰・文脈表示を制御しにくく、ユーザーの視線と思考の連続性を壊すためである。\n\n```text\n禁止:\n  alert()\n  confirm()\n  prompt()\n\n使用するもの:\n  showStudioConfirmDialog()\n  showStudioPromptDialog()\n  showStudioManualCopyDialog()\n  showStudioToast() / setStatus()\n```\n\nMarkdown Editor等の個別画面では、その画面の既存カスタムダイアログ作法に合わせた専用関数を使ってよい。ただし、ブラウザ標準ダイアログへ戻してはならない。",
       "ceremony_phrase": "Studioくん憲法 第28条「ブラウザ標準ダイアログ使用禁止」を承認する。",
       "user_comment": "標準ダイヤログは画面上の方に出て視線がズレるため、思考が止まる。Markdown Editorのようなオリジナルダイヤログへ統一したい。",
       "ai_response": "標準ダイアログ全面禁止をUI制約として追加。思考の連続性を守るため、画面内カスタムダイアログへ統一する。",
@@ -1474,7 +1474,7 @@
       "approved_by": "",
       "approved_at": "",
       "summary": "汎用化・共通化・抽象化を目的化しない。未来想定だけのExtension Pointを禁止し、現在の具体責務と共通ライフサイクルを説明できる場合に限り実施候補とする。",
-      "body": "汎用化・共通化・抽象化は、それ自体を目的として行ってはならない。\n\nStudioくんでは、現在確認できる責務と差分を根拠とし、人間が構造を理解でき、実装量または事故リスクを実際に減らせる場合に限り、抽象化を実施候補とする。\n\n### 原則禁止\n\n次のいずれかに該当する汎用化・共通化・抽象化は行わない。\n\n1. 実在しない未来要件だけを前提としている\n2. 対象となる責務が明確に分離されていない\n3. 一度しか観測されていないパターンだけを根拠としている\n4. 将来使うかもしれないという理由だけで Extension Point / Registry / 基底クラスを先行投入する\n\n### 実施条件\n\n汎用化・共通化・抽象化は、次の条件をすべて説明できる場合に限り実施候補とする。\n\n1. 同種の差分または接続要求が複数の具体責務で確認できる\n2. 共通部分と個別部分を明確に説明できる\n3. 共通ライフサイクルまたは共通接続契約を説明できる\n4. 汎用化後も、人間が構造と責務を理解できる\n5. 今回または継続的な作業において、実装量または事故リスクが実際に低下する\n\nここでいう「具体責務」には、次を含む。\n\n- 現在すでに実装されている責務\n- 現在着手している承認済み作業スコープ内で、入力・出力・責務が具体化している複数の実装対象\n\n将来いつか使うかもしれない用途は、具体責務には含めない。\n\n### 判断順序\n\n\u0060\u0060\u0060text\n責務を分離する\n  ↓\n複数の具体責務で同種の差分・接続要求を確認する\n  ↓\n共通部分・個別部分・ライフサイクルを説明する\n  ↓\n削減できる実装量または事故リスクを示す\n  ↓\n人間が共通化の採否を判断する\n\u0060\u0060\u0060\n\n### 判断保留\n\n実施条件を満たすか判断できない場合は、抽象化せず個別実装を維持する。\n\n将来候補として判断ログまたはインシデントへ記録することは許可するが、現在の実装へ先行投入してはならない。\n\n共通化によって人間の理解可能性が下がる場合は、実装量が減るように見えても採用しない。",
+      "body": "汎用化・共通化・抽象化は、それ自体を目的として行ってはならない。\n\nStudioくんでは、現在確認できる責務と差分を根拠とし、人間が構造を理解でき、実装量または事故リスクを実際に減らせる場合に限り、抽象化を実施候補とする。\n\n### 原則禁止\n\n次のいずれかに該当する汎用化・共通化・抽象化は行わない。\n\n1. 実在しない未来要件だけを前提としている\n2. 対象となる責務が明確に分離されていない\n3. 一度しか観測されていないパターンだけを根拠としている\n4. 将来使うかもしれないという理由だけで Extension Point / Registry / 基底クラスを先行投入する\n\n### 実施条件\n\n汎用化・共通化・抽象化は、次の条件をすべて説明できる場合に限り実施候補とする。\n\n1. 同種の差分または接続要求が複数の具体責務で確認できる\n2. 共通部分と個別部分を明確に説明できる\n3. 共通ライフサイクルまたは共通接続契約を説明できる\n4. 汎用化後も、人間が構造と責務を理解できる\n5. 今回または継続的な作業において、実装量または事故リスクが実際に低下する\n\nここでいう「具体責務」には、次を含む。\n\n- 現在すでに実装されている責務\n- 現在着手している承認済み作業スコープ内で、入力・出力・責務が具体化している複数の実装対象\n\n将来いつか使うかもしれない用途は、具体責務には含めない。\n\n### 判断順序\n\n```text\n責務を分離する\n  ↓\n複数の具体責務で同種の差分・接続要求を確認する\n  ↓\n共通部分・個別部分・ライフサイクルを説明する\n  ↓\n削減できる実装量または事故リスクを示す\n  ↓\n人間が共通化の採否を判断する\n```\n\n### 判断保留\n\n実施条件を満たすか判断できない場合は、抽象化せず個別実装を維持する。\n\n将来候補として判断ログまたはインシデントへ記録することは許可するが、現在の実装へ先行投入してはならない。\n\n共通化によって人間の理解可能性が下がる場合は、実装量が減るように見えても採用しない。",
       "ceremony_phrase": "Studioくん憲法 第29条「実証なき抽象化の禁止」を承認する。",
       "user_comment": "狂気の汎用化を消すのではなく、実装へ発火させる条件をルールとして残したい。",
       "ai_response": "新規ファイルを増やさず、憲法へ実証なき抽象化の禁止と実施条件を追加した。",
@@ -1492,7 +1492,7 @@
         },
         {
           "history_id": "chg_constitution_29_v01839_001",
-          "at": "2026-08-12T09:20:00\u002B09:00",
+          "at": "2026-08-12T09:20:00+09:00",
           "change_type": "body_refine",
           "before": "未来要件、責務未分離、一度しか観測されていないパターンを根拠とする抽象化を禁止していた。",
           "after": "将来用途だけのExtension Point / Registry / 基底クラス先行投入を明示禁止し、現在スコープ内で具体化済みの複数責務と共通ライフサイクルを説明できる場合の実施条件を追加した。",
@@ -1539,7 +1539,7 @@
       "approved_by": "",
       "approved_at": "",
       "summary": "validation_typeを末端Fieldの値契約を表す最下層の知識単位とし、fieldTypeとfieldGroupTypeを値契約まで含む品質保証済み再利用部品として扱う。",
-      "body": "### 目的\n\n\u0060validation_type\u0060 は、末端Fieldがどのような値を許可し、どの標準バリデーションを適用するかを表す、項目単位の最下層の知識IDである。\n\n\u0060validation_type\u0060 はCaption、Grid幅、Edit、SearchなどのUI設定を持たない。値の意味、許容条件、標準バリデーション、および将来の標準TestPattern導出の起点だけを担う。\n\n### fieldTypeの品質継承\n\n\u0060fieldType\u0060 / \u0060typeRef\u0060 は、基礎表示型、Caption、Grid、Edit、Search、\u0060validation_type\u0060 を一体として再利用する単一Field部品である。\n\n\u0060fieldType\u0060 / \u0060typeRef\u0060 を使用する場合、参照先のFieldType定義には \u0060validation_type\u0060 を必須とする。未指定時に基礎 \u0060type\u0060 から暗黙Fallbackしてはならない。\n\n\u0060fieldType\u0060 / \u0060typeRef\u0060 を使用する利用側Fieldでは、\u0060validation_type\u0060 を直接指定してはならない。参照先と利用側の二か所に値契約の正本を作る組み合わせは、ResolverまたはSchema検証で競合エラーとする。\n\n既存FieldTypeと異なる \u0060validation_type\u0060 を必要とする場合、利用側で上書きせず、新しいFieldTypeを定義する。意味の異なる亜種を同じFieldType名の局所上書きで表現してはならない。\n\n### fieldGroupTypeの品質継承\n\n\u0060fieldGroupType\u0060 は、複数のFieldを展開する再利用可能な構造部品である。利用側のGroup Fieldへ \u0060validation_type\u0060 を直接指定してはならない。\n\nFieldGroupTypeが展開した各末端Fieldは、直接の \u0060validation_type\u0060 または参照するFieldType内部の \u0060validation_type\u0060 により、最終的にちょうど一つの値契約へ解決されなければならない。\n\n### Resolver完了条件\n\n各末端Fieldの \u0060validation_type\u0060 解決結果は、次のように扱う。\n\n\u0060\u0060\u0060text\n0件      = 値契約未定義エラー\n1件      = 正常\n2件以上  = 値契約の正本競合エラー\n\u0060\u0060\u0060\n\n### 再利用の優先順位\n\n通常のViewDef生成では、同じ意味を持つ既存の \u0060fieldType\u0060 / \u0060fieldGroupType\u0060 がある場合、その再利用を優先する。\n\n適切な再利用部品が存在しない場合だけ、末端Fieldへ \u0060type\u0060 と \u0060validation_type\u0060 を直接定義してよい。同じ直接定義が複数箇所で実際に観測された場合は、憲法第29条「実証なき抽象化の禁止」の条件に従い、FieldTypeまたはFieldGroupTypeへの昇格を検討する。\n\n### 変更統治\n\nFieldType内部の \u0060validation_type\u0060 変更は、参照する全ViewDefの値契約を変更する意味変更である。単なるUI設定変更として扱わず、参照先の影響分析と人間再承認を必要とする。\n\n既存FieldTypeと異なる値契約が必要な場合は、既存部品の意味を変更するより、新しいFieldTypeとして別IDを与えることを原則とする。\n\n### 既存定義の移行\n\n本契約導入前から存在し、\u0060validation_type\u0060 を持たないFieldTypeまたはFieldGroupType末端Fieldは移行対象とする。欠落を暗黙標準として正当化しない。\n\nSchema / Resolverで強制する作業では、既存定義の棚卸し・移行・静的診断を同じ計画内で行い、未移行資産を残したまま一括Fail-Fastを有効化してはならない。",
+      "body": "### 目的\n\n`validation_type` は、末端Fieldがどのような値を許可し、どの標準バリデーションを適用するかを表す、項目単位の最下層の知識IDである。\n\n`validation_type` はCaption、Grid幅、Edit、SearchなどのUI設定を持たない。値の意味、許容条件、標準バリデーション、および将来の標準TestPattern導出の起点だけを担う。\n\n### fieldTypeの品質継承\n\n`fieldType` / `typeRef` は、基礎表示型、Caption、Grid、Edit、Search、`validation_type` を一体として再利用する単一Field部品である。\n\n`fieldType` / `typeRef` を使用する場合、参照先のFieldType定義には `validation_type` を必須とする。未指定時に基礎 `type` から暗黙Fallbackしてはならない。\n\n`fieldType` / `typeRef` を使用する利用側Fieldでは、`validation_type` を直接指定してはならない。参照先と利用側の二か所に値契約の正本を作る組み合わせは、ResolverまたはSchema検証で競合エラーとする。\n\n既存FieldTypeと異なる `validation_type` を必要とする場合、利用側で上書きせず、新しいFieldTypeを定義する。意味の異なる亜種を同じFieldType名の局所上書きで表現してはならない。\n\n### fieldGroupTypeの品質継承\n\n`fieldGroupType` は、複数のFieldを展開する再利用可能な構造部品である。利用側のGroup Fieldへ `validation_type` を直接指定してはならない。\n\nFieldGroupTypeが展開した各末端Fieldは、直接の `validation_type` または参照するFieldType内部の `validation_type` により、最終的にちょうど一つの値契約へ解決されなければならない。\n\n### Resolver完了条件\n\n各末端Fieldの `validation_type` 解決結果は、次のように扱う。\n\n```text\n0件      = 値契約未定義エラー\n1件      = 正常\n2件以上  = 値契約の正本競合エラー\n```\n\n### 再利用の優先順位\n\n通常のViewDef生成では、同じ意味を持つ既存の `fieldType` / `fieldGroupType` がある場合、その再利用を優先する。\n\n適切な再利用部品が存在しない場合だけ、末端Fieldへ `type` と `validation_type` を直接定義してよい。同じ直接定義が複数箇所で実際に観測された場合は、憲法第29条「実証なき抽象化の禁止」の条件に従い、FieldTypeまたはFieldGroupTypeへの昇格を検討する。\n\n### 変更統治\n\nFieldType内部の `validation_type` 変更は、参照する全ViewDefの値契約を変更する意味変更である。単なるUI設定変更として扱わず、参照先の影響分析と人間再承認を必要とする。\n\n既存FieldTypeと異なる値契約が必要な場合は、既存部品の意味を変更するより、新しいFieldTypeとして別IDを与えることを原則とする。\n\n### 既存定義の移行\n\n本契約導入前から存在し、`validation_type` を持たないFieldTypeまたはFieldGroupType末端Fieldは移行対象とする。欠落を暗黙標準として正当化しない。\n\nSchema / Resolverで強制する作業では、既存定義の棚卸し・移行・静的診断を同じ計画内で行い、未移行資産を残したまま一括Fail-Fastを有効化してはならない。",
       "ceremony_phrase": "Studioくん憲法 第30条「FieldType / FieldGroupType 品質継承契約」を承認する。",
       "user_comment": "fieldTypeを使うなら参照先にvalidation_typeを必須とし、異なる値契約が必要なら利用側で上書きせず新しいfieldTypeを作る。育てるべき主役はfieldTypeとfieldGroupTypeで、validation_typeは項目ベースの最下層知識として扱いたい。",
       "ai_response": "今回の詳細ルールはFoundationではなくStudio Architecture Constraintsの正本へ新規条文として追加し、fieldType / fieldGroupTypeを使うほどViewDef品質が継承される契約として整理する。",
@@ -1627,7 +1627,7 @@
       "approved_by": "",
       "approved_at": "",
       "summary": "Studio標準Editorを汎用Component Hostとして保ち、特殊UIはComponentへ、計算・解決・導出はUI非依存Serviceへ分離する。PreviewとRunner等は同じServiceを共有する。",
-      "body": "### 目的\n\nStudio Coreは、特定ドメイン専用Editorではなく、構造化Dataを人間とAIが確認・編集・差分レビューできる汎用AI協働基盤として維持する。\n\nDefinition Verification等の用途固有機能は、Studio Coreそのものではなく **Standard Capability** として接続する。\n\n### 標準Editorの責務\n\n標準Editorが持つ責務:\n\n- Componentを配置する\n- 現在のEditor ContextをComponentへ渡す\n- Componentの更新・破棄ライフサイクルを管理する\n\n標準Editorが直接持たない責務:\n\n- Expectedの計算\n- TestPatternの導出\n- Validation Type固有処理\n- ドメイン固有の表示分岐\n- Component IDごとの個別if分岐\n\n### Componentの責務\n\n特殊な表示・操作はComponentとしてカプセル化する。\n\nComponentは、必要なServiceを呼び出して表示モデルを受け取り、UIとして表現する。\n\nComponent内部へ、Runner等でも必要になる計算・判定・導出ロジックを複製してはならない。\n\n### Service / Resolver / Deriverの責務\n\n- Service: 複数の計算・解決・導出を組み合わせ、Capabilityとして利用できる処理を提供する\n- Resolver: 定義・Override・入力から実効契約を解決する\n- Deriver: 正本DataからTestPattern等の派生情報を導出する\n\nこれらは原則としてUIへ依存しない。\n\n同じ導出結果をEditor PreviewとTest Runnerが利用する場合、両者は同じService / Resolver / Deriverを呼ぶ。\n\n\u0060\u0060\u0060text\n                    ┌─ Preview Component\n                    │\nDefinition ─ Service ┤\n                    │\n                    └─ Test Runner\n\u0060\u0060\u0060\n\n### SubGrid Componentの基本分類\n\n- DataSubGridComponent: 正本Dataに実在する配列を表示・編集する\n- DerivedSubGridComponent: Service等から導出した情報を表示する\n\nDerivedSubGridComponentの表示結果は、別途保存契約が定義されない限り、正本Dataへ自動保存しない。\n\n### Component接続\n\nComponentの生成・接続は、Host / Registry等の共通接続機構を通す。\n\n標準Editor本体へ、Capability固有Componentの生成ロジックを直接追加しない。\n\n### クラスモデル\n\nUIライフサイクルを持つComponentは、次の浅いクラス構造を標準候補とする。\n\n\u0060\u0060\u0060text\nStudioComponent\n  └─ EditorComponent\n      └─ SubGridComponent\n          ├─ DataSubGridComponent\n          └─ DerivedSubGridComponent\n\u0060\u0060\u0060\n\n継承を深くしすぎず、意味の違い・計算責務はCompositionで分離する。\n\n物理ファイル名、配置先、具体的メソッド名は実装時に決定し、憲法では責務境界と接続原則を正本とする。",
+      "body": "### 目的\n\nStudio Coreは、特定ドメイン専用Editorではなく、構造化Dataを人間とAIが確認・編集・差分レビューできる汎用AI協働基盤として維持する。\n\nDefinition Verification等の用途固有機能は、Studio Coreそのものではなく **Standard Capability** として接続する。\n\n### 標準Editorの責務\n\n標準Editorが持つ責務:\n\n- Componentを配置する\n- 現在のEditor ContextをComponentへ渡す\n- Componentの更新・破棄ライフサイクルを管理する\n\n標準Editorが直接持たない責務:\n\n- Expectedの計算\n- TestPatternの導出\n- Validation Type固有処理\n- ドメイン固有の表示分岐\n- Component IDごとの個別if分岐\n\n### Componentの責務\n\n特殊な表示・操作はComponentとしてカプセル化する。\n\nComponentは、必要なServiceを呼び出して表示モデルを受け取り、UIとして表現する。\n\nComponent内部へ、Runner等でも必要になる計算・判定・導出ロジックを複製してはならない。\n\n### Service / Resolver / Deriverの責務\n\n- Service: 複数の計算・解決・導出を組み合わせ、Capabilityとして利用できる処理を提供する\n- Resolver: 定義・Override・入力から実効契約を解決する\n- Deriver: 正本DataからTestPattern等の派生情報を導出する\n\nこれらは原則としてUIへ依存しない。\n\n同じ導出結果をEditor PreviewとTest Runnerが利用する場合、両者は同じService / Resolver / Deriverを呼ぶ。\n\n```text\n                    ┌─ Preview Component\n                    │\nDefinition ─ Service ┤\n                    │\n                    └─ Test Runner\n```\n\n### SubGrid Componentの基本分類\n\n- DataSubGridComponent: 正本Dataに実在する配列を表示・編集する\n- DerivedSubGridComponent: Service等から導出した情報を表示する\n\nDerivedSubGridComponentの表示結果は、別途保存契約が定義されない限り、正本Dataへ自動保存しない。\n\n### Component接続\n\nComponentの生成・接続は、Host / Registry等の共通接続機構を通す。\n\n標準Editor本体へ、Capability固有Componentの生成ロジックを直接追加しない。\n\n### クラスモデル\n\nUIライフサイクルを持つComponentは、次の浅いクラス構造を標準候補とする。\n\n```text\nStudioComponent\n  └─ EditorComponent\n      └─ SubGridComponent\n          ├─ DataSubGridComponent\n          └─ DerivedSubGridComponent\n```\n\n継承を深くしすぎず、意味の違い・計算責務はCompositionで分離する。\n\n物理ファイル名、配置先、具体的メソッド名は実装時に決定し、憲法では責務境界と接続原則を正本とする。",
       "ceremony_phrase": "Studioくん憲法 第31条「Component / Service 責務分離契約」を承認する。",
       "user_comment": "特殊SubGridをComponentとしてカプセル化し、標準Editorへ簡単に接続できる構造を先に作る。期待値等の共通計算はComponentへ埋め込まず、PreviewとRunnerから同じ共通処理を呼びたい。",
       "ai_response": "Studio Coreを汎用AI協働基盤のまま保つため、標準Editor=Host、特殊UI=Component、計算=Service / Resolver / Deriverとして責務分離する。",
@@ -1637,7 +1637,7 @@
       "change_history": [
         {
           "history_id": "chg_constitution_31_v01839_001",
-          "at": "2026-08-12T09:20:00\u002B09:00",
+          "at": "2026-08-12T09:20:00+09:00",
           "change_type": "rule_added",
           "before": "標準Editorへ用途固有UIを接続する共通Component契約と、Component / Serviceの責務境界が憲法上に存在しなかった。",
           "after": "標準Editor=Component Host、特殊UI=Component、計算=Service / Resolver / Deriverとする責務分離契約を第31条として追加した。",
@@ -1654,7 +1654,7 @@
       "decision_log": [
         {
           "decision_id": "dec_constitution_31_v01839_001",
-          "at": "2026-08-12T09:20:00\u002B09:00",
+          "at": "2026-08-12T09:20:00+09:00",
           "decision": "標準EditorはCapability固有ロジックを直接持たず、Component Hostとして振る舞う。",
           "reason": "Studio Coreを汎用AI協働基盤として維持し、用途固有機能をStandard Capabilityとして着脱可能にするため。",
           "applied_axes": [
@@ -1669,7 +1669,7 @@
           "confirmation_level": "JSON・設計レビュー"
         }
       ],
-      "updated_at": "2026-08-12T09:20:00\u002B09:00"
+      "updated_at": "2026-08-12T09:20:00+09:00"
     },
     {
       "no": 32,
@@ -1694,7 +1694,7 @@
       "change_history": [
         {
           "history_id": "chg_constitution_32_v01839_001",
-          "at": "2026-08-12T09:20:00\u002B09:00",
+          "at": "2026-08-12T09:20:00+09:00",
           "change_type": "rule_added",
           "before": "自然文記録は許可されていたが、独立した複数事項を箇条書きへ分解する全体共通原則がなかった。",
           "after": "箇条書きにできる独立事項は原則として必ず箇条書きまたは番号付きリストへ分解する第32条を追加した。",
@@ -1711,7 +1711,7 @@
       "decision_log": [
         {
           "decision_id": "dec_constitution_32_v01839_001",
-          "at": "2026-08-12T09:20:00\u002B09:00",
+          "at": "2026-08-12T09:20:00+09:00",
           "decision": "箇条書き優先をインシデント専用ではなくStudio全体の構造化記述原則とする。",
           "reason": "同じ可読性問題がルール、判断ログ、AI作業記録等にも発生するため。",
           "applied_axes": [
@@ -1725,7 +1725,7 @@
           "confirmation_level": "JSON・設計レビュー"
         }
       ],
-      "updated_at": "2026-08-12T09:20:00\u002B09:00"
+      "updated_at": "2026-08-12T09:20:00+09:00"
     }
   ],
   "review_notes": [
@@ -1742,7 +1742,7 @@
     {
       "note_id": "note_003",
       "title": "第6条 Action Separation 修正方針",
-      "body": "固定文字列 actionRegistry.execute(\u0022PlayMidi\u0022, context) はNG。Runtime は ViewDef から取得した actionId を変数として ActionRegistry に渡す。主役操作は toolbar.executeButton として定義する。"
+      "body": "固定文字列 actionRegistry.execute(\"PlayMidi\", context) はNG。Runtime は ViewDef から取得した actionId を変数として ActionRegistry に渡す。主役操作は toolbar.executeButton として定義する。"
     },
     {
       "note_id": "note_004",
@@ -1867,5 +1867,5 @@
     }
   ],
   "markdown_export_body": "",
-  "updated_at": "2026-08-12T09:20:00\u002B09:00"
+  "updated_at": "2026-08-12T09:20:00+09:00"
 }
