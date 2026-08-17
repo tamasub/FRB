@@ -16,22 +16,20 @@
     header{padding:16px 22px;background:#111827;color:#fff}
     header h1{margin:0;font-size:20px}
     header p{margin:4px 0 0;color:#cbd5e1;font-size:13px}
-    .toolbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding:12px 18px;background:var(--panel);border-bottom:1px solid var(--border)}
-    .toolbar label{font-size:13px;color:var(--muted)}
-    input[type="file"]{width:100%;max-width:none;min-width:0;font-size:13px;color:#475569}
-    input[type="file"]::file-selector-button{
-      margin-right:9px;padding:9px 14px;border:0;border-radius:14px;
-      background:rgba(105,120,160,.12);color:#1f2937;font-weight:800;cursor:pointer;
-    }
-    input[type="file"]::file-selector-button:hover{background:rgba(105,120,160,.20)}
+    .toolbar{display:flex;gap:12px;flex-wrap:nowrap;align-items:center;padding:12px 18px;background:var(--panel);border-bottom:1px solid var(--border)}
     input[type="search"],select{font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:12px;background:#fff}
     button{font-size:12px;border:0;border-radius:14px;background:rgba(105,120,160,.12);color:#1f2937;padding:9px 14px;font-weight:800;cursor:pointer;box-shadow:none}
     button:hover{background:rgba(105,120,160,.20)}
     button:disabled{cursor:not-allowed;opacity:.45;background:rgba(105,120,160,.08)}
-    .file-open-group{display:flex;flex:0 1 640px;flex-direction:column;gap:5px;min-width:430px}
-    .file-open-controls{display:grid;grid-template-columns:minmax(180px,1fr) 92px max-content;align-items:center;gap:10px;min-width:0}
-    .file-open-controls select,.file-open-controls button{white-space:nowrap}
-    .save-as-status{max-width:640px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .file-open-group{display:flex;flex:0 1 650px;align-items:center;gap:10px;min-width:0}
+    .file-open-group select,.file-open-group button{white-space:nowrap;flex:0 0 auto}
+    .current-source{display:flex;align-items:center;gap:4px;flex:1 1 auto;min-width:0;color:#475569;font-size:13px;white-space:nowrap}
+    .current-source-label{flex:0 0 auto;color:var(--muted)}
+    .current-source-value{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .visually-hidden{
+      position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;
+      overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;
+    }
     .drop-zone{
       flex:1; min-width:420px; min-height:52px; border:2px dashed #cbd5e1; border-radius:12px;
       background:#f8fafc; color:#475569; display:flex; align-items:center; justify-content:center;
@@ -56,6 +54,11 @@
     .body{padding:14px;overflow:auto;min-height:0}
     .note{color:var(--muted);font-size:13px}
     .warn{padding:10px 12px;background:var(--warn-bg);color:var(--warn-text);border:1px solid var(--warn-border);border-radius:10px;font-size:13px;margin-bottom:10px}
+    .git-warnings{height:164px;overflow:hidden;display:flex;flex-direction:column}
+    .git-warnings-title{flex:0 0 auto;font-weight:750;margin-bottom:6px}
+    .git-warnings-scroll{flex:1 1 auto;min-height:0;overflow:auto;overflow-wrap:anywhere;word-break:break-word;padding-right:4px}
+    .git-warning-item{padding:0 0 7px;margin:0 0 7px;border-bottom:1px solid rgba(154,52,18,.16)}
+    .git-warning-item:last-child{margin-bottom:0;padding-bottom:0;border-bottom:0}
     .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
     .summary-card{border:1px solid var(--border);border-radius:10px;padding:10px 11px;background:#fff}
     .summary-label{font-size:12px;color:var(--muted)}
@@ -102,9 +105,9 @@
     pre{margin:0;white-space:pre-wrap;word-break:break-word;background:var(--code-bg);color:var(--code-text);padding:12px;border-radius:10px;overflow:auto;font-size:12px}
     .empty{border:1px dashed var(--border);border-radius:12px;padding:18px;text-align:center;color:var(--muted);background:#fff}
     @media(max-width:980px){
-      .toolbar{align-items:stretch}
+      .toolbar{align-items:stretch;flex-wrap:wrap}
       .file-open-group{flex-basis:100%;min-width:0}
-      .file-open-controls{grid-template-columns:minmax(160px,1fr) 92px max-content}
+      .current-source{min-width:160px}
       .layout{grid-template-columns:1fr;height:auto}
       .panel{min-height:520px}
       .main-controls,.filters{grid-template-columns:1fr}
@@ -132,16 +135,18 @@
 
 <div class="toolbar">
   <div class="file-open-group">
-    <label>DiffToJson.json</label>
-    <div class="file-open-controls">
-      <input id="jsonFile" type="file" accept=".json,application/json">
-      <select id="jsonEncoding" title="JSON読み込み文字コード">
-        <option value="utf-8" selected>UTF-8</option>
-        <option value="shift_jis">Shift_JIS</option>
-      </select>
-      <button id="saveAsBtn" disabled title="読み込んだDiff JSONを任意の場所へ名前を付けて保存">名前を付けて保存</button>
+    <input id="jsonFile" class="visually-hidden" type="file" accept=".json,application/json">
+    <button id="openFileBtn" type="button" title="Diff JSONファイルを開く">ファイルを開く</button>
+    <div id="currentSource" class="current-source" title="未読込">
+      <span class="current-source-label">表示中：</span>
+      <span id="currentSourceText" class="current-source-value">未読込</span>
     </div>
-    <span id="saveAsStatus" class="note save-as-status" aria-live="polite"></span>
+    <select id="jsonEncoding" title="JSON読み込み文字コード">
+      <option value="utf-8" selected>UTF-8</option>
+      <option value="shift_jis">Shift_JIS</option>
+    </select>
+    <button id="saveAsBtn" disabled title="読み込んだDiff JSONを任意の場所へ名前を付けて保存">名前を付けて保存</button>
+    <span id="saveAsStatus" class="visually-hidden" aria-live="polite"></span>
   </div>
   <div id="dropZone" class="drop-zone">DiffToJson.jsonをここに <strong>Drop</strong> して読み込み</div>
 </div>
@@ -169,7 +174,7 @@
   </aside>
 
   <main class="panel">
-    <h2><span>Difference details</span><span class="note" id="detailStatus">0件</span></h2>
+    <h2><span>Difference details</span></h2>
     <div class="body">
       <div class="main-controls">
         <input id="diffSearch" type="search" placeholder="全ファイルの差分本文・ファイル名を検索">
@@ -208,11 +213,49 @@ let diffJson = null;
 let files = [];
 let selectedIndex = -1;
 let loadedDiffLabel = "";
+let loadedDiffSource = "";
 
 const $ = id => document.getElementById(id);
 
 function escapeHtml(s){
   return String(s ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+}
+
+function baseNameFromSource(value){
+  const raw = String(value || "").trim();
+  if(!raw) return "";
+  try{
+    const url = new URL(raw, location.href);
+    const pathName = decodeURIComponent(url.pathname || "");
+    const name = pathName.split("/").filter(Boolean).pop();
+    if(name) return name;
+  }catch{}
+  return raw.split(/[\\/]/).filter(Boolean).pop() || raw;
+}
+
+function middleEllipsis(value, maxChars = 72){
+  const text = String(value || "");
+  if(text.length <= maxChars) return text;
+  const head = Math.max(12, Math.floor((maxChars - 1) * 0.42));
+  const tail = Math.max(18, maxChars - 1 - head);
+  return `${text.slice(0, head)}…${text.slice(-tail)}`;
+}
+
+function setCurrentSource(label, fullSource){
+  const source = String(fullSource || label || "").trim();
+  const fileName = String(label || baseNameFromSource(source) || "未読込");
+  $("currentSourceText").textContent = middleEllipsis(fileName);
+  $("currentSource").title = source || fileName;
+}
+
+function setSaveAsStatus(message){
+  const text = String(message || "");
+  $("saveAsStatus").textContent = text;
+  if(text){
+    $("saveAsBtn").title = text;
+  }else{
+    $("saveAsBtn").title = "読み込んだDiff JSONを任意の場所へ名前を付けて保存";
+  }
 }
 
 function highlight(s, q){
@@ -291,7 +334,7 @@ function renderSummary(){
   const uniqueWarnings = [...new Set(warnings)];
 
   $("summaryArea").innerHTML = `
-    ${uniqueWarnings.length ? `<div class="warn">Git warnings: ${uniqueWarnings.length}件<br>${uniqueWarnings.slice(0,3).map(escapeHtml).join("<br>")}${uniqueWarnings.length>3 ? "<br>..." : ""}</div>` : ""}
+    ${uniqueWarnings.length ? `<div class="warn git-warnings"><div class="git-warnings-title">Git warnings: ${uniqueWarnings.length}件</div><div class="git-warnings-scroll">${uniqueWarnings.map(w => `<div class="git-warning-item">${escapeHtml(w)}</div>`).join("")}</div></div>` : ""}
     <div class="summary-grid">
       <div class="summary-card"><div class="summary-label">Files</div><div class="summary-value">${escapeHtml(s.files_changed ?? files.filter(f=>f.kind==="changed").length)}</div></div>
       <div class="summary-card"><div class="summary-label">Added</div><div class="summary-value">+${escapeHtml(s.total_added ?? sum(files,"added"))}</div></div>
@@ -419,7 +462,6 @@ function renderDetail(){
   if(!diffJson){
     $("selectedInfo").innerHTML = `<div class="empty">DiffToJson.jsonを読み込んでください。</div>`;
     $("hunkList").innerHTML = "";
-    $("detailStatus").textContent = "0件";
     return;
   }
 
@@ -431,7 +473,6 @@ function renderDetail(){
     if(selectedIndex < 0 || !files[selectedIndex]){
       $("selectedInfo").innerHTML = `<div class="empty">左のファイル一覧から選択してください。</div>`;
       $("hunkList").innerHTML = "";
-      $("detailStatus").textContent = "0件";
       return;
     }
     targets = [files[selectedIndex]];
@@ -457,12 +498,10 @@ function renderDetail(){
 
   if(!cards.length){
     $("hunkList").innerHTML = `<div class="empty">表示できる差分はありません。</div>`;
-    $("detailStatus").textContent = "0件";
     return;
   }
 
   $("hunkList").innerHTML = cards.map(c => renderHunkCard(c.file, c.hunk, query)).join("");
-  $("detailStatus").textContent = `${cards.length}件`;
 }
 
 function renderSelectedInfo(targets, cards){
@@ -546,7 +585,7 @@ function downloadDiffJson(fileName, content){
 
 async function saveDiffJsonAs(){
   if(!diffJson){
-    $("saveAsStatus").textContent = "保存するDiff JSONを先に読み込んでください。";
+    setSaveAsStatus("保存するDiff JSONを先に読み込んでください。");
     return;
   }
 
@@ -554,7 +593,7 @@ async function saveDiffJsonAs(){
   const content = JSON.stringify(diffJson, null, 2) + "\n";
   const button = $("saveAsBtn");
   button.disabled = true;
-  $("saveAsStatus").textContent = "保存先を選択してください...";
+  setSaveAsStatus("保存先を選択してください...");
 
   try{
     const res = await fetch("/api/diff/save-as-dialog", {
@@ -565,28 +604,31 @@ async function saveDiffJsonAs(){
     if(!res.ok) throw new Error(await res.text());
     const result = await res.json();
     if(result?.cancelled){
-      $("saveAsStatus").textContent = "名前を付けて保存をキャンセルしました。";
+      setSaveAsStatus("名前を付けて保存をキャンセルしました。");
       return;
     }
-    $("saveAsStatus").textContent = `保存しました: ${result?.path || result?.saved || fileName}`;
+    setSaveAsStatus(`保存しました: ${result?.path || result?.saved || fileName}`);
   }catch(err){
     console.warn("native Diff JSON save-as dialog is unavailable. falling back to browser download.", err);
     downloadDiffJson(fileName, content);
-    $("saveAsStatus").textContent = `ブラウザ保存しました: ${fileName}`;
+    setSaveAsStatus(`ブラウザ保存しました: ${fileName}`);
   }finally{
     button.disabled = !diffJson;
   }
 }
 
-function applyDiffJson(data, label){
+function applyDiffJson(data, label, source){
   diffJson = data;
   files = normalizeFiles(diffJson);
   selectedIndex = files.length ? 0 : -1;
-  loadedDiffLabel = label || "";
+  loadedDiffSource = String(source || label || "");
+  loadedDiffLabel = String(label || baseNameFromSource(loadedDiffSource) || "DiffToJson.json");
 
-  $("loadStatus").textContent = label || "読み込み済み";
+  setCurrentSource(loadedDiffLabel, loadedDiffSource);
+  $("loadStatus").textContent = middleEllipsis(loadedDiffLabel, 34);
+  $("loadStatus").title = loadedDiffSource || loadedDiffLabel;
   $("saveAsBtn").disabled = false;
-  $("saveAsStatus").textContent = "";
+  setSaveAsStatus("");
   $("rawJson").textContent = JSON.stringify(diffJson, null, 2);
 
   renderSummary();
@@ -599,8 +641,10 @@ function showLoadError(err){
   files = [];
   selectedIndex = -1;
   loadedDiffLabel = "";
+  loadedDiffSource = "";
+  setCurrentSource("未読込", "");
   $("saveAsBtn").disabled = true;
-  $("saveAsStatus").textContent = "";
+  setSaveAsStatus("");
   $("loadStatus").textContent = "読み込み失敗";
   $("summaryArea").innerHTML = `<div class="warn">DiffToJson.json の読み込みに失敗しました: ${escapeHtml(err.message)}</div>`;
   $("fileList").innerHTML = "";
@@ -613,7 +657,7 @@ async function loadJsonFile(file){
   if(!file) return;
   try{
     const text = await readFileTextWithEncoding(file, $("jsonEncoding").value);
-    applyDiffJson(JSON.parse(text), file.name);
+    applyDiffJson(JSON.parse(text), file.name, file.name);
   }catch(err){
     showLoadError(err);
   }
@@ -640,7 +684,8 @@ async function loadJsonUrl(url, label){
     const res = await fetch(url, { cache: "no-store" });
     if(!res.ok) throw new Error(`HTTP ${res.status}: ${url}`);
     const text = await res.text();
-    applyDiffJson(JSON.parse(text), label || new URL(url).pathname.split("/").pop() || url);
+    const fileName = label || baseNameFromSource(url) || "DiffToJson.json";
+    applyDiffJson(JSON.parse(text), fileName, url);
   }catch(err){
     showLoadError(err);
   }
@@ -659,6 +704,7 @@ function autoLoadFromQuery(){
   }
 }
 
+$("openFileBtn").addEventListener("click", () => $("jsonFile").click());
 $("jsonFile").addEventListener("change", async e => loadJsonFile(e.target.files[0]));
 $("saveAsBtn").addEventListener("click", saveDiffJsonAs);
 $("fileSearch").addEventListener("input", renderFileList);

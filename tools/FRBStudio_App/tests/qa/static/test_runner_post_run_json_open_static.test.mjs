@@ -54,11 +54,12 @@ test('爆速デモショートカットはwait型Run Config IDまで固定して
   assert.ok(String(row.output_artifact_path ?? '').endsWith('.json'));
 });
 
-test('Diff JSON Viewerの保存ボタンはファイル選択・文字コードと同一コントロール列に置く', () => {
+test('Diff JSON Viewerの上段操作は表示中ソースを中心に1行で揃える', () => {
   const html = readText('wwwroot/DiffJsonViewer.html');
-  assert.match(html, /class="file-open-controls"[\s\S]*id="jsonFile"[\s\S]*id="jsonEncoding"[\s\S]*id="saveAsBtn"/);
-  assert.doesNotMatch(html, /class="save-as-group"/);
-  assert.match(html, /\.file-open-controls\{display:grid;grid-template-columns:/);
-  assert.doesNotMatch(html, /\.file-open-controls\{[^}]*flex-wrap:wrap/);
-  assert.match(html, /\.file-open-controls select,\.file-open-controls button\{white-space:nowrap\}/);
+  assert.match(html, /class="file-open-group"[\s\S]*id="openFileBtn"[\s\S]*id="currentSource"[\s\S]*id="jsonEncoding"[\s\S]*id="saveAsBtn"/);
+  assert.match(html, />ファイルを開く<\/button>/);
+  assert.match(html, /class="current-source-label">表示中：<\/span>/);
+  assert.doesNotMatch(html, /<label>DiffToJson\.json<\/label>/);
+  assert.match(html, /\.file-open-group\{display:flex;[^}]*align-items:center/);
+  assert.match(html, /\.file-open-group select,\.file-open-group button\{white-space:nowrap/);
 });

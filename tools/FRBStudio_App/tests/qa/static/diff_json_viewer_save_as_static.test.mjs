@@ -35,3 +35,42 @@ test('Diff JSON Viewer suggests a timestamped formal filename for DiffToJson_cur
   assert.match(viewer, /data\?\.generated_at/);
   assert.match(viewer, /DiffToJson_\$\{match\[1\]\}\$\{match\[2\]\}\$\{match\[3\]\}_\$\{match\[4\]\}\$\{match\[5\]\}\$\{match\[6\]\}\.json/);
 });
+
+
+test('Diff JSON Viewerは読込元を表示中ソースとして統一し長い名前は省略・Tooltipで完全値を残す', () => {
+  const viewer = read('wwwroot/DiffJsonViewer.html');
+
+  assert.match(viewer, /id="currentSource"/);
+  assert.match(viewer, /id="currentSourceText"/);
+  assert.match(viewer, /function middleEllipsis\(/);
+  assert.match(viewer, /function setCurrentSource\(/);
+  assert.match(viewer, /\$\("currentSource"\)\.title = source \|\| fileName/);
+  assert.match(viewer, /applyDiffJson\(JSON\.parse\(text\), file\.name, file\.name\)/);
+  assert.match(viewer, /applyDiffJson\(JSON\.parse\(text\), fileName, url\)/);
+  assert.doesNotMatch(viewer, /ファイルが選択されていません/);
+});
+
+test('Diff JSON ViewerのSave As結果はツールバー幅を消費せず表示中ソースを変更しない', () => {
+  const viewer = read('wwwroot/DiffJsonViewer.html');
+
+  assert.match(viewer, /id="saveAsStatus" class="visually-hidden"/);
+  assert.match(viewer, /function setSaveAsStatus\(/);
+  assert.match(viewer, /setSaveAsStatus\(`保存しました:/);
+  assert.doesNotMatch(viewer, /setCurrentSource\([^)]*result\?\.path/);
+});
+
+test('Git warningsは固定高の枠内で全件スクロール表示する', () => {
+  const viewer = read('wwwroot/DiffJsonViewer.html');
+
+  assert.match(viewer, /\.git-warnings\{height:164px;overflow:hidden;display:flex;flex-direction:column\}/);
+  assert.match(viewer, /\.git-warnings-scroll\{[^}]*overflow:auto;[^}]*overflow-wrap:anywhere;[^}]*word-break:break-word/);
+  assert.match(viewer, /uniqueWarnings\.map\(w => `<div class="git-warning-item">/);
+  assert.doesNotMatch(viewer, /uniqueWarnings\.slice\(0,3\)/);
+});
+
+test('Difference details右端の中途半端な件数表示は廃止する', () => {
+  const viewer = read('wwwroot/DiffJsonViewer.html');
+
+  assert.doesNotMatch(viewer, /id="detailStatus"/);
+  assert.doesNotMatch(viewer, /\$\("detailStatus"\)/);
+});

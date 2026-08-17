@@ -153,11 +153,11 @@ test('Markdown workspace drag indicators are cleared after internal move complet
 });
 
 test('Diff viewers use Markdown-like rounded soft buttons while module left rails follow their accent colors', () => {
-  for (const html of [diffHtml, metaHtml]) {
-    assert.match(html, /input\[type="file"\]::file-selector-button/);
-    assert.match(html, /border-radius:14px/);
-    assert.match(html, /background:rgba\(105,120,160,\.12\)/);
-  }
+  assert.match(diffHtml, /id="openFileBtn"[^>]*>ファイルを開く<\/button>/);
+  assert.match(diffHtml, /button\{[^}]*border-radius:14px;[^}]*background:rgba\(105,120,160,\.12\)/);
+  assert.match(metaHtml, /input\[type="file"\]::file-selector-button/);
+  assert.match(metaHtml, /border-radius:14px/);
+  assert.match(metaHtml, /background:rgba\(105,120,160,\.12\)/);
   assert.match(diffHtml, /\.layout > aside\.panel\{[\s\S]*#fff5ea/);
   assert.match(shellCss, /\.frb-page-diff-json \.layout > aside\.panel \{[\s\S]*--frb-diff-surface/);
   assert.match(shellCss, /\.frb-page-meta-diff \.layout > \.panel:first-child \{[\s\S]*--frb-meta-surface/);

@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-17T21:52:00+09:00",
+  "updated_at": "2026-08-17T22:42:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 195,
+  "items_count": 196,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -30009,15 +30009,15 @@
       "incident_type": "feature",
       "category": "testing",
       "priority": "high",
-      "status": "確認中",
-      "follow_up_status": "PENDING",
-      "verification_status": "Static再確認済み / Windows実機再確認待ち",
+      "status": "完了",
+      "follow_up_status": "NOT_STARTED",
+      "verification_status": "Windows実機: Test Run完了→xxx.diff.json JSON Object Studio自動表示 確認済み / Diff JSON Viewer UI改善はstudio_work_0208へ分離",
       "context_def_status": "reviewed",
       "context_def_updated_at": "2026-08-17T21:46:00+09:00",
       "owner": "",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-17T21:46:00+09:00",
-      "updated_at": "2026-08-17T22:10:00+09:00",
+      "updated_at": "2026-08-17T22:35:00+09:00",
       "work_summary": "- Studio Test Runnerのwait型Run Configを実行し、テスト終了後にRun Configへ設定された `output_artifact_path` のJSONをJSON Object Studioで自動表示する。\n- 起動ショートカットからRun Config IDまで固定して、1クリックで「テスト実行 → 完了 → 結果JSON表示」まで進むデモ導線を作る。\n- Diff JSON Viewerの「名前を付けて保存」ボタン位置ずれも同時に修正し、ファイル選択・文字コードと同一行へ揃える。",
       "target_files": "- wwwroot/DiffJsonViewer.html\n- wwwroot/js/actions/action_registry.js\n- defs/tools/test_runner_run_config_view_def_v0_1.json\n- data/json/04_tools/test_runner_run_config_data_v0_1.json\n- wwwroot/config/app_settings.json\n- tests/qa/static/test_runner_post_run_json_open_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
       "actual_updated_files": "- wwwroot/js/actions/action_registry.js\n- wwwroot/index.html\n- wwwroot/DiffJsonViewer.html\n- tests/qa/static/test_runner_post_run_json_open_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
@@ -30031,11 +30031,11 @@
       "expected_outputs": "- wait型Test Runの終了後、設定されたDiff/Result JSONがJSON Object Studioへ自動表示される。\n- test_passedだけでなくtest_failedでも、生成済み結果JSONを確認できる。\n- `output_artifact_path` が空なら現在画面に留まる。\n- launch型は従来どおり起動だけ行い、自動表示しない。\n- ショートカット「⚡ Test Demo / Incident Prompt」からRun Config選択操作なしでTest Runが開始される。\n- Diff JSON ViewerのSave Asボタンがファイル選択・UTF-8コンボと同じ行に揃う。",
       "risk": "- `output_artifact_path` が古いJSONを指している場合、テスト自体が結果更新前に異常終了すると既存ファイルを表示する可能性が残る。今回は取得可能・JSON妥当性まで確認するが、生成時刻の共通契約は各Diff形式で統一されていないため鮮度判定までは行わない。\n- test_failedでも結果JSONへ遷移するため、従来の失敗詳細ダイアログは自動表示先がある場合は出さない。結果JSONを主たる確認面とする。\n- launch型Playwright UIは今回の自動表示対象外。",
       "test_points": "- wait型Test Runnerのみ完了後JSON自動表示対象になること。\n- pass/failの両result_kindで自動表示すること。\n- output_artifact_pathが相対 `.json` 以外なら拒否すること。\n- Data JSON自身のview_defを使ってJSON Object Studioが表示できるURLになること。\n- デモショートカットがRun Config ID `test_run_002_incident_prompt_copy_action_static` へ固定されること。\n- 対象Run Configがwait型でoutput_artifact_pathを持つこと。\n- Diff JSON ViewerのSave Asボタンがfile-open-controls内に配置されること。\n- 全Staticで既存18 FAILを増やさないこと。",
-      "verification_log": "- Windows実機初回確認: NG。ショートカットからRun Config選択までは動作したが、Test Run後に `URL読込エラー: Failed to fetch`。Diff JSON ViewerのSave AsもUTF-8コンボと別行へ折り返された。\n- 原因: `scheduleTestOutputArtifactOpen()` が `data/json/...` を `new URL(relativePath, location.href)` でwwwroot静的ファイルとして直接fetchしていた。`data/json` はwwwroot外で、通常のJSON Object Studioは `/api/data/...` を使うため契約違反。\n- 修正: 結果JSONの存在確認・JSON parseを既存 `fetchApiJsonWithUrl('data', ...)` へ統一。遷移URLは従来どおり `index.html?data=data/json/...`。\n- キャッシュ対策: `index.html` の `action_registry.js` cache-bust queryを `01887-test-run-post-json-api-fix` へ更新。\n- Diff Viewer: file-open-controlsをwrap可能flexから3列gridへ変更し、EncodingとSave Asをnowrap固定。\n- デモ対象テスト実行: `incident_prompt_copy_action_viewdef_static.test.mjs` 1/1 PASS。生成されたActual/Diffは添付ZIP原本へ復元し返却差分から除外。\n- 専用Static: 6/6 PASS。\n- 全Static Before: 271 tests / 253 PASS / 18 FAIL。\n- 全Static After: 271 tests / 253 PASS / 18 FAIL。\n- Before / Afterの既存18 FAILはテスト名まで完全一致。新規FAILなし。\n- `wwwroot/js/actions/action_registry.js`: `node --check` PASS。\n- `wwwroot/DiffJsonViewer.html` inline JavaScript: `node --check` PASS。\n- Windows NativeShellで「⚡ Test Demo / Incident Prompt」→Test Run終了→結果JSON自動表示とDiff Viewer 1行配置の再確認は未実施。",
+      "verification_log": "- Windows実機初回確認: NG。ショートカットからRun Config選択までは動作したが、Test Run後に `URL読込エラー: Failed to fetch`。Diff JSON ViewerのSave AsもUTF-8コンボと別行へ折り返された。\n- 原因: `scheduleTestOutputArtifactOpen()` が `data/json/...` を `new URL(relativePath, location.href)` でwwwroot静的ファイルとして直接fetchしていた。`data/json` はwwwroot外で、通常のJSON Object Studioは `/api/data/...` を使うため契約違反。\n- 修正: 結果JSONの存在確認・JSON parseを既存 `fetchApiJsonWithUrl('data', ...)` へ統一。遷移URLは従来どおり `index.html?data=data/json/...`。\n- キャッシュ対策: `index.html` の `action_registry.js` cache-bust queryを `01887-test-run-post-json-api-fix` へ更新。\n- Diff Viewer: file-open-controlsをwrap可能flexから3列gridへ変更し、EncodingとSave Asをnowrap固定。\n- デモ対象テスト実行: `incident_prompt_copy_action_viewdef_static.test.mjs` 1/1 PASS。生成されたActual/Diffは添付ZIP原本へ復元し返却差分から除外。\n- 専用Static: 6/6 PASS。\n- 全Static Before: 271 tests / 253 PASS / 18 FAIL。\n- 全Static After: 271 tests / 253 PASS / 18 FAIL。\n- Before / Afterの既存18 FAILはテスト名まで完全一致。新規FAILなし。\n- `wwwroot/js/actions/action_registry.js`: `node --check` PASS。\n- `wwwroot/DiffJsonViewer.html` inline JavaScript: `node --check` PASS。\n- Windows NativeShellで「⚡ Test Demo / Incident Prompt」→Test Run終了→結果JSON自動表示とDiff Viewer 1行配置の再確認は未実施。\n- Windows実機再確認: PASS。ユーザーより `xxx.diff.json` のJSON Object Studio自動表示が通ったことを確認。\n- Diff JSON Viewerは、表示中ソース表示・Save As時レイアウト・warnings overflow・右端件数表示の仕様不足が残ったため、`studio_work_0208` へ分離して改善する。",
       "user_request": "- Diff JSON Viewerの「名前を付けて保存」位置ずれを修正する。\n- Studio Test Runner実行後、Run Configに紐づけたdiff/result JSONをJSON Object Studioで自動表示する。\n- ショートカットにTest RunnerのRun Config IDまで紐づけ、1クリックの高速テスト実行デモを作る。\n- 最新資材 `FRBStudio_App20260817_213049(1).zip` を正本として対応する。",
       "ai_response": "- `output_artifact_path` を完了後に開くJSONの正本として再利用する。\n- wait型Test Runnerの終了後、結果JSONをJSON Object Studioへ自動表示する。\n- launch型は終了待ちできないため対象外とし、デモは既存wait型高速テストを利用する。",
       "latest_ai_response": "AI回答\n\n## 原因\n- キャッシュが主因ではなく、`data/json/...` をwwwroot静的URLとしてfetchしていた実装ミス。\n- Diff Viewerは同一コンテナ化だけで `flex-wrap:wrap` が残り、視覚的には別行へ落ちていた。\n\n## 今回の更新\n- `wwwroot/js/actions/action_registry.js`\n- `wwwroot/index.html`\n- `wwwroot/DiffJsonViewer.html`\n- `tests/qa/static/test_runner_post_run_json_open_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n- Test Run完了後の結果JSON確認を `/api/data` 契約へ統一。\n- JSON Object Studioへの自動遷移は `index.html?data=data/json/...` を維持。\n- action_registry.jsのcache-bust queryを更新。\n- Diff Viewerのファイル選択・UTF-8・Save Asを3列gridで1行固定。\n\n## 確認結果\n- デモ対象テスト: 1/1 PASS。\n- 専用Static: 6/6 PASS。\n- 全Static: 271 tests / 253 PASS / 18 FAIL。既存18 FAILはBeforeと名前まで完全一致、新規FAILなし。\n- action_registry.js / DiffJsonViewer inline JS: node --check PASS。\n- Test Evidence生成物は原本へ復元済み。\n- Windows NativeShell実機の再確認待ち。",
-      "latest_user_comment": "ぜんぜんあかんやん。笑い　キャッシュか？？💦",
+      "latest_user_comment": "xxx.Diff.json 表示は通った。Diff JSON Viewerは表示中ファイル名・Save As時レイアウト・warnings表示・右端件数表示の仕様を整理したい。",
       "context_refs": [
         {
           "context_ref_id": "ctx_0207_foundation_019",
@@ -30056,11 +30056,11 @@
           "action_id": "follow_0207_windows_demo_verify",
           "action_type": "VERIFICATION",
           "required": true,
-          "status": "PENDING",
+          "status": "COMPLETED",
           "related_ids": [
             "studio_work_0207"
           ],
-          "note": "Windows初回確認でNG。v0.18.86は結果JSONをwwwroot静的URLとしてfetchしてFailed to fetchになった。v0.18.87で `/api/data` 契約へ修正したため、「⚡ Test Demo / Incident Prompt」→wait型Test Run→結果JSONのJSON Object Studio自動表示を再確認する。あわせてDiff JSON ViewerのUTF-8/Save Asが同一行に維持されることを確認する。",
+          "note": "Windows実機で「ショートカット→wait型Test Run→xxx.diff.jsonをJSON Object Studioで自動表示」まで確認済み。Diff JSON ViewerのUI状態整理はstudio_work_0208へ分離。",
           "summary": "Windows実機デモ導線・Viewer配置を再確認"
         },
         {
@@ -30117,6 +30117,13 @@
           "speaker": "assistant",
           "topic": "実機NG原因修正完了報告",
           "message": "AI回答\n\n## 原因\n- キャッシュが主因ではなく、`data/json/...` をwwwroot静的URLとしてfetchしていた実装ミス。\n- Diff Viewerは同一コンテナ化だけで `flex-wrap:wrap` が残り、視覚的には別行へ落ちていた。\n\n## 今回の更新\n- `wwwroot/js/actions/action_registry.js`\n- `wwwroot/index.html`\n- `wwwroot/DiffJsonViewer.html`\n- `tests/qa/static/test_runner_post_run_json_open_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n- Test Run完了後の結果JSON確認を `/api/data` 契約へ統一。\n- JSON Object Studioへの自動遷移は `index.html?data=data/json/...` を維持。\n- action_registry.jsのcache-bust queryを更新。\n- Diff Viewerのファイル選択・UTF-8・Save Asを3列gridで1行固定。\n\n## 確認結果\n- デモ対象テスト: 1/1 PASS。\n- 専用Static: 6/6 PASS。\n- 全Static: 271 tests / 253 PASS / 18 FAIL。既存18 FAILはBeforeと名前まで完全一致、新規FAILなし。\n- action_registry.js / DiffJsonViewer inline JS: node --check PASS。\n- Test Evidence生成物は原本へ復元済み。\n- Windows NativeShell実機の再確認待ち。"
+        },
+        {
+          "history_id": "hist_0207_user_005",
+          "at": "2026-08-17T22:35:00+09:00",
+          "speaker": "user",
+          "topic": "Windows実機でTest Run結果JSON自動表示を確認",
+          "message": "xxx.Diff.json　表示は通った。これは最高。Diff Json view は仕様のあるべきをつめないとあかんねぇ。"
         }
       ],
       "decision_log": [
@@ -30196,6 +30203,17 @@
             "キャッシュ不確実性の排除",
             "実機トラブル切り分け"
           ]
+        },
+        {
+          "decision_id": "dec_0207_demo_verified_viewer_split",
+          "at": "2026-08-17T22:35:00+09:00",
+          "decision": "Test Run→結果JSON自動表示はWindows実機確認済みとして完了し、Diff JSON Viewerの残るUI状態整理はstudio_work_0208へ分離する。",
+          "reason": "テスト実行デモ導線の主目的は達成した一方、Viewer側は読込元・保存先・表示件数・warning表示という別責務の仕様整理が必要になったため。",
+          "applied_axes": [
+            "責務分離",
+            "実機確認優先",
+            "小さなインシデント"
+          ]
         }
       ],
       "change_history": [
@@ -30254,6 +30272,173 @@
           "before": "index.htmlはaction_registry.jsを古い固定query `test-runner-command-profile-01438` で参照していた。",
           "after": "`01887-test-run-post-json-api-fix` へ更新した。",
           "reason": "JS修正後のWebView2キャッシュによる旧資材読込の可能性を切り分けやすくするため。"
+        },
+        {
+          "history_id": "chg_0207_windows_verify_complete",
+          "at": "2026-08-17T22:35:00+09:00",
+          "change_type": "verification_update",
+          "before": "v0.18.87のWindows NativeShell実機再確認待ち。",
+          "after": "Test Run完了後にxxx.diff.jsonがJSON Object Studioへ自動表示されることをユーザー実機で確認。Viewer UI残課題はstudio_work_0208へ分離。",
+          "reason": "ユーザー実機スクリーンショットとコメントで自動表示成功を確認したため。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0208",
+      "phase": "v0.18.88-diff-json-viewer-source-state-warning-polish",
+      "title": "Diff JSON Viewer 表示中ソース / Save As / Warning表示の状態整理",
+      "incident_type": "maintenance",
+      "category": "other",
+      "priority": "high",
+      "status": "確認中",
+      "follow_up_status": "PENDING",
+      "verification_status": "Static確認済み / Windows実機確認待ち",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-17T22:35:00+09:00",
+      "owner": "",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-17T22:35:00+09:00",
+      "updated_at": "2026-08-17T22:42:00+09:00",
+      "work_summary": "- Diff JSON Viewer上段を「ファイルを開く / 表示中 / 文字コード / 名前を付けて保存」の1行へ整理し、どの読込経路でも現在表示しているDiff JSONが一目で分かる状態にする。\n- 長い表示名は途中省略し、hover Tooltipには取得できる完全な読込元を保持する。Save As結果はツールバー幅を消費させず、現在表示中のデータを勝手に切り替えない。\n- Git warningsは固定サイズ枠内のスクロールへ変更し、Difference details右端の中途半端な件数表示は、仕様を詰めるまで廃止する。",
+      "target_files": "- wwwroot/DiffJsonViewer.html\n- tests/qa/static/diff_json_viewer_save_as_static.test.mjs\n- tests/qa/static/test_runner_post_run_json_open_static.test.mjs\n- tests/qa/static/frb_studio_common_shell_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- wwwroot/DiffJsonViewer.html\n- tests/qa/static/diff_json_viewer_save_as_static.test.mjs\n- tests/qa/static/test_runner_post_run_json_open_static.test.mjs\n- tests/qa/static/frb_studio_common_shell_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "# ContextDef素案: Diff JSON Viewer Source / Save State整理\n\n## 目的\nDiff JSON Viewerの「どこから読んだデータを見ているか」と「どこへ別名保存したか」を分離し、UI上で読込状態を矛盾なく確認できるようにする。\n\n## 表示中ソース契約\n- File選択 / Drop / GitDiff自動表示 / URL表示の全経路で、同じ `表示中` UIへ反映する。\n- 可視部はファイル名を中心に表示し、長い場合は途中省略する。\n- Tooltipには取得可能な完全な読込元を保持する。ブラウザFile API経由ではOS絶対パスを取得できないため、その場合はファイル名を完全値とする。\n\n## Save As契約\n- Save Asは現在表示中のJSON内容を別ファイルへ保存する明示操作である。\n- 保存完了で現在表示中ソースを保存先へ自動切替しない。\n- 保存結果文字列はツールバー幅へ参加させない。\n\n## Warning契約\n- Git warningsは件数と全warningを保持し、固定高の枠内で内部スクロールする。\n- 長いwarning文字列は枠外へはみ出さない。\n\n## Difference details件数\n- 右端の単独件数は何を数えているか曖昧なため廃止する。\n- 将来、検索件数を表示する場合は対象件数・表示カード数・フィルタ条件を一体で設計する。",
+      "objective": "- Diff JSON Viewerで、現在表示しているDiff JSONのファイル名を常時確認できるようにする。\n- File選択 / Drop / URL・GitDiff自動読込で表示契約を統一する。\n- Save As操作によるツールバー崩れを防止する。\n- Git warningsの長文は固定領域内スクロールで確認できるようにする。\n- 意味が曖昧なDifference details右端件数を廃止する。",
+      "background": "- GitDiff自動読込ではDiff内容が表示されているにもかかわらず、native file inputが「ファイルが選択されていません」と表示しており、画面状態と表示が矛盾していた。\n- Save As成功後の長い保存先パスを同じツールバー内へ表示したため、ファイル選択・Encoding・保存ボタンのレイアウトが壊れた。\n- Git warningsの長い文字列が赤枠外へ視覚的にはみ出し、読みづらかった。\n- Difference details右端の「6件」は検索結果・hunk数等の意味が画面上で説明されず、中途半端な仕様だった。",
+      "scope": "- native file inputを非表示化し、`ファイルを開く` ボタンから呼び出す。\n- 上段を `[ファイルを開く] 表示中：xxx.json [UTF-8] [名前を付けて保存]` の1行へ整理する。\n- `currentSource` 状態を追加し、File / Drop / URLの全読込経路で更新する。\n- 表示名は途中省略し、Tooltipへ完全なsource文字列を保持する。\n- Save As結果はaria-live用の非表示statusとボタンTooltipへ保持し、表示中sourceは変更しない。\n- Git warningsは全件を固定高164px内でスクロール表示する。\n- Difference details右端の単独件数表示と更新処理を削除する。\n- Staticテストを更新・追加する。",
+      "out_of_scope": "- Difference details検索件数の新しい集計UI設計。\n- Save As後に保存先ファイルへ表示対象を切り替える機能。\n- ブラウザFile APIで取得できないローカル絶対パスを新しいNativeShell APIで取得する機能。\n- Diff JSON Viewer全体の検索仕様・Summary仕様の全面再設計。",
+      "fixed_name_policy": "- 既存 `wwwroot/DiffJsonViewer.html` を同名更新する。\n- 表示ラベルは `表示中：`、操作ボタンは `ファイルを開く` / `名前を付けて保存` を使用する。\n- 新しいViewerファイル名は作らない。",
+      "module_policy": "- 読込元表示はDiffJsonViewer.html内の表示状態として扱い、NativeShellへ新しい権限/APIを追加しない。\n- Save As本体は既存 `/api/diff/save-as-dialog` / `dialog.saveText` を維持する。\n- Git warning内容は既存Diff JSONの `git_warnings` をそのまま表示し、生成側仕様は変更しない。\n- 件数の意味が未設計な部分は推測で拡張せず、表示自体を外す。",
+      "expected_outputs": "- GitDiff自動読込時に「ファイルが選択されていません」が見えず、`表示中：DiffToJson_current.json` が表示される。\n- File選択 / Drop / URL読込でも同じ位置へ表示中ファイル名が出る。\n- 長い名称は途中省略され、Tooltipで取得可能な完全sourceを確認できる。\n- Save As後もSummary / Difference details / 表示中sourceは変わらず、ツールバーも崩れない。\n- Git warningsは高さ固定の枠内で全件をスクロール確認できる。\n- Difference details右端の単独件数は表示されない。",
+      "risk": "- ブラウザの `input type=file` / File APIはOSのローカル絶対パスを公開しないため、手動File選択・DropではTooltipに実ファイル名までしか保持できない。URL/GitDiff自動読込はURLを完全sourceとして保持できる。\n- Warning枠を固定高にするため、warningが少数でも一定の高さを使用する。今回ユーザー要望の「枠の大きさ固定」を優先する。\n- Difference details件数を削除するため、カード数の即時把握は一時的にできなくなる。必要なら検索仕様とセットで別途設計する。",
+      "test_points": "- 上段に無意味な `<label>DiffToJson.json</label>` が残っていないこと。\n- `ファイルを開く` / `表示中` / Encoding / Save Asが同一行・縦中央にあること。\n- File読込とURL読込の双方が `setCurrentSource()` を経由すること。\n- source Tooltipへ完全sourceを保持し、表示名は `middleEllipsis()` で省略可能なこと。\n- Save As結果が可視ツールバー幅へ参加せず、保存後に `setCurrentSource()` で表示対象を変えないこと。\n- Git warningsが固定高・overflow auto・全件map表示になっていること。\n- `detailStatus` 要素と更新処理が存在しないこと。\n- 全Staticで既存FAILを増やさないこと。",
+      "verification_log": "- 専用Static: `diff_json_viewer_save_as_static.test.mjs` + `test_runner_post_run_json_open_static.test.mjs` = 10 tests / 10 PASS / 0 FAIL。\n- DiffJsonViewer inline JavaScript: `node --check` PASS。\n- 全Static Before: 271 tests / 253 PASS / 18 FAIL。\n- 全Static After: 275 tests / 257 PASS / 18 FAIL。\n- 既存18 FAILはBefore / Afterでテスト名まで完全一致。新規FAILなし。\n- `studio_work_0208` New Item Schema: PASS。\n- Incident JSON parse: PASS。\n- Windows NativeShell実機確認待ち。",
+      "user_request": "Diff JSON Viewerについて、上段を `[ファイルを開く] 表示中：DiffToJson_current.json [UTF-8] [名前を付けて保存]` に整理し、どの読込経路でもファイル名を表示する。長い場合は省略しTooltipで完全値を確認できるようにする。Git warningsは固定枠内スクロールにし、Difference details右端の意味が曖昧な件数表示は削除する。",
+      "ai_response": "Diff JSON Viewerの読込元表示・Save As状態・Warning overflow・曖昧な件数表示を整理し、Static回帰まで完了した。",
+      "latest_ai_response": "AI回答\n\n## 今回の更新\n\n- `wwwroot/DiffJsonViewer.html`\n- `tests/qa/static/diff_json_viewer_save_as_static.test.mjs`\n- `tests/qa/static/test_runner_post_run_json_open_static.test.mjs`\n- `tests/qa/static/frb_studio_common_shell_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\n- Diff JSON Viewer上段を `ファイルを開く / 表示中 / UTF-8 / 名前を付けて保存` の1行へ整理した。\n- native file inputの「ファイルが選択されていません」は画面から外し、File選択 / Drop / URL・GitDiff自動読込の全経路で `表示中` を更新する契約へ統一した。\n- 可視部はファイル名を表示し、長い場合は途中省略する。hover Tooltipには取得可能な完全sourceを保持する。\n- Save As後も現在表示中sourceは変更せず、保存結果文字列はツールバー幅へ参加させない。\n- Git warningsは固定高164pxの枠内へ全件表示し、内部スクロール・折返しで枠外へのはみ出しを防止した。\n- Difference details右端の意味が曖昧な単独件数表示を削除した。\n- `studio_work_0207` はWindows実機でTest Run→xxx.diff.json自動表示成功を確認済みとして完了扱いに更新し、Viewer UI改善を0208へ分離した。\n\n## 方針\n\n- 読込元と保存先は別状態として扱う。\n- 件数表示は意味を明確に設計できるまで出さない。\n- 手動File選択 / DropではブラウザFile APIの制約によりOS絶対パスを取得できないため、Tooltipはファイル名まで。URL/GitDiff自動読込では完全URLを保持する。\n- NativeShell APIは追加せず既存Save As契約を維持する。\n\n## 確認結果\n\n- 専用Static: 10/10 PASS\n- 全Static: 275 tests / 257 PASS / 18 FAIL\n- 既存18 FAILはBeforeとテスト名まで完全一致、新規FAILなし\n- DiffJsonViewer inline JS: `node --check` PASS\n- `studio_work_0208` New Item Schema: PASS\n- Windows NativeShell実機確認待ち\n",
+      "latest_user_comment": "ファイルが選択されたときも、保存した時も、URL表示された時も、Diff JSON表示中はファイル名を表示する。長い場合は省略しTooltipで完全値を見せる。Warningは固定枠スクロール、右端件数は中途半端なら削除する。",
+      "context_refs": [
+        {
+          "context_ref_id": "ctx_0208_foundation_019",
+          "title": "GitHub基準ソースとZIP返却契約",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "最新添付ZIPを正本とし、更新したファイルだけを返却ZIPへ含める。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 1,
+          "note": "更新済みIncident JSONをdata/json/01_main/へ同名収録する。"
+        }
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0208_windows_viewer_verify",
+          "action_type": "VERIFICATION",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "studio_work_0208"
+          ],
+          "note": "Windows NativeShell実機でGitDiff自動読込 / File選択 / Save As後の上段表示、warning固定枠スクロール、Difference details右端件数削除を確認する。",
+          "summary": "Diff Viewer UI状態をWindows実機確認"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "hist_0208_user_001",
+          "at": "2026-08-17T22:35:00+09:00",
+          "speaker": "user",
+          "topic": "Diff JSON Viewerの表示中ソース・Warning・件数表示仕様",
+          "message": "ファイルが選択されたときも、保存した時も、どっかからURL表示された時も、diffのJSONを表示しているときには、ファイル名をフル表示する。但し、長いときは、途中を省略する。ほんで、マウスを乗せればフルパスがtooltipで見える。画面上のDiffToJson.jsonって表示は無意味だから取る。`[ファイルを開く] 表示中：DiffToJson_current.json [UTF-8] [名前を付けて保存]` を縦位置中央表示。赤い背景のGit warningsは枠の大きさを固定してスクロール。右端の6件は、仕様を突き詰めないならやめる。"
+        },
+        {
+          "history_id": "hist_0208_assistant_001",
+          "at": "2026-08-17T22:42:00+09:00",
+          "speaker": "assistant",
+          "topic": "Diff JSON Viewer Source / Save State整理 完了報告",
+          "message": "AI回答\n\n## 今回の更新\n\n- `wwwroot/DiffJsonViewer.html`\n- `tests/qa/static/diff_json_viewer_save_as_static.test.mjs`\n- `tests/qa/static/test_runner_post_run_json_open_static.test.mjs`\n- `tests/qa/static/frb_studio_common_shell_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\n- Diff JSON Viewer上段を `ファイルを開く / 表示中 / UTF-8 / 名前を付けて保存` の1行へ整理した。\n- native file inputの「ファイルが選択されていません」は画面から外し、File選択 / Drop / URL・GitDiff自動読込の全経路で `表示中` を更新する契約へ統一した。\n- 可視部はファイル名を表示し、長い場合は途中省略する。hover Tooltipには取得可能な完全sourceを保持する。\n- Save As後も現在表示中sourceは変更せず、保存結果文字列はツールバー幅へ参加させない。\n- Git warningsは固定高164pxの枠内へ全件表示し、内部スクロール・折返しで枠外へのはみ出しを防止した。\n- Difference details右端の意味が曖昧な単独件数表示を削除した。\n- `studio_work_0207` はWindows実機でTest Run→xxx.diff.json自動表示成功を確認済みとして完了扱いに更新し、Viewer UI改善を0208へ分離した。\n\n## 方針\n\n- 読込元と保存先は別状態として扱う。\n- 件数表示は意味を明確に設計できるまで出さない。\n- 手動File選択 / DropではブラウザFile APIの制約によりOS絶対パスを取得できないため、Tooltipはファイル名まで。URL/GitDiff自動読込では完全URLを保持する。\n- NativeShell APIは追加せず既存Save As契約を維持する。\n\n## 確認結果\n\n- 専用Static: 10/10 PASS\n- 全Static: 275 tests / 257 PASS / 18 FAIL\n- 既存18 FAILはBeforeとテスト名まで完全一致、新規FAILなし\n- DiffJsonViewer inline JS: `node --check` PASS\n- `studio_work_0208` New Item Schema: PASS\n- Windows NativeShell実機確認待ち\n"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0208_unified_current_source",
+          "at": "2026-08-17T22:35:00+09:00",
+          "decision": "File選択 / Drop / URL・GitDiff自動読込の全経路で、現在表示中のDiff JSONを `表示中` という単一UI状態へ反映する。",
+          "reason": "native file inputの選択状態はURL自動読込を表現できず、実際にDiffを表示しているのに「ファイルが選択されていません」と見える矛盾が生じたため。",
+          "applied_axes": [
+            "表示状態と内部状態の一致",
+            "読込経路の共通化",
+            "人間の認知負荷低減"
+          ]
+        },
+        {
+          "decision_id": "dec_0208_save_as_does_not_switch_source",
+          "at": "2026-08-17T22:35:00+09:00",
+          "decision": "Save Asは現在表示中JSONの別名保存だけを行い、保存完了で表示中sourceを自動変更しない。保存メッセージはツールバー幅へ参加させない。",
+          "reason": "保存先パスの可視表示がツールバーを壊し、読込元と保存先を同一状態として扱うとViewerの意味が曖昧になるため。",
+          "applied_axes": [
+            "読込元と保存先の責務分離",
+            "レイアウト安定性",
+            "予測可能性"
+          ]
+        },
+        {
+          "decision_id": "dec_0208_warning_fixed_scroll",
+          "at": "2026-08-17T22:35:00+09:00",
+          "decision": "Git warningsは全件を保持し、固定高164pxの枠内で内部スクロールする。",
+          "reason": "長いwarningが枠外へはみ出す問題を防ぎつつ、先頭3件だけに省略せず全warningを確認可能にするため。",
+          "applied_axes": [
+            "情報欠落防止",
+            "レイアウト安定性",
+            "可読性"
+          ]
+        },
+        {
+          "decision_id": "dec_0208_remove_ambiguous_detail_count",
+          "at": "2026-08-17T22:35:00+09:00",
+          "decision": "Difference details右端の単独件数表示は削除する。",
+          "reason": "検索結果件数・hunk数・表示カード数のどれを意味するかUI上で説明されておらず、意味を突き詰めないまま数字だけ表示することを避けるため。",
+          "applied_axes": [
+            "中途半端な仕様を残さない",
+            "意味の明確性",
+            "YAGNI"
+          ]
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0208_toolbar_source_state",
+          "at": "2026-08-17T22:35:00+09:00",
+          "change_type": "ui_state_refactor",
+          "before": "native file inputを可視表示していたため、URL/GitDiff自動読込時でも「ファイルが選択されていません」と表示された。上部には意味の薄い `DiffToJson.json` labelも存在した。",
+          "after": "native file inputを非表示化し、`ファイルを開く` ボタンと `表示中：<filename>` を追加。URL読込ではTooltipへ完全URLを保持する。",
+          "reason": "現在表示中のData状態を読込方法に依存せず一貫して見せるため。"
+        },
+        {
+          "history_id": "chg_0208_save_status_layout",
+          "at": "2026-08-17T22:35:00+09:00",
+          "change_type": "ui_layout_fix",
+          "before": "Save As後の長い保存先パスを可視statusとして同じツールバーへ追加し、操作列が崩れた。",
+          "after": "Save As statusをaria-live用のvisually-hiddenへ変更し、保存結果はSave AsボタンTooltipに保持。表示中sourceは変更しない。",
+          "reason": "保存結果表示でツールバー幅を消費せず、読込元と保存先を分離するため。"
+        },
+        {
+          "history_id": "chg_0208_warning_scroll",
+          "at": "2026-08-17T22:35:00+09:00",
+          "change_type": "overflow_fix",
+          "before": "Git warningsは先頭3件＋省略表示で、長い文字列が視覚的に枠外へはみ出す場合があった。",
+          "after": "全unique warningを固定高164pxのスクロール領域内へ表示し、overflow-wrap/word-breakを適用。",
+          "reason": "枠サイズを安定させたままwarning全件を確認できるようにするため。"
+        },
+        {
+          "history_id": "chg_0208_remove_detail_status",
+          "at": "2026-08-17T22:35:00+09:00",
+          "change_type": "ui_contract_cleanup",
+          "before": "Difference details見出し右端に現在カード数だけを `6件` のように表示していたが、数字の意味が画面上で明確でなかった。",
+          "after": "`detailStatus` 要素とJS更新処理を削除。",
+          "reason": "検索件数仕様を別途設計するまで中途半端な数字を表示しないため。"
         }
       ]
     }
