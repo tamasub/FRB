@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   FRB Studio / JSON Object Studio Test Runner.
 
@@ -46,14 +46,18 @@ function Test-StudioAppRoot {
     if ([string]::IsNullOrWhiteSpace($Path)) { return $false }
     if (-not (Test-Path -LiteralPath $Path -PathType Container)) { return $false }
 
-    $packageJson = Join-Path $Path 'package.json'
-    $playwrightConfig = Join-Path $Path 'playwright.config.ts'
-    $screenStateTests = Join-Path $Path 'tests/screen_state'
+    $indexHtml = Join-Path $Path 'wwwroot/index.html'
+    $dataJson = Join-Path $Path 'data/json'
+    $defs = Join-Path $Path 'defs'
+    $tools = Join-Path $Path 'tools'
+    $tests = Join-Path $Path 'tests'
 
     return (
-        (Test-Path -LiteralPath $packageJson -PathType Leaf) -and
-        (Test-Path -LiteralPath $playwrightConfig -PathType Leaf) -and
-        (Test-Path -LiteralPath $screenStateTests -PathType Container)
+        (Test-Path -LiteralPath $indexHtml -PathType Leaf) -and
+        (Test-Path -LiteralPath $dataJson -PathType Container) -and
+        (Test-Path -LiteralPath $defs -PathType Container) -and
+        (Test-Path -LiteralPath $tools -PathType Container) -and
+        (Test-Path -LiteralPath $tests -PathType Container)
     )
 }
 
@@ -99,6 +103,13 @@ function Resolve-StudioAppRoot {
 
 $root = Resolve-StudioAppRoot -InputRoot $RepositoryRoot
 Set-Location -LiteralPath $root
+
+if ($TestRunnerId -eq 'playwright_ui') {
+    $playwrightConfig = Join-Path $root 'playwright.config.ts'
+    if (-not (Test-Path -LiteralPath $playwrightConfig -PathType Leaf)) {
+        throw "playwright.config.ts is required for playwright_ui: $playwrightConfig"
+    }
+}
 
 $studioLogScript = Join-Path $root 'tools/common/StudioLog.ps1'
 if (-not (Test-Path -LiteralPath $studioLogScript -PathType Leaf)) {

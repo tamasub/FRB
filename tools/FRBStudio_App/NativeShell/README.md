@@ -67,6 +67,22 @@ Adding a new profile that can be expressed with the existing generic `process.ru
 
 The source targets `.NET Framework 4.8` (`net48`) and x64 and references the Microsoft WebView2 SDK.
 
+For normal Windows builds, run the root-level wrapper:
+
+```text
+cmd_compile_NativeShell.bat
+```
+
+The wrapper resolves `FRBStudio_App` from its own location and calls `tools/build/Build-NativeShell.ps1`. No `C:\...`, `D:\...`, or `F:\...` application path needs to be edited when the folder is moved to another PC.
+
+Build output is always:
+
+```text
+NativeShell/_publish/
+```
+
+`dotnet` must be available on `PATH`. If it is not, fix the PC tool environment rather than embedding a machine-specific path into FRB Studio source.
+
 This Phase A source has **not** been compiled in the ChatGPT execution environment because a Windows/.NET Framework build toolchain is not available there. Before treating Native Shell as distributable, verify on a Windows development machine:
 
 1. Restore/build `NativeShell/FRBStudio.NativeShell.csproj`.

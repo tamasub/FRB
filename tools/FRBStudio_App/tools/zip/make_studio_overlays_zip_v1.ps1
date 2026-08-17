@@ -4,9 +4,16 @@
 
 $ErrorActionPreference = "Stop"
 
-# この ps1 を置いたフォルダを基準にする
-#$root = Split-Path -Parent $MyInvocation.MyCommand.Path
-$root = "F:\FRB\tools\FRBStudio_App\"
+# tools/zip 配下のこのPS1自身から FRBStudio_App root を解決する。
+# PC固有の絶対パスは持たない。
+$root = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "../.."))
+
+if (
+    -not (Test-Path -LiteralPath (Join-Path $root "wwwroot\index.html") -PathType Leaf) -or
+    -not (Test-Path -LiteralPath (Join-Path $root "studio_overlays") -PathType Container)
+) {
+    throw "FRBStudio_App root could not be resolved from tools/zip. Root=$root"
+}
 
 # ZIP に含めるフォルダ
 $targetDirs = @(
@@ -21,7 +28,6 @@ $targetRootFiles = @(
 # ZIP に含めないパス
 # ルートからの相対パス、または $root 配下の絶対パスを指定できる。
 # 例: "wwwroot\js\lib\mermaid"
-# 例: "F:\FRB\tools\FRBStudio_App\wwwroot\js\lib\mermaid"
 $excludePaths = @(
     "wwwroot\js\lib\mermaid"
 )

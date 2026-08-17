@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   FRB Studio 用: .json / .md の Unicode escape 化された日本語を検出し、UTF-8可読文字へ戻す。
 
@@ -11,13 +11,13 @@
 
 .USAGE
   # まず検出だけ
-  .\Repair-JsonMdUtf8ReadableText.ps1 -Root "F:\FRB\tools\FRBStudio_App"
+  .\Repair-JsonMdUtf8ReadableText.ps1 -Root "..\.."
 
   # Unicode escape を修復し、バックアップも残す
-  .\Repair-JsonMdUtf8ReadableText.ps1 -Root "F:\FRB\tools\FRBStudio_App" -Fix -Backup
+  .\Repair-JsonMdUtf8ReadableText.ps1 -Root "..\.." -Fix -Backup
 
   # 文字化け疑い行も、改善判定できるものだけ修復
-  .\Repair-JsonMdUtf8ReadableText.ps1 -Root "F:\FRB\tools\FRBStudio_App" -Fix -Backup -RepairMojibake
+  .\Repair-JsonMdUtf8ReadableText.ps1 -Root "..\.." -Fix -Backup -RepairMojibake
 #>
 
 param(

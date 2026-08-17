@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-17T19:43:00+09:00",
+  "updated_at": "2026-08-17T20:35:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 192,
+  "items_count": 193,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -29642,6 +29642,176 @@
           "before": "今回変更に対する統合入口・ボタン形状の回帰契約がなかった。",
           "after": "Markdown Workspace StaticとCommon Shell Staticを新契約へ更新し、全Static 259件中241 PASS / 18既存FAILで新規FAILなしを確認した。",
           "reason": "今後のUI変更で独立フルパス入口や保存ボタン縦折れが再発しないようにするため。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0205",
+      "phase": "v0.18.83-pc-portable-app-root-zero-edit",
+      "title": "PC移行時AppRoot手修正ゼロ化 — Build / ZIP / TestRunner / 補助BATの相対化",
+      "incident_type": "maintenance",
+      "category": "file_io",
+      "priority": "high",
+      "status": "確認中",
+      "follow_up_status": "NOT_STARTED",
+      "verification_status": "Static確認済み / Windows実機確認待ち",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-17T20:30:00+09:00",
+      "owner": "",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-17T20:30:00+09:00",
+      "updated_at": "2026-08-17T20:35:00+09:00",
+      "work_summary": "- FRBStudio_Appを別PC・別ドライブ・別フォルダーへ移した際に、`F:\\FRB\\tools\\FRBStudio_App` 等のPC固有パスを書き換えなくても、Build / ZIP作成 / TestRunner / 補助BATが自分自身の位置からAppRootを解決して動けるようにする。\n- NativeShellコンパイルはルートの `cmd_compile_NativeShell.bat` 1本から実行し、`NativeShell/_publish` へ出力する。アプリ配置パスは設定不要とする。\n- GitDiffは既にAppRoot自動解決済みのため維持し、今回のStaticテストで再度PC固有絶対パス混入を監視する。",
+      "target_files": "- tools/zip/make_FRBStudio_App_zip_v2.ps1\n- tools/zip/make_studio_overlays_zip_v1.ps1\n- tools/FileTree/file_list_Tree.bat\n- wwwroot/count_js_steps_add_datetime.bat\n- tools/build/Build-NativeShell.ps1\n- cmd_compile_NativeShell.bat\n- tools/test/TestRunner.ps1\n- tools/Utf8Readable/Repair-JsonMdUtf8ReadableText.ps1\n- NativeShell/README.md\n- tests/qa/static/portable_app_root_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- tools/zip/make_FRBStudio_App_zip_v2.ps1\n- tools/zip/make_studio_overlays_zip_v1.ps1\n- tools/FileTree/file_list_Tree.bat\n- wwwroot/count_js_steps_add_datetime.bat\n- tools/build/Build-NativeShell.ps1\n- cmd_compile_NativeShell.bat\n- tools/test/TestRunner.ps1\n- tools/Utf8Readable/Repair-JsonMdUtf8ReadableText.ps1\n- NativeShell/README.md\n- tests/qa/static/portable_app_root_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "# ContextDef素案: PC移行時AppRoot手修正ゼロ化\n\n## 目的\nFRBStudio_Appの配置場所をPC固有の絶対パスとしてソースへ持たず、実行ファイル・BAT・PowerShell自身の位置からAppRootを解決する。\n\n## 正本制約\n- `frb_coding_constraints_data_v0_3.json#constitution_12` のFRBStudio_App上位パス依存禁止を適用する。\n- `foundation_rule_019` の最新添付ZIP基準・更新ファイルのみ返却契約を適用する。\n\n## 対象\nNativeShell Build、FRBStudio ZIP、Overlay ZIP、TestRunner、FileTree、JS行数カウントBAT。\nGitDiffは既にAppRoot自動解決済みのため、変更せず回帰監視対象とする。\n\n## 基本判断\nアプリ内部の配置パスは「1か所設定」ではなく「0か所設定」を目標とする。PCによって異なる `dotnet / git / node / npx` 等はPATHで解決し、StudioソースへPC固有の実体パスを埋め込まない。",
+      "objective": "- 会社PCや別PCへFRBStudio_Appをコピーしたとき、アプリ配置先のドライブ/フォルダーパスを手修正しないで済む状態を作る。\n- NativeShellのcompile/publishをルートBATから再現可能にする。\n- ZIP作成・TestRunner・補助BATの古い `F:\\FRB...` 依存を撤去する。\n- 今後PC固有絶対パスが再混入したらStaticテストで検知する。",
+      "background": "- 会社PCへFRB Studioを持ち込んだ際、ユーザーがコンパイルや各種バッチのパスを複数箇所変更する必要があり、どこを直したか追えなくなった。\n- 調査でZIP作成PS1、Overlay ZIP作成PS1、FileTree BAT、JS行数カウントBATに `F:\\FRB\\tools\\FRBStudio_App` が残っていた。\n- ユーザー自身が `cmd_compile_NativeShell.bat` の `cd F:\\FRB\\tools\\FRBStudio_App...` を直しかけたが、作業を一括して仕上げる依頼となった。\n- 一方、GitDiffは既にPS1自身の位置とgit rootから解決する設計になっており、NativeShell CommandProfileも相対パス化済みだった。",
+      "scope": "- ZIP作成PS1 2本の `$root` を `$PSScriptRoot` 基準へ変更する。\n- root直下にportableな `cmd_compile_NativeShell.bat` を追加し、`tools/build/Build-NativeShell.ps1` で `dotnet publish` を実行して `NativeShell/_publish` へ出力する。\n- Build PowerShellは共通 `StudioLog.ps1` を使用する。\n- TestRunnerのAppRoot markerから配布ZIPに存在しない `package.json` 必須条件を外し、FRBStudio_Appの実在markerへ合わせる。Playwright実行時だけ `playwright.config.ts` を確認する。\n- FileTree BAT / JS行数カウントBATを自身の配置位置基準へ変更する。\n- ZIP作成対象に `cmd_compile_NativeShell.bat` を追加する。\n- 操作用スクリプト群へのPC固有絶対パス混入を検知するStaticテストを追加する。\n- NativeShell READMEへportable build手順を記載する。",
+      "out_of_scope": "- `dotnet / git / node / npx` 自体をFRBStudio_Appへ同梱すること。\n- PATHが通っていない会社PC向けに、各外部実行ファイルの絶対パスをStudio設定へ保存する仕組み。\n- Windows/.NET Framework実機でのNativeShell compile成功確認。\n- `count_js_steps.py` が最新ZIP内に存在しない既存問題の機能復旧。\n- GitDiffロジック本体の変更。",
+      "fixed_name_policy": "- `F:\\FRB\\tools\\FRBStudio_App` 等のPC固有絶対パスは禁止する。\n- FRBStudio_App内部は、BATなら `%~dp0`、PowerShellなら `$PSScriptRoot` とAppRoot markerから解決する。\n- 外部コマンド名は `dotnet / git / node / npx / powershell` をPATH解決し、PC固有インストールパスをソースへ埋め込まない。",
+      "module_policy": "- Build責務は `tools/build/Build-NativeShell.ps1` へ置き、root BATは薄い起動ラッパーにする。\n- ZIP責務は既存 `tools/zip/*.ps1` を同名修正する。\n- GitDiffは既存portable契約を維持し、共通化のためだけの不要な改修はしない。\n- TestRunnerはRoot判定だけを実際の配布構成へ合わせ、テスト実行責務は変更しない。",
+      "expected_outputs": "- 別ドライブへFRBStudio_Appを移しても、ソース内のアプリ配置パス変更が不要。\n- `cmd_compile_NativeShell.bat` からNativeShellを `NativeShell/_publish` へpublish可能。\n- `cmd_make_FRBStudio_App_zip_v2.bat` から配置先に依存せずZIP作成可能。\n- TestRunnerが `package.json` 不在を理由にAppRoot解決失敗しない。\n- operational scriptへの旧 `F:\\FRB\\tools\\FRBStudio_App` 再混入をStaticで検知。",
+      "risk": "- この実行環境にはWindows PowerShell / dotnet net48 build環境がないため、Build-NativeShell.ps1の実コンパイルはWindows実機確認が必要。\n- `dotnet / git / node / npx` がPATHにないPCでは外部コマンド実行は失敗する。これはアプリ配置パスとは別のPCツール環境問題として扱う。\n- `count_js_steps_add_datetime.bat` はroot解決を直しても、現ZIPに `count_js_steps.py` が存在しないため別途既存欠落問題が残る。",
+      "test_points": "- operational scriptに `F:\\FRB\\tools\\FRBStudio_App` やPC固有アプリ絶対パスが残っていないこと。\n- compile BATが `%~dp0tools\\build\\Build-NativeShell.ps1` を呼ぶこと。\n- Build PS1が `$PSScriptRoot/../..` でAppRootを解決し、StudioLogを使い、`NativeShell/_publish` へpublishすること。\n- ZIP PS1が `$PSScriptRoot/../..` でAppRootを解決し、compile BATをZIP対象に含めること。\n- TestRunner Root判定がpackage.json依存ではなくFRBStudio_App markerを使うこと。\n- 全Staticで既存FAILを増やさないこと。",
+      "verification_log": "- portability専用Static: 5 tests / 5 PASS / 0 FAIL。\n- 全Static Before: 259 tests / 241 PASS / 18 FAIL。\n- 全Static After: 264 tests / 246 PASS / 18 FAIL。\n- 既存18 FAILはテスト名まで完全一致: YES。新規FAILなし。\n- studio_work_0205 新規Item Schema: PASS。\n- operational scripts横断確認: `F:\\FRB\\tools\\FRBStudio_App` の実行系直書きなし。\n- Windows実機 `dotnet publish` / ZIP作成 / GitDiff / TestRunner実行は未確認。",
+      "user_request": "自分でなおしかけたけど、やりきらん💦　対応をお願いします。よろしく💦",
+      "ai_response": "最新添付ZIPを正本に、PC移行時AppRoot手修正ゼロ化としてBuild / ZIP / TestRunner / 補助BATをまとめて相対化する。",
+      "latest_ai_response": "AI回答\n\n## 今回の更新\n\n- `cmd_compile_NativeShell.bat`\n- `tools/build/Build-NativeShell.ps1`\n- `tools/zip/make_FRBStudio_App_zip_v2.ps1`\n- `tools/zip/make_studio_overlays_zip_v1.ps1`\n- `tools/test/TestRunner.ps1`\n- `tools/FileTree/file_list_Tree.bat`\n- `wwwroot/count_js_steps_add_datetime.bat`\n- `tools/Utf8Readable/Repair-JsonMdUtf8ReadableText.ps1`\n- `NativeShell/README.md`\n- `tests/qa/static/portable_app_root_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\nPC移行時にFRBStudio_Appの配置先を手修正しなくてよいよう、Build / ZIP / TestRunner / 補助BATのAppRoot解決を自身の配置位置基準へ変更した。\n\nNativeShellはルートの `cmd_compile_NativeShell.bat` を実行すれば、`tools/build/Build-NativeShell.ps1` がAppRootを自動解決し、`NativeShell/_publish` へ `dotnet publish` する。旧BATの絶対パス `cd` とxcopyは不要になった。\n\nGitDiffは既にAppRoot自動解決済みだったため変更せず、portable Staticの監視対象へ含めた。\n\nTestRunnerは、配布ZIPに存在しない `package.json` をAppRoot markerとして要求していたため、実際のFRBStudio_App構成をmarkerへ変更した。Playwright固有の `playwright.config.ts` は `playwright_ui` 実行時だけ確認する。\n\n## 方針\n\nFRBStudio_Appの配置パスは「1か所設定」ではなく「0か所手修正」を基本とした。BATは `%~dp0`、PowerShellは `$PSScriptRoot` からAppRootを解決する。\n\n`dotnet / git / node / npx` はPC側PATHで解決する。PATHがない場合はPC環境問題として扱い、Studioソースへ各PC固有のインストール先を埋め込まない。\n\n## 確認結果\n\n- portability専用Static: 5/5 PASS\n- 全Static: 264 tests / 246 PASS / 18 FAIL\n- Beforeの18 FAILとテスト名まで完全一致、新規FAILなし\n- 新規Incident Schema: PASS\n- Windows実機Build / ZIP / GitDiff / TestRunner: 実機確認待ち\n\nなお、`wwwroot/count_js_steps_add_datetime.bat` はRoot相対化したが、現ZIPに `count_js_steps.py` 自体が存在しない既存問題は別途評価対象として残した。\n",
+      "latest_user_comment": "自分でなおしかけたけど、やりきらん💦　対応をお願いします。よろしく💦",
+      "context_refs": [
+        {
+          "context_ref_id": "ctx_0205_constitution_12",
+          "title": "FRBStudio_App上位パス依存禁止",
+          "read_timing": "before_code_update",
+          "target_path": "data/json/00_rules/frb_coding_constraints_data_v0_3.json#constitution_12",
+          "purpose": "PC固有絶対パス禁止とAppRoot自己解決契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 1,
+          "note": "既存承認済み制約を今回の実装根拠とする。"
+        },
+        {
+          "context_ref_id": "ctx_0205_foundation_019",
+          "title": "GitHub基準ソースとZIP返却契約",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "最新添付ZIP基準と更新ファイルのみ返却を守る。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 2,
+          "note": "返却ZIPには更新済みIncident JSONを同名収録する。"
+        }
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0205_windows_portability",
+          "action_type": "REGRESSION_TEST_ADD",
+          "required": true,
+          "status": "NOT_STARTED",
+          "related_ids": [
+            "studio_work_0205"
+          ],
+          "note": "Windows会社相当PCで別ドライブ/別フォルダー配置後、cmd_compile_NativeShell.bat、ZIP作成、GitDiff、TestRunnerを実機確認する。",
+          "summary": "別PC portability 実機確認"
+        },
+        {
+          "action_id": "follow_0205_count_js_missing_script",
+          "action_type": "IMPLEMENTATION_FIX",
+          "required": false,
+          "status": "NOT_STARTED",
+          "related_ids": [
+            "studio_work_0205"
+          ],
+          "note": "wwwroot/count_js_steps_add_datetime.bat が参照する count_js_steps.py が最新ZIPに存在しない既存問題を別件として評価する。",
+          "summary": "count_js_steps.py欠落評価"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "hist_0205_user_001",
+          "at": "2026-08-17T20:30:00+09:00",
+          "speaker": "user",
+          "topic": "PC移行時AppRoot手修正ゼロ化の実装依頼",
+          "message": "自分でなおしかけたけど、やりきらん💦　対応をお願いします。よろしく💦"
+        },
+        {
+          "history_id": "hist_0205_assistant_001",
+          "at": "2026-08-17T20:35:00+09:00",
+          "speaker": "assistant",
+          "topic": "PC移行時AppRoot手修正ゼロ化 完了報告",
+          "message": "AI回答\n\n## 今回の更新\n\n- `cmd_compile_NativeShell.bat`\n- `tools/build/Build-NativeShell.ps1`\n- `tools/zip/make_FRBStudio_App_zip_v2.ps1`\n- `tools/zip/make_studio_overlays_zip_v1.ps1`\n- `tools/test/TestRunner.ps1`\n- `tools/FileTree/file_list_Tree.bat`\n- `wwwroot/count_js_steps_add_datetime.bat`\n- `tools/Utf8Readable/Repair-JsonMdUtf8ReadableText.ps1`\n- `NativeShell/README.md`\n- `tests/qa/static/portable_app_root_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\nPC移行時にFRBStudio_Appの配置先を手修正しなくてよいよう、Build / ZIP / TestRunner / 補助BATのAppRoot解決を自身の配置位置基準へ変更した。\n\nNativeShellはルートの `cmd_compile_NativeShell.bat` を実行すれば、`tools/build/Build-NativeShell.ps1` がAppRootを自動解決し、`NativeShell/_publish` へ `dotnet publish` する。旧BATの絶対パス `cd` とxcopyは不要になった。\n\nGitDiffは既にAppRoot自動解決済みだったため変更せず、portable Staticの監視対象へ含めた。\n\nTestRunnerは、配布ZIPに存在しない `package.json` をAppRoot markerとして要求していたため、実際のFRBStudio_App構成をmarkerへ変更した。Playwright固有の `playwright.config.ts` は `playwright_ui` 実行時だけ確認する。\n\n## 方針\n\nFRBStudio_Appの配置パスは「1か所設定」ではなく「0か所手修正」を基本とした。BATは `%~dp0`、PowerShellは `$PSScriptRoot` からAppRootを解決する。\n\n`dotnet / git / node / npx` はPC側PATHで解決する。PATHがない場合はPC環境問題として扱い、Studioソースへ各PC固有のインストール先を埋め込まない。\n\n## 確認結果\n\n- portability専用Static: 5/5 PASS\n- 全Static: 264 tests / 246 PASS / 18 FAIL\n- Beforeの18 FAILとテスト名まで完全一致、新規FAILなし\n- 新規Incident Schema: PASS\n- Windows実機Build / ZIP / GitDiff / TestRunner: 実機確認待ち\n\nなお、`wwwroot/count_js_steps_add_datetime.bat` はRoot相対化したが、現ZIPに `count_js_steps.py` 自体が存在しない既存問題は別途評価対象として残した。\n"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0205_zero_config_app_root",
+          "at": "2026-08-17T20:30:00+09:00",
+          "decision": "FRBStudio_Appの配置パスは「1か所の絶対パス設定へ集約」ではなく、各起動点が自身の位置からAppRootを解決することで「0か所手修正」を基本契約とする。",
+          "reason": "AppRootそのものはFRBStudio_Appフォルダー内部から確定でき、PC移行のたびに設定を書き換える必要がない。既存constitution_12とも一致する。",
+          "applied_axes": [
+            "移植性",
+            "保守性",
+            "PC固有情報の排除"
+          ]
+        },
+        {
+          "decision_id": "dec_0205_build_ps1_wrapper",
+          "at": "2026-08-17T20:30:00+09:00",
+          "decision": "NativeShell compileはroot BATに実処理を書かず、`tools/build/Build-NativeShell.ps1`へ責務を分離し、`dotnet publish -o NativeShell/_publish`で直接publishする。",
+          "reason": "旧BATの `cd F:\\...` とxcopy依存を同時に消し、ログもStudio共通方式へ統一できるため。"
+        },
+        {
+          "decision_id": "dec_0205_testrunner_marker",
+          "at": "2026-08-17T20:30:00+09:00",
+          "decision": "TestRunnerのAppRoot判定から `package.json` 必須を外し、配布ZIPに実在する `wwwroot/index.html / data/json / defs / tools / tests` をmarkerにする。",
+          "reason": "現行配布ZIPにpackage.jsonが存在しないため、AppRoot判定条件として使うとportable配布物でTestRunnerが起動できない。Playwright固有configはplaywright_ui実行時だけ検証すべきため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0205_portable_paths",
+          "at": "2026-08-17T20:30:00+09:00",
+          "change_type": "portability_fix",
+          "before": "ZIP作成PS1、Overlay ZIP作成PS1、FileTree BAT、JS行数カウントBAT等に `F:\\FRB\\tools\\FRBStudio_App` が残り、PC移行時に手修正が必要だった。",
+          "after": "BATは `%~dp0`、PowerShellは `$PSScriptRoot` からAppRootを解決する形へ変更し、PC固有AppRootを撤去した。",
+          "reason": "別PC・別ドライブへコピーしても同じ資材をそのまま使えるようにするため。"
+        },
+        {
+          "history_id": "chg_0205_build_flow",
+          "at": "2026-08-17T20:30:00+09:00",
+          "change_type": "build_flow_add",
+          "before": "最新配布ZIPにportableなNativeShell compile BATが含まれず、ユーザー手元BATでは絶対パス `cd` とxcopyが必要だった。",
+          "after": "`cmd_compile_NativeShell.bat` と `tools/build/Build-NativeShell.ps1` を追加し、AppRoot自動解決→dotnet publish→`NativeShell/_publish` の1経路にした。",
+          "reason": "コンパイル作業でもPCごとのパス修正を不要にするため。"
+        },
+        {
+          "history_id": "chg_0205_portability_guard",
+          "at": "2026-08-17T20:30:00+09:00",
+          "change_type": "test_add",
+          "before": "operational scriptへPC固有パスが再混入しても横断検知するStatic契約がなかった。",
+          "after": "`portable_app_root_static.test.mjs` を追加し、Build/ZIP/TestRunner/GitDiff/補助BATのportable契約を固定した。",
+          "reason": "今回の会社PC移行で発覚した同種事故を再発防止するため。"
+        },
+        {
+          "history_id": "chg_0205_testrunner_root_contract",
+          "at": "2026-08-17T20:35:00+09:00",
+          "change_type": "runtime_contract_fix",
+          "before": "TestRunnerはAppRoot判定に `package.json + playwright.config.ts + tests/screen_state` を必須としていたが、配布ZIPにはpackage.jsonが存在しない。",
+          "after": "AppRootは `wwwroot/index.html + data/json + defs + tools + tests` で判定し、playwright.config.tsはplaywright_ui実行時のみ必須確認する。",
+          "reason": "配布構成とRoot判定契約を一致させ、別PCへコピーした配布物でもTestRunnerがAppRootを解決できるようにするため。"
+        },
+        {
+          "history_id": "chg_0205_publish_output_exclude",
+          "at": "2026-08-17T20:35:00+09:00",
+          "change_type": "package_safety",
+          "before": "NativeShell/_publishを生成した場合、main ZIPのNativeShellコピーにbuild成果物が混入する余地があった。",
+          "after": "`NativeShell\\_publish` をZIP除外対象へ追加した。",
+          "reason": "Build成果物とFRBStudio_Appソース返却ZIPを混ぜず、Foundation Rule 019の再生成可能成果物除外方針に合わせるため。"
         }
       ]
     }

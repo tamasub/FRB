@@ -1,12 +1,17 @@
 @echo off
-set "APP_ROOT=%~dp0"
+setlocal EnableExtensions
 
-pushd "%APP_ROOT%NativeShell"
-dotnet publish -c Release
-if errorlevel 1 exit /b %errorlevel%
-popd
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0tools\build\Build-NativeShell.ps1"
+set "EXIT_CODE=%ERRORLEVEL%"
 
-xcopy "%APP_ROOT%NativeShell\bin\Release\net48\publish\*" ^
-      "%APP_ROOT%NativeShell_publish\" /E /I /Y
+if not "%EXIT_CODE%"=="0" (
+  echo.
+  echo ERROR: NativeShell build failed. exit_code=%EXIT_CODE%
+  pause
+  exit /b %EXIT_CODE%
+)
 
+echo.
+echo NativeShell build completed.
 pause
+exit /b 0
