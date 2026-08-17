@@ -23,7 +23,8 @@ $targetDirs = @(
 # ZIP に含めるルート直下ファイル
 $targetRootFiles = @(
     ".gitignore",
-    "cmd_make_FRBStudio_App_zip_v2.bat"
+    "cmd_make_FRBStudio_App_zip_v2.bat",
+    "playwright.config.ts"
 )
 
 # ZIP に含めないパス

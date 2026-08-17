@@ -1,5 +1,5 @@
 フォルダー パスの一覧:  ボリューム Samsung980_Pro
-ボリューム シリアル番号は 00000086 5007:08D7 です
+ボリューム シリアル番号は 000000C3 5007:08D7 です
 F:.
 |   .gitignore
 |   cmd_compile_NativeShell.bat
@@ -13,11 +13,10 @@ F:.
 |   cmd_make_overlays_zip_v1.bat
 |   count_js_steps.bat
 |   count_js_steps.py
-|   FRBStudio_App20260815_195644.zip
-|   FRBStudio_App20260815_201441.zip
-|   FRBStudio_App20260815_203939.zip
-|   FRBStudio_App20260815_211923.zip
-|   FRBStudio_App20260815_214224.zip
+|   FRBStudio_App20260817_190254.zip
+|   FRBStudio_App20260817_193830.zip
+|   FRBStudio_App20260817_194225.zip
+|   FRBStudio_App20260817_200940.zip
 |   package-lock.json
 |   package.json
 |   playwright.config.ts
@@ -30,8 +29,8 @@ F:.
 |       workspace.json
 |       
 +---countstep
-|       countstep.txt
 |       countstep_20260704_160930.txt
+|       countstep_20260815_2148.txt
 |       
 +---data
 |   +---json
@@ -141,6 +140,22 @@ F:.
 |   |   |   |   ai_constraint_spec_aggregated_v0_6_footer_chat.json
 |   |   |   |   
 |   |   |   +---contracts
+|   |   |   |   +---definition_driven_search_v0_1
+|   |   |   |   |   +---actual
+|   |   |   |   |   |       search_definition_test.actual.json
+|   |   |   |   |   |       
+|   |   |   |   |   +---diff
+|   |   |   |   |   |       search_definition_test.diff.json
+|   |   |   |   |   |       
+|   |   |   |   |   +---expected
+|   |   |   |   |   |       search_definition_test.expected.json
+|   |   |   |   |   |       
+|   |   |   |   |   +---input
+|   |   |   |   |   |       search_field_definitions.json
+|   |   |   |   |   |       
+|   |   |   |   |   \---summary
+|   |   |   |   |           search_definition_test.result.json
+|   |   |   |   |           
 |   |   |   |   +---definition_test_runner_cross_field_operator_matrix_v0_1
 |   |   |   |   |   +---actual
 |   |   |   |   |   |       definition_test_runner.actual.json
@@ -270,9 +285,11 @@ F:.
 |   |   |       defs_data_link_inventory_v0_2_repaired.json
 |   |   |       
 |   |   +---80_frb
-|   |   |       fft_log_sample.json
 |   |   |       fft_log_view_def_v0_2.json
 |   |   |       frb_fft_field_definition_sample_data_v0_1.json
+|   |   |       
+|   |   +---81_frb_OrgSample
+|   |   |       fft_log_sample.json
 |   |   |       
 |   |   +---81_learning
 |   |   |       public_enterprise_accounting_learning_data_v0_1.json
@@ -287,12 +304,15 @@ F:.
 |   |   |       
 |   |   \---config
 |   |           common_enums_v0_1.json
+|   |           search_operator_registry_v0_1.json
 |   |           validation_test_condition_catalog_v0_1.json
 |   |           validation_type_registry_v0_1.json
 |   |           
 |   \---markdown
 |       +---00_Common
 |       |       010_文脈とは.md
+|       |       ai_constraint_grouped_view_def_v0_6_footer_chat_viewdef_20260816_092616.md
+|       |       app_settings_view_def_v0_1_viewdef_20260816_214451.md
 |       |       batch_20260712_230503_entry_results_review_report_20260713_205245.md
 |       |       common_enums_v0_1_20260701_221809.md
 |       |       frb_coding_constraints_data_v0_3_20260630_231451.md
@@ -340,6 +360,7 @@ F:.
 |       |       studio_test_plan_responsibility_scope_md_data_v0_1_review_report_20260704_152618.md
 |       |       studio_test_plan_responsibility_scope_md_data_v0_1_review_report_20260704_161040.md
 |       |       studio_test_plan_responsibility_scope_md_data_v0_1_review_report_20260704_161639.md
+|       |       studio_work_incident_data_v2_review_report_20260816_234024.md
 |       |       studio_work_incident_view_def_v0_5_viewdef_20260815_205735.md
 |       |       studio_work_incident_view_def_v0_5_viewdef_20260815_213926.md
 |       |       test_runner_run_config_view_def_v0_1_viewdef_20260704_152843.md
@@ -477,6 +498,9 @@ F:.
 |   |       screen_state_expected_view_def_v0_1.json
 |   |       screen_state_test_patterns_view_def_v0_2_chat.json
 |   |       
+|   +---search
+|   |       search_definition_test_diff_view_def_v0_1.json
+|   |       
 |   \---tools
 |           git_diff_export_run_config_view_def_v0_1.json
 |           test_runner_run_config_view_def_v0_1.json
@@ -506,12 +530,12 @@ F:.
 |       Log_20260812.log
 |       Log_20260814.log
 |       Log_20260815.log
+|       Log_20260816.log
 |       README.md
 |       
 +---NativeShell
 |   |   app.manifest
 |   |   FRBStudio.NativeShell.csproj
-|   |   FRBStudio_NativeShell_Icon.ico
 |   |   FRB_Studio.ico
 |   |   NativeCommandDispatcher.cs
 |   |   NativeShellConfig.cs
@@ -624,7 +648,6 @@ F:.
 |   |   FRBStudio.NativeShell.exe
 |   |   FRBStudio.NativeShell.exe.config
 |   |   FRBStudio.NativeShell.pdb
-|   |   FRBStudio_NativeShell_Icon.ico
 |   |   FRB_Studio.ico
 |   |   Microsoft.Web.WebView2.Core.dll
 |   |   Microsoft.Web.WebView2.WinForms.dll
@@ -1074,9 +1097,6 @@ F:.
 |           webidl.d.ts
 |           websocket.d.ts
 |           
-+---reports
-|       incident_contextdef_open_work_draft_v0_16_3_validation_report.json
-|       
 +---studio_overlays
 |   +---default
 |   |   |   README.md
@@ -1303,6 +1323,7 @@ F:.
 |   |   \---playwright-output
 |   |       \---ncjs-screen-state-compare.-84498-SONをExpectedと比較してDiffを保存できる
 |   |               error-context.md
+|   |               trace.zip
 |   |               
 |   +---definition
 |   |       cross_field_definition_test.test.mjs
@@ -1312,6 +1333,8 @@ F:.
 |   |       
 |   +---qa
 |   |   \---static
+|   |           app_settings_definition_phase3.test.mjs
+|   |           app_settings_save_phase4.test.mjs
 |   |           combo_viewdef_maintenance_static.test.mjs
 |   |           cross_field_definition_preview_static.test.mjs
 |   |           cross_field_fieldset_ui_static.test.mjs
@@ -1324,8 +1347,15 @@ F:.
 |   |           field_group_type_resolver_static.test.mjs
 |   |           frb_studio_common_shell_static.test.mjs
 |   |           incident_prompt_copy_action_viewdef_static.test.mjs
+|   |           launch_shortcut_focus_action_v0_18_77.test.mjs
+|   |           launch_shortcut_menu_phase5.test.mjs
 |   |           markdown_workspace_native_static.test.mjs
 |   |           related_grid_view_launch_static.test.mjs
+|   |           standard_search_capability_resolver_phase2.test.mjs
+|   |           standard_search_contract_phase1.test.mjs
+|   |           standard_search_filter_operators_phase3.test.mjs
+|   |           standard_search_ui_context_menu_phase4.test.mjs
+|   |           standard_search_viewdef_standardization_phase5.test.mjs
 |   |           studio_json_round_trip_runtime.test.mjs
 |   |           studio_json_round_trip_static.test.mjs
 |   |           subgrid_component_data_derived_static.test.mjs
@@ -1333,6 +1363,8 @@ F:.
 |   |           thought_evolution_studio_evolution_engine_static.test.mjs
 |   |           thought_evolution_studio_overlay_static.test.mjs
 |   |           thought_evolution_studio_relation_approval_static.test.mjs
+|   |           viewdef_section_groups_contract_phase1.test.mjs
+|   |           viewdef_section_group_navigation_phase2.test.mjs
 |   |           
 |   +---responsibilities
 |   |   |   responsibility_expected_tests.mjs
@@ -1345,10 +1377,13 @@ F:.
 |   +---screen_state
 |   |       ncjs-screen-state-compare.checks.spec.ts
 |   |       
+|   +---search
+|   |       search_definition_test_runner.test.mjs
+|   |       search_definition_test_runner_cli.mjs
+|   |       
 |   \---tools
 |           cleanup_runtime_artifacts.ps1
 |           
-+---tests_screen_state
 +---test_results
 |   \---diff
 +---tools
@@ -1622,8 +1657,6 @@ F:.
 |   |       
 |   +---git
 |   |       Export-DiffToJson.ps1
-|   |       new.json
-|   |       old.json
 |   |       
 |   +---test
 |   |       TestRunner.ps1
@@ -1649,9 +1682,12 @@ F:.
 |   |   styles.css
 |   |   
 |   +---config
-|   |       app_info.json
-|   |       app_settings.json
-|   |       
+|   |   |   app_settings.json
+|   |   |   
+|   |   \---app_settings
+|   |           app_settings_field_definitions_v0_1.json
+|   |           app_settings_view_def_v0_1.json
+|   |           
 |   +---countstep
 |   |       countstep.txt
 |   |       
@@ -1684,9 +1720,18 @@ F:.
 |   |       DiffToJson_20260715_232310.json
 |   |       DiffToJson_20260715_232520.json
 |   |       DiffToJson_20260715_232659.json
-|   |       DiffToJson_20260815_155338.json
+|   |       DiffToJson_20260816_095103.json
+|   |       DiffToJson_20260816_095310.json
+|   |       DiffToJson_20260816_215015.json
+|   |       DiffToJson_20260816_235219.json
 |   |       
 |   +---images
+|   |   |   json-data-title-icon.png
+|   |   |   jsondiff-panel-icon.png
+|   |   |   markdown-studio-icon.png
+|   |   |   markdown_menu_btn1.png
+|   |   |   metadiff-panel-icon.png
+|   |   |   
 |   |   \---chat
 |   |           tamasub.png
 |   |           v0.7-json-select-folder-hierarchy_tree.png
@@ -3112,11 +3157,17 @@ F:.
 |   |   |       
 |   |   +---services
 |   |   |   |   option_maintenance_service.js
+|   |   |   |   search_capability_resolver.js
+|   |   |   |   search_definition_test_evidence_builder.js
+|   |   |   |   search_definition_test_runner.js
+|   |   |   |   search_test_pattern_deriver.js
+|   |   |   |   search_ui_controller.js
 |   |   |   |   viewdef_maintenance_projection.js
 |   |   |   |   
 |   |   |   \---definition
 |   |   |           cross_field_relation_evaluator.js
 |   |   |           cross_field_verification_service.js
+|   |   |           definition_document_validator.js
 |   |   |           definition_test_evidence_builder.js
 |   |   |           definition_test_runner_core.js
 |   |   |           definition_value_validator.js
@@ -3133,6 +3184,7 @@ F:.
 |   |   |       FILE_TREE_PICKER_NAME_FIX_NOTES_v0_10_1.md
 |   |   |       frb_studio_shell.js
 |   |   |       page_setup.js
+|   |   |       section_group_navigation.js
 |   |   |       studio_dialog.js
 |   |   |       
 |   |   \---virtualData
@@ -3612,33 +3664,30 @@ F:.
 |                   |   
 |                   +---ref
 |                   \---refint
-+---_archive_eternal
-|   |   studio_work_incident_archive_completed_to_0079_v0_1_archive_eternal.json
-|   |   
-|   \---studio_overlays
-|       \---default
-|           |   README.md
-|           |   studio_manifest.json
-|           |   
-|           +---data
-|           |       employee_skill_inventory_sample.json
-|           |       
-|           +---plugins
-|           |   |   plugin_index.json
-|           |   |   
-|           |   \---multi_select_combo
-|           |           plugin.js
-|           |           plugin.json
-|           |           
-|           +---search_patterns
-|           |       employee_skill_search_patterns.json
-|           |       
-|           +---value_sets
-|           |       company_value_sets.json
-|           |       
-|           \---view_defs
-|                   employee_skill_inventory_view_def.json
-|                   
-\---_delivery
-        delete_files.json
-        
+\---_archive_eternal
+    |   studio_work_incident_archive_completed_to_0079_v0_1_archive_eternal.json
+    |   
+    \---studio_overlays
+        \---default
+            |   README.md
+            |   studio_manifest.json
+            |   
+            +---data
+            |       employee_skill_inventory_sample.json
+            |       
+            +---plugins
+            |   |   plugin_index.json
+            |   |   
+            |   \---multi_select_combo
+            |           plugin.js
+            |           plugin.json
+            |           
+            +---search_patterns
+            |       employee_skill_search_patterns.json
+            |       
+            +---value_sets
+            |       company_value_sets.json
+            |       
+            \---view_defs
+                    employee_skill_inventory_view_def.json
+                    
