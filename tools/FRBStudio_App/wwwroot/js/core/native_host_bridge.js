@@ -1,4 +1,4 @@
-// v0.18.64-fielddefs-data-picker-access
+﻿// v0.18.64-fielddefs-data-picker-access
 // Browser mode: no-op.
 // WebView2 Native Shell mode: translate the existing /api/* fetch contract into
 // a small generic JSON command bridge so Studio application logic stays unchanged.
@@ -263,6 +263,29 @@
             sidecar_path: '',
             sidecar_content: '',
             sidecar_found: false
+          });
+        } catch (error) {
+          if (error?.code === 'USER_CANCELLED') return jsonResponse({ cancelled: true });
+          throw error;
+        }
+      }
+
+      if (method === 'POST' && path === '/api/diff/save-as-dialog') {
+        const body = await parseJsonBody(input, init);
+        try {
+          const result = await invoke('dialog.saveText', {
+            title: 'Diff JSONを名前を付けて保存',
+            filter: 'JSON (*.json)|*.json|All files (*.*)|*.*',
+            file_name: String(body?.name ?? body?.file_name ?? 'DiffToJson_saved.json'),
+            default_extension: 'json',
+            content: String(body?.content ?? ''),
+            companions: []
+          });
+          return jsonResponse({
+            cancelled: false,
+            document_id: result?.document_id ?? '',
+            saved: result?.file_name ?? '',
+            path: result?.path ?? ''
           });
         } catch (error) {
           if (error?.code === 'USER_CANCELLED') return jsonResponse({ cancelled: true });

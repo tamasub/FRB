@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
@@ -18,7 +18,7 @@
     header p{margin:4px 0 0;color:#cbd5e1;font-size:13px}
     .toolbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding:12px 18px;background:var(--panel);border-bottom:1px solid var(--border)}
     .toolbar label{font-size:13px;color:var(--muted)}
-    input[type="file"]{max-width:380px;font-size:13px;color:#475569}
+    input[type="file"]{width:100%;max-width:none;min-width:0;font-size:13px;color:#475569}
     input[type="file"]::file-selector-button{
       margin-right:9px;padding:9px 14px;border:0;border-radius:14px;
       background:rgba(105,120,160,.12);color:#1f2937;font-weight:800;cursor:pointer;
@@ -27,6 +27,11 @@
     input[type="search"],select{font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:12px;background:#fff}
     button{font-size:12px;border:0;border-radius:14px;background:rgba(105,120,160,.12);color:#1f2937;padding:9px 14px;font-weight:800;cursor:pointer;box-shadow:none}
     button:hover{background:rgba(105,120,160,.20)}
+    button:disabled{cursor:not-allowed;opacity:.45;background:rgba(105,120,160,.08)}
+    .file-open-group{display:flex;flex:0 1 640px;flex-direction:column;gap:5px;min-width:430px}
+    .file-open-controls{display:grid;grid-template-columns:minmax(180px,1fr) 92px max-content;align-items:center;gap:10px;min-width:0}
+    .file-open-controls select,.file-open-controls button{white-space:nowrap}
+    .save-as-status{max-width:640px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .drop-zone{
       flex:1; min-width:420px; min-height:52px; border:2px dashed #cbd5e1; border-radius:12px;
       background:#f8fafc; color:#475569; display:flex; align-items:center; justify-content:center;
@@ -97,6 +102,9 @@
     pre{margin:0;white-space:pre-wrap;word-break:break-word;background:var(--code-bg);color:var(--code-text);padding:12px;border-radius:10px;overflow:auto;font-size:12px}
     .empty{border:1px dashed var(--border);border-radius:12px;padding:18px;text-align:center;color:var(--muted);background:#fff}
     @media(max-width:980px){
+      .toolbar{align-items:stretch}
+      .file-open-group{flex-basis:100%;min-width:0}
+      .file-open-controls{grid-template-columns:minmax(160px,1fr) 92px max-content}
       .layout{grid-template-columns:1fr;height:auto}
       .panel{min-height:520px}
       .main-controls,.filters{grid-template-columns:1fr}
@@ -106,6 +114,7 @@
   <link rel="stylesheet" href="css/frb-studio-shell.css?v=0185p11-diff-meta-polish" />
 </head>
 <body>
+<script src="js/core/native_host_bridge.js?v=webview2-native-shell-01862-diff-save-as"></script>
 <script src="js/ui/frb_studio_shell.js?v=0185p3"></script>
 <script>
   FrbStudioShell.mount({
@@ -122,13 +131,17 @@
 </header>
 
 <div class="toolbar">
-  <div>
-    <label>DiffToJson.json</label><br>
-    <input id="jsonFile" type="file" accept=".json,application/json">
-    <select id="jsonEncoding" title="JSON読み込み文字コード">
-      <option value="utf-8" selected>UTF-8</option>
-      <option value="shift_jis">Shift_JIS</option>
-    </select>
+  <div class="file-open-group">
+    <label>DiffToJson.json</label>
+    <div class="file-open-controls">
+      <input id="jsonFile" type="file" accept=".json,application/json">
+      <select id="jsonEncoding" title="JSON読み込み文字コード">
+        <option value="utf-8" selected>UTF-8</option>
+        <option value="shift_jis">Shift_JIS</option>
+      </select>
+      <button id="saveAsBtn" disabled title="読み込んだDiff JSONを任意の場所へ名前を付けて保存">名前を付けて保存</button>
+    </div>
+    <span id="saveAsStatus" class="note save-as-status" aria-live="polite"></span>
   </div>
   <div id="dropZone" class="drop-zone">DiffToJson.jsonをここに <strong>Drop</strong> して読み込み</div>
 </div>
@@ -194,6 +207,7 @@
 let diffJson = null;
 let files = [];
 let selectedIndex = -1;
+let loadedDiffLabel = "";
 
 const $ = id => document.getElementById(id);
 
@@ -504,12 +518,75 @@ function prefix(type){
   return " ";
 }
 
+function suggestedDiffSaveName(label, data){
+  const sourceName = String(label || "").split(/[\\/]/).pop();
+  if(sourceName && /\.json$/i.test(sourceName) && sourceName.toLowerCase() !== "difftojson_current.json"){
+    return sourceName;
+  }
+
+  const generatedAt = String(data?.generated_at || "");
+  const match = generatedAt.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/);
+  if(match){
+    return `DiffToJson_${match[1]}${match[2]}${match[3]}_${match[4]}${match[5]}${match[6]}.json`;
+  }
+  return "DiffToJson_saved.json";
+}
+
+function downloadDiffJson(fileName, content){
+  const blob = new Blob([content], { type:"application/json;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function saveDiffJsonAs(){
+  if(!diffJson){
+    $("saveAsStatus").textContent = "保存するDiff JSONを先に読み込んでください。";
+    return;
+  }
+
+  const fileName = suggestedDiffSaveName(loadedDiffLabel, diffJson);
+  const content = JSON.stringify(diffJson, null, 2) + "\n";
+  const button = $("saveAsBtn");
+  button.disabled = true;
+  $("saveAsStatus").textContent = "保存先を選択してください...";
+
+  try{
+    const res = await fetch("/api/diff/save-as-dialog", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({ name:fileName, content })
+    });
+    if(!res.ok) throw new Error(await res.text());
+    const result = await res.json();
+    if(result?.cancelled){
+      $("saveAsStatus").textContent = "名前を付けて保存をキャンセルしました。";
+      return;
+    }
+    $("saveAsStatus").textContent = `保存しました: ${result?.path || result?.saved || fileName}`;
+  }catch(err){
+    console.warn("native Diff JSON save-as dialog is unavailable. falling back to browser download.", err);
+    downloadDiffJson(fileName, content);
+    $("saveAsStatus").textContent = `ブラウザ保存しました: ${fileName}`;
+  }finally{
+    button.disabled = !diffJson;
+  }
+}
+
 function applyDiffJson(data, label){
   diffJson = data;
   files = normalizeFiles(diffJson);
   selectedIndex = files.length ? 0 : -1;
+  loadedDiffLabel = label || "";
 
   $("loadStatus").textContent = label || "読み込み済み";
+  $("saveAsBtn").disabled = false;
+  $("saveAsStatus").textContent = "";
   $("rawJson").textContent = JSON.stringify(diffJson, null, 2);
 
   renderSummary();
@@ -521,6 +598,9 @@ function showLoadError(err){
   diffJson = null;
   files = [];
   selectedIndex = -1;
+  loadedDiffLabel = "";
+  $("saveAsBtn").disabled = true;
+  $("saveAsStatus").textContent = "";
   $("loadStatus").textContent = "読み込み失敗";
   $("summaryArea").innerHTML = `<div class="warn">DiffToJson.json の読み込みに失敗しました: ${escapeHtml(err.message)}</div>`;
   $("fileList").innerHTML = "";
@@ -580,6 +660,7 @@ function autoLoadFromQuery(){
 }
 
 $("jsonFile").addEventListener("change", async e => loadJsonFile(e.target.files[0]));
+$("saveAsBtn").addEventListener("click", saveDiffJsonAs);
 $("fileSearch").addEventListener("input", renderFileList);
 $("statusFilter").addEventListener("change", renderFileList);
 $("diffSearch").addEventListener("input", renderDetail);

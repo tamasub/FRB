@@ -252,20 +252,21 @@
             },
             {
               "field": "output_artifact_path",
-              "caption": "Output Artifact",
+              "caption": "完了後に開くJSON",
               "type": "text",
-              "readonly": true,
+              "readonly": false,
               "grid": {
                 "visible": true,
                 "width": 520
               },
               "edit": {
                 "visible": true,
-                "readonly": true
+                "readonly": false
               },
               "search": {
                 "visible": false
-              }
+              },
+              "description": "run_mode=wait のTest Run終了後、この相対JSONパスをJSON Object Studioで自動表示する。空文字なら自動表示しない。launch型は終了を待たないため対象外。"
             },
             {
               "field": "enabled",
@@ -304,5 +305,5 @@
       ]
     }
   ],
-  "layout_note": "v0.14.38: Test Runボタンは toolbar.executeButton/action=RunCommandProfile で表示する。Data JSONのcommand_previewは表示専用で、実行正本はProgram.cs側CommandProfileとTestRunner.ps1内の許可済みtest_runner_idとする。\n\nv0.14.39: wait modeのテスト失敗をAction起動エラーと分離するため、output_artifact_pathを表示項目に追加。stdout/stderrはCommandProfile結果ダイアログで確認する。\n\nv0.18.68: Search Sectionの重複Field定義を廃止し、run_configsの検索対象はGrid側Canonical Fieldの search.visible へ統合。既存5項目（run_config_id / caption / test_runner_id / run_mode / enabled）の検索意図を移行した。"
+  "layout_note": "v0.14.38: Test Runボタンは toolbar.executeButton/action=RunCommandProfile で表示する。Data JSONのcommand_previewは表示専用で、実行正本はProgram.cs側CommandProfileとTestRunner.ps1内の許可済みtest_runner_idとする。\n\nv0.14.39: wait modeのテスト失敗をAction起動エラーと分離するため、output_artifact_pathを表示項目に追加。stdout/stderrはCommandProfile結果ダイアログで確認する。\n\nv0.18.68: Search Sectionの重複Field定義を廃止し、run_configsの検索対象はGrid側Canonical Fieldの search.visible へ統合。既存5項目（run_config_id / caption / test_runner_id / run_mode / enabled）の検索意図を移行した。\n\nv0.18.86: output_artifact_path を「完了後に開くJSON」として明示。wait型Test Run完了後にJSON Object Studioで自動表示し、Studio上で編集可能にする。launch型は終了待ちしないため自動表示しない。"
 }

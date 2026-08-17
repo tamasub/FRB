@@ -1,4 +1,4 @@
-// v0.5-registry: Action registry skeleton.
+﻿// v0.5-registry: Action registry skeleton.
 // v0.6-action-execute-button で toolbar.executeButton から actionId を渡すための受け皿。
 // この段階では既存ヘッダーボタンの動作は変更しない。
 
@@ -474,6 +474,64 @@ function isCommandProfileLaunchResult(result) {
     || result?.result_kind === 'command_launched';
 }
 
+// v0.18.86-test-run-result-json-auto-open:
+// wait型Test Runnerが完了したら、Run Configの output_artifact_path を
+// JSON Object StudioのData JSONとして開く。Data側の view_def をそのまま利用する。
+function isTestRunnerRequest(request) {
+  return String(request?.command_profile_id || '').trim().toLowerCase() === 'test_runner'
+    || Boolean(String(request?.test_runner_id || '').trim());
+}
+
+function normalizeTestOutputArtifactPath(raw) {
+  const value = String(raw ?? '').trim().replace(/\\/g, '/');
+  if (!value) return '';
+  if (
+    value.includes('://') || value.startsWith('/') || value.startsWith('//') ||
+    /^[A-Za-z]:/.test(value) || /[?#]/.test(value)
+  ) {
+    throw new Error(`完了後に開くJSONはFRBStudio_App内の相対JSONパスを指定してください: ${raw}`);
+  }
+  if (!value.toLowerCase().endsWith('.json')) {
+    throw new Error(`完了後に開くJSONは .json を指定してください: ${raw}`);
+  }
+  const parts = value.split('/');
+  if (parts.some(part => !part || part === '.' || part === '..')) {
+    throw new Error(`完了後に開くJSONのパスが不正です: ${raw}`);
+  }
+  return parts.join('/');
+}
+
+function jsonObjectStudioDataUrl(relativeJsonPath) {
+  const url = new URL('index.html', location.href);
+  url.search = '';
+  url.hash = '';
+  url.searchParams.set('data', relativeJsonPath);
+  return url.href;
+}
+
+async function scheduleTestOutputArtifactOpen(row, request, result) {
+  if (!isTestRunnerRequest(request) || isCommandProfileLaunchResult(result)) return false;
+  if (!['test_passed', 'test_failed'].includes(String(result?.result_kind || ''))) return false;
+
+  const relativePath = normalizeTestOutputArtifactPath(commandProfileRowValue(row, 'output_artifact_path'));
+  if (!relativePath) return false;
+
+  // data/json は wwwroot の外にあるため、静的URLとして fetch しない。
+  // JSON Object Studio の通常読込と同じ /api/data 契約で存在確認・JSON parse を行う。
+  const apiName = relativePath.startsWith('data/json/')
+    ? relativePath.slice('data/json/'.length)
+    : relativePath;
+  try {
+    await fetchApiJsonWithUrl('data', apiName);
+  } catch (err) {
+    throw new Error(`テストは終了しましたが、完了後に開くJSONを取得できません: ${relativePath} / ${err?.message || err}`);
+  }
+
+  const targetUrl = jsonObjectStudioDataUrl(relativePath);
+  window.setTimeout(() => location.assign(targetUrl), 160);
+  return true;
+}
+
 // v0.17.8-git-diff-run-open-viewer:
 // GitDiffRunは日時付きDiffToJsonを生成するため、APIが返すviewer_urlをDiffJsonViewerへ渡して開く。
 function isGitDiffExportRequest(request) {
@@ -682,14 +740,17 @@ registerStudioAction('RunCommandProfile', async (context={}) => {
   console.log('RunCommandProfile result', result);
 
   const viewerOpened = openDiffJsonViewerFromResult(result, pendingViewerWindow);
+  const testOutputOpened = await scheduleTestOutputArtifactOpen(row, request, result);
 
-  if (result?.result_kind === 'test_failed' && !isCommandProfileLaunchResult(result)) {
+  if (result?.result_kind === 'test_failed' && !isCommandProfileLaunchResult(result) && !testOutputOpened) {
     showCommandProfileResultDialog(result, caption);
   }
 
   const status = commandProfileStatusFromResult(result, caption);
-  const message = viewerOpened ? `${status.message}
+  let message = viewerOpened ? `${status.message}
 DiffJsonViewerを開きました。` : status.message;
+  if (testOutputOpened) message = `${status.message}
+テスト結果JSONをJSON Object Studioで開きます。`;
   return {
     message,
     statusOptions: status.options,

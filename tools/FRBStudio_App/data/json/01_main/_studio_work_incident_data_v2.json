@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-17T21:16:00+09:00",
+  "updated_at": "2026-08-17T21:52:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 194,
+  "items_count": 195,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -29818,37 +29818,37 @@
     {
       "work_item_id": "studio_work_0206",
       "phase": "v0.18.84-gitdiff-current-output-no-accumulation",
-      "title": "GitDiff一時出力1ファイル化 — wwwroot/diff 自動蓄積停止",
+      "title": "GitDiff一時出力＋Diff JSON Viewer明示保存 — 自動蓄積と正式保存の分離",
       "incident_type": "maintenance",
       "category": "file_io",
       "priority": "high",
       "status": "確認中",
-      "follow_up_status": "NOT_STARTED",
+      "follow_up_status": "PENDING",
       "verification_status": "Static確認済み / Windows実機確認待ち",
       "context_def_status": "reviewed",
-      "context_def_updated_at": "2026-08-17T21:12:00+09:00",
+      "context_def_updated_at": "2026-08-17T21:20:00+09:00",
       "owner": "",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-17T21:12:00+09:00",
-      "updated_at": "2026-08-17T21:16:00+09:00",
-      "work_summary": "- GitDiff実行のたびに `wwwroot/diff` へ日時付きDiff JSONが増え続ける状態を止める。\n- 通常のGitDiff出力は `wwwroot/diff/DiffToJson_current.json` 1ファイルへ固定し、次回実行で上書きする一時出力として扱う。\n- Diff JSON Viewerの名前を付けて保存は今回は未実装とし、既に蓄積済みの過去Diff JSONも安全のため自動削除しない。",
-      "target_files": "- tools/git/Export-DiffToJson.ps1\n- NativeShell/native_shell.config.json\n- data/json/04_tools/git_diff_export_run_config_data_v0_1.json\n- tests/qa/static/git_diff_current_output_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
-      "actual_updated_files": "- tools/git/Export-DiffToJson.ps1\n- NativeShell/native_shell.config.json\n- data/json/04_tools/git_diff_export_run_config_data_v0_1.json\n- tests/qa/static/git_diff_current_output_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
-      "context_def_draft": "# ContextDef素案: GitDiff current output\n\n## 目的\nGitDiff実行結果を保存成果物ではなく確認前の一時出力として扱い、通常実行で日時付きJSONを自動蓄積しない。\n\n## 出力契約\n- 既定出力: `wwwroot/diff/DiffToJson_current.json`\n- 実行ごとに同一ファイルを上書きする。\n- NativeShell CommandProfileのoutput artifactも同一ファイルを監視する。\n- Diff JSON Viewerへの既存自動遷移は維持する。\n\n## 保護\n既存 `DiffToJson_yyyyMMdd_HHmmss.json` は今回自動削除しない。保存価値の判断が不明な既存ファイルをAI判断で消さない。",
-      "objective": "- `wwwroot/diff` がGitDiff実行のたびに増殖する問題を止める。\n- GitDiff通常結果を1つのcurrentファイルとして再利用する。\n- 既存のGit Diff Run → output artifact → Diff JSON Viewerの導線を壊さない。",
-      "background": "- 現行 `Export-DiffToJson.ps1` は実行時刻をファイル名へ付加し、`DiffToJson_yyyyMMdd_HHmmss.json` を毎回新規作成している。\n- ユーザーはGitDiff結果を基本的に一時確認用途とし、保存したいものだけ将来Diff JSON Viewerから明示保存する運用を希望している。\n- 今回はまず自動蓄積だけを止める段階として依頼された。",
-      "scope": "- `Export-DiffToJson.ps1` の既定出力を `DiffToJson_current.json` に変更する。\n- 日時付きファイル名生成を廃止し、同一パスへ上書き保存する。\n- NativeShell `git_diff_export` の `output_globs` をcurrentファイルへ固定する。\n- Git Diff Run Configの表示・説明をcurrent出力契約へ更新する。\n- current出力契約をStaticテストで固定する。",
-      "out_of_scope": "- Diff JSON Viewerへの「名前を付けて保存」追加。\n- `%LOCALAPPDATA%` 等、wwwroot外の一時領域への移動。\n- 既に `wwwroot/diff` に存在する過去の日時付きDiff JSONの自動削除。\n- FilePair等GitDiff内容生成ロジックの変更。",
-      "fixed_name_policy": "- 一時出力ファイル名は `DiffToJson_current.json` に固定する。\n- 日時をファイル名へ付加しない。\n- 明示保存機能が実装されるまでは、通常GitDiff実行が永久保存ファイルを増やさないことを優先する。",
-      "module_policy": "- 差分生成責務は既存 `tools/git/Export-DiffToJson.ps1` のまま維持する。\n- ProcessProfileの成果物検出は `NativeShell/native_shell.config.json` のoutput_globsで固定currentを監視する。\n- Viewer本体には今回は変更を入れず、既存 `src` 自動読込を利用する。",
-      "expected_outputs": "- GitDiffを10回実行しても通常出力として増えるJSONは1件だけ。\n- 毎回 `DiffToJson_current.json` の内容・更新日時だけが更新される。\n- Git Diff Run完了後、NativeShellがcurrentファイルをoutput artifactとして検出できる。\n- 既存Diff JSON Viewerへの自動表示が維持される。",
-      "risk": "- 以前のGitDiff結果は次回実行でcurrentから失われる。これは一時出力契約として意図した挙動。\n- 保存したいDiffを残すUIは今回未実装なので、その機能追加までは必要な場合にcurrentファイルを手動コピーする必要がある。\n- 既存の日時付きJSONは自動削除しないため、現時点で既に存在するゴミ候補は残る。",
-      "test_points": "- PS1既定出力が `wwwroot/diff/DiffToJson_current.json` であること。\n- PS1に日時付き出力生成 `Format-StudioFileTimestamp` が残っていないこと。\n- NativeShell output_globsがcurrentファイル1件だけを指すこと。\n- Run Config表示がcurrent上書き契約と一致すること。\n- 全Staticで既存FAILを増やさないこと。",
-      "verification_log": "- GitDiff current出力専用Static: 1 test / 1 PASS / 0 FAIL。\n- 全Static Before: 264 tests / 246 PASS / 18 FAIL。\n- 全Static After: 265 tests / 247 PASS / 18 FAIL。\n- 既存18 FAILはテスト名まで完全一致: YES。新規FAILなし。\n- studio_work_0206 新規Item Schema: PASS。\n- NativeBridgeは `wwwroot/diff/` artifactを既存どおりDiffJsonViewerへ渡す契約をStatic確認。\n- `.gitignore` の `wwwroot/diff/*.json` でcurrentもGit管理外になることをStatic確認。\n- PowerShell実行環境がないため、Export-DiffToJson.ps1実実行とWindows NativeShell実機確認は未実施。",
-      "user_request": "では、まず　`wwwroot/diff` がゴミ箱化する問題  を対策お願いします。",
-      "ai_response": "最新添付ZIPを正本に、通常GitDiff出力を日時付き自動蓄積から `DiffToJson_current.json` 1ファイル上書きへ変更する。",
-      "latest_ai_response": "AI回答\n\n## 今回の更新\n\n- `tools/git/Export-DiffToJson.ps1`\n- `NativeShell/native_shell.config.json`\n- `data/json/04_tools/git_diff_export_run_config_data_v0_1.json`\n- `tests/qa/static/git_diff_current_output_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\nGitDiffの通常実行結果を、日時付きJSONの新規作成から `wwwroot/diff/DiffToJson_current.json` 1ファイル上書きへ変更した。\n\nこれ以降、Git Diff Runを何回実行しても通常出力はcurrent 1件だけで、次回実行時に内容が更新される。NativeShellのoutput artifactもcurrent 1件だけを監視するため、既存のDiff JSON Viewer自動表示導線は維持する。\n\n## 方針\n\n今回の目的は `wwwroot/diff` の自動蓄積停止に限定した。既に存在する日時付きDiff JSONは、保存価値が不明なものをAI判断で削除しないため、そのまま残している。\n\nDiff JSON Viewerの「名前を付けて保存」は次段階の後続作業として登録した。\n\n## 確認結果\n\n- GitDiff current出力専用Static: 1/1 PASS\n- 全Static Before: 264 tests / 246 PASS / 18 FAIL\n- 全Static After: 265 tests / 247 PASS / 18 FAIL\n- 既存18 FAILはテスト名まで完全一致、新規FAILなし\n- studio_work_0206 新規Item Schema: PASS\n- PowerShell実実行 / Windows NativeShell実機確認: この環境では未実施\n",
-      "latest_user_comment": "では、まず　`wwwroot/diff` がゴミ箱化する問題  を対策お願いします。",
+      "updated_at": "2026-08-17T21:20:00+09:00",
+      "work_summary": "- GitDiff通常実行では `wwwroot/diff/DiffToJson_current.json` 1ファイルだけを上書きし、実行するだけでは保存成果物を増やさない。\n- Diff JSON Viewerへ「名前を付けて保存」を追加し、人間が残したいDiffだけをOSの保存ダイアログから正式ファイル化できるようにする。\n- current一時出力と明示保存を分離し、既存の日時付きDiff JSON整理は引き続き人間確認後の後続作業とする。",
+      "target_files": "- tools/git/Export-DiffToJson.ps1\n- NativeShell/native_shell.config.json\n- data/json/04_tools/git_diff_export_run_config_data_v0_1.json\n- wwwroot/DiffJsonViewer.html\n- wwwroot/js/core/native_host_bridge.js\n- tests/qa/static/git_diff_current_output_static.test.mjs\n- tests/qa/static/diff_json_viewer_save_as_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- tools/git/Export-DiffToJson.ps1\n- NativeShell/native_shell.config.json\n- data/json/04_tools/git_diff_export_run_config_data_v0_1.json\n- wwwroot/DiffJsonViewer.html\n- wwwroot/js/core/native_host_bridge.js\n- tests/qa/static/git_diff_current_output_static.test.mjs\n- tests/qa/static/diff_json_viewer_save_as_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "# ContextDef素案: GitDiff temporary output / explicit Save As\n\n## 目的\n- GitDiff実行結果を確認前の一時出力として扱う。\n- 実行しただけでは保存成果物を増やさない。\n- 人間が残すと判断したDiffだけをViewerから正式保存する。\n\n## 一時出力契約\n- 既定出力: `wwwroot/diff/DiffToJson_current.json`\n- GitDiff実行ごとに同一ファイルを上書きする。\n- NativeShell CommandProfileはcurrent 1ファイルだけをoutput artifactとして監視する。\n- Git Diff Run完了後のDiff JSON Viewer自動表示を維持する。\n\n## 明示保存契約\n- Diff JSON ViewerはDiff JSON読込前には「名前を付けて保存」を無効化する。\n- Diff JSON読込後、人間が「名前を付けて保存」を押した時だけ保存処理を開始する。\n- NativeShellでは既存 `dialog.saveText` を再利用し、OS SaveFileDialogで保存先・ファイル名を人間が決める。\n- `DiffToJson_current.json` の保存候補名は `generated_at` から `DiffToJson_yyyyMMdd_HHmmss.json` を提案する。\n- 手動読込した別名JSONは、そのファイル名を保存候補として維持する。\n- ブラウザ単体でNative APIが使えない場合はJSONダウンロードへフォールバックする。\n\n## 保存内容\n- Viewerで現在読み込んでいる `diffJson` をJSONとして整形して保存する。\n- current物理ファイルのコピーに限定しないため、ファイル選択・Drop・URL自動読込のどの入口でも同じ保存操作を利用できる。\n\n## 保護\n- 既存 `DiffToJson_yyyyMMdd_HHmmss.json` は自動削除しない。\n- 保存価値の判断が不明な既存ファイルは、人間確認後に整理する。",
+      "objective": "- GitDiff通常実行で `wwwroot/diff` に日時付きJSONを自動蓄積しない。\n- current一時出力を確認した人間が、必要なDiffだけを明示保存できるようにする。\n- GitDiff生成責務と、保存成果物化の判断責務を分離する。\n- 既存のGit Diff Run → Diff JSON Viewer自動表示導線を維持する。",
+      "background": "- 従来はGitDiff実行ごとに日時付きJSONを新規作成していたため、`wwwroot/diff` が自動的に蓄積していた。\n- 前工程で通常出力を `DiffToJson_current.json` 1ファイル上書きへ変更し、自動蓄積を停止した。\n- ユーザーは次工程として、残したいDiffだけをDiff JSON Viewerから「名前を付けて保存」する運用を希望している。\n- NativeShellにはMarkdown保存で使用中の汎用 `dialog.saveText` が既に存在し、新しいC#書込APIを追加せず再利用できる。",
+      "scope": "- `DiffJsonViewer.html` に「名前を付けて保存」ボタンを追加する。\n- Diff JSON未読込時は保存ボタンを無効化し、読込成功後だけ有効化する。\n- current読込時は `generated_at` を使った日時付き保存候補名を作る。\n- Viewerで現在読み込んでいるJSONを保存対象とする。\n- NativeShell用 `/api/diff/save-as-dialog` を `native_host_bridge.js` に追加し、既存 `dialog.saveText` へ接続する。\n- Native APIが使えないブラウザ表示ではJSONダウンロードへフォールバックする。\n- Save As契約をStaticテストで固定する。",
+      "out_of_scope": "- `%LOCALAPPDATA%` 等、`wwwroot` 外の一時領域へのcurrent出力移動。\n- 既に `wwwroot/diff` に存在する過去の日時付きDiff JSONの自動削除。\n- 保存済みDiffの一覧管理・履歴管理。\n- FilePair等GitDiff内容生成ロジックの変更。\n- NativeShell `dialog.saveText` 自体のC#実装変更。",
+      "fixed_name_policy": "- 通常GitDiff一時出力名は `DiffToJson_current.json` に固定する。\n- GitDiff実行時には日時付き保存ファイルを自動生成しない。\n- currentを明示保存する場合だけ `generated_at` から日時付き候補名を提示する。\n- 最終ファイル名・保存場所はSaveFileDialogで人間が決定する。",
+      "module_policy": "- 差分生成責務は `tools/git/Export-DiffToJson.ps1` に維持する。\n- 一時成果物検出は `NativeShell/native_shell.config.json` のoutput_globsでcurrentだけを監視する。\n- Diffの閲覧・明示保存UIは `wwwroot/DiffJsonViewer.html` が担当する。\n- NativeShellとの保存接続は既存汎用Bridge `wwwroot/js/core/native_host_bridge.js` と `dialog.saveText` を再利用する。\n- 保存のためだけにDiff専用C#ファイル書込責務を新設しない。",
+      "expected_outputs": "- GitDiffを繰り返し実行しても通常出力として増えるJSONは `DiffToJson_current.json` 1件だけである。\n- Git Diff Run完了後、currentがDiff JSON Viewerへ自動表示される。\n- ViewerでDiff JSONを読み込むと「名前を付けて保存」が有効になる。\n- 「名前を付けて保存」でOS SaveFileDialogが開き、任意の場所・名前でJSONを保存できる。\n- current読込時の既定候補名は `DiffToJson_yyyyMMdd_HHmmss.json` 形式になる。\n- 保存操作を行わない限り正式保存ファイルは増えない。\n- Native APIがないブラウザ表示ではJSONダウンロードで保存できる。",
+      "risk": "- currentの内容は次回GitDiff実行で上書きされるため、残したいDiffは次回実行前に明示保存する必要がある。\n- Save AsはViewerで再シリアライズしたJSONを保存するため、元JSONの空白・改行などの物理フォーマットは標準的な2スペース整形へ正規化される。\n- ブラウザ単体ではOS SaveFileDialogではなくダウンロード保存へフォールバックする。\n- 既存日時付きJSONは今回も自動削除しないため、過去分の整理は別途必要である。",
+      "test_points": "- current一時出力契約が従来どおり維持されること。\n- Diff JSON ViewerがNative Host Bridgeを読み込むこと。\n- Save Asボタンが初期disabledで、Diff読込成功後だけ有効になること。\n- `/api/diff/save-as-dialog` が `dialog.saveText` へ接続されること。\n- current保存候補名が `generated_at` 由来の日時付き名称になること。\n- Native API失敗時にブラウザdownloadへフォールバックすること。\n- DiffJsonViewer inline JavaScript / native_host_bridge.js が構文エラーにならないこと。\n- 全Staticで既存18 FAILを増やさないこと。",
+      "verification_log": "- Diff JSON Viewer Save As専用Static: 2 tests / 2 PASS / 0 FAIL。\n- `wwwroot/js/core/native_host_bridge.js`: `node --check` PASS。\n- `wwwroot/DiffJsonViewer.html` inline JavaScript抽出: `node --check` PASS。\n- 全Static Before: 265 tests / 247 PASS / 18 FAIL。\n- 全Static After（Incident更新前実装確認）: 267 tests / 249 PASS / 18 FAIL。\n- Before / Afterの既存18 FAILはテスト名まで完全一致: YES。新規FAILなし。\n- Windows NativeShellでSaveFileDialogを開き実ファイル保存する実機確認は未実施。\n- Static実行で更新された既存TP-IPC-001 Actual/Diffは添付ZIP原本へ復元し、返却差分から除外。",
+      "user_request": "次工程もよろしく\n\n今回の作業依頼:\n- incident_file: data/json/01_main/_studio_work_incident_data_v2.json\n- work_item_id: studio_work_0206\n- phase: v0.18.84-gitdiff-current-output-no-accumulation\n\n作業ルール:\n\n- FRBStudio_App*.zipがチャットに添付された場合は、最新資材zipとして扱う。\n- AIやスクリプトが直接取得するためのraw/archive URL:\n          - Foundation Rules raw: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/data/json/00_rules/frb_foundation_rules_data_v0_1.json\n\n          FRB Studio Foundation Rules の foundation_rule_019「GitHub基準ソースとZIP返却契約」を参照してください。  \n\n 記載形式:\n\n- Studioくん憲法 constitution_32「構造化記述の原則」に従う。  \n\n- 複数の変更内容・理由・対象・判断・確認結果・残課題・リスク・次作業は、原則として箇条書きまたは番号付きリストで記載する。  \n\n- 独立した複数事項を、一つの長い文章へ連結しない。",
+      "ai_response": "- studio_work_0206の次工程として、Diff JSON Viewerの「名前を付けて保存」を実装する。\n- currentは一時出力のまま維持し、人間の明示操作時だけ正式保存する。",
+      "latest_ai_response": "AI回答\n\n## 今回の更新\n- `wwwroot/DiffJsonViewer.html`\n- `wwwroot/js/core/native_host_bridge.js`\n- `tests/qa/static/diff_json_viewer_save_as_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## 変更内容\n- Diff JSON Viewerへ「名前を付けて保存」を追加した。\n- Diff JSON未読込時は保存ボタンを無効化し、読込成功後だけ有効化する。\n- current読込時は `generated_at` から `DiffToJson_yyyyMMdd_HHmmss.json` の保存候補名を生成する。\n- NativeShellでは `/api/diff/save-as-dialog` から既存 `dialog.saveText` を呼び、OS SaveFileDialogで任意の保存先を選択できるようにした。\n- Native APIを利用できないブラウザ表示では、JSONダウンロードへフォールバックする。\n\n## 判断\n- `DiffToJson_current.json` は引き続き確認前の一時出力とする。\n- 正式保存は人間がViewerで明示操作した場合だけ行う。\n- 保存専用C# APIは追加せず、既存汎用 `dialog.saveText` を再利用する。\n- 保存対象はcurrent物理ファイルそのものではなく、Viewerで現在読み込んでいるDiff JSONとする。\n\n## 確認結果\n- Save As専用Static: 2/2 PASS。\n- Native Bridge JS: `node --check` PASS。\n- DiffJsonViewer inline JS: `node --check` PASS。\n- 全Static Before: 265 tests / 247 PASS / 18 FAIL。\n- 全Static After: 267 tests / 249 PASS / 18 FAIL。\n- 既存18 FAILはテスト名まで完全一致し、新規FAILなし。\n- Windows NativeShell実機でのSaveFileDialog・実ファイル保存は確認待ち。\n- Static実行で更新された既存TP-IPC-001 Actual/Diffは添付ZIP原本へ復元し、返却差分から除外。\n\n## 残課題\n- 既存日時付きDiff JSONの整理は、人間確認後の後続作業として残す。",
+      "latest_user_comment": "次工程もよろしく\n\n今回の作業依頼:\n- incident_file: data/json/01_main/_studio_work_incident_data_v2.json\n- work_item_id: studio_work_0206\n- phase: v0.18.84-gitdiff-current-output-no-accumulation\n\n作業ルール:\n\n- FRBStudio_App*.zipがチャットに添付された場合は、最新資材zipとして扱う。\n- AIやスクリプトが直接取得するためのraw/archive URL:\n          - Foundation Rules raw: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/data/json/00_rules/frb_foundation_rules_data_v0_1.json\n\n          FRB Studio Foundation Rules の foundation_rule_019「GitHub基準ソースとZIP返却契約」を参照してください。  \n\n 記載形式:\n\n- Studioくん憲法 constitution_32「構造化記述の原則」に従う。  \n\n- 複数の変更内容・理由・対象・判断・確認結果・残課題・リスク・次作業は、原則として箇条書きまたは番号付きリストで記載する。  \n\n- 独立した複数事項を、一つの長い文章へ連結しない。",
       "context_refs": [
         {
           "context_ref_id": "ctx_0206_foundation_019",
@@ -29869,11 +29869,11 @@
           "action_id": "follow_0206_diff_viewer_save_as",
           "action_type": "UI_IMPROVEMENT",
           "required": false,
-          "status": "NOT_STARTED",
+          "status": "COMPLETED",
           "related_ids": [
             "studio_work_0206"
           ],
-          "note": "必要なDiffだけを成果物化できるよう、Diff JSON Viewerへ「名前を付けて保存」を追加する。current一時出力と正式保存を分離する。",
+          "note": "Diff JSON Viewerへ「名前を付けて保存」を追加済み。current読込時はgenerated_at由来の日時付き候補名を提示し、NativeShellでは既存dialog.saveTextを再利用する。Windows実機確認はverification_statusで継続管理する。",
           "summary": "Diff JSON Viewer 名前付き保存"
         },
         {
@@ -29902,6 +29902,13 @@
           "speaker": "assistant",
           "topic": "GitDiff一時出力1ファイル化 完了報告",
           "message": "AI回答\n\n## 今回の更新\n\n- `tools/git/Export-DiffToJson.ps1`\n- `NativeShell/native_shell.config.json`\n- `data/json/04_tools/git_diff_export_run_config_data_v0_1.json`\n- `tests/qa/static/git_diff_current_output_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\nGitDiffの通常実行結果を、日時付きJSONの新規作成から `wwwroot/diff/DiffToJson_current.json` 1ファイル上書きへ変更した。\n\nこれ以降、Git Diff Runを何回実行しても通常出力はcurrent 1件だけで、次回実行時に内容が更新される。NativeShellのoutput artifactもcurrent 1件だけを監視するため、既存のDiff JSON Viewer自動表示導線は維持する。\n\n## 方針\n\n今回の目的は `wwwroot/diff` の自動蓄積停止に限定した。既に存在する日時付きDiff JSONは、保存価値が不明なものをAI判断で削除しないため、そのまま残している。\n\nDiff JSON Viewerの「名前を付けて保存」は次段階の後続作業として登録した。\n\n## 確認結果\n\n- GitDiff current出力専用Static: 1/1 PASS\n- 全Static Before: 264 tests / 246 PASS / 18 FAIL\n- 全Static After: 265 tests / 247 PASS / 18 FAIL\n- 既存18 FAILはテスト名まで完全一致、新規FAILなし\n- studio_work_0206 新規Item Schema: PASS\n- PowerShell実実行 / Windows NativeShell実機確認: この環境では未実施\n"
+        },
+        {
+          "history_id": "hist_0206_user_002",
+          "at": "2026-08-17T21:20:00+09:00",
+          "speaker": "user",
+          "topic": "studio_work_0206 次工程依頼",
+          "message": "次工程もよろしく\n\n今回の作業依頼:\n- incident_file: data/json/01_main/_studio_work_incident_data_v2.json\n- work_item_id: studio_work_0206\n- phase: v0.18.84-gitdiff-current-output-no-accumulation\n\n作業ルール:\n\n- FRBStudio_App*.zipがチャットに添付された場合は、最新資材zipとして扱う。\n- AIやスクリプトが直接取得するためのraw/archive URL:\n          - Foundation Rules raw: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/data/json/00_rules/frb_foundation_rules_data_v0_1.json\n\n          FRB Studio Foundation Rules の foundation_rule_019「GitHub基準ソースとZIP返却契約」を参照してください。  \n\n 記載形式:\n\n- Studioくん憲法 constitution_32「構造化記述の原則」に従う。  \n\n- 複数の変更内容・理由・対象・判断・確認結果・残課題・リスク・次作業は、原則として箇条書きまたは番号付きリストで記載する。  \n\n- 独立した複数事項を、一つの長い文章へ連結しない。"
         }
       ],
       "decision_log": [
@@ -29925,6 +29932,39 @@
             "データ保護",
             "人間承認"
           ]
+        },
+        {
+          "decision_id": "dec_0206_explicit_save_only",
+          "at": "2026-08-17T21:20:00+09:00",
+          "decision": "Diff JSONの正式保存は、Viewerで人間が「名前を付けて保存」を明示実行した場合だけ行う。",
+          "reason": "GitDiff実行結果は確認前の一時情報であり、実行行為と保存資産化を分離して `wwwroot/diff` の再ゴミ化を防ぐため。",
+          "applied_axes": [
+            "人間承認",
+            "ゴミ抑制",
+            "生成と保存の責務分離"
+          ]
+        },
+        {
+          "decision_id": "dec_0206_reuse_generic_save_dialog",
+          "at": "2026-08-17T21:20:00+09:00",
+          "decision": "Diff専用C#保存APIは作らず、既存NativeShell `dialog.saveText` をNative Host Bridgeから再利用する。",
+          "reason": "OS SaveFileDialogを伴う汎用テキスト保存責務が既に存在し、Diff JSON保存も同じ責務で扱えるため。",
+          "applied_axes": [
+            "既存責務再利用",
+            "最小変更",
+            "権限拡張回避"
+          ]
+        },
+        {
+          "decision_id": "dec_0206_save_loaded_diff",
+          "at": "2026-08-17T21:20:00+09:00",
+          "decision": "保存対象は `DiffToJson_current.json` の物理ファイルコピーではなく、Viewerで現在読み込んでいるDiff JSONとする。",
+          "reason": "GitDiff自動表示だけでなく、ファイル選択・Drop・URL読込したDiffにも同じ保存操作を提供し、Viewerの責務として一貫させるため。",
+          "applied_axes": [
+            "Viewer責務",
+            "入口非依存",
+            "再利用性"
+          ]
         }
       ],
       "change_history": [
@@ -29943,6 +29983,277 @@
           "before": "NativeShellは `wwwroot/diff/DiffToJson_*.json` をoutput artifactとして探索していた。",
           "after": "`wwwroot/diff/DiffToJson_current.json` だけをoutput artifactとして監視する。",
           "reason": "過去の日時付きJSONを今回実行の成果物と誤認せず、current一時出力を確実にViewerへ渡すため。"
+        },
+        {
+          "history_id": "chg_0206_diff_viewer_save_as",
+          "at": "2026-08-17T21:20:00+09:00",
+          "change_type": "viewer_save_capability",
+          "before": "Diff JSON ViewerはDiff JSONの読込・閲覧だけを行い、残したいDiffをViewerから正式保存する操作がなかった。",
+          "after": "Diff JSON読込後に「名前を付けて保存」を有効化し、人間が任意の場所・名前でJSONを保存できるようにした。",
+          "reason": "current一時出力と正式保存を分離し、必要なDiffだけを人間判断で資産化するため。"
+        },
+        {
+          "history_id": "chg_0206_native_diff_save_bridge",
+          "at": "2026-08-17T21:20:00+09:00",
+          "change_type": "native_bridge_mapping",
+          "before": "Native Host BridgeにDiff JSON用のSave As APIマッピングがなかった。",
+          "after": "`POST /api/diff/save-as-dialog` を既存NativeShell `dialog.saveText` へ接続した。",
+          "reason": "新しいC#保存責務を増やさず、既存OS SaveFileDialog機能をDiff JSON Viewerから利用するため。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0207",
+      "phase": "v0.18.87-test-run-post-result-json-api-fix",
+      "title": "Test Run完了→JSON Object Studio自動表示＋Run Config直結デモショートカット（実機API経路修正）",
+      "incident_type": "feature",
+      "category": "testing",
+      "priority": "high",
+      "status": "確認中",
+      "follow_up_status": "PENDING",
+      "verification_status": "Static再確認済み / Windows実機再確認待ち",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-17T21:46:00+09:00",
+      "owner": "",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-17T21:46:00+09:00",
+      "updated_at": "2026-08-17T22:10:00+09:00",
+      "work_summary": "- Studio Test Runnerのwait型Run Configを実行し、テスト終了後にRun Configへ設定された `output_artifact_path` のJSONをJSON Object Studioで自動表示する。\n- 起動ショートカットからRun Config IDまで固定して、1クリックで「テスト実行 → 完了 → 結果JSON表示」まで進むデモ導線を作る。\n- Diff JSON Viewerの「名前を付けて保存」ボタン位置ずれも同時に修正し、ファイル選択・文字コードと同一行へ揃える。",
+      "target_files": "- wwwroot/DiffJsonViewer.html\n- wwwroot/js/actions/action_registry.js\n- defs/tools/test_runner_run_config_view_def_v0_1.json\n- data/json/04_tools/test_runner_run_config_data_v0_1.json\n- wwwroot/config/app_settings.json\n- tests/qa/static/test_runner_post_run_json_open_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- wwwroot/js/actions/action_registry.js\n- wwwroot/index.html\n- wwwroot/DiffJsonViewer.html\n- tests/qa/static/test_runner_post_run_json_open_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "# ContextDef素案: Test Run Post Result JSON Open\n\n## 目的\n- Test Runの実行と結果確認を1つの承認導線へ接続する。\n- テスト結果を専用Viewerへ閉じ込めず、既存のJSON Object Studioで構造化JSONとして確認する。\n- ショートカットからRun Config IDまで固定し、デモ時の操作を1クリックへ縮める。\n\n## Run Config契約\n- `run_mode=wait` のRun Configだけ、テストプロセス終了後の自動表示対象とする。\n- `output_artifact_path` を「完了後に開くJSON」として扱う。\n- `output_artifact_path` はFRBStudio_App内の相対 `.json` パスに限定する。\n- 空文字なら自動表示しない。\n- `run_mode=launch` は終了を待てないため自動表示しない。\n\n## 実行後導線\n- `test_passed` / `test_failed` のどちらも「テストが終了した」結果として扱う。\n- 設定JSONが取得・JSON parseできることを確認後、`index.html?data=...` へ遷移する。\n- Data JSON自身の `view_def` を通常のJSON Object Studio解決契約に任せる。\n\n## デモショートカット\n- `test_run_002_incident_prompt_copy_action_static` を既存の高速wait型テストとして採用する。\n- ショートカットに `focusField=run_config_id` / `focusValue=test_run_002_incident_prompt_copy_action_static` / `action=RunCommandProfile` を設定する。\n- 1クリックでRun Config選択とTest Run実行を行い、完了後に当該Diff JSONを開く。",
+      "objective": "- Test Runnerの実行後に人間が結果ファイルを探して手動で開く操作をなくす。\n- `output_artifact_path` をRun Config側の明示設定として利用し、テストごとの結果JSONを疎結合に紐づける。\n- ショートカットからRun Config IDまで指定して、テスト実行デモの操作量を最小化する。\n- Diff JSON Viewer保存ボタンの位置ずれを解消する。",
+      "background": "- ユーザーは、AIにプログラム修正を依頼してローカルへ保存した後、Studioくんのショートカット1回でテスト完了まで見せるデモを希望している。\n- 当初Diff JSON Viewerへ遷移する案を検討したが、Test RunnerのDiffはJSON Object Studioで扱う方が既存のData/View分離思想と一致するため訂正した。\n- Test Runner Run Configには既に `output_artifact_path` があり、テスト結果JSONとの紐づけ正本として再利用できる。\n- `test_run_001_playwright_ui` はlaunch型で終了を待たないため、デモにはwait型の既存高速テストを採用する。",
+      "scope": "- wait型Test Runner完了後に `output_artifact_path` をJSON Object Studioで自動表示する。\n- pass/failどちらでもテスト終了後に結果JSONを表示する。\n- 結果パスは相対JSONパスだけを許可し、開く前に取得・JSON parse確認を行う。\n- Test Runner ViewDefの `output_artifact_path` を「完了後に開くJSON」へ改称し、Studio上で編集可能にする。\n- app_settingsへRun Config ID固定のデモショートカットを追加する。\n- Diff JSON ViewerのSave Asボタンをファイル選択・Encodingと同じコントロール行へ移動する。\n- Staticテストで契約を固定する。",
+      "out_of_scope": "- `run_mode=launch` の対話型Playwright UI終了監視。\n- TestRunner.ps1 / NativeShell CommandProfileへ任意test pathを渡す機能追加。\n- Test Runner専用Diff Viewerの新設。\n- screen_state_smoke_001専用の新しいwait型Runner追加。\n- テスト結果JSONの自動承認。",
+      "fixed_name_policy": "- テスト結果JSONのファイル名は各Test Runner / Test Definitionの既存契約を維持する。\n- 自動表示先はRun Configの `output_artifact_path` で明示する。\n- デモショートカットIDは `test_demo_incident_prompt` とする。",
+      "module_policy": "- Test実行責務は既存 `RunCommandProfile` / `TestRunner.ps1` を維持する。\n- 実行後の結果JSON選択はRun Config Dataの `output_artifact_path` が担当する。\n- JSON表示は新Viewerを作らず既存JSON Object Studioへ委譲する。\n- ショートカットは既存 `launch_params` URL起動契約を再利用する。\n- launch型は終了待ち責務を持たないため今回の自動表示対象にしない。",
+      "expected_outputs": "- wait型Test Runの終了後、設定されたDiff/Result JSONがJSON Object Studioへ自動表示される。\n- test_passedだけでなくtest_failedでも、生成済み結果JSONを確認できる。\n- `output_artifact_path` が空なら現在画面に留まる。\n- launch型は従来どおり起動だけ行い、自動表示しない。\n- ショートカット「⚡ Test Demo / Incident Prompt」からRun Config選択操作なしでTest Runが開始される。\n- Diff JSON ViewerのSave Asボタンがファイル選択・UTF-8コンボと同じ行に揃う。",
+      "risk": "- `output_artifact_path` が古いJSONを指している場合、テスト自体が結果更新前に異常終了すると既存ファイルを表示する可能性が残る。今回は取得可能・JSON妥当性まで確認するが、生成時刻の共通契約は各Diff形式で統一されていないため鮮度判定までは行わない。\n- test_failedでも結果JSONへ遷移するため、従来の失敗詳細ダイアログは自動表示先がある場合は出さない。結果JSONを主たる確認面とする。\n- launch型Playwright UIは今回の自動表示対象外。",
+      "test_points": "- wait型Test Runnerのみ完了後JSON自動表示対象になること。\n- pass/failの両result_kindで自動表示すること。\n- output_artifact_pathが相対 `.json` 以外なら拒否すること。\n- Data JSON自身のview_defを使ってJSON Object Studioが表示できるURLになること。\n- デモショートカットがRun Config ID `test_run_002_incident_prompt_copy_action_static` へ固定されること。\n- 対象Run Configがwait型でoutput_artifact_pathを持つこと。\n- Diff JSON ViewerのSave Asボタンがfile-open-controls内に配置されること。\n- 全Staticで既存18 FAILを増やさないこと。",
+      "verification_log": "- Windows実機初回確認: NG。ショートカットからRun Config選択までは動作したが、Test Run後に `URL読込エラー: Failed to fetch`。Diff JSON ViewerのSave AsもUTF-8コンボと別行へ折り返された。\n- 原因: `scheduleTestOutputArtifactOpen()` が `data/json/...` を `new URL(relativePath, location.href)` でwwwroot静的ファイルとして直接fetchしていた。`data/json` はwwwroot外で、通常のJSON Object Studioは `/api/data/...` を使うため契約違反。\n- 修正: 結果JSONの存在確認・JSON parseを既存 `fetchApiJsonWithUrl('data', ...)` へ統一。遷移URLは従来どおり `index.html?data=data/json/...`。\n- キャッシュ対策: `index.html` の `action_registry.js` cache-bust queryを `01887-test-run-post-json-api-fix` へ更新。\n- Diff Viewer: file-open-controlsをwrap可能flexから3列gridへ変更し、EncodingとSave Asをnowrap固定。\n- デモ対象テスト実行: `incident_prompt_copy_action_viewdef_static.test.mjs` 1/1 PASS。生成されたActual/Diffは添付ZIP原本へ復元し返却差分から除外。\n- 専用Static: 6/6 PASS。\n- 全Static Before: 271 tests / 253 PASS / 18 FAIL。\n- 全Static After: 271 tests / 253 PASS / 18 FAIL。\n- Before / Afterの既存18 FAILはテスト名まで完全一致。新規FAILなし。\n- `wwwroot/js/actions/action_registry.js`: `node --check` PASS。\n- `wwwroot/DiffJsonViewer.html` inline JavaScript: `node --check` PASS。\n- Windows NativeShellで「⚡ Test Demo / Incident Prompt」→Test Run終了→結果JSON自動表示とDiff Viewer 1行配置の再確認は未実施。",
+      "user_request": "- Diff JSON Viewerの「名前を付けて保存」位置ずれを修正する。\n- Studio Test Runner実行後、Run Configに紐づけたdiff/result JSONをJSON Object Studioで自動表示する。\n- ショートカットにTest RunnerのRun Config IDまで紐づけ、1クリックの高速テスト実行デモを作る。\n- 最新資材 `FRBStudio_App20260817_213049(1).zip` を正本として対応する。",
+      "ai_response": "- `output_artifact_path` を完了後に開くJSONの正本として再利用する。\n- wait型Test Runnerの終了後、結果JSONをJSON Object Studioへ自動表示する。\n- launch型は終了待ちできないため対象外とし、デモは既存wait型高速テストを利用する。",
+      "latest_ai_response": "AI回答\n\n## 原因\n- キャッシュが主因ではなく、`data/json/...` をwwwroot静的URLとしてfetchしていた実装ミス。\n- Diff Viewerは同一コンテナ化だけで `flex-wrap:wrap` が残り、視覚的には別行へ落ちていた。\n\n## 今回の更新\n- `wwwroot/js/actions/action_registry.js`\n- `wwwroot/index.html`\n- `wwwroot/DiffJsonViewer.html`\n- `tests/qa/static/test_runner_post_run_json_open_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n- Test Run完了後の結果JSON確認を `/api/data` 契約へ統一。\n- JSON Object Studioへの自動遷移は `index.html?data=data/json/...` を維持。\n- action_registry.jsのcache-bust queryを更新。\n- Diff Viewerのファイル選択・UTF-8・Save Asを3列gridで1行固定。\n\n## 確認結果\n- デモ対象テスト: 1/1 PASS。\n- 専用Static: 6/6 PASS。\n- 全Static: 271 tests / 253 PASS / 18 FAIL。既存18 FAILはBeforeと名前まで完全一致、新規FAILなし。\n- action_registry.js / DiffJsonViewer inline JS: node --check PASS。\n- Test Evidence生成物は原本へ復元済み。\n- Windows NativeShell実機の再確認待ち。",
+      "latest_user_comment": "ぜんぜんあかんやん。笑い　キャッシュか？？💦",
+      "context_refs": [
+        {
+          "context_ref_id": "ctx_0207_foundation_019",
+          "title": "GitHub基準ソースとZIP返却契約",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "最新添付ZIPを正本とし、返却ZIPへ更新ファイルだけを収録する契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 1,
+          "note": "今回の返却ZIPは更新7ファイルだけを含める。"
+        }
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0207_windows_demo_verify",
+          "action_type": "VERIFICATION",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "studio_work_0207"
+          ],
+          "note": "Windows初回確認でNG。v0.18.86は結果JSONをwwwroot静的URLとしてfetchしてFailed to fetchになった。v0.18.87で `/api/data` 契約へ修正したため、「⚡ Test Demo / Incident Prompt」→wait型Test Run→結果JSONのJSON Object Studio自動表示を再確認する。あわせてDiff JSON ViewerのUTF-8/Save Asが同一行に維持されることを確認する。",
+          "summary": "Windows実機デモ導線・Viewer配置を再確認"
+        },
+        {
+          "action_id": "follow_0207_launch_mode_completion_watch",
+          "action_type": "OTHER",
+          "required": false,
+          "status": "NOT_STARTED",
+          "related_ids": [
+            "studio_work_0207"
+          ],
+          "note": "将来、launch型Playwright UIでも終了後自動表示が必要になった場合のみ、プロセス完了監視責務を別設計する。",
+          "summary": "launch型終了監視は将来候補"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "hist_0207_user_001",
+          "at": "2026-08-17T21:30:00+09:00",
+          "speaker": "user",
+          "topic": "Test Runから結果表示までのデモ構想",
+          "message": "Studioくんからテスト実行して、テストが終了したら結果表示まで進み、ショートカットにRun Config IDまで紐づけて爆速テスト実行を演出したい。"
+        },
+        {
+          "history_id": "hist_0207_user_002",
+          "at": "2026-08-17T21:42:00+09:00",
+          "speaker": "user",
+          "topic": "結果表示先の訂正",
+          "message": "Diff JSON Viewerではなく、Test Run JSONに紐づけた `data\\json\\03_tests\\screen_state\\screen_state_smoke_001\\diff\\screen_state_smoke_001.diff.json` のようなdiff JSONをJSON Object Studioで開く。"
+        },
+        {
+          "history_id": "hist_0207_user_003",
+          "at": "2026-08-17T21:46:00+09:00",
+          "speaker": "user",
+          "topic": "最新ZIP基準の再依頼",
+          "message": "最新資材 `FRBStudio_App20260817_213049(1).zip` に対して対応するよう依頼。"
+        },
+        {
+          "history_id": "hist_0207_assistant_001",
+          "at": "2026-08-17T21:52:00+09:00",
+          "speaker": "assistant",
+          "topic": "Test Run完了→JSON Object Studio自動表示 実装完了報告",
+          "message": "AI回答\n\n## 今回の更新\n- `wwwroot/js/actions/action_registry.js`\n- `data/json/04_tools/test_runner_run_config_data_v0_1.json`\n- `defs/tools/test_runner_run_config_view_def_v0_1.json`\n- `wwwroot/config/app_settings.json`\n- `wwwroot/DiffJsonViewer.html`\n- `tests/qa/static/test_runner_post_run_json_open_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n- wait型Test Runが終了したら、Run Configの `output_artifact_path` をJSON Object Studioで自動表示するようにした。\n- `output_artifact_path` の画面Captionを「完了後に開くJSON」へ変更し、Studio上で編集可能にした。\n- `test_demo_incident_prompt` ショートカットを追加し、`test_run_002_incident_prompt_copy_action_static` のRun Config IDまで固定して1クリック実行できるようにした。\n- Diff JSON Viewerの「名前を付けて保存」をファイル選択・UTF-8コンボと同じコントロール行へ移動した。\n\n## 方針\n- `test_passed` / `test_failed` はどちらもテスト終了として、生成済みJSONの確認へ進む。\n- `run_mode=launch` は終了を待たないため今回の自動表示対象外とする。\n- Test Runnerの結果専用Viewerは追加せず、結果JSON自身の `view_def` を使ってJSON Object Studioへ表示する。\n- デモは新しいRunner権限を追加せず、既存の高速wait型テストを再利用する。\n\n## 確認結果\n- 専用Static: 4/4 PASS。\n- 全Static Before: 267 tests / 249 PASS / 18 FAIL。\n- 全Static After: 271 tests / 253 PASS / 18 FAIL。\n- 既存18 FAILはテスト名まで完全一致、新規FAILなし。\n- `action_registry.js` / DiffJsonViewer inline JS: `node --check` PASS。\n- `studio_work_0207` Item Schema: PASS。\n- Static実行で更新された既存Test Evidenceは原本へ復元済み。\n- Windows NativeShellでショートカットから結果JSON表示までの実機確認は未実施。"
+        },
+        {
+          "history_id": "hist_0207_user_004",
+          "at": "2026-08-17T22:10:00+09:00",
+          "speaker": "user",
+          "topic": "Windows実機NG報告",
+          "message": "ぜんぜんあかんやん。笑い　キャッシュか？？💦"
+        },
+        {
+          "history_id": "hist_0207_assistant_002",
+          "at": "2026-08-17T22:10:00+09:00",
+          "speaker": "assistant",
+          "topic": "実機NG原因修正完了報告",
+          "message": "AI回答\n\n## 原因\n- キャッシュが主因ではなく、`data/json/...` をwwwroot静的URLとしてfetchしていた実装ミス。\n- Diff Viewerは同一コンテナ化だけで `flex-wrap:wrap` が残り、視覚的には別行へ落ちていた。\n\n## 今回の更新\n- `wwwroot/js/actions/action_registry.js`\n- `wwwroot/index.html`\n- `wwwroot/DiffJsonViewer.html`\n- `tests/qa/static/test_runner_post_run_json_open_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n- Test Run完了後の結果JSON確認を `/api/data` 契約へ統一。\n- JSON Object Studioへの自動遷移は `index.html?data=data/json/...` を維持。\n- action_registry.jsのcache-bust queryを更新。\n- Diff Viewerのファイル選択・UTF-8・Save Asを3列gridで1行固定。\n\n## 確認結果\n- デモ対象テスト: 1/1 PASS。\n- 専用Static: 6/6 PASS。\n- 全Static: 271 tests / 253 PASS / 18 FAIL。既存18 FAILはBeforeと名前まで完全一致、新規FAILなし。\n- action_registry.js / DiffJsonViewer inline JS: node --check PASS。\n- Test Evidence生成物は原本へ復元済み。\n- Windows NativeShell実機の再確認待ち。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0207_reuse_output_artifact_path",
+          "at": "2026-08-17T21:46:00+09:00",
+          "decision": "Test Run後に開くJSONの設定正本として既存 `output_artifact_path` を再利用する。",
+          "reason": "既に各Run Configとdiff/result JSONの対応が定義されており、新しい重複項目を増やす必要がない。",
+          "applied_axes": [
+            "既存契約再利用",
+            "設定の一元化",
+            "最小変更"
+          ]
+        },
+        {
+          "decision_id": "dec_0207_json_object_studio_result",
+          "at": "2026-08-17T21:46:00+09:00",
+          "decision": "Test Runnerのdiff/result JSONはDiff JSON ViewerではなくJSON Object Studioで開く。",
+          "reason": "Test Runnerの結果は `diff_result_v0_1` 等の構造化Data JSONであり、Data自身のview_defを使う既存JSON Object Studio責務に載せる方が自然だから。",
+          "applied_axes": [
+            "Data/View分離",
+            "既存責務再利用",
+            "結果JSONの構造化確認"
+          ]
+        },
+        {
+          "decision_id": "dec_0207_wait_only",
+          "at": "2026-08-17T21:46:00+09:00",
+          "decision": "自動表示は `run_mode=wait` のTest Runに限定する。",
+          "reason": "wait型はCommandProfile APIがプロセス終了を返すため「テスト終了後」を確実に判定できる。launch型は起動直後にAPIが返るため、同じ責務で終了扱いにすると誤表示になる。",
+          "applied_axes": [
+            "完了判定の正確性",
+            "責務境界",
+            "誤動作防止"
+          ]
+        },
+        {
+          "decision_id": "dec_0207_demo_existing_fast_wait",
+          "at": "2026-08-17T21:46:00+09:00",
+          "decision": "デモショートカットは既存 `test_run_002_incident_prompt_copy_action_static` を採用する。",
+          "reason": "新しい実行権限やRunner IDを増やさず、wait型で高速に終了し、既にdiff JSONを生成するため1クリックデモを安全に成立させやすい。",
+          "applied_axes": [
+            "爆速デモ",
+            "既存許可リスト再利用",
+            "変更最小化"
+          ]
+        },
+        {
+          "decision_id": "dec_0207_result_probe_use_data_api",
+          "at": "2026-08-17T22:10:00+09:00",
+          "decision": "Test Run後の `output_artifact_path` 確認は、静的URL fetchではなくJSON Object Studioと同じ `/api/data` 契約を使う。",
+          "reason": "`data/json` はwwwroot外にあり、NativeShellではData JSONを `/api/data/...` 経由で読むのが既存正本契約だから。実機のFailed to fetchはこの責務逸脱で発生した。",
+          "applied_axes": [
+            "既存読込契約再利用",
+            "data/jsonとwwwrootの責務分離",
+            "実機再現性"
+          ]
+        },
+        {
+          "decision_id": "dec_0207_diff_viewer_visual_single_row",
+          "at": "2026-08-17T22:10:00+09:00",
+          "decision": "Diff JSON Viewerのファイル選択・Encoding・Save Asは、同じDOMグループだけでなく視覚上も1行を維持する。",
+          "reason": "v0.18.86では同一コンテナへ移しただけで `flex-wrap:wrap` が残り、実機ではEncodingとSave Asが次行へ落ちたため。",
+          "applied_axes": [
+            "人間が見るUI契約",
+            "視覚的整列",
+            "実機確認優先"
+          ]
+        },
+        {
+          "decision_id": "dec_0207_action_registry_cache_bust",
+          "at": "2026-08-17T22:10:00+09:00",
+          "decision": "action_registry.jsを変更したときはindex.htmlのversion queryも更新し、WebView2キャッシュ疑惑を残さない。",
+          "reason": "今回の主因はキャッシュではなかったが、古い固定queryのままJSを更新すると環境依存で旧資材が残る可能性を否定できないため。",
+          "applied_axes": [
+            "可観測性",
+            "キャッシュ不確実性の排除",
+            "実機トラブル切り分け"
+          ]
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0207_test_result_auto_open",
+          "at": "2026-08-17T21:46:00+09:00",
+          "change_type": "test_result_navigation",
+          "before": "Test Run完了後は結果ダイアログまたは手動でoutput artifactを探して開く必要があった。",
+          "after": "wait型Test Run完了後、Run Configのoutput_artifact_pathを確認してJSON Object Studioへ自動遷移する。",
+          "reason": "ショートカット1回でテスト実行から結果確認まで接続し、人間の結果ファイル探索操作をなくすため。"
+        },
+        {
+          "history_id": "chg_0207_run_config_result_path",
+          "at": "2026-08-17T21:46:00+09:00",
+          "change_type": "viewdef_contract_update",
+          "before": "output_artifact_pathは読み取り専用の参考表示「Output Artifact」だった。",
+          "after": "「完了後に開くJSON」へ改称して編集可能にし、wait型Test Runの自動表示先契約として明示した。",
+          "reason": "テストごとのdiff/result JSON紐づけをRun Config側で人間が設定・確認できるようにするため。"
+        },
+        {
+          "history_id": "chg_0207_demo_shortcut",
+          "at": "2026-08-17T21:46:00+09:00",
+          "change_type": "launch_shortcut_add",
+          "before": "Test RunnerはショートカットからRun Config IDまで固定して直接実行するデモ入口がなかった。",
+          "after": "`test_demo_incident_prompt` を追加し、`test_run_002_incident_prompt_copy_action_static` をFocusしてRunCommandProfileを自動実行する。",
+          "reason": "既存の高速wait型テストを使い、1クリックの爆速テストデモを追加権限なしで成立させるため。"
+        },
+        {
+          "history_id": "chg_0207_diff_save_button_alignment",
+          "at": "2026-08-17T21:46:00+09:00",
+          "change_type": "ui_layout_fix",
+          "before": "Diff JSON ViewerのSave Asボタンが別flex groupにあり、ファイル選択・Encodingとの縦位置がずれて見えた。",
+          "after": "ファイル選択・Encoding・Save Asを同じfile-open-controls行へ配置した。",
+          "reason": "同一操作列の視覚的な位置ずれを解消するため。"
+        },
+        {
+          "history_id": "chg_0207_result_probe_api_fix",
+          "at": "2026-08-17T22:10:00+09:00",
+          "change_type": "runtime_bug_fix",
+          "before": "Test Run完了後、`data/json/...` の結果JSONを `new URL(relativePath, location.href)` でwwwroot静的URLとして直接fetchしていた。",
+          "after": "`data/json/` prefixをAPI名へ正規化し、既存 `fetchApiJsonWithUrl('data', apiName)` で取得・JSON parse確認してからJSON Object Studioへ遷移する。",
+          "reason": "Windows NativeShell実機でFailed to fetchとなり、data/jsonがwwwroot外である既存構造と不整合だったため。"
+        },
+        {
+          "history_id": "chg_0207_diff_viewer_nowrap_fix",
+          "at": "2026-08-17T22:10:00+09:00",
+          "change_type": "ui_layout_fix",
+          "before": "file-open-controlsは同一DOM内だったがflex-wrap:wrapのため、UTF-8とSave Asが次行へ落ちた。",
+          "after": "file-open-controlsを3列gridへ変更し、select/buttonをnowrap固定。狭幅時もグループ全体を段落単位で扱い、操作列内部は折り返さない。",
+          "reason": "実機スクリーンショットで視覚的な位置ずれが継続していたため。"
+        },
+        {
+          "history_id": "chg_0207_action_registry_cache_key",
+          "at": "2026-08-17T22:10:00+09:00",
+          "change_type": "cache_bust_update",
+          "before": "index.htmlはaction_registry.jsを古い固定query `test-runner-command-profile-01438` で参照していた。",
+          "after": "`01887-test-run-post-json-api-fix` へ更新した。",
+          "reason": "JS修正後のWebView2キャッシュによる旧資材読込の可能性を切り分けやすくするため。"
         }
       ]
     }

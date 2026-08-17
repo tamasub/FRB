@@ -6,14 +6,14 @@
   "target": "TestRunner.ps1 / Studio Test Runner",
   "status": "active",
   "created_at": "2026-06-27",
-  "updated_at": "2026-08-12",
+  "updated_at": "2026-08-17",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "command_profile_id": "test_runner",
   "command_profile_caption": "TestRunner.ps1",
   "script_display_name": "tools/test/TestRunner.ps1",
   "security_policy": "任意commandLine/scriptPath/test_fileはData JSONに持たせない。実行正本はProgram.cs側の許可済みCommandProfileとTestRunner.ps1内の許可済みtest_runner_idとし、command_previewは画面表示専用とする。",
-  "run_policy": "playwright_ui はUI起動後に終了しない可能性が高いため run_mode=launch として起動後すぐAPIを返す。incident_prompt_copy_action_static は終了を待てるため run_mode=wait として exit_code/stdout/stderr を返す。\n\nv0.18.14.3: responsibilities系mjsをTestRunnerから実行できるようにし、責務系テストファイル名は responsibility_* 先頭へ寄せる。\n\nv0.18.53.1: Definition Test Runnerの既存FRB FFT実DefinitionとCross Field 6 Operator MatrixをStudio Test Runner Run Configから再実行できるように接続する。実行正本は引き続きProgram.csの許可済みtest_runner_idとTestRunner.ps1の固定引数とし、Data JSONのcommand_previewは表示専用。",
+  "run_policy": "playwright_ui はUI起動後に終了しない可能性が高いため run_mode=launch として起動後すぐAPIを返す。incident_prompt_copy_action_static は終了を待てるため run_mode=wait として exit_code/stdout/stderr を返す。\n\nv0.18.14.3: responsibilities系mjsをTestRunnerから実行できるようにし、責務系テストファイル名は responsibility_* 先頭へ寄せる。\n\nv0.18.53.1: Definition Test Runnerの既存FRB FFT実DefinitionとCross Field 6 Operator MatrixをStudio Test Runner Run Configから再実行できるように接続する。実行正本は引き続きProgram.csの許可済みtest_runner_idとTestRunner.ps1の固定引数とし、Data JSONのcommand_previewは表示専用。\n\nv0.18.86: run_mode=wait のRun Configは、終了後に output_artifact_path が設定されていれば、そのJSONをJSON Object Studioで自動表示する。output_artifact_pathはFRBStudio_App内の相対JSONパスとし、空文字なら自動表示しない。launch型は終了を待たないため対象外。",
   "run_configs": [
     {
       "run_config_id": "test_run_001_playwright_ui",
@@ -23,7 +23,7 @@
       "run_mode": "launch",
       "command_preview": "npx playwright test --config=playwright.config.ts --ui",
       "enabled": "true",
-      "note": "Playwright UIを起動する。起動後に終了しない可能性が高いためlaunch扱い。Playwright側の対象はplaywright.config.tsの testDir/testMatch に従い、screen_state の .spec.ts だけに絞る。",
+      "note": "Playwright UIを起動する。起動後に終了しない可能性が高いためlaunch扱い。Playwright側の対象はplaywright.config.tsの testDir/testMatch に従い、screen_state の .spec.ts だけに絞る。 launch型のため、output_artifact_pathは参照情報として保持するが、終了後自動オープンは行わない。",
       "output_artifact_path": "data/json/03_tests/screen_state/screen_state_smoke_001/diff/screen_state_smoke_001.diff.json"
     },
     {
@@ -82,5 +82,5 @@
       "output_artifact_path": "data/json/03_tests/contracts/definition_test_runner_cross_field_operator_matrix_v0_1/diff/definition_test_runner.diff.json"
     }
   ],
-  "notes": "v0.14.38: Git Diff Runで見えたCommandProfile Runnerの枝として、AI駆動開発の作業台にTest Runを追加するための初期Data JSON。\n\nv0.14.39: TestRunner結果分類に合わせて、各run_configへ output_artifact_path を追加。TestRunner実行結果は result_kind=launcher_error/test_passed/test_failed として扱う。\n\nv0.18.14.3: responsibilities系mjsをTestRunner Run Configへ追加。run_responsibility_expected_tests.mjs は responsibility_expected_tests.mjs へ名称寄せ。\n\nv0.18.53.1: Definition Test Runner / FRB FFT と Cross Field Compare / 6 Operator Matrix をRun Configへ追加。"
+  "notes": "v0.14.38: Git Diff Runで見えたCommandProfile Runnerの枝として、AI駆動開発の作業台にTest Runを追加するための初期Data JSON。\n\nv0.14.39: TestRunner結果分類に合わせて、各run_configへ output_artifact_path を追加。TestRunner実行結果は result_kind=launcher_error/test_passed/test_failed として扱う。\n\nv0.18.14.3: responsibilities系mjsをTestRunner Run Configへ追加。run_responsibility_expected_tests.mjs は responsibility_expected_tests.mjs へ名称寄せ。\n\nv0.18.53.1: Definition Test Runner / FRB FFT と Cross Field Compare / 6 Operator Matrix をRun Configへ追加。\n\nv0.18.86: output_artifact_path をwait型Test Runの完了後表示先として利用し、テスト終了後にJSON Object Studioへ自動遷移する契約を追加。"
 }

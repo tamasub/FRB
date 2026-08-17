@@ -2,7 +2,7 @@
   "schema_version": "app_settings_v0_1",
   "document_type": "app_settings",
   "status": "draft",
-  "updated_at": "2026-08-16T23:45:00+09:00",
+  "updated_at": "2026-08-17T21:46:00+09:00",
   "purpose": "FRB Studio / JSON Object Studio の動作設定。app_info.json には名札情報のみを置き、Studio動作設定はこのファイル側で管理する。設定画面で変更可能な項目はSystem ViewDefで明示的に露出する。",
   "hosting": {
     "prefer_api_on_localhost": true,
@@ -27,6 +27,18 @@
       "launch_params": {
         "focusField": "run_config_id",
         "focusValue": "gitdiff_001_default_working_tree",
+        "openDetail": false,
+        "action": "RunCommandProfile"
+      }
+    },
+    {
+      "id": "test_demo_incident_prompt",
+      "caption": "⚡ Test Demo / Incident Prompt",
+      "data": "data\\json\\04_tools\\test_runner_run_config_data_v0_1.json",
+      "view_def": "tools/test_runner_run_config_view_def_v0_1.json",
+      "launch_params": {
+        "focusField": "run_config_id",
+        "focusValue": "test_run_002_incident_prompt_copy_action_static",
         "openDetail": false,
         "action": "RunCommandProfile"
       }
