@@ -34,7 +34,9 @@ $targetRootFiles = @(
     ".gitignore",
     "cmd_make_FRBStudio_App_zip_v2.bat",
     "cmd_compile_NativeShell.bat",
-    "playwright.config.ts"
+    "playwright.config.ts",
+    "cmd_file_size_list.py",
+    "count_js_steps.py"
 )
 
 # ZIP ‚ÉŠÜ‚ß‚È‚¢ƒpƒX

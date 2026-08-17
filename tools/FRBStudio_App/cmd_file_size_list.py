@@ -5,7 +5,9 @@ from pathlib import Path
 # ==============================
 
 # 調べたいフォルダー
-TARGET_DIR = Path(r"F:\FRB\tools\FRBStudio_App")
+# このPythonファイル自身が置かれているフォルダーを対象にする
+# PC・ドライブが変わってもパス修正不要
+TARGET_DIR = Path(__file__).resolve().parent
 
 # 出力ファイル
 OUTPUT_FILE = TARGET_DIR / "cmd_file_size_list.txt"
