@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-17T20:35:00+09:00",
+  "updated_at": "2026-08-17T21:16:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 193,
+  "items_count": 194,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -29812,6 +29812,137 @@
           "before": "NativeShell/_publishを生成した場合、main ZIPのNativeShellコピーにbuild成果物が混入する余地があった。",
           "after": "`NativeShell\\_publish` をZIP除外対象へ追加した。",
           "reason": "Build成果物とFRBStudio_Appソース返却ZIPを混ぜず、Foundation Rule 019の再生成可能成果物除外方針に合わせるため。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0206",
+      "phase": "v0.18.84-gitdiff-current-output-no-accumulation",
+      "title": "GitDiff一時出力1ファイル化 — wwwroot/diff 自動蓄積停止",
+      "incident_type": "maintenance",
+      "category": "file_io",
+      "priority": "high",
+      "status": "確認中",
+      "follow_up_status": "NOT_STARTED",
+      "verification_status": "Static確認済み / Windows実機確認待ち",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-17T21:12:00+09:00",
+      "owner": "",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-17T21:12:00+09:00",
+      "updated_at": "2026-08-17T21:16:00+09:00",
+      "work_summary": "- GitDiff実行のたびに `wwwroot/diff` へ日時付きDiff JSONが増え続ける状態を止める。\n- 通常のGitDiff出力は `wwwroot/diff/DiffToJson_current.json` 1ファイルへ固定し、次回実行で上書きする一時出力として扱う。\n- Diff JSON Viewerの名前を付けて保存は今回は未実装とし、既に蓄積済みの過去Diff JSONも安全のため自動削除しない。",
+      "target_files": "- tools/git/Export-DiffToJson.ps1\n- NativeShell/native_shell.config.json\n- data/json/04_tools/git_diff_export_run_config_data_v0_1.json\n- tests/qa/static/git_diff_current_output_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- tools/git/Export-DiffToJson.ps1\n- NativeShell/native_shell.config.json\n- data/json/04_tools/git_diff_export_run_config_data_v0_1.json\n- tests/qa/static/git_diff_current_output_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "# ContextDef素案: GitDiff current output\n\n## 目的\nGitDiff実行結果を保存成果物ではなく確認前の一時出力として扱い、通常実行で日時付きJSONを自動蓄積しない。\n\n## 出力契約\n- 既定出力: `wwwroot/diff/DiffToJson_current.json`\n- 実行ごとに同一ファイルを上書きする。\n- NativeShell CommandProfileのoutput artifactも同一ファイルを監視する。\n- Diff JSON Viewerへの既存自動遷移は維持する。\n\n## 保護\n既存 `DiffToJson_yyyyMMdd_HHmmss.json` は今回自動削除しない。保存価値の判断が不明な既存ファイルをAI判断で消さない。",
+      "objective": "- `wwwroot/diff` がGitDiff実行のたびに増殖する問題を止める。\n- GitDiff通常結果を1つのcurrentファイルとして再利用する。\n- 既存のGit Diff Run → output artifact → Diff JSON Viewerの導線を壊さない。",
+      "background": "- 現行 `Export-DiffToJson.ps1` は実行時刻をファイル名へ付加し、`DiffToJson_yyyyMMdd_HHmmss.json` を毎回新規作成している。\n- ユーザーはGitDiff結果を基本的に一時確認用途とし、保存したいものだけ将来Diff JSON Viewerから明示保存する運用を希望している。\n- 今回はまず自動蓄積だけを止める段階として依頼された。",
+      "scope": "- `Export-DiffToJson.ps1` の既定出力を `DiffToJson_current.json` に変更する。\n- 日時付きファイル名生成を廃止し、同一パスへ上書き保存する。\n- NativeShell `git_diff_export` の `output_globs` をcurrentファイルへ固定する。\n- Git Diff Run Configの表示・説明をcurrent出力契約へ更新する。\n- current出力契約をStaticテストで固定する。",
+      "out_of_scope": "- Diff JSON Viewerへの「名前を付けて保存」追加。\n- `%LOCALAPPDATA%` 等、wwwroot外の一時領域への移動。\n- 既に `wwwroot/diff` に存在する過去の日時付きDiff JSONの自動削除。\n- FilePair等GitDiff内容生成ロジックの変更。",
+      "fixed_name_policy": "- 一時出力ファイル名は `DiffToJson_current.json` に固定する。\n- 日時をファイル名へ付加しない。\n- 明示保存機能が実装されるまでは、通常GitDiff実行が永久保存ファイルを増やさないことを優先する。",
+      "module_policy": "- 差分生成責務は既存 `tools/git/Export-DiffToJson.ps1` のまま維持する。\n- ProcessProfileの成果物検出は `NativeShell/native_shell.config.json` のoutput_globsで固定currentを監視する。\n- Viewer本体には今回は変更を入れず、既存 `src` 自動読込を利用する。",
+      "expected_outputs": "- GitDiffを10回実行しても通常出力として増えるJSONは1件だけ。\n- 毎回 `DiffToJson_current.json` の内容・更新日時だけが更新される。\n- Git Diff Run完了後、NativeShellがcurrentファイルをoutput artifactとして検出できる。\n- 既存Diff JSON Viewerへの自動表示が維持される。",
+      "risk": "- 以前のGitDiff結果は次回実行でcurrentから失われる。これは一時出力契約として意図した挙動。\n- 保存したいDiffを残すUIは今回未実装なので、その機能追加までは必要な場合にcurrentファイルを手動コピーする必要がある。\n- 既存の日時付きJSONは自動削除しないため、現時点で既に存在するゴミ候補は残る。",
+      "test_points": "- PS1既定出力が `wwwroot/diff/DiffToJson_current.json` であること。\n- PS1に日時付き出力生成 `Format-StudioFileTimestamp` が残っていないこと。\n- NativeShell output_globsがcurrentファイル1件だけを指すこと。\n- Run Config表示がcurrent上書き契約と一致すること。\n- 全Staticで既存FAILを増やさないこと。",
+      "verification_log": "- GitDiff current出力専用Static: 1 test / 1 PASS / 0 FAIL。\n- 全Static Before: 264 tests / 246 PASS / 18 FAIL。\n- 全Static After: 265 tests / 247 PASS / 18 FAIL。\n- 既存18 FAILはテスト名まで完全一致: YES。新規FAILなし。\n- studio_work_0206 新規Item Schema: PASS。\n- NativeBridgeは `wwwroot/diff/` artifactを既存どおりDiffJsonViewerへ渡す契約をStatic確認。\n- `.gitignore` の `wwwroot/diff/*.json` でcurrentもGit管理外になることをStatic確認。\n- PowerShell実行環境がないため、Export-DiffToJson.ps1実実行とWindows NativeShell実機確認は未実施。",
+      "user_request": "では、まず　`wwwroot/diff` がゴミ箱化する問題  を対策お願いします。",
+      "ai_response": "最新添付ZIPを正本に、通常GitDiff出力を日時付き自動蓄積から `DiffToJson_current.json` 1ファイル上書きへ変更する。",
+      "latest_ai_response": "AI回答\n\n## 今回の更新\n\n- `tools/git/Export-DiffToJson.ps1`\n- `NativeShell/native_shell.config.json`\n- `data/json/04_tools/git_diff_export_run_config_data_v0_1.json`\n- `tests/qa/static/git_diff_current_output_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\nGitDiffの通常実行結果を、日時付きJSONの新規作成から `wwwroot/diff/DiffToJson_current.json` 1ファイル上書きへ変更した。\n\nこれ以降、Git Diff Runを何回実行しても通常出力はcurrent 1件だけで、次回実行時に内容が更新される。NativeShellのoutput artifactもcurrent 1件だけを監視するため、既存のDiff JSON Viewer自動表示導線は維持する。\n\n## 方針\n\n今回の目的は `wwwroot/diff` の自動蓄積停止に限定した。既に存在する日時付きDiff JSONは、保存価値が不明なものをAI判断で削除しないため、そのまま残している。\n\nDiff JSON Viewerの「名前を付けて保存」は次段階の後続作業として登録した。\n\n## 確認結果\n\n- GitDiff current出力専用Static: 1/1 PASS\n- 全Static Before: 264 tests / 246 PASS / 18 FAIL\n- 全Static After: 265 tests / 247 PASS / 18 FAIL\n- 既存18 FAILはテスト名まで完全一致、新規FAILなし\n- studio_work_0206 新規Item Schema: PASS\n- PowerShell実実行 / Windows NativeShell実機確認: この環境では未実施\n",
+      "latest_user_comment": "では、まず　`wwwroot/diff` がゴミ箱化する問題  を対策お願いします。",
+      "context_refs": [
+        {
+          "context_ref_id": "ctx_0206_foundation_019",
+          "title": "GitHub基準ソースとZIP返却契約",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "最新添付ZIP基準、更新ファイルのみ返却、runtime生成物を成果物へ混ぜない契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 1,
+          "note": "今回の返却ZIPには変更ファイルだけを含める。"
+        }
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0206_diff_viewer_save_as",
+          "action_type": "UI_IMPROVEMENT",
+          "required": false,
+          "status": "NOT_STARTED",
+          "related_ids": [
+            "studio_work_0206"
+          ],
+          "note": "必要なDiffだけを成果物化できるよう、Diff JSON Viewerへ「名前を付けて保存」を追加する。current一時出力と正式保存を分離する。",
+          "summary": "Diff JSON Viewer 名前付き保存"
+        },
+        {
+          "action_id": "follow_0206_legacy_diff_cleanup",
+          "action_type": "OTHER",
+          "required": false,
+          "status": "NOT_STARTED",
+          "related_ids": [
+            "studio_work_0206"
+          ],
+          "note": "既存 `wwwroot/diff/DiffToJson_*.json` のうち不要なものを、人間確認後に整理する。今回の実装では自動削除しない。",
+          "summary": "既存日時付きDiffの整理"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "hist_0206_user_001",
+          "at": "2026-08-17T21:12:00+09:00",
+          "speaker": "user",
+          "topic": "wwwroot/diffのGitDiff自動蓄積停止依頼",
+          "message": "では、まず　`wwwroot/diff` がゴミ箱化する問題  を対策お願いします。"
+        },
+        {
+          "history_id": "hist_0206_assistant_001",
+          "at": "2026-08-17T21:16:00+09:00",
+          "speaker": "assistant",
+          "topic": "GitDiff一時出力1ファイル化 完了報告",
+          "message": "AI回答\n\n## 今回の更新\n\n- `tools/git/Export-DiffToJson.ps1`\n- `NativeShell/native_shell.config.json`\n- `data/json/04_tools/git_diff_export_run_config_data_v0_1.json`\n- `tests/qa/static/git_diff_current_output_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\nGitDiffの通常実行結果を、日時付きJSONの新規作成から `wwwroot/diff/DiffToJson_current.json` 1ファイル上書きへ変更した。\n\nこれ以降、Git Diff Runを何回実行しても通常出力はcurrent 1件だけで、次回実行時に内容が更新される。NativeShellのoutput artifactもcurrent 1件だけを監視するため、既存のDiff JSON Viewer自動表示導線は維持する。\n\n## 方針\n\n今回の目的は `wwwroot/diff` の自動蓄積停止に限定した。既に存在する日時付きDiff JSONは、保存価値が不明なものをAI判断で削除しないため、そのまま残している。\n\nDiff JSON Viewerの「名前を付けて保存」は次段階の後続作業として登録した。\n\n## 確認結果\n\n- GitDiff current出力専用Static: 1/1 PASS\n- 全Static Before: 264 tests / 246 PASS / 18 FAIL\n- 全Static After: 265 tests / 247 PASS / 18 FAIL\n- 既存18 FAILはテスト名まで完全一致、新規FAILなし\n- studio_work_0206 新規Item Schema: PASS\n- PowerShell実実行 / Windows NativeShell実機確認: この環境では未実施\n"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0206_single_current_output",
+          "at": "2026-08-17T21:12:00+09:00",
+          "decision": "通常GitDiff実行結果は `wwwroot/diff/DiffToJson_current.json` 1ファイルへ固定し、毎回上書きする。",
+          "reason": "GitDiff結果はまず確認用の一時出力であり、実行しただけで保存成果物を無制限に増やす必要がない。既存Viewer導線もWeb配下の固定ファイルなら小さな変更で維持できる。",
+          "applied_axes": [
+            "ゴミ抑制",
+            "責務分離",
+            "既存導線維持"
+          ]
+        },
+        {
+          "decision_id": "dec_0206_do_not_delete_legacy",
+          "at": "2026-08-17T21:12:00+09:00",
+          "decision": "既に存在する日時付きDiff JSONは今回自動削除しない。",
+          "reason": "過去ファイルの中にユーザーが残したいDiffが含まれる可能性があり、保存価値をAIだけで判定して削除すべきではない。",
+          "applied_axes": [
+            "データ保護",
+            "人間承認"
+          ]
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0206_gitdiff_output_contract",
+          "at": "2026-08-17T21:12:00+09:00",
+          "change_type": "runtime_output_policy",
+          "before": "GitDiff実行ごとに `DiffToJson_yyyyMMdd_HHmmss.json` を新規生成し、wwwroot/diffへ蓄積していた。",
+          "after": "通常GitDiff出力を `DiffToJson_current.json` へ固定し、次回実行時に同じファイルを上書きする。",
+          "reason": "wwwroot/diffの自動蓄積を止め、GitDiff結果を確認前の一時出力として扱うため。"
+        },
+        {
+          "history_id": "chg_0206_output_artifact_contract",
+          "at": "2026-08-17T21:12:00+09:00",
+          "change_type": "command_profile_update",
+          "before": "NativeShellは `wwwroot/diff/DiffToJson_*.json` をoutput artifactとして探索していた。",
+          "after": "`wwwroot/diff/DiffToJson_current.json` だけをoutput artifactとして監視する。",
+          "reason": "過去の日時付きJSONを今回実行の成果物と誤認せず、current一時出力を確実にViewerへ渡すため。"
         }
       ]
     }

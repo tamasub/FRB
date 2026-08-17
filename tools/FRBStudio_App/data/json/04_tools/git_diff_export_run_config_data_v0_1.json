@@ -6,13 +6,13 @@
   "target": "Export-DiffToJson.ps1 / Git Diff JSON Export / FilePair Diff",
   "status": "active",
   "created_at": "2026-06-27",
-  "updated_at": "2026-06-30",
+  "updated_at": "2026-08-17",
   "owner": "tamasub",
   "command_profile_id": "git_diff_export",
   "command_profile_caption": "Export-DiffToJson.ps1",
   "script_display_name": "tools/git/Export-DiffToJson.ps1",
-  "output_path_display": "wwwroot/diff/DiffToJson.json",
-  "security_policy": "任意commandLine/scriptPathはData JSONに持たせない。実行正本はProgram.cs側の許可済みCommandProfileとする。Run Config明細には出力先パスを持たせず、出力先は基本情報の参考メモまたはCommandProfile API由来の表示として扱う。DiffToJson_*.jsonはFRBStudio_App/wwwroot/diff配下へ出力し、Git管理外にする。FilePairモードでは任意commandLine/scriptPathではなく、from_file/to_file の2ファイルパスだけをProgram.cs経由で検証し、Export-DiffToJson.ps1 の -Mode FilePair に渡す。 FilePairのfrom_file/to_file は、任意2ファイル比較用途のため既存ローカルファイルであればFRBStudio_App外の絶対パスも許可する。相対パスはFRBStudio_App root基準として扱う。値全体を囲む余分な引用符はAction/API側で吸収するが、Data JSONへ保存する場合は引用符なしを推奨する。出力先はCommandProfile側でFRBStudio_App/wwwroot/diff配下へ制限する。",
+  "output_path_display": "wwwroot/diff/DiffToJson_current.json",
+  "security_policy": "任意commandLine/scriptPathはData JSONに持たせない。実行正本はProgram.cs側の許可済みCommandProfileとする。Run Config明細には出力先パスを持たせず、出力先は基本情報の参考メモまたはCommandProfile API由来の表示として扱う。通常のGitDiff実行結果はFRBStudio_App/wwwroot/diff/DiffToJson_current.json 1ファイルへ上書きし、日時付きDiffToJson_*.jsonを自動蓄積しない。currentは確認前の一時出力として扱い、Git管理外にする。FilePairモードでは任意commandLine/scriptPathではなく、from_file/to_file の2ファイルパスだけをProgram.cs経由で検証し、Export-DiffToJson.ps1 の -Mode FilePair に渡す。 FilePairのfrom_file/to_file は、任意2ファイル比較用途のため既存ローカルファイルであればFRBStudio_App外の絶対パスも許可する。相対パスはFRBStudio_App root基準として扱う。値全体を囲む余分な引用符はAction/API側で吸収するが、Data JSONへ保存する場合は引用符なしを推奨する。出力先はCommandProfile側でFRBStudio_App/wwwroot/diff配下へ制限する。",
   "run_configs": [
     {
       "run_config_id": "gitdiff_001_default_working_tree",
@@ -92,8 +92,8 @@
       "max_patch_chars": 60000,
       "no_patch": false,
       "enabled": true,
-      "note": "5行目。任意の2ファイルを個別指定して git diff --no-index 相当の差分JSONを出す。from_file/to_file は FRBStudio_App root 基準の相対パスまたは任意の既存ローカルファイル絶対パスを指定できる。サンプルは wwwroot/diff 配下の既存Diff JSON同士を比較する。"
+      "note": "5行目。任意の2ファイルを個別指定して git diff --no-index 相当の差分JSONを出す。from_file/to_file は FRBStudio_App root 基準の相対パスまたは任意の既存ローカルファイル絶対パスを指定できる。既存ローカルファイル2件を指定して比較する。"
     }
   ],
-  "output_path_note": "出力先: FRBStudio_App/wwwroot/diff/DiffToJson_yyyyMMdd_HHmmss.json（正本はCommandProfile APIの output_path / output_path_relative。Run Config明細には実行出力パスを持たせない。FilePairのFrom/ToはFRBStudio_App root基準の相対パスを推奨。）"
+  "output_path_note": "通常出力先: FRBStudio_App/wwwroot/diff/DiffToJson_current.json。GitDiff実行ごとに同じ1ファイルを上書きし、日時付きJSONは自動生成しない。正本はCommandProfile APIの output artifact。Run Config明細には実行出力パスを持たせない。FilePairのFrom/ToはFRBStudio_App root基準の相対パスを推奨。"
 }

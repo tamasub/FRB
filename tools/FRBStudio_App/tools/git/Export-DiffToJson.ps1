@@ -119,7 +119,7 @@ function Resolve-AppRootOutputPath {
         [string]$OutputPath
     )
 
-    $relativeDefault = 'wwwroot/diff/DiffToJson.json'
+    $relativeDefault = 'wwwroot/diff/DiffToJson_current.json'
     $raw = if ([string]::IsNullOrWhiteSpace($OutputPath)) { $relativeDefault } else { $OutputPath.Trim() }
 
     if ([System.IO.Path]::IsPathRooted($raw)) {
@@ -535,21 +535,11 @@ $json = $result | ConvertTo-StudioReadableJson -Depth 30
 
 # OutputPath は FRBStudio_App root 基準で解決する。
 # FRBStudio_App より上位の絶対パスへは出力しない。
-$baseOutputPath = Resolve-AppRootOutputPath -StudioAppRoot $studioAppRoot -OutputPath $OutputPath
+# 既定出力は DiffToJson_current.json の1ファイルだけとし、GitDiff実行ごとに上書きする。
+# GitDiff実行結果は「確認前の一時出力」として扱い、日時付きファイルを自動蓄積しない。
+$resolvedOutputPath = Resolve-AppRootOutputPath -StudioAppRoot $studioAppRoot -OutputPath $OutputPath
 
-# 日時付きファイル名にする
-# 例: DiffToJson_20260523_213045.json
-$timestamp = Format-StudioFileTimestamp
-
-$outputDir = Split-Path -Parent $baseOutputPath
-$outputFileName = [System.IO.Path]::GetFileNameWithoutExtension($baseOutputPath)
-$outputExt = [System.IO.Path]::GetExtension($baseOutputPath)
-
-if ([string]::IsNullOrWhiteSpace($outputExt)) {
-    $outputExt = ".json"
-}
-
-$resolvedOutputPath = Join-Path $outputDir ("{0}_{1}{2}" -f $outputFileName, $timestamp, $outputExt)
+$outputDir = Split-Path -Parent $resolvedOutputPath
 
 # 出力先フォルダがなければ作成
 if (-not [string]::IsNullOrWhiteSpace($outputDir)) {
