@@ -24,6 +24,7 @@
     "shell.openFolder",
     "process.runProfile",
     "folderGrant.select",
+    "folderGrant.promptPath",
     "folderGrant.restore",
     "folderGrant.list",
     "folderGrant.readText",

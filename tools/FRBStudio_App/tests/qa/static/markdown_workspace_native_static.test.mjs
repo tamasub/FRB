@@ -245,3 +245,48 @@ test('Markdown Studio warns before Common Shell navigation when Markdown or Revi
   assert.match(md, /window\.addEventListener\('beforeunload'/);
   assert.match(md, /event\.returnValue = ''/);
 });
+
+test('Markdown Workspace can be opened from an Explorer full path only through an explicit NativeShell confirmation dialog', () => {
+  assert.match(md, /id="btnWorkspacePathOpen"[^>]*>📋 フルパスを貼り付けて開く</);
+  assert.match(md, /async function selectMarkdownWorkspaceFolderByPath\(\)/);
+  assert.match(md, /FRBStudioNativeHost\.invoke\('folderGrant\.promptPath'/);
+  assert.match(md, /initial_path:\s*markdownWorkspaceRuntime\.rootPath \|\| ''/);
+  assert.doesNotMatch(md, /folderGrant\.openPath/);
+
+  assert.ok(nativeConfig.allowed_commands.includes('folderGrant.promptPath'));
+  assert.match(dispatcher, /case "folderGrant\.promptPath"/);
+  assert.match(dispatcher, /private object PromptFolderGrantPath/);
+  assert.match(dispatcher, /new TextBox/);
+  assert.match(dispatcher, /Explorerのアドレスバーからコピーしたフォルダーのフルパス/);
+  assert.match(dispatcher, /Path\.IsPathRooted\(rawPath\)/);
+  assert.match(dispatcher, /Directory\.Exists\(fullPath\)/);
+  assert.match(dispatcher, /pathBox\.SelectAll\(\)/);
+  assert.match(dispatcher, /ActivateFolderGrant\(policy, persistKey, restored: false\)/);
+});
+
+test('Markdown full-path Workspace dialog has a keyboard shortcut and never lets JS grant an arbitrary absolute path silently', () => {
+  assert.match(md, /event\.ctrlKey/);
+  assert.match(md, /event\.shiftKey/);
+  assert.match(md, /toLowerCase\(\) !== 'o'/);
+  assert.match(md, /selectMarkdownWorkspaceFolderByPath\(\)/);
+  assert.doesNotMatch(nativeConfig.allowed_commands.join('\n'), /folderGrant\.openPath/);
+  assert.doesNotMatch(dispatcher, /case "folderGrant\.openPath"/);
+  assert.match(dispatcher, /dialog\.ShowDialog\(\) != DialogResult\.OK/);
+});
+
+test('Markdown display profile changes heading presentation without rewriting Markdown heading levels', () => {
+  assert.match(md, /id="mdDisplayProfile"/);
+  assert.match(md, /<option value="standard">標準<\/option>/);
+  assert.match(md, /<option value="compact">コンパクト<\/option>/);
+  assert.match(md, /data-md-display-profile="compact"/);
+  assert.match(md, /html\[data-md-display-profile="compact"\] \.markdown-body h1 \{ font-size: 24px;/);
+  assert.match(md, /html\[data-md-display-profile="compact"\] \.markdown-body h2 \{ font-size: 20px;/);
+  assert.match(md, /MARKDOWN_DISPLAY_PROFILE_STORAGE_KEY = 'frb\.markdown\.displayProfile'/);
+  assert.match(md, /applyMarkdownDisplayProfile\(mdDisplayProfile\.value, \{ persist: true \}\)/);
+
+  const start = md.indexOf('function applyMarkdownDisplayProfile');
+  const end = md.indexOf('function loadMarkdownDisplayProfile', start);
+  const body = md.slice(start, end);
+  assert.doesNotMatch(body, /editorEl\.value|replaceFrontMatter|#{1,6}/,
+    'display profile must not modify canonical Markdown or heading syntax');
+});

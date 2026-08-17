@@ -102,6 +102,9 @@ namespace FRBStudio.NativeShell
                 case "folderGrant.select":
                     return SelectFolderGrant(payload);
 
+                case "folderGrant.promptPath":
+                    return PromptFolderGrantPath(payload);
+
                 case "folderGrant.restore":
                     return RestoreFolderGrant(payload);
 
@@ -198,6 +201,146 @@ namespace FRBStudio.NativeShell
                 }
                 return ActivateFolderGrant(policy, persistKey, restored: false);
             }
+        }
+
+        private object PromptFolderGrantPath(IDictionary<string, object> payload)
+        {
+            var persistKey = NormalizePersistKey(GetString(payload, "persist_key"), allowEmpty: true);
+            var initialPath = GetString(payload, "initial_path") ?? string.Empty;
+            if (!Directory.Exists(initialPath)) initialPath = string.Empty;
+
+            string selectedPath = null;
+            using (var dialog = new Form
+            {
+                Text = "Markdown Workspaceをフルパスから開く",
+                StartPosition = FormStartPosition.CenterScreen,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                MinimizeBox = false,
+                MaximizeBox = false,
+                ShowInTaskbar = false,
+                Width = 680,
+                Height = 190
+            })
+            {
+                var instruction = new Label
+                {
+                    Left = 16,
+                    Top = 14,
+                    Width = 630,
+                    Height = 34,
+                    Text = "Explorerのアドレスバーからコピーしたフォルダーのフルパスを貼り付けてください。"
+                };
+                var pathBox = new TextBox
+                {
+                    Left = 16,
+                    Top = 52,
+                    Width = 536,
+                    Text = initialPath
+                };
+                var browseButton = new Button
+                {
+                    Left = 560,
+                    Top = 50,
+                    Width = 86,
+                    Height = 28,
+                    Text = "参照..."
+                };
+                var errorLabel = new Label
+                {
+                    Left = 16,
+                    Top = 84,
+                    Width = 630,
+                    Height = 24,
+                    ForeColor = System.Drawing.Color.Firebrick,
+                    Text = string.Empty
+                };
+                var openButton = new Button
+                {
+                    Left = 466,
+                    Top = 112,
+                    Width = 86,
+                    Height = 30,
+                    Text = "開く"
+                };
+                var cancelButton = new Button
+                {
+                    Left = 560,
+                    Top = 112,
+                    Width = 86,
+                    Height = 30,
+                    Text = "キャンセル",
+                    DialogResult = DialogResult.Cancel
+                };
+
+                browseButton.Click += (sender, args) =>
+                {
+                    using (var folderDialog = new FolderBrowserDialog
+                    {
+                        Description = "Markdown Editorで開くフォルダーを選択",
+                        SelectedPath = Directory.Exists(pathBox.Text) ? pathBox.Text : _workspace.RootPath,
+                        ShowNewFolderButton = false
+                    })
+                    {
+                        if (folderDialog.ShowDialog() == DialogResult.OK)
+                        {
+                            pathBox.Text = folderDialog.SelectedPath;
+                            pathBox.SelectionStart = pathBox.TextLength;
+                            errorLabel.Text = string.Empty;
+                        }
+                    }
+                };
+
+                openButton.Click += (sender, args) =>
+                {
+                    try
+                    {
+                        var rawPath = (pathBox.Text ?? string.Empty).Trim();
+                        if (rawPath.Length >= 2 && rawPath.StartsWith("\"", StringComparison.Ordinal) && rawPath.EndsWith("\"", StringComparison.Ordinal))
+                            rawPath = rawPath.Substring(1, rawPath.Length - 2).Trim();
+                        rawPath = Environment.ExpandEnvironmentVariables(rawPath);
+                        if (!Path.IsPathRooted(rawPath))
+                            throw new InvalidOperationException("フルパスを入力してください。");
+                        var fullPath = Path.GetFullPath(rawPath);
+                        if (!Directory.Exists(fullPath))
+                            throw new DirectoryNotFoundException("フォルダーが見つかりません: " + fullPath);
+
+                        selectedPath = fullPath;
+                        dialog.DialogResult = DialogResult.OK;
+                        dialog.Close();
+                    }
+                    catch (Exception ex)
+                    {
+                        errorLabel.Text = ex.Message;
+                        pathBox.Focus();
+                        pathBox.SelectAll();
+                    }
+                };
+
+                dialog.AcceptButton = openButton;
+                dialog.CancelButton = cancelButton;
+                dialog.Controls.Add(instruction);
+                dialog.Controls.Add(pathBox);
+                dialog.Controls.Add(browseButton);
+                dialog.Controls.Add(errorLabel);
+                dialog.Controls.Add(openButton);
+                dialog.Controls.Add(cancelButton);
+                dialog.Shown += (sender, args) =>
+                {
+                    pathBox.Focus();
+                    pathBox.SelectAll();
+                };
+
+                if (dialog.ShowDialog() != DialogResult.OK || string.IsNullOrWhiteSpace(selectedPath))
+                    throw new OperationCanceledException();
+            }
+
+            var policy = new WorkspacePolicy(selectedPath);
+            if (!string.IsNullOrWhiteSpace(persistKey))
+            {
+                _persistedFolderGrantPaths[persistKey] = policy.RootPath;
+                SavePersistedFolderGrants();
+            }
+            return ActivateFolderGrant(policy, persistKey, restored: false);
         }
 
         private object RestoreFolderGrant(IDictionary<string, object> payload)

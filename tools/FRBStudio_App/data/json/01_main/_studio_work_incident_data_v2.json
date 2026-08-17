@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-17T18:36:00+09:00",
+  "updated_at": "2026-08-17T19:11:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 189,
+  "items_count": 191,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -29241,6 +29241,278 @@
           "before": "work_summary契約追加後のSchema/Static回帰未確認。",
           "after": "New Item Schema validation PASS、Focused Static追加テストPASS、全Staticは255/237 PASS/18既存FAILで新規FAILなし。",
           "reason": "work_summary必須化が既存契約を壊さず、Schema/ViewDef/Foundation Ruleの3層で整合することを確認するため。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0202",
+      "phase": "v0.18.80-markdown-workspace-fullpath-open",
+      "title": "Markdown Workspace Full Path Open — Explorerコピーのフルパスから直接開く",
+      "incident_type": "enhancement",
+      "category": "ui_maintenance",
+      "priority": "high",
+      "status": "確認中",
+      "follow_up_status": "NOT_STARTED",
+      "verification_status": "未確認",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-17T19:11:00+09:00",
+      "owner": "",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-17T19:11:00+09:00",
+      "updated_at": "2026-08-17T19:11:00+09:00",
+      "work_summary": "- Explorerのアドレスバー等からコピーした絶対フォルダーパスをMarkdown Studioへ貼り付け、従来のFolderBrowserDialogを階層移動せずWorkspaceを直接開けるようにする。\n- NativeShell側にユーザー確認付きのフルパス入力ダイアログを追加し、任意パスをJSから無確認でGrant化できない安全境界は維持する。\n- 既存の「フォルダーを開く」と前回Workspace復元は残し、フルパス指定を追加の入口として提供する。",
+      "target_files": "- NativeShell/NativeCommandDispatcher.cs\n- NativeShell/native_shell.config.json\n- NativeShell/README.md\n- wwwroot/mdViewer.html\n- tests/qa/static/markdown_workspace_native_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- NativeShell/NativeCommandDispatcher.cs\n- NativeShell/native_shell.config.json\n- NativeShell/README.md\n- wwwroot/mdViewer.html\n- tests/qa/static/markdown_workspace_native_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "- フルパス指定はMarkdown Workspace Folder Grantの別入口であり、App Root workspaceとは分離する。\n- 絶対パスの確定はNativeShellの明示ユーザー操作で行い、JSへ任意絶対パスGrant権限を直接与えない。\n- Explorerからコピーした quoted path / 環境変数 / UNCをWindowsのPath APIで正規化し、Directory.Exists確認後にGrant化する。\n- 選択済みWorkspaceは従来どおり markdown.workspace として永続化・復元する。",
+      "objective": "- 日常的にExplorerで目的フォルダーを特定してフルパスをコピーするユーザー操作を、そのままMarkdown StudioのWorkspace選択へ接続する。\n- 深いフォルダー階層をFolderBrowserDialogで辿る操作負荷を減らす。\n- Folder Grantの安全境界を弱めず、明示的なユーザー確定を必須とする。",
+      "background": "- 現行の「フォルダーを開く」はWinForms FolderBrowserDialogを使用しており、Explorerのアドレスバーからコピーしたフルパスを貼り付けて即座に目的フォルダーへ移動する操作ができない。\n- ユーザーは普段、Explorerで目的フォルダーを表示→フルパスCopy→ファイルダイアログのファイル名欄へPaste、という操作を最短経路として使っている。\n- Markdown Studioのフォルダー選択だけこの操作が使えず、Workspace変更が煩雑になっていた。",
+      "scope": "- Markdown Workspace欄へ「フルパスを貼り付けて開く」入口を追加する。\n- NativeShellへ folderGrant.promptPath を追加し、Native側TextBoxへフルパスを貼り付けて明示確定できるようにする。\n- 入力は絶対パス必須、存在するDirectoryのみ許可し、引用符付きコピーや環境変数を正規化する。\n- 既存persist_key=markdown.workspaceへ保存し、次回起動時のrestore契約を維持する。\n- Ctrl+Shift+Oから同じ入力ダイアログを開けるようにする。\n- StaticテストでUI/API/安全境界を固定する。",
+      "out_of_scope": "- Windows標準FolderBrowserDialog自体の内部UIを改造すること。\n- JSから任意の絶対フォルダーパスを無確認でFolder Grant化するAPIを提供すること。\n- Markdown Workspace外のファイル保存契約やReview JSONの扱いを変更すること。\n- ExplorerそのものをStudio内に再実装すること。",
+      "fixed_name_policy": "- 今回添付のFRBStudio_App20260817_190254.zipを唯一の基準ソースとする。\n- 既存ファイルは同名更新し、Foundation Rule 019に従って更新ファイルだけを返却ZIPへ同一相対パスで収録する。",
+      "module_policy": "- Folder Grantの権限確定責務はNativeShellに置く。Web UIはpromptPathの起動と結果Grantの適用だけを担当する。\n- 既存folderGrant.select / restore / list等は維持し、共通ActivateFolderGrantを再利用する。\n- 既存Markdown Workspace Staticへ契約テストを追加し、ケース専用Runnerは増やさない。",
+      "expected_outputs": "- Workspace欄の「フルパスを貼り付けて開く」からNative入力ダイアログが表示される。\n- Explorerからコピーした存在する絶対フォルダーパスを貼り付け「開く」で、そのフォルダーがMarkdown Workspaceになる。\n- 存在しないパス/相対パスはダイアログ内で拒否される。\n- Ctrl+Shift+Oでも同じ入口を開ける。\n- JSから無確認のabsolute-path Grant APIは公開されない。",
+      "risk": "- NativeShellはWindows環境でのみ実機確認可能であり、このLinux実行環境ではWinFormsダイアログのビルド/実動確認ができない可能性がある。\n- Native入力ダイアログのサイズ・DPI・日本語表示は実機確認が必要。\n- ネットワーク共有パスはOS側の権限/到達性に依存する。",
+      "test_points": "- native_shell.config.jsonにfolderGrant.promptPathがあり、folderGrant.openPathのような無確認APIがない。\n- Native側ダイアログにTextBox、絶対パス検証、Directory.Exists、明示OKがある。\n- Web UIにフルパス入口とCtrl+Shift+Oがある。\n- JSはpath値そのものをNativeへ渡さず、Nativeダイアログでユーザーが確定する。\n- 既存Markdown Workspace StaticのFAIL数を増やさず、全Staticの既存18 FAILを増やさない。",
+      "verification_log": "- New Item Schema validation: studio_work_0202 / studio_work_0203 ともに PASS。\n- Focused Static（markdown_workspace_native_static）Before: 21 tests / 19 PASS / 2 FAIL → After: 24 tests / 22 PASS / 2 FAIL。今回追加した3テストは全PASS。\n- 全Static Before（今回添付ZIP原本）: 255 tests / 237 PASS / 18 FAIL。\n- 全Static After: 258 tests / 240 PASS / 18 FAIL。\n- Before / Afterの既存18 FAILはテスト名まで完全一致し、今回変更による新規FAILなし。\n- mdViewer.html inline JavaScript: node --check PASS。\n- 更新JSON parse: PASS。\n- Static実行で更新された既存TP-IPC-001 Actual/Diffは原本へ復元し、返却差分から除外。\n- 現在のLinux実行環境には dotnet / msbuild / csc がないため、NativeShell C#の実ビルドは未実施。Windows実機でNative入力ダイアログとWebView2連携を確認する作業をfollow_upへ残す。",
+      "user_request": "Markdown Editorのフォルダー選択が使いづらい。Explorerで目的フォルダーを表示して上部のフルパスをコピーし、そのパスを貼り付けて該当フォルダーを直接開く運用をMarkdown Studioでもできるようにしてほしい。",
+      "ai_response": "- Windows標準FolderBrowserDialogを無理に拡張せず、Markdown Studioへフルパス指定の追加入口を実装する。\n- セキュリティ上、JSへ任意absolute pathのGrant権限を直接与えず、NativeShell側の明示入力ダイアログでユーザー確定後にFolder Grantを発行する。\n- 既存のフォルダー選択/復元契約は維持する。",
+      "latest_ai_response": "AI回答\n\n## 実装\n\n- `NativeShell/NativeCommandDispatcher.cs` に `folderGrant.promptPath` を追加。\n- NativeShell側でフルパス入力用のWinFormsダイアログを表示し、ExplorerからコピーしたパスをTextBoxへ貼り付けて「開く」を押すとFolder Grantを発行する。\n- 相対パス・存在しないDirectoryはダイアログ内で拒否する。引用符付きパスと環境変数は正規化する。\n- `wwwroot/mdViewer.html` のWorkspace欄へ「📋 フルパスを貼り付けて開く」を追加し、`Ctrl+Shift+O` でも同じNative入力ダイアログを開ける。\n- 既存 `folderGrant.select` / `folderGrant.restore` / `markdown.workspace` 永続化はそのまま維持する。\n\n## 安全境界\n\n利便性のために `folderGrant.openPath(path)` のようなAPIをJSへ公開すると、Web UI側が任意のローカルフォルダーを無確認でGrant化できる。そのためその方式は採用せず、NativeShell側の明示ユーザー確認ダイアログ `folderGrant.promptPath` だけを公開した。\n\n## 確認\n\n- Focused Static: 21 / 19 PASS / 2既存FAIL → 24 / 22 PASS / 2既存FAIL\n- 全Static: 255 / 237 PASS / 18 FAIL → 258 / 240 PASS / 18 FAIL\n- 既存18 FAILは名前まで完全一致、新規FAILなし\n- New Item Schema: PASS\n- mdViewer inline JS syntax: PASS\n- NativeShell C# buildは現Linux環境に.NET/MSBuildがないため未実施。Windows実機確認をPENDINGとして残した。",
+      "latest_user_comment": "2点のMarkdown Editor改善案に合意。インシデント登録込みで実作業を依頼。",
+      "context_refs": [
+        {
+          "context_ref_id": "foundation_rule_019",
+          "title": "GitHub基準ソースとZIP返却契約",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "今回添付の最新資材だけを基準にし、更新ファイルを同一相対パスで返却する契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "今回の作業・返却範囲契約。"
+        }
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "fu_0202_001",
+          "action_type": "MANUAL_MARKDOWN_WORKSPACE_FULLPATH_VERIFICATION",
+          "required": true,
+          "status": "NOT_STARTED",
+          "related_ids": [
+            "studio_work_0202"
+          ],
+          "note": "Windows実機でExplorerからコピーした深いフォルダーパスを貼り付け、対象Workspaceが直接開くこと、相対/存在しないパスが拒否されることを確認する。",
+          "summary": "実機でフルパスWorkspace Openを確認する。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "hist_0202_001",
+          "at": "2026-08-17T19:11:00+09:00",
+          "speaker": "user",
+          "topic": "Markdown Workspace フルパス指定",
+          "message": "フォルダーを開くダイアログが使いづらく、Explorerで目的フォルダーを表示してフルパスをコピーし、そのパスを貼り付けてフォルダーを特定する運用をしたい。"
+        },
+        {
+          "history_id": "hist_0202_002",
+          "at": "2026-08-17T19:11:00+09:00",
+          "speaker": "assistant",
+          "topic": "Markdown Workspace フルパス指定",
+          "message": "Windows標準ダイアログ自体を改造せず、Studio側にフルパス指定入口を追加する。権限確定はNativeShellのユーザー確認ダイアログに置き、安全境界を維持する。"
+        },
+        {
+          "history_id": "hist_0202_003",
+          "at": "2026-08-17T19:11:00+09:00",
+          "speaker": "assistant",
+          "topic": "Markdown Workspace フルパス指定",
+          "message": "AI回答\n\n## 実装\n\n- `NativeShell/NativeCommandDispatcher.cs` に `folderGrant.promptPath` を追加。\n- NativeShell側でフルパス入力用のWinFormsダイアログを表示し、ExplorerからコピーしたパスをTextBoxへ貼り付けて「開く」を押すとFolder Grantを発行する。\n- 相対パス・存在しないDirectoryはダイアログ内で拒否する。引用符付きパスと環境変数は正規化する。\n- `wwwroot/mdViewer.html` のWorkspace欄へ「📋 フルパスを貼り付けて開く」を追加し、`Ctrl+Shift+O` でも同じNative入力ダイアログを開ける。\n- 既存 `folderGrant.select` / `folderGrant.restore` / `markdown.workspace` 永続化はそのまま維持する。\n\n## 安全境界\n\n利便性のために `folderGrant.openPath(path)` のようなAPIをJSへ公開すると、Web UI側が任意のローカルフォルダーを無確認でGrant化できる。そのためその方式は採用せず、NativeShell側の明示ユーザー確認ダイアログ `folderGrant.promptPath` だけを公開した。\n\n## 確認\n\n- Focused Static: 21 / 19 PASS / 2既存FAIL → 24 / 22 PASS / 2既存FAIL\n- 全Static: 255 / 237 PASS / 18 FAIL → 258 / 240 PASS / 18 FAIL\n- 既存18 FAILは名前まで完全一致、新規FAILなし\n- New Item Schema: PASS\n- mdViewer inline JS syntax: PASS\n- NativeShell C# buildは現Linux環境に.NET/MSBuildがないため未実施。Windows実機確認をPENDINGとして残した。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0202_001",
+          "at": "2026-08-17T19:11:00+09:00",
+          "decision": "フルパス指定はJSからabsolute pathを直接Grant化するAPIではなく、NativeShell側の明示入力ダイアログ folderGrant.promptPath として実装する。",
+          "reason": "利便性を上げつつ、Web UI/JSが任意のローカルフォルダーを無確認で読み書きできる権限へ拡張しないため。",
+          "applied_axes": [
+            "ユーザー操作最短化",
+            "最小権限",
+            "既存Folder Grant責務の維持"
+          ],
+          "conditions": "NativeShell実行時にユーザーが入力ダイアログでパスを確認して「開く」を押すこと。",
+          "exceptions": "ブラウザ単体では利用不可。",
+          "expected_behavior": "ユーザー操作なしに任意absolute pathがGrant化されない。",
+          "acceptance_criteria": "allowed commandはpromptPathのみ、Native dialogでPath.IsPathRooted/Directory.Existsを確認し、JSはpath payloadを送らない。"
+        },
+        {
+          "decision_id": "dec_0202_002",
+          "at": "2026-08-17T19:11:00+09:00",
+          "decision": "既存のfolderGrant.selectとmarkdown.workspace永続復元は残し、フルパス指定を追加入口として共存させる。",
+          "reason": "既存ユーザー操作・復元契約を壊さず、困っている操作だけを最小差分で改善できるため。",
+          "applied_axes": [
+            "後方互換",
+            "最小差分",
+            "責務追加で解決"
+          ],
+          "conditions": "新入口で開いたFolder Grantも既存persist_keyを使用する。",
+          "exceptions": "なし。",
+          "expected_behavior": "どの入口でWorkspaceを開いても同じtree/read/write契約へ合流する。",
+          "acceptance_criteria": "applyMarkdownWorkspaceGrantを共通利用し、restore契約を変更しない。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0202_001",
+          "at": "2026-08-17T19:11:00+09:00",
+          "change_type": "incident_registered",
+          "before": "Markdown WorkspaceはFolderBrowserDialogからの選択のみで、Explorerコピーのフルパスを直接指定できない。",
+          "after": "studio_work_0202 / v0.18.80-markdown-workspace-fullpath-open を登録し、フルパス入力による追加入口の実装を開始。",
+          "reason": "深いフォルダー階層を辿る操作負荷を減らすため。"
+        },
+        {
+          "history_id": "chg_0202_002",
+          "at": "2026-08-17T19:11:00+09:00",
+          "change_type": "implementation_and_static_verification_completed",
+          "before": "フルパス指定入口と安全境界の実装・回帰確認前。",
+          "after": "NativeShellの明示入力ダイアログfolderGrant.promptPath、Markdown UI入口、Ctrl+Shift+O、再発防止Staticを実装。全Staticは258/240 PASS/18既存FAILで新規FAILなし。",
+          "reason": "利便性改善とローカルFolder Grantの安全境界を同時に満たすため。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0203",
+      "phase": "v0.18.81-markdown-view-display-profile",
+      "title": "Markdown Viewer Display Profile — 見出し階層と表示サイズの分離",
+      "incident_type": "enhancement",
+      "category": "ui_maintenance",
+      "priority": "high",
+      "status": "確認中",
+      "follow_up_status": "NOT_STARTED",
+      "verification_status": "未確認",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-17T19:11:00+09:00",
+      "owner": "",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-17T19:11:00+09:00",
+      "updated_at": "2026-08-17T19:11:00+09:00",
+      "work_summary": "- Markdownの `# / ## / ###` は文書構造として一切変更せず、Viewer側の見出しフォントサイズだけを「標準 / コンパクト」で即時切り替えられるようにする。\n- 会社文書などでH1/H2が大きすぎる場合でも、Markdown原文を編集せず表示だけ落ち着かせる。\n- 選択した表示プロファイルは端末内のUI設定として保持し、次回も同じ見た目で開けるようにする。",
+      "target_files": "- wwwroot/mdViewer.html\n- tests/qa/static/markdown_workspace_native_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- wwwroot/mdViewer.html\n- tests/qa/static/markdown_workspace_native_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "- Markdown heading levelは意味構造、Display Profileは表示表現として責務分離する。\n- Display Profile切替でCanonical Markdown、editorEl.value、Front Matter、Review Snapshotを変更しない。\n- 初期プロファイルはstandard / compactの2種類に限定し、自由なCSS編集UIは今回作らない。\n- 表示選択はUI preferenceとしてlocalStorageに保存し、Markdown Save Safety用バックアップとは別責務とする。",
+      "objective": "- H1/H2の見た目が大きすぎるためにMarkdown heading levelを下げる誤った編集を避ける。\n- 同じMarkdown原文を用途に応じた見た目で確認できるようにする。\n- 文書構造とView表現の分離をMarkdown Studioにも適用する。",
+      "background": "- 会社でMarkdown Editorを使う際、`#` の階層に応じたViewerのフォントサイズが大きく、文書を開いた瞬間に圧迫感が出ることがある。\n- 見た目だけを小さくしたいのに `#` を `##` へ変えると、文書の意味階層まで変わってしまう。\n- ユーザーから、heading levelはそのままに別Viewをさくっと選択してタイトルサイズだけ変えたいとの要望があった。",
+      "scope": "- Markdown上部の表示モード領域へDisplay Profile選択を追加する。\n- standardは現行見た目を維持する。\n- compactはH1〜H6のfont-sizeと余白だけを縮小する。\n- CSSはdata-md-display-profile属性で切り替え、Markdown parser/Canonical dataには触れない。\n- 選択値はlocalStorageのUI preferenceとして保存・復元する。\n- Staticでheading構造を書き換えない契約を固定する。",
+      "out_of_scope": "- Markdown heading levelの自動変換。\n- ユーザーがH1〜H6のpx値を自由入力する高度なテーマEditor。\n- Qiita/Zenn/Dark theme自体の再設計。\n- 印刷専用スタイルやPDF出力の最適化。",
+      "fixed_name_policy": "- 今回添付のFRBStudio_App20260817_190254.zipを唯一の基準ソースとする。\n- mdViewer.htmlは同名更新し、Foundation Rule 019に従って変更ファイルだけを返却ZIPへ収録する。",
+      "module_policy": "- Markdown原文=Data、Display Profile=Viewとして分離する。\n- 既存marked.js/rendering処理は変更せず、documentElement属性+CSS overrideだけで実現する。\n- 初手はstandard/compactの2presetに限定し、違和感が育った場合のみ将来Profile定義外出しを検討する。",
+      "expected_outputs": "- Markdown上部で「標準 / コンパクト」を選択できる。\n- compact選択時はH1/H2を中心に見出しが小さくなり、会社文書でも圧迫感を抑えられる。\n- `# / ## / ###` 等のCanonical Markdownは一文字も変更されない。\n- プロファイル選択が次回表示時も復元される。",
+      "risk": "- コンパクトの最適サイズは利用環境・ディスプレイ・会社文書の密度によって好みが分かれるため、初期値は仮説であり実機フィードバックで調整する可能性がある。\n- localStorageは表示設定だけに使用し、文書バックアップ用途へは戻さない。",
+      "test_points": "- mdDisplayProfileにstandard/compactが存在する。\n- compact CSSがH1〜H6の見た目だけをoverrideする。\n- applyMarkdownDisplayProfileがeditorEl.value等のCanonical Markdownへ触れない。\n- 選択値はfrb.markdown.displayProfileへ保存・復元される。\n- 既存Markdown Workspace StaticのFAIL数と全Staticの既存18 FAILを増やさない。",
+      "verification_log": "- New Item Schema validation: studio_work_0202 / studio_work_0203 ともに PASS。\n- Focused Static（markdown_workspace_native_static）Before: 21 tests / 19 PASS / 2 FAIL → After: 24 tests / 22 PASS / 2 FAIL。今回追加した3テストは全PASS。\n- 全Static Before（今回添付ZIP原本）: 255 tests / 237 PASS / 18 FAIL。\n- 全Static After: 258 tests / 240 PASS / 18 FAIL。\n- Before / Afterの既存18 FAILはテスト名まで完全一致し、今回変更による新規FAILなし。\n- mdViewer.html inline JavaScript: node --check PASS。\n- 更新JSON parse: PASS。\n- Static実行で更新された既存TP-IPC-001 Actual/Diffは原本へ復元し、返却差分から除外。\n- 現在のLinux実行環境には dotnet / msbuild / csc がないため、NativeShell C#の実ビルドは未実施。Windows実機でNative入力ダイアログとWebView2連携を確認する作業をfollow_upへ残す。",
+      "user_request": "会社でMarkdown Editorを使うと、#階層に応じたViewerのタイトルフォントが大きくて困る。#の階層は変えず、別のViewをさくっと選択してタイトルのフォントサイズを変更したい。",
+      "ai_response": "- Markdown heading levelを文書構造、表示サイズをViewとして分離する。\n- 初手は「標準 / コンパクト」の2Display Profileで実装し、Markdown原文には触れない。\n- profileはCSS属性切替で実現し、端末のUI preferenceとして保持する。",
+      "latest_ai_response": "AI回答\n\n## 実装\n\n- Markdown Studio上部に `表示 [標準 / コンパクト]` を追加。\n- `standard` は既存の見た目を維持し、`compact` はH1〜H6のfont-sizeと余白だけを小さくする。H1=24px、H2=20pxを中心に会社文書向けの落ち着いた密度へ寄せた。\n- 切替は `data-md-display-profile` + CSS overrideだけで行い、`# / ## / ###` を含むCanonical Markdownには一切触れない。\n- 選択値は `frb.markdown.displayProfile` として端末内のUI preferenceに保存し、次回表示時に復元する。これはMarkdown本文バックアップではない。\n\n## 判断\n\nMarkdownのheading levelは文書の意味構造、見出しサイズはView表現として分離した。初手では自由なフォントサイズ設定を作らず、`標準 / コンパクト` の2presetに限定する。\n\n## 確認\n\n- Focused Static: 21 / 19 PASS / 2既存FAIL → 24 / 22 PASS / 2既存FAIL\n- 全Static: 255 / 237 PASS / 18 FAIL → 258 / 240 PASS / 18 FAIL\n- 既存18 FAILは名前まで完全一致、新規FAILなし\n- Display Profile関数が `editorEl.value` 等のCanonical Markdownを書き換えないことをStaticで固定\n- mdViewer inline JS syntax: PASS\n- 実機で標準/コンパクトの見た目と選択復元を確認する作業をPENDINGとして残した。",
+      "latest_user_comment": "2点のMarkdown Editor改善案に合意。インシデント登録込みで実作業を依頼。",
+      "context_refs": [
+        {
+          "context_ref_id": "foundation_rule_019",
+          "title": "GitHub基準ソースとZIP返却契約",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "今回添付の最新資材だけを基準にし、更新ファイルを同一相対パスで返却する契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "今回の作業・返却範囲契約。"
+        }
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "fu_0203_001",
+          "action_type": "MANUAL_MARKDOWN_DISPLAY_PROFILE_VERIFICATION",
+          "required": true,
+          "status": "NOT_STARTED",
+          "related_ids": [
+            "studio_work_0203"
+          ],
+          "note": "実機で同じMarkdownを標準/コンパクトで切り替え、heading levelを変更せず見出しサイズだけが変わること、再起動後に選択が復元されることを確認する。",
+          "summary": "実機でMarkdown Display Profileを確認する。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "hist_0203_001",
+          "at": "2026-08-17T19:11:00+09:00",
+          "speaker": "user",
+          "topic": "Markdown表示プロファイル",
+          "message": "会社でMarkdownを使うと#階層ごとのViewerフォントが大きく、見た目のためにheading階層を変えたくない。別Viewを選ぶだけでタイトルサイズを変えたい。"
+        },
+        {
+          "history_id": "hist_0203_002",
+          "at": "2026-08-17T19:11:00+09:00",
+          "speaker": "assistant",
+          "topic": "Markdown表示プロファイル",
+          "message": "heading levelは文書構造として維持し、Viewer CSSだけをstandard/compactのDisplay Profileで切り替える方針とする。"
+        },
+        {
+          "history_id": "hist_0203_003",
+          "at": "2026-08-17T19:11:00+09:00",
+          "speaker": "assistant",
+          "topic": "Markdown表示プロファイル",
+          "message": "AI回答\n\n## 実装\n\n- Markdown Studio上部に `表示 [標準 / コンパクト]` を追加。\n- `standard` は既存の見た目を維持し、`compact` はH1〜H6のfont-sizeと余白だけを小さくする。H1=24px、H2=20pxを中心に会社文書向けの落ち着いた密度へ寄せた。\n- 切替は `data-md-display-profile` + CSS overrideだけで行い、`# / ## / ###` を含むCanonical Markdownには一切触れない。\n- 選択値は `frb.markdown.displayProfile` として端末内のUI preferenceに保存し、次回表示時に復元する。これはMarkdown本文バックアップではない。\n\n## 判断\n\nMarkdownのheading levelは文書の意味構造、見出しサイズはView表現として分離した。初手では自由なフォントサイズ設定を作らず、`標準 / コンパクト` の2presetに限定する。\n\n## 確認\n\n- Focused Static: 21 / 19 PASS / 2既存FAIL → 24 / 22 PASS / 2既存FAIL\n- 全Static: 255 / 237 PASS / 18 FAIL → 258 / 240 PASS / 18 FAIL\n- 既存18 FAILは名前まで完全一致、新規FAILなし\n- Display Profile関数が `editorEl.value` 等のCanonical Markdownを書き換えないことをStaticで固定\n- mdViewer inline JS syntax: PASS\n- 実機で標準/コンパクトの見た目と選択復元を確認する作業をPENDINGとして残した。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0203_001",
+          "at": "2026-08-17T19:11:00+09:00",
+          "decision": "Markdownのheading levelとViewerの見出しサイズを分離し、Display ProfileはCanonical Markdownを変更しないView責務として実装する。",
+          "reason": "見た目調整のために#階層を変更すると文書の意味構造が壊れるため。",
+          "applied_axes": [
+            "DataとViewの分離",
+            "文書意味構造の保全",
+            "人間レビュー負荷の削減"
+          ],
+          "conditions": "Viewer/Editor/Reviewで同じCanonical Markdownを参照すること。",
+          "exceptions": "なし。",
+          "expected_behavior": "profile変更前後でMarkdown原文が同一のまま、見出し表示だけが変わる。",
+          "acceptance_criteria": "applyMarkdownDisplayProfileがeditorEl.valueを更新せず、CSS attributeだけを変更する。"
+        },
+        {
+          "decision_id": "dec_0203_002",
+          "at": "2026-08-17T19:11:00+09:00",
+          "decision": "初期Display Profileはstandard / compactの2種類に限定し、自由なサイズ設定UIや外部Profile JSON化は行わない。",
+          "reason": "まず実利用の痛点を最小構成で解消し、設定項目・実装責務を増やしすぎないため。",
+          "applied_axes": [
+            "最小十分",
+            "使ってから育てる",
+            "設定複雑性を抑える"
+          ],
+          "conditions": "compact値は実機確認後に調整可能とする。",
+          "exceptions": "利用パターンが増えた場合は別インシデントでProfile定義外出しを検討する。",
+          "expected_behavior": "表示切替が迷わず一操作で行える。",
+          "acceptance_criteria": "selectはstandard/compactのみを持ち、standardは現行CSSを維持する。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0203_001",
+          "at": "2026-08-17T19:11:00+09:00",
+          "change_type": "incident_registered",
+          "before": "Viewerの見出しサイズを変えるための独立表示設定がなく、見た目を変えるにはMarkdown heading level自体を変える誘惑がある。",
+          "after": "studio_work_0203 / v0.18.81-markdown-view-display-profile を登録し、heading意味構造と表示サイズを分離する実装を開始。",
+          "reason": "会社文書での読みやすさを改善しつつ、Markdown構造を保全するため。"
+        },
+        {
+          "history_id": "chg_0203_002",
+          "at": "2026-08-17T19:11:00+09:00",
+          "change_type": "implementation_and_static_verification_completed",
+          "before": "Markdown heading levelとViewerの見出しサイズが実質一体で、表示だけを小さくする入口がない。",
+          "after": "standard/compact Display Profileを追加し、Canonical Markdownを変更せずCSS表示だけを切替・端末内UI preferenceとして復元する契約を実装。全Staticで新規FAILなし。",
+          "reason": "文書意味構造を保ったまま会社文書の表示密度を調整できるようにするため。"
         }
       ]
     }

@@ -2147,6 +2147,23 @@
     }
     .md-workspace-open-actions { margin-bottom: 6px; }
     .md-workspace-open-actions button { font-size: 10px; }
+    .md-workspace-path-open { margin-bottom: 6px; }
+    .md-workspace-path-open button { width: 100%; padding: 7px 8px; font-size: 10.5px; }
+    .md-display-profile-wrap {
+      display:flex; align-items:center; gap:6px; padding-left:8px;
+      color:var(--muted); font-size:10.5px; font-weight:850; white-space:nowrap;
+    }
+    .md-display-profile-wrap select {
+      width:auto; min-width:92px; padding:7px 24px 7px 9px; border-radius:10px; font-size:11px; font-weight:800;
+    }
+
+    /* studio_work_0203: Markdown heading semantics stay intact; only viewer presentation changes. */
+    html[data-md-display-profile="compact"] .markdown-body h1 { font-size: 24px; margin-bottom: 18px; }
+    html[data-md-display-profile="compact"] .markdown-body h2 { font-size: 20px; margin-top: 34px; margin-bottom: 16px; padding-bottom: 8px; }
+    html[data-md-display-profile="compact"] .markdown-body h3 { font-size: 17px; margin-top: 28px; margin-bottom: 12px; }
+    html[data-md-display-profile="compact"] .markdown-body h4 { font-size: 15.5px; margin-top: 24px; margin-bottom: 10px; }
+    html[data-md-display-profile="compact"] .markdown-body h5 { font-size: 14.5px; margin-top: 18px; margin-bottom: 7px; }
+    html[data-md-display-profile="compact"] .markdown-body h6 { font-size: 13.5px; margin-top: 14px; margin-bottom: 6px; }
   </style>
   <link rel="stylesheet" href="css/frb-studio-shell.css?v=0185p9-markdown-menu" />
 </head>
@@ -2178,6 +2195,13 @@
             <button id="btnReviewMode" class="ghost-btn compact-text-btn" disabled>Review</button>
           </div>
           <button id="btnNewReview" class="ghost-btn compact-text-btn md-new-review-btn" disabled>＋ NEW Review</button>
+          <label class="md-display-profile-wrap" for="mdDisplayProfile" title="Markdownの#階層は変えず、Viewerの見出しサイズだけを切り替えます。">
+            表示
+            <select id="mdDisplayProfile" aria-label="Markdown表示プロファイル">
+              <option value="standard">標準</option>
+              <option value="compact">コンパクト</option>
+            </select>
+          </label>
         </div>
       </div>
       
@@ -2225,6 +2249,9 @@
             <div class="md-workspace-actions md-workspace-open-actions">
               <button class="ghost-btn" id="localFileBtn" type="button" title="Markdownを管理するフォルダーを開きます。選択だけでは何も作成しません。">📁 フォルダーを開く</button>
               <button class="ghost-btn" id="btnExternalOpen" type="button" title="Workspace外のMarkdownを開きます。元ファイルへの上書きは可能ですが、Review開始にはWorkspaceへの取り込みが必要です。">ファイルを開く</button>
+            </div>
+            <div class="md-workspace-path-open">
+              <button class="ghost-btn" id="btnWorkspacePathOpen" type="button" title="Explorerのアドレスバーからコピーした絶対フォルダーパスを貼り付けてWorkspaceを直接開きます。Ctrl+Shift+Oでも開けます。">📋 フルパスを貼り付けて開く</button>
             </div>
             <div class="md-workspace-actions">
               <button id="btnNewWorkspaceMarkdown" type="button" class="ghost-btn">＋ File</button>
@@ -2355,7 +2382,7 @@ function mdStudioFileTimestamp() {
 const mdUrlEl=document.getElementById("mdUrl"),previewEl=document.getElementById("preview"),editorInlineHost=document.getElementById("editorInlineHost"),tocEl=document.getElementById("toc"),charCountEl=document.getElementById("charCount"),readTimeEl=document.getElementById("readTime"),blockModelMeta=document.getElementById("blockModelMeta"),localFileBtn=document.getElementById("localFileBtn"),localFileInput=document.getElementById("localFileInput"),tocDepthBtns=[...document.querySelectorAll(".toc-depth-btn")],editorEl=document.getElementById("editor"),btnViewerMode=document.getElementById("btnViewerMode"),btnEditorMode=document.getElementById("btnEditorMode"),btnReviewMode=document.getElementById("btnReviewMode"),btnNewReview=document.getElementById("btnNewReview"),mdSaveTargetBadge=document.getElementById("mdSaveTargetBadge"),articleCard=document.getElementById("articleCard"),metaFileName=document.getElementById("metaFileName"),editorFileName=document.getElementById("editorFileName"),slashMenu=document.getElementById("slashMenu"),managedMdSelect=document.getElementById("managedMdSelect"),btnClearManagedMd=document.getElementById("btnClearManagedMd"),btnManagedMdTree=document.getElementById("btnManagedMdTree"),managedMdTreePicker=document.getElementById("managedMdTreePicker"),managedMdTreeList=document.getElementById("managedMdTreeList"),btnRefreshManagedMd=document.getElementById("btnRefreshManagedMd"),btnOverwriteManagedMd=document.getElementById("btnOverwriteManagedMd");
 
 const fmPanel=document.getElementById("fmPanel"),fmHeader=document.getElementById("fmHeader"),fmBody=document.getElementById("fmBody"),fmToggleIcon=document.getElementById("fmToggleIcon"),fmSuggestArea=document.getElementById("fmSuggestArea");
-const btnExternalOpen=document.getElementById("btnExternalOpen"),btnRefreshWorkspace=document.getElementById("btnRefreshWorkspace"),btnNewWorkspaceMarkdown=document.getElementById("btnNewWorkspaceMarkdown"),btnNewWorkspaceFolder=document.getElementById("btnNewWorkspaceFolder"),mdWorkspaceTree=document.getElementById("mdWorkspaceTree"),mdWorkspaceName=document.getElementById("mdWorkspaceName"),mdWorkspacePath=document.getElementById("mdWorkspacePath"),mdWorkspaceRootDrop=document.getElementById("mdWorkspaceRootDrop"),mdDocumentOrigin=document.getElementById("mdDocumentOrigin");
+const btnExternalOpen=document.getElementById("btnExternalOpen"),btnWorkspacePathOpen=document.getElementById("btnWorkspacePathOpen"),btnRefreshWorkspace=document.getElementById("btnRefreshWorkspace"),btnNewWorkspaceMarkdown=document.getElementById("btnNewWorkspaceMarkdown"),btnNewWorkspaceFolder=document.getElementById("btnNewWorkspaceFolder"),mdWorkspaceTree=document.getElementById("mdWorkspaceTree"),mdWorkspaceName=document.getElementById("mdWorkspaceName"),mdWorkspacePath=document.getElementById("mdWorkspacePath"),mdWorkspaceRootDrop=document.getElementById("mdWorkspaceRootDrop"),mdDocumentOrigin=document.getElementById("mdDocumentOrigin"),mdDisplayProfile=document.getElementById("mdDisplayProfile");
 const fmSlug=document.getElementById("fmSlug"),fmTopics=document.getElementById("fmTopics"),fmTitleInput=document.getElementById("fmTitleInput"),fmEmojiInput=document.getElementById("fmEmojiInput"),fmTypeInput=document.getElementById("fmTypeInput"),fmTopicsInput=document.getElementById("fmTopicsInput"),fmPublishedInput=document.getElementById("fmPublishedInput"),btnResetFrontMatter=document.getElementById("btnResetFrontMatter"),fmEditStatus=document.getElementById("fmEditStatus");
 
 let tocDepth="all";
@@ -2387,6 +2414,28 @@ let mdViewerConfigRuntime = {
   default_remote_markdown_url: "",
   default_sidecar_author: "user"
 };
+
+const MARKDOWN_DISPLAY_PROFILE_STORAGE_KEY = 'frb.markdown.displayProfile';
+const MARKDOWN_DISPLAY_PROFILES = new Set(['standard', 'compact']);
+function normalizeMarkdownDisplayProfile(value) {
+  const profile = String(value || '').trim().toLowerCase();
+  return MARKDOWN_DISPLAY_PROFILES.has(profile) ? profile : 'standard';
+}
+function applyMarkdownDisplayProfile(value, { persist = false } = {}) {
+  const profile = normalizeMarkdownDisplayProfile(value);
+  document.documentElement.setAttribute('data-md-display-profile', profile);
+  if (mdDisplayProfile) mdDisplayProfile.value = profile;
+  if (persist) {
+    try { localStorage.setItem(MARKDOWN_DISPLAY_PROFILE_STORAGE_KEY, profile); } catch (_) {}
+  }
+  return profile;
+}
+function loadMarkdownDisplayProfile() {
+  let saved = 'standard';
+  try { saved = localStorage.getItem(MARKDOWN_DISPLAY_PROFILE_STORAGE_KEY) || 'standard'; } catch (_) {}
+  return applyMarkdownDisplayProfile(saved, { persist: false });
+}
+loadMarkdownDisplayProfile();
 
 function normalizeMdViewerConfig(raw) {
   const cfg = raw && typeof raw === "object" ? raw : {};
@@ -6526,6 +6575,24 @@ async function selectMarkdownWorkspaceFolder() {
     return false;
   }
 }
+async function selectMarkdownWorkspaceFolderByPath() {
+  if (!nativeMarkdownHostAvailable()) {
+    showMarkdownWarn('「フルパスを貼り付けて開く」はFRBStudio.NativeShell.exeで利用できます。', 5200);
+    return false;
+  }
+  try {
+    const result = await window.FRBStudioNativeHost.invoke('folderGrant.promptPath', {
+      initial_path: markdownWorkspaceRuntime.rootPath || '',
+      persist_key: MARKDOWN_WORKSPACE_PERSIST_KEY
+    });
+    return await applyMarkdownWorkspaceGrant(result, { announce: true });
+  } catch (err) {
+    if (err?.code === 'USER_CANCELLED') return false;
+    showMarkdownError('指定したフォルダーを開けませんでした.\n' + (err?.message || err));
+    return false;
+  }
+}
+
 async function loadMarkdownWorkspaceChildren(path = '', { force = false } = {}) {
   if (!markdownWorkspaceSelected()) return [];
   const relative = normalizeWorkspaceRelativePath(path);
@@ -7415,6 +7482,18 @@ btnOverwriteManagedMd.addEventListener("click", async () => {
 document.getElementById("loadBtn").addEventListener("click",()=>loadMarkdown(mdUrlEl.value));
 localFileBtn.addEventListener("click", async () => {
   await selectMarkdownWorkspaceFolder();
+});
+btnWorkspacePathOpen?.addEventListener("click", async () => {
+  await selectMarkdownWorkspaceFolderByPath();
+});
+mdDisplayProfile?.addEventListener('change', () => {
+  applyMarkdownDisplayProfile(mdDisplayProfile.value, { persist: true });
+});
+window.addEventListener('keydown', (event) => {
+  if (!event.ctrlKey || !event.shiftKey || event.altKey || String(event.key || '').toLowerCase() !== 'o') return;
+  if (isAnyMarkdownDialogOpen()) return;
+  event.preventDefault();
+  selectMarkdownWorkspaceFolderByPath();
 });
 btnExternalOpen?.addEventListener("click", async () => {
   try {

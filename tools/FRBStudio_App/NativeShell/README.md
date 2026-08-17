@@ -82,5 +82,6 @@ The final distribution constraint is intentionally not fixed yet; the result of 
 ## Persisted folder grant
 
 `folderGrant.select` は任意の `persist_key` を受け取り、ユーザーが明示選択したフォルダーだけを `%LOCALAPPDATA%\FRBStudio\folder_grants.json` に保存できます。
+`folderGrant.promptPath` はNativeShell側の入力ダイアログを表示し、Explorer等からコピーした絶対フォルダーパスをユーザーが貼り付けて「開く」を明示確定した場合だけFolder Grantを発行します。JSから任意の絶対パスを無確認でGrant化するコマンドは提供しません。
 次回起動時は `folderGrant.restore` に同じ `persist_key` を渡すことで、任意パスをJSから指定せず、過去に承認済みのフォルダーGrantだけを復元します。
 Markdown Studioは `markdown.workspace` を使用します。
