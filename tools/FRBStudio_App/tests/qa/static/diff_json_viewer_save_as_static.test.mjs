@@ -74,3 +74,12 @@ test('Difference details右端の中途半端な件数表示は廃止する', ()
   assert.doesNotMatch(viewer, /id="detailStatus"/);
   assert.doesNotMatch(viewer, /\$\("detailStatus"\)/);
 });
+
+
+test('Difference details検索操作はスクロール本文の外へ固定し常時操作可能にする', () => {
+  const viewer = read('wwwroot/DiffJsonViewer.html');
+
+  assert.match(viewer, /<main class="panel">[\s\S]*<h2><span>Difference details<\/span><\/h2>[\s\S]*<div class="main-controls"[^>]*>[\s\S]*<div class="body">/);
+  assert.match(viewer, /main\.panel > \.main-controls\{[\s\S]*flex:0 0 auto;[\s\S]*border-bottom:1px solid var\(--border\);[\s\S]*background:#fff/);
+  assert.match(viewer, /id="diffSearch"[\s\S]*id="viewMode"[\s\S]*id="lineTypeFilter"[\s\S]*id="clearSearchBtn"/);
+});

@@ -54,12 +54,15 @@ test('爆速デモショートカットはwait型Run Config IDまで固定して
   assert.ok(String(row.output_artifact_path ?? '').endsWith('.json'));
 });
 
-test('Diff JSON Viewerの上段操作は表示中ソースを中心に1行で揃える', () => {
+test('Diff JSON Viewer上段は操作列と表示中ソース列の2段構造にする', () => {
   const html = readText('wwwroot/DiffJsonViewer.html');
-  assert.match(html, /class="file-open-group"[\s\S]*id="openFileBtn"[\s\S]*id="currentSource"[\s\S]*id="jsonEncoding"[\s\S]*id="saveAsBtn"/);
+  assert.match(html, /class="file-open-group"[\s\S]*class="file-open-actions"[\s\S]*id="openFileBtn"[\s\S]*id="saveAsBtn"[\s\S]*class="file-display-label">表示<\/span>[\s\S]*id="jsonEncoding"[\s\S]*id="currentSource"/);
   assert.match(html, />ファイルを開く<\/button>/);
+  assert.match(html, />名前を付けて保存<\/button>/);
   assert.match(html, /class="current-source-label">表示中：<\/span>/);
   assert.doesNotMatch(html, /<label>DiffToJson\.json<\/label>/);
-  assert.match(html, /\.file-open-group\{display:flex;[^}]*align-items:center/);
-  assert.match(html, /\.file-open-group select,\.file-open-group button\{white-space:nowrap/);
+  assert.match(html, /\.frb-page-diff-json \.toolbar > div\.file-open-group\{[\s\S]*display:flex;[\s\S]*flex-direction:column/);
+  assert.match(html, /\.frb-page-diff-json \.toolbar\{[\s\S]*display:grid;[\s\S]*grid-template-columns:minmax\(520px,660px\) minmax\(360px,1fr\)/);
+  assert.match(html, /\.frb-page-diff-json \.file-open-actions\{[\s\S]*align-items:center/);
+  assert.match(html, /\.frb-page-diff-json \.current-source\{[\s\S]*border-top:1px solid/);
 });

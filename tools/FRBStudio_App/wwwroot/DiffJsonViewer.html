@@ -115,6 +115,115 @@
     }
   </style>
   <link rel="stylesheet" href="css/frb-studio-shell.css?v=0185p11-diff-meta-polish" />
+  <style id="diff-json-viewer-layout-v01890">
+    /* v0.18.90: Diff JSON Viewer toolbar visual contract.
+       The shared shell has a more-specific `.toolbar > div:first-child` grid rule,
+       so this override intentionally targets `div.file-open-group` with equal/higher
+       specificity and is loaded after the shared stylesheet. */
+    .frb-page-diff-json .toolbar{
+      display:grid;
+      grid-template-columns:minmax(520px,660px) minmax(360px,1fr);
+      gap:12px;
+      align-items:stretch;
+      min-height:92px;
+      padding:10px 14px;
+    }
+    .frb-page-diff-json .toolbar > div.file-open-group{
+      display:flex;
+      flex-direction:column;
+      gap:0;
+      width:100%;
+      min-width:0;
+      height:100%;
+      align-items:stretch;
+    }
+    .frb-page-diff-json .file-open-actions{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      width:100%;
+      min-width:0;
+      min-height:40px;
+    }
+    .frb-page-diff-json .file-command-group,
+    .frb-page-diff-json .file-display-group{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex:0 0 auto;
+    }
+    .frb-page-diff-json .file-display-group{
+      margin-left:auto;
+    }
+    .frb-page-diff-json .file-display-label{
+      color:#64748b;
+      font-size:12px;
+      font-weight:800;
+      white-space:nowrap;
+    }
+    .frb-page-diff-json .file-open-actions button,
+    .frb-page-diff-json .file-open-actions select{
+      width:auto;
+      min-width:0;
+      white-space:nowrap;
+      flex:0 0 auto;
+    }
+    .frb-page-diff-json .current-source{
+      display:flex;
+      align-items:center;
+      width:100%;
+      flex:0 0 auto;
+      min-width:0;
+      min-height:30px;
+      margin-top:8px;
+      padding:8px 4px 0;
+      border-top:1px solid #e2e8f0;
+      line-height:1.25;
+    }
+    .frb-page-diff-json .current-source-value{
+      min-width:0;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .frb-page-diff-json .toolbar > .drop-zone{
+      min-width:0;
+      width:100%;
+      min-height:78px;
+      align-self:stretch;
+    }
+    .frb-page-diff-json main.panel > .main-controls{
+      flex:0 0 auto;
+      display:grid;
+      grid-template-columns:minmax(260px,1fr) 150px 140px auto;
+      gap:8px;
+      align-items:center;
+      margin:0;
+      padding:10px 14px;
+      border-bottom:1px solid var(--border);
+      background:#fff;
+      position:relative;
+      z-index:2;
+      box-shadow:0 3px 10px rgba(15,23,42,.035);
+    }
+    @media(max-width:980px){
+      .frb-page-diff-json .toolbar{
+        grid-template-columns:1fr;
+      }
+      .frb-page-diff-json .toolbar > div.file-open-group{
+        min-width:0;
+      }
+      .frb-page-diff-json .file-open-actions{
+        flex-wrap:wrap;
+      }
+      .frb-page-diff-json .file-display-group{
+        margin-left:0;
+      }
+      .frb-page-diff-json main.panel > .main-controls{
+        grid-template-columns:1fr;
+      }
+    }
+  </style>
 </head>
 <body>
 <script src="js/core/native_host_bridge.js?v=webview2-native-shell-01862-diff-save-as"></script>
@@ -136,17 +245,24 @@
 <div class="toolbar">
   <div class="file-open-group">
     <input id="jsonFile" class="visually-hidden" type="file" accept=".json,application/json">
-    <button id="openFileBtn" type="button" title="Diff JSONファイルを開く">ファイルを開く</button>
+    <div class="file-open-actions">
+      <div class="file-command-group">
+        <button id="openFileBtn" type="button" title="Diff JSONファイルを開く">ファイルを開く</button>
+        <button id="saveAsBtn" disabled title="読み込んだDiff JSONを任意の場所へ名前を付けて保存">名前を付けて保存</button>
+      </div>
+      <div class="file-display-group">
+        <span class="file-display-label">表示</span>
+        <select id="jsonEncoding" title="JSON読み込み文字コード">
+          <option value="utf-8" selected>UTF-8</option>
+          <option value="shift_jis">Shift_JIS</option>
+        </select>
+      </div>
+      <span id="saveAsStatus" class="visually-hidden" aria-live="polite"></span>
+    </div>
     <div id="currentSource" class="current-source" title="未読込">
       <span class="current-source-label">表示中：</span>
       <span id="currentSourceText" class="current-source-value">未読込</span>
     </div>
-    <select id="jsonEncoding" title="JSON読み込み文字コード">
-      <option value="utf-8" selected>UTF-8</option>
-      <option value="shift_jis">Shift_JIS</option>
-    </select>
-    <button id="saveAsBtn" disabled title="読み込んだDiff JSONを任意の場所へ名前を付けて保存">名前を付けて保存</button>
-    <span id="saveAsStatus" class="visually-hidden" aria-live="polite"></span>
   </div>
   <div id="dropZone" class="drop-zone">DiffToJson.jsonをここに <strong>Drop</strong> して読み込み</div>
 </div>
@@ -175,23 +291,22 @@
 
   <main class="panel">
     <h2><span>Difference details</span></h2>
+    <div class="main-controls" aria-label="Difference details 検索・表示条件">
+      <input id="diffSearch" type="search" placeholder="全ファイルの差分本文・ファイル名を検索">
+      <select id="viewMode">
+        <option value="selected">選択ファイルのみ</option>
+        <option value="all">全ファイル一覧</option>
+        <option value="matches">検索一致だけ</option>
+      </select>
+      <select id="lineTypeFilter">
+        <option value="">全行</option>
+        <option value="add">追加行だけ</option>
+        <option value="del">削除行だけ</option>
+        <option value="change">追加/削除だけ</option>
+      </select>
+      <button id="clearSearchBtn">検索解除</button>
+    </div>
     <div class="body">
-      <div class="main-controls">
-        <input id="diffSearch" type="search" placeholder="全ファイルの差分本文・ファイル名を検索">
-        <select id="viewMode">
-          <option value="selected">選択ファイルのみ</option>
-          <option value="all">全ファイル一覧</option>
-          <option value="matches">検索一致だけ</option>
-        </select>
-        <select id="lineTypeFilter">
-          <option value="">全行</option>
-          <option value="add">追加行だけ</option>
-          <option value="del">削除行だけ</option>
-          <option value="change">追加/削除だけ</option>
-        </select>
-        <button id="clearSearchBtn">検索解除</button>
-      </div>
-
       <div id="selectedInfo">
         <div class="empty">左のファイル一覧から選択してください。</div>
       </div>
