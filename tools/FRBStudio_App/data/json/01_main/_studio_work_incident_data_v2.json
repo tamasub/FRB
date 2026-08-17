@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-16T23:45:00+09:00",
+  "updated_at": "2026-08-17T18:20:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 187,
+  "items_count": 188,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -28941,6 +28941,146 @@
           "after": "専用5/5、Focused22/22、全Static新規FAILなし、JS syntax PASS。実機確認のみ残存。",
           "reason": "今回責務のStatic契約と既存回帰を確認したため。"
         }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0200",
+      "phase": "v0.18.78-incident-history-child-grid-visibility-fix",
+      "title": "インシデント履歴系objectArrayのDetail child grid表示回帰修正",
+      "incident_type": "bugfix",
+      "category": "ui_maintenance",
+      "priority": "high",
+      "status": "確認中",
+      "follow_up_status": "NOT_STARTED",
+      "verification_status": "Static確認済み / 実機確認待ち",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-17T18:20:00+09:00",
+      "owner": "",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-17T18:20:00+09:00",
+      "updated_at": "2026-08-17T18:20:00+09:00",
+      "target_files": "- defs/rules/studio_work_incident_view_def_v0_5.json\n- tests/qa/static/combo_viewdef_maintenance_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- defs/rules/studio_work_incident_view_def_v0_5.json\n- tests/qa/static/combo_viewdef_maintenance_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "- discussion_history / decision_log / change_history は通常scalar入力欄ではなくDetail child gridで表示する履歴系objectArrayである。\n- v0.18.60でDetail child gridにもedit.visibleを共通適用したため、これらを表示するにはViewDef側でedit.visible=trueが必要。\n- Runtimeの責務別visible契約は維持し、今回の回帰はViewDefを現行契約へ移行して解消する。",
+      "objective": "- Studioくんのインシデント詳細画面で会話履歴・判断ログ・変更履歴を再表示する。\n- v0.18.60で統一されたedit.visible契約を壊さず、履歴系objectArrayを現行契約へ合わせる。\n- 同じ回帰を既存の共通ViewDef可視性Staticで検知できるようにする。",
+      "background": "- _studio_work_incident_data_v2.jsonのdecision_log自体は存在していたが、インシデントViewDefのdecision_logがedit.visible=falseだった。\n- v0.18.60 / studio_work_0183でobjectArray/stringArrayのDetail child gridにもisFieldVisibleInDetail()を適用したため、edit.visible=falseの履歴系objectArrayがchild area生成前に除外されるようになった。\n- 旧ViewDefのdisplay_noteは『通常入力欄化せずchild grid表示』を意図しており、Runtime契約変更後のViewDef移行が不足していた。",
+      "scope": "- discussion_history / decision_log / change_history のedit.visibleをtrueへ変更する。\n- Native/API正本のdefs/rules版を現行Detail可視性契約へ移行する。\n- 既存のViewDef可視性契約Static（combo_viewdef_maintenance_static）へ、3項目がobjectArray / grid.visible=false / edit.visible=trueであることを追加する。\n- wwwroot/defs/json/rules版はFoundation Rule 019の公開用静的領域契約により今回更新せず、既存driftを後続作業へ残す。",
+      "out_of_scope": "- wwwroot/defs/json/rules/studio_work_incident_view_def_v0_5.json の更新。\n- defs/rules版とwwwroot/defs/json/rules版の全項目・全構造を完全同期すること。\n- Detail child gridのRuntime可視性契約そのものをv0.18.60以前へ戻すこと。\n- 履歴系objectArrayの列構成や編集UXの再設計。",
+      "fixed_name_policy": "- Foundation Rule 019を遵守する。\n- 今回添付のFRBStudio_App20260817_181518(1).zipを唯一の基準ソースとする。\n- 既存ファイルは同名更新し、返却ZIPには変更ファイルのみを同一相対パスで収録する。",
+      "module_policy": "- RuntimeのSearch/Grid/Detail責務別visible契約は維持する。\n- 今回はNative/API正本のViewDef側を現行契約へ適合させ、履歴系objectArrayだけをDetail child gridへ復帰させる。\n- Foundation Rule 019に従い、公開用wwwroot/defsは明示依頼なしでは更新しない。既存コピーdriftはfollow_up_actionsへ残す。\n- Foundation Rule 019のテストコード共通化方針に合わせ、ケース専用testファイルは増やさず既存Staticへ追加する。",
+      "expected_outputs": "- Native/API経路のインシデント詳細画面で会話履歴・判断ログ・変更履歴がchild gridとして表示される。\n- 後続作業を含む既存objectArray表示契約を壊さない。\n- node --testの既存FAIL数を増やさず、新規StaticがPASSする。",
+      "risk": "- edit.visible=trueに変更してもobjectArrayは通常scalar入力欄ではなくrenderChildArea側へ送られる現在のRuntime契約を前提とする。\n- wwwroot/defs/json/rules版はdefs/rules版と既に構造差分があり、静的hosting経路では同症状が残る可能性がある。Foundation Rule 019により今回は更新せず、別作業とする。",
+      "test_points": "- defs/rulesのインシデントViewDefでdiscussion_history / decision_log / change_historyがobjectArrayかつedit.visible=trueである。\n- 同3項目はmain Gridには出さないためgrid.visible=falseを維持する。\n- detail_save.jsがchild area生成時にisFieldVisibleInDetail()を使う現行Runtime契約と整合する。\n- studio_work_0200にwwwroot/defs静的コピー統合作業がPENDINGで残る。\n- 全Staticの既存FAIL名・件数を増やさない。",
+      "verification_log": "- Focused Static（既存共通テスト）: combo_viewdef_maintenance_static Before 13 tests / 12 PASS / 1 FAIL → After 14 tests / 13 PASS / 1 FAIL。追加した履歴child grid契約テストはPASS。\n- 全Static Before（今回添付ZIP原本）: 253 tests / 235 PASS / 18 FAIL。\n- 全Static After: 254 tests / 236 PASS / 18 FAIL。\n- Before / Afterの既存18 FAILはテスト名まで一致し、今回変更による新規FAILなし。\n- JSON parse: defs/rules/studio_work_incident_view_def_v0_5.json / data/json/01_main/_studio_work_incident_data_v2.json PASS。\n- Runtime生成物として更新された既存TP-IPC-001 Actual/Diffは原本へ復元し、返却差分から除外。\n- wwwroot/defs/json/rules版はFoundation Rule 019に従い未更新。静的hosting側の正本統合はfollow_up_actionsへ残した。\n- 実機で既存インシデント詳細を開き、会話履歴・判断ログ・変更履歴のchild grid再表示を確認する作業のみPENDING。",
+      "user_request": "インシデントの判断ログがStudioくんのエディター画面に表示されない原因を修正してほしい。最新資材を再添付したので、その資材を基準にそのまま修正する。",
+      "ai_response": "- 原因はv0.18.60でDetail child gridにもedit.visibleを適用した一方、既存インシデントViewDefの履歴系objectArrayがedit.visible=falseのままだったことによる回帰と判断。\n- Runtimeを戻さず、Native/API正本の会話履歴・判断ログ・変更履歴を現行契約へ合わせて修正する。\n- Foundation Rule 019に従い公開用wwwroot/defsコピーは今回は触らず、既存driftを後続作業として明示する。\n- 再発防止Staticを追加する。",
+      "latest_ai_response": "AI回答\n\n## 今回の更新\n\n- `defs/rules/studio_work_incident_view_def_v0_5.json`\n- `tests/qa/static/combo_viewdef_maintenance_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\n`discussion_history` / `decision_log` / `change_history` の `edit.visible` を `true` に変更し、v0.18.60以降の共通Detail可視性契約でも履歴系objectArrayがchild gridへ出るようにした。Runtime側の `isFieldVisibleInDetail()` 契約は戻していない。\n\n再発防止はケース専用testファイルを増やさず、既存の `combo_viewdef_maintenance_static.test.mjs` へ追加した。3項目が `objectArray` / `grid.visible=false` / `edit.visible=true` であることを固定した。\n\n## 方針\n\n`wwwroot/defs/json/rules/studio_work_incident_view_def_v0_5.json` は公開用静的領域であり、Foundation Rule 019により明示依頼なしでは更新しない。しかもNative/API正本との既存構造差分があるため、今回は触らず `VIEWDEF_STATIC_COPY_CONSOLIDATION` として後続作業へ残した。\n\n## 確認結果\n\n- Focused Static: 13 tests / 12 PASS / 1 FAIL → 14 tests / 13 PASS / 1 FAIL\n- 全Static: 253 tests / 235 PASS / 18 FAIL → 254 tests / 236 PASS / 18 FAIL\n- 既存18 FAILはテスト名まで一致、新規FAILなし\n- JSON parse: OK\n- テスト実行で更新された既存Actual/Diffは原本へ復元済み\n- 実機で履歴3グリッドの再表示確認のみPENDING",
+      "follow_up_actions": [
+        {
+          "action_id": "",
+          "action_type": "VIEWDEF_STATIC_COPY_CONSOLIDATION",
+          "required": false,
+          "status": "PENDING",
+          "related_ids": [
+            "studio_work_0200"
+          ],
+          "note": "defs/rules/studio_work_incident_view_def_v0_5.json と wwwroot/defs/json/rules/studio_work_incident_view_def_v0_5.json は今回以前からcaption・follow_up_actions等に構造差分がある。Foundation Rule 019により公開用wwwroot/defsは明示依頼なしでは更新しないため、今回修正はNative/API正本だけに適用した。",
+          "summary": "インシデントViewDefのNative/API正本と静的fallbackコピーの正本関係を整理し、必要なら公開用コピーの生成・同期方式を一本化する。"
+        },
+        {
+          "action_id": "",
+          "action_type": "MANUAL_INCIDENT_HISTORY_VISIBILITY_VERIFICATION",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "studio_work_0200"
+          ],
+          "note": "StaticではViewDef契約を確認する。実機では既存インシデントを開き、3つの履歴系child gridが表示されることを確認する。",
+          "summary": "実機で会話履歴・判断ログ・変更履歴の再表示を確認する。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "at": "2026-08-17T18:20:00+09:00",
+          "speaker": "user",
+          "message": "インシデントの中の判断ログが、studioくんのエディター画面に表示されない。最新資材を添付するので原因確認してほしい。"
+        },
+        {
+          "at": "2026-08-17T18:20:00+09:00",
+          "speaker": "assistant",
+          "message": "decision_logデータは存在するが、v0.18.60でDetail child gridにもedit.visible=falseが適用されるようになり、旧ViewDef契約と衝突していることを特定した。"
+        },
+        {
+          "at": "2026-08-17T18:20:00+09:00",
+          "speaker": "user",
+          "message": "修正をそのままお願い。念のため同じ最新資材を再添付する。"
+        },
+        {
+          "at": "2026-08-17T18:20:00+09:00",
+          "speaker": "assistant",
+          "message": "AI回答\n\n## 今回の更新\n\n- `defs/rules/studio_work_incident_view_def_v0_5.json`\n- `tests/qa/static/combo_viewdef_maintenance_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\n`discussion_history` / `decision_log` / `change_history` の `edit.visible` を `true` に変更し、v0.18.60以降の共通Detail可視性契約でも履歴系objectArrayがchild gridへ出るようにした。Runtime側の `isFieldVisibleInDetail()` 契約は戻していない。\n\n再発防止はケース専用testファイルを増やさず、既存の `combo_viewdef_maintenance_static.test.mjs` へ追加した。3項目が `objectArray` / `grid.visible=false` / `edit.visible=true` であることを固定した。\n\n## 方針\n\n`wwwroot/defs/json/rules/studio_work_incident_view_def_v0_5.json` は公開用静的領域であり、Foundation Rule 019により明示依頼なしでは更新しない。しかもNative/API正本との既存構造差分があるため、今回は触らず `VIEWDEF_STATIC_COPY_CONSOLIDATION` として後続作業へ残した。\n\n## 確認結果\n\n- Focused Static: 13 tests / 12 PASS / 1 FAIL → 14 tests / 13 PASS / 1 FAIL\n- 全Static: 253 tests / 235 PASS / 18 FAIL → 254 tests / 236 PASS / 18 FAIL\n- 既存18 FAILはテスト名まで一致、新規FAILなし\n- JSON parse: OK\n- テスト実行で更新された既存Actual/Diffは原本へ復元済み\n- 実機で履歴3グリッドの再表示確認のみPENDING"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0200_001",
+          "at": "2026-08-17T18:20:00+09:00",
+          "decision": "Runtimeのedit.visible共通契約は戻さず、履歴系objectArrayのViewDefをedit.visible=trueへ移行する。",
+          "reason": "Search/Grid/Detailの責務別visible契約を維持したまま、旧ViewDefだけを現行Runtime契約へ適合させる方が影響範囲が小さいため。",
+          "applied_axes": [
+            "責務別表示契約の維持",
+            "最小差分",
+            "後方互換リスク最小化"
+          ],
+          "conditions": "objectArrayが通常scalar入力欄ではなくDetail child areaへ描画される現行Runtimeであること。",
+          "exceptions": "Runtime側でobjectArrayをscalar editorとして描画する将来変更が入る場合は再評価する。",
+          "expected_behavior": "discussion_history / decision_log / change_historyがDetail child gridとして表示される。",
+          "acceptance_criteria": "3項目がobjectArray / grid.visible=false / edit.visible=trueとなり、対象StaticがPASSする。",
+          "confirmation_level": "Static確認 / 実機確認待ち"
+        },
+        {
+          "decision_id": "dec_0200_002",
+          "at": "2026-08-17T18:20:00+09:00",
+          "decision": "wwwroot/defs/json/rules版は今回更新せず、正本統合・静的hosting対応を後続作業へ残す。",
+          "reason": "Foundation Rule 019がwwwroot/defsを公開用静的領域と定義し、明示依頼なしの更新を禁止しているため。また2コピーには今回以前からfollow_up_actions等の構造差分があり、全面同期は別責務になる。",
+          "applied_axes": [
+            "Foundation Rule 019遵守",
+            "最小十分な差分",
+            "責務分離"
+          ],
+          "conditions": "今回の利用経路がNative/APIのdefs/rules正本であること。",
+          "exceptions": "ユーザーが静的hosting版の同期を明示依頼した場合は別インシデントで対応する。",
+          "expected_behavior": "今回ZIPではNative/API正本だけを修正し、公開用コピーのdriftを不用意に巻き取らない。",
+          "acceptance_criteria": "返却ZIPにwwwroot/defs配下の更新ファイルを含めず、follow_up_actionsに統合作業を残す。",
+          "confirmation_level": "確認済み"
+        }
+      ],
+      "change_history": [
+        {
+          "at": "2026-08-17T18:20:00+09:00",
+          "change_type": "incident_registered",
+          "before": "履歴系objectArrayがedit.visible=falseのため、v0.18.60以降Detail child gridから除外される。",
+          "after": "studio_work_0200 / v0.18.78-incident-history-child-grid-visibility-fixを登録。",
+          "reason": "判断ログ等が画面に表示されない回帰を修正し、再発防止テストを残すため。"
+        },
+        {
+          "at": "2026-08-17T18:20:00+09:00",
+          "change_type": "viewdef_visibility_contract_migrated",
+          "before": "defs/rules正本のdiscussion_history / decision_log / change_history がedit.visible=false。",
+          "after": "defs/rules正本の対象3項目をedit.visible=trueへ変更。wwwroot/defs公開用コピーは未更新。",
+          "reason": "現行RuntimeのDetail可視性契約へ最小差分で合わせつつ、Foundation Rule 019の公開領域非更新契約を守るため。"
+        },
+        {
+          "at": "2026-08-17T18:20:00+09:00",
+          "change_type": "verification_completed",
+          "before": "修正後の全Static回帰未確認。",
+          "after": "Focused Staticは13/12/1→14/13/1。全Staticは原本253/235/18から254/236/18となり、既存18 FAIL名一致・新規FAILなし。runtime生成Actual/Diffは原本へ復元。",
+          "reason": "履歴系objectArrayの表示契約修正が既存Static回帰を増やしていないことを確認するため。"
+        }
+      ],
+      "context_refs": [
+        "studio_work_0183",
+        "foundation_rule_019"
       ]
     }
   ],

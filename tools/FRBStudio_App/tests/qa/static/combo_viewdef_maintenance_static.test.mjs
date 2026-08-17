@@ -260,3 +260,23 @@ test('ViewDef maintenance section selector exposes Section identity before long 
   assert.equal(catalog[1].name.startsWith('Git Diff Run Config [grid] / '), true);
   assert.equal(catalog.some(item => item.name.startsWith('検索 [form] / ')), false);
 });
+
+test('incident history objectArrays remain visible in Detail child grids after the shared edit.visible contract', () => {
+  const viewDef = json('defs/rules/studio_work_incident_view_def_v0_5.json');
+  const fields = new Map();
+  for (const view of viewDef.views ?? []) {
+    for (const section of view.sections ?? []) {
+      for (const field of section.fields ?? []) {
+        if (field?.field) fields.set(field.field, field);
+      }
+    }
+  }
+
+  for (const name of ['discussion_history', 'decision_log', 'change_history']) {
+    const field = fields.get(name);
+    assert.ok(field, `${name} must exist`);
+    assert.equal(field.type, 'objectArray');
+    assert.equal(field.grid?.visible, false, `${name} must stay hidden from the main Grid`);
+    assert.equal(field.edit?.visible, true, `${name} must be visible in the Detail child grid`);
+  }
+});
