@@ -6,7 +6,7 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-17T23:12:00+09:00",
+  "updated_at": "2026-08-17T23:25:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
@@ -30285,7 +30285,7 @@
     },
     {
       "work_item_id": "studio_work_0208",
-      "phase": "v0.18.90-diff-json-viewer-toolbar-specificity-fix",
+      "phase": "v0.18.91-diff-json-viewer-search-label-clarity",
       "title": "Diff JSON Viewer 操作2段化 / 表示中ソース整理 / 検索バー固定",
       "incident_type": "maintenance",
       "category": "other",
@@ -30298,25 +30298,25 @@
       "owner": "",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-17T22:35:00+09:00",
-      "updated_at": "2026-08-17T23:12:00+09:00",
-      "work_summary": "- Diff JSON Viewer上段の2段構造が共有Shell CSSの高詳細度selectorに負けて崩れたため、実際に競合しているselectorより同等以上の詳細度でpage-specific overrideを定義し、見た目の契約を確実に固定する。\n- 左ブロックは1段目を `[ファイルを開く] [名前を付けて保存]  表示 [UTF-8]`、2段目を `表示中：<Diff JSON>` とし、右側Drop領域は独立列として2段分の高さを使う。\n- Difference details検索列の固定契約は維持し、今回の再修正では上段ツールバーの視覚崩れだけを止める。",
-      "target_files": "- wwwroot/DiffJsonViewer.html\n- tests/qa/static/test_runner_post_run_json_open_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
-      "actual_updated_files": "- wwwroot/DiffJsonViewer.html\n- tests/qa/static/test_runner_post_run_json_open_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "updated_at": "2026-08-17T23:25:00+09:00",
+      "work_summary": "- Diff JSON Viewerの上段ツールバー / 表示中ソース / 検索バー固定までのUI整理を継続する。\n- 今回は二段階検索の役割が文言だけで理解できるよう、左を `検索語を入力してファイル抽出`、右を `選択ファイル内を検索` へ変更する。\n- 検索ロジック自体は変更せず、左＝検索語を含むファイルの抽出、右＝選択ファイル内の検索という利用者の認知に表示を合わせる。",
+      "target_files": "- wwwroot/DiffJsonViewer.html\n- tests/qa/static/diff_json_viewer_save_as_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- wwwroot/DiffJsonViewer.html\n- tests/qa/static/diff_json_viewer_save_as_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
       "context_def_draft": "# ContextDef素案: Diff JSON Viewer Source / Save State整理\n\n## 目的\nDiff JSON Viewerの「どこから読んだデータを見ているか」と「どこへ別名保存したか」を分離し、UI上で読込状態を矛盾なく確認できるようにする。\n\n## 表示中ソース契約\n- File選択 / Drop / GitDiff自動表示 / URL表示の全経路で、同じ `表示中` UIへ反映する。\n- 可視部はファイル名を中心に表示し、長い場合は途中省略する。\n- Tooltipには取得可能な完全な読込元を保持する。ブラウザFile API経由ではOS絶対パスを取得できないため、その場合はファイル名を完全値とする。\n\n## Save As契約\n- Save Asは現在表示中のJSON内容を別ファイルへ保存する明示操作である。\n- 保存完了で現在表示中ソースを保存先へ自動切替しない。\n- 保存結果文字列はツールバー幅へ参加させない。\n\n## Warning契約\n- Git warningsは件数と全warningを保持し、固定高の枠内で内部スクロールする。\n- 長いwarning文字列は枠外へはみ出さない。\n\n## Difference details件数\n- 右端の単独件数は何を数えているか曖昧なため廃止する。\n- 将来、検索件数を表示する場合は対象件数・表示カード数・フィルタ条件を一体で設計する。\n\n## v0.18.89 実機UI再整理\n- 上段は「ファイル操作・表示設定」と「現在表示中source」の2段に分ける。\n- 1段目: `[ファイルを開く] [名前を付けて保存] 表示 [UTF-8]`。\n- 2段目: `表示中：<filename>`。長い名称は途中省略し、Tooltipには完全sourceを保持する。\n- Difference details検索UIは `.body` の外へ出し、右ペイン本文スクロールとは独立して常時表示する。\n- 検索はViewerの主機能として、差分本文をスクロールしても検索条件をその場で変更できることを優先する。",
       "objective": "- NativeShell通常幅で上段を「操作行＋表示中行」の明確な2段構造として安定表示する。\n- `表示中` がUTF-8横へ食い込むCSS競合を解消する。\n- 右Drop領域と左操作ブロックを独立列として扱い、互いの幅計算でレイアウトを崩さない。\n- 検索列固定など既に実機OKなv0.18.89契約は維持する。",
       "background": "- GitDiff自動読込ではDiff内容が表示されているにもかかわらず、native file inputが「ファイルが選択されていません」と表示しており、画面状態と表示が矛盾していた。\n- Save As成功後の長い保存先パスを同じツールバー内へ表示したため、ファイル選択・Encoding・保存ボタンのレイアウトが壊れた。\n- Git warningsの長い文字列が赤枠外へ視覚的にはみ出し、読みづらかった。\n- Difference details右端の「6件」は検索結果・hunk数等の意味が画面上で説明されず、中途半端な仕様だった。\n- v0.18.88のWindows実機確認で、共有shell CSSの既存 `.toolbar > div:first-child` grid指定が新しいfile-open-groupと競合し、「ファイルを開く」が横長化、UTF-8とSave Asが2段目へ落ちるなど見た目が大きく崩れた。\n- Difference detailsの検索UIは本文 `.body` 内にあり、長いDiffをスクロールすると検索操作が画面外へ消えるため、Viewerの売りである検索機能を使い続けにくかった。\n- v0.18.89のWindows実機確認でも `表示中` が1段目右側へ残った。原因は共有Shellの `.frb-page-diff-json .toolbar > div:first-child` がpage-specific `.frb-page-diff-json .file-open-group` よりselector詳細度が高く、後置CSSでも `display:flex` が勝てていなかったため。",
-      "scope": "- DiffJsonViewer.htmlの上段toolbarを2列Grid（左: 操作＋表示中source、右: Drop）へ固定する。\n- 左側 `file-open-group` は共有Shellの `div:first-child` selectorに確実に勝つ `.frb-page-diff-json .toolbar > div.file-open-group` でflex-column化する。\n- 1段目のcommand/display群は横並び、2段目のcurrentSourceは罫線下の独立行とする。\n- 980px以下だけ1列へ折り返すレスポンシブ契約とする。\n- Difference details検索列の既存固定契約は変更しない。\n- Staticテストをselector競合の再発防止まで確認できる内容へ更新する。",
+      "scope": "- DiffJsonViewer.htmlの上段toolbarを2列Grid（左: 操作＋表示中source、右: Drop）へ固定する。\n- 左側 `file-open-group` は共有Shellの `div:first-child` selectorに確実に勝つ `.frb-page-diff-json .toolbar > div.file-open-group` でflex-column化する。\n- 1段目のcommand/display群は横並び、2段目のcurrentSourceは罫線下の独立行とする。\n- 980px以下だけ1列へ折り返すレスポンシブ契約とする。\n- Difference details検索列の既存固定契約は変更しない。\n- Staticテストをselector競合の再発防止まで確認できる内容へ更新する。\n- v0.18.91: 左検索placeholderを `検索語を入力してファイル抽出`、右検索placeholderを `選択ファイル内を検索` に変更し、二段階検索の役割を文言で明確化する。",
       "out_of_scope": "- Diff JSON Viewerの検索ロジック自体の変更。\n- 検索結果件数・hunk件数などの新しい集計表示。\n- 左側Diff Summaryの検索UI再設計。\n- MetaDiff Viewerのツールバー変更。\n- NativeShell API追加。",
       "fixed_name_policy": "- 既存 `wwwroot/DiffJsonViewer.html` を同名更新する。\n- 表示ラベルは `表示中：`、操作ボタンは `ファイルを開く` / `名前を付けて保存` を使用する。\n- 新しいViewerファイル名は作らない。",
       "module_policy": "- 共有shell CSS全体は変更せず、DiffJsonViewer.htmlで共有CSS読み込み後にpage-specific overrideを定義し、MetaDiff等への副作用を避ける。\n- 表示中source管理とSave As処理は既存JS契約を維持する。\n- 検索UIはDOM位置だけをpanel直下へ移し、既存 `diffSearch / viewMode / lineTypeFilter / clearSearchBtn` のID・イベント契約を変えない。",
-      "expected_outputs": "- 上段1段目に `[ファイルを開く] [名前を付けて保存] 表示 [UTF-8]` が横並びで縦中央表示される。\n- 区切り線の下に `表示中：DiffToJson_current.json` が独立表示され、長い名称は省略・Tooltipで完全sourceを確認できる。\n- Difference details見出し直下に検索ボックス〜検索解除が固定表示され、右ペイン本文をスクロールしても検索UIが消えない。\n- Save As、Git warning、曖昧件数廃止などv0.18.88の既存機能は維持される。",
+      "expected_outputs": "- 上段1段目に `[ファイルを開く] [名前を付けて保存] 表示 [UTF-8]` が横並びで縦中央表示される。\n- 区切り線の下に `表示中：DiffToJson_current.json` が独立表示され、長い名称は省略・Tooltipで完全sourceを確認できる。\n- Difference details見出し直下に検索ボックス〜検索解除が固定表示され、右ペイン本文をスクロールしても検索UIが消えない。\n- Save As、Git warning、曖昧件数廃止などv0.18.88の既存機能は維持される。\n- 左検索欄に `検索語を入力してファイル抽出`、右検索欄に `選択ファイル内を検索` が表示され、二段階検索の役割が文言から理解できる。",
       "risk": "- DiffJsonViewer.html内のpage-specific overrideは増えるが、共有Shellを変更してMetaDiff等へ副作用を出すより局所修正を優先する。\n- 980px以下ではtoolbarを1列へ落とすため、小さい画面では操作行が折返す可能性がある。通常NativeShell幅では2列を維持する。",
-      "test_points": "- `.frb-page-diff-json .toolbar` が2列Gridであること。\n- `.frb-page-diff-json .toolbar > div.file-open-group` が `display:flex; flex-direction:column` を持ち、共有Shellの `div:first-child` grid契約に負けないselectorであること。\n- 1段目に openFileBtn / saveAsBtn / 表示 / jsonEncoding、2段目に currentSource が存在すること。\n- currentSourceに上罫線があり、長いsourceのellipsis/Tooltip契約が維持されること。\n- Difference details検索列の固定契約が維持されること。\n- 全Staticで既存FAILを増やさないこと。",
-      "verification_log": "- 専用Static: `test_runner_post_run_json_open_static.test.mjs` + `diff_json_viewer_save_as_static.test.mjs` = 11 tests / 11 PASS / 0 FAIL。\n- 全Static Before（最新添付ZIP原本）: 276 tests / 258 PASS / 18 FAIL。\n- 全Static After: 276 tests / 258 PASS / 18 FAIL。\n- 既存18 FAILはBefore / Afterでテスト名まで完全一致。新規FAILなし。\n- `_studio_work_incident_data_v2.json` はBOMなしUTF-8を維持。\n- Windows NativeShell実機再確認待ち。",
+      "test_points": "- `.frb-page-diff-json .toolbar` が2列Gridであること。\n- `.frb-page-diff-json .toolbar > div.file-open-group` が `display:flex; flex-direction:column` を持ち、共有Shellの `div:first-child` grid契約に負けないselectorであること。\n- 1段目に openFileBtn / saveAsBtn / 表示 / jsonEncoding、2段目に currentSource が存在すること。\n- currentSourceに上罫線があり、長いsourceのellipsis/Tooltip契約が維持されること。\n- Difference details検索列の固定契約が維持されること。\n- 全Staticで既存FAILを増やさないこと。\n- 左右の検索placeholderが指定文言と完全一致し、旧 `ファイル名検索` / `全ファイルの差分本文・ファイル名を検索` が残っていないこと。",
+      "verification_log": "- 専用Static: `node --test tests/qa/static/diff_json_viewer_save_as_static.test.mjs` = 8 tests / 8 PASS / 0 FAIL。\n- 全Static Before（最新添付ZIP原本）: 276 tests / 258 PASS / 18 FAIL。\n- 全Static After: 277 tests / 259 PASS / 18 FAIL。\n- 既存18 FAILはBefore / Afterでテスト名まで完全一致。新規FAILなし。\n- 全Static実行で更新された既存 `TP-IPC-001.actual.json` / `TP-IPC-001.diff.json` は最新添付原本へ復元し、返却差分から除外。\n- `_studio_work_incident_data_v2.json` はUTF-8 JSON parse確認。\n- Windows NativeShell実機再確認待ち。",
       "user_request": "v0.18.89でも上段が崩れている。デザイン担当として、`[ファイルを開く] [名前を付けて保存] 表示 [UTF-8]` の操作行と、その下の `表示中：DiffToJson_current.json` を確実に2段表示してほしい。",
       "ai_response": "共有Shell CSSとのselector詳細度競合を原因として特定し、toolbar全体を2列Grid、左 `file-open-group` を共有selectorに勝つ詳細度でflex-column化する再修正を実施する。",
-      "latest_ai_response": "AI回答\n\n## v0.18.90 再修正\n\n- 原因はキャッシュではなくCSS selector詳細度。共有Shellの `.frb-page-diff-json .toolbar > div:first-child` が、v0.18.89の `.frb-page-diff-json .file-open-group` より強く、左ブロックがgridのまま残っていた。\n- toolbar全体を2列Gridへ固定。左列は操作＋表示中sourceの2段、右列はDrop領域。\n- 左列は `.frb-page-diff-json .toolbar > div.file-open-group` でflex-columnを確実に適用。\n- 1段目: `[ファイルを開く] [名前を付けて保存] 表示 [UTF-8]`。2段目: `表示中：<Diff JSON>`。\n- Difference details検索列固定、Save As状態分離、Warning固定スクロール等の既存契約は維持。\n\n## 確認結果\n\n- 専用Static: 11/11 PASS\n- 全Static Before: 276 tests / 258 PASS / 18 FAIL\n- 全Static After: 276 tests / 258 PASS / 18 FAIL\n- 既存18 FAILはテスト名まで完全一致、新規FAILなし\n- Windows NativeShell実機再確認待ち",
-      "latest_user_comment": "v0.18.88の上段はどう見てもアウト。ファイル操作と表示中ソースを2ブロック・2段へ分ける。検索機能はViewerの売りなので、Difference detailsの検索列を一段上げて固定したい。",
+      "latest_ai_response": "最新資材を正本に、検索ロジックは変更せずplaceholderのみ役割に合わせて更新し、再発防止Staticとstudio_work_0208の判断ログ・変更履歴へ反映した。",
+      "latest_user_comment": "Diff JSON Viewerの検索文言を整理する。左は `検索語を入力してファイル抽出`、右は `選択ファイル内を検索` とする。",
       "context_refs": [
         {
           "context_ref_id": "ctx_0208_foundation_019",
@@ -30387,6 +30387,12 @@
           "speaker": "assistant",
           "topic": "Diff Viewer v0.18.90 selector詳細度修正",
           "message": "AI回答\n\n## v0.18.90 再修正\n\n- 原因はキャッシュではなくCSS selector詳細度。共有Shellの `.frb-page-diff-json .toolbar > div:first-child` が、v0.18.89の `.frb-page-diff-json .file-open-group` より強く、左ブロックがgridのまま残っていた。\n- toolbar全体を2列Gridへ固定。左列は操作＋表示中sourceの2段、右列はDrop領域。\n- 左列は `.frb-page-diff-json .toolbar > div.file-open-group` でflex-columnを確実に適用。\n- 1段目: `[ファイルを開く] [名前を付けて保存] 表示 [UTF-8]`。2段目: `表示中：<Diff JSON>`。\n- Difference details検索列固定、Save As状態分離、Warning固定スクロール等の既存契約は維持。\n\n## 確認結果\n\n- 専用Static: 11/11 PASS\n- 全Static Before: 276 tests / 258 PASS / 18 FAIL\n- 全Static After: 276 tests / 258 PASS / 18 FAIL\n- 既存18 FAILはテスト名まで完全一致、新規FAILなし\n- Windows NativeShell実機再確認待ち"
+        },
+        {
+          "message_id": "msg_0208_search_label_clarity",
+          "at": "2026-08-17T23:25:00+09:00",
+          "speaker": "user",
+          "message": "左検索は「検索語を入力してファイル抽出」、右検索は「選択ファイル内を検索」に決定。文言変更を依頼。"
         }
       ],
       "decision_log": [
@@ -30466,6 +30472,17 @@
             "CSS競合の根本原因修正",
             "局所変更"
           ]
+        },
+        {
+          "decision_id": "dec_0208_search_label_clarity",
+          "at": "2026-08-17T23:25:00+09:00",
+          "decision": "左検索は「検索語を入力してファイル抽出」、右検索は「選択ファイル内を検索」と表示する。",
+          "reason": "「ファイル名検索」「ファイル名の絞り込み」はファイル名文字列だけを対象にする機能と誤解される。実際の利用意図である「検索語を含むファイルを抽出→選択ファイル内を検索」という二段階操作を、そのまま利用者向け文言へ反映するため。",
+          "applied_axes": [
+            "誤解防止",
+            "利用者の認知優先",
+            "機能責務を表示文言へ反映"
+          ]
         }
       ],
       "change_history": [
@@ -30524,6 +30541,14 @@
           "before": "v0.18.89では `.frb-page-diff-json .file-open-group` を後置したが、共有Shellの `.frb-page-diff-json .toolbar > div:first-child` の方が詳細度が高く、file-open-groupがgridのまま残った。",
           "after": "toolbarを2列Grid化し、左列は `.frb-page-diff-json .toolbar > div.file-open-group` でflex-columnを確実に適用。操作行と表示中source行を視覚的に分離する。",
           "reason": "Windows実機で再現したレイアウト崩れを、CSSの後勝ち期待ではなくselector競合そのものの解消で止めるため。"
+        },
+        {
+          "history_id": "chg_0208_search_label_v01891",
+          "at": "2026-08-17T23:25:00+09:00",
+          "change_type": "ui_label_clarity",
+          "before": "左: ファイル名検索 / 右: 全ファイルの差分本文・ファイル名を検索",
+          "after": "左: 検索語を入力してファイル抽出 / 右: 選択ファイル内を検索",
+          "reason": "二段階検索の実際の役割と画面文言を一致させ、ファイル名文字列検索という誤解をなくすため。"
         }
       ]
     }

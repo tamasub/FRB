@@ -65,6 +65,7 @@
     .summary-value{font-size:20px;font-weight:750;margin-top:4px;color:#475569}
     .repo-info{font-size:12px;color:#475569;margin:10px 0}
     .filters{display:grid;grid-template-columns:1fr 120px;gap:8px;margin:10px 0}
+    .filters input[type="search"]{font-size:12px;padding:8px 8px}
     .file-list{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#fff}
     .file-item{padding:9px 10px;border-bottom:1px solid var(--border);cursor:pointer}
     .file-item:last-child{border-bottom:none}
@@ -274,7 +275,7 @@
       <div id="summaryArea" class="note">DiffToJson.jsonを読み込んでください。</div>
 
       <div class="filters">
-        <input id="fileSearch" type="search" placeholder="ファイル名検索">
+        <input id="fileSearch" type="search" placeholder="検索語を入力してファイル抽出">
         <select id="statusFilter">
           <option value="">全ステータス</option>
           <option value="M">M: Modified</option>
@@ -292,7 +293,7 @@
   <main class="panel">
     <h2><span>Difference details</span></h2>
     <div class="main-controls" aria-label="Difference details 検索・表示条件">
-      <input id="diffSearch" type="search" placeholder="全ファイルの差分本文・ファイル名を検索">
+      <input id="diffSearch" type="search" placeholder="選択ファイル内を検索">
       <select id="viewMode">
         <option value="selected">選択ファイルのみ</option>
         <option value="all">全ファイル一覧</option>

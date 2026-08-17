@@ -83,3 +83,12 @@ test('Difference details検索操作はスクロール本文の外へ固定し�
   assert.match(viewer, /main\.panel > \.main-controls\{[\s\S]*flex:0 0 auto;[\s\S]*border-bottom:1px solid var\(--border\);[\s\S]*background:#fff/);
   assert.match(viewer, /id="diffSearch"[\s\S]*id="viewMode"[\s\S]*id="lineTypeFilter"[\s\S]*id="clearSearchBtn"/);
 });
+
+test('Diff JSON Viewerの二段階検索は役割を誤解しない文言で案内する', () => {
+  const viewer = read('wwwroot/DiffJsonViewer.html');
+
+  assert.match(viewer, /id="fileSearch"[^>]*placeholder="検索語を入力してファイル抽出"/);
+  assert.match(viewer, /id="diffSearch"[^>]*placeholder="選択ファイル内を検索"/);
+  assert.doesNotMatch(viewer, /placeholder="ファイル名検索"/);
+  assert.doesNotMatch(viewer, /placeholder="全ファイルの差分本文・ファイル名を検索"/);
+});
