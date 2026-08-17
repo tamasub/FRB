@@ -246,11 +246,16 @@ test('Markdown Studio warns before Common Shell navigation when Markdown or Revi
   assert.match(md, /event\.returnValue = ''/);
 });
 
-test('Markdown Workspace can be opened from an Explorer full path only through an explicit NativeShell confirmation dialog', () => {
-  assert.match(md, /id="btnWorkspacePathOpen"[^>]*>📋 フルパスを貼り付けて開く</);
-  assert.match(md, /async function selectMarkdownWorkspaceFolderByPath\(\)/);
+test('Markdown Folder Open is the single Workspace entry and opens the explicit full-path NativeShell dialog', () => {
+  assert.match(md, /id="localFileBtn"[^>]*>📁 フォルダーを開く<\/button>/);
+  assert.match(md, /id="localFileBtn"[^>]*フルパスの貼り付け[^>]*Windows標準の「参照\.\.\.」/);
+  assert.doesNotMatch(md, /id="btnWorkspacePathOpen"/);
+  assert.doesNotMatch(md, /📋 フルパスを貼り付けて開く/);
+  assert.match(md, /async function selectMarkdownWorkspaceFolder\(\)/);
+  assert.match(md, /localFileBtn\.addEventListener\(\"click\",[\s\S]*?selectMarkdownWorkspaceFolder\(\)/);
   assert.match(md, /FRBStudioNativeHost\.invoke\('folderGrant\.promptPath'/);
   assert.match(md, /initial_path:\s*markdownWorkspaceRuntime\.rootPath \|\| ''/);
+  assert.doesNotMatch(md, /FRBStudioNativeHost\.invoke\('folderGrant\.select'/);
   assert.doesNotMatch(md, /folderGrant\.openPath/);
 
   assert.ok(nativeConfig.allowed_commands.includes('folderGrant.promptPath'));
@@ -264,14 +269,22 @@ test('Markdown Workspace can be opened from an Explorer full path only through a
   assert.match(dispatcher, /ActivateFolderGrant\(policy, persistKey, restored: false\)/);
 });
 
-test('Markdown full-path Workspace dialog has a keyboard shortcut and never lets JS grant an arbitrary absolute path silently', () => {
+test('Markdown Folder Open keeps the full-path keyboard shortcut and never lets JS grant an arbitrary absolute path silently', () => {
   assert.match(md, /event\.ctrlKey/);
   assert.match(md, /event\.shiftKey/);
   assert.match(md, /toLowerCase\(\) !== 'o'/);
-  assert.match(md, /selectMarkdownWorkspaceFolderByPath\(\)/);
+  assert.match(md, /selectMarkdownWorkspaceFolder\(\)/);
+  assert.doesNotMatch(md, /selectMarkdownWorkspaceFolderByPath/);
   assert.doesNotMatch(nativeConfig.allowed_commands.join('\n'), /folderGrant\.openPath/);
   assert.doesNotMatch(dispatcher, /case "folderGrant\.openPath"/);
   assert.match(dispatcher, /dialog\.ShowDialog\(\) != DialogResult\.OK/);
+});
+
+test('Markdown primary toolbar keeps save actions on one line when Display Profile is visible', () => {
+  assert.match(md, /\.frb-page-markdown \.topbar \.control-group\.primary-flow > button,[\s\S]*?flex: 0 0 auto;[\s\S]*?white-space: nowrap;/);
+  assert.match(md, /#btnOverwriteManagedMd \{ min-width: 68px; \}/);
+  assert.match(md, /#btnMarkdownSaveSafety \{ min-width: 84px; \}/);
+  assert.match(md, /#btnSaveFile \{ min-width: 132px; \}/);
 });
 
 test('Markdown display profile changes heading presentation without rewriting Markdown heading levels', () => {

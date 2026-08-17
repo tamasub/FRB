@@ -182,7 +182,7 @@ test('Markdown toolbar moves open actions into Workspace and reserves a wide cen
 
 test('Markdown workspace restores the last explicitly selected folder through a persisted Native folder grant', () => {
   assert.match(mdHtml, /MARKDOWN_WORKSPACE_PERSIST_KEY = 'markdown\.workspace'/);
-  assert.match(mdHtml, /folderGrant\.select[\s\S]*persist_key: MARKDOWN_WORKSPACE_PERSIST_KEY/);
+  assert.match(mdHtml, /folderGrant\.promptPath[\s\S]*persist_key: MARKDOWN_WORKSPACE_PERSIST_KEY/);
   assert.match(mdHtml, /folderGrant\.restore[\s\S]*persist_key: MARKDOWN_WORKSPACE_PERSIST_KEY/);
   assert.match(mdHtml, /await restoreLastMarkdownWorkspaceFolder\(\)/);
   assert.match(nativeConfig, /"folderGrant\.restore"/);

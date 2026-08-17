@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-17T19:11:00+09:00",
+  "updated_at": "2026-08-17T19:43:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 191,
+  "items_count": 192,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -29513,6 +29513,135 @@
           "before": "Markdown heading levelとViewerの見出しサイズが実質一体で、表示だけを小さくする入口がない。",
           "after": "standard/compact Display Profileを追加し、Canonical Markdownを変更せずCSS表示だけを切替・端末内UI preferenceとして復元する契約を実装。全Staticで新規FAILなし。",
           "reason": "文書意味構造を保ったまま会社文書の表示密度を調整できるようにするため。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0204",
+      "phase": "v0.18.82-markdown-folder-open-consolidation-toolbar-button-shape-fix",
+      "title": "Markdown Folder Open統合 / Toolbar保存ボタン形状回帰修正",
+      "incident_type": "bugfix",
+      "category": "ui_maintenance",
+      "priority": "high",
+      "status": "確認中",
+      "follow_up_status": "NOT_STARTED",
+      "verification_status": "Static確認済み / 実機確認待ち",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-17T19:43:00+09:00",
+      "owner": "",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-17T19:43:00+09:00",
+      "updated_at": "2026-08-17T19:43:00+09:00",
+      "work_summary": "- Markdown Display Profile追加後、上部Toolbarの保存系ボタンがflex縮小され、文字が複数行へ折れてボタン形状が崩れる回帰を修正する。\n- studio_work_0202で追加したNativeのWorkspaceダイアログは「フルパス貼付」とWindows標準の「参照...」を両方持つため、Workspace入口を既存の「フォルダーを開く」1本へ統合する。\n- 独立した「フルパスを貼り付けて開く」ボタンは削除し、「フォルダーを開く」クリックとCtrl+Shift+Oから同じNativeダイアログを起動する。",
+      "target_files": "- wwwroot/mdViewer.html\n- tests/qa/static/markdown_workspace_native_static.test.mjs\n- tests/qa/static/frb_studio_common_shell_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- wwwroot/mdViewer.html\n- tests/qa/static/markdown_workspace_native_static.test.mjs\n- tests/qa/static/frb_studio_common_shell_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "- Markdown Workspaceの「開く」は1責務・1入口とし、入力方法（フルパス貼付 / Windows標準参照）はNativeダイアログ内部の選択肢とする。\n- Web側の「フォルダーを開く」は `folderGrant.promptPath` を起動し、JSから任意絶対パスを無確認Grant化しない既存安全境界を維持する。\n- Toolbarの保存系Actionは縮小で文字を折り返さず、中央の可変領域（Markdown Drop）が幅圧を吸収する。",
+      "objective": "- Markdown Studio上部の保存系ボタンを通常の横長ボタン形状へ戻す。\n- Workspaceを開く入口の重複をなくし、ユーザーが「どちらを押すか」を考えなくてよい状態にする。\n- studio_work_0202のフルパス貼付機能とWindows標準参照機能を、既存の「フォルダーを開く」名称のまま利用できるようにする。",
+      "background": "- 実機スクリーンショットで、Display Profile追加後に「保存」「保存検査」「名前を付けて保存」の文字が縦方向へ折れ、ボタン形状が崩れていることを確認した。\n- studio_work_0202で追加したフルパス入力ダイアログには既に「参照...」ボタンがあり、従来のFolderBrowserDialog入口と機能が重複した。\n- ユーザーから、見た目は「フォルダーを開く」を残し、中身を新ダイアログへ差し替え、独立フルパスボタンを削除したいという明示要望があった。",
+      "scope": "- 保存対象Badgeおよび保存系ボタンへflex shrink禁止 / 改行禁止を適用する。\n- 保存 / 保存検査 / 名前を付けて保存へ最低横幅を与える。\n- `localFileBtn` のクリック処理を `folderGrant.promptPath` 使用のWorkspace Openへ統合する。\n- `btnWorkspacePathOpen` のHTML / JS参照 / click handler / 専用関数を削除する。\n- Ctrl+Shift+Oは統合後の `selectMarkdownWorkspaceFolder()` を呼ぶ。\n- Static契約を統合後の仕様へ更新し、Toolbar形状の再発防止テストを追加する。",
+      "out_of_scope": "- NativeShellのPromptFolderGrantPathダイアログ内部レイアウトや検証ロジックの変更。\n- Display Profileのフォントサイズ再調整。\n- 「ファイルを開く」やWorkspace内New File/New Folderの責務変更。\n- 980px未満など小画面向けのToolbar全面再設計。",
+      "fixed_name_policy": "- 今回添付のFRBStudio_App20260817_194225.zipを唯一の基準ソースとする。\n- 既存ファイルは同名更新し、Foundation Rule 019に従って更新ファイルだけを同一相対パスで返却する。",
+      "module_policy": "- NativeShellの `folderGrant.promptPath` は変更せず、Web側の入口だけを統合する。\n- `folderGrant.select` Native command自体は互換性のため残すが、Markdown Studio UIからは直接呼ばない。\n- ToolbarではActionボタンを固定幅寄り、Markdown Dropを可変幅領域として責務分離する。",
+      "expected_outputs": "- 「保存」「保存検査」「名前を付けて保存」が1行表示され、スクリーンショットのような縦折れが発生しない。\n- 左Workspace欄には「フォルダーを開く」「ファイルを開く」の2ボタンだけが並び、独立フルパスボタンは表示されない。\n- 「フォルダーを開く」を押すと、フルパス貼付欄と「参照...」を持つNativeダイアログが開く。\n- Ctrl+Shift+Oでも同じダイアログが開く。",
+      "risk": "- 保存系Actionを縮小不可にするため、極端に狭いウィンドウではToolbar全体の横幅余裕が減る。今回は通常デスクトップ幅での形状回帰修正を優先し、小画面全面再設計は対象外とする。\n- `folderGrant.select` はNative互換用に残るため、将来不要性が確定した場合の削除は別インシデントで判断する。",
+      "test_points": "- `btnWorkspacePathOpen` と「フルパスを貼り付けて開く」文言がmdViewerから消えている。\n- `localFileBtn` が `selectMarkdownWorkspaceFolder()` を呼び、その関数が `folderGrant.promptPath` を使う。\n- Markdown UIから `folderGrant.select` を直接invokeしない。\n- Ctrl+Shift+Oが統合後の同じ関数を呼ぶ。\n- 保存系Actionに `flex:0 0 auto` / `white-space:nowrap` と最低横幅契約がある。\n- 全Staticの既存18 FAILを増やさない。",
+      "verification_log": "- Focused Static（markdown_workspace_native_static）: 25 tests / 23 PASS / 2 FAIL。2 FAILは原本から存在する既存FAIL。今回のFolder Open統合 / Toolbar形状テストはPASS。\n- 全Static Before（今回添付ZIP原本）: 258 tests / 240 PASS / 18 FAIL。\n- 全Static After（実装・テスト更新後）: 259 tests / 241 PASS / 18 FAIL。\n- Before / Afterの既存18 FAILはテスト名まで完全一致し、新規FAILなし。\n- mdViewer.html inline JavaScript: node --check PASS。\n- 更新JSON parse: PASS。\n- New Item Schema validation: PASS。\n- Windows実機でToolbar形状と統合Folder Openを確認する作業をfollow_upへ残す。\n- Static実行で更新された既存TP-IPC-001 Actual/Diffは原本へ復元し、返却差分から除外。",
+      "user_request": "Markdown Studioで、Display Profile追加後に保存系ボタンの形が崩れているため直してほしい。また、新しいフルパス入力ダイアログにWindows標準フォルダー参照機能もあるため、見た目は既存の「フォルダーを開く」ボタンを残し、そのクリック内容を新機能へ差し替え、独立した「フルパスを貼り付けて開く」ボタンは削除してほしい。",
+      "ai_response": "- 実機スクリーンショットから、保存系ボタンがflex shrinkで折り返されていると判断し、Actionボタンを縮ませず1行表示へ固定する。\n- Workspace Openは目的が同じため入口を1つへ統合し、既存「フォルダーを開く」ボタンから `folderGrant.promptPath` を起動する。\n- Nativeダイアログ内のフルパス貼付 / 参照 / Grant安全境界はそのまま再利用する。",
+      "latest_ai_response": "AI回答\n\n## 今回の更新\n\n- `wwwroot/mdViewer.html`\n- `tests/qa/static/markdown_workspace_native_static.test.mjs`\n- `tests/qa/static/frb_studio_common_shell_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\n- Markdown Studio上部の保存系ボタンへ `flex: 0 0 auto` と `white-space: nowrap` を適用し、Display Profile追加後も「保存」「保存検査」「名前を付けて保存」が縦折れしないようにした。\n- Workspaceの入口を `📁 フォルダーを開く` 1本へ統合した。クリックすると、studio_work_0202で追加したNativeShellの `folderGrant.promptPath` ダイアログを開く。\n- 独立していた `📋 フルパスを貼り付けて開く` ボタンと、その専用JS参照/関数を削除した。\n- `Ctrl+Shift+O` は統合後も同じ「フォルダーを開く」処理を起動する。\n- NativeShell側のフルパス貼付・`参照...`・Folder Grant処理は変更せず、そのまま再利用した。\n\n## 方針\n\nWorkspaceを開く目的は1つなので、入口も1つにする。フルパス貼付とWindows標準フォルダー参照は、同じNativeダイアログ内の選択方法として扱う。\n\n保存系ボタンは操作単位として形を保つため縮小・改行させず、中央のMarkdown Drop領域をflexで縮ませる。\n\n## 確認結果\n\n- Focused Static（markdown_workspace_native_static）: 25 tests / 23 PASS / 2既存FAIL。今回追加・更新したFolder Open統合とToolbar形状テストはPASS。\n- 全Static Before: 258 tests / 240 PASS / 18 FAIL。\n- 全Static After: 259 tests / 241 PASS / 18 FAIL。\n- Before / Afterの既存18 FAILはテスト名まで完全一致。新規FAILなし。\n- `mdViewer.html` inline JavaScript: `node --check` PASS。\n- 更新JSON parse / 新規Item Schema validation: PASS。\n- Windows実機では、保存系3ボタンが1行形状を維持することと、「フォルダーを開く」からフルパス貼付/参照の両方へ入れることを最終確認する。\n- Static実行で更新された既存TP-IPC-001 Actual/Diffは原本へ復元し、返却差分から除外。",
+      "latest_user_comment": "「ボタンの形がくずれるので直してほしい。新しいフルパスWorkspaceダイアログにWin標準フォルダー参照機能もあるなら、見た目は『フォルダーを開く』を残して中身を新機能へ差し替え、独立フルパスボタンは削除してほしい」と実機スクリーンショット付きで依頼。",
+      "context_refs": [
+        {
+          "context_ref_id": "foundation_rule_019",
+          "title": "GitHub基準ソースとZIP返却契約",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "今回添付の最新資材だけを基準にし、更新ファイルのみを返却する契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "今回の基準ソース・返却範囲契約。"
+        }
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "fu_0204_001",
+          "action_type": "MANUAL_MARKDOWN_FOLDER_OPEN_TOOLBAR_VERIFICATION",
+          "required": true,
+          "status": "NOT_STARTED",
+          "related_ids": [
+            "studio_work_0204"
+          ],
+          "note": "Windows実機で、保存系3ボタンが1行形状を維持すること、「フォルダーを開く」からフルパス貼付と「参照...」の両方を利用できること、独立フルパスボタンが消えていることを確認する。",
+          "summary": "実機でToolbar形状と統合Folder Openを確認する。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "hist_0204_001",
+          "at": "2026-08-17T19:43:00+09:00",
+          "speaker": "user",
+          "topic": "Markdown Folder Open統合 / Toolbar形状",
+          "message": "保存系ボタンの形が崩れているので修正してほしい。フルパスを貼り付けて開く新ダイアログにWindows標準フォルダー参照機能もあるので、既存「フォルダーを開く」の中身を新機能へ差し替え、独立フルパスボタンは削除してほしい。"
+        },
+        {
+          "history_id": "hist_0204_002",
+          "at": "2026-08-17T19:43:00+09:00",
+          "speaker": "assistant",
+          "topic": "Markdown Folder Open統合 / Toolbar形状",
+          "message": "AI回答\n\n## 今回の更新\n\n- `wwwroot/mdViewer.html`\n- `tests/qa/static/markdown_workspace_native_static.test.mjs`\n- `tests/qa/static/frb_studio_common_shell_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\n- Markdown Studio上部の保存系ボタンへ `flex: 0 0 auto` と `white-space: nowrap` を適用し、Display Profile追加後も「保存」「保存検査」「名前を付けて保存」が縦折れしないようにした。\n- Workspaceの入口を `📁 フォルダーを開く` 1本へ統合した。クリックすると、studio_work_0202で追加したNativeShellの `folderGrant.promptPath` ダイアログを開く。\n- 独立していた `📋 フルパスを貼り付けて開く` ボタンと、その専用JS参照/関数を削除した。\n- `Ctrl+Shift+O` は統合後も同じ「フォルダーを開く」処理を起動する。\n- NativeShell側のフルパス貼付・`参照...`・Folder Grant処理は変更せず、そのまま再利用した。\n\n## 方針\n\nWorkspaceを開く目的は1つなので、入口も1つにする。フルパス貼付とWindows標準フォルダー参照は、同じNativeダイアログ内の選択方法として扱う。\n\n保存系ボタンは操作単位として形を保つため縮小・改行させず、中央のMarkdown Drop領域をflexで縮ませる。\n\n## 確認結果\n\n- Focused Static（markdown_workspace_native_static）: 25 tests / 23 PASS / 2既存FAIL。今回追加・更新したFolder Open統合とToolbar形状テストはPASS。\n- 全Static Before: 258 tests / 240 PASS / 18 FAIL。\n- 全Static After: 259 tests / 241 PASS / 18 FAIL。\n- Before / Afterの既存18 FAILはテスト名まで完全一致。新規FAILなし。\n- `mdViewer.html` inline JavaScript: `node --check` PASS。\n- 更新JSON parse / 新規Item Schema validation: PASS。\n- Windows実機では、保存系3ボタンが1行形状を維持することと、「フォルダーを開く」からフルパス貼付/参照の両方へ入れることを最終確認する。\n- Static実行で更新された既存TP-IPC-001 Actual/Diffは原本へ復元し、返却差分から除外。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0204_001",
+          "at": "2026-08-17T19:43:00+09:00",
+          "decision": "Markdown Workspaceを開くUI入口は「フォルダーを開く」1つに統合し、内部でfolderGrant.promptPathを起動する。",
+          "reason": "promptPathダイアログがフルパス貼付とWindows標準参照の両方を持ち、旧FolderBrowser入口と独立フルパス入口を併存させると同一目的の選択肢が重複するため。",
+          "applied_axes": [
+            "責務の単一化",
+            "利用者の選択負荷削減",
+            "既存安全境界の再利用"
+          ],
+          "conditions": "NativeShellのfolderGrant.promptPathが利用可能であること。",
+          "exceptions": "Native command folderGrant.select自体は互換用に残す。",
+          "expected_behavior": "「フォルダーを開く」だけで貼付/参照どちらの選択経路にも入れる。",
+          "acceptance_criteria": "mdViewerにbtnWorkspacePathOpenが存在せず、localFileBtn経由でfolderGrant.promptPathが呼ばれる。"
+        },
+        {
+          "decision_id": "dec_0204_002",
+          "at": "2026-08-17T19:43:00+09:00",
+          "decision": "上部Toolbarの保存系Actionボタンはflex縮小と文字折返しを禁止し、Markdown Drop領域を可変幅として扱う。",
+          "reason": "Action名が複数行へ折れるとボタン形状と可読性が崩れ、操作対象の認識負荷が上がるため。",
+          "applied_axes": [
+            "UI可読性",
+            "操作形状の安定",
+            "最小修正"
+          ],
+          "conditions": "通常デスクトップ幅を主対象とする。",
+          "exceptions": "小画面の全面レイアウト再設計は別責務。",
+          "expected_behavior": "保存/保存検査/名前を付けて保存が1行の横長ボタンを維持する。",
+          "acceptance_criteria": "対象Actionにflex:0 0 auto / white-space:nowrapと最低横幅があり、Staticで固定される。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0204_001",
+          "at": "2026-08-17T19:43:00+09:00",
+          "change_type": "incident_registered_and_implemented",
+          "before": "Workspace欄に「フォルダーを開く」と「フルパスを貼り付けて開く」が重複し、Display Profile追加後は保存系Actionがflex縮小で縦折れしていた。",
+          "after": "Workspace入口を既存「フォルダーを開く」へ統合してpromptPathを起動し、独立フルパスボタンを削除。保存系Actionは縮小/改行禁止と最低横幅を設定した。",
+          "reason": "同一目的UIの重複をなくし、Toolbarの操作形状を実機で読みやすい状態へ戻すため。"
+        },
+        {
+          "history_id": "chg_0204_002",
+          "at": "2026-08-17T19:43:00+09:00",
+          "change_type": "static_verification_completed",
+          "before": "今回変更に対する統合入口・ボタン形状の回帰契約がなかった。",
+          "after": "Markdown Workspace StaticとCommon Shell Staticを新契約へ更新し、全Static 259件中241 PASS / 18既存FAILで新規FAILなしを確認した。",
+          "reason": "今後のUI変更で独立フルパス入口や保存ボタン縦折れが再発しないようにするため。"
         }
       ]
     }
