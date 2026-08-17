@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "studio_work_incident_item_schema_v0_1.json",
   "title": "FRB Studio Work Incident - New Item Input Schema v0.1",
-  "description": "FRB Studioの新規インシデント1件をPasteJSON等へ渡すための入力契約。歴史データ全体の完全互換Schemaではなく、新規登録時の構造崩れ防止を目的とする。特に context_refs / follow_up_actions / discussion_history / decision_log / change_history は配列内要素をオブジェクトとして保持する。",
+  "description": "FRB Studioの新規インシデント1件をPasteJSON等へ渡すための入力契約。歴史データ全体の完全互換Schemaではなく、新規登録時の構造崩れ防止を目的とする。新規インシデントでは work_summary（作業概要・要約版）を必須とし、全体像を先に把握できるようにする。特に context_refs / follow_up_actions / discussion_history / decision_log / change_history は配列内要素をオブジェクトとして保持する。",
   "type": "object",
   "required": [
     "work_item_id",
@@ -20,6 +20,7 @@
     "ai_owner",
     "created_at",
     "updated_at",
+    "work_summary",
     "target_files",
     "actual_updated_files",
     "context_def_draft",
@@ -128,6 +129,11 @@
     },
     "updated_at": {
       "type": "string"
+    },
+    "work_summary": {
+      "type": "string",
+      "minLength": 1,
+      "description": "新規インシデントの全体像を最初に把握するための必須要約。何をするか・なぜするか・どこまでを扱うか・期待する結果が短時間で分かる内容にする。詳細なobjective/background/scopeの単純コピーではなく、チャットで作業前に整理する説明と同程度の粒度で要約する。"
     },
     "target_files": {
       "type": "string"

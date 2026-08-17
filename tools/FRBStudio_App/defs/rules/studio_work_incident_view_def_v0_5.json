@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "FRB Studio / JSON Object Studio",
-    "version": "studio-work-incident-v0.5-follow-up-actions"
+    "version": "studio-work-incident-v0.5-work-summary-required"
   },
   "views": [
     {
@@ -421,6 +421,17 @@
                 "messages": [
                   {
                     "role": "constraint",
+                    "field": "work_summary",
+                    "label": "作業概要（要約版）",
+                    "height": 140,
+                    "markdown": {
+                      "enabled": true,
+                      "allowLinks": true,
+                      "allowImages": false
+                    }
+                  },
+                  {
+                    "role": "constraint",
                     "field": "target_files",
                     "label": "対象ファイル",
                     "height": 120,
@@ -573,11 +584,37 @@
               "create": {
                 "include": false
               },
-              "display_note": "v0.5: ContextDef素案を、作業内容/方針カード内に追加。",
+              "display_note": "v0.5: 作業内容/方針の先頭に必須の「作業概要（要約版）」を表示し、その後に対象ファイル・ContextDef素案・目的・背景・範囲・リスク等の詳細カードを並べる。",
               "layout": {
                 "placement": "detailBody",
                 "order": 120
               }
+            },
+            {
+              "field": "work_summary",
+              "caption": "作業概要（要約版）",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 420
+              },
+              "edit": {
+                "visible": false,
+                "height": 140
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "validation": {
+                "required": true
+              },
+              "markdown": {
+                "enabled": true,
+                "allowLinks": true,
+                "allowImages": false
+              },
+              "display_note": "新規インシデントでは必須。詳細画面では __work_summary_cards の先頭カードとして表示し、この欄だけで「何をするインシデントか」を把握できる要約を記載する。過去インシデントへの一括補完は不要。"
             },
             {
               "field": "target_files",
@@ -1567,8 +1604,8 @@
       "note_field": "note"
     }
   },
-  "updated_at": "2026-08-17T18:20:00+09:00",
-  "description": "Studio改修インシデントをGrid/詳細/会話/対象文脈/後続作業で管理する。follow_up_statusで一覧検索し、follow_up_actionsで個別の恒久対策を追跡する。",
+  "updated_at": "2026-08-17T18:36:00+09:00",
+  "description": "Studio改修インシデントをGrid/詳細/会話/対象文脈/後続作業で管理する。作業内容/方針の先頭に必須の「作業概要（要約版）」を置き、インシデント全体像を最初に把握できるようにする。follow_up_statusで一覧検索し、follow_up_actionsで個別の恒久対策を追跡する。",
   "currentDataDisplay": {
     "titlePath": "$.title",
     "subtitlePath": "$.target",

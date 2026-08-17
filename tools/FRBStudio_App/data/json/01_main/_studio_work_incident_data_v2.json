@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-17T18:20:00+09:00",
+  "updated_at": "2026-08-17T18:36:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 188,
+  "items_count": 189,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -28950,15 +28950,15 @@
       "incident_type": "bugfix",
       "category": "ui_maintenance",
       "priority": "high",
-      "status": "確認中",
+      "status": "完了",
       "follow_up_status": "NOT_STARTED",
-      "verification_status": "Static確認済み / 実機確認待ち",
+      "verification_status": "確認済み",
       "context_def_status": "reviewed",
       "context_def_updated_at": "2026-08-17T18:20:00+09:00",
       "owner": "",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-17T18:20:00+09:00",
-      "updated_at": "2026-08-17T18:20:00+09:00",
+      "updated_at": "2026-08-17T18:36:00+09:00",
       "target_files": "- defs/rules/studio_work_incident_view_def_v0_5.json\n- tests/qa/static/combo_viewdef_maintenance_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
       "actual_updated_files": "- defs/rules/studio_work_incident_view_def_v0_5.json\n- tests/qa/static/combo_viewdef_maintenance_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
       "context_def_draft": "- discussion_history / decision_log / change_history は通常scalar入力欄ではなくDetail child gridで表示する履歴系objectArrayである。\n- v0.18.60でDetail child gridにもedit.visibleを共通適用したため、これらを表示するにはViewDef側でedit.visible=trueが必要。\n- Runtimeの責務別visible契約は維持し、今回の回帰はViewDefを現行契約へ移行して解消する。",
@@ -28971,7 +28971,7 @@
       "expected_outputs": "- Native/API経路のインシデント詳細画面で会話履歴・判断ログ・変更履歴がchild gridとして表示される。\n- 後続作業を含む既存objectArray表示契約を壊さない。\n- node --testの既存FAIL数を増やさず、新規StaticがPASSする。",
       "risk": "- edit.visible=trueに変更してもobjectArrayは通常scalar入力欄ではなくrenderChildArea側へ送られる現在のRuntime契約を前提とする。\n- wwwroot/defs/json/rules版はdefs/rules版と既に構造差分があり、静的hosting経路では同症状が残る可能性がある。Foundation Rule 019により今回は更新せず、別作業とする。",
       "test_points": "- defs/rulesのインシデントViewDefでdiscussion_history / decision_log / change_historyがobjectArrayかつedit.visible=trueである。\n- 同3項目はmain Gridには出さないためgrid.visible=falseを維持する。\n- detail_save.jsがchild area生成時にisFieldVisibleInDetail()を使う現行Runtime契約と整合する。\n- studio_work_0200にwwwroot/defs静的コピー統合作業がPENDINGで残る。\n- 全Staticの既存FAIL名・件数を増やさない。",
-      "verification_log": "- Focused Static（既存共通テスト）: combo_viewdef_maintenance_static Before 13 tests / 12 PASS / 1 FAIL → After 14 tests / 13 PASS / 1 FAIL。追加した履歴child grid契約テストはPASS。\n- 全Static Before（今回添付ZIP原本）: 253 tests / 235 PASS / 18 FAIL。\n- 全Static After: 254 tests / 236 PASS / 18 FAIL。\n- Before / Afterの既存18 FAILはテスト名まで一致し、今回変更による新規FAILなし。\n- JSON parse: defs/rules/studio_work_incident_view_def_v0_5.json / data/json/01_main/_studio_work_incident_data_v2.json PASS。\n- Runtime生成物として更新された既存TP-IPC-001 Actual/Diffは原本へ復元し、返却差分から除外。\n- wwwroot/defs/json/rules版はFoundation Rule 019に従い未更新。静的hosting側の正本統合はfollow_up_actionsへ残した。\n- 実機で既存インシデント詳細を開き、会話履歴・判断ログ・変更履歴のchild grid再表示を確認する作業のみPENDING。",
+      "verification_log": "- Focused Static（既存共通テスト）: combo_viewdef_maintenance_static Before 13 tests / 12 PASS / 1 FAIL → After 14 tests / 13 PASS / 1 FAIL。追加した履歴child grid契約テストはPASS。\n- 全Static Before（今回添付ZIP原本）: 253 tests / 235 PASS / 18 FAIL。\n- 全Static After: 254 tests / 236 PASS / 18 FAIL。\n- Before / Afterの既存18 FAILはテスト名まで一致し、今回変更による新規FAILなし。\n- JSON parse: defs/rules/studio_work_incident_view_def_v0_5.json / data/json/01_main/_studio_work_incident_data_v2.json PASS。\n- Runtime生成物として更新された既存TP-IPC-001 Actual/Diffは原本へ復元し、返却差分から除外。\n- wwwroot/defs/json/rules版はFoundation Rule 019に従い未更新。静的hosting側の正本統合はfollow_up_actionsへ残した。\n- 実機で既存インシデント詳細を開き、会話履歴・判断ログ・変更履歴のchild grid再表示を確認する作業のみPENDING。\n- ユーザー実機確認（2026-08-17 18:36 JST）: 会話履歴・判断ログ・変更履歴の再表示を確認済み。",
       "user_request": "インシデントの判断ログがStudioくんのエディター画面に表示されない原因を修正してほしい。最新資材を再添付したので、その資材を基準にそのまま修正する。",
       "ai_response": "- 原因はv0.18.60でDetail child gridにもedit.visibleを適用した一方、既存インシデントViewDefの履歴系objectArrayがedit.visible=falseのままだったことによる回帰と判断。\n- Runtimeを戻さず、Native/API正本の会話履歴・判断ログ・変更履歴を現行契約へ合わせて修正する。\n- Foundation Rule 019に従い公開用wwwroot/defsコピーは今回は触らず、既存driftを後続作業として明示する。\n- 再発防止Staticを追加する。",
       "latest_ai_response": "AI回答\n\n## 今回の更新\n\n- `defs/rules/studio_work_incident_view_def_v0_5.json`\n- `tests/qa/static/combo_viewdef_maintenance_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\n`discussion_history` / `decision_log` / `change_history` の `edit.visible` を `true` に変更し、v0.18.60以降の共通Detail可視性契約でも履歴系objectArrayがchild gridへ出るようにした。Runtime側の `isFieldVisibleInDetail()` 契約は戻していない。\n\n再発防止はケース専用testファイルを増やさず、既存の `combo_viewdef_maintenance_static.test.mjs` へ追加した。3項目が `objectArray` / `grid.visible=false` / `edit.visible=true` であることを固定した。\n\n## 方針\n\n`wwwroot/defs/json/rules/studio_work_incident_view_def_v0_5.json` は公開用静的領域であり、Foundation Rule 019により明示依頼なしでは更新しない。しかもNative/API正本との既存構造差分があるため、今回は触らず `VIEWDEF_STATIC_COPY_CONSOLIDATION` として後続作業へ残した。\n\n## 確認結果\n\n- Focused Static: 13 tests / 12 PASS / 1 FAIL → 14 tests / 13 PASS / 1 FAIL\n- 全Static: 253 tests / 235 PASS / 18 FAIL → 254 tests / 236 PASS / 18 FAIL\n- 既存18 FAILはテスト名まで一致、新規FAILなし\n- JSON parse: OK\n- テスト実行で更新された既存Actual/Diffは原本へ復元済み\n- 実機で履歴3グリッドの再表示確認のみPENDING",
@@ -28991,11 +28991,11 @@
           "action_id": "",
           "action_type": "MANUAL_INCIDENT_HISTORY_VISIBILITY_VERIFICATION",
           "required": true,
-          "status": "PENDING",
+          "status": "COMPLETED",
           "related_ids": [
             "studio_work_0200"
           ],
-          "note": "StaticではViewDef契約を確認する。実機では既存インシデントを開き、3つの履歴系child gridが表示されることを確認する。",
+          "note": "ユーザー実機確認で、インシデント詳細画面に会話履歴・判断ログ・変更履歴が表示されたことを確認済み。",
           "summary": "実機で会話履歴・判断ログ・変更履歴の再表示を確認する。"
         }
       ],
@@ -29019,6 +29019,11 @@
           "at": "2026-08-17T18:20:00+09:00",
           "speaker": "assistant",
           "message": "AI回答\n\n## 今回の更新\n\n- `defs/rules/studio_work_incident_view_def_v0_5.json`\n- `tests/qa/static/combo_viewdef_maintenance_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\n`discussion_history` / `decision_log` / `change_history` の `edit.visible` を `true` に変更し、v0.18.60以降の共通Detail可視性契約でも履歴系objectArrayがchild gridへ出るようにした。Runtime側の `isFieldVisibleInDetail()` 契約は戻していない。\n\n再発防止はケース専用testファイルを増やさず、既存の `combo_viewdef_maintenance_static.test.mjs` へ追加した。3項目が `objectArray` / `grid.visible=false` / `edit.visible=true` であることを固定した。\n\n## 方針\n\n`wwwroot/defs/json/rules/studio_work_incident_view_def_v0_5.json` は公開用静的領域であり、Foundation Rule 019により明示依頼なしでは更新しない。しかもNative/API正本との既存構造差分があるため、今回は触らず `VIEWDEF_STATIC_COPY_CONSOLIDATION` として後続作業へ残した。\n\n## 確認結果\n\n- Focused Static: 13 tests / 12 PASS / 1 FAIL → 14 tests / 13 PASS / 1 FAIL\n- 全Static: 253 tests / 235 PASS / 18 FAIL → 254 tests / 236 PASS / 18 FAIL\n- 既存18 FAILはテスト名まで一致、新規FAILなし\n- JSON parse: OK\n- テスト実行で更新された既存Actual/Diffは原本へ復元済み\n- 実機で履歴3グリッドの再表示確認のみPENDING"
+        },
+        {
+          "at": "2026-08-17T18:36:00+09:00",
+          "speaker": "user",
+          "message": "表示されたことを確認。次の改善として、インシデントの作業内容/方針の先頭に作業概要（要約版）が欲しい。"
         }
       ],
       "decision_log": [
@@ -29076,11 +29081,167 @@
           "before": "修正後の全Static回帰未確認。",
           "after": "Focused Staticは13/12/1→14/13/1。全Staticは原本253/235/18から254/236/18となり、既存18 FAIL名一致・新規FAILなし。runtime生成Actual/Diffは原本へ復元。",
           "reason": "履歴系objectArrayの表示契約修正が既存Static回帰を増やしていないことを確認するため。"
+        },
+        {
+          "at": "2026-08-17T18:36:00+09:00",
+          "change_type": "user_runtime_verification_completed",
+          "before": "実機で履歴3グリッドの再表示確認がPENDING。",
+          "after": "ユーザー実機で会話履歴・判断ログ・変更履歴の表示を確認し、studio_work_0200を完了。",
+          "reason": "ユーザーから『表示された』との実機確認結果を受領したため。"
         }
       ],
       "context_refs": [
         "studio_work_0183",
         "foundation_rule_019"
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0201",
+      "phase": "v0.18.79-incident-work-summary-required",
+      "title": "インシデント作業概要（要約版）の必須化と先頭表示",
+      "incident_type": "enhancement",
+      "category": "ui_maintenance",
+      "priority": "high",
+      "status": "確認中",
+      "follow_up_status": "NOT_STARTED",
+      "verification_status": "Static確認済み / 実機確認待ち",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-17T18:36:00+09:00",
+      "owner": "",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-17T18:36:00+09:00",
+      "updated_at": "2026-08-17T18:36:00+09:00",
+      "work_summary": "- インシデント詳細の「作業内容 / 方針」の先頭に、全体像を短時間で理解できる「作業概要（要約版）」を追加する。\n- 新規インシデントではこの要約を必須とし、何をするか・なぜ必要か・今回どこまで扱うか・完了後に何が変わるかを簡潔に記録する。\n- 過去インシデントは一括補完せず、今後作成するインシデントから運用を開始する。",
+      "target_files": "- data/json/01_main/_studio_work_incident_data_v2_schema_v0_1.json\n- defs/rules/studio_work_incident_view_def_v0_5.json\n- data/json/00_rules/frb_foundation_rules_data_v0_1.json\n- tests/qa/static/combo_viewdef_maintenance_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- data/json/01_main/_studio_work_incident_data_v2_schema_v0_1.json\n- defs/rules/studio_work_incident_view_def_v0_5.json\n- data/json/00_rules/frb_foundation_rules_data_v0_1.json\n- tests/qa/static/combo_viewdef_maintenance_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "- work_summaryはインシデントの詳細説明そのものではなく、人間が最初に読むナビゲーション用の要約である。\n- 新規インシデントでは必須とし、Schemaでも空文字を許容しない。\n- 詳細画面では作業内容/方針カードの最初に表示する。\n- objective/background/scope等は詳細責務として残し、work_summaryへ統合・廃止しない。\n- 過去インシデントへの一括補完は行わない。",
+      "objective": "- インシデントを開いた直後に『これは何をする作業か』を把握できるようにする。\n- 今後の新規インシデントで、作業概要の記載漏れをSchema・ViewDef・運用ルールの3層で防ぐ。\n- 詳細情報を読む前の認識負荷を下げる。",
+      "background": "- 現行の作業内容/方針は対象ファイル、実更新ファイル、ContextDef素案、目的、背景…から始まり、全体像を先に説明する欄がない。\n- そのため人間は複数カードを読みながら『結局これは何のインシデントか』を逆算する必要があった。\n- ユーザーから、インシデント登録前のチャットでAIが整理するような要約を先頭に常設してほしいとの要望があった。",
+      "scope": "- 新規フィールド work_summary を新規インシデントSchemaへ追加しrequired + minLength=1とする。\n- インシデントViewDefへ「作業概要（要約版）」を追加し、__work_summary_cardsの先頭カードとして表示する。\n- ViewDef側にもvalidation.required=trueを宣言する。\n- Foundationのインシデント作成ルールへwork_summary必須・期待内容・過去一括補完不要を追加する。\n- 既存Staticへ再発防止契約を追加する。\n- 今回のstudio_work_0201からwork_summaryを実際に記載する。",
+      "out_of_scope": "- studio_work_0200以前の過去インシデントへwork_summaryを一括生成・補完すること。\n- objective/background/scope等の既存詳細項目を削除・統合すること。\n- 一覧Gridへ作業概要列を追加すること。\n- Runtimeへ新しい汎用必須入力バリデーション機構を実装すること。",
+      "fixed_name_policy": "- 今回添付のFRBStudio_App20260817_183514.zipを唯一の基準ソースとする。\n- 既存Schema / ViewDef / Foundation Rulesは同じ相対パス・同じファイル名で更新する。\n- Foundation Rule 019に従い、返却ZIPには更新したファイルだけを同一相対パスで収録する。",
+      "module_policy": "- work_summaryは既存の__work_summary_cardsを再利用して表示し、新しいRendererは作らない。\n- 必須性は新規Item Schema + ViewDef validation宣言 + Foundation運用ルールで表現する。\n- テストはケース専用ファイルを増やさず、既存Staticへ追加する。",
+      "expected_outputs": "- 作業内容/方針の最初に「作業概要（要約版）」が表示される。\n- studio_work_0201以降の新規インシデントではwork_summaryが必須契約になる。\n- work_summaryだけを読めば、そのインシデントの目的・必要性・今回範囲・完了後の変化を概略把握できる。\n- 過去インシデントは欠損のままでも表示・保存できる。",
+      "risk": "- ViewDefのvalidation.requiredは宣言契約であり、現行Runtimeに汎用required強制機構がない場合、画面編集時の即時ブロックまでは保証しない。\n- そのため新規登録の正本契約はItem Schemaのrequired + minLength=1とFoundation運用ルールで担保する。\n- work_summaryを詳細情報のコピーにすると冗長化するため、要約責務をルールで明示する。",
+      "test_points": "- Schemaのrequiredにwork_summaryがあり、properties.work_summary.minLength=1である。\n- ViewDefにwork_summaryが存在しvalidation.required=trueである。\n- __work_summary_cards.edit.messagesの先頭がwork_summary / 作業概要（要約版）である。\n- Foundationのインシデント作成ルールにwork_summary必須・過去一括補完不要が明記されている。\n- studio_work_0201自身がwork_summaryを持つ。\n- 全Staticの既存18 FAILを増やさない。",
+      "verification_log": "- New Item Schema validation: studio_work_0201 を _studio_work_incident_data_v2_schema_v0_1.json で検証しPASS。\n- Focused Static: combo_viewdef_maintenance_static Before 14 tests / 13 PASS / 1 FAIL → After 15 tests / 14 PASS / 1 FAIL。追加したwork_summary契約テストはPASS。\n- 全Static Before（今回添付ZIP原本）: 254 tests / 236 PASS / 18 FAIL。\n- 全Static After: 255 tests / 237 PASS / 18 FAIL。\n- Before / Afterの既存18 FAILはテスト名まで一致し、今回変更による新規FAILなし。\n- JSON parse: 更新対象4 JSON PASS。\n- 実機ではインシデント詳細を開き、「作業内容 / 方針」の最初に「作業概要（要約版）」カードが表示されることを確認する作業のみPENDING。\n- Static実行で更新された既存TP-IPC-001 Actual/Diffは原本へ復元し、返却差分から除外。",
+      "user_request": "インシデント画面の作業内容/方針の先頭に『作業概要（要約版）』が欲しい。過去分は不要だが、スキーマにも追加し、今後の新規インシデントでは必ず記入するルールにして、実装までしてほしい。",
+      "ai_response": "- work_summaryを新規必須フィールドとしてSchemaへ追加する。\n- 既存の作業内容/方針カードを再利用し、先頭に『作業概要（要約版）』を表示する。\n- Foundationのインシデント作成ルールへ、期待する要約内容と過去一括補完不要を追加する。\n- 既存StaticへSchema/ViewDef/Ruleの契約テストを追加する。",
+      "latest_ai_response": "AI回答\n\n## 今回の更新\n\n- `data/json/01_main/_studio_work_incident_data_v2_schema_v0_1.json`\n- `defs/rules/studio_work_incident_view_def_v0_5.json`\n- `data/json/00_rules/frb_foundation_rules_data_v0_1.json`\n- `tests/qa/static/combo_viewdef_maintenance_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\n新規フィールド `work_summary` を「作業概要（要約版）」として追加した。新規インシデントSchemaでは `required` + `minLength: 1` とし、ViewDefでも `validation.required: true` を宣言した。\n\n詳細画面では既存の `__work_summary_cards` を再利用し、「作業内容 / 方針」の最初のカードとして `work_summary` を表示する。新しいRendererは追加していない。\n\nFoundationのインシデント作成ルールも更新し、`work_summary` には「何をするか / なぜ必要か / 今回どこまで扱うか / 完了すると何が変わるか」を短い段落または2〜5件程度の箇条書きで記載する契約を追加した。過去インシデントへの一括補完は不要とした。\n\n今回の `studio_work_0201` 自身から `work_summary` を記載している。\n\n## 方針\n\n`work_summary` は `objective` / `background` / `scope` 等の詳細項目を置き換えない。最初に全体像を与えるナビゲーション要約として責務分離する。\n\n## 確認結果\n\n- New Item Schema validation: PASS\n- Focused Static: 14 tests / 13 PASS / 1既存FAIL → 15 tests / 14 PASS / 1既存FAIL\n- 全Static: 254 / 236 PASS / 18 FAIL → 255 / 237 PASS / 18 FAIL\n- 既存18 FAILはテスト名まで一致、新規FAILなし\n- JSON parse: OK\n- 実機で先頭カード表示確認のみPENDING",
+      "latest_user_comment": "インシデントの全体像をぱっとイメージできる作業概要（要約版）が欲しい。過去分は不要で、今後は必ず記入するようにしたい。",
+      "context_refs": [
+        {
+          "context_ref_id": "foundation_rule_019",
+          "title": "GitHub基準ソースとZIP返却契約",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "最新添付資材を基準に、更新ファイルのみを同一相対パスでZIP返却する契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 10,
+          "note": "今回の返却・更新範囲契約。"
+        },
+        {
+          "context_ref_id": "row_copy_1",
+          "title": "インシデント作成時の作業概要・会話履歴・判断ログ記録ルール",
+          "read_timing": "before_work",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#row_copy_1",
+          "purpose": "work_summary必須化後の新規インシデント記録契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 20,
+          "note": "今回更新する運用ルール自身。"
+        }
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "fu_0201_001",
+          "action_type": "MANUAL_INCIDENT_WORK_SUMMARY_VISIBILITY_VERIFICATION",
+          "required": true,
+          "status": "NOT_STARTED",
+          "related_ids": [
+            "studio_work_0201"
+          ],
+          "note": "StaticでSchema/ViewDef/Rule契約は確認済み。実機でstudio_work_0201を開き、作業内容/方針の先頭に作業概要（要約版）が表示されることを確認する。",
+          "summary": "実機で作業概要（要約版）の先頭表示を確認する。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "at": "2026-08-17T18:36:00+09:00",
+          "speaker": "user",
+          "message": "インシデントの作業内容/方針の先頭に、全体像をぱっと把握できる作業概要（要約版）が欲しい。過去分は不要だが、スキーマにも追加し、今後は必ず記入するルールと枠を作って実装してほしい。",
+          "history_id": "hist_0201_001",
+          "topic": "作業概要（要約版）必須化"
+        },
+        {
+          "at": "2026-08-17T18:36:00+09:00",
+          "speaker": "assistant",
+          "message": "今回添付のFRBStudio_App20260817_183514.zipを正本として、work_summaryのSchema必須化、作業内容/方針の先頭表示、Foundation運用ルール追加、再発防止Static、今回インシデント登録まで実施する。",
+          "history_id": "hist_0201_002",
+          "topic": "作業概要（要約版）必須化"
+        },
+        {
+          "history_id": "hist_0201_003",
+          "at": "2026-08-17T18:36:00+09:00",
+          "speaker": "assistant",
+          "topic": "作業概要（要約版）必須化",
+          "message": "AI回答\n\n## 今回の更新\n\n- `data/json/01_main/_studio_work_incident_data_v2_schema_v0_1.json`\n- `defs/rules/studio_work_incident_view_def_v0_5.json`\n- `data/json/00_rules/frb_foundation_rules_data_v0_1.json`\n- `tests/qa/static/combo_viewdef_maintenance_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\n新規フィールド `work_summary` を「作業概要（要約版）」として追加した。新規インシデントSchemaでは `required` + `minLength: 1` とし、ViewDefでも `validation.required: true` を宣言した。\n\n詳細画面では既存の `__work_summary_cards` を再利用し、「作業内容 / 方針」の最初のカードとして `work_summary` を表示する。新しいRendererは追加していない。\n\nFoundationのインシデント作成ルールも更新し、`work_summary` には「何をするか / なぜ必要か / 今回どこまで扱うか / 完了すると何が変わるか」を短い段落または2〜5件程度の箇条書きで記載する契約を追加した。過去インシデントへの一括補完は不要とした。\n\n今回の `studio_work_0201` 自身から `work_summary` を記載している。\n\n## 方針\n\n`work_summary` は `objective` / `background` / `scope` 等の詳細項目を置き換えない。最初に全体像を与えるナビゲーション要約として責務分離する。\n\n## 確認結果\n\n- New Item Schema validation: PASS\n- Focused Static: 14 tests / 13 PASS / 1既存FAIL → 15 tests / 14 PASS / 1既存FAIL\n- 全Static: 254 / 236 PASS / 18 FAIL → 255 / 237 PASS / 18 FAIL\n- 既存18 FAILはテスト名まで一致、新規FAILなし\n- JSON parse: OK\n- 実機で先頭カード表示確認のみPENDING"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0201_001",
+          "at": "2026-08-17T18:36:00+09:00",
+          "decision": "新規フィールド名を work_summary とし、新規インシデントの必須要約として扱う。",
+          "reason": "既存の__work_summary_cardsは表示用synthetic fieldであり、Data側の要約正本を別フィールドとして持つ必要があるため。",
+          "applied_axes": [
+            "DataとViewの分離",
+            "意味が分かる安定名",
+            "人間レビュー負荷の削減"
+          ],
+          "conditions": "新規インシデント登録時。",
+          "exceptions": "studio_work_0200以前の過去インシデントは一括補完しない。",
+          "expected_behavior": "新規インシデントにはwork_summaryが必ず存在し、作業内容/方針の先頭で読める。",
+          "acceptance_criteria": "Schema required/minLength、ViewDef先頭カード、Foundationルール、Staticテストが整合する。"
+        },
+        {
+          "decision_id": "dec_0201_002",
+          "at": "2026-08-17T18:36:00+09:00",
+          "decision": "work_summaryはobjective/background/scopeを置き換えず、詳細を読む前のナビゲーション要約として責務分離する。",
+          "reason": "詳細項目をまとめて廃止すると根拠・範囲・リスクの情報密度が落ちる一方、単純コピーでは要約の価値がなくなるため。",
+          "applied_axes": [
+            "責務分離",
+            "全体像を先に提示する",
+            "詳細情報を失わない"
+          ],
+          "conditions": "work_summaryには全体像のみを簡潔に記載する。",
+          "exceptions": "詳細が極端に小さいインシデントでも空文字にはしない。",
+          "expected_behavior": "最初のカードだけで概要を掴み、必要な場合だけ後続詳細カードへ進める。",
+          "acceptance_criteria": "Foundationルールに期待内容と詳細項目との役割分担が明記される。"
+        }
+      ],
+      "change_history": [
+        {
+          "at": "2026-08-17T18:36:00+09:00",
+          "change_type": "incident_registered",
+          "before": "作業内容/方針に全体像を先に示す必須要約欄がない。",
+          "after": "studio_work_0201 / v0.18.79-incident-work-summary-required を登録し、work_summary必須化を開始。",
+          "reason": "インシデントを読むたびに内容を逆算する負荷を解消するため。",
+          "history_id": "chg_0201_001"
+        },
+        {
+          "history_id": "chg_0201_002",
+          "at": "2026-08-17T18:36:00+09:00",
+          "change_type": "verification_completed",
+          "before": "work_summary契約追加後のSchema/Static回帰未確認。",
+          "after": "New Item Schema validation PASS、Focused Static追加テストPASS、全Staticは255/237 PASS/18既存FAILで新規FAILなし。",
+          "reason": "work_summary必須化が既存契約を壊さず、Schema/ViewDef/Foundation Ruleの3層で整合することを確認するため。"
+        }
       ]
     }
   ],

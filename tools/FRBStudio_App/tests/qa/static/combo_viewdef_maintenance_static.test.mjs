@@ -280,3 +280,35 @@ test('incident history objectArrays remain visible in Detail child grids after t
     assert.equal(field.edit?.visible, true, `${name} must be visible in the Detail child grid`);
   }
 });
+
+test('incident work summary is mandatory for new incidents and appears first in the work-policy cards', () => {
+  const schema = json('data/json/01_main/_studio_work_incident_data_v2_schema_v0_1.json');
+  assert.ok(schema.required.includes('work_summary'), 'new incident schema must require work_summary');
+  assert.equal(schema.properties.work_summary?.type, 'string');
+  assert.equal(schema.properties.work_summary?.minLength, 1, 'empty work_summary must not satisfy the new-item contract');
+
+  const viewDef = json('defs/rules/studio_work_incident_view_def_v0_5.json');
+  const workSection = viewDef.views
+    .flatMap(view => view.sections ?? [])
+    .find(section => section.id === 'work_items');
+  assert.ok(workSection, 'work_items section must exist');
+
+  const fields = new Map((workSection.fields ?? []).map(field => [field.field, field]));
+  const workSummary = fields.get('work_summary');
+  assert.ok(workSummary, 'work_summary field must exist');
+  assert.equal(workSummary.caption, '作業概要（要約版）');
+  assert.equal(workSummary.validation?.required, true);
+  assert.equal(workSummary.edit?.visible, false, 'summary is rendered by the readable-card host, not a duplicate textarea');
+
+  const cards = fields.get('__work_summary_cards');
+  assert.ok(cards, '__work_summary_cards must exist');
+  assert.equal(cards.edit?.messages?.[0]?.field, 'work_summary');
+  assert.equal(cards.edit?.messages?.[0]?.label, '作業概要（要約版）');
+
+  const foundation = json('data/json/00_rules/frb_foundation_rules_data_v0_1.json');
+  const incidentRule = (foundation.rules ?? []).find(rule => rule.rule_id === 'row_copy_1');
+  assert.ok(incidentRule, 'incident creation rule must exist');
+  assert.match(incidentRule.body, /新規インシデントには `work_summary` を必ず記入する/);
+  assert.match(incidentRule.body, /過去インシデントへ `work_summary` を一括補完する必要はない/);
+});
+
