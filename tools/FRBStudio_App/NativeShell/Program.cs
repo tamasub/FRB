@@ -8,12 +8,12 @@ namespace FRBStudio.NativeShell
         [STAThread]
         private static void Main(string[] args)
         {
+            var launchOptions = NativeLaunchOptions.Parse(args);
+            NativeAppIdentity.Ensure();
+            JumpListManager.TryRegisterTasks();
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-
-            var launchOptions = NativeLaunchOptions.Parse(args);
-            JumpListManager.TryInstall();
-
             Application.Run(new NativeShellForm(initialPage: launchOptions.InitialPage));
         }
     }

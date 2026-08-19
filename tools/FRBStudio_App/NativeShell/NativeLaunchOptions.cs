@@ -9,29 +9,20 @@ namespace FRBStudio.NativeShell
         public static NativeLaunchOptions Parse(string[] args)
         {
             var options = new NativeLaunchOptions();
-            if (args == null || args.Length == 0) return options;
+            if (args == null) return options;
 
-            for (var i = 0; i < args.Length; i++)
+            foreach (var raw in args)
             {
-                var raw = args[i] ?? string.Empty;
-                string target = null;
-
-                if (raw.StartsWith("--launch=", StringComparison.OrdinalIgnoreCase))
+                var arg = raw ?? string.Empty;
+                if (arg.StartsWith("--launch=", StringComparison.OrdinalIgnoreCase))
                 {
-                    target = raw.Substring("--launch=".Length);
-                }
-                else if (string.Equals(raw, "--launch", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Length)
-                {
-                    target = args[++i];
-                }
-
-                if (string.Equals(target, "markdown", StringComparison.OrdinalIgnoreCase))
-                {
-                    options.InitialPage = "mdViewer.html";
-                    break;
+                    var value = arg.Substring("--launch=".Length).Trim();
+                    if (string.Equals(value, "markdown", StringComparison.OrdinalIgnoreCase))
+                    {
+                        options.InitialPage = "mdViewer.html";
+                    }
                 }
             }
-
             return options;
         }
     }

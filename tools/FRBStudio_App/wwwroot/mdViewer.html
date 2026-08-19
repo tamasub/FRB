@@ -509,6 +509,7 @@
 
     /* レイアウト切り替え */
     .layout {
+      position: relative;
       display: grid;
       grid-template-columns: minmax(280px, 1.15fr) minmax(680px, 800px) minmax(300px, .85fr);
       gap: 18px;
@@ -542,34 +543,40 @@
     }
     /* studio_work_0214: Workspace Treeの右境界をドラッグして一時的に幅を広げる。
        調整中は右Sidebar幅を固定し、左Treeと中央本文だけで幅を融通する。 */
-    .md-workspace-resizer {
+    .md-workspace-resizer,
+    .md-sidebar-resizer {
       position: absolute;
       z-index: 7;
       top: 0;
-      right: -10px;
       width: 20px;
       height: 100%;
       cursor: col-resize;
       touch-action: none;
       user-select: none;
     }
-    .md-workspace-resizer::after {
+    .md-workspace-resizer { right: -1px; }
+    .md-sidebar-resizer { left: 0; }
+    .md-workspace-resizer::after,
+    .md-sidebar-resizer::after {
       content: "";
       position: absolute;
       top: 8px;
       bottom: 8px;
-      left: 9px;
+      left: 50%;
+      transform: translateX(-50%);
       width: 2px;
       border-radius: 999px;
       background: transparent;
       transition: background .15s ease, width .15s ease;
     }
     .md-workspace-resizer:hover::after,
-    body.md-workspace-resizing .md-workspace-resizer::after {
+    .md-sidebar-resizer:hover::after,
+    body.md-workspace-resizing .md-workspace-resizer::after,
+    body.md-sidebar-resizing .md-sidebar-resizer::after {
       width: 3px;
-      background: rgba(63,124,255,.48);
+      background: rgba(63,124,255,.34);
     }
-    body.md-workspace-resizing { cursor: col-resize; user-select: none; }
+    body.md-workspace-resizing, body.md-sidebar-resizing { cursor: col-resize; user-select: none; }
     body.frb-page-markdown.md-workspace-width-adjusted .layout,
     body.frb-page-markdown.md-workspace-width-adjusted[data-mode="editor"] .layout,
     body.frb-page-markdown.md-workspace-width-adjusted[data-mode="review"] .layout {
@@ -1722,7 +1729,8 @@
       body.frb-page-markdown.md-workspace-width-adjusted .layout,
       body.frb-page-markdown.md-workspace-width-adjusted[data-mode="editor"] .layout,
       body.frb-page-markdown.md-workspace-width-adjusted[data-mode="review"] .layout { grid-template-columns:1fr !important; }
-      .md-workspace-resizer { display:none; }
+      .md-workspace-resizer,
+      .md-sidebar-resizer { display:none; }
       .workspace-sidebar, .article-card, .sidebar { grid-column:1; grid-row:auto; }
       .workspace-sidebar,
       .sidebar {
@@ -2235,7 +2243,8 @@
     body.frb-page-markdown.md-article-focus .sidebar {
       display: none !important;
     }
-    body.frb-page-markdown.md-article-focus .md-workspace-resizer { display:none !important; }
+    body.frb-page-markdown.md-article-focus .md-workspace-resizer,
+    body.frb-page-markdown.md-article-focus .md-sidebar-resizer { display:none !important; }
     body.frb-page-markdown.md-article-focus .article-card {
       grid-column: 1 !important;
       grid-row: 1 !important;
@@ -2462,6 +2471,7 @@
         </div>
         <div class="footer-note">Rendered by marked.js | Designed for FRB Innovators</div>
       </article>
+      <div id="mdSidebarResizer" class="md-sidebar-resizer" role="separator" aria-orientation="vertical" title="左右にドラッグして本文とINDEX列の幅を一時調整。ダブルクリックで標準幅へ戻します。"></div>
     </main>
   </div>
 
@@ -2475,7 +2485,7 @@ function mdStudioFileTimestamp() {
 const mdUrlEl=document.getElementById("mdUrl"),previewEl=document.getElementById("preview"),editorInlineHost=document.getElementById("editorInlineHost"),tocEl=document.getElementById("toc"),charCountEl=document.getElementById("charCount"),readTimeEl=document.getElementById("readTime"),blockModelMeta=document.getElementById("blockModelMeta"),localFileBtn=document.getElementById("localFileBtn"),localFileInput=document.getElementById("localFileInput"),tocDepthBtns=[...document.querySelectorAll(".toc-depth-btn")],editorEl=document.getElementById("editor"),btnViewerMode=document.getElementById("btnViewerMode"),btnEditorMode=document.getElementById("btnEditorMode"),btnReviewMode=document.getElementById("btnReviewMode"),btnNewReview=document.getElementById("btnNewReview"),mdSaveTargetBadge=document.getElementById("mdSaveTargetBadge"),articleCard=document.getElementById("articleCard"),metaFileName=document.getElementById("metaFileName"),editorFileName=document.getElementById("editorFileName"),slashMenu=document.getElementById("slashMenu"),managedMdSelect=document.getElementById("managedMdSelect"),btnClearManagedMd=document.getElementById("btnClearManagedMd"),btnManagedMdTree=document.getElementById("btnManagedMdTree"),managedMdTreePicker=document.getElementById("managedMdTreePicker"),managedMdTreeList=document.getElementById("managedMdTreeList"),btnRefreshManagedMd=document.getElementById("btnRefreshManagedMd"),btnOverwriteManagedMd=document.getElementById("btnOverwriteManagedMd");
 
 const fmPanel=document.getElementById("fmPanel"),fmHeader=document.getElementById("fmHeader"),fmBody=document.getElementById("fmBody"),fmToggleIcon=document.getElementById("fmToggleIcon"),fmSuggestArea=document.getElementById("fmSuggestArea");
-const btnExternalOpen=document.getElementById("btnExternalOpen"),btnRefreshWorkspace=document.getElementById("btnRefreshWorkspace"),btnNewWorkspaceMarkdown=document.getElementById("btnNewWorkspaceMarkdown"),btnNewWorkspaceFolder=document.getElementById("btnNewWorkspaceFolder"),mdWorkspaceTree=document.getElementById("mdWorkspaceTree"),mdWorkspaceName=document.getElementById("mdWorkspaceName"),mdWorkspacePath=document.getElementById("mdWorkspacePath"),mdWorkspaceRootDrop=document.getElementById("mdWorkspaceRootDrop"),mdWorkspaceResizer=document.getElementById("mdWorkspaceResizer"),mdDocumentOrigin=document.getElementById("mdDocumentOrigin"),mdDisplayProfile=document.getElementById("mdDisplayProfile");
+const btnExternalOpen=document.getElementById("btnExternalOpen"),btnRefreshWorkspace=document.getElementById("btnRefreshWorkspace"),btnNewWorkspaceMarkdown=document.getElementById("btnNewWorkspaceMarkdown"),btnNewWorkspaceFolder=document.getElementById("btnNewWorkspaceFolder"),mdWorkspaceTree=document.getElementById("mdWorkspaceTree"),mdWorkspaceName=document.getElementById("mdWorkspaceName"),mdWorkspacePath=document.getElementById("mdWorkspacePath"),mdWorkspaceRootDrop=document.getElementById("mdWorkspaceRootDrop"),mdWorkspaceResizer=document.getElementById("mdWorkspaceResizer"),mdSidebarResizer=document.getElementById("mdSidebarResizer"),mdDocumentOrigin=document.getElementById("mdDocumentOrigin"),mdDisplayProfile=document.getElementById("mdDisplayProfile");
 const fmSlug=document.getElementById("fmSlug"),fmTopics=document.getElementById("fmTopics"),fmTitleInput=document.getElementById("fmTitleInput"),fmEmojiInput=document.getElementById("fmEmojiInput"),fmTypeInput=document.getElementById("fmTypeInput"),fmTopicsInput=document.getElementById("fmTopicsInput"),fmPublishedInput=document.getElementById("fmPublishedInput"),btnResetFrontMatter=document.getElementById("btnResetFrontMatter"),fmEditStatus=document.getElementById("fmEditStatus");
 
 let tocDepth="all";
@@ -6687,11 +6697,31 @@ async function loadMarkdownWorkspaceChildren(path = '', { force = false } = {}) 
   markdownWorkspaceRuntime.children.set(relative, items);
   return items;
 }
-// studio_work_0214: Tree幅は永続化しない。一時確認用なので、Markdown表示時に標準幅へ戻す。
+// studio_work_0214 / 0215: Tree幅・本文/INDEX幅は永続化しない。一時確認用なので、Markdown表示時に標準幅へ戻す。
+function syncMarkdownColumnResizerPositions() {
+  const layout = document.querySelector('.layout');
+  const workspaceSidebar = document.querySelector('.workspace-sidebar');
+  const rightSidebar = document.querySelector('.sidebar');
+  if (!layout) return;
+  const layoutRect = layout.getBoundingClientRect();
+  const css = getComputedStyle(layout);
+  const gap = Number.parseFloat(css.columnGap || css.gap || '18') || 18;
+  if (workspaceSidebar && mdWorkspaceResizer) {
+    const leftRect = workspaceSidebar.getBoundingClientRect();
+    const left = Math.round((leftRect.right - layoutRect.left) + (gap / 2) - (mdWorkspaceResizer.offsetWidth / 2));
+    mdWorkspaceResizer.style.left = `${left}px`;
+  }
+  if (rightSidebar && articleCard && mdSidebarResizer) {
+    const articleRect = articleCard.getBoundingClientRect();
+    const left = Math.round((articleRect.right - layoutRect.left) + (gap / 2) - (mdSidebarResizer.offsetWidth / 2));
+    mdSidebarResizer.style.left = `${left}px`;
+  }
+}
 function resetMarkdownWorkspaceColumnWidth() {
-  document.body.classList.remove('md-workspace-width-adjusted', 'md-workspace-resizing');
+  document.body.classList.remove('md-workspace-width-adjusted', 'md-workspace-resizing', 'md-sidebar-resizing');
   document.documentElement.style.removeProperty('--md-workspace-width');
   document.documentElement.style.removeProperty('--md-right-sidebar-width');
+  requestAnimationFrame(syncMarkdownColumnResizerPositions);
 }
 function installMarkdownWorkspaceColumnResizer() {
   const layout = document.querySelector('.layout');
@@ -6699,13 +6729,23 @@ function installMarkdownWorkspaceColumnResizer() {
   const rightSidebar = document.querySelector('.sidebar');
   if (!layout || !workspaceSidebar || !mdWorkspaceResizer) return;
 
-  let drag = null;
-  const stop = (event) => {
-    if (!drag) return;
-    if (event?.pointerId != null && drag.pointerId !== event.pointerId) return;
-    try { mdWorkspaceResizer.releasePointerCapture?.(drag.pointerId); } catch (_) {}
-    drag = null;
+  let workspaceDrag = null;
+  let sidebarDrag = null;
+  const stopWorkspace = (event) => {
+    if (!workspaceDrag) return;
+    if (event?.pointerId != null && workspaceDrag.pointerId !== event.pointerId) return;
+    try { mdWorkspaceResizer.releasePointerCapture?.(workspaceDrag.pointerId); } catch (_) {}
+    workspaceDrag = null;
     document.body.classList.remove('md-workspace-resizing');
+    syncMarkdownColumnResizerPositions();
+  };
+  const stopSidebar = (event) => {
+    if (!sidebarDrag) return;
+    if (event?.pointerId != null && sidebarDrag.pointerId !== event.pointerId) return;
+    try { mdSidebarResizer?.releasePointerCapture?.(sidebarDrag.pointerId); } catch (_) {}
+    sidebarDrag = null;
+    document.body.classList.remove('md-sidebar-resizing');
+    syncMarkdownColumnResizerPositions();
   };
 
   mdWorkspaceResizer.addEventListener('pointerdown', (event) => {
@@ -6720,12 +6760,12 @@ function installMarkdownWorkspaceColumnResizer() {
     const minArticleWidth = hasThreeColumns ? 420 : 320;
     const reserved = minArticleWidth + gap + (hasThreeColumns ? rightWidth + gap : 0);
     const maxLeft = Math.max(260, Math.min(680, layoutRect.width - reserved));
-    drag = {
+    workspaceDrag = {
       pointerId: event.pointerId,
       layoutLeft: layoutRect.left,
+      gapHalf: gap / 2,
       minLeft: 240,
-      maxLeft,
-      rightWidth
+      maxLeft
     };
     document.body.classList.add('md-workspace-width-adjusted', 'md-workspace-resizing');
     document.documentElement.style.setProperty('--md-workspace-width', `${Math.round(leftRect.width)}px`);
@@ -6736,15 +6776,56 @@ function installMarkdownWorkspaceColumnResizer() {
   });
 
   mdWorkspaceResizer.addEventListener('pointermove', (event) => {
-    if (!drag || drag.pointerId !== event.pointerId) return;
-    const rawWidth = event.clientX - drag.layoutLeft;
-    const nextWidth = Math.max(drag.minLeft, Math.min(drag.maxLeft, rawWidth));
+    if (!workspaceDrag || workspaceDrag.pointerId !== event.pointerId) return;
+    const rawWidth = event.clientX - workspaceDrag.layoutLeft - workspaceDrag.gapHalf;
+    const nextWidth = Math.max(workspaceDrag.minLeft, Math.min(workspaceDrag.maxLeft, rawWidth));
     document.documentElement.style.setProperty('--md-workspace-width', `${Math.round(nextWidth)}px`);
+    syncMarkdownColumnResizerPositions();
     event.preventDefault();
   });
-  mdWorkspaceResizer.addEventListener('pointerup', stop);
-  mdWorkspaceResizer.addEventListener('pointercancel', stop);
+  mdWorkspaceResizer.addEventListener('pointerup', stopWorkspace);
+  mdWorkspaceResizer.addEventListener('pointercancel', stopWorkspace);
   mdWorkspaceResizer.addEventListener('dblclick', () => resetMarkdownWorkspaceColumnWidth());
+
+  if (mdSidebarResizer && rightSidebar) {
+    mdSidebarResizer.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0 || window.innerWidth <= 1180 || isMarkdownArticleFocusActive()) return;
+      const layoutRect = layout.getBoundingClientRect();
+      const leftRect = workspaceSidebar.getBoundingClientRect();
+      const rightRect = rightSidebar.getBoundingClientRect();
+      const css = getComputedStyle(layout);
+      const gap = Number.parseFloat(css.columnGap || css.gap || '18') || 18;
+      const minArticleWidth = 420;
+      const maxRight = Math.max(260, Math.min(620, layoutRect.width - leftRect.width - (gap * 2) - minArticleWidth));
+      sidebarDrag = {
+        pointerId: event.pointerId,
+        layoutRight: layoutRect.right,
+        gapHalf: gap / 2,
+        minRight: 260,
+        maxRight,
+        leftWidth: leftRect.width
+      };
+      document.body.classList.add('md-workspace-width-adjusted', 'md-sidebar-resizing');
+      document.documentElement.style.setProperty('--md-workspace-width', `${Math.round(leftRect.width)}px`);
+      document.documentElement.style.setProperty('--md-right-sidebar-width', `${Math.round(rightRect.width)}px`);
+      mdSidebarResizer.setPointerCapture?.(event.pointerId);
+      event.preventDefault();
+    });
+
+    mdSidebarResizer.addEventListener('pointermove', (event) => {
+      if (!sidebarDrag || sidebarDrag.pointerId !== event.pointerId) return;
+      const rawWidth = sidebarDrag.layoutRight - event.clientX - sidebarDrag.gapHalf;
+      const nextWidth = Math.max(sidebarDrag.minRight, Math.min(sidebarDrag.maxRight, rawWidth));
+      document.documentElement.style.setProperty('--md-right-sidebar-width', `${Math.round(nextWidth)}px`);
+      syncMarkdownColumnResizerPositions();
+      event.preventDefault();
+    });
+    mdSidebarResizer.addEventListener('pointerup', stopSidebar);
+    mdSidebarResizer.addEventListener('pointercancel', stopSidebar);
+    mdSidebarResizer.addEventListener('dblclick', () => resetMarkdownWorkspaceColumnWidth());
+  }
+  window.addEventListener('resize', () => syncMarkdownColumnResizerPositions());
+  requestAnimationFrame(syncMarkdownColumnResizerPositions);
 }
 function clearMarkdownWorkspaceTreeCache() {
   markdownWorkspaceRuntime.children = new Map();

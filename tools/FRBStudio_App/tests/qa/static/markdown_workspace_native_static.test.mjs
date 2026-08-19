@@ -19,7 +19,7 @@ test('Markdown UI promotes Folder Open + Workspace Tree and keeps INDEX on right
   assert.match(md, /id="localFileBtn"[^>]*>📁 フォルダーを開く</);
   assert.match(md, /id="mdWorkspaceTree"/);
   assert.match(md, /<h2>INDEX \/ 目次<\/h2>/);
-  assert.match(md, /grid-template-columns:\s*280px minmax\(0, 1fr\) 300px/);
+  assert.match(md, /grid-template-columns:\s*minmax\(280px, 1\.15fr\) minmax\(680px, 800px\) minmax\(300px, \.85fr\)/);
   assert.match(md, /\.workspace-sidebar \{ grid-column: 1; grid-row:1; \}/);
   assert.match(md, /\.article-card \{ grid-column: 2; grid-row:1; \}/);
   assert.match(md, /\.sidebar \{ grid-column: 3; grid-row:1; \}/);
