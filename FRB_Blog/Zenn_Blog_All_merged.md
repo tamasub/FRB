@@ -2489,6 +2489,95 @@ AIを最大限使うために、AI生成を増やすのではない。
 
 ---
 
+## 追伸
+
+前提  
+
+- AIが生成したものは、人間が必ず承認しなければならないという視点で下記フローを比較してみてください。
+
+ストレスシナリオ
+- 400KS/人月 AIがプログラムコード生成する前提で考える。  
+- テストコードは、プログラムコードと同じ規模生成される前提とする。
+
+```mermaid
+flowchart TB
+
+    subgraph A["■ ありたい姿：AI承認駆動開発"]
+        direction TB
+
+        A1[人間チャット指示]
+        A2[AI プログラム生成]
+
+        A3[人間チャット指示]
+        A4["AI 責務定義生成<br/>項目定義・制約<br/>TestPattern略語<br/>Expected生成元情報"]
+        A5{{人間承認}}
+        A6["テストコード生成プログラム実行<br/>Program Derived"]
+        A7[テストコード実行]
+        A8[Actual / Diff 結果表示]
+        A9{{人間がDiffを承認・判断}}
+
+        A1 --> A2
+
+        A3 --> A4
+        A4 --> A5
+        A5 --> A6
+        A6 --> A7
+        A7 --> A8
+        A8 --> A9
+    end
+
+
+    subgraph B["■ AI生成中心型(既存プロセスのままループ化)"]
+        direction TB
+
+        B1[人間チャット指示]
+        B2[AI プログラム生成]
+
+        B3[人間チャット指示]
+        B4[AI 責務定義生成]
+        B5[AI TestPattern生成]
+        B6["AI テストコード生成<br/>Expected含む"]
+        B7[AI テストコード実行]
+        B8{Diff = 0 ?}
+        B9[AI 再生成・再実行]
+        B10[完了]
+
+        B1 --> B2
+
+        B3 --> B4
+        B4 --> B5
+        B5 --> B6
+        B6 --> B7
+        B7 --> B8
+
+        B8 -- No --> B9
+        B9 --> B5
+
+        B8 -- Yes --> B10
+    end
+
+    style A2 fill:#fff1cc,stroke:#cc8800
+
+    style A4 fill:#fff1cc,stroke:#cc8800
+    
+    style A5 fill:#d9f2d9,stroke:#228b22,stroke-width:3px
+    style A6 fill:#d9f2d9,stroke:#228b22,stroke-width:2px
+    style A9 fill:#d9f2d9,stroke:#228b22,stroke-width:3px
+
+    style B2 fill:#fff1cc,stroke:#cc8800
+
+    style B4 fill:#fff1cc,stroke:#cc8800
+    style B5 fill:#fff1cc,stroke:#cc8800
+    style B6 fill:#fff1cc,stroke:#cc8800
+    style B9 fill:#ffe0e0,stroke:#cc4444,stroke-width:2px
+
+
+```
+
+
+
+---
+
 [AI駆動開発研究日誌や、思考拡張・AI承認駆動開発の記事はこちら](https://zenn.dev/frb_tamasub)
 
 この思考拡張・AI駆動開発の実例として、私はFRB（Fishing Rod Benchmark）という個人研究を続けている。  

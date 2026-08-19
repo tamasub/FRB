@@ -5,7 +5,7 @@ cd /d "%~dp0"
 pause
 
 if "%~1"=="" (
-  echo Usage: export.cmd "https://chatgpt.com/share/6a7ab34d-f468-83e8-a1cb-fd10519a5dff" [output-dir]
+  echo Usage: export.cmd "https://chatgpt.com/share/6a8443f4-5d40-83ee-8325-fd7e218511cf" [output-dir]
   exit /b 2
 )
 pause

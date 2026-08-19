@@ -1,7 +1,7 @@
 # 📄 AI協働001_AI駆動開発
 *(source: `AI協働001_AI駆動開発.md`)*
 
-Claudeが応答を完了しました
+Claudeが応答を完了しました!!!
 一応、これからのAI協働における俺の思考を監査してっ笑　ざっくり言うと、これから、大事にしないといけないのは、Json,MarkDownで成果物を作って、AIと循環させるって考え方。で、それを実現する為には、文脈が大事で、特に制約と判断ログ。小さなインシデントの作業の中で、判断ログをためて、その中で、共通化できるものを制約に昇格させていく。それと、AI差分物語。差分が何故作られたのか？AIに仮説（物語）を出してもらって、それを人間が読んで違和感がでるかいなか？AI仮説が間違っているとなれば、仮説の補正をしたうえで人間が承認。その後、AI仮説の中から、判断ログを抽出、その後制約に昇格させるべきを昇格。　そんな感じのことが、AI協働における核となる考え方で、凡そこれができれば、AI駆動開発（テストパターン（期待値含む）・テストコード）へスムーズに繋げていけると考えている。どう？
 
 
@@ -22217,4 +22217,5394 @@ Studioくんの共通化境界としては、かなり雑に言うと、
 この線はかなり使いやすそう。笑
 
 特に私は **8の「日跨ぎ時刻」** と **9の「状態遷移」** が、見た目はCross Fieldっぽいのに別物、という意味で良い境界サンプルやと思う。
+
+
+---
+
+# 📄 AI協働025_判断軸・制約違い確認
+*(source: `AI協働025_判断軸・制約違い確認.md`)*
+
+## AI回答
+    - 
+   ## 人間評価
+    - 
+
+
+----
+## 判断軸の威力確認①：比較基準ベースライン
+
+   ## 制約
+	- 既存の俺の文脈を読まずに回答すること。
+
+   ## 指示内容
+    - 対象画像:"F:\FRB_280\frb_ai_collabo-1_2.png"
+	- 画像左部と画像右部の各々について、画像に共通する構造はありますか？Yes/Noで一言、理由を1文で。
+
+   ## AI回答
+    - Yes。左右とも、人間を起点に道具・中間媒体を介して外部対象へ働きかける構造です。
+   ## 人間評価
+    - 期待通り（妥当）
+
+----
+
+## 判断軸の威力確認①：判断軸投入　～判断軸に寄せてくる～
+
+   ## 制約
+   
+	- 既存の俺の文脈を読まずに回答すること。
+
+   ## 判断軸
+
+	再現性を重視する。
+
+	一人の体験や発見を、
+	他者が追体験できる形へ受け渡すという価値に注目する。
+
+   ## 指示内容
+	- 対象画像:"F:\FRB_280\frb_ai_collabo-1_2.png"
+	- 画像左部と画像右部の各々について、画像に共通する構造はありますか？Yes/Noで一言、理由を1文で。
+
+   ## AI回答
+    - Yes。一人の体験や発見を、左は装置構成、右はデータ・差分・表示の記録として外部化し、他者が再現・追体験できる形へ受け渡す共通構造があります。
+    - 
+   ## 人間評価
+    - 期待通り（妥当）
+
+
+----
+
+## 判断軸の威力確認①-1：判断軸追加投入　～判断軸に寄せてくる～
+
+   ## 制約
+	- 既存の俺の文脈を読まずに回答すること。
+
+   ## 判断軸
+
+	再現性を重視する。
+
+	一人の体験や発見を、
+	他者が追体験できる形へ受け渡すという価値に注目する。
+
+	技術や構造の説明だけでなく、人が「自分ごと」として入り込める物語性を重視する。
+
+   ## 指示内容
+   
+	- 対象画像:"F:\FRB_280\frb_ai_collabo-1_2.png"
+	- 画像左部と画像右部の各々について、画像に共通する構造はありますか？Yes/Noで一言、理由を1文で。
+
+   ## AI回答
+    - Yes。一人の体験や発見を、左は装置構成、右はデータ・差分・表示の記録として外部化し、他者が再現・追体験できる形へ受け渡す共通構造があります。
+    - 
+   ## 人間評価
+    - 期待通り（妥当）
+
+
+----
+
+## 制約の威力確認①：比較基準ベースライン　　期待値：採用
+
+   ## 制約
+	- 既存の俺の文脈を読まずに回答すること。
+
+   ## 判断軸
+
+	再現性を重視する。
+
+	一人の体験や発見を、
+	他者が追体験できる形へ受け渡すという価値に注目する。
+
+   ## 指示内容
+   
+	- 対象画像:"F:\FRB_280\frb_ai_collabo-1_2.png"
+	- 左右２枚画像共通点: 一人の体験や発見を、左は装置構成、右はデータ・差分・表示の記録として外部化し、他者が再現・追体験できる形へ受け渡す共通構造があります。
+	- この2枚の画像を、上記の共通点を示す「共通例」として採用してよいですか？
+	「採用」or 「不採用」 のいずれかで判定し、理由を説明してください。
+
+   ## AI回答
+    - 
+   ## 人間評価
+    - 
+
+
+---
+
+## 制約の威力確認②：制約を入れると、判定が変わる　期待値：不採用
+
+   ## 制約
+   
+	- 既存の俺の文脈を読まずに回答すること。
+
+	- ##指示内容の共通点を示す「共通例」として「採用」と判定するには、
+	両方の画像から、次の4項目すべてを直接確認できなければならない。
+
+	1. 入力
+	2. 実行手順
+	3. 再現条件
+	4. 観測可能な出力または結果
+
+	一つでも確認できない場合は「不採用」とする。
+	画像から確認できない内容を、推測で補完してはならない。
+
+
+
+   ## 判断軸
+
+	再現性を重視する。
+
+	一人の体験や発見を、
+	他者が追体験できる形へ受け渡すという価値に注目する。
+
+
+   ## 指示内容
+   
+	- 対象画像:"F:\FRB_280\frb_ai_collabo-1_2.png"
+	- 左右２枚画像共通点: 左右とも、誰かの体験や発見を再現可能な道具と記録へ変え、次の人が主人公として同じ道筋を追体験できるようにする構造です。
+	- この2枚の画像を、上記の共通点を示す「共通例」として採用してよいですか？
+	「採用」or 「不採用」 のいずれかで判定し、理由を説明してください。
+
+   ## AI回答
+    - 
+   ## 人間評価
+    - 
+
+--
+
+## 制約の威力確認③：制約を弱める。制約 VS 指示内容  勝者：制約
+
+   ## 制約
+   
+	- 既存の俺の文脈を読まずに回答すること。
+
+	- ##指示内容の共通点を示す「共通例」として「採用」と判定するには、
+	両方の画像の共通点が確認できなければならない。
+	一つでも確認できない場合は「不採用」とする。
+
+
+   ## 判断軸
+
+	再現性を重視する。
+
+	一人の体験や発見を、
+	他者が追体験できる形へ受け渡すという価値に注目する。
+
+
+
+   ## 指示内容
+   
+	- 対象画像:"F:\FRB_280\frb_ai_collabo-1_2.png"
+	- 左右２枚画像共通点: 左右とも、誰かの体験や発見を再現可能な道具と記録へ変え、次の人が主人公として同じ道筋を追体験できるようにする構造です。
+	- この2枚の画像を、上記の共通点を示す「共通例」として採用してよいですか？
+	「採用」or 「不採用」 のいずれかで判定し、理由を説明してください。
+
+   ## AI回答
+    - 
+   ## 人間評価
+    - 
+
+---
+
+
+## 制約の威力確認④：制約A VS 制約B。勝者：制約B
+
+   ## 制約
+   
+	- 既存の俺の文脈を読まずに回答すること。
+
+	-[制約A] 共通化できるものはすべて共通化しなければならない。
+	
+	-[制約B] ##指示内容の共通点を示す「共通例」として「採用」と判定するには、
+	両方の画像の共通点が確認できなければならない。
+	一つでも確認できない場合は「不採用」とする。
+
+   ## 判断軸
+   
+	再現性を重視する。
+
+	一人の体験や発見を、
+	他者が追体験できる形へ受け渡すという価値に注目する。
+
+
+   ## 指示内容
+   
+	- 対象画像:"F:\FRB_280\frb_ai_collabo-1_2.png"
+	- 左右２枚画像共通点: 左右とも、誰かの体験や発見を再現可能な道具と記録へ変え、次の人が主人公として同じ道筋を追体験できるようにする構造です。
+	- この2枚の画像を、上記の共通点を示す「共通例」として採用してよいですか？
+	「採用」or 「不採用」 のいずれかで判定し、理由を説明してください。
+
+   ## AI回答
+    - 
+   ## 人間評価
+    - 
+
+---
+
+
+## 制約の威力確認④：制約B VS 制約A。勝者：制約B　～順番だけの問題ではなかった～
+
+   ## 制約
+   
+	- 既存の俺の文脈を読まずに回答すること。
+
+	-[制約B] ##指示内容の共通点を示す「共通例」として「採用」と判定するには、
+	両方の画像の共通点が確認できなければならない。
+	一つでも確認できない場合は「不採用」とする。
+
+	-[制約A] 共通化できるものはすべて共通化しなければならない。
+	
+
+   ## 判断軸
+
+	再現性を重視する。
+
+	一人の体験や発見を、
+	他者が追体験できる形へ受け渡すという価値に注目する。
+
+
+   ## 指示内容
+   
+	- 対象画像:"F:\FRB_280\frb_ai_collabo-1_2.png"
+	- 左右２枚画像共通点: 左右とも、誰かの体験や発見を再現可能な道具と記録へ変え、次の人が主人公として同じ道筋を追体験できるようにする構造です。
+	- この2枚の画像を、上記の共通点を示す「共通例」として採用してよいですか？
+	「採用」or 「不採用」 のいずれかで判定し、理由を説明してください。
+
+   ## AI回答
+    - 
+   ## 人間評価
+    - 
+
+
+---
+
+
+## 制約の威力確認④：制約A VS 制約B。勝者：制約B ～不採用条件が強い!?～
+
+   ## 制約
+   
+	- 既存の俺の文脈を読まずに回答すること。
+
+	-[制約A] 共通化できるものはすべて共通化しなければならい。絶対守らなければならい条件とする。
+	
+	-[制約B] ##指示内容の共通点を示す「共通例」として「採用」と判定するには、
+	両方の画像の共通点が確認できなければならない。
+	一つでも確認できない場合は「不採用」とする。
+
+
+   ## 判断軸
+
+	再現性を重視する。
+
+	一人の体験や発見を、
+	他者が追体験できる形へ受け渡すという価値に注目する。
+
+
+   ## 指示内容
+   
+	- 対象画像:"F:\FRB_280\frb_ai_collabo-1_2.png"
+	- 左右２枚画像共通点: 左右とも、誰かの体験や発見を再現可能な道具と記録へ変え、次の人が主人公として同じ道筋を追体験できるようにする構造です。
+	- この2枚の画像を、上記の共通点を示す「共通例」として採用してよいですか？
+	「採用」or 「不採用」 のいずれかで判定し、理由を説明してください。
+
+   ## AI回答
+    - 
+   ## 人間評価
+    - 
+
+
+## 制約の威力確認④：制約A VS 制約B。勝者：制約A  ～制約Bの明示的な無効化
+
+   ## 制約
+   
+	- 既存の俺の文脈を読まずに回答すること。
+
+	-[制約A] 共通化できるものはすべて共通化しなければならい。絶対守らなければならい条件とする。
+	
+	-[制約B] ##指示内容の共通点を示す「共通例」として「採用」と判定するには、
+	両方の画像の共通点が確認できなければならない。
+	一つでも確認できない場合は「不採用」とする。
+
+	-[制約C] 制約Bは無効制約とする。
+
+   ## 判断軸
+
+	再現性を重視する。
+
+	一人の体験や発見を、
+	他者が追体験できる形へ受け渡すという価値に注目する。
+
+
+   ## 指示内容
+   
+	- 対象画像:"F:\FRB_280\frb_ai_collabo-1_2.png"
+	- 左右２枚画像共通点: 左右とも、誰かの体験や発見を再現可能な道具と記録へ変え、次の人が主人公として同じ道筋を追体験できるようにする構造です。
+	- この2枚の画像を、上記の共通点を示す「共通例」として採用してよいですか？
+	「採用」or 「不採用」 のいずれかで判定し、理由を説明してください。
+
+   ## AI回答
+    - 
+   ## 人間評価
+    -
+
+
+---
+
+# 📄 AI協働026_検索強化_FRB_Standard_Search_Design_Overview_v0_1
+*(source: `AI協働026_検索強化_FRB_Standard_Search_Design_Overview_v0_1.md`)*
+
+## FRB Studio 標準検索機能 設計概要 v0.1
+
+- 対象: JSON Object Studio / ViewDef Driven UI
+- 種別: Design Overview / Search Capability
+- 作成日: 2026-08-16
+- 状態: 構想・設計整理
+- 主題: **Field Definition / ViewDef から標準検索能力を導出し、業務利用にも耐えうる検索の最低ラインを整備する**
+
+---
+
+### 0. この設計の位置づけ
+
+FRB Studio の検索機能を、単純な「文字を含む行を絞り込む機能」から、
+
+**Field の型・Validation Type に応じた標準検索能力を持つ仕組み**
+
+へ育てる。
+
+今回の目的は、検索機能を際限なく高機能化することではない。
+
+今後、
+
+- Definition Driven Testing
+- TestPattern の機械導出
+- Expected の検証
+- 業務データへの応用
+
+へ進むために、Studio が持つべき標準的な検索契約を先に整えることである。
+
+特に、数値・日付に対する範囲検索や、文字列の除外検索、空白／空白以外検索は、業務検索における最低限の実用機能として扱う。
+
+---
+
+## 1. 現状認識
+
+現行 Studio には、すでに検索責務の基礎が存在する。
+
+主な既存構造:
+
+```text
+ViewDef / Field
+    ↓
+renderSearch()
+    ↓
+Search UI
+    ↓
+SearchFilter
+    ↓
+Grid表示対象
+```
+
+現行コードでは `renderSearch()` が `gridDef().fields` のうち、
+
+```text
+search.visible = true
+```
+
+の Field を検索欄へ投影している。
+
+つまり実装思想としてはすでに、
+
+> Search は独立した Field 定義ではなく、Grid / Canonical Field からの Projection
+
+という方向へ寄っている。
+
+一方、一部の ViewDef には現在も `search` Section が存在し、同一 `dataPath`・同一 Field が `search` Section と `grid` Section の双方へ重複定義されている。
+
+これは今後の検索機能拡張において、設定値の不整合・二重管理を生みやすい。
+
+---
+
+## 2. 中核原則
+
+### 2.1 Field 定義は一か所を正本とする
+
+同一 `dataPath` の同一 Field を、検索用・Grid用・Detail用として別々に再定義しない。
+
+```text
+Canonical Field Definition
+        │
+        ├─ grid
+        ├─ edit
+        └─ search
+```
+
+各表示領域は、同一 Field に対する Projection として扱う。
+
+#### 原則
+
+> **検索条件は独立した Field 定義ではない。  
+> Canonical Field Definition から導出される検索 Projection である。**
+
+---
+
+### 2.2 検索演算子は型から標準導出する
+
+ViewDef に検索演算子を毎回すべて書かせない。
+
+基本は、
+
+```text
+Field type
+Validation Type
+        ↓
+Search Capability Resolver
+        ↓
+標準検索演算子
+```
+
+として導出する。
+
+#### 原則
+
+> **検索演算子は Field の型・Validation Type から標準導出し、必要な場合だけ ViewDef で Override する。**
+
+---
+
+### 2.3 現在の Studio の構造を壊さない
+
+今回の検索拡張を理由に、
+
+```text
+BaseEditor
+ ├─ TextEditor
+ ├─ NumberEditor
+ ├─ DateEditor
+ ...
+```
+
+のような新しい UI Class 体系へ全面移行しない。
+
+将来的には Field Control 単位の Class 化を検討できるが、現段階では既存の、
+
+```text
+Resolver
+Renderer
+Responsibility
+Registry
+```
+
+を中心とした Studio の構造を利用する。
+
+---
+
+## 3. 今回「やること」
+
+### 3.1 Search Capability Resolver を追加する
+
+Field Definition から、その Field が標準的に利用できる検索演算子を導出する薄い責務を追加する。
+
+仮称:
+
+```text
+SearchCapabilityResolver
+```
+
+責務:
+
+```text
+入力:
+  Field Definition
+  Resolved Validation Type
+
+出力:
+  利用可能な標準検索演算子
+  推奨デフォルト検索モード
+```
+
+例:
+
+```text
+type = text
+    ↓
+text_standard
+
+type = number / integer / decimal
+    ↓
+numeric_standard
+
+type = date / datetime
+    ↓
+date_standard
+
+type = boolean
+    ↓
+boolean_standard
+
+type = select
+    ↓
+select_standard
+```
+
+---
+
+## 4. 標準検索演算子
+
+### 4.1 Text
+
+初期標準:
+
+| Operator | 意味 |
+|---|---|
+| `contains` | 入力文字列を含む |
+| `not_contains` | 入力文字列を含まない |
+| `equals` | 完全一致 |
+| `not_equals` | 完全一致以外 |
+| `blank` | 空白 / 未設定 |
+| `not_blank` | 空白以外 / 設定済み |
+
+#### UIイメージ
+
+```text
+Caption
+
+[ 含む ▼ ] [ ABC                           ]
+```
+
+```text
+Caption
+
+[ 含まない ▼ ] [ ABC                      ]
+```
+
+```text
+Caption
+
+[ 空白以外 ▼ ]
+```
+
+`blank / not_blank` 選択時は値入力欄を不要とする。
+
+---
+
+### 4.2 Number / Integer / Decimal
+
+初期標準:
+
+| Operator | 意味 |
+|---|---|
+| `equals` | 等しい |
+| `not_equals` | 等しくない |
+| `gte` | 以上 |
+| `lte` | 以下 |
+| `between` | 範囲 |
+| `blank` | 空白 / 未設定 |
+| `not_blank` | 空白以外 / 設定済み |
+
+#### 範囲検索
+
+```text
+金額
+
+[ 範囲 ▼ ] [ From ] ～ [ To ]
+```
+
+基本契約:
+
+```text
+Fromのみ入力
+  → From以上
+
+Toのみ入力
+  → To以下
+
+From / To両方
+  → From以上 AND To以下
+```
+
+これにより、
+
+- 以上
+- 以下
+- From ～ To
+
+を同じ範囲UIで自然に扱える。
+
+---
+
+### 4.3 Date / DateTime
+
+初期標準:
+
+| Operator | 意味 |
+|---|---|
+| `equals` | 同一日 / 同一日時 |
+| `not_equals` | 同一値以外 |
+| `gte` | 指定値以降 |
+| `lte` | 指定値以前 |
+| `between` | 期間範囲 |
+| `blank` | 未設定 |
+| `not_blank` | 設定済み |
+
+#### UIイメージ
+
+```text
+更新日
+
+[ 範囲 ▼ ] [ 2026-08-01 ] ～ [ 2026-08-31 ]
+```
+
+数値と同様、
+
+```text
+Fromだけ
+  → 以降
+
+Toだけ
+  → 以前
+```
+
+を許可する。
+
+---
+
+### 4.4 Boolean
+
+初期標準:
+
+```text
+equals
+```
+
+UI例:
+
+```text
+Enabled
+
+[ 指定なし ▼ ]
+[ true ]
+[ false ]
+```
+
+必要に応じて `blank / not_blank` を将来追加可能とする。
+
+---
+
+### 4.5 Select / Enum
+
+初期標準:
+
+```text
+equals
+not_equals
+```
+
+既存の複数選択検索が安全に利用できる場合は、現行互換として維持する。
+
+ただし今回の初期計画では、複雑な集合演算の追加までは行わない。
+
+---
+
+## 5. Validation Type との接続
+
+検索能力の判定は、可能な限り `type` の文字列だけに依存しない。
+
+優先順位の考え方:
+
+```text
+Resolved Validation Type
+        ↓
+Field type
+        ↓
+安全なfallback
+```
+
+例:
+
+```text
+view type = text
+validation_type = integer
+```
+
+の場合、
+
+検索能力としては `numeric_standard` を採用する方向を基本とする。
+
+理由:
+
+> UIの見た目ではなく、値として何者かを基準に検索演算子を決めるため。
+
+これにより、Validation / Runtime Validation / TestPattern / Search が同じ Field 契約から派生できる。
+
+---
+
+## 6. ViewDef の標準形
+
+### 6.1 基本形
+
+通常は以下だけで検索可能とする。
+
+```json
+{
+  "field": "updated_at",
+  "type": "datetime",
+  "validation_type": "datetime",
+  "grid": {
+    "visible": true
+  },
+  "edit": {
+    "visible": true
+  },
+  "search": {
+    "visible": true
+  }
+}
+```
+
+この場合、検索演算子は自動導出する。
+
+```text
+datetime
+    ↓
+equals
+not_equals
+gte
+lte
+between
+blank
+not_blank
+```
+
+---
+
+### 6.2 Override
+
+特殊な Field だけ Override を許可する。
+
+例:
+
+```json
+{
+  "search": {
+    "visible": true,
+    "operator_set": "date_range"
+  }
+}
+```
+
+または将来的に、
+
+```json
+{
+  "search": {
+    "visible": true,
+    "operators": [
+      "between",
+      "blank",
+      "not_blank"
+    ]
+  }
+}
+```
+
+を検討可能とする。
+
+ただし初期実装では、自由な Operator 配列をむやみに増やさず、標準 Operator Set を優先する。
+
+---
+
+## 7. Search Section の扱い
+
+### 7.1 新規設計では Field を重複定義しない
+
+以下のような構造は新規ViewDefでは原則作らない。
+
+```text
+search Section
+ ├─ run_config_id
+ ├─ caption
+ └─ mode
+
+grid Section
+ ├─ run_config_id
+ ├─ caption
+ └─ mode
+```
+
+同じFieldの設定値が2か所に存在すると、
+
+```text
+search側
+  search.visible = false
+
+grid側
+  search.visible = true
+```
+
+のような不整合が発生する。
+
+---
+
+### 7.2 Search Section を残す場合の責務
+
+Search Sectionを残す場合でも、Field Definitionの所有者にはしない。
+
+将来的な形:
+
+```json
+{
+  "id": "search",
+  "type": "search",
+  "caption": "検索",
+  "sourceSection": "grid"
+}
+```
+
+または、
+
+```json
+{
+  "id": "search",
+  "type": "search",
+  "fieldRefs": [
+    "run_config_id",
+    "caption",
+    "updated_at"
+  ]
+}
+```
+
+つまり、
+
+> Search Section は「検索UIをどこへ置くか」を定義する。  
+> Fieldそのものの意味は定義しない。
+
+---
+
+### 7.3 既存ViewDef互換
+
+既存ViewDefを一気に全移行しない。
+
+初期対応では、
+
+- 現行ViewDefを壊さない
+- `gridDef().fields[].search` をCanonical Search Projectionとして優先
+- Legacy Search Sectionは即削除しない
+- 新規ViewDef生成ルールから二重Field定義を減らす
+
+という段階移行を採る。
+
+---
+
+## 8. Search UI Renderer
+
+現時点では新しいField Control Class体系を導入しない。
+
+既存 `renderSearch()` / `createInput()` 系の構造を利用しつつ、検索UI生成責務だけを整理する。
+
+イメージ:
+
+```text
+renderSearch()
+    ↓
+SearchCapabilityResolver
+    ↓
+SearchControlRenderer
+    ↓
+既存 input / select / date control
+```
+
+`SearchControlRenderer` は仮称であり、実装時に既存責務との統合を検討する。
+
+重要なのは、
+
+> Field型ごとの検索UI判断を `renderSearch()` に巨大な if 文として蓄積しないこと。
+
+---
+
+## 9. SearchFilter の拡張
+
+現行 `SearchFilter` はすでに薄い責務として分離されている。
+
+現在存在する主な挙動:
+
+```text
+text contains
+text equals
+number gte
+number lte
+number equals
+boolean equals
+multiple value match
+full text search
+```
+
+これを今回の標準 Operator 語彙へ拡張する。
+
+追加対象:
+
+```text
+not_contains
+not_equals
+between
+blank
+not_blank
+date/datetime comparison
+```
+
+---
+
+## 10. 条件の結合
+
+初期段階では、複数Fieldの検索条件は現在と同様、
+
+```text
+AND
+```
+
+で結合する。
+
+例:
+
+```text
+Status = active
+AND
+UpdatedAt >= 2026-08-01
+AND
+Caption not_contains "test"
+```
+
+---
+
+## 11. 全文検索との関係
+
+既存の全文検索は別責務として維持する。
+
+```text
+Field Search
+  = Fieldごとの構造化検索
+
+Full Text Search
+  = JSON全体からの横断文字検索
+```
+
+両者は現在と同じくANDで適用する。
+
+```text
+Field Criteria
+AND
+Full Text Query
+```
+
+今回、全文検索のアルゴリズム自体は変更しない。
+
+---
+
+## 12. 今回「やらないこと」
+
+今回の検索標準化では、以下を対象外とする。
+
+### 12.1 UI Class体系の全面リファクタ
+
+やらない:
+
+```text
+BaseEditor
+TextEditor
+NumberEditor
+DateEditor
+...
+```
+
+への全面移行。
+
+理由:
+
+- 現行Studioへの影響が大きい
+- 検索機能追加の目的を超える
+- 将来、Studioを広く外部展開する段階で再検討する
+
+---
+
+### 12.2 SQL / DB検索エンジン
+
+対象外:
+
+- SQL生成
+- DB側WHERE生成
+- Server Side Search
+- Query Planner
+- Index設計
+
+現時点ではStudio内の読み込み済みJSONデータに対する検索を対象とする。
+
+---
+
+### 12.3 複雑な論理式
+
+対象外:
+
+```text
+(A OR B) AND (C OR D)
+```
+
+などの任意AND/ORグループ。
+
+初期標準:
+
+```text
+Field条件 AND Field条件 AND ...
+```
+
+---
+
+### 12.4 高度な文字列検索
+
+初期対象外:
+
+- Regex
+- fuzzy search
+- 類似度検索
+- 発音検索
+- typo補正
+- ranking / relevance score
+
+---
+
+### 12.5 大規模データ検索性能の最適化
+
+初期対象外:
+
+- 数十万～数百万件向けIndex
+- Web Worker化
+- 仮想検索Index
+- 永続検索Index
+
+まず検索契約の正しさを優先する。
+
+性能問題が実利用で発生した場合に別責務として扱う。
+
+---
+
+### 12.6 Search Preset / 保存条件の高度化
+
+検索条件のお気に入り保存、共有、履歴、高度なPreset管理は今回の中心にしない。
+
+既存の検索状態保存・復元契約を壊さないことを優先する。
+
+---
+
+### 12.7 既存ViewDefの一括変換
+
+既存のSearch Section重複定義を今回一括削除しない。
+
+まず、
+
+1. 新しい標準を定義
+2. Runtimeを対応
+3. 新規ViewDef生成を新標準へ
+4. 代表ViewDefで移行検証
+5. 既存ViewDefを段階移行
+
+とする。
+
+---
+
+## 13. 検索責務の境界
+
+今回の責務分割イメージ:
+
+```text
+Field Definition
+      ↓
+SearchCapabilityResolver
+      │
+      ├─ operator set
+      └─ default mode
+      ↓
+Search UI Renderer
+      ↓
+Search Criteria
+      ↓
+SearchFilter
+      ↓
+Filtered Rows
+      ↓
+Grid Renderer
+```
+
+#### 責務
+
+##### SearchCapabilityResolver
+
+```text
+何が検索可能かを判断する
+```
+
+##### Search UI Renderer
+
+```text
+検索能力をどう入力UIへ表現するか
+```
+
+##### SearchFilter
+
+```text
+CriteriaとDataを比較して一致行を返す
+```
+
+この3責務を混ぜない。
+
+---
+
+## 14. 将来のField Control Class化に備える境界
+
+今回Class体系へ移行しないが、将来の移行を阻害する実装もしない。
+
+避けるべきこと:
+
+```text
+画面コードA
+ if type=date...
+
+画面コードB
+ if type=date...
+
+画面コードC
+ if type=date...
+```
+
+Field型固有判断を複数画面へ散らさない。
+
+理想:
+
+```text
+SearchCapabilityResolver
+Search UI生成境界
+```
+
+へ集約しておく。
+
+将来、
+
+```text
+Search UI Renderer
+        ↓
+DateFieldControl
+NumberFieldControl
+TextFieldControl
+```
+
+へ置き換えられる構造を維持する。
+
+---
+
+## 15. TestPatternへの接続
+
+検索標準化が完了すると、Definition Driven Test の対象として非常に扱いやすくなる。
+
+例:
+
+```text
+Field Definition
+  type = integer
+  search.visible = true
+```
+
+から、
+
+```text
+SearchCapability
+  equals
+  not_equals
+  gte
+  lte
+  between
+  blank
+  not_blank
+```
+
+を導出できる。
+
+その結果、
+
+```text
+TestPattern
+  equals
+  gte
+  lte
+  between_from_only
+  between_to_only
+  between_both
+  blank
+  not_blank
+```
+
+を機械導出できる。
+
+---
+
+### 15.1 Text代表パターン
+
+```text
+contains_hit
+contains_miss
+not_contains_hit
+not_contains_excluded
+equals
+not_equals
+blank
+not_blank
+case_insensitive_contains
+```
+
+---
+
+### 15.2 Number代表パターン
+
+```text
+equals
+not_equals
+
+gte_boundary
+gte_below
+
+lte_boundary
+lte_above
+
+between_inside
+between_min
+between_max
+between_outside
+
+from_only
+to_only
+
+blank
+not_blank
+```
+
+---
+
+### 15.3 Date代表パターン
+
+```text
+equals
+not_equals
+
+gte_boundary
+lte_boundary
+
+between_inside
+between_from
+between_to
+between_outside
+
+from_only
+to_only
+
+blank
+not_blank
+
+invalid_date_input
+```
+
+---
+
+## 16. 実装フェーズ案
+
+### Phase 1: Search契約定義
+
+- 標準Operator語彙を確定
+- Field type / Validation Type → Operator Set対応表を確定
+- ViewDef Override契約を確定
+- Legacy Search Sectionとの互換方針を確定
+
+---
+
+### Phase 2: SearchCapabilityResolver
+
+- Resolver追加
+- 型から標準Operatorを導出
+- Validation Type優先順位を実装
+- Resolver単体テスト
+
+---
+
+### Phase 3: SearchFilter Operator拡張
+
+追加:
+
+```text
+not_contains
+not_equals
+between
+blank
+not_blank
+date/datetime comparison
+```
+
+SearchFilterをDOM非依存の責務として維持する。
+
+---
+
+### Phase 4: Search UI拡張
+
+- Operator選択UI
+- `between` のFrom / To
+- blank系では値欄非表示
+- Number / Date / Textの標準UI
+- 現行Search stateとの接続
+
+---
+
+### Phase 5: ViewDef標準化
+
+- 新規ViewDef生成ルール更新
+- Search Section二重Field定義を新規生成しない
+- 代表ViewDefを新標準へ移行
+- Legacy ViewDef互換確認
+
+---
+
+### Phase 6: Definition Driven Test接続
+
+- SearchCapabilityからTestPattern候補を導出
+- Expected / Actual / Diffへ接続
+- Search Capabilityがテスト証跡として説明可能になることを確認
+
+---
+
+## 17. 初期Acceptance Criteria
+
+最低限、以下が成立した時点で「標準検索 v1」とみなす。
+
+### Text
+
+- 含む
+- 含まない
+- 完全一致
+- 一致以外
+- 空白
+- 空白以外
+
+### Number
+
+- 等しい
+- 等しくない
+- 以上
+- 以下
+- From ～ To
+- 空白
+- 空白以外
+
+### Date / DateTime
+
+- 等しい
+- 等しくない
+- 以降
+- 以前
+- From ～ To
+- 空白
+- 空白以外
+
+### 共通
+
+- 複数Field条件はAND
+- Full Text SearchとのANDが維持される
+- ViewDefのField定義を検索用に二重作成しなくてよい
+- 型から標準検索能力が導出される
+- ViewDef Overrideが可能
+- SearchFilterはDOMから独立した責務としてテスト可能
+- 現行StudioのGrid / Detail / Validation体系を壊さない
+
+---
+
+## 18. 設計上の「やる / やらない」まとめ
+
+| 項目 | 今回 |
+|---|---|
+| Text contains | やる |
+| Text not_contains | やる |
+| Text equals / not_equals | やる |
+| blank / not_blank | やる |
+| Number >= / <= | やる |
+| Number From-To | やる |
+| Date >= / <= | やる |
+| Date From-To | やる |
+| Validation TypeからOperator導出 | やる |
+| ViewDef Override | やる |
+| Search Sectionの二重Field定義を新規標準から外す | やる |
+| 現行SearchFilter責務の拡張 | やる |
+| Definition Driven Testへの接続準備 | やる |
+| UI Editor Class体系の全面変更 | やらない |
+| SQL / DB検索 | やらない |
+| 任意AND/OR式 | やらない |
+| Regex / fuzzy / AI検索 | やらない |
+| 大量データ向けIndex | やらない |
+| 既存ViewDef全件一括移行 | やらない |
+
+---
+
+## 19. この設計で目指す状態
+
+```text
+Field Definition
+      │
+      ├─ Validation
+      ├─ Runtime Editor
+      ├─ Grid
+      ├─ Detail
+      ├─ Search Capability
+      └─ TestPattern
+```
+
+検索だけが特別な別世界ではなく、
+
+**同じField Definitionから派生する能力の一つ**
+
+として扱う。
+
+最終的に目指す構造:
+
+```text
+Field Definition
+        ↓
+Capability Resolution
+        ↓
+┌───────────────┬────────────────┬────────────────┐
+│ Validation    │ Search         │ TestPattern    │
+│ Capability    │ Capability     │ Capability     │
+└───────────────┴────────────────┴────────────────┘
+        ↓
+Renderer / Validator / Runner
+```
+
+---
+
+## 20. 今回の設計判断
+
+今回の検索強化は、単なるUI便利機能追加ではない。
+
+Studio が将来、
+
+```text
+JSON編集ツール
+    ↓
+Definition Driven Studio
+    ↓
+業務データも扱える汎用Studio
+```
+
+へ広がれるための基礎能力として位置づける。
+
+一方で、現在のStudioに対して過剰なClass再設計や巨大リファクタは行わない。
+
+> **今の構造に沿って小さく検索能力を追加し、  
+> 将来の大規模リファクタを邪魔しない境界を作る。**
+
+これを今回の実装判断軸とする。
+
+
+---
+
+# 📄 AI協働027_検索強化_FRB_Standard_Search_Design_Overview_v0_2
+*(source: `AI協働027_検索強化_FRB_Standard_Search_Design_Overview_v0_2.md`)*
+
+## FRB Studio 標準検索機能 設計概要 v0.2
+
+- 対象: JSON Object Studio / ViewDef Driven UI
+- 種別: Design Overview / Search Capability
+- 作成日: 2026-08-16
+- 更新日: 2026-08-16
+- 状態: 構想・設計整理
+- 主題: **Field Definition / ViewDef から標準検索能力を導出し、業務利用にも耐えうる検索の最低ラインを整備する**
+
+---
+
+## 0. この設計の位置づけ
+
+FRB Studio の検索機能を、単純な「文字を含む行を絞り込む機能」から、
+
+**Field の型・Validation Type に応じた標準検索能力を持つ仕組み**
+
+へ育てる。
+
+今回の目的は、検索機能を際限なく高機能化することではない。
+
+今後、
+
+- Definition Driven Testing
+- TestPattern の機械導出
+- Expected の検証
+- 業務データへの応用
+
+へ進むために、Studio が持つべき標準的な検索契約を先に整えることである。
+
+特に、
+
+- 数値・日付に対する範囲検索
+- 文字列の除外検索
+- 空白 / 空白以外検索
+
+は、業務検索における最低限の実用機能として扱う。
+
+---
+
+## 1. 現状認識
+
+現行 Studio には、すでに検索責務の基礎が存在する。
+
+主な既存構造:
+
+```text
+ViewDef / Field
+    ↓
+renderSearch()
+    ↓
+Search UI
+    ↓
+SearchFilter
+    ↓
+Grid表示対象
+```
+
+現行コードでは `renderSearch()` が `gridDef().fields` のうち、
+
+```text
+search.visible = true
+```
+
+の Field を検索欄へ投影している。
+
+つまり実装思想としてはすでに、
+
+> Search は独立した Field 定義ではなく、Grid / Canonical Field からの Projection
+
+という方向へ寄っている。
+
+一方、一部の ViewDef には現在も `search` Section が存在し、同一 `dataPath`・同一 Field が `search` Section と `grid` Section の双方へ重複定義されている。
+
+これは今後の検索機能拡張において、
+
+- 設定値の不整合
+- 二重管理
+- どちらが正本か分からない状態
+
+を生みやすい。
+
+---
+
+## 2. 中核原則
+
+### 2.1 Field 定義は一か所を正本とする
+
+同一 `dataPath` の同一 Field を、検索用・Grid用・Detail用として別々に再定義しない。
+
+```text
+Canonical Field Definition
+        │
+        ├─ grid
+        ├─ edit
+        └─ search
+```
+
+各表示領域は、同一 Field に対する Projection として扱う。
+
+> **検索条件は独立した Field 定義ではない。Canonical Field Definition から導出される検索 Projection である。**
+
+---
+
+### 2.2 検索演算子は型から標準導出する
+
+ViewDef に検索演算子を毎回すべて書かせない。
+
+```text
+Field type
+Validation Type
+        ↓
+Search Capability Resolver
+        ↓
+標準検索演算子
+```
+
+> **検索演算子は Field の型・Validation Type から標準導出し、必要な場合だけ ViewDef で Override する。**
+
+---
+
+### 2.3 標準状態はUIへ過剰に露出しない
+
+検索Operatorは、常時ComboBox等で表示しない。
+
+通常状態では、型から導出された標準Operatorを暗黙適用する。
+
+例:
+
+```text
+Text
+標準Operator = contains
+```
+
+通常表示:
+
+```text
+Caption
+[ ABC                              ]
+```
+
+標準から変更した場合のみ、📌等で「標準から外れている」ことを視覚化する。
+
+> **標準値そのものを常時見せるのではなく、標準からの差分だけを人間に見せる。**
+
+---
+
+### 2.4 現在の Studio の構造を壊さない
+
+今回の検索拡張を理由に、
+
+```text
+BaseEditor
+ ├─ TextEditor
+ ├─ NumberEditor
+ ├─ DateEditor
+ ...
+```
+
+のような新しい UI Class 体系へ全面移行しない。
+
+現段階では既存の、
+
+```text
+Resolver
+Renderer
+Responsibility
+Registry
+```
+
+を中心とした Studio の構造を利用する。
+
+---
+
+## 3. 今回「やること」
+
+### 3.1 Search Capability Resolver を追加する
+
+Field Definition から、その Field が標準的に利用できる検索演算子を導出する薄い責務を追加する。
+
+仮称:
+
+```text
+SearchCapabilityResolver
+```
+
+責務:
+
+```text
+入力:
+  Field Definition
+  Resolved Validation Type
+
+出力:
+  利用可能な標準検索演算子
+  標準Operator
+  Operator Set
+```
+
+例:
+
+```text
+text                     → text_standard
+number/integer/decimal   → numeric_standard
+date/datetime            → date_standard
+boolean                  → boolean_standard
+select                   → select_standard
+```
+
+---
+
+### 3.2 Search Operator Registry を追加する
+
+Studio がサポートする検索Operatorを一か所で管理する。
+
+仮称:
+
+```text
+SearchOperatorRegistry
+```
+
+Registryで管理する主な情報:
+
+```text
+id
+caption
+value_required
+value_count
+supported_validation_types
+default_for_type
+```
+
+例:
+
+```text
+contains
+not_contains
+equals
+not_equals
+gte
+lte
+between
+blank
+not_blank
+```
+
+> **ViewDef が未登録Operatorを自由に発明しない。Studio がサポートする検索Operatorは必ず一か所で管理する。**
+
+---
+
+## 4. 標準検索演算子
+
+### 4.1 Text
+
+初期標準:
+
+| Operator | 意味 |
+|---|---|
+| `contains` | 入力文字列を含む |
+| `not_contains` | 入力文字列を含まない |
+| `equals` | 完全一致 |
+| `not_equals` | 完全一致以外 |
+| `blank` | 空白 / 未設定 |
+| `not_blank` | 空白以外 / 設定済み |
+
+標準Operator:
+
+```text
+contains
+```
+
+通常UI:
+
+```text
+Caption
+[ ABC                              ]
+```
+
+右クリック:
+
+```text
+✓ 含む
+  含まない
+  完全一致
+  一致以外
+  空白
+  空白以外
+```
+
+標準から変更した場合:
+
+```text
+Caption
+[ ABC                           ] 📌
+```
+
+`blank / not_blank` 選択時は値入力欄を不要とする。
+
+---
+
+### 4.2 Number / Integer / Decimal
+
+初期標準:
+
+| Operator | 意味 |
+|---|---|
+| `equals` | 等しい |
+| `not_equals` | 等しくない |
+| `gte` | 以上 |
+| `lte` | 以下 |
+| `between` | 範囲 |
+| `blank` | 空白 / 未設定 |
+| `not_blank` | 空白以外 / 設定済み |
+
+#### 範囲検索
+
+Number / Date の範囲検索は、UI形状そのものから検索モードが分かるため、必ずしも📌を必要としない。
+
+```text
+金額
+
+[ From ] ～ [ To ]
+```
+
+基本契約:
+
+```text
+Fromのみ入力
+  → From以上
+
+Toのみ入力
+  → To以下
+
+From / To両方
+  → From以上 AND To以下
+```
+
+---
+
+### 4.3 Date / DateTime
+
+初期標準:
+
+| Operator | 意味 |
+|---|---|
+| `equals` | 同一日 / 同一日時 |
+| `not_equals` | 同一値以外 |
+| `gte` | 指定値以降 |
+| `lte` | 指定値以前 |
+| `between` | 期間範囲 |
+| `blank` | 未設定 |
+| `not_blank` | 設定済み |
+
+UI:
+
+```text
+更新日
+
+[ 2026-08-01 ] ～ [ 2026-08-31 ]
+```
+
+数値と同様、
+
+```text
+Fromだけ → 以降
+Toだけ   → 以前
+```
+
+を許可する。
+
+---
+
+### 4.4 Boolean
+
+初期標準:
+
+```text
+equals
+```
+
+UI例:
+
+```text
+Enabled
+
+[ 指定なし ▼ ]
+[ true ]
+[ false ]
+```
+
+---
+
+### 4.5 Select / Enum / ComboBox
+
+初期標準:
+
+```text
+equals
+not_equals
+```
+
+標準Operator:
+
+```text
+equals
+```
+
+既存の選択肢メンテナンス機能を維持する。
+
+#### 右クリックUI
+
+ComboBoxの右クリックは検索専用にしない。
+
+```text
+✓ 完全一致
+  一致以外
+  空白
+  空白以外
+────────────
+⚙ 選択肢メンテナンス...
+```
+
+> **右クリックはField Context Menuの入口とし、検索OperatorとField固有操作を共存させる。**
+
+---
+
+## 5. Field Context Menu のUI原則
+
+### 5.1 原則1階層とする
+
+右クリックメニューは、原則として階層化しない。
+
+理由:
+
+- 操作手数を増やさない
+- 使用者が検索方法へすぐ到達できる
+- サブメニューによる迷いを減らす
+
+### 5.2 意味の違いは区切り線等で表現する
+
+検索OperatorとField固有コマンドは、サブメニューで分けず、
+
+- 区切り線
+- アイコン
+- 文言
+
+で責務の違いを表現する。
+
+例:
+
+```text
+✓ 完全一致
+  一致以外
+  空白
+  空白以外
+────────────
+⚙ 選択肢メンテナンス...
+```
+
+### 5.3 現在のOperatorを✓で表示する
+
+現在適用中のOperatorを✓等で明示する。
+
+### 5.4 標準から変更した時だけ📌
+
+標準Operatorは通常UIへ常時表示しない。
+
+標準から変更した場合のみ、
+
+```text
+📌
+```
+
+等でOverride状態を示す。
+
+範囲検索のようにUI形状そのものが明確に異なる場合は、その限りではない。
+
+---
+
+## 6. Validation Type との接続
+
+検索能力の判定は、可能な限り `type` の文字列だけに依存しない。
+
+優先順位:
+
+```text
+Resolved Validation Type
+        ↓
+Field type
+        ↓
+安全なfallback
+```
+
+例:
+
+```text
+view type = text
+validation_type = integer
+```
+
+の場合、検索能力としては `numeric_standard` を基本とする。
+
+理由:
+
+> UIの見た目ではなく、値として何者かを基準に検索演算子を決めるため。
+
+これにより、
+
+```text
+Validation
+Runtime Validation
+TestPattern
+Search
+```
+
+が同じ Field 契約から派生できる。
+
+---
+
+## 7. ViewDef の標準形
+
+### 7.1 基本形
+
+通常は以下だけで検索可能とする。
+
+```json
+{
+  "field": "updated_at",
+  "type": "datetime",
+  "validation_type": "datetime",
+  "grid": {
+    "visible": true
+  },
+  "edit": {
+    "visible": true
+  },
+  "search": {
+    "visible": true
+  }
+}
+```
+
+この場合、検索演算子は自動導出する。
+
+```text
+datetime
+    ↓
+equals
+not_equals
+gte
+lte
+between
+blank
+not_blank
+```
+
+### 7.2 Override
+
+特殊な Field だけ Override を許可する。
+
+```json
+{
+  "search": {
+    "visible": true,
+    "operator_set": "date_range"
+  }
+}
+```
+
+将来的には、
+
+```json
+{
+  "search": {
+    "visible": true,
+    "operators": [
+      "between",
+      "blank",
+      "not_blank"
+    ]
+  }
+}
+```
+
+も検討可能とする。
+
+ただし、
+
+- `operators` に指定できる値はSearchOperatorRegistry登録済みのみ
+- 原則は標準Operator Setを優先
+- 自由配列Overrideは特殊用途
+
+とする。
+
+---
+
+## 8. Search Section の扱い
+
+### 8.1 新規設計では Field を重複定義しない
+
+```text
+search Section
+ ├─ run_config_id
+ ├─ caption
+ └─ mode
+
+grid Section
+ ├─ run_config_id
+ ├─ caption
+ └─ mode
+```
+
+のような二重Field定義は新規標準から外す。
+
+### 8.2 v1ではSearch Sectionを必須にしない
+
+まずは、
+
+```text
+Canonical Fields
+        ↓
+search.visible = true
+        ↓
+定義順に自動配置
+```
+
+を基本とする。
+
+Search Sectionの新しい構造を、今回無理に作り込まない。
+
+### 8.3 fieldRefs は将来拡張候補
+
+検索項目だけ、
+
+- 表示順を変えたい
+- 一部だけ別配置したい
+
+という要求が出た場合、
+
+```json
+{
+  "id": "search",
+  "type": "search",
+  "fieldRefs": [
+    "run_config_id",
+    "caption",
+    "updated_at"
+  ]
+}
+```
+
+を検討する。
+
+この場合 `fieldRefs` は、
+
+> **誰を・どの順番で検索UIに配置するか**
+
+だけを指定する。
+
+### 8.4 既存ViewDef互換
+
+- 現行ViewDefを壊さない
+- `gridDef().fields[].search` をCanonical Search Projectionとして優先
+- Legacy Search Sectionは即削除しない
+- 新規ViewDef生成ルールから二重Field定義を減らす
+
+という段階移行を採る。
+
+---
+
+## 9. Search UI Renderer
+
+現時点では新しいField Control Class体系を導入しない。
+
+既存 `renderSearch()` / `createInput()` 系の構造を利用しつつ、検索UI生成責務だけを整理する。
+
+```text
+renderSearch()
+    ↓
+SearchCapabilityResolver
+    ↓
+Search UI生成境界
+    ↓
+既存 input / select / date control
+```
+
+> Field型ごとの検索UI判断を `renderSearch()` に巨大な if 文として蓄積しない。
+
+---
+
+## 10. Search Criteria
+
+基本形:
+
+```json
+{
+  "field": "caption",
+  "operator": "not_contains",
+  "value": "test"
+}
+```
+
+範囲:
+
+```json
+{
+  "field": "updated_at",
+  "operator": "between",
+  "from": "2026-08-01",
+  "to": "2026-08-31"
+}
+```
+
+#### 将来拡張
+
+ComboBox複数選択は近い将来必ず対応する前提とする。
+
+```json
+{
+  "field": "status",
+  "operator": "in",
+  "values": [
+    "active",
+    "draft"
+  ]
+}
+```
+
+> **現時点で複数選択を本格実装しなくても、将来の `in / not_in / values[]` を塞がない。**
+
+---
+
+## 11. SearchFilter の拡張
+
+現行 `SearchFilter` の責務を維持しつつ、以下を追加する。
+
+```text
+not_contains
+not_equals
+between
+blank
+not_blank
+date/datetime comparison
+```
+
+将来候補:
+
+```text
+in
+not_in
+```
+
+---
+
+## 12. 条件の結合
+
+初期段階では、複数Fieldの検索条件は現在と同様、
+
+```text
+AND
+```
+
+で結合する。
+
+```text
+Status = active
+AND
+UpdatedAt >= 2026-08-01
+AND
+Caption not_contains "test"
+```
+
+---
+
+## 13. 全文検索との関係
+
+既存の全文検索は別責務として維持する。
+
+```text
+Field Search
+  = Fieldごとの構造化検索
+
+Full Text Search
+  = JSON全体からの横断文字検索
+```
+
+両者はANDで適用する。
+
+---
+
+## 14. 今回「やらないこと」
+
+### 14.1 UI Class体系の全面リファクタ
+
+やらない。
+
+将来、Studioを広く外部展開する段階で再検討する。
+
+### 14.2 SQL / DB検索エンジン
+
+対象外:
+
+- SQL生成
+- DB側WHERE生成
+- Server Side Search
+- Query Planner
+- Index設計
+
+### 14.3 複雑な論理式
+
+対象外:
+
+```text
+(A OR B) AND (C OR D)
+```
+
+初期標準はField条件のAND。
+
+### 14.4 高度な文字列検索
+
+初期対象外:
+
+- Regex
+- fuzzy search
+- 類似度検索
+- 発音検索
+- typo補正
+- ranking / relevance score
+
+### 14.5 大規模データ検索性能の最適化
+
+初期対象外:
+
+- 大規模Index
+- Web Worker
+- 仮想検索Index
+- 永続検索Index
+
+### 14.6 Search Preset / 保存条件の高度化
+
+今回v1の中心にはしない。
+
+ただし、
+
+> **標準検索v1直後の近接Future Scope**
+
+として扱う。
+
+将来候補:
+
+- 検索条件のお気に入り保存
+- 条件名付け
+- 再呼出
+- 共有
+- 履歴
+- Preset管理
+
+### 14.7 既存ViewDefの一括変換
+
+一括移行しない。
+
+1. 新しい標準を定義
+2. Runtimeを対応
+3. 新規ViewDef生成を新標準へ
+4. 代表ViewDefで移行検証
+5. 既存ViewDefを段階移行
+
+とする。
+
+---
+
+## 15. 検索責務の境界
+
+```text
+Field Definition
+      ↓
+SearchCapabilityResolver
+      ↓
+SearchOperatorRegistry
+      ↓
+Search UI Renderer
+      ↓
+Search Criteria
+      ↓
+SearchFilter
+      ↓
+Filtered Rows
+      ↓
+Grid Renderer
+```
+
+- SearchCapabilityResolver: 何が検索可能かを判断
+- SearchOperatorRegistry: Studioがサポートする検索語彙を管理
+- Search UI Renderer: 検索能力を入力UIへ表現
+- SearchFilter: CriteriaとDataを比較して一致行を返す
+
+この責務を混ぜない。
+
+---
+
+## 16. 将来のField Control Class化に備える境界
+
+今回Class体系へ移行しないが、将来の移行を阻害する実装もしない。
+
+避ける:
+
+```text
+画面コードA → if type=date
+画面コードB → if type=date
+画面コードC → if type=date
+```
+
+型固有判断は、
+
+```text
+SearchCapabilityResolver
+Search UI生成境界
+```
+
+へ集約する。
+
+---
+
+## 17. TestPatternへの接続
+
+検索標準化が完了すると、Definition Driven Test の対象として扱いやすくなる。
+
+```text
+Field Definition
+  type = integer
+  search.visible = true
+      ↓
+SearchCapability
+  equals
+  not_equals
+  gte
+  lte
+  between
+  blank
+  not_blank
+      ↓
+TestPattern
+```
+
+### 17.1 Text代表パターン
+
+```text
+contains_hit
+contains_miss
+not_contains_hit
+not_contains_excluded
+equals
+not_equals
+blank
+not_blank
+case_insensitive_contains
+```
+
+### 17.2 Number代表パターン
+
+```text
+equals
+not_equals
+gte_boundary
+gte_below
+lte_boundary
+lte_above
+between_inside
+between_min
+between_max
+between_outside
+from_only
+to_only
+blank
+not_blank
+```
+
+### 17.3 Date代表パターン
+
+```text
+equals
+not_equals
+gte_boundary
+lte_boundary
+between_inside
+between_from
+between_to
+between_outside
+from_only
+to_only
+blank
+not_blank
+invalid_date_input
+```
+
+---
+
+## 18. 実装フェーズ案
+
+### Phase 1: Search契約定義
+
+- 標準Operator語彙を確定
+- SearchOperatorRegistry契約を確定
+- Field type / Validation Type → Operator Set対応表を確定
+- ViewDef Override契約を確定
+- Legacy Search Sectionとの互換方針を確定
+
+### Phase 2: SearchCapabilityResolver
+
+- Resolver追加
+- 型から標準Operatorを導出
+- Validation Type優先順位を実装
+- Resolver単体テスト
+
+### Phase 3: SearchFilter Operator拡張
+
+追加:
+
+```text
+not_contains
+not_equals
+between
+blank
+not_blank
+date/datetime comparison
+```
+
+### Phase 4: Search UI拡張
+
+- Operator変更用右クリックContext Menu
+- メニューは原則1階層
+- 現在Operatorを✓表示
+- 標準から変更した時だけ📌
+- ComboBoxでは選択肢メンテナンスを区切り線下へ残す
+- `between` のFrom / To
+- blank系では値欄非表示
+- Number / Date / Textの標準UI
+- 現行Search stateとの接続
+
+### Phase 5: ViewDef標準化
+
+- 新規ViewDef生成ルール更新
+- Search Section二重Field定義を新規生成しない
+- 代表ViewDefを新標準へ移行
+- Legacy ViewDef互換確認
+
+### Phase 6: Definition Driven Test接続
+
+- SearchCapabilityからTestPattern候補を導出
+- Expected / Actual / Diffへ接続
+- Search Capabilityがテスト証跡として説明可能になることを確認
+
+---
+
+## 19. 初期Acceptance Criteria
+
+### Text
+
+- 含む
+- 含まない
+- 完全一致
+- 一致以外
+- 空白
+- 空白以外
+
+### Number
+
+- 等しい
+- 等しくない
+- 以上
+- 以下
+- From ～ To
+- 空白
+- 空白以外
+
+### Date / DateTime
+
+- 等しい
+- 等しくない
+- 以降
+- 以前
+- From ～ To
+- 空白
+- 空白以外
+
+### Select / ComboBox
+
+- 完全一致
+- 一致以外
+- 既存選択肢メンテナンスを維持
+- 右クリックContext Menuで検索OperatorとField固有機能を共存
+- 将来の複数選択を阻害しない
+
+### 共通
+
+- 複数Field条件はAND
+- Full Text SearchとのANDが維持される
+- ViewDefのField定義を検索用に二重作成しなくてよい
+- 型から標準検索能力が導出される
+- ViewDef Overrideが可能
+- OperatorはRegistry管理
+- SearchFilterはDOMから独立した責務としてテスト可能
+- 現行StudioのGrid / Detail / Validation体系を壊さない
+- 標準Operatorは通常UIへ過剰表示しない
+- Override時のみ📌等で差分表示する
+
+---
+
+## 20. 設計上の「やる / やらない」まとめ
+
+| 項目 | 今回 |
+|---|---|
+| Text contains | やる |
+| Text not_contains | やる |
+| Text equals / not_equals | やる |
+| blank / not_blank | やる |
+| Number >= / <= | やる |
+| Number From-To | やる |
+| Date >= / <= | やる |
+| Date From-To | やる |
+| Validation TypeからOperator導出 | やる |
+| SearchOperatorRegistry | やる |
+| ViewDef Override | やる |
+| 右クリックOperator変更 | やる |
+| 右クリック1階層化 | やる |
+| Override時📌表示 | やる |
+| ComboBox選択肢メンテナンス維持 | やる |
+| Search Sectionの二重Field定義を新規標準から外す | やる |
+| 現行SearchFilter責務の拡張 | やる |
+| Definition Driven Testへの接続準備 | やる |
+| ComboBox複数選択 | 今回は本格実装しないが近い将来必須 |
+| Search Preset | 今回はやらないが近接Future Scope |
+| UI Editor Class体系の全面変更 | やらない |
+| SQL / DB検索 | やらない |
+| 任意AND/OR式 | やらない |
+| Regex / fuzzy / AI検索 | やらない |
+| 大量データ向けIndex | やらない |
+| 既存ViewDef全件一括移行 | やらない |
+
+---
+
+## 21. この設計で目指す状態
+
+```text
+Field Definition
+      │
+      ├─ Validation
+      ├─ Runtime Editor
+      ├─ Grid
+      ├─ Detail
+      ├─ Search Capability
+      └─ TestPattern
+```
+
+検索だけが特別な別世界ではなく、
+
+**同じField Definitionから派生する能力の一つ**
+
+として扱う。
+
+最終的に目指す構造:
+
+```text
+Field Definition
+        ↓
+Capability Resolution
+        ↓
+┌───────────────┬────────────────┬────────────────┐
+│ Validation    │ Search         │ TestPattern    │
+│ Capability    │ Capability     │ Capability     │
+└───────────────┴────────────────┴────────────────┘
+        ↓
+Renderer / Validator / Runner
+```
+
+---
+
+## 22. 今回の設計判断
+
+今回の検索強化は、単なるUI便利機能追加ではない。
+
+Studio が将来、
+
+```text
+JSON編集ツール
+    ↓
+Definition Driven Studio
+    ↓
+業務データも扱える汎用Studio
+```
+
+へ広がれるための基礎能力として位置づける。
+
+一方で、現在のStudioに対して過剰なClass再設計や巨大リファクタは行わない。
+
+> **今の構造に沿って小さく検索能力を追加し、将来の大規模リファクタを邪魔しない境界を作る。**
+
+これを今回の実装判断軸とする。
+
+
+---
+
+# 📄 AI協働028_Markdown_Studio_Review_Mode_Design_Overview_v0_1
+*(source: `AI協働028_Markdown_Studio_Review_Mode_Design_Overview_v0_1.md`)*
+
+## Markdown Studio 修正概要設計書 v0.1
+
+作成日: 2026-08-16  
+対象: FRB Studio / Markdown Studio  
+位置づけ: 本チャットセッションで合意した Markdown Studio 改修方針の整理  
+ステータス: Draft / 実装前設計整理
+
+---
+
+### 0. この設計の目的
+
+Markdown Studio を、単なる Markdown Viewer / Editor ではなく、
+
+**AIとのコミュニケーションをスムーズに行うための、Human → AI フィードバック入力UI**
+
+として整理する。
+
+今回の中心は、人間同士のレビュー管理ではない。
+
+AIが生成・修正した Markdown に対して、人間が感じた
+
+- 違和感
+- NG
+- 修正要求
+- 確認事項
+- 注目箇所
+
+を構造化し、AIへ返しやすくすることを目的とする。
+
+```text
+AI
+↓
+Markdown
+↓
+人間が確認
+↓
+Review JSON
+↓
+AI
+```
+
+Markdown は **AI → 人間** のインターフェース、  
+Review JSON は **人間 → AI** のインターフェースとして扱う。
+
+---
+
+## 1. 今回解決したい課題
+
+### 1.1 コメント位置ずれ
+
+現状は Markdown 本文にコメントを付けた後、本文へ行挿入・削除を行うと、コメント対象行がずれる。
+
+```text
+Markdown
+↓
+9行目へコメント
+↓
+途中へ3行挿入
+↓
+元の9行目が12行目へ移動
+↓
+コメント位置と本文が不整合
+```
+
+行番号は「位置」であって、レビュー対象そのものの恒久IDではない。
+
+人へ提供するレビュー機能として扱うには、注意書きだけでは弱く、  
+**ずれが発生する操作自体を構造的に禁止する必要がある。**
+
+---
+
+### 1.2 Editor と Review の責務混在
+
+現在は本文編集とコメント追加を同じ画面状態で実行できる。
+
+これを今後は、
+
+```text
+本文を編集する
+```
+
+と
+
+```text
+固定された本文をレビューする
+```
+
+に明確に分離する。
+
+---
+
+### 1.3 Sidecar という内部用語がUIへ露出している
+
+現在の右クリックメニューには、
+
+- Sidecarコメント
+- Sidecar OK
+- Sidecar NG
+- Sidecar要修正
+- Sidecar要確認
+- Sidecar JSON保存
+
+など、内部実装を前提とした用語が表示されている。
+
+人間が見るUIでは内部構造を意識させず、**日本語中心の業務語彙へ寄せる。**
+
+---
+
+## 2. 中核原則
+
+### 2.1 本文編集とレビューを同時に許可しない
+
+Markdown Studio は次の3モードを持つ。
+
+```text
+Viewer
+Editor
+Review
+```
+
+#### Viewer
+
+- 入力: Markdown
+- 本文: ReadOnly
+- コメント追加: 不可
+- ハイライト追加: 不可
+
+#### Editor
+
+- 入力: Markdown
+- 本文: 編集可能
+- コメント追加: 不可
+- ハイライト追加: 原則不可
+
+#### Review
+
+- 入力: Review JSON
+- 本文: Review JSON 内の固定 Markdown Snapshot
+- 本文編集: 不可
+- コメント追加: 可
+- 判定追加: 可
+- ハイライト追加: 可
+
+---
+
+### 2.2 Review ModeではMarkdownを凍結する
+
+Review Mode開始時点の Markdown を Snapshot として Review JSON に保存する。
+
+Review Mode 中の本文表示は、元 Markdown ファイルではなく、
+
+```text
+Review JSON.snapshot
+```
+
+を正とする。
+
+これにより、元 Markdown が後から変更されても、レビュー対象は変化しない。
+
+```text
+AIが出力した対象
+=
+人間がレビューした対象
+=
+Review JSONが保持する対象
+```
+
+を一致させる。
+
+---
+
+## 3. Review Mode開始フロー
+
+画面上部のモード切替を次の構成とする。
+
+```text
+[ Viewer ] [ Editor ] [ Review ]
+```
+
+初めて Review を押した場合、確認ダイアログを表示する。
+
+表示文案:
+
+> 現在のMarkdownをレビュー用の固定文章として保存します。  
+> レビュー開始後、本文は編集できません。  
+> コメントはこの固定文章に対して記録されます。  
+> 続行しますか？
+
+```text
+[キャンセル] [レビュー開始]
+```
+
+レビュー開始時の処理:
+
+```text
+現在のMarkdown
+↓
+未保存変更があれば保存
+↓
+Markdown Snapshot取得
+↓
+Review JSON新規生成
+↓
+Markdown Studioの入力をReview JSONへ切替
+↓
+Review Mode開始
+```
+
+---
+
+## 4. Review JSON の位置づけ
+
+Review JSON は単なる「コメント保存ファイル」ではない。
+
+```text
+Review JSON
+=
+Markdown Snapshot
++
+レビューコメント
++
+判定情報
++
+ハイライト
++
+レビュー用メタ情報
+```
+
+として扱う。
+
+Review JSON は **Markdown Studio の新しい入力形式** とする。
+
+JSON形式であることを理由に、JSON Object Studio の主対象へ移すことを今回の設計目的とはしない。
+
+Markdown Studio が Review JSON を入力として扱うことで、既存の
+
+- コメント一覧
+- コメントから本文位置へ移動
+- 本文上の対象表示
+- コメント編集
+- コメント解決
+
+などを自然に継続利用できる。
+
+---
+
+## 5. Review JSON 構造案
+
+以下は概念構造であり、正式Schemaは実装時に確定する。
+
+```json
+{
+  "review_version": "0.1",
+  "source": {
+    "path": "sample.md",
+    "hash": "..."
+  },
+  "snapshot": {
+    "markdown": "レビュー開始時点のMarkdown全文"
+  },
+  "comments": [
+    {
+      "id": "mdc_001",
+      "target": {
+        "line_start": 9,
+        "line_end": 9,
+        "text": "対象となった本文"
+      },
+      "type": "NG",
+      "comment": "ここは期待と異なる",
+      "status": "unresolved"
+    }
+  ],
+  "highlights": [
+    {
+      "id": "mdh_001",
+      "target": {
+        "line_start": 12,
+        "line_end": 12,
+        "text": "注目している本文"
+      }
+    }
+  ]
+}
+```
+
+### 5.1 target.text を保持する理由
+
+行番号だけではなく、レビュー開始時点の対象文字列も保持する。
+
+```text
+line_start / line_end
++
+target.text
+```
+
+とすることで、
+
+- 人間が何を見て判断したか
+- AIがどの文章へのフィードバックか
+- 将来の再接続候補
+
+を説明しやすくする。
+
+---
+
+## 6. Review JSON の世代管理
+
+今回の実装では複数世代管理を行わない。
+
+基本は、
+
+```text
+1 Markdown
+↔
+1 規定名 Review JSON
+```
+
+とする。
+
+Markdown に対応する規定名 Review JSON が存在する場合:
+
+```text
+Reviewボタン
+↓
+既存Review JSONを開く
+```
+
+規定名 Review JSON が存在しない場合:
+
+```text
+Reviewボタン
+↓
+レビューデータなし
+↓
+新規Review JSON生成
+```
+
+既存 Review JSON を人間が別名へ変更した場合は、  
+規定名 Review JSON が存在しないため「レビューデータなし」と判定してよい。
+
+複数世代・履歴管理は将来拡張とする。
+
+#### Review JSON ファイル名
+
+正式命名は実装時に確定する。
+
+例:
+
+```text
+document.md.review.json
+```
+
+現時点では、**規定名が一意に解決できること**を優先する。
+
+---
+
+## 7. ハイライト
+
+ハイライトは Review JSON に保存する。
+
+ただし、今回の中核目的であるAIレビューコメントとは役割を分ける。
+
+#### コメント・判定
+
+主目的:
+
+```text
+人間 → AI
+```
+
+への構造化フィードバック。
+
+#### ハイライト
+
+主目的:
+
+```text
+人間自身の注目箇所を保持する
+```
+
+Review JSON を再度開いた際に、以前注目していた箇所を復元できることを重視する。
+
+---
+
+## 8. 右クリックメニュー整理
+
+### 8.1 UI用語方針
+
+人間が見るメニューは日本語へ寄せる。
+
+内部クラス名、JSONキー、実装上の構造名は英語のままでよい。
+
+#### 用語変更
+
+```text
+Block情報
+↓
+段落情報
+```
+
+`Sidecar` という語は人間向けUIから原則撤去する。
+
+---
+
+### 8.2 Editor Mode の右クリック
+
+基本メニューを簡素化する。
+
+```text
+段落情報
+────────────
+行編集
+上に行挿入
+下に行挿入
+段落削除
+```
+
+特殊ブロックに必要な操作がある場合のみ、そのブロック固有メニューを追加する。
+
+本文編集に不要な Review 系メニューは表示しない。
+
+---
+
+### 8.3 Viewer Mode の右クリック
+
+レビューコメント追加系のメニューは表示しない。
+
+Viewer は「読む」責務に限定する。
+
+---
+
+### 8.4 Review Mode の右クリック
+
+Review Mode のみレビュー操作を表示する。
+
+候補:
+
+```text
+段落情報
+────────────
+コメント
+OK
+NG
+要修正
+要確認
+ハイライト
+```
+
+最終的な文言・並び順は実装時に調整する。
+
+---
+
+## 9. 保存UI
+
+### 9.1 右クリックのJSON保存を廃止
+
+現在の
+
+```text
+Sidecar JSON保存
+```
+
+は削除する。
+
+保存操作は右クリックメニューではなく、画面上部の共通保存UIへ統合する。
+
+---
+
+### 9.2 モードにより保存対象を切り替える
+
+#### Viewer / Editor
+
+```text
+保存対象: Markdown
+```
+
+トップの
+
+```text
+上書き
+名前保存
+```
+
+は Markdown を対象とする。
+
+#### Review
+
+```text
+保存対象: Review JSON
+```
+
+トップの
+
+```text
+上書き
+名前保存
+```
+
+は Review JSON を対象とする。
+
+---
+
+### 9.3 保存対象を視覚表示する
+
+`上書き` の左側に、現在の保存対象を表示する。
+
+例:
+
+```text
+[ 保存対象: Markdown ] [ 上書き ] [ 保存検査 ] [ 名前保存 ]
+```
+
+```text
+[ 保存対象: Review JSON ] [ 上書き ] [ 保存検査 ] [ 名前保存 ]
+```
+
+「JSON保存モード」「Markdown保存モード」という表現は、Viewer / Editor / Review の「モード」と語彙が衝突するため避ける。
+
+---
+
+## 10. ファイルツリーとReview JSON
+
+Phase 1では、Review JSONをファイルツリーから直接操作することを必須としない。
+
+基本操作:
+
+```text
+ファイルツリー
+↓
+Markdownを選択
+↓
+Reviewボタン
+↓
+対応するReview JSONを内部的に解決
+```
+
+将来的には、
+
+```text
+Review JSONを表示する / 表示しない
+```
+
+の切替を追加してもよい。
+
+ただし今回は、
+
+- ファイル分類
+- 表示フィルター
+- Review JSON直接オープン
+- Markdownとの関連付けUI
+- Review世代管理
+
+まで広げない。
+
+---
+
+## 11. 巨大Markdownファイル警告
+
+巨大な Markdown を誤クリックした際、読み込みに時間がかかり、UIが固まったように見える問題へ対応する。
+
+ファイル本文を読み込む前にファイルサイズを確認し、閾値以上の場合は確認ダイアログを出す。
+
+```text
+Markdownファイル選択
+↓
+ファイルサイズ確認
+↓
+閾値未満
+  → 通常ロード
+
+閾値以上
+  → 確認ダイアログ
+     「このファイルは大きいため、
+       表示に時間がかかる可能性があります。
+       開きますか？」
+```
+
+```text
+[キャンセル] [開く]
+```
+
+### 11.1 設定配置
+
+閾値は Native Shell の権限制約ではないため、
+
+```text
+native_shell.config.json
+```
+
+には置かない。
+
+Studio の動作設定として、
+
+```text
+wwwroot/config/app_settings.json
+```
+
+へ置く。
+
+構造案:
+
+```json
+{
+  "markdown": {
+    "large_file_warning_enabled": true,
+    "large_file_warning_bytes": 524288
+  }
+}
+```
+
+`524288` bytes（512 KiB）は初期候補値。  
+実利用を見て調整可能とする。
+
+---
+
+## 12. Markdown Studio レイアウト微調整
+
+本チャットで出たレイアウト要求も継続する。
+
+### 12.1 コードブロックの選択表示
+
+Editor Modeで黒系コードブロックがカレントになった際、背景が白くフラッシュして文字が読めなくなる状態を廃止する。
+
+要求:
+
+```text
+通常コードブロック
+= ダーク背景
+
+カレントコードブロック
+= ダークグレー寄りの背景
+```
+
+カレント表現のために大幅な明色化・フラッシュを行わない。
+
+---
+
+### 12.2 右サイドバーの縦配分
+
+右側を次の順序とする。
+
+```text
+INDEX / 目次
+↓
+コメントレビュー
+↓
+ドキュメントメタ
+```
+
+ドキュメントメタは最下部へ配置し、余白を減らす。
+
+目次とコメントレビューへ、より多くの高さを配分する。
+
+---
+
+### 12.3 ウィンドウ横幅への追従
+
+ウィンドウ全体を横へ広げた場合、Markdown Studio全体も横へ広がる。
+
+ただし本文の可読幅はむやみに拡大しない。
+
+```text
+ウィンドウ横幅増加
+↓
+左ファイルツリー   → 広がる
+中央本文           → おおむね既存幅を維持
+右レビュー領域     → 広がる
+```
+
+主目的は、ファイルツリーの文字切れを減らすこと。
+
+---
+
+## 13. 今回やらないこと
+
+今回のMarkdown Studio改修では、以下を対象外とする。
+
+- 人間同士のレビュー依頼・承認ワークフロー
+- 複数レビュアー管理
+- メンション
+- コメント返信スレッド
+- 既読管理
+- 担当者割当
+- Review JSONの複数世代管理
+- Review JSONの高度な自動再接続
+- ファイルツリーの高度なReview JSON分類UI
+- 設定専用UIの設計・実装
+
+特に設定UIは次フェーズで別途設計する。
+
+---
+
+## 14. 設計の中心メッセージ
+
+今回の改修は、コメントの行ずれを回避するためだけの対症療法ではない。
+
+```text
+Editor
+= Markdownそのものを変更する場所
+
+Review
+= 固定されたMarkdownに対して、
+  人間の判断を構造化する場所
+```
+
+へ責務を分離する。
+
+そして最終的には、
+
+```text
+AI
+↓
+Markdown
+↓
+Human Review
+↓
+Review JSON
+↓
+AI
+```
+
+という循環を成立させる。
+
+> **Markdown Studio の Review Mode は、人間同士のレビュー管理機能ではない。  
+> 人間がMarkdownを読んで感じた違和感・判断・修正要求を、AIへ構造化して返すためのHuman → AIインターフェースである。**
+
+---
+
+## 15. 実装フェーズ案
+
+### Phase 1 — Review Mode基礎
+
+- Viewer / Editor / Review の3モード化
+- Review開始確認
+- Markdown Snapshot生成
+- Review JSON新規作成 / 既存読込
+- Review Mode本文ReadOnly化
+- コメント・判定をReview Mode限定へ変更
+- Sidecar表記撤去
+- `Block情報` → `段落情報`
+
+### Phase 2 — 保存契約整理
+
+- Review JSONへハイライト保存
+- 上部保存ボタンの保存対象切替
+- 保存対象ラベル追加
+- 右クリックのJSON保存撤去
+
+### Phase 3 — 安全性・UI微調整
+
+- 巨大Markdown警告
+- コードブロック白フラッシュ抑止
+- 右サイドバー高さ最適化
+- 横幅追従改善
+
+---
+
+### Revision History
+
+- 2026-08-16: v0.1 初版。本チャットセッションのMarkdown Studio改修方針を整理。
+
+
+---
+
+# 📄 AI協働029_FRB Studio App Settings — 設計概要 v0.1 Draft
+*(source: `AI協働029_FRB Studio App Settings — 設計概要 v0.1 Draft.md`)*
+
+## FRB Studio App Settings — 設計概要 v0.1 Draft
+
+### 1. 目的
+
+FRB Studio右上に `⚙ 設定` を追加し、
+
+```text
+app_settings.json
+```
+
+に保持される利用者向け動作設定を、FRB Studio上から登録・更新できるようにする。
+
+ただし、設定項目ごとの専用HTML / JavaScriptは原則作成しない。
+
+基本構造は、
+
+```text
+app_settings.json
+        +
+App Settings Field Definition
+        +
+App Settings ViewDef
+        ↓
+既存Definition Driven Editor
+        ↓
+⚙ Studio設定
+```
+
+とする。
+
+---
+
+## 2. 中核設計原則
+
+### 2.1 `app_settings.json` をCanonicalとする
+
+```text
+app_settings.json
+      = 正本
+
+Settings UI
+      = View
+```
+
+設定画面自身は設定値を独自保持しない。
+
+保存された値は必ず `app_settings.json` へ戻す。
+
+---
+
+### 2.2 設定項目専用UIを作らない
+
+禁止イメージ：
+
+```javascript
+if (settingName === "large_file_warning_bytes") {
+    // 専用HTMLを生成
+}
+```
+
+設定項目追加時にJavaScriptを追加する設計にはしない。
+
+設定項目追加は原則、
+
+```text
+Data追加
+Field Definition追加
+ViewDef追加
+```
+
+で完結させる。
+
+---
+
+### 2.3 Settings専用Rendererを作らない
+
+Settings画面専用のRendererは作らない。
+
+代わりに既存Editorへ、
+
+> **Form-only Document View**
+
+という汎用能力を追加する。
+
+これはSettings専用機能ではない。
+
+将来、
+
+```text
+アプリ設定
+実行設定
+プロファイル設定
+単一Object型の各種Config
+```
+
+でも再利用可能なEditor能力とする。
+
+---
+
+## 3. 現行構造から見えた重要点
+
+現在のJSON Object Studioは、
+
+```text
+ViewDef
+ └─ grid section
+       ↓
+Array Data
+```
+
+を主対象としており、
+
+**grid sectionが存在しないViewDefを互換データとして認めない。**
+
+しかし `app_settings.json` は、
+
+```json
+{
+  "hosting": {},
+  "ui": {},
+  "default_launch": {},
+  "markdown": {}
+}
+```
+
+という単一Objectであり、Gridを必要としない。
+
+ここで、
+
+```text
+settings[]
+```
+
+のような偽Arrayを作ってEditorへ合わせることはしない。
+
+DataをRenderer都合で歪めるのではなく、
+
+> **Editor側を単一Object編集に対応させる。**
+
+---
+
+## 4. Form-only Document View
+
+新しい汎用表示モード。
+
+```text
+ViewDef
+ ├─ form section
+ ├─ form section
+ ├─ form section
+ └─ ...
+```
+
+を許可する。
+
+Gridは存在しなくてもよい。
+
+#### 表示例
+
+```text
+⚙ Studio設定
+
+■ 起動
+  JSON Studio 初期Data
+  [ 01_main/_studio_work_incident_data_v2.json ]
+
+  初期ViewDef
+  [ 自動（Data定義を使用） ]
+
+■ Markdown Studio
+  ☑ 巨大ファイル警告
+
+  警告サイズ
+  [ 512 ] KB
+
+                         [保存]
+```
+
+Form-only時は、
+
+```text
+検索
+Grid
+新規
+削除
+CSV出力
+Detail Dialog
+```
+
+を表示しない。
+
+---
+
+## 5. 設定画面への導線
+
+現行Common Shellには右端に、
+
+```text
+.frb-shell-utility
+```
+
+というUtility領域が既に存在する。
+
+現在ほぼ空なので、ここへ追加する。
+
+```text
+JSON Object Studio   Markdown Studio   Diff ...             ⚙
+```
+
+全Studio共通Shellに置くため、
+
+```text
+JSON Object Studio
+Markdown Studio
+Diff JSON Viewer
+MetaDiff Viewer
+Home
+```
+
+のどこからでも設定へ移動できる。
+
+---
+
+## 6. Settings Mode
+
+初期実装では専用巨大画面を新設せず、
+
+```text
+index.html?mode=settings
+```
+
+のような **Settings Mode** としてJSON Object Studioの編集エンジンを再利用する。
+
+通常：
+
+```text
+JSON Object Studio
+Data + ViewDef + Grid
+```
+
+Settings Mode：
+
+```text
+Studio設定
+app_settings.json
+App Settings ViewDef
+Form-only Document View
+```
+
+つまり、
+
+> **同じEditorの異なるProjection**
+
+とする。
+
+---
+
+## 7. ファイル構成
+
+推奨：
+
+```text
+wwwroot/config/
+  app_settings.json
+      Canonical Settings Data
+
+defs/config/
+  app_settings_view_def_v0_1.json
+
+fielddefs/config/
+  app_settings_field_definitions_v0_1.json
+
+wwwroot/js/services/
+  app_settings_service.js
+```
+
+ViewDefからField Definitionを参照する。
+
+```text
+app_settings.json
+        ↓
+app_settings_view_def_v0_1.json
+        ↓
+app_settings_field_definitions_v0_1.json
+```
+
+Data側へField Definition参照を埋め込まない。
+
+---
+
+## 8. `app_settings.json` のViewDef接続
+
+設定Data自身には、既定表示として例えば、
+
+```json
+{
+  "view_def": "config/app_settings_view_def_v0_1.json"
+}
+```
+
+を追加してよい。
+
+これにより、
+
+```text
+Data
+ ↓
+ViewDef
+ ↓
+Field Definition
+```
+
+という通常Studioの解決方式へ寄せられる。
+
+`view_def` 自体は設定画面では非表示とする。
+
+---
+
+## 9. 初期公開設定
+
+最初から `app_settings.json` 全項目を人間に触らせる必要はない。
+
+### 起動
+
+```text
+default_launch.data
+default_launch.view_def
+```
+
+### Markdown Studio
+
+```text
+markdown.large_file_warning_enabled
+markdown.large_file_warning_bytes
+```
+
+まずはこの4項目のみ。
+
+現在存在する、
+
+```text
+hosting.*
+ui.*
+```
+
+はDataとして保持するが、
+
+```text
+ViewDefでは非表示
+または
+ReadOnly
+```
+
+とする。
+
+つまり、
+
+> **Dataに存在することと、設定画面から変更可能であることは別。**
+
+---
+
+## 10. Field Definition
+
+例：
+
+```text
+$.default_launch.data
+  validation_type:
+    studio.string.single_line
+
+  required:
+    true
+
+  empty_string_allowed:
+    true
+
+意味:
+  空文字 = 自動起動Dataなし
+```
+
+```text
+$.default_launch.view_def
+
+空文字
+  = Data側のview_def / view_def_candidatesから自動解決
+```
+
+```text
+$.markdown.large_file_warning_enabled
+
+validation_type:
+  studio.boolean.standard
+```
+
+```text
+$.markdown.large_file_warning_bytes
+
+validation_type:
+  studio.integer.positive
+```
+
+これらを既存の
+
+```text
+DefinitionValueValidator
+```
+
+へ接続する。
+
+Settingsだけ独自Validationを作らない。
+
+---
+
+## 11. Data / ViewDef Picker
+
+起動DataとViewDefを文字入力だけにするより、
+
+既存のFile Tree Pickerを再利用したい。
+
+```text
+JSON Studio 初期Data
+[ 01_main/...json             ] [▼]
+
+初期ViewDef
+[ rules/...view_def_v0_1.json ] [▼]
+```
+
+将来的には汎用Field Controlとして、
+
+```text
+jsonPathPicker
+```
+
+を定義できる構造にする。
+
+例：
+
+```json
+{
+  "field": "default_launch.data",
+  "type": "text",
+  "edit": {
+    "picker": {
+      "source": "data"
+    }
+  }
+}
+```
+
+ViewDef：
+
+```json
+{
+  "field": "default_launch.view_def",
+  "type": "text",
+  "edit": {
+    "picker": {
+      "source": "defs"
+    }
+  }
+}
+```
+
+これもSettings専用実装にはしない。
+
+---
+
+## 12. 保存責務
+
+ここが重要。
+
+現在Native Shellの書込許可対象は、
+
+```text
+data/json
+data/markdown
+defs
+fielddefs
+studio_overlays
+```
+
+であり、
+
+```text
+wwwroot
+```
+
+は書込対象ではない。
+
+**この安全境界は維持する。**
+
+禁止：
+
+```text
+writable_roots += "wwwroot"
+```
+
+あるいは、
+
+```text
+writable_roots += "wwwroot/config"
+```
+
+これは行わない。
+
+---
+
+## 13. App Settings専用の書込契約
+
+Native Shellへ、
+
+```text
+GET  /api/app-settings
+POST /api/app-settings
+```
+
+相当の小さな契約を追加する。
+
+対象ファイルは固定。
+
+```text
+wwwroot/config/app_settings.json
+```
+
+のみ。
+
+Native側では、
+
+```text
+app_settings.json
+```
+
+以外を書き込めない。
+
+つまり、
+
+```text
+Settings UI
+     ↓
+/api/app-settings
+     ↓
+app_settings.json
+```
+
+とする。
+
+---
+
+## 14. Native Shellとの境界
+
+`native_shell.config.json` は設定画面から変更させない。
+
+明確に、
+
+```text
+app_settings.json
+= 利用者が変更してよいアプリ動作設定
+
+native_shell.config.json
+= Native Shellの権限・安全境界
+```
+
+と分離する。
+
+Settings画面から、
+
+```text
+writable_roots
+allowed_commands
+process_profiles
+```
+
+などは絶対に変更しない。
+
+---
+
+## 15. AppSettingsService
+
+現在のように各画面が、
+
+```javascript
+fetch("./config/app_settings.json")
+```
+
+を個別実装する方式は今後やめる。
+
+共通の、
+
+```text
+AppSettingsService
+```
+
+を用意する。
+
+責務：
+
+```text
+load()
+get()
+reload()
+save()
+```
+
+Runtime側は、
+
+```text
+Markdown Studio
+JSON Object Studio
+Common Shell
+Review
+Diff
+```
+
+など全てここから設定を取得する。
+
+---
+
+## 16. 読込経路
+
+#### Native Shell / Local API
+
+```text
+AppSettingsService
+       ↓
+GET /api/app-settings
+       ↓
+wwwroot/config/app_settings.json
+```
+
+#### 静的Hosting
+
+```text
+AppSettingsService
+       ↓
+./config/app_settings.json
+```
+
+Static環境では読込のみ。
+
+設定保存ボタンは、
+
+```text
+ReadOnly
+```
+
+とする。
+
+---
+
+## 17. Default Launchの優先順位
+
+起動対象の決定順は明示する。
+
+```text
+1. URLで明示された data / view
+        ↓
+2. app_settings.default_launch
+        ↓
+3. 現行の未選択状態
+```
+
+つまり、
+
+```text
+index.html?data=xxx&view=yyy
+```
+
+が指定されている場合、
+
+`app_settings.json` は上書きしない。
+
+---
+
+## 18. `default_launch.view_def` の意味
+
+```text
+"view_def": ""
+```
+
+の場合：
+
+```text
+Data JSON
+ ↓
+view_def
+ ↓
+view_def_candidates
+ ↓
+Studio標準自動解決
+```
+
+を利用する。
+
+つまり空文字は、
+
+> **自動**
+
+という正式な意味を持たせる。
+
+---
+
+## 19. 保存前検証
+
+保存ボタン：
+
+```text
+設定入力
+ ↓
+Field Definition Validation
+ ↓
+参照整合性検証
+ ↓
+保存
+```
+
+追加チェック：
+
+#### 初期Data
+
+値ありの場合：
+
+```text
+存在するJSONであること
+```
+
+#### ViewDef
+
+値ありの場合：
+
+```text
+存在するViewDefであること
+```
+
+さらに可能なら、
+
+```text
+Data × ViewDef互換性
+```
+
+も保存前に確認する。
+
+---
+
+## 20. Round Trip保証
+
+Settings UIに表示していない項目も削除しない。
+
+例えば、
+
+```json
+"hosting": {
+  "prefer_api_on_localhost": true
+}
+```
+
+がViewDefに表示されていなくても、
+
+保存後そのまま残る。
+
+```text
+Read
+ ↓
+既存Object保持
+ ↓
+表示対象Fieldのみ変更
+ ↓
+Write
+```
+
+とする。
+
+これはStudioくん既存の思想と同じ。
+
+---
+
+## 21. `updated_at`
+
+`updated_at` はユーザー入力させない。
+
+保存成功時に自動更新。
+
+```text
+2026-08-16
+```
+
+または将来的には、
+
+```text
+2026-08-16T19:xx:xx+09:00
+```
+
+へ統一可能。
+
+ViewではReadOnly。
+
+---
+
+## 22. 未保存変更
+
+Settings Modeから、
+
+```text
+ホーム
+他Studio
+閉じる
+再読込
+```
+
+へ移動しようとした時、
+
+変更があれば確認する。
+
+```text
+設定に未保存の変更があります。
+
+[キャンセル]
+[変更を破棄]
+```
+
+保存操作を明示的に要求する。
+
+設定変更を暗黙保存しない。
+
+---
+
+## 23. 設定反映タイミング
+
+初期段階では複雑なHot Reloadはしない。
+
+#### default_launch
+
+```text
+次回Studio起動から反映
+```
+
+#### Markdown警告
+
+```text
+次回Markdown Studio読込から反映
+```
+
+将来必要になれば、
+
+```text
+immediate
+page_reload
+next_launch
+```
+
+のような適用方式を追加できる。
+
+ただしPhase 1では不要。
+
+---
+
+## 24. 設定追加の将来像
+
+例えばReview JSON表示設定を追加する場合。
+
+Data：
+
+```json
+"markdown": {
+  "show_review_json": false
+}
+```
+
+Field Definition：
+
+```text
+$.markdown.show_review_json
+→ boolean
+```
+
+ViewDef：
+
+```text
+Markdown Studio
+☐ Review JSONをファイルツリーに表示
+```
+
+以上。
+
+原則として、
+
+```text
+app_settings_service.js
+Settings Mode
+Renderer
+```
+
+は変更しない。
+
+これが今回の設計の最大目的。
+
+---
+
+## 25. 責務構造
+
+```mermaid
+flowchart TD
+
+    A[⚙ Common Shell Settings Button]
+    --> B[Settings Launcher]
+
+    B --> C[AppSettingsService]
+
+    C --> D[app_settings.json]
+
+    D --> E[App Settings ViewDef]
+
+    E --> F[App Settings Field Definition]
+
+    D --> G[Form-only Document Editor]
+    E --> G
+    F --> G
+
+    G --> H[DefinitionValueValidator]
+
+    H --> I[Save]
+
+    I --> C
+    C --> D
+
+    D --> J[各Studio Runtime]
+```
+
+---
+
+## 26. やらないこと
+
+今回かなり重要。
+
+#### やらない
+
+```text
+設定4項目専用HTML
+設定4項目専用Renderer
+設定値ごとのJavaScript分岐
+設定用settings[]配列へのData変形
+native_shell.config.jsonのUI編集
+wwwroot/config全体の書込許可
+Settings画面独自Validation
+```
+
+---
+
+## 27. 実装フェーズ案
+
+### Phase 1 — 基盤
+
+```text
+⚙ Common Shellボタン
+AppSettingsService
+/api/app-settings
+app_settings.jsonだけの安全な書込契約
+Form-only Document View
+```
+
+### Phase 2 — Definition Driven Settings
+
+```text
+App Settings Field Definition
+App Settings ViewDef
+Settings Mode
+保存・Dirty管理
+```
+
+初期4項目：
+
+```text
+default_launch.data
+default_launch.view_def
+markdown.large_file_warning_enabled
+markdown.large_file_warning_bytes
+```
+
+### Phase 3 — Runtime接続
+
+```text
+Default Launch
+Markdown巨大ファイル警告
+```
+
+をAppSettingsService経由へ統一。
+
+### Phase 4 — UX
+
+```text
+Data Picker
+ViewDef Picker
+KB表示
+設定カテゴリ追加
+必要に応じた即時反映
+```
+
+---
+
+## 28. 最終構造
+
+```text
+               app_settings.json
+                     │
+          ┌──────────┴──────────┐
+          │                     │
+ Field Definition            ViewDef
+          │                     │
+          └──────────┬──────────┘
+                     ↓
+            Generic Form Editor
+                     ↓
+                ⚙ Settings
+                     │
+                     ↓
+             AppSettingsService
+                     │
+          ┌──────────┴──────────┐
+          ↓                     ↓
+     JSON Studio          Markdown Studio
+          ↓                     ↓
+      Review等               将来機能
+```
+
+### 一言でいうと
+
+> **設定画面を作るのではなく、単一ObjectをDefinition Drivenで編集できる能力をStudioくんへ追加し、app_settings.jsonをその最初の利用者にする。**
+
+これを今回の設計原則とする。
+
+
+---
+
+# 📄 AI協働030_FRB_Studio_App_Settings_設計概要_v0.2_Draft
+*(source: `AI協働030_FRB_Studio_App_Settings_設計概要_v0.2_Draft.md`)*
+
+## FRB Studio App Settings — 設計概要 v0.2 Draft
+
+更新日: 2026-08-16  
+対象資材: `FRBStudio_App20260816_190410`  
+位置づけ: `app_settings.json` 登録・更新機能、および標準Editorの `sectionGroups` 拡張に関する設計概要  
+ステータス: Draft / 意識合わせ反映版
+
+---
+
+### 1. 目的
+
+FRB Studio に `⚙ 設定` を追加し、`app_settings.json` に保持するアプリ動作設定を、Studio上から登録・更新できるようにする。
+
+ただし、Settings専用Editorを新規実装することを目的とはしない。
+
+今回の中心は、
+
+> **標準Editorに「Viewを明示的なグループ単位で切り替える能力」を追加し、Settingsをその最初の利用例とする。**
+
+ことである。
+
+---
+
+### 2. 今回の中核判断軸
+
+#### 外からつまめ原則
+
+既存構造や既存責務をなるべく壊したくないときは、内部へ専用実装を追加する前に、**既存の要素を外部定義から選択・組み合わせることで実現できないかを先に考える。**
+
+つまり、
+
+> **壊す前に、まず外からつまめないか考える。**
+
+内部変更と外部構成のどちらでも実現できる場合は、既存構造を維持できる「外からつまむ」方法を優先する。
+
+今回の `sectionGroups` は、この原則の代表的な適用例とする。
+
+---
+
+### 3. 現行ViewDefの構造
+
+現行ViewDefは、1つの `view` の中に複数の `sections` を持つ。
+
+概念的には以下の構造である。
+
+```json
+{
+  "views": [
+    {
+      "id": "sample_view",
+      "caption": "Sample",
+      "layout": "...",
+      "sections": [
+        {
+          "id": "header",
+          "type": "form"
+        },
+        {
+          "id": "main",
+          "type": "grid"
+        }
+      ]
+    }
+  ]
+}
+```
+
+現在は、ViewDefに定義された `sections` を1つの画面構成として扱っている。
+
+今回、この既存構造を壊さず、その外側から表示対象Sectionを束ねる概念を追加する。
+
+---
+
+## 4. 新規固定キーワード `sectionGroups`
+
+ViewDefの `view` に、任意項目として次の固定キーワードを追加する。
+
+```text
+sectionGroups
+```
+
+`sectionGroups` は、既存の `sections` を利用目的ごとの表示単位として束ねるための定義である。
+
+基本形:
+
+```json
+{
+  "sectionGroups": [
+    {
+      "id": "launch",
+      "caption": "ショートカット",
+      "sectionIds": [
+        "launch_shortcuts"
+      ]
+    },
+    {
+      "id": "markdown",
+      "caption": "Markdown Studio",
+      "sectionIds": [
+        "markdown_settings"
+      ]
+    }
+  ]
+}
+```
+
+---
+
+### 4.1 用語
+
+```text
+sections
+= 既存の画面構成要素
+
+sectionGroup
+= 複数のSectionをまとめた1つの表示単位
+
+sectionGroups
+= View内に存在するSection Groupの一覧
+
+sectionIds
+= そのGroupで表示する既存SectionのID一覧
+```
+
+重要なのは、`sectionGroups` 自身は新しいRendererや新しいSection Typeではないことである。
+
+---
+
+## 5. `sectionGroups` の基本思想
+
+今回追加するのは、
+
+```text
+新しい画面部品
+```
+
+ではなく、
+
+```text
+既存画面部品の見せ方
+```
+
+である。
+
+構造としては、
+
+```text
+ViewDef
+  │
+  ├─ sections
+  │    ├─ Section A
+  │    ├─ Section B
+  │    ├─ Section C
+  │    └─ Section D
+  │
+  └─ sectionGroups
+       ├─ Group 1 → A + B
+       └─ Group 2 → C + D
+```
+
+となる。
+
+実行時は、
+
+```text
+sectionGroupを選択
+        ↓
+sectionIdsを解決
+        ↓
+対象sectionsを抽出
+        ↓
+既存Editor / Rendererへ渡す
+```
+
+という流れとする。
+
+つまり、
+
+> **既存Editorを起動するトリガーを、ViewDefの外側に追加する。**
+
+という位置づけである。
+
+---
+
+## 6. 標準Editorへの追加能力
+
+`sectionGroups` が存在する場合、標準EditorはSection Groupを切り替えるナビゲーションを表示する。
+
+イメージ:
+
+```text
+┌─────────────────────────────────────┐
+│ ⚙ Studio設定                        │
+├──────────────┬──────────────────────┤
+│ ショートカット │                      │
+│ Markdown      │   既存Editor表示領域  │
+│ Review        │                      │
+│ ...           │                      │
+└──────────────┴──────────────────────┘
+```
+
+ただし、
+
+```text
+サイドバー
+タブ
+上部メニュー
+```
+
+のどれで表現するかは、`sectionGroups` のデータ契約とは分離する。
+
+今回固定するのは、
+
+> **Groupを選択すると、そのGroupの `sectionIds` に属する既存Sectionが標準Editorで表示される。**
+
+という動作契約である。
+
+---
+
+## 7. `sectionGroups` はForm専用ではない
+
+ここは今回の重要点。
+
+`sectionGroups` は、
+
+```text
+Formをカテゴリ分けする仕組み
+```
+
+ではない。
+
+既存Sectionであれば、そのTypeに関係なく束ねられる。
+
+例えばSettingsでは、
+
+```text
+ショートカット
+→ Grid Section
+
+Markdown Studio
+→ Form Section
+```
+
+という構成が可能。
+
+例:
+
+```json
+{
+  "sectionGroups": [
+    {
+      "id": "launch",
+      "caption": "ショートカット",
+      "sectionIds": [
+        "launch_shortcuts"
+      ]
+    },
+    {
+      "id": "markdown",
+      "caption": "Markdown Studio",
+      "sectionIds": [
+        "markdown_settings"
+      ]
+    }
+  ],
+
+  "sections": [
+    {
+      "id": "launch_shortcuts",
+      "caption": "起動ショートカット",
+      "type": "grid",
+      "dataPath": "$.launch_shortcuts",
+      "fields": []
+    },
+    {
+      "id": "markdown_settings",
+      "caption": "Markdown Studio",
+      "type": "form",
+      "dataPath": "$.markdown",
+      "fields": []
+    }
+  ]
+}
+```
+
+この場合でも、
+
+```text
+Grid Renderer
+Form Renderer
+```
+
+は既存実装をそのまま利用する。
+
+---
+
+## 8. 後方互換
+
+`sectionGroups` は任意項目とする。
+
+```text
+sectionGroups なし
+→ 現行ViewDefと同じ動作
+
+sectionGroups あり
+→ Group選択ナビゲーションを有効化
+→ 選択GroupのSectionのみ既存Editorへ渡す
+```
+
+既存ViewDefを今回の機能追加のために書き換える必要はない。
+
+---
+
+## 9. `sectionGroups` の初期ルール
+
+v0.1では、複雑な機能を持たせず以下を基本ルールとする。
+
+#### Group順
+
+`sectionGroups` の配列順を、ナビゲーション表示順とする。
+
+#### Section順
+
+`sectionIds` の配列順を、Group内のSection表示順とする。
+
+#### Section参照
+
+`sectionIds` に指定するIDは、同一Viewの `sections[].id` に存在しなければならない。
+
+#### Section再利用
+
+同じSection IDを複数のSection Groupから参照してよい。
+
+Section定義そのものをコピーしない。
+
+#### 未所属Section
+
+`sectionGroups` が存在する場合、原則として全Sectionを1つ以上のGroupから参照する。
+
+未所属Sectionがある場合は、ViewDef検証で警告またはエラー候補とする。
+
+#### Renderer
+
+Groupごとの専用Rendererは作らない。
+
+---
+
+## 10. `layout` との関係
+
+`sectionGroups` は既存の `layout` を置き換えない。
+
+初期設計では、
+
+```text
+sectionGroups
+    ↓
+Active Sectionを決定
+    ↓
+既存layout / Section Renderer
+```
+
+という順序で扱う。
+
+つまり、
+
+> `sectionGroups` はRendererの内側へ入り込む機能ではなく、既存Editorへ渡すSectionを外側で選択する機能
+
+とする。
+
+これが「外からつまむ」の具体的な実装境界となる。
+
+---
+
+## 11. App Settingsへの適用
+
+現在の `app_settings.json` には、
+
+```text
+hosting
+ui
+default_launch
+markdown
+```
+
+が存在する。
+
+今回、`default_launch` は使用せず、
+
+```text
+launch_shortcuts
+```
+
+へ置き換える。
+
+理由:
+
+```text
+自動起動
+```
+
+ではなく、
+
+```text
+利用者が明示的にクリックして既存Editorを起動するショートカット
+```
+
+として扱うため。
+
+---
+
+## 12. `launch_shortcuts`
+
+最小構造案:
+
+```json
+{
+  "launch_shortcuts": [
+    {
+      "id": "incident",
+      "caption": "インシデント管理",
+      "data": "01_main/_studio_work_incident_data_v2.json",
+      "view_def": "rules/studio_work_incident_view_def_v0_5.json"
+    }
+  ]
+}
+```
+
+役割は、
+
+```text
+よく使うData
++
+そのDataを表示するViewDef
+```
+
+の組を登録すること。
+
+`view_def` の省略・空文字時に既存の自動解決を利用するかは、実装時に既存Resolver契約へ合わせる。
+
+---
+
+### 12.1 登録と実行は別責務
+
+ここは明確に分離する。
+
+```text
+⚙ Settings
+    ↓
+launch_shortcutsを登録・更新する
+
+別途 Shortcut Menu
+    ↓
+launch_shortcutsを一覧表示する
+    ↓
+クリック
+    ↓
+既存JSON Object Studioを起動する
+```
+
+Settings画面自身はショートカットを自動実行しない。
+
+また、FRB Studio起動時に `launch_shortcuts` の先頭を自動表示することもしない。
+
+---
+
+## 13. Settings ViewDefの初期イメージ
+
+Settings自体も `sectionGroups` の最初の利用者として構築する。
+
+```json
+{
+  "id": "app_settings_v0_1",
+  "caption": "Studio設定",
+  "layout": "standard",
+
+  "sectionGroups": [
+    {
+      "id": "launch",
+      "caption": "ショートカット",
+      "sectionIds": [
+        "launch_shortcuts"
+      ]
+    },
+    {
+      "id": "markdown",
+      "caption": "Markdown Studio",
+      "sectionIds": [
+        "markdown_settings"
+      ]
+    }
+  ],
+
+  "sections": [
+    {
+      "id": "launch_shortcuts",
+      "caption": "起動ショートカット",
+      "type": "grid",
+      "dataPath": "$.launch_shortcuts",
+      "fields": []
+    },
+    {
+      "id": "markdown_settings",
+      "caption": "Markdown Studio",
+      "type": "form",
+      "dataPath": "$.markdown",
+      "fields": []
+    }
+  ]
+}
+```
+
+この例では、
+
+```text
+ショートカットを選択
+→ 既存Grid Editor
+
+Markdown Studioを選択
+→ 既存Form Editor
+```
+
+となる。
+
+Settings専用画面実装は不要。
+
+---
+
+## 14. `app_settings.json` のCanonical
+
+現時点では、
+
+```text
+System側 app_settings.json
+```
+
+をCanonicalとする。
+
+将来的には、
+
+```text
+System app_settings.json
++
+User app_settings.json
++
+Override Resolution
+```
+
+という構造を持つ可能性はある。
+
+ただし、
+
+> **利用者別 `app_settings.json` によるOverride構造は現時点では考えない。**
+
+これを今回の明示的な制約とする。
+
+---
+
+## 15. System Definitionの配置
+
+Settings用ViewDef / Field Definitionは、ユーザーが管理する、
+
+```text
+defs
+fielddefs
+```
+
+へ置かない。
+
+これらはユーザーエリアとして扱う。
+
+Settingsを成立させるDefinitionはStudio本体が所有するため、
+
+```text
+wwwroot/config
+```
+
+付近のSystem領域へ収録する。
+
+配置イメージ:
+
+```text
+wwwroot/
+  config/
+    app_settings.json
+
+    app_settings/
+      app_settings_view_def_v0_1.json
+      app_settings_field_definitions_v0_1.json
+```
+
+具体的なサブフォルダ名は実装時に確定してよい。
+
+重要なのは、
+
+```text
+defs / fielddefs
+= ユーザー定義
+
+wwwroot/config付近
+= Studio自身を成立させるSystem定義
+```
+
+という所有境界を維持すること。
+
+---
+
+## 16. 保存責務
+
+現行Native Shellでは `wwwroot/config` は通常の `writable_roots` に含まれていない。
+
+一方、今回更新したい対象はSystem設定である、
+
+```text
+wwwroot/config/app_settings.json
+```
+
+のみ。
+
+そのため初期設計では、
+
+> **`wwwroot/config` 全体を一般的なユーザー書込領域へ昇格させるのではなく、`app_settings.json` を対象とした固定保存契約を設ける。**
+
+方向を優先する。
+
+概念:
+
+```text
+Settings Editor
+      ↓
+App Settings Save Contract
+      ↓
+固定対象:
+wwwroot/config/app_settings.json
+```
+
+具体的なNative Shellコマンド名 / API形式は実装設計時に決定する。
+
+---
+
+## 17. Field Definition
+
+Settingsで使用する入力制約は、Settings専用JavaScriptへ直接記述せず、System側Field Definitionとして定義する。
+
+例:
+
+```text
+launch_shortcuts[].id
+launch_shortcuts[].caption
+launch_shortcuts[].data
+launch_shortcuts[].view_def
+
+markdown.large_file_warning_enabled
+markdown.large_file_warning_bytes
+```
+
+Validationは既存のDefinition Driven Validation機構を再利用する。
+
+Settings専用Validatorは原則作らない。
+
+---
+
+## 18. Settingsの初期表示対象
+
+初期段階では、利用者が変更する必要があるものだけをViewへ露出する。
+
+例:
+
+```text
+ショートカット
+  launch_shortcuts
+
+Markdown Studio
+  large_file_warning_enabled
+  large_file_warning_bytes
+```
+
+現在存在する、
+
+```text
+hosting
+ui
+```
+
+はDataとして保持しても、Settings Viewへ表示する必要はない。
+
+原則:
+
+> **Dataに存在することと、設定画面から変更可能であることは別。**
+
+---
+
+## 19. Round Trip
+
+Settings Viewへ表示していない `app_settings.json` の項目は、保存時に削除しない。
+
+```text
+Read Canonical JSON
+        ↓
+表示・編集対象Fieldのみ更新
+        ↓
+未表示Fieldを保持
+        ↓
+Canonical JSONへ保存
+```
+
+とする。
+
+---
+
+## 20. `sectionGroups` のSettings以外への利用
+
+`sectionGroups` はSettings専用機能ではない。
+
+例えば将来、
+
+```text
+Field Definition Editor
+
+基本情報
+Constraint
+Generated Test
+Runtime Validation
+```
+
+や、
+
+```text
+Incident Editor
+
+概要
+判断
+後続対応
+テスト
+Evidence
+```
+
+のように、同じDataを複数の表示単位へ分ける場合にも利用できる。
+
+つまり、
+
+```text
+1 Data
++
+1 ViewDef
++
+複数Section
++
+sectionGroups
+```
+
+から、
+
+```text
+利用目的別の複数View Projection
+```
+
+を作ることができる。
+
+---
+
+## 21. やらないこと
+
+今回のスコープでは、以下を行わない。
+
+```text
+Settings専用Editorを作る
+Settings専用Rendererを作る
+設定カテゴリごとのHTMLを作る
+設定カテゴリごとのJavaScript分岐を増やす
+default_launchによる自動起動
+launch_shortcutsをSettings画面から自動実行する
+User app_settings.json Overrideを作る
+defs / fielddefsへSystem Settings Definitionを配置する
+sectionGroupsのために既存sections構造を置き換える
+sectionGroupsのために既存Rendererを複製する
+```
+
+---
+
+## 22. 実装フェーズ案
+
+### Phase 1 — ViewDef拡張
+
+```text
+ViewDef SchemaへsectionGroups追加
+sectionGroups / sectionIds検証
+既存ViewDef後方互換確認
+```
+
+### Phase 2 — 標準Editor Group Navigation
+
+```text
+sectionGroups認識
+Group選択UI
+Active sectionIds解決
+既存Editor / Rendererへの接続
+```
+
+この段階でSettingsとは無関係なサンプルViewDefでも動作確認する。
+
+### Phase 3 — App Settings Definition
+
+```text
+default_launch → launch_shortcutsへ変更
+System側Settings ViewDef
+System側Settings Field Definition
+SettingsをsectionGroupsで表示
+```
+
+### Phase 4 — App Settings Save
+
+```text
+app_settings.json固定保存契約
+Validation
+Round Trip
+updated_at更新
+```
+
+### Phase 5 — Shortcut Launcher
+
+```text
+launch_shortcuts読込
+Shortcut Menu表示
+クリックで既存Editor起動
+```
+
+Shortcut LauncherはSettings Editorとは別責務として実装する。
+
+---
+
+## 23. 受入観点
+
+最低限、以下を満たすこと。
+
+#### ViewDef
+
+- `sectionGroups` がない既存ViewDefは従来通り表示される
+- `sectionGroups` があるViewDefではGroup Navigationが表示される
+- Group選択時に指定 `sectionIds` のSectionだけが表示される
+- Form SectionとGrid Sectionの両方をGroup化できる
+- 同じSectionを複数Groupから参照できる
+- 存在しない `sectionIds` はViewDef検証で検出される
+
+#### Settings
+
+- `app_settings.json` がCanonicalである
+- `launch_shortcuts` を登録・更新できる
+- Markdown設定を登録・更新できる
+- 非表示設定値が保存時に失われない
+- Settings専用Rendererを使用しない
+
+#### Shortcut
+
+- `launch_shortcuts` は自動起動しない
+- 別のShortcut Menuから利用者が明示的に起動する
+- Shortcut選択後は既存Editorの起動経路を利用する
+
+---
+
+## 24. 設計の一言要約
+
+> **Settings専用画面を作るのではなく、ViewDefへ `sectionGroups` を追加し、既存Sectionを外からつまんで表示単位を作る。Settingsはその最初の利用例とする。**
+
+---
+
+## 25. 今回生まれた設計パターン
+
+### Pinch from the Outside — 外からつまむ
+
+```text
+既存構造
+  ├─ A
+  ├─ B
+  ├─ C
+  └─ D
+
+      ↑ 外からつまむ
+
+外部定義
+  ├─ 用途1 → A + B
+  └─ 用途2 → C + D
+```
+
+レビュー時の問い:
+
+> **それ、外からつまめんのかい？**
+
+既存構造をなるべく壊したくない状況では、
+
+> **外からつまむことを優先する。**
+
+これをFRB Studioの設計判断軸として扱う。
 
