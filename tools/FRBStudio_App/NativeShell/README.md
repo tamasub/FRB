@@ -101,3 +101,21 @@ The final distribution constraint is intentionally not fixed yet; the result of 
 `folderGrant.promptPath` はNativeShell側の入力ダイアログを表示し、Explorer等からコピーした絶対フォルダーパスをユーザーが貼り付けて「開く」を明示確定した場合だけFolder Grantを発行します。JSから任意の絶対パスを無確認でGrant化するコマンドは提供しません。
 次回起動時は `folderGrant.restore` に同じ `persist_key` を渡すことで、任意パスをJSから指定せず、過去に承認済みのフォルダーGrantだけを復元します。
 Markdown Studioは `markdown.workspace` を使用します。
+
+## Taskbar Jump List / direct launch
+
+Native Shell registers a Windows taskbar Jump List task at startup:
+
+```text
+Markdown Studioを開く
+```
+
+The task launches the same executable with:
+
+```text
+FRBStudio.NativeShell.exe --launch=markdown
+```
+
+`--launch=markdown` does not create a separate Markdown executable. `NativeLaunchOptions` resolves the launch target to `mdViewer.html`, and `NativeShellForm` combines that relative page with the configured virtual host after Native Shell configuration is loaded.
+
+The Jump List is convenience-only. Registration failure must never prevent normal FRB Studio startup. Windows may not show the custom task until the updated Native Shell has been launched at least once after deployment.

@@ -19,6 +19,7 @@ namespace FRBStudio.NativeShell
         private string _appRoot;
         private string _allowedOrigin;
         private readonly string _initialUri;
+        private readonly string _initialPage;
         private readonly string _initialWorkspaceRoot;
         private readonly CoreWebView2Environment _sharedEnvironment;
         private readonly bool _deferInitialNavigation;
@@ -27,11 +28,13 @@ namespace FRBStudio.NativeShell
 
         public NativeShellForm(
             string initialUri = null,
+            string initialPage = null,
             string initialWorkspaceRoot = null,
             CoreWebView2Environment sharedEnvironment = null,
             bool deferInitialNavigation = false)
         {
             _initialUri = initialUri;
+            _initialPage = initialPage;
             _initialWorkspaceRoot = initialWorkspaceRoot;
             _sharedEnvironment = sharedEnvironment;
             _deferInitialNavigation = deferInitialNavigation;
@@ -118,7 +121,7 @@ namespace FRBStudio.NativeShell
                 {
                     var startUri = !string.IsNullOrWhiteSpace(_initialUri) && IsAllowedNavigation(_initialUri)
                         ? _initialUri
-                        : _allowedOrigin + "/" + _config.StartPage.TrimStart('/');
+                        : _allowedOrigin + "/" + ResolveInitialPage(webRoot).TrimStart('/');
                     _webView.Source = new Uri(startUri);
                 }
             }
@@ -133,6 +136,28 @@ namespace FRBStudio.NativeShell
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }
+        }
+
+
+        private string ResolveInitialPage(string webRoot)
+        {
+            var fallback = (_config?.StartPage ?? "index.html").TrimStart('/');
+            var candidate = string.IsNullOrWhiteSpace(_initialPage)
+                ? fallback
+                : _initialPage.Trim().TrimStart('/');
+
+            if (candidate.IndexOf("..", StringComparison.Ordinal) >= 0
+                || candidate.IndexOf('\\') >= 0
+                || Uri.TryCreate(candidate, UriKind.Absolute, out _))
+                candidate = fallback;
+
+            var webRootFull = Path.GetFullPath(webRoot).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                + Path.DirectorySeparatorChar;
+            var candidatePath = Path.GetFullPath(Path.Combine(webRootFull, candidate.Replace('/', Path.DirectorySeparatorChar)));
+            if (!candidatePath.StartsWith(webRootFull, StringComparison.OrdinalIgnoreCase) || !File.Exists(candidatePath))
+                return fallback;
+
+            return candidate.Replace(Path.DirectorySeparatorChar, '/');
         }
 
         private async void OnWebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
@@ -171,6 +196,7 @@ namespace FRBStudio.NativeShell
                     // to remain un-navigated until assigned to NewWindow.
                     child = new NativeShellForm(
                         initialUri: null,
+                        initialPage: null,
                         initialWorkspaceRoot: _workspace?.RootPath ?? _appRoot,
                         sharedEnvironment: _environment,
                         deferInitialNavigation: true);

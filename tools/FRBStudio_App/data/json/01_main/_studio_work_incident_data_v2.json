@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-19T18:33:00+09:00",
+  "updated_at": "2026-08-19T18:45:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 202,
+  "items_count": 203,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -31366,6 +31366,156 @@
           "before": "一時的にTree幅を変更・復元するLifecycleなし。",
           "after": "Workspace Markdownを実際に開く直前にリサイズclass/CSS変数を解除し、標準レイアウトへ自動復元する。表示後は再ドラッグ可能。",
           "reason": "Tree拡張をファイル名確認の一時操作として完結させるため。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0215",
+      "phase": "v0.18.98-native-jump-list-markdown-launch",
+      "title": "WindowsタスクバーJump List — Markdown Studio直行起動",
+      "incident_type": "enhancement",
+      "category": "native_shell",
+      "priority": "medium",
+      "status": "完了",
+      "follow_up_status": "PENDING",
+      "verification_status": "確認済み",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-19T18:45:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-19T18:45:00+09:00",
+      "updated_at": "2026-08-19T18:45:00+09:00",
+      "work_summary": "- WindowsタスクバーのFRB Studioアイコンを右クリックしたJump Listの「タスク」へ「Markdown Studioを開く」を追加する。\n- 別EXEは作らず、同じNative Shell EXEを`--launch=markdown`付きで起動し、NativeShell設定読込後に`mdViewer.html`へ直行する。\n- 通常起動は従来どおりStartPageへ入り、Markdown直行起動だけ初期ページを差し替える。\n- Jump List登録失敗は便利機能の失敗として握り、FRB Studio本体起動を止めない。",
+      "target_files": "- NativeShell/Program.cs\n- NativeShell/NativeLaunchOptions.cs\n- NativeShell/JumpListManager.cs\n- NativeShell/NativeShellForm.cs\n- NativeShell/README.md\n- tests/qa/static/native_jump_list_markdown_launch_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- NativeShell/Program.cs\n- NativeShell/NativeLaunchOptions.cs\n- NativeShell/JumpListManager.cs\n- NativeShell/NativeShellForm.cs\n- NativeShell/README.md\n- tests/qa/static/native_jump_list_markdown_launch_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "objective": "WindowsタスクバーのFRB Studioアイコン右クリックから、ホーム画面を経由せずMarkdown Studioを直接開けるようにする。",
+      "background": "ユーザーはOutlookの「新しいメッセージ」「新しいイベント」のように、タスクバーアイコン右クリックからFRB Studio内の特定機能へ直接入る導線を希望した。まずは最も利用頻度の高いMarkdown Studio直行を追加する。",
+      "scope": "- Windows ShellのCustom Jump List Tasksへ「Markdown Studioを開く」を登録する。\n- Taskは現在実行中の`Application.ExecutablePath`へ`--launch=markdown`引数を付ける。\n- `NativeLaunchOptions`で`--launch=markdown` / `--launch markdown`を解釈し、`mdViewer.html`を初期ページにする。\n- `NativeShellForm`は初期ページをVirtualHost設定読込後に解決し、安全なwwwroot配下既存ファイルだけを許可する。\n- 通常起動・popup子Windowの既存経路は維持する。\n- Jump List登録例外はFRB Studio起動へ波及させない。",
+      "out_of_scope": "- JSON Object Studio / Diff JSON Viewer / MetaDiff ViewerのJump List Task追加。\n- Recent/Pinnedドキュメントカテゴリの実装。\n- 別のMarkdown専用EXE作成。\n- App SettingsからJump List項目を動的編集する仕組み。\n- 明示AppUserModelIDの新規導入。初回は既存タスクバー固定との互換性を優先し、Windowsが推論する既存アプリ識別を利用する。",
+      "fixed_name_policy": "既存NativeShellの同一EXEを利用し、Markdown専用実行ファイルを増やさない。新規C#ファイルはNativeShell内のOS入口責務として追加する。",
+      "module_policy": "Windows Shell固有処理は`JumpListManager`へ、起動引数→Studio初期ページの変換は`NativeLaunchOptions`へ分離する。Web側Markdown実装へWindows固有分岐を入れない。",
+      "expected_outputs": "- 更新版NativeShellを一度起動した後、タスクバーのFRB Studio右クリックで「Markdown Studioを開く」がTasksに表示される。\n- その項目を押すと同じFRBStudio Native Shell EXEが起動し、ホームを経由せずMarkdown Studioが最初に表示される。\n- Markdown Workspace復元は既存Markdown Studio処理へ委譲する。\n- 通常のFRB Studio起動は従来のStartPageを表示する。\n- Jump List登録が失敗しても通常起動は継続する。",
+      "risk": "- Custom Jump Listの表示はWindows Shell側キャッシュ・ポリシーに依存するため、更新版EXEを最低1回起動して登録処理を通した後の実機確認が必要。\n- 配布方法やタスクバー固定方法によってアプリ識別が特殊な環境では、将来明示AppUserModelIDが必要になる可能性がある。初回実装では既存Pinとの不整合リスクを避けるため明示IDを追加しない。\n- この実行環境にはdotnet/net48ビルドツールチェーンがないため、C#コンパイルはWindows実機側確認が必要。",
+      "test_points": "- `Program.Main(string[] args)`が起動引数を`NativeLaunchOptions.Parse`へ渡す。\n- `--launch=markdown`が`mdViewer.html`へ解決される。\n- `NativeShellForm`が設定済みVirtualHostと相対初期ページを組み合わせる。\n- 初期ページは`..`、絶対URI、wwwroot外、存在しないファイルを受け入れない。\n- `JumpListManager`が`Application.ExecutablePath` + `--launch=markdown` + 「Markdown Studioを開く」をIShellLinkとしてTasksへ追加しCommitする。\n- Jump List登録例外でNative Shell起動を止めない。\n- Windows実機で通常起動、Jump List表示、Taskクリック直行、Workspace復元を確認する。",
+      "verification_log": "- Focused Static: `node --test tests/qa/static/native_jump_list_markdown_launch_static.test.mjs` = 5 tests / 5 PASS / 0 FAIL。\n- 全Static Before（最新添付ZIP原本）: 295 tests / 276 PASS / 19 FAIL。\n- 全Static After: 300 tests / 281 PASS / 19 FAIL。Before / Afterの19 FAILはテスト名まで完全一致し、新規FAILなし。\n- 最新添付ZIP原本と更新後の全Static差は今回追加5 testsのみ。\n- このChatGPT実行環境には`dotnet`/`csc`/`mcs`が存在しないため、net48 NativeShellのC#コンパイルは未実施。Windows側`cmd_compile_NativeShell.bat`でのビルドとJump List実機確認をPENDINGとする。",
+      "user_request": "タスクバーのFRB Studioアイコンを右クリックしたとき、OutlookのタスクのようにMarkdown Studioを直接表示する状態で起動できるメニューが欲しい。",
+      "ai_response": "Windows Jump List Tasksを使い、同じNative Shell EXEへ`--launch=markdown`を渡す方式で実装する。Markdown専用EXEは増やさず、Windows Shell→NativeShell起動引数→既存mdViewer.htmlの順で外側から直行する。",
+      "latest_user_comment": "ほなぁ、よろしくぅーーー笑",
+      "latest_ai_response": "v0.18.98として実装完了。Windows Jump ListのTasksに「Markdown Studioを開く」を登録し、同じNative Shell EXEを`--launch=markdown`で起動して`mdViewer.html`へ直行する経路を追加。通常起動は従来StartPageのまま。Jump List登録失敗は本体起動を止めない。Focused Static 5/5 PASS、全StaticはBefore 295/276/19 → After 300/281/19で既存19 FAIL完全一致・新規FAILなし。実行環境にdotnet/net48コンパイラがないため、WindowsでのビルドとJump List表示/クリック実機確認はPENDING。",
+      "context_refs": [
+        {
+          "context_ref_id": "ctx_0215_foundation_019",
+          "title": "GitHub基準ソースとZIP返却契約",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "今回ユーザーが添付した最新App ZIPを基準にし、更新したファイルだけを同一相対パスで返却し、更新済みIncident JSONを必ず含める。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 1,
+          "note": "作業依頼ターン添付のFRBStudio_App20260819_184438.zipを今回の正本とする。"
+        }
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0215_windows_build_verify",
+          "action_type": "VERIFICATION",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "studio_work_0215"
+          ],
+          "note": "Windows開発環境で`cmd_compile_NativeShell.bat`を実行しnet48ビルド成功を確認。更新版EXEを1回起動後、タスクバー右クリックに「Markdown Studioを開く」が表示され、クリックでMarkdown Studio直行・既存Workspace復元・通常起動無影響を確認する。",
+          "summary": "NativeShell Jump List Markdown直行をWindows実機確認"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "disc_0215_001",
+          "at": "2026-08-19T18:45:00+09:00",
+          "speaker": "user",
+          "message": "タスクバーのアイコン右クリックで、マークダウンエディターをいきなり表示される状態で起動するﾒﾆｭｰが欲しいできるのかな？",
+          "topic": "WindowsタスクバーJump List要望"
+        },
+        {
+          "history_id": "disc_0215_002",
+          "at": "2026-08-19T18:45:00+09:00",
+          "speaker": "assistant",
+          "message": "WindowsのJump List（Tasks）で実現できる。同じFRBStudio Native Shell EXEへ`--launch=markdown`を渡し、ホームを経由せずMarkdown Studioへ直行する構成にする。別EXEは作らず、Windows Shell→Native Shell→既存Markdown Studioの外側入口として追加する。",
+          "topic": "実装方針"
+        },
+        {
+          "history_id": "disc_0215_003",
+          "at": "2026-08-19T18:45:00+09:00",
+          "speaker": "user",
+          "message": "ほなぁ、よろしくぅーーー笑",
+          "topic": "実装承認"
+        },
+        {
+          "history_id": "disc_0215_004",
+          "at": "2026-08-19T18:45:00+09:00",
+          "speaker": "assistant",
+          "message": "AI回答\n\n## 今回の更新\n\n- `NativeShell/Program.cs`\n- `NativeShell/NativeLaunchOptions.cs`\n- `NativeShell/JumpListManager.cs`\n- `NativeShell/NativeShellForm.cs`\n- `NativeShell/README.md`\n- `tests/qa/static/native_jump_list_markdown_launch_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\nWindowsタスクバーのJump List Tasksへ「Markdown Studioを開く」を追加しました。同じNative Shell EXEを`--launch=markdown`付きで起動し、NativeShell設定読込後に`mdViewer.html`へ直行します。通常起動は従来StartPageのままです。\n\n## 方針\n\nMarkdown専用EXEは作らず、Windows Shell固有処理を`JumpListManager`、起動引数解釈を`NativeLaunchOptions`へ分離しました。Jump List登録失敗は便利機能の失敗として握り、本体起動を止めません。初回は既存Pinとの互換性を優先し、明示AppUserModelIDは追加していません。\n\n## 確認結果\n\n- Focused Static: 5/5 PASS\n- 全Static: Before 295 tests / 276 PASS / 19 FAIL → After 300 / 281 / 19\n- 既存19 FAILはテスト名まで完全一致、新規FAILなし\n- 実行環境にdotnet/net48コンパイラがないためWindowsビルド・Jump List実機確認はPENDING",
+          "topic": "実装完了報告"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0215_001",
+          "at": "2026-08-19T18:45:00+09:00",
+          "decision": "Windowsタスクバー右クリック導線はCustom Jump ListのTasksとして実装する。",
+          "reason": "Outlookの「新しいメッセージ」「新しいイベント」と同種のOS標準導線であり、起動前から特定機能を選べるため。"
+        },
+        {
+          "decision_id": "dec_0215_002",
+          "at": "2026-08-19T18:45:00+09:00",
+          "decision": "Markdown専用EXEを作らず、同じNative Shell EXEへ`--launch=markdown`を渡す。",
+          "reason": "既存アプリ本体・配布物を増やさず、画面起動入口だけを外から追加できるため。"
+        },
+        {
+          "decision_id": "dec_0215_003",
+          "at": "2026-08-19T18:45:00+09:00",
+          "decision": "起動引数は絶対URLではなく`mdViewer.html`という相対初期ページへ変換し、NativeShell設定読込後にVirtualHostと結合する。",
+          "reason": "`virtual_host_name`設定をハードコードせず、既存NativeShell設定契約を維持するため。"
+        },
+        {
+          "decision_id": "dec_0215_004",
+          "at": "2026-08-19T18:45:00+09:00",
+          "decision": "Jump List登録失敗はFRB Studioの通常起動を失敗させない。",
+          "reason": "Jump Listは便利機能であり、Windows Shell側の一時的なエラーやポリシー差で本体利用不能にしてはならないため。"
+        },
+        {
+          "decision_id": "dec_0215_005",
+          "at": "2026-08-19T18:45:00+09:00",
+          "decision": "初回実装では明示AppUserModelIDを追加せず、Windowsが推論する既存アプリ識別を利用する。",
+          "reason": "既にタスクバーへPinされているNativeShellとの識別不一致を新たに作るリスクを避けるため。実機で関連付け問題が出た場合のみ次段で明示IDを検討する。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0215_001",
+          "at": "2026-08-19T18:45:00+09:00",
+          "change_type": "native_launch_argument",
+          "before": "NativeShellは引数なしMainで常にconfig.StartPageから起動。",
+          "after": "`Main(string[] args)`で`--launch=markdown`を解釈し、Markdown直行時だけ`mdViewer.html`を初期ページとしてNativeShellFormへ渡す。",
+          "reason": "同一EXEのまま機能別直行起動を可能にするため。"
+        },
+        {
+          "history_id": "chg_0215_002",
+          "at": "2026-08-19T18:45:00+09:00",
+          "change_type": "windows_jump_list_task",
+          "before": "タスクバー右クリックにはOS標準のFRBStudio起動/Pin操作だけが表示され、Studio固有Taskなし。",
+          "after": "Custom Jump List Tasksへ「Markdown Studioを開く」を追加し、同一EXEへ`--launch=markdown`を設定。",
+          "reason": "タスクバーからMarkdown Studioへ1アクションで入るため。"
+        },
+        {
+          "history_id": "chg_0215_003",
+          "at": "2026-08-19T18:45:00+09:00",
+          "change_type": "native_initial_page_resolution",
+          "before": "NativeShellFormの初期遷移は`initialUri`またはconfig.StartPageのみ。",
+          "after": "安全な相対`initialPage`を受け取り、wwwroot配下の既存ファイルであることを確認してVirtualHost URLへ解決する。",
+          "reason": "VirtualHost設定を尊重しつつ、外部URL/Traversalを初期ページとして受け入れないため。"
         }
       ]
     }
