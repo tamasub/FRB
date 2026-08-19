@@ -7,7 +7,7 @@
   "owner": "chatgpt",
   "managed_by": "chatgpt",
   "created_at": "2026-07-05",
-  "updated_at": "2026-07-20T15:00:00+09:00",
+  "updated_at": "2026-08-19T14:15:00+09:00",
   "purpose": "Studioくんの「JSONを人間フレンドリーにする」コンセプトを、FX M5データ + T3オーバーレイ候補で試すための勇者Overlay。",
   "core_boundary_policy": {
     "core_root": "wwwroot/",
@@ -35,7 +35,7 @@
   "plugin_index_files": [
     "plugins/plugin_index.json"
   ],
-  "notes": "v0.9.1.23 / Simulation Rule v0.28。未実装だったEXPANSION Laneへ、H1 Dow Confirmation＋H1 Anchor R2＋H1 High/Low T3接触（順不同）＋H4 T3側Gateを実装。全条件成立後の次M5 OpenでEntryし、H1 Anchor Close崩壊／反対H1 Dow／R5／H1 Close T3逆抜けで全Close。Expansion v0.1はAdd-on/ReEntryなし。既存NORMAL/LITEは維持。",
+  "notes": "v0.9.1.24 / NativeShell UI Layer fix。FRB Studio共通Shellが高z-indexを持つため、FX Chart Viewer modalを共通Overlay modal layerへ上げ、設定・窓移動・Layout・Simulation・Run設定等の上部操作ボタンがShell背面へ隠れる回帰を修正。Simulation Rule/FX判定ロジックは変更しない。",
   "display_projection_policy": {
     "enabled": true,
     "scope": "gpt_fx_lab overlay only",

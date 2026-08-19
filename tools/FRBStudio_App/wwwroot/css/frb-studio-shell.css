@@ -30,6 +30,8 @@
   --frb-meta-line: #e6d2ee;
   --frb-radius: 14px;
   --frb-shadow: 0 8px 24px rgba(25, 52, 71, .07);
+  /* Overlay Plugin modal must render above the common shell and app-level dialogs. */
+  --frb-overlay-modal-z: 2147483600;
 }
 
 body.frb-shell-enabled {

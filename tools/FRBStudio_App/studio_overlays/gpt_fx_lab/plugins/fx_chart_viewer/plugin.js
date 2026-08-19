@@ -1,4 +1,4 @@
-// gpt_fx_lab.fx_chart_viewer v0.9.1.23-expansion-h1-dow-r2-t3
+// gpt_fx_lab.fx_chart_viewer v0.9.1.24-native-shell-overlay-layer
 // Coreを変更せず、Overlay Plugin ActionとしてUSDJPY M5 + T3 + Dow candidate/basis/history静的チャートを表示する。
 // 上位足Decisionを入力にM5確定足で仮想Entry/保有/決済を実行し、1 Entry / 1 Position / 1 Stop / 1 TargetのLifecycleを原因Traceへ接続する。
 // Confirm bars を変えながら、Candidate / Active Basis / Retired Basis の違いを見える化する。
@@ -98,6 +98,7 @@
 // v0.9.0.35: M5 Dow確認を「確定済み押し安値/戻り高値の後、直前構造高値/安値をM5確定足で突破した瞬間」へ変更。新しいDow確認Eventごとに1回だけEntryし、Entry地点より先の次HSI境界で全Closeする。
 // v0.9.0.36: Run Profileのupper_decision_reimplementationとPlugin許可値の名称不一致を修正。許可値を単一定数化し、Profile検証の回帰テストを追加。
 // v0.9.0.37: 共通観測Stateと売買ルール判定を分離。通常Entry/Closeを独立Rule Lane Evaluatorへ切り出し、Normal判定からExpansion/WEEK/DAY依存を除去。HSI圧縮時のDow Confirmation ID欠落も修正。
+// v0.9.1.24: FRB Studio共通Shellの高z-indexよりChart modalを上へ出し、NativeShellで上部操作ボタンがShell背面へ隠れる問題を修正。
 (function () {
   // v0.8.3.25: DAY UpperMapではDow材料点を非表示化し、H1/H4ダブルクリック同期をDAY側にも明示表示する。
   // v0.8.3.26: DAY UpperMapを広域地図として扱うため、保存サイクル縦線もDAYでは非表示にする。
@@ -308,7 +309,7 @@
       .gpt-fx-chart-backdrop {
         position: fixed;
         inset: 0;
-        z-index: 9999;
+        z-index: var(--frb-overlay-modal-z, 2147483600);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -339,6 +340,7 @@
         grid-template-rows: 1fr;
       }
       .gpt-fx-chart-backdrop.is-batch-running .gpt-fx-chart-window-btn,
+      .gpt-fx-chart-backdrop.is-batch-running .gpt-fx-chart-close-btn,
       .gpt-fx-chart-backdrop.is-batch-running .gpt-fx-chart-header,
       .gpt-fx-chart-backdrop.is-batch-running .gpt-fx-chart-meta,
       .gpt-fx-chart-backdrop.is-batch-running .gpt-fx-chart-scroll,
@@ -361,7 +363,7 @@
         align-items: start;
         gap: 10px;
         min-height: 0;
-        padding: 10px 48px 8px 14px;
+        padding: 10px 92px 8px 14px;
         border-bottom: 1px solid rgba(148, 163, 184, 0.22);
       }
       .gpt-fx-chart-header > div:first-child {
@@ -370,7 +372,7 @@
       .gpt-fx-chart-window-btn {
         position: absolute;
         top: 10px;
-        right: 10px;
+        right: 50px;
         z-index: 2;
         width: 30px;
         height: 30px;
@@ -395,6 +397,31 @@
       .gpt-fx-chart-window-btn.is-active {
         background: linear-gradient(135deg, rgba(6, 182, 212, 0.82), rgba(37, 99, 235, 0.82));
         border-color: rgba(125, 211, 252, 0.92);
+      }
+      .gpt-fx-chart-close-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 2;
+        width: 34px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border-radius: 10px;
+        border: 1px solid rgba(248, 113, 113, 0.72);
+        background: rgba(69, 10, 10, 0.82);
+        color: #fee2e2;
+        font-size: 20px;
+        font-weight: 900;
+        line-height: 1;
+        cursor: pointer;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
+      }
+      .gpt-fx-chart-close-btn:hover {
+        background: rgba(127, 29, 29, 0.94);
+        border-color: rgba(252, 165, 165, 0.9);
       }
       .gpt-fx-chart-title {
         margin: 0;
@@ -17240,6 +17267,7 @@
     backdrop.innerHTML = `
       <section class="gpt-fx-chart-modal" role="dialog" aria-modal="true" aria-label="GPT FX Lab Dow basis point chart viewer">
         <button class="gpt-fx-chart-window-btn" type="button" data-action="toggle-wide" title="画面最大化 / 元に戻す" aria-label="画面最大化 / 元に戻す">□</button>
+        <button class="gpt-fx-chart-close-btn" type="button" data-action="close" title="チャートを閉じる" aria-label="チャートを閉じる">×</button>
         <header class="gpt-fx-chart-header">
           <div>
             <h2 class="gpt-fx-chart-title">USDJPY Multi-TF / Expansion Review + Entry Observation / Close + MA20 + T3 + BB + Dow Candidate / Basis / History</h2>
@@ -17265,7 +17293,6 @@
             <button class="gpt-fx-chart-btn" type="button" data-action="scroll-left" title="表示窓を100本左へ">←100</button>
             <button class="gpt-fx-chart-btn" type="button" data-action="scroll-right" title="表示窓を100本右へ">100→</button>
             <button class="gpt-fx-chart-btn" type="button" data-action="redraw">再抽出</button>
-            <button class="gpt-fx-chart-btn" type="button" data-action="close">閉じる</button>
           </div>
         </header>
         <div class="gpt-fx-chart-meta is-collapsed" data-role="meta"></div>

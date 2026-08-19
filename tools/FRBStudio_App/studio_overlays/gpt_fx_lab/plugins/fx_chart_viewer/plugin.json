@@ -10,8 +10,8 @@
   ],
   "scope": "gpt_fx_lab overlay only",
   "core_change": false,
-  "description": "App v0.9.1.22 / Simulation Rule v0.27対応。Expansion-Liteの上位時間足上限をH4へ固定し、DAY/WEEKをLite判断から除外。H4下降波中のdistinct Candidate Lowが2件以上ならShort Initial Entry/ReEntryを抑止する。T3 ExitではPositionだけをCloseし、Episodeと旧HSI/R3/R5を保持。旧R3内側復帰後の旧R3終値奪回＋M5 T3復帰＋BB外側Close＋BB幅拡大で同一Episodeへ最大1回ReEntryする。",
-  "version": "0.9.1.23",
+  "description": "App v0.9.1.22 / Simulation Rule v0.27対応。Expansion-Liteの上位時間足上限をH4へ固定し、DAY/WEEKをLite判断から除外。H4下降波中のdistinct Candidate Lowが2件以上ならShort Initial Entry/ReEntryを抑止する。T3 ExitではPositionだけをCloseし、Episodeと旧HSI/R3/R5を保持。旧R3内側復帰後の旧R3終値奪回＋M5 T3復帰＋BB外側Close＋BB幅拡大で同一Episodeへ最大1回ReEntryする。 v0.9.1.24ではFRB Studio共通Shellとのlayer契約を補正し、NativeShellでChart Viewer上部操作ボタンがShell背面へ隠れないようにした。",
+  "version": "0.9.1.24",
   "signal_policy": {
     "visible_marker": "candidate_basis_retired_circle_marker",
     "removed_marker": "dow_structure_decision_arrow_marker",
