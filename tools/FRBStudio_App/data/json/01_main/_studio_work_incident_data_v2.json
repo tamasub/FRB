@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-19T14:15:00+09:00",
+  "updated_at": "2026-08-19T15:24:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 200,
+  "items_count": 201,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -29102,9 +29102,9 @@
       "incident_type": "enhancement",
       "category": "ui_maintenance",
       "priority": "high",
-      "status": "確認中",
+      "status": "完了",
       "follow_up_status": "NOT_STARTED",
-      "verification_status": "Static確認済み / 実機確認待ち",
+      "verification_status": "確認済み",
       "context_def_status": "reviewed",
       "context_def_updated_at": "2026-08-17T18:36:00+09:00",
       "owner": "",
@@ -29186,11 +29186,11 @@
           "topic": "作業概要（要約版）必須化"
         },
         {
-          "history_id": "hist_0201_003",
           "at": "2026-08-17T18:36:00+09:00",
           "speaker": "assistant",
-          "topic": "作業概要（要約版）必須化",
-          "message": "AI回答\n\n## 今回の更新\n\n- `data/json/01_main/_studio_work_incident_data_v2_schema_v0_1.json`\n- `defs/rules/studio_work_incident_view_def_v0_5.json`\n- `data/json/00_rules/frb_foundation_rules_data_v0_1.json`\n- `tests/qa/static/combo_viewdef_maintenance_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\n新規フィールド `work_summary` を「作業概要（要約版）」として追加した。新規インシデントSchemaでは `required` + `minLength: 1` とし、ViewDefでも `validation.required: true` を宣言した。\n\n詳細画面では既存の `__work_summary_cards` を再利用し、「作業内容 / 方針」の最初のカードとして `work_summary` を表示する。新しいRendererは追加していない。\n\nFoundationのインシデント作成ルールも更新し、`work_summary` には「何をするか / なぜ必要か / 今回どこまで扱うか / 完了すると何が変わるか」を短い段落または2〜5件程度の箇条書きで記載する契約を追加した。過去インシデントへの一括補完は不要とした。\n\n今回の `studio_work_0201` 自身から `work_summary` を記載している。\n\n## 方針\n\n`work_summary` は `objective` / `background` / `scope` 等の詳細項目を置き換えない。最初に全体像を与えるナビゲーション要約として責務分離する。\n\n## 確認結果\n\n- New Item Schema validation: PASS\n- Focused Static: 14 tests / 13 PASS / 1既存FAIL → 15 tests / 14 PASS / 1既存FAIL\n- 全Static: 254 / 236 PASS / 18 FAIL → 255 / 237 PASS / 18 FAIL\n- 既存18 FAILはテスト名まで一致、新規FAILなし\n- JSON parse: OK\n- 実機で先頭カード表示確認のみPENDING"
+          "message": "AI回答  ## 今回の更新  - `data/json/01_main/_studio_work_incident_data_v2_schema_v0_1.json` - `defs/rules/studio_work_incident_view_def_v0_5.json` - `data/json/00_rules/frb_foundation_rules_data_v0_1.json` - `tests/qa/static/combo_viewdef_maintenance_static.test.mjs` - `data/json/01_main/_studio_work_incident_data_v2.json`  ## やったこと  新規フィールド `work_summary` を「作業概要（要約版）」として追加した。新規インシデントSchemaでは `required` + `minLength: 1` とし、ViewDefでも `validation.required: true` を宣言した。  詳細画面では既存の `__work_summary_cards` を再利用し、「作業内容 / 方針」の最初のカードとして `work_summary` を表示する。新しいRendererは追加していない。  Foundationのインシデント作成ルールも更新し、`work_summary` には「何をするか / なぜ必要か / 今回どこまで扱うか / 完了すると何が変わるか」を短い段落または2〜5件程度の箇条書きで記載する契約を追加した。過去インシデントへの一括補完は不要とした。  今回の `studio_work_0201` 自身から `work_summary` を記載している。  ## 方針  `work_summary` は `objective` / `background` / `scope` 等の詳細項目を置き換えない。最初に全体像を与えるナビゲーション要約として責務分離する。  ## 確認結果  - New Item Schema validation: PASS - Focused Static: 14 tests / 13 PASS / 1既存FAIL → 15 tests / 14 PASS / 1既存FAIL - 全Static: 254 / 236 PASS / 18 FAIL → 255 / 237 PASS / 18 FAIL - 既存18 FAILはテスト名まで一致、新規FAILなし - JSON parse: OK - 実機で先頭カード表示確認のみPENDING",
+          "history_id": "hist_0201_003",
+          "topic": "作業概要（要約版）必須化"
         }
       ],
       "decision_log": [
@@ -29235,12 +29235,12 @@
           "history_id": "chg_0201_001"
         },
         {
-          "history_id": "chg_0201_002",
           "at": "2026-08-17T18:36:00+09:00",
           "change_type": "verification_completed",
           "before": "work_summary契約追加後のSchema/Static回帰未確認。",
           "after": "New Item Schema validation PASS、Focused Static追加テストPASS、全Staticは255/237 PASS/18既存FAILで新規FAILなし。",
-          "reason": "work_summary必須化が既存契約を壊さず、Schema/ViewDef/Foundation Ruleの3層で整合することを確認するため。"
+          "reason": "work_summary必須化が既存契約を壊さず、Schema/ViewDef/Foundation Ruleの3層で整合することを確認するため。",
+          "history_id": "chg_0201_002"
         }
       ]
     },
@@ -29251,9 +29251,9 @@
       "incident_type": "enhancement",
       "category": "ui_maintenance",
       "priority": "high",
-      "status": "確認中",
+      "status": "完了",
       "follow_up_status": "NOT_STARTED",
-      "verification_status": "未確認",
+      "verification_status": "確認済み",
       "context_def_status": "reviewed",
       "context_def_updated_at": "2026-08-17T19:11:00+09:00",
       "owner": "",
@@ -29326,7 +29326,7 @@
           "at": "2026-08-17T19:11:00+09:00",
           "speaker": "assistant",
           "topic": "Markdown Workspace フルパス指定",
-          "message": "AI回答\n\n## 実装\n\n- `NativeShell/NativeCommandDispatcher.cs` に `folderGrant.promptPath` を追加。\n- NativeShell側でフルパス入力用のWinFormsダイアログを表示し、ExplorerからコピーしたパスをTextBoxへ貼り付けて「開く」を押すとFolder Grantを発行する。\n- 相対パス・存在しないDirectoryはダイアログ内で拒否する。引用符付きパスと環境変数は正規化する。\n- `wwwroot/mdViewer.html` のWorkspace欄へ「📋 フルパスを貼り付けて開く」を追加し、`Ctrl+Shift+O` でも同じNative入力ダイアログを開ける。\n- 既存 `folderGrant.select` / `folderGrant.restore` / `markdown.workspace` 永続化はそのまま維持する。\n\n## 安全境界\n\n利便性のために `folderGrant.openPath(path)` のようなAPIをJSへ公開すると、Web UI側が任意のローカルフォルダーを無確認でGrant化できる。そのためその方式は採用せず、NativeShell側の明示ユーザー確認ダイアログ `folderGrant.promptPath` だけを公開した。\n\n## 確認\n\n- Focused Static: 21 / 19 PASS / 2既存FAIL → 24 / 22 PASS / 2既存FAIL\n- 全Static: 255 / 237 PASS / 18 FAIL → 258 / 240 PASS / 18 FAIL\n- 既存18 FAILは名前まで完全一致、新規FAILなし\n- New Item Schema: PASS\n- mdViewer inline JS syntax: PASS\n- NativeShell C# buildは現Linux環境に.NET/MSBuildがないため未実施。Windows実機確認をPENDINGとして残した。"
+          "message": "AI回答  ## 実装  - `NativeShell/NativeCommandDispatcher.cs` に `folderGrant.promptPath` を追加。 - NativeShell側でフルパス入力用のWinFormsダイアログを表示し、ExplorerからコピーしたパスをTextBoxへ貼り付けて「開く」を押すとFolder Grantを発行する。 - 相対パス・存在しないDirectoryはダイアログ内で拒否する。引用符付きパスと環境変数は正規化する。 - `wwwroot/mdViewer.html` のWorkspace欄へ「📋 フルパスを貼り付けて開く」を追加し、`Ctrl+Shift+O` でも同じNative入力ダイアログを開ける。 - 既存 `folderGrant.select` / `folderGrant.restore` / `markdown.workspace` 永続化はそのまま維持する。  ## 安全境界  利便性のために `folderGrant.openPath(path)` のようなAPIをJSへ公開すると、Web UI側が任意のローカルフォルダーを無確認でGrant化できる。そのためその方式は採用せず、NativeShell側の明示ユーザー確認ダイアログ `folderGrant.promptPath` だけを公開した。  ## 確認  - Focused Static: 21 / 19 PASS / 2既存FAIL → 24 / 22 PASS / 2既存FAIL - 全Static: 255 / 237 PASS / 18 FAIL → 258 / 240 PASS / 18 FAIL - 既存18 FAILは名前まで完全一致、新規FAILなし - New Item Schema: PASS - mdViewer inline JS syntax: PASS - NativeShell C# buildは現Linux環境に.NET/MSBuildがないため未実施。Windows実機確認をPENDINGとして残した。"
         }
       ],
       "decision_log": [
@@ -29387,9 +29387,9 @@
       "incident_type": "enhancement",
       "category": "ui_maintenance",
       "priority": "high",
-      "status": "確認中",
+      "status": "完了",
       "follow_up_status": "NOT_STARTED",
-      "verification_status": "未確認",
+      "verification_status": "確認済み",
       "context_def_status": "reviewed",
       "context_def_updated_at": "2026-08-17T19:11:00+09:00",
       "owner": "",
@@ -29462,7 +29462,7 @@
           "at": "2026-08-17T19:11:00+09:00",
           "speaker": "assistant",
           "topic": "Markdown表示プロファイル",
-          "message": "AI回答\n\n## 実装\n\n- Markdown Studio上部に `表示 [標準 / コンパクト]` を追加。\n- `standard` は既存の見た目を維持し、`compact` はH1〜H6のfont-sizeと余白だけを小さくする。H1=24px、H2=20pxを中心に会社文書向けの落ち着いた密度へ寄せた。\n- 切替は `data-md-display-profile` + CSS overrideだけで行い、`# / ## / ###` を含むCanonical Markdownには一切触れない。\n- 選択値は `frb.markdown.displayProfile` として端末内のUI preferenceに保存し、次回表示時に復元する。これはMarkdown本文バックアップではない。\n\n## 判断\n\nMarkdownのheading levelは文書の意味構造、見出しサイズはView表現として分離した。初手では自由なフォントサイズ設定を作らず、`標準 / コンパクト` の2presetに限定する。\n\n## 確認\n\n- Focused Static: 21 / 19 PASS / 2既存FAIL → 24 / 22 PASS / 2既存FAIL\n- 全Static: 255 / 237 PASS / 18 FAIL → 258 / 240 PASS / 18 FAIL\n- 既存18 FAILは名前まで完全一致、新規FAILなし\n- Display Profile関数が `editorEl.value` 等のCanonical Markdownを書き換えないことをStaticで固定\n- mdViewer inline JS syntax: PASS\n- 実機で標準/コンパクトの見た目と選択復元を確認する作業をPENDINGとして残した。"
+          "message": "AI回答  ## 実装  - Markdown Studio上部に `表示 [標準 / コンパクト]` を追加。 - `standard` は既存の見た目を維持し、`compact` はH1〜H6のfont-sizeと余白だけを小さくする。H1=24px、H2=20pxを中心に会社文書向けの落ち着いた密度へ寄せた。 - 切替は `data-md-display-profile` + CSS overrideだけで行い、`# / ## / ###` を含むCanonical Markdownには一切触れない。 - 選択値は `frb.markdown.displayProfile` として端末内のUI preferenceに保存し、次回表示時に復元する。これはMarkdown本文バックアップではない。  ## 判断  Markdownのheading levelは文書の意味構造、見出しサイズはView表現として分離した。初手では自由なフォントサイズ設定を作らず、`標準 / コンパクト` の2presetに限定する。  ## 確認  - Focused Static: 21 / 19 PASS / 2既存FAIL → 24 / 22 PASS / 2既存FAIL - 全Static: 255 / 237 PASS / 18 FAIL → 258 / 240 PASS / 18 FAIL - 既存18 FAILは名前まで完全一致、新規FAILなし - Display Profile関数が `editorEl.value` 等のCanonical Markdownを書き換えないことをStaticで固定 - mdViewer inline JS syntax: PASS - 実機で標準/コンパクトの見た目と選択復元を確認する作業をPENDINGとして残した。"
         }
       ],
       "decision_log": [
@@ -29523,9 +29523,9 @@
       "incident_type": "bugfix",
       "category": "ui_maintenance",
       "priority": "high",
-      "status": "確認中",
+      "status": "完了",
       "follow_up_status": "NOT_STARTED",
-      "verification_status": "Static確認済み / 実機確認待ち",
+      "verification_status": "確認済み",
       "context_def_status": "reviewed",
       "context_def_updated_at": "2026-08-17T19:43:00+09:00",
       "owner": "",
@@ -29591,7 +29591,7 @@
           "at": "2026-08-17T19:43:00+09:00",
           "speaker": "assistant",
           "topic": "Markdown Folder Open統合 / Toolbar形状",
-          "message": "AI回答\n\n## 今回の更新\n\n- `wwwroot/mdViewer.html`\n- `tests/qa/static/markdown_workspace_native_static.test.mjs`\n- `tests/qa/static/frb_studio_common_shell_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\n- Markdown Studio上部の保存系ボタンへ `flex: 0 0 auto` と `white-space: nowrap` を適用し、Display Profile追加後も「保存」「保存検査」「名前を付けて保存」が縦折れしないようにした。\n- Workspaceの入口を `📁 フォルダーを開く` 1本へ統合した。クリックすると、studio_work_0202で追加したNativeShellの `folderGrant.promptPath` ダイアログを開く。\n- 独立していた `📋 フルパスを貼り付けて開く` ボタンと、その専用JS参照/関数を削除した。\n- `Ctrl+Shift+O` は統合後も同じ「フォルダーを開く」処理を起動する。\n- NativeShell側のフルパス貼付・`参照...`・Folder Grant処理は変更せず、そのまま再利用した。\n\n## 方針\n\nWorkspaceを開く目的は1つなので、入口も1つにする。フルパス貼付とWindows標準フォルダー参照は、同じNativeダイアログ内の選択方法として扱う。\n\n保存系ボタンは操作単位として形を保つため縮小・改行させず、中央のMarkdown Drop領域をflexで縮ませる。\n\n## 確認結果\n\n- Focused Static（markdown_workspace_native_static）: 25 tests / 23 PASS / 2既存FAIL。今回追加・更新したFolder Open統合とToolbar形状テストはPASS。\n- 全Static Before: 258 tests / 240 PASS / 18 FAIL。\n- 全Static After: 259 tests / 241 PASS / 18 FAIL。\n- Before / Afterの既存18 FAILはテスト名まで完全一致。新規FAILなし。\n- `mdViewer.html` inline JavaScript: `node --check` PASS。\n- 更新JSON parse / 新規Item Schema validation: PASS。\n- Windows実機では、保存系3ボタンが1行形状を維持することと、「フォルダーを開く」からフルパス貼付/参照の両方へ入れることを最終確認する。\n- Static実行で更新された既存TP-IPC-001 Actual/Diffは原本へ復元し、返却差分から除外。"
+          "message": "AI回答  ## 今回の更新  - `wwwroot/mdViewer.html` - `tests/qa/static/markdown_workspace_native_static.test.mjs` - `tests/qa/static/frb_studio_common_shell_static.test.mjs` - `data/json/01_main/_studio_work_incident_data_v2.json`  ## やったこと  - Markdown Studio上部の保存系ボタンへ `flex: 0 0 auto` と `white-space: nowrap` を適用し、Display Profile追加後も「保存」「保存検査」「名前を付けて保存」が縦折れしないようにした。 - Workspaceの入口を `📁 フォルダーを開く` 1本へ統合した。クリックすると、studio_work_0202で追加したNativeShellの `folderGrant.promptPath` ダイアログを開く。 - 独立していた `📋 フルパスを貼り付けて開く` ボタンと、その専用JS参照/関数を削除した。 - `Ctrl+Shift+O` は統合後も同じ「フォルダーを開く」処理を起動する。 - NativeShell側のフルパス貼付・`参照...`・Folder Grant処理は変更せず、そのまま再利用した。  ## 方針  Workspaceを開く目的は1つなので、入口も1つにする。フルパス貼付とWindows標準フォルダー参照は、同じNativeダイアログ内の選択方法として扱う。  保存系ボタンは操作単位として形を保つため縮小・改行させず、中央のMarkdown Drop領域をflexで縮ませる。  ## 確認結果  - Focused Static（markdown_workspace_native_static）: 25 tests / 23 PASS / 2既存FAIL。今回追加・更新したFolder Open統合とToolbar形状テストはPASS。 - 全Static Before: 258 tests / 240 PASS / 18 FAIL。 - 全Static After: 259 tests / 241 PASS / 18 FAIL。 - Before / Afterの既存18 FAILはテスト名まで完全一致。新規FAILなし。 - `mdViewer.html` inline JavaScript: `node --check` PASS。 - 更新JSON parse / 新規Item Schema validation: PASS。 - Windows実機では、保存系3ボタンが1行形状を維持することと、「フォルダーを開く」からフルパス貼付/参照の両方へ入れることを最終確認する。 - Static実行で更新された既存TP-IPC-001 Actual/Diffは原本へ復元し、返却差分から除外。"
         }
       ],
       "decision_log": [
@@ -29652,9 +29652,9 @@
       "incident_type": "maintenance",
       "category": "file_io",
       "priority": "high",
-      "status": "確認中",
+      "status": "完了",
       "follow_up_status": "NOT_STARTED",
-      "verification_status": "Static確認済み / Windows実機確認待ち",
+      "verification_status": "確認済み",
       "context_def_status": "reviewed",
       "context_def_updated_at": "2026-08-17T20:30:00+09:00",
       "owner": "",
@@ -29744,7 +29744,7 @@
           "at": "2026-08-17T20:35:00+09:00",
           "speaker": "assistant",
           "topic": "PC移行時AppRoot手修正ゼロ化 完了報告",
-          "message": "AI回答\n\n## 今回の更新\n\n- `cmd_compile_NativeShell.bat`\n- `tools/build/Build-NativeShell.ps1`\n- `tools/zip/make_FRBStudio_App_zip_v2.ps1`\n- `tools/zip/make_studio_overlays_zip_v1.ps1`\n- `tools/test/TestRunner.ps1`\n- `tools/FileTree/file_list_Tree.bat`\n- `wwwroot/count_js_steps_add_datetime.bat`\n- `tools/Utf8Readable/Repair-JsonMdUtf8ReadableText.ps1`\n- `NativeShell/README.md`\n- `tests/qa/static/portable_app_root_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\nPC移行時にFRBStudio_Appの配置先を手修正しなくてよいよう、Build / ZIP / TestRunner / 補助BATのAppRoot解決を自身の配置位置基準へ変更した。\n\nNativeShellはルートの `cmd_compile_NativeShell.bat` を実行すれば、`tools/build/Build-NativeShell.ps1` がAppRootを自動解決し、`NativeShell/_publish` へ `dotnet publish` する。旧BATの絶対パス `cd` とxcopyは不要になった。\n\nGitDiffは既にAppRoot自動解決済みだったため変更せず、portable Staticの監視対象へ含めた。\n\nTestRunnerは、配布ZIPに存在しない `package.json` をAppRoot markerとして要求していたため、実際のFRBStudio_App構成をmarkerへ変更した。Playwright固有の `playwright.config.ts` は `playwright_ui` 実行時だけ確認する。\n\n## 方針\n\nFRBStudio_Appの配置パスは「1か所設定」ではなく「0か所手修正」を基本とした。BATは `%~dp0`、PowerShellは `$PSScriptRoot` からAppRootを解決する。\n\n`dotnet / git / node / npx` はPC側PATHで解決する。PATHがない場合はPC環境問題として扱い、Studioソースへ各PC固有のインストール先を埋め込まない。\n\n## 確認結果\n\n- portability専用Static: 5/5 PASS\n- 全Static: 264 tests / 246 PASS / 18 FAIL\n- Beforeの18 FAILとテスト名まで完全一致、新規FAILなし\n- 新規Incident Schema: PASS\n- Windows実機Build / ZIP / GitDiff / TestRunner: 実機確認待ち\n\nなお、`wwwroot/count_js_steps_add_datetime.bat` はRoot相対化したが、現ZIPに `count_js_steps.py` 自体が存在しない既存問題は別途評価対象として残した。\n"
+          "message": "AI回答  ## 今回の更新  - `cmd_compile_NativeShell.bat` - `tools/build/Build-NativeShell.ps1` - `tools/zip/make_FRBStudio_App_zip_v2.ps1` - `tools/zip/make_studio_overlays_zip_v1.ps1` - `tools/test/TestRunner.ps1` - `tools/FileTree/file_list_Tree.bat` - `wwwroot/count_js_steps_add_datetime.bat` - `tools/Utf8Readable/Repair-JsonMdUtf8ReadableText.ps1` - `NativeShell/README.md` - `tests/qa/static/portable_app_root_static.test.mjs` - `data/json/01_main/_studio_work_incident_data_v2.json`  ## やったこと  PC移行時にFRBStudio_Appの配置先を手修正しなくてよいよう、Build / ZIP / TestRunner / 補助BATのAppRoot解決を自身の配置位置基準へ変更した。  NativeShellはルートの `cmd_compile_NativeShell.bat` を実行すれば、`tools/build/Build-NativeShell.ps1` がAppRootを自動解決し、`NativeShell/_publish` へ `dotnet publish` する。旧BATの絶対パス `cd` とxcopyは不要になった。  GitDiffは既にAppRoot自動解決済みだったため変更せず、portable Staticの監視対象へ含めた。  TestRunnerは、配布ZIPに存在しない `package.json` をAppRoot markerとして要求していたため、実際のFRBStudio_App構成をmarkerへ変更した。Playwright固有の `playwright.config.ts` は `playwright_ui` 実行時だけ確認する。  ## 方針  FRBStudio_Appの配置パスは「1か所設定」ではなく「0か所手修正」を基本とした。BATは `%~dp0`、PowerShellは `$PSScriptRoot` からAppRootを解決する。  `dotnet / git / node / npx` はPC側PATHで解決する。PATHがない場合はPC環境問題として扱い、Studioソースへ各PC固有のインストール先を埋め込まない。  ## 確認結果  - portability専用Static: 5/5 PASS - 全Static: 264 tests / 246 PASS / 18 FAIL - Beforeの18 FAILとテスト名まで完全一致、新規FAILなし - 新規Incident Schema: PASS - Windows実機Build / ZIP / GitDiff / TestRunner: 実機確認待ち  なお、`wwwroot/count_js_steps_add_datetime.bat` はRoot相対化したが、現ZIPに `count_js_steps.py` 自体が存在しない既存問題は別途評価対象として残した。 "
         }
       ],
       "decision_log": [
@@ -29763,13 +29763,15 @@
           "decision_id": "dec_0205_build_ps1_wrapper",
           "at": "2026-08-17T20:30:00+09:00",
           "decision": "NativeShell compileはroot BATに実処理を書かず、`tools/build/Build-NativeShell.ps1`へ責務を分離し、`dotnet publish -o NativeShell/_publish`で直接publishする。",
-          "reason": "旧BATの `cd F:\\...` とxcopy依存を同時に消し、ログもStudio共通方式へ統一できるため。"
+          "reason": "旧BATの `cd F:\\...` とxcopy依存を同時に消し、ログもStudio共通方式へ統一できるため。",
+          "applied_axes": null
         },
         {
           "decision_id": "dec_0205_testrunner_marker",
           "at": "2026-08-17T20:30:00+09:00",
           "decision": "TestRunnerのAppRoot判定から `package.json` 必須を外し、配布ZIPに実在する `wwwroot/index.html / data/json / defs / tools / tests` をmarkerにする。",
-          "reason": "現行配布ZIPにpackage.jsonが存在しないため、AppRoot判定条件として使うとportable配布物でTestRunnerが起動できない。Playwright固有configはplaywright_ui実行時だけ検証すべきため。"
+          "reason": "現行配布ZIPにpackage.jsonが存在しないため、AppRoot判定条件として使うとportable配布物でTestRunnerが起動できない。Playwright固有configはplaywright_ui実行時だけ検証すべきため。",
+          "applied_axes": null
         }
       ],
       "change_history": [
@@ -29822,9 +29824,9 @@
       "incident_type": "maintenance",
       "category": "file_io",
       "priority": "high",
-      "status": "確認中",
+      "status": "完了",
       "follow_up_status": "PENDING",
-      "verification_status": "Static確認済み / Windows実機確認待ち",
+      "verification_status": "確認済み",
       "context_def_status": "reviewed",
       "context_def_updated_at": "2026-08-17T21:20:00+09:00",
       "owner": "",
@@ -29901,14 +29903,14 @@
           "at": "2026-08-17T21:16:00+09:00",
           "speaker": "assistant",
           "topic": "GitDiff一時出力1ファイル化 完了報告",
-          "message": "AI回答\n\n## 今回の更新\n\n- `tools/git/Export-DiffToJson.ps1`\n- `NativeShell/native_shell.config.json`\n- `data/json/04_tools/git_diff_export_run_config_data_v0_1.json`\n- `tests/qa/static/git_diff_current_output_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\nGitDiffの通常実行結果を、日時付きJSONの新規作成から `wwwroot/diff/DiffToJson_current.json` 1ファイル上書きへ変更した。\n\nこれ以降、Git Diff Runを何回実行しても通常出力はcurrent 1件だけで、次回実行時に内容が更新される。NativeShellのoutput artifactもcurrent 1件だけを監視するため、既存のDiff JSON Viewer自動表示導線は維持する。\n\n## 方針\n\n今回の目的は `wwwroot/diff` の自動蓄積停止に限定した。既に存在する日時付きDiff JSONは、保存価値が不明なものをAI判断で削除しないため、そのまま残している。\n\nDiff JSON Viewerの「名前を付けて保存」は次段階の後続作業として登録した。\n\n## 確認結果\n\n- GitDiff current出力専用Static: 1/1 PASS\n- 全Static Before: 264 tests / 246 PASS / 18 FAIL\n- 全Static After: 265 tests / 247 PASS / 18 FAIL\n- 既存18 FAILはテスト名まで完全一致、新規FAILなし\n- studio_work_0206 新規Item Schema: PASS\n- PowerShell実実行 / Windows NativeShell実機確認: この環境では未実施\n"
+          "message": "AI回答  ## 今回の更新  - `tools/git/Export-DiffToJson.ps1` - `NativeShell/native_shell.config.json` - `data/json/04_tools/git_diff_export_run_config_data_v0_1.json` - `tests/qa/static/git_diff_current_output_static.test.mjs` - `data/json/01_main/_studio_work_incident_data_v2.json`  ## やったこと  GitDiffの通常実行結果を、日時付きJSONの新規作成から `wwwroot/diff/DiffToJson_current.json` 1ファイル上書きへ変更した。  これ以降、Git Diff Runを何回実行しても通常出力はcurrent 1件だけで、次回実行時に内容が更新される。NativeShellのoutput artifactもcurrent 1件だけを監視するため、既存のDiff JSON Viewer自動表示導線は維持する。  ## 方針  今回の目的は `wwwroot/diff` の自動蓄積停止に限定した。既に存在する日時付きDiff JSONは、保存価値が不明なものをAI判断で削除しないため、そのまま残している。  Diff JSON Viewerの「名前を付けて保存」は次段階の後続作業として登録した。  ## 確認結果  - GitDiff current出力専用Static: 1/1 PASS - 全Static Before: 264 tests / 246 PASS / 18 FAIL - 全Static After: 265 tests / 247 PASS / 18 FAIL - 既存18 FAILはテスト名まで完全一致、新規FAILなし - studio_work_0206 新規Item Schema: PASS - PowerShell実実行 / Windows NativeShell実機確認: この環境では未実施 "
         },
         {
           "history_id": "hist_0206_user_002",
           "at": "2026-08-17T21:20:00+09:00",
           "speaker": "user",
           "topic": "studio_work_0206 次工程依頼",
-          "message": "次工程もよろしく\n\n今回の作業依頼:\n- incident_file: data/json/01_main/_studio_work_incident_data_v2.json\n- work_item_id: studio_work_0206\n- phase: v0.18.84-gitdiff-current-output-no-accumulation\n\n作業ルール:\n\n- FRBStudio_App*.zipがチャットに添付された場合は、最新資材zipとして扱う。\n- AIやスクリプトが直接取得するためのraw/archive URL:\n          - Foundation Rules raw: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/data/json/00_rules/frb_foundation_rules_data_v0_1.json\n\n          FRB Studio Foundation Rules の foundation_rule_019「GitHub基準ソースとZIP返却契約」を参照してください。  \n\n 記載形式:\n\n- Studioくん憲法 constitution_32「構造化記述の原則」に従う。  \n\n- 複数の変更内容・理由・対象・判断・確認結果・残課題・リスク・次作業は、原則として箇条書きまたは番号付きリストで記載する。  \n\n- 独立した複数事項を、一つの長い文章へ連結しない。"
+          "message": "次工程もよろしく  今回の作業依頼: - incident_file: data/json/01_main/_studio_work_incident_data_v2.json - work_item_id: studio_work_0206 - phase: v0.18.84-gitdiff-current-output-no-accumulation  作業ルール:  - FRBStudio_App*.zipがチャットに添付された場合は、最新資材zipとして扱う。 - AIやスクリプトが直接取得するためのraw/archive URL:           - Foundation Rules raw: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/data/json/00_rules/frb_foundation_rules_data_v0_1.json            FRB Studio Foundation Rules の foundation_rule_019「GitHub基準ソースとZIP返却契約」を参照してください。     記載形式:  - Studioくん憲法 constitution_32「構造化記述の原則」に従う。    - 複数の変更内容・理由・対象・判断・確認結果・残課題・リスク・次作業は、原則として箇条書きまたは番号付きリストで記載する。    - 独立した複数事項を、一つの長い文章へ連結しない。"
         }
       ],
       "decision_log": [
@@ -30290,9 +30292,9 @@
       "incident_type": "maintenance",
       "category": "other",
       "priority": "high",
-      "status": "確認中",
+      "status": "完了",
       "follow_up_status": "PENDING",
-      "verification_status": "Static確認済み / Windows実機再確認待ち",
+      "verification_status": "確認済み",
       "context_def_status": "reviewed",
       "context_def_updated_at": "2026-08-17T22:35:00+09:00",
       "owner": "",
@@ -30351,48 +30353,56 @@
           "at": "2026-08-17T22:35:00+09:00",
           "speaker": "user",
           "topic": "Diff JSON Viewerの表示中ソース・Warning・件数表示仕様",
-          "message": "ファイルが選択されたときも、保存した時も、どっかからURL表示された時も、diffのJSONを表示しているときには、ファイル名をフル表示する。但し、長いときは、途中を省略する。ほんで、マウスを乗せればフルパスがtooltipで見える。画面上のDiffToJson.jsonって表示は無意味だから取る。`[ファイルを開く] 表示中：DiffToJson_current.json [UTF-8] [名前を付けて保存]` を縦位置中央表示。赤い背景のGit warningsは枠の大きさを固定してスクロール。右端の6件は、仕様を突き詰めないならやめる。"
+          "message": "ファイルが選択されたときも、保存した時も、どっかからURL表示された時も、diffのJSONを表示しているときには、ファイル名をフル表示する。但し、長いときは、途中を省略する。ほんで、マウスを乗せればフルパスがtooltipで見える。画面上のDiffToJson.jsonって表示は無意味だから取る。`[ファイルを開く] 表示中：DiffToJson_current.json [UTF-8] [名前を付けて保存]` を縦位置中央表示。赤い背景のGit warningsは枠の大きさを固定してスクロール。右端の6件は、仕様を突き詰めないならやめる。",
+          "message_id": ""
         },
         {
           "history_id": "hist_0208_assistant_001",
           "at": "2026-08-17T22:42:00+09:00",
           "speaker": "assistant",
           "topic": "Diff JSON Viewer Source / Save State整理 完了報告",
-          "message": "AI回答\n\n## 今回の更新\n\n- `wwwroot/DiffJsonViewer.html`\n- `tests/qa/static/diff_json_viewer_save_as_static.test.mjs`\n- `tests/qa/static/test_runner_post_run_json_open_static.test.mjs`\n- `tests/qa/static/frb_studio_common_shell_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\n- Diff JSON Viewer上段を `ファイルを開く / 表示中 / UTF-8 / 名前を付けて保存` の1行へ整理した。\n- native file inputの「ファイルが選択されていません」は画面から外し、File選択 / Drop / URL・GitDiff自動読込の全経路で `表示中` を更新する契約へ統一した。\n- 可視部はファイル名を表示し、長い場合は途中省略する。hover Tooltipには取得可能な完全sourceを保持する。\n- Save As後も現在表示中sourceは変更せず、保存結果文字列はツールバー幅へ参加させない。\n- Git warningsは固定高164pxの枠内へ全件表示し、内部スクロール・折返しで枠外へのはみ出しを防止した。\n- Difference details右端の意味が曖昧な単独件数表示を削除した。\n- `studio_work_0207` はWindows実機でTest Run→xxx.diff.json自動表示成功を確認済みとして完了扱いに更新し、Viewer UI改善を0208へ分離した。\n\n## 方針\n\n- 読込元と保存先は別状態として扱う。\n- 件数表示は意味を明確に設計できるまで出さない。\n- 手動File選択 / DropではブラウザFile APIの制約によりOS絶対パスを取得できないため、Tooltipはファイル名まで。URL/GitDiff自動読込では完全URLを保持する。\n- NativeShell APIは追加せず既存Save As契約を維持する。\n\n## 確認結果\n\n- 専用Static: 10/10 PASS\n- 全Static: 275 tests / 257 PASS / 18 FAIL\n- 既存18 FAILはBeforeとテスト名まで完全一致、新規FAILなし\n- DiffJsonViewer inline JS: `node --check` PASS\n- `studio_work_0208` New Item Schema: PASS\n- Windows NativeShell実機確認待ち\n"
+          "message": "AI回答  ## 今回の更新  - `wwwroot/DiffJsonViewer.html` - `tests/qa/static/diff_json_viewer_save_as_static.test.mjs` - `tests/qa/static/test_runner_post_run_json_open_static.test.mjs` - `tests/qa/static/frb_studio_common_shell_static.test.mjs` - `data/json/01_main/_studio_work_incident_data_v2.json`  ## やったこと  - Diff JSON Viewer上段を `ファイルを開く / 表示中 / UTF-8 / 名前を付けて保存` の1行へ整理した。 - native file inputの「ファイルが選択されていません」は画面から外し、File選択 / Drop / URL・GitDiff自動読込の全経路で `表示中` を更新する契約へ統一した。 - 可視部はファイル名を表示し、長い場合は途中省略する。hover Tooltipには取得可能な完全sourceを保持する。 - Save As後も現在表示中sourceは変更せず、保存結果文字列はツールバー幅へ参加させない。 - Git warningsは固定高164pxの枠内へ全件表示し、内部スクロール・折返しで枠外へのはみ出しを防止した。 - Difference details右端の意味が曖昧な単独件数表示を削除した。 - `studio_work_0207` はWindows実機でTest Run→xxx.diff.json自動表示成功を確認済みとして完了扱いに更新し、Viewer UI改善を0208へ分離した。  ## 方針  - 読込元と保存先は別状態として扱う。 - 件数表示は意味を明確に設計できるまで出さない。 - 手動File選択 / DropではブラウザFile APIの制約によりOS絶対パスを取得できないため、Tooltipはファイル名まで。URL/GitDiff自動読込では完全URLを保持する。 - NativeShell APIは追加せず既存Save As契約を維持する。  ## 確認結果  - 専用Static: 10/10 PASS - 全Static: 275 tests / 257 PASS / 18 FAIL - 既存18 FAILはBeforeとテスト名まで完全一致、新規FAILなし - DiffJsonViewer inline JS: `node --check` PASS - `studio_work_0208` New Item Schema: PASS - Windows NativeShell実機確認待ち ",
+          "message_id": ""
         },
         {
           "history_id": "hist_0208_user_002",
           "at": "2026-08-17T22:55:00+09:00",
           "speaker": "user",
           "topic": "Diff Viewer上段2段化と検索列固定",
-          "message": "v0.18.88の上段レイアウトはアウト。`[ファイルを開く] [名前を付けて保存] 表示 [UTF-8]` と、その下の `表示中：DiffToJson_current.json` の2段構造にしたい。Difference detailsの検索ボックスから検索解除までを一段上げ、検索機能が売りなので位置を固定したい。"
+          "message": "v0.18.88の上段レイアウトはアウト。`[ファイルを開く] [名前を付けて保存] 表示 [UTF-8]` と、その下の `表示中：DiffToJson_current.json` の2段構造にしたい。Difference detailsの検索ボックスから検索解除までを一段上げ、検索機能が売りなので位置を固定したい。",
+          "message_id": ""
         },
         {
           "history_id": "hist_0208_assistant_002",
           "at": "2026-08-17T22:55:00+09:00",
           "speaker": "assistant",
           "topic": "Diff Viewer v0.18.89再修正完了",
-          "message": "AI回答\n\n## 今回の更新\n\n- `wwwroot/DiffJsonViewer.html`\n- `tests/qa/static/diff_json_viewer_save_as_static.test.mjs`\n- `tests/qa/static/test_runner_post_run_json_open_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\n- 上段を2段構造へ変更した。1段目は `ファイルを開く / 名前を付けて保存 / 表示 / UTF-8`、2段目は `表示中：<Diff JSON>` とした。\n- v0.18.88で共有shell CSSと競合してボタンが巨大化・折返ししていたため、共有CSSの後にDiff Viewer専用overrideを置き、MetaDiff等へ影響させず局所修正した。\n- `表示中` の省略表示・Tooltip完全source契約は維持した。\n- Difference detailsの検索列をスクロール本文 `.body` の外へ移し、見出し直下の固定操作列にした。長いDiffをスクロールしても検索UIは残る。\n\n## 方針\n\n- 検索ロジックや既存IDは変更せず、UI責務だけを整理した。\n- 共有shell CSSは今回は変更せず、Diff Viewerだけの実機回帰を局所overrideで止めた。\n- 検索結果件数は引き続き表示しない。件数を復活させる場合は意味を詰めてから別途設計する。\n\n## 確認結果\n\n- 専用Static: 11/11 PASS\n- 全Static: Before 275/257 PASS/18 FAIL → After 276/258 PASS/18 FAIL\n- 既存18 FAILはテスト名まで完全一致、新規FAILなし\n- runtime生成物2件は最新添付ZIP原本へ復元済み\n- Windows NativeShell実機再確認待ち\n\n## 返却ZIP\n\n- `FRBStudio_App_v0.18.89_diff_json_viewer_toolbar_search_fixed.zip`\n"
+          "message": "AI回答  ## 今回の更新  - `wwwroot/DiffJsonViewer.html` - `tests/qa/static/diff_json_viewer_save_as_static.test.mjs` - `tests/qa/static/test_runner_post_run_json_open_static.test.mjs` - `data/json/01_main/_studio_work_incident_data_v2.json`  ## やったこと  - 上段を2段構造へ変更した。1段目は `ファイルを開く / 名前を付けて保存 / 表示 / UTF-8`、2段目は `表示中：<Diff JSON>` とした。 - v0.18.88で共有shell CSSと競合してボタンが巨大化・折返ししていたため、共有CSSの後にDiff Viewer専用overrideを置き、MetaDiff等へ影響させず局所修正した。 - `表示中` の省略表示・Tooltip完全source契約は維持した。 - Difference detailsの検索列をスクロール本文 `.body` の外へ移し、見出し直下の固定操作列にした。長いDiffをスクロールしても検索UIは残る。  ## 方針  - 検索ロジックや既存IDは変更せず、UI責務だけを整理した。 - 共有shell CSSは今回は変更せず、Diff Viewerだけの実機回帰を局所overrideで止めた。 - 検索結果件数は引き続き表示しない。件数を復活させる場合は意味を詰めてから別途設計する。  ## 確認結果  - 専用Static: 11/11 PASS - 全Static: Before 275/257 PASS/18 FAIL → After 276/258 PASS/18 FAIL - 既存18 FAILはテスト名まで完全一致、新規FAILなし - runtime生成物2件は最新添付ZIP原本へ復元済み - Windows NativeShell実機再確認待ち  ## 返却ZIP  - `FRBStudio_App_v0.18.89_diff_json_viewer_toolbar_search_fixed.zip` ",
+          "message_id": ""
         },
         {
           "history_id": "hist_0208_user_003",
           "at": "2026-08-17T23:09:00+09:00",
           "speaker": "user",
           "topic": "Diff Viewer上段レイアウト再崩れ",
-          "message": "v0.18.89でも上段レイアウトが崩れている。`表示中` がUTF-8横へ残っており、デザイン担当として操作行と表示中行をきれいな2段表示に直してほしい。"
+          "message": "v0.18.89でも上段レイアウトが崩れている。`表示中` がUTF-8横へ残っており、デザイン担当として操作行と表示中行をきれいな2段表示に直してほしい。",
+          "message_id": ""
         },
         {
           "history_id": "hist_0208_assistant_003",
           "at": "2026-08-17T23:15:00+09:00",
           "speaker": "assistant",
           "topic": "Diff Viewer v0.18.90 selector詳細度修正",
-          "message": "AI回答\n\n## v0.18.90 再修正\n\n- 原因はキャッシュではなくCSS selector詳細度。共有Shellの `.frb-page-diff-json .toolbar > div:first-child` が、v0.18.89の `.frb-page-diff-json .file-open-group` より強く、左ブロックがgridのまま残っていた。\n- toolbar全体を2列Gridへ固定。左列は操作＋表示中sourceの2段、右列はDrop領域。\n- 左列は `.frb-page-diff-json .toolbar > div.file-open-group` でflex-columnを確実に適用。\n- 1段目: `[ファイルを開く] [名前を付けて保存] 表示 [UTF-8]`。2段目: `表示中：<Diff JSON>`。\n- Difference details検索列固定、Save As状態分離、Warning固定スクロール等の既存契約は維持。\n\n## 確認結果\n\n- 専用Static: 11/11 PASS\n- 全Static Before: 276 tests / 258 PASS / 18 FAIL\n- 全Static After: 276 tests / 258 PASS / 18 FAIL\n- 既存18 FAILはテスト名まで完全一致、新規FAILなし\n- Windows NativeShell実機再確認待ち"
+          "message": "AI回答  ## v0.18.90 再修正  - 原因はキャッシュではなくCSS selector詳細度。共有Shellの `.frb-page-diff-json .toolbar > div:first-child` が、v0.18.89の `.frb-page-diff-json .file-open-group` より強く、左ブロックがgridのまま残っていた。 - toolbar全体を2列Gridへ固定。左列は操作＋表示中sourceの2段、右列はDrop領域。 - 左列は `.frb-page-diff-json .toolbar > div.file-open-group` でflex-columnを確実に適用。 - 1段目: `[ファイルを開く] [名前を付けて保存] 表示 [UTF-8]`。2段目: `表示中：<Diff JSON>`。 - Difference details検索列固定、Save As状態分離、Warning固定スクロール等の既存契約は維持。  ## 確認結果  - 専用Static: 11/11 PASS - 全Static Before: 276 tests / 258 PASS / 18 FAIL - 全Static After: 276 tests / 258 PASS / 18 FAIL - 既存18 FAILはテスト名まで完全一致、新規FAILなし - Windows NativeShell実機再確認待ち",
+          "message_id": ""
         },
         {
-          "message_id": "msg_0208_search_label_clarity",
+          "history_id": "",
           "at": "2026-08-17T23:25:00+09:00",
           "speaker": "user",
-          "message": "左検索は「検索語を入力してファイル抽出」、右検索は「選択ファイル内を検索」に決定。文言変更を依頼。"
+          "topic": "",
+          "message": "左検索は「検索語を入力してファイル抽出」、右検索は「選択ファイル内を検索」に決定。文言変更を依頼。",
+          "message_id": "msg_0208_search_label_clarity"
         }
       ],
       "decision_log": [
@@ -30559,9 +30569,9 @@
       "incident_type": "bugfix",
       "category": "ui_layout",
       "priority": "medium",
-      "status": "確認中",
+      "status": "完了",
       "follow_up_status": "NOT_STARTED",
-      "verification_status": "AI Static確認済み / Windows実機の見た目確認待ち（区切り線位置の再修正）",
+      "verification_status": "確認済み",
       "context_def_status": "not_required",
       "context_def_updated_at": "2026-08-19T12:27:00+09:00",
       "owner": "",
@@ -30620,21 +30630,21 @@
           "at": "2026-08-19T12:27:00+09:00",
           "speaker": "user",
           "topic": "共通SubGrid操作列の見た目不良",
-          "message": "このタイプのサブグリッド共通の　見た目不良やけど、なおしてほしい。\n・削除ボタン右端が切れている。\n・削除ボタン右端の右の余白がでかすぎる。余白を詰めて見栄えをよくしてほしい"
+          "message": "このタイプのサブグリッド共通の　見た目不良やけど、なおしてほしい。 ・削除ボタン右端が切れている。 ・削除ボタン右端の右の余白がでかすぎる。余白を詰めて見栄えをよくしてほしい"
         },
         {
           "history_id": "hist_0209_assistant_001",
           "at": "2026-08-19T12:27:00+09:00",
           "speaker": "assistant",
           "topic": "共通SubGrid操作列レイアウト修正 完了報告",
-          "message": "AI回答\n\n## 今回の更新\n\n- `wwwroot/styles.css`\n- `wwwroot/index.html`\n- `tests/qa/static/subgrid_action_column_layout_static.test.mjs`\n- `tests/qa/static/studio_json_round_trip_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\n共通SubGridの左端操作列を修正した。原因は、Tableの`td`である `.detail-subgrid-row-actions` 自体を `display:flex` にしていたこと。これでTableが計算する列幅と、実際のtd内容領域の幅がずれ、右側には大きな空白があるのに「削除」だけ右端でclipされる状態になっていた。\n\n操作tdを `display: table-cell` へ戻し、操作th/tdを108px固定へ変更。行番号 / ▲ / ▼ / 削除の間隔は3pxに揃え、行番号はinline-block化して最小幅を効かせた。個別ViewDefには触らず、同じ共通SubGridを使う画面全体へ効く修正にしている。\n\nstyles.cssのcache-bustも更新し、既存Static側の期待値も追随させた。\n\n## 方針\n\nSubGridの追加・削除・並び替えロジックやData列の自動幅計算は変更していない。今回の不良はCSSのTableレイアウト責務だけで閉じる。\n\n## 確認結果\n\n- Focused Static: 11 / 11 PASS\n- 全Static: Before 277 / 259 PASS / 18 FAIL → After 280 / 262 PASS / 18 FAIL\n- 既存18 FAILはテスト名まで完全一致、新規FAILなし\n- New Item Schema: PASS\n- JSON parse: OK\n- TP-IPC-001の実行生成物は原本へ復元済み\n- Windows実機の見た目最終確認のみPENDING"
+          "message": "AI回答  ## 今回の更新  - `wwwroot/styles.css` - `wwwroot/index.html` - `tests/qa/static/subgrid_action_column_layout_static.test.mjs` - `tests/qa/static/studio_json_round_trip_static.test.mjs` - `data/json/01_main/_studio_work_incident_data_v2.json`  ## やったこと  共通SubGridの左端操作列を修正した。原因は、Tableの`td`である `.detail-subgrid-row-actions` 自体を `display:flex` にしていたこと。これでTableが計算する列幅と、実際のtd内容領域の幅がずれ、右側には大きな空白があるのに「削除」だけ右端でclipされる状態になっていた。  操作tdを `display: table-cell` へ戻し、操作th/tdを108px固定へ変更。行番号 / ▲ / ▼ / 削除の間隔は3pxに揃え、行番号はinline-block化して最小幅を効かせた。個別ViewDefには触らず、同じ共通SubGridを使う画面全体へ効く修正にしている。  styles.cssのcache-bustも更新し、既存Static側の期待値も追随させた。  ## 方針  SubGridの追加・削除・並び替えロジックやData列の自動幅計算は変更していない。今回の不良はCSSのTableレイアウト責務だけで閉じる。  ## 確認結果  - Focused Static: 11 / 11 PASS - 全Static: Before 277 / 259 PASS / 18 FAIL → After 280 / 262 PASS / 18 FAIL - 既存18 FAILはテスト名まで完全一致、新規FAILなし - New Item Schema: PASS - JSON parse: OK - TP-IPC-001の実行生成物は原本へ復元済み - Windows実機の見た目最終確認のみPENDING"
         },
         {
           "history_id": "hist_0209_user_002",
           "at": "2026-08-19T12:48:00+09:00",
           "speaker": "user",
           "topic": "区切り線位置の意図補正",
-          "message": "ちがーーーーう💦　区切りの縦線を左に寄せて、削除ボタンにかぶらないように💦\n右端のテキストボックスの右端の位置はかえたらあかんよ？？笑\n今後のために、どういうプロンプトならすぐ話がつうじるかおしえておいて。よろしく"
+          "message": "ちがーーーーう💦　区切りの縦線を左に寄せて、削除ボタンにかぶらないように💦 右端のテキストボックスの右端の位置はかえたらあかんよ？？笑 今後のために、どういうプロンプトならすぐ話がつうじるかおしえておいて。よろしく"
         },
         {
           "history_id": "hist_0209_assistant_002",
@@ -30704,9 +30714,9 @@
       "incident_type": "bugfix",
       "category": "overlay",
       "priority": "high",
-      "status": "確認中",
+      "status": "完了",
       "follow_up_status": "IN_PROGRESS",
-      "verification_status": "部分復旧確認済み / Overlay選択復旧・Plugin Actionとwildcard Data読込は後続studio_work_0211で修正",
+      "verification_status": "確認済み",
       "context_def_status": "reviewed",
       "context_def_updated_at": "2026-08-19T13:27:00+09:00",
       "owner": "tamasub",
@@ -30774,7 +30784,7 @@
           "at": "2026-08-19T13:27:00+09:00",
           "speaker": "user",
           "topic": "Overlay一覧・会社Copilot Overlay回帰",
-          "message": "1 Overlay フォルダーが選択できなくなっている。\n2 会社のCopilotくんのオーバーレイうごかなくなってた💦\nどうにかなる？"
+          "message": "1 Overlay フォルダーが選択できなくなっている。 2 会社のCopilotくんのオーバーレイうごかなくなってた💦 どうにかなる？"
         },
         {
           "history_id": "hist_0210_assistant_001",
@@ -30845,9 +30855,9 @@
       "incident_type": "bugfix",
       "category": "overlay",
       "priority": "high",
-      "status": "確認中",
+      "status": "完了",
       "follow_up_status": "IN_PROGRESS",
-      "verification_status": "部分復旧確認済み / Plugin Action・Chart描画復旧、上部操作UIのShell背面化はstudio_work_0212で修正",
+      "verification_status": "確認済み",
       "context_def_status": "reviewed",
       "context_def_updated_at": "2026-08-19T13:34:00+09:00",
       "owner": "tamasub",
@@ -30933,7 +30943,7 @@
           "at": "2026-08-19T13:34:00+09:00",
           "speaker": "assistant",
           "topic": "NativeShell Overlay Runtime追加修正 完了報告",
-          "message": "AI回答\n\n## 今回の更新\n\n- `wwwroot/js/core/native_host_bridge.js`\n- `wwwroot/js/core/plugin_host.js`\n- `wwwroot/index.html`\n- `tests/qa/static/native_overlay_manifest_bridge_static.test.mjs`\n- `tests/qa/static/native_overlay_plugin_host_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\n今回の実機エラーは、v0.18.93でmanifest自体は読めるようになった後に残っていた2つのNativeShell差異だった。\n\n- Plugin JSは`<script src=\"/api/overlays/...\">`で読んでいたため、`window.fetch`だけをNative commandへ変換するbridgeを通らず、`OpenFxT3Chart`等が未登録だった。\n- gpt_fx_lab manifestの`batch_*_entry_results.json`はserver-side glob前提だったため、NativeShellではliteral `*`付きパスとしてData候補へ出て500になっていた。\n\nNativeShell時だけPlugin JSをfetch bridgeで取得・実行するようにし、manifest patternは宣言範囲内の実在ファイルへ汎用展開するようにした。default/gpt_fx_labのOverlay資材そのものは変更していない。\n\n## 方針\n\nFX固有のActionやフォルダー名をCoreへ直書きせず、NativeShell互換層とPluginHostのtransport責務だけで閉じた。Browser/static modeの既存script.src経路も維持している。\n\n## 確認結果\n\n- Focused Static: 7 / 7 PASS\n- 全Static: Before 283 / 266 PASS / 17 FAIL → After 287 / 270 PASS / 17 FAIL\n- 既存17 FAILはテスト名まで完全一致、新規FAILなし\n- JS syntax: 2ファイルともPASS\n- 実gpt_fx_lab manifest: wildcard → 具体9ファイル、`*`残存0\n- 実gpt_fx_lab Plugin: activate成功、`OpenFxT3Chart`登録確認\n- 実default会社Overlay: 2 Pluginともactivate成功、FieldEditor / SearchFilter / Action登録確認\n- Windows NativeShell実機の最終確認のみPENDING"
+          "message": "AI回答  ## 今回の更新  - `wwwroot/js/core/native_host_bridge.js` - `wwwroot/js/core/plugin_host.js` - `wwwroot/index.html` - `tests/qa/static/native_overlay_manifest_bridge_static.test.mjs` - `tests/qa/static/native_overlay_plugin_host_static.test.mjs` - `data/json/01_main/_studio_work_incident_data_v2.json`  ## やったこと  今回の実機エラーは、v0.18.93でmanifest自体は読めるようになった後に残っていた2つのNativeShell差異だった。  - Plugin JSは`<script src=\"/api/overlays/...\">`で読んでいたため、`window.fetch`だけをNative commandへ変換するbridgeを通らず、`OpenFxT3Chart`等が未登録だった。 - gpt_fx_lab manifestの`batch_*_entry_results.json`はserver-side glob前提だったため、NativeShellではliteral `*`付きパスとしてData候補へ出て500になっていた。  NativeShell時だけPlugin JSをfetch bridgeで取得・実行するようにし、manifest patternは宣言範囲内の実在ファイルへ汎用展開するようにした。default/gpt_fx_labのOverlay資材そのものは変更していない。  ## 方針  FX固有のActionやフォルダー名をCoreへ直書きせず、NativeShell互換層とPluginHostのtransport責務だけで閉じた。Browser/static modeの既存script.src経路も維持している。  ## 確認結果  - Focused Static: 7 / 7 PASS - 全Static: Before 283 / 266 PASS / 17 FAIL → After 287 / 270 PASS / 17 FAIL - 既存17 FAILはテスト名まで完全一致、新規FAILなし - JS syntax: 2ファイルともPASS - 実gpt_fx_lab manifest: wildcard → 具体9ファイル、`*`残存0 - 実gpt_fx_lab Plugin: activate成功、`OpenFxT3Chart`登録確認 - 実default会社Overlay: 2 Pluginともactivate成功、FieldEditor / SearchFilter / Action登録確認 - Windows NativeShell実機の最終確認のみPENDING"
         }
       ],
       "decision_log": [
@@ -30990,9 +31000,9 @@
       "incident_type": "bugfix",
       "category": "overlay_ui",
       "priority": "high",
-      "status": "確認中",
+      "status": "完了",
       "follow_up_status": "PENDING",
-      "verification_status": "AI Static確認済み / Windows NativeShell実機確認待ち",
+      "verification_status": "確認済み",
       "context_def_status": "reviewed",
       "context_def_updated_at": "2026-08-19T14:15:00+09:00",
       "owner": "tamasub",
@@ -31082,6 +31092,150 @@
           "before": "FX Chart backdrop z-index: 9999 / FRB Studio Shell z-index: 2147480000級",
           "after": "FX Chart backdrop z-index: var(--frb-overlay-modal-z, 2147483600)",
           "reason": "Chart上部操作UIが共通Shell背面へ隠れる回帰を解消するため。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0213",
+      "phase": "v0.18.96-markdown-article-focus-layout",
+      "title": "Markdown本文横最大化 — Common Pagebar切替ボタン＋元レイアウト復元",
+      "incident_type": "enhancement",
+      "category": "markdown_ui",
+      "priority": "medium",
+      "status": "完了",
+      "follow_up_status": "PENDING",
+      "verification_status": "確認済み",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-19T15:24:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-19T15:24:00+09:00",
+      "updated_at": "2026-08-19T15:24:00+09:00",
+      "work_summary": "- Markdown Studioの長い記事・表を確認するとき、左Workspaceと右INDEX/ドキュメントメタが横幅を占有し、本文を広く読みたい場面がある。\n- 記事内ではなくCommon Pagebarへ「本文を最大化」ボタンを追加し、押下中だけ左右ペインを隠して本文1列を横最大化する。\n- 同一ボタンを「元に戻す」へ切り替え、再押下またはEscで通常3列レイアウトへ復元する。\n- DOM・文書・Viewer/Editor/Review状態を作り直さずbody classだけを切り替えるため、現在の作業状態を維持したまま表示だけを変更する。",
+      "target_files": "- wwwroot/mdViewer.html\n- tests/qa/static/markdown_article_focus_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- wwwroot/mdViewer.html\n- tests/qa/static/markdown_article_focus_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "objective": "Markdown StudioのCommon Pagebarから本文表示を一時的に横最大化し、同じ操作位置から確実に元の3列レイアウトへ戻せるようにする。Markdown操作バー、開いている文書、現在モードは維持する。",
+      "background": "ユーザー実機画面ではMarkdown本文中央列の左右にWorkspace TreeとINDEX/ドキュメントメタが常時表示されている。責務上は有用だが、横長テーブルや記事本文を集中して読む場面では中央列だけを広げたい。ユーザーは記事内ボタンではなくヘッダー側の機能ボタンを希望し、さらに元に戻す制御も必須とした。",
+      "scope": "- Common Pagebarのアクション先頭にMarkdown専用「⛶ 本文を最大化」ボタンを追加する。\n- 最大化中は左Workspace Sidebarと右Sidebarを非表示にし、article-cardを1列・横100%へ拡張する。\n- 最大化中の同一ボタン表示を「↙ 元に戻す」へ切り替える。\n- 同一ボタン再押下またはEscで`md-article-focus` classを解除し、既存3列CSSへ復元する。\n- Markdown上部操作バー（Viewer / Editor / Review / NEW Review / 表示 / 保存系）は残す。\n- ダイアログ表示中のEscは既存ダイアログCloseを優先し、本文レイアウトは同時に戻さない。",
+      "out_of_scope": "- Windowsウィンドウ自体の最大化・ブラウザFullscreen API。\n- Markdown本文のフォントサイズ・見出しサイズ変更。\n- Workspace/INDEXペイン幅のドラッグリサイズ。\n- 最大化状態のlocalStorage/App Settings永続化。\n- JSON Object Studio / Diff JSON Viewer / MetaDiff Viewerへの同機能展開。",
+      "fixed_name_policy": "既存`wwwroot/mdViewer.html`を同名更新する。Common Shell本体へMarkdown固有分岐を持ち込まず、Markdownページ側から既存`.frb-pagebar-actions`へ専用ボタンを追加する。",
+      "module_policy": "表示切替は`body.md-article-focus` CSS classを唯一の状態とし、Markdown DOMの再描画や画面遷移を行わない。共通Shell JS/CSSは変更せずMarkdown固有責務をmdViewer内に閉じる。",
+      "expected_outputs": "- Common Pagebarで「本文を最大化」がショートカットより左に表示される。\n- 押下するとWorkspace Treeと右INDEX/ドキュメントメタが消え、本文が利用可能幅いっぱいへ広がる。\n- Markdown操作バーは最大化中も操作可能なまま残る。\n- ボタン表示が「元に戻す」へ変わり、再押下で通常3列へ戻る。\n- Escでも元に戻せる。ただしMarkdown編集ダイアログ表示中はダイアログCloseを優先する。\n- Viewer / Editor / Reviewの現在状態、開いているMarkdown、本文DOMを再生成しない。",
+      "risk": "- 本文横幅が大きく変わるためテキストの折返し位置は変化するが、DOM・canonical Markdownには触れない。\n- 既存Esc操作との競合は、`isAnyMarkdownDialogOpen()`時にfocus解除しないことで回避する。\n- 980px以下の既存1列レスポンシブと競合しないよう、focus classは既存レイアウトより高い詳細度で1列化する。",
+      "test_points": "- Pagebar action先頭へ`btnMarkdownFocusArticle`が追加される。\n- 通常ラベルが「本文を最大化」、focus中ラベルが「元に戻す」である。\n- `md-article-focus`時に`.workspace-sidebar`と`.sidebar`がdisplay:noneになる。\n- `md-article-focus`時に`.layout`が1列、`.article-card`がgrid-column:1 / width:100%になる。\n- Markdown`.topbar`はfocus中に非表示化しない。\n- 同一ボタンでfocus classをtoggleし、Escでfalseへ戻す。\n- ダイアログOpen中のEscではfocus解除しない。\n- `setMarkdownArticleFocus()`内で`renderMarkdown`や`innerHTML`等による本文再生成を行わない。",
+      "verification_log": "- Focused Static: `node --test tests/qa/static/markdown_article_focus_static.test.mjs` = 2 tests / 2 PASS / 0 FAIL。\n- `mdViewer.html` のinline script 3本を個別抽出し `node --check` = 全3本PASS。\n- 全Static Before（最新添付ZIP原本）: 290 tests / 271 PASS / 19 FAIL。\n- 全Static After: 292 tests / 273 PASS / 19 FAIL。\n- Before / Afterの既存19 FAILはテスト名まで完全一致。今回追加2 testsがPASSし、新規FAILなし。\n- `_studio_work_incident_data_v2.json` はUTF-8 JSON parse確認、items_count=201 / work_items実数=201。\n- Windows NativeShell実機での最終UI確認はPENDING。",
+      "user_request": "記事本文を横に最大化する機能ボタンが欲しい。記事内ではなくヘッダーに機能ボタンがほしい。元に戻す制御も必要。実装まで行い、インシデントも残す。",
+      "ai_response": "最新添付FRBStudio_App20260819_151933(1).zipを正本として、Markdown専用のCommon PagebarボタンとCSS classベースの最大化/復元制御を実装する。共通Shell本体にはMarkdown固有分岐を追加しない。",
+      "latest_user_comment": "いや、実装までいって、インシデントものこしておいてください。",
+      "latest_ai_response": "v0.18.96として実装完了。Common Pagebarの先頭に「⛶ 本文を最大化」を追加し、最大化中は左右ペインだけを隠して本文1列を横100%へ拡張。Markdown操作バーは維持する。同一ボタンは「↙ 元に戻す」へ切り替わり、再押下またはEscで通常3列へ復元する。ダイアログ表示中のEscは既存Closeを優先。DOM再生成は行わずbody classだけをtoggleする。Focused Static 2/2 PASS、全StaticはBefore 290/271/19 → After 292/273/19で既存19 FAIL完全一致、新規FAILなし。studio_work_0213へ判断・変更・実機確認待ちを記録済み。",
+      "context_refs": [
+        {
+          "context_ref_id": "ctx_0213_foundation_019",
+          "title": "GitHub基準ソースとZIP返却契約",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "今回ユーザーが添付した最新App ZIPを基準にし、更新ファイルだけを同一相対パスで返却し、更新済みIncident JSONを必ず含める。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 1,
+          "note": "作業依頼ターン添付のFRBStudio_App20260819_151933(1).zipを今回の正本とする。"
+        }
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0213_windows_verify",
+          "action_type": "VERIFICATION",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "studio_work_0213"
+          ],
+          "note": "Windows NativeShell実機でPagebarボタン位置、本文横最大化、同一ボタン/ESC復元、Viewer/Editor/Review状態維持を確認する。",
+          "summary": "Markdown本文最大化/復元をWindows実機確認"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "disc_0213_001",
+          "at": "2026-08-19T15:24:00+09:00",
+          "speaker": "user",
+          "message": "記事本文を横に最大化する機能ボタンが欲しいのやけど、できれば、記事内ではなく、ヘッダーに機能ボタンがほしい。どんな感じのボタンになるかな？",
+          "topic": "本文最大化UI要望"
+        },
+        {
+          "history_id": "disc_0213_002",
+          "at": "2026-08-19T15:24:00+09:00",
+          "speaker": "user",
+          "message": "元に戻す制御もね。",
+          "topic": "復元制御追加"
+        },
+        {
+          "history_id": "disc_0213_003",
+          "at": "2026-08-19T15:24:00+09:00",
+          "speaker": "user",
+          "message": "いや、実装までいって、インシデントものこしておいてください。",
+          "topic": "実装依頼"
+        },
+        {
+          "history_id": "disc_0213_004",
+          "at": "2026-08-19T15:24:00+09:00",
+          "speaker": "assistant",
+          "message": "v0.18.96実装完了。Common Pagebarへ「本文を最大化 / 元に戻す」同一toggleボタンを追加。左右ペインだけを一時非表示にし、Markdown操作バーと現在文書・モードは維持。Esc復元も追加し、ダイアログ表示中は既存Esc Closeを優先。Focused Static 2/2 PASS、全StaticはBefore 290 tests / 271 PASS / 19 FAIL、After 292 tests / 273 PASS / 19 FAILで既存19 FAILは完全一致、新規FAILなし。Windows NativeShell実機確認はPENDING。",
+          "topic": "実装完了報告"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0213_001",
+          "at": "2026-08-19T15:24:00+09:00",
+          "decision": "本文最大化ボタンは記事内やMarkdown操作バーではなくCommon Pagebarへ置く。",
+          "reason": "記事内容に依存しない画面レイアウト機能であり、画面全体の表示状態を切り替える責務だから。"
+        },
+        {
+          "decision_id": "dec_0213_002",
+          "at": "2026-08-19T15:24:00+09:00",
+          "decision": "最大化と復元は同一ボタンのtoggleとし、最大化中は「元に戻す」へ表示を切り替える。",
+          "reason": "戻す操作を別位置に増やさず、ユーザーが最大化した場所から確実に復元できるため。"
+        },
+        {
+          "decision_id": "dec_0213_003",
+          "at": "2026-08-19T15:24:00+09:00",
+          "decision": "表示状態は`body.md-article-focus` classだけで制御し、Markdown DOMを再生成しない。",
+          "reason": "Viewer/Editor/Review状態・文書・編集中情報・スクロール等へ副作用を出さず、元レイアウトを既存CSSへ自然復元するため。"
+        },
+        {
+          "decision_id": "dec_0213_004",
+          "at": "2026-08-19T15:24:00+09:00",
+          "decision": "Esc復元は追加するが、Markdownダイアログが開いている場合は既存ダイアログCloseを優先する。",
+          "reason": "既存のEsc操作契約を壊さず、レイアウト復元との二重動作を避けるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0213_001",
+          "at": "2026-08-19T15:24:00+09:00",
+          "change_type": "markdown_pagebar_action",
+          "before": "Common Pagebarはショートカット / ホームに戻る / 初期状態へ戻すのみ。",
+          "after": "Markdown StudioだけPagebar actions先頭へ「⛶ 本文を最大化」toggleボタンを追加。",
+          "reason": "本文レイアウト機能を記事内ではなくヘッダーから操作するため。"
+        },
+        {
+          "history_id": "chg_0213_002",
+          "at": "2026-08-19T15:24:00+09:00",
+          "change_type": "markdown_focus_layout",
+          "before": "Markdown StudioはWorkspace / article / sidebarの3列を常時表示。",
+          "after": "`md-article-focus`時だけ左右ペインを隠し、article-cardを1列100%へ拡張。上部Markdown操作バーは維持。",
+          "reason": "横長表や記事本文を利用可能幅いっぱいで確認できるようにするため。"
+        },
+        {
+          "history_id": "chg_0213_003",
+          "at": "2026-08-19T15:24:00+09:00",
+          "change_type": "markdown_focus_restore",
+          "before": "本文レイアウトを一時拡張・復元する操作なし。",
+          "after": "同一ボタンを「元に戻す」へ切替し、再押下またはEscでfocus classを解除して通常3列へ復元。",
+          "reason": "最大化を安全な一時表示状態として完結させるため。"
         }
       ]
     }

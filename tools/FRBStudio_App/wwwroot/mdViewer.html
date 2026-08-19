@@ -2174,6 +2174,35 @@
     html[data-md-display-profile="compact"] .markdown-body h6 { font-size: 13.5px; margin-top: 14px; margin-bottom: 6px; }
   </style>
   <link rel="stylesheet" href="css/frb-studio-shell.css?v=0185p9-markdown-menu" />
+  <style>
+    /* studio_work_0213 / v0.18.96: Markdown本文をヘッダー操作で横最大化する。
+       DOMを作り直さずlayout classだけを切り替えるため、元に戻した時も文書・モード・スクロール位置を維持する。 */
+    body.frb-page-markdown.md-article-focus .app {
+      width: calc(100% - 24px);
+      max-width: none;
+    }
+    body.frb-page-markdown.md-article-focus .layout,
+    body.frb-page-markdown.md-article-focus[data-mode="editor"] .layout,
+    body.frb-page-markdown.md-article-focus[data-mode="review"] .layout {
+      grid-template-columns: minmax(0, 1fr) !important;
+      gap: 0 !important;
+    }
+    body.frb-page-markdown.md-article-focus .workspace-sidebar,
+    body.frb-page-markdown.md-article-focus .sidebar {
+      display: none !important;
+    }
+    body.frb-page-markdown.md-article-focus .article-card {
+      grid-column: 1 !important;
+      grid-row: 1 !important;
+      width: 100%;
+      max-width: none;
+    }
+    .frb-page-markdown #btnMarkdownFocusArticle[aria-pressed="true"] {
+      background: var(--frb-green-surface-2);
+      border-color: var(--frb-green-line);
+      color: #315d34;
+    }
+  </style>
 </head>
 <body data-mode="editor">
   <script src="js/ui/frb_studio_shell.js?v=0185p5"></script>
@@ -2185,6 +2214,19 @@
       icon: 'M',
       resetConfirmMessage: 'Markdown Studioの現在の画面状態を破棄して、初期状態へ戻します。未保存の編集がある場合は失われます。よろしいですか？'
     });
+    (function mountMarkdownArticleFocusButton() {
+      const actions = document.querySelector('.frb-pagebar-actions');
+      if (!actions || document.getElementById('btnMarkdownFocusArticle')) return;
+
+      const button = document.createElement('button');
+      button.id = 'btnMarkdownFocusArticle';
+      button.type = 'button';
+      button.className = 'frb-pagebar-button md-pagebar-focus-button';
+      button.setAttribute('aria-pressed', 'false');
+      button.title = '左右ペインを隠してMarkdown本文を横いっぱいに表示';
+      button.innerHTML = '<span data-md-focus-icon aria-hidden="true">⛶</span> <span data-md-focus-label>本文を最大化</span>';
+      actions.insertBefore(button, actions.firstChild);
+    })();
   </script>
   <div class="app">
     <header class="topbar">
@@ -7549,6 +7591,42 @@ tocDepthBtns.forEach(btn=>btn.addEventListener("click",()=>{
   tocDepthBtns.forEach(b=>b.classList.toggle("active",b.dataset.depth===tocDepth));
   buildToc();
 }));
+
+// studio_work_0213: Common Pagebarの同一ボタンで本文最大化 / 元に戻すを切り替える。
+// body classだけを変更し、Markdown DOMや選択中ファイルを再生成しない。
+const btnMarkdownFocusArticle = document.getElementById('btnMarkdownFocusArticle');
+function isMarkdownArticleFocusActive() {
+  return document.body.classList.contains('md-article-focus');
+}
+function syncMarkdownArticleFocusButton() {
+  if (!btnMarkdownFocusArticle) return;
+  const active = isMarkdownArticleFocusActive();
+  const label = btnMarkdownFocusArticle.querySelector('[data-md-focus-label]');
+  const icon = btnMarkdownFocusArticle.querySelector('[data-md-focus-icon]');
+  btnMarkdownFocusArticle.setAttribute('aria-pressed', String(active));
+  btnMarkdownFocusArticle.title = active
+    ? '左右ペインを元の3列レイアウトへ戻す'
+    : '左右ペインを隠してMarkdown本文を横いっぱいに表示';
+  if (label) label.textContent = active ? '元に戻す' : '本文を最大化';
+  if (icon) icon.textContent = active ? '↙' : '⛶';
+}
+function setMarkdownArticleFocus(active) {
+  document.body.classList.toggle('md-article-focus', Boolean(active));
+  syncMarkdownArticleFocusButton();
+  requestAnimationFrame(() => {
+    if (typeof repositionMarkdownOpenDialogs === 'function') repositionMarkdownOpenDialogs();
+  });
+}
+btnMarkdownFocusArticle?.addEventListener('click', () => {
+  setMarkdownArticleFocus(!isMarkdownArticleFocusActive());
+});
+window.addEventListener('keydown', (event) => {
+  if ((event.key !== 'Escape' && event.key !== 'Esc') || !isMarkdownArticleFocusActive()) return;
+  if (isAnyMarkdownDialogOpen()) return;
+  event.preventDefault();
+  setMarkdownArticleFocus(false);
+});
+syncMarkdownArticleFocusButton();
 
 // studio_work_0185 p5: Common Pagebar直下へ固定する操作帯の実高さをCSSへ共有する。
 (function syncMarkdownStickyToolbarMetrics(){
