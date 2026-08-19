@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-19T20:06:00+09:00",
+  "updated_at": "2026-08-19T20:22:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 204,
+  "items_count": 205,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -31479,6 +31479,118 @@
       "context_refs": [],
       "context_def_status": "",
       "context_def_updated_at": ""
+    },
+    {
+      "work_item_id": "studio_work_0217",
+      "phase": "v0.18.100-markdown-pagebar-green-icon-correction",
+      "title": "Markdown Studio 小アイコン緑M化 — Viewer / Editor大アイコンは維持",
+      "incident_type": "ui_fix",
+      "category": "common_shell",
+      "priority": "medium",
+      "status": "完了",
+      "follow_up_status": "NOT_REQUIRED",
+      "follow_up_actions": [],
+      "verification_status": "確認済み",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-19T20:22:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-19T20:22:00+09:00",
+      "updated_at": "2026-08-19T20:22:00+09:00",
+      "work_summary": "- Markdown Studioページタイトル左の小アイコンだけを緑Mへ変更する。\n- Viewer / Editor左の大きいMarkdown Studioアイコンは従来画像のまま維持する。\n- Common Shellナビの緑Mも維持する。\n- WebView2のCSSキャッシュを確実に更新する。",
+      "target_files": "- wwwroot/css/frb-studio-shell.css\n- wwwroot/mdViewer.html\n- tests/qa/static/frb_studio_common_shell_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- wwwroot/css/frb-studio-shell.css\n- wwwroot/mdViewer.html\n- tests/qa/static/frb_studio_common_shell_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "objective": "Markdown Studioのページタイトル左にある小さいアイコンを緑のMアイコンへ変更し、Viewer / Editor左の大きいアイコンは現状の青系Markdown Studioアイコンのまま残す。",
+      "background": "直前のアイコン調整ではCommon ShellナビのMarkdownアイコンだけ緑Mへ変更し、ページタイトル左の小アイコンは共通 `.frb-icon-markdown` の既存指定により青系 `markdown-studio-icon.png` のまま残っていた。ユーザーの意図は、上の小さいアイコンを緑M、下の大きいアイコンを現状維持することだった。",
+      "scope": "- `frb-pagebar[data-frb-pagebar=\"markdown\"]` 内の小さい `.frb-page-icon.frb-icon-markdown` に `markdown_menu_btn1.png` を適用する。\n- Common Shellナビの既存緑M指定は維持する。\n- `.markdown-studio-app-icon` は変更しない。\n- `mdViewer.html` のCommon Shell CSSキャッシュキーを更新する。\n- 静的テストで小アイコン=緑M / 大アイコン=従来画像を固定する。",
+      "out_of_scope": "- `markdown_menu_btn1.png` 自体の画像編集。\n- `markdown-studio-icon.png` の色・形・サイズ変更。\n- NativeShell / Jump Listアイコンの変更。\n- Markdown Studio以外のモジュールアイコン変更。",
+      "fixed_name_policy": "既存画像 `wwwroot/images/markdown_menu_btn1.png` と `wwwroot/images/markdown-studio-icon.png` をそのまま使い分け、新規画像ファイルは増やさない。",
+      "module_policy": "アイコン責務はCSSセレクタで表示位置ごとに分離する。ページタイトル小アイコンはCommon Shell CSS、Viewer / Editor大アイコンはmdViewer固有 `.markdown-studio-app-icon` を維持する。",
+      "expected_outputs": "- Markdown Studio上部の「Markdown Studio」タイトル左の小アイコンが緑Mになる。\n- Viewer / Editor左の大きいアイコンは青系の従来アイコンのまま。\n- Common ShellナビのMarkdownアイコンは緑Mのまま。\n- CSSキャッシュ更新後にWebView2で旧表示が残らない。",
+      "risk": "`.frb-icon-markdown` は複数箇所で使われるため、グローバル定義そのものを緑Mへ置換すると意図しない場所まで変わる可能性がある。位置限定セレクタでページタイトルだけを追加対象にする。",
+      "test_points": "- Common ShellナビのMarkdownアイコンが `markdown_menu_btn1.png` を参照する。\n- Markdownページタイトル小アイコンも `markdown_menu_btn1.png` を参照する。\n- Viewer / Editor左の `.markdown-studio-app-icon` が `markdown-studio-icon.png` のままである。\n- `mdViewer.html` のCSSキャッシュキーが更新される。\n- 全Staticの既存FAIL数・テスト名がBefore/Afterで増えていない。",
+      "verification_log": "- Focused Static: `node --test tests/qa/static/frb_studio_common_shell_static.test.mjs` = 34 tests / 34 PASS / 0 FAIL。\n- 全Static Before（添付ZIP原本）: 299 tests / 281 PASS / 18 FAIL。\n- 全Static After: 299 tests / 281 PASS / 18 FAIL。\n- Before / Afterの18 FAILはテスト名まで完全一致し、新規FAILなし。\n- Incident JSON parse: OK。",
+      "user_request": "Markdown Studioの添付画像で、上の小さいアイコンを緑のMアイコンにし、下のViewer / Editor左にある大きいアイコンは現状のままにしたい。",
+      "ai_response": "表示位置の責務を分け、ページタイトル小アイコンだけを緑Mへ変更する。大きい `.markdown-studio-app-icon` は触らず、WebView2キャッシュ対策としてCSS参照キーのみ更新する。",
+      "latest_user_comment": "あれぇ～。アイコンが・・・・。マークダウンディターの添付画像の上のちいさいアイコンが緑になっててほしくて。下の大きいアイコンはそのままになっててほしい。💦　ややこしくてごめん。",
+      "latest_ai_response": "v0.18.100として修正完了。Markdown Studioのページタイトル左の小アイコンだけを緑M（markdown_menu_btn1.png）へ変更し、Viewer / Editor左の大きいアイコンは従来のmarkdown-studio-icon.pngのまま維持。CSSキャッシュキーも更新。Focused Static 34/34 PASS、全StaticはBefore/Afterとも299 tests / 281 PASS / 18 FAILで既存FAIL完全一致・新規FAILなし。",
+      "context_refs": [
+        {
+          "context_ref_id": "ctx_0217_foundation_019",
+          "title": "GitHub基準ソースとZIP返却契約",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "今回ユーザーが添付した最新App ZIPを基準にし、更新ファイルだけを同一相対パスで返却し、更新済みIncident JSONを必ず含める。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 1,
+          "note": "作業依頼ターン添付のFRBStudio_App20260819_201946.zipを今回の正本とする。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "disc_0217_001",
+          "at": "2026-08-19T20:22:00+09:00",
+          "speaker": "user",
+          "message": "あれぇ～。アイコンが・・・・。マークダウンディターの添付画像の上のちいさいアイコンが緑になっててほしくて。下の大きいアイコンはそのままになっててほしい。💦　ややこしくてごめん。",
+          "topic": "Markdown小アイコン/大アイコンの意図訂正"
+        },
+        {
+          "history_id": "disc_0217_002",
+          "at": "2026-08-19T20:22:00+09:00",
+          "speaker": "assistant",
+          "message": "AI回答\n\n## 今回の更新\n\n- `wwwroot/css/frb-studio-shell.css`\n- `wwwroot/mdViewer.html`\n- `tests/qa/static/frb_studio_common_shell_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\nMarkdown Studioの上部ページタイトル左にある小さいアイコンを、緑のMアイコン `markdown_menu_btn1.png` に変更しました。Viewer / Editorボタン左の大きいアプリアイコンは、従来どおり `markdown-studio-icon.png` のまま維持しています。\n\n## 方針\n\n同じ `.frb-icon-markdown` を使っている箇所でも責務を分け、Common Shellナビとページタイトルの小アイコンだけを緑Mへ寄せました。大きいツールバーアイコン `.markdown-studio-app-icon` は変更していません。WebView2のCSSキャッシュ残りを避けるため、Markdown Studio側のCSSキャッシュキーも更新しています。\n\n## 確認結果\n\n- Focused Static: 34/34 PASS\n- 全Static Before: 299 tests / 281 PASS / 18 FAIL\n- 全Static After: 299 tests / 281 PASS / 18 FAIL\n- 既存18 FAILはテスト名まで一致、新規FAILなし\n- JSON parse: OK\n- 変更対象は小アイコンの表示契約とキャッシュキーのみ。大きいアイコン画像・定義は未変更",
+          "topic": "修正完了報告"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0217_001",
+          "at": "2026-08-19T20:22:00+09:00",
+          "decision": "Markdownページタイトルの小アイコンだけを緑Mへ追加変更し、Viewer / Editor左の大きいアイコンは変更しない。",
+          "reason": "ユーザーが示した画像上の上下2アイコンは役割が異なり、上のみ緑M、下は現状維持が意図だから。"
+        },
+        {
+          "decision_id": "dec_0217_002",
+          "at": "2026-08-19T20:22:00+09:00",
+          "decision": "グローバル `.frb-icon-markdown` を置換せず、Markdown pagebarへ限定したセレクタを追加する。",
+          "reason": "同classの他利用箇所へ意図しない見た目変更を波及させないため。"
+        },
+        {
+          "decision_id": "dec_0217_003",
+          "at": "2026-08-19T20:22:00+09:00",
+          "decision": "mdViewer.htmlのCommon Shell CSSキャッシュキーを更新する。",
+          "reason": "WebView2/browser cacheで旧CSSが残り、修正済みでも小アイコンが旧表示に見える事故を避けるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0217_001",
+          "at": "2026-08-19T20:22:00+09:00",
+          "change_type": "markdown_pagebar_icon",
+          "before": "Markdown pagebarの小アイコンは共通 `.frb-icon-markdown` により `markdown-studio-icon.png`（青系）を表示。",
+          "after": "Markdown pagebar限定セレクタを追加し `markdown_menu_btn1.png`（緑M）を表示。",
+          "reason": "上の小さいアイコンを緑Mにするというユーザー意図へ合わせるため。"
+        },
+        {
+          "history_id": "chg_0217_002",
+          "at": "2026-08-19T20:22:00+09:00",
+          "change_type": "markdown_toolbar_icon_preserved",
+          "before": "Viewer / Editor左の大アイコンは `.markdown-studio-app-icon` で `markdown-studio-icon.png` を表示。",
+          "after": "同定義・同画像を変更せず維持。",
+          "reason": "下の大きいアイコンはそのままにするというユーザー意図を守るため。"
+        },
+        {
+          "history_id": "chg_0217_003",
+          "at": "2026-08-19T20:22:00+09:00",
+          "change_type": "css_cache_bust",
+          "before": "mdViewer.htmlは `frb-studio-shell.css?v=0185p9-markdown-menu` を参照。",
+          "after": "`frb-studio-shell.css?v=0217-markdown-pagebar-green` へ更新。",
+          "reason": "WebView2の旧CSSキャッシュを回避して修正を即時反映するため。"
+        }
+      ]
     }
   ],
   "review_notes": [

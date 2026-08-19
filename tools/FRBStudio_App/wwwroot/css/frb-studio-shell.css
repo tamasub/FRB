@@ -986,9 +986,10 @@ body.studio-settings-mode .section-group-navigation-item[aria-selected="true"] {
   background: #fff url("../images/markdown-studio-icon.png") center / cover no-repeat !important;
 }
 
-/* studio_work_0185 p9: top FRB Studio menu uses the green Markdown menu identity only.
-   The Markdown Viewer/Editor toolbar icon intentionally keeps markdown-studio-icon.png. */
-.frb-shell-nav-link[data-page="markdown"] .frb-shell-nav-icon.frb-icon-markdown {
+/* studio_work_0217: Markdown navigation/page title use the green M identity.
+   The larger Viewer/Editor toolbar icon intentionally keeps markdown-studio-icon.png. */
+.frb-shell-nav-link[data-page="markdown"] .frb-shell-nav-icon.frb-icon-markdown,
+.frb-pagebar[data-frb-pagebar="markdown"] .frb-page-icon.frb-icon-markdown {
   background: #49cf47 url("../images/markdown_menu_btn1.png") center / cover no-repeat !important;
   color: transparent !important;
   font-size: 0 !important;

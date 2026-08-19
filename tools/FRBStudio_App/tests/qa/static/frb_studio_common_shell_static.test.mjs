@@ -274,11 +274,12 @@ test('JSON Data title text is vertically centered against its playful J-hook ico
   assert.match(indexHtml, /\.current-data-title:not\(:empty\)::before \{[\s\S]*width: 42px;[\s\S]*height: 42px;/);
 });
 
-test('Markdown Studio separates the top menu icon from the Viewer Editor toolbar icon', () => {
-  assert.match(shellCss, /\.frb-shell-nav-link\[data-page="markdown"\] \.frb-shell-nav-icon\.frb-icon-markdown \{[\s\S]*markdown_menu_btn1\.png/);
+test('Markdown Studio uses the green M for navigation/page title while keeping the Viewer Editor toolbar icon unchanged', () => {
+  assert.match(shellCss, /\.frb-shell-nav-link\[data-page="markdown"\] \.frb-shell-nav-icon\.frb-icon-markdown,[\s\S]*\.frb-pagebar\[data-frb-pagebar="markdown"\] \.frb-page-icon\.frb-icon-markdown \{[\s\S]*markdown_menu_btn1\.png/);
   assert.ok(fs.existsSync(path.join(ROOT, 'wwwroot/images/markdown_menu_btn1.png')));
+  assert.match(mdHtml, /css\/frb-studio-shell\.css\?v=0217-markdown-pagebar-green/);
 
-  // The icon at the left of Viewer / Editor is intentionally unchanged.
+  // The larger icon at the left of Viewer / Editor is intentionally unchanged.
   assert.match(mdHtml, /class="logo markdown-studio-app-icon"/);
   assert.match(mdHtml, /\.markdown-studio-app-icon \{[\s\S]*images\/markdown-studio-icon\.png/);
   assert.ok(fs.existsSync(path.join(ROOT, 'wwwroot/images/markdown-studio-icon.png')));
