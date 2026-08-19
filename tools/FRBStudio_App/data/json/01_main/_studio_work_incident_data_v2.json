@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-17T23:25:00+09:00",
+  "updated_at": "2026-08-19T12:48:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 196,
+  "items_count": 197,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -30549,6 +30549,151 @@
           "before": "左: ファイル名検索 / 右: 全ファイルの差分本文・ファイル名を検索",
           "after": "左: 検索語を入力してファイル抽出 / 右: 選択ファイル内を検索",
           "reason": "二段階検索の実際の役割と画面文言を一致させ、ファイル名文字列検索という誤解をなくすため。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0209",
+      "phase": "v0.18.92.1-subgrid-action-divider-left-correction",
+      "title": "共通SubGrid 操作列の削除ボタンclip / 右余白過大 修正",
+      "incident_type": "bugfix",
+      "category": "ui_layout",
+      "priority": "medium",
+      "status": "確認中",
+      "follow_up_status": "NOT_STARTED",
+      "verification_status": "AI Static確認済み / Windows実機の見た目確認待ち（区切り線位置の再修正）",
+      "context_def_status": "not_required",
+      "context_def_updated_at": "2026-08-19T12:27:00+09:00",
+      "owner": "",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-19T12:27:00+09:00",
+      "updated_at": "2026-08-19T12:48:00+09:00",
+      "work_summary": "- editable SubGrid共通の左端操作列について、削除ボタンのかなり右側に残る列余白をなくす。\n- 操作列とData列の区切り線を、削除ボタンの直後まで左へ寄せる。\n- Data列の右端（右側テキストボックスの右端）は現在位置を維持し、左端だけを左へ広げる。\n- 個別ViewDefやDataには触れず、共通SubGrid CSSで同タイプ全体へ反映する。",
+      "target_files": "- wwwroot/styles.css\n- wwwroot/index.html\n- tests/qa/static/subgrid_action_column_layout_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- wwwroot/styles.css\n- wwwroot/index.html\n- tests/qa/static/subgrid_action_column_layout_static.test.mjs\n- tests/qa/static/studio_json_round_trip_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "- 対象はeditableな共通SubGridの左端操作列。\n- 「操作列を狭くする」とは、操作列とData列の境界線を左へ移動することを意味する。\n- 削除ボタン右端と境界線の間には数pxの余白を残し、ボタンへ線を被せない。\n- Data列の右端位置は不変とし、操作列を狭めた分だけData列の左端を左へ広げる。\n- Data列の自動幅・入力コントロール・SubGrid編集機能は変更しない。",
+      "objective": "- 「削除」文字列が完全表示されること。\n- 操作列とData列の区切り線が削除ボタン直後まで左へ移動し、過大な空白がなくなること。\n- 削除ボタンと区切り線が重ならず、数pxの余白が残ること。\n- value列等のData入力欄の右端位置は変更しないこと。\n- stringArray / objectArrayで共通利用される操作列CSSを一度の修正で直すこと。",
+      "background": "- 初回修正で操作tdをtable-cellへ戻し、108px固定幅にしたが、実機ではTable auto layoutにより操作列へ余剰幅が配分され、区切り線が削除ボタンから大きく右へ残った。\n- ユーザー意図は「ボタン群の位置を右へ動かす」ことではなく、「操作列とData列の境界線そのものを左へ寄せる」ことだった。\n- さらに、右側Data入力欄の右端位置は変えず、Data列の左端だけを左へ広げる必要がある。",
+      "scope": "- 共通SubGrid操作列はtable-cell semanticsを維持する。\n- th/tdの固定108px指定をやめ、`width: 1%` + `white-space: nowrap` で内容幅へ縮める。\n- 操作tdの右paddingを6px確保し、削除ボタンと区切り線を重ねない。\n- Data列・入力欄のwidth定義は変更せず、右端位置を維持する。\n- styles.cssのcache-bustを更新し、Staticテストを新契約へ更新する。",
+      "out_of_scope": "- SubGridの追加 / 削除 / 並び替えロジック変更。\n- Data列の自動幅計算ロジック変更。\n- Card Preview Editorのレイアウト変更。\n- ViewDefごとの個別調整。",
+      "fixed_name_policy": "- 既存の `.detail-subgrid-*` 共通class名を維持し、新しいSubGrid種別や個別ViewDef用classは作らない。",
+      "module_policy": "- UI不良の原因が共通CSSのtable-cell / flex責務混在にあるため、JS Rendererへ個別分岐を追加せずCSS境界だけで修正する。\n- 共通SubGridのData/Derived Component契約、commit経路は変更しない。",
+      "expected_outputs": "- 各行の「削除」が完全表示される。\n- 行番号 / ▲ / ▼ / 削除が1行で自然に並ぶ。\n- 操作列右側の大きな余白がなくなり、データ列が操作列の直後から始まる。\n- 同じ共通SubGrid UIを使う画面へ一括反映される。",
+      "risk": "- width:1%はTableの「内容に必要な最小幅へ寄せる」ためのヒントとして使用し、white-space:nowrapで操作群の折返しを防ぐ。\n- WebView2のフォント差で削除ボタン直後の余白量に差が出る可能性があるため、右padding 6pxを残す。\n- Data列の右端維持は既存のfitDetailSubGridColumnsToWrapへ委ね、Data列widthロジック自体は変更しない。\n- Windows NativeShell実機で最終見た目確認を行う。",
+      "test_points": "- `.detail-subgrid-row-actions` がtable-cellである。\n- 操作列th/tdが固定px幅ではなく width:1% / min-width:0 / white-space:nowrap である。\n- 操作td右paddingが6pxあり、削除ボタンと区切り線の間隔を確保する。\n- 行番号 / ▲ / ▼ / 削除の要素間隔は3pxのまま。\n- 修正ブロックでData入力欄のwidthを変更していない。\n- index.htmlが更新styles.cssをcache-bustして読む。",
+      "verification_log": "- v0.18.92.1 Focused Static: `subgrid_action_column_layout_static.test.mjs` + `studio_json_round_trip_static.test.mjs` = 11 tests / 11 PASS / 0 FAIL。\n- 全Static Before（ユーザー添付 v0.18.92）: 280 tests / 262 PASS / 18 FAIL。\n- 全Static After（v0.18.92.1）: 280 tests / 262 PASS / 18 FAIL。\n- Before / Afterの既存18 FAILはテスト名まで完全一致し、新規FAILなし。\n- `_studio_work_incident_data_v2.json` JSON parse PASS。\n- Staticで、操作列は width:1% / nowrap、Data入力欄widthは修正ブロック外であることを固定。\n- Windows NativeShell実機で「削除直後に区切り線」「削除と線が非重複」「右側入力欄右端不変」を最終確認する。",
+      "user_request": "ちがーーーーう💦　区切りの縦線を左に寄せて、削除ボタンにかぶらないように💦\n右端のテキストボックスの右端の位置はかえたらあかんよ？？笑\n今後のために、どういうプロンプトならすぐ話がつうじるかおしえておいて。よろしく",
+      "ai_response": "意図を再解釈し、操作列の固定px幅を縮めるのではなく、操作列とData列の境界線を内容幅まで左へ寄せる。Data列右端は触らず、操作列を狭めた分だけData列を左へ広げる。",
+      "latest_ai_response": "初回修正の解釈を訂正。操作列を108px固定するのではなく、width:1% + nowrapで内容幅へ縮め、削除ボタンの直後に6pxだけ余白を残して区切り線を配置する。Data入力欄のwidth定義は変更せず、右端位置は維持する。Focused Static 11/11 PASS、全StaticはBefore/Afterとも280 tests / 262 PASS / 18既存FAILで新規FAILなし。",
+      "latest_user_comment": "ちがーーーーう💦　区切りの縦線を左に寄せて、削除ボタンにかぶらないように💦\n右端のテキストボックスの右端の位置はかえたらあかんよ？？笑\n今後のために、どういうプロンプトならすぐ話がつうじるかおしえておいて。よろしく",
+      "context_refs": [
+        {
+          "context_ref_id": "ctx_0209_foundation_019",
+          "title": "GitHub基準ソースとZIP返却契約",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "今回添付された最新ZIPを正本とし、更新ファイルだけを返却ZIPへ収録する契約を確認する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 1,
+          "note": "更新済みIncident JSONをdata/json/01_main/へ同名収録する。"
+        }
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0209_windows_subgrid_visual_verify",
+          "action_type": "VERIFICATION",
+          "required": true,
+          "status": "NOT_STARTED",
+          "related_ids": [
+            "studio_work_0209"
+          ],
+          "note": "Windows NativeShell実機で、①削除文字列が切れない、②区切り線が削除ボタン直後まで左へ寄っている、③ボタンと線が重ならない、④右側Data入力欄の右端位置が従来位置のまま、をstringArray/objectArray双方で確認する。",
+          "summary": "共通SubGrid境界線位置とData右端をWindows実機確認"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "hist_0209_user_001",
+          "at": "2026-08-19T12:27:00+09:00",
+          "speaker": "user",
+          "topic": "共通SubGrid操作列の見た目不良",
+          "message": "このタイプのサブグリッド共通の　見た目不良やけど、なおしてほしい。\n・削除ボタン右端が切れている。\n・削除ボタン右端の右の余白がでかすぎる。余白を詰めて見栄えをよくしてほしい"
+        },
+        {
+          "history_id": "hist_0209_assistant_001",
+          "at": "2026-08-19T12:27:00+09:00",
+          "speaker": "assistant",
+          "topic": "共通SubGrid操作列レイアウト修正 完了報告",
+          "message": "AI回答\n\n## 今回の更新\n\n- `wwwroot/styles.css`\n- `wwwroot/index.html`\n- `tests/qa/static/subgrid_action_column_layout_static.test.mjs`\n- `tests/qa/static/studio_json_round_trip_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\n共通SubGridの左端操作列を修正した。原因は、Tableの`td`である `.detail-subgrid-row-actions` 自体を `display:flex` にしていたこと。これでTableが計算する列幅と、実際のtd内容領域の幅がずれ、右側には大きな空白があるのに「削除」だけ右端でclipされる状態になっていた。\n\n操作tdを `display: table-cell` へ戻し、操作th/tdを108px固定へ変更。行番号 / ▲ / ▼ / 削除の間隔は3pxに揃え、行番号はinline-block化して最小幅を効かせた。個別ViewDefには触らず、同じ共通SubGridを使う画面全体へ効く修正にしている。\n\nstyles.cssのcache-bustも更新し、既存Static側の期待値も追随させた。\n\n## 方針\n\nSubGridの追加・削除・並び替えロジックやData列の自動幅計算は変更していない。今回の不良はCSSのTableレイアウト責務だけで閉じる。\n\n## 確認結果\n\n- Focused Static: 11 / 11 PASS\n- 全Static: Before 277 / 259 PASS / 18 FAIL → After 280 / 262 PASS / 18 FAIL\n- 既存18 FAILはテスト名まで完全一致、新規FAILなし\n- New Item Schema: PASS\n- JSON parse: OK\n- TP-IPC-001の実行生成物は原本へ復元済み\n- Windows実機の見た目最終確認のみPENDING"
+        },
+        {
+          "history_id": "hist_0209_user_002",
+          "at": "2026-08-19T12:48:00+09:00",
+          "speaker": "user",
+          "topic": "区切り線位置の意図補正",
+          "message": "ちがーーーーう💦　区切りの縦線を左に寄せて、削除ボタンにかぶらないように💦\n右端のテキストボックスの右端の位置はかえたらあかんよ？？笑\n今後のために、どういうプロンプトならすぐ話がつうじるかおしえておいて。よろしく"
+        },
+        {
+          "history_id": "hist_0209_assistant_002",
+          "at": "2026-08-19T12:48:00+09:00",
+          "speaker": "assistant",
+          "topic": "操作列境界線の再修正方針",
+          "message": "初回修正は「操作列を固定幅へする」と解釈した点がズレていた。今回は境界線そのものを削除ボタン直後まで左へ寄せ、Data列右端を動かさない方針へ修正する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0209_table_cell_semantics",
+          "at": "2026-08-19T12:27:00+09:00",
+          "decision": "SubGrid操作td自体をflex化せずtable-cellへ戻し、操作列の列幅計算をTableへ正しく参加させる。",
+          "reason": "tdをflex化すると見た目のTable列幅とtd内容領域の幅がずれ、右側余白過大と削除ボタンclipが同時に起きるため。"
+        },
+        {
+          "decision_id": "dec_0209_compact_108px",
+          "at": "2026-08-19T12:27:00+09:00",
+          "decision": "共通操作列幅を108px固定とし、要素間隔は3pxとする。",
+          "reason": "行番号 / ▲ / ▼ / 日本語2文字の削除を現行フォント・button paddingで1行表示しつつ、不要な空白を極力減らすため。"
+        },
+        {
+          "decision_id": "dec_0209_content_width_boundary",
+          "at": "2026-08-19T12:48:00+09:00",
+          "decision": "操作列は固定px幅ではなく width:1% + white-space:nowrap で内容幅へ縮める。",
+          "reason": "ユーザーが求めているのは操作列の境界線を削除ボタン直後まで左へ移動することであり、固定幅指定ではTable auto layoutにより余剰幅が残るため。"
+        },
+        {
+          "decision_id": "dec_0209_keep_data_right_edge",
+          "at": "2026-08-19T12:48:00+09:00",
+          "decision": "Data列・入力欄のwidth定義は変更せず、右端位置を維持する。",
+          "reason": "操作列を狭めた差分はData列の左側へ吸収し、右側テキストボックスの右端位置を変えないというユーザー制約を守るため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0209_css_layout",
+          "at": "2026-08-19T12:27:00+09:00",
+          "change_type": "ui_layout_fix",
+          "before": "SubGrid操作tdがdisplay:flex / width 96px。Table列側は余白を大きく持つ一方、td内容は96pxでclipされ「削除」右端が切れる。",
+          "after": "SubGrid操作tdをdisplay:table-cellへ戻し、操作th/tdを108px固定。行番号と各ボタンは3px間隔のinline配置にして操作列をコンパクト化。",
+          "reason": "共通SubGridの削除ボタンclipと操作列右側の過大余白を同時に解消するため。"
+        },
+        {
+          "history_id": "chg_0209_cache_bust_test",
+          "at": "2026-08-19T12:27:00+09:00",
+          "change_type": "regression_test_update",
+          "before": "index.htmlのstyles.css queryはstandard-search-ui-01867のままで、既存Staticも旧queryを固定していた。",
+          "after": "styles.css queryをsubgrid-action-column-01892へ更新し、新規SubGridレイアウトStaticと既存Round Trip Staticのcache-bust期待値を同期。",
+          "reason": "WebView2/ブラウザの旧CSSキャッシュを避け、今回の共通SubGrid修正を確実に読み込ませるため。"
+        },
+        {
+          "history_id": "chg_0209_boundary_correction",
+          "at": "2026-08-19T12:48:00+09:00",
+          "change_type": "ui_layout_correction",
+          "before": "操作列th/tdを108px固定。実機では区切り線が削除ボタンより大きく右に残った。",
+          "after": "操作列th/tdをwidth:1% / nowrapへ変更し、内容幅まで縮小。右padding 6pxで削除ボタンと境界線の間隔を確保。Data列widthは未変更。",
+          "reason": "区切り線を左へ寄せつつ、右側テキストボックスの右端位置を維持するため。"
         }
       ]
     }

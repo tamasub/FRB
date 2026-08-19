@@ -2779,20 +2779,31 @@ dialog.detail-subgrid-preview-overlay .detail-subgrid-preview-dialog {
   padding: 2px 4px;
   vertical-align: middle;
 }
+/* v0.18.92.1-subgrid-action-divider-left-correction:
+   操作列を固定px幅にすると、table auto layout側で余剰幅を操作列へ配分される場合があり、
+   「削除」のかなり右側まで操作列が広がる。列幅は1%指定で内容幅へ縮め、
+   区切り線を削除ボタン直後まで左へ寄せる。右側Data列の右端位置は変更しない。 */
 .detail-subgrid-action-th,
 .detail-subgrid-row-actions {
-  min-width: 96px;
-  width: 96px;
-}
-.detail-subgrid-row-actions {
-  display: flex;
-  align-items: center;
-  flex-wrap: nowrap;
-  gap: 3px;
-  padding: 2px 4px;
+  box-sizing: border-box;
+  width: 1%;
+  min-width: 0;
+  max-width: none;
   white-space: nowrap;
 }
+.detail-subgrid-row-actions {
+  display: table-cell;
+  padding: 2px 6px 2px 3px;
+}
+.detail-subgrid-row-actions > * + * {
+  margin-left: 3px;
+}
+.detail-subgrid-row-actions > .detail-subgrid-row-no,
+.detail-subgrid-row-actions > .detail-subgrid-action-btn {
+  vertical-align: middle;
+}
 .detail-subgrid-row-no {
+  display: inline-block;
   min-width: 14px;
   font-size: 10px;
   line-height: 1;
