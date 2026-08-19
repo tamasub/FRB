@@ -37,5 +37,11 @@ test('Jump List registers Markdown Studio task with dedicated Markdown icon', ()
   assert.match(jumpList, /propertyStore\.SetValue\(ref titleKey, pv\)/);
   assert.doesNotMatch(jumpList, /SetValue\(ref PropertyKey\.Title/);
   assert.match(jumpList, /destinationList\.AddUserTasks\(\(IObjectArray\)tasks\)/);
-  assert.match(csproj, /<None Update="MarkdownStudio\.ico">[\s\S]*?<CopyToOutputDirectory>PreserveNewest<\/CopyToOutputDirectory>/);
+  assert.match(csproj, /<None Update="MarkdownStudio\.ico">[\s\S]*?<CopyToOutputDirectory>PreserveNewest<\/CopyToOutputDirectory>[\s\S]*?<CopyToPublishDirectory>PreserveNewest<\/CopyToPublishDirectory>/);
+});
+
+test('NativeShell publish explicitly carries runtime icon/config assets into _publish', () => {
+  assert.match(csproj, /<None Update="FRB_Studio\.ico">[\s\S]*?<CopyToOutputDirectory>PreserveNewest<\/CopyToOutputDirectory>[\s\S]*?<CopyToPublishDirectory>PreserveNewest<\/CopyToPublishDirectory>/);
+  assert.match(csproj, /<None Update="native_shell\.config\.json">[\s\S]*?<CopyToPublishDirectory>PreserveNewest<\/CopyToPublishDirectory>/);
+  assert.match(csproj, /<None Update="MarkdownStudio\.ico">[\s\S]*?<CopyToPublishDirectory>PreserveNewest<\/CopyToPublishDirectory>/);
 });
