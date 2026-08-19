@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-19T15:24:00+09:00",
+  "updated_at": "2026-08-19T18:33:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 201,
+  "items_count": 202,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -31236,6 +31236,136 @@
           "before": "本文レイアウトを一時拡張・復元する操作なし。",
           "after": "同一ボタンを「元に戻す」へ切替し、再押下またはEscでfocus classを解除して通常3列へ復元。",
           "reason": "最大化を安全な一時表示状態として完結させるため。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0214",
+      "phase": "v0.18.97-markdown-workspace-column-resize",
+      "title": "Markdown Workspace Tree一時幅調整 — 境界ドラッグ＋本文表示時に標準幅へ自動復元",
+      "incident_type": "enhancement",
+      "category": "markdown_ui",
+      "priority": "medium",
+      "status": "完了",
+      "follow_up_status": "PENDING",
+      "verification_status": "確認済み",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-19T18:33:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-19T18:33:00+09:00",
+      "updated_at": "2026-08-19T18:33:00+09:00",
+      "work_summary": "- Workspace Treeのファイル名が省略表示されやすいため、左ペインと本文の境界をマウスドラッグしてTree幅を一時的に広げられるようにする。\n- 3列表示では右側のINDEX/ドキュメントメタ列の幅をドラッグ開始時に固定し、幅変更の影響を左Treeと中央本文の2列だけへ閉じる。\n- Tree幅変更は一時確認用途とし、WorkspaceのMarkdownファイルを選択して本文表示へ進む直前に標準幅へ自動復元する。\n- 本文表示後も再度同じ境界をドラッグして幅変更できる。",
+      "target_files": "- wwwroot/mdViewer.html\n- tests/qa/static/markdown_workspace_column_resize_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- wwwroot/mdViewer.html\n- tests/qa/static/markdown_workspace_column_resize_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "objective": "Markdown Workspace Treeの長いファイル名を確認したい時だけ左ペインを広げ、本文を開いたら標準レイアウトへ戻る軽量な一時リサイズ操作を提供する。",
+      "background": "ユーザー実機ではWorkspace Treeのファイル名が省略され、名前確認のためだけにウィンドウを最大化する負担がある。常時広いTreeは本文領域を圧迫するため、境界ドラッグによる一時拡張とファイル表示時の自動復元が希望された。",
+      "scope": "- Workspace Sidebar右端へマウスドラッグ可能な縦リサイザーを追加する。\n- ドラッグ中のTree幅を240px〜画面余白に応じた上限内で変更する。\n- 3列表示では右Sidebar実幅をドラッグ開始時にCSS変数へ固定し、Tree拡張分は中央article列だけから差し引く。\n- Workspace Markdownを開くガードが通った後、read/display前にTree幅調整状態を解除する。\n- 表示後はリサイザーを再利用できる。\n- ダブルクリックで手動標準幅復元も可能にする。\n- 760px以下の1列レスポンシブと本文最大化中はリサイザーを無効化する。",
+      "out_of_scope": "- Tree幅のlocalStorage/App Settings永続化。\n- 右INDEX/ドキュメントメタ列を個別にドラッグリサイズする機能。\n- JSON Object Studio / Diff JSON Viewer / MetaDiff Viewerへのリサイズ展開。\n- ファイル名の折返し表示やツールチップ仕様変更。\n- NativeShellウィンドウサイズ自体の制御。",
+      "fixed_name_policy": "既存wwwroot/mdViewer.htmlを同名更新する。Markdownページ固有の一時レイアウト制御として閉じ、共通ShellやApp Settingsへ状態を持ち込まない。",
+      "module_policy": "リサイズ状態はbody class `md-workspace-width-adjusted` とCSS変数 `--md-workspace-width` / `--md-right-sidebar-width` だけで保持する。幅は永続化せず、Markdown本文を開く時にclass/変数を除去して既存標準CSSへ自然復元する。",
+      "expected_outputs": "- Workspace Tree右境界へマウスを合わせるとcol-resize操作ができる。\n- 右へドラッグするとTreeの長いファイル名を確認できる。\n- 3列表示の右INDEX/ドキュメントメタ幅はドラッグ前後で維持され、中央本文だけが縮む。\n- WorkspaceのMarkdownファイルを開くとTree幅が標準へ戻る。\n- 本文表示後にも再度Tree幅を変更できる。\n- ダブルクリックでも標準幅へ戻る。",
+      "risk": "- Treeを極端に広げると本文が読みづらくなるため、中央本文の最低幅を確保した上で最大Tree幅を動的制限する。\n- 既存の本文最大化と競合しないよう、最大化中はリサイザーを非表示・操作不可にする。\n- 未保存確認でファイル切替をキャンセルした場合はTree幅を維持し、実際に本文表示へ進む場合だけ標準幅へ戻す。",
+      "test_points": "- `mdWorkspaceResizer` がWorkspace Sidebar右境界に存在する。\n- pointerdown/pointermoveで`--md-workspace-width`を更新する。\n- 3列時に右Sidebar実幅を`--md-right-sidebar-width`へ固定する。\n- `md-workspace-width-adjusted`時はTree / article / right sidebarの3列契約が適用される。\n- `loadWorkspaceMarkdown()`で未保存ガード通過後かつ`folderGrant.readText`前に`resetMarkdownWorkspaceColumnWidth()`を呼ぶ。\n- ダブルクリックで標準幅へ戻せる。\n- 本文最大化中および760px以下ではリサイザーを無効化する。",
+      "verification_log": "- Focused Static: `node --test tests/qa/static/markdown_workspace_column_resize_static.test.mjs` = 3 tests / 3 PASS / 0 FAIL。\n- Related Static: article focus + workspace resize + workspace native = 30 tests / 29 PASS / 1 FAIL。1 FAILは最新添付ZIP原本から存在する`Markdown UI promotes Folder Open + Workspace Tree and keeps INDEX on right column`の旧CSS期待値で今回差分による新規FAILではない。\n- `mdViewer.html`のinline script 8本を抽出し`node --check` = 8/8 PASS。\n- 全Static Before（最新添付ZIP原本）: 292 tests / 273 PASS / 19 FAIL。\n- 全Static After: 295 tests / 276 PASS / 19 FAIL。Before / Afterの19 FAILはテスト名まで完全一致。今回追加3 testsがPASSし、新規FAILなし。\n- Windows NativeShell実機でのドラッグ操作感、右列固定、本文表示時自動復元はPENDING。",
+      "user_request": "Markdown Studioの左Workspace Treeと本文の境界をマウス操作でドラッグし、Tree幅を一時的に広げたい。影響は左Treeと本文列だけにし、ファイルを選択して本文表示する際には標準幅へ戻す。その後は再度幅変更可能にする。",
+      "ai_response": "最新添付FRBStudio_App20260819_182915.zipを正本として、Markdownページ内だけで一時リサイズ状態を持つ。右Sidebarは3列時に実幅固定し、Workspaceファイル表示直前にリサイズ状態を解除する。",
+      "latest_user_comment": "赤線のところのマウス操作で、ツリービューの幅を広げれるようにしたい笑　いちいちウィンドウを最大化するのはつらい。名前がみえないのよいつも(笑)\nこれで影響を受けるのは、左側のツーリビューと本文の列の幅だけでよい。\nで、ファイルを選択して、本文を表示する際には、もとの標準幅にもどす。基本は名前がみえないから一時的に幅を広げたいだけの話なので。でも、表示後、再度幅を変えることもできる。ってことにしてほしい。",
+      "latest_ai_response": "実装完了しました。\n\n- Markdown Studio左Workspace Treeの右境界に、ドラッグ用の縦リサイズ領域を追加。\n- 左へ戻す/右へ広げる操作で、Tree幅を一時変更できます。3列表示では右INDEX/ドキュメントメタ列の実幅を固定し、変化するのは左Treeと中央本文の幅だけです。\n- WorkspaceのMarkdownファイルを実際に開く直前に、一時変更したTree幅を自動解除して標準レイアウトへ戻します。開いた後は再度ドラッグ可能です。\n- 幅は保存しません。ダブルクリックでも標準幅へ戻せます。本文最大化中と760px以下の1列表示ではリサイザーを無効化します。\n- Focused Static: 3/3 PASS。mdViewer inline JavaScriptは8 scriptすべて node --check PASS。\n- 全Staticは最新添付ZIP原本 292 tests / 273 PASS / 19 FAIL → 更新後 295 tests / 276 PASS / 19 FAIL。既存19 FAILはテスト名まで完全一致し、新規FAILはありません。\n- Windows NativeShell実機でのドラッグ操作感・自動復元は最終確認待ちです。",
+      "context_refs": [
+        {
+          "context_ref_id": "ctx_0214_foundation_019",
+          "title": "GitHub基準ソースとZIP返却契約",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "今回ユーザーが添付した最新App ZIPを基準にし、更新ファイルだけを同一相対パスで返却し、更新済みIncident JSONを必ず含める。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 1,
+          "note": "作業依頼ターン添付のFRBStudio_App20260819_182915.zipを今回の正本とする。"
+        }
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0214_windows_verify",
+          "action_type": "VERIFICATION",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "studio_work_0214"
+          ],
+          "note": "Windows NativeShell実機でTree右境界ドラッグ、右Sidebar幅維持、ファイル表示時の標準幅自動復元、表示後の再ドラッグを確認する。",
+          "summary": "Markdown Workspace Tree一時リサイズをWindows実機確認"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "disc_0214_001",
+          "at": "2026-08-19T18:33:00+09:00",
+          "speaker": "user",
+          "message": "赤線のところのマウス操作で、ツリービューの幅を広げれるようにしたい笑　いちいちウィンドウを最大化するのはつらい。名前がみえないのよいつも(笑)\nこれで影響を受けるのは、左側のツーリビューと本文の列の幅だけでよい。\nで、ファイルを選択して、本文を表示する際には、もとの標準幅にもどす。基本は名前がみえないから一時的に幅を広げたいだけの話なので。でも、表示後、再度幅を変えることもできる。ってことにしてほしい。",
+          "topic": "Workspace Tree一時幅調整要望"
+        },
+        {
+          "history_id": "disc_0214_002",
+          "at": "2026-08-19T18:33:00+09:00",
+          "speaker": "assistant",
+          "message": "実装完了しました。\n\n- Markdown Studio左Workspace Treeの右境界に、ドラッグ用の縦リサイズ領域を追加。\n- 左へ戻す/右へ広げる操作で、Tree幅を一時変更できます。3列表示では右INDEX/ドキュメントメタ列の実幅を固定し、変化するのは左Treeと中央本文の幅だけです。\n- WorkspaceのMarkdownファイルを実際に開く直前に、一時変更したTree幅を自動解除して標準レイアウトへ戻します。開いた後は再度ドラッグ可能です。\n- 幅は保存しません。ダブルクリックでも標準幅へ戻せます。本文最大化中と760px以下の1列表示ではリサイザーを無効化します。\n- Focused Static: 3/3 PASS。mdViewer inline JavaScriptは8 scriptすべて node --check PASS。\n- 全Staticは最新添付ZIP原本 292 tests / 273 PASS / 19 FAIL → 更新後 295 tests / 276 PASS / 19 FAIL。既存19 FAILはテスト名まで完全一致し、新規FAILはありません。\n- Windows NativeShell実機でのドラッグ操作感・自動復元は最終確認待ちです。",
+          "topic": "実装完了報告"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0214_001",
+          "at": "2026-08-19T18:33:00+09:00",
+          "decision": "Tree幅は保存せず、一時表示状態として扱う。",
+          "reason": "目的は長いファイル名を選択前だけ確認することであり、常時レイアウト設定にすると本文幅を継続的に圧迫するため。"
+        },
+        {
+          "decision_id": "dec_0214_002",
+          "at": "2026-08-19T18:33:00+09:00",
+          "decision": "3列表示のドラッグ開始時に右Sidebarの実幅を固定し、Tree幅変更分は中央本文だけで吸収する。",
+          "reason": "ユーザー指定どおり、影響範囲を左Workspace Treeと本文列の2列に限定するため。"
+        },
+        {
+          "decision_id": "dec_0214_003",
+          "at": "2026-08-19T18:33:00+09:00",
+          "decision": "Tree幅の自動復元は未保存確認などのOpen Guard通過後、Markdown read/display直前に行う。",
+          "reason": "ファイル切替をキャンセルした場合まで幅が戻る副作用を避け、実際に本文を表示する場合だけ標準幅へ戻すため。"
+        },
+        {
+          "decision_id": "dec_0214_004",
+          "at": "2026-08-19T18:33:00+09:00",
+          "decision": "既存本文最大化中と760px以下の1列表示ではリサイザーを無効化する。",
+          "reason": "1列レイアウトでは列境界が存在せず、既存focus表示との競合も避ける必要があるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0214_001",
+          "at": "2026-08-19T18:33:00+09:00",
+          "change_type": "markdown_workspace_resizer",
+          "before": "Workspace Tree幅はCSSレイアウトで固定され、長いファイル名確認にはウィンドウ幅拡張が必要だった。",
+          "after": "Workspace Sidebar右端にドラッグ領域を追加し、Tree幅を一時的に240px〜動的上限まで変更可能にした。",
+          "reason": "ファイル名確認だけのためにウィンドウ最大化する操作負担をなくすため。"
+        },
+        {
+          "history_id": "chg_0214_002",
+          "at": "2026-08-19T18:33:00+09:00",
+          "change_type": "markdown_two_lane_width_allocation",
+          "before": "左列幅を変更する操作自体がなく、右Sidebarを含む列幅影響の制御もなかった。",
+          "after": "3列時は右Sidebar実幅をCSS変数で固定し、Tree幅拡張分を中央article列だけから差し引く。",
+          "reason": "幅変更の影響を左Treeと本文のみに限定するため。"
+        },
+        {
+          "history_id": "chg_0214_003",
+          "at": "2026-08-19T18:33:00+09:00",
+          "change_type": "markdown_workspace_width_auto_reset",
+          "before": "一時的にTree幅を変更・復元するLifecycleなし。",
+          "after": "Workspace Markdownを実際に開く直前にリサイズclass/CSS変数を解除し、標準レイアウトへ自動復元する。表示後は再ドラッグ可能。",
+          "reason": "Tree拡張をファイル名確認の一時操作として完結させるため。"
         }
       ]
     }
