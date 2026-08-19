@@ -418,6 +418,18 @@
         }
       }
 
+      // v0.18.93: Overlay Manager の既存契約 `/api/overlays/{id}/manifest` は
+      // 物理ファイル `studio_overlays/{id}/studio_manifest.json` への別名APIである。
+      // NativeShell bridge では generic overlay route より先にこの alias を解決する。
+      const overlayManifestMatch = path.match(/^\/api\/overlays\/([^/]+)\/manifest$/);
+      if (method === 'GET' && overlayManifestMatch) {
+        const overlayId = normalizedRelativePath(overlayManifestMatch[1]);
+        const result = await invoke('file.readText', {
+          path: joinPath('studio_overlays', overlayId, 'studio_manifest.json')
+        });
+        return textResponse(result?.content ?? '', 'application/json; charset=utf-8');
+      }
+
       const overlaySidecarMatch = path.match(/^\/api\/overlays\/([^/]+)\/sidecars\/(.+)$/);
       if (method === 'POST' && overlaySidecarMatch) {
         const overlayId = normalizedRelativePath(overlaySidecarMatch[1]);

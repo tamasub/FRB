@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-19T12:48:00+09:00",
+  "updated_at": "2026-08-19T13:27:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 197,
+  "items_count": 198,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -30694,6 +30694,140 @@
           "before": "操作列th/tdを108px固定。実機では区切り線が削除ボタンより大きく右に残った。",
           "after": "操作列th/tdをwidth:1% / nowrapへ変更し、内容幅まで縮小。右padding 6pxで削除ボタンと境界線の間隔を確保。Data列widthは未変更。",
           "reason": "区切り線を左へ寄せつつ、右側テキストボックスの右端位置を維持するため。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0210",
+      "phase": "v0.18.93-native-overlay-manifest-bridge-fix",
+      "title": "NativeShell Overlay Manifest Bridge回帰修正 — Overlay一覧・会社Copilot Plugin復旧",
+      "incident_type": "bugfix",
+      "category": "overlay",
+      "priority": "high",
+      "status": "確認中",
+      "follow_up_status": "PENDING",
+      "verification_status": "Native bridge focused test確認済み / 会社Windows実機確認待ち",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-19T13:27:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-19T13:27:00+09:00",
+      "updated_at": "2026-08-19T13:27:00+09:00",
+      "work_summary": "- WebView2 NativeShell化後、Overlay Managerが利用する `/api/overlays/{overlayId}/manifest` の別名APIがNative bridgeで欠落していたため、`studio_manifest.json` を読めずOverlay全体が未配置扱いになっていた。\n- Native bridgeへmanifest専用ルートを復元し、会社Copilotのdefault Overlay Data / ViewDef / ValueSet / SearchPattern / Pluginを再びmanifest経由で読み込める契約へ戻す。\n- Overlay Dataが一覧へ合成されることで、JSON Object Studioのファイルツリーに `overlay/...` フォルダーが再表示される経路も同時に復旧する。",
+      "target_files": "- wwwroot/js/core/native_host_bridge.js\n- wwwroot/index.html\n- tests/qa/static/native_overlay_manifest_bridge_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- wwwroot/js/core/native_host_bridge.js\n- wwwroot/index.html\n- tests/qa/static/native_overlay_manifest_bridge_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "objective": "WebView2 NativeShellで、既存Overlay契約 `/api/overlays/{id}/manifest` を物理 `studio_overlays/{id}/studio_manifest.json` へ正しく解決し、Overlay一覧・Overlay Data/ViewDef・会社Copilot Pluginを復旧する。",
+      "background": "Overlay Managerは起動時に `/api/overlays` でOverlay IDを列挙し、各IDについて `/api/overlays/{id}/manifest` を読む設計。Native host bridgeのgeneric Overlay GETはURL末尾 `manifest` をそのまま物理相対パスとして扱っており、`studio_overlays/{id}/manifest` を読みに行っていた。実ファイル名は `studio_manifest.json` のため404/Native errorとなり、その後のstatic fallbackもWebView2のVirtualHostがwwwrootのみを公開する構成ではstudio_overlaysへ届かない。結果、Overlay Runtimeがavailable=falseとなり、Overlay DataがserverDataNamesへ合成されずファイルツリーのOverlayフォルダーが消え、PluginHostも起動しない状態になった。",
+      "scope": "- Native bridgeにGET `/api/overlays/{id}/manifest` 専用aliasをgeneric Overlay GETより前段で追加する。\n- aliasは `studio_overlays/{id}/studio_manifest.json` をfile.readTextで読む。\n- generic `/api/overlays/{id}/{relative}` の挙動は維持する。\n- index.htmlのnative_host_bridge.js cache-bustを更新し、WebView2キャッシュに旧bridgeを残さない。\n- Node vmを使ったNative bridge focused testでmanifest aliasとgeneric Overlay GETの両方を固定する。",
+      "out_of_scope": "- 会社側 `studio_overlays/default/` の内容変更。\n- manifestへ未宣言のファイルを暗黙走査して読み込む仕様変更。\n- Overlay Plugin APIそのものの変更。\n- file tree pickerのUI仕様変更。今回のOverlayフォルダー消失は一覧データ供給側の回帰として修正する。",
+      "risk": "manifest aliasの追加位置をgeneric routeより後ろにすると再び `studio_overlays/{id}/manifest` と解釈されるため、専用routeの優先順位を回帰テストで固定する。会社環境の実Overlay内容は添付ZIPに含まれないため、最終確認は会社PC上のdefault Overlayで必要。",
+      "test_points": "- GET `/api/overlays/default/manifest` が `file.readText(path=studio_overlays/default/studio_manifest.json)` を発行すること。\n- generic GET `/api/overlays/default/data/company_sample.json` は従来通り同じrelative fileを読むこと。\n- index.htmlが修正版native_host_bridge.jsを新cache-bustで読むこと。\n- 会社実機でData JSONツリーにOverlayフォルダーが再表示されること。\n- 会社実機でdefault OverlayのFieldEditor/SearchFilter/Action Pluginが再びactivateされること。",
+      "verification_log": "- 修正前にfocused testを追加して実行し、manifest alias test FAIL（実際のpath=`studio_overlays/default/manifest`）を再現。\n- 修正後: `node --test tests/qa/static/native_overlay_manifest_bridge_static.test.mjs` = 3 tests / 3 PASS / 0 FAIL。\n- 全Static Before（最新添付ZIP原本）: 280 tests / 263 PASS / 17 FAIL。\n- 全Static After: 283 tests / 266 PASS / 17 FAIL。\n- Before / Afterの既存17 FAILはテスト名まで完全一致。今回追加3 testsがPASSし、新規FAILなし。\n- generic Overlay file GETもfocused testで維持確認。\n- `_studio_work_incident_data_v2.json` JSON parse PASS。\n- Windows会社環境の実default Overlay確認はPENDING。",
+      "user_request": "1 Overlay フォルダーが選択できなくなっている。\n2 会社のCopilotくんのオーバーレイうごかなくなってた💦\nどうにかなる？",
+      "ai_response": "2症状は同じ原因の可能性が高いとして最新添付ZIPを調査。NativeShell bridgeでOverlay manifest aliasだけが欠落していることを特定し、Core/Overlay契約を変えずにbridge側だけで復旧する。",
+      "latest_user_comment": "1 Overlay フォルダーが選択できなくなっている。\n2 会社のCopilotくんのオーバーレイうごかなくなってた💦\nどうにかなる？",
+      "latest_ai_response": "原因を特定。NativeShell bridgeが `/api/overlays/{id}/manifest` を `studio_overlays/{id}/manifest` と誤解釈しており、実体 `studio_manifest.json` を読めないためOverlay Runtime全体が未配置扱いになっていた。manifest専用aliasを復元し、generic Overlay GETは維持。index.htmlのcache-bustも更新した。Focused testは修正前にFAILを再現し、修正後3/3 PASS。全StaticはBefore 280/263 PASS/17既存FAIL、After 283/266 PASS/17同一FAILで新規FAILなし。これによりOverlay Data一覧→ファイルツリーのOverlayフォルダー表示と、PluginHostによる会社Copilot Overlay起動の両方が同じ経路で復旧する。会社Windows実機確認のみPENDING。",
+      "context_refs": [
+        {
+          "context_ref_id": "ctx_0210_foundation_019",
+          "title": "GitHub基準ソースとZIP返却契約",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "今回添付された最新ZIPを正本とし、更新ファイルだけを返却ZIPへ収録する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 1,
+          "note": "更新済みIncident JSONを同名収録する。"
+        },
+        {
+          "context_ref_id": "ctx_0210_overlay_manifest_rules",
+          "title": "Studio Overlay / Manifest ルール",
+          "read_timing": "before_change",
+          "target_path": "data/json/00_rules/studio-overlay-manifest_rules_data_v0_1.json",
+          "purpose": "Core/Overlayの共通言語がstudio_manifest.jsonであり、manifest宣言のみをCoreへ接続する既存契約を維持する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 2,
+          "note": "会社Copilot側Overlay内容は変更しない。"
+        }
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0210_company_overlay_windows_verify",
+          "action_type": "VERIFICATION",
+          "required": true,
+          "status": "NOT_STARTED",
+          "related_ids": [
+            "studio_work_0210"
+          ],
+          "note": "会社PCのNativeShellで、①Data JSONツリーにoverlay/default配下が戻る、②会社Copilotの複数選択Combo/Search/Action等Overlay Pluginがactivateする、③Core更新時にstudio_overlays/default自体は上書きされない、を確認する。",
+          "summary": "会社Copilot Overlay復旧をWindows実機確認"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "hist_0210_user_001",
+          "at": "2026-08-19T13:27:00+09:00",
+          "speaker": "user",
+          "topic": "Overlay一覧・会社Copilot Overlay回帰",
+          "message": "1 Overlay フォルダーが選択できなくなっている。\n2 会社のCopilotくんのオーバーレイうごかなくなってた💦\nどうにかなる？"
+        },
+        {
+          "history_id": "hist_0210_assistant_001",
+          "at": "2026-08-19T13:27:00+09:00",
+          "speaker": "assistant",
+          "topic": "NativeShell Overlay manifest alias回帰の特定と修正",
+          "message": "最新添付ZIPを調査し、NativeShell bridgeが `/api/overlays/{id}/manifest` を物理 `studio_overlays/{id}/manifest` へ誤変換していたことを特定。既存Overlay ManagerはこのAPIを共通言語として使うため、manifest読込失敗→Overlay Data一覧消失→PluginHost未起動の2症状が同時発生していた。専用aliasで `studio_manifest.json` へ解決する修正とcache-bust更新を実施し、focused testで修正前FAIL・修正後3/3 PASSを確認した。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0210_fix_bridge_not_overlay",
+          "at": "2026-08-19T13:27:00+09:00",
+          "decision": "会社OverlayやOverlay Managerを変更せず、NativeShell bridgeのmanifest aliasだけを修正する。",
+          "reason": "Core/Overlayの既存契約は正しく、NativeShell API互換層だけが `/manifest` → `studio_manifest.json` の変換を落としていたため。"
+        },
+        {
+          "decision_id": "dec_0210_keep_manifest_only_loading",
+          "at": "2026-08-19T13:27:00+09:00",
+          "decision": "Overlayフォルダー復旧のためにstudio_overlays配下を暗黙全走査しない。",
+          "reason": "manifestに宣言された追加物だけを接続する既存責務境界を守り、未完成会社ファイルの自動読込を避けるため。"
+        },
+        {
+          "decision_id": "dec_0210_cache_bust_native_bridge",
+          "at": "2026-08-19T13:27:00+09:00",
+          "decision": "index.htmlのnative_host_bridge.js queryを更新する。",
+          "reason": "WebView2キャッシュで旧bridgeが残ると、コード修正済みでも会社環境で症状が継続して見える可能性があるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0210_manifest_alias",
+          "at": "2026-08-19T13:27:00+09:00",
+          "change_type": "native_api_compatibility_fix",
+          "before": "GET `/api/overlays/{id}/manifest` がgeneric Overlay routeへ入り、物理 `studio_overlays/{id}/manifest` を読もうとして失敗。",
+          "after": "generic routeより前にmanifest専用routeを追加し、物理 `studio_overlays/{id}/studio_manifest.json` を読む。",
+          "reason": "Overlay Managerが既存API契約のままNativeShellでもmanifestを取得できるようにするため。"
+        },
+        {
+          "history_id": "chg_0210_native_bridge_cache_bust",
+          "at": "2026-08-19T13:27:00+09:00",
+          "change_type": "cache_bust",
+          "before": "index.htmlはnative_host_bridge.js?v=webview2-native-shell-01861。",
+          "after": "index.htmlはnative_host_bridge.js?v=native-overlay-manifest-01893。",
+          "reason": "修正版bridgeをWebView2へ確実に読み込ませるため。"
+        },
+        {
+          "history_id": "chg_0210_regression_test",
+          "at": "2026-08-19T13:27:00+09:00",
+          "change_type": "regression_test_add",
+          "before": "NativeShellのOverlay manifest aliasを直接検証するテストなし。",
+          "after": "Node vmでNative bridgeを実行し、manifest alias・generic Overlay file・cache-bustを確認するfocused testを追加。",
+          "reason": "同じ回帰でOverlay一覧とPluginの両方を失わないようAPI境界を固定するため。"
         }
       ]
     }
