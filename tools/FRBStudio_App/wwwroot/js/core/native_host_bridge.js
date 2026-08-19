@@ -135,6 +135,77 @@
       .sort((a, b) => a.localeCompare(b, 'ja'));
   }
 
+
+  // v0.18.94: Overlay manifest may declare file patterns such as
+  // `simulattion_集計/batch_*_entry_results.json`.
+  // NativeShell has no HTTP server-side glob expansion, so resolve only the
+  // files explicitly covered by the manifest pattern before the Core sees it.
+  function overlayManifestPatternKeys() {
+    return [
+      'data_files', 'dataFiles',
+      'view_def_files', 'viewDefFiles', 'view_defs',
+      'value_set_files', 'valueSetFiles', 'value_sets',
+      'search_pattern_files', 'searchPatternFiles', 'search_patterns',
+      'plugin_index_files', 'pluginIndexFiles', 'plugin_indexes'
+    ];
+  }
+
+  function hasOverlayWildcard(value) {
+    return /[*?]/.test(String(value ?? ''));
+  }
+
+  function overlayWildcardRegExp(pattern) {
+    const normalized = normalizedRelativePath(pattern);
+    const escaped = normalized
+      .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+      .replace(/\*/g, '[^/]*')
+      .replace(/\?/g, '[^/]');
+    return new RegExp(`^${escaped}$`, 'i');
+  }
+
+  async function listOverlayRelativeFiles(overlayId) {
+    const root = joinPath('studio_overlays', overlayId);
+    const result = await invoke('file.list', {
+      path: root,
+      recursive: true,
+      entry_kind: 'files'
+    });
+    const rootPrefix = normalizedRelativePath(root).replace(/\/$/, '') + '/';
+    return (result?.items ?? [])
+      .map(item => String(item?.path ?? '').replace(/\\/g, '/'))
+      .filter(Boolean)
+      .map(path => path.toLowerCase().startsWith(rootPrefix.toLowerCase()) ? path.slice(rootPrefix.length) : path)
+      .sort((a, b) => a.localeCompare(b, 'ja'));
+  }
+
+  async function expandOverlayManifestPatterns(overlayId, manifest) {
+    if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)) return manifest;
+    const keys = overlayManifestPatternKeys().filter(key => Array.isArray(manifest[key]));
+    if (!keys.some(key => manifest[key].some(hasOverlayWildcard))) return manifest;
+
+    const availableFiles = await listOverlayRelativeFiles(overlayId);
+    const expanded = { ...manifest };
+
+    for (const key of keys) {
+      const resolved = [];
+      const seen = new Set();
+      for (const raw of manifest[key]) {
+        const relative = normalizedRelativePath(raw);
+        const candidates = hasOverlayWildcard(relative)
+          ? availableFiles.filter(path => overlayWildcardRegExp(relative).test(path))
+          : [relative];
+        for (const candidate of candidates) {
+          if (!candidate || seen.has(candidate)) continue;
+          seen.add(candidate);
+          resolved.push(candidate);
+        }
+      }
+      expanded[key] = resolved;
+    }
+
+    return expanded;
+  }
+
   async function listStudioDataJsonFiles() {
     const [dataFiles, fieldDefinitionFiles] = await Promise.all([
       listRelativeFiles('data/json', ['.json']),
@@ -418,16 +489,18 @@
         }
       }
 
-      // v0.18.93: Overlay Manager の既存契約 `/api/overlays/{id}/manifest` は
+      // v0.18.94: Overlay Manager の既存契約 `/api/overlays/{id}/manifest` は
       // 物理ファイル `studio_overlays/{id}/studio_manifest.json` への別名APIである。
       // NativeShell bridge では generic overlay route より先にこの alias を解決する。
+      // manifest内のワイルドカードは、宣言範囲を変えずNativeShell側で実在ファイルへ展開する。
       const overlayManifestMatch = path.match(/^\/api\/overlays\/([^/]+)\/manifest$/);
       if (method === 'GET' && overlayManifestMatch) {
         const overlayId = normalizedRelativePath(overlayManifestMatch[1]);
         const result = await invoke('file.readText', {
           path: joinPath('studio_overlays', overlayId, 'studio_manifest.json')
         });
-        return textResponse(result?.content ?? '', 'application/json; charset=utf-8');
+        const manifest = JSON.parse(String(result?.content ?? '{}'));
+        return jsonResponse(await expandOverlayManifestPatterns(overlayId, manifest));
       }
 
       const overlaySidecarMatch = path.match(/^\/api\/overlays\/([^/]+)\/sidecars\/(.+)$/);

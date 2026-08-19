@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-19T13:27:00+09:00",
+  "updated_at": "2026-08-19T13:34:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 198,
+  "items_count": 199,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -30705,14 +30705,14 @@
       "category": "overlay",
       "priority": "high",
       "status": "確認中",
-      "follow_up_status": "PENDING",
-      "verification_status": "Native bridge focused test確認済み / 会社Windows実機確認待ち",
+      "follow_up_status": "IN_PROGRESS",
+      "verification_status": "部分復旧確認済み / Overlay選択復旧・Plugin Actionとwildcard Data読込は後続studio_work_0211で修正",
       "context_def_status": "reviewed",
       "context_def_updated_at": "2026-08-19T13:27:00+09:00",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-19T13:27:00+09:00",
-      "updated_at": "2026-08-19T13:27:00+09:00",
+      "updated_at": "2026-08-19T13:34:00+09:00",
       "work_summary": "- WebView2 NativeShell化後、Overlay Managerが利用する `/api/overlays/{overlayId}/manifest` の別名APIがNative bridgeで欠落していたため、`studio_manifest.json` を読めずOverlay全体が未配置扱いになっていた。\n- Native bridgeへmanifest専用ルートを復元し、会社Copilotのdefault Overlay Data / ViewDef / ValueSet / SearchPattern / Pluginを再びmanifest経由で読み込める契約へ戻す。\n- Overlay Dataが一覧へ合成されることで、JSON Object Studioのファイルツリーに `overlay/...` フォルダーが再表示される経路も同時に復旧する。",
       "target_files": "- wwwroot/js/core/native_host_bridge.js\n- wwwroot/index.html\n- tests/qa/static/native_overlay_manifest_bridge_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
       "actual_updated_files": "- wwwroot/js/core/native_host_bridge.js\n- wwwroot/index.html\n- tests/qa/static/native_overlay_manifest_bridge_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
@@ -30725,8 +30725,8 @@
       "verification_log": "- 修正前にfocused testを追加して実行し、manifest alias test FAIL（実際のpath=`studio_overlays/default/manifest`）を再現。\n- 修正後: `node --test tests/qa/static/native_overlay_manifest_bridge_static.test.mjs` = 3 tests / 3 PASS / 0 FAIL。\n- 全Static Before（最新添付ZIP原本）: 280 tests / 263 PASS / 17 FAIL。\n- 全Static After: 283 tests / 266 PASS / 17 FAIL。\n- Before / Afterの既存17 FAILはテスト名まで完全一致。今回追加3 testsがPASSし、新規FAILなし。\n- generic Overlay file GETもfocused testで維持確認。\n- `_studio_work_incident_data_v2.json` JSON parse PASS。\n- Windows会社環境の実default Overlay確認はPENDING。",
       "user_request": "1 Overlay フォルダーが選択できなくなっている。\n2 会社のCopilotくんのオーバーレイうごかなくなってた💦\nどうにかなる？",
       "ai_response": "2症状は同じ原因の可能性が高いとして最新添付ZIPを調査。NativeShell bridgeでOverlay manifest aliasだけが欠落していることを特定し、Core/Overlay契約を変えずにbridge側だけで復旧する。",
-      "latest_user_comment": "1 Overlay フォルダーが選択できなくなっている。\n2 会社のCopilotくんのオーバーレイうごかなくなってた💦\nどうにかなる？",
-      "latest_ai_response": "原因を特定。NativeShell bridgeが `/api/overlays/{id}/manifest` を `studio_overlays/{id}/manifest` と誤解釈しており、実体 `studio_manifest.json` を読めないためOverlay Runtime全体が未配置扱いになっていた。manifest専用aliasを復元し、generic Overlay GETは維持。index.htmlのcache-bustも更新した。Focused testは修正前にFAILを再現し、修正後3/3 PASS。全StaticはBefore 280/263 PASS/17既存FAIL、After 283/266 PASS/17同一FAILで新規FAILなし。これによりOverlay Data一覧→ファイルツリーのOverlayフォルダー表示と、PluginHostによる会社Copilot Overlay起動の両方が同じ経路で復旧する。会社Windows実機確認のみPENDING。",
+      "latest_user_comment": "fxえらべることができたけど、うごかん💦",
+      "latest_ai_response": "Windows実機でOverlay選択自体は復旧したが、①OpenFxT3Chartが未登録Action、②manifestの`batch_*_entry_results.json`がliteral pathとして読まれ500になる追加回帰を確認。manifest alias修正だけではPlugin scriptのNativeShell transportとmanifest wildcard展開が不足していたため、studio_work_0211へ分離して継続修正する。",
       "context_refs": [
         {
           "context_ref_id": "ctx_0210_foundation_019",
@@ -30760,11 +30760,11 @@
           "action_id": "follow_0210_company_overlay_windows_verify",
           "action_type": "VERIFICATION",
           "required": true,
-          "status": "NOT_STARTED",
+          "status": "PENDING",
           "related_ids": [
             "studio_work_0210"
           ],
-          "note": "会社PCのNativeShellで、①Data JSONツリーにoverlay/default配下が戻る、②会社Copilotの複数選択Combo/Search/Action等Overlay Pluginがactivateする、③Core更新時にstudio_overlays/default自体は上書きされない、を確認する。",
+          "note": "Windows NativeShell実機でOverlayフォルダー/FX Overlay選択は復旧確認。ただしPlugin Action未登録とmanifest wildcard Data literal読込500が残存。studio_work_0211修正後にdefault会社Overlay含め再確認する。",
           "summary": "会社Copilot Overlay復旧をWindows実機確認"
         }
       ],
@@ -30782,6 +30782,13 @@
           "speaker": "assistant",
           "topic": "NativeShell Overlay manifest alias回帰の特定と修正",
           "message": "最新添付ZIPを調査し、NativeShell bridgeが `/api/overlays/{id}/manifest` を物理 `studio_overlays/{id}/manifest` へ誤変換していたことを特定。既存Overlay ManagerはこのAPIを共通言語として使うため、manifest読込失敗→Overlay Data一覧消失→PluginHost未起動の2症状が同時発生していた。専用aliasで `studio_manifest.json` へ解決する修正とcache-bust更新を実施し、focused testで修正前FAIL・修正後3/3 PASSを確認した。"
+        },
+        {
+          "history_id": "hist_0210_user_002",
+          "at": "2026-08-19T13:34:00+09:00",
+          "speaker": "user",
+          "topic": "Overlay選択復旧後の追加不具合",
+          "message": "fxえらべることができたけど、うごかん💦"
         }
       ],
       "decision_log": [
@@ -30828,6 +30835,151 @@
           "before": "NativeShellのOverlay manifest aliasを直接検証するテストなし。",
           "after": "Node vmでNative bridgeを実行し、manifest alias・generic Overlay file・cache-bustを確認するfocused testを追加。",
           "reason": "同じ回帰でOverlay一覧とPluginの両方を失わないようAPI境界を固定するため。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0211",
+      "phase": "v0.18.94-native-overlay-runtime-bridge-fix",
+      "title": "NativeShell Overlay Runtime Bridge追加修正 — Plugin Action・manifest wildcard復旧",
+      "incident_type": "bugfix",
+      "category": "overlay",
+      "priority": "high",
+      "status": "確認中",
+      "follow_up_status": "PENDING",
+      "verification_status": "AI Static確認済み / Windows NativeShell実機確認待ち",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-19T13:34:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-19T13:34:00+09:00",
+      "updated_at": "2026-08-19T13:34:00+09:00",
+      "work_summary": "- v0.18.93でOverlay manifest aliasは復旧し、Overlay/FXファイル選択までは戻った。\n- しかしNativeShellではPluginの`<script src=\"/api/overlays/...\">`が`window.fetch` bridgeを通らず、Plugin JSが実行されないため`OpenFxT3Chart`が未登録のままだった。\n- またgpt_fx_lab manifestの`simulattion_集計/batch_*_entry_results.json`はserver-side glob前提の宣言だが、NativeShellにはglob展開がなくliteral pathとしてData一覧へ出て500になっていた。\n- Core/Overlay契約を維持し、NativeShell互換層でPlugin JS transportとmanifest pattern展開を補う。",
+      "target_files": "- wwwroot/js/core/native_host_bridge.js\n- wwwroot/js/core/plugin_host.js\n- wwwroot/index.html\n- tests/qa/static/native_overlay_manifest_bridge_static.test.mjs\n- tests/qa/static/native_overlay_plugin_host_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- wwwroot/js/core/native_host_bridge.js\n- wwwroot/js/core/plugin_host.js\n- wwwroot/index.html\n- tests/qa/static/native_overlay_manifest_bridge_static.test.mjs\n- tests/qa/static/native_overlay_plugin_host_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "- Overlay manifestは引き続きOverlay追加物の宣言正本とする。\n- manifest内の`*`/`?`は宣言範囲を表すpatternとして扱い、NativeShellではその範囲内の実在ファイルへ展開してCoreへ渡す。\n- Overlay Plugin JSはData/ViewDefと同じ`/api/overlays/{id}/...`境界から読み、NativeShell時のみfetch bridge経由で本文取得・実行する。\n- Browser/static modeの既存script.src経路は維持する。\n- gpt_fx_lab/default等のOverlay固有コード・manifest自体は変更しない。",
+      "objective": "- NativeShellでmanifest宣言済みOverlay Pluginをactivateし、`OpenFxT3Chart`等のActionを登録できること。\n- manifestのwildcard Data宣言を実在する具体ファイル一覧へ展開し、literal `batch_*_entry_results.json`を選択候補に出さないこと。\n- default会社Copilot Overlayとgpt_fx_labの双方をCore側の同じ汎用経路で復旧すること。",
+      "background": "- スクリーンショットではFX Data/ViewDefは選択・表示できているため、v0.18.93のmanifest alias修正は有効。\n- 一方、チャートボタン押下で`未登録のActionです: OpenFxT3Chart`が発生しており、Plugin JSが読み込まれていない。\n- PluginHostはDOM `<script src>`で`/api/overlays/.../plugin.js`を読み込むが、NativeShellの互換層は`window.fetch`のみをhookするため、この通信はNative commandへ変換されない。\n- 別スクリーンショットでは`/api/overlays/gpt_fx_lab/simulattion_集計/batch_*_entry_results.json`の500を確認。添付gpt_fx_lab manifestに同patternがdata_filesとして宣言され、実フォルダーには複数の具体`batch_YYYYMMDD_HHMMSS_entry_results.json`が存在する。",
+      "scope": "- PluginHostにNativeShell判定を追加し、Native時はPlugin JSをfetch bridgeで取得してscript本文として実行する。\n- Browser/static modeは既存`script.src`/fallback経路を残す。\n- Native manifest alias読込時、manifest内の既知ファイル配列にwildcardがある場合だけ`studio_overlays/{id}`を1回列挙し、pattern一致する相対パスへ展開する。\n- wildcard展開はOverlay ID/ファイル名を固定せず、manifest宣言に対する共通処理とする。\n- native_host_bridge.js / plugin_host.jsのcache-bustを同時更新する。",
+      "out_of_scope": "- `studio_overlays/default/`会社Copilot資材の変更。\n- `studio_overlays/gpt_fx_lab/`FX資材の変更。\n- gpt_fx_lab固有Action/チャートロジック変更。\n- manifest未宣言ファイルを自動的にOverlayへ追加する仕様変更。\n- NativeShell C#側のHTTPサーバ新設。",
+      "fixed_name_policy": "- `gpt_fx_lab`、`OpenFxT3Chart`、`simulattion_集計`をCore分岐条件として固定しない。\n- NativeShell bridgeは`studio_overlays/{overlayId}`とmanifest配列/patternの汎用契約だけを扱う。\n- PluginHostはOverlay IDやAction IDを知らず、manifest/indexに宣言されたentry scriptを共通ロードする。",
+      "module_policy": "- Core RuntimeへFX専用ifを追加しない。\n- NativeShellとの差異はNative host compatibility layerとPluginHostのtransport責務へ閉じる。\n- Overlay Pluginの登録責務は既存Registry/PluginHostを維持し、ActionRegistry自体へ個別Actionを直書きしない。",
+      "expected_outputs": "- FXチャートボタン押下で`OpenFxT3Chart`未登録エラーが出ず、gpt_fx_lab Plugin Actionが実行可能になる。\n- default Overlayの会社Copilot Pluginも同じtransport経路でactivate可能になる。\n- Data JSON候補にliteral `batch_*_entry_results.json`が出ず、具体的な`batch_..._entry_results.json`が列挙される。\n- 具体ファイルを選択した場合、Native bridgeが正しい日本語フォルダー相対パスをfile.readTextへ渡す。",
+      "risk": "- inline実行へ切替えるのはNativeShell時だけとし、Browser/static modeの既存script.src動作を変えない。\n- wildcard展開はmanifest内にpatternが存在するときだけ再帰file.listを1回行うため、通常Overlayの起動コストは増やさない。\n- wildcard未一致はliteral patternを残さず候補0件とするため、存在しないpatternをユーザーが選んで500になる事故を防ぐ。\n- Windows WebView2での最終Plugin activate/チャート描画は実機確認が必要。",
+      "test_points": "- `/api/overlays/{id}/manifest` aliasが`studio_manifest.json`を読む既存契約を維持する。\n- manifestの`simulattion_集計/batch_*_entry_results.json`が具体2ファイルへ展開され、`*`が残らない。\n- generic Overlay GETがJSONだけでなく`.js`を`application/javascript`としてfetch bridgeから返せる。\n- PluginHostはNativeShell時に`fetch(url)`でPlugin script本文を取得する。\n- Browser/static modeは既存script.src/fallbackを維持する。\n- index.htmlがnative_host_bridge.js / plugin_host.jsのv0.18.94 cache-bustを読む。",
+      "verification_log": "- Focused: `node --test tests/qa/static/native_overlay_manifest_bridge_static.test.mjs tests/qa/static/native_overlay_plugin_host_static.test.mjs` = 7 tests / 7 PASS / 0 FAIL。\n- JS syntax: `node --check wwwroot/js/core/native_host_bridge.js` PASS。\n- JS syntax: `node --check wwwroot/js/core/plugin_host.js` PASS。\n- 全Static Before（ユーザー添付FRBStudio_App20260819_133352.zip）: 283 tests / 266 PASS / 17 FAIL。\n- 全Static After: 287 tests / 270 PASS / 17 FAIL。\n- Before / Afterの既存17 FAILはテスト名まで完全一致し、新規FAILなし。\n- 添付studio_overlays20260819_133357.zipを確認し、gpt_fx_lab manifestにwildcard宣言、実フォルダーに複数の具体entry_results JSON、Plugin index/FX chart pluginに`OpenFxT3Chart`登録が存在することを確認。\n- Windows NativeShell実機でのdefault会社Overlay / gpt_fx_lab chart最終確認はPENDING。\n- 実添付gpt_fx_lab OverlayをNative bridge harnessへ通し、wildcard 1件が具体entry_results 9件へ展開、`*`残存0件を確認。\n- 実添付gpt_fx_lab PluginをNative PluginHost harnessへ通し、`gpt_fx_lab.fx_chart_viewer` activate成功、`OpenFxT3Chart` / `OpenFxEntryChartUrl`等Action登録を確認。\n- 実添付default会社OverlayをNative PluginHost harnessへ通し、`multi_select_combo` / `skill_summary`の2 Plugin activate成功、FieldEditor / SearchFilter / Action登録を確認。",
+      "user_request": "fxえらべることができたけど、うごかん💦",
+      "ai_response": "実機症状と最新App/Overlay ZIPを再調査。v0.18.93でmanifestは読めるようになったが、NativeShellのfetch bridgeをDOM script.srcが通らないためPluginが未activateであること、さらにmanifest wildcardがliteral Data名のままCoreへ渡ることを別原因として特定。Overlay固有資材を触らずCoreのNative互換層で2点を修正する。",
+      "latest_user_comment": "fxえらべることができたけど、うごかん💦",
+      "latest_ai_response": "NativeShell Overlay Runtimeを追加修正。PluginHostはNativeShell時のみOverlay Plugin JSを`fetch` bridgeで取得して実行し、`OpenFxT3Chart`等を既存ActionRegistryへ登録できる経路へ戻した。あわせてmanifest内の`*`/`?` patternをNative bridgeで実在ファイルへ汎用展開し、`batch_*_entry_results.json`をliteral fileとして選択しないようにした。default/gpt_fx_lab Overlay資材は無変更。Focused 7/7 PASS、全StaticはBefore 283/266 PASS/17既存FAIL→After 287/270 PASS/17同一FAILで新規FAILなし。Windows実機確認待ち。",
+      "context_refs": [
+        {
+          "context_ref_id": "ctx_0211_foundation_019",
+          "title": "GitHub基準ソースとZIP返却契約",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "今回添付された最新FRBStudio_App ZIPを正本とし、更新ファイルだけを返却ZIPへ収録する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 1,
+          "note": "更新済みIncident JSONを同名収録する。"
+        },
+        {
+          "context_ref_id": "ctx_0211_overlay_manifest_rules",
+          "title": "Studio Overlay / Manifest ルール",
+          "read_timing": "before_change",
+          "target_path": "data/json/00_rules/studio-overlay-manifest_rules_data_v0_1.json",
+          "purpose": "Overlay固有資材をCoreへ混ぜず、manifest宣言とPluginHost/Registryの既存責務境界を維持する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 2,
+          "note": "添付studio_overlays ZIPは調査基準として使用し、内容は変更しない。"
+        }
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0211_windows_overlay_runtime_verify",
+          "action_type": "VERIFICATION",
+          "required": true,
+          "status": "NOT_STARTED",
+          "related_ids": [
+            "studio_work_0211"
+          ],
+          "note": "Windows NativeShellで、①FXの「Dow基準点チャート表示」がOpenFxT3Chart未登録にならず開く、②Data選択にliteral batch_*が出ず具体entry_resultsが選べる、③選択したentry_resultsが500にならず読める、④会社default Overlayの複数選択Combo/Search/Action Pluginもactivateする、を確認する。",
+          "summary": "NativeShell Overlay Plugin・wildcard Data復旧を実機確認"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "hist_0211_user_001",
+          "at": "2026-08-19T13:34:00+09:00",
+          "speaker": "user",
+          "topic": "FX Overlay選択後の実行不良",
+          "message": "fxえらべることができたけど、うごかん💦"
+        },
+        {
+          "history_id": "hist_0211_assistant_001",
+          "at": "2026-08-19T13:34:00+09:00",
+          "speaker": "assistant",
+          "topic": "NativeShell Plugin transport / manifest wildcardの追加原因特定",
+          "message": "最新App ZIPとOverlay ZIP、実機スクリーンショットを確認。FXのData/ViewDef選択が戻っているためmanifest aliasは復旧済み。一方で`OpenFxT3Chart`未登録はPlugin JSがNativeShellのfetch bridgeを通らないDOM script.src経路に残っていること、500はmanifestの`batch_*_entry_results.json`がliteral pathとしてData一覧へ出ていることが原因と特定した。Overlay資材には触れず、Native互換層でPlugin script transportとmanifest pattern展開を追加する。"
+        },
+        {
+          "history_id": "hist_0211_assistant_002",
+          "at": "2026-08-19T13:34:00+09:00",
+          "speaker": "assistant",
+          "topic": "NativeShell Overlay Runtime追加修正 完了報告",
+          "message": "AI回答\n\n## 今回の更新\n\n- `wwwroot/js/core/native_host_bridge.js`\n- `wwwroot/js/core/plugin_host.js`\n- `wwwroot/index.html`\n- `tests/qa/static/native_overlay_manifest_bridge_static.test.mjs`\n- `tests/qa/static/native_overlay_plugin_host_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\n今回の実機エラーは、v0.18.93でmanifest自体は読めるようになった後に残っていた2つのNativeShell差異だった。\n\n- Plugin JSは`<script src=\"/api/overlays/...\">`で読んでいたため、`window.fetch`だけをNative commandへ変換するbridgeを通らず、`OpenFxT3Chart`等が未登録だった。\n- gpt_fx_lab manifestの`batch_*_entry_results.json`はserver-side glob前提だったため、NativeShellではliteral `*`付きパスとしてData候補へ出て500になっていた。\n\nNativeShell時だけPlugin JSをfetch bridgeで取得・実行するようにし、manifest patternは宣言範囲内の実在ファイルへ汎用展開するようにした。default/gpt_fx_labのOverlay資材そのものは変更していない。\n\n## 方針\n\nFX固有のActionやフォルダー名をCoreへ直書きせず、NativeShell互換層とPluginHostのtransport責務だけで閉じた。Browser/static modeの既存script.src経路も維持している。\n\n## 確認結果\n\n- Focused Static: 7 / 7 PASS\n- 全Static: Before 283 / 266 PASS / 17 FAIL → After 287 / 270 PASS / 17 FAIL\n- 既存17 FAILはテスト名まで完全一致、新規FAILなし\n- JS syntax: 2ファイルともPASS\n- 実gpt_fx_lab manifest: wildcard → 具体9ファイル、`*`残存0\n- 実gpt_fx_lab Plugin: activate成功、`OpenFxT3Chart`登録確認\n- 実default会社Overlay: 2 Pluginともactivate成功、FieldEditor / SearchFilter / Action登録確認\n- Windows NativeShell実機の最終確認のみPENDING"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0211_plugin_via_fetch_native_only",
+          "at": "2026-08-19T13:34:00+09:00",
+          "decision": "NativeShell時だけOverlay Plugin JSをfetch bridgeで本文取得・実行し、Browser/static modeは既存script.srcを維持する。",
+          "reason": "NativeShellのAPI互換層はwindow.fetchをhookしており、DOM script.srcはその経路を通らないため。実行責務はPluginHostに残し、ActionRegistryへFX固有Actionを直書きしない。"
+        },
+        {
+          "decision_id": "dec_0211_expand_manifest_patterns_generically",
+          "at": "2026-08-19T13:34:00+09:00",
+          "decision": "manifest内のwildcard宣言をOverlay ID/ファイル名固定なしで実在ファイルへ展開する。",
+          "reason": "`batch_*`はgpt_fx_lab固有の見た目だが、問題の本質はNativeShellにserver-side globがないこと。manifestの宣言範囲だけを展開する共通互換処理とするため。"
+        },
+        {
+          "decision_id": "dec_0211_do_not_modify_overlay_assets",
+          "at": "2026-08-19T13:34:00+09:00",
+          "decision": "添付studio_overlays資材は変更せず、Core互換層だけを修正する。",
+          "reason": "Plugin index/manifest/Action定義そのものは正しく、WebView2 NativeShellのtransport差異が回帰原因だったため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0211_native_plugin_fetch_bridge",
+          "at": "2026-08-19T13:34:00+09:00",
+          "change_type": "native_plugin_transport_fix",
+          "before": "PluginHostが全環境で`<script src=\"/api/overlays/.../plugin.js\">`を使用。NativeShellではwindow.fetch hookを通らずPlugin scriptを取得できずAction未登録。",
+          "after": "NativeShell検出時だけ`fetch(/api/overlays/.../plugin.js)`で本文を取得し、script elementへ本文を設定して実行。Browser/staticは従来script.src/fallbackを維持。",
+          "reason": "default会社Overlay/gpt_fx_lab双方のPluginを同じ汎用経路でactivateするため。"
+        },
+        {
+          "history_id": "chg_0211_manifest_wildcard_expand",
+          "at": "2026-08-19T13:34:00+09:00",
+          "change_type": "native_manifest_pattern_expansion",
+          "before": "manifestの`batch_*_entry_results.json`がそのままData API名へ変換され、literal `*`を含むfile.readTextで500。",
+          "after": "manifest alias読込時、wildcardを含む宣言がある場合だけOverlay配下実在ファイルを列挙し、pattern一致する具体相対パスへ展開して返す。",
+          "reason": "server-side globを持たないNativeShellでもmanifest pattern契約を維持するため。"
+        },
+        {
+          "history_id": "chg_0211_cache_bust_tests",
+          "at": "2026-08-19T13:34:00+09:00",
+          "change_type": "regression_test_update",
+          "before": "native_host_bridge.jsのみv0.18.93 cache-bust。Plugin transport/wildcard展開の回帰テストなし。",
+          "after": "native_host_bridge.js / plugin_host.jsをv0.18.94 cache-bustへ更新。manifest wildcard、JS fetch content-type、Native Plugin fetch path、browser fallbackをfocused testsで固定。",
+          "reason": "WebView2旧JSキャッシュと同種回帰を防ぐため。"
         }
       ]
     }

@@ -67,8 +67,48 @@ const StudioPluginHost = (() => {
     return `studio_overlays/${encodeURIComponent(id)}/${rel.split('/').map(encodeURIComponent).join('/')}`;
   }
 
-  function loadScriptOnce(primaryUrl, fallbackUrl = '') {
-    if (loadedScripts.has(primaryUrl)) return Promise.resolve({ url: primaryUrl, cached: true });
+  function nativeHostBridgeAvailable() {
+    try {
+      return window.FRBStudioNativeHost?.isAvailable?.() === true;
+    } catch {
+      return false;
+    }
+  }
+
+  async function loadScriptThroughFetch(url, meta = {}) {
+    const response = await fetch(url, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`Plugin script の読み込みに失敗しました: ${url} (${response.status})`);
+
+    // WebView2 NativeShellではwindow.fetchだけが /api/* → Native commandへBridgeされる。
+    // <script src="/api/..."> はfetch overrideを通らないため、script本文をBridge経由で取得して実行する。
+    const source = await response.text();
+    const script = document.createElement('script');
+    script.async = false;
+    script.dataset.studioPluginScript = 'true';
+    script.dataset.studioPluginSource = url;
+    script.textContent = `${source}\n//# sourceURL=${url}`;
+    document.head.appendChild(script);
+    loadedScripts.add(url);
+    return { url, cached: false, ...meta, bridged: true };
+  }
+
+  async function loadScriptOnce(primaryUrl, fallbackUrl = '') {
+    if (loadedScripts.has(primaryUrl)) return { url: primaryUrl, cached: true };
+
+    // v0.18.94: NativeShellではDOMのscript.src通信がnative_host_bridge.jsのfetch契約を通らない。
+    // PluginもData/ViewDefと同じOverlay API境界を使うため、Native時だけfetch経由で本文を取得する。
+    if (nativeHostBridgeAvailable()) {
+      try {
+        return await loadScriptThroughFetch(primaryUrl);
+      } catch (primaryErr) {
+        if (!fallbackUrl || loadedScripts.has(fallbackUrl)) throw primaryErr;
+        try {
+          return await loadScriptThroughFetch(fallbackUrl, { fallback: true });
+        } catch {
+          throw primaryErr;
+        }
+      }
+    }
 
     return new Promise((resolve, reject) => {
       const script = document.createElement('script');
