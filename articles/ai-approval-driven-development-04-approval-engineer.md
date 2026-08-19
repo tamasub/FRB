@@ -6,6 +6,7 @@ topics: ["ai","development", "testing", "design", "approval"]
 published: true
 ---
 
+
 :::message
 **判断軸・制約は「大きな意味」。**
 
