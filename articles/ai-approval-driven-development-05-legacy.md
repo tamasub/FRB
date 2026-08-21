@@ -3,7 +3,7 @@ title: "AI承認駆動開発 #5｜ソースコードがViewになった日——
 emoji: "🧩"
 type: "idea"
 topics: ["ai", "development", "testing", "legacy", "approval"]
-published: false
+published: true
 ---
 
 :::message
@@ -102,6 +102,12 @@ DBのテーブル情報を元に、
 
 その画面の画像が、一枚だけ残っていた。
 
+---
+■ノーコード擬き マスタメンテナンス画面（2017年作成）
+![alt text](/images/ai-approval-driven-development-05-legacy/non-code.png)
+
+---
+
 正確には、**ソースコードもちゃんと探せばあった。**
 
 でも私は、探さなかった。
@@ -113,6 +119,7 @@ DBのテーブル情報を元に、
 と思ったからである。
 
 かなり適当だった。
+
 
 ---
 
@@ -171,6 +178,13 @@ CaptionやTypeや列幅などは、
 一枚の画像と、何回かの会話だけだった。
 
 そして、**Studioくんのプロトタイプが生まれた。**
+
+---
+■今のStudioくん（プロトタイプ時の画像なし💦）
+
+![alt text](/images/ai-approval-driven-development-05-legacy/studio.png)
+
+---
 
 ---
 
@@ -318,6 +332,77 @@ Grid / Detail / Editor / Search
 
 ---
 
+# Studioくんを成立させた、最初の明示的な制約
+
+昔のノーコードもどき画面から、JSON EditorとしてStudioくんを作り直すとき、
+昔にはなかった機能を一つ追加した。
+
+**SubGrid** である。
+
+JSONを扱う以上、
+
+```text
+親
+└ 子
+   └ 孫
+      └ ひ孫
+         └ ...
+```
+
+のように、技術的にはもっと深いネストへ対応していくこともできる。
+
+しかし、その頃の私はAI協働を始めたばかりで、
+ちょうど **「制約」** という言葉を意識し始めていた。
+
+そこで、Studioくんに最初の明示的な制約を置いた。
+
+> **意味階層は2階層まで。**
+
+である。
+
+これは単なる実装都合ではなかった。
+
+```text
+何階層でも扱えるJSON Editorを目指す
+```
+
+のではなく、
+
+```text
+Studioくんが責任を持って扱う世界は、
+意味階層2階層まで
+```
+
+と決めた。
+
+今振り返ると、
+
+**機能を追加したからStudioくんが成立しただけではない。**
+
+**「やらないこと」を決めたから、Studioくんが成立した。**
+
+そして、この経験も今回の話へつながっている。
+
+```text
+ViewDef
+→ どう見せたいかを外へ出す
+
+Constraint
+「意味階層は2階層まで」
+→ どこまで許すかを外へ出す
+
+Responsibility / Field Definition
+→ 何を保証するかを外へ出す
+```
+
+つまり、Structured Intentという言葉を思いつくより前から、
+
+**人間の意図・制約・責務を、少しずつコードの外へ出していた**
+
+ことになる。
+
+---
+
 # そして、またminimum_minus_1へ戻る
 
 StudioくんでField DefinitionやValidationを考えていたとき、前回の記事で書いた、
@@ -379,7 +464,7 @@ maximum_plus_1
 
 となった。
 
-上位の定義から一意に導出できるなら、
+上位の定義から**一意に導出できるなら**、
 
 ```text
 TestPattern
@@ -442,39 +527,93 @@ Expected
 
 ---
 
-# 最大のSource候補は「責務定義・項目定義」ではないか
+# Structured Intentには、すでに「手持ちの武器」があった
 
-今のところ、私が一番重要だと思っているのは、**責務定義・項目定義** である。
+ここで、もう一つ気づいた。
 
-例えば、そこに、
+Structured Intentを新しく考えようとしていたが、
+その材料になりそうなものは、すでにAI協働の中で使っていた。
+
+それが、
+
+> **判断軸・制約・責務という、手持ちの武器**
+
+である。
+
+私の中では、今のところ次のように整理している。
 
 ```text
-この項目は何を意味するのか
-どのTypeに属するのか
-どんなConstraintがあるのか
-何を保証する責務なのか
-どのBehaviorを持つのか
-どのExpectedが固有判断なのか
+判断軸
+= 複数の成立する案から、
+  何を優先して選ぶか
+
+制約
+= 何を越えてはいけないか
+  どこまでを責任範囲とするか
+
+責務
+= システムとして何を保証するか
 ```
 
-を構造化して持つ。
+Studioくんを振り返ると、
+これらは後から急に作った理屈でもない。
 
-さらに、
-
-> **TestPatternとExpectedを導出できる元情報**
-
-まで持たせる。
-
-すると、
+例えば、
 
 ```text
-Responsibility / Field Definition
-        ↓
-Validation Type
-        ↓
-Constraint
+ViewDef
+→ どう見せたいか
+
+「意味階層は2階層まで」
+→ どこまで許すかという制約
+
+責務定義・項目定義
+→ 何を保証するか
+```
+
+という形で、少しずつコードの外へ出してきた。
+
+だから今は、
+
+> **Structured Intentの中核には、判断軸・制約・責務が来るのではないか。**
+
+と考えている。
+
+項目定義は、その中でも特に扱いやすい
+**責務の具体的な表現の一つ**
+として見えている。
+
+例えば、
+
+```text
+Structured Intent
+│
+├─ 判断軸
+│   └─ 何を優先するか
+│
+├─ 制約
+│   └─ 何を越えてはいけないか
+│
+├─ 責務
+│   ├─ 項目定義
+│   ├─ Behavior
+│   ├─ State Transition
+│   ├─ Business Rule
+│   └─ 固有Expected
+│
+└─ Type
+    ├─ Semantic Type
+    └─ Validation Type
+```
+
+そして、その下流に、
+
+```text
+Validation Type / Constraint
         ↓
 TestPattern
+        ↓
+具体値
         ↓
 Expected
         ↓
@@ -483,31 +622,48 @@ Test Definition
 Test Code
 ```
 
-のかなりの部分を、プログラムで展開できる可能性がある。
+を置く。
 
-ここで人間が一件ずつ承認するのは、
+ここで大切なのは、
+
+**人間が下流の一件一件を承認しないこと**
+
+である。
+
+例えば、
 
 ```text
 minimum_minus_1
 maximum_plus_1
 ```
 
-ではない。
+を一件ずつ承認するのではない。
 
-もっと上位の、
+人間が見るのは、もっと上位の、
 
 ```text
+この判断軸でよいか
+この制約でよいか
 この責務でよいか
 このTypeでよいか
-このConstraintでよいか
 この固有Expectedでよいか
 ```
 
 である。
 
-そこを人間が承認したら、下流はできるだけ機械へ倒す。
+そして、そこから一意に導出できるものは、
+できるだけプログラムへ倒す。
 
-これが、今回考えているApproval Engineeringの一つの方向である。
+つまり今回の話は、
+
+> **責務定義・項目定義をSourceにする**
+
+というより、
+
+> **判断軸・制約・責務を中心としたStructured IntentをSourceにし、項目定義・Type・TestPattern・Expected・Test Codeへ投影していく**
+
+という方が、今のところしっくりきている。
+
 
 ---
 
@@ -728,6 +884,12 @@ Behavior Diff = 0件
 を測る話である。
 
 ---
+
+:::message
+**ここまでは、Studioくんを作る中で実際に起きたことを整理している。**
+
+**ここから先は、その体験を巨大レガシーシステムまで拡張して考えた「大妄想」である。**
+:::
 
 # ここで、巨大レガシーシステムという大妄想へ飛んでしまった
 
@@ -992,66 +1154,6 @@ AIでType / Responsibility単位にCluster
 
 を使う。
 
----
-
-# Legacy由来情報は「観測」、Structured Intent由来は「承認済み期待」
-
-この二つは、最初から分けておいた方がよいと思っている。
-
-```text
-Legacy由来
-= Observed / Reference
-
-Structured Intent由来
-= Approved / Canonical
-```
-
-さらにNew SystemのActualを加えると、三者比較になる。
-
-```text
-Legacy Observed
-        │
-        ▼
-Reference Test ─────┐
-                    │
-Approved Intent     │
-        │           │
-        ▼           │
-Canonical Test ─────┤ 比較
-                    │
-New System          │
-        │           │
-        ▼           │
-New Actual ─────────┘
-```
-
-例えば、
-
-```text
-Legacy = Canonical = New
-```
-
-なら、旧挙動・承認意図・新実装が一致している。
-
-```text
-Legacy ≠ Canonical = New
-```
-
-なら、旧システムから意図的に改善した可能性がある。
-
-```text
-Legacy = New ≠ Canonical
-```
-
-なら、旧システムの古い挙動やバグまで、新システムへコピーしてしまった可能性がある。
-
-```text
-Legacy = Canonical ≠ New
-```
-
-なら、新実装側の問題を疑いやすい。
-
-この三者比較は、Legacyを正解にしないためにも重要だと思っている。
 
 ---
 
@@ -1306,6 +1408,14 @@ Studioくんのプロトタイプ誕生
 ↓
 ViewDef
 ↓
+SubGrid
+↓
+最初の明示的な制約
+「意味階層は2階層まで」
+↓
+判断軸・制約・責務という
+手持ちの武器
+↓
 Field Definition
 ↓
 Validation Type
@@ -1346,43 +1456,175 @@ Structured Intentへ救出できれば
 ここまで書いたことは、現時点では仮説である。
 
 特に巨大システムでは、
+単純なField DefinitionやValidation Typeだけでは表現しきれないものが大量にある。
 
-- 非機能要件
-- 性能
-- 同時実行
-- Transaction
-- 障害復旧
-- Security
-- 運用
-- 外部システム依存
-- 暗黙の業務判断
-- 歴史的例外
+例えば、
 
-など、単純なField DefinitionやValidation Typeでは表現できないものが大量にある。
+- 性能や同時実行性などの非機能要件
+- Transaction境界や障害復旧
+- Securityや運用上の制約
+- 外部システムとの依存関係
+- 文書化されていない暗黙知
+- 長年の運用で積み上がった歴史的例外
 
-Structured Intentをどこまで記述すれば、本当に同じBehaviorを再構築できるのか。
+である。
 
-まだ全く分からない。
+ここは、この仮説の弱点として隠すより、
 
-しかし、だからこそ、**再構築してみればよい。**
+> **Structured Intentには、何を積めば本当に再構築可能になるのか。**
 
-再構築できなければ、何が足りなかったのかを見る。
+という研究課題として扱った方が面白いと思っている。
+
+例えば、機能要件だけで再構築してBehavior Diffが残ったとする。
+
+そのとき、
 
 ```text
 Responsibility不足？
 Constraint不足？
+判断軸不足？
 Type不足？
 Behavior不足？
 State Transition不足？
-Expected不足？
+固有Expected不足？
 非機能要件不足？
+暗黙知の救出漏れ？
+歴史的例外の未記述？
 ```
 
-その不足をStructured Intentへ戻す。
+と調べる。
 
-そしてまた生成する。
+不足していた意味をStructured Intentへ戻す。
 
-この繰り返し自体が、Structured Intentを育てる方法になるかもしれない。
+そして、また生成する。
+
+```text
+Structured Intent v1
+↓
+再生成
+↓
+Behavior Diff
+
+不足Intentを発見
+↓
+Structured Intent v2
+↓
+再生成
+↓
+Behavior Diff
+```
+
+この繰り返し自体が、
+
+> **システムを再構築するために必要な「意図の必要十分条件」を発見する実験**
+
+になるかもしれない。
+
+つまり、
+
+非機能要件、暗黙知、歴史的例外は、
+単なる注意書きではない。
+
+**Structured IntentというDataに、いったい何を残す必要があるのかを炙り出す未解決テーマ**
+
+である。
+
+---
+
+# そして、この妄想はStudioくん自身で実験できるのではないか
+
+ここまで書いて、もう一つ気づいた。
+
+巨大レガシーシステムを用意しなくても、
+
+**この仮説は、Studioくん自身で小さく実験できるのではないか。**
+
+例えば、Studioくんの一つの責務を選ぶ。
+
+その責務について、
+
+```text
+判断軸
+制約
+責務
+項目定義
+Validation Type
+固有Expected
+```
+
+をStructured Intentとして外へ出す。
+
+そして、
+
+**現在の実装コードを見せずに**
+
+そのStructured Intentだけから、
+同じ責務を持つ実装を再生成してみる。
+
+さらに、
+
+```text
+既存StudioのBehavior
+        ↓
+Legacy / Reference側の観測
+
+Structured Intent
+        ↓
+Canonical Test生成
+
+再生成した新実装
+        ↓
+New Actual
+```
+
+を比較する。
+
+もしBehavior Diffが出たら、
+
+```text
+実装生成側の問題？
+Structured Intentの不足？
+制約の記述漏れ？
+責務の粒度不足？
+Expectedの不足？
+```
+
+を調べる。
+
+そして、Structured Intentへ戻す。
+
+これは巨大レガシー再構築そのものではない。
+
+でも、
+
+> **Structured Intentだけから、元コードを見ずに同じ必要なBehaviorを再構築できるか。**
+
+という今回の仮説を、
+最小サイズで確かめることはできる。
+
+もし成功すれば、
+
+今回の記事に初めて、
+
+**「妄想ではなく、観測できた現象」**
+
+が一つ増える。
+
+逆に失敗しても、
+
+> **何がDataとして足りなかったのか。**
+
+が分かる。
+
+それ自体が、Structured Intentの設計材料になる。
+
+巨大レガシーシステムを救えるかどうかは、まだ分からない。
+
+でも、
+
+**この仮説を試すための最初のシステムなら、もう手元にある。**
+
+Studioくんである。
 
 ---
 
