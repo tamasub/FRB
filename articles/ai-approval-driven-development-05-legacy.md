@@ -1519,7 +1519,7 @@ Structured Intent v1
 ↓
 Behavior Diff
 
-不足Intentを発見
+不足Intent(暗黙知)を発見
 ↓
 Structured Intent v2
 ↓
