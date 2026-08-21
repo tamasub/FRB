@@ -32185,6 +32185,17 @@
       "enabled": true,
       "sort_order": 50,
       "note": "これは法的判断ではなく、AIコード生成時の安全柵である。著作権侵害の最終判断をAIに委ねるものではない。公開前には必要に応じて出所確認・ライセンス確認・人間レビューを行う。"
+    },
+    {
+      "title": "失敗談の記録を忘れずに",
+      "read_timing": "after_work",
+      "target_path": "",
+      "purpose": "",
+      "failure_policy": "素直にAIが失敗したなぁ～って思った時は、失敗談欄に記録をしてください。無理に失敗談に仕立てる必要はありません。振り返れば、楽しい記録にすることだけが目的です。",
+      "trust_category": "",
+      "required": false,
+      "enabled": true,
+      "note": ""
     }
   ],
   "archive_policy": "studio_work_0079以前の完了系作業は archive JSON へ分離し、メインJSONには未着手・進行中・直近完了分を残す。",

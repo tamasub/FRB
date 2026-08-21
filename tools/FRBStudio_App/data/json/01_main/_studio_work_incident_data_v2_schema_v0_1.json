@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "studio_work_incident_item_schema_v0_1.json",
   "title": "FRB Studio Work Incident - New Item Input Schema v0.1",
-  "description": "FRB Studioの新規インシデント1件をPasteJSON等へ渡すための入力契約。歴史データ全体の完全互換Schemaではなく、新規登録時の構造崩れ防止を目的とする。新規インシデントでは work_summary（作業概要・要約版）を必須とし、全体像を先に把握できるようにする。特に context_refs / follow_up_actions / discussion_history / decision_log / change_history は配列内要素をオブジェクトとして保持する。",
+  "description": "FRB Studioの新規インシデント1件をPasteJSON等へ渡すための入力契約。歴史データ全体の完全互換Schemaではなく、新規登録時の構造崩れ防止を目的とする。新規インシデントでは work_summary（作業概要・要約版）を必須とし、全体像を先に把握できるようにする。特に context_refs / follow_up_actions / discussion_history / decision_log / change_history / failure_stories は配列内要素をオブジェクトとして保持する。failure_stories は change_history とは分離し、作業中の失敗・言い訳・失敗認定状態・記事ネタ候補を記録する。",
   "type": "object",
   "required": [
     "work_item_id",
@@ -42,7 +42,8 @@
     "follow_up_actions",
     "discussion_history",
     "decision_log",
-    "change_history"
+    "change_history",
+    "failure_stories"
   ],
   "properties": {
     "work_item_id": {
@@ -220,6 +221,14 @@
         "$ref": "#/$defs/change_history_item"
       },
       "default": []
+    },
+    "failure_stories": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/failure_story_item"
+      },
+      "default": [],
+      "description": "作業中の失敗談を記事ネタ・振り返り用に保持する。change_history がシステム変更の客観記録であるのに対し、failure_stories は 「誰が何をやらかしたか／どう言い訳したか／失敗と認めたか」を残す。"
     }
   },
   "$defs": {
@@ -600,6 +609,69 @@
           }
         }
       ],
+      "additionalProperties": true
+    },
+    "failure_story_item": {
+      "type": "object",
+      "description": "失敗談1件。監査用の変更履歴ではなく、作業中のやらかし・弁明・失敗認定と、後の記事化に使えるフックを残すための記録。",
+      "required": [
+        "failure_id",
+        "at",
+        "failure_owner",
+        "summary",
+        "what_went_wrong",
+        "excuse",
+        "failure_admission",
+        "article_hook"
+      ],
+      "properties": {
+        "failure_id": {
+          "type": "string",
+          "description": "失敗談ID。例: fail_0171_001"
+        },
+        "at": {
+          "type": "string",
+          "description": "失敗または失敗認識が発生した日時・日付。"
+        },
+        "failure_owner": {
+          "type": "string",
+          "examples": [
+            "AI",
+            "USER",
+            "BOTH",
+            "SYSTEM",
+            "UNKNOWN"
+          ],
+          "description": "主に誰のやらかしか。記事化・集計時の軸として使用する。"
+        },
+        "summary": {
+          "type": "string",
+          "description": "何をやらかしたかを一言で記録する。"
+        },
+        "what_went_wrong": {
+          "type": "string",
+          "description": "失敗したと思ったこと・実際に何がズレたかを記録する。"
+        },
+        "excuse": {
+          "type": "string",
+          "description": "失敗した本人またはAI側の言い訳・弁明。記事ネタとしての遊び心を優先してよい。"
+        },
+        "failure_admission": {
+          "type": "string",
+          "examples": [
+            "ADMITTED",
+            "PARTIALLY_ADMITTED",
+            "NOT_ADMITTED",
+            "DISPUTED",
+            "PENDING"
+          ],
+          "description": "失敗と認めたかどうか。人間とAIで見解が割れた場合はDISPUTED。"
+        },
+        "article_hook": {
+          "type": "string",
+          "description": "記事化するときのネタ、見出し、タイトル候補、オチ候補。"
+        }
+      },
       "additionalProperties": true
     }
   },

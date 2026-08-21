@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "FRB Studio / JSON Object Studio",
-    "version": "studio-work-incident-v0.5-work-summary-required"
+    "version": "studio-work-incident-v0.5-failure-stories"
   },
   "views": [
     {
@@ -1214,6 +1214,124 @@
               "display_note": "詳細画面では入力欄化せず、objectArrayの子グリッドとして表示する。表示用の「n items」を保存値にしないため。"
             },
             {
+              "field": "failure_stories",
+              "caption": "失敗談",
+              "type": "objectArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "subGrid": {
+                  "editable": true,
+                  "defaultItem": {
+                    "failure_id": "",
+                    "at": "",
+                    "failure_owner": "AI",
+                    "summary": "",
+                    "what_went_wrong": "",
+                    "excuse": "",
+                    "failure_admission": "PENDING",
+                    "article_hook": ""
+                  },
+                  "columns": [
+                    {
+                      "field": "failure_id",
+                      "caption": "Failure ID",
+                      "type": "text",
+                      "width": 160
+                    },
+                    {
+                      "field": "at",
+                      "caption": "日時",
+                      "type": "datetime",
+                      "width": 150
+                    },
+                    {
+                      "field": "failure_owner",
+                      "caption": "やらかした人",
+                      "type": "select",
+                      "options": [
+                        "AI",
+                        "USER",
+                        "BOTH",
+                        "SYSTEM",
+                        "UNKNOWN"
+                      ],
+                      "width": 130
+                    },
+                    {
+                      "field": "summary",
+                      "caption": "失敗したと思った事",
+                      "type": "textarea",
+                      "width": 320,
+                      "markdown": {
+                        "enabled": true,
+                        "allowLinks": true,
+                        "allowImages": false
+                      }
+                    },
+                    {
+                      "field": "what_went_wrong",
+                      "caption": "何がズレた？",
+                      "type": "textarea",
+                      "width": 420,
+                      "markdown": {
+                        "enabled": true,
+                        "allowLinks": true,
+                        "allowImages": false
+                      }
+                    },
+                    {
+                      "field": "excuse",
+                      "caption": "失敗の言い訳（笑）",
+                      "type": "textarea",
+                      "width": 420,
+                      "markdown": {
+                        "enabled": true,
+                        "allowLinks": true,
+                        "allowImages": false
+                      }
+                    },
+                    {
+                      "field": "failure_admission",
+                      "caption": "失敗と認めた？",
+                      "type": "select",
+                      "options": [
+                        "ADMITTED",
+                        "PARTIALLY_ADMITTED",
+                        "NOT_ADMITTED",
+                        "DISPUTED",
+                        "PENDING"
+                      ],
+                      "width": 180
+                    },
+                    {
+                      "field": "article_hook",
+                      "caption": "記事ネタ / オチ",
+                      "type": "textarea",
+                      "width": 360,
+                      "markdown": {
+                        "enabled": true,
+                        "allowLinks": true,
+                        "allowImages": false
+                      }
+                    }
+                  ]
+                }
+              },
+              "defaultValue": [],
+              "search": {
+                "visible": false
+              },
+              "display_note": "記事ネタ・振り返り用の失敗談。change_historyはシステム変更の客観履歴、failure_storiesは作業中のやらかし・言い訳・失敗認定の記録として責務を分離する。真面目な監査ログではなく、後から笑える歴史を残すためのサブグリッド。",
+              "layout": {
+                "placement": "detailBody",
+                "order": 760
+              }
+            },
+            {
               "field": "created_at",
               "caption": "作成日",
               "type": "datetime",
@@ -1548,12 +1666,51 @@
                     "caption": "理由"
                   }
                 ]
+              },
+              {
+                "title": "失敗談（笑）",
+                "arrayField": "failure_stories",
+                "format": "table",
+                "fields": [
+                  {
+                    "field": "failure_id",
+                    "caption": "Failure ID"
+                  },
+                  {
+                    "field": "at",
+                    "caption": "日時"
+                  },
+                  {
+                    "field": "failure_owner",
+                    "caption": "やらかした人"
+                  },
+                  {
+                    "field": "summary",
+                    "caption": "失敗したと思った事"
+                  },
+                  {
+                    "field": "what_went_wrong",
+                    "caption": "何がズレた？"
+                  },
+                  {
+                    "field": "excuse",
+                    "caption": "失敗の言い訳（笑）"
+                  },
+                  {
+                    "field": "failure_admission",
+                    "caption": "失敗と認めた？"
+                  },
+                  {
+                    "field": "article_hook",
+                    "caption": "記事ネタ / オチ"
+                  }
+                ]
               }
             ]
           }
         ]
       },
-      "layout_note": "v0.18.22: 親Gridにfollow_up_status検索列、詳細にfollow_up_actions編集サブグリッドを追加。既存View IDとファイル名は維持。",
+      "layout_note": "v0.18.22: 親Gridにfollow_up_status検索列、詳細にfollow_up_actions編集サブグリッドを追加。既存View IDとファイル名は維持。\n2026-08-21: failure_stories編集サブグリッドを追加。失敗したと思った事 / 何がズレたか / 失敗の言い訳 / 失敗認定 / 記事ネタを保持する。",
       "toolbar": {
         "executeButton": {
           "caption": "AI依頼プロンプトコピー",
@@ -1565,7 +1722,7 @@
       }
     }
   ],
-  "layout_note": "作業項目ごとに discussion_history / decision_log / change_history を objectArray として保持する。長文の作業説明は __work_summary_cards のchat型カードでdetailBodyに表示し、会話サマリは __work_chat でdetailFooterに表示する。 v0.10.1で、Markdown許可欄は見出し・箇条書き・コードブロックを含む表示モードプレビューに対応。\n\nv0.14.0: ViewDefファイル名安定ルールに従い、このViewDefは新規名を作らず同名更新する。actual_updated_files / verification_log を表示候補に追加。\n\nv0.14.2: toolbar.executeButton に CopyPromptFromTemplate を追加。プロンプト本文はViewDef側の promptTemplate に保持し、JS側へ固定文言を置かない。",
+  "layout_note": "作業項目ごとに discussion_history / decision_log / change_history を objectArray として保持する。長文の作業説明は __work_summary_cards のchat型カードでdetailBodyに表示し、会話サマリは __work_chat でdetailFooterに表示する。 v0.10.1で、Markdown許可欄は見出し・箇条書き・コードブロックを含む表示モードプレビューに対応。\n\nv0.14.0: ViewDefファイル名安定ルールに従い、このViewDefは新規名を作らず同名更新する。actual_updated_files / verification_log を表示候補に追加。\n\nv0.14.2: toolbar.executeButton に CopyPromptFromTemplate を追加。プロンプト本文はViewDef側の promptTemplate に保持し、JS側へ固定文言を置かない。\n\nv0.18.x: failure_stories（失敗談）をobjectArrayサブグリッドとして追加。change_historyは客観的な変更履歴、failure_storiesは作業者側の失敗・言い訳・失敗認定・記事ネタを保持する責務とした。",
   "context": {
     "target_context": {
       "enabled": true,
@@ -1604,8 +1761,8 @@
       "note_field": "note"
     }
   },
-  "updated_at": "2026-08-17T18:36:00+09:00",
-  "description": "Studio改修インシデントをGrid/詳細/会話/対象文脈/後続作業で管理する。作業内容/方針の先頭に必須の「作業概要（要約版）」を置き、インシデント全体像を最初に把握できるようにする。follow_up_statusで一覧検索し、follow_up_actionsで個別の恒久対策を追跡する。",
+  "updated_at": "2026-08-21T22:57:00+09:00",
+  "description": "Studio改修インシデントをGrid/詳細/会話/対象文脈/後続作業/失敗談で管理する。作業内容/方針の先頭に必須の「作業概要（要約版）」を置き、インシデント全体像を最初に把握できるようにする。follow_up_statusで一覧検索し、follow_up_actionsで個別の恒久対策を追跡する。failure_storiesでは、作業中の失敗・言い訳・失敗認定状態・記事ネタ候補を記録する。",
   "currentDataDisplay": {
     "titlePath": "$.title",
     "subtitlePath": "$.target",
