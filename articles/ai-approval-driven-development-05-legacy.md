@@ -1362,6 +1362,10 @@ Structured Intent Data
                 └─→ Other Views
 ```
 
+今の私の頭の中では、Structured Intent Dataは単なる仕様書ではない。
+そこには、これまでAI協働の中で使ってきた 判断軸・制約・責務 が入り、さらにType、Behavior、State Transition、固有Expectedなどがぶら下がる。
+
+
 この仮説が成立するなら、
 
 > **Code is View.**
