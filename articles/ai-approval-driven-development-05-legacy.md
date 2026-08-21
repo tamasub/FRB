@@ -1289,8 +1289,8 @@ Application / Test生成
         ↓
 Legacy / Canonical / New のDiff
         ↓
-不足Intentを補正
-        ↓
+不足Intent（制約・判断軸・責務）を補正
+        ↓       
 再生成
 ```
 
@@ -1348,11 +1348,18 @@ Gitで管理する。レビューする。テストする。保守する。
 ```text
 Structured Intent Data
         │
-        ├─→ Application Code
-        ├─→ Test Code
-        ├─→ Document
-        ├─→ UI
-        └─→ Other Views
+        ├─ 判断軸
+        ├─ 制約
+        ├─ 責務
+        ├─ Type
+        ├─ Behavior / State Transition
+        └─ 固有Expected
+                │
+                ├─→ Application Code
+                ├─→ Test Code
+                ├─→ Document
+                ├─→ UI
+                └─→ Other Views
 ```
 
 この仮説が成立するなら、
