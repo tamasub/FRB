@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-22T22:50:00+09:00",
+  "updated_at": "2026-08-22T23:17:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 207,
+  "items_count": 208,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -31869,6 +31869,129 @@
           "excuse": "『中身が真っ白』を直すことに夢中で、『表示されたあと人間が帰れるか』まで見てなかった。入口は直した。出口をShellの裏に忘れた。笑",
           "failure_admission": "ADMITTED",
           "article_hook": "Studioくん、画面は開いた。でも帰れない — AIが出口をz-indexの裏に隠した日"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0220",
+      "phase": "v0.18.103-markdown-full-textbox-edit-route-restore",
+      "title": "Markdown Editor 全文テキストボックス編集導線の復旧",
+      "incident_type": "bug_fix",
+      "category": "markdown_editor",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "PENDING",
+      "verification_status": "静的確認済み / NativeShell実機確認待ち",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-22T23:17:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-22T23:17:00+09:00",
+      "updated_at": "2026-08-22T23:17:00+09:00",
+      "work_summary": "- Markdown StudioのEditorモードで、Markdown全体を大きなtextareaで編集する既存機能への導線が消えている回帰を修正する。\n- 全文編集Runtimeは残っているため、新機能を作らず右クリックメニューの入口だけを復旧する。\n- 既存の「行編集」は維持し、軽い修正と全文編集を使い分けられる状態へ戻す。\n- 導線が再び消えないよう静的回帰テストを追加する。",
+      "target_files": "- wwwroot/mdViewer.html\n- tests/qa/static/markdown_full_textbox_edit_route_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- wwwroot/mdViewer.html\n- tests/qa/static/markdown_full_textbox_edit_route_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "Foundation Rule 019に従い、2026-08-22添付のFRBStudio_App20260822_231600.zipを基準ソースとする。v0.13.7で合意済みの「行編集と従来全文テキストボックス編集の併存」契約を正として、失われたUI導線だけを最小差分で復旧する。",
+      "objective": "Markdown StudioのEditorモードで、既存のMarkdown全文textarea編集へ確実に遷移できるようにし、行単位編集と全文編集の両方を選べる状態へ戻す。",
+      "background": "`mdViewer.html`には `enterInlineMarkdownEdit()`、`leaveInlineMarkdownEdit()`、`editTextBox` action handler、readonly制御まで残っていた。一方、`ensureMdBlockActionMenu()`のmenu HTMLから `data-action=\"editTextBox\"` のボタンだけが消えていた。過去のv0.13.7実装メモとインシデントには、右クリックメニューでRaw Markdown編集とテキストボックス編集を併存させる契約が明記されているため、今回の状態は明確なUI回帰。",
+      "scope": "- Editorモード右クリックメニューへ `📝 テキストボックス編集` を復活する。\n- 既存 `editTextBox` handlerから `enterInlineMarkdownEdit()`へ接続する。\n- 全文textarea表示中はPreviewを隠し、既存blur処理でPreviewへ復帰する契約を維持する。\n- 右クリックメニュー項目と既存Runtime接続を静的テストで固定する。",
+      "out_of_scope": "- 行編集ダイアログの仕様変更。\n- TableCell編集の仕様変更。\n- Viewer / Reviewモードの編集可否変更。\n- 全文textareaのデザイン刷新。\n- 新しいMarkdown編集エンジン追加。",
+      "fixed_name_policy": "既存DOM ID (`editor`, `editorInlineHost`, `preview`) と既存action名 `editTextBox` を再利用する。新しいData固定名やMarkdown専用保存経路は追加しない。",
+      "module_policy": "機能本体は既存 `mdViewer.html` 内Runtimeを正として再利用し、入口欠落だけを修正する。「外からつまめ」原則に沿い、既存行編集・保存・dirty管理・Preview再描画には手を入れない。",
+      "expected_outputs": "- Editorモードで本文Blockを右クリックすると `📝 テキストボックス編集` が表示される。\n- それを押すとMarkdown全文が既存textareaへ表示され、該当Block付近へカーソル移動する。\n- textareaからフォーカスを外すと既存Previewへ戻る。\n- `✏ 行編集` / TableCell編集 / Sentence操作は従来どおり残る。\n- readonly時は全文編集導線がdisabledになる。",
+      "risk": "menu項目を1つ戻すだけの最小差分で、既存Runtimeを再利用するため機能回帰リスクは低い。主な確認点は、右クリックメニューの並び、readonly時disabled、全文textareaからPreviewへ戻れること。",
+      "test_points": "- `data-action=\"editTextBox\"` のmenu itemが `editRawBlock` と併存する。\n- `editTextBox` action handlerが `enterInlineMarkdownEdit(line, anchor)` を呼ぶ。\n- `enterInlineMarkdownEdit()`がcanonical `editorEl` を `editorInlineHost`へ移動する。\n- `md-inline-editing`中はPreview非表示 / editorInlineHost表示になる。\n- `leaveInlineMarkdownEdit()`でtextareaを元位置へ戻し、Preview再描画できる。\n- 全Staticで新規FAILを増やさない。",
+      "verification_log": "- Focused: `node --test tests/qa/static/markdown_full_textbox_edit_route_static.test.mjs` = 2/2 PASS。\n- 全Static: 304 tests / 286 PASS / 18 FAIL。\n- 追加した2 testsはPASS。既存FAIL 18件は今回対象外。\n- Incident JSON parse = PASS。\n- 新規Incident item schema validation = PASS。\n- NativeShell実機で右クリック→テキストボックス編集→全文textarea表示→blur復帰は未確認。",
+      "user_request": "マークダウンstudioのediterモードで、md全体のテキストボックス編集機能がなくなっているため復活してほしい。",
+      "ai_response": "最新ZIPを基準に既存Markdown Editorを確認し、全文textarea Runtimeが残っているか、UI導線だけが消えているかを切り分けたうえで最小差分で復旧する。",
+      "latest_ai_response": "AI回答\n\n## 今回の更新\n\n- `wwwroot/mdViewer.html`\n- `tests/qa/static/markdown_full_textbox_edit_route_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## 原因\n\n全文テキストボックス編集そのものは消えていなかった。`enterInlineMarkdownEdit()`、`editTextBox` のクリック処理、textareaの退避/復元処理は残っていたが、右クリックメニューを組み立てるHTMLから `data-action=\"editTextBox\"` のボタンだけが抜け落ちていた。つまり機能本体ではなく、入口だけ消えていた。\n\n## 修正\n\nEditorモードの右クリックメニューへ `📝 テキストボックス編集` を復活。既存の `行編集` はそのまま残し、軽い修正=行編集 / 大きな修正=全文テキストボックス編集というv0.13.7の二段構えを復旧した。新しい編集ロジックは追加せず、残っていた既存Runtimeへ再接続した。\n\n## 確認\n\n- Focused static test: 2/2 PASS\n- 全Static: 304 tests / 286 PASS / 18 FAIL\n- FAIL 18件は既存FAIL。今回追加した2件はPASS。\n- Incident JSON parse / 新規Incident Schema検証: PASS\n- NativeShell実機で右クリック→全文編集→blurでPreview復帰は確認待ち。",
+      "latest_user_comment": "マークダウンstudioのediterモードで、md全体のテキストボックス編集機能がなくなっているぅーーーーー。復活してぇーーーー。",
+      "context_refs": [
+        {
+          "context_ref_id": "ctx_0220_foundation_019",
+          "title": "GitHub基準ソースとZIP返却契約",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "ユーザー添付の最新App ZIPを基準にし、更新ファイルだけを同一相対パスで返却し、更新済みIncident JSONを必ず含める。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 1,
+          "note": "作業依頼ターン添付のFRBStudio_App20260822_231600.zipを今回の正本とする。"
+        }
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0220_native_full_textbox_verify",
+          "action_type": "VERIFICATION",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "studio_work_0220"
+          ],
+          "note": "Windows NativeShellのMarkdown StudioでEditorモードを開き、本文Block右クリック→「📝 テキストボックス編集」→Markdown全文textarea表示→フォーカスアウトでPreview復帰を確認する。",
+          "summary": "Markdown全文テキストボックス編集導線を実機確認"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "disc_0220_001",
+          "at": "2026-08-22T23:17:00+09:00",
+          "speaker": "user",
+          "message": "マークダウンstudioのediterモードで、md全体のテキストボックス編集機能がなくなっているぅーーーーー。復活してぇーーーー。",
+          "topic": "Markdown全文テキストボックス編集の回帰報告"
+        },
+        {
+          "history_id": "disc_0220_002",
+          "at": "2026-08-22T23:17:00+09:00",
+          "speaker": "assistant",
+          "message": "AI回答\n\n## 今回の更新\n\n- `wwwroot/mdViewer.html`\n- `tests/qa/static/markdown_full_textbox_edit_route_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## 原因\n\n全文テキストボックス編集そのものは消えていなかった。`enterInlineMarkdownEdit()`、`editTextBox` のクリック処理、textareaの退避/復元処理は残っていたが、右クリックメニューを組み立てるHTMLから `data-action=\"editTextBox\"` のボタンだけが抜け落ちていた。つまり機能本体ではなく、入口だけ消えていた。\n\n## 修正\n\nEditorモードの右クリックメニューへ `📝 テキストボックス編集` を復活。既存の `行編集` はそのまま残し、軽い修正=行編集 / 大きな修正=全文テキストボックス編集というv0.13.7の二段構えを復旧した。新しい編集ロジックは追加せず、残っていた既存Runtimeへ再接続した。\n\n## 確認\n\n- Focused static test: 2/2 PASS\n- 全Static: 304 tests / 286 PASS / 18 FAIL\n- FAIL 18件は既存FAIL。今回追加した2件はPASS。\n- Incident JSON parse / 新規Incident Schema検証: PASS\n- NativeShell実機で右クリック→全文編集→blurでPreview復帰は確認待ち。",
+          "topic": "既存全文textarea導線の最小復旧"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0220_001",
+          "at": "2026-08-22T23:17:00+09:00",
+          "decision": "新しい全文Editorを実装せず、残存している既存 `editTextBox` → `enterInlineMarkdownEdit()` 経路を再接続する。（失敗是正後）",
+          "reason": "Runtime、textarea、Preview復帰処理はすべて残っており、欠落はmenu itemだけだったため。"
+        },
+        {
+          "decision_id": "dec_0220_002",
+          "at": "2026-08-22T23:17:00+09:00",
+          "decision": "`✏ 行編集` と `📝 テキストボックス編集` を併存させる。（失敗是正後）",
+          "reason": "v0.13.7で合意済みの「軽い修正は小ダイアログ、大きな編集は全文textarea」という使い分けを復元するため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0220_001",
+          "at": "2026-08-22T23:17:00+09:00",
+          "change_type": "markdown_editor_route_restore",
+          "before": "右クリックメニューには `✏ 行編集` はあるが、既存 `editTextBox` actionへ入るmenu itemが存在せず、Markdown全文textarea編集へ遷移できなかった。",
+          "after": "Editorモード右クリックメニューへ `<button data-action=\"editTextBox\">📝 テキストボックス編集</button>` を復活し、既存handler / Runtimeへ再接続した。",
+          "reason": "機能本体を作り直さず、失われた入口だけを戻して既存契約を復旧するため。"
+        },
+        {
+          "history_id": "chg_0220_002",
+          "at": "2026-08-22T23:17:00+09:00",
+          "change_type": "regression_test_add",
+          "before": "`editTextBox` handlerやRuntimeは残っていたが、menu item自体の存在を固定するテストがなく、入口だけ消える回帰を検知できなかった。",
+          "after": "`markdown_full_textbox_edit_route_static.test.mjs`でmenu item、action handler、textarea移動、Preview復帰の接続を固定した。",
+          "reason": "今回と同じ「本体はあるのに入口だけ消える」回帰を機械検知するため。"
+        }
+      ],
+      "failure_stories": [
+        {
+          "failure_id": "fail_0220_001",
+          "at": "2026-08-22T23:17:00+09:00",
+          "failure_owner": "AI",
+          "summary": "全文Editorは生きていたのに、入口のメニューだけ消していた",
+          "what_went_wrong": "v0.13.7で「行編集」と「テキストボックス編集」を併存させた後の変更で、右クリックメニューHTMLから `editTextBox` ボタンだけが抜けた。一方でhandler・textarea・遷移Runtimeは残ったため、コード上は機能が存在するのにユーザーからは完全に消えたように見える回帰になった。",
+          "excuse": "家の中に立派な全文Editorを残したまま、玄関だけ撤去していた。そりゃ入れん。笑",
+          "failure_admission": "ADMITTED",
+          "article_hook": "Studioくん、全文Editorは生きていた。AIが玄関だけ消した日"
         }
       ]
     }
