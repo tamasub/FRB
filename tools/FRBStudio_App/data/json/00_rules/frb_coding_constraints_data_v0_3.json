@@ -140,6 +140,22 @@
       "violation_action": "",
       "source_decision_log_ids": [],
       "notes": ""
+    },
+    {
+      "sort_order": 70,
+      "item_id": "decision_axis_machine_verifiability_first_copy_1",
+      "item_type": "DECISION_AXIS",
+      "title": "機械的な保証可能性を最優先した設計",
+      "statement": "設計上の選択肢が複数ある場合は、責務・期待結果・変更差分を機械的に導出・実行・比較・検証できる構造を優先する。",
+      "reason": "人間による都度判断や手作業のテスト定義を減らし、保証を再利用可能な知恵としてTest Runnerへ蓄積するため。機械的に保証できない場合は、テスト方法だけでなくAPP側の処理構造・責務境界・観測可能性にも改善余地があると考える。",
+      "scope": "document",
+      "priority": "high",
+      "status": "ACTIVE",
+      "evaluation_guidance": "設計を比較するときは、「この責務をTest Runnerから独立して実行・観測できるか」「Input / Outputを比較できるか」「ExpectedまたはExpected Diffを機械導出できるか」を確認する。できない場合は、Runnerに不足している知恵とAPP側の構造上の問題を切り分ける。",
+      "verification_method": "対象責務について、Test Runnerから必要な処理単位を実行し、Input / OutputおよびExpected Diff / Actual Diffを機械的に生成・比較できるかを確認する。",
+      "violation_action": "機械的な保証が困難な理由を特定し、Runner側の共通知恵追加またはAPP側の責務分割・処理境界・観測点の見直しを行う。直ちに対応しない場合は、保証できない理由を明示して残す。",
+      "source_decision_log_ids": [],
+      "notes": "基本姿勢: 「機械的に保証できないなら、テストだけでなくAPP構造を疑う。」"
     }
   ],
   "rules": [

@@ -147,6 +147,60 @@ test('NativeShell generic overlay file API can return plugin JavaScript through 
 });
 
 test('index.html cache-busts the repaired NativeShell overlay runtime scripts', () => {
-  assert.match(indexHtml, /js\/core\/native_host_bridge\.js\?v=native-overlay-runtime-01894/);
+  assert.match(indexHtml, /js\/core\/native_host_bridge\.js\?v=native-related-grid-iframe-018101/);
   assert.match(indexHtml, /js\/core\/plugin_host\.js\?v=native-overlay-runtime-01894/);
+});
+
+
+test('same-origin iframe delegates NativeShell commands to the parent bridge', async () => {
+  const delegatedCalls = [];
+  let localPostMessageCount = 0;
+  const parentBridge = {
+    protocolVersion: '1.0',
+    isAvailable: () => true,
+    async invoke(command, payload, options) {
+      delegatedCalls.push({ command, payload, options });
+      return { content: JSON.stringify({ delegated: true, path: payload?.path ?? '' }) };
+    }
+  };
+  const frameWebview = {
+    addEventListener() {},
+    postMessage() { localPostMessageCount += 1; }
+  };
+  const parentWindow = {
+    location: { origin: 'https://frb-studio.local' },
+    FRBStudioNativeHost: parentBridge
+  };
+  const windowObject = {
+    parent: parentWindow,
+    chrome: { webview: frameWebview },
+    location: {
+      href: 'https://frb-studio.local/index.html?relatedGrid=1',
+      origin: 'https://frb-studio.local'
+    },
+    fetch: async () => new Response('original fetch should not be used', { status: 599 }),
+    setTimeout,
+    clearTimeout
+  };
+  const context = {
+    window: windowObject,
+    URL,
+    Response,
+    Request,
+    Blob,
+    console,
+    setTimeout,
+    clearTimeout
+  };
+
+  vm.runInNewContext(bridgeSource, context, { filename: 'native_host_bridge.js' });
+
+  assert.equal(windowObject.FRBStudioNativeHost.isAvailable(), true);
+  const response = await windowObject.fetch('/api/defs/rules/sample.json');
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { delegated: true, path: 'defs/rules/sample.json' });
+  assert.equal(delegatedCalls.length, 1);
+  assert.equal(delegatedCalls[0].command, 'file.readText');
+  assert.equal(delegatedCalls[0].payload.path, 'defs/rules/sample.json');
+  assert.equal(localPostMessageCount, 0, 'iframe must not open a frame-local WebView2 request channel');
 });

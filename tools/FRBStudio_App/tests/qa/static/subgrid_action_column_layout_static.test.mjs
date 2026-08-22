@@ -28,5 +28,5 @@ test('SubGrid row number and buttons keep compact spacing without clipping delet
 
 test('index cache-busts the shared stylesheet for the SubGrid layout fix', () => {
   const index = readText('wwwroot/index.html');
-  assert.match(index, /styles\.css\?v=subgrid-action-divider-left-018921/);
+  assert.match(index, /styles\.css\?v=related-grid-modal-layer-018102/);
 });

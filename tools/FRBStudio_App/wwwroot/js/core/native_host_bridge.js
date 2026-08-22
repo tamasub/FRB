@@ -5,8 +5,26 @@
 (function initFrbStudioNativeHostBridge(global) {
   'use strict';
 
-  const webview = global.chrome?.webview;
-  if (!webview) {
+  // v0.18.101-related-grid-native-iframe-bridge:
+  // WebView2 top-level documents receive NativeShell responses through CoreWebView2.PostWebMessageAsJson.
+  // A same-origin iframe may expose chrome.webview as well, but requests issued from that frame do not
+  // reliably receive the top-level response. Related Grid modal uses an iframe, so delegate native commands
+  // to the already-initialized parent bridge instead of opening a second frame-local request channel.
+  function sameOriginParentNativeBridge() {
+    try {
+      if (!global.parent || global.parent === global) return null;
+      if (global.parent.location?.origin !== global.location?.origin) return null;
+      const bridge = global.parent.FRBStudioNativeHost;
+      if (!bridge?.isAvailable?.() || typeof bridge.invoke !== 'function') return null;
+      return bridge;
+    } catch {
+      return null;
+    }
+  }
+
+  const delegatedBridge = sameOriginParentNativeBridge();
+  const webview = delegatedBridge ? null : global.chrome?.webview;
+  if (!delegatedBridge && !webview) {
     global.FRBStudioNativeHost = Object.freeze({
       protocolVersion: '1.0',
       isAvailable: () => false,
@@ -26,6 +44,10 @@
   }
 
   function invoke(command, payload = {}, options = {}) {
+    if (delegatedBridge) {
+      return delegatedBridge.invoke(command, payload, options);
+    }
+
     const requestId = nextRequestId();
     const timeoutMs = Number(options.timeoutMs ?? 30000);
     const request = {
@@ -48,25 +70,27 @@
     });
   }
 
-  webview.addEventListener('message', event => {
-    const response = event.data;
-    const requestId = String(response?.request_id ?? '');
-    if (!requestId || !pending.has(requestId)) return;
+  if (webview) {
+    webview.addEventListener('message', event => {
+      const response = event.data;
+      const requestId = String(response?.request_id ?? '');
+      if (!requestId || !pending.has(requestId)) return;
 
-    const slot = pending.get(requestId);
-    pending.delete(requestId);
-    global.clearTimeout(slot.timeoutId);
+      const slot = pending.get(requestId);
+      pending.delete(requestId);
+      global.clearTimeout(slot.timeoutId);
 
-    if (response?.success) {
-      slot.resolve(response.result);
-      return;
-    }
+      if (response?.success) {
+        slot.resolve(response.result);
+        return;
+      }
 
-    const error = new Error(String(response?.error?.message ?? `Native command failed: ${slot.command}`));
-    error.code = String(response?.error?.code ?? 'NATIVE_COMMAND_FAILED');
-    error.nativeResponse = response;
-    slot.reject(error);
-  });
+      const error = new Error(String(response?.error?.message ?? `Native command failed: ${slot.command}`));
+      error.code = String(response?.error?.code ?? 'NATIVE_COMMAND_FAILED');
+      error.nativeResponse = response;
+      slot.reject(error);
+    });
+  }
 
   global.FRBStudioNativeHost = Object.freeze({
     protocolVersion: PROTOCOL_VERSION,

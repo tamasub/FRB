@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-19T20:22:00+09:00",
+  "updated_at": "2026-08-22T22:50:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 205,
+  "items_count": 207,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -31591,6 +31591,286 @@
           "reason": "WebView2の旧CSSキャッシュを回避して修正を即時反映するため。"
         }
       ]
+    },
+    {
+      "work_item_id": "studio_work_0218",
+      "phase": "v0.18.101-related-grid-native-iframe-bridge",
+      "title": "Related Gridモーダル白画面修正 — NativeShell iframeのNative Bridgeを親画面へ委譲",
+      "incident_type": "bug_fix",
+      "category": "native_bridge",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "COMPLETED",
+      "verification_status": "ユーザーNativeShell実機確認済み / Related Grid表示確認済み",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-22T21:34:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-22T21:34:00+09:00",
+      "updated_at": "2026-08-22T22:50:00+09:00",
+      "work_summary": "- 憲法の「判断軸・制約」Related Gridモーダルがグレー背景＋白画面で止まる問題を修正する。\n- 同一origin iframe内のNative API呼出を、frame-local WebView2通信ではなく親画面のNative Bridgeへ委譲する。\n- Related Grid専用C#分岐は追加せず、Native Bridgeの汎用子frame契約として直す。\n- 静的テストでiframe→親Bridge委譲と既存回帰なしを機械確認し、NativeShell実機確認だけを後続に残す。",
+      "target_files": "- wwwroot/js/core/native_host_bridge.js\n- wwwroot/index.html\n- tests/qa/static/native_overlay_manifest_bridge_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- wwwroot/js/core/native_host_bridge.js\n- wwwroot/index.html\n- tests/qa/static/native_overlay_manifest_bridge_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "Foundation Rule 019に従い、2026-08-22添付のFRBStudio_App20260822_213355.zipを基準ソースとする。Related Gridは既存の汎用dataPath/ViewDef契約を維持し、NativeShell固有問題はNative Bridge境界で解消する。",
+      "objective": "憲法画面の「判断軸・制約」ボタンから起動するRelated GridモーダルがNativeShell上で白画面のまま初期化停止する問題を解消し、governance_itemsを既存ViewDefで表示・編集できる状態へ戻す。",
+      "background": "Related Grid modalはindex.htmlを同一origin iframeとして開き、親画面からDataをpostMessageで渡した後、子StudioがViewDef/Common Type/Enum等を既存`/api/*`契約で読む。NativeShellでは`native_host_bridge.js`が`chrome.webview`を使って`/api/*`をファイル操作へ変換するが、iframeも独自Bridgeを初期化しており、親NativeShellのtop-level応答経路と子frameの要求経路が分離して初期化待ちになる構造だった。",
+      "scope": "- `native_host_bridge.js`に同一origin親Bridge検出を追加する。\n- iframeでは親`FRBStudioNativeHost.invoke()`へNative commandを委譲する。\n- 親Bridgeがない場合は従来どおり自身の`chrome.webview`を使用する。\n- 通常ブラウザでNativeHostがない場合のno-op契約を維持する。\n- index.htmlのBridge script cache keyを更新する。\n- Node VMテストでiframeの`/api/defs/...`が親Bridgeを通ることを確認する。",
+      "out_of_scope": "- Related GridのViewDef/Data構造変更。\n- governance_items専用Runtime分岐。\n- Modalを別Windowへ変更する回避策。\n- NativeShell C#のFrameCreated/WebMessageReceived追加。\n- 親子Data反映・競合ガード契約の変更。",
+      "fixed_name_policy": "既存`wwwroot/js/core/native_host_bridge.js`と`wwwroot/index.html`を同名更新する。Related Grid専用Bridgeファイルや新しいNativeShellモジュールは増やさない。",
+      "module_policy": "NativeShell固有の通信差はNative Host Bridge境界で吸収し、Related Grid Runtimeは`fetch('/api/...')`とpostMessage契約を維持する。同一origin iframeは親Bridgeを再利用し、Data/ViewDef固有名をBridgeへ持ち込まない。",
+      "expected_outputs": "- 「判断軸・制約」押下後のRelated Grid iframeがNative API読込待ちで停止しない。\n- 子frameの`/api/defs`等が親Native Bridge経由で解決される。\n- iframe自身の`chrome.webview.postMessage`をNative commandに使用しない。\n- NativeShellトップ画面・通常ブラウザ・既存Overlay APIに回帰を出さない。\n- WebView2キャッシュで旧Bridgeが残らない。",
+      "risk": "親子がcross-originの場合に親Bridgeへ触るとSecurityErrorになる可能性があるため、same-origin確認をtry/catch内で行う。親Bridgeが未初期化/利用不可なら委譲せず従来経路へfallbackする。NativeShell実機のiframe挙動はこのLinux環境では直接確認できないため、最終UI確認が必要。",
+      "test_points": "- top-level NativeShellでは従来のlocal `chrome.webview` Bridgeを使用する。\n- same-origin iframe + 利用可能な親Bridgeでは親`invoke`へ委譲する。\n- iframeの`/api/defs/rules/sample.json`が親Bridgeの`file.readText`へ変換される。\n- frame-local `chrome.webview.postMessage`が呼ばれない。\n- NativeHostなしブラウザのno-op契約を壊さない。\n- index.htmlが新cache keyを参照する。\n- 全Static Before/Afterで既存FAIL数・内容が増えない。",
+      "verification_log": "- `node --check wwwroot/js/core/native_host_bridge.js` = PASS。\n- `node --test tests/qa/static/native_overlay_manifest_bridge_static.test.mjs` = 6/6 PASS。\n- Related Grid + Native Bridge focused: After 15 tests / 14 PASS / 1 FAIL。Beforeは14 tests / 13 PASS / 1 FAILで、既存FAILは同一（coding constraints governance_items期待5件に対し実7件）。\n- 全Static Before（添付ZIP原本）: 299 tests / 281 PASS / 18 FAIL。\n- 全Static After（Incident追記前確認）: 300 tests / 282 PASS / 18 FAIL。\n- Before/Afterの18 FAILは同一テスト内容で、新規FAILなし。\n- NativeShell実機モーダル表示は未確認。",
+      "user_request": "憲法の判断軸・制約を押すと画面がグレー一色になるため、添付した最新資材を基準に修正する。",
+      "ai_response": "最新ZIPを基準に、Related Grid modalとNativeShell Bridgeの境界を調査し、iframe側Native APIの応答経路を汎用的に修正する。",
+      "latest_user_comment": "憲法の判断軸・制約を押すと画面がグレー一色になるねぇ。最新資材添付します。",
+      "latest_ai_response": "AI回答\n\n## 今回の更新\n\n- `wwwroot/js/core/native_host_bridge.js`\n- `wwwroot/index.html`\n- `tests/qa/static/native_overlay_manifest_bridge_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\n憲法画面の「判断軸・制約」をモーダル起動するとグレー背景＋白い空画面になる問題を修正した。Related Gridモーダルは同一originのiframeでStudioを再利用するが、NativeShell上ではiframe側が独自の`chrome.webview`通信チャネルを作ると、ViewDef/Common Type/Enum等の`/api/*`読込が親画面と同じNative Bridge経路へ戻らず初期化が止まる構造だった。\n\n`native_host_bridge.js`で、同一origin iframeかつ親画面に利用可能な`FRBStudioNativeHost`がある場合は、iframe独自のWebView2通信を使わず親Bridgeへ`invoke()`を委譲するようにした。これによりRelated Grid子画面の既存`fetch('/api/...')`契約を変えず、親NativeShell経由で必要なJSONを取得できる。\n\n## 方針\n\nRelated Grid専用にNativeShell C#やData名を増やさず、Native Bridgeの「同一origin子frameは親Bridgeを再利用する」という汎用ルールで直した。ブラウザ通常表示・NativeShellトップ画面・別Windowは従来経路を維持する。\n\n## 確認結果\n\n- `node --check wwwroot/js/core/native_host_bridge.js` = PASS\n- Native Bridge focused test = 6/6 PASS（iframeから`/api/defs/...`を呼び、親Bridgeへ委譲されframe-local `postMessage`が0回であることを機械確認）\n- Related Grid + Native Bridge focused = 15 tests / 14 PASS / 1 FAIL。1 FAILは添付ZIP原本にも存在する`governance_items 5件期待 / 実7件`の既存テスト不整合。\n- 全Static Before: 299 tests / 281 PASS / 18 FAIL\n- 全Static After: 300 tests / 282 PASS / 18 FAIL\n- 18 FAILはBefore/Afterで同一内容。新規FAILなし。\n- NativeShell実機でのモーダル表示確認はこの環境では未実施。ユーザー実機確認をPENDINGとする。",
+      "context_refs": [
+        {
+          "context_ref_id": "ctx_0218_foundation_019",
+          "title": "GitHub基準ソースとZIP返却契約",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "ユーザー添付の最新App ZIPを基準にし、更新ファイルだけを同一相対パスで返却し、更新済みIncident JSONを必ず含める。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 1,
+          "note": "作業依頼ターン添付のFRBStudio_App20260822_213355.zipを今回の正本とする。"
+        }
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0218_native_modal_verify",
+          "action_type": "VERIFICATION",
+          "required": true,
+          "status": "COMPLETED",
+          "related_ids": [
+            "studio_work_0218"
+          ],
+          "note": "2026-08-22 ユーザー実機スクリーンショットで、白画面ではなく判断軸・制約Related Gridが7件表示されることを確認した。編集→親反映→親保存の全操作確認は0219の閉じる導線修正後に継続確認する。",
+          "summary": "NativeShell Related Gridモーダルを実機確認"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "disc_0218_001",
+          "at": "2026-08-22T21:34:00+09:00",
+          "speaker": "user",
+          "message": "憲法の判断軸・制約を押すと画面がグレー一色になるねぇ。最新資材添付します。",
+          "topic": "Related Gridモーダル白画面の報告"
+        },
+        {
+          "history_id": "disc_0218_002",
+          "at": "2026-08-22T21:34:00+09:00",
+          "speaker": "assistant",
+          "message": "AI回答\n\n## 今回の更新\n\n- `wwwroot/js/core/native_host_bridge.js`\n- `wwwroot/index.html`\n- `tests/qa/static/native_overlay_manifest_bridge_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\n憲法画面の「判断軸・制約」をモーダル起動するとグレー背景＋白い空画面になる問題を修正した。Related Gridモーダルは同一originのiframeでStudioを再利用するが、NativeShell上ではiframe側が独自の`chrome.webview`通信チャネルを作ると、ViewDef/Common Type/Enum等の`/api/*`読込が親画面と同じNative Bridge経路へ戻らず初期化が止まる構造だった。\n\n`native_host_bridge.js`で、同一origin iframeかつ親画面に利用可能な`FRBStudioNativeHost`がある場合は、iframe独自のWebView2通信を使わず親Bridgeへ`invoke()`を委譲するようにした。これによりRelated Grid子画面の既存`fetch('/api/...')`契約を変えず、親NativeShell経由で必要なJSONを取得できる。\n\n## 方針\n\nRelated Grid専用にNativeShell C#やData名を増やさず、Native Bridgeの「同一origin子frameは親Bridgeを再利用する」という汎用ルールで直した。ブラウザ通常表示・NativeShellトップ画面・別Windowは従来経路を維持する。\n\n## 確認結果\n\n- `node --check wwwroot/js/core/native_host_bridge.js` = PASS\n- Native Bridge focused test = 6/6 PASS（iframeから`/api/defs/...`を呼び、親Bridgeへ委譲されframe-local `postMessage`が0回であることを機械確認）\n- Related Grid + Native Bridge focused = 15 tests / 14 PASS / 1 FAIL。1 FAILは添付ZIP原本にも存在する`governance_items 5件期待 / 実7件`の既存テスト不整合。\n- 全Static Before: 299 tests / 281 PASS / 18 FAIL\n- 全Static After: 300 tests / 282 PASS / 18 FAIL\n- 18 FAILはBefore/Afterで同一内容。新規FAILなし。\n- NativeShell実機でのモーダル表示確認はこの環境では未実施。ユーザー実機確認をPENDINGとする。",
+          "topic": "Native iframe Bridge修正完了報告"
+        },
+        {
+          "history_id": "disc_0218_003",
+          "at": "2026-08-22T22:50:00+09:00",
+          "speaker": "user",
+          "message": "親グリッド画面にもどれないのよぉ～。最新資材添付します。",
+          "topic": "Related Grid表示復旧後の閉じる導線不具合報告"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0218_001",
+          "at": "2026-08-22T21:34:00+09:00",
+          "decision": "Related Grid modalを別Windowへ逃がさず、同一origin iframe内のNative API通信を親画面Bridgeへ委譲して修正する。",
+          "reason": "ユーザーが利用しているmodal UI契約を維持しつつ、NativeShell固有の通信問題をBridge境界だけで解消できるため。"
+        },
+        {
+          "decision_id": "dec_0218_002",
+          "at": "2026-08-22T21:34:00+09:00",
+          "decision": "Related Grid Runtimeやgovernance_items専用分岐を追加しない。",
+          "reason": "問題はData/ViewDefではなくNativeShell iframe通信境界にあり、汎用Bridgeで直す方が他のRelated Gridにも適用できるため。"
+        },
+        {
+          "decision_id": "dec_0218_003",
+          "at": "2026-08-22T21:34:00+09:00",
+          "decision": "same-origin親Bridgeが利用可能な場合だけ委譲し、それ以外は既存のlocal WebView2/no-op経路を維持する。",
+          "reason": "通常ブラウザ、トップ画面、将来の異origin frameへ副作用を広げないため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0218_001",
+          "at": "2026-08-22T21:34:00+09:00",
+          "change_type": "native_iframe_bridge_delegate",
+          "before": "NativeShell iframeも自身の`chrome.webview`でNative command request channelを初期化していた。",
+          "after": "same-origin親画面に利用可能な`FRBStudioNativeHost`があるiframeは、親Bridgeの`invoke()`へNative commandを委譲する。",
+          "reason": "Related Grid子Studioの`/api/*`読込を親NativeShellの既存応答経路へ戻し、初期化停止を解消するため。"
+        },
+        {
+          "history_id": "chg_0218_002",
+          "at": "2026-08-22T21:34:00+09:00",
+          "change_type": "native_bridge_cache_refresh",
+          "before": "index.htmlは`native_host_bridge.js?v=native-overlay-runtime-01894`を参照していた。",
+          "after": "`native_host_bridge.js?v=native-related-grid-iframe-018101`へ更新した。",
+          "reason": "WebView2キャッシュで修正前Bridgeが再利用されるのを防ぐため。"
+        },
+        {
+          "history_id": "chg_0218_003",
+          "at": "2026-08-22T21:34:00+09:00",
+          "change_type": "regression_test_add",
+          "before": "Native Bridgeのsame-origin iframe委譲を検証するテストがなかった。",
+          "after": "Node VMでiframeから`/api/defs/...`を呼び、親Bridgeへ委譲・frame-local postMessage 0回を検証するテストを追加した。",
+          "reason": "同じ白画面回帰を機械検知できるようにするため。"
+        },
+        {
+          "history_id": "chg_0218_004",
+          "at": "2026-08-22T22:50:00+09:00",
+          "change_type": "verification_update",
+          "before": "NativeShell実機モーダル表示は未確認。",
+          "after": "ユーザー実機スクリーンショットでRelated Gridの表示復旧を確認。",
+          "reason": "前回のNative iframe Bridge修正が白画面解消に有効だったことを実機で確認できたため。"
+        }
+      ],
+      "failure_stories": []
+    },
+    {
+      "work_item_id": "studio_work_0219",
+      "phase": "v0.18.102-related-grid-modal-layer-close-control",
+      "title": "Related Gridモーダルから親Gridへ戻れない — Closeヘッダーのz-index修正",
+      "incident_type": "bug_fix",
+      "category": "modal_layer",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "PENDING",
+      "verification_status": "静的確認済み / NativeShell実機確認待ち",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-22T22:50:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-22T22:50:00+09:00",
+      "updated_at": "2026-08-22T22:50:00+09:00",
+      "work_summary": "- Related Gridは表示できるようになったが、モーダルのCloseヘッダーが共通Shell/Pagebarの背面に隠れ、親Gridへ戻れない問題を修正する。\n- 既に存在するRelated Gridモーダルの×ボタンを生かし、Overlayのz-indexだけを共通Overlay層へ合わせる。\n- 新しい戻るボタンやRelated Grid専用分岐は増やさない。\n- CSSの回帰テストとキャッシュキー更新で機械保証する。",
+      "target_files": "- wwwroot/styles.css\n- wwwroot/index.html\n- tests/qa/static/related_grid_modal_layer_static.test.mjs\n- tests/qa/static/studio_json_round_trip_static.test.mjs\n- tests/qa/static/subgrid_action_column_layout_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- wwwroot/styles.css\n- wwwroot/index.html\n- tests/qa/static/related_grid_modal_layer_static.test.mjs\n- tests/qa/static/studio_json_round_trip_static.test.mjs\n- tests/qa/static/subgrid_action_column_layout_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "Foundation Rule 019に従い、2026-08-22添付のFRBStudio_App20260822_224912.zipを基準ソースとする。前回0218でRelated Grid本体の表示は復旧したため、今回は親画面へ戻る導線を隠しているLayer責務だけを最小差分で修正する。",
+      "objective": "判断軸・制約Related Gridモーダルの既存ヘッダーと×ボタンをCommon Shell/Pagebarより前面に表示し、ユーザーが安全にモーダルを閉じて親Gridへ戻れる状態にする。",
+      "background": "Related Grid modalは`openRelatedGridModal()`でヘッダーと×ボタンを生成済みだった。しかし`.related-grid-modal-overlay`のz-indexは12000で、Common UI Shellは約2147480000のsticky layerを使用している。そのためモーダル上端のヘッダーがShell/Pagebarの背面へ隠れ、iframe本体だけが見える状態になっていた。0218では白画面のNative Bridge問題を直したが、このLayer競合を確認できていなかった。",
+      "scope": "- `.related-grid-modal-overlay`を共通`--frb-overlay-modal-z`へ接続する。\n- 既存の`.related-grid-modal-header` / `.related-grid-modal-close` / `closeRelatedGridModal()`をそのまま利用する。\n- `styles.css`のcache keyを更新する。\n- Related Grid modalが共通Overlay層を使うことを静的テストで固定する。",
+      "out_of_scope": "- Related Gridの親子Data反映契約変更。\n- 「親画面へ反映」押下時の自動Close化。\n- 新規戻るボタン追加。\n- Common Shell自体のz-index変更。\n- governance_items専用UI分岐。",
+      "fixed_name_policy": "既存のCSS selectorと共通CSS custom propertyを再利用する。Data固有名・固定パス・新規専用Runtime分岐は追加しない。",
+      "module_policy": "モーダルLayer責務をCSSで解決し、Related Grid Runtimeの親子通信・Closeロジックには変更を入れない。共通Overlay z-indexは既存`--frb-overlay-modal-z`を正本として再利用する。",
+      "expected_outputs": "- Related Grid modalのタイトルヘッダーと×ボタンがFRB Studio Shell/Pagebarより前面に見える。\n- ×ボタンで`closeRelatedGridModal()`が実行され、親Gridへ戻れる。\n- 未反映変更がある場合の既存confirm契約を維持する。\n- Related Grid iframe表示・親画面へ反映・Native Bridgeに回帰を出さない。\n- WebView2キャッシュで旧styles.cssが残らない。",
+      "risk": "OverlayをCommon Shellより前面へ出すため、モーダル表示中は上部Shellも操作できなくなる。これはaria-modalと既存Overlay設計に整合する。既存Closeロジックは変更しないため、未反映変更confirmの回帰リスクは低い。",
+      "test_points": "- styles.cssのRelated Grid modalが`--frb-overlay-modal-z`を参照する。\n- 旧`z-index: 12000`がRelated Grid modal selector内に残らない。\n- index.htmlのstyles.css cache keyが更新される。\n- `related_grid_view.js`の×生成・closeRelatedGridModal契約は無変更。\n- 全Staticで新規FAILが増えない。\n- 既存のstyles.css cache key検証2件も新しいkeyへ同期し、cache-bust変更自体で新規FAILを作らない。",
+      "verification_log": "- focused: `node --test tests/qa/static/related_grid_modal_layer_static.test.mjs` = 2/2 PASS。\n- `node --check wwwroot/js/runtime/related_grid_view.js` = PASS（Close Runtimeは無変更だが既存構文を確認）。\n- Incident JSON parse = PASS。\n- 全Static Before（添付ZIP原本）: 300 tests / 282 PASS / 18 FAIL。\n- 全Static After: 302 tests / 284 PASS / 18 FAIL。\n- 追加した2 testsはPASSし、FAIL件数は18のまま。Before/Afterの既存FAIL内容は同一（テスト番号のみ追加分でシフト）。\n- NativeShell実機で×表示・親Grid復帰は未確認。",
+      "user_request": "親グリッド画面にもどれないため、添付した最新資材を基準に修正する。",
+      "ai_response": "最新ZIPを基準に画面Layerを調査し、Related Grid modalの既存×ボタンがCommon Shellの背面に隠れているz-index競合を最小差分で修正する。",
+      "latest_user_comment": "親グリッド画面にもどれないのよぉ～。最新資材添付します。",
+      "latest_ai_response": "AI回答\n\n## 今回の更新\n\n- `wwwroot/styles.css`\n- `wwwroot/index.html`\n- `tests/qa/static/related_grid_modal_layer_static.test.mjs`\n- `tests/qa/static/studio_json_round_trip_static.test.mjs`\n- `tests/qa/static/subgrid_action_column_layout_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## 原因\n\nRelated Gridには元からタイトルヘッダーと×ボタンが存在していたが、`.related-grid-modal-overlay`が`z-index: 12000`だった。一方、FRB StudioのCommon Shell/Pagebarは約2147480000のsticky layerなので、モーダル上端だけShellの背面へ潜り、×が見えなくなっていた。前回0218で白画面は解消したため、今回は『中身は見えるのに帰れない』状態として表面化した。\n\n## 修正\n\n新しい戻る機能は追加せず、Related Grid modalを既存の共通`--frb-overlay-modal-z`へ接続した。これで既存の×ボタンと`closeRelatedGridModal()`がShell/Pagebarより前面へ戻る。あわせてstyles.cssのcache keyを更新し、既存cache keyテスト2件も同期した。\n\n## 確認\n\n- 新規Focused test: 2/2 PASS\n- 全Static Before: 300 / 282 PASS / 18 FAIL\n- 全Static After: 302 / 284 PASS / 18 FAIL\n- 新規FAILなし。既存18 FAILの内容は同一。\n- NativeShell実機確認だけPENDING。",
+      "context_refs": [
+        {
+          "context_ref_id": "ctx_0219_foundation_019",
+          "title": "GitHub基準ソースとZIP返却契約",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "ユーザー添付の最新App ZIPを基準にし、更新ファイルだけを同一相対パスで返却し、更新済みIncident JSONを必ず含める。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 1,
+          "note": "作業依頼ターン添付のFRBStudio_App20260822_224912.zipを今回の正本とする。"
+        }
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0219_native_modal_close_verify",
+          "action_type": "VERIFICATION",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "studio_work_0219"
+          ],
+          "note": "Windows NativeShellで「判断軸・制約」を開き、モーダル上部のタイトル/×が表示され、×で親Gridへ戻れることを確認する。未反映編集がある場合は既存confirmも確認する。",
+          "summary": "NativeShell Related Gridの×閉じる導線を実機確認"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "disc_0219_001",
+          "at": "2026-08-22T22:50:00+09:00",
+          "speaker": "user",
+          "message": "親グリッド画面にもどれないのよぉ～。最新資材添付します。",
+          "topic": "Related GridモーダルのClose導線不具合報告"
+        },
+        {
+          "history_id": "disc_0219_002",
+          "at": "2026-08-22T22:50:00+09:00",
+          "speaker": "assistant",
+          "message": "AI回答  ## 今回の更新  - `wwwroot/styles.css` - `wwwroot/index.html` - `tests/qa/static/related_grid_modal_layer_static.test.mjs` - `tests/qa/static/studio_json_round_trip_static.test.mjs` - `tests/qa/static/subgrid_action_column_layout_static.test.mjs` - `data/json/01_main/_studio_work_incident_data_v2.json`  ## 原因  Related Gridには元からタイトルヘッダーと×ボタンが存在していたが、`.related-grid-modal-overlay`が`z-index: 12000`だった。一方、FRB StudioのCommon Shell/Pagebarは約2147480000のsticky layerなので、モーダル上端だけShellの背面へ潜り、×が見えなくなっていた。前回0218で白画面は解消したため、今回は『中身は見えるのに帰れない』状態として表面化した。  ## 修正  新しい戻る機能は追加せず、Related Grid modalを既存の共通`--frb-overlay-modal-z`へ接続した。これで既存の×ボタンと`closeRelatedGridModal()`がShell/Pagebarより前面へ戻る。あわせてstyles.cssのcache keyを更新し、既存cache keyテスト2件も同期した。  ## 確認  - 新規Focused test: 2/2 PASS - 全Static Before: 300 / 282 PASS / 18 FAIL - 全Static After: 302 / 284 PASS / 18 FAIL - 新規FAILなし。既存18 FAILの内容は同一。 - NativeShell実機確認だけPENDING。",
+          "topic": "Modal Layer最小修正方針"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0219_001",
+          "at": "2026-08-22T22:50:00+09:00",
+          "decision": "新しい親画面戻る機能を追加せず、既存Closeヘッダーを前面へ戻す。（失敗是正後）",
+          "reason": "Close責務と未反映変更confirmは既に実装済みであり、原因は機能不足ではなくLayer競合だから。"
+        },
+        {
+          "decision_id": "dec_0219_002",
+          "at": "2026-08-22T22:50:00+09:00",
+          "decision": "Related Grid専用の新しいz-index値を作らず、既存`--frb-overlay-modal-z`を再利用する。（失敗是正後）",
+          "reason": "Common Shellより上に出すOverlay契約が既に共通CSS変数として存在し、同じ責務を二重定義しない方が機械的に保証しやすいため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0219_001",
+          "at": "2026-08-22T22:50:00+09:00",
+          "change_type": "modal_layer_fix",
+          "before": "`.related-grid-modal-overlay`は`z-index: 12000`で、Common Shell/Pagebarより背面に配置されていた。",
+          "after": "`.related-grid-modal-overlay`は`var(--frb-overlay-modal-z, 2147483600)`を使用する。",
+          "reason": "モーダルヘッダーと×ボタンをCommon Shell/Pagebarより前面へ表示し、親Gridへ戻れるようにするため。"
+        },
+        {
+          "history_id": "chg_0219_002",
+          "at": "2026-08-22T22:50:00+09:00",
+          "change_type": "stylesheet_cache_refresh",
+          "before": "`styles.css?v=subgrid-action-divider-left-018921`。",
+          "after": "`styles.css?v=related-grid-modal-layer-018102`。",
+          "reason": "WebView2で修正前CSSがキャッシュされるのを避けるため。"
+        },
+        {
+          "history_id": "chg_0219_003",
+          "at": "2026-08-22T22:50:00+09:00",
+          "change_type": "regression_test_add",
+          "before": "共通Overlay z-indexの存在テストはあったが、Related Grid modalがそれを利用する保証がなかった。",
+          "after": "`related_grid_modal_layer_static.test.mjs`で共通Overlay層利用とcache keyを固定する。",
+          "reason": "0218で見落としたLayer競合を今後機械検知するため。"
+        },
+        {
+          "history_id": "chg_0219_004",
+          "at": "2026-08-22T22:50:00+09:00",
+          "change_type": "cache_key_test_sync",
+          "before": "2つの既存Static testが旧`styles.css?v=subgrid-action-divider-left-018921`を固定期待していた。",
+          "after": "新`styles.css?v=related-grid-modal-layer-018102`へ期待値を同期した。",
+          "reason": "今回の正当なCSS cache-bustによって、無関係な新規FAILを発生させないため。"
+        }
+      ],
+      "failure_stories": [
+        {
+          "failure_id": "fail_0219_001",
+          "at": "2026-08-22T22:50:00+09:00",
+          "failure_owner": "AI",
+          "summary": "白画面は直したのに、帰り道の×をShellの裏に置いたままだった",
+          "what_went_wrong": "0218ではiframeのNative Bridge停止原因へ集中し、Related Grid modalのz-index=12000とCommon Shellの約21億というLayer差を回帰確認しなかった。結果、Grid本体は表示されたが、もともと存在するCloseヘッダーと×ボタンが上部Shell/Pagebarの背面に隠れた。",
+          "excuse": "『中身が真っ白』を直すことに夢中で、『表示されたあと人間が帰れるか』まで見てなかった。入口は直した。出口をShellの裏に忘れた。笑",
+          "failure_admission": "ADMITTED",
+          "article_hook": "Studioくん、画面は開いた。でも帰れない — AIが出口をz-indexの裏に隠した日"
+        }
+      ]
     }
   ],
   "review_notes": [
@@ -32191,7 +32471,18 @@
       "read_timing": "after_work",
       "target_path": "",
       "purpose": "",
-      "failure_policy": "素直にAIが失敗したなぁ～って思った時は、失敗談欄に記録をしてください。無理に失敗談に仕立てる必要はありません。振り返れば、楽しい記録にすることだけが目的です。",
+      "failure_policy": "素直にAIが失敗したなぁ～って思った時は、失敗談欄に記録をしてください。無理に失敗談に仕立てる必要はありません。振り返れば、楽しい記録にすることだけが目的です。尚、失敗前（失敗時）の判断ログは、削除せず、（失敗原因）等の識別情報を追記の上、元の内容を変更せず残すこと。是正後の判断ログは、新しい行に起票すること。楽しみましょう(笑)",
+      "trust_category": "",
+      "required": false,
+      "enabled": true,
+      "note": ""
+    },
+    {
+      "title": "機械的な保証可能性を最優先した設計",
+      "read_timing": "before_work",
+      "target_path": "",
+      "purpose": "APP構造を設計・実装する際に、前提とする設計理念。機械的な保証可能性を最優先した設計を行う。",
+      "failure_policy": "",
       "trust_category": "",
       "required": false,
       "enabled": true,

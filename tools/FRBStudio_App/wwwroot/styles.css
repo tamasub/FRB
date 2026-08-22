@@ -3165,7 +3165,8 @@ body.related-grid-modal-open {
 .related-grid-modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 12000;
+  /* Keep the modal header/close control above the sticky FRB Studio shell/pagebar. */
+  z-index: var(--frb-overlay-modal-z, 2147483600);
   display: flex;
   align-items: center;
   justify-content: center;
