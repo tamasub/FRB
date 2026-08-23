@@ -3226,13 +3226,39 @@ function splitMarkdownTableRow(row) {
   cells.push(cur.trim().replace(/\\\|/g, "|"));
   return cells;
 }
+function matchMarkdownListItemPrefix(line) {
+  const text = String(line || "");
+  const match = text.match(/^(\s{0,3})([-*+]|\d+\.|[・･])([ \t]*)(.*)$/);
+  if (!match) return null;
+
+  const indent = match[1] || "";
+  const marker = match[2] || "";
+  const spacing = match[3] || "";
+  const body = match[4] || "";
+  const pseudoJapanese = marker === "・" || marker === "･";
+
+  // marked.js と同じ扱いに寄せる。
+  // "-" は空list item、"- "（空白1個だけ）はparagraph、"-  " は空list item。
+  // 日本語の「・」は render 前に "- " へ正規化されるため、本文なしはparagraphとして扱う。
+  const valid = pseudoJapanese
+    ? body.trim().length > 0
+    : body.length > 0
+      ? spacing.length > 0
+      : spacing.length === 0 || spacing.length >= 2;
+
+  if (!valid) return null;
+  return { indent, marker, spacing, body, prefix: `${indent}${marker}${spacing}` };
+}
+function isMarkdownListItemLine(line) {
+  return !!matchMarkdownListItemPrefix(line);
+}
 function isMarkdownBlockStartLine(line, nextLine = "") {
   const text = String(line || "");
   if (!text.trim()) return true;
   if (/^\s*(```|~~~)/.test(text)) return true;
   if (/^\s{0,3}(#{1,6})\s+/.test(text)) return true;
   if (/^\s{0,3}>\s?/.test(text)) return true;
-  if (/^\s{0,3}([-*+]\s+|\d+\.\s+|[・･]\s*)/.test(text)) return true;
+  if (isMarkdownListItemLine(text)) return true;
   if (/^\s{0,3}(-{3,}|\*{3,}|_{3,})\s*$/.test(text)) return true;
   if (isMarkdownTableRow(text) && isMarkdownTableSeparator(nextLine)) return true;
   return false;
@@ -3356,10 +3382,10 @@ function parseMarkdownBlocks(rawMd) {
       continue;
     }
 
-    if (/^\s{0,3}([-*+]\s+|\d+\.\s+|[・･]\s*)/.test(line)) {
+    if (isMarkdownListItemLine(line)) {
       const start = i;
       i++;
-      while (i < lines.length && lines[i].trim() && !/^\s{0,3}([-*+]\s+|\d+\.\s+|[・･]\s*)/.test(lines[i]) && !isMarkdownBlockStartLine(lines[i], lines[i + 1] || "")) i++;
+      while (i < lines.length && lines[i].trim() && !isMarkdownListItemLine(lines[i]) && !isMarkdownBlockStartLine(lines[i], lines[i + 1] || "")) i++;
       addMarkdownBlock(blocks, lines, "list_item", start, i - 1, { kind: "li" });
       continue;
     }
@@ -3429,9 +3455,10 @@ function setCurrentMarkdownBlockElement(block) {
   updateBlockModelMeta();
 }
 function stripMarkdownBlockPrefix(line) {
-  return String(line || "")
-    .replace(/^\s{0,3}#{1,6}\s+/, "")
-    .replace(/^\s{0,3}([-*+]\s+|\d+\.\s+|[・･]\s*)/, "")
+  let text = String(line || "").replace(/^\s{0,3}#{1,6}\s+/, "");
+  const listPrefix = matchMarkdownListItemPrefix(text);
+  if (listPrefix) text = text.slice(listPrefix.prefix.length);
+  return text
     .replace(/^\s{0,3}>\s?/, "")
     .replace(/^\s*\|/, "")
     .replace(/\|\s*$/, "")
@@ -5189,12 +5216,15 @@ function getMarkdownBlockInfoFromPreview(block) {
   };
 }
 function isCompactListInsertion(info, text) {
-  return info?.type === "list_item" && /^\s{0,3}([-*+]\s+|\d+\.\s+|[・･]\s*)/.test(String(text || ""));
+  return info?.type === "list_item" && isMarkdownListItemLine(text);
 }
 function defaultSentenceInsertText(info, position) {
   const sourceLine = String(info?.source || "").split(/\r?\n/)[0] || "";
-  const listMatch = sourceLine.match(/^(\s{0,3})([-*+]\s+|\d+\.\s+|[・･]\s*)/);
-  if (info?.type === "list_item" && listMatch) return `${listMatch[1]}${listMatch[2]}新しい項目`;
+  const listMatch = matchMarkdownListItemPrefix(sourceLine);
+  if (info?.type === "list_item" && listMatch) {
+    const gap = listMatch.spacing || " ";
+    return `${listMatch.indent}${listMatch.marker}${gap}新しい項目`;
+  }
   if (info?.type === "heading" && position === "after") return "新しい本文";
   if (info?.type === "table") return "新しい説明文";
   if (info?.type === "code_block") return "新しい本文";

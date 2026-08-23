@@ -104,18 +104,30 @@ Markdown Studioは `markdown.workspace` を使用します。
 
 ## Taskbar Jump List / direct launch
 
-Native Shell registers a Windows taskbar Jump List task at startup:
+Native Shell registers Windows taskbar Jump List tasks at startup.
+
+The fixed Markdown task remains available:
 
 ```text
 Markdown Studioを開く
 ```
 
-The task launches the same executable with:
+It launches the same executable with:
 
 ```text
 FRBStudio.NativeShell.exe --launch=markdown
 ```
 
+In addition, `wwwroot/config/app_settings.json` の `launch_shortcuts[]` を読み、Studio設定で登録済みの JSON Object Studio 起動ショートカットを同じ「タスク」欄へ展開する。各Jump List項目は個別Data/ViewDefをC#へ固定せず、ショートカットIDだけを引数として保持する。
+
+```text
+FRBStudio.NativeShell.exe --launch-shortcut=<shortcut-id>
+```
+
+起動時に `NativeLaunchOptions` が現在の `app_settings.json` からIDを再解決し、Common Shellの起動ショートカットと同じ `index.html?data=...&view=...&focusField=...` 契約へ変換する。そのため `launch_params` の `focusField / focusValue / openDetail / action` もタスクバー起動で維持される。
+
 `--launch=markdown` does not create a separate Markdown executable. `NativeLaunchOptions` resolves the launch target to `mdViewer.html`, and `NativeShellForm` combines that relative page with the configured virtual host after Native Shell configuration is loaded.
 
-The Jump List is convenience-only. Registration failure must never prevent normal FRB Studio startup. Windows may not show the custom task until the updated Native Shell has been launched at least once after deployment.
+Jump ListはNative Shell起動時に `app_settings.json` と同期する。設定画面でショートカットを追加・削除・表示名変更した場合は、Native Shellを一度再起動するとWindows側の「タスク」欄へ反映される。
+
+The Jump List is convenience-only. Registration failure must never prevent normal FRB Studio startup. Windows may not show the custom tasks until the updated Native Shell has been launched at least once after deployment.

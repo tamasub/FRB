@@ -21,6 +21,24 @@ namespace FRBStudio.NativeShell
                     {
                         options.InitialPage = "mdViewer.html";
                     }
+                    continue;
+                }
+
+                if (arg.StartsWith("--launch-shortcut=", StringComparison.OrdinalIgnoreCase))
+                {
+                    try
+                    {
+                        var encodedId = arg.Substring("--launch-shortcut=".Length).Trim();
+                        var shortcutId = Uri.UnescapeDataString(encodedId);
+                        if (NativeLaunchShortcutCatalog.TryBuildInitialPage(shortcutId, out var initialPage))
+                        {
+                            options.InitialPage = initialPage;
+                        }
+                    }
+                    catch
+                    {
+                        // A stale/invalid convenience task must never block normal NativeShell startup.
+                    }
                 }
             }
             return options;

@@ -27,6 +27,16 @@ namespace FRBStudio.NativeShell
                     iconPath: ResolveMarkdownTaskIconPath(),
                     iconIndex: 0));
 
+                foreach (var shortcut in NativeLaunchShortcutCatalog.Load())
+                {
+                    tasks.AddObject(CreateShellLink(
+                        title: shortcut.Caption,
+                        arguments: "--launch-shortcut=" + Uri.EscapeDataString(shortcut.Id),
+                        description: "Studio設定の起動ショートカット: " + shortcut.DataPath,
+                        iconPath: ResolveStudioTaskIconPath(),
+                        iconIndex: 0));
+                }
+
                 destinationList.AddUserTasks((IObjectArray)tasks);
                 destinationList.CommitList();
             }
@@ -64,7 +74,14 @@ namespace FRBStudio.NativeShell
             if (File.Exists(nextToExe)) return nextToExe;
             var source = Path.Combine(AppContext.BaseDirectory, "NativeShell", "MarkdownStudio.ico");
             if (File.Exists(source)) return source;
-            return Path.Combine(AppContext.BaseDirectory, "FRB_Studio.ico");
+            return ResolveStudioTaskIconPath();
+        }
+
+        private static string ResolveStudioTaskIconPath()
+        {
+            var nextToExe = Path.Combine(AppContext.BaseDirectory, "FRB_Studio.ico");
+            if (File.Exists(nextToExe)) return nextToExe;
+            return Path.Combine(AppContext.BaseDirectory, "NativeShell", "FRB_Studio.ico");
         }
 
         [ComImport, Guid("77F10CF0-3DB5-4966-B520-B7C54FD35ED6")]

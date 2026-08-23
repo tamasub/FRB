@@ -210,7 +210,7 @@ function decorateDetailSubGridColumnsWithAutoLayout(columns=[], data=[], field=n
   });
 }
 
-function createSubGridCellControl({ value, column, editable, field }) {
+function createSubGridCellControl({ value, column, editable, field, multilineEditor=false }) {
   const type = inferSubGridCellType(value, column);
   const readonly = !editable || column.readonly || column.edit?.readonly;
   const control = column.control ?? column.edit?.control ?? (column.options ? 'select' : null);
@@ -250,16 +250,29 @@ function createSubGridCellControl({ value, column, editable, field }) {
     input = document.createElement('input');
     input.type = 'number';
     input.value = value ?? '';
+  } else if (multilineEditor) {
+    // v0.18.105-subgrid-preview-multiline-enter:
+    // SubGrid一覧は引き続き1行inputのままにするが、Preview Editの長文編集だけは
+    // 本物のtextareaを使う。Enter / Shift+Enter は改行、Ctrl/Cmd+Enter は反映。
+    input = document.createElement('textarea');
+    input.value = subGridCellText(value);
+    const lineCount = String(input.value ?? '').split('\n').length;
+    input.rows = Math.min(14, Math.max(3, lineCount + 1));
+    input.dataset.multilineEditor = 'true';
   } else {
     // v0.18.11-subgrid-single-line-motivation-ui:
-    // SubGrid一覧のtextareaは廃止。長文・JSONも1行inputで折り返さず表示する。
-    // がっつり編集したい場合は既存のPreview Editを使う。
+    // SubGrid一覧は見た目だけ1行にする。長文・JSONの正本値まで1行化してはならない。
+    // v0.18.106-subgrid-multiline-preservation:
+    // Preview Editを開く/F12反映するだけで改行が消える事故を防ぐため、一覧inputには
+    // 1行表示用valueとは別に改行を含むraw値をDOM propertyとして保持する。
     input = document.createElement('input');
     input.type = 'text';
+    const rawText = subGridCellText(value);
     input.value = detailSubGridInlineText(value);
-    if (type === 'textarea' || type === 'markdown' || type === 'json' || String(subGridCellText(value)).includes('\n') || String(subGridCellText(value)).length > 80) {
+    if (type === 'textarea' || type === 'markdown' || type === 'json' || String(rawText).includes('\n') || String(rawText).length > 80) {
       input.dataset.singleLineLongValue = 'true';
-      input.title = subGridCellText(value);
+      input.__studioSubGridRawValue = rawText;
+      input.title = rawText;
     }
   }
 
@@ -270,7 +283,15 @@ function createSubGridCellControl({ value, column, editable, field }) {
   const inputMinWidth = detailSubGridCssSize(column.__autoInputMinWidth ?? column.width ?? column.grid?.width ?? column.edit?.width);
   if (inputMinWidth) input.style.minWidth = inputMinWidth;
   if (readonly) input.disabled = true;
-  input.addEventListener('input', () => markDetailSubGridDirty(input.closest('.detail-subgrid-edit')));
+  input.addEventListener('input', () => {
+    // 一覧の長文inputをユーザーが明示的に編集した場合だけraw値を更新する。
+    // 単にPreview Editを開く/F12反映するだけなら、元の改行付きraw値を維持する。
+    if (input.dataset.singleLineLongValue === 'true') {
+      input.__studioSubGridRawValue = input.value ?? '';
+      input.title = input.__studioSubGridRawValue;
+    }
+    markDetailSubGridDirty(input.closest('.detail-subgrid-edit'));
+  });
   input.addEventListener('change', () => markDetailSubGridDirty(input.closest('.detail-subgrid-edit')));
   input.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
@@ -573,6 +594,9 @@ function createDetailSubGridPreviewEditValue({ rowIndex, column, itemRow, field,
 
   const enterEdit = () => {
     if (editing) return;
+    // Preview表示時の高さを、編集開始後のtextareaの最低高さとして引き継ぐ。
+    // 長文ほど「クリックした瞬間に72pxへ縮む」回帰を防ぐ。
+    const previewHeight = Math.max(72, Math.ceil(box.getBoundingClientRect?.().height || box.offsetHeight || 0));
     editing = true;
     box.dataset.editing = 'true';
     const editorColumn = {
@@ -580,8 +604,16 @@ function createDetailSubGridPreviewEditValue({ rowIndex, column, itemRow, field,
       type: column.type === 'json' ? 'json' : (column.type === 'markdown' ? 'markdown' : 'textarea'),
       control: column.control ?? 'textarea'
     };
-    const input = createSubGridCellControl({ value: itemRow?.[column.field], column: editorColumn, editable: true, field });
+    const input = createSubGridCellControl({
+      value: itemRow?.[column.field],
+      column: editorColumn,
+      editable: true,
+      field,
+      multilineEditor: true
+    });
     input.classList.add('detail-subgrid-card-preview-editor');
+    input.style.minHeight = `${previewHeight}px`;
+    input.style.height = `${previewHeight}px`;
     box.innerHTML = '';
     box.appendChild(input);
 
@@ -611,8 +643,15 @@ function createDetailSubGridPreviewEditValue({ rowIndex, column, itemRow, field,
       }
     });
     requestAnimationFrame(() => {
-      input.focus();
-      if (input.select && input.tagName !== 'TEXTAREA') input.select();
+      // 編集開始時は必ず文章先頭を見せる。focusで直前caret位置へ自動スクロールされないようにする。
+      try { input.focus({ preventScroll: true }); } catch { input.focus(); }
+      if (input.tagName === 'TEXTAREA') {
+        try { input.setSelectionRange(0, 0); } catch { /* ignore */ }
+        input.scrollTop = 0;
+        input.scrollLeft = 0;
+      } else if (input.select) {
+        input.select();
+      }
     });
   };
 
@@ -1046,7 +1085,12 @@ function createDetailSubGridCard({ field, row, gd, data }) {
 function readSubGridControlValue(input) {
   if (!input) return '';
   const type = input.dataset.cellType ?? 'text';
-  const raw = input.value ?? '';
+  // v0.18.106-subgrid-multiline-preservation:
+  // 一覧inputは改行を空白へ畳んだ表示専用valueを持つため、長文セルはraw値を正本として読む。
+  // raw値は一覧で実際に編集されたときだけinputイベントで更新される。
+  const raw = input.dataset.singleLineLongValue === 'true' && typeof input.__studioSubGridRawValue === 'string'
+    ? input.__studioSubGridRawValue
+    : (input.value ?? '');
   if (type === 'boolean') {
     if (input.type === 'checkbox') return Boolean(input.checked);
     if (raw === 'true') return true;

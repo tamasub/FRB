@@ -2945,11 +2945,17 @@ textarea.detail-subgrid-cell-input {
   margin: 0;
   padding: 4px 6px;
   min-height: 72px;
-  height: 72px;
+  height: auto;
   border-radius: 7px;
   font-size: 12px;
   line-height: 1.35;
   resize: vertical;
+}
+/* v0.18.106-subgrid-multiline-preservation:
+   Preview Editのtextarea高さはJSで直前Previewの実高さを継承する。
+   compact CSSが固定72pxへ押し戻して長文欄を縮ませないこと。 */
+.detail-subgrid-card-preview-edit-value[data-editing="true"] .detail-subgrid-card-preview-editor {
+  max-height: none;
 }
 .detail-subgrid-card-preview-edit-value {
   min-height: 26px;

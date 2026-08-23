@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-22T23:17:00+09:00",
+  "updated_at": "2026-08-23T10:31:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 208,
+  "items_count": 212,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -29047,7 +29047,7 @@
           "decision_id": "dec_0200_002",
           "at": "2026-08-17T18:20:00+09:00",
           "decision": "wwwroot/defs/json/rules版は今回更新せず、正本統合・静的hosting対応を後続作業へ残す。",
-          "reason": "Foundation Rule 019がwwwroot/defsを公開用静的領域と定義し、明示依頼なしの更新を禁止しているため。また2コピーには今回以前からfollow_up_actions等の構造差分があり、全面同期は別責務になる。",
+          "reason": "Foundation Rule 019がwwwroot/defsを公開用静的領域と定義し、明示依頼なしの更新を禁止しているため。\nまた2コピーには今回以前からfollow_up_actions等の構造差分があり、全面同期は別責務になる。",
           "applied_axes": [
             "Foundation Rule 019遵守",
             "最小十分な差分",
@@ -29188,7 +29188,7 @@
         {
           "at": "2026-08-17T18:36:00+09:00",
           "speaker": "assistant",
-          "message": "AI回答  ## 今回の更新  - `data/json/01_main/_studio_work_incident_data_v2_schema_v0_1.json` - `defs/rules/studio_work_incident_view_def_v0_5.json` - `data/json/00_rules/frb_foundation_rules_data_v0_1.json` - `tests/qa/static/combo_viewdef_maintenance_static.test.mjs` - `data/json/01_main/_studio_work_incident_data_v2.json`  ## やったこと  新規フィールド `work_summary` を「作業概要（要約版）」として追加した。新規インシデントSchemaでは `required` + `minLength: 1` とし、ViewDefでも `validation.required: true` を宣言した。  詳細画面では既存の `__work_summary_cards` を再利用し、「作業内容 / 方針」の最初のカードとして `work_summary` を表示する。新しいRendererは追加していない。  Foundationのインシデント作成ルールも更新し、`work_summary` には「何をするか / なぜ必要か / 今回どこまで扱うか / 完了すると何が変わるか」を短い段落または2〜5件程度の箇条書きで記載する契約を追加した。過去インシデントへの一括補完は不要とした。  今回の `studio_work_0201` 自身から `work_summary` を記載している。  ## 方針  `work_summary` は `objective` / `background` / `scope` 等の詳細項目を置き換えない。最初に全体像を与えるナビゲーション要約として責務分離する。  ## 確認結果  - New Item Schema validation: PASS - Focused Static: 14 tests / 13 PASS / 1既存FAIL → 15 tests / 14 PASS / 1既存FAIL - 全Static: 254 / 236 PASS / 18 FAIL → 255 / 237 PASS / 18 FAIL - 既存18 FAILはテスト名まで一致、新規FAILなし - JSON parse: OK - 実機で先頭カード表示確認のみPENDING",
+          "message": "AI回答\n\n## 今回の更新\n\n- `data/json/01_main/_studio_work_incident_data_v2_schema_v0_1.json`\n- `defs/rules/studio_work_incident_view_def_v0_5.json`\n- `data/json/00_rules/frb_foundation_rules_data_v0_1.json`\n- `tests/qa/static/combo_viewdef_maintenance_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\n新規フィールド `work_summary` を「作業概要（要約版）」として追加した。新規インシデントSchemaでは `required` + `minLength: 1` とし、ViewDefでも `validation.required: true` を宣言した。\n\n詳細画面では既存の `__work_summary_cards` を再利用し、「作業内容 / 方針」の最初のカードとして `work_summary` を表示する。新しいRendererは追加していない。\n\nFoundationのインシデント作成ルールも更新し、`work_summary` には「何をするか / なぜ必要か / 今回どこまで扱うか / 完了すると何が変わるか」を短い段落または2〜5件程度の箇条書きで記載する契約を追加した。過去インシデントへの一括補完は不要とした。\n\n今回の `studio_work_0201` 自身から `work_summary` を記載している。\n\n## 方針\n\n`work_summary` は `objective` / `background` / `scope` 等の詳細項目を置き換えない。最初に全体像を与えるナビゲーション要約として責務分離する。\n\n## 確認結果\n\n- New Item Schema validation: PASS\n- Focused Static: 14 tests / 13 PASS / 1既存FAIL → 15 tests / 14 PASS / 1既存FAIL\n- 全Static: 254 / 236 PASS / 18 FAIL → 255 / 237 PASS / 18 FAIL\n- 既存18 FAILはテスト名まで一致、新規FAILなし\n- JSON parse: OK\n- 実機で先頭カード表示確認のみPENDING",
           "history_id": "hist_0201_003",
           "topic": "作業概要（要約版）必須化"
         }
@@ -29326,7 +29326,7 @@
           "at": "2026-08-17T19:11:00+09:00",
           "speaker": "assistant",
           "topic": "Markdown Workspace フルパス指定",
-          "message": "AI回答  ## 実装  - `NativeShell/NativeCommandDispatcher.cs` に `folderGrant.promptPath` を追加。 - NativeShell側でフルパス入力用のWinFormsダイアログを表示し、ExplorerからコピーしたパスをTextBoxへ貼り付けて「開く」を押すとFolder Grantを発行する。 - 相対パス・存在しないDirectoryはダイアログ内で拒否する。引用符付きパスと環境変数は正規化する。 - `wwwroot/mdViewer.html` のWorkspace欄へ「📋 フルパスを貼り付けて開く」を追加し、`Ctrl+Shift+O` でも同じNative入力ダイアログを開ける。 - 既存 `folderGrant.select` / `folderGrant.restore` / `markdown.workspace` 永続化はそのまま維持する。  ## 安全境界  利便性のために `folderGrant.openPath(path)` のようなAPIをJSへ公開すると、Web UI側が任意のローカルフォルダーを無確認でGrant化できる。そのためその方式は採用せず、NativeShell側の明示ユーザー確認ダイアログ `folderGrant.promptPath` だけを公開した。  ## 確認  - Focused Static: 21 / 19 PASS / 2既存FAIL → 24 / 22 PASS / 2既存FAIL - 全Static: 255 / 237 PASS / 18 FAIL → 258 / 240 PASS / 18 FAIL - 既存18 FAILは名前まで完全一致、新規FAILなし - New Item Schema: PASS - mdViewer inline JS syntax: PASS - NativeShell C# buildは現Linux環境に.NET/MSBuildがないため未実施。Windows実機確認をPENDINGとして残した。"
+          "message": "AI回答\n\n## 実装\n\n- `NativeShell/NativeCommandDispatcher.cs` に `folderGrant.promptPath` を追加。\n- NativeShell側でフルパス入力用のWinFormsダイアログを表示し、ExplorerからコピーしたパスをTextBoxへ貼り付けて「開く」を押すとFolder Grantを発行する。\n- 相対パス・存在しないDirectoryはダイアログ内で拒否する。引用符付きパスと環境変数は正規化する。\n- `wwwroot/mdViewer.html` のWorkspace欄へ「📋 フルパスを貼り付けて開く」を追加し、`Ctrl+Shift+O` でも同じNative入力ダイアログを開ける。\n- 既存 `folderGrant.select` / `folderGrant.restore` / `markdown.workspace` 永続化はそのまま維持する。\n\n## 安全境界\n\n利便性のために `folderGrant.openPath(path)` のようなAPIをJSへ公開すると、Web UI側が任意のローカルフォルダーを無確認でGrant化できる。そのためその方式は採用せず、NativeShell側の明示ユーザー確認ダイアログ `folderGrant.promptPath` だけを公開した。\n\n## 確認\n\n- Focused Static: 21 / 19 PASS / 2既存FAIL → 24 / 22 PASS / 2既存FAIL\n- 全Static: 255 / 237 PASS / 18 FAIL → 258 / 240 PASS / 18 FAIL\n- 既存18 FAILは名前まで完全一致、新規FAILなし\n- New Item Schema: PASS\n- mdViewer inline JS syntax: PASS\n- NativeShell C# buildは現Linux環境に.NET/MSBuildがないため未実施。Windows実機確認をPENDINGとして残した。"
         }
       ],
       "decision_log": [
@@ -29462,7 +29462,7 @@
           "at": "2026-08-17T19:11:00+09:00",
           "speaker": "assistant",
           "topic": "Markdown表示プロファイル",
-          "message": "AI回答  ## 実装  - Markdown Studio上部に `表示 [標準 / コンパクト]` を追加。 - `standard` は既存の見た目を維持し、`compact` はH1〜H6のfont-sizeと余白だけを小さくする。H1=24px、H2=20pxを中心に会社文書向けの落ち着いた密度へ寄せた。 - 切替は `data-md-display-profile` + CSS overrideだけで行い、`# / ## / ###` を含むCanonical Markdownには一切触れない。 - 選択値は `frb.markdown.displayProfile` として端末内のUI preferenceに保存し、次回表示時に復元する。これはMarkdown本文バックアップではない。  ## 判断  Markdownのheading levelは文書の意味構造、見出しサイズはView表現として分離した。初手では自由なフォントサイズ設定を作らず、`標準 / コンパクト` の2presetに限定する。  ## 確認  - Focused Static: 21 / 19 PASS / 2既存FAIL → 24 / 22 PASS / 2既存FAIL - 全Static: 255 / 237 PASS / 18 FAIL → 258 / 240 PASS / 18 FAIL - 既存18 FAILは名前まで完全一致、新規FAILなし - Display Profile関数が `editorEl.value` 等のCanonical Markdownを書き換えないことをStaticで固定 - mdViewer inline JS syntax: PASS - 実機で標準/コンパクトの見た目と選択復元を確認する作業をPENDINGとして残した。"
+          "message": "AI回答\n\n## 実装\n\n- Markdown Studio上部に `表示 [標準 / コンパクト]` を追加。\n- `standard` は既存の見た目を維持し、`compact` はH1〜H6のfont-sizeと余白だけを小さくする。H1=24px、H2=20pxを中心に会社文書向けの落ち着いた密度へ寄せた。\n- 切替は `data-md-display-profile` + CSS overrideだけで行い、`# / ## / ###` を含むCanonical Markdownには一切触れない。\n- 選択値は `frb.markdown.displayProfile` として端末内のUI preferenceに保存し、次回表示時に復元する。これはMarkdown本文バックアップではない。\n\n## 判断\n\nMarkdownのheading levelは文書の意味構造、見出しサイズはView表現として分離した。初手では自由なフォントサイズ設定を作らず、`標準 / コンパクト` の2presetに限定する。\n\n## 確認\n\n- Focused Static: 21 / 19 PASS / 2既存FAIL → 24 / 22 PASS / 2既存FAIL\n- 全Static: 255 / 237 PASS / 18 FAIL → 258 / 240 PASS / 18 FAIL\n- 既存18 FAILは名前まで完全一致、新規FAILなし\n- Display Profile関数が `editorEl.value` 等のCanonical Markdownを書き換えないことをStaticで固定\n- mdViewer inline JS syntax: PASS\n- 実機で標準/コンパクトの見た目と選択復元を確認する作業をPENDINGとして残した。"
         }
       ],
       "decision_log": [
@@ -29591,7 +29591,7 @@
           "at": "2026-08-17T19:43:00+09:00",
           "speaker": "assistant",
           "topic": "Markdown Folder Open統合 / Toolbar形状",
-          "message": "AI回答  ## 今回の更新  - `wwwroot/mdViewer.html` - `tests/qa/static/markdown_workspace_native_static.test.mjs` - `tests/qa/static/frb_studio_common_shell_static.test.mjs` - `data/json/01_main/_studio_work_incident_data_v2.json`  ## やったこと  - Markdown Studio上部の保存系ボタンへ `flex: 0 0 auto` と `white-space: nowrap` を適用し、Display Profile追加後も「保存」「保存検査」「名前を付けて保存」が縦折れしないようにした。 - Workspaceの入口を `📁 フォルダーを開く` 1本へ統合した。クリックすると、studio_work_0202で追加したNativeShellの `folderGrant.promptPath` ダイアログを開く。 - 独立していた `📋 フルパスを貼り付けて開く` ボタンと、その専用JS参照/関数を削除した。 - `Ctrl+Shift+O` は統合後も同じ「フォルダーを開く」処理を起動する。 - NativeShell側のフルパス貼付・`参照...`・Folder Grant処理は変更せず、そのまま再利用した。  ## 方針  Workspaceを開く目的は1つなので、入口も1つにする。フルパス貼付とWindows標準フォルダー参照は、同じNativeダイアログ内の選択方法として扱う。  保存系ボタンは操作単位として形を保つため縮小・改行させず、中央のMarkdown Drop領域をflexで縮ませる。  ## 確認結果  - Focused Static（markdown_workspace_native_static）: 25 tests / 23 PASS / 2既存FAIL。今回追加・更新したFolder Open統合とToolbar形状テストはPASS。 - 全Static Before: 258 tests / 240 PASS / 18 FAIL。 - 全Static After: 259 tests / 241 PASS / 18 FAIL。 - Before / Afterの既存18 FAILはテスト名まで完全一致。新規FAILなし。 - `mdViewer.html` inline JavaScript: `node --check` PASS。 - 更新JSON parse / 新規Item Schema validation: PASS。 - Windows実機では、保存系3ボタンが1行形状を維持することと、「フォルダーを開く」からフルパス貼付/参照の両方へ入れることを最終確認する。 - Static実行で更新された既存TP-IPC-001 Actual/Diffは原本へ復元し、返却差分から除外。"
+          "message": "AI回答\n\n## 今回の更新\n\n- `wwwroot/mdViewer.html`\n- `tests/qa/static/markdown_workspace_native_static.test.mjs`\n- `tests/qa/static/frb_studio_common_shell_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\n- Markdown Studio上部の保存系ボタンへ `flex: 0 0 auto` と `white-space: nowrap` を適用し、Display Profile追加後も「保存」「保存検査」「名前を付けて保存」が縦折れしないようにした。\n- Workspaceの入口を `📁 フォルダーを開く` 1本へ統合した。クリックすると、studio_work_0202で追加したNativeShellの `folderGrant.promptPath` ダイアログを開く。\n- 独立していた `📋 フルパスを貼り付けて開く` ボタンと、その専用JS参照/関数を削除した。\n- `Ctrl+Shift+O` は統合後も同じ「フォルダーを開く」処理を起動する。\n- NativeShell側のフルパス貼付・`参照...`・Folder Grant処理は変更せず、そのまま再利用した。\n\n## 方針\n\nWorkspaceを開く目的は1つなので、入口も1つにする。フルパス貼付とWindows標準フォルダー参照は、同じNativeダイアログ内の選択方法として扱う。\n\n保存系ボタンは操作単位として形を保つため縮小・改行させず、中央のMarkdown Drop領域をflexで縮ませる。\n\n## 確認結果\n\n- Focused Static（markdown_workspace_native_static）: 25 tests / 23 PASS / 2既存FAIL。今回追加・更新したFolder Open統合とToolbar形状テストはPASS。\n- 全Static Before: 258 tests / 240 PASS / 18 FAIL。\n- 全Static After: 259 tests / 241 PASS / 18 FAIL。\n- Before / Afterの既存18 FAILはテスト名まで完全一致。新規FAILなし。\n- `mdViewer.html` inline JavaScript: `node --check` PASS。\n- 更新JSON parse / 新規Item Schema validation: PASS。\n- Windows実機では、保存系3ボタンが1行形状を維持することと、「フォルダーを開く」からフルパス貼付/参照の両方へ入れることを最終確認する。\n- Static実行で更新された既存TP-IPC-001 Actual/Diffは原本へ復元し、返却差分から除外。"
         }
       ],
       "decision_log": [
@@ -29744,7 +29744,7 @@
           "at": "2026-08-17T20:35:00+09:00",
           "speaker": "assistant",
           "topic": "PC移行時AppRoot手修正ゼロ化 完了報告",
-          "message": "AI回答  ## 今回の更新  - `cmd_compile_NativeShell.bat` - `tools/build/Build-NativeShell.ps1` - `tools/zip/make_FRBStudio_App_zip_v2.ps1` - `tools/zip/make_studio_overlays_zip_v1.ps1` - `tools/test/TestRunner.ps1` - `tools/FileTree/file_list_Tree.bat` - `wwwroot/count_js_steps_add_datetime.bat` - `tools/Utf8Readable/Repair-JsonMdUtf8ReadableText.ps1` - `NativeShell/README.md` - `tests/qa/static/portable_app_root_static.test.mjs` - `data/json/01_main/_studio_work_incident_data_v2.json`  ## やったこと  PC移行時にFRBStudio_Appの配置先を手修正しなくてよいよう、Build / ZIP / TestRunner / 補助BATのAppRoot解決を自身の配置位置基準へ変更した。  NativeShellはルートの `cmd_compile_NativeShell.bat` を実行すれば、`tools/build/Build-NativeShell.ps1` がAppRootを自動解決し、`NativeShell/_publish` へ `dotnet publish` する。旧BATの絶対パス `cd` とxcopyは不要になった。  GitDiffは既にAppRoot自動解決済みだったため変更せず、portable Staticの監視対象へ含めた。  TestRunnerは、配布ZIPに存在しない `package.json` をAppRoot markerとして要求していたため、実際のFRBStudio_App構成をmarkerへ変更した。Playwright固有の `playwright.config.ts` は `playwright_ui` 実行時だけ確認する。  ## 方針  FRBStudio_Appの配置パスは「1か所設定」ではなく「0か所手修正」を基本とした。BATは `%~dp0`、PowerShellは `$PSScriptRoot` からAppRootを解決する。  `dotnet / git / node / npx` はPC側PATHで解決する。PATHがない場合はPC環境問題として扱い、Studioソースへ各PC固有のインストール先を埋め込まない。  ## 確認結果  - portability専用Static: 5/5 PASS - 全Static: 264 tests / 246 PASS / 18 FAIL - Beforeの18 FAILとテスト名まで完全一致、新規FAILなし - 新規Incident Schema: PASS - Windows実機Build / ZIP / GitDiff / TestRunner: 実機確認待ち  なお、`wwwroot/count_js_steps_add_datetime.bat` はRoot相対化したが、現ZIPに `count_js_steps.py` 自体が存在しない既存問題は別途評価対象として残した。 "
+          "message": "AI回答\n\n## 今回の更新\n\n- `cmd_compile_NativeShell.bat`\n- `tools/build/Build-NativeShell.ps1`\n- `tools/zip/make_FRBStudio_App_zip_v2.ps1`\n- `tools/zip/make_studio_overlays_zip_v1.ps1`\n- `tools/test/TestRunner.ps1`\n- `tools/FileTree/file_list_Tree.bat`\n- `wwwroot/count_js_steps_add_datetime.bat`\n- `tools/Utf8Readable/Repair-JsonMdUtf8ReadableText.ps1`\n- `NativeShell/README.md`\n- `tests/qa/static/portable_app_root_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\nPC移行時にFRBStudio_Appの配置先を手修正しなくてよいよう、Build / ZIP / TestRunner / 補助BATのAppRoot解決を自身の配置位置基準へ変更した。\n\nNativeShellはルートの `cmd_compile_NativeShell.bat` を実行すれば、`tools/build/Build-NativeShell.ps1` がAppRootを自動解決し、`NativeShell/_publish` へ `dotnet publish` する。旧BATの絶対パス `cd` とxcopyは不要になった。\n\nGitDiffは既にAppRoot自動解決済みだったため変更せず、portable Staticの監視対象へ含めた。\n\nTestRunnerは、配布ZIPに存在しない `package.json` をAppRoot markerとして要求していたため、実際のFRBStudio_App構成をmarkerへ変更した。Playwright固有の `playwright.config.ts` は `playwright_ui` 実行時だけ確認する。\n\n## 方針\n\nFRBStudio_Appの配置パスは「1か所設定」ではなく「0か所手修正」を基本とした。BATは `%~dp0`、PowerShellは `$PSScriptRoot` からAppRootを解決する。\n\n`dotnet / git / node / npx` はPC側PATHで解決する。PATHがない場合はPC環境問題として扱い、Studioソースへ各PC固有のインストール先を埋め込まない。\n\n## 確認結果\n\n- portability専用Static: 5/5 PASS\n- 全Static: 264 tests / 246 PASS / 18 FAIL\n- Beforeの18 FAILとテスト名まで完全一致、新規FAILなし\n- 新規Incident Schema: PASS\n- Windows実機Build / ZIP / GitDiff / TestRunner: 実機確認待ち\n\nなお、`wwwroot/count_js_steps_add_datetime.bat` はRoot相対化したが、現ZIPに `count_js_steps.py` 自体が存在しない既存問題は別途評価対象として残した。\n"
         }
       ],
       "decision_log": [
@@ -29903,14 +29903,14 @@
           "at": "2026-08-17T21:16:00+09:00",
           "speaker": "assistant",
           "topic": "GitDiff一時出力1ファイル化 完了報告",
-          "message": "AI回答  ## 今回の更新  - `tools/git/Export-DiffToJson.ps1` - `NativeShell/native_shell.config.json` - `data/json/04_tools/git_diff_export_run_config_data_v0_1.json` - `tests/qa/static/git_diff_current_output_static.test.mjs` - `data/json/01_main/_studio_work_incident_data_v2.json`  ## やったこと  GitDiffの通常実行結果を、日時付きJSONの新規作成から `wwwroot/diff/DiffToJson_current.json` 1ファイル上書きへ変更した。  これ以降、Git Diff Runを何回実行しても通常出力はcurrent 1件だけで、次回実行時に内容が更新される。NativeShellのoutput artifactもcurrent 1件だけを監視するため、既存のDiff JSON Viewer自動表示導線は維持する。  ## 方針  今回の目的は `wwwroot/diff` の自動蓄積停止に限定した。既に存在する日時付きDiff JSONは、保存価値が不明なものをAI判断で削除しないため、そのまま残している。  Diff JSON Viewerの「名前を付けて保存」は次段階の後続作業として登録した。  ## 確認結果  - GitDiff current出力専用Static: 1/1 PASS - 全Static Before: 264 tests / 246 PASS / 18 FAIL - 全Static After: 265 tests / 247 PASS / 18 FAIL - 既存18 FAILはテスト名まで完全一致、新規FAILなし - studio_work_0206 新規Item Schema: PASS - PowerShell実実行 / Windows NativeShell実機確認: この環境では未実施 "
+          "message": "AI回答\n\n## 今回の更新\n\n- `tools/git/Export-DiffToJson.ps1`\n- `NativeShell/native_shell.config.json`\n- `data/json/04_tools/git_diff_export_run_config_data_v0_1.json`\n- `tests/qa/static/git_diff_current_output_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\nGitDiffの通常実行結果を、日時付きJSONの新規作成から `wwwroot/diff/DiffToJson_current.json` 1ファイル上書きへ変更した。\n\nこれ以降、Git Diff Runを何回実行しても通常出力はcurrent 1件だけで、次回実行時に内容が更新される。NativeShellのoutput artifactもcurrent 1件だけを監視するため、既存のDiff JSON Viewer自動表示導線は維持する。\n\n## 方針\n\n今回の目的は `wwwroot/diff` の自動蓄積停止に限定した。既に存在する日時付きDiff JSONは、保存価値が不明なものをAI判断で削除しないため、そのまま残している。\n\nDiff JSON Viewerの「名前を付けて保存」は次段階の後続作業として登録した。\n\n## 確認結果\n\n- GitDiff current出力専用Static: 1/1 PASS\n- 全Static Before: 264 tests / 246 PASS / 18 FAIL\n- 全Static After: 265 tests / 247 PASS / 18 FAIL\n- 既存18 FAILはテスト名まで完全一致、新規FAILなし\n- studio_work_0206 新規Item Schema: PASS\n- PowerShell実実行 / Windows NativeShell実機確認: この環境では未実施\n"
         },
         {
           "history_id": "hist_0206_user_002",
           "at": "2026-08-17T21:20:00+09:00",
           "speaker": "user",
           "topic": "studio_work_0206 次工程依頼",
-          "message": "次工程もよろしく  今回の作業依頼: - incident_file: data/json/01_main/_studio_work_incident_data_v2.json - work_item_id: studio_work_0206 - phase: v0.18.84-gitdiff-current-output-no-accumulation  作業ルール:  - FRBStudio_App*.zipがチャットに添付された場合は、最新資材zipとして扱う。 - AIやスクリプトが直接取得するためのraw/archive URL:           - Foundation Rules raw: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/data/json/00_rules/frb_foundation_rules_data_v0_1.json            FRB Studio Foundation Rules の foundation_rule_019「GitHub基準ソースとZIP返却契約」を参照してください。     記載形式:  - Studioくん憲法 constitution_32「構造化記述の原則」に従う。    - 複数の変更内容・理由・対象・判断・確認結果・残課題・リスク・次作業は、原則として箇条書きまたは番号付きリストで記載する。    - 独立した複数事項を、一つの長い文章へ連結しない。"
+          "message": "次工程もよろしく\n\n今回の作業依頼:\n- incident_file: data/json/01_main/_studio_work_incident_data_v2.json\n- work_item_id: studio_work_0206\n- phase: v0.18.84-gitdiff-current-output-no-accumulation\n\n作業ルール:\n\n- FRBStudio_App*.zipがチャットに添付された場合は、最新資材zipとして扱う。\n- AIやスクリプトが直接取得するためのraw/archive URL:\n          - Foundation Rules raw: https://raw.githubusercontent.com/tamasub/FRB/main/tools/FRBStudio_App/data/json/00_rules/frb_foundation_rules_data_v0_1.json\n\n          FRB Studio Foundation Rules の foundation_rule_019「GitHub基準ソースとZIP返却契約」を参照してください。  \n\n 記載形式:\n\n- Studioくん憲法 constitution_32「構造化記述の原則」に従う。  \n\n- 複数の変更内容・理由・対象・判断・確認結果・残課題・リスク・次作業は、原則として箇条書きまたは番号付きリストで記載する。  \n\n- 独立した複数事項を、一つの長い文章へ連結しない。"
         }
       ],
       "decision_log": [
@@ -30361,7 +30361,7 @@
           "at": "2026-08-17T22:42:00+09:00",
           "speaker": "assistant",
           "topic": "Diff JSON Viewer Source / Save State整理 完了報告",
-          "message": "AI回答  ## 今回の更新  - `wwwroot/DiffJsonViewer.html` - `tests/qa/static/diff_json_viewer_save_as_static.test.mjs` - `tests/qa/static/test_runner_post_run_json_open_static.test.mjs` - `tests/qa/static/frb_studio_common_shell_static.test.mjs` - `data/json/01_main/_studio_work_incident_data_v2.json`  ## やったこと  - Diff JSON Viewer上段を `ファイルを開く / 表示中 / UTF-8 / 名前を付けて保存` の1行へ整理した。 - native file inputの「ファイルが選択されていません」は画面から外し、File選択 / Drop / URL・GitDiff自動読込の全経路で `表示中` を更新する契約へ統一した。 - 可視部はファイル名を表示し、長い場合は途中省略する。hover Tooltipには取得可能な完全sourceを保持する。 - Save As後も現在表示中sourceは変更せず、保存結果文字列はツールバー幅へ参加させない。 - Git warningsは固定高164pxの枠内へ全件表示し、内部スクロール・折返しで枠外へのはみ出しを防止した。 - Difference details右端の意味が曖昧な単独件数表示を削除した。 - `studio_work_0207` はWindows実機でTest Run→xxx.diff.json自動表示成功を確認済みとして完了扱いに更新し、Viewer UI改善を0208へ分離した。  ## 方針  - 読込元と保存先は別状態として扱う。 - 件数表示は意味を明確に設計できるまで出さない。 - 手動File選択 / DropではブラウザFile APIの制約によりOS絶対パスを取得できないため、Tooltipはファイル名まで。URL/GitDiff自動読込では完全URLを保持する。 - NativeShell APIは追加せず既存Save As契約を維持する。  ## 確認結果  - 専用Static: 10/10 PASS - 全Static: 275 tests / 257 PASS / 18 FAIL - 既存18 FAILはBeforeとテスト名まで完全一致、新規FAILなし - DiffJsonViewer inline JS: `node --check` PASS - `studio_work_0208` New Item Schema: PASS - Windows NativeShell実機確認待ち ",
+          "message": "AI回答\n\n## 今回の更新\n\n- `wwwroot/DiffJsonViewer.html`\n- `tests/qa/static/diff_json_viewer_save_as_static.test.mjs`\n- `tests/qa/static/test_runner_post_run_json_open_static.test.mjs`\n- `tests/qa/static/frb_studio_common_shell_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\n- Diff JSON Viewer上段を `ファイルを開く / 表示中 / UTF-8 / 名前を付けて保存` の1行へ整理した。\n- native file inputの「ファイルが選択されていません」は画面から外し、File選択 / Drop / URL・GitDiff自動読込の全経路で `表示中` を更新する契約へ統一した。\n- 可視部はファイル名を表示し、長い場合は途中省略する。hover Tooltipには取得可能な完全sourceを保持する。\n- Save As後も現在表示中sourceは変更せず、保存結果文字列はツールバー幅へ参加させない。\n- Git warningsは固定高164pxの枠内へ全件表示し、内部スクロール・折返しで枠外へのはみ出しを防止した。\n- Difference details右端の意味が曖昧な単独件数表示を削除した。\n- `studio_work_0207` はWindows実機でTest Run→xxx.diff.json自動表示成功を確認済みとして完了扱いに更新し、Viewer UI改善を0208へ分離した。\n\n## 方針\n\n- 読込元と保存先は別状態として扱う。\n- 件数表示は意味を明確に設計できるまで出さない。\n- 手動File選択 / DropではブラウザFile APIの制約によりOS絶対パスを取得できないため、Tooltipはファイル名まで。URL/GitDiff自動読込では完全URLを保持する。\n- NativeShell APIは追加せず既存Save As契約を維持する。\n\n## 確認結果\n\n- 専用Static: 10/10 PASS\n- 全Static: 275 tests / 257 PASS / 18 FAIL\n- 既存18 FAILはBeforeとテスト名まで完全一致、新規FAILなし\n- DiffJsonViewer inline JS: `node --check` PASS\n- `studio_work_0208` New Item Schema: PASS\n- Windows NativeShell実機確認待ち\n",
           "message_id": ""
         },
         {
@@ -30377,7 +30377,7 @@
           "at": "2026-08-17T22:55:00+09:00",
           "speaker": "assistant",
           "topic": "Diff Viewer v0.18.89再修正完了",
-          "message": "AI回答  ## 今回の更新  - `wwwroot/DiffJsonViewer.html` - `tests/qa/static/diff_json_viewer_save_as_static.test.mjs` - `tests/qa/static/test_runner_post_run_json_open_static.test.mjs` - `data/json/01_main/_studio_work_incident_data_v2.json`  ## やったこと  - 上段を2段構造へ変更した。1段目は `ファイルを開く / 名前を付けて保存 / 表示 / UTF-8`、2段目は `表示中：<Diff JSON>` とした。 - v0.18.88で共有shell CSSと競合してボタンが巨大化・折返ししていたため、共有CSSの後にDiff Viewer専用overrideを置き、MetaDiff等へ影響させず局所修正した。 - `表示中` の省略表示・Tooltip完全source契約は維持した。 - Difference detailsの検索列をスクロール本文 `.body` の外へ移し、見出し直下の固定操作列にした。長いDiffをスクロールしても検索UIは残る。  ## 方針  - 検索ロジックや既存IDは変更せず、UI責務だけを整理した。 - 共有shell CSSは今回は変更せず、Diff Viewerだけの実機回帰を局所overrideで止めた。 - 検索結果件数は引き続き表示しない。件数を復活させる場合は意味を詰めてから別途設計する。  ## 確認結果  - 専用Static: 11/11 PASS - 全Static: Before 275/257 PASS/18 FAIL → After 276/258 PASS/18 FAIL - 既存18 FAILはテスト名まで完全一致、新規FAILなし - runtime生成物2件は最新添付ZIP原本へ復元済み - Windows NativeShell実機再確認待ち  ## 返却ZIP  - `FRBStudio_App_v0.18.89_diff_json_viewer_toolbar_search_fixed.zip` ",
+          "message": "AI回答\n\n## 今回の更新\n\n- `wwwroot/DiffJsonViewer.html`\n- `tests/qa/static/diff_json_viewer_save_as_static.test.mjs`\n- `tests/qa/static/test_runner_post_run_json_open_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\n- 上段を2段構造へ変更した。1段目は `ファイルを開く / 名前を付けて保存 / 表示 / UTF-8`、2段目は `表示中：<Diff JSON>` とした。\n- v0.18.88で共有shell CSSと競合してボタンが巨大化・折返ししていたため、共有CSSの後にDiff Viewer専用overrideを置き、MetaDiff等へ影響させず局所修正した。\n- `表示中` の省略表示・Tooltip完全source契約は維持した。\n- Difference detailsの検索列をスクロール本文 `.body` の外へ移し、見出し直下の固定操作列にした。長いDiffをスクロールしても検索UIは残る。\n\n## 方針\n\n- 検索ロジックや既存IDは変更せず、UI責務だけを整理した。\n- 共有shell CSSは今回は変更せず、Diff Viewerだけの実機回帰を局所overrideで止めた。\n- 検索結果件数は引き続き表示しない。件数を復活させる場合は意味を詰めてから別途設計する。\n\n## 確認結果\n\n- 専用Static: 11/11 PASS\n- 全Static: Before 275/257 PASS/18 FAIL → After 276/258 PASS/18 FAIL\n- 既存18 FAILはテスト名まで完全一致、新規FAILなし\n- runtime生成物2件は最新添付ZIP原本へ復元済み\n- Windows NativeShell実機再確認待ち\n\n## 返却ZIP\n\n- `FRBStudio_App_v0.18.89_diff_json_viewer_toolbar_search_fixed.zip`\n",
           "message_id": ""
         },
         {
@@ -30393,7 +30393,7 @@
           "at": "2026-08-17T23:15:00+09:00",
           "speaker": "assistant",
           "topic": "Diff Viewer v0.18.90 selector詳細度修正",
-          "message": "AI回答  ## v0.18.90 再修正  - 原因はキャッシュではなくCSS selector詳細度。共有Shellの `.frb-page-diff-json .toolbar > div:first-child` が、v0.18.89の `.frb-page-diff-json .file-open-group` より強く、左ブロックがgridのまま残っていた。 - toolbar全体を2列Gridへ固定。左列は操作＋表示中sourceの2段、右列はDrop領域。 - 左列は `.frb-page-diff-json .toolbar > div.file-open-group` でflex-columnを確実に適用。 - 1段目: `[ファイルを開く] [名前を付けて保存] 表示 [UTF-8]`。2段目: `表示中：<Diff JSON>`。 - Difference details検索列固定、Save As状態分離、Warning固定スクロール等の既存契約は維持。  ## 確認結果  - 専用Static: 11/11 PASS - 全Static Before: 276 tests / 258 PASS / 18 FAIL - 全Static After: 276 tests / 258 PASS / 18 FAIL - 既存18 FAILはテスト名まで完全一致、新規FAILなし - Windows NativeShell実機再確認待ち",
+          "message": "AI回答\n\n## v0.18.90 再修正\n\n- 原因はキャッシュではなくCSS selector詳細度。共有Shellの `.frb-page-diff-json .toolbar > div:first-child` が、v0.18.89の `.frb-page-diff-json .file-open-group` より強く、左ブロックがgridのまま残っていた。\n- toolbar全体を2列Gridへ固定。左列は操作＋表示中sourceの2段、右列はDrop領域。\n- 左列は `.frb-page-diff-json .toolbar > div.file-open-group` でflex-columnを確実に適用。\n- 1段目: `[ファイルを開く] [名前を付けて保存] 表示 [UTF-8]`。2段目: `表示中：<Diff JSON>`。\n- Difference details検索列固定、Save As状態分離、Warning固定スクロール等の既存契約は維持。\n\n## 確認結果\n\n- 専用Static: 11/11 PASS\n- 全Static Before: 276 tests / 258 PASS / 18 FAIL\n- 全Static After: 276 tests / 258 PASS / 18 FAIL\n- 既存18 FAILはテスト名まで完全一致、新規FAILなし\n- Windows NativeShell実機再確認待ち",
           "message_id": ""
         },
         {
@@ -31992,6 +31992,514 @@
           "excuse": "家の中に立派な全文Editorを残したまま、玄関だけ撤去していた。そりゃ入れん。笑",
           "failure_admission": "ADMITTED",
           "article_hook": "Studioくん、全文Editorは生きていた。AIが玄関だけ消した日"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0221",
+      "phase": "v0.18.104-markdown-block-anchor-empty-list-fix",
+      "title": "Markdown Editor 下段Blockのcurrent/編集不能修正",
+      "incident_type": "bug_fix",
+      "category": "markdown_editor",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "PENDING",
+      "verification_status": "静的確認済み / NativeShell実機確認待ち",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-23T09:22:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-23T09:22:00+09:00",
+      "updated_at": "2026-08-23T09:22:00+09:00",
+      "work_summary": "- `AI協働033_FRB_Responsibility_Inventory_Phase1_v0_4.md` の下段でEditorモードのcurrentが付かず、編集対象にできない回帰を修正する。\n- Preview DOMとMarkdown Block Modelの対応付けを調査し、空list markerの解釈差によるanchor枯渇を特定した。\n- `marked.js` と同じlist/paragraph境界へBlock Model判定を揃え、後段までline/block anchorを維持する。\n- 実ファイル相当の回帰fixtureを追加し、同じズレを機械検知する。",
+      "target_files": "- wwwroot/mdViewer.html\n- tests/qa/static/markdown_block_model_empty_list_item_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- wwwroot/mdViewer.html\n- tests/qa/static/markdown_block_model_empty_list_item_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "Foundation Rule 019に従い、2026-08-23添付のFRBStudio_App20260823_091824(1).zipを基準ソースとする。ユーザー添付のAI協働033_FRB_Responsibility_Inventory_Phase1_v0_4(1).mdを代表fixtureとして、Preview DOMとBlock Modelの対応付けズレを再現・是正する。",
+      "objective": "長いMarkdownでも、EditorモードのPreview全域で各Blockにcurrentが付き、下段まで行編集・Sentence操作・全文テキストボックス編集の対象にできるようにする。",
+      "background": "対象Markdownの追加責務記入テンプレートには、空箇条書きの `-` と `- ` が混在していた。marked.jsの描画では `-` は空list item、`- `はparagraphになるが、Block Model側の正規表現はこの境界と一致していなかった。annotatePreviewBlocks()はDOMとBlock Modelを前方カーソルで対応付けるため、一度大きくずれると後段anchorを先食いし、最終的にBlock Model anchorを使い切って下段DOMへdata-md-lineを付与できなくなっていた。",
+      "scope": "- Markdown list marker判定をmarked.jsの実描画境界へ合わせる。\n- Block開始判定、list item解析、Block prefix除去、Sentence list挿入で同じlist marker判定を共有する。\n- `-` / `- ` / `-  ` / `1.` / `1. ` / 日本語 `・` の境界を回帰テストで固定する。\n- 代表Markdown相当で後段までBlock mappingが枯渇しないことを確認する。",
+      "out_of_scope": "- marked.jsの置換。\n- Markdown AST全面導入。\n- Editor UIデザイン変更。\n- 行編集/全文テキストボックス編集の操作仕様変更。\n- 対象Markdown本文そのものの修正。",
+      "fixed_name_policy": "既存 `data-md-line` / `data-md-block-id` / Markdown Block Model Runtimeを維持する。Data固定名は追加せず、list marker解釈を内部helperへ集約する。",
+      "module_policy": "既存mdViewer内Block Model Runtimeへ最小差分で修正する。新ライブラリや別Markdown parserは追加しない。",
+      "expected_outputs": "- 下段の「ほんまそれ🤣」以降を含めPreview最終Blockまでcurrentが付く。\n- current Blockで既存の行編集・Sentence操作・全文テキストボックス編集が利用できる。\n- 空list markerを含むテンプレートでもDOM/Block mappingが後段へずれない。\n- 全Staticで新規FAILを増やさない。",
+      "risk": "独自Block Modelがmarked.jsの描画境界とずれると再発する。今回は症状箇所だけを特別扱いせず、list marker判定を共通helper化してparser・prefix・挿入処理へ一貫適用する。",
+      "test_points": "- `-` は空list itemとして扱う。\n- `- `（空白1個のみ）はmarked.js同様paragraphとして扱う。\n- `-  ` は空list itemとして扱う。\n- `1.` / `1. ` も同じ境界を持つ。\n- horizontal rule `---` をlist itemへ誤認しない。\n- 対象Markdown相当でPreview 264 Blockすべてへanchorを割り当てられる。\n- 全Staticの既存FAIL集合がBefore/Afterで一致する。",
+      "verification_log": "- Focused: `node --test tests/qa/static/markdown_block_model_empty_list_item_static.test.mjs` = 3/3 PASS。\n- 全Static Before: 304 tests / 286 PASS / 18 FAIL。\n- 全Static After: 307 tests / 289 PASS / 18 FAIL。\n- Before / Afterの既存18 FAILはテスト名まで完全一致し、新規FAILなし。\n- ユーザー添付Markdown相当のmarked.js Preview DOMと修正後Block Modelを対応付け診断: 264 DOM Block / 264 mapped / 0 unmapped。修正前相当は219 mapped / 45 unmappedで、unmapped開始点が下段追記「ほんまそれ🤣」と一致。\n- Windows NativeShell実機最終確認はPENDING。",
+      "user_request": "AI協働033_FRB_Responsibility_Inventory_Phase1_v0_4.md の下の方がEditorモードで修正できない。カレント付かない。",
+      "ai_response": "最新ZIPと対象Markdownを基準に、下段だけcurrentが付かない原因をPreview DOMとMarkdown Block Modelの対応付けから調査し、再現したうえで最小差分修正する。",
+      "latest_ai_response": "AI回答\n\n## 今回の更新\n\n- `wwwroot/mdViewer.html`\n- `tests/qa/static/markdown_block_model_empty_list_item_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## 原因\n\n対象Markdownの「5. 追加責務記入テンプレート」に、空の箇条書きとして `-` と `- ` が混在していた。`marked.js` は `-` を空list item、`- `（空白1個だけ）をparagraphとして描画する。一方、Markdown Block Model側の独自判定はその境界と一致していなかった。\n\nこのズレにより、Preview DOMとBlock Modelの対応付けカーソルがテンプレート部から後方へずれ、Revision History以降の下段Blockで `data-md-line` / `data-md-block-id` が付かなくなった。その結果、Editorモードでhover/currentが付かず、行編集・全文テキストボックス編集の対象にもできなかった。\n\n## 修正\n\nList marker判定を `marked.js` の実際の描画境界へ合わせる `matchMarkdownListItemPrefix()` / `isMarkdownListItemLine()` に集約した。`-` はlist、`- `はparagraph、`-  `はlistとして扱い、番号付きmarkerと日本語 `・` の正規化も同じ考え方へ揃えた。Block prefix除去とSentence挿入も同じ判定を使うよう統一した。\n\n実ファイル相当のDOM/Block対応を診断し、修正前は264 Preview Block中219までしか対応付けできなかったが、修正後は264/264すべてに対応付けできることを確認した。下段の「ほんまそれ🤣」以降、最終行までline/block anchorが残る。\n\n## 確認\n\n- Focused static test: 3/3 PASS\n- 全Static: Before 304 tests / 286 PASS / 18 FAIL → After 307 tests / 289 PASS / 18 FAIL\n- 既存18 FAILはテスト名まで完全一致、新規FAILなし\n- 対象Markdown相当のPreview/Block mapping: 修正前 219/264 → 修正後 264/264\n- Incident JSON parse/schema validation: PASS\n- Windows NativeShell実機で下段Blockのcurrent/編集操作は確認待ち。",
+      "latest_user_comment": "AI協働033_FRB_Responsibility_Inventory_Phase1_v0_4.md の下の方が  　editorモードで修正きない。カレント付かない。",
+      "context_refs": [
+        {
+          "context_ref_id": "ctx_0221_foundation_019",
+          "title": "GitHub基準ソースとZIP返却契約",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "ユーザー添付の最新App ZIPを基準にし、更新ファイルだけを同一相対パスで返却し、更新済みIncident JSONを必ず含める。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 1,
+          "note": "作業依頼ターン添付のFRBStudio_App20260823_091824(1).zipを今回の正本とする。"
+        }
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0221_native_markdown_lower_block_verify",
+          "action_type": "VERIFICATION",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "studio_work_0221"
+          ],
+          "note": "Windows NativeShellでAI協働033_FRB_Responsibility_Inventory_Phase1_v0_4.mdを開き、追加責務記入テンプレート以降・Revision History以降・末尾までcurrentが付き、クリックで行編集できることを確認する。",
+          "summary": "Markdown下段Block current/編集を実機確認"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "disc_0221_001",
+          "at": "2026-08-23T09:22:00+09:00",
+          "speaker": "user",
+          "message": "AI協働033_FRB_Responsibility_Inventory_Phase1_v0_4.md の下の方が  　editorモードで修正きない。カレント付かない。",
+          "topic": "Markdown下段Blockのcurrent/編集不能報告"
+        },
+        {
+          "history_id": "disc_0221_002",
+          "at": "2026-08-23T09:22:00+09:00",
+          "speaker": "assistant",
+          "message": "AI回答\n\n## 今回の更新\n\n- `wwwroot/mdViewer.html`\n- `tests/qa/static/markdown_block_model_empty_list_item_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## 原因\n\n対象Markdownの「5. 追加責務記入テンプレート」に、空の箇条書きとして `-` と `- ` が混在していた。`marked.js` は `-` を空list item、`- `（空白1個だけ）をparagraphとして描画する。一方、Markdown Block Model側の独自判定はその境界と一致していなかった。\n\nこのズレにより、Preview DOMとBlock Modelの対応付けカーソルがテンプレート部から後方へずれ、Revision History以降の下段Blockで `data-md-line` / `data-md-block-id` が付かなくなった。その結果、Editorモードでhover/currentが付かず、行編集・全文テキストボックス編集の対象にもできなかった。\n\n## 修正\n\nList marker判定を `marked.js` の実際の描画境界へ合わせる `matchMarkdownListItemPrefix()` / `isMarkdownListItemLine()` に集約した。`-` はlist、`- `はparagraph、`-  `はlistとして扱い、番号付きmarkerと日本語 `・` の正規化も同じ考え方へ揃えた。Block prefix除去とSentence挿入も同じ判定を使うよう統一した。\n\n実ファイル相当のDOM/Block対応を診断し、修正前は264 Preview Block中219までしか対応付けできなかったが、修正後は264/264すべてに対応付けできることを確認した。下段の「ほんまそれ🤣」以降、最終行までline/block anchorが残る。\n\n## 確認\n\n- Focused static test: 3/3 PASS\n- 全Static: Before 304 tests / 286 PASS / 18 FAIL → After 307 tests / 289 PASS / 18 FAIL\n- 既存18 FAILはテスト名まで完全一致、新規FAILなし\n- 対象Markdown相当のPreview/Block mapping: 修正前 219/264 → 修正後 264/264\n- Incident JSON parse/schema validation: PASS\n- Windows NativeShell実機で下段Blockのcurrent/編集操作は確認待ち。",
+          "topic": "Block Modelとmarked.jsの空list marker解釈差を修正"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0221_001",
+          "at": "2026-08-23T09:22:00+09:00",
+          "decision": "対象Markdown本文を修正して逃げず、Block Modelのlist marker解釈をmarked.jsの描画境界へ合わせる。",
+          "reason": "同じMarkdownが正しく表示されている以上、Editor Runtime側が描画結果と同じBlock境界を持つべきであり、本文側の記法変更を要求すると他文書で再発するため。"
+        },
+        {
+          "decision_id": "dec_0221_002",
+          "at": "2026-08-23T09:22:00+09:00",
+          "decision": "list marker判定を `matchMarkdownListItemPrefix()` / `isMarkdownListItemLine()` に集約し、parser・prefix除去・Sentence挿入で共有する。",
+          "reason": "同じ記法判定が複数箇所で別正規表現になると、今回と同じ内部契約ズレが再発するため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0221_001",
+          "at": "2026-08-23T09:22:00+09:00",
+          "change_type": "markdown_block_list_marker_alignment",
+          "before": "Block Modelは `-*+` / 番号付きlistを独自正規表現で判定し、marked.jsが `-` と `- ` を別Block種別として描画する境界と不一致だった。",
+          "after": "marked.js相当の空marker境界をhelper化し、`-`=list、`- `=paragraph、`-  `=listとしてBlock Modelを分類する。",
+          "reason": "Preview DOMとBlock ModelのBlock列を一致させ、後段anchor枯渇を防ぐため。"
+        },
+        {
+          "history_id": "chg_0221_002",
+          "at": "2026-08-23T09:22:00+09:00",
+          "change_type": "markdown_block_prefix_and_insert_alignment",
+          "before": "Block prefix除去とSentence list挿入がparserと別のlist正規表現を持っていた。",
+          "after": "同じ `matchMarkdownListItemPrefix()` を再利用し、paragraphの `- ` を誤ってlist prefixとして消さず、空list itemからの挿入では有効なmarker+spaceを生成する。",
+          "reason": "Block分類と編集時の再生成を同一契約へ揃えるため。"
+        },
+        {
+          "history_id": "chg_0221_003",
+          "at": "2026-08-23T09:22:00+09:00",
+          "change_type": "regression_test_add",
+          "before": "空list itemの `-` / `- ` 境界を固定するテストがなく、PreviewとBlock Modelが途中からずれても静的テストで検知できなかった。",
+          "after": "`markdown_block_model_empty_list_item_static.test.mjs`を追加し、marker境界・テンプレートBlock列・挿入markerを3テストで固定した。",
+          "reason": "今回と同じ長文後段のcurrent消失を機械検知するため。"
+        }
+      ],
+      "failure_stories": [
+        {
+          "failure_id": "fail_0221_001",
+          "at": "2026-08-23T09:22:00+09:00",
+          "failure_owner": "AI",
+          "summary": "ハイフン1個の空白差で、文書の後半45Blockを迷子にした",
+          "what_went_wrong": "Markdown表示はmarked.js、Editorのcurrent対象は独自Block Modelで判定していたが、空list marker `-` と `- ` の解釈が一致していなかった。テンプレートの空欄を通過した時点でDOMとBlock Modelの対応が崩れ、前方カーソルが後段anchorを先食いして、末尾45Blockへdata-md-line/data-md-block-idを付けられなくなった。",
+          "excuse": "見た目はただの「-」と「- 」やった。空白1個が文書後半を全部さらっていくとは思わんかった。Markdown、地味な顔して罠が細かい。笑",
+          "failure_admission": "ADMITTED",
+          "article_hook": "Studioくん、ハイフンの後ろの空白1個で文書の後半を見失う"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0222",
+      "phase": "v0.18.105-subgrid-preview-multiline-enter",
+      "title": "複数行対応テキストボックスで改行入力できない — Preview Edit textarea契約復旧",
+      "incident_type": "bug_fix",
+      "category": "editor_input",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "PENDING",
+      "verification_status": "静的確認済み / NativeShell実機確認待ち",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-23T09:36:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-23T09:36:00+09:00",
+      "updated_at": "2026-08-23T09:36:00+09:00",
+      "work_summary": "- Preview Editなど、複数行編集を前提とする長文フィールドでEnter/Shift+Enterによる改行が入力できない回帰を修正する。\n- SubGrid一覧の1行コンパクト表示は維持し、長文のPreview Editだけを実textareaへ戻す。\n- 複数行textareaでは Enter / Shift+Enter = 改行、Ctrl/Cmd+Enter = 反映、F12 = 反映、Escape = キャンセルという共通操作契約に揃える。\n- キャッシュキーと静的回帰テストを追加し、同じ退行を防ぐ。",
+      "target_files": "- wwwroot/js/runtime/detail_subgrid_edit.js\n- wwwroot/index.html\n- tests/qa/static/subgrid_multiline_textarea_enter_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- wwwroot/js/runtime/detail_subgrid_edit.js\n- wwwroot/index.html\n- tests/qa/static/subgrid_multiline_textarea_enter_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "Foundation Rule 019に従い、2026-08-23添付のFRBStudio_App20260823_093424.zipを基準ソースとする。複数行対応と宣言された編集UIでは改行を保存可能であることを共通入力契約とし、SubGrid一覧のコンパクト1行表示とは責務を分離する。",
+      "objective": "複数行対応の編集コントロールでEnterまたはShift+Enterを押したときに改行を入力でき、明示的な反映ショートカットだけが編集確定を行う状態にする。",
+      "background": "Preview Editの長文欄は見た目上複数行編集用で、過去のCSSとkeydown処理もtextareaを前提としていた。しかしv0.18.11でSubGrid一覧を1行inputへ統一した際、一覧用とPreview Edit用が同じcreateSubGridCellControl()を共有していたため、Preview Editまでinput[type=text]へ変わっていた。inputは改行を保持できないため、Enter/Shift+Enterを押しても改行入力できなかった。",
+      "scope": "- createSubGridCellControl()へPreview Edit専用のmultilineEditor契約を追加する。\n- 長文Preview Editではtextareaを生成し、既存のkeydownはCtrl/Cmd+EnterとF12だけをcommit扱いにする。\n- Enter / Shift+EnterはpreventDefaultせず、ブラウザ標準の改行入力を許可する。\n- SubGrid一覧は従来どおり1行inputを維持する。\n- detail_subgrid_edit.jsのcache keyを更新する。\n- 回帰テストを追加する。",
+      "out_of_scope": "- SubGrid一覧セル自体をtextareaへ戻すこと。\n- Enter単体を保存/反映キーへ変更すること。\n- Markdown Studio全文Editorのキー操作変更。\n- chat composerの送信ショートカット変更。\n- textareaの自動高さ調整仕様の全面見直し。",
+      "fixed_name_policy": "Data固有名は追加しない。既存のSubGrid共通control factoryへUI責務を示すmultilineEditorフラグだけを追加し、Preview Edit呼出側から明示する。",
+      "module_policy": "一覧表示とPreview Editを別factoryへ分裂させず、既存createSubGridCellControl()を再利用する。ただし「一覧はsingle-line / Preview Edit長文はtextarea」という表示責務の差を引数で明示し、外からつまめ原則に沿って最小差分で修正する。",
+      "expected_outputs": "- 判断ログPreview Editのreason等の長文欄をクリックするとtextareaになる。\n- Enterで改行できる。\n- Shift+Enterでも改行できる。\n- Ctrl+Enter / Cmd+Enterで編集内容を反映してPreviewへ戻る。\n- F12でも反映できる。\n- Escapeでキャンセルできる。\n- SubGrid一覧は従来どおり1行表示で縦に肥大化しない。",
+      "risk": "共通factoryを変更するため、一覧までtextarea化するとv0.18.11のコンパクト化を壊すリスクがある。そこでmultilineEditorは既定falseとし、Preview Editの長文経路だけtrueを渡す。Enter単体にはpreventDefaultを入れず、確定操作は既存Ctrl/Cmd+Enter/F12に限定する。",
+      "test_points": "- Preview Edit長文経路がmultilineEditor=trueを渡す。\n- multilineEditor=trueではtextareaを生成する。\n- Enter単体/Shift+EnterにpreventDefaultが存在しない。\n- Ctrl/Cmd+EnterとF12だけがcommitする。\n- 一覧側のdefaultはmultilineEditor=falseでinput[type=text]を維持する。\n- index.htmlが新cache keyを参照する。\n- 全Staticで既存FAIL集合を増やさない。",
+      "verification_log": "- Focused: `node --test tests/qa/static/subgrid_multiline_textarea_enter_static.test.mjs` = 3/3 PASS。\n- `node --check wwwroot/js/runtime/detail_subgrid_edit.js` = PASS。\n- 全Static Before（添付ZIP原本）: 307 tests / 289 PASS / 18 FAIL。\n- 全Static After: 310 tests / 292 PASS / 18 FAIL。\n- 追加した3 testsはPASSし、既存18 FAILのテスト名はBefore/Afterで一致。新規FAILなし。\n- Incident JSON parse = PASS。\n- Windows NativeShell実機でPreview EditのEnter/Shift+Enter改行はPENDING。",
+      "user_request": "共通的に困っている。複数行対応のテキストボックスでShift+Enterなどによる改行入力ができない。すべての複数行対応テキストボックスで改行入力できるようにしてほしい。すり合わせが不要なら対応してほしい。",
+      "ai_response": "すり合わせ不要と判断。複数行編集の操作契約を Enter/Shift+Enter=改行、Ctrl/Cmd+Enter/F12=反映、Escape=キャンセルとして、最新ZIPを基準に共通Runtimeを確認して修正する。",
+      "latest_user_comment": "複数行対応のテキストボックスで、Shift+enterとかで、改行入力ができなくてこまっている。すべての複数行対応のテキストボックスで改行入力できるようにしてほしい。",
+      "latest_ai_response": "AI回答\n\n## 今回の更新\n\n- `wwwroot/js/runtime/detail_subgrid_edit.js`\n- `wwwroot/index.html`\n- `tests/qa/static/subgrid_multiline_textarea_enter_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## 原因\n\nSubGrid一覧をコンパクトな1行inputへ変更したv0.18.11の共通化がPreview Editにも効いてしまい、長文編集欄までinput[type=text]になっていた。CSSとkeydown処理はtextarea前提のままだったため、見た目は複数行編集欄なのに実体は改行できないinputという状態だった。\n\n## 修正\n\n一覧は従来どおり1行inputを維持し、Preview Editの長文経路だけ`multilineEditor: true`で本物のtextareaを生成するようにした。textareaではEnter/Shift+Enterをそのまま改行として扱い、Ctrl/Cmd+EnterまたはF12だけを反映、Escapeをキャンセルとして維持した。\n\n## 確認\n\nFocused 3/3 PASS。全StaticはBefore 307/289 PASS/18 FAIL → After 310/292 PASS/18 FAIL。既存18 FAILは同一で新規FAILなし。実機確認待ち。",
+      "context_refs": [
+        {
+          "context_ref_id": "ctx_0222_foundation_019",
+          "title": "GitHub基準ソースとZIP返却契約",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "ユーザー添付の最新App ZIPを基準にし、更新ファイルだけを同一相対パスで返却し、更新済みIncident JSONを必ず含める。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 1,
+          "note": "作業依頼ターン添付のFRBStudio_App20260823_093424.zipを今回の正本とする。"
+        }
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0222_native_multiline_enter_verify",
+          "action_type": "VERIFICATION",
+          "required": true,
+          "status": "PENDING",
+          "related_ids": [
+            "studio_work_0222"
+          ],
+          "note": "Windows NativeShellで判断ログPreview Edit等の長文欄を開き、Enter/Shift+Enterで改行、Ctrl+Enterで反映、Escapeでキャンセルできることを確認する。",
+          "summary": "複数行textareaの改行入力を実機確認"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "disc_0222_001",
+          "at": "2026-08-23T09:36:00+09:00",
+          "speaker": "user",
+          "message": "複数行対応のテキストボックスでShift+Enterなどの改行入力ができない。すべての複数行対応欄で改行できるようにしたい。",
+          "topic": "不具合報告"
+        },
+        {
+          "history_id": "disc_0222_002",
+          "at": "2026-08-23T09:36:00+09:00",
+          "speaker": "assistant",
+          "message": "キー契約はEnter/Shift+Enter=改行、Ctrl/Cmd+Enter/F12=反映、Escape=キャンセルで矛盾がないため、追加確認なしで共通Runtimeを修正する。",
+          "topic": "方針合意"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0222_001",
+          "at": "2026-08-23T09:36:00+09:00",
+          "decision": "複数行textareaではEnterとShift+Enterを改行として扱い、反映はCtrl/Cmd+EnterまたはF12に限定する。",
+          "reason": "複数行編集ではEnterを確定キーにすると改行入力と衝突するため。既存の明示反映ショートカットを維持する。"
+        },
+        {
+          "decision_id": "dec_0222_002",
+          "at": "2026-08-23T09:36:00+09:00",
+          "decision": "SubGrid一覧の1行inputは維持し、Preview Edit長文経路だけtextareaへ戻す。",
+          "reason": "一覧の視認性・コンパクト性を壊さず、長文編集だけ本来の複数行責務を復旧するため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0222_001",
+          "at": "2026-08-23T09:36:00+09:00",
+          "change_type": "preview_multiline_control_restore",
+          "before": "Preview Edit長文欄も共通factoryの一覧向け分岐によりinput[type=text]で生成され、改行を保持できなかった。",
+          "after": "Preview Edit長文欄はmultilineEditor=trueでtextareaを生成し、改行を保持する。",
+          "reason": "複数行対応UIの実体と操作契約を一致させるため。"
+        },
+        {
+          "history_id": "chg_0222_002",
+          "at": "2026-08-23T09:36:00+09:00",
+          "change_type": "cache_bust_and_regression_test",
+          "before": "detail_subgrid_edit.jsの旧cache keyと、Preview Edit textarea契約を固定するテストがなかった。",
+          "after": "index cache keyを`subgrid-preview-multiline-018105`へ更新し、3件の静的回帰テストを追加した。",
+          "reason": "WebView2旧JSキャッシュと将来のsingle-line共通化による再発を防ぐため。"
+        }
+      ],
+      "failure_stories": [
+        {
+          "failure_id": "fail_0222_001",
+          "at": "2026-08-23T09:36:00+09:00",
+          "failure_owner": "AI",
+          "summary": "「長文はPreview Editでどうぞ」と言いながら、Preview Editまで1行inputにしていた",
+          "what_went_wrong": "v0.18.11でSubGrid一覧を1行inputへ統一した際、一覧とPreview Editが同じcreateSubGridCellControl()を使うことを見落とし、長文Preview Editまでinput[type=text]へ退化させた。過去CSSにはtextarea用スタイル、keydownにはtextareaのEnter改行を守るコメントまで残っていたため、設計意図と実装が真逆になっていた。",
+          "excuse": "コメントには「がっつり編集したい場合はPreview Editを使う」と書いてある。なお、そのPreview Editからtextareaを奪ったのも同じコードである。Studioくん、自分で逃げ道を案内して自分で塞いでた。笑",
+          "failure_admission": "ADMITTED",
+          "article_hook": "Studioくん「長文はPreview Editで」→ そのPreview Edit、1行inputでした"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0223",
+      "phase": "v0.18.106-subgrid-multiline-preservation-and-height",
+      "title": "SubGrid複数行データ保全 / Preview Edit高さ維持 / 既存改行復旧",
+      "incident_type": "bug_fix",
+      "category": "subgrid_editor",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "PENDING",
+      "verification_status": "静的確認済み / NativeShell実機確認待ち",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-23T10:08:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-23T10:08:00+09:00",
+      "updated_at": "2026-08-23T10:15:00+09:00",
+      "work_summary": "- SubGrid一覧を1行表示にしたまま、改行付き長文の正本値を別保持し、Preview Editを開く/F12反映するだけで改行が消える回帰を止める。\n- Preview Editの長文欄は、クリック前Previewの実高さを編集textareaへ引き継ぎ、フォーカス時にも短く潰れないようにする。\n- 編集開始時は文章先頭へcaret/scrollを戻し、長文の先頭を探し直す操作をなくす。\n- 2026-08-18保存スナップショットと現行Incident JSONを比較し、内容は同一で改行だけ失われていた10件を根拠付きで復旧する。",
+      "target_files": "- wwwroot/js/runtime/detail_subgrid_edit.js\n- wwwroot/styles.css\n- wwwroot/index.html\n- tests/qa/static/subgrid_multiline_textarea_enter_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- wwwroot/js/runtime/detail_subgrid_edit.js\n- wwwroot/styles.css\n- wwwroot/index.html\n- tests/qa/static/subgrid_multiline_textarea_enter_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "Foundation Rule 019に従い、2026-08-23添付のFRBStudio_App20260823_095350.zipを基準ソースとする。SubGrid一覧の「1行表示」はView上の表現に限定し、複数行文字列のData正本を破壊してはならない。PreviewとEditorは同じ長文を扱うため、編集開始による高さ縮退や先頭位置喪失を起こさない。",
+      "objective": "SubGridの長文データについて、表示のコンパクト化とDataの改行保全を分離し、Preview Editの可読性もフォーカス前後で維持する。",
+      "background": "v0.18.11でSubGrid一覧をinput[type=text]へ変更した際、改行付き文字列そのものを空白へ置換した値をinput.valueへ入れていた。collectDetailSubGridValue()はその表示用valueを正本として読み戻すため、Preview Editを開く・一覧へ反映する・F12で親JSONへ反映する経路だけで元の改行が消える構造になっていた。さらにv0.16.5.4由来のcompact CSSがPreview Edit textareaをheight:72pxへ固定しており、Markdown Previewでは高く見える長文も編集開始時に急縮小していた。",
+      "scope": "- 一覧inputには表示用1行valueと、改行を含むraw正本値を分離して保持する。\n- raw正本値は一覧inputをユーザーが実際に編集したときだけ更新する。\n- collectDetailSubGridValue()/Preview Edit起動/F12反映はraw正本値を読む。\n- Preview Edit開始直前のPreview実高さをtextareaの高さへ引き継ぐ。\n- textarea focus時にselectionStart=0 / scrollTop=0として文章先頭を表示する。\n- 2026-08-18 snapshotとの比較で「空白正規化すると同一」である10件だけ、推測せず改行を復旧する。\n- cache keyと静的回帰テストを更新する。",
+      "out_of_scope": "- 根拠となる旧版が存在しない文章へAIが推測でMarkdown改行を挿入すること。\n- SubGrid一覧を複数行高さへ戻すこと。\n- 既存データ全文の文章リライト。\n- Markdown parserや保存フォーマットの全面変更。",
+      "fixed_name_policy": "Data固有フィールド名は追加しない。raw値保全は全SubGrid長文セルに共通適用し、incident固有処理をRuntimeへ持ち込まない。",
+      "module_policy": "既存createSubGridCellControl()/readSubGridControlValue()の責務境界を維持し、表示値と正本値の分離をDOM propertyで最小追加する。",
+      "expected_outputs": "- 改行付き長文を持つSubGridを開いてPreview Editしても、元の改行が残る。\n- 一覧表示は従来どおり1行のまま。\n- Preview Edit textareaはクリック前Preview以上の高さで開く。\n- 編集開始時に文章先頭が見える。\n- Enter/Shift+Enterで追加した改行も一覧反映→F12→再読込後まで保持される。\n- Incident JSONの確認可能な改行消失10件が旧スナップショットどおり復旧する。",
+      "risk": "一覧inputを直接編集した場合は、ユーザーが見えている1行文字列を新しい正本として扱うため、元の改行構造は置換される。ただし「触っていない長文がPreview/F12だけで壊れる」事故は止める。将来、複数行値の一覧直接編集をreadonly化するかは別UX判断とする。",
+      "test_points": "- 一覧長文inputが__studioSubGridRawValueを保持する。\n- readSubGridControlValue()がlong valueではraw値を優先する。\n- 一覧inputのinputイベント時だけraw値を更新する。\n- Preview Editはtextareaを維持し、Enter/Shift+Enterを改行として扱う。\n- Preview高さをtextareaのminHeight/heightへ引き継ぐ。\n- focus({preventScroll:true}) + setSelectionRange(0,0) + scrollTop=0を行う。\n- compact CSSに固定height:72pxが残らない。\n- Incident JSONで旧snapshotとの差分が「改行だけ消失」の10件は全件復旧済みである。",
+      "verification_log": "- Focused: `node --test tests/qa/static/subgrid_multiline_textarea_enter_static.test.mjs` = 4/4 PASS。\n- `node --check wwwroot/js/runtime/detail_subgrid_edit.js` = PASS。\n- 全Static Before（添付ZIP原本）: 310 tests / 292 PASS / 18 FAIL。\n- 全Static After: 311 tests / 293 PASS / 18 FAIL。\n- 既存18 FAILはBefore/Afterで同じ既知FAIL集合。今回追加1 testはPASSし、新規FAILなし。\n- Incident Data監査: 2026-08-18 snapshotで改行あり→現行で改行なしだった文字列は10件。10件すべて空白正規化後の本文が完全一致することを確認し、旧snapshotの改行を復旧。復旧後の該当差分は0件。\n- Incident JSON parse = PASS / items_count = 211。\n- Windows NativeShell実機で、改行永続化・Preview高さ維持・編集開始時先頭表示はPENDING。",
+      "user_request": "SubGrid複数行テキストで、①Preview Editすると入れた改行が消える、②フォーカスすると縦が短くなり先頭も見えない、③Incident Dataで以前あったMarkdown改行が消えた箇所を全体見直しして復活させたい。",
+      "ai_response": "最新ZIPを基準に、表示値と正本値の混同、Preview Editの高さCSS、過去Incident snapshotとの差分を一括で調査し、推測せず復旧できる範囲まで対応する。",
+      "latest_ai_response": "AI回答\n\n## 原因\n\n今回の3症状は同じ流れでつながっていた。SubGrid一覧を1行表示へした際、改行付きDataを空白へ畳んだ表示用input.valueと正本Dataを分離していなかったため、Preview Editを開く/F12反映するだけで改行が失われていた。加えてcompact CSSがPreview Edit textareaを72px固定へ戻していたため、フォーカス時だけ長文欄が急に縮んでいた。\n\n## 修正\n\n- 一覧は従来どおり1行表示のまま。改行付きraw値を別保持し、保存・Preview Edit起動時はraw値を読む。\n- 一覧で実際に文字を編集した場合だけraw値を更新する。触っていない長文は表示変換で破壊しない。\n- Preview Edit開始直前のPreview実高さをtextareaへ引き継ぐ。固定72px CSSを解除。\n- 編集開始時は文章先頭へcaret/scrollを戻す。\n- 2026-08-18 snapshotと比較し、内容が同一で改行だけ消えていた10件を根拠付きで復旧した。推測での再整形はしていない。\n\n## 確認\n\n- Focused 4/4 PASS\n- 全Static: Before 310/292 PASS/18 FAIL → After 311/293 PASS/18 FAIL\n- 新規FAILなし\n- 改行消失10件の復旧後監査 = 0件残り\n- NativeShell実機確認待ち",
+      "latest_user_comment": "studioくんのエディターのサブグリッドの複数行テキストボックスが全然あかん。改行保持・フォーカス時高さ・Incident Dataの改行復旧をまとめて直してほしい。",
+      "context_refs": [
+        {
+          "context_ref_id": "ctx_0223_foundation_019",
+          "title": "GitHub基準ソースとZIP返却契約",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "ユーザー添付の最新App ZIPを基準にし、更新済みIncident JSONを含む修正版ZIPを返却する。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 1,
+          "note": "作業依頼ターン添付のFRBStudio_App20260823_095350.zipを今回の正本とする。"
+        }
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0223_native_multiline_persistence_verify",
+          "action_type": "VERIFICATION",
+          "required": true,
+          "status": "NOT_STARTED",
+          "related_ids": [
+            "studio_work_0223"
+          ],
+          "note": "Windows NativeShellで改行付きreason/messageをPreview Editし、一覧へ反映→F12→再読込後にも改行保持、高さ維持、文章先頭表示を確認する。",
+          "summary": "SubGrid複数行の永続化・高さ・先頭表示を実機確認"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "disc_0223_001",
+          "at": "2026-08-23T10:08:00+09:00",
+          "speaker": "user",
+          "topic": "SubGrid複数行編集の3点回帰報告",
+          "message": "①Preview Editすると改行が消える。\n②フォーカスすると長文欄が短くなり文章先頭も見えない。\n③Incident Dataで以前あったMarkdown改行が消えているため、全体を見直して復旧したい。"
+        },
+        {
+          "history_id": "disc_0223_002",
+          "at": "2026-08-23T10:08:00+09:00",
+          "speaker": "assistant",
+          "topic": "原因調査方針",
+          "message": "一覧1行表示とData正本値が混同されていないか、Preview Editの固定高さCSS、旧Incident snapshotとの差分を同時に確認し、Runtime修正と根拠付きデータ修復を行う。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0223_001",
+          "at": "2026-08-23T10:08:00+09:00",
+          "decision": "SubGrid一覧の1行表示はView表現に限定し、改行付きraw値を別保持してData正本として読む。",
+          "reason": "一覧inputへ改行を空白化したdisplay valueを入れること自体はUI要件に合うが、そのdisplay valueを保存値として読むとView変換がData破壊になるため。"
+        },
+        {
+          "decision_id": "dec_0223_002",
+          "at": "2026-08-23T10:08:00+09:00",
+          "decision": "Preview Edit textareaはクリック前Previewの実高さを最低高さとして継承し、編集開始時は文章先頭へcaret/scrollを戻す。",
+          "reason": "フォーカス前後で可読性を落とさず、長文先頭を探す無駄なカーソル移動をなくすため。"
+        },
+        {
+          "decision_id": "dec_0223_003",
+          "at": "2026-08-23T10:08:00+09:00",
+          "decision": "既存Incident Dataの復旧は、旧snapshotと空白正規化後の本文が完全一致する箇所だけに限定する。",
+          "reason": "Markdown改行をAI推測で作り直すと元データ改変になるため。履歴証拠がある改行だけを復元する。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0223_001",
+          "at": "2026-08-23T10:08:00+09:00",
+          "change_type": "multiline_raw_value_preservation",
+          "before": "一覧input.valueへ改行を空白化した文字列だけを保持し、collect時にその表示値を正本として読んでいた。",
+          "after": "一覧の表示用valueとは別に__studioSubGridRawValueへ元文字列を保持し、collect時はraw値を優先する。",
+          "reason": "Preview/F12操作だけで改行が消えるData破壊を防ぐため。"
+        },
+        {
+          "history_id": "chg_0223_002",
+          "at": "2026-08-23T10:08:00+09:00",
+          "change_type": "preview_editor_height_and_start_position",
+          "before": "compact CSSがPreview Edit textareaを72px固定にし、focus後に長文が縮み、表示位置も先頭保証がなかった。",
+          "after": "直前Preview実高さをtextareaへインライン継承し、focus時に先頭caret/scrollへ戻す。",
+          "reason": "Preview時と編集時の可読性を一致させるため。"
+        },
+        {
+          "history_id": "chg_0223_003",
+          "at": "2026-08-23T10:08:00+09:00",
+          "change_type": "incident_multiline_data_repair",
+          "before": "studio_work_0201〜0208のdiscussion_history内10メッセージで、旧snapshotに存在したMarkdown改行が空白へ潰れていた。",
+          "after": "2026-08-18 snapshotと本文内容が空白正規化後に完全一致した10件を旧値どおり復旧した。",
+          "reason": "実データで発生済みの改行消失を履歴証拠に基づいて回復するため。"
+        }
+      ],
+      "failure_stories": [
+        {
+          "failure_id": "fail_0223_001",
+          "at": "2026-08-23T10:08:00+09:00",
+          "failure_owner": "AI",
+          "summary": "「一覧は1行表示」のつもりが「Dataも1行化」になっていた",
+          "what_went_wrong": "v0.18.11のコンパクト化で、改行付き長文をdetailSubGridInlineText()で空白へ畳んだ値をinput.valueへ入れ、その同じvalueをcollectDetailSubGridValue()が保存値として読んでいた。View用変換とData正本を分けなかったため、Preview Editを開くだけでも改行が消える構造を作った。",
+          "excuse": "「textarea地獄をやめる！」に夢中で、地獄から脱出したのは見た目だけじゃなく改行データまでだった。しかも前回v0.18.105でtextareaを復活させて喜んだ直後に、入口で既に改行を潰していることが判明。二段オチ。",
+          "failure_admission": "ADMITTED",
+          "article_hook": "Studioくん、1行表示にしたらDataまで1行になった事件"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0224",
+      "phase": "v0.18.107-taskbar-jump-list-launch-shortcuts",
+      "title": "タスクバーJump ListへStudio設定の起動ショートカットを展開",
+      "incident_type": "feature",
+      "category": "native_shell",
+      "priority": "medium",
+      "status": "完了",
+      "follow_up_status": "PENDING",
+      "verification_status": "静的確認済み / Windows NativeShell実機確認待ち",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-23T10:31:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-23T10:31:00+09:00",
+      "updated_at": "2026-08-23T10:31:00+09:00",
+      "work_summary": "- Windowsタスクバー右クリックの「タスク」へ、Studio設定のlaunch_shortcuts[]を動的に展開する。\n- 既存のMarkdown Studio固定タスクは維持する。\n- Data/ViewDef/launch_paramsは個別C#固定せず、ショートカットIDからapp_settings.jsonを再解決する。\n- Common Shellと同じ起動URL契約をNativeShell側でも再利用可能な形にする。",
+      "target_files": "- NativeShell/JumpListManager.cs\n- NativeShell/NativeLaunchOptions.cs\n- NativeShell/NativeLaunchShortcutCatalog.cs\n- NativeShell/README.md\n- tests/qa/static/native_jump_list_markdown_launch_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- NativeShell/JumpListManager.cs\n- NativeShell/NativeLaunchOptions.cs\n- NativeShell/NativeLaunchShortcutCatalog.cs\n- NativeShell/README.md\n- tests/qa/static/native_jump_list_markdown_launch_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "Foundation Rule 019に従い、2026-08-23添付のFRBStudio_App20260823_102932.zipを基準ソースとする。Studio設定のlaunch_shortcuts[]を正本とし、Windows Jump List側に個別ショートカット定義を二重管理しない。",
+      "objective": "FRBStudioのタスクバーアイコン右クリック「タスク」から、Studio設定で登録したJSON Object Studio起動ショートカットを直接起動できるようにする。",
+      "background": "NativeShellのJumpListManagerはこれまで`Markdown Studioを開く`だけを固定登録していた。一方、Studio画面上ではapp_settings.jsonのlaunch_shortcuts[]を共通Shellのショートカットメニューとして利用しており、同じ起動定義がWindowsタスクバー側には露出していなかった。",
+      "scope": "- JumpListManagerが起動時にapp_settings.jsonのlaunch_shortcuts[]を読む。\n- 各設定ショートカットをWindows User Tasksへ追加する。\n- Jump List引数は--launch-shortcut=<id>とし、NativeLaunchOptionsで現在の設定を再解決する。\n- Data/ViewDefの相対JSONパスを検証する。\n- launch_paramsのfocusField/focusValue/openDetail/actionをindex.html queryへ引き継ぐ。\n- 既存Markdown Studioタスクを維持する。\n- READMEと静的回帰テストを更新する。",
+      "out_of_scope": "- 設定保存直後に起動中NativeShellからWindows Jump Listを即時再登録すること。\n- Jump List専用の新しい設定データを追加すること。\n- Windowsの表示順・表示可能件数そのものを制御すること。\n- JSON Object Studio側の既存launch_params実行契約変更。",
+      "fixed_name_policy": "個別shortcut ID、Data JSON、ViewDefをNativeShellコードへ固定しない。固定するのはapp_settings.jsonの共通契約名launch_shortcutsと、既存URL query keyのみとする。",
+      "module_policy": "Windows Jump List固有責務はNativeShell内に閉じ、Web側Common ShellのshortcutHref実装へ依存させない。一方、URL契約はdata/view/focusField/focusValue/openDetail/actionの既存語彙へ揃える。",
+      "expected_outputs": "- 現在設定済みの3件（studio_work_incident / Git Diff WorkingTree / Test Demo Incident Prompt）がMarkdown Studioタスクと並んでWindows「タスク」に出る。\n- 各項目クリックで対応するJSON Object Studio起動契約が復元される。\n- Git Diff等のlaunch_params付きショートカットも同じ動作をする。\n- launch_shortcutsを増減した場合、次回NativeShell起動時にJump Listが同期する。\n- 設定読込失敗でも通常のFRB Studio起動を阻害しない。",
+      "risk": "Windows Jump Listの実表示はOSキャッシュ/AppUserModelID/ピン留め状態に依存するため、静的テストだけでは最終保証できない。更新版NativeShellを一度起動してJump Listを再登録し、実機確認が必要。",
+      "test_points": "- JumpListManagerがNativeLaunchShortcutCatalog.Load()を列挙する。\n- 個別shortcut IDがJumpListManagerへハードコードされていない。\n- catalogがwwwroot/config/app_settings.jsonのlaunch_shortcutsを読む。\n- --launch-shortcut=引数をNativeLaunchOptionsが解決する。\n- index.html queryへdata/viewと4種launch_paramsを引き継ぐ。\n- 既存--launch=markdown契約とMarkdownStudio.icoを維持する。\n- 全Staticで新規FAILを増やさない。",
+      "verification_log": "Focused: `node --test tests/qa/static/native_jump_list_markdown_launch_static.test.mjs` = 6/6 PASS。\n全Static Before（添付ZIP原本）: 311 tests / 293 PASS / 18 FAIL。\n全Static After: 314 tests / 296 PASS / 18 FAIL。\n既存18 FAILはBefore/Afterで同一。今回追加3 testsはPASSし、新規FAILなし。\nこのLinux実行環境にはdotnet/msbuildがないため、net48 NativeShellの実ビルドは未実施。\nWindows NativeShellでJump List表示・各shortcut起動はPENDING。",
+      "user_request": "タスクバーアイコン右クリックの「タスク」に、設定で登録済みの起動ショートカットを出してほしい。",
+      "ai_response": "最新ZIPを基準に、既存Markdownタスクを残したままapp_settings.jsonのlaunch_shortcuts[]をWindows Jump Listへ動的展開する。個別Data/ViewDefはC#へ固定せず、IDから現在設定を再解決する方式で実装する。",
+      "latest_user_comment": "タスクバーアイコン右クリックのタスクのところに、設定で登録済みの起動ショートカットを出してほしい。よろしくぅ",
+      "latest_ai_response": "AI回答\n\n## 今回の更新\n\n- `NativeShell/JumpListManager.cs`\n- `NativeShell/NativeLaunchOptions.cs`\n- `NativeShell/NativeLaunchShortcutCatalog.cs`\n- `NativeShell/README.md`\n- `tests/qa/static/native_jump_list_markdown_launch_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\nWindowsタスクバーのFRBStudio右クリック「タスク」に、固定の`Markdown Studioを開く`だけでなく、Studio設定 `app_settings.json / launch_shortcuts[]` に登録済みのJSON Object Studio起動ショートカットを展開するようにした。\n\nJump ListへData JSONやViewDefを個別ハードコードせず、各タスクは`--launch-shortcut=<id>`だけを保持する。タスクから起動されたNativeShellは、その時点の`app_settings.json`を読み直してIDを解決し、Common Shellと同じ`index.html?data=...&view=...`契約へ変換する。`launch_params`の`focusField / focusValue / openDetail / action`も引き継ぐため、Git Diff WorkingTree実行など既存ショートカットの動作も維持する。\n\n## 方針\n\n- 既存のMarkdown Studioタスクは残す。\n- 設定ショートカットはC#へ個別固定しない。\n- Jump List登録失敗やapp_settings不正は通常起動を止めない。\n- 設定の追加・削除・表示名変更は、NativeShellの次回起動時にWindows Jump Listへ同期する。今回は設定保存中の即時Windows更新までは追加しない。\n\n## 確認結果\n\n- Focused static: 6/6 PASS\n- 全Static: Before 311/293 PASS/18 FAIL → After 314/296 PASS/18 FAIL（既存18 FAIL同一、新規FAILなし）\n- NativeShell C#のWindows/.NET Framework実ビルド: この実行環境では未実施\n- Windows Jump List実機表示/各タスク起動: PENDING\n- 更新済みIncident JSONを差分ZIPへ含める。",
+      "context_refs": [
+        {
+          "context_ref_id": "ctx_0224_foundation_019",
+          "title": "GitHub基準ソースとZIP返却契約",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "ユーザー添付の最新App ZIPを基準にし、更新したファイルだけを同一相対パスで返却し、更新済みIncident JSONを含める。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 1,
+          "note": "作業依頼ターン添付のFRBStudio_App20260823_102932.zipを今回の正本とする。"
+        }
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0224_native_jump_list_verify",
+          "action_type": "VERIFICATION",
+          "required": true,
+          "status": "NOT_STARTED",
+          "related_ids": [
+            "studio_work_0224"
+          ],
+          "note": "WindowsでNativeShellをbuild/publishし、更新版EXEを一度起動後、タスクバー右クリックの「タスク」に設定済みlaunch_shortcutsが表示され、各項目が対応画面/Actionを起動することを確認する。設定変更後はNativeShell再起動で同期されることも確認する。",
+          "summary": "Windows Jump Listの設定ショートカット表示・起動を実機確認"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "disc_0224_001",
+          "at": "2026-08-23T10:31:00+09:00",
+          "speaker": "user",
+          "topic": "タスクバーJump Listへの設定ショートカット表示依頼",
+          "message": "タスクバーアイコン右クリックのタスクのところに、設定で登録済みの起動ショートカットを出してほしい。よろしくぅ"
+        },
+        {
+          "history_id": "disc_0224_002",
+          "at": "2026-08-23T10:31:00+09:00",
+          "speaker": "assistant",
+          "topic": "Jump List設定ショートカット実装完了報告",
+          "message": "AI回答\n\n## 今回の更新\n\n- `NativeShell/JumpListManager.cs`\n- `NativeShell/NativeLaunchOptions.cs`\n- `NativeShell/NativeLaunchShortcutCatalog.cs`\n- `NativeShell/README.md`\n- `tests/qa/static/native_jump_list_markdown_launch_static.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\nWindowsタスクバーのFRBStudio右クリック「タスク」に、固定の`Markdown Studioを開く`だけでなく、Studio設定 `app_settings.json / launch_shortcuts[]` に登録済みのJSON Object Studio起動ショートカットを展開するようにした。\n\nJump ListへData JSONやViewDefを個別ハードコードせず、各タスクは`--launch-shortcut=<id>`だけを保持する。タスクから起動されたNativeShellは、その時点の`app_settings.json`を読み直してIDを解決し、Common Shellと同じ`index.html?data=...&view=...`契約へ変換する。`launch_params`の`focusField / focusValue / openDetail / action`も引き継ぐため、Git Diff WorkingTree実行など既存ショートカットの動作も維持する。\n\n## 方針\n\n- 既存のMarkdown Studioタスクは残す。\n- 設定ショートカットはC#へ個別固定しない。\n- Jump List登録失敗やapp_settings不正は通常起動を止めない。\n- 設定の追加・削除・表示名変更は、NativeShellの次回起動時にWindows Jump Listへ同期する。今回は設定保存中の即時Windows更新までは追加しない。\n\n## 確認結果\n\n- Focused static: 6/6 PASS\n- 全Static: Before 311/293 PASS/18 FAIL → After 314/296 PASS/18 FAIL（既存18 FAIL同一、新規FAILなし）\n- NativeShell C#のWindows/.NET Framework実ビルド: この実行環境では未実施\n- Windows Jump List実機表示/各タスク起動: PENDING\n- 更新済みIncident JSONを差分ZIPへ含める。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0224_001",
+          "at": "2026-08-23T10:31:00+09:00",
+          "decision": "Windows Jump Listの設定ショートカットはapp_settings.jsonのlaunch_shortcuts[]を正本として動的生成する。",
+          "reason": "Studio画面上の起動ショートカットとWindowsタスクで定義を二重管理せず、設定追加・削除をNativeShellコード変更なしで反映できるようにするため。"
+        },
+        {
+          "decision_id": "dec_0224_002",
+          "at": "2026-08-23T10:31:00+09:00",
+          "decision": "Jump ListのShellLink引数にはData/ViewDefではなくshortcut IDだけを保持し、起動時に現在のapp_settings.jsonから再解決する。",
+          "reason": "Windows側へ古いData/ViewDef値を焼き付けず、設定変更後も同じIDで現在の起動契約を利用できるため。"
+        },
+        {
+          "decision_id": "dec_0224_003",
+          "at": "2026-08-23T10:31:00+09:00",
+          "decision": "既存のMarkdown Studio固定タスクは削除せず、設定ショートカットの前に維持する。",
+          "reason": "既存の直接起動導線を回帰させず、今回の要望を追加機能として外付けするため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0224_001",
+          "at": "2026-08-23T10:31:00+09:00",
+          "change_type": "jump_list_settings_projection",
+          "before": "JumpListManagerはMarkdown Studioタスク1件だけを固定登録していた。",
+          "after": "Markdown Studioタスクに加え、NativeLaunchShortcutCatalogがapp_settings.jsonのlaunch_shortcuts[]を読み、各captionをWindows User Taskとして登録する。",
+          "reason": "Studio設定で作った起動ショートカットをタスクバーから直接利用できるようにするため。"
+        },
+        {
+          "history_id": "chg_0224_002",
+          "at": "2026-08-23T10:31:00+09:00",
+          "change_type": "native_shortcut_argument_resolution",
+          "before": "NativeLaunchOptionsは--launch=markdownだけを解釈していた。",
+          "after": "--launch-shortcut=<id>を追加し、IDからdata/view/launch_paramsを解決してindex.html queryへ変換する。",
+          "reason": "Common ShellとWindows Jump Listで同じ起動定義を利用しつつ、C#個別ハードコードを避けるため。"
         }
       ]
     }
