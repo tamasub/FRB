@@ -16,6 +16,12 @@ function isDetailSubGridEditable(field) {
   return true;
 }
 
+function detailSubGridInitialExpanded(field) {
+  const cfg = detailSubGridConfig(field);
+  const value = cfg?.initialExpanded ?? cfg?.initial_expanded;
+  return value !== false;
+}
+
 function normalizeSubGridColumn(raw) {
   if (typeof raw === 'string') return { field: raw, caption: raw, type: 'text' };
   if (!raw || typeof raw !== 'object') return null;
@@ -987,6 +993,7 @@ function fitDetailSubGridColumnsToWrap(card, columns=[]) {
 
 function createDetailSubGridCard({ field, row, gd, data }) {
   const editable = isDetailSubGridEditable(field);
+  let expanded = detailSubGridInitialExpanded(field);
   const card = document.createElement('div');
   card.className = 'child-card detail-subgrid-edit' + (editable ? ' is-editable' : ' is-readonly');
   // v0.18.41-subgrid-component-data-derived:
@@ -1021,6 +1028,13 @@ function createDetailSubGridCard({ field, row, gd, data }) {
   if (editable) {
     meta.appendChild(createSubGridActionButton('+行', '末尾に行を追加', () => insertDetailSubGridRow(card)));
   }
+
+  let applyExpandedState = () => {};
+  const toggle = createSubGridActionButton('', '', () => applyExpandedState(!expanded));
+  toggle.classList.add('detail-subgrid-toggle-btn');
+  toggle.dataset.subgridToggle = 'true';
+  meta.appendChild(toggle);
+
   header.appendChild(meta);
   card.appendChild(header);
 
@@ -1076,6 +1090,17 @@ function createDetailSubGridCard({ field, row, gd, data }) {
     ? 'サブグリッドは一覧表示です。長文編集はプレビュー編集で行い、F12または反映ボタンで親JSONへ同期します。'
     : 'この配列は読取専用です。プレビューから内容を確認できます。';
   card.appendChild(note);
+
+  applyExpandedState = nextExpanded => {
+    expanded = nextExpanded !== false;
+    card.dataset.subgridExpanded = String(expanded);
+    wrap.hidden = !expanded;
+    note.hidden = !expanded;
+    toggle.textContent = expanded ? '▼' : '▶';
+    toggle.title = expanded ? 'サブグリッドを閉じる' : 'サブグリッドを開く';
+    toggle.setAttribute('aria-expanded', String(expanded));
+  };
+  applyExpandedState(expanded);
 
   renumberDetailSubGridRows(card);
   requestAnimationFrame(() => fitDetailSubGridColumnsToWrap(card, columns));

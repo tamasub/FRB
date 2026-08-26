@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FRB Compare v1</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="compare.css" />
+  <link rel="stylesheet" href="style.css?v=20260823_sweep_compare_settings_v01" />
+  <link rel="stylesheet" href="compare.css?v=20260823_sweep_compare_settings_v01" />
 </head>
 <body class="compare-body">
   <header class="compare-header">
@@ -14,7 +14,7 @@
       <p class="lead">FFTログを左右に並べて、構造差分を見つけるための独立View。</p>
     </div>
     <nav class="compare-nav">
-      <a href="index.html">Realtime Monitor</a>
+      <a href="index.html?v=20260823_sweep_compare_settings_v01">Realtime Monitor</a>
     </nav>
   </header>
 
@@ -45,15 +45,31 @@
       <span id="scaleStatus" class="status">Fixed 80k</span>
     </div>
     <div class="note-box">
-      v1: BandTimeline Investigate / FRB Piano Roll / Flux / Triangle Motion / BridgeScore<br />
-      MIDI生成・Diff・保存・左右同期は封印。offsetMs は内部だけ用意。
+      v1: Sweep Trace Hz / Sweep Trace Energy / BandTimeline Investigate / FRB Piano Roll / Flux / Triangle Motion / BridgeScore Legacy<br />
+      Sweep Energyは左右共通Auto Scale。Bridge Research: Stability + Legacy band breakdown は本体と共通ロジック。MIDI生成・Diff・保存・左右同期は封印。
     </div>
   </section>
 
   <main class="compare-grid">
     <div class="global-side-labels" aria-hidden="true"><span>Left</span><span>Right</span></div>
     <section class="compare-row panel">
-      <h2>① BandTimeline Investigate</h2>
+      <h2>① Sweep Trace Hz</h2>
+      <div class="pair">
+        <div class="side"><h3>Left</h3><canvas id="leftSweepHz" height="125"></canvas></div>
+        <div class="side"><h3>Right</h3><canvas id="rightSweepHz" height="125"></canvas></div>
+      </div>
+    </section>
+
+    <section class="compare-row panel">
+      <h2>② Sweep Trace Energy</h2>
+      <div class="pair">
+        <div class="side"><h3>Left</h3><canvas id="leftSweepEnergy" height="125"></canvas></div>
+        <div class="side"><h3>Right</h3><canvas id="rightSweepEnergy" height="125"></canvas></div>
+      </div>
+    </section>
+
+    <section class="compare-row panel">
+      <h2>③ BandTimeline Investigate</h2>
       <div class="pair">
         <div class="side"><h3>Left</h3><canvas id="leftBand" height="150"></canvas></div>
         <div class="side"><h3>Right</h3><canvas id="rightBand" height="150"></canvas></div>
@@ -61,7 +77,7 @@
     </section>
 
     <section class="compare-row panel">
-      <h2>② FRB Piano Roll</h2>
+      <h2>④ FRB Piano Roll</h2>
       <div class="pair">
         <div class="side"><h3>Left</h3><canvas id="leftPiano" height="120"></canvas></div>
         <div class="side"><h3>Right</h3><canvas id="rightPiano" height="120"></canvas></div>
@@ -69,7 +85,7 @@
     </section>
 
     <section class="compare-row panel">
-      <h2>③ Flux</h2>
+      <h2>⑤ Flux</h2>
       <div class="pair">
         <div class="side"><h3>Left</h3><canvas id="leftFlux" height="95"></canvas></div>
         <div class="side"><h3>Right</h3><canvas id="rightFlux" height="95"></canvas></div>
@@ -77,7 +93,7 @@
     </section>
 
     <section class="compare-row panel">
-      <h2>④ Triangle Motion</h2>
+      <h2>⑥ Triangle Motion</h2>
       <div class="pair">
         <div class="side"><h3>Left</h3><canvas id="leftTriangle" height="85"></canvas></div>
         <div class="side"><h3>Right</h3><canvas id="rightTriangle" height="85"></canvas></div>
@@ -85,14 +101,31 @@
     </section>
 
     <section class="compare-row panel">
-      <h2>⑤ BridgeScore</h2>
+      <h2>⑦ BridgeScore v1 (Legacy)</h2>
       <div class="pair">
         <div class="side"><h3>Left</h3><canvas id="leftBridge" height="85"></canvas></div>
         <div class="side"><h3>Right</h3><canvas id="rightBridge" height="85"></canvas></div>
       </div>
     </section>
+
+    <section class="compare-row panel">
+      <h2>⑧ Bridge Stability (Research / rolling 1.0s)</h2>
+      <div class="pair">
+        <div class="side"><h3>Left</h3><canvas id="leftBridgeStability" height="105"></canvas><div id="leftBridgeStats" class="bridge-stats"></div></div>
+        <div class="side"><h3>Right</h3><canvas id="rightBridgeStability" height="105"></canvas><div id="rightBridgeStats" class="bridge-stats"></div></div>
+      </div>
+    </section>
+
+    <section class="compare-row panel">
+      <h2>⑨ Bridge v1 Breakdown (0-80 / 80-160 / 160-250Hz)</h2>
+      <div class="pair">
+        <div class="side"><h3>Left</h3><canvas id="leftBridgeBreakdown" height="115"></canvas></div>
+        <div class="side"><h3>Right</h3><canvas id="rightBridgeBreakdown" height="115"></canvas></div>
+      </div>
+    </section>
   </main>
 
-  <script src="compare.js"></script>
+  <script src="frb_bridge_metrics.js?v=20260823_sweep_compare_settings_v01"></script>
+  <script src="compare.js?v=20260823_sweep_compare_settings_v01"></script>
 </body>
 </html>

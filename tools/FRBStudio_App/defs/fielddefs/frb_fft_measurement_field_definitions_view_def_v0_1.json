@@ -577,7 +577,8 @@
               "caption": "Generated TestPattern / Expected Preview",
               "readonly": true,
               "config": {
-                "registryDataPath": "config/validation_type_registry_v0_1.json"
+                "registryDataPath": "config/validation_type_registry_v0_1.json",
+                "initialExpanded": false
               }
             }
           ]

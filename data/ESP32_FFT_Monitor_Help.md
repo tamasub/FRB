@@ -194,3 +194,56 @@ FRBは、ロッドの優劣を決めるための画面ではありません。
 感度とは、人間が認識可能な構造として現れる振動の和音構造である。  
 感度とは、単純な振動の強さではない。  
 感度は分かち合って初めて本物になる。
+
+---
+
+## Bridge Research v0.1（2026-08-23）
+
+BridgeScore は、まず既存値を **BridgeScore v1 (Legacy)** として固定して残します。
+
+Legacy が見る帯域は次の3帯域です。
+
+- Low = 0-80Hz
+- Mid = 80-160Hz
+- High = 160-250Hz
+
+計算は次の通りです。
+
+```text
+r1 = Mid / Low
+r2 = High / Mid
+BridgeScore v1 = 1 / (1 + abs(r1 - r2))
+```
+
+つまり、振動量そのものではなく、Low→Mid と Mid→High の比率がどれだけ連続しているかを見る実験的な指標です。
+
+### Bridge Stability（Research）
+
+BridgeScore v1 の値そのものとは分離して、時間方向の安定性を観測します。
+
+```text
+rolling window = 1.0 sec
+SD = rolling BridgeScore v1 の標準偏差
+Stability = 1 - 2 * SD
+```
+
+BridgeScore は 0〜1 の値なので、理論上の最大標準偏差 0.5 を使って 0〜1 に正規化しています。
+
+**注意:** Stability は「高感度」「高品質」を意味しません。低いBridgeScoreが一定でも Stability は高くなります。必ず Legacy Mean と合わせて観察します。
+
+### Research Summary
+
+現在は、結論を急がず次を観測します。
+
+- Legacy Mean
+- SD
+- P10
+- BridgeScore >= 0.80 の滞在率
+- Low / Mid / High の平均
+- r1 / r2 の平均
+
+### Bridge v1 Breakdown
+
+BridgeScoreがなぜ上がった／安定したのかを見るため、Legacy計算に使っている Low / Mid / High をそのまま時系列表示します。
+
+FRB Compare でも同じ共有ロジック `frb_bridge_metrics.js` を使用します。

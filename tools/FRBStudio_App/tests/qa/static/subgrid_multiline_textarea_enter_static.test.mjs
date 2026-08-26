@@ -38,7 +38,7 @@ test('SubGrid list view stays visually single-line but preserves canonical multi
   assert.match(controlBlock, /input\.__studioSubGridRawValue = rawText;/);
   assert.match(controlBlock, /if \(input\.dataset\.singleLineLongValue === 'true'\) \{[\s\S]{0,220}input\.__studioSubGridRawValue = input\.value \?\? '';/);
   assert.match(readBlock, /input\.dataset\.singleLineLongValue === 'true'[\s\S]{0,220}input\.__studioSubGridRawValue/);
-  assert.match(index, /js\/runtime\/detail_subgrid_edit\.js\?v=subgrid-multiline-preserve-018106/);
+  assert.match(index, /js\/runtime\/detail_subgrid_edit\.js\?v=subgrid-collapse-018107/);
 });
 
 test('Preview Edit textarea inherits preview height and opens at document start', () => {

@@ -88,3 +88,13 @@
 @media (max-width: 900px) {
   .global-side-labels { grid-template-columns: 1fr; }
 }
+
+.bridge-stats {
+  padding: 4px 8px 6px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 10px;
+  line-height: 1.35;
+  white-space: normal;
+}

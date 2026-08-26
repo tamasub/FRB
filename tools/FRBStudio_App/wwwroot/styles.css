@@ -3745,3 +3745,17 @@ button.viewdef-maintenance-button:disabled {
   margin: 5px 4px;
   background: var(--line-soft);
 }
+
+/* v0.18.107-subgrid-collapse: keep every SubGrid header visible while allowing the body to collapse. */
+.detail-subgrid-toggle-btn {
+  width: 28px;
+  min-width: 28px;
+  padding-left: 0;
+  padding-right: 0;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 900;
+}
+.detail-subgrid-edit[data-subgrid-expanded="false"] .detail-subgrid-header {
+  margin-bottom: 0;
+}

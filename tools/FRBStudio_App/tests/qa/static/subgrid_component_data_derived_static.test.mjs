@@ -169,7 +169,7 @@ test('legacy objectArray/stringArray cards are explicitly canonical Data SubGrid
 
 test('index loads the SubGrid Component hierarchy before Detail SubGrid runtime', () => {
   const index = readText('wwwroot/index.html');
-  const subGrid = index.indexOf('js/components/subgrid_component.js?v=field-definition-derived-preview-01843');
+  const subGrid = index.indexOf('js/components/subgrid_component.js?v=subgrid-collapse-018107');
   const data = index.indexOf('js/components/data_subgrid_component.js?v=subgrid-component-data-derived-01841');
   const derived = index.indexOf('js/components/derived_subgrid_component.js?v=subgrid-component-data-derived-01841');
   const legacyRuntime = index.indexOf('js/runtime/detail_subgrid_edit.js');

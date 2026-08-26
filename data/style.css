@@ -1,4 +1,4 @@
-﻿
+
     body{font-family:sans-serif;margin:12px;}
     canvas{width:100%;height:30vh;border:1px solid #eee;border-radius:10px;}
     .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:10px;}
@@ -676,4 +676,41 @@ body.devMode .frbHiddenWindows { display: block !important; }
   gap:8px 12px;
   flex-wrap:wrap;
   align-items:center;
+}
+
+
+/* ===== Log filename metadata ===== */
+.logMetaPanel{
+  flex:1 1 100%;
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:6px 10px;
+  padding-top:2px;
+}
+
+.logMetaPanel .logActionGroup{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+}
+
+.logMetaPanel select{
+  max-width:180px;
+}
+
+.logMetaPanel .experimentMemoLabel{
+  flex:1 1 260px;
+  min-width:240px;
+}
+
+#experimentMemo{
+  flex:1 1 auto;
+  min-width:220px;
+  max-width:520px;
+  height:22px;
+  padding:2px 6px;
+  resize:horizontal;
+  font-size:12px;
+  box-sizing:border-box;
 }

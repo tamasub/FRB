@@ -1,6 +1,52 @@
-//v0.2.2-log-schema-v4-midi-professor
+//v0.2.2-log-schema-v4-midi-professor-log-filename-meta
 // MIDI_EXPORT_FILENAME_SHORT_META_AND_DOMINO_PROGRAM_2026-05-10
 // INVESTIGATE_FILTER_HARDCUT_2026-05-04
+// ===== Bridge Research bootstrap =====
+// Keep index.html compact for the ESP32 root response.
+// Research canvases are injected at runtime, and the shared Bridge module is loaded
+// from the same file used by FRB Compare.
+(function bootstrapBridgeResearch(){
+  try {
+    if (!document.querySelector('script[data-frb-bridge-metrics]')) {
+      const bridgeScript = document.createElement('script');
+      bridgeScript.src = 'frb_bridge_metrics.js?v=20260823_sweep_compare_settings_v01';
+      bridgeScript.async = true;
+      bridgeScript.dataset.frbBridgeMetrics = '1';
+      document.head.appendChild(bridgeScript);
+    }
+
+    const legacyCanvas = document.getElementById('tsBridge');
+    const legacyPanelTitle = legacyCanvas?.closest('.subPanel')?.querySelector('.panelTitle');
+    if (legacyPanelTitle) legacyPanelTitle.textContent = 'BridgeScore v1 (Legacy)';
+
+    const zoomCanvas = document.getElementById('tsBridgeZoom');
+    const zoomPanelTitle = zoomCanvas?.closest('.subPanel')?.querySelector('.panelTitle');
+    if (zoomPanelTitle) zoomPanelTitle.textContent = 'BridgeScore v1 Zoom (0.75-1.00)';
+
+    if (!document.getElementById('tsBridgeStability')) {
+      const anchorPanel = zoomCanvas ? zoomCanvas.closest('.subPanel') : null;
+      if (anchorPanel && anchorPanel.parentNode) {
+        const stabilityPanel = document.createElement('div');
+        stabilityPanel.className = 'subPanel';
+        stabilityPanel.innerHTML = '<div class="panelTitle">Bridge Stability (Research / rolling 1.0s)</div>' +
+          '<div id="bridgeResearchSummary" class="mini">Legacy Mean / SD / P10 / >=0.80 / Low-Mid-High を観測</div>' +
+          '<canvas id="tsBridgeStability"></canvas>';
+
+        const breakdownPanel = document.createElement('div');
+        breakdownPanel.className = 'subPanel';
+        breakdownPanel.innerHTML = '<div class="panelTitle">Bridge v1 Breakdown (Legacy bands)</div>' +
+          '<div class="mini">Low=0-80Hz / Mid=80-160Hz / High=160-250Hz</div>' +
+          '<canvas id="tsBridgeBreakdown"></canvas>';
+
+        anchorPanel.insertAdjacentElement('afterend', stabilityPanel);
+        stabilityPanel.insertAdjacentElement('afterend', breakdownPanel);
+      }
+    }
+  } catch (err) {
+    console.warn('Bridge Research bootstrap skipped:', err);
+  }
+})();
+
 // ===== FRB device mode =====
 // 2号機配布版はマイクなし。A(Accel)だけでTimeLog/Flux/PianoRollを更新する。
 // 1号機などマイクあり版で使う場合は true に戻す。
@@ -11,7 +57,7 @@ const FRB_MIC_ENABLED = false;
 // 旧ログ(version 1-3 / schemaVersionなし)は Legacy Log として表示互換を維持する。
 const FRB_LOG_VERSION = 4;
 const FRB_LOG_SCHEMA_VERSION = 'frb-log-0.4-draft';
-const FRB_APP_VERSION = 'fft-monitor-0.2.2-log-schema-v4-midi-professor';
+const FRB_APP_VERSION = 'fft-monitor-0.2.3-bridge-research-v02';
 const FRB_MIDI_EXPORT_POLICY = 'rebuild-from-tsBuf';
 
 let currentLoadedLogMeta = null;
@@ -130,6 +176,12 @@ const gTSter = tsBridgeCanvas ? tsBridgeCanvas.getContext('2d') : null;
 const tsBridgeZoomCanvas = document.getElementById('tsBridgeZoom');
 const gTSterZoom = tsBridgeZoomCanvas ? tsBridgeZoomCanvas.getContext('2d') : null;
 
+const tsBridgeStabilityCanvas = document.getElementById('tsBridgeStability');
+const gTBridgeStability = tsBridgeStabilityCanvas ? tsBridgeStabilityCanvas.getContext('2d') : null;
+const tsBridgeBreakdownCanvas = document.getElementById('tsBridgeBreakdown');
+const gTBridgeBreakdown = tsBridgeBreakdownCanvas ? tsBridgeBreakdownCanvas.getContext('2d') : null;
+const bridgeResearchSummaryEl = document.getElementById('bridgeResearchSummary');
+
 const tsBandHeatCanvas = document.getElementById('tsBandHeatCanvas');
 const gTBH = tsBandHeatCanvas?.getContext('2d');
 
@@ -167,8 +219,22 @@ const timeWindowSel = document.getElementById('timeWindow');
 const thrEl = document.getElementById('thr');
 const thrTxt = document.getElementById('thrTxt');
 
+const experimentRodEl = document.getElementById('experimentRod');
+const experimentInputEl = document.getElementById('experimentInput');
+const experimentInputContactEl = document.getElementById('experimentInputContact');
+const experimentMeasurementPartEl = document.getElementById('experimentMeasurementPart');
 const experimentMemoEl = document.getElementById('experimentMemo');
 const logInfoStatusEl = document.getElementById('logInfoStatus');
+const EXPERIMENT_META_STORAGE_KEY = 'frb_fft_monitor_experiment_meta_v1';
+const MONITOR_SETTINGS_STORAGE_KEY = 'frb_fft_monitor_ui_settings_v1';
+
+// 画面初期表示時は、明示保存したMonitor設定を自動復元する。
+// 新設定がまだ無い場合だけ、従来の「Log保存時メタ情報」を互換復元する。
+// Logファイル読込時は loadSessionFromObject() 側の setExperimentMeta() が
+// この初期値を上書きするため、読み込んだLogの情報がそのまま表示される。
+window.addEventListener('DOMContentLoaded', () => {
+  restoreMonitorSettingsFromStorage();
+});
 
 // latest value (used as reference for the time log at the moment of touch)
 let lastScrape = 0;
@@ -994,6 +1060,9 @@ document.getElementById('timeWindow')?.addEventListener('change', () => {
 document.getElementById("saveLogBtn")
   ?.addEventListener("click", saveSessionToFile);
 
+document.getElementById("saveSettingsBtn")
+  ?.addEventListener("click", saveMonitorSettingsToStorage);
+
 document.getElementById("loadLogBtn")
   ?.addEventListener("click", () => {
 
@@ -1357,6 +1426,10 @@ if(type === 'M'){
 
     const nowT = performance.now() * 0.001;
 
+    const bridgeDetails = latestBandA
+      ? (window.FRBBridgeMetrics?.calcLegacyDetails(latestBandA.smooth) || null)
+      : null;
+
     const feat = {
       t: nowT,
       scrape: scrSmooth,
@@ -1370,7 +1443,15 @@ if(type === 'M'){
       bandM: (FRB_MIC_ENABLED && latestBandM) ? { ...latestBandM.smooth } : makeZeroBandMap(),
       bandAInvestigate: latestBandAInvestigate ? { ...latestBandAInvestigate.smooth } : null,
       bandMInvestigate: (FRB_MIC_ENABLED && latestBandMInvestigate) ? { ...latestBandMInvestigate.smooth } : makeZeroBandMapBy(getActiveInvestigateBands()),
-      stairError: latestBandA ? calcBridgeScore(latestBandA.smooth) : 0,
+      // BridgeScore v1 (Legacy): field name stairError is retained for old-log compatibility.
+      stairError: bridgeDetails ? bridgeDetails.score : 0,
+      bridgeLegacyScore: bridgeDetails ? bridgeDetails.score : 0,
+      bridgeLow: bridgeDetails ? bridgeDetails.low : 0,
+      bridgeMid: bridgeDetails ? bridgeDetails.mid : 0,
+      bridgeHigh: bridgeDetails ? bridgeDetails.high : 0,
+      bridgeRatioLowMid: bridgeDetails ? bridgeDetails.ratioLowMid : 0,
+      bridgeRatioMidHigh: bridgeDetails ? bridgeDetails.ratioMidHigh : 0,
+      bridgeRatioGap: bridgeDetails ? bridgeDetails.ratioGap : 0,
       fluxBandA: { ...fluxBandEmaA },
       fluxBandM: FRB_MIC_ENABLED ? { ...fluxBandEmaM } : makeZeroBandMap(),
       tingleMotion: calcTingleMotionFromFluxBand(fluxBandEmaA),
@@ -1426,6 +1507,15 @@ if(type === 'M'){
 
     tsBuf.push(feat);
 
+    // Bridge Research: time-based rolling stability.
+    // Stability is intentionally kept separate from the Legacy score level.
+    if (window.FRBBridgeMetrics) {
+      const rolling = window.FRBBridgeMetrics.getRollingStats(tsBuf, tsBuf.length - 1);
+      feat.bridgeRollingMean = Number.isFinite(rolling.mean) ? rolling.mean : 0;
+      feat.bridgeRollingSd = Number.isFinite(rolling.sd) ? rolling.sd : 0;
+      feat.bridgeStability = Number.isFinite(rolling.stability) ? rolling.stability : 0;
+    }
+
     // Live measurement: show the current main-melody candidate amplitude in real time.
     // This uses the same peak-selection idea as MIDI export: strongest peak + continuity inertia.
     pushLiveMelodyAmpFrame(feat);
@@ -1443,6 +1533,8 @@ if(type === 'M'){
     drawBandTimelineInvestigate();
     drawStairTimeline();
     drawStairTimelineZoom();
+    drawBridgeStabilityTimeline();
+    drawBridgeBreakdownTimeline();
     drawBandHeatmap();
     drawTingleMotion();
     drawExperienceWave();
@@ -1512,6 +1604,8 @@ function fitAll(){
   fitCanvasEl(tsBandCanvas, 300, 200);
   fitCanvasEl(tsBridgeCanvas, 300, 140);
   fitCanvasEl(tsBridgeZoomCanvas, 300, 140);
+  if (tsBridgeStabilityCanvas) fitCanvasEl(tsBridgeStabilityCanvas, 300, 140);
+  if (tsBridgeBreakdownCanvas) fitCanvasEl(tsBridgeBreakdownCanvas, 300, 160);
   fitCanvasEl(tsBandHeatCanvas, 900, 140);
   fitCanvasEl(tsExpCanvas, 300, 160);
   fitCanvasEl(tsBandFluxCanvas, 300, 200);
@@ -1541,6 +1635,12 @@ function fitAll(){
   }
   if (gTSterZoom && tsBridgeZoomCanvas) {
     gTSterZoom.clearRect(0, 0, tsBridgeZoomCanvas.width, tsBridgeZoomCanvas.height);
+  }
+  if (gTBridgeStability && tsBridgeStabilityCanvas) {
+    gTBridgeStability.clearRect(0, 0, tsBridgeStabilityCanvas.width, tsBridgeStabilityCanvas.height);
+  }
+  if (gTBridgeBreakdown && tsBridgeBreakdownCanvas) {
+    gTBridgeBreakdown.clearRect(0, 0, tsBridgeBreakdownCanvas.width, tsBridgeBreakdownCanvas.height);
   }
   if (tsBandInvestigateCanvas) fitCanvasEl(tsBandInvestigateCanvas, 300, 200);
   if (gTBI && tsBandInvestigateCanvas) {
@@ -1577,6 +1677,8 @@ function redrawAllAfterResize(){
     if (typeof drawBandTimelineInvestigate === 'function') drawBandTimelineInvestigate();
     if (typeof drawStairTimeline === 'function') drawStairTimeline();
     if (typeof drawStairTimelineZoom === 'function') drawStairTimelineZoom();
+    if (typeof drawBridgeStabilityTimeline === 'function') drawBridgeStabilityTimeline();
+    if (typeof drawBridgeBreakdownTimeline === 'function') drawBridgeBreakdownTimeline();
     if (typeof drawBandHeatmap === 'function') drawBandHeatmap();
     if (typeof drawTingleMotion === 'function') drawTingleMotion();
     if (typeof drawExperienceWave === 'function') drawExperienceWave();
@@ -4063,6 +4165,162 @@ function setExperimentMemo(v){
   if (experimentMemoEl) experimentMemoEl.value = String(v || '');
 }
 
+function getSelectValue(el){
+  return String(el?.value || '').trim();
+}
+
+function setSelectValue(el, value, fallback = 'その他'){
+  if (!el) return;
+  const wanted = String(value || '').trim();
+  const hasWanted = Array.from(el.options || []).some(opt => opt.value === wanted);
+  if (hasWanted) {
+    el.value = wanted;
+    return;
+  }
+
+  const hasFallback = Array.from(el.options || []).some(opt => opt.value === fallback);
+  if (hasFallback) el.value = fallback;
+}
+
+function getExperimentMeta(){
+  return {
+    rod: getSelectValue(experimentRodEl),
+    input: getSelectValue(experimentInputEl),
+    inputContact: getSelectValue(experimentInputContactEl),
+    measurementPart: getSelectValue(experimentMeasurementPartEl),
+    memo: getExperimentMemo()
+  };
+}
+
+function setExperimentMeta(experiment){
+  const exp = experiment && typeof experiment === 'object' ? experiment : {};
+  setSelectValue(experimentRodEl, exp.rod, 'その他');
+  setSelectValue(experimentInputEl, exp.input, 'その他');
+  setSelectValue(experimentInputContactEl, exp.inputContact, 'その他');
+  setSelectValue(experimentMeasurementPartEl, exp.measurementPart, 'その他');
+  setExperimentMemo(exp.memo ?? '');
+}
+
+function getExperimentSummary(experiment){
+  const exp = experiment && typeof experiment === 'object' ? experiment : {};
+  return [exp.rod, exp.input, exp.inputContact, exp.measurementPart, exp.memo]
+    .map(v => String(v || '').trim())
+    .filter(Boolean)
+    .join(' / ');
+}
+
+function saveExperimentMetaToStorage(experiment){
+  try {
+    const exp = experiment && typeof experiment === 'object'
+      ? experiment
+      : getExperimentMeta();
+
+    localStorage.setItem(EXPERIMENT_META_STORAGE_KEY, JSON.stringify({
+      rod: String(exp.rod || ''),
+      input: String(exp.input || ''),
+      inputContact: String(exp.inputContact || ''),
+      measurementPart: String(exp.measurementPart || ''),
+      memo: String(exp.memo || '')
+    }));
+  } catch (e) {
+    // Storageが使えない環境でもLogファイル保存そのものは継続する。
+    console.warn('experiment meta storage save failed', e);
+  }
+}
+
+function restoreExperimentMetaFromStorage(){
+  try {
+    const raw = localStorage.getItem(EXPERIMENT_META_STORAGE_KEY);
+    if (!raw) return;
+
+    const saved = JSON.parse(raw);
+    if (!saved || typeof saved !== 'object') return;
+
+    setExperimentMeta(saved);
+  } catch (e) {
+    // 壊れたStorage値があっても画面初期化を止めない。
+    console.warn('experiment meta storage restore failed', e);
+  }
+}
+
+function getMonitorSettings(){
+  return {
+    version: 1,
+    soundVol: String(document.getElementById('soundVol')?.value ?? '0.35'),
+    modType: String(document.getElementById('modType')?.value ?? 'am_slow'),
+    sweepStartHz: String(document.getElementById('sweepStartHz')?.value ?? '20'),
+    sweepEndHz: String(document.getElementById('sweepEndHz')?.value ?? '300'),
+    sweepDurationSec: String(document.getElementById('sweepDurationSec')?.value ?? '30'),
+    soundFreq: String(document.getElementById('soundFreq')?.value ?? '120'),
+    experiment: getExperimentMeta()
+  };
+}
+
+function setInputValueById(id, value){
+  const el = document.getElementById(id);
+  if (!el || value === undefined || value === null) return;
+  el.value = String(value);
+}
+
+function setSelectValueById(id, value){
+  const el = document.getElementById(id);
+  if (!el || value === undefined || value === null) return;
+  const wanted = String(value);
+  if (Array.from(el.options || []).some(opt => opt.value === wanted)) el.value = wanted;
+}
+
+function applyMonitorSettings(settings){
+  const st = settings && typeof settings === 'object' ? settings : {};
+  setInputValueById('soundVol', st.soundVol);
+  setSelectValueById('modType', st.modType);
+  setInputValueById('sweepStartHz', st.sweepStartHz);
+  setInputValueById('sweepEndHz', st.sweepEndHz);
+  setInputValueById('sweepDurationSec', st.sweepDurationSec);
+  setInputValueById('soundFreq', st.soundFreq);
+  if (st.experiment && typeof st.experiment === 'object') setExperimentMeta(st.experiment);
+
+  // range表示文字も復元値へ同期する。
+  if (typeof updateToneVolume === 'function') updateToneVolume();
+}
+
+function saveMonitorSettingsToStorage(){
+  try {
+    const settings = getMonitorSettings();
+    localStorage.setItem(MONITOR_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+
+    // 旧キーも更新して、過去版へ戻した場合の互換性を維持する。
+    saveExperimentMetaToStorage(settings.experiment);
+
+    if (logInfoStatusEl) logInfoStatusEl.textContent = 'settings saved / reload auto restore';
+    return true;
+  } catch (e) {
+    console.warn('monitor settings storage save failed', e);
+    if (logInfoStatusEl) logInfoStatusEl.textContent = 'settings save failed';
+    return false;
+  }
+}
+
+function restoreMonitorSettingsFromStorage(){
+  try {
+    const raw = localStorage.getItem(MONITOR_SETTINGS_STORAGE_KEY);
+    if (!raw) {
+      restoreExperimentMetaFromStorage();
+      return;
+    }
+
+    const saved = JSON.parse(raw);
+    if (!saved || typeof saved !== 'object') {
+      restoreExperimentMetaFromStorage();
+      return;
+    }
+
+    applyMonitorSettings(saved);
+  } catch (e) {
+    console.warn('monitor settings storage restore failed', e);
+    restoreExperimentMetaFromStorage();
+  }
+}
+
 function safeFilePart(s){
   return String(s || '')
     .trim()
@@ -4072,7 +4330,7 @@ function safeFilePart(s){
 }
 
 function buildSessionData(){
-  const experimentMemo = getExperimentMemo();
+  const experiment = getExperimentMeta();
   const savedTsBuf = downsampleTimeSeries(tsBuf, 0.03).map(cloneTsFrame);
   const savedPianoRoll = buildPianoRollSnapshotForSave(savedTsBuf);
   const tsSpan = getFrameTimeSpan(savedTsBuf);
@@ -4085,9 +4343,7 @@ function buildSessionData(){
     appVersion: FRB_APP_VERSION,
     savedAt: nowIso,
 
-    experiment: {
-      memo: experimentMemo
-    },
+    experiment,
 
     captureMeta: {
       deviceMode: FRB_MIC_ENABLED ? 'accel+mic' : 'accel-only',
@@ -4118,6 +4374,15 @@ function buildSessionData(){
       previewWaveform: INSTR
     },
 
+    bridgeMetricMeta: window.FRBBridgeMetrics ? {
+      specId: window.FRBBridgeMetrics.SPEC.id,
+      legacyId: window.FRBBridgeMetrics.SPEC.legacyId,
+      legacyBands: window.FRBBridgeMetrics.SPEC.legacyBands.map(x => ({ ...x })),
+      stabilityWindowSec: window.FRBBridgeMetrics.SPEC.stabilityWindowSec,
+      highBridgeThreshold: window.FRBBridgeMetrics.SPEC.highBridgeThreshold,
+      note: window.FRBBridgeMetrics.SPEC.note
+    } : null,
+
     legacyCompatibility: {
       canDisplayLegacyLogs: true,
       legacyMidiPolicy: 'rebuild-from-tsBuf-when-possible',
@@ -4138,6 +4403,10 @@ function buildSessionData(){
 
 function saveSessionToFile(){
   const data = buildSessionData();
+
+  // Log保存時点の上部設定一式も、次回起動/URL再ロード用に保持する。
+  saveMonitorSettingsToStorage();
+
   const blob = new Blob(
     [JSON.stringify(data, null, 2)],
     { type: 'application/json' }
@@ -4145,16 +4414,23 @@ function saveSessionToFile(){
 
   const a = document.createElement('a');
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const memoPart = safeFilePart(data.experiment?.memo);
+  const nameParts = [
+    data.experiment?.rod,
+    data.experiment?.input,
+    data.experiment?.inputContact,
+    data.experiment?.measurementPart,
+    data.experiment?.memo
+  ]
+    .map(safeFilePart)
+    .filter(Boolean);
+  const metaPart = nameParts.join('_');
   a.href = URL.createObjectURL(blob);
-  a.download = memoPart
-    ? `fft_log_${memoPart}_${stamp}.json`
+  a.download = metaPart
+    ? `fft_log_${metaPart}_${stamp}.json`
     : `fft_log_${stamp}.json`;
   a.click();
   if (logInfoStatusEl) {
-    logInfoStatusEl.textContent = data.experiment?.memo
-      ? `saved: ${data.experiment.memo}`
-      : 'saved: no exp memo';
+    logInfoStatusEl.textContent = `saved: ${a.download}`;
   }
   console.log('session data saved', a.href.toString);
   URL.revokeObjectURL(a.href);
@@ -4167,12 +4443,16 @@ function loadSessionFromObject(data){
 
   currentLoadedLogMeta = getLoadedLogInfo(data);
 
-  const memo = data.experiment?.memo ?? data.experimentMemo ?? '';
-  setExperimentMemo(memo);
+  const legacyMemo = data.experiment?.memo ?? data.experimentMemo ?? '';
+  const experiment = {
+    ...(data.experiment && typeof data.experiment === 'object' ? data.experiment : {}),
+    memo: legacyMemo
+  };
+  setExperimentMeta(experiment);
   if (logInfoStatusEl) {
     const legacyMark = currentLoadedLogMeta.isLegacy ? 'Legacy log' : currentLoadedLogMeta.schemaVersion;
-    const memoText = memo ? ` / ${memo}` : ' / no exp memo';
-    logInfoStatusEl.textContent = `loaded: ${legacyMark}${memoText}`;
+    const summary = getExperimentSummary(experiment);
+    logInfoStatusEl.textContent = `loaded: ${legacyMark}${summary ? ` / ${summary}` : ''}`;
   }
 
   // 本体クリア
@@ -4229,6 +4509,8 @@ function loadSessionFromObject(data){
   if (typeof drawTimeSeries === 'function') drawTimeSeries();
   if (typeof drawStairTimeline === 'function') drawStairTimeline();
   if (typeof drawStairTimelineZoom === 'function') drawStairTimelineZoom();
+  if (typeof drawBridgeStabilityTimeline === 'function') drawBridgeStabilityTimeline();
+  if (typeof drawBridgeBreakdownTimeline === 'function') drawBridgeBreakdownTimeline();
 
   if (typeof drawExperienceWave === 'function') drawExperienceWave();
   if (typeof drawTimeLog === 'function') drawTimeLog();
@@ -5592,7 +5874,7 @@ function drawStairTimeline(){
   let started = false;
   for (const p of visible) {
     const x = xMap(p.t);
-    const y = yMap(p.stairError);
+    const y = yMap(getBridgeLegacyScore(p));
 
     if (!started) {
       gTSter.moveTo(x, y);
@@ -5618,6 +5900,233 @@ function drawStairTimeline(){
   gTSter.fillText('BridgeScore (0.00-1.00, higher = more connected)', chartLeft, H - 6);
 }
 
+
+
+
+function getBridgeViewSeries(){
+  const selectedFrozen = getSelectedFrozenSeries();
+  const seriesSrc = (!timeLogFollowLatest && selectedFrozen)
+    ? selectedFrozen
+    : tsBuf;
+
+  if (!seriesSrc || seriesSrc.length < 2) return { seriesSrc: [], visible: [], viewStart: 0, viewEnd: 1 };
+
+  const nowSec = Number(seriesSrc[seriesSrc.length - 1].t) || 0;
+  const winSec = getTimeWindowSec();
+  let viewStart = 0;
+  let viewEnd = winSec;
+
+  if (!timeLogFollowLatest && isFinite(timeLogCenterSec)) {
+    viewStart = Math.max(0, timeLogCenterSec - winSec / 2);
+    viewEnd = viewStart + winSec;
+    if (viewEnd > nowSec && nowSec > winSec) {
+      viewEnd = nowSec;
+      viewStart = Math.max(0, viewEnd - winSec);
+    }
+  } else {
+    viewStart = Math.max(0, nowSec - winSec);
+    viewEnd = Math.max(winSec, nowSec);
+  }
+
+  const visible = seriesSrc.filter(p => Number(p?.t) >= viewStart && Number(p?.t) <= viewEnd);
+  return { seriesSrc, visible, viewStart, viewEnd };
+}
+
+function formatBridgeResearchSummary(summary){
+  if (!summary || !summary.count) return 'Bridge Research: no data';
+  const pct = Number.isFinite(summary.highOccupancy) ? `${(summary.highOccupancy * 100).toFixed(1)}%` : '-';
+  const f = (v, d = 3) => Number.isFinite(v) ? Number(v).toFixed(d) : '-';
+  return `Legacy Mean ${f(summary.scoreMean)} / SD ${f(summary.scoreSd)} / P10 ${f(summary.scoreP10)} / >=0.80 ${pct} / ` +
+    `L ${f(summary.lowMean, 0)} / M ${f(summary.midMean, 0)} / H ${f(summary.highMean, 0)} / ` +
+    `r1 ${f(summary.ratioLowMidMean)} / r2 ${f(summary.ratioMidHighMean)}`;
+}
+
+function drawBridgeStabilityTimeline(){
+  if (!tsBridgeStabilityCanvas || !gTBridgeStability || !window.FRBBridgeMetrics) return;
+
+  const W = tsBridgeStabilityCanvas.width;
+  const H = tsBridgeStabilityCanvas.height;
+  gTBridgeStability.clearRect(0, 0, W, H);
+
+  const { visible, viewStart, viewEnd } = getBridgeViewSeries();
+  const ml = 58, mr = 24, mt = 18, mb = 24;
+  const pw = W - ml - mr;
+  const ph = H - mt - mb;
+  const chartLeft = ml, chartRight = ml + pw, chartTop = mt, chartBottom = mt + ph;
+
+  gTBridgeStability.fillStyle = '#fcfcfc';
+  gTBridgeStability.fillRect(0, 0, W, H);
+  gTBridgeStability.strokeStyle = '#d4d4d4';
+  gTBridgeStability.beginPath();
+  gTBridgeStability.moveTo(chartLeft, chartTop);
+  gTBridgeStability.lineTo(chartLeft, chartBottom);
+  gTBridgeStability.lineTo(chartRight, chartBottom);
+  gTBridgeStability.stroke();
+
+  if (visible.length < 2) {
+    gTBridgeStability.fillStyle = '#999';
+    gTBridgeStability.font = '12px sans-serif';
+    gTBridgeStability.fillText('no bridge stability yet', chartLeft + 10, chartTop + 18);
+    if (bridgeResearchSummaryEl) bridgeResearchSummaryEl.textContent = 'Bridge Research: no data';
+    return;
+  }
+
+  const derived = window.FRBBridgeMetrics.deriveSeries(visible);
+  const xMap = t => chartLeft + ((t - viewStart) / Math.max(1e-9, viewEnd - viewStart)) * pw;
+  const yMap = v => chartBottom - Math.max(0, Math.min(1, Number(v) || 0)) * ph;
+
+  gTBridgeStability.strokeStyle = '#ececec';
+  gTBridgeStability.font = '11px sans-serif';
+  gTBridgeStability.textAlign = 'right';
+  gTBridgeStability.textBaseline = 'middle';
+  for (const tick of [0, 0.25, 0.50, 0.75, 1.00]) {
+    const y = yMap(tick);
+    gTBridgeStability.beginPath();
+    gTBridgeStability.moveTo(chartLeft, y);
+    gTBridgeStability.lineTo(chartRight, y);
+    gTBridgeStability.stroke();
+    gTBridgeStability.fillStyle = '#666';
+    gTBridgeStability.fillText(tick.toFixed(2), chartLeft - 8, y);
+  }
+
+  // Rolling Legacy mean: level. Stability: 1 - 2*rolling SD.
+  const draw = (key, color) => {
+    gTBridgeStability.save();
+    gTBridgeStability.strokeStyle = color;
+    gTBridgeStability.lineWidth = 2;
+    gTBridgeStability.beginPath();
+    let started = false;
+    for (const p of derived) {
+      const v = Number(p[key]);
+      if (!Number.isFinite(v)) continue;
+      const x = xMap(p.t), y = yMap(v);
+      if (!started) { gTBridgeStability.moveTo(x, y); started = true; }
+      else gTBridgeStability.lineTo(x, y);
+    }
+    if (started) gTBridgeStability.stroke();
+    gTBridgeStability.restore();
+  };
+
+  draw('rollingMean', '#d81b60');
+  draw('stability', '#1565c0');
+
+  gTBridgeStability.font = '11px sans-serif';
+  gTBridgeStability.textAlign = 'left';
+  gTBridgeStability.textBaseline = 'top';
+  gTBridgeStability.fillStyle = '#d81b60';
+  gTBridgeStability.fillText('Legacy rolling mean', chartLeft + 8, chartTop + 5);
+  gTBridgeStability.fillStyle = '#1565c0';
+  gTBridgeStability.fillText('Stability', chartLeft + 135, chartTop + 5);
+
+  gTBridgeStability.fillStyle = '#777';
+  gTBridgeStability.textBaseline = 'alphabetic';
+  gTBridgeStability.fillText('Bridge Stability Research: stability = 1 - 2*SD (rolling 1.0s)', chartLeft, H - 6);
+
+  if (bridgeResearchSummaryEl) {
+    bridgeResearchSummaryEl.textContent = formatBridgeResearchSummary(window.FRBBridgeMetrics.summarize(visible));
+  }
+}
+
+function drawBridgeBreakdownTimeline(){
+  if (!tsBridgeBreakdownCanvas || !gTBridgeBreakdown || !window.FRBBridgeMetrics) return;
+
+  const W = tsBridgeBreakdownCanvas.width;
+  const H = tsBridgeBreakdownCanvas.height;
+  gTBridgeBreakdown.clearRect(0, 0, W, H);
+
+  const { visible, viewStart, viewEnd } = getBridgeViewSeries();
+  const ml = 70, mr = 24, mt = 22, mb = 24;
+  const pw = W - ml - mr;
+  const ph = H - mt - mb;
+  const chartLeft = ml, chartRight = ml + pw, chartTop = mt, chartBottom = mt + ph;
+
+  gTBridgeBreakdown.fillStyle = '#fcfcfc';
+  gTBridgeBreakdown.fillRect(0, 0, W, H);
+  gTBridgeBreakdown.strokeStyle = '#d4d4d4';
+  gTBridgeBreakdown.beginPath();
+  gTBridgeBreakdown.moveTo(chartLeft, chartTop);
+  gTBridgeBreakdown.lineTo(chartLeft, chartBottom);
+  gTBridgeBreakdown.lineTo(chartRight, chartBottom);
+  gTBridgeBreakdown.stroke();
+
+  if (visible.length < 2) {
+    gTBridgeBreakdown.fillStyle = '#999';
+    gTBridgeBreakdown.font = '12px sans-serif';
+    gTBridgeBreakdown.fillText('no legacy band breakdown', chartLeft + 10, chartTop + 18);
+    return;
+  }
+
+  const derived = window.FRBBridgeMetrics.deriveSeries(visible);
+  const hasBreakdown = derived.some(p => Number.isFinite(p.low) || Number.isFinite(p.mid) || Number.isFinite(p.high));
+  if (!hasBreakdown) {
+    gTBridgeBreakdown.fillStyle = '#999';
+    gTBridgeBreakdown.font = '12px sans-serif';
+    gTBridgeBreakdown.fillText('legacy log: bandA breakdown unavailable', chartLeft + 10, chartTop + 18);
+    return;
+  }
+
+  let vmax = 0;
+  for (const p of derived) {
+    vmax = Math.max(vmax, Number(p.low) || 0, Number(p.mid) || 0, Number(p.high) || 0);
+  }
+  vmax = Math.max(1, vmax * 1.05);
+
+  const xMap = t => chartLeft + ((t - viewStart) / Math.max(1e-9, viewEnd - viewStart)) * pw;
+  const yMap = v => chartBottom - Math.max(0, Math.min(vmax, Number(v) || 0)) / vmax * ph;
+
+  gTBridgeBreakdown.strokeStyle = '#ececec';
+  gTBridgeBreakdown.font = '11px sans-serif';
+  gTBridgeBreakdown.textAlign = 'right';
+  gTBridgeBreakdown.textBaseline = 'middle';
+  for (let i = 0; i <= 4; i++) {
+    const val = vmax * (1 - i / 4);
+    const y = chartTop + ph * i / 4;
+    gTBridgeBreakdown.beginPath();
+    gTBridgeBreakdown.moveTo(chartLeft, y);
+    gTBridgeBreakdown.lineTo(chartRight, y);
+    gTBridgeBreakdown.stroke();
+    gTBridgeBreakdown.fillStyle = '#666';
+    gTBridgeBreakdown.fillText(Math.round(val).toString(), chartLeft - 8, y);
+  }
+
+  const defs = [
+    ['low', '#1565c0', 'Low 0-80Hz'],
+    ['mid', '#43a047', 'Mid 80-160Hz'],
+    ['high', '#e53935', 'High 160-250Hz'],
+  ];
+  for (const [key, color] of defs) {
+    gTBridgeBreakdown.save();
+    gTBridgeBreakdown.strokeStyle = color;
+    gTBridgeBreakdown.lineWidth = 2;
+    gTBridgeBreakdown.beginPath();
+    let started = false;
+    for (const p of derived) {
+      const v = Number(p[key]);
+      if (!Number.isFinite(v)) continue;
+      const x = xMap(p.t), y = yMap(v);
+      if (!started) { gTBridgeBreakdown.moveTo(x, y); started = true; }
+      else gTBridgeBreakdown.lineTo(x, y);
+    }
+    if (started) gTBridgeBreakdown.stroke();
+    gTBridgeBreakdown.restore();
+  }
+
+  gTBridgeBreakdown.font = '11px sans-serif';
+  gTBridgeBreakdown.textAlign = 'left';
+  gTBridgeBreakdown.textBaseline = 'top';
+  let lx = chartLeft + 8;
+  for (const [, color, label] of defs) {
+    gTBridgeBreakdown.fillStyle = color;
+    gTBridgeBreakdown.fillRect(lx, chartTop + 5, 12, 3);
+    gTBridgeBreakdown.fillStyle = '#333';
+    gTBridgeBreakdown.fillText(label, lx + 16, chartTop + 1);
+    lx += gTBridgeBreakdown.measureText(label).width + 42;
+  }
+
+  gTBridgeBreakdown.fillStyle = '#777';
+  gTBridgeBreakdown.textBaseline = 'alphabetic';
+  gTBridgeBreakdown.fillText(`Bridge v1 Legacy bands / Auto Y Max ${Math.round(vmax)}`, chartLeft, H - 6);
+}
 
 
 
@@ -6530,19 +7039,25 @@ function drawTingleMotion(){
 }
 
 function calcBridgeScore(bandA){
+  if (window.FRBBridgeMetrics) {
+    return window.FRBBridgeMetrics.calcLegacyDetails(bandA).score;
+  }
+
+  // Safety fallback: exact BridgeScore v1 (Legacy) formula.
   const low  = Number(bandA?.b0) || 0;
   const mid  = Number(bandA?.b1) || 0;
   const high = Number(bandA?.b2) || 0;
-
   const eps = 1e-9;
-
   const r1 = mid / (low + eps);
   const r2 = high / (mid + eps);
+  return 1 / (1 + Math.abs(r1 - r2));
+}
 
-  const bridgeScore = Math.abs(r1 - r2);
-
-  // 0〜1 に圧縮（高いほど良い）
-  return 1 / (1 + bridgeScore);
+function getBridgeLegacyScore(frame){
+  if (window.FRBBridgeMetrics) {
+    return window.FRBBridgeMetrics.getLegacyScoreFromFrame(frame);
+  }
+  return Number(frame?.bridgeLegacyScore ?? frame?.stairError) || 0;
 }
 
 function drawStairTimelineZoom(){
@@ -6646,7 +7161,7 @@ function drawStairTimelineZoom(){
   let started = false;
   for (const p of visible) {
     const x = xMap(p.t);
-    const y = yMap(p.stairError);
+    const y = yMap(getBridgeLegacyScore(p));
 
     if (!started) {
       gTSterZoom.moveTo(x, y);

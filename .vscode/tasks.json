@@ -140,7 +140,7 @@
       "id": "comPort",
       "type": "promptString",
       "description": "ESP32 COM Port",
-      "default": "COM10"
+      "default": "COM3"
     }
   ]
 }

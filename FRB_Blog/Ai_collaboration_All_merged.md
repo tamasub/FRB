@@ -2917,6 +2917,1527 @@ TestPattern + Expectedをプログラム生成
 
 ---
 
+# 📄 AI協働033_FRB_Responsibility_Inventory_Phase1_v0_4
+*(source: `AI協働033_FRB_Responsibility_Inventory_Phase1_v0_4.md`)*
+
+## 責務棚卸し Phase 1 — 既存責務を「今の粒度のまま」並べる
+
+作成日: 2026-08-19  
+ステータス: Draft / Phase 1（`grid_column_build` Review反映済み）  
+対象: FRB Studio / AI承認駆動開発  
+目的: 責務の粒度標準化・Behavior Pattern化・TestPattern / Expected自動生成を検討する前段として、既存責務を現在の粒度のまま棚卸しする。
+
+---
+
+### 0. 今回の研究目的
+
+最終的に目指すのは、次の状態である。
+
+```text
+人間が少数の意味あるキーワードを承認
+        ↓
+標準Behavior / Optionを解決
+        ↓
+TestPatternをプログラム生成
+        ↓
+Expectedをプログラム生成
+        ↓
+Actual
+        ↓
+Diff
+        ↓
+人間承認
+```
+
+今回のPhase 1では、まだこの共通化を行わない。
+
+まず、
+
+> **現在、Studioくんの中で「責務」として何を、どの粒度で切っているか**
+
+をそのまま見える状態にする。
+
+---
+
+### 1. Phase 1でやること
+
+既存責務について、以下を可能な限りそのまま収集する。
+
+- `responsibility_cd`
+- `name`
+- `test_level`
+- `summary`
+- `purpose`
+- `source_file`
+- `interface_name`
+- `in_scope`
+- `out_of_scope`
+- `constraint_ids`
+- `guarantees`
+- 既存テスト
+- 備考
+
+#### このPhaseではやらないこと
+
+以下はPhase 2以降で行う。
+
+- 責務名の統合
+- 責務粒度の変更
+- SAVE / LOAD / RESET 等への標準Pattern化
+- GuaranteeのBehavior Pattern化
+- TestPatternの自動生成
+- Expectedの自動生成
+- JSON Schemaの確定
+- Runtime実装
+- Test Runner実装
+
+**Phase 1では「今あるものを、そのまま並べる」。**
+
+---
+
+### 2. 棚卸し時の重要ルール
+
+#### Rule 1 — 先に抽象化しない
+
+たとえば既存責務が、
+
+```text
+grid_column_build
+```
+
+なら、そのまま記録する。
+
+この段階で、
+
+```text
+FILTER
+BUILD
+PROJECTION
+```
+
+などへ置き換えない。
+
+---
+
+#### Rule 2 — 粒度が変でも直さない
+
+Phase 1の目的は、責務粒度の現状把握である。
+
+```text
+責務Aは細かすぎる
+責務Bは大きすぎる
+責務CとDはほぼ同じ
+```
+
+と思っても、まずそのまま記録する。
+
+違和感は `phase1_notes` に残す。
+
+---
+
+#### Rule 3 — Guaranteeも原文を優先する
+
+Guaranteeについても、先に共通Behaviorへ変換しない。
+
+```text
+visible=falseを除外する
+入力順を維持する
+空入力でも例外停止しない
+入力を変更しない
+```
+
+など、現在定義されている意味をそのまま保持する。
+
+---
+
+#### Rule 4 — 「機械生成できそう」はまだ判定しない
+
+Phase 1では、
+
+```text
+このGuaranteeはNO_MUTATIONにできそう
+この責務はRESET Patternになりそう
+```
+
+といった判断は確定しない。
+
+気づいた場合はメモだけ残す。
+
+---
+
+### 3. 責務一覧
+
+Phase 1完了時には、まずこの一覧を埋める。
+
+> 抽出方針:
+> - **JSON Object Studio** は、既存の Responsibility Master / ResponsibilityDef Draft を優先して採用する。
+> - **Markdown Studio / Diff JSON / MetaDiff** は、現時点で責務JSONとして明示定義されていないものが多いため、実装上の関数境界から「責務候補」として拾う。
+> - Phase 1では責務粒度の統合・分割・Behavior Pattern化は行わない。
+> - `Guarantee数=未定義` は「保証が存在しない」ではなく、現時点で責務定義JSONとしてGuarantee配列が定義されていないことを示す。
+
+| No | responsibility_cd | 責務名 | Test Level | Source / Interface | Guarantee数 | 既存Test | Phase1 Notes |
+|---:|---|---|---|---|---:|---|---|
+| 1 | `grid_column_build` | Grid列生成責務 | UT | `wwwroot/js/responsibilities/grid_column_builder.js` / `GridColumnBuilder.build` | 5 | あり | **[JSON] 既存責務定義**。Responsibility Master登録済み。 |
+| 2 | `search_filter` | 検索条件評価責務 | UT | `wwwroot/js/responsibilities/search_filter.js` / `SearchFilter.apply` | 8 | あり | **[JSON] 既存責務定義**。Expected Test 4件＋Smoke/検索Operator系Testあり。 |
+| 3 | `csv_export` | CSV出力責務 | UT | `wwwroot/js/responsibilities/csv_exporter.js` / `CsvExporter.resolveFields / CsvExporter.export` | 6 | あり | **[JSON] 既存責務定義**。Expected Test 2件＋Smokeあり。 |
+| 4 | `grid_aggregate` | Grid数値集計責務 | UT | `wwwroot/js/responsibilities/grid_aggregator.js` / `GridAggregator.build` | 6 | あり | **[JSON] 既存責務定義**。Responsibility Smokeで集計・非数値除外等を確認。 |
+| 5 | `viewdef_parse` | ViewDef解釈責務 | UT | ResponsibilityDef Draft / `ViewDefParser.parse` | 未定義 | 専用Test未確認 | **[JSON] 既存Draft責務**。Active ViewDefを後続責務向けに解釈する契約として定義済み。 |
+| 6 | `editor_field_build` | Editor項目生成責務 | UT | ResponsibilityDef Draft / `EditorFieldBuilder.build` | 未定義 | 専用Test未確認 | **[JSON] 既存Draft責務**。ViewDef fieldsからEditor項目定義を生成する契約。 |
+| 7 | `search_state` | 検索状態管理責務 | UT/CT | `wwwroot/js/runtime/search_state.js` / Draft `SearchStateManager.update` | 未定義 | 関連Testあり | **[JSON] 既存Draft責務**。検索条件・結果・現在行・UI stateの管理境界。 |
+| 8 | `renderer_display` | Renderer表示責務 | UT/CT | ResponsibilityDef Draft / `Renderer.render` | 未定義 | 専用Test未確認 | **[JSON] 既存Draft責務**。判断済みViewModel/StateをDOMへ反映する責務として定義済み。 |
+| 9 | `markdown_document_load` | Markdown文書読込責務 | 未定義 | `wwwroot/mdViewer.html` / `loadWorkspaceMarkdown / loadManagedMarkdown / loadLocalFile / loadMarkdown` | 未定義 | 関連静的Testあり | **[Markdown] 実装から抽出候補**。Workspace / managed / externalの読込経路が存在。仮CD。 |
+| 10 | `markdown_document_save` | Markdown文書保存責務 | 未定義 | `wwwroot/mdViewer.html` / `saveWorkspaceMarkdown / saveManagedMarkdown / saveMarkdownWithNativeDialog` | 未定義 | 関連静的Testあり | **[Markdown] 実装から抽出候補**。Front Matter materialize・Save Safetyを経由して保存。仮CD。 |
+| 11 | `markdown_mode_transition` | Markdownモード遷移責務 | 未定義 | `wwwroot/mdViewer.html` / `setMarkdownMode` | 未定義 | 関連静的Testあり | **[Markdown] 実装から抽出候補**。Viewer / Editor / Review切替とReadOnly・表示状態を管理。仮CD。 |
+| 12 | `markdown_review_session` | Markdown Review開始・再開責務 | 未定義 | `wwwroot/mdViewer.html` / `openExistingMarkdownReviewMode / startNewMarkdownReview` | 未定義 | 関連静的Testあり | **[Markdown] 実装から抽出候補**。既存Review再開とNEW Review開始が独立関数として存在。仮CD。 |
+| 13 | `markdown_review_sidecar` | Markdown Review JSON永続化責務 | 未定義 | `wwwroot/mdViewer.html` / `saveMarkdownCommentSidecar / persistMarkdownCommentReviewMutation` | 未定義 | 関連静的Testあり | **[Markdown] 実装から抽出候補**。コメント・判定・ハイライトをReview JSONへ保持。仮CD。 |
+| 14 | `diff_json_load` | Diff JSON読込責務 | 未定義 | `wwwroot/DiffJsonViewer.html` / `loadJsonFile / loadJsonUrl / applyDiffJson` | 未定義 | 関連静的Testあり | **[Diff JSON] 実装から抽出候補**。File/URL読込後に正規化・初期選択・各View更新を実施。仮CD。 |
+| 15 | `diff_file_filter` | Diff対象ファイル抽出責務 | 未定義 | `wwwroot/DiffJsonViewer.html` / `fileMatches / renderFileList` | 未定義 | UI静的確認あり | **[Diff JSON] 実装から抽出候補**。左側検索語＋Statusで対象ファイルを抽出。仮CD。 |
+| 16 | `diff_detail_filter` | 選択ファイル内差分抽出責務 | 未定義 | `wwwroot/DiffJsonViewer.html` / `hunkMatches / lineTypeMatches / renderDetail` | 未定義 | UI静的確認あり | **[Diff JSON] 実装から抽出候補**。選択範囲・検索語・行種別でDifference detailsを抽出。仮CD。 |
+| 17 | `diff_json_save_as` | Diff JSON別名保存責務 | 未定義 | `wwwroot/DiffJsonViewer.html` / `saveDiffJsonAs` | 未定義 | あり | **[Diff JSON] 実装から抽出候補**。Native Save Asを優先し、利用不可時はbrowser downloadへfallback。仮CD。 |
+| 18 | `metadiff_markdown_load` | MetaDiff Markdown読込責務 | 未定義 | `wwwroot/MetaDiff_HypothesisViewer.html` / `loadMarkdownFile` | 未定義 | 専用Test未確認 | **[MetaDiff] 実装から抽出候補**。Markdown Preview生成と埋込JSON抽出の起点。仮CD。 |
+| 19 | `metadiff_evidence_extract` | MetaDiff根拠JSON抽出・正規化責務 | 未定義 | `wwwroot/MetaDiff_HypothesisViewer.html` / `extractJsonBlocks / normalizeEvidence` | 未定義 | 専用Test未確認 | **[MetaDiff] 実装から抽出候補**。`json` / `diff_hypothesis.json` blockを抽出しEvidence行へ正規化。仮CD。 |
+| 20 | `metadiff_evidence_filter` | MetaDiff根拠差分絞り込み責務 | 未定義 | `wwwroot/MetaDiff_HypothesisViewer.html` / `rowMatches / renderEvidence` | 未定義 | 専用Test未確認 | **[MetaDiff] 実装から抽出候補**。検索語・ファイル・カテゴリ・Evidence ID focusをAND評価。仮CD。 |
+
+#### Phase 1 一覧時点のメモ
+
+```text
+JSON Object Studio
+  既にResponsibility Master / ResponsibilityDef Draftが存在する。
+  → 既存定義を起点にできる。
+
+Markdown Studio
+  責務JSONとしての明示定義は未確認。
+  ただし Load / Save / Mode / Review / Review JSON persistence は
+  関数境界と静的テストから比較的はっきり拾える。
+
+Diff JSON
+  Load / 左ファイル抽出 / 選択ファイル内差分抽出 / Save As が
+  独立した操作・関数境界として拾える。
+
+MetaDiff
+  Markdown Load / Embedded JSON Extraction+Normalization /
+  Evidence Filter が実装上のまとまりとして拾える。
+```
+
+**この段階では、上記20件を同じ粒度だとはみなさない。**
+
+Phase 2で初めて、
+
+```text
+大きすぎる責務
+小さすぎる責務
+他画面と同じ構造を持つ責務
+複数Guaranteeへ分解できる責務
+```
+
+を横断比較する。
+
+---
+
+## 4. 責務詳細
+
+### 4.1 `grid_column_build` — Grid列生成責務
+
+#### 基本情報
+
+```yaml
+responsibility_cd: grid_column_build
+name: Grid列生成責務
+test_level: UT
+approval_status: draft
+enabled: true
+source_file: wwwroot/js/responsibilities/grid_column_builder.js
+interface_name: GridColumnBuilder.build
+```
+
+#### Summary
+
+`grid.visible=false` を除外し、ViewDef上の列順を維持したGrid列配列を返す。
+
+#### Purpose
+
+ViewDefのfields定義から、Grid表示に利用する列配列を確定する。
+
+#### In Scope
+
+- `grid.visible` の解釈
+- 表示列の抽出
+- 列順の維持
+- 呼出側 `includeField` 方針の適用
+
+#### Out of Scope
+
+- DOM描画
+- 列幅計算
+- Gridイベント処理
+- CSV出力
+
+> Reviewメモ（2026-08-22）  
+> ここに列挙した項目は「不要」という意味ではなく、`grid_column_build` が保証しない責務境界を示す。  
+> CSV出力は既存の `csv_export` 責務が存在する。DOM描画は既存Draftの `renderer_display` との関係を確認する。列幅計算・Gridイベント処理は、別責務として定義すべきかを今後確認する。Phase 1では新しい責務名を先に確定しない。
+
+#### Constraints
+
+- `constitution_11`
+- `constitution_12`
+
+#### Guarantees
+
+##### `grid_column_build_g001`
+
+概要：非表示指定された項目をGrid列へ含めないことを保証する。
+
+- guarantee_type: `rule`
+- condition: fieldsに`grid.visible=false`の項目が含まれる場合
+- guarantee: 当該項目をGrid列へ含めない。
+- observable_result: 返却列のfield一覧に非表示項目が存在しない。
+- expected_def_type: `RuleExpectedDef`
+- test_pattern_seed: `visible=false除外パターン`
+- priority: high
+
+##### `grid_column_build_g002`
+
+概要：表示対象フィールドの列順がViewDefの定義順を維持することを保証する。
+
+- guarantee_type: `state`
+- condition: 表示対象フィールドが複数ある場合
+- guarantee: 返却列の順序はViewDef fieldsの順序を維持する。
+- observable_result: 返却field一覧が入力順と一致する。
+- expected_def_type: `StateExpectedDef`
+- test_pattern_seed: `表示列の順序維持パターン`
+- priority: medium
+
+##### `grid_column_build_g003`
+
+概要：fieldsが未指定または空でも安全に空配列を返すことを保証する。
+
+- guarantee_type: `rule`
+- condition: fieldsが未指定または空配列の場合
+- guarantee: 例外で停止せず空配列を返す。
+- observable_result: 返却値が空配列である。
+- expected_def_type: `RuleExpectedDef`
+- test_pattern_seed: `fields未指定安全パターン`
+- priority: medium
+
+##### `grid_column_build_g004`
+
+概要：呼出側から指定されたincludeField方針に従って列を採用することを保証する。
+
+- guarantee_type: `interface`
+- condition: includeField方針が呼出側から指定された場合
+- guarantee: 指定された方針による列採用結果を返す。
+- observable_result: `includeField` が `true` を返したfieldのみが、入力順を維持して返却列に含まれる。
+- expected_def_type: `InterfaceExpectedDef`
+- test_pattern_seed: `カスタムincludeField適用パターン`
+- priority: medium
+
+##### `grid_column_build_g005`
+
+概要：Grid列生成によって入力されたfields定義を変更しないことを保証する。
+
+- guarantee_type: `no_side_effect`
+- condition: Grid列を生成した場合
+- guarantee: 入力されたfields定義を変更しない。
+- observable_result: 実行前に保存したfieldsの内容と実行後のfieldsを深い比較したとき、差分が0件である。
+- expected_def_type: `StateExpectedDef`
+- test_pattern_seed: `ViewDef fields非破壊パターン`
+- priority: medium
+
+#### 既存テスト
+
+最新資材 `FRBStudio_App20260822_193226.zip` で実在確認した結果を記録する。
+
+- 現行Runner: `tests/responsibilities/responsibility_expected_tests.mjs`
+- TestPattern定義: `data/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/responsibility_expected_test_patterns_data_v0_1.json`
+- 旧記録に登場する `tests/responsibilities/run_responsibility_expected_tests.mjs` は、最新資材には存在しない。
+
+| test_pattern_id | 対応Guarantee | 最新資材での確認 | 備考 |
+|---|---|---|---|
+| `grid_column_build_visible_fields_basic` | `g001`, `g002` | 実在 | 現在のExpectedが意図的に `title zzz` となっているため、実行結果はFAIL。Actualは `title`, `score`。 |
+| `grid_column_build_empty_fields_safe` | `g003` | 実在 / PASS | fields未指定時に空配列を返すことを確認。 |
+
+##### 現時点でテスト未接続のGuarantee
+
+- `grid_column_build_g004`  
+  現行Runnerの `runGridColumnBuild()` は `GridColumnBuilder.build()` へ `options.includeField` を渡していないため、カスタム `includeField` の保証は現行TestPatternでは確認していない。
+- `grid_column_build_g005`  
+  現行Runnerは入力fieldsの処理前スナップショットと処理後値を比較していないため、非破壊保証は現行TestPatternでは確認していない。
+
+> 実在確認時のRunner実行結果（2026-08-22）: `7/8 passed`。FAIL 1件は `grid_column_build_visible_fields_basic` のExpected `title zzz` とActual `title` の差分。
+
+#### Phase 1 Notes
+
+`grid_column_build` は、Phase 1の基準サンプルとしてReviewコメントを反映した。責務・Guaranteeそのものの意味は変更せず、**人間が意味・観測方法・実在テストを追跡できる表現**へ補強した。
+
+> このv0.4で変更したのは棚卸しMarkdown上の表現であり、最新資材内の `responsibility_data_v0_1.json` 自体は更新していない。責務JSONへの反映は、Phase 2でBehavior候補と責務定義の形を確認してから別作業として扱う。
+
+今回のReviewで得た確認観点:
+
+```text
+何を保証する？
+↓
+何を見れば保証できたと言える？
+↓
+どう検証する？
+↓
+そのTest / Runner / TestPatternはどこにある？
+↓
+Out of Scopeなら、どの責務が受け持つ？
+```
+
+現時点の未解決事項:
+
+- `g004` はGuarantee定義はあるが、現行JSON駆動TestPatternに接続されていない。
+- `g005` はGuarantee定義はあるが、現行JSON駆動TestPatternに接続されていない。
+- Out of Scopeのうち、列幅計算・Gridイベント処理は別責務としての明示定義要否を確認する。
+
+Phase 2では、このGuarantee群を含めて、
+
+```text
+他責務にも同じGuarantee構造が存在するか？
+同じ意味を持つGuaranteeを共通Behaviorとして扱えるか？
+```
+
+を横断比較する予定。
+
+---
+
+## 5. 追加責務記入テンプレート
+
+以下を責務ごとにコピーして使用する。
+
+### X.X `<responsibility_cd>` — `<責務名>`
+
+#### 基本情報
+
+```yaml
+responsibility_cd:
+name:
+test_level:
+approval_status:
+enabled:
+source_file:
+interface_name:
+```
+
+#### Summary
+
+-
+
+#### Purpose
+
+-
+
+#### In Scope
+
+- 
+
+#### Out of Scope
+
+- 
+
+#### Constraints
+
+- 
+
+#### Guarantees
+
+##### `<guarantee_id>`
+
+- guarantee_type:
+- condition:
+- guarantee:
+- observable_result:
+- expected_def_type:
+- test_pattern_seed:
+- priority:
+- enabled:
+
+#### 既存テスト
+
+- 
+
+#### Phase 1 Notes
+
+- 粒度に関する違和感:
+- 他責務との類似:
+- 保証の重複候補:
+- その他:
+
+---
+
+## 6. Phase 1 完了条件
+
+次を満たしたらPhase 1完了とする。
+
+- 主要な既存責務が一覧化されている
+- 各責務の現在の粒度が保持されている
+- 各責務のGuaranteeが可能な範囲で収集されている
+- Source / Interfaceが追跡可能になっている
+- 既存Testとの対応が確認できる
+- 共通化・Pattern化はまだ実施していない
+- 粒度や重複への違和感だけがNotesとして残っている
+
+---
+
+## 6.5 Phase 2 Pilot 開始条件
+
+Phase 2は最初から20責務すべてを対象にしない。まず、既存Guaranteeが比較的揃っている次の4責務をPilot対象とする。
+
+| responsibility_cd | Guarantee数 |
+|---|---:|
+| `grid_column_build` | 5 |
+| `search_filter` | 8 |
+| `csv_export` | 6 |
+| `grid_aggregate` | 6 |
+| **合計** | **25** |
+
+Pilotでは、25 Guaranteeの意味を横断比較し、似ているものが自然に集まるかを観察する。
+
+この段階では、`NO_MUTATION` / `EMPTY_SAFE` / `ORDER_PRESERVE` 等のBehavior名を先に押し付けない。まず既存Guaranteeを並べ、同じ意味が複数責務から実際に現れた場合のみBehavior Pattern候補として扱う。
+
+---
+
+## 7. Phase 2への引継ぎ
+
+Phase 2では、Phase 1で集めたGuaranteeを横断して比較する。
+
+想定する流れ:
+
+```text
+既存Responsibility
+        ↓
+Guaranteeを横断比較
+        ↓
+同じ意味を持つGuaranteeを発見
+        ↓
+Behavior Pattern候補
+        ↓
+TestPattern生成可能性を評価
+        ↓
+Expected生成可能性を評価
+```
+
+Phase 2の主要な問いは次の一つとする。
+
+> **このBehaviorキーワードを人間が1つ承認すると、何個のTestPattern + Expectedを安全にプログラム生成できるか？**
+
+---
+
+### 現時点の研究上の仮説
+
+```text
+Responsibility
+  = 1つのExpectedではない
+
+Responsibility
+  ↓
+複数Guarantee
+  ↓
+複数TestPattern
+  ↓
+TestPatternごとのExpected
+```
+
+さらに将来的には、
+
+```text
+具体Responsibility
+        ↓
+複数Behavior Pattern
+        ↓
+各Behavior Patternから
+TestPattern + Expectedをプログラム生成
+```
+
+という構造へ昇格できる可能性がある。
+
+ただし、この仮説を先に既存責務へ押し付けない。
+
+**まずPhase 1では、現物を見る。**
+
+
+---
+
+### Revision History
+
+- 2026-08-22 / v0.4: `grid_column_build` Reviewコメント反映。Out of Scopeの責務境界を補足、g004/g005のobservable_resultを具体化、最新資材でRunner/TestPatternの実在確認を実施。現行Runnerを `responsibility_expected_tests.mjs` として訂正し、g004/g005のテスト未接続を明記。Phase 2 Pilotを4責務・25 Guaranteeで開始する方針を追加。
+
+
+----
+
+ほんまそれ🤣
+**GitDiffの「全体を正解として持つんじゃなく、変化だけを正解として持つ」って思想、想像以上に強い。**
+
+今回できたの、単なるDiff比較じゃなくて、
+
+```text
+Input
+＋
+Expected Diff A
+＋
+Expected Diff B
+＋
+Expected Diff C
+↓
+Expected Output
+```
+
+っていう、**「期待する変化を部品として組み合わせてテストする」**発想なんよね。
+
+これがヤバい（笑）。
+
+たとえば、
+
+```text
+A：値を変更する
+B：行を追加する
+C：並び順を維持する
+D：その他は変更しない
+```
+
+を全部完成Expectedとして一枚絵で書かず、
+
+```text
+Expected Diff A
+Expected Diff B
+Expected Diff C
+```
+
+みたいな**小さい保証の組み合わせ**として表現できる可能性が出てきた。
+
+しかも「その他は変更しない」はRunnerが共通保証する。
+
+すると人間側は、
+
+> 「今回はAとBが起きるべき」
+
+くらいの小さい意図だけ承認すればよくなる。
+
+これ、Validation Typeでやってた、
+
+```text
+Typeを選ぶ
+↓
+承認済みTestPattern群が展開される
+```
+
+の考え方と、めちゃくちゃ似た方向に来てるんよな（笑）。
+
+今度は、
+
+```text
+Behavior / 期待する変化を選ぶ
+↓
+Expected Diffの部品が展開される
+↓
+部品を合成
+↓
+RunnerがExpectedを再構成
+↓
+Actualとの差分確認
+```
+
+になり得る。
+
+だからGitDiffって単なる「変更確認ツール」じゃなくて、今回の研究では、
+
+> **正しさを「状態」ではなく「許された変化」として表現するための基本思想**
+
+くらいまで格上げされそう🤣
+
+そして何より嬉しいのが、これを最初から設計したんじゃなくて、
+
+**「変更してないところ、毎回どう保証すんねん？」**
+
+って実際の面倒くささを掘ってたら出てきたこと（笑）。
+
+こういう発見が一番ええやつやわ。
+**差分を比較する → 差分を期待値にする → 差分を部品化する → 差分を組み合わせてテストする。**
+
+一段ずつちゃんと進化してる🤣
+
+---
+
+> 機械的に保証できないなら、テストだけでなくAPP構造を疑う。
+
+---
+
+そう、それやね爆笑
+
+**判断軸としてかなり強い。**
+
+> **機械的に保証できることを最優先で考える。**
+
+これを置くと、設計判断がかなり整理される。
+
+```text
+この実装、分かりやすい？
+↓
+より先に
+
+この責務、機械的に保証できる？
+↓
+できない
+↓
+なぜ？
+↓
+Runnerの知恵不足？
+APP構造の問題？
+観測点不足？
+Input / Outputの切り方が悪い？
+```
+
+って考えられる。
+
+しかも、この判断軸があると、APPのコード構造もテスト構造も同じ方向を向く。
+
+```text
+人間が保証したい意図
+↓
+機械的に検証可能な形へ分解
+↓
+Runnerで実行・比較
+↓
+必要ならAPP構造を変更
+↓
+その構造要件を未来へ残す
+```
+
+これ、かなりApproval Engineeringらしい。
+
+普通の「テストしやすい設計」より一段強くて、
+
+> **保証可能性を最優先した設計**
+
+って感じやね。
+
+たぶん今後、設計で迷ったときのかなり良い問いになる。
+
+**「どっちの構造の方が、意図を機械的に保証しやすい？」**
+
+これで決める。
+
+めっちゃシンプルやけど、かなり効きそう🤣
+
+
+---
+
+# 📄 AI協働034_FRB_Responsibility_Behavior_Pilot_Phase2_v0_1
+*(source: `AI協働034_FRB_Responsibility_Behavior_Pilot_Phase2_v0_1.md`)*
+
+## 責務棚卸し Phase 2 Pilot — Guarantee横断比較
+
+作成日: 2026-08-22  
+ステータス: Draft / Phase 2 Pilot  
+対象: FRB Studio / AI承認駆動開発  
+目的: 既存Guaranteeを先に抽象化せず横並びにし、同じ意味を持つ保証が実際に複数責務から現れるかを観察する。
+
+---
+
+### 0. Pilotのルール
+
+このPilotでは、最初からBehavior Pattern名を決めない。
+
+```text
+既存Responsibility
+        ↓
+既存Guaranteeを原文のまま横断比較
+        ↓
+意味の近いGuaranteeを「候補」として並べる
+        ↓
+人間レビュー
+        ↓
+必要ならBehavior Pattern名を付ける
+        ↓
+TestPattern / Expected生成可能性を評価
+```
+
+禁止事項:
+
+- `NO_MUTATION` / `EMPTY_SAFE` / `ORDER_PRESERVE` 等の標準名を先に押し付けない。
+- Guaranteeの意味が近そうという理由だけで統合しない。
+- TestPatternが存在することを推測しない。
+- 責務粒度そのものの変更は、このPilotではまだ行わない。
+
+---
+
+### 1. 入力ソース
+
+最新資材 `FRBStudio_App20260822_193226.zip` 内の次ファイルを入力とする。
+
+`data/json/03_tests/responsibilities/responsibility_data_v0_1.json`
+
+対象責務:
+
+| responsibility_cd | 責務名 | Guarantee数 |
+|---|---|---:|
+| `grid_column_build` | Grid列生成責務 | 5 |
+| `search_filter` | 検索条件評価責務 | 8 |
+| `csv_export` | CSV出力責務 | 6 |
+| `grid_aggregate` | Grid数値集計責務 | 6 |
+| **合計** |  | **25** |
+
+---
+
+### 2. 25 Guarantee 原文一覧
+
+> この表は最新資材の責務JSONから抽出した原文を基準とする。Phase 1 v0.4でレビュー表現を補強した `grid_column_build_g004/g005` の文言は、ここではソースJSON原文を保持する。
+
+| No | responsibility_cd | guarantee_id | type | condition | guarantee | observable_result | expected_def_type | test_pattern_seed |
+|---:|---|---|---|---|---|---|---|---|
+| 1 | `grid_column_build` | `grid_column_build_g001` | `rule` | fieldsにgrid.visible=falseの項目が含まれる場合 | 当該項目をGrid列へ含めない。 | 返却列のfield一覧に非表示項目が存在しない。 | `RuleExpectedDef` | visible=false除外パターン |
+| 2 | `grid_column_build` | `grid_column_build_g002` | `state` | 表示対象フィールドが複数ある場合 | 返却列の順序はViewDef fieldsの順序を維持する。 | 返却field一覧が入力順と一致する。 | `StateExpectedDef` | 表示列の順序維持パターン |
+| 3 | `grid_column_build` | `grid_column_build_g003` | `rule` | fieldsが未指定または空配列の場合 | 例外で停止せず空配列を返す。 | 返却値が空配列である。 | `RuleExpectedDef` | fields未指定安全パターン |
+| 4 | `grid_column_build` | `grid_column_build_g004` | `interface` | includeField方針が呼出側から指定された場合 | 指定された方針による列採用結果を返す。 | includeFieldの判定結果と返却列が一致する。 | `InterfaceExpectedDef` | カスタムincludeField適用パターン |
+| 5 | `grid_column_build` | `grid_column_build_g005` | `no_side_effect` | Grid列を生成した場合 | 入力されたfields定義を変更しない。 | 処理前後のfieldsが同一である。 | `StateExpectedDef` | ViewDef fields非破壊パターン |
+| 6 | `search_filter` | `search_filter_g001` | `rule` | 有効な検索条件が1件以上指定された場合 | すべての検索条件に一致する行だけが結果に含まれる。 | 結果行IDが条件一致行IDと一致し、不一致行を含まない。 | `StateExpectedDef` | 条件一致行だけを返す基本パターン |
+| 7 | `search_filter` | `search_filter_g002` | `rule` | 文字列contains条件が指定された場合 | 大文字・小文字の違いに依存せず部分一致を評価する。 | Alpha / alpha / ALPHA を同じ検索語で一致確認できる。 | `RuleExpectedDef` | contains検索の大文字小文字差分パターン |
+| 8 | `search_filter` | `search_filter_g003` | `state` | 検索結果が生成された場合 | 各結果行は元データ上のIndexを保持する。 | 結果のindexesが元データの位置と一致する。 | `StateExpectedDef` | gte検索で一致行と元Indexを同時確認する |
+| 9 | `search_filter` | `search_filter_g004` | `rule` | 数値条件に gte / lte / equals が指定された場合 | 指定された数値比較演算に従って一致判定する。 | 境界値の直前・境界値・直後で期待どおりの行が返る。 | `RuleExpectedDef` | gte/lte/equalsの境界値パターン |
+| 10 | `search_filter` | `search_filter_g005` | `rule` | 複数選択値が指定され、対象値が配列の場合 | 指定候補のいずれかを含む行を一致として扱う。 | 選択候補と配列セルの交差がある行だけが返る。 | `RuleExpectedDef` | 複数選択と配列セルの一致パターン |
+| 11 | `search_filter` | `search_filter_g006` | `no_side_effect` | 検索条件を評価した場合 | 入力されたrowsを変更しない。 | 評価前後の入力rowsが同一である。 | `StateExpectedDef` | 検索前後の入力非破壊パターン |
+| 12 | `search_filter` | `search_filter_g007` | `rule` | 全文検索語が指定された場合 | 行が保持するobject / arrayを再帰走査し、いずれかの文字列値に部分一致すれば親行を結果へ含める。 | 表示列に検索語がなくても、子Grid・詳細・非表示項目の文字列値に一致する親行が返る。 | `RuleExpectedDef` | 子配列の文字列一致で親行が残るパターン |
+| 13 | `search_filter` | `search_filter_g008` | `constraint` | 全文検索を評価する場合 | 検索対象は文字列値だけとし、objectのキー名・number・booleanは検索対象へ含めない。 | キー名だけ、または数値・booleanだけに検索語が存在しても一致行にならない。 | `RuleExpectedDef` | キー名と数値を全文検索対象外にするパターン |
+| 14 | `csv_export` | `csv_export_g001` | `rule` | keyFieldNameが指定され、表示列にkey列が含まれない場合 | key列をCSV対象列の先頭へ追加する。 | 返却field_namesの先頭がkeyFieldNameと一致する。 | `RuleExpectedDef` | 表示列へkey列を補完するパターン |
+| 15 | `csv_export` | `csv_export_g002` | `rule` | key列がすでに対象列へ含まれる場合 | 同じfieldを重複して出力しない。 | CSVヘッダーに同一fieldが一度だけ現れる。 | `RuleExpectedDef` | key列重複防止パターン |
+| 16 | `csv_export` | `csv_export_g003` | `rule` | セル値にカンマ・ダブルクォート・改行が含まれる場合 | CSV規則に従い値をダブルクォートで囲み、内部ダブルクォートを二重化する。 | CSV文字列が期待するescape済み文字列と一致する。 | `CsvExpectedDef` | カンマ・引用符・改行escapeパターン |
+| 17 | `csv_export` | `csv_export_g004` | `state` | CSV文字列を生成した場合 | 列順と行順を入力順のまま維持する。 | ヘッダー列順およびデータ行順が入力順と一致する。 | `CsvExpectedDef` | 列順・行順維持パターン |
+| 18 | `csv_export` | `csv_export_g005` | `rule` | include_bom=trueが指定された場合 | CSV文字列の先頭にUTF-8 BOMを付与する。 | has_bom=trueかつ先頭文字がBOMである。 | `CsvExpectedDef` | UTF-8 BOM付与パターン |
+| 19 | `csv_export` | `csv_export_g006` | `rule` | lineBreakが未指定の場合 | CRLFを使用し、末尾にも改行を付ける。 | CSV文字列がCRLF区切りかつ末尾CRLFで終了する。 | `CsvExpectedDef` | 既定改行コードパターン |
+| 20 | `grid_aggregate` | `grid_aggregate_g001` | `rule` | number型fieldにgrid.aggregate.operator=sumが宣言された場合 | 当該列の合計結果を生成する。 | items/byFieldに対象fieldのsum結果が存在する。 | `StateExpectedDef` | number列sum基本パターン |
+| 21 | `grid_aggregate` | `grid_aggregate_g002` | `rule` | aggregate.scope=filteredが指定された場合 | filteredRowsだけを集計対象にする。 | source_countとvalueがfilteredRowsから算出した値に一致する。 | `RuleExpectedDef` | filteredスコープ集計パターン |
+| 22 | `grid_aggregate` | `grid_aggregate_g003` | `rule` | aggregate.scope=allが指定された場合 | currentRows全体を集計対象にする。 | source_countとvalueがcurrentRows全体から算出した値に一致する。 | `RuleExpectedDef` | allスコープ集計パターン |
+| 23 | `grid_aggregate` | `grid_aggregate_g004` | `rule` | 値が数値またはカンマ区切り数値文字列の場合 | 有限数へ解釈できる値を合計へ含める。 | 1,234.5が1234.5として集計される。 | `RuleExpectedDef` | カンマ区切り数値解釈パターン |
+| 24 | `grid_aggregate` | `grid_aggregate_g005` | `state` | 空文字・非数値・非有限値が含まれる場合 | 当該値を合計から除外し、ignored_countへ計上する。 | value / valid_count / ignored_countが期待値と一致する。 | `StateExpectedDef` | 無効値除外と件数内訳パターン |
+| 25 | `grid_aggregate` | `grid_aggregate_g006` | `rule` | 有効なaggregate宣言が存在しない場合 | 集計なしとしてhas_aggregates=falseを返す。 | itemsが空でhas_aggregates=falseである。 | `RuleExpectedDef` | 集計宣言なし互換パターン |
+
+---
+
+### 3. 初回横断観察 — 類似候補（未承認）
+
+ここからは**ソース原文そのものではなく、横断比較から得た観察候補**である。まだBehavior Patternではない。
+
+#### 候補A — 「入力を変更しない」
+
+- `grid_column_build_g005`: 入力されたfields定義を変更しない。
+- `search_filter_g006`: 入力されたrowsを変更しない。
+
+観察:
+
+> 対象オブジェクトは異なるが、「処理対象として受け取った入力を副作用で変更しない」という意味はかなり近い。
+
+確認したいこと:
+
+- 同じBehaviorとして扱ってよいか。
+- fields / rows以外にも同種保証が今後出てくるか。
+- Expectedを「処理前後Diff 0件」のように共通生成できるか。
+
+#### 候補B — 「入力順を維持する」
+
+- `grid_column_build_g002`: 返却列の順序はViewDef fieldsの順序を維持する。
+- `csv_export_g004`: 列順と行順を入力順のまま維持する。
+
+観察:
+
+> 「順序を勝手に変えない」という意味は近い。ただし、Grid列だけの順序保持と、CSVの列順＋行順保持では対象範囲が異なる。
+
+確認したいこと:
+
+- 共通Behavior本体＋Option（列 / 行）の形にできるか。
+- それとも別Behaviorに分けるべきか。
+
+#### 候補C — 「対象がない場合の安全な結果」
+
+- `grid_column_build_g003`: fields未指定または空配列なら、例外停止せず空配列を返す。
+- `grid_aggregate_g006`: 有効なaggregate宣言がなければ、items空・has_aggregates=falseを返す。
+
+観察:
+
+> どちらも「対象がないことを異常終了にせず、空・なしを表す正常結果へ落とす」構造に見える。ただし返却契約はかなり異なる。
+
+確認したいこと:
+
+- 同じBehaviorへ寄せる価値があるか。
+- 「空入力」と「機能宣言なし」は意味を分けるべきではないか。
+
+#### 候補D — 「除外する」
+
+- `grid_column_build_g001`: `grid.visible=false` の項目をGrid列へ含めない。
+- `search_filter_g001`: 条件不一致行を結果へ含めない。
+- `search_filter_g008`: キー名・number・booleanを全文検索対象へ含めない。
+- `grid_aggregate_g005`: 空文字・非数値・非有限値を合計から除外する。
+
+観察:
+
+> 日本語ではすべて「除外」だが、対象・判定タイミング・出力契約が違う。**これは無理に共通化すると危険な候補**として扱う。
+
+確認したいこと:
+
+- 「除外」という動詞だけではBehavior Pattern化の根拠として弱いのではないか。
+- Behaviorには対象・判定条件・結果契約まで必要ではないか。
+
+---
+
+### 4. このPilotで既に見えた重要点
+
+#### 4.1 Guaranteeの文言一致だけでは共通化できない
+
+「除外」「維持」「変更しない」のような動詞は複数責務に現れる。
+
+しかしBehavior Patternとして安全に扱うには、少なくとも次を一緒に見る必要がありそうである。
+
+```text
+対象
+条件
+保証
+観測結果
+Expected生成方法
+```
+
+#### 4.2 共通化しやすそうな候補と、危険な候補がある
+
+現時点では、
+
+- 入力非破壊: 比較的近い
+- 順序維持: 近いがOption化の検討が必要
+- 空・なし安全: 一見近いが意味差が大きい
+- 除外: 動詞だけの一致で、安易な共通化は危険
+
+という差が見える。
+
+これはまだ結論ではなく、**人間レビューへ出すための観察結果**とする。
+
+---
+
+### 5. 次の人間レビュー
+
+Phase 2 Pilotの次の確認対象は、まず候補A・Bの2つに絞る。
+
+```text
+候補A: 入力を変更しない
+候補B: 入力順を維持する
+```
+
+レビューで確認したい問い:
+
+1. この2組は、本当に同じ意味のBehaviorとして承認できるか。
+2. 共通Behaviorにした場合、責務ごとの差分はOptionとして表せるか。
+3. 1 Behavior承認からTestPatternを何件生成できるか。
+4. Expectedを機械生成するために不足している情報は何か。
+
+候補C・Dは、A・Bで共通化の形を掴むまでは保留する。
+
+---
+
+### 6. Phase 2 Pilotの出口条件
+
+- 少なくとも1つのBehavior Pattern候補について、人間が「同じ意味」と承認できる。
+- そのBehavior Patternから生成できるTestPattern候補を列挙できる。
+- Expected生成に必要な入力情報を特定できる。
+- 共通化してはいけない類似Guaranteeの例を1つ以上残せる。
+- Behavior名は、人間承認後に初めて確定する。
+
+---
+
+### Revision History
+
+- 2026-08-22 / v0.1: Phase 2 Pilot開始。最新資材の4責務・25 Guaranteeを原文で横断配置し、Behavior名を付けずに類似候補A〜Dを観察。次レビュー対象を「入力非破壊」「順序維持」の2候補へ限定。
+
+
+---
+
+# 📄 AI協働034_FRB_Responsibility_Behavior_Pilot_Phase2_v0_2
+*(source: `AI協働034_FRB_Responsibility_Behavior_Pilot_Phase2_v0_2.md`)*
+
+## 責務棚卸し Phase 2 Pilot — Guarantee横断比較
+
+作成日: 2026-08-22  
+ステータス: Draft / Phase 2 Pilot  
+対象: FRB Studio / AI承認駆動開発  
+目的: 既存Guaranteeを先に抽象化せず横並びにし、同じ意味を持つ保証が実際に複数責務から現れるかを観察する。
+
+---
+
+### 0. Pilotのルール
+
+このPilotでは、最初からBehavior Pattern名を決めない。
+
+```text
+既存Responsibility
+        ↓
+既存Guaranteeを原文のまま横断比較
+        ↓
+意味の近いGuaranteeを「候補」として並べる
+        ↓
+人間レビュー
+        ↓
+必要ならBehavior Pattern名を付ける
+        ↓
+TestPattern / Expected生成可能性を評価
+```
+
+禁止事項:
+
+- `NO_MUTATION` / `EMPTY_SAFE` / `ORDER_PRESERVE` 等の標準名を先に押し付けない。
+- Guaranteeの意味が近そうという理由だけで統合しない。
+- TestPatternが存在することを推測しない。
+- 責務粒度そのものの変更は、このPilotではまだ行わない。
+
+---
+
+### 1. 入力ソース
+
+最新資材 `FRBStudio_App20260822_193226.zip` 内の次ファイルを入力とする。
+
+`data/json/03_tests/responsibilities/responsibility_data_v0_1.json`
+
+対象責務:
+
+| responsibility_cd | 責務名 | Guarantee数 |
+|---|---|---:|
+| `grid_column_build` | Grid列生成責務 | 5 |
+| `search_filter` | 検索条件評価責務 | 8 |
+| `csv_export` | CSV出力責務 | 6 |
+| `grid_aggregate` | Grid数値集計責務 | 6 |
+| **合計** |  | **25** |
+
+---
+
+### 2. 25 Guarantee 原文一覧
+
+> この表は最新資材の責務JSONから抽出した原文を基準とする。Phase 1 v0.4でレビュー表現を補強した `grid_column_build_g004/g005` の文言は、ここではソースJSON原文を保持する。
+
+| No | responsibility_cd | guarantee_id | type | condition | guarantee | observable_result | expected_def_type | test_pattern_seed |
+|---:|---|---|---|---|---|---|---|---|
+| 1 | `grid_column_build` | `grid_column_build_g001` | `rule` | fieldsにgrid.visible=falseの項目が含まれる場合 | 当該項目をGrid列へ含めない。 | 返却列のfield一覧に非表示項目が存在しない。 | `RuleExpectedDef` | visible=false除外パターン |
+| 2 | `grid_column_build` | `grid_column_build_g002` | `state` | 表示対象フィールドが複数ある場合 | 返却列の順序はViewDef fieldsの順序を維持する。 | 返却field一覧が入力順と一致する。 | `StateExpectedDef` | 表示列の順序維持パターン |
+| 3 | `grid_column_build` | `grid_column_build_g003` | `rule` | fieldsが未指定または空配列の場合 | 例外で停止せず空配列を返す。 | 返却値が空配列である。 | `RuleExpectedDef` | fields未指定安全パターン |
+| 4 | `grid_column_build` | `grid_column_build_g004` | `interface` | includeField方針が呼出側から指定された場合 | 指定された方針による列採用結果を返す。 | includeFieldの判定結果と返却列が一致する。 | `InterfaceExpectedDef` | カスタムincludeField適用パターン |
+| 5 | `grid_column_build` | `grid_column_build_g005` | `no_side_effect` | Grid列を生成した場合 | 入力されたfields定義を変更しない。 | 処理前後のfieldsが同一である。 | `StateExpectedDef` | ViewDef fields非破壊パターン |
+| 6 | `search_filter` | `search_filter_g001` | `rule` | 有効な検索条件が1件以上指定された場合 | すべての検索条件に一致する行だけが結果に含まれる。 | 結果行IDが条件一致行IDと一致し、不一致行を含まない。 | `StateExpectedDef` | 条件一致行だけを返す基本パターン |
+| 7 | `search_filter` | `search_filter_g002` | `rule` | 文字列contains条件が指定された場合 | 大文字・小文字の違いに依存せず部分一致を評価する。 | Alpha / alpha / ALPHA を同じ検索語で一致確認できる。 | `RuleExpectedDef` | contains検索の大文字小文字差分パターン |
+| 8 | `search_filter` | `search_filter_g003` | `state` | 検索結果が生成された場合 | 各結果行は元データ上のIndexを保持する。 | 結果のindexesが元データの位置と一致する。 | `StateExpectedDef` | gte検索で一致行と元Indexを同時確認する |
+| 9 | `search_filter` | `search_filter_g004` | `rule` | 数値条件に gte / lte / equals が指定された場合 | 指定された数値比較演算に従って一致判定する。 | 境界値の直前・境界値・直後で期待どおりの行が返る。 | `RuleExpectedDef` | gte/lte/equalsの境界値パターン |
+| 10 | `search_filter` | `search_filter_g005` | `rule` | 複数選択値が指定され、対象値が配列の場合 | 指定候補のいずれかを含む行を一致として扱う。 | 選択候補と配列セルの交差がある行だけが返る。 | `RuleExpectedDef` | 複数選択と配列セルの一致パターン |
+| 11 | `search_filter` | `search_filter_g006` | `no_side_effect` | 検索条件を評価した場合 | 入力されたrowsを変更しない。 | 評価前後の入力rowsが同一である。 | `StateExpectedDef` | 検索前後の入力非破壊パターン |
+| 12 | `search_filter` | `search_filter_g007` | `rule` | 全文検索語が指定された場合 | 行が保持するobject / arrayを再帰走査し、いずれかの文字列値に部分一致すれば親行を結果へ含める。 | 表示列に検索語がなくても、子Grid・詳細・非表示項目の文字列値に一致する親行が返る。 | `RuleExpectedDef` | 子配列の文字列一致で親行が残るパターン |
+| 13 | `search_filter` | `search_filter_g008` | `constraint` | 全文検索を評価する場合 | 検索対象は文字列値だけとし、objectのキー名・number・booleanは検索対象へ含めない。 | キー名だけ、または数値・booleanだけに検索語が存在しても一致行にならない。 | `RuleExpectedDef` | キー名と数値を全文検索対象外にするパターン |
+| 14 | `csv_export` | `csv_export_g001` | `rule` | keyFieldNameが指定され、表示列にkey列が含まれない場合 | key列をCSV対象列の先頭へ追加する。 | 返却field_namesの先頭がkeyFieldNameと一致する。 | `RuleExpectedDef` | 表示列へkey列を補完するパターン |
+| 15 | `csv_export` | `csv_export_g002` | `rule` | key列がすでに対象列へ含まれる場合 | 同じfieldを重複して出力しない。 | CSVヘッダーに同一fieldが一度だけ現れる。 | `RuleExpectedDef` | key列重複防止パターン |
+| 16 | `csv_export` | `csv_export_g003` | `rule` | セル値にカンマ・ダブルクォート・改行が含まれる場合 | CSV規則に従い値をダブルクォートで囲み、内部ダブルクォートを二重化する。 | CSV文字列が期待するescape済み文字列と一致する。 | `CsvExpectedDef` | カンマ・引用符・改行escapeパターン |
+| 17 | `csv_export` | `csv_export_g004` | `state` | CSV文字列を生成した場合 | 列順と行順を入力順のまま維持する。 | ヘッダー列順およびデータ行順が入力順と一致する。 | `CsvExpectedDef` | 列順・行順維持パターン |
+| 18 | `csv_export` | `csv_export_g005` | `rule` | include_bom=trueが指定された場合 | CSV文字列の先頭にUTF-8 BOMを付与する。 | has_bom=trueかつ先頭文字がBOMである。 | `CsvExpectedDef` | UTF-8 BOM付与パターン |
+| 19 | `csv_export` | `csv_export_g006` | `rule` | lineBreakが未指定の場合 | CRLFを使用し、末尾にも改行を付ける。 | CSV文字列がCRLF区切りかつ末尾CRLFで終了する。 | `CsvExpectedDef` | 既定改行コードパターン |
+| 20 | `grid_aggregate` | `grid_aggregate_g001` | `rule` | number型fieldにgrid.aggregate.operator=sumが宣言された場合 | 当該列の合計結果を生成する。 | items/byFieldに対象fieldのsum結果が存在する。 | `StateExpectedDef` | number列sum基本パターン |
+| 21 | `grid_aggregate` | `grid_aggregate_g002` | `rule` | aggregate.scope=filteredが指定された場合 | filteredRowsだけを集計対象にする。 | source_countとvalueがfilteredRowsから算出した値に一致する。 | `RuleExpectedDef` | filteredスコープ集計パターン |
+| 22 | `grid_aggregate` | `grid_aggregate_g003` | `rule` | aggregate.scope=allが指定された場合 | currentRows全体を集計対象にする。 | source_countとvalueがcurrentRows全体から算出した値に一致する。 | `RuleExpectedDef` | allスコープ集計パターン |
+| 23 | `grid_aggregate` | `grid_aggregate_g004` | `rule` | 値が数値またはカンマ区切り数値文字列の場合 | 有限数へ解釈できる値を合計へ含める。 | 1,234.5が1234.5として集計される。 | `RuleExpectedDef` | カンマ区切り数値解釈パターン |
+| 24 | `grid_aggregate` | `grid_aggregate_g005` | `state` | 空文字・非数値・非有限値が含まれる場合 | 当該値を合計から除外し、ignored_countへ計上する。 | value / valid_count / ignored_countが期待値と一致する。 | `StateExpectedDef` | 無効値除外と件数内訳パターン |
+| 25 | `grid_aggregate` | `grid_aggregate_g006` | `rule` | 有効なaggregate宣言が存在しない場合 | 集計なしとしてhas_aggregates=falseを返す。 | itemsが空でhas_aggregates=falseである。 | `RuleExpectedDef` | 集計宣言なし互換パターン |
+
+---
+
+### 3. 初回横断観察 — 類似候補（未承認）
+
+ここからは**ソース原文そのものではなく、横断比較から得た観察候補**である。まだBehavior Patternではない。
+
+#### 候補A — 「入力を変更しない」
+
+- `grid_column_build_g005`: 入力されたfields定義を変更しない。
+- `search_filter_g006`: 入力されたrowsを変更しない。
+
+観察:
+
+> 対象オブジェクトは異なるが、「処理対象として受け取った入力を副作用で変更しない」という意味はかなり近い。
+
+確認したいこと:
+
+- 同じBehaviorとして扱ってよいか。
+- fields / rows以外にも同種保証が今後出てくるか。
+- Expectedを「処理前後Diff 0件」のように共通生成できるか。
+
+#### 候補B — 「入力順を維持する」
+
+- `grid_column_build_g002`: 返却列の順序はViewDef fieldsの順序を維持する。
+- `csv_export_g004`: 列順と行順を入力順のまま維持する。
+
+観察:
+
+> 「順序を勝手に変えない」という意味は近い。ただし、Grid列だけの順序保持と、CSVの列順＋行順保持では対象範囲が異なる。
+
+確認したいこと:
+
+- 共通Behavior本体＋Option（列 / 行）の形にできるか。
+- それとも別Behaviorに分けるべきか。
+
+#### 候補C — 「対象がない場合の安全な結果」
+
+- `grid_column_build_g003`: fields未指定または空配列なら、例外停止せず空配列を返す。
+- `grid_aggregate_g006`: 有効なaggregate宣言がなければ、items空・has_aggregates=falseを返す。
+
+観察:
+
+> どちらも「対象がないことを異常終了にせず、空・なしを表す正常結果へ落とす」構造に見える。ただし返却契約はかなり異なる。
+
+確認したいこと:
+
+- 同じBehaviorへ寄せる価値があるか。
+- 「空入力」と「機能宣言なし」は意味を分けるべきではないか。
+
+#### 候補D — 「除外する」
+
+- `grid_column_build_g001`: `grid.visible=false` の項目をGrid列へ含めない。
+- `search_filter_g001`: 条件不一致行を結果へ含めない。
+- `search_filter_g008`: キー名・number・booleanを全文検索対象へ含めない。
+- `grid_aggregate_g005`: 空文字・非数値・非有限値を合計から除外する。
+
+観察:
+
+> 日本語ではすべて「除外」だが、対象・判定タイミング・出力契約が違う。**これは無理に共通化すると危険な候補**として扱う。
+
+確認したいこと:
+
+- 「除外」という動詞だけではBehavior Pattern化の根拠として弱いのではないか。
+- Behaviorには対象・判定条件・結果契約まで必要ではないか。
+
+---
+
+### 4. このPilotで既に見えた重要点
+
+#### 4.1 Guaranteeの文言一致だけでは共通化できない
+
+「除外」「維持」「変更しない」のような動詞は複数責務に現れる。
+
+しかしBehavior Patternとして安全に扱うには、少なくとも次を一緒に見る必要がありそうである。
+
+```text
+対象
+条件
+保証
+観測結果
+Expected生成方法
+```
+
+#### 4.2 共通化しやすそうな候補と、危険な候補がある
+
+現時点では、
+
+- 入力非破壊: 比較的近い
+- 順序維持: 近いがOption化の検討が必要
+- 空・なし安全: 一見近いが意味差が大きい
+- 除外: 動詞だけの一致で、安易な共通化は危険
+
+という差が見える。
+
+これはまだ結論ではなく、**人間レビューへ出すための観察結果**とする。
+
+---
+
+### 5. 次の人間レビュー
+
+Phase 2 Pilotの次の確認対象は、まず候補A・Bの2つに絞る。
+
+```text
+候補A: 入力を変更しない
+候補B: 入力順を維持する
+```
+
+レビューで確認したい問い:
+
+1. この2組は、本当に同じ意味のBehaviorとして承認できるか。
+2. 共通Behaviorにした場合、責務ごとの差分はOptionとして表せるか。
+3. 1 Behavior承認からTestPatternを何件生成できるか。
+4. Expectedを機械生成するために不足している情報は何か。
+
+候補C・Dは、A・Bで共通化の形を掴むまでは保留する。
+
+---
+
+### 6. Phase 2 Pilotの出口条件
+
+- 少なくとも1つのBehavior Pattern候補について、人間が「同じ意味」と承認できる。
+- そのBehavior Patternから生成できるTestPattern候補を列挙できる。
+- Expected生成に必要な入力情報を特定できる。
+- 共通化してはいけない類似Guaranteeの例を1つ以上残せる。
+- Behavior名は、人間承認後に初めて確定する。
+
+---
+
+### 7. 今回の思考拡張で得た検討メモ
+
+ここからは、Phase 2 Pilot v0.1 を人間レビューした後の会話で得た検討内容を残す。
+
+現時点では確定仕様ではない。  
+**今後、Guaranteeを1件ずつ検討するときの「問い」と「仮説」を保存すること**を目的とする。
+
+#### 7.1 候補A・Bはセットではなく、各々を独立して検討する
+
+候補Aと候補Bを一つのBehaviorとして扱う意図ではない。
+
+```text
+候補A
+「入力を変更しない」
+について、複数Guaranteeを同じBehaviorとして扱えるかを検討する。
+
+候補B
+「入力順を維持する」
+について、複数Guaranteeを同じBehaviorとして扱えるかを検討する。
+```
+
+それぞれについて、
+
+```text
+何を？
+いつ？
+どこまで？
+何と何を比較する？
+```
+
+を平たく洗い出し、その後にどこまでPattern化できるかを考える。
+
+---
+
+### 8. Expected Diff（入力と出力の期待値差分）仮説
+
+#### 8.1 基本発想
+
+Expectedを完成したOutput全体として毎回定義するのではなく、
+
+> **InputからOutputへ「何が変わるべきか」だけをExpected Diffとして定義できないか**
+
+という仮説。
+
+例:
+
+```text
+Input
+0,1,2,3
+
+Expected Output
+0,9,2,3
+
+Expected Diff
+(-)1
+(+)9
+
+Actual Output
+0,9,2,3
+
+Actual Diff
+(-)1
+(+)9
+
+Expected Diff
+vs
+Actual Diff
+↓
+Diff = 0
+```
+
+#### 8.2 Expected Diffの基本表現候補
+
+```text
+Expected Diff
+(-)%変更前の値%
+(+)%変更後の値%
+```
+
+基本的な意味:
+
+```text
+削除:
+(-)%変更前の値%
+
+追加:
+(+)%変更後の値%
+
+置換:
+(-)%変更前の値%
+(+)%変更後の値%
+```
+
+#### 8.3 Expected Diffに記載されない値の扱い
+
+重要な仮説:
+
+> **Expected Diffで変更指定されていない部分は、Input値をExpected Output値として継承する。**
+
+つまり、
+
+```text
+基本:
+Expected Output = Input
+
+例外:
+Expected Diffに記載された箇所だけ変更する
+```
+
+と考える。
+
+例:
+
+```text
+Input
+0,1,2,3
+
+Expected Diff
+(-)1
+(+)9
+
+機械生成されるExpected Output
+0,9,2,3
+```
+
+この場合、
+
+```text
+0 → Inputから継承
+1 → 9へ変更
+2 → Inputから継承
+3 → Inputから継承
+```
+
+となる。
+
+この方式が成立すれば、人間がOutput全体を毎回承認する必要はなく、
+
+> **「変わるべき部分」だけを承認する**
+
+方向へ寄せられる可能性がある。
+
+---
+
+### 9. Test Runnerへ移す品質保証の仮説
+
+Expected Diff方式を成立させるために、個別テスト側で毎回「変更していない部分」を列挙するのではなく、Test Runner側で共通保証できないかを検討する。
+
+#### 9.1 Runner側の基本責務候補
+
+```text
+Expected Output
+=
+Inputの完全コピー
++
+Expected Diffの変更後値だけを反映
+```
+
+Runner自身の品質保証候補:
+
+- Inputを壊さず複製できること。
+- Expected Diffを正しく適用できること。
+- Expected Diffで変更指定されていない箇所は、Input値をそのままExpected Outputへ継承すること。
+- Actual OutputからActual Diffを正しく生成できること。
+- Expected DiffとActual Diffを正しく比較できること。
+- 差分がなければDiff 0と判定できること。
+- Expected Diffに存在しない余計なActual変更を差分として検出できること。
+
+この考え方の狙いは、
+
+> **個別テストで毎回保証していた共通事項を、Test Runnerが一度品質保証する領域へ移すこと**
+
+である。
+
+ただし、業務固有の意味をRunnerへ直接埋め込むのではなく、Runnerは汎用的な実行・比較エンジンとして保ち、責務ごとの差分となる知識はBehavior / Option / Catalog等の構造化定義として外へ出す方向を想定する。
+
+---
+
+### 10. Phase 2で意識する中心問い — Runnerがまだ知らない「知恵」は何か？
+
+今後のGuarantee検討では、最初からBehavior Pattern名を付けることを目的にしない。
+
+まず次を問いとして使う。
+
+```text
+① このGuaranteeは Expected Diff で表現できる？
+
+YES
+→ 現在の共通知恵でRunner処理へ寄せられる可能性を考える。
+
+NO
+→ なぜExpected Diffだけでは表現できない？
+→ Runnerにどんな「知恵」が足りない？
+```
+
+ここで重要なのは、
+
+> **Expected Diffで表現できないことは失敗ではない。**
+
+表現できない理由を調べることで、Runnerがまだ持っていない新しい知恵を発見できる可能性がある。
+
+現時点の分類イメージ:
+
+```text
+A. Expected Diffだけで表現できる
+B. Expected Diff + 少数Optionで表現できる
+C. Expected Diffだけでは無理だが、共通知恵を追加すれば表現できる
+D. 責務固有性が高く、共通Runnerへ寄せる価値が低い
+```
+
+#### 10.1 「知恵」と「知識」を分ける
+
+この研究では、知識ではなく**知恵を生み出す過程**を重視する。
+
+```text
+人間 × AIの思考拡張
+        ↓
+個別GuaranteeをInput / Outputまで平たく分解
+        ↓
+違和感・共通構造を発見
+        ↓
+新しい「知恵」を生み出す
+        ↓
+人間が妥当性を確認
+        ↓
+構造化
+        ↓
+Behavior / Option / Rule / Catalog等の「知識」へ変換
+        ↓
+Runnerが再利用
+```
+
+つまり、
+
+> **知恵を生み出すのは人間 × AI。  
+> 生み出した知恵を構造化された知識へ変換し、Runnerに再利用させる。**
+
+という流れを仮説とする。
+
+---
+
+### 11. 複雑な責務は Input / Output まで平たく分解する
+
+Expected Diffの発想は、比較対象を「Input」と「Output」の2つとして考えたことで生まれた。
+
+この経験から、今後の基本姿勢として次を置く。
+
+> **複雑なGuaranteeほど、まず観測可能なInput / Outputまで平たく分解する。  
+> その後に共通構造・Expected Diff・Runnerへ渡す知恵を考える。**
+
+#### 11.1 Input / Outputをファイルだけに限定しない
+
+Inputを単純に `xxx.json` だけと固定しない。
+
+責務によっては、
+
+```text
+Input State
+=
+Data JSON
++ ViewDef
++ current state
++ mode
++ selected row
++ filter condition
++ 必要な前状態
+```
+
+のように、**その責務が判断・処理するために必要な「観測可能な開始状態」**として広めに捉える。
+
+Outputも同様に、
+
+```text
+Output State
+=
+返却値
++ 更新後state
++ 画面状態
++ 保存後Data
++ その他の観測可能な終了状態
+```
+
+まで含める余地を残す。
+
+#### 11.2 保証タイミングについて
+
+現時点のFRB Studioでは、「処理中」の内部状態まで責務保証として固定する必要性は低いと考える。
+
+内部実装を過度に縛らないため、当面は外部から観測可能な状態を中心にする。
+
+候補:
+
+```text
+初期表示
+処理結果
+保存後
+```
+
+必要性が生じた場合のみ拡張する。
+
+---
+
+### 12. 分解したものを人間が再理解できるView
+
+Input / Outputを細かく構造化すると、後から人間が見たときに、
+
+```text
+「これは結局、何を保証しているのか？」
+```
+
+が分かりにくくなる可能性がある。
+
+そのため、
+
+> **構造化された定義をSourceとし、人間が意味を再理解できる説明資料をViewとして再生する**
+
+仕組みが必要になる可能性がある。
+
+想定:
+
+```text
+Structured Input / Output
++ Expected Diff
++ Behavior / Option
+        ↓
+Human-readable View
+```
+
+説明Markdown等を別Sourceとして手書き管理するのではなく、構造化された意図から再生できるViewとする方向を検討する。
+
+---
+
+### 13. 複数Stepへ分解したときの未解決問い
+
+複雑な責務を複数Stepへ分解した場合、各StepのInput / Outputを比較可能にする。
+
+例:
+
+```text
+Input₀
+  ↓ Step1
+Output₁
+  ↓ Step2
+Output₂
+  ↓ Step3
+Output₃
+```
+
+局所的には、各StepのInput / Outputを比較する。
+
+一方で、分解によって全体の意味を失わないため、
+
+> **最初のInput₀と最後のOutput₃を、どのように再接続して比較・説明できるようにするか？**
+
+という問いを残す。
+
+現時点では解決しない。
+
+この問題へ実際にぶつかった時点で、必要な正規化・Diff合成・View再生等の「新しい知恵」を考える。
+
+> **分解したことで全体像を失わないよう、最初と最後を再接続する。**
+
+この問い自体をPhase 2以降へ残す。
+
+---
+
+### Revision History
+
+- 2026-08-22 / v0.2: 人間レビュー後の思考拡張メモを追記。Expected Diff、Input継承、Test Runner側の共通保証、「Runnerがまだ知らない知恵は何か？」、広義Input / Output State、人間向けView、複数Step分解後の再接続という未解決問いを追加。
+- 2026-08-22 / v0.1: Phase 2 Pilot開始。最新資材の4責務・25 Guaranteeを原文で横断配置し、Behavior名を付けずに類似候補A〜Dを観察。次レビュー対象を「入力非破壊」「順序維持」の2候補へ限定。
+
+
+---
+
 # 📄 日本企業AI利益事例
 *(source: `AI協働034_調査_日本企業AI利益事例20260819_212011.md`)*
 
@@ -5582,4 +7103,3050 @@ Diffから、まだコードに残っている暗黙の意図を発見し、
 > **コードそのものではない。**
 >
 > **コードを何度でも生み出せる、承認済みの構造化された意図である。**
+
+
+---
+
+# 📄 AI協働036_Expected_Diff_Method_v0_3
+*(source: `AI協働036_Expected_Diff_Method_v0_3.md`)*
+
+## Expected Diff（期待値差分）方式 — 検討要約
+
+作成日: 2026-08-24  
+ステータス: Draft / 重要検討メモ  
+対象: FRB Studio / Approval Engineering / Test Runner
+
+---
+
+### 0. まずこれだけ
+
+Expected Diff（期待値差分）は、**Expected Output全体を人間が定義するのではなく、Inputから「何が変わるべきか」だけを差分として扱う方式**である。
+
+さらに、この方式では差分そのものを人間が作文するのではない。
+
+> **品質保証済みのGit DiffのようなDiff Toolを、状態変化を観測する共通の観測器として固定し、そのツールが生成した差分出力をExpectedとして扱う。**
+
+つまり、Expected Diffの主役は単なる「差分表現」ではない。
+
+```text
+人間
+↓
+期待する変更条件だけを定義
+
+Input
+↓
+仮Expected Output
+↓
+品質保証済み Diff Tool
+↓
+Expected Diff
+```
+
+という構造そのものにある。
+
+```text
+Input
+0,1,2,3
+
+テスト条件
+2項目目を 9 に変更する
+
+仮Expected Output
+0,9,2,3
+
+Input
+vs
+仮Expected Output
+↓
+Expected Diff
+(-)1
+(+)9
+```
+
+Actual側でも、
+
+```text
+Input
+vs
+Actual Output
+↓
+Actual Diff
+```
+
+を生成し、
+
+```text
+Expected Diff
+vs
+Actual Diff
+↓
+Final Diff = 0
+↓
+PASS
+```
+
+と判定する。
+
+この方式の肝は、
+
+> **Expected Diffを直接手書きするのではなく、Inputをコピーした「仮Expected Output」にテスト条件だけを反映し、品質保証済みのDiff ToolでInputとの差分を観測してExpected Diffを機械生成すること。**
+
+さらに重要なのは、
+
+> **Expected側とActual側で、同じ品質保証済みDiff Toolを共通の観測器として使うこと。**
+
+である。
+
+さらに、本方式では **Inputも個別テストごとに人間が手作業で用意することを基本としない。**
+
+```text
+Field Definition
++
+Validation Type
++
+TestPattern
++
+Type Generator Config
+↓
+Input Generator
+↓
+Input
+```
+
+を基本経路とし、InputからExpected Diff、Actual Diff、最終判定までを、
+**承認済み定義と品質保証済み汎用部品から機械導出する**ことを目指す。
+
+項目固有のテンプレートや固有値は、
+機械導出だけでは成立しない場合の最終手段として扱う。
+
+---
+
+## 1. 目的
+
+従来のExpectedでは、テストごとに完成したExpected Output全体を持つ必要がある。
+
+```text
+Input
+0,1,2,3
+
+Expected Output
+0,9,2,3
+```
+
+しかし人間が意味として確認したいのは、多くの場合、
+
+```text
+「2項目目が 1 → 9 に変わる」
+```
+
+という小さな変化である。
+
+そこでExpected Output全体ではなく、
+
+```text
+Expected Diff
+(-)1
+(+)9
+```
+
+をテストの中心へ置く。
+
+狙い:
+
+- 人間が承認する情報量を小さくする。
+- 変更対象以外の不変保証をTest Runnerへ移す。
+- Expectedを差分部品として扱えるようにする。
+- 将来的に複数のExpected Diffを組み合わせてテストできるようにする。
+
+---
+
+## 2. Expected Diffの基本定義
+
+Expected Diffは、人間が直接記述した「期待差分」ではない。
+
+基本定義:
+
+> **Expected Diff = 品質保証済みDiff Toolが、Inputと仮Expected Outputを比較して生成した差分出力**
+
+したがって、
+
+```text
+Expected Diff
+≠ 人間が手書きした期待差分
+
+Expected Diff
+= 品質保証済みDiff Toolによって
+  Inputと仮Expected Outputから
+  機械的に観測された差分
+```
+
+と考える。
+
+最小の表現候補:
+
+```text
+Expected Diff
+
+(-)%変更前の値%
+(+)%変更後の値%
+```
+
+例:
+
+```text
+(-)1
+(+)9
+```
+
+追加・削除も同じ差分の考え方で表現できる。
+
+```text
+削除
+(-)%変更前%
+
+追加
+(+)%変更後%
+
+置換
+(-)%変更前%
+(+)%変更後%
+```
+
+### 2.1 品質保証済みDiff Toolを「共通の観測器」にする
+
+この方式では、Git DiffのようなDiff Toolを単なる表示補助として扱わない。
+
+```text
+Input
+vs
+仮Expected Output
+↓
+Expected Diff
+
+Input
+vs
+Actual Output
+↓
+Actual Diff
+```
+
+この2つの観測を、**同じ品質保証済みDiff Tool**で行う。
+
+これにより、Expected側とActual側は、
+
+```text
+同じ観測ルール
+同じ差分表現
+同じ比較単位
+```
+
+で揃えられる。
+
+重要なのは、
+
+> **「Diffが正しいか」を個別テストのたびに人間が判断しないこと。**
+
+Diff Toolそのものを先に十分に品質保証し、以後の個別テストでは、その出力を信頼できる共通言語として利用する。
+
+Gitにおいて、人間が毎回Diffアルゴリズムそのものを承認せず、Git Diffの出力を変更観測の基盤として利用するのと同じ考え方である。
+
+Expected Diff方式では、この信頼境界をテストへ持ち込む。
+
+```text
+一度、Diff Toolを保証する
+↓
+多数のテストで再利用する
+↓
+人間は個別テストの「変更意図」に集中する
+```
+
+つまりこれは、
+
+> **差分を期待値にする手法であると同時に、差分生成そのものの承認を共通基盤へ退役させる手法でもある。**
+
+---
+
+## 3. 最重要 — InputからExpected Diffまでを機械導出する
+
+Expected Diffを直接組み立てるのではなく、まず**Input**を生成し、
+そのInputから**仮Expected Output**を生成する。
+
+原則として、次の一連の処理はすべて機械実行する。
+
+```text
+① 項目定義・Validation Type・TestPattern等からInputを生成する
+② Inputを完全コピーする
+③ テスト条件で指定された変更だけをコピーへ適用する
+④ できあがったものを仮Expected Outputとする
+⑤ Inputと仮Expected OutputのDiffを取る
+⑥ Expected Diffを生成する
+```
+
+人間が個別テストごとに、
+
+```text
+Inputを作文する
+Expected Outputを作文する
+Expected Diffを作文する
+```
+
+ことを基本形にはしない。
+
+人間が承認する対象は、できるだけ上位の
+
+```text
+Field Definition
+Validation Type
+TestPattern
+Type Generator Config
+固有の業務Expected規則
+```
+
+へ寄せる。
+
+### 3.1 Inputの基本生成モデル
+
+Inputは、項目定義をSourceとして、型に応じたGeneratorから機械生成する。
+
+```text
+Field Definition
++
+Validation Type
++
+TestPattern
++
+Type Generator Config
+↓
+Input Generator
+↓
+Input
+```
+
+例:
+
+```text
+field_path       = age
+validation_type  = integer
+minimum          = 0
+maximum          = 120
+```
+
+Validation Typeに、
+
+```text
+minimum_minus_1
+minimum
+maximum
+maximum_plus_1
+invalid_format
+```
+
+が定義されているなら、
+
+```text
+minimum_minus_1 → -1
+minimum         → 0
+maximum         → 120
+maximum_plus_1  → 121
+invalid_format  → "abc"
+```
+
+のようにInput値を機械導出できる。
+
+### 3.2 型別Input Generator
+
+#### string
+
+文字列は、項目固有値ではなく、型共通の値生成テンプレートを利用する。
+
+例:
+
+```text
+"テスト%テストID%－%項目名称%"
+```
+
+```text
+Field Definition
+  field_path = customer_name
+  caption    = 顧客名
+
+Test ID
+  TP_0001
+
+↓ 機械生成
+
+"テストTP_0001－顧客名"
+```
+
+このテンプレートは特定項目名を固定して持たない。
+
+#### integer / decimal
+
+数値系は原則として値テンプレートを持たず、
+項目定義の境界値とRunner設定から生成する。
+
+```text
+minimum
+minimum_minus_1
+maximum
+maximum_plus_1
+median
+valid_random
+invalid_format
+```
+
+`valid_random` を使う場合は、再現性を失わないように
+**seed付きの決定論的乱数**を使う。
+
+例:
+
+```text
+seed =
+test_id
++ field_path
++ test_pattern
+```
+
+同じテスト条件なら、再実行しても同じ値が生成されることを保証する。
+
+#### date / datetime
+
+日付系は、実行時の「今日」に直接依存させず、
+Runnerが持つ**基準日時（reference_datetime）**を起点として生成する。
+
+```text
+reference_datetime = 固定またはTest Run単位で記録された基準日時
+```
+
+項目定義に境界がある場合:
+
+```text
+minimum_date
+minimum_date_minus_1
+maximum_date
+maximum_date_plus_1
+```
+
+を機械導出する。
+
+境界がない場合は、
+
+```text
+reference_date
+reference_date - N days
+reference_date + N days
+```
+
+のように、基準日 + Offsetで決定論的に生成する。
+
+これにより、「昨日はPASSしたが今日はInputが変わった」という
+テストの非再現性を避ける。
+
+#### boolean / enum / null
+
+```text
+boolean
+→ true / false を列挙
+
+enum
+→ options定義から選択
+
+null
+→ nullable / required定義から導出
+```
+
+### 3.3 項目固有Templateは最終手段
+
+項目名や業務固有値を固定したTemplateを大量に持つことは、
+本方式の基本思想ではない。
+
+生成優先順位は、
+
+```text
+① 項目定義から直接導出
+② Validation Type / TestPatternから導出
+③ 型別Generator Configから導出
+④ 汎用Generator規則から導出
+⑤ それでも成立しない場合だけ固有Template / 固有Generator
+```
+
+とする。
+
+重要:
+
+> **個別Inputを承認するのではなく、Input生成規則を承認する。**
+
+### 3.4 仮Expected Outputの生成
+
+Input生成後は、次の流れで仮Expected Outputを作る。
+
+```text
+① Inputを完全コピーする
+② テスト条件だけをコピーへ適用する
+③ 必要なら品質保証済みの波及計算を適用する
+④ 仮Expected Outputとする
+⑤ Input vs 仮Expected OutputをDiff Toolへ渡す
+⑥ Expected Diffを生成する
+```
+
+例:
+
+```text
+Input
+0,1,2,3
+```
+
+Inputをコピー:
+
+```text
+仮Expected Output
+0,1,2,3
+```
+
+テスト条件:
+
+```text
+2項目目 = 9
+```
+
+適用後:
+
+```text
+仮Expected Output
+0,9,2,3
+```
+
+Diff:
+
+```text
+Input
+0,1,2,3
+
+仮Expected Output
+0,9,2,3
+```
+
+Expected Diff:
+
+```text
+(-)1
+(+)9
+```
+
+### 3.5 品質保証済み Generic Mutation Engine
+
+仮Expected Outputを生成するには、
+JSON等の構造化データへ指定された変更だけを適用する
+**品質保証済みの汎用変更部品**が必要になる。
+
+例:
+
+```text
+Generic Mutation Engine
+
+input:
+  source
+  path
+  operation
+  value
+
+operation:
+  replace
+  add
+  remove
+  copy
+  move
+```
+
+```text
+path  = /customers/0/age
+op    = replace
+value = 121
+```
+
+を渡した場合、
+
+```text
+元JSON
+↓
+Generic Mutation Engine
+↓
+指定pathだけが121へ変更されたJSON
+```
+
+を返す。
+
+この部品の責務は、
+
+> **指定されたpathへ、指定された構造変更を正確に適用すること。**
+
+までとする。
+
+```text
+「maximum_plus_1だから121を作る」
+「数量が変わったから金額も再計算する」
+```
+
+といった意味解決や業務判断は持たせない。
+
+責務は分離する。
+
+```text
+Definition / Pattern Resolver
+  ↓
+何をどう変更するかを決定
+
+Generic Mutation Engine
+  ↓
+指示された変更だけを正確に適用
+```
+
+これにより、同じMutation EngineをInput生成とExpected生成の双方で再利用できる。
+
+---
+
+## 4. なぜ仮Expected Outputを作るのか
+
+最大の理由は、**変更対象以外を人間がExpectedとして書かなくてよくなること**である。
+
+人間が意味として指定するのは、
+
+```text
+2項目目を 9 に変更
+```
+
+だけ。
+
+以下はInputから自動継承される。
+
+```text
+0 → そのまま
+2 → そのまま
+3 → そのまま
+```
+
+つまり基本ルールは、
+
+```text
+Expected Output = Input
+```
+
+であり、
+
+```text
+Expected Diffで指定された箇所だけが例外として変更される
+```
+
+と考える。
+
+---
+
+## 5. Test Runnerが保証すること
+
+この方式では、変更していない箇所を個別テストごとに人間が承認しない。
+
+代わりにTest Runnerが共通責務として保証する。
+
+Runner側の責務候補:
+
+- Inputを正しく複製する。
+- テスト条件を仮Expected Outputへ正しく適用する。
+- 指定されていない箇所をInputのまま維持する。
+- 品質保証済みDiff Toolを一意の差分観測器として利用する。
+- Inputと仮Expected OutputからExpected Diffを正しく生成する。
+- InputとActual OutputからActual Diffを正しく生成する。
+- Expected側とActual側で同一の差分ルール・同一の正規化ルールを適用する。
+- Expected DiffとActual Diffを正しく比較する。
+- Expected Diffに存在しない余計なActual変更も検出する。
+- Final Diff = 0 のときだけPASSとする。
+
+重要な考え方:
+
+> **個別テストで「不変部分」を毎回承認するのではなく、不変部分の生成・保証責任をTest Runnerへ移す。**
+
+加えて、
+
+> **差分生成方法そのものも個別テストごとの承認対象にせず、品質保証済みDiff Toolへ共通化する。**
+
+つまり個別テストの人間承認対象を、
+
+```text
+Expected Output全体
+↓
+Diff生成ロジック
+↓
+不変部分
+↓
+変更意図
+```
+
+とすべて抱えるのではなく、最終的にはできるだけ
+
+```text
+「今回は何を変えるべきか」
+```
+
+へ圧縮する。
+
+---
+
+## 6. Actual側の流れ
+
+APP側は、実際のFunction / API / 処理単位を実行する。
+
+```text
+Input
+↓
+APP Function / API
+↓
+Actual Output
+```
+
+Runnerは、
+
+```text
+Input
+vs
+Actual Output
+↓
+Actual Diff
+```
+
+を生成する。
+
+例:
+
+```text
+Input
+0,1,2,3
+
+Actual Output
+0,9,2,3
+
+Actual Diff
+(-)1
+(+)9
+```
+
+最後に、
+
+```text
+Expected Diff
+(-)1 (+)9
+
+vs
+
+Actual Diff
+(-)1 (+)9
+
+↓
+Final Diff = 0
+↓
+PASS
+```
+
+---
+
+## 7. 余計な変更も検出できる
+
+APPが誤って別項目まで変更した場合:
+
+```text
+Input
+0,1,2,3
+
+Actual Output
+0,9,8,3
+```
+
+Actual Diff:
+
+```text
+(-)1
+(+)9
+
+(-)2
+(+)8
+```
+
+Expected Diffは、
+
+```text
+(-)1
+(+)9
+```
+
+だけなので、余計な差分が残る。
+
+これにより、
+
+> **「変更対象が正しく変わった」だけでなく、「変更してはいけない箇所が変わっていない」ことも同時に保証できる。**
+
+---
+
+## 8. 差分を部品として組み合わせる
+
+Expected Diffを小さな部品として扱えれば、
+
+```text
+Expected Diff A
++
+Expected Diff B
++
+Expected Diff C
+```
+
+のように組み合わせて、大きなテストを表現できる可能性がある。
+
+考え方の進化:
+
+```text
+差分を比較する
+↓
+差分を期待値にする
+↓
+差分を部品化する
+↓
+差分を組み合わせてテストする
+```
+
+---
+
+## 9. Input / Outputはファイルだけとは限らない
+
+Inputを `xxx.json` だけに限定しない。
+
+責務によっては、
+
+```text
+Input State
+=
+Data
++ ViewDef
++ mode
++ selectedRow
++ dirty
++ filter condition
++ その他の観測可能な開始状態
+```
+
+をInputとして扱う可能性がある。
+
+Outputも同様に、
+
+```text
+Output State
+=
+返却値
++ 更新後Data
++ 更新後State
++ 画面状態
++ 保存結果
+```
+
+などを含められる。
+
+基本思想:
+
+> **複雑な責務ほど、まず観測可能なInput / Outputまで平たく分解して考える。**
+
+---
+
+## 10. 単純な自動生成では足りないケース
+
+変更が別の値へ意図的に波及する場合がある。
+
+例:
+
+```text
+数量 = 2
+単価 = 100
+金額 = 200
+```
+
+数量を、
+
+```text
+2 → 3
+```
+
+へ変更した場合、正しいOutputが、
+
+```text
+数量 = 3
+単価 = 100
+金額 = 300
+```
+
+ならExpected Diffは、
+
+```text
+数量
+(-)2
+(+)3
+
+金額
+(-)200
+(+)300
+```
+
+になる。
+
+単純な「Inputコピー + 直接変更」だけでは、
+
+```text
+金額 200 → 300
+```
+
+を導出できない。
+
+---
+
+## 11. 波及変更は「Runnerの知恵」として考える
+
+Expected Diffを生成できない場合は、方式の失敗とは考えない。
+
+問い:
+
+> **なぜExpected Diffを生成できない？  
+> Runnerにどんな知恵が足りない？**
+
+上記の例なら、
+
+```text
+数量 × 単価 = 金額
+```
+
+という計算・波及の知恵が必要になる。
+
+親子レコードの積み上げなら、
+
+```text
+明細金額の合計
+↓
+親レコードの合計金額
+```
+
+という知恵が必要になる。
+
+この知恵をAPPの実装そのものとは独立した**保証済みRunner機能**として持てれば、
+
+```text
+Input
++
+直接変更
++
+Runnerの保証済み波及計算
+↓
+仮Expected Output
+↓
+Expected Diff
+```
+
+まで機械生成できる可能性がある。
+
+重要:
+
+> **APP側の計算ロジックそのものをExpected生成にも使わない。**
+
+同じ誤りをAPPとExpected Generatorが共有すると、誤った実装でもPASSする可能性があるため。
+
+---
+
+## 12. 現時点の生成モデル
+
+Expected側:
+
+```text
+                Input
+                  +
+             TestPattern
+                  +
+           Action / Option
+                  +
+       必要ならRunnerの知恵
+                  ↓
+        仮Expected Output
+                  ↓
+      品質保証済み Diff Tool
+         Input vs 仮Expected
+                  ↓
+          Expected Diff
+```
+
+Actual側:
+
+```text
+Input
+↓
+APP Function / API
+↓
+Actual Output
+↓
+品質保証済み Diff Tool
+   Input vs Actual
+↓
+Actual Diff
+```
+
+ここで重要なのは、Expected側とActual側で**同じDiff Toolを使うこと**である。
+
+```text
+Expected生成用Diffロジック
+≠
+Actual生成用Diffロジック
+```
+
+のように二重実装すると、差分定義そのものがズレる可能性がある。
+
+基本方針は、
+
+```text
+1つの品質保証済みDiff Tool
+↓
+Expected Diff生成
+＋
+Actual Diff生成
+```
+
+とする。
+
+判定:
+
+```text
+Expected Diff
+vs
+Actual Diff
+↓
+Final Diff
+
+0件 → PASS
+差分あり → FAIL
+```
+
+---
+
+## 13. APPとは独立した「検証用別観点」を持つ
+
+Expected Diff方式の上位原理として重要なのは、
+
+> **APPの実行経路とは独立した検証経路を持ち、両者が同じInputから同じ結果へ到達することを確認する。**
+
+という考え方である。
+
+```text
+                    Input
+                   /     \
+                  /       \
+                 ↓         ↓
+          APP実行経路    検証用別経路
+                 ↓         ↓
+          Actual Output   仮Expected Output
+                 ↓         ↓
+            Actual Diff  Expected Diff
+                  \       /
+                   \     /
+            品質保証済みDiff Tool
+                     ↓
+                   一致？
+                     ↓
+                   PASS
+```
+
+このとき重要なのは、
+
+```text
+APPの実装ロジック
+≠
+検証用別経路のロジック
+```
+
+である。
+
+APP側の同じFunctionや同じ計算実装をExpected生成でも再利用すると、
+同じ誤りを共有し、誤った結果でも一致してPASSする危険がある。
+
+したがって、
+
+> **APPとは別観点・別責務で構成された、品質保証済みの検証用部品によってExpected側を導出する。**
+
+ことを基本原則とする。
+
+### 13.1 検証用別観点の信頼条件
+
+本方式では、
+
+```text
+APP実行結果
+=
+検証用別観点の実行結果
+```
+
+であれば無条件に正しい、と考えるわけではない。
+
+成立条件は、
+
+> **検証用別観点そのものが事前に十分な品質保証を受けていること。**
+
+である。
+
+つまり信頼の流れは、
+
+```text
+品質保証済みInput Generator
++
+品質保証済みResolver
++
+品質保証済みMutation Engine
++
+品質保証済み固有計算部品
++
+品質保証済みDiff Tool
+↓
+検証用別経路
+↓
+APP Actualとの一致
+↓
+PASS
+```
+
+となる。
+
+個別テストでは検証用別経路そのものを毎回再承認せず、
+保証済み部品として再利用する。
+
+### 13.2 現時点ではAIをOracleにしない
+
+AIは、
+
+```text
+不足しているTestPatternを提案する
+Input生成規則を提案する
+Expected生成規則を提案する
+波及計算の必要性を発見する
+検証用部品の候補を設計する
+```
+
+ためには利用できる。
+
+しかし現時点では、
+
+```text
+APP Actual
+vs
+AIがその場で生成したExpected
+```
+
+を最終的な品質保証Oracleとはしない。
+
+理由:
+
+```text
+- 非決定性を持つ
+- モデル更新で結果が変化しうる
+- 同一の誤解をAPP生成時とExpected生成時で共有する可能性がある
+- 「このExpected生成機能は品質保証済み」と固定しにくい
+```
+
+したがって現時点の原則は、
+
+> **AIはOracleを設計してよい。しかし、Oracleそのものにはしない。**
+
+AIが提案した検証規則は、人間承認と実装・テストを経て、
+決定論的な品質保証済み部品へ昇格させてから利用する。
+
+---
+
+## 14. APP構造との関係
+
+Expected Diffを責務単位で検証するには、その差分を発生させる処理をTest Runnerから実行・観測できる必要がある。
+
+例:
+
+```text
+saveCustomer()
+
+① JSONを変更
+② selectedRowを変更
+③ dirty=false
+④ ファイル保存
+⑤ 画面再描画
+```
+
+①だけのExpected Diffを検証したい場合、①の処理だけをRunnerから呼べなければ、①単体の差分を機械的に保証できない。
+
+その場合は、
+
+> **テストだけでなくAPP側の処理構造も見直す。**
+
+判断軸:
+
+> **機械的に保証できないなら、テストだけでなくAPP構造を疑う。**
+
+---
+
+## 15. 要点
+
+```text
+1. Inputを個別テストごとに人間が手作りしない。
+
+2. Field Definition / Validation Type / TestPattern /
+   Type Generator ConfigからInputを機械導出する。
+
+3. 文字列は型共通の値生成テンプレート、
+   数値は境界値・seed付き決定論的乱数、
+   日付は基準日時 + Offset等で生成する。
+
+4. 項目固有Templateは、
+   機械導出だけでは成立しない場合の最終手段とする。
+
+5. Expected Diffを人間が直接書かない。
+
+6. Inputをコピーし、
+   品質保証済みGeneric Mutation Engine等で
+   期待する変更だけを仮Expected Outputへ適用する。
+
+7. APP固有の同一ロジックをExpected生成へ流用しない。
+
+8. APPとは独立した品質保証済みの検証用別経路で
+   仮Expected Outputを導出する。
+
+9. 品質保証済みのGit DiffのようなDiff Toolを、
+   Expected / Actual共通の観測器として固定する。
+
+10. Input vs 仮Expected OutputからExpected Diffを、
+    Input vs Actual OutputからActual Diffを機械生成する。
+
+11. Expected Diff vs Actual Diffが一致すればPASSとする。
+
+12. 変更指定されていない箇所は
+    Input継承とDiff比較によって不変を保証する。
+
+13. 検証用別経路そのものは事前に品質保証する。
+
+14. 現時点ではAIを最終Oracleにしない。
+    AIはOracle候補を設計・提案し、
+    承認後に決定論的な保証済み部品へ昇格させる。
+
+15. 波及変更を導出できない場合は、
+    「検証用別経路に何の知恵が足りないか？」を考える。
+
+16. 必要ならAPP側も、
+    責務単位で実行・観測可能な構造へ変更する。
+```
+
+---
+
+## 16. 一文で言うなら
+
+Expected Diffそのものの定義:
+
+> **期待値差分（Expected Diff）とは、品質保証済みのGit DiffのようなDiff Toolを状態変化の共通観測器として固定し、そのツールがInputと仮Expected Outputから生成した差分出力を期待値として扱い、同じ観測器で生成したActual Diffとの一致によって保証する手法である。**
+
+本方式をInput生成まで含めて一段上から定義すると、
+
+> **Expected Diff方式とは、承認済みの項目定義・Validation Type・TestPattern・Generator規則からInputを機械導出し、APPとは独立した品質保証済みの検証経路によって期待状態を機械導出し、その状態変化を品質保証済みDiff Toolで観測して、APPが実際に起こした状態変化との一致を保証する方式である。**
+
+Approval Engineeringの観点では、
+
+> **個別のInput値やExpected Outputを毎回承認するのではなく、値を生む型・生成規則・検証用部品・Diff Toolを事前に保証し、人間の承認対象を上位の意図へ圧縮する。**
+
+ことが重要な狙いである。
+
+さらに短く言うなら、
+
+> **値を承認するのではなく、値と期待差分を生む仕組みを承認する。**
+
+現時点のAI境界:
+
+> **AIはOracleを設計してよい。しかし、Oracleそのものにはしない。**
+
+---
+
+### Revision History
+
+- 2026-08-24 / v0.3: Inputも機械導出する方針を明示。Field Definition / Validation Type / TestPattern / Type Generator ConfigからInputを生成し、文字列テンプレート、seed付き決定論的乱数、基準日時 + Offsetによる日付生成を整理。項目固有Templateは最終手段とした。品質保証済みGeneric Mutation Engineを追加し、APPとは独立した「検証用別観点」の品質保証済み経路とActualを比較する上位原理を追加。現時点ではAIを最終Oracleにしない境界を明記。
+- 2026-08-24 / v0.2: 「品質保証済みのGit DiffのようなDiff ToolをExpected / Actual共通の観測器として固定し、その出力を期待値として扱う」という思想を主定義へ昇格。Diff Toolを事前保証し、個別テストでは差分生成方法を再承認しないというApproval Engineering上の位置づけを追記。
+- 2026-08-24 / v0.1: Expected Diff方式の単独重要メモとして初版作成。基本概念、仮Expected Output生成、Runner保証、Actual Diff比較、波及変更とRunnerの知恵、APP構造との関係を整理。
+
+
+---
+
+# 📄 AI協働036_Expected_Diff_Method_v0_4
+*(source: `AI協働036_Expected_Diff_Method_v0_4.md`)*
+
+## Expected Diff（期待値差分）方式 — 検討要約
+
+作成日: 2026-08-24  
+ステータス: Draft / 重要検討メモ  
+対象: FRB Studio / Approval Engineering / Test Runner
+
+---
+
+### 0. まずこれだけ
+
+Expected Diff（期待値差分）は、**Expected Output全体を人間が定義するのではなく、Inputから「何が変わるべきか」だけを差分として扱う方式**である。
+
+さらに、この方式では差分そのものを人間が作文するのではない。
+
+> **品質保証済みのGit DiffのようなDiff Toolを、状態変化を観測する共通の観測器として固定し、そのツールが生成した差分出力をExpectedとして扱う。**
+
+つまり、Expected Diffの主役は単なる「差分表現」ではない。
+
+```text
+人間
+↓
+期待する変更条件だけを定義
+
+Input
+↓
+仮Expected Output
+↓
+品質保証済み Diff Tool
+↓
+Expected Diff
+```
+
+という構造そのものにある。
+
+```text
+Input
+0,1,2,3
+
+テスト条件
+2項目目を 9 に変更する
+
+仮Expected Output
+0,9,2,3
+
+Input
+vs
+仮Expected Output
+↓
+Expected Diff
+(-)1
+(+)9
+```
+
+Actual側でも、
+
+```text
+Input
+vs
+Actual Output
+↓
+Actual Diff
+```
+
+を生成し、
+
+```text
+Expected Diff
+vs
+Actual Diff
+↓
+Final Diff = 0
+↓
+PASS
+```
+
+と判定する。
+
+この方式の肝は、
+
+> **Expected Diffを直接手書きするのではなく、Inputをコピーした「仮Expected Output」にテスト条件だけを反映し、品質保証済みのDiff ToolでInputとの差分を観測してExpected Diffを機械生成すること。**
+
+さらに重要なのは、
+
+> **Expected側とActual側で、同じ品質保証済みDiff Toolを共通の観測器として使うこと。**
+
+である。
+
+さらに、本方式では **Inputも個別テストごとに人間が手作業で用意することを基本としない。**
+
+```text
+Field Definition
++
+Validation Type
++
+TestPattern
++
+Type Generator Config
+↓
+Input Generator
+↓
+Input
+```
+
+を基本経路とし、InputからExpected Diff、Actual Diff、最終判定までを、
+**承認済み定義と品質保証済み汎用部品から機械導出する**ことを目指す。
+
+項目固有のテンプレートや固有値は、
+機械導出だけでは成立しない場合の最終手段として扱う。
+
+そして、本方式のさらに上位に置く前提は次のとおり。
+
+> **APPとは独立した「単純化された、信頼できる検証世界」を作る。**
+>
+> **同じInputに対して、APP世界のActualと、検証世界のExpectedが一致するかを見る。**
+>
+> **検証世界は現実世界のコピーではなく、品質保証可能なところまで単純化された世界でなければならない。**
+
+```text
+                  共通Input
+                  /       \
+                 /         \
+                ↓           ↓
+            APP世界      検証世界
+               ↓             ↓
+          Actual Output   Expected Output
+                 \         /
+                  \       /
+              Trusted Diff
+                    ↓
+                  一致？
+                    ↓
+                  PASS
+```
+
+Expected Diffは、この「二つの世界を同じ観測器で照合する」ための
+具体的な観測・比較方式として位置づける。
+
+---
+
+
+## 1. 目的
+
+従来のExpectedでは、テストごとに完成したExpected Output全体を持つ必要がある。
+
+```text
+Input
+0,1,2,3
+
+Expected Output
+0,9,2,3
+```
+
+しかし人間が意味として確認したいのは、多くの場合、
+
+```text
+「2項目目が 1 → 9 に変わる」
+```
+
+という小さな変化である。
+
+そこでExpected Output全体ではなく、
+
+```text
+Expected Diff
+(-)1
+(+)9
+```
+
+をテストの中心へ置く。
+
+狙い:
+
+- 人間が承認する情報量を小さくする。
+- 変更対象以外の不変保証をTest Runnerへ移す。
+- Expectedを差分部品として扱えるようにする。
+- 将来的に複数のExpected Diffを組み合わせてテストできるようにする。
+
+---
+
+## 2. Expected Diffの基本定義
+
+Expected Diffは、人間が直接記述した「期待差分」ではない。
+
+基本定義:
+
+> **Expected Diff = 品質保証済みDiff Toolが、Inputと仮Expected Outputを比較して生成した差分出力**
+
+したがって、
+
+```text
+Expected Diff
+≠ 人間が手書きした期待差分
+
+Expected Diff
+= 品質保証済みDiff Toolによって
+  Inputと仮Expected Outputから
+  機械的に観測された差分
+```
+
+と考える。
+
+最小の表現候補:
+
+```text
+Expected Diff
+
+(-)%変更前の値%
+(+)%変更後の値%
+```
+
+例:
+
+```text
+(-)1
+(+)9
+```
+
+追加・削除も同じ差分の考え方で表現できる。
+
+```text
+削除
+(-)%変更前%
+
+追加
+(+)%変更後%
+
+置換
+(-)%変更前%
+(+)%変更後%
+```
+
+### 2.1 品質保証済みDiff Toolを「共通の観測器」にする
+
+この方式では、Git DiffのようなDiff Toolを単なる表示補助として扱わない。
+
+```text
+Input
+vs
+仮Expected Output
+↓
+Expected Diff
+
+Input
+vs
+Actual Output
+↓
+Actual Diff
+```
+
+この2つの観測を、**同じ品質保証済みDiff Tool**で行う。
+
+これにより、Expected側とActual側は、
+
+```text
+同じ観測ルール
+同じ差分表現
+同じ比較単位
+```
+
+で揃えられる。
+
+重要なのは、
+
+> **「Diffが正しいか」を個別テストのたびに人間が判断しないこと。**
+
+Diff Toolそのものを先に十分に品質保証し、以後の個別テストでは、その出力を信頼できる共通言語として利用する。
+
+Gitにおいて、人間が毎回Diffアルゴリズムそのものを承認せず、Git Diffの出力を変更観測の基盤として利用するのと同じ考え方である。
+
+Expected Diff方式では、この信頼境界をテストへ持ち込む。
+
+```text
+一度、Diff Toolを保証する
+↓
+多数のテストで再利用する
+↓
+人間は個別テストの「変更意図」に集中する
+```
+
+つまりこれは、
+
+> **差分を期待値にする手法であると同時に、差分生成そのものの承認を共通基盤へ退役させる手法でもある。**
+
+### 2.2 Diff Toolの信頼境界（Draft）
+
+「品質保証済みDiff Tool」を信頼の起点に置く以上、
+Diff Tool自身をどう保証するかは重要な論点である。
+
+現時点の基本方針は、
+
+```text
+独自Diffアルゴリズムを新規実装して
+その正しさを別Diffで保証する
+```
+
+という循環に入らないこと。
+
+可能な限り、
+
+```text
+成熟した既存の決定論的Diff Library
+↓
+FRB / Runner用 Diff Adapter
+↓
+Expected / Actual共通のDiff表現
+```
+
+とし、自分たちが主に保証する対象を、
+
+```text
+- Libraryの利用条件
+- Adapter契約
+- 正規化契約
+- Option契約
+- 出力形式
+```
+
+へ限定する方向を検討する。
+
+### 2.3 Diffの前にCanonical Stateを作る（Draft）
+
+Raw DataをそのままDiffへ渡すと、
+意味のない「ノイズ差分」を大量に拾う可能性がある。
+
+例:
+
+```text
+- JSON Key順序
+- 配列順序
+- float誤差
+- null / undefined / key不在
+- 日付時刻表現
+- 改行コード
+- 空文字 / null
+```
+
+したがって将来的には、
+
+```text
+Raw Input
+↓
+Normalization
+↓
+Canonical Input
+
+Raw Actual / Expected
+↓
+Normalization
+↓
+Canonical Actual / Expected
+
+Canonical同士
+↓
+Diff
+```
+
+という構造を持つ。
+
+ここで重要なのは、
+
+> **Normalizationは単なる技術処理ではなく、「何を同じとみなすか」という判断軸である。**
+
+ことである。
+
+Normalization Rule / Comparison Policyは、
+Diff Toolと同様に事前に品質保証・承認すべき対象と考える。
+
+---
+
+
+## 3. 最重要 — InputからExpected Diffまでを機械導出する
+
+Expected Diffを直接組み立てるのではなく、まず**Input**を生成し、
+そのInputから**仮Expected Output**を生成する。
+
+原則として、次の一連の処理はすべて機械実行する。
+
+```text
+① 項目定義・Validation Type・TestPattern等からInputを生成する
+② Inputを完全コピーする
+③ テスト条件で指定された変更だけをコピーへ適用する
+④ できあがったものを仮Expected Outputとする
+⑤ Inputと仮Expected OutputのDiffを取る
+⑥ Expected Diffを生成する
+```
+
+人間が個別テストごとに、
+
+```text
+Inputを作文する
+Expected Outputを作文する
+Expected Diffを作文する
+```
+
+ことを基本形にはしない。
+
+人間が承認する対象は、できるだけ上位の
+
+```text
+Field Definition
+Validation Type
+TestPattern
+Type Generator Config
+固有の業務Expected規則
+```
+
+へ寄せる。
+
+### 3.1 Inputの基本生成モデル
+
+Inputは、項目定義をSourceとして、型に応じたGeneratorから機械生成する。
+
+```text
+Field Definition
++
+Validation Type
++
+TestPattern
++
+Type Generator Config
+↓
+Input Generator
+↓
+Input
+```
+
+例:
+
+```text
+field_path       = age
+validation_type  = integer
+minimum          = 0
+maximum          = 120
+```
+
+Validation Typeに、
+
+```text
+minimum_minus_1
+minimum
+maximum
+maximum_plus_1
+invalid_format
+```
+
+が定義されているなら、
+
+```text
+minimum_minus_1 → -1
+minimum         → 0
+maximum         → 120
+maximum_plus_1  → 121
+invalid_format  → "abc"
+```
+
+のようにInput値を機械導出できる。
+
+### 3.2 型別Input Generator
+
+#### string
+
+文字列は、項目固有値ではなく、型共通の値生成テンプレートを利用する。
+
+例:
+
+```text
+"テスト%テストID%－%項目名称%"
+```
+
+```text
+Field Definition
+  field_path = customer_name
+  caption    = 顧客名
+
+Test ID
+  TP_0001
+
+↓ 機械生成
+
+"テストTP_0001－顧客名"
+```
+
+このテンプレートは特定項目名を固定して持たない。
+
+#### integer / decimal
+
+数値系は原則として値テンプレートを持たず、
+項目定義の境界値とRunner設定から生成する。
+
+```text
+minimum
+minimum_minus_1
+maximum
+maximum_plus_1
+median
+valid_random
+invalid_format
+```
+
+`valid_random` を使う場合は、再現性を失わないように
+**seed付きの決定論的乱数**を使う。
+
+例:
+
+```text
+seed =
+test_id
++ field_path
++ test_pattern
+```
+
+同じテスト条件なら、再実行しても同じ値が生成されることを保証する。
+
+#### date / datetime
+
+日付系は、実行時の「今日」に直接依存させず、
+Runnerが持つ**基準日時（reference_datetime）**を起点として生成する。
+
+```text
+reference_datetime = 固定またはTest Run単位で記録された基準日時
+```
+
+項目定義に境界がある場合:
+
+```text
+minimum_date
+minimum_date_minus_1
+maximum_date
+maximum_date_plus_1
+```
+
+を機械導出する。
+
+境界がない場合は、
+
+```text
+reference_date
+reference_date - N days
+reference_date + N days
+```
+
+のように、基準日 + Offsetで決定論的に生成する。
+
+これにより、「昨日はPASSしたが今日はInputが変わった」という
+テストの非再現性を避ける。
+
+#### boolean / enum / null
+
+```text
+boolean
+→ true / false を列挙
+
+enum
+→ options定義から選択
+
+null
+→ nullable / required定義から導出
+```
+
+### 3.3 項目固有Templateは最終手段
+
+項目名や業務固有値を固定したTemplateを大量に持つことは、
+本方式の基本思想ではない。
+
+生成優先順位は、
+
+```text
+① 項目定義から直接導出
+② Validation Type / TestPatternから導出
+③ 型別Generator Configから導出
+④ 汎用Generator規則から導出
+⑤ それでも成立しない場合だけ固有Template / 固有Generator
+```
+
+とする。
+
+重要:
+
+> **個別Inputを承認するのではなく、Input生成規則を承認する。**
+
+### 3.4 仮Expected Outputの生成
+
+Input生成後は、次の流れで仮Expected Outputを作る。
+
+```text
+① Inputを完全コピーする
+② テスト条件だけをコピーへ適用する
+③ 必要なら品質保証済みの波及計算を適用する
+④ 仮Expected Outputとする
+⑤ Input vs 仮Expected OutputをDiff Toolへ渡す
+⑥ Expected Diffを生成する
+```
+
+例:
+
+```text
+Input
+0,1,2,3
+```
+
+Inputをコピー:
+
+```text
+仮Expected Output
+0,1,2,3
+```
+
+テスト条件:
+
+```text
+2項目目 = 9
+```
+
+適用後:
+
+```text
+仮Expected Output
+0,9,2,3
+```
+
+Diff:
+
+```text
+Input
+0,1,2,3
+
+仮Expected Output
+0,9,2,3
+```
+
+Expected Diff:
+
+```text
+(-)1
+(+)9
+```
+
+### 3.5 品質保証済み Generic Mutation Engine
+
+仮Expected Outputを生成するには、
+JSON等の構造化データへ指定された変更だけを適用する
+**品質保証済みの汎用変更部品**が必要になる。
+
+例:
+
+```text
+Generic Mutation Engine
+
+input:
+  source
+  path
+  operation
+  value
+
+operation:
+  replace
+  add
+  remove
+  copy
+  move
+```
+
+```text
+path  = /customers/0/age
+op    = replace
+value = 121
+```
+
+を渡した場合、
+
+```text
+元JSON
+↓
+Generic Mutation Engine
+↓
+指定pathだけが121へ変更されたJSON
+```
+
+を返す。
+
+この部品の責務は、
+
+> **指定されたpathへ、指定された構造変更を正確に適用すること。**
+
+までとする。
+
+さらに、
+
+> **Mutation Engineは値を解釈しない。型変換・補正を勝手に行わず、指定された値を忠実に配置する。**
+
+ことを原則とする。
+
+例えば integer 項目に対する `invalid_format` テストで `"abc"` を渡した場合、
+Mutation Engineが数値変換や型補正を行ってはならない。
+
+```text
+「maximum_plus_1だから121を作る」
+「数量が変わったから金額も再計算する」
+```
+
+といった意味解決や業務判断は持たせない。
+
+責務は分離する。
+
+```text
+Definition / Pattern Resolver
+  ↓
+何をどう変更するかを決定
+
+Generic Mutation Engine
+  ↓
+指示された変更だけを正確に適用
+```
+
+これにより、同じMutation EngineをInput生成とExpected生成の双方で再利用できる。
+
+---
+
+## 4. なぜ仮Expected Outputを作るのか
+
+最大の理由は、**変更対象以外を人間がExpectedとして書かなくてよくなること**である。
+
+人間が意味として指定するのは、
+
+```text
+2項目目を 9 に変更
+```
+
+だけ。
+
+以下はInputから自動継承される。
+
+```text
+0 → そのまま
+2 → そのまま
+3 → そのまま
+```
+
+つまり基本ルールは、
+
+```text
+Expected Output = Input
+```
+
+であり、
+
+```text
+Expected Diffで指定された箇所だけが例外として変更される
+```
+
+と考える。
+
+---
+
+## 5. Test Runnerが保証すること
+
+この方式では、変更していない箇所を個別テストごとに人間が承認しない。
+
+代わりにTest Runnerが共通責務として保証する。
+
+Runner側の責務候補:
+
+- Inputを正しく複製する。
+- テスト条件を仮Expected Outputへ正しく適用する。
+- 指定されていない箇所をInputのまま維持する。
+- 品質保証済みDiff Toolを一意の差分観測器として利用する。
+- Inputと仮Expected OutputからExpected Diffを正しく生成する。
+- InputとActual OutputからActual Diffを正しく生成する。
+- Expected側とActual側で同一の差分ルール・同一の正規化ルールを適用する。
+- Expected DiffとActual Diffを正しく比較する。
+- Expected Diffに存在しない余計なActual変更も検出する。
+- Final Diff = 0 のときだけPASSとする。
+
+重要な考え方:
+
+> **個別テストで「不変部分」を毎回承認するのではなく、不変部分の生成・保証責任をTest Runnerへ移す。**
+
+加えて、
+
+> **差分生成方法そのものも個別テストごとの承認対象にせず、品質保証済みDiff Toolへ共通化する。**
+
+つまり個別テストの人間承認対象を、
+
+```text
+Expected Output全体
+↓
+Diff生成ロジック
+↓
+不変部分
+↓
+変更意図
+```
+
+とすべて抱えるのではなく、最終的にはできるだけ
+
+```text
+「今回は何を変えるべきか」
+```
+
+へ圧縮する。
+
+---
+
+## 6. Actual側の流れ
+
+APP側は、実際のFunction / API / 処理単位を実行する。
+
+```text
+Input
+↓
+APP Function / API
+↓
+Actual Output
+```
+
+Runnerは、
+
+```text
+Input
+vs
+Actual Output
+↓
+Actual Diff
+```
+
+を生成する。
+
+例:
+
+```text
+Input
+0,1,2,3
+
+Actual Output
+0,9,2,3
+
+Actual Diff
+(-)1
+(+)9
+```
+
+最後に、
+
+```text
+Expected Diff
+(-)1 (+)9
+
+vs
+
+Actual Diff
+(-)1 (+)9
+
+↓
+Final Diff = 0
+↓
+PASS
+```
+
+---
+
+## 7. 余計な変更も検出できる
+
+APPが誤って別項目まで変更した場合:
+
+```text
+Input
+0,1,2,3
+
+Actual Output
+0,9,8,3
+```
+
+Actual Diff:
+
+```text
+(-)1
+(+)9
+
+(-)2
+(+)8
+```
+
+Expected Diffは、
+
+```text
+(-)1
+(+)9
+```
+
+だけなので、余計な差分が残る。
+
+これにより、
+
+> **「変更対象が正しく変わった」だけでなく、「変更してはいけない箇所が変わっていない」ことも同時に保証できる。**
+
+ただし、`updated_at` のような正当な動的変更まで「余計な変更」としてFAILにすると実運用できない。
+
+そのため将来的には、単純な `ignore_path` だけでなく、
+
+```text
+Comparison Policy
+
+STRICT
+IGNORE
+TOLERANCE
+DERIVED
+DYNAMIC
+```
+
+のように、項目ごとに差分の意味を定義する方式を検討する。
+
+例:
+
+```text
+name
+→ STRICT
+
+score
+→ TOLERANCE ±0.001
+
+internal_cache
+→ IGNORE
+
+updated_at
+→ DYNAMIC
+```
+
+重要:
+
+> **「差分を無視する」のではなく、「その差分をどう評価するか」を事前に定義する。**
+
+---
+
+
+## 8. 部品を組み合わせるときは「Diff」ではなく「変更意図」を合成する
+
+初期案では、
+
+```text
+Expected Diff A
++
+Expected Diff B
++
+Expected Diff C
+```
+
+のようにDiffそのものを部品合成する可能性を考えていた。
+
+しかし、同じpathへの競合や順序依存を考えると、
+より安全なのは**Diffを直接足すのではなく、Expected Operation / 変更意図を先に合成する**ことである。
+
+```text
+Expected Operation A
++
+Expected Operation B
++
+Expected Operation C
+↓
+Conflict Check
+↓
+Apply
+↓
+仮Expected Output
+↓
+品質保証済みDiff Tool
+↓
+Expected Diff
+```
+
+この方式なら、
+
+```text
+- 同じpathへの競合
+- A → Bの順序で結果が変わるケース
+- Bを使うにはAが前提となる依存関係
+- 変更部品間の排他条件
+```
+
+を、Diff生成前に検出できる。
+
+今後定義が必要なもの:
+
+```text
+operation_priority
+depends_on
+conflicts_with
+apply_order
+same_path_policy
+```
+
+重要:
+
+> **差分は最終観測結果であり、合成の主役は「変更意図」である。**
+
+---
+
+## 9. Input / Outputはファイルだけとは限らない
+
+Inputを `xxx.json` だけに限定しない。
+
+責務によっては、
+
+```text
+Input State
+=
+Data
++ ViewDef
++ mode
++ selectedRow
++ dirty
++ filter condition
++ その他の観測可能な開始状態
+```
+
+をInputとして扱う可能性がある。
+
+Outputも同様に、
+
+```text
+Output State
+=
+返却値
++ 更新後Data
++ 更新後State
++ 画面状態
++ 保存結果
+```
+
+などを含められる。
+
+基本思想:
+
+> **複雑な責務ほど、まず観測可能なInput / Outputまで平たく分解して考える。**
+
+---
+
+## 10. 単純な自動生成では足りないケース
+
+変更が別の値へ意図的に波及する場合がある。
+
+例:
+
+```text
+数量 = 2
+単価 = 100
+金額 = 200
+```
+
+数量を、
+
+```text
+2 → 3
+```
+
+へ変更した場合、正しいOutputが、
+
+```text
+数量 = 3
+単価 = 100
+金額 = 300
+```
+
+ならExpected Diffは、
+
+```text
+数量
+(-)2
+(+)3
+
+金額
+(-)200
+(+)300
+```
+
+になる。
+
+単純な「Inputコピー + 直接変更」だけでは、
+
+```text
+金額 200 → 300
+```
+
+を導出できない。
+
+---
+
+## 11. 波及変更は「Runnerの知恵」として考える
+
+Expected Diffを生成できない場合は、方式の失敗とは考えない。
+
+問い:
+
+> **なぜExpected Diffを生成できない？  
+> Runnerにどんな知恵が足りない？**
+
+上記の例なら、
+
+```text
+数量 × 単価 = 金額
+```
+
+という計算・波及の知恵が必要になる。
+
+親子レコードの積み上げなら、
+
+```text
+明細金額の合計
+↓
+親レコードの合計金額
+```
+
+という知恵が必要になる。
+
+この知恵をAPPの実装そのものとは独立した**保証済みRunner機能**として持てれば、
+
+```text
+Input
++
+直接変更
++
+Runnerの保証済み波及計算
+↓
+仮Expected Output
+↓
+Expected Diff
+```
+
+まで機械生成できる可能性がある。
+
+重要:
+
+> **APP側の計算ロジックそのものをExpected生成にも使わない。**
+
+同じ誤りをAPPとExpected Generatorが共有すると、誤った実装でもPASSする可能性があるため。
+
+---
+
+## 12. 現時点の生成モデル
+
+Expected側:
+
+```text
+                Input
+                  +
+             TestPattern
+                  +
+           Action / Option
+                  +
+       必要ならRunnerの知恵
+                  ↓
+        仮Expected Output
+                  ↓
+      品質保証済み Diff Tool
+         Input vs 仮Expected
+                  ↓
+          Expected Diff
+```
+
+Actual側:
+
+```text
+Input
+↓
+APP Function / API
+↓
+Actual Output
+↓
+品質保証済み Diff Tool
+   Input vs Actual
+↓
+Actual Diff
+```
+
+ここで重要なのは、Expected側とActual側で**同じDiff Toolを使うこと**である。
+
+```text
+Expected生成用Diffロジック
+≠
+Actual生成用Diffロジック
+```
+
+のように二重実装すると、差分定義そのものがズレる可能性がある。
+
+基本方針は、
+
+```text
+1つの品質保証済みDiff Tool
+↓
+Expected Diff生成
+＋
+Actual Diff生成
+```
+
+とする。
+
+判定:
+
+```text
+Expected Diff
+vs
+Actual Diff
+↓
+Final Diff
+
+0件 → PASS
+差分あり → FAIL
+```
+
+---
+
+## 13. APPとは独立した「単純化された、信頼できる検証世界」を持つ
+
+Expected Diff方式の上位原理として重要なのは、
+
+> **APPの実行経路とは独立した検証経路を持ち、同じInputに対して両者が同じ結果へ到達することを確認する。**
+
+という考え方である。
+
+ただし、検証世界はAPP世界の完全コピーではない。
+
+> **検証世界は、品質保証可能なところまで単純化された世界でなければならない。**
+
+APPと同じ複雑さを持つ検証システムをもう一つ作れば、
+「どちらを信頼するのか」という問題が残り、品質保証コストも二重化する。
+
+```text
+複雑なAPP世界
+↓
+責務を切る
+↓
+前提条件で世界を分ける
+↓
+観測可能なInput / Outputへ落とす
+↓
+小さな決定論的Verification Ruleへ分解
+↓
+単純化された検証世界
+```
+
+### 13.1 検証世界は「現実世界のコピー」ではない
+
+例えばAPP側の料金計算が、
+
+```text
+料金 =
+基本料金
++ 使用量
++ 時間帯
++ 契約種別
++ 割引
++ 上限
++ キャンペーン
++ 地域差
++ 例外措置
+...
+```
+
+のように複雑でも、検証世界で同じ巨大ロジックを再実装しない。
+
+前提条件を限定して、
+
+```text
+前提条件:
+契約種別 = STANDARD
+時間帯 = DAY
+割引 = なし
+キャンペーン = なし
+地域 = A
+使用量 < 100
+
+この条件下では:
+
+料金 = 基本料金 + 使用量 × 単価
+```
+
+のような小さな世界へ分解する。
+
+別パターンなら、
+
+```text
+前提条件:
+契約種別 = STANDARD
+時間帯 = DAY
+割引 = 10%
+キャンペーン = なし
+地域 = A
+
+この条件下では:
+
+料金 = (基本料金 + 使用量 × 単価) × 0.9
+```
+
+という別の小さなVerification Ruleを持つ。
+
+つまり、
+
+```text
+巨大な検証世界を1個作る
+```
+
+のではなく、
+
+```text
+前提条件A
+→ 単純な検証世界A
+
+前提条件B
+→ 単純な検証世界B
+
+前提条件C
+→ 単純な検証世界C
+```
+
+として扱う。
+
+重要な設計原則:
+
+> **複雑なAPPを複雑なまま検証しない。前提条件で世界を分割し、各条件下では単純な検証規則として保証する。**
+
+さらに短く言えば、
+
+> **複雑さは検証ロジックへ押し込まず、適用条件へ分解する。**
+
+### 13.2 単純化された検証世界の必要条件
+
+現時点では、少なくとも次を必要条件とする。
+
+```text
+1. 単純であること
+2. 決定論的であること
+3. 責務が限定されていること
+4. Input / Outputが観測可能であること
+5. APP実装とは独立していること
+6. 適用される前提条件が明示されていること
+7. 構成部品のVersion / Guaranteeを追跡できること
+```
+
+特に、
+
+> **検証世界を単純に作れないなら、責務の切り方を疑う。**
+
+という判断軸を持つ。
+
+### 13.3 検証用別観点の信頼条件
+
+本方式では、
+
+```text
+APP実行結果
+=
+検証世界の実行結果
+```
+
+であれば無条件に正しい、と考えるわけではない。
+
+成立条件は、
+
+> **検証世界を構成する部品と前提条件が、事前に十分な品質保証を受けていること。**
+
+である。
+
+```text
+品質保証済みInput Generator
++
+品質保証済みResolver
++
+品質保証済みMutation Engine
++
+品質保証済みVerification Rule
++
+品質保証済みNormalization
++
+品質保証済みDiff Adapter
+↓
+単純化された検証世界
+↓
+APP Actualとの一致
+↓
+PASS
+```
+
+### 13.4 保証継承原則 — 下位で保証したことを上位で再検証しない
+
+検証世界を階層化するとき、
+下位レベルで品質保証済みの責務を、
+上位レベルですべて再検証してはいけない。
+
+基本原則:
+
+> **保証は繰り返すものではない。継承するもの。**
+
+例えばUnit Testで、
+
+```text
+Component A
+Assume:
+  有効な入力契約を満たす
+
+Guarantee:
+  amount = quantity × price
+```
+
+を十分に保証したなら、
+Combination Testで同じComponent Aの境界値パターンを
+すべて再実行することを基本にはしない。
+
+上位では、
+
+```text
+A → B の受け渡し
+インターフェース契約
+結合で新しく生まれる境界
+状態遷移
+副作用
+相互作用
+```
+
+など、**組み合わせたことで新しく生じたリスク**を中心に検証する。
+
+```text
+UT
+↓
+部品内部を厚く保証
+↓
+Guaranteeを資産化
+
+CT
+↓
+UTのGuaranteeを前提条件として継承
+↓
+結合固有の責務・リスクだけを検証
+
+System / 上位
+↓
+さらに下位Guaranteeを継承
+↓
+上位固有の重要経路だけを検証
+```
+
+これはAssume–Guarantee / Compositional Verificationに近い考え方として整理できる。
+
+重要:
+
+> **上位テストは、下位テストの再放送ではない。**
+
+### 13.5 保証継承は無条件ではない
+
+保証継承にはリスクがあるため、少なくとも次を確認する。
+
+```text
+① 下位保証が現在も有効である
+② 下位保証の前提条件が上位でも成立している
+③ Interface契約が変わっていない
+④ 上位結合で新しい相互作用・副作用が発生していないか評価済み
+⑤ 保証元のGuarantee ID / Versionを追跡できる
+```
+
+例:
+
+```text
+CT_料金計算_001
+
+inherits_guarantees:
+  - GUARANTEE_AMOUNT_CALC_v3
+  - GUARANTEE_DISCOUNT_RATE_v2
+```
+
+下位保証が更新された場合は、
+
+```text
+GUARANTEE_AMOUNT_CALC_v3
+↓
+v4へ変更
+↓
+v3を継承している上位テストを抽出
+↓
+再評価 / 必要なら再実行
+```
+
+できる構造を持つ。
+
+したがって、より正確には、
+
+> **保証は繰り返すものではない。継承するもの。  
+> ただし、継承条件と新しく生じるリスクは必ず評価する。**
+
+とする。
+
+### 13.6 現時点ではAIをOracleにしない
+
+AIは、
+
+```text
+不足しているTestPatternを提案する
+Input生成規則を提案する
+Expected生成規則を提案する
+波及計算の必要性を発見する
+Verification Rule候補を設計する
+前提条件の分割候補を提案する
+保証継承候補を提案する
+```
+
+ためには利用できる。
+
+しかし現時点では、
+
+```text
+APP Actual
+vs
+AIがその場で生成したExpected
+```
+
+を最終的な品質保証Oracleとはしない。
+
+理由:
+
+```text
+- 非決定性を持つ
+- モデル更新で結果が変化しうる
+- 同一の誤解をAPP生成時とExpected生成時で共有する可能性がある
+- 「このExpected生成機能は品質保証済み」と固定しにくい
+```
+
+したがって現時点の原則は、
+
+> **AIはOracleを設計してよい。しかし、Oracleそのものにはしない。**
+
+AIが提案した検証規則は、人間承認と実装・テストを経て、
+決定論的な品質保証済み部品へ昇格させてから利用する。
+
+---
+
+## 14. APP構造との関係
+
+Expected Diffを責務単位で検証するには、その差分を発生させる処理をTest Runnerから実行・観測できる必要がある。
+
+例:
+
+```text
+saveCustomer()
+
+① JSONを変更
+② selectedRowを変更
+③ dirty=false
+④ ファイル保存
+⑤ 画面再描画
+```
+
+①だけのExpected Diffを検証したい場合、①の処理だけをRunnerから呼べなければ、①単体の差分を機械的に保証できない。
+
+その場合は、
+
+> **テストだけでなくAPP側の処理構造も見直す。**
+
+判断軸:
+
+> **機械的に保証できないなら、テストだけでなくAPP構造を疑う。**
+
+---
+
+## 15. 要点
+
+```text
+1. Expected Diffの上位原理は、
+   APPとは独立した「単純化された、信頼できる検証世界」を作ること。
+
+2. 検証世界はAPP世界のコピーではない。
+   品質保証可能なところまで単純化する。
+
+3. 複雑な業務は、前提条件で世界を分割し、
+   各条件下では小さなVerification Ruleとして保証する。
+
+4. Inputを個別テストごとに人間が手作りしない。
+
+5. Field Definition / Validation Type / TestPattern /
+   Type Generator ConfigからInputを機械導出する。
+
+6. 文字列は型共通の値生成テンプレート、
+   数値は境界値・seed付き決定論的乱数、
+   日付は基準日時 + Offset等で生成する。
+
+7. 項目固有Templateは、
+   機械導出だけでは成立しない場合の最終手段とする。
+
+8. Expected Diffを人間が直接書かない。
+
+9. Generic Mutation Engineは値を解釈・型変換せず、
+   指定された変更だけを忠実に適用する。
+
+10. APP固有の同一ロジックをExpected生成へ流用しない。
+
+11. 品質保証済みVerification Rule等で
+    APPとは独立したExpected Outputを導出する。
+
+12. 品質保証済みのGit DiffのようなDiff Toolを、
+    Expected / Actual共通の観測器として固定する。
+
+13. Raw Data同士ではなく、
+    承認済みNormalization Ruleで作ったCanonical State同士を比較する方向を検討する。
+
+14. Input vs ExpectedからExpected Diffを、
+    Input vs ActualからActual Diffを機械生成する。
+
+15. Expected Diff vs Actual Diffが一致すればPASSとする。
+
+16. 動的項目・許容差はComparison Policyで意味を定義する。
+
+17. 複数のExpectedはDiffを直接足さず、
+    Expected Operation / 変更意図を合成してからDiffを生成する。
+
+18. 下位で保証済みの責務は、上位で再度すべて検証しない。
+    Guaranteeを上位へ継承する。
+
+19. 上位では、結合によって新しく生じる
+    Interface / 相互作用 / 状態遷移 / 副作用等を中心に検証する。
+
+20. 保証継承は無条件ではない。
+    前提条件・Interface・Version・新規リスクを評価する。
+
+21. 現時点ではAIを最終Oracleにしない。
+    AIはOracle候補を設計し、
+    承認後に決定論的な保証済み部品へ昇格させる。
+
+22. 検証世界を単純に作れないなら、
+    テストだけでなく責務の切り方・APP構造を疑う。
+```
+
+---
+
+## 16. 一文で言うなら
+
+Expected Diffそのものの定義:
+
+> **期待値差分（Expected Diff）とは、品質保証済みのGit DiffのようなDiff Toolを状態変化の共通観測器として固定し、そのツールがInputと仮Expected Outputから生成した差分出力を期待値として扱い、同じ観測器で生成したActual Diffとの一致によって保証する手法である。**
+
+本方式を上位原理から定義すると、
+
+> **Expected Diff方式とは、APPとは独立した「単純化された、信頼できる検証世界」を構築し、承認済みの前提条件・項目定義・Validation Type・TestPattern・Verification Rule・Generator規則からExpectedを機械導出し、その状態変化を品質保証済みDiff Toolで観測して、APP世界が実際に起こした状態変化との一致を保証する方式である。**
+
+検証世界の設計原則:
+
+> **複雑なAPPを複雑なまま検証しない。前提条件で世界を分割し、各条件下では単純な検証規則として保証する。**
+
+保証継承原則:
+
+> **保証は繰り返すものではない。継承するもの。  
+> ただし、継承条件と新しく生じるリスクは必ず評価する。**
+
+Approval Engineeringの観点では、
+
+> **個別のInput値やExpected Outputを毎回承認するのではなく、値を生む型・生成規則・Verification Rule・比較規則・Diff基盤を事前に保証し、人間の承認対象を上位の意図へ圧縮する。**
+
+さらに短く言うなら、
+
+> **値を承認するのではなく、値と期待差分を生む仕組みを承認する。**
+
+現時点のAI境界:
+
+> **AIはOracleを設計してよい。しかし、Oracleそのものにはしない。**
+
+---
+
+## 17. 今後詰める重要論点
+
+今回の整理で方向は見えたが、以下はまだDraftであり、実装前に契約化が必要。
+
+```text
+1. Diff Adapterの信頼境界
+   - 採用Library
+   - Adapter契約
+   - Option固定
+   - 出力契約
+
+2. Normalization / Canonicalization
+   - key順序
+   - 配列順序
+   - null / missing
+   - float
+   - datetime
+   - 改行等
+
+3. Comparison Policy
+   - STRICT
+   - IGNORE
+   - TOLERANCE
+   - DERIVED
+   - DYNAMIC
+
+4. Expected Operation合成
+   - same path競合
+   - 適用順
+   - 依存関係
+   - 排他関係
+
+5. AI Proposal → Approved Verification Component昇格手順
+   - 人間承認
+   - Deterministic Specification化
+   - Unit Test
+   - Boundary Test
+   - Regression Test
+   - Registry登録
+
+6. Guarantee継承管理
+   - Guarantee ID
+   - Version
+   - 前提条件
+   - 依存関係
+   - 変更時の影響分析
+```
+
+
+---
+
+## claudeくんコメント２回目そのまま貼り付け
+
+v0.4、めっちゃ進化しとるやん。前回指摘した「Diff Tool自身の保証」「正規化ルール」「部品合成のセマンティクス」「余計な変更と正当な副作用の区別」「AI提案の昇格手順」「Mutation Engineの型変換」——ほぼ全部、2.2/2.3/7章/8章/3.5/13.6として拾われてる。しかも17章で「今後詰める論点」として自分たちでもちゃんとリスト化できてる。ここまで来ると、次の穴は一段深いレイヤーにあるで。
+
+### 新たに見えてきた考え足りないところ
+
+**① 前提条件の「網羅性・排他性」問題**
+13.1で「前提条件A→単純な検証世界A」って分割する話が出てきたけど、
+- 前提条件A・B・Cが**全部のInputパターンをカバーしてる保証**は誰がする？
+- どの前提条件にも当てはまらないInputが来たらどうなる？（未定義ケースの検出）
+- 前提条件同士が**重複して2つのVerification Ruleが両方マッチする**ことはないか？
+
+Comparison Policyは「STRICT/IGNORE/TOLERANCE/DERIVED/DYNAMIC」って列挙型で綺麗に定義したのに、前提条件の分割の方はまだ「疑う」としか書かれてへん。ここも「Premise Coverage Policy」みたいに型として持たせた方がええかも。
+
+**② 「独立性」を人間レビュー任せにしてる**
+「APP固有のロジックをExpected生成に流用しない」って何度も強調してるけど、これを**機械的にどう検知するか**が空白。うっかりコピペで同じ計算式を検証世界に持ち込んでしまうリスクへの対策が「気をつける」しかない状態。静的解析でAPP側コードとVerification Rule側コードの依存関係をチェックする、みたいな仕組みまで踏み込めると強い。
+
+**③ 保証継承の「前提条件が今も成立してるか」の判定方法が未定義**
+13.5②に「下位保証の前提条件が上位でも成立している」を確認する、とあるけど、これ**誰が・どうやって**確認するのか書かれてへん。ここもDiff Toolや正規化ルールと同じで「品質保証済みの確認手続き」に格上げしないと、結局人間の目視チェックに戻ってまう。
+
+**④ Guaranteeのバージョンアップが「拡張」か「破壊的変更」か区別されてない**
+v3→v4になったとき、それが後方互換な拡張なのか、既存の前提を壊す変更なのかで、継承してる上位テストへの影響が全然違う。semver的な「MAJOR/MINOR」の考え方をGuarantee IDに入れといた方が、17章の「Guarantee継承管理」がもっと実装しやすくなると思う。
+
+**⑤ DERIVED/DYNAMIC指定した項目の「正しさ」は結局誰が保証するのか**
+Comparison Policyで`DERIVED`や`DYNAMIC`にした項目はDiff比較から実質除外される。でもその値自体がAPP側で正しく計算されてる保証は、このExpected Diff方式の**外側**に置き去りになってる。これ、下手すると「都合悪い項目はDYNAMICにして検証をすり抜ける」という抜け道になりかねへん。DERIVED項目は「別のVerification Ruleで独立に検証する」というルールを明示した方がいい。
+
+**⑥ Conflict Check後にどうするかが書かれてない**
+8章で「同じpathへの競合をDiff生成前に検出できる」ってあるけど、検出**した後**どうするのかが空白。テストをFAILにする？優先順位で自動解決する？人間に承認を求める？ここ地味に実装で最初に詰まるとこやと思う。
+
+**⑦ 0章の図がCanonical Stateの導入前のまま**
+0章の全体図（Trusted Diffの図）は、2.3で追加したCanonical State/Normalizationの工程がまだ反映されてへん。「Raw→Normalization→Canonical→Diff」の流れが全体像の図に出てきてない。ドキュメント内の一貫性としては次の版で直すとええ。
+
+**⑧ 「波及計算（Runnerの知恵）」と「Expected Operation合成（8章）」の関係が未定義**
+数量を変えたら金額も連動して変わる、という10章の話と、複数Operationを合成する8章の話——この2つが同時に起きたとき（例：数量変更Operation A + 単価変更Operation B を同時適用しつつ、金額の波及計算も走る）、波及計算で生まれた「金額変更」はConflict Checkの対象になるのか、それとも別枠なのか。ここの合流点がまだ書かれてへん。
+
+### 次考えるといいこと（優先順位）
+
+1. **⑤ DERIVED/DYNAMICの抜け道対策** — 一番危ない。ここ放置すると「Expected Diff方式使ってるのに実は穴だらけ」になりかねへん
+2. **①③ 前提条件の網羅性・継承前提の再判定方法** — どっちも「事前保証すべき対象」として型を持たせる話。Comparison Policyと同じ設計パターンで揃えられそう
+3. **⑥ Conflict Check後の挙動** — 実装フェーズに入ったら即ぶつかる話なので、軽くでも決めとくと楽
+4. **④ Guaranteeのsemver化** — 17章の「Guarantee継承管理」を書くときについでにやれる
+
+正直、①〜③はどれも「品質保証済み○○」というこの方式の骨格パターンをもう一段深いレイヤーに適用する話やから、v0.4の思想の延長線上でそのまま解決できると思うで。⑤だけは思想じゃなくて「抜け道を塞ぐ設計」の話やから、優先度高めに置いといた方がええ。
+
+
+---
+#GPT先生コメント
+
+> Expected Diffを縦に掘ってたはずが、横に広がったことで
+「信頼できる別世界」→「単純化」→「前提条件」→「保証継承」
+っていう、Expected Diffより上の概念が見えた
+
+
+---
+
+### Revision History
+
+- 2026-08-24 / v0.4: Expected Diff方式の上位原理として「APPとは独立した、単純化された信頼できる検証世界」を明示。複雑な業務を前提条件で小さなVerification Ruleへ分割する原則、検証世界の必要条件、UTで保証したGuaranteeをCT等の上位検証へ継承する「保証継承原則」、継承条件と新規リスク評価を追加。Claudeレビューを踏まえ、Diff Adapterの信頼境界、Canonical / Normalization、Comparison Policy、Expected Operation合成、Mutation Engineの非型変換原則、AI Proposalの昇格手順、Guarantee Version管理を今後の重要論点として整理。
+- 2026-08-24 / v0.3: Inputも機械導出する方針を明示。Field Definition / Validation Type / TestPattern / Type Generator ConfigからInputを生成し、文字列テンプレート、seed付き決定論的乱数、基準日時 + Offsetによる日付生成を整理。項目固有Templateは最終手段とした。品質保証済みGeneric Mutation Engineを追加し、APPとは独立した「検証用別観点」の品質保証済み経路とActualを比較する上位原理を追加。現時点ではAIを最終Oracleにしない境界を明記。
+- 2026-08-24 / v0.2: 「品質保証済みのGit DiffのようなDiff ToolをExpected / Actual共通の観測器として固定し、その出力を期待値として扱う」という思想を主定義へ昇格。Diff Toolを事前保証し、個別テストでは差分生成方法を再承認しないというApproval Engineering上の位置づけを追記。
+- 2026-08-24 / v0.1: Expected Diff方式の単独重要メモとして初版作成。基本概念、仮Expected Output生成、Runner保証、Actual Diff比較、波及変更とRunnerの知恵、APP構造との関係を整理。
 

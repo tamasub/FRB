@@ -45,6 +45,17 @@
     fixedColorMax: 8000,
   };
 
+  const BridgeMetrics = window.FRBBridgeMetrics;
+
+  function getBridgeDerived(side) {
+    return BridgeMetrics ? BridgeMetrics.deriveSeries(side?.tsBuf || []) : [];
+  }
+
+  function getBridgeLegacyScore(frame) {
+    if (BridgeMetrics) return BridgeMetrics.getLegacyScoreFromFrame(frame);
+    return Number(frame?.bridgeLegacyScore ?? frame?.stairError) || 0;
+  }
+
   // Compare view layout baseline.
   // Keep every plot area's left and right edge identical across all five views.
   // Values are CSS pixels; px() converts them to the actual canvas pixel size.
@@ -226,6 +237,134 @@
     }
   }
 
+  function formatCompactNumber(v) {
+    const n = Number(v) || 0;
+    if (Math.abs(n) >= 1000000) return `${Math.round(n / 1000000)}M`;
+    if (Math.abs(n) >= 1000) return `${Math.round(n / 1000)}k`;
+    return `${Math.round(n)}`;
+  }
+
+  function drawSweepLegend(ctx, chart, defs) {
+    ctx.font = `${10 * (window.devicePixelRatio || 1)}px sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    let x = chart.left + px(8);
+    const y = chart.top + px(4);
+    for (const [color, label] of defs) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y + px(4), px(12), px(3));
+      ctx.fillStyle = '#333';
+      ctx.fillText(label, x + px(16), y);
+      x += ctx.measureText(label).width + px(34);
+    }
+  }
+
+  function drawSweepHz(canvas, side) {
+    resizeCanvas(canvas);
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    clearChart(ctx, W, H);
+    const chart = setupAxes(ctx, W, H, { ml: PLOT_LEFT_CSS, mr: PLOT_RIGHT_CSS, mt: 16, mb: 24 });
+    const series = side.tsBuf || [];
+    if (series.length < 2) return drawNoData(ctx, 'no sweep trace Hz');
+
+    const hasSweep = series.some(p =>
+      (Number(p.inputHz) || 0) > 0 ||
+      (Number(p.peakAHz) || 0) > 0 ||
+      (Number(p.melodyHz) || 0) > 0 ||
+      (Number(p.melodyCandidateHz) || 0) > 0
+    );
+    if (!hasSweep) return drawNoData(ctx, 'sweep trace fields unavailable');
+
+    const { start, end } = getTimeBounds(series);
+    const xMap = t => chart.left + ((t - start) / (end - start)) * chart.width;
+    const hzMax = 300;
+    const yMap = hz => chart.bottom - Math.max(0, Math.min(hzMax, Number(hz) || 0)) / hzMax * chart.height;
+
+    drawGrid(ctx, chart, [0,1,2,3,4,5,6], i => String(Math.round(hzMax - hzMax * i / 6)));
+
+    function trace(key, color, width = 2, dashed = false) {
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width * (window.devicePixelRatio || 1);
+      ctx.setLineDash(dashed ? [px(6), px(4)] : []);
+      ctx.beginPath();
+      let started = false;
+      for (const p of series) {
+        const v = Number(p[key]) || 0;
+        if (v <= 0) continue;
+        const x = xMap(Number(p.t) || 0);
+        const y = yMap(v);
+        if (!started) { ctx.moveTo(x, y); started = true; }
+        else ctx.lineTo(x, y);
+      }
+      if (started) ctx.stroke();
+      ctx.restore();
+    }
+
+    trace('inputHz', '#777777', 1.8, true);
+    trace('peakAHz', '#1e88e5', 1.8, false);
+    trace('melodyHz', '#fbc02d', 2.1, false);
+    trace('melodyCandidateHz', '#26c6da', 1.6, true);
+
+    drawSweepLegend(ctx, chart, [
+      ['#777777', 'Input Hz'],
+      ['#1e88e5', 'PeakA Hz'],
+      ['#fbc02d', 'Melody Hz'],
+      ['#26c6da', 'Energy Candidate Hz'],
+    ]);
+    drawFooter(ctx, chart, H, 'Sweep Trace Hz / Y 0-300Hz');
+  }
+
+  function getSharedSweepEnergyMax() {
+    let rawMax = 0;
+    for (const side of [state.left, state.right]) {
+      for (const p of side.tsBuf || []) {
+        rawMax = Math.max(
+          rawMax,
+          Number(p.peakAEnergy) || 0,
+          Number(p.melodyAmp) || 0,
+          Number(p.melodyCandidateAmp) || 0
+        );
+      }
+    }
+    return Math.max(1, niceAxisMax(rawMax * 1.02));
+  }
+
+  function drawSweepEnergy(canvas, side) {
+    resizeCanvas(canvas);
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    clearChart(ctx, W, H);
+    const chart = setupAxes(ctx, W, H, { ml: PLOT_LEFT_CSS, mr: PLOT_RIGHT_CSS, mt: 16, mb: 24 });
+    const series = side.tsBuf || [];
+    if (series.length < 2) return drawNoData(ctx, 'no sweep trace energy');
+
+    const hasEnergy = series.some(p =>
+      (Number(p.peakAEnergy) || 0) > 0 ||
+      (Number(p.melodyAmp) || 0) > 0 ||
+      (Number(p.melodyCandidateAmp) || 0) > 0
+    );
+    if (!hasEnergy) return drawNoData(ctx, 'sweep energy fields unavailable');
+
+    const { start, end } = getTimeBounds(series);
+    const xMap = t => chart.left + ((t - start) / (end - start)) * chart.width;
+    const vmax = getSharedSweepEnergyMax();
+    const yMap = v => chart.bottom - Math.max(0, Math.min(vmax, Number(v) || 0)) / vmax * chart.height;
+    drawGrid(ctx, chart, [0,1,2,3,4], i => `${Math.round(100 - 100 * i / 4)}%`);
+
+    drawLine(ctx, series, p => Number(p.peakAEnergy) || 0, xMap, yMap, '#8e24aa');
+    drawLine(ctx, series, p => Number(p.melodyAmp) || 0, xMap, yMap, '#43a047');
+    drawLine(ctx, series, p => Number(p.melodyCandidateAmp) || 0, xMap, yMap, '#ff9800');
+
+    drawSweepLegend(ctx, chart, [
+      ['#8e24aa', 'PeakA Energy'],
+      ['#43a047', 'Melody Amp'],
+      ['#ff9800', 'Melody Candidate Amp'],
+    ]);
+    drawFooter(ctx, chart, H, `Sweep Trace Energy / Shared Auto Max ${formatCompactNumber(vmax)}`);
+  }
+
   function drawBandTimeline(canvas, side) {
     resizeCanvas(canvas);
     const ctx = canvas.getContext('2d');
@@ -274,6 +413,42 @@
     drawFooter(ctx, chart, H, `Band Timeline Investigate / ${state.bandScale === 'auto' ? 'Auto shared' : 'Fixed ' + Math.round(globalMax)}`);
   }
 
+  // Flux / Triangle Motion are comparison charts.
+  // Decide one shared Y-axis maximum from BOTH loaded logs so that the
+  // left/right heights mean the same value.  Add a little headroom and
+  // round upward to a human-friendly scale (e.g. 0.43 -> 0.50,
+  // 0.279 -> 0.30).
+  function niceAxisMax(value) {
+    const v = Number(value) || 0;
+    if (v <= 0) return 1;
+    const exponent = Math.floor(Math.log10(v));
+    const base = Math.pow(10, exponent);
+    const normalized = v / base;
+    const steps = [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 7.5, 10];
+    const step = steps.find(x => normalized <= x + 1e-12) || 10;
+    return step * base;
+  }
+
+  function getSharedFluxMax() {
+    let rawMax = 0;
+    for (const side of [state.left, state.right]) {
+      for (const p of side.tsBuf || []) {
+        rawMax = Math.max(rawMax, Number(p.fluxA) || 0, Number(p.fluxM) || 0);
+      }
+    }
+    // Keep the old small-signal floor, but use one shared maximum when data exists.
+    return Math.max(0.12, niceAxisMax(rawMax * 1.05));
+  }
+
+  function getSharedTriangleMax() {
+    let rawMax = 0;
+    for (const side of [state.left, state.right]) {
+      for (const p of side.tsBuf || []) rawMax = Math.max(rawMax, Number(p.tingleMotion) || 0);
+    }
+    if (rawMax <= 0) return 0.10;
+    return niceAxisMax(rawMax * 1.05);
+  }
+
   function drawFlux(canvas, side) {
     resizeCanvas(canvas);
     const ctx = canvas.getContext('2d');
@@ -284,9 +459,7 @@
     if (!series || series.length < 2) return drawNoData(ctx, 'no flux');
     const { start, end } = getTimeBounds(series);
     const xMap = (t) => chart.left + ((t - start) / (end - start)) * chart.width;
-    let vmax = 0.12;
-    for (const p of series) vmax = Math.max(vmax, Number(p.fluxA) || 0, Number(p.fluxM) || 0);
-    vmax *= 1.15;
+    const vmax = getSharedFluxMax();
     const yMap = (v) => chart.bottom - Math.max(0, Math.min(vmax, v || 0)) / vmax * chart.height;
     drawGrid(ctx, chart, [0,1,2,3,4], i => (vmax - vmax * i / 4).toFixed(2));
     drawLine(ctx, series, p => Number(p.fluxA) || 0, xMap, yMap, '#8e24aa');
@@ -296,7 +469,7 @@
     const last = series[series.length - 1] || {};
     ctx.fillStyle = '#8e24aa'; ctx.fillText(`A:${(Number(last.fluxA) || 0).toFixed(3)}`, chart.left + 8, chart.top + 6);
     ctx.fillStyle = '#fb8c00'; ctx.fillText(`M:${(Number(last.fluxM) || 0).toFixed(3)}`, chart.left + 90 * (window.devicePixelRatio || 1), chart.top + 6);
-    drawFooter(ctx, chart, H, 'Flux (A/M)');
+    drawFooter(ctx, chart, H, `Flux (A/M) / Shared Y Max ${vmax.toFixed(2)}`);
   }
 
   function drawTriangle(canvas, side) {
@@ -309,13 +482,11 @@
     if (!series || series.length < 2) return drawNoData(ctx, 'no triangle motion');
     const { start, end } = getTimeBounds(series);
     const xMap = (t) => chart.left + ((t - start) / (end - start)) * chart.width;
-    let vmax = 1e-9;
-    for (const p of series) vmax = Math.max(vmax, Number(p.tingleMotion) || 0);
-    vmax *= 1.10;
+    const vmax = getSharedTriangleMax();
     const yMap = (v) => chart.bottom - Math.max(0, Math.min(vmax, v || 0)) / vmax * chart.height;
     drawGrid(ctx, chart, [0,1,2,3,4], i => (vmax - vmax * i / 4).toFixed(3));
     drawLine(ctx, series, p => Number(p.tingleMotion) || 0, xMap, yMap, '#8e24aa');
-    drawFooter(ctx, chart, H, 'Triangle Motion / Tingle Motion');
+    drawFooter(ctx, chart, H, `Triangle Motion / Tingle Motion / Shared Y Max ${vmax.toFixed(3)}`);
   }
 
   function drawBridge(canvas, side) {
@@ -330,8 +501,93 @@
     const xMap = (t) => chart.left + ((t - start) / (end - start)) * chart.width;
     const yMap = (v) => chart.bottom - Math.max(0, Math.min(1, v || 0)) * chart.height;
     drawGrid(ctx, chart, [0,1,2,3,4], i => (1 - i / 4).toFixed(2));
-    drawLine(ctx, series, p => Number(p.stairError) || 0, xMap, yMap, '#d81b60');
-    drawFooter(ctx, chart, H, 'BridgeScore (0.00-1.00, Zoomなし)');
+    drawLine(ctx, series, p => getBridgeLegacyScore(p), xMap, yMap, '#d81b60');
+    drawFooter(ctx, chart, H, 'BridgeScore v1 Legacy / shared calc');
+  }
+
+  function getSharedBridgeBreakdownMax() {
+    if (!BridgeMetrics) return 1;
+    let rawMax = 0;
+    for (const side of [state.left, state.right]) {
+      for (const p of getBridgeDerived(side)) {
+        rawMax = Math.max(rawMax, Number(p.low) || 0, Number(p.mid) || 0, Number(p.high) || 0);
+      }
+    }
+    return Math.max(1, niceAxisMax(rawMax * 1.05));
+  }
+
+  function formatBridgeStats(summary) {
+    if (!summary || !summary.count) return 'Bridge Research: no data';
+    const f = (v, d = 3) => Number.isFinite(v) ? Number(v).toFixed(d) : '-';
+    const occ = Number.isFinite(summary.highOccupancy) ? `${(summary.highOccupancy * 100).toFixed(1)}%` : '-';
+    return `Legacy Mean ${f(summary.scoreMean)} / SD ${f(summary.scoreSd)} / P10 ${f(summary.scoreP10)} / >=0.80 ${occ}` +
+      `<br>L ${f(summary.lowMean,0)} / M ${f(summary.midMean,0)} / H ${f(summary.highMean,0)} / r1 ${f(summary.ratioLowMidMean)} / r2 ${f(summary.ratioMidHighMean)}`;
+  }
+
+  function drawBridgeStability(canvas, side, slot) {
+    resizeCanvas(canvas);
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    clearChart(ctx, W, H);
+    const chart = setupAxes(ctx, W, H, { ml: PLOT_LEFT_CSS, mr: PLOT_RIGHT_CSS, mt: 16, mb: 24 });
+    const derived = getBridgeDerived(side);
+    const statsEl = $(slot + 'BridgeStats');
+    if (!derived || derived.length < 2) {
+      if (statsEl) statsEl.textContent = 'Bridge Research: no data';
+      return drawNoData(ctx, 'no bridge stability');
+    }
+
+    const { start, end } = getTimeBounds(derived);
+    const xMap = t => chart.left + ((t - start) / (end - start)) * chart.width;
+    const yMap = v => chart.bottom - Math.max(0, Math.min(1, Number(v) || 0)) * chart.height;
+    drawGrid(ctx, chart, [0,1,2,3,4], i => (1 - i / 4).toFixed(2));
+    drawLine(ctx, derived, p => Number(p.rollingMean) || 0, xMap, yMap, '#d81b60');
+    drawLine(ctx, derived, p => Number(p.stability) || 0, xMap, yMap, '#1565c0');
+
+    ctx.font = `${10 * (window.devicePixelRatio || 1)}px sans-serif`;
+    ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    ctx.fillStyle = '#d81b60'; ctx.fillText('Mean', chart.left + px(8), chart.top + px(4));
+    ctx.fillStyle = '#1565c0'; ctx.fillText('Stability', chart.left + px(55), chart.top + px(4));
+    drawFooter(ctx, chart, H, 'Stability = 1 - 2*rolling SD / 1.0s (Research)');
+
+    if (statsEl && BridgeMetrics) statsEl.innerHTML = formatBridgeStats(BridgeMetrics.summarize(side.tsBuf || []));
+  }
+
+  function drawBridgeBreakdown(canvas, side) {
+    resizeCanvas(canvas);
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    clearChart(ctx, W, H);
+    const chart = setupAxes(ctx, W, H, { ml: PLOT_LEFT_CSS, mr: PLOT_RIGHT_CSS, mt: 18, mb: 24 });
+    const derived = getBridgeDerived(side);
+    if (!derived || derived.length < 2) return drawNoData(ctx, 'no legacy band breakdown');
+    const hasBreakdown = derived.some(p => Number.isFinite(p.low) || Number.isFinite(p.mid) || Number.isFinite(p.high));
+    if (!hasBreakdown) return drawNoData(ctx, 'legacy log: bandA breakdown unavailable');
+
+    const { start, end } = getTimeBounds(derived);
+    const vmax = getSharedBridgeBreakdownMax();
+    const xMap = t => chart.left + ((t - start) / (end - start)) * chart.width;
+    const yMap = v => chart.bottom - Math.max(0, Math.min(vmax, Number(v) || 0)) / vmax * chart.height;
+    drawGrid(ctx, chart, [0,1,2,3,4], i => Math.round(vmax - vmax * i / 4).toString());
+
+    drawLine(ctx, derived, p => Number(p.low) || 0, xMap, yMap, '#1565c0');
+    drawLine(ctx, derived, p => Number(p.mid) || 0, xMap, yMap, '#43a047');
+    drawLine(ctx, derived, p => Number(p.high) || 0, xMap, yMap, '#e53935');
+
+    ctx.font = `${10 * (window.devicePixelRatio || 1)}px sans-serif`;
+    ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    let lx = chart.left + px(8);
+    const defs = [
+      ['#1565c0', 'Low 0-80'],
+      ['#43a047', 'Mid 80-160'],
+      ['#e53935', 'High 160-250'],
+    ];
+    for (const [color, label] of defs) {
+      ctx.fillStyle = color; ctx.fillRect(lx, chart.top + px(6), px(12), px(3));
+      ctx.fillStyle = '#333'; ctx.fillText(label, lx + px(16), chart.top + px(2));
+      lx += ctx.measureText(label).width + px(34);
+    }
+    drawFooter(ctx, chart, H, `Legacy bands / Shared Y Max ${Math.round(vmax)}`);
   }
 
   function drawLine(ctx, series, valueFn, xMap, yMap, color) {
@@ -466,11 +722,15 @@
 
   function renderSide(slot) {
     const side = state[slot];
+    drawSweepHz($(slot + 'SweepHz'), side);
+    drawSweepEnergy($(slot + 'SweepEnergy'), side);
     drawBandTimeline($(slot + 'Band'), side);
     drawPianoRoll($(slot + 'Piano'), side);
     drawFlux($(slot + 'Flux'), side);
     drawTriangle($(slot + 'Triangle'), side);
     drawBridge($(slot + 'Bridge'), side);
+    drawBridgeStability($(slot + 'BridgeStability'), side, slot);
+    drawBridgeBreakdown($(slot + 'BridgeBreakdown'), side);
   }
 
   function renderAll() {
@@ -482,7 +742,7 @@
   async function loadFromUrlParam(slot, url) {
     if (!url) return;
     try {
-      const res = await fetch(url);
+      const res = await fetch(url, { cache: 'no-store' });
       if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
       const data = await res.json();
       loadSession(slot, data, url.split('/').pop() || url);

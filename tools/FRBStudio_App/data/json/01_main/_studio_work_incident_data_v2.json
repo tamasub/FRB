@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-23T10:31:00+09:00",
+  "updated_at": "2026-08-26T20:51:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 212,
+  "items_count": 213,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -32500,6 +32500,131 @@
           "before": "NativeLaunchOptionsは--launch=markdownだけを解釈していた。",
           "after": "--launch-shortcut=<id>を追加し、IDからdata/view/launch_paramsを解決してindex.html queryへ変換する。",
           "reason": "Common ShellとWindows Jump Listで同じ起動定義を利用しつつ、C#個別ハードコードを避けるため。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0225",
+      "phase": "v0.18.107-subgrid-collapse",
+      "title": "SubGridヘッダー開閉トグル / ViewDef初期折りたたみ契約",
+      "incident_type": "ui_improvement",
+      "category": "subgrid_editor",
+      "priority": "medium",
+      "status": "完了",
+      "follow_up_status": "PENDING",
+      "verification_status": "静的確認済み / NativeShell実機確認待ち",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-26T20:51:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-26T20:51:00+09:00",
+      "updated_at": "2026-08-26T20:51:00+09:00",
+      "work_summary": "- SubGridヘッダー右端に開閉トグルを標準装備する。\n- 初期状態は原則OPENとし、ViewDefで明示したSubGridだけ初期CLOSEにできる。\n- Field DefinitionのGenerated TestPattern / Expected Previewだけ初期CLOSEとし、参考情報による認知負荷を下げる。",
+      "target_files": "- wwwroot/js/components/subgrid_component.js\n- wwwroot/js/runtime/detail_subgrid_edit.js\n- wwwroot/styles.css\n- wwwroot/index.html\n- defs/fielddefs/frb_fft_measurement_field_definitions_view_def_v0_1.json\n- tests/qa/static/subgrid_collapse_initial_state_static.test.mjs\n- tests/qa/static/subgrid_component_data_derived_static.test.mjs\n- tests/qa/static/subgrid_multiline_textarea_enter_static.test.mjs\n- tests/qa/static/subgrid_action_column_layout_static.test.mjs\n- tests/qa/static/related_grid_modal_layer_static.test.mjs\n- tests/qa/static/studio_json_round_trip_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- wwwroot/js/components/subgrid_component.js\n- wwwroot/js/runtime/detail_subgrid_edit.js\n- wwwroot/styles.css\n- wwwroot/index.html\n- defs/fielddefs/frb_fft_measurement_field_definitions_view_def_v0_1.json\n- tests/qa/static/subgrid_collapse_initial_state_static.test.mjs\n- tests/qa/static/subgrid_component_data_derived_static.test.mjs\n- tests/qa/static/subgrid_multiline_textarea_enter_static.test.mjs\n- tests/qa/static/subgrid_action_column_layout_static.test.mjs\n- tests/qa/static/related_grid_modal_layer_static.test.mjs\n- tests/qa/static/studio_json_round_trip_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "SubGridの詳細情報は必要なときに展開できればよく、通常時に全情報を同時表示する必要はない。SubGridは原則OPENを維持しつつ、ViewDefが明示した参考情報だけ初期CLOSEにできる。特にGenerated TestPattern / Expected Previewは承認対象そのものではなく、Validation Typeを承認するための参考情報であるため、Field Definition詳細の初期情報量を抑え、人間の脳へ与える認知負荷を最小化する。",
+      "objective": "すべてのSubGridを利用者がその場で開閉できるようにし、ViewDefから初期展開状態を宣言可能にする。標準は互換性のためOPENとし、参考情報など必要なSubGridだけ初期CLOSEを選べるようにする。",
+      "background": "Field Definition詳細ではConstraint ResolutionとGenerated TestPattern / Expected Previewが同時に大きく表示される。Generated TestPatternは承認対象ではなく参考情報であり、常時展開すると初期画面の情報量が増え、人間が承認対象へ集中しにくい。既存SubGridは一律表示で、利用者が一時的に閉じる共通操作もなかった。",
+      "scope": "- Data SubGridとDerived SubGridのヘッダー右端に開閉トグルを追加する。\n- OPEN時は▼、CLOSE時は▶で状態を示す。\n- SubGridのHeaderは常に残し、Table/Noteだけを開閉する。\n- 初期状態は `initialExpanded !== false` を標準とし、未指定はOPEN。\n- Editor Component系はViewDefの `config.initialExpanded` を読む。\n- Data SubGrid系は `edit.subGrid.initialExpanded` を読む。\n- Field DefinitionのGenerated TestPattern / Expected Previewだけ `config.initialExpanded: false` を指定する。\n- Component再描画時は利用者がその場で切り替えた展開状態を可能な範囲で保持する。\n- cache bustと静的回帰テストを更新する。",
+      "out_of_scope": "- SubGridの展開状態をlocalStorageやData JSONへ永続保存すること。\n- 画面全体のAccordion化。\n- 承認対象/参考情報の自動判定。\n- Generated TestPatternの生成ロジックや承認モデル変更。\n- 個別SubGridごとの固定Runtime分岐。",
+      "fixed_name_policy": "RuntimeへGenerated TestPattern固有の開閉分岐は追加しない。初期状態はViewDef宣言で決め、共通SubGrid Runtimeは `initialExpanded` というUI契約だけを扱う。",
+      "module_policy": "既存SubGrid Component / legacy Data SubGridの責務境界を維持する。Derived/Dataの計算・保存責務には触れず、HeaderとBodyの表示状態だけを共通UI責務として追加する。",
+      "expected_outputs": "- すべてのSubGrid Header右端に開閉ボタンが表示される。\n- 未指定SubGridは従来互換で初期OPEN。\n- ViewDefで `initialExpanded: false` を指定したSubGridは初期CLOSE。\n- Generated TestPattern / Expected Previewは初期CLOSE。\n- Constraint Resolutionは初期OPEN。\n- 閉じてもHeader・件数・読取専用等のメタ情報は見える。\n- 再度クリックすると内容を展開できる。",
+      "risk": "初期CLOSEを広く設定しすぎると必要情報が隠れていることに気づきにくくなるため、標準はOPENとし、ViewDefで明示した箇所だけCLOSEに限定する。展開状態の永続化は行わないため、Detail再生成後はViewDef初期値へ戻る場合がある。",
+      "test_points": "- Component SubGridは未指定時に初期OPENとなること。\n- `config.initialExpanded=false` で初期CLOSEとなること。\n- Header toggleでCLOSE/OPENを往復できること。\n- Legacy Data SubGridも `edit.subGrid.initialExpanded=false` を解釈し、未指定はOPENであること。\n- Headerは閉じた状態でも残ること。\n- Generated TestPattern ViewDefだけinitialExpanded=falseで、Constraint Resolutionは未指定であること。\n- 既存SubGrid編集・Derived Preview・複数行テキスト・CSS関連Staticに新規FAILがないこと。",
+      "verification_log": "- `node --check wwwroot/js/components/subgrid_component.js` = PASS。\n- `node --check wwwroot/js/runtime/detail_subgrid_edit.js` = PASS。\n- Focused: SubGrid collapse + Component/Derived + multiline + action layout = 25/25 PASS。\n- 全Static Before（添付ZIP原本）: 314 tests / 296 PASS / 18 FAIL。\n- 全Static After: 318 tests / 300 PASS / 18 FAIL。\n- 18 FAILのテスト名集合はBefore/Afterで同一。今回差分による新規FAILなし。\n- Windows NativeShell実機でHeader右端ボタン、Generated TestPattern初期CLOSE、開閉操作はPENDING。",
+      "user_request": "StudioくんのEditor画面のSubGrid Header右上に▼のようなボタンを置いて開閉できるようにしたい。基本は表示ONで、ViewDef指定箇所だけ初期OFFにしたい。Field DefinitionのGenerated TestPattern / Expected Previewは承認対象ではなく参考情報なので初期OFFにし、初期情報量と人間の脳への負荷を減らしたい。",
+      "ai_response": "最新ZIPを基準に、Data/Derived両SubGridへ共通開閉契約を追加し、標準OPEN・ViewDef明示falseのみ初期CLOSEで実装する。Generated TestPatternだけViewDef指定で初期CLOSEとし、個別Runtime固定分岐は作らない。",
+      "latest_user_comment": "SubGridのHeader右上に▼ボタンを置き開閉可能にする。基本はON、ViewDef指定だけ初期OFF。Generated TestPattern / Expected Previewは参考情報なので初期OFFにして認知負荷を下げたい。",
+      "latest_ai_response": "AI回答\n\n## 今回の更新\n\n- 全SubGridのヘッダー右端へ開閉トグルを追加した。\n- 標準は開いた状態（▼）で、閉じると▶へ変わる。\n- ViewDefで `initialExpanded: false` を明示したSubGridだけ初期状態を閉じられる契約にした。\n- Field Definitionの `Generated TestPattern / Expected Preview` にだけ `config.initialExpanded: false` を設定した。Constraint Resolution等は従来どおり初期表示ON。\n- Data SubGrid（objectArray/stringArray）とDerived SubGrid（Editor Component）の両方へ同じ開閉契約を適用した。\n- Generated TestPatternは承認対象ではなく参考情報なので、初期情報量を減らし、人間の認知負荷を下げるという意図をIncidentへ記録した。\n\n## 確認結果\n\n- Focused static: 25/25 PASS。\n- 全Static Before: 314 tests / 296 PASS / 18既存FAIL。\n- 全Static After: 318 tests / 300 PASS / 18既存FAIL。\n- Before/Afterの18 FAILは同一集合で、今回差分による新規FAILなし。\n- `node --check` で `subgrid_component.js` / `detail_subgrid_edit.js` はPASS。\n- Windows NativeShellでの見た目・クリック操作は実機確認待ち。",
+      "context_refs": [
+        {
+          "context_ref_id": "ctx_0225_foundation_019",
+          "title": "GitHub基準ソースとZIP返却契約",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "ユーザー添付の最新App ZIPを今回の基準ソースとし、更新ファイルだけを同一相対パスで返却し、更新済みIncident JSONを含める。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 1,
+          "note": "作業依頼ターン添付のFRBStudio_App20260826_204608.zipを今回の正本とする。"
+        }
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0225_native_subgrid_collapse_verify",
+          "action_type": "VERIFICATION",
+          "required": true,
+          "status": "NOT_STARTED",
+          "related_ids": [
+            "studio_work_0225"
+          ],
+          "note": "Windows NativeShellでField Definition詳細を開き、Constraint Resolutionは初期OPEN、Generated TestPattern / Expected Previewは初期CLOSEであること、全SubGrid Header右端の▼/▶で開閉できることを確認する。",
+          "summary": "SubGrid開閉とGenerated TestPattern初期CLOSEを実機確認"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "disc_0225_001",
+          "at": "2026-08-26T20:51:00+09:00",
+          "speaker": "user",
+          "topic": "SubGrid開閉と参考情報の初期折りたたみ依頼",
+          "message": "studioくんのエディター画面のサブグリッドのヘッダー右上隅あたりに▼ボタンみたいなのを置き、クリックで開閉したい。基本は表示ONで、ViewDefで指定した項目だけ初期表示OFFにしたい。項目定義JSONのGenerated TestPattern / Expected Previewは承認対象ではなく参考情報なので初期OFFにし、初期表示の情報量を減らして人間の脳に与える負荷を最小限にしたい。"
+        },
+        {
+          "history_id": "disc_0225_002",
+          "at": "2026-08-26T20:51:00+09:00",
+          "speaker": "assistant",
+          "topic": "SubGrid開閉契約 実装完了報告",
+          "message": "AI回答\n\n## 今回の更新\n\n- 全SubGridのヘッダー右端へ開閉トグルを追加した。\n- 標準は開いた状態（▼）で、閉じると▶へ変わる。\n- ViewDefで `initialExpanded: false` を明示したSubGridだけ初期状態を閉じられる契約にした。\n- Field Definitionの `Generated TestPattern / Expected Preview` にだけ `config.initialExpanded: false` を設定した。Constraint Resolution等は従来どおり初期表示ON。\n- Data SubGrid（objectArray/stringArray）とDerived SubGrid（Editor Component）の両方へ同じ開閉契約を適用した。\n- Generated TestPatternは承認対象ではなく参考情報なので、初期情報量を減らし、人間の認知負荷を下げるという意図をIncidentへ記録した。\n\n## 確認結果\n\n- Focused static: 25/25 PASS。\n- 全Static Before: 314 tests / 296 PASS / 18既存FAIL。\n- 全Static After: 318 tests / 300 PASS / 18既存FAIL。\n- Before/Afterの18 FAILは同一集合で、今回差分による新規FAILなし。\n- `node --check` で `subgrid_component.js` / `detail_subgrid_edit.js` はPASS。\n- Windows NativeShellでの見た目・クリック操作は実機確認待ち。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0225_001",
+          "at": "2026-08-26T20:51:00+09:00",
+          "decision": "SubGridの初期展開状態は標準OPENとし、ViewDefでinitialExpanded=falseが明示された場合だけ初期CLOSEとする。",
+          "reason": "既存画面との互換性を維持しつつ、参考情報など意図的に情報量を減らしたい箇所だけ人間が宣言できるようにするため。"
+        },
+        {
+          "decision_id": "dec_0225_002",
+          "at": "2026-08-26T20:51:00+09:00",
+          "decision": "Generated TestPattern / Expected Preview固有のRuntime分岐は作らず、Field Definition ViewDefのconfig.initialExpanded=falseで初期CLOSEにする。",
+          "reason": "承認対象ではなく参考情報という意味はViewDef側の表示方針であり、共通RuntimeへData固有知識を持ち込まないため。"
+        },
+        {
+          "decision_id": "dec_0225_003",
+          "at": "2026-08-26T20:51:00+09:00",
+          "decision": "開閉時もSubGrid Headerは残し、Table/Noteだけを非表示にする。",
+          "reason": "閉じた情報の存在・Caption・件数・読取専用状態を見失わず、必要時にすぐ再展開できるようにするため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0225_001",
+          "at": "2026-08-26T20:51:00+09:00",
+          "change_type": "subgrid_collapse_common_ui",
+          "before": "Data/Derived SubGridは常時展開され、Headerから内容を閉じる共通操作がなかった。",
+          "after": "Data/Derived SubGridのHeader右端に▼/▶トグルを追加し、Table/Noteを開閉可能にした。未指定は初期OPEN。",
+          "reason": "大量のSubGrid情報を必要に応じて退避し、Detail画面の認知負荷を下げるため。"
+        },
+        {
+          "history_id": "chg_0225_002",
+          "at": "2026-08-26T20:51:00+09:00",
+          "change_type": "viewdef_initial_expanded_contract",
+          "before": "ViewDefからSubGridの初期開閉状態を指定できなかった。",
+          "after": "Editor Componentはconfig.initialExpanded、Data SubGridはedit.subGrid.initialExpandedで初期状態を指定できる。falseのみCLOSE、未指定はOPEN。",
+          "reason": "特定SubGridだけ初期情報量を減らしつつ、既存表示を一律変更しないため。"
+        },
+        {
+          "history_id": "chg_0225_003",
+          "at": "2026-08-26T20:51:00+09:00",
+          "change_type": "field_definition_reference_info_collapse",
+          "before": "Generated TestPattern / Expected PreviewがField Definition Detailで初期から全展開されていた。",
+          "after": "Field Definition ViewDefのfield_definition_test_previewへconfig.initialExpanded=falseを追加し、初期CLOSEにした。",
+          "reason": "Generated TestPatternは承認対象ではなく参考情報であるため、承認開始時の情報量を減らし、人間の認知負荷を下げるため。"
         }
       ]
     }

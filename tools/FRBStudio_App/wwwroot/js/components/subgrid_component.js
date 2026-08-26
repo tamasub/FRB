@@ -56,8 +56,31 @@ function clearSubGridComponentHost(hostElement) {
 }
 
 class SubGridComponent extends EditorComponent {
+  constructor(config={}, services={}) {
+    super(config, services);
+    this._expanded = null;
+  }
+
   get componentRole() {
     return 'subgrid';
+  }
+
+  get initialExpanded() {
+    // ViewDef contract: SubGrid is open by default.
+    // Only an explicit initialExpanded=false collapses it on first render.
+    const componentOptions = this.config?.config && typeof this.config.config === 'object'
+      ? this.config.config
+      : {};
+    const value = componentOptions.initialExpanded
+      ?? componentOptions.initial_expanded
+      ?? this.config?.initialExpanded
+      ?? this.config?.initial_expanded;
+    return value !== false;
+  }
+
+  get expanded() {
+    if (this._expanded == null) this._expanded = this.initialExpanded;
+    return this._expanded !== false;
   }
 
   get persistenceMode() {
@@ -106,6 +129,7 @@ class SubGridComponent extends EditorComponent {
       role: this.componentRole,
       persistenceMode: this.persistenceMode,
       editable: this.isEditable(),
+      expanded: this.expanded,
       rows,
       columns,
       note: String(this.config?.note ?? '')
@@ -148,17 +172,40 @@ class SubGridComponent extends EditorComponent {
     role.textContent = model.editable ? '編集可' : '読取専用';
     meta.appendChild(role);
 
+    const tableWrap = this.renderTable(model, doc);
+    tableWrap.dataset.subgridCollapsibleContent = 'true';
+
+    let note = null;
+    if (model.note) {
+      note = doc.createElement('div');
+      note.className = 'detail-subgrid-note';
+      note.dataset.subgridCollapsibleContent = 'true';
+      note.textContent = model.note;
+    }
+
+    const applyExpandedState = expanded => {
+      const isExpanded = expanded !== false;
+      this._expanded = isExpanded;
+      card.dataset.subgridExpanded = String(isExpanded);
+      tableWrap.hidden = !isExpanded;
+      if (note) note.hidden = !isExpanded;
+      toggle.textContent = isExpanded ? '▼' : '▶';
+      toggle.title = isExpanded ? 'サブグリッドを閉じる' : 'サブグリッドを開く';
+      toggle.setAttribute?.('aria-expanded', String(isExpanded));
+    };
+
+    const toggle = doc.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'detail-subgrid-action-btn detail-subgrid-toggle-btn';
+    toggle.dataset.subgridToggle = 'true';
+    toggle.addEventListener?.('click', () => applyExpandedState(!this.expanded));
+    meta.appendChild(toggle);
+
     header.appendChild(meta);
     card.appendChild(header);
-
-    card.appendChild(this.renderTable(model, doc));
-
-    if (model.note) {
-      const note = doc.createElement('div');
-      note.className = 'detail-subgrid-note';
-      note.textContent = model.note;
-      card.appendChild(note);
-    }
+    card.appendChild(tableWrap);
+    if (note) card.appendChild(note);
+    applyExpandedState(model.expanded);
 
     return card;
   }

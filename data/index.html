@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>FRB FFT Monitor</title>
-  <link rel="stylesheet" href="style.css?v=20260531_log_schema_v4">
+  <link rel="stylesheet" href="style.css?v=20260823_sweep_compare_settings_v01">
 
 </head>
 
@@ -13,7 +13,7 @@
   <h2>FRB FFT Monitor Ver0.2.2(beta) <span class="mini">Log Schema v4 / MIDI Professor</span></h2>
   <div class="box" style="display:flex;gap:12px;align-items:center;">
     <b>FRB Tools</b>
-    <a href="compare.html">FRB Compare v1</a>
+    <a href="compare.html?v=20260823_sweep_compare_settings_v01">FRB Compare v1</a>
     <a href="https://tamasub.github.io/FRB/tools/mdViewer.html?md=https%3A%2F%2Ftamasub.github.io%2FFRB%2Fdata%2FESP32_FFT_Monitor_Help.md" target="_blank" rel="noopener">Help</a>
     <span class="mini">FFTログ左右比較専用View / 用語説明</span>
   </div>
@@ -71,19 +71,65 @@
         </label>
   </div>
 
-        <label>
-          <b>Log:</b>
-          <button id="saveLogBtn">Save Log</button>
-          <input id="loadLogFile" type="file" accept=".json,application/json" style="display:none;">
-          <button id="loadLogBtn">Load Log</button>
-          <button id="resumeLiveBtn">Resume Live</button>
-          <label style="display:inline-flex;align-items:center;gap:4px;margin-left:8px;">
-            Exp:
-            <textarea id="experimentMemo" rows="1" placeholder="例: #34 ステンレス棒+シリコン / 300Hz AM slow"
-              style="width:360px;height:22px;resize:horizontal;font-size:12px;"></textarea>
+        <div class="logMetaPanel">
+          <span class="logActionGroup">
+            <b>Log:</b>
+            <button id="saveLogBtn">Save Log</button>
+            <input id="loadLogFile" type="file" accept=".json,application/json" style="display:none;">
+            <button id="loadLogBtn">Load Log</button>
+            <button id="resumeLiveBtn">Resume Live</button>
+            <button id="saveSettingsBtn" type="button" title="上部のSound/Sweep/実験メタ設定をこのブラウザへ保存">設定保存</button>
+          </span>
+
+          <label>
+            対象ロッド:
+            <select id="experimentRod">
+              <option value="ルアーニスト改" selected>ルアーニスト改</option>
+              <option value="ハイエンドロッドB">ハイエンドロッドB</option>
+              <option value="ハイエンドロッドC">ハイエンドロッドC</option>
+              <option value="ダイソー">ダイソー</option>
+              <option value="その他">その他</option>
+            </select>
           </label>
+
+          <label>
+            入力:
+            <select id="experimentInput">
+              <option value="振動基準音" selected>振動基準音</option>
+              <option value="AutoSweep">AutoSweep</option>
+              <option value="ステンレス擦り">ステンレス擦り</option>
+              <option value="床擦り">床擦り</option>
+              <option value="絨毯擦り">絨毯擦り</option>
+              <option value="バネ系インパルス装置">バネ系インパルス装置</option>
+              <option value="その他">その他</option>
+            </select>
+          </label>
+
+          <label>
+            入力接触部:
+            <select id="experimentInputContact">
+              <option value="トップガイド" selected>トップガイド</option>
+              <option value="エンド部位先端">エンド部位先端</option>
+              <option value="その他">その他</option>
+            </select>
+          </label>
+
+          <label>
+            計測部:
+            <select id="experimentMeasurementPart">
+              <option value="割りばしカーボン" selected>割りばしカーボン</option>
+              <option value="EVAグリップ" selected>EVAグリップ</option>
+              <option value="その他">その他</option>
+            </select>
+          </label>
+
+          <label class="experimentMemoLabel">
+            備考:
+            <textarea id="experimentMemo" rows="1" placeholder="例: #34 / 300Hz AM slow"></textarea>
+          </label>
+
           <span id="logInfoStatus" class="mini"></span>
-        </label>
+        </div>
 
 
     <div class="panel midiExportPanel">
@@ -643,7 +689,7 @@
 </div> 
 
 
-  <script src="app.js?v=20260531_log_schema_v4"></script>
+  <script src="app.js?v=20260823_sweep_compare_settings_v01"></script>
 
 </body>
 

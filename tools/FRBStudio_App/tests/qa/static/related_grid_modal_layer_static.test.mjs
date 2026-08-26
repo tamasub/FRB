@@ -28,5 +28,5 @@ test('Related Grid modal uses the common overlay layer so its close header stays
 
 test('index.html refreshes the main stylesheet after the Related Grid modal layer fix', () => {
   const index = read('wwwroot/index.html');
-  assert.match(index, /styles\.css\?v=related-grid-modal-layer-018102/);
+  assert.match(index, /styles\.css\?v=subgrid-collapse-018107/);
 });
