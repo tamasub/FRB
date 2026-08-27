@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-26T20:51:00+09:00",
+  "updated_at": "2026-08-27T19:00:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 213,
+  "items_count": 214,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -32625,6 +32625,117 @@
           "before": "Generated TestPattern / Expected PreviewがField Definition Detailで初期から全展開されていた。",
           "after": "Field Definition ViewDefのfield_definition_test_previewへconfig.initialExpanded=falseを追加し、初期CLOSEにした。",
           "reason": "Generated TestPatternは承認対象ではなく参考情報であるため、承認開始時の情報量を減らし、人間の認知負荷を下げるため。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0226",
+      "phase": "selenium-poc-step1-detail-state-read",
+      "title": "Selenium PoC Step1 — Row Detailからwork_item_id状態取得",
+      "incident_type": "test_automation_poc",
+      "category": "selenium_webview2",
+      "priority": "medium",
+      "status": "確認中",
+      "follow_up_status": "PENDING",
+      "verification_status": "静的確認済み / Windows NativeShell実機確認待ち",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-27T19:00:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-27T19:00:00+09:00",
+      "updated_at": "2026-08-27T19:00:00+09:00",
+      "work_summary": "- 昨日のSelenium + EdgeDriver + WebView2 PoCの続き。\n- Row Detail Editorを開いたあと、共通DOM契約data-fieldからwork_item_idを取得する。\n- 2行目の期待値studio_work_0002と比較し、ConsoleへPASS/FAILを表示する。\n- 今回は値変更・F12・保存には進まず、Runnerの『目』としてUI状態を取得できることだけを確認する。",
+      "target_files": "- SeleniumTaste/Program.cs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- SeleniumTaste/Program.cs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "汎用Test RunnerからUIを操作するだけでなく、Editorの状態を取得できることを確認する。Studio Runtimeの表示Captionや配置ではなく、共通DOM契約data-fieldを観測インターフェースとして利用し、将来のWebDriver Adapterから安定して状態を読む入口とする。",
+      "objective": "SeleniumからRow Detail Editor内のwork_item_idを読み取り、2行目のstudio_work_0002を取得できることを確認する。",
+      "background": "前回PoCでNativeShell起動→DATA選択→読込→Grid表示→2行目ダブルクリック→Row Detail Editor表示まで自動操作できた。次の一段として、SeleniumをRunnerの『手』だけでなく『目』として使えるかを確認する。",
+      "scope": "- 既存PoC操作は維持する。\n- Detail Dialog表示後、#detailForm配下のdata-field=work_item_idを取得する。\n- DOM property valueを優先して読み、期待値studio_work_0002と比較する。\n- Consoleへ取得値とPASS/FAILを表示する。\n- 終了待ちの重複Console.ReadLineは1回へ整理する。",
+      "out_of_scope": "- Editor値の変更。\n- F12反映。\n- JSON保存。\n- 保存後Actual JSON取得。\n- Actual Diff / Expected Diff比較。\n- Selenium操作の汎用Operation JSON化。\n- explicit wait / retry共通化。",
+      "fixed_name_policy": "work_item_id固有の表示CaptionやDOM位置には依存せず、Studio共通のdata-field契約を利用する。今回の期待値studio_work_0002はPoC対象行確認用の固定値であり、将来の汎用RunnerではTestPattern/Fixture側へ外出しする。",
+      "module_policy": "Studio本体Runtimeは変更しない。SeleniumTaste/Program.csだけでUI状態取得可能性を確認し、WebDriver Adapter抽象化は次段階以降へ温存する。",
+      "expected_outputs": "- Editor表示後にConsoleへ `work_item_id: studio_work_0002` が表示される。\n- 続けて `work_item_id 読取: PASS` が表示される。\n- Studio本体側ソース変更なし。",
+      "risk": "Gridの初期並び順が将来変わると『2行目=studio_work_0002』というPoC前提は崩れる。今回は状態取得経路の味見を目的とし、汎用化時は対象行選択もTestPattern/Fixture契約へ移す。",
+      "test_points": "- _studio_work_incident_data_v2.jsonが読めること。\n- Grid 2行目ダブルクリックでDetail Dialogがopenになること。\n- #detailForm [data-field='work_item_id'] が取得できること。\n- valueがstudio_work_0002であること。\n- ConsoleへPASSが出ること。",
+      "verification_log": "- Studio側field control生成コードで、Detail入力部品へinput.dataset.field = field.fieldが付与されることを静的確認。\n- incident ViewDefでwork_item_idがDetail表示対象であることを静的確認。\n- 元Data JSONのwork_items[1].work_item_idがstudio_work_0002であることを静的確認。\n- 実行環境にdotnet SDKが無いためC# build / Windows WebView2実機実行は未実施。",
+      "user_request": "直前に合意したSTEP 1（開いたEditorからwork_item_idを取得してConsoleへ出力する）を、添付の最新FRBStudio_Appを基準に実施する。",
+      "ai_response": "既存Selenium PoCを崩さず、Detail Editor表示後に共通DOM契約data-fieldからwork_item_idを読み、studio_work_0002との一致をConsoleでPASS/FAIL表示する。",
+      "latest_user_comment": "うぃ～。ではいってみようかぁ～？よろしくぅ",
+      "latest_ai_response": "AI回答\n\n## 今回の更新\n\n- `SeleniumTaste/Program.cs` に、Row Detail Editorから `work_item_id` を読むSTEP 1を追加。\n- `#detailForm [data-field='work_item_id']` を使い、Captionや画面上の並び順ではなくStudio共通DOM契約から値を取得する。\n- 2行目の期待値 `studio_work_0002` と比較し、Consoleへ `PASS / FAIL` を表示する。\n- 末尾に重複していた `Console.ReadLine()` は1回へ整理した。\n\n## 方針\n\n今回は『Runnerの目』が成立するかだけを見る。値変更・F12・保存・Actual Diffにはまだ進めない。\n\n## 確認結果\n\n- ViewDef上で `work_item_id` はDetail表示対象。\n- Studioのfield controlは `data-field` を共通DOM契約として付与している。\n- 元Dataの2行目は `studio_work_0002`。\n- この環境にはdotnet SDKが無いため、Windows NativeShell + EdgeDriverの実機確認はユーザー環境で実施待ち。",
+      "context_refs": [
+        {
+          "context_ref_id": "ctx_0226_foundation_019",
+          "title": "GitHub基準ソースとZIP返却契約",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "ユーザー添付の最新App ZIPを基準ソースとし、更新ファイルだけを同一相対パスで返却し、更新済みIncident JSONを含める。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 1,
+          "note": "作業依頼ターン添付のFRBStudio_App20260827_185919.zipを今回の正本とする。"
+        }
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0226_native_selenium_state_read_verify",
+          "action_type": "VERIFICATION",
+          "required": true,
+          "status": "NOT_STARTED",
+          "related_ids": [
+            "studio_work_0226"
+          ],
+          "note": "Windows環境でSeleniumTasteを実行し、Row Detail表示後にwork_item_id: studio_work_0002 / work_item_id 読取: PASSがConsoleへ出ることを確認する。",
+          "summary": "Selenium Row Detail状態取得を実機確認"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "disc_0226_001",
+          "at": "2026-08-27T19:00:00+09:00",
+          "speaker": "user",
+          "topic": "Selenium PoC STEP 1着手",
+          "message": "うぃ～。ではいってみようかぁ～？よろしくぅ"
+        },
+        {
+          "history_id": "disc_0226_002",
+          "at": "2026-08-27T19:00:00+09:00",
+          "speaker": "assistant",
+          "topic": "Selenium Row Detail状態取得 実装報告",
+          "message": "AI回答\n\n## 今回の更新\n\n- `SeleniumTaste/Program.cs` に、Row Detail Editorから `work_item_id` を読むSTEP 1を追加。\n- `#detailForm [data-field='work_item_id']` を使い、Captionや画面上の並び順ではなくStudio共通DOM契約から値を取得する。\n- 2行目の期待値 `studio_work_0002` と比較し、Consoleへ `PASS / FAIL` を表示する。\n- 末尾に重複していた `Console.ReadLine()` は1回へ整理した。\n\n## 方針\n\n今回は『Runnerの目』が成立するかだけを見る。値変更・F12・保存・Actual Diffにはまだ進めない。\n\n## 確認結果\n\n- ViewDef上で `work_item_id` はDetail表示対象。\n- Studioのfield controlは `data-field` を共通DOM契約として付与している。\n- 元Dataの2行目は `studio_work_0002`。\n- この環境にはdotnet SDKが無いため、Windows NativeShell + EdgeDriverの実機確認はユーザー環境で実施待ち。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0226_001",
+          "at": "2026-08-27T19:00:00+09:00",
+          "decision": "Editor状態取得はCaptionやDOM順ではなく、Studio共通のdata-field属性を観測契約として利用する。",
+          "reason": "ViewDefによるCaption変更や項目順変更があっても、項目の論理名fieldをキーにWebDriver Adapterから安定して状態を取得できるようにするため。"
+        },
+        {
+          "decision_id": "dec_0226_002",
+          "at": "2026-08-27T19:00:00+09:00",
+          "decision": "STEP 1ではwork_item_id取得までとし、値変更・F12・保存へ進まない。",
+          "reason": "UI操作系の不確実性を一段ずつ切り分け、まずRunnerの『目』が成立することだけを確認するため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0226_001",
+          "at": "2026-08-27T19:00:00+09:00",
+          "change_type": "selenium_detail_state_read",
+          "before": "Selenium PoCはRow Detail Editorを開き、detailDialog.openを確認するところまでだった。Editor内部の業務項目値は取得していなかった。",
+          "after": "Detail表示後に#detailForm [data-field='work_item_id']を取得し、現在値を読み取ってstudio_work_0002との一致をPASS/FAIL表示する。",
+          "reason": "SeleniumをUI操作の『手』だけでなく、状態観測の『目』として利用可能か確認するため。"
+        },
+        {
+          "history_id": "chg_0226_002",
+          "at": "2026-08-27T19:00:00+09:00",
+          "change_type": "poc_exit_wait_cleanup",
+          "before": "Program.cs末尾に同一のConsole.ReadLineが2回重複していた。",
+          "after": "画面確認用のConsole.ReadLineを1回だけに整理した。",
+          "reason": "実機確認時にEnterを2回要求してPoC終了判定を紛らわしくしないため。"
         }
       ]
     }

@@ -26,7 +26,8 @@ $targetDirs = @(
     "tests",
     "tools",
     "wwwroot",
-    "studio_overlays"
+    "studio_overlays",
+    "SeleniumTaste"
 )
 
 # ZIP に含めるルート直下ファイル
@@ -51,7 +52,10 @@ $excludePaths = @(
     "NativeShell\bin",
     "NativeShell\obj",
     "NativeShell\_publish",
-    "data\json\81_frb_OrgSample"
+    "data\json\81_frb_OrgSample",
+    "SeleniumTaste\bin",
+    "SeleniumTaste\driver",
+    "SeleniumTaste\obj"
 )
 
 # 出力 ZIP 名

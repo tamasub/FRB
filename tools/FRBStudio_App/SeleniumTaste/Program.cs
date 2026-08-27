@@ -74,6 +74,23 @@ if (rows.Count >= 2)
         "エディター表示: " +
         detailDialog.GetDomProperty("open")
     );
+
+    // STEP 1: Row Detail Editor の状態を読む。
+    // Studio側の共通DOM契約 data-field を使い、Captionや表示順には依存しない。
+    var workItemIdControl = detailDialog.FindElement(
+        By.CssSelector("#detailForm [data-field='work_item_id']")
+    );
+
+    var workItemId =
+        workItemIdControl.GetDomProperty("value") ??
+        workItemIdControl.GetAttribute("value") ??
+        workItemIdControl.Text;
+
+    Console.WriteLine("work_item_id: " + workItemId);
+    Console.WriteLine(
+        "work_item_id 読取: " +
+        (workItemId == "studio_work_0002" ? "PASS" : "FAIL")
+    );
 }
 else
 {
@@ -82,10 +99,3 @@ else
 
 Console.WriteLine("画面確認中。Enterで終了します");
 Console.ReadLine();
-
-
-
-
-Console.WriteLine("画面確認中。Enterで終了します");
-Console.ReadLine();
-
