@@ -602,18 +602,20 @@ async function main() {
       `Expected=${multiLineExpected}, Actual=${multiLineDraft}`,
     );
 
-    // Preview Edit内F12はtextarea原文をPreview内部rowsへcommitする。
+    // Preview Edit内ではF12は明示機能ではないため無効。押しても編集状態と入力値を維持する。
     await previewTextarea.sendKeys(Key.F12);
-    console.log('プレビュー編集textareaからF12を送信しました');
-    const previewCommitted = await waitUntil(async () => {
+    console.log('プレビュー編集textareaからF12を送信しました（無効確認）');
+    const previewF12Ignored = await waitUntil(async () => {
       const editors = await driver.findElements(
         By.css('dialog.detail-subgrid-card-editor-overlay[open] .detail-subgrid-card-preview-editor'),
       );
-      return editors.length === 0;
+      if (editors.length !== 1) return false;
+      const current = normalizeLineEndings(await readControlValue(editors[0]));
+      return current === multiLineExpected;
     });
-    assertPass(previewCommitted, 'プレビュー編集 F12内部反映');
+    assertPass(previewF12Ignored, 'プレビュー編集 F12無効');
 
-    // Preview内部rows -> SubGrid一覧へ反映。
+    // Preview内部の編集値は「一覧へ反映」でSubGrid一覧へ反映する。
     await applyPreviewEditorToSubGridList();
 
     // 一覧はレビュー用の1行代表表示。Previewの複数行全文を一覧inputへ露出することは契約にしない。
@@ -672,15 +674,7 @@ async function main() {
       `Expected=${multiLineBefore}, Actual=${restoreDraft}`,
     );
 
-    await previewTextarea.sendKeys(Key.F12);
-    const restorePreviewCommitted = await waitUntil(async () => {
-      const editors = await driver.findElements(
-        By.css('dialog.detail-subgrid-card-editor-overlay[open] .detail-subgrid-card-preview-editor'),
-      );
-      return editors.length === 0;
-    });
-    assertPass(restorePreviewCommitted, '複数行後始末 Preview F12');
-
+    // 復元時もPreview内F12は使わず、「一覧へ反映」で確定する。
     await applyPreviewEditorToSubGridList();
     const restoredListDisplay = await readSubGridCellValue(
       subGridField,

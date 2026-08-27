@@ -16,12 +16,13 @@ test('SubGrid Preview Edit uses a real textarea for long/multiline editor fields
   assert.match(runtime, /createSubGridCellControl\(\{[\s\S]{0,260}multilineEditor: true[\s\S]{0,80}\}\)/);
 });
 
-test('multiline textarea keeps Enter and Shift+Enter as newline while Ctrl/Cmd+Enter remains apply', () => {
+test('multiline textarea keeps Enter and Shift+Enter as newline, Ctrl/Cmd+Enter commits, and F12 is disabled inside Preview Edit', () => {
   const previewStart = runtime.indexOf('function createDetailSubGridPreviewEditValue');
   const previewEnd = runtime.indexOf('function showDetailSubGridCardEditor', previewStart);
   const previewBlock = runtime.slice(previewStart, previewEnd);
 
-  assert.match(previewBlock, /if \(e\.key === 'F12' \|\| \(\(e\.ctrlKey \|\| e\.metaKey\) && e\.key === 'Enter'\)\) \{/);
+  assert.match(previewBlock, /if \(e\.key === 'F12'\) \{[\s\S]{0,220}e\.preventDefault\(\);[\s\S]{0,220}e\.stopPropagation\(\);[\s\S]{0,120}return;/);
+  assert.match(previewBlock, /if \(\(e\.ctrlKey \|\| e\.metaKey\) && e\.key === 'Enter'\) \{[\s\S]{0,220}e\.preventDefault\(\);[\s\S]{0,220}e\.stopPropagation\(\);[\s\S]{0,120}commit\(\);/);
   assert.doesNotMatch(previewBlock, /if \(e\.key === 'Enter'\)\s*\{[\s\S]{0,120}e\.preventDefault\(\)/);
   assert.doesNotMatch(previewBlock, /e\.shiftKey[\s\S]{0,100}e\.key === 'Enter'[\s\S]{0,100}preventDefault/);
 });
@@ -38,7 +39,7 @@ test('SubGrid list view stays visually single-line but preserves canonical multi
   assert.match(controlBlock, /input\.__studioSubGridRawValue = rawText;/);
   assert.match(controlBlock, /if \(input\.dataset\.singleLineLongValue === 'true'\) \{[\s\S]{0,220}input\.__studioSubGridRawValue = input\.value \?\? '';/);
   assert.match(readBlock, /input\.dataset\.singleLineLongValue === 'true'[\s\S]{0,220}input\.__studioSubGridRawValue/);
-  assert.match(index, /js\/runtime\/detail_subgrid_edit\.js\?v=subgrid-collapse-018107/);
+  assert.match(index, /js\/runtime\/detail_subgrid_edit\.js\?v=subgrid-preview-f12-disabled-018108/);
 });
 
 test('Preview Edit textarea inherits preview height and opens at document start', () => {

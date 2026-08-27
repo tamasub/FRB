@@ -259,7 +259,7 @@ function createSubGridCellControl({ value, column, editable, field, multilineEdi
   } else if (multilineEditor) {
     // v0.18.105-subgrid-preview-multiline-enter:
     // SubGrid一覧は引き続き1行inputのままにするが、Preview Editの長文編集だけは
-    // 本物のtextareaを使う。Enter / Shift+Enter は改行、Ctrl/Cmd+Enter は反映。
+    // 本物のtextareaを使う。Enter / Shift+Enter は改行、Ctrl/Cmd+Enter はPreview内反映。F12はPreview内では無効。
     input = document.createElement('textarea');
     input.value = subGridCellText(value);
     const lineCount = String(input.value ?? '').split('\n').length;
@@ -643,8 +643,15 @@ function createDetailSubGridPreviewEditValue({ rowIndex, column, itemRow, field,
         cancel();
         return;
       }
-      if (e.key === 'F12' || ((e.ctrlKey || e.metaKey) && e.key === 'Enter')) {
+      if (e.key === 'F12') {
+        // Preview Edit内ではF12を使わない。親Detail側のF12にも伝播させない。
         e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        e.stopPropagation();
         commit();
       }
     });
