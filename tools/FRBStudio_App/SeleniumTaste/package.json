@@ -1,0 +1,17 @@
+{
+  "name": "frb-studio-selenium-taste",
+  "version": "0.1.0",
+  "private": true,
+  "description": "FRB Studio NativeShell / WebView2 Selenium E2E taste test",
+  "scripts": {
+    "check": "node --check selenium_taste.js",
+    "test": "node selenium_taste.js",
+    "start": "node selenium_taste.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "selenium-webdriver": "4.47.0"
+  }
+}

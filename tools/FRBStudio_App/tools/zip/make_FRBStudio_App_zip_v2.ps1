@@ -55,7 +55,8 @@ $excludePaths = @(
     "data\json\81_frb_OrgSample",
     "SeleniumTaste\bin",
     "SeleniumTaste\driver",
-    "SeleniumTaste\obj"
+    "SeleniumTaste\obj",
+    "SeleniumTaste\node_modules"
 )
 
 # èoóÕ ZIP ñº
