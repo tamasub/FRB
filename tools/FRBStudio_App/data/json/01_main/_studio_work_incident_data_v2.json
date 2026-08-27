@@ -156,7 +156,7 @@
           "history_id": "disc_0002_002",
           "at": "2026-06-21",
           "speaker": "user",
-          "message": "studio_work_incident_data_v0_2.json の v0.5-registry 作業を添付に基づいて依頼。事前に意識合わせすべき項目があれば確認。",
+          "message": "[SeleniumTaste test comment 00c]\n\nstudio_work_incident_data_v0_2.json の v0.5-registry 作業を添付に基づいて依頼。事前に意識合わせすべき項目があれば確認。\n[SeleniumTaste test comment 01]\n[SeleniumTaste test comment 02]\n\n",
           "topic": "v0.5-registry作業依頼"
         },
         {

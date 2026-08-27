@@ -50,6 +50,22 @@ async function readControlValue(control) {
   return control.getText();
 }
 
+function normalizeLineEndings(value) {
+  return String(value ?? '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+}
+
+function toSingleLineDisplay(value) {
+  return normalizeLineEndings(value).replace(/\n/g, ' ');
+}
+
+function lineEndingLabel(value) {
+  const text = String(value ?? '');
+  if (text.includes('\r\n')) return 'CRLF';
+  if (text.includes('\n')) return 'LF';
+  if (text.includes('\r')) return 'CR';
+  return 'NONE';
+}
+
 async function waitUntil(condition, timeoutMs = 5000, intervalMs = 100) {
   const started = Date.now();
 
@@ -187,6 +203,206 @@ async function main() {
     assertPass(reflected && titleAfter === value, 'title F12反映');
   }
 
+  async function findSubGridCard(fieldName) {
+    const detailDialog = await driver.findElement(By.id('detailDialog'));
+    return detailDialog.findElement(
+      By.css(`.detail-subgrid-edit[data-subgrid-field="${fieldName}"]`),
+    );
+  }
+
+  async function readSubGridCellValue(fieldName, rowIndex, columnName) {
+    const card = await findSubGridCard(fieldName);
+    const rows = await card.findElements(By.css('tbody tr'));
+
+    if (rows.length <= rowIndex) {
+      throw new Error(
+        `${fieldName} の行数不足: RequiredIndex=${rowIndex}, ActualRows=${rows.length}`,
+      );
+    }
+
+    const control = await rows[rowIndex].findElement(
+      By.css(`.detail-subgrid-cell-input[data-column="${columnName}"]`),
+    );
+    return readControlValue(control);
+  }
+
+
+  async function findSubGridPreviewFieldBox(fieldName, rowIndex, columnName) {
+    const card = await findSubGridCard(fieldName);
+    const header = await card.findElement(
+      By.css(`thead th[data-column="${columnName}"]`),
+    );
+    const columnCaption = (await header.getText()).trim();
+
+    const editButtons = await card.findElements(By.xpath(
+      ".//button[normalize-space()='プレビュー編集']",
+    ));
+    if (editButtons.length < 1) {
+      throw new Error(`${fieldName} のプレビュー編集ボタンが見つかりません`);
+    }
+
+    await editButtons[0].click();
+
+    const opened = await waitUntil(async () => {
+      const overlays = await driver.findElements(
+        By.css('dialog.detail-subgrid-card-editor-overlay[open]'),
+      );
+      return overlays.length > 0;
+    });
+    assertPass(opened, 'プレビュー編集 表示');
+
+    const overlay = await driver.findElement(
+      By.css('dialog.detail-subgrid-card-editor-overlay[open]'),
+    );
+    const cards = await overlay.findElements(
+      By.css('.detail-subgrid-card-editor-card'),
+    );
+
+    if (cards.length <= rowIndex) {
+      throw new Error(
+        `プレビュー編集 ${fieldName} の行数不足: RequiredIndex=${rowIndex}, ActualRows=${cards.length}`,
+      );
+    }
+
+    const fieldLines = await cards[rowIndex].findElements(
+      By.css('.detail-subgrid-card-editor-field'),
+    );
+
+    for (const line of fieldLines) {
+      const labels = await line.findElements(By.css('.detail-subgrid-preview-label'));
+      if (labels.length < 1) continue;
+      const label = (await labels[0].getText()).trim();
+      if (label === columnCaption || label === columnName) {
+        return line.findElement(
+          By.css('.detail-subgrid-card-preview-edit-value'),
+        );
+      }
+    }
+
+    throw new Error(
+      `プレビュー編集の列が見つかりません: ${fieldName}.${columnName} caption=${columnCaption}`,
+    );
+  }
+
+  async function openSubGridPreviewTextarea(fieldName, rowIndex, columnName) {
+    const box = await findSubGridPreviewFieldBox(fieldName, rowIndex, columnName);
+    await box.click();
+
+    const appeared = await waitUntil(async () => {
+      const editors = await driver.findElements(
+        By.css('dialog.detail-subgrid-card-editor-overlay[open] .detail-subgrid-card-preview-editor'),
+      );
+      return editors.length > 0;
+    });
+    assertPass(appeared, 'プレビュー編集 textarea表示');
+
+    const editor = await driver.findElement(
+      By.css('dialog.detail-subgrid-card-editor-overlay[open] .detail-subgrid-card-preview-editor'),
+    );
+    const tagName = String(await editor.getTagName()).toLowerCase();
+    assertPass(
+      tagName === 'textarea',
+      'プレビュー編集 textarea種別',
+      `Expected=textarea, Actual=${tagName}`,
+    );
+    return editor;
+  }
+
+  async function applyPreviewEditorToSubGridList() {
+    const overlay = await driver.findElement(
+      By.css('dialog.detail-subgrid-card-editor-overlay[open]'),
+    );
+    const applyButtons = await overlay.findElements(By.xpath(
+      ".//button[normalize-space()='一覧へ反映']",
+    ));
+    if (applyButtons.length < 1) {
+      throw new Error('プレビュー編集の「一覧へ反映」ボタンが見つかりません');
+    }
+
+    await applyButtons[0].click();
+    const closed = await waitUntil(async () => {
+      const overlays = await driver.findElements(
+        By.css('dialog.detail-subgrid-card-editor-overlay[open]'),
+      );
+      return overlays.length === 0;
+    });
+    assertPass(closed, 'プレビュー編集 一覧へ反映');
+  }
+
+  async function applySubGridWithF12(fieldName, rowIndex, columnName, label='サブグリッド F12反映') {
+    const card = await findSubGridCard(fieldName);
+    const rows = await card.findElements(By.css('tbody tr'));
+    if (rows.length <= rowIndex) {
+      throw new Error(
+        `${fieldName} の行数不足: RequiredIndex=${rowIndex}, ActualRows=${rows.length}`,
+      );
+    }
+
+    const control = await rows[rowIndex].findElement(
+      By.css(`.detail-subgrid-cell-input[data-column="${columnName}"]`),
+    );
+
+    await control.sendKeys(Key.F12);
+    console.log('サブグリッド一覧からF12を送信しました');
+
+    // E2Eでは内部propertyではなく、UI上の「未反映 -> 反映済み」契約だけを見る。
+    const committed = await waitUntil(async () => {
+      const refreshedCard = await findSubGridCard(fieldName);
+      const className = await refreshedCard.getAttribute('class');
+      return !String(className ?? '').includes('is-dirty');
+    });
+    assertPass(committed, label);
+  }
+
+  async function setSubGridCellAndApply(fieldName, rowIndex, columnName, value) {
+    const card = await findSubGridCard(fieldName);
+    const rows = await card.findElements(By.css('tbody tr'));
+    console.log(`${fieldName} 行数: ${rows.length}`);
+
+    if (rows.length <= rowIndex) {
+      throw new Error(
+        `${fieldName} の行数不足: RequiredIndex=${rowIndex}, ActualRows=${rows.length}`,
+      );
+    }
+
+    const control = await rows[rowIndex].findElement(
+      By.css(`.detail-subgrid-cell-input[data-column="${columnName}"]`),
+    );
+
+    await control.clear();
+    await control.sendKeys(value);
+
+    const draft = await readControlValue(control);
+    console.log(`${fieldName}[${rowIndex}].${columnName} UI入力後: ${draft}`);
+    assertPass(
+      draft === value,
+      'サブグリッド UI入力',
+      `Expected=${value}, Actual=${draft}`,
+    );
+
+    const dirtyClass = await card.getAttribute('class');
+    assertPass(
+      dirtyClass.includes('is-dirty'),
+      'サブグリッド 未反映状態',
+      dirtyClass,
+    );
+
+    await control.sendKeys(Key.F12);
+    console.log('サブグリッドからF12を送信しました');
+
+    const reflected = await waitUntil(async () => (
+      (await readSubGridCellValue(fieldName, rowIndex, columnName)) === value
+    ));
+
+    const after = await readSubGridCellValue(fieldName, rowIndex, columnName);
+    console.log(`${fieldName}[${rowIndex}].${columnName} F12反映後: ${after}`);
+    assertPass(
+      reflected && after === value,
+      'サブグリッド F12反映',
+      `Expected=${value}, Actual=${after}`,
+    );
+  }
+
   async function saveAndVerifyStatus(label) {
     await closeDetailDialog();
 
@@ -283,6 +499,226 @@ async function main() {
       `Expected=${titleBefore}, Actual=${titleRestored}`,
     );
 
+    console.log('基本項目 保存E2E: ALL PASS');
+
+    // STEP 7: objectArrayサブグリッドを直接編集し、F12 -> 保存 -> 再読込まで確認。
+    console.log('--- サブグリッドE2E: discussion_history[0].message ---');
+    const subGridField = 'discussion_history';
+    const subGridRowIndex = 0;
+    const subGridColumn = 'message';
+    const subGridMarker = ' [SubGridSeleniumTaste]';
+    const subGridBefore = await readSubGridCellValue(
+      subGridField,
+      subGridRowIndex,
+      subGridColumn,
+    );
+    const subGridExpected = subGridBefore + subGridMarker;
+    console.log(`サブグリッド 変更前: ${subGridBefore}`);
+
+    await setSubGridCellAndApply(
+      subGridField,
+      subGridRowIndex,
+      subGridColumn,
+      subGridExpected,
+    );
+
+    await saveAndVerifyStatus('サブグリッド変更値');
+
+    // STEP 8: 再読込後もobjectArray内の変更値が残っていることを確認。
+    await reloadCurrentData();
+    await openSecondRowAndVerifyWorkItem();
+    const subGridReloaded = await readSubGridCellValue(
+      subGridField,
+      subGridRowIndex,
+      subGridColumn,
+    );
+    console.log(`サブグリッド 再読込後: ${subGridReloaded}`);
+    assertPass(
+      subGridReloaded === subGridExpected,
+      'サブグリッド 保存・再読込',
+      `Expected=${subGridExpected}, Actual=${subGridReloaded}`,
+    );
+
+    // STEP 9: テスト痕跡を残さないようサブグリッドも元値へ戻す。
+    console.log('サブグリッド後始末: 元メッセージへ戻します');
+    await setSubGridCellAndApply(
+      subGridField,
+      subGridRowIndex,
+      subGridColumn,
+      subGridBefore,
+    );
+    await saveAndVerifyStatus('サブグリッド後始末');
+
+    // STEP 10: 最後に再読込し、サブグリッドの元値復元まで保証。
+    await reloadCurrentData();
+    await openSecondRowAndVerifyWorkItem();
+    const subGridRestored = await readSubGridCellValue(
+      subGridField,
+      subGridRowIndex,
+      subGridColumn,
+    );
+    console.log(`サブグリッド 後始末再読込後: ${subGridRestored}`);
+    assertPass(
+      subGridRestored === subGridBefore,
+      'サブグリッド 後始末',
+      `Expected=${subGridBefore}, Actual=${subGridRestored}`,
+    );
+
+    console.log('サブグリッド保存E2E: ALL PASS');
+
+    // STEP 11: Preview EditのtextareaでEnter改行を入力し、
+    // 一覧は1行表示、保存・再読込後のPreview原文は複数行保持、というUI契約を確認。
+    console.log('--- サブグリッド複数行E2E: Preview Edit / Enter改行保持 ---');
+    const multiLineMarker2 = '[SubGridMultiLineSeleniumTaste: Line 2]';
+    const multiLineMarker3 = '[SubGridMultiLineSeleniumTaste: Line 3]';
+
+    let previewTextarea = await openSubGridPreviewTextarea(
+      subGridField,
+      subGridRowIndex,
+      subGridColumn,
+    );
+    const previewInitialRaw = await readControlValue(previewTextarea);
+    const multiLineBefore = normalizeLineEndings(previewInitialRaw);
+    const multiLineExpected = `${multiLineBefore}\n${multiLineMarker2}\n${multiLineMarker3}`;
+    console.log(`複数行 変更前 (${lineEndingLabel(previewInitialRaw)}):\n${previewInitialRaw}`);
+    assertPass(
+      normalizeLineEndings(previewInitialRaw) === multiLineBefore,
+      'プレビュー編集 初期原文保持',
+    );
+
+    await previewTextarea.sendKeys(Key.chord(Key.CONTROL, 'a'));
+    await previewTextarea.sendKeys(multiLineBefore);
+    await previewTextarea.sendKeys(Key.ENTER);
+    await previewTextarea.sendKeys(multiLineMarker2);
+    await previewTextarea.sendKeys(Key.ENTER);
+    await previewTextarea.sendKeys(multiLineMarker3);
+
+    const multiLineDraftRaw = await readControlValue(previewTextarea);
+    const multiLineDraft = normalizeLineEndings(multiLineDraftRaw);
+    console.log(`プレビュー編集 複数行UI入力後 (${lineEndingLabel(multiLineDraftRaw)}):\n${multiLineDraftRaw}`);
+    assertPass(
+      multiLineDraft === multiLineExpected,
+      'プレビュー編集 Enter改行入力',
+      `Expected=${multiLineExpected}, Actual=${multiLineDraft}`,
+    );
+
+    // Preview Edit内F12はtextarea原文をPreview内部rowsへcommitする。
+    await previewTextarea.sendKeys(Key.F12);
+    console.log('プレビュー編集textareaからF12を送信しました');
+    const previewCommitted = await waitUntil(async () => {
+      const editors = await driver.findElements(
+        By.css('dialog.detail-subgrid-card-editor-overlay[open] .detail-subgrid-card-preview-editor'),
+      );
+      return editors.length === 0;
+    });
+    assertPass(previewCommitted, 'プレビュー編集 F12内部反映');
+
+    // Preview内部rows -> SubGrid一覧へ反映。
+    await applyPreviewEditorToSubGridList();
+
+    // 一覧はレビュー用の1行代表表示。Previewの複数行全文を一覧inputへ露出することは契約にしない。
+    // 実機では先頭1行だけが表示されるため、E2Eでは「改行なし + 先頭行一致」だけを保証する。
+    const listDisplayAfterApply = await readSubGridCellValue(
+      subGridField,
+      subGridRowIndex,
+      subGridColumn,
+    );
+    const firstLineExpected = normalizeLineEndings(multiLineExpected).split('\n')[0];
+    console.log(`一覧へ反映後 1行代表表示: ${listDisplayAfterApply}`);
+    assertPass(
+      !/[\r\n]/.test(listDisplayAfterApply)
+        && listDisplayAfterApply === firstLineExpected,
+      'プレビュー編集 一覧1行代表表示',
+      `Expected=${firstLineExpected}, Actual=${listDisplayAfterApply}`,
+    );
+
+    // SubGrid一覧 -> 親JSONへF12反映。内部propertyではなくUIの反映状態を確認する。
+    await applySubGridWithF12(
+      subGridField,
+      subGridRowIndex,
+      subGridColumn,
+      '複数行 親JSON F12反映',
+    );
+
+    await saveAndVerifyStatus('複数行変更値');
+
+    // STEP 12: 再読込後にPreview Editを開き、原文の3行が保持されていることを最終Expectedとする。
+    await reloadCurrentData();
+    await openSecondRowAndVerifyWorkItem();
+
+    previewTextarea = await openSubGridPreviewTextarea(
+      subGridField,
+      subGridRowIndex,
+      subGridColumn,
+    );
+    const previewReloadedRaw = await readControlValue(previewTextarea);
+    const previewReloaded = normalizeLineEndings(previewReloadedRaw);
+    console.log(`プレビュー編集 再読込後原文 (${lineEndingLabel(previewReloadedRaw)}):\n${previewReloadedRaw}`);
+    assertPass(
+      previewReloaded === multiLineExpected,
+      '複数行 保存・再読込 Preview原文保持',
+      `Expected=${multiLineExpected}, Actual=${previewReloaded}`,
+    );
+
+    // STEP 13: Preview Edit経由で元値へ復元し、再保存・再読込まで確認。
+    console.log('複数行後始末: Preview Editから元メッセージへ戻します');
+    await previewTextarea.sendKeys(Key.chord(Key.CONTROL, 'a'));
+    await previewTextarea.sendKeys(multiLineBefore);
+    const restoreDraftRaw = await readControlValue(previewTextarea);
+    const restoreDraft = normalizeLineEndings(restoreDraftRaw);
+    assertPass(
+      restoreDraft === multiLineBefore,
+      '複数行後始末 UI入力',
+      `Expected=${multiLineBefore}, Actual=${restoreDraft}`,
+    );
+
+    await previewTextarea.sendKeys(Key.F12);
+    const restorePreviewCommitted = await waitUntil(async () => {
+      const editors = await driver.findElements(
+        By.css('dialog.detail-subgrid-card-editor-overlay[open] .detail-subgrid-card-preview-editor'),
+      );
+      return editors.length === 0;
+    });
+    assertPass(restorePreviewCommitted, '複数行後始末 Preview F12');
+
+    await applyPreviewEditorToSubGridList();
+    const restoredListDisplay = await readSubGridCellValue(
+      subGridField,
+      subGridRowIndex,
+      subGridColumn,
+    );
+    assertPass(
+      !/[\r\n]/.test(restoredListDisplay)
+        && restoredListDisplay === toSingleLineDisplay(multiLineBefore),
+      '複数行後始末 一覧1行表示',
+      `Expected=${toSingleLineDisplay(multiLineBefore)}, Actual=${restoredListDisplay}`,
+    );
+
+    await applySubGridWithF12(
+      subGridField,
+      subGridRowIndex,
+      subGridColumn,
+      '複数行後始末 親JSON F12反映',
+    );
+    await saveAndVerifyStatus('複数行後始末');
+
+    await reloadCurrentData();
+    await openSecondRowAndVerifyWorkItem();
+    previewTextarea = await openSubGridPreviewTextarea(
+      subGridField,
+      subGridRowIndex,
+      subGridColumn,
+    );
+    const restoredPreviewRaw = await readControlValue(previewTextarea);
+    const restoredPreview = normalizeLineEndings(restoredPreviewRaw);
+    console.log(`複数行 後始末再読込後 (${lineEndingLabel(restoredPreviewRaw)}):\n${restoredPreviewRaw}`);
+    assertPass(
+      restoredPreview === multiLineBefore,
+      '複数行 後始末',
+      `Expected=${multiLineBefore}, Actual=${restoredPreview}`,
+    );
+
+    console.log('サブグリッド複数行保存E2E: ALL PASS');
     console.log('保存E2E: ALL PASS');
     console.log('画面確認中。Enterで終了します');
 
