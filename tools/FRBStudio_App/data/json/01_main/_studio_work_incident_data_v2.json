@@ -156,15 +156,15 @@
           "history_id": "disc_0002_002",
           "at": "2026-06-21",
           "speaker": "user",
-          "topic": "v0.5-registry作業依頼",
-          "message": "studio_work_incident_data_v0_2.json の v0.5-registry 作業を添付に基づいて依頼。事前に意識合わせすべき項目があれば確認。"
+          "message": "studio_work_incident_data_v0_2.json の v0.5-registry 作業を添付に基づいて依頼。事前に意識合わせすべき項目があれば確認。",
+          "topic": "v0.5-registry作業依頼"
         },
         {
           "history_id": "disc_0002_003",
           "at": "2026-06-21",
           "speaker": "assistant",
-          "topic": "v0.5-registry作業結果",
-          "message": "v0.5-registry は機能追加ではなく健康体化。Registry骨格を追加し、分岐を登録制に寄せた。v0.6-action-execute-button の実装はスコープ外として保持。"
+          "message": "v0.5-registry は機能追加ではなく健康体化。Registry骨格を追加し、分岐を登録制に寄せた。v0.6-action-execute-button の実装はスコープ外として保持。",
+          "topic": "v0.5-registry作業結果"
         }
       ],
       "decision_log": [
@@ -197,7 +197,10 @@
           "reason": "ステップ数削減より、追加・変更時に触る場所を明確にし、AIが迷子にならない健康体へ近づけるため。"
         }
       ],
-      "verification_status": "確認済み"
+      "verification_status": "確認済み",
+      "context_refs": [],
+      "context_def_status": "",
+      "context_def_updated_at": ""
     },
     {
       "work_item_id": "studio_work_0003",
