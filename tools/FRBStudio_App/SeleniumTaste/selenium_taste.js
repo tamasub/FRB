@@ -723,7 +723,18 @@ async function main() {
   }
 }
 
-main().catch((err) => {
+async function runEntryPoint() {
+  const responsibilityIndex = process.argv.indexOf('--responsibility');
+  if (responsibilityIndex >= 0) {
+    const responsibilityCd = process.argv[responsibilityIndex + 1] || 'data_update_persist';
+    const planOnly = process.argv.includes('--plan-only');
+    const { runResponsibilitySelenium } = require('./responsibility_selenium_runner');
+    return runResponsibilitySelenium({ responsibilityCd, planOnly });
+  }
+  return main();
+}
+
+runEntryPoint().catch((err) => {
   console.error(err);
   process.exitCode = 1;
 });

@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-28T23:30:00+09:00",
+  "updated_at": "2026-08-28T23:59:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 216,
+  "items_count": 218,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -32891,14 +32891,14 @@
       "category": "responsibility_definition_driven_test",
       "priority": "high",
       "status": "完了",
-      "follow_up_status": "PENDING",
-      "verification_status": "Service/静的確認済み / NativeShell実機確認待ち",
+      "follow_up_status": "COMPLETED",
+      "verification_status": "NativeShell実機確認済み",
       "context_def_status": "reviewed",
       "context_def_updated_at": "2026-08-28T23:30:00+09:00",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-28T23:30:00+09:00",
-      "updated_at": "2026-08-28T23:30:00+09:00",
+      "updated_at": "2026-08-28T23:55:00+09:00",
       "work_summary": "- Responsibility v0.2のtest_setup / test_pattern_definitionsからGenerated TestPattern / Expected Previewを機械導出する。\n- Test DATA → ViewDef → Field Definition → Validation Type Registryを辿り、編集可能かつ明示FieldDefを持つ対象Fieldを自動選択する。\n- DATA_UPDATE_PERSISTの6生成定義から6 TestPattern / 30 Mutationを導出し、JsonDiffExpectedDefとしてExpected Diff + Unexpected Diff Count=0を表示する。\n- Generated成果物はCanonical Responsibility JSONへ保存せずDerived readonly Componentとして初期CLOSE表示する。\n- Input承認状態がdraftでもPreviewは可能とし、approvedになるまではExecution Readyにしない。",
       "target_files": "- wwwroot/js/services/responsibility/responsibility_test_preview_service.js\n- wwwroot/js/components/responsibility/responsibility_test_preview_component.js\n- defs/qa/tests/responsibilities/responsibility_view_def_v0_2.json\n- wwwroot/index.html\n- tests/qa/static/responsibility_generated_test_preview_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
       "actual_updated_files": "- wwwroot/js/services/responsibility/responsibility_test_preview_service.js\n- wwwroot/js/components/responsibility/responsibility_test_preview_component.js\n- defs/qa/tests/responsibilities/responsibility_view_def_v0_2.json\n- wwwroot/index.html\n- tests/qa/static/responsibility_generated_test_preview_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
@@ -32915,8 +32915,8 @@
       "verification_log": "- `node --check` responsibility_test_preview_service.js = PASS。\n- `node --check` responsibility_test_preview_component.js = PASS。\n- 新規 `responsibility_generated_test_preview_static.test.mjs` = 4/4 PASS。\n- Fixture contract + Generated Preview + SubGrid collapse/component focused tests = 17/17 PASS。\n- 全Static Before（添付ZIP原本）: 322 tests / 310 PASS / 12 FAIL。\n- 全Static After: 326 tests / 317 PASS / 9 FAIL。\n- AfterのFAILはBefore既存FAIL集合の部分集合で、今回差分による新規FAILなし。既存Incident登録状態の更新により3件の旧FAILが解消。\n- NativeShell実機でのPreview表示・展開操作はPENDING。",
       "user_request": "Generated TestPattern / Expected Preview よろしくお願いします！！インシデント登録もお願いねっ。",
       "ai_response": "Responsibility v0.2の生成定義をCanonicalとして、DATA / ViewDef / FieldDef / Validation Typeから変更対象・DIFFERENT_VALID値・JsonDiffExpectedDefを機械導出するServiceとDerived Preview Componentを追加する。生成物は保存せず初期CLOSE表示とし、InputがdraftでもPreview可能、approvedのみExecution Readyとする。あわせてIncidentへ判断・変更・検証内容を登録する。",
-      "latest_user_comment": "Generated TestPattern / Expected Preview よろしくお願いします！！インシデント登録もお願いねっ。",
-      "latest_ai_response": "Responsibility Generated TestPattern / Expected Previewを実装。DATA_UPDATE_PERSISTの6生成定義から6 Pattern / 30 Mutationを機械導出し、Expected Diff + Unexpected Diff Count=0をDerived readonly Previewへ表示する。生成結果はCanonical JSONへ保存せず、初期CLOSEとする。",
+      "latest_user_comment": "Generated TestPattern / Expected PreviewをNativeShellで展開し、6件表示を実機確認。Viewは横長で見づらいが、表示改善は後回しにして生成ロジック→Selenium Runner連携へ進む。",
+      "latest_ai_response": "NativeShell実機で6件Preview表示を確認済みとして、View改善は別課題へ分離し、Generated TestPatternをSelenium実行計画へ渡すBridgeへ進む。",
       "context_refs": [
         {
           "context_ref_id": "ctx_0228_foundation_019",
@@ -32937,11 +32937,11 @@
           "action_id": "follow_0228_native_responsibility_preview_verify",
           "action_type": "VERIFICATION",
           "required": true,
-          "status": "NOT_STARTED",
+          "status": "COMPLETED",
           "related_ids": [
             "studio_work_0228"
           ],
-          "note": "Windows NativeShellでresponsibility_data_v0_2.jsonを開き、data_update_persist DetailのGenerated TestPattern / Expected Previewが初期CLOSEで表示されること、展開時に6 PatternとExpected Diff / Unexpected Diff Count=0が見えることを確認する。",
+          "note": "2026-08-28 User screenshotでNativeShell実機表示を確認。6件Previewが展開され、Responsibility VerificationもREADY。横長表示のUX改善は別課題として保留。",
           "summary": "Responsibility Generated PreviewをNativeShell実機確認"
         }
       ],
@@ -32959,6 +32959,13 @@
           "speaker": "assistant",
           "topic": "責務定義駆動Preview実装",
           "message": "責務JSONを正本として、Test DATA / ViewDef / Field Definition / Validation TypeからDATA_UPDATE_PERSISTのGenerated TestPatternとJsonDiffExpectedDefを機械導出するService + Derived Componentを追加。6 Pattern / 30 Mutationを導出し、Generated成果物はJSONへ保存せず初期CLOSE Previewとして表示する。"
+        },
+        {
+          "history_id": "disc_0228_003",
+          "at": "2026-08-28T23:55:00+09:00",
+          "speaker": "user",
+          "topic": "NativeShell実機確認",
+          "message": "Generated TestPattern / Expected Previewを実機表示。6件生成されていることを確認。表示は気持ちよくないがViewの話なので後回しにする。"
         }
       ],
       "decision_log": [
@@ -33011,6 +33018,299 @@
           "before": "DIFFERENT_VALID / MULTILINE_DIFFERENT_VALIDは定義上の名称だけで、具体値生成と契約検証がなかった。",
           "after": "string/number/boolean/date/datetime/instant/multilineの決定論的変更値を生成し、DefinitionValueValidatorでACCEPT確認する。文字列は共通Token TESTを右端へ反映する。",
           "reason": "保存責務のテスト値をValidation違反にせず、元値とは異なる正常値として機械生成するため。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0229",
+      "phase": "v0.18.110-responsibility-selenium-runner-bridge",
+      "title": "Responsibility Generated TestPattern → Selenium Execution Plan / DATA_UPDATE_PERSIST Runner Bridge",
+      "incident_type": "test_automation",
+      "category": "responsibility_definition_driven_test",
+      "priority": "high",
+      "status": "確認中",
+      "follow_up_status": "IN_PROGRESS",
+      "verification_status": "NativeShell E2E再確認待ち（RELOAD後Stale対策済み）",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-28T23:55:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-28T23:55:00+09:00",
+      "updated_at": "2026-08-28T23:59:00+09:00",
+      "work_summary": "- Responsibility v0.2のCanonical定義から、Studio Previewと同じ生成Serviceを再利用してSelenium Execution Planを機械導出する。\n- 6 Generated TestPattern / 30 Mutationを1つのDOCUMENT Lifecycleへ束ね、LOAD_ONCE → SAVE_ONCE → RELOAD_ONCEで実行する設計にする。\n- measurement_sessionsはMain Grid、acceptance_thresholdsはRelated GridとしてUIターゲットを機械解決する。\n- 承認済みInputを直接書き換えずWorking Copyへ複製して実行し、終了後削除する。\n- JsonDiffExpectedDefとして再読込UI値と物理JSONを確認し、Expected DiffとUnexpected Diff Count=0を保証する。\n- Input承認状態draftの間は実行をHard Blockし、Plan Previewだけ可能とする。",
+      "target_files": "- SeleniumTaste/responsibility_test_plan.js\n- SeleniumTaste/responsibility_selenium_runner.js\n- SeleniumTaste/selenium_taste.js\n- SeleniumTaste/package.json\n- data/json/03_tests/responsibilities/responsibility_data_v0_2.json\n- defs/qa/tests/responsibilities/responsibility_view_def_v0_2.json\n- tests/qa/static/responsibility_selenium_plan_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- SeleniumTaste/responsibility_selenium_runner.js\n- tests/qa/static/responsibility_selenium_plan_static.test.mjs\n- data/json/03_tests/responsibilities/responsibility_data_v0_2.json\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "Responsibility JSONをCanonicalとしてGenerated TestPatternをVirtual生成し、その生成結果をSelenium Execution Planへ直接変換する。人間承認済みTest InputだけをWorking Copyへ複製してUI操作し、LOAD/SAVE/RELOADはDocument単位で各1回に集約する。ExpectedはJsonDiffExpectedDef（Expected Diff + Unexpected Diff Count=0）として、再読込UIと物理JSONの両方から外部観測する。",
+      "objective": "Generated TestPattern / Expected Previewを、人間確認用Previewで終わらせず、同じ生成結果をSelenium Runnerがそのまま実行可能なExecution Planへ接続する。",
+      "background": "Responsibility v0.2から6 Pattern / 30 MutationのPreview生成まで成立し、NativeShell実機表示も確認できた。次段階ではTestPatternを手書きSeleniumコードへ再転記せず、Canonical責務定義から生成した内容をRunnerへ直接渡す必要がある。また承認済みInputを直接破壊せず、1 Document Lifecycle内で複数変更をまとめてSAVE/RELOADする契約を守る必要がある。",
+      "scope": "- ResponsibilityTestPreviewServiceと同じ生成ロジックをNode側で利用しExecution Planを導出する。\n- 6 Pattern / 30 MutationをConflict検査して1つのExpected Documentへ適用する。\n- Main Grid / Related GridをViewDefから解決する。\n- Main Gridの先頭/最終RowをDetail Editorで変更しF12反映する。\n- Related Gridはmodal iframeへ入り、先頭/最終Rowを変更後「親画面へ反映」する。\n- Main/Relatedの変更をまとめてSAVE_ONCEし、RELOAD_ONCE後に全MutationのUI値を確認する。\n- 保存後Working JSONをExpected Documentと比較しUnexpected Diff Count=0を確認する。\n- COPY_BEFORE_EXECUTION / DELETE_AFTER_EXECUTIONをtest_setupへ定義する。\n- input_approval_status=approved以外ではNativeShell起動前に実行を停止する。",
+      "out_of_scope": "- Input承認状態を自動でapprovedへ変更すること。\n- Generated Previewの横長Grid表示改善。\n- CREATE / DELETE責務のRunner対応。\n- SECONDARY_GRID等、Main/Related以外のUIターゲット対応。\n- 実Windows環境でのNativeShell E2E実行（Input承認後に実施）。\n- 既存selenium_taste.js手書きTaste Testの削除。",
+      "fixed_name_policy": "title等のData項目名をRunnerへ固定しない。Execution Planのmutations[].field / actual_pathとViewDefから解決したui_targetを使用する。Main/RelatedのUI骨格selector（dataGrid/detailDialog/related-grid-*）はStudio Runtime契約として扱う。",
+      "module_policy": "責務定義→Generated Plan変換をresponsibility_test_plan.js、WebDriver UI実行をresponsibility_selenium_runner.jsへ分離する。selenium_taste.jsは既存Taste Testを維持しつつ--responsibility指定時だけ新Runnerへ委譲する。",
+      "expected_outputs": "- `npm run test:responsibility:plan` でNativeShellなしに6 Pattern / 30 MutationのExecution Plan要約を確認できる。\n- draft InputではExecution Ready=NOとなり、実RunnerはNativeShell起動前に停止する。\n- approved InputではWorking Copyを作成してMain/Related GridへGenerated Mutationを適用できる。\n- SAVE/RELOAD後にUI値を再確認できる。\n- 物理JSONとExpected Documentの差分が0で、Expected変更Pathが30件一致する。\n- Working Copyは終了後削除され、承認済みInputは不変である。",
+      "risk": "Related Gridはiframe + postMessageで親Dataへ反映するため、実Windows環境でタイミング差が出る可能性がある。入力値型によってDetail ControlのDOM表現が異なるため、将来radio/custom control等が追加された場合はUI Adapter追加が必要。現在Inputはdraftのため、実E2E未実行の段階でRunner実装完了とE2E保証を混同しない。",
+      "test_points": "- Execution Planが6 Pattern / 30 Mutationを保持すること。\n- 30 Mutation pathが重複しないこと。\n- Main Grid 4 Pattern / Related Grid 2 Patternへ解決されること。\n- Expected DocumentがBaselineから30差分になること。\n- draft InputでExecution Gateがthrowすること。\n- Working Copy / Cleanup / Runner設定がResponsibility test_setupに保持されること。\n- Generated Execution PlanはCanonical Responsibility JSONへ保存されないこと。\n- npm既存testは変更せず、新しいplan/run scriptを追加すること。",
+      "verification_log": "- `node --check SeleniumTaste/responsibility_test_plan.js` = PASS。\n- `node --check SeleniumTaste/responsibility_selenium_runner.js` = PASS。\n- `node --check SeleniumTaste/selenium_taste.js` = PASS。\n- `responsibility_selenium_plan_static.test.mjs` = 4/4 PASS。\n- Fixture Contract + Generated Preview + Selenium Plan focused tests = 12/12 PASS。\n- `npm run test:responsibility:plan` = PASS、6 Pattern / 30 Mutation / Invalid 0 / Execution Ready NO(draft) を確認。\n- NativeShell E2EはInput承認後にPENDING。\n- 全Static Before（添付ZIP原本）: 326 tests / 317 PASS / 9 FAIL。\n- 全Static After: 330 tests / 321 PASS / 9 FAIL。\n- FAIL 9件はBefore/After同一の既存FAIL集合で、今回差分による新規FAILなし。\n- 2026-08-28 NativeShell実機E2E: 30 Mutation入力 / Main・Related F12 / SAVE_ONCE / RELOAD_ONCEまでPASS。RELOAD後の最初のverifyDetailRow→openGridRowでStaleElementReferenceErrorを観測。\n- 原因: RELOAD後のGrid再描画完了前後でtbody/row DOMが差し替わり、取得済みWebElementがstale化する競合。\n- 対策: waitForGridStable追加、openGridRowで毎attempt rowを再取得しStaleElementReferenceError / NoSuchElementError時に再待機・再試行。\n- 失敗時Working Copyは削除せず保持し、ALL PASS時だけDELETE_AFTER_EXECUTIONを実施するよう変更。\n- `node --check SeleniumTaste/responsibility_selenium_runner.js` = PASS。\n- `node --test tests/qa/static/responsibility_selenium_plan_static.test.mjs` = 5/5 PASS。\n- Windows NativeShellでの再E2E実行はPENDING。\n- Focused: Fixture Contract + Generated Preview + Selenium Plan = 14/14 PASS。\n- 全Static Before（ユーザー添付FRBStudio_App20260828_234705.zip）: 330 tests / 318 PASS / 12 FAIL。\n- 全Static After: 332 tests / 323 PASS / 9 FAIL。\n- Beforeで今回領域に残っていた3 FAIL（approved状態なのにdraft固定を期待するPreview/Plan test、Working Copy設定のCanonical不足）は解消。After 9 FAILはBefore既存の無関係FAIL集合。今回差分による新規FAILなし。",
+      "user_request": "では、お願します。",
+      "ai_response": "Generated TestPatternをStudio Previewと同じServiceからSelenium Execution Planへ変換するBridgeを追加し、Document単位LOAD/SAVE/RELOAD、Working Copy、Main/Related Grid操作、JsonDiffExpectedDef検証、Input承認Hard Gateまで実装する。",
+      "latest_user_comment": "stale retry後はRELOAD後のUI確認まで全Mutation PASSしたが、JsonDiffExpectedDef / Unexpected Diff Countでanalysis_start_date / analysis_end_dateがundefined→空文字として追加されFAILした。",
+      "latest_ai_response": "Selenium Runnerの誤検知ではなく、ViewDefに存在するがDataに存在しないoptional header fieldがSAVE時に空文字としてmaterializeされるStudio本体の非破壊違反を検出。別インシデントstudio_work_0230へ切り出してSparse JSON preservationを修正。",
+      "context_refs": [],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0229_approve_fixture_and_native_e2e",
+          "action_type": "VERIFICATION",
+          "required": true,
+          "status": "IN_PROGRESS",
+          "related_ids": [
+            "studio_work_0229",
+            "data_update_persist_setup_001"
+          ],
+          "note": "Inputはapproved済み。初回NativeShell E2EはSAVE/RELOADまでPASS後、RELOAD直後のrow staleで停止。Grid安定待ち・row再取得リトライ・失敗時Working Copy保持を追加したため、再実行してUI Reload確認とJsonDiffExpectedDef=0まで到達することを確認する。",
+          "summary": "Responsibility Selenium E2EをStale対策後に再実行"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "disc_0229_001",
+          "at": "2026-08-28T23:55:00+09:00",
+          "speaker": "user",
+          "topic": "Generated TestPattern→Runner連携",
+          "message": "では、お願します。"
+        },
+        {
+          "history_id": "disc_0229_002",
+          "at": "2026-08-28T23:55:00+09:00",
+          "speaker": "assistant",
+          "topic": "Selenium Execution Plan Bridge",
+          "message": "Responsibility v0.2から同じGenerated TestPatternをNode側Execution Planへ導出し、approved InputだけをWorking CopyでLOAD/SAVE/RELOADするSelenium Runner Bridgeへ接続する。"
+        },
+        {
+          "history_id": "disc_0229_003",
+          "at": "2026-08-28T23:52:00+09:00",
+          "speaker": "user",
+          "topic": "NativeShell E2E初回実行 / Stale発生",
+          "message": "approved Inputで `npm run test:responsibility` を実行。30 Mutation入力、F12、Related Grid、SAVE_ONCE、RELOAD_ONCEまではPASSしたが、RELOAD後のMain Grid再確認でStaleElementReferenceErrorが発生した。"
+        },
+        {
+          "history_id": "disc_0229_004",
+          "at": "2026-08-28T23:52:00+09:00",
+          "speaker": "assistant",
+          "topic": "RELOAD後DOM再取得対策",
+          "message": "責務生成・SAVE/RELOAD本体ではなく、RELOAD後に差し替わったGrid rowを古いWebElementで操作したことが原因と判断。Grid安定待ち、row再取得、Stale/NoSuchElement時リトライを追加し、失敗時Working Copyを保持する。"
+        },
+        {
+          "history_id": "disc_0229_012",
+          "at": "2026-08-28T23:59:00+09:00",
+          "speaker": "user",
+          "topic": "E2E再実行結果",
+          "message": "RELOAD後のMain/Related UI確認はすべてPASS。最後のUnexpected Diff Countで$.analysis_start_date / $.analysis_end_dateが expected=undefined actual=\"\" となってFAIL。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0229_001",
+          "at": "2026-08-28T23:55:00+09:00",
+          "decision": "Generated TestPatternを別JSONへ保存せず、ResponsibilityTestPreviewServiceと同じCanonical定義からSelenium Execution Planを実行時生成する。",
+          "reason": "Preview用生成物とRunner用生成物の二重正本化を避けるため。"
+        },
+        {
+          "decision_id": "dec_0229_002",
+          "at": "2026-08-28T23:55:00+09:00",
+          "decision": "6 TestPattern / 30 Mutationを1 Document Lifecycleへ集約し、LOAD_ONCE / SAVE_ONCE / RELOAD_ONCEで実行する。",
+          "reason": "項目ごとにJSONロード・保存を繰り返さず、責務粒度と実行Lifecycleを一致させるため。"
+        },
+        {
+          "decision_id": "dec_0229_003",
+          "at": "2026-08-28T23:55:00+09:00",
+          "decision": "承認済みTest Inputを直接書き換えずCOPY_BEFORE_EXECUTIONのWorking Copyだけを保存対象にする。",
+          "reason": "人間承認した基準Inputを不変に保ち、E2Eのテスト痕跡を正本へ残さないため。"
+        },
+        {
+          "decision_id": "dec_0229_004",
+          "at": "2026-08-28T23:55:00+09:00",
+          "decision": "input_approval_status=approvedをNativeShell実行のHard Gateとし、draftではPlan生成だけ許可する。",
+          "reason": "入力ファイルを人間確認せず実テスト投入する論理を許容しないため。"
+        },
+        {
+          "decision_id": "dec_0229_005",
+          "at": "2026-08-28T23:55:00+09:00",
+          "decision": "JsonDiffExpectedDefは再読込UI値確認に加えてWorking JSON全体とExpected Documentを比較し、Unexpected Diff Count=0を検証する。",
+          "reason": "変更対象だけでなく変更対象外の非破壊も責務境界外から観測するため。"
+        },
+        {
+          "decision_id": "dec_0229_006",
+          "at": "2026-08-28T23:52:00+09:00",
+          "decision": "RELOADやGrid再描画後のSelenium操作では取得済みrow WebElementを再利用せず、操作直前にDOMから再取得する。",
+          "reason": "WebView2再描画でtbody/rowが差し替わるとWebElementがstale化するため。責務のActual観測をDOM寿命に依存させない。"
+        },
+        {
+          "decision_id": "dec_0229_007",
+          "at": "2026-08-28T23:52:00+09:00",
+          "decision": "DELETE_AFTER_EXECUTIONはE2E ALL PASS時だけ実施し、失敗時のWorking Copyは原因分析用に保持する。",
+          "reason": "失敗時に物理JSON Actualを消すと、JsonDiffExpectedDefや保存状態を後から追跡できなくなるため。"
+        },
+        {
+          "decision_id": "dec_0229_008",
+          "at": "2026-08-28T23:59:00+09:00",
+          "decision": "Unexpected Diff Countで検出した変更対象外差分はRunner側で無視せず、Studio本体の保存非破壊違反として扱う。",
+          "reason": "JsonDiffExpectedDefの目的は指定変更以外が発生していないことを保証するためであり、undefined→空文字の自動materializeを許容すると責務保証を弱めるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0229_001",
+          "at": "2026-08-28T23:55:00+09:00",
+          "change_type": "selenium_execution_plan_bridge",
+          "before": "Generated TestPattern / ExpectedはStudio画面のDerived Previewまでで、Selenium側は手書き固定Testだった。",
+          "after": "responsibility_test_plan.jsで同じ生成Serviceを再利用し、Generated Pattern/Mutation/UI Target/Expected DocumentをExecution Planへ変換する。",
+          "reason": "責務定義をSeleniumテスト実行の正本にするため。"
+        },
+        {
+          "history_id": "chg_0229_002",
+          "at": "2026-08-28T23:55:00+09:00",
+          "change_type": "responsibility_selenium_runner",
+          "before": "selenium_taste.jsはstudio_work_incident_data_v2.jsonの固定項目・固定SubGridを手書き操作していた。",
+          "after": "responsibility_selenium_runner.jsを追加し、Execution Planのfield/path/row/ui_targetからMain Grid / Related Gridを汎用操作する。",
+          "reason": "項目名・TestPatternをSeleniumコードへ再記述しないため。"
+        },
+        {
+          "history_id": "chg_0229_003",
+          "at": "2026-08-28T23:55:00+09:00",
+          "change_type": "working_copy_execution_contract",
+          "before": "Test Inputの実行時コピー・後始末方針がCanonical責務定義に存在しなかった。",
+          "after": "working_copy_policy / working_copy_directory / cleanup_policy / runner_typeをtest_setupへ追加しViewDefから編集可能にした。",
+          "reason": "承認済みInputの不変性と実行環境契約を責務JSONで一元管理するため。"
+        },
+        {
+          "history_id": "chg_0229_004",
+          "at": "2026-08-28T23:52:00+09:00",
+          "change_type": "selenium_redraw_stability",
+          "before": "openGridRowはfindElementsで取得したrowを1回だけ保持し、そのWebElementへdoubleClickしていた。RELOAD直後のDOM差し替え競合でStaleElementReferenceErrorとなった。",
+          "after": "waitForGridStableで行数+行テキストの連続安定を待ち、openGridRowは各attemptでrowを再取得する。StaleElementReferenceError / NoSuchElementErrorは再待機後に最大4回リトライする。",
+          "reason": "RELOAD後Actual確認をWebView2の一時的な再描画タイミングから切り離すため。"
+        },
+        {
+          "history_id": "chg_0229_005",
+          "at": "2026-08-28T23:52:00+09:00",
+          "change_type": "failure_artifact_preservation",
+          "before": "finallyで成否に関係なくWorking CopyをDELETE_AFTER_EXECUTIONしていた。",
+          "after": "executionCompleted=trueになったALL PASS時だけWorking Copyを削除し、失敗時はパスをログ出力して保持する。",
+          "reason": "SAVE/RELOAD後に失敗した場合でも物理JSON Actualを調査可能にするため。"
+        }
+      ],
+      "failure_stories": [
+        {
+          "failure_id": "failure_0229_001",
+          "at": "2026-08-28T23:52:00+09:00",
+          "failure_owner": "AI",
+          "summary": "SAVE/RELOADまで通ったのに、最後の再確認で古いGrid rowを掴んでStaleElementReferenceError（笑）",
+          "what_went_wrong": "waitForMainGridは「1行以上見えた」時点で戻っており、その直後もGrid再描画でrow DOMが差し替わる可能性を考慮していなかった。openGridRowも取得済みrowをそのままdoubleClickしていた。さらに失敗時にもWorking Copyを消していたため、せっかく保存されたActual JSONの調査材料も失う設計だった。",
+          "excuse": "Generated 30 MutationがSAVE_ONCE / RELOAD_ONCEまで一発で通ったのが嬉しくて、最後の「観測する側のSeleniumも揺れる」という当たり前を忘れていました（笑）",
+          "failure_admission": "ADMITTED",
+          "article_hook": "責務の成果物は観測可能にしようと決めた直後、観測装置のSelenium自身がstaleになった。責務より先に観測者を安定させろ、というオチ（笑）"
+        },
+        {
+          "failure_id": "failure_0229_002",
+          "at": "2026-08-28T23:59:00+09:00",
+          "failure_owner": "APP",
+          "summary": "Seleniumは最後まで観測できた。今度はStudioくん自身が、触ってない空欄をJSONへ勝手に生やしてJsonDiffExpectedDefに捕まった（笑）",
+          "what_went_wrong": "ViewDefにはanalysis_start_date / analysis_end_dateが存在するが基準Data JSONにはキーが存在しない。header UIでは空欄として描画され、SAVE時のapplyHeaderEditsが全editable controlを無条件setByPathしたため、未操作でも空文字キーが新規追加された。",
+          "excuse": "画面に空欄があるなら空文字で保存しても同じようなもの、という昔ながらのUI都合が、Expected Diff文化には通用しませんでした（笑）",
+          "failure_admission": "ADMITTED",
+          "article_hook": "「Unexpected Diff Count=0」を本気で入れた瞬間、今まで気づかなかった“空欄を勝手に保存する”癖がバグとして可視化された。テストが仕様を作り始めた瞬間。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0230",
+      "phase": "v0.18.110-sparse-json-preserve-on-save",
+      "title": "Sparse JSON保存非破壊 — 未設定Optional Fieldの空文字materialize防止",
+      "incident_type": "bugfix",
+      "category": "save_integrity",
+      "priority": "high",
+      "status": "確認中",
+      "follow_up_status": "UNASSESSED",
+      "verification_status": "Static確認済み / NativeShell再確認待ち",
+      "context_def_status": "",
+      "context_def_updated_at": "",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-28",
+      "updated_at": "2026-08-28T23:59:00+09:00",
+      "work_summary": "- DATA_UPDATE_PERSIST E2EのJsonDiffExpectedDefが、変更対象外のanalysis_start_date / analysis_end_dateにundefined→空文字の差分を検出。\n- ViewDefに存在するがData JSONに存在しないoptional fieldを、未操作の空UI値だけを理由にSAVE時へ新規追加しないSparse JSON preservationを導入。\n- Header保存と既存Detail保存の両方へ同じ非破壊ルールを適用。\n- 明示的に既存する空文字フィールドは保持し、欠落フィールドへ非空値を入力した場合は従来どおり追加可能とする。",
+      "target_files": "wwwroot/js/core/data_utils.js\nwwwroot/js/runtime/detail_save.js\nwwwroot/js/renderers/grid_detail.js\ntests/qa/static/sparse_json_save_preservation_static.test.mjs\ndata/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "wwwroot/js/core/data_utils.js\nwwwroot/js/runtime/detail_save.js\nwwwroot/js/renderers/grid_detail.js\ntests/qa/static/sparse_json_save_preservation_static.test.mjs\ndata/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "JSON Dataの欠落（property absent）と明示空値（property exists with empty string/null等）は同一状態として潰さない。既存Dataを編集保存する責務では、ViewDef由来の未設定optional controlが空欄であるだけならpropertyを新規materializeせず、入力Dataの疎性を保持する。",
+      "objective": "変更対象外のData構造をSAVE操作が勝手に変えないことを保証し、JsonDiffExpectedDefのUnexpected Diff Count=0を成立させる。",
+      "background": "DATA_UPDATE_PERSIST E2Eで30 MutationのSAVE/RELOAD/UI確認は全PASSしたが、物理JSON比較で$.analysis_start_date / $.analysis_end_dateがexpected=undefined actual=\"\"として検出された。両FieldはViewDef/FieldDefには存在するが基準Data JSONには存在せず、Header UIの空欄がSAVE時に無条件setByPathされていた。",
+      "scope": "- Dataにpropertyが存在しない\n- 対応する編集Controlのraw valueがblank\n- 既存Data編集モード\nの条件ではsetByPathを行わない。HeaderとDetailの通常editable fieldへ適用する。",
+      "out_of_scope": "- 新規登録時のdefault/空値materialize方針変更\n- 既存propertyとして明示されている空文字/nullの削除\n- SubGrid child arrayの保存方式変更\n- Validation契約そのものの変更",
+      "fixed_name_policy": "特定Field名analysis_start_date / analysis_end_dateで例外処理せず、path存在有無とraw control valueだけで汎用判定する。",
+      "module_policy": "既存script構成を維持。共通判定はdata_utils.jsへ置き、Header/Detailから再利用する。",
+      "expected_outputs": "- 未設定optional Fieldを触らずSAVEしてもproperty absentのまま。\n- 既存の明示空文字propertyは保存後もpropertyとして存在。\n- 欠落Fieldへ非空値を入力した場合はpropertyを追加可能。\n- DATA_UPDATE_PERSIST再実行時にUnexpected Diff Count=0へ到達する。",
+      "risk": "欠落Fieldへ意図的に「明示空文字を新規設定したい」という操作は既存編集モードでは欠落維持として扱われる。必要になれば将来、明示materialize操作を別契約として設計する。",
+      "test_points": "- hasOwnByPathがproperty absent/presentを区別する。\n- absent + blankはshouldSkipAbsentBlankWrite=true。\n- absent + nonblankはfalse。\n- present + blankはfalse。\n- applyHeaderEdits / applyDetailInputsToRowが共通guardを使用する。\n- 既存new row処理は従来挙動を維持する。\n- npm run test:responsibilityでUnexpected Diff Count=0を実機確認する。",
+      "verification_log": "Focused Static: 8/8 PASS。全Static: 335 tests / 326 PASS / 9 FAIL。残り9 FAILは本改修外の既存別件。NativeShell E2Eはユーザー環境で再確認待ち。",
+      "user_request": "DATA_UPDATE_PERSIST E2Eが最後のJsonDiffExpectedDefでundefined→空文字のUnexpected DiffによりFAIL。修正継続。",
+      "ai_response": "原因をStudio本体のSparse JSON非破壊違反と特定。Runnerで無視せず、未設定optional fieldのblank自動materializeをHeader/Detail共通で抑止する。",
+      "latest_user_comment": "$.analysis_start_date / $.analysis_end_date: expected=undefined actual=\"\" によりUnexpected Diff Count FAIL。",
+      "latest_ai_response": "Sparse JSON preservationを実装。再度npm run test:responsibilityで実機確認を依頼する。",
+      "context_refs": [
+        "studio_work_0229",
+        "decision_axis_responsibility_observability"
+      ],
+      "follow_up_actions": [],
+      "discussion_history": [
+        {
+          "history_id": "disc_0230_001",
+          "at": "2026-08-28T23:59:00+09:00",
+          "speaker": "user",
+          "topic": "不具合報告",
+          "message": "DATA_UPDATE_PERSISTはSAVE/RELOAD/UI確認までPASSしたが、Unexpected Diff Countでanalysis_start_date / analysis_end_dateがundefined→空文字として追加されFAILした。"
+        },
+        {
+          "history_id": "disc_0230_002",
+          "at": "2026-08-28T23:59:00+09:00",
+          "speaker": "assistant",
+          "topic": "原因分析",
+          "message": "ViewDefだけに存在するoptional header fieldをapplyHeaderEditsが未操作でもsetByPathしているため、Sparse JSONへ空文字propertyが勝手に追加されている。JsonDiffExpectedDefの検出は正しい。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0230_001",
+          "at": "2026-08-28T23:59:00+09:00",
+          "decision": "property absentと明示空文字は同一視せず、既存JSONの疎性を保存時に維持する。",
+          "reason": "変更対象外の非破壊とUnexpected Diff Count=0を保証するため。"
+        },
+        {
+          "decision_id": "dec_0230_002",
+          "at": "2026-08-28T23:59:00+09:00",
+          "decision": "absent + blank controlだけをskipし、absent + nonblankおよびpresent + blankは従来どおり保存対象とする。",
+          "reason": "欠落Dataの勝手なmaterializeだけを止め、明示値の編集能力を維持するため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0230_001",
+          "at": "2026-08-28T23:59:00+09:00",
+          "change_type": "sparse_json_preservation",
+          "before": "Header/Detailのeditable controlをSAVE/F12時に無条件setByPathし、Dataに存在しないFieldも空文字/false/nullとしてmaterializeし得た。",
+          "after": "hasOwnByPath / shouldSkipAbsentBlankWriteを共通化し、既存Dataでproperty absentかつraw control blankなら書き戻しをskipする。",
+          "reason": "変更対象外Dataの非破壊保証を成立させるため。"
+        }
+      ],
+      "failure_stories": [
+        {
+          "failure_id": "failure_0230_001",
+          "at": "2026-08-28T23:59:00+09:00",
+          "failure_owner": "APP",
+          "summary": "30項目をちゃんと保存できたのに、触ってない2項目まで「空です！」と律儀にJSONへ書いて落ちた（笑）",
+          "what_went_wrong": "ViewDef上の編集欄とData JSONのproperty存在を区別せず、画面に見えているControlは全部保存対象としていた。",
+          "excuse": "UI的には空欄もundefinedも同じ顔をしていたので、JSON世界の「存在しない」と「空で存在する」の差を雑に潰していました（笑）",
+          "failure_admission": "ADMITTED",
+          "article_hook": "Expected Diffを厳密にしたら、UIでは見えない「存在しない」と「空文字」の違いが突然品質問題になった。差分が仕様を発見した実例。"
         }
       ]
     }

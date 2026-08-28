@@ -1131,7 +1131,12 @@ function applyDetailInputsToRow(row, options={}) {
       seenRadio.add(radioKey);
     }
 
-    setByPath(row, field.field, convertValue(field.type, getControlValue(inp)));
+    const rawValue = getControlValue(inp);
+    // Existing sparse Data must stay sparse when an optional ViewDef field was absent
+    // and the user left its generated blank control untouched. New-row creation keeps
+    // the previous materialization behavior.
+    if (detailMode !== 'new' && typeof shouldSkipAbsentBlankWrite === 'function' && shouldSkipAbsentBlankWrite(row, field.field, rawValue)) return;
+    setByPath(row, field.field, convertValue(field.type, rawValue));
   });
 
   if (typeof applyDetailSubGridEdits === 'function') {

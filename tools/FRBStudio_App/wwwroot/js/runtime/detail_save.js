@@ -419,6 +419,9 @@ function applyHeaderEdits() {
       if (!field || field.edit?.readonly || field.readonly || inp.disabled) return;
       const fullPath = (def.dataPath === '$' ? '$.' : def.dataPath + '.') + field.field;
       const rawValue = typeof getControlValue === 'function' ? getControlValue(inp) : inp.value;
+      // Sparse JSON preservation: ViewDefだけに存在する未設定optional fieldは、
+      // untouchedな空UI値からDataへ空文字/false/nullを勝手に追加しない。
+      if (typeof shouldSkipAbsentBlankWrite === 'function' && shouldSkipAbsentBlankWrite(sourceData, fullPath, rawValue)) return;
       setByPath(sourceData, fullPath, convertValue(field.type, rawValue));
     });
   }

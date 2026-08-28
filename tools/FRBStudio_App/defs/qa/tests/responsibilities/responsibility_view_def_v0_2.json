@@ -743,7 +743,11 @@
                     "notes": "",
                     "view_def_file": "",
                     "field_definition_file": "",
-                    "target_resolution_policy": "DATA_JSON_VIEW_DEF_FIELD_DEFINITION"
+                    "target_resolution_policy": "DATA_JSON_VIEW_DEF_FIELD_DEFINITION",
+                    "working_copy_policy": "COPY_BEFORE_EXECUTION",
+                    "working_copy_directory": "data/json/99_test_runtime",
+                    "cleanup_policy": "DELETE_AFTER_EXECUTION",
+                    "runner_type": "SELENIUM_NATIVE_SHELL"
                   },
                   "columns": [
                     {
@@ -826,6 +830,40 @@
                         "RELOAD_ONCE"
                       ],
                       "width": 120
+                    },
+                    {
+                      "field": "runner_type",
+                      "caption": "Runner",
+                      "type": "select",
+                      "options": [
+                        "SELENIUM_NATIVE_SHELL"
+                      ],
+                      "width": 180
+                    },
+                    {
+                      "field": "working_copy_policy",
+                      "caption": "Working Copy",
+                      "type": "select",
+                      "options": [
+                        "COPY_BEFORE_EXECUTION"
+                      ],
+                      "width": 180
+                    },
+                    {
+                      "field": "working_copy_directory",
+                      "caption": "Working Copy Dir",
+                      "type": "text",
+                      "width": 260
+                    },
+                    {
+                      "field": "cleanup_policy",
+                      "caption": "Cleanup",
+                      "type": "select",
+                      "options": [
+                        "DELETE_AFTER_EXECUTION",
+                        "KEEP_AFTER_EXECUTION"
+                      ],
+                      "width": 180
                     },
                     {
                       "field": "notes",

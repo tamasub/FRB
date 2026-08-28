@@ -474,15 +474,19 @@
         {
           "setup_id": "data_update_persist_setup_001",
           "input_file": "data/json/80_frb/frb_fft_field_definition_sample_data_v0_1.json",
-          "input_approval_status": "draft",
+          "view_def_file": "defs/frb/frb_fft_field_definition_sample_view_def_v0_1.json",
+          "field_definition_file": "fielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json",
+          "target_resolution_policy": "DATA_JSON_VIEW_DEF_FIELD_DEFINITION",
+          "input_approval_status": "approved",
           "execution_scope": "DOCUMENT",
           "load_policy": "LOAD_ONCE",
           "save_policy": "SAVE_ONCE",
           "reload_policy": "RELOAD_ONCE",
-          "notes": "Test DATA JSONのview_defと、ViewDefのitem_definition_refを辿って対象項目を解決する。現時点ではテスト投入候補として設定し、内容確認後にinput_approval_statusをapprovedへ移行する。複数TestPatternは同一Document Lifecycle上でまとめて実行する。",
-          "view_def_file": "defs/frb/frb_fft_field_definition_sample_view_def_v0_1.json",
-          "field_definition_file": "fielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json",
-          "target_resolution_policy": "DATA_JSON_VIEW_DEF_FIELD_DEFINITION"
+          "notes": "Test DATA JSONのview_defと、ViewDefのitem_definition_refを辿って対象項目を解決する。人間承認済みInputは直接変更せずWorking Copyへ複製し、複数TestPatternを同一Document Lifecycle上でまとめて実行する。",
+          "working_copy_policy": "COPY_BEFORE_EXECUTION",
+          "working_copy_directory": "data/json/99_test_runtime",
+          "cleanup_policy": "DELETE_AFTER_EXECUTION",
+          "runner_type": "SELENIUM_NATIVE_SHELL"
         }
       ],
       "test_pattern_definitions": [
@@ -491,84 +495,84 @@
           "pattern_cd": "DATA_UPDATE_PERSIST",
           "pattern_role": "STANDARD",
           "target_structure": "SINGLE_GRID",
+          "target_data_path": "$.measurement_sessions",
+          "field_selection_policy": "EDITABLE_EXPLICIT_NON_MULTILINE",
           "row_position": "FIRST",
           "value_pattern": "DIFFERENT_VALID",
           "expected_def_type": "JsonDiffExpectedDef",
           "guarantee_id": "data_update_persist_g001",
           "enabled": true,
-          "notes": "読み込んだ値とは異なる正常値へ変更する。",
-          "target_data_path": "$.measurement_sessions",
-          "field_selection_policy": "EDITABLE_EXPLICIT_NON_MULTILINE"
+          "notes": "読み込んだ値とは異なる正常値へ変更する。"
         },
         {
           "pattern_def_id": "data_update_persist_single_grid_last",
           "pattern_cd": "DATA_UPDATE_PERSIST",
           "pattern_role": "STANDARD",
           "target_structure": "SINGLE_GRID",
+          "target_data_path": "$.measurement_sessions",
+          "field_selection_policy": "EDITABLE_EXPLICIT_NON_MULTILINE",
           "row_position": "LAST",
           "value_pattern": "DIFFERENT_VALID",
           "expected_def_type": "JsonDiffExpectedDef",
           "guarantee_id": "data_update_persist_g001",
           "enabled": true,
-          "notes": "終端位置を含む保存・再読込を確認する。",
-          "target_data_path": "$.measurement_sessions",
-          "field_selection_policy": "EDITABLE_EXPLICIT_NON_MULTILINE"
+          "notes": "終端位置を含む保存・再読込を確認する。"
         },
         {
           "pattern_def_id": "data_update_persist_multi_grid_first",
           "pattern_cd": "DATA_UPDATE_PERSIST",
           "pattern_role": "STANDARD",
           "target_structure": "MULTI_GRID",
+          "target_data_path": "$.acceptance_thresholds",
+          "field_selection_policy": "EDITABLE_EXPLICIT_NON_MULTILINE",
           "row_position": "FIRST",
           "value_pattern": "DIFFERENT_VALID",
           "expected_def_type": "JsonDiffExpectedDef",
           "guarantee_id": "data_update_persist_g001",
           "enabled": true,
-          "notes": "複数Grid構造の先頭行を対象とする。",
-          "target_data_path": "$.acceptance_thresholds",
-          "field_selection_policy": "EDITABLE_EXPLICIT_NON_MULTILINE"
+          "notes": "複数Grid構造の先頭行を対象とする。"
         },
         {
           "pattern_def_id": "data_update_persist_multi_grid_last",
           "pattern_cd": "DATA_UPDATE_PERSIST",
           "pattern_role": "STANDARD",
           "target_structure": "MULTI_GRID",
+          "target_data_path": "$.acceptance_thresholds",
+          "field_selection_policy": "EDITABLE_EXPLICIT_NON_MULTILINE",
           "row_position": "LAST",
           "value_pattern": "DIFFERENT_VALID",
           "expected_def_type": "JsonDiffExpectedDef",
           "guarantee_id": "data_update_persist_g001",
           "enabled": true,
-          "notes": "複数Grid構造の最終行を対象とする。",
-          "target_data_path": "$.acceptance_thresholds",
-          "field_selection_policy": "EDITABLE_EXPLICIT_NON_MULTILINE"
+          "notes": "複数Grid構造の最終行を対象とする。"
         },
         {
           "pattern_def_id": "data_update_persist_multiline_first",
           "pattern_cd": "DATA_UPDATE_PERSIST_MULTILINE",
           "pattern_role": "QUALITY_REINFORCEMENT",
           "target_structure": "MULTILINE",
+          "target_data_path": "$.measurement_sessions",
+          "field_selection_policy": "EDITABLE_EXPLICIT_MULTILINE",
           "row_position": "FIRST",
           "value_pattern": "MULTILINE_DIFFERENT_VALID",
           "expected_def_type": "JsonDiffExpectedDef",
           "guarantee_id": "data_update_persist_g001",
           "enabled": true,
-          "notes": "過去の複数行改行保持バグに対する品質強化パターン。改行を含むRaw値が保存・再読込後も一致することを狙う。",
-          "target_data_path": "$.measurement_sessions",
-          "field_selection_policy": "EDITABLE_EXPLICIT_MULTILINE"
+          "notes": "過去の複数行改行保持バグに対する品質強化パターン。改行を含むRaw値が保存・再読込後も一致することを狙う。"
         },
         {
           "pattern_def_id": "data_update_persist_multiline_last",
           "pattern_cd": "DATA_UPDATE_PERSIST_MULTILINE",
           "pattern_role": "QUALITY_REINFORCEMENT",
           "target_structure": "MULTILINE",
+          "target_data_path": "$.measurement_sessions",
+          "field_selection_policy": "EDITABLE_EXPLICIT_MULTILINE",
           "row_position": "LAST",
           "value_pattern": "MULTILINE_DIFFERENT_VALID",
           "expected_def_type": "JsonDiffExpectedDef",
           "guarantee_id": "data_update_persist_g001",
           "enabled": true,
-          "notes": "過去の複数行改行保持バグに対する品質強化パターン。最終行側の境界も確認する。",
-          "target_data_path": "$.measurement_sessions",
-          "field_selection_policy": "EDITABLE_EXPLICIT_MULTILINE"
+          "notes": "過去の複数行改行保持バグに対する品質強化パターン。最終行側の境界も確認する。"
         }
       ],
       "notes": "COMMITは内部ステップとして扱い、承認責務は物理JSONへのSAVE→RELOAD後に外部観測できる境界まで含める。Generated TestPattern / Expectedは本JSONへ保持せず、定義から機械導出する。 v0.2.1ではTest DATA / ViewDef / Field Definitionの3点セットを具体設定し、target_data_pathとfield_selection_policyから変更対象Fieldを機械導出する。"

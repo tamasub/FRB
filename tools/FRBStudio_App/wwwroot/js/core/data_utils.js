@@ -19,6 +19,32 @@ function setByPath(obj, path, value) {
   cur[parts[parts.length - 1]] = value;
 }
 
+// v0.18.110-sparse-json-preserve-on-save:
+// ViewDefに存在するがData JSONには存在しないoptional fieldを、
+// UI初期値の空文字だけを理由に保存時へ新規materializeしない。
+function hasOwnByPath(obj, path) {
+  if (!obj || typeof obj !== 'object') return false;
+  const normalized = String(path ?? '').replace(/^\$\.?/, '');
+  if (!normalized) return true;
+  const parts = normalized.split('.');
+  let cur = obj;
+  for (const part of parts) {
+    if (cur == null || typeof cur !== 'object' || !Object.prototype.hasOwnProperty.call(cur, part)) return false;
+    cur = cur[part];
+  }
+  return true;
+}
+
+function isBlankStudioControlValue(value) {
+  if (value == null || value === '') return true;
+  if (Array.isArray(value)) return value.length === 0;
+  return false;
+}
+
+function shouldSkipAbsentBlankWrite(obj, path, rawValue) {
+  return !hasOwnByPath(obj, path) && isBlankStudioControlValue(rawValue);
+}
+
 
 function cloneData(value) {
   if (value == null) return value;

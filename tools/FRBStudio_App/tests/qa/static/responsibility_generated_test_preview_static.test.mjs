@@ -35,8 +35,8 @@ test('DATA_UPDATE_PERSIST preview derives 6 patterns and JsonDiff Expected from 
   const plain = JSON.parse(JSON.stringify(result));
 
   assert.equal(plain.status, 'READY');
-  assert.equal(plain.execution_ready, false, 'draft Input is previewable but not execution ready');
-  assert.equal(plain.input_approval_status, 'draft');
+  assert.equal(plain.execution_ready, true, 'approved Input is execution ready');
+  assert.equal(plain.input_approval_status, 'approved');
   assert.equal(plain.expected_def_type, 'JsonDiffExpectedDef');
   assert.equal(plain.summary.test_pattern_count, 6);
   assert.equal(plain.summary.mutation_count, 30);
@@ -63,6 +63,26 @@ test('DATA_UPDATE_PERSIST preview derives 6 patterns and JsonDiff Expected from 
   assert.equal(firstMultiline.mutations.length, 1);
   assert.equal(firstMultiline.mutations[0].field, 'note');
   assert.match(firstMultiline.mutations[0].after, /\nTEST$/);
+});
+
+test('DATA_UPDATE_PERSIST preview remains available but execution is blocked when Input is draft', () => {
+  const sandbox = loadServiceSandbox();
+  const responsibilityDocument = readJson('data/json/03_tests/responsibilities/responsibility_data_v0_2.json');
+  const responsibility = structuredClone(responsibilityDocument.responsibilities.find(item => item.responsibility_cd === 'data_update_persist'));
+  responsibility.test_setup[0].input_approval_status = 'draft';
+  const inputData = readJson('data/json/80_frb/frb_fft_field_definition_sample_data_v0_1.json');
+  const viewDef = readJson('defs/frb/frb_fft_field_definition_sample_view_def_v0_1.json');
+  const fieldDefinitionDocument = readJson('fielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json');
+  const registry = readJson('data/json/config/validation_type_registry_v0_1.json');
+
+  const service = new sandbox.ResponsibilityTestPreviewService({ registry });
+  const result = service.derive({ responsibility, rootDocument: responsibilityDocument, inputData, viewDef, fieldDefinitionDocument, registry });
+  const plain = JSON.parse(JSON.stringify(result));
+
+  assert.equal(plain.status, 'READY');
+  assert.equal(plain.execution_ready, false);
+  assert.equal(plain.input_approval_status, 'draft');
+  assert.equal(plain.summary.test_pattern_count, 6);
 });
 
 test('Responsibility ViewDef mounts Generated TestPattern / Expected Preview as initial CLOSED derived component', () => {
