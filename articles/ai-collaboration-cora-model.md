@@ -11,6 +11,7 @@ published: true
 
 **CORA Model** は、人間とAIが判断を共有するために必要な情報を整理するためのモデルである。
 
+
 CORAは、次の4つの要素から構成される。
 
 - **C = Context**
@@ -19,6 +20,7 @@ CORAは、次の4つの要素から構成される。
 - **A = Accountability**
 
 日本語では、次のように対応する。
+
 
 ```text
 
@@ -72,9 +74,11 @@ Contextは、判断の前提となる世界を表す。
 
 一般的なフレームワークや設計で使われる言葉を含めると、例えば次のようなものがContextに入る。
 
-凡例) ※：よく使う項目
 
 ```text
+
+凡例) ※：よく使う項目
+
 Context　～文脈～
 ├─ Purpose               目的 ※
 ├─ Objective             目標
@@ -103,6 +107,8 @@ Context　～文脈～
 ├─ Terminology / Definitions  用語定義
 └─ Knowledge             背景知識
 
+
+
 ```
 
 ---
@@ -129,6 +135,8 @@ Orientation（**判断軸**）は、CORA Modelの中でも特に**重要な要�
 CORAでは、この部分を **Orientation（判断軸）** として明示する。
 
 ```text
+
+凡例) ※：よく使う項目
 
 Orientation　～判断軸～
 ├─ Judgment Criteria     判断基準 ※
@@ -189,6 +197,10 @@ Orientation　～判断軸～
 Restrictionsは、判断や実行に対する境界を表す。
 
 ```text
+
+凡例) ※：よく使う項目
+
+
 Restrictions　～制約～
 ├─ Constraint            制約 ※
 ├─ Rule                  ルール
@@ -257,6 +269,10 @@ Accountabilityは、単なるRoleより広い。
 まで含めると、より明確なAccountabilityになる。
 
 ```text
+
+凡例) ※：よく使う項目
+
+
 Accountability　～責務～
 ├─ Responsibility        責務 ※
 ├─ Role                  役割 ※
@@ -305,6 +321,9 @@ CORAの判断構造そのものではないが、
 を置く領域である。
 
 ```text
+
+凡例) ※：よく使う項目
+
 Optional
 ├─ Example        例
 ├─ Sample         サンプル
