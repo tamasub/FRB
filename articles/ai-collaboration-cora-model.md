@@ -72,7 +72,7 @@ Contextは、判断の前提となる世界を表す。
 一般的なフレームワークや設計で使われる言葉を含めると、例えば次のようなものがContextに入る。
 
 ```text
-Context
+Context　～文脈～
 ├─ Purpose               目的
 ├─ Objective             目標
 ├─ Goal                  ゴール
@@ -124,7 +124,7 @@ Orientation（**判断軸**）は、CORA Modelの中でも特に**重要な要�
 CORAでは、この部分を **Orientation（判断軸）** として明示する。
 
 ```text
-Orientation
+Orientation　～判断軸～
 ├─ Judgment Criteria     判断基準
 ├─ Evaluation Criteria   評価基準
 ├─ Decision Criteria     意思決定基準
@@ -182,7 +182,7 @@ Orientation
 Restrictionsは、判断や実行に対する境界を表す。
 
 ```text
-Restrictions
+Restrictions　～制約～
 ├─ Constraint            制約
 ├─ Rule                  ルール
 ├─ Must                  必須
@@ -249,7 +249,7 @@ Accountabilityは、単なるRoleより広い。
 まで含めると、より明確なAccountabilityになる。
 
 ```text
-Accountability
+Accountability　～責務～
 ├─ Responsibility        責務
 ├─ Role                  役割
 ├─ Duty                  義務
