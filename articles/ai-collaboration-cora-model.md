@@ -6,8 +6,7 @@ topics: ["ai", "promptengineering", "decisionmaking", "aicollaboration", "cora"]
 published: true
 ---
 
-
-## CORA Modelとは
+## CORA Modelとは　～判断軸と制約は何が違うのか～
 
 **CORA Model** は、人間とAIが判断を共有するために必要な情報を整理するためのモデルである。
 
@@ -28,10 +27,10 @@ C : Context
     文脈
 
 O : Orientation
-    判断軸
+    判断軸　～壁の中での複数候補の中から何を優先させるか～
 
 R : Restrictions
-    制約
+    制約　　～壁～
 
 A : Accountability
     責務
@@ -49,10 +48,10 @@ Optional
 CORA Modelを短く表すと、次のようになる。
 
 ```text
-C — なぜやる？
-O — 何を重視する？
-R — 何を守る？
-A — 何を担う？
+C — 何をやる？　何故やる？
+O — 何を優先する？　何を基準に選択する？
+R — 何をやらない？　何を越えてはいけない？
+A — 何を保証する？
 + Optional — その他の判断材料
 ```
 
