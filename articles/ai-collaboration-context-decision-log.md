@@ -2380,6 +2380,9 @@ AI協働 判断構造モデル(通称 CORA Model)
 
 
 CORA — Context / Orientation / Restrictions / Accountability
+
+→2026/8/28 ChatGPTにより CORA 命名！そしてtamasub承認(笑)
+
 ```
 
 C = Context
