@@ -1,4 +1,12 @@
-# AI協働 判断構造モデル — CORA Model — AI協働に必要な判断構造！！
+---
+title: "AI協働 判断構造モデル — CORA Model — AI協働に必要な判断構造！！"
+emoji: "🧭"
+type: "idea"
+topics: ["ai", "promptengineering", "decisionmaking", "aicollaboration", "cora"]
+published: false
+---
+
+
 
 ## CORA Modelとは
 
