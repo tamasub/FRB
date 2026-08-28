@@ -156,6 +156,22 @@
       "violation_action": "機械的な保証が困難な理由を特定し、Runner側の共通知恵追加またはAPP側の責務分割・処理境界・観測点の見直しを行う。直ちに対応しない場合は、保証できない理由を明示して残す。",
       "source_decision_log_ids": [],
       "notes": "基本姿勢: 「機械的に保証できないなら、テストだけでなくAPP構造を疑う。」"
+    },
+    {
+      "sort_order": 80,
+      "item_id": "ecision_axis_responsibility_observability",
+      "item_type": "DECISION_AXIS",
+      "title": "責務の成果は外部から観測可能であることを最優先とする",
+      "statement": "責務は、その成立結果を責務境界の外側から観測可能でなければならない。人間またはTest RunnerがActualを取得し、Expectedとの差分を確認できない内部処理だけを、独立した承認責務として定義しない。",
+      "reason": "AI承認駆動開発では、責務の成立結果をExpected / Actual / Diffとして提示し、人間が承認できることを重視する。内部状態だけで完結する責務は単独では成果を確認できず、承認単位として細かく分割すると、責務数とテスト実行単位だけが増加するため。",
+      "scope": "document",
+      "priority": "high",
+      "status": "DRAFT",
+      "evaluation_guidance": "責務を分割する際は、その責務単独で外部からActualを取得できるかを確認する。取得できない場合は、観測可能な成果が得られる上位責務へ統合することを優先する。内部実装上の責務分離は許容するが、承認責務とは区別する。",
+      "verification_method": "各責務について、①責務境界外からActualを取得できること、②Expectedとの比較が可能であること、③人間がDiffまたは結果を確認できることを確認する。",
+      "violation_action": "単独で観測できない責務は承認責務として分離せず、観測可能な成果まで含む上位責務へ統合する。必要に応じて内部実装責務としてのみ保持する。",
+      "source_decision_log_ids": [],
+      "notes": "例：UI編集値をメモリ上のDocument Dataへ反映するCOMMIT処理が外部から単独確認できない場合、COMMITだけを承認責務とせず、物理JSONへの保存・再読込・確認まで含む観測可能な責務として定義する。"
     }
   ],
   "rules": [

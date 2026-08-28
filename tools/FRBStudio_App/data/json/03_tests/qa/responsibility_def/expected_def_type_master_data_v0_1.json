@@ -29,6 +29,13 @@
       "sort_order": 25
     },
     {
+      "expected_type_cd": "JsonDiffExpectedDef",
+      "name": "JSON差分期待値",
+      "purpose": "JSON更新前後で期待する差分と、期待外差分件数が期待どおりであることを確認する",
+      "main_usage": "既存データ変更永続化、SAVE→RELOAD後の変更差分確認、変更対象外データの非破壊確認",
+      "sort_order": 27
+    },
+    {
       "expected_type_cd": "EventExpectedDef",
       "name": "イベント期待値",
       "purpose": "意味のある出来事が発生したことを確認する",

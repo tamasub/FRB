@@ -27,7 +27,8 @@
               "ErrorExpectedDef": "studio.ErrorExpectedDef",
               "PerformanceExpectedDef": "studio.PerformanceExpectedDef",
               "VisualEvidenceExpectedDef": "studio.VisualEvidenceExpectedDef",
-              "CsvExpectedDef": "studio.CsvExpectedDef"
+              "CsvExpectedDef": "studio.CsvExpectedDef",
+              "JsonDiffExpectedDef": "studio.JsonDiffExpectedDef"
             }
           }
         },
@@ -300,6 +301,48 @@
                 "visible": true,
                 "readonly": true,
                 "height": 90
+              },
+              "create": {
+                "include": false
+              }
+            }
+          ]
+        },
+        "JsonDiffExpectedDef": {
+          "caption": "JSON Diff ExpectedDef",
+          "description": "JSON更新前後で期待される差分と、期待外差分件数をExpectedとして扱うFieldGroupType。DATA_UPDATE_PERSIST等の永続化責務で使用する。",
+          "fields": [
+            {
+              "field": "expected.diff",
+              "caption": "Expected: Diff",
+              "type": "textarea",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 420,
+                "display": "json"
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 120
+              },
+              "create": {
+                "include": false
+              }
+            },
+            {
+              "field": "expected.unexpected_diff_count",
+              "caption": "Expected: Unexpected Diff Count",
+              "type": "number",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 220
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
               },
               "create": {
                 "include": false

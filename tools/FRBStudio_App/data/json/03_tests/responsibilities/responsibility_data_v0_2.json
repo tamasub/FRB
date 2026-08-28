@@ -1,0 +1,593 @@
+{
+  "view_def": "qa/tests/responsibilities/responsibility_view_def_v0_2.json",
+  "schema_version": "responsibility_data_v0_2",
+  "document_type": "studio_responsibility_master",
+  "title": "FRB Studio 責務マスター v0.2",
+  "target": "FRB Studio / JSON Object Studio",
+  "status": "draft",
+  "phase": "responsibility-definition-driven-test-v0_2-draft",
+  "created_at": "2026-07-19",
+  "updated_at": "2026-08-28",
+  "purpose": "Studioくんの責務を検証可能な保証として管理し、同一JSON内のTestPattern生成定義・承認済みInput参照・ExpectedDefからGenerated TestPattern / Expectedを機械導出するための責務マスター。",
+  "policy": {
+    "definition": "責務は、何をするかではなく、どの条件で何を保証するかを書く。",
+    "granularity": "UT責務は品質保証上の意味ある責任単位とする。実装規模はおおむね1KS程度を初期仮説とするが、コード量だけで責務を決めない。",
+    "compression": "1KSのコードを1KS分説明するのではなく、そのコードが担う保証を数個の検証可能な約束へ圧縮する。",
+    "how_boundary": "責務を読めばTestPatternとExpectedを導出できるが、クラス構成・メソッド構成・処理順序・アルゴリズム・技術方式は一つに決まらない状態を保つ。",
+    "guarantee_contract": "responsibilities[].guarantees[] の各明細へ guarantee_id を付与する。TestPatternは責務名だけでなく、自らが検証する guarantee_id へ紐づく。",
+    "test_pattern_relation_example": "v0.2では責務配下 test_pattern_definitions[] が guarantee_id を直接参照する。Generated TestPattern側の relation は機械導出する。",
+    "observability": "承認責務は、その成立結果を責務境界の外側から観測可能とする。単独でActualを取得できない内部処理は、原則として独立した承認責務にせず、観測可能な成果まで含む上位責務へ統合する。",
+    "test_definition": "TestPatternの具体Input / Expected実体を正本として保持せず、責務配下のtest_pattern_definitionsとtest_setupを生成元として管理する。",
+    "generated_artifact": "Generated TestPattern / Generated Expectedは責務定義から機械導出するVirtual Dataとし、正本JSONへ保存しない。画面ではPreviewとして参照可能にする。",
+    "fixture_approval": "Test Input JSONはAI生成可能とするが、テスト投入前に人間が内容を確認しapprovedへ移行したものだけを使用する。承認対象ではあるが、通常画面では実行詳細とともに初期CLOSE表示とする。",
+    "expected_def": "ExpectedDefは「何をExpectedとして持つか」の型として扱う。DATA_UPDATE_PERSISTではJsonDiffExpectedDefを使用し、DiffとUnexpected Diff Countを期待値として扱う。"
+  },
+  "responsibilities": [
+    {
+      "responsibility_cd": "search_filter",
+      "name": "検索条件評価責務",
+      "test_level": "UT",
+      "approval_status": "draft",
+      "enabled": true,
+      "purpose": "検索条件と全文検索語から、条件に一致する行だけを後続処理へ渡せる状態にする。",
+      "summary": "文字列・数値・boolean・複数選択の列条件と、JSON全階層の文字列値を対象とする全文検索をAND評価し、元データ上のIndexを保持した一致行を返す。",
+      "source_file": "wwwroot/js/responsibilities/search_filter.js",
+      "interface_name": "SearchFilter.apply",
+      "in_scope": [
+        "検索条件評価",
+        "複数条件のAND評価",
+        "元データIndexの保持",
+        "空条件の無視",
+        "JSON全階層の文字列値を対象とする全文検索",
+        "全文検索と列条件のAND評価"
+      ],
+      "out_of_scope": [
+        "検索UIの描画",
+        "DOM入力部品の生成",
+        "検索状態の保存",
+        "Grid描画"
+      ],
+      "constraint_ids": [
+        "constitution_12"
+      ],
+      "guarantees": [
+        {
+          "guarantee_id": "search_filter_g001",
+          "guarantee_type": "rule",
+          "condition": "有効な検索条件が1件以上指定された場合",
+          "guarantee": "すべての検索条件に一致する行だけが結果に含まれる。",
+          "observable_result": "結果行IDが条件一致行IDと一致し、不一致行を含まない。",
+          "expected_def_type": "StateExpectedDef",
+          "test_pattern_seed": "条件一致行だけを返す基本パターン",
+          "priority": "high",
+          "enabled": true
+        },
+        {
+          "guarantee_id": "search_filter_g002",
+          "guarantee_type": "rule",
+          "condition": "文字列contains条件が指定された場合",
+          "guarantee": "大文字・小文字の違いに依存せず部分一致を評価する。",
+          "observable_result": "Alpha / alpha / ALPHA を同じ検索語で一致確認できる。",
+          "expected_def_type": "RuleExpectedDef",
+          "test_pattern_seed": "contains検索の大文字小文字差分パターン",
+          "priority": "medium",
+          "enabled": true
+        },
+        {
+          "guarantee_id": "search_filter_g003",
+          "guarantee_type": "state",
+          "condition": "検索結果が生成された場合",
+          "guarantee": "各結果行は元データ上のIndexを保持する。",
+          "observable_result": "結果のindexesが元データの位置と一致する。",
+          "expected_def_type": "StateExpectedDef",
+          "test_pattern_seed": "gte検索で一致行と元Indexを同時確認する",
+          "priority": "high",
+          "enabled": true
+        },
+        {
+          "guarantee_id": "search_filter_g004",
+          "guarantee_type": "rule",
+          "condition": "数値条件に gte / lte / equals が指定された場合",
+          "guarantee": "指定された数値比較演算に従って一致判定する。",
+          "observable_result": "境界値の直前・境界値・直後で期待どおりの行が返る。",
+          "expected_def_type": "RuleExpectedDef",
+          "test_pattern_seed": "gte/lte/equalsの境界値パターン",
+          "priority": "medium",
+          "enabled": true
+        },
+        {
+          "guarantee_id": "search_filter_g005",
+          "guarantee_type": "rule",
+          "condition": "複数選択値が指定され、対象値が配列の場合",
+          "guarantee": "指定候補のいずれかを含む行を一致として扱う。",
+          "observable_result": "選択候補と配列セルの交差がある行だけが返る。",
+          "expected_def_type": "RuleExpectedDef",
+          "test_pattern_seed": "複数選択と配列セルの一致パターン",
+          "priority": "medium",
+          "enabled": true
+        },
+        {
+          "guarantee_id": "search_filter_g006",
+          "guarantee_type": "no_side_effect",
+          "condition": "検索条件を評価した場合",
+          "guarantee": "入力されたrowsを変更しない。",
+          "observable_result": "評価前後の入力rowsが同一である。",
+          "expected_def_type": "StateExpectedDef",
+          "test_pattern_seed": "検索前後の入力非破壊パターン",
+          "priority": "medium",
+          "enabled": true
+        },
+        {
+          "guarantee_id": "search_filter_g007",
+          "guarantee_type": "rule",
+          "condition": "全文検索語が指定された場合",
+          "guarantee": "行が保持するobject / arrayを再帰走査し、いずれかの文字列値に部分一致すれば親行を結果へ含める。",
+          "observable_result": "表示列に検索語がなくても、子Grid・詳細・非表示項目の文字列値に一致する親行が返る。",
+          "expected_def_type": "RuleExpectedDef",
+          "test_pattern_seed": "子配列の文字列一致で親行が残るパターン",
+          "priority": "high",
+          "enabled": true
+        },
+        {
+          "guarantee_id": "search_filter_g008",
+          "guarantee_type": "constraint",
+          "condition": "全文検索を評価する場合",
+          "guarantee": "検索対象は文字列値だけとし、objectのキー名・number・booleanは検索対象へ含めない。",
+          "observable_result": "キー名だけ、または数値・booleanだけに検索語が存在しても一致行にならない。",
+          "expected_def_type": "RuleExpectedDef",
+          "test_pattern_seed": "キー名と数値を全文検索対象外にするパターン",
+          "priority": "high",
+          "enabled": true
+        }
+      ],
+      "notes": "JSON駆動テストに列contains / number gte / JSON全階層文字列全文検索が存在する。",
+      "test_setup": [],
+      "test_pattern_definitions": []
+    },
+    {
+      "responsibility_cd": "grid_column_build",
+      "name": "Grid列生成責務",
+      "test_level": "UT",
+      "approval_status": "draft",
+      "enabled": true,
+      "purpose": "ViewDefのfields定義から、Grid表示に利用する列配列を確定する。",
+      "summary": "grid.visible=false を除外し、ViewDef上の列順を維持したGrid列配列を返す。",
+      "source_file": "wwwroot/js/responsibilities/grid_column_builder.js",
+      "interface_name": "GridColumnBuilder.build",
+      "in_scope": [
+        "grid.visibleの解釈",
+        "表示列の抽出",
+        "列順の維持",
+        "呼出側includeField方針の適用"
+      ],
+      "out_of_scope": [
+        "DOM描画",
+        "列幅計算",
+        "Gridイベント処理",
+        "CSV出力"
+      ],
+      "constraint_ids": [
+        "constitution_11",
+        "constitution_12"
+      ],
+      "guarantees": [
+        {
+          "guarantee_id": "grid_column_build_g001",
+          "guarantee_type": "rule",
+          "condition": "fieldsにgrid.visible=falseの項目が含まれる場合",
+          "guarantee": "当該項目をGrid列へ含めない。",
+          "observable_result": "返却列のfield一覧に非表示項目が存在しない。",
+          "expected_def_type": "RuleExpectedDef",
+          "test_pattern_seed": "visible=false除外パターン",
+          "priority": "high",
+          "enabled": true
+        },
+        {
+          "guarantee_id": "grid_column_build_g002",
+          "guarantee_type": "state",
+          "condition": "表示対象フィールドが複数ある場合",
+          "guarantee": "返却列の順序はViewDef fieldsの順序を維持する。",
+          "observable_result": "返却field一覧が入力順と一致する。",
+          "expected_def_type": "StateExpectedDef",
+          "test_pattern_seed": "表示列の順序維持パターン",
+          "priority": "medium",
+          "enabled": true
+        },
+        {
+          "guarantee_id": "grid_column_build_g003",
+          "guarantee_type": "rule",
+          "condition": "fieldsが未指定または空配列の場合",
+          "guarantee": "例外で停止せず空配列を返す。",
+          "observable_result": "返却値が空配列である。",
+          "expected_def_type": "RuleExpectedDef",
+          "test_pattern_seed": "fields未指定安全パターン",
+          "priority": "medium",
+          "enabled": true
+        },
+        {
+          "guarantee_id": "grid_column_build_g004",
+          "guarantee_type": "interface",
+          "condition": "includeField方針が呼出側から指定された場合",
+          "guarantee": "指定された方針による列採用結果を返す。",
+          "observable_result": "includeFieldの判定結果と返却列が一致する。",
+          "expected_def_type": "InterfaceExpectedDef",
+          "test_pattern_seed": "カスタムincludeField適用パターン",
+          "priority": "medium",
+          "enabled": true
+        },
+        {
+          "guarantee_id": "grid_column_build_g005",
+          "guarantee_type": "no_side_effect",
+          "condition": "Grid列を生成した場合",
+          "guarantee": "入力されたfields定義を変更しない。",
+          "observable_result": "処理前後のfieldsが同一である。",
+          "expected_def_type": "StateExpectedDef",
+          "test_pattern_seed": "ViewDef fields非破壊パターン",
+          "priority": "medium",
+          "enabled": true
+        }
+      ],
+      "notes": "現行JSON駆動テストには grid_column_build_visible_fields_basic / grid_column_build_empty_fields_safe が存在する。",
+      "test_setup": [],
+      "test_pattern_definitions": []
+    },
+    {
+      "responsibility_cd": "csv_export",
+      "name": "CSV出力責務",
+      "test_level": "UT",
+      "approval_status": "draft",
+      "enabled": true,
+      "purpose": "Gridで採用された行・列から、再利用可能なCSV文字列を生成する。",
+      "summary": "key列を必要に応じて先頭へ補い、CSVエスケープ・改行・BOM条件を適用した文字列を返す。",
+      "source_file": "wwwroot/js/responsibilities/csv_exporter.js",
+      "interface_name": "CsvExporter.resolveFields / CsvExporter.export",
+      "in_scope": [
+        "CSV対象列の解決",
+        "key列の補完",
+        "セル値のCSVエスケープ",
+        "BOM付与",
+        "CSV文字列生成"
+      ],
+      "out_of_scope": [
+        "Blob生成",
+        "ブラウザダウンロード",
+        "ファイル名決定",
+        "Grid表示"
+      ],
+      "constraint_ids": [
+        "constitution_11",
+        "constitution_26"
+      ],
+      "guarantees": [
+        {
+          "guarantee_id": "csv_export_g001",
+          "guarantee_type": "rule",
+          "condition": "keyFieldNameが指定され、表示列にkey列が含まれない場合",
+          "guarantee": "key列をCSV対象列の先頭へ追加する。",
+          "observable_result": "返却field_namesの先頭がkeyFieldNameと一致する。",
+          "expected_def_type": "RuleExpectedDef",
+          "test_pattern_seed": "表示列へkey列を補完するパターン",
+          "priority": "high",
+          "enabled": true
+        },
+        {
+          "guarantee_id": "csv_export_g002",
+          "guarantee_type": "rule",
+          "condition": "key列がすでに対象列へ含まれる場合",
+          "guarantee": "同じfieldを重複して出力しない。",
+          "observable_result": "CSVヘッダーに同一fieldが一度だけ現れる。",
+          "expected_def_type": "RuleExpectedDef",
+          "test_pattern_seed": "key列重複防止パターン",
+          "priority": "medium",
+          "enabled": true
+        },
+        {
+          "guarantee_id": "csv_export_g003",
+          "guarantee_type": "rule",
+          "condition": "セル値にカンマ・ダブルクォート・改行が含まれる場合",
+          "guarantee": "CSV規則に従い値をダブルクォートで囲み、内部ダブルクォートを二重化する。",
+          "observable_result": "CSV文字列が期待するescape済み文字列と一致する。",
+          "expected_def_type": "CsvExpectedDef",
+          "test_pattern_seed": "カンマ・引用符・改行escapeパターン",
+          "priority": "high",
+          "enabled": true
+        },
+        {
+          "guarantee_id": "csv_export_g004",
+          "guarantee_type": "state",
+          "condition": "CSV文字列を生成した場合",
+          "guarantee": "列順と行順を入力順のまま維持する。",
+          "observable_result": "ヘッダー列順およびデータ行順が入力順と一致する。",
+          "expected_def_type": "CsvExpectedDef",
+          "test_pattern_seed": "列順・行順維持パターン",
+          "priority": "medium",
+          "enabled": true
+        },
+        {
+          "guarantee_id": "csv_export_g005",
+          "guarantee_type": "rule",
+          "condition": "include_bom=trueが指定された場合",
+          "guarantee": "CSV文字列の先頭にUTF-8 BOMを付与する。",
+          "observable_result": "has_bom=trueかつ先頭文字がBOMである。",
+          "expected_def_type": "CsvExpectedDef",
+          "test_pattern_seed": "UTF-8 BOM付与パターン",
+          "priority": "medium",
+          "enabled": true
+        },
+        {
+          "guarantee_id": "csv_export_g006",
+          "guarantee_type": "rule",
+          "condition": "lineBreakが未指定の場合",
+          "guarantee": "CRLFを使用し、末尾にも改行を付ける。",
+          "observable_result": "CSV文字列がCRLF区切りかつ末尾CRLFで終了する。",
+          "expected_def_type": "CsvExpectedDef",
+          "test_pattern_seed": "既定改行コードパターン",
+          "priority": "medium",
+          "enabled": true
+        }
+      ],
+      "notes": "現行JSON駆動テストには csv_export_visible_fields_with_key_and_escape / csv_export_utf8_bom_option が存在する。",
+      "test_setup": [],
+      "test_pattern_definitions": []
+    },
+    {
+      "responsibility_cd": "grid_aggregate",
+      "name": "Grid数値集計責務",
+      "test_level": "UT",
+      "approval_status": "draft",
+      "enabled": true,
+      "purpose": "ViewDefで宣言された数値列について、Gridヘッダー表示用の派生集計結果を生成する。",
+      "summary": "number型かつgrid.aggregate.operator=sumの列を、filtered/allスコープに従って合計し、件数内訳とともに返す。",
+      "source_file": "wwwroot/js/responsibilities/grid_aggregator.js",
+      "interface_name": "GridAggregator.build",
+      "in_scope": [
+        "sum集計",
+        "filtered/allスコープ",
+        "カンマ区切り数値文字列の解釈",
+        "有効・除外件数の集計"
+      ],
+      "out_of_scope": [
+        "DOM描画",
+        "Data JSONへの保存",
+        "CSV出力",
+        "sum以外の集計演算"
+      ],
+      "constraint_ids": [
+        "constitution_12"
+      ],
+      "guarantees": [
+        {
+          "guarantee_id": "grid_aggregate_g001",
+          "guarantee_type": "rule",
+          "condition": "number型fieldにgrid.aggregate.operator=sumが宣言された場合",
+          "guarantee": "当該列の合計結果を生成する。",
+          "observable_result": "items/byFieldに対象fieldのsum結果が存在する。",
+          "expected_def_type": "StateExpectedDef",
+          "test_pattern_seed": "number列sum基本パターン",
+          "priority": "high",
+          "enabled": true
+        },
+        {
+          "guarantee_id": "grid_aggregate_g002",
+          "guarantee_type": "rule",
+          "condition": "aggregate.scope=filteredが指定された場合",
+          "guarantee": "filteredRowsだけを集計対象にする。",
+          "observable_result": "source_countとvalueがfilteredRowsから算出した値に一致する。",
+          "expected_def_type": "RuleExpectedDef",
+          "test_pattern_seed": "filteredスコープ集計パターン",
+          "priority": "medium",
+          "enabled": true
+        },
+        {
+          "guarantee_id": "grid_aggregate_g003",
+          "guarantee_type": "rule",
+          "condition": "aggregate.scope=allが指定された場合",
+          "guarantee": "currentRows全体を集計対象にする。",
+          "observable_result": "source_countとvalueがcurrentRows全体から算出した値に一致する。",
+          "expected_def_type": "RuleExpectedDef",
+          "test_pattern_seed": "allスコープ集計パターン",
+          "priority": "medium",
+          "enabled": true
+        },
+        {
+          "guarantee_id": "grid_aggregate_g004",
+          "guarantee_type": "rule",
+          "condition": "値が数値またはカンマ区切り数値文字列の場合",
+          "guarantee": "有限数へ解釈できる値を合計へ含める。",
+          "observable_result": "1,234.5が1234.5として集計される。",
+          "expected_def_type": "RuleExpectedDef",
+          "test_pattern_seed": "カンマ区切り数値解釈パターン",
+          "priority": "medium",
+          "enabled": true
+        },
+        {
+          "guarantee_id": "grid_aggregate_g005",
+          "guarantee_type": "state",
+          "condition": "空文字・非数値・非有限値が含まれる場合",
+          "guarantee": "当該値を合計から除外し、ignored_countへ計上する。",
+          "observable_result": "value / valid_count / ignored_countが期待値と一致する。",
+          "expected_def_type": "StateExpectedDef",
+          "test_pattern_seed": "無効値除外と件数内訳パターン",
+          "priority": "medium",
+          "enabled": true
+        },
+        {
+          "guarantee_id": "grid_aggregate_g006",
+          "guarantee_type": "rule",
+          "condition": "有効なaggregate宣言が存在しない場合",
+          "guarantee": "集計なしとしてhas_aggregates=falseを返す。",
+          "observable_result": "itemsが空でhas_aggregates=falseである。",
+          "expected_def_type": "RuleExpectedDef",
+          "test_pattern_seed": "集計宣言なし互換パターン",
+          "priority": "medium",
+          "enabled": true
+        }
+      ],
+      "notes": "現行smoke testでsum / filtered / all / 無効値除外 / aggregate未宣言を確認している。",
+      "test_setup": [],
+      "test_pattern_definitions": []
+    },
+    {
+      "responsibility_cd": "data_update_persist",
+      "name": "既存データ変更永続化責務",
+      "test_level": "E2E",
+      "approval_status": "draft",
+      "enabled": true,
+      "purpose": "既存DATA JSONを画面から変更して保存した結果が物理JSONへ永続化され、再読込後に変更後の値として観測できる状態にする。",
+      "summary": "承認済みTest Input JSONをDocument単位で読み込み、正常な別値へ変更して保存・再読込し、期待したJSON差分だけが発生していることを確認する。",
+      "source_file": "",
+      "interface_name": "UI Save / Reload observable boundary",
+      "in_scope": [
+        "既存データの変更永続化",
+        "物理JSONへの保存",
+        "保存後の再読込",
+        "再読込後の変更値確認",
+        "変更対象外データの非破壊確認",
+        "Single Grid / Multi Gridの先頭・最終行変更",
+        "複数行テキストの改行保持を含む品質強化確認"
+      ],
+      "out_of_scope": [
+        "新規登録（CREATE）は別責務とする",
+        "削除（DELETE）は別責務とする",
+        "Validation境界値・不正値拒否の保証",
+        "一覧表示時の複数行テキスト1行化などView Projectionの保証",
+        "メモリ上COMMIT単独の保証"
+      ],
+      "constraint_ids": [
+        "decision_axis_responsibility_observability"
+      ],
+      "guarantees": [
+        {
+          "guarantee_id": "data_update_persist_g001",
+          "guarantee_type": "state",
+          "condition": "承認済みTest Input JSONを読み込み、TestPatternが指定する正常な別値へ変更して保存・再読込した場合",
+          "guarantee": "指定した変更差分が物理JSONへ永続化され、変更対象外には期待していない差分を発生させない。",
+          "observable_result": "再読込後のJSON差分がGenerated Expected Diffと一致し、Unexpected Diff Countが0である。",
+          "expected_def_type": "JsonDiffExpectedDef",
+          "test_pattern_seed": "DATA_UPDATE_PERSIST",
+          "priority": "high",
+          "enabled": true
+        }
+      ],
+      "test_setup": [
+        {
+          "setup_id": "data_update_persist_setup_001",
+          "input_file": "",
+          "input_approval_status": "draft",
+          "execution_scope": "DOCUMENT",
+          "load_policy": "LOAD_ONCE",
+          "save_policy": "SAVE_ONCE",
+          "reload_policy": "RELOAD_ONCE",
+          "notes": "input_fileはAI生成したテスト用JSONを人間が確認し、approvedへ移行した後に設定する。複数TestPatternは同一Document Lifecycle上でまとめて実行する前提。"
+        }
+      ],
+      "test_pattern_definitions": [
+        {
+          "pattern_def_id": "data_update_persist_single_grid_first",
+          "pattern_cd": "DATA_UPDATE_PERSIST",
+          "pattern_role": "STANDARD",
+          "target_structure": "SINGLE_GRID",
+          "row_position": "FIRST",
+          "value_pattern": "DIFFERENT_VALID",
+          "expected_def_type": "JsonDiffExpectedDef",
+          "guarantee_id": "data_update_persist_g001",
+          "enabled": true,
+          "notes": "読み込んだ値とは異なる正常値へ変更する。"
+        },
+        {
+          "pattern_def_id": "data_update_persist_single_grid_last",
+          "pattern_cd": "DATA_UPDATE_PERSIST",
+          "pattern_role": "STANDARD",
+          "target_structure": "SINGLE_GRID",
+          "row_position": "LAST",
+          "value_pattern": "DIFFERENT_VALID",
+          "expected_def_type": "JsonDiffExpectedDef",
+          "guarantee_id": "data_update_persist_g001",
+          "enabled": true,
+          "notes": "終端位置を含む保存・再読込を確認する。"
+        },
+        {
+          "pattern_def_id": "data_update_persist_multi_grid_first",
+          "pattern_cd": "DATA_UPDATE_PERSIST",
+          "pattern_role": "STANDARD",
+          "target_structure": "MULTI_GRID",
+          "row_position": "FIRST",
+          "value_pattern": "DIFFERENT_VALID",
+          "expected_def_type": "JsonDiffExpectedDef",
+          "guarantee_id": "data_update_persist_g001",
+          "enabled": true,
+          "notes": "複数Grid構造の先頭行を対象とする。"
+        },
+        {
+          "pattern_def_id": "data_update_persist_multi_grid_last",
+          "pattern_cd": "DATA_UPDATE_PERSIST",
+          "pattern_role": "STANDARD",
+          "target_structure": "MULTI_GRID",
+          "row_position": "LAST",
+          "value_pattern": "DIFFERENT_VALID",
+          "expected_def_type": "JsonDiffExpectedDef",
+          "guarantee_id": "data_update_persist_g001",
+          "enabled": true,
+          "notes": "複数Grid構造の最終行を対象とする。"
+        },
+        {
+          "pattern_def_id": "data_update_persist_multiline_first",
+          "pattern_cd": "DATA_UPDATE_PERSIST_MULTILINE",
+          "pattern_role": "QUALITY_REINFORCEMENT",
+          "target_structure": "MULTILINE",
+          "row_position": "FIRST",
+          "value_pattern": "MULTILINE_DIFFERENT_VALID",
+          "expected_def_type": "JsonDiffExpectedDef",
+          "guarantee_id": "data_update_persist_g001",
+          "enabled": true,
+          "notes": "過去の複数行改行保持バグに対する品質強化パターン。改行を含むRaw値が保存・再読込後も一致することを狙う。"
+        },
+        {
+          "pattern_def_id": "data_update_persist_multiline_last",
+          "pattern_cd": "DATA_UPDATE_PERSIST_MULTILINE",
+          "pattern_role": "QUALITY_REINFORCEMENT",
+          "target_structure": "MULTILINE",
+          "row_position": "LAST",
+          "value_pattern": "MULTILINE_DIFFERENT_VALID",
+          "expected_def_type": "JsonDiffExpectedDef",
+          "guarantee_id": "data_update_persist_g001",
+          "enabled": true,
+          "notes": "過去の複数行改行保持バグに対する品質強化パターン。最終行側の境界も確認する。"
+        }
+      ],
+      "notes": "COMMITは内部ステップとして扱い、承認責務は物理JSONへのSAVE→RELOAD後に外部観測できる境界まで含める。Generated TestPattern / Expectedは本JSONへ保持せず、定義から機械導出する。"
+    }
+  ],
+  "notes": [
+    "v0.2では責務とTestPattern生成定義を同一JSONで一元管理する。",
+    "Generated TestPattern / ExpectedはVirtual Dataとして機械導出し、本JSONには保存しない。",
+    "既存v0.1責務のtest_pattern_definitions移行は未実施。まずdata_update_persistを新方式の教材とする。",
+    "JsonDiffExpectedDefは Diff + Unexpected Diff Count を期待値として持つ。",
+    "Test Input JSONは人間承認対象であり、初期CLOSE表示は承認対象外を意味しない。"
+  ],
+  "test_generation_config": {
+    "canonical_policy": "責務JSON内の生成定義を正本とし、Generated TestPattern / Expectedは保存しない。",
+    "value_generation": {
+      "default_value_pattern": "DIFFERENT_VALID",
+      "string": {
+        "strategy": "REPLACE_SUFFIX",
+        "replace_suffix_token": "TEST",
+        "respect_contract_length": true,
+        "fallback_policy": "tokenが元値と同一になる場合は、Resolved Contract内で別の決定論的な有効値を生成する。"
+      },
+      "number": {
+        "strategy": "PLUS_1_ELSE_MINUS_1",
+        "respect_minimum_maximum": true
+      },
+      "boolean": {
+        "strategy": "TOGGLE"
+      },
+      "option": {
+        "strategy": "NEXT_VALID_OPTION"
+      },
+      "date": {
+        "strategy": "PLUS_1_DAY_ELSE_MINUS_1_DAY"
+      }
+    }
+  }
+}

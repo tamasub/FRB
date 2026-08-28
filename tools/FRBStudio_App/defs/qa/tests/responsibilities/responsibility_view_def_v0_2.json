@@ -1,0 +1,995 @@
+{
+  "app": {
+    "name": "FRB Studio / JSON Object Studio",
+    "version": "responsibility-view-def-v0.2"
+  },
+  "fieldTypeSources": [
+    "common/common_types_v0_1.json"
+  ],
+  "currentDataDisplay": {
+    "titlePath": "$.title",
+    "subtitlePath": "$.phase",
+    "showDataPath": true
+  },
+  "views": [
+    {
+      "id": "responsibility_master",
+      "caption": "責務マスター / Responsibility v0.2",
+      "layout": {
+        "detailDialog": "wide"
+      },
+      "toolbar": {
+        "executeButton": {
+          "visible": true,
+          "caption": "表示行をMD出力",
+          "action": "ExportMarkdown"
+        }
+      },
+      "sections": [
+        {
+          "id": "header",
+          "caption": "基本情報 / 方針",
+          "type": "form",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "schema_version",
+              "caption": "Schema",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "document_type",
+              "caption": "Document Type",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "status",
+              "caption": "状態",
+              "type": "select",
+              "options": [
+                "draft",
+                "reviewing",
+                "active",
+                "deprecated"
+              ],
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "phase",
+              "caption": "Phase",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "updated_at",
+              "caption": "更新日",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "purpose",
+              "caption": "目的",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 90
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "policy.definition",
+              "caption": "責務の定義",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 70
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "policy.granularity",
+              "caption": "責務粒度",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 90
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "policy.compression",
+              "caption": "圧縮方針",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 80
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "policy.how_boundary",
+              "caption": "責務とHowの境界",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 100
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "policy.guarantee_contract",
+              "caption": "保証明細契約",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 80
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "policy.test_pattern_relation_example",
+              "caption": "TestPattern紐付け例",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 80
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "policy.observability",
+              "caption": "責務の観測可能性",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 100
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "policy.test_definition",
+              "caption": "TestPattern定義方針",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 90
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "policy.generated_artifact",
+              "caption": "Generated成果物方針",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 90
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "policy.fixture_approval",
+              "caption": "Test Input承認方針",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 90
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "policy.expected_def",
+              "caption": "ExpectedDef方針",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 90
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "test_generation_config.value_generation.string.replace_suffix_token",
+              "caption": "文字列置換Token",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            }
+          ]
+        },
+        {
+          "id": "responsibilities",
+          "caption": "責務一覧",
+          "type": "grid",
+          "dataPath": "$.responsibilities",
+          "keyField": "responsibility_cd",
+          "markdown": {
+            "aiPrompt": {
+              "enabled": true,
+              "title": "責務・保証レビュー用プロンプト",
+              "targetFile": "responsibility_data_v0_2.json",
+              "rowSource": "filtered",
+              "visibleOnly": true,
+              "includeGridJson": true,
+              "template": [
+                "以下は現在表示中のFRB Studio責務です。",
+                "責務が実装方法ではなく検証可能な保証として書かれているかレビューしてください。",
+                "",
+                "確認観点:",
+                "- summary / purpose と guarantees の対応が自然か",
+                "- guarantee_id が一意でTestPatternから参照可能か",
+                "- 条件からExpectedを導出できるか",
+                "- クラス構成・処理順序・アルゴリズムなどHowへ踏み込みすぎていないか",
+                "- 不足する保証または分割すべき責務があるか",
+                "",
+                "TSV:"
+              ]
+            }
+          },
+          "fields": [
+            {
+              "field": "responsibility_cd",
+              "caption": "責務CD",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 180
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "name",
+              "caption": "責務名",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 210
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "test_level",
+              "caption": "Level",
+              "type": "select",
+              "options": [
+                "UT",
+                "CT",
+                "UT/CT",
+                "E2E"
+              ],
+              "grid": {
+                "visible": true,
+                "width": 90
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "approval_status",
+              "caption": "承認状態",
+              "type": "select",
+              "options": [
+                "draft",
+                "reviewing",
+                "approved",
+                "deprecated"
+              ],
+              "grid": {
+                "visible": true,
+                "width": 110
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "enabled",
+              "caption": "有効",
+              "type": "boolean",
+              "grid": {
+                "visible": true,
+                "width": 70
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "summary",
+              "caption": "責務概要",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 430
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 100
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "purpose",
+              "caption": "目的",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 90
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "source_file",
+              "caption": "実装ファイル",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 300
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "interface_name",
+              "caption": "公開Interface",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 260
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "in_scope",
+              "caption": "In Scope",
+              "type": "stringArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              },
+              "defaultValue": []
+            },
+            {
+              "field": "out_of_scope",
+              "caption": "Out of Scope",
+              "type": "stringArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              },
+              "defaultValue": []
+            },
+            {
+              "field": "constraint_ids",
+              "caption": "関連制約ID",
+              "type": "stringArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              },
+              "defaultValue": []
+            },
+            {
+              "field": "guarantees",
+              "caption": "検証可能な保証",
+              "type": "objectArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "subGrid": {
+                  "editable": true,
+                  "defaultItem": {
+                    "guarantee_id": "",
+                    "guarantee_type": "rule",
+                    "condition": "",
+                    "guarantee": "",
+                    "observable_result": "",
+                    "expected_def_type": "RuleExpectedDef",
+                    "test_pattern_seed": "",
+                    "priority": "medium",
+                    "enabled": true
+                  },
+                  "columns": [
+                    {
+                      "field": "guarantee_id",
+                      "caption": "保証ID",
+                      "type": "text",
+                      "width": 220
+                    },
+                    {
+                      "field": "guarantee_type",
+                      "caption": "種別",
+                      "type": "select",
+                      "options": [
+                        {
+                          "cd": "rule",
+                          "name": "規則"
+                        },
+                        {
+                          "cd": "state",
+                          "name": "状態"
+                        },
+                        {
+                          "cd": "interface",
+                          "name": "Interface"
+                        },
+                        {
+                          "cd": "error",
+                          "name": "エラー"
+                        },
+                        {
+                          "cd": "performance",
+                          "name": "性能"
+                        },
+                        {
+                          "cd": "no_side_effect",
+                          "name": "副作用なし"
+                        }
+                      ],
+                      "width": 130
+                    },
+                    {
+                      "field": "condition",
+                      "caption": "条件",
+                      "type": "textarea",
+                      "width": 360
+                    },
+                    {
+                      "field": "guarantee",
+                      "caption": "保証内容",
+                      "type": "textarea",
+                      "width": 420
+                    },
+                    {
+                      "field": "observable_result",
+                      "caption": "観測可能な結果",
+                      "type": "textarea",
+                      "width": 420
+                    },
+                    {
+                      "field": "expected_def_type",
+                      "caption": "ExpectedDef",
+                      "type": "select",
+                      "options": [
+                        "RuleExpectedDef",
+                        "StateExpectedDef",
+                        "CsvExpectedDef",
+                        "EventExpectedDef",
+                        "ErrorExpectedDef",
+                        "InterfaceExpectedDef",
+                        "PerformanceExpectedDef",
+                        "VisualEvidenceExpectedDef",
+                        "JsonDiffExpectedDef"
+                      ],
+                      "width": 190
+                    },
+                    {
+                      "field": "test_pattern_seed",
+                      "caption": "TestPattern候補",
+                      "type": "textarea",
+                      "width": 360
+                    },
+                    {
+                      "field": "priority",
+                      "caption": "優先度",
+                      "type": "select",
+                      "options": [
+                        {
+                          "cd": "high",
+                          "name": "高"
+                        },
+                        {
+                          "cd": "medium",
+                          "name": "中"
+                        },
+                        {
+                          "cd": "low",
+                          "name": "低"
+                        }
+                      ],
+                      "width": 100
+                    },
+                    {
+                      "field": "enabled",
+                      "caption": "有効",
+                      "type": "boolean",
+                      "width": 80
+                    }
+                  ],
+                  "initialExpanded": true
+                }
+              },
+              "search": {
+                "visible": false
+              },
+              "defaultValue": []
+            },
+            {
+              "field": "test_setup",
+              "caption": "Test Input / 実行設定（初期CLOSE）",
+              "type": "objectArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "subGrid": {
+                  "editable": true,
+                  "initialExpanded": false,
+                  "defaultItem": {
+                    "setup_id": "",
+                    "input_file": "",
+                    "input_approval_status": "draft",
+                    "execution_scope": "DOCUMENT",
+                    "load_policy": "LOAD_ONCE",
+                    "save_policy": "SAVE_ONCE",
+                    "reload_policy": "RELOAD_ONCE",
+                    "notes": ""
+                  },
+                  "columns": [
+                    {
+                      "field": "setup_id",
+                      "caption": "Setup ID",
+                      "type": "text",
+                      "width": 230
+                    },
+                    {
+                      "field": "input_file",
+                      "caption": "Test Input JSON",
+                      "type": "text",
+                      "width": 380
+                    },
+                    {
+                      "field": "input_approval_status",
+                      "caption": "Input承認状態",
+                      "type": "select",
+                      "options": [
+                        "draft",
+                        "reviewing",
+                        "approved",
+                        "deprecated"
+                      ],
+                      "width": 130
+                    },
+                    {
+                      "field": "execution_scope",
+                      "caption": "実行単位",
+                      "type": "select",
+                      "options": [
+                        "DOCUMENT"
+                      ],
+                      "width": 110
+                    },
+                    {
+                      "field": "load_policy",
+                      "caption": "LOAD",
+                      "type": "select",
+                      "options": [
+                        "LOAD_ONCE"
+                      ],
+                      "width": 110
+                    },
+                    {
+                      "field": "save_policy",
+                      "caption": "SAVE",
+                      "type": "select",
+                      "options": [
+                        "SAVE_ONCE"
+                      ],
+                      "width": 110
+                    },
+                    {
+                      "field": "reload_policy",
+                      "caption": "RELOAD",
+                      "type": "select",
+                      "options": [
+                        "RELOAD_ONCE"
+                      ],
+                      "width": 120
+                    },
+                    {
+                      "field": "notes",
+                      "caption": "備考",
+                      "type": "textarea",
+                      "width": 460
+                    }
+                  ]
+                }
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "test_pattern_definitions",
+              "caption": "TestPattern生成定義（初期CLOSE）",
+              "type": "objectArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "subGrid": {
+                  "editable": true,
+                  "initialExpanded": false,
+                  "defaultItem": {
+                    "pattern_def_id": "",
+                    "pattern_cd": "DATA_UPDATE_PERSIST",
+                    "pattern_role": "STANDARD",
+                    "target_structure": "SINGLE_GRID",
+                    "row_position": "FIRST",
+                    "value_pattern": "DIFFERENT_VALID",
+                    "expected_def_type": "JsonDiffExpectedDef",
+                    "guarantee_id": "",
+                    "enabled": true,
+                    "notes": ""
+                  },
+                  "columns": [
+                    {
+                      "field": "pattern_def_id",
+                      "caption": "Pattern Def ID",
+                      "type": "text",
+                      "width": 290
+                    },
+                    {
+                      "field": "pattern_cd",
+                      "caption": "Pattern",
+                      "type": "select",
+                      "options": [
+                        "DATA_UPDATE_PERSIST",
+                        "DATA_UPDATE_PERSIST_MULTILINE"
+                      ],
+                      "width": 240
+                    },
+                    {
+                      "field": "pattern_role",
+                      "caption": "役割",
+                      "type": "select",
+                      "options": [
+                        {
+                          "cd": "STANDARD",
+                          "name": "標準"
+                        },
+                        {
+                          "cd": "QUALITY_REINFORCEMENT",
+                          "name": "品質強化"
+                        }
+                      ],
+                      "width": 140
+                    },
+                    {
+                      "field": "target_structure",
+                      "caption": "対象構造",
+                      "type": "select",
+                      "options": [
+                        "SINGLE_GRID",
+                        "MULTI_GRID",
+                        "MULTILINE"
+                      ],
+                      "width": 150
+                    },
+                    {
+                      "field": "row_position",
+                      "caption": "行位置",
+                      "type": "select",
+                      "options": [
+                        "FIRST",
+                        "LAST"
+                      ],
+                      "width": 100
+                    },
+                    {
+                      "field": "value_pattern",
+                      "caption": "Value Pattern",
+                      "type": "select",
+                      "options": [
+                        "DIFFERENT_VALID",
+                        "MULTILINE_DIFFERENT_VALID"
+                      ],
+                      "width": 210
+                    },
+                    {
+                      "field": "expected_def_type",
+                      "caption": "ExpectedDef",
+                      "type": "select",
+                      "options": [
+                        "JsonDiffExpectedDef"
+                      ],
+                      "width": 190
+                    },
+                    {
+                      "field": "guarantee_id",
+                      "caption": "保証ID",
+                      "type": "text",
+                      "width": 250
+                    },
+                    {
+                      "field": "enabled",
+                      "caption": "有効",
+                      "type": "boolean",
+                      "width": 80
+                    },
+                    {
+                      "field": "notes",
+                      "caption": "備考",
+                      "type": "textarea",
+                      "width": 460
+                    }
+                  ]
+                }
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "notes",
+              "caption": "補足",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 90
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            }
+          ]
+        }
+      ],
+      "markdown": {
+        "enabled": true,
+        "titleField": "title",
+        "sections": [
+          {
+            "type": "header",
+            "level": 1,
+            "text": "FRB Studio 責務マスター"
+          },
+          {
+            "type": "field",
+            "field": "purpose",
+            "label": "目的"
+          },
+          {
+            "type": "field",
+            "field": "policy.definition",
+            "label": "責務の定義"
+          },
+          {
+            "type": "field",
+            "field": "policy.how_boundary",
+            "label": "責務とHowの境界"
+          },
+          {
+            "type": "grid",
+            "dataPath": "$.responsibilities",
+            "title": "責務一覧"
+          }
+        ]
+      }
+    }
+  ]
+}
