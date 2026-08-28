@@ -200,7 +200,6 @@ Restrictionsは、判断や実行に対する境界を表す。
 
 凡例) ※：よく使う項目
 
-
 Restrictions　～制約～
 ├─ Constraint            制約 ※
 ├─ Rule                  ルール
@@ -271,7 +270,6 @@ Accountabilityは、単なるRoleより広い。
 ```text
 
 凡例) ※：よく使う項目
-
 
 Accountability　～責務～
 ├─ Responsibility        責務 ※
