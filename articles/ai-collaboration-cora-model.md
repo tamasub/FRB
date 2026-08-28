@@ -106,7 +106,7 @@ Context
 
 **「何を重視して、どう判断するのか」**
 
-Orientationは、CORA Modelの中でも特に重要な要素である。
+Orientation（**判断軸**）は、CORA Modelの中でも特に**重要な要素**である。
 
 多くのプロンプトフレームワークでは、
 
