@@ -32741,6 +32741,147 @@
           "reason": "実機確認時にEnterを2回要求してPoC終了判定を紛らわしくしないため。"
         }
       ]
+    },
+    {
+      "work_item_id": "studio_work_0227",
+      "phase": "future-parse-boundary",
+      "title": "外部データ Parse Boundary 導入構想 future-parse-boundary",
+      "incident_type": "architecture",
+      "category": "rules_schema",
+      "priority": "high",
+      "status": "構想",
+      "follow_up_status": "UNASSESSED",
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-08-27",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "work_summary": "FRB Studioは外部JSON・ViewDef・FieldDef・Diff・TestDef等を読み込んで扱うRuntimeであるため、外部から入ってきた曖昧な値を内部で信用可能な値へ変換する境界として Parse Boundary の導入を将来検討する。ViewDef Schema Checkを「構造保証」、Parseを「値・意味の保証」とする兄弟的な位置づけを想定する。ただしGrid表示前に全行・全項目を一括Parse／Validationすると性能悪化の可能性があるため、読込時・編集時・保存時など保証を発生させる地点を分離して設計する。",
+      "target_files": "将来検討。外部データ読込、ViewDef/FieldDef解決、Runtime Validation、Grid表示、保存処理周辺。",
+      "actual_updated_files": "",
+      "objective": "外部データを扱うStudio Runtimeにおいて、どこで値を検証・正規化し、どの時点から保証済みデータとして扱えるかを明確化する。下位層で成立した保証を上位層で繰り返し検証しない構造へつなげる。",
+      "background": "現在のStudioくんはField Definition、Validation Type、Resolved Contract、Runtime Validationにより値の契約適合性を検査している。一方、検査済みという事実を後続処理へ明確に継承するParse Boundaryの概念は独立して定義していない。外部データを主対象とするStudioでは、Schema Checkだけでなく、値・意味を内部Canonical表現へ変換する境界が将来的に必要になる可能性が高い。",
+      "scope": "Parse Boundaryの責務、Schema Checkとの境界、Normalizeとの関係、Validation Typeとの関係、Canonical / Trusted Dataの考え方、保証の継承方法、読込時・編集時・保存時の実行タイミング、性能を考慮した段階的Parse方式を将来設計対象とする。",
+      "out_of_scope": "現時点でParse機構を実装しない。全データの一括Parse方式を確定しない。文字列数値変換、全角数字変換、日付補正等の具体的な自動変換ルールも現時点では確定しない。既存Runtime Validationの挙動変更は行わない。",
+      "fixed_name_policy": "Parse済み／Canonical状態を表現するためにData固有の固定フィールド名を追加することは原則避ける。Studio標準メタ情報として必要になった場合のみ、憲法・共通仕様側で定義してから使用する。",
+      "module_policy": "実装方式は未定。既存Runtimeへ直接埋め込む前に、Schema Check・Parse・Validation・Normalizationの責務境界を整理し、独立した処理単位として差し替え可能な構造を優先する。",
+      "expected_outputs": "Parse Boundaryの概念定義、Schema Checkとの責務比較、外部データからCanonical / Trusted Dataまでの処理フロー、実行タイミング方針、性能影響を抑える段階的Parse方針、必要に応じたContextDef／責務定義／TestPattern候補。",
+      "risk": "Grid表示前に全行・全項目へParse、Validation Type解決、Constraint解決等を一括実行すると、大規模JSON読込時の初期表示性能が悪化する可能性がある。また、自動Normalizeを広げすぎると入力誤りを暗黙補正してしまい、元データの意味を変える危険がある。Parse済み保証の境界が曖昧な場合、後続処理で再Validationが増え、目的である保証継承が成立しない可能性がある。",
+      "test_points": "将来実装時は、①Schema不正データの拒否、②Parse成功／失敗、③Normalize許可／禁止境界、④Parse済み保証の後続継承、⑤編集項目のみの局所Parse、⑥保存時全体保証、⑦大量行・大量列での初期Grid表示性能、⑧Parse前後で未対象データが不変であること、を確認する。",
+      "verification_log": "",
+      "context_def_draft": "External Data → Schema Check（構造保証）→ Parse / Normalize（値・意味の保証）→ Resolved Contract Validation → Canonical / Trusted Data → Runtime、という将来構造を候補とする。Parseは単なるJSON.parseではなく、外部の曖昧な値をStudio内部で信用可能な意味のある値へ変換し、その保証を後続処理へ継承する境界として扱う。",
+      "user_request": "FRB Studioは基本的に外からのデータを扱うシステムなので、parseの考え方は将来的に取り込む必要がありそう。ViewDefのスキーマチェックの兄弟的な位置づけと考えている。ただしGrid表示前に全件処理すると性能問題になりそうなので、将来構想としてインシデントに残しておきたい。",
+      "ai_response": "",
+      "latest_user_comment": "少なくてもStudioくんは基本的に外からのデータを扱うシステム。parseの考え方はどこかで取り込む必要がある。ViewDefのスキーマチェックの兄弟的な位置づけ。ただしGrid表示前にやると性能が厳しくなる可能性があるため、将来構想としてインシデントに残す。\n\n[本件の発想起因となったブログ記事](https://zenn.dev/dress_code/articles/loose-types-and-dead-branches)",
+      "latest_ai_response": "",
+      "context_refs": [],
+      "follow_up_actions": [],
+      "discussion_history": [
+        {
+          "history_id": "disc_0227_001",
+          "at": "2026-08-27",
+          "speaker": "user",
+          "topic": "Parse Boundaryの必要性",
+          "message": "Studioくんは基本的に外部データを扱うため、parseの考え方は将来的に取り込む必要がありそう。ViewDef Schema Checkの兄弟的な位置づけと考える。"
+        },
+        {
+          "history_id": "disc_0227_002",
+          "at": "2026-08-27",
+          "speaker": "assistant",
+          "topic": "SchemaとParseの責務分離",
+          "message": "Schema Check＝構造保証、Parse＝値・意味の保証として分離し、Parse Boundaryを外部データとStudio内部の信用可能なデータとの境界として扱う案を提示した。"
+        },
+        {
+          "history_id": "disc_0227_003",
+          "at": "2026-08-27",
+          "speaker": "user",
+          "topic": "性能懸念",
+          "message": "Gridを表示する前に全データをParseすると性能が問題になるのではないか、という懸念を提示した。"
+        },
+        {
+          "history_id": "disc_0227_004",
+          "at": "2026-08-27",
+          "speaker": "assistant",
+          "topic": "段階的Parse案",
+          "message": "全件一括ではなく、読込時は軽量、編集時は対象項目を厳密Parse／Validation、保存時は全体保証とする段階的方式を候補として整理した。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0227_001",
+          "at": "2026-08-27",
+          "decision": "Parse BoundaryをFRB Studioの将来アーキテクチャ候補として残す。",
+          "reason": "Studioが外部データを主対象とするRuntimeであり、構造保証だけでなく値・意味の保証境界が将来的に必要になる可能性が高いため。",
+          "applied_axes": [
+            "保証の機械化",
+            "下位保証の上位継承",
+            "外部データ境界の明確化"
+          ],
+          "conditions": [
+            "現時点では構想として記録し、即実装しない"
+          ],
+          "exceptions": [],
+          "expected_behavior": [
+            "Parse済みデータは後続処理で同じ基礎Validationを繰り返さず利用できる方向を目指す"
+          ],
+          "acceptance_criteria": [
+            "Schema CheckとParseの責務境界が説明できる",
+            "保証が成立する地点を明示できる"
+          ],
+          "test_pattern_seed": [
+            "PARSE_OK",
+            "PARSE_REJECT",
+            "NORMALIZE_ALLOWED",
+            "NORMALIZE_REJECTED"
+          ],
+          "remaining_risks": [
+            "過剰Normalize",
+            "性能劣化",
+            "保証境界の二重化"
+          ],
+          "confirmation_level": "concept",
+          "axis_update_candidate": ""
+        },
+        {
+          "decision_id": "dec_0227_002",
+          "at": "2026-08-27",
+          "decision": "Grid初期表示前の全行・全項目一括Parseを前提にしない。",
+          "reason": "大規模データで初期表示性能が悪化する可能性があり、Parseの目的は全件事前検査ではなく保証を発生させる境界の明確化だから。",
+          "applied_axes": [
+            "性能",
+            "認知負荷",
+            "必要な地点で必要な保証だけ行う"
+          ],
+          "conditions": [
+            "将来実装時に実測して最終方式を決定する"
+          ],
+          "exceptions": [
+            "保存前など全体保証が必要な処理では全件検証を許容する"
+          ],
+          "expected_behavior": [
+            "読込時は初期表示を阻害しない",
+            "編集対象は必要な時点で厳密に保証する",
+            "保存時は必要に応じて全体を保証する"
+          ],
+          "acceptance_criteria": [
+            "大量データでもGrid初期表示への影響を許容範囲に抑える"
+          ],
+          "test_pattern_seed": [
+            "INITIAL_LOAD_LARGE_DATA",
+            "EDIT_SINGLE_FIELD_PARSE",
+            "SAVE_FULL_VALIDATION"
+          ],
+          "remaining_risks": [
+            "Lazy Parseされた値と未Parse値の混在管理"
+          ],
+          "confirmation_level": "concept",
+          "axis_update_candidate": ""
+        }
+      ],
+      "change_history": [],
+      "failure_stories": [],
+      "created_at": "2026-08-27",
+      "updated_at": "2026-08-27"
     }
   ],
   "review_notes": [

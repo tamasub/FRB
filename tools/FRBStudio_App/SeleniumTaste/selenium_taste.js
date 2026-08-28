@@ -618,20 +618,19 @@ async function main() {
     // Preview内部の編集値は「一覧へ反映」でSubGrid一覧へ反映する。
     await applyPreviewEditorToSubGridList();
 
-    // 一覧はレビュー用の1行代表表示。Previewの複数行全文を一覧inputへ露出することは契約にしない。
-    // 実機では先頭1行だけが表示されるため、E2Eでは「改行なし + 先頭行一致」だけを保証する。
+    // 一覧はレビュー用の1行表示。複数行原文は改行を空白へ変換して全文を1行化して表示する。
     const listDisplayAfterApply = await readSubGridCellValue(
       subGridField,
       subGridRowIndex,
       subGridColumn,
     );
-    const firstLineExpected = normalizeLineEndings(multiLineExpected).split('\n')[0];
-    console.log(`一覧へ反映後 1行代表表示: ${listDisplayAfterApply}`);
+    const singleLineExpected = toSingleLineDisplay(multiLineExpected);
+    console.log(`一覧へ反映後 1行表示: ${listDisplayAfterApply}`);
     assertPass(
       !/[\r\n]/.test(listDisplayAfterApply)
-        && listDisplayAfterApply === firstLineExpected,
-      'プレビュー編集 一覧1行代表表示',
-      `Expected=${firstLineExpected}, Actual=${listDisplayAfterApply}`,
+        && listDisplayAfterApply === singleLineExpected,
+      'プレビュー編集 一覧1行表示',
+      `Expected=${singleLineExpected}, Actual=${listDisplayAfterApply}`,
     );
 
     // SubGrid一覧 -> 親JSONへF12反映。内部propertyではなくUIの反映状態を確認する。

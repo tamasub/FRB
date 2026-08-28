@@ -2361,7 +2361,7 @@ ChatGPT said:
 
 ```
 
-AI協働 判断構造モデル
+AI協働 判断構造モデル(通称 CORA)
   ├─ 文脈（目的・背景・方針・Non-Goal等）
   ├─ 判断軸（評価項目・トレードオフ発生時の優先ルール）
   ├─ 制約（技術・時間・予算・品質等の境界条件）
@@ -2375,6 +2375,25 @@ AI協働 判断構造モデル
 思考ログ（インシデント不要 / 拡散領域）
   ├─ 雑記・仮説・試行錯誤（自由浮遊）
   └─★ 昇格トリガー：意思決定が必要になった段階で判断ログへ移行
+
+```
+
+
+CORA — Context / Orientation / Restrictions / Accountability
+```
+
+C = Context
+    文脈（目的・背景・方針）
+
+O = Orientation
+    判断軸
+    「どちらを向いて判断するか」
+
+R = Restrictions
+    制約
+
+A = Accountability
+    責務
 
 ```
 

@@ -10,8 +10,8 @@
   "conversion_note": "Studioくん憲法レビュー記録を共通ルールレビューViewDef v0.3で扱えるように、constitution_sections を rules へ正規化し、各行に rule_id と decision_log を追加した。section_id は旧IDとして残す。",
   "created": "2026-06-21",
   "status": "",
-  "section_count": 32,
-  "rule_count": 32,
+  "section_count": 33,
+  "rule_count": 33,
   "approved_count": 24,
   "approval_policy": "Rule Reviewの状態正本は verification_status（AI確認状態）と approval_decision（人間承認）の二つとする。AIは確認結果を更新できるが、人間承認を新規付与・継続・復元してはならない。AIが承認対象の意味内容を変更した場合は verification_status=未確認、approval_decision=未承認へ戻し、approved_by / approved_at をクリアして人間再承認を求める。",
   "preamble_title": "この文書の目的",
@@ -1742,6 +1742,63 @@
         }
       ],
       "updated_at": "2026-08-12T09:20:00+09:00"
+    },
+    {
+      "no": 33,
+      "rule_id": "constitution_33",
+      "section_id": "constitution_33",
+      "category": "Type / 設計統治",
+      "title": "型の境界は仮説として育てる",
+      "priority": "high",
+      "verification_status": "未確認",
+      "approval_decision": "未承認",
+      "approval_stamp": "",
+      "approved_by": "",
+      "approved_at": "",
+      "summary": "型は可能性を制約し、機械判定・再利用・事前承認しやすい知識を表す。何を型にしないかも仮決めし、実証と差分を見ながら境界定義を更新する。",
+      "body": "Studioでは、型を単なる分類名ではなく、**考慮すべき可能性を制約するための知識単位**として扱う。\n\n型に寄せる候補は、原則として次の性質を持つものとする。\n\n- 複数箇所で再利用できる\n- 機械的に判定・検証できる\n- 人間が事前に意味や保証範囲を承認できる\n- 適用することで、AIと人間が考慮する可能性を減らせる\n\n例として、`validation_type`、`fieldType`、`fieldGroupType`、将来のBehavior TypeやState Transition Type等を含む。\n\n一方、現時点で次のようなものは、無理に型へ押し込まない。\n\n- 個別文脈がなければ正しさを決められない判断\n- 責務ごとの固有Expected\n- 業務固有の例外・方針\n- 実行結果や外部状態がなければ確定できない事実\n- まだ十分に実証されていない分類・共通化候補\n\n型にするかどうかの境界は、現時点で完全に固定しない。\n\nまず仮の境界を置き、実際の責務・TestPattern・Expected・State Transition等を観測しながら、憲法第29条「実証なき抽象化の禁止」に従って定義を更新する。\n\n```text\n仮のType境界を定義\n  ↓\n具体責務・差分・TestPatternを観測\n  ↓\n型に含める／含めないを再評価\n  ↓\nType Catalog・契約を更新\n```\n\n型を増やすこと自体を目的にしてはならない。\n\n目的は、機械的に保証できる領域を増やし、AIの探索範囲と人間の承認対象を小さくすることである。",
+      "ceremony_phrase": "Studioくん憲法 第33条「型の境界は仮説として育てる」を承認する。",
+      "user_comment": "型の考え方は大きな話なので、簡単に憲法へ残しておきたい。何を型で表現しないかを先に仮決めし、まだ曖昧な部分は定義をアップデートしながら進みたい。",
+      "ai_response": "型を『可能性空間を制約する知識単位』として位置づけ、再利用可能・機械判定可能・事前承認可能な領域を型へ寄せる。個別文脈・固有Expected・未実証の分類は無理に型化せず、実証と差分を見ながら境界を更新する条文として整理する。",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "notes": "Type体系完成を宣言する条文ではなく、Type Boundaryを仮説として育てるための統治原則。意味のある新規条文のため、人間再承認待ちとして追加する。",
+      "change_history": [
+        {
+          "history_id": "chg_constitution_33_v01840_001",
+          "at": "2026-08-27T22:00:00+09:00",
+          "change_type": "rule_added",
+          "before": "型を何に適用し、何を型にしないかを横断的に扱う憲法上の境界原則が存在しなかった。",
+          "after": "型を可能性を制約する知識単位とし、型にしない領域も仮定義したうえで、実証しながら境界を更新する第33条を追加した。",
+          "reason": "Validation Typeや将来のBehavior Type等を広げる際に、型化そのものを目的化せず、人間承認と機械保証に効く範囲だけを育てるため。"
+        }
+      ],
+      "section_no": 33,
+      "parent_rule_id": "",
+      "source_heading": "型の境界は仮説として育てる",
+      "source_heading_level": 2,
+      "source_line_start": null,
+      "source_md_file": "frb_coding_constraints_data_v0_3.json",
+      "introduced_in": "v0.18.40-type-boundary-draft",
+      "decision_log": [
+        {
+          "decision_id": "dec_constitution_33_v01840_001",
+          "at": "2026-08-27T22:00:00+09:00",
+          "decision": "型は、再利用可能・機械判定可能・事前承認可能な知識を中心に表現し、個別文脈依存・未実証の領域は無理に型へ押し込まない。",
+          "reason": "型が肥大化すると、分類や抽象化そのものが目的になり、責務・文脈・Expected等の意味を失うため。",
+          "applied_axes": [
+            "機械的な保証可能性を最優先した設計",
+            "責務分離を共通化より先に行う",
+            "人間の視認性を最優先"
+          ],
+          "conditions": "新しいValidation Type、Behavior Type、State Transition Type等のType/Catalogを追加・拡張する場合。",
+          "exceptions": "境界が曖昧な場合は型化せず、候補として記録して実証を待つ。",
+          "expected_behavior": "Type境界が固定観念にならず、具体責務・差分・TestPatternの観測結果に基づいて更新される。",
+          "acceptance_criteria": "型に寄せる候補、型にしない候補、境界更新方針が条文に明記されていること。",
+          "confirmation_level": "JSON・設計レビュー"
+        }
+      ],
+      "updated_at": "2026-08-27T22:00:00+09:00"
     }
   ],
   "review_notes": [
@@ -1839,10 +1896,16 @@
       "at": "2026-07-26",
       "title": "適切な粒度の小さな差分を最優先する判断軸",
       "body": "governance_itemsへdecision_axis_small_meaningful_diff_approval_firstを追加した。AI承認駆動開発の北極星として、人間が意味・責務・影響範囲を判断できる最小十分な差分を優先する。単なる過細分化は避け、標準＋override/diffにより変更部分だけを保存・提示する。Validation Typeを基準として項目定義XXX.jsonへ個別変更差分だけを保存する設計判断の上位根拠とする。"
+    },
+    {
+      "note_id": "note_v01840_type_boundary_draft",
+      "at": "2026-08-27T22:00:00+09:00",
+      "title": "型の境界を仮説として育てる原則を追加",
+      "body": "constitution_33を追加。型を可能性を制約する知識単位として扱い、再利用可能・機械判定可能・事前承認可能な領域を型へ寄せる。個別文脈依存・固有Expected・未実証の分類は無理に型化せず、実証と差分を見ながらType Boundaryを更新する。"
     }
   ],
-  "review_revision": "v0.18.39-component-governance-and-structured-writing",
-  "updated": "2026-08-12",
+  "review_revision": "v0.18.40-type-boundary-draft",
+  "updated": "2026-08-27",
   "change_history_policy": "レビューで条文・仕様を変更した場合は、対象行の change_history に変更前・変更後・理由・会話を保存する。変更後だけを残さず、修正元を追体験できる状態にする。",
   "viewing_policy": {
     "data_json_role": "原本",
@@ -1883,5 +1946,5 @@
     }
   ],
   "markdown_export_body": "",
-  "updated_at": "2026-08-12T09:20:00+09:00"
+  "updated_at": "2026-08-27T22:00:00+09:00"
 }
