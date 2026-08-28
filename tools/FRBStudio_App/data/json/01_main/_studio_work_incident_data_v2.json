@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-27T19:00:00+09:00",
+  "updated_at": "2026-08-28T23:30:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 214,
+  "items_count": 216,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -32882,6 +32882,137 @@
       "failure_stories": [],
       "created_at": "2026-08-27",
       "updated_at": "2026-08-27"
+    },
+    {
+      "work_item_id": "studio_work_0228",
+      "phase": "v0.18.109-responsibility-generated-test-preview",
+      "title": "Responsibility Generated TestPattern / Expected Preview — DATA_UPDATE_PERSIST機械導出",
+      "incident_type": "test_automation",
+      "category": "responsibility_definition_driven_test",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "PENDING",
+      "verification_status": "Service/静的確認済み / NativeShell実機確認待ち",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-28T23:30:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-28T23:30:00+09:00",
+      "updated_at": "2026-08-28T23:30:00+09:00",
+      "work_summary": "- Responsibility v0.2のtest_setup / test_pattern_definitionsからGenerated TestPattern / Expected Previewを機械導出する。\n- Test DATA → ViewDef → Field Definition → Validation Type Registryを辿り、編集可能かつ明示FieldDefを持つ対象Fieldを自動選択する。\n- DATA_UPDATE_PERSISTの6生成定義から6 TestPattern / 30 Mutationを導出し、JsonDiffExpectedDefとしてExpected Diff + Unexpected Diff Count=0を表示する。\n- Generated成果物はCanonical Responsibility JSONへ保存せずDerived readonly Componentとして初期CLOSE表示する。\n- Input承認状態がdraftでもPreviewは可能とし、approvedになるまではExecution Readyにしない。",
+      "target_files": "- wwwroot/js/services/responsibility/responsibility_test_preview_service.js\n- wwwroot/js/components/responsibility/responsibility_test_preview_component.js\n- defs/qa/tests/responsibilities/responsibility_view_def_v0_2.json\n- wwwroot/index.html\n- tests/qa/static/responsibility_generated_test_preview_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- wwwroot/js/services/responsibility/responsibility_test_preview_service.js\n- wwwroot/js/components/responsibility/responsibility_test_preview_component.js\n- defs/qa/tests/responsibilities/responsibility_view_def_v0_2.json\n- wwwroot/index.html\n- tests/qa/static/responsibility_generated_test_preview_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "責務定義JSONをTestPattern生成のCanonicalとし、Generated TestPattern / Expectedは機械導出する。DATA_UPDATE_PERSISTではTest DATA・ViewDef・Field Definition・Validation Typeの契約から変更対象と正常な別値を決め、JsonDiffExpectedDefのExpected DiffとUnexpected Diff CountをPreviewする。生成結果を正本へ重複保存せず、必要なときだけ初期CLOSEのDerived Previewを展開して人間が確認できるようにする。",
+      "objective": "責務定義v0.2から、DATA_UPDATE_PERSISTの具体的な変更対象・変更後値・Expected Diffを人間が画面上で確認できるGenerated TestPattern / Expected Previewを成立させる。",
+      "background": "責務定義v0.2ではResponsibility / Guaranteeに加えてtest_setupとtest_pattern_definitionsを同一JSONへ集約し、Generated成果物は保存しない方針にした。次段階として、Selenium Runnerへ進む前に「どのInputを使い、どのFieldをどう変更し、どの差分をExpectedとするか」を定義から機械導出して人間が確認できる必要があった。Field Definition側には既にGenerated TestPattern / Expected Preview Componentの実績があり、同じComponent Modelを責務定義へ拡張する。",
+      "scope": "- data_update_persist責務のenabledなtest_pattern_definitionsを対象にする。\n- test_setupからTest DATA / ViewDef / Field Definitionを読み込む。\n- Validation Type Registryを使ってResolved Field Contractを解決する。\n- target_data_path / row_position / field_selection_policyから対象Row・Fieldを機械選択する。\n- key / readonly / FieldDef未登録を除外する。\n- STANDARDはmulti_lineを除外し、QUALITY_REINFORCEMENTはmulti_lineだけを対象にする。\n- DIFFERENT_VALID / MULTILINE_DIFFERENT_VALIDにより正常な別値を決定論的に生成する。\n- 文字列は共有Token TESTを右端へ反映し、桁数契約を尊重する。\n- 生成値をDefinitionValueValidatorでACCEPT確認する。\n- JsonDiffExpectedDefとしてExpected DiffとUnexpected Diff Count=0を生成する。\n- Responsibility DetailへDerived readonly Componentとして表示し、initialExpanded=falseで初期CLOSEにする。",
+      "out_of_scope": "- Selenium / WebDriverによる実際のUI変更・SAVE・RELOAD実行。\n- 物理JSONのWorking Copy生成。\n- Actual Diffとの実比較。\n- CREATE / DELETE責務。\n- Input approval_statusの自動承認。\n- Generated TestPattern / ExpectedをResponsibility JSONへ保存すること。\n- 既存search_filter / csv_export等の旧責務TestPatternを新生成方式へ全面移行すること。",
+      "fixed_name_policy": "Runtimeへtitle等のData項目固定名を持ち込まない。対象Fieldはtarget_data_pathに対応するViewDef SectionとField Definitionのfield_path契約から導出し、keyField / readonly / multi_line等の属性で選択する。共有文字列Token TESTはresponsibility_data_v0_2.jsonのtest_generation_config.value_generation.string.replace_suffix_tokenだけを正本とする。",
+      "module_policy": "生成計算はResponsibilityTestPreviewServiceへ置き、UI Componentは外部JSON読込とDerived readonly表示だけを担当する。既存Editor Component Host / DerivedSubGridComponentの共通契約を継承し、Detail Runtimeへ責務固有分岐を追加しない。",
+      "expected_outputs": "- data_update_persist DetailにGenerated TestPattern / Expected Preview Headerが表示され、初期CLOSEである。\n- 展開すると6件のGenerated TestPatternが表示される。\n- SINGLE_GRID FIRST/LASTはmeasurement_sessionsの編集可能な明示FieldDef項目を変更候補にする。\n- MULTI_GRID FIRST/LASTはacceptance_thresholdsを対象にする。\n- MULTILINE FIRST/LASTはnoteだけを対象とし、改行 + TESTを生成する。\n- 全Generated MutationがResolved Contract上ACCEPTである。\n- Expected: Diffに(-)/(+)差分が表示される。\n- Expected: Unexpected Diff Countは全Patternで0。\n- Input承認draft時はPreview Only、approved時だけExecution Readyと判定する。",
+      "risk": "DIFFERENT_VALID生成器はValidation Type契約の種類が増えるほど候補生成ルールの拡張が必要になる。Preview生成が成功してもSelenium操作・SAVE・RELOADの実行保証は別段階であり、今回のPreview結果だけでE2E PASSとは扱わない。大きなMutation集合はPreviewセルが横長になるため、必要に応じて将来Preview詳細表示を改善する。",
+      "test_points": "- 6 TestPatternが機械導出されること。\n- Mutation数がSingle 10+10 / Multi 4+4 / Multiline 1+1 = 合計30であること。\n- keyFieldとreadonlyが除外されること。\n- STANDARDからmulti_lineが除外されること。\n- MULTILINEではnoteだけが選択されること。\n- 文字列変更後値が共有Token TESTで終わること。\n- 全MutationをDefinitionValueValidatorがACCEPTすること。\n- Expected Diffが(-)/(+)形式で生成されUnexpected Diff Count=0となること。\n- Generated結果がCanonical Responsibility JSONへ保存されないこと。\n- ViewDef ComponentがinitialExpanded=falseであること。\n- index.htmlでService / ComponentがDetail Runtimeより前にロードされること。",
+      "verification_log": "- `node --check` responsibility_test_preview_service.js = PASS。\n- `node --check` responsibility_test_preview_component.js = PASS。\n- 新規 `responsibility_generated_test_preview_static.test.mjs` = 4/4 PASS。\n- Fixture contract + Generated Preview + SubGrid collapse/component focused tests = 17/17 PASS。\n- 全Static Before（添付ZIP原本）: 322 tests / 310 PASS / 12 FAIL。\n- 全Static After: 326 tests / 317 PASS / 9 FAIL。\n- AfterのFAILはBefore既存FAIL集合の部分集合で、今回差分による新規FAILなし。既存Incident登録状態の更新により3件の旧FAILが解消。\n- NativeShell実機でのPreview表示・展開操作はPENDING。",
+      "user_request": "Generated TestPattern / Expected Preview よろしくお願いします！！インシデント登録もお願いねっ。",
+      "ai_response": "Responsibility v0.2の生成定義をCanonicalとして、DATA / ViewDef / FieldDef / Validation Typeから変更対象・DIFFERENT_VALID値・JsonDiffExpectedDefを機械導出するServiceとDerived Preview Componentを追加する。生成物は保存せず初期CLOSE表示とし、InputがdraftでもPreview可能、approvedのみExecution Readyとする。あわせてIncidentへ判断・変更・検証内容を登録する。",
+      "latest_user_comment": "Generated TestPattern / Expected Preview よろしくお願いします！！インシデント登録もお願いねっ。",
+      "latest_ai_response": "Responsibility Generated TestPattern / Expected Previewを実装。DATA_UPDATE_PERSISTの6生成定義から6 Pattern / 30 Mutationを機械導出し、Expected Diff + Unexpected Diff Count=0をDerived readonly Previewへ表示する。生成結果はCanonical JSONへ保存せず、初期CLOSEとする。",
+      "context_refs": [
+        {
+          "context_ref_id": "ctx_0228_foundation_019",
+          "title": "GitHub基準ソースとZIP返却契約",
+          "read_timing": "before_output",
+          "target_path": "data/json/00_rules/frb_foundation_rules_data_v0_1.json#foundation_rule_019",
+          "purpose": "ユーザー添付の最新App ZIPを今回の基準ソースとし、更新ファイルを同一相対パスで返却し、更新済みIncident JSONを含める。",
+          "failure_policy": "stop_and_ask",
+          "trust_category": "canonical",
+          "required": true,
+          "enabled": true,
+          "sort_order": 1,
+          "note": "作業依頼ターン添付のFRBStudio_App20260828_230845.zipを今回の正本とする。"
+        }
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0228_native_responsibility_preview_verify",
+          "action_type": "VERIFICATION",
+          "required": true,
+          "status": "NOT_STARTED",
+          "related_ids": [
+            "studio_work_0228"
+          ],
+          "note": "Windows NativeShellでresponsibility_data_v0_2.jsonを開き、data_update_persist DetailのGenerated TestPattern / Expected Previewが初期CLOSEで表示されること、展開時に6 PatternとExpected Diff / Unexpected Diff Count=0が見えることを確認する。",
+          "summary": "Responsibility Generated PreviewをNativeShell実機確認"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "disc_0228_001",
+          "at": "2026-08-28T23:30:00+09:00",
+          "speaker": "user",
+          "topic": "Responsibility Generated Preview実装依頼",
+          "message": "Generated TestPattern / Expected Preview よろしくお願いします！！インシデント登録もお願いねっ。"
+        },
+        {
+          "history_id": "disc_0228_002",
+          "at": "2026-08-28T23:30:00+09:00",
+          "speaker": "assistant",
+          "topic": "責務定義駆動Preview実装",
+          "message": "責務JSONを正本として、Test DATA / ViewDef / Field Definition / Validation TypeからDATA_UPDATE_PERSISTのGenerated TestPatternとJsonDiffExpectedDefを機械導出するService + Derived Componentを追加。6 Pattern / 30 Mutationを導出し、Generated成果物はJSONへ保存せず初期CLOSE Previewとして表示する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0228_001",
+          "at": "2026-08-28T23:30:00+09:00",
+          "decision": "Generated TestPattern / ExpectedはResponsibility JSONへ保存せず、責務定義から毎回機械導出するDerived readonly Dataとする。",
+          "reason": "生成元と生成物の二重正本化・陳腐化を避け、Field Definition Driven Testと同じCanonical→Generated構造を責務定義へ拡張するため。"
+        },
+        {
+          "decision_id": "dec_0228_002",
+          "at": "2026-08-28T23:30:00+09:00",
+          "decision": "1つのTestPattern生成定義は、指定Rowに存在するField選択ポリシー該当項目をまとめてMutationとして生成する。",
+          "reason": "DATA_UPDATE_PERSISTはDocument単位でLOAD/SAVE/RELOADを共有し、1項目ごとに同じLifecycleを繰り返さず、複数項目変更の永続化を一括して保証する設計だから。"
+        },
+        {
+          "decision_id": "dec_0228_003",
+          "at": "2026-08-28T23:30:00+09:00",
+          "decision": "Input approval_status=draftでもGenerated Previewは許可するが、Execution Readyはapprovedの場合だけtrueとする。",
+          "reason": "人間が生成内容を承認するためには承認前Previewが必要だが、未承認Fixtureを実テストへ投入してはならないため。"
+        },
+        {
+          "decision_id": "dec_0228_004",
+          "at": "2026-08-28T23:30:00+09:00",
+          "decision": "DATA_UPDATE_PERSISTのExpectedDefはJsonDiffExpectedDefとし、Expected DiffとUnexpected Diff Count=0を生成する。",
+          "reason": "変更対象が期待どおり変わったことと、変更対象外が壊れていないことを同時に外部観測可能なExpectedとして表現するため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0228_001",
+          "at": "2026-08-28T23:30:00+09:00",
+          "change_type": "responsibility_generated_test_preview_service",
+          "before": "Responsibility v0.2にtest_setup / test_pattern_definitionsは存在したが、具体的なGenerated TestPattern / Expectedを画面で導出するServiceがなかった。",
+          "after": "ResponsibilityTestPreviewServiceを追加し、DATA/ViewDef/FieldDef/Validation Typeから対象Field・変更後値・Expected Diffを機械導出する。",
+          "reason": "Selenium実行前に、人間が生成されるテスト内容と期待差分を確認できるようにするため。"
+        },
+        {
+          "history_id": "chg_0228_002",
+          "at": "2026-08-28T23:30:00+09:00",
+          "change_type": "responsibility_generated_preview_component",
+          "before": "Responsibility Detailにはtest_setupとtest_pattern_definitionsのCanonical SubGridだけがあり、Generated Previewはなかった。",
+          "after": "Generated TestPattern / Expected PreviewをDerived readonly Editor Componentとして追加し、ViewDefからinitialExpanded=falseで初期CLOSEにした。",
+          "reason": "生成結果を正本へ保持せず、人間が必要なときだけ参照・承認できるようにするため。"
+        },
+        {
+          "history_id": "chg_0228_003",
+          "at": "2026-08-28T23:30:00+09:00",
+          "change_type": "different_valid_value_generation",
+          "before": "DIFFERENT_VALID / MULTILINE_DIFFERENT_VALIDは定義上の名称だけで、具体値生成と契約検証がなかった。",
+          "after": "string/number/boolean/date/datetime/instant/multilineの決定論的変更値を生成し、DefinitionValueValidatorでACCEPT確認する。文字列は共通Token TESTを右端へ反映する。",
+          "reason": "保存責務のテスト値をValidation違反にせず、元値とは異なる正常値として機械生成するため。"
+        }
+      ]
     }
   ],
   "review_notes": [

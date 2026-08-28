@@ -8,7 +8,7 @@ const readJson = (relativePath) => JSON.parse(fs.readFileSync(path.join(root, re
 
 const dataPath = 'data/json/80_frb/frb_fft_field_definition_sample_data_v0_1.json';
 const viewDefPath = 'defs/frb/frb_fft_field_definition_sample_view_def_v0_1.json';
-const fieldDefPath = 'fielddefs/samples/frb_fft_measurement_field_definitions_v0_1.json';
+const fieldDefPath = 'fielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json';
 const fieldDefSchemaPath = 'fielddefs/schema/field_definition_data_schema_v0_1.json';
 const viewDefSchemaPath = 'data/json/00_rules/frb_view_def_schema_v0_9.json';
 const schemaReviewPath = 'data/json/00_rules/frb_view_def_schema_review_data_v0_1.json';
@@ -42,7 +42,7 @@ test('sample Data points to the sample ViewDef and does not reference fielddefs 
 
 test('sample ViewDef references one fielddefs file only at the ViewDef root', () => {
   const viewDef = readJson(viewDefPath);
-  assert.equal(viewDef.item_definition_ref, 'samples/frb_fft_measurement_field_definitions_v0_1.json');
+  assert.equal(viewDef.item_definition_ref, 'samples/frb_fft_measurement_field_definitions_v0_2.json');
   const fields = allViewDefFields(viewDef);
   assert.ok(fields.length > 0);
   for (const { field } of fields) {
@@ -92,7 +92,7 @@ test('ViewDef Schema declares optional item_definition_ref and no field-level va
   assert.equal(Object.hasOwn(fieldProperties, 'validation_type'), false);
 });
 
-test('Schema Review and ViewDef Generation Rules track the new unapproved contract', () => {
+test('Schema Review and ViewDef Generation Rules track the current approval states', () => {
   const review = readJson(schemaReviewPath);
   const reviewItem = review.schema_items.find((item) => item.item_id === 'root_property__item_definition_ref');
   assert.ok(reviewItem);
@@ -105,7 +105,7 @@ test('Schema Review and ViewDef Generation Rules track the new unapproved contra
   const rules = readJson(rulesPath);
   const rule = rules.rules.find((item) => item.rule_id === 'viewdef_rule_33');
   assert.ok(rule);
-  assert.equal(rule.approval_decision, '未承認');
+  assert.equal(rule.approval_decision, '承認する');
   assert.match(rule.body, /item_definition_ref/);
   assert.match(rule.body, /validation_type.*item_definition_id/s);
   assert.equal(rules.rule_count, rules.rules.length);
@@ -133,7 +133,7 @@ test('date and datetime are separated in the sample, Schema, and Validation Type
 
   const receivedDef = fieldDefs.field_definitions.find((item) => item.field_path === '$.measurement_sessions[].received_at');
   assert.equal(receivedDef?.validation_type, 'studio.instant.iso8601');
-  assert.equal(fieldDefs.field_definition_count, 18);
+  assert.equal(fieldDefs.field_definition_count, 20);
 
   assert.ok(schema.$defs.fieldType.enum.includes('date'));
   const dateCatalog = registry.view_def_type_catalogs.find((item) => item.view_def_type === 'date');
@@ -151,7 +151,7 @@ test('ViewDef generation rules define deepest datetime inference while preservin
   const rules = readJson(rulesPath);
   const rule = rules.rules.find((item) => item.rule_id === 'viewdef_rule_34');
   assert.ok(rule);
-  assert.equal(rule.approval_decision, '未承認');
+  assert.equal(rule.approval_decision, '承認する');
   assert.match(rule.body, /2026-07-26\s+→ date/);
   assert.match(rule.body, /2026-07-26T21:30\s+→ datetime/);
   assert.match(rule.body, /2026-07-26T21:30:00\+09:00\s+→ datetime/);

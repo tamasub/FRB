@@ -1,9 +1,9 @@
 {
   "app": {
     "name": "FRB Studio / JSON Object Studio",
-    "version": "field-definition-date-datetime-sample-v0.2"
+    "version": "field-definition-date-datetime-sample-v0.2.1"
   },
-  "item_definition_ref": "samples/frb_fft_measurement_field_definitions_v0_1.json",
+  "item_definition_ref": "samples/frb_fft_measurement_field_definitions_v0_2.json",
   "currentDataDisplay": {
     "titlePath": "$.title",
     "subtitlePath": "$.purpose",

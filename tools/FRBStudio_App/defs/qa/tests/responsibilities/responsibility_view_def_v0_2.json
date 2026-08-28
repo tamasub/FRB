@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "FRB Studio / JSON Object Studio",
-    "version": "responsibility-view-def-v0.2"
+    "version": "responsibility-view-def-v0.2.2"
   },
   "fieldTypeSources": [
     "common/common_types_v0_1.json"
@@ -740,7 +740,10 @@
                     "load_policy": "LOAD_ONCE",
                     "save_policy": "SAVE_ONCE",
                     "reload_policy": "RELOAD_ONCE",
-                    "notes": ""
+                    "notes": "",
+                    "view_def_file": "",
+                    "field_definition_file": "",
+                    "target_resolution_policy": "DATA_JSON_VIEW_DEF_FIELD_DEFINITION"
                   },
                   "columns": [
                     {
@@ -751,9 +754,30 @@
                     },
                     {
                       "field": "input_file",
-                      "caption": "Test Input JSON",
+                      "caption": "Test DATA JSON",
+                      "type": "text",
+                      "width": 360
+                    },
+                    {
+                      "field": "view_def_file",
+                      "caption": "ViewDef JSON",
+                      "type": "text",
+                      "width": 360
+                    },
+                    {
+                      "field": "field_definition_file",
+                      "caption": "項目定義JSON",
                       "type": "text",
                       "width": 380
+                    },
+                    {
+                      "field": "target_resolution_policy",
+                      "caption": "対象解決方式",
+                      "type": "select",
+                      "options": [
+                        "DATA_JSON_VIEW_DEF_FIELD_DEFINITION"
+                      ],
+                      "width": 250
                     },
                     {
                       "field": "input_approval_status",
@@ -839,7 +863,9 @@
                     "expected_def_type": "JsonDiffExpectedDef",
                     "guarantee_id": "",
                     "enabled": true,
-                    "notes": ""
+                    "notes": "",
+                    "target_data_path": "",
+                    "field_selection_policy": "EDITABLE_EXPLICIT_NON_MULTILINE"
                   },
                   "columns": [
                     {
@@ -884,6 +910,22 @@
                         "MULTILINE"
                       ],
                       "width": 150
+                    },
+                    {
+                      "field": "target_data_path",
+                      "caption": "Target DataPath",
+                      "type": "text",
+                      "width": 280
+                    },
+                    {
+                      "field": "field_selection_policy",
+                      "caption": "Field選択",
+                      "type": "select",
+                      "options": [
+                        "EDITABLE_EXPLICIT_NON_MULTILINE",
+                        "EDITABLE_EXPLICIT_MULTILINE"
+                      ],
+                      "width": 280
                     },
                     {
                       "field": "row_position",
@@ -954,6 +996,19 @@
               "search": {
                 "visible": true,
                 "operator": "contains"
+              }
+            }
+          ],
+          "editorComponents": [
+            {
+              "id": "responsibility_generated_test_preview",
+              "type": "responsibility_test_preview",
+              "placement": "afterChildGrids",
+              "caption": "Generated TestPattern / Expected Preview",
+              "readonly": true,
+              "config": {
+                "registryDataPath": "config/validation_type_registry_v0_1.json",
+                "initialExpanded": false
               }
             }
           ]

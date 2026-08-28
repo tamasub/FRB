@@ -49,7 +49,7 @@ function measurementGridDef() {
 
 function createF12Runtime() {
   const grid = measurementGridDef();
-  const fieldDefs = readJson('fielddefs/samples/frb_fft_measurement_field_definitions_v0_1.json');
+  const fieldDefs = readJson('fielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json');
   const registry = readJson('data/json/config/validation_type_registry_v0_1.json');
 
   const dialogRoot = {
@@ -76,7 +76,7 @@ function createF12Runtime() {
     sourceData: {},
     currentRuntimeFieldDefinitionDocument: fieldDefs,
     currentRuntimeValidationTypeRegistry: registry,
-    currentRuntimeFieldDefinitionRef: 'samples/frb_fft_measurement_field_definitions_v0_1.json',
+    currentRuntimeFieldDefinitionRef: 'samples/frb_fft_measurement_field_definitions_v0_2.json',
     uiField: 'measurement_date',
     uiValue: '2016-07-26',
     gridDef: () => grid,
