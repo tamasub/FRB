@@ -1,5 +1,5 @@
 ---
-title: "AI協働 判断構造モデル — CORA Model — AI協働に必要な判断構造！！"
+title: "AI協働 判断構造モデル — CORA Model — 足りていなかったのは判断軸・制約！？"
 emoji: "🧭"
 type: "idea"
 topics: ["ai", "promptengineering", "decisionmaking", "aicollaboration", "cora"]
