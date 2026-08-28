@@ -3,7 +3,7 @@ title: "AI協働 判断構造モデル — CORA Model — AI協働に必要な�
 emoji: "🧭"
 type: "idea"
 topics: ["ai", "promptengineering", "decisionmaking", "aicollaboration", "cora"]
-published: false
+published: true
 ---
 
 
