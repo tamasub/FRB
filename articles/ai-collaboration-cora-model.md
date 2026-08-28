@@ -7,7 +7,6 @@ published: true
 ---
 
 
-
 ## CORA Modelとは
 
 **CORA Model** は、人間とAIが判断を共有するために必要な情報を整理するためのモデルである。
@@ -22,6 +21,7 @@ CORAは、次の4つの要素から構成される。
 日本語では、次のように対応する。
 
 ```text
+
 C : Context
     文脈
 
@@ -33,6 +33,7 @@ R : Restrictions
 
 A : Accountability
     責務
+
 ```
 
 さらに、CORAそのものには分類しにくい補助情報を扱うために、
@@ -71,33 +72,37 @@ Contextは、判断の前提となる世界を表す。
 
 一般的なフレームワークや設計で使われる言葉を含めると、例えば次のようなものがContextに入る。
 
+凡例) ※：よく使う項目
+
 ```text
 Context　～文脈～
-├─ Purpose               目的
+├─ Purpose               目的 ※
 ├─ Objective             目標
-├─ Goal                  ゴール
-├─ Background            背景
+├─ Goal                  ゴール ※
+├─ Background            背景 ※
 ├─ Situation             状況
 ├─ Problem               問題
 ├─ Issue                 課題
 ├─ Motivation            動機
-├─ Policy                方針
+├─ Policy                方針 ※
 ├─ Strategy              戦略
-├─ Vision                将来像
+├─ Vision                将来像 ※
 ├─ Mission               ミッション
 ├─ Intent                意図
-├─ Objective Function    目的関数
-├─ Scope                 対象範囲
-├─ In Scope              対象
-├─ Out of Scope          対象外
+├─ Objective Function    目的関数 ※
+├─ Scope                 対象範囲 ※
+├─ In Scope              対象 ※
+├─ Out of Scope          対象外 ※
 ├─ Stakeholder           関係者
 ├─ Audience              読み手・利用者
 ├─ Environment           環境
 ├─ Current State         現状
-├─ Desired State         あるべき姿
+├─ Desired State         あるべき姿 ※
 ├─ History               経緯
-├─ Assumption            前提・仮定
+├─ Assumption            前提・仮定 ※
+├─ Terminology / Definitions  用語定義
 └─ Knowledge             背景知識
+
 ```
 
 ---
@@ -124,19 +129,20 @@ Orientation（**判断軸**）は、CORA Modelの中でも特に**重要な要�
 CORAでは、この部分を **Orientation（判断軸）** として明示する。
 
 ```text
+
 Orientation　～判断軸～
-├─ Judgment Criteria     判断基準
+├─ Judgment Criteria     判断基準 ※
 ├─ Evaluation Criteria   評価基準
 ├─ Decision Criteria     意思決定基準
-├─ Priority              優先順位
+├─ Priority              優先順位 ※
 ├─ Value                 価値
 ├─ Principle             原則
 ├─ Preference            選好
 ├─ Trade-off             トレードオフ
 ├─ Weight                重み
-├─ Importance            重要度
+├─ Importance            重要度 ※
 ├─ Optimization Target   最適化対象
-├─ Success Criteria      成功基準
+├─ Success Criteria      成功基準 ※
 ├─ Quality Attribute     品質特性
 ├─ KPI                   評価指標
 ├─ Metric                指標
@@ -145,6 +151,7 @@ Orientation　～判断軸～
 ├─ Ranking Criteria      順位付け基準
 ├─ Definition of Good    良さの定義
 └─ Decision Policy       判断方針
+
 ```
 
 判断軸と制約は似ているが、役割は異なる。
@@ -183,16 +190,16 @@ Restrictionsは、判断や実行に対する境界を表す。
 
 ```text
 Restrictions　～制約～
-├─ Constraint            制約
+├─ Constraint            制約 ※
 ├─ Rule                  ルール
-├─ Must                  必須
-├─ Must Not              禁止
+├─ Must                  必須 ※
+├─ Must Not              禁止 ※
 ├─ Requirement           要件
-├─ Limitation            限界
-├─ Boundary              境界
+├─ Limitation            限界 ※
+├─ Boundary              境界 ※
 ├─ Condition             条件
-├─ Precondition          前提条件
-├─ Guard                 ガード条件
+├─ Precondition          前提条件 ※
+├─ Guard                 ガード条件 ※
 ├─ Compliance            準拠事項
 ├─ Regulation            規制
 ├─ Policy Rule           規定
@@ -208,6 +215,7 @@ Restrictions　～制約～
 ├─ Validation Rule       検証ルール
 ├─ Acceptance Rule       受入条件
 └─ Invariant             不変条件
+
 ```
 
 ソフトウェア設計でよく使われる、
@@ -250,29 +258,30 @@ Accountabilityは、単なるRoleより広い。
 
 ```text
 Accountability　～責務～
-├─ Responsibility        責務
-├─ Role                  役割
+├─ Responsibility        責務 ※
+├─ Role                  役割 ※
+├─ Guarantee             保証 ※
+├─ Expected              期待される結果 ※
 ├─ Duty                  義務
 ├─ Ownership             所有責任
 ├─ Accountability        説明責任
-├─ Authority             権限
+├─ Authority             権限 ※
 ├─ Decision Right        決定権
 ├─ Task                  実行事項
 ├─ Action                行為
-├─ Behavior              振る舞い
+├─ Behavior              振る舞い ※
 ├─ Function              機能
 ├─ Capability            能力
-├─ Guarantee             保証
-├─ Obligation            義務
 ├─ Deliverable           成果物
-├─ Output                出力
-├─ Interface             インターフェース
+├─ Output                出力 ※
+├─ Interface             インターフェース ※
 ├─ Input Responsibility  入力責務
 ├─ Output Responsibility 出力責務
 ├─ Owner                 担当
 ├─ Reviewer              レビュー責務
 ├─ Approver              承認責務
 └─ Executor              実行責務
+
 ```
 
 ---
@@ -303,26 +312,27 @@ Optional
 ├─ Reference      参考情報
 ├─ Evidence       根拠・証跡
 ├─ Source         情報源
-├─ Format         出力形式
+├─ Format         出力形式 ※
 ├─ Tone           トーン
-├─ Style          文体
+├─ Style          文体 ※
 ├─ Language       言語
 ├─ Template       テンプレート
-├─ Schema         スキーマ
+├─ Schema         スキーマ ※
 ├─ Tool           使用ツール
 ├─ Method         手法
-├─ Procedure      手順
+├─ Procedure      手順 ※
 ├─ Workflow       ワークフロー
 ├─ Data           データ
 ├─ Input          入力値
-├─ Expected       期待値
-├─ Actual         実績
-├─ Diff           差分
-├─ TestPattern    テストパターン
+├─ Expected       期待値 ※
+├─ Actual         実績 ※
+├─ Diff           差分 ※
+├─ TestPattern    テストパターン ※
 ├─ Fixture        テストデータ
 ├─ Metadata       メタデータ
 ├─ Note           補足
 └─ Reference URL  参考URL
+
 ```
 
 Optionalを設ける理由は、CORAを閉じた分類体系にしないためでもある。
@@ -504,8 +514,6 @@ CORAは完成した分類体系を目指すものではない。
 を発見し、更新していく。
 
 **CORA自体も、AI協働の中で育てていくモデルである。**
-
-
 
 
 ---
