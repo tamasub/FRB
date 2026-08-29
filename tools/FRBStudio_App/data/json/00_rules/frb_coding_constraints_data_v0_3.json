@@ -188,6 +188,22 @@
       "violation_action": "第三階層以降のサブグリッドを追加する前に、第二階層要素への属性化、Preview化、Editor化、別View化による表現へ再設計する。",
       "source_decision_log_ids": [],
       "notes": "例：TestPattern → Generated Case → Expected は論理上3層だが、ViewDefでは TestPattern → Generated Case の2階層とし、ExpectedはGenerated Caseの構成情報として表示する。Expected詳細はPreview等の別Projectionで確認する。"
+    },
+    {
+      "sort_order": 100,
+      "item_id": "decision_axis_expected_independent_simple_derivation_copy_1",
+      "item_type": "DECISION_AXIS",
+      "title": "Expected算出は独立かつ単純な方法を優先する",
+      "statement": "テストのExpectedは、保証対象の実装ロジックや高度な共通処理を再利用せず、人間が追跡・説明できる最小限かつ独立した方法で導出することを優先する。",
+      "reason": "保証対象とExpected生成側が同一または類似の実装ロジックを共有すると、同一欠陥によって誤った結果同士が一致し、テストが欠陥を検出できなくなる可能性があるため。",
+      "scope": "document",
+      "priority": "medium",
+      "status": "DRAFT",
+      "evaluation_guidance": "Expected生成方法が本体実装の再利用や過度な抽象化に依存していないかを確認する。可能な限り、入力値を直接用いた加算・比較・件数取得など、人間が結果まで追跡できる単純な処理を選択する。ただし、丸め・桁数・Toleranceなど保証上必要な契約は明示して適用する。",
+      "verification_method": "Expected生成処理と保証対象実装の依存関係を確認し、共通の計算ロジックや同一実装を参照していないことを確認する。また、代表的な入力について人間が手計算または簡単な追跡でExpected算出過程を説明できることを確認する。",
+      "violation_action": "Expected生成が保証対象の実装や複雑な共通処理へ依存している場合は、依存を切り離し、より直接的で単純な独立計算へ置き換える。必要な精度・丸め等の契約のみを明示的に残す。",
+      "source_decision_log_ids": [],
+      "notes": "集計の例では、SUMは入力値を順に加算し、COUNTは対象件数を数え、AVGはSUM/COUNTで算出するなど、保証対象とは別の単純な計算世界を用いる。『賢く計算しない。ただし必要な契約は守る』ことを意図する。"
     }
   ],
   "rules": [
