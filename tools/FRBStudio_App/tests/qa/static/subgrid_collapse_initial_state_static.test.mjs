@@ -99,18 +99,18 @@ test('Component SubGrid is expanded by default and header toggle collapses/reope
 
   assert.equal(card.dataset.subgridExpanded, 'true');
   assert.equal(tableWrap.hidden, false);
-  assert.equal(toggle.textContent, '▼');
+  assert.equal(toggle.textContent, '');
   assert.equal(toggle.getAttribute('aria-expanded'), 'true');
 
   toggle.click();
   assert.equal(card.dataset.subgridExpanded, 'false');
   assert.equal(tableWrap.hidden, true);
-  assert.equal(toggle.textContent, '▶');
+  assert.equal(toggle.textContent, '');
 
   toggle.click();
   assert.equal(card.dataset.subgridExpanded, 'true');
   assert.equal(tableWrap.hidden, false);
-  assert.equal(toggle.textContent, '▼');
+  assert.equal(toggle.textContent, '');
 });
 
 test('Component SubGrid respects ViewDef config.initialExpanded=false only when explicitly specified', () => {
@@ -136,7 +136,7 @@ test('Component SubGrid respects ViewDef config.initialExpanded=false only when 
 
   assert.equal(card.dataset.subgridExpanded, 'false');
   assert.equal(tableWrap.hidden, true);
-  assert.equal(toggle.textContent, '▶');
+  assert.equal(toggle.textContent, '');
   assert.equal(toggle.getAttribute('aria-expanded'), 'false');
 });
 
@@ -148,6 +148,10 @@ test('legacy Data SubGrid uses the same default-open / explicit-false contract',
   assert.match(runtime, /detail-subgrid-toggle-btn/);
   assert.match(runtime, /wrap\.hidden = !expanded/);
   assert.match(runtime, /note\.hidden = !expanded/);
+  assert.match(runtime, /aria-label/);
+  const css = readText('wwwroot/styles.css');
+  assert.match(css, /detail-subgrid-toggle-btn::before/);
+  assert.match(css, /aria-expanded=\"false\"/);
 });
 
 test('Field Definition Generated TestPattern preview is collapsed by ViewDef while other SubGrids stay default-open', () => {

@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-29T11:20:00+09:00",
+  "updated_at": "2026-08-29T13:05:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 220,
+  "items_count": 222,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -33440,15 +33440,15 @@
       "incident_type": "test_automation",
       "category": "responsibility_definition_driven_test",
       "priority": "high",
-      "status": "確認中",
+      "status": "完了",
       "follow_up_status": "UNASSESSED",
-      "verification_status": "Static / Plan確認済み・NativeShell E2EはInput承認待ち",
+      "verification_status": "NativeShell E2E実機確認済み",
       "context_def_status": "reviewed",
       "context_def_updated_at": "2026-08-29T11:20:00+09:00",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-29T11:20:00+09:00",
-      "updated_at": "2026-08-29T11:20:00+09:00",
+      "updated_at": "2026-08-29T11:52:00+09:00",
       "work_summary": "- search_filterの13 Generated CaseをSelenium Execution Planへ変換し、標準検索UIへ投入するBridgeを追加。\n- LifecycleはLOAD_ONCE → Case実行/Expected比較 → RESET_AFTER_EACH。SAVE/RELOAD/Working Copyは使用しない。\n- Operator選択は表示Captionへ依存せずdata-search-operator-idをSemantic Hookとして操作する。\n- Grid結果はdata-source-index / data-row-keyからActual indexes / row_idsを観測し、Generated Expectedのmatch_count / indexes / row_idsと比較する。\n- Input承認状態draftは維持し、approvedになるまでNativeShell実行をHard Blockする。\n- Phase 1対象はString(note) + Number(amplitude_g)のみ。Date/Choice系は後続。",
       "target_files": "- SeleniumTaste/responsibility_test_plan.js\n- SeleniumTaste/responsibility_selenium_runner.js\n- SeleniumTaste/package.json\n- wwwroot/js/services/search_ui_controller.js\n- wwwroot/js/renderers/grid_detail.js\n- wwwroot/js/services/responsibility/responsibility_test_preview_service.js\n- data/json/03_tests/responsibilities/responsibility_data_v0_2.json\n- tests/qa/static/responsibility_search_selenium_runner_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
       "actual_updated_files": "- SeleniumTaste/responsibility_test_plan.js\n- SeleniumTaste/responsibility_selenium_runner.js\n- SeleniumTaste/package.json\n- wwwroot/js/services/search_ui_controller.js\n- wwwroot/js/renderers/grid_detail.js\n- wwwroot/js/services/responsibility/responsibility_test_preview_service.js\n- data/json/03_tests/responsibilities/responsibility_data_v0_2.json\n- tests/qa/static/responsibility_selenium_plan_static.test.mjs\n- tests/qa/static/responsibility_search_selenium_runner_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
@@ -33462,11 +33462,11 @@
       "expected_outputs": "- search_filter Execution Plan: 13 Pattern / 13 Case。\n- npm run test:responsibility:search:plan でPlan確認。\n- Input approved後、npm run test:responsibility:search で13 Caseを順次実行。\n- 各CaseでStateExpectedDef / Match Count、Indexes、Row IDsがPASS。\n- Case後にRESET_AFTER_EACH。",
       "risk": "Context MenuやGrid再描画はDOM更新を伴うためstale耐性が必要。Phase 1はMain GridのみとしRelated Gridへ拡張しない。Semantic HookをDOM Captionに依存しない形で追加し、表示文言変更でテストが壊れないようにする。",
       "test_points": "- Search Planが13 Caseを保持する。\n- Generated Caseのtarget_data_pathがUI Targetへ解決できる。\n- draft InputではNativeShellを起動しない。\n- Operator Menuをidで選択できる。\n- betweenはFrom/To、blank系は値無しで実行する。\n- Expected match_count/indexes/row_idsとActualが一致する。\n- RESET_AFTER_EACHで6行へ戻る。",
-      "verification_log": "- `node --check` responsibility_test_plan.js / responsibility_selenium_runner.js / search_ui_controller.js / grid_detail.js / responsibility_test_preview_service.js = PASS。\n- Search Plan CLI: Responsibility=search_filter / Execution Kind=SEARCH_FILTER / Pattern=13 / Case=13 / Main Cases=13 / Execution Ready=NO(draft) を確認。\n- Search Preview + Search Selenium Plan + UPDATE Plan focused: 14/14 PASS。\n- 全Static: 344 tests / 335 PASS / 9 FAIL。既存9 FAILのままで、本件新規FAILなし。\n- NativeShell E2EはTest Input approval_status=draftのため未実行。人間承認後に `npm run test:responsibility:search` で確認する。",
+      "verification_log": "- `node --check` responsibility_test_plan.js / responsibility_selenium_runner.js / search_ui_controller.js / grid_detail.js / responsibility_test_preview_service.js = PASS。\n- Search Plan CLI: Responsibility=search_filter / Execution Kind=SEARCH_FILTER / Pattern=13 / Case=13 / Main Cases=13 / Execution Ready=NO(draft) を確認。\n- Search Preview + Search Selenium Plan + UPDATE Plan focused: 14/14 PASS。\n- 全Static: 344 tests / 335 PASS / 9 FAIL。既存9 FAILのままで、本件新規FAILなし。\n- NativeShell E2EはTest Input approval_status=draftのため未実行。人間承認後に `npm run test:responsibility:search` で確認する。\n- 2026-08-29 実機: `npm run test:responsibility:search` = Responsibility E2E: search_filter ALL PASS。String 6 + Number 7、全13 CaseでMatch Count / Indexes / Row IDs PASS、各Case RESET_AFTER_EACH PASS。",
       "user_request": "Generated Caseを検索UIへ食わせる。インシデント登録も行う。",
       "ai_response": "Generated Search CaseをSelenium Execution Planへ接続し、Operator選択・Criteria入力・検索・Expected Rows比較・RESET_AFTER_EACHまでをRunnerへ追加する。Inputのdraft→approvedは自動変更しない。",
-      "latest_user_comment": "Generated Caseを検索UIへ食わせてほしい。インシデント登録も依頼。",
-      "latest_ai_response": "Generated Case→Search Selenium Execution Plan→標準検索UI操作→StateExpectedDef比較→RESET_AFTER_EACHまで実装。Plan/Static確認済み。Test Inputはdraftのまま維持し、実機E2Eは人間承認待ち。",
+      "latest_user_comment": "`npm run test:responsibility:search` を実機実行し、String 6 + Number 7の全13 CaseがStateExpectedDef / Match Count・Indexes・Row IDsを含めALL PASS。",
+      "latest_ai_response": "検索責務のGenerated Case→標準検索UI→Actual Grid→Expected比較→RESET_AFTER_EACHが13/13実機PASSしたことを確認。",
       "context_refs": [
         "studio_work_0231",
         "studio_work_0229",
@@ -33540,6 +33540,190 @@
           "before": "Selenium Runnerは編集→SAVE→RELOAD→JsonDiffExpectedDefだけを実行。",
           "after": "検索UIへのOperator/Criteria投入、Grid Expected比較、RESET_AFTER_EACHを実行できる。",
           "reason": "検索責務の異なるLifecycleを同じResponsibility Driven Test基盤へ載せるため。"
+        }
+      ],
+      "failure_stories": []
+    },
+    {
+      "work_item_id": "studio_work_0233",
+      "phase": "v0.18.113-guarantee-testpattern-contract-cleanup",
+      "title": "責務定義 Guarantee → TestPattern 1:N契約整理 / 旧Guarantee項目削除",
+      "incident_type": "definition_refactor",
+      "category": "responsibility_definition_driven_test",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "UNASSESSED",
+      "verification_status": "Static確認済み",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-29T12:45:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-29T12:45:00+09:00",
+      "updated_at": "2026-08-29T12:45:00+09:00",
+      "work_summary": "- Guarantee IDを責務レベルの保証単位として整理し、1 Guarantee → N TestPatterns / 1 TestPattern → 1 Guaranteeの単方向所属を明文化。\n- Guarantee明細から旧項目 expected_def_type / test_pattern_seed を全件削除し、ViewDefの保証サブグリッドからも除去。\n- search_filterはg001へGuaranteeを一本化し、既存2 Generator Definitionをg001へ付け替え。旧g002〜g009は削除。\n- 旧Guaranteeが持っていた検索仕様詳細はin_scopeへ保持し、意味を欠落させず紐付けだけ単純化。\n- Preview ServiceからGuarantee-level ExpectedDef fallbackを削除し、TestPatternの単一guarantee_id存在・参照整合を検証。\n- Search Test Inputの人間承認済み状態に合わせ、古いdraft前提Static Testも更新。",
+      "target_files": "- data/json/03_tests/responsibilities/responsibility_data_v0_2.json\n- defs/qa/tests/responsibilities/responsibility_view_def_v0_2.json\n- wwwroot/js/services/responsibility/responsibility_test_preview_service.js\n- tests/qa/static/responsibility_guarantee_testpattern_contract_static.test.mjs\n- tests/qa/static/responsibility_search_generated_test_preview_static.test.mjs\n- tests/qa/static/responsibility_search_selenium_runner_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- data/json/03_tests/responsibilities/responsibility_data_v0_2.json\n- defs/qa/tests/responsibilities/responsibility_view_def_v0_2.json\n- wwwroot/js/services/responsibility/responsibility_test_preview_service.js\n- tests/qa/static/responsibility_guarantee_testpattern_contract_static.test.mjs\n- tests/qa/static/responsibility_search_generated_test_preview_static.test.mjs\n- tests/qa/static/responsibility_search_selenium_runner_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "項目定義のValidation Type → N TestPatternsと同じ位置づけで、責務定義はGuarantee ID → N TestPatternsとする。TestPatternは必ず単一Guaranteeへ所属する。ExpectedDefはGuaranteeではなくTestPattern側のExpected表現型とする。",
+      "objective": "責務定義の旧構造を削除し、Guarantee / TestPattern / ExpectedDefの所有関係を単純で機械検証可能な形へ揃える。",
+      "background": "検索責務を実装・E2E化する過程で、Guarantee明細にExpectedDefやTestPattern候補が残り、さらに検索Guaranteeがg001〜g009へ細分化されていた。現在のDefinition Driven構造ではGuarantee IDそのものがTestPattern集合を決める保証単位であり、旧項目・多重保証管理が概念とずれていた。",
+      "scope": "- Guarantee-level expected_def_type削除。\n- Guarantee-level test_pattern_seed削除。\n- ViewDef保証Grid列削除。\n- search_filter Guarantee一本化。\n- TestPattern単一guarantee_id整合検証。\n- PreviewのGuarantee ExpectedDef fallback削除。",
+      "out_of_scope": "- 新ExpectedDef追加。\n- grid_aggregate TestPattern生成。\n- Date / Choice系Search Pattern追加。\n- 既存grid_column_build / csv_export / grid_aggregateのGuarantee再設計。",
+      "fixed_name_policy": "Canonical relationはguarantee_id単数形を使用する。guarantee_ids複数形によるTestPattern多対多所属は採用しない。",
+      "module_policy": "Guaranteeは何を保証するかだけを保持し、ExpectedDef・具体TestPattern候補は下位層へ置く。Generated PreviewはCanonical relationを継承し、独自の複数保証関係を作らない。",
+      "expected_outputs": "- Guarantee GridからExpectedDef / TestPattern候補列が消える。\n- search_filter.guaranteesはsearch_filter_g001のみ。\n- Search 2 Generator Definitionはいずれもsearch_filter_g001所属。\n- 既存UPDATE/Search Generated PreviewとSelenium Planが継続生成可能。",
+      "risk": "旧データやコードがGuarantee-level expected_def_typeを暗黙参照している可能性。Preview Serviceのfallbackを削除し、Focused Staticで現行2責務の生成を再確認する。",
+      "test_points": "- 全Guaranteeにexpected_def_type / test_pattern_seedが存在しない。\n- 全TestPattern Definitionのguarantee_idが所属Responsibility内に存在する。\n- search_filter Guaranteeは1件。\n- Search 13 Pattern / 13 Caseを継続生成。\n- DATA_UPDATE_PERSIST 6 Pattern / 30 Mutationを継続生成。",
+      "verification_log": "- Focused responsibility tests: 23/23 PASS。\n- 全Static: 348 tests / 339 PASS / 9 FAIL。残り9 FAILは既存のApp Settings / missing fixture等で本件差分とは無関係。",
+      "user_request": "責務データを一旦綺麗にし、古く使われなくなった項目を削除する。Guarantee IDはValidation Typeと同様にN TestPatternsを所有し、TestPatternから逆に複数Guaranteeへは紐付けない。",
+      "ai_response": "Guarantee-level ExpectedDef/TestPattern候補を削除し、検索Guaranteeをg001へ一本化。TestPatternの単一Guarantee所属をStatic/Runtime Previewで検証する。",
+      "latest_user_comment": "一旦、データを綺麗にしよう。古い使われなくなっている項目を削除。",
+      "latest_ai_response": "旧Guarantee項目削除、search_filter g001一本化、ViewDef整理、単一guarantee_id契約検証まで実施。",
+      "context_refs": [
+        "studio_work_0231",
+        "studio_work_0232",
+        "decision_axis_responsibility_observability"
+      ],
+      "follow_up_actions": [],
+      "discussion_history": [
+        {
+          "history_id": "disc_0233_001",
+          "at": "2026-08-29T12:45:00+09:00",
+          "speaker": "user",
+          "topic": "GuaranteeとTestPatternの所有関係",
+          "message": "Guarantee IDは項目定義のValidation Typeと同じ位置づけ。Guarantee IDを決めればTestPattern集合が決まり、1 Guarantee:N TestPatterns。逆の多対多は作らない。"
+        },
+        {
+          "history_id": "disc_0233_002",
+          "at": "2026-08-29T12:45:00+09:00",
+          "speaker": "assistant",
+          "topic": "旧項目整理",
+          "message": "Guarantee-level ExpectedDef/TestPattern seedを削除し、search_filterを1 Guaranteeへ整理して現行Generator Definitionを付け替える。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0233_001",
+          "at": "2026-08-29T12:45:00+09:00",
+          "decision": "Responsibility Guarantee IDはValidation Typeと同様にN個のTestPatternを所有する保証単位とする。",
+          "reason": "保証→テスト集合の導出方向を一方向に固定し、紐付け管理を単純化するため。"
+        },
+        {
+          "decision_id": "dec_0233_002",
+          "at": "2026-08-29T12:45:00+09:00",
+          "decision": "TestPatternは必ず単一のguarantee_idへ所属し、複数Guaranteeへの多対多リンクを禁止する。",
+          "reason": "TestPatternの所属と承認単位を一意にし、追跡・生成・Coverage判定を単純化するため。"
+        },
+        {
+          "decision_id": "dec_0233_003",
+          "at": "2026-08-29T12:45:00+09:00",
+          "decision": "ExpectedDefはGuaranteeの入力項目ではなくTestPattern層のExpected表現型とする。",
+          "reason": "同一Guarantee配下のTestPatternごとにExpectedの形が決まり、Guarantee自体は何を保証するかへ集中させるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0233_001",
+          "at": "2026-08-29T12:45:00+09:00",
+          "change_type": "guarantee_field_cleanup",
+          "before": "Guarantee明細がexpected_def_type / test_pattern_seedを保持。",
+          "after": "Guarantee明細から両項目を削除し、ViewDefの列・defaultItemからも削除。",
+          "reason": "ExpectedDef/TestPatternはGuaranteeより下位で決まるため。"
+        },
+        {
+          "history_id": "chg_0233_002",
+          "at": "2026-08-29T12:45:00+09:00",
+          "change_type": "search_guarantee_consolidation",
+          "before": "search_filterがg001〜g009へ細分化され、現行13 Patternはg009だけへ所属。",
+          "after": "search_filter_g001へ一本化し、2 Generator Definitionをg001へ所属。",
+          "reason": "標準検索パターン群を1つの検索保証のN TestPatternsとして管理するため。"
+        }
+      ],
+      "failure_stories": []
+    },
+    {
+      "work_item_id": "studio_work_0234",
+      "phase": "v0.18.114-subgrid-chevron-initial-grid-sort",
+      "title": "SubGrid開閉Chevron化 / ViewDef初期Gridソート対応",
+      "incident_type": "feature",
+      "category": "viewdef",
+      "priority": "medium",
+      "status": "完了",
+      "follow_up_status": "UNASSESSED",
+      "verification_status": "Static確認済み",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-29T13:05:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-29T13:05:00+09:00",
+      "updated_at": "2026-08-29T13:05:00+09:00",
+      "work_summary": "- SubGridヘッダー右端の開閉アイコンをsolid triangle（▼/▶）からCSS open-line chevronへ変更し、scrollbar矢印との視覚競合を解消。\n- Grid SectionへViewDef `initialSort` 契約を追加し、field / direction(asc|desc)で初期表示ソートを指定可能化。\n- インシデントViewDefのwork_itemsへ work_item_id desc を指定し、最新作業IDを初期表示上段へ配置。\n- document load / section-group切替時に対象GridのinitialSortを適用。",
+      "target_files": "- wwwroot/js/components/subgrid_component.js\n- wwwroot/js/runtime/detail_subgrid_edit.js\n- wwwroot/styles.css\n- wwwroot/js/renderers/field_controls.js\n- wwwroot/js/runtime/load_runtime.js\n- wwwroot/js/ui/section_group_navigation.js\n- defs/rules/studio_work_incident_view_def_v0_5.json\n- wwwroot/defs/json/rules/studio_work_incident_view_def_v0_5.json\n- data/json/00_rules/frb_view_def_schema_v0_9.json\n- tests/qa/static/subgrid_collapse_initial_state_static.test.mjs\n- tests/qa/static/grid_initial_sort_viewdef_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- wwwroot/js/components/subgrid_component.js\n- wwwroot/js/runtime/detail_subgrid_edit.js\n- wwwroot/styles.css\n- wwwroot/js/renderers/field_controls.js\n- wwwroot/js/runtime/load_runtime.js\n- wwwroot/js/ui/section_group_navigation.js\n- defs/rules/studio_work_incident_view_def_v0_5.json\n- wwwroot/defs/json/rules/studio_work_incident_view_def_v0_5.json\n- data/json/00_rules/frb_view_def_schema_v0_9.json\n- tests/qa/static/subgrid_collapse_initial_state_static.test.mjs\n- tests/qa/static/grid_initial_sort_viewdef_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "SubGridの開閉操作はscrollbar操作と視覚的に混同しないopen-line chevronを用いる。Gridの初期表示順はData順へハードコードせずViewDefのinitialSortで宣言する。",
+      "objective": "開閉UIの視覚誤認を減らし、一覧の初期表示順をViewDefから宣言可能にする。",
+      "background": "SubGrid開閉のsolid triangleがscrollbar端の矢印と似ており、操作対象を瞬時に判別しづらかった。またインシデント一覧は最新作業を確認する用途が多いが、初期表示順をViewDefで指定する契約がなかった。",
+      "scope": "- SubGrid toggle iconのChevron化。\n- Grid initialSort ViewDef契約追加。\n- work_item_id降順のインシデント初期表示。",
+      "out_of_scope": "- ユーザー操作後のソート状態永続化。\n- 複数列初期ソート。\n- scrollbar自体のデザイン変更。",
+      "fixed_name_policy": "ViewDef canonical parameterは `initialSort: { field, direction }` とする。snake_case `initial_sort` はruntime/schema互換として許容する。",
+      "module_policy": "ソート比較ロジックは既存applySortToFilteredRowsを再利用し、ViewDefは初期sortStateの宣言だけを担う。開閉アイコンは文字グリフに依存せずCSSで描画する。",
+      "expected_outputs": "- SubGrid開閉が線形Chevronで表示される。\n- インシデント初期表示がstudio_work番号の降順になる。\n- 他ViewDefもinitialSortで初期表示順を宣言できる。",
+      "risk": "initialSortのfield名誤りやdirection不正でGridが壊れないよう、無効宣言は未ソートへフォールバックする。",
+      "test_points": "- Component/Legacy SubGrid双方が空textContent + aria-expandedでChevron状態を表す。\n- initialSort valid/invalid解決。\n- incident ViewDefがwork_item_id descを宣言。\n- load/group activationでinitialSortを適用。",
+      "verification_log": "実装後Static Testで確認。NativeShell実機ではChevron表示とインシデント先頭行が最新IDになることを確認対象とする。",
+      "user_request": "SubGridの▼がscrollbarの▼と似て脳が混乱するため、コンボボックスの「く」の字のような別マークへ変更。インシデントDataは初期表示時に作業ID降順とし、ViewDefで初期表示ソートを指定できるようにする。",
+      "ai_response": "SubGrid toggleをCSS chevronへ変更し、ViewDef initialSort契約とインシデント work_item_id desc設定を追加する。",
+      "latest_user_comment": "開閉▼をscrollbar矢印と区別し、インシデント一覧を作業ID降順で初期表示したい。",
+      "latest_ai_response": "Chevron化とViewDef初期sort対応を実装しStatic確認を実施。",
+      "context_refs": [
+        "studio_work_0233"
+      ],
+      "follow_up_actions": [],
+      "discussion_history": [
+        {
+          "history_id": "disc_0234_001",
+          "at": "2026-08-29T13:05:00+09:00",
+          "speaker": "user",
+          "topic": "SubGrid開閉アイコン",
+          "message": "▼がscrollbarの▼と似ているため、くの字系など別マークへ変更したい。"
+        },
+        {
+          "history_id": "disc_0234_002",
+          "at": "2026-08-29T13:05:00+09:00",
+          "speaker": "user",
+          "topic": "Grid初期表示ソート",
+          "message": "インシデントDataは初期表示で作業ID降順にし、ViewDefから指定可能にしたい。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0234_001",
+          "at": "2026-08-29T13:05:00+09:00",
+          "decision": "SubGrid開閉はsolid triangle文字ではなくCSS open-line chevronで表現する。",
+          "reason": "scrollbar矢印と視覚的に区別し、操作誤認を減らすため。"
+        },
+        {
+          "decision_id": "dec_0234_002",
+          "at": "2026-08-29T13:05:00+09:00",
+          "decision": "Grid初期ソートはViewDef sectionのinitialSortでfield/directionを宣言する。",
+          "reason": "一覧固有の初期表示意図をDataや共通Runtimeへハードコードしないため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0234_001",
+          "at": "2026-08-29T13:05:00+09:00",
+          "change_type": "subgrid_toggle_visual",
+          "before": "Expanded=▼ / Collapsed=▶ のsolid triangle文字。",
+          "after": "aria-expandedに応じたCSS open-line chevron。",
+          "reason": "scrollbar矢印との視覚競合回避。"
+        },
+        {
+          "history_id": "chg_0234_002",
+          "at": "2026-08-29T13:05:00+09:00",
+          "change_type": "viewdef_initial_sort",
+          "before": "Grid初期表示順はData配列順。",
+          "after": "ViewDef initialSortで1列asc/descを宣言可能。インシデントはwork_item_id desc。",
+          "reason": "最新作業を初期表示上段へ出し、意図をViewDefへ置くため。"
         }
       ],
       "failure_stories": []

@@ -503,6 +503,13 @@
             "$ref": "#/$defs/fieldSet"
           },
           "description": "fieldSetsのsnake_case互換名。新規ViewDefではfieldSetsを優先する。"
+        },
+        "initialSort": {
+          "$ref": "#/$defs/gridInitialSort"
+        },
+        "initial_sort": {
+          "$ref": "#/$defs/gridInitialSort",
+          "description": "initialSortのsnake_case互換名。新規ViewDefではinitialSortを優先する。"
         }
       },
       "required": [
@@ -3256,6 +3263,28 @@
       "required": [
         "id",
         "fields"
+      ]
+    },
+    "gridInitialSort": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Grid初期表示時の1列ソート。ユーザーが列見出しを操作した後は通常のsortStateを優先する。",
+      "properties": {
+        "field": {
+          "type": "string",
+          "minLength": 1
+        },
+        "direction": {
+          "type": "string",
+          "enum": [
+            "asc",
+            "desc"
+          ]
+        }
+      },
+      "required": [
+        "field",
+        "direction"
       ]
     }
   }

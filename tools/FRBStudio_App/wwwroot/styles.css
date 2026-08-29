@@ -3756,6 +3756,20 @@ button.viewdef-maintenance-button:disabled {
   line-height: 1;
   font-weight: 900;
 }
+/* v0.18.114-subgrid-chevron-toggle: solid triangleはscrollbar矢印と見分けづらいため、open-line chevronへ分離する。 */
+.detail-subgrid-toggle-btn::before {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg) translate(-1px, -1px);
+  transform-origin: center;
+}
+.detail-subgrid-toggle-btn[aria-expanded="false"]::before {
+  transform: rotate(-45deg) translate(-1px, 1px);
+}
 .detail-subgrid-edit[data-subgrid-expanded="false"] .detail-subgrid-header {
   margin-bottom: 0;
 }

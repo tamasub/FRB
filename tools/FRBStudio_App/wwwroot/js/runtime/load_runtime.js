@@ -40,7 +40,9 @@ async function loadFromObjects(defObj, dataObj, label='読み込み完了', data
     throw new Error(defCompatibilityMessage(lastLoadedDefName, defObj, sourceData));
   }
   selectedIndex = -1;
-  sortState = { field: null, direction: null };
+  sortState = typeof gridInitialSortState === 'function'
+    ? gridInitialSortState(typeof gridDef === 'function' ? gridDef() : null)
+    : { field: null, direction: null };
   copiedRow = null;
   detailMode = 'edit';
   draftRow = null;

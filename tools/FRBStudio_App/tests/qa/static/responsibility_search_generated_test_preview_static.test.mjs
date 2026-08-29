@@ -49,7 +49,7 @@ test('SEARCH_FILTER uses dedicated JSON fixture and two generator definitions, n
   const setup = responsibility.test_setup[0];
 
   assert.equal(setup.input_file, 'data/json/80_frb/frb_fft_search_test_data_v0_1.json');
-  assert.equal(setup.input_approval_status, 'draft');
+  assert.equal(setup.input_approval_status, 'approved');
   assert.equal(setup.pattern_isolation_policy, 'RESET_AFTER_EACH');
   assert.equal(setup.search_operator_registry_file, 'data/json/config/search_operator_registry_v0_1.json');
   assert.equal(responsibility.test_pattern_definitions.length, 2);
@@ -60,7 +60,7 @@ test('SEARCH_FILTER uses dedicated JSON fixture and two generator definitions, n
 test('SEARCH_FILTER preview expands String 6 + Number 7 operators into 13 TestPatterns / 13 Generated Cases', () => {
   const result = deriveSearchPreview();
   assert.equal(result.status, 'READY');
-  assert.equal(result.execution_ready, false, 'draft Input stays Preview Only');
+  assert.equal(result.execution_ready, true, 'approved Input is execution ready');
   assert.equal(result.summary.test_pattern_count, 13);
   assert.equal(result.summary.generated_case_count, 13);
   assert.equal(result.summary.issue_count, 0);

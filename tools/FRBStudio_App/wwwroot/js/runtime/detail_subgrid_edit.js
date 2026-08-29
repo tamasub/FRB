@@ -1103,8 +1103,9 @@ function createDetailSubGridCard({ field, row, gd, data }) {
     card.dataset.subgridExpanded = String(expanded);
     wrap.hidden = !expanded;
     note.hidden = !expanded;
-    toggle.textContent = expanded ? '▼' : '▶';
+    toggle.textContent = '';
     toggle.title = expanded ? 'サブグリッドを閉じる' : 'サブグリッドを開く';
+    toggle.setAttribute('aria-label', toggle.title);
     toggle.setAttribute('aria-expanded', String(expanded));
   };
   applyExpandedState(expanded);

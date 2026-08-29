@@ -14,13 +14,13 @@
     "granularity": "UT責務は品質保証上の意味ある責任単位とする。実装規模はおおむね1KS程度を初期仮説とするが、コード量だけで責務を決めない。",
     "compression": "1KSのコードを1KS分説明するのではなく、そのコードが担う保証を数個の検証可能な約束へ圧縮する。",
     "how_boundary": "責務を読めばTestPatternとExpectedを導出できるが、クラス構成・メソッド構成・処理順序・アルゴリズム・技術方式は一つに決まらない状態を保つ。",
-    "guarantee_contract": "responsibilities[].guarantees[] の各明細へ guarantee_id を付与する。TestPatternは責務名だけでなく、自らが検証する guarantee_id へ紐づく。",
-    "test_pattern_relation_example": "v0.2では責務配下 test_pattern_definitions[] が guarantee_id を直接参照する。Generated TestPattern側の relation は機械導出する。",
+    "guarantee_contract": "Guarantee IDは責務レベルの保証単位とし、1つのGuarantee IDがN個のTestPatternを所有する。各TestPatternは必ず単一のguarantee_idへ所属し、1 TestPatternを複数Guaranteeへ紐付ける多対多関係は作らない。",
+    "test_pattern_relation_example": "項目定義のValidation Type → N TestPatternsと同様に、責務定義ではGuarantee ID → N TestPatternsとする。責務配下test_pattern_definitions[]は単一のguarantee_idを参照し、Generated TestPatternもその所属を継承する。",
     "observability": "承認責務は、その成立結果を責務境界の外側から観測可能とする。単独でActualを取得できない内部処理は、原則として独立した承認責務にせず、観測可能な成果まで含む上位責務へ統合する。",
     "test_definition": "TestPatternの具体Input / Expected実体を正本として保持せず、責務配下のtest_pattern_definitionsとtest_setupを生成元として管理する。",
     "generated_artifact": "Generated TestPattern / Generated Expectedは責務定義から機械導出するVirtual Dataとし、正本JSONへ保存しない。画面ではPreviewとして参照可能にする。",
     "fixture_approval": "Test Input JSONはAI生成可能とするが、テスト投入前に人間が内容を確認しapprovedへ移行したものだけを使用する。承認対象ではあるが、通常画面では実行詳細とともに初期CLOSE表示とする。",
-    "expected_def": "ExpectedDefは「何をExpectedとして持つか」の型として扱う。DATA_UPDATE_PERSISTではJsonDiffExpectedDefを使用し、DiffとUnexpected Diff Countを期待値として扱う。",
+    "expected_def": "ExpectedDefはGuaranteeの属性ではなくTestPattern側のExpected表現型として扱う。GuaranteeからExpectedDefを直接指定せず、TestPattern定義またはTestPattern種別からExpectedDefを解決し、Generated Expectedの構造・比較へ使用する。",
     "test_target_resolution": "DATA_UPDATE_PERSISTの対象項目は、Test DATA JSON → ViewDef → Field Definitionの参照連鎖から機械解決する。ViewDefで編集可能かつField Definitionに明示契約がある項目を候補とし、STANDARDではmulti_lineを除外、QUALITY_REINFORCEMENTではmulti_lineだけを対象とする。",
     "generated_review_visibility": "Generated TestPattern / Generated Case / Expectedの実行データはすべて人間が確認可能にする。表示行数を減らす場合も情報を省略せず、意味階層で圧縮して展開可能にする。",
     "generated_preview_hierarchy": "論理構造は TestPattern → Generated Case → Expected の3段階とする。ViewDefの意味階層は最大2階層を維持し、ExpectedはGenerated Caseの属性として表示する。",
@@ -50,7 +50,12 @@
         "Generated TestPattern → Generated Case → Expectedの全件レビュー",
         "Generated Caseを標準検索UIへ投入するSelenium NativeShell E2E",
         "各Case後のRESET_AFTER_EACHによる検索状態分離",
-        "Generated Expected row_ids / indexes / match_countとGrid Actualの比較"
+        "Generated Expected row_ids / indexes / match_countとGrid Actualの比較",
+        "文字列containsの大文字・小文字非依存評価",
+        "数値between / equals / not_equals / gte / lte評価",
+        "複数選択値と配列セルの一致評価",
+        "検索評価による入力rows非破壊",
+        "全文検索ではobjectのキー名・number・booleanを検索対象外とする"
       ],
       "out_of_scope": [
         "検索UIの描画",
@@ -71,104 +76,14 @@
         {
           "guarantee_id": "search_filter_g001",
           "guarantee_type": "rule",
-          "condition": "有効な検索条件が1件以上指定された場合",
-          "guarantee": "すべての検索条件に一致する行だけが結果に含まれる。",
-          "observable_result": "結果行IDが条件一致行IDと一致し、不一致行を含まない。",
-          "expected_def_type": "StateExpectedDef",
-          "test_pattern_seed": "条件一致行だけを返す基本パターン",
-          "priority": "high",
-          "enabled": true
-        },
-        {
-          "guarantee_id": "search_filter_g002",
-          "guarantee_type": "rule",
-          "condition": "文字列contains条件が指定された場合",
-          "guarantee": "大文字・小文字の違いに依存せず部分一致を評価する。",
-          "observable_result": "Alpha / alpha / ALPHA を同じ検索語で一致確認できる。",
-          "expected_def_type": "RuleExpectedDef",
-          "test_pattern_seed": "contains検索の大文字小文字差分パターン",
-          "priority": "medium",
-          "enabled": true
-        },
-        {
-          "guarantee_id": "search_filter_g003",
-          "guarantee_type": "state",
-          "condition": "検索結果が生成された場合",
-          "guarantee": "各結果行は元データ上のIndexを保持する。",
-          "observable_result": "結果のindexesが元データの位置と一致する。",
-          "expected_def_type": "StateExpectedDef",
-          "test_pattern_seed": "gte検索で一致行と元Indexを同時確認する",
-          "priority": "high",
-          "enabled": true
-        },
-        {
-          "guarantee_id": "search_filter_g004",
-          "guarantee_type": "rule",
-          "condition": "数値条件に gte / lte / equals が指定された場合",
-          "guarantee": "指定された数値比較演算に従って一致判定する。",
-          "observable_result": "境界値の直前・境界値・直後で期待どおりの行が返る。",
-          "expected_def_type": "RuleExpectedDef",
-          "test_pattern_seed": "gte/lte/equalsの境界値パターン",
-          "priority": "medium",
-          "enabled": true
-        },
-        {
-          "guarantee_id": "search_filter_g005",
-          "guarantee_type": "rule",
-          "condition": "複数選択値が指定され、対象値が配列の場合",
-          "guarantee": "指定候補のいずれかを含む行を一致として扱う。",
-          "observable_result": "選択候補と配列セルの交差がある行だけが返る。",
-          "expected_def_type": "RuleExpectedDef",
-          "test_pattern_seed": "複数選択と配列セルの一致パターン",
-          "priority": "medium",
-          "enabled": true
-        },
-        {
-          "guarantee_id": "search_filter_g006",
-          "guarantee_type": "no_side_effect",
-          "condition": "検索条件を評価した場合",
-          "guarantee": "入力されたrowsを変更しない。",
-          "observable_result": "評価前後の入力rowsが同一である。",
-          "expected_def_type": "StateExpectedDef",
-          "test_pattern_seed": "検索前後の入力非破壊パターン",
-          "priority": "medium",
-          "enabled": true
-        },
-        {
-          "guarantee_id": "search_filter_g007",
-          "guarantee_type": "rule",
-          "condition": "全文検索語が指定された場合",
-          "guarantee": "行が保持するobject / arrayを再帰走査し、いずれかの文字列値に部分一致すれば親行を結果へ含める。",
-          "observable_result": "表示列に検索語がなくても、子Grid・詳細・非表示項目の文字列値に一致する親行が返る。",
-          "expected_def_type": "RuleExpectedDef",
-          "test_pattern_seed": "子配列の文字列一致で親行が残るパターン",
-          "priority": "high",
-          "enabled": true
-        },
-        {
-          "guarantee_id": "search_filter_g008",
-          "guarantee_type": "constraint",
-          "condition": "全文検索を評価する場合",
-          "guarantee": "検索対象は文字列値だけとし、objectのキー名・number・booleanは検索対象へ含めない。",
-          "observable_result": "キー名だけ、または数値・booleanだけに検索語が存在しても一致行にならない。",
-          "expected_def_type": "RuleExpectedDef",
-          "test_pattern_seed": "キー名と数値を全文検索対象外にするパターン",
-          "priority": "high",
-          "enabled": true
-        },
-        {
-          "guarantee_id": "search_filter_g009",
-          "guarantee_type": "state",
-          "condition": "Test Input JSONの検索可能Fieldに対し、Resolved Field Typeから標準OperatorとCriteriaを生成して検索を評価した場合",
-          "guarantee": "各Generated Caseで、指定Operator/Criteriaに一致する行だけを返し、元Data上のIndexを保持する。",
-          "observable_result": "Generated Expectedのrow_ids / indexes / match_countとActual検索結果が一致する。",
-          "expected_def_type": "StateExpectedDef",
-          "test_pattern_seed": "SEARCH_FILTER_OPERATOR_MATRIX",
+          "condition": "有効な検索条件が指定された場合",
+          "guarantee": "定義された検索Operator / Criteriaに従って条件に一致する行だけを結果へ返し、元Data上のIndexを保持する。",
+          "observable_result": "各TestPatternから導出されたExpectedとActual検索結果が一致する。",
           "priority": "high",
           "enabled": true
         }
       ],
-      "notes": "既存UT保証g001〜g008は継続保持。v0.2検索生成では2つの代表定義から13 TestPattern / 13 Generated Caseを導出し、承認済みInputのみSelenium NativeShellで検索UIへ投入する。Case間はRESET_AFTER_EACHで分離し、Expected Rowsは独立Simple Oracle、ActualはUI Gridのrow key / source indexから観測する。Generated成果物は正本JSONへ保存しない。",
+      "notes": "Guarantee IDはsearch_filter_g001へ一本化する。1 Guarantee → N TestPatterns、1 TestPattern → 1 Guaranteeの単方向所属とし、多対多紐付けは行わない。Phase 1ではString / Number代表定義から13 TestPattern / 13 Generated Caseを導出し、承認済みInputのみSelenium NativeShellで検索UIへ投入する。Case間はRESET_AFTER_EACHで分離し、Expected Rowsは独立Simple Oracle、ActualはUI Gridのrow key / source indexから観測する。Generated成果物は正本JSONへ保存しない。",
       "test_setup": [
         {
           "setup_id": "search_filter_setup_001",
@@ -187,7 +102,7 @@
           "working_copy_policy": "NONE",
           "working_copy_directory": "",
           "cleanup_policy": "NONE",
-          "notes": "検索専用Test DATAを1回LOADし、各Generated Caseを標準検索UIへ投入してExpected Rowsと比較する。CaseごとにRESET_AFTER_EACHで検索状態を初期化する。Input=draft中はPreview/Planのみ可能で、approvedになるまでNativeShell実行をHard Blockする。"
+          "notes": "検索専用Test DATAを1回LOADし、各Generated Caseを標準検索UIへ投入してExpected Rowsと比較する。CaseごとにRESET_AFTER_EACHで検索状態を初期化する。Inputがapprovedでない場合はPreview/Planのみ可能とし、NativeShell実行をHard Blockする。"
         }
       ],
       "test_pattern_definitions": [
@@ -204,7 +119,7 @@
           "row_position": "",
           "value_pattern": "GENERATE_FROM_TEST_DATA",
           "expected_def_type": "StateExpectedDef",
-          "guarantee_id": "search_filter_g009",
+          "guarantee_id": "search_filter_g001",
           "enabled": true,
           "notes": "String代表Field。空文字を含むFixtureを使い、text_standardの全Operatorを機械展開する。"
         },
@@ -221,7 +136,7 @@
           "row_position": "",
           "value_pattern": "GENERATE_FROM_TEST_DATA",
           "expected_def_type": "StateExpectedDef",
-          "guarantee_id": "search_filter_g009",
+          "guarantee_id": "search_filter_g001",
           "enabled": true,
           "notes": "Number代表Field。同値複数と大小を含むFixtureを使い、numeric_standardの全Operatorを機械展開する。"
         }
@@ -260,8 +175,6 @@
           "condition": "fieldsにgrid.visible=falseの項目が含まれる場合",
           "guarantee": "当該項目をGrid列へ含めない。",
           "observable_result": "返却列のfield一覧に非表示項目が存在しない。",
-          "expected_def_type": "RuleExpectedDef",
-          "test_pattern_seed": "visible=false除外パターン",
           "priority": "high",
           "enabled": true
         },
@@ -271,8 +184,6 @@
           "condition": "表示対象フィールドが複数ある場合",
           "guarantee": "返却列の順序はViewDef fieldsの順序を維持する。",
           "observable_result": "返却field一覧が入力順と一致する。",
-          "expected_def_type": "StateExpectedDef",
-          "test_pattern_seed": "表示列の順序維持パターン",
           "priority": "medium",
           "enabled": true
         },
@@ -282,8 +193,6 @@
           "condition": "fieldsが未指定または空配列の場合",
           "guarantee": "例外で停止せず空配列を返す。",
           "observable_result": "返却値が空配列である。",
-          "expected_def_type": "RuleExpectedDef",
-          "test_pattern_seed": "fields未指定安全パターン",
           "priority": "medium",
           "enabled": true
         },
@@ -293,8 +202,6 @@
           "condition": "includeField方針が呼出側から指定された場合",
           "guarantee": "指定された方針による列採用結果を返す。",
           "observable_result": "includeFieldの判定結果と返却列が一致する。",
-          "expected_def_type": "InterfaceExpectedDef",
-          "test_pattern_seed": "カスタムincludeField適用パターン",
           "priority": "medium",
           "enabled": true
         },
@@ -304,8 +211,6 @@
           "condition": "Grid列を生成した場合",
           "guarantee": "入力されたfields定義を変更しない。",
           "observable_result": "処理前後のfieldsが同一である。",
-          "expected_def_type": "StateExpectedDef",
-          "test_pattern_seed": "ViewDef fields非破壊パターン",
           "priority": "medium",
           "enabled": true
         }
@@ -348,8 +253,6 @@
           "condition": "keyFieldNameが指定され、表示列にkey列が含まれない場合",
           "guarantee": "key列をCSV対象列の先頭へ追加する。",
           "observable_result": "返却field_namesの先頭がkeyFieldNameと一致する。",
-          "expected_def_type": "RuleExpectedDef",
-          "test_pattern_seed": "表示列へkey列を補完するパターン",
           "priority": "high",
           "enabled": true
         },
@@ -359,8 +262,6 @@
           "condition": "key列がすでに対象列へ含まれる場合",
           "guarantee": "同じfieldを重複して出力しない。",
           "observable_result": "CSVヘッダーに同一fieldが一度だけ現れる。",
-          "expected_def_type": "RuleExpectedDef",
-          "test_pattern_seed": "key列重複防止パターン",
           "priority": "medium",
           "enabled": true
         },
@@ -370,8 +271,6 @@
           "condition": "セル値にカンマ・ダブルクォート・改行が含まれる場合",
           "guarantee": "CSV規則に従い値をダブルクォートで囲み、内部ダブルクォートを二重化する。",
           "observable_result": "CSV文字列が期待するescape済み文字列と一致する。",
-          "expected_def_type": "CsvExpectedDef",
-          "test_pattern_seed": "カンマ・引用符・改行escapeパターン",
           "priority": "high",
           "enabled": true
         },
@@ -381,8 +280,6 @@
           "condition": "CSV文字列を生成した場合",
           "guarantee": "列順と行順を入力順のまま維持する。",
           "observable_result": "ヘッダー列順およびデータ行順が入力順と一致する。",
-          "expected_def_type": "CsvExpectedDef",
-          "test_pattern_seed": "列順・行順維持パターン",
           "priority": "medium",
           "enabled": true
         },
@@ -392,8 +289,6 @@
           "condition": "include_bom=trueが指定された場合",
           "guarantee": "CSV文字列の先頭にUTF-8 BOMを付与する。",
           "observable_result": "has_bom=trueかつ先頭文字がBOMである。",
-          "expected_def_type": "CsvExpectedDef",
-          "test_pattern_seed": "UTF-8 BOM付与パターン",
           "priority": "medium",
           "enabled": true
         },
@@ -403,8 +298,6 @@
           "condition": "lineBreakが未指定の場合",
           "guarantee": "CRLFを使用し、末尾にも改行を付ける。",
           "observable_result": "CSV文字列がCRLF区切りかつ末尾CRLFで終了する。",
-          "expected_def_type": "CsvExpectedDef",
-          "test_pattern_seed": "既定改行コードパターン",
           "priority": "medium",
           "enabled": true
         }
@@ -445,8 +338,6 @@
           "condition": "number型fieldにgrid.aggregate.operator=sumが宣言された場合",
           "guarantee": "当該列の合計結果を生成する。",
           "observable_result": "items/byFieldに対象fieldのsum結果が存在する。",
-          "expected_def_type": "StateExpectedDef",
-          "test_pattern_seed": "number列sum基本パターン",
           "priority": "high",
           "enabled": true
         },
@@ -456,8 +347,6 @@
           "condition": "aggregate.scope=filteredが指定された場合",
           "guarantee": "filteredRowsだけを集計対象にする。",
           "observable_result": "source_countとvalueがfilteredRowsから算出した値に一致する。",
-          "expected_def_type": "RuleExpectedDef",
-          "test_pattern_seed": "filteredスコープ集計パターン",
           "priority": "medium",
           "enabled": true
         },
@@ -467,8 +356,6 @@
           "condition": "aggregate.scope=allが指定された場合",
           "guarantee": "currentRows全体を集計対象にする。",
           "observable_result": "source_countとvalueがcurrentRows全体から算出した値に一致する。",
-          "expected_def_type": "RuleExpectedDef",
-          "test_pattern_seed": "allスコープ集計パターン",
           "priority": "medium",
           "enabled": true
         },
@@ -478,8 +365,6 @@
           "condition": "値が数値またはカンマ区切り数値文字列の場合",
           "guarantee": "有限数へ解釈できる値を合計へ含める。",
           "observable_result": "1,234.5が1234.5として集計される。",
-          "expected_def_type": "RuleExpectedDef",
-          "test_pattern_seed": "カンマ区切り数値解釈パターン",
           "priority": "medium",
           "enabled": true
         },
@@ -489,8 +374,6 @@
           "condition": "空文字・非数値・非有限値が含まれる場合",
           "guarantee": "当該値を合計から除外し、ignored_countへ計上する。",
           "observable_result": "value / valid_count / ignored_countが期待値と一致する。",
-          "expected_def_type": "StateExpectedDef",
-          "test_pattern_seed": "無効値除外と件数内訳パターン",
           "priority": "medium",
           "enabled": true
         },
@@ -500,8 +383,6 @@
           "condition": "有効なaggregate宣言が存在しない場合",
           "guarantee": "集計なしとしてhas_aggregates=falseを返す。",
           "observable_result": "itemsが空でhas_aggregates=falseである。",
-          "expected_def_type": "RuleExpectedDef",
-          "test_pattern_seed": "集計宣言なし互換パターン",
           "priority": "medium",
           "enabled": true
         }
@@ -546,8 +427,6 @@
           "condition": "承認済みTest Input JSONを読み込み、TestPatternが指定する正常な別値へ変更して保存・再読込した場合",
           "guarantee": "指定した変更差分が物理JSONへ永続化され、変更対象外には期待していない差分を発生させない。",
           "observable_result": "再読込後のJSON差分がGenerated Expected Diffと一致し、Unexpected Diff Countが0である。",
-          "expected_def_type": "JsonDiffExpectedDef",
-          "test_pattern_seed": "DATA_UPDATE_PERSIST",
           "priority": "high",
           "enabled": true
         }

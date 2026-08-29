@@ -189,8 +189,9 @@ class SubGridComponent extends EditorComponent {
       card.dataset.subgridExpanded = String(isExpanded);
       tableWrap.hidden = !isExpanded;
       if (note) note.hidden = !isExpanded;
-      toggle.textContent = isExpanded ? '▼' : '▶';
+      toggle.textContent = '';
       toggle.title = isExpanded ? 'サブグリッドを閉じる' : 'サブグリッドを開く';
+      toggle.setAttribute?.('aria-label', toggle.title);
       toggle.setAttribute?.('aria-expanded', String(isExpanded));
     };
 

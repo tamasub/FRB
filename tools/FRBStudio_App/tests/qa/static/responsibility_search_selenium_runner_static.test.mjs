@@ -29,7 +29,7 @@ test('SEARCH_FILTER Generated Cases are converted to a Selenium search execution
   assert.deepEqual(contains.expected.row_ids, ['frb_search_20260829_001','frb_search_20260829_003','frb_search_20260829_006']);
 });
 
-test('SEARCH_FILTER Selenium lifecycle is LOAD_ONCE + RESET_AFTER_EACH and draft input remains a hard gate', () => {
+test('SEARCH_FILTER Selenium lifecycle is LOAD_ONCE + RESET_AFTER_EACH and approved input is executable', () => {
   const plan = buildResponsibilityExecutionPlan({ responsibilityCd: 'search_filter' });
   assert.equal(plan.setup.load_policy, 'LOAD_ONCE');
   assert.equal(plan.setup.pattern_isolation_policy, 'RESET_AFTER_EACH');
@@ -37,8 +37,8 @@ test('SEARCH_FILTER Selenium lifecycle is LOAD_ONCE + RESET_AFTER_EACH and draft
   assert.equal(plan.setup.reload_policy, 'NONE');
   assert.equal(plan.setup.working_copy_policy, 'NONE');
   assert.equal(plan.setup.runner_type, 'SELENIUM_NATIVE_SHELL');
-  assert.equal(plan.execution_ready, false);
-  assert.throws(() => assertExecutionApproved(plan), /approval_status=draft/);
+  assert.equal(plan.execution_ready, true);
+  assert.doesNotThrow(() => assertExecutionApproved(plan));
 });
 
 test('Search UI exposes semantic operator and result observation hooks without caption coupling', () => {
@@ -58,11 +58,11 @@ test('Search UI exposes semantic operator and result observation hooks without c
   assert.equal(pkg.scripts['test:responsibility:search'], 'node selenium_taste.js --responsibility search_filter');
 });
 
-test('Responsibility Search Setup is connected but human approval is not auto-promoted', () => {
+test('Responsibility Search Setup keeps the explicitly approved human gate', () => {
   const document = readJson('data/json/03_tests/responsibilities/responsibility_data_v0_2.json');
   const responsibility = document.responsibilities.find(item => item.responsibility_cd === 'search_filter');
   const setup = responsibility.test_setup[0];
-  assert.equal(setup.input_approval_status, 'draft');
+  assert.equal(setup.input_approval_status, 'approved');
   assert.equal(setup.runner_type, 'SELENIUM_NATIVE_SHELL');
   assert.ok(responsibility.in_scope.includes('Generated Caseを標準検索UIへ投入するSelenium NativeShell E2E'));
   assert.ok(responsibility.out_of_scope.includes('Date / Datetime検索のGenerated Case E2E（Phase 2）'));

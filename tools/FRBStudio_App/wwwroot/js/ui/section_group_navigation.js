@@ -163,7 +163,9 @@ function renderActiveSectionGroup(options={}) {
 
   if (resetSelection) {
     selectedIndex = -1;
-    sortState = { field: null, direction: null };
+    sortState = typeof gridInitialSortState === 'function'
+      ? gridInitialSortState(typeof gridDef === 'function' ? gridDef() : null)
+      : { field: null, direction: null };
     copiedRow = null;
   }
 

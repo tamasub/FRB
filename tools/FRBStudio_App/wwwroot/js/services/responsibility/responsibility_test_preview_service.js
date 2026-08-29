@@ -250,6 +250,7 @@ class ResponsibilityTestPreviewService {
     const mutationDefinitions = definitions.filter(item => String(item?.generation_mode ?? '') !== 'SEARCH_OPERATOR_MATRIX');
     const config = rootDocument?.test_generation_config ?? {};
     const issues = [];
+    const guaranteeIds = new Set((responsibility?.guarantees ?? []).map(item => String(item?.guarantee_id ?? '').trim()).filter(Boolean));
 
     if (!setup) issues.push({ code: 'TEST_SETUP_REQUIRED', message: 'test_setup is required.' });
     if (!definitions.length) issues.push({ code: 'TEST_PATTERN_DEFINITION_REQUIRED', message: 'enabled test_pattern_definitions are required.' });
@@ -257,6 +258,31 @@ class ResponsibilityTestPreviewService {
     if (!this.fieldContractResolver) issues.push({ code: 'FIELD_CONTRACT_RESOLVER_REQUIRED', message: 'FieldContractResolver is required.' });
     if (mutationDefinitions.length && !this.valueValidator) issues.push({ code: 'VALUE_VALIDATOR_REQUIRED', message: 'DefinitionValueValidator is required.' });
     if (searchDefinitions.length && !searchOperatorRegistry) issues.push({ code: 'SEARCH_OPERATOR_REGISTRY_REQUIRED', message: 'Search Operator Registry is required.' });
+
+    for (const definition of definitions) {
+      const guaranteeId = String(definition?.guarantee_id ?? '').trim();
+      if (!guaranteeId) {
+        issues.push({
+          code: 'TEST_PATTERN_GUARANTEE_REQUIRED',
+          pattern_def_id: String(definition?.pattern_def_id ?? ''),
+          message: 'Each TestPattern definition must belong to exactly one guarantee_id.'
+        });
+      } else if (!guaranteeIds.has(guaranteeId)) {
+        issues.push({
+          code: 'TEST_PATTERN_GUARANTEE_NOT_FOUND',
+          pattern_def_id: String(definition?.pattern_def_id ?? ''),
+          guarantee_id: guaranteeId,
+          message: `TestPattern guarantee_id was not found in responsibility guarantees: ${guaranteeId}`
+        });
+      }
+      if (Array.isArray(definition?.guarantee_ids)) {
+        issues.push({
+          code: 'TEST_PATTERN_MULTI_GUARANTEE_NOT_ALLOWED',
+          pattern_def_id: String(definition?.pattern_def_id ?? ''),
+          message: 'Use singular guarantee_id. A TestPattern must not belong to multiple guarantees.'
+        });
+      }
+    }
 
     const patterns = [];
     if (!issues.length) {
@@ -293,7 +319,7 @@ class ResponsibilityTestPreviewService {
       responsibility_cd: String(responsibility?.responsibility_cd ?? ''),
       setup_id: String(setup?.setup_id ?? ''),
       input_approval_status: approvalStatus || 'unknown',
-      expected_def_type: String(definitions?.[0]?.expected_def_type ?? responsibility?.guarantees?.[0]?.expected_def_type ?? ''),
+      expected_def_type: String(definitions?.[0]?.expected_def_type ?? ''),
       test_patterns: patterns,
       issues,
       summary: {
@@ -384,8 +410,8 @@ class ResponsibilityTestPreviewService {
             operator_caption: String(operator?.caption ?? operatorId),
             operator_set_id: operatorSetId,
             expected_def_type: String(definition?.expected_def_type ?? 'StateExpectedDef'),
+            guarantee_id: String(definition?.guarantee_id ?? ''),
             generated_cases: [],
-            guarantee_ids: [],
             source: {
               input_file: String(setup?.input_file ?? ''),
               view_def_file: String(setup?.view_def_file ?? ''),
@@ -396,8 +422,10 @@ class ResponsibilityTestPreviewService {
           };
           groups.set(groupKey, pattern);
         }
+        if (pattern.guarantee_id !== generatedCase.guarantee_id) {
+          throw new Error(`Generated TestPattern cannot span multiple Guarantee IDs: ${pattern.pattern_id}`);
+        }
         pattern.generated_cases.push(generatedCase);
-        if (generatedCase.guarantee_id && !pattern.guarantee_ids.includes(generatedCase.guarantee_id)) pattern.guarantee_ids.push(generatedCase.guarantee_id);
       }
     }
 

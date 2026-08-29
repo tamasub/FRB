@@ -1396,6 +1396,10 @@
                 "TSV:"
               ]
             }
+          },
+          "initialSort": {
+            "field": "work_item_id",
+            "direction": "desc"
           }
         }
       ],

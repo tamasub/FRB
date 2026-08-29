@@ -17,6 +17,24 @@ function compareValues(a, b, field) {
   return String(a).localeCompare(String(b), 'ja', {numeric: true, sensitivity: 'base'});
 }
 
+function gridInitialSortState(gd=(typeof gridDef === 'function' ? gridDef() : null)) {
+  const raw = gd?.initialSort ?? gd?.initial_sort ?? gd?.grid?.initialSort ?? gd?.grid?.initial_sort;
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return { field: null, direction: null };
+
+  const field = String(raw.field ?? raw.fieldName ?? raw.field_name ?? '').trim();
+  const direction = String(raw.direction ?? raw.order ?? '').trim().toLowerCase();
+  if (!field || !['asc', 'desc'].includes(direction)) return { field: null, direction: null };
+  if (!Array.isArray(gd?.fields) || !gd.fields.some(item => String(item?.field ?? '') === field)) {
+    return { field: null, direction: null };
+  }
+  return { field, direction };
+}
+
+function resetGridSortState(gd=(typeof gridDef === 'function' ? gridDef() : null)) {
+  sortState = gridInitialSortState(gd);
+  return sortState;
+}
+
 function applySortToFilteredRows() {
   if (!sortState.field || !sortState.direction) return;
   const gd = gridDef();
