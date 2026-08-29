@@ -198,8 +198,9 @@ test('Contract: F12 Runtime Validation uses the same FieldContractResolver / Def
 
 test('Static connection: ViewDef item_definition_ref is loaded through fielddefs root before Editor use', () => {
   const loader = readText('wwwroot/js/runtime/load_runtime.js');
-  const program = readText('Program.cs/Program.cs');
+  const nativeBridge = readText('wwwroot/js/core/native_host_bridge.js');
   assert.match(loader, /loadRuntimeFieldDefinitionContext\(defObj\)/);
   assert.match(loader, /\/api\/fielddefs\//);
-  assert.match(program, /MapGet\("\/api\/fielddefs\/\{\*\*name\}"/);
+  assert.match(nativeBridge, /const fieldDefsMatch = path\.match/);
+  assert.match(nativeBridge, /joinPath\('fielddefs', relative\)/);
 });

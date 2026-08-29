@@ -44,13 +44,32 @@ function configuredSubGridColumns(field) {
   return Array.isArray(candidates) ? candidates.map(normalizeSubGridColumn).filter(Boolean) : [];
 }
 
+function cloneSubGridCanonicalValue(value) {
+  if (Array.isArray(value)) return value.map(cloneSubGridCanonicalValue);
+  if (value && typeof value === 'object') {
+    const cloned = {};
+    Object.keys(value).forEach(key => { cloned[key] = cloneSubGridCanonicalValue(value[key]); });
+    return cloned;
+  }
+  return value;
+}
+
 function inferSubGridCellType(value, col={}) {
-  const t = col.type ?? col.dataType ?? col.data_type;
-  if (t && t !== 'text') return t;
+  const rawType = col.type ?? col.dataType ?? col.data_type;
+  const declaredType = String(rawType ?? '').toLowerCase();
+
+  // View Round-trip Type Preservation:
+  // 実Dataが既に持つJSON型を、textarea/select等の表示部品指定で上書きしない。
+  // type はデータ契約、control は操作部品という分離を優先する。
+  if (value && typeof value === 'object') return 'json';
   if (typeof value === 'boolean') return 'boolean';
   if (typeof value === 'number') return 'number';
-  if (value && typeof value === 'object') return 'json';
-  return t ?? 'text';
+
+  if (declaredType === 'json') return 'json';
+  if (['number', 'integer', 'float', 'decimal'].includes(declaredType)) return 'number';
+  if (declaredType === 'boolean') return 'boolean';
+  if (rawType && declaredType !== 'text') return rawType;
+  return rawType ?? 'text';
 }
 
 function objectArraySubGridColumns(field, data) {
@@ -609,9 +628,10 @@ function createDetailSubGridPreviewEditValue({ rowIndex, column, itemRow, field,
     const previewHeight = Math.max(72, Math.ceil(box.getBoundingClientRect?.().height || box.offsetHeight || 0));
     editing = true;
     box.dataset.editing = 'true';
+    const resolvedCellType = inferSubGridCellType(itemRow?.[column.field], column);
     const editorColumn = {
       ...column,
-      type: column.type === 'json' ? 'json' : (column.type === 'markdown' ? 'markdown' : 'textarea'),
+      type: resolvedCellType === 'json' ? 'json' : (column.type === 'markdown' ? 'markdown' : 'textarea'),
       control: column.control ?? 'textarea'
     };
     const input = createSubGridCellControl({
@@ -928,10 +948,12 @@ function createObjectArraySubGridRow({ item={}, columns, editable=true, card, fi
     const hasOriginalValue = Boolean(item && typeof item === 'object' && Object.prototype.hasOwnProperty.call(item, col.field));
     const value = hasOriginalValue ? item[col.field] : undefined;
     const control = createSubGridCellControl({ value, column: col, editable, field });
-    // Sparse JSON preservation:
-    // ViewDefに列があっても元rowにキーが無い場合、未編集の空欄をF12だけでmaterializeしない。
+    // View Round-trip Type Preservation:
+    // 未編集セルは画面上の文字列表現から再構築せず、元JSON値そのものを保持する。
+    // Array/Object/Number/Boolean/null/改行文字列/未存在の区別をView往復だけで失わない。
     control.dataset.originalPresent = hasOriginalValue ? 'true' : 'false';
     control.dataset.userEdited = 'false';
+    if (hasOriginalValue) control.__studioSubGridOriginalValue = cloneSubGridCanonicalValue(value);
     td.appendChild(control);
     tr.appendChild(td);
   });
@@ -1165,6 +1187,17 @@ function collectDetailSubGridValue(card) {
       const input = tr.querySelector(`.detail-subgrid-cell-input[data-column="${CSS.escape(col)}"]`);
       // 元JSONに存在しなかった列は、ユーザーが明示編集した場合だけ新規キーとして追加する。
       if (input?.dataset?.originalPresent === 'false' && input?.dataset?.userEdited !== 'true') return;
+      // 元JSONに存在し、かつ未編集なら、DOM表示値を逆変換せずCanonical値をそのまま戻す。
+      // これにより Array→String / Object→String / Number→String / Boolean→String /
+      // null→"" 等のView Round-trip Type Driftを横断的に防止する。
+      if (
+        input?.dataset?.originalPresent === 'true' &&
+        input?.dataset?.userEdited !== 'true' &&
+        Object.prototype.hasOwnProperty.call(input, '__studioSubGridOriginalValue')
+      ) {
+        obj[col] = cloneSubGridCanonicalValue(input.__studioSubGridOriginalValue);
+        return;
+      }
       obj[col] = readSubGridControlValue(input);
     });
     return obj;

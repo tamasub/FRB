@@ -47,17 +47,17 @@
   ],
   "notes": "v0.18.26 / Thought Evolution Studio v0.4。Evolution Engine、データ駆動の候補評価、仮採用・承認・検証済み・廃止、根拠/反例表示、承認後の次版Snapshot生成を実装。",
   "core_data_refs": [
-    "data/json/01_main/thought_evolution_relation_approval_data_v0_1.json",
-    "data/json/01_main/thought_difference_analysis_profile_data_v0_1.json",
-    "data/json/01_main/thought_difference_result_quality_asset_data_v0_1.json",
-    "data/json/01_main/thought_difference_result_thought_evolution_data_v0_1.json",
-    "data/json/01_main/thought_evolution_engine_profile_data_v0_1.json",
-    "data/json/01_main/thought_evolution_observation_quality_asset_data_v0_1.json",
-    "data/json/01_main/thought_evolution_observation_thought_evolution_data_v0_1.json",
-    "data/json/01_main/thought_evolution_proposal_quality_asset_data_v0_1.json",
-    "data/json/01_main/thought_evolution_proposal_thought_evolution_data_v0_1.json",
-    "data/json/01_main/thought_evolution_version_quality_asset_data_v0_1.json",
-    "data/json/01_main/thought_evolution_version_thought_evolution_data_v0_1.json"
+    "data/json/01_main/thought_difference/thought_evolution_relation_approval_data_v0_1.json",
+    "data/json/01_main/thought_difference/thought_difference_analysis_profile_data_v0_1.json",
+    "data/json/01_main/thought_difference/thought_difference_result_quality_asset_data_v0_1.json",
+    "data/json/01_main/thought_difference/thought_difference_result_thought_evolution_data_v0_1.json",
+    "data/json/01_main/thought_difference/thought_evolution_engine_profile_data_v0_1.json",
+    "data/json/01_main/thought_difference/thought_evolution_observation_quality_asset_data_v0_1.json",
+    "data/json/01_main/thought_difference/thought_evolution_observation_thought_evolution_data_v0_1.json",
+    "data/json/01_main/thought_difference/thought_evolution_proposal_quality_asset_data_v0_1.json",
+    "data/json/01_main/thought_difference/thought_evolution_proposal_thought_evolution_data_v0_1.json",
+    "data/json/01_main/thought_difference/thought_evolution_version_quality_asset_data_v0_1.json",
+    "data/json/01_main/thought_difference/thought_evolution_version_thought_evolution_data_v0_1.json"
   ],
   "core_view_def_refs": [
     "defs/relation/thought_evolution_relation_approval_view_def_v0_1.json",

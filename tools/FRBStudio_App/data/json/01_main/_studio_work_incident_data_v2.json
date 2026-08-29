@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-29",
+  "updated_at": "2026-08-29T21:10:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 228,
+  "items_count": 232,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -34230,6 +34230,442 @@
           "lesson": "構造化データを表示上JSONにするだけでは足りず、編集・保存時の型契約まで一致させる。"
         }
       ]
+    },
+    {
+      "work_item_id": "studio_work_0241",
+      "phase": "v0.18.111-view-round-trip-type-preservation",
+      "title": "View Round-trip Type Drift 横断調査 / Canonical型保持ガード",
+      "incident_type": "bugfix",
+      "category": "data_integrity",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "none",
+      "verification_status": "Static確認済み",
+      "context_def_status": "not_required",
+      "context_def_updated_at": "2026-08-29",
+      "owner": "user",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-29",
+      "updated_at": "2026-08-29",
+      "work_summary": "studio_work_0240で発生したfiltered_row_indexesのArray→String型崩れを個別不具合ではなく「View Round-trip Type Drift」として一般化した。現象・直接原因・発生条件・類似調査条件を定義し、全ViewDef候補を横断調査。修正後の同型設定不整合は0件だった。対策として、①ViewDef上のCanonical型とEditor表現のStatic Guard、②objectArray SubGridで未編集セルはDOM文字列から再構築せず元JSON値をそのまま返すUntouched Canonical Value Preservation、③実DataがArray/Object/Number/Booleanの場合はtextarea/select等の表示指定より実JSON型を優先するRuntime型推論、④既存Sparse JSON preservationを組み合わせ、Array/Object/Number/Boolean/null/未存在の非意図的変質を横断的に防止した。",
+      "target_files": [
+        "wwwroot/js/runtime/detail_subgrid_edit.js",
+        "tests/qa/static/detail_subgrid_sparse_json_preservation_static.test.mjs",
+        "tests/qa/static/view_round_trip_type_preservation_static.test.mjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "actual_updated_files": [
+        "wwwroot/js/runtime/detail_subgrid_edit.js",
+        "tests/qa/static/detail_subgrid_sparse_json_preservation_static.test.mjs",
+        "tests/qa/static/view_round_trip_type_preservation_static.test.mjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "context_def_draft": "",
+      "objective": "Viewへの表示・編集・F12反映という往復だけで、明示変更していないCanonical JSONの型・値・存在状態が変化しないことを、個別項目依存ではなくRuntimeとStatic Guardの両方で保証する。",
+      "background": "filtered_row_indexesはCanonicalでは[0,1]のArrayだったが、ViewDefでtype=textarea / grid.display=jsonとなっていたため、表示時に\"[0,1]\"へ文字列化され、F12収集時にJSON.parseされずStringとして再格納された。類似として、Number/Boolean→String、null→空文字、未存在→空キー等も同じ「View表現をCanonical値として書き戻す」経路で起こり得る。",
+      "scope": [
+        "View Round-trip Type Driftの現象・原因・発生条件の定義",
+        "SubGrid defaultItemとcolumns.typeのCanonical型整合性の全ViewDef横断調査",
+        "grid.display=jsonだがtype!=jsonとなる表示契約のみJSON化している危険設定の横断調査",
+        "objectArray SubGrid未編集セルのCanonical値そのまま返却",
+        "Array/Object/Number/BooleanのRuntime型推論を表示部品指定より優先",
+        "未存在キーのSparse JSON preservationとの統合回帰テスト"
+      ],
+      "out_of_scope": [
+        "ユーザーが明示編集したjsonセルへ不正JSONを入力した場合のValidation UX追加",
+        "boolean nullable値をUI上で3値選択する専用Controlの追加",
+        "既存の全ViewDef項目型体系そのものの再設計"
+      ],
+      "fixed_name_policy": "特定のfiltered_row_indexes名へ依存せず、objectArray SubGridとViewDef構造から機械判定する。",
+      "module_policy": "typeはCanonical Data契約、control/grid.displayは操作・表示契約として分離する。未編集値はView表現から逆変換せず元Canonical値を返すことを最優先し、編集時のみ型契約に従ってControl値を読み取る。",
+      "expected_outputs": [
+        "未編集Array/Object/Number/Boolean/nullがF12往復で同一JSON型・値を保持する",
+        "元rowに無い未編集列は引き続きmaterializeしない",
+        "defaultItemのArray/Objectにtype!=jsonを指定したViewDefがStatic Testで失敗する",
+        "defaultItemのNumber/Booleanと不整合なcolumn.typeがStatic Testで失敗する",
+        "grid.display=jsonだけでtype=jsonが無い設定をStatic Testで失敗させる"
+      ],
+      "risk": "未編集値を元Canonical値優先にしたため、DOM valueをプログラムから直接書き換えてinput/changeイベントを発火しない既存コードがあれば、その変更は収集されない。現行SubGrid操作はユーザー編集イベントまたはPreview再描画経路を使用しており、Focused Staticで該当契約を固定した。",
+      "test_points": [
+        "originalPresent=true / userEdited=falseでは__studioSubGridOriginalValueを返す",
+        "originalPresent=false / userEdited=falseではキーを追加しない",
+        "実Data object/arrayはViewDef type=textarea/selectでもjsonとして扱う",
+        "実Data number/booleanはpresentation typeよりJSON scalar型を優先する",
+        "Preview Editでも複合値はresolvedCellType=jsonを維持する",
+        "全ViewDef候補のdefaultItem/columns型整合性ScanでFinding=0",
+        "grid.display=json / type!=json Finding=0"
+      ],
+      "verification_log": [
+        "ViewDef候補82ファイルを横断Scanし、修正後のComposite/Number/Boolean defaultItem型不整合=0件。",
+        "ViewDef候補82ファイルを横断Scanし、grid.display=jsonだがcolumn.type!=json=0件。",
+        "Focused Static：11/11 PASS（Sparse JSON / Untouched Canonical Value / 型推論 / CSV責務 / ViewDef型Guard）。",
+        "全Static：376 tests / 367 PASS / 9 FAIL。既存9 FAILのみで本件新規FAILなし。",
+        "node --check wwwroot/js/runtime/detail_subgrid_edit.js PASS。"
+      ],
+      "user_request": "現象・原因・対策内容・類似調査条件とその対策内容をインシデント登録した上で、対応してほしい。",
+      "ai_response": "Array→Stringを個別修正で終わらせずView Round-trip Type Driftとして一般化し、未編集Canonical値をDOMから再構築しないRuntimeガードと全ViewDef横断Static Guardを追加する。",
+      "latest_user_comment": "Studioで保存したときの型崩れについて、何故そうなったか、類似はないか、現象発生条件を定義した上で対策してほしい。",
+      "latest_ai_response": "View表現からCanonical値へ逆変換して書き戻す経路を共通原因と定義。Array/Object/Number/Boolean/null/未存在を類似対象とし、Runtime保持＋Static設定監査の二重対策を実施。",
+      "context_refs": [
+        "decision_axis_responsibility_observability"
+      ],
+      "follow_up_actions": [
+        "将来、json型セルの不正JSON入力を保存前Validationで拒否する必要性を別途評価する。",
+        "nullable boolean専用UIが必要なデータが現れた場合、null/true/falseの3値Controlを検討する。"
+      ],
+      "discussion_history": [],
+      "decision_log": [
+        {
+          "decision_id": "studio_work_0241_d001",
+          "decision": "現象名をView Round-trip Type Driftとし、View往復だけで未編集Canonical JSONの型・値・存在状態が変化する事象を同一クラスとして扱う。",
+          "reason": "Array→Stringだけを個別修正すると、null→\"\"やNumber/Boolean→String、未存在→空キーなど同根の事故を取り逃がすため。"
+        },
+        {
+          "decision_id": "studio_work_0241_d002",
+          "decision": "類似調査条件を「Canonical非String値または未存在値がView上で文字列表現/Control表現へ変換され、Commit時に元JSON型へ復元せず再格納され得ること」とする。",
+          "reason": "直接原因は表示文字列化そのものではなく、表示表現をCanonical値として再採用するRound-trip境界にあるため。"
+        },
+        {
+          "decision_id": "studio_work_0241_d003",
+          "decision": "未編集セルはDOM表示値を読み直さず元Canonical値をそのまま返す。",
+          "reason": "ViewDef誤設定があっても未編集値を変質させない最も単純で横断的な防御になるため。"
+        },
+        {
+          "decision_id": "studio_work_0241_d004",
+          "decision": "ViewDef Static GuardでdefaultItemのComposite/Number/Boolean型とcolumn.typeの整合、およびgrid.display=json/type=json整合を機械検査する。",
+          "reason": "Runtime防御だけで誤設定を隠さず、定義時点でも原因を検出する二重防御とするため。"
+        }
+      ],
+      "change_history": [
+        {
+          "changed_at": "2026-08-29",
+          "summary": "detail_subgrid_edit.jsへUntouched Canonical Value Preservationと実JSON型優先推論を追加。"
+        },
+        {
+          "changed_at": "2026-08-29",
+          "summary": "全ViewDef横断のView Round-trip Type Drift Static Guardを追加し、現行Finding=0を確認。"
+        }
+      ],
+      "failure_stories": [
+        {
+          "failure": "CSV承認値だけ変更したつもりが、同じSubGridのfiltered_row_indexesまでArrayからStringへ変わり、TestPatternが0件になった。",
+          "excuse": "画面では[0,1]に見えていたので、grid.display=jsonならJSONとして保存される気になっていた（笑）。",
+          "lesson": "表示形式とCanonical型契約は別物。さらに、未編集値はそもそもView表現から作り直さない。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0242",
+      "phase": "v0.18.112-static-suite-zero-fail-cleanup",
+      "title": "Static 9 FAIL棚卸し / 古いテスト廃棄・現行契約整合 / 0 FAIL化",
+      "incident_type": "test_maintenance",
+      "category": "static_test_cleanup",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "none",
+      "verification_status": "全Static 0 FAIL確認済み",
+      "context_def_status": "complete",
+      "context_def_updated_at": "2026-08-29T19:30:00+09:00",
+      "owner": "user",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-29T19:30:00+09:00",
+      "updated_at": "2026-08-29T19:30:00+09:00",
+      "work_summary": "全Staticで長期間残っていた9 FAILを「古いテストだから無視」せず、各FAILを現行契約と実資材へ照合して棚卸しした。  \n- 6 FAILはテスト前提の陳腐化（App Settings初期件数、旧Program.cs Minimal API、Core ZIPから除外済みgpt_fx_lab実体、判断軸5件固定）として現行契約へ更新・不要なOverlay固有検証をCore Staticから除去。\n- 3 FAILはThought Evolution資材をthought_difference配下へ移動した後もCatalog/Manifest/Graph参照が旧パスのままだった実不整合として本体参照を修正した。\n\n修正途中で露呈したEvolution Snapshotの古い全NOT_GENERATED前提と、ZIP展開環境差でstatSyncが失敗し得るViewDef横断Scannerも同時に現行状態へ修正。さらにdecision_axis_responsibility_observabilityのCanonical item_id先頭d欠落を修正し、Responsibility側decision_axis参照整合Staticを追加。最終的に全Static 386/386 PASS / 0 FAILへ正常化した。",
+      "target_files": "- tests/qa/static/app_settings_definition_phase3.test.mjs\n- tests/qa/static/combo_viewdef_maintenance_static.test.mjs\n- tests/qa/static/field_definition_runtime_validation_acceptance.test.mjs\n- tests/qa/static/native_overlay_modal_layer_static.test.mjs\n- tests/qa/static/related_grid_view_launch_static.test.mjs\n- tests/qa/static/thought_evolution_studio_difference_radar_static.test.mjs\n- tests/qa/static/thought_evolution_studio_evolution_engine_static.test.mjs\n- tests/qa/static/thought_evolution_studio_relation_approval_static.test.mjs\n- tests/qa/static/view_round_trip_type_preservation_static.test.mjs\n- tests/qa/static/responsibility_decision_axis_reference_static.test.mjs\n- studio_overlays/thought_evolution/studio_manifest.json\n- studio_overlays/thought_evolution/data/thought_evolution_graph_catalog_v0_1.json\n- studio_overlays/thought_evolution/graphs/quality_asset_relation_graph_data_v0_1.json\n- studio_overlays/thought_evolution/README.md\n- data/json/00_rules/frb_coding_constraints_data_v0_3.json\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- tests/qa/static/app_settings_definition_phase3.test.mjs\n- tests/qa/static/combo_viewdef_maintenance_static.test.mjs\n- tests/qa/static/field_definition_runtime_validation_acceptance.test.mjs\n- tests/qa/static/native_overlay_modal_layer_static.test.mjs\n- tests/qa/static/related_grid_view_launch_static.test.mjs\n- tests/qa/static/thought_evolution_studio_difference_radar_static.test.mjs\n- tests/qa/static/thought_evolution_studio_evolution_engine_static.test.mjs\n- tests/qa/static/thought_evolution_studio_relation_approval_static.test.mjs\n- tests/qa/static/view_round_trip_type_preservation_static.test.mjs\n- tests/qa/static/responsibility_decision_axis_reference_static.test.mjs\n- studio_overlays/thought_evolution/studio_manifest.json\n- studio_overlays/thought_evolution/data/thought_evolution_graph_catalog_v0_1.json\n- studio_overlays/thought_evolution/graphs/quality_asset_relation_graph_data_v0_1.json\n- studio_overlays/thought_evolution/README.md\n- data/json/00_rules/frb_coding_constraints_data_v0_3.json\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "目的: 全StaticのFAILをゼロへ戻し、FAILを既知ノイズとして放置しない。\n判断基準: ①現行資材・現行契約が正しくテストだけ古いならテストを更新/削除、②本体参照が実ファイルと不一致なら本体を修正、③実体がCore ZIPの責務外ならCore Staticから実体依存検証を外す、④固定件数など将来拡張を阻害するテストは意味契約へ変更する。\n禁止: PASSさせるだけのskip化、存在確認を無条件化、実不整合をテスト側だけで隠す。",
+      "objective": "既存9 FAILを原因別に棚卸しし、古い前提は捨て、現行契約に必要な不整合は本体側を修正して、全Staticを0 FAILの信頼できる基準状態へ戻す。",
+      "background": "直近の複数作業で全Staticは「既存9 FAILのみ」として新規回帰判定には使えていたが、9件を常時許容すると新しい失敗が埋もれやすく、Static Suite自体の承認価値が下がるため。",
+      "scope": "既存9 FAILの全件分類・修正。修正で初めて到達した後段assertの陳腐化も同じテスト契約として修正。Current Core ZIPのPackaging境界、NativeShell bridge、Thought Evolution現行配置、判断軸Canonical参照整合を対象とする。",
+      "out_of_scope": "gpt_fx_lab Overlay実体の再同梱、Thought Evolution機能拡張、App Settings shortcutの追加削除、NativeShell通信方式の再設計。",
+      "fixed_name_policy": "Core StaticはCore ZIPに同梱される資材だけを実体依存で検証する。外部Overlay名をCore実体必須条件にしない。decision_axis_*はCanonical governance_items.item_idと参照側IDを完全一致させる。",
+      "module_policy": "テストをPASSさせるために本体を旧構造へ戻さない。現行構造が正しいものはStaticを現在の責務境界へ追随させ、本体参照が壊れているものだけCanonical側を修正する。",
+      "expected_outputs": "- 全Static 0 FAIL。\n- App Settingsはshortcut件数0固定ではなく明示登録/一意ID契約を検証。\n- /api/defs・/api/fielddefsは旧Program.csではなくNative browser bridgeを検証。\n- gpt_fx_lab実体依存テストはCore package境界から除去。\n- Thought EvolutionのManifest/Catalog/Graph参照が実在thought_difference配下へ一致。\n- 判断軸は件数5固定を廃止し必須ID集合を検証。\n- Responsibilityのdecision_axis_*参照がCanonical IDへ解決。",
+      "risk": "テストだけを緩めて実不整合を隠すこと。特にThought Evolutionは旧パスをテスト側だけ直すとRuntime設定が壊れたままになるため、Catalog/Manifest/Graph本体も同時修正する。",
+      "test_points": "- 旧9 FAILが全て消えること。\n- Thought EvolutionのCatalog宣言ファイルが全て実在すること。\n- GENERATED next_versionはAPPROVED Proposalに対応しSnapshot実体へ解決すること。\n- decision_axis_responsibility_observabilityがCanonical IDとしてResponsibility参照と一致すること。\n- ViewDef横断Scannerが日本語ファイル名を含むPackageでも例外停止しないこと。\n- 全Staticにskip/cancelがないこと。",
+      "verification_log": [
+        "Before（ユーザー添付）: 376 tests / 367 PASS / 9 FAIL（Windows側直近確認値）。",
+        "Linux/Python正規展開で再現: 既存9 FAILに加え、ViewDef ScannerのstatSync filename traversal由来1 FAILを確認。",
+        "既存9 FAILを全件分類: stale assertion 6件 / Thought Evolution実参照不整合 3件。",
+        "修正途中で旧パス解消後にEvolution Snapshotのlatent stale assertionを1件検出し、現在のGENERATED/NOT_GENERATED契約へ更新。",
+        "decision_axis_responsibility_observabilityのCanonical item_id typo（先頭d欠落）を修正し、Responsibility decision_axis参照整合テストを追加。",
+        "Focused Static確認済み。",
+        "全Static After: 386 tests / 386 PASS / 0 FAIL / skipped 0 / cancelled 0。"
+      ],
+      "user_request": "「9 FAIL の対策をしようか？ 古いゴミは捨てて、対策すべきやつは修正して、正しい状態へ変更する。インシデント登録して対応」",
+      "ai_response": "既存FAILを現行契約へ照合し、stale testと実不整合を分離して修正。Core package責務外のgpt_fx_lab固有実体検証は除去し、Thought Evolutionの移動後パスなど本体不整合はCanonical参照を修正。全Static 0 FAIL化。",
+      "latest_user_comment": "9 FAILを既知ノイズとして残さず、古いものを捨て、必要なものは正しい状態へ修正する。",
+      "latest_ai_response": "9 FAILを全件棚卸しし、stale 6 / actual reference mismatch 3として対応。追加でlatent stale/harness portabilityも是正し、386/386 PASSへ正常化。",
+      "context_refs": [
+        "tests/qa/static",
+        "tools/zip/make_FRBStudio_App_zip_v2.ps1",
+        "studio_overlays/thought_evolution",
+        "data/json/00_rules/frb_coding_constraints_data_v0_3.json"
+      ],
+      "follow_up_actions": [],
+      "discussion_history": [],
+      "decision_log": [
+        {
+          "decision_id": "decision_0242_001",
+          "decision": "Static FAILを恒常的な既知ノイズとして許容しない。",
+          "reason": "新規回帰が既存FAILに埋もれ、0/1の品質ゲートとして使えなくなるため。"
+        },
+        {
+          "decision_id": "decision_0242_002",
+          "decision": "現行構造が正しくテストだけ古い場合はテストを現行契約へ更新し、本体を旧構造へ戻さない。",
+          "reason": "テストは現在の責務契約を保証するためのもので、過去の実装位置や固定件数を保存するためではない。"
+        },
+        {
+          "decision_id": "decision_0242_003",
+          "decision": "Core ZIPから明示除外されるgpt_fx_lab Overlay実体のversion/UI検証はCore Staticから外す。",
+          "reason": "外部Overlay payloadは別Package責務であり、Core ZIP単体テストが存在必須にするとPackaging契約と矛盾するため。"
+        },
+        {
+          "decision_id": "decision_0242_004",
+          "decision": "Thought Evolution旧パスはテストだけでなくManifest/Catalog/GraphのCanonical参照を実ファイル配置へ合わせる。",
+          "reason": "実Runtime不整合をテスト修正だけで隠さないため。"
+        }
+      ],
+      "change_history": [
+        {
+          "changed_at": "2026-08-29T19:30:00+09:00",
+          "summary": "既存9 FAIL全件棚卸し・修正、latent stale/harness portability修正、全Static 0 FAIL化。"
+        }
+      ],
+      "failure_stories": [
+        {
+          "excuse": "各機能追加時にはBefore/AfterでFAIL集合が増えていないことを優先し、既存FAIL自体の返済を後回しにしていた（笑）。",
+          "failure": "長期間「既存9 FAILのみ」として許容し続けた結果、テストが現在の構造からずれたまま残り、Thought Evolutionの本当の旧パス不整合まで同じ9 FAILへ埋もれていた。",
+          "lesson": "既存FAIL固定比較は短期の回帰判定には使えるが、一定時点で必ず0 FAILへ戻す清掃工程が必要。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0243",
+      "phase": "v0.18.113-responsibility-rule-first-generated-preview",
+      "title": "Generated Preview右詳細化 / Search Criteria導出ルール正本化 / Rule First責務テスト",
+      "incident_type": "architecture",
+      "category": "responsibility_definition_driven_test",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "none",
+      "verification_status": "全Static 0 FAIL / Search Plan確認済み",
+      "context_def_status": "complete",
+      "context_def_updated_at": "2026-08-29T20:50:00+09:00",
+      "owner": "user",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-29T20:50:00+09:00",
+      "updated_at": "2026-08-29T20:50:00+09:00",
+      "work_summary": "Generated TestPattern / Expected Previewの巨大JSON列では、対象Input・検索へ投入するCriteria・Expected・そのCriteriaを選んだ根拠が人間に追えなかった。Search責務を題材に、①一覧の巨大Generated JSON列を廃止し、TestPattern行クリックで右側Generated Case Detailを表示、②Input Snapshot → 検索へ投入 → 導出ルール → Expected Resultの順で表示、③最重要のSearch Criteria導出ルールをtest_generation_config.search_generation.criteria_derivation_rulesへCanonical化、④Generated Caseへcriteria_derivation.rule_id / rule / traceを付与、⑤適用ルールが無いOperator/Value FamilyはCriteriaを暗黙生成せずPreviewをPARTIALにしてルール追加・ブラッシュアップを要求するRule First方式へ変更した。Test Inputはルールのfixture_requirements / ai_input_guidanceからAI生成・補強可能とし、人間approvedをHard Gateとする方針も明文化した。",
+      "target_files": [
+        "data/json/03_tests/responsibilities/responsibility_data_v0_2.json",
+        "defs/qa/tests/responsibilities/responsibility_view_def_v0_2.json",
+        "wwwroot/js/services/responsibility/responsibility_test_preview_service.js",
+        "wwwroot/js/components/responsibility/responsibility_test_preview_component.js",
+        "wwwroot/styles.css",
+        "tests/qa/static/responsibility_generated_rule_detail_static.test.mjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "actual_updated_files": [
+        "data/json/03_tests/responsibilities/responsibility_data_v0_2.json",
+        "defs/qa/tests/responsibilities/responsibility_view_def_v0_2.json",
+        "wwwroot/js/services/responsibility/responsibility_test_preview_service.js",
+        "wwwroot/js/components/responsibility/responsibility_test_preview_component.js",
+        "wwwroot/styles.css",
+        "tests/qa/static/responsibility_generated_rule_detail_static.test.mjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "context_def_draft": "責務駆動テストの知識正本は個別Generated Caseではなく導出ルール。Caseの違和感・不足を個別修正せず、ルールをブラッシュアップして以後の生成へ効かせる。ルールはCriteria生成だけでなく必要なInput条件も明示し、AIはルールから逆算してTest Inputを生成・補強できる。InputはAI生成可能だが人間approvedが実行Hard Gate。Generated Previewは『対象Input → 実際に投入する値 → なぜその値か（Rule/Trace）→ Expected』を一画面で追えること。",
+      "objective": "Generated Previewを人間が責務テストの導出過程を承認できる画面へ変更し、Search Criteriaの選び方をコード内暗黙知からCanonical Ruleへ昇格する。",
+      "background": "13件のSearch Generated TestPatternは正しく生成できていたが、一覧のGenerated Cases / Input Snapshot / Criteria / Expected列がJSON文字列1本で、何を検索UIへ入れるのか、その値がなぜ選ばれたのかを人間が読み取りにくかった。さらにCriteria生成ロジックは#generateSearchCriteria内に存在していたものの、ルールとして独立承認・改善できる形ではなかった。",
+      "scope": [
+        "Generated Preview一覧から巨大Generated JSON列を除去",
+        "TestPattern行クリックによる右側Generated Case Detail",
+        "Search Input Snapshot / Criteria / Expectedの意味順表示",
+        "Search Criteria derivation ruleのCanonical JSON化",
+        "Rule ID / Rule本文 / Derivation Trace / Input Profile / Result CoverageのGenerated Case付与",
+        "Rule不足時の暗黙Fallback禁止",
+        "ルールから逆算するAI Test Input生成・補強方針と人間approved Hard Gateの明文化",
+        "detailPanelのViewDef設定化（enabled / position / showRawJson）"
+      ],
+      "out_of_scope": [
+        "AIサービスを直接呼んでTest Input JSONを自動生成する実行機能",
+        "Search以外のAggregate / CSVの導出ルールCatalog完全化",
+        "Generated Preview内でCanonical Ruleそのものを編集する専用Rule Editor"
+      ],
+      "fixed_name_policy": "特定のnote/amplitude_gへ固定せず、Operator ID + Resolved Value Familyからcriteria_derivation_rulesを一意解決する。Generated Caseはrule_idを保持し、対象FieldのInput SnapshotにRuleを適用したTraceを派生保持する。",
+      "module_policy": "意味・ルールはResponsibility CoreのCanonical JSON / Serviceに置く。右側表示などPresentationはResponsibility Preview Component + ViewDef configに置き、Overlayから表示設定を差し替え可能な境界を維持する。",
+      "expected_outputs": [
+        "Search Preview一覧に巨大Generated JSON列が存在しない",
+        "左TestPattern行クリックで右側にInput / Criteria / Rule / Expectedが表示される",
+        "containsはsearch_rule_string_repeated_else_firstを適用しAlphaをREPEATED_NON_BLANK根拠で導出する",
+        "betweenはsearch_rule_between_repeated_pivot_rangeを適用し0.5〜0.9を導出する",
+        "適用Ruleを削除するとGenerated Caseを暗黙生成せずSEARCH_PATTERN_DERIVATION_FAILEDになる",
+        "ルールにfixture_requirements / ai_input_guidanceが存在し、AI Input生成の逆算条件を人間が確認できる"
+      ],
+      "risk": "ルールCatalogを説明文だけにして実コードが別ロジックを持つと再び二重正本になるため、Serviceはrule.strategyを実際のCriteria生成分岐として使用する。将来Operatorを追加した際はルール未定義でPreviewが止まるため、Operator追加とRule追加を同じ変更単位で扱う必要がある。",
+      "test_points": [
+        "4件のcriteria_derivation_rulesがrule_id/strategy/statement/reason/fixture_requirements/ai_input_guidanceを持つ",
+        "13 Search Generated Caseすべてに一意のcriteria_derivation.rule_idが付く",
+        "contains trace.basis=REPEATED_NON_BLANK / selected source indexes=[0,2]",
+        "contains Coverage=match3/nonMatch3",
+        "between Criteria={from:0.5,to:0.9} / REPEATED_PIVOT_TO_NEXT_GREATER",
+        "Rule削除時はPreview PARTIALでmissing rule messageを出す",
+        "Preview componentが右Master-Detail UIとRule強調表示を持つ",
+        "既存Search / DATA_UPDATE_PERSIST / Aggregate / CSV Staticへ回帰が無い"
+      ],
+      "verification_log": [
+        "node --check responsibility_test_preview_service.js / responsibility_test_preview_component.js PASS。",
+        "Focused Static（Rule / Search Preview / Responsibility Preview）：14/14 PASS。",
+        "Search Responsibility Plan：Execution Kind=SEARCH_FILTER / Pattern=13 / Case=13 / Execution Ready=YES。",
+        "全Static：390 tests / 390 PASS / 0 FAIL / skipped 0 / cancelled 0。"
+      ],
+      "user_request": "Generated Previewは要約不要。巨大JSON列の詳細を行クリックで右側表示し、対象項目の入力状況・何を投入して検索するか・結果を端的に見たい。最重要は『何を投入するか』の機械導出ルール。ルールが責務駆動開発の命で、不足時はルールをブラッシュアップし、そのルールから逆算してAIがTest Inputを必要に応じて作り、人間が承認するシナリオにしたい。",
+      "ai_response": "Search Criteriaの現行GeneratorロジックをCanonical Ruleへ昇格し、Rule Firstで実際にrule.strategyからCriteriaを生成する。Previewは左TestPattern / 右Generated Case Detailへ変更し、Input→Criteria→Rule/Trace→Expectedを表示する。Ruleが無ければ生成を止め、個別Case修正ではなくRule追加を要求する。",
+      "latest_user_comment": "ルールが命。責務駆動開発ではルール不足ならルールをブラッシュアップし、ルールから逆算してAIが必要なInputを作り、人間承認する。",
+      "latest_ai_response": "ルールを知識正本として実装し、Generated Caseへ適用RuleとTraceを持たせ、Previewで導出根拠を最重要表示する。",
+      "context_refs": [
+        "decision_axis_responsibility_observability",
+        "data/json/03_tests/responsibilities/responsibility_data_v0_2.json",
+        "wwwroot/js/services/responsibility/responsibility_test_preview_service.js"
+      ],
+      "follow_up_actions": [
+        "Aggregate / CSVも同じRule First構造へ横展開するか、現在のGenerated Caseレビュー後に判断する。",
+        "AIによるTest Input自動生成を行う場合は、fixture_requirementsから不足条件を機械抽出するInput Requirementモデルを別途設計する。"
+      ],
+      "discussion_history": [],
+      "decision_log": [
+        {
+          "decision_id": "decision_0243_001",
+          "decision": "責務駆動テストの知識正本は個別Generated CaseではなくDerivation Ruleとする。",
+          "reason": "Caseを個別修正すると知識が次回生成へ継承されず、同種の不足を繰り返すため。"
+        },
+        {
+          "decision_id": "decision_0243_002",
+          "decision": "Search Criteria生成はOperator ID + Resolved Value FamilyからCanonical Ruleを一意解決し、rule.strategyを実際の生成分岐として使用する。",
+          "reason": "ルール文書とコードを別物にせず、明示ルールが実生成を駆動する構造にするため。"
+        },
+        {
+          "decision_id": "decision_0243_003",
+          "decision": "適用Ruleが無い場合は既定値で生成せずPreviewを止め、Rule追加・ブラッシュアップを要求する。",
+          "reason": "AI/Runnerの暗黙判断を許すと、人間が承認していない知識でテストが成立してしまうため。"
+        },
+        {
+          "decision_id": "decision_0243_004",
+          "decision": "Test InputはRuleのfixture_requirements / ai_input_guidanceから逆算してAI生成・補強可能だが、実行前approvedは人間だけが与える。",
+          "reason": "AI生成の生産性と人間承認の責任境界を両立するため。"
+        },
+        {
+          "decision_id": "decision_0243_005",
+          "decision": "意味・RuleはCore、右側Detailの表示方法はViewDef/Overlay調整可能なPresentation境界とする。",
+          "reason": "承認知識をOverlayへ隠さず、表示の好みだけを差し替え可能にするため。"
+        }
+      ],
+      "change_history": [
+        {
+          "changed_at": "2026-08-29T20:50:00+09:00",
+          "summary": "Search Criteria derivation rulesをResponsibility test_generation_configへCanonical化し、Generated CaseへRule/Traceを付与。"
+        },
+        {
+          "changed_at": "2026-08-29T20:50:00+09:00",
+          "summary": "Generated Previewを巨大JSON列から左一覧＋右Generated Case Detailへ変更。"
+        }
+      ],
+      "failure_stories": [
+        {
+          "failure": "13件のGenerated Search Caseは生成できていたが、巨大JSON列を横スクロールしても『なぜAlphaを検索値にしたか』が人間にはほぼ読めなかった。",
+          "excuse": "機械が正しく生成しているのでGenerated JSONを全部見せれば説明責任を果たした気になっていた（笑）。",
+          "lesson": "全情報を見せることと、判断根拠を見せることは別。責務駆動テストではRuleと今回の適用Traceを最優先で見せる。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0244",
+      "phase": "v0.18.114-responsibility-preview-snapshot-column-width",
+      "title": "Generated Preview Input Snapshot列幅最適化 / Value可視性向上",
+      "incident_type": "ui_polish",
+      "category": "responsibility_definition_driven_test",
+      "priority": "low",
+      "status": "完了",
+      "follow_up_status": "none",
+      "verification_status": "全Static 0 FAIL確認済み",
+      "context_def_status": "not_required",
+      "context_def_updated_at": "2026-08-29T21:10:00+09:00",
+      "owner": "user",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-29T21:10:00+09:00",
+      "updated_at": "2026-08-29T21:10:00+09:00",
+      "work_summary": "Generated Case Detailの「対象項目の入力状況」テーブルでIndex / Row ID列が横幅を取りすぎ、最重要のValue列が見えにくかったため、列幅を明示してValueへ残余幅を優先配分した。Index=52px、Row ID=190pxとし、Row IDは1行表示・超過時ellipsis、title属性で全文確認可能とした。",
+      "target_files": [
+        "wwwroot/js/components/responsibility/responsibility_test_preview_component.js",
+        "wwwroot/styles.css",
+        "tests/qa/static/responsibility_generated_rule_detail_static.test.mjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "actual_updated_files": [
+        "wwwroot/js/components/responsibility/responsibility_test_preview_component.js",
+        "wwwroot/styles.css",
+        "tests/qa/static/responsibility_generated_rule_detail_static.test.mjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "context_def_draft": "",
+      "objective": "Input SnapshotでIndex/Row IDより対象FieldのValueを優先して視認できるレイアウトにする。",
+      "background": "Rule First Generated Previewでは対象Input→投入Criteria→導出Rule→Expectedの追跡が重要で、対象FieldのValueが狭いと導出根拠の理解を妨げるため。",
+      "scope": [
+        "Input SnapshotテーブルのIndex列幅固定",
+        "Row ID列幅固定",
+        "Value列への残余幅優先配分",
+        "長いRow IDのellipsis + title補完",
+        "Staticで列幅契約を固定"
+      ],
+      "out_of_scope": [
+        "Input Snapshotの列追加・削除",
+        "Rule/Criteria/Expectedセクション構造変更",
+        "ユーザーによるドラッグ列幅変更"
+      ],
+      "fixed_name_policy": "Input Snapshot専用CSS classで制御し、他Grid/サブグリッドの列幅へ影響させない。",
+      "module_policy": "意味データは変更せずPresentationのみ変更する。Value列は固定幅を与えず残余幅を利用する。",
+      "expected_outputs": [
+        "Index列が52pxで表示される",
+        "Row ID列が190pxで表示される",
+        "Value列が右側の残余幅を利用して従来より見やすくなる"
+      ],
+      "risk": "極端に長いRow IDは省略表示になるため、title属性で全文を確認できるようにする。",
+      "test_points": [
+        "colgroupにIndex/Row ID/Value専用col classが存在する",
+        "Index width=52px",
+        "Row ID width=190px",
+        "table-layout=fixedでValueが残余幅を使用する",
+        "Row IDへtitle属性が設定される"
+      ],
+      "verification_log": [
+        "node --test tests/qa/static/*.test.mjs：390/390 PASS / 0 FAIL。",
+        "responsibility_generated_rule_detail_static.test.mjsでInput Snapshot列classとIndex=52px / Row ID=190px契約を固定。",
+        "Value列は固定幅を持たずtable-layout=fixedの残余幅を使用。"
+      ],
+      "user_request": "Generated PreviewのInput SnapshotでIndexとRow ID列を狭め、Valueを見やすくしてほしい。",
+      "ai_response": "Input Snapshot専用colgroupを追加し、Index=52px、Row ID=190pxへ固定。Valueは残余幅を使用し、長いRow IDはellipsis + titleで補完する。",
+      "latest_user_comment": "index と Row Id の列の幅をもう少し幅を狭めて、Valueが見えやすい状況にしてほしい。",
+      "latest_ai_response": "Input Snapshotの意味構造は変えず、列幅だけを局所的に調整する。",
+      "context_refs": [
+        "studio_work_0243"
+      ],
+      "follow_up_actions": [],
+      "discussion_history": [],
+      "decision_log": [
+        {
+          "decision_id": "studio_work_0244_d001",
+          "decision": "Index=52px、Row ID=190pxを固定し、Value列は固定幅を持たせず残余幅を与える。",
+          "reason": "対象項目ValueがRule導出理解の主情報であり、補助情報のIndex/Row IDが表示領域を奪うべきではないため。"
+        }
+      ],
+      "change_history": [
+        {
+          "changed_at": "2026-08-29T21:10:00+09:00",
+          "summary": "Input Snapshot列幅最適化を実装。"
+        }
+      ],
+      "failure_stories": []
     }
   ],
   "review_notes": [

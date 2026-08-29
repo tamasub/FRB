@@ -29,7 +29,7 @@ test('ViewDef maintenance adds only the quiet ellipsis entry and preserves exist
 
 test('ViewDef maintenance reuses one common ViewDef and saves the edited ViewDef through /api/defs without injecting view_def', () => {
   const maint = json('defs/common/view_def_maint_fields_v0_2.json');
-  const program = text('Program.cs/Program.cs');
+  const nativeBridge = text('wwwroot/js/core/native_host_bridge.js');
   const state = text('wwwroot/js/core/state.js');
   const save = text('wwwroot/js/runtime/detail_save.js');
   const runtime = text('wwwroot/js/runtime/load_runtime.js');
@@ -38,10 +38,13 @@ test('ViewDef maintenance reuses one common ViewDef and saves the edited ViewDef
   assert.equal(maint.views?.[0]?.sections?.[1]?.dataPath, '$.__studio_viewdef_maintenance_fields');
   assert.equal(maint.views?.[0]?.sections?.[0]?.fields?.some(field => field.field === 'views.0.layout'), false);
   assert.ok(maint.views?.[0]?.sections?.[1]?.fields?.find(field => field.field === 'type')?.options?.includes('date'));
-  assert.match(program, /MapPost\("\/api\/defs\/\{\*\*name\}"/);
+  assert.match(nativeBridge, /const defsMatch = path\.match/);
+  assert.match(nativeBridge, /\/api\/defs\//);
+  assert.match(nativeBridge, /method === 'POST'/);
+  assert.match(nativeBridge, /joinPath\('defs', relative\)/);
   assert.match(state, /currentDataSourceKind = 'data'/);
   assert.match(runtime, /dataSourceKind='data'/);
-  assert.match(save, /if \(currentDataSourceKind !== 'viewdef'\)[\s\S]*ensureViewDefNameInData/);
+  assert.match(save, /currentDataSourceKind !== 'viewdef'[\s\S]*ensureViewDefNameInData/);
   assert.match(save, /finalizeViewDefMaintenanceDocument\(sourceData\)/);
 });
 

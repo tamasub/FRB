@@ -191,7 +191,7 @@
         "承認"
       ],
       "resource_ref": {
-        "data_file": "data/json/01_main/thought_evolution_relation_approval_data_v0_1.json",
+        "data_file": "data/json/01_main/thought_difference/thought_evolution_relation_approval_data_v0_1.json",
         "view_def": "defs/relation/thought_evolution_relation_approval_view_def_v0_1.json",
         "record_field": "relation_id",
         "record_id": "e09"

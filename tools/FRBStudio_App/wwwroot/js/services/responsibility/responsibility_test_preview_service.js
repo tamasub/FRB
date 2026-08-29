@@ -1,4 +1,4 @@
-// v0.18.109-responsibility-generated-test-preview
+// v0.18.113-responsibility-rule-first-generated-preview
 // UI-independent derivation for Responsibility Definition Driven Test preview.
 // Canonical Responsibility JSON stores generation rules; Generated TestPattern / Expected remain derived readonly data.
 
@@ -166,6 +166,71 @@ function responsibilityPreviewSearchRepeatedValue(values) {
   }
   for (const item of counts.values()) if (item.count > 1) return item.value;
   return undefined;
+}
+
+
+function responsibilityPreviewSearchResolveDerivationRule(searchGenerationConfig, operatorId, family) {
+  const rules = Array.isArray(searchGenerationConfig?.criteria_derivation_rules)
+    ? searchGenerationConfig.criteria_derivation_rules
+    : [];
+  const op = String(operatorId ?? '').trim();
+  const fam = String(family ?? '').trim().toLowerCase();
+  const matches = rules.filter(rule => {
+    if (String(rule?.status ?? 'active').toLowerCase() !== 'active') return false;
+    const applies = rule?.applies_to ?? {};
+    const operators = Array.isArray(applies?.operator_ids) ? applies.operator_ids.map(String) : [];
+    const families = Array.isArray(applies?.value_families) ? applies.value_families.map(item => String(item).toLowerCase()) : [];
+    return operators.includes(op) && (families.includes('*') || families.includes(fam));
+  });
+  if (matches.length !== 1) {
+    throw new Error(
+      matches.length === 0
+        ? `Search Criteria derivation rule is missing: operator=${op}, family=${fam}. Ruleを追加・ブラッシュアップしてください。`
+        : `Search Criteria derivation rule is ambiguous: operator=${op}, family=${fam}, count=${matches.length}`
+    );
+  }
+  return matches[0];
+}
+
+function responsibilityPreviewSearchInputProfile(snapshot, family) {
+  const rows = Array.isArray(snapshot) ? snapshot : [];
+  const nonBlank = rows.filter(item => !responsibilityPreviewSearchIsBlank(item?.value));
+  const blank = rows.filter(item => responsibilityPreviewSearchIsBlank(item?.value));
+  const counts = new Map();
+  for (const item of nonBlank) {
+    const key = responsibilityPreviewSearchStableValueKey(item.value);
+    const current = counts.get(key) ?? { value: responsibilityPreviewClone(item.value), count: 0, indexes: [], row_ids: [] };
+    current.count += 1;
+    current.indexes.push(item.index);
+    current.row_ids.push(item.row_id);
+    counts.set(key, current);
+  }
+  const repeated = [...counts.values()].filter(item => item.count > 1);
+  const comparable = nonBlank
+    .map(item => ({
+      index: item.index,
+      row_id: item.row_id,
+      value: responsibilityPreviewClone(item.value),
+      comparable: responsibilityPreviewSearchComparable(item.value, family)
+    }))
+    .filter(item => item.comparable != null)
+    .sort((a, b) => a.comparable - b.comparable);
+
+  return {
+    row_count: rows.length,
+    blank_count: blank.length,
+    non_blank_count: nonBlank.length,
+    distinct_non_blank_count: counts.size,
+    repeated_non_blank_values: repeated,
+    comparable_values: comparable
+  };
+}
+
+function responsibilityPreviewSearchTraceSourceRows(snapshot, value) {
+  const key = responsibilityPreviewSearchStableValueKey(value);
+  return (snapshot ?? [])
+    .filter(item => responsibilityPreviewSearchStableValueKey(item?.value) === key)
+    .map(item => ({ index: item.index, row_id: item.row_id, value: responsibilityPreviewClone(item.value) }));
 }
 
 function responsibilityPreviewSearchComparable(value, family) {
@@ -625,8 +690,33 @@ class ResponsibilityTestPreviewService {
       for (const operatorId of (operatorSet?.operator_ids ?? [])) {
         const operator = operatorById.get(String(operatorId));
         if (!operator || operator?.status !== 'active') continue;
-        const criteria = this.#generateSearchCriteria({ operatorId: String(operatorId), values, family: rawFamily, config });
+        const rule = responsibilityPreviewSearchResolveDerivationRule(config?.search_generation, String(operatorId), rawFamily);
+        const derivation = this.#generateSearchCriteria({
+          operatorId: String(operatorId),
+          snapshot,
+          family: rawFamily,
+          rule
+        });
+        const criteria = derivation.criteria;
         const matched = snapshot.filter(item => responsibilityPreviewSearchMatches(item.value, String(operatorId), criteria, rawFamily));
+        const matchedIndexSet = new Set(matched.map(item => item.index));
+        const coverageKind = matched.length === 0
+          ? 'ZERO_MATCH'
+          : matched.length === snapshot.length
+            ? 'ALL_MATCH'
+            : 'MATCH_AND_NON_MATCH';
+        derivation.trace.result_coverage = {
+          matched_count: matched.length,
+          non_matched_count: Math.max(0, snapshot.length - matched.length),
+          coverage_kind: coverageKind,
+          preference: String(rule?.coverage_preference ?? ''),
+          assessment: coverageKind === 'MATCH_AND_NON_MATCH' ? 'PREFERRED' : 'REVIEW'
+        };
+        derivation.trace.result_rows = snapshot.map(item => ({
+          index: item.index,
+          row_id: item.row_id,
+          matched: matchedIndexSet.has(item.index)
+        }));
         const expected = {
           row_ids: matched.map(item => item.row_id),
           indexes: matched.map(item => item.index),
@@ -643,6 +733,11 @@ class ResponsibilityTestPreviewService {
           operator_caption: String(operator?.caption ?? operatorId),
           input_snapshot: responsibilityPreviewClone(snapshot),
           criteria: responsibilityPreviewClone(criteria),
+          criteria_derivation: {
+            rule_id: String(rule?.rule_id ?? ''),
+            rule: responsibilityPreviewClone(rule),
+            trace: responsibilityPreviewClone(derivation.trace)
+          },
           expected_def_type: String(definition?.expected_def_type ?? 'StateExpectedDef'),
           expected,
           guarantee_id: String(definition?.guarantee_id ?? ''),
@@ -684,40 +779,130 @@ class ResponsibilityTestPreviewService {
     return [...groups.values()];
   }
 
-  #generateSearchCriteria({ operatorId, values, family }) {
-    if (operatorId === 'blank' || operatorId === 'not_blank') return { operator: operatorId };
-    const nonBlank = values.filter(value => !responsibilityPreviewSearchIsBlank(value));
-    if (!nonBlank.length) throw new Error(`Search criteria generation requires a non-blank value: ${operatorId}`);
-    const repeated = responsibilityPreviewSearchRepeatedValue(nonBlank);
+  #generateSearchCriteria({ operatorId, snapshot, family, rule }) {
+    const rows = Array.isArray(snapshot) ? snapshot : [];
+    const values = rows.map(item => item?.value);
+    const profile = responsibilityPreviewSearchInputProfile(rows, family);
+    const strategy = String(rule?.strategy ?? '').trim();
+    const baseTrace = {
+      rule_id: String(rule?.rule_id ?? ''),
+      strategy,
+      input_profile: responsibilityPreviewClone(profile),
+      basis: '',
+      selected_source_rows: [],
+      derived_criteria: null
+    };
 
-    if (operatorId === 'between') {
-      const comparable = nonBlank
-        .map(value => ({ value, comparable: responsibilityPreviewSearchComparable(value, family) }))
-        .filter(item => item.comparable != null)
-        .sort((a, b) => a.comparable - b.comparable);
+    if (strategy === 'NO_VALUE') {
+      const criteria = { operator: operatorId };
+      return {
+        criteria,
+        trace: {
+          ...baseTrace,
+          basis: 'OPERATOR_REQUIRES_NO_VALUE',
+          derived_criteria: responsibilityPreviewClone(criteria)
+        }
+      };
+    }
+
+    const nonBlank = rows.filter(item => !responsibilityPreviewSearchIsBlank(item?.value));
+    if (!nonBlank.length) {
+      throw new Error(`Search criteria generation requires a non-blank value: ${operatorId}`);
+    }
+    const repeated = responsibilityPreviewSearchRepeatedValue(values);
+
+    if (strategy === 'PREFER_REPEATED_NON_BLANK_ELSE_FIRST_NON_BLANK') {
+      const selected = repeated === undefined ? nonBlank[0].value : repeated;
+      const criteria = { operator: operatorId, value: responsibilityPreviewClone(selected) };
+      return {
+        criteria,
+        trace: {
+          ...baseTrace,
+          basis: repeated === undefined ? 'FIRST_NON_BLANK' : 'REPEATED_NON_BLANK',
+          selected_source_rows: responsibilityPreviewSearchTraceSourceRows(rows, selected),
+          derived_criteria: responsibilityPreviewClone(criteria)
+        }
+      };
+    }
+
+    if (strategy === 'PREFER_REPEATED_NON_BLANK_ELSE_MIDDLE_COMPARABLE') {
+      const comparable = profile.comparable_values ?? [];
+      if (!comparable.length) throw new Error(`Comparable criteria generation failed: ${family}`);
+      const repeatedComparable = repeated === undefined ? null : responsibilityPreviewSearchComparable(repeated, family);
+      const selected = repeatedComparable == null
+        ? comparable[Math.floor((comparable.length - 1) / 2)]?.value
+        : repeated;
+      const criteria = { operator: operatorId, value: responsibilityPreviewClone(selected) };
+      return {
+        criteria,
+        trace: {
+          ...baseTrace,
+          basis: repeatedComparable == null ? 'MIDDLE_COMPARABLE' : 'REPEATED_NON_BLANK',
+          selected_source_rows: responsibilityPreviewSearchTraceSourceRows(rows, selected),
+          derived_criteria: responsibilityPreviewClone(criteria)
+        }
+      };
+    }
+
+    if (strategy === 'REPEATED_PIVOT_TO_NEXT_GREATER_ELSE_NEIGHBOR_RANGE') {
+      const comparable = profile.comparable_values ?? [];
       if (!comparable.length) throw new Error(`Range criteria generation failed: ${family}`);
       const repeatedComparable = repeated === undefined ? null : responsibilityPreviewSearchComparable(repeated, family);
-      let fromItem = repeatedComparable == null ? comparable[Math.floor((comparable.length - 1) / 2)] : comparable.find(item => item.comparable === repeatedComparable);
+      let fromItem = repeatedComparable == null
+        ? comparable[Math.floor((comparable.length - 1) / 2)]
+        : comparable.find(item => item.comparable === repeatedComparable);
       if (!fromItem) fromItem = comparable[0];
+
       let toItem = comparable.find(item => item.comparable > fromItem.comparable);
+      let basis = repeatedComparable == null
+        ? 'MIDDLE_PIVOT_TO_NEXT_GREATER'
+        : 'REPEATED_PIVOT_TO_NEXT_GREATER';
+
       if (!toItem) {
         const prev = [...comparable].reverse().find(item => item.comparable < fromItem.comparable);
-        if (prev) return { operator: operatorId, from: responsibilityPreviewClone(prev.value), to: responsibilityPreviewClone(fromItem.value) };
+        if (prev) {
+          const criteria = {
+            operator: operatorId,
+            from: responsibilityPreviewClone(prev.value),
+            to: responsibilityPreviewClone(fromItem.value)
+          };
+          return {
+            criteria,
+            trace: {
+              ...baseTrace,
+              basis: 'PREVIOUS_TO_PIVOT_FALLBACK',
+              selected_source_rows: [
+                ...responsibilityPreviewSearchTraceSourceRows(rows, prev.value),
+                ...responsibilityPreviewSearchTraceSourceRows(rows, fromItem.value)
+              ],
+              derived_criteria: responsibilityPreviewClone(criteria)
+            }
+          };
+        }
         toItem = fromItem;
+        basis = 'SINGLE_COMPARABLE_FALLBACK';
       }
-      return { operator: operatorId, from: responsibilityPreviewClone(fromItem.value), to: responsibilityPreviewClone(toItem.value) };
+
+      const criteria = {
+        operator: operatorId,
+        from: responsibilityPreviewClone(fromItem.value),
+        to: responsibilityPreviewClone(toItem.value)
+      };
+      return {
+        criteria,
+        trace: {
+          ...baseTrace,
+          basis,
+          selected_source_rows: [
+            ...responsibilityPreviewSearchTraceSourceRows(rows, fromItem.value),
+            ...responsibilityPreviewSearchTraceSourceRows(rows, toItem.value)
+          ],
+          derived_criteria: responsibilityPreviewClone(criteria)
+        }
+      };
     }
 
-    let selected = repeated;
-    if (selected === undefined && ['number', 'integer', 'float', 'decimal', 'date', 'datetime', 'instant'].includes(family)) {
-      const comparable = nonBlank
-        .map(value => ({ value, comparable: responsibilityPreviewSearchComparable(value, family) }))
-        .filter(item => item.comparable != null)
-        .sort((a, b) => a.comparable - b.comparable);
-      selected = comparable[Math.floor((comparable.length - 1) / 2)]?.value;
-    }
-    if (selected === undefined) selected = nonBlank[0];
-    return { operator: operatorId, value: responsibilityPreviewClone(selected) };
+    throw new Error(`Unsupported Search Criteria derivation strategy: ${strategy || '(empty)'} / rule=${rule?.rule_id ?? ''}`);
   }
 
   #derivePattern({ definition, setup, config, inputData, viewDef, fieldDefinitionDocument, registry }) {

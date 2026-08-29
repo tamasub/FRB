@@ -20,7 +20,7 @@
 
 - 線をクリックしてRelation Type・接続理由・根拠を確認・修正する。
 - `AI_PROPOSED / HUMAN_APPROVED / PENDING / REJECTED` を色と線種で区別する。
-- 承認・保留・却下は `data/json/01_main/thought_evolution_relation_approval_data_v0_1.json` へ保存する。
+- 承認・保留・却下は `data/json/01_main/thought_difference/thought_evolution_relation_approval_data_v0_1.json` へ保存する。
 - ノード本文はOverlayへ複製せず、`resource_ref` からStudio標準エディターで開く。
 
 ## データ分離

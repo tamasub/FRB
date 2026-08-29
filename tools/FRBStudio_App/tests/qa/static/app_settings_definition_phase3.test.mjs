@@ -14,10 +14,13 @@ const shellJs = read('wwwroot/js/ui/frb_studio_shell.js');
 const loadRuntime = read('wwwroot/js/runtime/load_runtime.js');
 const incident = readJson('data/json/01_main/_studio_work_incident_data_v2.json');
 
-test('Phase 3 replaces unused default_launch with explicit launch_shortcuts without inventing an automatic launch', () => {
+test('App Settings keeps default_launch retired and stores current launch shortcuts explicitly', () => {
   assert.equal(Object.hasOwn(settings, 'default_launch'), false);
   assert.ok(Array.isArray(settings.launch_shortcuts));
-  assert.equal(settings.launch_shortcuts.length, 0);
+  assert.ok(settings.launch_shortcuts.length >= 1);
+  const ids = settings.launch_shortcuts.map(item => item.id);
+  assert.equal(new Set(ids).size, ids.length);
+  assert.ok(settings.launch_shortcuts.every(item => item.id && item.caption && item.data));
   assert.equal(settings.markdown.large_file_warning_enabled, true);
   assert.equal(settings.markdown.large_file_warning_bytes, 524288);
 });

@@ -3773,3 +3773,231 @@ button.viewdef-maintenance-button:disabled {
 .detail-subgrid-edit[data-subgrid-expanded="false"] .detail-subgrid-header {
   margin-bottom: 0;
 }
+
+
+/* v0.18.110-responsibility-generated-case-rule-detail:
+   Generated Previewは一覧要約を増やさず、左TestPatternクリック -> 右Generated Case詳細。
+   Searchでは Input -> Criteria -> Derivation Rule -> Expected を優先表示する。 */
+.responsibility-generated-preview-card .responsibility-preview-master-detail {
+  display: grid;
+  grid-template-columns: minmax(430px, .9fr) minmax(520px, 1.1fr);
+  gap: 12px;
+  align-items: start;
+}
+.responsibility-generated-preview-card[data-subgrid-expanded="false"] .responsibility-preview-master-detail {
+  display: none;
+}
+.responsibility-generated-preview-card .detail-subgrid-table-wrap {
+  max-height: 590px;
+  min-width: 0;
+  border: 1px solid rgba(203, 213, 225, .9);
+  border-radius: 12px;
+  background: #fff;
+}
+.responsibility-generated-preview-card .detail-subgrid-table {
+  min-width: 620px;
+}
+.responsibility-preview-master-row {
+  cursor: pointer;
+}
+.responsibility-preview-master-row:hover td {
+  background: rgba(239, 246, 255, .82);
+}
+.responsibility-preview-master-row.is-selected td {
+  background: rgba(219, 234, 254, .88);
+}
+.responsibility-preview-master-row.is-selected td:first-child {
+  box-shadow: inset 4px 0 0 #2563eb;
+}
+.responsibility-preview-detail-pane {
+  min-width: 0;
+  max-height: 590px;
+  overflow: auto;
+  border: 1px solid rgba(191, 219, 254, .95);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 18%);
+  box-shadow: 0 10px 30px rgba(59, 130, 246, .08);
+}
+.responsibility-preview-detail-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 11px 13px 9px;
+  border-bottom: 1px solid rgba(203, 213, 225, .9);
+  background: rgba(248, 251, 255, .97);
+  backdrop-filter: blur(5px);
+}
+.responsibility-preview-detail-header h3 {
+  margin: 2px 0 0;
+  color: #0f172a;
+  font-size: 14px;
+  line-height: 1.35;
+}
+.responsibility-preview-detail-kicker {
+  color: #2563eb;
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.responsibility-preview-case-detail {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+.responsibility-preview-detail-section {
+  border: 1px solid rgba(226, 232, 240, .95);
+  border-radius: 12px;
+  background: rgba(255,255,255,.98);
+  padding: 10px 11px;
+}
+.responsibility-preview-detail-section h4 {
+  margin: 0 0 8px;
+  color: #0f172a;
+  font-size: 13px;
+  line-height: 1.35;
+}
+.responsibility-preview-detail-section.is-criteria {
+  border-color: rgba(96, 165, 250, .72);
+  background: rgba(239, 246, 255, .84);
+}
+.responsibility-preview-detail-section.is-rule {
+  border: 2px solid rgba(245, 158, 11, .76);
+  background: linear-gradient(180deg, rgba(255, 251, 235, .98), rgba(255,255,255,.98));
+  box-shadow: 0 10px 24px rgba(245, 158, 11, .09);
+}
+.responsibility-preview-detail-section.is-rule h4 {
+  color: #92400e;
+  font-size: 14px;
+}
+.responsibility-preview-detail-section.is-expected {
+  border-color: rgba(74, 222, 128, .72);
+  background: rgba(240, 253, 244, .78);
+}
+.responsibility-preview-detail-section.is-supplement {
+  background: rgba(248, 250, 252, .82);
+}
+.responsibility-preview-detail-lead {
+  margin-bottom: 8px;
+  color: #1e3a8a;
+  font-size: 12px;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+.responsibility-preview-detail-kv {
+  display: grid;
+  grid-template-columns: minmax(105px, 145px) minmax(0, 1fr);
+  gap: 8px;
+  padding: 6px 0;
+  border-top: 1px dashed rgba(203, 213, 225, .78);
+}
+.responsibility-preview-detail-kv:first-of-type {
+  border-top: 0;
+}
+.responsibility-preview-detail-key {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 900;
+}
+.responsibility-preview-detail-value {
+  min-width: 0;
+  color: #0f172a;
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.responsibility-preview-detail-value.is-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-weight: 800;
+}
+.responsibility-preview-detail-value.is-pre {
+  margin: 0;
+  max-height: 230px;
+  overflow: auto;
+  padding: 7px 8px;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #e2e8f0;
+  font: 11px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  white-space: pre-wrap;
+}
+.responsibility-preview-detail-subtitle {
+  margin-top: 7px;
+  color: #92400e;
+  font-size: 11px;
+  font-weight: 950;
+}
+.responsibility-preview-detail-list {
+  margin: 5px 0 7px 18px;
+  padding: 0;
+  color: #334155;
+  font-size: 11px;
+  line-height: 1.55;
+}
+.responsibility-preview-snapshot-wrap {
+  max-height: 230px;
+  overflow: auto;
+  border: 1px solid rgba(203, 213, 225, .85);
+  border-radius: 9px;
+}
+.responsibility-preview-snapshot-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.responsibility-preview-snapshot-col-index {
+  width: 52px;
+}
+.responsibility-preview-snapshot-col-row-id {
+  width: 190px;
+}
+.responsibility-preview-snapshot-table th:nth-child(1),
+.responsibility-preview-snapshot-table td:nth-child(1),
+.responsibility-preview-snapshot-table th:nth-child(2),
+.responsibility-preview-snapshot-table td:nth-child(2) {
+  white-space: nowrap;
+}
+.responsibility-preview-snapshot-table td:nth-child(2) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.responsibility-preview-snapshot-table th,
+.responsibility-preview-snapshot-table td {
+  padding: 5px 7px;
+  border-bottom: 1px solid rgba(226, 232, 240, .88);
+  text-align: left;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.responsibility-preview-snapshot-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 900;
+}
+.responsibility-preview-snapshot-table tr.is-expected-match td {
+  background: rgba(220, 252, 231, .68);
+}
+.responsibility-preview-detail-empty {
+  padding: 20px;
+  color: #64748b;
+  font-size: 12px;
+}
+@media (max-width: 1120px) {
+  .responsibility-generated-preview-card .responsibility-preview-master-detail {
+    grid-template-columns: 1fr;
+  }
+  .responsibility-preview-detail-pane {
+    max-height: none;
+  }
+}
+@media (max-width: 720px) {
+  .responsibility-preview-detail-kv {
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+}

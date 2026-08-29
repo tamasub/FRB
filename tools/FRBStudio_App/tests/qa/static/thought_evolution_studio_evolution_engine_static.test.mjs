@@ -14,7 +14,7 @@ const readOverlayJson = rel => JSON.parse(fs.readFileSync(path.join(overlayRoot,
 const catalog = readOverlayJson('data/thought_evolution_graph_catalog_v0_1.json');
 const pluginManifest = readOverlayJson('plugins/graph_studio/plugin.json');
 const pluginSource = fs.readFileSync(path.join(overlayRoot, 'plugins/graph_studio/plugin.js'), 'utf8');
-const profile = readJson('data/json/01_main/thought_evolution_engine_profile_data_v0_1.json');
+const profile = readJson('data/json/01_main/thought_difference/thought_evolution_engine_profile_data_v0_1.json');
 
 const requiredStates = new Set(['OBSERVATION','CANDIDATE','PROVISIONAL','APPROVED','VALIDATED','SUPERSEDED']);
 const requiredTypes = new Set(['decision_axis_add','constraint_add','applicability_change','relation_change','thought_class_split','baseline_terrain_candidate']);
@@ -49,9 +49,14 @@ test('Observation and Proposal samples preserve scope, outcome, counterexamples 
     assert.ok(proposals.proposals.every(x => requiredStates.has(x.state)));
     assert.ok(proposals.proposals.every(x => requiredTypes.has(x.proposal_type)));
     assert.ok(proposals.proposals.every(x => x.supporting_count >= 2 && x.applicability_scope));
-    assert.ok(proposals.proposals.every(x => x.next_version?.status === 'NOT_GENERATED'));
+    const generated = proposals.proposals.filter(x => x.next_version?.status === 'GENERATED');
+    const notGenerated = proposals.proposals.filter(x => x.next_version?.status === 'NOT_GENERATED');
+    assert.equal(generated.length + notGenerated.length, proposals.proposals.length);
+    assert.ok(generated.every(x => x.state === 'APPROVED'));
     assert.equal(versions.mutation_policy.includes('元定義を上書きしない'), true);
-    assert.deepEqual(versions.snapshots, []);
+    const snapshotIds = new Set((versions.snapshots ?? []).map(x => x.version_snapshot_id));
+    assert.ok(generated.every(x => snapshotIds.has(x.next_version.version_snapshot_id)));
+    assert.equal(versions.snapshots.length, generated.length);
   }
 });
 

@@ -159,7 +159,7 @@
     },
     {
       "sort_order": 80,
-      "item_id": "ecision_axis_responsibility_observability",
+      "item_id": "decision_axis_responsibility_observability",
       "item_type": "DECISION_AXIS",
       "title": "責務の成果は外部から観測可能であることを最優先とする",
       "statement": "責務は、その成立結果を責務境界の外側から観測可能でなければならない。人間またはTest RunnerがActualを取得し、Expectedとの差分を確認できない内部処理だけを、独立した承認責務として定義しない。",

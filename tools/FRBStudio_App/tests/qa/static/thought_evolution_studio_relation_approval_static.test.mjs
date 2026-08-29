@@ -26,7 +26,7 @@ const relationViewDef = readJson('defs/relation/thought_evolution_relation_appro
 
 test('quality graph declares core RelationData and editable resource refs', () => {
   assert.equal(qualityRow.relation_editable, true);
-  assert.equal(relationPath, 'data/json/01_main/thought_evolution_relation_approval_data_v0_1.json');
+  assert.equal(relationPath, 'data/json/01_main/thought_difference/thought_evolution_relation_approval_data_v0_1.json');
   assert.equal(relationData.graph_id, qualityRow.graph_id);
   assert.equal(relationData.view_def, 'relation/thought_evolution_relation_approval_view_def_v0_1.json');
   assert.equal(relationViewDef.views[0].sections.find(x => x.id === 'mainGrid').dataPath, 'relations');

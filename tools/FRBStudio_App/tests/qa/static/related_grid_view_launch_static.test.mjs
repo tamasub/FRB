@@ -28,21 +28,29 @@ test('rule review ViewDef declares a generic related Root Grid launch', () => {
   assert.equal(related[0].viewDef, 'rules/governance_items_common_view_def_v0_1.json');
 });
 
-test('coding constraints sample has five document-level decision axes including the approval-diff north star', () => {
+test('coding constraints keeps decision axes as an extensible canonical set including approval / observability axes', () => {
   const data = readJson('data/json/00_rules/frb_coding_constraints_data_v0_3.json');
   assert.ok(Array.isArray(data.governance_items));
-  assert.equal(data.governance_items.length, 5);
-  assert.deepEqual(data.governance_items.map(x => x.item_type), [
-    'DECISION_AXIS', 'DECISION_AXIS', 'DECISION_AXIS', 'DECISION_AXIS', 'DECISION_AXIS'
-  ]);
+  assert.ok(data.governance_items.length >= 5);
+  assert.ok(data.governance_items.every(x => x.item_type === 'DECISION_AXIS'));
+  const ids = data.governance_items.map(x => x.item_id);
+  assert.equal(new Set(ids).size, ids.length);
+  for (const requiredId of [
+    'decision_axis_small_meaningful_diff_approval_first',
+    'decision_axis_good_over_gain',
+    'decision_axis_safety_quality_delivery',
+    'decision_axis_human_readability_first',
+    'decision_axis_responsibility_before_commonization',
+    'decision_axis_responsibility_observability',
+    'decision_axis_expected_independent_simple_derivation_copy_1'
+  ]) assert.ok(ids.includes(requiredId), `missing decision axis: ${requiredId}`);
+
   const statements = data.governance_items.map(x => x.statement).join('\n');
   assert.match(statements, /損得より善悪/);
   assert.match(statements, /安心安全・セキュリティー ＞ 品質 ＞ 納期/);
   assert.match(statements, /人間の視認性を最優先/);
-  assert.match(statements, /作業を中断し、人間と協議/);
   assert.match(statements, /最小十分な差分/);
-  assert.match(statements, /適切な粒度/);
-  assert.match(statements, /責務を明確に分離/);
+  assert.match(statements, /責務境界の外側から観測可能/);
   const northStar = data.governance_items.find(x => x.item_id === 'decision_axis_small_meaningful_diff_approval_first');
   assert.ok(northStar);
   assert.match(northStar.evaluation_guidance, /base\/reference/);

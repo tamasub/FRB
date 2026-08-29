@@ -17,15 +17,15 @@
       "layout_save_file": "quality_asset_relation_layout_state_v0_1.json",
       "status": "active",
       "sort_order": 10,
-      "relation_data_file": "data/json/01_main/thought_evolution_relation_approval_data_v0_1.json",
+      "relation_data_file": "data/json/01_main/thought_difference/thought_evolution_relation_approval_data_v0_1.json",
       "relation_editable": true,
-      "analysis_profile_file": "data/json/01_main/thought_difference_analysis_profile_data_v0_1.json",
-      "difference_result_data_file": "data/json/01_main/thought_difference_result_quality_asset_data_v0_1.json",
+      "analysis_profile_file": "data/json/01_main/thought_difference/thought_difference_analysis_profile_data_v0_1.json",
+      "difference_result_data_file": "data/json/01_main/thought_difference/thought_difference_result_quality_asset_data_v0_1.json",
       "evolution_enabled": true,
-      "evolution_profile_file": "data/json/01_main/thought_evolution_engine_profile_data_v0_1.json",
-      "evolution_observation_data_file": "data/json/01_main/thought_evolution_observation_quality_asset_data_v0_1.json",
-      "evolution_proposal_data_file": "data/json/01_main/thought_evolution_proposal_quality_asset_data_v0_1.json",
-      "evolution_version_data_file": "data/json/01_main/thought_evolution_version_quality_asset_data_v0_1.json"
+      "evolution_profile_file": "data/json/01_main/thought_difference/thought_evolution_engine_profile_data_v0_1.json",
+      "evolution_observation_data_file": "data/json/01_main/thought_difference/thought_evolution_observation_quality_asset_data_v0_1.json",
+      "evolution_proposal_data_file": "data/json/01_main/thought_difference/thought_evolution_proposal_quality_asset_data_v0_1.json",
+      "evolution_version_data_file": "data/json/01_main/thought_difference/thought_evolution_version_quality_asset_data_v0_1.json"
     },
     {
       "graph_id": "thought_evolution_sample",
@@ -38,13 +38,13 @@
       "status": "active",
       "sort_order": 20,
       "relation_editable": false,
-      "analysis_profile_file": "data/json/01_main/thought_difference_analysis_profile_data_v0_1.json",
-      "difference_result_data_file": "data/json/01_main/thought_difference_result_thought_evolution_data_v0_1.json",
+      "analysis_profile_file": "data/json/01_main/thought_difference/thought_difference_analysis_profile_data_v0_1.json",
+      "difference_result_data_file": "data/json/01_main/thought_difference/thought_difference_result_thought_evolution_data_v0_1.json",
       "evolution_enabled": true,
-      "evolution_profile_file": "data/json/01_main/thought_evolution_engine_profile_data_v0_1.json",
-      "evolution_observation_data_file": "data/json/01_main/thought_evolution_observation_thought_evolution_data_v0_1.json",
-      "evolution_proposal_data_file": "data/json/01_main/thought_evolution_proposal_thought_evolution_data_v0_1.json",
-      "evolution_version_data_file": "data/json/01_main/thought_evolution_version_thought_evolution_data_v0_1.json"
+      "evolution_profile_file": "data/json/01_main/thought_difference/thought_evolution_engine_profile_data_v0_1.json",
+      "evolution_observation_data_file": "data/json/01_main/thought_difference/thought_evolution_observation_thought_evolution_data_v0_1.json",
+      "evolution_proposal_data_file": "data/json/01_main/thought_difference/thought_evolution_proposal_thought_evolution_data_v0_1.json",
+      "evolution_version_data_file": "data/json/01_main/thought_difference/thought_evolution_version_thought_evolution_data_v0_1.json"
     }
   ]
 }

@@ -15,16 +15,16 @@ const readOverlayJson = rel => JSON.parse(fs.readFileSync(path.join(overlayRoot,
 const catalog = readOverlayJson('data/thought_evolution_graph_catalog_v0_1.json');
 const pluginManifest = readOverlayJson('plugins/graph_studio/plugin.json');
 const pluginSource = fs.readFileSync(path.join(overlayRoot, 'plugins/graph_studio/plugin.js'), 'utf8');
-const profile = readJson('data/json/01_main/thought_difference_analysis_profile_data_v0_1.json');
-const qualityResults = readJson('data/json/01_main/thought_difference_result_quality_asset_data_v0_1.json');
-const thoughtResults = readJson('data/json/01_main/thought_difference_result_thought_evolution_data_v0_1.json');
+const profile = readJson('data/json/01_main/thought_difference/thought_difference_analysis_profile_data_v0_1.json');
+const qualityResults = readJson('data/json/01_main/thought_difference/thought_difference_result_quality_asset_data_v0_1.json');
+const thoughtResults = readJson('data/json/01_main/thought_difference/thought_difference_result_thought_evolution_data_v0_1.json');
 const profileView = readJson('defs/analysis/thought_difference_analysis_profile_view_def_v0_1.json');
 const resultView = readJson('defs/analysis/thought_difference_result_view_def_v0_1.json');
 
 test('catalog wires AnalysisProfile and DifferenceResult Data for each graph', () => {
   assert.equal(catalog.schema_version, 'thought_evolution_graph_catalog_v0_4');
   for (const row of catalog.graphs) {
-    assert.equal(row.analysis_profile_file, 'data/json/01_main/thought_difference_analysis_profile_data_v0_1.json');
+    assert.equal(row.analysis_profile_file, 'data/json/01_main/thought_difference/thought_difference_analysis_profile_data_v0_1.json');
     assert.ok(row.difference_result_data_file, `${row.graph_id} must declare difference_result_data_file`);
     assert.ok(fs.existsSync(path.join(root, row.analysis_profile_file)));
     assert.ok(fs.existsSync(path.join(root, row.difference_result_data_file)));
