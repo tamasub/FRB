@@ -55,7 +55,19 @@ npm run check
 npm run test:responsibility
 npm run test:responsibility:search
 npm run test:responsibility:aggregate
+npm run test:responsibility:csv
 ```
+
+
+`csv_export` は内部 `CsvExporter` を直接呼ばず、NativeShell 上で `CSV出力` ボタンをクリックし、
+ブラウザの `Blob / createObjectURL / download` 境界からCSV bytes/textを捕捉して `CsvExpectedDef` と比較する。
+専用Test Inputは承認前 `draft` のため、まず次で生成Planを確認する。
+
+```powershell
+npm run test:responsibility:csv:plan
+```
+
+Inputを `approved` にした後、`npm run test:responsibility:csv` でE2E実行する。
 
 `grid_aggregate` の正式な承認Runnerは NativeShell / Selenium で Grid Header の表示値を観測する。
 内部ロジック診断だけ行う場合は次を使う。

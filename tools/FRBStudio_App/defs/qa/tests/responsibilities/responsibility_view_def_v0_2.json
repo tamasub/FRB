@@ -763,7 +763,8 @@
                       "caption": "対象解決方式",
                       "type": "select",
                       "options": [
-                        "DATA_JSON_VIEW_DEF_FIELD_DEFINITION"
+                        "DATA_JSON_VIEW_DEF_FIELD_DEFINITION",
+                        "DATA_JSON_VIEW_DEF"
                       ],
                       "width": 250
                     },
@@ -802,7 +803,8 @@
                       "caption": "Pattern分離",
                       "type": "select",
                       "options": [
-                        "RESET_AFTER_EACH"
+                        "RESET_AFTER_EACH",
+                        "CSV_EXPORT_PER_PATTERN"
                       ],
                       "width": 170
                     },
@@ -906,7 +908,8 @@
                     "target_field": "",
                     "operator_source": "",
                     "expected_metric_set": "",
-                    "filtered_row_indexes": []
+                    "filtered_row_indexes": [],
+                    "row_scope": ""
                   },
                   "columns": [
                     {
@@ -923,7 +926,8 @@
                         "DATA_UPDATE_PERSIST",
                         "DATA_UPDATE_PERSIST_MULTILINE",
                         "SEARCH_FILTER",
-                        "GRID_AGGREGATE"
+                        "GRID_AGGREGATE",
+                        "CSV_EXPORT"
                       ],
                       "width": 240
                     },
@@ -949,7 +953,8 @@
                       "type": "select",
                       "options": [
                         "SEARCH_OPERATOR_MATRIX",
-                        "AGGREGATE_SCALAR_CASE"
+                        "AGGREGATE_SCALAR_CASE",
+                        "CSV_EXPORT_CASE"
                       ],
                       "width": 210
                     },
@@ -970,6 +975,16 @@
                       "caption": "Target DataPath",
                       "type": "text",
                       "width": 280
+                    },
+                    {
+                      "field": "row_scope",
+                      "caption": "Row Scope",
+                      "type": "select",
+                      "options": [
+                        "ALL",
+                        "FILTERED"
+                      ],
+                      "width": 130
                     },
                     {
                       "field": "target_field",
@@ -1021,11 +1036,12 @@
                     {
                       "field": "filtered_row_indexes",
                       "caption": "Filtered Row Indexes",
-                      "type": "textarea",
+                      "type": "json",
                       "width": 210,
                       "grid": {
                         "display": "json"
-                      }
+                      },
+                      "control": "textarea"
                     },
                     {
                       "field": "expected_metric_set",
@@ -1046,7 +1062,8 @@
                       "options": [
                         "JsonDiffExpectedDef",
                         "StateExpectedDef",
-                        "ScalarExpectedDef"
+                        "ScalarExpectedDef",
+                        "CsvExpectedDef"
                       ],
                       "width": 190
                     },

@@ -254,6 +254,57 @@ function responsibilityPreviewAggregateMetrics(metricSet) {
   throw new Error(`Unsupported aggregate expected_metric_set: ${metricSet}`);
 }
 
+
+function responsibilityPreviewCsvEscapeCell(value) {
+  const text = String(value ?? '');
+  if (/[",\r\n]/.test(text)) return '"' + text.replace(/"/g, '""') + '"';
+  return text;
+}
+
+function responsibilityPreviewCsvVisibleFields(section) {
+  const fields = (section?.fields ?? []).filter(field => field?.grid?.visible !== false);
+  const keyField = String(section?.keyField ?? section?.key_field ?? '').trim();
+  const out = [];
+  const seen = new Set();
+  const push = (field) => {
+    const fieldName = String(field?.field ?? '').trim();
+    if (!fieldName || seen.has(fieldName)) return;
+    seen.add(fieldName);
+    out.push(field);
+  };
+  if (keyField && !fields.some(field => String(field?.field ?? '').trim() === keyField)) {
+    push((section?.fields ?? []).find(field => String(field?.field ?? '').trim() === keyField)
+      ?? { field: keyField, caption: keyField, type: 'text' });
+  }
+  fields.forEach(push);
+  return out;
+}
+
+function responsibilityPreviewCsvValue(row, field) {
+  const fieldName = String(field?.field ?? '').trim();
+  const value = row?.[fieldName];
+  if (value == null) return '';
+  if (typeof value === 'object') return JSON.stringify(value);
+  return String(value);
+}
+
+function responsibilityPreviewBuildCsvExpected({ rows, section, selectedIndexes }) {
+  const fields = responsibilityPreviewCsvVisibleFields(section);
+  const fieldNames = fields.map(field => String(field?.field ?? '').trim());
+  const selectedRows = selectedIndexes.map(index => rows[index]).filter(row => row !== undefined);
+  const header = fieldNames.map(responsibilityPreviewCsvEscapeCell).join(',');
+  const body = selectedRows.map(row =>
+    fields.map(field => responsibilityPreviewCsvEscapeCell(responsibilityPreviewCsvValue(row, field))).join(',')
+  );
+  const csvWithoutBom = [header, ...body].join('\r\n') + '\r\n';
+  return {
+    field_names: fieldNames,
+    has_bom: true,
+    csv_text: '\ufeff' + csvWithoutBom,
+    csv_without_bom: csvWithoutBom
+  };
+}
+
 class ResponsibilityTestPreviewService {
   constructor({ registry=null, fieldContractResolver=null, valueValidator=null }={}) {
     this.registry = registry;
@@ -267,9 +318,10 @@ class ResponsibilityTestPreviewService {
     const definitions = (responsibility?.test_pattern_definitions ?? []).filter(item => item?.enabled !== false);
     const searchDefinitions = definitions.filter(item => String(item?.generation_mode ?? '') === 'SEARCH_OPERATOR_MATRIX');
     const aggregateDefinitions = definitions.filter(item => String(item?.generation_mode ?? '') === 'AGGREGATE_SCALAR_CASE');
+    const csvDefinitions = definitions.filter(item => String(item?.generation_mode ?? '') === 'CSV_EXPORT_CASE');
     const mutationDefinitions = definitions.filter(item => {
       const mode = String(item?.generation_mode ?? '');
-      return mode !== 'SEARCH_OPERATOR_MATRIX' && mode !== 'AGGREGATE_SCALAR_CASE';
+      return mode !== 'SEARCH_OPERATOR_MATRIX' && mode !== 'AGGREGATE_SCALAR_CASE' && mode !== 'CSV_EXPORT_CASE';
     });
     const config = rootDocument?.test_generation_config ?? {};
     const issues = [];
@@ -337,6 +389,15 @@ class ResponsibilityTestPreviewService {
           issues.push({ code: 'AGGREGATE_PATTERN_DERIVATION_FAILED', message: String(err?.message ?? err) });
         }
       }
+
+
+      if (csvDefinitions.length) {
+        try {
+          patterns.push(...this.#deriveCsvPatterns({ definitions: csvDefinitions, setup, inputData, viewDef }));
+        } catch (err) {
+          issues.push({ code: 'CSV_PATTERN_DERIVATION_FAILED', message: String(err?.message ?? err) });
+        }
+      }
     }
 
     const mutationCount = patterns.reduce((sum, pattern) => sum + (pattern.mutations?.length ?? 0), 0);
@@ -364,6 +425,65 @@ class ResponsibilityTestPreviewService {
         expected_unexpected_diff_count: 0
       }
     };
+  }
+
+  #deriveCsvPatterns({ definitions, setup, inputData, viewDef }) {
+    return definitions.map(definition => {
+      const dataPath = String(definition?.target_data_path ?? '').trim();
+      const rows = responsibilityPreviewGetByDataPath(inputData, dataPath);
+      if (!Array.isArray(rows) || rows.length === 0) throw new Error(`CSV Target DataPath must resolve to a non-empty array: ${dataPath}`);
+      const section = responsibilityPreviewFindSection(viewDef, dataPath);
+      if (!section) throw new Error(`CSV ViewDef section not found for DataPath: ${dataPath}`);
+
+      const rowScope = String(definition?.row_scope ?? 'ALL').trim().toUpperCase();
+      const requestedFilteredIndexes = Array.isArray(definition?.filtered_row_indexes)
+        ? definition.filtered_row_indexes.filter(index => Number.isInteger(index) && index >= 0 && index < rows.length)
+        : [];
+      const selectedIndexes = rowScope === 'FILTERED'
+        ? requestedFilteredIndexes
+        : rows.map((_, index) => index);
+      if (rowScope === 'FILTERED' && !selectedIndexes.length) {
+        throw new Error(`CSV FILTERED pattern requires filtered_row_indexes: ${definition?.pattern_def_id ?? ''}`);
+      }
+
+      const keyField = String(section?.keyField ?? '').trim();
+      const selectedSet = new Set(selectedIndexes);
+      const snapshot = rows.map((row, index) => ({
+        index,
+        row_id: keyField && row?.[keyField] != null ? String(row[keyField]) : String(index),
+        selected: selectedSet.has(index),
+        row: responsibilityPreviewClone(row)
+      }));
+      const expected = responsibilityPreviewBuildCsvExpected({ rows, section, selectedIndexes });
+      const generatedCase = {
+        case_id: `${String(definition?.pattern_def_id ?? 'csv')}_case`,
+        target_data_path: dataPath,
+        row_scope: rowScope,
+        filtered_row_indexes: responsibilityPreviewClone(requestedFilteredIndexes),
+        input_snapshot: responsibilityPreviewClone(snapshot),
+        expected_def_type: 'CsvExpectedDef',
+        expected,
+        guarantee_id: String(definition?.guarantee_id ?? ''),
+        source_definition_id: String(definition?.pattern_def_id ?? '')
+      };
+
+      return {
+        pattern_id: String(definition?.pattern_def_id ?? 'csv_export'),
+        pattern_cd: String(definition?.pattern_cd ?? 'CSV_EXPORT'),
+        pattern_role: String(definition?.pattern_role ?? 'STANDARD'),
+        generation_mode: 'CSV_EXPORT_CASE',
+        target_data_path: dataPath,
+        row_scope: rowScope,
+        expected_def_type: 'CsvExpectedDef',
+        guarantee_id: String(definition?.guarantee_id ?? ''),
+        generated_cases: [generatedCase],
+        source: {
+          input_file: String(setup?.input_file ?? ''),
+          view_def_file: String(setup?.view_def_file ?? ''),
+          input_approval_status: String(setup?.input_approval_status ?? '')
+        }
+      };
+    });
   }
 
   #deriveAggregatePatterns({ definitions, setup, inputData, viewDef }) {

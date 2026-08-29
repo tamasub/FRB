@@ -500,6 +500,191 @@ async function runSearchResponsibilitySelenium(plan) {
   }
 }
 
+
+async function applyCsvUiFilter(driver, filterPlan, baselineCount) {
+  if (!filterPlan?.required) {
+    await waitForGridExactCount(driver, baselineCount);
+    return;
+  }
+
+  console.log(`CSV UI Filter: ${filterPlan.field} / ${filterPlan.operator_id} / ${JSON.stringify(filterPlan.criteria ?? {})}`);
+  await setSearchCriteria(driver, {
+    target_field: filterPlan.field,
+    operator_id: filterPlan.operator_id,
+    criteria: {
+      operator: filterPlan.operator_id,
+      ...(filterPlan.criteria ?? {}),
+    },
+  });
+  const searchButton = await driver.findElement(By.id('searchBtn'));
+  await searchButton.click();
+  await waitForGridExactCount(driver, Number(filterPlan.expected_count ?? 0));
+  const actual = await readSearchGridResult(driver);
+  assertPass(
+    arraysEqual(actual.indexes, filterPlan.expected_indexes ?? []),
+    'CSV Precondition / Filtered Indexes',
+    `Expected=${JSON.stringify(filterPlan.expected_indexes)}, Actual=${JSON.stringify(actual.indexes)}`,
+  );
+}
+
+async function armCsvDownloadCapture(driver) {
+  await driver.executeScript(`
+    (() => {
+      if (!window.__frbCsvDownloadCapturePatched) {
+        const originalCreateObjectURL = URL.createObjectURL.bind(URL);
+        const originalAnchorClick = HTMLAnchorElement.prototype.click;
+
+        URL.createObjectURL = function(blob) {
+          const capture = {
+            ready: false,
+            error: '',
+            file_name: '',
+            mime_type: String(blob?.type ?? ''),
+            byte_length: 0,
+            byte_head: [],
+            text: ''
+          };
+          window.__frbCsvDownloadCapture = capture;
+
+          Promise.all([blob.arrayBuffer(), blob.text()])
+            .then(([buffer, text]) => {
+              const bytes = new Uint8Array(buffer);
+              capture.byte_length = bytes.length;
+              capture.byte_head = Array.from(bytes.slice(0, 8));
+              capture.text = String(text ?? '');
+              capture.ready = true;
+            })
+            .catch(err => {
+              capture.error = String(err?.message ?? err);
+              capture.ready = true;
+            });
+
+          return originalCreateObjectURL(blob);
+        };
+
+        HTMLAnchorElement.prototype.click = function() {
+          const capture = window.__frbCsvDownloadCapture;
+          if (capture && this.download) capture.file_name = String(this.download);
+          return originalAnchorClick.call(this);
+        };
+
+        window.__frbCsvDownloadCapturePatched = true;
+      }
+
+      window.__frbCsvDownloadCapture = {
+        ready: false,
+        error: '',
+        file_name: '',
+        mime_type: '',
+        byte_length: 0,
+        byte_head: [],
+        text: ''
+      };
+    })();
+  `);
+}
+
+async function readCsvDownloadCapture(driver) {
+  const ready = await waitUntil(async () => {
+    const capture = await driver.executeScript('return window.__frbCsvDownloadCapture || null;');
+    return capture?.ready === true;
+  }, 10000, 80);
+  assertPass(ready, 'CSV Download capture ready');
+
+  const capture = await driver.executeScript('return window.__frbCsvDownloadCapture || null;');
+  if (!capture) throw new Error('CSV Download capture is missing.');
+  if (capture.error) throw new Error(`CSV Download capture failed: ${capture.error}`);
+  assertPass(String(capture.file_name ?? '').toLowerCase().endsWith('.csv'), 'CSV Download file name');
+  return capture;
+}
+
+function csvActualFromDownloadCapture(capture) {
+  const byteHead = Array.isArray(capture?.byte_head) ? capture.byte_head.map(Number) : [];
+  const hasBom = byteHead.length >= 3 && byteHead[0] === 0xef && byteHead[1] === 0xbb && byteHead[2] === 0xbf;
+  // Blob.text() UTF-8 decode may consume the BOM. Reconstruct csv_text from raw-byte BOM observation.
+  const csvWithoutBom = String(capture?.text ?? '').replace(/^\ufeff/, '');
+  const header = csvWithoutBom.split('\r\n', 1)[0] ?? '';
+  const fieldNames = header ? header.split(',') : [];
+  return {
+    field_names: fieldNames,
+    has_bom: hasBom,
+    csv_text: hasBom ? `\ufeff${csvWithoutBom}` : csvWithoutBom,
+    csv_without_bom: csvWithoutBom,
+  };
+}
+
+async function executeCsvExportPattern(driver, pattern, baselineCount, buildExpectedChecks) {
+  if (pattern?.ui_target?.mode !== 'MAIN_GRID') {
+    throw new Error(`CSV Selenium currently supports MAIN_GRID only: ${pattern?.pattern_id ?? ''} / ${pattern?.ui_target?.mode ?? ''}`);
+  }
+  const generatedCase = pattern?.generated_cases?.[0];
+  if (!generatedCase) throw new Error(`CSV Generated Case is missing: ${pattern?.pattern_id ?? ''}`);
+  if (String(generatedCase?.expected_def_type ?? '') !== 'CsvExpectedDef') {
+    throw new Error(`CSV UI requires CsvExpectedDef: ${generatedCase?.case_id ?? ''} / ${generatedCase?.expected_def_type ?? ''}`);
+  }
+
+  console.log(`CSV Pattern: ${pattern.pattern_id} / scope=${pattern.row_scope ?? 'ALL'}`);
+  await applyCsvUiFilter(driver, pattern.ui_filter, baselineCount);
+  await armCsvDownloadCapture(driver);
+
+  const exportButton = await driver.findElement(By.id('gridCsvExportBtn'));
+  assertPass(await exportButton.isEnabled(), 'CSV Export button enabled');
+  await exportButton.click();
+
+  const capture = await readCsvDownloadCapture(driver);
+  const actual = csvActualFromDownloadCapture(capture);
+  const comparePattern = {
+    responsibility_cd: 'csv_export',
+    test_pattern_id: generatedCase.case_id,
+    expected_def_type: generatedCase.expected_def_type,
+    expected: generatedCase.expected,
+  };
+  const checks = buildExpectedChecks(comparePattern, actual);
+  for (const check of checks) {
+    const label = `${generatedCase.expected_def_type} / Download ${check.name}`;
+    assertPass(
+      check.pass === true,
+      label,
+      `${check.message}; Expected=${JSON.stringify(check.expected_raw)}, Actual=${JSON.stringify(check.actual_raw)}`,
+    );
+  }
+
+  if (pattern?.ui_filter?.required) {
+    await resetSearchAfterCase(driver, baselineCount);
+  }
+}
+
+async function runCsvExportResponsibilitySelenium(plan) {
+  assertExecutionApproved(plan);
+  if (!(plan.csv_cases ?? []).length) throw new Error('No Generated CSV Cases.');
+  const unsupported = (plan.patterns ?? []).filter(pattern => pattern.ui_target?.mode !== 'MAIN_GRID');
+  if (unsupported.length) {
+    throw new Error(`CSV Selenium currently supports MAIN_GRID only: ${unsupported.map(item => `${item.pattern_id}:${item.ui_target?.mode}`).join(', ')}`);
+  }
+
+  let driver = null;
+  try {
+    driver = await createDriver();
+    await sleep(2500);
+    await loadDataByName(driver, plan.setup.input_file.replace(/^data\/json\//, ''));
+
+    const targetPath = String(plan.patterns?.[0]?.target_data_path ?? '');
+    const rows = getByActualPath(plan.baseline_document, targetPath);
+    const baselineCount = Array.isArray(rows) ? rows.length : 0;
+    await waitForGridExactCount(driver, baselineCount);
+
+    const { buildExpectedChecks } = await loadExpectedCompareStrategies();
+    for (const pattern of plan.patterns ?? []) {
+      await executeCsvExportPattern(driver, pattern, baselineCount, buildExpectedChecks);
+    }
+
+    console.log(`Responsibility E2E: ${plan.responsibility_cd} ALL PASS`);
+    return { plan, executed: true };
+  } finally {
+    if (driver) await driver.quit().catch(() => {});
+  }
+}
+
 async function loadExpectedCompareStrategies() {
   const modulePath = path.resolve(
     APP_ROOT,
@@ -657,6 +842,9 @@ async function runResponsibilitySelenium({ responsibilityCd='data_update_persist
   const plan = buildResponsibilityExecutionPlan({ responsibilityCd });
   console.log(formatPlanSummary(plan));
   if (planOnly) return { plan, executed: false };
+
+  // CSV responsibility observes the browser download boundary (Blob bytes + download metadata) through NativeShell/Selenium.
+  if (plan.execution_kind === 'CSV_EXPORT') return runCsvExportResponsibilitySelenium(plan);
 
   // Aggregate responsibility observes the externally visible Grid Header through NativeShell/Selenium.
   if (plan.execution_kind === 'GRID_AGGREGATE') return runAggregateResponsibilitySelenium(plan);

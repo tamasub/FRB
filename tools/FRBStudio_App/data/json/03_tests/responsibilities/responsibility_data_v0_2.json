@@ -223,90 +223,105 @@
     },
     {
       "responsibility_cd": "csv_export",
-      "name": "CSV出力責務",
-      "test_level": "UT",
+      "name": "Grid CSV出力責務",
+      "test_level": "E2E",
       "approval_status": "draft",
       "enabled": true,
-      "purpose": "Gridで採用された行・列から、再利用可能なCSV文字列を生成する。",
-      "summary": "key列を必要に応じて先頭へ補い、CSVエスケープ・改行・BOM条件を適用した文字列を返す。",
-      "source_file": "wwwroot/js/responsibilities/csv_exporter.js",
-      "interface_name": "CsvExporter.resolveFields / CsvExporter.export",
+      "summary": "承認済みTest Input JSONをGridへ表示し、現在表示されている行・列をCSV出力したとき、key列補完・列順/行順・CSV escape・UTF-8 BOM・CRLFを含む期待CSVがDownload境界で観測できることを保証する。",
+      "purpose": "人間がGridからCSV出力した最終成果物を、内部CsvExporterの戻り値ではなくNativeShell上のCSV Download境界からExpected / Actualとして比較可能にする。",
+      "source_file": "wwwroot/js/renderers/grid_detail.js",
+      "interface_name": "Grid CSV Download observable boundary",
       "in_scope": [
-        "CSV対象列の解決",
-        "key列の補完",
-        "セル値のCSVエスケープ",
-        "BOM付与",
-        "CSV文字列生成"
+        "現在Gridに表示されている行だけのCSV出力",
+        "Grid表示列だけのCSV出力",
+        "非表示key列の先頭補完",
+        "key列重複防止",
+        "列順・行順の維持",
+        "カンマ・ダブルクォート・改行を含むセルのCSV escape",
+        "UTF-8 BOM付与",
+        "CRLF区切りと末尾CRLF",
+        "Generated TestPattern → Generated Case → CsvExpectedDefの全件レビュー",
+        "Generated CaseをNativeShell上のCSV出力UIへ投入するSelenium E2E",
+        "CSV Blob / download属性をDownload境界のActualとして観測"
       ],
       "out_of_scope": [
-        "Blob生成",
-        "ブラウザダウンロード",
-        "ファイル名決定",
-        "Grid表示"
+        "CsvExporter.resolveFields / CsvExporter.exportの直接呼出しを承認責務Actualとすること",
+        "OSのDownloadsフォルダへ保存された物理ファイルパスの固定",
+        "CSVファイル名の業務命名規則",
+        "任意の列表示ON/OFF操作を組み合わせた網羅テスト",
+        "複数Grid/Related GridからのCSV出力",
+        "Excel固有解釈の保証"
       ],
       "constraint_ids": [
         "constitution_11",
-        "constitution_26"
+        "constitution_26",
+        "decision_axis_responsibility_observability",
+        "decision_axis_expected_independent_simple_derivation_copy_1"
       ],
       "guarantees": [
         {
           "guarantee_id": "csv_export_g001",
-          "guarantee_type": "rule",
-          "condition": "keyFieldNameが指定され、表示列にkey列が含まれない場合",
-          "guarantee": "key列をCSV対象列の先頭へ追加する。",
-          "observable_result": "返却field_namesの先頭がkeyFieldNameと一致する。",
+          "guarantee_type": "interface",
+          "condition": "Gridが表示されCSV出力を実行した場合",
+          "guarantee": "現在表示中の行・列を基準に、必要なkey列を一度だけ先頭へ補い、CSV規則・UTF-8 BOM・CRLFを適用したCSV成果物を出力する。",
+          "observable_result": "SeleniumがCSV Download境界から取得したfield_names / has_bom / csv_text / csv_without_bomがGenerated CsvExpectedDefと一致する。",
           "priority": "high",
-          "enabled": true
-        },
-        {
-          "guarantee_id": "csv_export_g002",
-          "guarantee_type": "rule",
-          "condition": "key列がすでに対象列へ含まれる場合",
-          "guarantee": "同じfieldを重複して出力しない。",
-          "observable_result": "CSVヘッダーに同一fieldが一度だけ現れる。",
-          "priority": "medium",
-          "enabled": true
-        },
-        {
-          "guarantee_id": "csv_export_g003",
-          "guarantee_type": "rule",
-          "condition": "セル値にカンマ・ダブルクォート・改行が含まれる場合",
-          "guarantee": "CSV規則に従い値をダブルクォートで囲み、内部ダブルクォートを二重化する。",
-          "observable_result": "CSV文字列が期待するescape済み文字列と一致する。",
-          "priority": "high",
-          "enabled": true
-        },
-        {
-          "guarantee_id": "csv_export_g004",
-          "guarantee_type": "state",
-          "condition": "CSV文字列を生成した場合",
-          "guarantee": "列順と行順を入力順のまま維持する。",
-          "observable_result": "ヘッダー列順およびデータ行順が入力順と一致する。",
-          "priority": "medium",
-          "enabled": true
-        },
-        {
-          "guarantee_id": "csv_export_g005",
-          "guarantee_type": "rule",
-          "condition": "include_bom=trueが指定された場合",
-          "guarantee": "CSV文字列の先頭にUTF-8 BOMを付与する。",
-          "observable_result": "has_bom=trueかつ先頭文字がBOMである。",
-          "priority": "medium",
-          "enabled": true
-        },
-        {
-          "guarantee_id": "csv_export_g006",
-          "guarantee_type": "rule",
-          "condition": "lineBreakが未指定の場合",
-          "guarantee": "CRLFを使用し、末尾にも改行を付ける。",
-          "observable_result": "CSV文字列がCRLF区切りかつ末尾CRLFで終了する。",
-          "priority": "medium",
           "enabled": true
         }
       ],
-      "notes": "現行JSON駆動テストには csv_export_visible_fields_with_key_and_escape / csv_export_utf8_bom_option が存在する。",
-      "test_setup": [],
-      "test_pattern_definitions": []
+      "test_setup": [
+        {
+          "setup_id": "csv_export_setup_001",
+          "input_file": "data/json/80_frb/frb_csv_export_test_data_v0_1.json",
+          "view_def_file": "defs/frb/frb_csv_export_test_view_def_v0_1.json",
+          "field_definition_file": "",
+          "search_operator_registry_file": "",
+          "target_resolution_policy": "DATA_JSON_VIEW_DEF",
+          "input_approval_status": "approved",
+          "execution_scope": "DOCUMENT",
+          "load_policy": "LOAD_ONCE",
+          "pattern_isolation_policy": "RESET_AFTER_EACH",
+          "save_policy": "NONE",
+          "reload_policy": "NONE",
+          "runner_type": "SELENIUM_NATIVE_SHELL",
+          "working_copy_policy": "NONE",
+          "working_copy_directory": "",
+          "cleanup_policy": "NONE",
+          "notes": "CSV専用Test DATAを1回LOADし、各Generated Caseで必要なGrid表示行をUI検索で作ってCSV出力する。Actualは内部CsvExporterではなく、SeleniumがブラウザのBlob/createObjectURL + download属性境界を捕捉して取得する。Input=draft中はPreview/Planのみ可能。"
+        }
+      ],
+      "test_pattern_definitions": [
+        {
+          "pattern_def_id": "csv_export_all_rows",
+          "pattern_cd": "CSV_EXPORT",
+          "pattern_role": "STANDARD",
+          "generation_mode": "CSV_EXPORT_CASE",
+          "target_structure": "SINGLE_GRID",
+          "target_data_path": "$.csv_rows",
+          "row_scope": "ALL",
+          "filtered_row_indexes": [],
+          "guarantee_id": "csv_export_g001",
+          "enabled": true,
+          "notes": "全3行を表示した状態で出力し、非表示key列の先頭補完、表示列限定、列/行順、カンマ・quote・改行escape、BOM、CRLFをまとめて確認する。"
+        },
+        {
+          "pattern_def_id": "csv_export_filtered_rows",
+          "pattern_cd": "CSV_EXPORT",
+          "pattern_role": "STANDARD",
+          "generation_mode": "CSV_EXPORT_CASE",
+          "target_structure": "SINGLE_GRID",
+          "target_data_path": "$.csv_rows",
+          "row_scope": "FILTERED",
+          "filtered_row_indexes": [
+            0,
+            1
+          ],
+          "guarantee_id": "csv_export_g001",
+          "enabled": true,
+          "notes": "UI検索で3行目を除外してからCSV出力し、現在表示されている2行だけが元Data順のまま出力されることを確認する。"
+        }
+      ],
+      "notes": "旧g001〜g006は、いずれもGrid CSV出力という1つの標準保証を構成する観点だったためcsv_export_g001へ統合。Guarantee ID 1件 → N TestPatternsの構造とし、ExpectedDefはGuarantee入力に置かずCSV_EXPORT_CASEからCsvExpectedDefを導出する。"
     },
     {
       "responsibility_cd": "grid_aggregate",

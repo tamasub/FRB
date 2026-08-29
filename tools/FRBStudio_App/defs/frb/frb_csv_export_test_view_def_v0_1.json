@@ -1,0 +1,78 @@
+{
+  "app": {
+    "name": "FRB Studio / JSON Object Studio",
+    "version": "csv-export-test-view-v0.1"
+  },
+  "currentDataDisplay": {
+    "titlePath": "$.title",
+    "subtitlePath": "$.purpose",
+    "showDataPath": true
+  },
+  "views": [
+    {
+      "id": "frb_csv_export_test_v0_1",
+      "caption": "CSV Export Test Fixture",
+      "sections": [
+        {
+          "id": "csv_rows",
+          "caption": "CSV Rows",
+          "type": "grid",
+          "dataPath": "$.csv_rows",
+          "keyField": "row_id",
+          "fields": [
+            {
+              "field": "row_id",
+              "caption": "Row ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false,
+                "width": 130
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "title",
+              "caption": "Title",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 180
+              }
+            },
+            {
+              "field": "score",
+              "caption": "Score",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 100
+              }
+            },
+            {
+              "field": "note",
+              "caption": "Note",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 220
+              }
+            },
+            {
+              "field": "hidden_note",
+              "caption": "Hidden Note",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 180
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

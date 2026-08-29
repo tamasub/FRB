@@ -15,7 +15,9 @@
     "test:responsibility:search": "node selenium_taste.js --responsibility search_filter",
     "test:responsibility:aggregate:plan": "node responsibility_test_plan.js grid_aggregate",
     "test:responsibility:aggregate": "node selenium_taste.js --responsibility grid_aggregate",
-    "test:responsibility:aggregate:internal": "node responsibility_aggregate_runner.js grid_aggregate"
+    "test:responsibility:aggregate:internal": "node responsibility_aggregate_runner.js grid_aggregate",
+    "test:responsibility:csv:plan": "node responsibility_test_plan.js csv_export",
+    "test:responsibility:csv": "node selenium_taste.js --responsibility csv_export"
   },
   "engines": {
     "node": ">=22"

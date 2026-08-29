@@ -12,7 +12,7 @@
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 226,
+  "items_count": 228,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -34072,6 +34072,162 @@
           "what_failed": "ScalarExpectedDefの値1個を、便利だからという理由でJsonEqualsへ接続していた。",
           "excuse": "値もJSON.stringifyできるし動くので、そのまま「比較できる＝意味も合っている」としてしまった（笑）。",
           "lesson": "ExpectedDefとCompareStrategyは、動作可能性だけでなく名前から比較意図を説明できる組合せにする。単一値は単一値として比較する。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0239",
+      "phase": "v0.18.114-csv-export-generated-selenium-e2e",
+      "title": "Grid CSV出力責務 Guarantee統合 / Generated CsvExpectedDef / Download境界Selenium E2E",
+      "incident_type": "改善",
+      "category": "csv_export",
+      "priority": "high",
+      "status": "確認中",
+      "follow_up_status": "IN_PROGRESS",
+      "verification_status": "Generated Plan / Static確認済み・NativeShell実機確認待ち",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-29T15:25:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-29T15:25:00+09:00",
+      "updated_at": "2026-08-29T15:25:00+09:00",
+      "work_summary": "- csv_exportの旧g001〜g006を、標準Grid CSV出力という1つの承認保証 csv_export_g001 へ統合。\n- Guarantee ID 1件 → N TestPatterns契約に合わせ、CSV_EXPORT_CASE 2 Pattern（ALL / FILTERED）を責務JSONへ定義。\n- CSV専用Test Input / ViewDefを追加し、非表示key列・表示列・カンマ・quote・改行・hidden field・filtered rowsを1 Fixtureで確認可能化。\n- ResponsibilityTestPreviewServiceへ独立Simple CSV Oracleを追加し、CsvExpectedDef(field_names / has_bom / csv_text / csv_without_bom)をTestPatternから導出。\n- 承認Actualは内部CsvExporter戻り値ではなく、NativeShell上でCSV出力ボタンを押し、ブラウザBlob bytes/createObjectURL/download属性のDownload境界をSeleniumで捕捉する。\n- FILTERED Patternはfiltered_row_indexesから row_id != csv_003 を機械導出し、標準検索UIで表示2行を作ってからCSV出力する。",
+      "target_files": "- data/json/03_tests/responsibilities/responsibility_data_v0_2.json\n- data/json/80_frb/frb_csv_export_test_data_v0_1.json\n- defs/frb/frb_csv_export_test_view_def_v0_1.json\n- defs/qa/tests/responsibilities/responsibility_view_def_v0_2.json\n- wwwroot/js/services/responsibility/responsibility_test_preview_service.js\n- SeleniumTaste/responsibility_test_plan.js\n- SeleniumTaste/responsibility_selenium_runner.js\n- SeleniumTaste/package.json\n- SeleniumTaste/README.md\n- tests/qa/static/responsibility_csv_export_generated_runner_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- data/json/03_tests/responsibilities/responsibility_data_v0_2.json\n- data/json/80_frb/frb_csv_export_test_data_v0_1.json\n- defs/frb/frb_csv_export_test_view_def_v0_1.json\n- defs/qa/tests/responsibilities/responsibility_view_def_v0_2.json\n- wwwroot/js/services/responsibility/responsibility_test_preview_service.js\n- SeleniumTaste/responsibility_test_plan.js\n- SeleniumTaste/responsibility_selenium_runner.js\n- SeleniumTaste/package.json\n- SeleniumTaste/README.md\n- tests/qa/static/responsibility_csv_export_generated_runner_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "CSV責務も Responsibility → Guarantee ID 1件 → N TestPatterns → Generated Case → CsvExpectedDef → Expected → Download境界Actual の同一構造へ揃える。Expectedはproduction CsvExporterを再利用せずJSON Input + ViewDefから単純なCSV escape/列選択/行選択で導出する。Actualは内部関数ではなくユーザーがCSV出力操作したブラウザDownload境界から観測する。",
+      "objective": "Grid CSV出力責務について、責務JSONからGenerated TestPattern/Expectedを導出し、NativeShellの実CSV出力UIをSelenium操作して、外部観測可能なDownload成果物をCsvExpectedDefで比較できる状態にする。",
+      "background": "UPDATE/SEARCH/GRID_AGGREGATEでResponsibility Driven E2Eが成立したため、次に外部成果物型のCSVを題材とする。既存csv_exportは6 Guaranteeに細分化され内部CsvExporter UTを前提としていたため、現在のGuarantee ID 1:N TestPatternsとresponsibility observability判断軸へ再構築する。",
+      "scope": "- CSV Guarantee 1本化。\n- ALL rows / FILTERED rowsの2 TestPatterns。\n- 非表示key列の先頭補完とhidden field除外。\n- 列順/行順、comma/quote/newline escape。\n- UTF-8 BOM、CRLF、末尾CRLF。\n- CsvExpectedDef生成。\n- NativeShell CSV出力ボタン操作とBlob/download境界Actual捕捉。",
+      "out_of_scope": "- OS Downloadsフォルダの物理保存先固定・ファイル再読込。\n- ファイル名業務規則。\n- Related Grid CSV。\n- 任意列表示切替の全組合せ。\n- Excel固有解釈。",
+      "fixed_name_policy": "Responsibility ID=csv_export、Guarantee ID=csv_export_g001、Pattern=CSV_EXPORT、Generation Mode=CSV_EXPORT_CASE、ExpectedDef=CsvExpectedDef。RunnerへExpected CSV本文やfield名をハードコードせずGenerated Planから取得する。",
+      "module_policy": "Expected側はResponsibilityTestPreviewServiceの独立Simple CSV Oracle。Actual側はNativeShell/SeleniumのCSV Download境界。production CsvExporter.resolveFields/exportを承認Runnerから直接呼ばない。FILTERED表示の前提はTestPattern filtered_row_indexes + ViewDef keyField + Test Inputから標準検索UI条件へ機械導出する。",
+      "expected_outputs": "- `npm run test:responsibility:csv:plan` が CSV_EXPORT / 2 Pattern / 2 Case / CsvExpectedDefを表示。\n- Input=draft中はExecution Ready NO。\n- approved後 `npm run test:responsibility:csv` でALLとFILTEREDのCSV出力を実UIから実行。\n- CsvExpectedDefの field_names / has_bom / csv_text / csv_without_bom がDownload Actualと一致。\n- filtered caseは row_id != csv_003 で[0,1]の2行のみをCSV出力する。",
+      "risk": "- WebView2/ChromiumのBlob.text()はBOMを文字列から消費する可能性があるため、BOM判定はBlob.arrayBuffer()の先頭byte EF BB BFで行い、csv_textはbyte観測結果から再構成する。\n- 現PhaseではOS上の実ダウンロードファイルそのものは再読込せず、ブラウザDownload境界を外部観測点とする。",
+      "test_points": "- csv_export Guaranteeは1件のみ。\n- 2 TestPatternが同じcsv_export_g001へ所属。\n- ExpectedDefは責務/Guarantee入力ではなくCSV_EXPORT_CASEからCsvExpectedDefを導出。\n- field_names=[row_id,title,score,note]でkeyは一度だけ、hidden_noteは含まない。\n- all CSVは3行、filtered CSVは2行。\n- comma/quote/newline escape、BOM bytes、CRLF完全一致。\n- RunnerにCsvExporter.export直接呼出しがない。",
+      "verification_log": "- `node --check wwwroot/js/services/responsibility/responsibility_test_preview_service.js` PASS。\n- `node --check SeleniumTaste/responsibility_test_plan.js` PASS。\n- `node --check SeleniumTaste/responsibility_selenium_runner.js` PASS。\n- `node SeleniumTaste/responsibility_test_plan.js csv_export`：CSV_EXPORT / 2 Pattern / 2 Case / CsvExpectedDef / Execution Ready NO(draft)。\n- CSV新規Static：4/4 PASS。\n- Responsibility関連Focused Static：44/44 PASS。\n- 全Static：369 tests / 360 PASS / 9 FAIL。既存9 FAILのみで本件新規FAILなし。\n- NativeShell実機E2EはTest Input承認後に確認待ち。",
+      "user_request": "次の責務としてCSV出力へ進む。",
+      "ai_response": "csv_exportを1 Guaranteeへ統合し、専用Fixtureから2 TestPatterns / 2 Generated Cases / CsvExpectedDefを導出。NativeShellのCSV出力UIをSelenium操作し、Blob bytes + download属性のDownload境界Actualと比較するE2Eを追加する。",
+      "latest_user_comment": "ほな、次、CSV",
+      "latest_ai_response": "CSV責務を現在のGuarantee 1:N TestPatterns / 外部観測境界方針へ再構築し、Generated Preview/PlanとSelenium Download境界Runnerまで実装。",
+      "context_refs": [
+        "studio_work_0237",
+        "studio_work_0238"
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0239_001",
+          "status": "PENDING",
+          "action": "Studioでcsv_exportのGenerated PreviewとCSV Test Inputを確認し、input_approval_statusをapprovedへ変更後、`npm run test:responsibility:csv` を実機実行する。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "hist_0239_001",
+          "at": "2026-08-29T15:25:00+09:00",
+          "type": "design",
+          "summary": "CSVは内部CsvExporter UTではなく、人間がCSV出力したDownload境界を承認Actualとする。Guaranteeは標準CSV出力1件へ統合し、行scope違いをTestPatternで表現する。"
+        }
+      ],
+      "failure_stories": [
+        {
+          "failure_id": "fail_0239_001",
+          "failed_thing": "旧csv_exportがkey補完/BOM/escapeなどを6 Guaranteeへ分割し、さらにActualが内部CsvExporter戻り値中心だった。",
+          "excuse": "CSVは観点が多いので、観点の数だけ保証IDを作れば整理した気になっていた（笑）。",
+          "lesson": "標準CSV出力という1つの保証にN TestPatternsを所属させ、Actualはユーザーが受け取るDownload成果物まで伸ばす。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0240",
+      "phase": "v0.18.110-csv-filtered-indexes-json-roundtrip",
+      "title": "CSV責務承認保存時 filtered_row_indexes JSON型保持 / Preview実行判定修正",
+      "incident_type": "bugfix",
+      "category": "responsibility-test",
+      "priority": "high",
+      "status": "DONE",
+      "follow_up_status": "none",
+      "verification_status": "static_pass_user_e2e_pending",
+      "context_def_status": "not_required",
+      "context_def_updated_at": "2026-08-29",
+      "owner": "user",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-29",
+      "updated_at": "2026-08-29",
+      "work_summary": "CSV責務のTest Input承認をStudioから保存した際、test_pattern_definitions.filtered_row_indexesがJSON配列から文字列へ変換され、Generated Previewが0件となってCSV RunnerがDATA_UPDATE_PERSISTへ誤フォールバックした。ViewDef列をjson型へ変更し、既存データを配列へ復元。承認済みだがPreview不成立の場合のRunnerエラーも原因表示へ改善した。 あわせてobjectArray SubGridで元rowに無い未編集列をF12時に新規materializeしないSparse JSON preservationを追加し、ExpectedDef等の空キー再生成も防止した。",
+      "target_files": [
+        "data/json/03_tests/responsibilities/responsibility_data_v0_2.json",
+        "defs/qa/tests/responsibilities/responsibility_view_def_v0_2.json",
+        "SeleniumTaste/responsibility_test_plan.js",
+        "tests/qa/static/responsibility_csv_export_generated_runner_static.test.mjs",
+        "wwwroot/js/runtime/detail_subgrid_edit.js",
+        "tests/qa/static/detail_subgrid_sparse_json_preservation_static.test.mjs"
+      ],
+      "actual_updated_files": [
+        "data/json/03_tests/responsibilities/responsibility_data_v0_2.json",
+        "defs/qa/tests/responsibilities/responsibility_view_def_v0_2.json",
+        "SeleniumTaste/responsibility_test_plan.js",
+        "tests/qa/static/responsibility_csv_export_generated_runner_static.test.mjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json",
+        "wwwroot/js/runtime/detail_subgrid_edit.js",
+        "tests/qa/static/detail_subgrid_sparse_json_preservation_static.test.mjs"
+      ],
+      "context_def_draft": "",
+      "objective": "CSV責務のfiltered_row_indexesをStudio編集・保存後もJSON配列として保持し、Generated TestPattern 2件を安定して導出できるようにする。",
+      "background": "Test Inputをdraftからapprovedへ変更して保存した後、CSV RunnerがPattern=0 / Execution Kind=DATA_UPDATE_PERSISTとなった。原因はfiltered_row_indexesが[0,1]ではなく文字列\"[0,1]\"へ変換されたこと。",
+      "scope": [
+        "filtered_row_indexesのJSON配列round-trip",
+        "CSV Generated Preview再生成",
+        "承認済みPreview不成立時のエラーメッセージ改善",
+        "objectArray SubGridの未存在・未編集キー非materialize"
+      ],
+      "out_of_scope": [
+        "CSV Download E2E本体の仕様変更",
+        "他のJSON textarea項目の一括移行"
+      ],
+      "fixed_name_policy": "",
+      "module_policy": "ViewDefの列型でJSON値であることを明示し、既存SubGridのjson読取(JSON.parse)契約を利用する。",
+      "expected_outputs": [
+        "CSV planがExecution Kind=CSV_EXPORT / Pattern=2 / Case=2となる",
+        "approved時にExecution Ready=YESとなる",
+        "filtered_row_indexesが配列で保存される"
+      ],
+      "risk": "json型列へ不正JSON文字列を入力した場合は既存挙動により文字列として残るため、必要なら将来Validationを追加する。",
+      "test_points": [
+        "csv_export test_pattern_definitions.filtered_row_indexesがArrayであること",
+        "Responsibility ViewDefのfiltered_row_indexes列がtype=jsonであること",
+        "CSV Execution Planが2 Pattern / 2 Caseを生成すること",
+        "元rowに存在しないSubGrid列が未編集ならcollect時に省略されること"
+      ],
+      "verification_log": [],
+      "user_request": "Test Inputをapprovedへ変更後、CSV責務がDATA_UPDATE_PERSIST / Pattern=0となり実行できない。",
+      "ai_response": "Studio保存によりfiltered_row_indexesが配列から文字列へ型崩れしたことを特定し、ViewDef json型化・データ復元・Runner診断改善を実施。",
+      "latest_user_comment": "",
+      "latest_ai_response": "",
+      "context_refs": [
+        "decision_axis_responsibility_observability"
+      ],
+      "follow_up_actions": [
+        "npm run test:responsibility:csv を実機再実行する"
+      ],
+      "discussion_history": [],
+      "decision_log": [
+        {
+          "decision_id": "studio_work_0240_d001",
+          "decision": "filtered_row_indexesは文字列表現ではなくJSON配列をCanonicalとする。",
+          "reason": "TestPattern生成ロジックの入力型を明確にし、Studio保存による型崩れを防ぐため。"
+        }
+      ],
+      "change_history": [
+        {
+          "changed_at": "2026-08-29",
+          "summary": "filtered_row_indexes ViewDefをjson型へ変更し、CSV責務データを配列へ復元。"
+        }
+      ],
+      "failure_stories": [
+        {
+          "failure": "承認したらテストが実行可能になるはずが、逆にTestPatternが0件になった。",
+          "excuse": "承認値だけ変えたつもりだったが、同じSubGrid内のJSON配列までtextarea文字列として保存していた（笑）。",
+          "lesson": "構造化データを表示上JSONにするだけでは足りず、編集・保存時の型契約まで一致させる。"
         }
       ]
     }

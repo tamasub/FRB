@@ -296,9 +296,13 @@ function createSubGridCellControl({ value, column, editable, field, multilineEdi
       input.__studioSubGridRawValue = input.value ?? '';
       input.title = input.__studioSubGridRawValue;
     }
+    input.dataset.userEdited = 'true';
     markDetailSubGridDirty(input.closest('.detail-subgrid-edit'));
   });
-  input.addEventListener('change', () => markDetailSubGridDirty(input.closest('.detail-subgrid-edit')));
+  input.addEventListener('change', () => {
+    input.dataset.userEdited = 'true';
+    markDetailSubGridDirty(input.closest('.detail-subgrid-edit'));
+  });
   input.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
       e.preventDefault();
@@ -921,8 +925,14 @@ function createObjectArraySubGridRow({ item={}, columns, editable=true, card, fi
     const td = document.createElement('td');
     td.dataset.column = col.field;
     applyDetailSubGridColumnLayoutToCell(td, col);
-    const value = item && typeof item === 'object' ? item[col.field] : undefined;
-    td.appendChild(createSubGridCellControl({ value, column: col, editable, field }));
+    const hasOriginalValue = Boolean(item && typeof item === 'object' && Object.prototype.hasOwnProperty.call(item, col.field));
+    const value = hasOriginalValue ? item[col.field] : undefined;
+    const control = createSubGridCellControl({ value, column: col, editable, field });
+    // Sparse JSON preservation:
+    // ViewDefに列があっても元rowにキーが無い場合、未編集の空欄をF12だけでmaterializeしない。
+    control.dataset.originalPresent = hasOriginalValue ? 'true' : 'false';
+    control.dataset.userEdited = 'false';
+    td.appendChild(control);
     tr.appendChild(td);
   });
   return tr;
@@ -1153,6 +1163,8 @@ function collectDetailSubGridValue(card) {
       // tdにもdata-columnが付いているため、汎用[data-column]検索だとtdを先に拾い、
       // Preview Editが空値だらけになる。値は必ず入力コントロールから読む。
       const input = tr.querySelector(`.detail-subgrid-cell-input[data-column="${CSS.escape(col)}"]`);
+      // 元JSONに存在しなかった列は、ユーザーが明示編集した場合だけ新規キーとして追加する。
+      if (input?.dataset?.originalPresent === 'false' && input?.dataset?.userEdited !== 'true') return;
       obj[col] = readSubGridControlValue(input);
     });
     return obj;
