@@ -5,7 +5,7 @@
   "title": "FRB Studio 責務マスター v0.2",
   "target": "FRB Studio / JSON Object Studio",
   "status": "draft",
-  "phase": "responsibility-definition-driven-test-v0_2-search-ui-runner-draft",
+  "phase": "responsibility-definition-driven-test-v0_2-grid-aggregate-pattern-draft",
   "created_at": "2026-07-19",
   "updated_at": "2026-08-29",
   "purpose": "Studioくんの責務を検証可能な保証として管理し、同一JSON内のTestPattern生成定義・承認済みInput参照・ExpectedDefからGenerated TestPattern / Expectedを機械導出するための責務マスター。",
@@ -24,7 +24,9 @@
     "test_target_resolution": "DATA_UPDATE_PERSISTの対象項目は、Test DATA JSON → ViewDef → Field Definitionの参照連鎖から機械解決する。ViewDefで編集可能かつField Definitionに明示契約がある項目を候補とし、STANDARDではmulti_lineを除外、QUALITY_REINFORCEMENTではmulti_lineだけを対象とする。",
     "generated_review_visibility": "Generated TestPattern / Generated Case / Expectedの実行データはすべて人間が確認可能にする。表示行数を減らす場合も情報を省略せず、意味階層で圧縮して展開可能にする。",
     "generated_preview_hierarchy": "論理構造は TestPattern → Generated Case → Expected の3段階とする。ViewDefの意味階層は最大2階層を維持し、ExpectedはGenerated Caseの属性として表示する。",
-    "search_fixture": "SEARCH_FILTERは専用Test DATA JSONを入力とし、Data JSON自体へExpectedやテスト理由を混在させない。Generated Case側に対象FieldのInput Snapshot / Criteria / Expected Rowsを表示して、入力値とテスト意図の対応を確認可能にする。"
+    "search_fixture": "SEARCH_FILTERは専用Test DATA JSONを入力とし、Data JSON自体へExpectedやテスト理由を混在させない。Generated Case側に対象FieldのInput Snapshot / Criteria / Expected Rowsを表示して、入力値とテスト意図の対応を確認可能にする。",
+    "expected_def_resolution": "ExpectedDefはGuarantee入力ではなくTestPatternのExpected表現型とする。可能な場合はTestPattern種別/generation_modeから機械導出し、責務JSONで重複指定しない。",
+    "guarantee_refactoring": "Guarantee IDは運用中の意味境界に応じて統合・分割を許容する。統合・分割時も各TestPatternは常に単一Guaranteeへ所属する1:N契約を維持する。"
   },
   "responsibilities": [
     {
@@ -308,88 +310,188 @@
     },
     {
       "responsibility_cd": "grid_aggregate",
-      "name": "Grid数値集計責務",
-      "test_level": "UT",
+      "name": "Grid数値集計表示責務",
+      "test_level": "E2E",
       "approval_status": "draft",
       "enabled": true,
-      "purpose": "ViewDefで宣言された数値列について、Gridヘッダー表示用の派生集計結果を生成する。",
-      "summary": "number型かつgrid.aggregate.operator=sumの列を、filtered/allスコープに従って合計し、件数内訳とともに返す。",
-      "source_file": "wwwroot/js/responsibilities/grid_aggregator.js",
-      "interface_name": "GridAggregator.build",
+      "purpose": "ViewDefで宣言された数値列について、scope・数値解釈・無効値除外を含む集計結果がGridヘッダー上で正しく観測できることを保証する。",
+      "summary": "承認済みTest Input JSONとViewDefのgrid.aggregate宣言から標準集計TestPatternを生成し、独立した単純計算OracleでExpected Valueを導出して、Selenium NativeShellからGridヘッダーのActualを観測・比較する。",
+      "source_file": "wwwroot/js/renderers/grid_detail.js",
+      "interface_name": "Grid Aggregate Header observable boundary",
       "in_scope": [
-        "sum集計",
+        "number型かつgrid.aggregate.operator=sumの列集計",
         "filtered/allスコープ",
-        "カンマ区切り数値文字列の解釈",
-        "有効・除外件数の集計"
+        "カンマ区切り数値文字列の有限数解釈",
+        "空文字・非数値・nullの除外",
+        "source_count / valid_count / ignored_countの集計",
+        "aggregate未宣言Fieldに集計表示が存在しないこと",
+        "JSON Test InputからのInput Snapshot / Expected Value機械生成",
+        "Generated TestPattern → Generated Case → Expectedの全件レビュー",
+        "Generated CaseをSelenium NativeShellで実画面Gridへ投入し、GridヘッダーからActualを観測すること",
+        "filtered scope用の表示行絞込を標準検索UIで作り、表示中行に対する集計を観測すること"
       ],
       "out_of_scope": [
-        "DOM描画",
         "Data JSONへの保存",
         "CSV出力",
-        "sum以外の集計演算"
+        "sum以外の集計演算",
+        "GridAggregator.build単独の内部実装保証を承認責務として分離すること",
+        "検索責務そのものの正しさを本責務で再保証すること"
       ],
       "constraint_ids": [
-        "constitution_12"
+        "constitution_12",
+        "decision_axis_expected_independent_simple_derivation_copy_1",
+        "decision_axis_responsibility_observability"
       ],
       "guarantees": [
         {
           "guarantee_id": "grid_aggregate_g001",
           "guarantee_type": "rule",
-          "condition": "number型fieldにgrid.aggregate.operator=sumが宣言された場合",
-          "guarantee": "当該列の合計結果を生成する。",
-          "observable_result": "items/byFieldに対象fieldのsum結果が存在する。",
+          "condition": "ViewDefのGrid数値列にaggregate宣言が存在し、Gridを表示した場合",
+          "guarantee": "有効なsum宣言列をscopeに従う行集合から集計し、有限数へ解釈できる値だけを合計・件数計上して、Gridヘッダーへ正しい集計結果を表示する。aggregate未宣言Fieldには集計表示を出さない。",
+          "observable_result": "各標準TestPatternでGenerated Expected Valueと、SeleniumがGridヘッダーから取得したActual metricが一致する。",
           "priority": "high",
-          "enabled": true
-        },
-        {
-          "guarantee_id": "grid_aggregate_g002",
-          "guarantee_type": "rule",
-          "condition": "aggregate.scope=filteredが指定された場合",
-          "guarantee": "filteredRowsだけを集計対象にする。",
-          "observable_result": "source_countとvalueがfilteredRowsから算出した値に一致する。",
-          "priority": "medium",
-          "enabled": true
-        },
-        {
-          "guarantee_id": "grid_aggregate_g003",
-          "guarantee_type": "rule",
-          "condition": "aggregate.scope=allが指定された場合",
-          "guarantee": "currentRows全体を集計対象にする。",
-          "observable_result": "source_countとvalueがcurrentRows全体から算出した値に一致する。",
-          "priority": "medium",
-          "enabled": true
-        },
-        {
-          "guarantee_id": "grid_aggregate_g004",
-          "guarantee_type": "rule",
-          "condition": "値が数値またはカンマ区切り数値文字列の場合",
-          "guarantee": "有限数へ解釈できる値を合計へ含める。",
-          "observable_result": "1,234.5が1234.5として集計される。",
-          "priority": "medium",
-          "enabled": true
-        },
-        {
-          "guarantee_id": "grid_aggregate_g005",
-          "guarantee_type": "state",
-          "condition": "空文字・非数値・非有限値が含まれる場合",
-          "guarantee": "当該値を合計から除外し、ignored_countへ計上する。",
-          "observable_result": "value / valid_count / ignored_countが期待値と一致する。",
-          "priority": "medium",
-          "enabled": true
-        },
-        {
-          "guarantee_id": "grid_aggregate_g006",
-          "guarantee_type": "rule",
-          "condition": "有効なaggregate宣言が存在しない場合",
-          "guarantee": "集計なしとしてhas_aggregates=falseを返す。",
-          "observable_result": "itemsが空でhas_aggregates=falseである。",
-          "priority": "medium",
           "enabled": true
         }
       ],
-      "notes": "現行smoke testでsum / filtered / all / 無効値除外 / aggregate未宣言を確認している。",
-      "test_setup": [],
-      "test_pattern_definitions": []
+      "notes": "Guarantee IDはgrid_aggregate_g001へ統合。5つの標準TestPatternから9 Generated Caseを導出する。ExpectedはScalarExpectedDefのExpected Value 1欄で表現し、metricごとにCaseを分ける。承認責務のActual境界はGridAggregator.build内部値ではなくGridヘッダー表示とし、Generated成果物は正本JSONへ保存しない。GridAggregator.build直接Runnerは内部UT/デバッグ補助としてのみ扱う。",
+      "test_setup": [
+        {
+          "setup_id": "grid_aggregate_setup_001",
+          "input_file": "data/json/80_frb/frb_grid_aggregate_test_data_v0_1.json",
+          "view_def_file": "defs/frb/frb_grid_aggregate_test_view_def_v0_1.json",
+          "field_definition_file": "",
+          "search_operator_registry_file": "",
+          "target_resolution_policy": "",
+          "input_approval_status": "approved",
+          "execution_scope": "DOCUMENT",
+          "load_policy": "LOAD_ONCE",
+          "pattern_isolation_policy": "UI_FILTER_ONCE",
+          "save_policy": "NONE",
+          "reload_policy": "NONE",
+          "runner_type": "SELENIUM_NATIVE_SHELL",
+          "working_copy_policy": "NONE",
+          "working_copy_directory": "",
+          "cleanup_policy": "NONE",
+          "notes": "Test Input JSONを1回LOADし、filtered scopeで指定された行集合を標準検索UIから1回だけ作る。その状態でGridヘッダーの集計表示をSeleniumから観測し、独立Simple OracleのScalarExpectedDefと比較する。Expected生成ではGridAggregator本体を使用しない。"
+        }
+      ],
+      "test_pattern_definitions": [
+        {
+          "pattern_def_id": "grid_aggregate_sum_filtered",
+          "pattern_cd": "GRID_AGGREGATE",
+          "pattern_role": "STANDARD",
+          "generation_mode": "AGGREGATE_SCALAR_CASE",
+          "target_structure": "SINGLE_GRID",
+          "target_data_path": "$.aggregate_rows",
+          "target_field": "profit",
+          "field_selection_policy": "",
+          "operator_source": "",
+          "row_position": "",
+          "value_pattern": "",
+          "filtered_row_indexes": [
+            0,
+            1,
+            2
+          ],
+          "expected_metric_set": "VALUE_SOURCE_COUNT",
+          "expected_def_type": "",
+          "guarantee_id": "grid_aggregate_g001",
+          "enabled": true,
+          "notes": "filtered scope。1680 + (-1534) + 空文字除外 = 146。"
+        },
+        {
+          "pattern_def_id": "grid_aggregate_sum_all",
+          "pattern_cd": "GRID_AGGREGATE",
+          "pattern_role": "STANDARD",
+          "generation_mode": "AGGREGATE_SCALAR_CASE",
+          "target_structure": "SINGLE_GRID",
+          "target_data_path": "$.aggregate_rows",
+          "target_field": "units",
+          "field_selection_policy": "",
+          "operator_source": "",
+          "row_position": "",
+          "value_pattern": "",
+          "filtered_row_indexes": [
+            0,
+            1,
+            2
+          ],
+          "expected_metric_set": "VALUE_SOURCE_COUNT",
+          "expected_def_type": "",
+          "guarantee_id": "grid_aggregate_g001",
+          "enabled": true,
+          "notes": "all scope。filtered指定に依存せず10+20+30+40=100。"
+        },
+        {
+          "pattern_def_id": "grid_aggregate_comma_numeric",
+          "pattern_cd": "GRID_AGGREGATE",
+          "pattern_role": "STANDARD",
+          "generation_mode": "AGGREGATE_SCALAR_CASE",
+          "target_structure": "SINGLE_GRID",
+          "target_data_path": "$.aggregate_rows",
+          "target_field": "comma_amount",
+          "field_selection_policy": "",
+          "operator_source": "",
+          "row_position": "",
+          "value_pattern": "",
+          "filtered_row_indexes": [
+            0,
+            1,
+            2
+          ],
+          "expected_metric_set": "VALUE",
+          "expected_def_type": "",
+          "guarantee_id": "grid_aggregate_g001",
+          "enabled": true,
+          "notes": "カンマ区切り文字列1,234.5を1234.5として含める。"
+        },
+        {
+          "pattern_def_id": "grid_aggregate_invalid_exclusion",
+          "pattern_cd": "GRID_AGGREGATE",
+          "pattern_role": "STANDARD",
+          "generation_mode": "AGGREGATE_SCALAR_CASE",
+          "target_structure": "SINGLE_GRID",
+          "target_data_path": "$.aggregate_rows",
+          "target_field": "dirty_amount",
+          "field_selection_policy": "",
+          "operator_source": "",
+          "row_position": "",
+          "value_pattern": "",
+          "filtered_row_indexes": [
+            0,
+            1,
+            2
+          ],
+          "expected_metric_set": "VALUE_VALID_IGNORED",
+          "expected_def_type": "",
+          "guarantee_id": "grid_aggregate_g001",
+          "enabled": true,
+          "notes": "空文字・非数値・nullを除外し、value / valid_count / ignored_countを確認する。"
+        },
+        {
+          "pattern_def_id": "grid_aggregate_no_declaration",
+          "pattern_cd": "GRID_AGGREGATE",
+          "pattern_role": "STANDARD",
+          "generation_mode": "AGGREGATE_SCALAR_CASE",
+          "target_structure": "SINGLE_GRID",
+          "target_data_path": "$.aggregate_rows",
+          "target_field": "plain_amount",
+          "field_selection_policy": "",
+          "operator_source": "",
+          "row_position": "",
+          "value_pattern": "",
+          "filtered_row_indexes": [
+            0,
+            1,
+            2
+          ],
+          "expected_metric_set": "HAS_AGGREGATES",
+          "expected_def_type": "",
+          "guarantee_id": "grid_aggregate_g001",
+          "enabled": true,
+          "notes": "aggregate未宣言Field単独ではhas_aggregates=false。"
+        }
+      ]
     },
     {
       "responsibility_cd": "data_update_persist",
@@ -604,6 +706,13 @@
       "expected_generation_policy": "INDEPENDENT_SIMPLE_FILTER_ORACLE",
       "expected_shape": "StateExpectedDef(row_ids,indexes,match_count)",
       "notes": "TestPattern行数はOperator単位に抑え、Fieldごとの具体Input/Criteria/ExpectedはGenerated Caseとして全件保持する。ExpectedはGenerated Caseの属性であり第三階層SubGridにはしない。"
+    },
+    "aggregate_generation": {
+      "expected_generation_policy": "INDEPENDENT_SIMPLE_SCALAR_ORACLE",
+      "numeric_parse_policy": "numberは有限値のみ採用し、stringはtrim後にカンマを除去してNumber変換できる有限値のみ採用する。",
+      "filtered_row_policy": "TestPattern定義のfiltered_row_indexesをfilteredRowsとして扱い、all scopeはInput全行を扱う。",
+      "expected_def_type": "ScalarExpectedDef",
+      "notes": "本体GridAggregatorをExpected生成へ再利用しない。入力値を順に単純加算・件数計数してExpected Valueを導出する。"
     }
   }
 }

@@ -904,7 +904,9 @@
                     "field_selection_policy": "EDITABLE_EXPLICIT_NON_MULTILINE",
                     "generation_mode": "",
                     "target_field": "",
-                    "operator_source": ""
+                    "operator_source": "",
+                    "expected_metric_set": "",
+                    "filtered_row_indexes": []
                   },
                   "columns": [
                     {
@@ -920,7 +922,8 @@
                       "options": [
                         "DATA_UPDATE_PERSIST",
                         "DATA_UPDATE_PERSIST_MULTILINE",
-                        "SEARCH_FILTER"
+                        "SEARCH_FILTER",
+                        "GRID_AGGREGATE"
                       ],
                       "width": 240
                     },
@@ -945,7 +948,8 @@
                       "caption": "生成方式",
                       "type": "select",
                       "options": [
-                        "SEARCH_OPERATOR_MATRIX"
+                        "SEARCH_OPERATOR_MATRIX",
+                        "AGGREGATE_SCALAR_CASE"
                       ],
                       "width": 210
                     },
@@ -1015,12 +1019,34 @@
                       "width": 210
                     },
                     {
+                      "field": "filtered_row_indexes",
+                      "caption": "Filtered Row Indexes",
+                      "type": "textarea",
+                      "width": 210,
+                      "grid": {
+                        "display": "json"
+                      }
+                    },
+                    {
+                      "field": "expected_metric_set",
+                      "caption": "Expected Metric Set",
+                      "type": "select",
+                      "options": [
+                        "VALUE",
+                        "VALUE_SOURCE_COUNT",
+                        "VALUE_VALID_IGNORED",
+                        "HAS_AGGREGATES"
+                      ],
+                      "width": 220
+                    },
+                    {
                       "field": "expected_def_type",
                       "caption": "ExpectedDef",
                       "type": "select",
                       "options": [
                         "JsonDiffExpectedDef",
-                        "StateExpectedDef"
+                        "StateExpectedDef",
+                        "ScalarExpectedDef"
                       ],
                       "width": 190
                     },

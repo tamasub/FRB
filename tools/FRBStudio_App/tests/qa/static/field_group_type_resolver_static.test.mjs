@@ -56,6 +56,7 @@ const names = fields.map(field => field.field);
 assert.ok(!names.includes('__expected_def_fields'), 'FieldGroup placeholder should not remain after resolver expansion');
 assert.ok(names.includes('expected.field_names'), 'RuleExpectedDef/ErrorExpectedDef should expand expected.field_names');
 assert.ok(names.includes('expected.row_ids'), 'StateExpectedDef should expand expected.row_ids');
+assert.ok(names.includes('expected.value'), 'ScalarExpectedDef should expand expected.value');
 assert.ok(names.includes('expected.csv_without_bom'), 'CsvExpectedDef should expand CSV preview field');
 
 const fieldNames = fields.find(field => field.field === 'expected.field_names');

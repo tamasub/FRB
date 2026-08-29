@@ -48,3 +48,18 @@ npm run check
 ```text
 保存E2E: ALL PASS
 ```
+
+## Responsibility Driven E2E
+
+```powershell
+npm run test:responsibility
+npm run test:responsibility:search
+npm run test:responsibility:aggregate
+```
+
+`grid_aggregate` の正式な承認Runnerは NativeShell / Selenium で Grid Header の表示値を観測する。
+内部ロジック診断だけ行う場合は次を使う。
+
+```powershell
+npm run test:responsibility:aggregate:internal
+```

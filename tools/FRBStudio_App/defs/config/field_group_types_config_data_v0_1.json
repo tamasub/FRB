@@ -28,7 +28,8 @@
               "PerformanceExpectedDef": "studio.PerformanceExpectedDef",
               "VisualEvidenceExpectedDef": "studio.VisualEvidenceExpectedDef",
               "CsvExpectedDef": "studio.CsvExpectedDef",
-              "JsonDiffExpectedDef": "studio.JsonDiffExpectedDef"
+              "JsonDiffExpectedDef": "studio.JsonDiffExpectedDef",
+              "ScalarExpectedDef": "studio.ScalarExpectedDef"
             }
           }
         },
@@ -88,6 +89,31 @@
               "grid": {
                 "visible": true,
                 "width": 180,
+                "display": "json"
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
+                "height": 54
+              },
+              "create": {
+                "include": false
+              }
+            }
+          ]
+        },
+        "ScalarExpectedDef": {
+          "caption": "Scalar ExpectedDef",
+          "description": "計算値・件数・boolean等、1つのScalar値をExpectedとして比較する最小ExpectedDef。",
+          "fields": [
+            {
+              "field": "expected.value",
+              "caption": "Expected: Value",
+              "type": "textarea",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 220,
                 "display": "json"
               },
               "edit": {

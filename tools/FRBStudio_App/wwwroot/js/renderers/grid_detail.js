@@ -88,6 +88,9 @@ function renderGridAggregateRow(thead, visibleFields) {
       cell.dataset.aggregateField = field.field;
       cell.dataset.aggregateOperator = aggregate.operator;
       cell.dataset.aggregateScope = aggregate.scope;
+      cell.dataset.aggregateSourceCount = String(aggregate.source_count);
+      cell.dataset.aggregateValidCount = String(aggregate.valid_count);
+      cell.dataset.aggregateIgnoredCount = String(aggregate.ignored_count);
       if (field.type) cell.classList.add(field.type);
 
       const label = document.createElement('span');
@@ -101,11 +104,9 @@ function renderGridAggregateRow(thead, visibleFields) {
       const scopeDescription = aggregate.scope === 'all'
         ? `全${aggregate.source_count}件の合計`
         : `表示中${aggregate.source_count}件の合計`;
-      const ignoredDescription = aggregate.ignored_count > 0
-        ? ` / 数値対象外 ${aggregate.ignored_count}件`
-        : '';
-      cell.title = `${scopeDescription}: ${value.textContent}${ignoredDescription}`;
-      cell.setAttribute('aria-label', `${aggregate.label} ${scopeDescription} ${value.textContent}`);
+      const countDescription = ` / 有効 ${aggregate.valid_count}件 / 数値対象外 ${aggregate.ignored_count}件`;
+      cell.title = `${scopeDescription}: ${value.textContent}${countDescription}`;
+      cell.setAttribute('aria-label', `${aggregate.label} ${scopeDescription} ${value.textContent}${countDescription}`);
     } else {
       cell.setAttribute('aria-hidden', 'true');
     }

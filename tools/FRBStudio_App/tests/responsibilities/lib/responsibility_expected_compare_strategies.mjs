@@ -102,6 +102,14 @@ export const ExpectedDefCompareStrategyRegistry = Object.freeze({
     })
   }),
 
+  ScalarExpectedDef: Object.freeze({
+    expected_def_type: 'ScalarExpectedDef',
+    purpose: '単一Scalar期待値。計算値・件数・boolean等のExpected Valueを比較する。',
+    fields: Object.freeze({
+      value: 'JsonEquals'
+    })
+  }),
+
   StateExpectedDef: Object.freeze({
     expected_def_type: 'StateExpectedDef',
     purpose: '状態期待値。検索後状態・行ID・元indexなどを比較する。',

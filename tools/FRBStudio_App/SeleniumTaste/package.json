@@ -12,7 +12,10 @@
     "test:responsibility": "node selenium_taste.js --responsibility data_update_persist",
     "plan:responsibility": "node responsibility_test_plan.js data_update_persist",
     "test:responsibility:search:plan": "node responsibility_test_plan.js search_filter",
-    "test:responsibility:search": "node selenium_taste.js --responsibility search_filter"
+    "test:responsibility:search": "node selenium_taste.js --responsibility search_filter",
+    "test:responsibility:aggregate:plan": "node responsibility_test_plan.js grid_aggregate",
+    "test:responsibility:aggregate": "node selenium_taste.js --responsibility grid_aggregate",
+    "test:responsibility:aggregate:internal": "node responsibility_aggregate_runner.js grid_aggregate"
   },
   "engines": {
     "node": ">=22"

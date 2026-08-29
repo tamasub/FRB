@@ -1,0 +1,10 @@
+Grid Aggregate Generated Case Runner diff
+
+Changed files:
+- SeleniumTaste/package.json
+- SeleniumTaste/responsibility_aggregate_runner.js
+- SeleniumTaste/responsibility_test_plan.js
+- data/json/01_main/_studio_work_incident_data_v2.json
+- data/json/03_tests/responsibilities/responsibility_data_v0_2.json
+- tests/qa/static/responsibility_grid_aggregate_generated_preview_static.test.mjs
+- tests/qa/static/responsibility_grid_aggregate_runner_static.test.mjs

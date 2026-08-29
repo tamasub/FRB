@@ -21,6 +21,21 @@ function readText(relativePath) {
   return fs.readFileSync(path.resolve(APP_ROOT, relativePath), 'utf8');
 }
 
+function readJsonOptional(relativePath) {
+  const normalized = normalizeRelativePath(relativePath);
+  return normalized ? readJson(normalized) : null;
+}
+
+function findGridSection(viewDef, dataPath) {
+  const target = String(dataPath ?? '').trim();
+  for (const view of (viewDef?.views ?? [])) {
+    const section = (view?.sections ?? []).find((candidate) =>
+      candidate?.type === 'grid' && String(candidate?.dataPath ?? '').trim() === target);
+    if (section) return section;
+  }
+  return null;
+}
+
 function loadPreviewSandbox() {
   const sandbox = {
     console,
@@ -140,6 +155,71 @@ function resolveUiTarget(viewDef, dataPath) {
   throw new Error(`UI target could not be resolved for ${target}`);
 }
 
+function deriveAggregateUiFilter({ viewDef, inputData, patterns }) {
+  const filteredPatterns = (patterns ?? []).filter(pattern => String(pattern?.aggregate_scope ?? '') === 'filtered');
+  if (!filteredPatterns.length) return { required: false };
+
+  const targetPaths = [...new Set(filteredPatterns.map(pattern => String(pattern?.target_data_path ?? '').trim()))];
+  if (targetPaths.length !== 1) throw new Error(`Aggregate filtered UI setup requires one target_data_path: ${targetPaths.join(', ')}`);
+  const targetDataPath = targetPaths[0];
+  const rows = getByActualPath(inputData, targetDataPath);
+  if (!Array.isArray(rows)) throw new Error(`Aggregate filtered UI rows not found: ${targetDataPath}`);
+
+  const selectedSets = filteredPatterns.map(pattern => {
+    const indexes = pattern?.generated_cases?.[0]?.filtered_row_indexes;
+    return Array.isArray(indexes) ? indexes.map(Number) : [];
+  });
+  const signature = JSON.stringify(selectedSets[0] ?? []);
+  if (selectedSets.some(indexes => JSON.stringify(indexes) !== signature)) {
+    throw new Error('Aggregate filtered patterns must share one UI filtered-row set in Phase 1.');
+  }
+  const selectedIndexes = selectedSets[0] ?? [];
+  const allIndexes = rows.map((_, index) => index);
+  if (selectedIndexes.length === rows.length && selectedIndexes.every((value, index) => value === index)) {
+    return { required: false, target_data_path: targetDataPath, expected_indexes: selectedIndexes };
+  }
+
+  const section = findGridSection(viewDef, targetDataPath);
+  const keyField = String(section?.keyField ?? '').trim();
+  if (!keyField) throw new Error(`Aggregate filtered UI setup requires Grid keyField: ${targetDataPath}`);
+  const selected = new Set(selectedIndexes);
+  const excludedIndexes = allIndexes.filter(index => !selected.has(index));
+
+  if (excludedIndexes.length === 1) {
+    const excludedIndex = excludedIndexes[0];
+    const value = rows[excludedIndex]?.[keyField];
+    if (value === undefined || value === null) throw new Error(`Aggregate filter key value not found: ${keyField}[${excludedIndex}]`);
+    return {
+      required: true,
+      target_data_path: targetDataPath,
+      field: keyField,
+      operator_id: 'not_equals',
+      criteria: { value: clone(value) },
+      expected_indexes: selectedIndexes,
+      expected_count: selectedIndexes.length,
+      derivation: 'EXCLUDE_SINGLE_ROW_BY_KEY',
+    };
+  }
+
+  if (selectedIndexes.length === 1) {
+    const selectedIndex = selectedIndexes[0];
+    const value = rows[selectedIndex]?.[keyField];
+    if (value === undefined || value === null) throw new Error(`Aggregate filter key value not found: ${keyField}[${selectedIndex}]`);
+    return {
+      required: true,
+      target_data_path: targetDataPath,
+      field: keyField,
+      operator_id: 'equals',
+      criteria: { value: clone(value) },
+      expected_indexes: selectedIndexes,
+      expected_count: 1,
+      derivation: 'INCLUDE_SINGLE_ROW_BY_KEY',
+    };
+  }
+
+  throw new Error(`Aggregate filtered UI setup cannot be derived simply: selected=${JSON.stringify(selectedIndexes)} total=${rows.length}`);
+}
+
 function diffJson(expected, actual, basePath='$', out=[]) {
   if (Object.is(expected, actual)) return out;
 
@@ -197,9 +277,9 @@ function buildResponsibilityExecutionPlan({
 
   const inputData = readJson(inputFile);
   const viewDef = readJson(viewDefFile);
-  const fieldDefinitionDocument = readJson(fieldDefinitionFile);
+  const fieldDefinitionDocument = readJsonOptional(fieldDefinitionFile);
   const registry = readJson(registryFile);
-  const searchOperatorRegistry = searchOperatorRegistryFile ? readJson(searchOperatorRegistryFile) : null;
+  const searchOperatorRegistry = readJsonOptional(searchOperatorRegistryFile);
   const sandbox = loadPreviewSandbox();
   const service = new sandbox.ResponsibilityTestPreviewService({ registry });
   const preview = JSON.parse(JSON.stringify(service.derive({
@@ -231,7 +311,83 @@ function buildResponsibilityExecutionPlan({
     runner_type: String(setup.runner_type ?? 'SELENIUM_NATIVE_SHELL'),
   };
 
-  const isSearchPlan = (preview.test_patterns ?? []).some(pattern => Array.isArray(pattern?.generated_cases));
+  const isAggregatePlan = (preview.test_patterns ?? []).some(pattern =>
+    String(pattern?.generation_mode ?? '') === 'AGGREGATE_SCALAR_CASE'
+      || String(pattern?.pattern_cd ?? '') === 'GRID_AGGREGATE');
+
+  if (isAggregatePlan) {
+    const aggregateCases = [];
+    const patterns = (preview.test_patterns ?? []).map((pattern) => {
+      const targetDataPath = String(pattern?.target_data_path ?? '').trim();
+      const rows = getByActualPath(inputData, targetDataPath);
+      if (!Array.isArray(rows)) throw new Error(`Aggregate target rows not found: ${targetDataPath}`);
+      const section = findGridSection(viewDef, targetDataPath);
+      if (!section) throw new Error(`Aggregate ViewDef section not found: ${targetDataPath}`);
+      const fieldName = String(pattern?.target_field ?? '').trim();
+      const field = (section?.fields ?? []).find((item) => String(item?.field ?? '').trim() === fieldName);
+      if (!field) throw new Error(`Aggregate ViewDef field not found: ${targetDataPath}.${fieldName}`);
+
+      const filteredIndexes = Array.isArray(pattern?.generated_cases?.[0]?.filtered_row_indexes)
+        ? pattern.generated_cases[0].filtered_row_indexes
+        : [];
+      const filteredRows = filteredIndexes.map((index) => rows[index]).filter((row) => row !== undefined);
+
+      const generatedCases = (pattern.generated_cases ?? []).map((generatedCase) => {
+        const enhanced = {
+          ...clone(generatedCase),
+          pattern_id: String(pattern?.pattern_id ?? ''),
+          pattern_cd: String(pattern?.pattern_cd ?? ''),
+          pattern_role: String(pattern?.pattern_role ?? ''),
+        };
+        aggregateCases.push(enhanced);
+        return enhanced;
+      });
+
+      return {
+        ...clone(pattern),
+        generated_cases: generatedCases,
+        ui_target: resolveUiTarget(viewDef, targetDataPath),
+        runtime_input: {
+          field: clone(field),
+          current_rows: clone(rows),
+          filtered_rows: clone(filteredRows),
+        },
+      };
+    });
+
+    const aggregateUiFilter = deriveAggregateUiFilter({ viewDef, inputData, patterns });
+
+    return {
+      schema_version: 'responsibility_selenium_execution_plan_v0_3',
+      execution_kind: 'GRID_AGGREGATE',
+      responsibility_document: responsibilityDocumentPath,
+      responsibility_cd: responsibilityCd,
+      responsibility_name: String(responsibility?.name ?? ''),
+      source_file: normalizeRelativePath(responsibility?.source_file ?? ''),
+      interface_name: String(responsibility?.interface_name ?? ''),
+      guarantee_ids: (responsibility?.guarantees ?? []).map((item) => item?.guarantee_id).filter(Boolean),
+      expected_def_type: preview.expected_def_type,
+      setup: baseSetup,
+      execution_ready: preview.execution_ready === true,
+      preview_status: preview.status,
+      patterns,
+      aggregate_cases: aggregateCases,
+      aggregate_ui_filter: aggregateUiFilter,
+      baseline_document: clone(inputData),
+      summary: {
+        test_pattern_count: patterns.length,
+        generated_case_count: aggregateCases.length,
+        mutation_count: 0,
+        invalid_mutation_count: preview.summary?.invalid_mutation_count ?? 0,
+        issue_count: preview.summary?.issue_count ?? 0,
+      },
+      issues: clone(preview.issues ?? []),
+    };
+  }
+
+  const isSearchPlan = (preview.test_patterns ?? []).some(pattern =>
+    Array.isArray(pattern?.generated_cases)
+      && String(pattern?.generation_mode ?? '') === 'SEARCH_OPERATOR_MATRIX');
   if (isSearchPlan) {
     const searchCases = [];
     const patterns = (preview.test_patterns ?? []).map((pattern) => {
@@ -348,6 +504,15 @@ function assertExecutionApproved(plan) {
   if (plan.setup?.execution_scope !== 'DOCUMENT') throw new Error(`Unsupported execution_scope: ${plan.setup?.execution_scope}`);
   if (plan.setup?.load_policy !== 'LOAD_ONCE') throw new Error(`Unsupported load_policy: ${plan.setup?.load_policy}`);
 
+  if (plan.execution_kind === 'GRID_AGGREGATE') {
+    if (plan.setup?.pattern_isolation_policy !== 'UI_FILTER_ONCE') throw new Error(`Unsupported pattern_isolation_policy: ${plan.setup?.pattern_isolation_policy}`);
+    if (plan.setup?.save_policy !== 'NONE') throw new Error(`Unsupported save_policy: ${plan.setup?.save_policy}`);
+    if (plan.setup?.reload_policy !== 'NONE') throw new Error(`Unsupported reload_policy: ${plan.setup?.reload_policy}`);
+    if (plan.setup?.working_copy_policy !== 'NONE') throw new Error(`Unsupported working_copy_policy: ${plan.setup?.working_copy_policy}`);
+    if (plan.setup?.runner_type !== 'SELENIUM_NATIVE_SHELL') throw new Error(`Unsupported runner_type: ${plan.setup?.runner_type}`);
+    return;
+  }
+
   if (plan.execution_kind === 'SEARCH_FILTER') {
     if (plan.setup?.pattern_isolation_policy !== 'RESET_AFTER_EACH') throw new Error(`Unsupported pattern_isolation_policy: ${plan.setup?.pattern_isolation_policy}`);
     if (plan.setup?.save_policy !== 'NONE') throw new Error(`Unsupported save_policy: ${plan.setup?.save_policy}`);
@@ -364,15 +529,18 @@ function assertExecutionApproved(plan) {
 
 function formatPlanSummary(plan) {
   const summary = plan?.summary ?? {};
-  const generated = plan?.execution_kind === 'SEARCH_FILTER'
+  const caseBased = ['SEARCH_FILTER', 'GRID_AGGREGATE'].includes(plan?.execution_kind);
+  const generated = caseBased
     ? `Generated: Pattern=${summary.test_pattern_count ?? 0} / Case=${summary.generated_case_count ?? 0} / Invalid=${summary.invalid_mutation_count ?? 0}`
     : `Generated: Pattern=${summary.test_pattern_count ?? 0} / Mutation=${summary.mutation_count ?? 0} / Invalid=${summary.invalid_mutation_count ?? 0}`;
-  const lifecycle = plan?.execution_kind === 'SEARCH_FILTER'
+  const lifecycle = caseBased
     ? `${plan?.setup?.load_policy} -> ${plan?.setup?.pattern_isolation_policy}`
     : `${plan?.setup?.load_policy} -> ${plan?.setup?.save_policy} -> ${plan?.setup?.reload_policy}`;
   const uiTarget = plan?.execution_kind === 'SEARCH_FILTER'
     ? `UI Target: Main Cases=${summary.main_grid_case_count ?? 0} / Related Cases=${summary.related_grid_case_count ?? 0}`
-    : `UI Target: Main=${summary.main_grid_pattern_count ?? 0} / Related=${summary.related_grid_pattern_count ?? 0}`;
+    : plan?.execution_kind === 'GRID_AGGREGATE'
+      ? `UI Target: Grid Header / Runner=${plan?.setup?.runner_type ?? ''} / Filter=${plan?.aggregate_ui_filter?.required ? `${plan.aggregate_ui_filter.field}:${plan.aggregate_ui_filter.operator_id}` : 'NONE'}`
+      : `UI Target: Main=${summary.main_grid_pattern_count ?? 0} / Related=${summary.related_grid_pattern_count ?? 0}`;
   return [
     `Responsibility: ${plan?.responsibility_cd} / ${plan?.responsibility_name}`,
     `Execution Kind: ${plan?.execution_kind ?? ''}`,
@@ -401,4 +569,5 @@ module.exports = {
   formatPlanSummary,
   getByActualPath,
   setByActualPath,
+  deriveAggregateUiFilter,
 };

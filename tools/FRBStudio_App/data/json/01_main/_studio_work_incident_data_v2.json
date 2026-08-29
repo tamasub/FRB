@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-29T13:05:00+09:00",
+  "updated_at": "2026-08-29",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 222,
+  "items_count": 225,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -33727,6 +33727,255 @@
         }
       ],
       "failure_stories": []
+    },
+    {
+      "work_item_id": "studio_work_0235",
+      "phase": "v0.18.115-grid-aggregate-guarantee-pattern-generation",
+      "title": "Grid数値集計責務 Guarantee統合 / Scalar ExpectedDef / Generated TestPattern化",
+      "incident_type": "definition_refactor",
+      "category": "responsibility_definition",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "UNASSESSED",
+      "verification_status": "Generated Preview / Node Runner確認済み",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-08-29T13:25:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-29T13:25:00+09:00",
+      "updated_at": "2026-08-29T13:34:00+09:00",
+      "work_summary": "- grid_aggregateのGuarantee g001〜g006を1つのgrid_aggregate_g001へ統合。\n- Guarantee ID 1 : N TestPatterns契約に沿い、sum filtered/all・カンマ数値・無効値除外・aggregate未宣言の標準Patternを定義。\n- 単一計算値/件数/booleanをExpected Value 1欄で扱うScalarExpectedDefを追加。\n- Aggregate専用JSON Test Input / ViewDefとGenerated Preview導出を追加。",
+      "target_files": "- data/json/03_tests/responsibilities/responsibility_data_v0_2.json\n- data/json/80_frb/frb_grid_aggregate_test_data_v0_1.json\n- defs/frb/frb_grid_aggregate_test_view_def_v0_1.json\n- defs/config/field_group_types_config_data_v0_1.json\n- defs/qa/tests/responsibilities/responsibility_view_def_v0_2.json\n- wwwroot/js/services/responsibility/responsibility_test_preview_service.js\n- wwwroot/js/components/responsibility/responsibility_test_preview_component.js\n- tests/responsibilities/lib/responsibility_expected_compare_strategies.mjs\n- tests/qa/static/responsibility_grid_aggregate_generated_preview_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- data/json/03_tests/responsibilities/responsibility_data_v0_2.json\n- data/json/80_frb/frb_grid_aggregate_test_data_v0_1.json\n- defs/frb/frb_grid_aggregate_test_view_def_v0_1.json\n- defs/config/field_group_types_config_data_v0_1.json\n- defs/qa/tests/responsibilities/responsibility_view_def_v0_2.json\n- wwwroot/js/services/responsibility/responsibility_test_preview_service.js\n- wwwroot/js/components/responsibility/responsibility_test_preview_component.js\n- tests/responsibilities/lib/responsibility_expected_compare_strategies.mjs\n- tests/qa/static/responsibility_grid_aggregate_generated_preview_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "Guarantee IDは責務レベルのValidation Type相当として1:NのTestPattern集合を所有する。grid_aggregateでは個別観点ごとにGuaranteeを分けず、標準Grid数値集計保証1件へ統合する。Expectedは本体GridAggregatorを再利用せず単純Oracleで導出する。",
+      "objective": "Grid数値集計責務を現行Guarantee→N TestPatternsモデルへ移行し、単一Scalar Expectedを用いたGenerated TestPattern/Expected Previewを成立させる。",
+      "background": "旧grid_aggregateはsum/filter/all/数値解釈/除外/未宣言を別Guarantee IDで管理していたが、いずれも通常のGrid数値集計を成立させる標準観点であり、紐付け管理を単純化するため1 Guaranteeへ統合する。",
+      "scope": "- Guarantee ID 1件への統合。\n- 5標準TestPattern / 9 Generated Case。\n- ScalarExpectedDef。\n- JSON Fixture / ViewDef / Generated Preview。",
+      "out_of_scope": "- GridAggregator実装変更。\n- Selenium E2E Runner接続。\n- sum以外のaggregate operator。\n- 検索UIと連動したfilteredRows E2E。",
+      "fixed_name_policy": "ExpectedDefはScalarExpectedDef、aggregate生成方式はAGGREGATE_SCALAR_CASEとする。",
+      "module_policy": "Expected OracleはGridAggregatorを呼ばず、JSON Input + ViewDef宣言を直接読み、人間が追跡可能な単純加算・件数計数で導出する。",
+      "expected_outputs": "- grid_aggregateのGuaranteeが1件になる。\n- 全Patternがgrid_aggregate_g001に所属する。\n- Generated Previewに5 TestPatterns / 9 Generated Cases / Scalar Expected Valueが表示される。",
+      "risk": "Expected生成側が本体ロジックを再実装して複雑化しないこと。Fixtureのmixed numeric stringはPreview/UT用途であり通常Data Validation責務と混同しないこと。",
+      "test_points": "- Guarantee 1:N契約。\n- ScalarExpectedDef FieldGroup解決。\n- filtered=146 / all=100 / comma=1244.5 / invalid value=10 valid=1 ignored=3 / no aggregate=false。",
+      "verification_log": "Aggregate Preview/契約とRunner接続を確認。5 TestPatterns / 9 Generated Casesを導出し、独立Simple Oracle Expectedをproduction GridAggregator.build Actualと比較して9/9 PASS。詳細はstudio_work_0236。",
+      "user_request": "grid_aggregateも保証IDを1つにまとめ、責務JSONを修正し、可能ならTestPatternまで進めたい。",
+      "ai_response": "Guaranteeを1本化し、ScalarExpectedDefとAggregate JSON Fixtureを使うGenerated TestPatternまで実装する。",
+      "latest_user_comment": "これも保証IDを1つにまとめる話になる。責務JSON修正とTestPatternまで進めたい。",
+      "latest_ai_response": "Guarantee統合、ScalarExpectedDef、5 TestPatterns / 9 Generated CasesのPreview導出を実装しStatic確認済み。",
+      "context_refs": [
+        "studio_work_0233"
+      ],
+      "follow_up_actions": [],
+      "discussion_history": [
+        {
+          "history_id": "disc_0235_001",
+          "at": "2026-08-29T13:25:00+09:00",
+          "speaker": "user",
+          "topic": "Grid Aggregate Guarantee統合",
+          "message": "grid_aggregateも保証IDを1つへまとめ、TestPatternまで進めたい。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0235_001",
+          "at": "2026-08-29T13:25:00+09:00",
+          "decision": "grid_aggregateの標準観点は1つのGuarantee IDがN TestPatternsとして所有する。",
+          "reason": "Guarantee IDを責務レベルのValidation Type相当として扱い、紐付けを単純化するため。"
+        },
+        {
+          "decision_id": "dec_0235_002",
+          "at": "2026-08-29T13:25:00+09:00",
+          "decision": "Aggregate ExpectedはScalarExpectedDefのExpected Value 1欄で表現し、value/count/booleanはGenerated Caseを分ける。",
+          "reason": "ExpectedDefを最小化し、TestPattern→Generated Case→Expectedの3段階をView 2階層で扱いやすくするため。"
+        }
+      ],
+      "change_history": [],
+      "failure_stories": []
+    },
+    {
+      "work_item_id": "studio_work_0236",
+      "phase": "v0.18.116-grid-aggregate-generated-case-runner",
+      "title": "Grid数値集計 Generated Case → GridAggregator Pure Function Runner",
+      "incident_type": "test_automation",
+      "category": "responsibility_definition_driven_test",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "COMPLETED",
+      "verification_status": "Node Runner実行確認済み",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-29T13:34:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-29T13:34:00+09:00",
+      "updated_at": "2026-08-29T13:34:00+09:00",
+      "work_summary": "- grid_aggregateの5 Generated TestPattern / 9 Generated CaseをExecution Planへ変換し、productionのGridAggregator.buildへ直接投入するNode Pure Function Runnerを追加。\n- ExpectedはResponsibilityTestPreviewServiceの独立Simple Oracleで事前生成し、Actual側だけGridAggregator.buildを呼び出す。\n- ScalarExpectedDefをCompareStrategy Registry経由で実際の比較契約として使用し、Expected Value 1欄を9 Caseすべて比較。\n- Aggregate責務はUI操作不要のUT責務のためSeleniumを起動せずNODE_PURE_FUNCTIONで実行。\n- filtered_row_indexesを文字列ではなくJSON配列へ修正し、filtered対象3行を型付きDefinitionとして保持。",
+      "target_files": "- SeleniumTaste/responsibility_test_plan.js\n- SeleniumTaste/responsibility_aggregate_runner.js\n- SeleniumTaste/package.json\n- data/json/03_tests/responsibilities/responsibility_data_v0_2.json\n- tests/qa/static/responsibility_grid_aggregate_generated_preview_static.test.mjs\n- tests/qa/static/responsibility_grid_aggregate_runner_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- SeleniumTaste/responsibility_test_plan.js\n- SeleniumTaste/responsibility_aggregate_runner.js\n- SeleniumTaste/package.json\n- data/json/03_tests/responsibilities/responsibility_data_v0_2.json\n- tests/qa/static/responsibility_grid_aggregate_generated_preview_static.test.mjs\n- tests/qa/static/responsibility_grid_aggregate_runner_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "Guarantee ID → N TestPatterns → Generated CasesをそのままRunnerへ渡す。Aggregate Expectedはproduction GridAggregatorを使わない単純Oracleで生成し、Actualだけproduction GridAggregator.buildから取得する。ScalarExpectedDefは名前だけのラベルではなくCompareStrategy Registryを通して比較契約として実行する。",
+      "objective": "Grid数値集計責務について、責務JSONから生成された9 Caseを手書きテストへ転記せずActual実装へ投入し、独立Expectedと比較して責務保証を自動実行できる状態にする。",
+      "background": "studio_work_0235でGuarantee統合、ScalarExpectedDef、5 TestPatterns / 9 Generated CasesのPreview生成まで成立した。次段階としてGenerated CaseをRunnerへ直接接続し、Expected生成とActual実装を分離した責務駆動テスト経路を完成させる。",
+      "scope": "- sum filtered/all。\n- カンマ区切り数値解釈。\n- 無効値除外 value/valid_count/ignored_count。\n- aggregate未宣言 has_aggregates=false。\n- ScalarExpectedDef CompareStrategy実行。\n- Pure Function Case分離。",
+      "out_of_scope": "- Selenium/NativeShell UI操作。\n- 検索UIと連動したfilteredRows E2E。\n- sum以外のaggregate operator。\n- 小数Tolerance/丸め契約の追加。",
+      "fixed_name_policy": "Runnerはresponsibility.source_file / interface_nameとGenerated Planを使用し、Expected値や対象fieldをRunnerへハードコードしない。Aggregate実行方式はNODE_PURE_FUNCTION、Case分離方式はPURE_FUNCTION_CASE。",
+      "module_policy": "Expected生成とActual実装を明確に分離する。Preview ServiceはJSON Input + ViewDefから単純OracleでExpectedを導出し、Runnerはproduction GridAggregator.buildをActual取得にのみ使用する。Expected比較はExpectedDef CompareStrategy Registryへ委譲する。",
+      "expected_outputs": "- `npm run test:responsibility:aggregate:plan` でGRID_AGGREGATE / 5 Pattern / 9 Case / Execution Ready YES。\n- `npm run test:responsibility:aggregate` で9 ScalarExpectedDef CaseがPASS。\n- filtered profit value=146/source_count=3。\n- all units value=100/source_count=4。\n- comma_amount=1244.5。\n- dirty_amount value=10/valid_count=1/ignored_count=3。\n- plain_amount has_aggregates=false。",
+      "risk": "Expected側がproduction集計関数を再利用すると同一欠陥を見逃すため禁止。filtered_row_indexesはJSON配列として型を保ち、文字列JSONを暗黙parseする逃げ道を作らない。",
+      "test_points": "- Execution PlanがGRID_AGGREGATEをSearchと誤判定しない。\n- field_definition_file未指定でもAggregate Plan生成可能。\n- 5 Pattern / 9 Case。\n- ActualはGridAggregator.build。\n- ExpectedDefはScalarExpectedDefでExpected Value 1欄。\n- 9 CaseすべてExpected/Actual一致。",
+      "verification_log": "- `node --check SeleniumTaste/responsibility_test_plan.js` PASS。\n- `node SeleniumTaste/responsibility_test_plan.js grid_aggregate --json`：GRID_AGGREGATE / 5 Pattern / 9 Case / Execution Ready YES。\n- `node SeleniumTaste/responsibility_aggregate_runner.js grid_aggregate`：9 ScalarExpectedDef Case ALL PASS。\n- Responsibility関連Focused Static：34/34 PASS。\n- 全Static：359 tests / 350 PASS / 9 FAIL。原本から残る9 FAILのみで、本件差分由来の新規FAILなし。",
+      "user_request": "入力データを見れば答えがすぐ分かる単純Oracle方針を確認したうえで、Generated CaseをRunnerへ食わせたい。",
+      "ai_response": "Aggregate専用Pure Function Runnerを追加し、Generated Caseをproduction GridAggregator.buildへ投入、ScalarExpectedDef CompareStrategyで独立Expectedと比較する。",
+      "latest_user_comment": "GridAggregator.build直接Actualは承認責務の外部観測境界として弱い。grid_aggregateはSeleniumでGridヘッダー表示まで観測したい。",
+      "latest_ai_response": "Pure Function Runnerは内部UT/診断用途として残し、承認責務のActual境界はstudio_work_0237でGridヘッダーSelenium E2Eへ引き上げる。",
+      "context_refs": [
+        "studio_work_0235"
+      ],
+      "follow_up_actions": [],
+      "discussion_history": [
+        {
+          "history_id": "disc_0236_001",
+          "at": "2026-08-29T13:34:00+09:00",
+          "speaker": "user",
+          "topic": "Aggregate Runner接続",
+          "message": "単純な入力データからExpectedが追える方針を確認し、Generated CaseをRunnerへ投入したい。"
+        },
+        {
+          "history_id": "disc_0236_002",
+          "at": "2026-08-29T13:34:00+09:00",
+          "speaker": "assistant",
+          "topic": "Pure Function Runner",
+          "message": "AggregateはUT責務なのでSeleniumを使わず、Generated CaseをGridAggregator.buildへ直接投入しScalarExpectedDefで比較する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0236_001",
+          "at": "2026-08-29T13:34:00+09:00",
+          "decision": "grid_aggregate RunnerはNODE_PURE_FUNCTIONとし、NativeShell/Seleniumを使用しない。",
+          "reason": "責務境界がGridAggregator.buildという純粋関数で外部観測可能であり、UIを経由する必要がないため。"
+        },
+        {
+          "decision_id": "dec_0236_002",
+          "at": "2026-08-29T13:34:00+09:00",
+          "decision": "Expectedは独立Simple Oracle、Actualはproduction GridAggregator.buildから取得する。",
+          "reason": "保証対象とExpected生成ロジックを共有せず、同一欠陥による偽PASSを避けるため。"
+        },
+        {
+          "decision_id": "dec_0236_003",
+          "at": "2026-08-29T13:34:00+09:00",
+          "decision": "ScalarExpectedDefはCompareStrategy Registryを通して実行時比較へ使用する。",
+          "reason": "ExpectedDefを表示ラベルではなくTestPatternの実行契約として機能させるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "change_id": "chg_0236_001",
+          "at": "2026-08-29T13:58:00+09:00",
+          "summary": "承認責務のActual境界としての採用を撤回。Pure Function Runnerは内部UT/デバッグ補助へ位置づけ変更。",
+          "reason": "decision_axis_responsibility_observabilityに照らすと、人間が利用する成果であるGridヘッダー表示まで観測する方が承認単位として適切なため。"
+        }
+      ],
+      "failure_stories": [
+        {
+          "failure_id": "fail_0236_001",
+          "at": "2026-08-29T13:34:00+09:00",
+          "what_failed": "filtered_row_indexesが責務JSON上で文字列 `[0,1,2]` になっており、Preview Serviceは配列として扱わない状態だった。",
+          "excuse": "画面上のtextareaでJSONっぽく見えていたので、型まで確認せず『3行filteredで146』と先走った（笑）。",
+          "lesson": "Generated Definitionの値は見た目ではなく型までStatic/Planで検証する。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0237",
+      "phase": "v0.18.112-grid-aggregate-observable-selenium-e2e",
+      "title": "Grid数値集計責務 Actual境界をGrid Headerへ引上げ / Selenium E2E化",
+      "incident_type": "改善",
+      "category": "grid_aggregate",
+      "priority": "high",
+      "status": "確認中",
+      "follow_up_status": "IN_PROGRESS",
+      "verification_status": "Static確認済み / NativeShell実機確認待ち",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-29T13:58:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-29T13:58:00+09:00",
+      "updated_at": "2026-08-29T13:58:00+09:00",
+      "work_summary": "- grid_aggregateをUT / GridAggregator.build境界からE2E / Grid Header observable boundaryへ引き上げ。\n- Generated 5 TestPatterns / 9 Casesと独立Simple Oracle Expectedは維持し、ActualだけNativeShell/SeleniumからGridヘッダーDOMへ変更。\n- filtered scopeはGenerated filtered_row_indexesからGrid keyFieldを使った標準検索UI preconditionを機械導出し、今回は row_id != agg_004 で[0,1,2]の3行表示を作る。\n- Grid Headerへsource_count / valid_count / ignored_countのsemantic data属性を追加し、tooltip/aria-labelにも有効件数・除外件数を表示して人間/Runner双方から観測可能化。\n- Pure Function Runnerは削除せず内部UT/デバッグ補助へ降格し、承認責務の正式RunnerはSelenium NativeShellとする。",
+      "target_files": "- data/json/03_tests/responsibilities/responsibility_data_v0_2.json\n- defs/frb/frb_grid_aggregate_test_view_def_v0_1.json\n- wwwroot/js/renderers/grid_detail.js\n- SeleniumTaste/responsibility_test_plan.js\n- SeleniumTaste/responsibility_selenium_runner.js\n- SeleniumTaste/responsibility_aggregate_runner.js\n- SeleniumTaste/package.json\n- SeleniumTaste/README.md\n- tests/qa/static/responsibility_grid_aggregate_runner_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- data/json/03_tests/responsibilities/responsibility_data_v0_2.json\n- defs/frb/frb_grid_aggregate_test_view_def_v0_1.json\n- wwwroot/js/renderers/grid_detail.js\n- SeleniumTaste/responsibility_test_plan.js\n- SeleniumTaste/responsibility_selenium_runner.js\n- SeleniumTaste/responsibility_aggregate_runner.js\n- SeleniumTaste/package.json\n- SeleniumTaste/README.md\n- tests/qa/static/responsibility_grid_aggregate_runner_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "承認責務のActualは内部関数戻り値ではなく、人間が利用する外部観測可能な成果から取得する。grid_aggregateではGridAggregator.build直接値ではなくGrid Header表示を責務境界とする。Expectedは従来どおり独立Simple Oracleで導出する。",
+      "objective": "grid_aggregateのGenerated TestPatternを、decision_axis_responsibility_observabilityに沿うGrid Header外部観測境界でE2E保証する。",
+      "background": "studio_work_0236ではGenerated CaseをGridAggregator.buildへ直接投入するPure Function Runnerを承認Runnerとして採用したが、UPDATEでCOMMIT単独を避けた判断軸と同様に、集計も人間が実際に利用するGrid Header表示まで責務境界を伸ばす方がAI承認駆動開発の承認単位として整合することが判明した。",
+      "scope": "- grid_aggregate責務境界のE2E化。\n- Grid Header value/source_count/valid_count/ignored_count/aggregate有無の観測。\n- filtered scopeを作る標準検索UI preconditionの機械導出。\n- ScalarExpectedDef CompareStrategyによるExpected/Actual比較。",
+      "out_of_scope": "- GridAggregator内部アルゴリズムの再実装。\n- sum以外のaggregate operator。\n- 複雑な任意filtered row集合を作る汎用UI precondition生成。\n- Search責務の再保証。",
+      "fixed_name_policy": "Responsibility JSON / Generated Planを正本とし、RunnerへExpected値や対象fieldをハードコードしない。filtered UI preconditionもfiltered_row_indexes + Grid keyField + Test Dataから機械導出する。",
+      "module_policy": "ExpectedはResponsibilityTestPreviewServiceの独立Simple Oracle。ActualはNativeShell上のGrid Header DOMから取得する。GridAggregator.build直接Runnerは内部UT/診断専用とし、承認責務の正式Runnerには使用しない。",
+      "expected_outputs": "- `npm run test:responsibility:aggregate:plan` が LOAD_ONCE -> UI_FILTER_ONCE / SELENIUM_NATIVE_SHELL / Grid Header boundaryを表示。\n- `npm run test:responsibility:aggregate` がNativeShellを起動し、row_id != agg_004で3行filtered状態を作る。\n- Grid Headerから9 ScalarExpectedDef metricを取得しすべてPASSする。\n- aggregate未宣言plain_amountはAggregate Cell不在としてfalseを観測する。",
+      "risk": "- 検索UI preconditionが作れないfiltered row集合へ拡張した場合はPhase 1導出ルールでは実行不能。\n- formatValueの表示形式変更時はScalar表示値Parserの見直しが必要。",
+      "test_points": "- Plan 5 Pattern / 9 Case / UI_FILTER_ONCE / Selenium。\n- filtered precondition indexes=[0,1,2]をUI Grid Actual indexesで確認。\n- profit value=146/source_count=3。\n- units value=100/source_count=4。\n- comma_amount value=1244.5。\n- dirty_amount value=10/valid_count=1/ignored_count=3。\n- plain_amount Aggregate Cellなし=false。\n- Grid Header tooltip/aria-labelに有効件数・除外件数を持つ。",
+      "verification_log": "- `node --check SeleniumTaste/responsibility_test_plan.js` PASS。\n- `node --check SeleniumTaste/responsibility_selenium_runner.js` PASS。\n- `node SeleniumTaste/responsibility_test_plan.js grid_aggregate --json`：GRID_AGGREGATE / 5 Pattern / 9 Case / LOAD_ONCE -> UI_FILTER_ONCE / SELENIUM_NATIVE_SHELL / Filter=row_id:not_equals / Execution Ready YES。\n- Aggregate/Guarantee Focused Static：14/14 PASS。\n- 全Static Before：359 tests / 350 PASS / 9 FAIL。After：362 tests / 353 PASS / 9 FAIL。既存9 FAILのみで本件新規FAILなし。\n- NativeShell実機E2Eはユーザー環境で確認待ち。",
+      "user_request": "GridAggregator.buildをActualにするのは責務観測可能性の判断軸とズレるため、Pure Function Runnerは別扱いにし、grid_aggregate承認責務はSeleniumでGrid Header表示まで観測したい。",
+      "ai_response": "grid_aggregate責務境界をGrid Headerへ引き上げ、Generated CaseをNativeShell/Seleniumへ接続する。Pure Function Runnerは内部UT/デバッグ補助へ位置づけを変更する。",
+      "latest_user_comment": "うぃーーーでは、よろしくお願いします。",
+      "latest_ai_response": "Grid Header observable boundaryへのSelenium E2E化を実装。実機では npm run test:responsibility:aggregate で確認する。",
+      "context_refs": [
+        "studio_work_0235",
+        "studio_work_0236",
+        "decision_axis_responsibility_observability"
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0237_001",
+          "status": "PENDING",
+          "action": "Windows NativeShell実機で `npm run test:responsibility:aggregate` を実行し、9 Generated Case ALL PASSを確認する。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "disc_0237_001",
+          "at": "2026-08-29T13:55:00+09:00",
+          "speaker": "user",
+          "topic": "Aggregate Actual境界",
+          "message": "GridAggregator.buildをActualにする話はズレている。責務の成果は外部観測可能という判断軸に沿い、Seleniumで実画面を使いたい。"
+        },
+        {
+          "history_id": "disc_0237_002",
+          "at": "2026-08-29T13:56:00+09:00",
+          "speaker": "assistant",
+          "topic": "責務境界再整理",
+          "message": "Pure Function Runnerは内部UTとして残し、承認責務grid_aggregateのActual境界をGrid Header表示まで引き上げる。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0237_001",
+          "at": "2026-08-29T13:58:00+09:00",
+          "decision": "grid_aggregateの承認責務Actual境界はGrid Header表示とし、SELENIUM_NATIVE_SHELLで観測する。",
+          "reason": "内部関数戻り値より、人間が利用する成果まで含む外部観測可能境界の方がdecision_axis_responsibility_observabilityに整合するため。"
+        },
+        {
+          "decision_id": "dec_0237_002",
+          "at": "2026-08-29T13:58:00+09:00",
+          "decision": "Pure Function Runnerは内部UT/デバッグ補助として残すが、承認責務の正式Runnerにはしない。",
+          "reason": "内部ロジックの高速診断価値は残しつつ、承認対象と内部実装保証を混同しないため。"
+        },
+        {
+          "decision_id": "dec_0237_003",
+          "at": "2026-08-29T13:58:00+09:00",
+          "decision": "filtered scope用UI状態はGenerated filtered_row_indexesから単純に導出可能な検索条件を生成する。",
+          "reason": "Runnerへ特定Expectedや検索条件を二重定義せず、Canonical TestPatternから実行状態まで導出するため。"
+        }
+      ],
+      "change_history": [],
+      "failure_stories": [
+        {
+          "failure_id": "fail_0237_001",
+          "at": "2026-08-29T13:58:00+09:00",
+          "what_failed": "UPDATEで「内部COMMITではなく外部観測境界まで責務を伸ばす」と決めた直後、AggregateではまたGridAggregator.buildという内部関数境界へ潜ってしまった。",
+          "excuse": "Pure Function + Simple Oracleが綺麗すぎて、テストとしての美しさに釣られて承認責務の観測境界を忘れた（笑）。",
+          "lesson": "Expected側を単純にすることと、Actual側を内部関数へ近づけることは別問題。承認責務のActualは常に人間が利用する外部成果から取れるかを先に確認する。"
+        }
+      ]
     }
   ],
   "review_notes": [

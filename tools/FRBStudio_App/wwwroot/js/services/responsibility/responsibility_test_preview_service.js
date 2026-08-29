@@ -235,6 +235,25 @@ function responsibilityPreviewSearchPatternFamily(operatorSetId, rawFamily) {
   return String(rawFamily ?? 'unknown');
 }
 
+
+function responsibilityPreviewAggregateToFiniteNumber(value) {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+  if (typeof value !== 'string') return null;
+  const text = value.trim();
+  if (!text) return null;
+  const parsed = Number(text.replace(/,/g, ''));
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function responsibilityPreviewAggregateMetrics(metricSet) {
+  const id = String(metricSet ?? '').trim().toUpperCase();
+  if (id === 'VALUE') return ['value'];
+  if (id === 'VALUE_SOURCE_COUNT') return ['value', 'source_count'];
+  if (id === 'VALUE_VALID_IGNORED') return ['value', 'valid_count', 'ignored_count'];
+  if (id === 'HAS_AGGREGATES') return ['has_aggregates'];
+  throw new Error(`Unsupported aggregate expected_metric_set: ${metricSet}`);
+}
+
 class ResponsibilityTestPreviewService {
   constructor({ registry=null, fieldContractResolver=null, valueValidator=null }={}) {
     this.registry = registry;
@@ -247,15 +266,20 @@ class ResponsibilityTestPreviewService {
     const setup = (responsibility?.test_setup ?? []).find(item => item?.setup_id) ?? null;
     const definitions = (responsibility?.test_pattern_definitions ?? []).filter(item => item?.enabled !== false);
     const searchDefinitions = definitions.filter(item => String(item?.generation_mode ?? '') === 'SEARCH_OPERATOR_MATRIX');
-    const mutationDefinitions = definitions.filter(item => String(item?.generation_mode ?? '') !== 'SEARCH_OPERATOR_MATRIX');
+    const aggregateDefinitions = definitions.filter(item => String(item?.generation_mode ?? '') === 'AGGREGATE_SCALAR_CASE');
+    const mutationDefinitions = definitions.filter(item => {
+      const mode = String(item?.generation_mode ?? '');
+      return mode !== 'SEARCH_OPERATOR_MATRIX' && mode !== 'AGGREGATE_SCALAR_CASE';
+    });
     const config = rootDocument?.test_generation_config ?? {};
     const issues = [];
     const guaranteeIds = new Set((responsibility?.guarantees ?? []).map(item => String(item?.guarantee_id ?? '').trim()).filter(Boolean));
 
     if (!setup) issues.push({ code: 'TEST_SETUP_REQUIRED', message: 'test_setup is required.' });
     if (!definitions.length) issues.push({ code: 'TEST_PATTERN_DEFINITION_REQUIRED', message: 'enabled test_pattern_definitions are required.' });
-    if (!effectiveRegistry) issues.push({ code: 'VALIDATION_TYPE_REGISTRY_REQUIRED', message: 'Validation Type Registry is required.' });
-    if (!this.fieldContractResolver) issues.push({ code: 'FIELD_CONTRACT_RESOLVER_REQUIRED', message: 'FieldContractResolver is required.' });
+    const needsFieldContract = mutationDefinitions.length > 0 || searchDefinitions.length > 0;
+    if (needsFieldContract && !effectiveRegistry) issues.push({ code: 'VALIDATION_TYPE_REGISTRY_REQUIRED', message: 'Validation Type Registry is required.' });
+    if (needsFieldContract && !this.fieldContractResolver) issues.push({ code: 'FIELD_CONTRACT_RESOLVER_REQUIRED', message: 'FieldContractResolver is required.' });
     if (mutationDefinitions.length && !this.valueValidator) issues.push({ code: 'VALUE_VALIDATOR_REQUIRED', message: 'DefinitionValueValidator is required.' });
     if (searchDefinitions.length && !searchOperatorRegistry) issues.push({ code: 'SEARCH_OPERATOR_REGISTRY_REQUIRED', message: 'Search Operator Registry is required.' });
 
@@ -304,6 +328,15 @@ class ResponsibilityTestPreviewService {
           issues.push({ code: 'SEARCH_PATTERN_DERIVATION_FAILED', message: String(err?.message ?? err) });
         }
       }
+
+
+      if (aggregateDefinitions.length) {
+        try {
+          patterns.push(...this.#deriveAggregatePatterns({ definitions: aggregateDefinitions, setup, inputData, viewDef }));
+        } catch (err) {
+          issues.push({ code: 'AGGREGATE_PATTERN_DERIVATION_FAILED', message: String(err?.message ?? err) });
+        }
+      }
     }
 
     const mutationCount = patterns.reduce((sum, pattern) => sum + (pattern.mutations?.length ?? 0), 0);
@@ -319,7 +352,7 @@ class ResponsibilityTestPreviewService {
       responsibility_cd: String(responsibility?.responsibility_cd ?? ''),
       setup_id: String(setup?.setup_id ?? ''),
       input_approval_status: approvalStatus || 'unknown',
-      expected_def_type: String(definitions?.[0]?.expected_def_type ?? ''),
+      expected_def_type: String(patterns?.[0]?.expected_def_type ?? definitions?.[0]?.expected_def_type ?? ''),
       test_patterns: patterns,
       issues,
       summary: {
@@ -331,6 +364,105 @@ class ResponsibilityTestPreviewService {
         expected_unexpected_diff_count: 0
       }
     };
+  }
+
+  #deriveAggregatePatterns({ definitions, setup, inputData, viewDef }) {
+    return definitions.map(definition => {
+      const dataPath = String(definition?.target_data_path ?? '').trim();
+      const rows = responsibilityPreviewGetByDataPath(inputData, dataPath);
+      if (!Array.isArray(rows) || rows.length === 0) throw new Error(`Aggregate Target DataPath must resolve to a non-empty array: ${dataPath}`);
+      const section = responsibilityPreviewFindSection(viewDef, dataPath);
+      if (!section) throw new Error(`Aggregate ViewDef section not found for DataPath: ${dataPath}`);
+
+      const fieldName = String(definition?.target_field ?? '').trim();
+      const field = (section?.fields ?? []).find(item => String(item?.field ?? '').trim() === fieldName);
+      if (!field) throw new Error(`Aggregate target field not found in ViewDef: ${dataPath}.${fieldName}`);
+      const keyField = String(section?.keyField ?? '').trim();
+      const rawAggregate = field?.grid?.aggregate;
+      const aggregate = rawAggregate && typeof rawAggregate === 'object' && !Array.isArray(rawAggregate)
+        && String(field?.type ?? '').toLowerCase() === 'number'
+        && String(rawAggregate?.operator ?? '').trim().toLowerCase() === 'sum'
+        ? {
+            operator: 'sum',
+            scope: ['all', 'filtered'].includes(String(rawAggregate?.scope ?? 'filtered').trim().toLowerCase())
+              ? String(rawAggregate?.scope ?? 'filtered').trim().toLowerCase()
+              : 'filtered',
+            label: String(rawAggregate?.label ?? '')
+          }
+        : null;
+
+      const requestedFilteredIndexes = Array.isArray(definition?.filtered_row_indexes)
+        ? definition.filtered_row_indexes.filter(index => Number.isInteger(index) && index >= 0 && index < rows.length)
+        : [];
+      const selectedIndexes = aggregate?.scope === 'filtered' ? requestedFilteredIndexes : rows.map((_, index) => index);
+      const selectedSet = new Set(selectedIndexes);
+      const selectedRows = selectedIndexes.map(index => rows[index]);
+      const snapshot = rows.map((row, index) => ({
+        index,
+        row_id: keyField && row?.[keyField] != null ? String(row[keyField]) : String(index),
+        selected: selectedSet.has(index),
+        value: responsibilityPreviewClone(row?.[fieldName])
+      }));
+
+      let aggregateResult = { has_aggregates: false };
+      if (aggregate) {
+        let value = 0;
+        let validCount = 0;
+        let ignoredCount = 0;
+        for (const row of selectedRows) {
+          const numeric = responsibilityPreviewAggregateToFiniteNumber(row?.[fieldName]);
+          if (numeric == null) ignoredCount += 1;
+          else { value += numeric; validCount += 1; }
+        }
+        aggregateResult = {
+          has_aggregates: true,
+          value,
+          source_count: selectedRows.length,
+          valid_count: validCount,
+          ignored_count: ignoredCount
+        };
+      }
+
+      const metrics = responsibilityPreviewAggregateMetrics(definition?.expected_metric_set);
+      const generatedCases = metrics.map(metric => {
+        const expectedValue = metric === 'has_aggregates' ? aggregateResult.has_aggregates : aggregateResult[metric];
+        if (expectedValue === undefined) throw new Error(`Aggregate Expected metric could not be derived: ${fieldName}.${metric}`);
+        return {
+          case_id: `${String(definition?.pattern_def_id ?? 'aggregate')}_${metric}`,
+          target_data_path: dataPath,
+          target_field: fieldName,
+          metric,
+          actual_path: metric === 'has_aggregates' ? '$.has_aggregates' : `$.byField.${fieldName}.${metric}`,
+          input_snapshot: responsibilityPreviewClone(snapshot),
+          aggregate_declaration: responsibilityPreviewClone(rawAggregate ?? null),
+          filtered_row_indexes: responsibilityPreviewClone(requestedFilteredIndexes),
+          expected_def_type: 'ScalarExpectedDef',
+          expected: { value: responsibilityPreviewClone(expectedValue) },
+          guarantee_id: String(definition?.guarantee_id ?? ''),
+          source_definition_id: String(definition?.pattern_def_id ?? '')
+        };
+      });
+
+      return {
+        pattern_id: String(definition?.pattern_def_id ?? ''),
+        pattern_cd: String(definition?.pattern_cd ?? 'GRID_AGGREGATE'),
+        pattern_role: String(definition?.pattern_role ?? 'STANDARD'),
+        generation_mode: 'AGGREGATE_SCALAR_CASE',
+        target_data_path: dataPath,
+        target_field: fieldName,
+        aggregate_operator: aggregate?.operator ?? '',
+        aggregate_scope: aggregate?.scope ?? '',
+        expected_metric_set: String(definition?.expected_metric_set ?? ''),
+        expected_def_type: 'ScalarExpectedDef',
+        guarantee_id: String(definition?.guarantee_id ?? ''),
+        generated_cases: generatedCases,
+        source: {
+          input_file: String(setup?.input_file ?? ''),
+          view_def_file: String(setup?.view_def_file ?? ''),
+          input_approval_status: String(setup?.input_approval_status ?? '')
+        }
+      };
+    });
   }
 
   #deriveSearchPatterns({ definitions, setup, config, inputData, viewDef, fieldDefinitionDocument, registry, searchOperatorRegistry }) {

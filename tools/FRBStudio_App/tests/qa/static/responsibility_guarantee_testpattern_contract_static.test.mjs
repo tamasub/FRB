@@ -48,3 +48,13 @@ test('Responsibility ViewDef no longer exposes obsolete Guarantee-level Expected
   assert.equal(Object.hasOwn(guaranteeGrid.defaultItem, 'expected_def_type'), false);
   assert.equal(Object.hasOwn(guaranteeGrid.defaultItem, 'test_pattern_seed'), false);
 });
+
+
+test('GRID_AGGREGATE also uses one Guarantee ID for its standard TestPattern set', () => {
+  const document = readJson('data/json/03_tests/responsibilities/responsibility_data_v0_2.json');
+  const responsibility = document.responsibilities.find(item => item.responsibility_cd === 'grid_aggregate');
+  assert.ok(responsibility);
+  assert.deepEqual(responsibility.guarantees.map(item => item.guarantee_id), ['grid_aggregate_g001']);
+  assert.ok(responsibility.test_pattern_definitions.length > 0);
+  assert.ok(responsibility.test_pattern_definitions.every(item => item.guarantee_id === 'grid_aggregate_g001'));
+});

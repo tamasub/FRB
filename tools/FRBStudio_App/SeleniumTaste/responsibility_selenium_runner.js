@@ -10,6 +10,7 @@ const {
   error,
 } = require('selenium-webdriver');
 const edge = require('selenium-webdriver/edge');
+const { pathToFileURL } = require('node:url');
 
 const {
   APP_ROOT,
@@ -17,6 +18,7 @@ const {
   assertExecutionApproved,
   diffJson,
   formatPlanSummary,
+  getByActualPath,
 } = require('./responsibility_test_plan');
 
 const NATIVE_SHELL = process.env.FRB_NATIVE_SHELL
@@ -492,6 +494,125 @@ async function runSearchResponsibilitySelenium(plan) {
   }
 }
 
+async function loadExpectedCompareStrategies() {
+  const modulePath = path.resolve(
+    APP_ROOT,
+    'tests/responsibilities/lib/responsibility_expected_compare_strategies.mjs',
+  );
+  assertFileExists(modulePath, 'ExpectedDef CompareStrategy');
+  return import(pathToFileURL(modulePath).href);
+}
+
+function parseAggregateDisplayValue(text) {
+  const normalized = String(text ?? '').trim().replace(/,/g, '');
+  if (!normalized) return null;
+  const value = Number(normalized);
+  return Number.isFinite(value) ? value : normalized;
+}
+
+async function applyAggregateUiFilter(driver, filterPlan) {
+  if (!filterPlan?.required) {
+    console.log('Aggregate UI Filter: NONE');
+    return;
+  }
+  const generatedCase = {
+    target_field: filterPlan.field,
+    operator_id: filterPlan.operator_id,
+    criteria: filterPlan.criteria ?? {},
+  };
+  console.log(`Aggregate UI Filter: ${filterPlan.field} / ${filterPlan.operator_id} / ${JSON.stringify(filterPlan.criteria ?? {})}`);
+  await setSearchCriteria(driver, generatedCase);
+  const searchButton = await driver.findElement(By.id('searchBtn'));
+  await searchButton.click();
+  await waitForGridExactCount(driver, Number(filterPlan.expected_count ?? 0));
+  const actualRows = await readSearchGridResult(driver);
+  assertPass(
+    arraysEqual(actualRows.indexes, filterPlan.expected_indexes ?? []),
+    'Aggregate Precondition / Filtered Indexes',
+    `Expected=${JSON.stringify(filterPlan.expected_indexes ?? [])}, Actual=${JSON.stringify(actualRows.indexes)}`,
+  );
+}
+
+async function readAggregateMetricFromUi(driver, generatedCase) {
+  const fieldName = String(generatedCase?.target_field ?? '');
+  const metric = String(generatedCase?.metric ?? '');
+  const selector = `.grid-aggregate-cell[data-aggregate-field="${fieldName}"]`;
+  const cells = await driver.findElements(By.css(selector));
+
+  if (metric === 'has_aggregates') return cells.length > 0;
+  if (cells.length !== 1) {
+    throw new Error(`Aggregate UI cell not found: field=${fieldName}, metric=${metric}, count=${cells.length}`);
+  }
+
+  const cell = cells[0];
+  if (metric === 'value') {
+    const valueElement = await cell.findElement(By.css('.grid-aggregate-value'));
+    return parseAggregateDisplayValue(await valueElement.getText());
+  }
+  if (metric === 'source_count') return Number(await cell.getAttribute('data-aggregate-source-count'));
+  if (metric === 'valid_count') return Number(await cell.getAttribute('data-aggregate-valid-count'));
+  if (metric === 'ignored_count') return Number(await cell.getAttribute('data-aggregate-ignored-count'));
+  throw new Error(`Unsupported aggregate UI metric: ${metric}`);
+}
+
+async function compareAggregateCaseFromUi({ driver, generatedCase, buildExpectedChecks }) {
+  const expectedDef = String(generatedCase?.expected_def_type ?? '');
+  if (expectedDef !== 'ScalarExpectedDef') {
+    throw new Error(`GRID_AGGREGATE UI requires ScalarExpectedDef: ${generatedCase?.case_id ?? ''} / ${expectedDef}`);
+  }
+  const actualValue = await readAggregateMetricFromUi(driver, generatedCase);
+  const comparePattern = {
+    test_pattern_id: generatedCase.case_id,
+    expected_def_type: expectedDef,
+    expected: generatedCase.expected,
+  };
+  const checks = buildExpectedChecks(comparePattern, { value: actualValue });
+  if (checks.length !== 1) throw new Error(`ScalarExpectedDef must produce one check: ${generatedCase.case_id}`);
+  const check = checks[0];
+  const label = `${expectedDef} / Grid Header ${generatedCase.target_field}.${generatedCase.metric}`;
+  assertPass(
+    check.pass === true,
+    label,
+    `${check.message}; Expected=${JSON.stringify(check.expected)}, Actual=${JSON.stringify(check.actual)}`,
+  );
+}
+
+async function runAggregateResponsibilitySelenium(plan) {
+  assertExecutionApproved(plan);
+  if (!(plan.aggregate_cases ?? []).length) throw new Error('No Generated Aggregate Cases.');
+  const unsupported = (plan.patterns ?? []).filter(pattern => pattern.ui_target?.mode !== 'MAIN_GRID');
+  if (unsupported.length) {
+    throw new Error(`Aggregate Selenium currently supports MAIN_GRID only: ${unsupported.map(item => `${item.pattern_id}:${item.ui_target?.mode}`).join(', ')}`);
+  }
+
+  let driver = null;
+  try {
+    driver = await createDriver();
+    await sleep(2500);
+    await loadDataByName(driver, plan.setup.input_file.replace(/^data\/json\//, ''));
+
+    const targetPath = String(plan.patterns?.[0]?.target_data_path ?? '');
+    const rows = getByActualPath(plan.baseline_document, targetPath);
+    const baselineCount = Array.isArray(rows) ? rows.length : 0;
+    await waitForGridExactCount(driver, baselineCount);
+
+    await applyAggregateUiFilter(driver, plan.aggregate_ui_filter);
+    const { buildExpectedChecks } = await loadExpectedCompareStrategies();
+
+    for (const pattern of plan.patterns ?? []) {
+      console.log(`Aggregate Pattern: ${pattern.pattern_id} / field=${pattern.target_field} / scope=${pattern.aggregate_scope || 'none'}`);
+      for (const generatedCase of pattern.generated_cases ?? []) {
+        await compareAggregateCaseFromUi({ driver, generatedCase, buildExpectedChecks });
+      }
+    }
+
+    console.log(`Responsibility E2E: ${plan.responsibility_cd} ALL PASS`);
+    return { plan, executed: true };
+  } finally {
+    if (driver) await driver.quit().catch(() => {});
+  }
+}
+
 function createWorkingCopy(plan) {
   const sourcePath = path.resolve(APP_ROOT, plan.setup.input_file);
   assertFileExists(sourcePath, 'Approved Test Input JSON');
@@ -530,6 +651,9 @@ async function runResponsibilitySelenium({ responsibilityCd='data_update_persist
   const plan = buildResponsibilityExecutionPlan({ responsibilityCd });
   console.log(formatPlanSummary(plan));
   if (planOnly) return { plan, executed: false };
+
+  // Aggregate responsibility observes the externally visible Grid Header through NativeShell/Selenium.
+  if (plan.execution_kind === 'GRID_AGGREGATE') return runAggregateResponsibilitySelenium(plan);
 
   // Search responsibility has a different lifecycle: LOAD_ONCE -> SEARCH/VERIFY -> RESET_AFTER_EACH.
   if (plan.execution_kind === 'SEARCH_FILTER') return runSearchResponsibilitySelenium(plan);
@@ -594,4 +718,7 @@ module.exports = {
   openGridRow,
   arraysEqual,
   readSearchGridResult,
+  parseAggregateDisplayValue,
+  readAggregateMetricFromUi,
+  runAggregateResponsibilitySelenium,
 };

@@ -1,0 +1,107 @@
+{
+  "app": {
+    "name": "FRB Studio / JSON Object Studio",
+    "version": "grid-aggregate-test-view-v0.1"
+  },
+  "currentDataDisplay": {
+    "titlePath": "$.title",
+    "subtitlePath": "$.purpose",
+    "showDataPath": true
+  },
+  "views": [
+    {
+      "id": "frb_grid_aggregate_test_v0_1",
+      "caption": "Grid Aggregate Test Fixture",
+      "sections": [
+        {
+          "id": "aggregate_rows",
+          "caption": "Aggregate Rows",
+          "type": "grid",
+          "dataPath": "$.aggregate_rows",
+          "keyField": "row_id",
+          "fields": [
+            {
+              "field": "row_id",
+              "caption": "Row ID",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": true,
+                "width": 130
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "profit",
+              "caption": "Profit / filtered",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 150,
+                "aggregate": {
+                  "operator": "sum",
+                  "scope": "filtered",
+                  "label": "表示合計"
+                }
+              }
+            },
+            {
+              "field": "units",
+              "caption": "Units / all",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 130,
+                "aggregate": {
+                  "operator": "sum",
+                  "scope": "all",
+                  "label": "全件合計"
+                }
+              }
+            },
+            {
+              "field": "comma_amount",
+              "caption": "Comma Numeric",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 160,
+                "aggregate": {
+                  "operator": "sum",
+                  "scope": "all",
+                  "label": "全件合計"
+                }
+              }
+            },
+            {
+              "field": "dirty_amount",
+              "caption": "Invalid Exclusion",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 170,
+                "aggregate": {
+                  "operator": "sum",
+                  "scope": "all",
+                  "label": "全件合計"
+                }
+              }
+            },
+            {
+              "field": "plain_amount",
+              "caption": "No Aggregate",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 150
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

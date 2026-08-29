@@ -108,6 +108,7 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
       if (!setup) throw new Error('test_setup がありません。');
       const registryPath = String(this.componentOptions.registryDataPath ?? 'config/validation_type_registry_v0_1.json');
       const needsSearchOperatorRegistry = definitions.some(item => String(item?.generation_mode ?? '') === 'SEARCH_OPERATOR_MATRIX');
+      const needsFieldContracts = definitions.some(item => String(item?.generation_mode ?? '') !== 'AGGREGATE_SCALAR_CASE');
       const searchOperatorRegistryPath = String(
         setup?.search_operator_registry_file ??
         this.componentOptions.searchOperatorRegistryDataPath ??
@@ -116,8 +117,8 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
       const [inputData, viewDef, fieldDefinitionDocument, registry, searchOperatorRegistry] = await Promise.all([
         responsibilityPreviewFetchJson(setup.input_file),
         responsibilityPreviewFetchJson(setup.view_def_file),
-        responsibilityPreviewFetchJson(setup.field_definition_file),
-        responsibilityPreviewFetchJson(registryPath),
+        needsFieldContracts ? responsibilityPreviewFetchJson(setup.field_definition_file) : Promise.resolve({ field_definitions: [] }),
+        needsFieldContracts ? responsibilityPreviewFetchJson(registryPath) : Promise.resolve(null),
         needsSearchOperatorRegistry ? responsibilityPreviewFetchJson(searchOperatorRegistryPath) : Promise.resolve(null)
       ]);
       if (token !== this._token || !this.mounted) return;
@@ -145,7 +146,28 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
   buildRows() {
     if (this._state !== 'ready' || !this._result) return [];
     const patterns = this._result.test_patterns ?? [];
-    const searchMode = patterns.some(pattern => Array.isArray(pattern?.generated_cases));
+    const aggregateMode = patterns.some(pattern => String(pattern?.generation_mode ?? '') === 'AGGREGATE_SCALAR_CASE');
+    const searchMode = patterns.some(pattern => String(pattern?.generation_mode ?? '') === 'SEARCH_OPERATOR_MATRIX');
+    if (aggregateMode) {
+      return patterns.map(pattern => ({
+        pattern: pattern.pattern_id,
+        role: pattern.pattern_role,
+        target_field: pattern.target_field,
+        aggregate: pattern.aggregate_operator ? `${pattern.aggregate_operator} / ${pattern.aggregate_scope}` : 'NO AGGREGATE',
+        case_count: pattern.generated_cases?.length ?? 0,
+        expected_def: pattern.expected_def_type,
+        generated_cases: responsibilityPreviewDisplay((pattern.generated_cases ?? []).map(item => ({
+          case_id: item.case_id,
+          metric: item.metric,
+          actual_path: item.actual_path,
+          input_snapshot: item.input_snapshot,
+          aggregate_declaration: item.aggregate_declaration,
+          filtered_row_indexes: item.filtered_row_indexes,
+          expected: item.expected
+        }))),
+        source: `${pattern.source?.input_approval_status ?? ''} / ${pattern.source?.input_file ?? ''}`
+      }));
+    }
     if (searchMode) {
       return patterns.map(pattern => ({
         pattern: pattern.pattern_id,
@@ -177,7 +199,20 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
   }
 
   buildColumns(rows=[]) {
-    const searchMode = rows.some(row => Object.prototype.hasOwnProperty.call(row ?? {}, 'generated_cases'));
+    const aggregateMode = rows.some(row => Object.prototype.hasOwnProperty.call(row ?? {}, 'aggregate'));
+    const searchMode = !aggregateMode && rows.some(row => Object.prototype.hasOwnProperty.call(row ?? {}, 'generated_cases'));
+    if (aggregateMode) {
+      return [
+        { field: 'pattern', caption: 'TestPattern' },
+        { field: 'role', caption: 'Role' },
+        { field: 'target_field', caption: 'Target Field' },
+        { field: 'aggregate', caption: 'Aggregate' },
+        { field: 'case_count', caption: 'Cases' },
+        { field: 'expected_def', caption: 'ExpectedDef' },
+        { field: 'generated_cases', caption: 'Generated Cases / Input Snapshot / Metric / Expected' },
+        { field: 'source', caption: 'Source' }
+      ];
+    }
     if (searchMode) {
       return [
         { field: 'pattern', caption: 'TestPattern' },
