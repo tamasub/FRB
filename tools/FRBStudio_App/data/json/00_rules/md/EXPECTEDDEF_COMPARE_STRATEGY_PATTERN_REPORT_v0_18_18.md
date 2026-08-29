@@ -18,7 +18,7 @@ TestPattern.expected_def_type
         ↓
 CompareStrategy Resolver
         ↓
-ArrayEquals / CsvEquals / JsonEquals / MarkdownEquals / ImageEquals
+ArrayEquals / ValueEquals / CsvEquals / JsonEquals / MarkdownEquals / ImageEquals
         ↓
 strategy.compare(...)
 ```
@@ -73,6 +73,7 @@ YYYY-MM-DDTHH:mm:ss.SSS+09:00
 
 ```text
 ArrayEquals
+ValueEquals
 JsonEquals
 CsvEquals
 MarkdownEquals
@@ -114,3 +115,20 @@ exit code: 1
 - `ExpectedDef` はEditor表示戦略キーであると同時に、mjs側比較戦略キーとして扱う。
 - UTC `Z` 時刻は人間が見る証跡では混乱を生むため、少なくともResponsibility Expected runnerの出力はJST `+09:00` へ寄せる。
 - 既存の過去証跡JSONは履歴として残し、今回再生成したactual/diffのみ更新する。
+
+
+### ValueEquals追加メモ（2026-08-29）
+
+`ScalarExpectedDef` の `expected.value` はJSON構造ではなく単一Scalar値を比較するため、
+CompareStrategyを `JsonEquals` から `ValueEquals` へ変更した。
+
+```text
+ScalarExpectedDef
+  ↓
+expected.value
+  ↓
+ValueEquals
+```
+
+`ValueEquals` は `string / number / boolean / null` を対象に型を保った単純一致で比較し、
+object / array は対象外とする。単一値を「JSONとして比較する」意味のズレを避けるための整理である。

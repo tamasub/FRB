@@ -1,0 +1,7 @@
+{
+  "schema_version": "selenium_runner_settings_v0_1",
+  "timing": {
+    "after_value_input_ms": 1800
+  },
+  "notes": "Responsibility Driven Selenium E2Eの見やすさ調整。after_value_input_msは値入力後の待機時間(ms)。0で最速、1000で1秒待機。"
+}

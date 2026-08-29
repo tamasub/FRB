@@ -45,6 +45,20 @@ export const CompareStrategies = Object.freeze({
     }
   }),
 
+  ValueEquals: Object.freeze({
+    strategy_id: 'ValueEquals',
+    compare({ expected, actual, key }) {
+      const isScalar = (value) => value === null
+        || typeof value === 'string'
+        || typeof value === 'number'
+        || typeof value === 'boolean';
+      const pass = isScalar(expected) && isScalar(actual) && Object.is(actual, expected);
+      return pass
+        ? ok()
+        : ng(`${key} failed by ValueEquals: expected ${valueLabel(expected)}, actual ${valueLabel(actual)}`);
+    }
+  }),
+
   CsvEquals: Object.freeze({
     strategy_id: 'CsvEquals',
     compare({ expected, actual, key }) {
@@ -106,7 +120,7 @@ export const ExpectedDefCompareStrategyRegistry = Object.freeze({
     expected_def_type: 'ScalarExpectedDef',
     purpose: '単一Scalar期待値。計算値・件数・boolean等のExpected Valueを比較する。',
     fields: Object.freeze({
-      value: 'JsonEquals'
+      value: 'ValueEquals'
     })
   }),
 

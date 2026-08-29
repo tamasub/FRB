@@ -20,6 +20,10 @@ const {
   formatPlanSummary,
   getByActualPath,
 } = require('./responsibility_test_plan');
+const {
+  pauseAfterValueInput,
+  printSeleniumRunnerTiming,
+} = require('./selenium_runner_settings');
 
 const NATIVE_SHELL = process.env.FRB_NATIVE_SHELL
   || path.join(APP_ROOT, 'NativeShell', '_publish', 'FRBStudio.NativeShell.exe');
@@ -70,6 +74,7 @@ async function createDriver() {
     console.log('EdgeDriver: ローカル配置なし（Selenium Manager / PATH に委譲）');
   }
   console.log(`NativeShell: ${NATIVE_SHELL}`);
+  printSeleniumRunnerTiming();
   return builder.build();
 }
 
@@ -186,6 +191,7 @@ async function setControlValue(driver, control, value) {
     element.dispatchEvent(new Event('input', { bubbles: true }));
     element.dispatchEvent(new Event('change', { bubbles: true }));
   }, control, normalizeUiValue(value));
+  await pauseAfterValueInput();
 }
 
 async function editDetailRow(driver, rowIndex, mutations, labelPrefix='Main') {

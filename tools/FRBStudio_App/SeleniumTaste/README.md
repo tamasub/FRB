@@ -63,3 +63,24 @@ npm run test:responsibility:aggregate
 ```powershell
 npm run test:responsibility:aggregate:internal
 ```
+
+
+## Selenium 操作速度の調整
+
+Responsibility Driven E2E では、値を入力した直後の待機時間を次の設定で変更できる。
+
+```text
+SeleniumTaste/config/selenium_runner_settings_v0_1.json
+```
+
+```json
+{
+  "timing": {
+    "after_value_input_ms": 400
+  }
+}
+```
+
+`after_value_input_ms` はミリ秒。`0` にすると待機なし、`1000` にすると値入力後に1秒待機する。
+検索Criteria入力やData Editorの値変更など、`setControlValue` を通る入力操作に共通適用する。
+テスト開始時に現在値を `Selenium Timing: after_value_input_ms=...` と表示する。

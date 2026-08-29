@@ -12,7 +12,7 @@
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 225,
+  "items_count": 226,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -33891,15 +33891,15 @@
       "incident_type": "改善",
       "category": "grid_aggregate",
       "priority": "high",
-      "status": "確認中",
-      "follow_up_status": "IN_PROGRESS",
-      "verification_status": "Static確認済み / NativeShell実機確認待ち",
+      "status": "完了",
+      "follow_up_status": "DONE",
+      "verification_status": "NativeShell実機確認済み / ALL PASS",
       "context_def_status": "reviewed",
       "context_def_updated_at": "2026-08-29T13:58:00+09:00",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-29T13:58:00+09:00",
-      "updated_at": "2026-08-29T13:58:00+09:00",
+      "updated_at": "2026-08-29T13:59:00+09:00",
       "work_summary": "- grid_aggregateをUT / GridAggregator.build境界からE2E / Grid Header observable boundaryへ引き上げ。\n- Generated 5 TestPatterns / 9 Casesと独立Simple Oracle Expectedは維持し、ActualだけNativeShell/SeleniumからGridヘッダーDOMへ変更。\n- filtered scopeはGenerated filtered_row_indexesからGrid keyFieldを使った標準検索UI preconditionを機械導出し、今回は row_id != agg_004 で[0,1,2]の3行表示を作る。\n- Grid Headerへsource_count / valid_count / ignored_countのsemantic data属性を追加し、tooltip/aria-labelにも有効件数・除外件数を表示して人間/Runner双方から観測可能化。\n- Pure Function Runnerは削除せず内部UT/デバッグ補助へ降格し、承認責務の正式RunnerはSelenium NativeShellとする。",
       "target_files": "- data/json/03_tests/responsibilities/responsibility_data_v0_2.json\n- defs/frb/frb_grid_aggregate_test_view_def_v0_1.json\n- wwwroot/js/renderers/grid_detail.js\n- SeleniumTaste/responsibility_test_plan.js\n- SeleniumTaste/responsibility_selenium_runner.js\n- SeleniumTaste/responsibility_aggregate_runner.js\n- SeleniumTaste/package.json\n- SeleniumTaste/README.md\n- tests/qa/static/responsibility_grid_aggregate_runner_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
       "actual_updated_files": "- data/json/03_tests/responsibilities/responsibility_data_v0_2.json\n- defs/frb/frb_grid_aggregate_test_view_def_v0_1.json\n- wwwroot/js/renderers/grid_detail.js\n- SeleniumTaste/responsibility_test_plan.js\n- SeleniumTaste/responsibility_selenium_runner.js\n- SeleniumTaste/responsibility_aggregate_runner.js\n- SeleniumTaste/package.json\n- SeleniumTaste/README.md\n- tests/qa/static/responsibility_grid_aggregate_runner_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
@@ -33913,11 +33913,11 @@
       "expected_outputs": "- `npm run test:responsibility:aggregate:plan` が LOAD_ONCE -> UI_FILTER_ONCE / SELENIUM_NATIVE_SHELL / Grid Header boundaryを表示。\n- `npm run test:responsibility:aggregate` がNativeShellを起動し、row_id != agg_004で3行filtered状態を作る。\n- Grid Headerから9 ScalarExpectedDef metricを取得しすべてPASSする。\n- aggregate未宣言plain_amountはAggregate Cell不在としてfalseを観測する。",
       "risk": "- 検索UI preconditionが作れないfiltered row集合へ拡張した場合はPhase 1導出ルールでは実行不能。\n- formatValueの表示形式変更時はScalar表示値Parserの見直しが必要。",
       "test_points": "- Plan 5 Pattern / 9 Case / UI_FILTER_ONCE / Selenium。\n- filtered precondition indexes=[0,1,2]をUI Grid Actual indexesで確認。\n- profit value=146/source_count=3。\n- units value=100/source_count=4。\n- comma_amount value=1244.5。\n- dirty_amount value=10/valid_count=1/ignored_count=3。\n- plain_amount Aggregate Cellなし=false。\n- Grid Header tooltip/aria-labelに有効件数・除外件数を持つ。",
-      "verification_log": "- `node --check SeleniumTaste/responsibility_test_plan.js` PASS。\n- `node --check SeleniumTaste/responsibility_selenium_runner.js` PASS。\n- `node SeleniumTaste/responsibility_test_plan.js grid_aggregate --json`：GRID_AGGREGATE / 5 Pattern / 9 Case / LOAD_ONCE -> UI_FILTER_ONCE / SELENIUM_NATIVE_SHELL / Filter=row_id:not_equals / Execution Ready YES。\n- Aggregate/Guarantee Focused Static：14/14 PASS。\n- 全Static Before：359 tests / 350 PASS / 9 FAIL。After：362 tests / 353 PASS / 9 FAIL。既存9 FAILのみで本件新規FAILなし。\n- NativeShell実機E2Eはユーザー環境で確認待ち。",
+      "verification_log": "- `node --check SeleniumTaste/responsibility_test_plan.js` PASS。\n- `node --check SeleniumTaste/responsibility_selenium_runner.js` PASS。\n- `node SeleniumTaste/responsibility_test_plan.js grid_aggregate --json`：GRID_AGGREGATE / 5 Pattern / 9 Case / LOAD_ONCE -> UI_FILTER_ONCE / SELENIUM_NATIVE_SHELL / Filter=row_id:not_equals / Execution Ready YES。\n- Aggregate/Guarantee Focused Static：14/14 PASS。\n- 全Static Before：359 tests / 350 PASS / 9 FAIL。After：362 tests / 353 PASS / 9 FAIL。既存9 FAILのみで本件新規FAILなし。\n- NativeShell実機E2Eはユーザー環境で確認待ち。\n- ユーザー実機 `npm run test:responsibility:aggregate`：5 Pattern / 9 Case、Grid Header観測を含め ALL PASS。",
       "user_request": "GridAggregator.buildをActualにするのは責務観測可能性の判断軸とズレるため、Pure Function Runnerは別扱いにし、grid_aggregate承認責務はSeleniumでGrid Header表示まで観測したい。",
       "ai_response": "grid_aggregate責務境界をGrid Headerへ引き上げ、Generated CaseをNativeShell/Seleniumへ接続する。Pure Function Runnerは内部UT/デバッグ補助へ位置づけを変更する。",
-      "latest_user_comment": "うぃーーーでは、よろしくお願いします。",
-      "latest_ai_response": "Grid Header observable boundaryへのSelenium E2E化を実装。実機では npm run test:responsibility:aggregate で確認する。",
+      "latest_user_comment": "`npm run test:responsibility:aggregate` 実機実行で全9 ScalarExpectedDef Case ALL PASS。",
+      "latest_ai_response": "Grid Header外部観測境界のAggregate Selenium E2Eが実機ALL PASSし、studio_work_0237を完了とする。",
       "context_refs": [
         "studio_work_0235",
         "studio_work_0236",
@@ -33926,7 +33926,7 @@
       "follow_up_actions": [
         {
           "action_id": "follow_0237_001",
-          "status": "PENDING",
+          "status": "DONE",
           "action": "Windows NativeShell実機で `npm run test:responsibility:aggregate` を実行し、9 Generated Case ALL PASSを確認する。"
         }
       ],
@@ -33944,6 +33944,13 @@
           "speaker": "assistant",
           "topic": "責務境界再整理",
           "message": "Pure Function Runnerは内部UTとして残し、承認責務grid_aggregateのActual境界をGrid Header表示まで引き上げる。"
+        },
+        {
+          "history_id": "disc_0237_003",
+          "at": "2026-08-29T13:59:00+09:00",
+          "speaker": "user",
+          "topic": "Aggregate Selenium E2E実機確認",
+          "message": "npm run test:responsibility:aggregate を実行し、Grid Headerの9 Generated CaseがすべてPASSした。"
         }
       ],
       "decision_log": [
@@ -33974,6 +33981,97 @@
           "what_failed": "UPDATEで「内部COMMITではなく外部観測境界まで責務を伸ばす」と決めた直後、AggregateではまたGridAggregator.buildという内部関数境界へ潜ってしまった。",
           "excuse": "Pure Function + Simple Oracleが綺麗すぎて、テストとしての美しさに釣られて承認責務の観測境界を忘れた（笑）。",
           "lesson": "Expected側を単純にすることと、Actual側を内部関数へ近づけることは別問題。承認責務のActualは常に人間が利用する外部成果から取れるかを先に確認する。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0238",
+      "phase": "v0.18.113-scalar-valueequals-selenium-input-pacing",
+      "title": "ScalarExpectedDef ValueEquals化 / Selenium値入力後Pause設定",
+      "incident_type": "改善",
+      "category": "responsibility_test_runner",
+      "priority": "medium",
+      "status": "確認中",
+      "follow_up_status": "IN_PROGRESS",
+      "verification_status": "Static確認済み / NativeShell実機確認待ち",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-29T15:08:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-29T15:08:00+09:00",
+      "updated_at": "2026-08-29T15:08:00+09:00",
+      "work_summary": "- ScalarExpectedDefの単一値比較をJsonEqualsからValueEqualsへ変更し、値比較の意味を明示。\n- ValueEqualsはstring / number / boolean / nullのScalar値だけを型保持で単純一致し、object / arrayは対象外とする。\n- Responsibility Driven Selenium E2Eの値入力直後に任意Pauseを入れられる設定ファイルを追加。\n- after_value_input_msを0にすれば高速、1000なら入力後1秒待機など、実機観察速度を人間が調整可能にした。",
+      "target_files": "- tests/responsibilities/lib/responsibility_expected_compare_strategies.mjs\n- SeleniumTaste/responsibility_selenium_runner.js\n- SeleniumTaste/selenium_runner_settings.js\n- SeleniumTaste/config/selenium_runner_settings_v0_1.json\n- SeleniumTaste/README.md\n- tests/qa/static/responsibility_value_equals_and_selenium_pacing_static.test.mjs\n- data/json/00_rules/md/EXPECTEDDEF_COMPARE_STRATEGY_PATTERN_REPORT_v0_18_18.md\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- tests/responsibilities/lib/responsibility_expected_compare_strategies.mjs\n- SeleniumTaste/responsibility_selenium_runner.js\n- SeleniumTaste/selenium_runner_settings.js\n- SeleniumTaste/config/selenium_runner_settings_v0_1.json\n- SeleniumTaste/README.md\n- tests/qa/static/responsibility_value_equals_and_selenium_pacing_static.test.mjs\n- data/json/00_rules/md/EXPECTEDDEF_COMPARE_STRATEGY_PATTERN_REPORT_v0_18_18.md\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "ScalarExpectedDefはExpectedの形が単一値であることを表す。比較方法はJSON構造比較ではなくValueEqualsで単一Scalar値を直接比較する。Seleniumの人間観察用待機はテスト意味とは分離し、設定ファイルのタイミング値だけで調整可能にする。",
+      "objective": "ScalarExpectedDefの比較意味を単一値比較へ合わせ、Selenium E2Eの入力操作を人間が追跡しやすい速度へ設定だけで調整可能にする。",
+      "background": "grid_aggregate E2Eを追跡する中で、ScalarExpectedDefのexpected.valueがJsonEqualsへ割り当てられており、単一値比較なのにJSONという名称が現れる意味ズレが判明した。またSeleniumが高速に値を入力すると人間が操作意図を追いにくいため、値入力後のPauseを外部設定化する要望が出た。",
+      "scope": "- ScalarExpectedDef value → ValueEquals。\n- ValueEqualsのScalar型制約。\n- Responsibility Selenium Runnerの値入力後Pause。\n- Pause時間のJSON設定化と開始ログ表示。",
+      "out_of_scope": "- Array/JSON構造比較のValueEquals化。\n- Seleniumの全クリック・全画面遷移への一律Slow Motion。\n- WebDriver Wait/timeout契約の変更。\n- App本体の表示速度変更。",
+      "fixed_name_policy": "単一値比較Strategy名はValueEqualsとする。Selenium速度設定はSeleniumTaste/config/selenium_runner_settings_v0_1.jsonのtiming.after_value_input_msを正本とする。",
+      "module_policy": "ExpectedDefはExpectedの形、CompareStrategyは比較方法として分離する。ScalarExpectedDefはValueEqualsを選択する。人間観察用Pauseは同期Waitとは別概念とし、setControlValue完了後だけに適用する。",
+      "expected_outputs": "- ScalarExpectedDefのExpected ValueがValueEqualsで比較される。\n- number 146とstring \"146\"は型違いとして不一致になる。\n- `SeleniumTaste/config/selenium_runner_settings_v0_1.json` の `after_value_input_ms` を変更すると、検索Criteria/Data Editor等の値入力直後の待機時間が変わる。\n- Selenium開始ログに現在のafter_value_input_msが表示される。",
+      "risk": "- after_value_input_msを大きくしすぎると多数Mutation/CaseのE2Eが長時間化する。\n- ValueEqualsはobject/arrayを明示的に対象外とするため、ScalarExpectedDefへ構造値を誤投入した場合はFAILする。",
+      "test_points": "- ScalarExpectedDef RegistryがValueEqualsを参照。\n- ValueEqualsでnumber/boolean/string/nullが一致。\n- number 146とstring \"146\"は不一致。\n- object/arrayはValueEquals対象外。\n- Selenium設定JSONが読め、setControlValue後にPauseが呼ばれる。\n- Aggregate内部Runnerが9 Case ALL PASS。",
+      "verification_log": "- `node --check SeleniumTaste/responsibility_selenium_runner.js` PASS。\n- `node --check SeleniumTaste/selenium_runner_settings.js` PASS。\n- Focused Static：12/12 PASS。\n- `node SeleniumTaste/responsibility_aggregate_runner.js grid_aggregate`：9 Case ALL PASS。\n- 全Static：365 tests / 356 PASS / 9 FAIL。既存9 FAILのみで、本件差分由来の新規FAILなし。\n- NativeShell上でのPause見え方はユーザー環境確認待ち。",
+      "user_request": "ScalarExpectedDefはJSONではなく値を比較するだけなのでValueEquals方式を作る。Seleniumの値入力操作後に、設定ファイルの時間を変えるだけで速く/遅くして、人間が何をしているか見えるようにしたい。",
+      "ai_response": "ScalarExpectedDefをValueEqualsへ切り替え、Responsibility Selenium RunnerのsetControlValue後Pauseを外部JSON設定化する。",
+      "latest_user_comment": "ValueEquals方式を作り、Seleniumの値入力後の操作速度を設定ファイルで調整できるようにしたい。",
+      "latest_ai_response": "ValueEqualsとafter_value_input_ms設定を実装し、Static/内部Aggregate Runnerで確認。NativeShell実機の見え方を確認待ち。",
+      "context_refs": [
+        "studio_work_0237"
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0238_001",
+          "status": "PENDING",
+          "action": "`SeleniumTaste/config/selenium_runner_settings_v0_1.json` の after_value_input_ms を例: 1000へ変更して `npm run test:responsibility:aggregate` または `npm run test:responsibility:search` を実機実行し、入力後のPauseが見やすく反映されることを確認する。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "disc_0238_001",
+          "at": "2026-08-29T15:02:00+09:00",
+          "speaker": "user",
+          "topic": "Scalar比較Strategy",
+          "message": "ScalarExpectedDefの単一値比較にJsonEqualsは意味が合わないのでValueEquals方式を作りたい。"
+        },
+        {
+          "history_id": "disc_0238_002",
+          "at": "2026-08-29T15:02:00+09:00",
+          "speaker": "user",
+          "topic": "Selenium操作速度",
+          "message": "値入力後に何をしているか見えるよう、設定ファイルの時間でSeleniumを速く/遅くしたい。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0238_001",
+          "at": "2026-08-29T15:08:00+09:00",
+          "decision": "ScalarExpectedDef.expected.valueのCompareStrategyはValueEqualsとする。",
+          "reason": "単一Scalar値比較にJsonEqualsという構造比較名を使う意味ズレを除去し、ExpectedDefと比較方法の意図を人間が追えるようにするため。"
+        },
+        {
+          "decision_id": "dec_0238_002",
+          "at": "2026-08-29T15:08:00+09:00",
+          "decision": "ValueEqualsはstring / number / boolean / nullのみを型保持で単純一致し、object / arrayを対象外とする。",
+          "reason": "ScalarExpectedDefの契約を曖昧にせず、構造値は既存のArrayEquals/JsonEquals等へ分離するため。"
+        },
+        {
+          "decision_id": "dec_0238_003",
+          "at": "2026-08-29T15:08:00+09:00",
+          "decision": "Seleniumの人間観察用PauseはsetControlValue後へ限定し、after_value_input_msを外部JSON設定で変更可能にする。",
+          "reason": "テスト同期用Waitと人間観察用Slow Motionを混同せず、テストロジックを変えずに実行速度だけ調整するため。"
+        }
+      ],
+      "change_history": [],
+      "failure_stories": [
+        {
+          "failure_id": "fail_0238_001",
+          "at": "2026-08-29T15:08:00+09:00",
+          "what_failed": "ScalarExpectedDefの値1個を、便利だからという理由でJsonEqualsへ接続していた。",
+          "excuse": "値もJSON.stringifyできるし動くので、そのまま「比較できる＝意味も合っている」としてしまった（笑）。",
+          "lesson": "ExpectedDefとCompareStrategyは、動作可能性だけでなく名前から比較意図を説明できる組合せにする。単一値は単一値として比較する。"
         }
       ]
     }
