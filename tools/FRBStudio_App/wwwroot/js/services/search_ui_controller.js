@@ -152,11 +152,13 @@
     for (const operator of state.capability?.effective?.operators ?? []) {
       const id = String(operator?.id ?? '').trim();
       if (!id) continue;
-      addMenuButton(menu, {
+      const operatorButton = addMenuButton(menu, {
         text: operatorCaption(id, state.capability?.value_family),
         current: id === state.currentOperator,
         onClick: () => setOperator(state, id)
       });
+      // Stable semantic hook for UI automation. Caption/localization is presentation only.
+      operatorButton.dataset.searchOperatorId = id;
     }
 
     if (String(state.field?.type ?? '') === 'select') {

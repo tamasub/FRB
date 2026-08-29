@@ -18,7 +18,7 @@ const readText = rel => fs.readFileSync(path.join(ROOT, rel), 'utf8');
 test('Responsibility Generated Preview is converted to one Selenium document execution plan', () => {
   const plan = buildResponsibilityExecutionPlan({ responsibilityCd: 'data_update_persist' });
 
-  assert.equal(plan.schema_version, 'responsibility_selenium_execution_plan_v0_1');
+  assert.equal(plan.schema_version, 'responsibility_selenium_execution_plan_v0_2');
   assert.equal(plan.expected_def_type, 'JsonDiffExpectedDef');
   assert.equal(plan.summary.test_pattern_count, 6);
   assert.equal(plan.summary.mutation_count, 30);

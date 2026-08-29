@@ -747,7 +747,9 @@
                     "working_copy_policy": "COPY_BEFORE_EXECUTION",
                     "working_copy_directory": "data/json/99_test_runtime",
                     "cleanup_policy": "DELETE_AFTER_EXECUTION",
-                    "runner_type": "SELENIUM_NATIVE_SHELL"
+                    "runner_type": "SELENIUM_NATIVE_SHELL",
+                    "search_operator_registry_file": "",
+                    "pattern_isolation_policy": ""
                   },
                   "columns": [
                     {
@@ -773,6 +775,12 @@
                       "caption": "項目定義JSON",
                       "type": "text",
                       "width": 380
+                    },
+                    {
+                      "field": "search_operator_registry_file",
+                      "caption": "Search Operator Registry",
+                      "type": "text",
+                      "width": 360
                     },
                     {
                       "field": "target_resolution_policy",
@@ -814,11 +822,21 @@
                       "width": 110
                     },
                     {
+                      "field": "pattern_isolation_policy",
+                      "caption": "Pattern分離",
+                      "type": "select",
+                      "options": [
+                        "RESET_AFTER_EACH"
+                      ],
+                      "width": 170
+                    },
+                    {
                       "field": "save_policy",
                       "caption": "SAVE",
                       "type": "select",
                       "options": [
-                        "SAVE_ONCE"
+                        "SAVE_ONCE",
+                        "NONE"
                       ],
                       "width": 110
                     },
@@ -827,7 +845,8 @@
                       "caption": "RELOAD",
                       "type": "select",
                       "options": [
-                        "RELOAD_ONCE"
+                        "RELOAD_ONCE",
+                        "NONE"
                       ],
                       "width": 120
                     },
@@ -836,7 +855,8 @@
                       "caption": "Runner",
                       "type": "select",
                       "options": [
-                        "SELENIUM_NATIVE_SHELL"
+                        "SELENIUM_NATIVE_SHELL",
+                        "NOT_CONNECTED"
                       ],
                       "width": 180
                     },
@@ -845,7 +865,8 @@
                       "caption": "Working Copy",
                       "type": "select",
                       "options": [
-                        "COPY_BEFORE_EXECUTION"
+                        "COPY_BEFORE_EXECUTION",
+                        "NONE"
                       ],
                       "width": 180
                     },
@@ -861,7 +882,8 @@
                       "type": "select",
                       "options": [
                         "DELETE_AFTER_EXECUTION",
-                        "KEEP_AFTER_EXECUTION"
+                        "KEEP_AFTER_EXECUTION",
+                        "NONE"
                       ],
                       "width": 180
                     },
@@ -903,7 +925,10 @@
                     "enabled": true,
                     "notes": "",
                     "target_data_path": "",
-                    "field_selection_policy": "EDITABLE_EXPLICIT_NON_MULTILINE"
+                    "field_selection_policy": "EDITABLE_EXPLICIT_NON_MULTILINE",
+                    "generation_mode": "",
+                    "target_field": "",
+                    "operator_source": ""
                   },
                   "columns": [
                     {
@@ -918,7 +943,8 @@
                       "type": "select",
                       "options": [
                         "DATA_UPDATE_PERSIST",
-                        "DATA_UPDATE_PERSIST_MULTILINE"
+                        "DATA_UPDATE_PERSIST_MULTILINE",
+                        "SEARCH_FILTER"
                       ],
                       "width": 240
                     },
@@ -939,13 +965,23 @@
                       "width": 140
                     },
                     {
+                      "field": "generation_mode",
+                      "caption": "生成方式",
+                      "type": "select",
+                      "options": [
+                        "SEARCH_OPERATOR_MATRIX"
+                      ],
+                      "width": 210
+                    },
+                    {
                       "field": "target_structure",
                       "caption": "対象構造",
                       "type": "select",
                       "options": [
                         "SINGLE_GRID",
                         "MULTI_GRID",
-                        "MULTILINE"
+                        "MULTILINE",
+                        "GRID_SEARCH"
                       ],
                       "width": 150
                     },
@@ -956,14 +992,30 @@
                       "width": 280
                     },
                     {
+                      "field": "target_field",
+                      "caption": "Target Field",
+                      "type": "text",
+                      "width": 220
+                    },
+                    {
                       "field": "field_selection_policy",
                       "caption": "Field選択",
                       "type": "select",
                       "options": [
                         "EDITABLE_EXPLICIT_NON_MULTILINE",
-                        "EDITABLE_EXPLICIT_MULTILINE"
+                        "EDITABLE_EXPLICIT_MULTILINE",
+                        "EXPLICIT_SEARCHABLE_FIELD"
                       ],
                       "width": 280
+                    },
+                    {
+                      "field": "operator_source",
+                      "caption": "Operator解決",
+                      "type": "select",
+                      "options": [
+                        "RESOLVED_FIELD_TYPE"
+                      ],
+                      "width": 210
                     },
                     {
                       "field": "row_position",
@@ -981,7 +1033,8 @@
                       "type": "select",
                       "options": [
                         "DIFFERENT_VALID",
-                        "MULTILINE_DIFFERENT_VALID"
+                        "MULTILINE_DIFFERENT_VALID",
+                        "GENERATE_FROM_TEST_DATA"
                       ],
                       "width": 210
                     },
@@ -990,7 +1043,8 @@
                       "caption": "ExpectedDef",
                       "type": "select",
                       "options": [
-                        "JsonDiffExpectedDef"
+                        "JsonDiffExpectedDef",
+                        "StateExpectedDef"
                       ],
                       "width": 190
                     },
@@ -1046,7 +1100,8 @@
               "readonly": true,
               "config": {
                 "registryDataPath": "config/validation_type_registry_v0_1.json",
-                "initialExpanded": false
+                "initialExpanded": false,
+                "searchOperatorRegistryDataPath": "config/search_operator_registry_v0_1.json"
               }
             }
           ]

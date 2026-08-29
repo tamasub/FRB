@@ -107,11 +107,18 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
       const setup = (responsibility?.test_setup ?? []).find(item => item?.setup_id) ?? null;
       if (!setup) throw new Error('test_setup がありません。');
       const registryPath = String(this.componentOptions.registryDataPath ?? 'config/validation_type_registry_v0_1.json');
-      const [inputData, viewDef, fieldDefinitionDocument, registry] = await Promise.all([
+      const needsSearchOperatorRegistry = definitions.some(item => String(item?.generation_mode ?? '') === 'SEARCH_OPERATOR_MATRIX');
+      const searchOperatorRegistryPath = String(
+        setup?.search_operator_registry_file ??
+        this.componentOptions.searchOperatorRegistryDataPath ??
+        'config/search_operator_registry_v0_1.json'
+      );
+      const [inputData, viewDef, fieldDefinitionDocument, registry, searchOperatorRegistry] = await Promise.all([
         responsibilityPreviewFetchJson(setup.input_file),
         responsibilityPreviewFetchJson(setup.view_def_file),
         responsibilityPreviewFetchJson(setup.field_definition_file),
-        responsibilityPreviewFetchJson(registryPath)
+        responsibilityPreviewFetchJson(registryPath),
+        needsSearchOperatorRegistry ? responsibilityPreviewFetchJson(searchOperatorRegistryPath) : Promise.resolve(null)
       ]);
       if (token !== this._token || !this.mounted) return;
 
@@ -122,7 +129,8 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
         inputData,
         viewDef,
         fieldDefinitionDocument,
-        registry
+        registry,
+        searchOperatorRegistry
       });
       this._state = 'ready';
       this.render();
@@ -136,7 +144,28 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
 
   buildRows() {
     if (this._state !== 'ready' || !this._result) return [];
-    return (this._result.test_patterns ?? []).map(pattern => ({
+    const patterns = this._result.test_patterns ?? [];
+    const searchMode = patterns.some(pattern => Array.isArray(pattern?.generated_cases));
+    if (searchMode) {
+      return patterns.map(pattern => ({
+        pattern: pattern.pattern_id,
+        role: pattern.pattern_role,
+        value_family: pattern.value_family,
+        operator: `${pattern.operator_id} / ${pattern.operator_caption}`,
+        case_count: pattern.generated_cases?.length ?? 0,
+        expected_def: pattern.expected_def_type,
+        generated_cases: responsibilityPreviewDisplay((pattern.generated_cases ?? []).map(item => ({
+          case_id: item.case_id,
+          target_field: item.target_field,
+          input_snapshot: item.input_snapshot,
+          criteria: item.criteria,
+          expected: item.expected
+        }))),
+        source: `${pattern.source?.input_approval_status ?? ''} / ${pattern.source?.input_file ?? ''}`
+      }));
+    }
+
+    return patterns.map(pattern => ({
       pattern: pattern.pattern_id,
       role: pattern.pattern_role,
       target: `${pattern.target_data_path}[${pattern.row_index}]`,
@@ -147,7 +176,20 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
     }));
   }
 
-  buildColumns() {
+  buildColumns(rows=[]) {
+    const searchMode = rows.some(row => Object.prototype.hasOwnProperty.call(row ?? {}, 'generated_cases'));
+    if (searchMode) {
+      return [
+        { field: 'pattern', caption: 'TestPattern' },
+        { field: 'role', caption: 'Role' },
+        { field: 'value_family', caption: 'Type' },
+        { field: 'operator', caption: 'Operator' },
+        { field: 'case_count', caption: 'Cases' },
+        { field: 'expected_def', caption: 'ExpectedDef' },
+        { field: 'generated_cases', caption: 'Generated Cases / Input Snapshot / Criteria / Expected' },
+        { field: 'source', caption: 'Source' }
+      ];
+    }
     return [
       { field: 'pattern', caption: 'Pattern' },
       { field: 'role', caption: 'Role' },
@@ -162,13 +204,15 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
   buildViewModel() {
     const model = super.buildViewModel();
     if (this._state === 'loading') {
-      model.note = 'Test DATA / ViewDef / Field Definition / Validation TypeからGenerated TestPatternとExpected Diffを機械導出しています。';
+      model.note = 'Test DATA / ViewDef / Field Definition / RegistryからGenerated TestPattern / Generated Case / Expectedを機械導出しています。';
     } else if (this._state === 'error') {
       model.note = `Generated Previewを導出できませんでした: ${this._error?.message ?? this._error ?? 'unknown error'}`;
     } else if (this._state === 'ready' && this._result) {
       const s = this._result.summary ?? {};
       const execution = this._result.execution_ready ? 'EXECUTION READY' : `PREVIEW ONLY (Input=${this._result.input_approval_status})`;
-      model.note = `Responsibility Verification: ${this._result.status} / TestPattern ${s.test_pattern_count ?? 0}件 / Mutation ${s.mutation_count ?? 0}件 / Invalid ${s.invalid_mutation_count ?? 0}件 / ${execution}`;
+      const cases = s.generated_case_count ?? 0;
+      const generated = cases > 0 ? ` / Generated Case ${cases}件` : ` / Mutation ${s.mutation_count ?? 0}件 / Invalid ${s.invalid_mutation_count ?? 0}件`;
+      model.note = `Responsibility Verification: ${this._result.status} / TestPattern ${s.test_pattern_count ?? 0}件${generated} / ${execution}`;
     }
     return model;
   }

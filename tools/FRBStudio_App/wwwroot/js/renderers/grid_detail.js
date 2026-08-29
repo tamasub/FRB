@@ -145,6 +145,9 @@ function renderCompactGrid(gd=gridDef()) {
   const tbody = document.createElement('tbody');
   filteredRows.forEach(({row, index}) => {
     const tr = document.createElement('tr');
+    tr.dataset.sourceIndex = String(index);
+    const rowKeyField = String(gd?.keyField ?? '').trim();
+    if (rowKeyField && row?.[rowKeyField] != null) tr.dataset.rowKey = String(row[rowKeyField]);
     applyGridRowEmphasis(tr, row);
     if (index === selectedIndex) tr.classList.add('selected');
     tr.addEventListener('click', () => { selectedIndex = index; renderGrid(); });
@@ -486,6 +489,9 @@ function moveDocumentGridRow(index, delta) {
 function createDocumentGridCard(row, index, gd, cfg, fieldSpecs) {
   const card = document.createElement('section');
   card.className = 'document-grid-card';
+  card.dataset.sourceIndex = String(index);
+  const rowKeyField = String(gd?.keyField ?? '').trim();
+  if (rowKeyField && row?.[rowKeyField] != null) card.dataset.rowKey = String(row[rowKeyField]);
   applyGridRowEmphasis(card, row);
   if (index === selectedIndex) card.classList.add('selected');
   card.addEventListener('click', () => {

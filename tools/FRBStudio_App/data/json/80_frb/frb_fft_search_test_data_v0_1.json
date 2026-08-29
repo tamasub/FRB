@@ -1,0 +1,115 @@
+{
+  "view_def": "frb/frb_fft_field_definition_sample_view_def_v0_1.json",
+  "schema_version": "frb_fft_field_definition_sample_data_v0_1",
+  "document_type": "frb_fft_measurement_sample",
+  "title": "FRB 検索責務 Test Input / FFT測定データ",
+  "status": "draft",
+  "created_at": "2026-07-26",
+  "updated_at": "2026-08-29",
+  "purpose": "SEARCH_FILTERのGenerated TestPatternをJSON入力から導出するための専用Fixture。同値複数・部分一致・空文字・数値の大小/同値を意図的に配置し、Input Snapshotからテスト意図を確認できるようにする。",
+  "measurement_sessions": [
+    {
+      "session_id": "frb_search_20260829_001",
+      "rod_code": "FRBS01",
+      "measurement_name": "Search Alpha 1",
+      "measurement_date": "2026-08-21",
+      "captured_at": "2026-08-21T09:15",
+      "received_at": "2026-08-21T09:15:30+09:00",
+      "sample_rate_hz": 100,
+      "peak_frequency_hz": 40.0,
+      "amplitude_g": 0.1,
+      "quality_score": 10,
+      "enabled": true,
+      "note": "Alpha"
+    },
+    {
+      "session_id": "frb_search_20260829_002",
+      "rod_code": "FRBS02",
+      "measurement_name": "Search Beta",
+      "measurement_date": "2026-08-22",
+      "captured_at": "2026-08-22T10:15",
+      "received_at": "2026-08-22T10:15:30+09:00",
+      "sample_rate_hz": 500,
+      "peak_frequency_hz": 60.0,
+      "amplitude_g": 0.5,
+      "quality_score": 50,
+      "enabled": false,
+      "note": "Beta"
+    },
+    {
+      "session_id": "frb_search_20260829_003",
+      "rod_code": "FRBS03",
+      "measurement_name": "Search Alpha 2",
+      "measurement_date": "2026-08-23",
+      "captured_at": "2026-08-23T11:15",
+      "received_at": "2026-08-23T11:15:30+09:00",
+      "sample_rate_hz": 1000,
+      "peak_frequency_hz": 80.0,
+      "amplitude_g": 0.5,
+      "quality_score": 50,
+      "enabled": true,
+      "note": "Alpha"
+    },
+    {
+      "session_id": "frb_search_20260829_004",
+      "rod_code": "FRBS04",
+      "measurement_name": "Search Blank Note",
+      "measurement_date": "2026-08-24",
+      "captured_at": "2026-08-24T12:15",
+      "received_at": "2026-08-24T12:15:30+09:00",
+      "sample_rate_hz": 2000,
+      "peak_frequency_hz": 100.0,
+      "amplitude_g": 0.9,
+      "quality_score": 70,
+      "enabled": false,
+      "note": ""
+    },
+    {
+      "session_id": "frb_search_20260829_005",
+      "rod_code": "FRBS05",
+      "measurement_name": "Search Gamma",
+      "measurement_date": "2026-08-25",
+      "captured_at": "2026-08-25T13:15",
+      "received_at": "2026-08-25T13:15:30+09:00",
+      "sample_rate_hz": 4000,
+      "peak_frequency_hz": 120.0,
+      "amplitude_g": 1.25,
+      "quality_score": 90,
+      "enabled": true,
+      "note": "Gamma"
+    },
+    {
+      "session_id": "frb_search_20260829_006",
+      "rod_code": "FRBS06",
+      "measurement_name": "Search Contains Alpha",
+      "measurement_date": "2026-08-26",
+      "captured_at": "2026-08-26T14:15",
+      "received_at": "2026-08-26T14:15:30+09:00",
+      "sample_rate_hz": 8000,
+      "peak_frequency_hz": 140.0,
+      "amplitude_g": 0.0,
+      "quality_score": 100,
+      "enabled": false,
+      "note": "delta Alpha"
+    }
+  ],
+  "acceptance_thresholds": [
+    {
+      "threshold_id": "default_tip_vibration",
+      "peak_frequency_hz": 120,
+      "amplitude_g": 0.05,
+      "quality_score": 70,
+      "enabled": true,
+      "note": "measurement_sessionsと同名フィールドを持つ別ルート。field_pathで区別する。"
+    },
+    {
+      "threshold_id": "strict_tip_vibration",
+      "peak_frequency_hz": 180,
+      "amplitude_g": 0.08,
+      "quality_score": 85,
+      "enabled": false,
+      "note": "DATA_UPDATE_PERSISTのMulti Grid先頭・最終行テストを区別できるようにするための2件目サンプル。"
+    }
+  ],
+  "sample_notes": "検索専用Fixture。noteは Alpha / Beta / Alpha / 空文字 / Gamma / delta Alpha、amplitude_gは 0.10 / 0.50 / 0.50 / 0.90 / 1.25 / 0.00。Test DATA自身にはExpectedやテスト理由を埋め込まず、利用意図はGenerated PreviewのInput Snapshot / Criteria / Expectedで可視化する。"
+}

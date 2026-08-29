@@ -5,9 +5,9 @@
   "title": "FRB Studio 責務マスター v0.2",
   "target": "FRB Studio / JSON Object Studio",
   "status": "draft",
-  "phase": "responsibility-definition-driven-test-v0_2-draft",
+  "phase": "responsibility-definition-driven-test-v0_2-search-ui-runner-draft",
   "created_at": "2026-07-19",
-  "updated_at": "2026-08-28",
+  "updated_at": "2026-08-29",
   "purpose": "Studioくんの責務を検証可能な保証として管理し、同一JSON内のTestPattern生成定義・承認済みInput参照・ExpectedDefからGenerated TestPattern / Expectedを機械導出するための責務マスター。",
   "policy": {
     "definition": "責務は、何をするかではなく、どの条件で何を保証するかを書く。",
@@ -21,7 +21,10 @@
     "generated_artifact": "Generated TestPattern / Generated Expectedは責務定義から機械導出するVirtual Dataとし、正本JSONへ保存しない。画面ではPreviewとして参照可能にする。",
     "fixture_approval": "Test Input JSONはAI生成可能とするが、テスト投入前に人間が内容を確認しapprovedへ移行したものだけを使用する。承認対象ではあるが、通常画面では実行詳細とともに初期CLOSE表示とする。",
     "expected_def": "ExpectedDefは「何をExpectedとして持つか」の型として扱う。DATA_UPDATE_PERSISTではJsonDiffExpectedDefを使用し、DiffとUnexpected Diff Countを期待値として扱う。",
-    "test_target_resolution": "DATA_UPDATE_PERSISTの対象項目は、Test DATA JSON → ViewDef → Field Definitionの参照連鎖から機械解決する。ViewDefで編集可能かつField Definitionに明示契約がある項目を候補とし、STANDARDではmulti_lineを除外、QUALITY_REINFORCEMENTではmulti_lineだけを対象とする。"
+    "test_target_resolution": "DATA_UPDATE_PERSISTの対象項目は、Test DATA JSON → ViewDef → Field Definitionの参照連鎖から機械解決する。ViewDefで編集可能かつField Definitionに明示契約がある項目を候補とし、STANDARDではmulti_lineを除外、QUALITY_REINFORCEMENTではmulti_lineだけを対象とする。",
+    "generated_review_visibility": "Generated TestPattern / Generated Case / Expectedの実行データはすべて人間が確認可能にする。表示行数を減らす場合も情報を省略せず、意味階層で圧縮して展開可能にする。",
+    "generated_preview_hierarchy": "論理構造は TestPattern → Generated Case → Expected の3段階とする。ViewDefの意味階層は最大2階層を維持し、ExpectedはGenerated Caseの属性として表示する。",
+    "search_fixture": "SEARCH_FILTERは専用Test DATA JSONを入力とし、Data JSON自体へExpectedやテスト理由を混在させない。Generated Case側に対象FieldのInput Snapshot / Criteria / Expected Rowsを表示して、入力値とテスト意図の対応を確認可能にする。"
   },
   "responsibilities": [
     {
@@ -30,8 +33,8 @@
       "test_level": "UT",
       "approval_status": "draft",
       "enabled": true,
-      "purpose": "検索条件と全文検索語から、条件に一致する行だけを後続処理へ渡せる状態にする。",
-      "summary": "文字列・数値・boolean・複数選択の列条件と、JSON全階層の文字列値を対象とする全文検索をAND評価し、元データ上のIndexを保持した一致行を返す。",
+      "purpose": "検索可能Fieldへ型に応じた標準OperatorとCriteriaを指定したとき、条件に一致する行だけを結果へ返し、元Data上のIndexを保持する。",
+      "summary": "承認済みTest Input JSONとField/View定義から検索対象Field・標準Operator・検索値を機械導出し、Generated Caseを実際の検索UIへ投入して、GridのActual Rowsを独立OracleのExpected Rowsと比較する。",
       "source_file": "wwwroot/js/responsibilities/search_filter.js",
       "interface_name": "SearchFilter.apply",
       "in_scope": [
@@ -40,16 +43,29 @@
         "元データIndexの保持",
         "空条件の無視",
         "JSON全階層の文字列値を対象とする全文検索",
-        "全文検索と列条件のAND評価"
+        "全文検索と列条件のAND評価",
+        "Field Definition / ViewDefから解決した標準検索Operatorの評価",
+        "JSON Test Inputからの検索Criteria機械生成",
+        "Input Snapshot / Expected RowsのGenerated Preview",
+        "Generated TestPattern → Generated Case → Expectedの全件レビュー",
+        "Generated Caseを標準検索UIへ投入するSelenium NativeShell E2E",
+        "各Case後のRESET_AFTER_EACHによる検索状態分離",
+        "Generated Expected row_ids / indexes / match_countとGrid Actualの比較"
       ],
       "out_of_scope": [
         "検索UIの描画",
         "DOM入力部品の生成",
         "検索状態の保存",
-        "Grid描画"
+        "Grid描画",
+        "検索専用Test DATA JSONへExpectedやテスト理由を埋め込むこと",
+        "Generated TestPattern / Expectedを責務JSONへ保存すること",
+        "Date / Datetime検索のGenerated Case E2E（Phase 2）",
+        "ComboBox / Select検索のGenerated Case E2E（Phase 2）",
+        "Option / Radio / Boolean検索のGenerated Case E2E（Phase 2）"
       ],
       "constraint_ids": [
-        "constitution_12"
+        "constitution_12",
+        "decision_axis_responsibility_observability"
       ],
       "guarantees": [
         {
@@ -139,11 +155,77 @@
           "test_pattern_seed": "キー名と数値を全文検索対象外にするパターン",
           "priority": "high",
           "enabled": true
+        },
+        {
+          "guarantee_id": "search_filter_g009",
+          "guarantee_type": "state",
+          "condition": "Test Input JSONの検索可能Fieldに対し、Resolved Field Typeから標準OperatorとCriteriaを生成して検索を評価した場合",
+          "guarantee": "各Generated Caseで、指定Operator/Criteriaに一致する行だけを返し、元Data上のIndexを保持する。",
+          "observable_result": "Generated Expectedのrow_ids / indexes / match_countとActual検索結果が一致する。",
+          "expected_def_type": "StateExpectedDef",
+          "test_pattern_seed": "SEARCH_FILTER_OPERATOR_MATRIX",
+          "priority": "high",
+          "enabled": true
         }
       ],
-      "notes": "JSON駆動テストに列contains / number gte / JSON全階層文字列全文検索が存在する。",
-      "test_setup": [],
-      "test_pattern_definitions": []
+      "notes": "既存UT保証g001〜g008は継続保持。v0.2検索生成では2つの代表定義から13 TestPattern / 13 Generated Caseを導出し、承認済みInputのみSelenium NativeShellで検索UIへ投入する。Case間はRESET_AFTER_EACHで分離し、Expected Rowsは独立Simple Oracle、ActualはUI Gridのrow key / source indexから観測する。Generated成果物は正本JSONへ保存しない。",
+      "test_setup": [
+        {
+          "setup_id": "search_filter_setup_001",
+          "input_file": "data/json/80_frb/frb_fft_search_test_data_v0_1.json",
+          "view_def_file": "defs/frb/frb_fft_field_definition_sample_view_def_v0_1.json",
+          "field_definition_file": "fielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json",
+          "search_operator_registry_file": "data/json/config/search_operator_registry_v0_1.json",
+          "target_resolution_policy": "DATA_JSON_VIEW_DEF_FIELD_DEFINITION",
+          "input_approval_status": "approved",
+          "execution_scope": "DOCUMENT",
+          "load_policy": "LOAD_ONCE",
+          "pattern_isolation_policy": "RESET_AFTER_EACH",
+          "save_policy": "NONE",
+          "reload_policy": "NONE",
+          "runner_type": "SELENIUM_NATIVE_SHELL",
+          "working_copy_policy": "NONE",
+          "working_copy_directory": "",
+          "cleanup_policy": "NONE",
+          "notes": "検索専用Test DATAを1回LOADし、各Generated Caseを標準検索UIへ投入してExpected Rowsと比較する。CaseごとにRESET_AFTER_EACHで検索状態を初期化する。Input=draft中はPreview/Planのみ可能で、approvedになるまでNativeShell実行をHard Blockする。"
+        }
+      ],
+      "test_pattern_definitions": [
+        {
+          "pattern_def_id": "search_filter_string_sample",
+          "pattern_cd": "SEARCH_FILTER",
+          "pattern_role": "STANDARD",
+          "generation_mode": "SEARCH_OPERATOR_MATRIX",
+          "target_structure": "SINGLE_GRID",
+          "target_data_path": "$.measurement_sessions",
+          "target_field": "note",
+          "field_selection_policy": "EXPLICIT_SEARCHABLE_FIELD",
+          "operator_source": "RESOLVED_FIELD_TYPE",
+          "row_position": "",
+          "value_pattern": "GENERATE_FROM_TEST_DATA",
+          "expected_def_type": "StateExpectedDef",
+          "guarantee_id": "search_filter_g009",
+          "enabled": true,
+          "notes": "String代表Field。空文字を含むFixtureを使い、text_standardの全Operatorを機械展開する。"
+        },
+        {
+          "pattern_def_id": "search_filter_number_sample",
+          "pattern_cd": "SEARCH_FILTER",
+          "pattern_role": "STANDARD",
+          "generation_mode": "SEARCH_OPERATOR_MATRIX",
+          "target_structure": "SINGLE_GRID",
+          "target_data_path": "$.measurement_sessions",
+          "target_field": "amplitude_g",
+          "field_selection_policy": "EXPLICIT_SEARCHABLE_FIELD",
+          "operator_source": "RESOLVED_FIELD_TYPE",
+          "row_position": "",
+          "value_pattern": "GENERATE_FROM_TEST_DATA",
+          "expected_def_type": "StateExpectedDef",
+          "guarantee_id": "search_filter_g009",
+          "enabled": true,
+          "notes": "Number代表Field。同値複数と大小を含むFixtureを使い、numeric_standardの全Operatorを機械展開する。"
+        }
+      ]
     },
     {
       "responsibility_cd": "grid_column_build",
@@ -632,6 +714,17 @@
       "exclude_key_field": true,
       "exclude_unlisted_fielddefs": true,
       "notes": "項目名を責務JSONへ個別列挙せず、ViewDefの編集可否とField Definitionの明示契約から対象を導出する。"
+    },
+    "search_generation": {
+      "operator_registry_file": "data/json/config/search_operator_registry_v0_1.json",
+      "pattern_group_policy": "VALUE_FAMILY_OPERATOR",
+      "generated_case_policy": "ONE_CASE_PER_TARGET_FIELD",
+      "input_snapshot_policy": "TARGET_FIELD_VALUES_WITH_ROW_ID_AND_INDEX",
+      "criteria_value_policy": "PREFER_REPEATED_NON_BLANK_VALUE_ELSE_MIDDLE_EXISTING_VALUE",
+      "range_value_policy": "REPEATED_PIVOT_TO_NEXT_GREATER_ELSE_NEIGHBOR_RANGE",
+      "expected_generation_policy": "INDEPENDENT_SIMPLE_FILTER_ORACLE",
+      "expected_shape": "StateExpectedDef(row_ids,indexes,match_count)",
+      "notes": "TestPattern行数はOperator単位に抑え、Fieldごとの具体Input/Criteria/ExpectedはGenerated Caseとして全件保持する。ExpectedはGenerated Caseの属性であり第三階層SubGridにはしない。"
     }
   }
 }

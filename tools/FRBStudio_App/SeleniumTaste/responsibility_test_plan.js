@@ -168,6 +168,14 @@ function diffJson(expected, actual, basePath='$', out=[]) {
   return out;
 }
 
+function inferSearchTargetDataPath(generatedCase) {
+  const explicit = String(generatedCase?.target_data_path ?? '').trim();
+  if (explicit) return explicit;
+  const fieldPath = String(generatedCase?.field_path ?? '').trim();
+  const match = /^(.*)\[\]\.[^.]+$/.exec(fieldPath);
+  return match ? match[1] : '';
+}
+
 function buildResponsibilityExecutionPlan({
   responsibilityCd='data_update_persist',
   responsibilityDocumentPath=DEFAULT_RESPONSIBILITY_DOCUMENT,
@@ -185,11 +193,13 @@ function buildResponsibilityExecutionPlan({
   const viewDefFile = normalizeRelativePath(setup.view_def_file);
   const fieldDefinitionFile = normalizeRelativePath(setup.field_definition_file);
   const registryFile = normalizeRelativePath(registryPath);
+  const searchOperatorRegistryFile = normalizeRelativePath(setup.search_operator_registry_file ?? '');
 
   const inputData = readJson(inputFile);
   const viewDef = readJson(viewDefFile);
   const fieldDefinitionDocument = readJson(fieldDefinitionFile);
   const registry = readJson(registryFile);
+  const searchOperatorRegistry = searchOperatorRegistryFile ? readJson(searchOperatorRegistryFile) : null;
   const sandbox = loadPreviewSandbox();
   const service = new sandbox.ResponsibilityTestPreviewService({ registry });
   const preview = JSON.parse(JSON.stringify(service.derive({
@@ -199,7 +209,75 @@ function buildResponsibilityExecutionPlan({
     viewDef,
     fieldDefinitionDocument,
     registry,
+    searchOperatorRegistry,
   })));
+
+  const baseSetup = {
+    setup_id: String(setup.setup_id ?? ''),
+    input_file: inputFile,
+    input_approval_status: String(setup.input_approval_status ?? '').toLowerCase(),
+    view_def_file: viewDefFile,
+    field_definition_file: fieldDefinitionFile,
+    registry_file: registryFile,
+    search_operator_registry_file: searchOperatorRegistryFile,
+    execution_scope: String(setup.execution_scope ?? ''),
+    load_policy: String(setup.load_policy ?? ''),
+    pattern_isolation_policy: String(setup.pattern_isolation_policy ?? ''),
+    save_policy: String(setup.save_policy ?? ''),
+    reload_policy: String(setup.reload_policy ?? ''),
+    working_copy_policy: String(setup.working_copy_policy ?? 'COPY_BEFORE_EXECUTION'),
+    working_copy_directory: normalizeRelativePath(setup.working_copy_directory ?? 'data/json/99_test_runtime'),
+    cleanup_policy: String(setup.cleanup_policy ?? 'DELETE_AFTER_EXECUTION'),
+    runner_type: String(setup.runner_type ?? 'SELENIUM_NATIVE_SHELL'),
+  };
+
+  const isSearchPlan = (preview.test_patterns ?? []).some(pattern => Array.isArray(pattern?.generated_cases));
+  if (isSearchPlan) {
+    const searchCases = [];
+    const patterns = (preview.test_patterns ?? []).map((pattern) => {
+      const generatedCases = (pattern.generated_cases ?? []).map((generatedCase) => {
+        const targetDataPath = inferSearchTargetDataPath(generatedCase);
+        if (!targetDataPath) throw new Error(`Search Generated Case target_data_path could not be resolved: ${generatedCase?.case_id ?? ''}`);
+        const enhanced = {
+          ...clone(generatedCase),
+          target_data_path: targetDataPath,
+          pattern_id: String(pattern?.pattern_id ?? ''),
+          pattern_cd: String(pattern?.pattern_cd ?? ''),
+          pattern_role: String(pattern?.pattern_role ?? ''),
+          ui_target: resolveUiTarget(viewDef, targetDataPath),
+        };
+        searchCases.push(enhanced);
+        return enhanced;
+      });
+      return { ...clone(pattern), generated_cases: generatedCases };
+    });
+
+    return {
+      schema_version: 'responsibility_selenium_execution_plan_v0_2',
+      execution_kind: 'SEARCH_FILTER',
+      responsibility_document: responsibilityDocumentPath,
+      responsibility_cd: responsibilityCd,
+      responsibility_name: String(responsibility?.name ?? ''),
+      guarantee_ids: (responsibility?.guarantees ?? []).map((item) => item?.guarantee_id).filter(Boolean),
+      expected_def_type: preview.expected_def_type,
+      setup: baseSetup,
+      execution_ready: preview.execution_ready === true,
+      preview_status: preview.status,
+      patterns,
+      search_cases: searchCases,
+      baseline_document: clone(inputData),
+      summary: {
+        test_pattern_count: patterns.length,
+        generated_case_count: searchCases.length,
+        mutation_count: 0,
+        invalid_mutation_count: preview.summary?.invalid_mutation_count ?? 0,
+        issue_count: preview.summary?.issue_count ?? 0,
+        main_grid_case_count: searchCases.filter((item) => item.ui_target?.mode === 'MAIN_GRID').length,
+        related_grid_case_count: searchCases.filter((item) => item.ui_target?.mode === 'RELATED_GRID').length,
+      },
+      issues: clone(preview.issues ?? []),
+    };
+  }
 
   const expectedDocument = clone(inputData);
   const allMutations = [];
@@ -231,28 +309,14 @@ function buildResponsibilityExecutionPlan({
   ].join('\n')).join('\n');
 
   return {
-    schema_version: 'responsibility_selenium_execution_plan_v0_1',
+    schema_version: 'responsibility_selenium_execution_plan_v0_2',
+    execution_kind: 'DATA_UPDATE_PERSIST',
     responsibility_document: responsibilityDocumentPath,
     responsibility_cd: responsibilityCd,
     responsibility_name: String(responsibility?.name ?? ''),
     guarantee_ids: (responsibility?.guarantees ?? []).map((item) => item?.guarantee_id).filter(Boolean),
     expected_def_type: preview.expected_def_type,
-    setup: {
-      setup_id: String(setup.setup_id ?? ''),
-      input_file: inputFile,
-      input_approval_status: String(setup.input_approval_status ?? '').toLowerCase(),
-      view_def_file: viewDefFile,
-      field_definition_file: fieldDefinitionFile,
-      registry_file: registryFile,
-      execution_scope: String(setup.execution_scope ?? ''),
-      load_policy: String(setup.load_policy ?? ''),
-      save_policy: String(setup.save_policy ?? ''),
-      reload_policy: String(setup.reload_policy ?? ''),
-      working_copy_policy: String(setup.working_copy_policy ?? 'COPY_BEFORE_EXECUTION'),
-      working_copy_directory: normalizeRelativePath(setup.working_copy_directory ?? 'data/json/99_test_runtime'),
-      cleanup_policy: String(setup.cleanup_policy ?? 'DELETE_AFTER_EXECUTION'),
-      runner_type: String(setup.runner_type ?? 'SELENIUM_NATIVE_SHELL'),
-    },
+    setup: baseSetup,
     execution_ready: preview.execution_ready === true,
     preview_status: preview.status,
     patterns,
@@ -265,6 +329,7 @@ function buildResponsibilityExecutionPlan({
     baseline_document: clone(inputData),
     summary: {
       test_pattern_count: patterns.length,
+      generated_case_count: 0,
       mutation_count: allMutations.length,
       invalid_mutation_count: preview.summary?.invalid_mutation_count ?? 0,
       issue_count: preview.summary?.issue_count ?? 0,
@@ -282,6 +347,16 @@ function assertExecutionApproved(plan) {
   }
   if (plan.setup?.execution_scope !== 'DOCUMENT') throw new Error(`Unsupported execution_scope: ${plan.setup?.execution_scope}`);
   if (plan.setup?.load_policy !== 'LOAD_ONCE') throw new Error(`Unsupported load_policy: ${plan.setup?.load_policy}`);
+
+  if (plan.execution_kind === 'SEARCH_FILTER') {
+    if (plan.setup?.pattern_isolation_policy !== 'RESET_AFTER_EACH') throw new Error(`Unsupported pattern_isolation_policy: ${plan.setup?.pattern_isolation_policy}`);
+    if (plan.setup?.save_policy !== 'NONE') throw new Error(`Unsupported save_policy: ${plan.setup?.save_policy}`);
+    if (plan.setup?.reload_policy !== 'NONE') throw new Error(`Unsupported reload_policy: ${plan.setup?.reload_policy}`);
+    if (plan.setup?.working_copy_policy !== 'NONE') throw new Error(`Unsupported working_copy_policy: ${plan.setup?.working_copy_policy}`);
+    if (plan.setup?.runner_type !== 'SELENIUM_NATIVE_SHELL') throw new Error(`Unsupported runner_type: ${plan.setup?.runner_type}`);
+    return;
+  }
+
   if (plan.setup?.save_policy !== 'SAVE_ONCE') throw new Error(`Unsupported save_policy: ${plan.setup?.save_policy}`);
   if (plan.setup?.reload_policy !== 'RELOAD_ONCE') throw new Error(`Unsupported reload_policy: ${plan.setup?.reload_policy}`);
   if (plan.setup?.working_copy_policy !== 'COPY_BEFORE_EXECUTION') throw new Error(`Unsupported working_copy_policy: ${plan.setup?.working_copy_policy}`);
@@ -289,13 +364,23 @@ function assertExecutionApproved(plan) {
 
 function formatPlanSummary(plan) {
   const summary = plan?.summary ?? {};
+  const generated = plan?.execution_kind === 'SEARCH_FILTER'
+    ? `Generated: Pattern=${summary.test_pattern_count ?? 0} / Case=${summary.generated_case_count ?? 0} / Invalid=${summary.invalid_mutation_count ?? 0}`
+    : `Generated: Pattern=${summary.test_pattern_count ?? 0} / Mutation=${summary.mutation_count ?? 0} / Invalid=${summary.invalid_mutation_count ?? 0}`;
+  const lifecycle = plan?.execution_kind === 'SEARCH_FILTER'
+    ? `${plan?.setup?.load_policy} -> ${plan?.setup?.pattern_isolation_policy}`
+    : `${plan?.setup?.load_policy} -> ${plan?.setup?.save_policy} -> ${plan?.setup?.reload_policy}`;
+  const uiTarget = plan?.execution_kind === 'SEARCH_FILTER'
+    ? `UI Target: Main Cases=${summary.main_grid_case_count ?? 0} / Related Cases=${summary.related_grid_case_count ?? 0}`
+    : `UI Target: Main=${summary.main_grid_pattern_count ?? 0} / Related=${summary.related_grid_pattern_count ?? 0}`;
   return [
     `Responsibility: ${plan?.responsibility_cd} / ${plan?.responsibility_name}`,
+    `Execution Kind: ${plan?.execution_kind ?? ''}`,
     `ExpectedDef: ${plan?.expected_def_type}`,
     `Input: ${plan?.setup?.input_file} (${plan?.setup?.input_approval_status})`,
-    `Lifecycle: ${plan?.setup?.load_policy} -> ${plan?.setup?.save_policy} -> ${plan?.setup?.reload_policy}`,
-    `Generated: Pattern=${summary.test_pattern_count ?? 0} / Mutation=${summary.mutation_count ?? 0} / Invalid=${summary.invalid_mutation_count ?? 0}`,
-    `UI Target: Main=${summary.main_grid_pattern_count ?? 0} / Related=${summary.related_grid_pattern_count ?? 0}`,
+    `Lifecycle: ${lifecycle}`,
+    generated,
+    uiTarget,
     `Execution Ready: ${plan?.execution_ready ? 'YES' : 'NO'}`,
   ].join('\n');
 }

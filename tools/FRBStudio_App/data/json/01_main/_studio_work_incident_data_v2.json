@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-28T23:59:00+09:00",
+  "updated_at": "2026-08-29T11:20:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 218,
+  "items_count": 220,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -33229,15 +33229,15 @@
       "incident_type": "bugfix",
       "category": "save_integrity",
       "priority": "high",
-      "status": "確認中",
-      "follow_up_status": "UNASSESSED",
-      "verification_status": "Static確認済み / NativeShell再確認待ち",
+      "status": "完了",
+      "follow_up_status": "COMPLETED",
+      "verification_status": "NativeShell E2E確認済み",
       "context_def_status": "",
       "context_def_updated_at": "",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-28",
-      "updated_at": "2026-08-28T23:59:00+09:00",
+      "updated_at": "2026-08-29T10:30:00+09:00",
       "work_summary": "- DATA_UPDATE_PERSIST E2EのJsonDiffExpectedDefが、変更対象外のanalysis_start_date / analysis_end_dateにundefined→空文字の差分を検出。\n- ViewDefに存在するがData JSONに存在しないoptional fieldを、未操作の空UI値だけを理由にSAVE時へ新規追加しないSparse JSON preservationを導入。\n- Header保存と既存Detail保存の両方へ同じ非破壊ルールを適用。\n- 明示的に既存する空文字フィールドは保持し、欠落フィールドへ非空値を入力した場合は従来どおり追加可能とする。",
       "target_files": "wwwroot/js/core/data_utils.js\nwwwroot/js/runtime/detail_save.js\nwwwroot/js/renderers/grid_detail.js\ntests/qa/static/sparse_json_save_preservation_static.test.mjs\ndata/json/01_main/_studio_work_incident_data_v2.json",
       "actual_updated_files": "wwwroot/js/core/data_utils.js\nwwwroot/js/runtime/detail_save.js\nwwwroot/js/renderers/grid_detail.js\ntests/qa/static/sparse_json_save_preservation_static.test.mjs\ndata/json/01_main/_studio_work_incident_data_v2.json",
@@ -33251,11 +33251,11 @@
       "expected_outputs": "- 未設定optional Fieldを触らずSAVEしてもproperty absentのまま。\n- 既存の明示空文字propertyは保存後もpropertyとして存在。\n- 欠落Fieldへ非空値を入力した場合はpropertyを追加可能。\n- DATA_UPDATE_PERSIST再実行時にUnexpected Diff Count=0へ到達する。",
       "risk": "欠落Fieldへ意図的に「明示空文字を新規設定したい」という操作は既存編集モードでは欠落維持として扱われる。必要になれば将来、明示materialize操作を別契約として設計する。",
       "test_points": "- hasOwnByPathがproperty absent/presentを区別する。\n- absent + blankはshouldSkipAbsentBlankWrite=true。\n- absent + nonblankはfalse。\n- present + blankはfalse。\n- applyHeaderEdits / applyDetailInputsToRowが共通guardを使用する。\n- 既存new row処理は従来挙動を維持する。\n- npm run test:responsibilityでUnexpected Diff Count=0を実機確認する。",
-      "verification_log": "Focused Static: 8/8 PASS。全Static: 335 tests / 326 PASS / 9 FAIL。残り9 FAILは本改修外の既存別件。NativeShell E2Eはユーザー環境で再確認待ち。",
+      "verification_log": "Focused Static: 8/8 PASS。全Static: 335 tests / 326 PASS / 9 FAIL。残り9 FAILは本改修外の既存別件。NativeShell E2Eはユーザー環境で再確認待ち。\n- 2026-08-29 User実機: npm run test:responsibility = ALL PASS。JsonDiffExpectedDef / Unexpected Diff Count、Expected Diff Paths、Expected Diff CountすべてPASS。Working CopyもALL PASS後に削除。",
       "user_request": "DATA_UPDATE_PERSIST E2Eが最後のJsonDiffExpectedDefでundefined→空文字のUnexpected DiffによりFAIL。修正継続。",
       "ai_response": "原因をStudio本体のSparse JSON非破壊違反と特定。Runnerで無視せず、未設定optional fieldのblank自動materializeをHeader/Detail共通で抑止する。",
-      "latest_user_comment": "$.analysis_start_date / $.analysis_end_date: expected=undefined actual=\"\" によりUnexpected Diff Count FAIL。",
-      "latest_ai_response": "Sparse JSON preservationを実装。再度npm run test:responsibilityで実機確認を依頼する。",
+      "latest_user_comment": "2026-08-29 DATA_UPDATE_PERSISTを再実行し、JsonDiffExpectedDefを含めResponsibility E2E ALL PASSを確認。",
+      "latest_ai_response": "Sparse JSON preservationの実機確認完了。studio_work_0230を完了扱いへ更新。",
       "context_refs": [
         "studio_work_0229",
         "decision_axis_responsibility_observability"
@@ -33313,6 +33313,236 @@
           "article_hook": "Expected Diffを厳密にしたら、UIでは見えない「存在しない」と「空文字」の違いが突然品質問題になった。差分が仕様を発見した実例。"
         }
       ]
+    },
+    {
+      "work_item_id": "studio_work_0231",
+      "phase": "v0.18.111-search-responsibility-generated-test-matrix",
+      "title": "検索責務 Generated TestPattern Matrix — JSON Input Snapshot / Generated Case 3段論理構造",
+      "incident_type": "test_automation",
+      "category": "responsibility_definition_driven_test",
+      "priority": "high",
+      "status": "確認中",
+      "follow_up_status": "UNASSESSED",
+      "verification_status": "Static確認済み / NativeShell Preview確認待ち",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-29T10:30:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-29T10:30:00+09:00",
+      "updated_at": "2026-08-29T10:30:00+09:00",
+      "work_summary": "- search_filter責務へResponsibility Definition Driven Test生成を追加。\n- 検索専用JSON Fixtureを追加し、Expected/テスト理由はDataへ混在させずGenerated Case側でInput Snapshot / Criteria / Expected Rowsとして可視化。\n- String代表noteとNumber代表amplitude_gの2生成定義から、Search Operator Registryの標準Operatorを機械展開。\n- Generated TestPattern → Generated Case → Expectedの論理3段階を採用し、ExpectedはCase属性としてView階層2段制約を維持。\n- Pattern行数はValue Family×Operatorで圧縮し、Caseデータは省略せず全件Preview対象とする。",
+      "target_files": "- data/json/80_frb/frb_fft_search_test_data_v0_1.json\n- data/json/03_tests/responsibilities/responsibility_data_v0_2.json\n- defs/qa/tests/responsibilities/responsibility_view_def_v0_2.json\n- wwwroot/js/services/responsibility/responsibility_test_preview_service.js\n- wwwroot/js/components/responsibility/responsibility_test_preview_component.js\n- tests/qa/static/responsibility_search_generated_test_preview_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- data/json/80_frb/frb_fft_search_test_data_v0_1.json\n- data/json/03_tests/responsibilities/responsibility_data_v0_2.json\n- defs/qa/tests/responsibilities/responsibility_view_def_v0_2.json\n- wwwroot/js/services/responsibility/responsibility_test_preview_service.js\n- wwwroot/js/components/responsibility/responsibility_test_preview_component.js\n- tests/qa/static/responsibility_search_generated_test_preview_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "検索責務のTest InputはJSONを正本として利用する。ただしData JSONへExpectedやテスト意図を埋め込まず、Generated Previewが対象FieldのInput Snapshot、Operator/Criteria、Expected Rowsを導出して人間へ見せる。TestPatternをOperator単位でまとめ、Fieldごとの具体例をGenerated Caseとして保持することで、全データ確認可能性とPreview行数圧縮を両立する。",
+      "objective": "検索責務で大量に増える型×Operator×Fieldのテストを手書きせず、Canonical定義から全TestPatternデータを機械生成し、人間がInputとExpectedを確認できるPreview構造を成立させる。",
+      "background": "標準検索UIはField型により利用可能Operatorが変わる。検索Patternを責務JSONへ個別列挙すると量が膨らむ一方、生成結果を隠すと人間承認できない。そこで、検索用JSON FixtureとSearch Operator RegistryからGenerated Pattern/Case/Expectedを導出し、情報を省略せず意味階層で圧縮する方針を採用した。",
+      "scope": "- 検索専用Test DATA JSONを作成。\n- 既存FRB FFT ViewDef / FieldDefを再利用。\n- note(string)とamplitude_g(number)を代表Fieldとして選択。\n- text_standard / numeric_standardのactive Operatorを全展開。\n- Criteria値はTest DATAから決定論的に生成。\n- Input Snapshot、row_ids、indexes、match_countをGenerated Caseへ保持。\n- PreviewはPattern単位の行へ圧縮し、Generated Case / Expectedデータを全件表示可能にする。",
+      "out_of_scope": "- Seleniumによる検索UI E2E実行。\n- 全Searchable Fieldへの展開。\n- 複数条件AND/OR、全文検索、Preset。\n- ExpectedDef名称StateExpectedDef→GridResultExpectedDefの改名。\n- Previewの最終的なカード/美観設計。",
+      "fixed_name_policy": "検索Operatorを責務JSONへ個別列挙せずSearch Operator Registryを正本とする。TestPattern定義では代表Fieldを指定し、Resolved Field TypeからOperator Setを解決する。",
+      "module_policy": "検索生成計算はResponsibilityTestPreviewServiceへ集約し、ResponsibilityTestPreviewComponentはJSON参照読込とDerived readonly表示に限定する。SearchFilter実装をExpected生成へ直接再利用せず、Preview側の単純独立OracleでExpected Rowsを作る。",
+      "expected_outputs": "- Search専用Fixture 6行。\n- String text_standard 6 Operator + Number numeric_standard 7 Operator = 13 Generated TestPattern。\n- 代表Field2件から13 Generated Case。\n- note contains Alpha → indexes [0,2,5]、equals Alpha → [0,2]、blank → [3]。\n- amplitude_g equals 0.5 → [1,2]、between 0.5..0.9 → [1,2,3]、gte 0.5 → [1,2,3,4]。\n- Input=draftのためPreview Only。",
+      "risk": "Criteria自動生成はFixture値配置に依存するため、生成方針を決定論化しInput Snapshotを必ず表示する。今回の独立Oracleは単一条件だけを対象とし、複数条件や全文検索へ無断拡張しない。",
+      "test_points": "- Search Fixtureが既存ViewDef/FieldDef契約へ接続できる。\n- 2生成定義から13 Patternが導出される。\n- Pattern行数はOperator単位、Generated CaseはField単位。\n- 全CaseにInput Snapshot / Criteria / Expected(row_ids,indexes,match_count)が存在。\n- String/Numberの代表ExpectedがFixture意図どおり。\n- Generated成果物がResponsibility JSONへ保存されない。\n- draft InputはExecution Readyにならない。",
+      "verification_log": "- `node --check` responsibility_test_preview_service.js = PASS。\n- `node --check` responsibility_test_preview_component.js = PASS。\n- 新規 Search Generated Preview Static = 5/5 PASS。\n- UPDATE + Search Responsibility focused = 14/14 PASS。\n- 全Static Before（添付ZIP原本）: 335 tests / 326 PASS / 9 FAIL。\n- 全Static After: 340 tests / 331 PASS / 9 FAIL。\n- 既存9 FAILのまま、新規FAILなし。NativeShellでsearch_filterのGenerated Preview表示は未確認。",
+      "user_request": "検索責務のVersion Upに先立ち、検索専用JSON DataをTest Inputとして使い、データ量を増やしつつInput Snapshotでテスト意図を見えるようにする方針で実装依頼。",
+      "ai_response": "検索専用JSON Fixtureを追加し、2つの代表Field定義から型別Operator Matrixを生成。TestPattern→Generated Case→Expectedの論理3段構造とInput SnapshotをResponsibility Previewへ導入する。",
+      "latest_user_comment": "JSONデータを入力に使い、Test DATA自体にテスト意図を書かずGenerated Preview側でどう使ったかを見せる方針を了承。",
+      "latest_ai_response": "実装・Static検証後、NativeShellでGenerated Previewの13 PatternとCase内容確認を依頼する。",
+      "context_refs": [
+        "studio_work_0228",
+        "studio_work_0229",
+        "decision_axis_responsibility_observability",
+        "decision_axis_view_hierarchy_projection"
+      ],
+      "follow_up_actions": [],
+      "discussion_history": [
+        {
+          "history_id": "disc_0231_001",
+          "at": "2026-08-29T10:30:00+09:00",
+          "speaker": "user",
+          "topic": "Search Test Input方針",
+          "message": "可能ならJSONデータを入力に使いたい。データを増やすと何を入れたか見えづらいので、Input Snapshotで意図を見せる方針でやってみて。"
+        },
+        {
+          "history_id": "disc_0231_002",
+          "at": "2026-08-29T10:30:00+09:00",
+          "speaker": "assistant",
+          "topic": "Search Generated Matrix実装",
+          "message": "検索専用Test DATAを追加し、DataにはExpectedを混ぜず、Generated CaseへInput Snapshot / Criteria / Expectedを導出する。Patternは型×Operatorでまとめ、Caseは全件保持する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0231_001",
+          "at": "2026-08-29T10:30:00+09:00",
+          "decision": "Search Test Inputは専用JSON Dataとし、Expectedやテスト理由はData JSONへ埋め込まない。",
+          "reason": "実行入力とテスト定義の責務を混在させず、Dataを事実としての入力に保つため。"
+        },
+        {
+          "decision_id": "dec_0231_002",
+          "at": "2026-08-29T10:30:00+09:00",
+          "decision": "Generated PreviewはTestPattern → Generated Case → Expectedの論理3段階とし、ExpectedはGenerated Caseの属性として扱う。",
+          "reason": "全テスト情報をレビュー可能にしながらViewDef意味階層2段制約を維持するため。"
+        },
+        {
+          "decision_id": "dec_0231_003",
+          "at": "2026-08-29T10:30:00+09:00",
+          "decision": "Preview親行はValue Family×Operator単位へ圧縮し、具体Fieldごとの入力・Criteria・ExpectedをGenerated Caseとして保持する。",
+          "reason": "Field数増加時にも親Grid行数を抑え、情報を省略せず展開できるため。"
+        },
+        {
+          "decision_id": "dec_0231_004",
+          "at": "2026-08-29T10:30:00+09:00",
+          "decision": "Expected RowsはSearchFilter実装を直接呼ばず、単一条件の独立Simple Oracleで生成する。",
+          "reason": "ActualとExpectedが同じ実装バグを共有する自己証明を避けるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0231_001",
+          "at": "2026-08-29T10:30:00+09:00",
+          "change_type": "search_test_input_fixture",
+          "before": "search_filter責務に承認対象のTest Input JSON参照がなく、旧Concrete TestPatternが個別Inputを保持していた。",
+          "after": "frb_fft_search_test_data_v0_1.jsonを専用Inputとして追加し、同値複数・空文字・数値大小を6行へ配置。Expected/理由はDataへ埋め込まない。",
+          "reason": "JSONを実行入力の正本にしつつ、Test DataとTest Definitionの責務を分離するため。"
+        },
+        {
+          "history_id": "chg_0231_002",
+          "at": "2026-08-29T10:30:00+09:00",
+          "change_type": "search_operator_matrix_generation",
+          "before": "search_filter.test_pattern_definitionsが空で、標準OperatorのConcrete Patternを責務定義から生成できなかった。",
+          "after": "String代表note / Number代表amplitude_gの2生成定義からResolved Field Type→Search Operator Registryを辿り、13 TestPatternを機械導出する。",
+          "reason": "大量のOperator Patternを手書きせず、Registryを語彙正本にするため。"
+        },
+        {
+          "history_id": "chg_0231_003",
+          "at": "2026-08-29T10:30:00+09:00",
+          "change_type": "generated_case_input_snapshot",
+          "before": "PreviewはDATA_UPDATE_PERSIST向けMutation/Expected Diffの1層表現だけだった。",
+          "after": "Search PatternはOperator単位の親PatternとField単位Generated Caseを持ち、Case内にInput Snapshot / Criteria / Expected(row_ids,indexes,match_count)を保持する。",
+          "reason": "全TestPatternデータを隠さず、人間が「どの入力からこのExpectedになったか」を追えるようにするため。"
+        },
+        {
+          "history_id": "chg_0231_004",
+          "at": "2026-08-29T10:30:00+09:00",
+          "change_type": "preview_row_compression",
+          "before": "具体Caseをすべて親Grid行として出すとField数×Operator数でPreview行数が増える。",
+          "after": "親PreviewはValue Family×Operator単位の13行に圧縮し、Generated Cases / Expectedを同じ行の詳細データとして全件保持する。",
+          "reason": "情報を省略せず、意味階層で行数を抑えるため。"
+        }
+      ],
+      "failure_stories": []
+    },
+    {
+      "work_item_id": "studio_work_0232",
+      "phase": "v0.18.112-search-generated-case-selenium-runner",
+      "title": "検索責務 Generated Case → 標準検索UI Selenium E2E Bridge",
+      "incident_type": "test_automation",
+      "category": "responsibility_definition_driven_test",
+      "priority": "high",
+      "status": "確認中",
+      "follow_up_status": "UNASSESSED",
+      "verification_status": "Static / Plan確認済み・NativeShell E2EはInput承認待ち",
+      "context_def_status": "reviewed",
+      "context_def_updated_at": "2026-08-29T11:20:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-29T11:20:00+09:00",
+      "updated_at": "2026-08-29T11:20:00+09:00",
+      "work_summary": "- search_filterの13 Generated CaseをSelenium Execution Planへ変換し、標準検索UIへ投入するBridgeを追加。\n- LifecycleはLOAD_ONCE → Case実行/Expected比較 → RESET_AFTER_EACH。SAVE/RELOAD/Working Copyは使用しない。\n- Operator選択は表示Captionへ依存せずdata-search-operator-idをSemantic Hookとして操作する。\n- Grid結果はdata-source-index / data-row-keyからActual indexes / row_idsを観測し、Generated Expectedのmatch_count / indexes / row_idsと比較する。\n- Input承認状態draftは維持し、approvedになるまでNativeShell実行をHard Blockする。\n- Phase 1対象はString(note) + Number(amplitude_g)のみ。Date/Choice系は後続。",
+      "target_files": "- SeleniumTaste/responsibility_test_plan.js\n- SeleniumTaste/responsibility_selenium_runner.js\n- SeleniumTaste/package.json\n- wwwroot/js/services/search_ui_controller.js\n- wwwroot/js/renderers/grid_detail.js\n- wwwroot/js/services/responsibility/responsibility_test_preview_service.js\n- data/json/03_tests/responsibilities/responsibility_data_v0_2.json\n- tests/qa/static/responsibility_search_selenium_runner_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- SeleniumTaste/responsibility_test_plan.js\n- SeleniumTaste/responsibility_selenium_runner.js\n- SeleniumTaste/package.json\n- wwwroot/js/services/search_ui_controller.js\n- wwwroot/js/renderers/grid_detail.js\n- wwwroot/js/services/responsibility/responsibility_test_preview_service.js\n- data/json/03_tests/responsibilities/responsibility_data_v0_2.json\n- tests/qa/static/responsibility_selenium_plan_static.test.mjs\n- tests/qa/static/responsibility_search_selenium_runner_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "Generated TestPatternはOperator単位、Generated Caseは具体Field単位とし、承認済みCaseを検索UIへそのまま投入する。Expectedは独立Simple Oracleが生成したrow_ids / indexes / match_count、ActualはSeleniumが標準検索UI操作後のGridから観測する。Case間の検索状態はRESET_AFTER_EACHで分離し、Test DATAへExpectedを埋め込まない。",
+      "objective": "Responsibility Generated Caseを人間が確認した定義のままNativeShell検索UIへ投入し、検索結果をExpected RowsとE2E比較できる状態にする。",
+      "background": "studio_work_0231で検索専用JSON Fixtureと13 Generated Pattern/Case/ExpectedのPreview生成まで成立した。次段階として、そのGenerated Caseを手書きテストへ転記せず直接Selenium UI操作へ接続し、責務定義→Generated Case→Actual Grid Resultの経路を完成させる必要がある。",
+      "scope": "- String代表noteの6 Operator。\n- Number代表amplitude_gの7 Operator。\n- Context MenuからOperatorを選択。\n- single/range/noneのCriteria UIへGenerated値を投入。\n- 検索ボタン実行。\n- match_count / source indexes / row keyをExpectedと比較。\n- 各Case後に取消でRESET_AFTER_EACH。\n- Input Approval Hard Gate。",
+      "out_of_scope": "- Date / Datetime。\n- ComboBox / Select。\n- Option / Radio / Boolean。\n- Related Grid検索。\n- 複数条件AND/OR。\n- 全文検索。\n- Preview美観改善。",
+      "fixed_name_policy": "OperatorはCaption文字列で操作せずSearch Operator Registry由来idをdata-search-operator-idへ投影する。Actual行の観測も列位置の固定値に依存せずGrid rowのdata-row-key / data-source-indexを使う。",
+      "module_policy": "ResponsibilityTestPreviewServiceをGenerated Caseの正本生成経路として再利用し、Selenium側でOperator/Expectedを再定義しない。Selenium RunnerはPlanに従ってUI操作とActual観測だけを担当する。",
+      "expected_outputs": "- search_filter Execution Plan: 13 Pattern / 13 Case。\n- npm run test:responsibility:search:plan でPlan確認。\n- Input approved後、npm run test:responsibility:search で13 Caseを順次実行。\n- 各CaseでStateExpectedDef / Match Count、Indexes、Row IDsがPASS。\n- Case後にRESET_AFTER_EACH。",
+      "risk": "Context MenuやGrid再描画はDOM更新を伴うためstale耐性が必要。Phase 1はMain GridのみとしRelated Gridへ拡張しない。Semantic HookをDOM Captionに依存しない形で追加し、表示文言変更でテストが壊れないようにする。",
+      "test_points": "- Search Planが13 Caseを保持する。\n- Generated Caseのtarget_data_pathがUI Targetへ解決できる。\n- draft InputではNativeShellを起動しない。\n- Operator Menuをidで選択できる。\n- betweenはFrom/To、blank系は値無しで実行する。\n- Expected match_count/indexes/row_idsとActualが一致する。\n- RESET_AFTER_EACHで6行へ戻る。",
+      "verification_log": "- `node --check` responsibility_test_plan.js / responsibility_selenium_runner.js / search_ui_controller.js / grid_detail.js / responsibility_test_preview_service.js = PASS。\n- Search Plan CLI: Responsibility=search_filter / Execution Kind=SEARCH_FILTER / Pattern=13 / Case=13 / Main Cases=13 / Execution Ready=NO(draft) を確認。\n- Search Preview + Search Selenium Plan + UPDATE Plan focused: 14/14 PASS。\n- 全Static: 344 tests / 335 PASS / 9 FAIL。既存9 FAILのままで、本件新規FAILなし。\n- NativeShell E2EはTest Input approval_status=draftのため未実行。人間承認後に `npm run test:responsibility:search` で確認する。",
+      "user_request": "Generated Caseを検索UIへ食わせる。インシデント登録も行う。",
+      "ai_response": "Generated Search CaseをSelenium Execution Planへ接続し、Operator選択・Criteria入力・検索・Expected Rows比較・RESET_AFTER_EACHまでをRunnerへ追加する。Inputのdraft→approvedは自動変更しない。",
+      "latest_user_comment": "Generated Caseを検索UIへ食わせてほしい。インシデント登録も依頼。",
+      "latest_ai_response": "Generated Case→Search Selenium Execution Plan→標準検索UI操作→StateExpectedDef比較→RESET_AFTER_EACHまで実装。Plan/Static確認済み。Test Inputはdraftのまま維持し、実機E2Eは人間承認待ち。",
+      "context_refs": [
+        "studio_work_0231",
+        "studio_work_0229",
+        "decision_axis_responsibility_observability",
+        "decision_axis_view_hierarchy_projection"
+      ],
+      "follow_up_actions": [],
+      "discussion_history": [
+        {
+          "history_id": "disc_0232_001",
+          "at": "2026-08-29T11:20:00+09:00",
+          "speaker": "user",
+          "topic": "Generated Case UI実行",
+          "message": "Generated Caseを検索UIへ食わせる。インシデント登録もお願い。"
+        },
+        {
+          "history_id": "disc_0232_002",
+          "at": "2026-08-29T11:20:00+09:00",
+          "speaker": "assistant",
+          "topic": "Search Selenium Bridge",
+          "message": "Generated CaseをPlanへ変換し、標準検索UIへOperator/Criteriaを投入してGrid ActualをExpected Rowsと比較するRunnerを追加。Case間はRESET_AFTER_EACH。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0232_001",
+          "at": "2026-08-29T11:20:00+09:00",
+          "decision": "Search E2EはGenerated CaseをRunnerへ直接渡し、Selenium側へConcrete TestPatternを再定義しない。",
+          "reason": "責務JSONをCanonicalに保ち、Previewと実行で同じGenerated Caseを共有するため。"
+        },
+        {
+          "decision_id": "dec_0232_002",
+          "at": "2026-08-29T11:20:00+09:00",
+          "decision": "検索CaseのLifecycleはLOAD_ONCE → SEARCH/VERIFY → RESET_AFTER_EACHとする。",
+          "reason": "Case同士の検索条件干渉を防ぎながら、Fixtureの再LOADを毎回行う無駄を避けるため。"
+        },
+        {
+          "decision_id": "dec_0232_003",
+          "at": "2026-08-29T11:20:00+09:00",
+          "decision": "UI Automationは表示CaptionではなくOperator ID / Row Key / Source IndexのSemantic Hookで観測する。",
+          "reason": "表示文言・列順・ローカライズを責務E2Eの契約に混ぜないため。"
+        },
+        {
+          "decision_id": "dec_0232_004",
+          "at": "2026-08-29T11:20:00+09:00",
+          "decision": "AI生成Test Inputのapproval_status=draftは維持し、人間承認前のNativeShell実行をHard Blockする。",
+          "reason": "Test Inputそのものが承認対象という既存方針を守るため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0232_001",
+          "at": "2026-08-29T11:20:00+09:00",
+          "change_type": "search_selenium_execution_plan",
+          "before": "Responsibility Selenium PlanはDATA_UPDATE_PERSISTのMutation/JsonDiff専用だった。",
+          "after": "SEARCH_FILTER execution_kindを追加し、13 Generated Caseをtarget_data_path / ui_target付きPlanへ変換する。",
+          "reason": "Generated PreviewをそのままE2E入力へ接続するため。"
+        },
+        {
+          "history_id": "chg_0232_002",
+          "at": "2026-08-29T11:20:00+09:00",
+          "change_type": "search_ui_semantic_hooks",
+          "before": "Operator Menuは表示Caption、Grid Rowは表示セルしか外部観測情報がなかった。",
+          "after": "data-search-operator-id、data-source-index、data-row-keyを追加。",
+          "reason": "表示文言や列順に依存しない責務観測境界を作るため。"
+        },
+        {
+          "history_id": "chg_0232_003",
+          "at": "2026-08-29T11:20:00+09:00",
+          "change_type": "search_selenium_runner",
+          "before": "Selenium Runnerは編集→SAVE→RELOAD→JsonDiffExpectedDefだけを実行。",
+          "after": "検索UIへのOperator/Criteria投入、Grid Expected比較、RESET_AFTER_EACHを実行できる。",
+          "reason": "検索責務の異なるLifecycleを同じResponsibility Driven Test基盤へ載せるため。"
+        }
+      ],
+      "failure_stories": []
     }
   ],
   "review_notes": [

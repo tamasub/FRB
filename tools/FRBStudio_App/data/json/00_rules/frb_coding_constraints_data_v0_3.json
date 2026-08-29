@@ -172,6 +172,22 @@
       "violation_action": "単独で観測できない責務は承認責務として分離せず、観測可能な成果まで含む上位責務へ統合する。必要に応じて内部実装責務としてのみ保持する。",
       "source_decision_log_ids": [],
       "notes": "例：UI編集値をメモリ上のDocument Dataへ反映するCOMMIT処理が外部から単独確認できない場合、COMMITだけを承認責務とせず、物理JSONへの保存・再読込・確認まで含む観測可能な責務として定義する。"
+    },
+    {
+      "sort_order": 90,
+      "item_id": "decision_axis_view_hierarchy_projection_copy_1",
+      "item_type": "DECISION_AXIS",
+      "title": "論理構造とView階層を分離して考える",
+      "statement": "論理上の情報構造が3層以上であっても、そのままViewの階層へ変換しない。ViewDefでは意味階層を最大2階層に保ち、下位情報は親要素の属性または別View・Previewとして表現することを優先する。",
+      "reason": "情報構造をそのまま多段Viewへ展開すると、画面理解・編集・承認の負荷が急激に高くなるため。論理構造を保持しながらView上では圧縮して表現することで、人間が全情報を確認可能な状態と操作性を両立する。",
+      "scope": "document",
+      "priority": "medium",
+      "status": "DRAFT",
+      "evaluation_guidance": "論理上の親子関係と、画面上で本当に階層表示する必要がある関係を分けて評価する。第三階層以降の情報は、第二階層要素の属性・列・Preview・Editorなどで表現できないかを優先して検討する。",
+      "verification_method": "ViewDef上の意味階層が最大2階層に収まっていること、および論理上必要な情報が省略されず属性または別Projectionから確認可能であることを確認する。",
+      "violation_action": "第三階層以降のサブグリッドを追加する前に、第二階層要素への属性化、Preview化、Editor化、別View化による表現へ再設計する。",
+      "source_decision_log_ids": [],
+      "notes": "例：TestPattern → Generated Case → Expected は論理上3層だが、ViewDefでは TestPattern → Generated Case の2階層とし、ExpectedはGenerated Caseの構成情報として表示する。Expected詳細はPreview等の別Projectionで確認する。"
     }
   ],
   "rules": [

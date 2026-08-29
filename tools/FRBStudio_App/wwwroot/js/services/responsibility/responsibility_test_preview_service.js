@@ -142,6 +142,99 @@ function responsibilityPreviewAddInstantMinutes(value, minutes) {
   return `${base}${suffix}`;
 }
 
+
+function responsibilityPreviewSearchIsBlank(value) {
+  return value == null || (typeof value === 'string' && value.trim() === '');
+}
+
+function responsibilityPreviewSearchStableValueKey(value) {
+  if (value == null) return `${value}`;
+  if (typeof value === 'object') {
+    try { return JSON.stringify(value); }
+    catch { return String(value); }
+  }
+  return `${typeof value}:${String(value)}`;
+}
+
+function responsibilityPreviewSearchRepeatedValue(values) {
+  const counts = new Map();
+  for (const value of values.filter(v => !responsibilityPreviewSearchIsBlank(v))) {
+    const key = responsibilityPreviewSearchStableValueKey(value);
+    const current = counts.get(key) ?? { value, count: 0 };
+    current.count += 1;
+    counts.set(key, current);
+  }
+  for (const item of counts.values()) if (item.count > 1) return item.value;
+  return undefined;
+}
+
+function responsibilityPreviewSearchComparable(value, family) {
+  if (responsibilityPreviewSearchIsBlank(value)) return null;
+  if (['number', 'integer', 'float', 'decimal'].includes(family)) {
+    const n = typeof value === 'number' ? value : Number(String(value).replace(/,/g, '').trim());
+    return Number.isFinite(n) ? n : null;
+  }
+  if (family === 'date') {
+    const text = String(value).trim();
+    return /^\d{4}-\d{2}-\d{2}$/.test(text) ? Date.parse(`${text}T00:00:00Z`) : null;
+  }
+  if (family === 'datetime') {
+    const text = String(value).trim();
+    const normalized = /Z|[+-]\d{2}:\d{2}$/.test(text) ? text : `${text}Z`;
+    const timestamp = Date.parse(normalized);
+    return Number.isFinite(timestamp) ? timestamp : null;
+  }
+  if (family === 'instant') {
+    const timestamp = Date.parse(String(value).trim());
+    return Number.isFinite(timestamp) ? timestamp : null;
+  }
+  return null;
+}
+
+function responsibilityPreviewSearchEquals(actual, expected, family) {
+  if (['number', 'integer', 'float', 'decimal', 'date', 'datetime', 'instant'].includes(family)) {
+    const a = responsibilityPreviewSearchComparable(actual, family);
+    const b = responsibilityPreviewSearchComparable(expected, family);
+    return a != null && b != null && a === b;
+  }
+  if (family === 'boolean') return String(actual ?? '').toLowerCase() === String(expected ?? '').toLowerCase();
+  return String(actual ?? '') === String(expected ?? '');
+}
+
+function responsibilityPreviewSearchMatches(actual, operatorId, criteria, family) {
+  if (operatorId === 'blank') return responsibilityPreviewSearchIsBlank(actual);
+  if (operatorId === 'not_blank') return !responsibilityPreviewSearchIsBlank(actual);
+  if (operatorId === 'contains') return String(actual ?? '').toLowerCase().includes(String(criteria?.value ?? '').toLowerCase());
+  if (operatorId === 'not_contains') return !String(actual ?? '').toLowerCase().includes(String(criteria?.value ?? '').toLowerCase());
+  if (operatorId === 'equals') return responsibilityPreviewSearchEquals(actual, criteria?.value, family);
+  if (operatorId === 'not_equals') return !responsibilityPreviewSearchEquals(actual, criteria?.value, family);
+  if (operatorId === 'gte' || operatorId === 'lte') {
+    const a = responsibilityPreviewSearchComparable(actual, family);
+    const b = responsibilityPreviewSearchComparable(criteria?.value, family);
+    if (a == null || b == null) return false;
+    return operatorId === 'gte' ? a >= b : a <= b;
+  }
+  if (operatorId === 'between') {
+    const a = responsibilityPreviewSearchComparable(actual, family);
+    if (a == null) return false;
+    const from = responsibilityPreviewSearchComparable(criteria?.from, family);
+    const to = responsibilityPreviewSearchComparable(criteria?.to, family);
+    if (from != null && a < from) return false;
+    if (to != null && a > to) return false;
+    return from != null || to != null;
+  }
+  return false;
+}
+
+function responsibilityPreviewSearchPatternFamily(operatorSetId, rawFamily) {
+  if (operatorSetId === 'text_standard') return 'string';
+  if (operatorSetId === 'numeric_standard') return 'number';
+  if (operatorSetId === 'date_standard') return 'date';
+  if (operatorSetId === 'boolean_standard') return 'boolean';
+  if (operatorSetId === 'select_standard') return 'select';
+  return String(rawFamily ?? 'unknown');
+}
+
 class ResponsibilityTestPreviewService {
   constructor({ registry=null, fieldContractResolver=null, valueValidator=null }={}) {
     this.registry = registry;
@@ -149,10 +242,12 @@ class ResponsibilityTestPreviewService {
     this.valueValidator = valueValidator ?? (typeof DefinitionValueValidator !== 'undefined' ? new DefinitionValueValidator() : null);
   }
 
-  derive({ responsibility={}, rootDocument={}, inputData={}, viewDef={}, fieldDefinitionDocument={}, registry=null }={}) {
+  derive({ responsibility={}, rootDocument={}, inputData={}, viewDef={}, fieldDefinitionDocument={}, registry=null, searchOperatorRegistry=null }={}) {
     const effectiveRegistry = registry ?? this.registry;
     const setup = (responsibility?.test_setup ?? []).find(item => item?.setup_id) ?? null;
     const definitions = (responsibility?.test_pattern_definitions ?? []).filter(item => item?.enabled !== false);
+    const searchDefinitions = definitions.filter(item => String(item?.generation_mode ?? '') === 'SEARCH_OPERATOR_MATRIX');
+    const mutationDefinitions = definitions.filter(item => String(item?.generation_mode ?? '') !== 'SEARCH_OPERATOR_MATRIX');
     const config = rootDocument?.test_generation_config ?? {};
     const issues = [];
 
@@ -160,42 +255,189 @@ class ResponsibilityTestPreviewService {
     if (!definitions.length) issues.push({ code: 'TEST_PATTERN_DEFINITION_REQUIRED', message: 'enabled test_pattern_definitions are required.' });
     if (!effectiveRegistry) issues.push({ code: 'VALIDATION_TYPE_REGISTRY_REQUIRED', message: 'Validation Type Registry is required.' });
     if (!this.fieldContractResolver) issues.push({ code: 'FIELD_CONTRACT_RESOLVER_REQUIRED', message: 'FieldContractResolver is required.' });
-    if (!this.valueValidator) issues.push({ code: 'VALUE_VALIDATOR_REQUIRED', message: 'DefinitionValueValidator is required.' });
+    if (mutationDefinitions.length && !this.valueValidator) issues.push({ code: 'VALUE_VALIDATOR_REQUIRED', message: 'DefinitionValueValidator is required.' });
+    if (searchDefinitions.length && !searchOperatorRegistry) issues.push({ code: 'SEARCH_OPERATOR_REGISTRY_REQUIRED', message: 'Search Operator Registry is required.' });
 
     const patterns = [];
     if (!issues.length) {
-      definitions.forEach(definition => {
+      mutationDefinitions.forEach(definition => {
         try {
           patterns.push(this.#derivePattern({ definition, setup, config, inputData, viewDef, fieldDefinitionDocument, registry: effectiveRegistry }));
         } catch (err) {
           issues.push({ code: 'PATTERN_DERIVATION_FAILED', pattern_def_id: definition?.pattern_def_id ?? '', message: String(err?.message ?? err) });
         }
       });
+
+      if (searchDefinitions.length) {
+        try {
+          patterns.push(...this.#deriveSearchPatterns({
+            definitions: searchDefinitions, setup, config, inputData, viewDef, fieldDefinitionDocument,
+            registry: effectiveRegistry, searchOperatorRegistry
+          }));
+        } catch (err) {
+          issues.push({ code: 'SEARCH_PATTERN_DERIVATION_FAILED', message: String(err?.message ?? err) });
+        }
+      }
     }
 
     const mutationCount = patterns.reduce((sum, pattern) => sum + (pattern.mutations?.length ?? 0), 0);
+    const generatedCaseCount = patterns.reduce((sum, pattern) => sum + (pattern.generated_cases?.length ?? 0), 0);
     const invalidMutationCount = patterns.reduce((sum, pattern) => sum + (pattern.mutations ?? []).filter(item => item.validation_outcome !== 'ACCEPT').length, 0);
     const approvalStatus = String(setup?.input_approval_status ?? '').trim().toLowerCase();
     const executionReady = approvalStatus === 'approved' && issues.length === 0 && invalidMutationCount === 0 && patterns.length > 0;
 
     return {
-      schema_version: 'responsibility_generated_test_preview_v0_1',
+      schema_version: 'responsibility_generated_test_preview_v0_2',
       status: issues.length ? 'PARTIAL' : 'READY',
       execution_ready: executionReady,
       responsibility_cd: String(responsibility?.responsibility_cd ?? ''),
       setup_id: String(setup?.setup_id ?? ''),
       input_approval_status: approvalStatus || 'unknown',
-      expected_def_type: String(responsibility?.guarantees?.[0]?.expected_def_type ?? definitions?.[0]?.expected_def_type ?? ''),
+      expected_def_type: String(definitions?.[0]?.expected_def_type ?? responsibility?.guarantees?.[0]?.expected_def_type ?? ''),
       test_patterns: patterns,
       issues,
       summary: {
         test_pattern_count: patterns.length,
+        generated_case_count: generatedCaseCount,
         mutation_count: mutationCount,
         invalid_mutation_count: invalidMutationCount,
         issue_count: issues.length,
         expected_unexpected_diff_count: 0
       }
     };
+  }
+
+  #deriveSearchPatterns({ definitions, setup, config, inputData, viewDef, fieldDefinitionDocument, registry, searchOperatorRegistry }) {
+    const operatorById = new Map((searchOperatorRegistry?.operators ?? []).map(item => [String(item?.id ?? ''), item]));
+    const operatorSetById = new Map((searchOperatorRegistry?.operator_sets ?? []).map(item => [String(item?.id ?? ''), item]));
+    const validationFamilyMap = new Map((searchOperatorRegistry?.validation_value_family_mappings ?? []).map(item => [String(item?.value_family ?? ''), String(item?.operator_set_id ?? '')]));
+    const fieldTypeFallbackMap = new Map((searchOperatorRegistry?.field_type_fallbacks ?? []).map(item => [String(item?.field_type ?? ''), String(item?.operator_set_id ?? '')]));
+    const fieldDefs = Array.isArray(fieldDefinitionDocument?.field_definitions) ? fieldDefinitionDocument.field_definitions : [];
+    const fieldDefByPath = new Map(fieldDefs.map(item => [String(item?.field_path ?? '').trim(), item]));
+    const groups = new Map();
+
+    for (const definition of definitions) {
+      const dataPath = String(definition?.target_data_path ?? '').trim();
+      const rows = responsibilityPreviewGetByDataPath(inputData, dataPath);
+      if (!Array.isArray(rows) || rows.length === 0) throw new Error(`Search Target DataPath must resolve to a non-empty array: ${dataPath}`);
+      const section = responsibilityPreviewFindSection(viewDef, dataPath);
+      if (!section) throw new Error(`Search ViewDef section not found for DataPath: ${dataPath}`);
+
+      const fieldName = String(definition?.target_field ?? '').trim();
+      const field = (section?.fields ?? []).find(item => String(item?.field ?? '').trim() === fieldName);
+      if (!field) throw new Error(`Search target field not found in ViewDef: ${dataPath}.${fieldName}`);
+      if (field?.search?.visible === false) throw new Error(`Search target field is not searchable: ${dataPath}.${fieldName}`);
+
+      const fieldPath = responsibilityPreviewCanonicalFieldPath(dataPath, fieldName);
+      const fieldDef = fieldDefByPath.get(fieldPath) ?? null;
+      const contract = fieldDef ? this.fieldContractResolver.resolve(fieldDef, registry) : null;
+      const rawFamily = String(contract?.value_family ?? field?.type ?? '').trim().toLowerCase();
+      const operatorSetId = validationFamilyMap.get(rawFamily) || fieldTypeFallbackMap.get(String(field?.type ?? '').trim().toLowerCase());
+      const operatorSet = operatorSetById.get(operatorSetId);
+      if (!operatorSet) throw new Error(`Search Operator Set could not be resolved: ${fieldPath} (${rawFamily})`);
+      const patternFamily = responsibilityPreviewSearchPatternFamily(operatorSetId, rawFamily);
+      const keyField = String(section?.keyField ?? '').trim();
+      const snapshot = rows.map((row, index) => ({
+        index,
+        row_id: keyField && row?.[keyField] != null ? String(row[keyField]) : String(index),
+        value: responsibilityPreviewClone(row?.[fieldName])
+      }));
+      const values = snapshot.map(item => item.value);
+
+      for (const operatorId of (operatorSet?.operator_ids ?? [])) {
+        const operator = operatorById.get(String(operatorId));
+        if (!operator || operator?.status !== 'active') continue;
+        const criteria = this.#generateSearchCriteria({ operatorId: String(operatorId), values, family: rawFamily, config });
+        const matched = snapshot.filter(item => responsibilityPreviewSearchMatches(item.value, String(operatorId), criteria, rawFamily));
+        const expected = {
+          row_ids: matched.map(item => item.row_id),
+          indexes: matched.map(item => item.index),
+          match_count: matched.length
+        };
+        const generatedCase = {
+          case_id: `${String(definition?.pattern_def_id ?? 'search')}_${String(operatorId)}`,
+          target_data_path: dataPath,
+          target_field: fieldName,
+          field_path: fieldPath,
+          value_family: patternFamily,
+          resolved_value_family: rawFamily,
+          operator_id: String(operatorId),
+          operator_caption: String(operator?.caption ?? operatorId),
+          input_snapshot: responsibilityPreviewClone(snapshot),
+          criteria: responsibilityPreviewClone(criteria),
+          expected_def_type: String(definition?.expected_def_type ?? 'StateExpectedDef'),
+          expected,
+          guarantee_id: String(definition?.guarantee_id ?? ''),
+          source_definition_id: String(definition?.pattern_def_id ?? '')
+        };
+
+        const groupKey = `${patternFamily}::${String(operatorId)}`;
+        let pattern = groups.get(groupKey);
+        if (!pattern) {
+          pattern = {
+            pattern_id: `search_filter_${patternFamily}_${String(operatorId)}`,
+            pattern_cd: String(definition?.pattern_cd ?? 'SEARCH_FILTER'),
+            pattern_role: String(definition?.pattern_role ?? 'STANDARD'),
+            generation_mode: 'SEARCH_OPERATOR_MATRIX',
+            value_family: patternFamily,
+            operator_id: String(operatorId),
+            operator_caption: String(operator?.caption ?? operatorId),
+            operator_set_id: operatorSetId,
+            expected_def_type: String(definition?.expected_def_type ?? 'StateExpectedDef'),
+            generated_cases: [],
+            guarantee_ids: [],
+            source: {
+              input_file: String(setup?.input_file ?? ''),
+              view_def_file: String(setup?.view_def_file ?? ''),
+              field_definition_file: String(setup?.field_definition_file ?? ''),
+              search_operator_registry_file: String(setup?.search_operator_registry_file ?? config?.search_generation?.operator_registry_file ?? ''),
+              input_approval_status: String(setup?.input_approval_status ?? '')
+            }
+          };
+          groups.set(groupKey, pattern);
+        }
+        pattern.generated_cases.push(generatedCase);
+        if (generatedCase.guarantee_id && !pattern.guarantee_ids.includes(generatedCase.guarantee_id)) pattern.guarantee_ids.push(generatedCase.guarantee_id);
+      }
+    }
+
+    return [...groups.values()];
+  }
+
+  #generateSearchCriteria({ operatorId, values, family }) {
+    if (operatorId === 'blank' || operatorId === 'not_blank') return { operator: operatorId };
+    const nonBlank = values.filter(value => !responsibilityPreviewSearchIsBlank(value));
+    if (!nonBlank.length) throw new Error(`Search criteria generation requires a non-blank value: ${operatorId}`);
+    const repeated = responsibilityPreviewSearchRepeatedValue(nonBlank);
+
+    if (operatorId === 'between') {
+      const comparable = nonBlank
+        .map(value => ({ value, comparable: responsibilityPreviewSearchComparable(value, family) }))
+        .filter(item => item.comparable != null)
+        .sort((a, b) => a.comparable - b.comparable);
+      if (!comparable.length) throw new Error(`Range criteria generation failed: ${family}`);
+      const repeatedComparable = repeated === undefined ? null : responsibilityPreviewSearchComparable(repeated, family);
+      let fromItem = repeatedComparable == null ? comparable[Math.floor((comparable.length - 1) / 2)] : comparable.find(item => item.comparable === repeatedComparable);
+      if (!fromItem) fromItem = comparable[0];
+      let toItem = comparable.find(item => item.comparable > fromItem.comparable);
+      if (!toItem) {
+        const prev = [...comparable].reverse().find(item => item.comparable < fromItem.comparable);
+        if (prev) return { operator: operatorId, from: responsibilityPreviewClone(prev.value), to: responsibilityPreviewClone(fromItem.value) };
+        toItem = fromItem;
+      }
+      return { operator: operatorId, from: responsibilityPreviewClone(fromItem.value), to: responsibilityPreviewClone(toItem.value) };
+    }
+
+    let selected = repeated;
+    if (selected === undefined && ['number', 'integer', 'float', 'decimal', 'date', 'datetime', 'instant'].includes(family)) {
+      const comparable = nonBlank
+        .map(value => ({ value, comparable: responsibilityPreviewSearchComparable(value, family) }))
+        .filter(item => item.comparable != null)
+        .sort((a, b) => a.comparable - b.comparable);
+      selected = comparable[Math.floor((comparable.length - 1) / 2)]?.value;
+    }
+    if (selected === undefined) selected = nonBlank[0];
+    return { operator: operatorId, value: responsibilityPreviewClone(selected) };
   }
 
   #derivePattern({ definition, setup, config, inputData, viewDef, fieldDefinitionDocument, registry }) {

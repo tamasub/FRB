@@ -367,6 +367,131 @@ async function verifyRelatedGroups(driver, groups) {
   }
 }
 
+
+function arraysEqual(left=[], right=[]) {
+  return left.length === right.length && left.every((value, index) => Object.is(value, right[index]));
+}
+
+async function waitForGridExactCount(driver, expectedCount, timeoutMs=10000) {
+  const ready = await waitUntil(async () => {
+    const rows = await driver.findElements(By.css('#dataGrid tbody tr'));
+    return rows.length === expectedCount;
+  }, timeoutMs, 100);
+  const actualCount = (await driver.findElements(By.css('#dataGrid tbody tr'))).length;
+  assertPass(ready && actualCount === expectedCount, `Grid result count = ${expectedCount}`, `Expected=${expectedCount}, Actual=${actualCount}`);
+  await waitForGridStable(driver, expectedCount, 3, timeoutMs);
+}
+
+async function findStandardSearchField(driver, fieldName) {
+  const selector = `.standard-search-field[data-search-field="${fieldName}"]`;
+  const ready = await waitUntil(async () => (await driver.findElements(By.css(selector))).length === 1, 10000, 100);
+  assertPass(ready, `Search Field ready: ${fieldName}`);
+  return driver.findElement(By.css(selector));
+}
+
+async function selectSearchOperator(driver, fieldName, operatorId) {
+  let wrap = await findStandardSearchField(driver, fieldName);
+  await driver.executeScript('arguments[0].scrollIntoView({block: "center", inline: "nearest"});', wrap);
+  await driver.actions().contextClick(wrap).perform();
+  const selector = `.standard-search-context-menu button[data-search-operator-id="${operatorId}"]`;
+  const menuReady = await waitUntil(async () => (await driver.findElements(By.css(selector))).length === 1, 5000, 80);
+  assertPass(menuReady, `Search Operator menu: ${fieldName} / ${operatorId}`);
+  const button = await driver.findElement(By.css(selector));
+  await button.click();
+  const applied = await waitUntil(async () => {
+    wrap = await findStandardSearchField(driver, fieldName);
+    const controls = await wrap.findElements(By.css('[data-search-operator]'));
+    if (!controls.length) return false;
+    return (await controls[0].getAttribute('data-search-operator')) === operatorId;
+  }, 5000, 80);
+  assertPass(applied, `Search Operator apply: ${fieldName} / ${operatorId}`);
+  return wrap;
+}
+
+async function setSearchCriteria(driver, generatedCase) {
+  const fieldName = String(generatedCase?.target_field ?? '');
+  const operatorId = String(generatedCase?.operator_id ?? generatedCase?.criteria?.operator ?? '');
+  const criteria = generatedCase?.criteria ?? {};
+  const wrap = await selectSearchOperator(driver, fieldName, operatorId);
+
+  const setRole = async (role, value) => {
+    const controls = await wrap.findElements(By.css(`[data-search-role="${role}"]`));
+    if (controls.length !== 1) throw new Error(`Search criteria control not found: field=${fieldName}, operator=${operatorId}, role=${role}, count=${controls.length}`);
+    await setControlValue(driver, controls[0], value);
+    const actual = normalizeLineEndings(await readControlValue(controls[0]));
+    assertPass(actual === normalizeUiValue(value), `Search Criteria ${fieldName}.${role}`, `Expected=${normalizeUiValue(value)}, Actual=${actual}`);
+  };
+
+  if (operatorId === 'between') {
+    await setRole('from', criteria.from ?? '');
+    await setRole('to', criteria.to ?? '');
+  } else if (!['blank', 'not_blank'].includes(operatorId)) {
+    await setRole('value', criteria.value ?? '');
+  }
+}
+
+async function readSearchGridResult(driver) {
+  const rows = await driver.findElements(By.css('#dataGrid tbody tr'));
+  const indexes = [];
+  const rowIds = [];
+  for (const row of rows) {
+    const sourceIndex = await row.getAttribute('data-source-index');
+    const rowKey = await row.getAttribute('data-row-key');
+    indexes.push(Number(sourceIndex));
+    rowIds.push(String(rowKey ?? ''));
+  }
+  return { indexes, row_ids: rowIds, match_count: rows.length };
+}
+
+async function resetSearchAfterCase(driver, baselineCount) {
+  const button = await driver.findElement(By.id('clearSearchBtn'));
+  await button.click();
+  await waitForGridExactCount(driver, baselineCount);
+  assertPass(true, 'RESET_AFTER_EACH');
+}
+
+async function executeSearchCase(driver, generatedCase) {
+  if (generatedCase?.ui_target?.mode !== 'MAIN_GRID') {
+    throw new Error(`Search Selenium currently supports MAIN_GRID only: ${generatedCase?.case_id ?? ''} / ${generatedCase?.ui_target?.mode ?? ''}`);
+  }
+  console.log(`Search Case: ${generatedCase.pattern_id} / ${generatedCase.case_id}`);
+  await setSearchCriteria(driver, generatedCase);
+  const searchButton = await driver.findElement(By.id('searchBtn'));
+  await searchButton.click();
+  const expected = generatedCase?.expected ?? { row_ids: [], indexes: [], match_count: 0 };
+  await waitForGridExactCount(driver, Number(expected.match_count ?? 0));
+  const actual = await readSearchGridResult(driver);
+  assertPass(actual.match_count === expected.match_count, 'StateExpectedDef / Match Count', `Expected=${expected.match_count}, Actual=${actual.match_count}`);
+  assertPass(arraysEqual(actual.indexes, expected.indexes ?? []), 'StateExpectedDef / Indexes', `Expected=${JSON.stringify(expected.indexes)}, Actual=${JSON.stringify(actual.indexes)}`);
+  assertPass(arraysEqual(actual.row_ids, expected.row_ids ?? []), 'StateExpectedDef / Row IDs', `Expected=${JSON.stringify(expected.row_ids)}, Actual=${JSON.stringify(actual.row_ids)}`);
+}
+
+async function runSearchResponsibilitySelenium(plan) {
+  assertExecutionApproved(plan);
+  const unsupported = (plan.search_cases ?? []).filter(item => item.ui_target?.mode !== 'MAIN_GRID');
+  if (unsupported.length) throw new Error(`Unsupported Search UI targets: ${unsupported.map(item => `${item.case_id}:${item.ui_target?.mode}`).join(', ')}`);
+  if (!(plan.search_cases ?? []).length) throw new Error('No Generated Search Cases.');
+
+  let driver = null;
+  try {
+    driver = await createDriver();
+    await sleep(2500);
+    await loadDataByName(driver, plan.setup.input_file.replace(/^data\/json\//, ''));
+    const baselineCount = Number(plan.search_cases[0]?.input_snapshot?.length ?? 0);
+    await waitForGridExactCount(driver, baselineCount);
+
+    for (const generatedCase of plan.search_cases) {
+      await executeSearchCase(driver, generatedCase);
+      await resetSearchAfterCase(driver, baselineCount);
+    }
+
+    console.log(`Responsibility E2E: ${plan.responsibility_cd} ALL PASS`);
+    return { plan, executed: true };
+  } finally {
+    if (driver) await driver.quit().catch(() => {});
+  }
+}
+
 function createWorkingCopy(plan) {
   const sourcePath = path.resolve(APP_ROOT, plan.setup.input_file);
   assertFileExists(sourcePath, 'Approved Test Input JSON');
@@ -405,6 +530,9 @@ async function runResponsibilitySelenium({ responsibilityCd='data_update_persist
   const plan = buildResponsibilityExecutionPlan({ responsibilityCd });
   console.log(formatPlanSummary(plan));
   if (planOnly) return { plan, executed: false };
+
+  // Search responsibility has a different lifecycle: LOAD_ONCE -> SEARCH/VERIFY -> RESET_AFTER_EACH.
+  if (plan.execution_kind === 'SEARCH_FILTER') return runSearchResponsibilitySelenium(plan);
 
   // Human approval is a hard execution gate. No NativeShell launch before this check.
   assertExecutionApproved(plan);
@@ -464,4 +592,6 @@ module.exports = {
   normalizeUiValue,
   waitForGridStable,
   openGridRow,
+  arraysEqual,
+  readSearchGridResult,
 };
