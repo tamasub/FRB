@@ -591,9 +591,10 @@ class ResponsibilityTestPreviewService {
     const searchDefinitions = definitions.filter(item => String(item?.generation_mode ?? '') === 'SEARCH_OPERATOR_MATRIX');
     const aggregateDefinitions = definitions.filter(item => String(item?.generation_mode ?? '') === 'AGGREGATE_SCALAR_CASE');
     const csvDefinitions = definitions.filter(item => String(item?.generation_mode ?? '') === 'CSV_EXPORT_CASE');
+    const gridColumnDefinitions = definitions.filter(item => String(item?.generation_mode ?? '') === 'GRID_COLUMN_BUILD_CASE');
     const mutationDefinitions = definitions.filter(item => {
       const mode = String(item?.generation_mode ?? '');
-      return mode !== 'SEARCH_OPERATOR_MATRIX' && mode !== 'AGGREGATE_SCALAR_CASE' && mode !== 'CSV_EXPORT_CASE';
+      return mode !== 'SEARCH_OPERATOR_MATRIX' && mode !== 'AGGREGATE_SCALAR_CASE' && mode !== 'CSV_EXPORT_CASE' && mode !== 'GRID_COLUMN_BUILD_CASE';
     });
     const config = rootDocument?.test_generation_config ?? {};
     const issues = [];
@@ -670,6 +671,15 @@ class ResponsibilityTestPreviewService {
           issues.push({ code: 'CSV_PATTERN_DERIVATION_FAILED', message: String(err?.message ?? err) });
         }
       }
+
+
+      if (gridColumnDefinitions.length) {
+        try {
+          patterns.push(...this.#deriveGridColumnBuildPatterns({ definitions: gridColumnDefinitions, setup, inputData }));
+        } catch (err) {
+          issues.push({ code: 'GRID_COLUMN_BUILD_PATTERN_DERIVATION_FAILED', message: String(err?.message ?? err) });
+        }
+      }
     }
 
     const blockedSearchCases = patterns
@@ -694,7 +704,8 @@ class ResponsibilityTestPreviewService {
     const generatedCaseCount = patterns.reduce((sum, pattern) => sum + (pattern.generated_cases?.length ?? 0), 0);
     const invalidMutationCount = patterns.reduce((sum, pattern) => sum + (pattern.mutations ?? []).filter(item => item.validation_outcome !== 'ACCEPT').length, 0);
     const approvalStatus = String(setup?.input_approval_status ?? '').trim().toLowerCase();
-    const executionReady = approvalStatus === 'approved' && issues.length === 0 && invalidMutationCount === 0 && patterns.length > 0;
+    const previewOnlyMode = patterns.some(pattern => String(pattern?.generation_mode ?? '') === 'GRID_COLUMN_BUILD_CASE');
+    const executionReady = approvalStatus === 'approved' && issues.length === 0 && invalidMutationCount === 0 && patterns.length > 0 && !previewOnlyMode;
 
     return {
       schema_version: 'responsibility_generated_test_preview_v0_2',
@@ -716,6 +727,61 @@ class ResponsibilityTestPreviewService {
         expected_unexpected_diff_count: 0
       }
     };
+  }
+
+  #deriveGridColumnBuildPatterns({ definitions, setup, inputData }) {
+    const fixtures = Array.isArray(inputData?.column_cases) ? inputData.column_cases : [];
+    return definitions.map(definition => {
+      const fixtureId = String(definition?.fixture_id ?? '').trim();
+      const fixture = fixtures.find(item => String(item?.fixture_id ?? '').trim() === fixtureId);
+      if (!fixture) throw new Error(`Grid Column fixture not found: ${fixtureId}`);
+
+      const fields = Array.isArray(fixture?.fields) ? responsibilityPreviewClone(fixture.fields) : [];
+      const policy = String(definition?.include_policy ?? 'GRID_VISIBLE').trim().toUpperCase();
+      const allow = new Set(Array.isArray(definition?.include_fields) ? definition.include_fields.map(String) : []);
+      let selectedFields;
+      if (policy === 'FIELD_ALLOWLIST') {
+        selectedFields = fields.filter(field => allow.has(String(field?.field ?? '')));
+      } else {
+        selectedFields = fields.filter(field => field && typeof field === 'object' && field?.grid?.visible !== false);
+      }
+      const expected = {
+        field_names: selectedFields.map(field => String(field?.field ?? '')),
+        count: selectedFields.length
+      };
+      if (definition?.expected_input_unchanged === true) expected.input_unchanged = true;
+
+      const generatedCase = {
+        case_id: `${String(definition?.pattern_def_id ?? 'grid_column')}_case`,
+        fixture_id: fixtureId,
+        input_snapshot: responsibilityPreviewClone(fields),
+        include_policy: policy,
+        include_fields: [...allow],
+        expected_def_type: String(definition?.expected_def_type ?? 'RuleExpectedDef'),
+        expected,
+        guarantee_id: String(definition?.guarantee_id ?? ''),
+        source_definition_id: String(definition?.pattern_def_id ?? '')
+      };
+
+      return {
+        pattern_id: String(definition?.pattern_def_id ?? ''),
+        pattern_cd: String(definition?.pattern_cd ?? 'GRID_COLUMN_BUILD'),
+        pattern_role: String(definition?.pattern_role ?? 'STANDARD'),
+        generation_mode: 'GRID_COLUMN_BUILD_CASE',
+        target_structure: String(definition?.target_structure ?? 'FIELD_ARRAY'),
+        target_data_path: String(definition?.target_data_path ?? '$.column_cases'),
+        fixture_id: fixtureId,
+        include_policy: policy,
+        expected_def_type: generatedCase.expected_def_type,
+        guarantee_id: generatedCase.guarantee_id,
+        generated_cases: [generatedCase],
+        source: {
+          input_file: String(setup?.input_file ?? ''),
+          view_def_file: String(setup?.view_def_file ?? ''),
+          input_approval_status: String(setup?.input_approval_status ?? '')
+        }
+      };
+    });
   }
 
   #deriveCsvPatterns({ definitions, setup, inputData, viewDef }) {

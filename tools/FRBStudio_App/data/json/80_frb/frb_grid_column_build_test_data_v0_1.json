@@ -1,0 +1,130 @@
+{
+  "view_def": "frb/frb_grid_column_build_test_view_def_v0_1.json",
+  "schema_version": "grid_column_build_fixture_v0_1",
+  "document_type": "grid_column_build_fixture",
+  "title": "Grid Column Build Test Fixture",
+  "column_cases": [
+    {
+      "fixture_id": "grid_column_visibility_mixed",
+      "fields": [
+        {
+          "field": "id",
+          "caption": "ID",
+          "type": "text",
+          "grid": {
+            "visible": false
+          }
+        },
+        {
+          "field": "title",
+          "caption": "Title",
+          "type": "text",
+          "grid": {
+            "visible": true
+          }
+        },
+        {
+          "field": "score",
+          "caption": "Score",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "fixture_id": "grid_column_order_preserve",
+      "fields": [
+        {
+          "field": "score",
+          "caption": "Score",
+          "type": "number",
+          "grid": {
+            "visible": true
+          }
+        },
+        {
+          "field": "title",
+          "caption": "Title",
+          "type": "text",
+          "grid": {
+            "visible": true
+          }
+        },
+        {
+          "field": "note",
+          "caption": "Note",
+          "type": "text",
+          "grid": {
+            "visible": true
+          }
+        }
+      ]
+    },
+    {
+      "fixture_id": "grid_column_empty_safe"
+    },
+    {
+      "fixture_id": "grid_column_include_policy",
+      "fields": [
+        {
+          "field": "id",
+          "caption": "ID",
+          "type": "text",
+          "grid": {
+            "visible": false
+          }
+        },
+        {
+          "field": "title",
+          "caption": "Title",
+          "type": "text",
+          "grid": {
+            "visible": true
+          }
+        },
+        {
+          "field": "score",
+          "caption": "Score",
+          "type": "number",
+          "grid": {
+            "visible": true
+          }
+        }
+      ]
+    },
+    {
+      "fixture_id": "grid_column_no_side_effect",
+      "fields": [
+        {
+          "field": "id",
+          "caption": "ID",
+          "type": "text",
+          "grid": {
+            "visible": false
+          },
+          "search": {
+            "visible": true,
+            "operator": "equals"
+          }
+        },
+        {
+          "field": "title",
+          "caption": "Title",
+          "type": "text",
+          "grid": {
+            "visible": true,
+            "width": 180
+          }
+        },
+        {
+          "field": "score",
+          "caption": "Score",
+          "type": "number",
+          "grid": {
+            "visible": true,
+            "width": 100
+          }
+        }
+      ]
+    }
+  ]
+}

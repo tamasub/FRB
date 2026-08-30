@@ -170,7 +170,7 @@
                 "operator": "equals",
                 "initialValue": true,
                 "applyOnLoad": true
-                }
+              }
             },
             {
               "field": "note",

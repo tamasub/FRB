@@ -124,7 +124,7 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
       const needsSearchOperatorRegistry = definitions.some(item => String(item?.generation_mode ?? '') === 'SEARCH_OPERATOR_MATRIX');
       const needsFieldContracts = definitions.some(item => {
         const mode = String(item?.generation_mode ?? '');
-        return mode !== 'AGGREGATE_SCALAR_CASE' && mode !== 'CSV_EXPORT_CASE';
+        return mode !== 'AGGREGATE_SCALAR_CASE' && mode !== 'CSV_EXPORT_CASE' && mode !== 'GRID_COLUMN_BUILD_CASE';
       });
       const searchOperatorRegistryPath = String(
         setup?.search_operator_registry_file ??
@@ -166,6 +166,7 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
     const aggregateMode = patterns.some(pattern => String(pattern?.generation_mode ?? '') === 'AGGREGATE_SCALAR_CASE');
     const searchMode = patterns.some(pattern => String(pattern?.generation_mode ?? '') === 'SEARCH_OPERATOR_MATRIX');
     const csvMode = patterns.some(pattern => String(pattern?.generation_mode ?? '') === 'CSV_EXPORT_CASE');
+    const gridColumnMode = patterns.some(pattern => String(pattern?.generation_mode ?? '') === 'GRID_COLUMN_BUILD_CASE');
 
     if (aggregateMode) {
       return patterns.map((pattern, index) => ({
@@ -200,6 +201,18 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
       }));
     }
 
+    if (gridColumnMode) {
+      return patterns.map((pattern, index) => ({
+        __pattern_index: index,
+        pattern: pattern.pattern_id,
+        role: pattern.pattern_role,
+        fixture: pattern.fixture_id,
+        policy: pattern.include_policy,
+        case_count: pattern.generated_cases?.length ?? 0,
+        expected_def: pattern.expected_def_type
+      }));
+    }
+
     return patterns.map((pattern, index) => ({
       __pattern_index: index,
       pattern: pattern.pattern_id,
@@ -215,6 +228,7 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
     const aggregateMode = patterns.some(pattern => String(pattern?.generation_mode ?? '') === 'AGGREGATE_SCALAR_CASE');
     const searchMode = patterns.some(pattern => String(pattern?.generation_mode ?? '') === 'SEARCH_OPERATOR_MATRIX');
     const csvMode = patterns.some(pattern => String(pattern?.generation_mode ?? '') === 'CSV_EXPORT_CASE');
+    const gridColumnMode = patterns.some(pattern => String(pattern?.generation_mode ?? '') === 'GRID_COLUMN_BUILD_CASE');
 
     if (aggregateMode) {
       return [
@@ -241,6 +255,16 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
         { field: 'pattern', caption: 'TestPattern' },
         { field: 'role', caption: 'Role' },
         { field: 'row_scope', caption: 'Rows' },
+        { field: 'case_count', caption: 'Cases' },
+        { field: 'expected_def', caption: 'ExpectedDef' }
+      ];
+    }
+    if (gridColumnMode) {
+      return [
+        { field: 'pattern', caption: 'TestPattern' },
+        { field: 'role', caption: 'Role' },
+        { field: 'fixture', caption: 'Fixture' },
+        { field: 'policy', caption: 'Policy' },
         { field: 'case_count', caption: 'Cases' },
         { field: 'expected_def', caption: 'ExpectedDef' }
       ];
@@ -606,6 +630,78 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
     return host;
   }
 
+  detailGridColumnInputTable(doc, fields=[]) {
+    const wrap = doc.createElement('div');
+    wrap.className = 'responsibility-preview-snapshot-wrap';
+    const table = doc.createElement('table');
+    table.className = 'responsibility-preview-snapshot-table';
+    const head = doc.createElement('thead');
+    const hr = doc.createElement('tr');
+    ['Index', 'Field', 'Caption', 'grid.visible'].forEach(label => {
+      const th = doc.createElement('th');
+      th.textContent = label;
+      hr.appendChild(th);
+    });
+    head.appendChild(hr);
+    table.appendChild(head);
+    const body = doc.createElement('tbody');
+    (fields ?? []).forEach((field, index) => {
+      const tr = doc.createElement('tr');
+      const values = [index, field?.field ?? '', field?.caption ?? '', field?.grid?.visible === false ? 'false' : field?.grid?.visible === true ? 'true' : '(default)'];
+      values.forEach(value => {
+        const td = doc.createElement('td');
+        td.textContent = String(value);
+        tr.appendChild(td);
+      });
+      body.appendChild(tr);
+    });
+    table.appendChild(body);
+    wrap.appendChild(table);
+    return wrap;
+  }
+
+  renderGridColumnBuildDetail(doc, pattern, generatedCase) {
+    const host = doc.createElement('div');
+    host.className = 'responsibility-preview-case-detail';
+    const snapshot = Array.isArray(generatedCase?.input_snapshot) ? generatedCase.input_snapshot : [];
+    const expected = generatedCase?.expected ?? {};
+
+    const input = this.detailSection(doc, '① Fields入力状況');
+    this.detailKeyValue(doc, input, 'Fixture', generatedCase?.fixture_id ?? pattern?.fixture_id ?? '', { mono: true });
+    input.appendChild(this.detailGridColumnInputTable(doc, snapshot));
+    host.appendChild(input);
+
+    const action = this.detailSection(doc, '② GridColumnBuilderへ投入', 'is-criteria');
+    this.detailKeyValue(doc, action, 'Policy', generatedCase?.include_policy ?? pattern?.include_policy ?? 'GRID_VISIBLE', { mono: true });
+    const includeFields = Array.isArray(generatedCase?.include_fields) ? generatedCase.include_fields : [];
+    if (includeFields.length) this.detailKeyValue(doc, action, 'Include Fields', includeFields.join(', '), { mono: true });
+    host.appendChild(action);
+
+    const expectedSection = this.detailSection(doc, '③ Expected Result', 'is-expected');
+    this.detailKeyValue(doc, expectedSection, 'ExpectedDef', generatedCase?.expected_def_type ?? pattern?.expected_def_type ?? '', { mono: true });
+    this.detailKeyValue(doc, expectedSection, 'Field Names', this.detailJson(expected?.field_names ?? []), { pre: true });
+    this.detailKeyValue(doc, expectedSection, 'Count', expected?.count ?? 0);
+    if (Object.prototype.hasOwnProperty.call(expected, 'input_unchanged')) {
+      this.detailKeyValue(doc, expectedSection, 'Input Unchanged', expected.input_unchanged === true ? 'YES' : 'NO');
+    }
+    host.appendChild(expectedSection);
+
+    const ruleSection = this.detailSection(doc, '★ 導出ルール / なぜこの列構成なのか', 'is-rule');
+    this.detailKeyValue(doc, ruleSection, 'Rule ID', 'GRID_COLUMN_BUILD_SIMPLE_ORACLE', { mono: true });
+    this.detailKeyValue(doc, ruleSection, 'GRID_VISIBLE', 'grid.visible=falseを除外し、それ以外を入力順のまま採用する。');
+    this.detailKeyValue(doc, ruleSection, 'FIELD_ALLOWLIST', '呼出側includeField相当として、明示されたFieldだけを入力順のまま採用する。');
+    this.detailKeyValue(doc, ruleSection, '副作用なし', '入力fieldsの内容はExpected導出時に変更せず、no_side_effectパターンではinput_unchanged=trueを期待する。');
+    host.appendChild(ruleSection);
+
+    const supplement = this.detailSection(doc, '補足情報', 'is-supplement');
+    this.detailKeyValue(doc, supplement, 'Guarantee ID', generatedCase?.guarantee_id ?? pattern?.guarantee_id ?? '', { mono: true });
+    this.detailKeyValue(doc, supplement, 'Source Definition', generatedCase?.source_definition_id ?? '', { mono: true });
+    this.detailKeyValue(doc, supplement, 'Source', this.detailJson(pattern?.source ?? {}), { pre: true });
+    if (this.detailPanelShowRawJson) this.detailDisclosure(doc, supplement, 'Raw Generated Case を表示', this.detailJson(generatedCase ?? {}));
+    host.appendChild(supplement);
+    return host;
+  }
+
   renderSearchCaseDetail(doc, pattern, generatedCase) {
     const host = doc.createElement('div');
     host.className = 'responsibility-preview-case-detail';
@@ -807,6 +903,8 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
       pane.appendChild(this.renderCsvExportDetail(doc, pattern, generatedCases[0]));
     } else if (generationMode === 'AGGREGATE_SCALAR_CASE' && generatedCases.length) {
       pane.appendChild(this.renderGridAggregateDetail(doc, pattern));
+    } else if (generationMode === 'GRID_COLUMN_BUILD_CASE' && generatedCases.length) {
+      pane.appendChild(this.renderGridColumnBuildDetail(doc, pattern, generatedCases[0]));
     } else if (generatedCases.length) {
       generatedCases.forEach(item => pane.appendChild(this.renderGenericCaseDetail(doc, pattern, item)));
     } else {

@@ -1,0 +1,36 @@
+{
+  "app": {
+    "name": "FRB Studio / JSON Object Studio",
+    "version": "grid-column-build-test-view-v0.1"
+  },
+  "currentDataDisplay": {
+    "titlePath": "$.title",
+    "showDataPath": true
+  },
+  "views": [
+    {
+      "id": "frb_grid_column_build_test_v0_1",
+      "caption": "Grid Column Build Test Fixture",
+      "sections": [
+        {
+          "id": "column_cases",
+          "caption": "Column Cases",
+          "type": "grid",
+          "dataPath": "$.column_cases",
+          "keyField": "fixture_id",
+          "fields": [
+            {
+              "field": "fixture_id",
+              "caption": "Fixture ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 260
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

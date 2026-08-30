@@ -77,6 +77,15 @@
       "path": "data/json/03_tests/responsibilities/results/data_update_persist.diff.json",
       "enabled": true,
       "note": "既存データ変更永続化責務 Diff Evidence"
+    },
+    {
+      "link_id": "responsibility json_copy_1",
+      "caption": "responsibility_data_v0_2.json",
+      "category": "responsibility_data",
+      "artifact_kind": "diff",
+      "path": "data\\json\\03_tests\\responsibilities\\responsibility_data_v0_2.json",
+      "enabled": true,
+      "note": "責務定義"
     }
   ]
 }

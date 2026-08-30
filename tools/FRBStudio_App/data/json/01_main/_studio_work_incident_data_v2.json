@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-30T15:14:00+09:00",
+  "updated_at": "2026-08-30T16:25:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 242,
+  "items_count": 243,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -36377,6 +36377,154 @@
         }
       ],
       "failure_stories": []
+    },
+    {
+      "work_item_id": "studio_work_0255",
+      "phase": "v0.18.126-grid-column-build-pattern-definition-restore",
+      "title": "GRID_COLUMN_BUILD Test Input / Pattern Def / Generated Preview復元",
+      "incident_type": "bug_fix",
+      "category": "Responsibility / TestPattern",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "ユーザー実機確認待ち",
+      "verification_status": "対象Static 3/3 PASS / JS構文PASS / 全Static 428/429 PASS（1件は最新資材に既存のResource Link件数9対期待8の別件） / 実機確認待ち",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-08-30T16:25:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-30T16:25:00+09:00",
+      "updated_at": "2026-08-30T16:25:00+09:00",
+      "work_summary": "grid_column_buildだけtest_setup / test_pattern_definitionsが空のままで、Editor上のTest Input / TestPattern生成定義が0件になっていた状態を修正。5 GuaranteeそれぞれにPattern Defを明示し、専用FixtureとGRID_COLUMN_BUILD_CASE Preview導出を追加する。",
+      "target_files": [
+        "data/json/03_tests/responsibilities/responsibility_data_v0_2.json",
+        "data/json/80_frb/frb_grid_column_build_test_data_v0_1.json",
+        "defs/frb/frb_grid_column_build_test_view_def_v0_1.json",
+        "wwwroot/js/services/responsibility/responsibility_test_preview_service.js",
+        "wwwroot/js/components/responsibility/responsibility_test_preview_component.js",
+        "tests/qa/static/responsibility_grid_column_build_generated_preview_static.test.mjs",
+        "wwwroot/index.html",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "actual_updated_files": [
+        "data/json/03_tests/responsibilities/responsibility_data_v0_2.json",
+        "data/json/80_frb/frb_grid_column_build_test_data_v0_1.json",
+        "defs/frb/frb_grid_column_build_test_view_def_v0_1.json",
+        "wwwroot/js/services/responsibility/responsibility_test_preview_service.js",
+        "wwwroot/js/components/responsibility/responsibility_test_preview_component.js",
+        "tests/qa/static/responsibility_grid_column_build_generated_preview_static.test.mjs",
+        "wwwroot/index.html",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "context_def_draft": "# GRID_COLUMN_BUILD Pattern Def Restore\n\n- 責務5保証に対しPattern Defを1件ずつ明示する。\n- Test Inputは専用Fixture JSONを1件持つ。\n- Generated Previewは専用GRID_COLUMN_BUILD_CASEでExpectedを単純Oracle導出する。\n- 正式Runner接続は次段階。今回は表示・生成契約の復元を優先する。",
+      "objective": "grid_column_buildでも他責務と同じくResponsibility → Guarantee → Pattern Def → Generated TestPatternを画面上で追跡可能にする。",
+      "background": "責務Editorでgrid_column_buildだけTest Input / TestPattern生成定義が0件表示となり、責務ID→Pattern Def ID→TestPatternの管理鎖が欠けて見えていた。責務JSON実体も空配列だったためRenderer不具合ではなく定義欠落だった。",
+      "scope": [
+        "grid_column_build test_setup追加",
+        "5 Guarantee対応Pattern Def追加",
+        "専用Fixture Data/ViewDef追加",
+        "GRID_COLUMN_BUILD_CASE Preview導出",
+        "Generated Case Detail表示",
+        "回帰Static追加"
+      ],
+      "out_of_scope": [
+        "GRID_COLUMN_BUILD正式Runner接続",
+        "Actual/Diff出力",
+        "Pattern Defの独立Data化"
+      ],
+      "fixed_name_policy": "GRID_COLUMN_BUILD_CASEはResponsibility Previewの生成方式IDとして扱い、一般DataのFieldTypeにはしない。",
+      "module_policy": "Expected導出はGridColumnBuilder実装を呼ばず、Preview Service側の単純なvisible/allowlist Oracleで行う。",
+      "expected_outputs": [
+        "Test Input 1件表示",
+        "TestPattern生成定義5件表示",
+        "Generated Preview 5 TestPattern / 5 Case表示",
+        "各Guarantee IDからPattern Defへ追跡可能"
+      ],
+      "risk": "Preview Oracleが実装ロジック複製になると独立性を失うため、grid.visible=false除外・順序維持・allowlistのみの単純ルールに限定する。",
+      "test_points": [
+        "test_setup=1",
+        "pattern_definitions=5",
+        "g001-g005へ1対1紐付け",
+        "Generated Case=5",
+        "Expected field_names導出",
+        "Field Definition Registry不要"
+      ],
+      "verification_log": [
+        {
+          "at": "2026-08-30T16:25:00+09:00",
+          "confirmation_type": "GRID_COLUMN_BUILD対象Static",
+          "result": "PASS",
+          "detail": "responsibility_grid_column_build_generated_preview_static.test.mjs = 3/3 PASS"
+        },
+        {
+          "at": "2026-08-30T16:25:00+09:00",
+          "confirmation_type": "JS構文",
+          "result": "PASS",
+          "detail": "responsibility_test_preview_service.js / responsibility_test_preview_component.js node --check PASS"
+        },
+        {
+          "at": "2026-08-30T16:25:00+09:00",
+          "confirmation_type": "全Static",
+          "result": "KNOWN PRE-EXISTING FAIL",
+          "detail": "428/429 PASS。FAIL 1件は最新入力ZIP自体でも再現するstudio_resource_links_staticのlinks件数期待8に対しData実体9件という別件。今回変更とは無関係。"
+        }
+      ],
+      "user_request": "grid_column_buildのTest Input / TestPattern生成定義が表示されなくなっている。まずこれを直してほしい。",
+      "ai_response": "実体が空配列であることを確認し、5 Guaranteeに対応するPattern Defと専用Test Inputを追加。GRID_COLUMN_BUILD_CASEのGenerated Previewも接続する。",
+      "latest_user_comment": "なんか表示されなくなっている。まずこれなおして。",
+      "latest_ai_response": "Test Input 1件 / Pattern Def 5件を復元し、Generated Preview 5件まで導出可能にした。正式Runnerは次段階。",
+      "context_refs": [
+        "grid_column_build_g001",
+        "grid_column_build_g005",
+        "studio_work_0248"
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0255_001",
+          "status": "ユーザー実機確認待ち",
+          "action": "grid_column_build責務を開きTest Input=1件、TestPattern生成定義=5件が表示されることを確認する。"
+        },
+        {
+          "action_id": "follow_0255_002",
+          "status": "未着手",
+          "action": "Pattern Def独立Data化を行う前にGRID_COLUMN_BUILD正式Runner接続の要否を判断する。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "at": "2026-08-30T16:25:00+09:00",
+          "speaker": "user",
+          "message": "grid_column_buildのTest Input / TestPattern生成定義が0件表示。まず直す。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0255_001",
+          "at": "2026-08-30T16:25:00+09:00",
+          "decision": "GridColumnBuilderの5 GuaranteeへPattern Defを1対1で明示する。",
+          "reason": "責務ID→Guarantee→Pattern Def→Generated TestPatternの追跡鎖を欠落させないため。",
+          "applied_axes": [
+            "責務追跡性",
+            "Expected独立導出",
+            "差分承認性"
+          ],
+          "conditions": "grid_column_build責務定義",
+          "exceptions": "正式Runnerは未接続",
+          "expected_behavior": "Editorで1 Setup / 5 Pattern Def / 5 Generated Patternが確認可能。",
+          "acceptance_criteria": "対象Static 3/3 PASSと実機表示。",
+          "confirmation_level": "Static/実機"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0255_001",
+          "at": "2026-08-30T16:25:00+09:00",
+          "change_type": "pattern_definition_restored",
+          "before": "grid_column_build test_setup=[] / test_pattern_definitions=[]",
+          "after": "test_setup=1 / test_pattern_definitions=5 / GRID_COLUMN_BUILD_CASE Preview対応",
+          "reason": "責務テスト生成管理の欠落を解消するため。"
+        }
+      ],
+      "failure_stories": []
     }
   ],
   "review_notes": [
@@ -36892,7 +37040,7 @@
       "body": "- studio_work_0161を親構想として見直した。\n- studio_work_0162～0168を未着手計画として追加した。\n- Studio Coreは汎用AI協働基盤として維持する。\n- Definition Verificationは標準Capabilityとして実装する。\n- Editor Componentと計算Serviceを分離し、PreviewとRunnerで共通導出ロジックを利用する。\n- 構造化記述原則の新設をルール改定計画へ含めた。"
     }
   ],
-  "work_revision": "v0.18.125-viewdef-search-initial-state",
+  "work_revision": "v0.18.126-grid-column-build-pattern-definition-restore",
   "latest_planning_note": "studio_work_0253: JSON PathはData、クリック起動はViewDefのgrid.action。共通Link Data/ViewDefをcommon配下に置き、OpenStudioJsonで新しいStudioに対象JSONを開く。",
   "view_def_candidates": [
     {
