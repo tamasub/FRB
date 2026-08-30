@@ -5,9 +5,9 @@
   "title": "FRB Studio 責務マスター v0.2",
   "target": "FRB Studio / JSON Object Studio",
   "status": "draft",
-  "phase": "responsibility-definition-driven-test-v0_2-grid-aggregate-pattern-draft",
+  "phase": "responsibility-definition-driven-test-v0_2-rule-driven-input-planning",
   "created_at": "2026-07-19",
-  "updated_at": "2026-08-29T20:45:00+09:00",
+  "updated_at": "2026-08-29T21:35:00+09:00",
   "purpose": "Studioくんの責務を検証可能な保証として管理し、同一JSON内のTestPattern生成定義・承認済みInput参照・ExpectedDefからGenerated TestPattern / Expectedを機械導出するための責務マスター。",
   "policy": {
     "definition": "責務は、何をするかではなく、どの条件で何を保証するかを書く。",
@@ -58,7 +58,10 @@
         "数値between / equals / not_equals / gte / lte評価",
         "複数選択値と配列セルの一致評価",
         "検索評価による入力rows非破壊",
-        "全文検索ではobjectのキー名・number・booleanを検索対象外とする"
+        "全文検索ではobjectのキー名・number・booleanを検索対象外とする",
+        "criteria_derivation_rules.input_requirement_rulesによるTest Input必要条件の機械評価",
+        "Required Input不足時のAI Input Generation Request生成",
+        "AI生成/補強Inputをdraft扱いとし、人間approved後だけRunnerへ進めるHard Gate"
       ],
       "out_of_scope": [
         "検索UIの描画",
@@ -69,7 +72,8 @@
         "Generated TestPattern / Expectedを責務JSONへ保存すること",
         "Date / Datetime検索のGenerated Case E2E（Phase 2）",
         "ComboBox / Select検索のGenerated Case E2E（Phase 2）",
-        "Option / Radio / Boolean検索のGenerated Case E2E（Phase 2）"
+        "Option / Radio / Boolean検索のGenerated Case E2E（Phase 2）",
+        "Studio内から外部LLM/APIを直接呼び出してTest Input本文を自動生成すること（Phase 1ではAI Input Generation Requestを境界とする）"
       ],
       "constraint_ids": [
         "constitution_12",
@@ -86,7 +90,7 @@
           "enabled": true
         }
       ],
-      "notes": "Guarantee IDはsearch_filter_g001へ一本化する。1 Guarantee → N TestPatterns、1 TestPattern → 1 Guaranteeの単方向所属とし、多対多紐付けは行わない。Phase 1ではString / Number代表定義から13 TestPattern / 13 Generated Caseを導出し、承認済みInputのみSelenium NativeShellで検索UIへ投入する。Case間はRESET_AFTER_EACHで分離し、Expected Rowsは独立Simple Oracle、ActualはUI Gridのrow key / source indexから観測する。Generated成果物は正本JSONへ保存しない。",
+      "notes": "Guarantee IDはsearch_filter_g001へ一本化する。1 Guarantee → N TestPatterns、1 TestPattern → 1 Guaranteeの単方向所属とし、多対多紐付けは行わない。Phase 1ではString / Number代表定義から13 TestPattern / 13 Generated Caseを導出し、承認済みInputのみSelenium NativeShellで検索UIへ投入する。Case間はRESET_AFTER_EACHで分離し、Expected Rowsは独立Simple Oracle、ActualはUI Gridのrow key / source indexから観測する。Generated成果物は正本JSONへ保存しない。 Rule First Phase 2では、各Criteria Ruleにmachine-readableなinput_requirement_rulesを追加し、現InputがRequired条件を満たさない場合はCriteria/Expectedを無理に生成せずINPUT_GENERATION_REQUIREDとして停止する。その際、対象Field・不足Requirement・現Snapshot・保持制約・draft→human review→approved Gateを含むAI Input Generation Requestを生成する。Recommended不足は実行を妨げず補強候補として提示する。",
       "test_setup": [
         {
           "setup_id": "search_filter_setup_001",
@@ -746,7 +750,16 @@
             "blank / not_blankの双方で一致・不一致を観測したい場合は、Field Contract上許される範囲で空値と非空値を含めることを推奨する。"
           ],
           "ai_input_guidance": "Field Contractが空値を許可する場合は空値と非空値を混在させる。空値を許可しないFieldでは、blank=0件 / not_blank=全件という結果も正当な観測結果として扱う。",
-          "coverage_preference": "MATCH_AND_NON_MATCH_WHEN_CONTRACT_ALLOWS"
+          "coverage_preference": "MATCH_AND_NON_MATCH_WHEN_CONTRACT_ALLOWS",
+          "input_requirement_rules": [
+            {
+              "requirement_id": "row_count_min_1",
+              "severity": "required",
+              "kind": "ROW_COUNT_MIN",
+              "minimum": 1,
+              "statement": "対象Fieldの入力状況を評価できる行を1件以上持つ。"
+            }
+          ]
         },
         {
           "rule_id": "search_rule_string_repeated_else_first",
@@ -773,7 +786,37 @@
             "contains / not_containsでは、選択値を部分文字列として含む別文字列を1件以上含めると完全一致との差を観測しやすい。"
           ],
           "ai_input_guidance": "例: Alpha / Beta / Alpha / 空文字 / Gamma / delta Alpha。重複実値Alphaを選べ、equalsは2件、containsはdelta Alphaを含む3件となるInputを優先する。",
-          "coverage_preference": "MATCH_AND_NON_MATCH"
+          "coverage_preference": "MATCH_AND_NON_MATCH",
+          "input_requirement_rules": [
+            {
+              "requirement_id": "string_non_blank_min_1",
+              "severity": "required",
+              "kind": "NON_BLANK_MIN",
+              "minimum": 1,
+              "statement": "検索値を導出できる非空文字列を1件以上持つ。"
+            },
+            {
+              "requirement_id": "string_repeated_value_occurrence_min_2",
+              "severity": "recommended",
+              "kind": "REPEATED_SELECTED_MIN_OCCURRENCES",
+              "minimum": 2,
+              "statement": "重複実値を優先選択できるよう、選択候補値を2件以上持つ。"
+            },
+            {
+              "requirement_id": "string_distinct_non_blank_min_2",
+              "severity": "recommended",
+              "kind": "DISTINCT_NON_BLANK_MIN",
+              "minimum": 2,
+              "statement": "全件一致を避けられるよう、異なる非空値を2種類以上持つ。"
+            },
+            {
+              "requirement_id": "string_partial_contains_variant_min_1",
+              "severity": "recommended",
+              "kind": "CONTAINS_VARIANT_FOR_SELECTED_MIN",
+              "minimum": 1,
+              "statement": "contains系でequalsとの差を観測できるよう、選択値を部分文字列として含む別文字列を1件以上持つ。"
+            }
+          ]
         },
         {
           "rule_id": "search_rule_comparable_repeated_else_middle",
@@ -806,7 +849,44 @@
             "推奨: 選択値より小さい値と大きい値をそれぞれ1件以上含める。"
           ],
           "ai_input_guidance": "大小の両側を持つ値列を作り、中央付近の値を重複させる。例: 0.10 / 0.50 / 0.50 / 0.90 / 1.25 / 0.00。",
-          "coverage_preference": "MATCH_AND_NON_MATCH"
+          "coverage_preference": "MATCH_AND_NON_MATCH",
+          "input_requirement_rules": [
+            {
+              "requirement_id": "comparable_min_1",
+              "severity": "required",
+              "kind": "COMPARABLE_MIN",
+              "minimum": 1,
+              "statement": "Criteriaを導出できる比較可能な非空値を1件以上持つ。"
+            },
+            {
+              "requirement_id": "comparable_distinct_min_3",
+              "severity": "recommended",
+              "kind": "DISTINCT_COMPARABLE_MIN",
+              "minimum": 3,
+              "statement": "中央値と大小両側を観測しやすいよう、異なる比較可能値を3種類以上持つ。"
+            },
+            {
+              "requirement_id": "comparable_repeated_selected_min_2",
+              "severity": "recommended",
+              "kind": "REPEATED_SELECTED_MIN_OCCURRENCES",
+              "minimum": 2,
+              "statement": "equals系の複数一致を観測しやすいよう、選択候補値を2件以上持つ。"
+            },
+            {
+              "requirement_id": "comparable_lower_than_selected_min_1",
+              "severity": "recommended",
+              "kind": "LOWER_THAN_SELECTED_MIN",
+              "minimum": 1,
+              "statement": "gte/lteの片側だけに偏らないよう、選択値より小さい値を1件以上持つ。"
+            },
+            {
+              "requirement_id": "comparable_higher_than_selected_min_1",
+              "severity": "recommended",
+              "kind": "HIGHER_THAN_SELECTED_MIN",
+              "minimum": 1,
+              "statement": "gte/lteの片側だけに偏らないよう、選択値より大きい値を1件以上持つ。"
+            }
+          ]
         },
         {
           "rule_id": "search_rule_between_repeated_pivot_range",
@@ -835,8 +915,48 @@
             "推奨: 生成Rangeより小さい値と大きい値をそれぞれ1件以上含める。"
           ],
           "ai_input_guidance": "例: 0.10 / 0.50 / 0.50 / 0.90 / 1.25 / 0.00。0.50をFrom、次の0.90をToとして、Range内3件とRange外3件を観測できるInputを優先する。",
-          "coverage_preference": "MATCH_AND_NON_MATCH"
+          "coverage_preference": "MATCH_AND_NON_MATCH",
+          "input_requirement_rules": [
+            {
+              "requirement_id": "range_distinct_comparable_min_2",
+              "severity": "required",
+              "kind": "DISTINCT_COMPARABLE_MIN",
+              "minimum": 2,
+              "statement": "From/Toの異なる境界を構成できる比較可能値を2種類以上持つ。"
+            },
+            {
+              "requirement_id": "range_repeated_from_min_2",
+              "severity": "recommended",
+              "kind": "REPEATED_FROM_MIN_OCCURRENCES",
+              "minimum": 2,
+              "statement": "重複PivotをFromとして選べるよう、From候補値を2件以上持つ。"
+            },
+            {
+              "requirement_id": "range_lower_than_from_min_1",
+              "severity": "recommended",
+              "kind": "LOWER_THAN_FROM_MIN",
+              "minimum": 1,
+              "statement": "Range外の下側を観測できる値を1件以上持つ。"
+            },
+            {
+              "requirement_id": "range_higher_than_to_min_1",
+              "severity": "recommended",
+              "kind": "HIGHER_THAN_TO_MIN",
+              "minimum": 1,
+              "statement": "Range外の上側を観測できる値を1件以上持つ。"
+            }
+          ]
         }
+      ],
+      "fixture_planning_policy": "criteria_derivation_rules.input_requirement_rulesを機械評価し、Required不足時はCriteria/Expected生成を進めずAI Input Generation Requestを生成する。Recommended不足は実行を妨げず補強候補として提示する。AIが生成・補強する場合も対象Field以外の既存値・Key・Row順を維持し、出力はdraftとする。approvedへの移行は人間だけが行う。",
+      "fixture_approval_flow": [
+        "RULE",
+        "INPUT_REQUIREMENT_EVALUATION",
+        "AI_DRAFT_IF_REQUIRED",
+        "HUMAN_REVIEW",
+        "approved",
+        "GENERATED_CASE",
+        "RUNNER"
       ]
     },
     "aggregate_generation": {

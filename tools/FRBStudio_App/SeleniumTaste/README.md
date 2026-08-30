@@ -61,13 +61,13 @@ npm run test:responsibility:csv
 
 `csv_export` は内部 `CsvExporter` を直接呼ばず、NativeShell 上で `CSV出力` ボタンをクリックし、
 ブラウザの `Blob / createObjectURL / download` 境界からCSV bytes/textを捕捉して `CsvExpectedDef` と比較する。
-専用Test Inputは承認前 `draft` のため、まず次で生成Planを確認する。
+CSV専用Test Inputは `approved` 済み。生成Plan確認だけなら次を使う。
 
 ```powershell
 npm run test:responsibility:csv:plan
 ```
 
-Inputを `approved` にした後、`npm run test:responsibility:csv` でE2E実行する。
+実E2Eは `npm run test:responsibility:csv` で実行する。
 
 `grid_aggregate` の正式な承認Runnerは NativeShell / Selenium で Grid Header の表示値を観測する。
 内部ロジック診断だけ行う場合は次を使う。
@@ -96,3 +96,25 @@ SeleniumTaste/config/selenium_runner_settings_v0_1.json
 `after_value_input_ms` はミリ秒。`0` にすると待機なし、`1000` にすると値入力後に1秒待機する。
 検索Criteria入力やData Editorの値変更など、`setControlValue` を通る入力操作に共通適用する。
 テスト開始時に現在値を `Selenium Timing: after_value_input_ms=...` と表示する。
+
+
+## Search Rule Driven Test Input Plan
+
+Search責務では、Criteria導出Ruleの `input_requirement_rules` を先に評価する。
+Required Inputが不足する場合はCriteria/Expectedを無理に作らず、`INPUT_GENERATION_REQUIRED` と
+AI Input Generation Requestを生成する。AI生成物は必ず `draft` とし、人間が確認して
+`approved` にしたInputだけRunnerへ投入する。
+
+現在のInput Rule状態を確認:
+
+```powershell
+npm run plan:responsibility:search-input
+```
+
+不足時のAI Input Generation Requestだけを表示:
+
+```powershell
+npm run request:responsibility:search-input
+```
+
+現行の承認済みSearch Fixtureでは `AI Draft: NOT_REQUIRED` が正常。

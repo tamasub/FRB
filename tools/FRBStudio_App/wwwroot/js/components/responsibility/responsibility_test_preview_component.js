@@ -1,4 +1,4 @@
-// v0.18.114-responsibility-preview-snapshot-column-width
+// v0.18.115-responsibility-rule-driven-input-plan
 // Readonly Generated TestPattern / JsonDiffExpectedDef preview for Responsibility Definition.
 
 const responsibilityPreviewJsonPromiseCache = new Map();
@@ -365,12 +365,23 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
     if (Object.prototype.hasOwnProperty.call(c, 'to')) {
       this.detailKeyValue(doc, criteria, 'To', responsibilityPreviewDisplay(c.to), { mono: true });
     }
-    if (!Object.prototype.hasOwnProperty.call(c, 'value')
+    if (String(generatedCase?.generation_status ?? '') === 'INPUT_GENERATION_REQUIRED') {
+      this.detailKeyValue(doc, criteria, 'Generation Status', 'INPUT_GENERATION_REQUIRED / Input条件不足');
+      this.detailKeyValue(doc, criteria, 'Value', '（Rule条件を満たすInput Draft承認後に導出）');
+    } else if (!Object.prototype.hasOwnProperty.call(c, 'value')
         && !Object.prototype.hasOwnProperty.call(c, 'from')
         && !Object.prototype.hasOwnProperty.call(c, 'to')) {
       this.detailKeyValue(doc, criteria, 'Value', '（値入力なし）');
     }
     host.appendChild(criteria);
+
+    
+    const expected = this.detailSection(doc, '③ Expected Result', 'is-expected');
+    this.detailKeyValue(doc, expected, 'Match Count', generatedCase?.expected?.match_count ?? '');
+    this.detailKeyValue(doc, expected, 'Row IDs', this.detailJson(generatedCase?.expected?.row_ids ?? []), { pre: true });
+    this.detailKeyValue(doc, expected, 'Indexes', this.detailJson(generatedCase?.expected?.indexes ?? []), { pre: true });
+    host.appendChild(expected);
+
 
     const derivation = generatedCase?.criteria_derivation ?? {};
     const rule = derivation?.rule ?? {};
@@ -410,13 +421,46 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
       '結果Coverage',
       `${coverage.coverage_kind ?? ''} / match=${coverage.matched_count ?? ''}, nonMatch=${coverage.non_matched_count ?? ''} / ${coverage.assessment ?? ''}`
     );
-    host.appendChild(ruleSection);
 
-    const expected = this.detailSection(doc, '③ Expected Result', 'is-expected');
-    this.detailKeyValue(doc, expected, 'Match Count', generatedCase?.expected?.match_count ?? '');
-    this.detailKeyValue(doc, expected, 'Row IDs', this.detailJson(generatedCase?.expected?.row_ids ?? []), { pre: true });
-    this.detailKeyValue(doc, expected, 'Indexes', this.detailJson(generatedCase?.expected?.indexes ?? []), { pre: true });
-    host.appendChild(expected);
+    const requirementEvaluation = generatedCase?.input_requirement_evaluation ?? {};
+    if (Array.isArray(requirementEvaluation?.requirements) && requirementEvaluation.requirements.length) {
+      const reqSub = doc.createElement('div');
+      reqSub.className = 'responsibility-preview-detail-subtitle';
+      reqSub.textContent = 'Rule → Input Requirement評価';
+      ruleSection.appendChild(reqSub);
+      requirementEvaluation.requirements.forEach(item => {
+        const mark = item?.status === 'PASS' ? '✓' : item?.status === 'MISSING_REQUIRED' ? '✕' : '△';
+        const severity = String(item?.severity ?? '').toUpperCase();
+        this.detailKeyValue(
+          doc,
+          ruleSection,
+          `${mark} ${severity} / ${item?.requirement_id ?? ''}`,
+          `${item?.statement ?? ''}\n${item?.evidence ?? ''} / minimum=${item?.minimum ?? ''}`,
+          { pre: true }
+        );
+      });
+      this.detailKeyValue(
+        doc,
+        ruleSection,
+        'Input Rule判定',
+        `${requirementEvaluation?.status ?? ''} / Required不足=${requirementEvaluation?.missing_required_count ?? 0} / Recommended不足=${requirementEvaluation?.missing_recommended_count ?? 0}`
+      );
+    }
+
+    const aiRequest = generatedCase?.ai_input_generation_request ?? {};
+    if (aiRequest?.status) {
+      this.detailKeyValue(doc, ruleSection, 'AI Input生成判定', aiRequest.status);
+      this.detailKeyValue(
+        doc,
+        ruleSection,
+        'Human Approval Gate',
+        `${aiRequest?.approval_gate?.generated_status ?? 'draft'} → HUMAN REVIEW → ${aiRequest?.approval_gate?.execution_requires ?? 'approved'}`
+      );
+      if (aiRequest.status !== 'NOT_REQUIRED') {
+        this.detailKeyValue(doc, ruleSection, 'AI Input Generation Request', this.detailJson(aiRequest), { pre: true });
+      }
+    }
+    host.appendChild(ruleSection);
 
     const supplement = this.detailSection(doc, '補足情報', 'is-supplement');
     this.detailKeyValue(doc, supplement, 'Case ID', generatedCase?.case_id ?? '', { mono: true });
@@ -542,7 +586,11 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
       const execution = this._result.execution_ready ? 'EXECUTION READY' : `PREVIEW ONLY (Input=${this._result.input_approval_status})`;
       const cases = s.generated_case_count ?? 0;
       const generated = cases > 0 ? ` / Generated Case ${cases}件` : ` / Mutation ${s.mutation_count ?? 0}件 / Invalid ${s.invalid_mutation_count ?? 0}件`;
-      model.note = `Responsibility Verification: ${this._result.status} / TestPattern ${s.test_pattern_count ?? 0}件${generated} / ${execution}`;
+      const inputPlan = this._result?.input_generation_plan;
+      const inputPlanText = inputPlan
+        ? ` / Input Rule ${inputPlan.generation_needed ? 'AI DRAFT REQUIRED' : inputPlan.augmentation_recommended ? 'AUGMENT REVIEW' : 'READY'}`
+        : '';
+      model.note = `Responsibility Verification: ${this._result.status} / TestPattern ${s.test_pattern_count ?? 0}件${generated}${inputPlanText} / ${execution}`;
     }
     return model;
   }

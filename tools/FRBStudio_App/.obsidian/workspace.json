@@ -11,10 +11,10 @@
             "id": "cd032dfc067ef1b2",
             "type": "leaf",
             "state": {
-              "type": "empty",
+              "type": "graph",
               "state": {},
-              "icon": "lucide-file",
-              "title": "新規タブ"
+              "icon": "lucide-git-fork",
+              "title": "グラフビュー"
             }
           }
         ]

@@ -21,11 +21,11 @@ function loadServiceSandbox() {
   return sandbox;
 }
 
-function deriveSearch(documentOverride=null) {
+function deriveSearch(documentOverride=null, inputOverride=null) {
   const sandbox = loadServiceSandbox();
   const document = documentOverride ?? readJson('data/json/03_tests/responsibilities/responsibility_data_v0_2.json');
   const responsibility = document.responsibilities.find(item => item.responsibility_cd === 'search_filter');
-  const inputData = readJson('data/json/80_frb/frb_fft_search_test_data_v0_1.json');
+  const inputData = inputOverride ?? readJson('data/json/80_frb/frb_fft_search_test_data_v0_1.json');
   const viewDef = readJson('defs/frb/frb_fft_field_definition_sample_view_def_v0_1.json');
   const fieldDefinitionDocument = readJson('fielddefs/samples/frb_fft_measurement_field_definitions_v0_2.json');
   const registry = readJson('data/json/config/validation_type_registry_v0_1.json');
@@ -113,4 +113,88 @@ test('Generated Preview uses row-click right detail panel and removes giant Gene
   assert.match(css, /responsibility-preview-snapshot-col-row-id\s*\{\s*width:\s*190px;/);
   assert.equal(preview.config.detailPanel.enabled, true);
   assert.equal(preview.config.detailPanel.position, 'right');
+});
+
+
+test('Search Rule defines machine-readable Input Requirements and current approved fixture satisfies them', () => {
+  const document = readJson('data/json/03_tests/responsibilities/responsibility_data_v0_2.json');
+  const search = document.test_generation_config.search_generation;
+  const rules = search.criteria_derivation_rules;
+
+  assert.match(search.fixture_planning_policy, /Required不足/);
+  assert.deepEqual(search.fixture_approval_flow, [
+    'RULE',
+    'INPUT_REQUIREMENT_EVALUATION',
+    'AI_DRAFT_IF_REQUIRED',
+    'HUMAN_REVIEW',
+    'approved',
+    'GENERATED_CASE',
+    'RUNNER'
+  ]);
+  assert.ok(rules.every(rule =>
+    Array.isArray(rule.input_requirement_rules)
+    && rule.input_requirement_rules.length > 0
+    && rule.input_requirement_rules.every(req => req.requirement_id && req.kind && req.severity && req.statement)
+  ));
+
+  const result = deriveSearch();
+  assert.equal(result.status, 'READY');
+  assert.equal(result.execution_ready, true);
+  assert.equal(result.input_generation_plan.policy, 'RULE_DRIVEN_AI_DRAFT_HUMAN_APPROVAL');
+  assert.equal(result.input_generation_plan.generation_needed, false);
+  assert.equal(result.input_generation_plan.augmentation_recommended, false);
+  assert.equal(result.input_generation_plan.human_approval_required, true);
+
+  const allCases = result.test_patterns.flatMap(pattern => pattern.generated_cases ?? []);
+  assert.equal(allCases.length, 13);
+  assert.ok(allCases.every(item => item.generation_status === 'READY'));
+  assert.ok(allCases.every(item => item.input_requirement_evaluation?.generation_needed === false));
+  assert.ok(allCases.every(item => item.ai_input_generation_request?.status === 'NOT_REQUIRED'));
+});
+
+test('Search Rule blocks Criteria generation and emits AI Input Generation Request when Required Input is missing', () => {
+  const input = readJson('data/json/80_frb/frb_fft_search_test_data_v0_1.json');
+  input.measurement_sessions.forEach(row => {
+    row.note = '';
+    row.amplitude_g = 0.5;
+  });
+
+  const result = deriveSearch(null, input);
+  assert.equal(result.status, 'PARTIAL');
+  assert.equal(result.execution_ready, false);
+  assert.equal(result.input_generation_plan.generation_needed, true);
+  assert.ok(result.issues.some(issue => issue.code === 'SEARCH_INPUT_GENERATION_REQUIRED'));
+
+  const byId = new Map(result.test_patterns.map(pattern => [pattern.pattern_id, pattern.generated_cases[0]]));
+  const contains = byId.get('search_filter_string_contains');
+  assert.equal(contains.generation_status, 'INPUT_GENERATION_REQUIRED');
+  assert.equal(contains.criteria, null);
+  assert.equal(contains.expected, null);
+  assert.equal(contains.criteria_derivation.trace.basis, 'INPUT_REQUIREMENT_NOT_MET');
+  assert.equal(contains.input_requirement_evaluation.status, 'GENERATION_REQUIRED');
+  assert.ok(contains.input_requirement_evaluation.requirements.some(item =>
+    item.requirement_id === 'string_non_blank_min_1'
+    && item.status === 'MISSING_REQUIRED'
+  ));
+  assert.equal(contains.ai_input_generation_request.status, 'REQUIRED');
+  assert.equal(contains.ai_input_generation_request.action, 'CREATE_OR_AUGMENT_TEST_INPUT_DRAFT');
+  assert.equal(contains.ai_input_generation_request.approval_gate.generated_status, 'draft');
+  assert.equal(contains.ai_input_generation_request.approval_gate.execution_requires, 'approved');
+  assert.ok(contains.ai_input_generation_request.constraints.some(item => /対象Field以外/.test(item)));
+
+  const between = byId.get('search_filter_number_between');
+  assert.equal(between.generation_status, 'INPUT_GENERATION_REQUIRED');
+  assert.ok(between.input_requirement_evaluation.requirements.some(item =>
+    item.requirement_id === 'range_distinct_comparable_min_2'
+    && item.status === 'MISSING_REQUIRED'
+  ));
+});
+
+test('Generated Preview shows Rule Input Requirement evaluation and AI Draft/Human Approval gate', () => {
+  const component = readText('wwwroot/js/components/responsibility/responsibility_test_preview_component.js');
+  assert.match(component, /Rule → Input Requirement評価/);
+  assert.match(component, /AI Input生成判定/);
+  assert.match(component, /AI Input Generation Request/);
+  assert.match(component, /Human Approval Gate/);
+  assert.match(component, /INPUT_GENERATION_REQUIRED/);
 });

@@ -1,4 +1,4 @@
-// v0.18.113-responsibility-rule-first-generated-preview
+// v0.18.115-responsibility-rule-driven-input-planning
 // UI-independent derivation for Responsibility Definition Driven Test preview.
 // Canonical Responsibility JSON stores generation rules; Generated TestPattern / Expected remain derived readonly data.
 
@@ -256,6 +256,213 @@ function responsibilityPreviewSearchComparable(value, family) {
   return null;
 }
 
+
+function responsibilityPreviewSearchRequirementEvidence({ requirement, snapshot, family, criteria, trace }) {
+  const rows = Array.isArray(snapshot) ? snapshot : [];
+  const profile = trace?.input_profile ?? responsibilityPreviewSearchInputProfile(rows, family);
+  const kind = String(requirement?.kind ?? '').trim();
+  const minimum = Number(requirement?.minimum ?? 0);
+  const selectedRows = Array.isArray(trace?.selected_source_rows) ? trace.selected_source_rows : [];
+  const comparable = Array.isArray(profile?.comparable_values) ? profile.comparable_values : [];
+  const comparableDistinct = new Set(comparable.map(item => String(item?.comparable))).size;
+  const valueComparable = responsibilityPreviewSearchComparable(criteria?.value, family);
+  const fromComparable = responsibilityPreviewSearchComparable(criteria?.from, family);
+  const toComparable = responsibilityPreviewSearchComparable(criteria?.to, family);
+
+  let actual = 0;
+  let evidence = '';
+
+  if (kind === 'ROW_COUNT_MIN') {
+    actual = rows.length;
+    evidence = `rows=${actual}`;
+  } else if (kind === 'NON_BLANK_MIN') {
+    actual = Number(profile?.non_blank_count ?? 0);
+    evidence = `nonBlank=${actual}`;
+  } else if (kind === 'DISTINCT_NON_BLANK_MIN') {
+    actual = Number(profile?.distinct_non_blank_count ?? 0);
+    evidence = `distinctNonBlank=${actual}`;
+  } else if (kind === 'COMPARABLE_MIN') {
+    actual = comparable.length;
+    evidence = `comparable=${actual}`;
+  } else if (kind === 'DISTINCT_COMPARABLE_MIN') {
+    actual = comparableDistinct;
+    evidence = `distinctComparable=${actual}`;
+  } else if (kind === 'REPEATED_SELECTED_MIN_OCCURRENCES') {
+    actual = selectedRows.length;
+    evidence = `selectedOccurrences=${actual}`;
+  } else if (kind === 'CONTAINS_VARIANT_FOR_SELECTED_MIN') {
+    if (criteria && Object.prototype.hasOwnProperty.call(criteria, 'value')) {
+      const needle = String(criteria.value ?? '').toLowerCase();
+      actual = rows.filter(item => {
+        const text = String(item?.value ?? '').toLowerCase();
+        return needle !== '' && text !== needle && text.includes(needle);
+      }).length;
+    }
+    evidence = `partialContainsVariant=${actual}`;
+  } else if (kind === 'LOWER_THAN_SELECTED_MIN') {
+    actual = valueComparable == null ? 0 : comparable.filter(item => item.comparable < valueComparable).length;
+    evidence = `lowerThanSelected=${actual}`;
+  } else if (kind === 'HIGHER_THAN_SELECTED_MIN') {
+    actual = valueComparable == null ? 0 : comparable.filter(item => item.comparable > valueComparable).length;
+    evidence = `higherThanSelected=${actual}`;
+  } else if (kind === 'REPEATED_FROM_MIN_OCCURRENCES') {
+    if (fromComparable != null) actual = comparable.filter(item => item.comparable === fromComparable).length;
+    evidence = `fromOccurrences=${actual}`;
+  } else if (kind === 'LOWER_THAN_FROM_MIN') {
+    actual = fromComparable == null ? 0 : comparable.filter(item => item.comparable < fromComparable).length;
+    evidence = `lowerThanFrom=${actual}`;
+  } else if (kind === 'HIGHER_THAN_TO_MIN') {
+    actual = toComparable == null ? 0 : comparable.filter(item => item.comparable > toComparable).length;
+    evidence = `higherThanTo=${actual}`;
+  } else {
+    return {
+      supported: false,
+      actual: null,
+      minimum,
+      evidence: `unsupported kind=${kind}`
+    };
+  }
+
+  return { supported: true, actual, minimum, evidence };
+}
+
+function responsibilityPreviewSearchEvaluateInputRequirements({ rule, snapshot, family, criteria=null, trace=null }) {
+  const requirements = Array.isArray(rule?.input_requirement_rules) ? rule.input_requirement_rules : [];
+  const effectiveTrace = trace ?? {
+    input_profile: responsibilityPreviewSearchInputProfile(snapshot, family),
+    selected_source_rows: []
+  };
+  const evaluations = requirements.map(requirement => {
+    const evidence = responsibilityPreviewSearchRequirementEvidence({
+      requirement, snapshot, family, criteria, trace: effectiveTrace
+    });
+    const severity = String(requirement?.severity ?? 'required').toLowerCase();
+    const pass = evidence.supported && Number(evidence.actual) >= Number(evidence.minimum);
+    return {
+      requirement_id: String(requirement?.requirement_id ?? ''),
+      severity,
+      kind: String(requirement?.kind ?? ''),
+      statement: String(requirement?.statement ?? ''),
+      minimum: Number(evidence.minimum ?? 0),
+      actual: evidence.actual,
+      evidence: evidence.evidence,
+      status: pass ? 'PASS' : (severity === 'required' ? 'MISSING_REQUIRED' : 'MISSING_RECOMMENDED')
+    };
+  });
+
+  const missingRequired = evaluations.filter(item => item.status === 'MISSING_REQUIRED');
+  const missingRecommended = evaluations.filter(item => item.status === 'MISSING_RECOMMENDED');
+  return {
+    status: missingRequired.length
+      ? 'GENERATION_REQUIRED'
+      : missingRecommended.length
+        ? 'AUGMENTATION_RECOMMENDED'
+        : 'READY',
+    generation_needed: missingRequired.length > 0,
+    augmentation_recommended: missingRecommended.length > 0,
+    required_count: evaluations.filter(item => item.severity === 'required').length,
+    recommended_count: evaluations.filter(item => item.severity !== 'required').length,
+    missing_required_count: missingRequired.length,
+    missing_recommended_count: missingRecommended.length,
+    requirements: evaluations
+  };
+}
+
+function responsibilityPreviewBuildAiInputGenerationRequest({
+  setup, dataPath, fieldName, fieldPath, family, snapshot, rule, requirementEvaluation
+}) {
+  const missing = (requirementEvaluation?.requirements ?? []).filter(item => item.status !== 'PASS');
+  const status = requirementEvaluation?.generation_needed
+    ? 'REQUIRED'
+    : requirementEvaluation?.augmentation_recommended
+      ? 'OPTIONAL_AUGMENTATION'
+      : 'NOT_REQUIRED';
+  return {
+    status,
+    action: status === 'NOT_REQUIRED' ? 'KEEP_CURRENT_INPUT' : 'CREATE_OR_AUGMENT_TEST_INPUT_DRAFT',
+    target_input_file: String(setup?.input_file ?? ''),
+    target_data_path: String(dataPath ?? ''),
+    target_field: String(fieldName ?? ''),
+    field_path: String(fieldPath ?? ''),
+    value_family: String(family ?? ''),
+    source_rule_id: String(rule?.rule_id ?? ''),
+    source_rule_statement: String(rule?.statement ?? ''),
+    missing_requirements: responsibilityPreviewClone(missing),
+    current_input_snapshot: responsibilityPreviewClone(snapshot),
+    constraints: [
+      '不足Requirementを満たす最小限のInput Draftを作る。',
+      '対象Field以外の既存値、Key、Row順は原則として維持する。',
+      '既存行の補強で足りない場合だけ行追加を提案する。',
+      'Field Definition / ViewDefの型・制約に違反する値を作らない。',
+      'Expectedやテスト理由をTest Input JSONへ埋め込まない。',
+      '生成物はdraftとし、approvedへ自動変更しない。'
+    ],
+    approval_gate: {
+      generated_status: 'draft',
+      human_review_required: true,
+      execution_requires: 'approved'
+    }
+  };
+}
+
+function responsibilityPreviewBuildSearchInputGenerationPlan(patterns, setup) {
+  const cases = (patterns ?? []).flatMap(pattern => Array.isArray(pattern?.generated_cases) ? pattern.generated_cases : []);
+  const byField = new Map();
+  for (const item of cases) {
+    const key = String(item?.field_path ?? `${item?.target_data_path ?? ''}.${item?.target_field ?? ''}`);
+    let field = byField.get(key);
+    if (!field) {
+      field = {
+        field_path: key,
+        target_data_path: String(item?.target_data_path ?? ''),
+        target_field: String(item?.target_field ?? ''),
+        value_family: String(item?.resolved_value_family ?? item?.value_family ?? ''),
+        generation_needed: false,
+        augmentation_recommended: false,
+        missing_required: [],
+        missing_recommended: [],
+        rule_ids: []
+      };
+      byField.set(key, field);
+    }
+    const evaluation = item?.input_requirement_evaluation ?? {};
+    field.generation_needed ||= evaluation?.generation_needed === true;
+    field.augmentation_recommended ||= evaluation?.augmentation_recommended === true;
+    for (const requirement of (evaluation?.requirements ?? [])) {
+      const target = requirement?.status === 'MISSING_REQUIRED'
+        ? field.missing_required
+        : requirement?.status === 'MISSING_RECOMMENDED'
+          ? field.missing_recommended
+          : null;
+      if (target && !target.some(existing => existing.requirement_id === requirement.requirement_id)) {
+        target.push(responsibilityPreviewClone(requirement));
+      }
+    }
+    const ruleId = String(item?.criteria_derivation?.rule_id ?? '');
+    if (ruleId && !field.rule_ids.includes(ruleId)) field.rule_ids.push(ruleId);
+  }
+
+  const fields = [...byField.values()].map(field => ({
+    ...field,
+    status: field.generation_needed
+      ? 'GENERATION_REQUIRED'
+      : field.augmentation_recommended
+        ? 'AUGMENTATION_RECOMMENDED'
+        : 'READY'
+  }));
+  return {
+    policy: 'RULE_DRIVEN_AI_DRAFT_HUMAN_APPROVAL',
+    input_file: String(setup?.input_file ?? ''),
+    current_input_approval_status: String(setup?.input_approval_status ?? ''),
+    human_approval_required: true,
+    approval_flow: ['RULE', 'INPUT_REQUIREMENT_EVALUATION', 'AI_DRAFT_IF_REQUIRED', 'HUMAN_REVIEW', 'approved', 'GENERATED_CASE', 'RUNNER'],
+    generation_needed: fields.some(field => field.generation_needed),
+    augmentation_recommended: fields.some(field => field.augmentation_recommended),
+    fields
+  };
+}
+
+
 function responsibilityPreviewSearchEquals(actual, expected, family) {
   if (['number', 'integer', 'float', 'decimal', 'date', 'datetime', 'instant'].includes(family)) {
     const a = responsibilityPreviewSearchComparable(actual, family);
@@ -465,6 +672,24 @@ class ResponsibilityTestPreviewService {
       }
     }
 
+    const blockedSearchCases = patterns
+      .filter(pattern => String(pattern?.generation_mode ?? '') === 'SEARCH_OPERATOR_MATRIX')
+      .flatMap(pattern => Array.isArray(pattern?.generated_cases) ? pattern.generated_cases : [])
+      .filter(item => String(item?.generation_status ?? '') === 'INPUT_GENERATION_REQUIRED');
+    blockedSearchCases.forEach(item => {
+      issues.push({
+        code: 'SEARCH_INPUT_GENERATION_REQUIRED',
+        case_id: String(item?.case_id ?? ''),
+        field_path: String(item?.field_path ?? ''),
+        rule_id: String(item?.criteria_derivation?.rule_id ?? ''),
+        message: `RuleのRequired Input条件が不足しています。AI Input Draftを生成し、人間承認後に再実行してください: ${item?.field_path ?? ''}`
+      });
+    });
+
+    const inputGenerationPlan = searchDefinitions.length
+      ? responsibilityPreviewBuildSearchInputGenerationPlan(patterns, setup)
+      : null;
+
     const mutationCount = patterns.reduce((sum, pattern) => sum + (pattern.mutations?.length ?? 0), 0);
     const generatedCaseCount = patterns.reduce((sum, pattern) => sum + (pattern.generated_cases?.length ?? 0), 0);
     const invalidMutationCount = patterns.reduce((sum, pattern) => sum + (pattern.mutations ?? []).filter(item => item.validation_outcome !== 'ACCEPT').length, 0);
@@ -479,6 +704,7 @@ class ResponsibilityTestPreviewService {
       setup_id: String(setup?.setup_id ?? ''),
       input_approval_status: approvalStatus || 'unknown',
       expected_def_type: String(patterns?.[0]?.expected_def_type ?? definitions?.[0]?.expected_def_type ?? ''),
+      input_generation_plan: responsibilityPreviewClone(inputGenerationPlan),
       test_patterns: patterns,
       issues,
       summary: {
@@ -691,58 +917,143 @@ class ResponsibilityTestPreviewService {
         const operator = operatorById.get(String(operatorId));
         if (!operator || operator?.status !== 'active') continue;
         const rule = responsibilityPreviewSearchResolveDerivationRule(config?.search_generation, String(operatorId), rawFamily);
-        const derivation = this.#generateSearchCriteria({
-          operatorId: String(operatorId),
+        const preRequirementEvaluation = responsibilityPreviewSearchEvaluateInputRequirements({
+          rule,
           snapshot,
           family: rawFamily,
-          rule
+          criteria: null,
+          trace: {
+            input_profile: responsibilityPreviewSearchInputProfile(snapshot, rawFamily),
+            selected_source_rows: []
+          }
         });
-        const criteria = derivation.criteria;
-        const matched = snapshot.filter(item => responsibilityPreviewSearchMatches(item.value, String(operatorId), criteria, rawFamily));
-        const matchedIndexSet = new Set(matched.map(item => item.index));
-        const coverageKind = matched.length === 0
-          ? 'ZERO_MATCH'
-          : matched.length === snapshot.length
-            ? 'ALL_MATCH'
-            : 'MATCH_AND_NON_MATCH';
-        derivation.trace.result_coverage = {
-          matched_count: matched.length,
-          non_matched_count: Math.max(0, snapshot.length - matched.length),
-          coverage_kind: coverageKind,
-          preference: String(rule?.coverage_preference ?? ''),
-          assessment: coverageKind === 'MATCH_AND_NON_MATCH' ? 'PREFERRED' : 'REVIEW'
-        };
-        derivation.trace.result_rows = snapshot.map(item => ({
-          index: item.index,
-          row_id: item.row_id,
-          matched: matchedIndexSet.has(item.index)
-        }));
-        const expected = {
-          row_ids: matched.map(item => item.row_id),
-          indexes: matched.map(item => item.index),
-          match_count: matched.length
-        };
-        const generatedCase = {
-          case_id: `${String(definition?.pattern_def_id ?? 'search')}_${String(operatorId)}`,
-          target_data_path: dataPath,
-          target_field: fieldName,
-          field_path: fieldPath,
-          value_family: patternFamily,
-          resolved_value_family: rawFamily,
-          operator_id: String(operatorId),
-          operator_caption: String(operator?.caption ?? operatorId),
-          input_snapshot: responsibilityPreviewClone(snapshot),
-          criteria: responsibilityPreviewClone(criteria),
-          criteria_derivation: {
+
+        let generatedCase;
+        if (preRequirementEvaluation.generation_needed) {
+          const blockedTrace = {
             rule_id: String(rule?.rule_id ?? ''),
-            rule: responsibilityPreviewClone(rule),
-            trace: responsibilityPreviewClone(derivation.trace)
-          },
-          expected_def_type: String(definition?.expected_def_type ?? 'StateExpectedDef'),
-          expected,
-          guarantee_id: String(definition?.guarantee_id ?? ''),
-          source_definition_id: String(definition?.pattern_def_id ?? '')
-        };
+            strategy: String(rule?.strategy ?? ''),
+            input_profile: responsibilityPreviewSearchInputProfile(snapshot, rawFamily),
+            basis: 'INPUT_REQUIREMENT_NOT_MET',
+            selected_source_rows: [],
+            derived_criteria: null,
+            result_coverage: {
+              matched_count: null,
+              non_matched_count: null,
+              coverage_kind: 'NOT_EVALUATED',
+              preference: String(rule?.coverage_preference ?? ''),
+              assessment: 'BLOCKED_BY_INPUT_REQUIREMENT'
+            },
+            result_rows: []
+          };
+          const aiRequest = responsibilityPreviewBuildAiInputGenerationRequest({
+            setup,
+            dataPath,
+            fieldName,
+            fieldPath,
+            family: rawFamily,
+            snapshot,
+            rule,
+            requirementEvaluation: preRequirementEvaluation
+          });
+          generatedCase = {
+            case_id: `${String(definition?.pattern_def_id ?? 'search')}_${String(operatorId)}`,
+            generation_status: 'INPUT_GENERATION_REQUIRED',
+            target_data_path: dataPath,
+            target_field: fieldName,
+            field_path: fieldPath,
+            value_family: patternFamily,
+            resolved_value_family: rawFamily,
+            operator_id: String(operatorId),
+            operator_caption: String(operator?.caption ?? operatorId),
+            input_snapshot: responsibilityPreviewClone(snapshot),
+            criteria: null,
+            criteria_derivation: {
+              rule_id: String(rule?.rule_id ?? ''),
+              rule: responsibilityPreviewClone(rule),
+              trace: responsibilityPreviewClone(blockedTrace)
+            },
+            input_requirement_evaluation: responsibilityPreviewClone(preRequirementEvaluation),
+            ai_input_generation_request: responsibilityPreviewClone(aiRequest),
+            expected_def_type: String(definition?.expected_def_type ?? 'StateExpectedDef'),
+            expected: null,
+            guarantee_id: String(definition?.guarantee_id ?? ''),
+            source_definition_id: String(definition?.pattern_def_id ?? '')
+          };
+        } else {
+          const derivation = this.#generateSearchCriteria({
+            operatorId: String(operatorId),
+            snapshot,
+            family: rawFamily,
+            rule
+          });
+          const criteria = derivation.criteria;
+          const matched = snapshot.filter(item => responsibilityPreviewSearchMatches(item.value, String(operatorId), criteria, rawFamily));
+          const matchedIndexSet = new Set(matched.map(item => item.index));
+          const coverageKind = matched.length === 0
+            ? 'ZERO_MATCH'
+            : matched.length === snapshot.length
+              ? 'ALL_MATCH'
+              : 'MATCH_AND_NON_MATCH';
+          derivation.trace.result_coverage = {
+            matched_count: matched.length,
+            non_matched_count: Math.max(0, snapshot.length - matched.length),
+            coverage_kind: coverageKind,
+            preference: String(rule?.coverage_preference ?? ''),
+            assessment: coverageKind === 'MATCH_AND_NON_MATCH' ? 'PREFERRED' : 'REVIEW'
+          };
+          derivation.trace.result_rows = snapshot.map(item => ({
+            index: item.index,
+            row_id: item.row_id,
+            matched: matchedIndexSet.has(item.index)
+          }));
+          const requirementEvaluation = responsibilityPreviewSearchEvaluateInputRequirements({
+            rule,
+            snapshot,
+            family: rawFamily,
+            criteria,
+            trace: derivation.trace
+          });
+          const aiRequest = responsibilityPreviewBuildAiInputGenerationRequest({
+            setup,
+            dataPath,
+            fieldName,
+            fieldPath,
+            family: rawFamily,
+            snapshot,
+            rule,
+            requirementEvaluation
+          });
+          const expected = {
+            row_ids: matched.map(item => item.row_id),
+            indexes: matched.map(item => item.index),
+            match_count: matched.length
+          };
+          generatedCase = {
+            case_id: `${String(definition?.pattern_def_id ?? 'search')}_${String(operatorId)}`,
+            generation_status: 'READY',
+            target_data_path: dataPath,
+            target_field: fieldName,
+            field_path: fieldPath,
+            value_family: patternFamily,
+            resolved_value_family: rawFamily,
+            operator_id: String(operatorId),
+            operator_caption: String(operator?.caption ?? operatorId),
+            input_snapshot: responsibilityPreviewClone(snapshot),
+            criteria: responsibilityPreviewClone(criteria),
+            criteria_derivation: {
+              rule_id: String(rule?.rule_id ?? ''),
+              rule: responsibilityPreviewClone(rule),
+              trace: responsibilityPreviewClone(derivation.trace)
+            },
+            input_requirement_evaluation: responsibilityPreviewClone(requirementEvaluation),
+            ai_input_generation_request: responsibilityPreviewClone(aiRequest),
+            expected_def_type: String(definition?.expected_def_type ?? 'StateExpectedDef'),
+            expected,
+            guarantee_id: String(definition?.guarantee_id ?? ''),
+            source_definition_id: String(definition?.pattern_def_id ?? '')
+          };
+        }
 
         const groupKey = `${patternFamily}::${String(operatorId)}`;
         let pattern = groups.get(groupKey);

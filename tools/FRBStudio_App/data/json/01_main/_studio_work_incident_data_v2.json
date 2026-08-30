@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-29T21:10:00+09:00",
+  "updated_at": "2026-08-29T21:45:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 232,
+  "items_count": 233,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -34082,15 +34082,15 @@
       "incident_type": "改善",
       "category": "csv_export",
       "priority": "high",
-      "status": "確認中",
+      "status": "完了",
       "follow_up_status": "IN_PROGRESS",
-      "verification_status": "Generated Plan / Static確認済み・NativeShell実機確認待ち",
+      "verification_status": "NativeShell Selenium E2E ALL PASS確認済み",
       "context_def_status": "reviewed",
       "context_def_updated_at": "2026-08-29T15:25:00+09:00",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-29T15:25:00+09:00",
-      "updated_at": "2026-08-29T15:25:00+09:00",
+      "updated_at": "2026-08-29T21:35:00+09:00",
       "work_summary": "- csv_exportの旧g001〜g006を、標準Grid CSV出力という1つの承認保証 csv_export_g001 へ統合。\n- Guarantee ID 1件 → N TestPatterns契約に合わせ、CSV_EXPORT_CASE 2 Pattern（ALL / FILTERED）を責務JSONへ定義。\n- CSV専用Test Input / ViewDefを追加し、非表示key列・表示列・カンマ・quote・改行・hidden field・filtered rowsを1 Fixtureで確認可能化。\n- ResponsibilityTestPreviewServiceへ独立Simple CSV Oracleを追加し、CsvExpectedDef(field_names / has_bom / csv_text / csv_without_bom)をTestPatternから導出。\n- 承認Actualは内部CsvExporter戻り値ではなく、NativeShell上でCSV出力ボタンを押し、ブラウザBlob bytes/createObjectURL/download属性のDownload境界をSeleniumで捕捉する。\n- FILTERED Patternはfiltered_row_indexesから row_id != csv_003 を機械導出し、標準検索UIで表示2行を作ってからCSV出力する。",
       "target_files": "- data/json/03_tests/responsibilities/responsibility_data_v0_2.json\n- data/json/80_frb/frb_csv_export_test_data_v0_1.json\n- defs/frb/frb_csv_export_test_view_def_v0_1.json\n- defs/qa/tests/responsibilities/responsibility_view_def_v0_2.json\n- wwwroot/js/services/responsibility/responsibility_test_preview_service.js\n- SeleniumTaste/responsibility_test_plan.js\n- SeleniumTaste/responsibility_selenium_runner.js\n- SeleniumTaste/package.json\n- SeleniumTaste/README.md\n- tests/qa/static/responsibility_csv_export_generated_runner_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
       "actual_updated_files": "- data/json/03_tests/responsibilities/responsibility_data_v0_2.json\n- data/json/80_frb/frb_csv_export_test_data_v0_1.json\n- defs/frb/frb_csv_export_test_view_def_v0_1.json\n- defs/qa/tests/responsibilities/responsibility_view_def_v0_2.json\n- wwwroot/js/services/responsibility/responsibility_test_preview_service.js\n- SeleniumTaste/responsibility_test_plan.js\n- SeleniumTaste/responsibility_selenium_runner.js\n- SeleniumTaste/package.json\n- SeleniumTaste/README.md\n- tests/qa/static/responsibility_csv_export_generated_runner_static.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
@@ -34104,10 +34104,10 @@
       "expected_outputs": "- `npm run test:responsibility:csv:plan` が CSV_EXPORT / 2 Pattern / 2 Case / CsvExpectedDefを表示。\n- Input=draft中はExecution Ready NO。\n- approved後 `npm run test:responsibility:csv` でALLとFILTEREDのCSV出力を実UIから実行。\n- CsvExpectedDefの field_names / has_bom / csv_text / csv_without_bom がDownload Actualと一致。\n- filtered caseは row_id != csv_003 で[0,1]の2行のみをCSV出力する。",
       "risk": "- WebView2/ChromiumのBlob.text()はBOMを文字列から消費する可能性があるため、BOM判定はBlob.arrayBuffer()の先頭byte EF BB BFで行い、csv_textはbyte観測結果から再構成する。\n- 現PhaseではOS上の実ダウンロードファイルそのものは再読込せず、ブラウザDownload境界を外部観測点とする。",
       "test_points": "- csv_export Guaranteeは1件のみ。\n- 2 TestPatternが同じcsv_export_g001へ所属。\n- ExpectedDefは責務/Guarantee入力ではなくCSV_EXPORT_CASEからCsvExpectedDefを導出。\n- field_names=[row_id,title,score,note]でkeyは一度だけ、hidden_noteは含まない。\n- all CSVは3行、filtered CSVは2行。\n- comma/quote/newline escape、BOM bytes、CRLF完全一致。\n- RunnerにCsvExporter.export直接呼出しがない。",
-      "verification_log": "- `node --check wwwroot/js/services/responsibility/responsibility_test_preview_service.js` PASS。\n- `node --check SeleniumTaste/responsibility_test_plan.js` PASS。\n- `node --check SeleniumTaste/responsibility_selenium_runner.js` PASS。\n- `node SeleniumTaste/responsibility_test_plan.js csv_export`：CSV_EXPORT / 2 Pattern / 2 Case / CsvExpectedDef / Execution Ready NO(draft)。\n- CSV新規Static：4/4 PASS。\n- Responsibility関連Focused Static：44/44 PASS。\n- 全Static：369 tests / 360 PASS / 9 FAIL。既存9 FAILのみで本件新規FAILなし。\n- NativeShell実機E2EはTest Input承認後に確認待ち。",
+      "verification_log": "- `node --check wwwroot/js/services/responsibility/responsibility_test_preview_service.js` PASS。\n- `node --check SeleniumTaste/responsibility_test_plan.js` PASS。\n- `node --check SeleniumTaste/responsibility_selenium_runner.js` PASS。\n- `node SeleniumTaste/responsibility_test_plan.js csv_export`：CSV_EXPORT / 2 Pattern / 2 Case / CsvExpectedDef / Execution Ready NO(draft)。\n- CSV新規Static：4/4 PASS。\n- Responsibility関連Focused Static：44/44 PASS。\n- 全Static：369 tests / 360 PASS / 9 FAIL。既存9 FAILのみで本件新規FAILなし。\n- NativeShell実機E2EはTest Input承認後に確認待ち。\n- ユーザー環境 NativeShell Selenium E2E：Responsibility E2E: csv_export ALL PASS。",
       "user_request": "次の責務としてCSV出力へ進む。",
       "ai_response": "csv_exportを1 Guaranteeへ統合し、専用Fixtureから2 TestPatterns / 2 Generated Cases / CsvExpectedDefを導出。NativeShellのCSV出力UIをSelenium操作し、Blob bytes + download属性のDownload境界Actualと比較するE2Eを追加する。",
-      "latest_user_comment": "ほな、次、CSV",
+      "latest_user_comment": "npm run test:responsibility:csv を実機実行し、ALL/FILTERED双方でCsvExpectedDefのfield_names / has_bom / csv_text / csv_without_bomがPASS、RESET_AFTER_EACHもPASS。Responsibility E2E: csv_export ALL PASS。",
       "latest_ai_response": "CSV責務を現在のGuarantee 1:N TestPatterns / 外部観測境界方針へ再構築し、Generated Preview/PlanとSelenium Download境界Runnerまで実装。",
       "context_refs": [
         "studio_work_0237",
@@ -34134,6 +34134,12 @@
           "failed_thing": "旧csv_exportがkey補完/BOM/escapeなどを6 Guaranteeへ分割し、さらにActualが内部CsvExporter戻り値中心だった。",
           "excuse": "CSVは観点が多いので、観点の数だけ保証IDを作れば整理した気になっていた（笑）。",
           "lesson": "標準CSV出力という1つの保証にN TestPatternsを所属させ、Actualはユーザーが受け取るDownload成果物まで伸ばす。"
+        }
+      ],
+      "change_history": [
+        {
+          "changed_at": "2026-08-29T21:35:00+09:00",
+          "summary": "ユーザー実機CSV E2E ALL PASSを受領し完了化。"
         }
       ]
     },
@@ -34663,6 +34669,129 @@
         {
           "changed_at": "2026-08-29T21:10:00+09:00",
           "summary": "Input Snapshot列幅最適化を実装。"
+        }
+      ],
+      "failure_stories": []
+    },
+    {
+      "work_item_id": "studio_work_0245",
+      "phase": "v0.18.115-responsibility-rule-driven-input-planning",
+      "title": "Rule Driven Test Input Planning / AI Input Generation Request / Human Approval Gate",
+      "incident_type": "test_automation",
+      "category": "responsibility_definition_driven_test",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "none",
+      "verification_status": "全Static 394/394 PASS / Search Plan確認済み",
+      "context_def_status": "not_required",
+      "context_def_updated_at": "2026-08-29T21:35:00+09:00",
+      "owner": "user",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-29T21:35:00+09:00",
+      "updated_at": "2026-08-29T21:45:00+09:00",
+      "work_summary": "Rule First責務テストをTest Input生成側へ拡張。Search Criteria導出Ruleごとにmachine-readableなinput_requirement_rulesを追加し、現Test InputがRequired/Recommended条件を満たすか機械評価する。Required不足時はCriteria/Expectedを無理に生成せずINPUT_GENERATION_REQUIREDとして停止し、対象Field・不足Requirement・現Input Snapshot・保持制約・draft→Human Review→approved Gateを含むAI Input Generation Requestを生成する。Recommended不足は実行を妨げず補強候補として提示する。Generated Preview右詳細にRequirement評価 / AI Input生成判定 / Human Approval Gateを表示し、Runner PlanにもInput Rule状態を引き継ぐ。Studio内から外部LLM/APIを直接呼ぶことはPhase 1対象外とし、AIへ渡す生成契約を明示的な境界とした。",
+      "target_files": [
+        "data/json/03_tests/responsibilities/responsibility_data_v0_2.json",
+        "wwwroot/js/services/responsibility/responsibility_test_preview_service.js",
+        "wwwroot/js/components/responsibility/responsibility_test_preview_component.js",
+        "SeleniumTaste/responsibility_test_plan.js",
+        "SeleniumTaste/responsibility_input_plan.js",
+        "SeleniumTaste/package.json",
+        "tests/qa/static/responsibility_generated_rule_detail_static.test.mjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json",
+        "SeleniumTaste/README.md"
+      ],
+      "actual_updated_files": [
+        "data/json/03_tests/responsibilities/responsibility_data_v0_2.json",
+        "wwwroot/js/services/responsibility/responsibility_test_preview_service.js",
+        "wwwroot/js/components/responsibility/responsibility_test_preview_component.js",
+        "SeleniumTaste/responsibility_test_plan.js",
+        "SeleniumTaste/responsibility_input_plan.js",
+        "SeleniumTaste/package.json",
+        "tests/qa/static/responsibility_generated_rule_detail_static.test.mjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json",
+        "SeleniumTaste/README.md"
+      ],
+      "context_def_draft": "",
+      "objective": "責務駆動テストでCaseを直接手修正するのではなく、Ruleから必要Input条件を逆算し、不足時だけAI Draft生成へ進み、人間承認後にGenerated Case / Runnerへ進む流れを機械化する。",
+      "background": "Criteria導出Ruleは正本化されたが、Ruleが成立するためにどのInput条件が必要かは自然文中心で、Input不足時にGeneratorが単に失敗するだけだった。ルール不足・Input不足を明示的に区別し、AIへ何を作らせるかをRuleで拘束する必要がある。",
+      "scope": [
+        "criteria_derivation_rules配下のmachine-readable input_requirement_rules",
+        "Required / Recommended Requirementの機械評価",
+        "Required不足時のINPUT_GENERATION_REQUIRED化",
+        "AI Input Generation Request生成",
+        "draft→Human Review→approvedの承認Gate明示",
+        "Generated Preview右詳細へのRequirement/AI Draft判定表示",
+        "Search Execution Planへのinput_generation_plan引継ぎ",
+        "CLIでInput Rule Plan / AI Request確認"
+      ],
+      "out_of_scope": [
+        "StudioからOpenAI等の外部LLM/APIを直接呼び出すこと",
+        "AI生成Inputを自動approvedにすること",
+        "Ruleを無視した自由作文型Test Data生成",
+        "Aggregate/CSVへのInput Requirement横展開"
+      ],
+      "fixed_name_policy": "Requirementはrequirement_id / kind / severity / minimumで機械判定し、自然文fixture_requirementsだけを実行契約にしない。AI RequestもGenerated Case側の派生データとし正本Test Inputへ埋め込まない。",
+      "module_policy": "Ruleの意味・Input RequirementはCanonical責務JSON、Requirement評価とAI Request導出はPreview Service、見せ方はPreview Component、Runnerは同じ派生Planを利用する。外部AI呼出しは境界外。",
+      "expected_outputs": [
+        "現承認済みSearch FixtureではInput Rule READY / AI Draft NOT_REQUIRED",
+        "Required条件を欠くFixtureではCriteria/Expected生成を止める",
+        "不足条件を含むAI Input Generation Requestを生成する",
+        "AI Requestはdraft生成・Human Review・approved必須を明示する",
+        "Search Runner PlanにInput Rule状態が表示される"
+      ],
+      "risk": "Requirement kindを増やす際にEvaluator未対応だと誤判定する可能性があるため、unsupported kindはPASS扱いせずStaticで契約を増やす。外部AIの生成品質はこの実装では保証せず、人間approvedをHard Gateとする。",
+      "test_points": [
+        "4つのSearch Criteria Ruleすべてがinput_requirement_rulesを持つ",
+        "現Fixtureは13 CaseすべてREADYかつAI Request NOT_REQUIRED",
+        "note全blankではstring_non_blank_min_1がMISSING_REQUIRED",
+        "amplitude_g単一値ではbetweenのrange_distinct_comparable_min_2がMISSING_REQUIRED",
+        "Required不足Caseはcriteria=null / expected=null / INPUT_GENERATION_REQUIRED",
+        "AI Requestは対象Field以外保持・draft・approved必須を含む",
+        "Generated PreviewにRule → Input Requirement評価 / AI Input生成判定 / Human Approval Gateを表示"
+      ],
+      "verification_log": [
+        "npm run plan:responsibility:search-input：note/amplitude_gともREADY、AI Draft NOT_REQUIRED。",
+        "npm run request:responsibility:search-input：AI Input Generation Requests: 0（現Fixtureは不足なし）。",
+        "npm run test:responsibility:search:plan：Pattern=13 / Case=13 / Input Rule READY / Execution Ready YES。",
+        "responsibility_generated_rule_detail_static.test.mjs：7/7 PASS（不足FixtureでINPUT_GENERATION_REQUIRED / AI Request生成も確認）。",
+        "responsibility_search_input_plan_static.test.mjs：1/1 PASS。",
+        "node --test tests/qa/static/*.test.mjs：394/394 PASS / 0 FAIL。"
+      ],
+      "user_request": "ルールから逆算して、AIが入力データを必要に応じて作り、それを人間が承認するシナリオへ進めたい。",
+      "ai_response": "RuleごとにInput Requirementを機械化し、不足時はCriteriaを作らずAI Input Generation Requestへ切替える。AI Draftは必ずdraft、人間approved後だけRunnerへ進む。",
+      "latest_user_comment": "では、よろしく！！ CSV E2EはResponsibility E2E: csv_export ALL PASS。",
+      "latest_ai_response": "Searchを先行してRule → Input Requirement → AI Draft Request → Human Approval → Generated Case / Runnerの境界を実装する。",
+      "context_refs": [
+        "studio_work_0243",
+        "studio_work_0244",
+        "studio_work_0239"
+      ],
+      "follow_up_actions": [
+        "Aggregate/CSVにも同じInput Requirementモデルを横展開する場合は、各責務固有Ruleを先に明示する。"
+      ],
+      "discussion_history": [],
+      "decision_log": [
+        {
+          "decision_id": "studio_work_0245_d001",
+          "decision": "Generated Caseがおかしい/作れない場合、個別Caseを直す前にRuleのInput Requirement不足を判定する。",
+          "reason": "知識の正本をCaseではなくRuleへ集約し、改善が後続Case全体へ効くようにするため。"
+        },
+        {
+          "decision_id": "studio_work_0245_d002",
+          "decision": "Required Input不足時はCriteria/ExpectedをFallback生成せずINPUT_GENERATION_REQUIREDで停止する。",
+          "reason": "不足したInputから無理にテスト値を作ると、何を保証しているか分からないCaseになるため。"
+        },
+        {
+          "decision_id": "studio_work_0245_d003",
+          "decision": "AI生成境界はmachine-readableなAI Input Generation Requestとし、生成物はdraft、人間approvedをHard Gateとする。",
+          "reason": "AIの自由度をRuleで拘束しつつ、承認責任を人間に残すため。"
+        }
+      ],
+      "change_history": [
+        {
+          "changed_at": "2026-08-29T21:35:00+09:00",
+          "summary": "Search RuleへInput Requirement契約、Requirement Evaluator、AI Input Generation Request、Human Approval Gate、Preview/Plan表示を追加。"
         }
       ],
       "failure_stories": []

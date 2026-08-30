@@ -538,6 +538,7 @@ function buildResponsibilityExecutionPlan({
       preview_status: preview.status,
       patterns,
       search_cases: searchCases,
+      input_generation_plan: clone(preview.input_generation_plan ?? null),
       baseline_document: clone(inputData),
       summary: {
         test_pattern_count: patterns.length,
@@ -676,6 +677,9 @@ function formatPlanSummary(plan) {
       : plan?.execution_kind === 'CSV_EXPORT'
         ? `UI Target: CSV Download / Main Cases=${summary.main_grid_case_count ?? 0} / Runner=${plan?.setup?.runner_type ?? ''}`
         : `UI Target: Main=${summary.main_grid_pattern_count ?? 0} / Related=${summary.related_grid_pattern_count ?? 0}`;
+  const inputRule = plan?.execution_kind === 'SEARCH_FILTER' && plan?.input_generation_plan
+    ? `Input Rule: ${plan.input_generation_plan.generation_needed ? 'AI DRAFT REQUIRED' : plan.input_generation_plan.augmentation_recommended ? 'AUGMENT REVIEW' : 'READY'} / Human Approval=${plan.input_generation_plan.human_approval_required ? 'REQUIRED' : 'NO'}`
+    : '';
   return [
     `Responsibility: ${plan?.responsibility_cd} / ${plan?.responsibility_name}`,
     `Execution Kind: ${plan?.execution_kind ?? ''}`,
@@ -684,6 +688,7 @@ function formatPlanSummary(plan) {
     `Lifecycle: ${lifecycle}`,
     generated,
     uiTarget,
+    ...(inputRule ? [inputRule] : []),
     `Execution Ready: ${plan?.execution_ready ? 'YES' : 'NO'}`,
   ].join('\n');
 }
