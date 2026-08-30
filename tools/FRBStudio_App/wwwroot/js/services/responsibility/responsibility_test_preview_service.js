@@ -1,4 +1,4 @@
-// v0.18.115-responsibility-rule-driven-input-planning
+// v0.18.127-search-structural-expected-preview
 // UI-independent derivation for Responsibility Definition Driven Test preview.
 // Canonical Responsibility JSON stores generation rules; Generated TestPattern / Expected remain derived readonly data.
 
@@ -978,10 +978,16 @@ class ResponsibilityTestPreviewService {
         value: responsibilityPreviewClone(row?.[fieldName])
       }));
       const values = snapshot.map(item => item.value);
+      const structuralExpectedByOperator = new Map(
+        (Array.isArray(definition?.operator_structural_expected) ? definition.operator_structural_expected : [])
+          .map(item => [String(item?.operator_id ?? '').trim(), item])
+          .filter(([operatorId]) => operatorId)
+      );
 
       for (const operatorId of (operatorSet?.operator_ids ?? [])) {
         const operator = operatorById.get(String(operatorId));
         if (!operator || operator?.status !== 'active') continue;
+        const structuralExpected = structuralExpectedByOperator.get(String(operatorId)) ?? null;
         const rule = responsibilityPreviewSearchResolveDerivationRule(config?.search_generation, String(operatorId), rawFamily);
         const preRequirementEvaluation = responsibilityPreviewSearchEvaluateInputRequirements({
           rule,
@@ -1133,6 +1139,8 @@ class ResponsibilityTestPreviewService {
             operator_id: String(operatorId),
             operator_caption: String(operator?.caption ?? operatorId),
             operator_set_id: operatorSetId,
+            expected_hit_count: structuralExpected?.expected_hit_count ?? null,
+            expected_hit_indexes: responsibilityPreviewClone(structuralExpected?.expected_hit_indexes ?? []),
             expected_def_type: String(definition?.expected_def_type ?? 'StateExpectedDef'),
             guarantee_id: String(definition?.guarantee_id ?? ''),
             generated_cases: [],

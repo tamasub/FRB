@@ -1,4 +1,4 @@
-// v0.18.118-responsibility-preview-format-unification
+// v0.18.127-search-structural-expected-preview
 // Readonly Generated TestPattern / JsonDiffExpectedDef preview for Responsibility Definition.
 
 const responsibilityPreviewJsonPromiseCache = new Map();
@@ -187,7 +187,8 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
         value_family: pattern.value_family,
         operator: `${pattern.operator_id} / ${pattern.operator_caption}`,
         case_count: pattern.generated_cases?.length ?? 0,
-        expected_def: pattern.expected_def_type
+        expected_hit_count: pattern.expected_hit_count ?? '',
+        expected_hit_indexes: responsibilityPreviewDisplay(pattern.expected_hit_indexes ?? [])
       }));
     }
     if (csvMode) {
@@ -247,7 +248,8 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
         { field: 'value_family', caption: 'Type' },
         { field: 'operator', caption: 'Operator' },
         { field: 'case_count', caption: 'Cases' },
-        { field: 'expected_def', caption: 'ExpectedDef' }
+        { field: 'expected_hit_count', caption: 'Expected Hit Count' },
+        { field: 'expected_hit_indexes', caption: 'Expected Hit Indexes' }
       ];
     }
     if (csvMode) {

@@ -78,6 +78,26 @@ test('SEARCH_FILTER Generated Case exposes applied Rule and derivation trace, no
   assert.deepEqual(between.criteria, { operator: 'between', from: 0.5, to: 0.9 });
 });
 
+test('SEARCH_FILTER Generated Preview projects Structural Expected Hit Count / Indexes instead of ExpectedDef', () => {
+  const result = deriveSearch();
+  const byId = new Map(result.test_patterns.map(pattern => [pattern.pattern_id, pattern]));
+
+  assert.equal(byId.get('search_filter_string_contains').expected_hit_count, 3);
+  assert.deepEqual(byId.get('search_filter_string_contains').expected_hit_indexes, [0, 2, 5]);
+  assert.equal(byId.get('search_filter_number_blank').expected_hit_count, 0);
+  assert.deepEqual(byId.get('search_filter_number_blank').expected_hit_indexes, []);
+
+  const component = readText('wwwroot/js/components/responsibility/responsibility_test_preview_component.js');
+  assert.match(component, /caption: 'Expected Hit Count'/);
+  assert.match(component, /caption: 'Expected Hit Indexes'/);
+
+  const buildColumnsSource = component.slice(component.indexOf('buildColumns(rows=[])'));
+  const searchColumnsBlock = buildColumnsSource.match(/if \(searchMode\) \{[\s\S]*?return \[[\s\S]*?\];\n    \}/)?.[0] ?? '';
+  assert.ok(searchColumnsBlock.includes("caption: 'Expected Hit Count'"));
+  assert.ok(searchColumnsBlock.includes("caption: 'Expected Hit Indexes'"));
+  assert.equal(searchColumnsBlock.includes("caption: 'ExpectedDef'"), false);
+});
+
 test('SEARCH_FILTER does not silently invent Criteria when an applicable derivation rule is missing', () => {
   const document = readJson('data/json/03_tests/responsibilities/responsibility_data_v0_2.json');
   document.test_generation_config.search_generation.criteria_derivation_rules =
