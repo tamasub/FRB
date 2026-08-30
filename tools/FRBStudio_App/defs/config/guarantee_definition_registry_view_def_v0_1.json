@@ -1,0 +1,514 @@
+{
+  "app": {
+    "name": "FRB Studio / JSON Object Studio",
+    "version": "guarantee-definition-registry-view-v0.1"
+  },
+  "currentDataDisplay": {
+    "titlePath": "$.title",
+    "subtitlePath": "$.target",
+    "showDataPath": true
+  },
+  "views": [
+    {
+      "id": "guarantee_definition_registry_v0_1",
+      "caption": "Guarantee Definition Registry",
+      "layout": {
+        "detailDialog": "wide"
+      },
+      "sections": [
+        {
+          "id": "header",
+          "caption": "Registry基本情報",
+          "type": "form",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "registry_version",
+              "caption": "Registry Version",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "status",
+              "caption": "状態",
+              "type": "select",
+              "readonly": true,
+              "options": [
+                "draft",
+                "active",
+                "deprecated",
+                "archived"
+              ],
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "updated_at",
+              "caption": "Updated",
+              "type": "text",
+              "readonly": true,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              }
+            }
+          ]
+        },
+        {
+          "id": "guarantees",
+          "caption": "Guarantee Definition",
+          "type": "grid",
+          "dataPath": "$.guarantees",
+          "keyField": "guarantee_id",
+          "fields": [
+            {
+              "field": "guarantee_id",
+              "caption": "Guarantee ID",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 250
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "responsibility_cd",
+              "caption": "Responsibility",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 200
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "responsibility_name",
+              "caption": "責務名",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 210
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "guarantee_type",
+              "caption": "保証種別",
+              "type": "select",
+              "options": [
+                {
+                  "cd": "rule",
+                  "name": "規則"
+                },
+                {
+                  "cd": "state",
+                  "name": "状態"
+                },
+                {
+                  "cd": "interface",
+                  "name": "Interface"
+                },
+                {
+                  "cd": "error",
+                  "name": "エラー"
+                },
+                {
+                  "cd": "performance",
+                  "name": "性能"
+                },
+                {
+                  "cd": "no_side_effect",
+                  "name": "副作用なし"
+                }
+              ],
+              "grid": {
+                "visible": true,
+                "width": 125
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "priority",
+              "caption": "優先度",
+              "type": "select",
+              "options": [
+                {
+                  "cd": "high",
+                  "name": "高"
+                },
+                {
+                  "cd": "medium",
+                  "name": "中"
+                },
+                {
+                  "cd": "low",
+                  "name": "低"
+                }
+              ],
+              "grid": {
+                "visible": true,
+                "width": 90
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "structural_expected_status",
+              "caption": "期待値構造",
+              "type": "select",
+              "options": [
+                {
+                  "cd": "defined",
+                  "name": "定義済み"
+                },
+                {
+                  "cd": "unresolved",
+                  "name": "未整理"
+                },
+                {
+                  "cd": "not_required",
+                  "name": "追加不要"
+                },
+                {
+                  "cd": "scope_out_candidate",
+                  "name": "Scope Out候補"
+                }
+              ],
+              "grid": {
+                "visible": true,
+                "width": 120
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "enabled",
+              "caption": "有効",
+              "type": "boolean",
+              "grid": {
+                "visible": true,
+                "width": 70
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "condition",
+              "caption": "条件",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 90
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "guarantee",
+              "caption": "保証内容",
+              "type": "textarea",
+              "grid": {
+                "visible": true,
+                "width": 440
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 110
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "observable_result",
+              "caption": "観測可能な結果",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 100
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "scope_status",
+              "caption": "Scope",
+              "type": "select",
+              "options": [
+                {
+                  "cd": "in_scope",
+                  "name": "In Scope"
+                },
+                {
+                  "cd": "out_of_scope_candidate",
+                  "name": "Scope Out候補"
+                }
+              ],
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "structural_expected_reason",
+              "caption": "期待値構造の理由",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 110
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "scope_note",
+              "caption": "Scope Note",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 90
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "boundary_note",
+              "caption": "責務境界メモ",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 110
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "reclassification_candidate_pattern_ids",
+              "caption": "再配置候補Pattern",
+              "type": "stringArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              },
+              "defaultValue": []
+            },
+            {
+              "field": "structural_expected_schema",
+              "caption": "Structural Expected Schema",
+              "type": "objectArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "subGrid": {
+                  "editable": true,
+                  "initialExpanded": true,
+                  "defaultItem": {
+                    "structure_id": "",
+                    "structure_caption": "",
+                    "structure_sort_order": 10,
+                    "field_id": "",
+                    "caption": "",
+                    "data_type": "text",
+                    "required": true,
+                    "sort_order": 10,
+                    "meaning": ""
+                  },
+                  "columns": [
+                    {
+                      "field": "structure_sort_order",
+                      "caption": "構造順",
+                      "type": "number",
+                      "width": 70
+                    },
+                    {
+                      "field": "structure_id",
+                      "caption": "Expected Structure ID",
+                      "type": "text",
+                      "width": 220
+                    },
+                    {
+                      "field": "structure_caption",
+                      "caption": "期待値構造",
+                      "type": "text",
+                      "width": 200
+                    },
+                    {
+                      "field": "sort_order",
+                      "caption": "項目順",
+                      "type": "number",
+                      "width": 70
+                    },
+                    {
+                      "field": "field_id",
+                      "caption": "Expected Field ID",
+                      "type": "text",
+                      "width": 250
+                    },
+                    {
+                      "field": "caption",
+                      "caption": "表示列名",
+                      "type": "text",
+                      "width": 240
+                    },
+                    {
+                      "field": "data_type",
+                      "caption": "Data Type",
+                      "type": "select",
+                      "options": [
+                        "text",
+                        "integer",
+                        "number",
+                        "boolean",
+                        "string_array",
+                        "integer_array",
+                        "path_array",
+                        "json"
+                      ],
+                      "width": 150
+                    },
+                    {
+                      "field": "required",
+                      "caption": "必須",
+                      "type": "boolean",
+                      "width": 75
+                    },
+                    {
+                      "field": "meaning",
+                      "caption": "意味",
+                      "type": "textarea",
+                      "width": 520
+                    }
+                  ]
+                }
+              },
+              "search": {
+                "visible": false
+              },
+              "defaultValue": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

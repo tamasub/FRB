@@ -1,0 +1,527 @@
+{
+  "view_def": "config/guarantee_definition_registry_view_def_v0_1.json",
+  "schema_version": "guarantee_definition_registry_data_v0_1",
+  "registry_version": "0.1.1",
+  "document_type": "guarantee_definition_registry",
+  "title": "FRB Studio Guarantee Definition Registry",
+  "target": "Responsibility / Guarantee / Pattern Def / Structural Expected の責務境界と人間承認単位を検証するためのDraft Registry",
+  "status": "draft",
+  "created_at": "2026-08-30",
+  "updated_at": "2026-08-30T21:20:00+09:00",
+  "owner": "tamasub",
+  "ai_partner": "ChatGPT",
+  "source_of_truth": {
+    "current": "data/json/03_tests/responsibilities/responsibility_data_v0_2.json",
+    "policy": "v0.1時点ではResponsibility Definitionを実行・生成契約の正本とする。本Registryは将来の正本候補を育成するためのDraft / Shadow定義であり、責務JSONのTestPattern生成定義を置き換えない。"
+  },
+  "purpose": "Guaranteeを人間の独立承認単位として第一級Data化し、各GuaranteeについてPattern Defだけでは不足する結果側のテスト条件だけをStructural Expectedとして整理する。Responsibility Definitionを正本のまま維持しながら、将来のGuarantee Definition正本化に向けて実データで境界を育てる。",
+  "contract": {
+    "current_canonical_policy": "Responsibility Definition JSONを実行・生成契約の正本として維持する。Guarantee Definition側へTestPattern生成定義をまだ移管しない。",
+    "guarantee_approval_unit_policy": "Guarantee IDは、テスト観点や期待値条件の数ではなく、人間が独立して承認・不承認を判断する必要がある単位で分割する。TestPatternやExpected条件は細分化してよいが、Guaranteeは人間の承認単位以上には細かくしない。",
+    "structural_expected_definition": "期待値構造 = Pattern Defだけでは不足している「結果側のテスト条件」を補うもの",
+    "structural_expected_minimality_policy": "Pattern Defですでに決まっている条件をStructural Expectedへ重複保持しない。結果世界を成立させるために不足する条件だけを追加する。",
+    "multiple_structure_policy": "1つのGuaranteeを複数のStructural Expected Structureで証明してよい。Expected Structureの違いだけを理由にGuarantee IDを分割しない。",
+    "concrete_expected_boundary": "具体的な値、JSON Path、Before/After値、CSV本文、Scalar値などはConcrete / Generated Expectedとして後段で導出し、Structural Expected Schemaへ固定値として持ち込まない。",
+    "value_boundary": "Structural Expectedの具体値は当面Responsibility Definition側のPattern Def / 現行生成定義を正本とする。本Registryは期待値条件のSchemaと責務境界を先行管理する。",
+    "pattern_generation_boundary": "TestPattern生成定義およびGenerated TestPatternは本Registry v0.1には保持しない。",
+    "unassigned_guarantee_policy": "必要な保証だが既存責務へ自然に所属しないものは、誤った責務へ押し込まずUnassigned Guarantee Candidateとして残す。",
+    "future_responsibility_shape": "将来的にはResponsibility DefinitionをGuarantee IDとTest Input中心の接続定義へ縮退させることを候補とするが、Guarantee Definitionが十分育つまでは移行しない。"
+  },
+  "guarantees": [
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "responsibility_name": "検索条件評価責務",
+      "guarantee_type": "rule",
+      "condition": "有効な検索条件が指定された場合",
+      "guarantee": "定義された検索Operator / Criteriaに従って条件に一致する行だけを結果へ返し、元Data上のIndexを保持する。",
+      "observable_result": "各TestPatternから導出されたExpectedとActual検索結果が一致する。",
+      "priority": "high",
+      "enabled": true,
+      "structural_expected_status": "defined",
+      "structural_expected_schema": [
+        {
+          "structure_id": "hit_structure",
+          "structure_caption": "Hit Structure",
+          "structure_sort_order": 10,
+          "field_id": "expected_hit_count",
+          "caption": "Expected Hit Count",
+          "data_type": "integer",
+          "required": true,
+          "sort_order": 10,
+          "meaning": "当該TestPatternで結果へHitさせる行件数。"
+        },
+        {
+          "structure_id": "hit_structure",
+          "structure_caption": "Hit Structure",
+          "structure_sort_order": 10,
+          "field_id": "expected_hit_indexes",
+          "caption": "Expected Hit Indexes",
+          "data_type": "integer_array",
+          "required": true,
+          "sort_order": 20,
+          "meaning": "当該TestPatternでHitさせる元Data上のIndex一覧。"
+        }
+      ],
+      "structural_expected_reason": "Pattern DefのOperatorだけでは、何件・どの元Data IndexをHitさせる結果世界かが決まらないため、Hit件数とHit Indexを結果側テスト条件として補う。",
+      "scope_status": "in_scope",
+      "scope_note": "",
+      "boundary_note": "",
+      "reclassification_candidate_pattern_ids": []
+    },
+    {
+      "guarantee_id": "grid_column_build_g001",
+      "responsibility_cd": "grid_column_build",
+      "responsibility_name": "Grid列生成責務",
+      "guarantee_type": "rule",
+      "condition": "fieldsにgrid.visible=falseの項目が含まれる場合",
+      "guarantee": "当該項目をGrid列へ含めない。",
+      "observable_result": "返却列のfield一覧に非表示項目が存在しない。",
+      "priority": "high",
+      "enabled": true,
+      "structural_expected_status": "defined",
+      "structural_expected_schema": [
+        {
+          "structure_id": "output_selection_structure",
+          "structure_caption": "Output Selection Structure",
+          "structure_sort_order": 10,
+          "field_id": "expected_output_count",
+          "caption": "Expected Output Count",
+          "data_type": "integer",
+          "required": true,
+          "sort_order": 10,
+          "meaning": "返却されるGrid列件数。"
+        },
+        {
+          "structure_id": "output_selection_structure",
+          "structure_caption": "Output Selection Structure",
+          "structure_sort_order": 10,
+          "field_id": "expected_output_indexes",
+          "caption": "Expected Output Indexes",
+          "data_type": "integer_array",
+          "required": true,
+          "sort_order": 20,
+          "meaning": "入力fields上で返却対象となるIndex一覧。順序もこの配列順で表す。"
+        }
+      ],
+      "structural_expected_reason": "visible=false除外というPattern / Guaranteeだけでは、生成するTest Input上で最終的に何列・どのField位置を残すかが不足するため補う。",
+      "scope_status": "in_scope",
+      "scope_note": "",
+      "boundary_note": "",
+      "reclassification_candidate_pattern_ids": []
+    },
+    {
+      "guarantee_id": "grid_column_build_g002",
+      "responsibility_cd": "grid_column_build",
+      "responsibility_name": "Grid列生成責務",
+      "guarantee_type": "state",
+      "condition": "表示対象フィールドが複数ある場合",
+      "guarantee": "返却列の順序はViewDef fieldsの順序を維持する。",
+      "observable_result": "返却field一覧が入力順と一致する。",
+      "priority": "medium",
+      "enabled": true,
+      "structural_expected_status": "defined",
+      "structural_expected_schema": [
+        {
+          "structure_id": "output_order_structure",
+          "structure_caption": "Output Order Structure",
+          "structure_sort_order": 10,
+          "field_id": "expected_output_indexes",
+          "caption": "Expected Output Indexes",
+          "data_type": "integer_array",
+          "required": true,
+          "sort_order": 10,
+          "meaning": "入力fields上の返却Indexを期待する順序で並べた一覧。"
+        }
+      ],
+      "structural_expected_reason": "順序保持保証を成立させる結果側条件として、返却対象Indexの並びを明示する。件数はIndex一覧から導出できるため重複保持しない。",
+      "scope_status": "in_scope",
+      "scope_note": "",
+      "boundary_note": "",
+      "reclassification_candidate_pattern_ids": []
+    },
+    {
+      "guarantee_id": "grid_column_build_g003",
+      "responsibility_cd": "grid_column_build",
+      "responsibility_name": "Grid列生成責務",
+      "guarantee_type": "rule",
+      "condition": "fieldsが未指定または空配列の場合",
+      "guarantee": "例外で停止せず空配列を返す。",
+      "observable_result": "返却値が空配列である。",
+      "priority": "medium",
+      "enabled": true,
+      "structural_expected_status": "defined",
+      "structural_expected_schema": [
+        {
+          "structure_id": "empty_output_structure",
+          "structure_caption": "Empty Output Structure",
+          "structure_sort_order": 10,
+          "field_id": "expected_output_count",
+          "caption": "Expected Output Count",
+          "data_type": "integer",
+          "required": true,
+          "sort_order": 10,
+          "meaning": "空入力時の返却列件数。"
+        },
+        {
+          "structure_id": "empty_output_structure",
+          "structure_caption": "Empty Output Structure",
+          "structure_sort_order": 10,
+          "field_id": "expected_output_indexes",
+          "caption": "Expected Output Indexes",
+          "data_type": "integer_array",
+          "required": true,
+          "sort_order": 20,
+          "meaning": "空入力時の返却対象Index一覧。"
+        }
+      ],
+      "structural_expected_reason": "空入力時の結果世界を明示するため、出力0件・空Index一覧を結果側条件として持つ。",
+      "scope_status": "in_scope",
+      "scope_note": "",
+      "boundary_note": "",
+      "reclassification_candidate_pattern_ids": []
+    },
+    {
+      "guarantee_id": "grid_column_build_g004",
+      "responsibility_cd": "grid_column_build",
+      "responsibility_name": "Grid列生成責務",
+      "guarantee_type": "interface",
+      "condition": "includeField方針が呼出側から指定された場合",
+      "guarantee": "指定された方針による列採用結果を返す。",
+      "observable_result": "includeFieldの判定結果と返却列が一致する。",
+      "priority": "medium",
+      "enabled": true,
+      "structural_expected_status": "defined",
+      "structural_expected_schema": [
+        {
+          "structure_id": "output_selection_structure",
+          "structure_caption": "Output Selection Structure",
+          "structure_sort_order": 10,
+          "field_id": "expected_output_count",
+          "caption": "Expected Output Count",
+          "data_type": "integer",
+          "required": true,
+          "sort_order": 10,
+          "meaning": "include policy適用後に返却されるGrid列件数。"
+        },
+        {
+          "structure_id": "output_selection_structure",
+          "structure_caption": "Output Selection Structure",
+          "structure_sort_order": 10,
+          "field_id": "expected_output_indexes",
+          "caption": "Expected Output Indexes",
+          "data_type": "integer_array",
+          "required": true,
+          "sort_order": 20,
+          "meaning": "include policy適用後に返却対象となる入力fields上のIndex一覧。"
+        }
+      ],
+      "structural_expected_reason": "include policyだけでは、生成Test Input上で最終的に何列・どのField位置を採用させるかが不足するため補う。",
+      "scope_status": "in_scope",
+      "scope_note": "",
+      "boundary_note": "",
+      "reclassification_candidate_pattern_ids": []
+    },
+    {
+      "guarantee_id": "grid_column_build_g005",
+      "responsibility_cd": "grid_column_build",
+      "responsibility_name": "Grid列生成責務",
+      "guarantee_type": "no_side_effect",
+      "condition": "Grid列を生成した場合",
+      "guarantee": "入力されたfields定義を変更しない。",
+      "observable_result": "処理前後のfieldsが同一である。",
+      "priority": "medium",
+      "enabled": true,
+      "structural_expected_status": "scope_out_candidate",
+      "structural_expected_schema": [],
+      "structural_expected_reason": "入力fields非破壊は列選択結果そのものの不足条件ではないため、通常のGridColumnBuild期待値構造へ混在させない。現行Responsibility DefinitionではGuaranteeとして残しつつ、責務境界整理後の再配置候補とする。",
+      "scope_status": "out_of_scope_candidate",
+      "scope_note": "当面はGrid列生成の結果条件からScope Outとして扱う。正本Responsibility Definitionのg005削除・移管は行わない。将来Parse / Pure Transform等の責務境界が整った時点で所有者を再評価する。",
+      "boundary_note": "Expected Input Diff Count=0を他のGridColumnBuild Patternへ横断的に持たせない。",
+      "reclassification_candidate_pattern_ids": []
+    },
+    {
+      "guarantee_id": "csv_export_g001",
+      "responsibility_cd": "csv_export",
+      "responsibility_name": "Grid CSV出力責務",
+      "guarantee_type": "interface",
+      "condition": "Gridが表示されCSV出力を実行した場合",
+      "guarantee": "現在表示中の行・列を基準に、必要なkey列を一度だけ先頭へ補い、CSV規則・UTF-8 BOM・CRLFを適用したCSV成果物を出力する。",
+      "observable_result": "SeleniumがCSV Download境界から取得したfield_names / has_bom / csv_text / csv_without_bomがGenerated CsvExpectedDefと一致する。",
+      "priority": "high",
+      "enabled": true,
+      "structural_expected_status": "defined",
+      "structural_expected_schema": [
+        {
+          "structure_id": "row_column_structure",
+          "structure_caption": "Row / Column Structure",
+          "structure_sort_order": 10,
+          "field_id": "expected_data_row_count",
+          "caption": "Expected Data Row Count",
+          "data_type": "integer",
+          "required": true,
+          "sort_order": 10,
+          "meaning": "CSVへ出力するData行件数。"
+        },
+        {
+          "structure_id": "row_column_structure",
+          "structure_caption": "Row / Column Structure",
+          "structure_sort_order": 10,
+          "field_id": "expected_row_indexes",
+          "caption": "Expected Row Indexes",
+          "data_type": "integer_array",
+          "required": true,
+          "sort_order": 20,
+          "meaning": "CSVへ出力する元Data上の行Index一覧。"
+        },
+        {
+          "structure_id": "row_column_structure",
+          "structure_caption": "Row / Column Structure",
+          "structure_sort_order": 10,
+          "field_id": "expected_column_count",
+          "caption": "Expected Column Count",
+          "data_type": "integer",
+          "required": true,
+          "sort_order": 30,
+          "meaning": "CSVへ出力する列件数。"
+        },
+        {
+          "structure_id": "row_column_structure",
+          "structure_caption": "Row / Column Structure",
+          "structure_sort_order": 10,
+          "field_id": "expected_column_fields",
+          "caption": "Expected Column Fields",
+          "data_type": "string_array",
+          "required": true,
+          "sort_order": 40,
+          "meaning": "CSVへ出力するField名を出力順で並べた一覧。"
+        },
+        {
+          "structure_id": "key_structure",
+          "structure_caption": "Key Structure",
+          "structure_sort_order": 20,
+          "field_id": "expected_key_field",
+          "caption": "Expected Key Field",
+          "data_type": "text",
+          "required": true,
+          "sort_order": 10,
+          "meaning": "必要に応じて補完するKey Field名。"
+        },
+        {
+          "structure_id": "key_structure",
+          "structure_caption": "Key Structure",
+          "structure_sort_order": 20,
+          "field_id": "expected_key_position",
+          "caption": "Expected Key Position",
+          "data_type": "integer",
+          "required": true,
+          "sort_order": 20,
+          "meaning": "補完Key列の期待位置。0を先頭とする。"
+        },
+        {
+          "structure_id": "key_structure",
+          "structure_caption": "Key Structure",
+          "structure_sort_order": 20,
+          "field_id": "expected_key_count",
+          "caption": "Expected Key Count",
+          "data_type": "integer",
+          "required": true,
+          "sort_order": 30,
+          "meaning": "出力CSV内に存在するKey列数。重複補完防止もこの条件で表す。"
+        },
+        {
+          "structure_id": "csv_format_structure",
+          "structure_caption": "CSV Format Structure",
+          "structure_sort_order": 30,
+          "field_id": "expected_has_bom",
+          "caption": "Expected Has BOM",
+          "data_type": "boolean",
+          "required": true,
+          "sort_order": 10,
+          "meaning": "UTF-8 BOMを持つことを期待するか。"
+        },
+        {
+          "structure_id": "csv_format_structure",
+          "structure_caption": "CSV Format Structure",
+          "structure_sort_order": 30,
+          "field_id": "expected_line_ending",
+          "caption": "Expected Line Ending",
+          "data_type": "text",
+          "required": true,
+          "sort_order": 20,
+          "meaning": "CSV成果物の期待改行コード。"
+        },
+        {
+          "structure_id": "csv_format_structure",
+          "structure_caption": "CSV Format Structure",
+          "structure_sort_order": 30,
+          "field_id": "expected_escape_contract",
+          "caption": "Expected Escape Contract",
+          "data_type": "text",
+          "required": true,
+          "sort_order": 30,
+          "meaning": "カンマ・引用符・改行等をCSV規則に従ってescapeする期待契約。"
+        }
+      ],
+      "structural_expected_reason": "CSV Exportは人間の承認単位として1 Guaranteeのまま維持し、その保証を証明する不足条件をRow/Column・Key・CSV Formatの3 Structureに分けて管理する。",
+      "scope_status": "in_scope",
+      "scope_note": "",
+      "boundary_note": "",
+      "reclassification_candidate_pattern_ids": []
+    },
+    {
+      "guarantee_id": "grid_aggregate_g001",
+      "responsibility_cd": "grid_aggregate",
+      "responsibility_name": "Grid数値集計表示責務",
+      "guarantee_type": "rule",
+      "condition": "ViewDefのGrid数値列にaggregate宣言が存在し、Gridを表示した場合",
+      "guarantee": "有効なsum宣言列をscopeに従う行集合から集計し、有限数へ解釈できる値だけを合計・件数計上して、Gridヘッダーへ正しい集計結果を表示する。aggregate未宣言Fieldには集計表示を出さない。",
+      "observable_result": "各標準TestPatternでGenerated Expected Valueと、SeleniumがGridヘッダーから取得したActual metricが一致する。",
+      "priority": "high",
+      "enabled": true,
+      "structural_expected_status": "defined",
+      "structural_expected_schema": [
+        {
+          "structure_id": "aggregate_structure",
+          "structure_caption": "Aggregate Structure",
+          "structure_sort_order": 10,
+          "field_id": "expected_source_count",
+          "caption": "Expected Source Count",
+          "data_type": "integer",
+          "required": true,
+          "sort_order": 10,
+          "meaning": "scope適用後に集計判定へ参加するSource行件数。"
+        },
+        {
+          "structure_id": "aggregate_structure",
+          "structure_caption": "Aggregate Structure",
+          "structure_sort_order": 10,
+          "field_id": "expected_source_indexes",
+          "caption": "Expected Source Indexes",
+          "data_type": "integer_array",
+          "required": true,
+          "sort_order": 20,
+          "meaning": "scope適用後に集計判定へ参加する元Data Index一覧。"
+        },
+        {
+          "structure_id": "aggregate_structure",
+          "structure_caption": "Aggregate Structure",
+          "structure_sort_order": 10,
+          "field_id": "expected_valid_count",
+          "caption": "Expected Valid Count",
+          "data_type": "integer",
+          "required": true,
+          "sort_order": 30,
+          "meaning": "Sourceのうち集計可能な内部正規化値として採用する件数。"
+        },
+        {
+          "structure_id": "aggregate_structure",
+          "structure_caption": "Aggregate Structure",
+          "structure_sort_order": 10,
+          "field_id": "expected_valid_indexes",
+          "caption": "Expected Valid Indexes",
+          "data_type": "integer_array",
+          "required": true,
+          "sort_order": 40,
+          "meaning": "Sourceのうち集計へ採用する元Data Index一覧。"
+        },
+        {
+          "structure_id": "aggregate_structure",
+          "structure_caption": "Aggregate Structure",
+          "structure_sort_order": 10,
+          "field_id": "expected_ignored_count",
+          "caption": "Expected Ignored Count",
+          "data_type": "integer",
+          "required": true,
+          "sort_order": 50,
+          "meaning": "Sourceのうち集計対象外とする件数。"
+        },
+        {
+          "structure_id": "aggregate_structure",
+          "structure_caption": "Aggregate Structure",
+          "structure_sort_order": 10,
+          "field_id": "expected_ignored_indexes",
+          "caption": "Expected Ignored Indexes",
+          "data_type": "integer_array",
+          "required": true,
+          "sort_order": 60,
+          "meaning": "Sourceのうち集計対象外とする元Data Index一覧。"
+        },
+        {
+          "structure_id": "aggregate_structure",
+          "structure_caption": "Aggregate Structure",
+          "structure_sort_order": 10,
+          "field_id": "expected_has_aggregates",
+          "caption": "Expected Has Aggregates",
+          "data_type": "boolean",
+          "required": true,
+          "sort_order": 70,
+          "meaning": "対象Fieldに集計表示が存在することを期待するか。"
+        }
+      ],
+      "structural_expected_reason": "Pattern Defのsum / scopeだけでは、どの行をSourceとし、どの正規化値をValid / Ignoredにする結果世界かが不足するため補う。Aggregateの具体Scalar値はConcrete Expectedとして後段導出する。",
+      "scope_status": "in_scope",
+      "scope_note": "",
+      "boundary_note": "Raw Valueの解釈は将来のNumeric Parse / Normalization責務でVALID(value) / EMPTY / INVALID_FORMAT / NON_FINITE等へ正規化し、Grid AggregateはVALIDだけを集計し、それ以外を除外する境界を候補とする。現行Runtime / Responsibility Definitionはまだこの分離へ移行しない。",
+      "reclassification_candidate_pattern_ids": [
+        "grid_aggregate_comma_numeric",
+        "grid_aggregate_invalid_exclusion"
+      ]
+    },
+    {
+      "guarantee_id": "data_update_persist_g001",
+      "responsibility_cd": "data_update_persist",
+      "responsibility_name": "既存データ変更永続化責務",
+      "guarantee_type": "state",
+      "condition": "既存Dataの対象項目を正常な別値へ変更して保存・再読込した場合",
+      "guarantee": "指定した変更差分が物理JSONへ永続化され、変更対象外には期待していない差分を発生させない。",
+      "observable_result": "再読込後のActual Diffが人間承認済みExpected Diffと一致し、Unexpected Diff Countが0である。",
+      "priority": "high",
+      "enabled": true,
+      "structural_expected_status": "not_required",
+      "structural_expected_schema": [],
+      "structural_expected_reason": "現行Pattern Defがtarget_structure / target_data_path / field_selection_policy / row_position / value_patternまで指定しており、結果世界の不足条件を追加しなくてもConcrete Expected Diffを生成できる。単一/複数変更や具体Changed PathはPattern / Generated Expected側で扱い、Structural Expectedへ重複保持しない。Unexpected Diff Count=0はGuarantee自身の不変条件として扱う。",
+      "scope_status": "in_scope",
+      "scope_note": "",
+      "boundary_note": "",
+      "reclassification_candidate_pattern_ids": []
+    }
+  ],
+  "notes": [
+    "Responsibility Definition JSONを正本として維持し、本RegistryはDraft / Shadowとして育成する。",
+    "期待値構造 = Pattern Defだけでは不足している「結果側のテスト条件」を補うもの。",
+    "Guarantee IDは人間の独立承認単位であり、Expected Structureの違いだけでは分割しない。",
+    "CSV Exportは1 GuaranteeのままRow / Column、Key、CSV Formatの3 Expected Structureを管理する。",
+    "data_update_persist_g001はPattern Defで結果条件が十分決まるためStructural Expected追加不要と整理する。",
+    "grid_column_build_g005は現行正本を変更せずScope Out / 再配置候補として記録する。",
+    "Grid AggregateのRaw Value解釈は将来Numeric Parse / Normalization責務へ分離する候補とし、未所属Guaranteeとして残す。",
+    "本Registry更新だけではRuntime / Runner / Generated TestPatternの挙動を変更しない。"
+  ],
+  "unassigned_guarantee_candidates": [
+    {
+      "candidate_id": "unassigned_numeric_parse_normalization_g001",
+      "title": "Numeric Parse / Normalization Guarantee Candidate",
+      "status": "unassigned",
+      "candidate_responsibility_cd": "numeric_parse",
+      "guarantee_candidate": "数値系Raw Valueを内部正規化状態へ分類し、対応可能な数値表現はVALID(value)、空値はEMPTY、解釈不能文字列はINVALID_FORMAT、非有限値はNON_FINITE等として安全に表現する。",
+      "source_responsibility_cd": "grid_aggregate",
+      "source_pattern_ids": [
+        "grid_aggregate_comma_numeric",
+        "grid_aggregate_invalid_exclusion"
+      ],
+      "reason": "Raw文字列が数値として解釈可能かを判断する知識はGrid AggregateではなくParse / Normalization側の責務である。Aggregateは正規化済み状態のうちVALIDのみを集計する。",
+      "notes": "現時点ではParse責務が未定義のため、既存grid_aggregate PatternはResponsibility Definition正本に残したまま再配置候補として記録する。"
+    },
+    {
+      "candidate_id": "unassigned_definition_validation_numeric_aggregate_g001",
+      "title": "Numeric Aggregate Compatibility Validation Guarantee Candidate",
+      "status": "unassigned",
+      "candidate_responsibility_cd": "definition_validation",
+      "guarantee_candidate": "非Numeric Validation TypeのFieldへaggregate=sum等の数値集計設定を行った定義をDefinition Validation Errorとして拒否する。",
+      "source_responsibility_cd": "grid_aggregate",
+      "source_pattern_ids": [],
+      "reason": "文字列型Fieldへ数値集計契約を設定できる状態を実行時Aggregateで吸収するのではなく、定義段階で不整合として検出する方が責務境界が明確になる。",
+      "notes": "Validation TypeとViewDef aggregate契約の互換性検証として今後所属先を確定する。"
+    }
+  ]
+}

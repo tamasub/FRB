@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-30T16:25:00+09:00",
+  "updated_at": "2026-08-30T21:20:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 243,
+  "items_count": 244,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -36522,6 +36522,223 @@
           "before": "grid_column_build test_setup=[] / test_pattern_definitions=[]",
           "after": "test_setup=1 / test_pattern_definitions=5 / GRID_COLUMN_BUILD_CASE Preview対応",
           "reason": "責務テスト生成管理の欠落を解消するため。"
+        }
+      ],
+      "failure_stories": []
+    },
+    {
+      "work_item_id": "studio_work_0256",
+      "phase": "v0.18.127-guarantee-definition-structural-expected-model",
+      "title": "Guarantee Definition期待値構造モデル整理 / 未所属保証候補記録",
+      "incident_type": "design_definition",
+      "category": "Responsibility / Guarantee / Expected",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "次段階検討",
+      "verification_status": "JSON parse確認済み / Guarantee契約Static 5/5 PASS / 全Static 429/430 PASS（1件は最新入力ZIP既存のResource Link件数9対期待8） / Responsibility Definition無変更",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-08-30T21:20:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-30T21:20:00+09:00",
+      "updated_at": "2026-08-30T21:20:00+09:00",
+      "work_summary": "Guarantee Definition Registryを、\nGuarantee ID=人間の独立承認単位という判断軸と、Structural Expectedの最小補完モデルに合わせて更新した。\n中心定義として「期待値構造 = Pattern Defだけでは不足している「結果側のテスト条件」を補うもの」を採用し、\nSearch / Grid Column Build / CSV Export / Grid Aggregate / Data Update Persistを棚卸しした。",
+      "target_files": [
+        "data/json/config/guarantee_definition_registry_v0_1.json",
+        "defs/config/guarantee_definition_registry_view_def_v0_1.json",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "actual_updated_files": [
+        "data/json/config/guarantee_definition_registry_v0_1.json",
+        "defs/config/guarantee_definition_registry_view_def_v0_1.json",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "context_def_draft": "# Guarantee Definition / Structural Expected\n\n- Guarantee IDは人間が独立して承認する単位。\n- TestPattern / Expected条件は細分化してよいが、Expected Structureの違いだけでGuarantee IDを分割しない。\n- 期待値構造 = Pattern Defだけでは不足している「結果側のテスト条件」を補うもの\n- Pattern Defですでに決まる条件を期待値構造へ重複保持しない。\n- 1 Guaranteeに複数Expected Structureを持ってよい。\n- 所属先がまだない保証はUnassigned Guarantee Candidateとして残す。",
+      "objective": "Guarantee Definitionをテスト実装都合の分類表ではなく、人間承認単位とPattern Def不足条件を結ぶ正本候補として育てる。",
+      "background": "SearchのHit Count / Hit IndexesからStructural Expected検討を開始したが、Grid Aggregate・CSV Export・Data Update Persistへ横展開すると、GuaranteeとExpected Structureを1対1で扱う前提が不自然であること、Pattern Defだけで十分な責務では期待値構造を追加しない方がよいこと、既存責務へ自然に所属しない保証が発見できることが分かった。",
+      "scope": [
+        "Structural Expectedの定義をPattern Def不足分の結果側テスト条件として明文化",
+        "Guarantee IDを人間の独立承認単位として扱う方針をRegistry契約へ追加",
+        "Search / Grid Column Build / CSV Export / Grid Aggregate / Data Update Persistの9 Guaranteeを棚卸し",
+        "CSV Exportを1 GuaranteeのままRow/Column・Key・CSV Formatの3 Expected Structureで管理",
+        "Grid AggregateにSource / Valid / Ignored / Has Aggregatesの期待値構造を定義",
+        "GridColumnBuild g005をScope Out / 再配置候補として明記",
+        "Data Update PersistはPattern Defだけで十分なためStructural Expected追加不要と整理",
+        "Numeric Parse / Definition Validationの未所属Guarantee候補をRegistryへ記録",
+        "Guarantee Definition ViewDefへExpected Structure group表示項目と状態を追加"
+      ],
+      "out_of_scope": [
+        "Responsibility Definition JSONのGuarantee / Pattern Def削除・移管",
+        "Guarantee Definitionを実行・生成契約の正本へ昇格",
+        "Responsibility画面のGenerated TestPattern列をGuarantee Definition参照へ切替",
+        "Numeric Parse責務の新設とRuntime実装",
+        "Definition Validationのaggregate互換性実装",
+        "Runner / Actual / Diff挙動変更"
+      ],
+      "fixed_name_policy": "Expected Structure ID / Expected Field IDはGuarantee Definition内の管理語彙として扱い、Runtimeの業務Data固定Field名にはしない。",
+      "module_policy": "Responsibility Definitionは現行正本を維持し、Guarantee Definition RegistryはDraft / Shadowとして意味境界とExpected Schemaだけを先行管理する。",
+      "expected_outputs": [
+        "Structural Expectedの定義がRegistryとインシデントに明記される",
+        "1 Guarantee複数Expected Structureを表現できる",
+        "CSV Exportが3 Expected Structureで整理される",
+        "Grid AggregateとParseの責務境界候補が記録される",
+        "追加のExpected Structureが不要なGuaranteeをnot_requiredとして表現できる",
+        "Scope Out候補と未所属Guaranteeを失わず記録できる"
+      ],
+      "risk": "Guarantee DefinitionはまだDraftであり、Responsibility Definitionと二重に見える期間が続く。実行正本を切り替えず、Registry側の整理だけでRuntime挙動を変更しないことを守る。",
+      "test_points": [
+        "3更新JSONのparse",
+        "既存9 Guarantee IDが維持される",
+        "search_filter_g001がHit Structureを持つ",
+        "csv_export_g001が3 structure_idを持つ",
+        "grid_aggregate_g001がExpected Has Aggregatesを含む",
+        "data_update_persist_g001がnot_required + schema空",
+        "grid_column_build_g005がscope_out_candidate",
+        "Responsibility Definition JSONが変更対象に含まれない"
+      ],
+      "verification_log": [
+        {
+          "at": "2026-08-30T21:20:00+09:00",
+          "confirmation_type": "JSON Parse / Structural Expected Contract",
+          "result": "PASS",
+          "detail": "Guarantee Registry / Guarantee ViewDef / Incident JSON parse PASS。9 Guarantee ID維持、CSV Expected Structure=3、Data Update Persist=not_required、GridColumnBuild g005=scope_out_candidateを確認。"
+        },
+        {
+          "at": "2026-08-30T21:20:00+09:00",
+          "confirmation_type": "Guarantee契約Static",
+          "result": "PASS",
+          "detail": "responsibility_guarantee_testpattern_contract_static.test.mjs = 5/5 PASS。Responsibility DefinitionのGuarantee/TestPattern契約は変更なし。"
+        },
+        {
+          "at": "2026-08-30T21:20:00+09:00",
+          "confirmation_type": "全Static",
+          "result": "KNOWN PRE-EXISTING FAIL",
+          "detail": "tests/qa/static/*.test.mjs = 429/430 PASS。FAIL 1件はstudio_resource_links_staticのlinks件数期待8に対しData実体9件。最新入力ZIP単体でも4/5 PASSで同じFAILを再現し、今回変更とは無関係。"
+        }
+      ],
+      "user_request": "保証定義JSONをアップデートし、インシデントへ「期待値構造 = Pattern Defだけでは不足している「結果側のテスト条件」を補うもの」という言葉を残す。",
+      "ai_response": "Guarantee Definitionを人間承認単位・Pattern Def不足条件・複数Expected Structure・未所属Guarantee候補のモデルへ更新し、現行Responsibility Definitionを正本のまま維持する。",
+      "latest_user_comment": "保証定義JSONのアップデートよろしく。一応インシデント登録もしておいてほしくて、そこに、「期待値構造 = Pattern Defだけでは不足している「結果側のテスト条件」を補うもの」って言葉を残しておいて。",
+      "latest_ai_response": "Guarantee Definition Registry / ViewDef / Incidentを更新。Responsibility Definitionは無変更。",
+      "context_refs": [
+        "search_filter_g001",
+        "grid_aggregate_g001",
+        "csv_export_g001",
+        "data_update_persist_g001",
+        "grid_column_build_g005",
+        "studio_work_0255"
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0256_001",
+          "status": "未着手",
+          "action": "Guarantee DefinitionをStudioで確認し、各Expected Structureの列名・意味を人間レビューする。"
+        },
+        {
+          "action_id": "follow_0256_002",
+          "status": "未着手",
+          "action": "Guarantee Definitionが十分育った後、Responsibility画面のExpected Preview列をRegistry参照へ切り替えるか判断する。"
+        },
+        {
+          "action_id": "follow_0256_003",
+          "status": "未着手",
+          "action": "Numeric Parse / Definition ValidationのUnassigned Guarantee Candidateの所属責務を今後確定する。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "at": "2026-08-30T20:53:00+09:00",
+          "speaker": "user",
+          "message": "Guarantee IDはテスト観点ではなく、他システムでも独立して承認する必要がある場合に分ける。CSVは1つのGuarantee IDとして人間が承認したい。"
+        },
+        {
+          "at": "2026-08-30T21:05:00+09:00",
+          "speaker": "user",
+          "message": "CSVはGuaranteeを分けず、期待値構造を3列で管理する理解で進める。"
+        },
+        {
+          "at": "2026-08-30T21:12:00+09:00",
+          "speaker": "user",
+          "message": "具体Changed Pathsは期待値構造として具体的すぎる。単一/複数変更はPattern名で区別できるため無理に重複保持しない。"
+        },
+        {
+          "at": "2026-08-30T21:16:00+09:00",
+          "speaker": "user",
+          "message": "「期待値構造 = Pattern Defだけでは不足している「結果側のテスト条件」を補うもの」という整理を採用する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0256_001",
+          "at": "2026-08-30T21:20:00+09:00",
+          "decision": "Guarantee IDは人間の独立承認単位で分割し、テスト観点やExpected Structureの違いだけでは分割しない。",
+          "reason": "Guaranteeを機械検証都合で細分化すると、人間承認回数と管理対象が不必要に増えるため。",
+          "applied_axes": [
+            "人間承認単位",
+            "Approval Engineering",
+            "二重管理抑制"
+          ],
+          "conditions": "Guarantee Definition設計",
+          "exceptions": "別システム・別用途で独立採用/不採用される保証",
+          "expected_behavior": "CSV Export等は1 Guaranteeの下に複数Expected Structureを持てる。",
+          "acceptance_criteria": "Registry contractに方針が明記される。",
+          "confirmation_level": "JSON review"
+        },
+        {
+          "decision_id": "dec_0256_002",
+          "at": "2026-08-30T21:20:00+09:00",
+          "decision": "期待値構造 = Pattern Defだけでは不足している「結果側のテスト条件」を補うもの。",
+          "reason": "Pattern Defですでに決まる条件やConcrete Expectedを重複保持せず、Input逆算・結果世界定義に必要な不足分だけを構造化するため。",
+          "applied_axes": [
+            "Expected First",
+            "最小定義",
+            "重複排除"
+          ],
+          "conditions": "Structural Expected Schema設計",
+          "exceptions": "なし",
+          "expected_behavior": "責務ごとにExpected Structureの項目数が異なり、追加不要のGuaranteeも許容する。",
+          "acceptance_criteria": "Registry contract / notes / incidentへ同文言を残す。",
+          "confirmation_level": "JSON review"
+        },
+        {
+          "decision_id": "dec_0256_003",
+          "at": "2026-08-30T21:20:00+09:00",
+          "decision": "1 Guaranteeに複数Expected Structureを持つことを許可する。",
+          "reason": "CSVのRow/Column・Key・Formatのように一体承認したい保証でも結果条件の構造は複数あり得るため。",
+          "applied_axes": [
+            "人間承認単位",
+            "Expected Structure分離"
+          ],
+          "conditions": "複数結果条件で1 Guaranteeを証明する場合",
+          "exceptions": "独立承認が必要な場合はGuarantee分割を再評価",
+          "expected_behavior": "csv_export_g001は1 Guaranteeのまま3 Structureを持つ。",
+          "acceptance_criteria": "csv_export_g001に3つのstructure_idが存在する。",
+          "confirmation_level": "JSON review"
+        },
+        {
+          "decision_id": "dec_0256_004",
+          "at": "2026-08-30T21:20:00+09:00",
+          "decision": "所属先がまだない保証はUnassigned Guarantee Candidateとして保持する。",
+          "reason": "必要な保証を既存責務へ無理に押し込まず、保証内容を失わずに将来の責務発見へつなげるため。",
+          "applied_axes": [
+            "責務境界",
+            "Structured Intent"
+          ],
+          "conditions": "保証内容は認識できるが所有責務が未確定",
+          "exceptions": "所属責務が確定した時点で正式移管",
+          "expected_behavior": "Numeric Parse / Definition Validation候補がRegistryに残る。",
+          "acceptance_criteria": "unassigned_guarantee_candidatesが存在する。",
+          "confirmation_level": "JSON review"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0256_001",
+          "at": "2026-08-30T21:20:00+09:00",
+          "change_type": "guarantee_definition_model_refined",
+          "before": "Structural ExpectedはGuaranteeごとに単一Schemaを持つ前提で、search_filter_g001のみdefined。",
+          "after": "Pattern Def不足分だけをExpected Structureとして持ち、1 Guarantee複数Structure / not_required / scope_out_candidate / unassigned guaranteeを表現可能にした。",
+          "reason": "複数責務へ横展開した机上検討で責務ごとの差と人間承認単位が明確になったため。"
         }
       ],
       "failure_stories": []

@@ -204,6 +204,22 @@
       "violation_action": "Expected生成が保証対象の実装や複雑な共通処理へ依存している場合は、依存を切り離し、より直接的で単純な独立計算へ置き換える。必要な精度・丸め等の契約のみを明示的に残す。",
       "source_decision_log_ids": [],
       "notes": "集計の例では、SUMは入力値を順に加算し、COUNTは対象件数を数え、AVGはSUM/COUNTで算出するなど、保証対象とは別の単純な計算世界を用いる。『賢く計算しない。ただし必要な契約は守る』ことを意図する。"
+    },
+    {
+      "sort_order": 110,
+      "item_id": "decision_axis_guarantee_human_approval_unit",
+      "item_type": "DECISION_AXIS",
+      "title": "Guarantee IDは人間の独立承認単位で分割する",
+      "statement": "Guarantee IDは、テスト観点や期待値条件の数ではなく、人間が独立して承認・不承認を判断する必要がある単位で分割する。同一責務内の複数の検証観点が、他システムでも基本的に一体の保証として採用される場合は、1つのGuarantee IDにまとめる。",
+      "reason": "検証観点ごとにGuarantee IDを細分化すると、人間の承認回数と管理対象が不必要に増え、保証の意味よりテスト実装都合が正本構造を支配するため。TestPatternやExpected条件は機械検証しやすい粒度まで細分化してよいが、Guaranteeは人間が意味として承認したい粒度を維持する。",
+      "scope": "document",
+      "priority": "high",
+      "status": "DRAFT",
+      "evaluation_guidance": "Guaranteeを分割する際は、その保証が別システム・別用途で独立して採用／不採用になり得るかを確認する。独立判断される可能性が低く、通常は一体として保証される内容なら分割しない。テストケース数、Expected項目数、内部実装モジュール数だけを理由にGuaranteeを分割しない。",
+      "verification_method": "各Guarantee IDについて、同一責務内の他の保証内容と独立して人間が承認判断する実用上の必要性があるかをレビューする。TestPatternやStructural Expectedの細分化が、そのままGuarantee IDの細分化に反映されていないことを確認する。",
+      "violation_action": "Guarantee IDがテスト実装都合で過剰分割されている場合は、独立承認の必要性を再評価し、一体として承認すべき保証へ統合する。逆にシステムごとに独立採用される保証が混在している場合は、Guarantee IDの分割を検討する。",
+      "source_decision_log_ids": [],
+      "notes": "原則: TestPatternは細かく分けてよい。Expected条件も細かく持ってよい。しかしGuaranteeは、人間の承認単位以上には細かくしない。"
     }
   ],
   "rules": [
