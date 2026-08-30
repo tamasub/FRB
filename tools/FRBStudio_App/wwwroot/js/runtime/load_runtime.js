@@ -60,6 +60,11 @@ async function loadFromObjects(defObj, dataObj, label='読み込み完了', data
     renderByKey('viewExecuteButton');
     if (typeof renderRelatedGridLaunchButtons === 'function') renderRelatedGridLaunchButtons();
   }
+  // v0.18.125: ViewDef検索初期値は既存Search State復元経路でUIへ投影し、
+  // applyOnLoad=true の場合だけ初回ロード直後に検索を実行する。
+  if (typeof applyViewDefInitialSearch === 'function' && typeof gridDef === 'function' && gridDef()) {
+    applyViewDefInitialSearch(gridDef(), { runSearch: true });
+  }
   if ($('gridCsvExportBtn')) $('gridCsvExportBtn').disabled = !gridDef();
   if ($('exportMarkdownBtn')) $('exportMarkdownBtn').disabled = false;
   if (typeof updateMarkdownExportModeSelect === 'function') updateMarkdownExportModeSelect();

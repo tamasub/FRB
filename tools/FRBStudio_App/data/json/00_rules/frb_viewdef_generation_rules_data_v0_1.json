@@ -13,7 +13,7 @@
   "status": "converted_draft",
   "introduced_in": "v0.4-r001",
   "generated_at": "2026-06-26T00:00:00+09:00",
-  "rule_count": 92,
+  "rule_count": 94,
   "approved_count": 90,
   "approval_policy": "Rule Reviewの状態正本は verification_status（AI確認状態）と approval_decision（人間承認）の二つとする。AIは確認結果を更新できるが、人間承認を新規付与・継続・復元してはならない。AIが承認対象の意味内容を変更した場合は verification_status=未確認、approval_decision=未承認へ戻し、approved_by / approved_at をクリアして人間再承認を求める。",
   "preamble": "対象: `FRBStudio_App` / No-Code JSON Studio v0.6+ 系  \n対応Schema: `frb_view_def_schema_v0_8_action_registry_toolbar.json`\n\nこの文書は、AIに **Data JSON から ViewDef JSON を作成させる** ときの作成ルールである。\n\nStudioくんにおける ViewDef は、単なる画面定義ではない。\n\n```text\nData JSON + ViewDef JSON + Runtime + Action = Experience\n```\n\nViewDef は、データの見え方・編集の仕方・Markdown化・AIへの渡し方・仮想データの作り方・主役Actionを宣言する **体験設計書** である。\n\n---",
@@ -3034,10 +3034,77 @@
         }
       ],
       "decision_log": []
+    },
+    {
+      "no": 93,
+      "rule_id": "viewdef_rule_37",
+      "section_no": "37",
+      "source_heading": "37. Studio Resource Link / Grid Cell Action",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "Action / Resource Link",
+      "title": "Studio Resource Link / Grid Cell Action",
+      "priority": "high",
+      "verification_status": "未確認",
+      "approval_decision": "未承認",
+      "summary": "JSON PathはData上の通常文字列として保持し、クリック時の「Studioで開く」は新Field typeではなくViewDefの field.grid.action で宣言する。",
+      "body": "Studio管理JSONへのリンク一覧を作る場合、PathそのものはData JSONの通常stringとして保持する。\n\n「クリックしたら別Studioで開く」という振る舞いはData typeではなくView behaviorなので、新しいField typeを増やさず `field.grid.action` に宣言する。\n\n標準例:\n\n```json\n{\n  \"field\": \"caption\",\n  \"caption\": \"名称\",\n  \"type\": \"text\",\n  \"grid\": {\n    \"visible\": true,\n    \"action\": {\n      \"action\": \"OpenStudioJson\",\n      \"sourceField\": \"path\",\n      \"openMode\": \"new_studio\"\n    }\n  }\n}\n```\n\nData例:\n\n```json\n{\n  \"caption\": \"search_filter.diff\",\n  \"path\": \"data/json/03_tests/responsibilities/results/search_filter.diff.json\"\n}\n```\n\n責務境界:\n- Data: `caption / path / category / artifact_kind` 等の事実を保持する。\n- ViewDef: どのFieldをクリック可能にするか、どのActionへ渡すかを宣言する。\n- Runtime: `grid.action.action` を固定名分岐せずActionRegistryへ渡す。\n- ActionRegistry: Path検証、Studio launch URL生成、new/same Studio起動を担当する。\n\n編集契約:\n- 行ダブルクリックは従来どおりDetail Editorへ遷移し、`path` を編集できること。\n- Grid上のActionクリックは行Detail編集とは別責務とし、Actionセル上のイベントは行ダブルクリックへ漏らさない。\n\nPath契約:\n- 第一段階の `OpenStudioJson` は `data/json/` 配下の相対 `.json` のみを対象とする。\n- `..`、絶対Path、実行ファイル、任意外部URLをResource Linkとして許可しない。\n- 新しい対象種別が必要になった場合は、既存Actionへ無制限に追加せず、Schema/Action契約を明示して拡張する。\n\n共通配置:\n- 再利用するリンク一覧Dataは `data/json/00_common/` に置く。\n- 共通ViewDefは `defs/common/` に置き、個別リンク一覧ごとに専用Runtimeを作らない。",
+      "ceremony_phrase": "このResource Link / Grid Cell Action契約をレビューし、採用可否を判断する。",
+      "user_comment": "リンク系DATA.jsonは共通のcommon配下に置き、共通ViewDefで一覧表示したい。クリックで新規Studioくんを起動して対象JSONを読み、行ダブルクリックではEditorでPathを修正できる形にしたい。",
+      "ai_response": "Pathは通常string Dataのままとし、クリック挙動をViewDefのgrid.actionで宣言する方式を採用。OpenStudioJson Actionはdata/json配下の相対JSONのみを新規Studioで開く。",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "",
+      "approved_at": "",
+      "approval_stamp": "",
+      "notes": "v0.18.124-studio-json-resource-linksで追加。新FieldTypeではなくView behaviorとして導入。",
+      "source_line_start": 0,
+      "source_md_file": "FRBStudio_App v0.18.124 implementation discussion",
+      "introduced_in": "v0.18.124-studio-json-resource-links",
+      "change_history": [
+        {
+          "history_id": "chg_viewdef_rule_37_v018125_common_path_001",
+          "at": "2026-08-30T15:14:00+09:00",
+          "change_type": "common_path_alignment",
+          "before": "Resource Link共通Data配置をdata/json/common/と記載。",
+          "after": "現行Studioの共通Data配置規約に合わせdata/json/00_common/へ修正。",
+          "reason": "実体配置とGeneration Ruleの不一致を解消するため。"
+        }
+      ],
+      "decision_log": []
+    },
+    {
+      "no": 94,
+      "rule_id": "viewdef_rule_38",
+      "section_no": "38",
+      "source_heading": "38. Search Initial Value / Load-time Filter契約",
+      "source_heading_level": 2,
+      "parent_rule_id": "",
+      "category": "Search",
+      "title": "Search Initial Value / Load-time Filter契約",
+      "priority": "high",
+      "verification_status": "未確認",
+      "approval_decision": "未承認",
+      "summary": "ViewDefのCanonical Field上で検索UI初期値と初回自動検索を宣言できる。新規Data初期値defaultValueとは分離し、既存Search State復元機構へ投影する。",
+      "body": "検索欄の初期状態はFieldの `defaultValue` を流用せず、検索Projection配下の `search.initialValue` と `search.applyOnLoad` で宣言する。\n\n標準例:\n\n```json\n\"search\": {\n  \"visible\": true,\n  \"operator\": \"equals\",\n  \"initialValue\": \"diff\",\n  \"applyOnLoad\": true\n}\n```\n\n責務境界:\n- `field.defaultValue`: 新規Data/Row生成時の初期値。\n- `field.search.initialValue`: 検索UIへ表示する初期値。\n- `field.search.applyOnLoad`: 初回Data読込後にその検索状態を自動適用するか。\n\nRuntime原則:\n- 新しい検索専用実装を作らず、既存のStudio Search State復元経路へViewDef初期状態を投影する。\n- `applyOnLoad=true` の場合だけ初回ロード時に `applySearch()` を実行する。\n- `initialValue` があり `applyOnLoad` がfalse/省略の場合は、検索欄へ値を表示するだけで自動抽出しない。\n- `blank / not_blank` 等、値を必要としないOperatorでは `initialValue` が無くても `applyOnLoad=true` を許容する。\n\nViewDefメンテナンス:\n- 共通ViewDefメンテ画面では `search.initialValue` を「検索初期値」、`search.applyOnLoad` を「起動時検索」として編集可能にする。\n- Canonical ViewDefへ保存するときは通常のネストFieldとしてそのまま戻す。\n\n用途例:\n- Resource Link一覧を `artifact_kind = diff` で初期表示する。\n- Review一覧を未承認だけで初期表示する。\n- Test Result一覧をFAILだけで初期表示する。\n\n新規ViewDef生成では、明示的な初期絞り込み要求がある場合だけ設定し、一般画面へ勝手に初期Filterを追加しない。",
+      "ceremony_phrase": "このSearch Initial Value / Load-time Filter契約をレビューし、採用可否を判断する。",
+      "user_comment": "ViewDefをメンテするViewDefには初期値を扱う仕掛けがあるので、検索初期表示も同じViewDef駆動の仕掛けで設定・動作できるようにしたい。",
+      "ai_response": "search.initialValue / search.applyOnLoadを正式契約化し、ViewDefメンテ画面から編集でき、Runtimeでは既存Search State復元経路を再利用して初期検索を適用する。",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "approved_by": "",
+      "approved_at": "",
+      "approval_stamp": "",
+      "notes": "v0.18.125-viewdef-search-initial-stateで追加。Field defaultValueとの責務混同を避ける。",
+      "source_line_start": 0,
+      "source_md_file": "FRBStudio_App v0.18.125 implementation discussion",
+      "introduced_in": "v0.18.125-viewdef-search-initial-state",
+      "change_history": [],
+      "decision_log": []
     }
   ],
-  "updated_at": "2026-08-16T14:50:00+09:00",
-  "review_revision": "v0.18.64-standard-search-contract-phase1",
+  "updated_at": "2026-08-30T15:14:00+09:00",
+  "review_revision": "v0.18.125-viewdef-search-initial-state",
   "review_notes": [
     {
       "note_id": "note_v012_scope_correction",
@@ -3114,6 +3181,12 @@
       "at": "2026-08-12",
       "title": "v0.18.52 Detail FieldSet / 3列フル幅レイアウト契約",
       "body": "section.fieldSetsで既存Fieldを意味的に束ねる。FieldSetは常に3列フル幅・行左端開始、captionは任意で空caption時は枠のみ。重複する要約文は増やさず、Canonical値と表示ラベルを分離して人間の解釈負荷を下げる。"
+    },
+    {
+      "note_id": "note_v018125_search_initial_state",
+      "at": "2026-08-30T15:14:00+09:00",
+      "title": "ViewDef検索初期値 / 起動時検索契約を追加",
+      "body": "search.initialValueとsearch.applyOnLoadを追加。Field defaultValueとは分離し、既存Search State復元機構を再利用して初回検索を適用する。ViewDefメンテ画面から両項目を編集できる。"
     }
   ],
   "view_def_candidates": [

@@ -172,7 +172,29 @@
       min-height: 34px;
     }
   }
-  </style>
+  
+  .grid-cell-action-link {
+    appearance: none;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: #1d4ed8;
+    font: inherit;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+    text-align: left;
+  }
+  .grid-cell-action-link:hover {
+    color: #1e40af;
+  }
+  .grid-cell-action-link:focus-visible {
+    outline: 2px solid #60a5fa;
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+</style>
   <link rel="stylesheet" href="css/frb-studio-shell.css?v=0185p10-json-output-align" />
 </head>
 <body>
@@ -419,7 +441,7 @@
   <script src="js/responsibilities/search_filter.js?v=standard-search-ui-01867"></script>
   <script src="js/responsibilities/csv_exporter.js?v=responsibility-refactor-0187"></script>
   <script src="js/responsibilities/grid_aggregator.js?v=grid-numeric-aggregate-01820"></script>
-  <script src="js/renderers/grid_detail.js?v=visibility-contract-audit-01831"></script>
+  <script src="js/renderers/grid_detail.js?v=visibility-contract-audit-01831&resource=018124"></script>
   <script src="js/ui/section_group_navigation.js?v=section-group-navigation-01873"></script>
   <script src="js/markdown/markdown_registry.js?v=markdown-export-mode-0186"></script>
   <script src="js/markdown/data_markdown.js?v=visible-rows-md-01861"></script>
@@ -428,11 +450,11 @@
   <script src="js/runtime/detail_save.js?v=visibility-contract-audit-01831"></script>
   <script src="js/runtime/studio_json_round_trip.js?v=studio-json-round-trip-018353"></script>
   <script src="js/core/viewdef_context_contract.js?v=context-grid-preview-0165-6"></script>
-  <script src="js/runtime/load_runtime.js?v=standard-search-ui-01867"></script>
-  <script src="js/actions/action_registry.js?v=01887-test-run-post-json-api-fix"></script>
+  <script src="js/runtime/load_runtime.js?v=viewdef-search-initial-018125"></script>
+  <script src="js/actions/action_registry.js?v=01887-test-run-post-json-api-fix&resource=018124"></script>
   <script src="js/runtime/related_grid_view.js?v=related-grid-inline-view-id-01834b"></script>
   <script src="js/core/plugin_host.js?v=native-overlay-runtime-01894"></script>
-  <script src="js/runtime/search_state.js?v=json-full-text-search-01821"></script>
+  <script src="js/runtime/search_state.js?v=viewdef-search-initial-018125"></script>
   <script src="js/actions/action_toolbar.js?v=visible-rows-md-01861"></script>
   <script src="app.js?v=detail-dialog-expand-01836"></script>
 </body>

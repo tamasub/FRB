@@ -1,0 +1,82 @@
+{
+  "view_def": "common/studio_resource_links_view_def_v0_1.json",
+  "schema_version": "studio_resource_links_v0_1",
+  "document_type": "studio_resource_links",
+  "title": "Studio Resource Links / Responsibility Results",
+  "purpose": "Studio管理JSONへの入口を一覧化し、名称クリックで新しいStudioに対象JSONを開く。行ダブルクリックではリンク定義を編集する。",
+  "updated_at": "2026-08-30T14:45:00+09:00",
+  "links": [
+    {
+      "link_id": "search_filter_actual",
+      "caption": "search_filter.actual",
+      "category": "responsibility_result",
+      "artifact_kind": "actual",
+      "path": "data/json/03_tests/responsibilities/results/search_filter.actual.json",
+      "enabled": true,
+      "note": "検索責務 Actual Evidence"
+    },
+    {
+      "link_id": "search_filter_diff",
+      "caption": "search_filter.diff",
+      "category": "responsibility_result",
+      "artifact_kind": "diff",
+      "path": "data/json/03_tests/responsibilities/results/search_filter.diff.json",
+      "enabled": true,
+      "note": "検索責務 Diff Evidence"
+    },
+    {
+      "link_id": "csv_export_actual",
+      "caption": "csv_export.actual",
+      "category": "responsibility_result",
+      "artifact_kind": "actual",
+      "path": "data/json/03_tests/responsibilities/results/csv_export.actual.json",
+      "enabled": true,
+      "note": "CSV出力責務 Actual Evidence"
+    },
+    {
+      "link_id": "csv_export_diff",
+      "caption": "csv_export.diff",
+      "category": "responsibility_result",
+      "artifact_kind": "diff",
+      "path": "data/json/03_tests/responsibilities/results/csv_export.diff.json",
+      "enabled": true,
+      "note": "CSV出力責務 Diff Evidence"
+    },
+    {
+      "link_id": "grid_aggregate_actual",
+      "caption": "grid_aggregate.actual",
+      "category": "responsibility_result",
+      "artifact_kind": "actual",
+      "path": "data/json/03_tests/responsibilities/results/grid_aggregate.actual.json",
+      "enabled": true,
+      "note": "Grid集計責務 Actual Evidence"
+    },
+    {
+      "link_id": "grid_aggregate_diff",
+      "caption": "grid_aggregate.diff",
+      "category": "responsibility_result",
+      "artifact_kind": "diff",
+      "path": "data/json/03_tests/responsibilities/results/grid_aggregate.diff.json",
+      "enabled": true,
+      "note": "Grid集計責務 Diff Evidence"
+    },
+    {
+      "link_id": "data_update_persist_actual",
+      "caption": "data_update_persist.actual",
+      "category": "responsibility_result",
+      "artifact_kind": "actual",
+      "path": "data/json/03_tests/responsibilities/results/data_update_persist.actual.json",
+      "enabled": true,
+      "note": "既存データ変更永続化責務 Actual Evidence"
+    },
+    {
+      "link_id": "data_update_persist_diff",
+      "caption": "data_update_persist.diff",
+      "category": "responsibility_result",
+      "artifact_kind": "diff",
+      "path": "data/json/03_tests/responsibilities/results/data_update_persist.diff.json",
+      "enabled": true,
+      "note": "既存データ変更永続化責務 Diff Evidence"
+    }
+  ]
+}

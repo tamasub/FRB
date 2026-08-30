@@ -1,0 +1,212 @@
+{
+  "$schema": "frb_view_def_schema_v0_9.json",
+  "app": {
+    "name": "FRB Studio / JSON Object Studio",
+    "version": "v0.18.125-studio-resource-links-search-initial"
+  },
+  "views": [
+    {
+      "id": "studio_resource_links",
+      "caption": "Studio Resource Links / JSONリンク一覧",
+      "layout": {
+        "detailDialog": "wide"
+      },
+      "sections": [
+        {
+          "id": "header",
+          "caption": "Link Set / 基本情報",
+          "type": "form",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "purpose",
+              "caption": "目的",
+              "type": "textarea",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": false,
+                "readonly": false,
+                "height": 90
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "updated_at",
+              "caption": "Updated",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            }
+          ]
+        },
+        {
+          "id": "links",
+          "caption": "JSON Links / JSONリンク",
+          "type": "grid",
+          "dataPath": "$.links",
+          "keyField": "link_id",
+          "fields": [
+            {
+              "field": "caption",
+              "caption": "名称 / クリックで開く",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 250,
+                "action": {
+                  "action": "OpenStudioJson",
+                  "sourceField": "path",
+                  "openMode": "new_studio",
+                  "title": "新しいStudioでJSONを開く"
+                }
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "artifact_kind",
+              "caption": "種別",
+              "type": "select",
+              "options": [
+                "actual",
+                "diff",
+                "expected",
+                "definition",
+                "other"
+              ],
+              "grid": {
+                "visible": true,
+                "width": 100
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals",
+                "initialValue": "diff",
+                "applyOnLoad": true
+              }
+            },
+            {
+              "field": "category",
+              "caption": "Category",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 180
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "path",
+              "caption": "JSON Path",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 580
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "enabled",
+              "caption": "有効",
+              "type": "boolean",
+              "grid": {
+                "visible": true,
+                "width": 80
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals",
+                "initialValue": true,
+                "applyOnLoad": true
+                }
+            },
+            {
+              "field": "note",
+              "caption": "備考",
+              "type": "textarea",
+              "grid": {
+                "visible": false,
+                "width": 360
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false,
+                "height": 80
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "link_id",
+              "caption": "Link ID",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": false
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

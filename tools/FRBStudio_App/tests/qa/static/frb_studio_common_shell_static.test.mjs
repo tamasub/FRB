@@ -221,7 +221,7 @@ test('Markdown document metadata keeps filename and character count only, with f
 
 
 test('JSON primary save fix busts the WebView2 runtime cache and re-syncs after ViewDef maintenance state changes', () => {
-  assert.match(indexHtml, /js\/runtime\/load_runtime\.js\?v=standard-search-ui-01867/);
+  assert.match(indexHtml, /js\/runtime\/load_runtime\.js\?v=viewdef-search-initial-018125/);
   assert.match(loadRuntime, /function syncLoadedDocumentSaveButtonState\(\)/);
   assert.match(loadRuntime, /saveBtn\.disabled = readonly/);
   assert.match(pageSetup, /if \(typeof syncLoadedDocumentSaveButtonState === 'function'\) syncLoadedDocumentSaveButtonState\(\);/);

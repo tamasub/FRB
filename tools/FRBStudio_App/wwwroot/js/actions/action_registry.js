@@ -1,4 +1,4 @@
-﻿// v0.5-registry: Action registry skeleton.
+// v0.5-registry: Action registry skeleton.
 // v0.6-action-execute-button で toolbar.executeButton から actionId を渡すための受け皿。
 // この段階では既存ヘッダーボタンの動作は変更しない。
 
@@ -295,6 +295,46 @@ registerStudioAction('CopyPromptFromTemplate', async (context={}) => {
       : `AI依頼プロンプトをコピーしました: ${values.row.phase || values.row.work_item_id || values.data.fileName}`
   };
 }, ['CopyPrompt']);
+
+// v0.18.124-studio-json-resource-links:
+// Open a managed Data JSON in another Studio window. The path is data; the action is ViewDef behavior.
+function normalizeStudioJsonResourcePath(raw) {
+  const value = String(raw ?? '').trim().replace(/\\/g, '/').replace(/^\/+/, '');
+  if (!value) throw new Error('開くJSON Pathが空です');
+  if (value.split('/').some(part => part === '.' || part === '..')) throw new Error(`不正なJSON Pathです: ${value}`);
+  if (!value.toLowerCase().endsWith('.json')) throw new Error(`JSONファイルだけ開けます: ${value}`);
+  if (!value.startsWith('data/json/')) throw new Error(`Studio Data JSONは data/json/ 配下を指定してください: ${value}`);
+  return value;
+}
+
+function studioJsonResourceLaunchUrl(resourcePath, action={}) {
+  const url = new URL('index.html', window.location.href);
+  url.searchParams.set('data', resourcePath);
+  const view = String(action?.view ?? action?.viewDef ?? action?.view_def ?? '').trim();
+  if (view) url.searchParams.set('view', view);
+  const mode = String(action?.mode ?? action?.launchMode ?? action?.launch_mode ?? '').trim();
+  if (mode) url.searchParams.set('mode', mode);
+  return url.toString();
+}
+
+registerStudioAction('OpenStudioJson', async (context={}) => {
+  const action = context.gridAction ?? context.action ?? {};
+  const sourceField = String(action.sourceField ?? action.source_field ?? context.field?.field ?? '').trim();
+  const rawPath = context.actionValue ?? (sourceField ? getByPath(context.row ?? context.selectedRow ?? {}, sourceField) : '');
+  const resourcePath = normalizeStudioJsonResourcePath(rawPath);
+  const url = studioJsonResourceLaunchUrl(resourcePath, action);
+  const openMode = String(action.openMode ?? action.open_mode ?? 'new_studio').trim().toLowerCase();
+
+  if (openMode === 'same_studio' || openMode === 'same') {
+    window.location.assign(url);
+    return { message: `Studioで開きます: ${resourcePath}` };
+  }
+
+  const child = window.open(url, '_blank');
+  if (!child) throw new Error(`新しいStudioを開けませんでした: ${resourcePath}`);
+  return { message: `新しいStudioで開きました: ${resourcePath}` };
+}, ['OpenStudioResource', 'OpenJsonInStudio']);
+
 registerStudioAction('Noop', async (context={}) => {
   return { message: `${context.executeButton?.caption ?? 'Action'} はNoopとして実行されました` };
 });

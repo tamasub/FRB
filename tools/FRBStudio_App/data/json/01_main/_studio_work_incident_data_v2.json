@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-30T13:05:00+09:00",
+  "updated_at": "2026-08-30T15:14:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 240,
+  "items_count": 242,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -36036,6 +36036,347 @@
         }
       ],
       "failure_stories": []
+    },
+    {
+      "work_item_id": "studio_work_0253",
+      "phase": "v0.18.124-studio-json-resource-links",
+      "title": "共通JSON Resource Link / Grid Action / 新規Studio起動",
+      "incident_type": "feature_enhancement",
+      "category": "Common ViewDef / Action",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "ユーザー実機確認待ち",
+      "verification_status": "JSON parse確認済み / JS構文PASS / Resource Link Static 5/5 PASS / 全Static 420/420 PASS / 実機クリック確認待ち",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-08-30T14:50:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-30T14:50:00+09:00",
+      "updated_at": "2026-08-30T14:50:00+09:00",
+      "work_summary": "Studio管理JSONへのリンク一覧をdata/json/commonの共通Dataとして追加し、defs/commonの共通ViewDefで表示する。名称セルクリックはViewDefのfield.grid.actionからOpenStudioJson Actionへ委譲し、新しいStudioウィンドウで対象Data JSONを開く。行ダブルクリックは既存Detail Editorを維持しpathを編集可能にする。ViewDef SchemaとGeneration Rulesにもgrid.action契約を追加した。",
+      "target_files": [
+        "data/json/common/studio_resource_links_data_v0_1.json",
+        "defs/common/studio_resource_links_view_def_v0_1.json",
+        "wwwroot/js/renderers/grid_detail.js",
+        "wwwroot/js/actions/action_registry.js",
+        "wwwroot/index.html",
+        "data/json/00_rules/frb_view_def_schema_v0_9.json",
+        "data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json",
+        "tests/qa/static/studio_resource_links_static.test.mjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "actual_updated_files": [
+        "data/json/common/studio_resource_links_data_v0_1.json",
+        "defs/common/studio_resource_links_view_def_v0_1.json",
+        "wwwroot/js/renderers/grid_detail.js",
+        "wwwroot/js/actions/action_registry.js",
+        "wwwroot/index.html",
+        "data/json/00_rules/frb_view_def_schema_v0_9.json",
+        "data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json",
+        "tests/qa/static/studio_resource_links_static.test.mjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "context_def_draft": "# Studio Resource Links\n\n- JSON PathはDataの通常string。\n- クリックして開く挙動はField TypeではなくViewDefのgrid.action。\n- RuntimeはAction名を解釈せずActionRegistryへ委譲する。\n- OpenStudioJsonはdata/json配下の相対JSONだけを許可する。\n- new_studioはwindow.openを使い、NativeShellのNewWindowRequested契約で子Studioとして起動する。\n- 行ダブルクリックは既存Editorへ遷移し、path編集を維持する。",
+      "objective": "Studio管理JSONをExplorerから探すのではなく、共通リンクDataを母艦として一覧・起動・Path編集できるようにする。",
+      "background": "責務Actual/Diffがresults直下に増え、一覧からクリックして別Studioで確認できる入口が必要になった。新FieldType化も検討したが、PathはData、起動はView behaviorという責務分離が自然と判断した。",
+      "scope": [
+        "data/json/commonへResource Link Dataを追加",
+        "defs/commonへ共通Resource Link ViewDefを追加",
+        "field.grid.actionを汎用GridセルActionとしてRuntime対応",
+        "OpenStudioJson ActionをActionRegistryへ追加",
+        "新規Studio起動はwindow.open + NativeShell NewWindowRequested既存契約を利用",
+        "ViewDef SchemaへgridFieldActionOptions追加",
+        "ViewDef Generation RulesへResource Link契約追加",
+        "責務Actual/Diff 8ファイルの初期リンク一覧を作成"
+      ],
+      "out_of_scope": [
+        "新しいField typeの追加",
+        "外部URL/EXE/任意絶対Pathの起動",
+        "Markdown Resource Link",
+        "Path存在確認の自動巡回",
+        "リンク一覧の自動生成"
+      ],
+      "fixed_name_policy": "RuntimeはData field名を固定参照しない。ViewDefのgrid.action.sourceFieldからActionへ値を渡す。OpenStudioJsonは汎用Action識別子としてActionRegistryに閉じる。",
+      "module_policy": "Grid RendererはactionIdとrow/valueをActionRegistryへ渡すだけ。Path検証とlaunch URL生成はOpenStudioJson Actionが担当する。",
+      "expected_outputs": [
+        "名称クリックで対象JSONを新規Studioに開ける",
+        "Path列は通常Dataとして表示・Detail Editorで編集できる",
+        "新FieldType無しで共通ViewDefを再利用できる",
+        "Schema/Generation Rulesに契約が残る",
+        "全Static 0 FAIL"
+      ],
+      "risk": "window.openの実機挙動はNativeShell WebView2で確認が必要。OpenStudioJsonは安全境界としてdata/json配下の相対.jsonに限定する。",
+      "test_points": [
+        "Common Link Data / ViewDef JSON parse",
+        "grid.action Schema契約",
+        "Grid RendererがexecuteStudioActionへ委譲",
+        "OpenStudioJsonがwindow.open(_blank)を使用",
+        "Generation Rule 37存在",
+        "全Static 420/420 PASS"
+      ],
+      "verification_log": [
+        {
+          "at": "2026-08-30T14:50:00+09:00",
+          "confirmation_type": "Resource Link Static",
+          "result": "PASS",
+          "detail": "studio_resource_links_static.test.mjs = 5/5 PASS"
+        },
+        {
+          "at": "2026-08-30T14:50:00+09:00",
+          "confirmation_type": "JS構文",
+          "result": "PASS",
+          "detail": "grid_detail.js / action_registry.js node --check PASS"
+        },
+        {
+          "at": "2026-08-30T14:50:00+09:00",
+          "confirmation_type": "全Static",
+          "result": "PASS",
+          "detail": "node --test tests/qa/static/*.test.mjs = 420/420 PASS / 0 FAIL"
+        }
+      ],
+      "user_request": "リンク系のDATA.jsonは共通のcommonの中に置き、ViewDefを使うイメージ。スキーマとジェネレートルールの更新もお願い。",
+      "ai_response": "新FieldTypeは追加せず、Path=Data / Open=View behaviorとしてfield.grid.actionを追加し、OpenStudioJson Actionで新規Studio起動する方式を実装する。",
+      "latest_user_comment": "リンク系のDATA.jsonは共通の commonの中に、ViewDefを使うイメージ。いっちょぉーよろしくぅ。スキーマとジェネレートルールの更新もお願い。",
+      "latest_ai_response": "共通Resource Link Data/ViewDef、grid.action、OpenStudioJson、Schema、Generation Rule 37まで実装。全Static 420/420 PASS。",
+      "context_refs": [
+        "studio_work_0252",
+        "constitution_06",
+        "viewdef_rule_01_02",
+        "viewdef_rule_16_01",
+        "viewdef_rule_37"
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0253_001",
+          "status": "ユーザー実機確認待ち",
+          "action": "studio_resource_links_data_v0_1.jsonをStudioで開き、名称クリックで別Studioに対象JSONが起動することを確認する。"
+        },
+        {
+          "action_id": "follow_0253_002",
+          "status": "ユーザー実機確認待ち",
+          "action": "行ダブルクリックでDetail Editorへ入り、path変更→F12→保存が従来どおり動くことを確認する。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "at": "2026-08-30T14:36:00+09:00",
+          "speaker": "user",
+          "message": "リンク用JSONを作りたい。JSON一覧をGrid表示し、クリックで新規Studioインスタンスに対象JSONを読みたい。行ダブルクリックではEditorでPath修正できるようにしたい。"
+        },
+        {
+          "at": "2026-08-30T14:41:00+09:00",
+          "speaker": "user",
+          "message": "リンク系DATA.jsonは共通のcommonの中に、ViewDefを使うイメージ。スキーマとジェネレートルールの更新もお願い。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0253_001",
+          "at": "2026-08-30T14:50:00+09:00",
+          "decision": "Resource Pathは通常string Dataとし、Open動作はfield.grid.actionへ分離する。",
+          "reason": "Pathというデータ意味とクリック動作をField Typeへ混在させず、Data/View分離とActionRegistry原則を守るため。",
+          "applied_axes": [
+            "Data First",
+            "ViewDef First",
+            "ActionRegistry委譲"
+          ],
+          "conditions": "Studio管理Data JSONリンク",
+          "exceptions": "将来別resource kindを正式追加する場合",
+          "expected_behavior": "同じDataをViewDef変更だけでクリック可能/通常表示へ切替可能。",
+          "acceptance_criteria": "Schemaと共通ViewDefにgrid.actionが存在する。",
+          "confirmation_level": "JSON/Static"
+        },
+        {
+          "decision_id": "dec_0253_002",
+          "at": "2026-08-30T14:50:00+09:00",
+          "decision": "第一段階OpenStudioJsonはdata/json配下の相対.jsonだけを新規Studioで開く。",
+          "reason": "任意Path/外部URL/実行ファイル起動と混ざらない安全な最小契約にするため。",
+          "applied_axes": [
+            "最小権限",
+            "外からつまめ原則"
+          ],
+          "conditions": "openMode=new_studio",
+          "exceptions": "same_studioは明示ViewDef指定時のみ",
+          "expected_behavior": "window.openでNativeShell子Studioまたはブラウザ新規Windowを開く。",
+          "acceptance_criteria": "ActionがPath検証後にindex.html?data=...を生成する。",
+          "confirmation_level": "JS Static"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0253_001",
+          "at": "2026-08-30T14:50:00+09:00",
+          "change_type": "resource_link_contract_added",
+          "before": "Grid Fieldに汎用セルAction契約がなく、JSONリンク一覧は専用Runtimeか新FieldTypeが必要だった。",
+          "after": "field.grid.actionからActionRegistryへ委譲する汎用セルActionを追加。",
+          "reason": "Link Dataを共通ViewDefで再利用するため。"
+        },
+        {
+          "history_id": "chg_0253_002",
+          "at": "2026-08-30T14:50:00+09:00",
+          "change_type": "common_link_catalog_added",
+          "before": "責務Actual/DiffはExplorer等から個別に開く必要があった。",
+          "after": "data/json/common/studio_resource_links_data_v0_1.jsonに8件の入口を追加。",
+          "reason": "Studio自身をStudio資材の母艦にするため。"
+        }
+      ],
+      "failure_stories": []
+    },
+    {
+      "work_item_id": "studio_work_0254",
+      "phase": "v0.18.125-viewdef-search-initial-state",
+      "title": "ViewDef検索初期値 / 起動時Filter / Resource Link Diff初期表示",
+      "incident_type": "feature_enhancement",
+      "category": "ViewDef / Search",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "ユーザー実機確認待ち",
+      "verification_status": "JSON parse確認済み / JS構文PASS / Search Initial関連26/26 PASS / 全Static 426/426 PASS / 実機確認待ち",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-08-30T15:14:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-30T15:14:00+09:00",
+      "updated_at": "2026-08-30T15:14:00+09:00",
+      "work_summary": "ViewDefのCanonical Fieldへsearch.initialValue / search.applyOnLoadを追加し、既存Studio Search State復元機構を使って検索UI初期値と初回自動検索を実現する。ViewDefメンテ画面から両項目を編集可能にし、Studio Resource Linksはartifact_kind=diffで初期抽出する。SchemaとGeneration Rule 38も更新する。",
+      "target_files": [
+        "wwwroot/js/runtime/search_state.js",
+        "wwwroot/js/runtime/load_runtime.js",
+        "defs/common/view_def_maint_fields_v0_2.json",
+        "defs/common/studio_resource_links_view_def_v0_1.json",
+        "data/json/00_rules/frb_view_def_schema_v0_9.json",
+        "data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json",
+        "tests/qa/static/viewdef_search_initial_state_static.test.mjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json",
+        "wwwroot/index.html"
+      ],
+      "actual_updated_files": [
+        "wwwroot/js/runtime/search_state.js",
+        "wwwroot/js/runtime/load_runtime.js",
+        "defs/common/view_def_maint_fields_v0_2.json",
+        "defs/common/studio_resource_links_view_def_v0_1.json",
+        "data/json/00_rules/frb_view_def_schema_v0_9.json",
+        "data/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json",
+        "tests/qa/static/viewdef_search_initial_state_static.test.mjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json",
+        "wwwroot/index.html"
+      ],
+      "context_def_draft": "# ViewDef Search Initial State\n\n- Data新規値のdefaultValueと検索初期値を分離する。\n- search.initialValueは検索UI表示値。\n- search.applyOnLoad=trueでData読込直後に検索適用。\n- Runtimeは既存Search State復元経路を再利用する。\n- ViewDefメンテ画面から検索初期値/起動時検索を編集できる。",
+      "objective": "初期表示で意味のある絞り込みをViewDefだけで宣言し、画面固有コードなしで再利用する。",
+      "background": "Studio Resource Linksを起動時からDiffだけに絞り込みたい。ViewDefメンテナンスもViewDef駆動なので、同じネストField契約で検索初期状態を編集できる形が望ましい。",
+      "scope": [
+        "search.initialValue / search.applyOnLoadのRuntime対応",
+        "ViewDefメンテ画面への検索初期値/起動時検索追加",
+        "Resource Linksをartifact_kind=diffで初期抽出",
+        "Schema更新",
+        "Generation Rule 38追加",
+        "既存Resource Link Rule/Testの共通Data配置をdata/json/00_commonへ整合"
+      ],
+      "out_of_scope": [
+        "複雑な複数条件PresetのViewDef埋め込み",
+        "range初期値専用構造",
+        "Search Pattern保存機能の置換"
+      ],
+      "fixed_name_policy": "Runtimeはartifact_kindやdiffを固定名参照しない。Canonical Fieldのsearch.initialValue/applyOnLoadだけを汎用解釈する。",
+      "module_policy": "ViewDef初期検索はsearch_state.jsでStudio Search Stateへ変換し、load_runtime.jsは初回ロード時に呼び出すだけとする。",
+      "expected_outputs": [
+        "Resource Links起動時に種別=diffが検索欄へ入りDiff4件だけ表示",
+        "ViewDefメンテで検索初期値/起動時検索を編集可能",
+        "Schema/Generation Rulesに契約が残る",
+        "既存検索画面は設定が無ければ挙動不変"
+      ],
+      "risk": "初期Filterを一般画面へ誤設定すると起動直後に行が隠れるため、新規生成では明示要求時のみ付与する。",
+      "test_points": [
+        "Schema searchOptionsにinitialValue/applyOnLoad",
+        "ViewDef maintenanceにnested fields",
+        "Resource Link artifact_kind=diff設定",
+        "既存Search State経路再利用",
+        "全Static 0 FAIL"
+      ],
+      "verification_log": [
+        {
+          "at": "2026-08-30T15:14:00+09:00",
+          "confirmation_type": "Search Initial関連Static",
+          "result": "PASS",
+          "detail": "viewdef_search_initial_state + resource links + ViewDef maintenance = 26/26 PASS"
+        },
+        {
+          "at": "2026-08-30T15:14:00+09:00",
+          "confirmation_type": "JS構文",
+          "result": "PASS",
+          "detail": "search_state.js / load_runtime.js node --check PASS"
+        },
+        {
+          "at": "2026-08-30T15:14:00+09:00",
+          "confirmation_type": "全Static",
+          "result": "PASS",
+          "detail": "node --test tests/qa/static/*.test.mjs = 426/426 PASS / 0 FAIL"
+        }
+      ],
+      "user_request": "ViewDefをメンテするViewDefでは初期値に対応しているので、検索初期表示も同じ仕掛けで動くように検討・対応したい。",
+      "ai_response": "Field defaultValueを流用せずsearch.initialValue/applyOnLoadを追加し、ViewDefメンテナンスと既存Search State復元機構へ接続する。",
+      "latest_user_comment": "ViewDefをメンテするViewDefでは、検索初期表示対応しているので、同じ仕掛けでうごくようにしておくほうがよければ、検討よろしく(笑)",
+      "latest_ai_response": "search.initialValue / applyOnLoadを共通契約として実装。ViewDefメンテから設定可能、Resource LinkはDiff初期表示。全Static 426/426 PASS。",
+      "context_refs": [
+        "studio_work_0253",
+        "viewdef_rule_36",
+        "viewdef_rule_38"
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0254_001",
+          "status": "ユーザー実機確認待ち",
+          "action": "Studio Resource Linksを起動し、種別欄diff・Grid4件表示になっていることを確認する。"
+        },
+        {
+          "action_id": "follow_0254_002",
+          "status": "ユーザー実機確認待ち",
+          "action": "ViewDefメンテ画面で検索初期値/起動時検索を変更・保存できることを確認する。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "at": "2026-08-30T15:14:00+09:00",
+          "speaker": "user",
+          "message": "ViewDefをメンテするViewDefでは初期値対応しているので、検索初期表示も同じ仕掛けで動くようにしたい。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0254_001",
+          "at": "2026-08-30T15:14:00+09:00",
+          "decision": "検索初期値はfield.defaultValueではなくfield.search.initialValueへ分離する。",
+          "reason": "Data生成初期値と検索Projection初期値は責務が異なるため。",
+          "applied_axes": [
+            "Data/View責務分離",
+            "既存仕掛け再利用"
+          ],
+          "conditions": "検索UIの初期表示値",
+          "exceptions": "値不要OperatorはinitialValue省略可",
+          "expected_behavior": "ViewDefだけで検索欄初期値を宣言できる。",
+          "acceptance_criteria": "Schema/ViewDefメンテ/Runtimeが同じ契約を扱う。",
+          "confirmation_level": "Static/実機"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0254_001",
+          "at": "2026-08-30T15:14:00+09:00",
+          "change_type": "search_initial_state_added",
+          "before": "検索欄は常に空で初期化され、ViewDefから初回Filterを指定できなかった。",
+          "after": "search.initialValueでUI初期値、search.applyOnLoad=trueで初回Filterを宣言可能。",
+          "reason": "Resource Link等の一覧で最初から意味のある対象だけを表示するため。"
+        },
+        {
+          "history_id": "chg_0254_002",
+          "at": "2026-08-30T15:14:00+09:00",
+          "change_type": "common_path_alignment",
+          "before": "Resource Link Rule/Static Testの一部がdata/json/commonを参照。",
+          "after": "現行実体のdata/json/00_commonへ統一。",
+          "reason": "最新資材の正本配置とStatic Testを一致させるため。"
+        }
+      ],
+      "failure_stories": []
     }
   ],
   "review_notes": [
@@ -36551,8 +36892,8 @@
       "body": "- studio_work_0161を親構想として見直した。\n- studio_work_0162～0168を未着手計画として追加した。\n- Studio Coreは汎用AI協働基盤として維持する。\n- Definition Verificationは標準Capabilityとして実装する。\n- Editor Componentと計算Serviceを分離し、PreviewとRunnerで共通導出ロジックを利用する。\n- 構造化記述原則の新設をルール改定計画へ含めた。"
     }
   ],
-  "work_revision": "v0.18.123-responsibility-result-evidence-cross-responsibility",
-  "latest_planning_note": "studio_work_0251: Diff保存粒度はCheckのまま、人間向け一覧をTestPattern単位へ圧縮。Cases / Checks / Diffで量を見せ、Editorは保存済みEvidenceだけを事実ベース表示。",
+  "work_revision": "v0.18.125-viewdef-search-initial-state",
+  "latest_planning_note": "studio_work_0253: JSON PathはData、クリック起動はViewDefのgrid.action。共通Link Data/ViewDefをcommon配下に置き、OpenStudioJsonで新しいStudioに対象JSONを開く。",
   "view_def_candidates": [
     {
       "view_def": "rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",

@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "FRB Studio / JSON Object Studio",
-    "version": "0.3-primary-section-default"
+    "version": "0.4-search-initial-state"
   },
   "views": [
     {
@@ -278,6 +278,42 @@
                 "readonly": false
               },
               "defaultValue": "contains"
+            },
+            {
+              "field": "search.initialValue",
+              "caption": "検索初期値",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 110
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "defaultValue": ""
+            },
+            {
+              "field": "search.applyOnLoad",
+              "caption": "起動時検索",
+              "type": "boolean",
+              "grid": {
+                "visible": true,
+                "width": 90
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              },
+              "defaultValue": false
             },
             {
               "field": "options",

@@ -135,6 +135,55 @@ function applyStudioSearchState(stateOrPattern, options = {}) {
   return uiState;
 }
 
+
+// v0.18.125-viewdef-search-initial-state:
+// ViewDef field.search.initialValue / applyOnLoad を、既存のStudio Search State復元経路へ接続する。
+// Field defaultValue（新規Data初期値）とは責務を分離し、検索Projectionの初期状態だけを扱う。
+function viewDefInitialSearchDescriptor(gd = (typeof gridDef === 'function' ? gridDef() : null)) {
+  const core = {};
+  const configuredFields = [];
+  let applyOnLoad = false;
+  for (const field of (gd?.fields ?? [])) {
+    const search = field?.search;
+    if (!search || search.visible !== true) continue;
+    const hasInitialValue = Object.prototype.hasOwnProperty.call(search, 'initialValue')
+      || Object.prototype.hasOwnProperty.call(search, 'initial_value');
+    if (hasInitialValue) {
+      const initialValue = Object.prototype.hasOwnProperty.call(search, 'initialValue')
+        ? search.initialValue
+        : search.initial_value;
+      core[String(field?.field ?? '')] = studioSearchStateClone(initialValue);
+      configuredFields.push(String(field?.field ?? ''));
+    }
+    if (search.applyOnLoad === true || search.apply_on_load === true) {
+      applyOnLoad = true;
+      if (!configuredFields.includes(String(field?.field ?? ''))) configuredFields.push(String(field?.field ?? ''));
+    }
+  }
+  return {
+    schema_version: 'viewdef_initial_search_v0_1',
+    configured: configuredFields.length > 0,
+    apply_on_load: applyOnLoad,
+    configured_fields: configuredFields,
+    ui_state: {
+      schema_version: 'studio_search_ui_state_v0_1',
+      core,
+      plugins: {}
+    }
+  };
+}
+
+function applyViewDefInitialSearch(gd = (typeof gridDef === 'function' ? gridDef() : null), options = {}) {
+  const descriptor = viewDefInitialSearchDescriptor(gd);
+  if (!descriptor.configured) return descriptor;
+  applyStudioSearchState(descriptor.ui_state, { runSearch: false });
+  if (descriptor.apply_on_load && options.runSearch !== false && typeof applySearch === 'function') {
+    applySearch();
+    return { ...descriptor, search_applied: true };
+  }
+  return { ...descriptor, search_applied: false };
+}
+
 function loadLocalStudioSearchPatterns() {
   try {
     const raw = localStorage.getItem(STUDIO_SEARCH_PATTERN_STORAGE_KEY);

@@ -115,6 +115,57 @@ function renderGridAggregateRow(thead, visibleFields) {
   thead.appendChild(row);
 }
 
+
+function gridFieldActionDef(field) {
+  const raw = field?.grid?.action ?? field?.grid?.cellAction ?? field?.grid?.cell_action ?? null;
+  if (!raw || raw.visible === false) return null;
+  const actionId = String(raw.action ?? raw.actionId ?? raw.action_id ?? '').trim();
+  if (!actionId) return null;
+  return { ...raw, action: actionId };
+}
+
+function gridFieldActionValue(row, field, action) {
+  const sourceField = String(action?.sourceField ?? action?.source_field ?? field?.field ?? '').trim();
+  return sourceField ? getByPath(row, sourceField) : undefined;
+}
+
+function renderGridFieldActionCell(td, { row, index, field, value, action }) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'grid-cell-action-link';
+  button.textContent = formatValue(value, field);
+  button.title = String(action?.title ?? action?.tooltip ?? `${button.textContent} を開く`);
+  button.addEventListener('click', async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    selectedIndex = index;
+    try {
+      const result = await executeStudioAction(action.action, currentStudioActionContext({
+        source: 'grid.field.action',
+        gridAction: action,
+        action,
+        field,
+        row,
+        rowIndex: index,
+        selectedRow: row,
+        actionValue: gridFieldActionValue(row, field, action),
+      }));
+      if (result?.message) setStatus(result.message);
+    } catch (err) {
+      console.error('Grid field action failed:', err);
+      const message = err?.message ?? String(err);
+      setStatus(`Action失敗: ${message}`);
+      if (typeof window?.showStudioToast === 'function') window.showStudioToast(message, { level: 'error' });
+    }
+  });
+  button.addEventListener('dblclick', event => {
+    event.preventDefault();
+    event.stopPropagation();
+  });
+  td.classList.add('grid-cell-action');
+  td.appendChild(button);
+}
+
 function renderCompactGrid(gd=gridDef()) {
   renderGridFrame(gd);
   setGridWrapMode('table');
@@ -163,8 +214,13 @@ function renderCompactGrid(gd=gridDef()) {
       const td = document.createElement('td');
       if (f.type) td.classList.add(f.type);
       const value = getByPath(row, f.field);
-      // Numeric zero is meaningful data. Never let a formatter/falsy path collapse 0 into a blank cell.
-      td.textContent = value === 0 ? '0' : formatValue(value, f);
+      const fieldAction = gridFieldActionDef(f);
+      if (fieldAction) {
+        renderGridFieldActionCell(td, { row, index, field: f, value, action: fieldAction });
+      } else {
+        // Numeric zero is meaningful data. Never let a formatter/falsy path collapse 0 into a blank cell.
+        td.textContent = value === 0 ? '0' : formatValue(value, f);
+      }
       if (f.grid?.display === 'json' || f.grid?.inlineJson === true || f.grid?.inline_json === true) {
         td.classList.add('grid-cell-inline-json');
         td.title = td.textContent;
