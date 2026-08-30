@@ -11,9 +11,9 @@
   "status": "updated_draft",
   "introduced_in": "v0.14.14-test-evidence-rules-contract",
   "generated_at": "2026-06-27T00:00:00+09:00",
-  "updated_at": "2026-08-12",
+  "updated_at": "2026-08-30T12:04:03+09:00",
   "rule_count": 21,
-  "approved_count": 21,
+  "approved_count": 20,
   "approval_policy": "Rule Reviewの状態正本は verification_status（AI確認状態）と approval_decision（人間承認）の二つとする。AIは確認結果を更新できるが、人間承認を新規付与・継続・復元してはならない。AIが承認対象の意味内容を変更した場合は verification_status=未確認、approval_decision=未承認へ戻し、approved_by / approved_at をクリアして人間再承認を求める。",
   "preamble": "Test Evidence Rulesは、テスト失敗時にも人間とAIが失敗理由を追体験できるように、Expected / Actual / Diff / Test Code の責務境界を定義する。",
   "change_history_policy": "ルールを変更した場合は、各rule.change_historyへ変更前後と理由を残す。",
@@ -436,24 +436,24 @@
       "no": 10,
       "rule_id": "test_evidence_rule_010",
       "section_no": "10",
-      "source_heading": "テスト証跡フォルダーは03_tests配下に test_area / suite_id / artifact_kind で集約する",
+      "source_heading": "テスト証跡の論理階層と物理フォルダー階層を分離する",
       "source_heading_level": 2,
       "parent_rule_id": "",
       "category": "folder_policy",
-      "title": "テスト証跡フォルダーは03_tests配下に test_area / suite_id / artifact_kind で集約する",
+      "title": "テスト証跡の論理階層と物理フォルダー階層を分離する",
       "priority": "high",
-      "verification_status": "確認済み",
-      "approval_decision": "承認する",
-      "summary": "Expected / Actual / Diff / Test Pattern / Relations / Summary / Notes は data/json/03_tests/{test_area}/{suite_id}/{artifact_kind}/ 配下を正本とする。",
-      "body": "Test Evidence の証跡正本は、原則として以下へ集約する。\n\n```text\ndata/json/03_tests/{test_area}/{suite_id}/{artifact_kind}/\n├─ test_patterns/\n├─ expected/\n├─ actual/\n├─ diff/\n├─ relations/\n├─ summary/\n└─ notes/\n```\n\n用語は以下で固定する。\n\n```text\ntest_area      = 何をテストする領域か\nsuite_id       = 具体的なテストセット名\nartifact_kind  = test_patterns / expected / actual / diff / relations / summary / notes\n```\n\n`domain` という語は、既存資材の文脈では読んでよいが、新規のフォルダー設計説明では `test_area` を優先する。\n\n例:\n\n```text\ndata/json/03_tests/screen_state/screen_state_smoke_001/expected/\ndata/json/03_tests/responsibilities/responsibility_expected_first_set/test_patterns/\ndata/json/03_tests/actions/incident_prompt_copy_action/diff/\ndata/json/03_tests/contracts/csv_export_format/expected/\n```\n\n旧パス、空フォルダー、移行済みフォルダーをactive領域に残すと、正本と誤認される。\n移行済み旧データはactiveから除去し、必要に応じて `_archive/{削除日時}/` へ退避する。\n\nruntime一時生成物はこの正本フォルダーへ置かない。\nactual/diffとしてStudioくんで見る証跡だけを置く。\n",
-      "ceremony_phrase": "03_testsを正本にせよ。",
+      "verification_status": "未確認",
+      "approval_decision": "未承認",
+      "summary": "Test Evidenceは03_tests配下へ集約するが、test_area / responsibility / guarantee / artifact_kind等の論理階層を物理フォルダーへ一律投影しない。Responsibilitiesでは責務単位のActual/Diffファイルを浅いresults/へ保存し、Guarantee IDはJSON内部で区別する。",
+      "body": "Test Evidence の証跡正本は `data/json/03_tests/` 配下へ集約する。\n\nただし、論理上の情報階層を、そのまま物理フォルダー階層へ変換してはならない。\n\n論理属性の例:\n\n```text\ntest_area\nresponsibility_cd\nguarantee_id\ntest_pattern_id\ncase_id\nartifact_kind\n```\n\nこれらは原則としてJSON内部の意味情報として保持し、フォルダー名だけで意味を表現しない。\n\n### Responsibilities の標準配置\n\nResponsibilitiesのActual / Diffは、まず責務単位で実行・保存する。\n\n```text\ndata/json/03_tests/responsibilities/\n├─ responsibility_data_v0_2.json\n└─ results/\n   ├─ search_filter.actual.json\n   ├─ search_filter.diff.json\n   ├─ csv_export.actual.json\n   ├─ csv_export.diff.json\n   ├─ grid_aggregate.actual.json\n   ├─ grid_aggregate.diff.json\n   ├─ data_update_persist.actual.json\n   └─ data_update_persist.diff.json\n```\n\n1つの責務に複数のGuarantee IDが存在する場合も、物理ファイルをGuarantee IDごとに分割することを初期標準としない。\n\n代わりに、Actual / Diff内部で各明細に `guarantee_id` を保持し、保証単位で追跡・集計・表示できるようにする。\n\n```text\nPhysical File = Responsibility単位\nLogical Evidence = Guarantee ID単位\n```\n\n将来、Guarantee ID単位の物理分割に明確な利点が実証された場合は、JSON内部の保証境界を利用して分割を検討してよい。\n\n### Legacy compatibility\n\n既存の `responsibility_expected_first_set/` は旧Suite Runner互換領域として当面残してよい。ただし、新しいResponsibility Definition Driven / Selenium承認RunnerのActual / Diff正本は `responsibilities/results/` を使用し、旧Suite配置を新規標準として増やさない。\n\n### 他test_areaの既存配置\n\nScreen State / Contracts / Visual Evidence等の既存 `test_area / suite_id / artifact_kind` 配置は、直ちに一括移行しない。現在の責務・ファイル数・利用経路を確認し、物理階層を浅くする価値がある場合に個別移行する。\n\n旧パス、空フォルダー、移行済みフォルダーをactive領域へ残して正本と誤認させない。runtime一時生成物は証跡正本フォルダーへ置かない。\n\n目的は、論理構造を失うことではない。\n\n**意味はDataへ持たせ、物理フォルダーには持たせすぎない。**\n",
+      "ceremony_phrase": "論理階層をフォルダー階層へ全部投影するな。",
       "user_comment": "",
       "ai_response": "",
       "user_reply": "",
       "ai_followup_response": "",
-      "approved_by": "tamasub",
-      "approved_at": "2026-06-27",
-      "notes": "",
+      "approved_by": "",
+      "approved_at": "",
+      "notes": "2026-08-30 Responsibilities Evidenceの浅いresults配置を追加。既存他test_areaは一括移行しない。",
       "source_line_start": 0,
       "source_md_file": "",
       "introduced_in": "v0.14.15-test-folder-archive-runtime-policy",
@@ -473,6 +473,14 @@
           "before": "Expected / Actual / Diff / Test Pattern / Relations / Summary / Notes は data/json/03_tests/{domain}/{suite_id}/ 配下を正本とする。",
           "after": "Expected / Actual / Diff / Test Pattern / Relations / Summary / Notes は data/json/03_tests/{test_area}/{suite_id}/{artifact_kind}/ 配下を正本とする。",
           "reason": "domainという語が広く曖昧なため、03_tests配下では test_area / suite_id / artifact_kind の3語へ整理する。"
+        },
+        {
+          "history_id": "chg_test_evidence_rule_010_v018120_001",
+          "at": "2026-08-30T12:04:03+09:00",
+          "change_type": "folder_policy_refine",
+          "before": "テスト証跡フォルダーは03_tests配下に test_area / suite_id / artifact_kind で集約する: Expected / Actual / Diff / Test Pattern / Relations / Summary / Notes は data/json/03_tests/{test_area}/{suite_id}/{artifact_kind}/ 配下を正本とする。",
+          "after": "テスト証跡の論理階層と物理フォルダー階層を分離する: Test Evidenceは03_tests配下へ集約するが、test_area / responsibility / guarantee / artifact_kind等の論理階層を物理フォルダーへ一律投影しない。Responsibilitiesでは責務単位のActual/Diffファイルを浅いresults/へ保存し、Guarantee IDはJSON内部で区別する。",
+          "reason": "Responsibility→Guarantee→TestPattern→Caseという論理階層を物理フォルダーへ全投影すると、パスとファイル名が長大化し、人間の探索負荷が上がるため。Responsibilitiesは責務単位ファイル＋JSON内部Guarantee IDへ整理する。"
         }
       ],
       "decision_log": [
@@ -487,6 +495,22 @@
           "at": "2026-07-04",
           "decision": "03_tests配下の標準パスを data/json/03_tests/{test_area}/{suite_id}/{artifact_kind}/ とする。",
           "reason": "フォルダー名とファイル名のルールが揺れると、Expected / Actual / Diff / Test Pattern の正本が判別できなくなるため。"
+        },
+        {
+          "decision_id": "dec_test_evidence_rule_010_v018120_001",
+          "at": "2026-08-30T12:04:03+09:00",
+          "decision": "ResponsibilitiesのActual / Diffは責務単位の安定ファイル名でresults/直下へ保存し、Guarantee IDはJSON内部の論理境界として保持する。",
+          "reason": "ファイル名・フォルダー階層を短く保ちつつ、複数保証を保証ID単位で追跡できるため。",
+          "applied_axes": [
+            "人間の視認性を最優先",
+            "論理構造とView階層を分離して考える",
+            "適切な粒度の小さな差分を最優先する"
+          ],
+          "conditions": "data/json/03_tests/responsibilities のActual / Diff証跡。",
+          "exceptions": "Guarantee単位ファイル分割の利点が実証され、人間が採用した場合。",
+          "expected_behavior": "責務数が増えてもフォルダー階層は増えず、各actual/diffの明細からguarantee_idへ追跡できる。",
+          "acceptance_criteria": "responsibilities/results/{responsibility_cd}.actual.json / .diff.json を標準とし、Diff checksにguarantee_idが存在すること。",
+          "confirmation_level": "JSON・設計レビュー"
         }
       ]
     },
@@ -1045,7 +1069,7 @@
       "body": "A<B / A=B / A>Bの3関係を共通軸とし、共通範囲のLOW/MID/HIGHで自然な比較値を作る。未設定はnull/空文字/missingの意味レイヤーとして扱い、Cross Field PolicyはOK/NGの2値とする。"
     }
   ],
-  "review_revision": "v0.18.53-cross-field-test-pattern-generation",
+  "review_revision": "v0.18.120-responsibility-evidence-shallow-results",
   "view_def_candidates": [
     {
       "view_def": "rules/rule_review_common_view_def_v0_3.json",

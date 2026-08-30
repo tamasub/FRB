@@ -198,3 +198,52 @@ test('Generated Preview shows Rule Input Requirement evaluation and AI Draft/Hum
   assert.match(component, /Human Approval Gate/);
   assert.match(component, /INPUT_GENERATION_REQUIRED/);
 });
+
+test('DATA_UPDATE_PERSIST right detail projects Before/After Expected and Expected First rule instead of giant raw Expected', () => {
+  const component = readText('wwwroot/js/components/responsibility/responsibility_test_preview_component.js');
+  const css = readText('wwwroot/styles.css');
+
+  assert.match(component, /renderDataUpdatePersistDetail/);
+  assert.match(component, /① Before \/ 対象状況/);
+  assert.match(component, /② 操作へ投入/);
+  assert.match(component, /③ Expected Result/);
+  assert.match(component, /★ 導出ルール \/ なぜこの変更値なのか/);
+  assert.match(component, /EXPECTED_FIRST_DATA_UPDATE_PERSIST/);
+  assert.match(component, /Expected変更時/);
+  assert.match(component, /Generated Input \/ Action を STALE にして再生成する/);
+  assert.match(component, /Expected Diff \(raw\) を表示/);
+  assert.match(component, /Raw Generated Pattern を表示/);
+  assert.match(component, /responsibility-preview-mutation-table/);
+  assert.match(css, /responsibility-preview-mutation-table/);
+  assert.match(css, /responsibility-preview-detail-disclosure/);
+});
+
+test('CSV_EXPORT and GRID_AGGREGATE use the same structured right-detail reading order with compact derivation rules', () => {
+  const component = readText('wwwroot/js/components/responsibility/responsibility_test_preview_component.js');
+  const css = readText('wwwroot/styles.css');
+
+  assert.match(component, /renderCsvExportDetail/);
+  assert.match(component, /① 対象行の入力状況/);
+  assert.match(component, /② CSV出力へ投入/);
+  assert.match(component, /★ 導出ルール \/ なぜこのCSVが期待値なのか/);
+  assert.match(component, /CSV_EXPORT_VISIBLE_GRID_STATE/);
+  assert.match(component, /Expected CSV \(raw\) を表示/);
+
+  assert.match(component, /renderGridAggregateDetail/);
+  assert.match(component, /① 対象値の入力状況/);
+  assert.match(component, /② 集計へ投入/);
+  assert.match(component, /★ 導出ルール \/ なぜこの集計値なのか/);
+  assert.match(component, /GRID_AGGREGATE_SIMPLE_ORACLE/);
+  assert.match(component, /ExpectedはGridAggregator本体を使わず/);
+  assert.match(component, /responsibility-preview-metric-table/);
+  assert.match(css, /responsibility-preview-metric-table/);
+});
+
+test('generic responsibility detail also follows Input -> Action -> Expected -> Rule and keeps raw data supplemental', () => {
+  const component = readText('wwwroot/js/components/responsibility/responsibility_test_preview_component.js');
+  assert.match(component, /① Input \/ 対象状況/);
+  assert.match(component, /② 操作 \/ 評価へ投入/);
+  assert.match(component, /③ Expected Result/);
+  assert.match(component, /★ 導出ルール \/ どの定義から導出したか/);
+  assert.match(component, /Raw Generated Case \/ Pattern を表示/);
+});

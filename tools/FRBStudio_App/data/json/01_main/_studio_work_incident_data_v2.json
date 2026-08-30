@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-29T21:45:00+09:00",
+  "updated_at": "2026-08-30T12:28:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 233,
+  "items_count": 239,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -34795,6 +34795,1071 @@
         }
       ],
       "failure_stories": []
+    },
+    {
+      "work_item_id": "studio_work_0246",
+      "phase": "v0.18.116-expected-first-responsibility-model",
+      "title": "Expected First責務構造整理 / DATA_UPDATE_PERSIST模範責務",
+      "incident_type": "test_automation",
+      "category": "responsibility_definition_driven_test",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "PLANNED",
+      "verification_status": "JSON parse確認済み / 全Static 394/394 PASS / Runtime変更なし",
+      "context_def_status": "not_required",
+      "context_def_updated_at": "2026-08-30T11:03:15+09:00",
+      "owner": "user",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-30T11:03:15+09:00",
+      "updated_at": "2026-08-30T11:03:15+09:00",
+      "work_summary": "責務マスターをExpected First思想へ整理し、DATA_UPDATE_PERSISTを模範責務としてExpected Diff→Before Fixture / Action / After Expectedを逆算する契約を追加する。操作は機械で固定化しても、検証意図であるExpected Diffは人間が変更でき、変更時はGenerated Input / Actionを失効・再生成する。今回はJSON契約整備のみとし、UI/Runner実装は次Phaseへ分離する。",
+      "target_files": [
+        "data/json/03_tests/responsibilities/responsibility_data_v0_2.json",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "actual_updated_files": [
+        "data/json/03_tests/responsibilities/responsibility_data_v0_2.json",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "context_def_draft": "",
+      "objective": "Expectedを結果判定だけでなくInput / Actionの生成契約として扱い、人間が検証意図を変更できるままテスト操作を機械化する責務JSON上の基準形を作る。",
+      "background": "Expected Firstを憲法第34条へ追加したことで、Inputをテスト前提として固定するのではなく、Expectedから検証世界を逆算する上位原則が成立した。次の実装へ進む前に、責務マスター上でHuman Intent / Machine Procedure / Canonical / Derived / Resultの境界を整理する必要がある。",
+      "scope": [
+        "責務マスター全体へExpected First方針を追加",
+        "Human-approved Expected Intentを意味の正本として明示",
+        "Generated Input / Fixture / Actionを派生物として明示",
+        "Expected変更時の派生物STALE / 再生成契約",
+        "DATA_UPDATE_PERSISTへexpected_first_contractを追加",
+        "現行Test DATAをSeed Fixtureとして位置付け直す"
+      ],
+      "out_of_scope": [
+        "Expected Diff編集UIの実装",
+        "Generated Input / Action再生成Serviceの実装",
+        "Selenium Runnerの変更",
+        "SEARCH_FILTER / CSV_EXPORT / GRID_AGGREGATEへの横展開",
+        "既存Test DATAの削除または自動生成への完全移行"
+      ],
+      "fixed_name_policy": "新しいRuntime固定名は追加しない。今回追加するExpected First契約はResponsibility JSON上の意味定義に限定し、実装へ固定Field名を持ち込む作業は次Phaseで別途憲法第12条に従って判断する。",
+      "module_policy": "今回はData契約のみ。Runtime / Component / Service / Seleniumコードを変更せず、先に責務・正本・派生物・承認境界を明文化する。",
+      "expected_outputs": [
+        "policyにExpected First / Human-Machine Boundary / Canonical Boundaryが存在する",
+        "DATA_UPDATE_PERSISTにExpected Firstのmachine-readable contractが存在する",
+        "(-)側→Before Input、(+)側→Action / After Expectedの対応が読める",
+        "Expected変更→Generated Input / Action STALE→再生成が明記される",
+        "現行InputがSeed Fixtureであり検証意図の正本ではないと明記される"
+      ],
+      "risk": "Expectedを人間編集可能にするRuntimeを実装する前段階なので、現行Preview / Runnerの挙動自体はまだ変わらない。Expected Intentの永続化方式も次Phaseで決める必要がある。先に全責務へ横展開せず、DATA_UPDATE_PERSISTで往復生成を実証してから判断する。",
+      "test_points": [
+        "Responsibility JSONがparse可能",
+        "Incident JSONがparse可能",
+        "constitution_34参照がDATA_UPDATE_PERSISTへ追加されている",
+        "expected_first_contractがHuman Intent / Derived Input / Derived Action / Result比較を区別している",
+        "Expected変更時のSTALE / REGENERATE契約が存在する",
+        "Runtime / Seleniumファイルに差分が無い"
+      ],
+      "verification_log": [
+        "responsibility_data_v0_2.json JSON parse = PASS。",
+        "_studio_work_incident_data_v2.json JSON parse = PASS。",
+        "node --test tests/qa/static/*.test.mjs = 394/394 PASS / 0 FAIL。",
+        "Runtime / Seleniumコードは更新対象外。"
+      ],
+      "user_request": "提案どおり、まず責務JSONを綺麗に整え、DATA_UPDATE_PERSISTをExpected Firstの模範責務として進める。",
+      "ai_response": "Expected Firstを責務マスターの上位方針へ追加し、DATA_UPDATE_PERSISTへExpected DiffからBefore Fixture / Action / After Expectedを逆算する契約、人間Expected変更時の派生物失効・再生成契約を追加する。今回はJSON契約のみでRuntimeは触らない。",
+      "latest_user_comment": "では、ご提案内容でよろしく",
+      "latest_ai_response": "Expected First責務構造の整地を完了。DATA_UPDATE_PERSISTを模範責務としてHuman-approved Expected Diffを検証意図の中心に置き、(-)→Before Fixture、(+)→Action / After、Expected変更→Generated Input / Action STALE→再生成の契約を追加。現行InputはSeed Fixtureとして扱い、Runtime / Selenium実装は次Phaseへ分離。JSON parseおよび全Static 394/394 PASSを確認済み。",
+      "context_refs": [
+        "constitution_34",
+        "decision_axis_machine_verifiability_first_copy_1",
+        "decision_axis_expected_independent_simple_derivation_copy_1",
+        "studio_work_0245"
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0246_expected_edit_regenerate",
+          "action_type": "IMPLEMENTATION",
+          "required": true,
+          "status": "PLANNED",
+          "related_ids": [
+            "studio_work_0246"
+          ],
+          "note": "DATA_UPDATE_PERSISTでExpected Diffを人間編集可能にし、変更時にGenerated Input / Actionを再生成する一本の往復を実装する。",
+          "summary": "Expected Diff編集→Input / Action再生成"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "disc_0246_001",
+          "at": "2026-08-30T11:03:15+09:00",
+          "speaker": "assistant",
+          "topic": "Expected First責務JSON整地 完了報告",
+          "message": "AI回答\n\n## 今回の更新\n\n- `data/json/03_tests/responsibilities/responsibility_data_v0_2.json`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\n- Expected Firstを責務マスター全体方針へ追加した。\n- `data_update_persist` を最初の模範責務として、Expected Diffの `(-)` からBefore Fixture、`(+)` から操作値 / After Expectedを逆算する契約を追加した。\n- 「操作は固定化されても、検証意図は人間が自由に変更できる」をHuman / Machine境界として明文化した。\n- Expected変更時は既存Generated Input / ActionをSTALEにして再生成する契約を追加した。\n- 現行approved Test DATAは正解の正本ではなく、互換維持用のSeed Fixtureとして位置付け直した。\n\n## 方針\n\n今回は責務JSONの整地だけを行い、RuntimeやSeleniumコードは変更していない。まずDATA_UPDATE_PERSISTで契約を固め、Expected編集→Input / Action再生成を次Phaseで一本通してから、Search / CSV / Aggregateへ横展開する。\n\n## 確認結果\n\n- Responsibility JSON parse：OK\n- Incident JSON parse：OK\n- 全Static：394/394 PASS / 0 FAIL\n- Runtime / Seleniumコード変更：なし\n- 次Phase：Expected Diff編集UI + Generated Input / Action再生成\n"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "studio_work_0246_d001",
+          "decision": "DATA_UPDATE_PERSISTをExpected Firstの最初の模範責務とし、全責務への一括横展開は行わない。",
+          "reason": "保存責務はExpected Diffの(-)/(+)からBefore / Action / Afterを最も単純に逆算でき、理論と実装契約を小さく実証できるため。"
+        },
+        {
+          "decision_id": "studio_work_0246_d002",
+          "decision": "操作は固定化してよいが、Expected / Expected Diffは人間が変更可能な検証意図として上位に置く。",
+          "reason": "機械化による再現性を得ながら、「何を確かめるか」という人間の主導権を失わないため。"
+        },
+        {
+          "decision_id": "studio_work_0246_d003",
+          "decision": "Expected変更時は既存Generated Input / ActionをSTALEとし、新Expectedから再生成する。",
+          "reason": "古い派生手順を変更後の検証意図へ流用すると、Expectedと実行手順の意味が分離して誤検証になるため。"
+        },
+        {
+          "decision_id": "studio_work_0246_d004",
+          "decision": "現行approved Test DATAは移行期間のSeed Fixtureとして残し、検証意図の正本とは扱わない。",
+          "reason": "既存E2E互換を壊さず、Expected Firstへ段階移行するため。"
+        }
+      ],
+      "change_history": [
+        {
+          "changed_at": "2026-08-30T11:03:15+09:00",
+          "summary": "Responsibility MasterへExpected First / Human-Machine Boundary / Canonical Boundary / Expected変更時再生成契約を追加。"
+        },
+        {
+          "changed_at": "2026-08-30T11:03:15+09:00",
+          "summary": "DATA_UPDATE_PERSISTへexpected_first_contractとSeed Fixture位置付けを追加。"
+        }
+      ],
+      "failure_stories": []
+    },
+    {
+      "work_item_id": "studio_work_0247",
+      "phase": "v0.18.117-data-update-persist-preview-format",
+      "title": "DATA_UPDATE_PERSIST Generated Preview見やすさ改善 / Expected Firstルール表示",
+      "incident_type": "UI改善",
+      "category": "Responsibility Verification",
+      "priority": "medium",
+      "status": "完了",
+      "follow_up_status": "次Phase候補あり",
+      "verification_status": "静的確認済み",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-08-30T11:16:33+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-30T11:16:33+09:00",
+      "updated_at": "2026-08-30T11:16:33+09:00",
+      "work_summary": "DATA_UPDATE_PERSISTのGenerated TestPattern右Detailを、検索責務と同じ「対象→操作→Expected→導出ルール」の読み順へ整え、巨大なraw Expected Diffを主表示から外した。",
+      "target_files": [
+        "wwwroot/js/components/responsibility/responsibility_test_preview_component.js",
+        "wwwroot/styles.css",
+        "wwwroot/index.html",
+        "tests/qa/static/responsibility_generated_rule_detail_static.test.mjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "actual_updated_files": [
+        "wwwroot/js/components/responsibility/responsibility_test_preview_component.js",
+        "wwwroot/styles.css",
+        "wwwroot/index.html",
+        "tests/qa/static/responsibility_generated_rule_detail_static.test.mjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "context_def_draft": "# ContextDef素案: DATA_UPDATE_PERSIST Generated Preview\n\n- 検索責務の右Detailと同じく、結論を先に理解できる表示順を優先する。\n- Expectedはraw JSON文字列ではなく、人間が承認できるBefore / After差分としてProjectionする。\n- Expected Firstのルールは簡潔に表示し、Human IntentとMachine Procedureの境界を確認できるようにする。\n- Raw Expected / Raw Patternは追跡用として折りたたみ表示に退避する。",
+      "objective": "DATA_UPDATE_PERSISTのGenerated Preview右側を、人間がTestPatternの対象・操作・Expected差分・導出ルールを短時間で把握できる表示へ改善する。",
+      "background": "現行DATA_UPDATE_PERSIST PreviewはGeneric Detail表示のため、Expectedが巨大なJsonDiff raw文字列として表示され、検索責務で導入済みの見やすい構造化Detailと比べて認知負荷が高かった。Expected FirstではExpected Diff自体が人間の検証意図になるため、Before / Afterを直接読めるProjectionが必要。",
+      "scope": [
+        "DATA_UPDATE_PERSIST専用Detail Rendererを追加",
+        "① Before / 対象状況、② 操作へ投入、③ Expected Result、★導出ルールの順に表示",
+        "ExpectedのBefore (-) / After (+)を表形式で表示",
+        "Expected Firstの人間／機械責務境界を簡潔に表示",
+        "Raw Expected Diff / Raw Patternを折りたたみへ退避",
+        "既存SEARCH_FILTER Detailは変更しない"
+      ],
+      "out_of_scope": [
+        "Expected Diff編集UI",
+        "Expected変更後のGenerated Input / Action再生成Runtime",
+        "Selenium Runner変更",
+        "責務JSONの意味変更"
+      ],
+      "fixed_name_policy": "既存Component / CSS class構造を拡張し、ドメイン固有固定パスや新しい外部依存は追加しない。",
+      "module_policy": "DATA_UPDATE_PERSISTの表示ProjectionだけをComponentへ追加し、Expected導出ロジックは既存Serviceを正本とする。",
+      "expected_outputs": "検索責務と同様に、DATA_UPDATE_PERSIST右Detailで対象→操作→Expected→ルールを読みやすく確認できること。",
+      "risk": "表示Projectionだけの変更でありRunner実行契約は変更しない。ただしBefore / After表が多項目時に縦長になるため、表領域には最大高さとスクロールを設定する。",
+      "test_points": [
+        "Component JS構文確認",
+        "DATA_UPDATE_PERSIST専用RendererとExpected Firstルール表示が存在する",
+        "Raw Expected Diffが折りたたみ表示になっている",
+        "既存SEARCH_FILTER Detailのラベル・ルール表示を維持する",
+        "全Static testがPASSする"
+      ],
+      "verification_log": [
+        {
+          "at": "2026-08-30T11:16:33+09:00",
+          "confirmation_type": "JS構文確認",
+          "result": "PASS",
+          "detail": "node --check responsibility_test_preview_component.js"
+        },
+        {
+          "at": "2026-08-30T11:16:33+09:00",
+          "confirmation_type": "対象Static test",
+          "result": "PASS",
+          "detail": "responsibility_generated_rule_detail_static.test.mjs 8/8 PASS"
+        },
+        {
+          "at": "2026-08-30T11:16:33+09:00",
+          "confirmation_type": "全Static test",
+          "result": "PASS",
+          "detail": "395/395 PASS"
+        },
+        {
+          "at": "2026-08-30T11:16:33+09:00",
+          "confirmation_type": "ブラウザ実機確認",
+          "result": "未実施",
+          "detail": "ユーザー実機確認待ち"
+        }
+      ],
+      "user_request": "検索責務と同様に、テストパターン右側を見やすいフォーマットへ変更し、簡単でも導出ルール欄を追加したい。",
+      "ai_response": "DATA_UPDATE_PERSIST専用の右Detail Projectionを追加し、Before / 操作 / Expected / 導出ルールへ分解する。巨大なraw Expected Diffは補足情報の折りたたみへ移す。",
+      "latest_user_comment": "とりあえず、検索責務と同様に　テストパターンの右の部分を見やすいフォーマッティングに変えて欲しいのと、　ルールの欄が簡単でもほしい。できそう？",
+      "latest_ai_response": "DATA_UPDATE_PERSISTのGenerated Preview右Detailを、①Before/対象状況 → ②操作へ投入 → ③Expected Result → ★導出ルールの順へ変更。Expected DiffはField / Before(-) / After(+)表として可視化し、Expected FirstのHuman Intent / Machine Procedure境界とExpected変更時のSTALE→再生成契約を簡潔に表示。raw Diff / raw Patternは折りたたみへ退避。全Static 395/395 PASS。",
+      "context_refs": [],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0247_001",
+          "status": "候補",
+          "action": "ユーザー実機で表示バランス・表の高さ・文言を確認する。"
+        },
+        {
+          "action_id": "follow_0247_002",
+          "status": "次Phase",
+          "action": "Expected Diff編集UIとGenerated Input / Action再生成をDATA_UPDATE_PERSISTで一本通す。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "at": "2026-08-30T11:16:33+09:00",
+          "speaker": "user",
+          "message": "とりあえず、検索責務と同様に　テストパターンの右の部分を見やすいフォーマッティングに変えて欲しいのと、　ルールの欄が簡単でもほしい。できそう？"
+        },
+        {
+          "at": "2026-08-30T11:16:33+09:00",
+          "speaker": "assistant",
+          "message": "DATA_UPDATE_PERSIST専用の右Detail Projectionを追加し、ExpectedをBefore/After表として見せ、導出ルール欄を追加する方針で対応。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0247_001",
+          "at": "2026-08-30T11:16:33+09:00",
+          "decision": "DATA_UPDATE_PERSISTはGeneric raw Expected表示ではなく専用Projectionを持つ。",
+          "reason": "Expected Diffが人間の検証意図であり、raw JSONよりBefore/After差分表の方が承認しやすいため。",
+          "applied_axes": [
+            "人間の視認性を最優先",
+            "適切な粒度の小さな差分を最優先する"
+          ],
+          "conditions": "DATA_UPDATE_PERSIST Generated Preview",
+          "exceptions": "",
+          "expected_behavior": "右Detailで対象→操作→Expected→ルールを順に読める。",
+          "acceptance_criteria": "ExpectedがField/Before/After表で表示され、rawは折りたたみに退避される。",
+          "confirmation_level": "静的確認"
+        },
+        {
+          "decision_id": "dec_0247_002",
+          "at": "2026-08-30T11:16:33+09:00",
+          "decision": "ルール欄ではExpected FirstのHuman Intent / Machine Procedure境界を簡潔に表示する。",
+          "reason": "操作が固定化されても検証意図は人間が変更できるという中核思想をUIから確認できるようにするため。",
+          "applied_axes": [
+            "Expected First",
+            "人間承認"
+          ],
+          "conditions": "DATA_UPDATE_PERSIST",
+          "exceptions": "",
+          "expected_behavior": "人間が変更できるもの／機械が固定化するもの／Expected変更時の再生成契約が見える。",
+          "acceptance_criteria": "ルール欄に該当項目が存在する。",
+          "confirmation_level": "静的確認"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0247_001",
+          "at": "2026-08-30T11:16:33+09:00",
+          "change_type": "ui_projection_add",
+          "before": "DATA_UPDATE_PERSISTはGeneric DetailでInput Snapshotと巨大なExpected raw JSONを表示。導出ルール欄なし。",
+          "after": "DATA_UPDATE_PERSIST専用DetailでBefore/操作/Expected/導出ルールを構造化表示し、rawは折りたたみへ退避。",
+          "reason": "Expected Firstの検証意図を短時間で承認できるUIにするため。"
+        }
+      ],
+      "failure_stories": []
+    },
+    {
+      "work_item_id": "studio_work_0248",
+      "phase": "v0.18.118-responsibility-preview-format-unification",
+      "title": "Generated Preview右Detail統一 / CSV・Aggregate・Generic導出ルール表示",
+      "incident_type": "UI改善",
+      "category": "Responsibility Verification",
+      "priority": "medium",
+      "status": "完了",
+      "follow_up_status": "次Phase候補あり",
+      "verification_status": "静的確認済み",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-08-30T11:28:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-30T11:28:00+09:00",
+      "updated_at": "2026-08-30T11:28:00+09:00",
+      "work_summary": "検索責務とDATA_UPDATE_PERSISTで確立した「①対象→②操作/投入→③Expected→★導出ルール→補足情報」の右Detail読み順を、CSV_EXPORT・GRID_AGGREGATE・Generic fallbackへ横展開した。",
+      "target_files": [
+        "wwwroot/js/components/responsibility/responsibility_test_preview_component.js",
+        "wwwroot/styles.css",
+        "wwwroot/index.html",
+        "tests/qa/static/responsibility_generated_rule_detail_static.test.mjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "actual_updated_files": [
+        "wwwroot/js/components/responsibility/responsibility_test_preview_component.js",
+        "wwwroot/styles.css",
+        "wwwroot/index.html",
+        "tests/qa/static/responsibility_generated_rule_detail_static.test.mjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "context_def_draft": "# ContextDef素案: Responsibility Generated Preview共通読み順\n\n- Generated TestPattern右Detailは責務ごとのraw JSON表示ではなく、人間が同じ視線移動で読める共通順序を優先する。\n- 共通順序は「①対象/入力状況 → ②操作・評価へ投入 → ③Expected Result → ★導出ルール → 補足情報」とする。\n- Expectedは結論として先に見せ、導出ルールはその根拠として後段に置く。\n- Raw Generated Case / Patternは追跡用の補足情報へ退避する。\n- 責務固有の意味は各専用Projectionで表現し、Expected導出ロジック自体はServiceを正本とする。",
+      "objective": "Generated TestPattern右Detailの読み方を責務横断で統一し、責務が変わっても対象・操作・Expected・導出根拠を同じ順序で短時間に確認できるようにする。",
+      "background": "SEARCH_FILTERとDATA_UPDATE_PERSISTでは構造化Detailが導入済みだが、CSV_EXPORTとGRID_AGGREGATEはGeneric raw表示のままで、責務を切り替えるたびに読み方が変わっていた。Expectedを承認の主役にするなら、表示の認知モデルも横断で揃える必要がある。",
+      "scope": [
+        "CSV_EXPORT専用Detail Rendererを追加",
+        "GRID_AGGREGATE専用Detail Rendererを追加",
+        "Generic fallbackも①Input→②操作/評価→③Expected→★導出ルールへ統一",
+        "CSVでは対象行・列・BOM・CSV Previewと簡潔な導出規則を表示",
+        "Aggregateでは対象値・scope・Expected Metric表とSimple Oracle規則を表示",
+        "Raw CSV / Raw Generated Case / Patternは補足情報の折りたたみへ退避",
+        "SEARCH_FILTER / DATA_UPDATE_PERSISTの既存専用表示を維持"
+      ],
+      "out_of_scope": [
+        "Expected編集UI",
+        "Generated Input / Action再生成Runtime",
+        "Selenium Runner変更",
+        "責務JSONの意味変更",
+        "grid_column_buildへのGenerated Preview新設（現時点でtest_pattern_definitionsが無いため）"
+      ],
+      "fixed_name_policy": "既存responsibility_test_preview Component内のProjection拡張に限定し、責務Dataの固定フィールド増殖や新規外部依存を追加しない。",
+      "module_policy": "責務固有の見せ方はComponent、Expected導出・CSV生成・Aggregate Simple Oracleは既存Serviceを正本とする。",
+      "expected_outputs": "SEARCH_FILTER / DATA_UPDATE_PERSIST / CSV_EXPORT / GRID_AGGREGATEで、右Detailを同じ「対象→操作→Expected→ルール」の認知順序で確認できること。未知の将来責務もGeneric fallbackで同じ基本順序を維持すること。",
+      "risk": "CSV/Aggregateの説明文がRuntimeロジックの複製にならないよう、表示は既存Pattern/Generated Caseの値を中心にし、導出処理そのものはServiceへ残す。grid_column_buildはGenerated TestPattern未定義のため今回の統一対象外。",
+      "test_points": [
+        "Component JS構文確認",
+        "CSV_EXPORT専用Rendererが対象→CSV投入→Expected→導出ルール順で存在する",
+        "GRID_AGGREGATE専用Rendererが対象→集計投入→Expected→導出ルール順で存在する",
+        "Generic fallbackも同じ基本順序を持つ",
+        "SEARCH_FILTER / DATA_UPDATE_PERSIST専用Rendererを維持する",
+        "全Static testがPASSする"
+      ],
+      "verification_log": [
+        {
+          "at": "2026-08-30T11:28:00+09:00",
+          "confirmation_type": "JSON parse",
+          "result": "PASS",
+          "detail": "_studio_work_incident_data_v2.json parse OK"
+        },
+        {
+          "at": "2026-08-30T11:28:00+09:00",
+          "confirmation_type": "JS構文確認",
+          "result": "PASS",
+          "detail": "node --check responsibility_test_preview_component.js"
+        },
+        {
+          "at": "2026-08-30T11:28:00+09:00",
+          "confirmation_type": "対象Static test",
+          "result": "PASS",
+          "detail": "responsibility_generated_rule_detail_static.test.mjs 10/10 PASS"
+        },
+        {
+          "at": "2026-08-30T11:28:00+09:00",
+          "confirmation_type": "全Static test",
+          "result": "PASS",
+          "detail": "397/397 PASS"
+        },
+        {
+          "at": "2026-08-30T11:28:00+09:00",
+          "confirmation_type": "ブラウザ実機確認",
+          "result": "未実施",
+          "detail": "ユーザー実機確認待ち"
+        }
+      ],
+      "user_request": "この方式で他の責務も一気に統一したい。",
+      "ai_response": "CSV_EXPORT・GRID_AGGREGATEとGeneric fallbackへ同じ右Detail読み順を横展開する。grid_column_buildは現時点でGenerated TestPattern定義が無いため表示対象外として明示する。",
+      "latest_user_comment": "いいねぇ。この方式でほ他の責務もいっきに統一できるかな？？よろしく",
+      "latest_ai_response": "SEARCH_FILTER / DATA_UPDATE_PERSISTで採用した①対象→②操作/投入→③Expected→★導出ルール→補足の読み順を、CSV_EXPORT・GRID_AGGREGATE・Generic fallbackへ統一。CSVは出力対象行/列/BOM/CSV Preview、Aggregateは選択行/集計宣言/Expected Metric表/Simple Oracleを構造化表示。JS構文PASS、対象Static 10/10、全Static 397/397 PASS。",
+      "context_refs": [],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0248_001",
+          "status": "候補",
+          "action": "ユーザー実機でSEARCH / DATA_UPDATE / CSV / Aggregateを切り替え、読み順と高さの統一感を確認する。"
+        },
+        {
+          "action_id": "follow_0248_002",
+          "status": "次Phase",
+          "action": "DATA_UPDATE_PERSISTでExpected Diff編集→Generated Input / Action再生成を一本通す。"
+        },
+        {
+          "action_id": "follow_0248_003",
+          "status": "将来候補",
+          "action": "grid_column_buildにtest_pattern_definitionsを導入した時点で共通Previewへ接続する。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "at": "2026-08-30T11:28:00+09:00",
+          "speaker": "user",
+          "message": "いいねぇ。この方式でほ他の責務もいっきに統一できるかな？？よろしく"
+        },
+        {
+          "at": "2026-08-30T11:28:00+09:00",
+          "speaker": "assistant",
+          "message": "CSV_EXPORT・GRID_AGGREGATE・Generic fallbackまで同じ右Detail読み順へ横展開し、grid_column_buildはGenerated TestPattern未定義のため対象外として整理する方針で対応。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0248_001",
+          "at": "2026-08-30T11:28:00+09:00",
+          "decision": "Generated TestPattern右Detailの基本読み順を責務横断で「対象→操作/投入→Expected→導出ルール→補足」に統一する。",
+          "reason": "責務ごとにUIの読み方が変わると承認時の認知負荷が増えるため。Expectedを先に結論として見せ、ルールを根拠として後段に置く認知モデルを共通化する。",
+          "applied_axes": [
+            "人間の視認性を最優先",
+            "適切な粒度の小さな差分を最優先する"
+          ],
+          "conditions": "Generated TestPattern / Expected Previewを持つ責務。",
+          "exceptions": "責務固有の情報量に応じて各Sectionの中身は変えてよい。",
+          "expected_behavior": "責務を切り替えても同じ視線移動で検証意図を読める。",
+          "acceptance_criteria": "SEARCH / DATA_UPDATE / CSV / Aggregate / Genericで①②③★の基本順序が存在する。",
+          "confirmation_level": "静的確認"
+        },
+        {
+          "decision_id": "dec_0248_002",
+          "at": "2026-08-30T11:28:00+09:00",
+          "decision": "責務固有の導出説明はComponentでProjectionするが、Expected導出アルゴリズムはServiceのまま正本とする。",
+          "reason": "見やすさ統一のために計算ロジックをComponentへ複製すると、PreviewとRunner/Serviceの責務境界が崩れるため。",
+          "applied_axes": [
+            "Component / Service 責務分離",
+            "Expected算出は独立かつ単純な方法を優先する"
+          ],
+          "conditions": "CSV_EXPORT / GRID_AGGREGATE等の専用Detail表示。",
+          "exceptions": "表示用の短い説明文・ラベルはComponentに置く。",
+          "expected_behavior": "Componentは既存Generated Pattern/Caseを読みやすくProjectionし、計算は行わない。",
+          "acceptance_criteria": "CSV/Aggregate Expected導出関数をComponentへ新設しない。",
+          "confirmation_level": "静的確認"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0248_001",
+          "at": "2026-08-30T11:28:00+09:00",
+          "change_type": "ui_projection_unify",
+          "before": "SEARCH_FILTER / DATA_UPDATE_PERSISTは構造化Detail、CSV_EXPORT / GRID_AGGREGATE / Genericはraw中心のGeneric Detailで読み方が不統一。",
+          "after": "Generated Previewの全表示対象責務を、①対象→②操作/投入→③Expected→★導出ルール→補足情報の基本順序へ統一。",
+          "reason": "Expected Firstに合わせ、人間の承認視線を責務横断で固定するため。"
+        }
+      ],
+      "failure_stories": []
+    },
+    {
+      "work_item_id": "studio_work_0249",
+      "phase": "v0.18.119-csv-preview-field-contract-loading-fix",
+      "title": "CSV_EXPORT Generated Preview 0件 / 不要Field Contract読込修正",
+      "incident_type": "不具合修正",
+      "category": "Responsibility Verification",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "ユーザー実機確認待ち",
+      "verification_status": "JS構文PASS / CSV対象Static 5/5 PASS / 全Static 398/398 PASS",
+      "context_def_status": "not_required",
+      "context_def_updated_at": "2026-08-30T11:43:50+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-30T11:43:50+09:00",
+      "updated_at": "2026-08-30T11:43:50+09:00",
+      "work_summary": "CSV_EXPORTのGenerated Previewが0件となり「JSON reference is required.」で停止する不具合を修正した。Preview ComponentがCSV_EXPORT_CASEにもField Definition / Validation Registryを必須扱いしていたため、CSVをField Contract不要モードへ修正し、既存CSV専用Detail表示へ到達できるようにした。",
+      "target_files": [
+        "wwwroot/js/components/responsibility/responsibility_test_preview_component.js",
+        "wwwroot/index.html",
+        "tests/qa/static/responsibility_csv_export_generated_runner_static.test.mjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "actual_updated_files": [
+        "wwwroot/js/components/responsibility/responsibility_test_preview_component.js",
+        "wwwroot/index.html",
+        "tests/qa/static/responsibility_csv_export_generated_runner_static.test.mjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "context_def_draft": "",
+      "objective": "CSV_EXPORTでもGRID_AGGREGATEと同様にGenerated TestPattern / Expected Previewを正常生成し、統一済みの右Detail表示を利用できる状態へ戻す。",
+      "background": "CSV_EXPORTのtest_setupではfield_definition_fileが空であり、CSV Expected導出はViewDefとInput Dataだけで成立する。一方Preview Component側の依存判定が「Aggregate以外はField Contract必須」となっていたため、CSVでも空のField Definition参照をfetchしようとしてJSON reference is requiredで停止していた。Service側は既にCSVをField Contract不要として正しく分離しており、Component側だけ契約がずれていた。",
+      "scope": [
+        "CSV_EXPORT_CASEをField Contract不要モードとしてPreview Component依存判定から除外",
+        "CSV Preview専用Detail Rendererへの既存導線を復旧",
+        "CSVがField Definition / Validation Registryを要求しないことをStatic testで固定",
+        "Component JSのcache bust version更新"
+      ],
+      "out_of_scope": [
+        "CSV Expected導出Serviceの変更",
+        "CSV Selenium Runnerの変更",
+        "責務JSONの意味変更",
+        "GRID_AGGREGATE / SEARCH_FILTER / DATA_UPDATE_PERSIST表示変更"
+      ],
+      "fixed_name_policy": "新規固定フィールド・固定パスは追加しない。既存generation_modeの責務境界に沿って依存読込条件だけを修正する。",
+      "module_policy": "Expected導出は既存ResponsibilityTestPreviewServiceを正本とし、Componentは必要な参照DataだけをロードしてServiceへ渡す。CSVに不要なField ContractをComponentが要求しないようService契約と揃える。",
+      "expected_outputs": "CSV_EXPORTのGenerated Previewが2 TestPattern / 2 Generated Caseとして表示され、右Detailで①対象行→②CSV出力→③Expected→★導出ルールを確認できること。",
+      "risk": "依存判定の変更はCSV_EXPORT_CASEだけを除外する。SEARCH_FILTERおよびDATA_UPDATE_PERSIST等のField Contract必要責務は従来どおり読込を維持する。",
+      "test_points": [
+        "responsibility_test_preview_component.js JS構文確認",
+        "CSV_EXPORT_CASEがField Definition / Validation Registryを要求しない静的契約",
+        "既存CSV Expected生成・Runner PlanテストがPASSする",
+        "全Static testが0 FAILである",
+        "ユーザー実機でCSV Preview 0件エラーが解消する"
+      ],
+      "verification_log": [
+        {
+          "at": "2026-08-30T11:43:50+09:00",
+          "confirmation_type": "原因調査",
+          "result": "PASS",
+          "detail": "ComponentのneedsFieldContractsがAGGREGATE以外すべてtrueで、CSVの空field_definition_fileをfetchしていたことを確認。Service側はCSVをField Contract不要として分離済み。"
+        },
+        {
+          "at": "2026-08-30T11:43:50+09:00",
+          "confirmation_type": "JS構文確認",
+          "result": "PASS",
+          "detail": "node --check wwwroot/js/components/responsibility/responsibility_test_preview_component.js"
+        },
+        {
+          "at": "2026-08-30T11:43:50+09:00",
+          "confirmation_type": "CSV対象Static test",
+          "result": "PASS",
+          "detail": "responsibility_csv_export_generated_runner_static.test.mjs 5/5 PASS"
+        },
+        {
+          "at": "2026-08-30T11:43:50+09:00",
+          "confirmation_type": "全Static test",
+          "result": "PASS",
+          "detail": "398/398 PASS / 0 FAIL"
+        },
+        {
+          "at": "2026-08-30T11:43:50+09:00",
+          "confirmation_type": "ブラウザ実機確認",
+          "result": "未実施",
+          "detail": "ユーザー実機確認待ち"
+        }
+      ],
+      "user_request": "GRID_AGGREGATEは良い感じだが、CSV_EXPORTのGenerated Previewが表示されず0件になっているため修正したい。",
+      "ai_response": "CSVだけPreview Componentの依存読込判定がService契約とずれている可能性を調査し、不要なField Definition / Registry読込を外して既存CSV専用Detailへ到達させる。",
+      "latest_user_comment": "GRID_AGGREGATEすごくいい感じ。CSV_EXPORT表示されていないねぇ。",
+      "latest_ai_response": "原因はCSV_EXPORT_CASEにもField Contractを要求していたPreview Component側の依存判定。CSVはViewDef+InputだけでExpected導出できるためField Definition / Validation Registry読込対象から除外し、cache bustと回帰Static testを追加。JS構文PASS、CSV対象5/5、全Static398/398 PASS。",
+      "context_refs": [
+        "studio_work_0248",
+        "decision_axis_responsibility_observability"
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0249_001",
+          "status": "ユーザー実機確認待ち",
+          "action": "CSV_EXPORTを開き、Generated Previewが2件表示され右Detailが①②③★形式で表示されることを確認する。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "at": "2026-08-30T11:43:50+09:00",
+          "speaker": "user",
+          "message": "GRID_AGGREGATEはすごくいい感じ。CSV_EXPORTはGenerated Previewが表示されず0件で、JSON reference is required.になっている。"
+        },
+        {
+          "at": "2026-08-30T11:43:50+09:00",
+          "speaker": "assistant",
+          "message": "CSV PreviewだけField Definition参照を誤って必須読込している箇所を特定。CSV_EXPORT_CASEをField Contract不要としてComponent依存判定をServiceと一致させる。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0249_001",
+          "at": "2026-08-30T11:43:50+09:00",
+          "decision": "CSV_EXPORT_CASEはPreview生成時にField Definition / Validation Registryを要求しない。",
+          "reason": "CsvExpectedDefはInput DataとViewDefの表示行・表示列・keyField・CSV規則から独立導出でき、Field Contractを使用しないため。",
+          "applied_axes": [
+            "責務分離",
+            "Expected算出は独立かつ単純な方法を優先する"
+          ],
+          "conditions": "generation_mode=CSV_EXPORT_CASE",
+          "exceptions": "将来CSV責務がField Contractを実際に使用する仕様へ変わった場合は再評価する。",
+          "expected_behavior": "空のfield_definition_fileでもCSV Generated Previewが正常導出される。",
+          "acceptance_criteria": "CSV PreviewがJSON reference errorにならず2 Pattern / 2 Caseを表示できる。",
+          "confirmation_level": "静的確認 + ユーザー実機確認待ち"
+        },
+        {
+          "decision_id": "dec_0249_002",
+          "at": "2026-08-30T11:43:50+09:00",
+          "decision": "Componentの依存ロード条件をServiceの依存条件と一致させる。",
+          "reason": "Serviceが不要としている依存をUI Componentだけが要求すると、表示層の都合で正しい導出処理へ到達できなくなるため。",
+          "applied_axes": [
+            "Component / Service 責務分離"
+          ],
+          "conditions": "Responsibility Generated Previewの参照Dataロード",
+          "exceptions": "なし",
+          "expected_behavior": "Componentは責務種別に必要な参照だけをロードし、導出判断はService契約と矛盾しない。",
+          "acceptance_criteria": "CSV/AGGREGATEはField Contract不要、SEARCH/Mutation系は従来どおり必要。",
+          "confirmation_level": "静的確認"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0249_001",
+          "at": "2026-08-30T11:43:50+09:00",
+          "change_type": "bug_fix",
+          "before": "needsFieldContracts = generation_mode !== AGGREGATE_SCALAR_CASE のためCSV_EXPORT_CASEもtrueとなり、空field_definition_fileのfetchでJSON reference is required。",
+          "after": "AGGREGATE_SCALAR_CASEとCSV_EXPORT_CASEをField Contract不要として除外。CSV専用Preview/Detailへ正常到達。",
+          "reason": "Componentの依存判定をServiceの実際の導出依存と一致させるため。"
+        }
+      ],
+      "failure_stories": [
+        {
+          "failure_id": "failure_0249_001",
+          "title": "CSVだけ「JSON reference is required」で0件になった",
+          "failure": "右Detail統一時、CSV表示Renderer自体は追加したが、Preview前段の参照Dataロード条件が旧ロジックのままでCSVにもField Definitionを要求していた。",
+          "excuse": "AggregateはField Contract不要として既に例外化されていたため、同じく不要なCSV_EXPORT_CASEの追加除外を見落とした。RendererのStatic確認だけでは前段ロード失敗を検出できなかった。",
+          "lesson": "新しい責務種別をPreviewへ追加するときは、表示Rendererだけでなく「必要参照Data→Service derive→Renderer」の入口から出口まで依存契約を確認する。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0250",
+      "phase": "v0.18.120-responsibility-actual-diff-evidence-pilot",
+      "title": "Responsibility Actual/Diff証跡 / 浅いresults配置 / GRID_AGGREGATE Pilot",
+      "incident_type": "test_automation",
+      "category": "Responsibility Verification",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "ユーザー実機E2E確認済み / Diff表示改善をstudio_work_0251へ継続",
+      "verification_status": "JSON parse確認済み / JS構文PASS / 関連29/29 PASS / 全Static 403/403 PASS / Selenium実機未実施",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-08-30T12:04:03+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-30T12:04:03+09:00",
+      "updated_at": "2026-08-30T12:28:00+09:00",
+      "work_summary": "ResponsibilitiesのActual / Diff証跡を責務単位の安定ファイル名へ整理し、Guarantee IDはJSON内部で論理的に区別する方式を導入した。最初のPilotとしてGRID_AGGREGATE正式Selenium RunnerにActual観測・Diff比較・Guarantee単位集計・FAIL前Evidence保存を追加した。Diff専用の意味表示型はまだ固定せず、まず実エビデンスを観察してから育てる。",
+      "target_files": [
+        "SeleniumTaste/responsibility_evidence.js",
+        "SeleniumTaste/responsibility_selenium_runner.js",
+        "SeleniumTaste/README.md",
+        "data/json/00_rules/frb_test_evidence_rules_data_v0_2.json",
+        "data/json/03_tests/responsibilities/responsibility_data_v0_2.json",
+        "data/json/03_tests/responsibilities/results/.gitkeep",
+        "defs/qa/tests/responsibilities/responsibility_expected_actual_view_def_v0_1.json",
+        "defs/qa/tests/responsibilities/responsibility_expected_diff_view_def_v0_1.json",
+        "tests/qa/static/responsibility_evidence_layout_static.test.mjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "actual_updated_files": [
+        "SeleniumTaste/responsibility_evidence.js",
+        "SeleniumTaste/responsibility_selenium_runner.js",
+        "SeleniumTaste/README.md",
+        "data/json/00_rules/frb_test_evidence_rules_data_v0_2.json",
+        "data/json/03_tests/responsibilities/responsibility_data_v0_2.json",
+        "data/json/03_tests/responsibilities/results/.gitkeep",
+        "defs/qa/tests/responsibilities/responsibility_expected_actual_view_def_v0_1.json",
+        "defs/qa/tests/responsibilities/responsibility_expected_diff_view_def_v0_1.json",
+        "tests/qa/static/responsibility_evidence_layout_static.test.mjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "context_def_draft": "# ContextDef素案: Responsibility Evidence\n\n- 物理ファイルはResponsibility単位で浅く保つ。\n- 論理EvidenceはGuarantee ID単位で追跡可能にする。\n- Actualは観測事実のみを持ち、Expected/passを持たない。\n- DiffはExpected / Actual / passを持ち、checks[].guarantee_idで保証境界を保持する。\n- FAIL時もActual / Diffを保存してから最終FAILにする。\n- Diff表示の専用型は先に決めず、GRID_AGGREGATEの実Evidenceを観察してから共通化する。",
+      "objective": "責務テストの実行結果を、フォルダーを深くせずにActual / Diffとして保存し、1責務に複数Guarantee IDが増えても保証単位で追跡・承認できるEvidence境界を作る。",
+      "background": "Generated TestPattern / Expected Previewが責務横断で読みやすくなり、次はRunner実行後のActual / Diffを正本Evidenceとして残す段階になった。既存test_area/suite_id/artifact_kindを物理階層へ全投影するとResponsibilitiesではパスが長くなり、Guarantee ID増加時にさらに複雑化する懸念がある。",
+      "scope": [
+        "Responsibilitiesの標準Actual/Diff配置をdata/json/03_tests/responsibilities/results/へ浅く定義",
+        "物理ファイル単位をresponsibility_cdとする",
+        "Actual observationsへguarantee_id / test_pattern_id / case_idを保持",
+        "Diff checksへguarantee_id / test_pattern_id / case_idを保持",
+        "Diffにguarantee_resultsを追加し複数GuaranteeのPASS/FAIL集計を可能にする",
+        "GRID_AGGREGATE Selenium RunnerでGrid Header Actualを保存",
+        "Expected比較後のDiffを保存し、Evidence保存後に最終FAIL判定",
+        "Actual/Diff ViewDefへGuarantee ID列を追加"
+      ],
+      "out_of_scope": [
+        "SEARCH_FILTER / CSV_EXPORT / DATA_UPDATE_PERSISTへのEvidence出力横展開",
+        "Guarantee IDごとの物理ファイル分割",
+        "Diff専用Projection / Diff Type Catalogの先行設計",
+        "既存Screen State / Contracts等のフォルダー一括移行",
+        "旧responsibility_expected_first_set Suite Runnerの即時廃止"
+      ],
+      "fixed_name_policy": "results配下の安定ファイル名は責務CDから機械生成し、任意パスをDataから受け取らない。responsibility_cdは安全な英数字/underscoreへ限定する。",
+      "module_policy": "Evidence文書生成・保存をresponsibility_evidence.jsへ分離し、Selenium Runnerは観測値取得とEvidence呼出に集中する。Actual/Diff ViewDefは表示責務のみを持つ。",
+      "expected_outputs": [
+        "grid_aggregate実行後にresponsibilities/results/grid_aggregate.actual.jsonが生成される",
+        "grid_aggregate実行後にresponsibilities/results/grid_aggregate.diff.jsonが生成される",
+        "ActualにExpected/passが混在しない",
+        "Diff checksにguarantee_idが存在する",
+        "複数Guaranteeが将来存在してもguarantee_resultsで区別できる",
+        "テストFAIL時もEvidenceが先に保存される"
+      ],
+      "risk": "Selenium実機実行環境（NativeShell _publish / EdgeDriver / node_modules）が添付ZIPに含まれていないため、この環境では正式E2EによるActual/Diff生成を実行できない。コード契約・Plan・Staticは確認済み。Diffの最終的な見せ方は実データを見てから判断する。",
+      "test_points": [
+        "responsibility_evidence.js / responsibility_selenium_runner.js node --check",
+        "GRID_AGGREGATE Planが5 Pattern / 9 Case / EXECUTION READY",
+        "Evidence pathがresponsibilities/results/{responsibility_cd}.actual.json/.diff.json",
+        "ActualにExpected/passなし",
+        "DiffがGuarantee IDごとに論理集計可能",
+        "Evidence保存が最終FAIL判定より前",
+        "全Static test 0 FAIL"
+      ],
+      "verification_log": [
+        {
+          "at": "2026-08-30T12:04:03+09:00",
+          "confirmation_type": "JS構文確認",
+          "result": "PASS",
+          "detail": "node --check SeleniumTaste/responsibility_evidence.js / responsibility_selenium_runner.js"
+        },
+        {
+          "at": "2026-08-30T12:04:03+09:00",
+          "confirmation_type": "GRID_AGGREGATE Plan",
+          "result": "PASS",
+          "detail": "Pattern=5 / Case=9 / Invalid=0 / Grid Header / EXECUTION READY"
+        },
+        {
+          "at": "2026-08-30T12:04:03+09:00",
+          "confirmation_type": "関連Static",
+          "result": "PASS",
+          "detail": "Responsibility Aggregate / Guarantee / Generated Detail / Evidence Layout = 29/29 PASS"
+        },
+        {
+          "at": "2026-08-30T12:04:03+09:00",
+          "confirmation_type": "全Static",
+          "result": "PASS",
+          "detail": "node --test tests/qa/static/*.test.mjs = 403/403 PASS / 0 FAIL"
+        },
+        {
+          "at": "2026-08-30T12:04:03+09:00",
+          "confirmation_type": "Selenium NativeShell E2E",
+          "result": "未実施",
+          "detail": "添付ZIPにNativeShell/_publish executable、EdgeDriver、SeleniumTaste/node_modulesが無いため、この環境では正式E2E未実行。ユーザー環境で npm run test:responsibility:aggregate を実行してEvidence生成を確認する。"
+        }
+      ],
+      "user_request": "責務単位Actual/Diffファイル＋JSON内部Guarantee ID区別の方式で進め、まずGRID_AGGREGATEからActual/Diffを出したい。フォルダーは多階層にしない。Diff表示は実物を見てから工夫したい。",
+      "ai_response": "物理ファイルは責務単位、論理EvidenceはGuarantee ID単位として浅いresults配置を採用し、GRID_AGGREGATE Selenium RunnerにActual/Diff Evidence出力を実装する。Diff専用表示型は先行固定せず、まず実Evidenceを観察する。",
+      "latest_user_comment": "実Actual/DiffをStudioで確認。Diff Checks 9件は細かすぎるため、一覧はTestPattern単位へサマリし、EditorでGenerated Previewと同じ認知構造の事実Evidenceを見せたい。",
+      "latest_ai_response": "実Evidence観察により、保存粒度=Check / 一覧粒度=TestPattern / 詳細粒度=Expected・Actual・DiffというView境界を次作業studio_work_0251へ引き継ぐ。",
+      "context_refs": [
+        "test_evidence_rule_003",
+        "test_evidence_rule_004",
+        "test_evidence_rule_006",
+        "test_evidence_rule_010",
+        "test_evidence_rule_012",
+        "decision_axis_responsibility_observability",
+        "studio_work_0248"
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0250_001",
+          "status": "完了",
+          "action": "ユーザー実機でGRID_AGGREGATE Evidence生成とStudio表示を確認済み。grid_aggregate.diff.jsonの9 Checkが実画面で表示された。"
+        },
+        {
+          "action_id": "follow_0250_002",
+          "status": "完了 → studio_work_0251",
+          "action": "実Diffを観察し、一覧はTestPattern単位、詳細はExpected / Actual / Diff / 観測Evidenceの事実ベース表示へ進化させる方針を確定。"
+        },
+        {
+          "action_id": "follow_0250_003",
+          "status": "PLANNED",
+          "action": "Evidence契約が実証できたらCSV_EXPORT / SEARCH_FILTER / DATA_UPDATE_PERSISTへ同じ責務単位Evidence writerを横展開する。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "at": "2026-08-30T12:04:03+09:00",
+          "speaker": "user",
+          "message": "責務単位のactual/diffファイルとし、中でGuarantee IDを区別したEvidenceにしたい。フォルダー/ファイル名は長くしたくない。Diffの見せ方は今は決めず、工夫が必要。"
+        },
+        {
+          "at": "2026-08-30T12:04:03+09:00",
+          "speaker": "assistant",
+          "message": "Physical File=Responsibility単位、Logical Evidence=Guarantee ID単位を提案。最初にGRID_AGGREGATEでActual/Diffを実際に出し、実Evidenceを見てからDiff表示の共通型を考える。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0250_001",
+          "at": "2026-08-30T12:04:03+09:00",
+          "decision": "ResponsibilitiesのActual/Diff物理ファイルは責務単位とし、Guarantee IDはJSON内部で区別する。",
+          "reason": "Guarantee単位のファイル分割は意味境界としては自然だが、パスとファイル名が長大化する。論理境界をData内部に保持すれば、浅い物理構造と保証単位追跡を両立できる。",
+          "applied_axes": [
+            "人間の視認性を最優先",
+            "論理構造とView階層を分離して考える"
+          ],
+          "conditions": "Responsibilities Evidence",
+          "exceptions": "Guarantee単位物理分割の利点が実証された場合",
+          "expected_behavior": "責務が増えてもresults直下の安定ファイル名だけ増え、保証境界はchecks[].guarantee_idで追跡できる。",
+          "acceptance_criteria": "{responsibility_cd}.actual.json/.diff.json形式とguarantee_idが存在する。",
+          "confirmation_level": "JSON・静的確認"
+        },
+        {
+          "decision_id": "dec_0250_002",
+          "at": "2026-08-30T12:04:03+09:00",
+          "decision": "GRID_AGGREGATEをActual/Diff Evidenceの最初のPilotにする。",
+          "reason": "Generated Previewが既に安定し、Actual境界がGrid Headerとして明確で、Selenium操作・Expectedの双方が既に実証済みだから。",
+          "applied_axes": [
+            "責務の成果は外部から観測可能",
+            "機械的な保証可能性"
+          ],
+          "conditions": "Responsibility Evidence Pilot",
+          "exceptions": "なし",
+          "expected_behavior": "9 Generated CaseのGrid Header metricをActualとして採取しScalarExpectedDefと比較する。",
+          "acceptance_criteria": "Actual/Diff Evidence writerへ9 caseを渡せる。",
+          "confirmation_level": "静的確認 + 実機待ち"
+        },
+        {
+          "decision_id": "dec_0250_003",
+          "at": "2026-08-30T12:04:03+09:00",
+          "decision": "Diff専用の表示型は今回固定しない。",
+          "reason": "実Evidenceをまだ観察していない段階でDiff Typeを抽象化すると、見せ方の型が先行し過剰設計になるため。",
+          "applied_axes": [
+            "実証なき抽象化の禁止",
+            "人間の視認性を最優先"
+          ],
+          "conditions": "Diff Projection設計",
+          "exceptions": "共通項目としてGuarantee ID / Expected / Actual / passをViewDefに出すことは許容",
+          "expected_behavior": "まずgeneric Diff Viewで実Evidenceを見て、人間の読み方を観察してから専用Projectionを育てる。",
+          "acceptance_criteria": "今回新しいDiff Type Catalogを追加しない。",
+          "confirmation_level": "設計レビュー"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0250_001",
+          "at": "2026-08-30T12:04:03+09:00",
+          "change_type": "folder_policy_refine",
+          "before": "Responsibilitiesもtest_area/suite_id/artifact_kindを物理階層として使用。",
+          "after": "新Responsibility Evidenceはresponsibilities/results/{responsibility_cd}.actual.json/.diff.jsonの浅い配置。",
+          "reason": "論理階層を物理階層へ過剰投影しないため。"
+        },
+        {
+          "history_id": "chg_0250_002",
+          "at": "2026-08-30T12:04:03+09:00",
+          "change_type": "evidence_output",
+          "before": "GRID_AGGREGATE正式Selenium RunnerはPASS/FAILをconsoleで判定するが責務単位Actual/Diffを保存しない。",
+          "after": "Grid Header観測をActualへ保存し、Expected比較をDiffへ保存してから最終FAILする。",
+          "reason": "失敗も含めて人間とAIが再現・承認できるEvidenceを残すため。"
+        }
+      ],
+      "failure_stories": []
+    },
+    {
+      "work_item_id": "studio_work_0251",
+      "phase": "v0.18.121-responsibility-diff-testpattern-projection",
+      "title": "Responsibility Diff TestPatternサマリ / Result Evidence Preview",
+      "incident_type": "ui_improvement",
+      "category": "Responsibility Verification",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "ユーザー実機表示確認待ち / 他責務Evidence横展開は後続",
+      "verification_status": "JSON parse確認済み / JS構文PASS / 対象8/8 PASS / 全Static 406/406 PASS / 実機表示確認待ち",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-08-30T12:28:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-30T12:28:00+09:00",
+      "updated_at": "2026-08-30T12:28:00+09:00",
+      "work_summary": "実際のGRID_AGGREGATE Diff Evidenceを観察し、保存EvidenceのCheck粒度は維持したまま、人間向け一覧をTestPattern単位へ圧縮した。グリッドは判定 / Guarantee ID / TestPattern / Cases / Checks / Diffの量的サマリに限定し、Expected / Actualは一覧から除外。行クリック後のEditorに専用Result Evidence Previewを追加し、保存済みDiff JSONだけを使ってExpected / Actual / Diff / 観測Evidenceを事実ベースで表示する。",
+      "target_files": [
+        "SeleniumTaste/responsibility_evidence.js",
+        "data/json/03_tests/responsibilities/results/grid_aggregate.diff.json",
+        "defs/qa/tests/responsibilities/responsibility_expected_diff_view_def_v0_1.json",
+        "wwwroot/js/components/responsibility/responsibility_diff_result_preview_component.js",
+        "wwwroot/styles.css",
+        "wwwroot/index.html",
+        "tests/qa/static/responsibility_evidence_layout_static.test.mjs",
+        "tests/qa/static/responsibility_diff_testpattern_projection_static.test.mjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "actual_updated_files": [
+        "SeleniumTaste/responsibility_evidence.js",
+        "data/json/03_tests/responsibilities/results/grid_aggregate.diff.json",
+        "defs/qa/tests/responsibilities/responsibility_expected_diff_view_def_v0_1.json",
+        "wwwroot/js/components/responsibility/responsibility_diff_result_preview_component.js",
+        "wwwroot/styles.css",
+        "wwwroot/index.html",
+        "tests/qa/static/responsibility_evidence_layout_static.test.mjs",
+        "tests/qa/static/responsibility_diff_testpattern_projection_static.test.mjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "context_def_draft": "# ContextDef素案: Responsibility Diff Projection\n\n- 保存EvidenceはCheck単位の事実を失わない。\n- 一覧は人間の承認単位であるTestPatternへ圧縮する。\n- 一覧にはExpected / Actualの詳細値を置かず、判定とCases / Checks / Diffの量的情報を置く。\n- Editorは選択TestPattern内の保存済みchecksだけを読み、Expected / Actual / Diff / 観測Evidenceを表示する。\n- Result Preview側でExpectedを再導出しない。保存された実行Evidenceを事実としてProjectionする。",
+      "objective": "責務Diffを、人間が一覧で異常箇所と検証量を把握し、必要なTestPatternだけを開いてExpected / Actual / Diffの事実を確認できる承認UIへ変える。",
+      "background": "GRID_AGGREGATE実機Evidenceでは5 TestPatternに対して9 CheckがDiff Checksグリッドへ直接表示され、機械Evidenceとしては正しいが人間の承認単位より細かかった。Generated TestPattern / Expected Previewの認知構造が分かりやすいことも実機で確認済み。",
+      "scope": [
+        "Diff JSONへtest_pattern_results[]を追加しchecks[]をTestPattern単位へ論理サマリ",
+        "test_pattern_results[]にCases / Checks / Diff件数を保持",
+        "各TestPattern summary内部へ元checks[]を保持",
+        "Actual observationsのobserved_at / sourceを対応CheckへEvidenceとして投影",
+        "Diff ViewDefのメイングリッドを$.test_pattern_resultsへ変更",
+        "メイングリッドを判定 / Guarantee ID / TestPattern / Cases / Checks / Diffへ限定",
+        "Expected / Actualをメイングリッドから除外",
+        "TestPattern / Result Evidence Preview Componentを新設",
+        "EditorでExpected Result / Actual Result / Diff / 観測Evidenceを表示",
+        "現行grid_aggregate.diff.jsonを新Projectionへ更新"
+      ],
+      "out_of_scope": [
+        "checks[]の削除・保存粒度変更",
+        "Expectedの再導出",
+        "Diff Type Catalogの新設",
+        "SEARCH_FILTER / CSV_EXPORT / DATA_UPDATE_PERSISTへのActual/Diff Evidence出力横展開",
+        "Result Previewの全責務個別最適化"
+      ],
+      "fixed_name_policy": "既存responsibility_expected_diff_view_def_v0_1.jsonのファイル名は維持し、参照切れを作らない。新Componentは責務を表す安定名で追加する。",
+      "module_policy": "TestPatternサマリ生成はEvidence文書生成側responsibility_evidence.jsへ置き、UI Componentは保存済みrow/checksを表示するだけとする。Expected/Actualの再計算や保証対象ロジックをComponentへ持ち込まない。",
+      "expected_outputs": [
+        "GRID_AGGREGATE Diff一覧が9 Checkではなく5 TestPatternになる",
+        "一覧にCases / Checks / Diff件数が表示される",
+        "一覧にExpected / Actual列が存在しない",
+        "行クリック後のEditorでExpected / Actual / DiffをMetric単位に確認できる",
+        "観測日時・Grid Header source・Runner・Actual/Diffファイルを確認できる",
+        "元checks[] 9件はDiff JSON内に保持される"
+      ],
+      "risk": "新しいResult Evidence Previewの実ブラウザ配置・高さ・横幅はStaticで保証できないため、ユーザー実機で最終視認性確認が必要。現時点ではGRID_AGGREGATEのScalarExpectedDef Evidenceを基準にしており、CSVやJsonDiff等への最適表示はEvidence横展開時に観察して育てる。",
+      "test_points": [
+        "responsibility_evidence.js / responsibility_diff_result_preview_component.js node --check",
+        "Diff ViewDefのdataPathが$.test_pattern_results",
+        "一覧visible列がresult_label / guarantee_id / test_pattern_id / case_count / check_count / diff_countのみ",
+        "保存済みgrid_aggregate.diff.jsonがchecks=9 / test_pattern_results=5",
+        "5 Patternの量的情報が2/2/0, 2/2/0, 1/1/0, 3/3/0, 1/1/0",
+        "Result PreviewがExpected / Actual / Diff / 観測Evidenceを表示",
+        "Componentがresponsibility_test_preview_service等を呼ばず保存済みEvidenceだけを読む",
+        "全Static test 0 FAIL"
+      ],
+      "verification_log": [
+        {
+          "at": "2026-08-30T12:28:00+09:00",
+          "confirmation_type": "JS構文確認",
+          "result": "PASS",
+          "detail": "node --check SeleniumTaste/responsibility_evidence.js / wwwroot/js/components/responsibility/responsibility_diff_result_preview_component.js"
+        },
+        {
+          "at": "2026-08-30T12:28:00+09:00",
+          "confirmation_type": "対象Static",
+          "result": "PASS",
+          "detail": "Responsibility Evidence Layout + Diff TestPattern Projection = 8/8 PASS"
+        },
+        {
+          "at": "2026-08-30T12:28:00+09:00",
+          "confirmation_type": "全Static",
+          "result": "PASS",
+          "detail": "node --test tests/qa/static/*.test.mjs = 406/406 PASS / 0 FAIL"
+        },
+        {
+          "at": "2026-08-30T12:28:00+09:00",
+          "confirmation_type": "保存済みEvidence変換",
+          "result": "PASS",
+          "detail": "grid_aggregate.diff.json: checks=9 / test_pattern_results=5 / Pattern Diff=0"
+        }
+      ],
+      "user_request": "Diff ChecksグリッドはTestPattern毎に1件へサマリし、Expected/Actualは一覧から外す。クリック先EditorでGenerated TestPattern / Expected Previewのように事実ベースのEvidenceを見せたい。さらにグリッドにはEditor内の情報量を予測できるCases / Checks / Diff等の量的情報が欲しい。",
+      "ai_response": "保存Check粒度は維持したままTestPattern単位のsummary projectionを追加し、一覧を判定・Guarantee ID・TestPattern・Cases・Checks・Diffへ圧縮する。Editorには保存済みEvidenceだけを読むResult Evidence Previewを追加する。",
+      "latest_user_comment": "グリッド上に、クリックした先のEditorで表示されるテストパターン内の量的情報があると分かりやすい。バージョンアップしてほしい。",
+      "latest_ai_response": "TestPatternサマリ＋量的列＋事実ベースResult Evidence Previewを実装。checks[]は機械Evidenceとして保持し、Viewだけを人間の承認単位へ圧縮した。対象8/8、全Static406/406 PASS。実機表示確認待ち。",
+      "context_refs": [
+        "studio_work_0250",
+        "decision_axis_view_hierarchy_projection_copy_1",
+        "decision_axis_human_readability_first",
+        "decision_axis_responsibility_observability",
+        "constitution_31"
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0251_001",
+          "status": "ユーザー実機確認待ち",
+          "action": "grid_aggregate.diff.jsonをStudioで開き、5 TestPatternサマリとResult Evidence Previewの視認性を確認する。"
+        },
+        {
+          "action_id": "follow_0251_002",
+          "status": "PLANNED",
+          "action": "実機表示で認知順序が安定したら、同じEvidence Projection契約を他責務へ横展開する。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "at": "2026-08-30T12:28:00+09:00",
+          "speaker": "user",
+          "message": "Diff ChecksはTestPattern毎に1件へサマリしたい。Expected/Actualは一覧不要。EditorでGenerated Previewのように事実ベースで見せたい。"
+        },
+        {
+          "at": "2026-08-30T12:28:00+09:00",
+          "speaker": "user",
+          "message": "一覧にクリック先の情報量が分かるCases / Checks / Diffのような量的情報が欲しい。"
+        },
+        {
+          "at": "2026-08-30T12:28:00+09:00",
+          "speaker": "assistant",
+          "message": "保存粒度=Check、人間の一覧粒度=TestPattern、詳細粒度=Expected/Actual/Diffと分離し、一覧は量と異常の索引、Editorは事実Evidenceの詳細とする。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0251_001",
+          "at": "2026-08-30T12:28:00+09:00",
+          "decision": "Diff Evidenceの保存粒度はCheck単位を維持し、人間向け一覧だけTestPattern単位へ圧縮する。",
+          "reason": "Checkを失うとEvidence精度が下がる一方、9 Checkをそのまま一覧表示すると5 TestPatternという人間の承認単位より細かく認知負荷が高いため。",
+          "applied_axes": [
+            "論理構造とView階層を分離して考える",
+            "人間の視認性を最優先"
+          ],
+          "conditions": "Responsibility Diff一覧",
+          "exceptions": "TestPattern自体が存在しないRunner error等は__runner__ summaryとして保持",
+          "expected_behavior": "Dataにはchecks[]を残し、Viewはtest_pattern_results[]を一覧化する。",
+          "acceptance_criteria": "grid_aggregate.diff.jsonでchecks=9 / test_pattern_results=5。",
+          "confirmation_level": "JSON・Static"
+        },
+        {
+          "decision_id": "dec_0251_002",
+          "at": "2026-08-30T12:28:00+09:00",
+          "decision": "TestPattern一覧にはExpected / Actualを置かず、判定 / Guarantee ID / TestPattern / Cases / Checks / Diffだけを表示する。",
+          "reason": "一覧の役割は詳細値を読むことではなく、どこに異常があり、開いた先にどれだけの検証情報があるかを判断する索引だから。",
+          "applied_axes": [
+            "適切な粒度の小さな差分を最優先する",
+            "人間の視認性を最優先"
+          ],
+          "conditions": "Diff summary grid",
+          "exceptions": "なし",
+          "expected_behavior": "FAILとDiff件数から開くべきTestPatternを判断できる。",
+          "acceptance_criteria": "ViewDef visible列にexpected/actualが存在しない。",
+          "confirmation_level": "ViewDef・Static"
+        },
+        {
+          "decision_id": "dec_0251_003",
+          "at": "2026-08-30T12:28:00+09:00",
+          "decision": "Result Evidence PreviewはExpectedを再生成せず、保存済みDiff JSONのExpected / Actual / pass / observationだけを事実として表示する。",
+          "reason": "実行後画面で再導出を行うと、実際に比較したEvidenceと後から生成したPreviewが混ざり、証跡の正本性を損なうため。",
+          "applied_axes": [
+            "責務の成果は外部から観測可能",
+            "Expected算出は独立かつ単純な方法を優先する"
+          ],
+          "conditions": "Diff Editor",
+          "exceptions": "なし",
+          "expected_behavior": "Editorは保存済みrow.checksのみからExpected / Actual / Diffを表示する。",
+          "acceptance_criteria": "ComponentがResponsibility Preview Serviceを参照しない。",
+          "confirmation_level": "JS Static"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0251_001",
+          "at": "2026-08-30T12:28:00+09:00",
+          "change_type": "view_projection",
+          "before": "Diff Viewのメイングリッドが$.checksを直接9行表示し、Expected / Actual / Target / Metricまで一覧表示。",
+          "after": "$.test_pattern_resultsを5行表示し、判定 / Guarantee ID / TestPattern / Cases / Checks / Diffへ圧縮。",
+          "reason": "人間の承認単位をTestPatternへ合わせ、量と異常を一覧で認識するため。"
+        },
+        {
+          "history_id": "chg_0251_002",
+          "at": "2026-08-30T12:28:00+09:00",
+          "change_type": "editor_component_added",
+          "before": "Diff行Editorに専用の意味Projectionがなく、generic field表示のみ。",
+          "after": "TestPattern / Result Evidence Previewを追加しExpected / Actual / Diff / 観測Evidenceを事実ベース表示。",
+          "reason": "Generated TestPattern / Expected Previewと同じ認知順序で、実行後Evidenceを短時間で読めるようにするため。"
+        }
+      ],
+      "failure_stories": []
     }
   ],
   "review_notes": [
@@ -35310,8 +36375,8 @@
       "body": "- studio_work_0161を親構想として見直した。\n- studio_work_0162～0168を未着手計画として追加した。\n- Studio Coreは汎用AI協働基盤として維持する。\n- Definition Verificationは標準Capabilityとして実装する。\n- Editor Componentと計算Serviceを分離し、PreviewとRunnerで共通導出ロジックを利用する。\n- 構造化記述原則の新設をルール改定計画へ含めた。"
     }
   ],
-  "work_revision": "v0.18.72-viewdef-section-groups-contract-phase1",
-  "latest_planning_note": "studio_work_0194 / Phase 1 ViewDef sectionGroups契約完了。Phase 1〜5はstudio_work_0194〜0198として登録済み。次はstudio_work_0195 / Phase 2 Group Navigation。",
+  "work_revision": "v0.18.121-responsibility-diff-testpattern-projection",
+  "latest_planning_note": "studio_work_0251: Diff保存粒度はCheckのまま、人間向け一覧をTestPattern単位へ圧縮。Cases / Checks / Diffで量を見せ、Editorは保存済みEvidenceだけを事実ベース表示。",
   "view_def_candidates": [
     {
       "view_def": "rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",

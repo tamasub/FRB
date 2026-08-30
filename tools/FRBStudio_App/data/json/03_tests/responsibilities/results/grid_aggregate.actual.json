@@ -1,0 +1,127 @@
+{
+  "view_def": "qa/tests/responsibilities/responsibility_expected_actual_view_def_v0_1.json",
+  "schema_version": "responsibility_actual_v0_2",
+  "document_type": "responsibility_actual",
+  "test_area": "responsibilities",
+  "artifact_kind": "actual",
+  "responsibility_cd": "grid_aggregate",
+  "responsibility_name": "Grid数値集計表示責務",
+  "run_id": "grid_aggregate_20260830_121427",
+  "observed_at": "2026-08-30_12:14:27",
+  "guarantee_ids": [
+    "grid_aggregate_g001"
+  ],
+  "source_responsibility_file": "data/json/03_tests/responsibilities/responsibility_data_v0_2.json",
+  "source_input_file": "data/json/80_frb/frb_grid_aggregate_test_data_v0_1.json",
+  "runner": "SeleniumTaste/responsibility_selenium_runner.js",
+  "observations": [
+    {
+      "guarantee_id": "grid_aggregate_g001",
+      "responsibility_cd": "grid_aggregate",
+      "test_pattern_id": "grid_aggregate_sum_filtered",
+      "case_id": "grid_aggregate_sum_filtered_value",
+      "target_field": "profit",
+      "metric": "value",
+      "actual": 146,
+      "actual_display": "146",
+      "observed_at": "2026-08-30_12:14:27",
+      "source": "Grid Header profit.value"
+    },
+    {
+      "guarantee_id": "grid_aggregate_g001",
+      "responsibility_cd": "grid_aggregate",
+      "test_pattern_id": "grid_aggregate_sum_filtered",
+      "case_id": "grid_aggregate_sum_filtered_source_count",
+      "target_field": "profit",
+      "metric": "source_count",
+      "actual": 3,
+      "actual_display": "3",
+      "observed_at": "2026-08-30_12:14:27",
+      "source": "Grid Header profit.source_count"
+    },
+    {
+      "guarantee_id": "grid_aggregate_g001",
+      "responsibility_cd": "grid_aggregate",
+      "test_pattern_id": "grid_aggregate_sum_all",
+      "case_id": "grid_aggregate_sum_all_value",
+      "target_field": "units",
+      "metric": "value",
+      "actual": 100,
+      "actual_display": "100",
+      "observed_at": "2026-08-30_12:14:27",
+      "source": "Grid Header units.value"
+    },
+    {
+      "guarantee_id": "grid_aggregate_g001",
+      "responsibility_cd": "grid_aggregate",
+      "test_pattern_id": "grid_aggregate_sum_all",
+      "case_id": "grid_aggregate_sum_all_source_count",
+      "target_field": "units",
+      "metric": "source_count",
+      "actual": 4,
+      "actual_display": "4",
+      "observed_at": "2026-08-30_12:14:27",
+      "source": "Grid Header units.source_count"
+    },
+    {
+      "guarantee_id": "grid_aggregate_g001",
+      "responsibility_cd": "grid_aggregate",
+      "test_pattern_id": "grid_aggregate_comma_numeric",
+      "case_id": "grid_aggregate_comma_numeric_value",
+      "target_field": "comma_amount",
+      "metric": "value",
+      "actual": 1244.5,
+      "actual_display": "1244.5",
+      "observed_at": "2026-08-30_12:14:27",
+      "source": "Grid Header comma_amount.value"
+    },
+    {
+      "guarantee_id": "grid_aggregate_g001",
+      "responsibility_cd": "grid_aggregate",
+      "test_pattern_id": "grid_aggregate_invalid_exclusion",
+      "case_id": "grid_aggregate_invalid_exclusion_value",
+      "target_field": "dirty_amount",
+      "metric": "value",
+      "actual": 10,
+      "actual_display": "10",
+      "observed_at": "2026-08-30_12:14:27",
+      "source": "Grid Header dirty_amount.value"
+    },
+    {
+      "guarantee_id": "grid_aggregate_g001",
+      "responsibility_cd": "grid_aggregate",
+      "test_pattern_id": "grid_aggregate_invalid_exclusion",
+      "case_id": "grid_aggregate_invalid_exclusion_valid_count",
+      "target_field": "dirty_amount",
+      "metric": "valid_count",
+      "actual": 1,
+      "actual_display": "1",
+      "observed_at": "2026-08-30_12:14:27",
+      "source": "Grid Header dirty_amount.valid_count"
+    },
+    {
+      "guarantee_id": "grid_aggregate_g001",
+      "responsibility_cd": "grid_aggregate",
+      "test_pattern_id": "grid_aggregate_invalid_exclusion",
+      "case_id": "grid_aggregate_invalid_exclusion_ignored_count",
+      "target_field": "dirty_amount",
+      "metric": "ignored_count",
+      "actual": 3,
+      "actual_display": "3",
+      "observed_at": "2026-08-30_12:14:27",
+      "source": "Grid Header dirty_amount.ignored_count"
+    },
+    {
+      "guarantee_id": "grid_aggregate_g001",
+      "responsibility_cd": "grid_aggregate",
+      "test_pattern_id": "grid_aggregate_no_declaration",
+      "case_id": "grid_aggregate_no_declaration_has_aggregates",
+      "target_field": "plain_amount",
+      "metric": "has_aggregates",
+      "actual": false,
+      "actual_display": "false",
+      "observed_at": "2026-08-30_12:14:27",
+      "source": "Grid Header plain_amount.has_aggregates"
+    }
+  ]
+}

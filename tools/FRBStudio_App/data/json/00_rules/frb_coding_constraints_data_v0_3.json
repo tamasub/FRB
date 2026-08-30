@@ -10,8 +10,8 @@
   "conversion_note": "Studioくん憲法レビュー記録を共通ルールレビューViewDef v0.3で扱えるように、constitution_sections を rules へ正規化し、各行に rule_id と decision_log を追加した。section_id は旧IDとして残す。",
   "created": "2026-06-21",
   "status": "",
-  "section_count": 33,
-  "rule_count": 33,
+  "section_count": 34,
+  "rule_count": 34,
   "approved_count": 24,
   "approval_policy": "Rule Reviewの状態正本は verification_status（AI確認状態）と approval_decision（人間承認）の二つとする。AIは確認結果を更新できるが、人間承認を新規付与・継続・復元してはならない。AIが承認対象の意味内容を変更した場合は verification_status=未確認、approval_decision=未承認へ戻し、approved_by / approved_at をクリアして人間再承認を求める。",
   "preamble_title": "この文書の目的",
@@ -1847,6 +1847,80 @@
         }
       ],
       "updated_at": "2026-08-27T22:00:00+09:00"
+    },
+    {
+      "no": 34,
+      "rule_id": "constitution_34",
+      "section_id": "constitution_34",
+      "category": "Testing / Expected / AI承認駆動開発",
+      "title": "Expected First / 入力データ逆算生成の原則",
+      "priority": "high",
+      "verification_status": "未確認",
+      "approval_decision": "承認する",
+      "approval_stamp": "",
+      "approved_by": "",
+      "approved_at": "",
+      "summary": "Expectedを実行後の判定基準だけでなく、検証可能な実行前世界を逆算する生成契約として扱う。機械導出可能なテストでは、TestPatternとExpectedを先に確定し、そのExpectedが成立するInput / FixtureをAI等で生成する。",
+      "body": "AI承認駆動開発では、Expectedを単なる「実行後の正解値」として扱わない。\n\nExpectedは、責務が成立した世界の記述であり、次の二つの役割を持つ。\n\n- 実行後のActualを判定する基準\n- その判定を成立させる実行前のInput / Fixtureを逆算する生成契約\n\n### 基本原則\n\n機械的に導出可能なテストでは、原則として次の順序を優先する。\n\n```text\nResponsibility\n  ↓\nGuarantee\n  ↓\nTestPattern\n  ↓\nExpected / Expected Diff\n  ↓\nExpectedが成立するInput / Fixtureを逆算\n  ↓\nAI等で入力データ生成\n  ↓\n生成Inputの契約確認\n  ↓\nRunner実行\n  ↓\nActual\n  ↓\nDiff\n  ↓\n人間承認\n```\n\nInputを先に作り、そのInputに合わせてExpectedを後付けすることを既定路線としない。\n\n### Expected Diffからの逆算\n\nExpected Diffが次のように定義されている場合、\n\n```text\n(-) AAA\n(+) BBB\n```\n\nこれは実行後の差分条件であると同時に、次の生成条件として利用できる。\n\n```text\nBefore世界:\n  対象値 = AAA\n\n操作:\n  対象値を BBB へ変更\n\nAfter世界:\n  対象値 = BBB\n\n不変条件:\n  指定変更以外はInputから変化しない\n```\n\nつまり、\n\n- `(-)` 側はBefore世界の生成条件になり得る\n- `(+)` 側は操作後／After世界の生成条件になり得る\n- 差分対象外は不変条件になり得る\n\n### 検索等への適用\n\n検索テストでも同じ考え方を適用できる。\n\n例:\n\n```text\n検索値 = Alpha\nExpected Match Count = 3\nExpected Indexes = [0, 2, 5]\n```\n\nこの場合、Input / Fixtureは、\n\n- 0, 2, 5番目だけが検索条件に一致する\n- それ以外は一致しない\n\nというExpected世界を成立させるように生成する。\n\n### AIの責務境界\n\nAIへ「正解そのもの」を自由に決めさせてはならない。\n\nAIが担当するのは、原則として次である。\n\n```text\n確定済みExpected\n  ↓\nそのExpectedが成立するInput / Fixtureを具体化する\n```\n\nつまり、AIはOracleではなく、**制約付きのInput / Fixture Generator** として扱う。\n\nExpected、Expected Diff、Guarantee等の正本は、AIが入力生成時に都合よく変更してはならない。\n\n### 生成Inputの位置づけ\n\nExpectedから生成されたInput / Fixtureは、テストの前提として人間が手作業で固定した正本ではなく、Expectedから導出された成果物として扱える。\n\nしたがって、再生成可能なInputは、必要に応じて次を分離して管理する。\n\n- 正本: Responsibility / Guarantee / TestPattern / Expected\n- 派生物: Generated Input / Fixture\n- 実行結果: Actual / Diff\n\n### 独立性\n\nExpectedの導出は、憲法の「Expected算出は独立かつ単純な方法を優先する」判断軸に従う。\n\n保証対象の実装ロジックをそのままExpected生成へ流用し、そのExpectedからInputを生成してはならない。\n\nまた、生成したInputが本当にExpected世界を成立させるかは、可能な限り保証対象とは独立した単純な方法で事前確認する。\n\n### 適用しない領域\n\n次のような場合は、Expected Firstによる完全な逆算生成を無理に適用しない。\n\n- Expected自体を機械的・独立に導出できない\n- 外部システムや時刻等の状態に強く依存する\n- 業務文脈上、入力データそのものが承認対象である\n- Scenario Driven Testで、人間が明示した具体Fixtureに意味がある\n- 逆算生成するとExpected生成と同じ欠陥を共有する危険が高い\n\nこの場合も、なぜ逆算生成しないのかを説明可能にする。\n\n### 中核思想\n\n```text\nExpectedは、結果を判定するための答えではない。\nAIにテスト世界を生成させるための設計図でもある。\n```\n---\n固定化する:\n  実行手順\n  データ生成手順\n  観測手順\n  比較手順\n\n人間が変更可能:\n  Responsibility\n  Guarantee\n  TestPattern\n  Expected / Expected Diff\n---\n入力データをテストの固定前提として扱うだけではなく、責務・Guarantee・TestPatternから定義されたExpectedを起点に、検証可能な世界を逆算して作る。\n\nこれをAI承認駆動開発におけるExpected Firstの基本原則とする。",
+      "ceremony_phrase": "Studioくん憲法 第34条「Expected First / 入力データ逆算生成の原則」を承認する。",
+      "user_comment": "ExpectedをAI承認駆動開発の中核理論として扱いたい。検索では検索値とExpectedを先に決め、そのExpectedが成立する入力データをAIに作らせる。保存でもExpected Diffが(-)AAA (+)BBBなら、Before側にAAAを持つInputを生成し、BBBへ変更する操作を与えればよい。入力データはテストの前提ではなく、Expectedから導出される成果物になり得る。",
+      "ai_response": "Expectedを実行後のOracleだけでなく、Before世界・操作・After世界を逆算する生成契約として定義する。AIはExpectedを自由に作るOracleではなく、確定済みExpectedを満たすInput / Fixture Generatorとして扱う。生成Inputは正本ではなく派生物とし、Expectedの独立性と生成Inputの事前契約確認を必須思想として残す。",
+      "user_reply": "",
+      "ai_followup_response": "",
+      "notes": "AI承認駆動開発の中核理論として追加。意味のある新規条文のため、人間再承認待ち。検索・保存・削除・並び替え等へ横断適用できる可能性があるが、未実証領域へ強制適用しない。",
+      "change_history": [
+        {
+          "history_id": "chg_constitution_34_v01841_001",
+          "at": "2026-08-30T10:40:00+09:00",
+          "change_type": "rule_added",
+          "before": "Expectedは主に実行後の判定基準・Expected Diffとして扱っていたが、Expectedから実行前Input / Fixtureを逆算生成する横断原則は憲法上に存在しなかった。",
+          "after": "Expectedを実行後の判定基準と実行前世界の生成契約の両方として扱い、機械導出可能なテストではExpectedを先に確定してInput / Fixtureを逆算生成する第34条を追加した。",
+          "reason": "AIにOracleを自由生成させず、確定済みExpected世界の具体化を担当させることで、AI生成を承認可能・機械検証可能な責務へ限定するため。"
+        }
+      ],
+      "section_no": 34,
+      "parent_rule_id": "",
+      "source_heading": "Expected First / 入力データ逆算生成の原則",
+      "source_heading_level": 2,
+      "source_line_start": null,
+      "source_md_file": "frb_coding_constraints_data_v0_3.json",
+      "introduced_in": "v0.18.41-expected-first-input-generation",
+      "decision_log": [
+        {
+          "decision_id": "dec_constitution_34_v01841_001",
+          "at": "2026-08-30T10:40:00+09:00",
+          "decision": "機械導出可能なテストでは、Inputを先に固定するのではなく、TestPatternとExpectedを先に確定し、そのExpectedが成立するInput / Fixtureを逆算生成する。",
+          "reason": "Expectedを責務が成立した世界の記述として扱うなら、その世界をAI等で具体化する方が、正解生成と入力生成の責務を分離でき、人間承認と機械保証に適するため。",
+          "applied_axes": [
+            "機械的な保証可能性を最優先した設計",
+            "Expected算出は独立かつ単純な方法を優先する",
+            "責務の成果は外部から観測可能であることを最優先とする",
+            "適切な粒度の小さな差分を最優先する"
+          ],
+          "conditions": "Expected / Expected Diffを保証対象とは独立して先に導出でき、Input / Fixtureをその条件から逆算可能なテスト。",
+          "exceptions": "外部状態依存、業務上Input自体が承認対象、Scenario Drivenで具体Fixture自体に意味がある場合、Expectedを独立導出できない場合。",
+          "expected_behavior": "AIはExpectedを変更せず、Expected世界を成立させるInput / Fixtureだけを生成する。生成後は本体実行前にFixture契約を確認する。",
+          "acceptance_criteria": "Expected→Input逆算の流れ、Expected Diffの(-)/(+)の生成意味、AIのOracle禁止、派生Inputの位置づけ、適用除外が条文に明記されていること。",
+          "confirmation_level": "JSON・設計レビュー"
+        },
+        {
+          "decision_id": "dec_constitution_34_v01841_002",
+          "at": "2026-08-30T10:40:00+09:00",
+          "decision": "Generated Input / Fixtureは、再生成可能な場合、Expected等の正本から導出される派生成果物として扱う。",
+          "reason": "Inputを正本として固定すると、ExpectedとInputの二重管理になり、AI生成・再生成・差分承認の利点を失うため。",
+          "applied_axes": [
+            "正本一意性",
+            "差分優先",
+            "再現性"
+          ],
+          "conditions": "Input / FixtureがExpectedから決定論的または制約付きで再生成可能な場合。",
+          "exceptions": "Inputそのものが業務上の承認対象、または人間が明示したScenario Fixtureとして意味を持つ場合。",
+          "expected_behavior": "Responsibility / Guarantee / TestPattern / Expectedを正本とし、Generated Inputは派生物として再生成可能にする。",
+          "acceptance_criteria": "正本・派生物・実行結果の責務境界が条文に記載されていること。",
+          "confirmation_level": "JSON・設計レビュー"
+        }
+      ],
+      "updated_at": "2026-08-30T10:40:00+09:00"
     }
   ],
   "review_notes": [
@@ -1950,10 +2024,16 @@
       "at": "2026-08-27T22:00:00+09:00",
       "title": "型の境界を仮説として育てる原則を追加",
       "body": "constitution_33を追加。型を可能性を制約する知識単位として扱い、再利用可能・機械判定可能・事前承認可能な領域を型へ寄せる。個別文脈依存・固有Expected・未実証の分類は無理に型化せず、実証と差分を見ながらType Boundaryを更新する。"
+    },
+    {
+      "note_id": "note_v01841_expected_first_input_generation",
+      "at": "2026-08-30T10:40:00+09:00",
+      "title": "Expected First / 入力データ逆算生成の原則を追加",
+      "body": "constitution_34を追加。Expectedを実行後のOracleだけでなく、検証可能なBefore世界を逆算する生成契約として扱う。機械導出可能なテストではTestPatternとExpectedを先に確定し、そのExpectedが成立するInput / FixtureをAI等で生成する。Expected Diffの(-)はBefore生成条件、(+)は操作後／After生成条件として利用できる。AIはOracleではなく、確定済みExpectedを満たす制約付きFixture Generatorとして扱う。"
     }
   ],
-  "review_revision": "v0.18.40-type-boundary-draft",
-  "updated": "2026-08-27",
+  "review_revision": "v0.18.41-expected-first-input-generation",
+  "updated": "2026-08-30",
   "change_history_policy": "レビューで条文・仕様を変更した場合は、対象行の change_history に変更前・変更後・理由・会話を保存する。変更後だけを残さず、修正元を追体験できる状態にする。",
   "viewing_policy": {
     "data_json_role": "原本",
@@ -1994,5 +2074,5 @@
     }
   ],
   "markdown_export_body": "",
-  "updated_at": "2026-08-27T22:00:00+09:00"
+  "updated_at": "2026-08-30T10:40:00+09:00"
 }

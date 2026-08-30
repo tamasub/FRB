@@ -70,6 +70,15 @@ npm run test:responsibility:csv:plan
 実E2Eは `npm run test:responsibility:csv` で実行する。
 
 `grid_aggregate` の正式な承認Runnerは NativeShell / Selenium で Grid Header の表示値を観測する。
+実行後は、責務単位の安定ファイル名で Actual / Diff Evidence を保存する。
+
+```text
+data/json/03_tests/responsibilities/results/grid_aggregate.actual.json
+data/json/03_tests/responsibilities/results/grid_aggregate.diff.json
+```
+
+物理ファイルは責務単位、論理エビデンスは Guarantee ID 単位とする。Actual の各 observation と Diff の各 check に `guarantee_id` を保持する。テストがFAILする場合も、Actual / Diff を保存してから最終FAILにする。
+
 内部ロジック診断だけ行う場合は次を使う。
 
 ```powershell

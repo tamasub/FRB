@@ -3982,6 +3982,85 @@ button.viewdef-maintenance-button:disabled {
 .responsibility-preview-snapshot-table tr.is-expected-match td {
   background: rgba(220, 252, 231, .68);
 }
+/* v0.18.117-data-update-persist-preview-format:
+   DATA_UPDATE_PERSISTは巨大なraw diffを主表示にせず、Before/After差分を人間が一目で承認できる表へProjectionする。 */
+.responsibility-preview-detail-lead.is-expected-lead {
+  margin: 4px 0 8px;
+  color: #166534;
+  font-size: 11px;
+}
+.responsibility-preview-mutation-wrap {
+  max-height: 270px;
+  overflow: auto;
+  border: 1px solid rgba(187, 247, 208, .95);
+  border-radius: 9px;
+  background: #fff;
+}
+.responsibility-preview-mutation-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.responsibility-preview-mutation-table th,
+.responsibility-preview-mutation-table td {
+  padding: 6px 7px;
+  border-bottom: 1px solid rgba(226, 232, 240, .88);
+  text-align: left;
+  vertical-align: top;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.responsibility-preview-mutation-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 900;
+}
+.responsibility-preview-mutation-table th:nth-child(1),
+.responsibility-preview-mutation-table td:nth-child(1) {
+  width: 24%;
+}
+.responsibility-preview-mutation-table td.is-field {
+  color: #334155;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-weight: 850;
+}
+.responsibility-preview-mutation-table td.is-before {
+  background: rgba(254, 242, 242, .72);
+  color: #7f1d1d;
+}
+.responsibility-preview-mutation-table td.is-after {
+  background: rgba(240, 253, 244, .84);
+  color: #166534;
+  font-weight: 800;
+}
+.responsibility-preview-detail-disclosure {
+  margin-top: 8px;
+  border-top: 1px dashed rgba(203, 213, 225, .85);
+  padding-top: 7px;
+}
+.responsibility-preview-detail-disclosure summary {
+  cursor: pointer;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 900;
+  user-select: none;
+}
+.responsibility-preview-detail-disclosure pre {
+  margin: 7px 0 0;
+  max-height: 230px;
+  overflow: auto;
+  padding: 7px 8px;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #e2e8f0;
+  font: 11px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 .responsibility-preview-detail-empty {
   padding: 20px;
   color: #64748b;
@@ -4001,3 +4080,143 @@ button.viewdef-maintenance-button:disabled {
     gap: 3px;
   }
 }
+
+/* v0.18.118-responsibility-preview-format-unification:
+   Aggregateの複数Expected Metricを、他責務と同じく結論先行で読める表へProjectionする。 */
+.responsibility-preview-metric-wrap {
+  max-height: 250px;
+  overflow: auto;
+  border: 1px solid rgba(187, 247, 208, .95);
+  border-radius: 9px;
+  background: #fff;
+}
+.responsibility-preview-metric-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.responsibility-preview-metric-table th,
+.responsibility-preview-metric-table td {
+  padding: 6px 7px;
+  border-bottom: 1px solid rgba(226, 232, 240, .88);
+  text-align: left;
+  vertical-align: top;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.responsibility-preview-metric-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 900;
+}
+.responsibility-preview-metric-table th:nth-child(1),
+.responsibility-preview-metric-table td:nth-child(1) {
+  width: 24%;
+}
+.responsibility-preview-metric-table th:nth-child(2),
+.responsibility-preview-metric-table td:nth-child(2) {
+  width: 24%;
+}
+.responsibility-preview-metric-table td.is-field,
+.responsibility-preview-metric-table td.is-path {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.responsibility-preview-metric-table td.is-field {
+  color: #334155;
+  font-weight: 850;
+}
+.responsibility-preview-metric-table td.is-after {
+  background: rgba(240, 253, 244, .84);
+  color: #166534;
+  font-weight: 850;
+}
+.responsibility-preview-metric-table td.is-path {
+  color: #64748b;
+}
+
+/* v0.18.121-responsibility-diff-testpattern-projection:
+   Diffの保存粒度はCheckのまま維持し、人間の一覧はTestPattern単位へ圧縮する。
+   EditorではExpected / Actual / Diff / 観測Evidenceを事実ベースで表示する。 */
+.responsibility-result-evidence-card {
+  overflow: hidden;
+}
+.responsibility-result-evidence-pane {
+  min-width: 0;
+  border-top: 1px solid rgba(226, 232, 240, .95);
+  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 16%);
+}
+.responsibility-preview-detail-section.is-actual {
+  border-color: rgba(96, 165, 250, .72);
+  background: rgba(239, 246, 255, .78);
+}
+.responsibility-preview-detail-section.is-diff-pass {
+  border-color: rgba(74, 222, 128, .78);
+  background: rgba(240, 253, 244, .76);
+}
+.responsibility-preview-detail-section.is-diff-fail {
+  border-color: rgba(248, 113, 113, .82);
+  background: rgba(254, 242, 242, .88);
+}
+.responsibility-result-evidence-table-wrap {
+  max-height: 280px;
+  overflow: auto;
+  border: 1px solid rgba(203, 213, 225, .88);
+  border-radius: 9px;
+  background: #fff;
+}
+.responsibility-result-evidence-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.responsibility-result-evidence-table th,
+.responsibility-result-evidence-table td {
+  padding: 6px 7px;
+  border-bottom: 1px solid rgba(226, 232, 240, .88);
+  text-align: left;
+  vertical-align: top;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.responsibility-result-evidence-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 900;
+}
+.responsibility-result-evidence-table td.is-metric {
+  width: 24%;
+  color: #334155;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-weight: 850;
+}
+.responsibility-result-evidence-table.is-expected td.is-expected-value {
+  background: rgba(240, 253, 244, .84);
+  color: #166534;
+  font-weight: 850;
+}
+.responsibility-result-evidence-table.is-actual td.is-actual-value {
+  background: rgba(239, 246, 255, .8);
+  color: #1e3a8a;
+  font-weight: 850;
+}
+.responsibility-result-evidence-table.is-diff tr.is-pass td.is-result {
+  background: rgba(240, 253, 244, .92);
+  color: #166534;
+  font-weight: 950;
+}
+.responsibility-result-evidence-table.is-diff tr.is-fail td {
+  background: rgba(254, 242, 242, .86);
+}
+.responsibility-result-evidence-table.is-diff tr.is-fail td.is-result {
+  color: #991b1b;
+  font-weight: 950;
+}
+

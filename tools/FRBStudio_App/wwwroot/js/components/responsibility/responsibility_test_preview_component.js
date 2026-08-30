@@ -1,4 +1,4 @@
-// v0.18.115-responsibility-rule-driven-input-plan
+// v0.18.118-responsibility-preview-format-unification
 // Readonly Generated TestPattern / JsonDiffExpectedDef preview for Responsibility Definition.
 
 const responsibilityPreviewJsonPromiseCache = new Map();
@@ -122,7 +122,10 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
       if (!setup) throw new Error('test_setup がありません。');
       const registryPath = String(this.componentOptions.registryDataPath ?? 'config/validation_type_registry_v0_1.json');
       const needsSearchOperatorRegistry = definitions.some(item => String(item?.generation_mode ?? '') === 'SEARCH_OPERATOR_MATRIX');
-      const needsFieldContracts = definitions.some(item => String(item?.generation_mode ?? '') !== 'AGGREGATE_SCALAR_CASE');
+      const needsFieldContracts = definitions.some(item => {
+        const mode = String(item?.generation_mode ?? '');
+        return mode !== 'AGGREGATE_SCALAR_CASE' && mode !== 'CSV_EXPORT_CASE';
+      });
       const searchOperatorRegistryPath = String(
         setup?.search_operator_registry_file ??
         this.componentOptions.searchOperatorRegistryDataPath ??
@@ -340,6 +343,269 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
     return wrap;
   }
 
+  detailMutationTable(doc, mutations=[]) {
+    const wrap = doc.createElement('div');
+    wrap.className = 'responsibility-preview-mutation-wrap';
+    const table = doc.createElement('table');
+    table.className = 'responsibility-preview-mutation-table';
+
+    const head = doc.createElement('thead');
+    const hr = doc.createElement('tr');
+    ['Field', 'Before (-)', 'After (+)'].forEach(label => {
+      const th = doc.createElement('th');
+      th.textContent = label;
+      hr.appendChild(th);
+    });
+    head.appendChild(hr);
+    table.appendChild(head);
+
+    const body = doc.createElement('tbody');
+    (mutations ?? []).forEach(item => {
+      const tr = doc.createElement('tr');
+      const field = doc.createElement('td');
+      field.className = 'is-field';
+      field.textContent = String(item?.field ?? '');
+      field.title = String(item?.actual_path ?? item?.field_path ?? item?.field ?? '');
+
+      const before = doc.createElement('td');
+      before.className = 'is-before';
+      before.textContent = responsibilityPreviewDisplay(item?.before);
+
+      const after = doc.createElement('td');
+      after.className = 'is-after';
+      after.textContent = responsibilityPreviewDisplay(item?.after);
+
+      tr.appendChild(field);
+      tr.appendChild(before);
+      tr.appendChild(after);
+      body.appendChild(tr);
+    });
+    table.appendChild(body);
+    wrap.appendChild(table);
+    return wrap;
+  }
+
+  detailDisclosure(doc, section, label, value) {
+    const details = doc.createElement('details');
+    details.className = 'responsibility-preview-detail-disclosure';
+    const summary = doc.createElement('summary');
+    summary.textContent = label;
+    const pre = doc.createElement('pre');
+    pre.textContent = value == null ? '' : String(value);
+    details.appendChild(summary);
+    details.appendChild(pre);
+    section.appendChild(details);
+    return details;
+  }
+
+  renderDataUpdatePersistDetail(doc, pattern) {
+    const host = doc.createElement('div');
+    host.className = 'responsibility-preview-case-detail';
+
+    const mutations = Array.isArray(pattern?.mutations) ? pattern.mutations : [];
+    const definition = (this.row?.test_pattern_definitions ?? []).find(item =>
+      String(item?.pattern_def_id ?? '') === String(pattern?.pattern_id ?? '')
+    ) ?? {};
+    const setup = (this.row?.test_setup ?? []).find(item => item?.setup_id) ?? {};
+    const contract = this.row?.expected_first_contract ?? {};
+
+    const input = this.detailSection(doc, '① Before / 対象状況');
+    this.detailKeyValue(doc, input, 'Target Row', pattern?.input?.target_row ?? `${pattern?.target_data_path ?? ''}[${pattern?.row_index ?? ''}]`, { mono: true });
+    this.detailKeyValue(doc, input, 'Target Structure', pattern?.target_structure ?? '');
+    this.detailKeyValue(doc, input, '対象Field数', mutations.length);
+    this.detailKeyValue(doc, input, 'Seed Fixture', setup?.input_role ?? 'SEED_FIXTURE');
+    host.appendChild(input);
+
+    const action = this.detailSection(doc, '② 操作へ投入', 'is-criteria');
+    this.detailKeyValue(doc, action, 'Action', `${mutations.length}項目を Before (-) → After (+) へ変更`);
+    this.detailKeyValue(doc, action, 'Procedure', 'Editorへ入力 → F12反映 → 保存 → 再読込');
+    this.detailKeyValue(doc, action, 'Value Rule', `${pattern?.value_pattern ?? definition?.value_pattern ?? ''} / ${pattern?.field_selection_policy ?? definition?.field_selection_policy ?? ''}`, { mono: true });
+    host.appendChild(action);
+
+    const expected = this.detailSection(doc, '③ Expected Result', 'is-expected');
+    this.detailKeyValue(doc, expected, 'ExpectedDef', pattern?.expected_def_type ?? '', { mono: true });
+    this.detailKeyValue(doc, expected, 'Expected Changes', mutations.length);
+    this.detailKeyValue(doc, expected, 'Unexpected Diff Count', pattern?.expected?.unexpected_diff_count ?? 0);
+    const lead = doc.createElement('div');
+    lead.className = 'responsibility-preview-detail-lead is-expected-lead';
+    lead.textContent = '承認対象: この Before (-) → After (+) の差分を正しい世界とする';
+    expected.appendChild(lead);
+    expected.appendChild(this.detailMutationTable(doc, mutations));
+    host.appendChild(expected);
+
+    const ruleSection = this.detailSection(doc, '★ 導出ルール / なぜこの変更値なのか', 'is-rule');
+    this.detailKeyValue(doc, ruleSection, 'Rule ID', 'EXPECTED_FIRST_DATA_UPDATE_PERSIST', { mono: true });
+    this.detailKeyValue(doc, ruleSection, 'Rule', 'Expected First / Before・Action・AfterをExpected Diffから対応付ける');
+    this.detailKeyValue(doc, ruleSection, 'Before (-)', 'Seed Fixtureの現在値を変更前世界として使う。');
+    this.detailKeyValue(doc, ruleSection, 'After (+)', 'Resolved Contract内で現在値と異なる正常値を決定論的に生成する。');
+    this.detailKeyValue(doc, ruleSection, 'Expected Diff', '各Fieldの (-)Before / (+)After を検証意図として比較する。');
+    this.detailKeyValue(doc, ruleSection, '不変条件', 'Expected Diff対象外の値には差分を発生させない。');
+    this.detailKeyValue(doc, ruleSection, '人間が変更できるもの', contract?.role_boundary?.human ?? 'Expected / Expected Diff（検証意図）');
+    this.detailKeyValue(doc, ruleSection, '機械が固定化するもの', contract?.role_boundary?.machine ?? 'Input / Action / Runner手順');
+    this.detailKeyValue(doc, ruleSection, 'Expected変更時', contract?.expected_change_policy === 'MARK_INPUT_ACTION_STALE_AND_REGENERATE'
+      ? 'Generated Input / Action を STALE にして再生成する。'
+      : (contract?.expected_change_policy ?? ''));
+    if (definition?.notes) this.detailKeyValue(doc, ruleSection, 'Pattern Note', definition.notes);
+    host.appendChild(ruleSection);
+
+    const supplement = this.detailSection(doc, '補足情報', 'is-supplement');
+    this.detailKeyValue(doc, supplement, 'Guarantee ID', pattern?.guarantee_id ?? '', { mono: true });
+    this.detailKeyValue(doc, supplement, 'Source', this.detailJson(pattern?.source ?? {}), { pre: true });
+    if (pattern?.expected?.diff) this.detailDisclosure(doc, supplement, 'Expected Diff (raw) を表示', pattern.expected.diff);
+    if (this.detailPanelShowRawJson) this.detailDisclosure(doc, supplement, 'Raw Generated Pattern を表示', this.detailJson(pattern ?? {}));
+    host.appendChild(supplement);
+
+    return host;
+  }
+
+  detailMetricTable(doc, generatedCases=[]) {
+    const wrap = doc.createElement('div');
+    wrap.className = 'responsibility-preview-metric-wrap';
+    const table = doc.createElement('table');
+    table.className = 'responsibility-preview-metric-table';
+
+    const head = doc.createElement('thead');
+    const hr = doc.createElement('tr');
+    ['Metric', 'Expected', 'Actual Path'].forEach(label => {
+      const th = doc.createElement('th');
+      th.textContent = label;
+      hr.appendChild(th);
+    });
+    head.appendChild(hr);
+    table.appendChild(head);
+
+    const body = doc.createElement('tbody');
+    (generatedCases ?? []).forEach(item => {
+      const tr = doc.createElement('tr');
+      const metric = doc.createElement('td');
+      metric.className = 'is-field';
+      metric.textContent = String(item?.metric ?? '');
+      const expected = doc.createElement('td');
+      expected.className = 'is-after';
+      expected.textContent = responsibilityPreviewDisplay(item?.expected?.value);
+      const path = doc.createElement('td');
+      path.className = 'is-path';
+      path.textContent = String(item?.actual_path ?? '');
+      tr.appendChild(metric);
+      tr.appendChild(expected);
+      tr.appendChild(path);
+      body.appendChild(tr);
+    });
+    table.appendChild(body);
+    wrap.appendChild(table);
+    return wrap;
+  }
+
+  detailCsvSelectedRows(doc, snapshot=[]) {
+    const selected = (snapshot ?? []).filter(item => item?.selected === true);
+    if (!selected.length) return 'なし';
+    return selected.map(item => `#${item.index} ${item.row_id}`).join('\n');
+  }
+
+  renderCsvExportDetail(doc, pattern, generatedCase) {
+    const host = doc.createElement('div');
+    host.className = 'responsibility-preview-case-detail';
+    const snapshot = Array.isArray(generatedCase?.input_snapshot) ? generatedCase.input_snapshot : [];
+    const selected = snapshot.filter(item => item?.selected === true);
+    const expectedValue = generatedCase?.expected ?? {};
+    const fieldNames = Array.isArray(expectedValue?.field_names) ? expectedValue.field_names : [];
+
+    const input = this.detailSection(doc, '① 対象行の入力状況');
+    this.detailKeyValue(doc, input, 'Target Data', generatedCase?.target_data_path ?? pattern?.target_data_path ?? '', { mono: true });
+    this.detailKeyValue(doc, input, 'Row Scope', generatedCase?.row_scope ?? pattern?.row_scope ?? '', { mono: true });
+    this.detailKeyValue(doc, input, 'Input Rows', snapshot.length);
+    this.detailKeyValue(doc, input, 'Export Rows', selected.length);
+    this.detailKeyValue(doc, input, 'Selected Rows', this.detailCsvSelectedRows(doc, snapshot), { pre: true });
+    host.appendChild(input);
+
+    const action = this.detailSection(doc, '② CSV出力へ投入', 'is-criteria');
+    this.detailKeyValue(doc, action, 'Action', '現在のGrid表示行をCSVとして出力する');
+    this.detailKeyValue(doc, action, 'Columns', fieldNames.join(', '), { mono: true });
+    this.detailKeyValue(doc, action, 'Column Count', fieldNames.length);
+    host.appendChild(action);
+
+    const expected = this.detailSection(doc, '③ Expected Result', 'is-expected');
+    this.detailKeyValue(doc, expected, 'ExpectedDef', generatedCase?.expected_def_type ?? pattern?.expected_def_type ?? 'CsvExpectedDef', { mono: true });
+    this.detailKeyValue(doc, expected, 'Rows', selected.length);
+    this.detailKeyValue(doc, expected, 'UTF-8 BOM', expectedValue?.has_bom === true ? 'YES' : 'NO');
+    const csvPreview = String(expectedValue?.csv_without_bom ?? '').split(/\r?\n/).filter(Boolean).slice(0, 6).join('\n');
+    if (csvPreview) this.detailKeyValue(doc, expected, 'CSV Preview', csvPreview, { pre: true });
+    host.appendChild(expected);
+
+    const ruleSection = this.detailSection(doc, '★ 導出ルール / なぜこのCSVが期待値なのか', 'is-rule');
+    this.detailKeyValue(doc, ruleSection, 'Rule ID', 'CSV_EXPORT_VISIBLE_GRID_STATE', { mono: true });
+    this.detailKeyValue(doc, ruleSection, '列', 'ViewDefでGrid表示対象となるFieldを表示順でCSV列にする。keyFieldは必要に応じて先頭列へ含める。');
+    this.detailKeyValue(doc, ruleSection, '行', String(pattern?.row_scope ?? '').toUpperCase() === 'FILTERED'
+      ? 'filtered_row_indexesで指定された表示行だけを出力する。'
+      : 'ALL指定では対象Dataの全行を出力する。');
+    this.detailKeyValue(doc, ruleSection, 'セル', 'カンマ・引用符・改行を含む値はCSV引用し、内部の引用符は二重化する。');
+    this.detailKeyValue(doc, ruleSection, '文字コード / 改行', 'UTF-8 BOM付き / CRLF');
+    host.appendChild(ruleSection);
+
+    const supplement = this.detailSection(doc, '補足情報', 'is-supplement');
+    this.detailKeyValue(doc, supplement, 'Guarantee ID', generatedCase?.guarantee_id ?? pattern?.guarantee_id ?? '', { mono: true });
+    this.detailKeyValue(doc, supplement, 'Source Definition', generatedCase?.source_definition_id ?? '', { mono: true });
+    this.detailKeyValue(doc, supplement, 'Source', this.detailJson(pattern?.source ?? {}), { pre: true });
+    if (expectedValue?.csv_text) this.detailDisclosure(doc, supplement, 'Expected CSV (raw) を表示', expectedValue.csv_text);
+    if (this.detailPanelShowRawJson) this.detailDisclosure(doc, supplement, 'Raw Generated Case を表示', this.detailJson(generatedCase ?? {}));
+    host.appendChild(supplement);
+    return host;
+  }
+
+  renderGridAggregateDetail(doc, pattern) {
+    const host = doc.createElement('div');
+    host.className = 'responsibility-preview-case-detail';
+    const generatedCases = Array.isArray(pattern?.generated_cases) ? pattern.generated_cases : [];
+    const firstCase = generatedCases[0] ?? {};
+    const snapshot = Array.isArray(firstCase?.input_snapshot) ? firstCase.input_snapshot : [];
+    const selectedIndexes = snapshot.filter(item => item?.selected === true).map(item => item?.index);
+    const aggregateDeclaration = firstCase?.aggregate_declaration;
+
+    const input = this.detailSection(doc, '① 対象値の入力状況');
+    const targetLine = doc.createElement('div');
+    targetLine.className = 'responsibility-preview-detail-lead';
+    targetLine.textContent = `${pattern?.target_field ?? ''} / ${pattern?.target_data_path ?? ''}`;
+    input.appendChild(targetLine);
+    input.appendChild(this.detailSnapshotTable(doc, snapshot, selectedIndexes));
+    host.appendChild(input);
+
+    const action = this.detailSection(doc, '② 集計へ投入', 'is-criteria');
+    this.detailKeyValue(doc, action, 'Field', pattern?.target_field ?? '', { mono: true });
+    this.detailKeyValue(doc, action, 'Aggregate', pattern?.aggregate_operator
+      ? `${pattern.aggregate_operator} / ${pattern.aggregate_scope}`
+      : 'NO AGGREGATE');
+    this.detailKeyValue(doc, action, 'Selected Indexes', this.detailJson(selectedIndexes), { pre: true });
+    this.detailKeyValue(doc, action, 'Expected Metric Set', pattern?.expected_metric_set ?? '', { mono: true });
+    host.appendChild(action);
+
+    const expected = this.detailSection(doc, '③ Expected Result', 'is-expected');
+    this.detailKeyValue(doc, expected, 'ExpectedDef', pattern?.expected_def_type ?? 'ScalarExpectedDef', { mono: true });
+    expected.appendChild(this.detailMetricTable(doc, generatedCases));
+    host.appendChild(expected);
+
+    const ruleSection = this.detailSection(doc, '★ 導出ルール / なぜこの集計値なのか', 'is-rule');
+    this.detailKeyValue(doc, ruleSection, 'Rule ID', 'GRID_AGGREGATE_SIMPLE_ORACLE', { mono: true });
+    this.detailKeyValue(doc, ruleSection, '宣言', aggregateDeclaration
+      ? 'ViewDefのnumber Fieldにある grid.aggregate 宣言を読み、operator / scopeを決定する。'
+      : '有効なgrid.aggregate宣言が無いため、has_aggregates=falseを期待する。');
+    if (aggregateDeclaration) {
+      this.detailKeyValue(doc, ruleSection, '対象行', String(pattern?.aggregate_scope ?? '').toLowerCase() === 'filtered'
+        ? 'filtered_row_indexesで指定された行だけを独立Oracleへ投入する。'
+        : '対象Dataの全行を独立Oracleへ投入する。');
+      this.detailKeyValue(doc, ruleSection, '数値化', 'numberまたはカンマ除去後に有限数へ変換できる文字列だけを有効値とし、それ以外はignoredとして数える。');
+      this.detailKeyValue(doc, ruleSection, 'SUM', '有効値だけを単純加算し、value / source_count / valid_count / ignored_countをExpected Metric Setに応じて出力する。');
+    }
+    this.detailKeyValue(doc, ruleSection, '独立性', 'ExpectedはGridAggregator本体を使わず、Preview Service側の単純Oracleで導出する。');
+    host.appendChild(ruleSection);
+
+    const supplement = this.detailSection(doc, '補足情報', 'is-supplement');
+    this.detailKeyValue(doc, supplement, 'Guarantee ID', pattern?.guarantee_id ?? '', { mono: true });
+    this.detailKeyValue(doc, supplement, 'Source', this.detailJson(pattern?.source ?? {}), { pre: true });
+    if (this.detailPanelShowRawJson) this.detailDisclosure(doc, supplement, 'Raw Generated Pattern を表示', this.detailJson(pattern ?? {}));
+    host.appendChild(supplement);
+    return host;
+  }
+
   renderSearchCaseDetail(doc, pattern, generatedCase) {
     const host = doc.createElement('div');
     host.className = 'responsibility-preview-case-detail';
@@ -480,21 +746,30 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
     const host = doc.createElement('div');
     host.className = 'responsibility-preview-case-detail';
 
-    const input = this.detailSection(doc, 'Input / 対象状況');
+    const input = this.detailSection(doc, '① Input / 対象状況');
+    this.detailKeyValue(doc, input, 'Target', generatedCase?.target_data_path ?? pattern?.target_data_path ?? '', { mono: true });
     this.detailKeyValue(doc, input, 'Input Snapshot', this.detailJson(generatedCase?.input_snapshot ?? pattern?.input ?? {}), { pre: true });
     host.appendChild(input);
 
-    const expected = this.detailSection(doc, 'Expected');
+    const action = this.detailSection(doc, '② 操作 / 評価へ投入', 'is-criteria');
+    this.detailKeyValue(doc, action, 'Pattern', pattern?.pattern_cd ?? pattern?.pattern_id ?? '', { mono: true });
+    this.detailKeyValue(doc, action, 'Generation Mode', pattern?.generation_mode ?? 'GENERIC', { mono: true });
+    host.appendChild(action);
+
+    const expected = this.detailSection(doc, '③ Expected Result', 'is-expected');
     this.detailKeyValue(doc, expected, 'ExpectedDef', generatedCase?.expected_def_type ?? pattern?.expected_def_type ?? '', { mono: true });
     this.detailKeyValue(doc, expected, 'Expected', this.detailJson(generatedCase?.expected ?? pattern?.expected ?? {}), { pre: true });
     host.appendChild(expected);
 
+    const ruleSection = this.detailSection(doc, '★ 導出ルール / どの定義から導出したか', 'is-rule');
+    this.detailKeyValue(doc, ruleSection, 'Guarantee ID', generatedCase?.guarantee_id ?? pattern?.guarantee_id ?? '', { mono: true });
+    this.detailKeyValue(doc, ruleSection, 'Source Definition', generatedCase?.source_definition_id ?? '', { mono: true });
+    this.detailKeyValue(doc, ruleSection, 'Generation Mode', pattern?.generation_mode ?? 'GENERIC', { mono: true });
+    host.appendChild(ruleSection);
+
     const supplement = this.detailSection(doc, '補足情報', 'is-supplement');
-    this.detailKeyValue(doc, supplement, 'Guarantee ID', generatedCase?.guarantee_id ?? pattern?.guarantee_id ?? '', { mono: true });
     this.detailKeyValue(doc, supplement, 'Source', this.detailJson(pattern?.source ?? {}), { pre: true });
-    if (this.detailPanelShowRawJson) {
-      this.detailKeyValue(doc, supplement, 'Raw', this.detailJson(generatedCase ?? pattern ?? {}), { pre: true });
-    }
+    if (this.detailPanelShowRawJson) this.detailDisclosure(doc, supplement, 'Raw Generated Case / Pattern を表示', this.detailJson(generatedCase ?? pattern ?? {}));
     host.appendChild(supplement);
     return host;
   }
@@ -522,8 +797,16 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
     pane.appendChild(header);
 
     const generatedCases = Array.isArray(pattern?.generated_cases) ? pattern.generated_cases : [];
-    if (String(pattern?.generation_mode ?? '') === 'SEARCH_OPERATOR_MATRIX' && generatedCases.length) {
+    const patternCd = String(pattern?.pattern_cd ?? '').toUpperCase();
+    const generationMode = String(pattern?.generation_mode ?? '');
+    if (patternCd.startsWith('DATA_UPDATE_PERSIST')) {
+      pane.appendChild(this.renderDataUpdatePersistDetail(doc, pattern));
+    } else if (generationMode === 'SEARCH_OPERATOR_MATRIX' && generatedCases.length) {
       generatedCases.forEach(item => pane.appendChild(this.renderSearchCaseDetail(doc, pattern, item)));
+    } else if (generationMode === 'CSV_EXPORT_CASE' && generatedCases.length) {
+      pane.appendChild(this.renderCsvExportDetail(doc, pattern, generatedCases[0]));
+    } else if (generationMode === 'AGGREGATE_SCALAR_CASE' && generatedCases.length) {
+      pane.appendChild(this.renderGridAggregateDetail(doc, pattern));
     } else if (generatedCases.length) {
       generatedCases.forEach(item => pane.appendChild(this.renderGenericCaseDetail(doc, pattern, item)));
     } else {

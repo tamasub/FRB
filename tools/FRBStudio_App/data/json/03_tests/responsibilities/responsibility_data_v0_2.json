@@ -5,10 +5,10 @@
   "title": "FRB Studio 責務マスター v0.2",
   "target": "FRB Studio / JSON Object Studio",
   "status": "draft",
-  "phase": "responsibility-definition-driven-test-v0_2-rule-driven-input-planning",
+  "phase": "responsibility-definition-driven-test-v0_2-responsibility-evidence-pilot",
   "created_at": "2026-07-19",
-  "updated_at": "2026-08-29T21:35:00+09:00",
-  "purpose": "Studioくんの責務を検証可能な保証として管理し、同一JSON内のTestPattern生成定義・承認済みInput参照・ExpectedDefからGenerated TestPattern / Expectedを機械導出するための責務マスター。",
+  "updated_at": "2026-08-30T12:04:03+09:00",
+  "purpose": "Studioくんの責務を検証可能な保証として管理し、Responsibility / Guarantee / TestPattern / Expectedを人間が承認する検証意図の正本として、そこからGenerated Input / Action / Actual / Diffを機械導出できる責務マスターへ育てる。",
   "policy": {
     "definition": "責務は、何をするかではなく、どの条件で何を保証するかを書く。",
     "granularity": "UT責務は品質保証上の意味ある責任単位とする。実装規模はおおむね1KS程度を初期仮説とするが、コード量だけで責務を決めない。",
@@ -17,9 +17,9 @@
     "guarantee_contract": "Guarantee IDは責務レベルの保証単位とし、1つのGuarantee IDがN個のTestPatternを所有する。各TestPatternは必ず単一のguarantee_idへ所属し、1 TestPatternを複数Guaranteeへ紐付ける多対多関係は作らない。",
     "test_pattern_relation_example": "項目定義のValidation Type → N TestPatternsと同様に、責務定義ではGuarantee ID → N TestPatternsとする。責務配下test_pattern_definitions[]は単一のguarantee_idを参照し、Generated TestPatternもその所属を継承する。",
     "observability": "承認責務は、その成立結果を責務境界の外側から観測可能とする。単独でActualを取得できない内部処理は、原則として独立した承認責務にせず、観測可能な成果まで含む上位責務へ統合する。",
-    "test_definition": "TestPatternの具体Input / Expected実体を正本として保持せず、責務配下のtest_pattern_definitionsとtest_setupを生成元として管理する。",
-    "generated_artifact": "Generated TestPattern / Generated Expectedは責務定義から機械導出するVirtual Dataとし、正本JSONへ保存しない。画面ではPreviewとして参照可能にする。",
-    "fixture_approval": "Test Input JSONはAI生成可能とするが、テスト投入前に人間が内容を確認しapprovedへ移行したものだけを使用する。承認対象ではあるが、通常画面では実行詳細とともに初期CLOSE表示とする。",
+    "test_definition": "TestPatternの具体Inputを正本として保持しない。Expected First対象では、TestPatternから初期Expected / Expected Diffを導出し、人間が確認・必要なら変更したExpectedを検証意図として扱う。Generated Input / Actionは、その承認済みExpectedから逆算する派生物とする。",
+    "generated_artifact": "Generated TestPattern / 初期Expected / Generated Input / Generated Actionは責務定義から機械導出するVirtual Dataとし、原則として正本JSONへ重複保存しない。ただし、人間がExpected / Expected Diffを変更・承認した場合、その値は当該実行の検証意図として優先し、既存のGenerated Input / Actionを失効させて再生成する。",
+    "fixture_approval": "Test Inputは人間が手作業で固定する正解の正本ではなく、Expected First対象ではExpectedから逆算可能な派生成果物として扱える。AI生成・補強したFixtureを実行へ投入する場合はHuman Review Gateを維持するが、承認対象の中心は「どの差分を正しいとするか」というExpected / Expected Diffへ置く。既存のapproved Fixtureは移行期間中のSeed Fixtureとして使用できる。",
     "expected_def": "ExpectedDefはGuaranteeの属性ではなくTestPattern側のExpected表現型として扱う。GuaranteeからExpectedDefを直接指定せず、TestPattern定義またはTestPattern種別からExpectedDefを解決し、Generated Expectedの構造・比較へ使用する。",
     "test_target_resolution": "DATA_UPDATE_PERSISTの対象項目は、Test DATA JSON → ViewDef → Field Definitionの参照連鎖から機械解決する。ViewDefで編集可能かつField Definitionに明示契約がある項目を候補とし、STANDARDではmulti_lineを除外、QUALITY_REINFORCEMENTではmulti_lineだけを対象とする。",
     "generated_review_visibility": "Generated TestPattern / Generated Case / Expectedの実行データはすべて人間が確認可能にする。表示行数を減らす場合も情報を省略せず、意味階層で圧縮して展開可能にする。",
@@ -27,7 +27,15 @@
     "search_fixture": "SEARCH_FILTERは専用Test DATA JSONを入力とし、Data JSON自体へExpectedやテスト理由を混在させない。Generated Case側に対象FieldのInput Snapshot / Criteria / Expected Rowsを表示して、入力値とテスト意図の対応を確認可能にする。",
     "expected_def_resolution": "ExpectedDefはGuarantee入力ではなくTestPatternのExpected表現型とする。可能な場合はTestPattern種別/generation_modeから機械導出し、責務JSONで重複指定しない。",
     "guarantee_refactoring": "Guarantee IDは運用中の意味境界に応じて統合・分割を許容する。統合・分割時も各TestPatternは常に単一Guaranteeへ所属する1:N契約を維持する。",
-    "rule_first_generation": "責務駆動テストでは、Generated Caseの個別値よりも導出ルールを知識の正本とする。生成結果に不足・違和感がある場合はCaseを手修正せず、まず導出ルールをブラッシュアップする。Test Inputは承認済みルールから逆算してAI生成・補強可能とし、人間が内容を確認してapprovedへ移行したものだけを実行へ投入する。"
+    "rule_first_generation": "責務駆動テストでは、Generated Caseの個別値よりも導出ルールを知識の正本とする。生成結果に不足・違和感がある場合はCaseを手修正せず、まず導出ルールをブラッシュアップする。Test Inputは承認済みルールから逆算してAI生成・補強可能とし、人間が内容を確認してapprovedへ移行したものだけを実行へ投入する。",
+    "expected_first": "機械導出可能な責務では、Inputを先に固定してExpectedを後付けするのではなく、TestPatternとExpected / Expected Diffを先に決める。ExpectedはActual判定基準であると同時に、検証可能なBefore世界・操作値・After世界を逆算する生成契約として扱う。",
+    "human_machine_boundary": "操作は固定化されても、検証意図は人間が自由に変更できる構造を優先する。人間はResponsibility / Guarantee / TestPattern / Expectedを確認・承認し、機械はInput生成・操作生成・実行・観測・比較を再現可能な手順へ変換する。",
+    "canonical_boundary": "意味の正本はResponsibility / Guarantee / TestPattern / Human-approved Expected Intentとする。Generated Input / Fixture / Actionは派生物、Actual / Diffは実行結果とする。派生物を人間の検証意図と同格の正本へ昇格させない。",
+    "expected_change_invalidation": "Expected / Expected Diffが人間により変更された場合、それ以前に生成されたInput / Fixture / ActionはSTALEとして扱い、変更後Expectedから再生成する。古い派生物を新しいExpectedの実行へ流用しない。",
+    "expected_first_transition": "Expected FirstはまずDATA_UPDATE_PERSISTを模範責務として適用する。SEARCH_FILTER等の既存Rule First / approved Fixture方式は直ちに破棄せず、ExpectedからInput / Actionを逆算できることを実証してから横展開する。",
+    "evidence_file_granularity": "Actual / Diffの物理ファイルは責務単位を標準とする。1責務に複数Guarantee IDがある場合も初期標準ではGuaranteeごとにファイル分割せず、各Observation / Checkへguarantee_idを保持して論理的に区別する。",
+    "evidence_folder_policy": "Responsibilitiesの実行証跡は data/json/03_tests/responsibilities/results/{responsibility_cd}.actual.json / {responsibility_cd}.diff.json の浅い配置を標準とする。論理階層を物理フォルダーへ一律投影しない。",
+    "actual_diff_boundary": "Actualは観測事実のみを持ちExpected/passを持たない。DiffはExpected / Actual / passを持ち、checks[].guarantee_idによりGuarantee単位の証跡境界を維持する。"
   },
   "responsibilities": [
     {
@@ -520,7 +528,7 @@
       "approval_status": "draft",
       "enabled": true,
       "purpose": "既存DATA JSONを画面から変更して保存した結果が物理JSONへ永続化され、再読込後に変更後の値として観測できる状態にする。",
-      "summary": "承認済みTest Input JSONをDocument単位で読み込み、正常な別値へ変更して保存・再読込し、期待したJSON差分だけが発生していることを確認する。",
+      "summary": "TestPatternから初期Expected Diffを作り、人間がその差分を確認・必要なら変更する。承認されたExpected DiffからBefore値を持つWorking Fixtureと変更操作を逆算し、SAVE→RELOAD後のActual DiffがExpected Diffだけに一致することを確認するExpected Firstの模範責務。",
       "source_file": "",
       "interface_name": "UI Save / Reload observable boundary",
       "in_scope": [
@@ -530,25 +538,31 @@
         "再読込後の変更値確認",
         "変更対象外データの非破壊確認",
         "Single Grid / Multi Gridの先頭・最終行変更",
-        "複数行テキストの改行保持を含む品質強化確認"
+        "複数行テキストの改行保持を含む品質強化確認",
+        "Expected Diffを検証意図の中心として扱うExpected First",
+        "Expected Diffの(-)側からBefore値を逆算するFixture生成契約",
+        "Expected Diffの(+)側から変更操作値を逆算するAction生成契約",
+        "人間がExpected Diffを変更した場合のGenerated Input / Action失効・再生成契約"
       ],
       "out_of_scope": [
         "新規登録（CREATE）は別責務とする",
         "削除（DELETE）は別責務とする",
         "Validation境界値・不正値拒否の保証",
         "一覧表示時の複数行テキスト1行化などView Projectionの保証",
-        "メモリ上COMMIT単独の保証"
+        "メモリ上COMMIT単独の保証",
+        "Expected Diff編集UI・Generated Input / Action再生成Runtimeの実装（次Phase）"
       ],
       "constraint_ids": [
-        "decision_axis_responsibility_observability"
+        "decision_axis_responsibility_observability",
+        "constitution_34"
       ],
       "guarantees": [
         {
           "guarantee_id": "data_update_persist_g001",
           "guarantee_type": "state",
-          "condition": "承認済みTest Input JSONを読み込み、TestPatternが指定する正常な別値へ変更して保存・再読込した場合",
+          "condition": "既存Dataの対象項目を正常な別値へ変更して保存・再読込した場合",
           "guarantee": "指定した変更差分が物理JSONへ永続化され、変更対象外には期待していない差分を発生させない。",
-          "observable_result": "再読込後のJSON差分がGenerated Expected Diffと一致し、Unexpected Diff Countが0である。",
+          "observable_result": "再読込後のActual Diffが人間承認済みExpected Diffと一致し、Unexpected Diff Countが0である。",
           "priority": "high",
           "enabled": true
         }
@@ -565,11 +579,13 @@
           "load_policy": "LOAD_ONCE",
           "save_policy": "SAVE_ONCE",
           "reload_policy": "RELOAD_ONCE",
-          "notes": "Test DATA JSONのview_defと、ViewDefのitem_definition_refを辿って対象項目を解決する。人間承認済みInputは直接変更せずWorking Copyへ複製し、複数TestPatternを同一Document Lifecycle上でまとめて実行する。",
+          "notes": "Test DATA JSONのview_defと、ViewDefのitem_definition_refを辿って対象項目を解決する。現行のapproved Test DATAは互換維持のSeed Fixtureとして直接変更せずWorking Copyへ複製する。Expected Firstでは人間承認済みExpected Diffを検証意図とし、(-)側をBefore値、(+)側をAction / After値としてWorking Copyと操作を逆算する。Expected変更時は既存Generated Input / Actionを失効させる。",
           "working_copy_policy": "COPY_BEFORE_EXECUTION",
           "working_copy_directory": "data/json/99_test_runtime",
           "cleanup_policy": "DELETE_AFTER_EXECUTION",
-          "runner_type": "SELENIUM_NATIVE_SHELL"
+          "runner_type": "SELENIUM_NATIVE_SHELL",
+          "input_role": "SEED_FIXTURE",
+          "expected_first_policy": "現行input_fileは既存E2Eとの互換を保つSeed Fixture。検証意図はInput側ではなくApproved Expected Diff側に置き、Expected編集後はWorking Copy上の対象Before値とAction値をExpectedから再生成する。"
         }
       ],
       "test_pattern_definitions": [
@@ -658,7 +674,44 @@
           "notes": "過去の複数行改行保持バグに対する品質強化パターン。最終行側の境界も確認する。"
         }
       ],
-      "notes": "COMMITは内部ステップとして扱い、承認責務は物理JSONへのSAVE→RELOAD後に外部観測できる境界まで含める。Generated TestPattern / Expectedは本JSONへ保持せず、定義から機械導出する。 v0.2.1ではTest DATA / ViewDef / Field Definitionの3点セットを具体設定し、target_data_pathとfield_selection_policyから変更対象Fieldを機械導出する。"
+      "notes": "COMMITは内部ステップとして扱い、承認責務は物理JSONへのSAVE→RELOAD後に外部観測できる境界まで含める。DATA_UPDATE_PERSISTをExpected Firstの模範責務とし、TestPattern→初期Expected Diff→Human Review/Edit→Approved Expected Diff→Generated Input / Action→Runner→Actual Diffの順で考える。操作手順は機械化しても、検証意図であるExpected Diffは人間が変更可能とする。本更新は責務JSON上の契約整理のみで、Expected編集UI・再生成Runtimeは次Phaseで実装する。",
+      "expected_first_contract": {
+        "status": "PILOT",
+        "intent_owner": "HUMAN",
+        "human_editable_target": "EXPECTED_DIFF",
+        "initial_expected_source": "TEST_PATTERN_DERIVATION",
+        "approved_expected_role": "EXECUTION_INTENT",
+        "before_generation_rule": "EXPECTED_DIFF_MINUS_TO_BEFORE_INPUT",
+        "action_generation_rule": "EXPECTED_DIFF_PLUS_TO_ACTION_INPUT",
+        "after_expectation_rule": "EXPECTED_DIFF_PLUS_TO_AFTER_EXPECTED",
+        "unchanged_data_rule": "COPY_INPUT_EXCEPT_EXPECTED_DIFF_TARGETS",
+        "generated_input_role": "DERIVED_FIXTURE",
+        "generated_action_role": "DERIVED_PROCEDURE",
+        "expected_change_policy": "MARK_INPUT_ACTION_STALE_AND_REGENERATE",
+        "runner_compare_policy": "ACTUAL_DIFF_EQUALS_APPROVED_EXPECTED_DIFF_AND_UNEXPECTED_DIFF_COUNT_ZERO",
+        "approval_flow": [
+          "TEST_PATTERN",
+          "INITIAL_EXPECTED_DIFF",
+          "HUMAN_REVIEW_OR_EDIT",
+          "APPROVED_EXPECTED_DIFF",
+          "GENERATED_INPUT",
+          "GENERATED_ACTION",
+          "RUNNER",
+          "ACTUAL_DIFF",
+          "HUMAN_APPROVAL"
+        ],
+        "role_boundary": {
+          "human": "何を確かめたいかをExpected / Expected Diffとして決める・変更する・承認する。",
+          "machine": "承認済みExpectedからInput / Actionを導出し、同じ手順で実行・観測・比較する。",
+          "ai": "Expectedを自由に決めるOracleではなく、承認済みExpected世界を成立させる制約付きInput / Fixture Generatorとして利用する。"
+        },
+        "example": {
+          "expected_diff": "(-) AAA / (+) BBB",
+          "derived_before": "対象項目にAAAを持つInput / Working Fixtureを作る。",
+          "derived_action": "対象項目へBBBを入力して保存する。",
+          "derived_after": "再読込後にBBBであり、指定差分以外はInputから変化しないことをExpectedとする。"
+        }
+      }
     }
   ],
   "notes": [

@@ -98,3 +98,13 @@ test('CSV scripts and Responsibility ViewDef options are registered', () => {
   assert.equal(filteredIndexes.type, 'json');
   assert.equal(filteredIndexes.control, 'textarea');
 });
+
+
+test('CSV Generated Preview does not require Field Definition / Validation Registry', () => {
+  const component = fs.readFileSync(
+    path.join(ROOT, 'wwwroot/js/components/responsibility/responsibility_test_preview_component.js'),
+    'utf8'
+  );
+  assert.match(component, /mode !== 'AGGREGATE_SCALAR_CASE' && mode !== 'CSV_EXPORT_CASE'/);
+  assert.doesNotMatch(component, /definitions\.some\(item => String\(item\?\.generation_mode \?\? ''\) !== 'AGGREGATE_SCALAR_CASE'\)/);
+});

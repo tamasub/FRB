@@ -24,6 +24,11 @@ const {
   pauseAfterValueInput,
   printSeleniumRunnerTiming,
 } = require('./selenium_runner_settings');
+const {
+  writeResponsibilityEvidence,
+  studioDateTimeJst,
+  studioRunId,
+} = require('./responsibility_evidence');
 
 const NATIVE_SHELL = process.env.FRB_NATIVE_SHELL
   || path.join(APP_ROOT, 'NativeShell', '_publish', 'FRBStudio.NativeShell.exe');
@@ -746,26 +751,85 @@ async function readAggregateMetricFromUi(driver, generatedCase) {
   throw new Error(`Unsupported aggregate UI metric: ${metric}`);
 }
 
-async function compareAggregateCaseFromUi({ driver, generatedCase, buildExpectedChecks }) {
+async function observeAggregateCaseFromUi({ driver, generatedCase, buildExpectedChecks, observedAt }) {
   const expectedDef = String(generatedCase?.expected_def_type ?? '');
   if (expectedDef !== 'ScalarExpectedDef') {
     throw new Error(`GRID_AGGREGATE UI requires ScalarExpectedDef: ${generatedCase?.case_id ?? ''} / ${expectedDef}`);
   }
+
   const actualValue = await readAggregateMetricFromUi(driver, generatedCase);
   const comparePattern = {
     test_pattern_id: generatedCase.case_id,
+    responsibility_cd: 'grid_aggregate',
     expected_def_type: expectedDef,
     expected: generatedCase.expected,
   };
   const checks = buildExpectedChecks(comparePattern, { value: actualValue });
   if (checks.length !== 1) throw new Error(`ScalarExpectedDef must produce one check: ${generatedCase.case_id}`);
-  const check = checks[0];
+
+  const guaranteeId = String(generatedCase?.guarantee_id ?? '');
+  const testPatternId = String(generatedCase?.pattern_id ?? '');
+  const check = {
+    ...checks[0],
+    guarantee_id: guaranteeId,
+    responsibility_cd: 'grid_aggregate',
+    test_pattern_id: testPatternId,
+    case_id: String(generatedCase?.case_id ?? ''),
+    target: `${generatedCase?.target_field ?? ''}.${generatedCase?.metric ?? ''}`,
+    metric: String(generatedCase?.metric ?? ''),
+  };
+  const observation = {
+    guarantee_id: guaranteeId,
+    responsibility_cd: 'grid_aggregate',
+    test_pattern_id: testPatternId,
+    case_id: String(generatedCase?.case_id ?? ''),
+    target_field: String(generatedCase?.target_field ?? ''),
+    metric: String(generatedCase?.metric ?? ''),
+    actual: actualValue,
+    actual_display: typeof actualValue === 'string' ? actualValue : JSON.stringify(actualValue),
+    observed_at: observedAt,
+    source: `Grid Header ${generatedCase?.target_field ?? ''}.${generatedCase?.metric ?? ''}`,
+  };
+
   const label = `${expectedDef} / Grid Header ${generatedCase.target_field}.${generatedCase.metric}`;
-  assertPass(
-    check.pass === true,
-    label,
-    `${check.message}; Expected=${JSON.stringify(check.expected)}, Actual=${JSON.stringify(check.actual)}`,
-  );
+  console.log(`${label}: ${check.pass === true ? 'PASS' : 'FAIL'}`);
+  if (check.pass !== true) console.log(`  ${check.message}; Expected=${JSON.stringify(check.expected)}, Actual=${JSON.stringify(check.actual)}`);
+  return { observation, check };
+}
+
+function aggregateRunnerErrorEvidence(plan, err, observedAt) {
+  const guaranteeId = String(plan?.guarantee_ids?.[0] ?? 'UNASSIGNED');
+  const message = err?.message ?? String(err);
+  return {
+    observation: {
+      guarantee_id: guaranteeId,
+      responsibility_cd: String(plan?.responsibility_cd ?? 'grid_aggregate'),
+      test_pattern_id: '__runner__',
+      case_id: '__runner_error__',
+      target_field: '',
+      metric: 'runner_error',
+      actual: { error_name: err?.name ?? 'Error', error_message: message },
+      actual_display: message,
+      observed_at: observedAt,
+      source: 'SeleniumTaste/responsibility_selenium_runner.js',
+    },
+    check: {
+      check_id: `${plan?.responsibility_cd ?? 'grid_aggregate'}.__runner_error`,
+      name: 'runner_error',
+      target: String(plan?.responsibility_cd ?? 'grid_aggregate'),
+      type: 'runnerError',
+      guarantee_id: guaranteeId,
+      responsibility_cd: String(plan?.responsibility_cd ?? 'grid_aggregate'),
+      test_pattern_id: '__runner__',
+      case_id: '__runner_error__',
+      expected: 'no error',
+      actual: message,
+      expected_raw: 'no error',
+      actual_raw: message,
+      pass: false,
+      message,
+    },
+  };
 }
 
 async function runAggregateResponsibilitySelenium(plan) {
@@ -776,7 +840,13 @@ async function runAggregateResponsibilitySelenium(plan) {
     throw new Error(`Aggregate Selenium currently supports MAIN_GRID only: ${unsupported.map(item => `${item.pattern_id}:${item.ui_target?.mode}`).join(', ')}`);
   }
 
+  const observedAt = studioDateTimeJst();
+  const runId = studioRunId(plan.responsibility_cd);
+  const observations = [];
+  const checks = [];
   let driver = null;
+  let runError = null;
+
   try {
     driver = await createDriver();
     await sleep(2500);
@@ -793,15 +863,40 @@ async function runAggregateResponsibilitySelenium(plan) {
     for (const pattern of plan.patterns ?? []) {
       console.log(`Aggregate Pattern: ${pattern.pattern_id} / field=${pattern.target_field} / scope=${pattern.aggregate_scope || 'none'}`);
       for (const generatedCase of pattern.generated_cases ?? []) {
-        await compareAggregateCaseFromUi({ driver, generatedCase, buildExpectedChecks });
+        const evidence = await observeAggregateCaseFromUi({ driver, generatedCase, buildExpectedChecks, observedAt });
+        observations.push(evidence.observation);
+        checks.push(evidence.check);
       }
     }
-
-    console.log(`Responsibility E2E: ${plan.responsibility_cd} ALL PASS`);
-    return { plan, executed: true };
+  } catch (err) {
+    runError = err;
+    const evidence = aggregateRunnerErrorEvidence(plan, err, observedAt);
+    observations.push(evidence.observation);
+    checks.push(evidence.check);
   } finally {
     if (driver) await driver.quit().catch(() => {});
   }
+
+  const evidence = writeResponsibilityEvidence({
+    appRoot: APP_ROOT,
+    plan,
+    observations,
+    checks,
+    observedAt,
+    runId,
+    sourceRunner: 'SeleniumTaste/responsibility_selenium_runner.js',
+  });
+  console.log(`Actual Evidence: ${evidence.paths.actual}`);
+  console.log(`Diff Evidence:   ${evidence.paths.diff}`);
+
+  if (runError) throw runError;
+  const failedChecks = checks.filter(check => check.pass !== true);
+  if (failedChecks.length) {
+    throw new Error(`GRID_AGGREGATE diff failed: ${failedChecks.map(check => check.check_id).join(', ')}`);
+  }
+
+  console.log(`Responsibility E2E: ${plan.responsibility_cd} ALL PASS`);
+  return { plan, executed: true, evidence };
 }
 
 function createWorkingCopy(plan) {
