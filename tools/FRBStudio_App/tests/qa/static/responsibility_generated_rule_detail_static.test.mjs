@@ -78,23 +78,23 @@ test('SEARCH_FILTER Generated Case exposes applied Rule and derivation trace, no
   assert.deepEqual(between.criteria, { operator: 'between', from: 0.5, to: 0.9 });
 });
 
-test('SEARCH_FILTER Generated Preview projects Structural Expected Hit Count / Indexes instead of ExpectedDef', () => {
+test('SEARCH_FILTER Generated Preview demotes Expected fields into one Guarantee-defined Hit Structure JSON column', () => {
   const result = deriveSearch();
   const byId = new Map(result.test_patterns.map(pattern => [pattern.pattern_id, pattern]));
 
-  assert.equal(byId.get('search_filter_string_contains').expected_hit_count, 3);
-  assert.deepEqual(byId.get('search_filter_string_contains').expected_hit_indexes, [0, 2, 5]);
-  assert.equal(byId.get('search_filter_number_blank').expected_hit_count, 0);
-  assert.deepEqual(byId.get('search_filter_number_blank').expected_hit_indexes, []);
+  const contains = byId.get('search_filter_string_contains');
+  assert.equal(contains.expected_hit_count, 3);
+  assert.deepEqual(contains.expected_hit_indexes, [0, 2, 5]);
+  assert.equal(contains.structural_expected.length, 1);
+  assert.equal(contains.structural_expected[0].structure_id, 'hit_structure');
 
   const component = readText('wwwroot/js/components/responsibility/responsibility_test_preview_component.js');
-  assert.match(component, /caption: 'Expected Hit Count'/);
-  assert.match(component, /caption: 'Expected Hit Indexes'/);
-
   const buildColumnsSource = component.slice(component.indexOf('buildColumns(rows=[])'));
   const searchColumnsBlock = buildColumnsSource.match(/if \(searchMode\) \{[\s\S]*?return \[[\s\S]*?\];\n    \}/)?.[0] ?? '';
-  assert.ok(searchColumnsBlock.includes("caption: 'Expected Hit Count'"));
-  assert.ok(searchColumnsBlock.includes("caption: 'Expected Hit Indexes'"));
+
+  assert.ok(searchColumnsBlock.includes('...structureColumns'));
+  assert.equal(searchColumnsBlock.includes("caption: 'Expected Hit Count'"), false);
+  assert.equal(searchColumnsBlock.includes("caption: 'Expected Hit Indexes'"), false);
   assert.equal(searchColumnsBlock.includes("caption: 'ExpectedDef'"), false);
 });
 

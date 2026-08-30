@@ -1,4 +1,4 @@
-// v0.18.127-search-structural-expected-preview
+// v0.18.129-guarantee-structural-expected-preview-columns
 // Readonly Generated TestPattern / JsonDiffExpectedDef preview for Responsibility Definition.
 
 const responsibilityPreviewJsonPromiseCache = new Map();
@@ -64,6 +64,101 @@ function responsibilityPreviewDisplay(value) {
   return String(value);
 }
 
+
+function responsibilityPreviewExpectedStructureDefinitions(responsibility={}, guaranteeDefinitionRegistry={}) {
+  const guaranteeIds = new Set(
+    (responsibility?.guarantees ?? [])
+      .map(item => String(item?.guarantee_id ?? '').trim())
+      .filter(Boolean)
+  );
+  const registryGuarantees = Array.isArray(guaranteeDefinitionRegistry?.guarantees)
+    ? guaranteeDefinitionRegistry.guarantees
+    : [];
+  const groups = new Map();
+
+  registryGuarantees
+    .filter(item => guaranteeIds.has(String(item?.guarantee_id ?? '').trim()))
+    .forEach(guarantee => {
+      const guaranteeId = String(guarantee?.guarantee_id ?? '').trim();
+      const schema = Array.isArray(guarantee?.structural_expected_schema)
+        ? guarantee.structural_expected_schema
+        : [];
+
+      schema.forEach(field => {
+        const structureId = String(field?.structure_id ?? '').trim();
+        const structureCaption = String(field?.structure_caption ?? structureId).trim();
+        if (!structureId || !structureCaption) return;
+
+        let group = groups.get(structureId);
+        if (!group) {
+          group = {
+            structure_id: structureId,
+            structure_caption: structureCaption,
+            structure_sort_order: Number(field?.structure_sort_order ?? 9999),
+            guarantee_ids: new Set(),
+            fields: []
+          };
+          groups.set(structureId, group);
+        }
+
+        group.guarantee_ids.add(guaranteeId);
+        const fieldId = String(field?.field_id ?? '').trim();
+        if (fieldId && !group.fields.some(item => item.field_id === fieldId)) {
+          group.fields.push({
+            field_id: fieldId,
+            sort_order: Number(field?.sort_order ?? 9999)
+          });
+        }
+      });
+    });
+
+  return [...groups.values()]
+    .map(group => ({
+      structure_id: group.structure_id,
+      structure_caption: group.structure_caption,
+      structure_sort_order: group.structure_sort_order,
+      guarantee_ids: [...group.guarantee_ids],
+      fields: group.fields.sort((a, b) =>
+        a.sort_order - b.sort_order || a.field_id.localeCompare(b.field_id)
+      )
+    }))
+    .sort((a, b) =>
+      a.structure_sort_order - b.structure_sort_order
+      || a.structure_caption.localeCompare(b.structure_caption)
+    );
+}
+
+function responsibilityPreviewExpectedStructureJson(pattern={}, structureDefinition=null) {
+  if (!structureDefinition) return '';
+
+  const guaranteeId = String(pattern?.guarantee_id ?? '').trim();
+  if (!(structureDefinition?.guarantee_ids ?? []).includes(guaranteeId)) return '';
+
+  const structures = Array.isArray(pattern?.structural_expected)
+    ? pattern.structural_expected
+    : [];
+  const source = structures.find(item =>
+    String(item?.structure_id ?? '').trim()
+      === String(structureDefinition?.structure_id ?? '').trim()
+  );
+  if (!source) return '';
+
+  const value = {};
+  (structureDefinition?.fields ?? []).forEach(field => {
+    const fieldId = String(field?.field_id ?? '').trim();
+    if (!fieldId || !Object.hasOwn(source, fieldId)) return;
+    value[fieldId] = responsibilityPreviewCloneForDisplay(source[fieldId]);
+  });
+
+  return Object.keys(value).length ? JSON.stringify(value) : '';
+}
+
+function responsibilityPreviewCloneForDisplay(value) {
+  if (value == null || typeof value !== 'object') return value;
+  try { return JSON.parse(JSON.stringify(value)); }
+  catch { return value; }
+}
+
 class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
   constructor(config={}, services={}) {
     super(config, services);
@@ -72,6 +167,7 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
     this._error = null;
     this._token = 0;
     this._selectedRowIndex = 0;
+    this._guaranteeDefinitionRegistry = null;
   }
 
   get title() {
@@ -131,12 +227,17 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
         this.componentOptions.searchOperatorRegistryDataPath ??
         'config/search_operator_registry_v0_1.json'
       );
-      const [inputData, viewDef, fieldDefinitionDocument, registry, searchOperatorRegistry] = await Promise.all([
+      const guaranteeDefinitionRegistryPath = String(
+        this.componentOptions.guaranteeDefinitionRegistryDataPath ??
+        'config/guarantee_definition_registry_v0_1.json'
+      );
+      const [inputData, viewDef, fieldDefinitionDocument, registry, searchOperatorRegistry, guaranteeDefinitionRegistry] = await Promise.all([
         responsibilityPreviewFetchJson(setup.input_file),
         responsibilityPreviewFetchJson(setup.view_def_file),
         needsFieldContracts ? responsibilityPreviewFetchJson(setup.field_definition_file) : Promise.resolve({ field_definitions: [] }),
         needsFieldContracts ? responsibilityPreviewFetchJson(registryPath) : Promise.resolve(null),
-        needsSearchOperatorRegistry ? responsibilityPreviewFetchJson(searchOperatorRegistryPath) : Promise.resolve(null)
+        needsSearchOperatorRegistry ? responsibilityPreviewFetchJson(searchOperatorRegistryPath) : Promise.resolve(null),
+        responsibilityPreviewFetchJson(guaranteeDefinitionRegistryPath)
       ]);
       if (token !== this._token || !this.mounted) return;
 
@@ -150,6 +251,7 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
         registry,
         searchOperatorRegistry
       });
+      this._guaranteeDefinitionRegistry = guaranteeDefinitionRegistry ?? { guarantees: [] };
       this._state = 'ready';
       this.render();
     } catch (err) {
@@ -158,6 +260,22 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
       this._error = err;
       this.render();
     }
+  }
+
+  expectedStructureDefinitions() {
+    return responsibilityPreviewExpectedStructureDefinitions(
+      this.row ?? {},
+      this._guaranteeDefinitionRegistry ?? {}
+    );
+  }
+
+  expectedStructureCells(pattern={}) {
+    const cells = {};
+    this.expectedStructureDefinitions().forEach(structure => {
+      cells[`expected_structure__${structure.structure_id}`] =
+        responsibilityPreviewExpectedStructureJson(pattern, structure);
+    });
+    return cells;
   }
 
   buildRows() {
@@ -176,7 +294,7 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
         target_field: pattern.target_field,
         aggregate: pattern.aggregate_operator ? `${pattern.aggregate_operator} / ${pattern.aggregate_scope}` : 'NO AGGREGATE',
         case_count: pattern.generated_cases?.length ?? 0,
-        expected_def: pattern.expected_def_type
+        ...this.expectedStructureCells(pattern)
       }));
     }
     if (searchMode) {
@@ -187,8 +305,7 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
         value_family: pattern.value_family,
         operator: `${pattern.operator_id} / ${pattern.operator_caption}`,
         case_count: pattern.generated_cases?.length ?? 0,
-        expected_hit_count: pattern.expected_hit_count ?? '',
-        expected_hit_indexes: responsibilityPreviewDisplay(pattern.expected_hit_indexes ?? [])
+        ...this.expectedStructureCells(pattern)
       }));
     }
     if (csvMode) {
@@ -198,10 +315,9 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
         role: pattern.pattern_role,
         row_scope: pattern.row_scope,
         case_count: pattern.generated_cases?.length ?? 0,
-        expected_def: pattern.expected_def_type
+        ...this.expectedStructureCells(pattern)
       }));
     }
-
     if (gridColumnMode) {
       return patterns.map((pattern, index) => ({
         __pattern_index: index,
@@ -210,7 +326,7 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
         fixture: pattern.fixture_id,
         policy: pattern.include_policy,
         case_count: pattern.generated_cases?.length ?? 0,
-        expected_def: pattern.expected_def_type
+        ...this.expectedStructureCells(pattern)
       }));
     }
 
@@ -219,8 +335,9 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
       pattern: pattern.pattern_id,
       role: pattern.pattern_role,
       target: `${pattern.target_data_path}[${pattern.row_index}]`,
+      mutation_count: pattern.mutations?.length ?? 0,
       expected_def: pattern.expected_def_type,
-      mutation_count: pattern.mutations?.length ?? 0
+      ...this.expectedStructureCells(pattern)
     }));
   }
 
@@ -231,6 +348,11 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
     const csvMode = patterns.some(pattern => String(pattern?.generation_mode ?? '') === 'CSV_EXPORT_CASE');
     const gridColumnMode = patterns.some(pattern => String(pattern?.generation_mode ?? '') === 'GRID_COLUMN_BUILD_CASE');
 
+    const structureColumns = this.expectedStructureDefinitions().map(structure => ({
+      field: `expected_structure__${structure.structure_id}`,
+      caption: structure.structure_caption
+    }));
+
     if (aggregateMode) {
       return [
         { field: 'pattern', caption: 'TestPattern' },
@@ -238,7 +360,7 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
         { field: 'target_field', caption: 'Target Field' },
         { field: 'aggregate', caption: 'Aggregate' },
         { field: 'case_count', caption: 'Cases' },
-        { field: 'expected_def', caption: 'ExpectedDef' }
+        ...structureColumns
       ];
     }
     if (searchMode) {
@@ -248,8 +370,7 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
         { field: 'value_family', caption: 'Type' },
         { field: 'operator', caption: 'Operator' },
         { field: 'case_count', caption: 'Cases' },
-        { field: 'expected_hit_count', caption: 'Expected Hit Count' },
-        { field: 'expected_hit_indexes', caption: 'Expected Hit Indexes' }
+        ...structureColumns
       ];
     }
     if (csvMode) {
@@ -258,7 +379,7 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
         { field: 'role', caption: 'Role' },
         { field: 'row_scope', caption: 'Rows' },
         { field: 'case_count', caption: 'Cases' },
-        { field: 'expected_def', caption: 'ExpectedDef' }
+        ...structureColumns
       ];
     }
     if (gridColumnMode) {
@@ -268,16 +389,18 @@ class ResponsibilityTestPreviewComponent extends DerivedSubGridComponent {
         { field: 'fixture', caption: 'Fixture' },
         { field: 'policy', caption: 'Policy' },
         { field: 'case_count', caption: 'Cases' },
-        { field: 'expected_def', caption: 'ExpectedDef' }
+        ...structureColumns
       ];
     }
-    return [
+
+    const base = [
       { field: 'pattern', caption: 'Pattern' },
       { field: 'role', caption: 'Role' },
       { field: 'target', caption: 'Target' },
-      { field: 'mutation_count', caption: 'Mutations' },
-      { field: 'expected_def', caption: 'ExpectedDef' }
+      { field: 'mutation_count', caption: 'Mutations' }
     ];
+    if (structureColumns.length) return [...base, ...structureColumns];
+    return [...base, { field: 'expected_def', caption: 'ExpectedDef' }];
   }
 
   detailJson(value) {
@@ -995,4 +1118,6 @@ registerEditorComponent(
 );
 
 globalThis.responsibilityPreviewFetchJson = responsibilityPreviewFetchJson;
+globalThis.responsibilityPreviewExpectedStructureDefinitions = responsibilityPreviewExpectedStructureDefinitions;
+globalThis.responsibilityPreviewExpectedStructureJson = responsibilityPreviewExpectedStructureJson;
 globalThis.ResponsibilityTestPreviewComponent = ResponsibilityTestPreviewComponent;

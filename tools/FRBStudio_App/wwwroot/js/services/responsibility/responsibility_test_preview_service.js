@@ -1,4 +1,4 @@
-// v0.18.127-search-structural-expected-preview
+// v0.18.129-guarantee-structural-expected-preview-columns
 // UI-independent derivation for Responsibility Definition Driven Test preview.
 // Canonical Responsibility JSON stores generation rules; Generated TestPattern / Expected remain derived readonly data.
 
@@ -774,6 +774,9 @@ class ResponsibilityTestPreviewService {
         include_policy: policy,
         expected_def_type: generatedCase.expected_def_type,
         guarantee_id: generatedCase.guarantee_id,
+        structural_expected: responsibilityPreviewClone(
+          Array.isArray(definition?.structural_expected) ? definition.structural_expected : []
+        ),
         generated_cases: [generatedCase],
         source: {
           input_file: String(setup?.input_file ?? ''),
@@ -833,6 +836,9 @@ class ResponsibilityTestPreviewService {
         row_scope: rowScope,
         expected_def_type: 'CsvExpectedDef',
         guarantee_id: String(definition?.guarantee_id ?? ''),
+        structural_expected: responsibilityPreviewClone(
+          Array.isArray(definition?.structural_expected) ? definition.structural_expected : []
+        ),
         generated_cases: [generatedCase],
         source: {
           input_file: String(setup?.input_file ?? ''),
@@ -932,6 +938,9 @@ class ResponsibilityTestPreviewService {
         expected_metric_set: String(definition?.expected_metric_set ?? ''),
         expected_def_type: 'ScalarExpectedDef',
         guarantee_id: String(definition?.guarantee_id ?? ''),
+        structural_expected: responsibilityPreviewClone(
+          Array.isArray(definition?.structural_expected) ? definition.structural_expected : []
+        ),
         generated_cases: generatedCases,
         source: {
           input_file: String(setup?.input_file ?? ''),
@@ -1141,6 +1150,9 @@ class ResponsibilityTestPreviewService {
             operator_set_id: operatorSetId,
             expected_hit_count: structuralExpected?.expected_hit_count ?? null,
             expected_hit_indexes: responsibilityPreviewClone(structuralExpected?.expected_hit_indexes ?? []),
+            structural_expected: structuralExpected
+              ? [responsibilityPreviewClone(structuralExpected)]
+              : [],
             expected_def_type: String(definition?.expected_def_type ?? 'StateExpectedDef'),
             guarantee_id: String(definition?.guarantee_id ?? ''),
             generated_cases: [],

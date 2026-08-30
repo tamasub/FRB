@@ -1142,7 +1142,8 @@
                   "position": "right",
                   "showRawJson": true,
                   "notes": "一覧に巨大JSON列を置かず、TestPattern行クリックで右側にGenerated Case Detailを表示する。意味はCore、配置・Raw表示有無はViewDef/Overlayで調整可能。"
-                }
+                },
+                "guaranteeDefinitionRegistryDataPath": "config/guarantee_definition_registry_v0_1.json"
               }
             }
           ]

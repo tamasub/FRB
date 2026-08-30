@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-30T21:20:00+09:00",
+  "updated_at": "2026-08-30T21:59:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 244,
+  "items_count": 246,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -36542,7 +36542,7 @@
       "ai_owner": "ChatGPT",
       "created_at": "2026-08-30T21:20:00+09:00",
       "updated_at": "2026-08-30T21:20:00+09:00",
-      "work_summary": "Guarantee Definition Registryを、\nGuarantee ID=人間の独立承認単位という判断軸と、Structural Expectedの最小補完モデルに合わせて更新した。\n中心定義として「期待値構造 = Pattern Defだけでは不足している「結果側のテスト条件」を補うもの」を採用し、\nSearch / Grid Column Build / CSV Export / Grid Aggregate / Data Update Persistを棚卸しした。",
+      "work_summary": "Guarantee Definition Registryを、Guarantee ID=人間の独立承認単位という判断軸と、Structural Expectedの最小補完モデルに合わせて更新した。中心定義として「期待値構造 = Pattern Defだけでは不足している「結果側のテスト条件」を補うもの」を採用し、Search / Grid Column Build / CSV Export / Grid Aggregate / Data Update Persistを棚卸しした。",
       "target_files": [
         "data/json/config/guarantee_definition_registry_v0_1.json",
         "defs/config/guarantee_definition_registry_view_def_v0_1.json",
@@ -36739,6 +36739,264 @@
           "before": "Structural ExpectedはGuaranteeごとに単一Schemaを持つ前提で、search_filter_g001のみdefined。",
           "after": "Pattern Def不足分だけをExpected Structureとして持ち、1 Guarantee複数Structure / not_required / scope_out_candidate / unassigned guaranteeを表現可能にした。",
           "reason": "複数責務へ横展開した机上検討で責務ごとの差と人間承認単位が明確になったため。"
+        }
+      ],
+      "failure_stories": []
+    },
+    {
+      "work_item_id": "studio_work_0257",
+      "phase": "v0.18.128-responsibility-structural-expected-reflection",
+      "title": "Responsibility DefinitionへStructural Expected具体条件を反映",
+      "incident_type": "design_definition",
+      "category": "Responsibility / Guarantee / Expected",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "画面参照表示検討",
+      "verification_status": "JSON parse確認済み / Guarantee-TestPattern契約Static PASS",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-08-30T21:49:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-30T21:49:00+09:00",
+      "updated_at": "2026-08-30T21:49:00+09:00",
+      "work_summary": "Guarantee Definitionで整理したStructural Expectedモデルを、現行正本であるResponsibility Definitionへ具体条件として反映した。Pattern Defですでに決まる条件は重複させず、不足する結果側条件だけを保持する。",
+      "target_files": [
+        "data/json/03_tests/responsibilities/responsibility_data_v0_2.json",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "actual_updated_files": [
+        "data/json/03_tests/responsibilities/responsibility_data_v0_2.json",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "context_def_draft": "# Responsibility Structural Expected Reflection\n\n- 期待値構造 = Pattern Defだけでは不足している「結果側のテスト条件」を補うもの\n- Guarantee IDは人間の独立承認単位であり、Expected Structureの違いだけでは分割しない。\n- Pattern Defで既に決まる条件はExpectedへ重複保持しない。\n- Responsibility Definitionが正本の間はPattern Def側へStructural Expected具体条件を保持する。\n- DATA_UPDATE_PERSISTはPattern Defだけで結果条件を十分導出できるため追加しない。",
+      "objective": "Guarantee Definitionで育てた期待値構造を、実行・生成契約の現行正本Responsibility Definitionへ矛盾なく反映する。",
+      "background": "studio_work_0256でGuarantee Definition側のExpected Structure Schemaを整理したため、その具体条件を現行正本へ反映する。",
+      "scope": [
+        "Responsibility policyへGuarantee人間承認単位とStructural Expected最小補完原則を追加",
+        "SEARCH_FILTER既存operator_structural_expectedへhit_structure識別子を追加",
+        "GRID_COLUMN_BUILD g001-g004へOutput系Structural Expectedを追加",
+        "CSV_EXPORT g001の各PatternへRow/Column・Key・CSV Formatの3 Structureを追加",
+        "GRID_AGGREGATE g001の各PatternへSource / Valid / Ignored / Has Aggregatesを追加",
+        "DATA_UPDATE_PERSISTへ不要なStructural Expectedを追加しない"
+      ],
+      "out_of_scope": [
+        "Guarantee Definitionを正本へ昇格",
+        "grid_column_build_g005の削除・移管",
+        "grid_aggregateのNumeric Parse候補Patternの削除・移管",
+        "Numeric Parse / Definition Validation責務の新設",
+        "Generated TestPattern Preview UIの列生成変更",
+        "Runner / Actual / Diffの挙動変更"
+      ],
+      "fixed_name_policy": "structure_id / expected_* は責務テスト定義の管理語彙として扱い、業務Data固定Field名にはしない。",
+      "module_policy": "今回の変更はData定義だけとし、Runtime / Preview Componentへ期待値構造の解釈ロジックを追加しない。",
+      "expected_outputs": [
+        "現行正本Responsibility Definitionに期待値構造の具体条件が存在する",
+        "CSVは1 Guaranteeのまま3 Expected Structureを保持する",
+        "Pattern Defで十分なDATA_UPDATE_PERSISTは重複項目を持たない"
+      ],
+      "risk": "Structural ExpectedのData反映と画面表示はまだ分離している。Generated Previewへの汎用列表示は後続作業とする。",
+      "test_points": [
+        "Responsibility / Incident JSON parse",
+        "Search全operatorにhit_structure",
+        "Grid Column g001-g004に期待値構造、g005には追加なし",
+        "CSV各Patternに3 structure_id",
+        "Aggregate各Patternにaggregate_structure",
+        "Data Update Persistにstructural_expected追加なし",
+        "既存Guarantee ID / Pattern Def ID維持"
+      ],
+      "verification_log": [
+        {
+          "at": "2026-08-30T21:49:00+09:00",
+          "confirmation_type": "JSON Parse / Structural Expected Contract",
+          "result": "PASS",
+          "detail": "Search / Grid Column / CSV / Aggregate / Data Update Persistの最小Structural Expected反映を確認。"
+        },
+        {
+          "at": "2026-08-30T21:49:00+09:00",
+          "confirmation_type": "Guarantee-TestPattern契約Static",
+          "result": "PASS",
+          "detail": "  ...\n1..5\n# tests 5\n# suites 0\n# pass 5\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 83.276461"
+        }
+      ],
+      "user_request": "Guarantee Definitionで整理した期待値構造を責務定義JSONへ反映する。",
+      "ai_response": "現行Responsibility Definitionを正本として、Pattern Def不足分だけStructural Expected具体条件を反映する。",
+      "latest_user_comment": "次、責務定義JSONに反映いきますかぁ？？よろしく",
+      "latest_ai_response": "Responsibility DefinitionへStructural Expectedを最小補完原則で反映。",
+      "context_refs": [
+        "studio_work_0256",
+        "search_filter_g001",
+        "grid_column_build_g001",
+        "csv_export_g001",
+        "grid_aggregate_g001",
+        "data_update_persist_g001"
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0257_001",
+          "status": "未着手",
+          "action": "Generated TestPattern / Expected PreviewをGuarantee Definition / Structural Expected参照で汎用表示するか検討する。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "at": "2026-08-30T21:49:00+09:00",
+          "speaker": "user",
+          "message": "Guarantee Definitionの整理確認後、現行正本の責務定義JSONへ反映する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0257_001",
+          "at": "2026-08-30T21:49:00+09:00",
+          "decision": "Structural ExpectedはPattern Def不足分のみResponsibility Definitionへ具体条件として保持する。",
+          "reason": "Pattern Defで既に決まる情報との二重管理を避けながら、Input逆算に必要な結果側テスト条件を正本へ保持するため。",
+          "applied_axes": [
+            "Expected First",
+            "最小定義",
+            "二重管理抑制"
+          ],
+          "conditions": "Responsibility DefinitionがTestPattern生成契約の正本である移行期間",
+          "exceptions": "Pattern Defだけで結果条件を導出できる場合は追加しない",
+          "expected_behavior": "DATA_UPDATE_PERSISTにはStructural Expectedを追加せず、Search / CSV等の不足分だけ保持する。",
+          "acceptance_criteria": "責務ごとに必要最小限のstructural expectedだけが存在する。",
+          "confirmation_level": "JSON review"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0257_001",
+          "at": "2026-08-30T21:49:00+09:00",
+          "change_type": "responsibility_structural_expected_reflected",
+          "before": "Search以外のPattern DefにはGuarantee Definitionで整理したStructural Expected具体条件が未反映。",
+          "after": "Grid Column / CSV / Aggregateへ必要最小限のStructural Expectedを追加。Searchへstructure_idを付与。DATA_UPDATE_PERSISTは追加なし。",
+          "reason": "Guarantee Definitionでの認識合わせが完了し、現行正本へ具体条件を反映する段階へ進んだため。"
+        }
+      ],
+      "failure_stories": []
+    },
+    {
+      "work_item_id": "studio_work_0258",
+      "phase": "v0.18.129-guarantee-structural-expected-preview-columns",
+      "title": "Generated TestPattern PreviewをGuarantee期待値構造列で動的表示",
+      "incident_type": "ui_definition",
+      "category": "Responsibility / Guarantee / Structural Expected",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "実機確認待ち",
+      "verification_status": "Target Static PASS",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-08-30T21:59:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-30T21:59:00+09:00",
+      "updated_at": "2026-08-30T21:59:00+09:00",
+      "work_summary": "Generated TestPattern / Expected PreviewのExpected列をGuarantee Definition Registryの期待値構造名単位へ変更し、配下expected_*はJSON文字列へ降格する。",
+      "target_files": [
+        "wwwroot/js/components/responsibility/responsibility_test_preview_component.js",
+        "wwwroot/js/services/responsibility/responsibility_test_preview_service.js",
+        "defs/qa/tests/responsibilities/responsibility_view_def_v0_2.json",
+        "tests/qa/static/responsibility_generated_rule_detail_static.test.mjs",
+        "tests/qa/static/responsibility_guarantee_expected_structure_columns_static.test.mjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "actual_updated_files": [
+        "wwwroot/js/components/responsibility/responsibility_test_preview_component.js",
+        "wwwroot/js/services/responsibility/responsibility_test_preview_service.js",
+        "defs/qa/tests/responsibilities/responsibility_view_def_v0_2.json",
+        "tests/qa/static/responsibility_generated_rule_detail_static.test.mjs",
+        "tests/qa/static/responsibility_guarantee_expected_structure_columns_static.test.mjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "context_def_draft": "# Guarantee Structural Expected Preview Columns\n\n- Generated PreviewのExpected列名はGuarantee Definition Registryのstructure_captionを正本とする。\n- 期待値構造の名前の種類数だけ列を生成する。\n- expected_* Fieldは個別列へ昇格させず、該当Structureセル内のJSON文字列へ降格する。\n- search_filter_g001はExpected Hit Count / Expected Hit Indexesの2列ではなくHit Structureの1列とする。\n- csv_export_g001はRow / Column Structure / Key Structure / CSV Format Structureの3列とする。",
+      "objective": "Guarantee Definitionで管理した期待値構造をGenerated Previewへ一元反映し、Expected Field増加による列肥大化とUIハードコードを防ぐ。",
+      "background": "Guarantee Definition側でExpected Structureを管理する方針が固まり、画面もExpected FieldではなくExpected Structureを主役にする必要がある。",
+      "scope": [
+        "Guarantee Definition RegistryをGenerated Previewから参照",
+        "structure_caption種類ごとの動的列生成",
+        "Structure配下expected_*のJSON文字列化",
+        "Search / CSV / Aggregate / Grid Column Buildへ同一仕掛けを適用"
+      ],
+      "out_of_scope": [
+        "Guarantee DefinitionをTestPattern生成正本へ昇格",
+        "Responsibility DefinitionのStructural Expected値を削除",
+        "右DetailのExpected表示変更",
+        "Data Update PersistへStructural Expectedを新設"
+      ],
+      "fixed_name_policy": "Expected列captionはComponentへハードコードせずGuarantee Definition Registryのstructure_captionから導出する。",
+      "module_policy": "ServiceはStructural Expected具体値をGenerated Patternへ投影し、ComponentはGuarantee DefinitionのSchemaから列名とJSON対象Fieldを導出する。",
+      "expected_outputs": [
+        "SearchはHit Structure 1列",
+        "Hit Structureセルはexpected_hit_count / expected_hit_indexesのJSON文字列",
+        "CSVは3 Expected Structure列",
+        "AggregateはAggregate Structure 1列",
+        "Expected Structure追加時にComponent列定義変更が不要"
+      ],
+      "risk": "Guarantee Definitionのstructure_id / field_idとResponsibility Definitionのstructural_expectedが不整合の場合、該当セルが空になる。",
+      "test_points": [
+        "SearchのExpected Hit Count / Indexes個別列を廃止",
+        "Guarantee structure_captionから列生成",
+        "JSONセルはSchema field_idだけを含む",
+        "ViewDefにGuarantee Definition Registryパスを明示"
+      ],
+      "verification_log": [
+        {
+          "at": "2026-08-30T21:59:00+09:00",
+          "confirmation_type": "Target Static",
+          "result": "PASS",
+          "detail": "  duration_ms: 12.592483\n  type: 'test'\n  ...\n# Subtest: SEARCH_FILTER Generated Cases expose Input Snapshot / Criteria / Expected with deterministic representative results\nok 28 - SEARCH_FILTER Generated Cases expose Input Snapshot / Criteria / Expected with deterministic representative results\n  ---\n  duration_ms: 6.247388\n  type: 'test'\n  ...\n# Subtest: Search Fixture data remains pure input and Generated artifacts are not persisted in Responsibility JSON\nok 29 - Search Fixture data remains pure input and Generated artifacts are not persisted in Responsibility JSON\n  ---\n  duration_ms: 0.898662\n  type: 'test'\n  ...\n# Subtest: Responsibility ViewDef includes search generation fields without adding a third ViewDef hierarchy\nok 30 - Responsibility ViewDef includes search generation fields without adding a third ViewDef hierarchy\n  ---\n  duration_ms: 0.492851\n  type: 'test'\n  ...\n1..30\n# tests 30\n# suites 0\n# pass 30\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 188.588806"
+        }
+      ],
+      "user_request": "Generated TestPattern Previewは保証定義の期待値構造列で定義している名前の種類分列を作り、Searchでは2列を1列にしてexpected_hit_count / expected_hit_indexesをJSON文字列へ降格する。",
+      "ai_response": "Guarantee Definitionのstructure_captionをExpected列正本とする汎用表示へ変更。",
+      "latest_user_comment": "search_filter_g001であれば今2列になっているところが1列になって、expected_hit_countとexpected_hit_indexesはJSON文字列に降格される。",
+      "latest_ai_response": "Expected FieldではなくExpected Structure単位で列を動的生成する。",
+      "context_refs": [
+        "studio_work_0256",
+        "studio_work_0257",
+        "search_filter_g001",
+        "csv_export_g001",
+        "grid_aggregate_g001"
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0258_001",
+          "status": "未着手",
+          "action": "実機画面でSearch / CSV / Aggregate / Grid Column BuildのExpected Structure列とJSONセルを確認する。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "at": "2026-08-30T21:59:00+09:00",
+          "speaker": "user",
+          "message": "Generated PreviewはGuarantee Definitionの期待値構造名の種類分だけ列を作り、expected_*はJSON文字列へ降格する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0258_001",
+          "at": "2026-08-30T21:59:00+09:00",
+          "decision": "Generated PreviewのExpected列単位をExpected FieldではなくExpected Structureとする。",
+          "reason": "Expected Field数に応じて列が増えると、人間が承認する保証構造より実装詳細が前面に出るため。",
+          "applied_axes": [
+            "Guarantee人間承認単位",
+            "Expected Structure",
+            "ViewDef First"
+          ],
+          "conditions": "Guarantee Definition Registryにstructural_expected_schema / structure_captionが存在する",
+          "exceptions": "Structural Expectedがnot_requiredで列定義がない責務は既存ExpectedDefへfallbackする",
+          "expected_behavior": "Search=1列 / CSV=3列 / Aggregate=1列。",
+          "acceptance_criteria": "列captionがGuarantee Definitionから導出され、セルがStructure配下field_idのJSON文字列になる。",
+          "confirmation_level": "Static + 実機"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0258_001",
+          "at": "2026-08-30T21:59:00+09:00",
+          "change_type": "generated_preview_expected_structure_columns",
+          "before": "SearchはExpected Hit Count / Expected Hit Indexesを個別列でハードコードし、他責務はExpectedDef列を表示していた。",
+          "after": "Guarantee Definition Registryのstructure_caption種類からExpected Structure列を動的生成し、expected_*をJSONセルへ降格した。",
+          "reason": "Guarantee Definitionを期待値構造列の正本として画面へ反映するため。"
         }
       ],
       "failure_stories": []
